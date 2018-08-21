@@ -14,14 +14,23 @@ double tango_avg_field(int period = 6, int run = 1886)
         return -1;
     }
 
-    TString strDateStart = pRun->GetStartDatetime().AsSQLString();
+    // correction of time shift (in seconds) between Tango time and DAQ time (raw data), it is really strange thing
+    int shift_sec = 0;
+    if (period == 7)
+        shift_sec = -40;
+
+    TDatime dateStart = pRun->GetStartDatetime();
+    if (shift_sec != 0) dateStart = (TDatime) (dateStart.Convert() + shift_sec);
+    TString strDateStart = dateStart.AsSQLString();
+
     TDatime* dateEnd = pRun->GetEndDatetime();
     if (dateEnd == NULL)
     {
-        cout<<"Macro finished with errors: no end datetime in the database for this run"<<endl;
+        cout<<"The function encountered with errors: no end datetime in the database ("<<period<<":"<<run<<"). This run will be skipped!"<<endl;
         delete pRun;
         return -2;
     }
+    if (shift_sec != 0) *dateEnd = (TDatime) (dateEnd->Convert() + shift_sec);
     TString strDateEnd = dateEnd->AsSQLString();
     delete pRun;
 
@@ -76,7 +85,15 @@ void tango_avg_field_write_db(int period = 7)
             continue;
         }
 
-        TString strDateStart = pRun->GetStartDatetime().AsSQLString();
+        // correction of time shift (in seconds) between Tango time and DAQ time (raw data), it is really strange thing
+        int shift_sec = 0;
+        if (run_numbers[i].period_number == 7)
+            shift_sec = -40;
+
+        TDatime dateStart = pRun->GetStartDatetime();
+        if (shift_sec != 0) dateStart = (TDatime) (dateStart.Convert() + shift_sec);
+        TString strDateStart = dateStart.AsSQLString();
+
         TDatime* dateEnd = pRun->GetEndDatetime();
         if (dateEnd == NULL)
         {
@@ -84,6 +101,7 @@ void tango_avg_field_write_db(int period = 7)
             delete pRun;
             continue;
         }
+        if (shift_sec != 0) *dateEnd = (TDatime) (dateEnd->Convert() + shift_sec);
         TString strDateEnd = dateEnd->AsSQLString();
 
         const char* detector_name = "bmn";
@@ -136,7 +154,16 @@ int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end 
         cout<<"Macro finished with errors: no experimental run was found - "<<period_begin<<":"<<run_begin<<" (period:run)"<<endl;
         return -1;
     }
-    TString strDateStart = pRunBegin->GetStartDatetime().AsSQLString();
+
+    // correction of time shift (in seconds) between Tango time and DAQ time (raw data), it is really strange thing
+    int shift_sec = 0;
+    if (period_begin == 7)
+        shift_sec = -40;
+
+    TDatime dateStart = pRunBegin->GetStartDatetime();
+    if (shift_sec != 0) dateStart = (TDatime) (dateStart.Convert() + shift_sec);
+    TString strDateStart = dateStart.AsSQLString();
+    cout<<"strDateStart: "<<strDateStart.Data()<<endl;
 
     TDatime* dateEnd = NULL;
     if ((period_end == -1) && (run_end == -1))
@@ -163,7 +190,9 @@ int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end 
         delete pRunBegin;
         return -2;
     }
+    if (shift_sec != 0) *dateEnd = (TDatime) (dateEnd->Convert() + shift_sec);
     TString strDateEnd = dateEnd->AsSQLString();
+    cout<<"strDateEnd: "<<strDateEnd.Data()<<endl;
     delete pRunBegin;
 
     // get Tango data
@@ -207,7 +236,15 @@ void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
             continue;
         }
 
-        TString strDateStart = pRun->GetStartDatetime().AsSQLString();
+        // correction of time shift (in seconds) between Tango time and DAQ time (raw data), it is really strange thing
+        int shift_sec = 0;
+        if (run_numbers[i].period_number == 7)
+            shift_sec = -40;
+
+        TDatime dateStart = pRun->GetStartDatetime();
+        if (shift_sec != 0) dateStart = (TDatime) (dateStart.Convert() + shift_sec);
+        TString strDateStart = dateStart.AsSQLString();
+
         TDatime* dateEnd = pRun->GetEndDatetime();
         if (dateEnd == NULL)
         {
@@ -216,6 +253,7 @@ void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
             delete pRun;
             continue;
         }
+        if (shift_sec != 0) *dateEnd = (TDatime) (dateEnd->Convert() + shift_sec);
         TString strDateEnd = dateEnd->AsSQLString();
         delete dateEnd;
         delete pRun;

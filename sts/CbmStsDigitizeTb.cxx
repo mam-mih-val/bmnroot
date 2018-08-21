@@ -139,7 +139,7 @@ void CbmStsDigitizeTb::DigitizePoint(const CbmStsPoint* point,
     LOG(DEBUG) << fName << ": node " << fDigiScheme->GetCurrentPath()
                  << " not found in digi scheme!" << FairLogger::endl;
     LOG(DEBUG2) << "\t" << "MCPoint information:" << FairLogger::endl;
-    point->Info(DEBUG2);
+    point->Info();
     return;
   }
 

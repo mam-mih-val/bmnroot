@@ -39,6 +39,8 @@ set(SRCS
   BmnManageQA.cxx
   BmnGemDigitizerQAHistograms.cxx
   BmnGemTracking.cxx
+  BmnCellAutoTracking.cxx
+  BmnCellDuet.cxx
   BmnGemStripLayer.cxx
   BmnGemStripModule.cxx
   BmnGemStripStation.cxx
@@ -52,9 +54,9 @@ set(SRCS
   BmnGemStripDigit.cxx
   BmnGemStripDigitizer.cxx
   BmnGemStripHitMaker.cxx
-  BmnKalmanFilter.cxx
+#  BmnKalmanFilter.cxx
   BmnGemStripMedium.cxx
-  BmnMaterialEffects.cxx
+#  BmnMaterialEffects.cxx
 )
 
 IF (SSE_FOUND)

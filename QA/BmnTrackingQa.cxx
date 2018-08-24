@@ -79,7 +79,7 @@ fChargeCut(0),
 fGlobalTracks(NULL) {
 }
 
-BmnTrackingQa::BmnTrackingQa(Short_t ch, TString name) :
+BmnTrackingQa::BmnTrackingQa(Short_t ch, TString name, TString gemConf, TString silConf) :
 FairTask("BmnTrackingQA", 1),
 fHM(NULL),
 fOutputDir("./"),
@@ -106,9 +106,11 @@ fThetaRangeMin(0.),
 fThetaRangeMax(40.),
 fThetaRangeBins(50),
 fOutName(name),
+fConfigGem(gemConf),
+fConfigSil(silConf),
 fMCTracks(NULL),
 fPrimes(kFALSE),
-fNHitsCut(2000),
+fNHitsCut(1000),
 fChargeCut(0),
 fGlobalTracks(NULL) {
     fChargeCut = ch;
@@ -122,7 +124,7 @@ InitStatus BmnTrackingQa::Init() {
     fHM = new BmnHistManager();
     CreateHistograms();
     ReadDataBranches();
-    fMCTrackCreator = BmnMCTrackCreator::Instance();
+    fMCTrackCreator = BmnMCTrackCreator::Instance(fConfigGem, fConfigSil);
     return kSUCCESS;
 }
 
@@ -133,7 +135,7 @@ void BmnTrackingQa::Exec(Option_t* opt) {
     ReadEventHeader();
     fMCTrackCreator->Create();
     ProcessGem();
-//    ProcessGlobal();
+    //    ProcessGlobal();
 }
 
 void BmnTrackingQa::Finish() {
@@ -404,13 +406,13 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Well_vs_Nh_glob", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
     CreateH1("Fake_vs_Nh_glob", "Number of hits", "Ghosts, %", nofBinsPoints, minNofPoints, maxNofPoints);
 
-    CreateH2("MomRes_vs_Chi2_gem", "#chi^{2}", "#Delta P / P, %", "", 400, 0, 10, 400, -10, 10);
+    CreateH2("MomRes_vs_Chi2_gem", "#chi^{2}", "#Delta P / P, %", "", 523, 0, 523, 400, -10, 10);
     CreateH2("MomRes_vs_Length_gem", "Length, cm", "#Delta P / P, %", "", 400, 0, 400, 400, -10, 10);
     CreateH2("MomRes_vs_nHits_gem", "N_{hits}", "#Delta P / P, %", "", 10, 0, 10, 400, -10, 10);
     CreateH2("MomRes_vs_Theta_gem", "#theta_{sim}", "#Delta P / P, %", "", fThetaRangeBins, fThetaRangeMin, fThetaRangeMax, 400, -10, 10);
     CreateH2("Mom_vs_Chi2_gem", "#chi^{2}", "P_{rec}/q, GeV/c", "", 400, 0, 10, 400, fPRangeMin, fPRangeMax);
     CreateH2("Mom_vs_Length_gem", "Length, cm", "P_{rec}/q, GeV/c", "", 400, 0, 400, 400, fPRangeMin, fPRangeMax);
-    CreateH1("Chi2_gem", "#chi^{2} / NDF", "Counter", 400, 0, 10);
+    CreateH1("Chi2_gem", "#chi^{2} / NDF", "Counter", 523, 0, 523);
     CreateH1("Length_gem", "length, cm", "Counter", 400, 0, 400);
 
     CreateH2("MomRes_vs_Chi2_glob", "#chi^{2}", "#Delta P / P, %", "", 400, 0, 10, 400, -10, 10);
@@ -427,10 +429,10 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("VertResZ_gem", "#DeltaV_{z}, cm", "Counter", 100, -10.0, 10.0);
     CreateH1("VertX_gem", "V_{x}, cm", "Counter", 300, -1.0, 1.0);
     CreateH1("VertY_gem", "V_{y}, cm", "Counter", 300, -6.0, 0.0);
-    CreateH1("VertZ_gem", "V_{z}, cm", "Counter", 300, -30.0, -10.0);
+    CreateH1("VertZ_gem", "V_{z}, cm", "Counter", 300, -10.0, +10.0);
     CreateH2("VertX_vs_Ntracks_gem", "Number of tracks", "V_{x}, cm", "", 10, 0, 10, 300, -1.0, 1.0);
     CreateH2("VertY_vs_Ntracks_gem", "Number of tracks", "V_{y}, cm", "", 10, 0, 10, 300, -6.0, 0.0);
-    CreateH2("VertZ_vs_Ntracks_gem", "Number of tracks", "V_{z}, cm", "", 10, 0, 10, 300, -30.0, -10.0);
+    CreateH2("VertZ_vs_Ntracks_gem", "Number of tracks", "V_{z}, cm", "", 10, 0, 10, 300, -10.0, +10.0);
 
     CreateH2("Eff_vs_EtaP_gem", "#eta_{sim}", "P_{sim, GeV/c}", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
     CreateH2("Clones_vs_EtaP_gem", "#eta_{sim}", "P_{sim, GeV/c}", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
@@ -535,8 +537,8 @@ void BmnTrackingQa::CreateHistograms() {
 
     //hits residuals
     for (Int_t iSt = 0; iSt < 6; ++iSt) {
-        CreateH1(Form("ResX_%dst", iSt), "ResX, cm", "Counter", 400, -0.1, 0.1);
-        CreateH1(Form("ResY_%dst", iSt), "ResY, cm", "Counter", 400, -1, 1);
+        CreateH1(Form("ResX_%dst", iSt), "ResX, cm", "Counter", 400, -10, 10);
+        CreateH1(Form("ResY_%dst", iSt), "ResY, cm", "Counter", 400, -10, 10);
     }
 }
 
@@ -551,9 +553,9 @@ void BmnTrackingQa::ProcessGem() {
         //        fHM->H1("VertResX_gem")->Fill(vrt->GetX() - evHead->GetX());
         //        fHM->H1("VertResY_gem")->Fill(vrt->GetY() - evHead->GetY());
         //        fHM->H1("VertResZ_gem")->Fill(vrt->GetZ() - evHead->GetZ());
-        fHM->H1("VertResX_gem")->Fill(vrt->GetX() - 0.0);
-        fHM->H1("VertResY_gem")->Fill(vrt->GetY() - (-3.5));
-        fHM->H1("VertResZ_gem")->Fill(vrt->GetZ() - (-21.7));
+        fHM->H1("VertResX_gem")->Fill(vrt->GetX() - 0.5);
+        fHM->H1("VertResY_gem")->Fill(vrt->GetY() - (-4.6));
+        fHM->H1("VertResZ_gem")->Fill(vrt->GetZ() - (-2.3));
         fHM->H1("VertX_gem")->Fill(vrt->GetX());
         fHM->H1("VertY_gem")->Fill(vrt->GetY());
         fHM->H1("VertZ_gem")->Fill(vrt->GetZ());
@@ -711,19 +713,20 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H1("Ty_l_gem")->Fill(pl->GetTy());
             fHM->H1("Qp_l_gem")->Fill(pl->GetQp());
 
-            for (Int_t iHit = 0; iHit < track->GetNHits(); ++iHit) {
-                BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->At(track->GetHitIndex(iHit));
-                Double_t hX = hit->GetX();
-                Double_t hY = hit->GetY();
-                Int_t st = hit->GetStation();
-                BmnFitNode* node = track->GetFitNode(st);
-                //                Double_t tX = node->GetSmoothedParam()->GetX();
-                //                Double_t tY = node->GetSmoothedParam()->GetY();
-                Double_t tX = node->GetUpdatedParam()->GetX();
-                Double_t tY = node->GetUpdatedParam()->GetY();
-                fHM->H1(Form("ResX_%dst", st))->Fill(tX - hX);
-                fHM->H1(Form("ResY_%dst", st))->Fill(tY - hY);
-            }
+            //tmp comment
+//            for (Int_t iHit = 0; iHit < track->GetNHits(); ++iHit) {
+//                BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->At(track->GetHitIndex(iHit));
+//                Double_t hX = hit->GetX();
+//                Double_t hY = hit->GetY();
+//                Int_t st = hit->GetStation();
+//                BmnFitNode* node = track->GetFitNode(st);
+//                //                Double_t tX = node->GetSmoothedParam()->GetX();
+//                //                Double_t tY = node->GetSmoothedParam()->GetY();
+//                Double_t tX = node->GetUpdatedParam()->GetX();
+//                Double_t tY = node->GetUpdatedParam()->GetY();
+//                fHM->H1(Form("ResX_%dst", st))->Fill(tX - hX);
+//                fHM->H1(Form("ResY_%dst", st))->Fill(tY - hY);
+//            }
         }
     }
 

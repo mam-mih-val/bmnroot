@@ -7,6 +7,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/uni_db
  ${CMAKE_SOURCE_DIR}/uni_db/db_classes
+ ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndata
 )
 
@@ -105,8 +106,12 @@ BmnGemTrack.cxx
  math/BmnMath.cxx
  math/BmnMatrixMath.cxx
  math/FitWLSQ.cxx
+ math/BmnGeoNavigator.cxx
+ math/BmnKalmanFilter.cxx
+ math/BmnMaterialEffects.cxx
+ math/BmnMaterialInfo.h
  BmnFileSource.cxx
- BmnGeoNavigator.cxx
+ 
  BmnTrack.cxx
  BmnHit.cxx
  BmnLink.cxx

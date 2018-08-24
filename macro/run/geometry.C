@@ -34,8 +34,8 @@ void geometry(FairRunSim *fRun)
 
     FairDetector* sts = new CbmSts("STS", kTRUE);
     //sts->SetGeometryFileName("GEMS_RunWinter2016.root");
-    sts->SetGeometryFileName("GEMS_RunSpring2017.root");
-    //sts->SetGeometryFileName("GEMS_RunSpring2018.root");
+//    sts->SetGeometryFileName("GEMS_RunSpring2017.root");
+    sts->SetGeometryFileName("GEMS_RunSpring2018.root");
     fRun->AddModule(sts);
 
     //    FairDetector* recoil = new BmnRecoil("RECOIL", kTRUE);
@@ -63,9 +63,9 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(emc);
 
     FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
-    //silicon->SetGeometryFileName("Silicon_v1.root");
-    silicon->SetGeometryFileName("Silicon_RunSpring2017.root");
-    //silicon->SetGeometryFileName("Silicon_RunSpring2018.root");
+//    silicon->SetGeometryFileName("Silicon_v1.root");
+//    silicon->SetGeometryFileName("Silicon_RunSpring2017.root");
+    silicon->SetGeometryFileName("Silicon_RunSpring2018.root");
     fRun->AddModule(silicon);
 
     FairDetector* ssd = new BmnSSD("SSD", kTRUE);

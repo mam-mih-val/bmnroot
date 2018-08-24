@@ -34,7 +34,7 @@ private:
     /**
      * \brief Constructor.
      */
-    BmnMCTrackCreator();
+    BmnMCTrackCreator(TString gem, TString sil);
 
 public:
     /**
@@ -45,7 +45,7 @@ public:
     /**
      * \brief Singleton instance.
      */
-    static BmnMCTrackCreator* Instance();
+    static BmnMCTrackCreator* Instance(TString gem, TString sil);
 
     /**
      * \brief Creates array of BmnMCTracks for current event.
@@ -79,7 +79,7 @@ public:
     Int_t GetNofTracks() const {
         return fBmnMCTracks.size();
     }
-
+    
 private:
 
     /**
@@ -121,7 +121,6 @@ private:
      */
     void FillStationMaps();
 
-
     void FairMCPointCoordinatesAndMomentumToBmnMCPoint(// for DCH1, DCH2, TOF1 points
             const FairMCPoint* fairPoint,
             BmnMCPoint* bmnPoint);
@@ -148,7 +147,7 @@ private:
     
     BmnGemStripStationSet* fGemDetector;
     BmnSiliconStationSet* fSilDetector;
-
+    
     CbmGeoStsPar* fStsGeoPar; // Geometry parameter container
     CbmStsDigiPar* fStsDigiPar; // Digitisation parameter container
     CbmStsDigiScheme* fStsDigiScheme; // Digitisation scheme

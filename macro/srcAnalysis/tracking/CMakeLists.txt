@@ -25,4 +25,4 @@ set(LINK_DIRECTORIES
 link_directories(${LINK_DIRECTORIES})
 
 add_executable(track_arms track_arms.cpp SRCEvent.cpp)
-target_link_libraries(track_arms BmnData Silicon TOF1 UniDb BmnSteering Gem GlobalTracking KF Mwpc Dch ${ROOT_LIBRARIES} XMLParser Minuit Spectrum GenVector MathMore)
+target_link_libraries(track_arms BmnData Silicon TOF1 UniDb BmnSteering BmnAlignment Gem GlobalTracking KF Mwpc Dch ${ROOT_LIBRARIES} XMLParser Minuit Spectrum GenVector MathMore)

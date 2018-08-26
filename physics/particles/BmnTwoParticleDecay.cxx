@@ -14,7 +14,7 @@
 #include "BmnTwoParticleDecay.h"
 
 BmnTwoParticleDecay::BmnTwoParticleDecay(BmnGemStripConfiguration::GEM_CONFIG config, Int_t runNumb) :
-fRunPeriod(6),
+fRunPeriod(7),
 fRunId(runNumb),
 // Particles set by default:
 fPDG1(2212), // proton
@@ -47,6 +47,8 @@ fGlobalMatches(NULL) {
         }
     }
 
+    TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
+    gPathGemConfig += "/gem/XMLConfigs/";
     // Create GEM detector ------------------------------------------------------
     switch (fGeometry) {
         case BmnGemStripConfiguration::RunWinter2016:
@@ -60,7 +62,9 @@ fGlobalMatches(NULL) {
             break;
 
         default:
-            fDetector = NULL;
+            fDetector = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2018.xml");
+            cout << "   Current Configuration : RunSpring2018" << "\n";
+            break;
     }
 }
 
@@ -220,7 +224,7 @@ void BmnTwoParticleDecay::FindFirstPointOnMCTrack(Int_t iTrack, BmnGlobalTrack* 
         CbmStsPoint* gemPoint = (CbmStsPoint*) fGemPoints->UncheckedAt(iPoint);
         Int_t TrackID = gemPoint->GetTrackID();
 
-        if (TrackID != iTrack || gemPoint->GetZIn() > 35)
+        if (TrackID != iTrack || gemPoint->GetZIn() > fDetector->GetGemStation(0)->GetZPosition() + 5.) // FIXME
             continue;
         Double_t Px = gemPoint->GetPx();
         Double_t Py = gemPoint->GetPy();
@@ -266,7 +270,7 @@ void BmnTwoParticleDecay::Analysis() {
     const Int_t nV0 = 2;
     TLorentzVector lPos[nV0], lNeg[nV0];
     TClonesArray* arr = ((fUseMc && fGlobalMatches) || !fUseMc) ? fGlobalTracks : fMCTracks;
-    
+
     for (Int_t iTrack = 0; iTrack < arr->GetEntriesFast(); iTrack++) {
         BmnGlobalTrack Track1;
         BmnGlobalTrack* track1 = &Track1;
@@ -351,7 +355,7 @@ void BmnTwoParticleDecay::Analysis() {
 
             Double_t zPartOrigDeath = (pointsAndMinDist[0] + pointsAndMinDist[2]) / 2.0;
             Double_t xPartOrigDeath = (pointsAndMinDist[1] + pointsAndMinDist[3]) / 2.0;
-            
+
             V0Z[0] = Min(pointsAndMinDist[0], pointsAndMinDist[2]); // V0ZX
             delete [] pointsAndMinDist;
 
@@ -359,8 +363,8 @@ void BmnTwoParticleDecay::Analysis() {
             FairTrackParam proton_V0[nV0], pion_V0[nV0];
             vector <Double_t> geomTopology[nV0];
             // Description of vector:
-            // Distance beetween Vp and Vp_prot_extrap   [0]
-            // Distance beetween Vp and Vp_prot_extrap   [1]
+            // Distance between Vp and Vp_prot_extrap   [0]
+            // Distance between Vp and Vp_prot_extrap   [1]
             // Distance between proton and pion at V0    [2]
             // Distance between V0 and Vp along beamline [3]
 
@@ -369,14 +373,14 @@ void BmnTwoParticleDecay::Analysis() {
                 pion_V0[iProj] = KalmanTrackPropagation(track2, fPdgParticle2, V0Z[iProj]);
                 geomTopology[iProj] = GeomTopology(proton_V0[iProj], pion_V0[iProj], proton_Vp, pion_Vp);
             }
-            
+
             Double_t protonPz = 1.0 / proton_V0[0].GetQp() / Sqrt(Sqr(proton_V0[0].GetTx()) + Sqr(proton_V0[0].GetTy()) + 1.0);
             Double_t pionPz = 1.0 / pion_V0[0].GetQp() / Sqrt(Sqr(pion_V0[0].GetTx()) + Sqr(pion_V0[0].GetTy()) + 1.0);
             Double_t protonPx = proton_V0[0].GetTx() * protonPz;
             Double_t pionPx = pion_V0[0].GetTx() * pionPz;
-            
+
             Double_t txPartOrig = (protonPx + pionPx) / (protonPz + pionPz);
-            
+
             Double_t PartOrigBX = txPartOrig * (Vpz - zPartOrigDeath) + xPartOrigDeath;
 
             BmnParticlePair* partPair = new((*fParticlePair)[fParticlePair->GetEntriesFast()]) BmnParticlePair();

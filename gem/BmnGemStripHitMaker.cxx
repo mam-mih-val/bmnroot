@@ -31,10 +31,11 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
 }
 
 BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Bool_t isExp)
-: fHitMatching(kTRUE), fAlignCorrFileName(""), fRunId(-1), fPeriodId(run_period) {
+: fHitMatching(kTRUE), fAlignCorrFileName(""), fRunId(-1), fPeriodId(run_period),
+fBmnGemStripDigitsArray(NULL) {
 
     fInputPointsBranchName = "StsPoint";
-    fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
+    //    fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
     fIsExp = isExp;
 
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
@@ -49,6 +50,9 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Bool_t isExp)
 
     fCurrentConfig = BmnGemStripConfiguration::None;
     StationSet = NULL;
+
+    fSigmaX = 0.0;
+    fSigmaY = 0.0;
 }
 
 BmnGemStripHitMaker::~BmnGemStripHitMaker() {
@@ -64,11 +68,15 @@ InitStatus BmnGemStripHitMaker::Init() {
 
     FairRootManager* ioman = FairRootManager::Instance();
 
-    fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
+    fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject("GEM");
     if (!fBmnGemStripDigitsArray) {
-        cout << "BmnGemStripHitMaker::Init(): branch " << fInputDigitsBranchName << " not found! Task will be deactivated" << endl;
-        SetActive(kFALSE);
-        return kERROR;
+        fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject("BmnGemStripDigit");
+
+        if (!fBmnGemStripDigitsArray) {
+            cout << "BmnGemStripHitMaker::Init(): Neither GEM nor BmnGemStripDigit found! Task will be deactivated" << endl;
+            SetActive(kFALSE);
+            return kERROR;
+        }
     }
 
     fBmnGemStripDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
@@ -122,7 +130,7 @@ InitStatus BmnGemStripHitMaker::Init() {
     const Int_t nParams = 3;
 
     TRandom* rand = new TRandom();
-    rand->SetSeed(2);
+    rand->SetSeed(0);
 
     corr = new Double_t**[nStat];
     misAlign = new Double_t**[nStat];
@@ -136,7 +144,7 @@ InitStatus BmnGemStripHitMaker::Init() {
             for (Int_t iPar = 0; iPar < nParams; iPar++) {
                 corr[iStat][iMod][iPar] = 0.;
                 if (!fIsExp)
-                    misAlign[iStat][iMod][iPar] = rand->Gaus(0., (iPar == 0) ? 0.03 : (iPar == 1) ? 0.05 : 0.);
+                    misAlign[iStat][iMod][iPar] = rand->Gaus(0., (iPar == 0) ? fSigmaX : (iPar == 1) ? fSigmaY : fSigmaZ);
             }
         }
     }
@@ -172,7 +180,7 @@ InitStatus BmnGemStripHitMaker::Init() {
         for (Int_t iEle = 0; iEle < nStat; iEle++) {
             const Int_t nParams = 3; // Parabolic approximation is used
             lorCorrsCoeff[iEle] = new Double_t[nParams];
-            for (Int_t iParam = 0; iParam < nParams; iParam++) 
+            for (Int_t iParam = 0; iParam < nParams; iParam++)
                 lorCorrsCoeff[iEle][iParam] = (coeffLorCorrs) ? shifts[iEle].ls[iParam] : 0.;
         }
     }
@@ -356,27 +364,14 @@ void BmnGemStripHitMaker::Finish() {
         StationSet = NULL;
     }
 
-    if (fIsExp && Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON)
+    if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON)
         delete [] lorCorrsCoeff;
 
     cout << "Work time of the GEM hit maker: " << workTime << endl;
 }
 
 void BmnGemStripHitMaker::ReadAlignCorrFile(TString fname, Double_t*** corr) {
-    Int_t coeff = 0; // -1 for RunWinter2016, +1 for RunSpring2017 and in the future
-    TString branchName = "";
-    switch (fCurrentConfig) {
-        case BmnGemStripConfiguration::RunWinter2016:
-            coeff = -1;
-            branchName = "BmnGemAlignmentCorrections";
-            break;
-
-        default:
-            coeff = 1;
-            branchName = "BmnGemAlignCorrections";
-            break;
-    }
-
+    TString branchName = "BmnGemAlignCorrections";
     TFile* f = new TFile(fname.Data());
     TTree* t = (TTree*) f->Get("cbmsim");
     TClonesArray* corrs = NULL;
@@ -385,21 +380,12 @@ void BmnGemStripHitMaker::ReadAlignCorrFile(TString fname, Double_t*** corr) {
     for (Int_t iEntry = 0; iEntry < t->GetEntries(); iEntry++) {
         t->GetEntry(iEntry);
         for (Int_t iCorr = 0; iCorr < corrs->GetEntriesFast(); iCorr++) {
-            if (coeff == -1) { // To be removed in future
-                BmnGemAlignmentCorrections* align = (BmnGemAlignmentCorrections*) corrs->UncheckedAt(iCorr);
-                Int_t iStat = align->GetStation();
-                Int_t iMod = align->GetModule();
-                corr[iStat][iMod][0] = coeff * align->GetCorrections().X();
-                corr[iStat][iMod][1] = coeff * align->GetCorrections().Y();
-                corr[iStat][iMod][2] = coeff * align->GetCorrections().Z();
-            } else {
-                BmnGemAlignCorrections* align = (BmnGemAlignCorrections*) corrs->UncheckedAt(iCorr);
-                Int_t iStat = align->GetStation();
-                Int_t iMod = align->GetModule();
-                corr[iStat][iMod][0] = coeff * align->GetCorrections().X();
-                corr[iStat][iMod][1] = coeff * align->GetCorrections().Y();
-                corr[iStat][iMod][2] = coeff * align->GetCorrections().Z();
-            }
+            BmnGemAlignCorrections* align = (BmnGemAlignCorrections*) corrs->UncheckedAt(iCorr);
+            Int_t iStat = align->GetStation();
+            Int_t iMod = align->GetModule();
+            corr[iStat][iMod][0] = align->GetCorrections().X();
+            corr[iStat][iMod][1] = align->GetCorrections().Y();
+            corr[iStat][iMod][2] = align->GetCorrections().Z();
         }
     }
     delete f;

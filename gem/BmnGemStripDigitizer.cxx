@@ -46,11 +46,11 @@ InitStatus BmnGemStripDigitizer::Init() {
     fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
 
     fBmnGemStripDigitsArray = new TClonesArray(fOutputDigitsBranchName);
-    ioman->Register(fOutputDigitsBranchName, "GEM", fBmnGemStripDigitsArray, kTRUE);
+    ioman->Register(fOutputDigitsBranchName, "GEM_DIGIT", fBmnGemStripDigitsArray, kTRUE);
 
     if (fStripMatching) {
         fBmnGemStripDigitMatchesArray = new TClonesArray("BmnMatch");
-        ioman->Register(fOutputDigitMatchesBranchName, "GEM", fBmnGemStripDigitMatchesArray, kTRUE);
+        ioman->Register(fOutputDigitMatchesBranchName, "GEM_DIGIT", fBmnGemStripDigitMatchesArray, kTRUE);
     }
 
     TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
@@ -79,6 +79,11 @@ InitStatus BmnGemStripDigitizer::Init() {
             if (fVerbose) cout << "   Current GEM Configuration : RunSpring2018" << "\n";
             break;
 
+        case BmnGemStripConfiguration::RunSpring2018_misAlign :
+            StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2018_misAlign.xml");
+            if (fVerbose) cout << "   Current GEM Configuration : RunSpring2018" << "\n";
+            break;
+            
         default:
             StationSet = NULL;
     }
@@ -144,8 +149,10 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
 
         Int_t mc_station_num = ((CbmStsPoint*)GemStripPoint)->GetStation();
         Int_t mc_module_num = ((CbmStsPoint*)GemStripPoint)->GetModule();
+        
+        Bool_t status;
 
-        StationSet->AddPointToDetector(x, y, z, px, py, pz, dEloss, refId);
+        status = StationSet->AddPointToDetector(x, y, z, px, py, pz, dEloss, refId);
     }
 
     Int_t NAddedPoints = StationSet->CountNAddedToDetectorPoints();
@@ -166,7 +173,7 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
                     if(signal > 0.0) {
                         new ((*fBmnGemStripDigitsArray)[fBmnGemStripDigitsArray->GetEntriesFast()])
                                 BmnGemStripDigit(iStation, iModule, iLayer, iStrip, signal);
-
+                       
                         if (fStripMatching) {
                             new ((*fBmnGemStripDigitMatchesArray)[fBmnGemStripDigitMatchesArray->GetEntriesFast()])
                                     BmnMatch(layer.GetStripMatch(iStrip));

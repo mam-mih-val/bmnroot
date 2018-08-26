@@ -11,8 +11,7 @@ using namespace std;
 class BmnGemAlignCorrections : public BmnAlignCorrections {
 public:
 
-    BmnGemAlignCorrections() {
-    };
+    BmnGemAlignCorrections();
 
     BmnGemAlignCorrections(Int_t, Int_t, TVector3);
     

@@ -27,7 +27,8 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
     fField = NULL;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
-    StationSet = NULL;
+    StationSet = nullptr;
+    TransfSet = nullptr;
 }
 
 BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Bool_t isExp)
@@ -48,7 +49,8 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Bool_t isExp)
     fField = NULL;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
-    StationSet = NULL;
+    StationSet = nullptr;
+    TransfSet = nullptr;
 }
 
 BmnGemStripHitMaker::~BmnGemStripHitMaker() {
@@ -111,7 +113,14 @@ InitStatus BmnGemStripHitMaker::Init() {
 
         case BmnGemStripConfiguration::RunSpring2018:
             StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2018.xml");
-            cout << "   Current Configuration : RunSpring2018" << "\n";
+            if (fVerbose) cout << "   Current Configuration : RunSpring2018" << "\n";
+            break;
+
+        case BmnGemStripConfiguration::RotTest :
+            StationSet = new BmnGemStripStationSet(gPathGemConfig + "Gem_RotTest.xml");
+            TransfSet = new BmnGemStripTransform();
+            TransfSet->LoadFromXMLFile(gPathGemConfig + "Gem_RotTest.xml");
+            if (fVerbose) cout << "   Current GEM Configuration : Gem_RotTest" << "\n";
             break;
 
         default:
@@ -262,18 +271,25 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
         for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             BmnGemStripModule *module = station->GetModule(iModule);
-            Double_t z = module->GetZPositionRegistered();
-            z += corr[iStation][iModule][2]; //alignment implementation
 
             Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
 
             for (Int_t iPoint = 0; iPoint < NIntersectionPointsInModule; ++iPoint) {
                 Double_t x = module->GetIntersectionPointX(iPoint);
                 Double_t y = module->GetIntersectionPointY(iPoint);
+                Double_t z = module->GetZPositionRegistered();
 
                 Double_t x_err = module->GetIntersectionPointXError(iPoint);
                 Double_t y_err = module->GetIntersectionPointYError(iPoint);
                 Double_t z_err = 0.0;
+
+                //Transform hit coordinates from local coordinate system of GEM-planes to global
+                if(TransfSet) {
+                    Plane3D::Point loc_point = TransfSet->ApplyTransforms(Plane3D::Point(-x, y, z), iStation, iModule);
+                    x = -loc_point.X();
+                    y = loc_point.Y();
+                    z = loc_point.Z();
+                }
 
                 Int_t RefMCIndex = 0;
 
@@ -304,6 +320,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 x += deltaX;
                 y += deltaY;
+                z += corr[iStation][iModule][2];
 
                 if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
                     Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
@@ -353,7 +370,12 @@ void BmnGemStripHitMaker::Finish() {
         delete [] corr;
 
         delete StationSet;
-        StationSet = NULL;
+        StationSet = nullptr;
+    }
+
+    if(TransfSet) {
+        delete TransfSet;
+        TransfSet = nullptr;
     }
 
     if (fIsExp && Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON)

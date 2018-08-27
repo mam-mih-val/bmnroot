@@ -21,7 +21,8 @@ BmnGemStripDigitizer::BmnGemStripDigitizer()
     fVerbose = 1;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
-    StationSet = NULL;
+    StationSet = nullptr;
+    TransfSet = nullptr;
 }
 
 BmnGemStripDigitizer::~BmnGemStripDigitizer() {
@@ -79,8 +80,15 @@ InitStatus BmnGemStripDigitizer::Init() {
             if (fVerbose) cout << "   Current GEM Configuration : RunSpring2018" << "\n";
             break;
 
+        case BmnGemStripConfiguration::RotTest :
+            StationSet = new BmnGemStripStationSet(gPathGemConfig + "Gem_RotTest.xml");
+            TransfSet = new BmnGemStripTransform();
+            TransfSet->LoadFromXMLFile(gPathGemConfig + "Gem_RotTest.xml");
+            if (fVerbose) cout << "   Current GEM Configuration : Gem_RotTest" << "\n";
+            break;
+
         default:
-            StationSet = NULL;
+            StationSet = nullptr;
     }
     //--------------------------------------------------------------------------
 
@@ -145,6 +153,21 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
         Int_t mc_station_num = ((CbmStsPoint*)GemStripPoint)->GetStation();
         Int_t mc_module_num = ((CbmStsPoint*)GemStripPoint)->GetModule();
 
+        //Transform mc-point coordinates to local coordinate system of GEM-planes
+        if(TransfSet && mc_station_num < StationSet->GetNStations()) {
+            if(mc_module_num < StationSet->GetGemStation(mc_station_num)->GetNModules()) {
+                Plane3D::Point loc_point = TransfSet->ApplyInverseTransforms(Plane3D::Point(-x, y, z), mc_station_num, mc_module_num);
+                Plane3D::Point loc_direct = TransfSet->ApplyInverseTransforms(Plane3D::Point(-(px+x), (py+y), (pz+z)), mc_station_num, mc_module_num);
+                x = -loc_point.X();
+                y = loc_point.Y();
+                z = loc_point.Z();
+
+                px = -(loc_direct.X() - loc_point.X());
+                py = loc_direct.Y() - loc_point.Y();
+                pz = loc_direct.Z() - loc_point.Z();
+            }
+        }
+        
         StationSet->AddPointToDetector(x, y, z, px, py, pz, dEloss, refId);
     }
 
@@ -182,7 +205,12 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
 void BmnGemStripDigitizer::Finish() {
     if (StationSet) {
         delete StationSet;
-        StationSet = NULL;
+        StationSet = nullptr;
+    }
+
+    if(TransfSet) {
+        delete TransfSet;
+        TransfSet = nullptr;
     }
 
     cout << "Work time of the GEM digitizer: " << workTime << endl;

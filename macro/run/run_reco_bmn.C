@@ -191,7 +191,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
             si_config = BmnSiliconConfiguration::RunSpring2017;
             //si_config = BmnSiliconConfiguration::RunSpring2018;
     }
-    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(isExp);
+    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, isExp);
     siliconHM->SetCurrentConfig(si_config);
     fRunAna->AddTask(siliconHM);
     // ====================================================================== //

@@ -11,7 +11,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 // nStartEvent - for compatibility, any number
 // nEvents - number of events to transport, default: 1
 // flag_store_FairRadLenPoint
-void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString outFile = "evetest_tmp.root", Int_t nStartEvent = 0, Int_t nEvents = 1000,
+void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE)
 {
     TStopwatch timer;
@@ -82,7 +82,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     boxGen->SetPRange(1., 1.);  // GeV/c, setPRange vs setPtRange
     boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
     boxGen->SetThetaRange(10, 15); // Polar angle in lab system range [degree]
-    boxGen->SetXYZ(0.5, -4.6, -2.3); // Approximate position of target (RunSpring2017)
+    boxGen->SetXYZ(0., 0., 0.); // Approximate position of target (RunSpring2017)
     primGen->AddGenerator(boxGen);
 
 #else
@@ -125,7 +125,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     // -----   Create magnetic field   ----------------------------------------
     BmnFieldMap* magField = NULL;
     if (isFieldMap) {
-        Double_t fieldScale = 0.;
+        Double_t fieldScale = 1.33;
         // magField = new BmnNewFieldMap("field_sp41v2_ascii_noExtrap.dat");
         magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
         // Double_t fieldZ = 124.5; // field centre z position
@@ -151,9 +151,9 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     fRun->AddTask(siliconDigit);
 
     // GEM-Digitizer
-    // BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017;
-    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2018;
-    // BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARCO2_70_30_E_1000_2500_3750_6300_B_0_59T);
+    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017;
+    //BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2018;
+    BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARCO2_70_30_E_1000_2500_3750_6300_B_0_59T);
     BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
     gemDigit->SetCurrentConfig(gem_config);
     gemDigit->SetOnlyPrimary(kFALSE);

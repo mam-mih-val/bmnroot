@@ -32,7 +32,8 @@ MpdGlobalTrackDraw::MpdGlobalTrackDraw()
     fTrList(NULL),
     MinEnergyLimit(-1.),
     MaxEnergyLimit(-1.),
-    PEnergy(-1.)
+    PEnergy(-1.),
+    fCutProbability(0.8)
 {
 }
 
@@ -46,7 +47,8 @@ MpdGlobalTrackDraw::MpdGlobalTrackDraw(const char* name, Int_t iVerbose)
     fTrList(NULL),
     MinEnergyLimit(-1.),
     MaxEnergyLimit(-1.),
-    PEnergy(-1.)
+    PEnergy(-1.),
+    fCutProbability(0.8)
 {
 }
 
@@ -127,23 +129,27 @@ void MpdGlobalTrackDraw::Exec(Option_t* /*option*/)
         TObjArray* trHits = kalman_track->GetTrHits(); // track hits of MpdKalmanHit type
         Int_t Np = trHits->GetEntriesFast();
 
-        // get PDG particle code
-        Float_t maxPDG = tr->GetPidProbElectron();
+        // get PDG particle code - FIX: to rewrite with SIMD vector function (max) in the future ROOT 6.14
+        Float_t curProbability = tr->GetPidProbElectron();
         int particlePDG = 11;
-        if (maxPDG < tr->GetPidProbPion()){
-            maxPDG = tr->GetPidProbPion();
-            particlePDG = 211;
-        }
-        if (maxPDG < tr->GetPidProbKaon()){
-            maxPDG = tr->GetPidProbKaon();
-            particlePDG = 321;
-        }
-        if (maxPDG < tr->GetPidProbProton()){
-            maxPDG = tr->GetPidProbProton();
+        if (fabs(curProbability) < fabs(tr->GetPidProbProton()))
+        {
+            curProbability = tr->GetPidProbProton();
             particlePDG = 2212;
         }
-        if (tr->GetPt() < 0)
-            particlePDG *= -1;
+        if (fabs(curProbability) < fabs(tr->GetPidProbPion()))
+        {
+            curProbability = tr->GetPidProbPion();
+            particlePDG = 211;
+        }
+        if (fabs(curProbability) < fabs(tr->GetPidProbKaon()))
+        {
+            curProbability = tr->GetPidProbKaon();
+            particlePDG = 321;
+        }
+        if (fabs(curProbability) < fCutProbability)
+            particlePDG = 0;
+        else if (curProbability < 0) particlePDG *= -1;
 
         // get momentum
         Double_t px = tr->GetPx(), py = tr->GetPy(), pz = tr->GetPz();

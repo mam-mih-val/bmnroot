@@ -20,6 +20,8 @@
 #include "BmnGemStripHit.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripConfiguration.h"
+#include "BmnGemStripTransform.h"
+#include "BmnGemAlignmentCorrections.h"
 #include "BmnGemAlignCorrections.h"
 #include <BmnEventQuality.h>
 
@@ -114,6 +116,8 @@ private:
 
     BmnGemStripStationSet *StationSet; //Entire GEM detector
 
+    BmnGemStripTransform *TransfSet; //Transformations for each module of the detector
+
     TString fAlignCorrFileName; // a file with geometry corrections
     void ReadAlignCorrFile(TString, Double_t***); // read corrections from the file
     Double_t*** corr; // array to store the corrections
@@ -131,6 +135,5 @@ private:
 
     ClassDef(BmnGemStripHitMaker, 1);
 };
-
 
 #endif

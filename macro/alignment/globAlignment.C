@@ -6,7 +6,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include <TString.h>
 #include <TStopwatch.h>
 
-void globAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst.root", TString addInfo = "", Int_t runPeriod = 7) {
+void globAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst_4629_newTracking.root", TString addInfo = "", Int_t runPeriod = 7) {
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;

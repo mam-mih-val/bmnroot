@@ -1,12 +1,11 @@
-# Create a library called "libUniDb" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libUniDb"
 
 set(INCLUDE_DIRECTORIES
  ${ROOT_INCLUDE_DIR}
  ${XML2_INCLUDE_DIR}
  ${CMAKE_SOURCE_DIR}/uni_db
  ${CMAKE_SOURCE_DIR}/uni_db/db_classes
+ ${CMAKE_SOURCE_DIR}/uni_db/elog_classes
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -31,7 +30,7 @@ UniDbGeoConverter.cxx
 UniDbGenerateClasses.cxx
 UniDbTangoData.cxx
 UniDbSearchCondition.cxx
-UniDbParser.cxx
+#UniDbParser.cxx
 
 db_classes/UniDbRunPeriod.cxx
 db_classes/UniDbRun.cxx
@@ -56,7 +55,7 @@ UniDbGeoConverter.h
 UniDbGenerateClasses.h
 UniDbTangoData.h
 UniDbSearchCondition.h
-UniDbParser.h
+#UniDbParser.h
 
 # add definitions of the possible database structures and enums
 db_structures.h
@@ -80,12 +79,12 @@ elog_classes/ElogDbAttachment.h
 
 Set(LINKDEF UniDbLinkDef.h)
 Set(LIBRARY_NAME UniDb)
-Set(DEPENDENCIES Core Geom xml2)
+Set(DEPENDENCIES Core Geom Net xml2)
+
+GENERATE_LIBRARY()
 
 add_executable (show_simulation_files show_simulation_files.cxx)
 target_link_libraries(show_simulation_files ${ROOT_LIBRARIES})
 
 add_executable (show_experiment_files show_experiment_files.cxx)
 target_link_libraries(show_experiment_files ${ROOT_LIBRARIES})
-
-GENERATE_LIBRARY()

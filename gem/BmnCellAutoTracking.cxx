@@ -130,17 +130,17 @@ void BmnCellAutoTracking::Exec(Option_t* opt) {
     fCellSlopeYZCutMin = new Double_t[fGemDetector->GetNStations()];
     fCellSlopeYZCutMax = new Double_t[fGemDetector->GetNStations()];
 
-    fHitXCutMin[0] = -100; //-50;
-    fHitXCutMin[1] = -100; //-60;
-    fHitXCutMin[2] = -100;
-    fHitXCutMin[3] = -100;
+    fHitXCutMin[0] = -40; //-50;
+    fHitXCutMin[1] = -60; //-60;
+    fHitXCutMin[2] = -70;
+    fHitXCutMin[3] = -80;
     fHitXCutMin[4] = -100;
     fHitXCutMin[5] = -100;
 
-    fHitXCutMax[0] = 100; //50;
-    fHitXCutMax[1] = 100; //60;
-    fHitXCutMax[2] = 100;
-    fHitXCutMax[3] = 100;
+    fHitXCutMax[0] = 40; //50;
+    fHitXCutMax[1] = 60; //60;
+    fHitXCutMax[2] = 70;
+    fHitXCutMax[3] = 80;
     fHitXCutMax[4] = 100;
     fHitXCutMax[5] = 100;
 
@@ -153,38 +153,38 @@ void BmnCellAutoTracking::Exec(Option_t* opt) {
 
     fHitYCutMax[0] = 10;
     fHitYCutMax[1] = 20;
-    fHitYCutMax[2] = 32;
+    fHitYCutMax[2] = 30;
     fHitYCutMax[3] = 40;
     fHitYCutMax[4] = 40;
     fHitYCutMax[5] = 40;
 
     fCellSlopeXZCutMin[0] = -1.0;
-    fCellSlopeXZCutMin[1] = -1.0;
-    fCellSlopeXZCutMin[2] = -1.0;
+    fCellSlopeXZCutMin[1] = -0.7;
+    fCellSlopeXZCutMin[2] = -0.7;
     fCellSlopeXZCutMin[3] = -1.0;
     fCellSlopeXZCutMin[4] = -1.0;
     fCellSlopeXZCutMin[5] = -1.0;
 
     fCellSlopeXZCutMax[0] = 1.0;
-    fCellSlopeXZCutMax[1] = 1.0;
-    fCellSlopeXZCutMax[2] = 1.0;
+    fCellSlopeXZCutMax[1] = 0.7;
+    fCellSlopeXZCutMax[2] = 0.7;
     fCellSlopeXZCutMax[3] = 1.0;
     fCellSlopeXZCutMax[4] = 1.0;
     fCellSlopeXZCutMax[5] = 1.0;
 
-    fCellSlopeYZCutMin[0] = -1.0;
-    fCellSlopeYZCutMin[1] = -1.0;
-    fCellSlopeYZCutMin[2] = -1.0;
-    fCellSlopeYZCutMin[3] = -1.0;
-    fCellSlopeYZCutMin[4] = -1.0;
-    fCellSlopeYZCutMin[5] = -1.0;
+    fCellSlopeYZCutMin[0] = -0.05;
+    fCellSlopeYZCutMin[1] = -0.5;
+    fCellSlopeYZCutMin[2] = -0.5;
+    fCellSlopeYZCutMin[3] = -0.05;
+    fCellSlopeYZCutMin[4] = -0.1;
+    fCellSlopeYZCutMin[5] = -0.1;
 
-    fCellSlopeYZCutMax[0] = 1.0;
-    fCellSlopeYZCutMax[1] = 1.0;
-    fCellSlopeYZCutMax[2] = 1.0;
-    fCellSlopeYZCutMax[3] = 1.0;
-    fCellSlopeYZCutMax[4] = 1.0;
-    fCellSlopeYZCutMax[5] = 1.0; 
+    fCellSlopeYZCutMax[0] = 0.4;
+    fCellSlopeYZCutMax[1] = 0.5;
+    fCellSlopeYZCutMax[2] = 0.5;
+    fCellSlopeYZCutMax[3] = 0.4;
+    fCellSlopeYZCutMax[4] = 0.5;
+    fCellSlopeYZCutMax[5] = 0.5; 
 
     const Int_t nIter = 2;
     fNHitsCut = 4;
@@ -194,22 +194,11 @@ void BmnCellAutoTracking::Exec(Option_t* opt) {
         vector<BmnGemTrack> sortedCandidates;
         vector<BmnCellDuet> cells[fGemDetector->GetNStations()];
 
-        fCellDiffSlopeYZCut = 0.01; // + iter * 0.1;
-        fCellDiffSlopeXZCut = 0.5; // + iter * 0.3;
-        fCellSlopeYZCutMin[0] = -1.0 + iter * 0.7;
-        fCellSlopeYZCutMin[1] = -1.0 + iter * 0.7;
-        fCellSlopeYZCutMin[2] = -1.0 + iter * 0.7;
-        fCellSlopeYZCutMin[3] = -1.0 + iter * 0.7;
-        fCellSlopeYZCutMin[4] = -1.0 + iter * 0.7;
-        fCellSlopeYZCutMin[5] = -1.0 + iter * 0.7;
-
-        fCellSlopeYZCutMax[0] = 1.0 - iter * 0.7;
-        fCellSlopeYZCutMax[1] = 1.0 - iter * 0.7;
-        fCellSlopeYZCutMax[2] = 1.0 - iter * 0.7;
-        fCellSlopeYZCutMax[3] = 1.0 - iter * 0.7;
-        fCellSlopeYZCutMax[4] = 1.0 - iter * 0.7;
-        fCellSlopeYZCutMax[5] = 1.0 - iter * 0.7;
-        fChiSquareCut = 100;
+//        fCellDiffSlopeYZCut = 0.1; // + iter * 0.1;
+        fCellDiffSlopeYZCut = .1;
+        fCellDiffSlopeXZCut = 0.1 + iter * 0.2;
+        // fCellDiffSlopeXZCut = .5;
+        fChiSquareCut = 1000;
 
         clock_t t0 = clock();
         CellsCreation(cells);
@@ -223,7 +212,10 @@ void BmnCellAutoTracking::Exec(Option_t* opt) {
         CellsConnection(cells, candidates);
         printf("Number of candidates = %d\n", candidates.size());
         clock_t t3 = clock();
-        TrackUpdateByKalman(candidates);
+        if (fIsField)
+            TrackUpdateByKalman(candidates);
+        else
+            TrackUpdateByLine(candidates);
         SortTracks(candidates, sortedCandidates);
         clock_t t4 = clock();
         TrackSelection(sortedCandidates);
@@ -238,7 +230,7 @@ void BmnCellAutoTracking::Exec(Option_t* opt) {
     }
 
 
-    //DrawHits();
+    // DrawHits();
 
     clock_t tFinish = clock();
     if (fVerbose) cout << "GEM_TRACKING: Number of found tracks: " << fGemTracksArray->GetEntriesFast() << endl;
@@ -433,7 +425,7 @@ BmnStatus BmnCellAutoTracking::CellsConnection(vector<BmnCellDuet>* cells, vecto
             }
 
             if (CalculateTrackParams(&trackCand) == kBMNERROR) continue;
-            if (IsParCorrect(trackCand.GetParamFirst(), 1) && IsParCorrect(trackCand.GetParamLast(), 1)) {
+            if (IsParCorrect(trackCand.GetParamFirst(), fIsField) && IsParCorrect(trackCand.GetParamLast(), fIsField)) {
                 cands.push_back(trackCand);
             }
         }
@@ -472,6 +464,23 @@ BmnStatus BmnCellAutoTracking::TrackUpdateByKalman(vector<BmnGemTrack>& cands) {
     }
 }
 
+void BmnCellAutoTracking::TrackUpdateByLine(vector <BmnGemTrack>& cands) {
+    for (BmnGemTrack& cand : cands) {
+        Double_t Tx = LineFit((BmnTrack*)& cand, fGemHitsArray, "ZX").X();
+        Double_t chiX = LineFit((BmnTrack*)& cand, fGemHitsArray, "ZX").Z();
+        Double_t Ty = LineFit((BmnTrack*)& cand, fGemHitsArray, "ZY").X();
+        Double_t chiY = LineFit((BmnTrack*)& cand, fGemHitsArray, "ZY").Z();
+
+        cand.SetChi2((chiX - chiY) > 0. ? chiX : chiY);
+
+        cand.GetParamFirst()->SetTx(Tx);
+        cand.GetParamFirst()->SetTy(Ty);
+
+        cand.GetParamLast()->SetTx(Tx);
+        cand.GetParamLast()->SetTy(Ty);
+    }
+}
+
 BmnStatus BmnCellAutoTracking::TrackSelection(vector<BmnGemTrack>& sortedTracks) {
     //    printf("n candidates = %d\n", sortedTracks.size());
     //    for (BmnGemTrack &it : sortedTracks) {
@@ -481,6 +490,7 @@ BmnStatus BmnCellAutoTracking::TrackSelection(vector<BmnGemTrack>& sortedTracks)
     } else {
         CheckSharedHits(sortedTracks);
         for (Int_t iTr = 0; iTr < sortedTracks.size(); ++iTr) {
+            sortedTracks[iTr].Print();
             if (sortedTracks[iTr].GetFlag() != -1 && IsParCorrect(sortedTracks[iTr].GetParamFirst(), fIsField) && IsParCorrect(sortedTracks[iTr].GetParamLast(), fIsField)) {
                 CalculateLength(&sortedTracks[iTr]);
                 new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(sortedTracks[iTr]);

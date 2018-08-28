@@ -58,6 +58,7 @@ private:
     TClonesArray* fVertexArray;
 
     Bool_t fIsField;
+    Bool_t fRobustRefit;
     FairField* fField;
     BmnKalmanFilter* fKalman;
     TVector3 fRoughVertex3D;

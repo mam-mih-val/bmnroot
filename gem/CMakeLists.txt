@@ -56,7 +56,8 @@ set(SRCS
   BmnGemStripHitMaker.cxx
 #  BmnKalmanFilter.cxx
   BmnGemStripMedium.cxx
-#  BmnMaterialEffects.cxx
+  #BmnMaterialEffects.cxx
+  BmnGemStripTransform.cxx
 )
 
 IF (SSE_FOUND)
@@ -88,6 +89,6 @@ endif()
 Set(HEADERS)
 set(LINKDEF GemLinkDef.h)
 Set(LIBRARY_NAME Gem)
-Set(DEPENDENCIES KF Sts BmnData Base)
+Set(DEPENDENCIES KF Sts BmnData Base GenVector)
 
 GENERATE_LIBRARY()

@@ -204,6 +204,7 @@ private:
     }
     
     TVector2 ArmenterosPodol(FairTrackParam, FairTrackParam); 
+    Double_t FindV0ByVirtualPlanes(BmnGlobalTrack*, BmnGlobalTrack*, Double_t, Double_t range = 50.);
 
     ClassDef(BmnTwoParticleDecay, 0)
 };

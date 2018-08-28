@@ -13,6 +13,7 @@
 #include "BmnGemStripHit.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripConfiguration.h"
+#include "BmnGemStripTransform.h"
 
 using namespace std;
 
@@ -69,6 +70,8 @@ private:
     BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;
 
     BmnGemStripStationSet *StationSet; //Entire GEM detector
+
+    BmnGemStripTransform *TransfSet; //Transformations for each module of the detector
 
     ClassDef(BmnGemStripDigitizer,1);
 };

@@ -27,7 +27,8 @@
 #pragma link C++ class BmnCellAutoTracking+;
 #pragma link C++ class BmnCellDuet+;
 #pragma link C++ class BmnGemStripMedium+;
-//#pragma link C++ class BmnMaterialEffects+;
+#pragma link C++ class BmnMaterialEffects+;
+#pragma link C++ class BmnGemStripTransform+;
 
 #pragma link C++ namespace BmnGemStripConfiguration;
 #pragma link C++ enum BmnGemStripConfiguration::GEM_CONFIG;

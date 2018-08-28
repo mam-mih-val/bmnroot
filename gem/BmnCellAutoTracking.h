@@ -47,6 +47,7 @@ private:
     BmnStatus StateCalculation(vector<BmnCellDuet>* cells);
     BmnStatus CellsConnection(vector<BmnCellDuet>* cells, vector<BmnGemTrack>& cands);
     BmnStatus TrackUpdateByKalman(vector<BmnGemTrack>& cands);
+    void TrackUpdateByLine(vector<BmnGemTrack>& cands);
     BmnStatus SortTracks(vector<BmnGemTrack>& inTracks, vector<BmnGemTrack>& sortedTracks);
     BmnStatus TrackSelection(vector<BmnGemTrack>& cands);
     

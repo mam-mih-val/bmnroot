@@ -32,10 +32,10 @@
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/bmnloadlibs.C"
 
-void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
-        TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
+void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/physics/evetest_ArPb_geo2018.root",
+        TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst_ArPb_geo2018.root",
         Int_t nStartEvent = 0,
-        Int_t nEvents = 10000,
+        Int_t nEvents = 1000,
         TString alignCorrFileName = "default",
         TString steerGemTrackingFile = "gemTrackingSteer.dat")
 {
@@ -257,8 +257,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ===                           Tracking (GEM)                       === //
     // ====================================================================== //
 
-    BmnGemTracking* gemTF = new BmnGemTracking(run_period, isField, isTarget, steerGemTrackingFile);
-    if (!isExp) gemTF->SetRoughVertex(TVector3(0.0, 0.0, 0.0)); //for MC case use correct vertex
+    BmnCellAutoTracking* gemTF = new BmnCellAutoTracking(run_period, isField, isTarget);
+    // if (!isExp) gemTF->SetRoughVertex(TVector3(0.0, 0.0, 0.0)); //for MC case use correct vertex
     fRunAna->AddTask(gemTF);
 
     // ====================================================================== //
@@ -266,7 +266,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
     dchTF->SetTransferFunction("pol_coord00813.txt");
-    fRunAna->AddTask(dchTF);
+    //fRunAna->AddTask(dchTF);
     // ====================================================================== //
     // ===                          Global Tracking                       === //
     // ====================================================================== //
@@ -286,7 +286,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // residAnal->SetUseDistance(kTRUE); // Use distance instead of residuals
     fRunAna->AddTask(residAnalGem);
     BmnSiResiduals* residAnalSi = new BmnSiResiduals(run_period, run_number, fieldScale);
-    fRunAna->AddTask(residAnalSi);
+    // fRunAna->AddTask(residAnalSi);
 
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();

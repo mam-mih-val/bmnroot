@@ -223,7 +223,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     if (isExp) {
         if (alignCorrFileName == "default") {
             gemHM->SetAlignmentCorrectionsFileName(run_number);
-            siliconHM->SetAlignmentCorrectionsFileName(run_period, run_number);
+            siliconHM->SetAlignmentCorrectionsFileName(run_number);
         }
         else {
             gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);

@@ -1,3 +1,15 @@
+/*
+ * Description:
+ * Macro for calculating parameters of SILICON detector and writing them
+ * into the XML-file needed for simulation and reconstruction procedures.
+ * The obtained XML-file should be moved into the 'silicon/XMLConfigs' directory
+ *
+ * SILICON configuration: RunSpring2018 (BM@N RUN-7 where 3 SI-stations were)
+ *
+ * Created: 08.06.2018
+ * Author: D. Baranov
+ */
+
 #include "Rtypes.h"
 
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
@@ -13,7 +25,6 @@ using namespace TMath;
 using namespace std;
 
 //Configuration of the module
-
 
 //Module 63x126 mm -------------------------------------------------------------
 
@@ -183,7 +194,7 @@ void CalculateParameters(TString xml_file_name);
 //------------------------------------------------------------------------------
 
 
-void SiliconConfig_Calculate() {
+void SiliconConfigCalculate_RunSpring2018() {
 
     // ----  Load libraries   --------------------------------------------------
 #if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
@@ -193,7 +204,7 @@ void SiliconConfig_Calculate() {
     // -------------------------------------------------------------------------
 
     PrintInfo();
-    CalculateParameters("SiliconConfig.xml");
+    CalculateParameters("SiliconRunSpring2018.xml");
 
     cout << "It's the end" << "\n";
     //gApplication->Terminate();

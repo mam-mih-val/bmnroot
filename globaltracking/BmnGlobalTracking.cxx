@@ -6,6 +6,8 @@
  **/
 
 #include <Fit/FitResult.h>
+#include <vector>
+#include <map>
 
 #include "BmnGlobalTracking.h"
 #include "TH1F.h"
@@ -46,7 +48,7 @@ TH1D *TOF2DCHResidX1;
 TH1D *TOF2DCHResidY1;
 TH1D *MWPCDCHResidX;
 TH1D *MWPCDCHResidY;
-TH1D *NumberOfGemTracks;
+TH1D *NumberOfInnerTracks;
 TH1D *NumberOfDCHTracks;
 TH1D *NumberOfMCTracks;
 TH1D *NumberOfTOF1Hits;
@@ -68,7 +70,7 @@ const Float_t thresh = 0.7; // threshold for efficiency calculation (70%)
 BmnGlobalTracking::BmnGlobalTracking() :
 fDetConf(31), //31 means that all detectors are presented
 fMcTracks(NULL),
-fGemTracks(NULL),
+fInnerTracks(NULL),
 fGemHits(NULL),
 fSilHits(NULL),
 fGemVertex(NULL),
@@ -125,7 +127,7 @@ fEventNo(0) {
         TOF2DCHResidY1 = new TH1D("TOF2DCHResidY1", "TOF2 DCH match yoz residuals", 10000, -100., 100.);
         MWPCDCHResidX = new TH1D("MWPCDCHResidX", "MWPC DCH match xoz residuals", 10000, -100., 100.);
         MWPCDCHResidY = new TH1D("MWPCDCHResidY", "MWPC DCH match yoz residuals", 10000, -100., 100.);
-        NumberOfGemTracks = new TH1D("NumberOfGemTracks", "Number of GEM traks per event", 10, 0., 10.);
+        NumberOfInnerTracks = new TH1D("NumberOfInnerTracks", "Number of GEM traks per event", 10, 0., 10.);
         NumberOfDCHTracks = new TH1D("NumberOfDCHTracks", "Number of DCH tracks per event", 100, 0., 100.);
         NumberOfMCTracks = new TH1D("NumberOfMCTracks", "Number of MC tracks per event", 100, 0., 100.);
         NumberOfTOF1Hits = new TH1D("NumberOfTOF1Hits", "Number of TOF1 hits per event", 50, 0., 50.);
@@ -159,7 +161,7 @@ fEventNo(0) {
         fList.Add(TOF2DCHResidY1);
         fList.Add(MWPCDCHResidX);
         fList.Add(MWPCDCHResidY);
-        fList.Add(NumberOfGemTracks);
+        fList.Add(NumberOfInnerTracks);
         fList.Add(NumberOfDCHTracks);
         fList.Add(NumberOfMCTracks);
         fList.Add(NumberOfTOF1Hits);
@@ -178,7 +180,7 @@ BmnGlobalTracking::BmnGlobalTracking(Bool_t isExp) :
 expData(isExp),
 fDetConf(31), //31 means that all detectors are presented
 fMcTracks(NULL),
-fGemTracks(NULL),
+fInnerTracks(NULL),
 fGemHits(NULL),
 fGemVertex(NULL),
 fTof1Hits(NULL),
@@ -231,7 +233,7 @@ fEventNo(0) {
         TOF2DCHResidY1 = new TH1D("TOF2DCHResidY1", "TOF2 DCH match yoz residuals", 900, -3., 3.);
         MWPCDCHResidX = new TH1D("MWPCDCHResidX", "MWPC DCH match xoz residuals", 900, -3., 3.);
         MWPCDCHResidY = new TH1D("MWPCDCHResidY", "MWPC DCH match yoz residuals", 900, -3., 3.);
-        NumberOfGemTracks = new TH1D("NumberOfGemTracks", "Number of GEM traks per event", 10, 0., 10.);
+        NumberOfInnerTracks = new TH1D("NumberOfInnerTracks", "Number of GEM traks per event", 10, 0., 10.);
         NumberOfDCHTracks = new TH1D("NumberOfDCHTracks", "Number of DCH tracks per event", 100, 0., 100.);
         NumberOfMCTracks = new TH1D("NumberOfMCTracks", "Number of MC tracks per event", 100, 0., 100.);
         NumberOfTOF1Hits = new TH1D("NumberOfTOF1Hits", "Number of TOF1 hits per event", 50, 0., 50.);
@@ -265,7 +267,7 @@ fEventNo(0) {
         fList.Add(TOF2DCHResidY1);
         fList.Add(MWPCDCHResidX);
         fList.Add(MWPCDCHResidY);
-        fList.Add(NumberOfGemTracks);
+        fList.Add(NumberOfInnerTracks);
         fList.Add(NumberOfDCHTracks);
         fList.Add(NumberOfMCTracks);
         fList.Add(NumberOfTOF1Hits);
@@ -278,6 +280,12 @@ fEventNo(0) {
         fList.Add(DCHNHits);
         fList.Add(GEMNHits);
     }
+    TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
+    TString confSi = "SiliconRunSpring2018.xml";
+
+    /// SI
+    TString gPathSiliconConfig = gPathConfig + "/silicon/XMLConfigs/";
+    fDetectorSI = new BmnSiliconStationSet(gPathSiliconConfig + confSi);
 }
 
 BmnGlobalTracking::~BmnGlobalTracking() {
@@ -325,18 +333,18 @@ InitStatus BmnGlobalTracking::Init() {
             cout << "Init. No BmnSiliconHit array!" << endl;
 
     // GEM
-//    if (fDet.GetDet(kGEM)) {
-        fGemHits = (TClonesArray*) ioman->GetObject("BmnGemStripHit");
-        if (!fGemHits)
-            if (fVerbose)
-                cout << "Init. No BmnGemStripHit array!" << endl;
-        fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTrack");
-        if (!fGemTracks) {
-            cout << "BmnGlobalTracking::Init(): branch " << "BmnGemTrack" << " not found! Task will be deactivated" << endl;
-            SetActive(kFALSE);
-            return kERROR;
-        }
-//    }
+    //    if (fDet.GetDet(kGEM)) {
+    fGemHits = (TClonesArray*) ioman->GetObject("BmnGemStripHit");
+    if (!fGemHits)
+        if (fVerbose)
+            cout << "Init. No BmnGemStripHit array!" << endl;
+    fInnerTracks = (TClonesArray*) ioman->GetObject("BmnInnerTrack");
+    if (!fInnerTracks) {
+        cout << "BmnGlobalTracking::Init(): branch " << "BmnInnerTrack" << " not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
+    //    }
 
     // Vertex
     fGemVertex = (TClonesArray*) ioman->GetObject("BmnVertex");
@@ -385,7 +393,7 @@ InitStatus BmnGlobalTracking::Init() {
 }
 
 BmnStatus BmnGlobalTracking::MatchGemDCH(BmnGlobalTrack* tr) {
-    BmnGemTrack* gemTrack = (BmnGemTrack*) fGemTracks->At(tr->GetGemTrackIndex());
+    BmnGemTrack* gemTrack = (BmnGemTrack*) fInnerTracks->At(tr->GetGemTrackIndex());
     Double_t z = 305.0;
     Double_t dx = 1000;
     Double_t dy = 1000;
@@ -768,8 +776,8 @@ void BmnGlobalTracking::FitGemTracks() {
         }
     }
     //==============================================================================================
-    for (Int_t iTr = 0; iTr < fGemTracks->GetEntriesFast(); ++iTr) {
-        BmnGemTrack* track = (BmnGemTrack*) fGemTracks->At(iTr);
+    for (Int_t iTr = 0; iTr < fInnerTracks->GetEntriesFast(); ++iTr) {
+        BmnGemTrack* track = (BmnGemTrack*) fInnerTracks->At(iTr);
 
         if (track->GetChi2() < 0.0) continue; //split param
 
@@ -858,7 +866,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
 
     //    CreateDchHitsFromTracks();
 
-    if (!fGemTracks) return;
+    if (!fInnerTracks) return;
 
     if (fGemVertex) {
         if (fGemVertex->GetEntriesFast() > 0)
@@ -867,11 +875,8 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
             fVertex = NULL;
     }
 
-    // Map to be used for collecting GEM-tracks and corresponding SI-points
-    map <Double_t, pair<Int_t, Int_t> > silDist;
-
-    for (Int_t i = 0; i < fGemTracks->GetEntriesFast(); ++i) {
-        BmnGemTrack* gemTrack = (BmnGemTrack*) fGemTracks->At(i);
+    for (Int_t i = 0; i < fInnerTracks->GetEntriesFast(); ++i) {
+        BmnGemTrack* gemTrack = (BmnGemTrack*) fInnerTracks->At(i);
         new((*fGlobalTracks)[i]) BmnGlobalTrack();
         BmnGlobalTrack* glTr = (BmnGlobalTrack*) fGlobalTracks->At(i);
         glTr->SetParamFirst(*(gemTrack->GetParamFirst()));
@@ -882,14 +887,22 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
         glTr->SetChi2(gemTrack->GetChi2());
         glTr->SetLength(gemTrack->GetLength());
 
-        if (fSilHits)
-            CalcSiliconDist(glTr, silDist);
+        // First version of silicon hit match to GEM tracks
+//        if (fSilHits) {
+//            // Map to be used for matching GEM-tracks with corresponding silicon hits
+//            map <Double_t, pair<Int_t, Int_t >> silDists;
+//            for (Int_t iStat = fDetectorSI->GetNStations() - 1; iStat >= 0; iStat--) {
+//                CalcSiliconDist(iStat, glTr, silDists);
+//                MatchingSil(glTr, silDists);
+//                silDists.clear();
+//            }
+//        }
 
         //vector<BmnFitNode> nodes(4); //MWPC, TOF1, TOF2 and DCH
         //glTr->SetFitNodes(nodes);
 
         //MatchingMWPC(glTr);
-        MatchingSil(silDist);
+
         //MatchingTOF(glTr, 1, i);
         //MatchingDCH(glTr);
         //Refit(glTr);
@@ -907,22 +920,25 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
     if (fVerbose) cout << "\n======================== Global tracking exec finished ====================\n" << endl;
 }
 
-void BmnGlobalTracking::CalcSiliconDist(BmnGlobalTrack* glTr, map <Double_t, pair<Int_t, Int_t> > &silDist) {
+void BmnGlobalTracking::CalcSiliconDist(Int_t stat, BmnGlobalTrack* glTr, map <Double_t, pair<Int_t, Int_t>> &silDists) {
     const Double_t distCut = 1.;
     for (Int_t hitIdx = 0; hitIdx < fSilHits->GetEntriesFast(); hitIdx++) {
         BmnSiliconHit* hit = (BmnSiliconHit*) fSilHits->UncheckedAt(hitIdx);
+        if (stat != hit->GetStation())
+            continue;
 
         FairTrackParam parPredict = *glTr->GetParamFirst();
 
         BmnKalmanFilter* kalman = new BmnKalmanFilter();
-        if (kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, NULL, fIsField) == kBMNERROR) continue;
+        if (kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, NULL, fIsField) == kBMNERROR)
+            continue;
 
         Double_t dist = Sqrt(Power(parPredict.GetX() - hit->GetX(), 2) + Power(parPredict.GetY() - hit->GetY(), 2));
         if (dist > distCut) {
             delete kalman;
             continue;
         }
-        silDist.insert(pair <Double_t, pair<Int_t, Int_t> > (dist, make_pair(glTr->GetGemTrackIndex(), hitIdx)));
+        silDists.insert(pair <Double_t, pair<Int_t, Int_t> > (dist, make_pair(glTr->GetGemTrackIndex(), hitIdx)));
 
         glTr->SetParamFirst(parPredict);
         delete kalman;
@@ -1046,76 +1062,77 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num, Int_t tr
     } else return kBMNERROR;
 }
 
-BmnStatus BmnGlobalTracking::MatchingSil(map <Double_t, pair<Int_t, Int_t> > silDist) {
+BmnStatus BmnGlobalTracking::MatchingSil(BmnGlobalTrack* glTr, map <Double_t, pair<Int_t, Int_t>> &silDist) {
+    FairTrackParam ParPredFirst = *glTr->GetParamFirst();
+
+    FairTrackParam ParPredLast = *glTr->GetParamLast();
+    ParPredFirst.SetQp(ParPredLast.GetQp());
+
+    FairTrackParam parUpdate = ParPredFirst;
+    Double_t chi = 0.0;
+
+    TGraph XZ;
+    TGraph YZ;
+    Int_t iPos = 0;
+
+    if (!fIsField) {
+        // Get GEM-hits to be used when refitting a glob. track
+        BmnGemTrack* trackGem = (BmnGemTrack*) fInnerTracks->UncheckedAt(glTr->GetGemTrackIndex());
+        for (Int_t iGemHit = 0; iGemHit < trackGem->GetNHits(); iGemHit++) {
+            Int_t idx = trackGem->GetHitIndex(iGemHit);
+            BmnGemStripHit* hitGem = (BmnGemStripHit*) fGemHits->UncheckedAt(idx);
+            XZ.SetPoint(iPos, hitGem->GetZ(), hitGem->GetX());
+            YZ.SetPoint(iPos, hitGem->GetZ(), hitGem->GetY());
+            iPos++;
+        }
+    }
+
+    // Searching for a silicon hit with min. distance to a given glob. track
+    Int_t siHitIdx = -1;
     for (auto &it : silDist) {
         Int_t trIdx = it.second.first;
+        if (trIdx != glTr->GetGemTrackIndex())
+            continue;
         Int_t hitIdx = it.second.second;
 
         BmnSiliconHit* hit = (BmnSiliconHit*) fSilHits->UncheckedAt(hitIdx);
         if (hit->IsUsed())
             continue;
-
-        BmnGlobalTrack* glTr = (BmnGlobalTrack*) fGlobalTracks->UncheckedAt(trIdx);
-        if (glTr->IsUsed())
-            continue;
-
-        FairTrackParam ParPredFirst = *glTr->GetParamFirst(); //cout << "Z = " << ParPredFirst.GetZ() << endl;
-
-        FairTrackParam ParPredLast = *glTr->GetParamLast();
-        ParPredFirst.SetQp(ParPredLast.GetQp());
-
-        FairTrackParam parUpdate = ParPredFirst;
-        Double_t chi = 0.0;
-
+        siHitIdx = hitIdx;
         if (fIsField) {
             BmnKalmanFilter* kalman = new BmnKalmanFilter();
             if (kalman->Update(&parUpdate, (BmnHit*) hit, chi) == kBMNERROR)
                 delete kalman;
+        }
+        hit->SetUsing(kTRUE);
+        break;
+    }
 
-            else {
-                glTr->SetParamFirst(parUpdate);
-                glTr->SetChi2(Abs(glTr->GetChi2()) + Abs(chi));
-                glTr->SetSilHitIndex(hitIdx);
-                glTr->SetNHits(glTr->GetNHits() + 1);
-                hit->SetUsing(kTRUE);
-                glTr->SetUsing(kTRUE);
+    glTr->SetParamFirst(parUpdate);
+    glTr->SetChi2(Abs(glTr->GetChi2()) + Abs(chi));
 
-                delete kalman;
-            }
-        } else {
-            // if no mag. field, one has to recalculate Tx and Ty manually
-            glTr->SetChi2(Abs(glTr->GetChi2()) + Abs(chi));
-            glTr->SetSilHitIndex(hitIdx);
-            glTr->SetNHits(glTr->GetNHits() + 1);
-            hit->SetUsing(kTRUE);
-            glTr->SetUsing(kTRUE);
+    // Adding the found silicon hit to the glob. track ...
+    if (siHitIdx != -1) {
+        glTr->SetSilHitIndices(siHitIdx);
+        glTr->SetNHits(glTr->GetNHits() + 1);
+    }
 
-            TGraph XZ;
-            TGraph YZ;
-            Int_t iPos = 0;
-            BmnSiliconHit* hitSi = (BmnSiliconHit*) fSilHits->UncheckedAt(glTr->GetSilHitIndex());
+    if (!fIsField) {
+        // Refit the glob. track ...
+        for (Int_t iSilHit = 0; iSilHit < glTr->GetSilHitIndices().size(); iSilHit++) {
+            BmnSiliconHit* hitSi = (BmnSiliconHit*) fSilHits->UncheckedAt(glTr->GetSilHitIndices().at(iSilHit));
             XZ.SetPoint(iPos, hitSi->GetZ(), hitSi->GetX());
             YZ.SetPoint(iPos, hitSi->GetZ(), hitSi->GetY());
             iPos++;
-
-            BmnGemTrack* trackGem = (BmnGemTrack*) fGemTracks->UncheckedAt(glTr->GetGemTrackIndex());
-
-            for (Int_t iGemHit = 0; iGemHit < trackGem->GetNHits(); iGemHit++) {
-                Int_t idx = trackGem->GetHitIndex(iGemHit);
-                BmnGemStripHit* hitGem = (BmnGemStripHit*) fGemHits->UncheckedAt(idx);
-                XZ.SetPoint(iPos, hitGem->GetZ(), hitGem->GetX());
-                YZ.SetPoint(iPos, hitGem->GetZ(), hitGem->GetY());
-                iPos++;
-            }
-
-            Double_t txToBeSet = XZ.Fit("pol1", "SQww")->Parameter(1);
-            Double_t tyToBeSet = YZ.Fit("pol1", "SQww")->Parameter(1);
-            glTr->GetParamFirst()->SetTx(txToBeSet);
-            glTr->GetParamFirst()->SetTy(tyToBeSet);
-
-            glTr->GetParamLast()->SetTx(txToBeSet);
-            glTr->GetParamLast()->SetTy(tyToBeSet);
         }
+
+        Double_t txToBeSet = XZ.Fit("pol1", "SQww")->Parameter(1);
+        Double_t tyToBeSet = YZ.Fit("pol1", "SQww")->Parameter(1);
+        glTr->GetParamFirst()->SetTx(txToBeSet);
+        glTr->GetParamFirst()->SetTy(tyToBeSet);
+
+        glTr->GetParamLast()->SetTx(txToBeSet);
+        glTr->GetParamLast()->SetTy(tyToBeSet);
     }
 }
 
@@ -1233,7 +1250,7 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
 
     //GEM part
     if (fDet.GetDet(kGEM) && tr->GetGemTrackIndex() != -1) {
-        BmnGemTrack* gemTr = (BmnGemTrack*) fGemTracks->At(tr->GetGemTrackIndex());
+        BmnGemTrack* gemTr = (BmnGemTrack*) fInnerTracks->At(tr->GetGemTrackIndex());
         for (Int_t i = gemTr->GetNHits() - 1; i >= 0; --i) {
             if (RefitToDetector(tr, i, fGemHits, &par, &nodeIdx, &nodes) == kBMNERROR) return kBMNERROR;
         }
@@ -1257,6 +1274,8 @@ void BmnGlobalTracking::Finish() {
     //===============================================================================================================
     gFile = ptr;
 
+    delete fDetectorSI;
+
     cout << "Work time of the Global matching: " << workTime << endl;
 }
 
@@ -1276,7 +1295,7 @@ void BmnGlobalTracking::CalculateLength() {
 
         if (glTr->GetGemTrackIndex() > -1) {
             if (!isRUN1) {
-                const BmnGemTrack* gemTr = (BmnGemTrack*) fGemTracks->At(glTr->GetGemTrackIndex());
+                const BmnGemTrack* gemTr = (BmnGemTrack*) fInnerTracks->At(glTr->GetGemTrackIndex());
                 for (Int_t iGem = 0; iGem < gemTr->GetNHits(); iGem++) {
                     const BmnHit* hit = (BmnHit*) fGemHits->At(gemTr->GetHitIndex(iGem));
                     if (!hit) continue;

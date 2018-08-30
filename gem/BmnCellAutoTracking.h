@@ -24,6 +24,7 @@
 #include "BmnMath.h"
 #include "BmnCellDuet.h"
 #include "BmnGemStripStationSet.h"
+#include "BmnSiliconStationSet.h"
 
 using namespace std;
 
@@ -34,7 +35,7 @@ public:
 
     BmnCellAutoTracking() {
     };
-    BmnCellAutoTracking(Short_t period, Bool_t field, Bool_t target);
+    BmnCellAutoTracking(Short_t period, Bool_t field, Bool_t target, Bool_t si);
     virtual ~BmnCellAutoTracking();
 
     virtual InitStatus Init();
@@ -47,6 +48,7 @@ private:
     BmnStatus StateCalculation(vector<BmnCellDuet>* cells);
     BmnStatus CellsConnection(vector<BmnCellDuet>* cells, vector<BmnGemTrack>& cands);
     BmnStatus TrackUpdateByKalman(vector<BmnGemTrack>& cands);
+    BmnStatus TrackUpdateByLine(vector <BmnGemTrack>& cands);
     BmnStatus SortTracks(vector<BmnGemTrack>& inTracks, vector<BmnGemTrack>& sortedTracks);
     BmnStatus TrackSelection(vector<BmnGemTrack>& cands);
     
@@ -60,20 +62,25 @@ private:
     BmnStatus DrawHits();
     
     BmnGemStripStationSet* fGemDetector;
+    BmnSiliconStationSet* fSiDetector;
     TString fGemHitsBranchName;
+    TString fSiHitsBranchName;
     TString fTracksBranchName;
 
-    TClonesArray* fGemTracksArray;
+    TClonesArray* fTracksArray;    
+    TClonesArray* fSiHitsArray;
     TClonesArray* fGemHitsArray;
+    TClonesArray* fHitsArray;
+    
     BmnKalmanFilter* fKalman;
-
-    Double_t* fGemDistCut;
 
     Bool_t fIsField; // run with mag.field or not
     Bool_t fIsTarget; // run with target or not
+    Bool_t fUseSi; // reco with silicon hits or not
 
     UInt_t fEventNo;
     Short_t fPeriodId;
+    Short_t fNStations;
 
     TVector3 fRoughVertex; // for correct transformation
 
@@ -90,11 +97,9 @@ private:
     Double_t* fCellSlopeYZCutMin;
     Double_t* fCellSlopeYZCutMax;
     
-    Double_t fCellDiffSlopeYZCut;
-    Double_t fCellDiffSlopeXZCut;
+    Double_t* fCellDiffSlopeYZCut;
+    Double_t* fCellDiffSlopeXZCut;
     Int_t fNHitsCut;
-
-    vector<Int_t>* fHitsOnStation;
 
     ClassDef(BmnCellAutoTracking, 1);
 };

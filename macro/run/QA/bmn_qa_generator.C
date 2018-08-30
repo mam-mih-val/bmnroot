@@ -16,6 +16,14 @@ void bmn_qa_generator(TString recoFile = "$VMCWORKDIR/macro/run/bmndst.root", TS
     fRun->AddFriend(mcFile);
     fRun->SetOutputFile(outFile);
     fRun->SetGenerateRunInfo(false);
+    
+    Int_t period = 7;
+    
+    TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
+    TString gPathGemConfig = gPathConfig + "/gem/XMLConfigs/";
+    TString gPathSilConfig = gPathConfig + "/silicon/XMLConfigs/";
+    TString confGem = gPathGemConfig + ((period == 7) ? "GemRunSpring2018.xml" : (period == 6) ? "GemRunSpring2017.xml" : "GemRunSpring2017.xml");
+    TString confSil = gPathSilConfig + ((period == 7) ? "SiliconRunSpring2018.xml" : (period == 6) ? "SiliconRunSpring2017.xml" : "SiliconRunSpring2017.xml");
 
     // ============ TASKS ============= //
 
@@ -26,15 +34,15 @@ void bmn_qa_generator(TString recoFile = "$VMCWORKDIR/macro/run/bmndst.root", TS
     //  clQa->SetOnlyPrimes(isPrimary);
     //  fRun->AddTask(clQa);  
 
-    BmnTrackingQa* trQaAll = new BmnTrackingQa(0, "tracking_qa");
+    BmnTrackingQa* trQaAll = new BmnTrackingQa(0, "tracking_qa", confGem, confSil);
     trQaAll->SetOnlyPrimes(isPrimary);
     fRun->AddTask(trQaAll);
 
-    BmnTrackingQa* trQaPos = new BmnTrackingQa(+1, "tracking_qa_positive");
+    BmnTrackingQa* trQaPos = new BmnTrackingQa(+1, "tracking_qa_positive", confGem, confSil);
     trQaPos->SetOnlyPrimes(isPrimary);
     fRun->AddTask(trQaPos);
 
-    BmnTrackingQa* trQaNeg = new BmnTrackingQa(-1, "tracking_qa_negative");
+    BmnTrackingQa* trQaNeg = new BmnTrackingQa(-1, "tracking_qa_negative", confGem, confSil);
     trQaNeg->SetOnlyPrimes(isPrimary);
     fRun->AddTask(trQaNeg);
 

@@ -65,7 +65,7 @@ public:
             UniDbDetectorParameter::ReadRootFile(fPeriodId, file_number, "BM@N", "alignment", (Char_t*) fAlignCorrFileName.Data());
         } else {
             fAlignCorrFileName = "";
-        }
+        } 
     }
 
     inline Double_t GetLorentzByField(Double_t By, Int_t station) {

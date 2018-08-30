@@ -217,10 +217,10 @@ void lambdaQA(TString fileName, Bool_t useCuts = kTRUE, Bool_t useCutHistoLimits
 
                 if (mom1 < Mom1[0] || mom1 > Mom1[1])
                     continue;
-
+                
                 if (eta1 < Eta1[0] || eta1 > Eta1[1])
                     continue;
-
+                
                 if (eta2 < Eta2[0] || eta2 > Eta2[1])
                     continue;
 

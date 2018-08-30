@@ -58,7 +58,7 @@ fGlobalMatches(NULL) {
             fDetector = new BmnGemStripStationSet_RunSpring2017(fGeometry);
             cout << "   Current Configuration : RunSpring2017" << "\n";
             break;
-
+            
         default:
             fDetector = NULL;
     }

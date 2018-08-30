@@ -528,7 +528,7 @@ TVector3 CircleFit(BmnTrack* track, const TClonesArray* arr, Double_t &chi2) {
     return TVector3(Zc, Xc, R);
 }
 
-Double_t CalcTx(const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2) {
+Double_t CalcTx(const BmnHit* h0, const BmnHit* h1, const BmnHit* h2) {
     //function calculates Tx in point h0, so for TX_last use reverse order: CalcTx(h2, h1, h0)
     TVector3 CircParZX = CircleBy3Hit(h0, h1, h2);
     Double_t Xc = CircParZX.Y(); // x-coordinate of fit-circle center
@@ -655,7 +655,7 @@ void DrawHits(BmnGemTrack* track, const TClonesArray* arr) {
     delete c;
 }
 
-TVector3 CircleBy3Hit(const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2) {
+TVector3 CircleBy3Hit(const BmnHit* h0, const BmnHit* h1, const BmnHit* h2) {
     Float_t x0 = h0->GetX();
     Float_t z0 = h0->GetZ();
     Float_t x1 = h1->GetX();

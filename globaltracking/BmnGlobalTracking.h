@@ -94,6 +94,7 @@ public:
     BmnStatus CreateDchHitsFromTracks();
 
 private:
+    BmnSiliconStationSet* fDetectorSI; // SI-geometry
 
     //AM 7.08
     Bool_t expData;
@@ -120,7 +121,7 @@ private:
     void SelectTracksForTofMerging();
 
     // INPUT ARRAYS
-    TClonesArray* fGemTracks;
+    TClonesArray* fInnerTracks;
     TClonesArray* fGemVertex;
     TClonesArray* fGemHits;
     TClonesArray* fSilHits;
@@ -176,7 +177,7 @@ private:
     BmnStatus MatchingTOF(BmnGlobalTrack* tr, Int_t num, Int_t trIndex);
     BmnStatus MatchingDCH(BmnGlobalTrack* tr);
     BmnStatus MatchingMWPC(BmnGlobalTrack* tr);
-    BmnStatus MatchingSil(map <Double_t, pair<Int_t, Int_t> >);
+    BmnStatus MatchingSil(BmnGlobalTrack*, map <Double_t, pair<Int_t, Int_t>>&);
 
     BmnStatus Refit(BmnGlobalTrack* tr);
     BmnStatus EfficiencyCalculation();
@@ -189,7 +190,7 @@ private:
     BmnGlobalTracking(const BmnGlobalTracking&);
     //    BmnGlobalTracking& operator=(const BmnGlobalTracking&);
     BmnStatus RefitToDetector(BmnGlobalTrack* tr, Int_t hitId, TClonesArray* hitArr, FairTrackParam* par, Int_t* nodeIdx, vector<BmnFitNode>* nodes);
-    void CalcSiliconDist(BmnGlobalTrack*, map <Double_t, pair<Int_t, Int_t> >&);
+    void CalcSiliconDist(Int_t, BmnGlobalTrack*, map <Double_t, pair<Int_t, Int_t>>&);
 
     ClassDef(BmnGlobalTracking, 1);
 };

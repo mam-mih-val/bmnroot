@@ -124,11 +124,11 @@ InitStatus BmnGemStripHitMaker::Init() {
             if (fVerbose) cout << "   Current Configuration : RunSpring2018" << "\n";
             break;
 
-        case BmnGemStripConfiguration::RotTest :
-            StationSet = new BmnGemStripStationSet(gPathGemConfig + "Gem_RotTest.xml");
+        case BmnGemStripConfiguration::RunSRCSpring2018 :
+            StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSRCSpring2018.xml");
             TransfSet = new BmnGemStripTransform();
-            TransfSet->LoadFromXMLFile(gPathGemConfig + "Gem_RotTest.xml");
-            if (fVerbose) cout << "   Current GEM Configuration : Gem_RotTest" << "\n";
+            TransfSet->LoadFromXMLFile(gPathGemConfig + "GemRunSRCSpring2018.xml");
+            if (fVerbose) cout << "   Current GEM Configuration : GemRunSRCSpring2018" << "\n";
             break;
 
         default:

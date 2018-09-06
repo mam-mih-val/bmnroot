@@ -91,6 +91,11 @@ InitStatus BmnSiliconHitMaker::Init() {
             if (fVerbose) cout << "   Current SILICON Configuration : RunSpring2018" << "\n";
             break;
 
+        case BmnSiliconConfiguration::RunSRCSpring2018 :
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSRCSpring2018.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : RunSRCSpring2018" << "\n";
+            break;
+
         default:
             StationSet = NULL;
     }
@@ -143,7 +148,7 @@ void BmnSiliconHitMaker::Exec(Option_t* opt) {
     if (fHitMatching && fBmnSiliconHitMatchesArray) {
         fBmnSiliconHitMatchesArray->Delete();
     }
-    
+
     if (!IsActive())
         return;
     clock_t tStart = clock();

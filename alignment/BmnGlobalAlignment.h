@@ -37,6 +37,7 @@
 #include  "BmnSiliconHit.h"
 #include  "BmnDchTrack.h"
 #include  "BmnMille.h"
+#include  "BmnMilleContainer.h"
 #include  "BmnMwpcAlignCorrections.h"
 #include  "BmnGemAlignCorrections.h"
 #include  "BmnDchAlignCorrections.h"
@@ -70,12 +71,9 @@ public:
         fIsDoTest = flag;
     }
 
-    void SetDetectors(Bool_t gem, Bool_t mwpc, Bool_t dch, Bool_t vp, Bool_t si) {
-        fDetectorSet[0] = kTRUE;
-        fDetectorSet[1] = mwpc;
-        fDetectorSet[2] = dch;
-        fDetectorSet[3] = vp;
-        fDetectorSet[4] = si;
+    void SetDetectors(Bool_t gem, Bool_t si) {
+        fDetectorSet[0] = gem;
+        fDetectorSet[1] = si;
         
         fUseGemConstraints = gem;
         fUseSiliconConstraints = si;
@@ -197,9 +195,6 @@ public:
                     cout << "Stat = " << iStat << " Mod = " << iMod << " isFixed (true / false) " << fixedSiElements[iStat][iMod] << endl;
     }
 
-    void SetUseTrackWithMinChi2(Bool_t flag) {
-        fUseTrackWithMinChi2 = flag;
-    }
 
     void SetExclusionRangeTx(Double_t min, Double_t max) {
         fIsExcludedTx = kTRUE;
@@ -213,85 +208,68 @@ public:
         fTyRight = max;
     }
 
-    void SetRoughPrimaryVertex(TVector3 Vp) {
-        fRoughVertex = Vp;
-    }
-
-    void SetUsePrimaryVertex(Bool_t flag) {
-        fUseVp = flag;
-    }
-
 private:
     void CreateDetectorGeometries();
-    void PrintToFullFormat(TString, Char_t*);
     const Int_t MakeBinFile();
     void MakeSteerFile();
-    void MilleNoFieldRuns(BmnGlobalTrack*, Int_t, Int_t, Char_t*);
-    Bool_t MilleFieldRuns(Int_t, Int_t, Char_t*);
+    void MilleNoFieldRuns(BmnGlobalTrack*, Int_t, Int_t, vector <BmnMilleContainer*>&, vector <BmnMilleContainer*>&);
     void Pede();
     void ReadPedeOutput(ifstream&);
     void ExtractCorrValues(ifstream&, Double_t*);
-    FairTrackParam UseKalman(BmnGemTrack*, Int_t, Int_t);
+    BmnMilleContainer* FillMilleContainer(BmnGlobalTrack*, BmnHit*);
+    
+    inline Int_t GemStatModLabel(Int_t st, Int_t mod) {
+        return 3 * (2 * st + mod + 1);
+    }
+    
+    inline Int_t SiliconStatModLabel(Int_t st, Int_t mod) {
+        Int_t coeff[3] = {0, 6, 3};
+        return GemStatModLabel(st, mod) + coeff[st] * st;
+    }
+    
+    void _Mille(TString, TString, Double_t*, Double_t*, BmnMille*, Int_t);
 
     static Int_t fCurrentEvent;
-    static Int_t trackCounter;
+    Int_t fNTracks;
+    map <Int_t, pair <vector <BmnMilleContainer*>, vector <BmnMilleContainer*>>> fCONTAINER;
     Bool_t fIsField;
     Int_t fRunPeriod;
     Int_t fRunId;
 
-    BmnMwpcGeometry* mwpcGeo;
     BmnGemStripStationSet* fDetectorGEM; // GEM-geometry
     BmnSiliconStationSet* fDetectorSI; // SI-geometry
 
-    TClonesArray* fMwpcAlignCorr;
     TClonesArray* fGemAlignCorr;
-    TClonesArray* fTofAlignCorr;
-    TClonesArray* fDchAlignCorr;
     TClonesArray* fSiAlignCorr;
-
-    TString fBranchMwpcAlignCorr;
+       
     TString fBranchGemAlignCorr;
-    TString fBranchTofAlignCorr;
-    TString fBranchDchAlignCorr;
     TString fBranchSiAlignCorr;
 
     Bool_t* fDetectorSet;
 
-    TString fBranchMwpcHits;
     TString fBranchSiHits;
     TString fBranchGemHits;
-    TString fBranchTof1Hits;
-    TString fBranchDchHits;
 
-    TString fBranchMwpcTracks;
     TString fBranchGemTracks;
-    TString fBranchDchTracks;
+    TString fBranchSilTracks;
 
     TString fBranchGlobalTracks;
     TString fBranchGemResiduals;
     TString fBranchFairEventHeader;
 
-    TClonesArray* fMwpcHits;
     TClonesArray* fSiHits;
     TClonesArray* fGemHits;
-    TClonesArray* fTof1Hits;
-    TClonesArray* fDchHits;
 
-    TClonesArray* fMwpcTracks;
     TClonesArray* fGemTracks;
-    TClonesArray* fDchTracks;
-
+    TClonesArray* fSilTracks;
     TClonesArray* fGlobalTracks;
-    TClonesArray* fGemResiduals;
 
-    FILE* fin_txt;
     TString fRecoFileName;
     TChain* fChain;
 
     FairEventHeader* fFairEventHeader;
 
     Bool_t fUseRealHitErrors; // errors are taken from hit finder algorithm
-    Bool_t fUseTrackWithMinChi2; // in case of target select track with minimal value of chi2
 
     // Restrictions on track params
     Double_t fChi2MaxPerNDF;
@@ -332,19 +310,9 @@ private:
 
     Bool_t fDebug;
     Int_t* Labels; //array containing a fixed param. number for each detector. 
-    // GEMs: 1 - 27; MWPC: 28 - 30; DCH: 31 - 33; VERTEX: 34 - 36; SILICON: 37 - 60
-
-    TCanvas* fCanv;
-
+   
     FairField* fField;
     BmnFieldMap* fMagField;
-    BmnKalmanFilter* fKalman;
-
-    Bool_t fUseVp;
-    TVector3 fRoughVertex;
-
-    TString fBranchVertex;
-    TClonesArray* fVertex;
     
     // Use constraints or not
     Bool_t fUseGemConstraints;
@@ -353,7 +321,7 @@ private:
     Bool_t fIsDoTest;
     TString fMisAlignFile;
     TClonesArray* fBmnGemMisalign;
-
+    
     ClassDef(BmnGlobalAlignment, 1)
 };
 

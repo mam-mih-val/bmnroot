@@ -12,6 +12,7 @@ BmnCscRaw2Digit::BmnCscRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer) :
     fEventId = 0;
     fMapFileName = Form("CSC_map_period%d.txt", period);
     ReadMapFile();
+    ReadMapLocalFile();
 
     const Int_t kNStations = 1;
     const Int_t kNStrips = 4096; //FIXME
@@ -90,6 +91,39 @@ BmnStatus BmnCscRaw2Digit::ReadMapFile() {
     }
 }
 
+BmnStatus BmnCscRaw2Digit::ReadMapLocalFile() {
+    Int_t modules = 2;
+    Int_t layers = 4;
+    
+    for(Short_t iMod = 0; iMod < modules; ++iMod){
+        vector< vector<Int_t> > mVec;
+        vector< vector<Int_t> > mChannel;
+        for(Short_t iLay = 0; iLay < layers; ++iLay){
+            vector<Int_t> lVec(2048);
+            std::fill(lVec.begin(),lVec.end(),-1);
+            vector<Int_t> lChannel;
+            TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + TString("CSC_m") + (Long_t)iMod + TString("l") + (Long_t)iLay + TString(".txt");
+            ifstream inFile(name.Data());
+            if (!inFile.is_open()) {
+                printf(ANSI_COLOR_RED "\n[ERROR]" ANSI_COLOR_RESET);
+                printf(" Error opening map-file (%s)", name.Data());
+            }
+            Int_t strip = 0;
+            while (!inFile.eof()) {
+                Int_t ch;
+                inFile >> ch;
+                lChannel.push_back(ch);
+                lVec[ch] = strip;
+                strip++;
+            }
+            mVec.push_back(lVec);
+            mChannel.push_back(lChannel);
+        }
+        localMap.push_back(mVec);
+        channelMap.push_back(mChannel);
+    }
+}
+
 BmnStatus BmnCscRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * csc) {
     fEventId++;
     for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
@@ -147,6 +181,21 @@ BmnStatus BmnCscRaw2Digit::FillNoisyChannels() {
             }
 }
 
+Int_t BmnCscRaw2Digit::LayerPrediction(Int_t module, Int_t x) { 
+    Int_t layer = -1;
+    bool finded = false;
+    for (Int_t j = 0; j < channelMap[module].size(); j++){
+        layer = j;
+        auto result = std::find(channelMap[module][j].begin(), channelMap[module][j].end(), x);
+        if(result != std::end(channelMap[module][j])){
+            finded = true;
+            break;
+        }
+    }
+    if(finded) return layer;
+    else return -1;
+}
+
 void BmnCscRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TClonesArray * csc, Bool_t doFill) {
     if (!adcDig || !cscM || !csc) return;
     const UInt_t nSmpl = adcDig->GetNSamples();
@@ -158,23 +207,33 @@ void BmnCscRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TCl
         if (ser == GetSerials()[iSer]) break;
 
     BmnCscDigit candDig[nSmpl];
-
+    
+    Short_t cscStation = cscM->station;
+    Short_t cscModule = cscM->module;
+    //Short_t cscLayer = cscM->layer; 
+    Int_t ch2048 = ch * nSmpl;
+    //Short_t cscLayer = LayerPrediction(cscModule, ch2048);
+    //if(cscLayer == -1) return;
+    Int_t counter = -1;
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+        ch2048 = ch * nSmpl + iSmpl;
+        Short_t cscLayer = LayerPrediction(cscModule, ch2048);
+        if(cscLayer == -1) continue;
         BmnCscDigit dig;
-        dig.SetStation(cscM->station);
-        dig.SetModule(cscM->module);
-        dig.SetStripLayer(cscM->layer);
-        //        dig.SetStripNumber((ch - cscM->channel_low) * nSmpl + 1 + iSmpl); //FIXME
-        dig.SetStripNumber(0); //FIXME
+        if(localMap[cscModule][cscLayer][ch2048]==-1) continue;
+        else counter++;
+        dig.SetStripNumber(localMap[cscModule][cscLayer][ch2048]);
+        dig.SetStation(cscStation);
+        dig.SetModule(cscModule);
+        dig.SetStripLayer(cscLayer);
         Double_t sig = (Double_t) ((adcDig->GetShortValue())[iSmpl] / 16);
         dig.SetStripSignal(sig);
-        candDig[iSmpl] = dig;
+        candDig[counter] = dig;
     }
-
-    Double_t signals[nSmpl];
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) signals[iSmpl] = 0.0;
+    Double_t signals[counter+1];
+    for (Int_t iSmpl = 0; iSmpl < counter; ++iSmpl) signals[iSmpl] = 0.0;
     Int_t nOk = 0;
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+    for (Int_t iSmpl = 0; iSmpl < counter; ++iSmpl) {
         if ((candDig[iSmpl]).GetStripSignal() == 0) continue;
         signals[iSmpl] = (candDig[iSmpl]).GetStripSignal();
         nOk++;
@@ -183,22 +242,34 @@ void BmnCscRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TCl
 
     Double_t*** vPed = GetPedestals();
     Double_t*** vPedRMS = GetPedestalsRMS();
-
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+    /*
+    for(int i=0;i<6;i++){
+        for(int j=0;j<64;j++){
+            for(int k=0;k<31;k++){
+                cout << vPedRMS[i][j][k] << endl;
+            }
+        }
+    }
+    */
+    for (Int_t iSmpl = 0; iSmpl < counter; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
         BmnCscDigit * dig = &candDig[iSmpl];
         Double_t ped = vPed[iSer][ch][iSmpl];
         Double_t sig = Abs(dig->GetStripSignal() - CMS - ped);
-        //        Double_t threshold = 120; // * vPedRMS[iSer][ch][iSmpl]; //50;//120;//160;
-        //        if (sig < threshold || sig == 0.0) continue;
+        //cout << "strip " << iSer << " CMS " << ch << " ped " << iSmpl << endl;
+        Float_t threshold = 50 + 4 * vPedRMS[iSer][ch][iSmpl]; //20;
+        //if(threshold != 0) cout << threshold << endl;
+        if (sig < threshold || sig == 0.0) continue; //FIXME: check cases with sig == 0
         if (doFill) {
             fSigProf[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()]->Fill(dig->GetStripNumber());
         } else {
             BmnCscDigit * resDig = new((*csc)[csc->GetEntriesFast()]) BmnCscDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
-            if (fNoisyChannels[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()][dig->GetStripNumber()])
+            if (fNoisyChannels[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()][dig->GetStripNumber()]){
                 resDig->SetIsGoodDigit(kFALSE);
-            else
+            }
+            else{
                 resDig->SetIsGoodDigit(kTRUE);
+            }
         }
     }
 }

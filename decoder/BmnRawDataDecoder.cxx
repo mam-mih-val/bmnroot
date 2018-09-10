@@ -963,6 +963,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             curEventType = headDAQ->GetType();
 
             if (curEventType != kBMNPEDESTAL) continue;
+            cout << "curEventType" << curEventType << endl;
             if (fPedEvCntr != fEvForPedestals - 1) {
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
                 fPedEvCntr++;
@@ -1282,6 +1283,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
             if (fPedEvCntr >= fEvForPedestals - 1) {
                 fGemMapper->RecalculatePedestals();
                 fSiliconMapper->RecalculatePedestals();
+                fCscMapper->RecalculatePedestals();
                 fPedEvCntr = 0;
                 fPedEnough = kTRUE;
             }

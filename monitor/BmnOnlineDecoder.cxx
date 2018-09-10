@@ -64,6 +64,8 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     }*/
     Bool_t setup[11]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
+    BmnSetup stp = kBMNSETUP;
+    TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((stp == kBMNSETUP) ? "" : "_SRC"));
     setup[0] = 1; // TRIGGERS
     setup[1] = 1; // MWPC
     setup[2] = 1; // SILICON
@@ -74,6 +76,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     setup[7] = 1; // ZDC
     setup[8] = 1; // ECAL
     setup[9] = 1; // LAND
+    setup[10] = 1; // CSC
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetBmnSetup(fBmnSetup);
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
@@ -87,8 +90,8 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     rawDataDecoder->SetLANDTCal("r0030_land_tcal.hh");
     rawDataDecoder->SetLANDDiffSync("r352_cosmic1.hh");
     rawDataDecoder->SetLANDVScint("neuland_sync_2.txt");
+    rawDataDecoder->SetCSCMapping(TString("CSC_map_period") + PeriodSetupExt);
 
-    TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((fBmnSetup == kBMNSETUP) ? "" : "_SRC"));
     rawDataDecoder->SetTrigMapping(TString("Trig_map_Run") + PeriodSetupExt);
     rawDataDecoder->SetSiliconMapping("SILICON_map_run7.txt");
     rawDataDecoder->SetGemMapping(TString("GEM_map_run") + PeriodSetupExt);

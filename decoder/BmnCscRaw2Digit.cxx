@@ -209,11 +209,8 @@ void BmnCscRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TCl
     BmnCscDigit candDig[nSmpl];
     
     Short_t cscStation = cscM->station;
-    Short_t cscModule = cscM->module;
-    //Short_t cscLayer = cscM->layer; 
+    Short_t cscModule = cscM->module; 
     Int_t ch2048 = ch * nSmpl;
-    //Short_t cscLayer = LayerPrediction(cscModule, ch2048);
-    //if(cscLayer == -1) return;
     Int_t counter = -1;
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         ch2048 = ch * nSmpl + iSmpl;
@@ -239,18 +236,8 @@ void BmnCscRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TCl
         nOk++;
     }
     Double_t CMS = CalcCMS(signals, nOk);
-
     Double_t*** vPed = GetPedestals();
     Double_t*** vPedRMS = GetPedestalsRMS();
-    /*
-    for(int i=0;i<6;i++){
-        for(int j=0;j<64;j++){
-            for(int k=0;k<31;k++){
-                cout << vPedRMS[i][j][k] << endl;
-            }
-        }
-    }
-    */
     for (Int_t iSmpl = 0; iSmpl < counter; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
         BmnCscDigit * dig = &candDig[iSmpl];

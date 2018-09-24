@@ -136,7 +136,7 @@ void BmnHistCsc::DrawBoth() {
     BmnHist::DrawRef(canCscStrip, &canStripPads);
 }
 
-void BmnHistCsc::FillFromDigi(DigiArrays *fDigiArrays) {
+void BmnHistCsc::FillFromDigi(DigiArrays *fDigiArrays){ 
     TClonesArray * cscDigits = fDigiArrays->csc;
     if (!cscDigits)
         return;

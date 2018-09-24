@@ -24,6 +24,7 @@ BmnOnlineDecoder::BmnOnlineDecoder() {
     rawDataDecoder = NULL;
     _ctx = NULL;
     fBmnSetup = kBMNSETUP;
+    //fRecoChain = NULL;
 }
 
 BmnOnlineDecoder::~BmnOnlineDecoder() {
@@ -32,6 +33,7 @@ BmnOnlineDecoder::~BmnOnlineDecoder() {
         zmq_ctx_destroy(_ctx);
         _ctx = NULL;
     }
+    //if (fRecoChain) delete fRecoChain;
 }
 
 BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
@@ -57,15 +59,8 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
         rawDataDecoder = new BmnRawDataDecoder();
     rawDataDecoder->SetRunId(runID);
     rawDataDecoder->SetPeriodId(fPeriodID);
-    /*if (rawDataDecoder->InitMaps() == kBMNERROR) {
-        printf("InitMaps failed\n");
-        delete rawDataDecoder;
-        return kBMNERROR;
-    }*/
     Bool_t setup[11]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
-    BmnSetup stp = kBMNSETUP;
-    TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((stp == kBMNSETUP) ? "" : "_SRC"));
     setup[0] = 1; // TRIGGERS
     setup[1] = 1; // MWPC
     setup[2] = 1; // SILICON
@@ -79,9 +74,10 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     setup[10] = 1; // CSC
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetBmnSetup(fBmnSetup);
+    TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((fBmnSetup == kBMNSETUP) ? "" : "_SRC"));
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
-    rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_RUN7.txt", "TOF400_StripMap_RUN7.txt");
-    rawDataDecoder->SetTof700Mapping("TOF700_map_period_7.txt");
+    rawDataDecoder->SetTof400Mapping(TString("TOF400_PlaceMap_RUN") +PeriodSetupExt, TString("TOF400_StripMap_RUN") +PeriodSetupExt);
+    rawDataDecoder->SetTof700Mapping(TString("TOF700_map_period_") + PeriodSetupExt);
     rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
     rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
     rawDataDecoder->SetECALMapping("ECAL_map_period_7.txt");
@@ -90,18 +86,34 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     rawDataDecoder->SetLANDTCal("r0030_land_tcal.hh");
     rawDataDecoder->SetLANDDiffSync("r352_cosmic1.hh");
     rawDataDecoder->SetLANDVScint("neuland_sync_2.txt");
-    rawDataDecoder->SetCSCMapping(TString("CSC_map_period") + PeriodSetupExt);
-
     rawDataDecoder->SetTrigMapping(TString("Trig_map_Run") + PeriodSetupExt);
-    rawDataDecoder->SetSiliconMapping("SILICON_map_run7.txt");
+    rawDataDecoder->SetSiliconMapping(TString("SILICON_map_run") + PeriodSetupExt);
     rawDataDecoder->SetGemMapping(TString("GEM_map_run") + PeriodSetupExt);
+    rawDataDecoder->SetCSCMapping(TString("CSC_map_period") + PeriodSetupExt);
     rawDataDecoder->SetMwpcMapping(TString("MWPC_map_period") + PeriodSetupExt);
     rawDataDecoder->InitMaps();
     if (_curFile.Length() > 0)
         rawDataDecoder->InitConverter(_curDir + _curFile);
     else
         rawDataDecoder->InitConverter();
-    return rawDataDecoder->InitDecoder();
+    BmnStatus iniStatus = rawDataDecoder->InitDecoder();
+    if (iniStatus == kBMNSUCCESS){
+        //InitReco();
+    }
+    return iniStatus;
+    
+}
+
+BmnStatus BmnOnlineDecoder::InitReco(){
+        TTree *digiTree = rawDataDecoder->GetDigiTree();
+        fRecoChain = new TChain();
+        fRecoChain->AddFriend(digiTree);
+        fRunAna = new FairRunAna();
+        //fRunAna->SetSource(fRecoChain);
+}
+
+BmnStatus BmnOnlineDecoder::IterReco(){
+    
 }
 
 BmnStatus BmnOnlineDecoder::DecodeStream() {

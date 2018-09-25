@@ -46,6 +46,8 @@ private:
     TString fMapFileName;
     vector<BmnCscMapping*> fMap;    
     vector<UInt_t> fSerials;
+    vector<vector<vector<Int_t>>> localMap;
+    vector<vector<vector<Int_t>>> channelMap;
     Int_t fEventId; 
         
     TH1F**** fSigProf;
@@ -54,6 +56,8 @@ private:
     BmnCscMapping* FindMapEntry(BmnADCDigit* adcDig);
     void ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TClonesArray *csc, Bool_t doFill);
     BmnStatus ReadMapFile();
+    BmnStatus ReadMapLocalFile();
+    Int_t LayerPrediction(Int_t module, Int_t x);
 
     ClassDef(BmnCscRaw2Digit, 2);
 };

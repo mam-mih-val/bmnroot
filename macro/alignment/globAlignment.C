@@ -6,8 +6,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include <TString.h>
 #include <TStopwatch.h>
 
-void globAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst.root",
-        TString addInfo = "") {
+void globAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst_4629_newTracking.root", TString addInfo = "", Int_t runPeriod = 7) {
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
@@ -25,7 +24,7 @@ void globAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst.root",
     cout << "outputFileName: " + outputFileName << endl;
     fRunAna->SetOutputFile(outputFileName);
 
-    BmnGlobalAlignment* globAlign = new BmnGlobalAlignment(recoFileName);
+    BmnGlobalAlignment* globAlign = new BmnGlobalAlignment(recoFileName, runPeriod);
     // globAlign->SetDebug(kTRUE); // default is false
 
     // Restrictions on track params:
@@ -39,7 +38,7 @@ void globAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst.root",
     //globAlign->SetTyMinMax(-0.05, 0.05);
 
     //                      "GEM",  MWPC", "DCH",  "Vp",  "SILICON"
-    globAlign->SetDetectors(kTRUE, kFALSE, kFALSE, kFALSE, kFALSE);
+    globAlign->SetDetectors(kTRUE, kFALSE, kFALSE, kFALSE, kTRUE);
 
     // Define modules to be fixed (any character) within alignment, if necessary. 
     // st0, st1, st2, st3_modLeft(0), st3_modRight(1), st4_modLeft(0), st4_modRight(1), st5_modLeft(0), st5_modRight(1)

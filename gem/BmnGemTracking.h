@@ -42,7 +42,8 @@ public:
     BmnStatus CalculateTrackParamsLine(BmnGemTrack* tr);
     BmnStatus CalculateTrackParamsCircle(BmnGemTrack* tr);
     BmnStatus CalculateTrackParamsPol2(BmnGemTrack *tr);
-    BmnStatus NearestHitMergeGem(UInt_t station, BmnGemTrack* tr, Bool_t& wasSkipped);
+    BmnStatus NearestHitMerge(UInt_t station, BmnGemTrack* tr, Bool_t& wasSkipped);
+    BmnStatus BranchHitMerge(BmnGemTrack* tr);
     Double_t CalculateLength(BmnGemTrack* tr);
     void SetHitsUsing(BmnGemTrack* tr, Bool_t use);
     void FillAddrWithLorentz();
@@ -51,6 +52,7 @@ public:
     BmnStatus RefitTrack(BmnGemTrack* track);
     TVector2 GetTransXY(BmnGemStripHit* hit);
     BmnStatus SortTracks(vector<BmnGemTrack>& inTracks, vector<BmnGemTrack>& sortedTracks);
+    BmnStatus SortTracks(vector<BmnGemTrack*>& inTracks);
     BmnStatus CheckSharedHits(vector<BmnGemTrack>& sortedTracks);
     
     void SetLorentzThresh(Double_t trs) {
@@ -112,7 +114,8 @@ public:
     }
 
 private:
-    TVector2 CalcMeanSigma(vector <Double_t>); 
+    TVector2 CalcMeanSigma(vector <Double_t>);
+    BmnStatus CalcCovMatrix(BmnGemTrack * tr);
       
     BmnGemStripStationSet* fGemDetector;
     TString fGemHitsBranchName;

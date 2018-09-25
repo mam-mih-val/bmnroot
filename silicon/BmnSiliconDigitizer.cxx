@@ -63,6 +63,11 @@ InitStatus BmnSiliconDigitizer::Init() {
             if (fVerbose) cout << "   Current SILICON Configuration : RunSpring2018" << "\n";
             break;
 
+        case BmnSiliconConfiguration::RunSRCSpring2018 :
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSRCSpring2018.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : RunSRCSpring2018" << "\n";
+            break;
+
         default:
             StationSet = NULL;
     }

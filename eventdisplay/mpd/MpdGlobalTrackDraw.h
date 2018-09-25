@@ -46,6 +46,9 @@ class MpdGlobalTrackDraw : public FairTask
     // return pointer to EVE track list for given particle name. if list don't exist then create it
     TEveTrackList* GetTrGroup(TParticle* P);
 
+    Float_t GetCutProbability() { return fCutProbability; }
+    void SetCutProbability(Float_t cut_probability) { fCutProbability = cut_probability; }
+
   protected:
     // global tracks collection
     TClonesArray*  fTrackList;          //!
@@ -62,6 +65,9 @@ class MpdGlobalTrackDraw : public FairTask
     Double_t MinEnergyLimit;
     Double_t MaxEnergyLimit;
     Double_t PEnergy;
+
+    // acceptable probability for PID
+    Float_t fCutProbability;
 
   private:
     MpdGlobalTrackDraw(const MpdGlobalTrackDraw&);

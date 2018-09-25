@@ -419,7 +419,6 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile(UInt_t limit) {
                 return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
             }
             ProcessEvent(data, fDat);
-            printf("\n");
             fNevents++;
             break;
             //        fRawTree->Fill();
@@ -441,9 +440,9 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     msc->Delete();
     eventHeaderDAQ->Delete();
     BmnTrigInfo* trigInfo = new BmnTrigInfo();
-
+    
     DrawBar(fCurentPositionRawFile, fLengthRawFile);
-
+    
     Long64_t idx = 1;
     BmnEventType evType = kBMNPAYLOAD;
 
@@ -963,6 +962,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             curEventType = headDAQ->GetType();
 
             if (curEventType != kBMNPEDESTAL) continue;
+            cout << "curEventType" << curEventType << endl;
             if (fPedEvCntr != fEvForPedestals - 1) {
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
                 fPedEvCntr++;
@@ -1077,7 +1077,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, isTripEvent, headDAQ->GetTrigInfo(), fTimeShifts);
         BmnEventHeader* evHdr = (BmnEventHeader*) eventHeader->At(eventHeader->GetEntriesFast() - 1);
         evHdr->SetStartSignalInfo(fT0Time, fT0Width);
-
         if (curEventType == kBMNPEDESTAL) {
             if (fPedEvCntr == fEvForPedestals - 1) continue;
             CopyDataToPedMap(adc32, adc128, fPedEvCntr);
@@ -1272,7 +1271,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     }
     fT0Time = 0.;
     GetT0Info(fT0Time, fT0Width);
-
     if (fCurEventType == kBMNPEDESTAL) {
         if (fPedEvCntr == fEvForPedestals - 1) return kBMNERROR; //FIX return!
         CopyDataToPedMap(adc32, adc128, fPedEvCntr);
@@ -1280,8 +1278,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     } else { // payload
         if (fPrevEventType == kBMNPEDESTAL) {
             if (fPedEvCntr >= fEvForPedestals - 1) {
-                fGemMapper->RecalculatePedestals();
-                fSiliconMapper->RecalculatePedestals();
+                if(fGemMapper)fGemMapper->RecalculatePedestals();
+                if(fSiliconMapper)fSiliconMapper->RecalculatePedestals();
+                if(fCscMapper)fCscMapper->RecalculatePedestals();
                 fPedEvCntr = 0;
                 fPedEnough = kTRUE;
             }
@@ -1415,7 +1414,6 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
 
     return kBMNSUCCESS;
 }
-
 BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray* adcSil, UInt_t ev) {
     if (fGemMapper) {
         Double_t**** pedData = fGemMapper->GetPedData();
@@ -1447,6 +1445,23 @@ BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray
                     else
                         pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetUShortValue())[iSmpl] / 16;
                 }
+                break;
+            }
+        }
+    }
+    if (fCscMapper) {
+        //if(adcGem->GetEntriesFast() > 0) cout << adcGem->GetEntriesFast() << endl;
+        Double_t**** pedData = fCscMapper->GetPedData();
+        for (UInt_t iAdc = 0; iAdc < adcGem->GetEntriesFast(); ++iAdc) {
+            BmnADCDigit* adcDig = (BmnADCDigit*) adcGem->At(iAdc);
+
+            for (Int_t iSer = 0; iSer < fNCscSerials; ++iSer) {
+                if (adcDig->GetSerial() != fCscSerials[iSer]) continue;
+                for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl)
+                    if (fRunId > GetBoundaryRun(ADC32_N_SAMPLES)) {
+                        pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetShortValue())[iSmpl] / 16;
+                    } else
+                        pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetUShortValue())[iSmpl] / 16;
                 break;
             }
         }

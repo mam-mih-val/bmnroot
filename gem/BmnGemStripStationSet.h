@@ -45,6 +45,7 @@ public:
     //Reset all data in stations of the station set
     void Reset();
 
+    ////If you use this function in any outer code, don't forget to invert the 'xcoord' parameter!
     Bool_t AddPointToDetector(Double_t xcoord, Double_t ycoord, Double_t zcoord,
                                       Double_t px, Double_t py, Double_t pz,
                                       Double_t dEloss, Int_t refID);
@@ -54,8 +55,15 @@ public:
     void ProcessPointsInDetector();
     Int_t CountNProcessedPointsInDetector();
 
-    //which station in the GEM detector does a point belong to?
-    Int_t GetPointStationOwnership(Double_t zcoord);
+    //which station in the GEM detector does a point belong to? ----------------
+
+        //This is an OLD version of the function being used in case of parallel stations
+        Int_t GetPointStationOwnership(Double_t zcoord);
+
+        //If you use this function in any outer code, don't forget to invert the 'xcoord' parameter!
+        Int_t GetPointStationOwnership(Double_t xcoord, Double_t ycoord, Double_t zcoord);
+
+    //--------------------------------------------------------------------------
 
 private:
 

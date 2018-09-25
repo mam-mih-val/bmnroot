@@ -19,7 +19,7 @@ variables:
     - mkdir build
     - cd build
     - cmake "$CI_PROJECT_DIR"
-    - make
+    - make -j 5
   allow_failure: false
   
 build:centos:

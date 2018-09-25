@@ -9,6 +9,11 @@
 #include <TVirtualPad.h>
 #include <TMath.h>
 
+#include <TString.h>
+#include <Rtypes.h>
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "macro/run/bmnloadlibs.C"
+
 using namespace std;
 using namespace TMath;
 
@@ -16,17 +21,17 @@ const Int_t dim = 2;
 // Redefine histo limits (supposing exclusion - less(idx0) or more(idx1)) due to cuts obtained (useCutHistoLimits should be kTRUE)
 
 // C-Cu, T = 4 GeV/n
-Double_t Mom1[dim] = {0., 4.};
+Double_t Mom1[dim] = {0., 3.};
 Double_t Mom2[dim] = {0., 1.};
-Double_t Eta1[dim] = {2., 3.};
-Double_t Eta2[dim] = {2., 3.};
+Double_t Eta1[dim] = {1.5, 2.5};
+Double_t Eta2[dim] = {1.5, 2.5};
 
 // more than in sense of exclusion ...
-Double_t Dca1[dim] = {0.1, 100.};
-Double_t Dca2[dim] = {0.1, 100.};
+Double_t Dca1[dim] = {.1, 100.};
+Double_t Dca2[dim] = {.1, 100.};
 
-Double_t Dca12X[dim] = {0., 0.4};
-Double_t Dca12Y[dim] = {0., 0.4};
+Double_t Dca12X[dim] = {0., 0.7};
+Double_t Dca12Y[dim] = {0., 0.7};
 Double_t Path = 50.;
 
 Double_t Alpha = 0.5;
@@ -49,15 +54,12 @@ Double_t ArmenPodolEllipseCut(Double_t alpha) {
 
 }
 
-void lambdaQA(TString fileName, Bool_t useCuts = kTRUE, Bool_t useCutHistoLimits = kFALSE) {
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+void lambdaQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t useCutHistoLimits = kFALSE) {
     gStyle->SetOptStat(0);
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
     timer.Start();
-
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
 
     TChain* out = new TChain("cbmsim");
     out->Add(fileName.Data());
@@ -212,32 +214,32 @@ void lambdaQA(TString fileName, Bool_t useCuts = kTRUE, Bool_t useCutHistoLimits
                 //                if (ptPodol > PtPodol)
                 //                    continue;
                 //
-                //                if (path < 1.5)
-                //                   continue;
+	       if (path < 7.)
+	       	continue;
 
-                if (mom1 < Mom1[0] || mom1 > Mom1[1])
-                    continue;
+	       //  if (mom1 < Mom1[0] || mom1 > Mom1[1])
+	       //	continue;
 
-                if (eta1 < Eta1[0] || eta1 > Eta1[1])
-                    continue;
+	       // if (eta1 < Eta1[0] || eta1 > Eta1[1])
+	       //	continue;
 
-                if (eta2 < Eta2[0] || eta2 > Eta2[1])
-                    continue;
+	       // if (eta2 < Eta2[0] || eta2 > Eta2[1])
+	       //	continue;
 
-                if (dca12X < Dca12X[0] || dca12X > Dca12X[1])
-                    continue;
+	       // if (dca12X < Dca12X[0] || dca12X > Dca12X[1])
+	       //	continue;
 
-                //                if (dca12Y < Dca12Y[0] || dca12Y > Dca12Y[1])
-                //                    continue;
+	      //              if (dca12Y < Dca12Y[0] || dca12Y > Dca12Y[1])
+              //                      continue;
 
-                if (dca1 < Dca1[0] || dca1 > Dca1[1])
-                    continue;
+               //  if (dca1 < Dca1[0] || dca1 > Dca1[1])
+	       //     continue;
 
-                if (dca2 < Dca2[0] || dca2 > Dca2[1])
-                    continue;
+               //  if (dca2 < Dca2[0] || dca2 > Dca2[1])
+               //      continue;
 
-                if (mom2 < Mom2[0] || mom2 > Mom2[1])
-                    continue;
+               //  if (mom2 < Mom2[0] || mom2 > Mom2[1])
+               //      continue;
             }
 
             hists[0]->Fill(mom1, invMass);
@@ -260,7 +262,7 @@ void lambdaQA(TString fileName, Bool_t useCuts = kTRUE, Bool_t useCutHistoLimits
         TVirtualPad* pad = canv->cd(iHist + 1);
         pad->SetBottomMargin(0.2);
         pad->SetLeftMargin(0.2);
-        // pad->SetLogz();
+	// pad->SetLogz();
         hists[iHist]->Draw("colz");
     }
 
@@ -333,7 +335,6 @@ void lambdaQA(TString fileName, Bool_t useCuts = kTRUE, Bool_t useCutHistoLimits
     delete canv;
     for (Int_t iHist = 0; iHist < nHists; iHist++)
         delete hists[iHist];
-    delete hists;
     timer.Stop();
     Double_t rtime = timer.RealTime();
     Double_t ctime = timer.CpuTime();

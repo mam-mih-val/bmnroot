@@ -39,6 +39,8 @@ set(SRCS
   BmnManageQA.cxx
   BmnGemDigitizerQAHistograms.cxx
   BmnGemTracking.cxx
+  BmnCellAutoTracking.cxx
+  BmnCellDuet.cxx
   BmnGemStripLayer.cxx
   BmnGemStripModule.cxx
   BmnGemStripStation.cxx
@@ -52,9 +54,10 @@ set(SRCS
   BmnGemStripDigit.cxx
   BmnGemStripDigitizer.cxx
   BmnGemStripHitMaker.cxx
-  BmnKalmanFilter.cxx
+#  BmnKalmanFilter.cxx
   BmnGemStripMedium.cxx
-  BmnMaterialEffects.cxx
+  #BmnMaterialEffects.cxx
+  BmnGemStripTransform.cxx
 )
 
 IF (SSE_FOUND)
@@ -86,6 +89,6 @@ endif()
 Set(HEADERS)
 set(LINKDEF GemLinkDef.h)
 Set(LIBRARY_NAME Gem)
-Set(DEPENDENCIES KF Sts BmnData Base)
+Set(DEPENDENCIES KF Sts BmnData Base GenVector)
 
 GENERATE_LIBRARY()

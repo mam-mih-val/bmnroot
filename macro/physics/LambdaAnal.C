@@ -1,8 +1,10 @@
 #include <TString.h>
+#include <Rtypes.h>
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "macro/run/bmnloadlibs.C"
 
 // Macro to be used for Lambda0->Pi- + p reconstruction
-void LambdaAnal(UInt_t nEvents, Int_t runNumb, TString input, TString output) {
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+void LambdaAnal(UInt_t nEvents=10e6, Int_t runNumb = 4629, TString input = "evetest_ArPb_geo2018.root", TString output = "tmp.root") {
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
@@ -12,7 +14,7 @@ void LambdaAnal(UInt_t nEvents, Int_t runNumb, TString input, TString output) {
     fRunAna->SetSource(fFileSource);
     fRunAna->SetOutputFile(output);
 
-    BmnTwoParticleDecay* lambda = new BmnTwoParticleDecay(BmnGemStripConfiguration::RunSpring2017, runNumb);
+    BmnTwoParticleDecay* lambda = new BmnTwoParticleDecay(BmnGemStripConfiguration::RunSpring2018, runNumb);
     lambda->SetUseRealVertex(kTRUE); // equal to false by default
     //lambda->SetSiRequired(kTRUE); // equal to false by default
 

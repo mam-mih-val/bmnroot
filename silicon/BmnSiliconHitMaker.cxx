@@ -23,8 +23,8 @@ BmnSiliconHitMaker::BmnSiliconHitMaker()
     StationSet = NULL;
 }
 
-BmnSiliconHitMaker::BmnSiliconHitMaker(Bool_t isExp)
-: fHitMatching(kTRUE) {
+BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Bool_t isExp)
+: fHitMatching(kTRUE), fRunId(-1), fPeriodId(run_period) {
 
     fIsExp = isExp;
     fInputPointsBranchName = "SiliconPoint";
@@ -76,19 +76,24 @@ InitStatus BmnSiliconHitMaker::Init() {
     }
 
     TString gPathSiliconConfig = gSystem->Getenv("VMCWORKDIR");
-        gPathSiliconConfig += "/silicon/XMLConfigs/";
+    gPathSiliconConfig += "/silicon/XMLConfigs/";
 
     //Create SILICON detector ------------------------------------------------------
     switch (fCurrentConfig) {
 
-        case BmnSiliconConfiguration::RunSpring2017 :
+        case BmnSiliconConfiguration::RunSpring2017:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2017.xml");
             if (fVerbose) cout << "   Current SILICON Configuration : RunSpring2017" << "\n";
             break;
 
-        case BmnSiliconConfiguration::RunSpring2018 :
+        case BmnSiliconConfiguration::RunSpring2018:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2018.xml");
             if (fVerbose) cout << "   Current SILICON Configuration : RunSpring2018" << "\n";
+            break;
+
+        case BmnSiliconConfiguration::RunSRCSpring2018 :
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSRCSpring2018.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : RunSRCSpring2018" << "\n";
             break;
 
         default:
@@ -110,10 +115,9 @@ InitStatus BmnSiliconHitMaker::Init() {
         }
     }
 
-    if (fAlignCorrFileName != "") {
+    if (fAlignCorrFileName != "")
         ReadAlignCorrFile(fAlignCorrFileName, corr);
 
-    }
     cout << "SI-alignment corrections in use:" << endl;
     for (Int_t iStat = 0; iStat != nStat; iStat++) {
         Int_t nModul = StationSet->GetSiliconStation(iStat)->GetNModules();
@@ -173,6 +177,8 @@ void BmnSiliconHitMaker::ProcessDigits() {
 
     for (UInt_t idigit = 0; idigit < fBmnSiliconDigitsArray->GetEntriesFast(); idigit++) {
         digit = (BmnSiliconDigit*) fBmnSiliconDigitsArray->At(idigit);
+        if (!digit->IsGoodDigit())
+            continue;
         station = StationSet->GetSiliconStation(digit->GetStation());
         module = station->GetModule(digit->GetModule());
         if (!module)

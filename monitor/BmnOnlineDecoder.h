@@ -26,6 +26,7 @@
 #include "TBuffer.h"
 #include <root/TPRegexp.h>
 #include "TObjString.h"
+#include <FairRunAna.h>
 // BmnRoot
 #include <BmnTrigDigit.h>
 #include <BmnTof1Digit.h>
@@ -36,7 +37,6 @@
 #include "BmnEventHeader.h"
 
 #define RAW_DECODER_SOCKET_PORT 5555
-#define RUN_FILE_CHECK_PERIOD    1e5
 #define RUN_FILE_CHECK_PERIOD    1e5
 #define DECO_SOCK_WAIT_PERIOD     10
 #define DECO_SOCK_WAIT_LIMIT     5*60e3
@@ -74,6 +74,8 @@ public:
 private:
     BmnStatus InitDecoder(TString);
     BmnStatus InitDecoder(Int_t runID);
+    BmnStatus InitReco();
+    BmnStatus IterReco();
     void ProcessFileRun(TString digiName, UInt_t timeLimit = WAIT_LIMIT);
     static TString WatchNext(TString dirname, TString filename, Int_t cycleWait);
     static TString WatchNext(Int_t inotifDir, Int_t cycleWait);
@@ -84,6 +86,8 @@ private:
     void * _decoSocket;
     BmnSetup fBmnSetup;
     BmnRawDataDecoder *rawDataDecoder;
+    TChain *fRecoChain;
+    FairRunAna* fRunAna;
     TString _curFile;
     TString _curDir;
     Int_t fEvents;

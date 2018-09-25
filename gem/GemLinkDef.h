@@ -22,10 +22,13 @@
 #pragma link C++ class BmnGemStripDigit+;
 #pragma link C++ class BmnGemStripDigitizer+;
 #pragma link C++ class BmnGemStripHitMaker+;
-#pragma link C++ class BmnKalmanFilter+;
+//#pragma link C++ class BmnKalmanFilter+;
 #pragma link C++ class BmnGemTracking+;
+#pragma link C++ class BmnCellAutoTracking+;
+#pragma link C++ class BmnCellDuet+;
 #pragma link C++ class BmnGemStripMedium+;
 #pragma link C++ class BmnMaterialEffects+;
+#pragma link C++ class BmnGemStripTransform+;
 
 #pragma link C++ namespace BmnGemStripConfiguration;
 #pragma link C++ enum BmnGemStripConfiguration::GEM_CONFIG;

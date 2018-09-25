@@ -4,11 +4,13 @@
 namespace BmnGemStripConfiguration {
 
     enum GEM_CONFIG {
-        None = 0,       // empty config
-        RunSummer2016,  // 7 stations - (geometry file: GEMS_RunSummer2016.root)
-        RunWinter2016,  // 7 stations - (geometry file: GEMS_RunWinter2016.root)
-        RunSpring2017,  // 6 stations - (geometry file: GEMS_RunSpring2017.root)
-        RunSpring2018   // 6 stations - (geometry file: GEMS_RunSpring2018.root) (BM@N RUN-7)
+        None = 0,         // empty config
+        RunSummer2016,    // 7 stations - (geometry file: GEMS_RunSummer2016.root)
+        RunWinter2016,    // 7 stations - (geometry file: GEMS_RunWinter2016.root)
+        RunSpring2017,    // 6 stations - (geometry file: GEMS_RunSpring2017.root)
+        RunSpring2018,    // 6 stations - (geometry file: GEMS_RunSpring2018.root) (BM@N RUN-7)
+        RunSRCSpring2018, // 10 stations - (geometry file: GEMS_RunSRCSpring2018.root) (BM@N RUN-7: SRC)
+        RunSpring2018_misAlign // Only test purpose!!!
     };
 }
 

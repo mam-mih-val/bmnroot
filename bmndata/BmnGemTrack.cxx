@@ -16,6 +16,7 @@ BmnGemTrack::~BmnGemTrack() {
 
 void BmnGemTrack::Print() {
     printf("\n==== TRACK INFORMATION ====\n");
+    printf("Quality flag: %d\n", GetFlag());
     printf("Number of hits: %d\n", GetNHits());
     printf("Chi^2: \t\t%3.2f\n", GetChi2());
     printf("Length: \t%3.2f\n\n", GetLength());

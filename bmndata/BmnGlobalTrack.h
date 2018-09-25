@@ -32,6 +32,7 @@ class BmnGlobalTrack : public BmnTrack {
   /** Accessors **/
   Int_t GetGemTrackIndex()  const { return fGemTrack;  }
   Int_t GetSilHitIndex()    const { return fSilHit;    }
+  vector <Int_t> GetSilHitIndices()  { return fSilHits;}
   Int_t GetTof1HitIndex()   const { return fTof1Hit;   }
   Int_t GetTof2HitIndex()   const { return fTof2Hit;   }
   Int_t GetDch1HitIndex()   const { return fDch1Hit;   }
@@ -45,6 +46,7 @@ class BmnGlobalTrack : public BmnTrack {
   /** Modifiers **/
   void SetGemTrackIndex(Int_t iGem)    { fGemTrack  = iGem;     }
   void SetSilHitIndex(Int_t iSilHit)   { fSilHit   = iSilHit;   }
+  void SetSilHitIndices(Int_t iSilHit) { fSilHits.push_back(iSilHit); }
   void SetTof1HitIndex(Int_t iTof1Hit) { fTof1Hit   = iTof1Hit; }
   void SetTof2HitIndex(Int_t iTof2Hit) { fTof2Hit   = iTof2Hit; }
   void SetDch1HitIndex(Int_t iDch1Hit) { fDch1Hit   = iDch1Hit; }
@@ -72,6 +74,7 @@ class BmnGlobalTrack : public BmnTrack {
   Int_t fMwpcTrack;
   
   vector<BmnFitNode> fFitNodes; // Array of fit nodes
+  vector <Int_t> fSilHits;
 
   ClassDef(BmnGlobalTrack, 1);
 

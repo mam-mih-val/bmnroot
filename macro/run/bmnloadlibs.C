@@ -45,7 +45,7 @@ void bmnloadlibs()
   gSystem->Load("libDecoder");
   gSystem->Load("libBmnMisc");
 }
-
+/*
 TString find_path_to_URQMD_files ()
 {
   TString hostname = gSystem->HostName();
@@ -90,3 +90,4 @@ bool CheckFileExist(TString fileName){
 
     return true;
 }
+*/

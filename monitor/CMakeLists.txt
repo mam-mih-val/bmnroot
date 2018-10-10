@@ -41,6 +41,7 @@ BmnDataReceiver.cxx
 BmnOnlineDecoder.cxx
 BmnHist.cxx
 BmnHistGem.cxx
+BmnHistCsc.cxx
 BmnHistSilicon.cxx
 BmnHistDch.cxx
 BmnHistMwpc.cxx

@@ -6,7 +6,7 @@ and open the template in the editor.
 -->
 <html>
     <head>
-        <title>Silicon detectors</title>
+        <title>CSC detectors</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style type="text/css">
@@ -34,27 +34,27 @@ and open the template in the editor.
         <script>
             var loco = window.location;
             var path0 = loco.protocol + "//" + loco.hostname + "/root.app/";
-            var path = path0 + "Silicon/";
+            var path = path0 + "CSC/";
             var runPath = "../root.app/CurRun/root.json";
             var refPath = "../root.app/refTable/root.json";
-            function ResetHist() {
+            function ResetGemHist() {
                 var filename = path + "Reset/cmd.json";
                 var xhr = new XMLHttpRequest();
                 xhr.open("POST", filename, true);
                 xhr.withCredentials = true;
                 xhr.send();
             }
+            function createTable() {
+                setRunInfo(runPath);
+                drawInfo();
+            }
 //            window.onload = setInterval("reloadIFrame();", 2000);
-//            body.onload = createSiliconTable();
+//            body.onload = createGemTable();
             function reloadIFrame() {
                 var tc = document.getElementById("trig_counter");
                 var temp = tc.src;
                 tc.src = "";
                 tc.src = temp;
-            }
-            function createTable() {
-                setRunInfo(runPath);
-                drawInfo();
             }
             function drawInfo() {
                 setTimeout(drawInfo, 10000);
@@ -72,7 +72,6 @@ and open the template in the editor.
                 }).send(null);
                 redrawCanvases();
                 FillRefTable(path0 + "refTable" + "/root.json", "refTable");
-                //var refPath = path0 + "refList" + "/root.json";
                 //FillRefSelector(refPath, "refSelector");
             }
             function redrawCanvases() {
@@ -80,14 +79,14 @@ and open the template in the editor.
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("infoC", obj, "");
                 }).send(null);
-                filename = path + "SiliconCanvas" + "/root.json.gz?compact=3";
+                filename = path + "CSCCanvas" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
-                    JSROOT.redraw("SiliconTableC", obj, "");
+                    JSROOT.redraw("gemTableC", obj, "");
                 }).send(null);
             }
             function cleanCanvases() {
                 JSROOT.cleanup("infoC");
-                JSROOT.cleanup("SiliconTableC");
+                JSROOT.cleanup("gemTableC");
                 var sel = document.getElementById("refTable");
                 sel.innerHTML = "";
             }
@@ -99,7 +98,7 @@ and open the template in the editor.
                 xhr.open("POST", cmd, true);
                 xhr.withCredentials = true;
                 xhr.send();
-                JSROOT.cleanup("SiliconTableC");
+                JSROOT.cleanup("gemTableC");
             }
         </script>
     </head>
@@ -121,17 +120,17 @@ and open the template in the editor.
             <li><a href="../csc/index.html"><h3>CSC</h3></a></li>
         </ul>
         <div id="total_counter" align="center">
-            <h1>BM@N Silicons</h1>  
+            <h1>BM@N CSC</h1>  
             <!--<iframe id="infoCan" ></iframe>--> 
         </div>
         <div align="center">
-            <div id="infoC" style="width: 20vw;"> </div>
+            <div id="infoC" style="width: 90vw;"> </div>
         </div>
 
         <table>
             <tr>
             <tb>
-                <button onclick="ResetHist()">
+                <button onclick="ResetGemHist()">
                     <h1 style="color:red;">Reset</h1>
                 </button>
             </tb>
@@ -154,12 +153,12 @@ and open the template in the editor.
 </table>
 
 <div align="center">
-    <div id="SiliconTableC" style="width: 98vw;"> </div>
+    <div id="gemTableC" style="width: 98vw;"> </div>
 </div>
 <!--<div align="center">
-    <iframe style="width: 98vw;height: 240vw;" src="../root.app/Silicon/SiliconCanvas/draw.htm?monitoring=10000"> </iframe>>
+    <iframe style="width: 98vw;height: 240vw;" src="../root.app/GEM/GEMCanvas/draw.htm?monitoring=10000"> </iframe>>
 </div>-->
-<div id="Silicon_div" >
+<div id="GEM_div" >
 </div>
 
 </table>

@@ -76,17 +76,17 @@ InitStatus BmnSiliconHitMaker::Init() {
     }
 
     TString gPathSiliconConfig = gSystem->Getenv("VMCWORKDIR");
-        gPathSiliconConfig += "/silicon/XMLConfigs/";
+    gPathSiliconConfig += "/silicon/XMLConfigs/";
 
     //Create SILICON detector ------------------------------------------------------
     switch (fCurrentConfig) {
 
-        case BmnSiliconConfiguration::RunSpring2017 :
+        case BmnSiliconConfiguration::RunSpring2017:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2017.xml");
             if (fVerbose) cout << "   Current SILICON Configuration : RunSpring2017" << "\n";
             break;
 
-        case BmnSiliconConfiguration::RunSpring2018 :
+        case BmnSiliconConfiguration::RunSpring2018:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2018.xml");
             if (fVerbose) cout << "   Current SILICON Configuration : RunSpring2018" << "\n";
             break;

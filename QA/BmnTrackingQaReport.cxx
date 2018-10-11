@@ -21,6 +21,7 @@
 #include "TStyle.h"
 #include "TPaveStats.h"
 #include "TLatex.h"
+#include "TGaxis.h"
 #include <fstream>
 
 const Float_t pMax = 5.0;
@@ -85,95 +86,94 @@ void BmnTrackingQaReport::Draw() {
     DrawEventsInfo(fPrefix + "Distribution of impact parameter and multiplicity");
     SetDefaultDrawStyle();
 
-    TString pNamesIn[5] = {"Sim_vs_P_gem", "Rec_vs_P_gem", "Well_vs_P_gem", "Ghost_vs_P_gem", "Split_vs_P_gem"};
-    TString pNamesOut[3] = {"Eff_vs_P_gem", "Fake_vs_P_gem", "SplitEff_vs_P_gem"};
-    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for GEM TRACKS", pNamesIn, pNamesOut);
+    TString pNamesIn[5] = {"Sim_vs_P", "Rec_vs_P", "Well_vs_P", "Ghost_vs_P", "Split_vs_P"};
+    TString pNamesOut[3] = {"Eff_vs_P", "Fake_vs_P", "SplitEff_vs_P"};
+    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event", pNamesIn, pNamesOut);
 
-    TString pNamesInWide[5] = {"Sim_vs_P_gem_Wide", "Rec_vs_P_gem_Wide", "Well_vs_P_gem_Wide", "Ghost_vs_P_gem_Wide", "Split_vs_P_gem_Wide"};
-    TString pNamesOutWide[3] = {"Eff_vs_P_gem_Wide", "Fake_vs_P_gem_Wide", "SplitEff_vs_P_gem_Wide"};
-    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for GEM TRACKS in wide momentum range", pNamesInWide, pNamesOutWide);
+    TString pNamesInWide[5] = {"Sim_vs_P_wide", "Rec_vs_P_wide", "Well_vs_P_wide", "Ghost_vs_P_wide", "Split_vs_P_wide"};
+    TString pNamesOutWide[3] = {"Eff_vs_P_wide", "Fake_vs_P_wide", "SplitEff_vs_P_wide"};
+    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event in wide momentum range", pNamesInWide, pNamesOutWide);
 
-    TString etaNamesIn[5] = {"Sim_vs_Eta_gem", "Rec_vs_Eta_gem", "Well_vs_Eta_gem", "Ghost_vs_Eta_gem", "Split_vs_Eta_gem"};
-    TString etaNamesOut[3] = {"Eff_vs_Eta_gem", "Fake_vs_Eta_gem", "SplitEff_vs_Eta_gem"};
-    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs Pseudorapidity per event for GEM TRACKS", etaNamesIn, etaNamesOut);
+    TString etaNamesIn[5] = {"Sim_vs_Eta", "Rec_vs_Eta", "Well_vs_Eta", "Ghost_vs_Eta", "Split_vs_Eta"};
+    TString etaNamesOut[3] = {"Eff_vs_Eta", "Fake_vs_Eta", "SplitEff_vs_Eta"};
+    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs Pseudorapidity per event", etaNamesIn, etaNamesOut);
 
-    TString thetaNamesIn[5] = {"Sim_vs_Theta_gem", "Rec_vs_Theta_gem", "Well_vs_Theta_gem", "Ghost_vs_Theta_gem", "Split_vs_Theta_gem"};
-    TString thetaNamesOut[3] = {"Eff_vs_Theta_gem", "Fake_vs_Theta_gem", "SplitEff_vs_Theta_gem"};
-    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs theta per event for GEM TRACKS", thetaNamesIn, thetaNamesOut);
+    TString thetaNamesIn[5] = {"Sim_vs_Theta", "Rec_vs_Theta", "Well_vs_Theta", "Ghost_vs_Theta", "Split_vs_Theta"};
+    TString thetaNamesOut[3] = {"Eff_vs_Theta", "Fake_vs_Theta", "SplitEff_vs_Theta"};
+    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs theta per event", thetaNamesIn, thetaNamesOut);
 
-    TString nhNamesIn[5] = {"Sim_vs_Nh_gem", "Rec_vs_Nh_gem", "Well_vs_Nh_gem", "Ghost_vs_Nh_gem", "Split_vs_Nh_gem"};
-    TString nhNamesOut[3] = {"Eff_vs_Nh_gem", "Fake_vs_Nh_gem", "SplitEff_vs_Nh_gem"};
-    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs Nh per event for GEM TRACKS", nhNamesIn, nhNamesOut);
+    TString nhNamesIn[5] = {"Sim_vs_Nh", "Rec_vs_Nh", "Well_vs_Nh", "Ghost_vs_Nh", "Split_vs_Nh"};
+    TString nhNamesOut[3] = {"Eff_vs_Nh", "Fake_vs_Nh", "SplitEff_vs_Nh"};
+    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs Nh per event", nhNamesIn, nhNamesOut);
 
-    DrawNhitsGem(fPrefix + "Distribution of GEM RECO-tracks vs number of hits per track");
+    DrawNhitsGem(fPrefix + "Distribution of RECO-tracks vs number of hits per track");
 
-    DrawTwoH2(fPrefix + "Distribution of GEM reconstructable MC-tracks (left) and MC-tracks corresponded to reconstructed tracks (right) vs number of MC-points and Pseudorapidity", "Nh_sim_Eta_sim_gem", "Nh_rec_Eta_rec_gem");
-    DrawTwoH2(fPrefix + "Distribution of GEM reconstructable MC-tracks (left) and MC-tracks corresponded to reconstructed tracks (right) vs number of MC-points and Momentum", "Nh_sim_P_sim_gem", "Nh_rec_P_rec_gem");
-    DrawTwoH2(fPrefix + "Distribution of GEM reconstructable MC-tracks (left) and MC-tracks corresponded to reconstructed tracks (right) vs number of MC-points and Theta", "Nh_sim_Theta_sim_gem", "Nh_rec_Theta_rec_gem");
-
-    DrawTwoH2(fPrefix + "Distribution of MC-tracks and GEM-tracks in Pseudorapidity and Momentum", "EtaP_sim", "EtaP_rec_gem");
+    DrawTwoH2(fPrefix + "Distribution of tracks over number of hits and Pseudorapidity", "Nh_sim_Eta_sim", "Nh_rec_Eta_rec");
+    DrawTwoH2(fPrefix + "Distribution of tracks over number of hits and Momentum", "Nh_sim_P_sim", "Nh_rec_P_rec");
+    DrawTwoH2(fPrefix + "Distribution of tracks over number of hits and Theta", "Nh_sim_Theta_sim", "Nh_rec_Theta_rec");
+    DrawTwoH2(fPrefix + "Distribution of tracks over Pseudorapidity and Momentum", "EtaP_sim", "EtaP_rec");
 
     for (Int_t i = 1; i < HM()->H2("EtaP_sim")->GetXaxis()->GetNbins(); ++i) {
         for (Int_t j = 1; j < HM()->H2("EtaP_sim")->GetYaxis()->GetNbins(); ++j) {
-            Float_t nom = HM()->H2("EtaP_rec_gem")->GetBinContent(i, j);
+            Float_t nom = HM()->H2("EtaP_rec")->GetBinContent(i, j);
             Float_t denom = HM()->H2("EtaP_sim")->GetBinContent(i, j);
             Float_t content = (denom < 0.001) ? 0.0 : nom / denom * 100.0;
             if (content > 100.0) content = 100.0;
-            HM()->H2("Eff_vs_EtaP_gem")->SetBinContent(i, j, content);
+            HM()->H2("Eff_vs_EtaP")->SetBinContent(i, j, content);
         }
     }
-    for (Int_t i = 1; i < HM()->H2("EtaP_rec_gem")->GetXaxis()->GetNbins(); ++i) {
-        for (Int_t j = 1; j < HM()->H2("EtaP_rec_gem")->GetYaxis()->GetNbins(); ++j) {
-            Float_t nom = HM()->H2("Clones_vs_EtaP_gem")->GetBinContent(i, j);
-            Float_t denom = HM()->H2("EtaP_rec_gem")->GetBinContent(i, j);
+    for (Int_t i = 1; i < HM()->H2("EtaP_rec")->GetXaxis()->GetNbins(); ++i) {
+        for (Int_t j = 1; j < HM()->H2("EtaP_rec")->GetYaxis()->GetNbins(); ++j) {
+            Float_t nom = HM()->H2("Clones_vs_EtaP")->GetBinContent(i, j);
+            Float_t denom = HM()->H2("EtaP_rec")->GetBinContent(i, j);
             Float_t content = (denom < 0.001) ? 0.0 : nom / denom * 100.0;
             if (content > 100.0) content = 100.0;
-            HM()->H2("Clones_vs_EtaP_gem")->SetBinContent(i, j, content);
+            HM()->H2("Clones_vs_EtaP")->SetBinContent(i, j, content);
         }
     }
-    for (Int_t i = 1; i < HM()->H2("EtaP_rec_gem")->GetXaxis()->GetNbins(); ++i) {
-        for (Int_t j = 1; j < HM()->H2("EtaP_rec_gem")->GetYaxis()->GetNbins(); ++j) {
-            Float_t nom = HM()->H2("Fakes_vs_EtaP_gem")->GetBinContent(i, j);
-            Float_t denom = HM()->H2("EtaP_rec_gem")->GetBinContent(i, j);
+    for (Int_t i = 1; i < HM()->H2("EtaP_rec")->GetXaxis()->GetNbins(); ++i) {
+        for (Int_t j = 1; j < HM()->H2("EtaP_rec")->GetYaxis()->GetNbins(); ++j) {
+            Float_t nom = HM()->H2("Fakes_vs_EtaP")->GetBinContent(i, j);
+            Float_t denom = HM()->H2("EtaP_rec")->GetBinContent(i, j);
             Float_t content = (denom < 0.001) ? 0.0 : nom / denom * 100.0;
             if (content > 100.0) content = 100.0;
-            HM()->H2("Fakes_vs_EtaP_gem")->SetBinContent(i, j, content);
+            HM()->H2("Fakes_vs_EtaP")->SetBinContent(i, j, content);
         }
     }
 
-    DrawThreeH2(fPrefix + "Distribution of Efficiency, Ghosts and Clones in Pseudorapidity and Momentum GEM", "Eff_vs_EtaP_gem", "Clones_vs_EtaP_gem", "Fakes_vs_EtaP_gem");
+    DrawThreeH2(fPrefix + "Distribution of Efficiency, Ghosts and Clones over Pseudorapidity and Momentum", "Eff_vs_EtaP", "Clones_vs_EtaP", "Fakes_vs_EtaP");
 
-    DrawTwoH2(fPrefix + "Distribution of MC-tracks and GEM-tracks in theta and Momentum", "ThetaP_sim", "ThetaP_rec_gem");
-    DrawTwoH2(fPrefix + "P_reco vs P_mc for GEM", "P_rec_P_sim_gem", "Pt_rec_Pt_sim_gem");
-    DrawOneH2(fPrefix + "Pseudorapidity_reco vs Pseudorapidity_mc GEM", "Eta_rec_Eta_sim_gem");
-    DrawThreeH2(fPrefix + "Tx_reco vs Tx_mc (left) and Ty_reco vs Ty_mc (right) for GEM", "Tx_rec_Tx_sim_gem", "Ty_rec_Ty_sim_gem", "Qp_rec_Qp_sim_gem");
-    DrawThreeH2(fPrefix + "Reco vs MC for X-, Y- and Z-component of Momentum for GEM", "Px_rec_Px_sim_gem", "Py_rec_Py_sim_gem", "Pz_rec_Pz_sim_gem");
-    DrawMomResGem(fPrefix + "Momentum resolution for GEM", "momRes_2D_gem", "momRes_1D_gem", "momMean_1D_gem", "momRes_Mean_gem");
-    DrawTwoH2(fPrefix + "Tracks quality distributions GEM", "MomRes_vs_Chi2_gem", "Mom_vs_Chi2_gem");
-    DrawTwoH2(fPrefix + "Momentum resolution and momentum vs. length of tracks GEM", "MomRes_vs_Length_gem", "Mom_vs_Length_gem");
-    DrawOneH2(fPrefix + "Momentum resolution vs. Number of hits GEM", "MomRes_vs_nHits_gem");
-    DrawOneH2(fPrefix + "Momentum resolution vs. theta GEM", "MomRes_vs_Theta_gem");
-    DrawTwoH1(fPrefix + "Chi-square and length distributions GEM", "Chi2_gem", "Length_gem", "");
+    DrawTwoH2(fPrefix + "Distribution of tracks over Theta and Momentum", "ThetaP_sim", "ThetaP_rec");
+    DrawTwoH2(fPrefix + "P_reco vs P_mc", "P_rec_P_sim", "Pt_rec_Pt_sim");
+    DrawOneH2(fPrefix + "Pseudorapidity_reco vs Pseudorapidity_mc", "Eta_rec_Eta_sim");
+    //    DrawThreeH2(fPrefix + "Tx_reco vs Tx_mc (left) and Ty_reco vs Ty_mc (right) for GLOB", "Tx_rec_Tx_sim", "Ty_rec_Ty_sim", "Qp_rec_Qp_sim");
+    DrawThreeH2(fPrefix + "Reco vs MC for X-, Y- and Z-component of Momentum", "Px_rec_Px_sim", "Py_rec_Py_sim", "Pz_rec_Pz_sim");
+    DrawMomResGem(fPrefix + "Momentum resolution", "momRes_2D", "momRes_1D", "momMean_1D", "momRes_Mean");
+    DrawTwoH2(fPrefix + "Tracks quality distributions", "MomRes_vs_Chi2", "Mom_vs_Chi2");
+    DrawTwoH2(fPrefix + "Momentum resolution and momentum vs. length of tracks", "MomRes_vs_Length", "Mom_vs_Length");
+    DrawOneH2(fPrefix + "Momentum resolution vs. Number of hits", "MomRes_vs_nHits");
+    DrawOneH2(fPrefix + "Momentum resolution vs. theta", "MomRes_vs_Theta");
+    DrawTwoH1(fPrefix + "Chi-square and length distributions", "Chi2", "Length", "");
 
     DrawHitRes(fPrefix, "X");
     DrawHitRes(fPrefix, "Y");
 
-    TString namesResPullsF_gem[15] = {"ResX_f_gem", "ResY_f_gem", "ResTx_f_gem", "ResTy_f_gem", "ResQp_f_gem", "ErrX_f_gem", "ErrY_f_gem", "ErrTx_f_gem", "ErrTy_f_gem", "ErrQp_f_gem", "PullX_f_gem", "PullY_f_gem", "PullTx_f_gem", "PullTy_f_gem", "PullQp_f_gem"};
-    TString namesRes_vs_ParF_gem[5] = {"ResX_vs_X_f_gem", "ResY_vs_Y_f_gem", "ResTx_vs_Tx_f_gem", "ResTy_vs_Ty_f_gem", "ResQp_vs_Qp_f_gem"};
-    TString namesResPullsL_gem[15] = {"ResX_l_gem", "ResY_l_gem", "ResTx_l_gem", "ResTy_l_gem", "ResQp_l_gem", "ErrX_l_gem", "ErrY_l_gem", "ErrTx_l_gem", "ErrTy_l_gem", "ErrQp_l_gem", "PullX_l_gem", "PullY_l_gem", "PullTx_l_gem", "PullTy_l_gem", "PullQp_l_gem"};
+    TString namesResPullsF[15] = {"ResX_f", "ResY_f", "ResTx_f", "ResTy_f", "ResQp_f", "ErrX_f", "ErrY_f", "ErrTx_f", "ErrTy_f", "ErrQp_f", "PullX_f", "PullY_f", "PullTx_f", "PullTy_f", "PullQp_f"};
+    //    TString namesRes_vs_ParF[5] = {"ResX_vs_X_f", "ResY_vs_Y_f", "ResTx_vs_Tx_f", "ResTy_vs_Ty_f", "ResQp_vs_Qp_f"};
+    TString namesResPullsL[15] = {"ResX_l", "ResY_l", "ResTx_l", "ResTy_l", "ResQp_l", "ErrX_l", "ErrY_l", "ErrTx_l", "ErrTy_l", "ErrQp_l", "PullX_l", "PullY_l", "PullTx_l", "PullTy_l", "PullQp_l"};
 
-    DrawResAndPull(fPrefix + "Residuals and Pulls for first parameters GEM", namesResPullsF_gem);
-    DrawResAndPull_2D(fPrefix + "Residuals vs Parameters for first parameters GEM", namesRes_vs_ParF_gem);
-    DrawResAndPull(fPrefix + "Residuals and Pulls for last parameters GEM", namesResPullsL_gem);
+    DrawResAndPull(fPrefix + "Residuals and Pulls for first parameters GLOB", namesResPullsF);
+    //    DrawResAndPull_2D(fPrefix + "Residuals vs Parameters for first parameters GLOB", namesRes_vs_ParF);
+    DrawResAndPull(fPrefix + "Residuals and Pulls for last parameters GLOB", namesResPullsL);
 
-    TString namesParF[5] = {"X_f_gem", "Y_f_gem", "Tx_f_gem", "Ty_f_gem", "Qp_f_gem"};
-    TString namesParL[5] = {"X_l_gem", "Y_l_gem", "Tx_l_gem", "Ty_l_gem", "Qp_l_gem"};
-    DrawPar(fPrefix + "First parameters GEM", namesParF);
-    DrawPar(fPrefix + "Last parameters GEM", namesParL);
+    TString namesParF[5] = {"X_f", "Y_f", "Tx_f", "Ty_f", "Qp_f"};
+    TString namesParL[5] = {"X_l", "Y_l", "Tx_l", "Ty_l", "Qp_l"};
+    DrawPar(fPrefix + "First parameters", namesParF);
+    DrawPar(fPrefix + "Last parameters", namesParL);
 
-    DrawThreeH1(fPrefix + "Vertex", "VertX_gem", "VertY_gem", "VertZ_gem");
-    DrawThreeH2(fPrefix + "Vertex vs number of tracks in event", "VertX_vs_Ntracks_gem", "VertY_vs_Ntracks_gem", "VertZ_vs_Ntracks_gem");
-    DrawVertResGem(fPrefix + "Vertex resolution", "VertResX_gem", "VertResY_gem", "VertResZ_gem");
+    DrawThreeH1(fPrefix + "Vertex", "VertX", "VertY", "VertZ");
+    DrawThreeH2(fPrefix + "Vertex vs number of tracks in event", "VertX_vs_Ntracks", "VertY_vs_Ntracks", "VertZ_vs_Ntracks");
+    DrawVertResGem(fPrefix + "Vertex resolution", "VertResX", "VertResY", "VertResZ");
 }
 
 void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames, TString* outNames) {
@@ -194,20 +194,26 @@ void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames,
     canvas->Divide(2, 1);
     canvas->cd(1);
     HM()->H1(sim)->Sumw2();
-    //    HM()->H1(sim)->Scale(1. / nofEvents);
+    //        HM()->H1(sim)->Scale(1. / nofEvents);
     HM()->H1(rec)->Sumw2();
-    //    HM()->H1(rec)->Scale(1. / nofEvents);
+    //        HM()->H1(rec)->Scale(1. / nofEvents);
     HM()->H1(well)->Sumw2();
-    //    HM()->H1(well)->Scale(1. / nofEvents);
+    //        HM()->H1(well)->Scale(1. / nofEvents);
     HM()->H1(ghost)->Sumw2();
-    //    HM()->H1(ghost)->Scale(1. / nofEvents);
+    //        HM()->H1(ghost)->Scale(1. / nofEvents);
     HM()->H1(split)->Sumw2();
-    //    HM()->H1(split)->Scale(1. / nofEvents);
+    //        HM()->H1(split)->Scale(1. / nofEvents);
 
     HM()->H1(sim)->SetMinimum(0.0);
     HM()->H1(well)->SetMinimum(0.0);
     HM()->H1(ghost)->SetMinimum(0.0);
     HM()->H1(split)->SetMinimum(0.0);
+
+    printf("NAME = %s\n", HM()->H1(sim)->GetName());
+    printf("HM()->H1(sim) = %f\n", HM()->H1(sim)->GetEntries());
+    printf("HM()->H1(well) = %f\n", HM()->H1(well)->GetEntries());
+    printf("HM()->H1(ghost) = %f\n", HM()->H1(ghost)->GetEntries());
+    printf("HM()->H1(split) = %f\n", HM()->H1(split)->GetEntries());
 
     vector<TH1*> histos1;
     histos1.push_back(HM()->H1(sim));
@@ -281,13 +287,13 @@ void BmnTrackingQaReport::DrawNhitsGem(const TString canvasName) {
     Int_t nofEvents = HM()->H1("hen_EventNo_TrackingQa")->GetEntries();
     TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 600, 600);
     canvas->SetGrid();
-    HM()->H1("Well_vs_Nh_gem")->Sumw2();
-    HM()->H1("Well_vs_Nh_gem")->Scale(1. / nofEvents);
-    HM()->H1("Ghost_vs_Nh_gem")->Sumw2();
-    HM()->H1("Ghost_vs_Nh_gem")->Scale(1. / nofEvents);
+    HM()->H1("Well_vs_Nh")->Sumw2();
+    HM()->H1("Well_vs_Nh")->Scale(1. / nofEvents);
+    HM()->H1("Ghost_vs_Nh")->Sumw2();
+    HM()->H1("Ghost_vs_Nh")->Scale(1. / nofEvents);
     vector<TH1*> histos1;
-    histos1.push_back(HM()->H1("Well_vs_Nh_gem"));
-    histos1.push_back(HM()->H1("Ghost_vs_Nh_gem"));
+    histos1.push_back(HM()->H1("Well_vs_Nh"));
+    histos1.push_back(HM()->H1("Ghost_vs_Nh"));
     vector<string> labels1;
     labels1.push_back("Good tracks");
     labels1.push_back("Ghosts");
@@ -351,7 +357,7 @@ void BmnTrackingQaReport::DrawResAndPull(const TString canvasName, TString* inNa
 
     for (Int_t i = 0; i < 15; ++i) {
         canvas->cd(i + 1);
-        HM()->H1(inNames[i])->Fit("gaus", "RQWW", "", -20, 20);
+        if (i < 5 || i > 9) HM()->H1(inNames[i])->Fit("gaus", "RQWW", "", -20, 20);
         DrawH1(HM()->H1(inNames[i]), kLinear, kLog, "", kBlue, 1, 0.75, 1.1, 20);
         //if (i > 4) {
         TF1 *fit = HM()->H1(inNames[i])->GetFunction("gaus");
@@ -393,9 +399,10 @@ void BmnTrackingQaReport::DrawPar(const TString canvasName, TString* inNames) {
 void BmnTrackingQaReport::FillAndFitSlice(TString nameSigma, TString nameMean, TString name2d) {
     Int_t nBins = HM()->H1(nameSigma)->GetXaxis()->GetNbins();
     Int_t momResStep = HM()->H2(name2d)->GetNbinsX() / nBins;
-    Int_t bin = 1;
+    Int_t bin = 0;
     for (Int_t iBin = 1; iBin < HM()->H2(name2d)->GetNbinsX(); iBin += momResStep) {
         TH1D* proj = HM()->H2(name2d)->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
+        bin++;
         if (proj->GetEntries() < 5) continue;
         //        proj->Integral()
         proj->Fit("gaus", "SQRww", "", -5.0, 5.0);
@@ -409,7 +416,7 @@ void BmnTrackingQaReport::FillAndFitSlice(TString nameSigma, TString nameMean, T
         HM()->H1(nameSigma)->SetBinError(bin, sigmaError);
         HM()->H1(nameMean)->SetBinContent(bin, mean);
         HM()->H1(nameMean)->SetBinError(bin, meanError);
-        bin++;
+
     }
 }
 
@@ -470,12 +477,16 @@ void BmnTrackingQaReport::DrawOneH2(const TString canvasName, const TString name
 
 void BmnTrackingQaReport::DrawHitRes(TString pref, TString axis) {
     TString name = Form("%s %s Residuals between hits and tracks", pref.Data(), axis.Data());
-    TCanvas* canvas = CreateCanvas(name.Data(), name.Data(), 1200, 800);
+    TCanvas* canvas = CreateCanvas(name.Data(), name.Data(), 1200, 1200);
     canvas->SetGrid();
-    canvas->Divide(3, 2);
-    for (Int_t i = 0; i < 6; ++i) {
+    canvas->Divide(3, 3);
+    for (Int_t i = 0; i < 9; ++i) {
         canvas->cd(i + 1);
-        DrawH1(HM()->H1(Form("Res%s_%dst", axis.Data(), i)), kLinear, kLog, "", kRed, 1, 0.75, 1.1, 20);
+        HM()->H1(Form("Res%s_%dst", axis.Data(), i))->Fit("gaus", "RQ", "", -0.05, 0.05);
+        DrawH1(HM()->H1(Form("Res%s_%dst", axis.Data(), i)), kLinear, kLinear, "", kBlue, 1, 0.75, 1.1, 20);
+        //        HM()->H1(Form("Res%s_%dst", axis.Data(), i))->GetYaxis()->SetMaxDigits(2);
+        //        TGaxis::SetMaxDigits(2);
+        DrawMuSigma(canvas->cd(i + 1), HM()->H1(Form("Res%s_%dst", axis.Data(), i)));
     }
 }
 

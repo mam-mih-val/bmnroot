@@ -340,7 +340,8 @@ TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type) {
             Si = hit->GetDy();
         }
 
-        chi2 += Sqr((Yi - a * Xi - b) / Si);
+//        chi2 += Sqr((Yi - a * Xi - b) / Si);
+        chi2 += Sq((Yi - a * Xi - b) / (a * Xi + b));
     }
 
     return TVector3(a, b, chi2);

@@ -13,9 +13,9 @@ public:
 
     virtual ~BmnSiliconHit();
 
-    void SetModule(Int_t module) {
-        fModule = module;
-    }
+//    void SetModule(Int_t module) {
+//        fModule = module;
+//    }
 
     void SetEnergyLoss(Double_t de) {
         fELoss = de;
@@ -41,9 +41,9 @@ public:
         return fELoss;
     }
 
-    Int_t GetModule() {
-        return fModule;
-    }
+//    Int_t GetModule() {
+//        return fModule;
+//    }
 
     Int_t GetClusterSizeInLowerLayer() {
         return fLowerLayerClusterSize;
@@ -62,7 +62,7 @@ public:
     }
 
 private:
-    Int_t fModule;
+   // Int_t fModule;
     Double_t fELoss;
     Int_t fLowerLayerClusterSize; //number of strips in the lower layer (|||) for the hit
     Int_t fUpperLayerClusterSize; //number of strips in the upper layer (\\\ or ///) for the hit

@@ -136,7 +136,7 @@ InitStatus BmnGemStripHitMaker::Init() {
             for (Int_t iPar = 0; iPar < nParams; iPar++) {
                 corr[iStat][iMod][iPar] = 0.;
                 if (!fIsExp)
-                    misAlign[iStat][iMod][iPar] = rand->Gaus(0., (iPar == 0) ? 0.03 : (iPar == 1) ? 0.05 : 0.);
+                    misAlign[iStat][iMod][iPar] = rand->Gaus(0., (iPar == 0) ? 0.0 : (iPar == 1) ? 0.0 : 0.);
             }
         }
     }
@@ -199,7 +199,7 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
         fBmnGemStripHitMatchesArray->Delete();
     }
 
-    Int_t kDigitCut = (fPeriodId == 7) ? 1000 : 400;
+    Int_t kDigitCut = (fPeriodId == 7) ? 3000 : 400;
     if (!IsActive() || fBmnGemStripDigitsArray->GetEntriesFast() > kDigitCut)
         return;
 

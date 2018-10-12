@@ -51,16 +51,18 @@ void LineFit(Double_t&, Double_t&, BmnTrack*, TClonesArray*, Int_t, Int_t);
 TVector3 LineFitBy3Hits(const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2);
 TVector3 CircleFit(BmnTrack* track, const TClonesArray* arr, Double_t &chi2);
 TVector3 CircleBy3Hit(BmnTrack* track, const TClonesArray* arr);
-TVector3 CircleBy3Hit(const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2);
+TVector3 CircleBy3Hit(const BmnHit* h0, const BmnHit* h1, const BmnHit* h2);
 TVector3 Pol2By3Hit(BmnTrack* track, const TClonesArray* arr);
-Double_t CalcTx(const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2);
+Double_t CalcTx(const BmnHit* h0, const BmnHit* h1, const BmnHit* h2);
 void DrawHits(BmnGemTrack* track, const TClonesArray* arr);
 Float_t Sqr(Float_t x);
 Float_t NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22);
 Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
 
 void fit_seg(Double_t*, Double_t*, Double_t*, Double_t*, Int_t, Int_t);
-void Pol2Fit(BmnGemTrack*, const TClonesArray*, Double_t&, Double_t&, Double_t&, Int_t);
+void Pol2Fit(BmnTrack*, const TClonesArray*, Double_t&, Double_t&, Double_t&, Int_t);
+TVector3 Pol2Fit(vector <BmnHit*>, Int_t);
+TVector2 LineFit(vector<BmnHit*>, Int_t, TString);
 
 void DrawBar(UInt_t iEv, UInt_t nEv);
 void DrawBar(Long64_t iEv, Long64_t nEv);

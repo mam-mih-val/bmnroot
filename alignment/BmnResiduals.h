@@ -1,90 +1,60 @@
 #ifndef BMNRESIDUALS_H
 #define BMNRESIDUALS_H 1
 
-#include <iostream>
-#include <TNamed.h>
-#include <TVector3.h>
+#include "FairTask.h"
+#include "FairRootManager.h"
+#include "FairEventHeader.h"
+#include "BmnGemTrack.h"
+#include "BmnGlobalTrack.h"
+#include "BmnHit.h"
+#include "BmnMath.h"
+#include "BmnSiliconHit.h"
+#include "BmnGemStripHit.h"
+#include "BmnMath.h"
+
+#include <TString.h>
+#include <TClonesArray.h>
 
 using namespace std;
 
-class BmnResiduals : public TNamed {
+class BmnResiduals : public FairTask {
 public:
 
-    BmnResiduals();
+    BmnResiduals() {};
+    BmnResiduals(Int_t, Int_t, Bool_t);
+    
+    virtual InitStatus Init();
 
-    BmnResiduals(Int_t, Int_t, Double_t, Double_t, Double_t, Bool_t, Bool_t flag = kTRUE);
+    virtual void Exec(Option_t* opt);
+
+    virtual void Finish();
 
     virtual ~BmnResiduals() {
     };
 
-    void SetResiduals(Double_t dx, Double_t dy, Double_t dz) {
-        fdX = dx;
-        fdY = dy;
-        fdZ = dz;
-    }
 
-    void SetdX(Double_t dx) {
-        fdX = dx;
-    }
-
-    void SetdY(Double_t dy) {
-        fdY = dy;
-    }
-
-    void SetdZ(Double_t dz) {
-        fdZ = dz;
-    }
-
-    TVector3 GetResiduals() {
-        return TVector3(fdX, fdY, fdZ);
-    }
-
-    Int_t GetStation() {
-        return fStation;
-    }
-
-    Int_t GetModule() {
-        return fModule;
-    }
-
-    void SetTrackId(Int_t id) {
-        fTrackId = id;
-    }
-
-    void SetHitId(Int_t id) {
-        fHitId = id;
-    }
-
-    void SetIsMergedDigits(Bool_t flag) {
-        isMergedDigits = flag;
-    }
-
-    Bool_t GetIsMergedDigits() {
-        return isMergedDigits;
-    }
-
-    Int_t GetHitId() {
-        return fHitId;
-    }
+private: 
+    Bool_t fIsField;
+    Int_t fPeriod;
+    Int_t fNumber;
     
-    Int_t GetTrackId() {
-        return fTrackId;   
-    }
-
-private:
-    Double_t fdX;
-    Double_t fdY;
-    Double_t fdZ;
-
-    Int_t fStation;
-    Int_t fModule;
-
-    Int_t fTrackId;
-    Int_t fHitId;
-
-    Bool_t isResid; // Calculate resid. or distance
-    Bool_t isField; // Is mag. field or not
-    Bool_t isMergedDigits; // Is reco file obtained from merged digits or not
+    TString fBranchGlobTracks;
+    TClonesArray* fGlobalTracks;
+    
+    TString fBranchGemHits;
+    TClonesArray* fGemHits;
+    
+    TString fBranchSilHits;
+    TClonesArray* fSilHits;
+    
+    TString fBranchGemTracks;
+    TClonesArray* fGemTracks;
+    
+    TString fBranchSilTracks;
+    TClonesArray* fSilTracks;
+    
+    TString fBranchFairEventHeader;
+    FairEventHeader* fFairEventHeader;
 
     ClassDef(BmnResiduals, 1)
 };

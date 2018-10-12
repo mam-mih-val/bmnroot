@@ -21,10 +21,6 @@
 Int_t BmnGlobalAlignment::fCurrentEvent = 0;
 
 void BmnGlobalAlignment::Finish() {
-    MakeBinFile();
-    MakeSteerFile();
-    // Pede();
-
     if (fIsField) {
         delete fMagField;
     }
@@ -46,7 +42,7 @@ BmnGlobalAlignment::~BmnGlobalAlignment() {
     }
 }
 
-BmnGlobalAlignment::BmnGlobalAlignment(TString inFileName, Int_t period, TString misAlignFile, Bool_t doTest) :
+BmnGlobalAlignment::BmnGlobalAlignment(Int_t nEvents, TString inFileName, Int_t period, TString misAlignFile, Bool_t doTest) :
 fGemHits(nullptr),
 fSilTracks(nullptr),
 fGemTracks(nullptr),
@@ -64,7 +60,6 @@ fIsExcludedTx(kFALSE),
 fIsExcludedTy(kFALSE),
 fMinHitsAccepted(3),
 fChi2MaxPerNDF(LDBL_MAX),
-nSelectedTracks(0),
 fUseRealHitErrors(kFALSE),
 fNumOfIterations(50000),
 fAccuracy(1e-3),
@@ -87,6 +82,7 @@ fRunPeriod(period),
 fIsDoTest(doTest),
 fMisAlignFile(misAlignFile),
 fBmnGemMisalign(nullptr) {
+    fNEvents = nEvents;
     fNTracks = 0;
     fRecoFileName = inFileName;
 
@@ -204,9 +200,14 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
             MilleNoFieldRuns(globTrack, idx[iDet], iDet, GEM, SILICON);
         }
 
-        fCONTAINER.insert(pair <Int_t, pair <vector <BmnMilleContainer*>, vector < BmnMilleContainer*>>>
-                (fNTracks, pair <vector <BmnMilleContainer*>, vector < BmnMilleContainer*>> (SILICON, GEM)));
+        fCONTAINER[fNTracks] = pair <vector <BmnMilleContainer*>, vector < BmnMilleContainer*>> (SILICON, GEM);
         fNTracks++;
+    }
+
+    if (fNEvents == fCurrentEvent) {
+        MakeBinFile();
+        MakeSteerFile();
+        Pede();
     }
 }
 
@@ -242,7 +243,7 @@ BmnMilleContainer* BmnGlobalAlignment::FillMilleContainer(BmnGlobalTrack* glTrac
     mille->SetGlobDers(globDerX, globDerY);
 
     mille->SetMeasures(hit->GetX(), hit->GetY());
-    mille->SetDMeasures(hit->GetDx(), hit->GetDy());
+    mille->SetDMeasures(fUseRealHitErrors ? hit->GetDx() : 1., fUseRealHitErrors ? hit->GetDy() : 1.);
 
     return mille;
 }
@@ -267,21 +268,24 @@ void BmnGlobalAlignment::MilleNoFieldRuns(BmnGlobalTrack* glTrack, Int_t idx, In
     }
 }
 
-void BmnGlobalAlignment::_Mille(TString det, TString lay, Double_t* DerLc, Double_t* DerGl, BmnMille* Mille, Int_t iTrack) {
-    for (auto it : fCONTAINER) {
-        if (it.first != iTrack)
-            continue;
+void BmnGlobalAlignment::_Mille(Double_t* DerLc, Double_t* DerGl, BmnMille* Mille, Int_t iTrack) {
+    fITERATOR = next(fCONTAINER.begin(), iTrack);
 
+    TString dets[nDetectors] = {"GEM", "SILICON"};
+
+    for (Int_t iDet = 0; iDet < nDetectors; iDet++) {
         vector <BmnMilleContainer*> cont;
-
-        if (det.Contains("GEM"))
-            cont = it.second.second;
-        else if (det.Contains("SILICON"))
-            cont = it.second.first;
+        if (dets[iDet].Contains("GEM"))
+            cont = fITERATOR->second.second;
+        else if (dets[iDet].Contains("SILICON"))
+            cont = fITERATOR->second.first;
         else {
             cout << "Wrong input data! Exiting ..." << endl;
             throw;
         }
+
+        const Int_t nLays = 2;
+        TString lays[nLays] = {"X", "Y"};
 
         for (Int_t iEle = 0; iEle < cont.size(); iEle++) {
             BmnMilleContainer* _cont = cont[iEle];
@@ -290,44 +294,47 @@ void BmnGlobalAlignment::_Mille(TString det, TString lay, Double_t* DerLc, Doubl
             for (Int_t iGlob = 0; iGlob < fNGL; iGlob++)
                 DerGl[iGlob] = 0.;
 
-            vector <Double_t> locDers = _cont->GetLocDers(lay);
-            DerLc[0] = locDers[0];
-            DerLc[1] = locDers[1];
-            DerLc[2] = locDers[2];
-            DerLc[3] = locDers[3];
+            for (Int_t iLay = 0; iLay < nLays; iLay++) {
+                vector <Double_t> locDers = _cont->GetLocDers(lays[iLay]);
+                DerLc[0] = locDers[0];
+                DerLc[1] = locDers[1];
+                DerLc[2] = locDers[2];
+                DerLc[3] = locDers[3];
 
-            Int_t shift = 0;
-            if (det.Contains("SILICON"))
-                for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
-                    shift += 3 * fDetectorGEM->GetGemStation(iStat)->GetNModules();
+                Int_t shift = 0;
+                if (dets[iDet].Contains("SILICON"))
+                    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+                        shift += 3 * fDetectorGEM->GetGemStation(iStat)->GetNModules();
 
-            Int_t idx = det.Contains("GEM") ? GemStatModLabel(_cont->GetStation(), _cont->GetModule()) : SiliconStatModLabel(_cont->GetStation(), _cont->GetModule());
-            Int_t idxUp = shift + idx - 1; // Upper label value
-            Int_t idxMed = idxUp - 1;
-            Int_t idxLow = idxMed - 1;
+                Int_t idx = dets[iDet].Contains("GEM") ? GemStatModLabel(_cont->GetStation(), _cont->GetModule()) :
+                        SiliconStatModLabel(_cont->GetStation(), _cont->GetModule());
+                Int_t idxUp = shift + idx - 1; // Upper label value
+                Int_t idxMed = idxUp - 1;
+                Int_t idxLow = idxMed - 1;
 
-            vector <Double_t> globDers = _cont->GetGlobDers(lay);
-            DerGl[idxLow] = globDers[0];
-            DerGl[idxMed] = globDers[1];
-            DerGl[idxUp] = globDers[2];
+                vector <Double_t> globDers = _cont->GetGlobDers(lays[iLay]);
+                DerGl[idxLow] = globDers[0];
+                DerGl[idxMed] = globDers[1];
+                DerGl[idxUp] = globDers[2];
 
-            Double_t meas = lay.Contains("X") ? _cont->GetMeasures().X() : _cont->GetMeasures().Y();
-            Double_t dmeas = lay.Contains("X") ? _cont->GetDMeasures().X() : _cont->GetDMeasures().Y();
-            Mille->mille(fNLC, DerLc, fNGL, DerGl, Labels, meas, dmeas);
+                Double_t meas = lays[iLay].Contains("X") ? _cont->GetMeasures().X() : _cont->GetMeasures().Y();
+                Double_t dmeas = lays[iLay].Contains("X") ? _cont->GetDMeasures().X() : _cont->GetDMeasures().Y();
+                Mille->mille(fNLC, DerLc, fNGL, DerGl, Labels, meas, dmeas);
 
-            if (fDebug) {
-                cout << det << endl;
-                cout << lay << endl;
-                cout << _cont->GetStation() << " " << _cont->GetModule() << endl;
-                cout << "Loc. ders : ";
-                for (Int_t iLoc = 0; iLoc < fNLC; iLoc++)
-                    cout << DerLc[iLoc] << " ";
-                cout << endl;
-                cout << "Glob. ders : ";
-                for (Int_t iGlob = 0; iGlob < fNGL; iGlob++)
-                    cout << DerGl[iGlob] << " ";
-                cout << endl;
-                cout << "Meas = " << meas << " dMeas = " << dmeas << endl;
+                if (fDebug) {
+                    cout << dets[iDet] << endl;
+                    cout << lays[iLay] << endl;
+                    cout << _cont->GetStation() << " " << _cont->GetModule() << endl;
+                    cout << "Loc. ders : ";
+                    for (Int_t iLoc = 0; iLoc < fNLC; iLoc++)
+                        cout << DerLc[iLoc] << " ";
+                    cout << endl;
+                    cout << "Glob. ders : ";
+                    for (Int_t iGlob = 0; iGlob < fNGL; iGlob++)
+                        cout << DerGl[iGlob] << " ";
+                    cout << endl;
+                    cout << "Meas = " << meas << " dMeas = " << dmeas << endl;
+                }
             }
         }
     }
@@ -335,9 +342,6 @@ void BmnGlobalAlignment::_Mille(TString det, TString lay, Double_t* DerLc, Doubl
 
 const Int_t BmnGlobalAlignment::MakeBinFile() {
     const Int_t ngl_per_subdetector = 3; // x, y and z corrs to each det. subsyst. (GEM, SILICON at the moment)
-    const Int_t nLays = 2;
-    TString lays[nLays] = {"X", "Y"};
-    TString dets[nDetectors] = {"GEM", "SILICON"};
 
     // GEM
     for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
@@ -360,12 +364,11 @@ const Int_t BmnGlobalAlignment::MakeBinFile() {
 
     BmnMille* Mille = new BmnMille("alignment.bin", kTRUE, kFALSE);
     for (Int_t iTrack = 0; iTrack < nTracks; iTrack++) {
-        for (Int_t iDet = 0; iDet < nDetectors; iDet++) {
-            for (Int_t iLay = 0; iLay < nLays; iLay++)
-                _Mille(dets[iDet], lays[iLay], DerLc, DerGl, Mille, iTrack);
-        }
+        if (fDebug)
+            cout << "Track# " << iTrack << endl;
+        _Mille(DerLc, DerGl, Mille, iTrack);
         Mille->end();
-        if (iTrack % 1000 == 0)
+        if (iTrack % 1000 == 0 && !fDebug)
             cout << "Track processed# " << iTrack << endl;
     }
 
@@ -502,8 +505,8 @@ void BmnGlobalAlignment::MakeSteerFile() {
             for (Int_t iPar = 0; iPar < fNGL; iPar++) {
                 if (fIsDoTest && Labels[iPar] > parCounterGem * nParams)
                     continue;
-                if (Labels[iPar] > nParams * parCounterGem && Labels[iPar] < 1 + nParams * parCounterGem + nParams * 3)
-                    continue;
+                //                if (Labels[iPar] > nParams * parCounterGem && Labels[iPar] < 1 + nParams * parCounterGem + nParams * 3)
+                //                    continue;
 
                 if (Labels[iPar] % 3 == iStep + 1) {
                     fprintf(steer, "%d %G\n", Labels[iPar], (iConstrSet == 0) ? deltaZ[modCounter] : 1.);
@@ -550,6 +553,8 @@ void BmnGlobalAlignment::ReadPedeOutput(ifstream& resFile) {
     for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++) {
         for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++) {
             ExtractCorrValues(resFile, corrs);
+            cout << iStat << " " << iMod << " " << corrs[0] << " " << corrs[1] << " " << corrs[2] << endl;
+            cout << fSiAlignCorr->GetEntriesFast() << endl;
             BmnSiliconAlignCorrections* siCorrs = new((*fSiAlignCorr)[fSiAlignCorr->GetEntriesFast()]) BmnSiliconAlignCorrections();
             siCorrs->SetStation(iStat);
             siCorrs->SetModule(iMod);

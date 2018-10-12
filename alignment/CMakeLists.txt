@@ -35,6 +35,7 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
+ BmnMilleContainer.cxx 
  BmnGlobalAlignment.cxx
  BmnGemAlignCorrections.cxx
  BmnDchAlignCorrections.cxx
@@ -42,8 +43,6 @@ set(SRCS
  BmnSiliconAlignCorrections.cxx
  BmnMille.cxx
  BmnAlignCorrections.cxx
- BmnGemResiduals.cxx
- BmnSiResiduals.cxx
  BmnResiduals.cxx
 )
 

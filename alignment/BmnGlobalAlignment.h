@@ -58,7 +58,7 @@ class BmnGlobalAlignment : public FairTask {
 public:
 
     BmnGlobalAlignment() {};
-    BmnGlobalAlignment(TString, Int_t period = 7, TString misAlignFile = "misAlignment.root", Bool_t doTest = kFALSE);
+    BmnGlobalAlignment(Int_t nEvents, TString, Int_t period = 7, TString misAlignFile = "misAlignment.root", Bool_t doTest = kFALSE);
     virtual ~BmnGlobalAlignment();
 
     virtual InitStatus Init();
@@ -227,11 +227,13 @@ private:
         return GemStatModLabel(st, mod) + coeff[st] * st;
     }
     
-    void _Mille(TString, TString, Double_t*, Double_t*, BmnMille*, Int_t);
+    void _Mille(Double_t*, Double_t*, BmnMille*, Int_t);
 
     static Int_t fCurrentEvent;
+    Int_t fNEvents;
     Int_t fNTracks;
     map <Int_t, pair <vector <BmnMilleContainer*>, vector <BmnMilleContainer*>>> fCONTAINER;
+    map <Int_t, pair <vector <BmnMilleContainer*>, vector <BmnMilleContainer*>>>::iterator fITERATOR;
     Bool_t fIsField;
     Int_t fRunPeriod;
     Int_t fRunId;
@@ -286,7 +288,7 @@ private:
     Double_t fTyLeft;
     Double_t fTyRight;
 
-    Int_t nSelectedTracks;
+    // Int_t nSelectedTracks;
 
     UInt_t fNumOfIterations;
     Double_t fAccuracy;

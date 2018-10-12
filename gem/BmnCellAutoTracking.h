@@ -101,7 +101,7 @@ private:
 
     Bool_t fIsField; // run with mag.field or not
     Bool_t fIsTarget; // run with target or not
-    map <DetectorId, Bool_t> fInnerTrackerSetup;
+    map<DetectorId, Bool_t> fInnerTrackerSetup;
 
     UInt_t fEventNo;
     Short_t fPeriodId;

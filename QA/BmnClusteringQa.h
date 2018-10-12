@@ -12,6 +12,8 @@
 #include "BmnDetectorSetup.h"
 #include <string>
 #include <vector>
+#include "BmnGemStripStationSet.h"
+#include "BmnSiliconStationSet.h"
 using std::string;
 using std::vector;
 using std::map;
@@ -189,6 +191,15 @@ private:
     //    TClonesArray* fGemClusterMatches;
     TClonesArray* fGemHitMatches;
 
+    BmnGemStripStationSet* fGemDetector;
+    BmnSiliconStationSet* fSilDetector;
+    
+    TClonesArray* fSilHits;
+    TClonesArray* fSilPoints;
+    TClonesArray* fSilHitMatches;
+    
+    
+   
     //    TClonesArray* fTof1Points;
     //    TClonesArray* fTof1Hits;
     //    TClonesArray* fTof1HitMatches;
@@ -197,10 +208,10 @@ private:
     //    TClonesArray* fTof2Hits;
     //    TClonesArray* fTof2HitMatches;
     //    
-    //    TClonesArray* fDch1Points;
-    //    TClonesArray* fDch1Hits;
-    //    TClonesArray* fDch1HitMatches;
-    //    
+    TClonesArray* fDch1Points;
+    TClonesArray* fDch1Hits;
+    TClonesArray* fDch1HitMatches;
+       
     //    TClonesArray* fDch2Points;
     //    TClonesArray* fDch2Hits;
     //    TClonesArray* fDch2HitMatches;

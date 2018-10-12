@@ -92,6 +92,14 @@ public:
     void SetStation(Short_t st) {
         fStation = st;
     }
+    
+    void SetModule(Int_t mod) {
+        fModule = mod;
+    }
+    
+    Int_t GetModule() {
+        return fModule;
+    }
 
     void SetType(Int_t type) {
         fType = type;
@@ -103,6 +111,19 @@ public:
     
     Double_t GetLength() {
         return fLength;
+    }
+    
+    void SetResXY(Double_t resX, Double_t resY) {
+        fResX = resX;
+        fResY = resY;
+    }
+    
+    Double_t GetResX() {
+        return fResX;
+    }
+    
+    Double_t GetResY() {
+        return fResY;
     }
 
     /** Destructor **/
@@ -124,8 +145,12 @@ private:
     DetectorId fDetId;
     /** station number. It essential for gem, mwpc**/
     Short_t fStation;
+    Int_t fModule;
     Int_t fType; // 0 - fake, 1 - hit, -1 - undefined
     Double_t fLength; //length from vertex to current hit
+    
+    Double_t fResX;
+    Double_t fResY;
 
     ClassDef(BmnHit, 1);
 

@@ -95,6 +95,7 @@ BmnEnums.h
 DigiArrays.h
 BmnEventQuality.cxx
 BmnGemStripHit.cxx
+BmnSiliconHit.cxx
 BmnGemTrack.cxx
  cbm/CbmVertex.cxx
  cbm/CbmStsTrackFinder.cxx

@@ -70,7 +70,6 @@ fSteerFile(steerFile) {
     fCellDiffSlopeXZCut = NULL;
     fCellDiffSlopeYZCut = NULL;
     fNHitsCut = 0.0;
-
     fSteering->PrintParamTable();
 }
 
@@ -87,21 +86,21 @@ InitStatus BmnCellAutoTracking::Init() {
     //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();
     if (NULL == ioman) Fatal("Init", "FairRootManager is not instantiated");
-    
+
     //MC tracks for drawing during debugging
     fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack"); //in
 
     //GEM
     if (fInnerTrackerSetup[kGEM]) {
         fGemPointsArray = (TClonesArray*) ioman->GetObject("StsPoint"); //in    
-    fGemHitsArray = (TClonesArray*) ioman->GetObject(fGemHitsBranchName); //in
+        fGemHitsArray = (TClonesArray*) ioman->GetObject(fGemHitsBranchName); //in
         fGemTracksArray = new TClonesArray("BmnTrack", 100); //out
         ioman->Register(fGemTracksBranchName, "GEM", fGemTracksArray, kTRUE);
     }
 
     //SILICON
     if (fInnerTrackerSetup[kSILICON]) {
-    fSilPointsArray = (TClonesArray*) ioman->GetObject("SiliconPoint"); //in
+        fSilPointsArray = (TClonesArray*) ioman->GetObject("SiliconPoint"); //in
         fSilHitsArray = (TClonesArray*) ioman->GetObject(fSilHitsBranchName); //in
         fSilTracksArray = new TClonesArray("BmnTrack", 100); //out
         ioman->Register(fSilTracksBranchName, "SILICON", fSilTracksArray, kTRUE);
@@ -124,7 +123,7 @@ InitStatus BmnCellAutoTracking::Init() {
     fGlobTracksArray = new TClonesArray("BmnGlobalTrack", 100); //out
     ioman->Register(fGlobTracksBranchName, "GLOBAL", fGlobTracksArray, kTRUE);
     fHitsArray = new TClonesArray("BmnHit", 100); //out
-    ioman->Register("BmnInnerHits", "HITS", fHitsArray, kFALSE);
+    ioman->Register("BmnInnerHits", "HITS", fHitsArray, kTRUE);
 
     fField = FairRunAna::Instance()->GetField();
     if (!fField) Fatal("Init", "No Magnetic Field found");
@@ -132,15 +131,15 @@ InitStatus BmnCellAutoTracking::Init() {
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
 
     if (fInnerTrackerSetup[kGEM]) {
-    TString gPathGemConfig = gPathConfig + "/gem/XMLConfigs/";
-    TString confGem = (fPeriodId == 7) ? "GemRunSpring2018.xml" : (fPeriodId == 6) ? "GemRunSpring2017.xml" : "GemRunSpring2017.xml";
-    fGemDetector = new BmnGemStripStationSet(gPathGemConfig + confGem);
+        TString gPathGemConfig = gPathConfig + "/gem/XMLConfigs/";
+        TString confGem = (fPeriodId == 7) ? "GemRunSpring2018.xml" : (fPeriodId == 6) ? "GemRunSpring2017.xml" : "GemRunSpring2017.xml";
+        fGemDetector = new BmnGemStripStationSet(gPathGemConfig + confGem);
     }
 
     if (fInnerTrackerSetup[kSILICON]) {
-    TString gPathSiConfig = gPathConfig + "/silicon/XMLConfigs/";
-    TString confSi = (fPeriodId == 7) ? "SiliconRunSpring2018.xml" : "SiliconRunSpring2017.xml";
-    fSilDetector = new BmnSiliconStationSet(gPathSiConfig + confSi);
+        TString gPathSiConfig = gPathConfig + "/silicon/XMLConfigs/";
+        TString confSi = (fPeriodId == 7) ? "SiliconRunSpring2018.xml" : "SiliconRunSpring2017.xml";
+        fSilDetector = new BmnSiliconStationSet(gPathSiConfig + confSi);
     }
 
     Int_t nGemStations = (fInnerTrackerSetup[kGEM]) ? fGemDetector->GetNStations() : 0;
@@ -195,16 +194,16 @@ void BmnCellAutoTracking::Exec(Option_t* opt) {
     }
     if (fInnerTrackerSetup[kGEM]) {
         for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
-        BmnHit hit = *((BmnHit*) fGemHitsArray->At(iHit));
+            BmnHit hit = *((BmnHit*) fGemHitsArray->At(iHit));
             hit.SetStation(hit.GetStation() + nSilStations + nSsdStations); //shift for correct station numbering
-        hit.SetIndex(iHit);
+            hit.SetIndex(iHit);
             hit.SetDetId(kGEM);
-        new((*fHitsArray)[fHitsArray->GetEntriesFast()]) BmnHit(hit);
-    }
+            new((*fHitsArray)[fHitsArray->GetEntriesFast()]) BmnHit(hit);
+        }
     }
 
     if (fHitsArray->GetEntriesFast() > nHitsCut || fHitsArray->GetEntriesFast() == 0) return;
-    
+
     fCellDistCut = new Double_t[fNStations];
     fHitXCutMin = new Double_t[fNStations];
     fHitXCutMax = new Double_t[fNStations];
@@ -252,7 +251,7 @@ void BmnCellAutoTracking::Exec(Option_t* opt) {
         }
 
         clock_t t0 = clock();
-        CellsCreation(cells);           
+        CellsCreation(cells);
         clock_t t1 = clock();
         //StateCalculation(cells);
         clock_t t2 = clock();
@@ -396,11 +395,13 @@ BmnStatus BmnCellAutoTracking::StateCalculation(vector<BmnCellDuet>* cells) {
         for (Int_t iCell = iStartCell; iCell < fNStations; ++iCell) {
             if (cells[iCell].size() > 10000) continue;
             for (BmnCellDuet &duet : cells[iCell]) {
+                Int_t idx = duet.GetFirstIdx();
+                Int_t state = duet.GetOldState();
                 for (BmnCellDuet leftNeigh : cells[iCell - 1]) {
-                    if (duet.GetOldState() != leftNeigh.GetOldState()) continue;
-                    if (duet.GetFirstIdx() != leftNeigh.GetLastIdx()) continue;
-                    // FIXME!!!
-                    //                    if (Abs(duet.GetSlopeXZ() - leftNeigh.GetSlopeXZ()) > fCellDiffSlopeXZCut[iCell - 1]) continue;
+                    if (state != leftNeigh.GetOldState()) continue;
+                    if (idx != leftNeigh.GetLastIdx()) continue;
+                    //FIXME!!!
+                    //                                        if (Abs(duet.GetSlopeXZ() - leftNeigh.GetSlopeXZ()) > fCellDiffSlopeXZCut[iCell - 1]) continue;
                     //                    if (Abs(duet.GetSlopeYZ() - leftNeigh.GetSlopeYZ()) > fCellDiffSlopeYZCut[iCell - 1]) continue;
 
                     duet.SetNewState(duet.GetOldState() + 1);
@@ -424,7 +425,7 @@ BmnStatus BmnCellAutoTracking::CellsConnection(vector<BmnCellDuet>* cells, vecto
 
         BmnCellDuet curDuet;
         if (cells[maxCell].size() > 10000)
-                continue;
+            continue;
         for (BmnCellDuet &duet : cells[maxCell]) {
 
             //            if (duet.GetOldState() != maxCell) continue; //FIXME: do we need this condition???
@@ -458,9 +459,9 @@ BmnStatus BmnCellAutoTracking::CellsConnection(vector<BmnCellDuet>* cells, vecto
             if (CalculateTrackParams(&trackCand) == kBMNERROR) continue;
             if (IsParCorrect(trackCand.GetParamFirst(), fIsField) && IsParCorrect(trackCand.GetParamLast(), fIsField))
                 cands.push_back(trackCand);
-            }
         }
     }
+}
 
 BmnStatus BmnCellAutoTracking::TrackUpdateByLine(vector <BmnTrack>& cands) {
     for (BmnTrack& cand : cands) {
@@ -994,10 +995,10 @@ BmnStatus BmnCellAutoTracking::DrawHits() {
         Double_t x1, y1, z1;
         set<Int_t> vSt;
         if (fInnerTrackerSetup[kSILICON])
-        for (Int_t i = 0; i < fSilPointsArray->GetEntriesFast(); ++i) {
-            FairMCPoint* pnt = (FairMCPoint*) fSilPointsArray->At(i);
-            if (pnt->GetTrackID() == iTr) {
-                nPoints++;
+            for (Int_t i = 0; i < fSilPointsArray->GetEntriesFast(); ++i) {
+                FairMCPoint* pnt = (FairMCPoint*) fSilPointsArray->At(i);
+                if (pnt->GetTrackID() == iTr) {
+                    nPoints++;
                     z1 = pnt->GetZ();
                     x1 = pnt->GetX();
                     y1 = pnt->GetY();
@@ -1024,13 +1025,13 @@ BmnStatus BmnCellAutoTracking::DrawHits() {
                     z0 = z1;
                     x0 = x1;
                     y0 = y1;
-        }
+                }
             }
         if (fInnerTrackerSetup[kGEM])
-        for (Int_t i = 0; i < fGemPointsArray->GetEntriesFast(); ++i) {
-            FairMCPoint* pnt = (FairMCPoint*) fGemPointsArray->At(i);
-            if (pnt->GetTrackID() == iTr) {
-                nPoints++;
+            for (Int_t i = 0; i < fGemPointsArray->GetEntriesFast(); ++i) {
+                FairMCPoint* pnt = (FairMCPoint*) fGemPointsArray->At(i);
+                if (pnt->GetTrackID() == iTr) {
+                    nPoints++;
                     z1 = pnt->GetZ();
                     x1 = pnt->GetX();
                     y1 = pnt->GetY();
@@ -1055,8 +1056,8 @@ BmnStatus BmnCellAutoTracking::DrawHits() {
                 it->SetLineColor(kBlue);
                 it->SetLineStyle(9);
                 it->Draw("same");
+            }
         }
-    }
     }
 
     printf("NMCTracks = %d   GlobTracks = %d\n", nMCtracks, fGlobTracksArray->GetEntriesFast());

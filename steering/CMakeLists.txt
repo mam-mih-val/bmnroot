@@ -36,6 +36,7 @@ link_directories(${LINK_DIRECTORIES})
 # List of source files
 set(SRCS
  BmnSteeringGemTracking.cxx
+ BmnSteeringCA.cxx
 )
 
 Set(HEADERS)

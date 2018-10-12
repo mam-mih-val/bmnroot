@@ -5,5 +5,6 @@
 #pragma link off all functions;
 
 #pragma link C++ class BmnSteeringGemTracking++;
+#pragma link C++ class BmnSteeringCA++;
 
 #endif

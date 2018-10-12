@@ -4,10 +4,10 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 
 R__LOAD_LIBRARY(libPhysics.so)
         
-void readSteeringFile(TString file = "gemTrackingSteer.dat") {
+void readSteeringFile(TString file = "gemTrackingSteerCA.dat") {
      bmnloadlibs(); // load BmnRoot libraries
      
-     BmnSteeringGemTracking* steer = new BmnSteeringGemTracking(file);
+     BmnSteeringCA* steer = new BmnSteeringCA(file);
      steer->PrintParamTable();
      
      delete steer;

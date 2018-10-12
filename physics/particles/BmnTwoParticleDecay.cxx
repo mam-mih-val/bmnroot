@@ -55,13 +55,10 @@ fParticlePairsInfo(NULL) {
     if (config == BmnGemStripConfiguration::GEM_CONFIG::RunSpring2018) {
         fRunPeriod = 7;
         fRunId = 4629;
-    }
-
-    else if (config == BmnGemStripConfiguration::GEM_CONFIG::RunSpring2017) {
+    } else if (config == BmnGemStripConfiguration::GEM_CONFIG::RunSpring2017) {
         fRunPeriod = 6;
         fRunId = 1209;
-    }
-    else {
+    } else {
         cout << "BmnGemStripConfiguration not defined !!!" << endl;
         throw;
     }
@@ -289,6 +286,7 @@ Bool_t BmnTwoParticleDecay::CheckTrack(BmnGlobalTrack* track, Int_t pdgCode, Dou
 void BmnTwoParticleDecay::Analysis() {
     // const Int_t nV0 = 2;
     TLorentzVector lPos, lNeg;
+
     TClonesArray* arr = ((fUseMc && fGlobalMatches) || !fUseMc) ? fGlobalTracks : fMCTracks;
 
     for (Int_t iTrack = 0; iTrack < arr->GetEntriesFast(); iTrack++) {
@@ -307,7 +305,7 @@ void BmnTwoParticleDecay::Analysis() {
             }
             FindFirstPointOnMCTrack(iTrack, track1, CheckSign(Q1));
 
-        } else 
+        } else
             track1 = (BmnGlobalTrack*) arr->UncheckedAt(iTrack);
 
 
@@ -334,7 +332,7 @@ void BmnTwoParticleDecay::Analysis() {
                     continue;
 
                 FindFirstPointOnMCTrack(jTrack, track2, CheckSign(Q2));
-            } else 
+            } else
                 track2 = (BmnGlobalTrack*) arr->UncheckedAt(jTrack);
 
             Double_t _p2, _eta2;
@@ -384,7 +382,7 @@ void BmnTwoParticleDecay::Analysis() {
 
             V0Z[0] = Min(pointsAndMinDist[0], pointsAndMinDist[2]); // V0ZX
             delete [] pointsAndMinDist;            
-*/
+             */
 
             // Go to secondary vertex V0
             // FairTrackParam proton_V0, pion_V0;
@@ -413,8 +411,8 @@ void BmnTwoParticleDecay::Analysis() {
             // Double_t txPartOrig = (protonPx + pionPx) / (protonPz + pionPz);
             // Double_t PartOrigBX = txPartOrig * (Vpz - zPartOrigDeath) + xPartOrigDeath;
 
-            BmnParticlePair partPair = (fUseMc == kTRUE && fGlobalMatches == NULL) ? BmnParticlePair('a') : 
-                ((fGlobalMatches != NULL) ? BmnParticlePair('b') : 
+            BmnParticlePair partPair = (fUseMc == kTRUE && fGlobalMatches == NULL) ? BmnParticlePair('a') :
+                    ((fGlobalMatches != NULL) ? BmnParticlePair('b') :
                     BmnParticlePair('c'));
 
             //            partPair.SetPartOrigB(PartOrigBX, 0.0); //FIXME
@@ -771,27 +769,48 @@ void BmnTwoParticleDecay::Exec(Option_t* option) {
 
     BmnParticlePairsInfo pairInfo;
 
-    pairInfo.setMomPart1Min(fMom[0][0]);
-    pairInfo.setMomPart1Max(fMom[0][1]);
-    pairInfo.setMomPart2Min(fMom[1][0]);
-    pairInfo.setMomPart2Max(fMom[1][1]);
+    pairInfo.setMomPart1Min(0);
+    pairInfo.setMomPart1Max(5);
+    pairInfo.setMomPart2Min(0);
+    pairInfo.setMomPart2Max(5);
 
-    pairInfo.setEtaPart1Min(fEta[0][0]);
-    pairInfo.setEtaPart1Max(fEta[0][1]);
-    pairInfo.setEtaPart2Min(fEta[1][0]);
-    pairInfo.setEtaPart2Max(fEta[1][1]);
+    pairInfo.setEtaPart1Min(0);
+    pairInfo.setEtaPart1Max(3);
+    pairInfo.setEtaPart2Min(0);
+    pairInfo.setEtaPart2Max(3);
 
-    pairInfo.setDCAPart1Min(fDCA[0][0]);
-    pairInfo.setDCAPart1Max(fDCA[0][1]);
-    pairInfo.setDCAPart2Min(fDCA[1][0]);
-    pairInfo.setDCAPart2Max(fDCA[1][1]);
+    pairInfo.setDCAPart1Min(1);
+    pairInfo.setDCAPart1Max(100);
+    pairInfo.setDCAPart2Min(1);
+    pairInfo.setDCAPart2Max(100);
 
-    pairInfo.setDCA12Min(fDCA12[0]);
-    pairInfo.setDCA12Max(fDCA12[1]);
-    pairInfo.setPathMin(fPath[0]);
-    pairInfo.setPathMax(fPath[1]);
+    pairInfo.setDCA12Min(0);
+    pairInfo.setDCA12Max(10);
+    pairInfo.setPathMin(0);
+    pairInfo.setPathMax(30);
 
     new((*fParticlePairsInfo)[0]) BmnParticlePairsInfo(pairInfo);
+    fMom[0][0] = pairInfo.getMomPart1Min();
+    fMom[0][1] = pairInfo.getMomPart1Max();
+    fMom[1][0] = pairInfo.getMomPart2Min();
+    fMom[1][1] = pairInfo.getMomPart2Max();
+    
+    fEta[0][0] = pairInfo.getEtaPart1Min();
+    fEta[0][1] = pairInfo.getEtaPart1Max();
+    fEta[1][0] = pairInfo.getEtaPart2Min();
+    fEta[1][1] = pairInfo.getEtaPart2Max();
+    
+    fDCA12[0] = pairInfo.getDCA12Min();
+    fDCA12[1] = pairInfo.getDCA12Max();
+    
+    fPath[0] = pairInfo.getPathMin();
+    fPath[1] = pairInfo.getPathMax();
+    
+    fDCA[0][0] = pairInfo.getDCAPart1Min();
+    fDCA[0][1] = pairInfo.getDCAPart1Max();
+    fDCA[1][0] = pairInfo.getDCAPart2Min();
+    fDCA[1][1] = pairInfo.getDCAPart2Max();
+    
 
     if (fUseMc) {
         fParticlePairMC->Delete();
@@ -802,7 +821,7 @@ void BmnTwoParticleDecay::Exec(Option_t* option) {
     }
 
     fEventCounter++;
-    if (fEventCounter % 1000 == 0)
+    if (fEventCounter % 100 == 0)
         cout << fEventCounter << endl;
 
     // In case of MC-data one has to extract coordinates of Vp known exactly ...

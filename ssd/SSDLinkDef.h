@@ -8,6 +8,7 @@
 
 #pragma link C++ class BmnSSD+;
 #pragma link C++ class BmnSSDPoint+;
+#pragma link C++ class BmnSSDHitProducer+;
 //#pragma link C++ class BmnSiliconLayer+;
 //#pragma link C++ class BmnSiliconModule+;
 //#pragma link C++ class BmnSiliconStation+;

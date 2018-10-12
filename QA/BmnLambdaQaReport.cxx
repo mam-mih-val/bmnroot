@@ -13,6 +13,9 @@
 #include "report/BmnDrawHist.h"
 #include "BmnUtils.h"
 #include "TProfile.h"
+#include "TF1.h"
+#include "TH1.h"
+#include "TFitResult.h"
 #include "TCanvas.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"
 #include "BmnGemStripStation.h"
@@ -987,12 +990,45 @@ void BmnLambdaQaReport::DrawTwoDimensinalReconstructedFromMCWOCutsLambdasHistogr
 void BmnLambdaQaReport::DrawReconstructedLambdasHistograms(const string& canvasName) {
     TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 2000, 500);
     
-    TString nPairsRecoInvMass = Form("NPairsRecoInvMass");
+    TH1* hist = HM()->H1("NPairsRecoInvMass");
     canvas->Divide(4, 1);
     canvas->SetGrid();
     
-    canvas->cd(1);
-    DrawH1(HM()->H1(nPairsRecoInvMass.Data()), kLinear, kLinear, drawPointsOpt.Data(),kOrange);
+    canvas->cd(1);    
+    
+    Double_t par[8];
+    TF1* bg = new TF1("BG", "pol4", 1.07, 1.22);
+    TF1* sig = new TF1("SIG", "gaus", 1.11, 1.12);
+    hist->Fit(bg, "R");
+    //sig->SetParameter(1, 1.115);
+    //    sig->SetParameter(2, 0.002);
+    hist->Fit(sig, "R");
+    bg->GetParameters(&par[0]);
+    sig->GetParameters(&par[5]);
+    TF1 *f = new TF1("f", "pol4(0)+gaus(5)", 1.07, 1.22);
+    f->SetNpx(500);
+
+    f->SetParameters(par);
+//    f->SetLineColor(kMagenta + 1);
+//    f->SetLineWidth(3);
+    //f->SetParameter(6, 1.1152);
+    f->SetParameter(7, 0.002);
+    TFitResultPtr fitRes = hist->Fit(f, "RS");
+//    Double_t mean = fitRes->Parameter(6);
+//    Double_t sigma = fitRes->Parameter(7);
+//    Double_t T = hist->Integral(hist->FindBin(mean - 3 * sigma), hist->FindBin(mean + 3 * sigma));
+//    Double_t B = bg->Integral(mean - 3 * sigma, mean + 3 * sigma) / hist->GetBinWidth(1);
+//    Double_t S_to_B = T / B - 1;
+//    Double_t Signif = (T - B) / TMath::Sqrt(T);
+
+//    hist->SetMarkerStyle(20);
+//    hist->SetMarkerColor(kSpring - 6);
+//    hist->SetLineColor(kSpring - 6);
+//    hist->SetLineWidth(1);
+//    hist->GetXaxis()->SetTitle("M_{(p + #pi^{-})}, GeV/c^{2}");
+//    hist->GetYaxis()->SetTitle("Entries / 2 MeV/c^{2}");
+    
+    DrawH1(hist, kLinear, kLinear, drawPointsOpt.Data(),kOrange);
     
 }
 

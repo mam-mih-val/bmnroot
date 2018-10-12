@@ -1,7 +1,7 @@
-// Preliminary version of BmnGemHitProducer
+// Preliminary version of BmnSiliconHitProducer
 
-#ifndef BMNGEMHITPRODUCER_H
-#define BMNGEMHITPRODUCER_H 1
+#ifndef BMNSILICONHITPRODUCER_H
+#define BMNSILICONHITPRODUCER_H 1
 
 #include <math.h>
 #include <iostream>
@@ -9,8 +9,8 @@
 #include "TString.h"
 #include "TClonesArray.h"
 #include "FairTask.h"
-#include "BmnGemStripStationSet.h"
-#include "BmnGemStripConfiguration.h"
+#include "BmnSiliconStationSet.h"
+#include "BmnSiliconConfiguration.h"
 
 
 #include "CbmStsPoint.h"
@@ -20,14 +20,14 @@
 
 using namespace std;
 
-class BmnGemHitProducer : public FairTask {
+class BmnSiliconHitProducer : public FairTask {
 public:
 
     /** Default constructor **/
-    BmnGemHitProducer();
+    BmnSiliconHitProducer();
 
     /** Destructor **/
-    virtual ~BmnGemHitProducer();
+    virtual ~BmnSiliconHitProducer();
 
     /** Virtual method Init **/
     virtual InitStatus Init();
@@ -43,23 +43,23 @@ private:
     TString fInputBranchName;
     TString fTracksBranchName;
     TString fOutputHitsBranchName;
-    TString fOutputGemHitMatchesBranchName;
+    TString fOutputSiliconHitMatchesBranchName;
 
-    /** Input array of Gem Points **/
+    /** Input array of Silicon Points **/
     TClonesArray* fBmnPointsArray;
 
     /** Input array of MC Tracks **/
     TClonesArray* fMCTracksArray;
 
-    /** Output array of Gem Hits **/
+    /** Output array of Silicon Hits **/
     TClonesArray* fBmnHitsArray;
 
-    /** Output array of GEM Hit Matches **/
-    TClonesArray* fBmnGemStripHitMatchesArray;
-    
-    BmnGemStripStationSet *GemStationSet; //Entire GEM detector
+    /** Output array of Silicon Hit Matches **/
+    TClonesArray* fBmnSiliconHitMatchesArray;
+        
+    BmnSiliconStationSet *SiliconStationSet; //Entire GEM detector
 
-    ClassDef(BmnGemHitProducer, 1);
+    ClassDef(BmnSiliconHitProducer, 1);
 
 };
 

@@ -1,7 +1,7 @@
-// Preliminary version of BmnGemHitProducer
+// Preliminary version of BmnSSDHitProducer
 
-#ifndef BMNGEMHITPRODUCER_H
-#define BMNGEMHITPRODUCER_H 1
+#ifndef BMNSSDHITPRODUCER_H
+#define BMNSSDHITPRODUCER_H 1
 
 #include <math.h>
 #include <iostream>
@@ -9,8 +9,6 @@
 #include "TString.h"
 #include "TClonesArray.h"
 #include "FairTask.h"
-#include "BmnGemStripStationSet.h"
-#include "BmnGemStripConfiguration.h"
 
 
 #include "CbmStsPoint.h"
@@ -20,14 +18,14 @@
 
 using namespace std;
 
-class BmnGemHitProducer : public FairTask {
+class BmnSSDHitProducer : public FairTask {
 public:
 
     /** Default constructor **/
-    BmnGemHitProducer();
+    BmnSSDHitProducer();
 
     /** Destructor **/
-    virtual ~BmnGemHitProducer();
+    virtual ~BmnSSDHitProducer();
 
     /** Virtual method Init **/
     virtual InitStatus Init();
@@ -37,29 +35,35 @@ public:
 
     /** Virtual method Finish **/
     virtual void Finish();
+    
+    Int_t DefineStationByZ(Double_t z, Int_t ssdType);
+    
+    void SetFakesFraction(Double_t f) {
+        fFakesFraction = f;
+    }
 
 private:
 
     TString fInputBranchName;
     TString fTracksBranchName;
     TString fOutputHitsBranchName;
-    TString fOutputGemHitMatchesBranchName;
+    TString fOutputSSDHitMatchesBranchName;
 
-    /** Input array of Gem Points **/
+    /** Input array of SSD Points **/
     TClonesArray* fBmnPointsArray;
 
     /** Input array of MC Tracks **/
     TClonesArray* fMCTracksArray;
 
-    /** Output array of Gem Hits **/
+    /** Output array of SSD Hits **/
     TClonesArray* fBmnHitsArray;
 
-    /** Output array of GEM Hit Matches **/
-    TClonesArray* fBmnGemStripHitMatchesArray;
+    /** Output array of SSD Hit Matches **/
+    TClonesArray* fBmnSSDHitMatchesArray;
     
-    BmnGemStripStationSet *GemStationSet; //Entire GEM detector
+    Double_t fFakesFraction;
 
-    ClassDef(BmnGemHitProducer, 1);
+    ClassDef(BmnSSDHitProducer, 1);
 
 };
 

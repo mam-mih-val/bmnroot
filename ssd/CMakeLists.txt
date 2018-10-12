@@ -30,6 +30,7 @@ link_directories(${LINK_DIRECTORIES})
 set(SRCS
 BmnSSD.cxx
 BmnSSDPoint.cxx
+BmnSSDHitProducer.cxx
 #BmnSiliconLayer.cxx
 #BmnSiliconModule.cxx
 #BmnSiliconStation.cxx

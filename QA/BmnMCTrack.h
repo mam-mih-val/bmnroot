@@ -32,6 +32,7 @@ public:
       // Initialize all maps
       fPoints[kMVD];
       fPoints[kSILICON];
+      fPoints[kSSD];
       fPoints[kGEM];
       fPoints[kTOF1];
       fPoints[kDCH];

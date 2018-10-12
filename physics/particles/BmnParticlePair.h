@@ -10,15 +10,16 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef BMNPARTICLEPAIR_H
-#define BMNPARTICLEPAIR_H 1
+    #define BMNPARTICLEPAIR_H 1
 
 #include <TNamed.h>
+#include <TVector3.h>
 
 class BmnParticlePair : public TNamed {
 public:
 
     /** Default constructor **/
-    BmnParticlePair();
+    BmnParticlePair(Short_t key1 = 'b');
 
     /** Destructor **/
     virtual ~BmnParticlePair();
@@ -68,7 +69,15 @@ public:
         fPartOrigBX = bx;
         fPartOrigBY = by;
     }
-
+    
+    void SetMCTrackIdPart1(Int_t id);
+    void SetMCTrackIdPart2(Int_t id);
+    void SetRecoTrackIdPart1(Int_t id); // actually it is GEM track Id
+    void SetRecoTrackIdPart2(Int_t id); // actually it is GEM track Id
+    
+    void SetMCMomPart1(Double_t px, Double_t py, Double_t pz);
+    void SetMCMomPart2(Double_t px, Double_t py, Double_t pz);
+    
     Double_t GetInvMass(TString flag) {
         return flag.Contains("X") ? fInvMassX : flag.Contains("Y") ? fInvMassY : throw;
     }
@@ -138,6 +147,17 @@ public:
     Double_t GetPtPodol(TString flag) {
         return flag.Contains("X") ? fPtPodolX : flag.Contains("Y") ? fPtPodolY : throw;
     }
+    
+    TVector3 GetMCMomPart1();
+    TVector3 GetMCMomPart2();
+    
+    Int_t GetMCTrackIdPart1();
+    Int_t GetMCTrackIdPart2();
+    
+    Int_t GetRecoTrackIdPart1(); // actually it is GEM track Id
+    Int_t GetRecoTrackIdPart2(); // actually it is GEM track Id
+    
+    Short_t GetKey1(); 
 
 private:
     Double_t fInvMassX; // Invariant mass of a considering pair
@@ -170,7 +190,19 @@ private:
     Double_t fAlphaY;
     Double_t fPtPodolX;
     Double_t fPtPodolY;
-
+    
+    Short_t fKey1; // 'a' - MC mode, 'b' - reco with matches mode, 'c' - pure reco mode
+    TVector3 fMCMomPart1;
+    TVector3 fMCMomPart2;
+    
+    TVector3 fRecoMomPart1;
+    TVector3 fRecoMomPart2;    
+    
+    Int_t fMCTrackIdPart1;
+    Int_t fMCTrackIdPart2;
+    Int_t fRecoTrackIdPart1;
+    Int_t fRecoTrackIdPart2;
+    
     ClassDef(BmnParticlePair, 1);
 
 };

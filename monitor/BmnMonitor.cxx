@@ -7,7 +7,6 @@
 #include <ctime>
 #include <sys/epoll.h>
 #include <fcntl.h>
-#include <zmq.h>
 
 #include <root/TLatex.h>
 #include <root/TLegend.h>

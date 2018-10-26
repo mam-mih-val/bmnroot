@@ -10,6 +10,7 @@
 // FairRoot
 #include "FairRootManager.h"
 #include "FairOnlineSource.h"
+#include "FairEventHeader.h"
 // BmnRoot
 #include "BmnEnums.h"
 #include "DigiArrays.h"
@@ -17,14 +18,14 @@
 
 class BmnDecoSource : public FairOnlineSource {
 public:
-    BmnDecoSource(TString addr);
-    BmnDecoSource(const BmnDecoSource& orig);
+    BmnDecoSource(TString addr = "localhost");
     virtual ~BmnDecoSource();
     
     Bool_t Init();
     Int_t ReadEvent(UInt_t i=0);
     void Close();
 //    void Reset();
+    void FillEventHeader(FairEventHeader* feh);
     TTree* GetInTree() {return fInChain->GetTree();}
     TChain* GetInChain() {return fInChain;}
     

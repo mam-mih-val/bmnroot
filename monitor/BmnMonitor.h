@@ -5,6 +5,8 @@
 #include <iterator>
 #include <regex>
 #include <exception>
+// Auxillary
+#include <zmq.h>
 // FairSoft
 #include <TNamed.h>
 #include "TFile.h"

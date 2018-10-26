@@ -1,18 +1,14 @@
 
-#include <zmq.h>
-
 #include "BmnDecoSource.h"
 
 BmnDecoSource::BmnDecoSource(TString addr) {
-    _addrString = addr;
+    _addrString = Form("tcp://%s:%d", addr.Data(), 5555);
     iEventNumber = 0;
     fEventHeader = NULL;
     fGemDigits = NULL;
     fT0Digits = NULL;
     fTof1Digits = NULL;
-}
-
-BmnDecoSource::BmnDecoSource(const BmnDecoSource& orig) {
+    fDigiArrays = NULL;
 }
 
 BmnDecoSource::~BmnDecoSource() {
@@ -44,8 +40,8 @@ Bool_t BmnDecoSource::Init() {
     fGemDigits = new TClonesArray("BmnGemStripDigit");
     ioman->RegisterInputObject("GEM", fGemDigits);
 
-//    fT0Digits = new TClonesArray("BmnTrigDigit");
-//    ioman->Register("T0", "T0DIR", fT0Digits, kFALSE);
+    //    fT0Digits = new TClonesArray("BmnTrigDigit");
+    //    ioman->Register("T0", "T0DIR", fT0Digits, kFALSE);
 
     fTof1Digits = new TClonesArray("BmnTof1Digit");
     ioman->Register("TOF400", "TOFDIR", fTof1Digits, kFALSE);
@@ -95,6 +91,12 @@ Int_t BmnDecoSource::ReadEvent(UInt_t i) {
         //            return;
         //        }
     } else {
+//        printf("Received frame_size = %d\n", frame_size);
+        if (fDigiArrays) {
+            fDigiArrays->Clear();
+            delete fDigiArrays;
+            fDigiArrays = NULL;
+        }
         //decoTimeout = 0;
         _tBuf->Reset();
         _tBuf->SetBuffer(zmq_msg_data(&_msg), zmq_msg_size(&_msg));
@@ -102,23 +104,43 @@ Int_t BmnDecoSource::ReadEvent(UInt_t i) {
         //    if (fInChain->GetEntry(i))
         //        return 0;
         BmnEventHeader* head = (BmnEventHeader*) fDigiArrays->header->At(0);
-        cout<<"Current Run Id: "<<head->GetRunId()<<endl;
-        cout<<"Count of BmnEventHeader: "<<fDigiArrays->header->GetEntriesFast()<<endl;
-        cout << "Count of GEM digits: " << fDigiArrays->gem->GetEntriesFast() << endl;
-        cout << "Count of TOF digits: " << fDigiArrays->tof400->GetEntriesFast() << endl;
+        //        cout<<"Current Run Id: "<<head->GetRunId()<<endl;
+        //        cout<<"Count of BmnEventHeader: "<<fDigiArrays->header->GetEntriesFast()<<endl;
+        //        cout << "Count of GEM digits: " << fDigiArrays->gem->GetEntriesFast() << endl;
+        //        cout << "Count of TOF digits: " << fDigiArrays->tof400->GetEntriesFast() << endl;
 
         // move result TClonesArray to registered TClonesArray
+//        fEventHeader->Clear();
+//        fGemDigits->Clear();
+//        //        fT0Digits->Delete();
+//        fTof1Digits->Clear();
         fEventHeader->Delete();
         fGemDigits->Delete();
-//        fT0Digits->Delete();
         fTof1Digits->Delete();
         fEventHeader->AbsorbObjects(fDigiArrays->header);
         fGemDigits->AbsorbObjects(fDigiArrays->gem);
-//        fT0Digits->AbsorbObjects(fDigiArrays->t0);
+        //        fT0Digits->AbsorbObjects(fDigiArrays->t0);
         fTof1Digits->AbsorbObjects(fDigiArrays->tof400);
+        _tBuf->DetachBuffer();
+        zmq_msg_close(&_msg);
     }
 
-    return 1;
+    return 0;
+}
+
+void BmnDecoSource::FillEventHeader(FairEventHeader* feh) {
+
+//    printf("fDigiArrays->header->GetEntriesFast() = %d\n", fEventHeader->GetEntriesFast());
+    if (fEventHeader->GetEntriesFast() > 0) {
+        BmnEventHeader* evHrd = (BmnEventHeader*) (fEventHeader->First());
+        feh->SetRunId(evHrd->GetRunId());
+//        printf("feh run id = %d\n", feh->GetRunId());
+        //        feh->SetMCEntryNumber(fEvtHeader->GetMCEntryNumber());
+    }
+
+    feh->SetInputFileId(0);
+
+    return;
 }
 
 

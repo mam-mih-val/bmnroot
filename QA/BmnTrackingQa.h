@@ -32,7 +32,7 @@ public:
     /**
      * \brief Constructor.
      */
-    BmnTrackingQa(Short_t ch, TString name);
+    BmnTrackingQa(Short_t ch, TString name, TString gemConf, TString silConf);
 
     /**
      * \brief Destructor.
@@ -216,6 +216,8 @@ private:
     TClonesArray* fDchHits;
     
     TClonesArray* fVertex;
+    TString fConfigGem;
+    TString fConfigSil;
     
     Short_t fChargeCut; //(-1, 0, +1) do QA for negative, all or positive particles
 

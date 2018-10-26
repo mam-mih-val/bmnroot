@@ -113,7 +113,7 @@ public:
 
     BmnTwoParticleDecay() {
     };
-    BmnTwoParticleDecay(BmnGemStripConfiguration::GEM_CONFIG, Int_t r = 1209);
+    BmnTwoParticleDecay(BmnGemStripConfiguration::GEM_CONFIG, Int_t r = 4629);
     virtual ~BmnTwoParticleDecay();
 
     virtual void Exec(Option_t * option);
@@ -204,6 +204,7 @@ private:
     }
     
     TVector2 ArmenterosPodol(FairTrackParam, FairTrackParam); 
+    Double_t FindV0ByVirtualPlanes(BmnGlobalTrack*, BmnGlobalTrack*, Double_t, Double_t range = 50.);
 
     ClassDef(BmnTwoParticleDecay, 0)
 };

@@ -26,7 +26,7 @@
 
 using namespace std;
 
-BmnMCTrackCreator::BmnMCTrackCreator() :
+BmnMCTrackCreator::BmnMCTrackCreator(TString gem, TString sil) :
 fMCTracks(NULL),
 fMvdPoints(NULL),
 fGemPoints(NULL),
@@ -34,9 +34,8 @@ fTof1Points(NULL),
 fTof2Points(NULL),
 fDchPoints(NULL) {
     ReadDataBranches();
-    TString gPathSiliconConfig = TString(gSystem->Getenv("VMCWORKDIR")) + "/silicon/XMLConfigs/SiliconRunSpring2017.xml";
-    fSilDetector = new BmnSiliconStationSet(gPathSiliconConfig);
-    fGemDetector = new BmnGemStripStationSet_RunSpring2017(BmnGemStripConfiguration::RunSpring2017);
+    fSilDetector = new BmnSiliconStationSet(sil);
+    fGemDetector = new BmnGemStripStationSet(gem);
 }
 
 BmnMCTrackCreator::~BmnMCTrackCreator() {
@@ -44,8 +43,8 @@ BmnMCTrackCreator::~BmnMCTrackCreator() {
     delete fSilDetector;
 }
 
-BmnMCTrackCreator* BmnMCTrackCreator::Instance() {
-    static BmnMCTrackCreator instance;
+BmnMCTrackCreator* BmnMCTrackCreator::Instance(TString gem, TString sil) {
+    static BmnMCTrackCreator instance(gem, sil);
     return &instance;
 }
 

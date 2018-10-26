@@ -1,15 +1,12 @@
-#include "../../gconfig/basiclibs.C"
-
 // macro for getting parameter value (if parameter exist - you could check existing parameters by 'UniDbParameter::PrintAll()' function)
 void get_parameter_value_complex()
 {
-    basiclibs();
     gSystem->Load("libUniDb");
 
     bool return_error = false;
 
     // get noise parameter values presented by IIStructure: Int+Int (slot:channel)
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("DCH1", "DCH_mapping", 1, 133);
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("DCH1", "noise", 1, 133);
     if (pDetectorParameter != NULL)
     {
         IIStructure* pValues;
@@ -29,7 +26,7 @@ void get_parameter_value_complex()
         return_error = true;
 
     if (return_error)
-        cout << "\nMacro finished with errors" << endl;
+        cout<<"\nMacro finished with errors"<<endl;
     else
-        cout << "\nMacro finished successfully" << endl;
+        cout<<"\nMacro finished successfully"<<endl;
 }

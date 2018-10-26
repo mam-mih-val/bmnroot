@@ -123,6 +123,7 @@ public:
     void BookSlewing();
     void BookSlewingResults();
     void WriteSlewingHists();
+    void WritePreparationHists();
     Double_t *GetINL() { return &DNL_Table[0][0][0][0]; }
 
     void SetSlewingReference(Int_t chamber, Int_t refrun, Int_t refchamber);
@@ -191,6 +192,8 @@ private:
     TH2F *poffsets, *poffsets1, *poffsets2;
     TProfile *TvsW[TOF2_MAX_CHAMBERS][2];
     TProfile *TvsWt0[TOF2_MAX_CHAMBERS][2];
+    TH2F *TvsWp[TOF2_MAX_CHAMBERS][2];
+    TH2F *TvsWt0p[TOF2_MAX_CHAMBERS][2];
     TH2F *TvsSm[TOF2_MAX_CHAMBERS][2];
 
     TH2F *TvsS[TOF2_MAX_CHAMBERS];

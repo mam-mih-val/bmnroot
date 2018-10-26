@@ -1,3 +1,4 @@
+#include <Rtypes.h>
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/bmnloadlibs.C"
 #include "macro/run/geometry.C"
@@ -81,7 +82,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     boxGen->SetPRange(1., 1.);  // GeV/c, setPRange vs setPtRange
     boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
     boxGen->SetThetaRange(10, 15); // Polar angle in lab system range [degree]
-    boxGen->SetXYZ(0., -3.5, -21.7); // Approximate position of target (RunSpring2017)
+    boxGen->SetXYZ(0., 0., 0.); // Approximate position of target (RunSpring2017)
     primGen->AddGenerator(boxGen);
 
 #else

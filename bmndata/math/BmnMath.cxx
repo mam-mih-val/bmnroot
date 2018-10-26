@@ -187,7 +187,7 @@ Bool_t IsParCorrect(const FairTrackParam* par, const Bool_t isField) {
     if (abs(par->GetTx()) > maxSlopeX || abs(par->GetTy()) > maxSlopeY || abs(par->GetTx()) < minSlope || abs(par->GetTy()) < minSlope) return kFALSE;
     if (abs(par->GetX()) > maxX || abs(par->GetY()) > maxY) return kFALSE;
     if (IsNaN(par->GetX()) || IsNaN(par->GetY()) || IsNaN(par->GetTx()) || IsNaN(par->GetTy())) return kFALSE;
-    
+
     if (isField) {
         if (abs(par->GetQp()) > maxQp) return kFALSE;
         if (IsNaN(par->GetQp())) return kFALSE;
@@ -346,7 +346,43 @@ TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type) {
     return TVector3(a, b, chi2);
 }
 
-void LineFit(Double_t& par1, Double_t& par2, BmnGemTrack* track, TClonesArray* arr, Int_t type, Int_t idSkip) {
+TVector3 LineFitBy3Hits(const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2) {
+
+    //Weighted Least Square Method//
+
+    // sigma
+    Double_t S0 = h0->GetDy();
+    Double_t S1 = h1->GetDy();
+    Double_t S2 = h2->GetDy();
+    // weight = 1 / sigma^2
+    Double_t W0 = 1.0 / S0 / S0;
+    Double_t W1 = 1.0 / S1 / S1;
+    Double_t W2 = 1.0 / S2 / S2;
+
+    Double_t X0 = h0->GetZ();
+    Double_t X1 = h1->GetZ();
+    Double_t X2 = h2->GetZ();
+
+    Double_t Y0 = h0->GetY();
+    Double_t Y1 = h1->GetY();
+    Double_t Y2 = h2->GetY();
+
+    Double_t SumW = W0 + W1 + W2; // sum of weights
+    Double_t SumWX = W0 * X0 + W1 * X1 + W2 * X2; // sum of (weight * x)
+    Double_t SumWY = W0 * Y0 + W1 * Y1 + W2 * Y2; // sum of (weight * y)
+    Double_t SumWXY = W0 * X0 * Y0 + W1 * X1 * Y1 + W2 * X2 * Y2; // sum of (weight * x * y)
+    Double_t SumWX2 = W0 * X0 * X0 + W1 * X1 * X1 + W2 * X2 * X2; // sum of (weight * x * x)
+
+    // parameters of line: y = a * x + b
+    Double_t a = (SumW * SumWXY - SumWX * SumWY) / (SumW * SumWX2 - SumWX * SumWX);
+    Double_t b = (SumWX2 * SumWY - SumWX * SumWXY) / (SumW * SumWX2 - SumWX * SumWX);
+
+    Double_t chi2 = Sq((Y0 - a * X0 - b) / S0) + Sq((Y1 - a * X1 - b) / S1) + Sq((Y2 - a * X2 - b) / S2);
+
+    return TVector3(a, b, chi2);
+}
+
+void LineFit(Double_t& par1, Double_t& par2, BmnTrack* track, TClonesArray* arr, Int_t type, Int_t idSkip) {
 
     //Weighted Least Square Method//
     Float_t Xi = 0.0, Yi = 0.0; // coordinates of current track point
@@ -413,7 +449,7 @@ void LineFit(Double_t& par1, Double_t& par2, BmnGemTrack* track, TClonesArray* a
     par2 = b;
 }
 
-TVector3 CircleFit(BmnGemTrack* track, const TClonesArray* arr, Double_t &chi2) {
+TVector3 CircleFit(BmnTrack* track, const TClonesArray* arr, Double_t &chi2) {
 
     //Weighted Least Square Method//
     Double_t Xi = 0.0, Yi = 0.0, Zi = 0.0; // coordinates of current track point
@@ -492,6 +528,15 @@ TVector3 CircleFit(BmnGemTrack* track, const TClonesArray* arr, Double_t &chi2) 
     return TVector3(Zc, Xc, R);
 }
 
+Double_t CalcTx(const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2) {
+    //function calculates Tx in point h0, so for TX_last use reverse order: CalcTx(h2, h1, h0)
+    TVector3 CircParZX = CircleBy3Hit(h0, h1, h2);
+    Double_t Xc = CircParZX.Y(); // x-coordinate of fit-circle center
+    Double_t Zc = CircParZX.X(); // z-coordinate of fit-circle center
+
+    return (-1.0 * (h0->GetZ() - Zc) / (h0->GetX() - Xc));
+}
+
 Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2) {
     if (Sqr(x1 - x2) + Sqr(y1 - y2) <= 0.0) {
         return 0.0;
@@ -533,7 +578,7 @@ Float_t Sqr(Float_t x) {
     return x * x;
 }
 
-TVector3 CircleBy3Hit(BmnGemTrack* track, const TClonesArray* arr) {
+TVector3 CircleBy3Hit(BmnTrack* track, const TClonesArray* arr) {
     const Float_t nHits = track->GetNHits();
     if (nHits < 3) return TVector3(0.0, 0.0, 0.0);
     BmnGemStripHit* hit0 = (BmnGemStripHit*) arr->At(track->GetHitIndex(0));
@@ -566,7 +611,7 @@ TVector3 CircleBy3Hit(BmnGemTrack* track, const TClonesArray* arr) {
 
 }
 
-TVector3 Pol2By3Hit(BmnGemTrack* track, const TClonesArray* arr) {
+TVector3 Pol2By3Hit(BmnTrack* track, const TClonesArray* arr) {
     const Int_t nHits = track->GetNHits();
     if (nHits < 3) return TVector3(0.0, 0.0, 0.0);
     BmnGemStripHit* hit0 = (BmnGemStripHit*) arr->At(track->GetHitIndex(0));
@@ -610,7 +655,7 @@ void DrawHits(BmnGemTrack* track, const TClonesArray* arr) {
     delete c;
 }
 
-TVector3 CircleBy3Hit(BmnGemTrack* track, const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2) {
+TVector3 CircleBy3Hit(const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2) {
     Float_t x0 = h0->GetX();
     Float_t z0 = h0->GetZ();
     Float_t x1 = h1->GetX();

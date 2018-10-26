@@ -45,6 +45,7 @@
 #include "BmnHistLAND.h"
 #include "BmnOnlineDecoder.h"
 #include "BmnHistSilicon.h"
+#include "BmnHistCsc.h"
 #include "BmnHistSrc.h"
 
 #define TTREE_MAX_SIZE          3e11

@@ -24,7 +24,7 @@ BmnOnlineDecoder::BmnOnlineDecoder() {
     rawDataDecoder = NULL;
     _ctx = NULL;
     fBmnSetup = kBMNSETUP;
-    fRecoChain = NULL;
+    //fRecoChain = NULL;
 }
 
 BmnOnlineDecoder::~BmnOnlineDecoder() {
@@ -33,7 +33,7 @@ BmnOnlineDecoder::~BmnOnlineDecoder() {
         zmq_ctx_destroy(_ctx);
         _ctx = NULL;
     }
-    if (fRecoChain) delete fRecoChain;
+    //if (fRecoChain) delete fRecoChain;
 }
 
 BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
@@ -98,7 +98,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
         rawDataDecoder->InitConverter();
     BmnStatus iniStatus = rawDataDecoder->InitDecoder();
     if (iniStatus == kBMNSUCCESS){
-        InitReco();
+        //InitReco();
     }
     return iniStatus;
     

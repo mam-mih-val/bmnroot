@@ -56,7 +56,8 @@ using namespace TMath;
 class BmnGlobalAlignment : public FairTask {
 public:
 
-    BmnGlobalAlignment(TString);
+    BmnGlobalAlignment() {};
+    BmnGlobalAlignment(TString, Int_t period = 7, TString misAlignFile = "misAlignment.root", Bool_t doTest = kFALSE);
     virtual ~BmnGlobalAlignment();
 
     virtual InitStatus Init();
@@ -64,6 +65,10 @@ public:
     virtual void Exec(Option_t* opt);
 
     virtual void Finish();
+    
+    void SetDoTest(Bool_t flag) {
+        fIsDoTest = flag;
+    }
 
     void SetDetectors(Bool_t gem, Bool_t mwpc, Bool_t dch, Bool_t vp, Bool_t si) {
         fDetectorSet[0] = kTRUE;
@@ -231,6 +236,7 @@ private:
     static Int_t fCurrentEvent;
     static Int_t trackCounter;
     Bool_t fIsField;
+    Int_t fRunPeriod;
     Int_t fRunId;
 
     BmnMwpcGeometry* mwpcGeo;
@@ -343,6 +349,10 @@ private:
     // Use constraints or not
     Bool_t fUseGemConstraints;
     Bool_t fUseSiliconConstraints;
+    
+    Bool_t fIsDoTest;
+    TString fMisAlignFile;
+    TClonesArray* fBmnGemMisalign;
 
     ClassDef(BmnGlobalAlignment, 1)
 };

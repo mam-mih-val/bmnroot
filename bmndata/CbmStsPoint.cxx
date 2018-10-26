@@ -81,18 +81,18 @@ CbmStsPoint::CbmStsPoint(const CbmStsPoint& point, Int_t eventId,
 
 
 // -----   Public method Print   -------------------------------------------
-void CbmStsPoint::Info(FairLogLevel level) const {
-  LOG(level) << "StsPoint: track ID " << fTrackID << ", detector ID "
+void CbmStsPoint::Info() const {
+  LOG(DEBUG2) << "StsPoint: track ID " << fTrackID << ", detector ID "
              << fDetectorID << FairLogger::endl;
-  LOG(level) << "          IN  Position (" << fX << ", " << fY
+  LOG(DEBUG2) << "          IN  Position (" << fX << ", " << fY
              << ", " << fZ << ") cm" << FairLogger::endl;
-  LOG(level) << "          OUT Position (" << fX_out << ", " << fY_out
+  LOG(DEBUG2) << "          OUT Position (" << fX_out << ", " << fY_out
              << ", " << fZ_out << ") cm" << FairLogger::endl;
-  LOG(level) << "    Momentum (" << fPx << ", " << fPy << ", " << fPz
+  LOG(DEBUG2) << "    Momentum (" << fPx << ", " << fPy << ", " << fPz
              << ") GeV" << FairLogger::endl;
-  LOG(level) << "    Time " << fTime << " ns,  Length " << fLength
+  LOG(DEBUG2) << "    Time " << fTime << " ns,  Length " << fLength
              << " cm,  Energy loss " << fELoss*1.0e06 << " keV" <<  FairLogger::endl;
-  LOG(level) << "    StationNum " << fStation << ", ModuleNum " << fModule
+  LOG(DEBUG2) << "    StationNum " << fStation << ", ModuleNum " << fModule
              << FairLogger::endl;
 }
 // -------------------------------------------------------------------------

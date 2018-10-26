@@ -213,6 +213,8 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhVec.push_back(new BmnHistTrigger(refName + "Triggers", _curDir, fPeriodID));
     bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir));
     bhVec.push_back(new BmnHistLAND(refName + "LAND", _curDir));
+    bhVec.push_back(new BmnHistCsc(refName + "CSC", _curDir));
+    
     for (auto h : bhVec) {
         h->SetDir(fHistOut, fRecoTree);
         h->SetperiodID(fPeriodID);
@@ -302,7 +304,7 @@ void BmnMonitor::RegisterAll() {
     bhVec4show.push_back(new BmnHistTrigger("Triggers", _curDir, fPeriodID));
     bhVec4show.push_back(new BmnHistSrc("SRC", _curDir));
     bhVec4show.push_back(new BmnHistLAND("LAND", _curDir));
-
+    bhVec4show.push_back(new BmnHistCsc("CSC", _curDir));
     fServer->Register("/", infoCanvas);
     //fServer->Register("/", refList);
     fServer->Register("/", refTable);

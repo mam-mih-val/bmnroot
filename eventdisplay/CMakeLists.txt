@@ -60,7 +60,7 @@ if (MPDROOT)
     ${INCLUDE_DIRECTORIES}
     ${CMAKE_SOURCE_DIR}/mcstack
     ${CMAKE_SOURCE_DIR}/mpdbase
-    ${CMAKE_SOURCE_DIR}/mpddata
+    ${CMAKE_SOURCE_DIR}/mpddst
     ${CMAKE_SOURCE_DIR}/kalman
     ${CMAKE_SOURCE_DIR}/tpc
     ${CMAKE_SOURCE_DIR}/lhetrack

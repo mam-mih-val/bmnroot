@@ -40,6 +40,9 @@ private:
     
     Int_t GetChTDC64v(UInt_t tdc, UInt_t ch);
     BmnStatus FindInMap(BmnTDCDigit* dig, TClonesArray* arr, Long64_t ts, Double_t t0, Int_t dchId);
+    
+    BmnStatus ReadMapFromFile(Int_t period);
+    BmnStatus ReadMapFromDB(Int_t period, Int_t run);
 
     ClassDef(BmnDchRaw2Digit, 1);
 };

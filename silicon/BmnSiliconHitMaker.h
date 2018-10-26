@@ -23,7 +23,7 @@ class BmnSiliconHitMaker : public FairTask {
 public:
 
     BmnSiliconHitMaker();
-    BmnSiliconHitMaker(Bool_t isExp);
+    BmnSiliconHitMaker(Int_t run_period, Bool_t isExp);
 
     virtual ~BmnSiliconHitMaker();
 
@@ -47,10 +47,10 @@ public:
         fAlignCorrFileName = filename;
     }
 
-    void SetAlignmentCorrectionsFileName(Int_t run_period, Int_t file_number) {
-        if (run_period == 6) {
+    void SetAlignmentCorrectionsFileName(Int_t file_number) {
+        if (fPeriodId == 6) {
             fAlignCorrFileName = "alignment_SI.root";
-            UniDbDetectorParameter::ReadRootFile(run_period, file_number, "BM@N", "alignment", (Char_t*) fAlignCorrFileName.Data());
+            UniDbDetectorParameter::ReadRootFile(fPeriodId, file_number, "BM@N", "alignment", (Char_t*) fAlignCorrFileName.Data());
         }
         else
             fAlignCorrFileName = "";
@@ -76,6 +76,8 @@ private:
     /** Output array of Silicon Hit Matches **/
     TClonesArray* fBmnSiliconHitMatchesArray;
 
+    Int_t fRunId;
+    Int_t fPeriodId;
     Bool_t fHitMatching;
 
     BmnSiliconConfiguration::SILICON_CONFIG fCurrentConfig;

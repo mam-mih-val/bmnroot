@@ -30,7 +30,7 @@ public:
 
     BmnGemResiduals() {
     };
-    BmnGemResiduals(Int_t, Int_t, Double_t);
+    BmnGemResiduals(Int_t period = 7, Int_t number = -1, Double_t scale = 0.);
 
     virtual ~BmnGemResiduals() {
     };
@@ -40,6 +40,7 @@ public:
     virtual void Exec(Option_t* opt);
 
     virtual void Finish();
+
 
     void SetUseDistance(Bool_t flag) {
         if (flag)
@@ -75,10 +76,6 @@ public:
     FairEventHeader* fFairEventHeader;
 
     BmnGemStripStationSet* fDetector; // Detector geometry
-    BmnGemStripConfiguration::GEM_CONFIG fGeometry;
-
-    // tmp histos to fit resid. 
-    TH1F* hRes[6][2][2]; //! stat -- mod -- resX (Y)
 
     Bool_t isPrintToFile;
     Bool_t isMergedDigits; // file with merged digits from different files

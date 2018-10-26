@@ -66,14 +66,14 @@ void BmnEventCounter(Int_t run_period = 7) {
     c->Divide(energies.size(), beams.size());
     TPie * charts[beams.size()][energies.size()];
 
-    TCanvas* d = new TCanvas("d", "d", 500, 200);
+    TCanvas* d = new TCanvas("d", "d", 5000, 2000);
     d->Divide(4, 1);
 
     const Int_t nProjectiles = 2; //beams.size();
     TString PROJECTILES[nProjectiles] = {"Ar", "Kr"};
 
-    const Int_t nEnergies = 4; //energies.size();
-    const Double_t ENERGIES[nEnergies] = {2.3, 2.6, 2.94, 3.2};
+    const Int_t nEnergies = 3; //energies.size();
+    const Double_t ENERGIES[nEnergies] = {2.4, 3.0, 3.2};
 
     const Int_t nTargs = 5; //targets.size();
     const TString TARGETS[nTargs] = {"C", "Al", "Cu", "Sn", "Pb"};
@@ -123,11 +123,18 @@ void BmnEventCounter(Int_t run_period = 7) {
                     }
 
                 Int_t idxEne = -1;
-                for (Int_t iEne = 0; iEne < nEnergies; iEne++)
+                for (Int_t iEne = 0; iEne < nEnergies; iEne++) {
+                    if (Abs(*eneStar - 2.3) < FLT_EPSILON)
+                        *eneStar = 2.4;
+                    if (Abs(*eneStar - 2.6) < FLT_EPSILON)
+                        *eneStar = 2.4;
+                    if (Abs(*eneStar - 2.94) < FLT_EPSILON)
+                        *eneStar = 3.0;
                     if (Abs(*eneStar - ENERGIES[iEne]) < FLT_EPSILON) {
                         idxEne = iEne;
                         break;
                     }
+                }
 
                 Int_t idxTarg = -1;
                 for (Int_t iTarg = 0; iTarg < nTargs; iTarg++)
@@ -188,7 +195,7 @@ void BmnEventCounter(Int_t run_period = 7) {
             iPadC++;
         }
     c->SaveAs("BMN_physEvents_Run7.pdf");
-    d->SaveAs("BMN_physEvents_Run7_nonEmpty.pdf");
+    d->SaveAs("BMN_physEvents_Run7_nonEmpty.png");
 
     delete c;
     delete d;

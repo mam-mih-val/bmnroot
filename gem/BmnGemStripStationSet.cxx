@@ -107,7 +107,7 @@ Bool_t BmnGemStripStationSet::AddPointToDetector(Double_t xcoord, Double_t ycoor
                                       Double_t px, Double_t py, Double_t pz,
                                       Double_t dEloss, Int_t refID) {
 
-    Int_t station = GetPointStationOwnership(zcoord);
+    Int_t station = GetPointStationOwnership(xcoord, ycoord, zcoord);
 
     if(station != -1) {
         if( GemStations[station]->AddPointToStation(xcoord, ycoord, zcoord, px, py, pz, dEloss, refID) != -1 ) return true;
@@ -150,6 +150,20 @@ Int_t BmnGemStripStationSet::GetPointStationOwnership(Double_t zcoord) {
         Int_t NModules = GemStations[iStation]->GetNModules();
         for(Int_t iModule = 0; iModule < NModules; ++iModule) {
             if( GemStations[iStation]->GetModule(iModule)->IsPointInsideZThickness(zcoord) ) {
+                return iStation;
+            }
+        }
+    }
+    return -1;
+}
+
+Int_t BmnGemStripStationSet::GetPointStationOwnership(Double_t xcoord, Double_t ycoord, Double_t zcoord) {
+    //for z-positions and z-shifts of all modules in a station
+    for(Int_t iStation = 0; iStation < NStations; iStation++) {
+        Int_t NModules = GemStations[iStation]->GetNModules();
+        for(Int_t iModule = 0; iModule < NModules; ++iModule) {
+            //if( GemStations[iStation]->GetModule(iModule)->IsPointInsideZThickness(zcoord) ) {
+            if( GemStations[iStation]->GetModule(iModule)->IsPointInsideModule(xcoord, ycoord, zcoord) ) {
                 return iStation;
             }
         }

@@ -1,7 +1,7 @@
 /*
  * Baranov D.
  * 16.05.2018
- * Use this macro to create ROOT geometry for the RunSpring2017 configuration (BM@N RUN-7)
+ * Use this macro to create ROOT geometry for the RunSpring2018 configuration (BM@N RUN-7)
  *
  */
 
@@ -11,7 +11,7 @@ const Int_t NMaxModules = 2;    //max. number of modules in a station
 
 //(X-Y-Z)Positions of stations (sensitive volumes)
 const Double_t XStationPositions[NStations] = { +0.5390, +0.7025, +1.9925, +3.0860, +3.7980, +4.5815};
-const Double_t YStationPositions[NStations] = { +15.99873, +16.20573, +16.36073, +16.40473, +16.09373, +16.35473};
+const Double_t YStationPositions[NStations] = { +15.99873, +16.20573, +16.36073, +16.40473, +16.09373, +16.45473};
 const Double_t ZStationPositions[NStations] = { +39.702, +64.535, +112.649, +135.330, +160.6635, +183.668};
 
 //(X-Y-Z)Shifts of modules in each station

@@ -54,7 +54,7 @@ void BmnWriteRawInfo(TString file, TString output_file = "", WriteAction iAction
     // if run exists and flag 'OnlyCreate' was set then exit
     if ((output_file == "") && (iAction == OnlyCreate) && (isRunExist))
     {
-        cout<<endl<<"Run "<<decoder->GetPeriodId()<<":"<<decoder->GetRunId()<<" already exists and 'no update' flag was set"<<endl;
+        cout<<endl<<"Run "<<decoder->GetPeriodId()<<":"<<decoder->GetRunId()<<" already exists and 'Only Create' flag was set"<<endl;
         delete decoder;
         return;
     }
@@ -135,7 +135,7 @@ void BmnWriteRawInfo(TString file, TString output_file = "", WriteAction iAction
         if (isRunExist)
         {
             if (iAction == OnlyCreate)
-                cout<<"Run "<<decoder->GetPeriodId()<<":"<<decoder->GetRunId()<<" exists (it will not be updated)."<<endl;
+                cout<<"Run "<<decoder->GetPeriodId()<<":"<<decoder->GetRunId()<<" exists and 'Only Create' flag was set"<<endl;
             else
             {
                 UniDbRun* pRun = UniDbRun::GetRun(decoder->GetPeriodId(), decoder->GetRunId());
@@ -161,7 +161,7 @@ void BmnWriteRawInfo(TString file, TString output_file = "", WriteAction iAction
         else // if run doens't exist
         {
             if (iAction == OnlyUpdate)
-                cout<<"Run "<<decoder->GetPeriodId()<<":"<<decoder->GetRunId()<<" does not exist (it will not be created)."<<endl;
+                cout<<"Run "<<decoder->GetPeriodId()<<":"<<decoder->GetRunId()<<" does not exist and 'Only Update' flag was set"<<endl;
             else
             {
                 UniDbRun* pRun = UniDbRun::CreateRun(decoder->GetPeriodId(), decoder->GetRunId(), file, "", NULL, NULL, startDate, &endDate, &event_count, NULL, &file_size, NULL);

@@ -38,6 +38,11 @@ IF (NOT ALIBUILD)
 
  SET(SIMPATH $ENV{SIMPATH})
  SET(FAIRROOTPATH $ENV{FAIRROOTPATH})
+ELSE (NOT ALIBUILD)
+  SET(FAIRROOTPATH $ENV{FAIRROOT_ROOT})
+  SET(GEANT3_PATH $ENV{GEANT3_ROOT})
+  SET(BOOST_ROOT $ENV{BOOST_ROOT})
+  SET(GSL_DIR $ENV{GSL_ROOT})
 ENDIF (NOT ALIBUILD)
 
 # where to look first for cmake modules, before ${CMAKE_ROOT}/Modules/
@@ -48,7 +53,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules" ${CMAKE_MODULE_PATH})
 
 Set(CheckSrcDir "${FAIRROOTPATH}/share/fairbase/cmake/checks")
 
-find_package(FairRoot)
+find_package(FairRoot REQUIRED)
 
 # Load some basic macros which are needed later on
 include(FairMacros)
@@ -101,7 +106,7 @@ CHECK_EXTERNAL_PACKAGE_INSTALL_DIR()
 # REQUIRED means that cmake will stop if this packages are not found
 # For example the framework can run without GEANT4, but ROOT is
 # mandatory
-find_package(ROOT 5.34.36 REQUIRED)
+find_package(ROOT 6.10.08 REQUIRED)
 find_package(Pythia8)
 find_package(Pythia6)
 find_package(GEANT3 REQUIRED)
@@ -121,6 +126,7 @@ find_package(ZeroMQ REQUIRED)
 #find_package(Protobuf)
 #find_package(DDS)
 
+IF (NOT ALIBUILD)
 Set(Boost_NO_SYSTEM_PATHS TRUE)
 Set(Boost_NO_BOOST_CMAKE TRUE)
 If(${ROOT_LIBRARY_DIR} MATCHES /lib/root)
@@ -130,6 +136,7 @@ Else(${ROOT_LIBRARY_DIR} MATCHES /lib/root)
   set(BOOST_ROOT ${SIMPATH}/basics/boost)
   set(GSL_DIR ${SIMPATH}/basics/gsl)
 EndIf(${ROOT_LIBRARY_DIR} MATCHES /lib/root)
+ENDIF (NOT ALIBUILD)
 Message("-- Looking for Boost ...")
 # If an older version of boost is found both of the variables below are
 # cached and in a second cmake run, a good boost version is found even
@@ -150,6 +157,7 @@ find_package(GSL)
 # set a variable which should be used in all CMakeLists.txt
 # Defines all basic include directories from fairbase
 SetBasicVariables()
+find_package(FairLogger)
 SET(PATH ${EXECUTABLE_OUTPUT_PATH} ${PATH})
 set(BMNROOT TRUE)
 add_definitions(-DBMNROOT)

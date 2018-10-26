@@ -103,7 +103,7 @@ class CbmStsPoint : public FairMCPoint
 
   /** Output to screen **/
   virtual void Print(const Option_t* opt = "") const { }
-  void Info(FairLogLevel level) const;
+  void Info() const;
 
 
 

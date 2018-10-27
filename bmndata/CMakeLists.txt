@@ -13,7 +13,8 @@ set(INCLUDE_DIRECTORIES
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
  ${Boost_INCLUDE_DIRS}
- ${ROOT_INCLUDE_DIR} 
+ ${ROOT_INCLUDE_DIR}
+ ${ZeroMQ_INCLUDE_DIR} 
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -117,6 +118,7 @@ BmnGemTrack.cxx
  BmnLink.cxx
  BmnMatch.cxx
 BmnTrigInfo.cxx
+BmnDecoSource.cxx
 )
 
 Set(HEADERS)
@@ -136,6 +138,6 @@ EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 
 Set(LINKDEF BmnDataLinkDef.h)
 Set(LIBRARY_NAME BmnData)
-Set(DEPENDENCIES Minuit Core Base)
+Set(DEPENDENCIES Minuit Core Base ZeroMQ)
 
 GENERATE_LIBRARY()

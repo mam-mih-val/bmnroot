@@ -8,6 +8,11 @@ Set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/bmndata/cbm
+ ${CMAKE_SOURCE_DIR}/mwpc
+ ${CMAKE_SOURCE_DIR}/alignment
+ ${CMAKE_SOURCE_DIR}/steering
+ ${CMAKE_SOURCE_DIR}/cbm
  ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/dch
  ${CMAKE_SOURCE_DIR}/globaltracking
@@ -21,6 +26,7 @@ Set(SYSTEM_INCLUDE_DIRECTORIES
  ${Boost_INCLUDE_DIRS}
  ${ROOT_INCLUDE_DIR}
  ${XML2_INCLUDE_DIR}
+ ${ZeroMQ_INCLUDE_DIR}
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -39,6 +45,7 @@ BmnRunInfo.cxx
 BmnMonitor.cxx
 BmnDataReceiver.cxx
 BmnOnlineDecoder.cxx
+BmnOnlineReco.cxx
 BmnHist.cxx
 BmnHistGem.cxx
 BmnHistCsc.cxx
@@ -61,6 +68,6 @@ EndIf (Boost_FOUND)
 Set(HEADERS)
 Set(LINKDEF MonitorLinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)
-Set(DEPENDENCIES Dch Sts BmnData Base Gem Silicon Decoder)
+Set(DEPENDENCIES Dch Sts BmnData Base Gem Silicon Decoder ZeroMQ BmnField)
 
 GENERATE_LIBRARY()

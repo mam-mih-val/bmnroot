@@ -23,7 +23,7 @@ void geometry(FairRunSim *fRun)
 
     // -----   Create detectors        -------------------------
     FairDetector* tof = new BmnTOF("TOF", kTRUE);
-    tof->SetGeometryFileName("tof700_run6.root");
+    tof->SetGeometryFileName("tof700_run7.root");
     fRun->AddModule(tof);
 
     CbmPsdv1* psd = new CbmPsdv1("PSD", kTRUE);

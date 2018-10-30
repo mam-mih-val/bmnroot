@@ -7,6 +7,7 @@
  * SILICON configuration: RunSpring2018 (BM@N RUN-7 where 3 SI-stations were)
  *
  * Created: 08.06.2018
+ * Modified: 30.10.2018 (z-positions of stations corrected)
  * Author: D. Baranov
  */
 
@@ -140,7 +141,7 @@ const Double_t XStationPositions[NStations] = { +0.6295, +0.6295, +0.46525 };
 const Double_t YStationPositions[NStations] = { -4.53225, -4.53225, -4.67125 };
 //const Double_t XStationPositions[NStations] = { 0.0, 0.0, 0.0 };
 //const Double_t YStationPositions[NStations] = { -0.0, 0.0, 0.0 };
-const Double_t ZStationPositions[NStations] = { +6.524, +6.524, +20.607 };
+const Double_t ZStationPositions[NStations] = { +13.424, +13.424, +25.717 };
 
 //(X-Y-Z)Shifts of modules in each station
 const Double_t XModuleShifts[NStations][NMaxModules] = {

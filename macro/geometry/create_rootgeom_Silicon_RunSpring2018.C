@@ -19,18 +19,18 @@ const Int_t NModulesInStations[NStations] = {4, 2, 8};
 //(X-Y-Z)Positions of stations (sensitive volumes)
 const Double_t XStationPositions[NStations] = { +0.6295, +0.6295, +0.46525 };
 const Double_t YStationPositions[NStations] = { -4.53225, -4.53225, -4.67125 };
-const Double_t ZStationPositions[NStations] = { +6.524, +6.524, +20.607 };
+const Double_t ZStationPositions[NStations] = { +13.424, +13.424, +25.717 };
 
 /*
  * where
- * (1) 6.524 cm = 15.709 - 6.9 - 2.285;
- *       15.709 cm  is the distance between the target and the back side of the Vertex-SI (from A.Kolesnikov's measurement scheme);
- *       6.9 cm is the thickness of the Vertex-SI;
+ * (1) 13.424 cm = 15.709 - 2.285;
+ *       15.709 cm  is the distance between the target and the back side (the nearest to the target) of the Vertex-SI (from A.Kolesnikov's measurement scheme);
+ *       //6.9 cm is the thickness of the Vertex-SI;
  *       2.285 cm is the distance between the target and the magnet pole (as a reference frame);
  *
- * (2) 20.607 cm = 28.002 - 5.11 - 2.285;
- *       28.002 cm  is the distance between the target and the back side of the 8mod-SI(from A.Kolesnikov's measurement scheme);
- *       5.11 cm is the thickness of the 8mod-SI;
+ * (2) 25.717 cm = 28.002 - 2.285;
+ *       28.002 cm  is the distance between the target and the back side (the nearest to the target) of the 8mod-SI(from A.Kolesnikov's measurement scheme);
+ *       //5.11 cm is the thickness of the 8mod-SI;
  *       2.285 cm is the distance between the target and the magnet pole (as a reference frame);
  */
 

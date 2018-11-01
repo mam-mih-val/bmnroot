@@ -17,10 +17,12 @@
 #include <sstream>
 #include <vector>
 #include <TNamed.h>
+#include <TMath.h>
 #include <TVector3.h>
 #include <TSystem.h>
 
 using namespace std;
+using namespace TMath;
 
 class BmnSteeringCA : public TNamed {
 public:
@@ -100,9 +102,14 @@ public:
         return fNHitsCutTotal;
     }
 
+    Int_t GetNCellsCut() {
+        return fNCellsCut;
+    }
+
 
 private:
     void ParseSteerFile(TString);
+    void TestParsedInput();
 
     TString fSteerFile;
 
@@ -131,6 +138,10 @@ private:
 
     Int_t fNHitsCut;
     Int_t fNHitsCutTotal;
+
+    Int_t fNCellsCut;
+    
+    Double_t fMarkerValue;
 
     ClassDef(BmnSteeringCA, 1);
 };

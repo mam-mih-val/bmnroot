@@ -9,12 +9,13 @@
     Author: D. Baranov
     Created: Summer, 2018
     Modified: 30.10.2018
+    Modified: 01.11.2018 (z-positions were corrected according to rough alignment procedure)
 -->
 
 <StationSet>
 
 <!-- Station 0 -->
-	<Station xPosition="0.6295" yPosition="-4.53225" zPosition="13.424" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
+	<Station xPosition="0.6295" yPosition="-4.53225" zPosition="10.524" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
 
 		<!-- module 0 -->
 		<Module xShift="0" yShift="0" zShift="1.44">
@@ -43,7 +44,7 @@
 	</Station>
 
 <!-- Station 1 -->
-	<Station xPosition="0.6295" yPosition="-4.53225" zPosition="13.424" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
+	<Station xPosition="0.6295" yPosition="-4.53225" zPosition="10.524" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
 
 		<!-- module 0 -->
 		<Module xShift="0" yShift="0" zShift="4.71">
@@ -64,7 +65,7 @@
 	</Station>
 
 <!-- Station 2 -->
-	<Station xPosition="0.46525" yPosition="-4.67125" zPosition="25.717" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
+	<Station xPosition="0.46525" yPosition="-4.67125" zPosition="21.604" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
 
 		<!-- module 0 -->
 		<Module xShift="0" yShift="0" zShift="3.51">

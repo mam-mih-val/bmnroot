@@ -31,7 +31,7 @@ BmnHistGem::BmnHistGem(TString title, TString path, Int_t PeriodID) : BmnHist(Pe
     fTitle = title;
     fName = title + "_cl";
     TString name;
-    TString xmlConfFileName = fPeriodID == 7 ? "GemRunSpring2018dummy.xml" : "GemRunSpring2017.xml";
+    TString xmlConfFileName = fPeriodID == 7 ? "GemRunSpring2018.xml" : "GemRunSpring2017.xml";
     xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/gem/XMLConfigs/" + xmlConfFileName;
     printf("xmlConfFileName %s\n", xmlConfFileName.Data());
     gemStationSet = new BmnGemStripStationSet(xmlConfFileName);

@@ -4,10 +4,11 @@
  * into the XML-file needed for simulation and reconstruction procedures.
  * The obtained XML-file should be moved into the 'silicon/XMLConfigs' directory
  *
- * SILICON configuration: RunSpring2018 (BM@N RUN-7 where 3 SI-stations were)
+ * SILICON configuration: RunSRCSpring2018 (BM@N RUN-7 SRC where 3 SI-stations were)
  *
  * Created: 08.06.2018
- * Modified: 30.10.2018 (z-positions of stations corrected)
+ * Modified: 31.10.2018 (z-positions of stations corrected according to
+ *           A.Kolesnikov's scheme)
  * Author: D. Baranov
  */
 
@@ -141,7 +142,7 @@ const Double_t XStationPositions[NStations] = { +0.6295, +0.6295, +0.46525 };
 const Double_t YStationPositions[NStations] = { -4.53225, -4.53225, -4.67125 };
 //const Double_t XStationPositions[NStations] = { 0.0, 0.0, 0.0 };
 //const Double_t YStationPositions[NStations] = { -0.0, 0.0, 0.0 };
-const Double_t ZStationPositions[NStations] = { +13.424, +13.424, +25.717 };
+const Double_t ZStationPositions[NStations] = { -440.377, -440.377, -320.346 };
 
 //(X-Y-Z)Shifts of modules in each station
 const Double_t XModuleShifts[NStations][NMaxModules] = {
@@ -195,7 +196,7 @@ void CalculateParameters(TString xml_file_name);
 //------------------------------------------------------------------------------
 
 
-void SiliconConfigCalculate_RunSpring2018() {
+void SiliconConfigCalculate_RunSRCSpring2018() {
 
     // ----  Load libraries   --------------------------------------------------
 #if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
@@ -205,7 +206,7 @@ void SiliconConfigCalculate_RunSpring2018() {
     // -------------------------------------------------------------------------
 
     PrintInfo();
-    CalculateParameters("SiliconRunSpring2018.xml");
+    CalculateParameters("SiliconRunSRCSpring2018.xml");
 
     cout << "It's the end" << "\n";
     //gApplication->Terminate();

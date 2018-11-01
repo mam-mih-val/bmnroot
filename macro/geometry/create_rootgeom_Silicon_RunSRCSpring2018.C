@@ -3,6 +3,7 @@
  * configuration (BM@N RUN-7: SRC)
  *
  * Created: 05.09.2018
+ * Modified: 31.10.2018
  * Author: Baranov D.
  *
  * WARNING: all units is in cm!!!
@@ -20,18 +21,18 @@ const Int_t NModulesInStations[NStations] = {4, 2, 8};
 //(X-Y-Z)Positions of stations (sensitive volumes)
 const Double_t XStationPositions[NStations] = { +0.6545, +0.6545, +0.5525 };
 const Double_t YStationPositions[NStations] = { -4.52725, -4.52725, -10.89725 };
-const Double_t ZStationPositions[NStations] = { -433.477, -433.477, -325.456 }; //front sides of SI
+const Double_t ZStationPositions[NStations] = { -440.377, -440.377, -320.346 }; //front sides of SI
 
 /*
  * where
- * (1) -433.477 cm = 213.999 - 647.476;
- *       213.999 cm  is the distance between the target and the front side of the Vertex-SI (from A.Kolesnikov's measurement scheme);
- *       6.9 cm is the thickness of the Vertex-SI;
+ * (1) -440.377 cm = 207.099 - 647.476;
+ *       207.099 cm  is the distance between the target and the front side of the Vertex-SI (from A.Kolesnikov's measurement scheme);
+ *       //6.9 cm is the thickness of the Vertex-SI;
  *       647.476 cm is the distance between the target and the magnet pole (as a reference frame);
  *
- * (2) -325.456 cm = 327.130 - 5.11 - 647.476;
+ * (2) -320.346 cm = 327.130 - 647.476;
  *       327.130 cm  is the distance between the target and the back side of the 8mod-SI (from A.Kolesnikov's measurement scheme);
- *       5.11 cm is the thickness of the 8mod-SI;
+ *       //5.11 cm is the thickness of the 8mod-SI;
  *       647.476 cm is the distance between the target and the magnet pole (as a reference frame);
  */
 

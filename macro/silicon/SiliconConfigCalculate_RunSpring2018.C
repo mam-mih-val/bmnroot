@@ -141,7 +141,8 @@ const Double_t XStationPositions[NStations] = { +0.6295, +0.6295, +0.46525 };
 const Double_t YStationPositions[NStations] = { -4.53225, -4.53225, -4.67125 };
 //const Double_t XStationPositions[NStations] = { 0.0, 0.0, 0.0 };
 //const Double_t YStationPositions[NStations] = { -0.0, 0.0, 0.0 };
-const Double_t ZStationPositions[NStations] = { +13.424, +13.424, +25.717 };
+//const Double_t ZStationPositions[NStations] = { +13.424, +13.424, +25.717 };
+const Double_t ZStationPositions[NStations] = { +10.524, +10.524, +21.604 }; // in accordance with rough alignment correction
 
 //(X-Y-Z)Shifts of modules in each station
 const Double_t XModuleShifts[NStations][NMaxModules] = {
@@ -286,7 +287,7 @@ void PrintInfo() {
 void CalculateParameters(TString xml_file_name) {
 
     ofstream SiFileOut(xml_file_name.Data(), ios::out);
-
+    
     SiFileOut << "<StationSet>\n";
     SiFileOut << "\n";
 

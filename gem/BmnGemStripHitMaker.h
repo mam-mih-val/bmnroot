@@ -20,8 +20,7 @@
 #include "BmnGemStripHit.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripConfiguration.h"
-#include "BmnGemAlignmentCorrections.h"
-#include "BmnGemAlignCorrections.h"
+#include "BmnInnTrackerAlign.h"
 #include <BmnEventQuality.h>
 
 using namespace std;
@@ -30,7 +29,7 @@ class BmnGemStripHitMaker : public FairTask {
 public:
 
     BmnGemStripHitMaker();
-    BmnGemStripHitMaker(Int_t, Bool_t);
+    BmnGemStripHitMaker(Int_t, Int_t, Bool_t, TString alignFile = "default");
 
     virtual ~BmnGemStripHitMaker();
 
@@ -52,30 +51,8 @@ public:
         fCurrentConfig = config;
     }
 
-    void SetAlignmentCorrectionsFileName(TString filename) {
-        fAlignCorrFileName = filename;
-    }
-
-    void SetAlignmentCorrectionsFileName(Int_t file_number) {
-        fRunId = file_number;
-        if (fPeriodId == 5)
-            fAlignCorrFileName = "$VMCWORKDIR/input/alignCorrsLocal_GEM.root";
-        else if (fPeriodId == 6) {
-            fAlignCorrFileName = "alignment_GEM.root";
-            UniDbDetectorParameter::ReadRootFile(fPeriodId, file_number, "BM@N", "alignment", (Char_t*) fAlignCorrFileName.Data());
-        } else {
-            fAlignCorrFileName = "";
-        } 
-    }
-
-    inline Double_t GetLorentzByField(Double_t By, Int_t station) {
-        // Appropriate Lorentz-corrections to the GEM-hits for RUN5, 6 as a function of voltage and so on
-        // have been moved to the UniDb
-        return lorCorrsCoeff[station][0] + lorCorrsCoeff[station][1] * By + lorCorrsCoeff[station][2] * By * By;
-    }
-
 private:
-
+    
     TString fInputPointsBranchName;
     TString fInputDigitsBranchName;
     TString fInputDigitMatchesBranchName;
@@ -95,25 +72,19 @@ private:
     TClonesArray* fBmnGemStripHitMatchesArray;
 
     Bool_t fHitMatching;
-    Int_t fRunId;
-    Int_t fPeriodId;
     Bool_t fIsExp; // Specify type of input data (MC or real data)
 
     BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;
 
     BmnGemStripStationSet *StationSet; //Entire GEM detector
 
-    TString fAlignCorrFileName; // a file with geometry corrections
-    void ReadAlignCorrFile(TString, Double_t***); // read corrections from the file
-    Double_t*** corr; // array to store the corrections
-
-    Double_t*** misAlign; // an array to introduce remain misalignment
     FairField* fField;
-    Double_t** lorCorrsCoeff;
-
+    
     TString fBmnEvQualityBranchName;
     TClonesArray* fBmnEvQuality;
-
+    
+    BmnInnTrackerAlign* fAlign;
+    
     ClassDef(BmnGemStripHitMaker, 1);
 };
 

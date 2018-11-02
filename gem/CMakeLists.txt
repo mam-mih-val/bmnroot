@@ -39,7 +39,7 @@ set(SRCS
   BmnGemGas.cxx
   BmnManageQA.cxx
   BmnGemDigitizerQAHistograms.cxx
-  BmnGemTracking.cxx
+  # BmnGemTracking.cxx
   BmnCellAutoTracking.cxx
   BmnCellDuet.cxx
   BmnGemStripLayer.cxx

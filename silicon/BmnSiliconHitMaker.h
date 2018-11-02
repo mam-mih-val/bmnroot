@@ -14,7 +14,7 @@
 #include "BmnSiliconLayer.h"
 #include <UniDbDetectorParameter.h>
 #include <UniDbRun.h>
-#include <BmnSiliconAlignCorrections.h>
+#include "BmnInnTrackerAlign.h"
 #include <BmnEventQuality.h>
 
 #include "BmnSiliconConfiguration.h"
@@ -23,7 +23,7 @@ class BmnSiliconHitMaker : public FairTask {
 public:
 
     BmnSiliconHitMaker();
-    BmnSiliconHitMaker(Int_t run_period, Bool_t isExp);
+    BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, TString alignFile = "default");
 
     virtual ~BmnSiliconHitMaker();
 
@@ -41,19 +41,6 @@ public:
 
     void SetCurrentConfig(BmnSiliconConfiguration::SILICON_CONFIG config) {
         fCurrentConfig = config;
-    }
-
-    void SetAlignmentCorrectionsFileName(TString filename) {
-        fAlignCorrFileName = filename;
-    }
-
-    void SetAlignmentCorrectionsFileName(Int_t file_number) {
-        if (fPeriodId == 6) {
-            fAlignCorrFileName = "alignment_SI.root";
-            UniDbDetectorParameter::ReadRootFile(fPeriodId, file_number, "BM@N", "alignment", (Char_t*) fAlignCorrFileName.Data());
-        }
-        else
-            fAlignCorrFileName = "";
     }
 
 private:
@@ -76,21 +63,17 @@ private:
     /** Output array of Silicon Hit Matches **/
     TClonesArray* fBmnSiliconHitMatchesArray;
 
-    Int_t fRunId;
-    Int_t fPeriodId;
     Bool_t fHitMatching;
 
     BmnSiliconConfiguration::SILICON_CONFIG fCurrentConfig;
 
-    BmnSiliconStationSet *StationSet; //Entire Silicon detector
-    
-    TString fAlignCorrFileName; // a file with geometry corrections
-    void ReadAlignCorrFile(TString, Double_t***); // read corrections from the file
-    Double_t*** corr; // array to store the corrections
+    BmnSiliconStationSet *StationSet; //Entire Silicon detector  
 
     Bool_t fIsExp;
     TString fBmnEvQualityBranchName;
     TClonesArray* fBmnEvQuality;
+    
+    BmnInnTrackerAlign* fAlign;
 
     ClassDef(BmnSiliconHitMaker, 1);
 };

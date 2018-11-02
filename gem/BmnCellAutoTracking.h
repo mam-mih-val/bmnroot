@@ -39,7 +39,7 @@ public:
 
     BmnCellAutoTracking() {
     };
-    BmnCellAutoTracking(Short_t period, Bool_t field, Bool_t target, TString steer);
+    BmnCellAutoTracking(Short_t period, Bool_t field, Bool_t target, TString steer = "");
     virtual ~BmnCellAutoTracking();
 
     virtual InitStatus Init();
@@ -129,7 +129,9 @@ private:
     
     TString fSteerFile; 
     BmnSteeringCA* fSteering;
-
+    
+    Int_t kCellsCut;
+    
     ClassDef(BmnCellAutoTracking, 1);
 };
 

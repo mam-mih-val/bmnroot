@@ -31,7 +31,10 @@ using namespace TMath;
 BmnCellAutoTracking::BmnCellAutoTracking(Short_t period, Bool_t field, Bool_t target, TString steerFile) :
 fSteering(NULL),
 fSteerFile(steerFile) {
-    fSteering = new BmnSteeringCA(fSteerFile);
+    if (steerFile == "")
+        fSteering = new BmnSteeringCA(field ? "gemTrackingSteerCA_withField.dat" : "gemTrackingSteerCA_noField.dat"); // FIXME (should be got from UniDb)
+    else
+        fSteering = new BmnSteeringCA(fSteerFile);
     fPeriodId = period;
     fEventNo = 0;
     fIsField = field;
@@ -70,6 +73,7 @@ fSteerFile(steerFile) {
     fCellDiffSlopeXZCut = NULL;
     fCellDiffSlopeYZCut = NULL;
     fNHitsCut = 0.0;
+    kCellsCut = fSteering->GetNCellsCut();
     fSteering->PrintParamTable();
 }
 
@@ -253,7 +257,7 @@ void BmnCellAutoTracking::Exec(Option_t* opt) {
         clock_t t0 = clock();
         CellsCreation(cells);
         clock_t t1 = clock();
-        //StateCalculation(cells);
+        // StateCalculation(cells);
         clock_t t2 = clock();
         CellsConnection(cells, candidates);
         clock_t t3 = clock();
@@ -424,7 +428,7 @@ BmnStatus BmnCellAutoTracking::CellsConnection(vector<BmnCellDuet>* cells, vecto
     for (Int_t maxCell = fNStations - 1; maxCell > 0; maxCell--) {
 
         BmnCellDuet curDuet;
-        if (cells[maxCell].size() > 10000)
+        if (cells[maxCell].size() > kCellsCut)
             continue;
         for (BmnCellDuet &duet : cells[maxCell]) {
 

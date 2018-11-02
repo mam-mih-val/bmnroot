@@ -1,0 +1,167 @@
+// @(#)bmnroot/alignment:$Id$
+// Author: Pavel Batyuk <pavel.batyuk@jinr.ru> 2018-11-02
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//  BmnInnTrackerAlign                                                        //
+//                                                                            //
+// Interface to get align. corrections for inn. tracker                       //
+//                                                                            //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+#include "BmnInnTrackerAlign.h"
+
+BmnInnTrackerAlign::BmnInnTrackerAlign(Int_t period, Int_t run, TString fileName) {
+    fBranchGemCorrs = "BmnGemAlignCorrections";
+    fBranchSilCorrs = "BmnSiliconAlignCorrections";
+
+  //  TString alCorrFileName = "";
+
+    if (fileName.Contains("default")) {
+        fFilename = "alignment_innTracker.root";
+        UniDbDetectorParameter::ReadRootFile(period, run, "BM@N", "alignment", (Char_t*) fFilename.Data());
+    } else
+        fFilename = fileName;
+
+    // Create geometry of inn. tracker
+    TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
+    TString confSi = "SiliconRunSpring2018.xml";
+    TString confGem = "GemRunSpring2018.xml";
+
+    /// SI
+    TString gPathSiliconConfig = gPathConfig + "/silicon/XMLConfigs/";
+    fDetectorSI = new BmnSiliconStationSet(gPathSiliconConfig + confSi);
+
+    /// GEM
+    TString gPathGemConfig = gPathConfig + "/gem/XMLConfigs/";
+    fDetectorGEM = new BmnGemStripStationSet(gPathGemConfig + confGem);
+
+    // Get alignment corrections ...
+    TFile* f = nullptr;
+    for (Int_t iOpen = 0; iOpen < 2; iOpen++) {
+        f = new TFile(fFilename.Data());
+        if (iOpen == 0)
+            fCorrsGem = GetGemCorrs(f);
+        else
+            fCorrsSil = GetSiliconCorrs(f);
+        delete f;
+    }
+
+    // Get Lorentz corrections ...
+    const Int_t nStat = fDetectorGEM->GetNStations();
+    fLorCorrs = new Double_t*[nStat];
+    UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", period, run);
+    LorentzShiftStructure* shifts;
+    Int_t element_count = 0;
+    if (coeffLorCorrs)
+        coeffLorCorrs->GetLorentzShiftArray(shifts, element_count);
+    for (Int_t iEle = 0; iEle < nStat; iEle++) {
+        const Int_t nParams = 3; // Parabolic approximation is used
+        fLorCorrs[iEle] = new Double_t[nParams];
+        for (Int_t iParam = 0; iParam < nParams; iParam++)
+            fLorCorrs[iEle][iParam] = (coeffLorCorrs) ? shifts[iEle].ls[iParam] : 0.;
+    }
+}
+
+void BmnInnTrackerAlign::Print() {
+    cout << "GEM corrections: " << endl;
+    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+        for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++) {
+            cout << "Stat# " << iStat << " Mod# " << iMod << " Corrs# ";
+            for (Int_t iCorr = 0; iCorr < 3; iCorr++)
+                cout << fCorrsGem[iStat][iMod][iCorr] << " ";
+            cout << endl;
+        }
+
+    cout << "Lorentz coefficients: " << endl;
+    for (Int_t iCoeff = 0; iCoeff < 3; iCoeff++)
+        cout << fLorCorrs[0][iCoeff] << " ";
+    cout << endl;
+
+    cout << "SILICON corrections: " << endl;
+    for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++)
+        for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++) {
+            cout << "Stat# " << iStat << " Mod# " << iMod << " Corrs# ";
+            for (Int_t iCorr = 0; iCorr < 3; iCorr++)
+                cout << fCorrsSil[iStat][iMod][iCorr] << " ";
+            cout << endl;
+        }
+}
+
+BmnInnTrackerAlign::~BmnInnTrackerAlign() {
+    delete fDetectorGEM;
+    delete fDetectorSI;
+}
+
+Double_t*** BmnInnTrackerAlign::GetGemCorrs(TFile* file) {
+    const Int_t nStat = fDetectorGEM->GetNStations();
+    const Int_t nParams = 3;
+    Double_t*** corr = new Double_t**[nStat];
+
+    for (Int_t iStat = 0; iStat < nStat; iStat++) {
+        Int_t nModul = fDetectorGEM->GetGemStation(iStat)->GetNModules();
+        corr[iStat] = new Double_t*[nModul];
+
+        for (Int_t iMod = 0; iMod < nModul; iMod++) {
+            corr[iStat][iMod] = new Double_t[nParams];
+
+            for (Int_t iPar = 0; iPar < nParams; iPar++)
+                corr[iStat][iMod][iPar] = 0.;
+        }
+    }
+
+    TTree* t = (TTree*) file->Get("cbmsim");
+    TClonesArray* corrs = NULL;
+    t->SetBranchAddress(fBranchGemCorrs.Data(), &corrs);
+
+    for (Int_t iEntry = 0; iEntry < t->GetEntries(); iEntry++) {
+        t->GetEntry(iEntry);
+        for (Int_t iCorr = 0; iCorr < corrs->GetEntriesFast(); iCorr++) {
+            BmnGemAlignCorrections* align = (BmnGemAlignCorrections*) corrs->UncheckedAt(iCorr);
+            Int_t iStat = align->GetStation();
+            Int_t iMod = align->GetModule();
+            corr[iStat][iMod][0] = align->GetCorrections().X();
+            corr[iStat][iMod][1] = align->GetCorrections().Y();
+            corr[iStat][iMod][2] = align->GetCorrections().Z();
+        }
+    }
+    return corr;
+}
+
+Double_t*** BmnInnTrackerAlign::GetSiliconCorrs(TFile* file) {
+    const Int_t nStat = fDetectorSI->GetNStations();
+    const Int_t nParams = 3;
+    Double_t*** corr = new Double_t**[nStat];
+
+    for (Int_t iStat = 0; iStat < nStat; iStat++) {
+        Int_t nModul = fDetectorSI->GetSiliconStation(iStat)->GetNModules();
+        corr[iStat] = new Double_t*[nModul];
+
+        for (Int_t iMod = 0; iMod < nModul; iMod++) {
+            corr[iStat][iMod] = new Double_t[nParams];
+
+            for (Int_t iPar = 0; iPar < nParams; iPar++)
+                corr[iStat][iMod][iPar] = 0.;
+        }
+    }
+
+    TTree* t = (TTree*) file->Get("cbmsim");
+    TClonesArray* corrs = NULL;
+    t->SetBranchAddress(fBranchSilCorrs.Data(), &corrs);
+
+    for (Int_t iEntry = 0; iEntry < t->GetEntries(); iEntry++) {
+        t->GetEntry(iEntry);
+        for (Int_t iCorr = 0; iCorr < corrs->GetEntriesFast(); iCorr++) {
+            BmnSiliconAlignCorrections* align = (BmnSiliconAlignCorrections*) corrs->UncheckedAt(iCorr);
+            Int_t iStat = align->GetStation();
+            Int_t iMod = align->GetModule();
+            corr[iStat][iMod][0] = align->GetCorrections().X();
+            corr[iStat][iMod][1] = align->GetCorrections().Y();
+            corr[iStat][iMod][2] = align->GetCorrections().Z();
+        }
+    }
+    return corr;
+}
+
+

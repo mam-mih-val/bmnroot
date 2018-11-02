@@ -44,6 +44,7 @@ set(SRCS
  BmnMille.cxx
  BmnAlignCorrections.cxx
  BmnResiduals.cxx
+ BmnInnTrackerAlign.cxx
 )
 
 Set(HEADERS)

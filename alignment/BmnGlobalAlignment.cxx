@@ -76,8 +76,7 @@ fIsField(kFALSE),
 fMagField(nullptr),
 fField(nullptr),
 Labels(nullptr),
-fUseGemConstraints(kTRUE),
-fUseSiliconConstraints(kTRUE),
+fUseConstraints(kTRUE),
 fRunPeriod(period),
 fIsDoTest(doTest),
 fMisAlignFile(misAlignFile),
@@ -111,7 +110,7 @@ InitStatus BmnGlobalAlignment::Init() {
     FairEventHeader* evHeader = NULL;
     chain->SetBranchAddress(fBranchFairEventHeader.Data(), &evHeader);
     chain->GetEntry(0);
-    fRunId = (evHeader->GetRunId() > 10000) ? 4629 : evHeader->GetRunId();
+    fRunId = 4648; //(evHeader->GetRunId() > 10000) ? 4629 : evHeader->GetRunId();
     delete chain;
 
     Double_t fieldVolt = 0.;
@@ -168,8 +167,13 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
     if (fCurrentEvent % 1000 == 0)
         cout << "Event# = " << fCurrentEvent << endl;
 
+    if (!fGlobalTracks)
+        return;
+
     for (Int_t iGlobTrack = 0; iGlobTrack < fGlobalTracks->GetEntriesFast(); iGlobTrack++) {
         BmnGlobalTrack* globTrack = (BmnGlobalTrack*) fGlobalTracks->UncheckedAt(iGlobTrack);
+        if (fDetectorSet[1] && globTrack->GetSilTrackIndex() == -1)
+            continue;
 
         FairTrackParam* params = globTrack->GetParamFirst();
 
@@ -432,31 +436,43 @@ void BmnGlobalAlignment::MakeSteerFile() {
     for (Int_t iDet = 0; iDet < nDetectors; iDet++) {
         if (iDet == 0) {// Process GEMs to mark fixed stations if exist
             for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++) {
-                for (Int_t iPar = 0; iPar < fDetectorGEM->GetGemStation(iStat)->GetNModules() * nParams; iPar++)
-                    fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., (fixedGemElements[iStat][iPar / nParams]) ? -1. : fPreSigma);
+                for (Int_t iPar = 0; iPar < fDetectorGEM->GetGemStation(iStat)->GetNModules() * nParams; iPar++) {
+                    if (!fDetectorSet[0])
+                        fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., -1.);
+                    else
+                        fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., (fixedGemElements[iStat][iPar / nParams]) ? -1. : fPreSigma);
+                }
                 startIdx += fDetectorGEM->GetGemStation(iStat)->GetNModules() * nParams;
             }
         } else if (iDet == 1) { // Process SILICON to mark fixed modules if exist
             for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++) {
-                for (Int_t iPar = 0; iPar < fDetectorSI->GetSiliconStation(iStat)->GetNModules() * nParams; iPar++)
-                    fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., (fixedSiElements[iStat][iPar / nParams]) ? -1. : (fIsDoTest) ? -1. : fPreSigma);
+                for (Int_t iPar = 0; iPar < fDetectorSI->GetSiliconStation(iStat)->GetNModules() * nParams; iPar++) {
+                    if (!fDetectorSet[1])
+                        fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., -1.);
+                    else
+                        fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., (fixedSiElements[iStat][iPar / nParams]) ? -1. : (fIsDoTest) ? -1. : fPreSigma);
+                }
                 startIdx += fDetectorSI->GetSiliconStation(iStat)->GetNModules() * nParams;
             }
         }
     }
 
-    // 1. Calculate center-of-gravity along Z-axis (GEM + SI)
+    if (!fUseConstraints)
+        return;
+
+    // Calculate center-of-gravity along Z-axis (GEM + SI)
     vector <Double_t> z_GEM;
     vector <Double_t> z_SI;
 
     vector <Double_t> z_GEM_SI;
 
-    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
-        for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++) {
-            z_GEM.push_back(fDetectorGEM->GetGemStation(iStat)->GetModule(iMod)->GetZPositionRegistered() + (fIsDoTest ? misAlign[iStat][iMod][2] : 0.));
-        }
+    if (fDetectorSet[0])
+        for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+            for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++) {
+                z_GEM.push_back(fDetectorGEM->GetGemStation(iStat)->GetModule(iMod)->GetZPositionRegistered() + (fIsDoTest ? misAlign[iStat][iMod][2] : 0.));
+            }
 
-    if (!fIsDoTest) {
+    if (!fIsDoTest && fDetectorSet[1]) {
         for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++)
             for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++)
                 z_SI.push_back(fDetectorSI->GetSiliconStation(iStat)->GetModule(iMod)->GetZPositionRegistered());
@@ -472,49 +488,57 @@ void BmnGlobalAlignment::MakeSteerFile() {
 
     Double_t zC = zSum / z_GEM_SI.size();
 
-    // 2. Calculate dZ = Zpos - Zc (GEM + SI)
+    // Calculate dZ = Zpos - Zc (GEM + SI)
     vector <Double_t> deltaZ;
 
-    for (Int_t iSize = 0; iSize < z_GEM_SI.size(); iSize++) {
+    for (Int_t iSize = 0; iSize < z_GEM_SI.size(); iSize++)
         deltaZ.push_back(z_GEM_SI[iSize] - zC);
-        // cout << iSize << " " << deltaZ[iSize] << endl;
+
+    map <Int_t, Double_t> deltas;
+
+    for (Int_t iSize = 0; iSize < z_GEM_SI.size() * nParams; iSize++) {
+        Double_t shift = (Labels[iSize] % nParams == 0) ? zC : 0.;
+        deltas[Labels[iSize]] = deltaZ[iSize / nParams] + shift;
     }
 
-    // 3. Apply constraints (six in general) to prevent a total shift of the detector (iStep = 0, 1) and define scaling (iStep = 2)
-    //          iConstrSet = 0
-    // Wi * a_Xi = 0,    (iStep = 0), Wi = delta_Zi
-    // Wi * a_Yi = 0,    (iStep = 1), Wi = delta_Zi
-    // Wi * a_Zi = 0,    (iStep = 2), Wi = Zi
-    //          iConstrSet = 1
+    if (!fDetectorSet[0] && !fDetectorSet[1])
+        return;
+
+    // Apply constraints ...   
     // Wi * a_Xi = 0,    (iStep = 0), Wi = 1.
     // Wi * a_Yi = 0,    (iStep = 1), Wi = 1.
     // Wi * a_Zi = 0,    (iStep = 2), Wi = 1.
+    for (Int_t iRemain = 0; iRemain < nParams; iRemain++) {
+        fprintf(steer, "constraint 0.0\n");
+        if (fDetectorSet[0])
+            for (Int_t iPar = 0; iPar < parCounterGem * nParams; iPar++)
+                if (Labels[iPar] % nParams == iRemain)
+                    fprintf(steer, "%d %G\n", Labels[iPar], 1.);
 
-    Int_t modCounter = 0;
-    for (Int_t iConstrSet = 0; iConstrSet < 2; iConstrSet++) {
-        if (fIsDoTest && iConstrSet == 0)
-            continue;
-        for (Int_t iStep = 0; iStep < 3; iStep++) {
-            if (iConstrSet == 0)
-                fprintf(steer, "constraint 0.0\n");
-            else {
-                TString constrString = "constraint " + TString::Format("%G\n", (iStep == 0) ? shiftX : (iStep == 1) ? shiftY : shiftZ);
-                fprintf(steer, constrString.Data());
+        if (fDetectorSet[1])
+            for (Int_t iPar = parCounterGem * nParams; iPar < fNGL; iPar++) {
+                Int_t stat = GetSiliconStatMod(Labels[iPar])[0];
+                Int_t mod = GetSiliconStatMod(Labels[iPar])[1];
+                if (Labels[iPar] % nParams == iRemain && !fixedSiElements[stat][mod])
+                    fprintf(steer, "%d %G\n", Labels[iPar], 1.);
             }
-            modCounter = 0;
-            for (Int_t iPar = 0; iPar < fNGL; iPar++) {
-                if (fIsDoTest && Labels[iPar] > parCounterGem * nParams)
-                    continue;
-                //                if (Labels[iPar] > nParams * parCounterGem && Labels[iPar] < 1 + nParams * parCounterGem + nParams * 3)
-                //                    continue;
+    }
 
-                if (Labels[iPar] % 3 == iStep + 1) {
-                    fprintf(steer, "%d %G\n", Labels[iPar], (iConstrSet == 0) ? deltaZ[modCounter] : 1.);
-                    modCounter++;
-                } else if (iStep == 2 && Labels[iPar] % 3 == 0) {
-                    fprintf(steer, "%d %G\n", Labels[iPar], (iConstrSet == 0) ? (deltaZ[modCounter] += zC) : 1.);
-                    modCounter++;
-                }
+    // Wi * a_Xi = 0,    (iStep = 0), Wi = delta_Zi
+    // Wi * a_Yi = 0,    (iStep = 1), Wi = delta_Zi
+    // Wi * a_Zi = 0,    (iStep = 2), Wi = Zi
+    for (Int_t iRemain = 0; iRemain < nParams; iRemain++) {
+        fprintf(steer, "constraint 0.0\n");
+        for (auto it : deltas) {
+            if (it.first <= parCounterGem * nParams) {
+                if (it.first % nParams == iRemain)
+                    fprintf(steer, "%d %G\n", it.first, it.second);
+            } 
+            else {
+                Int_t stat = GetSiliconStatMod(it.first)[0];
+                Int_t mod = GetSiliconStatMod(it.first)[1];
+                if (it.first % nParams == iRemain && !fixedSiElements[stat][mod])
+                    fprintf(steer, "%d %G\n", it.first, it.second);
             }
         }
     }

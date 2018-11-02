@@ -43,8 +43,14 @@ void BmnResiduals::Exec(Option_t* opt) {
 
         vector <BmnHit*> allHits;
 
-        BmnTrack* gemTr = (BmnTrack*) fGemTracks->UncheckedAt(glTrack->GetGemTrackIndex());
-        BmnTrack* silTr = (BmnTrack*) fSilTracks->UncheckedAt(glTrack->GetSilTrackIndex());
+        BmnTrack* gemTr = nullptr;
+        BmnTrack* silTr = nullptr;
+        
+        if (glTrack->GetGemTrackIndex() != -1)
+            gemTr = (BmnTrack*) fGemTracks->UncheckedAt(glTrack->GetGemTrackIndex());
+        
+        if (glTrack->GetSilTrackIndex() != -1)
+            silTr = (BmnTrack*) fSilTracks->UncheckedAt(glTrack->GetSilTrackIndex());
 
         // GEM track
         if (glTrack->GetGemTrackIndex() != -1)

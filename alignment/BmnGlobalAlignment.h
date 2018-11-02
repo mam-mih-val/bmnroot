@@ -57,7 +57,8 @@ using namespace TMath;
 class BmnGlobalAlignment : public FairTask {
 public:
 
-    BmnGlobalAlignment() {};
+    BmnGlobalAlignment() {
+    };
     BmnGlobalAlignment(Int_t nEvents, TString, Int_t period = 7, TString misAlignFile = "misAlignment.root", Bool_t doTest = kFALSE);
     virtual ~BmnGlobalAlignment();
 
@@ -66,7 +67,7 @@ public:
     virtual void Exec(Option_t* opt);
 
     virtual void Finish();
-    
+
     void SetDoTest(Bool_t flag) {
         fIsDoTest = flag;
     }
@@ -74,9 +75,6 @@ public:
     void SetDetectors(Bool_t gem, Bool_t si) {
         fDetectorSet[0] = gem;
         fDetectorSet[1] = si;
-        
-        fUseGemConstraints = gem;
-        fUseSiliconConstraints = si;
     }
 
     void SetUseRealHitErrors(Bool_t flag) {
@@ -195,6 +193,40 @@ public:
                     cout << "Stat = " << iStat << " Mod = " << iMod << " isFixed (true / false) " << fixedSiElements[iStat][iMod] << endl;
     }
 
+    void SetSiFixedRun7(Bool_t st0_0, Bool_t st0_1, Bool_t st0_2, Bool_t st0_3,
+            Bool_t st1_0, Bool_t st1_1,
+            Bool_t st2_0, Bool_t st2_1, Bool_t st2_2, Bool_t st2_3, Bool_t st2_4, Bool_t st2_5, Bool_t st2_6, Bool_t st2_7) {
+        cout << "SI" << endl;
+        const Int_t nModulMax = 8; // FIXME         
+        Bool_t** si = new Bool_t*[fDetectorSI->GetNStations()];
+        for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++)
+            si[iStat] = new Bool_t[nModulMax];
+
+        // Stat #0
+        si[0][0] = st0_0;
+        si[0][1] = st0_1;
+        si[0][2] = st0_2;
+        si[0][3] = st0_3;
+
+        // Stat #1
+        si[1][0] = st1_0;
+        si[1][1] = st1_1;
+
+        // Stat #2
+        si[2][0] = st2_0;
+        si[2][1] = st2_1;
+        si[2][2] = st2_2;
+        si[2][3] = st2_3;
+        si[2][4] = st2_4;
+        si[2][5] = st2_5;
+        si[2][6] = st2_6;
+        si[2][7] = st2_7;
+
+        for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++)
+            for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++)
+                if (si[iStat][iMod])
+                    fixedSiElements[iStat][iMod] = kTRUE;
+    }
 
     void SetExclusionRangeTx(Double_t min, Double_t max) {
         fIsExcludedTx = kTRUE;
@@ -208,6 +240,10 @@ public:
         fTyRight = max;
     }
 
+    void SetUseConstraints(Bool_t flag) {
+        fUseConstraints = flag;
+    }
+
 private:
     void CreateDetectorGeometries();
     const Int_t MakeBinFile();
@@ -217,23 +253,62 @@ private:
     void ReadPedeOutput(ifstream&);
     void ExtractCorrValues(ifstream&, Double_t*);
     BmnMilleContainer* FillMilleContainer(BmnGlobalTrack*, BmnHit*);
-    
+
     inline Int_t GemStatModLabel(Int_t st, Int_t mod) {
         return 3 * (2 * st + mod + 1);
     }
-    
+
     inline Int_t SiliconStatModLabel(Int_t st, Int_t mod) {
         Int_t coeff[3] = {0, 6, 3};
         return GemStatModLabel(st, mod) + coeff[st] * st;
     }
-    
+
+    inline vector <Int_t> GetSiliconStatMod(Int_t label) {
+        vector <Int_t> out;
+
+        Int_t modGemCounter = 0;
+        const Int_t nParams = 3;
+
+        for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+            for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++)
+                modGemCounter++;     
+
+        if (label < nParams * modGemCounter + 1) {
+            out.push_back(-1);
+            out.push_back(-1);
+            return out;
+        }
+
+        // FIXME, non elegant assignment:)
+        Int_t stat = -1;
+        Int_t mod = (label - nParams * modGemCounter - 1) / nParams;
+
+        if (mod <= 3) {
+            stat = 0;
+        }
+        
+        else if (mod <= 5) {
+            stat = 1;
+            mod -= 4;
+        }
+        
+        else {
+            stat = 2;
+            mod -= 6;
+        }    
+        out.push_back(stat);
+        out.push_back(mod);
+                
+        return out;
+    }
+
     void _Mille(Double_t*, Double_t*, BmnMille*, Int_t);
 
     static Int_t fCurrentEvent;
     Int_t fNEvents;
     Int_t fNTracks;
-    map <Int_t, pair <vector <BmnMilleContainer*>, vector <BmnMilleContainer*>>> fCONTAINER;
-    map <Int_t, pair <vector <BmnMilleContainer*>, vector <BmnMilleContainer*>>>::iterator fITERATOR;
+    map <Int_t, pair <vector <BmnMilleContainer*>, vector < BmnMilleContainer*>>> fCONTAINER;
+    map <Int_t, pair <vector <BmnMilleContainer*>, vector < BmnMilleContainer*>>>::iterator fITERATOR;
     Bool_t fIsField;
     Int_t fRunPeriod;
     Int_t fRunId;
@@ -243,7 +318,7 @@ private:
 
     TClonesArray* fGemAlignCorr;
     TClonesArray* fSiAlignCorr;
-       
+
     TString fBranchGemAlignCorr;
     TString fBranchSiAlignCorr;
 
@@ -312,18 +387,17 @@ private:
 
     Bool_t fDebug;
     Int_t* Labels; //array containing a fixed param. number for each detector. 
-   
+
     FairField* fField;
     BmnFieldMap* fMagField;
-    
+
     // Use constraints or not
-    Bool_t fUseGemConstraints;
-    Bool_t fUseSiliconConstraints;
-    
+    Bool_t fUseConstraints;
+
     Bool_t fIsDoTest;
     TString fMisAlignFile;
     TClonesArray* fBmnGemMisalign;
-    
+
     ClassDef(BmnGlobalAlignment, 1)
 };
 

@@ -31,7 +31,8 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnDigiMerger.cxx
+BmnDigiConverter.cxx
+# BmnDigiMerger.cxx
 )
 
 Set(HEADERS)

@@ -4,6 +4,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class BmnDigiMerger++;
+#pragma link C++ class BmnDigiConverter++;
+// #pragma link C++ class BmnDigiMerger++;
 #endif
 

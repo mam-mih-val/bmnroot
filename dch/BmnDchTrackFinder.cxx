@@ -792,8 +792,8 @@ Bool_t BmnDchTrackFinder::CheckPointGEO(Int_t plane, Double_t xD, Double_t yD, D
 	return true;
     }
   }
-  cout << "MC Point x: " << xD << " y: " << yD << " out of DCH range " 
-       << xmin << " " << xmax << " " << plane << " " << DCH1_Xpos << " " << DCH2_Xpos<<  endl;
+  //cout << "MC Point x: " << xD << " y: " << yD << " out of DCH range " 
+  //     << xmin << " " << xmax << " " << plane << " " << DCH1_Xpos << " " << DCH2_Xpos<<  endl;
   return false;
 }
 
@@ -3292,7 +3292,7 @@ Bool_t BmnDchTrackFinder::PrepareDigitsFromMC(){
   Double_t min=100000000;
   Double_t max=-100000000;
   
-  cout << "++++++++++Number of MC tracks: " << fMCTracks->GetEntriesFast() << endl;
+  // cout << "++++++++++Number of MC tracks: " << fMCTracks->GetEntriesFast() << endl;
   
   for (Int_t iMCTrack=0; iMCTrack<fMCTracks->GetEntriesFast(); iMCTrack++) {
     min=100000000;

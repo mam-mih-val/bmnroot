@@ -78,16 +78,26 @@ InitStatus BmnDigiConverter::Init() {
     fDetectorGEM = new BmnGemStripStationSet(gPathGemConfig + confGem);
 
     // RUN7, FIXME
-    Int_t stats[fDetectorGEM->GetNStations()] = {1, 2, 4, 5, 6, 7}; // MK-numeration
-    Int_t statsPermut[fDetectorGEM->GetNStations()] = {0, 1, 2, 3, 4, 5}; // SM-numeration
-
+    Int_t* stats = new Int_t[fDetectorGEM->GetNStations()];
+    stats[0] = 1; // MK-numeration
+    stats[1] = 2; // MK-numeration
+    stats[2] = 4; // MK-numeration
+    stats[3] = 5; // MK-numeration
+    stats[4] = 6; // MK-numeration
+    stats[5] = 7; // MK-numeration
+    
+    Int_t* statsPermut = new Int_t[fDetectorGEM->GetNStations()];
+    statsPermut[0] = 0; // SM-numeration
+    statsPermut[1] = 1; // SM-numeration
+    statsPermut[2] = 2; // SM-numeration
+    statsPermut[3] = 3; // SM-numeration
+    statsPermut[4] = 4; // SM-numeration
+    statsPermut[5] = 5; // SM-numeration
+    
     if (isGem) {
         for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
             fGemStats[stats[iStat]] = statsPermut[iStat];
     }
-
-    //    for (auto it :fGemStats)
-    //        cout << it.first << " " << it.second << endl;
 
     if (isTrig) {
         fTriggers.insert(pair <TClonesArray*, TClonesArray*> (fSiIn, fSiOut));
@@ -96,6 +106,9 @@ InitStatus BmnDigiConverter::Init() {
         fTriggers.insert(pair <TClonesArray*, TClonesArray*> (fBC2In, fBC2Out));
         fTriggers.insert(pair <TClonesArray*, TClonesArray*> (fBDIn, fBDOut));
     }
+    
+    delete stats;
+    delete statsPermut;
 
     return kSUCCESS;
 }

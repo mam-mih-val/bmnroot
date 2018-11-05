@@ -36,7 +36,7 @@ using namespace TMath;
 class BmnInnTrackerAlign : public TNamed {
 public:
 
-    BmnInnTrackerAlign();
+    BmnInnTrackerAlign() {};
     BmnInnTrackerAlign(Int_t, Int_t, TString);
    
     virtual ~BmnInnTrackerAlign();

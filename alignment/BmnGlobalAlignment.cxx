@@ -194,21 +194,26 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
         if (fIsExcludedTy && Ty > fTyLeft && Ty < fTyRight)
             continue;
 
-        Int_t idx[nDetectors] = {globTrack->GetGemTrackIndex(), globTrack->GetSilTrackIndex()};
+        Int_t* idx = new Int_t[nDetectors];
+        idx[0] = globTrack->GetGemTrackIndex();
+        idx[1] = globTrack->GetSilTrackIndex();
 
         vector <BmnMilleContainer*> GEM;
         vector <BmnMilleContainer*> SILICON;
 
         for (Int_t iDet = 0; iDet < nDetectors; iDet++) {
-            if (!fDetectorSet[iDet] || idx[iDet] == -1 || fIsField)
+            if (!fDetectorSet[iDet] || idx[iDet] == -1 || fIsField) {
+                delete idx;
                 continue;
+            }
             MilleNoFieldRuns(globTrack, idx[iDet], iDet, GEM, SILICON);
         }
 
         fCONTAINER[fNTracks] = pair <vector <BmnMilleContainer*>, vector < BmnMilleContainer*>> (SILICON, GEM);
         fNTracks++;
+        delete idx;
     }
-
+ 
     if (fNEvents == fCurrentEvent) {
         MakeBinFile();
         MakeSteerFile();
@@ -276,7 +281,9 @@ void BmnGlobalAlignment::MilleNoFieldRuns(BmnGlobalTrack* glTrack, Int_t idx, In
 void BmnGlobalAlignment::_Mille(Double_t* DerLc, Double_t* DerGl, BmnMille* Mille, Int_t iTrack) {
     fITERATOR = next(fCONTAINER.begin(), iTrack);
 
-    TString dets[nDetectors] = {"GEM", "SILICON"};
+    TString* dets = new TString[nDetectors];
+    dets[0] = "GEM"; 
+    dets[1] = "SILICON";
 
     for (Int_t iDet = 0; iDet < nDetectors; iDet++) {
         vector <BmnMilleContainer*> cont;
@@ -343,6 +350,7 @@ void BmnGlobalAlignment::_Mille(Double_t* DerLc, Double_t* DerGl, BmnMille* Mill
             }
         }
     }
+    delete dets;
 }
 
 const Int_t BmnGlobalAlignment::MakeBinFile() {

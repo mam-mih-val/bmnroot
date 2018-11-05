@@ -19,7 +19,7 @@ variables:
     - mkdir build
     - cd build
     - cmake "$CI_PROJECT_DIR"
-    - make -j 5
+    - make
   allow_failure: false
   
 build:centos:
@@ -94,7 +94,7 @@ run_reco:ubuntu:
   stage: test_run_digi
   script:
     - source build/config.sh
-    - root -b -q -l '$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("run6-1889:/nica/bmn_run1889_digi.root", "$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)' | tee output.txt
+    - root -b -q -l '$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("run7-4649:$VMCWORKDIR/macro/run/testDigi.root", "$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)' | tee output.txt
     - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
   allow_failure: false
   

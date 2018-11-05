@@ -213,7 +213,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
         for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             BmnGemStripModule *module = station->GetModule(iModule);
             Double_t z = module->GetZPositionRegistered();
-            z += fAlign->GetGemCorrs()[iStation][iModule][2]; //alignment implementation
+            z += fIsExp ? fAlign->GetGemCorrs()[iStation][iModule][2] : 0.; //alignment implementation
 
             Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
 
@@ -257,7 +257,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
                     Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
-                    Double_t ls = fAlign->GetLorentzCorrs(Abs(fField->GetBy(x, y, z)), iStation) * sign;
+                    Double_t ls = fIsExp ? (fAlign->GetLorentzCorrs(Abs(fField->GetBy(x, y, z)), iStation) * sign) : 0.;
                     x += ls;
                 }
 

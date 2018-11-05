@@ -187,7 +187,7 @@ void BmnSiliconHitMaker::ProcessDigits() {
         for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             module = station->GetModule(iModule);
             Double_t z = module->GetZPositionRegistered();
-            z += fAlign->GetSiliconCorrs()[iStation][iModule][2]; //alignment shift
+            z += fIsExp ? fAlign->GetSiliconCorrs()[iStation][iModule][2] : 0.; //alignment shift
 
             Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
 

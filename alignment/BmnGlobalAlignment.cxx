@@ -43,6 +43,7 @@ BmnGlobalAlignment::~BmnGlobalAlignment() {
 }
 
 BmnGlobalAlignment::BmnGlobalAlignment(Int_t nEvents, TString inFileName, Int_t period, TString misAlignFile, Bool_t doTest) :
+nDetectors(2),
 fGemHits(nullptr),
 fSilTracks(nullptr),
 fGemTracks(nullptr),
@@ -614,7 +615,6 @@ void BmnGlobalAlignment::ExtractCorrValues(ifstream& resFile, Double_t* corrs) {
 }
 
 void BmnGlobalAlignment::CreateDetectorGeometries() {
-    nDetectors = 2; // GEM + SILICON
     fDetectorSet = new Bool_t[nDetectors]();
 
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");

@@ -77,12 +77,30 @@ void BmnGemHitProducer::Exec(Option_t* opt) {
         hit->SetIndex(fBmnHitsArray->GetEntriesFast() - 1);
         hit->SetType(1);
         hit->SetStation(GemStationSet->GetPointStationOwnership(gemPoint->GetZIn()));
+//        hit->SetStation(DefineStationByZ(gemPoint->GetZIn()));
 
         BmnMatch* match = new ((*fBmnGemStripHitMatchesArray)[fBmnGemStripHitMatchesArray->GetEntriesFast()]) BmnMatch();
         match->AddLink(100.0, iPoint);
 
         delete rand_gen;
     }
+}
+
+Int_t BmnGemHitProducer::DefineStationByZ(Double_t z) {
+    const Int_t nStation = 7;
+    Int_t minIdx = -1;
+    Double_t minDz = 10000;
+
+    Double_t zPos[nStation] = {100.0, 120.0, 140.0, 160.0, 180.0, 200.0, 220.0};
+
+    for (Int_t i = 0; i < nStation; ++i) {
+        Double_t dz = Abs(z - zPos[i]);
+        if (dz < minDz) {
+            minDz = dz;
+            minIdx = i;
+        }
+    }
+    return minIdx;
 }
 
 void BmnGemHitProducer::Finish() {

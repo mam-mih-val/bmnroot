@@ -79,7 +79,7 @@ void BmnMCTrackCreator::AddPoints(DetectorId detId, const TClonesArray* array) {
             stationId = fSilDetector->GetPointStationOwnership(fairPoint->GetZ());
         } else if (detId == kSSD) {
             BmnSSDHitProducer hp;
-            stationId = hp.DefineStationByZ(fairPoint->GetZ(), 2);
+            stationId = hp.DefineStationByZ(fairPoint->GetZ(), 0);
         } else if (detId == kGEM) {
             stationId = fGemDetector->GetPointStationOwnership(fairPoint->GetZ()) + fNSiliconStations;
         }

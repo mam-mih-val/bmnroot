@@ -169,6 +169,7 @@ private:
 
     TClonesArray* fMCTracks;
     TClonesArray* fSiliconPoints;
+    TClonesArray* fSSDPoints;
     TClonesArray* fGemTracks; // BmnGemTrack array
     TClonesArray* fGemMatches;
     TClonesArray* fParticlePair; // all decay pairs reconstructed when having matches

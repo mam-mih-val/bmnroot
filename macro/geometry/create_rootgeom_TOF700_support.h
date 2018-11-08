@@ -14,10 +14,12 @@ Double_t Support_TOF2_Z_center[TOF2_MAX_UBEAMS] = {0.};
 Double_t Support_TOF2_length[TOF2_MAX_UBEAMS] = {0.};
 Int_t Support_TOF2_orientation[TOF2_MAX_UBEAMS] = {0};
 
+int readGeomSupport(char *geomfile);
+
 void create_rootgeom_TOF700_support() {
     
     // -------   Geometry text file name (input)   ----------------------------------
-    readGeomSupport("TOF700_geometry_support.txt");
+    readGeomSupport((char *)"TOF700_geometry_support.txt");
 
     TGeoTranslation *ChannelPosTOF2_trans[TOF2_MAX_UBEAMS] = {NULL};
     TGeoTranslation *AirPosTOF2_trans[4] = {NULL};

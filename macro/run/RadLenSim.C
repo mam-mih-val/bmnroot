@@ -1,20 +1,22 @@
 // Macro for running BM@N simulation with GEANTINO to exclude interactions
+#include <Rtypes.h>
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "macro/run/bmnloadlibs.C"
+#include "macro/run/geometry.C"
 
-void RadLenSim(Int_t nEvents = 50, TString outFile = "RadLenSim.root") {
+void RadLenSim(Int_t nEvents = 50000, TString outFile = "RadLenSim.root") {
 
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-    bmnloadlibs(); // load libraries
+    bmnloadlibs(); // load BmnRoot libraries
 
     FairRunSim *fRun = new FairRunSim();
     fRun->SetName("TGeant3");
     fRun->SetOutputFile(outFile.Data()); //output file
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
     geometry(fRun); // load bmn geometry
 
     FairPrimaryGenerator* primGen = new FairPrimaryGenerator();
     fRun->SetGenerator(primGen);
 
-    FairBoxGenerator* box = new FairBoxGenerator(0, 10000);
+    FairBoxGenerator* box = new FairBoxGenerator(0, 10);
     box->SetPRange(.2, .2); // GeV/c
     box->SetPhiRange(0, 360);
     box->SetThetaRange(0, 180);

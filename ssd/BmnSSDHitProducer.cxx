@@ -54,7 +54,7 @@ void BmnSSDHitProducer::Exec(Option_t* opt) {
 
     Float_t err[3] = {0.01, 0.01, 0.01}; // Uncertainties of coordinates
 
-    Int_t ssdType = 2;
+    Int_t ssdType = 0;
 
     for (Int_t iPoint = 0; iPoint < fBmnPointsArray->GetEntriesFast(); iPoint++) {
 

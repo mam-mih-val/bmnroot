@@ -37,6 +37,8 @@ public:
 
     /** Virtual method Finish **/
     virtual void Finish();
+    
+    Int_t DefineStationByZ(Double_t z);
 
 private:
 

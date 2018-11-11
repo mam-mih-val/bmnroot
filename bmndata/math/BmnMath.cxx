@@ -340,7 +340,8 @@ TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type) {
             Si = hit->GetDy();
         }
 
-        chi2 += Sqr((Yi - a * Xi - b) / Si);
+//        chi2 += Sqr((Yi - a * Xi - b) / Si);
+        chi2 += Sq((Yi - a * Xi - b) / (a * Xi + b));
     }
 
     return TVector3(a, b, chi2);
@@ -528,7 +529,7 @@ TVector3 CircleFit(BmnTrack* track, const TClonesArray* arr, Double_t &chi2) {
     return TVector3(Zc, Xc, R);
 }
 
-Double_t CalcTx(const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2) {
+Double_t CalcTx(const BmnHit* h0, const BmnHit* h1, const BmnHit* h2) {
     //function calculates Tx in point h0, so for TX_last use reverse order: CalcTx(h2, h1, h0)
     TVector3 CircParZX = CircleBy3Hit(h0, h1, h2);
     Double_t Xc = CircParZX.Y(); // x-coordinate of fit-circle center
@@ -655,7 +656,7 @@ void DrawHits(BmnGemTrack* track, const TClonesArray* arr) {
     delete c;
 }
 
-TVector3 CircleBy3Hit(const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2) {
+TVector3 CircleBy3Hit(const BmnHit* h0, const BmnHit* h1, const BmnHit* h2) {
     Float_t x0 = h0->GetX();
     Float_t z0 = h0->GetZ();
     Float_t x1 = h1->GetX();
@@ -870,6 +871,75 @@ void Pol2Fit(BmnGemTrack* track, const TClonesArray* arr, Double_t &A, Double_t 
     A = ptr->Parameter(2);
     B = ptr->Parameter(1);
     C = ptr->Parameter(0);
+}
+
+TVector3 Pol2Fit(vector<BmnHit*> hits, Int_t idSkip) {
+    const Int_t nHits = hits.size();
+    TGraph gr(nHits - 1);
+    Int_t iPoint = 0;
+    for (Int_t i = 0; i < nHits; ++i) {
+        if (i == idSkip) continue;
+        BmnHit* hit = hits[i];
+        gr.SetPoint(iPoint++, hit->GetZ(), hit->GetX());
+    }
+    TFitResultPtr ptr = gr.Fit("pol2", "SQ");
+    Double_t A = ptr->Parameter(2);
+    Double_t B = ptr->Parameter(1);
+    Double_t C = ptr->Parameter(0);
+    
+    return TVector3(A, B, C);
+}
+
+TVector2 LineFit(vector<BmnHit*> hits, Int_t idSkip, TString type) {
+
+    //Weighted Least Square Method//
+    Float_t Xi = 0.0, Yi = 0.0; // coordinates of current track point
+    Float_t a = 0.0, b = 0.0; // parameters of line: y = a * x + b
+
+    Float_t Si = 0.0; // sigma
+    Float_t Wi = 0.0; // weight = 1 / sigma^2
+    Float_t SumW = 0.0; // sum of weights
+    Float_t SumWX = 0.0; // sum of (weight * x)
+    Float_t SumWY = 0.0; // sum of (weight * y)
+    Float_t SumWXY = 0.0; // sum of (weight * x * y)
+    Float_t SumWX2 = 0.0; // sum of (weight * x * x)
+
+    const Int_t nHits = hits.size();
+
+    for (Int_t i = 0; i < nHits; ++i) {
+        BmnHit* hit = hits[i];
+        if (i == idSkip)
+            continue;
+        if (type.Contains("XY")) {
+            Xi = hit->GetX();
+            Yi = hit->GetY();
+            Si = hit->GetDy();
+        } 
+        else if (type.Contains("ZX")) {
+            Xi = hit->GetZ();
+            Yi = hit->GetX();
+            Si = hit->GetDx();
+        } 
+        else if (type.Contains("ZY")) {
+            Xi = hit->GetZ();
+            Yi = hit->GetY();
+            Si = hit->GetDy();
+        }
+
+        if (Si == 0.0) return TVector2(0.0, 0.0);
+
+        Wi = 1.0 / Si / Si;
+        SumW += Wi;
+        SumWXY += Wi * Xi * Yi;
+        SumWX += Wi * Xi;
+        SumWX2 += Wi * Xi * Xi;
+        SumWY += Wi * Yi;
+    }
+
+    a = (SumW * SumWXY - SumWX * SumWY) / (SumW * SumWX2 - SumWX * SumWX);
+    b = (SumWX2 * SumWY - SumWX * SumWXY) / (SumW * SumWX2 - SumWX * SumWX);
+
+    return TVector2(a, b);
 }
 
 vector <Double_t> dist(vector <Double_t> qp, Double_t mu) {

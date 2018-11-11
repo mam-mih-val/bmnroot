@@ -8,6 +8,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmnfield
+ #${CMAKE_SOURCE_DIR}/QA
  ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/uni_db
@@ -34,6 +35,7 @@ link_directories( ${LINK_DIRECTORIES})
 set(SRCS
 BmnTwoParticleDecay.cxx
 BmnParticlePair.cxx
+BmnParticlePairsInfo.cxx
 )
 
 Set(HEADERS)

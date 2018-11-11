@@ -9,6 +9,8 @@
 #define BMNCLUSTERINGQAREPORT_H_
 
 #include "report/BmnSimulationReport.h"
+#include "BmnGemStripStationSet.h"
+#include "BmnGemStripStationSet_RunSpring2017.h"
 #include <string>
 using std::string;
 
@@ -23,7 +25,7 @@ public:
     /**
      * \brief Constructor.
      */
-    BmnClusteringQaReport();
+    BmnClusteringQaReport(Int_t nOfStationsGEM, Int_t nOfStationsSil);
 
     /**
      * \brief Destructor.
@@ -60,6 +62,9 @@ private:
     void DrawSimXRecXbyStation(const string& canvasName);
     void DrawSimYRecYbyStation(const string& canvasName);
     void DrawOccupancyByStation(const string& canvasName);
+    
+    void DrawPullXbyStation(const string& canvasName);
+    void DrawPullYbyStation(const string& canvasName);
 
     //   void DrawAccAndRec(
     //         const string& canvasName,
@@ -87,6 +92,12 @@ private:
             const string& acc,
             const string& rec,
             const string& eff);
+    
+    BmnGemStripStationSet* fGemDetector;
+    
+    Int_t nStationsGEM;
+    Int_t nStationsSil;
+    Int_t nStationsDCH1;
 
     ClassDef(BmnClusteringQaReport, 1)
 };

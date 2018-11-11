@@ -16,7 +16,8 @@
 #include "FairTask.h"
 #include "TClonesArray.h"
 #include "TString.h"
-#include "BmnGemTrack.h"
+#include "BmnTrack.h"
+#include "BmnGlobalTrack.h"
 #include <vector>
 #include <map>
 #include "FairTrackParam.h"
@@ -24,6 +25,10 @@
 #include "BmnMath.h"
 #include "BmnCellDuet.h"
 #include "BmnGemStripStationSet.h"
+#include "BmnSiliconStationSet.h"
+#include "FairMCPoint.h"
+#include "CbmMCTrack.h"
+#include "BmnSteeringCA.h"
 
 using namespace std;
 
@@ -34,47 +39,74 @@ public:
 
     BmnCellAutoTracking() {
     };
-    BmnCellAutoTracking(Short_t period, Bool_t field, Bool_t target);
+    BmnCellAutoTracking(Short_t period, Bool_t field, Bool_t target, TString steer = "");
     virtual ~BmnCellAutoTracking();
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
     virtual void Finish();
+    
+    void SetInnerTrackerSetup(map<DetectorId, Bool_t> setup) {
+        fInnerTrackerSetup = setup;
+    };
+
+    void SetDetectorPresence(DetectorId det, Bool_t use) {
+        fInnerTrackerSetup[det] = use;
+    };
 
 private:
 
     BmnStatus CellsCreation(vector<BmnCellDuet>* cells);
     BmnStatus StateCalculation(vector<BmnCellDuet>* cells);
-    BmnStatus CellsConnection(vector<BmnCellDuet>* cells, vector<BmnGemTrack>& cands);
-    BmnStatus TrackUpdateByKalman(vector<BmnGemTrack>& cands);
-    void TrackUpdateByLine(vector<BmnGemTrack>& cands);
-    BmnStatus SortTracks(vector<BmnGemTrack>& inTracks, vector<BmnGemTrack>& sortedTracks);
-    BmnStatus TrackSelection(vector<BmnGemTrack>& cands);
-    
-    Double_t CalcQp(BmnGemTrack* track);
-    BmnStatus CalculateTrackParams(BmnGemTrack* tr);    
-    BmnStatus CalcCovMatrix(BmnGemTrack * tr);    
+    BmnStatus CellsConnection(vector<BmnCellDuet>* cells, vector<BmnTrack>& cands);
+    BmnStatus TrackUpdateByKalman(vector<BmnTrack>& cands);
+    BmnStatus TrackUpdateByLine(vector <BmnTrack>& cands);
+    BmnStatus SortTracks(vector<BmnTrack>& inTracks, vector<BmnTrack>& sortedTracks);
+    BmnStatus TrackSelection(vector<BmnTrack>& cands);
+
+    Double_t CalcQp(BmnTrack* track);
+    BmnStatus CalculateTrackParams(BmnTrack* tr);
+    BmnStatus CalcCovMatrix(BmnTrack * tr);
     TVector2 CalcMeanSigma(vector <Double_t>);
-    Double_t CalculateLength(BmnGemTrack* tr);
-    BmnStatus CheckSharedHits(vector<BmnGemTrack>& sortedTracks);
-    void SetHitsUsing(BmnGemTrack* tr, Bool_t use);
+    Double_t CalculateLength(BmnTrack* tr);
+    BmnStatus CheckSharedHits(vector<BmnTrack>& sortedTracks);
+    void SetHitsUsing(BmnTrack* tr, Bool_t use);
     BmnStatus DrawHits();
-    
+
     BmnGemStripStationSet* fGemDetector;
+    BmnSiliconStationSet* fSilDetector;
     TString fGemHitsBranchName;
-    TString fTracksBranchName;
+    TString fSilHitsBranchName;
+    TString fSsdHitsBranchName;
+    TString fGlobTracksBranchName;
+    TString fGemTracksBranchName;
+    TString fSilTracksBranchName;
+    TString fSsdTracksBranchName;
 
+    TClonesArray* fGlobTracksArray;
+    TClonesArray* fSilTracksArray;
     TClonesArray* fGemTracksArray;
+    TClonesArray* fSsdTracksArray;
+    TClonesArray* fSilHitsArray;
+    TClonesArray* fSsdHitsArray;
     TClonesArray* fGemHitsArray;
-    BmnKalmanFilter* fKalman;
+    TClonesArray* fHitsArray;
+    
+    TClonesArray* fMCTracksArray;
+    TClonesArray* fSilPointsArray;
+    TClonesArray* fSsdPointsArray;
+    TClonesArray* fGemPointsArray;
 
-    Double_t* fGemDistCut;
+    BmnKalmanFilter* fKalman;
 
     Bool_t fIsField; // run with mag.field or not
     Bool_t fIsTarget; // run with target or not
+    map<DetectorId, Bool_t> fInnerTrackerSetup;
 
     UInt_t fEventNo;
     Short_t fPeriodId;
+    Short_t fNStations;
+    Short_t fNSiliconStations;
 
     TVector3 fRoughVertex; // for correct transformation
 
@@ -90,13 +122,16 @@ private:
     Double_t* fCellSlopeXZCutMax;
     Double_t* fCellSlopeYZCutMin;
     Double_t* fCellSlopeYZCutMax;
-    
-    Double_t fCellDiffSlopeYZCut;
-    Double_t fCellDiffSlopeXZCut;
+
+    Double_t* fCellDiffSlopeYZCut;
+    Double_t* fCellDiffSlopeXZCut;
     Int_t fNHitsCut;
-
-    vector<Int_t>* fHitsOnStation;
-
+    
+    TString fSteerFile; 
+    BmnSteeringCA* fSteering;
+    
+    Int_t kCellsCut;
+    
     ClassDef(BmnCellAutoTracking, 1);
 };
 

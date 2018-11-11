@@ -1,9 +1,11 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
+${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/silicon
+ ${CMAKE_SOURCE_DIR}/ssd
  ${CMAKE_SOURCE_DIR}/uni_db
  ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
@@ -25,4 +27,4 @@ set(LINK_DIRECTORIES
 link_directories(${LINK_DIRECTORIES})
 
 add_executable(track_arms track_arms.cpp SRCEvent.cpp)
-target_link_libraries(track_arms BmnData Silicon TOF1 UniDb BmnSteering BmnAlignment Gem GlobalTracking KF Mwpc Dch ${ROOT_LIBRARIES} XMLParser Minuit Spectrum GenVector MathMore)
+target_link_libraries(track_arms BmnData Silicon SSD TOF1 UniDb BmnSteering BmnAlignment Gem GlobalTracking KF Mwpc Dch ${ROOT_LIBRARIES} XMLParser Minuit Spectrum GenVector MathMore)

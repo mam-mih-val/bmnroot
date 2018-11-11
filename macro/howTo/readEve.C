@@ -14,22 +14,23 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <Rtypes.h>
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "macro/run/bmnloadlibs.C"
+        
 void readEve(TString fileName = "") {
     if (fileName == "") {
         cout << "File not specified!" << endl;
         return;
     }
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load libraries
-
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
 
     TChain* out = new TChain("cbmsim");
     out->Add(fileName.Data());
     cout << "#recorded entries = " << out->GetEntries() << endl;
 
-    TClonesArray* stsPoints = NULL;
-    TClonesArray* stsTracks = NULL;
+    TClonesArray* stsPoints = nullptr;
+    TClonesArray* stsTracks = nullptr;
     out->SetBranchAddress("StsPoint", &stsPoints);
     out->SetBranchAddress("MCTrack", &stsTracks);
 

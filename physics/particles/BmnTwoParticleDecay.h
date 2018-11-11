@@ -94,26 +94,34 @@ private:
     BmnFieldMap* fMagField;
     BmnKalmanFilter* fKalman;
 
+    TClonesArray* fParticlePairMC;
+    TClonesArray* fParticlePairMCAll;
+
     TClonesArray* fParticlePair;
+    TClonesArray* fParticlePairNoCuts;
+    TClonesArray* fReconstructedLambdas;
+    TClonesArray* fReconstructedLambdasM;
+    TClonesArray* fNotReconstructedLambdas;
+    TClonesArray* fParticlePairsInfo;
 
     Int_t fPDG1, fPDG2, fPDGDecay, fPdgParticle1, fPdgParticle2;
     Double_t fLeftInvMass, fRightInvMass;
-  
+
     Int_t fN, fN2, fN3, fN4;
-    
+
     TH1F** hSim;
     TH1F** hReco;
-    
+
     TH2F** h2Sim;
-    TH2F** h2Reco; 
+    TH2F** h2Reco;
 
     TH2F*** h3Sim;
- 
+
 public:
 
     BmnTwoParticleDecay() {
     };
-    BmnTwoParticleDecay(BmnGemStripConfiguration::GEM_CONFIG, Int_t r = 4629);
+    BmnTwoParticleDecay(BmnGemStripConfiguration::GEM_CONFIG config);
     virtual ~BmnTwoParticleDecay();
 
     virtual void Exec(Option_t * option);
@@ -202,8 +210,8 @@ private:
     inline Int_t CheckSign(Double_t val) {
         return (val > 0) ? 1 : ((val < 0) ? -1 : 0);
     }
-    
-    TVector2 ArmenterosPodol(FairTrackParam, FairTrackParam); 
+
+    TVector2 ArmenterosPodol(FairTrackParam, FairTrackParam);
     Double_t FindV0ByVirtualPlanes(BmnGlobalTrack*, BmnGlobalTrack*, Double_t, Double_t range = 50.);
 
     ClassDef(BmnTwoParticleDecay, 0)

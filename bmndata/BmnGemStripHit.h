@@ -13,9 +13,9 @@ public:
 
     virtual ~BmnGemStripHit();
 
-    void SetModule(Int_t module) {
-        fModule = module;
-    }
+//    void SetModule(Int_t module) {
+//        fModule = module;
+//    }
 
     void SetEnergyLoss(Double_t de) {
         fELoss = de;
@@ -49,9 +49,9 @@ public:
         return fELoss;
     }
 
-    Int_t GetModule() {
-        return fModule;
-    }
+//    Int_t GetModule() {
+//        return fModule;
+//    }
 
 //    Int_t GetType() {
 //        return fType;
@@ -78,7 +78,7 @@ public:
     }
 
 private:
-    Int_t fModule;
+   // Int_t fModule;
     Double_t fELoss;
 //    Int_t fType; // 0 - fake, 1 - hit, -1 - undefined
     Double_t fNormSignalDiff; //normalized signal difference between lower and upper strips (0 is min diff,..., 1 is max dif)

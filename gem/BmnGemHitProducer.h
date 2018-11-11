@@ -9,6 +9,9 @@
 #include "TString.h"
 #include "TClonesArray.h"
 #include "FairTask.h"
+#include "BmnGemStripStationSet.h"
+#include "BmnGemStripConfiguration.h"
+
 
 #include "CbmStsPoint.h"
 #include "CbmStsTrack.h"
@@ -35,37 +38,26 @@ public:
     /** Virtual method Finish **/
     virtual void Finish();
 
-    // Setters
-
-    void SetOnlyPrimary(Bool_t opt = kFALSE) {
-        fOnlyPrimary = opt;
-    }
-
-
 private:
 
     TString fInputBranchName;
     TString fTracksBranchName;
     TString fOutputHitsBranchName;
+    TString fOutputGemHitMatchesBranchName;
 
     /** Input array of Gem Points **/
     TClonesArray* fBmnPointsArray;
 
-    /** Input array of Gem Tracks **/   // <------------ ???
-    TClonesArray* fBmnTracksArray;
-    
     /** Input array of MC Tracks **/
     TClonesArray* fMCTracksArray;
 
     /** Output array of Gem Hits **/
     TClonesArray* fBmnHitsArray;
 
-    // CbmStsHitProducerIdeal(const CbmStsHitProducerIdeal&);
-    // CbmStsHitProducerIdeal& operator=(const CbmStsHitProducerIdeal&);
-
-    Bool_t fOnlyPrimary;
-
-    void CheckGaussDistrib(TVector3, TVector3);
+    /** Output array of GEM Hit Matches **/
+    TClonesArray* fBmnGemStripHitMatchesArray;
+    
+    BmnGemStripStationSet *GemStationSet; //Entire GEM detector
 
     ClassDef(BmnGemHitProducer, 1);
 

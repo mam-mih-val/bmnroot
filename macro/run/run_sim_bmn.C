@@ -82,7 +82,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     boxGen->SetPRange(1., 1.);  // GeV/c, setPRange vs setPtRange
     boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
     boxGen->SetThetaRange(10, 15); // Polar angle in lab system range [degree]
-    boxGen->SetXYZ(0., 0., 0.); // Approximate position of target (RunSpring2017)
+    boxGen->SetXYZ(0.5, -4.6, -2.3); // Approximate position of target (RunSpring2018)
     primGen->AddGenerator(boxGen);
 
 #else
@@ -143,17 +143,17 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     fRun->SetRadLenRegister(flag_store_FairRadLenPoint); // radiation length manager
 
     // SI-Digitizer
-    BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2017;
-    //BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2018;
+    //BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2017;
+    BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2018;
     BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
     siliconDigit->SetCurrentConfig(si_config);
     siliconDigit->SetOnlyPrimary(kFALSE);
     fRun->AddTask(siliconDigit);
 
     // GEM-Digitizer
-    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017;
-    //BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2018;
-    BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARCO2_70_30_E_1000_2500_3750_6300_B_0_59T);
+    // BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017;
+    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2018;
+    // BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARCO2_70_30_E_1000_2500_3750_6300_B_0_59T);
     BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
     gemDigit->SetCurrentConfig(gem_config);
     gemDigit->SetOnlyPrimary(kFALSE);

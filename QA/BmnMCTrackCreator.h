@@ -60,6 +60,16 @@ public:
      */
     Bool_t TrackExists(Int_t mcId) const {
         return (fBmnMCTracks.count(mcId) > 0) ? kTRUE : kFALSE;
+        //        if (fBmnMCTracks.count(mcId) == 0) return kFALSE;
+        //        Int_t NPointsSil = fBmnMCTracks.find(mcId)->second.GetNofPoints(kSILICON);
+        //        Int_t NPointsGem = fBmnMCTracks.find(mcId)->second.GetNofPoints(kGEM);
+        //        if (NPointsSil > fSilDetector->GetNStations()) return kFALSE;
+        //        if (NPointsGem > fGemDetector->GetNStations()) return kFALSE;
+        //        //if (NPointsSil + NPointsGem < 4) return kFALSE;
+        //        return kTRUE;
+        ////        printf("NPointsSil = %d     isNSilPointsCorrect = %d\n", NPointsSil, isNSilPointsCorrect);
+        ////        printf("NPointsGem = %d     isNGemPointsCorrect = %d\n", NPointsGem, isNGemPointsCorrect);
+
     }
 
     /**
@@ -79,7 +89,7 @@ public:
     Int_t GetNofTracks() const {
         return fBmnMCTracks.size();
     }
-    
+
 private:
 
     /**
@@ -116,41 +126,23 @@ private:
             int refId,
             int stationId);
 
-    /**
-     * \brief Fill maps for MC points to station id.
-     */
-    void FillStationMaps();
-
     void FairMCPointCoordinatesAndMomentumToBmnMCPoint(// for DCH1, DCH2, TOF1 points
             const FairMCPoint* fairPoint,
             BmnMCPoint* bmnPoint);
 
-    void GemPointCoordinatesAndMomentumToBmnMCPoint(
-            const CbmStsPoint* gemPoint,
-            BmnMCPoint* bmnPoint);
-
     TClonesArray* fMCTracks;
-    TClonesArray* fMvdPoints;
     TClonesArray* fSilPoints;
+    TClonesArray* fSsdPoints;
     TClonesArray* fGemPoints;
-    TClonesArray* fTof1Points;
-    TClonesArray* fDchPoints;
-    TClonesArray* fTof2Points;
+    
+    Int_t fNSiliconStations;
 
-    // Stores created CbmLitMCTrack objects.
+    // Stores created BmnMCTrack objects.
     // std::map<MC track index, BmnMCTrack object>.
     std::map<Int_t, BmnMCTrack> fBmnMCTracks;
 
-    // Map <MC point index, station index>
-    //   std::map<int, int>fMvdStationsMap; // for MVD
-    std::map<Int_t, Int_t>fGemStationsMap; // for GEM
-    
     BmnGemStripStationSet* fGemDetector;
     BmnSiliconStationSet* fSilDetector;
-    
-    CbmGeoStsPar* fStsGeoPar; // Geometry parameter container
-    CbmStsDigiPar* fStsDigiPar; // Digitisation parameter container
-    CbmStsDigiScheme* fStsDigiScheme; // Digitisation scheme
 };
 
 #endif /* BMNMCTRACKCREATOR_H_ */

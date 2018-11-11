@@ -160,7 +160,7 @@ BmnOnlineReco::BmnOnlineReco() {
             gem_config = BmnGemStripConfiguration::RunSpring2017;
             //gem_config = BmnGemStripConfiguration::RunSpring2018;
     }
-    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(fPeriodID, isExp);
+    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(fPeriodID, fRunID, isExp);
     gemHM->SetCurrentConfig(gem_config);
     gemHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(gemHM);
@@ -168,15 +168,6 @@ BmnOnlineReco::BmnOnlineReco() {
     // ====================================================================== //
     // ===                           ALIGNMENT (GEM + SI)                 === //
     // ====================================================================== //
-    if (isExp) {
-        if (alignCorrFileName == "default") {
-            gemHM->SetAlignmentCorrectionsFileName(fRunID);
-            //            siliconHM->SetAlignmentCorrectionsFileName(run_period, run_number);
-        } else {
-            gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
-            //            siliconHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
-        }
-    }
 
     //    // ====================================================================== //
     //    // ===                           TOF1 hit finder                      === //

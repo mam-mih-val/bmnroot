@@ -9,6 +9,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/silicon
+ ${CMAKE_SOURCE_DIR}/ssd
  ${CMAKE_SOURCE_DIR}/sts
  ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/QA
@@ -33,9 +34,11 @@ link_directories(${LINK_DIRECTORIES})
 # List of source files
 set(SRCS
 BmnTrackingQa.cxx
+BmnLambdaQa.cxx
 BmnClusteringQa.cxx
 BmnUtils.cxx
 BmnTrackingQaReport.cxx
+BmnLambdaQaReport.cxx
 BmnClusteringQaReport.cxx
 BmnMCTrack.cxx
 BmnMCTrackCreator.cxx

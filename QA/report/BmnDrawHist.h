@@ -17,6 +17,7 @@
 
 #include <string>
 #include <vector>
+#include <fstream>
 using std::string;
 using std::vector;
 
@@ -26,6 +27,7 @@ using std::vector;
  * \author Andrey Lebedev <andrey.lebedev@gsi.de>
  * \date 2012
  */
+
 class BmnDrawingOptions {
 public:
 
@@ -49,8 +51,8 @@ public:
 
     static Int_t MarkerStyle(Int_t markerIndex) {
         static const Int_t nofMarkers = 4;
-//        static Int_t markers[nofMarkers] = {kOpenCircle, kOpenSquare, kOpenTriangleUp, kOpenDiamond,
-//            kFullCircle, kFullSquare, kFullTriangleUp};
+        //        static Int_t markers[nofMarkers] = {kOpenCircle, kOpenSquare, kOpenTriangleUp, kOpenDiamond,
+        //            kFullCircle, kFullSquare, kFullTriangleUp};
         static Int_t markers[nofMarkers] = {kFullCircle, kFullSquare, kFullTriangleUp, kFullDiamond};
         return (markerIndex < nofMarkers) ? markers[markerIndex] : markerIndex;
     }
@@ -142,7 +144,7 @@ void DrawH1(
         Double_t y1 = 0.99,
         Double_t x2 = 0.55,
         Double_t y2 = 0.75,
-        const string& drawOpt = "", Bool_t drawMeanLine = kTRUE);
+        const string& drawOpt = "", Bool_t drawMeanLine = kFALSE, Bool_t outputMeanValue = kFALSE);
 
 /**
  * \fn DrawGraph

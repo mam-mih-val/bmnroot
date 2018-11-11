@@ -13,29 +13,36 @@
 #include "TF1.h"
 #include "TProfile.h"
 #include "TCanvas.h"
+#include "BmnGemStripStationSet_RunSpring2017.h"
+#include "BmnGemStripStation.h"
+#include "TPaveStats.h"
+
 #include <vector>
 using namespace std;
 using lit::NumberToString;
 using lit::Split;
 using lit::FindAndReplace;
 
-string DefaultHitEfficiencyLabelFormatter(const string& histName, const BmnHistManager* hm) {
-    Double_t efficiency = (histName.find("_Eff_") != string::npos) ?
-            BmnClusteringQaReport::CalcEfficiency(hm->H1(FindAndReplace(histName, "_Eff_", "_Rec_")), hm->H1(FindAndReplace(histName, "_Eff_", "_Acc_")), 100.) :
-            BmnClusteringQaReport::CalcEfficiency(hm->H1(FindAndReplace(histName, "_CloneProb_", "_Clone_")), hm->H1(FindAndReplace(histName, "_CloneProb_", "_Acc_")), 100.);
-    vector<string> split = Split(histName, '_');
-    return split[1] + ":" + split[3] + "(" + NumberToString<Double_t > (efficiency, 1) + ")";
-}
+//string DefaultHitEfficiencyLabelFormatter(const string& histName, const BmnHistManager* hm) {
+//    Double_t efficiency = (histName.find("_Eff_") != string::npos) ?
+//            BmnClusteringQaReport::CalcEfficiency(hm->H1(FindAndReplace(histName, "_Eff_", "_Rec_")), hm->H1(FindAndReplace(histName, "_Eff_", "_Acc_")), 100.) :
+//            BmnClusteringQaReport::CalcEfficiency(hm->H1(FindAndReplace(histName, "_CloneProb_", "_Clone_")), hm->H1(FindAndReplace(histName, "_CloneProb_", "_Acc_")), 100.);
+//    vector<string> split = Split(histName, '_');
+//    return split[1] + ":" + split[3] + "(" + NumberToString<Double_t > (efficiency, 1) + ")";
+//}
+//
+//string DefaultAccAndRecLabelFormatter(const string& histName, const BmnHistManager* hm) {
+//    Int_t nofEvents = hm->H1("_hen_EventNo_ClusteringQa")->GetEntries();
+//    vector<string> split = Split(histName, '_');
+//    return split[3] + " (" + NumberToString<Double_t > (hm->H1(histName)->GetEntries() / nofEvents, 1) + ")";
+//}
 
-string DefaultAccAndRecLabelFormatter(const string& histName, const BmnHistManager* hm) {
-    Int_t nofEvents = hm->H1("_hen_EventNo_ClusteringQa")->GetEntries();
-    vector<string> split = Split(histName, '_');
-    return split[3] + " (" + NumberToString<Double_t > (hm->H1(histName)->GetEntries() / nofEvents, 1) + ")";
-}
-
-BmnClusteringQaReport::BmnClusteringQaReport() :
-BmnSimulationReport() {
-    SetReportName("clustering_qa");
+BmnClusteringQaReport::BmnClusteringQaReport(Int_t nOfStationsGEM, Int_t nOfStationsSil) :
+BmnSimulationReport(),
+nStationsGEM(nOfStationsGEM),        
+nStationsSil(nOfStationsSil),    
+fGemDetector(NULL) {
+    SetReportName("clustering_qa");  
 }
 
 BmnClusteringQaReport::~BmnClusteringQaReport() {
@@ -47,7 +54,6 @@ void BmnClusteringQaReport::Create() {
     Out() << R()->DocumentBegin();
     Out() << R()->Title(0, GetTitle());
     Out() << PrintEventInfo();
-    //    Out() << PrintNofObjects();
     PrintCanvases();
     Out() << R()->DocumentEnd();
 }
@@ -74,68 +80,179 @@ void BmnClusteringQaReport::DrawEventsInfo(const string& canvasName) {
 }
 
 void BmnClusteringQaReport::DrawResXbyStation(const string& canvasName) {
-    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1600, 900);
-    canvas->Divide(4, 3);
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1600, 300*((nStationsGEM+nStationsSil)/4+1));
+    canvas->Divide(4, ((nStationsGEM+nStationsSil)/4+1));
     canvas->SetGrid();
-    for (Int_t i = 0; i < 12; ++i) {
+    for (Int_t i = 0; i < nStationsGEM; ++i) {
         canvas->cd(i + 1);
         TString resXname = Form("ResX_%dst_gem", i);
-        DrawH1(HM()->H1(resXname.Data()), kLinear, kLinear);
+        DrawH1(HM()->H1(resXname.Data()), kLinear, kLog);
+    }
+    for (Int_t i = 0; i < nStationsSil; ++i) {
+        canvas->cd(i + 1+nStationsGEM);
+        TString resXname = Form("ResX_%dst_sil", i);
+        DrawH1(HM()->H1(resXname.Data()), kLinear, kLog);
     }
 }
 
 void BmnClusteringQaReport::DrawResYbyStation(const string& canvasName) {
-    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1600, 900);
-    canvas->Divide(4, 3);
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1600, 300*((nStationsGEM+nStationsSil)/4+1));
+    canvas->Divide(4, ((nStationsGEM+nStationsSil)/4)+1);
     canvas->SetGrid();
-    for (Int_t i = 0; i < 12; ++i) {
+    for (Int_t i = 0; i < nStationsGEM; ++i) {
         canvas->cd(i + 1);
         TString resYname = Form("ResY_%dst_gem", i);
-        DrawH1(HM()->H1(resYname.Data()), kLinear, kLinear);
+        DrawH1(HM()->H1(resYname.Data()), kLinear, kLog);
     }
+    for (Int_t i = 0; i < nStationsSil; ++i) {
+        canvas->cd(i + 1+nStationsGEM);
+        TString resYname = Form("ResY_%dst_sil", i);
+        DrawH1(HM()->H1(resYname.Data()), kLinear, kLog);
+    }
+    
 }
 
 void BmnClusteringQaReport::DrawSimXRecXbyStation(const string& canvasName) {
-    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1600, 900);
-    canvas->Divide(4, 3);
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1600, 300*((nStationsGEM+nStationsSil)/4+1));
+    canvas->Divide(4, (nStationsGEM/4+1+nStationsSil/4));
     canvas->SetGrid();
-    for (Int_t i = 0; i < 12; ++i) {
+    for (Int_t i = 0; i < nStationsGEM; ++i) {
         canvas->cd(i + 1);
         TString pntXhitXname = Form("PntX_vs_HitX_%dst_gem", i);
+        DrawH2(HM()->H2(pntXhitXname.Data()), kLinear, kLinear, kLinear, "colz");
+    }
+    for (Int_t i = 0; i < nStationsSil; ++i) {
+        canvas->cd(i + 1+nStationsGEM);
+        TString pntXhitXname = Form("PntX_vs_HitX_%dst_sil", i);
         DrawH2(HM()->H2(pntXhitXname.Data()), kLinear, kLinear, kLinear, "colz");
     }
 }
 
 void BmnClusteringQaReport::DrawSimYRecYbyStation(const string& canvasName) {
-    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1600, 900);
-    canvas->Divide(4, 3);
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1600, 300*((nStationsGEM+nStationsSil)/4+1));
+    canvas->Divide(4, ((nStationsGEM+nStationsSil)/4+1));
     canvas->SetGrid();
-    for (Int_t i = 0; i < 12; ++i) {
+    for (Int_t i = 0; i < nStationsGEM; ++i) {
         canvas->cd(i + 1);
         TString pntYhitYname = Form("PntY_vs_HitY_%dst_gem", i);
+        DrawH2(HM()->H2(pntYhitYname.Data()), kLinear, kLinear, kLinear, "colz");
+    }
+    for (Int_t i = 0; i < nStationsSil; ++i) {
+        canvas->cd(i + 1+nStationsGEM);
+        TString pntYhitYname = Form("PntY_vs_HitY_%dst_sil", i);
         DrawH2(HM()->H2(pntYhitYname.Data()), kLinear, kLinear, kLinear, "colz");
     }
 }
 
 void BmnClusteringQaReport::DrawOccupancyByStation(const string& canvasName) {
-    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1600, 900);
-    canvas->Divide(4, 3);
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1600, 300*((nStationsGEM+nStationsSil)/4+1));
+    canvas->Divide(4, ((nStationsGEM+nStationsSil)/4+1));
     canvas->SetGrid();
     const Int_t nofEvents = HM()->H1("hen_EventNo_ClusteringQa")->GetEntries();
     const Float_t xWidth = HM()->H2("Occupancy_0st_gem")->GetXaxis()->GetBinWidth(1);
     const Float_t yWidth = HM()->H2("Occupancy_0st_gem")->GetYaxis()->GetBinWidth(1);
     const Float_t square = xWidth * yWidth; //cm^2
 
-    for (Int_t i = 0; i < 12; ++i) {
+    for (Int_t i = 0; i < nStationsGEM; ++i) {
         canvas->cd(i + 1);
         TString occupname = Form("Occupancy_%dst_gem", i);
         HM()->H2(occupname.Data())->Sumw2();
         HM()->H2(occupname.Data())->Scale(1. / nofEvents / square);
-        //const Float_t I = HM()->H2(occupname.Data())->Integral();
-//        HM()->H2(occupname.Data())->Scale(1. / I * 100.0);
+        DrawH2(HM()->H2(occupname.Data()), kLinear, kLinear, kLinear, "colz");
+    }
+    
+    for (Int_t i = 0; i < nStationsSil; ++i) {
+        canvas->cd(i + 1 + nStationsGEM);
+        TString occupname = Form("Occupancy_%dst_sil", i);
+        HM()->H2(occupname.Data())->Sumw2();
+        HM()->H2(occupname.Data())->Scale(1. / nofEvents / square);
         DrawH2(HM()->H2(occupname.Data()), kLinear, kLinear, kLinear, "colz");
     }
 }
+
+void BmnClusteringQaReport::DrawPullXbyStation(const string& canvasName) {
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1600, 300*((nStationsGEM+nStationsSil)/4+1));
+    canvas->Divide(4, ((nStationsGEM+nStationsSil)/4+1));
+    canvas->SetGrid();
+    for (Int_t i = 0; i < nStationsGEM; ++i) {
+        canvas->cd(i + 1);
+        TString pullXname = Form("PullX_%dst_gem", i);
+        DrawH1(HM()->H1(pullXname.Data()), kLinear, kLinear,"", kBlue);
+        
+        HM()->H1(pullXname)->Fit("gaus", "RRQW", "", -5, 5);
+        TF1 *fit = HM()->H1(pullXname)->GetFunction("gaus");
+              
+        Float_t xMax = HM()->H1(pullXname)->GetXaxis()->GetXmax();
+        Float_t yMax = HM()->H1(pullXname)->GetMaximum();
+        TPaveStats* ps = new TPaveStats(xMax / 1.5, yMax / 5, xMax, yMax);
+        ps->SetFillColor(0);
+        ps->SetShadowColor(0);
+        ps->AddText(Form("#mu = %2.2f", fit->GetParameter(1)));
+        ps->AddText(Form("#sigma = %2.2f", fit->GetParameter(2)));
+        ps->Draw();
+    }
+    
+    for (Int_t i = 0; i < nStationsSil; ++i) {
+        canvas->cd(i + 1 + nStationsGEM);
+        TString pullXname = Form("PullX_%dst_sil", i);
+        DrawH1(HM()->H1(pullXname.Data()), kLinear, kLinear,"", kBlue);
+        
+        HM()->H1(pullXname)->Fit("gaus", "RRQW", "", -5, 5);
+        TF1 *fit = HM()->H1(pullXname)->GetFunction("gaus");
+              
+        Float_t xMax = HM()->H1(pullXname)->GetXaxis()->GetXmax();
+        Float_t yMax = HM()->H1(pullXname)->GetMaximum();
+        TPaveStats* ps = new TPaveStats(xMax / 1.5, yMax / 5, xMax, yMax);
+        ps->SetFillColor(0);
+        ps->SetShadowColor(0);
+        ps->AddText(Form("#mu = %2.2f", fit->GetParameter(1)));
+        ps->AddText(Form("#sigma = %2.2f", fit->GetParameter(2)));
+        ps->Draw();
+            
+    }
+}
+
+void BmnClusteringQaReport::DrawPullYbyStation(const string& canvasName) {
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1600, 300*((nStationsGEM+nStationsSil)/4+1));
+    canvas->Divide(4, ((nStationsGEM+nStationsSil)/4+1));
+    canvas->SetGrid();
+    for (Int_t i = 0; i < nStationsGEM; ++i) {
+        canvas->cd(i + 1);
+        TString pullYname = Form("PullY_%dst_gem", i);
+        DrawH1(HM()->H1(pullYname.Data()), kLinear, kLinear,"", kBlue);
+        
+        HM()->H1(pullYname)->Fit("gaus", "RRQW", "", -5, 5);
+        TF1 *fit = HM()->H1(pullYname)->GetFunction("gaus");
+              
+        Float_t xMax = HM()->H1(pullYname)->GetXaxis()->GetXmax();
+        Float_t yMax = HM()->H1(pullYname)->GetMaximum();
+        TPaveStats* ps = new TPaveStats(xMax / 1.5, yMax / 5, xMax, yMax);
+        ps->SetFillColor(0);
+        ps->SetShadowColor(0);
+        ps->AddText(Form("#mu = %2.2f", fit->GetParameter(1)));
+        ps->AddText(Form("#sigma = %2.2f", fit->GetParameter(2)));
+        ps->Draw();
+    }
+    
+    for (Int_t i = 0; i < nStationsSil; ++i) {
+        canvas->cd(i + 1 + nStationsGEM);
+        TString pullYname = Form("PullY_%dst_sil", i);
+        DrawH1(HM()->H1(pullYname.Data()), kLinear, kLinear,"", kBlue);
+        
+        HM()->H1(pullYname)->Fit("gaus", "RRQW", "", -5, 5);
+        TF1 *fit = HM()->H1(pullYname)->GetFunction("gaus");
+              
+        Float_t xMax = HM()->H1(pullYname)->GetXaxis()->GetXmax();
+        Float_t yMax = HM()->H1(pullYname)->GetMaximum();
+        TPaveStats* ps = new TPaveStats(xMax / 1.5, yMax / 5, xMax, yMax);
+        ps->SetFillColor(0);
+        ps->SetShadowColor(0);
+        ps->AddText(Form("#mu = %2.2f", fit->GetParameter(1)));
+        ps->AddText(Form("#sigma = %2.2f", fit->GetParameter(2)));
+        ps->Draw();
+    }
+}
+
 
 string BmnClusteringQaReport::PrintNofObjects() const {
 //    vector<TH1*> histos = HM()->H1Vector("_hno_NofObjects_.+_Event");
@@ -152,17 +269,18 @@ string BmnClusteringQaReport::PrintNofObjects() const {
 void BmnClusteringQaReport::Draw() {
 
     DrawEventsInfo("Distribution of impact parameter and multiplicity");
-//    ScaleAndShrinkHistograms();
     CalculateEfficiencyHistos("Acc", "Rec", "Eff");
     CalculateEfficiencyHistos("Acc", "Clone", "CloneProb");
 
     DrawOccupancyByStation("Occupancy for each station");
     DrawResXbyStation("X-residuals for each station");
     DrawResYbyStation("Y-residuals for each station");
+    DrawPullXbyStation("X-pulls for each station");
+    DrawPullYbyStation("Y-pulls for each station");
     DrawSimXRecXbyStation("Reconstructed X vs. Simulated X for each station");
     DrawSimYRecYbyStation("Reconstructed Y vs. Simulated Y for each station");
-
-
+        
+    
     DrawNofObjectsHistograms("Gem", "Event");
     //    DrawNofObjectsHistograms("Tof1", "Event");
     //    DrawNofObjectsHistograms("Dch1", "Event");
@@ -177,8 +295,8 @@ void BmnClusteringQaReport::Draw() {
     //    DrawH1ByPattern("hpa_.*(Digi|Cluster|Hit)_NofPointsIn(Digi|Cluster|Hit)_H1");
     //    DrawH2ByPattern("hpa_.*(Digi|Cluster|Hit)_NofPointsIn(Digi|Cluster|Hit)_H2", kLinear, kLinear, kLinear, "colz");
 
-    DrawH1ByPattern("_hpa_.*Hit_Sigma.*_H1");
-    DrawH2ByPattern("_hpa_.*Hit_Sigma.*_H2", kLinear, kLinear, kLinear, "colz");
+//    DrawH1ByPattern("_hpa_.*Hit_Sigma.*_H1");
+//    DrawH2ByPattern("_hpa_.*Hit_Sigma.*_H2", kLinear, kLinear, kLinear, "colz");
 
     DrawResidualsAndPulls("Gem");
     //    DrawResidualsAndPulls("Tof1");
@@ -186,7 +304,7 @@ void BmnClusteringQaReport::Draw() {
     //    DrawResidualsAndPulls("Dch2");
     //    DrawResidualsAndPulls("Tof2");
 
-    DrawH1ByPattern("_hhe_Gem_All_(Eff|CloneProb)_Station", DefaultHitEfficiencyLabelFormatter);
+//    DrawH1ByPattern("_hhe_Gem_All_(Eff|CloneProb)_Station", DefaultHitEfficiencyLabelFormatter);
     //    DrawH1ByPattern("_hhe_Tof1_All_(Eff|CloneProb)_Station", DefaultHitEfficiencyLabelFormatter);
     //    DrawH1ByPattern("_hhe_Dch1_All_(Eff|CloneProb)_Station", DefaultHitEfficiencyLabelFormatter);
     //    DrawH1ByPattern("_hhe_Dch2_All_(Eff|CloneProb)_Station", DefaultHitEfficiencyLabelFormatter);
@@ -261,7 +379,5 @@ void BmnClusteringQaReport::DivideHistos(TH1* histo1, TH1* histo2, TH1* histo3, 
 }
 
 void BmnClusteringQaReport::CalculateEfficiencyHistos(const string& acc, const string& rec, const string& eff) {}
-
-
 
 ClassImp(BmnClusteringQaReport)

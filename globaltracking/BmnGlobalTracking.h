@@ -121,7 +121,7 @@ private:
     void SelectTracksForTofMerging();
 
     // INPUT ARRAYS
-    TClonesArray* fGemTracks;
+    TClonesArray* fInnerTracks;
     TClonesArray* fGemVertex;
     TClonesArray* fGemHits;
     TClonesArray* fSilHits;

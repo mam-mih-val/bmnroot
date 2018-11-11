@@ -11,6 +11,8 @@
 
 #include "FairTask.h"
 #include "BmnDetectorSetup.h"
+#include "BmnGemStripStationSet.h"
+#include "BmnSiliconStationSet.h"
 
 class BmnHistManager;
 class BmnTrackMatch;
@@ -68,10 +70,6 @@ public:
         fQuota = quota;
     }
 
-    void SetUseConsecutivePointsInSts(Bool_t useConsecutivePointsInSts) {
-        fUseConsecutivePointsInGem = useConsecutivePointsInSts;
-    }
-
     void SetOutputDir(const std::string& dir) {
         fOutputDir = dir;
     }
@@ -103,10 +101,6 @@ public:
         fThetaRangeBins = nofBins;
     }
 
-    void SetTrackCategories(const vector<string>& trackCategories) {
-        fTrackCategories = trackCategories;
-    }
-
     void SetOnlyPrimes(const Bool_t prime) {
         fPrimes = prime;
     }
@@ -114,6 +108,15 @@ public:
     Bool_t GetOnlyPrimes() const {
         return fPrimes;
     }
+    
+    void SetInnerTrackerSetup(map<DetectorId, Bool_t> setup) {
+        fInnerTrackerSetup = setup;
+    };
+    
+    void SetDetectorPresence(DetectorId det, Bool_t use) {
+        fInnerTrackerSetup[det] = use;
+    };
+
 
 private:
     /**
@@ -147,9 +150,8 @@ private:
 
 
     void CreateHistograms();
-    void ProcessGem();
     void ProcessGlobal();
-
+    
     TString fOutName;
 
     BmnHistManager* fHM; // Histogram manager
@@ -165,7 +167,6 @@ private:
     Double_t fEtaCut; // threshold for pseudorapidity (cat for spectators)
     Double_t fPCut; // threshold for momentum
 
-    Bool_t fUseConsecutivePointsInGem; // Use consecutive MC points for STS normalization
     Bool_t fPrimes; //calculate efficiency only for primaries or for all particles
 
     // Minimal number of hits in track to be considered as accepted.
@@ -194,34 +195,25 @@ private:
     Int_t fThetaRangeBins; // Number of bins for efficiency vs. polar angle histogram
     
     UInt_t fNHitsCut; //cut to exclude overflowed events 
+    
+    map<DetectorId, Bool_t> fInnerTrackerSetup;
+    Int_t fNStations;
 
     // Pointers to data arrays
     TClonesArray* fMCTracks; // CbmMCTrack array
     TClonesArray* fGlobalTracks; // BmnGlobalTrack array
     TClonesArray* fGlobalTrackMatches; // BmnGemTrackMatch array
-    TClonesArray* fGemTracks; // BmnGemTrack array
-    TClonesArray* fGemMatches; // BmnGemTrackMatch array
-    TClonesArray* fGemHitMatches;
-    TClonesArray* fSilHitMatches;
-
-    TClonesArray* fGemPoints;
     TClonesArray* fGemHits;
-    TClonesArray* fSilPoints;
     TClonesArray* fSilHits;
-    TClonesArray* fTof1Points;
-    TClonesArray* fTof1Hits;
-    TClonesArray* fTof2Points;
-    TClonesArray* fTof2Hits;
-    TClonesArray* fDchPoints;
-    TClonesArray* fDchHits;
+    TClonesArray* fSsdHits;
     
     TClonesArray* fVertex;
     TString fConfigGem;
     TString fConfigSil;
+    BmnGemStripStationSet* fGemDetector;
+    BmnSiliconStationSet* fSilDetector;
     
     Short_t fChargeCut; //(-1, 0, +1) do QA for negative, all or positive particles
-
-    vector<string> fTrackCategories; // Vector of track category names
 
     BmnTrackingQa(const BmnTrackingQa&);
     BmnTrackingQa& operator=(const BmnTrackingQa&);

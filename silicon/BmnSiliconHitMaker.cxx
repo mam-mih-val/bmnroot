@@ -23,8 +23,8 @@ BmnSiliconHitMaker::BmnSiliconHitMaker()
     StationSet = NULL;
 }
 
-BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Bool_t isExp)
-: fHitMatching(kTRUE), fRunId(-1), fPeriodId(run_period) {
+BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, TString alignFile)
+: fHitMatching(kTRUE) {
 
     fIsExp = isExp;
     fInputPointsBranchName = "SiliconPoint";
@@ -40,10 +40,14 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Bool_t isExp)
 
     fCurrentConfig = BmnSiliconConfiguration::None;
     StationSet = NULL;
+
+    if (isExp)
+        fAlign = new BmnInnTrackerAlign(run_period, run_number, alignFile);
 }
 
 BmnSiliconHitMaker::~BmnSiliconHitMaker() {
-
+    if (fIsExp)
+        delete fAlign;
 }
 
 InitStatus BmnSiliconHitMaker::Init() {
@@ -91,40 +95,13 @@ InitStatus BmnSiliconHitMaker::Init() {
             if (fVerbose) cout << "   Current SILICON Configuration : RunSpring2018" << "\n";
             break;
 
-        case BmnSiliconConfiguration::RunSRCSpring2018 :
+        case BmnSiliconConfiguration::RunSRCSpring2018:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSRCSpring2018.xml");
             if (fVerbose) cout << "   Current SILICON Configuration : RunSRCSpring2018" << "\n";
             break;
 
         default:
             StationSet = NULL;
-    }
-
-    const Int_t nStat = StationSet->GetNStations();
-    const Int_t nParams = 3;
-
-    corr = new Double_t**[nStat];
-    for (Int_t iStat = 0; iStat < nStat; iStat++) {
-        Int_t nModul = StationSet->GetSiliconStation(iStat)->GetNModules();
-        corr[iStat] = new Double_t*[nModul];
-        for (Int_t iMod = 0; iMod < nModul; iMod++) {
-            corr[iStat][iMod] = new Double_t[nParams];
-            for (Int_t iPar = 0; iPar < nParams; iPar++) {
-                corr[iStat][iMod][iPar] = 0.;
-            }
-        }
-    }
-
-    if (fAlignCorrFileName != "")
-        ReadAlignCorrFile(fAlignCorrFileName, corr);
-
-    cout << "SI-alignment corrections in use:" << endl;
-    for (Int_t iStat = 0; iStat != nStat; iStat++) {
-        Int_t nModul = StationSet->GetSiliconStation(iStat)->GetNModules();
-        for (Int_t iMod = 0; iMod != nModul; iMod++) {
-            for (Int_t iPar = 0; iPar < nParams; iPar++)
-                cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << TString::Format("% 7.4f", corr[iStat][iMod][iPar]) << endl;
-        }
     }
 
     //--------------------------------------------------------------------------
@@ -210,7 +187,7 @@ void BmnSiliconHitMaker::ProcessDigits() {
         for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             module = station->GetModule(iModule);
             Double_t z = module->GetZPositionRegistered();
-            z += corr[iStation][iModule][2]; //alignment shift
+            z += fIsExp ? fAlign->GetSiliconCorrs()[iStation][iModule][2] : 0.; //alignment shift
 
             Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
 
@@ -246,8 +223,11 @@ void BmnSiliconHitMaker::ProcessDigits() {
 
                 //Add hit ------------------------------------------------------
                 x *= -1; // invert to global X
-                x += corr[iStation][iModule][0];
-                y += corr[iStation][iModule][1];
+                Double_t deltaX = fIsExp ? fAlign->GetSiliconCorrs()[iStation][iModule][0] : 0.;
+                Double_t deltaY = fIsExp ? fAlign->GetSiliconCorrs()[iStation][iModule][1] : 0.;
+
+                x += deltaX;
+                y += deltaY;
 
                 new ((*fBmnSiliconHitsArray)[fBmnSiliconHitsArray->GetEntriesFast()])
                         BmnSiliconHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
@@ -277,40 +257,8 @@ void BmnSiliconHitMaker::ProcessDigits() {
 }
 
 void BmnSiliconHitMaker::Finish() {
-    if (StationSet) {
-        for (Int_t iStat = 0; iStat < StationSet->GetNStations(); iStat++) {
-            Int_t nModul = StationSet->GetSiliconStation(iStat)->GetNModules();
-            for (Int_t iMod = 0; iMod < nModul; iMod++)
-                delete [] corr[iStat][iMod];
-            delete [] corr[iStat];
-        }
-        delete [] corr;
-        delete StationSet;
-        StationSet = NULL;
-    }
+    delete StationSet;
     cout << "Work time of the Silicon hit maker: " << workTime << endl;
-}
-
-void BmnSiliconHitMaker::ReadAlignCorrFile(TString fname, Double_t*** Corr) {
-    TString branchName = "BmnSiliconAlignCorrections";
-
-    TFile* f = new TFile(fname.Data());
-    TTree* t = (TTree*) f->Get("cbmsim");
-    TClonesArray* corrs = NULL;
-    t->SetBranchAddress(branchName.Data(), &corrs);
-
-    for (Int_t iEntry = 0; iEntry < t->GetEntries(); iEntry++) {
-        t->GetEntry(iEntry);
-        for (Int_t iCorr = 0; iCorr < corrs->GetEntriesFast(); iCorr++) {
-            BmnSiliconAlignCorrections* align = (BmnSiliconAlignCorrections*) corrs->UncheckedAt(iCorr);
-            Int_t iStat = align->GetStation();
-            Int_t iMod = align->GetModule();
-            Corr[iStat][iMod][0] = align->GetCorrections().X();
-            Corr[iStat][iMod][1] = align->GetCorrections().Y();
-            Corr[iStat][iMod][2] = align->GetCorrections().Z();
-        }
-    }
-    delete f;
 }
 
 ClassImp(BmnSiliconHitMaker)

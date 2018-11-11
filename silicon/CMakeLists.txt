@@ -37,8 +37,8 @@ BmnSiliconStationSet.cxx
 BmnSiliconDigitizer.cxx
 BmnSiliconHitMaker.cxx
 BmnSiliconDigit.cxx
-BmnSiliconHit.cxx
 BmnSiliconTrack.cxx
+BmnSiliconHitProducer.cxx
 )
 
 Set(HEADERS)

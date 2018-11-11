@@ -16,8 +16,6 @@
 #include "BmnGlobalTrack.h"
 #include "BmnGemTrack.h"
 #include "BmnGemStripHit.h"
-#include "CbmTofHit.h"
-#include "BmnDchHit.h"
 #include "FairMCPoint.h"
 #include "FairLogger.h"
 #include "TClonesArray.h"
@@ -28,167 +26,55 @@ class TClonesArray;
 
 class BmnMatchRecoToMC : public FairTask {
 public:
-    /**
-     * \brief Constructor.
-     */
     BmnMatchRecoToMC();
-
-    /**
-     * \brief Destructor.
-     */
     virtual ~BmnMatchRecoToMC();
 
-    /**
-     * \brief Derived from FairTask.
-     */
     virtual InitStatus Init();
-
-    /**
-     * \brief Derived from FairTask.
-     */
-    virtual void Exec(
-            Option_t* opt);
-
-    /**
-     * \brief Derived from FairTask.
-     */
+    virtual void Exec(Option_t* opt);
     virtual void Finish();
 
 private:
-    /**
-     * \brief Read and create data branches.
-     */
+    
     void ReadAndCreateDataBranches();
 
-    //    void MatchClusters(
-    //          const TClonesArray* digiMatches,
-    //          const TClonesArray* clusters,
-    //          TClonesArray* clusterMatches);
-    //
-    //    void MatchHits(
-    //          const TClonesArray* matches,
-    //          const TClonesArray* hits,
-    //          TClonesArray* hitMatches);
-    //
-    //    void MatchHitsGem(
-    //          const TClonesArray* matches,
-    //          const TClonesArray* hits,
-    //          TClonesArray* hitMatches);
-    //
-    //    void MatchHitsToPoints(
-    //          const TClonesArray* points,
-    //          const TClonesArray* hits,
-    //          TClonesArray* hitMatches);
-    
     BmnStatus LinkToMC(const TClonesArray* hitMatchArr, const TClonesArray* points, Int_t id, BmnTrackMatch* trackMatch);
-    void MatchHitsToPoints(
-            const TClonesArray* points,
-            const TClonesArray* hits,
-            TClonesArray* hitMatches);
 
-    void MatchTofHitsToPoints(
-            const TClonesArray* points,
-            const TClonesArray* hits,
-            TClonesArray* hitMatches);
-
-    void MatchDchHitsToPoints(
-            const TClonesArray* points,
-            const TClonesArray* hits,
-            TClonesArray* hitMatches);
-
-    void MatchGemHitsToDigits(
-            const TClonesArray* digitMatches,
-            const TClonesArray* hits,
-            TClonesArray* hitMatches);
-
-    void MatchGemTracks(
-            const TClonesArray* hitMatches,
-            const TClonesArray* points,
-            const TClonesArray* tracks,
-            TClonesArray* trackMatches);
-    
     void MatchGlobalTracks(
             const TClonesArray* gemHitMatches,
             const TClonesArray* silHitMatches,
-            const TClonesArray* tof1HitMatches,
-            const TClonesArray* tof2HitMatches,
-            const TClonesArray* dch1HitMatches,
-            const TClonesArray* dch2HitMatches,
+            const TClonesArray* ssdHitMatches,
             const TClonesArray* gemPoints,
             const TClonesArray* silPoints,
-            const TClonesArray* tof1Points,
-            const TClonesArray* tof2Points,
-            const TClonesArray* dch1Points,
-            const TClonesArray* dch2Points,
+            const TClonesArray* ssdPoints,
             const TClonesArray* gemTracks,
+            const TClonesArray* silTracks,
+            const TClonesArray* ssdTracks,
             const TClonesArray* globTracks,
             TClonesArray* trackMatches);
 
-    // Pointers to data arrays
-   
     // GEM
     TClonesArray* fGemPoints; // BmnStsPoint array
-    TClonesArray* fGemDigits; // BmnStsDigi array
-    TClonesArray* fGemClusters; // BmnStsCluster array
-    TClonesArray* fGemHits; // BmnStsHit array
     TClonesArray* fGemTracks; // BmnStsTrack array
-    TClonesArray* fGemDigitMatches; // Output BmnMatch array
-    TClonesArray* fGemClusterMatches; // Output BmnMatch array
     TClonesArray* fGemHitMatches; // Output BmnMatch array
-    TClonesArray* fGemTrackMatches; // Output BmnTrackMatchNew array
 
     // SILICON
     TClonesArray* fSilPoints;
-    TClonesArray* fSilDigits;
-    TClonesArray* fSilClusters;
-    TClonesArray* fSilHits;
-    TClonesArray* fSilDigitMatches;
-    TClonesArray* fSilClusterMatches;
-    TClonesArray* fSilHitMatches;    
-    
-    // TOF1
-    TClonesArray* fTof1Points; // BmnStsPoint array
-    TClonesArray* fTof1Digis; // BmnStsDigi array
-    TClonesArray* fTof1Clusters; // BmnStsCluster array
-    TClonesArray* fTof1Hits; // BmnStsHit array
-    TClonesArray* fTof1DigiMatches; // Output BmnMatch array
-    TClonesArray* fTof1ClusterMatches; // Output BmnMatch array
-    TClonesArray* fTof1HitMatches; // Output BmnMatch array   
+    TClonesArray* fSilTracks;
+    TClonesArray* fSilHitMatches;
 
-    // TOF2
-    TClonesArray* fTof2Points; // BmnStsPoint array
-    TClonesArray* fTof2Digis; // BmnStsDigi array
-    TClonesArray* fTof2Clusters; // BmnStsCluster array
-    TClonesArray* fTof2Hits; // BmnStsHit array
-    TClonesArray* fTof2DigiMatches; // Output BmnMatch array
-    TClonesArray* fTof2ClusterMatches; // Output BmnMatch array
-    TClonesArray* fTof2HitMatches; // Output BmnMatch array   
-
-    // DCH1
-    TClonesArray* fDch1Points; // BmnStsPoint array
-    TClonesArray* fDch1Digis; // BmnStsDigi array
-    TClonesArray* fDch1Clusters; // BmnStsCluster array
-    TClonesArray* fDch1Hits; // BmnStsHit array
-    TClonesArray* fDch1DigiMatches; // Output BmnMatch array
-    TClonesArray* fDch1ClusterMatches; // Output BmnMatch array
-    TClonesArray* fDch1HitMatches; // Output BmnMatch array   
-
-    // DCH2
-    TClonesArray* fDch2Points; // BmnStsPoint array
-    TClonesArray* fDch2Digis; // BmnStsDigi array
-    TClonesArray* fDch2Clusters; // BmnStsCluster array
-    TClonesArray* fDch2Hits; // BmnStsHit array
-    TClonesArray* fDch2DigiMatches; // Output BmnMatch array
-    TClonesArray* fDch2ClusterMatches; // Output BmnMatch array
-    TClonesArray* fDch2HitMatches; // Output BmnMatch array  
+    // SSD
+    TClonesArray* fSsdPoints;
+    TClonesArray* fSsdTracks;
+    TClonesArray* fSsdHitMatches;
 
     // GLOBAL
     TClonesArray* fGlobalTracks;
-    TClonesArray* fTrackMatches;
-    TClonesArray* fMCTracks;
+    TClonesArray* fGlobalTrackMatches;
 
     BmnMatchRecoToMC(const BmnMatchRecoToMC&);
     BmnMatchRecoToMC& operator=(const BmnMatchRecoToMC&);
+
+    void CalculateTrackQuality(BmnGemTrack* locTr, BmnTrackMatch* trMatch, const TClonesArray* hitMatches, const TClonesArray* points, Int_t &trueCntr, Int_t &falseCntr);
 
     ClassDef(BmnMatchRecoToMC, 1);
 };

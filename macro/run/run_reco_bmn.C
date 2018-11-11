@@ -23,17 +23,19 @@
 //
 // If alignCorrFileName == '<path>/<file-name>', then the corrections are taken
 // from that file.
+
 #include <Rtypes.h>
+#include <TString.h>
+#include <TStopwatch.h>
+#include <TFile.h>
+#include <TKey.h>
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/bmnloadlibs.C"
 
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0,
-        Int_t nEvents = 10000,
-        TString alignCorrFileName = "default",
-        TString steerGemTrackingFile = "gemTrackingSteer.dat")
-{
+        Int_t nEvents = 1000) {
     // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
 
@@ -50,14 +52,14 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // -----   Reconstruction run   --------------------------------------------
     FairRunAna* fRunAna = new FairRunAna();
 
-    Bool_t isField = kTRUE; // flag for tracking (to use mag.field or not)
+    Bool_t isField = (inputFileName.Contains("noField")) ? kFALSE : kTRUE; // flag for tracking (to use mag.field or not)
     Bool_t isTarget = kTRUE;//kFALSE; // flag for tracking (run with target or not)
     Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
 
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
     // for experimental datasource
-    Int_t run_period=0, run_number;
+    Int_t run_period = 7, run_number = -1;
     Double_t fieldScale = 0.;
     TPRegexp run_prefix("^run[0-9]+-[0-9]+:");
     if (inputFileName.Contains(run_prefix)) {
@@ -160,7 +162,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
 
     TObjString tofDigiFile = "$VMCWORKDIR/parameters/tof_standard.geom.par";
     parFileNameList->Add(&tofDigiFile);
-
+    
     if (iVerbose == 0) { // print only progress bar in terminal in quiet mode
         BmnCounter* cntr = new BmnCounter(nEvents);
         fRunAna->AddTask(cntr);
@@ -191,7 +193,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
             si_config = BmnSiliconConfiguration::RunSpring2017;
             //si_config = BmnSiliconConfiguration::RunSpring2018;
     }
-    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, isExp);
+    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
     siliconHM->SetCurrentConfig(si_config);
     fRunAna->AddTask(siliconHM);
     // ====================================================================== //
@@ -212,24 +214,10 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
             gem_config = BmnGemStripConfiguration::RunSpring2017;
             //gem_config = BmnGemStripConfiguration::RunSpring2018;
     }
-    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, isExp);
+    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
     gemHM->SetCurrentConfig(gem_config);
     gemHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(gemHM);
-
-    // ====================================================================== //
-    // ===                           ALIGNMENT (GEM + SI)                 === //
-    // ====================================================================== //
-    if (isExp) {
-        if (alignCorrFileName == "default") {
-            gemHM->SetAlignmentCorrectionsFileName(run_number);
-            siliconHM->SetAlignmentCorrectionsFileName(run_number);
-        }
-        else {
-            gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
-            siliconHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
-        }
-    }
 
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //
@@ -249,11 +237,14 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp);
     fRunAna->AddTask(mwpcTF);
     // ====================================================================== //
-    // ===                           Tracking (GEM)                       === //
+    // ===                           Tracking (InnerTracker)              === //
     // ====================================================================== //
 
-    BmnGemTracking* gemTF = new BmnGemTracking(run_period, isField, isTarget, steerGemTrackingFile);
-    if (!isExp) gemTF->SetRoughVertex(TVector3(0.0, 0.0, 0.0)); //for MC case use correct vertex
+    BmnCellAutoTracking* gemTF = new BmnCellAutoTracking(run_period, isField, isTarget);
+    gemTF->SetDetectorPresence(kSILICON, kTRUE);
+    gemTF->SetDetectorPresence(kSSD, kFALSE);
+    gemTF->SetDetectorPresence(kGEM, kTRUE);   
+   // if (!isExp) gemTF->SetRoughVertex(TVector3(0.0, 0.0, 0.0)); //for MC case use correct vertex
     fRunAna->AddTask(gemTF);
 
     // ====================================================================== //
@@ -262,12 +253,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
     dchTF->SetTransferFunction("pol_coord00813.txt");
     fRunAna->AddTask(dchTF);
-    // ====================================================================== //
-    // ===                          Global Tracking                       === //
-    // ====================================================================== //
-    BmnGlobalTracking* globalTF = new BmnGlobalTracking(isExp);
-    globalTF->SetField(isField);
-    fRunAna->AddTask(globalTF);
 
     // ====================================================================== //
     // ===                     Primary vertex finding                     === //
@@ -277,14 +262,9 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     fRunAna->AddTask(gemVF);
 
     // Residual analysis
-    if (isExp) {
-        BmnGemResiduals* residAnalGem = new BmnGemResiduals(run_period, run_number, fieldScale);
-        // residAnal->SetPrintResToFile("file.txt");
-        // residAnal->SetUseDistance(kTRUE); // Use distance instead of residuals
-        fRunAna->AddTask(residAnalGem);
-        // BmnSiResiduals* residAnalSi = new BmnSiResiduals(run_period, run_number, fieldScale);
-        // fRunAna->AddTask(residAnalSi);
-    }
+    BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
+    fRunAna->AddTask(res);
+        
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();
     FairParRootFileIo* parIo1 = new FairParRootFileIo();

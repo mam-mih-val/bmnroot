@@ -14,7 +14,7 @@
 static Float_t workTime = 0.0;
 
 BmnGemStripHitMaker::BmnGemStripHitMaker()
-: fHitMatching(kTRUE), fAlignCorrFileName(""), fRunId(-1) {
+: fHitMatching(kTRUE) {
 
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = "BmnGemStripDigit";
@@ -27,16 +27,14 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
     fField = NULL;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
-    StationSet = nullptr;
-    TransfSet = nullptr;
+    StationSet = NULL;
 }
 
-BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Bool_t isExp)
-: fHitMatching(kTRUE), fAlignCorrFileName(""), fRunId(-1), fPeriodId(run_period),
-fBmnGemStripDigitsArray(NULL) {
+BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, TString alignFile)
+: fHitMatching(kTRUE) {
 
     fInputPointsBranchName = "StsPoint";
-    //    fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
+    fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
     fIsExp = isExp;
 
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
@@ -50,15 +48,15 @@ fBmnGemStripDigitsArray(NULL) {
     fField = NULL;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
-    StationSet = nullptr;
-    TransfSet = nullptr;
+    StationSet = NULL;
 
-    fSigmaX = 0.0;
-    fSigmaY = 0.0;
+    if (isExp)
+        fAlign = new BmnInnTrackerAlign(run_period, run_number, alignFile);
 }
 
 BmnGemStripHitMaker::~BmnGemStripHitMaker() {
-
+    if (fIsExp)
+        delete fAlign;
 }
 
 InitStatus BmnGemStripHitMaker::Init() {
@@ -70,15 +68,11 @@ InitStatus BmnGemStripHitMaker::Init() {
 
     FairRootManager* ioman = FairRootManager::Instance();
 
-    fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject("GEM");
+    fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
     if (!fBmnGemStripDigitsArray) {
-        fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject("BmnGemStripDigit");
-
-        if (!fBmnGemStripDigitsArray) {
-            cout << "BmnGemStripHitMaker::Init(): Neither GEM nor BmnGemStripDigit found! Task will be deactivated" << endl;
-            SetActive(kFALSE);
-            return kERROR;
-        }
+        cout << "BmnGemStripHitMaker::Init(): branch " << fInputDigitsBranchName << " not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
     }
 
     fBmnGemStripDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
@@ -121,82 +115,22 @@ InitStatus BmnGemStripHitMaker::Init() {
 
         case BmnGemStripConfiguration::RunSpring2018:
             StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2018.xml");
-            if (fVerbose) cout << "   Current Configuration : RunSpring2018" << "\n";
-            break;
-
-        case BmnGemStripConfiguration::RunSRCSpring2018 :
-            StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSRCSpring2018.xml");
-            TransfSet = new BmnGemStripTransform();
-            TransfSet->LoadFromXMLFile(gPathGemConfig + "GemRunSRCSpring2018.xml");
-            if (fVerbose) cout << "   Current GEM Configuration : GemRunSRCSpring2018" << "\n";
+            cout << "   Current Configuration : RunSpring2018" << "\n";
             break;
 
         default:
             StationSet = NULL;
     }
 
-    const Int_t nStat = StationSet->GetNStations();
-    const Int_t nParams = 3;
-
-    TRandom* rand = new TRandom();
-    rand->SetSeed(0);
-
-    corr = new Double_t**[nStat];
-    misAlign = new Double_t**[nStat];
-    for (Int_t iStat = 0; iStat < nStat; iStat++) {
-        Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
-        corr[iStat] = new Double_t*[nModul];
-        misAlign[iStat] = new Double_t*[nModul];
-        for (Int_t iMod = 0; iMod < nModul; iMod++) {
-            corr[iStat][iMod] = new Double_t[nParams];
-            misAlign[iStat][iMod] = new Double_t[nParams];
-            for (Int_t iPar = 0; iPar < nParams; iPar++) {
-                corr[iStat][iMod][iPar] = 0.;
-                if (!fIsExp)
-                    misAlign[iStat][iMod][iPar] = rand->Gaus(0., (iPar == 0) ? fSigmaX : (iPar == 1) ? fSigmaY : fSigmaZ);
-            }
-        }
-    }
-
-    delete rand;
-
-    if (fAlignCorrFileName != "")
-        ReadAlignCorrFile(fAlignCorrFileName, corr);
-
-    if (fIsExp)
-        cout << "GEM-alignment corrections in use: " << endl;
-    else
-        cout << "Remain GEM-misalignment in use: " << endl;
-    for (Int_t iStat = 0; iStat != nStat; iStat++) {
-        Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
-        for (Int_t iMod = 0; iMod != nModul; iMod++) {
-            for (Int_t iPar = 0; iPar != nParams; iPar++)
-                cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " <<
-                    TString::Format("% 7.4f", (fIsExp) ? corr[iStat][iMod][iPar] : misAlign[iStat][iMod][iPar]) << endl; //
-        }
-    }
     fField = FairRunAna::Instance()->GetField();
-    if (!fField) Fatal("Init", "No Magnetic Field found");
-
-    // Initialize coefficients to be used when the Lorentz corrections calculating ...
-    if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
-        lorCorrsCoeff = new Double_t*[nStat];
-        UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", fPeriodId, fRunId);
-        LorentzShiftStructure* shifts;
-        Int_t element_count = 0;
-        if (coeffLorCorrs)
-            coeffLorCorrs->GetLorentzShiftArray(shifts, element_count);
-        for (Int_t iEle = 0; iEle < nStat; iEle++) {
-            const Int_t nParams = 3; // Parabolic approximation is used
-            lorCorrsCoeff[iEle] = new Double_t[nParams];
-            for (Int_t iParam = 0; iParam < nParams; iParam++)
-                lorCorrsCoeff[iEle][iParam] = (coeffLorCorrs) ? shifts[iEle].ls[iParam] : 0.;
-        }
-    }
+    if (!fField)
+        Fatal("Init", "No Magnetic Field found");
 
     //--------------------------------------------------------------------------
 
     fBmnEvQuality = (TClonesArray*) ioman->GetObject(fBmnEvQualityBranchName);
+    if (fIsExp)
+        fAlign->Print();
 
     if (fVerbose) cout << "BmnGemStripHitMaker::Init() finished\n";
 
@@ -216,8 +150,7 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
         fBmnGemStripHitMatchesArray->Delete();
     }
 
-    Int_t kDigitCut = (fPeriodId == 7) ? 1000 : 400;
-    if (!IsActive() || fBmnGemStripDigitsArray->GetEntriesFast() > kDigitCut)
+    if (!IsActive())
         return;
 
     if (fVerbose) cout << "\nBmnGemStripHitMaker::Exec()\n ";
@@ -279,25 +212,18 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
         for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             BmnGemStripModule *module = station->GetModule(iModule);
+            Double_t z = module->GetZPositionRegistered();
+            z += fIsExp ? fAlign->GetGemCorrs()[iStation][iModule][2] : 0.; //alignment implementation
 
             Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
 
             for (Int_t iPoint = 0; iPoint < NIntersectionPointsInModule; ++iPoint) {
                 Double_t x = module->GetIntersectionPointX(iPoint);
                 Double_t y = module->GetIntersectionPointY(iPoint);
-                Double_t z = module->GetZPositionRegistered();
 
                 Double_t x_err = module->GetIntersectionPointXError(iPoint);
                 Double_t y_err = module->GetIntersectionPointYError(iPoint);
                 Double_t z_err = 0.0;
-
-                //Transform hit coordinates from local coordinate system of GEM-planes to global
-                if(TransfSet) {
-                    Plane3D::Point loc_point = TransfSet->ApplyTransforms(Plane3D::Point(-x, y, z), iStation, iModule);
-                    x = -loc_point.X();
-                    y = loc_point.Y();
-                    z = loc_point.Z();
-                }
 
                 Int_t RefMCIndex = 0;
 
@@ -323,16 +249,15 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 //Add hit ------------------------------------------------------
                 x *= -1; // invert to global X
-                Double_t deltaX = fIsExp ? corr[iStation][iModule][0] : misAlign[iStation][iModule][0];
-                Double_t deltaY = fIsExp ? corr[iStation][iModule][1] : misAlign[iStation][iModule][1];
+                Double_t deltaX = fIsExp ? fAlign->GetGemCorrs()[iStation][iModule][0] : 0.;
+                Double_t deltaY = fIsExp ? fAlign->GetGemCorrs()[iStation][iModule][1] : 0.;
 
                 x += deltaX;
                 y += deltaY;
-                z += corr[iStation][iModule][2];
 
                 if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
                     Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
-                    Double_t ls = GetLorentzByField(Abs(fField->GetBy(x, y, z)), iStation) * sign;
+                    Double_t ls = fIsExp ? (fAlign->GetLorentzCorrs(Abs(fField->GetBy(x, y, z)), iStation) * sign) : 0.;
                     x += ls;
                 }
 
@@ -364,53 +289,8 @@ void BmnGemStripHitMaker::ProcessDigits() {
 }
 
 void BmnGemStripHitMaker::Finish() {
-    // NB! normally, the following should never be used, except, maybe some tests:
-    //if (fAlignCorrFileName != "")
-    //    system(TString("rm "+fAlignCorrFileName).Data());
-    if (StationSet) {
-        for (Int_t iStat = 0; iStat < StationSet->GetNStations(); iStat++) {
-            Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
-            for (Int_t iMod = 0; iMod < nModul; iMod++) {
-                delete [] corr[iStat][iMod];
-            }
-            delete [] corr[iStat];
-        }
-        delete [] corr;
-
-        delete StationSet;
-        StationSet = nullptr;
-    }
-
-    if(TransfSet) {
-        delete TransfSet;
-        TransfSet = nullptr;
-    }
-
-    if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON)
-        delete [] lorCorrsCoeff;
-
+    delete StationSet;
     cout << "Work time of the GEM hit maker: " << workTime << endl;
-}
-
-void BmnGemStripHitMaker::ReadAlignCorrFile(TString fname, Double_t*** corr) {
-    TString branchName = "BmnGemAlignCorrections";
-    TFile* f = new TFile(fname.Data());
-    TTree* t = (TTree*) f->Get("cbmsim");
-    TClonesArray* corrs = NULL;
-    t->SetBranchAddress(branchName.Data(), &corrs);
-
-    for (Int_t iEntry = 0; iEntry < t->GetEntries(); iEntry++) {
-        t->GetEntry(iEntry);
-        for (Int_t iCorr = 0; iCorr < corrs->GetEntriesFast(); iCorr++) {
-            BmnGemAlignCorrections* align = (BmnGemAlignCorrections*) corrs->UncheckedAt(iCorr);
-            Int_t iStat = align->GetStation();
-            Int_t iMod = align->GetModule();
-            corr[iStat][iMod][0] = align->GetCorrections().X();
-            corr[iStat][iMod][1] = align->GetCorrections().Y();
-            corr[iStat][iMod][2] = align->GetCorrections().Z();
-        }
-    }
-    delete f;
 }
 
 ClassImp(BmnGemStripHitMaker)

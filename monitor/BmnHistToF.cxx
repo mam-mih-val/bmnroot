@@ -279,7 +279,7 @@ BmnStatus BmnHistToF::SetRefRun(Int_t id) {
 }
 
 void BmnHistToF::ClearRefRun() {
-    for (auto pad : canTimesPads) {
+    for (auto &pad : canTimesPads) {
         if (pad->ref) delete pad->ref;
         pad->ref = NULL;
     }

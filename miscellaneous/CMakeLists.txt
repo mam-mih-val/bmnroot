@@ -25,6 +25,7 @@ Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
+${FAIRROOT_LIBRARY_DIR}
 )
  
 link_directories(${LINK_DIRECTORIES})
@@ -32,12 +33,13 @@ link_directories(${LINK_DIRECTORIES})
 # List of source files
 set(SRCS
 BmnDigiConverter.cxx
+Cbm2BmnHitConverter.cxx
 # BmnDigiMerger.cxx
 )
 
 Set(HEADERS)
 Set(LINKDEF LinkDef.h)
 Set(LIBRARY_NAME BmnMisc)
-Set(DEPENDENCIES Core)
+Set(DEPENDENCIES Core BmnData Base)
 
 GENERATE_LIBRARY()

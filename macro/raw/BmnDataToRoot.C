@@ -14,7 +14,7 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE) {
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, period);
     decoder->SetBmnSetup(stp);
 
-    Bool_t setup[10]; //array of flags to determine BM@N setup
+    Bool_t setup[11]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
     setup[1] = 0; // MWPC
@@ -26,6 +26,7 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE) {
     setup[7] = 0; // ZDC
     setup[8] = 0; // ECAL
     setup[9] = 0; // LAND
+    setup[10] = 0; // CSC
     decoder->SetDetectorSetup(setup);
 
     TString PeriodSetupExt = Form("%d%s.txt", period, ((stp == kBMNSETUP) ? "" : "_SRC"));

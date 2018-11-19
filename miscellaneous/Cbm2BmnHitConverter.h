@@ -54,15 +54,15 @@ private:
     /** Output array of Silicon Hits **/
     TClonesArray* fBmnSiliconHitsArray;
 
-    inline Int_t GemStatPermutation(Int_t stat) {
-        Int_t id = -1;
-        map <Int_t, Int_t>::iterator it = fGemStats.find(stat);
-        if (it != fGemStats.end())
-            id = it->second;
-        else
-            fprintf(stderr, "Error! Station %d not found!\nPossible wrong mapping\n", stat);
-        return id;
-    }
+//    inline Int_t GemStatPermutation(Int_t stat) {
+//        Int_t id = -1;
+//        map <Int_t, Int_t>::iterator it = fGemStats.find(stat);
+//        if (it != fGemStats.end())
+//            id = it->second;
+//        else
+//            fprintf(stderr, "Error! Station %d not found!\nPossible wrong mapping\n", stat);
+//        return id;
+//    }
     
     ClassDef(Cbm2BmnHitConverter, 1);
 };

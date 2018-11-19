@@ -34,41 +34,44 @@ InitStatus Cbm2BmnHitConverter::Init() {
 
     if (fVerbose) cout << "Cbm2BmnHitConverter::Init() finished\n";
 }
-
+/* Warning! Valid only for period 7 */
 void Cbm2BmnHitConverter::Exec(Option_t* opt) {
     fBmnGemStripHitsArray->Delete();
     fBmnSiliconHitsArray->Delete();
 
+    TVector3 shift(0.5, -6.92, -2.96);
     Int_t gemCount = 0;
     Int_t silCount = 0;
 
     for (UInt_t ihit = 0; ihit < fCbmStsHitsArray->GetEntriesFast(); ihit++) {
         CbmStsHit* hit = (CbmStsHit*) fCbmStsHitsArray->UncheckedAt(ihit);
         Int_t stat = hit->GetStationNr();
+        Int_t sLayer = hit->GetStatLayer();
+        Int_t mod = 0;
         if (stat >= 4 && stat <= 9) {
             if (isGem) {
                 stat -= 4;
-                new((*fBmnGemStripHitsArray)[fBmnGemStripHitsArray->GetEntriesFast()]) BmnGemStripHit(
+                mod = (hit->GetX() > 0) ? 0 : 1;
+                BmnGemStripHit* gem = new((*fBmnGemStripHitsArray)[fBmnGemStripHitsArray->GetEntriesFast()]) BmnGemStripHit(
                         kGEM,
-                        TVector3(hit->GetX(), hit->GetY(), hit->GetZ()),
+                        TVector3(hit->GetX() + shift.X(), hit->GetY() + shift.Y(), hit->GetZ() + shift.Z()),
                         TVector3(hit->GetDx(), hit->GetDy(), hit->GetDz()),
                         gemCount++);
-                BmnGemStripHit* gem = (BmnGemStripHit*)fBmnGemStripHitsArray->UncheckedAt(fBmnGemStripHitsArray->GetEntriesFast() - 1);
                 gem->SetStation(stat);
-                gem->SetSignalDiff(hit->GetSignalDiv());
             }
 
         } else
             if (stat >= 0 && stat <= 3) {
             if (isSil) {
                 stat--;
-                new((*fBmnSiliconHitsArray)[fBmnSiliconHitsArray->GetEntriesFast()]) BmnSiliconHit(
+                mod = sLayer - 1;
+                BmnSiliconHit* sil = new((*fBmnSiliconHitsArray)[fBmnSiliconHitsArray->GetEntriesFast()]) BmnSiliconHit(
                         kSILICON,
-                        TVector3(hit->GetX(), hit->GetY(), hit->GetZ()),
+                        TVector3(hit->GetX() + shift.X(), hit->GetY() + shift.Y(), hit->GetZ() + shift.Z()),
                         TVector3(hit->GetDx(), hit->GetDy(), hit->GetDz()),
                         silCount++);
-                BmnSiliconHit* sil = (BmnSiliconHit*)fBmnSiliconHitsArray->UncheckedAt(fBmnSiliconHitsArray->GetEntriesFast() - 1);
                 sil->SetStation(stat);
+                sil->SetModule(mod);
             }
         }
     }

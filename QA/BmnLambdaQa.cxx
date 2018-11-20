@@ -101,15 +101,11 @@ InitStatus BmnLambdaQa::Init() {
     fNOfParticlePairs = 0;
     fNOfParticlePairsWithMatchedLambda = 0;
 
-    fNOfReconstructedLambdas = 0;
-    fNOfReconstructedLambdasM = 0;
-    fNOfNotReconstructedLambdas = 0;
-
     fNOfParticlePairsMC = 0;
     fNOfLambdasParticlePairsMC = 0;
     fNOfParticlePairsMCAll = 0;
 
-    if (kTRUE == fUseMCFile) {
+    if (fUseMCFile) {
         CreateH1("numberOfLambdas_LambdaQa", "", "", 1, 0, 1.);
         CreateH1("numberOfReconstructableLambdas_LambdaQa", "", "", 1, 0, 1.);
 
@@ -125,7 +121,7 @@ InitStatus BmnLambdaQa::Init() {
         CreateTwoDimensionalRecMesonsRecEfficiencyHistograms();
     }
 
-    if (kTRUE == fUseRecoFile && kTRUE == fUseMCFile) {
+    if (fUseRecoFile && fUseMCFile) {
         CreateH1("numberOfReconstructedParticlePairWithMatchedLambdaQA", "", "", 1, 0, 1.);
         CreateH1("numberOfNotReconstructedLambdasQA", "", "", 1, 0, 1.);
         CreateNumberOfReconstrcutedLambdaHistograms();
@@ -140,7 +136,7 @@ InitStatus BmnLambdaQa::Init() {
         CreateNumberOfNotReconstructedLambdaHistograms();
     }
 
-    if (kTRUE == fUseMCFile) {
+    if (fUseMCFile) {
         CreateH1("numberOfMCReconstructedParticlePairsQA", "", "", 1, 0, 1.);
         CreateH1("numberOfMCReconstructedLambdasQA", "", "", 1, 0, 1.);
         CreateH1("numberOfMCReconstructedAllParticlePairsQA", "", "", 1, 0, 1.);
@@ -150,7 +146,7 @@ InitStatus BmnLambdaQa::Init() {
         CreateReconstructedParticlePairsFromMCDataWOCutsHistograms();
     }
 
-    if (kTRUE == fUseRecoFile) {
+    if (fUseRecoFile) {
         CreateH1("numberOfReconstructedParticlePairsQA", "", "", 1, 0, 1.);
         CreateTwoDimensionalReconstructedParticlePairsHistograms();
         CreateReconstructedParticlePairsHistograms();
@@ -162,7 +158,7 @@ InitStatus BmnLambdaQa::Init() {
 }
 
 void BmnLambdaQa::Exec(Option_t* opt) {
-    if (kTRUE == fUseMCFile) {
+    if (fUseMCFile) {
         vector<int> indicesOfLambdaProtons;
         vector<int> indicesOfLambdaMesons;
 
@@ -346,11 +342,11 @@ void BmnLambdaQa::Exec(Option_t* opt) {
                 else if (trId == indicesOfLamda[cnt][2]) nSiliconHitsOnTrackM++;
             }
 
-            for (Int_t hit = 0; hit < fSSDPoints->GetEntriesFast(); hit++) {
-                Int_t trId = ((BmnSSDPoint*) fSSDPoints->At(hit))->GetTrackID();
-                if (trId == indicesOfLamda[cnt][1]) nSSDHitsOnTrackP++;
-                else if (trId == indicesOfLamda[cnt][2]) nSSDHitsOnTrackM++;
-            }
+            //            for (Int_t hit = 0; hit < fSSDPoints->GetEntriesFast(); hit++) {
+            //                Int_t trId = ((BmnSSDPoint*) fSSDPoints->At(hit))->GetTrackID();
+            //                if (trId == indicesOfLamda[cnt][1]) nSSDHitsOnTrackP++;
+            //                else if (trId == indicesOfLamda[cnt][2]) nSSDHitsOnTrackM++;
+            //            }
 
             nGEMHitsOnTrackP = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][1]))->GetNPoints(kGEM);
             nGEMHitsOnTrackM = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][2]))->GetNPoints(kGEM);
@@ -379,22 +375,22 @@ void BmnLambdaQa::Exec(Option_t* opt) {
         }
     }
     // Reconstruction QA
-    if (kTRUE == fUseRecoFile && kTRUE == fUseMCFile) {
-        for (Int_t iPair = 0; iPair < fParticlePair->GetEntriesFast(); iPair++) {
-            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair->At(iPair);
-            if (NULL == pair) {
+    if (fUseRecoFile && fUseMCFile) {
+        for (Int_t iPair = 0; iPair < fParticlePair_RECO_withCuts->GetEntriesFast(); iPair++) {
+            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_RECO_withCuts->At(iPair);
+            if (!pair) {
                 cout << "Reconstructed pair branch error" << endl;
                 return;
             }
 
             CbmMCTrack* posPartTr = (CbmMCTrack*) fMCTracks->At(pair->GetMCTrackIdPart1());
-            if (NULL == posPartTr) {
+            if (!posPartTr) {
                 cout << "proton track obtaining error" << endl;
                 return;
             }
 
             CbmMCTrack* negPartTr = (CbmMCTrack*) fMCTracks->At(pair->GetMCTrackIdPart2());
-            if (NULL == negPartTr) {
+            if (!negPartTr) {
                 cout << "meson track obtaining error" << endl;
                 return;
             }
@@ -404,7 +400,7 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             }
 
             CbmMCTrack* primaryPartTr = (CbmMCTrack*) fMCTracks->At(posPartTr->GetMotherId());
-            if (NULL == primaryPartTr) {
+            if (!primaryPartTr) {
                 cout << "lambda track obtaining error" << endl;
                 return;
             }
@@ -454,15 +450,12 @@ void BmnLambdaQa::Exec(Option_t* opt) {
         }
     }
 
-    if (kTRUE == fUseMCFile) {
-        for (Int_t iPair = 0; iPair < fParticlePairMC->GetEntriesFast(); iPair++) {
+    if (fUseMCFile) {
+        for (Int_t iPair = 0; iPair < fParticlePair_MC_withCuts->GetEntriesFast(); iPair++) {
             fNOfParticlePairsMC++;
             fHM->H1("numberOfMCReconstructedAllParticlePairsQA")->Fill(1);
 
-            BmnParticlePair* pair = (BmnParticlePair*) fParticlePairMC->At(iPair);
-            if (pair->GetKey1() != 'a') {
-                Fatal("Exec", "trying to extract MC information from pair not being in MC mode");
-            }
+            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_MC_withCuts->At(iPair);
             fHM->H1("NPairsRecoFromMCInvMass")->Fill(pair->GetInvMass("X"));
 
             Double_t momPart1 = pair->GetMomPart1();
@@ -500,12 +493,11 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             fHM->H1("numberOfMCReconstructedLambdasQA")->Fill(1);
         }
 
-        for (Int_t iPair = 0; iPair < fParticlePairMCAll->GetEntriesFast(); iPair++) {
+        for (Int_t iPair = 0; iPair < fParticlePair_MC_noCuts->GetEntriesFast(); iPair++) {
             fNOfParticlePairsMCAll++;
             fHM->H1("numberOfMCReconstructedParticlePairsQA")->Fill(1);
 
-            BmnParticlePair* pair = (BmnParticlePair*) fParticlePairMCAll->At(iPair);
-            if (pair->GetKey1() != 'a') Fatal("Exec", "trying to extract MC information from pair not being in MC mode");
+            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_MC_noCuts->At(iPair);
 
             fHM->H1("NPairsRecoFromMCWOCutsInvMass")->Fill(pair->GetInvMass("X"));
 
@@ -543,9 +535,9 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             }
         }
     }
-    if (kTRUE == fUseRecoFile) {
-        for (Int_t iPair = 0; iPair < fParticlePair->GetEntriesFast(); iPair++) {
-            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair->At(iPair);
+    if (fUseRecoFile) {
+        for (Int_t iPair = 0; iPair < fParticlePair_RECO_withCuts->GetEntriesFast(); iPair++) {
+            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_RECO_withCuts->At(iPair);
             if (NULL == pair) {
                 cout << "Reconstructed pair branch error" << endl;
                 return;
@@ -578,8 +570,8 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             fHM->H2("NPairsRecoInvMassPath")->Fill(path, pair->GetInvMass("X"));
         }
 
-        for (Int_t iPair = 0; iPair < fParticlePairNoCuts->GetEntriesFast(); iPair++) {
-            BmnParticlePair* pair = (BmnParticlePair*) fParticlePairNoCuts->At(iPair);
+        for (Int_t iPair = 0; iPair < fParticlePair_RECO_noCuts->GetEntriesFast(); iPair++) {
+            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_RECO_noCuts->At(iPair);
             if (NULL == pair) {
                 cout << "Reconstructed pair branch error" << endl;
                 return;
@@ -615,18 +607,18 @@ void BmnLambdaQa::Exec(Option_t* opt) {
 void BmnLambdaQa::Finish() {
     fHM->WriteToFile();
 
-    if (kTRUE == fUseMCFile) {
+    if (fUseMCFile) {
         cout << "Reconstructable: " << fNReconstructable << endl;
         cout << "Number of reconstructed particle pairs from MC data: " << fNOfParticlePairsMC << endl;
         cout << "Number of reconstructed particle pairs from MC data being products of lambda: " << fNOfLambdasParticlePairsMC << endl;
         cout << "Number of all reconstructed particle pairs from MC data without invariant mass criterion: " << fNOfParticlePairsMCAll << endl;
     }
 
-    if (kTRUE == fUseRecoFile) {
+    if (fUseRecoFile) {
         cout << "Number of reconstructed particle pairs: " << fNOfParticlePairs << endl;
     }
 
-    if (kTRUE == fUseMCFile && kTRUE == fUseRecoFile) {
+    if (fUseMCFile && fUseRecoFile) {
         cout << "Number of reconstructed particle pairs with their primary particle having MC matched lambda: " << fNOfParticlePairsWithMatchedLambda << endl;
     }
 
@@ -638,64 +630,44 @@ void BmnLambdaQa::Finish() {
 void BmnLambdaQa::ReadDataBranches() {
     FairRootManager* ioman = FairRootManager::Instance();
 
-    if (NULL == ioman) {
+    if (!ioman)
         Fatal("Init", "BmnRootManager is not instantiated");
-    }
 
-    if (kTRUE == fUseMCFile) {
-        fParticlePairMC = (TClonesArray*) ioman->GetObject("ParticlePairMC");
-        if (NULL == fParticlePairMC) {
+    fParticlePairsInfo = (TClonesArray*) ioman->GetObject("ParticlePairsInfo");
+    if (!fParticlePairsInfo)
+        Fatal("Init", ": No particle pairs info array!");
+
+    if (fUseMCFile) {
+        fParticlePair_MC_withCuts = (TClonesArray*) ioman->GetObject("ParticlePair_MC_withCuts");
+        if (!fParticlePair_MC_withCuts)
             Fatal("Init", ": No MC Particle Pair array!");
-        }
 
-        fParticlePairMCAll = (TClonesArray*) ioman->GetObject("AllParticlePairMC");
-        if (NULL == fParticlePairMCAll) {
+        fParticlePair_MC_noCuts = (TClonesArray*) ioman->GetObject("ParticlePair_MC_noCuts");
+        if (!fParticlePair_MC_noCuts)
             Fatal("Init", ": No All MC Particle Pair array!");
-        }
 
         fMCTracks = (TClonesArray*) ioman->GetObject("MCTrack");
-        if (NULL == fMCTracks) {
+        if (!fMCTracks)
             Fatal("Init", ": No MCTrack array!");
-        }
 
         fSiliconPoints = (TClonesArray*) ioman->GetObject("SiliconPoint");
-        if (NULL == fSiliconPoints) {
+        if (!fSiliconPoints)
             Fatal("Init", ": No simulated silicon points array!");
-        }
 
-        fSSDPoints = (TClonesArray*) ioman->GetObject("SSDPoint");
-        if (NULL == fSSDPoints) {
-            Fatal("Init", ": No simulated SSD points array!");
-        }
-
-        fParticlePairsInfoMC = (TClonesArray*) ioman->GetObject("ParticlePairsInfoMC");
-        if (NULL == fParticlePairsInfoMC) {
-            Fatal("Init", ": No particle pairs info array!");
-        }
+        //        fSSDPoints = (TClonesArray*) ioman->GetObject("SSDPoint");
+        //        if (NULL == fSSDPoints) {
+        //            Fatal("Init", ": No simulated SSD points array!");
+        //        }       
     }
 
-    if (kTRUE == fUseRecoFile) {
-        fParticlePair = (TClonesArray*) ioman->GetObject("ParticlePair");
-        if (NULL == fParticlePair) {
+    if (fUseRecoFile) {
+        fParticlePair_RECO_withCuts = (TClonesArray*) ioman->GetObject("ParticlePair_RECO_withCuts");
+        if (!fParticlePair_RECO_withCuts)
             Fatal("Init", ": No Particle Pair array!");
-        }
 
-        fParticlePairNoCuts = (TClonesArray*) ioman->GetObject("ParticlePair");
-        if (NULL == fParticlePairNoCuts) {
+        fParticlePair_RECO_noCuts = (TClonesArray*) ioman->GetObject("ParticlePair_RECO_noCuts");
+        if (!fParticlePair_RECO_noCuts)
             Fatal("Init", ": No Particle Pair without cuts array array!");
-        }
-
-        fParticlePairsInfoReco = (TClonesArray*) ioman->GetObject("ParticlePairsInfoReco");
-        if (NULL == fParticlePairsInfoReco) {
-            Fatal("Init", ": No particle pairs reco array!");
-        }
-    }
-
-    if (kTRUE == fUseRecoFile && kTRUE == fUseMCFile) {
-        fGlobalMatches = (TClonesArray*) ioman->GetObject("BmnGlobalTrackMatch");
-        if (NULL == fGlobalMatches) {
-            Fatal("Init", ": No reconstructed global matches array!");
-        }
     }
 }
 

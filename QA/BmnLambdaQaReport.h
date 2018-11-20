@@ -22,7 +22,7 @@ public:
     /**
      * \brief Constructor.
      */
-    BmnLambdaQaReport(Bool_t fUseMCFile = kTRUE, Bool_t fUseRecoFile = kFALSE, Short_t key2 = 'a', TString name = "lambda_qa", TString keyAddition = "", Bool_t drawPoints = kTRUE, TClonesArray* particlePairsInfo = NULL);
+    BmnLambdaQaReport(Bool_t fUseMCFile = kTRUE, Bool_t fUseRecoFile = kFALSE, Short_t key2 = 'a', TString name = "lambda_qa", TString keyAddition = "", Bool_t drawPoints = kTRUE, TClonesArray* particlePairsInfo = nullptr);
 
     /**
      * \brief Destructor.
@@ -70,8 +70,7 @@ private:
     Char_t fKey2;
     TString fKeyAddition;
     TString drawPointsOpt;
-    TClonesArray* fParticlePairsInfoMC;
-    TClonesArray* fParticlePairsInfoReco;
+    TClonesArray* fParticlePairsInfo;
     
     ClassDef(BmnLambdaQaReport, 1)
 };

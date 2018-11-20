@@ -36,7 +36,7 @@ public:
      * \param[in] keyAddition key word to be added at the end of .jpg output files to distinguish them using different sets of detectors in the geometry analysis
      * \param[in] drawPoints draws one-dimensional histograms as points with bars, otherwise draws them as default bar charts
      */
-    BmnLambdaQa(Bool_t useMCFile = kTRUE, Bool_t useRecoFile = kFALSE, Short_t key2 = 'a', TString name = "lambda_qa_sim", TString keyAddition = "", Bool_t drawPoints = kTRUE);
+    BmnLambdaQa(Bool_t useMCFile, Bool_t useRecoFile, Short_t key2, TString name, TString keyAddition, Bool_t drawPoints);
 
     /**
      * \brief Destructor.
@@ -115,9 +115,6 @@ private:
     Int_t fNReconstructable;
     Int_t fNOfParticlePairs;
     Int_t fNOfParticlePairsWithMatchedLambda;
-    Int_t fNOfReconstructedLambdas;
-    Int_t fNOfReconstructedLambdasM; // number of reconstructed lambdas with MC match 
-    Int_t fNOfNotReconstructedLambdas; // number of reconstructed lambdas with MC match 
     Int_t fNOfParticlePairsMC; // number of reconstructed particle pairs from MC data
     Int_t fNOfParticlePairsMCAll; // number of reconstructed particle pair from MC data without any cuts
     Int_t fNOfLambdasParticlePairsMC;
@@ -170,18 +167,16 @@ private:
     TClonesArray* fMCTracks;
     TClonesArray* fSiliconPoints;
     TClonesArray* fSSDPoints;
-    TClonesArray* fGemTracks; // BmnGemTrack array
-    TClonesArray* fGemMatches;
-    TClonesArray* fParticlePair; // all decay pairs reconstructed when having matches
-    TClonesArray* fParticlePairNoCuts; // all decay pairs reconstructed when
-    TClonesArray* fParticlePairMC; // all decay pairs reconstructed from MC data  
-    TClonesArray* fReconstructedLambda; //all reconstructed lambdas
-    TClonesArray* fReconstructedLambdaM; //reconstructed lambdas with MC match 
-    TClonesArray* fNotReconstructedLambda; // not reconstructed lambdas(ghosts)
-    TClonesArray* fGlobalMatches;
-    TClonesArray* fParticlePairMCAll;
-    TClonesArray* fParticlePairsInfoMC;
-    TClonesArray* fParticlePairsInfoReco;
+  
+    TClonesArray* fParticlePairsInfo;
+    
+    TClonesArray* fParticlePair; 
+    
+    TClonesArray* fParticlePair_MC_noCuts;
+    TClonesArray* fParticlePair_MC_withCuts;
+    
+    TClonesArray* fParticlePair_RECO_noCuts;
+    TClonesArray* fParticlePair_RECO_withCuts;
 
     ClassDef(BmnLambdaQa, 1);
 };

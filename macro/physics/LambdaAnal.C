@@ -1,34 +1,43 @@
 #include <TString.h>
 #include <Rtypes.h>
+
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/bmnloadlibs.C"
 
 // Macro to be used for Lambda0->Pi- + p reconstruction
-void LambdaAnal(UInt_t nEvents=10e6, Int_t runNumb = 4629, TString input = "evetest_ArPb_geo2018.root", TString output = "tmp.root") {
+// inSim or inReco (not both simultaneously) can be empty depending on analysis you do!        
+void LambdaAnal(UInt_t nEvents = 10e6,
+        TString inSim = "",  // evetest.root
+        TString inReco = "", // bmndst.root (with matches or obtained from exp. data processing)
+        TString output = "out.root") {
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
     timer.Start();
     FairRunAna* fRunAna = new FairRunAna();
-    FairSource* fFileSource = new BmnFileSource(input.Data());
-    fRunAna->SetSource(fFileSource);
+    if (inReco.Contains("root") && inSim.Contains("root")) {
+        fRunAna->SetInputFile(inReco);
+        fRunAna->AddFriend(inSim);
+    }
+    else
+        fRunAna->SetInputFile(inReco.Contains("root") ? inReco : inSim);
+
     fRunAna->SetOutputFile(output);
 
-    BmnTwoParticleDecay* lambda = new BmnTwoParticleDecay(BmnGemStripConfiguration::RunSpring2018, runNumb);
+    BmnTwoParticleDecay* lambda = new BmnTwoParticleDecay(BmnGemStripConfiguration::RunSpring2018);
     lambda->SetUseRealVertex(kTRUE); // equal to false by default
-    //lambda->SetSiRequired(kTRUE); // equal to false by default
 
-    // Geometry cuts if necessary, [from, to]-range is acceptable
-    // lambda->SetVpVpParticle1(0., 100.);
-    // lambda->SetVpVpParticle2(0., 100.);
-    // lambda->SetV0Particle1Particle2(0., 1.);
-    // lambda->SetV0VpDiff(0., 30.);
+    // Geometry cuts if necessary
+    lambda->SetDCA1(0., 1000.);
+    lambda->SetDCA2(0., 1000.);
+    lambda->SetDCA12(0., 10.);
+    lambda->SetPath(0., 300.);
 
-    // Kinematic cuts, if necessary, [from, to]-range is acceptable
-    // lambda->SetMomParticle1Range(0., 5.);
-    // lambda->SetMomParticle2Range(0., 5.);
-    // lambda->SetYParticle1Range(0., 3.); // Cuts on rapidity
-    // lambda->SetYParticle2Range(0., 3.);
+    // Kinematic cuts, if necessary
+    lambda->SetMom1(0., 10.);
+    lambda->SetMom2(0., 10.);
+    lambda->SetEta1(0., 10.);
+    lambda->SetEta2(0., 10.);
     fRunAna->AddTask(lambda);
 
     fRunAna->Init();

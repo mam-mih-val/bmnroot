@@ -302,6 +302,17 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
     }
     readGeom((char *)geomFile.Data());
 
+// read Left-Right offsets
+    for (int c=0; c<TOF2_MAX_CHAMBERS; c++)
+	for (int i=0; i<TOF2_MAX_STRIPS_IN_CHAMBER; i++)
+	{
+		    lroffsets[c][i] = 0.;
+		    lrsign[c][i] = +1;
+	}
+    readLRoffsets((char *)"TOF700_left_right_offsets.txt");
+    // 19.5 cm/ns
+    fVelosity = 19.5f;
+
     for(int ind=0;ind<n_rec;ind++){ 
      if (mapa[ind].pair == -1) continue; 
      for(int ind1=0;ind1<n_rec;ind1++){
@@ -1813,7 +1824,7 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 	Wm = Wmax;
 	if (Wmaxc[mapa[ind].plane] >= 0.) Wm = Wmaxc[mapa[ind].plane];
 	float L = (lead[ind1]+lead[ind])/2.;
-	float D = (lead[ind1]-lead[ind])/2.;
+	float D = (lead[ind1]-lead[ind]);
 	float W1 = trail[ind]-lead[ind];
 	float W2 = trail[ind1]-lead[ind1];
 	float W = (W1+W2)/2.;
@@ -2950,6 +2961,92 @@ int BmnTof2Raw2DigitNew::printGeom()
 //		printf("   Strip %d X %f Y %f\n", k+1, xcens[j][k],ycens[j][k]);
 //	}
     }
+}
+
+int BmnTof2Raw2DigitNew::readLRoffsets(char *offsetsfile)
+{
+	char fname[128];
+	FILE *fg = 0;
+	int i;
+	if (strlen(offsetsfile) == 0)
+	{
+	    printf("TOF700 Left-Right offsets file name not defined!\n");
+	    return 0;
+	}
+	TString dir = getenv("VMCWORKDIR");
+	sprintf(fname,"%s/geometry/%s",dir.Data(),offsetsfile);
+	fg = fopen(fname,"r");
+	if (fg == NULL)
+	{
+	    printf("TOF700 Left-Right offsets file %s open error!\n", fname);
+	    return 0;
+	}
+	printf("Loading TOF700 Left-Right offsets from file %s\n", offsetsfile);
+	float idchamber, lroff;
+	int ip, is, lrsig, n = 0;
+	while(fscanf(fg, "Chamber %d (%f) strip %d offset %f time bins, direction %d\n", &ip, &idchamber, &is, &lroff, &lrsig) == 5)
+	{
+	    if (ip>=MaxPlane)
+	    {
+		printf("L-R offsets: Chamber number %d >= %d, skip!\n", ip, MaxPlane);
+		continue;
+	    }
+	    if (is>=TOF2_MAX_STRIPS_IN_CHAMBER)
+	    {
+		printf("L-R offsets: Strip number %d >= %d, skip!\n", is, TOF2_MAX_STRIPS_IN_CHAMBER);
+		continue;
+	    }
+	    if (idchamber != idchambers[ip])
+	    {
+		printf("L-R offsets: Chamber ID %.1f != %.1f, skip!\n", idchamber, idchambers[ip]);
+		continue;
+	    }
+	    lroffsets[ip][is] = lroff;
+	    lrsign[ip][is] = lrsig;
+	    n++;
+	}
+	fclose(fg);
+	printf("Read %d left-right offsets.\n", n);
+	return 1;
+}
+
+float BmnTof2Raw2DigitNew::get_hit_x(int chamber, int strip, float diff)
+{
+    float x = 0., dx = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fVelosity > 0.)
+    {
+	dx = (-diff - lroffsets[chamber][strip]*HPTIMEBIN/2.f)*fVelosity;
+	x = xcens[chamber][strip] + lrsign[chamber][strip]*dx;
+	return x;
+    }
+    else
+	return 0.;
+}
+
+float BmnTof2Raw2DigitNew::get_hit_diff(int chamber, int strip, float diff)
+{
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER)
+    {
+	return (-diff - lroffsets[chamber][strip]*HPTIMEBIN/2.f);
+    }
+    else
+	return 0.;
+}
+
+void BmnTof2Raw2DigitNew::get_hit_xyz(int chamber, int strip, float diff, float *x, float *y, float *z)
+{
+    float xh = 0., dxh = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fVelosity > 0.)
+    {
+	dxh = (-diff - lroffsets[chamber][strip]*HPTIMEBIN/2.f)*fVelosity;
+	xh = xcens[chamber][strip] + lrsign[chamber][strip]*dxh;
+	*x = xh;
+	*y = ycens[chamber][strip];
+	*z = zchamb[chamber];
+	return;
+    }
+    else
+	return;
 }
 
 int BmnTof2Raw2DigitNew::get_ch_tdc32vl(unsigned int tdc,unsigned int ch){

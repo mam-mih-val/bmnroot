@@ -22,19 +22,17 @@ fPdgParticle1(fPDG1),
 fPdgParticle2(fPDG2),
 fEventCounter(0),
 fGeometry(config),
-fKalman(NULL),
-fField(NULL),
-fParticlePair(NULL),
-fParticlePairNoCuts(NULL),
-fReconstructedLambdas(NULL),
-fReconstructedLambdasM(NULL),
-fParticlePairMCAll(NULL),
-fParticlePairMC(NULL),
-fVertex(NULL),
+fKalman(nullptr),
+fField(nullptr),
+fParticlePair_MC_noCuts(nullptr),
+fParticlePair_MC_withCuts(nullptr),
+fParticlePair_RECO_noCuts(nullptr),
+fParticlePair_RECO_withCuts(nullptr),
+fParticlePair(nullptr),
+fVertex(nullptr),
 fIsUseRealVertex(kFALSE),
-fSiRequired(kFALSE),
-fGlobalMatches(NULL),
-fParticlePairsInfo(NULL) {
+fGlobalMatches(nullptr),
+fParticlePairsInfo(nullptr) {
     fMcVertex.SetXYZ(0., 0., 0.);
     Double_t val = 0.;
 
@@ -90,81 +88,12 @@ BmnTwoParticleDecay::~BmnTwoParticleDecay() {
     delete fDetector;
 }
 
-// Ideal calculations what we would have ...
-
-void BmnTwoParticleDecay::CalculateReconstuctableParticles() {
-    const Int_t kHitsPerTrackMin = 4; // Min. number of hits to be per a reco-track
-
-    if (fMCTracks->GetEntriesFast() < 2)
-        return;
-
-    for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
-        CbmMCTrack* mcTrack_pos = (CbmMCTrack*) fMCTracks->UncheckedAt(iTrack);
-        if (mcTrack_pos->GetPdgCode() < 0)
-            continue;
-        Int_t motherId_pos = mcTrack_pos->GetMotherId();
-        if (motherId_pos == -1)
-            continue;
-        Int_t pdgMother = ((CbmMCTrack*) fMCTracks->UncheckedAt(motherId_pos))->GetPdgCode();
-        if (pdgMother != fPDGDecay)
-            continue;
-
-        for (Int_t jTrack = 0; jTrack < fMCTracks->GetEntriesFast(); jTrack++) {
-            if (iTrack == jTrack)
-                continue;
-            CbmMCTrack* mcTrack_neg = (CbmMCTrack*) fMCTracks->UncheckedAt(jTrack);
-            if (mcTrack_neg->GetPdgCode() > 0)
-                continue;
-
-            Int_t motherId_neg = mcTrack_neg->GetMotherId();
-            if (motherId_neg != motherId_pos)
-                continue;
-
-            if (mcTrack_pos->GetNPoints(kGEM) >= kHitsPerTrackMin && mcTrack_neg->GetNPoints(kGEM) >= kHitsPerTrackMin) {
-                //cout << fEventCounter << endl;
-                //cout << "P_{lambda} = " << ((CbmMCTrack*) fMCTracks->UncheckedAt(motherId_pos))->GetP() <<
-                //         " P_{p} = " << mcTrack_pos->GetP() << " P_{pi-} = " << mcTrack_neg->GetP() << 
-                //         " Pz_{p} = " << mcTrack_pos->GetPz() << " Pz_{pi} = " << mcTrack_neg->GetPz() << endl;
-
-                Double_t PLambda = ((CbmMCTrack*) fMCTracks->UncheckedAt(motherId_pos))->GetP();
-                Double_t PzLambda = ((CbmMCTrack*) fMCTracks->UncheckedAt(motherId_pos))->GetPz();
-                Double_t etaLambda = 0.5 * TMath::Log((PLambda + PzLambda) / (PLambda - PzLambda));
-
-                // 1d-histos ...
-                hSim[0]->Fill(PLambda);
-                hSim[1]->Fill(etaLambda);
-                Double_t Pprot = mcTrack_pos->GetP();
-                hSim[2]->Fill(Pprot);
-                Double_t Ppi = mcTrack_neg->GetP();
-                hSim[3]->Fill(Ppi);
-                Double_t etaP = 0.5 * TMath::Log((mcTrack_pos->GetP() + mcTrack_pos->GetPz()) / (mcTrack_pos->GetP() - mcTrack_pos->GetPz()));
-                hSim[4]->Fill(etaP);
-                Double_t etaPi = 0.5 * TMath::Log((mcTrack_neg->GetP() + mcTrack_neg->GetPz()) / (mcTrack_neg->GetP() - mcTrack_neg->GetPz()));
-                hSim[5]->Fill(etaPi);
-                hSim[6]->Fill(mcTrack_pos->GetNPoints(kGEM));
-                hSim[7]->Fill(mcTrack_neg->GetNPoints(kGEM));
-
-                // 2d-histos ...
-                h2Sim[0]->Fill(etaLambda, PLambda);
-                h2Sim[1]->Fill(etaP, Pprot);
-                h2Sim[2]->Fill(etaPi, Ppi);
-                h2Sim[3]->Fill(Pprot, Ppi);
-                h2Sim[4]->Fill(etaP, etaPi);
-                h2Sim[5]->Fill(mcTrack_pos->GetPx() / mcTrack_pos->GetPz(), mcTrack_neg->GetPx() / mcTrack_neg->GetPz());
-                h2Sim[6]->Fill(mcTrack_pos->GetPy() / mcTrack_pos->GetPz(), mcTrack_neg->GetPy() / mcTrack_neg->GetPz());
-                // cout << fEventCounter << " " << mcTrack_pos->GetNPoints(kGEM) << " " << mcTrack_neg->GetNPoints(kGEM) << " " << etaP << " " << etaPi << endl;
-
-                break;
-            }
-        }
-    }
-}
-
 vector <Double_t> BmnTwoParticleDecay::GeomTopology(FairTrackParam proton_V0, FairTrackParam pion_V0, FairTrackParam proton_Vp, FairTrackParam pion_Vp) {
     Double_t X = 0., Y = 0., Z = 0.;
 
     // evetest.root -->
-    if (fUseMc) {
+    Bool_t isMC = fAnalType[0].Contains("eve") && !fAnalType[0].Contains("dst"); // only MC
+    if (isMC) {
         X = fMcVertex.X();
         Y = fMcVertex.Y();
         Z = fMcVertex.Z();
@@ -276,24 +205,24 @@ Bool_t BmnTwoParticleDecay::CheckTrack(BmnGlobalTrack* track, Int_t pdgCode, Dou
     if (sign * p < 0 || Abs(p) < fMom[nPart][0] || Abs(p) > fMom[nPart][1] ||
             Tx < fTx[nPart][0] || Tx > fTx[nPart][1] ||
             Ty < fTy[nPart][0] || Ty > fTy[nPart][1] ||
-            eta < fEta[nPart][0] || eta > fEta[nPart][1]) {
-
+            eta < fEta[nPart][0] || eta > fEta[nPart][1])
         return kFALSE;
-    } else
+    else
         return kTRUE;
 }
 
 void BmnTwoParticleDecay::Analysis() {
-    // const Int_t nV0 = 2;
-    TLorentzVector lPos, lNeg;
+    const Int_t nV0 = 2;
+    TLorentzVector lPos[nV0], lNeg[nV0];
 
-    TClonesArray* arr = ((fUseMc && fGlobalMatches) || !fUseMc) ? fGlobalTracks : fMCTracks;
+    TClonesArray* arr = (fAnalType[1].Contains("ON") || fAnalType[0].Contains("dst")) ? fGlobalTracks : fMCTracks;
+    Bool_t isMC = fAnalType[0].Contains("eve") && !fAnalType[0].Contains("dst"); // only MC
 
     for (Int_t iTrack = 0; iTrack < arr->GetEntriesFast(); iTrack++) {
         BmnGlobalTrack Track1;
         BmnGlobalTrack* track1 = &Track1;
 
-        if (fUseMc && !fGlobalMatches) {
+        if (isMC) {
             TParticlePDG* particle1 = fPDG->GetParticle(((CbmMCTrack*) arr->UncheckedAt(iTrack))->GetPdgCode());
             if (!particle1) {
                 continue;
@@ -304,26 +233,22 @@ void BmnTwoParticleDecay::Analysis() {
 
             }
             FindFirstPointOnMCTrack(iTrack, track1, CheckSign(Q1));
-
         } else
             track1 = (BmnGlobalTrack*) arr->UncheckedAt(iTrack);
 
 
         Double_t _p1, _eta1;
-        if (!CheckTrack(track1, fPdgParticle1, _p1, _eta1)) {
+        if (!CheckTrack(track1, fPdgParticle1, _p1, _eta1))
             continue;
 
-        }
-
         for (Int_t jTrack = 0; jTrack < arr->GetEntriesFast(); jTrack++) {
-            if (iTrack == jTrack) {
+            if (iTrack == jTrack)
                 continue;
-            }
 
             BmnGlobalTrack Track2;
             BmnGlobalTrack* track2 = &Track2;
 
-            if (fUseMc && !fGlobalMatches) {
+            if (isMC) {
                 TParticlePDG* particle2 = fPDG->GetParticle(((CbmMCTrack*) arr->UncheckedAt(jTrack))->GetPdgCode());
                 if (!particle2)
                     continue;
@@ -340,22 +265,24 @@ void BmnTwoParticleDecay::Analysis() {
                 continue;
 
             // Array to store V0XZ and V0YZ ...           
-            // Double_t V0Z[nV0] = {0., 0.}; // V0XZ and V0YZ
+            Double_t V0Z[nV0] = {0., 0.}; // V0XZ and V0YZ
 
             // Go to primary vertex Vp
-            Double_t Vpz = (fUseMc) ? fMcVertex.Z() : ((fIsUseRealVertex) ? fEventVertex->GetZ() : fEventVertex->GetRoughZ());
+            Double_t Vpz = isMC ? fMcVertex.Z() : fIsUseRealVertex ? fEventVertex->GetZ() : fEventVertex->GetRoughZ();
 
             FairTrackParam proton_Vp = KalmanTrackPropagation(track1, fPdgParticle1, Vpz);
             FairTrackParam pion_Vp = KalmanTrackPropagation(track2, fPdgParticle2, Vpz);
 
             // Calculate V0YZ the YZ-projection ...
-            // V0Z[1] = SecondaryVertexY(track1->GetParamFirst(), track2->GetParamFirst()).Y(); // V0ZY
+            V0Z[1] = SecondaryVertexY(track1->GetParamFirst(), track2->GetParamFirst()).Y(); // V0ZY
 
+            // FIXME!!! Now it does not work correctly!
+            /*
             Double_t V0Z = FindV0ByVirtualPlanes(track1, track2, .5 * (Vpz + fDetector->GetGemStation(0)->GetZPosition()));
             if (V0Z < -999.)
                 continue;
+            */
 
-            /*
             // Use Kalman to estimate a possible secondary vertex in xz-plane
             // Propagation to Z = 0; 
             // After the procedure <<track(1,2)->GetParamFirst()>> will be updated by shifted values corresponding to Z = 0 
@@ -377,88 +304,86 @@ void BmnTwoParticleDecay::Analysis() {
             Double_t* pointsAndMinDist = new Double_t[5];
             CalculateMinDistance(protParametrizedTraject, pionParametrizedTraject, pointsAndMinDist);
 
-            Double_t zPartOrigDeath = (pointsAndMinDist[0] + pointsAndMinDist[2]) / 2.0;
-            Double_t xPartOrigDeath = (pointsAndMinDist[1] + pointsAndMinDist[3]) / 2.0;
+            // Double_t zPartOrigDeath = (pointsAndMinDist[0] + pointsAndMinDist[2]) / 2.0;
+            // Double_t xPartOrigDeath = (pointsAndMinDist[1] + pointsAndMinDist[3]) / 2.0;
 
             V0Z[0] = Min(pointsAndMinDist[0], pointsAndMinDist[2]); // V0ZX
-            delete [] pointsAndMinDist;            
-             */
+            delete [] pointsAndMinDist;
 
             // Go to secondary vertex V0
+            FairTrackParam proton_V0[nV0], pion_V0[nV0];
             // FairTrackParam proton_V0, pion_V0;
-            // vector <Double_t> geomTopology;
+            vector <Double_t> geomTopology[nV0];
             // Description of vector:
-            // Distance between Vp and Vp_prot_extrap   [0]
-            // Distance between Vp and Vp_prot_extrap   [1]
+            // Distance between Vp and Vp_prot_extrap    [0]
+            // Distance between Vp and Vp_prot_extrap    [1]
             // Distance between proton and pion at V0    [2]
             // Distance between V0 and Vp along beamline [3]
 
-            //  for (Int_t iProj = 0; iProj < nV0; iProj++) {
-            // Go to secondary vertex V0
-            FairTrackParam proton_V0, pion_V0;
-            proton_V0 = KalmanTrackPropagation(track1, fPdgParticle1, V0Z);
-            pion_V0 = KalmanTrackPropagation(track2, fPdgParticle2, V0Z);
-            vector <Double_t> geomTopology = GeomTopology(proton_V0, pion_V0, proton_Vp, pion_Vp);
-            //  }
+            for (Int_t iProj = 0; iProj < nV0; iProj++) {
+                proton_V0[iProj] = KalmanTrackPropagation(track1, fPdgParticle1, V0Z[iProj]);
+                pion_V0[iProj] = KalmanTrackPropagation(track2, fPdgParticle2, V0Z[iProj]);
+                geomTopology[iProj] = GeomTopology(proton_V0[iProj], pion_V0[iProj], proton_Vp, pion_Vp);
+            }
 
-            Double_t protonPz = 1.0 / proton_V0.GetQp() / Sqrt(Sqr(proton_V0.GetTx()) + Sqr(proton_V0.GetTy()) + 1.0);
-            Double_t pionPz = 1.0 / pion_V0.GetQp() / Sqrt(Sqr(pion_V0.GetTx()) + Sqr(pion_V0.GetTy()) + 1.0);
-            Double_t protonPx = proton_V0.GetTx() * protonPz;
-            Double_t pionPx = pion_V0.GetTx() * pionPz;
-            Double_t protonPy = proton_V0.GetTy() * protonPz;
-            Double_t pionPy = pion_V0.GetTy() * pionPz;
+            // Double_t protonPz = 1.0 / proton_V0[0].GetQp() / Sqrt(Sqr(proton_V0[0].GetTx()) + Sqr(proton_V0[0].GetTy()) + 1.0);
+            // Double_t pionPz = 1.0 / pion_V0[0].GetQp() / Sqrt(Sqr(pion_V0[0].GetTx()) + Sqr(pion_V0[0].GetTy()) + 1.0);
+            // Double_t protonPx = proton_V0[0].GetTx() * protonPz;
+            // Double_t pionPx = pion_V0[0].GetTx() * pionPz;
 
             // Double_t txPartOrig = (protonPx + pionPx) / (protonPz + pionPz);
             // Double_t PartOrigBX = txPartOrig * (Vpz - zPartOrigDeath) + xPartOrigDeath;
 
-            BmnParticlePair partPair = (fUseMc == kTRUE && fGlobalMatches == NULL) ? BmnParticlePair('a') :
-                    ((fGlobalMatches != NULL) ? BmnParticlePair('b') :
-                    BmnParticlePair('c'));
+            BmnParticlePair partPair;
 
             //            partPair.SetPartOrigB(PartOrigBX, 0.0); //FIXME
-            partPair.SetV0XZ(V0Z);
-            partPair.SetV0YZ(V0Z);
+            partPair.SetV0XZ(V0Z[0]);
+            partPair.SetV0YZ(V0Z[1]);
 
-            partPair.SetDCA1(geomTopology.at(0));
-            partPair.SetDCA2(geomTopology.at(1));
-            partPair.SetDCA12(geomTopology.at(2), geomTopology.at(2));
-            partPair.SetPath(geomTopology.at(3), geomTopology.at(3));
+            partPair.SetDCA1(geomTopology[0].at(0));
+            partPair.SetDCA2(geomTopology[0].at(1));
+            partPair.SetDCA12(geomTopology[0].at(2), geomTopology[1].at(2));
+            partPair.SetPath(geomTopology[0].at(3), geomTopology[1].at(3));
 
             partPair.SetMomPair(_p1, _p2);
             partPair.SetEtaPair(_eta1, _eta2);
 
             // Track params. are redefined
-            Double_t Tx1, Ty1, Tx2, Ty2, p1, p2;
-            Double_t A1, A2;
+            Double_t Tx1[nV0], Ty1[nV0], Tx2[nV0], Ty2[nV0], p1[nV0], p2[nV0];
+            Double_t A1[nV0], A2[nV0];
 
-            TVector2 armenPodol;
+            TVector2 armenPodol[nV0];
 
-            //   for (Int_t iProj = 0; iProj < nV0; iProj++) {
-            Tx1 = proton_V0.GetTx();
-            Ty1 = proton_V0.GetTy();
-            Tx2 = pion_V0.GetTx();
-            Ty2 = pion_V0.GetTy();
-            p1 = 1. / proton_V0.GetQp();
-            p2 = 1. / pion_V0.GetQp();
+            for (Int_t iProj = 0; iProj < nV0; iProj++) {
+                Tx1[iProj] = proton_V0[iProj].GetTx();
+                Ty1[iProj] = proton_V0[iProj].GetTy();
+                Tx2[iProj] = pion_V0[iProj].GetTx();
+                Ty2[iProj] = pion_V0[iProj].GetTy();
+                p1[iProj] = 1. / proton_V0[iProj].GetQp();
+                p2[iProj] = 1. / pion_V0[iProj].GetQp();
 
-            armenPodol = ArmenterosPodol(proton_V0, pion_V0);
+                armenPodol[iProj] = ArmenterosPodol(proton_V0[iProj], pion_V0[iProj]);
 
-            A1 = 1. / Sqrt(Tx1 * Tx1 + Ty1 * Ty1 + 1);
-            lPos.SetXYZM(Tx1 * A1 * p1, Ty1 * A1 * p1, p1 * A1,
+                A1[iProj] = 1. / Sqrt(Tx1[iProj] * Tx1[iProj] + Ty1[iProj] * Ty1[iProj] + 1);
+                lPos[iProj].SetXYZM(Tx1[iProj] * A1[iProj] * p1[iProj], Ty1[iProj] * A1[iProj] * p1[iProj], p1[iProj] * A1[iProj],
                     fPDG->GetParticle(fPdgParticle1)->Mass());
 
-            p2 *= -1.; // Since in the calculations pos. mom. values should be used
+                p2[iProj] *= -1.; // Since in the calculations pos. mom. values should be used
 
-            A2 = 1. / Sqrt(Tx2 * Tx2 + Ty2 * Ty2 + 1);
-            lNeg.SetXYZM(Tx2 * A2 * p2, Ty2 * A2 * p2, p2 * A2,
+                A2[iProj] = 1. / Sqrt(Tx2[iProj] * Tx2[iProj] + Ty2[iProj] * Ty2[iProj] + 1);
+                lNeg[iProj].SetXYZM(Tx2[iProj] * A2[iProj] * p2[iProj], Ty2[iProj] * A2[iProj] * p2[iProj], p2[iProj] * A2[iProj],
                     fPDG->GetParticle(fPdgParticle2)->Mass());
-            //   }
-            partPair.SetAlpha(armenPodol.X(), armenPodol.X());
-            partPair.SetPtPodol(armenPodol.Y(), armenPodol.Y());
-            partPair.SetInvMass(TLorentzVector((lPos + lNeg)).Mag(), TLorentzVector((lPos + lNeg)).Mag());
+            }
+            partPair.SetAlpha(armenPodol[0].X(), armenPodol[1].X());
+            partPair.SetPtPodol(armenPodol[0].Y(), armenPodol[1].Y());
+            partPair.SetInvMass(TLorentzVector((lPos[0] + lNeg[0])).Mag(), TLorentzVector((lPos[1] + lNeg[1])).Mag());
 
-            if (kTRUE == fUseMc && NULL == fGlobalMatches) {
+            // To be used for real exp. data
+            if (fAnalType[0].Contains("dst") && !fAnalType[0].Contains("eve") && fAnalType[1].Contains("OFF"))
+                new((*fParticlePair)[fParticlePair->GetEntriesFast()]) BmnParticlePair(partPair);
 
+            // MC input, no matches
+            if (isMC && fAnalType[1].Contains("OFF")) {
                 Double_t Pp = partPair.GetMomPart1();
                 Double_t Ppi = partPair.GetMomPart2();
                 Double_t Etap = partPair.GetEtaPart1();
@@ -472,7 +397,7 @@ void BmnTwoParticleDecay::Analysis() {
                 partPair.SetMCTrackIdPart1(iTrack);
                 partPair.SetMCTrackIdPart2(jTrack);
 
-                new((*fParticlePairMCAll)[fParticlePairMCAll->GetEntriesFast()]) BmnParticlePair(partPair);
+                new((*fParticlePair_MC_noCuts)[fParticlePair_MC_noCuts->GetEntriesFast()]) BmnParticlePair(partPair);
 
                 if (Pp < fMom[0][0] || Pp > fMom[0][1] || Ppi < fMom[1][0] || Ppi > fMom[1][1])
                     continue;
@@ -490,33 +415,11 @@ void BmnTwoParticleDecay::Analysis() {
                 if (path < fPath[0] || path > fPath[1])
                     continue;
 
-                new((*fParticlePairMC)[fParticlePairMC->GetEntriesFast()]) BmnParticlePair(partPair);
+                new((*fParticlePair_MC_withCuts)[fParticlePair_MC_withCuts->GetEntriesFast()]) BmnParticlePair(partPair);
             }
-            if (fGlobalMatches) {
-                BmnGlobalTrack* glTr1 = (BmnGlobalTrack*) fGlobalTracks->UncheckedAt(iTrack);
-                BmnGlobalTrack* glTr2 = (BmnGlobalTrack*) fGlobalTracks->UncheckedAt(jTrack);
 
-                CbmMCTrack* mcTr1 = (CbmMCTrack*) fMCTracks->UncheckedAt(recoToMcIdx(iTrack));
-                CbmMCTrack* mcTr2 = (CbmMCTrack*) fMCTracks->UncheckedAt(recoToMcIdx(jTrack));
-
-                Double_t pGlTr1 = 1. / glTr1->GetParamFirst()->GetQp();
-                Double_t pGlTr2 = 1. / glTr2->GetParamFirst()->GetQp();
-
-                Int_t nHits1 = glTr1->GetNHits();
-                Int_t nHits2 = glTr2->GetNHits();
-
-                Double_t pMcTr1 = mcTr1->GetP();
-                Double_t pMcTr2 = mcTr2->GetP();
-
-                Int_t idx = (nHits1 == 4 && nHits2 == 4) ? 0 : (nHits1 == 5 && nHits2 == 5) ? 1 : 2;
-                h3Sim[0][idx]->Fill(pGlTr1 - pMcTr1, Abs(pGlTr2) - pMcTr2);
-
-                Double_t lambdaPx = protonPx + pionPx;
-                Double_t lambdaPy = protonPy + pionPy;
-                Double_t lambdaPz = protonPz + pionPz;
-                Double_t PLambda = Sqrt(Sqr(lambdaPx) + Sqr(lambdaPy) + Sqr(lambdaPz));
-                Double_t etaLambda = 0.5 * Log((PLambda + lambdaPz) / (PLambda - lambdaPz));
-
+            // Reco input with matches
+            if (fAnalType[1].Contains("ON")) {
                 // Getting info from a pair we are considering ...
                 Double_t Pp = partPair.GetMomPart1();
                 Double_t Ppi = partPair.GetMomPart2();
@@ -528,7 +431,7 @@ void BmnTwoParticleDecay::Analysis() {
                 Double_t dca12 = partPair.GetDCA12("X");
                 Double_t path = partPair.GetPath("X");
 
-                new((*fParticlePairNoCuts)[fParticlePairNoCuts->GetEntriesFast()]) BmnParticlePair(partPair);
+                new((*fParticlePair_RECO_noCuts)[fParticlePair_RECO_noCuts->GetEntriesFast()]) BmnParticlePair(partPair);
 
                 //                 Kin. cuts applied ...
                 if (Pp < fMom[0][0] || Pp > fMom[0][1] || Ppi < fMom[1][0] || Ppi > fMom[1][1])
@@ -553,30 +456,7 @@ void BmnTwoParticleDecay::Analysis() {
                 partPair.SetRecoTrackIdPart1(iTrack);
                 partPair.SetRecoTrackIdPart2(jTrack);
 
-                new((*fParticlePair)[fParticlePair->GetEntriesFast()]) BmnParticlePair(partPair);
-
-                // 1d-histos ...                             
-                hReco[0]->Fill(PLambda);
-                hReco[1]->Fill(etaLambda);
-
-                hReco[2]->Fill(Pp);
-                hReco[3]->Fill(Ppi);
-                hReco[4]->Fill(Etap);
-                hReco[5]->Fill(Etapi);
-                hReco[6]->Fill(nHits1);
-                hReco[7]->Fill(nHits2);
-
-                // 2d-histos ...
-                h2Reco[0]->Fill(etaLambda, PLambda);
-                h2Reco[1]->Fill(Etap, Pp);
-                h2Reco[2]->Fill(Etapi, Ppi);
-                h2Reco[3]->Fill(Pp, Ppi);
-                h2Reco[4]->Fill(Etap, Etapi);
-                h2Reco[5]->Fill(glTr1->GetParamFirst()->GetTx(), glTr2->GetParamFirst()->GetTx());
-                h2Reco[6]->Fill(glTr1->GetParamFirst()->GetTy(), glTr2->GetParamFirst()->GetTy());
-                //cout << Pp << " " <<  Ppi << " " << Etap << " " << Etapi << " " << dca1 << " " << dca2 << " " << dca12 << " " << path << " " << nHits1 << " " << nHits2 << 
-                //        " Pz_{p} = " << pGlTr1 / Sqrt(1 + (glTr1->GetParamFirst()->GetTx()) * (glTr1->GetParamFirst()->GetTx()) + (glTr1->GetParamFirst()->GetTy()) * (glTr1->GetParamFirst()->GetTy())) << 
-                //        " Pz_{pi} = " << pGlTr2 / Sqrt(1 + (glTr2->GetParamFirst()->GetTx()) * (glTr2->GetParamFirst()->GetTx()) + (glTr2->GetParamFirst()->GetTy()) * (glTr2->GetParamFirst()->GetTy())) << endl; //getchar();
+                new((*fParticlePair_RECO_withCuts)[fParticlePair_RECO_withCuts->GetEntriesFast()]) BmnParticlePair(partPair);
             }
         }
     }
@@ -602,16 +482,6 @@ InitStatus BmnTwoParticleDecay::Init() {
     }
 
     FairRootManager* ioman = FairRootManager::Instance();
-    TString inFileName = TString(ioman->GetInFile()->GetName());
-    fOutFileName = ioman->GetOutFile()->GetName();
-    if (inFileName.Contains("evetest"))
-        fUseMc = kTRUE;
-    else if (inFileName.Contains("bmndst"))
-        fUseMc = kFALSE;
-    else {
-        cout << "Specify a correct file name!" << endl;
-        throw;
-    }
 
     fBranchGemPoints = "StsPoint";
     fBranchGlobalTracks = "BmnGlobalTrack";
@@ -625,30 +495,69 @@ InitStatus BmnTwoParticleDecay::Init() {
     fGlobalMatches = (TClonesArray*) ioman->GetObject(fBranchGlobalMatch.Data());
     fVertex = (TClonesArray*) ioman->GetObject(fBranchVertex.Data());
 
-    if (fUseMc) {
-        fParticlePairMC = new TClonesArray("BmnParticlePair");
-        ioman->Register("ParticlePairMC", "Lambda", fParticlePairMC, kTRUE);
+    TString dataSet = (fMCTracks && fGlobalTracks) ? "eve + dst" :
+            (fMCTracks && !fGlobalTracks) ? "eve" :
+            (!fMCTracks && fGlobalTracks) ? "dst" : "";
 
-        fParticlePairMCAll = new TClonesArray("BmnParticlePair");
-        ioman->Register("AllParticlePairMC", "Lambda", fParticlePairMCAll, kTRUE);
+    TString isMatching = fGlobalMatches ? "matchON" : "matchOFF";
 
-        fParticlePairsInfo = new TClonesArray("BmnParticlePairsInfo");
-        ioman->Register("ParticlePairsInfoMC", "Lambda", fParticlePairsInfo, kTRUE);
-    } else {
-        fParticlePair = new TClonesArray("BmnParticlePair");
-        ioman->Register("ParticlePair", "Lambda", fParticlePair, kTRUE);
+    fAnalType.push_back(dataSet);
+    fAnalType.push_back(isMatching);
 
-        fParticlePairNoCuts = new TClonesArray("BmnParticlePair");
-        ioman->Register("ParticlePairNoCuts", "Lambda", fParticlePairNoCuts, kTRUE);
+    // Particle pair branch for all data types
+    const Char_t* className = "BmnParticlePair";
 
-        fParticlePairsInfo = new TClonesArray("BmnParticlePairsInfo");
-        ioman->Register("ParticlePairsInfoReco", "Lambda", fParticlePairsInfo, kTRUE);
-    }
+    Bool_t isWriteEveBranch = (dataSet.Contains("eve") && isMatching.Contains("OFF")) ? kTRUE : kFALSE;
+    Bool_t isWriteDstBranch = (dataSet.Contains("dst") && isMatching.Contains("ON")) ? kTRUE : kFALSE;
+    Bool_t isWriteBranch = (dataSet.Contains("dst") && isMatching.Contains("OFF")) ? kTRUE : kFALSE; // exp. data or dst without matches
+
+    fParticlePair_MC_noCuts = new TClonesArray(className);
+    ioman->Register("ParticlePair_MC_noCuts", "Lambda", fParticlePair_MC_noCuts, isWriteEveBranch);
+
+    fParticlePair_MC_withCuts = new TClonesArray(className);
+    ioman->Register("ParticlePair_MC_withCuts", "Lambda", fParticlePair_MC_withCuts, isWriteEveBranch);
+
+    fParticlePair_RECO_noCuts = new TClonesArray(className);
+    ioman->Register("ParticlePair_RECO_noCuts", "Lambda", fParticlePair_RECO_noCuts, isWriteDstBranch);
+
+    fParticlePair_RECO_withCuts = new TClonesArray(className);
+    ioman->Register("ParticlePair_RECO_withCuts", "Lambda", fParticlePair_RECO_withCuts, isWriteDstBranch);
+
+    fParticlePair = new TClonesArray(className);
+    ioman->Register("ParticlePair", "Lambda", fParticlePair, isWriteBranch);
+
+    fParticlePairsInfo = new TClonesArray("BmnParticlePairsInfo");
+    ioman->Register("ParticlePairsInfo", "Lambda", fParticlePairsInfo, kTRUE);
+
+    // Save pair info ...
+    BmnParticlePairsInfo pairInfo;
+
+    pairInfo.setMomPart1Min(fMom[0][0]);
+    pairInfo.setMomPart1Max(fMom[0][1]);
+    pairInfo.setMomPart2Min(fMom[1][0]);
+    pairInfo.setMomPart2Max(fMom[1][1]);
+
+    pairInfo.setEtaPart1Min(fEta[0][0]);
+    pairInfo.setEtaPart1Max(fEta[0][1]);
+    pairInfo.setEtaPart2Min(fEta[1][0]);
+    pairInfo.setEtaPart2Max(fEta[1][1]);
+
+    pairInfo.setDCAPart1Min(fDCA[0][0]);
+    pairInfo.setDCAPart1Max(fDCA[0][1]);
+    pairInfo.setDCAPart2Min(fDCA[1][0]);
+    pairInfo.setDCAPart2Max(fDCA[1][1]);
+
+    pairInfo.setDCA12Min(fDCA12[0]);
+    pairInfo.setDCA12Max(fDCA12[1]);
+    pairInfo.setPathMin(fPath[0]);
+    pairInfo.setPathMax(fPath[0]);
+
+    new((*fParticlePairsInfo)[fParticlePairsInfo->GetEntriesFast()]) BmnParticlePairsInfo(pairInfo);
 
     fPDG = TDatabasePDG::Instance();
 
     fMagField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
-    fMagField->SetScale((!fUseMc) ? *runInfo->GetFieldVoltage() / 55.87 : 1.3);
+    fMagField->SetScale(!fAnalType[0].Contains("eve") ? *runInfo->GetFieldVoltage() / 55.87 : 1.3); // FIXME
     fMagField->Init();
 
     FairRunAna::Instance()->SetField(fMagField);
@@ -663,169 +572,26 @@ InitStatus BmnTwoParticleDecay::Init() {
     // Possible two-particle decays are listed here (lambda0, K0-short):
     fPDGDecay = (fPDG1 == 2212 && fPDG2 == -211) ? 3122 :
             (fPDG1 == 211 && fPDG2 == -211) ? 310 : -1;
-    fLeftInvMass = (fPDG1 == 2212 && fPDG2 == -211) ? 1.113 : -1; // FIXME (for K0-short)
-    fRightInvMass = (fPDG1 == 2212 && fPDG2 == -211) ? 1.119 : -1; // inv.mass \pm 3\sigma
 
-    if (!fUseMc && fGlobalMatches) {
-        fN = 8;
-        hSim = new TH1F*[fN]();
-        hReco = new TH1F*[fN]();
-
-        fN2 = 7;
-        h2Sim = new TH2F*[fN2]();
-        h2Reco = new TH2F*[fN2]();
-
-        fN3 = 2; // [0] --> all pairs, [1] --> pairs from lambda 
-        fN4 = 3; // [0] --> 4 hits, [1] --> 5 hits, [2] --> 6 hits per track
-
-        h3Sim = new TH2F**[fN3]();
-
-        const Int_t _fN = 8;
-        const Int_t _fN2 = 7;
-        const Int_t _fN3 = 2;
-        const Int_t _fN4 = 3;
-
-        TString hTitles[_fN];
-        TString hTitles2[_fN2];
-        TString hTitles3[_fN3][_fN4];
-
-        TString hNames[_fN] = {
-            "Distr. over P_{#Lambda^{0}}", "Distr. over #eta_{#Lambda^{0}}",
-            "Distr. over P_{p}", "Distr. over P_{#pi^{-}}",
-            "Distr. over #eta_{p}", "Distr. over #eta_{#pi^{-}}",
-            "Distr. over NHits_{p}", "Distr. over NHits_{#pi^{-}}"
-        };
-
-        TString hNames2[_fN2] = {
-            "Distr. over P_{#Lambda^{0}} vs. #eta_{#Lambda^{0}}",
-            "Distr. over P_{p} vs. #eta_{p}",
-            "Distr. over P_{#pi^{-}} vs. #eta_{#pi^{-}}",
-            "Distr. over P_{p} vs. P_{#pi^{-}}",
-            "Distr. over #eta_{p} vs. #eta_{#pi^{-}}",
-            "Distr. over T_{x}^{p} vs. T_{x}^{#pi^{-}}",
-            "Distr. over T_{y}^{p} vs. T_{y}^{#pi^{-}}"
-        };
-
-        TString hNames3[_fN3][_fN4];
-        for (Int_t i = 0; i < _fN3; i++) {
-            TString addI = (i == 0) ? "all pairs " : "pairs from #Lambda^{0} ";
-            for (Int_t j = 0; j < _fN4; j++) {
-                TString addJ = (j == 0) ? "4 hits" : (j == 1) ? "5 hits" : "6 hits";
-                hNames3[i][j] = "Diff. between reco and sim. momenta, " + addI + addJ + " per both tracks";
-            }
-        }
-
-        TString xTitles[_fN] = {
-            "P_{#Lambda^{0}} [GeV/c]", "#eta_{#Lambda^{0}}",
-            "P_{p} [GeV/c]", "P_{#pi^{-}} [GeV/c]",
-            "#eta_{p}", "#eta_{#pi^{-}}", "NHits_{p}", "NHits_{#pi^{-}}"
-        };
-
-        TString xTitles2[_fN2] = {
-            "#eta_{#Lambda^{0}}", "#eta_{p}", "#eta_{#pi^{-}}", "P_{p} [GeV/c]", "#eta_{p}", "T_{x}^{p}", "T_{y}^{p}"
-        };
-
-        TString yTitles2[_fN2] = {
-            "P_{#Lambda^{0}} [GeV/c]", "P_{p} [GeV/c]", "P_{#pi^{-}} [GeV/c]", "P_{#pi^{-}} [GeV/c]", "#eta_{#pi^{-}}", "T_{x}^{#pi^{-}}", "T_{y}^{#pi^{-}}"
-        };
-
-        for (Int_t iHist = 0; iHist < fN; iHist++) {
-            hTitles[iHist] = hNames[iHist];
-            hSim[iHist] = new TH1F(TString("SIM " + hNames[iHist]).Data(), TString("SIM " + hTitles[iHist]).Data(), 100, 0., 0.);
-            hReco[iHist] = new TH1F(TString("RECO " + hNames[iHist]).Data(), TString("RECO " + hTitles[iHist]).Data(), 100, 0., 0.);
-            hSim[iHist]->GetXaxis()->SetTitle(xTitles[iHist].Data());
-            hReco[iHist]->GetXaxis()->SetTitle(xTitles[iHist].Data());
-        }
-
-        for (Int_t iHist = 0; iHist < fN2; iHist++) {
-            hTitles2[iHist] = hNames2[iHist];
-            Double_t xLow = (iHist == 5 || iHist == 6) ? -1. : 0.;
-            Double_t xUp = (iHist == 5 || iHist == 6) ? +1. : 6.;
-            h2Sim[iHist] = new TH2F(TString("SIM " + hNames2[iHist]).Data(), TString("SIM " + hTitles2[iHist]).Data(), 100, xLow, xUp, 100, xLow, xUp);
-            h2Reco[iHist] = new TH2F(TString("RECO " + hNames2[iHist]).Data(), TString("RECO " + hTitles2[iHist]).Data(), 100, xLow, xUp, 100, xLow, xUp);
-            h2Sim[iHist]->GetXaxis()->SetTitle(xTitles2[iHist].Data());
-            h2Reco[iHist]->GetXaxis()->SetTitle(xTitles2[iHist].Data());
-            h2Sim[iHist]->GetYaxis()->SetTitle(yTitles2[iHist].Data());
-            h2Reco[iHist]->GetYaxis()->SetTitle(yTitles2[iHist].Data());
-        }
-
-        for (Int_t iHist = 0; iHist < fN3; iHist++) {
-            h3Sim[iHist] = new TH2F*[fN4]();
-            for (Int_t jHist = 0; jHist < fN4; jHist++) {
-                hTitles3[iHist][jHist] = hNames3[iHist][jHist];
-                h3Sim[iHist][jHist] = new TH2F(TString("SIM/RECO " + hNames3[iHist][jHist]).Data(), TString("SIM/RECO " + hTitles3[iHist][jHist]).Data(), 100, -1., 1., 100, -1., 1.);
-                h3Sim[iHist][jHist]->GetXaxis()->SetTitle("Diff. P_{p} [GeV/c]");
-                h3Sim[iHist][jHist]->GetYaxis()->SetTitle("Diff. P_{#pi^{-}} [GeV/c]");
-            }
-        }
-    }
     return kSUCCESS;
 }
 
 // -------------------------------------------------------------------
 
-void BmnTwoParticleDecay::Exec(Option_t* option) {
-    fParticlePairsInfo->Delete();
+void BmnTwoParticleDecay::Exec(Option_t * option) {
+    fParticlePair_MC_noCuts->Delete();
+    fParticlePair_MC_withCuts->Delete();
+    fParticlePair_RECO_noCuts->Delete();
+    fParticlePair_RECO_withCuts->Delete();
 
-    BmnParticlePairsInfo pairInfo;
-
-    pairInfo.setMomPart1Min(0);
-    pairInfo.setMomPart1Max(5);
-    pairInfo.setMomPart2Min(0);
-    pairInfo.setMomPart2Max(5);
-
-    pairInfo.setEtaPart1Min(0);
-    pairInfo.setEtaPart1Max(3);
-    pairInfo.setEtaPart2Min(0);
-    pairInfo.setEtaPart2Max(3);
-
-    pairInfo.setDCAPart1Min(1);
-    pairInfo.setDCAPart1Max(100);
-    pairInfo.setDCAPart2Min(1);
-    pairInfo.setDCAPart2Max(100);
-
-    pairInfo.setDCA12Min(0);
-    pairInfo.setDCA12Max(10);
-    pairInfo.setPathMin(0);
-    pairInfo.setPathMax(30);
-
-    new((*fParticlePairsInfo)[0]) BmnParticlePairsInfo(pairInfo);
-    fMom[0][0] = pairInfo.getMomPart1Min();
-    fMom[0][1] = pairInfo.getMomPart1Max();
-    fMom[1][0] = pairInfo.getMomPart2Min();
-    fMom[1][1] = pairInfo.getMomPart2Max();
-    
-    fEta[0][0] = pairInfo.getEtaPart1Min();
-    fEta[0][1] = pairInfo.getEtaPart1Max();
-    fEta[1][0] = pairInfo.getEtaPart2Min();
-    fEta[1][1] = pairInfo.getEtaPart2Max();
-    
-    fDCA12[0] = pairInfo.getDCA12Min();
-    fDCA12[1] = pairInfo.getDCA12Max();
-    
-    fPath[0] = pairInfo.getPathMin();
-    fPath[1] = pairInfo.getPathMax();
-    
-    fDCA[0][0] = pairInfo.getDCAPart1Min();
-    fDCA[0][1] = pairInfo.getDCAPart1Max();
-    fDCA[1][0] = pairInfo.getDCAPart2Min();
-    fDCA[1][1] = pairInfo.getDCAPart2Max();
-    
-
-    if (fUseMc) {
-        fParticlePairMC->Delete();
-        fParticlePairMCAll->Delete();
-    } else {
-        fParticlePair->Delete();
-        fParticlePairNoCuts->Delete();
-    }
+    fParticlePair->Delete();
 
     fEventCounter++;
     if (fEventCounter % 100 == 0)
         cout << fEventCounter << endl;
 
     // In case of MC-data one has to extract coordinates of Vp known exactly ...
-    if (fUseMc) {
+    if (fAnalType[0].Contains("eve") && !fAnalType[0].Contains("dst")) {
         for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
             CbmMCTrack* mcTrack = (CbmMCTrack*) fMCTracks->UncheckedAt(iTrack);
             if (mcTrack->GetMotherId() != -1)
@@ -833,8 +599,6 @@ void BmnTwoParticleDecay::Exec(Option_t* option) {
             fMcVertex.SetXYZ(mcTrack->GetStartX(), mcTrack->GetStartY(), mcTrack->GetStartZ());
             break;
         }
-        if (fGlobalMatches)
-            CalculateReconstuctableParticles();
     }// Real data .. 
     else {
         fEventVertex = (CbmVertex*) fVertex->UncheckedAt(0);
@@ -856,16 +620,6 @@ void BmnTwoParticleDecay::Exec(Option_t* option) {
 // -------------------------------------------------------------------
 
 void BmnTwoParticleDecay::Finish() {
-    if (fUseMc) {
-        for (Int_t iHist = 0; iHist < fN; iHist++) {
-            hSim[iHist]->Write();
-            hReco[iHist]->Write();
-        }
-        for (Int_t iHist = 0; iHist < fN2; iHist++) {
-            h2Sim[iHist]->Write();
-            h2Reco[iHist]->Write();
-        }
-    }
     delete fKalman;
     delete fMagField;
     cout << "\n-I- [BmnTwoParticleDecay::Finish] " << endl;
@@ -893,7 +647,7 @@ TVector3 BmnTwoParticleDecay::FitParabola(vector <TVector3> points) {
         return TVector3(0., 0., 0.);
 }
 
-TVector2 BmnTwoParticleDecay::SecondaryVertexY(FairTrackParam* param1, FairTrackParam* param2) {
+TVector2 BmnTwoParticleDecay::SecondaryVertexY(FairTrackParam* param1, FairTrackParam * param2) {
     Double_t Ty1 = param1->GetTy();
     Double_t b1 = param1->GetY() - Ty1 * param1->GetZ();
 
@@ -906,7 +660,7 @@ TVector2 BmnTwoParticleDecay::SecondaryVertexY(FairTrackParam* param1, FairTrack
     return TVector2(yV, zV);
 }
 
-void BmnTwoParticleDecay::CalculateMinDistance(TVector3 paramsCurv1, TVector3 paramsCurv2, Double_t* arr) {
+void BmnTwoParticleDecay::CalculateMinDistance(TVector3 paramsCurv1, TVector3 paramsCurv2, Double_t * arr) {
     Double_t a1 = paramsCurv1[0];
     Double_t b1 = paramsCurv1[1];
     Double_t c1 = paramsCurv1[2];
@@ -993,6 +747,7 @@ TVector2 BmnTwoParticleDecay::ArmenterosPodol(FairTrackParam prot, FairTrackPara
     return TVector2(alpha, Pt);
 }
 
+// Not tested extensively yet!!!
 Double_t BmnTwoParticleDecay::FindV0ByVirtualPlanes(BmnGlobalTrack* track1, BmnGlobalTrack* track2, Double_t z_0, Double_t range) {
     const Int_t nPlanes = 5;
 
@@ -1026,10 +781,10 @@ Double_t BmnTwoParticleDecay::FindV0ByVirtualPlanes(BmnGlobalTrack* track1, BmnG
         z_0 = -b / (2 * a);
         Double_t dMin = a * z_0 * z_0 + b * z_0 + c_;
         //        cout << dMin << endl;
-        if (z_0 < -2.3 || z_0 > 40. || dMin > 5.) {
-            delete vertex;
-            return -1000.;
-        }
+        //        if (z_0 < -2.3 || z_0 > 40.) {
+        //            delete vertex;
+        //            return -1000.;
+        //        }
         range /= 2;
         //        vertex->Draw("AP*");
         //        c->SaveAs("tmp.pdf");

@@ -114,10 +114,14 @@ public:
     void drawproft0();
     int Offsets_read();
     int readGeom(char *geomFile);
+    int readLRoffsets(char *LRoffsetsFile);
     int printGeom();
     int get_strip_xyz(int chamber, int strip, float *x, float *y, float *z);
     int get_chamber_z(int chamber, float *z);
     int get_track_hits(float *xyz, float *cxyy, int *nhits, int *chamb, int *strip);
+    float get_hit_diff(int chamber, int strip, float diff);
+    float get_hit_x(int chamber, int strip, float diff);
+    void get_hit_xyz(int chamber, int strip, float diff, float *x, float *y, float *z);
     void ReBook(int i);
     void Book();
     void BookSlewing();
@@ -215,6 +219,10 @@ private:
     float xmaxs[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
     float ymins[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
     float ymaxs[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
+
+    float lroffsets[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
+    int lrsign[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
+    float fVelosity;
 
 ClassDef(BmnTof2Raw2DigitNew, 1);
 };

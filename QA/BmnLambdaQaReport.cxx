@@ -30,27 +30,14 @@ using lit::NumberToString;
 using lit::Split;
 using lit::FindAndReplace;
 
-BmnLambdaQaReport::BmnLambdaQaReport(Bool_t useMCFile, Bool_t useRecoFile, Short_t key2, TString name, TString keyAddition, Bool_t drawPoints, TClonesArray* particlePairsInfo) :
+BmnLambdaQaReport::BmnLambdaQaReport(Bool_t useMCFile, Bool_t useRecoFile, vector <TClonesArray*> branches) :
 BmnSimulationReport(),
 fUseMCFile(useMCFile),
+fMC(branches[0]),
 fUseRecoFile(useRecoFile),
-fKey2(key2),
-fOutName(name),
-fDrawPoints(drawPoints),
-fParticlePairsInfo(particlePairsInfo) {
-    SetReportName(name);
-    switch (key2) {
-        case 'a':
-            fKeyAddition = "____(gem)" + keyAddition;
-            break;
-        case 'b':
-            fKeyAddition = "____(gem+sil)" + keyAddition;
-            break;
-    }
-    if (drawPoints)
-        drawPointsOpt = "PE1";
-    else
-        drawPointsOpt = "";
+fRECO(branches[1]),
+drawPointsOpt("PE1") {
+    SetReportName("lambda_qa");
 }
 
 BmnLambdaQaReport::~BmnLambdaQaReport() {
@@ -65,23 +52,15 @@ void BmnLambdaQaReport::Create() {
 }
 
 void BmnLambdaQaReport::PrintEventInfo() {
+    Out() << "<h1> <font color='00FF00'>The criterion for lambda to be reconstructable: </font></h1>" << endl;
+    Out() << "<h1> <font color='00FF00'>Both of its decay products have at least </font><font color='FF0000'> 4 </font><font color='00FF00'> gem or silicon hits </font></h1>" << endl;
+
     FairRootManager* ioman = FairRootManager::Instance();
     fParticlePairsInfo = (TClonesArray*) ioman->GetObject("ParticlePairsInfo");
     if (!fParticlePairsInfo)
-        Fatal("Init", ": No particle pairs info reco array!");
+        return;
 
     if (fUseMCFile) {
-        switch (fKey2) {
-            case 'a':
-                Out() << "<h1> <font color='0000FF'>The criterion for lambda to be reconstructable: </font> </h1>" << endl;
-                Out() << "<h1> <font color='0000FF'>Both of its decay products have at least </font><font color='FF0000''> 4 </font><font color='0000FF'> gem hits </font></h1>" << endl;
-                break;
-            case 'b':
-                Out() << "<h1> <font color='00FF00'>The criterion for lambda to be reconstructable: </font></h1>" << endl;
-                Out() << "<h1> <font color='00FF00'>Both of its decay products have at least </font><font color='FF0000'> 4 </font><font color='00FF00'> gem or silicon hits </font></h1>" << endl;
-                break;
-        }
-
         Out() << setprecision(8) << "<h1> Number of lambda:\n" << HM()->H1("numberOfLambdas_LambdaQa")->GetEntries() << "</h1>" << endl;
         Out() << setprecision(8) << "<h1> Number of reconstructable lambda:\n" << HM()->H1("numberOfReconstructableLambdas_LambdaQa")->GetEntries() << "</h1>" << endl;
         Double_t lRecEff = HM()->H1("numberOfReconstructableLambdas_LambdaQa")->GetEntries() / HM()->H1("numberOfLambdas_LambdaQa")->GetEntries();
@@ -130,39 +109,47 @@ void BmnLambdaQaReport::PrintEventInfo() {
 
 void BmnLambdaQaReport::Draw() {
     if (fUseMCFile) {
-        DrawNumberOfReconstructableLambdaHistograms(("Number of reconstructable lambda determined by the geometry and overall number of lambda histograms" + fKeyAddition).Data());
-        DrawGeomEfficiencyHistograms(("Geometrical lambda reconstruction efficiency histograms" + fKeyAddition).Data());
-        DrawTwoDimensionalRecGeomEfficiencyHistograms(("Two dimensional number of lambda histograms" + fKeyAddition).Data());
-        DrawNumberOfLambdaDecayProtonsHistograms(("Number of reconstructable lambda decay protons determined by the geometry and overall number of protons histograms" + fKeyAddition).Data());
-        DrawRecProtonsGeomEffHistograms(("Lambda decay protons geometrical reconstruction efficiency" + fKeyAddition).Data());
-        DrawTwoDimensionalRecProtonsRecEfficiencyHistograms(("Two dimensional number of recontstructive protons determined by the geometry histograms" + fKeyAddition).Data());
-        DrawNumberOfLambdaDecayMesonsHistograms(("Number of reconstructable lambda decay mesons determined by the geometry  and overall number of mesons histograms" + fKeyAddition).Data());
-        DrawRecMesonsGeomRecEffHistograms(("Lambda decay mesons geometrical reconstruction efficiency" + fKeyAddition).Data());
-        DrawTwoDimensionalRecMesonsGeomRecEfficiencyHistograms(("Two dimensional number of lambda decay mesons determined by the geometry histograms" + fKeyAddition).Data());
-        DrawReconstructedFromMCLambdasHistograms(("Reconstructed from MC particle pairs" + fKeyAddition).Data());
-        DrawTwoDimensinalReconstructedFromMCLambdasHistograms(("Two dimensional reconstructed particle pairs from MC data" + fKeyAddition).Data());
-        DrawReconstructedFromMCWOCutsLambdasHistograms(("Reconstructed from MC particle pairs without cuts" + fKeyAddition).Data());
-        DrawTwoDimensinalReconstructedFromMCWOCutsLambdasHistograms(("Two dimensional reconstructed particle pairs from MC data without cuts" + fKeyAddition).Data());
+        DrawNumberOfReconstructableLambdaHistograms("Number of reconstructable lambda determined by the geometry and overall number of lambda histograms");
+        DrawGeomEfficiencyHistograms("Geometrical lambda reconstruction efficiency histograms");
+        DrawTwoDimensionalRecGeomEfficiencyHistograms("Two dimensional number of lambda histograms");
+        DrawNumberOfLambdaDecayProtonsHistograms("Number of reconstructable lambda decay protons determined by the geometry and overall number of protons histograms");
+        DrawRecProtonsGeomEffHistograms("Lambda decay protons geometrical reconstruction efficiency");
+        DrawTwoDimensionalRecProtonsRecEfficiencyHistograms("Two dimensional number of recontstructive protons determined by the geometry histograms");
+        DrawNumberOfLambdaDecayMesonsHistograms("Number of reconstructable lambda decay mesons determined by the geometry  and overall number of mesons histograms");
+        DrawRecMesonsGeomRecEffHistograms("Lambda decay mesons geometrical reconstruction efficiency");
+        DrawTwoDimensionalRecMesonsGeomRecEfficiencyHistograms("Two dimensional number of lambda decay mesons determined by the geometry histograms");
+
+        if (fMC) {
+            DrawReconstructedFromMCLambdasHistograms("Reconstructed from MC particle pairs");
+            DrawTwoDimensinalReconstructedFromMCLambdasHistograms("Two dimensional reconstructed particle pairs from MC data");
+            DrawReconstructedFromMCWOCutsLambdasHistograms("Reconstructed from MC particle pairs without cuts");
+            DrawTwoDimensinalReconstructedFromMCWOCutsLambdasHistograms("Two dimensional reconstructed particle pairs from MC data without cuts");
+        }
     }
 
     if (fUseMCFile && fUseRecoFile) {
-        DrawTwoDimensionalRealRecEfficiencyHistograms(("Two dimensional number of reconstructed particle pairs histograms" + fKeyAddition).Data());
-        DrawReconstructionEfficiencyHistograms(("Particle pairs reconstruction efficiency" + fKeyAddition).Data());
-        DrawNumberOfLambdaDecayProtonsReconstructedHistograms(("Number of reconstructed lambda decay protons histograms" + fKeyAddition).Data());
-        DrawRecProtonsReconstructionEfficiencyHistograms(("Lambda decay protons reconstruction efficiency" + fKeyAddition).Data());
-        DrawTwoDimensionalRealRecEfficiencyRecProtonsHistograms(("Two dimensional number of reconstructed lambda decay protons histograms" + fKeyAddition).Data());
-        DrawNumberOfLambdaDecayMesonsReconstructedHistograms(("Number of reconstructed lambda decay mesons histograms" + fKeyAddition).Data());
-        DrawRecMesonsReconstructionEfficiencyHistograms(("Reconstructive mesons reconstruction efficiency" + fKeyAddition).Data());
-        DrawTwoDimensionalRealRecEfficiencyRecMesonsHistograms(("Two dimensional number of reconstructed lambda decay mesons histograms" + fKeyAddition).Data());
-        DrawNumberOfNotReconstructedLambdasHistograms(("Number of not reconstructed lambda histograms" + fKeyAddition).Data());
-        DrawNumberOfReconstructedLambdaHistograms(("Number of reconstructed particle pairs histograms" + fKeyAddition).Data());
+        DrawNumberOfNotReconstructedLambdasHistograms("Number of not reconstructed lambda histograms");
+
+        if (fRECO) {
+            DrawTwoDimensionalRealRecEfficiencyHistograms("Two dimensional number of reconstructed particle pairs histograms");
+            DrawReconstructionEfficiencyHistograms("Particle pairs reconstruction efficiency");
+            DrawNumberOfLambdaDecayProtonsReconstructedHistograms("Number of reconstructed lambda decay protons histograms");
+            DrawRecProtonsReconstructionEfficiencyHistograms("Lambda decay protons reconstruction efficiency");
+            DrawTwoDimensionalRealRecEfficiencyRecProtonsHistograms("Two dimensional number of reconstructed lambda decay protons histograms");
+            DrawNumberOfLambdaDecayMesonsReconstructedHistograms("Number of reconstructed lambda decay mesons histograms");
+            DrawRecMesonsReconstructionEfficiencyHistograms("Reconstructive mesons reconstruction efficiency");
+            DrawTwoDimensionalRealRecEfficiencyRecMesonsHistograms("Two dimensional number of reconstructed lambda decay mesons histograms");
+            DrawNumberOfReconstructedLambdaHistograms("Number of reconstructed particle pairs histograms");
+        }
     }
 
     if (fUseRecoFile) {
-        DrawReconstructedLambdasHistograms(("Reconstructed particle pairs from reconstruction data" + fKeyAddition).Data());
-        DrawTwoDimensinalReconstructedLambdasHistograms(("Two dimensional reconstructed particle pairs data" + fKeyAddition).Data());
-        DrawReconstructedLambdasWOCutsHistograms(("Reconstructed particle pairs without cuts from reconstruction data" + fKeyAddition).Data());
-        DrawTwoDimensinalReconstructedLambdasWOCutsHistograms(("Two dimensional reconstructed without cuts particle pairs data" + fKeyAddition).Data());
+        if (fRECO) {
+            DrawReconstructedLambdasHistograms("Reconstructed particle pairs from reconstruction data");
+            DrawTwoDimensinalReconstructedLambdasHistograms("Two dimensional reconstructed particle pairs data");
+            DrawReconstructedLambdasWOCutsHistograms("Reconstructed particle pairs without cuts from reconstruction data");
+            DrawTwoDimensinalReconstructedLambdasWOCutsHistograms("Two dimensional reconstructed without cuts particle pairs data");
+        }
     }
 }
 

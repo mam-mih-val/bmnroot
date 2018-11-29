@@ -24,20 +24,7 @@ class TClonesArray;
 class BmnLambdaQa : public FairTask {
 public:
 
-    BmnLambdaQa() {
-    }
-
-    /**
-     * \brief a constructor with keys
-     * \param[in] useMCFile if is True conducts a geometry analysis and particle decay reconstruction analysis with MC data as input
-     * \param[in] useRecoFile if is True conducts a two particle decay reconstruction analysis with reco data as input, if useMCFile is true as well carries out a two particle decay matching analysis
-     * \param[in] key2 if is 'a' particle is reconstructable if it has 4 gem points, if is 'b' particle is reconstructable if it has 4 gem + silicon points
-     * \param[in] name names of output html and root files 
-     * \param[in] keyAddition key word to be added at the end of .jpg output files to distinguish them using different sets of detectors in the geometry analysis
-     * \param[in] drawPoints draws one-dimensional histograms as points with bars, otherwise draws them as default bar charts
-     */
-    BmnLambdaQa(Bool_t useMCFile, Bool_t useRecoFile, Short_t key2, TString name, TString keyAddition, Bool_t drawPoints);
-
+    BmnLambdaQa();
     /**
      * \brief Destructor.
      */
@@ -52,8 +39,7 @@ public:
     /**
      * \brief Derived from FairTask.
      */
-    virtual void Exec(
-            Option_t* opt);
+    virtual void Exec(Option_t* opt);
 
     /**
      * \brief Derived from FairTask.
@@ -156,20 +142,14 @@ private:
     Int_t fPathRangeMin;
     Int_t fPathRangeMax;
 
-    Short_t fKey2; // 'a' - only GEM hits are considered in geometry analysis, 'b' - silicon hits are added to GEM
-    Bool_t fDrawPoints;
     Bool_t fUseMCFile;
     Bool_t fUseRecoFile;
 
-    TString fOutName;
-    TString fKeyAddition; // key to be added at the end of each histogram name and overall html file  
-
     TClonesArray* fMCTracks;
+    TClonesArray* fGlobalTracks;
     TClonesArray* fSiliconPoints;
     TClonesArray* fSSDPoints;
-  
-    TClonesArray* fParticlePairsInfo;
-    
+      
     TClonesArray* fParticlePair; 
     
     TClonesArray* fParticlePair_MC_noCuts;
@@ -177,6 +157,8 @@ private:
     
     TClonesArray* fParticlePair_RECO_noCuts;
     TClonesArray* fParticlePair_RECO_withCuts;
+    
+    static Int_t fCurrentEvent;
 
     ClassDef(BmnLambdaQa, 1);
 };

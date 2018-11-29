@@ -19,10 +19,12 @@ using std::string;
 
 class BmnLambdaQaReport : public BmnSimulationReport {
 public:
+    
+    BmnLambdaQaReport() {};
     /**
      * \brief Constructor.
      */
-    BmnLambdaQaReport(Bool_t fUseMCFile = kTRUE, Bool_t fUseRecoFile = kFALSE, Short_t key2 = 'a', TString name = "lambda_qa", TString keyAddition = "", Bool_t drawPoints = kTRUE, TClonesArray* particlePairsInfo = nullptr);
+    BmnLambdaQaReport(Bool_t fUseMCFile, Bool_t fUseRecoFile, vector <TClonesArray*> branches);
 
     /**
      * \brief Destructor.
@@ -63,12 +65,12 @@ private:
     void DrawReconstructedLambdasWOCutsHistograms(const string& canvasName);
     void DrawTwoDimensinalReconstructedLambdasWOCutsHistograms(const string& canvasName);
        
-    TString fOutName;
     Bool_t fUseMCFile;
+    TClonesArray* fMC;
+    
     Bool_t fUseRecoFile;
-    Bool_t fDrawPoints;
-    Char_t fKey2;
-    TString fKeyAddition;
+    TClonesArray* fRECO;
+    
     TString drawPointsOpt;
     TClonesArray* fParticlePairsInfo;
     

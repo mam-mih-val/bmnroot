@@ -30,12 +30,13 @@ using lit::NumberToString;
 using lit::Split;
 using lit::FindAndReplace;
 
-BmnLambdaQaReport::BmnLambdaQaReport(Bool_t useMCFile, Bool_t useRecoFile, vector <TClonesArray*> branches) :
+BmnLambdaQaReport::BmnLambdaQaReport(Bool_t useMCFile, Bool_t useRecoFile, BmnParticlePairsInfo* info, vector <TClonesArray*> branches) :
 BmnSimulationReport(),
 fUseMCFile(useMCFile),
 fMC(branches[0]),
 fUseRecoFile(useRecoFile),
 fRECO(branches[1]),
+fParticlePairsInfo(info),
 drawPointsOpt("PE1") {
     SetReportName("lambda_qa");
 }
@@ -55,11 +56,6 @@ void BmnLambdaQaReport::PrintEventInfo() {
     Out() << "<h1> <font color='00FF00'>The criterion for lambda to be reconstructable: </font></h1>" << endl;
     Out() << "<h1> <font color='00FF00'>Both of its decay products have at least </font><font color='FF0000'> 4 </font><font color='00FF00'> gem or silicon hits </font></h1>" << endl;
 
-    FairRootManager* ioman = FairRootManager::Instance();
-    fParticlePairsInfo = (TClonesArray*) ioman->GetObject("ParticlePairsInfo");
-    if (!fParticlePairsInfo)
-        return;
-
     if (fUseMCFile) {
         Out() << setprecision(8) << "<h1> Number of lambda:\n" << HM()->H1("numberOfLambdas_LambdaQa")->GetEntries() << "</h1>" << endl;
         Out() << setprecision(8) << "<h1> Number of reconstructable lambda:\n" << HM()->H1("numberOfReconstructableLambdas_LambdaQa")->GetEntries() << "</h1>" << endl;
@@ -70,30 +66,29 @@ void BmnLambdaQaReport::PrintEventInfo() {
         Out() << setprecision(2) << fixed << "<h1> Percentage of particle pairs reconstructed by MC tracks being lambda:\n" << HM()->H1("numberOfMCReconstructedLambdasQA")->GetEntries() / HM()->H1("numberOfMCReconstructedParticlePairsQA")->GetEntries()*100 << "% </h1>" << endl;
 
         Out() << "<h1> <font color='6f00ff'> Kinematic cuts for MC are: </font></h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getMomPart1Min() << " < P_1 < " << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getMomPart1Max() << " (GeV/c)" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getMomPart2Min() << " < P_2 < " << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getMomPart2Max() << " (GeV/c)" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getEtaPart1Min() << " < Eta_1 < " << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getEtaPart1Max() << "" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getEtaPart2Min() << " < Eta_2 < " << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getEtaPart2Max() << "" << "</h1>" << endl;
+        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getMomPart1Min() << " < P_1 < " << fParticlePairsInfo->getMomPart1Max() << " (GeV/c)" << "</h1>" << endl;
+        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getMomPart2Min() << " < P_2 < " << fParticlePairsInfo->getMomPart2Max() << " (GeV/c)" << "</h1>" << endl;
+        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getEtaPart1Min() << " < Eta_1 < " << fParticlePairsInfo->getEtaPart1Max() << "" << "</h1>" << endl;
+        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getEtaPart2Min() << " < Eta_2 < " << fParticlePairsInfo->getEtaPart2Max() << "" << "</h1>" << endl;
         Out() << "<h1> <font color='6f00ff'> Geometrical cuts for MC are: </font></h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getDCAPart1Min() << " < DCA1 < " << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getDCAPart1Max() << " cm" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getDCAPart2Min() << " < DCA2 < " << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getDCAPart2Max() << " cm" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getDCA12Min() << " < DCA_12 < " << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getDCA12Max() << " cm" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getPathMin() << " < PATH < " << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getPathMax() << " cm" << "</h1>" << endl;
-        cout << fParticlePairsInfo->GetEntriesFast() << endl;
+        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getDCAPart1Min() << " < DCA1 < " << fParticlePairsInfo->getDCAPart1Max() << " cm" << "</h1>" << endl;
+        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getDCAPart2Min() << " < DCA2 < " << fParticlePairsInfo->getDCAPart2Max() << " cm" << "</h1>" << endl;
+        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getDCA12Min() << " < DCA_12 < " << fParticlePairsInfo->getDCA12Max() << " cm" << "</h1>" << endl;
+        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getPathMin() << " < PATH < " << fParticlePairsInfo->getPathMax() << " cm" << "</h1>" << endl;
     }
 
     if (fUseRecoFile) {
         Out() << setprecision(8) << "<h1> Number of reconstructed particle pairs:\n" << HM()->H1("numberOfReconstructedParticlePairsQA")->GetEntries() << "</h1>" << endl;
         Out() << "<h1> <font color='90ff00'> Kinematic cuts for reco are: </font></h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getMomPart1Min() << " < P_1 < " << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getMomPart1Max() << " (GeV/c)" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getMomPart2Min() << " < P_2 < " << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getMomPart2Max() << " (GeV/c)" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getEtaPart1Min() << " < Eta_1 < " << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getEtaPart1Max() << "" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getEtaPart2Min() << " < Eta_2 < " << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getEtaPart2Max() << "" << "</h1>" << endl;
+        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getMomPart1Min() << " < P_1 < " << fParticlePairsInfo->getMomPart1Max() << " (GeV/c)" << "</h1>" << endl;
+        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getMomPart2Min() << " < P_2 < " << fParticlePairsInfo->getMomPart2Max() << " (GeV/c)" << "</h1>" << endl;
+        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getEtaPart1Min() << " < Eta_1 < " << fParticlePairsInfo->getEtaPart1Max() << "" << "</h1>" << endl;
+        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getEtaPart2Min() << " < Eta_2 < " << fParticlePairsInfo->getEtaPart2Max() << "" << "</h1>" << endl;
         Out() << "<h1> <font color='90ff00'> Geometrical cuts for reco are: </font></h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getDCAPart1Min() << " < DCA1 < " << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getDCAPart1Max() << " cm" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getDCAPart2Min() << " < DCA2 < " << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getDCAPart2Max() << " cm" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getDCA12Min() << " < DCA_12 < " << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getDCA12Max() << " cm" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getPathMin() << " < PATH < " << ((BmnParticlePairsInfo*) (fParticlePairsInfo->At(0)))->getPathMax() << " cm" << "</h1>" << endl;
+        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getDCAPart1Min() << " < DCA1 < " << fParticlePairsInfo->getDCAPart1Max() << " cm" << "</h1>" << endl;
+        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getDCAPart2Min() << " < DCA2 < " << fParticlePairsInfo->getDCAPart2Max() << " cm" << "</h1>" << endl;
+        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getDCA12Min() << " < DCA_12 < " << fParticlePairsInfo->getDCA12Max() << " cm" << "</h1>" << endl;
+        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getPathMin() << " < PATH < " << fParticlePairsInfo->getPathMax() << " cm" << "</h1>" << endl;
     }
 
     if (fUseRecoFile && fUseMCFile) {

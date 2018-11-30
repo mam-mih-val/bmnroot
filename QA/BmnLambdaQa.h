@@ -15,6 +15,8 @@
 #include <vector>
 #include "report/BmnSimulationReport.h"
 #include "report/BmnHistManager.h"
+#include "../physics/particles/BmnParticlePairsInfo.h"
+
 using std::string;
 using std::vector;
 using std::map;
@@ -45,9 +47,50 @@ public:
      * \brief Derived from FairTask.
      */
     virtual void Finish();
+    
+     // Geometry cuts
+    void SetDCA1(Double_t min, Double_t max) {
+        fDCA[0][0] = min;
+        fDCA[0][1] = max;   
+    }
+    
+    void SetDCA2(Double_t min, Double_t max) {
+        fDCA[1][0] = min;
+        fDCA[1][1] = max;
+    }
+    
+    void SetDCA12(Double_t min, Double_t max) {
+        fDCA12[0] = min;
+        fDCA12[1] = max;
+    }
+    
+    void SetPath(Double_t min, Double_t max) {
+        fPath[0] = min;
+        fPath[1] = max;
+    }
 
+    // Kinematical cuts
+    void SetMom1(Double_t min, Double_t max) {
+        fMom[0][0] = min;
+        fMom[0][1] = max;
+    }
+    
+    void SetMom2(Double_t min, Double_t max) {
+        fMom[1][0] = min;
+        fMom[1][1] = max;
+    }
+    
+    void SetEta1(Double_t min, Double_t max) {
+        fEta[0][0] = min;
+        fEta[0][1] = max;
+    }
+    
+    void SetEta2(Double_t min, Double_t max) {
+        fEta[1][0] = min;
+        fEta[1][1] = max;
+    }
+          
 private:
-
     BmnHistManager* fHM;
     string fOutputDir;
     void ReadDataBranches();
@@ -151,15 +194,20 @@ private:
     TClonesArray* fSSDPoints;
       
     TClonesArray* fParticlePair; 
-    
-    TClonesArray* fParticlePair_MC_noCuts;
-    TClonesArray* fParticlePair_MC_withCuts;
-    
-    TClonesArray* fParticlePair_RECO_noCuts;
-    TClonesArray* fParticlePair_RECO_withCuts;
-    
+    TClonesArray* fParticlePair_MC; 
+    TClonesArray* fParticlePair_RECO; 
+     
     static Int_t fCurrentEvent;
+    
+    // Kinematic cuts
+    Double_t fMom[2][2]; // [2] --> (proton, pion), [2] --> (min, max)
+    Double_t fEta[2][2]; // Cuts on pseudorapidity 
 
+    // Geometry cuts
+    Double_t fPath[2];
+    Double_t fDCA[2][2]; // [2] --> (proton, pion), [2] --> (min, max)
+    Double_t fDCA12[2];
+    
     ClassDef(BmnLambdaQa, 1);
 };
 

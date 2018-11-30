@@ -15,6 +15,7 @@
 #include "BmnGemStripStationSet_RunSpring2017.h"
 #include <TClonesArray.h>
 #include <string>
+#include "../physics/particles/BmnParticlePairsInfo.h"
 using std::string;
 
 class BmnLambdaQaReport : public BmnSimulationReport {
@@ -24,7 +25,7 @@ public:
     /**
      * \brief Constructor.
      */
-    BmnLambdaQaReport(Bool_t fUseMCFile, Bool_t fUseRecoFile, vector <TClonesArray*> branches);
+    BmnLambdaQaReport(Bool_t, Bool_t, BmnParticlePairsInfo*, vector <TClonesArray*>);
 
     /**
      * \brief Destructor.
@@ -72,7 +73,7 @@ private:
     TClonesArray* fRECO;
     
     TString drawPointsOpt;
-    TClonesArray* fParticlePairsInfo;
+    BmnParticlePairsInfo* fParticlePairsInfo;
     
     ClassDef(BmnLambdaQaReport, 1)
 };

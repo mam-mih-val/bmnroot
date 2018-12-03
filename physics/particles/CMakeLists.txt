@@ -10,6 +10,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmnfield
  #${CMAKE_SOURCE_DIR}/QA
  ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/uni_db
  ${BMNROOT_SOURCE_DIR}/uni_db/db_classes

@@ -1,50 +1,65 @@
 // --------------------------------------------------------------------------
 // Macro for generating QA-reports
 // --------------------------------------------------------------------------
+#include <TString.h>
 #include <Rtypes.h>
 
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/bmnloadlibs.C"
 
-void bmn_qa_generator_lambda(TString vPrefix = "", Bool_t useMCFile = kTRUE, Bool_t useRecoFile = kFALSE,
-        TString recoFile = "",
-        TString mcFile = "/home/merz/batyuk/nfs/evetest_ArPb_10k",
-//        TString mcFile = "$VMCWORKDIR/macro/run/evetest_1lam_1k",
-        TString lambdaFile = "",
-        TString lambdaEveFile = "/home/merz/BMN/08_05_18/macro/physics/tmp",
-//        TString lambdaEveFile = "lambdaEve_forQA",
-        TString outFile = "qa.root", Int_t nStartEvent = 0, Bool_t isPrimary = kFALSE, Int_t nEvents = 1000) {
+/*Important note: */        
+/*Evetest.root must be passed obligatory!*/ 
+/*All other files can be omitted*/       
+void bmn_qa_generator_lambda(
+        TString recoFile = "", // bmndst.root file with matches
+        TString mcFile = "", // evetest.root 
+        TString lambdaFile = "", // File got from LambdaAnal.root with DST-input
+        TString lambdaEveFile = "", // File got from LambdaAnal.root with EVE-input
+        TString outFile = "qa.root", Int_t nStartEvent = 0, Int_t nEvents = 1e6) {
     // ----  Load libraries   -------------------------------------------------
+    
     bmnloadlibs(); // load bmn libraries
+    if (mcFile.IsNull()) {
+        cout << "No correct input specified! At least, evetest.root must be passed!" << endl;
+        return;
+    }
 
     // ------------------------------------------------------------------------
 
     FairRunAna *fRun = new FairRunAna();
 
-    fRun->SetInputFile(mcFile + vPrefix + ".root");
-    fRun->AddFriend(lambdaEveFile + vPrefix + ".root");
-//    fRun->AddFriend(lambdaFile + vPrefix + ".root");
-//    fRun->AddFriend(recoFile + vPrefix + ".root");
+    fRun->SetInputFile(mcFile);
+    if (!lambdaEveFile.IsNull())
+        fRun->AddFriend(lambdaEveFile);
+    if (!lambdaFile.IsNull())
+        fRun->AddFriend(lambdaFile);
+    if (!recoFile.IsNull())
+        fRun->AddFriend(recoFile);
     fRun->SetOutputFile(outFile);
 
     fRun->SetGenerateRunInfo(false);
 
     // ============ TASKS ============= //
 
-//    BmnMatchRecoToMC* mcMatching = new BmnMatchRecoToMC();
-//    fRun->AddTask(mcMatching);
+    BmnMatchRecoToMC* mcMatching = new BmnMatchRecoToMC();
+    if (!recoFile.IsNull() && !mcFile.IsNull())
+        fRun->AddTask(mcMatching);
 
-    BmnLambdaQa* lambdaQa3 = new BmnLambdaQa(useMCFile, useRecoFile, 'b', "lambda_qa_gem" + vPrefix + "MC", vPrefix + "_____(MC)", kTRUE);
-    fRun->AddTask(lambdaQa3);
+    BmnLambdaQa* lambdaQa = new BmnLambdaQa();
+    
+    // Geometry cuts if necessary
+    lambdaQa->SetDCA1(0., 1000.);
+    lambdaQa->SetDCA2(0., 1000.);
+    lambdaQa->SetDCA12(0., 1000.);
+    lambdaQa->SetPath(0., 1000.);
 
-//    BmnLambdaQa* lambdaQa4 = new BmnLambdaQa(kTRUE, kTRUE, 'a', "lambda_qa_gem" + vPrefix + "RecoMC", vPrefix + "_____(recoWithMatches)", kTRUE);
-//    fRun->AddTask(lambdaQa4);
-//
-//    BmnLambdaQa* lambdaQa5 = new BmnLambdaQa(kFALSE, kTRUE, 'a', "lambda_qa_gem" + vPrefix + "Reco", vPrefix + "_____(reco)", kTRUE);
-//    fRun->AddTask(lambdaQa5);
-
-//    BmnClusteringQa* clust = new BmnClusteringQa();
-//    fRun->AddTask(clust);
+    // Kinematic cuts, if necessary
+    lambdaQa->SetMom1(0., 10.);
+    lambdaQa->SetMom2(0., 10.);
+    lambdaQa->SetEta1(0., 10.);
+    lambdaQa->SetEta2(0., 10.);
+    
+    fRun->AddTask(lambdaQa);
 
     // ============ TASKS ============= //
 

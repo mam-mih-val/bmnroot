@@ -19,7 +19,7 @@ class BmnParticlePair : public TNamed {
 public:
 
     /** Default constructor **/
-    BmnParticlePair(Short_t key1 = 'b');
+    BmnParticlePair();
 
     /** Destructor **/
     virtual ~BmnParticlePair();
@@ -191,7 +191,6 @@ private:
     Double_t fPtPodolX;
     Double_t fPtPodolY;
     
-    Short_t fKey1; // 'a' - MC mode, 'b' - reco with matches mode, 'c' - pure reco mode
     TVector3 fMCMomPart1;
     TVector3 fMCMomPart2;
     

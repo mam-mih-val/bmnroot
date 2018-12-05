@@ -3,7 +3,7 @@
  * \brief FairTask for MC simulated lambda reconstruction performance calculation.
  * \author Andrey Lebedev <andrey.lebedev@gsi.de> - original author for CBM experiment
  * \author Sergey Merts <sergey.merts@gmail.com> - modifications for BMN experiment
- * \author Alexander Lytaev <sas-lyt@ya.ru> - modifications for BMN experiment 
+ * \author Alexander Lytaev <sas-lyt@ya.ru> - modifications for BMN experiment
  * \date 2018 July
  */
 
@@ -34,7 +34,9 @@ using std::binary_search;
 using boost::assign::list_of;
 using namespace TMath;
 
-BmnLambdaQa::BmnLambdaQa(Bool_t useMCFile, Bool_t useRecoFile, Short_t key2, TString name, TString keyAddition, Bool_t drawPoints) :
+Int_t BmnLambdaQa::fCurrentEvent = 0;
+
+BmnLambdaQa::BmnLambdaQa() :
 fHM(NULL),
 fOutputDir("./"),
 fMCTracks(NULL),
@@ -65,33 +67,30 @@ fMesonsThetaRRangeMin(0.),
 fMesonsThetaRRangeMax(10.),
 fInvMassMin(1.07),
 fInvMassMax(1.22),
-fDCA1RangeMin(0.),
-fDCA1RangeMax(300.),
-fDCA2RangeMin(0.),
-fDCA2RangeMax(300.),
-fDCA12XRangeMin(0.),
-fDCA12XRangeMax(300.),
-fDCA12YRangeMin(0.),
-fDCA12YRangeMax(300.),
-fPathRangeMin(0.),
-fPathRangeMax(300.),
-fUseMCFile(useMCFile),
-fUseRecoFile(useRecoFile),
-fKey2(key2),
-fOutName(name),
-fKeyAddition(keyAddition),
-fDrawPoints(drawPoints) {
+fUseMCFile(kFALSE),
+fUseRecoFile(kFALSE) {   
+    // Initialize cut arrays ...
+    Double_t val = 0.;
+    for (Int_t i = 0; i < 2; i++) {
+        val = (i == 0) ? -DBL_MAX : DBL_MAX;
+        for (Int_t j = 0; j < 2; j++) {
+            val = (j == 0) ? -DBL_MAX : DBL_MAX;
+            fMom[i][j] = val;
+            fEta[i][j] = val;
+            fDCA[i][j] = val;
+            fDCA12[j] = val;
+            fPath[j] = val;
+        }
+    }
 }
 
 BmnLambdaQa::~BmnLambdaQa() {
-    if (fHM) {
+    if (fHM)
         delete fHM;
-    }
 }
 
 InitStatus BmnLambdaQa::Init() {
 
-    // Create histogram manager which is used throughout the program
     fHM = new BmnHistManager();
 
     ReadDataBranches();
@@ -101,370 +100,209 @@ InitStatus BmnLambdaQa::Init() {
     fNOfParticlePairs = 0;
     fNOfParticlePairsWithMatchedLambda = 0;
 
-    fNOfReconstructedLambdas = 0;
-    fNOfReconstructedLambdasM = 0;
-    fNOfNotReconstructedLambdas = 0;
-
     fNOfParticlePairsMC = 0;
     fNOfLambdasParticlePairsMC = 0;
     fNOfParticlePairsMCAll = 0;
 
-    if (kTRUE == fUseMCFile) {
-        CreateH1("numberOfLambdas_LambdaQa", "", "", 1, 0, 1.);
-        CreateH1("numberOfReconstructableLambdas_LambdaQa", "", "", 1, 0, 1.);
-
-        CreateNumberOfReconstructableLambdaHistograms();
-        CreateNumberOfLambdaHistograms();
-        CreateLambdaRecEfficiencyHistograms();
-        CreateTwoDimensionalRecEfficiencyHistograms();
-        CreateNumberOLambdaDecayProtonsHistograms();
-        CreateNumberOfLambdaDecayMesonsHistograms();
-        CreateRecProtonsRecEfficiencyHistograms();
-        CreateRecMesonsRecEfficiencyHistograms();
-        CreateTwoDimensionalRecProtonsRecEfficiencyHistograms();
-        CreateTwoDimensionalRecMesonsRecEfficiencyHistograms();
-    }
-
-    if (kTRUE == fUseRecoFile && kTRUE == fUseMCFile) {
-        CreateH1("numberOfReconstructedParticlePairWithMatchedLambdaQA", "", "", 1, 0, 1.);
-        CreateH1("numberOfNotReconstructedLambdasQA", "", "", 1, 0, 1.);
-        CreateNumberOfReconstrcutedLambdaHistograms();
-        CreateReconstructionEfficiencyHistograms();
-        CreateTwoDimensionalRealRecEfficiencyHistograms();
-        CreateNumberOfReconstrcutedRecProtonHistograms();
-        CreateTwoDimensionalNumberOfReconstructedProtonsHistograms();
-        CreateRecProtonsReconstructionEfficiencyHistograms();
-        CreateNumberOfReconstrcutedRecMesonsHistograms();
-        CreateTwoDimensionalNumberOfReconstructedMesonsHistograms();
-        CreateRecMesonsReconstructionEfficiencyHistograms();
-        CreateNumberOfNotReconstructedLambdaHistograms();
-    }
-
-    if (kTRUE == fUseMCFile) {
-        CreateH1("numberOfMCReconstructedParticlePairsQA", "", "", 1, 0, 1.);
-        CreateH1("numberOfMCReconstructedLambdasQA", "", "", 1, 0, 1.);
-        CreateH1("numberOfMCReconstructedAllParticlePairsQA", "", "", 1, 0, 1.);
-        CreateTwoDimensionalReconstructedParticlePairsFromMCDataHistograms();
-        CreateReconstructedParticlePairsFromMCDataHistograms();
-        CreateTwoDimensionalReconstructedParticlePairsFromMCDataWOCutsHistograms();
-        CreateReconstructedParticlePairsFromMCDataWOCutsHistograms();
-    }
-
-    if (kTRUE == fUseRecoFile) {
-        CreateH1("numberOfReconstructedParticlePairsQA", "", "", 1, 0, 1.);
-        CreateTwoDimensionalReconstructedParticlePairsHistograms();
-        CreateReconstructedParticlePairsHistograms();
-        CreateTwoDimensionalReconstructedParticlePairsWOCutsHistograms();
-        CreateReconstructedParticlePairsWOCutsHistograms();
-    }
+    CreateH1("numberOfLambdas_LambdaQa", "", "", 1, 0, 1.);
+    CreateH1("numberOfReconstructableLambdas_LambdaQa", "", "", 1, 0, 1.);
+    CreateNumberOfReconstructableLambdaHistograms();
+    CreateNumberOfLambdaHistograms();
+    CreateLambdaRecEfficiencyHistograms();
+    CreateTwoDimensionalRecEfficiencyHistograms();
+    CreateNumberOLambdaDecayProtonsHistograms();
+    CreateNumberOfLambdaDecayMesonsHistograms();
+    CreateRecProtonsRecEfficiencyHistograms();
+    CreateRecMesonsRecEfficiencyHistograms();
+    CreateTwoDimensionalRecProtonsRecEfficiencyHistograms();
+    CreateTwoDimensionalRecMesonsRecEfficiencyHistograms();
+    CreateH1("numberOfMCReconstructedParticlePairsQA", "", "", 1, 0, 1.);
+    CreateH1("numberOfMCReconstructedLambdasQA", "", "", 1, 0, 1.);
+    CreateH1("numberOfMCReconstructedAllParticlePairsQA", "", "", 1, 0, 1.);
+    CreateTwoDimensionalReconstructedParticlePairsFromMCDataHistograms();
+    CreateReconstructedParticlePairsFromMCDataHistograms();
+    CreateTwoDimensionalReconstructedParticlePairsFromMCDataWOCutsHistograms();
+    CreateReconstructedParticlePairsFromMCDataWOCutsHistograms();
+    CreateH1("numberOfReconstructedParticlePairWithMatchedLambdaQA", "", "", 1, 0, 1.);
+    CreateH1("numberOfNotReconstructedLambdasQA", "", "", 1, 0, 1.);
+    CreateNumberOfReconstrcutedLambdaHistograms();
+    CreateReconstructionEfficiencyHistograms();
+    CreateTwoDimensionalRealRecEfficiencyHistograms();
+    CreateNumberOfReconstrcutedRecProtonHistograms();
+    CreateTwoDimensionalNumberOfReconstructedProtonsHistograms();
+    CreateRecProtonsReconstructionEfficiencyHistograms();
+    CreateNumberOfReconstrcutedRecMesonsHistograms();
+    CreateTwoDimensionalNumberOfReconstructedMesonsHistograms();
+    CreateRecMesonsReconstructionEfficiencyHistograms();
+    CreateNumberOfNotReconstructedLambdaHistograms();
+    CreateH1("numberOfReconstructedParticlePairsQA", "", "", 1, 0, 1.);
+    CreateTwoDimensionalReconstructedParticlePairsHistograms();
+    CreateReconstructedParticlePairsHistograms();
+    CreateTwoDimensionalReconstructedParticlePairsWOCutsHistograms();
+    CreateReconstructedParticlePairsWOCutsHistograms();
 
     return kSUCCESS;
 }
 
 void BmnLambdaQa::Exec(Option_t* opt) {
-    if (kTRUE == fUseMCFile) {
-        vector<int> indicesOfLambdaProtons;
-        vector<int> indicesOfLambdaMesons;
+    if (fCurrentEvent % 100 == 0)
+        cout << "Event# " << fCurrentEvent << endl;
+    fCurrentEvent++;
 
-        /* array: 0-th index is mother lambda's Id, 1-st is proton's Id, 2-nd is negative pi-meson's Id*/
-        vector< array< int, 3 > > indicesOfLamda;
+    vector <Int_t> indicesOfLambdaProtons;
+    vector <Int_t> indicesOfLambdaMesons;
 
-        for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
-            CbmMCTrack* track = (CbmMCTrack*) fMCTracks->At(iTrack);
+    /* array: 0-th index is mother lambda's Id, 1-st is proton's Id, 2-nd is negative pi-meson's Id*/
+    vector <array< int, 3 >> indicesOfLamda;
 
-            if (NULL == track) {
-                cout << "Monte-Carlo simulation branch error" << endl;
-                return;
+    for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
+        CbmMCTrack* track = (CbmMCTrack*) fMCTracks->At(iTrack);
+
+        if (NULL == track) {
+            cout << "Monte-Carlo simulation branch error" << endl;
+            return;
+        }
+
+        Double_t P = ((CbmMCTrack*) fMCTracks->At(iTrack))->GetP();
+        Double_t P_x = ((CbmMCTrack*) fMCTracks->At(iTrack))->GetPx();
+        Double_t P_y = ((CbmMCTrack*) fMCTracks->At(iTrack))->GetPy();
+        Double_t P_z = ((CbmMCTrack*) fMCTracks->At(iTrack))->GetPz();
+        Double_t pRapidity = 0.5 * Log((P + P_z) / (P - P_z));
+        Double_t rapidity = ((CbmMCTrack*) fMCTracks->At(iTrack))->GetRapidity();
+
+        if (3122 == track->GetPdgCode()) {
+            fNLambdas++;
+
+            fHM->H1("numberOfLambdas_LambdaQa")->Fill(1);
+
+            fHM->H1("simNLambda_P_sim")->Fill(P);
+            fHM->H1("simNLambda_eta_sim")->Fill(pRapidity);
+            fHM->H1("simNLambda_theta_sim")->Fill(TMath::ACos(P_z / P) * TMath::RadToDeg());
+            fHM->H1("simNLambda_theta_r_sim")->Fill(rapidity);
+            fHM->H1("simNLambda_P_x_sim")->Fill(P_x);
+            fHM->H1("simNLambda_P_y_sim")->Fill(P_y);
+            fHM->H1("simNLambda_P_z_sim")->Fill(P_z);
+            fHM->H2("simNLambda_eta_P_sim")->Fill(P, pRapidity);
+        }
+
+        if (2212 == track->GetPdgCode()) {
+            int motherId = track->GetMotherId();
+
+            if (motherId < 0)
+                continue;
+
+            if (3122 == ((CbmMCTrack*) fMCTracks->At(motherId))->GetPdgCode()) {
+                indicesOfLambdaProtons.push_back(iTrack);
+
+                fHM->H1("NProtons_P_sim")->Fill(P);
+                fHM->H1("NProtons_eta_sim")->Fill(pRapidity);
+                fHM->H1("NProtons_theta_sim")->Fill(TMath::ACos(P_z / P) * TMath::RadToDeg());
+                fHM->H1("NProtons_theta_r_sim")->Fill(rapidity);
+                fHM->H2("simNRecProtons_eta_P_sim")->Fill(pRapidity, P);
+
+                Double_t nSiliconHitsOnTrackP = 0;
+
+                for (Int_t hit = 0; hit < fSiliconPoints->GetEntriesFast(); hit++) {
+                    if (((BmnSiliconPoint*) fSiliconPoints->At(hit))->GetTrackID() == iTrack)
+                        nSiliconHitsOnTrackP++;
+                }
+
+                if (track->GetNPoints(kGEM) + nSiliconHitsOnTrackP >= 4) {
+                    fHM->H1("NRecProtons_P_sim")->Fill(P);
+                    fHM->H1("NRecProtons_eta_sim")->Fill(pRapidity);
+                    fHM->H1("NRecProtons_theta_sim")->Fill(TMath::ACos(P_z / P) * TMath::RadToDeg());
+                    fHM->H1("NRecProtons_theta_r_sim")->Fill(rapidity);
+                    fHM->H2("simNReconstructableRecProtons_eta_P_sim")->Fill(pRapidity, P);
+                }
+            }
+        }
+
+        if (-211 == track->GetPdgCode()) {
+            int motherIdMeson = track->GetMotherId();
+
+            if (motherIdMeson < 0) {
+                continue;
             }
 
-            Double_t P = ((CbmMCTrack*) fMCTracks->At(iTrack))->GetP();
-            Double_t P_x = ((CbmMCTrack*) fMCTracks->At(iTrack))->GetPx();
-            Double_t P_y = ((CbmMCTrack*) fMCTracks->At(iTrack))->GetPy();
-            Double_t P_z = ((CbmMCTrack*) fMCTracks->At(iTrack))->GetPz();
+            if (3122 == ((CbmMCTrack*) fMCTracks->At(motherIdMeson))->GetPdgCode()) {
+                indicesOfLambdaMesons.push_back(iTrack);
+
+                fHM->H1("NMesons_P_sim")->Fill(P);
+                fHM->H1("NMesons_eta_sim")->Fill(pRapidity);
+                fHM->H1("NMesons_theta_sim")->Fill(TMath::ACos(P_z / P) * TMath::RadToDeg());
+                fHM->H1("NMesons_theta_r_sim")->Fill(rapidity);
+                fHM->H2("simNRecMesons_eta_P_sim")->Fill(pRapidity, P);
+
+                Double_t nSiliconHitsOnTrackM = 0;
+
+                for (Int_t hit = 0; hit < fSiliconPoints->GetEntriesFast(); hit++) {
+                    if (((BmnSiliconPoint*) fSiliconPoints->At(hit))->GetTrackID() == iTrack)
+                        nSiliconHitsOnTrackM++;
+                }
+
+                if (track->GetNPoints(kGEM) + nSiliconHitsOnTrackM >= 4) {
+                    fHM->H1("NRecMesons_P_sim")->Fill(P);
+                    fHM->H1("NRecMesons_eta_sim")->Fill(pRapidity);
+                    fHM->H1("NRecMesons_theta_sim")->Fill(TMath::ACos(P_z / P) * TMath::RadToDeg());
+                    fHM->H1("NRecMesons_theta_r_sim")->Fill(rapidity);
+                    fHM->H2("simNReconstructableRecMesons_eta_P_sim")->Fill(pRapidity, P);
+                }
+            }
+        }
+    }
+
+    for (Int_t cnt1 = 0; cnt1 < indicesOfLambdaProtons.size(); cnt1++) {
+        for (Int_t cnt2 = 0; cnt2 < indicesOfLambdaMesons.size(); cnt2++) {
+            if (((CbmMCTrack*) fMCTracks->At(indicesOfLambdaProtons[cnt1]))->GetMotherId() == ((CbmMCTrack*) fMCTracks->At(indicesOfLambdaMesons[cnt2]))->GetMotherId()) {
+                array<int, 3> tmp = {((CbmMCTrack*) fMCTracks->At(indicesOfLambdaProtons[cnt1]))->GetMotherId(), indicesOfLambdaProtons[cnt1], indicesOfLambdaMesons[cnt2]};
+                indicesOfLamda.push_back(tmp);
+            }
+        }
+    }
+
+    for (Int_t cnt = 0; cnt < indicesOfLamda.size(); cnt++) {
+        Int_t nSiliconHitsOnTrackP = 0;
+        Int_t nSiliconHitsOnTrackM = 0;
+        Int_t nSSDHitsOnTrackP = 0;
+        Int_t nSSDHitsOnTrackM = 0;
+        Int_t nGEMHitsOnTrackP = 0;
+        Int_t nGEMHitsOnTrackM = 0;
+
+        for (Int_t hit = 0; hit < fSiliconPoints->GetEntriesFast(); hit++) {
+            Int_t trId = ((BmnSiliconPoint*) fSiliconPoints->At(hit))->GetTrackID();
+            if (trId == indicesOfLamda[cnt][1]) nSiliconHitsOnTrackP++;
+            else if (trId == indicesOfLamda[cnt][2]) nSiliconHitsOnTrackM++;
+        }
+
+        nGEMHitsOnTrackP = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][1]))->GetNPoints(kGEM);
+        nGEMHitsOnTrackM = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][2]))->GetNPoints(kGEM);
+
+        if (nGEMHitsOnTrackP + nSiliconHitsOnTrackP + nSSDHitsOnTrackP >= 4 && nGEMHitsOnTrackM + nSiliconHitsOnTrackM + nSSDHitsOnTrackM >= 4) {
+            fNReconstructable++;
+
+            Double_t P = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][0]))->GetP();
+            Double_t P_x = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][0]))->GetPx();
+            Double_t P_y = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][0]))->GetPy();
+            Double_t P_z = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][0]))->GetPz();
             Double_t pRapidity = 0.5 * Log((P + P_z) / (P - P_z));
-            Double_t rapidity = ((CbmMCTrack*) fMCTracks->At(iTrack))->GetRapidity();
+            Double_t rapidity = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][0]))->GetRapidity();
 
-            if (3122 == track->GetPdgCode()) {
-                fNLambdas++;
+            fHM->H1("numberOfReconstructableLambdas_LambdaQa")->Fill(1);
 
-                fHM->H1("numberOfLambdas_LambdaQa")->Fill(1);
-
-                fHM->H1("simNLambda_P_sim")->Fill(P);
-                fHM->H1("simNLambda_eta_sim")->Fill(pRapidity);
-                fHM->H1("simNLambda_theta_sim")->Fill(TMath::ACos(P_z / P) * TMath::RadToDeg());
-                fHM->H1("simNLambda_theta_r_sim")->Fill(rapidity);
-                fHM->H1("simNLambda_P_x_sim")->Fill(P_x);
-                fHM->H1("simNLambda_P_y_sim")->Fill(P_y);
-                fHM->H1("simNLambda_P_z_sim")->Fill(P_z);
-                fHM->H2("simNLambda_eta_P_sim")->Fill(P, pRapidity);
-            }
-
-            if (2212 == track->GetPdgCode()) {
-                int motherId = track->GetMotherId();
-
-                if (motherId < 0)
-                    continue;
-
-                if (3122 == ((CbmMCTrack*) fMCTracks->At(motherId))->GetPdgCode()) {
-                    indicesOfLambdaProtons.push_back(iTrack);
-
-                    fHM->H1("NProtons_P_sim")->Fill(P);
-                    fHM->H1("NProtons_eta_sim")->Fill(pRapidity);
-                    fHM->H1("NProtons_theta_sim")->Fill(TMath::ACos(P_z / P) * TMath::RadToDeg());
-                    fHM->H1("NProtons_theta_r_sim")->Fill(rapidity);
-                    fHM->H2("simNRecProtons_eta_P_sim")->Fill(pRapidity, P);
-
-                    Double_t nSiliconHitsOnTrackP = 0;
-
-                    for (Int_t hit = 0; hit < fSiliconPoints->GetEntriesFast(); hit++) {
-                        if (((BmnSiliconPoint*) fSiliconPoints->At(hit))->GetTrackID() == iTrack)
-                            nSiliconHitsOnTrackP++;
-                    }
-
-                    switch (fKey2) {
-                        case 'a':
-                            if (track->GetNPoints(kGEM) >= 4) {
-                                fHM->H1("NRecProtons_P_sim")->Fill(P);
-                                fHM->H1("NRecProtons_eta_sim")->Fill(pRapidity);
-                                fHM->H1("NRecProtons_theta_sim")->Fill(TMath::ACos(P_z / P) * TMath::RadToDeg());
-                                fHM->H1("NRecProtons_theta_r_sim")->Fill(rapidity);
-                                fHM->H2("simNReconstructableRecProtons_eta_P_sim")->Fill(pRapidity, P);
-                            }
-                            break;
-
-                        case 'b':
-                            if (track->GetNPoints(kGEM) + nSiliconHitsOnTrackP >= 4) {
-                                fHM->H1("NRecProtons_P_sim")->Fill(P);
-                                fHM->H1("NRecProtons_eta_sim")->Fill(pRapidity);
-                                fHM->H1("NRecProtons_theta_sim")->Fill(TMath::ACos(P_z / P) * TMath::RadToDeg());
-                                fHM->H1("NRecProtons_theta_r_sim")->Fill(rapidity);
-                                fHM->H2("simNReconstructableRecProtons_eta_P_sim")->Fill(pRapidity, P);
-                            }
-                            break;
-
-                        default:
-                            break;
-                    }
-                }
-            }
-
-            if (-211 == track->GetPdgCode()) {
-                int motherIdMeson = track->GetMotherId();
-
-                if (motherIdMeson < 0) {
-                    continue;
-                }
-
-                if (3122 == ((CbmMCTrack*) fMCTracks->At(motherIdMeson))->GetPdgCode()) {
-                    indicesOfLambdaMesons.push_back(iTrack);
-
-                    fHM->H1("NMesons_P_sim")->Fill(P);
-                    fHM->H1("NMesons_eta_sim")->Fill(pRapidity);
-                    fHM->H1("NMesons_theta_sim")->Fill(TMath::ACos(P_z / P) * TMath::RadToDeg());
-                    fHM->H1("NMesons_theta_r_sim")->Fill(rapidity);
-                    fHM->H2("simNRecMesons_eta_P_sim")->Fill(pRapidity, P);
-
-                    Double_t nSiliconHitsOnTrackM = 0;
-
-                    for (Int_t hit = 0; hit < fSiliconPoints->GetEntriesFast(); hit++) {
-                        if (((BmnSiliconPoint*) fSiliconPoints->At(hit))->GetTrackID() == iTrack)
-                            nSiliconHitsOnTrackM++;
-                    }
-
-                    switch (fKey2) {
-                        case 'a':
-                            if (track->GetNPoints(kGEM) >= 4) {
-                                fHM->H1("NRecMesons_P_sim")->Fill(P);
-                                fHM->H1("NRecMesons_eta_sim")->Fill(pRapidity);
-                                fHM->H1("NRecMesons_theta_sim")->Fill(TMath::ACos(P_z / P) * TMath::RadToDeg());
-                                fHM->H1("NRecMesons_theta_r_sim")->Fill(rapidity);
-                                fHM->H2("simNReconstructableRecMesons_eta_P_sim")->Fill(pRapidity, P);
-                            }
-                            break;
-                        case 'b':
-                            if (track->GetNPoints(kGEM) + nSiliconHitsOnTrackM >= 4) {
-                                fHM->H1("NRecMesons_P_sim")->Fill(P);
-                                fHM->H1("NRecMesons_eta_sim")->Fill(pRapidity);
-                                fHM->H1("NRecMesons_theta_sim")->Fill(TMath::ACos(P_z / P) * TMath::RadToDeg());
-                                fHM->H1("NRecMesons_theta_r_sim")->Fill(rapidity);
-                                fHM->H2("simNReconstructableRecMesons_eta_P_sim")->Fill(pRapidity, P);
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-
-        }
-
-        for (Int_t cnt1 = 0; cnt1 < indicesOfLambdaProtons.size(); cnt1++) {
-            for (Int_t cnt2 = 0; cnt2 < indicesOfLambdaMesons.size(); cnt2++) {
-                if (((CbmMCTrack*) fMCTracks->At(indicesOfLambdaProtons[cnt1]))->GetMotherId() == ((CbmMCTrack*) fMCTracks->At(indicesOfLambdaMesons[cnt2]))->GetMotherId()) {
-                    array<int, 3> tmp = {((CbmMCTrack*) fMCTracks->At(indicesOfLambdaProtons[cnt1]))->GetMotherId(), indicesOfLambdaProtons[cnt1], indicesOfLambdaMesons[cnt2]};
-                    indicesOfLamda.push_back(tmp);
-                }
-            }
-        }
-
-        for (Int_t cnt = 0; cnt < indicesOfLamda.size(); cnt++) {
-
-            if (((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][1]))->GetNPoints(kGEM) >= 4 \
-                    && ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][2]))->GetNPoints(kGEM) >= 4 \
-                    && 'a' == fKey2) {
-                fNReconstructable++;
-
-                Double_t P = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][0]))->GetP();
-                Double_t P_x = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][0]))->GetPx();
-                Double_t P_y = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][0]))->GetPy();
-                Double_t P_z = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][0]))->GetPz();
-                Double_t pRapidity = 0.5 * Log((P + P_z) / (P - P_z));
-                Double_t rapidity = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][0]))->GetRapidity();
-
-                fHM->H1("numberOfReconstructableLambdas_LambdaQa")->Fill(1);
-
-                fHM->H1("simNReconstructableLambda_P_sim")->Fill(P);
-                fHM->H1("simNReconstructableLambda_eta_sim")->Fill(pRapidity);
-                fHM->H1("simNReconstructableLambda_theta_r_sim")->Fill(rapidity);
-                fHM->H1("simNReconstructableLambda_theta_sim")->Fill(TMath::ACos(P_z / P) * TMath::RadToDeg());
-                fHM->H1("simNReconstructableLambda_P_x_sim")->Fill(P_x);
-                fHM->H1("simNReconstructableLambda_P_y_sim")->Fill(P_y);
-                fHM->H1("simNReconstructableLambda_P_z_sim")->Fill(P_z);
-                fHM->H2("simNReconstructableLambda_eta_P_sim")->Fill(P, pRapidity);
-            }
-
-            Int_t nSiliconHitsOnTrackP = 0;
-            Int_t nSiliconHitsOnTrackM = 0;
-            Int_t nSSDHitsOnTrackP = 0;
-            Int_t nSSDHitsOnTrackM = 0;
-            Int_t nGEMHitsOnTrackP = 0;
-            Int_t nGEMHitsOnTrackM = 0;
-
-            for (Int_t hit = 0; hit < fSiliconPoints->GetEntriesFast(); hit++) {
-                Int_t trId = ((BmnSiliconPoint*) fSiliconPoints->At(hit))->GetTrackID();
-                if (trId == indicesOfLamda[cnt][1]) nSiliconHitsOnTrackP++;
-                else if (trId == indicesOfLamda[cnt][2]) nSiliconHitsOnTrackM++;
-            }
-
-            for (Int_t hit = 0; hit < fSSDPoints->GetEntriesFast(); hit++) {
-                Int_t trId = ((BmnSSDPoint*) fSSDPoints->At(hit))->GetTrackID();
-                if (trId == indicesOfLamda[cnt][1]) nSSDHitsOnTrackP++;
-                else if (trId == indicesOfLamda[cnt][2]) nSSDHitsOnTrackM++;
-            }
-
-            nGEMHitsOnTrackP = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][1]))->GetNPoints(kGEM);
-            nGEMHitsOnTrackM = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][2]))->GetNPoints(kGEM);
-
-            if (nGEMHitsOnTrackP + nSiliconHitsOnTrackP + nSSDHitsOnTrackP >= 4 && nGEMHitsOnTrackM + nSiliconHitsOnTrackM + nSSDHitsOnTrackM >= 4 && 'b' == fKey2) {
-                fNReconstructable++;
-
-                Double_t P = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][0]))->GetP();
-                Double_t P_x = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][0]))->GetPx();
-                Double_t P_y = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][0]))->GetPy();
-                Double_t P_z = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][0]))->GetPz();
-                Double_t pRapidity = 0.5 * Log((P + P_z) / (P - P_z));
-                Double_t rapidity = ((CbmMCTrack*) fMCTracks->At(indicesOfLamda[cnt][0]))->GetRapidity();
-
-                fHM->H1("numberOfReconstructableLambdas_LambdaQa")->Fill(1);
-
-                fHM->H1("simNReconstructableLambda_P_sim")->Fill(P);
-                fHM->H1("simNReconstructableLambda_eta_sim")->Fill(pRapidity);
-                fHM->H1("simNReconstructableLambda_theta_r_sim")->Fill(rapidity);
-                fHM->H1("simNReconstructableLambda_theta_sim")->Fill(TMath::ACos(P_z / P) * TMath::RadToDeg());
-                fHM->H1("simNReconstructableLambda_P_x_sim")->Fill(P_x);
-                fHM->H1("simNReconstructableLambda_P_y_sim")->Fill(P_y);
-                fHM->H1("simNReconstructableLambda_P_z_sim")->Fill(P_z);
-                fHM->H2("simNReconstructableLambda_eta_P_sim")->Fill(P, pRapidity);
-            }
-        }
-    }
-    // Reconstruction QA
-    if (kTRUE == fUseRecoFile && kTRUE == fUseMCFile) {
-        for (Int_t iPair = 0; iPair < fParticlePair->GetEntriesFast(); iPair++) {
-            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair->At(iPair);
-            if (NULL == pair) {
-                cout << "Reconstructed pair branch error" << endl;
-                return;
-            }
-
-            CbmMCTrack* posPartTr = (CbmMCTrack*) fMCTracks->At(pair->GetMCTrackIdPart1());
-            if (NULL == posPartTr) {
-                cout << "proton track obtaining error" << endl;
-                return;
-            }
-
-            CbmMCTrack* negPartTr = (CbmMCTrack*) fMCTracks->At(pair->GetMCTrackIdPart2());
-            if (NULL == negPartTr) {
-                cout << "meson track obtaining error" << endl;
-                return;
-            }
-
-            if (-1 == posPartTr->GetMotherId() || -1 == negPartTr->GetMotherId() || negPartTr->GetMotherId() != posPartTr->GetMotherId()) {
-                continue;
-            }
-
-            CbmMCTrack* primaryPartTr = (CbmMCTrack*) fMCTracks->At(posPartTr->GetMotherId());
-            if (NULL == primaryPartTr) {
-                cout << "lambda track obtaining error" << endl;
-                return;
-            }
-
-            if (primaryPartTr->GetPdgCode() != 3122) {
-                continue;
-            }
-
-            fNOfParticlePairsWithMatchedLambda++;
-            fHM->H1("numberOfReconstructedParticlePairWithMatchedLambdaQA")->Fill(1);
-
-            Double_t momLambdaXMC = primaryPartTr->GetPx();
-            Double_t momLambdaYMC = primaryPartTr->GetPy();
-            Double_t momLambdaZMC = primaryPartTr->GetPz();
-            Double_t momLambdaMC = primaryPartTr->GetP();
-            Double_t thetaMC = TMath::ACos(momLambdaZMC / momLambdaMC) * TMath::RadToDeg();
-            Double_t pRapidityLMC = 0.5 * Log((momLambdaMC + momLambdaZMC) / (momLambdaMC - momLambdaZMC));
-            Double_t thetaR = primaryPartTr->GetRapidity();
-
-            fHM->H1("recNLambda_P_rec")->Fill(momLambdaMC);
-            fHM->H1("recNLambda_theta_rec")->Fill(thetaMC);
-            fHM->H1("recNLambda_eta_rec")->Fill(pRapidityLMC);
-            fHM->H1("recNLambda_theta_r_rec")->Fill(thetaR);
-            fHM->H2("recNLambda_eta_P_sim")->Fill(pRapidityLMC, momLambdaMC);
-
-            Double_t momProtMC = posPartTr->GetP();
-            Double_t momProtZMC = posPartTr->GetPz();
-            Double_t pRapidityPMC = 0.5 * Log((momProtMC + momProtZMC) / (momProtMC - momProtZMC));
-            Double_t thetaRProt = posPartTr->GetRapidity();
-
-            fHM->H1("recNRecProtons_P_rec")->Fill(momProtMC);
-            fHM->H1("recNRecProtons_theta_rec")->Fill(TMath::ACos(momProtZMC / momProtMC) * TMath::RadToDeg());
-            fHM->H1("recNRecProtons_eta_rec")->Fill(pRapidityPMC);
-            fHM->H1("recNRecProtons_theta_r_rec")->Fill(thetaRProt);
-            fHM->H2("recNRecProtons_eta_P_sim")->Fill(pair->GetEtaPart1(), momProtMC);
-
-            Double_t momMesMC = negPartTr->GetP();
-            Double_t momMesZMC = negPartTr->GetPz();
-            Double_t pRapidityMMC = 0.5 * Log((momMesMC + momMesZMC) / (momMesMC - momMesZMC));
-            Double_t thetaRMes = negPartTr->GetRapidity();
-
-            fHM->H1("recNRecMesons_P_rec")->Fill(momMesMC);
-            fHM->H1("recNRecMesons_theta_rec")->Fill(TMath::ACos(momMesZMC / momMesMC) * TMath::RadToDeg());
-            fHM->H1("recNRecMesons_eta_rec")->Fill(pRapidityMMC);
-            fHM->H1("recNRecMesons_theta_r_rec")->Fill(thetaRMes);
-            fHM->H2("recNRecMesons_eta_P_sim")->Fill(pair->GetEtaPart1(), momMesMC);
+            fHM->H1("simNReconstructableLambda_P_sim")->Fill(P);
+            fHM->H1("simNReconstructableLambda_eta_sim")->Fill(pRapidity);
+            fHM->H1("simNReconstructableLambda_theta_r_sim")->Fill(rapidity);
+            fHM->H1("simNReconstructableLambda_theta_sim")->Fill(TMath::ACos(P_z / P) * TMath::RadToDeg());
+            fHM->H1("simNReconstructableLambda_P_x_sim")->Fill(P_x);
+            fHM->H1("simNReconstructableLambda_P_y_sim")->Fill(P_y);
+            fHM->H1("simNReconstructableLambda_P_z_sim")->Fill(P_z);
+            fHM->H2("simNReconstructableLambda_eta_P_sim")->Fill(P, pRapidity);
         }
     }
 
-    if (kTRUE == fUseMCFile) {
-        for (Int_t iPair = 0; iPair < fParticlePairMC->GetEntriesFast(); iPair++) {
-            fNOfParticlePairsMC++;
-            fHM->H1("numberOfMCReconstructedAllParticlePairsQA")->Fill(1);
-
-            BmnParticlePair* pair = (BmnParticlePair*) fParticlePairMC->At(iPair);
-            if (pair->GetKey1() != 'a') {
-                Fatal("Exec", "trying to extract MC information from pair not being in MC mode");
-            }
-            fHM->H1("NPairsRecoFromMCInvMass")->Fill(pair->GetInvMass("X"));
-
+    if (fParticlePair_MC)
+        for (Int_t iPair = 0; iPair < fParticlePair_MC->GetEntriesFast(); iPair++) {
+            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_MC->UncheckedAt(iPair);
             Double_t momPart1 = pair->GetMomPart1();
             Double_t momPart2 = pair->GetMomPart2();
             Double_t etaPart1 = pair->GetEtaPart1();
@@ -474,6 +312,27 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             Double_t dca12x = pair->GetDCA12("X");
             Double_t dca12y = pair->GetDCA12("Y");
             Double_t path = pair->GetPath("X");
+
+            // Apply cuts ...
+            if (momPart1 < fMom[0][0] || momPart1 > fMom[0][1] || momPart2 < fMom[1][0] || momPart2 > fMom[1][1])
+                continue;
+
+            if (etaPart1 < fEta[0][0] || etaPart1 > fEta[0][1] || etaPart2 < fEta[1][0] || etaPart2 > fEta[1][1])
+                continue;
+
+            // Geom. cuts applied ...
+            if (dca1 < fDCA[0][0] || dca1 > fDCA[0][1] || dca2 < fDCA[1][0] || dca2 > fDCA[1][1])
+                continue;
+
+            if (dca12x < fDCA12[0] || dca12x > fDCA12[1])
+                continue;
+
+            if (path < fPath[0] || path > fPath[1])
+                continue;
+
+            fNOfParticlePairsMC++;
+            fHM->H1("numberOfMCReconstructedAllParticlePairsQA")->Fill(1);
+            fHM->H1("NPairsRecoFromMCInvMass")->Fill(pair->GetInvMass("X"));
 
             fHM->H2("NPairsRecoFromMCInvMassMomProton")->Fill(momPart1, pair->GetInvMass("X"));
             fHM->H2("NPairsRecoFromMCInvMassMomMeson")->Fill(momPart2, pair->GetInvMass("X"));
@@ -500,12 +359,12 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             fHM->H1("numberOfMCReconstructedLambdasQA")->Fill(1);
         }
 
-        for (Int_t iPair = 0; iPair < fParticlePairMCAll->GetEntriesFast(); iPair++) {
+    if (fParticlePair_MC)
+        for (Int_t iPair = 0; iPair < fParticlePair_MC->GetEntriesFast(); iPair++) {
             fNOfParticlePairsMCAll++;
             fHM->H1("numberOfMCReconstructedParticlePairsQA")->Fill(1);
 
-            BmnParticlePair* pair = (BmnParticlePair*) fParticlePairMCAll->At(iPair);
-            if (pair->GetKey1() != 'a') Fatal("Exec", "trying to extract MC information from pair not being in MC mode");
+            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_MC->At(iPair);
 
             fHM->H1("NPairsRecoFromMCWOCutsInvMass")->Fill(pair->GetInvMass("X"));
 
@@ -542,19 +401,79 @@ void BmnLambdaQa::Exec(Option_t* opt) {
                 continue;
             }
         }
-    }
-    if (kTRUE == fUseRecoFile) {
-        for (Int_t iPair = 0; iPair < fParticlePair->GetEntriesFast(); iPair++) {
-            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair->At(iPair);
-            if (NULL == pair) {
-                cout << "Reconstructed pair branch error" << endl;
+
+    /// RECO    
+    if (fParticlePair_RECO)
+        for (Int_t iPair = 0; iPair < fParticlePair_RECO->GetEntriesFast(); iPair++) {
+            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_RECO->UncheckedAt(iPair);
+
+            CbmMCTrack* posPartTr = (CbmMCTrack*) fMCTracks->At(pair->GetMCTrackIdPart1());
+            if (!posPartTr) {
+                cout << "proton track obtaining error" << endl;
                 return;
             }
-            fNOfParticlePairs++;
-            fHM->H1("numberOfReconstructedParticlePairsQA")->Fill(1);
 
-            fHM->H1("NPairsRecoInvMass")->Fill(pair->GetInvMass("X"));
+            CbmMCTrack* negPartTr = (CbmMCTrack*) fMCTracks->At(pair->GetMCTrackIdPart2());
+            if (!negPartTr) {
+                cout << "meson track obtaining error" << endl;
+                return;
+            }
 
+            if (-1 == posPartTr->GetMotherId() || -1 == negPartTr->GetMotherId() || negPartTr->GetMotherId() != posPartTr->GetMotherId())
+                continue;
+
+            CbmMCTrack* primaryPartTr = (CbmMCTrack*) fMCTracks->At(posPartTr->GetMotherId());
+            if (!primaryPartTr) {
+                cout << "lambda track obtaining error" << endl;
+                return;
+            }
+
+            if (primaryPartTr->GetPdgCode() != 3122)
+                continue;
+
+            fNOfParticlePairsWithMatchedLambda++;
+            fHM->H1("numberOfReconstructedParticlePairWithMatchedLambdaQA")->Fill(1);
+
+            // Double_t momLambdaXMC = primaryPartTr->GetPx();
+            // Double_t momLambdaYMC = primaryPartTr->GetPy();
+            Double_t momLambdaZMC = primaryPartTr->GetPz();
+            Double_t momLambdaMC = primaryPartTr->GetP();
+            Double_t thetaMC = TMath::ACos(momLambdaZMC / momLambdaMC) * TMath::RadToDeg();
+            Double_t pRapidityLMC = 0.5 * Log((momLambdaMC + momLambdaZMC) / (momLambdaMC - momLambdaZMC));
+            Double_t thetaR = primaryPartTr->GetRapidity();
+
+            fHM->H1("recNLambda_P_rec")->Fill(momLambdaMC);
+            fHM->H1("recNLambda_theta_rec")->Fill(thetaMC);
+            fHM->H1("recNLambda_eta_rec")->Fill(pRapidityLMC);
+            fHM->H1("recNLambda_theta_r_rec")->Fill(thetaR);
+            fHM->H2("recNLambda_eta_P_sim")->Fill(pRapidityLMC, momLambdaMC);
+
+            Double_t momProtMC = posPartTr->GetP();
+            Double_t momProtZMC = posPartTr->GetPz();
+            Double_t pRapidityPMC = 0.5 * Log((momProtMC + momProtZMC) / (momProtMC - momProtZMC));
+            Double_t thetaRProt = posPartTr->GetRapidity();
+
+            fHM->H1("recNRecProtons_P_rec")->Fill(momProtMC);
+            fHM->H1("recNRecProtons_theta_rec")->Fill(TMath::ACos(momProtZMC / momProtMC) * TMath::RadToDeg());
+            fHM->H1("recNRecProtons_eta_rec")->Fill(pRapidityPMC);
+            fHM->H1("recNRecProtons_theta_r_rec")->Fill(thetaRProt);
+            fHM->H2("recNRecProtons_eta_P_sim")->Fill(pair->GetEtaPart1(), momProtMC);
+
+            Double_t momMesMC = negPartTr->GetP();
+            Double_t momMesZMC = negPartTr->GetPz();
+            Double_t pRapidityMMC = 0.5 * Log((momMesMC + momMesZMC) / (momMesMC - momMesZMC));
+            Double_t thetaRMes = negPartTr->GetRapidity();
+
+            fHM->H1("recNRecMesons_P_rec")->Fill(momMesMC);
+            fHM->H1("recNRecMesons_theta_rec")->Fill(TMath::ACos(momMesZMC / momMesMC) * TMath::RadToDeg());
+            fHM->H1("recNRecMesons_eta_rec")->Fill(pRapidityMMC);
+            fHM->H1("recNRecMesons_theta_r_rec")->Fill(thetaRMes);
+            fHM->H2("recNRecMesons_eta_P_sim")->Fill(pair->GetEtaPart1(), momMesMC);
+        }
+
+    if (fParticlePair_RECO)
+        for (Int_t iPair = 0; iPair < fParticlePair_RECO->GetEntriesFast(); iPair++) {
+            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_RECO->UncheckedAt(iPair);
             Double_t momPart1 = pair->GetMomPart1();
             Double_t momPart2 = pair->GetMomPart2();
             Double_t etaPart1 = pair->GetEtaPart1();
@@ -564,12 +483,32 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             Double_t dca12x = pair->GetDCA12("X");
             Double_t dca12y = pair->GetDCA12("Y");
             Double_t path = pair->GetPath("X");
+            
+            // Apply cuts ...
+            if (momPart1 < fMom[0][0] || momPart1 > fMom[0][1] || momPart2 < fMom[1][0] || momPart2 > fMom[1][1])
+                continue;
+
+            if (etaPart1 < fEta[0][0] || etaPart1 > fEta[0][1] || etaPart2 < fEta[1][0] || etaPart2 > fEta[1][1])
+                continue;
+
+            // Geom. cuts applied ...
+            if (dca1 < fDCA[0][0] || dca1 > fDCA[0][1] || dca2 < fDCA[1][0] || dca2 > fDCA[1][1])
+                continue;
+
+            if (dca12x < fDCA12[0] || dca12x > fDCA12[1])
+                continue;
+
+            if (path < fPath[0] || path > fPath[1])
+                continue;
+         
+            fNOfParticlePairs++;
+            fHM->H1("numberOfReconstructedParticlePairsQA")->Fill(1);
+            fHM->H1("NPairsRecoInvMass")->Fill(pair->GetInvMass("X"));
 
             fHM->H2("NPairsRecoInvMassMomProton")->Fill(momPart1, pair->GetInvMass("X"));
             fHM->H2("NPairsRecoInvMassMomMeson")->Fill(momPart2, pair->GetInvMass("X"));
             fHM->H2("NPairsRecoInvMassEtaProton")->Fill(etaPart1, pair->GetInvMass("X"));
             fHM->H2("NPairsRecoInvMassEtaMeson")->Fill(etaPart2, pair->GetInvMass("X"));
-
             fHM->H2("NPairsRecoInvMassDCA1")->Fill(dca1, pair->GetInvMass("X"));
             fHM->H2("NPairsRecoInvMassDCA2")->Fill(dca2, pair->GetInvMass("X"));
             fHM->H2("NPairsRecoInvMassDCA12X")->Fill(dca12x, pair->GetInvMass("X"));
@@ -578,13 +517,10 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             fHM->H2("NPairsRecoInvMassPath")->Fill(path, pair->GetInvMass("X"));
         }
 
-        for (Int_t iPair = 0; iPair < fParticlePairNoCuts->GetEntriesFast(); iPair++) {
-            BmnParticlePair* pair = (BmnParticlePair*) fParticlePairNoCuts->At(iPair);
-            if (NULL == pair) {
-                cout << "Reconstructed pair branch error" << endl;
-                return;
-            }
-
+    if (fParticlePair_RECO)
+        for (Int_t iPair = 0; iPair < fParticlePair_RECO->GetEntriesFast(); iPair++) {
+            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_RECO->At(iPair);
+            
             fHM->H1("NPairsRecoInvMassWOCuts")->Fill(pair->GetInvMass("X"));
 
             Double_t momPart1 = pair->GetMomPart1();
@@ -609,94 +545,59 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             fHM->H2("NPairsRecoInvMassDCA12XsubYWOCuts")->Fill(abs(dca12x - dca12y), pair->GetInvMass("X"));
             fHM->H2("NPairsRecoInvMassPathWOCuts")->Fill(path, pair->GetInvMass("X"));
         }
-    }
 }
 
 void BmnLambdaQa::Finish() {
     fHM->WriteToFile();
 
-    if (kTRUE == fUseMCFile) {
-        cout << "Reconstructable: " << fNReconstructable << endl;
-        cout << "Number of reconstructed particle pairs from MC data: " << fNOfParticlePairsMC << endl;
-        cout << "Number of reconstructed particle pairs from MC data being products of lambda: " << fNOfLambdasParticlePairsMC << endl;
-        cout << "Number of all reconstructed particle pairs from MC data without invariant mass criterion: " << fNOfParticlePairsMCAll << endl;
-    }
+    vector <TClonesArray*> isPairBranches;
+    isPairBranches.push_back(fParticlePair_MC);
+    isPairBranches.push_back(fParticlePair_RECO);
+    
+    BmnParticlePairsInfo* pairInfo = new BmnParticlePairsInfo();
+    pairInfo->setMomPart1Min(fMom[0][0]);
+    pairInfo->setMomPart1Max(fMom[0][1]);
+    pairInfo->setMomPart2Min(fMom[1][0]);
+    pairInfo->setMomPart2Max(fMom[1][1]);
 
-    if (kTRUE == fUseRecoFile) {
-        cout << "Number of reconstructed particle pairs: " << fNOfParticlePairs << endl;
-    }
+    pairInfo->setEtaPart1Min(fEta[0][0]);
+    pairInfo->setEtaPart1Max(fEta[0][1]);
+    pairInfo->setEtaPart2Min(fEta[1][0]);
+    pairInfo->setEtaPart2Max(fEta[1][1]);
 
-    if (kTRUE == fUseMCFile && kTRUE == fUseRecoFile) {
-        cout << "Number of reconstructed particle pairs with their primary particle having MC matched lambda: " << fNOfParticlePairsWithMatchedLambda << endl;
-    }
+    pairInfo->setDCAPart1Min(fDCA[0][0]);
+    pairInfo->setDCAPart1Max(fDCA[0][1]);
+    pairInfo->setDCAPart2Min(fDCA[1][0]);
+    pairInfo->setDCAPart2Max(fDCA[1][1]);
 
-    BmnSimulationReport* report = new BmnLambdaQaReport(fUseMCFile, fUseRecoFile, fKey2, fOutName, fKeyAddition);
+    pairInfo->setDCA12Min(fDCA12[0]);
+    pairInfo->setDCA12Max(fDCA12[1]);
+    pairInfo->setPathMin(fPath[0]);
+    pairInfo->setPathMax(fPath[1]); 
+    BmnSimulationReport* report = new BmnLambdaQaReport(fUseMCFile, fUseRecoFile, pairInfo, isPairBranches);
     report->Create(fHM, fOutputDir);
     delete report;
+    delete pairInfo;
 }
 
 void BmnLambdaQa::ReadDataBranches() {
     FairRootManager* ioman = FairRootManager::Instance();
 
-    if (NULL == ioman) {
+    if (!ioman)
         Fatal("Init", "BmnRootManager is not instantiated");
-    }
 
-    if (kTRUE == fUseMCFile) {
-        fParticlePairMC = (TClonesArray*) ioman->GetObject("ParticlePairMC");
-        if (NULL == fParticlePairMC) {
-            Fatal("Init", ": No MC Particle Pair array!");
-        }
+    fMCTracks = (TClonesArray*) ioman->GetObject("MCTrack");
+    fGlobalTracks = (TClonesArray*) ioman->GetObject("BmnGlobalTrack");
+    fSiliconPoints = (TClonesArray*) ioman->GetObject("SiliconPoint");
 
-        fParticlePairMCAll = (TClonesArray*) ioman->GetObject("AllParticlePairMC");
-        if (NULL == fParticlePairMCAll) {
-            Fatal("Init", ": No All MC Particle Pair array!");
-        }
+    fParticlePair_MC = (TClonesArray*) ioman->GetObject("ParticlePair_MC");
+    fParticlePair_RECO = (TClonesArray*) ioman->GetObject("ParticlePair_RECO");
 
-        fMCTracks = (TClonesArray*) ioman->GetObject("MCTrack");
-        if (NULL == fMCTracks) {
-            Fatal("Init", ": No MCTrack array!");
-        }
+    if (fMCTracks)
+        fUseMCFile = kTRUE;
 
-        fSiliconPoints = (TClonesArray*) ioman->GetObject("SiliconPoint");
-        if (NULL == fSiliconPoints) {
-            Fatal("Init", ": No simulated silicon points array!");
-        }
-
-        fSSDPoints = (TClonesArray*) ioman->GetObject("SSDPoint");
-        if (NULL == fSSDPoints) {
-            Fatal("Init", ": No simulated SSD points array!");
-        }
-
-        fParticlePairsInfoMC = (TClonesArray*) ioman->GetObject("ParticlePairsInfoMC");
-        if (NULL == fParticlePairsInfoMC) {
-            Fatal("Init", ": No particle pairs info array!");
-        }
-    }
-
-    if (kTRUE == fUseRecoFile) {
-        fParticlePair = (TClonesArray*) ioman->GetObject("ParticlePair");
-        if (NULL == fParticlePair) {
-            Fatal("Init", ": No Particle Pair array!");
-        }
-
-        fParticlePairNoCuts = (TClonesArray*) ioman->GetObject("ParticlePair");
-        if (NULL == fParticlePairNoCuts) {
-            Fatal("Init", ": No Particle Pair without cuts array array!");
-        }
-
-        fParticlePairsInfoReco = (TClonesArray*) ioman->GetObject("ParticlePairsInfoReco");
-        if (NULL == fParticlePairsInfoReco) {
-            Fatal("Init", ": No particle pairs reco array!");
-        }
-    }
-
-    if (kTRUE == fUseRecoFile && kTRUE == fUseMCFile) {
-        fGlobalMatches = (TClonesArray*) ioman->GetObject("BmnGlobalTrackMatch");
-        if (NULL == fGlobalMatches) {
-            Fatal("Init", ": No reconstructed global matches array!");
-        }
-    }
+    if (fGlobalTracks)
+        fUseRecoFile = kTRUE;
 }
 
 void BmnLambdaQa::CreateH1(const string& name, const string& xTitle, const string& yTitle, Int_t nofBins, Double_t minBin, Double_t maxBin) {

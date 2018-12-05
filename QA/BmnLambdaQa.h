@@ -15,6 +15,8 @@
 #include <vector>
 #include "report/BmnSimulationReport.h"
 #include "report/BmnHistManager.h"
+#include "../physics/particles/BmnParticlePairsInfo.h"
+
 using std::string;
 using std::vector;
 using std::map;
@@ -24,20 +26,7 @@ class TClonesArray;
 class BmnLambdaQa : public FairTask {
 public:
 
-    BmnLambdaQa() {
-    }
-
-    /**
-     * \brief a constructor with keys
-     * \param[in] useMCFile if is True conducts a geometry analysis and particle decay reconstruction analysis with MC data as input
-     * \param[in] useRecoFile if is True conducts a two particle decay reconstruction analysis with reco data as input, if useMCFile is true as well carries out a two particle decay matching analysis
-     * \param[in] key2 if is 'a' particle is reconstructable if it has 4 gem points, if is 'b' particle is reconstructable if it has 4 gem + silicon points
-     * \param[in] name names of output html and root files 
-     * \param[in] keyAddition key word to be added at the end of .jpg output files to distinguish them using different sets of detectors in the geometry analysis
-     * \param[in] drawPoints draws one-dimensional histograms as points with bars, otherwise draws them as default bar charts
-     */
-    BmnLambdaQa(Bool_t useMCFile = kTRUE, Bool_t useRecoFile = kFALSE, Short_t key2 = 'a', TString name = "lambda_qa_sim", TString keyAddition = "", Bool_t drawPoints = kTRUE);
-
+    BmnLambdaQa();
     /**
      * \brief Destructor.
      */
@@ -52,16 +41,56 @@ public:
     /**
      * \brief Derived from FairTask.
      */
-    virtual void Exec(
-            Option_t* opt);
+    virtual void Exec(Option_t* opt);
 
     /**
      * \brief Derived from FairTask.
      */
     virtual void Finish();
+    
+     // Geometry cuts
+    void SetDCA1(Double_t min, Double_t max) {
+        fDCA[0][0] = min;
+        fDCA[0][1] = max;   
+    }
+    
+    void SetDCA2(Double_t min, Double_t max) {
+        fDCA[1][0] = min;
+        fDCA[1][1] = max;
+    }
+    
+    void SetDCA12(Double_t min, Double_t max) {
+        fDCA12[0] = min;
+        fDCA12[1] = max;
+    }
+    
+    void SetPath(Double_t min, Double_t max) {
+        fPath[0] = min;
+        fPath[1] = max;
+    }
 
+    // Kinematical cuts
+    void SetMom1(Double_t min, Double_t max) {
+        fMom[0][0] = min;
+        fMom[0][1] = max;
+    }
+    
+    void SetMom2(Double_t min, Double_t max) {
+        fMom[1][0] = min;
+        fMom[1][1] = max;
+    }
+    
+    void SetEta1(Double_t min, Double_t max) {
+        fEta[0][0] = min;
+        fEta[0][1] = max;
+    }
+    
+    void SetEta2(Double_t min, Double_t max) {
+        fEta[1][0] = min;
+        fEta[1][1] = max;
+    }
+          
 private:
-
     BmnHistManager* fHM;
     string fOutputDir;
     void ReadDataBranches();
@@ -115,9 +144,6 @@ private:
     Int_t fNReconstructable;
     Int_t fNOfParticlePairs;
     Int_t fNOfParticlePairsWithMatchedLambda;
-    Int_t fNOfReconstructedLambdas;
-    Int_t fNOfReconstructedLambdasM; // number of reconstructed lambdas with MC match 
-    Int_t fNOfNotReconstructedLambdas; // number of reconstructed lambdas with MC match 
     Int_t fNOfParticlePairsMC; // number of reconstructed particle pairs from MC data
     Int_t fNOfParticlePairsMCAll; // number of reconstructed particle pair from MC data without any cuts
     Int_t fNOfLambdasParticlePairsMC;
@@ -159,30 +185,29 @@ private:
     Int_t fPathRangeMin;
     Int_t fPathRangeMax;
 
-    Short_t fKey2; // 'a' - only GEM hits are considered in geometry analysis, 'b' - silicon hits are added to GEM
-    Bool_t fDrawPoints;
     Bool_t fUseMCFile;
     Bool_t fUseRecoFile;
 
-    TString fOutName;
-    TString fKeyAddition; // key to be added at the end of each histogram name and overall html file  
-
     TClonesArray* fMCTracks;
+    TClonesArray* fGlobalTracks;
     TClonesArray* fSiliconPoints;
     TClonesArray* fSSDPoints;
-    TClonesArray* fGemTracks; // BmnGemTrack array
-    TClonesArray* fGemMatches;
-    TClonesArray* fParticlePair; // all decay pairs reconstructed when having matches
-    TClonesArray* fParticlePairNoCuts; // all decay pairs reconstructed when
-    TClonesArray* fParticlePairMC; // all decay pairs reconstructed from MC data  
-    TClonesArray* fReconstructedLambda; //all reconstructed lambdas
-    TClonesArray* fReconstructedLambdaM; //reconstructed lambdas with MC match 
-    TClonesArray* fNotReconstructedLambda; // not reconstructed lambdas(ghosts)
-    TClonesArray* fGlobalMatches;
-    TClonesArray* fParticlePairMCAll;
-    TClonesArray* fParticlePairsInfoMC;
-    TClonesArray* fParticlePairsInfoReco;
+      
+    TClonesArray* fParticlePair; 
+    TClonesArray* fParticlePair_MC; 
+    TClonesArray* fParticlePair_RECO; 
+     
+    static Int_t fCurrentEvent;
+    
+    // Kinematic cuts
+    Double_t fMom[2][2]; // [2] --> (proton, pion), [2] --> (min, max)
+    Double_t fEta[2][2]; // Cuts on pseudorapidity 
 
+    // Geometry cuts
+    Double_t fPath[2];
+    Double_t fDCA[2][2]; // [2] --> (proton, pion), [2] --> (min, max)
+    Double_t fDCA12[2];
+    
     ClassDef(BmnLambdaQa, 1);
 };
 

@@ -15,14 +15,17 @@
 #include "BmnGemStripStationSet_RunSpring2017.h"
 #include <TClonesArray.h>
 #include <string>
+#include "../physics/particles/BmnParticlePairsInfo.h"
 using std::string;
 
 class BmnLambdaQaReport : public BmnSimulationReport {
 public:
+    
+    BmnLambdaQaReport() {};
     /**
      * \brief Constructor.
      */
-    BmnLambdaQaReport(Bool_t fUseMCFile = kTRUE, Bool_t fUseRecoFile = kFALSE, Short_t key2 = 'a', TString name = "lambda_qa", TString keyAddition = "", Bool_t drawPoints = kTRUE, TClonesArray* particlePairsInfo = NULL);
+    BmnLambdaQaReport(Bool_t, Bool_t, BmnParticlePairsInfo*, vector <TClonesArray*>);
 
     /**
      * \brief Destructor.
@@ -63,15 +66,14 @@ private:
     void DrawReconstructedLambdasWOCutsHistograms(const string& canvasName);
     void DrawTwoDimensinalReconstructedLambdasWOCutsHistograms(const string& canvasName);
        
-    TString fOutName;
     Bool_t fUseMCFile;
+    TClonesArray* fMC;
+    
     Bool_t fUseRecoFile;
-    Bool_t fDrawPoints;
-    Char_t fKey2;
-    TString fKeyAddition;
+    TClonesArray* fRECO;
+    
     TString drawPointsOpt;
-    TClonesArray* fParticlePairsInfoMC;
-    TClonesArray* fParticlePairsInfoReco;
+    BmnParticlePairsInfo* fParticlePairsInfo;
     
     ClassDef(BmnLambdaQaReport, 1)
 };

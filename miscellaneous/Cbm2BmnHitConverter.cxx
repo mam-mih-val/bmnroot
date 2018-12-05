@@ -34,19 +34,20 @@ InitStatus Cbm2BmnHitConverter::Init() {
 
     if (fVerbose) cout << "Cbm2BmnHitConverter::Init() finished\n";
 }
+
 /* Warning! Valid only for period 7 */
 void Cbm2BmnHitConverter::Exec(Option_t* opt) {
     fBmnGemStripHitsArray->Delete();
     fBmnSiliconHitsArray->Delete();
 
-    TVector3 shift(0.5, -6.92, -2.96);
+    TVector3 shift(0.7, -5.77, -1.79);
     Int_t gemCount = 0;
     Int_t silCount = 0;
 
     for (UInt_t ihit = 0; ihit < fCbmStsHitsArray->GetEntriesFast(); ihit++) {
         CbmStsHit* hit = (CbmStsHit*) fCbmStsHitsArray->UncheckedAt(ihit);
         Int_t stat = hit->GetStationNr();
-        Int_t sLayer = hit->GetStatLayer();
+        Int_t sector = hit->GetSectorNr();
         Int_t mod = 0;
         if (stat >= 4 && stat <= 9) {
             if (isGem) {
@@ -61,10 +62,10 @@ void Cbm2BmnHitConverter::Exec(Option_t* opt) {
             }
 
         } else
-            if (stat >= 0 && stat <= 3) {
+            if (stat > 0 && stat <= 3) {
             if (isSil) {
                 stat--;
-                mod = sLayer - 1;
+                mod = sector - 1;
                 BmnSiliconHit* sil = new((*fBmnSiliconHitsArray)[fBmnSiliconHitsArray->GetEntriesFast()]) BmnSiliconHit(
                         kSILICON,
                         TVector3(hit->GetX() + shift.X(), hit->GetY() + shift.Y(), hit->GetZ() + shift.Z()),

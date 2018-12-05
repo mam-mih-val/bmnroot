@@ -59,7 +59,7 @@ void BmnWriteRawInfo(TString file, TString output_file = "", WriteAction iAction
         return;
     }
 
-    Bool_t setup[10]; //array of flags to determine BM@N setup
+    Bool_t setup[11]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
     setup[1] = 1; // MWPC
@@ -71,6 +71,7 @@ void BmnWriteRawInfo(TString file, TString output_file = "", WriteAction iAction
     setup[7] = 1; // ZDC
     setup[8] = 1; // ECAL
     setup[9] = 0; // LAND
+    setup[10] = 0; // CSC
     decoder->SetDetectorSetup(setup);
 
     TString PeriodSetupExt = Form("%d%s.txt", period, ((stp == kBMNSETUP) ? "" : "_SRC"));

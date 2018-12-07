@@ -192,6 +192,16 @@ void BmnSiliconHitMaker::ProcessDigits() {
             Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
 
             for (Int_t iPoint = 0; iPoint < NIntersectionPointsInModule; ++iPoint) {
+                
+                Double_t threshold = 2000000;// ADC
+                Double_t sigL = module->GetIntersectionPoint_LowerLayerSripTotalSignal(iPoint);
+                Double_t sigU = module->GetIntersectionPoint_UpperLayerSripTotalSignal(iPoint);
+                
+                if (sigL < 0 || sigU < 0) {
+                    if (Abs(sigL - sigU) > 100) continue;
+//                    if (Abs(sigL - sigU) / max(sigU, sigL) > 0.25) continue;
+                }
+                
                 Double_t x = module->GetIntersectionPointX(iPoint);
                 Double_t y = module->GetIntersectionPointY(iPoint);
 
@@ -228,7 +238,7 @@ void BmnSiliconHitMaker::ProcessDigits() {
 
                 x += deltaX;
                 y += deltaY;
-
+                
                 new ((*fBmnSiliconHitsArray)[fBmnSiliconHitsArray->GetEntriesFast()])
                         BmnSiliconHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
 
@@ -240,6 +250,8 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 hit->SetClusterSizeInUpperLayer(module->GetIntersectionPoint_UpperLayerClusterSize(iPoint)); //cluster size (upper layer ///or\\\)
                 hit->SetStripPositionInLowerLayer(module->GetIntersectionPoint_LowerLayerSripPosition(iPoint)); //strip position (lower layer |||)
                 hit->SetStripPositionInUpperLayer(module->GetIntersectionPoint_UpperLayerSripPosition(iPoint)); //strip position (upper layer ///or\\\)
+                hit->SetStripTotalSignalInLowerLayer(sigL);
+                hit->SetStripTotalSignalInUpperLayer(sigU);
                 //--------------------------------------------------------------
 
                 //hit matching -------------------------------------------------

@@ -47,7 +47,7 @@ void Config()
 /// (verbose level, global range cut, ..)
 
    TString configm(gSystem->Getenv("VMCWORKDIR"));
-   configm1 = configm + "/gconfig/g4config.in";
+   TString configm1 = configm + "/gconfig/g4config.in";
    cout << " -I g4Config() using g4conf  macro: " << configm1 << endl;
 
    // set the common cuts 

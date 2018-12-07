@@ -59,10 +59,13 @@ private:
     BmnStatus CellsCreation(vector<BmnCellDuet>* cells);
     BmnStatus StateCalculation(vector<BmnCellDuet>* cells);
     BmnStatus CellsConnection(vector<BmnCellDuet>* cells, vector<BmnTrack>& cands);
+    BmnStatus TrackUpdateByKalman(BmnTrack* cand);
     BmnStatus TrackUpdateByKalman(vector<BmnTrack>& cands);
     BmnStatus TrackUpdateByLine(vector <BmnTrack>& cands);
     BmnStatus SortTracks(vector<BmnTrack>& inTracks, vector<BmnTrack>& sortedTracks);
     BmnStatus TrackSelection(vector<BmnTrack>& cands);
+    
+    BmnStatus CellToCandConnection(vector<BmnCellDuet> cells, vector<BmnTrack>& candsIn, vector<BmnTrack>& candsOut);
 
     Double_t CalcQp(BmnTrack* track);
     BmnStatus CalculateTrackParams(BmnTrack* tr);
@@ -125,12 +128,17 @@ private:
 
     Double_t* fCellDiffSlopeYZCut;
     Double_t* fCellDiffSlopeXZCut;
+    
+    Double_t fCellDiffSlopeYZCutMin;
+    Double_t fCellDiffSlopeYZCutMax;
+    Double_t fCellDiffSlopeXZCutMin;
+    Double_t fCellDiffSlopeXZCutMax;
     Int_t fNHitsCut;
     
     TString fSteerFile; 
     BmnSteeringCA* fSteering;
     
-    Int_t kCellsCut;
+    Int_t fCellsCut;
     
     ClassDef(BmnCellAutoTracking, 1);
 };

@@ -202,7 +202,7 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
         Float_t a = fit_func->GetParameter(2);
         z_0 = -b / (2 * a);
         range /= 2;
-        vertex->Draw("AP*");
+//        vertex->Draw("AP*");
         //c->SaveAs("tmp.pdf");
         // getchar(); 
         delete vertex;

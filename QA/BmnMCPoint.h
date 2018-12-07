@@ -50,6 +50,7 @@ public:
       Double_t res = (p != 0.) ? fQ / p : 0.;
       return res;
    }
+   Double_t GetQ() const { return fQ; }
    Double_t GetXIn() const { return fXIn; }
    Double_t GetYIn() const { return fYIn; }
    Double_t GetZIn() const { return fZIn; }

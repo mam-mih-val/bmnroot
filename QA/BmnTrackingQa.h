@@ -29,7 +29,7 @@ public:
     /**
      * \brief Constructor.
      */
-    BmnTrackingQa();
+    BmnTrackingQa() {};
     
     /**
      * \brief Constructor.

@@ -45,41 +45,6 @@ using namespace TMath;
 using lit::Split;
 using lit::FindAndReplace;
 
-BmnTrackingQa::BmnTrackingQa() :
-FairTask("BmnTrackingQA", 1),
-fHM(NULL),
-fOutputDir("./"),
-fMinNofPointsGem(4),
-fMinNofPointsTof(1),
-fMinNofPointsDch(1),
-fQuota(0.6),
-fEtaCut(100000.0),
-fPCut(0.0),
-fPRangeMin(0.),
-fPRangeMax(10.),
-fPRangeBins(50),
-fYRangeMin(0.),
-fYRangeMax(4.),
-fYRangeBins(100),
-fEtaRangeMin(0.),
-fEtaRangeMax(8.),
-fEtaRangeBins(50),
-fPtRangeMin(0.),
-fPtRangeMax(1.),
-fPtRangeBins(50),
-fThetaRangeMin(0.),
-fThetaRangeMax(40.),
-fThetaRangeBins(50),
-fOutName("tracking_qa"),
-fMCTracks(NULL),
-fPrimes(kFALSE),
-fNHitsCut(5000),
-fChargeCut(0),
-fNStations(0),
-fSilHits(NULL),
-fGlobalTracks(NULL) {
-}
-
 BmnTrackingQa::BmnTrackingQa(Short_t ch, TString name, TString gemConf, TString silConf) :
 FairTask("BmnTrackingQA", 1),
 fHM(NULL),
@@ -111,8 +76,7 @@ fConfigSil(silConf),
 fMCTracks(NULL),
 fSilHits(NULL),
 fPrimes(kFALSE),
-fNHitsCut(5000),
-fChargeCut(0),
+fNHitsCut(2000),
 fNStations(0),
 fGlobalTracks(NULL) {
     fChargeCut = ch;
@@ -424,6 +388,7 @@ void BmnTrackingQa::ProcessGlobal() {
     for (Int_t iTrack = 0; iTrack < fGlobalTracks->GetEntriesFast(); iTrack++) {
         BmnGlobalTrack* glTrack = (BmnGlobalTrack*) (fGlobalTracks->At(iTrack));
         if (!glTrack) continue;
+        if (glTrack->GetParamFirst()->GetQp() * fChargeCut < 0) continue;
         nAllRecoTracks++;
         BmnTrackMatch* globTrackMatch = (BmnTrackMatch*) (fGlobalTrackMatches->At(iTrack));
         if (!globTrackMatch) continue;
@@ -431,7 +396,7 @@ void BmnTrackingQa::ProcessGlobal() {
         Int_t globMCId = globTrackMatch->GetMatchedLink().GetIndex();
         if (!fMCTrackCreator->TrackExists(globMCId)) continue;
         const BmnMCTrack mcTrack = fMCTrackCreator->GetTrack(globMCId);
-
+        
         Int_t nSil = mcTrack.GetNofPoints(kSILICON);
         Int_t nSsd = mcTrack.GetNofPoints(kSSD);
         Int_t nGem = mcTrack.GetNofPoints(kGEM);
@@ -620,7 +585,7 @@ void BmnTrackingQa::ProcessGlobal() {
         else if (mcTrack.GetNofPoints(kGEM) != 0)
             pnt = mcTrack.GetPoint(kGEM, 0);
 
-        if (pnt.GetQp() * fChargeCut < 0) continue;
+        if (pnt.GetQ() * fChargeCut < 0) continue;
 
         Float_t Px = pnt.GetPx(); //mcTrack->GetPx();
         Float_t Py = pnt.GetPy(); //mcTrack->GetPy();
@@ -690,6 +655,8 @@ void BmnTrackingQa::ProcessGlobal() {
             pnt = mcTrack.GetPoint(kSSD, 0);
         else if (mcTrack.GetNofPoints(kGEM) != 0)
             pnt = mcTrack.GetPoint(kGEM, 0);
+        
+        if (pnt.GetQ() * fChargeCut < 0) continue;
 
         Float_t Px = pnt.GetPx();
         Float_t Py = pnt.GetPy();

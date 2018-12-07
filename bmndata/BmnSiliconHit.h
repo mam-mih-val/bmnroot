@@ -36,6 +36,23 @@ public:
     void SetStripPositionInUpperLayer(Int_t spos) {
         fUpperLayerStripPos = spos;
     }
+    
+    void SetStripTotalSignalInLowerLayer(Int_t sig) {
+        fLowerLayerStripTotalSignal = sig;
+    }
+
+    void SetStripTotalSignalInUpperLayer(Int_t sig) {
+        fUpperLayerStripTotalSignal = sig;
+    }
+    
+    Double_t GetStripTotalSignalInLowerLayer() {
+        return fLowerLayerStripTotalSignal;
+    }
+
+    Double_t GetStripTotalSignalInUpperLayer() {
+        return fUpperLayerStripTotalSignal;
+    }
+
 
     Double_t GetEnergyLoss() {
         return fELoss;
@@ -68,6 +85,8 @@ private:
     Int_t fUpperLayerClusterSize; //number of strips in the upper layer (\\\ or ///) for the hit
     Double_t fLowerLayerStripPos; //strip position in the lower layer (|||)
     Double_t fUpperLayerStripPos; //strip position in the upper layer (\\\ or ///)
+    Double_t fLowerLayerStripTotalSignal;
+    Double_t fUpperLayerStripTotalSignal;
 
     ClassDef(BmnSiliconHit, 1);
 };

@@ -894,7 +894,7 @@ BmnStatus BmnRawDataDecoder::FillSYNC(UInt_t *d, UInt_t serial, UInt_t & idx) {
     fTime_s = ts_t0_s;
 
     if (fEventId == 1) {
-        fTimeStart_s = ts_t0_s;
+        fTimeStart_s = ts_t0_s; 
         fTimeStart_ns = ts_t0_ns;
     }
 

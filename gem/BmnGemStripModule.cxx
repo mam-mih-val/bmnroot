@@ -953,6 +953,9 @@ void BmnGemStripModule::CalculateStripHitIntersectionPoints() {
                             Double_t iLayerStripPosition = StripLayers[ilayer].ConvertPointToStripPosition(xcoord, ycoord);
                             Double_t jLayerStripPosition = StripLayers[jlayer].ConvertPointToStripPosition(xcoord, ycoord);
 
+                            IntersectionPoints_LowerLayerStripTotalSignal.push_back(StripLayers[ilayer].GetStripHitTotalSignal(i_strip_hit));
+                            IntersectionPoints_UpperLayerStripTotalSignal.push_back(StripLayers[jlayer].GetStripHitTotalSignal(j_strip_hit));
+
                             if(StripLayers[ilayer].GetType() == LowerStripLayer) {
                                 IntersectionPoints_LowerLayerClusterSize.push_back(iLayerClusterSize);
                                 IntersectionPoints_UpperLayerClusterSize.push_back(jLayerClusterSize);

@@ -1,5 +1,5 @@
 #ifndef BMNGEMSTRIPHIT_H
-#define	BMNGEMSTRIPHIT_H
+#define BMNGEMSTRIPHIT_H
 
 #include "Rtypes.h"
 
@@ -13,17 +13,17 @@ public:
 
     virtual ~BmnGemStripHit();
 
-//    void SetModule(Int_t module) {
-//        fModule = module;
-//    }
+    //    void SetModule(Int_t module) {
+    //        fModule = module;
+    //    }
 
     void SetEnergyLoss(Double_t de) {
         fELoss = de;
     }
-//
-//    void SetType(Int_t type) {
-//        fType = type;
-//    }
+    //
+    //    void SetType(Int_t type) {
+    //        fType = type;
+    //    }
 
     void SetSignalDiff(Double_t sdiff) {
         fNormSignalDiff = sdiff;
@@ -45,17 +45,33 @@ public:
         fUpperLayerStripPos = spos;
     }
 
+    void SetStripTotalSignalInLowerLayer(Int_t sig) {
+        fLowerLayerStripTotalSignal = sig;
+    }
+
+    void SetStripTotalSignalInUpperLayer(Int_t sig) {
+        fUpperLayerStripTotalSignal = sig;
+    }
+
+    Double_t GetStripTotalSignalInLowerLayer() {
+        return fLowerLayerStripTotalSignal;
+    }
+
+    Double_t GetStripTotalSignalInUpperLayer() {
+        return fUpperLayerStripTotalSignal;
+    }
+
     Double_t GetEnergyLoss() {
         return fELoss;
     }
 
-//    Int_t GetModule() {
-//        return fModule;
-//    }
+    //    Int_t GetModule() {
+    //        return fModule;
+    //    }
 
-//    Int_t GetType() {
-//        return fType;
-//    }
+    //    Int_t GetType() {
+    //        return fType;
+    //    }
 
     Double_t GetSignalDiff() {
         return fNormSignalDiff;
@@ -78,16 +94,17 @@ public:
     }
 
 private:
-   // Int_t fModule;
+    // Int_t fModule;
     Double_t fELoss;
-//    Int_t fType; // 0 - fake, 1 - hit, -1 - undefined
+    //    Int_t fType; // 0 - fake, 1 - hit, -1 - undefined
     Double_t fNormSignalDiff; //normalized signal difference between lower and upper strips (0 is min diff,..., 1 is max dif)
     Int_t fLowerLayerClusterSize; //number of strips in the lower layer (|||) for the hit
     Int_t fUpperLayerClusterSize; //number of strips in the upper layer (\\\ or ///) for the hit
     Double_t fLowerLayerStripPos; //strip position in the lower layer (|||)
     Double_t fUpperLayerStripPos; //strip position in the upper layer (\\\ or ///)
+    Double_t fLowerLayerStripTotalSignal;
+    Double_t fUpperLayerStripTotalSignal;
 
-    
     ClassDef(BmnGemStripHit, 1);
 };
 

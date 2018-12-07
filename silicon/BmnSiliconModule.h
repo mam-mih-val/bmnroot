@@ -121,6 +121,8 @@ public:
     Int_t GetIntersectionPoint_UpperLayerClusterSize(Int_t indx) { return IntersectionPoints_UpperLayerClusterSize.at(indx); } //cluster size in the upper layer
     Double_t GetIntersectionPoint_LowerLayerSripPosition(Int_t indx) { return IntersectionPoints_LowerLayerStripPosition.at(indx); } //strip position in the lower layer
     Double_t GetIntersectionPoint_UpperLayerSripPosition(Int_t indx) { return IntersectionPoints_UpperLayerStripPosition.at(indx); } //strip position in the upper layer
+    Double_t GetIntersectionPoint_LowerLayerSripTotalSignal(Int_t indx) { return IntersectionPoints_LowerLayerStripTotalSignal.at(indx); } //strip position in the lower layer
+    Double_t GetIntersectionPoint_UpperLayerSripTotalSignal(Int_t indx) { return IntersectionPoints_UpperLayerStripTotalSignal.at(indx); } //strip position in the upper layer
     BmnMatch GetIntersectionPointMatch(Int_t indx) { return IntersectionPointMatches.at(indx); } //Intersection point match
 
     void ResetIntersectionPoints();
@@ -164,6 +166,9 @@ private:
 
     vector<Double_t> IntersectionPoints_LowerLayerStripPosition; //strip position in the lower layer for each intersection point
     vector<Double_t> IntersectionPoints_UpperLayerStripPosition; //strip position in the upper layer for each intersection point
+
+    vector<Double_t> IntersectionPoints_LowerLayerStripTotalSignal; //strip position in the lower layer for each intersection point
+    vector<Double_t> IntersectionPoints_UpperLayerStripTotalSignal; //strip position in the upper layer for each intersection point
 
     vector<BmnMatch> IntersectionPointMatches;
 

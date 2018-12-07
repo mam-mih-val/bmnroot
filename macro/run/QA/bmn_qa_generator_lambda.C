@@ -15,7 +15,7 @@ void bmn_qa_generator_lambda(
         TString mcFile = "", // evetest.root 
         TString lambdaFile = "", // File got from LambdaAnal.root with DST-input
         TString lambdaEveFile = "", // File got from LambdaAnal.root with EVE-input
-        TString outFile = "qa.root", Int_t nStartEvent = 0, Int_t nEvents = 500) {
+        TString outFile = "qa.root", Int_t nStartEvent = 0, Int_t nEvents = 1e6) {
     // ----  Load libraries   -------------------------------------------------
     
     bmnloadlibs(); // load bmn libraries
@@ -46,6 +46,19 @@ void bmn_qa_generator_lambda(
         fRun->AddTask(mcMatching);
 
     BmnLambdaQa* lambdaQa = new BmnLambdaQa();
+    
+    // Geometry cuts if necessary
+    lambdaQa->SetDCA1(0., 1000.);
+    lambdaQa->SetDCA2(0., 1000.);
+    lambdaQa->SetDCA12(0., 1000.);
+    lambdaQa->SetPath(0., 1000.);
+
+    // Kinematic cuts, if necessary
+    lambdaQa->SetMom1(0., 10.);
+    lambdaQa->SetMom2(0., 10.);
+    lambdaQa->SetEta1(0., 10.);
+    lambdaQa->SetEta2(0., 10.);
+    
     fRun->AddTask(lambdaQa);
 
     // ============ TASKS ============= //

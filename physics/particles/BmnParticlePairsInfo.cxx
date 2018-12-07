@@ -165,4 +165,5 @@ Double_t BmnParticlePairsInfo::getPathMax() {
 }
 
 BmnParticlePairsInfo::~BmnParticlePairsInfo() {
+    
 }

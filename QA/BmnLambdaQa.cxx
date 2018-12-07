@@ -3,7 +3,7 @@
  * \brief FairTask for MC simulated lambda reconstruction performance calculation.
  * \author Andrey Lebedev <andrey.lebedev@gsi.de> - original author for CBM experiment
  * \author Sergey Merts <sergey.merts@gmail.com> - modifications for BMN experiment
- * \author Alexander Lytaev <sas-lyt@ya.ru> - modifications for BMN experiment 
+ * \author Alexander Lytaev <sas-lyt@ya.ru> - modifications for BMN experiment
  * \date 2018 July
  */
 
@@ -67,23 +67,25 @@ fMesonsThetaRRangeMin(0.),
 fMesonsThetaRRangeMax(10.),
 fInvMassMin(1.07),
 fInvMassMax(1.22),
-fDCA1RangeMin(0.),
-fDCA1RangeMax(300.),
-fDCA2RangeMin(0.),
-fDCA2RangeMax(300.),
-fDCA12XRangeMin(0.),
-fDCA12XRangeMax(300.),
-fDCA12YRangeMin(0.),
-fDCA12YRangeMax(300.),
-fPathRangeMin(0.),
-fPathRangeMax(300.), 
-fUseMCFile(kFALSE), 
-fUseRecoFile(kFALSE) {
-   
+fUseMCFile(kFALSE),
+fUseRecoFile(kFALSE) {   
+    // Initialize cut arrays ...
+    Double_t val = 0.;
+    for (Int_t i = 0; i < 2; i++) {
+        val = (i == 0) ? -DBL_MAX : DBL_MAX;
+        for (Int_t j = 0; j < 2; j++) {
+            val = (j == 0) ? -DBL_MAX : DBL_MAX;
+            fMom[i][j] = val;
+            fEta[i][j] = val;
+            fDCA[i][j] = val;
+            fDCA12[j] = val;
+            fPath[j] = val;
+        }
+    }
 }
 
 BmnLambdaQa::~BmnLambdaQa() {
-    if (fHM) 
+    if (fHM)
         delete fHM;
 }
 
@@ -132,13 +134,12 @@ InitStatus BmnLambdaQa::Init() {
     CreateNumberOfReconstrcutedRecMesonsHistograms();
     CreateTwoDimensionalNumberOfReconstructedMesonsHistograms();
     CreateRecMesonsReconstructionEfficiencyHistograms();
-    CreateNumberOfNotReconstructedLambdaHistograms();  
+    CreateNumberOfNotReconstructedLambdaHistograms();
     CreateH1("numberOfReconstructedParticlePairsQA", "", "", 1, 0, 1.);
     CreateTwoDimensionalReconstructedParticlePairsHistograms();
     CreateReconstructedParticlePairsHistograms();
     CreateTwoDimensionalReconstructedParticlePairsWOCutsHistograms();
     CreateReconstructedParticlePairsWOCutsHistograms();
-
 
     return kSUCCESS;
 }
@@ -299,14 +300,9 @@ void BmnLambdaQa::Exec(Option_t* opt) {
         }
     }
 
-    if (fParticlePair_MC_withCuts)
-        for (Int_t iPair = 0; iPair < fParticlePair_MC_withCuts->GetEntriesFast(); iPair++) {
-            fNOfParticlePairsMC++;
-            fHM->H1("numberOfMCReconstructedAllParticlePairsQA")->Fill(1);
-
-            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_MC_withCuts->At(iPair);
-            fHM->H1("NPairsRecoFromMCInvMass")->Fill(pair->GetInvMass("X"));
-
+    if (fParticlePair_MC)
+        for (Int_t iPair = 0; iPair < fParticlePair_MC->GetEntriesFast(); iPair++) {
+            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_MC->UncheckedAt(iPair);
             Double_t momPart1 = pair->GetMomPart1();
             Double_t momPart2 = pair->GetMomPart2();
             Double_t etaPart1 = pair->GetEtaPart1();
@@ -316,6 +312,27 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             Double_t dca12x = pair->GetDCA12("X");
             Double_t dca12y = pair->GetDCA12("Y");
             Double_t path = pair->GetPath("X");
+
+            // Apply cuts ...
+            if (momPart1 < fMom[0][0] || momPart1 > fMom[0][1] || momPart2 < fMom[1][0] || momPart2 > fMom[1][1])
+                continue;
+
+            if (etaPart1 < fEta[0][0] || etaPart1 > fEta[0][1] || etaPart2 < fEta[1][0] || etaPart2 > fEta[1][1])
+                continue;
+
+            // Geom. cuts applied ...
+            if (dca1 < fDCA[0][0] || dca1 > fDCA[0][1] || dca2 < fDCA[1][0] || dca2 > fDCA[1][1])
+                continue;
+
+            if (dca12x < fDCA12[0] || dca12x > fDCA12[1])
+                continue;
+
+            if (path < fPath[0] || path > fPath[1])
+                continue;
+
+            fNOfParticlePairsMC++;
+            fHM->H1("numberOfMCReconstructedAllParticlePairsQA")->Fill(1);
+            fHM->H1("NPairsRecoFromMCInvMass")->Fill(pair->GetInvMass("X"));
 
             fHM->H2("NPairsRecoFromMCInvMassMomProton")->Fill(momPart1, pair->GetInvMass("X"));
             fHM->H2("NPairsRecoFromMCInvMassMomMeson")->Fill(momPart2, pair->GetInvMass("X"));
@@ -342,12 +359,12 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             fHM->H1("numberOfMCReconstructedLambdasQA")->Fill(1);
         }
 
-    if (fParticlePair_MC_noCuts)
-        for (Int_t iPair = 0; iPair < fParticlePair_MC_noCuts->GetEntriesFast(); iPair++) {
+    if (fParticlePair_MC)
+        for (Int_t iPair = 0; iPair < fParticlePair_MC->GetEntriesFast(); iPair++) {
             fNOfParticlePairsMCAll++;
             fHM->H1("numberOfMCReconstructedParticlePairsQA")->Fill(1);
 
-            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_MC_noCuts->At(iPair);
+            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_MC->At(iPair);
 
             fHM->H1("NPairsRecoFromMCWOCutsInvMass")->Fill(pair->GetInvMass("X"));
 
@@ -384,10 +401,11 @@ void BmnLambdaQa::Exec(Option_t* opt) {
                 continue;
             }
         }
- 
-    if (fParticlePair_RECO_withCuts)
-        for (Int_t iPair = 0; iPair < fParticlePair_RECO_withCuts->GetEntriesFast(); iPair++) {
-            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_RECO_withCuts->At(iPair);
+
+    /// RECO    
+    if (fParticlePair_RECO)
+        for (Int_t iPair = 0; iPair < fParticlePair_RECO->GetEntriesFast(); iPair++) {
+            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_RECO->UncheckedAt(iPair);
 
             CbmMCTrack* posPartTr = (CbmMCTrack*) fMCTracks->At(pair->GetMCTrackIdPart1());
             if (!posPartTr) {
@@ -401,7 +419,7 @@ void BmnLambdaQa::Exec(Option_t* opt) {
                 return;
             }
 
-            if (-1 == posPartTr->GetMotherId() || -1 == negPartTr->GetMotherId() || negPartTr->GetMotherId() != posPartTr->GetMotherId()) 
+            if (-1 == posPartTr->GetMotherId() || -1 == negPartTr->GetMotherId() || negPartTr->GetMotherId() != posPartTr->GetMotherId())
                 continue;
 
             CbmMCTrack* primaryPartTr = (CbmMCTrack*) fMCTracks->At(posPartTr->GetMotherId());
@@ -453,18 +471,9 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             fHM->H2("recNRecMesons_eta_P_sim")->Fill(pair->GetEtaPart1(), momMesMC);
         }
 
-    if (fParticlePair_RECO_withCuts)
-        for (Int_t iPair = 0; iPair < fParticlePair_RECO_withCuts->GetEntriesFast(); iPair++) {
-            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_RECO_withCuts->At(iPair);
-            if (NULL == pair) {
-                cout << "Reconstructed pair branch error" << endl;
-                return;
-            }
-            fNOfParticlePairs++;
-            fHM->H1("numberOfReconstructedParticlePairsQA")->Fill(1);
-
-            fHM->H1("NPairsRecoInvMass")->Fill(pair->GetInvMass("X"));
-
+    if (fParticlePair_RECO)
+        for (Int_t iPair = 0; iPair < fParticlePair_RECO->GetEntriesFast(); iPair++) {
+            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_RECO->UncheckedAt(iPair);
             Double_t momPart1 = pair->GetMomPart1();
             Double_t momPart2 = pair->GetMomPart2();
             Double_t etaPart1 = pair->GetEtaPart1();
@@ -474,12 +483,32 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             Double_t dca12x = pair->GetDCA12("X");
             Double_t dca12y = pair->GetDCA12("Y");
             Double_t path = pair->GetPath("X");
+            
+            // Apply cuts ...
+            if (momPart1 < fMom[0][0] || momPart1 > fMom[0][1] || momPart2 < fMom[1][0] || momPart2 > fMom[1][1])
+                continue;
+
+            if (etaPart1 < fEta[0][0] || etaPart1 > fEta[0][1] || etaPart2 < fEta[1][0] || etaPart2 > fEta[1][1])
+                continue;
+
+            // Geom. cuts applied ...
+            if (dca1 < fDCA[0][0] || dca1 > fDCA[0][1] || dca2 < fDCA[1][0] || dca2 > fDCA[1][1])
+                continue;
+
+            if (dca12x < fDCA12[0] || dca12x > fDCA12[1])
+                continue;
+
+            if (path < fPath[0] || path > fPath[1])
+                continue;
+         
+            fNOfParticlePairs++;
+            fHM->H1("numberOfReconstructedParticlePairsQA")->Fill(1);
+            fHM->H1("NPairsRecoInvMass")->Fill(pair->GetInvMass("X"));
 
             fHM->H2("NPairsRecoInvMassMomProton")->Fill(momPart1, pair->GetInvMass("X"));
             fHM->H2("NPairsRecoInvMassMomMeson")->Fill(momPart2, pair->GetInvMass("X"));
             fHM->H2("NPairsRecoInvMassEtaProton")->Fill(etaPart1, pair->GetInvMass("X"));
             fHM->H2("NPairsRecoInvMassEtaMeson")->Fill(etaPart2, pair->GetInvMass("X"));
-
             fHM->H2("NPairsRecoInvMassDCA1")->Fill(dca1, pair->GetInvMass("X"));
             fHM->H2("NPairsRecoInvMassDCA2")->Fill(dca2, pair->GetInvMass("X"));
             fHM->H2("NPairsRecoInvMassDCA12X")->Fill(dca12x, pair->GetInvMass("X"));
@@ -488,14 +517,10 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             fHM->H2("NPairsRecoInvMassPath")->Fill(path, pair->GetInvMass("X"));
         }
 
-    if (fParticlePair_RECO_noCuts)
-        for (Int_t iPair = 0; iPair < fParticlePair_RECO_noCuts->GetEntriesFast(); iPair++) {
-            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_RECO_noCuts->At(iPair);
-            if (NULL == pair) {
-                cout << "Reconstructed pair branch error" << endl;
-                return;
-            }
-
+    if (fParticlePair_RECO)
+        for (Int_t iPair = 0; iPair < fParticlePair_RECO->GetEntriesFast(); iPair++) {
+            BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_RECO->At(iPair);
+            
             fHM->H1("NPairsRecoInvMassWOCuts")->Fill(pair->GetInvMass("X"));
 
             Double_t momPart1 = pair->GetMomPart1();
@@ -524,13 +549,35 @@ void BmnLambdaQa::Exec(Option_t* opt) {
 
 void BmnLambdaQa::Finish() {
     fHM->WriteToFile();
-    
+
     vector <TClonesArray*> isPairBranches;
-    isPairBranches.push_back(fParticlePair_MC_noCuts);
-    isPairBranches.push_back(fParticlePair_RECO_noCuts);
-    BmnSimulationReport* report = new BmnLambdaQaReport(fUseMCFile, fUseRecoFile, isPairBranches);
+    isPairBranches.push_back(fParticlePair_MC);
+    isPairBranches.push_back(fParticlePair_RECO);
+    
+    BmnParticlePairsInfo* pairInfo = new BmnParticlePairsInfo();
+    pairInfo->setMomPart1Min(fMom[0][0]);
+    pairInfo->setMomPart1Max(fMom[0][1]);
+    pairInfo->setMomPart2Min(fMom[1][0]);
+    pairInfo->setMomPart2Max(fMom[1][1]);
+
+    pairInfo->setEtaPart1Min(fEta[0][0]);
+    pairInfo->setEtaPart1Max(fEta[0][1]);
+    pairInfo->setEtaPart2Min(fEta[1][0]);
+    pairInfo->setEtaPart2Max(fEta[1][1]);
+
+    pairInfo->setDCAPart1Min(fDCA[0][0]);
+    pairInfo->setDCAPart1Max(fDCA[0][1]);
+    pairInfo->setDCAPart2Min(fDCA[1][0]);
+    pairInfo->setDCAPart2Max(fDCA[1][1]);
+
+    pairInfo->setDCA12Min(fDCA12[0]);
+    pairInfo->setDCA12Max(fDCA12[1]);
+    pairInfo->setPathMin(fPath[0]);
+    pairInfo->setPathMax(fPath[1]); 
+    BmnSimulationReport* report = new BmnLambdaQaReport(fUseMCFile, fUseRecoFile, pairInfo, isPairBranches);
     report->Create(fHM, fOutputDir);
     delete report;
+    delete pairInfo;
 }
 
 void BmnLambdaQa::ReadDataBranches() {
@@ -539,18 +586,16 @@ void BmnLambdaQa::ReadDataBranches() {
     if (!ioman)
         Fatal("Init", "BmnRootManager is not instantiated");
 
-    fMCTracks = (TClonesArray*) ioman->GetObject("MCTrack");  
+    fMCTracks = (TClonesArray*) ioman->GetObject("MCTrack");
     fGlobalTracks = (TClonesArray*) ioman->GetObject("BmnGlobalTrack");
     fSiliconPoints = (TClonesArray*) ioman->GetObject("SiliconPoint");
-  
-    fParticlePair_MC_withCuts = (TClonesArray*) ioman->GetObject("ParticlePair_MC_withCuts");   
-    fParticlePair_MC_noCuts = (TClonesArray*) ioman->GetObject("ParticlePair_MC_noCuts");
-    fParticlePair_RECO_withCuts = (TClonesArray*) ioman->GetObject("ParticlePair_RECO_withCuts");
-    fParticlePair_RECO_noCuts = (TClonesArray*) ioman->GetObject("ParticlePair_RECO_noCuts");
-      
+
+    fParticlePair_MC = (TClonesArray*) ioman->GetObject("ParticlePair_MC");
+    fParticlePair_RECO = (TClonesArray*) ioman->GetObject("ParticlePair_RECO");
+
     if (fMCTracks)
         fUseMCFile = kTRUE;
-    
+
     if (fGlobalTracks)
         fUseRecoFile = kTRUE;
 }

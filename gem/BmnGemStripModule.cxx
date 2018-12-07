@@ -372,16 +372,16 @@ Bool_t BmnGemStripModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
         vector<Double_t> cluster_total_signal(n_strip_layers, 0.0);
 
         for(Int_t ilayer = 0; ilayer < n_strip_layers; ++ilayer) {
-            for(int i = 0; i < cluster_layers[ilayer].GetClusterSize(); ++i) {
-                cluster_mean_position[ilayer] += (cluster_layers[ilayer].Strips[i]+0.5)*cluster_layers[ilayer].Signals[i]; //as sum of all positions
-                cluster_total_signal[ilayer] += cluster_layers[ilayer].Signals[i];
+
+            if(cluster_layers[ilayer].GetClusterSize() > 0) {
+                for(int i = 0; i < cluster_layers[ilayer].GetClusterSize(); ++i) {
+                    cluster_mean_position[ilayer] += (cluster_layers[ilayer].Strips[i]+0.5)*cluster_layers[ilayer].Signals[i]; //as sum of all positions
+                    cluster_total_signal[ilayer] += cluster_layers[ilayer].Signals[i];
+                }
+                cluster_mean_position[ilayer] /= cluster_total_signal[ilayer];
             }
-        }
 
-        for(Int_t ilayer = 0; ilayer < n_strip_layers; ++ilayer) {
-            cluster_mean_position[ilayer] /= cluster_total_signal[ilayer];
-
-            cluster_layers[ilayer].MeanPosition = cluster_mean_position[ilayer]; //mean  cluster position
+            cluster_layers[ilayer].MeanPosition = cluster_mean_position[ilayer]; //mean cluster position
             cluster_layers[ilayer].TotalSignal = cluster_total_signal[ilayer]; //total signal of the cluster
         }
 

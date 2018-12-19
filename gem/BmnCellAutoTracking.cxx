@@ -21,6 +21,14 @@ static Double_t workTime = 0.0;
 static Double_t createTime = 0.0;
 static Double_t stateTime = 0.0;
 static Double_t connectTime = 0.0;
+static Double_t connectTime1 = 0.0;
+static Double_t connectTime2 = 0.0;
+static Double_t connectTime3 = 0.0;
+static Double_t connectTime01 = 0.0;
+static Double_t connectTime02 = 0.0;
+static Double_t connectTime03 = 0.0;
+static Double_t connectTime001 = 0.0;
+static Double_t connectTime002 = 0.0;
 static Double_t sortTime = 0.0;
 static Double_t refitTime = 0.0;
 static Double_t selectTime = 0.0;
@@ -337,6 +345,13 @@ void BmnCellAutoTracking::Finish() {
     cout << "Cells creation time: " << createTime << endl;
     cout << "States calculation time: " << stateTime << endl;
     cout << "Cells connection time: " << connectTime << endl;
+    cout << "connectTime01: " << connectTime01 << endl;
+    cout << "connectTime02: " << connectTime02 << endl;
+    cout << "connectTime03: " << connectTime03 << endl;
+    cout << "connectTime001: " << connectTime001 << endl;
+    cout << "connectTime002: " << connectTime002 << endl;
+    cout << "connectTime1: " << connectTime1 << endl;
+    cout << "connectTime2: " << connectTime2 << endl;
     cout << "Tracks refit time: " << refitTime << endl;
     cout << "Tracks sorting time: " << sortTime << endl;
     cout << "Tracks selection time: " << selectTime << endl;
@@ -489,8 +504,10 @@ BmnStatus BmnCellAutoTracking::StateCalculation(vector<BmnCellDuet>* cells) {
 //}
 
 BmnStatus BmnCellAutoTracking::CellsConnection(vector<BmnCellDuet>* cells, vector<BmnTrack>& cands) {
+    clock_t t1 = clock();
     vector<BmnTrack> candsIn;
-    for (Int_t startSt = fNStations - 1; startSt > 0; startSt--) {
+    for (Int_t startSt = fNStations - 1; startSt >= fNHitsCut; startSt--) {
+        clock_t t01 = clock();
         for (BmnCellDuet &duet : cells[startSt]) {
             BmnTrack trackCand;
             trackCand.AddHit(duet.GetFirstIdx(), (BmnHit*) fHitsArray->At(duet.GetFirstIdx()));
@@ -500,63 +517,129 @@ BmnStatus BmnCellAutoTracking::CellsConnection(vector<BmnCellDuet>* cells, vecto
             trackCand.GetParamFirst()->SetTy(duet.GetSlopeYZ());
             candsIn.push_back(trackCand);
         }
+        clock_t t02 = clock();
         for (Int_t iSt = startSt - 1; iSt > 0; iSt--) {
-            vector<BmnTrack> candsOut;
-            CellToCandConnection(cells[iSt], candsIn, candsOut);
-            vector<BmnTrack>().swap(candsIn); //just to real clearing!
-            for (BmnTrack &c : candsOut) {
-                candsIn.push_back(c);
-            }
-            vector<BmnTrack>().swap(candsOut); //just to real clearing!
+            clock_t t001 = clock();
+            //            vector<BmnTrack> candsOut;
+            CellToCandConnection(cells[iSt], candsIn);
+            //            CellToCandConnection(cells[iSt], candsIn, candsOut);
+            clock_t t002 = clock();
+            //            vector<BmnTrack>().swap(candsIn); //just for real clearing!
+            //clock_t t003 = clock();
+            //            for (BmnTrack &c : candsOut) candsIn.push_back(c);
+            //            vector<BmnTrack>().swap(candsOut); //just for real clearing!
+            connectTime001 += ((Double_t) (t002 - t001)) / CLOCKS_PER_SEC;
+            //connectTime002 += ((Double_t) (t003 - t002)) / CLOCKS_PER_SEC;
         }
+        clock_t t03 = clock();
         //        printf("candsIn.size() = %d\n", candsIn.size());
         for (BmnTrack &c : candsIn) {
-            if (CalculateTrackParams(&c) == kBMNERROR) continue;
-            if (IsParCorrect(c.GetParamFirst(), fIsField) && IsParCorrect(c.GetParamLast(), fIsField)) {
-                //                TrackUpdateByKalman(&c);
+            if (c.GetNHits() > 3) {
                 Double_t chi2 = 0.0;
-                if (c.GetNHits() > 3) {
-                    CircleFit(&c, fHitsArray, chi2); //we need it only to estimate chi^2 to reduce number of candidates
-                    //                printf("chi2 = %f\n", c.GetChi2());
-                    if (chi2 / (c.GetNHits() - 3) > 5000) continue; //check this parameter!!!
-                }
-                cands.push_back(c);
+                CircleFit(&c, fHitsArray, chi2); //we need it only to estimate chi^2 to reduce number of candidates
+                //                TrackUpdateByKalman(&c);
+                //                                printf("chi2 = %f\n", chi2);
+                if (chi2 / (c.GetNHits() - 3) > 100000) continue; //check this parameter!!!
             }
+            if (CalculateTrackParams(&c) == kBMNERROR) continue;
+            if (!IsParCorrect(c.GetParamFirst(), fIsField)) continue;
+            if (!IsParCorrect(c.GetParamLast(), fIsField)) continue;
+
+
+            cands.push_back(c);
         }
+        clock_t t04 = clock();
+        connectTime01 += ((Double_t) (t02 - t01)) / CLOCKS_PER_SEC;
+        connectTime02 += ((Double_t) (t03 - t02)) / CLOCKS_PER_SEC;
+        connectTime03 += ((Double_t) (t04 - t03)) / CLOCKS_PER_SEC;
         //        printf("cands.size() = %d\n", cands.size());
     }
+    clock_t t2 = clock();
+
+    connectTime1 += ((Double_t) (t2 - t1)) / CLOCKS_PER_SEC;
 }
 
-BmnStatus BmnCellAutoTracking::CellToCandConnection(vector<BmnCellDuet> cells, vector<BmnTrack>& candsIn, vector<BmnTrack>& candsOut) {
+//BmnStatus BmnCellAutoTracking::CellToCandConnection(vector<BmnCellDuet> cells, vector<BmnTrack>& candsIn, vector<BmnTrack>& candsOut) {
+//    clock_t t1 = clock();
+//    for (BmnTrack &candIn : candsIn) {
+//        Bool_t matched = kFALSE;
+//        //        Int_t candFirstSt = ((BmnHit*) fHitsArray->At(candIn.GetHitIndex(0)))->GetStation();
+//        for (BmnCellDuet &duet : cells) {
+//            //            Int_t duetLastSt = ((BmnHit*) fHitsArray->At(duet.GetLastIdx()))->GetStation();
+//            if (candIn.GetHitIndex(0) == duet.GetLastIdx()) {
+//                //            if (((candFirstSt == duetLastSt) && (candIn.GetHitIndex(0) == duet.GetLastIdx())) || (candFirstSt != duetLastSt)) {
+//                //            if (candIn.GetHitIndex(0) == duet.GetLastIdx()) {
+//                FairTrackParam* parF = candIn.GetParamFirst();
+//                Double_t slopeDiffYZ = Abs(duet.GetSlopeYZ() - parF->GetTy());
+//                Double_t slopeDiffXZ = Abs(duet.GetSlopeXZ() - parF->GetTx());
+//                //                if (slopeDiffXZ < fCellDiffSlopeXZCutMax && slopeDiffXZ > fCellDiffSlopeXZCutMin && slopeDiffYZ < fCellDiffSlopeYZCut[0]) {
+//                if (slopeDiffYZ < fCellDiffSlopeYZCut[0] && slopeDiffXZ < fCellDiffSlopeXZCut[0]) {
+//                    //                if (slopeDiffYZ < fCellDiffSlopeYZCut[0]) {
+//                    BmnTrack candTmp = candIn;
+//                    candTmp.AddHit(duet.GetFirstIdx(), (BmnHit*) fHitsArray->At(duet.GetFirstIdx()));
+//                    candTmp.SortHits();
+//                    parF->SetTx(duet.GetSlopeXZ());
+//                    parF->SetTy(duet.GetSlopeYZ());
+//                    candsOut.push_back(candTmp);
+//                    matched = kTRUE;
+//                }
+//            }
+//        }
+//        //        if (!matched && candIn.GetNHits() >= fNHitsCut) {
+//        if (!matched) {
+//            candsOut.push_back(candIn);
+//        }
+//    }
+//    clock_t t2 = clock();
+//
+//    connectTime2 += ((Double_t) (t2 - t1)) / CLOCKS_PER_SEC;
+//}
+
+BmnStatus BmnCellAutoTracking::CellToCandConnection(vector<BmnCellDuet> cells, vector<BmnTrack>& candsIn) {
+    clock_t t1 = clock();
     for (BmnTrack &candIn : candsIn) {
         Bool_t matched = kFALSE;
-        Int_t candFirstSt = ((BmnHit*) fHitsArray->At(candIn.GetHitIndex(0)))->GetStation();
+        FairTrackParam* parF = candIn.GetParamFirst();
+        //        Int_t candFirstSt = ((BmnHit*) fHitsArray->At(candIn.GetHitIndex(0)))->GetStation();
         for (BmnCellDuet &duet : cells) {
-            Int_t duetLastSt = ((BmnHit*) fHitsArray->At(duet.GetLastIdx()))->GetStation();
+            //if (duet.isUsed()) continue; //CHECK IT!!! MAYBE NOT THE BEST IDEA TO USE IT!            
+            //            Int_t duetLastSt = ((BmnHit*) fHitsArray->At(duet.GetLastIdx()))->GetStation();
             if (candIn.GetHitIndex(0) == duet.GetLastIdx()) {
                 //            if (((candFirstSt == duetLastSt) && (candIn.GetHitIndex(0) == duet.GetLastIdx())) || (candFirstSt != duetLastSt)) {
                 //            if (candIn.GetHitIndex(0) == duet.GetLastIdx()) {
-                FairTrackParam* parF = candIn.GetParamFirst();
                 Double_t slopeDiffYZ = Abs(duet.GetSlopeYZ() - parF->GetTy());
                 Double_t slopeDiffXZ = Abs(duet.GetSlopeXZ() - parF->GetTx());
                 //                if (slopeDiffXZ < fCellDiffSlopeXZCutMax && slopeDiffXZ > fCellDiffSlopeXZCutMin && slopeDiffYZ < fCellDiffSlopeYZCut[0]) {
                 if (slopeDiffYZ < fCellDiffSlopeYZCut[0] && slopeDiffXZ < fCellDiffSlopeXZCut[0]) {
                     //                if (slopeDiffYZ < fCellDiffSlopeYZCut[0]) {
-                    BmnTrack candTmp = candIn;
-                    candTmp.AddHit(duet.GetFirstIdx(), (BmnHit*) fHitsArray->At(duet.GetFirstIdx()));
-                    candTmp.SortHits();
-                    parF->SetTx(duet.GetSlopeXZ());
-                    parF->SetTy(duet.GetSlopeYZ());
-                    candsOut.push_back(candTmp);
-                    matched = kTRUE;
+                    if (matched) {
+                        BmnTrack candTmp = candIn;
+                        candTmp.AddHit(duet.GetFirstIdx(), (BmnHit*) fHitsArray->At(duet.GetFirstIdx()));
+                        candTmp.SortHits();
+                        candTmp.GetParamFirst()->SetTx(duet.GetSlopeXZ());
+                        candTmp.GetParamFirst()->SetTy(duet.GetSlopeYZ());
+                        //                        parF->SetTx(duet.GetSlopeXZ());
+                        //                        parF->SetTy(duet.GetSlopeYZ());
+                        candsIn.push_back(candTmp);
+                    } else {
+                        candIn.AddHit(duet.GetFirstIdx(), (BmnHit*) fHitsArray->At(duet.GetFirstIdx()));
+                        candIn.SortHits();
+                        parF->SetTx(duet.GetSlopeXZ());
+                        parF->SetTy(duet.GetSlopeYZ());
+                        matched = kTRUE;
+                    }
+                    //duet.SetUsing(kTRUE);
                 }
             }
         }
         //        if (!matched && candIn.GetNHits() >= fNHitsCut) {
-        if (!matched) {
-            candsOut.push_back(candIn);
-        }
+        //        if (!matched) {
+        //            candsOut.push_back(candIn);
+        //        }
     }
+    clock_t t2 = clock();
+
+    connectTime2 += ((Double_t) (t2 - t1)) / CLOCKS_PER_SEC;
 }
 
 BmnStatus BmnCellAutoTracking::TrackUpdateByLine(vector <BmnTrack>& cands) {

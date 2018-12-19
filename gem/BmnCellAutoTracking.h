@@ -65,7 +65,8 @@ private:
     BmnStatus SortTracks(vector<BmnTrack>& inTracks, vector<BmnTrack>& sortedTracks);
     BmnStatus TrackSelection(vector<BmnTrack>& cands);
     
-    BmnStatus CellToCandConnection(vector<BmnCellDuet> cells, vector<BmnTrack>& candsIn, vector<BmnTrack>& candsOut);
+//    BmnStatus CellToCandConnection(vector<BmnCellDuet> cells, vector<BmnTrack>& candsIn, vector<BmnTrack>& candsOut);
+    BmnStatus CellToCandConnection(vector<BmnCellDuet> cells, vector<BmnTrack>& candsIn);
 
     Double_t CalcQp(BmnTrack* track);
     BmnStatus CalculateTrackParams(BmnTrack* tr);

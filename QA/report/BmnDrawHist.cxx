@@ -130,8 +130,7 @@ void DrawH1(
         Double_t x2,
         Double_t y2,
         const string& drawOpt,
-        Bool_t drawMeanLine,
-        Bool_t printMeanValue) {
+        Bool_t outputMeanValue01) {
     assert(histos.size() != 0 && histLabels.size() == histos.size());
     Double_t max = std::numeric_limits<Double_t>::min();
     Int_t nofHistos = histos.size();
@@ -148,19 +147,20 @@ void DrawH1(
         for (Int_t i = 0; i < hist->GetNbinsX(); ++i) {
             if (hist->GetBinContent(i) != 0.0) nonZeroBins++;
         }
-        if (printMeanValue == kTRUE) {
-            legend->AddEntry(hist, TString::Format("%s | mean =  %3.1f", histLabels[iHist].c_str(), hist->Integral() / nonZeroBins).Data(), "lp");
 
-        } else {
-            legend->AddEntry(hist, TString::Format("%s | mean =  %3.1f", histLabels[iHist].c_str(), hist->Integral() / nonZeroBins).Data(), "lp");
-            FILE* f = fopen("test.dat", "a+");
-            if (((TString) hist->GetName()).Contains("Eff_vs_P_glob") ||
-                    ((TString) hist->GetName()).Contains("Fake_vs_P_glob") ||
-                    ((TString) hist->GetName()).Contains("SplitEff_vs_P_glob"))
-                fprintf(f, "%s %s %f\n", hist->GetName(), histLabels[iHist].c_str(), hist->Integral() / nonZeroBins);
-            fclose(f);
-        }
-        if (drawMeanLine == kTRUE) DrawMeanLine(hist);
+        Double_t xMax = hist->GetBinCenter(hist->GetNbinsX());
+        Double_t xGev = 1.0; //1 GeV
+        Int_t nGev = Int_t(hist->GetNbinsX() * xGev / xMax);
+        Double_t effAll = hist->Integral() / nonZeroBins;
+        Double_t eff01 = hist->Integral(0.0, nGev) / nGev; // efficiency from 0 to 1 GeV
+        TString legText;
+        if (outputMeanValue01) legText = TString::Format("%s | mean =  %3.1f | mean01 =  %3.1f", histLabels[iHist].c_str(), effAll, eff01).Data();
+        else legText = TString::Format("%s | mean =  %3.1f", histLabels[iHist].c_str(), effAll).Data();
+        legend->AddEntry(hist, legText, "lp");
+        //To choose the best combination of parameters
+        FILE* f = fopen("test.dat", "a+");
+        if (((TString) hist->GetName()).Contains("vs_P")) fprintf(f, "%s %s %f %f\n", hist->GetName(), histLabels[iHist].c_str(), effAll, eff01);
+        fclose(f);
     }
     histos[0]->SetMaximum(max * 1.10);
 
@@ -168,6 +168,62 @@ void DrawH1(
         legend->Draw();
     }
 }
+
+///* Draw several TH1 histograms. */
+//void DrawH1(
+//        const vector<TH1*>& histos,
+//        const vector<string>& histLabels,
+//        HistScale logx,
+//        HistScale logy,
+//        Bool_t drawLegend,
+//        Double_t x1,
+//        Double_t y1,
+//        Double_t x2,
+//        Double_t y2,
+//        const string& drawOpt,
+//        Bool_t drawMeanLine,
+//        Bool_t printMeanValue) {
+//    assert(histos.size() != 0 && histLabels.size() == histos.size());
+//    Double_t max = std::numeric_limits<Double_t>::min();
+//    Int_t nofHistos = histos.size();
+//    TLegend* legend = new TLegend(x1, y1, x2, y2);
+//    legend->SetFillColor(kWhite);
+//    for (UInt_t iHist = 0; iHist < nofHistos; iHist++) {
+//        TH1* hist = histos[iHist];
+//        string opt = (iHist == 0) ? drawOpt : (iHist == nofHistos - 1) ? "SAME" + drawOpt : "SAME" + drawOpt;
+//        //string opt = drawOpt;
+//        DrawH1(hist, logx, logy, opt, BmnDrawingOptions::Color(iHist), BmnDrawingOptions::LineWidth(),
+//                BmnDrawingOptions::LineStyle(0), BmnDrawingOptions::MarkerSize(), BmnDrawingOptions::MarkerStyle(iHist));
+//        max = std::max(max, hist->GetMaximum());
+//        Int_t nonZeroBins = 0;
+//        for (Int_t i = 0; i < hist->GetNbinsX(); ++i) {
+//            if (hist->GetBinContent(i) != 0.0) nonZeroBins++;
+//        }
+//        if (printMeanValue == kTRUE) {
+//            legend->AddEntry(hist, TString::Format("%s | mean =  %3.1f", histLabels[iHist].c_str(), hist->Integral() / nonZeroBins).Data(), "lp");
+//
+//        } else {
+//            Double_t xMax = hist->GetBinCenter(hist->GetNbinsX());
+//            Double_t xGev = 1.0; //1 GeV
+//            Int_t nGev = Int_t(hist->GetNbinsX() * xGev / xMax);
+//            Double_t effAll = hist->Integral() / nonZeroBins;
+//            Double_t eff01 = hist->Integral(0.0, nGev) / nGev; // efficiency from 0 to 1 GeV
+//            legend->AddEntry(hist, TString::Format("%s | mean =  %3.1f | mean01 =  %3.1f", histLabels[iHist].c_str(), effAll, eff01).Data(), "lp");
+//            FILE* f = fopen("test.dat", "a+");
+//            if (((TString) hist->GetName()).Contains("Eff_vs_P_glob") ||
+//                    ((TString) hist->GetName()).Contains("Fake_vs_P_glob") ||
+//                    ((TString) hist->GetName()).Contains("SplitEff_vs_P_glob"))
+//                fprintf(f, "%s %s %f\n", hist->GetName(), histLabels[iHist].c_str(), hist->Integral() / nonZeroBins);
+//            fclose(f);
+//        }
+//        if (drawMeanLine == kTRUE) DrawMeanLine(hist);
+//    }
+//    histos[0]->SetMaximum(max * 1.10);
+//
+//    if (drawLegend) {
+//        legend->Draw();
+//    }
+//}
 
 void DrawMeanLine(TH1* hist) {
 

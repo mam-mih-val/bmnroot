@@ -280,7 +280,7 @@ void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames,
     histos2.push_back(HM()->H1(eff));
     histos2.push_back(HM()->H1(fake));
     histos2.push_back(HM()->H1(clon));
-    DrawH1(histos2, labels2, kLinear, kLinear, true, 0.5, 0.9, 1.0, 0.99, "PE1X0", kFALSE);
+    DrawH1(histos2, labels2, kLinear, kLinear, true, 0.5, 0.9, 1.0, 0.99, "PE1X0", kTRUE);
 }
 
 void BmnTrackingQaReport::DrawNhitsGem(const TString canvasName) {

@@ -6,14 +6,14 @@ hitXCutMax 7. 6. 13. 30. 42. 70. 80. 80. 80. # xRight for each station of inn. t
 hitYCutMin -6. -6. -6. -6. -6. -6. -6. -6. -6. # yLeft for each station of inn. tracker
 hitYCutMax 1. 2. 8. 17. 30. 40. 40. 40. 40. # yLeft for each station of inn. tracker
 
-cellSlopeXZCutMin -0.6 -0.4 -0.5 -0.6 -0.6 -0.6 -0.6 -0.5 -0.5 # xzSlopeLeft per each station 
-cellSlopeXZCutMax +0.6 +0.4 +0.5 +0.6 +0.6 +0.6 +0.6 +0.5 +0.5 # xzSlopeRight per each station 
+cellSlopeXZCutMin -0.4 -0.4 -0.5 -0.6 -0.6 -0.6 -0.6 -0.5 -0.5 # xzSlopeLeft per each station 
+cellSlopeXZCutMax +0.4 +0.4 +0.5 +0.6 +0.6 +0.6 +0.6 +0.5 +0.5 # xzSlopeRight per each station 
 
-cellSlopeYZCutMin -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 # yzSlopeLeft per each station
+cellSlopeYZCutMin -0.0 -0.0 -0.0 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 # yzSlopeLeft per each station
 cellSlopeYZCutMax +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 # yzSlopeRight per each station
 
-diffSlopeXZ0 0.06 # start value (b) when parametrizing diffSlopeXZ (a * x + b)
-diffSlopeXZSlope 0.06 # slope value (a) when parametrizing diffSlopeXZ
+diffSlopeXZ0 0.08 # start value (b) when parametrizing diffSlopeXZ (a * x + b)
+diffSlopeXZSlope 0.08 # slope value (a) when parametrizing diffSlopeXZ
 
 diffSlopeYZ0 0.01 # start value (b) when parametrizing diffSlopeYZ
 diffSlopeYZSlope 0.01 # slope value (a) when parametrizing diffSlopeYZ

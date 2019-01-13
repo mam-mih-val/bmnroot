@@ -1,8 +1,8 @@
 #ifndef BMNTOF2RAW2DIGITNEW_H
 #define BMNTOF2RAW2DIGITNEW_H
 
-#define SLFIT0 "pol2"
-#define SLFIT "pol5"
+#define NSLFIT0 "pol5"
+#define NSLFIT "pol8"
 #define HPTIMEBIN 0.02344
 #define INVHPTIMEBIN 42.6666
 
@@ -21,6 +21,7 @@
 
 #include "TString.h"
 #include "TProfile.h"
+#include "TProfile2D.h"
 #include "TH2F.h"
 #include "TClonesArray.h"
 #include "BmnTDCDigit.h"
@@ -65,33 +66,33 @@ public:
 
     int  get_t0() { return T0; }
 
-    void SetWcut(int wcut) { Wcut = wcut; for (int c=0; c<MaxPlane; c++) ReBook(c); }
+    void SetWcut(int wcut) {if (wcut != Wcut) { Wcut = wcut; for (int c=0; c<MaxPlane; c++) ReBook(c); }}
     int  GetWcut() { return Wcut; }
-    void SetWcutc(int c, int wcut) { if (c>0&&c<=MaxPlane) { Wcutc[c-1] = wcut; ReBook(c-1); } }
+    void SetWcutc(int c, int wcut) { if (c>0&&c<=MaxPlane) {if (wcut != Wcutc[c-1]) { Wcutc[c-1] = wcut; ReBook(c-1); } } }
     int  GetWcutc(int c) { if (c>0&&c<=MaxPlane) return Wcutc[c-1]; else return 0; }
 
-    void SetWmax(int wm) { Wmax = wm; for (int c=0; c<MaxPlane; c++) ReBook(c); }
+    void SetWmax(int wm) {if (wm != Wmax) { Wmax = wm; for (int c=0; c<MaxPlane; c++) ReBook(c); }}
     int  GetWmax() { return Wmax; }
-    void SetWmaxc(int c, int wm) { if (c>0&&c<=MaxPlane) { Wmaxc[c-1] = wm; ReBook(c-1); } }
+    void SetWmaxc(int c, int wm) { if (c>0&&c<=MaxPlane) {if (wm != Wmaxc[c-1]) { Wmaxc[c-1] = wm; ReBook(c-1); } } }
     int  GetWmaxc(int c) { if (c>0&&c<=MaxPlane) return Wmaxc[c-1]; else return 0; }
 
-    void SetW(int wcut, int wm) { Wcut = wcut;  Wmax = wm; for (int c=0; c<MaxPlane; c++) ReBook(c); }
+    void SetW(int wcut, int wm) {if (wcut != Wcut || wm != Wmax) { Wcut = wcut;  Wmax = wm; for (int c=0; c<MaxPlane; c++) ReBook(c); }}
 
-    void SetWT0max(int wt0m) { WT0max = wt0m; for (int c=0; c<MaxPlane; c++) ReBook(c); }
+    void SetWT0max(int wt0m) {if (wt0m != WT0max) { WT0max = wt0m; for (int c=0; c<MaxPlane; c++) ReBook(c); } }
     int  GetWT0max() { return WT0max; }
 
-    void SetWT0min(int wt0m) { WT0min = wt0m; for (int c=0; c<MaxPlane; c++) ReBook(c); }
+    void SetWT0min(int wt0m) {if (wt0m != WT0min) { WT0min = wt0m; for (int c=0; c<MaxPlane; c++) ReBook(c); } }
     int  GetWT0min() { return WT0min; }
 
-    void SetWT0(int wt1, int wt2) { WT0min = wt1;  WT0max = wt2; for (int c=0; c<MaxPlane; c++) ReBook(c); }
+    void SetWT0(int wt1, int wt2) {if (wt1 != WT0min || wt2 != WT0max) { WT0min = wt1;  WT0max = wt2; for (int c=0; c<MaxPlane; c++) ReBook(c); } }
 
-    void SetLeadMin(int c, int leadmin) { if (c>0&&c<=MaxPlane) {LeadMin[c-1] = leadmin; ReBook(c-1);} }
+    void SetLeadMin(int c, int leadmin) { if (c>0&&c<=MaxPlane) if (leadmin != LeadMin[c-1]) {LeadMin[c-1] = leadmin; ReBook(c-1);} }
     int  GetLeadMin(int c) { if (c>0&&c<=MaxPlane) return LeadMin[c-1]; else return 0;}
 
-    void SetLeadMax(int c, int leadmax) { if (c>0&&c<=MaxPlane) {LeadMax[c-1] = leadmax; ReBook(c-1);} }
+    void SetLeadMax(int c, int leadmax) { if (c>0&&c<=MaxPlane) if (leadmax != LeadMax[c-1]) {LeadMax[c-1] = leadmax; ReBook(c-1);} }
     int  GetLeadMax(int c) { if (c>0&&c<=MaxPlane) return LeadMax[c-1]; else return 0; }
 
-    void SetLeadMinMax(int c, int leadmin, int leadmax) { if (c>0&&c<=MaxPlane) {LeadMin[c-1] = leadmin; LeadMax[c-1] = leadmax; ReBook(c-1);}; }
+    void SetLeadMinMax(int c, int leadmin, int leadmax) {if (c>0&&c<=MaxPlane) if (leadmin != LeadMin[c-1] || leadmax != LeadMax[c-1]) {LeadMin[c-1] = leadmin; LeadMax[c-1] = leadmax; ReBook(c-1);}; }
 
     void fillPreparation(TClonesArray *data, map<UInt_t,Long64_t> *ts, Double_t t0, Double_t t0width);
     void fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts, Double_t t0, Double_t t0width, TClonesArray *tof2digit);
@@ -100,15 +101,17 @@ public:
     void fillEqualization(TClonesArray *data, map<UInt_t,Long64_t> *ts, Double_t t0, Double_t t0width);
     void writeSlewingLimits();
     void readSlewingLimits();
-    void SlewingT0();
-    void readSlewingT0();
-    void Slewing();
-    void readSlewing();
+//    void SlewingT0();
+//    void readSlewingT0();
+//    void Slewing();
+    void readSlewing(Bool_t update = false);
     void SlewingResults();
-    void InitEqualization();
+//    void InitEqualization();
+    void FitSlewing();
     void Equalization();
-    float slewingt0_correction(int chamber, double width, int peak);
-    float slewing_correction(int chamber, double width, int peak);
+    void Equalization0();
+//    float slewingt0_correction(int chamber, double width, int peak);
+//    float slewing_correction(int chamber, double width, int peak);
     void drawprep();
     void drawprof();
     void drawproft0();
@@ -119,15 +122,19 @@ public:
     int get_strip_xyz(int chamber, int strip, float *x, float *y, float *z);
     int get_chamber_z(int chamber, float *z);
     int get_track_hits(float *xyz, float *cxyy, int *nhits, int *chamb, int *strip);
-    float get_hit_diff(int chamber, int strip, float diff);
-    float get_hit_x(int chamber, int strip, float diff);
-    void get_hit_xyz(int chamber, int strip, float diff, float *x, float *y, float *z);
+    float get_hit_diff0(int chamber, int strip, float diff);
+    float get_hit_x0(int chamber, int strip, float diff);
+    void get_hit_xyz0(int chamber, int strip, float diff, float *x, float *y, float *z);
+    float get_hit_diff(int chamber, int strip, float diff_corrected);
+    float get_hit_x(int chamber, int strip, float diff_corrected);
+    void get_hit_xyz(int chamber, int strip, float diff_corrected, float *x, float *y, float *z);
     void ReBook(int i);
     void Book();
     void BookSlewing();
     void BookSlewingResults();
-    void WriteSlewingHists();
+    void WriteSlewingResults();
     void WritePreparationHists();
+    void WritePreparationHists0();
     Double_t *GetINL() { return &DNL_Table[0][0][0][0]; }
 
     void SetSlewingReference(Int_t chamber, Int_t refrun, Int_t refchamber);
@@ -138,6 +145,8 @@ private:
     int chamber_slewing[TOF2_MAX_CHAMBERS];
     int type_slewing[TOF2_MAX_CHAMBERS];
     int fSlewCham;
+    int fSlewRun;
+    int fRUN;
     int n_rec;
     Bmn_Tof2_map_element_new mapa[TOF2_MAX_CHANNEL];
     long long EVENT,TIME_SEC,TIME_NS;
@@ -163,48 +172,36 @@ private:
     int numcrate(int id);
     int nrec[TOF2_MAX_CRATES][TOF2_MAX_SLOTS_IN_CRATE][TOF2_MAX_CHANNELS_IN_SLOT];
 
-    float tmean[2][TOF2_MAX_CHANNEL];
-    int ntmean[2][TOF2_MAX_CHANNEL];
-    float tmean_average[2][TOF2_MAX_CHAMBERS];
-    float tmeane[TOF2_MAX_CHANNEL];
-    int ntmeane[TOF2_MAX_CHANNEL];
-    float tmeane_average[TOF2_MAX_CHAMBERS];
-
     double DNL_Table[TOF2_MAX_CRATES][TOF2_MAX_SLOTS_IN_CRATE][72][1024];
     int dnltype[TOF2_MAX_CRATES][TOF2_MAX_SLOTS_IN_CRATE];
     char dnlname[TOF2_MAX_CRATES][TOF2_MAX_SLOTS_IN_CRATE][128];
 
-    int wmint0[TOF2_MAX_CHAMBERS][2];
-    int wmaxt0[TOF2_MAX_CHAMBERS][2];
-    int tmint0[TOF2_MAX_CHAMBERS][2];
-    int tmaxt0[TOF2_MAX_CHAMBERS][2];
-    double TvsWt0_const[TOF2_MAX_CHAMBERS][2];
-    double TvsWt0_slope[TOF2_MAX_CHAMBERS][2];
-    double TvsWt0_parab[TOF2_MAX_CHAMBERS][2];
-
-    int wmin[TOF2_MAX_CHAMBERS][2];
-    int wmax[TOF2_MAX_CHAMBERS][2];
-    int tmin[TOF2_MAX_CHAMBERS][2];
-    int tmax[TOF2_MAX_CHAMBERS][2];
-    double TvsW_const[TOF2_MAX_CHAMBERS][2];
-    double TvsW_slope[TOF2_MAX_CHAMBERS][2];
-    double TvsW_parab[TOF2_MAX_CHAMBERS][2];
-    double TvsW_cubic[TOF2_MAX_CHAMBERS][2];
-    double TvsW_four[TOF2_MAX_CHAMBERS][2];
-    double TvsW_five[TOF2_MAX_CHAMBERS][2];
-
     TH2F *poffsets, *poffsets1, *poffsets2;
-    TProfile *TvsW[TOF2_MAX_CHAMBERS][2];
-    TProfile *TvsWt0[TOF2_MAX_CHAMBERS][2];
-    TH2F *TvsWp[TOF2_MAX_CHAMBERS][2];
-    TH2F *TvsWt0p[TOF2_MAX_CHAMBERS][2];
-    TH2F *TvsSm[TOF2_MAX_CHAMBERS][2];
+    TProfile2D *TvsW[TOF2_MAX_CHAMBERS][4];
+    TProfile2D *TvsWt0[TOF2_MAX_CHAMBERS][4];
+    TProfile *TvsWr[TOF2_MAX_CHAMBERS][4];
+    TProfile *TvsWt0r[TOF2_MAX_CHAMBERS][4];
+    TH2F *TvsWp[TOF2_MAX_CHAMBERS][4];
+    TH2F *TvsWt0p[TOF2_MAX_CHAMBERS][4];
+    TH2F *TvsSm[TOF2_MAX_CHAMBERS][4];
+    TProfile *Toffsets[4];
+    TProfile *Toffsetsf[4];
+    TProfile *Toffsets0;
+    TProfile *pLeadMin;
+    TProfile *pLeadMax;
+    TH1F *pWlimits;
+    double Toffsets00[TOF2_MAX_CHANNEL];
+    double Toffsets00n[TOF2_MAX_CHANNEL];
+    double Toffsets00e[TOF2_MAX_CHANNEL];
 
     TH2F *TvsS[TOF2_MAX_CHAMBERS];
     TH2F *WvsS[TOF2_MAX_CHAMBERS];
 
     TH1F *Wt0;
     TH1F *Wts;
+    TH2F *Hchambrate;
+    TH1F *H1chambrate;
+    TH2F *Hstriprate;
     TH2F *TvsWall[TOF2_MAX_CHAMBERS];
     TH2F *TvsWallmax[TOF2_MAX_CHAMBERS];
 
@@ -223,6 +220,9 @@ private:
     float lroffsets[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
     int lrsign[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
     float fVelosity;
+
+    TFile *fSlewing;
+    TFile *fSlewingr;
 
 ClassDef(BmnTof2Raw2DigitNew, 1);
 };

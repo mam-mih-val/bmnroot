@@ -894,7 +894,7 @@ BmnStatus BmnRawDataDecoder::FillSYNC(UInt_t *d, UInt_t serial, UInt_t & idx) {
     fTime_s = ts_t0_s;
 
     if (fEventId == 1) {
-        fTimeStart_s = ts_t0_s; 
+        fTimeStart_s = ts_t0_s;
         fTimeStart_ns = ts_t0_ns;
     }
 
@@ -1103,6 +1103,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         prevEventType = curEventType;
     }
 
+    if (fTof700Mapper) fTof700Mapper->WriteSlewingResults();
+
     printf(ANSI_COLOR_RED "\n=============== RUN" ANSI_COLOR_RESET);
     printf(ANSI_COLOR_BLUE " %04d " ANSI_COLOR_RESET, runId);
     printf(ANSI_COLOR_RED "SUMMARY ===============\n" ANSI_COLOR_RESET);
@@ -1193,7 +1195,8 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
 		fTof700Mapper->SetSlewingReference(i+1,refrun_tof700_slewing[i],refchamber_tof700_slewing[i]);
 	    }
 	}
-        fTof700Mapper->readSlewingT0();
+//        fTof700Mapper->readSlewingT0();
+//        fTof700Mapper->readSlewingLimits();
         fTof700Mapper->readSlewing();
         fTof700Mapper->BookSlewingResults();
     }
@@ -1593,11 +1596,6 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
     }
     cout << "Slewing T0 event #" << fNevents << endl;
 
-    fTof700Mapper->SlewingT0();
-
-    fTof700Mapper->readSlewingT0();
-
-
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 5000 == 0) cout << "Slewing RPC event #" << iEv << endl;
 
@@ -1626,11 +1624,8 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
     }
     cout << "Slewing RPC event #" << fNevents << endl;
 
-    fTof700Mapper->Slewing();
 
-    fTof700Mapper->readSlewing();
-
-    fTof700Mapper->InitEqualization();
+    fTof700Mapper->FitSlewing();
 
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 5000 == 0) cout << "Equalization RPC strips event #" << iEv << endl;
@@ -1699,6 +1694,7 @@ BmnStatus BmnRawDataDecoder::PreparationTOF700() {
         fTof700Mapper->fillPreparation(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
 
+    fTof700Mapper->Equalization0();
     fTof700Mapper->writeSlewingLimits();
 
     //    fRootFileIn->Close();

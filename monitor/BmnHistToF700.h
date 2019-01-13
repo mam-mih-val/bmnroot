@@ -26,7 +26,7 @@
 // BmnRoot
 #include "BmnHist.h"
 #include "BmnTof2Digit.h"
-#include "BmnTof2Raw2Digit.h"
+#include "BmnTof2Raw2DigitNew.h"
 #define TOF_COLS    3
 #define TOF_ROWS    2
 

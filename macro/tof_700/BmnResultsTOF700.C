@@ -1,3 +1,5 @@
+#include "../../bmndata/BmnEnums.h"
+#include "../run/bmnloadlibs.C"
 #include "TMath.h"
 #include "TH1F.h"
 #include "TH2F.h"
@@ -11,8 +13,9 @@
 #include "TFile.h"
 #include "TGeoManager.h"
 
-#define NUMBER_CHAMBERS 24
-#define IN_WIDTH_LIMITS 1
+#define NUMBER_CHAMBERS 59
+#define IN_WIDTH_LIMITS 0
+#define WIDTH_MAX 7000
 
 // No stack chambers
 //#define DIFF_CHAMB_1 -1
@@ -22,52 +25,101 @@
 #define DIFF_CHAMB_1 9
 #define DIFF_CHAMB_2 18
 
-//#define STRIP_1 0
-//#define STRIP_2 31
-//#define STRIP_1_2 0
-//#define STRIP_2_2 31
+#define STRIP_1 0
+#define STRIP_2 31
+#define STRIP_1_2 0
+#define STRIP_2_2 31
 
 //#define STRIP_1 21
 //#define STRIP_2 23
 //#define STRIP_1_2 21
 //#define STRIP_2_2 23
 
-#define STRIP_1 21
-#define STRIP_2 21
-#define STRIP_1_2 21
-#define STRIP_2_2 21
+//#define STRIP_1 21
+//#define STRIP_2 21
+//#define STRIP_1_2 21
+//#define STRIP_2_2 21
 
-#if NUMBER_CHAMBERS == 15
-int champos[NUMBER_CHAMBERS] = {5,10,1,6,11,2,7,12,3,8,13,4,9,14,0};
-int wmi[NUMBER_CHAMBERS] = {2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500};
-int wma[NUMBER_CHAMBERS] = {3300,3300,3300,3300,3300,3300,3300,3300,3300,3300,3300,3300,3300,3300,3300};
-#define NDX 5
-#define NDY 3
-#else
-#if NUMBER_CHAMBERS == 24
-int champos[NUMBER_CHAMBERS] = {17,18, 3, 1,19, 4,23,20, 5,15,21, 6, 2,22, 9,10,11,12,13,14, 7, 8, 0,16};
-int wmi[NUMBER_CHAMBERS] = {2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800};
-int wma[NUMBER_CHAMBERS] = {3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200};
-#define NDX 8
-#define NDY 3
-#else
 int champos[NUMBER_CHAMBERS] = {0};
-int wmi[NUMBER_CHAMBERS] = {2500};
-int wma[NUMBER_CHAMBERS] = {3300};
-#define NDX 1
-#define NDY 1
-#endif
-#endif
+int wmi[NUMBER_CHAMBERS] = {2800};
+int wma[NUMBER_CHAMBERS] = {7000};
+
+float idchambers[59] = {27.1,28.1,3.1,1.1,29.1,4.1,33.1,30.1,5.1,19.3,31.1,6.1,2.1,32.1,15.2,16.2,17.2,
+18.2,19.2,20.2,7.1,115.2,113.1,117.1,35.1,9.1,37.1,11.1,39.1,13.1,34.1,8.1,36.1,10.1,38.1,12.1,21.2,
+23.2,25.2,22.2,24.2,26.2,107.2,108.2,109.2,110.2,111.2,112.2,114.1,116.2,118.1,14.1,40.1,119.2,120.2,
+121.2,122.2,123.2,124.2 };
+
+int chamnum_left[30];
+
+int chamnum_right[NUMBER_CHAMBERS-30];
+
+int champos_left[30] = {25,26,11, 9,27,12,31,28,13,23,29,14,10,30,17,18,19,20,21,22,15,16, 8,24, 1, 3, 5,33,35,37};
+
+int champos_right[NUMBER_CHAMBERS-30] = {25, 9, 27,11,29,13,24, 8,26,10,28,12,17,19,21,18,20,22, 1, 3, 5,15,23,31,14,30,33,35,37};
 
 using namespace TMath;
 
-void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
+void draw_vs_cham(char *,TH1F **);
+void draw_vs_cham(char *,TH1F **);
+void draw_vs_cham(char *,TH1F **);
+void draw_vs_cham(char *,TH1F **);
+void draw_vs_cham(char *,TH1F **);
+void draw_vs_cham(char *,TH1F **);
+void draw_vs_cham_prof(char *,TProfile **);
+double FitIn(TH1F *h, Double_t xmin, Double_t xmax);
 
-    /* Load basic libraries */
+class BmnTof2Raw2DigitNew;
+
+BmnTof2Raw2DigitNew *TOF2 = NULL;
+
+
+void BmnResultsTOF700(char *fname = "bmn_run9649_digi.root") {
+
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-    bmnloadlibs(); // load bmn libraries
+#endif
+    bmnloadlibs(); // load BmnRoot libraries
 
-    TClonesArray *tof700Digits;
+    const char *bname = gSystem->BaseName(fname);
+    char runfile[128];
+    strcpy(runfile,bname);
+    char *cdigi = strstr(runfile,"digi");
+    *cdigi ='\0';
+    strcat(runfile,"raw.root");
+    printf("Decoded raw ROOT file name is %s\n",runfile);
+
+    TOF2 = new BmnTof2Raw2DigitNew("TOF700_map_period_7.txt", runfile, 0, 0, "TOF700_geometry_run7.txt");
+
+    if (NUMBER_CHAMBERS > 24)
+    {
+	for (int i = 0; i<NUMBER_CHAMBERS; i++)
+	{
+	    champos[i] = i;
+	    wmi[i] = 3000;
+	    wma[i] = 7000;
+	}
+
+    }
+    for (int i=0; i<30; i++)
+    {
+        if (i<24)
+    	chamnum_left[i] = i;
+    	    else if(i<27) // i = 24,25,26 => 42,43,44
+    	chamnum_left[i] = i + 18;
+    	    else // i = 27,28,29 => 53,54,55
+    	chamnum_left[i] = i + 26;
+    }
+    for (int i=24; i<53; i++) // 24,25,26,...,50,51,52 (29 chambers)
+    {
+      if (i<42)
+        chamnum_right[i-24] = i;
+      else if (i<50) // i = 42-49 => 45-52
+    	chamnum_right[i-24] = i + 3;
+      else // i = 50,51,52 => 56,57,58
+    	chamnum_right[i-24] = i + 6;
+    }
+
+    TClonesArray *tof700Digits = NULL;
     TChain *bmnTree = new TChain("cbmsim");
     if (bmnTree->Add(fname) == 0)
     {
@@ -90,7 +142,6 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
     TH1F *htime[NUMBER_CHAMBERS] = {0};
     TH1F *hwidth[NUMBER_CHAMBERS] = {0};
     TH1F *hlrdiff[NUMBER_CHAMBERS] = {0};
-    TH2F *hlrdiff_vs_strip[NUMBER_CHAMBERS] = {0};
     TH1F *hstrips[NUMBER_CHAMBERS] = {0};
     TH1F *hstripsmax[NUMBER_CHAMBERS] = {0};
     TH1F *htimemax[NUMBER_CHAMBERS] = {0};
@@ -99,6 +150,7 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
     TH2F *htvst = 0;
     TH2F *htvss1 = 0, *htvss2 = 0, *hsvss = 0;
     TH1F *htimemax1 = 0, *htimemax2 = 0;
+    TH1F *hxhit = 0;
 
     TFile *f = NULL;
     if (strlen(fname))
@@ -112,64 +164,63 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
 
     for (int i = 0; i<NUMBER_CHAMBERS; i++)
     {
-	sprintf(name,"Time_chamber_%d", i+1);
-	sprintf(title,"Time, chamber %d", i+1);
-	htime[i] = new TH1F(name, title, 2000, -200, 200);
-	sprintf(name,"Width_chamber_%d", i+1);
-	sprintf(title,"Width, chamber %d", i+1);
+	sprintf(name,"Time_chamber_%.1f", idchambers[i]);
+	sprintf(title,"Time, chamber %.1f", idchambers[i]);
+	htime[i] = new TH1F(name, title, 4000, -50, 50);
+	sprintf(name,"Width_chamber_%.1f", idchambers[i]);
+	sprintf(title,"Width, chamber %.1f", idchambers[i]);
 	hwidth[i] = new TH1F(name, title, 2500, 0, 5000);
-	sprintf(name,"LR-Diff_chamber_%d", i+1);
-	sprintf(title,"LR-Diff, chamber %d", i+1);
+	sprintf(name,"LR-Diff_chamber_%.1f", idchambers[i]);
+	sprintf(title,"LR-Diff, chamber %.1f", idchambers[i]);
 	hlrdiff[i] = new TH1F(name, title, 200, -5, 5);
-	sprintf(name,"LR-Diff_vs_strip_chamber_%d", i+1);
-	sprintf(title,"LR-Diff_vs_strip, chamber %d", i+1);
-	hlrdiff_vs_strip[i] = new TH2F(name, title, 200, -5, 5,32,0,32);
-	sprintf(name,"Strips_rate_chamber_%d", i+1);
-	sprintf(title,"Strips rate, chamber %d", i+1);
+	sprintf(name,"Strips_rate_chamber_%.1f", idchambers[i]);
+	sprintf(title,"Strips rate, chamber %.1f", idchambers[i]);
 	hstrips[i] = new TH1F(name, title, 32, 0, 32);
-	sprintf(name,"Time_chamber_%d_max_strip", i+1);
-	sprintf(title,"Time, chamber %d, max strip", i+1);
-	htimemax[i] = new TH1F(name, title, 2000, -50, 50);
-	sprintf(name,"Strips_rate_chamber_%d_max_strip", i+1);
-	sprintf(title,"Strips rate, chamber %d, max strip", i+1);
+	sprintf(name,"Time_chamber_%.1f_max_strip", idchambers[i]);
+	sprintf(title,"Time, chamber %.1f, max strip", idchambers[i]);
+	htimemax[i] = new TH1F(name, title, 4000, -50, 50);
+	sprintf(name,"Strips_rate_chamber_%.1f_max_strip", idchambers[i]);
+	sprintf(title,"Strips rate, chamber %.1f, max strip", idchambers[i]);
 	hstripsmax[i] = new TH1F(name, title, 32, 0, 32);
-	sprintf(name,"Time_profile_chamber_%d", i+1);
-	sprintf(title,"Time profile, chamber %d", i+1);
-	timeprof[i] = new TProfile(name, title, 1000, 0, 5000, -200, +200, "e");
-	wmi[i] = 3000;
-	wma[i] = 3150;
+	sprintf(name,"Time_profile_chamber_%.1f", idchambers[i]);
+	sprintf(title,"Time profile, chamber %.1f", idchambers[i]);
+	timeprof[i] = new TProfile(name, title, 1000, 0, 5000, -20, +20, "e");
     }
 
-    sprintf(name,"Time_diff_chambers_%d_%d", DIFF_CHAMB_1, DIFF_CHAMB_2);
-    sprintf(title,"Time difference, chambers %d and %d", DIFF_CHAMB_1, DIFF_CHAMB_2);
+    sprintf(name,"X_coordinate");
+    sprintf(title,"X coordinate of TOF700 hit");
+    hxhit = new TH1F(name, title, 300, -150, +150);
+
+    sprintf(name,"Time_diff_chambers_%.1f_%.1f", idchambers[DIFF_CHAMB_1], idchambers[DIFF_CHAMB_2]);
+    sprintf(title,"Time difference, chambers %.1f and %.1f", idchambers[DIFF_CHAMB_1], idchambers[DIFF_CHAMB_2]);
     hdiff = new TH1F(name, title, 10000, -200, 200);
 
-    sprintf(name,"Time_vs_time_chambers_%d_%d", DIFF_CHAMB_1, DIFF_CHAMB_2);
-    sprintf(title,"Time vs Time, chambers %d and %d", DIFF_CHAMB_1, DIFF_CHAMB_2);
+    sprintf(name,"Time_vs_time_chambers_%.1f_%.1f", idchambers[DIFF_CHAMB_1], idchambers[DIFF_CHAMB_2]);
+    sprintf(title,"Time vs Time, chambers %.1f and %.1f", idchambers[DIFF_CHAMB_1], idchambers[DIFF_CHAMB_2]);
     htvst = new TH2F(name, title, 1000, -20, 20, 1000, -20, 20);
 
-    sprintf(name,"Time_chamber_%d_max_strip_both", DIFF_CHAMB_1+1);
-    sprintf(title,"Time, chamber %d, max strip, both chamber", DIFF_CHAMB_1+1);
+    sprintf(name,"Time_chamber_%.1f_max_strip_both", idchambers[DIFF_CHAMB_1]);
+    sprintf(title,"Time, chamber %.1f, max strip, both chamber", idchambers[DIFF_CHAMB_1]);
     htimemax1 = new TH1F(name, title, 2000, -50, 50);
 
-    sprintf(name,"Time_chamber_%d_max_strip_both", DIFF_CHAMB_2+1);
-    sprintf(title,"Time, chamber %d, max strip, both chamber", DIFF_CHAMB_2+1);
+    sprintf(name,"Time_chamber_%.1f_max_strip_both", idchambers[DIFF_CHAMB_2]);
+    sprintf(title,"Time, chamber %.1f, max strip, both chamber", idchambers[DIFF_CHAMB_2]);
     htimemax2 = new TH1F(name, title, 2000, -50, 50);
 
-    sprintf(name,"Time_vs_strip_chamber_%d", DIFF_CHAMB_1+1);
-    sprintf(title,"Time vs strip, chamber %d", DIFF_CHAMB_1+1);
+    sprintf(name,"Time_vs_strip_chamber_%.1f", idchambers[DIFF_CHAMB_1]);
+    sprintf(title,"Time vs strip, chamber %.1f", idchambers[DIFF_CHAMB_1]);
     htvss1 = new TH2F(name, title, 32, 0, 32, 2000, -50, 50);
 
-    sprintf(name,"Time_vs_strip_chamber_%d", DIFF_CHAMB_2+1);
-    sprintf(title,"Time vs strip, chamber %d", DIFF_CHAMB_2+1);
+    sprintf(name,"Time_vs_strip_chamber_%.1f", idchambers[DIFF_CHAMB_2]);
+    sprintf(title,"Time vs strip, chamber %.1f", idchambers[DIFF_CHAMB_2]);
     htvss2 = new TH2F(name, title, 32, 0, 32, 2000, -50, 50);
 
-    sprintf(name,"Strip_vs_strip_chambers_%d_%d _", DIFF_CHAMB_1+1, DIFF_CHAMB_2+1);
-    sprintf(title,"Strip vs strip, chambers %d and %d", DIFF_CHAMB_1+1, DIFF_CHAMB_2+1);
+    sprintf(name,"Strip_vs_strip_chambers_%.1f_%.1f _", idchambers[DIFF_CHAMB_1], idchambers[DIFF_CHAMB_2]);
+    sprintf(title,"Strip vs strip, chambers %.1f and %.1f", idchambers[DIFF_CHAMB_1], idchambers[DIFF_CHAMB_2]);
     hsvss = new TH2F(name, title, 32, 0, 32, 32, 0, 32);
 
     Int_t nchamb1 = 0, nchamb2 = 0, nchamb12 = 0, nchamb21 = 0, nchamb12n = 0, nchamb12nn = 0;
-    //nEvents=10000;
+
     for (Int_t iEv = startEvent; iEv < startEvent + nEvents; iEv++) {
         bmnTree->GetEntry(iEv);
 
@@ -210,11 +261,12 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
 		tmax[plane] = time;
 		smax[plane] = strip;
 	    }
+	    if (width > WIDTH_MAX) continue;
 	    if (IN_WIDTH_LIMITS) if (width < wmi[plane] || width > wma[plane]) continue;
 	    htime[plane]->Fill(time);
 	    hstrips[plane]->Fill(strip);
 	    hlrdiff[plane]->Fill(lrdiff);
-	    hlrdiff_vs_strip[plane]->Fill(lrdiff,strip);
+	    hxhit->Fill(TOF2->get_x_hit(plane,strip,lrdiff));
 	} // tof700Digits loop
 
 	if (DIFF_CHAMB_1 >= 0) if ((smax1[DIFF_CHAMB_1] >= STRIP_1) && (smax1[DIFF_CHAMB_1] >= STRIP_2))
@@ -234,6 +286,7 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
 	    if (smax[i] > -1)
 	    {
 		timeprof[i]->Fill(wmax[i], tmax[i]);
+		if (wmax[i] > WIDTH_MAX) continue;
 		if (IN_WIDTH_LIMITS) if (wmax[i] < wmi[i] || wmax[i] > wma[i]) continue;
 		htimemax[i]->Fill(tmax[i]);
 		hstripsmax[i]->Fill(smax[i]);
@@ -250,8 +303,7 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
 		htvst->Fill(tmax[DIFF_CHAMB_2],tmax[DIFF_CHAMB_1]);
 		htimemax1->Fill(tmax[DIFF_CHAMB_1]);
 		htimemax2->Fill(tmax[DIFF_CHAMB_2]);
-//		if ((tmax[DIFF_CHAMB_1] > 0.3) && (tmax[DIFF_CHAMB_2] < 0.3) )
-		    hdiff->Fill(tmax[DIFF_CHAMB_1]-tmax[DIFF_CHAMB_2]);
+		hdiff->Fill(tmax[DIFF_CHAMB_1]-tmax[DIFF_CHAMB_2]);
 	}
     } // event loop
 
@@ -263,82 +315,19 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htime[i], -0.2, +0.2);
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htimemax[i], -0.2, +0.2);
 
-//    FitIn2Sigma(hdiff);
-//    FitIn2Sigma(htimemax1);
-//    FitIn2Sigma(htimemax2);
-//    for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn2Sigma(htime[i]);
-//    for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn2Sigma(htimemax[i]);
+    TCanvas *cx = new TCanvas("cx", "X-coordinate", 900, 900);
+    cx->Divide(1,1);
+    cx->cd();
+    cx->cd(1);
+    hxhit->Draw();
 
-    TCanvas *ct = new TCanvas("ct", "RPC time - T0 time", 900, 900);
-    ct->Divide(NDX,NDY);
-    ct->cd();
-    for (int i=0; i<NUMBER_CHAMBERS; i++)
-    {
-	ct->cd(champos[i]+1);
-	htime[i]->Draw();
-	gPad->AddExec("exselt","select_hist()");
-    }
-
-    TCanvas *c1m = new TCanvas("c1m", "RPC time max strip - T0 time", 900, 900);
-    c1m->Divide(NDX,NDY);
-    c1m->cd();
-    for (int i=0; i<NUMBER_CHAMBERS; i++)
-    {
-	c1m->cd(champos[i]+1);
-	htimemax[i]->Draw();
-	gPad->AddExec("exselt","select_hist()");
-    }
-
-
-    TCanvas *c2 = new TCanvas("c2", "RPC strip rate", 900, 900);
-    c2->Divide(NDX,NDY);
-    c2->cd();
-    for (int i=0; i<NUMBER_CHAMBERS; i++)
-    {
-	c2->cd(champos[i]+1);
-	hstrips[i]->Draw();
-	gPad->AddExec("exselt","select_hist()");
-    }
-
-    TCanvas *c2m = new TCanvas("c2m", "RPC maximal strip rate", 900, 900);
-    c2m->Divide(NDX,NDY);
-    c2m->cd();
-    for (int i=0; i<NUMBER_CHAMBERS; i++)
-    {
-	c2m->cd(champos[i]+1);
-	hstripsmax[i]->Draw();
-	gPad->AddExec("exselt","select_hist()");
-    }
-
-    TCanvas *cw = new TCanvas("cw", "RPC pulse width", 900, 900);
-    cw->Divide(NDX,NDY);
-    cw->cd();
-    for (int i=0; i<NUMBER_CHAMBERS; i++)
-    {
-	cw->cd(champos[i]+1);
-	hwidth[i]->Draw();
-	gPad->AddExec("exselt","select_hist()");
-    }
-
-    TCanvas *clr = new TCanvas("clr", "LR Time Difference", 900, 900);
-    clr->Divide(NDX,NDY);
-    clr->cd();
-    for (int i=0; i<NUMBER_CHAMBERS; i++)
-    {
-	clr->cd(champos[i]+1);
-	hlrdiff[i]->Draw();
-	gPad->AddExec("exselt","select_hist()");
-    }
-
-    TCanvas *ctim = new TCanvas("ctim", "Time Profiles", 900, 900);
-    ctim->Divide(NDX,NDY);
-    ctim->cd();
-    for (int i=0; i<NUMBER_CHAMBERS; i++)
-    {
-	ctim->cd(champos[i]+1);
-	timeprof[i]->Draw();
-	gPad->AddExec("exselt","select_hist()");
-    }
+    draw_vs_cham("Time",htime);
+    draw_vs_cham("TimeMax",htimemax);
+    draw_vs_cham("Rate",hstrips);
+    draw_vs_cham("RateMax",hstripsmax);
+    draw_vs_cham("Width",hwidth);
+    draw_vs_cham("Diff",hlrdiff);
+    draw_vs_cham_prof("Profile",timeprof);
 
     if (DIFF_CHAMB_1 < 0) return;
 
@@ -378,113 +367,6 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
     if (f) f->Write();
 }
 
-double FitIn2Sigma(TH1F *h)
-{
-  double mean, sigm, sigmw = 0., lev1 = 1.75, lev2 = 3.;
-  double total = 0, peak = 0;
-  int mib, mab, nbi;
-
-  if ((total = h->GetEntries()) < 5.)
-    {
-      printf("Number of histogram '%s' entries is too few!\n", h->GetTitle());
-      return 0.;
-    }
-  int nonzero = 0;
-  for (int i=1; i<h->GetNbinsX(); i++)
-    if (h->GetBinContent(i)>0) nonzero++;
-  if (nonzero < 3)
-    {
-      if (nonzero < 2)
-      {
-        printf("Number of non-empty bins is too few in histogram '%s'!\n", h->GetTitle());
-        return 0.;
-      }
-      lev1 = 5.;
-      mean = h->GetMean();
-      sigm = h->GetRMS();
-      sigmw = sigm;
-      if (sigm < h->GetBinWidth(1)) sigmw = h->GetBinWidth(1);
-      TF1 *fg = new TF1("fg","gaus",mean-lev1*sigmw,mean+lev1*sigmw);
-      fg->SetParameter(0,h->GetMaximum());
-      fg->SetParameter(1,mean);
-      fg->FixParameter(1,mean);
-      fg->SetParameter(2,sigm);
-      fg->FixParameter(2,sigm);
-      h->Fit(fg, "Q0IB", "", mean-lev1*sigmw, mean+lev1*sigmw);
-      fg = h->GetFunction("fg"); 
-      if (fg) fg->ResetBit(TF1::kNotDraw);
-      h->SetAxisRange(mean-lev1*sigmw, mean+lev1*sigmw);
-      fg->ResetBit(TF1::kNotDraw);
-      if (fg->GetParameter(0) > 1.) return 100.;
-    }
-  if (nonzero == 3)
-    {
-      lev1 = 5.;
-      mean = h->GetMean();
-      sigm = h->GetRMS();
-      sigmw = sigm;
-      if (sigm < h->GetBinWidth(1)) sigmw = h->GetBinWidth(1);
-      TF1 *fg = new TF1("fg","gaus",mean-lev1*sigmw,mean+lev1*sigmw);
-      fg->SetParameter(0,h->GetMaximum());
-      fg->SetParameter(1,mean);
-      fg->FixParameter(1,mean);
-      fg->SetParameter(2,sigm);
-      h->Fit(fg, "Q0IB", "", mean-lev1*sigmw, mean+lev1*sigmw);
-      fg = h->GetFunction("fg"); 
-      if (fg) fg->ResetBit(TF1::kNotDraw);
-      h->SetAxisRange(mean-lev1*sigmw, mean+lev1*sigmw);
-      fg->ResetBit(TF1::kNotDraw);
-      if (fg->GetParameter(0) > 1.) return 100.;
-    }
-//  mean = h->GetMean();
-  mean = h->GetBinCenter(h->GetMaximumBin());
-//  if (fabs(mean) > 1.) mean = 0.;
-//  mean = 0.;
-  sigm = h->GetRMS();
-//  if (sigm > 1.) sigm = 1.;
-//  sigm = 0.5;
-  mib = h->FindBin(mean-lev1*sigm);
-  mab = h->FindBin(mean+lev1*sigm);
-  if ((mab-mib+1) < 4)
-  {
-    lev1 = 2.;
-    mib = h->FindBin(mean-lev1*sigm);
-    mab = h->FindBin(mean+lev1*sigm);
-    if ((mab-mib+1) < 4)
-    {
-      lev1 = 2.25;
-    }
-  }
-  double min0 = mean-lev1*sigm;
-  double max0 = mean+lev1*sigm;
-  h->Fit("gaus", "Q0I", "", mean-lev1*sigm, mean+lev1*sigm);
-  TF1 *ff = h->GetFunction("gaus"); 
-  if (ff) mean = ff->GetParameter(1);
-  if (ff) sigm = ff->GetParameter(2);
-  if (mean < min0 || mean > max0)
-  {
-    h->Fit("gaus", "Q0I", "", mean-lev1*sigm, mean+lev1*sigm);
-    ff = h->GetFunction("gaus"); 
-    mean = ff->GetParameter(1);
-    sigm = ff->GetParameter(2);
-  }
-  h->Fit("gaus", "Q0I", "", mean-lev1*sigm, mean+lev1*sigm);
-  ff = h->GetFunction("gaus"); 
-  if (ff) mean = ff->GetParameter(1);
-  if (ff) sigm = ff->GetParameter(2);
-  h->Fit("gaus", "Q0I", "", mean-lev1*sigm, mean+lev1*sigm);
-  ff = h->GetFunction("gaus"); 
-  if (ff) mean = ff->GetParameter(1);
-  if (ff) sigm = ff->GetParameter(2);
-  if (ff) ff->ResetBit(TF1::kNotDraw);
-  mib = h->FindBin(mean-lev2*sigm);
-  mab = h->FindBin(mean+lev2*sigm);
-  nbi = h->GetNbinsX();
-  peak = h->Integral(mib < 1 ? 1 : mib, mab > nbi ? nbi : mab);
-  h->SetAxisRange(mean-10.*sigm, mean+10.*sigm);
-  return total > 0. ? peak/total*100. : 0.;
-}
-
 double FitIn(TH1F *h, Double_t xmin, Double_t xmax)
 {
   double mean, sigm;
@@ -493,7 +375,7 @@ double FitIn(TH1F *h, Double_t xmin, Double_t xmax)
 
   if ((total = h->GetEntries()) < 5.)
     {
-      printf("Number of histogram '%s' entries is too few (%d)!\n", h->GetTitle(),h->GetEntries());
+      printf("Number of histogram '%s' entries is too few (%d)!\n", h->GetTitle(),(int)h->GetEntries());
       return 0.;
     }
   int nonzero = 0;
@@ -584,3 +466,62 @@ void select_hist()
   else return;
   csingle->Update();
 }
+
+void draw_vs_cham(const char *name, TH1F **h)
+{
+  char namet[128], namen[128];
+  strcpy(namet,name);
+  strcpy(namen,name);
+  TCanvas *callr1 = new TCanvas(strcat(namen,"l"), strcat(namet," left side"), 900,700);
+  callr1->cd();
+  callr1->Divide(8,5);
+  for (int i=0; i<30; i++)
+  {
+      callr1->cd(champos_left[i]+1);
+      h[chamnum_left[i]]->Draw();
+      gPad->AddExec("exselt","select_hist()");
+  }
+  strcpy(namet,name);
+  strcpy(namen,name);
+  TCanvas *callr2 = new TCanvas(strcat(namen,"r"), strcat(namet," right side"), 900,700);
+  callr2->cd();
+  callr2->Divide(8,5);
+  // chambers 24-41, 45-52, 56-58
+  for (int i=24; i<53; i++) // 24,25,26,...,50,51,52 (29 chambers)
+  {
+    callr2->cd(champos_right[i-24]+1);
+    h[chamnum_right[i-24]]->Draw();
+    gPad->AddExec("exselt","select_hist()");
+  }
+  return;
+}
+
+void draw_vs_cham_prof(const char *name, TProfile **h)
+{
+  char namet[128], namen[128];
+  strcpy(namet,name);
+  strcpy(namen,name);
+  TCanvas *callr1 = new TCanvas(strcat(namen,"l"), strcat(namet," left side"), 900,700);
+  callr1->cd();
+  callr1->Divide(8,5);
+  for (int i=0; i<30; i++)
+  {
+      callr1->cd(champos_left[i]+1);
+      h[chamnum_left[i]]->Draw();
+      gPad->AddExec("exselt","select_hist()");
+  }
+  strcpy(namet,name);
+  strcpy(namen,name);
+  TCanvas *callr2 = new TCanvas(strcat(namen,"r"), strcat(namet," right side"), 900,700);
+  callr2->cd();
+  callr2->Divide(8,5);
+  // chambers 24-41, 45-52, 56-58
+  for (int i=24; i<53; i++) // 24,25,26,...,50,51,52 (29 chambers)
+  {
+    callr2->cd(champos_right[i-24]+1);
+    h[chamnum_right[i-24]]->Draw();
+    gPad->AddExec("exselt","select_hist()");
+  }
+  return;
+}
+

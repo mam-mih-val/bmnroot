@@ -1,12 +1,18 @@
+#include "../../bmndata/BmnEnums.h"
+#include "../run/bmnloadlibs.C"
 //file: full path to raw-file
 //nEvents: if 0 then decode all events
 //doConvert: convert RAW --> ROOT before decoding or use file converted before
-void BmnSlewingTOF700(TString file = "/data/mpd_run_Glob_1881.data", Long_t nEvents = 0, Bool_t doConvert = kFALSE) {
-  gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+void BmnSlewingTOF700(TString file = "mpd_run_trigCode_3738.data", Long_t nEvents = 0) {
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
+    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+#endif
   bmnloadlibs(); // load BmnRoot libraries
-  BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //4 - period
+  BmnSetup stp = kSRCSETUP; // use kSRCSETUP for Short-Range Correlation program and kBMNSETUP otherwise
+  BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 7); //7 - period
+  decoder->SetBmnSetup(stp);
 
-  Bool_t setup[9]; //array of flags to determine BM@N setup
+  Bool_t setup[11]; //array of flags to determine BM@N setup
   //Just put "0" to exclude detector from decoding
   setup[0] = 1; // TRIGGERS
   setup[1] = 0; // MWPC
@@ -17,23 +23,27 @@ void BmnSlewingTOF700(TString file = "/data/mpd_run_Glob_1881.data", Long_t nEve
   setup[6] = 0; // DCH
   setup[7] = 0; // ZDC
   setup[8] = 0; // ECAL
+  setup[9] = 0; // LAND
+  setup[10] = 0; // CSC
   decoder->SetDetectorSetup(setup);
 
-  decoder->SetTrigMapping("Trig_map_Run6.txt");
-  decoder->SetTrigINLFile("TRIG_INL.txt");
-  decoder->SetTof700Mapping("TOF700_map_period_6.txt");
+  decoder->SetTrigMapping("Trig_map_Run7.txt");
+  //decoder->SetTrigMapping("Trig_map_Run7_SRC.txt");
+  //decoder->SetTrigINLFile("TRIG_INL.txt"); // run period 6
+  //decoder->SetTrigINLFile("TRIG_INL_076D-16A8.txt");//run period 7 SRC INL only for TDC data 
+  decoder->SetTrigINLFile("TRIG_INL_076D-180A.txt");//run period 7 BMN INL only for TDC data 
 
-  if(doConvert) decoder->ConvertRawToRoot();  // Convert raw data in .data format into adc-,tdc-, ..., sync-digits in .root format
+  decoder->SetTof700Mapping("TOF700_map_period_7.txt");
+  decoder->SetTof700Geom("TOF700_geometry_run7.txt");
 
   decoder->SlewingTOF700Init();  // Decode data into detector-digits using current mappings.
   BmnTof2Raw2DigitNew *tof700m = decoder->GetTof700Mapper();
-  tof700m->SetW(2800,4000);
-  tof700m->SetWT0(720,820);
+
+  tof700m->SetW(2800,9000);
+  tof700m->SetWT0(670,970); // BMN BC2
+
   decoder->SlewingTOF700();  // obtain slewing parameters
-  tof700m->WriteSlewingHists();
-  // draw quality control histogram - comment if not neccessary
-  //tof700m->drawproft0();
-  //tof700m->drawprof();
+
   delete decoder;
 }
 

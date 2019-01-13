@@ -59,13 +59,8 @@ int champos_right[NUMBER_CHAMBERS-30] = {25, 9, 27,11,29,13,24, 8,26,10,28,12,17
 
 using namespace TMath;
 
-void draw_vs_cham(char *,TH1F **);
-void draw_vs_cham(char *,TH1F **);
-void draw_vs_cham(char *,TH1F **);
-void draw_vs_cham(char *,TH1F **);
-void draw_vs_cham(char *,TH1F **);
-void draw_vs_cham(char *,TH1F **);
-void draw_vs_cham_prof(char *,TProfile **);
+void draw_vs_cham(const char *,TH1F **);
+void draw_vs_cham_prof(const char *,TProfile **);
 double FitIn(TH1F *h, Double_t xmin, Double_t xmax);
 
 class BmnTof2Raw2DigitNew;
@@ -266,7 +261,7 @@ void BmnResultsTOF700(char *fname = "bmn_run9649_digi.root") {
 	    htime[plane]->Fill(time);
 	    hstrips[plane]->Fill(strip);
 	    hlrdiff[plane]->Fill(lrdiff);
-	    hxhit->Fill(TOF2->get_x_hit(plane,strip,lrdiff));
+	    hxhit->Fill(TOF2->get_hit_x(plane,strip,lrdiff));
 	} // tof700Digits loop
 
 	if (DIFF_CHAMB_1 >= 0) if ((smax1[DIFF_CHAMB_1] >= STRIP_1) && (smax1[DIFF_CHAMB_1] >= STRIP_2))

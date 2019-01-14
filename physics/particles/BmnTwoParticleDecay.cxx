@@ -14,7 +14,7 @@
 #include "BmnTwoParticleDecay.h"
 #include "BmnParticlePairsInfo.h"
 
-BmnTwoParticleDecay::BmnTwoParticleDecay(BmnGemStripConfiguration::GEM_CONFIG config) :
+BmnTwoParticleDecay::BmnTwoParticleDecay(BmnGemStripConfiguration::GEM_CONFIG config, Int_t runId) :
 // Particles set by default:
 fPDG1(2212), // proton
 fPDG2(-211), // pion
@@ -31,14 +31,15 @@ fVertex(nullptr),
 fIsUseRealVertex(kFALSE),
 fGlobalMatches(nullptr) {
     fMcVertex.SetXYZ(0., 0., 0.);
+    fRunId = runId;
 
-    if (config == BmnGemStripConfiguration::GEM_CONFIG::RunSpring2018) {
+    if (config == BmnGemStripConfiguration::GEM_CONFIG::RunSpring2018) 
         fRunPeriod = 7;
-        fRunId = 4629;
-    } else if (config == BmnGemStripConfiguration::GEM_CONFIG::RunSpring2017) {
+        
+    else if (config == BmnGemStripConfiguration::GEM_CONFIG::RunSpring2017) 
         fRunPeriod = 6;
-        fRunId = 1209;
-    } else {
+        
+    else {
         cout << "BmnGemStripConfiguration not defined !!!" << endl;
         throw;
     }
@@ -203,18 +204,14 @@ Bool_t BmnTwoParticleDecay::CheckTrack(BmnGlobalTrack* track, Int_t pdgCode, Dou
     Double_t Pz = Abs(p) / Sqrt(1 + Tx * Tx + Ty * Ty);
 
     Int_t sign = CheckSign(fPDG->GetParticle(pdgCode)->Charge());
-    Int_t nPart = (sign > 0) ? 0 : 1;
-
+   
     mom = Abs(p);
     eta = 0.5 * Log((Abs(p) + Pz) / (Abs(p) - Pz));
 
-    //    if (sign * p < 0 || Abs(p) < fMom[nPart][0] || Abs(p) > fMom[nPart][1] ||
-    //            Tx < fTx[nPart][0] || Tx > fTx[nPart][1] ||
-    //            Ty < fTy[nPart][0] || Ty > fTy[nPart][1] ||
-    //            eta < fEta[nPart][0] || eta > fEta[nPart][1])
-    //        return kFALSE;
-    //    else
-    return kTRUE;
+    if (sign * p < 0)
+        return kFALSE;
+    else
+        return kTRUE;
 }
 
 void BmnTwoParticleDecay::Analysis() {
@@ -283,7 +280,7 @@ void BmnTwoParticleDecay::Analysis() {
             // V0Z[1] = SecondaryVertexY(track1->GetParamFirst(), track2->GetParamFirst()).Y(); // V0ZY
 
             Double_t V0Z = FindV0ByVirtualPlanes(track1, track2, .5 * (Vpz + fDetector->GetGemStation(0)->GetZPosition()));
-            if (V0Z < -999.)
+            if (V0Z < -999. || V0Z > 200.)
                 continue;
 
             /*
@@ -329,6 +326,10 @@ void BmnTwoParticleDecay::Analysis() {
             FairTrackParam proton_V0, pion_V0;
             proton_V0 = KalmanTrackPropagation(track1, fPdgParticle1, V0Z);
             pion_V0 = KalmanTrackPropagation(track2, fPdgParticle2, V0Z);
+
+            Double_t V0X = .5 * (proton_V0.GetX() + pion_V0.GetX());
+            Double_t V0Y = .5 * (proton_V0.GetY() + pion_V0.GetY());
+
             vector <Double_t> geomTopology = GeomTopology(proton_V0, pion_V0, proton_Vp, pion_Vp);
             //  }
 
@@ -345,8 +346,9 @@ void BmnTwoParticleDecay::Analysis() {
             BmnParticlePair partPair;
 
             //            partPair.SetPartOrigB(PartOrigBX, 0.0); //FIXME
-            partPair.SetV0XZ(V0Z);
-            partPair.SetV0YZ(V0Z);
+            partPair.SetV0Z(V0Z);
+            partPair.SetV0X(V0X);
+            partPair.SetV0Y(V0Y);
 
             partPair.SetDCA1(geomTopology.at(0));
             partPair.SetDCA2(geomTopology.at(1));
@@ -477,7 +479,7 @@ InitStatus BmnTwoParticleDecay::Init() {
     fPDG = TDatabasePDG::Instance();
 
     fMagField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
-    fMagField->SetScale(!fAnalType[0].Contains("eve") ? *runInfo->GetFieldVoltage() / 55.87 : 1.3); // FIXME
+    fMagField->SetScale(!fAnalType[0].Contains("eve") ? *runInfo->GetFieldVoltage() / 55.87 : 1.33); // FIXME
     fMagField->Init();
 
     FairRunAna::Instance()->SetField(fMagField);
@@ -665,7 +667,7 @@ TVector2 BmnTwoParticleDecay::ArmenterosPodol(FairTrackParam prot, FairTrackPara
 }
 
 Double_t BmnTwoParticleDecay::FindV0ByVirtualPlanes(BmnGlobalTrack* track1, BmnGlobalTrack* track2, Double_t z_0, Double_t range) {
-    const Int_t nPlanes = 50;
+    const Int_t nPlanes = 10;
 
     while (range >= 0.1) {
         Double_t zMax = z_0 + range;

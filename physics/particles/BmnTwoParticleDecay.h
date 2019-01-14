@@ -93,7 +93,7 @@ public:
 
     BmnTwoParticleDecay() {
     };
-    BmnTwoParticleDecay(BmnGemStripConfiguration::GEM_CONFIG config);
+    BmnTwoParticleDecay(BmnGemStripConfiguration::GEM_CONFIG config, Int_t runId = 4649);
     virtual ~BmnTwoParticleDecay();
 
     virtual void Exec(Option_t * option);

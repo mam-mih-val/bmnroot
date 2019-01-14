@@ -24,12 +24,16 @@ public:
     /** Destructor **/
     virtual ~BmnParticlePair();
 
-    void SetV0XZ(Double_t val) {
-        fV0XZ = val;
+    void SetV0X(Double_t val) {
+        fV0X = val;
     }
 
-    void SetV0YZ(Double_t val) {
-        fV0YZ = val;
+    void SetV0Y(Double_t val) {
+        fV0Y = val;
+    }
+    
+    void SetV0Z(Double_t val) {
+        fV0Z = val;
     }
 
     void SetDCA1(Double_t val) {
@@ -114,12 +118,16 @@ public:
         return fEtaPart2;
     }
 
-    Double_t GetV0XZ() {
-        return fV0XZ;
+    Double_t GetV0X() {
+        return fV0X;
     }
 
-    Double_t GetV0YZ() {
-        return fV0YZ;
+    Double_t GetV0Y() {
+        return fV0Y;
+    }
+    
+    Double_t GetV0Z() {
+        return fV0Z;
     }
     
     Double_t GetPartOrigBX() {
@@ -157,14 +165,15 @@ public:
     Int_t GetRecoTrackIdPart1(); // actually it is GEM track Id
     Int_t GetRecoTrackIdPart2(); // actually it is GEM track Id
     
-    Short_t GetKey1(); 
+   // Short_t GetKey1(); 
 
 private:
     Double_t fInvMassX; // Invariant mass of a considering pair
     Double_t fInvMassY;
 
-    Double_t fV0XZ; // Zv of V0 obtained in XZ-plane
-    Double_t fV0YZ; // Zv of V0 obtained in YZ-plane
+    Double_t fV0X; 
+    Double_t fV0Y;
+    Double_t fV0Z;
 
     Double_t fDCA1; // spatial distance between Vp and extrap. track of Part1 to Vp  
     Double_t fDCA2; // spatial distance between Vp and extrap. track of Part2 to Vp

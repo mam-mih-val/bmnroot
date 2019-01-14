@@ -139,6 +139,6 @@ EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 
 Set(LINKDEF BmnDataLinkDef.h)
 Set(LIBRARY_NAME BmnData)
-Set(DEPENDENCIES Minuit Core Base ZeroMQ)
+Set(DEPENDENCIES Minuit Core Base ${ZeroMQ_LIBRARY_SHARED})
 
 GENERATE_LIBRARY()

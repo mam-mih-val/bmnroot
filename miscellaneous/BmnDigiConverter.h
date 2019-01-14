@@ -7,6 +7,7 @@
 #include "BmnGemStripDigit.h"
 #include "BmnSiliconDigit.h"
 #include "BmnTrigDigit.h"
+#include "BmnTof1Digit.h"
 #include "BmnEventHeader.h"
 #include "FairEventHeader.h"
 
@@ -38,10 +39,11 @@ public:
     virtual void Exec(Option_t* opt);
     virtual void Finish();
     
-    void SetDetectors(Bool_t trig, Bool_t gem, Bool_t sil) {
+    void SetDetectors(Bool_t trig, Bool_t gem, Bool_t sil, Bool_t tof400) {
         isTrig = trig;
         isGem = gem;
         isSil = sil;    
+        isTof400 = tof400;    
     }
 
 private:
@@ -59,10 +61,12 @@ private:
 
     TString fGemBranchIn;
     TString fSiBranchIn;
+    TString fTOF400BranchIn;
 
     TString fGemBranchOut;
-    TString fSiBranchOut;
-
+    TString fSiBranchOut;   
+    TString fTOF400BranchOut;
+    
     TClonesArray* fGemDigitsIn;
     TClonesArray* fSiDigitsIn;
 
@@ -74,12 +78,14 @@ private:
     TClonesArray* fBC1In;
     TClonesArray* fBC2In;
     TClonesArray* fBDIn;
+    TClonesArray* fTOF400DigitsIn;
     
     TClonesArray* fSiOut;
     TClonesArray* fVetoOut;
     TClonesArray* fBC1Out;
     TClonesArray* fBC2Out;
     TClonesArray* fBDOut;
+    TClonesArray* fTOF400DigitsOut;
 
     BmnGemStripStationSet* fDetectorGEM; // GEM-geometry
     BmnSiliconStationSet* fDetectorSI; // SI-geometry   
@@ -101,6 +107,7 @@ private:
     Bool_t isTrig;
     Bool_t isGem;
     Bool_t isSil;    
+    Bool_t isTof400;    
 
     FairRootManager* ioman;
 

@@ -8,12 +8,15 @@ fGemDigitsOut(NULL),
 fSiDigitsOut(NULL),
 isTrig(kTRUE),
 isGem(kTRUE),
-isSil(kTRUE) {
+isSil(kTRUE),
+isTof400(kTRUE) {
     fGemBranchIn = "STRIPGEM";
     fSiBranchIn = "MYSILICON";
+    fTOF400BranchIn = "TOF400";
 
     fGemBranchOut = "GEM";
     fSiBranchOut = "SILICON";
+    fTOF400BranchOut = "TOF400";
 
     fSiBranch = "Si";
     fVetoBranch = "VC";
@@ -26,11 +29,15 @@ InitStatus BmnDigiConverter::Init() {
     cout << " BmnDigiConverter::Init() " << endl;
 
     ioman = FairRootManager::Instance();
-    FairEventHeader* h = (FairEventHeader*) ioman->GetObject("EventHeader.");
+    FairEventHeader* h = (FairEventHeader*) ioman->GetObject("EventHeader.");           
     h->SetNameTitle("FairEventHeader", "FairEventHeader");
 
     fBmnHeaderIn = (TClonesArray*) ioman->GetObject("EventHeader");
-
+    if (!fBmnHeaderIn) {
+     cout << "Set correct input digi-tree (BMN_DIGIT at present) in $VMCWORKDIR/config/rootmanager.dat" << endl;
+        throw;
+    }
+        
     fSiIn = (TClonesArray*) ioman->GetObject(fSiBranch.Data());
     fVetoIn = (TClonesArray*) ioman->GetObject(fVetoBranch.Data());
     fBC1In = (TClonesArray*) ioman->GetObject(fBC1Branch.Data());
@@ -40,8 +47,11 @@ InitStatus BmnDigiConverter::Init() {
     fGemDigitsIn = (TClonesArray*) ioman->GetObject(fGemBranchIn.Data());
     fSiDigitsIn = (TClonesArray*) ioman->GetObject(fSiBranchIn.Data());
 
+    fTOF400DigitsIn = (TClonesArray*) ioman->GetObject(fTOF400BranchIn.Data());
+
     fGemDigitsOut = new TClonesArray("BmnGemStripDigit");
     fSiDigitsOut = new TClonesArray("BmnSiliconDigit");
+    fTOF400DigitsOut = new TClonesArray("BmnTof1Digit");
 
     fSiOut = new TClonesArray("BmnTrigDigit");
     fVetoOut = new TClonesArray("BmnTrigDigit");
@@ -65,6 +75,9 @@ InitStatus BmnDigiConverter::Init() {
         ioman->Register(fBDBranch.Data(), "BD_", fBDOut, kTRUE);
     }
 
+    if (isTof400)
+        ioman->Register(fTOF400BranchOut.Data(), "TOF400_", fTOF400DigitsOut, kTRUE);
+
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
     TString confSi = "SiliconRunSpring2018.xml";
     TString confGem = "GemRunSpring2018.xml";
@@ -85,7 +98,7 @@ InitStatus BmnDigiConverter::Init() {
     stats[3] = 5; // MK-numeration
     stats[4] = 6; // MK-numeration
     stats[5] = 7; // MK-numeration
-    
+
     Int_t* statsPermut = new Int_t[fDetectorGEM->GetNStations()];
     statsPermut[0] = 0; // SM-numeration
     statsPermut[1] = 1; // SM-numeration
@@ -93,7 +106,7 @@ InitStatus BmnDigiConverter::Init() {
     statsPermut[3] = 3; // SM-numeration
     statsPermut[4] = 4; // SM-numeration
     statsPermut[5] = 5; // SM-numeration
-    
+
     if (isGem) {
         for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
             fGemStats[stats[iStat]] = statsPermut[iStat];
@@ -106,7 +119,7 @@ InitStatus BmnDigiConverter::Init() {
         fTriggers.insert(pair <TClonesArray*, TClonesArray*> (fBC2In, fBC2Out));
         fTriggers.insert(pair <TClonesArray*, TClonesArray*> (fBDIn, fBDOut));
     }
-    
+
     delete stats;
     delete statsPermut;
 
@@ -137,6 +150,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
 
     fGemDigitsOut->Delete();
     fSiDigitsOut->Delete();
+    fTOF400DigitsOut->Delete();
 
     fSiOut->Delete();
     fVetoOut->Delete();
@@ -154,11 +168,11 @@ void BmnDigiConverter::Exec(Option_t* opt) {
             if (stat == 8 || stat == 3)
                 continue;
             gemDig->SetStation(GemStatPermutation(stat));
-            
+
             Int_t strip = gemDig->GetStripNumber() - 1; // strips are enumerated from 0
 
             // Stations permuted already!
-            stat = gemDig->GetStation();           
+            stat = gemDig->GetStation();
             if (stat == 0 || stat == 3 || stat == 5) {
                 if (gemDig->GetModule() == 0)
                     gemDig->SetModule(1);
@@ -195,6 +209,14 @@ void BmnDigiConverter::Exec(Option_t* opt) {
     // TRIGGERS (Si, VETO, BC1, BC2, BD)
     if (isTrig)
         ConvertTriggers(fTriggers);
+
+    // TOF
+    if (isTof400)
+        for (UInt_t iDigi = 0; iDigi < fTOF400DigitsIn->GetEntriesFast(); iDigi++) {
+            BmnTof1Digit* tofDig = (BmnTof1Digit*) fTOF400DigitsIn->UncheckedAt(iDigi);
+            new((*fTOF400DigitsOut)[fTOF400DigitsOut->GetEntriesFast()]) BmnTof1Digit(tofDig->GetPlane(), tofDig->GetStrip(), 
+                    tofDig->GetSide(), tofDig->GetTime(), tofDig->GetAmplitude());
+        }
 
     fEventNo++;
 }

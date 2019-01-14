@@ -1,5 +1,5 @@
-#include <TString.h>
 #include <Rtypes.h>
+#include <TString.h>
 
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/bmnloadlibs.C"
@@ -24,20 +24,9 @@ void LambdaAnal(UInt_t nEvents = 10e6,
 
     fRunAna->SetOutputFile(output);
 
-    BmnTwoParticleDecay* lambda = new BmnTwoParticleDecay(BmnGemStripConfiguration::RunSpring2018);
+    BmnTwoParticleDecay* lambda = new BmnTwoParticleDecay(BmnGemStripConfiguration::RunSpring2018, runId);
     lambda->SetUseRealVertex(kTRUE); // equal to false by default
 
-    // Geometry cuts if necessary
-    lambda->SetDCA1(0., 1000.);
-    lambda->SetDCA2(0., 1000.);
-    lambda->SetDCA12(0., 10.);
-    lambda->SetPath(0., 300.);
-
-    // Kinematic cuts, if necessary
-    lambda->SetMom1(0., 10.);
-    lambda->SetMom2(0., 10.);
-    lambda->SetEta1(0., 10.);
-    lambda->SetEta2(0., 10.);
     fRunAna->AddTask(lambda);
 
     fRunAna->Init();

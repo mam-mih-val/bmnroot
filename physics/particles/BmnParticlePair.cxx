@@ -12,7 +12,7 @@
 #include "BmnParticlePair.h"
 
 BmnParticlePair::BmnParticlePair() :
-fV0XZ(0.), fV0YZ(0.),
+fV0X(0.), fV0Y(0.), fV0Z(0.),
 fDCA1(0.),
 fDCA2(0.),
 fDCA12X(0.), fDCA12Y(0.),

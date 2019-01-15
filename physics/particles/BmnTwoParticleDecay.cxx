@@ -108,13 +108,13 @@ vector <Double_t> BmnTwoParticleDecay::GeomTopology(FairTrackParam proton_V0, Fa
     Double_t protonV0PionV0 = TVector3(protonV0 - pionV0).Mag();
     // 4)
     // Distance between V0 and Vp along beamline
-    Double_t vertexDiff = proton_V0.GetZ() - Z;
+    // Double_t vertexDiff = proton_V0.GetZ() - Z;
 
     vector <Double_t> cuts;
     cuts.push_back(protonVpVp);
     cuts.push_back(pionVpVp);
     cuts.push_back(protonV0PionV0);
-    cuts.push_back(Abs(vertexDiff));
+    // cuts.push_back(Abs(vertexDiff));
 
     return cuts;
 }
@@ -319,7 +319,6 @@ void BmnTwoParticleDecay::Analysis() {
             // Distance between Vp and Vp_prot_extrap   [0]
             // Distance between Vp and Vp_prot_extrap   [1]
             // Distance between proton and pion at V0    [2]
-            // Distance between V0 and Vp along beamline [3]
 
             //  for (Int_t iProj = 0; iProj < nV0; iProj++) {
             // Go to secondary vertex V0
@@ -353,7 +352,12 @@ void BmnTwoParticleDecay::Analysis() {
             partPair.SetDCA1(geomTopology.at(0));
             partPair.SetDCA2(geomTopology.at(1));
             partPair.SetDCA12(geomTopology.at(2), geomTopology.at(2));
-            partPair.SetPath(geomTopology.at(3), geomTopology.at(3));
+            
+            TVector3 V0(V0X, V0Y, V0Z);
+            TVector3 Vp(fEventVertex->GetX(), fEventVertex->GetY(), fEventVertex->GetZ());
+            Double_t path = TVector3(V0 - Vp).Mag();
+            
+            partPair.SetPath(path, 0.);
 
             partPair.SetMomPair(_p1, _p2);
             partPair.SetEtaPair(_eta1, _eta2);

@@ -357,8 +357,8 @@ private:
     UInt_t fPedoCounter;
 
     UInt_t fRunId;
-    TDatime fRunStartTime;
-    TDatime fRunEndTime;
+    TTimeStamp fRunStartTime;
+    TTimeStamp fRunEndTime;
     UInt_t fPeriodId;
     UInt_t fEventId;
     UInt_t fNevents;

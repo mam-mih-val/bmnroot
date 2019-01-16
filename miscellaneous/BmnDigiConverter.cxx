@@ -134,7 +134,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
     BmnEventHeader* evHeaderIn = (BmnEventHeader*) fBmnHeaderIn->UncheckedAt(0);
     UInt_t runID = evHeaderIn->GetRunId();
     UInt_t eventID = evHeaderIn->GetEventId();
-    TDatime eventTime = evHeaderIn->GetEventTime();
+    TTimeStamp eventTime = evHeaderIn->GetEventTime();
     BmnEventType eventType = evHeaderIn->GetType();
     BmnTrigInfo* trigInfo = evHeaderIn->GetTrigInfo(); // cout << trigType << endl;
     Bool_t tripWord = evHeaderIn->GetTripWord();

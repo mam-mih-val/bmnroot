@@ -35,7 +35,7 @@ using namespace TMath;
 
 typedef pair<UInt_t, UChar_t> PlMapKey;
 
-struct BmnTrigMapping {
+struct BmnTrigChannelData {
     TString name;
     UInt_t module;
     UInt_t serial;
@@ -77,7 +77,7 @@ public:
         fPlacementMap.clear();
     };
 
-    vector<BmnTrigMapping>* GetMap() {
+    vector<BmnTrigChannelData>* GetMap() {
         return &fMap;
     }
 
@@ -93,16 +93,16 @@ public:
         return &trigArrays;
     }
 
-    BmnTrigMapping GetT0Map() {
-        for (BmnTrigMapping tM : fMap) {
+    BmnTrigChannelData GetT0Map() {
+        for (BmnTrigChannelData tM : fMap) {
             if (tM.name == "T0")
                 return tM;
         }
-        for (BmnTrigMapping tM : fMap) {
+        for (BmnTrigChannelData tM : fMap) {
             if (tM.name == "BC2")
                 return tM;
         }
-        BmnTrigMapping tMno;
+        BmnTrigChannelData tMno;
         tMno.serial = 0;
         return tMno;
     }
@@ -121,7 +121,7 @@ private:
     }
 
     map< PlMapKey, BmnTrigParameters*> fPlacementMap;
-    vector<BmnTrigMapping> fMap;
+    vector<BmnTrigChannelData> fMap;
     BmnSetup fSetup;
     ifstream fMapFile;
     ifstream fINLFile;

@@ -24,7 +24,7 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString PlacementMapFile, TString StripMapFil
     // Create corresponding branches for each trigger.       //
     // different channels of the one trigger will be stored //
     // in one branch with different mod ID  //
-    for (BmnTrigMapping &record : fMap) {
+    for (BmnTrigChannelData &record : fMap) {
         TString detName = record.name;
         TClass* cl = detName.Contains("TQDC") ?
                 BmnTrigWaveDigit::Class() : BmnTrigDigit::Class();
@@ -44,7 +44,7 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString PlacementMapFile, TString StripMapFil
             }
     }
     // Fill elements of placement map with channel->(strip, mod, branchRef) map //
-    for (BmnTrigMapping record : fMap) {
+    for (BmnTrigChannelData record : fMap) {
         map< PlMapKey, BmnTrigParameters*>::iterator itPar = fPlacementMap.find(PlMapKey(record.serial, record.slot));
         if (itPar == fPlacementMap.end()) {
             printf("CrateSeral %08X slot %u not found in the placement map!\n", record.serial, record.slot);
@@ -112,7 +112,7 @@ BmnStatus BmnTrigRaw2Digit::ReadChannelMap(TString mappingFile) {
     while (!fMapFile.eof()) {
         fMapFile >> name >> mod >> hex >> ser >> dec >> slot >> ch;
         if (!fMapFile.good()) break;
-        BmnTrigMapping record; // = new BmnTrigChannelData();
+        BmnTrigChannelData record; // = new BmnTrigChannelData();
         record.branchArrayPtr = NULL;
         record.name = name;
         record.serial = ser;

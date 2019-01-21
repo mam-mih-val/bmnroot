@@ -54,8 +54,8 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fDigiFileName = "";
     fDchMapFileName = "";
     fMwpcMapFileName = "";
-    fTrigMapFileName = "";
-    fTrigINLFileName = "";
+    fTrigPlaceMapFileName = "";
+    fTrigChannelMapFileName = "";
     fGemMapFileName = "";
     fCscMapFileName = "";
     fTof400StripMapFileName = "";
@@ -137,8 +137,8 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
     fDchMapFileName = "";
     fMwpcMapFileName = "";
-    fTrigMapFileName = "";
-    fTrigINLFileName = "";
+    fTrigPlaceMapFileName = "";
+    fTrigChannelMapFileName = "";
     fGemMapFileName = "";
     fCscMapFileName = "";
     fTof400StripMapFileName = "";
@@ -631,7 +631,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
             case kMODHEADER:
                 modId = (d[i] >> 16) & 0x7F;
                 slot = (d[i] >> 23) & 0x1F;
-                //printf("modid 0x%X slot %d serial 0x%X\n", modId, slot, serial);
+                //printf("modid 0x%02X slot %d serial 0x%08X\n", modId, slot, serial);
                 break;
             default: //data
             {
@@ -643,6 +643,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                         FillTDC(d, serial, slot, modId, i);
                         break;
                     case kTQDC16VS:
+                    case kTQDC16VS_ETH:
                         FillTQDC(d, serial, slot, modId, i);
                         break;
                     case kMSC:
@@ -964,7 +965,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             curEventType = headDAQ->GetType();
 
             if (curEventType != kBMNPEDESTAL) continue;
-            cout << "curEventType" << curEventType << endl;
             if (fPedEvCntr != fEvForPedestals - 1) {
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
                 fPedEvCntr++;
@@ -1139,9 +1139,9 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
     if (fDetectorSetup[0]) {
-        fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName, fDigiTree);
+        fTrigMapper = new BmnTrigRaw2Digit(fTrigPlaceMapFileName, fTrigChannelMapFileName, fDigiTree);
         if (fT0Map == NULL) {
-            BmnTrigMapping tm = fTrigMapper->GetT0Map();
+            BmnTrigChannelData tm = fTrigMapper->GetT0Map();
             printf("T0 serial 0x%X got from trig mapping\n", tm.serial);
             if (tm.serial > 0) {
                 fT0Map = new TriggerMapStructure();
@@ -1543,9 +1543,9 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700Init() {
     fDigiTree->Branch("EventHeader", &eventHeader);
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
-    fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName, fDigiTree);
+    fTrigMapper = new BmnTrigRaw2Digit(fTrigPlaceMapFileName, fTrigChannelMapFileName, fDigiTree);
     if (fT0Map == NULL) {
-        BmnTrigMapping tm = fTrigMapper->GetT0Map();
+        BmnTrigChannelData tm = fTrigMapper->GetT0Map();
         printf("T0 serial 0x%X got from trig mapping\n", tm.serial);
         if (tm.serial > 0) {
             fT0Map = new TriggerMapStructure();

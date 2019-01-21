@@ -68,6 +68,6 @@ EndIf (Boost_FOUND)
 Set(HEADERS)
 Set(LINKDEF MonitorLinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)
-Set(DEPENDENCIES Dch Sts BmnData Base Gem Silicon Decoder ZeroMQ BmnField)
+Set(DEPENDENCIES Dch Sts BmnData Base Gem Silicon Decoder ${ZeroMQ_LIBRARY_SHARED} BmnField)
 
 GENERATE_LIBRARY()

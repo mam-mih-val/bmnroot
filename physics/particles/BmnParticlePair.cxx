@@ -12,16 +12,15 @@
 #include "BmnParticlePair.h"
 
 BmnParticlePair::BmnParticlePair() :
-fV0XZ(0.), fV0YZ(0.),
+fV0X(0.), fV0Y(0.), fV0Z(0.),
 fDCA1(0.),
 fDCA2(0.),
-fDCA12X(0.), fDCA12Y(0.),
-fPathX(0.), fPathY(0.),
-fInvMassX(0.), fInvMassY(0.),
+fDCA12(0.),
+fPath(0.),
+fInvMass(0.),
 fMomPart1(0.), fMomPart2(0.),
 fEtaPart1(0.), fEtaPart2(0.),
-fAlphaX(0.), fPtPodolX(0.),
-fAlphaY(0.), fPtPodolY(0.),
+fAlpha(0.), fPtPodol(0.),
 fRecoTrackIdPart1(-1), fRecoTrackIdPart2(-1),
 fMCTrackIdPart1(-1), fMCTrackIdPart2(-1) {
     fMCMomPart1.SetXYZ(0., 0., 0.);

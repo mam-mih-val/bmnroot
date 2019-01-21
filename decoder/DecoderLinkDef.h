@@ -10,7 +10,6 @@
 #pragma link C++ class BmnMwpcRaw2Digit+;
 #pragma link C++ class BmnZDCRaw2Digit+;
 #pragma link C++ class BmnECALRaw2Digit+;
-#pragma link C++ class BmnTof2Raw2Digit+;
 #pragma link C++ class BmnTof2Raw2DigitNew+;
 #pragma link C++ class BmnTof1Raw2Digit+;
 #pragma link C++ class BmnGemRaw2Digit+;

@@ -5,12 +5,12 @@
 BmnRunHeader::BmnRunHeader()
 : fRunId(0),
 fNev(0),
-fStartTime(TDatime()),
-fFinishTime(TDatime()) {
+fStartTime(TTimeStamp()),
+fFinishTime(TTimeStamp()) {
 
 }
 
-BmnRunHeader::BmnRunHeader(UInt_t run, TDatime st, TDatime ft, UInt_t ne)
+BmnRunHeader::BmnRunHeader(UInt_t run, TTimeStamp st, TTimeStamp ft, UInt_t ne)
 : fRunId(run),
 fNev(ne),
 fStartTime(st),

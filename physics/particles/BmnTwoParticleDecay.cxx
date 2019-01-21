@@ -270,7 +270,15 @@ void BmnTwoParticleDecay::Analysis() {
 
             Double_t V0X = .5 * (proton_V0.GetX() + pion_V0.GetX());
             Double_t V0Y = .5 * (proton_V0.GetY() + pion_V0.GetY());
-
+            
+            Double_t xCutMin = fDetector->GetGemStation(0)->GetXMinStation();
+            Double_t xCutMax = fDetector->GetGemStation(0)->GetXMaxStation();
+            Double_t yCutMin = fDetector->GetGemStation(0)->GetYMinStation();
+            Double_t yCutMax = fDetector->GetGemStation(0)->GetYMaxStation();
+            
+            if (V0X < xCutMin || V0X > xCutMax || V0Y < yCutMin || V0Y > yCutMax)
+                continue;
+                
             vector <Double_t> geomTopology = GeomTopology(proton_V0, pion_V0, proton_Vp, pion_Vp);
 
             BmnParticlePair partPair;

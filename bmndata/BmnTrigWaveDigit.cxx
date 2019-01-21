@@ -13,7 +13,7 @@
 
 #include "BmnTrigWaveDigit.h"
 
-BmnTrigWaveDigit::BmnTrigWaveDigit(){
+BmnTrigWaveDigit::BmnTrigWaveDigit() {
     fMod = -1;
     fNsmpl = 0;
     fValueI = new Short_t[fNsmpl];
@@ -21,9 +21,10 @@ BmnTrigWaveDigit::BmnTrigWaveDigit(){
         fValueI[i] = 0;
     fTrigTimestamp = 0;
     fAdcTimestamp = 0;
+    fTime = 0;
 }
 
-BmnTrigWaveDigit::BmnTrigWaveDigit(Short_t iMod, Short_t *iValue, UInt_t nVals, Double_t trigTimestamp, Double_t adcTimestamp){
+BmnTrigWaveDigit::BmnTrigWaveDigit(Short_t iMod, Short_t *iValue, UInt_t nVals, Double_t trigTimestamp, Double_t adcTimestamp, Double_t time) {
     fMod = iMod;
     fNsmpl = nVals;
     fValueI = new Short_t[fNsmpl];
@@ -31,6 +32,7 @@ BmnTrigWaveDigit::BmnTrigWaveDigit(Short_t iMod, Short_t *iValue, UInt_t nVals, 
         fValueI[i] = iValue[i];
     fTrigTimestamp = trigTimestamp;
     fAdcTimestamp = adcTimestamp;
+    fTime = time;
 }
 
 BmnTrigWaveDigit::~BmnTrigWaveDigit() {

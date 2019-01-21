@@ -1,0 +1,8 @@
+Name       CrateSerial	Slot	BoardSerial
+===========================================
+MSC16VS	   0x076D3892	 7	0x030d9a64
+TDC72VHL   0x076D3892	10	0x076d16a8
+TQDC16VS   0x076D3892	13	0x046f0c75
+TQDC16VS   0x076D3892	14	0x076d3c3c
+FVME2TMWR  0x076D3892	16	0x076d38f9
+UT24VE     0x076D3892	18	0x07a8fb37

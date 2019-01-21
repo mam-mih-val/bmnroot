@@ -17,33 +17,31 @@
 //#include "BmnTrigDigit.h"
 #include "BmnTQDCADCDigit.h"
 
-
-class BmnTrigWaveDigit: public TNamed {// BmnTrigDigit /*, public BmnADCSRCDigit */ {
+class BmnTrigWaveDigit : public TNamed {
 public:
     BmnTrigWaveDigit();
-//    BmnTrigWaveDigit(/*BmnTrigDigit *trigDigit, */BmnTQDCADCDigit *adcDigit);
-    BmnTrigWaveDigit(Short_t iMod, Short_t *iValue, UInt_t nVals, Double_t trigTimestamp, Double_t adcTimestamp);
-    
+    BmnTrigWaveDigit(Short_t iMod, Short_t *iValue, UInt_t nVals, Double_t trigTimestamp, Double_t adcTimestamp, Double_t time);
+
     Short_t GetMod() const {
         return fMod;
     }
-    
+
     UInt_t GetNSamples() const {
         return fNsmpl;
     }
-   
+
     int GetIntegral() const {
-	int spectra = 0;
-	for (Int_t i = 0; i < fNsmpl; ++i)
-		spectra += fValueI[i];
-	return spectra;
-    }    
-    
+        int spectra = 0;
+        for (Int_t i = 0; i < fNsmpl; ++i)
+            spectra += fValueI[i];
+        return spectra;
+    }
+
     int GetPeak() const {
-	int peak = -100000;
-	for (Int_t i = 0; i < fNsmpl; ++i)
-		if ( fValueI[i] > peak ) peak = fValueI[i];
-	return peak;
+        int peak = -100000;
+        for (Int_t i = 0; i < fNsmpl; ++i)
+            if (fValueI[i] > peak) peak = fValueI[i];
+        return peak;
     }
 
     Short_t *GetShortValue() const {
@@ -54,15 +52,19 @@ public:
         for (Int_t i = 0; i < fNsmpl; ++i)
             fValueI[i] = iValue[i];
     }
-    
+
     Double_t GetAdcTimestamp() const {
         return fAdcTimestamp;
     }
-    
+
     Double_t GetTrigTimestamp() const {
         return fTrigTimestamp;
     }
-    
+
+    Double_t GetTime() const {
+        return fTime;
+    }
+
     virtual ~BmnTrigWaveDigit();
 protected:
     Short_t fMod;
@@ -70,6 +72,7 @@ protected:
     Short_t* fValueI; //[fNsmpl]
     Double_t fTrigTimestamp;
     Double_t fAdcTimestamp;
+    Double_t fTime;
 
     ClassDef(BmnTrigWaveDigit, 1);
 };

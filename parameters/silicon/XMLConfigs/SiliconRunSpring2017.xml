@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    A right-handed coordinates are used.
+    If you look at the Silicon detector from the target:
+        x-axis is directed to the left,
+        y-axis - to the top,
+        z-axis - to the Silicon.
+-->
+
+<StationSet>
+
+<!-- Station 0 -->
+    <Station xPosition="0.0" yPosition="-4.5" zPosition="0.0" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
+
+        <!-- module 0 -->
+        <Module xShift="0.0" yShift="0.0" zShift="3.31">
+            <Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0.0" pitch="0.0095" xorig="12.03994" yorig="6.259" xsize="6.08" ysize="6.0802" stripDirection="LeftToRight" lxborder="12.03994" lyborder="6.259" rxborder="5.95994" ryborder="12.3392"></Layer>
+            <Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0.0" pitch="0.0095" xorig="12.03994" yorig="-0.0445" xsize="6.08" ysize="6.089" stripDirection="LeftToRight" lxborder="12.03994" lyborder="-0.0445" rxborder="5.95994" ryborder="6.0445"></Layer>
+            <Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="-2.5" pitch="0.01029019668" xorig="12.0382" yorig="6.2656" xsize="6.0737" ysize="6.0736" stripDirection="RightToLeft" lxborder="12.0382" lyborder="6.2656" rxborder="5.97243" ryborder="12.3392"></Layer>
+            <Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="-2.5" pitch="0.01029019668" xorig="12.0382" yorig="0.0352" xsize="6.0737" ysize="6.0705" stripDirection="RightToLeft" lxborder="12.0382" lyborder="-0.0352" rxborder="5.9723" ryborder="6.03531"></Layer>
+        </Module>
+
+        <!-- module 1 -->
+        <Module xShift="0.0" yShift="0.0" zShift="1.78">
+            <Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0.0" pitch="0.0095" xorig="6.03994" yorig="6.259" xsize="6.08" ysize="6.0802" stripDirection="LeftToRight" lxborder="6.03994" lyborder="6.259" rxborder="-0.04006" ryborder="12.3392"></Layer>
+            <Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0.0" pitch="0.0095" xorig="6.03994" yorig="-0.0445" xsize="6.08" ysize="6.089" stripDirection="LeftToRight" lxborder="6.03994" lyborder="-0.0445" rxborder="-0.04006" ryborder="6.0445">
+                <DeadZone>
+                    <DeadPoint x="3.71666" y="-0.0445" />
+                    <DeadPoint x="-0.04005" y="3.71221" />
+                    <DeadPoint x="-0.04006" y="-0.0445" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="-2.5" pitch="0.01029019668" xorig="6.0382" yorig="6.2656" xsize="6.0737" ysize="6.0736" stripDirection="RightToLeft" lxborder="6.0382" lyborder="6.2656" rxborder="-0.02757" ryborder="12.3392"></Layer>
+            <Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="-2.5" pitch="0.01029019668" xorig="6.0382" yorig="-0.0352" xsize="6.0737" ysize="6.0705" stripDirection="RightToLeft" lxborder="6.0382" lyborder="-0.0352" rxborder="-0.0277" ryborder="6.0353">
+                <DeadZone>
+                    <DeadPoint x="3.7172" y="-0.0352" />
+                    <DeadPoint x="-0.0355" y="3.71756" />
+                    <DeadPoint x="-0.0355" y="-0.0352" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+        <!-- module 2 -->
+        <Module xShift="0.0" yShift="0.0" zShift="3.09">
+            <Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0.0" pitch="0.0095" xorig="0.04007" yorig="6.259" xsize="6.08" ysize="6.0802" stripDirection="RightToLeft" lxborder="0.04007" lyborder="6.259" rxborder="-6.03994" ryborder="12.3392"></Layer>
+            <Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0.0" pitch="0.0095" xorig="0.04006" yorig="-0.0445" xsize="6.08" ysize="6.089" stripDirection="RightToLeft" lxborder="0.04006" lyborder="6.0445" rxborder="-6.03994" ryborder="-0.0445">
+                <DeadZone>
+                    <DeadPoint x="0.04006" y="-0.0445" />
+                    <DeadPoint x="0.04006" y="3.7122" />
+                    <DeadPoint x="-3.7166" y="-0.0445" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="2.5" pitch="0.01029019668" xorig="0.0355" yorig="6.2656" xsize="6.0737" ysize="6.0736" stripDirection="LeftToRight" lxborder="0.02756" lyborder="12.3392" rxborder="-6.0382" ryborder="6.2656"></Layer>
+            <Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="2.5" pitch="0.01029019668" xorig="0.0355" yorig="-0.0352" xsize="6.0737" ysize="6.0705" stripDirection="LeftToRight" lxborder="0.02769" lyborder="6.0353" rxborder="-6.0382" ryborder="-0.0352">
+                <DeadZone>
+                    <DeadPoint x="0.0355" y="-0.0352" />
+                    <DeadPoint x="0.0355" y="3.71756" />
+                    <DeadPoint x="-3.71726" y="-0.0352" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+        <!-- module 3 -->
+        <Module xShift="0.0" yShift="0.0" zShift="1.56">
+            <Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0.0" pitch="0.0095" xorig="-5.95995" yorig="6.259" xsize="6.08" ysize="6.0802" stripDirection="RightToLeft" lxborder="-5.95995" lyborder="6.259" rxborder="-12.03994" ryborder="12.3392"></Layer>
+            <Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0.0" pitch="0.0095" xorig="-5.95995" yorig="-0.0445" xsize="6.08" ysize="6.089" stripDirection="RightToLeft" lxborder="-5.95995" lyborder="-0.0445" rxborder="-12.03994" ryborder="6.0445"></Layer>
+            <Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="2.5" pitch="0.01029019668" xorig="-5.9645" yorig="6.2656" xsize="6.0737" ysize="6.0736" stripDirection="LeftToRight" lxborder="-5.97244" lyborder="12.3392" rxborder="-12.0382" ryborder="6.2656"></Layer>
+            <Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="2.5" pitch="0.01029019668" xorig="-5.9645" yorig="-0.0352" xsize="6.0737" ysize="6.0705" stripDirection="LeftToRight" lxborder="-5.9723" lyborder="6.0353" rxborder="-12.03819" ryborder="-0.0352"></Layer>
+        </Module>
+
+        <!-- module 4 -->
+        <Module xShift="0.0" yShift="0.0" zShift="2.05">
+            <Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0.0" pitch="0.0095" xorig="12.03994" yorig="-6.0445" xsize="6.08" ysize="6.089" stripDirection="LeftToRight" lxborder="12.03994" lyborder="-6.0445" rxborder="5.95994" ryborder="0.0445"></Layer>
+            <Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0.0" pitch="0.0095" xorig="12.03994" yorig="-12.3392" xsize="6.08" ysize="6.0802" stripDirection="LeftToRight" lxborder="12.03994" lyborder="-12.3392" rxborder="5.95994" ryborder="-6.259"></Layer>
+            <Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="2.5" pitch="0.01029019668" xorig="12.0382" yorig="-6.03531" xsize="6.0737" ysize="6.0705" stripDirection="RightToLeft" lxborder="12.0382" lyborder="0.03519" rxborder="5.97229" ryborder="-6.03531"></Layer>
+            <Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="2.5" pitch="0.01029019668" xorig="12.0382" yorig="-12.33921" xsize="6.0737" ysize="6.0736" stripDirection="RightToLeft" lxborder="12.0382" lyborder="-6.26561" rxborder="5.97242" ryborder="-12.33921"></Layer>
+        </Module>
+
+        <!-- module 5 -->
+        <Module xShift="0.0" yShift="0.0" zShift="3.58">
+            <Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0.0" pitch="0.0095" xorig="6.03994" yorig="-6.0445" xsize="6.08" ysize="6.089" stripDirection="LeftToRight" lxborder="6.03994" lyborder="0.0445" rxborder="-0.04006" ryborder="-6.0445">
+                <DeadZone>
+                    <DeadPoint x="3.71666" y="0.0445" />
+                    <DeadPoint x="-0.04006" y="0.0445" />
+                    <DeadPoint x="-0.04006" y="-3.71222" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0.0" pitch="0.0095" xorig="6.03994" yorig="-12.3392" xsize="6.08" ysize="6.0802" stripDirection="LeftToRight" lxborder="6.03994" lyborder="-12.3392" rxborder="-0.04006" ryborder="-6.259"></Layer>
+            <Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="2.5" pitch="0.01029019668" xorig="6.0382" yorig="-6.0353" xsize="6.0737" ysize="6.0705" stripDirection="RightToLeft" lxborder="6.0382" lyborder="0.0352" rxborder="-0.0277" ryborder="-6.0353">
+                <DeadZone>
+                    <DeadPoint x="3.71726" y="0.0352" />
+                    <DeadPoint x="-0.0355" y="0.0352" />
+                    <DeadPoint x="-0.0355" y="-3.71756" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="2.5" pitch="0.01029019668" xorig="6.0382" yorig="-12.3392" xsize="6.0737" ysize="6.0736" stripDirection="RightToLeft" lxborder="6.0382" lyborder="-6.2656" rxborder="-0.02757" ryborder="-12.3392"></Layer>
+        </Module>
+
+        <!-- module 6 -->
+        <Module xShift="0.0" yShift="0.0" zShift="2.27">
+            <Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0.0" pitch="0.0095" xorig="0.04006" yorig="-6.0445" xsize="6.08" ysize="6.089" stripDirection="RightToLeft" lxborder="0.04006" lyborder="-6.0445" rxborder="-6.03994" ryborder="0.0445">
+                <DeadZone>
+                    <DeadPoint x="0.04006" y="-3.71221" />
+                    <DeadPoint x="0.04006" y="0.0445" />
+                    <DeadPoint x="-3.71666" y="0.0445" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0.0" pitch="0.0095" xorig="0.04006" yorig="-12.3392" xsize="6.08" ysize="6.0802" stripDirection="RightToLeft" lxborder="0.04006" lyborder="-12.3392" rxborder="-6.03994" ryborder="-6.259"></Layer>
+            <Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="-2.5" pitch="0.01029019668" xorig="0.0355" yorig="-6.0353" xsize="6.0737" ysize="6.0705" stripDirection="LeftToRight" lxborder="0.0277" lyborder="-6.0353" rxborder="-6.0382" ryborder="0.0352">
+                <DeadZone>
+                    <DeadPoint x="0.0355" y="-3.71756" />
+                    <DeadPoint x="0.0355" y="0.0352" />
+                    <DeadPoint x="-3.71726" y="0.0352" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="-2.5" pitch="0.01029019668" xorig="0.0355" yorig="-12.3392" xsize="6.0737" ysize="6.0736" stripDirection="LeftToRight" lxborder="0.02756" lyborder="-12.3392" rxborder="-6.0382" ryborder="-6.2656"></Layer>
+        </Module>
+
+        <!-- module 7 -->
+        <Module xShift="0.0" yShift="0.0" zShift="3.8">
+            <Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0.0" pitch="0.0095" xorig="-5.95995" yorig="-6.0445" xsize="6.08" ysize="6.089" stripDirection="RightToLeft" lxborder="-5.95995" lyborder="-6.0445" rxborder="-12.03994" ryborder="0.0445"></Layer>
+            <Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0.0" pitch="0.0095" xorig="-5.95995" yorig="-12.33921" xsize="6.08" ysize="6.0802" stripDirection="RightToLeft" lxborder="-5.95995" lyborder="-12.33921" rxborder="-12.03994" ryborder="-6.259"></Layer>
+            <Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="-2.5" pitch="0.01029019668" xorig="-5.9645" yorig="-6.0353" xsize="6.0737" ysize="6.0705" stripDirection="LeftToRight" lxborder="-5.9723" lyborder="-6.0353" rxborder="-12.03819" ryborder="0.0352"></Layer>
+            <Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="-2.5" pitch="0.01029019668" xorig="-5.9645" yorig="-12.3392" xsize="6.0737" ysize="6.0736" stripDirection="LeftToRight" lxborder="-5.97243" lyborder="-12.3392" rxborder="-12.03819" ryborder="-6.2656"></Layer>
+        </Module>
+
+    </Station>
+
+</StationSet>
+
+

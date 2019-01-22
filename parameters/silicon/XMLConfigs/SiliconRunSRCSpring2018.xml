@@ -1,0 +1,134 @@
+<StationSet>
+
+<!-- Station 0 -->
+	<Station xPosition="0.6295" yPosition="-4.53225" zPosition="-440.377" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
+
+		<!-- module 0 -->
+		<Module xShift="0" yShift="0" zShift="1.44">
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="-0" pitch="0.0095" xorig="6.28995" yorig="-0.2945" xsize="6.08" ysize="6.089" stripDirection="LeftToRight" lxborder="6.28995" lyborder="-0.2945" rxborder="0.20995" ryborder="5.7945"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="-2.5" pitch="0.0102902" xorig="6.2882" yorig="-0.2852" xsize="6.0737" ysize="6.0705" stripDirection="RightToLeft" lxborder="6.28145" lyborder="-0.2852" rxborder="0.2223" ryborder="5.7853"></Layer>
+		</Module>
+
+		<!-- module 1 -->
+		<Module xShift="0" yShift="0" zShift="2.17">
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0" pitch="0.0095" xorig="0.29005" yorig="0.2055" xsize="6.08" ysize="6.089" stripDirection="RightToLeft" lxborder="0.29005" lyborder="6.2945" rxborder="-5.78995" ryborder="0.2055"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="2.5" pitch="0.0102902" xorig="0.2855" yorig="0.2148" xsize="6.0737" ysize="6.0705" stripDirection="LeftToRight" lxborder="0.2777" lyborder="6.2853" rxborder="-5.78145" ryborder="0.2148"></Layer>
+		</Module>
+
+		<!-- module 2 -->
+		<Module xShift="0" yShift="0" zShift="2.17">
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0" pitch="0.0095" xorig="5.78995" yorig="-6.2945" xsize="6.08" ysize="6.089" stripDirection="LeftToRight" lxborder="5.78995" lyborder="-0.2055" rxborder="-0.29005" ryborder="-6.2945"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="2.5" pitch="0.0102902" xorig="5.7882" yorig="-6.2853" xsize="6.0737" ysize="6.0705" stripDirection="RightToLeft" lxborder="5.78145" lyborder="-0.2148" rxborder="-0.2777" ryborder="-6.2853"></Layer>
+		</Module>
+
+		<!-- module 3 -->
+		<Module xShift="0" yShift="0" zShift="1.44">
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="-0" pitch="0.0095" xorig="-0.20995" yorig="-5.7945" xsize="6.08" ysize="6.089" stripDirection="RightToLeft" lxborder="-0.20995" lyborder="-5.7945" rxborder="-6.28995" ryborder="0.2945"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="-2.5" pitch="0.0102902" xorig="-0.2145" yorig="-5.7853" xsize="6.0737" ysize="6.0705" stripDirection="LeftToRight" lxborder="-0.2223" lyborder="-5.7853" rxborder="-6.28145" ryborder="0.2852"></Layer>
+		</Module>
+
+	</Station>
+
+<!-- Station 1 -->
+	<Station xPosition="0.6295" yPosition="-4.53225" zPosition="-440.377" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
+
+		<!-- module 0 -->
+		<Module xShift="0" yShift="0" zShift="4.71">
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="-0" pitch="0.0095" xorig="5.78995" yorig="0.189" xsize="6.08" ysize="6.0802" stripDirection="LeftToRight" lxborder="5.78995" lyborder="0.189" rxborder="-0.29005" ryborder="6.2692"></Layer>
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="-0" pitch="0.0095" xorig="5.78995" yorig="-6.1145" xsize="6.08" ysize="6.089" stripDirection="LeftToRight" lxborder="5.78995" lyborder="-6.1145" rxborder="-0.29005" ryborder="-0.0255"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="-2.5" pitch="0.0102902" xorig="5.7882" yorig="0.1956" xsize="6.0737" ysize="6.0736" stripDirection="RightToLeft" lxborder="5.78145" lyborder="0.1956" rxborder="-0.27755" ryborder="6.2692"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="-2.5" pitch="0.0102902" xorig="5.7882" yorig="-6.1052" xsize="6.0737" ysize="6.0705" stripDirection="RightToLeft" lxborder="5.78145" lyborder="-6.1052" rxborder="-0.2777" ryborder="-0.0347"></Layer>
+		</Module>
+
+		<!-- module 1 -->
+		<Module xShift="0" yShift="0" zShift="5.44">
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0" pitch="0.0095" xorig="-0.20995" yorig="-0.311" xsize="6.08" ysize="6.0802" stripDirection="RightToLeft" lxborder="-0.20995" lyborder="5.7692" rxborder="-6.28995" ryborder="-0.311"></Layer>
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0" pitch="0.0095" xorig="-0.20995" yorig="-6.6145" xsize="6.08" ysize="6.089" stripDirection="RightToLeft" lxborder="-0.20995" lyborder="-0.5255" rxborder="-6.28995" ryborder="-6.6145"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="2.5" pitch="0.0102902" xorig="-0.2145" yorig="-0.3044" xsize="6.0737" ysize="6.0736" stripDirection="LeftToRight" lxborder="-0.22245" lyborder="5.7692" rxborder="-6.28145" ryborder="-0.3044"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="2.5" pitch="0.0102902" xorig="-0.2145" yorig="-6.6052" xsize="6.0737" ysize="6.0705" stripDirection="LeftToRight" lxborder="-0.2223" lyborder="-0.5347" rxborder="-6.28145" ryborder="-6.6052"></Layer>
+		</Module>
+
+	</Station>
+
+<!-- Station 2 -->
+	<Station xPosition="0.46525" yPosition="-4.67125" zPosition="-320.346" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
+
+		<!-- module 0 -->
+		<Module xShift="0" yShift="0" zShift="3.51">
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="-0" pitch="0.0095" xorig="12.04" yorig="6.259" xsize="6.08" ysize="6.0802" stripDirection="LeftToRight" lxborder="12.04" lyborder="6.259" rxborder="5.95995" ryborder="12.3392"></Layer>
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="-0" pitch="0.0095" xorig="12.04" yorig="-0.0445" xsize="6.08" ysize="6.089" stripDirection="LeftToRight" lxborder="12.04" lyborder="-0.0445" rxborder="5.95995" ryborder="6.0445"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="-2.5" pitch="0.0102902" xorig="12.0382" yorig="6.2656" xsize="6.0737" ysize="6.0736" stripDirection="RightToLeft" lxborder="12.0314" lyborder="6.2656" rxborder="5.97245" ryborder="12.3392"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="-2.5" pitch="0.0102902" xorig="12.0382" yorig="-0.0352" xsize="6.0737" ysize="6.0705" stripDirection="RightToLeft" lxborder="12.0314" lyborder="-0.0352" rxborder="5.9723" ryborder="6.0353"></Layer>
+		</Module>
+
+		<!-- module 1 -->
+		<Module xShift="0" yShift="0" zShift="1.98">
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="-0" pitch="0.0095" xorig="6.03995" yorig="6.259" xsize="6.08" ysize="6.0802" stripDirection="LeftToRight" lxborder="6.03995" lyborder="6.259" rxborder="-0.04005" ryborder="12.3392"></Layer>
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="-0" pitch="0.0095" xorig="6.03995" yorig="-0.0445" xsize="6.08" ysize="6.089" stripDirection="LeftToRight" lxborder="6.03995" lyborder="-0.0445" rxborder="-0.04005" ryborder="6.0445"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="-2.5" pitch="0.0102902" xorig="6.0382" yorig="6.2656" xsize="6.0737" ysize="6.0736" stripDirection="RightToLeft" lxborder="6.03145" lyborder="6.2656" rxborder="-0.02755" ryborder="12.3392"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="-2.5" pitch="0.0102902" xorig="6.0382" yorig="-0.0352" xsize="6.0737" ysize="6.0705" stripDirection="RightToLeft" lxborder="6.03145" lyborder="-0.0352" rxborder="-0.0277" ryborder="6.0353"></Layer>
+		</Module>
+
+		<!-- module 2 -->
+		<Module xShift="0" yShift="0" zShift="3.29">
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0" pitch="0.0095" xorig="0.04005" yorig="6.259" xsize="6.08" ysize="6.0802" stripDirection="RightToLeft" lxborder="0.04005" lyborder="12.3392" rxborder="-6.03995" ryborder="6.259"></Layer>
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0" pitch="0.0095" xorig="0.04005" yorig="-0.0445" xsize="6.08" ysize="6.089" stripDirection="RightToLeft" lxborder="0.04005" lyborder="6.0445" rxborder="-6.03995" ryborder="-0.0445"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="2.5" pitch="0.0102902" xorig="0.0355" yorig="6.2656" xsize="6.0737" ysize="6.0736" stripDirection="LeftToRight" lxborder="0.02755" lyborder="12.3392" rxborder="-6.03145" ryborder="6.2656"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="2.5" pitch="0.0102902" xorig="0.0355" yorig="-0.0352" xsize="6.0737" ysize="6.0705" stripDirection="LeftToRight" lxborder="0.0277" lyborder="6.0353" rxborder="-6.03145" ryborder="-0.0352"></Layer>
+		</Module>
+
+		<!-- module 3 -->
+		<Module xShift="0" yShift="0" zShift="1.76">
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0" pitch="0.0095" xorig="-5.95995" yorig="6.259" xsize="6.08" ysize="6.0802" stripDirection="RightToLeft" lxborder="-5.95995" lyborder="12.3392" rxborder="-12.04" ryborder="6.259"></Layer>
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0" pitch="0.0095" xorig="-5.95995" yorig="-0.0445" xsize="6.08" ysize="6.089" stripDirection="RightToLeft" lxborder="-5.95995" lyborder="6.0445" rxborder="-12.04" ryborder="-0.0445"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="2.5" pitch="0.0102902" xorig="-5.9645" yorig="6.2656" xsize="6.0737" ysize="6.0736" stripDirection="LeftToRight" lxborder="-5.97245" lyborder="12.3392" rxborder="-12.0314" ryborder="6.2656"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="2.5" pitch="0.0102902" xorig="-5.9645" yorig="-0.0352" xsize="6.0737" ysize="6.0705" stripDirection="LeftToRight" lxborder="-5.9723" lyborder="6.0353" rxborder="-12.0314" ryborder="-0.0352"></Layer>
+		</Module>
+
+		<!-- module 4 -->
+		<Module xShift="0" yShift="0" zShift="2.25">
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0" pitch="0.0095" xorig="12.04" yorig="-6.0445" xsize="6.08" ysize="6.089" stripDirection="LeftToRight" lxborder="12.04" lyborder="0.0445" rxborder="5.95995" ryborder="-6.0445"></Layer>
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0" pitch="0.0095" xorig="12.04" yorig="-12.3392" xsize="6.08" ysize="6.0802" stripDirection="LeftToRight" lxborder="12.04" lyborder="-6.259" rxborder="5.95995" ryborder="-12.3392"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="2.5" pitch="0.0102902" xorig="12.0382" yorig="-6.0353" xsize="6.0737" ysize="6.0705" stripDirection="RightToLeft" lxborder="12.0314" lyborder="0.0352" rxborder="5.9723" ryborder="-6.0353"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="2.5" pitch="0.0102902" xorig="12.0382" yorig="-12.3392" xsize="6.0737" ysize="6.0736" stripDirection="RightToLeft" lxborder="12.0314" lyborder="-6.2656" rxborder="5.97245" ryborder="-12.3392"></Layer>
+		</Module>
+
+		<!-- module 5 -->
+		<Module xShift="0" yShift="0" zShift="3.78">
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0" pitch="0.0095" xorig="6.03995" yorig="-6.0445" xsize="6.08" ysize="6.089" stripDirection="LeftToRight" lxborder="6.03995" lyborder="0.0445" rxborder="-0.04005" ryborder="-6.0445"></Layer>
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="0" pitch="0.0095" xorig="6.03995" yorig="-12.3392" xsize="6.08" ysize="6.0802" stripDirection="LeftToRight" lxborder="6.03995" lyborder="-6.259" rxborder="-0.04005" ryborder="-12.3392"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="2.5" pitch="0.0102902" xorig="6.0382" yorig="-6.0353" xsize="6.0737" ysize="6.0705" stripDirection="RightToLeft" lxborder="6.03145" lyborder="0.0352" rxborder="-0.0277" ryborder="-6.0353"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="2.5" pitch="0.0102902" xorig="6.0382" yorig="-12.3392" xsize="6.0737" ysize="6.0736" stripDirection="RightToLeft" lxborder="6.03145" lyborder="-6.2656" rxborder="-0.02755" ryborder="-12.3392"></Layer>
+		</Module>
+
+		<!-- module 6 -->
+		<Module xShift="0" yShift="0" zShift="2.47">
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="-0" pitch="0.0095" xorig="0.04005" yorig="-6.0445" xsize="6.08" ysize="6.089" stripDirection="RightToLeft" lxborder="0.04005" lyborder="-6.0445" rxborder="-6.03995" ryborder="0.0445"></Layer>
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="-0" pitch="0.0095" xorig="0.04005" yorig="-12.3392" xsize="6.08" ysize="6.0802" stripDirection="RightToLeft" lxborder="0.04005" lyborder="-12.3392" rxborder="-6.03995" ryborder="-6.259"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="-2.5" pitch="0.0102902" xorig="0.0355" yorig="-6.0353" xsize="6.0737" ysize="6.0705" stripDirection="LeftToRight" lxborder="0.0277" lyborder="-6.0353" rxborder="-6.03145" ryborder="0.0352"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="-2.5" pitch="0.0102902" xorig="0.0355" yorig="-12.3392" xsize="6.0737" ysize="6.0736" stripDirection="LeftToRight" lxborder="0.02755" lyborder="-12.3392" rxborder="-6.03145" ryborder="-6.2656"></Layer>
+		</Module>
+
+		<!-- module 7 -->
+		<Module xShift="0" yShift="0" zShift="4">
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="-0" pitch="0.0095" xorig="-5.95995" yorig="-6.0445" xsize="6.08" ysize="6.089" stripDirection="RightToLeft" lxborder="-5.95995" lyborder="-6.0445" rxborder="-12.04" ryborder="0.0445">
+				<DeadZone>
+					<DeadPoint x="-5.95995" y="0.0445" />
+					<DeadPoint x="-5.95995" y="-3.71222" />
+					<DeadPoint x="-9.71667" y="0.0445" />
+				</DeadZone>
+			</Layer>
+			<Layer zoneID="0" type="lower" firstStripNumber="0" stripAngle="-0" pitch="0.0095" xorig="-5.95995" yorig="-12.3392" xsize="6.08" ysize="6.0802" stripDirection="RightToLeft" lxborder="-5.95995" lyborder="-12.3392" rxborder="-12.04" ryborder="-6.259"></Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="26" stripAngle="-2.5" pitch="0.0102902" xorig="-5.9645" yorig="-6.0353" xsize="6.0737" ysize="6.0705" stripDirection="LeftToRight" lxborder="-5.9723" lyborder="-6.0353" rxborder="-12.0314" ryborder="0.0352">
+				<DeadZone>
+					<DeadPoint x="-5.9645" y="0.0352" />
+					<DeadPoint x="-5.9645" y="-3.71757" />
+					<DeadPoint x="-9.71727" y="0.0352" />
+				</DeadZone>
+			</Layer>
+			<Layer zoneID="1" type="upper" firstStripNumber="0" stripAngle="-2.5" pitch="0.0102902" xorig="-5.9645" yorig="-12.3392" xsize="6.0737" ysize="6.0736" stripDirection="LeftToRight" lxborder="-5.97245" lyborder="-12.3392" rxborder="-12.0314" ryborder="-6.2656"></Layer>
+		</Module>
+
+	</Station>
+
+</StationSet>

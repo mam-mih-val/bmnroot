@@ -1,0 +1,540 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    GEM geometry: RunSpring2018 (BM@N RUN-7)
+    Author: Baranov D.
+    Date: 17.05.2018
+
+    A right-handed coordinates are used.
+    If you look at the GEMs from the target:
+        x-axis is directed to the left,
+        y-axis - to the top,
+        z-axis - to the GEMs.
+-->
+
+<StationSet>
+
+<!-- Station 0 (M11) -->
+    <Station xPosition="0.5390" yPosition="15.99873" zPosition="39.702" beamHole="4.0">
+
+        <!-- module 0 -->
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="81.6" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
+                <DeadZone>
+                    <DeadPoint x="40.0" y="-22.5" />
+                    <DeadPoint x="40.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="81.6" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
+                <DeadZone>
+                    <DeadPoint x="42.01" y="-22.5" />
+                    <DeadPoint x="37.99" y="-7.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="40.0" yorig="-22.5" xsize="40.0" ysize="15.0" stripDirection="LeftToRight" lborder="LeftBottom" rborder="RightBottom">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="4.0" y="-22.5" />
+                    <DeadPoint x="4.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="42.01" yorig="-22.5" xsize="42.01" ysize="15.0" stripDirection="LeftToRight" lborder="LeftBottom" rborder="RightBottom">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="4.0" y="-22.5" />
+                    <DeadPoint x="4.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+                <DeadZone> <!-- triangle -->
+                    <DeadPoint x="42.01" y="-22.5" />
+                    <DeadPoint x="42.01" y="-7.5" />
+                    <DeadPoint x="37.99" y="-7.5" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+        <!-- module 1 -->
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
+                <DeadZone>
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="-40.0" y="-7.5" />
+                    <DeadPoint x="-40.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
+                <DeadZone>
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="-42.01" y="-7.5" />
+                    <DeadPoint x="-37.99" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="40.0" ysize="15.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightTop">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="42.01" ysize="15.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightTop">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-22.5" />
+                </DeadZone>
+                <DeadZone> <!-- triangle -->
+                    <DeadPoint x="-37.99" y="-22.5" />
+                    <DeadPoint x="-42.01" y="-7.5" />
+                    <DeadPoint x="-42.01" y="-22.5" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+    </Station>
+
+<!-- Station 1 (M10) -->
+    <Station xPosition="0.7025" yPosition="16.20573" zPosition="64.535" beamHole="4.0">
+
+        <!-- module 0 -->
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="backward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="81.6" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightTop">
+                <DeadZone>
+                    <DeadPoint x="40.0" y="-22.5" />
+                    <DeadPoint x="40.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="0" type="upper" stripAngle="-15.0" pitch="0.08" xorig="81.6" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightTop">
+                <DeadZone>
+                    <DeadPoint x="37.99" y="-22.5" />
+                    <DeadPoint x="42.01" y="-7.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="40.0" yorig="-22.5" xsize="40.0" ysize="15.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightTop">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="4.0" y="-22.5" />
+                    <DeadPoint x="4.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="upper" stripAngle="-15.0" pitch="0.08" xorig="42.01" yorig="-22.5" xsize="42.01" ysize="15.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightTop">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="4.0" y="-22.5" />
+                    <DeadPoint x="4.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+                <DeadZone> <!-- triangle -->
+                    <DeadPoint x="42.01" y="-22.5" />
+                    <DeadPoint x="42.01" y="-7.5" />
+                    <DeadPoint x="37.97" y="-22.5" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+        <!-- module 1 -->
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="backward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightTop">
+                <DeadZone>
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="-40.0" y="-7.5" />
+                    <DeadPoint x="-40.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="0" type="upper" stripAngle="-15.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightTop">
+                <DeadZone>
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="-37.99" y="-7.5" />
+                    <DeadPoint x="-42.01" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="40.0" ysize="15.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightBottom">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="upper" stripAngle="-15.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="42.01" ysize="15.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightBottom">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-22.5" />
+                </DeadZone>
+                <DeadZone> <!-- triangle -->
+                    <DeadPoint x="-42.01" y="-22.5" />
+                    <DeadPoint x="-37.99" y="-7.5" />
+                    <DeadPoint x="-42.01" y="-7.5" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+    </Station>
+
+<!-- Station 2 (M5) -->
+    <Station xPosition="1.9925" yPosition="16.36073" zPosition="112.649" beamHole="4.0">
+
+        <!-- module 0 -->
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="backward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="81.6" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightTop">
+                <DeadZone>
+                    <DeadPoint x="40.0" y="-22.5" />
+                    <DeadPoint x="40.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="0" type="upper" stripAngle="-15.0" pitch="0.08" xorig="81.6" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightTop">
+                <DeadZone>
+                    <DeadPoint x="37.99" y="-22.5" />
+                    <DeadPoint x="42.01" y="-7.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="40.0" yorig="-22.5" xsize="40.0" ysize="15.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightTop">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="4.0" y="-22.5" />
+                    <DeadPoint x="4.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="upper" stripAngle="-15.0" pitch="0.08" xorig="42.01" yorig="-22.5" xsize="42.01" ysize="15.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightTop">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="4.0" y="-22.5" />
+                    <DeadPoint x="4.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+                <DeadZone> <!-- triangle -->
+                    <DeadPoint x="42.01" y="-22.5" />
+                    <DeadPoint x="42.01" y="-7.5" />
+                    <DeadPoint x="37.97" y="-22.5" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+        <!-- module 1 -->
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="backward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightTop">
+                <DeadZone>
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="-40.0" y="-7.5" />
+                    <DeadPoint x="-40.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="0" type="upper" stripAngle="-15.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightTop">
+                <DeadZone>
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="-37.99" y="-7.5" />
+                    <DeadPoint x="-42.01" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="40.0" ysize="15.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightBottom">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="upper" stripAngle="-15.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="42.01" ysize="15.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightBottom">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-22.5" />
+                </DeadZone>
+                <DeadZone> <!-- triangle -->
+                    <DeadPoint x="-42.01" y="-22.5" />
+                    <DeadPoint x="-37.99" y="-7.5" />
+                    <DeadPoint x="-42.01" y="-7.5" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+    </Station>
+
+<!-- Station 3 (M6) -->
+    <Station xPosition="3.0860" yPosition="16.40473" zPosition="135.330" beamHole="4.0">
+
+        <!-- module 0 -->
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="81.6" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
+                <DeadZone>
+                    <DeadPoint x="40.0" y="-22.5" />
+                    <DeadPoint x="40.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="81.6" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
+                <DeadZone>
+                    <DeadPoint x="42.01" y="-22.5" />
+                    <DeadPoint x="37.99" y="-7.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="40.0" yorig="-22.5" xsize="40.0" ysize="15.0" stripDirection="LeftToRight" lborder="LeftBottom" rborder="RightBottom">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="4.0" y="-22.5" />
+                    <DeadPoint x="4.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="42.01" yorig="-22.5" xsize="42.01" ysize="15.0" stripDirection="LeftToRight" lborder="LeftBottom" rborder="RightBottom">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="4.0" y="-22.5" />
+                    <DeadPoint x="4.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+                <DeadZone> <!-- triangle -->
+                    <DeadPoint x="42.01" y="-22.5" />
+                    <DeadPoint x="42.01" y="-7.5" />
+                    <DeadPoint x="37.99" y="-7.5" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+        <!-- module 1 -->
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
+                <DeadZone>
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="-40.0" y="-7.5" />
+                    <DeadPoint x="-40.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
+                <DeadZone>
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="-42.01" y="-7.5" />
+                    <DeadPoint x="-37.99" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="40.0" ysize="15.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightTop">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="42.01" ysize="15.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightTop">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-22.5" />
+                </DeadZone>
+                <DeadZone> <!-- triangle -->
+                    <DeadPoint x="-37.99" y="-22.5" />
+                    <DeadPoint x="-42.01" y="-7.5" />
+                    <DeadPoint x="-42.01" y="-22.5" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+    </Station>
+
+<!-- Station 4 (M8) -->
+    <Station xPosition="3.7980" yPosition="16.09373" zPosition="160.6635" beamHole="4.0">
+
+        <!-- module 0 -->
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="backward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="81.6" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightTop">
+                <DeadZone>
+                    <DeadPoint x="40.0" y="-22.5" />
+                    <DeadPoint x="40.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="0" type="upper" stripAngle="-15.0" pitch="0.08" xorig="81.6" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightTop">
+                <DeadZone>
+                    <DeadPoint x="37.99" y="-22.5" />
+                    <DeadPoint x="42.01" y="-7.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="40.0" yorig="-22.5" xsize="40.0" ysize="15.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightTop">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="4.0" y="-22.5" />
+                    <DeadPoint x="4.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="upper" stripAngle="-15.0" pitch="0.08" xorig="42.01" yorig="-22.5" xsize="42.01" ysize="15.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightTop">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="4.0" y="-22.5" />
+                    <DeadPoint x="4.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+                <DeadZone> <!-- triangle -->
+                    <DeadPoint x="42.01" y="-22.5" />
+                    <DeadPoint x="42.01" y="-7.5" />
+                    <DeadPoint x="37.97" y="-22.5" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+        <!-- module 1 -->
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="backward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightTop">
+                <DeadZone>
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="-40.0" y="-7.5" />
+                    <DeadPoint x="-40.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="0" type="upper" stripAngle="-15.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightTop">
+                <DeadZone>
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="-37.99" y="-7.5" />
+                    <DeadPoint x="-42.01" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="40.0" ysize="15.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightBottom">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="upper" stripAngle="-15.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="42.01" ysize="15.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightBottom">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-22.5" />
+                </DeadZone>
+                <DeadZone> <!-- triangle -->
+                    <DeadPoint x="-42.01" y="-22.5" />
+                    <DeadPoint x="-37.99" y="-7.5" />
+                    <DeadPoint x="-42.01" y="-7.5" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+    </Station>
+
+<!-- Station 5 (M9) -->
+    <Station xPosition="4.5815" yPosition="16.45473" zPosition="183.668" beamHole="4.0">
+
+        <!-- module 0 -->
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="81.6" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
+                <DeadZone>
+                    <DeadPoint x="40.0" y="-22.5" />
+                    <DeadPoint x="40.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="81.6" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
+                <DeadZone>
+                    <DeadPoint x="42.01" y="-22.5" />
+                    <DeadPoint x="37.99" y="-7.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="40.0" yorig="-22.5" xsize="40.0" ysize="15.0" stripDirection="LeftToRight" lborder="LeftBottom" rborder="RightBottom">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="4.0" y="-22.5" />
+                    <DeadPoint x="4.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="42.01" yorig="-22.5" xsize="42.01" ysize="15.0" stripDirection="LeftToRight" lborder="LeftBottom" rborder="RightBottom">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="4.0" y="-22.5" />
+                    <DeadPoint x="4.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="0.0" y="-22.5" />
+                </DeadZone>
+                <DeadZone> <!-- triangle -->
+                    <DeadPoint x="42.01" y="-22.5" />
+                    <DeadPoint x="42.01" y="-7.5" />
+                    <DeadPoint x="37.99" y="-7.5" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+        <!-- module 1 -->
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
+                <DeadZone>
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="-40.0" y="-7.5" />
+                    <DeadPoint x="-40.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
+                <DeadZone>
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-7.5" />
+                    <DeadPoint x="-42.01" y="-7.5" />
+                    <DeadPoint x="-37.99" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="40.0" ysize="15.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightTop">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-22.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="42.01" ysize="15.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightTop">
+                <DeadZone> <!-- hole -->
+                    <DeadPoint x="0.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-18.5" />
+                    <DeadPoint x="-4.0" y="-22.5" />
+                </DeadZone>
+                <DeadZone> <!-- triangle -->
+                    <DeadPoint x="-37.99" y="-22.5" />
+                    <DeadPoint x="-42.01" y="-7.5" />
+                    <DeadPoint x="-42.01" y="-22.5" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+    </Station>
+
+</StationSet>
+
+

@@ -16,7 +16,7 @@ isMergedDigits(kFALSE) {
         isField = kTRUE;
 
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
-    TString gPathGemConfig = gPathConfig + "/gem/XMLConfigs/";
+    TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
     TString confGem = (fPeriod == 7) ? "GemRunSpring2018.xml" : (fPeriod == 6) ? "GemRunSpring2017.xml" : "";
     if (confGem == "") {
         printf(ANSI_COLOR_RED "No GEM geometry defined!\n" ANSI_COLOR_RESET);
@@ -98,7 +98,7 @@ void BmnGemResiduals::ResidualsAndDistances() {
 
                 Double_t a = 0., b = 0.;
                 LineFit(a, b, track, fGemHits, 2, iHit);
-                yRes = y - (a * z + b); // YZ-plane               
+                yRes = y - (a * z + b); // YZ-plane
             }
 
             BmnResiduals* resid = new((*fGemResiduals)[fGemResiduals->GetEntriesFast()]) BmnResiduals(hit->GetStation(), hit->GetModule(), xRes, yRes, 0., isField, isResid);

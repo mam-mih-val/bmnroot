@@ -53,7 +53,7 @@ fGemDigitMatches(NULL),
 //fGemClusterMatches(NULL),
 fGemHitMatches(NULL),
 fPrimes(kFALSE),
-fGemDetector(NULL),        
+fGemDetector(NULL),
 //fTof1Points(NULL),
 //fTof1Hits(NULL),
 //fTof1HitMatches(NULL),
@@ -65,7 +65,7 @@ fDch1Hits(NULL),
 fDch1HitMatches(NULL)
 //fDch2Points(NULL),
 //fDch2Hits(NULL),
-//fDch2HitMatches(NULL) 
+//fDch2HitMatches(NULL)
 {
 }
 
@@ -76,9 +76,9 @@ BmnClusteringQa::~BmnClusteringQa() {
 InitStatus BmnClusteringQa::Init() {
     // Create histogram manager which is used throughout the program
     fHM = new BmnHistManager();
-    
-    fGemDetector = new BmnGemStripStationSet_RunSpring2017(BmnGemStripConfiguration::RunSpring2017);    
-    //fSilDetector = new BmnSiliconStationSet("$VMCWORKDIR/gem/XMLConfigs/GemRunSpring2017");
+
+    fGemDetector = new BmnGemStripStationSet_RunSpring2017(BmnGemStripConfiguration::RunSpring2017);
+    //fSilDetector = new BmnSiliconStationSet("$VMCWORKDIR/parameters/gem/XMLConfigs/GemRunSpring2017");
 
     //fDet.DetermineSetup();
     ReadDataBranches();
@@ -120,8 +120,8 @@ void BmnClusteringQa::Exec(Option_t* opt) {
     //    FillHitEfficiencyHistograms(fTof2Points, fTof2Hits, fTof2HitMatches, "Tof2", kTOF);
 
     //    std::cout << "BmnClusteringQa::Exec: event=" << fHM->H1("hen_EventNo_ClusteringQa")->GetEntries() << std::endl;
-    
-    
+
+
 }
 
 void BmnClusteringQa::Finish() {
@@ -143,7 +143,7 @@ void BmnClusteringQa::ReadEventHeader() {
 void BmnClusteringQa::ReadDataBranches() {
     FairRootManager* ioman = FairRootManager::Instance();
     assert(ioman != NULL);
-    
+
     fMCTracks = (TClonesArray*) ioman->GetObject("MCTrack");
 
     fGemPoints = (TClonesArray*) ioman->GetObject("StsPoint");
@@ -166,7 +166,7 @@ void BmnClusteringQa::ReadDataBranches() {
     //    fTof2HitMatches = (TClonesArray*) ioman->GetObject("Tof2HitMatch");
     //    fDch1HitMatches = (TClonesArray*) ioman->GetObject("Dch1HitMatch");
     //    fDch2HitMatches = (TClonesArray*) ioman->GetObject("Dch2HitMatch");
-    
+
 }
 
 Int_t BmnClusteringQa::GetStationId(Int_t address, DetectorId detId) {
@@ -242,18 +242,18 @@ void BmnClusteringQa::ProcessHits(const TClonesArray* hits, const TClonesArray* 
         TString occupname = Form("Occupancy_%dst_gem", iSt);
         TString pullXname = Form("PullX_%dst_gem", iSt);
         TString pullYname = Form("PullY_%dst_gem", iSt);
-        
+
         /*for (Int_t i = 0; i < fGemPoints->GetEntriesFast(); ++i) {
               const FairMCPoint* pnt = (const FairMCPoint*) (fGemPoints->At(i));
               //const FairMCPoint* pnt = (const FairMCPoint*) (fGemPoints->At(hitMatch->GetMatchedLink().GetIndex()));
 //            Int_t station = stationNumber("Gem", pnt->GetZ());
-//            if (station != iSt) continue; 
+//            if (station != iSt) continue;
               fHM->H2(occupname.Data())->Fill(pnt->GetX(), pnt->GetY());
         }*/
 
         for (Int_t i = 0; i < fGemHits->GetEntriesFast(); ++i) {
             const BmnHit* hit = (const BmnHit*) (fGemHits->At(i));
-            if (hit->GetStation() != iSt) continue; 
+            if (hit->GetStation() != iSt) continue;
             const BmnMatch* hitMatch = (const BmnMatch*) (fGemHitMatches->At(i));
             const FairMCPoint* pnt = (const FairMCPoint*) (fGemPoints->At(hitMatch->GetMatchedLink().GetIndex()));
             const Float_t resX = pnt->GetX() - hit->GetX();
@@ -262,17 +262,17 @@ void BmnClusteringQa::ProcessHits(const TClonesArray* hits, const TClonesArray* 
             fHM->H1(resYname.Data())->Fill(resY);
             fHM->H2(pntXhitXname.Data())->Fill(pnt->GetX(), hit->GetX());
             fHM->H2(pntYhitYname.Data())->Fill(pnt->GetY(), hit->GetY());
-            
+
             fHM->H1(pullXname)->Fill(resX/hit->GetDx());
-           
+
             fHM->H1(pullYname)->Fill(resY/hit->GetDy());
-            
-            
+
+
             fHM->H2(occupname.Data())->Fill(pnt->GetX(), pnt->GetY());
         }
     }
-    
-    //for (Int_t iSt = 0; iSt < fSilDetector->GetNStations(); ++iSt){   
+
+    //for (Int_t iSt = 0; iSt < fSilDetector->GetNStations(); ++iSt){
     for (Int_t iSt = 0; iSt < 1; ++iSt){
         TString occupname = Form("Occupancy_%dst_sil", iSt);
         TString resXname = Form("ResX_%dst_sil", iSt);
@@ -281,44 +281,44 @@ void BmnClusteringQa::ProcessHits(const TClonesArray* hits, const TClonesArray* 
         TString pntYhitYname = Form("PntY_vs_HitY_%dst_sil", iSt);
         TString pullXname = Form("PullX_%dst_sil", iSt);
         TString pullYname = Form("PullY_%dst_sil", iSt);
-        
-        
+
+
         for (Int_t i = 0; i < fSilHits->GetEntriesFast(); ++i) {
             const BmnHit* hit = (const BmnHit*) (fSilHits->At(i));
             if (hit->GetStation() != iSt) continue;
             const BmnMatch* hitMatch = (const BmnMatch*) (fSilHitMatches->At(i));
             const FairMCPoint* pnt = (const FairMCPoint*) (fSilPoints->At(hitMatch->GetMatchedLink().GetIndex()));
-            
+
             const Float_t resX = pnt->GetX() - hit->GetX();
             const Float_t resY = pnt->GetY() - hit->GetY();
-            
+
             fHM->H1(resXname.Data())->Fill(resX);
             fHM->H1(resYname.Data())->Fill(resY);
             fHM->H2(pntXhitXname.Data())->Fill(pnt->GetX(), hit->GetX());
             fHM->H2(pntYhitYname.Data())->Fill(pnt->GetY(), hit->GetY());
-            
+
             fHM->H1(pullXname)->Fill(resX/hit->GetDx());
-           
+
             fHM->H1(pullYname)->Fill(resY/hit->GetDy());
             fHM->H2(occupname.Data())->Fill(pnt->GetX(), pnt->GetY());
         }
-        
-        
+
+
     }
-    
+
 //    for (Int_t iSt = 0; iSt < 3; ++iSt){
 //        TString occupname = Form("Occupancy_%dst_dch1", iSt);
-//        
+//
 //        for (Int_t i = 0; i < fDch1Hits->GetEntriesFast(); ++i) {
 //            printf("%d  Number of Dch points \n",fDch1Hits->GetEntriesFast());
 //            const BmnHit* hit = (const BmnHit*) (fDch1Hits->At(i));
 //            if (hit->GetStation() != iSt) continue;
 //            const BmnMatch* hitMatch = (const BmnMatch*) (fDch1HitMatches->At(i));
 //            const FairMCPoint* pnt = (const FairMCPoint*) (fDch1Points->At(hitMatch->GetMatchedLink().GetIndex()));
-//            
+//
 //            fHM->H2(occupname.Data())->Fill(pnt->GetX(), pnt->GetY());
 //        }
-//    }    
+//    }
 }
 
 void BmnClusteringQa::FillEventCounterHistograms() {
@@ -395,8 +395,8 @@ void BmnClusteringQa::CreateHistograms() {
 
     Int_t nStationsGEM = fGemDetector->GetNStations();
     Int_t nStationsSil = 1;//fSilDetector->GetNStations();
-    Int_t nStationsDCH1 = 3; 
-    
+    Int_t nStationsDCH1 = 3;
+
     for (Int_t iSt = 0; iSt < nStationsGEM; ++iSt) {
         TString occupname = Form("Occupancy_%dst_gem", iSt);
         TString resXname = Form("ResX_%dst_gem", iSt);
@@ -405,18 +405,18 @@ void BmnClusteringQa::CreateHistograms() {
         TString pntYhitYname = Form("PntY_vs_HitY_%dst_gem", iSt);
         TString pullXname = Form("PullX_%dst_gem", iSt);
         TString pullYname = Form("PullY_%dst_gem", iSt);
-        
+
         CreateH1(resXname.Data(), "ResX, cm", "Counter", 200, -5, 5);
         CreateH1(resYname.Data(), "ResY, cm", "Counter", 200, -5, 5);
         CreateH2(pntXhitXname.Data(), "X_{MC}, cm", "X_{reco}, cm", "", 400, -70, 70, 400, -70, 70);
         CreateH2(pntYhitYname.Data(), "Y_{MC}, cm", "Y_{reco}, cm", "", 400, -70, 70, 400, -70, 70);
-        
+
         CreateH2(occupname.Data(), "X_{MC}, cm", "Y_{MC}, cm", "Occupancy, #frac{part}{event * cm^{2}}", 50, -100, 100, 50, -30, 30);
-        
+
         CreateH1(pullXname.Data(),"PullX", "Counter", 200, -5, 5);
         CreateH1(pullYname.Data(),"PullY", "Counter", 200, -5, 5);
     }
-    
+
     for (Int_t iSt = 0; iSt < nStationsSil; ++iSt) {
         TString occupname = Form("Occupancy_%dst_sil", iSt);
         TString resXname = Form("ResX_%dst_sil", iSt);
@@ -425,24 +425,24 @@ void BmnClusteringQa::CreateHistograms() {
         TString pntYhitYname = Form("PntY_vs_HitY_%dst_sil", iSt);
         TString pullXname = Form("PullX_%dst_sil", iSt);
         TString pullYname = Form("PullY_%dst_sil", iSt);
-        
-        
+
+
         CreateH1(resXname.Data(), "ResX, cm", "Counter", 200, -1, 1);
         CreateH1(resYname.Data(), "ResY, cm", "Counter", 200, -1, 1);
         CreateH2(pntXhitXname.Data(), "X_{MC}, cm", "X_{reco}, cm", "", 400, -20, 20, 400, -20, 20);
         CreateH2(pntYhitYname.Data(), "Y_{MC}, cm", "Y_{reco}, cm", "", 400, -20, 20, 400, -20, 20);
-        
+
         CreateH2(occupname.Data(), "X_{MC}, cm", "Y_{MC}, cm", "Occupancy, #frac{part}{event * cm^{2}}", 50, -20, 20, 50, -20, 20);
-        
+
         CreateH1(pullXname.Data(),"PullX", "Counter", 200, -1, 1);
         CreateH1(pullYname.Data(),"PullY", "Counter", 200, -1, 1);
 
     }
-    
+
     for (Int_t iSt = 0; iSt < nStationsDCH1; ++iSt){
-        
+
         TString occupname = Form("Occupancy_%dst_dch1", iSt);
-                
+
         CreateH2(occupname.Data(), "X_{MC}, cm", "Y_{MC}, cm", "Occupancy, #frac{part}{event * cm^{2}}", 50, -20, 20, 50, -20, 20);
     }
 

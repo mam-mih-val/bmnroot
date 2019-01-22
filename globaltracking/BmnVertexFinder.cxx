@@ -47,7 +47,7 @@ InitStatus BmnVertexFinder::Init() {
 
     //fField = FairRunAna::Instance()->GetField();
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
-    TString gPathGemConfig = gPathConfig + "/gem/XMLConfigs/";
+    TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
     TString confGem = (fPeriodId == 7) ? "GemRunSpring2018.xml" : (fPeriodId == 6) ? "GemRunSpring2017.xml" : "GemRunSpring2017.xml";
     if (confGem == "") {
         printf(ANSI_COLOR_RED "No GEM geometry defined!\n" ANSI_COLOR_RESET);
@@ -140,9 +140,9 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
             mu[iPlane] = Dist[iPlane] / nPairs; // calc. ave. dist value
             // cout << iPlane << " " << mu[iPlane] << endl;
             /*
-                        cout << "Mu_before = " << endl;           
+                        cout << "Mu_before = " << endl;
                         cout << iPlane << " " << mu[iPlane] << endl;
-          
+
 
                         //for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
                         aveDist[iPlane] = dist(distancesEachPlane[iPlane], mu[iPlane]); // calc. distance from averaged value
@@ -153,14 +153,14 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
                         //            for (Int_t iSize = 0; iSize < distancesEachPlane[iPlane].size(); iPlane++) {
                         if (distancesEachPlane[iPlane].size() > 1)
                             for (auto it : distancesEachPlane[iPlane]) {
-                                //       cout << "iPlane = " << iPlane << " mu[iPlane] = " << mu[iPlane] << " iSize = " << iSize << " distancesEachPlane[iPlane].at(iSize) = " 
+                                //       cout << "iPlane = " << iPlane << " mu[iPlane] = " << mu[iPlane] << " iSize = " << iSize << " distancesEachPlane[iPlane].at(iSize) = "
                                 //               << distancesEachPlane[iPlane].at(iSize) << " " << distancesEachPlane[iPlane].size() << endl;
 
 
                                 sigma[iPlane] += Sqr(it - mu[iPlane]);
                                 // if (distancesEachPlane[iPlane].size() != 1) cout << sigma[iPlane] << endl;
                             }
-                        sigma[iPlane] = Sqrt(sigma[iPlane] / distancesEachPlane[iPlane].size()); // calc. initial approx. for sigma          
+                        sigma[iPlane] = Sqrt(sigma[iPlane] / distancesEachPlane[iPlane].size()); // calc. initial approx. for sigma
 
                         w[iPlane] = W(aveDist[iPlane], sigma[iPlane]); // calc. init. weights
                         sigma[iPlane] = Sigma(aveDist[iPlane], w[iPlane]); // calc reweighted sigma
@@ -176,7 +176,7 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
                                 sigma[iPlane] = Sigma(aveDist[iPlane], w[iPlane]);
                             }
                         }
-                        cout << "Mu_after = " << endl;           
+                        cout << "Mu_after = " << endl;
                         cout << iPlane << " " << mu[iPlane] << endl;
                         getchar();
              */
@@ -204,7 +204,7 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
         range /= 2;
 //        vertex->Draw("AP*");
         //c->SaveAs("tmp.pdf");
-        // getchar(); 
+        // getchar();
         delete vertex;
     }
     return minZ;
@@ -263,7 +263,7 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
 //                doIterations = kFALSE;
 //        }
 //        //
-//        
+//
 //        // 2.5 - the best range from MC simulations and reconstruction (by A.Zelenoff)
 //        VX = (Abs(vz - fRoughVertex3D.Z()) < range) ? vx : -1000.;
 //        VY = (Abs(vz - fRoughVertex3D.Z()) < range) ? vy : -1000.;

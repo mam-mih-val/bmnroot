@@ -2,7 +2,7 @@
  * Description:
  * Macro for calculating parameters of SILICON detector and writing them
  * into the XML-file needed for simulation and reconstruction procedures.
- * The obtained XML-file should be moved into the 'silicon/XMLConfigs' directory
+ * The obtained XML-file should be moved into the 'parameters/silicon/XMLConfigs' directory
  *
  * SILICON configuration: RunSRCSpring2018 (BM@N RUN-7 SRC where 3 SI-stations were)
  *

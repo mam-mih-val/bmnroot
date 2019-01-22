@@ -13,6 +13,7 @@ BmnSiliconStationSet::BmnSiliconStationSet(TString xml_config_file)
     Bool_t create_status = CreateConfigurationFromXMLFile(xml_config_file);
     if(!create_status) {
         std::cerr << "Error: There are problems with creation of the configuration from XML (in BmnSiliconStationSet)\n";
+        throw(StationSet_Exception("Error in the constructor BmnSiliconStationSet()"));
     }
 }
 

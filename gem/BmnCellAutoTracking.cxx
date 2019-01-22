@@ -109,7 +109,7 @@ InitStatus BmnCellAutoTracking::Init() {
 
     //GEM
     if (fInnerTrackerSetup[kGEM]) {
-        fGemPointsArray = (TClonesArray*) ioman->GetObject("StsPoint"); //in    
+        fGemPointsArray = (TClonesArray*) ioman->GetObject("StsPoint"); //in
         fGemHitsArray = (TClonesArray*) ioman->GetObject(fGemHitsBranchName); //in
         fGemTracksArray = new TClonesArray("BmnTrack", 100); //out
         ioman->Register(fGemTracksBranchName, "GEM", fGemTracksArray, kTRUE);
@@ -148,13 +148,13 @@ InitStatus BmnCellAutoTracking::Init() {
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
 
     if (fInnerTrackerSetup[kGEM]) {
-        TString gPathGemConfig = gPathConfig + "/gem/XMLConfigs/";
+        TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
         TString confGem = (fPeriodId == 7) ? "GemRunSpring2018.xml" : (fPeriodId == 6) ? "GemRunSpring2017.xml" : "GemRunSpring2017.xml";
         fGemDetector = new BmnGemStripStationSet(gPathGemConfig + confGem);
     }
 
     if (fInnerTrackerSetup[kSILICON]) {
-        TString gPathSiConfig = gPathConfig + "/silicon/XMLConfigs/";
+        TString gPathSiConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
         TString confSi = (fPeriodId == 7) ? "SiliconRunSpring2018.xml" : "SiliconRunSpring2017.xml";
         fSilDetector = new BmnSiliconStationSet(gPathSiConfig + confSi);
     }
@@ -317,7 +317,7 @@ void BmnCellAutoTracking::Exec(Option_t* opt) {
 
 BmnStatus BmnCellAutoTracking::SortTracks(vector<BmnTrack>& inTracks, vector<BmnTrack>& sortedTracks) {
     const Int_t n = fNStations - fNHitsCut + 1; //6 for geometry 2018 (4, 5, 6, 7, 8, 9)
-    multimap <Float_t, Int_t> sortedMap[n]; // array of map<Chi2,trIdx>. Each element of array corresponds fixed number of hits on track (4, 5, 6) 
+    multimap <Float_t, Int_t> sortedMap[n]; // array of map<Chi2,trIdx>. Each element of array corresponds fixed number of hits on track (4, 5, 6)
     for (Int_t iTr = 0; iTr < inTracks.size(); ++iTr) {
         if (inTracks.at(iTr).GetNHits() < fNHitsCut) continue;
         if (inTracks.at(iTr).GetChi2() / inTracks.at(iTr).GetNDF() > fChiSquareCut) continue;
@@ -602,7 +602,7 @@ BmnStatus BmnCellAutoTracking::CellToCandConnection(vector<BmnCellDuet> cells, v
         FairTrackParam* parF = candIn.GetParamFirst();
         //        Int_t candFirstSt = ((BmnHit*) fHitsArray->At(candIn.GetHitIndex(0)))->GetStation();
         for (BmnCellDuet &duet : cells) {
-            //if (duet.isUsed()) continue; //CHECK IT!!! MAYBE NOT THE BEST IDEA TO USE IT!            
+            //if (duet.isUsed()) continue; //CHECK IT!!! MAYBE NOT THE BEST IDEA TO USE IT!
             //            Int_t duetLastSt = ((BmnHit*) fHitsArray->At(duet.GetLastIdx()))->GetStation();
             if (candIn.GetHitIndex(0) == duet.GetLastIdx()) {
                 //            if (((candFirstSt == duetLastSt) && (candIn.GetHitIndex(0) == duet.GetLastIdx())) || (candFirstSt != duetLastSt)) {

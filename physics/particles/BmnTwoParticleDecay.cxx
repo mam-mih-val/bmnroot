@@ -33,12 +33,12 @@ fGlobalMatches(nullptr) {
     fMcVertex.SetXYZ(0., 0., 0.);
     fRunId = runId;
 
-    if (config == BmnGemStripConfiguration::GEM_CONFIG::RunSpring2018) 
+    if (config == BmnGemStripConfiguration::GEM_CONFIG::RunSpring2018)
         fRunPeriod = 7;
-        
-    else if (config == BmnGemStripConfiguration::GEM_CONFIG::RunSpring2017) 
+
+    else if (config == BmnGemStripConfiguration::GEM_CONFIG::RunSpring2017)
         fRunPeriod = 6;
-        
+
     else {
         cout << "BmnGemStripConfiguration not defined !!!" << endl;
         throw;
@@ -47,7 +47,7 @@ fGlobalMatches(nullptr) {
     // Create GEM detector ------------------------------------------------------
 
     TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
-    gPathGemConfig += "/gem/XMLConfigs/";
+    gPathGemConfig += "/parameters/gem/XMLConfigs/";
     // Create GEM detector ------------------------------------------------------
     switch (fGeometry) {
         case BmnGemStripConfiguration::RunSpring2017:
@@ -97,7 +97,7 @@ vector <Double_t> BmnTwoParticleDecay::GeomTopology(FairTrackParam proton_V0, Fa
     // Secondary pion extrapolated to Vp (Vp_pion_extrap)
     TVector3 pionVp(pion_Vp.GetX(), pion_Vp.GetY(), pion_Vp.GetZ());
 
-    // 1) 
+    // 1)
     // Distance beetween Vp and Vp_prot_extrap
     Double_t protonVpVp = TVector3(protonVp - Vp).Mag();
     // 2)
@@ -184,7 +184,7 @@ Bool_t BmnTwoParticleDecay::CheckTrack(BmnGlobalTrack* track, Int_t pdgCode, Dou
     Double_t Pz = Abs(p) / Sqrt(1 + Tx * Tx + Ty * Ty);
 
     Int_t sign = CheckSign(fPDG->GetParticle(pdgCode)->Charge());
-   
+
     mom = Abs(p);
     eta = 0.5 * Log((Abs(p) + Pz) / (Abs(p) - Pz));
 
@@ -282,11 +282,11 @@ void BmnTwoParticleDecay::Analysis() {
             partPair.SetDCA1(geomTopology.at(0));
             partPair.SetDCA2(geomTopology.at(1));
             partPair.SetDCA12(geomTopology.at(2));
-            
+
             TVector3 V0(V0X, V0Y, V0Z);
             TVector3 Vp(fEventVertex->GetX(), fEventVertex->GetY(), fEventVertex->GetZ());
             Double_t path = TVector3(V0 - Vp).Mag();
-            
+
             partPair.SetPath(path);
 
             partPair.SetMomPair(_p1, _p2);
@@ -351,7 +351,7 @@ void BmnTwoParticleDecay::Analysis() {
 
 InitStatus BmnTwoParticleDecay::Init() {
     cout << "\nBmnTwoParticleDecay::Init()" << endl;
-    // Read current geometry from database 
+    // Read current geometry from database
     Char_t* geoFileName = (Char_t*) "current_geo_file.root";
     Int_t res_code = UniDbRun::ReadGeometryFile(fRunPeriod, fRunId, geoFileName);
     if (res_code != 0) {
@@ -438,7 +438,7 @@ void BmnTwoParticleDecay::Exec(Option_t * option) {
     fParticlePair->Delete();
 
     fEventCounter++;
-    
+
     // In case of MC-data one has to extract coordinates of Vp known exactly ...
     if (fAnalType[0].Contains("eve") && !fAnalType[0].Contains("dst")) {
         for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
@@ -448,7 +448,7 @@ void BmnTwoParticleDecay::Exec(Option_t * option) {
             fMcVertex.SetXYZ(mcTrack->GetStartX(), mcTrack->GetStartY(), mcTrack->GetStartZ());
             break;
         }
-    }// Real data .. 
+    }// Real data ..
     else {
         fEventVertex = (CbmVertex*) fVertex->UncheckedAt(0);
 
@@ -524,18 +524,18 @@ Double_t BmnTwoParticleDecay::FindV0ByVirtualPlanes(BmnGlobalTrack* track1, BmnG
             fKalman->TGeoTrackPropagate(&par2, zPlane[iPlane], 211, NULL, NULL, kTRUE);
             Dist[iPlane] = Sqrt(Sq(par1.GetX() - par2.GetX()) + Sq(par1.GetY() - par2.GetY()));
         }
-       
+
         TGraph* vertex = new TGraph(nPlanes, zPlane, Dist);
         vertex->Fit("pol2", "QF");
         TF1 *fit_func = vertex->GetFunction("pol2");
         Double_t b = fit_func->GetParameter(1);
         Double_t a = fit_func->GetParameter(2);
-       
+
         z_0 = -b / (2 * a);
         range /= 2;
 
         delete vertex;
-    } 
+    }
     return z_0;
 }
 

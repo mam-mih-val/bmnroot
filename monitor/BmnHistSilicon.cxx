@@ -4,10 +4,10 @@
  * and open the template in the editor.
  */
 
-/* 
+/*
  * File:   BmnHistSilicon.cxx
  * Author: ilnur
- * 
+ *
  * Created on March 9, 2017, 10:39 AM
  */
 
@@ -21,7 +21,7 @@ BmnHistSilicon::BmnHistSilicon(TString title, TString path, Int_t PeriodID) : Bm
     fName = title + "_cl";
     TString name;
     TString xmlConfFileName = fPeriodID == 7 ? "SiliconRunSpring2018.xml" : "SiliconRunSpring2017.xml";
-    xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/silicon/XMLConfigs/" + xmlConfFileName;
+    xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/parameters/silicon/XMLConfigs/" + xmlConfFileName;
     printf("xmlConfFileName %s\n", xmlConfFileName.Data());
     BmnSiliconStationSet* stationSet = new BmnSiliconStationSet(xmlConfFileName);
     for (Int_t iStation = 0; iStation < stationSet->GetNStations(); iStation++) {

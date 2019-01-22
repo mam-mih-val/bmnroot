@@ -49,23 +49,23 @@ fParticlePairsInfo(NULL) {
             fDCA[i][j] = val;
             fDCA12[j] = val;
             fPath[j] = val;
-        }       
+        }
     }
-    
+
     if (config == BmnGemStripConfiguration::GEM_CONFIG::RunSpring2018) {
         fRunPeriod = 7;
         fRunId = 4629;
-    }    
-    
+    }
+
     if (config == BmnGemStripConfiguration::GEM_CONFIG::RunSpring2017) {
         fRunPeriod = 6;
         fRunId = 1209;
-    }  
+    }
 
     // Create GEM detector ------------------------------------------------------
-       
+
     TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
-    gPathGemConfig += "/gem/XMLConfigs/";
+    gPathGemConfig += "/parameters/gem/XMLConfigs/";
     switch (fGeometry) {
 //        case BmnGemStripConfiguration::RunWinter2016:
 //            fDetector = new BmnGemStripStationSet_RunWinter2016(fGeometry);
@@ -76,16 +76,16 @@ fParticlePairsInfo(NULL) {
             fDetector = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2017.xml");
             cout << "   Current Configuration : RunSpring2017" << "\n";
             break;
-              
+
         case BmnGemStripConfiguration::RunSpring2018:
             fDetector = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2018.xml");
             cout << "   Current Configuration : RunSpring2018" << "\n";
-            break;    
-            
+            break;
+
         default:
             fDetector = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2018.xml");
             cout << "   Current Configuration : RunSpring2018" << "\n";
-            break;            
+            break;
     }
 }
 
@@ -126,7 +126,7 @@ void BmnTwoParticleDecay::CalculateReconstuctableParticles() {
             if (mcTrack_pos->GetNPoints(kGEM) >= kHitsPerTrackMin && mcTrack_neg->GetNPoints(kGEM) >= kHitsPerTrackMin) {
                 //cout << fEventCounter << endl;
                 //cout << "P_{lambda} = " << ((CbmMCTrack*) fMCTracks->UncheckedAt(motherId_pos))->GetP() <<
-                //         " P_{p} = " << mcTrack_pos->GetP() << " P_{pi-} = " << mcTrack_neg->GetP() << 
+                //         " P_{p} = " << mcTrack_pos->GetP() << " P_{pi-} = " << mcTrack_neg->GetP() <<
                 //         " Pz_{p} = " << mcTrack_pos->GetPz() << " Pz_{pi} = " << mcTrack_neg->GetPz() << endl;
 
                 Double_t PLambda = ((CbmMCTrack*) fMCTracks->UncheckedAt(motherId_pos))->GetP();
@@ -188,7 +188,7 @@ vector <Double_t> BmnTwoParticleDecay::GeomTopology(FairTrackParam proton_V0, Fa
     // Secondary pion extrapolated to Vp (Vp_pion_extrap)
     TVector3 pionVp(pion_Vp.GetX(), pion_Vp.GetY(), pion_Vp.GetZ());
 
-    // 1) 
+    // 1)
     // Distance beetween Vp and Vp_prot_extrap
     Double_t protonVpVp = TVector3(protonVp - Vp).Mag();
     // 2)
@@ -215,7 +215,7 @@ vector <TVector3> BmnTwoParticleDecay::KalmanTrackPropagation(BmnGlobalTrack* tr
 
     FairTrackParam parPredict = *(track->GetParamFirst());
 
-    vector <TVector3> pointsPerTrack; // Container to store existing points and ones to be obtained when the Kalman propagation doing 
+    vector <TVector3> pointsPerTrack; // Container to store existing points and ones to be obtained when the Kalman propagation doing
     pointsPerTrack.push_back(TVector3(parPredict.GetX(), parPredict.GetY(), parPredict.GetZ())); // Put already existing point
 
     vector <Double_t>* F = new vector <Double_t> (25, 0.);
@@ -280,7 +280,7 @@ Bool_t BmnTwoParticleDecay::CheckTrack(BmnGlobalTrack* track, Int_t pdgCode, Dou
             Tx < fTx[nPart][0] || Tx > fTx[nPart][1] ||
             Ty < fTy[nPart][0] || Ty > fTy[nPart][1] ||
             eta < fEta[nPart][0] || eta > fEta[nPart][1]) {
-        
+
         return kFALSE;
     }
     else
@@ -291,25 +291,25 @@ void BmnTwoParticleDecay::Analysis() {
     const Int_t nV0 = 2;
     TLorentzVector lPos[nV0], lNeg[nV0];
     TClonesArray* arr = ((fUseMc && fGlobalMatches) || !fUseMc) ? fGlobalTracks : fMCTracks;
-    
+
     for (Int_t iTrack = 0; iTrack < arr->GetEntriesFast(); iTrack++) {
         BmnGlobalTrack Track1;
         BmnGlobalTrack* track1 = &Track1;
-            
+
 
         if (fUseMc && !fGlobalMatches) {
-                       
+
             TParticlePDG* particle1 = fPDG->GetParticle(((CbmMCTrack*) arr->UncheckedAt(iTrack))->GetPdgCode());
             if (!particle1) {
                 continue;
-            }    
+            }
             Double_t Q1 = particle1->Charge();
             if (!(Q1 > 0)) {
                 continue;
 
-            }   
+            }
             FindFirstPointOnMCTrack(iTrack, track1, CheckSign(Q1));
-            
+
         } else {
             track1 = (BmnGlobalTrack*) arr->UncheckedAt(iTrack);
             if (fSiRequired && track1->GetSilHitIndex() == -1)
@@ -320,8 +320,8 @@ void BmnTwoParticleDecay::Analysis() {
         if (!CheckTrack(track1, fPdgParticle1, _p1, _eta1)) {
             continue;
 
-        }    
-        
+        }
+
         for (Int_t jTrack = 0; jTrack < arr->GetEntriesFast(); jTrack++) {
             if (iTrack == jTrack) {
                 continue;
@@ -329,7 +329,7 @@ void BmnTwoParticleDecay::Analysis() {
 
             BmnGlobalTrack Track2;
             BmnGlobalTrack* track2 = &Track2;
-                        
+
             if (fUseMc && !fGlobalMatches) {
                 TParticlePDG* particle2 = fPDG->GetParticle(((CbmMCTrack*) arr->UncheckedAt(jTrack))->GetPdgCode());
                 if (!particle2)
@@ -349,7 +349,7 @@ void BmnTwoParticleDecay::Analysis() {
             if (!CheckTrack(track2, fPdgParticle2, _p2, _eta2))
                 continue;
 
-            // Array to store V0XZ and V0YZ ...           
+            // Array to store V0XZ and V0YZ ...
             Double_t V0Z[nV0] = {0., 0.}; // V0XZ and V0YZ
 
             // Go to primary vertex Vp
@@ -362,8 +362,8 @@ void BmnTwoParticleDecay::Analysis() {
             V0Z[1] = SecondaryVertexY(track1->GetParamFirst(), track2->GetParamFirst()).Y(); // V0ZY
 
             // Use Kalman to estimate a possible secondary vertex in xz-plane
-            // Propagation to Z = 0; 
-            // After the procedure <<track(1,2)->GetParamFirst()>> will be updated by shifted values corresponding to Z = 0 
+            // Propagation to Z = 0;
+            // After the procedure <<track(1,2)->GetParamFirst()>> will be updated by shifted values corresponding to Z = 0
             vector <TVector3> protonTrackPoints = KalmanTrackPropagation(track1, fPdgParticle1);
             vector <TVector3> pionTrackPoints = KalmanTrackPropagation(track2, fPdgParticle2);
 
@@ -377,14 +377,14 @@ void BmnTwoParticleDecay::Analysis() {
                     protParametrizedTraject.X() * pionParametrizedTraject.X() > 0.)
                 continue;
 
-            // Array is used either to store point coord. and dist. between (z1[0], x1[1], z2[2], x2[3], min_dist[4]) them or 
+            // Array is used either to store point coord. and dist. between (z1[0], x1[1], z2[2], x2[3], min_dist[4]) them or
             // points of overlapping (z1, x1, z2, x2, 0.) when the curves are overlapped.
             Double_t* pointsAndMinDist = new Double_t[5];
             CalculateMinDistance(protParametrizedTraject, pionParametrizedTraject, pointsAndMinDist);
 
             Double_t zPartOrigDeath = (pointsAndMinDist[0] + pointsAndMinDist[2]) / 2.0;
             Double_t xPartOrigDeath = (pointsAndMinDist[1] + pointsAndMinDist[3]) / 2.0;
-            
+
             V0Z[0] = Min(pointsAndMinDist[0], pointsAndMinDist[2]); // V0ZX
             delete [] pointsAndMinDist;
 
@@ -402,19 +402,19 @@ void BmnTwoParticleDecay::Analysis() {
                 pion_V0[iProj] = KalmanTrackPropagation(track2, fPdgParticle2, V0Z[iProj]);
                 geomTopology[iProj] = GeomTopology(proton_V0[iProj], pion_V0[iProj], proton_Vp, pion_Vp);
             }
-            
+
             Double_t protonPz = 1.0 / proton_V0[0].GetQp() / Sqrt(Sqr(proton_V0[0].GetTx()) + Sqr(proton_V0[0].GetTy()) + 1.0);
             Double_t pionPz = 1.0 / pion_V0[0].GetQp() / Sqrt(Sqr(pion_V0[0].GetTx()) + Sqr(pion_V0[0].GetTy()) + 1.0);
             Double_t protonPx = proton_V0[0].GetTx() * protonPz;
             Double_t pionPx = pion_V0[0].GetTx() * pionPz;
             Double_t protonPy = proton_V0[0].GetTy() * protonPz;
             Double_t pionPy = pion_V0[0].GetTy() * pionPz;
-            
+
             Double_t txPartOrig = (protonPx + pionPx) / (protonPz + pionPz);
             Double_t PartOrigBX = txPartOrig * (Vpz - zPartOrigDeath) + xPartOrigDeath;
-                     
-            BmnParticlePair partPair = (fUseMc == kTRUE && fGlobalMatches == NULL) ? BmnParticlePair('a') : ((fGlobalMatches != NULL) ? BmnParticlePair('b') : BmnParticlePair('c'));  
-            
+
+            BmnParticlePair partPair = (fUseMc == kTRUE && fGlobalMatches == NULL) ? BmnParticlePair('a') : ((fGlobalMatches != NULL) ? BmnParticlePair('b') : BmnParticlePair('c'));
+
             BmnRecLambda* lambda;
             partPair.SetPartOrigB(PartOrigBX, 0.0); //FIXME
             partPair.SetV0XZ(V0Z[0]);
@@ -457,9 +457,9 @@ void BmnTwoParticleDecay::Analysis() {
             partPair.SetAlpha(armenPodol[0].X(), armenPodol[1].X());
             partPair.SetPtPodol(armenPodol[0].Y(), armenPodol[1].Y());
             partPair.SetInvMass(TLorentzVector((lPos[0] + lNeg[0])).Mag(), TLorentzVector((lPos[1] + lNeg[1])).Mag());
-                    
+
             if (kTRUE == fUseMc && NULL == fGlobalMatches) {
-                
+
                 Double_t Pp = partPair.GetMomPart1();
                 Double_t Ppi = partPair.GetMomPart2();
                 Double_t Etap = partPair.GetEtaPart1();
@@ -469,12 +469,12 @@ void BmnTwoParticleDecay::Analysis() {
                 Double_t dca2 = partPair.GetDCA2();
                 Double_t dca12 = partPair.GetDCA12("X");
                 Double_t path = partPair.GetPath("X");
-                                
+
                 partPair.SetMCTrackIdPart1(iTrack);
                 partPair.SetMCTrackIdPart2(jTrack);
-                         
+
                 new((*fParticlePairMCAll)[fParticlePairMCAll->GetEntriesFast()]) BmnParticlePair(partPair);
-                
+
                 if (Pp < fMom[0][0] || Pp > fMom[0][1] || Ppi < fMom[1][0] || Ppi > fMom[1][1])
                     continue;
 
@@ -490,13 +490,13 @@ void BmnTwoParticleDecay::Analysis() {
 
                 if (path < fPath[0] || path > fPath[1])
                     continue;
-                
+
                 new((*fParticlePairMC)[fParticlePairMC->GetEntriesFast()]) BmnParticlePair(partPair);
             }
             if (fGlobalMatches) {
                 BmnGlobalTrack* glTr1 = (BmnGlobalTrack*) fGlobalTracks->UncheckedAt(iTrack);
                 BmnGlobalTrack* glTr2 = (BmnGlobalTrack*) fGlobalTracks->UncheckedAt(jTrack);
-                        
+
                 CbmMCTrack* mcTr1 = (CbmMCTrack*) fMCTracks->UncheckedAt(recoToMcIdx(iTrack));
                 CbmMCTrack* mcTr2 = (CbmMCTrack*) fMCTracks->UncheckedAt(recoToMcIdx(jTrack));
 
@@ -505,16 +505,16 @@ void BmnTwoParticleDecay::Analysis() {
 
                 Int_t nHits1 = glTr1->GetNHits();
                 Int_t nHits2 = glTr2->GetNHits();
-                
+
                 Double_t pMcTr1 = mcTr1->GetP();
                 Double_t pMcTr2 = mcTr2->GetP();
-                               
+
                 Int_t idx = (nHits1 == 4 && nHits2 == 4) ? 0 : (nHits1 == 5 && nHits2 == 5) ? 1 : 2;
                 h3Sim[0][idx]->Fill(pGlTr1 - pMcTr1, Abs(pGlTr2) - pMcTr2);
 
-                Double_t lambdaPx = protonPx + pionPx;   
-                Double_t lambdaPy = protonPy + pionPy;   
-                Double_t lambdaPz = protonPz + pionPz;   
+                Double_t lambdaPx = protonPx + pionPx;
+                Double_t lambdaPy = protonPy + pionPy;
+                Double_t lambdaPz = protonPz + pionPz;
                 Double_t PLambda = Sqrt(Sqr(lambdaPx)+Sqr(lambdaPy)+Sqr(lambdaPz));
                 Double_t etaLambda = 0.5*TMath::Log((PLambda+lambdaPz)/(PLambda-lambdaPz));
 
@@ -528,9 +528,9 @@ void BmnTwoParticleDecay::Analysis() {
                 Double_t dca2 = partPair.GetDCA2();
                 Double_t dca12 = partPair.GetDCA12("X");
                 Double_t path = partPair.GetPath("X");
-                
+
                 new((*fParticlePairNoCuts)[fParticlePairNoCuts->GetEntriesFast()]) BmnParticlePair(partPair);
-                
+
 //                 Kin. cuts applied ...
                 if (Pp < fMom[0][0] || Pp > fMom[0][1] || Ppi < fMom[1][0] || Ppi > fMom[1][1])
                     continue;
@@ -546,21 +546,21 @@ void BmnTwoParticleDecay::Analysis() {
                     continue;
 
                 if (path < fPath[0] || path > fPath[1])
-                    continue;          
-                
+                    continue;
+
                 partPair.SetMCTrackIdPart1(recoToMcIdx(iTrack));
                 partPair.SetMCTrackIdPart2(recoToMcIdx(jTrack));
-                
+
                 partPair.SetRecoTrackIdPart1(iTrack);
                 partPair.SetRecoTrackIdPart2(jTrack);
-                                 
+
                 new((*fParticlePair)[fParticlePair->GetEntriesFast()]) BmnParticlePair(partPair);
-                
+
                 // 1d-histos ...
-                              
+
                 hReco[0]->Fill(PLambda);
                 hReco[1]->Fill(etaLambda);
-                
+
                 hReco[2]->Fill(Pp);
                 hReco[3]->Fill(Ppi);
                 hReco[4]->Fill(Etap);
@@ -576,7 +576,7 @@ void BmnTwoParticleDecay::Analysis() {
                 h2Reco[4]->Fill(Etap, Etapi);
                 h2Reco[5]->Fill(glTr1->GetParamFirst()->GetTx(), glTr2->GetParamFirst()->GetTx());
                 h2Reco[6]->Fill(glTr1->GetParamFirst()->GetTy(), glTr2->GetParamFirst()->GetTy());
-            }    
+            }
         }
     }
 }
@@ -584,7 +584,7 @@ void BmnTwoParticleDecay::Analysis() {
 
 InitStatus BmnTwoParticleDecay::Init() {
     cout << "\nBmnTwoParticleDecay::Init()" << endl;
-    // Read current geometry (RunSpring2017) from database 
+    // Read current geometry (RunSpring2017) from database
     Char_t* geoFileName = (Char_t*) "current_geo_file.root";
     Int_t res_code = UniDbRun::ReadGeometryFile(fRunPeriod, fRunId, geoFileName);
     if (res_code != 0) {
@@ -605,10 +605,10 @@ InitStatus BmnTwoParticleDecay::Init() {
     fOutFileName = ioman->GetOutFile()->GetName();
     if (inFileName.Contains("evetest")) {
         fUseMc = kTRUE;
-    }    
+    }
     else if (inFileName.Contains("bmndst")) {
         fUseMc = kFALSE;
-    }    
+    }
     else {
         cout << "Specify a correct file name!" << endl;
         throw;
@@ -629,26 +629,26 @@ InitStatus BmnTwoParticleDecay::Init() {
     if (kTRUE == fUseMc) {
         fParticlePairMC = new TClonesArray("BmnParticlePair");
         ioman->Register("ParticlePairMC", "Lambda", fParticlePairMC, kTRUE);
-        
+
         fParticlePairMCAll = new TClonesArray("BmnParticlePair");
         ioman->Register("AllParticlePairMC", "Lambda", fParticlePairMCAll, kTRUE);
-        
+
         fParticlePairsInfo = new TClonesArray("BmnParticlePairsInfo");
         ioman->Register("ParticlePairsInfoMC", "Lambda", fParticlePairsInfo, kTRUE);
-    } 
-    
+    }
+
     if (kFALSE == fUseMc) {
         fParticlePair = new TClonesArray("BmnParticlePair");
         ioman->Register("ParticlePair", "Lambda", fParticlePair, kTRUE);
-        
+
         fParticlePairNoCuts = new TClonesArray("BmnParticlePair");
         ioman->Register("ParticlePairNoCuts", "Lambda", fParticlePairNoCuts, kTRUE);
-                
+
         fParticlePairsInfo = new TClonesArray("BmnParticlePairsInfo");
         ioman->Register("ParticlePairsInfoReco", "Lambda", fParticlePairsInfo, kTRUE);
 
     }
-    
+
     fPDG = TDatabasePDG::Instance();
     fMagField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
     fMagField->SetScale((!fUseMc) ? *runInfo->GetFieldVoltage() / 55.87 : 1.3);
@@ -665,9 +665,9 @@ InitStatus BmnTwoParticleDecay::Init() {
             (fPDG1 == 211 && fPDG2 == -211) ? 310 : -1;
     fLeftInvMass = (fPDG1 == 2212 && fPDG2 == -211) ? 1.113 : -1; // FIXME (for K0-short)
     fRightInvMass = (fPDG1 == 2212 && fPDG2 == -211) ? 1.119 : -1; // inv.mass \pm 3\sigma
-    
+
     cout << fUseMc << endl;
-    
+
     if (!fUseMc && fGlobalMatches!=NULL) {
         fN = 8;
         hSim = new TH1F*[fN]();
@@ -677,7 +677,7 @@ InitStatus BmnTwoParticleDecay::Init() {
         h2Sim = new TH2F*[fN2]();
         h2Reco = new TH2F*[fN2]();
 
-        fN3 = 2; // [0] --> all pairs, [1] --> pairs from lambda 
+        fN3 = 2; // [0] --> all pairs, [1] --> pairs from lambda
         fN4 = 3; // [0] --> 4 hits, [1] --> 5 hits, [2] --> 6 hits per track
 
         h3Sim = new TH2F**[fN3]();
@@ -761,26 +761,26 @@ InitStatus BmnTwoParticleDecay::Init() {
             }
         }
     }
-        
+
     return kSUCCESS;
 }
 
 // -------------------------------------------------------------------
 
 void BmnTwoParticleDecay::Exec(Option_t* option) {
-    
+
     BmnParticlePairsInfo* pairInfo = new BmnParticlePairsInfo();
-    
+
     pairInfo->setMomPart1Min(fMom[0][0]);
     pairInfo->setMomPart1Max(fMom[0][1]);
     pairInfo->setMomPart2Min(fMom[1][0]);
     pairInfo->setMomPart2Max(fMom[1][1]);
-    
+
     pairInfo->setEtaPart1Min(fEta[0][0]);
     pairInfo->setEtaPart1Max(fEta[0][1]);
     pairInfo->setEtaPart2Min(fEta[1][0]);
     pairInfo->setEtaPart2Max(fEta[1][1]);
-    
+
     pairInfo->setDCAPart1Min(fDCA[0][0]);
     pairInfo->setDCAPart1Max(fDCA[0][1]);
     pairInfo->setDCAPart2Min(fDCA[1][0]);
@@ -792,7 +792,7 @@ void BmnTwoParticleDecay::Exec(Option_t* option) {
     pairInfo->setPathMax(fPath[1]);
 
     new((*fParticlePairsInfo)[0]) BmnParticlePairsInfo(*pairInfo);
-            
+
     if (kTRUE == fUseMc) {
         fParticlePairMC->Delete();
         fParticlePairMCAll->Delete();
@@ -800,7 +800,7 @@ void BmnTwoParticleDecay::Exec(Option_t* option) {
     if (kFALSE == fUseMc) {
         fParticlePair->Delete();
         fParticlePairNoCuts->Delete();
-    }    
+    }
 
     fEventCounter++;
     if (fEventCounter % 100 == 0)
@@ -817,7 +817,7 @@ void BmnTwoParticleDecay::Exec(Option_t* option) {
         }
         if (fGlobalMatches)
             CalculateReconstuctableParticles();
-    }// Real data .. 
+    }// Real data ..
     else {
         fEventVertex = (CbmVertex*) fVertex->UncheckedAt(0);
 
@@ -857,7 +857,7 @@ void BmnTwoParticleDecay::Finish() {
         //                    h3Sim[iHist][jHist]->Write();
     }
 
-    
+
     delete fKalman;
     delete fMagField;
     cout << "\n-I- [BmnTwoParticleDecay::Finish] " << endl;
@@ -907,7 +907,7 @@ void BmnTwoParticleDecay::CalculateMinDistance(TVector3 paramsCurv1, TVector3 pa
     Double_t b2 = paramsCurv2[1];
     Double_t c2 = paramsCurv2[2];
 
-    // Do they have a cross-point? (D >= 0) 
+    // Do they have a cross-point? (D >= 0)
     // If not than D < 0
 
     Double_t D = (b1 - b2) * (b1 - b2) - 4 * (a1 - a2) * (c1 - c2);

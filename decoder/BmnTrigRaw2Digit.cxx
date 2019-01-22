@@ -206,8 +206,6 @@ BmnStatus BmnTrigRaw2Digit::ReadINLFromFile(BmnTrigParameters* par) {
         }
     }
     ff.close();
-    if (channelID < par->ChannelCount - 1)
-        printf("Channels count mismatch! Last channelID = %u channelCount %u\n", channelID, par->ChannelCount);
     return kBMNSUCCESS;
 }
 

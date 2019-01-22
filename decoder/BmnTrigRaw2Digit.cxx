@@ -1,6 +1,7 @@
 #include "BmnTrigRaw2Digit.h"
 #include <climits>
 #include <root/RtypesCore.h>
+#include <root/TPRegexp.h>
 
 BmnTrigParameters::BmnTrigParameters() {
     for (UInt_t i = 0; i < CHANNEL_COUNT_MAX; i++) {
@@ -69,17 +70,22 @@ BmnStatus BmnTrigRaw2Digit::ReadPlacementMap(TString mappingFile) {
     UInt_t crateSerial, boardSerial;
     UShort_t slot;
 
-    regex reBoardName("(\\D+)(\\d+)(.*)");
+//    regex reBoardName("(\\D+)(\\d+)(.*)");
+    TPRegexp reBoardName("(\\D+)(\\d+)(.*)");
     pmFile >> dummy >> dummy >> dummy >> dummy;
     pmFile >> dummy;
     while (!fMapFile.eof()) {
         pmFile >> name >> hex >> crateSerial >> dec >> slot >> hex >> boardSerial >> dec;
         if (!pmFile.good()) break;
-        string channelCountStr = name;
+        TString channelCountStr = name;
+//        string channelCountStr = name;
         UInt_t channelCount = CHANNEL_COUNT_MAX;
-        if (regex_match(name, reBoardName)){
-            channelCountStr = regex_replace(name, reBoardName, "$2");
-            channelCount = strtoul(channelCountStr.c_str(), nullptr, 10);
+        if (reBoardName.MatchB(name)){
+//        if (regex_match(name, reBoardName)){
+//            channelCountStr = regex_replace(name, reBoardName, "$2");
+            reBoardName.Substitute(channelCountStr, "$2");
+            channelCount = strtoul(channelCountStr.Data(), nullptr, 10);
+//            channelCount = strtoul(channelCountStr.c_str(), nullptr, 10);
         }
         BmnTrigParameters * par = new BmnTrigParameters();
         par->BoardSerial = boardSerial;
@@ -156,13 +162,15 @@ BmnStatus BmnTrigRaw2Digit::ReadINLFromFile(BmnTrigParameters* par) {
         return kBMNERROR;
     }
     printf("Open INL file %s\n", fINLFileName.Data());
-    regex reInlHdr("\\[.*(inl_corr).*\\]"); // INL block header
-    regex reInlChannel("\\s*(\\d+)=(.+)"); // chID=c0, c1, ...
+    TPRegexp reInlHdr("\\[.*(inl_corr).*\\]"); // INL block header
+//    regex reInlHdr("\\[.*(inl_corr).*\\]"); // INL block header
+//    regex reInlChannel("\\s*(\\d+)=(.+)"); // chID=c0, c1, ...
     Bool_t isInlHdr = kFALSE;
     while (!ff.eof()) {
         string line;
         std::getline(ff, line, '\n');
-        if (regex_match(line, reInlHdr)) {
+        if (reInlHdr.MatchB(line)) {
+//        if (regex_match(line, reInlHdr)) {
             isInlHdr = kTRUE;
             break;
         }

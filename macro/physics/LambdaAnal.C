@@ -9,8 +9,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 void LambdaAnal(UInt_t nEvents = 10e6,
         TString inSim = "",  // evetest.root
         TString inReco = "", // bmndst.root (with matches or obtained from exp. data processing)
-        TString output = "",
-        Int_t runId) {
+        TString output = "out.root") {
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;

@@ -119,6 +119,26 @@ vector <Double_t> BmnTwoParticleDecay::GeomTopology(FairTrackParam proton_V0, Fa
     return cuts;
 }
 
+vector <TVector3> BmnTwoParticleDecay::KalmanTrackPropagation(BmnGlobalTrack* track, Int_t pdg) {
+    Double_t zStart = fDetector->GetGemStation(0)->GetZPosition();
+
+    FairTrackParam parPredict = *(track->GetParamFirst());
+
+    vector <TVector3> pointsPerTrack; // Container to store existing points and ones to be obtained when the Kalman propagation doing 
+    pointsPerTrack.push_back(TVector3(parPredict.GetX(), parPredict.GetY(), parPredict.GetZ())); // Put already existing point
+
+    vector <Double_t>* F = new vector <Double_t> (25, 0.);
+
+    for (Int_t iStep = 1; iStep <= Int_t(zStart); iStep++) { //FIXME
+        fKalman->TGeoTrackPropagate(&parPredict, zStart - Double_t(iStep), pdg, F, NULL, kTRUE);
+        pointsPerTrack.push_back(TVector3(parPredict.GetX(), parPredict.GetY(), parPredict.GetZ()));
+    }
+
+    delete F;
+    // track->SetParamFirst(parPredict);
+    return pointsPerTrack;
+}
+
 FairTrackParam BmnTwoParticleDecay::KalmanTrackPropagation(BmnGlobalTrack* track, Int_t pdg, Double_t Z) {
     FairTrackParam parPredict = *(track->GetParamFirst());
     fKalman->TGeoTrackPropagate(&parPredict, Z, pdg, NULL, NULL, kTRUE);
@@ -195,6 +215,7 @@ Bool_t BmnTwoParticleDecay::CheckTrack(BmnGlobalTrack* track, Int_t pdgCode, Dou
 }
 
 void BmnTwoParticleDecay::Analysis() {
+    // const Int_t nV0 = 2;
     TLorentzVector lPos, lNeg;
 
     TClonesArray* arr = (fAnalType[1].Contains("ON") || fAnalType[0].Contains("dst")) ? fGlobalTracks : fMCTracks;
@@ -246,23 +267,60 @@ void BmnTwoParticleDecay::Analysis() {
             if (!CheckTrack(track2, fPdgParticle2, _p2, _eta2))
                 continue;
 
+            // Array to store V0XZ and V0YZ ...           
+            // Double_t V0Z[nV0] = {0., 0.}; // V0XZ and V0YZ
+
             // Go to primary vertex Vp
             Double_t Vpz = isMC ? fMcVertex.Z() : fIsUseRealVertex ? fEventVertex->GetZ() : fEventVertex->GetRoughZ();
+
             FairTrackParam proton_Vp = KalmanTrackPropagation(track1, fPdgParticle1, Vpz);
             FairTrackParam pion_Vp = KalmanTrackPropagation(track2, fPdgParticle2, Vpz);
 
+            // Calculate V0YZ the YZ-projection ...
+            // V0Z[1] = SecondaryVertexY(track1->GetParamFirst(), track2->GetParamFirst()).Y(); // V0ZY
+
             Double_t V0Z = FindV0ByVirtualPlanes(track1, track2, .5 * (Vpz + fDetector->GetGemStation(0)->GetZPosition()));
-            if (V0Z < fEventVertex->GetRoughZ() - 10. || V0Z > fDetector->GetGemStation(5)->GetZPosition()) // FIXME!
+            if (V0Z < -999. || V0Z > 200.)
                 continue;
+
+            /*
+            // Use Kalman to estimate a possible secondary vertex in xz-plane
+            // Propagation to Z = 0; 
+            // After the procedure <<track(1,2)->GetParamFirst()>> will be updated by shifted values corresponding to Z = 0 
+            vector <TVector3> protonTrackPoints = KalmanTrackPropagation(track1, fPdgParticle1);
+            vector <TVector3> pionTrackPoints = KalmanTrackPropagation(track2, fPdgParticle2);
+
+            // XZ-trajectory parametrized by pol2 (x(z) = az^2 + bz + c)
+            // FitParabola(...) returns coeff. of the paramtr. used
+            TVector3 protParametrizedTraject = FitParabola(protonTrackPoints);
+            TVector3 pionParametrizedTraject = FitParabola(pionTrackPoints);
+
+            // Omitting bad fits ...
+            if ((protParametrizedTraject.Mag()) < FLT_EPSILON || pionParametrizedTraject.Mag() < FLT_EPSILON ||
+                    protParametrizedTraject.X() * pionParametrizedTraject.X() > 0.)
+                continue;
+
+            // Array is used either to store point coord. and dist. between (z1[0], x1[1], z2[2], x2[3], min_dist[4]) them or 
+            // points of overlapping (z1, x1, z2, x2, 0.) when the curves are overlapped.
+            Double_t* pointsAndMinDist = new Double_t[5];
+            CalculateMinDistance(protParametrizedTraject, pionParametrizedTraject, pointsAndMinDist);
+
+            Double_t zPartOrigDeath = (pointsAndMinDist[0] + pointsAndMinDist[2]) / 2.0;
+            Double_t xPartOrigDeath = (pointsAndMinDist[1] + pointsAndMinDist[3]) / 2.0;
+
+            V0Z[0] = Min(pointsAndMinDist[0], pointsAndMinDist[2]); // V0ZX
+            delete [] pointsAndMinDist;
+             */
 
             // Go to secondary vertex V0
             // FairTrackParam proton_V0, pion_V0;
             // vector <Double_t> geomTopology;
             // Description of vector:
-            // DCA1  --> [0]
-            // DCA2  --> [1]
-            // DCA12 --> [2]
+            // Distance between Vp and Vp_prot_extrap   [0]
+            // Distance between Vp and Vp_prot_extrap   [1]
+            // Distance between proton and pion at V0    [2]
 
+            //  for (Int_t iProj = 0; iProj < nV0; iProj++) {
             // Go to secondary vertex V0
             FairTrackParam proton_V0, pion_V0;
             proton_V0 = KalmanTrackPropagation(track1, fPdgParticle1, V0Z);
@@ -272,26 +330,37 @@ void BmnTwoParticleDecay::Analysis() {
             Double_t V0Y = .5 * (proton_V0.GetY() + pion_V0.GetY());
 
             vector <Double_t> geomTopology = GeomTopology(proton_V0, pion_V0, proton_Vp, pion_Vp);
+            //  }
+
+            Double_t protonPz = 1.0 / proton_V0.GetQp() / Sqrt(Sqr(proton_V0.GetTx()) + Sqr(proton_V0.GetTy()) + 1.0);
+            Double_t pionPz = 1.0 / pion_V0.GetQp() / Sqrt(Sqr(pion_V0.GetTx()) + Sqr(pion_V0.GetTy()) + 1.0);
+            // Double_t protonPx = proton_V0.GetTx() * protonPz;
+            // Double_t pionPx = pion_V0.GetTx() * pionPz;
+            // Double_t protonPy = proton_V0.GetTy() * protonPz;
+            // Double_t pionPy = pion_V0.GetTy() * pionPz;
+
+            // Double_t txPartOrig = (protonPx + pionPx) / (protonPz + pionPz);
+            // Double_t PartOrigBX = txPartOrig * (Vpz - zPartOrigDeath) + xPartOrigDeath;
 
             BmnParticlePair partPair;
 
+            //            partPair.SetPartOrigB(PartOrigBX, 0.0); //FIXME
             partPair.SetV0Z(V0Z);
             partPair.SetV0X(V0X);
             partPair.SetV0Y(V0Y);
 
             partPair.SetDCA1(geomTopology.at(0));
             partPair.SetDCA2(geomTopology.at(1));
-            partPair.SetDCA12(geomTopology.at(2));
+            partPair.SetDCA12(geomTopology.at(2), geomTopology.at(2));
             
             TVector3 V0(V0X, V0Y, V0Z);
             TVector3 Vp(fEventVertex->GetX(), fEventVertex->GetY(), fEventVertex->GetZ());
             Double_t path = TVector3(V0 - Vp).Mag();
             
-            partPair.SetPath(path);
+            partPair.SetPath(path, 0.);
 
             partPair.SetMomPair(_p1, _p2);
             partPair.SetEtaPair(_eta1, _eta2);
-            partPair.SetNHitsPair(track1->GetNHits(), track2->GetNHits());
 
             // Track params. are redefined
             Double_t Tx1, Ty1, Tx2, Ty2, p1, p2;
@@ -299,6 +368,7 @@ void BmnTwoParticleDecay::Analysis() {
 
             TVector2 armenPodol;
 
+            //   for (Int_t iProj = 0; iProj < nV0; iProj++) {
             Tx1 = proton_V0.GetTx();
             Ty1 = proton_V0.GetTy();
             Tx2 = pion_V0.GetTx();
@@ -317,10 +387,12 @@ void BmnTwoParticleDecay::Analysis() {
             A2 = 1. / Sqrt(Tx2 * Tx2 + Ty2 * Ty2 + 1);
             lNeg.SetXYZM(Tx2 * A2 * p2, Ty2 * A2 * p2, p2 * A2,
                     fPDG->GetParticle(fPdgParticle2)->Mass());
+            //   }
+            partPair.SetAlpha(armenPodol.X(), armenPodol.X());
+            partPair.SetPtPodol(armenPodol.Y(), armenPodol.Y());
+            partPair.SetInvMass(TLorentzVector((lPos + lNeg)).Mag(), TLorentzVector((lPos + lNeg)).Mag());
 
-            partPair.SetAlpha(armenPodol.X());
-            partPair.SetPtPodol(armenPodol.Y());
-            partPair.SetInvMass(TLorentzVector((lPos + lNeg)).Mag());
+            // cout << lPos.Mag() << " " << lNeg.Mag() << endl;
 
             // To be used for real exp. data
             if (fAnalType[0].Contains("dst") && !fAnalType[0].Contains("eve") && fAnalType[1].Contains("OFF"))
@@ -351,7 +423,7 @@ void BmnTwoParticleDecay::Analysis() {
 
 InitStatus BmnTwoParticleDecay::Init() {
     cout << "\nBmnTwoParticleDecay::Init()" << endl;
-    // Read current geometry from database 
+    // Read current geometry (RunSpring2017) from database 
     Char_t* geoFileName = (Char_t*) "current_geo_file.root";
     Int_t res_code = UniDbRun::ReadGeometryFile(fRunPeriod, fRunId, geoFileName);
     if (res_code != 0) {
@@ -438,7 +510,9 @@ void BmnTwoParticleDecay::Exec(Option_t * option) {
     fParticlePair->Delete();
 
     fEventCounter++;
-    
+    // if (fEventCounter % 100 == 0)
+    cout << fEventCounter << endl;
+
     // In case of MC-data one has to extract coordinates of Vp known exactly ...
     if (fAnalType[0].Contains("eve") && !fAnalType[0].Contains("dst")) {
         for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
@@ -452,13 +526,13 @@ void BmnTwoParticleDecay::Exec(Option_t * option) {
     else {
         fEventVertex = (CbmVertex*) fVertex->UncheckedAt(0);
 
-        if (fEventVertex->GetNTracks() < 2) // Num of tracks to be used for Vp reconstruction
+        if (fEventVertex->GetNTracks() < 2 || fEventVertex->GetNTracks() > 20) //FIXME!
             return;
 
         TVector3 roughVert(fEventVertex->GetRoughX(), fEventVertex->GetRoughY(), fEventVertex->GetRoughZ());
         TVector3 realVert(fEventVertex->GetX(), fEventVertex->GetY(), fEventVertex->GetZ());
 
-        const Double_t vertexCut = 100.; // Difference between reconstructed Vp and its approximate position
+        const Double_t vertexCut = 100.;
 
         for (Int_t iProj = 0; iProj < 3; iProj++)
             if (Abs(TVector3(roughVert - realVert)[iProj]) > vertexCut)
@@ -472,6 +546,98 @@ void BmnTwoParticleDecay::Finish() {
     delete fKalman;
     delete fMagField;
     cout << "\n-I- [BmnTwoParticleDecay::Finish] " << endl;
+}
+
+TVector3 BmnTwoParticleDecay::FitParabola(vector <TVector3> points) {
+    // Prevent bad fits
+    if (Abs(points[points.size() - 1].X() - points[1].X()) < FLT_EPSILON)
+        return TVector3(0., 0., 0.);
+
+    TGraph* tmp = new TGraph();
+    for (Int_t iSize = 0; iSize < points.size(); iSize++)
+        tmp->SetPoint(iSize, points[iSize].Z(), points[iSize].X());
+
+    TFitResultPtr fitPtr = tmp->Fit("pol2", "SQww");
+    Double_t a = fitPtr->Parameter(2);
+    Double_t b = fitPtr->Parameter(1);
+    Double_t c = fitPtr->Parameter(0);
+
+    delete tmp;
+
+    if (!std::isnan(a * b * c) && !std::isinf(a * b * c))
+        return TVector3(a, b, c);
+    else
+        return TVector3(0., 0., 0.);
+}
+
+TVector2 BmnTwoParticleDecay::SecondaryVertexY(FairTrackParam* param1, FairTrackParam * param2) {
+    Double_t Ty1 = param1->GetTy();
+    Double_t b1 = param1->GetY() - Ty1 * param1->GetZ();
+
+    Double_t Ty2 = param2->GetTy();
+    Double_t b2 = param2->GetY() - Ty2 * param2->GetZ();
+
+    Double_t zV = (b2 - b1) / (Ty1 - Ty2);
+    Double_t yV = Ty1 * zV + b1;
+
+    return TVector2(yV, zV);
+}
+
+void BmnTwoParticleDecay::CalculateMinDistance(TVector3 paramsCurv1, TVector3 paramsCurv2, Double_t * arr) {
+    Double_t a1 = paramsCurv1[0];
+    Double_t b1 = paramsCurv1[1];
+    Double_t c1 = paramsCurv1[2];
+
+    Double_t a2 = paramsCurv2[0];
+    Double_t b2 = paramsCurv2[1];
+    Double_t c2 = paramsCurv2[2];
+
+    // Do they have a cross-point? (D >= 0) 
+    // If not than D < 0
+
+    Double_t D = (b1 - b2) * (b1 - b2) - 4 * (a1 - a2) * (c1 - c2);
+
+    for (Int_t iSize = 0; iSize < 5; iSize++)
+        arr[iSize] = 0.;
+
+    if (D < 0) {
+        arr[4] = DBL_MAX;
+        const Double_t step = 0.1; // step of scanning along curve, in cm
+        Double_t zStart = 50.; // fDetector->GetGemStation(0)->GetZPosition();
+        Double_t zFinish = -50.; // fEventVertex->GetRoughZ();
+        Double_t Zi = zStart;
+        Double_t Zj = zStart;
+
+        while (Zi > zFinish) {
+            Double_t Xi = a1 * Zi * Zi + b1 * Zi + c1;
+            while (Zj > zFinish) {
+                Double_t Xj = a2 * Zj * Zj + b2 * Zj + c2;
+                Double_t dist = Dist(Zi, Xi, Zj, Xj); // taken from BmnMath.h
+                if (dist < arr[4]) {
+                    arr[0] = Zi;
+                    arr[1] = Xi;
+                    arr[2] = Zj;
+                    arr[3] = Xj;
+                    arr[4] = dist;
+                }
+                Zj -= step;
+            }
+            Zi -= step;
+        }
+    } else {
+        if (Abs(D) < FLT_EPSILON)
+            cout << "Something strange happens!!! D is very close to zero! " << fEventCounter << endl;
+
+        Double_t z1 = (-(b1 - b2) + Sqrt(D)) / (2 * (a1 - a2));
+        Double_t x1 = a1 * z1 * z1 + b1 * z1 + c1;
+        Double_t z2 = (-(b1 - b2) - Sqrt(D)) / (2 * (a1 - a2));
+        Double_t x2 = a2 * z2 * z2 + b2 * z2 + c2;
+
+        arr[0] = z1;
+        arr[1] = x1;
+        arr[2] = z2;
+        arr[3] = x2;
+    }
 }
 
 TVector2 BmnTwoParticleDecay::ArmenterosPodol(FairTrackParam prot, FairTrackParam pion) {
@@ -505,7 +671,7 @@ TVector2 BmnTwoParticleDecay::ArmenterosPodol(FairTrackParam prot, FairTrackPara
 }
 
 Double_t BmnTwoParticleDecay::FindV0ByVirtualPlanes(BmnGlobalTrack* track1, BmnGlobalTrack* track2, Double_t z_0, Double_t range) {
-    const Int_t nPlanes = 10; // FIXME
+    const Int_t nPlanes = 10;
 
     while (range >= 0.1) {
         Double_t zMax = z_0 + range;
@@ -524,18 +690,31 @@ Double_t BmnTwoParticleDecay::FindV0ByVirtualPlanes(BmnGlobalTrack* track1, BmnG
             fKalman->TGeoTrackPropagate(&par2, zPlane[iPlane], 211, NULL, NULL, kTRUE);
             Dist[iPlane] = Sqrt(Sq(par1.GetX() - par2.GetX()) + Sq(par1.GetY() - par2.GetY()));
         }
-       
+        // TCanvas* c = new TCanvas("c1", "c1", 1200, 800);
+        // c->Divide(1, 1);
+        // c->cd(1);
         TGraph* vertex = new TGraph(nPlanes, zPlane, Dist);
         vertex->Fit("pol2", "QF");
         TF1 *fit_func = vertex->GetFunction("pol2");
         Double_t b = fit_func->GetParameter(1);
         Double_t a = fit_func->GetParameter(2);
-       
+        // Double_t c_ = fit_func->GetParameter(0);
+
         z_0 = -b / (2 * a);
+        // Double_t dMin = a * z_0 * z_0 + b * z_0 + c_;
+
+        //        cout << dMin << endl;
+
         range /= 2;
+        //vertex->Draw("AP*");
+        //c->SaveAs("tmp.pdf");
+        //getchar(); 
 
         delete vertex;
-    } 
+    }
+    //    if ( z_0 > 200.) 
+    //        return -1000.;
+
     return z_0;
 }
 

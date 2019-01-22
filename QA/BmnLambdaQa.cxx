@@ -309,8 +309,9 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             Double_t etaPart2 = pair->GetEtaPart2();
             Double_t dca1 = pair->GetDCA1();
             Double_t dca2 = pair->GetDCA2();
-            Double_t dca12 = pair->GetDCA12();
-            Double_t path = pair->GetPath();
+            Double_t dca12x = pair->GetDCA12("X");
+            Double_t dca12y = pair->GetDCA12("Y");
+            Double_t path = pair->GetPath("X");
 
             // Apply cuts ...
             if (momPart1 < fMom[0][0] || momPart1 > fMom[0][1] || momPart2 < fMom[1][0] || momPart2 > fMom[1][1])
@@ -323,7 +324,7 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             if (dca1 < fDCA[0][0] || dca1 > fDCA[0][1] || dca2 < fDCA[1][0] || dca2 > fDCA[1][1])
                 continue;
 
-            if (dca12 < fDCA12[0] || dca12 > fDCA12[1])
+            if (dca12x < fDCA12[0] || dca12x > fDCA12[1])
                 continue;
 
             if (path < fPath[0] || path > fPath[1])
@@ -331,16 +332,18 @@ void BmnLambdaQa::Exec(Option_t* opt) {
 
             fNOfParticlePairsMC++;
             fHM->H1("numberOfMCReconstructedAllParticlePairsQA")->Fill(1);
-            fHM->H1("NPairsRecoFromMCInvMass")->Fill(pair->GetInvMass());
+            fHM->H1("NPairsRecoFromMCInvMass")->Fill(pair->GetInvMass("X"));
 
-            fHM->H2("NPairsRecoFromMCInvMassMomProton")->Fill(momPart1, pair->GetInvMass());
-            fHM->H2("NPairsRecoFromMCInvMassMomMeson")->Fill(momPart2, pair->GetInvMass());
-            fHM->H2("NPairsRecoFromMCInvMassEtaProton")->Fill(etaPart1, pair->GetInvMass());
-            fHM->H2("NPairsRecoFromMCInvMassEtaMeson")->Fill(etaPart2, pair->GetInvMass());
-            fHM->H2("NPairsRecoFromMCInvMassDCA1")->Fill(dca1, pair->GetInvMass());
-            fHM->H2("NPairsRecoFromMCInvMassDCA2")->Fill(dca2, pair->GetInvMass());
-            fHM->H2("NPairsRecoFromMCInvMassDCA12X")->Fill(dca12, pair->GetInvMass());
-            fHM->H2("NPairsRecoFromMCInvMassPath")->Fill(path, pair->GetInvMass());
+            fHM->H2("NPairsRecoFromMCInvMassMomProton")->Fill(momPart1, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCInvMassMomMeson")->Fill(momPart2, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCInvMassEtaProton")->Fill(etaPart1, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCInvMassEtaMeson")->Fill(etaPart2, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCInvMassDCA1")->Fill(dca1, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCInvMassDCA2")->Fill(dca2, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCInvMassDCA12X")->Fill(dca12x, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCInvMassDCA12Y")->Fill(dca12y, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCInvMassDCA12XsubY")->Fill(abs(dca12x - dca12y), pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCInvMassPath")->Fill(path, pair->GetInvMass("X"));
 
             CbmMCTrack* posMCTrack = (CbmMCTrack*) fMCTracks->At(pair->GetMCTrackIdPart1());
             CbmMCTrack* negMCTrack = (CbmMCTrack*) fMCTracks->At(pair->GetMCTrackIdPart2());
@@ -363,7 +366,7 @@ void BmnLambdaQa::Exec(Option_t* opt) {
 
             BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_MC->At(iPair);
 
-            fHM->H1("NPairsRecoFromMCWOCutsInvMass")->Fill(pair->GetInvMass());
+            fHM->H1("NPairsRecoFromMCWOCutsInvMass")->Fill(pair->GetInvMass("X"));
 
             Double_t momPart1 = pair->GetMomPart1();
             Double_t momPart2 = pair->GetMomPart2();
@@ -371,21 +374,21 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             Double_t etaPart2 = pair->GetEtaPart2();
             Double_t dca1 = pair->GetDCA1();
             Double_t dca2 = pair->GetDCA2();
-            Double_t dca12x = pair->GetDCA12();
-            Double_t dca12y = pair->GetDCA12();
-            Double_t path = pair->GetPath();
+            Double_t dca12x = pair->GetDCA12("X");
+            Double_t dca12y = pair->GetDCA12("Y");
+            Double_t path = pair->GetPath("X");
 
-            fHM->H2("NPairsRecoFromMCWOCutsInvMassMomProton")->Fill(momPart1, pair->GetInvMass());
-            fHM->H2("NPairsRecoFromMCWOCutsInvMassMomMeson")->Fill(momPart2, pair->GetInvMass());
-            fHM->H2("NPairsRecoFromMCWOCutsInvMassEtaProton")->Fill(etaPart1, pair->GetInvMass());
-            fHM->H2("NPairsRecoFromMCWOCutsInvMassEtaMeson")->Fill(etaPart2, pair->GetInvMass());
+            fHM->H2("NPairsRecoFromMCWOCutsInvMassMomProton")->Fill(momPart1, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCWOCutsInvMassMomMeson")->Fill(momPart2, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCWOCutsInvMassEtaProton")->Fill(etaPart1, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCWOCutsInvMassEtaMeson")->Fill(etaPart2, pair->GetInvMass("X"));
 
-            fHM->H2("NPairsRecoFromMCWOCutsInvMassDCA1")->Fill(dca1, pair->GetInvMass());
-            fHM->H2("NPairsRecoFromMCWOCutsInvMassDCA2")->Fill(dca2, pair->GetInvMass());
-            fHM->H2("NPairsRecoFromMCWOCutsInvMassDCA12X")->Fill(dca12x, pair->GetInvMass());
-            fHM->H2("NPairsRecoFromMCWOCutsInvMassDCA12Y")->Fill(dca12y, pair->GetInvMass());
-            fHM->H2("NPairsRecoFromMCWOCutsInvMassDCA12XsubY")->Fill(abs(dca12x - dca12y), pair->GetInvMass());
-            fHM->H2("NPairsRecoFromMCWOCutsInvMassPath")->Fill(path, pair->GetInvMass());
+            fHM->H2("NPairsRecoFromMCWOCutsInvMassDCA1")->Fill(dca1, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCWOCutsInvMassDCA2")->Fill(dca2, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCWOCutsInvMassDCA12X")->Fill(dca12x, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCWOCutsInvMassDCA12Y")->Fill(dca12y, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCWOCutsInvMassDCA12XsubY")->Fill(abs(dca12x - dca12y), pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoFromMCWOCutsInvMassPath")->Fill(path, pair->GetInvMass("X"));
 
             CbmMCTrack* posMCTrack = (CbmMCTrack*) fMCTracks->At(pair->GetMCTrackIdPart1());
             CbmMCTrack* negMCTrack = (CbmMCTrack*) fMCTracks->At(pair->GetMCTrackIdPart2());
@@ -477,9 +480,9 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             Double_t etaPart2 = pair->GetEtaPart2();
             Double_t dca1 = pair->GetDCA1();
             Double_t dca2 = pair->GetDCA2();
-            Double_t dca12x = pair->GetDCA12();
-            Double_t dca12y = pair->GetDCA12();
-            Double_t path = pair->GetPath();
+            Double_t dca12x = pair->GetDCA12("X");
+            Double_t dca12y = pair->GetDCA12("Y");
+            Double_t path = pair->GetPath("X");
             
             // Apply cuts ...
             if (momPart1 < fMom[0][0] || momPart1 > fMom[0][1] || momPart2 < fMom[1][0] || momPart2 > fMom[1][1])
@@ -500,25 +503,25 @@ void BmnLambdaQa::Exec(Option_t* opt) {
          
             fNOfParticlePairs++;
             fHM->H1("numberOfReconstructedParticlePairsQA")->Fill(1);
-            fHM->H1("NPairsRecoInvMass")->Fill(pair->GetInvMass());
+            fHM->H1("NPairsRecoInvMass")->Fill(pair->GetInvMass("X"));
 
-            fHM->H2("NPairsRecoInvMassMomProton")->Fill(momPart1, pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassMomMeson")->Fill(momPart2, pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassEtaProton")->Fill(etaPart1, pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassEtaMeson")->Fill(etaPart2, pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassDCA1")->Fill(dca1, pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassDCA2")->Fill(dca2, pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassDCA12X")->Fill(dca12x, pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassDCA12Y")->Fill(dca12y, pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassDCA12XsubY")->Fill(abs(dca12x - dca12y), pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassPath")->Fill(path, pair->GetInvMass());
+            fHM->H2("NPairsRecoInvMassMomProton")->Fill(momPart1, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassMomMeson")->Fill(momPart2, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassEtaProton")->Fill(etaPart1, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassEtaMeson")->Fill(etaPart2, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassDCA1")->Fill(dca1, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassDCA2")->Fill(dca2, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassDCA12X")->Fill(dca12x, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassDCA12Y")->Fill(dca12y, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassDCA12XsubY")->Fill(abs(dca12x - dca12y), pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassPath")->Fill(path, pair->GetInvMass("X"));
         }
 
     if (fParticlePair_RECO)
         for (Int_t iPair = 0; iPair < fParticlePair_RECO->GetEntriesFast(); iPair++) {
             BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_RECO->At(iPair);
             
-            fHM->H1("NPairsRecoInvMassWOCuts")->Fill(pair->GetInvMass());
+            fHM->H1("NPairsRecoInvMassWOCuts")->Fill(pair->GetInvMass("X"));
 
             Double_t momPart1 = pair->GetMomPart1();
             Double_t momPart2 = pair->GetMomPart2();
@@ -526,21 +529,21 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             Double_t etaPart2 = pair->GetEtaPart2();
             Double_t dca1 = pair->GetDCA1();
             Double_t dca2 = pair->GetDCA2();
-            Double_t dca12x = pair->GetDCA12();
-            Double_t dca12y = pair->GetDCA12();
-            Double_t path = pair->GetPath();
+            Double_t dca12x = pair->GetDCA12("X");
+            Double_t dca12y = pair->GetDCA12("Y");
+            Double_t path = pair->GetPath("X");
 
-            fHM->H2("NPairsRecoInvMassMomProtonWOCuts")->Fill(momPart1, pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassMomMesonWOCuts")->Fill(momPart2, pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassEtaProtonWOCuts")->Fill(etaPart1, pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassEtaMesonWOCuts")->Fill(etaPart2, pair->GetInvMass());
+            fHM->H2("NPairsRecoInvMassMomProtonWOCuts")->Fill(momPart1, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassMomMesonWOCuts")->Fill(momPart2, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassEtaProtonWOCuts")->Fill(etaPart1, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassEtaMesonWOCuts")->Fill(etaPart2, pair->GetInvMass("X"));
 
-            fHM->H2("NPairsRecoInvMassDCA1WOCuts")->Fill(dca1, pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassDCA2WOCuts")->Fill(dca2, pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassDCA12XWOCuts")->Fill(dca12x, pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassDCA12YWOCuts")->Fill(dca12y, pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassDCA12XsubYWOCuts")->Fill(abs(dca12x - dca12y), pair->GetInvMass());
-            fHM->H2("NPairsRecoInvMassPathWOCuts")->Fill(path, pair->GetInvMass());
+            fHM->H2("NPairsRecoInvMassDCA1WOCuts")->Fill(dca1, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassDCA2WOCuts")->Fill(dca2, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassDCA12XWOCuts")->Fill(dca12x, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassDCA12YWOCuts")->Fill(dca12y, pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassDCA12XsubYWOCuts")->Fill(abs(dca12x - dca12y), pair->GetInvMass("X"));
+            fHM->H2("NPairsRecoInvMassPathWOCuts")->Fill(path, pair->GetInvMass("X"));
         }
 }
 

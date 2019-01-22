@@ -88,3 +88,8 @@ target_link_libraries(show_simulation_files ${ROOT_LIBRARIES})
 
 add_executable (show_experiment_files show_experiment_files.cxx)
 target_link_libraries(show_experiment_files ${ROOT_LIBRARIES})
+
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs/ DESTINATION ${CMAKE_INSTALL_PREFIX}/un_db/docs)
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/examples/ DESTINATION ${CMAKE_INSTALL_PREFIX}/un_db/examples)
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/macros/ DESTINATION ${CMAKE_INSTALL_PREFIX}/un_db/macros)
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/scheme/ DESTINATION ${CMAKE_INSTALL_PREFIX}/un_db/scheme)

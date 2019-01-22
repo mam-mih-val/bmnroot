@@ -30,11 +30,11 @@ BmnInnTrackerAlign::BmnInnTrackerAlign(Int_t period, Int_t run, TString fileName
     TString confGem = "GemRunSpring2018.xml";
 
     /// SI
-    TString gPathSiliconConfig = gPathConfig + "/silicon/XMLConfigs/";
+    TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
     fDetectorSI = new BmnSiliconStationSet(gPathSiliconConfig + confSi);
 
     /// GEM
-    TString gPathGemConfig = gPathConfig + "/gem/XMLConfigs/";
+    TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
     fDetectorGEM = new BmnGemStripStationSet(gPathGemConfig + confGem);
 
     // Get alignment corrections ...

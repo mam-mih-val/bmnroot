@@ -48,7 +48,7 @@ InitStatus BmnSiliconDigitizer::Init() {
     }
 
     TString gPathSiliconConfig = gSystem->Getenv("VMCWORKDIR");
-        gPathSiliconConfig += "/silicon/XMLConfigs/";
+        gPathSiliconConfig += "/parameters/silicon/XMLConfigs/";
 
     //Create SILICON detector ------------------------------------------------------
     switch (fCurrentConfig) {

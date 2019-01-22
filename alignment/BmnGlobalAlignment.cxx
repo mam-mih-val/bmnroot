@@ -213,7 +213,7 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
         fNTracks++;
         delete idx;
     }
- 
+
     if (fNEvents == fCurrentEvent) {
         MakeBinFile();
         MakeSteerFile();
@@ -282,7 +282,7 @@ void BmnGlobalAlignment::_Mille(Double_t* DerLc, Double_t* DerGl, BmnMille* Mill
     fITERATOR = next(fCONTAINER.begin(), iTrack);
 
     TString* dets = new TString[nDetectors];
-    dets[0] = "GEM"; 
+    dets[0] = "GEM";
     dets[1] = "SILICON";
 
     for (Int_t iDet = 0; iDet < nDetectors; iDet++) {
@@ -513,7 +513,7 @@ void BmnGlobalAlignment::MakeSteerFile() {
     if (!fDetectorSet[0] && !fDetectorSet[1])
         return;
 
-    // Apply constraints ...   
+    // Apply constraints ...
     // Wi * a_Xi = 0,    (iStep = 0), Wi = 1.
     // Wi * a_Yi = 0,    (iStep = 1), Wi = 1.
     // Wi * a_Zi = 0,    (iStep = 2), Wi = 1.
@@ -542,7 +542,7 @@ void BmnGlobalAlignment::MakeSteerFile() {
             if (it.first <= parCounterGem * nParams) {
                 if (it.first % nParams == iRemain)
                     fprintf(steer, "%d %G\n", it.first, it.second);
-            } 
+            }
             else {
                 Int_t stat = GetSiliconStatMod(it.first)[0];
                 Int_t mod = GetSiliconStatMod(it.first)[1];
@@ -630,7 +630,7 @@ void BmnGlobalAlignment::CreateDetectorGeometries() {
     TString confGem = (fRunPeriod == 7) ? "GemRunSpring2018.xml" : (fRunPeriod == 6) ? "GemRunSpring2017.xml" : "";
 
     /// SI
-    TString gPathSiliconConfig = gPathConfig + "/silicon/XMLConfigs/";
+    TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
     fDetectorSI = new BmnSiliconStationSet(gPathSiliconConfig + confSi);
 
     // Define fixed elements of SI-detector...
@@ -644,7 +644,7 @@ void BmnGlobalAlignment::CreateDetectorGeometries() {
             fixedSiElements[iStat][iMod] = kFALSE;
 
     /// GEM
-    TString gPathGemConfig = gPathConfig + "/gem/XMLConfigs/";
+    TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
     fDetectorGEM = new BmnGemStripStationSet(gPathGemConfig + confGem);
 
     // Define fixed elements of GEM-detector...

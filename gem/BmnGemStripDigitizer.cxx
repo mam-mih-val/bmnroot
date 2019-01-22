@@ -55,7 +55,7 @@ InitStatus BmnGemStripDigitizer::Init() {
     }
 
     TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
-        gPathGemConfig += "/gem/XMLConfigs/";
+        gPathGemConfig += "/parameters/gem/XMLConfigs/";
 
     //Create GEM detector ------------------------------------------------------
     switch (fCurrentConfig) {

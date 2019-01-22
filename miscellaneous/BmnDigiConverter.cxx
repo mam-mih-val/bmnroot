@@ -29,7 +29,7 @@ InitStatus BmnDigiConverter::Init() {
     cout << " BmnDigiConverter::Init() " << endl;
 
     ioman = FairRootManager::Instance();
-    FairEventHeader* h = (FairEventHeader*) ioman->GetObject("EventHeader.");           
+    FairEventHeader* h = (FairEventHeader*) ioman->GetObject("EventHeader.");
     h->SetNameTitle("FairEventHeader", "FairEventHeader");
 
     fBmnHeaderIn = (TClonesArray*) ioman->GetObject("EventHeader");
@@ -37,7 +37,7 @@ InitStatus BmnDigiConverter::Init() {
      cout << "Set correct input digi-tree (BMN_DIGIT at present) in $VMCWORKDIR/config/rootmanager.dat" << endl;
         throw;
     }
-        
+
     fSiIn = (TClonesArray*) ioman->GetObject(fSiBranch.Data());
     fVetoIn = (TClonesArray*) ioman->GetObject(fVetoBranch.Data());
     fBC1In = (TClonesArray*) ioman->GetObject(fBC1Branch.Data());
@@ -83,11 +83,11 @@ InitStatus BmnDigiConverter::Init() {
     TString confGem = "GemRunSpring2018.xml";
 
     /// SI
-    TString gPathSiliconConfig = gPathConfig + "/silicon/XMLConfigs/";
+    TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
     fDetectorSI = new BmnSiliconStationSet(gPathSiliconConfig + confSi);
 
     /// GEM
-    TString gPathGemConfig = gPathConfig + "/gem/XMLConfigs/";
+    TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
     fDetectorGEM = new BmnGemStripStationSet(gPathGemConfig + confGem);
 
     // RUN7, FIXME
@@ -142,7 +142,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
     fBmnHeaderOut->Delete();
 
     new((*fBmnHeaderOut)[fBmnHeaderOut->GetEntriesFast()]) BmnEventHeader(runID, eventID, eventTime, eventType, tripWord, trigInfo);
-    //    BmnEventHeader* evHeaderOut = new((*fBmnHeaderOut)[fBmnHeaderOut->GetEntriesFast()]) BmnEventHeader();  
+    //    BmnEventHeader* evHeaderOut = new((*fBmnHeaderOut)[fBmnHeaderOut->GetEntriesFast()]) BmnEventHeader();
     //    evHeaderOut->SetTrigType(trigType);
 
     //    cout << evHeaderOut->GetTrig() << endl;
@@ -214,7 +214,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
     if (isTof400)
         for (UInt_t iDigi = 0; iDigi < fTOF400DigitsIn->GetEntriesFast(); iDigi++) {
             BmnTof1Digit* tofDig = (BmnTof1Digit*) fTOF400DigitsIn->UncheckedAt(iDigi);
-            new((*fTOF400DigitsOut)[fTOF400DigitsOut->GetEntriesFast()]) BmnTof1Digit(tofDig->GetPlane(), tofDig->GetStrip(), 
+            new((*fTOF400DigitsOut)[fTOF400DigitsOut->GetEntriesFast()]) BmnTof1Digit(tofDig->GetPlane(), tofDig->GetStrip(),
                     tofDig->GetSide(), tofDig->GetTime(), tofDig->GetAmplitude());
         }
 

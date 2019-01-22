@@ -16,13 +16,13 @@ void makeAlignFile(TString out = "",
     bmnloadlibs(); // load BmnRoot libraries
 
     TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
-    
-    BmnGemStripStationSet* StationSetGem = new BmnGemStripStationSet(gPathGemConfig +"/gem/XMLConfigs/" + gemConf);
+
+    BmnGemStripStationSet* StationSetGem = new BmnGemStripStationSet(gPathGemConfig +"/parameters/gem/XMLConfigs/" + gemConf);
     const Int_t nStatGem = StationSetGem->GetNStations();
 
-    BmnSiliconStationSet* StationSetSi = new BmnSiliconStationSet(gPathGemConfig +"/silicon/XMLConfigs/" + siConf);
+    BmnSiliconStationSet* StationSetSi = new BmnSiliconStationSet(gPathGemConfig +"/parameters/silicon/XMLConfigs/" + siConf);
     const Int_t nStatSi = StationSetSi->GetNStations();
-   
+
     // Prepare output tree
     TFile* outFile = new TFile(out.Data(), "recreate");
     TTree* outTree = new TTree("cbmsim", "cbmsim");
@@ -39,7 +39,7 @@ void makeAlignFile(TString out = "",
 	  corrs->SetModule(iMod);
 	  corrs->SetCorrections(0., 0., 0.);
 	}
-    
+
     // Silicons
     for (Int_t iStat = 0; iStat < StationSetSi->GetNStations(); iStat++)
       for (Int_t iMod = 0; iMod < StationSetSi->GetSiliconStation(iStat)->GetNModules(); iMod++) {
@@ -48,7 +48,7 @@ void makeAlignFile(TString out = "",
 	corrs->SetModule(iMod);
 	corrs->SetCorrections(0., 0., 0.);
       }
-      
+
     outTree->Fill();
     outTree->Write();
     outFile->Close();

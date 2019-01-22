@@ -100,7 +100,7 @@ InitStatus BmnGemTracking::Init() {
     }
 
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
-    TString gPathGemConfig = gPathConfig + "/gem/XMLConfigs/";
+    TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
     TString confGem = (fPeriodId == 7) ? "GemRunSpring2018.xml" : (fPeriodId == 6) ? "GemRunSpring2017.xml" : "GemRunSpring2017.xml";
     if (confGem == "") {
         printf(ANSI_COLOR_RED "No GEM geometry defined!\n" ANSI_COLOR_RESET);
@@ -296,7 +296,7 @@ BmnStatus BmnGemTracking::SortTracks(vector<BmnGemTrack*>& tracks) { //FIXME!!! 
     }
 
     //    const Int_t n = fGemDetector->GetNStations() - fNHitsCut + 1; //3 for geometry 2018 (4, 5, 6)
-    //    multimap<Float_t, BmnGemTrack*> sortedMap[n]; // array of map<Chi2,trIdx>. Each element of array corresponds fixed number of hits on track (4, 5, 6) 
+    //    multimap<Float_t, BmnGemTrack*> sortedMap[n]; // array of map<Chi2,trIdx>. Each element of array corresponds fixed number of hits on track (4, 5, 6)
     //    for (Int_t iTr = 0; iTr < tracks.size(); ++iTr) {
     //        if (tracks.at(iTr)->GetNHits() < fNHitsCut) continue; //FIXME! Why nHits < cut???
     //        if (tracks.at(iTr)->GetChi2() < 0) continue; //FIXME! Why chi2 < 0???
@@ -338,7 +338,7 @@ BmnStatus BmnGemTracking::SortTracks(vector<BmnGemTrack>& inTracks, vector<BmnGe
     //            sortedTracks.push_back(inTracks.at(it->second));
     //    }
     const Int_t n = fGemDetector->GetNStations() - fNHitsCut + 1; //3 for geometry 2018 (4, 5, 6)
-    multimap<Float_t, Int_t> sortedMap[n]; // array of map<Chi2,trIdx>. Each element of array corresponds fixed number of hits on track (4, 5, 6) 
+    multimap<Float_t, Int_t> sortedMap[n]; // array of map<Chi2,trIdx>. Each element of array corresponds fixed number of hits on track (4, 5, 6)
     for (Int_t iTr = 0; iTr < inTracks.size(); ++iTr) {
         if (inTracks.at(iTr).GetNHits() < fNHitsCut) continue; //FIXME! Why nHits < cut???
         if (inTracks.at(iTr).GetChi2() < 0) continue; //FIXME! Why chi2 < 0???
@@ -382,14 +382,14 @@ BmnStatus BmnGemTracking::CheckSharedHits(vector<BmnGemTrack>& sortedTracks) {
 
 void BmnGemTracking::FillAddrWithLorentz() {
 
-    //Needed for searching seeds by addresses 
+    //Needed for searching seeds by addresses
     Double_t sigma_x2 = fSigX * fSigX;
 
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
         if (!hit) continue;
 
-        hit->SetFlag(kFALSE); // by default hits are not filtered 
+        hit->SetFlag(kFALSE); // by default hits are not filtered
         if (fSteering->IsHitErrorsScaleUsed()) {
             Double_t xScale = fSteering->GetErrorScales()[0];
             Double_t yScale = fSteering->GetErrorScales()[1];
@@ -643,7 +643,7 @@ BmnStatus BmnGemTracking::CalculateTrackParamsPol2(BmnGemTrack * tr) {
     const Double_t B = Pol2ParZX.Y();
     const Double_t C = Pol2ParZX.Z();
 
-    const Double_t R = Power(1 - (2 * A * firstHit->GetZ() + B) * (2 * A * firstHit->GetZ() + B), 1.5) / Abs(2 * A); //radii of trajectory in the first hit position 
+    const Double_t R = Power(1 - (2 * A * firstHit->GetZ() + B) * (2 * A * firstHit->GetZ() + B), 1.5) / Abs(2 * A); //radii of trajectory in the first hit position
     // printf("R = %f\n", R);
     fField = FairRunAna::Instance()->GetField();
     const Double_t Q = (A > 0) ? +1 : -1;
@@ -811,7 +811,7 @@ BmnStatus BmnGemTracking::CalcCovMatrix(BmnGemTrack * tr) {
     Double_t meanTx = sumTx / nHits;
     Double_t meanTy = sumTy / nHits;
     Double_t meanQP = sumQP / nHits;
-    
+
     Cov_X_X = sumXX / nHits - Sq(meanX);
     Cov_X_Y = sumXY / nHits - meanX * meanY;
     Cov_X_Tx = sumXTx / nHits - meanX * meanTx;

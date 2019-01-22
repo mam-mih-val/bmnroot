@@ -16,12 +16,12 @@ void readCorrections(TString in = "") {
   bmnloadlibs(); // load BmnRoot libraries
 
   TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
-  
+
   TString siConf = "SiliconRunSpring2018.xml";
   TString gemConf = "GemRunSpring2018.xml";
 
-  BmnGemStripStationSet* GEM = new BmnGemStripStationSet(gPathGemConfig +"/gem/XMLConfigs/" + gemConf);
-  BmnSiliconStationSet* SI = new BmnSiliconStationSet(gPathGemConfig +"/silicon/XMLConfigs/" + siConf);
+  BmnGemStripStationSet* GEM = new BmnGemStripStationSet(gPathGemConfig +"/parameters/gem/XMLConfigs/" + gemConf);
+  BmnSiliconStationSet* SI = new BmnSiliconStationSet(gPathGemConfig +"/parameters/silicon/XMLConfigs/" + siConf);
 
   const Int_t nStatGEM = GEM->GetNStations();
   const Int_t nStatSI = SI->GetNStations();
@@ -65,12 +65,12 @@ void ReadFileCorrections(FILE* file, BmnGemStripStationSet* GEM, TString fname, 
       corrGEM[alignGEM->GetStation()][alignGEM->GetModule()][2] = alignGEM->GetCorrections().Z();
     }
   }
-  
+
   for (Int_t iStat = 0; iStat < GEM->GetNStations(); iStat++)
     for (Int_t iMod = 0; iMod < GEM->GetGemStation(iStat)->GetNModules(); iMod++)
-      for (Int_t iPar = 0; iPar < 3; iPar++) 
-	fprintf(file, "Stat %d Mod %d Par %d %G\n", iStat, iMod, iPar, corrGEM[iStat][iMod][iPar]);  
-  
+      for (Int_t iPar = 0; iPar < 3; iPar++)
+	fprintf(file, "Stat %d Mod %d Par %d %G\n", iStat, iMod, iPar, corrGEM[iStat][iMod][iPar]);
+
   cout << endl;
   delete chGEM;
 }

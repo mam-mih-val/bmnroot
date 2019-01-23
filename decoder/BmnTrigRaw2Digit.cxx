@@ -1,57 +1,107 @@
 #include "BmnTrigRaw2Digit.h"
 #include <climits>
+#include <root/RtypesCore.h>
+#include <root/TPRegexp.h>
 
-const UShort_t kNCHANNELS = 8; // number of channels in one HPTDC
-
-BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile) {
-    readMap(mappingFile);
-    readINLCorrections(INLFile);
+BmnTrigParameters::BmnTrigParameters() {
+    for (UInt_t i = 0; i < CHANNEL_COUNT_MAX; i++) {
+        for (UInt_t j = 0; j < TDC_BIN_COUNT; j++)
+            INL[i][j] = 0u;
+        ChannelMap[i] = 0u;
+        branchArrayPtr[i] = NULL;
+        t[i] = 0.0;
+    }
 }
 
-BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile, TTree *digiTree) {
-    readMap(mappingFile);
-    TPRegexp re("TQDC_(\\S+)");
-    for (BmnTrigMapping &record : fMap) {
-        TString chName = record.name; // channel name in mapping
-        TString detName = chName;     // real detector name
-        re.Substitute(detName, "$1"); // real detector name
+BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString PlacementMapFile, TString StripMapFile, TTree *digiTree) {
+    ReadPlacementMap(PlacementMapFile);
+    for (auto &el : fPlacementMap) {
+        BmnTrigParameters* par = el.second;
+        ReadINLFromFile(par);
+    }
+    ReadChannelMap(StripMapFile);
+    if (digiTree == NULL)
+        return;
+    // Create corresponding branches for each trigger.       //
+    // different channels of the one trigger will be stored //
+    // in one branch with different mod ID  //
+    for (BmnTrigChannelData &record : fMap) {
+        TString detName = record.name;
+        TClass* cl = detName.Contains("TQDC") ?
+                BmnTrigWaveDigit::Class() : BmnTrigDigit::Class();
         TBranch* br = digiTree->GetBranch(detName.Data());
         if (!br) {
-            TClonesArray *ar = new TClonesArray(BmnTrigDigit::Class());
+            TClonesArray *ar = new TClonesArray(cl);
             ar->SetName(detName.Data());
             digiTree->Branch(detName.Data(), &ar);
             trigArrays.push_back(ar);
-            record.branchRef = ar;
+            record.branchArrayPtr = ar;
         } else
-            for (auto tca : trigArrays)
+            for (auto *tca : trigArrays){
                 if (TString(tca->GetName()) == detName) {
-                    record.branchRef = tca;
+                    record.branchArrayPtr = tca;
                     break;
                 }
-        if (chName.Contains("TQDC")) {
-            TString adcName = chName;
-            re.Substitute(adcName, "TQDC_ADC_$1");// name for corresponding ADC branch
-            TBranch* brADC = digiTree->GetBranch(adcName.Data());
-            if (!brADC) {
-                TClonesArray *arADC = new TClonesArray(BmnTrigWaveDigit::Class());
-                arADC->SetName(adcName.Data());
-                digiTree->Branch(adcName.Data(), &arADC);
-                trigArrays.push_back(arADC);
-                record.branchRefADC = arADC;
             }
-            for (auto tca : trigArrays)
-                if (TString(tca->GetName()) == adcName) {
-                    record.branchRefADC = tca;
-                    break;
-                }
-        }
     }
-    readINLCorrections(INLFile);
+    // Fill elements of placement map with channel->(strip, mod, branchRef) map //
+    for (BmnTrigChannelData record : fMap) {
+        map< PlMapKey, BmnTrigParameters*>::iterator itPar = fPlacementMap.find(PlMapKey(record.serial, record.slot));
+        if (itPar == fPlacementMap.end()) {
+            printf("CrateSeral %08X slot %u not found in the placement map!\n", record.serial, record.slot);
+            continue;
+        }
+        BmnTrigParameters *par = itPar->second;
+        par->ChannelMap[record.channel] = record.module;
+        par->branchArrayPtr[record.channel] = record.branchArrayPtr;
+    }
 }
 
-BmnStatus BmnTrigRaw2Digit::readMap(TString mappingFile) { // in mapping TQDC channels must appear earlier than TDC
+BmnStatus BmnTrigRaw2Digit::ReadPlacementMap(TString mappingFile) {
+    TString PlMapFileName = TString(getenv("VMCWORKDIR")) + TString("/input/") + mappingFile;
+    printf("Reading Triggers placement mapping file %s...\n", PlMapFileName.Data());
+    ifstream pmFile;
+    pmFile.open(PlMapFileName.Data());
+    if (!pmFile.is_open()) {
+        cout << "Error opening map-file (" << PlMapFileName << ")!" << endl;
+    }
+    string dummy;
+    string name;
+    UInt_t crateSerial, boardSerial;
+    UShort_t slot;
+
+//    regex reBoardName("(\\D+)(\\d+)(.*)");
+    TPRegexp reBoardName("(\\D+)(\\d+)(.*)");
+    pmFile >> dummy >> dummy >> dummy >> dummy;
+    pmFile >> dummy;
+    while (!fMapFile.eof()) {
+        pmFile >> name >> hex >> crateSerial >> dec >> slot >> hex >> boardSerial >> dec;
+        if (!pmFile.good()) break;
+        TString channelCountStr = name;
+//        string channelCountStr = name;
+        UInt_t channelCount = CHANNEL_COUNT_MAX;
+        if (reBoardName.MatchB(name)){
+//        if (regex_match(name, reBoardName)){
+//            channelCountStr = regex_replace(name, reBoardName, "$2");
+            reBoardName.Substitute(channelCountStr, "$2");
+            channelCount = strtoul(channelCountStr.Data(), nullptr, 10);
+//            channelCount = strtoul(channelCountStr.c_str(), nullptr, 10);
+        }
+        BmnTrigParameters * par = new BmnTrigParameters();
+        par->BoardSerial = boardSerial;
+        par->CrateSerial = crateSerial;
+        par->slot = slot;
+        par->name = name;
+        par->ChannelCount = channelCount;
+        fPlacementMap.insert(pair<PlMapKey, BmnTrigParameters*> (PlMapKey(par->CrateSerial, par->slot), par));
+    }
+    pmFile.close();
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnTrigRaw2Digit::ReadChannelMap(TString mappingFile) {
     fMapFileName = TString(getenv("VMCWORKDIR")) + TString("/input/") + mappingFile;
-    printf("Reading Triggers mapping file %s...\n", fMapFileName.Data());
+    printf("Reading Triggers strip mapping file %s...\n", fMapFileName.Data());
     //========== read mapping file            ==========//
     fMapFile.open((fMapFileName).Data());
     if (!fMapFile.is_open()) {
@@ -68,9 +118,8 @@ BmnStatus BmnTrigRaw2Digit::readMap(TString mappingFile) { // in mapping TQDC ch
     while (!fMapFile.eof()) {
         fMapFile >> name >> mod >> hex >> ser >> dec >> slot >> ch;
         if (!fMapFile.good()) break;
-        BmnTrigMapping record;
-        record.branchRef = NULL;
-        record.branchRefADC = NULL;
+        BmnTrigChannelData record; // = new BmnTrigChannelData();
+        record.branchArrayPtr = NULL;
         record.name = name;
         record.serial = ser;
         record.module = mod;
@@ -79,6 +128,7 @@ BmnStatus BmnTrigRaw2Digit::readMap(TString mappingFile) { // in mapping TQDC ch
         fMap.push_back(record);
     }
     fMapFile.close();
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnTrigRaw2Digit::readINLCorrections(TString INLFile) {
@@ -102,73 +152,135 @@ BmnStatus BmnTrigRaw2Digit::readINLCorrections(TString INLFile) {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
-    for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
-        BmnTrigMapping tM = fMap[iMap];
-        Short_t iMod = tM.module;
-        TClonesArray *trigAr = tM.branchRef;
-        TClonesArray *trigArADC = tM.branchRefADC;
-        if (trigAr)
-            for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
-                BmnTDCDigit* tdcDig = (BmnTDCDigit*) tdc->At(iTdc);
-                if (tdcDig->GetSerial() != tM.serial || tdcDig->GetSlot() != tM.slot) continue;
-                if (tdcDig->GetChannel() != tM.channel) continue;
-                Double_t time = tdcDig->GetValue() * TDC_CLOCK / 1024;
-                Double_t tdcTimestamp = tdcDig->GetTimestamp() * TDC_CLOCK;
-                new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigDigit(iMod, time, -1.0, tdcTimestamp);
+BmnStatus BmnTrigRaw2Digit::ReadINLFromFile(BmnTrigParameters* par) {
+    fstream ff;
+    fINLFileName = TString(getenv("VMCWORKDIR")) + TString("/input/") +
+            Serial2FileName(par->name, par->BoardSerial);
+    ff.open((fINLFileName).Data(), ios::in);
+    if (!ff.is_open()) {
+        cout << "Error opening INL-file (" << fINLFileName << ")!" << endl;
+        return kBMNERROR;
+    }
+    printf("Open INL file %s\n", fINLFileName.Data());
+    TPRegexp reInlHdr("\\[.*(inl_corr).*\\]"); // INL block header
+//    regex reInlHdr("\\[.*(inl_corr).*\\]"); // INL block header
+//    regex reInlChannel("\\s*(\\d+)=(.+)"); // chID=c0, c1, ...
+    Bool_t isInlHdr = kFALSE;
+    while (!ff.eof()) {
+        string line;
+        std::getline(ff, line, '\n');
+        if (reInlHdr.MatchB(line)) {
+//        if (regex_match(line, reInlHdr)) {
+            isInlHdr = kTRUE;
+            break;
+        }
+    }
+    if (!isInlHdr) {
+        printf("Incorrect INL file format!\n");
+        return kBMNERROR;
+    }
+    UShort_t channelID = 0;
+    while (!ff.eof()) {
+        string line;
+        std::getline(ff, line, '\n');
+//        printf("Read %lu \n", line.length());
+//        if (!regex_match(line, reInlChannel))
+//            continue;
+//        line = regex_replace(line, reInlChannel, "$1 $2");
+//        printf("%s\n", line.c_str());
+        istringstream ss(line);
+        ss >> channelID;
+        //printf("Channel ID = %u\n", channelID);
+        UShort_t i_bin = 0;
+        while (ss.tellg() != -1) {
+            if (i_bin > TDC_BIN_COUNT) {
+                perror("INL File contains too many bins in channel.\n");
+                ff.close();
+                return kBMNERROR;
             }
-        if (trigArADC)
-            for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); iAdc++) {
-                BmnTQDCADCDigit *adcDig = (BmnTQDCADCDigit*) adc->At(iAdc);
-                if (adcDig->GetSerial() != tM.serial || adcDig->GetSlot() != tM.slot) continue;
-                if (adcDig->GetChannel() != tM.channel) continue;
-                Double_t adcTimestamp = adcDig->GetAdcTimestamp() * ADC_CLOCK_TQDC16VS;
-                Double_t trgTimestamp = adcDig->GetTrigTimestamp() * ADC_CLOCK_TQDC16VS;
-                new ((*trigArADC)[trigArADC->GetEntriesFast()]) BmnTrigWaveDigit(
+            if (ss.peek() == ',' || ss.peek() == '=') {
+                ss.ignore();
+            }
+            ss >> par->INL[channelID][i_bin];
+            i_bin++;
+        }
+    }
+    ff.close();
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
+    // Matching of ADC/TDC based on the fact that (TDC_i - TDC_j) > 296ns correspond to different ADC
+    // and (TDC_i - (ADC_i - Trig_i) ) ~ 0
+    std::vector<Double_t> times;
+    std::vector<Double_t> diff;
+    for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); iAdc++) {
+        times.clear();
+        diff.clear();
+        BmnTQDCADCDigit *adcDig = (BmnTQDCADCDigit*) adc->At(iAdc);
+        UShort_t iChannel = adcDig->GetChannel();
+        auto plIter = fPlacementMap.find(PlMapKey(adcDig->GetSerial(), adcDig->GetSlot()));
+        if (plIter == fPlacementMap.end())
+            continue;
+        BmnTrigParameters * par = plIter->second;
+        UShort_t iMod = par->ChannelMap[iChannel];
+        Double_t adcTimestamp = adcDig->GetAdcTimestamp() * ADC_CLOCK_TQDC16VS;
+        Double_t trgTimestamp = adcDig->GetTrigTimestamp() * ADC_CLOCK_TQDC16VS;
+
+        for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
+            BmnTDCDigit* tdcDig = (BmnTDCDigit*) tdc->At(iTdc);
+            if (tdcDig->GetSerial() != adcDig->GetSerial() || tdcDig->GetSlot() != adcDig->GetSlot()) continue;
+            if (tdcDig->GetChannel() != iChannel) continue;
+            Double_t time = (tdcDig->GetValue() + par->INL[iChannel][tdcDig->GetValue() % TDC_BIN_COUNT]) * TDC_CLOCK / TDC_BIN_COUNT;
+            // Double_t tdcTimestamp = tdcDig->GetTimestamp() * TDC_CLOCK;
+            diff.push_back(fabs(time - (adcTimestamp - trgTimestamp)));
+            times.push_back(time);
+        }
+        if (diff.size() > 0) {
+            auto result = min_element(begin(diff), end(diff));
+            int idx = std::distance(begin(diff), result);
+            // Found the match, so let's save that as and ADC and corresponding TDC
+            Double_t matchTime = times.at(idx);
+            Double_t minUsed = diff.at(idx);
+            TClonesArray *trigAr = par->branchArrayPtr[iChannel];
+            if (trigAr != NULL && minUsed < 296) { // ADC window
+                new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigWaveDigit(
                         iMod,
                         adcDig->GetShortValue(),
                         adcDig->GetNSamples(),
                         trgTimestamp,
-                        adcTimestamp);
+                        adcTimestamp,
+                        matchTime);
             }
+        }
     }
     return kBMNSUCCESS;
 }
 
 BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
-    for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
-        BmnTrigMapping tM = fMap[iMap];
-        Short_t iMod = tM.module;
-        TClonesArray *trigAr = tM.branchRef;
-        //        printf("tdc->GetEntriesFast() %d\n", tdc->GetEntriesFast());
-        for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
-            BmnTDCDigit* tdcDig1 = (BmnTDCDigit*) tdc->At(iTdc);
-            if (tdcDig1->GetSerial() != tM.serial || tdcDig1->GetSlot() != tM.slot) continue;
-            if (!tdcDig1->GetLeading()) continue; // use only leading digits
-            UShort_t rChannel1 = tdcDig1->GetHptdcId() * kNCHANNELS + tdcDig1->GetChannel();
-            if (rChannel1 != tM.channel) continue;
-            BmnTDCDigit* nearestDig = NULL;
-            UInt_t nearestTime = UINT_MAX;
-            for (Int_t jTdc = 0; jTdc < tdc->GetEntriesFast(); ++jTdc) {
-                if (iTdc == jTdc) continue;
-                BmnTDCDigit* tdcDig2 = (BmnTDCDigit*) tdc->At(jTdc);
-                if (tdcDig2->GetSerial() != tM.serial || tdcDig2->GetSlot() != tM.slot) continue;
-                if (tdcDig2->GetLeading()) continue; // use only trailing digits as a pair to leading one
-                UShort_t rChannel2 = tdcDig2->GetHptdcId() * kNCHANNELS + tdcDig2->GetChannel();
-                if (rChannel1 != rChannel2) continue; // we need the same hptdc & channel to create pair
-                Int_t dTime = tdcDig2->GetValue() - tdcDig1->GetValue();
-                if (dTime < 0) continue; //time should be positive
-                if (dTime < nearestTime) {
-                    nearestTime = dTime;
-                    nearestDig = tdcDig2;
-                }
+    for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
+        BmnTDCDigit* tdcDig = (BmnTDCDigit*) tdc->At(iTdc);
+        auto plIter = fPlacementMap.find(PlMapKey(tdcDig->GetSerial(), tdcDig->GetSlot()));
+        if (plIter == fPlacementMap.end())
+            continue;
+        BmnTrigParameters * par = plIter->second;
+        UShort_t rChannel = tdcDig->GetHptdcId() * kNCHANNELS + tdcDig->GetChannel();
+        Double_t time = (tdcDig->GetValue() + par->INL[rChannel][tdcDig->GetValue() % TDC_BIN_COUNT]) * TDC_CLOCK / TDC_BIN_COUNT;
+        if (tdcDig->GetLeading()) {
+            par->t[rChannel] = time;
+        } else {
+            if (time < par->t[rChannel]) {
+                //printf("Errore! digits are not ordered by time!\n");
+                continue;
             }
-            if (nearestDig != NULL) {
-                Double_t tL = (tdcDig1->GetValue() + fINLTable[rChannel1][tdcDig1->GetValue() % 1024]) * 24.0 / 1024;
-                Double_t tT = (nearestDig->GetValue() + fINLTable[rChannel1][nearestDig->GetValue() % 1024]) * 24.0 / 1024;
-                //                printf("OK:   tT = %f    tL = %f\n", tT, tL);
-                new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigDigit(iMod, tL, tT - tL);
-            }
+            UShort_t iMod = par->ChannelMap[rChannel];
+            TClonesArray *trigAr = par->branchArrayPtr[rChannel];
+            if (trigAr == NULL)
+                continue;
+            Double_t tL = par->t[rChannel];
+            Double_t tT = time;
+//            printf("OK:   tT = %f    tL = %f\n", tT, tL);
+            new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigDigit(iMod, tL, tT - tL);
         }
     }
     return kBMNSUCCESS;

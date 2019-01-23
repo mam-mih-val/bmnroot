@@ -4,10 +4,10 @@
  * and open the template in the editor.
  */
 
-/* 
+/*
  * File:   BmnMonHists.cxx
  * Author: ilnur
- * 
+ *
  * Created on November 15, 2016, 12:57 PM
  */
 
@@ -32,7 +32,7 @@ BmnHistGem::BmnHistGem(TString title, TString path, Int_t PeriodID) : BmnHist(Pe
     fName = title + "_cl";
     TString name;
     TString xmlConfFileName = fPeriodID == 7 ? "GemRunSpring2018.xml" : "GemRunSpring2017.xml";
-    xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/gem/XMLConfigs/" + xmlConfFileName;
+    xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/parameters/gem/XMLConfigs/" + xmlConfFileName;
     printf("xmlConfFileName %s\n", xmlConfFileName.Data());
     gemStationSet = new BmnGemStripStationSet(xmlConfFileName);
     for (Int_t iStation = 0; iStation < gemStationSet->GetNStations(); iStation++) {

@@ -59,11 +59,11 @@ public:
 
   /** Modifiers **/
   void SetTime(Double_t time) { fTime = time; };
-  void SetType(HitType type) { fType = type; };
+  void SetType(HitType_o type) { fType = type; };
 
 private:
 
-  HitType fType; ///< Hit type
+  HitType_o fType; ///< Hit type
   Double32_t fTime; ///< Time since event start [ns]
   Int_t fChannel; ///< Channel identifier
 

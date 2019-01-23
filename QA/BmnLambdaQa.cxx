@@ -20,7 +20,7 @@
 #include "../physics/particles/BmnParticlePair.h"
 #include "../physics/particles/BmnRecLambda.h"
 #include "BmnSiliconPoint.h"
-#include "BmnSSDPoint.h"
+#include "BmnSsdPoint.h"
 
 #include <boost/assign/list_of.hpp>
 #include <fstream>
@@ -68,7 +68,7 @@ fMesonsThetaRRangeMax(10.),
 fInvMassMin(1.07),
 fInvMassMax(1.22),
 fUseMCFile(kFALSE),
-fUseRecoFile(kFALSE) {   
+fUseRecoFile(kFALSE) {
     // Initialize cut arrays ...
     Double_t val = 0.;
     for (Int_t i = 0; i < 2; i++) {
@@ -399,7 +399,7 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             }
         }
 
-    /// RECO    
+    /// RECO
     if (fParticlePair_RECO)
         for (Int_t iPair = 0; iPair < fParticlePair_RECO->GetEntriesFast(); iPair++) {
             BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_RECO->UncheckedAt(iPair);
@@ -480,7 +480,7 @@ void BmnLambdaQa::Exec(Option_t* opt) {
             Double_t dca12x = pair->GetDCA12();
             Double_t dca12y = pair->GetDCA12();
             Double_t path = pair->GetPath();
-            
+
             // Apply cuts ...
             if (momPart1 < fMom[0][0] || momPart1 > fMom[0][1] || momPart2 < fMom[1][0] || momPart2 > fMom[1][1])
                 continue;
@@ -497,7 +497,7 @@ void BmnLambdaQa::Exec(Option_t* opt) {
 
             if (path < fPath[0] || path > fPath[1])
                 continue;
-         
+
             fNOfParticlePairs++;
             fHM->H1("numberOfReconstructedParticlePairsQA")->Fill(1);
             fHM->H1("NPairsRecoInvMass")->Fill(pair->GetInvMass());
@@ -517,7 +517,7 @@ void BmnLambdaQa::Exec(Option_t* opt) {
     if (fParticlePair_RECO)
         for (Int_t iPair = 0; iPair < fParticlePair_RECO->GetEntriesFast(); iPair++) {
             BmnParticlePair* pair = (BmnParticlePair*) fParticlePair_RECO->At(iPair);
-            
+
             fHM->H1("NPairsRecoInvMassWOCuts")->Fill(pair->GetInvMass());
 
             Double_t momPart1 = pair->GetMomPart1();
@@ -550,7 +550,7 @@ void BmnLambdaQa::Finish() {
     vector <TClonesArray*> isPairBranches;
     isPairBranches.push_back(fParticlePair_MC);
     isPairBranches.push_back(fParticlePair_RECO);
-    
+
     BmnParticlePairsInfo* pairInfo = new BmnParticlePairsInfo();
     pairInfo->setMomPart1Min(fMom[0][0]);
     pairInfo->setMomPart1Max(fMom[0][1]);
@@ -570,7 +570,7 @@ void BmnLambdaQa::Finish() {
     pairInfo->setDCA12Min(fDCA12[0]);
     pairInfo->setDCA12Max(fDCA12[1]);
     pairInfo->setPathMin(fPath[0]);
-    pairInfo->setPathMax(fPath[1]); 
+    pairInfo->setPathMax(fPath[1]);
     BmnSimulationReport* report = new BmnLambdaQaReport(fUseMCFile, fUseRecoFile, pairInfo, isPairBranches);
     report->Create(fHM, fOutputDir);
     delete report;

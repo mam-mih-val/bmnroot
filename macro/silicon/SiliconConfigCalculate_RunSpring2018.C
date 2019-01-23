@@ -2,7 +2,7 @@
  * Description:
  * Macro for calculating parameters of SILICON detector and writing them
  * into the XML-file needed for simulation and reconstruction procedures.
- * The obtained XML-file should be moved into the 'silicon/XMLConfigs' directory
+ * The obtained XML-file should be moved into the 'parameters/silicon/XMLConfigs' directory
  *
  * SILICON configuration: RunSpring2018 (BM@N RUN-7 where 3 SI-stations were)
  *
@@ -287,7 +287,7 @@ void PrintInfo() {
 void CalculateParameters(TString xml_file_name) {
 
     ofstream SiFileOut(xml_file_name.Data(), ios::out);
-    
+
     SiFileOut << "<StationSet>\n";
     SiFileOut << "\n";
 

@@ -18,7 +18,7 @@ BmnGemHitProducer::BmnGemHitProducer() {
 }
 
 BmnGemHitProducer::~BmnGemHitProducer() {
-    
+
 
 }
 
@@ -39,7 +39,7 @@ InitStatus BmnGemHitProducer::Init() {
     ioman->Register(fOutputGemHitMatchesBranchName, "GEM", fBmnGemStripHitMatchesArray, kTRUE);
 
     TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
-    gPathGemConfig += "/gem/XMLConfigs/";
+    gPathGemConfig += "/parameters/gem/XMLConfigs/";
     GemStationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2018.xml");
 
     return kSUCCESS;

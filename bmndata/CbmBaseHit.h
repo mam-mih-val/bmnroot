@@ -5,24 +5,24 @@
  *
  * Base class for hits used for tracking in CBM.
  * Derives from TObject.
- * Each hit has its unique identifier of type HitType,
+ * Each hit has its unique identifier of type HitType_o,
  * which can be later use for safe type casting.
  **/
 #ifndef CBMBASEHIT_H_
 #define CBMBASEHIT_H_
 
-enum HitType {
-	kHIT,
-	kPIXELHIT,
-	kSTRIPHIT,
-	kSTSHIT,
-	kMVDHIT,
-	kRICHHIT,
-	kMUCHPIXELHIT,
-	kMUCHSTRAWHIT,
-	kTRDHIT,
-	kTOFHIT,
-	kECALHIT
+enum HitType_o {
+	kHIT_o,
+	kPIXELHIT_o,
+	kSTRIPHIT_o,
+	kSTSHIT_o,
+	kMVDHIT_o,
+	kRICHHIT_o,
+	kMUCHPIXELHIT_o,
+	kMUCHSTRAWHIT_o,
+	kTRDHIT_o,
+	kTOFHIT_o,
+	kECALHIT_o
 };
 
 #include "TObject.h"
@@ -44,7 +44,7 @@ public:
 	virtual ~CbmBaseHit();
 
 	/* Accessors */
-	HitType GetType() const { return fType; }
+	HitType_o GetType() const { return fType; }
 	Double_t GetZ() const { return fZ; }
 	Double_t GetDz() const { return fDz; }
 	Int_t GetRefId() const { return fRefId; }
@@ -77,20 +77,20 @@ protected:
      * \brief Sets hit type.
      * \param type hit type
      **/
-	void SetType(HitType type) { fType = type; }
+	void SetType(HitType_o type) { fType = type; }
 
         CbmBaseHit(const CbmBaseHit&);
-        CbmBaseHit& operator=(const CbmBaseHit&);   
+        CbmBaseHit& operator=(const CbmBaseHit&);
 
 private:
-	HitType fType; ///< hit type
+	HitType_o fType; ///< hit type
 	Double_t fZ; ///< Z position of hit [cm]
 	Double_t fDz; ///< Z position error [cm]
 	Int_t fRefId; ///< some reference id (usually to cluster, digi or MC point)
 	Int_t fAddress; ///< detector unique identifier
 	FairMultiLinkedData* fLinks; ///< Monte-Carlo link collection
 
-  
+
 	ClassDef(CbmBaseHit, 1);
 };
 

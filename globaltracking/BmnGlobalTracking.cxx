@@ -284,7 +284,7 @@ fEventNo(0) {
     TString confSi = "SiliconRunSpring2018.xml";
 
     /// SI
-    TString gPathSiliconConfig = gPathConfig + "/silicon/XMLConfigs/";
+    TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
     fDetectorSI = new BmnSiliconStationSet(gPathSiliconConfig + confSi);
 }
 
@@ -816,7 +816,7 @@ void BmnGlobalTracking::FitGemTracks() {
             /*
             cout << "GEM XOZ fit finished: " << fit->param[0] << " " << fit->param[1] << " " << fit->param[2] << endl;
         for (Int_t iHit = 0; iHit < nHits; ++iHit) {
-            cout << iHit << " "<< xx[iHit]<< " " << zz[iHit]<< " " 
+            cout << iHit << " "<< xx[iHit]<< " " << zz[iHit]<< " "
                                 << fit->param[2]*zz[iHit]*zz[iHit]+fit->param[1]*zz[iHit] + fit->param[0]<< endl;
         }
              */
@@ -833,7 +833,7 @@ void BmnGlobalTracking::FitGemTracks() {
             /*
             cout << "GEM YOZ fit finished: " << fits->param[0] << " " << fits->param[1] << endl;
         for (Int_t iHit = 0; iHit < nHits; ++iHit) {
-            cout << iHit << " "<< yy[iHit]<< " " << zz[iHit]<< " " 
+            cout << iHit << " "<< yy[iHit]<< " " << zz[iHit]<< " "
                                 << fits->param[1]*zz[iHit] + fits->param[0]<< endl;
         }
              */

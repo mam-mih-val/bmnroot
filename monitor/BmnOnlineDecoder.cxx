@@ -75,7 +75,6 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetBmnSetup(fBmnSetup);
     TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((fBmnSetup == kBMNSETUP) ? "" : "_SRC"));
-    rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
     rawDataDecoder->SetTof400Mapping(TString("TOF400_PlaceMap_RUN") +PeriodSetupExt, TString("TOF400_StripMap_RUN") +PeriodSetupExt);
     rawDataDecoder->SetTof700Mapping(TString("TOF700_map_period_") + PeriodSetupExt);
     rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
@@ -86,7 +85,8 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     rawDataDecoder->SetLANDTCal("r0030_land_tcal.hh");
     rawDataDecoder->SetLANDDiffSync("r352_cosmic1.hh");
     rawDataDecoder->SetLANDVScint("neuland_sync_2.txt");
-    rawDataDecoder->SetTrigMapping(TString("Trig_map_Run") + PeriodSetupExt);
+    rawDataDecoder->SetTrigPlaceMapping(TString("Trig_PlaceMap_Run") + PeriodSetupExt); 
+    rawDataDecoder->SetTrigChannelMapping(TString("Trig_map_Run") + PeriodSetupExt); 
     rawDataDecoder->SetSiliconMapping(TString("SILICON_map_run") + PeriodSetupExt);
     rawDataDecoder->SetGemMapping(TString("GEM_map_run") + PeriodSetupExt);
     rawDataDecoder->SetCSCMapping(TString("CSC_map_period") + PeriodSetupExt);

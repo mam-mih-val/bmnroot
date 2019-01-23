@@ -27,13 +27,17 @@ enum DetectorId {kREF,  // Reference plane
 
 
 /**   Data type enumerator  **/
-enum DataType {kUnknown,
-	       kMCTrack,
-	       kStsPoint,
-	       kStsDigi,
-	       kStsCluster,
-	       kStsHit};
-
+enum DataType {kMCTrack,
+               kMvdPoint, kMvdDigi, kMvdCluster, kMvdHit,             // MVD
+               kStsPoint, kStsDigi, kStsCluster, kStsHit, kStsTrack,  // STS
+               kSsdPoint, kSsdDigi, kSsdCluster, kSsdHit, kSsdTrack,  // SSD
+               kRichPoint, kRichDigi, kRichHit, kRichRing,            // RICH
+               kMuchDigi, kMuchPixelHit, kMuchStrawHit, kMuchTrack,   // MUCH
+               kTrdDigi, kTrdHit, kTrdTrack,                          // TRD
+               kTofPoint, kTofDigi, kTofCalDigi, kTofHit, kTofTrack,  // TOF
+               kPsdPoint, kPsdDigi,                                   // PSD
+               kGlobalTrack                                           // Global
+};
 
 #include "TObject.h"
 

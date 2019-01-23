@@ -10,6 +10,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/ssd
+ ${CMAKE_SOURCE_DIR}/ssd/aux/data
  ${CMAKE_SOURCE_DIR}/sts
  ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/QA
@@ -28,7 +29,7 @@ set(LINK_DIRECTORIES
  ${ROOT_LIBRARY_DIR}
  ${FAIRROOT_LIBRARY_DIR}
 )
- 
+
 link_directories(${LINK_DIRECTORIES})
 
 # List of source files
@@ -52,7 +53,7 @@ report/BmnHistManager.cxx
 BmnMatchRecoToMC.cxx
 )
 
-EXEC_PROGRAM( ${ROOT_CONFIG_EXECUTABLE} 
+EXEC_PROGRAM( ${ROOT_CONFIG_EXECUTABLE}
     ARGS "--has-gdml"
     OUTPUT_VARIABLE ROOT_HAS_GDML )
 

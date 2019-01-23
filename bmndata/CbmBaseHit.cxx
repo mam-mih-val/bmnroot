@@ -11,7 +11,7 @@
 
 CbmBaseHit::CbmBaseHit():
     TObject(),
-	fType(kHIT),
+	fType(kHIT_o),
 	fAddress(-1),
 	fZ(0.),
 	fDz(0.),

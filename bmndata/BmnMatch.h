@@ -43,6 +43,7 @@ public:
 
    /* Modifiers */
    void AddLink(const BmnMatch& match);
+   void AddLinks(const BmnMatch& match) { AddLink(match); }
    void AddLink(const BmnLink& newLink);
    void AddLink(Double_t weight, Int_t index, Int_t entry = -1, Int_t file = -1);
    void ClearLinks();

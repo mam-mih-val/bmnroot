@@ -17,7 +17,7 @@ CbmPixelHit::CbmPixelHit():
 	fDy(0.),
 	fDxy(0.)
 {
-	SetType(kPIXELHIT);
+	SetType(kPIXELHIT_o);
 }
 
 CbmPixelHit::CbmPixelHit(
@@ -37,7 +37,7 @@ CbmPixelHit::CbmPixelHit(
 	fDy(dy),
 	fDxy(dxy)
 {
-	SetType(kPIXELHIT);
+	SetType(kPIXELHIT_o);
    SetAddress(address);
    SetZ(z);
    SetDz(dz);
@@ -57,7 +57,7 @@ CbmPixelHit::CbmPixelHit(
 	fDy(err.Y()),
 	fDxy(dxy)
 {
-	SetType(kPIXELHIT);
+	SetType(kPIXELHIT_o);
 	SetAddress(address);
 	SetZ(pos.Z());
 	SetDz(err.Z());

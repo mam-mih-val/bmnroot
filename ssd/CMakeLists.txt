@@ -83,6 +83,8 @@ set(SRCS
     aux/data/BmnSsdHit.cxx
     aux/data/BmnPixelHit.cxx
     aux/data/BmnBaseHit.cxx
+
+    BmnSSDHitProducer.cxx
 )
 # -----  End of sources   ---------------------------------
 

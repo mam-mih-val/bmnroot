@@ -73,5 +73,7 @@
 #pragma link C++ class BmnPixelHit;
 #pragma link C++ class BmnBaseHit;
 
+#pragma link C++ class BmnSSDHitProducer;
+
 #endif /* __CINT__ */
 

@@ -16,7 +16,7 @@ BmnInnTrackerAlign::BmnInnTrackerAlign(Int_t period, Int_t run, TString fileName
     fBranchGemCorrs = "BmnGemAlignCorrections";
     fBranchSilCorrs = "BmnSiliconAlignCorrections";
 
-  //  TString alCorrFileName = "";
+    //  TString alCorrFileName = "";
 
     if (fileName.Contains("default")) {
         fFilename = "alignment_innTracker.root";
@@ -24,10 +24,11 @@ BmnInnTrackerAlign::BmnInnTrackerAlign(Int_t period, Int_t run, TString fileName
     } else
         fFilename = fileName;
 
-    // Create geometry of inn. tracker
+    // Choose appropriate configuration (BM@N or SRC)
+    Bool_t isSRC = (run < 3589) ? kTRUE : kFALSE;
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
-    TString confSi = "SiliconRunSpring2018.xml";
-    TString confGem = "GemRunSpring2018.xml";
+    TString confSi = "SiliconRun" + TString(isSRC ? "SRC" : "") + "Spring2018.xml";
+    TString confGem = "GemRun" + TString(isSRC ? "SRC" : "") + "Spring2018.xml";
 
     /// SI
     TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";

@@ -117,6 +117,11 @@ InitStatus BmnGemStripHitMaker::Init() {
             StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2018.xml");
             cout << "   Current Configuration : RunSpring2018" << "\n";
             break;
+            
+        case BmnGemStripConfiguration::RunSRCSpring2018:
+            StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSRCSpring2018.xml");
+            cout << "   Current Configuration : RunSpring2018" << "\n";
+            break;
 
         default:
             StationSet = NULL;
@@ -224,7 +229,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 Double_t sigU = module->GetIntersectionPoint_UpperLayerSripTotalSignal(iPoint);
 
                 if (sigL < 0 || sigU < 0) {
-//                    if (Abs(sigL - sigU) / max(sigU, sigL) > 0.25) continue;
+                    //                    if (Abs(sigL - sigU) / max(sigU, sigL) > 0.25) continue;
                     if (Abs(sigL - sigU) > 100) continue;
                 }
 

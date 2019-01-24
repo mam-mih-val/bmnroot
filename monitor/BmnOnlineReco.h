@@ -40,8 +40,6 @@
 #include "../mwpc/BmnMwpcHitFinder.h"
 #include "BmnGemStripConfiguration.h"
 #include "BmnGemStripHitMaker.h"
-#include "BmnGemTracking.h"
-#include "BmnGemResiduals.h"
 #include "BmnTriggersCheck.h"
 #include "BmnGlobalTracking.h"
 #include "BmnVertexFinder.h"

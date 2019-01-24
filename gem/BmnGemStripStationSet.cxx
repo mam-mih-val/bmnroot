@@ -6,11 +6,11 @@ BmnGemStripStationSet::BmnGemStripStationSet()
   BeamHoleRadiuses(NULL),
   GemStations(NULL) { }
 
-BmnGemStripStationSet::BmnGemStripStationSet(TString xml_config_file)
+BmnGemStripStationSet::BmnGemStripStationSet(TString xml_config_file, map <Int_t, TVector3>* shifts)
 : NStations(0),
   XStationPositions(NULL), YStationPositions(NULL), ZStationPositions(NULL),
   BeamHoleRadiuses(NULL),
-  GemStations(NULL) {
+  GemStations(NULL), fStatShifts(shifts) {
 
     Bool_t create_status = CreateConfigurationFromXMLFile(xml_config_file);
     if(!create_status) {
@@ -257,9 +257,24 @@ Bool_t BmnGemStripStationSet::ParseStation(TXMLNode *node, Int_t iStation) {
         }
     }
 
+    Double_t dx = 0.;
+    Double_t dy = 0.;
+    Double_t dz = 0.;
+
+    if (fStatShifts)
+        for (auto it : *fStatShifts) {
+            Int_t stat = it.first;
+            if (iStation == stat) {
+                dx = it.second.X();
+                dy = it.second.Y();
+                dz = it.second.Z();
+                break;
+            }
+        }
+
     GemStations[iStation] =
             new BmnGemStripStation(node, iStation,
-                XStationPositions[iStation], YStationPositions[iStation], ZStationPositions[iStation],
+                XStationPositions[iStation] + dx, YStationPositions[iStation] + dy, ZStationPositions[iStation] + dz,
                 BeamHoleRadiuses[iStation]);
 
     return true;

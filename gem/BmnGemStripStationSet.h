@@ -8,6 +8,7 @@
 #include "TXMLNode.h"
 #include "TXMLAttr.h"
 #include "TList.h"
+#include <TVector3.h>
 
 class BmnGemStripStationSet {
 
@@ -23,13 +24,14 @@ protected:
     Double_t *BeamHoleRadiuses; //beam hole radius of each station [array]
 
     BmnGemStripStation **GemStations; //GEM stations [array]
+    map <Int_t, TVector3>* fStatShifts;
 
 public:
 
     /* Constructor */
     BmnGemStripStationSet();
 
-    BmnGemStripStationSet(TString xml_config_file);
+    BmnGemStripStationSet(TString xml_config_file, map <Int_t, TVector3>* shifts = nullptr);
 
     /* Destructor */
     virtual ~BmnGemStripStationSet();

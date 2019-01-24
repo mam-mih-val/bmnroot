@@ -8,6 +8,7 @@
 #include "TXMLNode.h"
 #include "TXMLAttr.h"
 #include "TList.h"
+#include <TVector3.h>
 
 class BmnSiliconStationSet {
 
@@ -20,14 +21,15 @@ protected:
     Double_t *YStationPositions; //y-position of each station [array]
     Double_t *ZStationPositions; //z-position of each station [array]
 
-    BmnSiliconStation **SiliconStations; //Silicon stations [array]
+    BmnSiliconStation **SiliconStations; //Silicon stations [array]    
+    map <Int_t, TVector3>* fStatShifts;
 
 public:
 
     /* Constructor */
     BmnSiliconStationSet();
 
-    BmnSiliconStationSet(TString xml_config_file);
+    BmnSiliconStationSet(TString xml_config_file, map <Int_t, TVector3>* shifts = nullptr);
 
     /* Destructor */
     virtual ~BmnSiliconStationSet();

@@ -2,27 +2,88 @@
 
 BmnDigiConverter::BmnDigiConverter() :
 fEventNo(0),
-fGemDigitsIn(NULL),
-fSiDigitsIn(NULL),
-fGemDigitsOut(NULL),
-fSiDigitsOut(NULL),
+fGemDigitsIn(nullptr),
+fSiDigitsIn(nullptr),
+fTOF400DigitsIn(nullptr),
+fGemDigitsOut(nullptr),
+fSiDigitsOut(nullptr),
+fTOF400DigitsOut(nullptr),
+fBC1In(nullptr),
+fBC2In(nullptr),
+fVetoIn(nullptr),
+fBC1Out(nullptr),
+fBC2Out(nullptr),
+fVetoOut(nullptr),
+fBC3In(nullptr),
+fBC4In(nullptr),
+fX1LIn(nullptr),
+fX2LIn(nullptr),
+fY1LIn(nullptr),
+fY2LIn(nullptr),
+fX1RIn(nullptr),
+fX2RIn(nullptr),
+fY1RIn(nullptr),
+fY2RIn(nullptr),
+fBC3Out(nullptr),
+fBC4Out(nullptr),
+fX1LOut(nullptr),
+fX2LOut(nullptr),
+fY1LOut(nullptr),
+fY2LOut(nullptr),
+fX1ROut(nullptr),
+fX2ROut(nullptr),
+fY1ROut(nullptr),
+fY2ROut(nullptr),
+fSiTrigIn(nullptr),
+fBDIn(nullptr),
+fSiTrigOut(nullptr),
+fBDOut(nullptr),
 isTrig(kTRUE),
 isGem(kTRUE),
 isSil(kTRUE),
-isTof400(kTRUE) {
+isTof400(kTRUE),
+isBMN(kFALSE),
+isSRC(kFALSE) {
+    // Set names for all branches available
     fGemBranchIn = "STRIPGEM";
     fSiBranchIn = "MYSILICON";
     fTOF400BranchIn = "TOF400";
-
     fGemBranchOut = "GEM";
     fSiBranchOut = "SILICON";
     fTOF400BranchOut = "TOF400";
 
-    fSiBranch = "Si";
-    fVetoBranch = "VC";
-    fBC1Branch = "BC1";
-    fBC2Branch = "BC2";
-    fBDBranch = "BD";
+    fBC1BranchIn = "BC1";
+    fBC2BranchIn = "BC2";
+    fVetoBranchIn = "VC";
+    fBC1BranchOut = "BC1";
+    fBC2BranchOut = "BC2";
+    fVetoBranchOut = "VC";
+
+    fBC3BranchIn = "BC3";
+    fBC4BranchIn = "BC4";
+    fX1LBranchIn = "X1_Left";
+    fX2LBranchIn = "X2_Left";
+    fY1LBranchIn = "Y1_Left";
+    fY2LBranchIn = "Y2_Left";
+    fX1RBranchIn = "X1_Right";
+    fX2RBranchIn = "X2_Right";
+    fY1RBranchIn = "Y1_Right";
+    fY2RBranchIn = "Y2_Right";
+    fBC3BranchOut = "BC3";
+    fBC4BranchOut = "BC4";
+    fX1LBranchOut = "X1L";
+    fX2LBranchOut = "X2L";
+    fY1LBranchOut = "Y1L";
+    fY2LBranchOut = "Y2L";
+    fX1RBranchOut = "X1R";
+    fX2RBranchOut = "X2R";
+    fY1RBranchOut = "Y1R";
+    fY2RBranchOut = "Y2R";
+
+    fSiTrigBranchIn = "Si";
+    fBDBranchIn = "BD";
+    fSiTrigBranchOut = "Si";
+    fBDBranchOut = "BD";
 }
 
 InitStatus BmnDigiConverter::Init() {
@@ -34,96 +95,232 @@ InitStatus BmnDigiConverter::Init() {
 
     fBmnHeaderIn = (TClonesArray*) ioman->GetObject("EventHeader");
     if (!fBmnHeaderIn) {
-     cout << "Set correct input digi-tree (BMN_DIGIT at present) in $VMCWORKDIR/config/rootmanager.dat" << endl;
+        cout << "Set correct input digi-tree (BMN_DIGIT at present) in $VMCWORKDIR/config/rootmanager.dat" << endl;
         throw;
     }
 
-    fSiIn = (TClonesArray*) ioman->GetObject(fSiBranch.Data());
-    fVetoIn = (TClonesArray*) ioman->GetObject(fVetoBranch.Data());
-    fBC1In = (TClonesArray*) ioman->GetObject(fBC1Branch.Data());
-    fBC2In = (TClonesArray*) ioman->GetObject(fBC2Branch.Data());
-    fBDIn = (TClonesArray*) ioman->GetObject(fBDBranch.Data());
+    // BM@N or SRC
+    UInt_t runId = ((BmnEventHeader*) fBmnHeaderIn->UncheckedAt(0))->GetRunId();
+    if (runId > 3589) // FIXME!
+        isBMN = kTRUE;
+    else
+        isSRC = kTRUE;
 
+    // get input branches
     fGemDigitsIn = (TClonesArray*) ioman->GetObject(fGemBranchIn.Data());
     fSiDigitsIn = (TClonesArray*) ioman->GetObject(fSiBranchIn.Data());
-
     fTOF400DigitsIn = (TClonesArray*) ioman->GetObject(fTOF400BranchIn.Data());
+
+    fBC1In = (TClonesArray*) ioman->GetObject(fBC1BranchIn.Data());
+    fBC2In = (TClonesArray*) ioman->GetObject(fBC2BranchIn.Data());
+    fVetoIn = (TClonesArray*) ioman->GetObject(fVetoBranchIn.Data());
+
+    fBC3In = (TClonesArray*) ioman->GetObject(fBC3BranchIn.Data());
+    fBC4In = (TClonesArray*) ioman->GetObject(fBC4BranchIn.Data());
+    fX1LIn = (TClonesArray*) ioman->GetObject(fX1LBranchIn.Data());
+    fX2LIn = (TClonesArray*) ioman->GetObject(fX2LBranchIn.Data());
+    fY1LIn = (TClonesArray*) ioman->GetObject(fY1LBranchIn.Data());
+    fY2LIn = (TClonesArray*) ioman->GetObject(fY2LBranchIn.Data());
+    fX1RIn = (TClonesArray*) ioman->GetObject(fX1RBranchIn.Data());
+    fX2RIn = (TClonesArray*) ioman->GetObject(fX2RBranchIn.Data());
+    fY1RIn = (TClonesArray*) ioman->GetObject(fY1RBranchIn.Data());
+    fY2RIn = (TClonesArray*) ioman->GetObject(fY2RBranchIn.Data());
+
+    fSiTrigIn = (TClonesArray*) ioman->GetObject(fSiTrigBranchIn.Data());
+    fBDIn = (TClonesArray*) ioman->GetObject(fBDBranchIn.Data());
+
+    // create output branches
+    fBmnHeaderOut = new TClonesArray("BmnEventHeader");
+    ioman->Register("EventHeader", "EventHeader_", fBmnHeaderOut, kTRUE);
+
+    Bool_t isWriteTrig = isTrig ? kTRUE : kFALSE;
 
     fGemDigitsOut = new TClonesArray("BmnGemStripDigit");
     fSiDigitsOut = new TClonesArray("BmnSiliconDigit");
     fTOF400DigitsOut = new TClonesArray("BmnTof1Digit");
 
-    fSiOut = new TClonesArray("BmnTrigDigit");
-    fVetoOut = new TClonesArray("BmnTrigDigit");
     fBC1Out = new TClonesArray("BmnTrigDigit");
     fBC2Out = new TClonesArray("BmnTrigDigit");
-    fBDOut = new TClonesArray("BmnTrigDigit");
+    fVetoOut = new TClonesArray("BmnTrigDigit");
 
-    fBmnHeaderOut = new TClonesArray("BmnEventHeader");
-    ioman->Register("EventHeader", "EventHeader_", fBmnHeaderOut, kTRUE);
+    ioman->Register(fGemBranchOut.Data(), "GEM_", fGemDigitsOut, isGem ? kTRUE : kFALSE);
+    ioman->Register(fSiBranchOut.Data(), "SILICON_", fSiDigitsOut, isSil ? kTRUE : kFALSE);
+    ioman->Register(fTOF400BranchOut.Data(), "TOF400_", fTOF400DigitsOut, isTof400 ? kTRUE : kFALSE);
 
-    if (isGem)
-        ioman->Register(fGemBranchOut.Data(), "GEM_", fGemDigitsOut, kTRUE);
-    if (isSil)
-        ioman->Register(fSiBranchOut.Data(), "SILICON_", fSiDigitsOut, kTRUE);
+    ioman->Register(fBC1BranchOut.Data(), "BC1_", fBC1Out, isWriteTrig);
+    ioman->Register(fBC2BranchOut.Data(), "BC2_", fBC2Out, isWriteTrig);
+    ioman->Register(fVetoBranchOut.Data(), "VETO_", fVetoOut, isWriteTrig);
 
-    if (isTrig) {
-        ioman->Register(fSiBranch.Data(), "Si_", fSiOut, kTRUE);
-        ioman->Register(fVetoBranch.Data(), "VETO_", fVetoOut, kTRUE);
-        ioman->Register(fBC1Branch.Data(), "BC1_", fBC1Out, kTRUE);
-        ioman->Register(fBC2Branch.Data(), "BC2_", fBC2Out, kTRUE);
-        ioman->Register(fBDBranch.Data(), "BD_", fBDOut, kTRUE);
+    if (isBMN) {
+        fSiTrigOut = new TClonesArray("BmnTrigDigit");
+        fBDOut = new TClonesArray("BmnTrigDigit");
+
+        ioman->Register(fSiTrigBranchOut.Data(), "SI_", fSiTrigOut, isWriteTrig);
+        ioman->Register(fBDBranchOut.Data(), "BD_", fBDOut, isWriteTrig);
     }
 
-    if (isTof400)
-        ioman->Register(fTOF400BranchOut.Data(), "TOF400_", fTOF400DigitsOut, kTRUE);
+    if (isSRC) {
+        fBC3Out = new TClonesArray("BmnTrigDigit");
+        fBC4Out = new TClonesArray("BmnTrigDigit");
+        fX1LOut = new TClonesArray("BmnTrigDigit");
+        fX2LOut = new TClonesArray("BmnTrigDigit");
+        fY1LOut = new TClonesArray("BmnTrigDigit");
+        fY2LOut = new TClonesArray("BmnTrigDigit");
+        fX1ROut = new TClonesArray("BmnTrigDigit");
+        fX2ROut = new TClonesArray("BmnTrigDigit");
+        fY1ROut = new TClonesArray("BmnTrigDigit");
+        fY2ROut = new TClonesArray("BmnTrigDigit");
+
+        ioman->Register(fBC3BranchOut.Data(), "BC3_", fBC3Out, isWriteTrig);
+        ioman->Register(fBC4BranchOut.Data(), "BC4_", fBC4Out, isWriteTrig);
+        ioman->Register(fX1LBranchOut.Data(), "X1L_", fX1LOut, isWriteTrig);
+        ioman->Register(fX2LBranchOut.Data(), "X2L_", fX2LOut, isWriteTrig);
+        ioman->Register(fY1LBranchOut.Data(), "Y1L_", fY1LOut, isWriteTrig);
+        ioman->Register(fY2LBranchOut.Data(), "Y2L_", fY2LOut, isWriteTrig);
+        ioman->Register(fX1RBranchOut.Data(), "X1R_", fX1ROut, isWriteTrig);
+        ioman->Register(fX2RBranchOut.Data(), "X2R_", fX2ROut, isWriteTrig);
+        ioman->Register(fY1RBranchOut.Data(), "Y1R_", fY1ROut, isWriteTrig);
+        ioman->Register(fY2RBranchOut.Data(), "Y2R_", fY2ROut, isWriteTrig);
+    }
 
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
-    TString confSi = "SiliconRunSpring2018.xml";
-    TString confGem = "GemRunSpring2018.xml";
+    TString confSi = isBMN ? "SiliconRunSpring2018.xml" : isSRC ? "SiliconRunSRCSpring2018.xml" : "";
+    TString confGem = isBMN ? "GemRunSpring2018.xml" : isSRC ? "GemRunSRCSpring2018.xml" : "";
 
-    /// SI
+    // SI
     TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
     fDetectorSI = new BmnSiliconStationSet(gPathSiliconConfig + confSi);
 
-    /// GEM
+    // GEM
     TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
     fDetectorGEM = new BmnGemStripStationSet(gPathGemConfig + confGem);
 
-    // RUN7, FIXME
-    Int_t* stats = new Int_t[fDetectorGEM->GetNStations()];
-    stats[0] = 1; // MK-numeration
-    stats[1] = 2; // MK-numeration
-    stats[2] = 4; // MK-numeration
-    stats[3] = 5; // MK-numeration
-    stats[4] = 6; // MK-numeration
-    stats[5] = 7; // MK-numeration
+    Int_t* statsGem = new Int_t[fDetectorGEM->GetNStations()];
+    Int_t* statsSil = new Int_t[fDetectorSI->GetNStations()];
 
-    Int_t* statsPermut = new Int_t[fDetectorGEM->GetNStations()];
-    statsPermut[0] = 0; // SM-numeration
-    statsPermut[1] = 1; // SM-numeration
-    statsPermut[2] = 2; // SM-numeration
-    statsPermut[3] = 3; // SM-numeration
-    statsPermut[4] = 4; // SM-numeration
-    statsPermut[5] = 5; // SM-numeration
+    Int_t* statsGemPermut = new Int_t[fDetectorGEM->GetNStations()];
+    Int_t* statsSilPermut = new Int_t[fDetectorSI->GetNStations()];
 
-    if (isGem) {
-        for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
-            fGemStats[stats[iStat]] = statsPermut[iStat];
+    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++) {
+        statsGem[iStat] = -1;
+        statsGemPermut[iStat] = -1;
     }
+
+    for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++) {
+        statsSil[iStat] = -1;
+        statsSilPermut[iStat] = -1;
+    }
+
+    Run7(statsGem, statsSil, statsGemPermut, statsSilPermut); // FIXME!
+
+    if (isGem)
+        for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+            fGemStats[statsGem[iStat]] = statsGemPermut[iStat];
+
+    if (isSil)
+        for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++)
+            fSilStats[statsSil[iStat]] = statsSilPermut[iStat];
 
     if (isTrig) {
-        fTriggers.insert(pair <TClonesArray*, TClonesArray*> (fSiIn, fSiOut));
-        fTriggers.insert(pair <TClonesArray*, TClonesArray*> (fVetoIn, fVetoOut));
-        fTriggers.insert(pair <TClonesArray*, TClonesArray*> (fBC1In, fBC1Out));
-        fTriggers.insert(pair <TClonesArray*, TClonesArray*> (fBC2In, fBC2Out));
-        fTriggers.insert(pair <TClonesArray*, TClonesArray*> (fBDIn, fBDOut));
+        // Common triggers
+        fTriggers[fBC1In] = fBC1Out;
+        fTriggers[fBC2In] = fBC2Out;
+        fTriggers[fVetoIn] = fVetoOut;
+
+        if (isBMN) {
+            fTriggers[fSiTrigIn] = fSiTrigOut;
+            fTriggers[fBDIn] = fBDOut;
+        }
+
+        if (isSRC) {
+            fTriggers[fBC3In] = fBC3Out;
+            fTriggers[fBC4In] = fBC4Out;
+            fTriggers[fX1LIn] = fX1LOut;
+            fTriggers[fX2LIn] = fX2LOut;
+            fTriggers[fY1LIn] = fY1LOut;
+            fTriggers[fY2LIn] = fY2LOut;
+            fTriggers[fX1RIn] = fX1ROut;
+            fTriggers[fX2RIn] = fX2ROut;
+            fTriggers[fY1RIn] = fY1ROut;
+            fTriggers[fY2RIn] = fY2ROut;
+        }
     }
 
-    delete stats;
-    delete statsPermut;
+    delete statsGem;
+    delete statsGemPermut;
+    delete statsSil;
+    delete statsSilPermut;
 
     return kSUCCESS;
+}
+
+void BmnDigiConverter::Run7(Int_t* statsGem, Int_t* statsSil, Int_t* statsGemPermut, Int_t* statsSilPermut) {
+    // Setup is valid for two modes (BM@N and SRC)
+    // To be moved to the UniDb
+    if (isBMN) {
+        if (isGem) {
+            statsGem[0] = 1; // MK-numeration
+            statsGem[1] = 2; // MK-numeration
+            statsGem[2] = 4; // MK-numeration
+            statsGem[3] = 5; // MK-numeration
+            statsGem[4] = 6; // MK-numeration
+            statsGem[5] = 7; // MK-numeration
+
+            statsGemPermut[0] = 0;
+            statsGemPermut[1] = 1;
+            statsGemPermut[2] = 2;
+            statsGemPermut[3] = 3;
+            statsGemPermut[4] = 4;
+            statsGemPermut[5] = 5;
+        }
+        if (isSil) {
+            statsSil[0] = 1; // MK-numeration
+            statsSil[1] = 2; // MK-numeration
+            statsSil[2] = 3; // MK-numeration
+
+            statsSilPermut[0] = 0;
+            statsSilPermut[1] = 1;
+            statsSilPermut[2] = 2;
+
+        }
+    } else if (isSRC) {
+        if (isGem) {
+            statsGem[0] = 1; // MK-numeration
+            statsGem[1] = 2; // MK-numeration
+            statsGem[2] = 3; // MK-numeration
+            statsGem[3] = 4; // MK-numeration
+            statsGem[4] = 5; // MK-numeration
+            statsGem[5] = 6; // MK-numeration
+            statsGem[6] = 7; // MK-numeration
+            statsGem[7] = 8; // MK-numeration
+            statsGem[8] = 9; // MK-numeration
+            statsGem[9] = 10; // MK-numeration
+
+            statsGemPermut[0] = 0;
+            statsGemPermut[1] = 1;
+            statsGemPermut[2] = 2;
+            statsGemPermut[3] = 3;
+            statsGemPermut[4] = 4;
+            statsGemPermut[5] = 5;
+            statsGemPermut[6] = 6;
+            statsGemPermut[7] = 7;
+            statsGemPermut[8] = 8;
+            statsGemPermut[9] = 9;
+        }
+
+        if (isSil) {
+            statsSil[0] = 1; // MK-numeration
+            statsSil[1] = 2; // MK-numeration
+            statsSil[2] = 3; // MK-numeration
+
+            statsSilPermut[0] = 0;
+            statsSilPermut[1] = 1;
+            statsSilPermut[2] = 2;
+        }
+    } else {
+        cout << "Configuration not defined!" << endl;
+        throw;
+    }
 }
 
 void BmnDigiConverter::Exec(Option_t* opt) {
@@ -142,21 +339,25 @@ void BmnDigiConverter::Exec(Option_t* opt) {
     fBmnHeaderOut->Delete();
 
     new((*fBmnHeaderOut)[fBmnHeaderOut->GetEntriesFast()]) BmnEventHeader(runID, eventID, eventTime, eventType, tripWord, trigInfo);
-    //    BmnEventHeader* evHeaderOut = new((*fBmnHeaderOut)[fBmnHeaderOut->GetEntriesFast()]) BmnEventHeader();
-    //    evHeaderOut->SetTrigType(trigType);
-
-    //    cout << evHeaderOut->GetTrig() << endl;
-
 
     fGemDigitsOut->Delete();
     fSiDigitsOut->Delete();
     fTOF400DigitsOut->Delete();
 
-    fSiOut->Delete();
-    fVetoOut->Delete();
+    // Clear array with common triggers
     fBC1Out->Delete();
     fBC2Out->Delete();
-    fBDOut->Delete();
+    fVetoOut->Delete();
+
+    // Clear BM@N triggers
+    if (isBMN) {
+        fSiTrigOut->Delete();
+        fBDOut->Delete();
+    }
+
+    // Clear SRC triggers
+    for (auto &it : fTriggers)
+        it.second->Delete();
 
     // GEM
     if (isGem)
@@ -164,31 +365,52 @@ void BmnDigiConverter::Exec(Option_t* opt) {
             BmnGemStripDigit* gemDig = (BmnGemStripDigit*) fGemDigitsIn->UncheckedAt(iDigi);
 
             Int_t stat = gemDig->GetStation();
-            // CSC should be omitted
-            if (stat == 8 || stat == 3)
-                continue;
-            gemDig->SetStation(GemStatPermutation(stat));
+            Int_t strip = gemDig->GetStripNumber() - 1; // strips should be enumerated from zero
+            Double_t signal = gemDig->GetStripSignal();
 
-            Int_t strip = gemDig->GetStripNumber() - 1; // strips are enumerated from 0
+            if (isBMN) {
+                // CSC should be omitted
+                if (stat == 8 || stat == 3)
+                    continue;
+                gemDig->SetStation(GemStatPermutation(stat));
+                stat = gemDig->GetStation(); // Stations permuted already!
 
-            // Stations permuted already!
-            stat = gemDig->GetStation();
-            if (stat == 0 || stat == 3 || stat == 5) {
-                if (gemDig->GetModule() == 0)
-                    gemDig->SetModule(1);
-                else if (gemDig->GetModule() == 1)
-                    gemDig->SetModule(0);
-                else {
-                    cout << "Something went wrong!" << endl;
-                    throw;
+                if (stat == 0 || stat == 3 || stat == 5) {
+                    if (gemDig->GetModule() == 0)
+                        gemDig->SetModule(1);
+                    else if (gemDig->GetModule() == 1)
+                        gemDig->SetModule(0);
+                    else {
+                        cout << "Something went wrong!" << endl;
+                        throw;
+                    }
                 }
+            }
+
+            if (isSRC) {
+               // CSC should be omitted
+               if (stat == 11)
+                   continue;
+               
+                gemDig->SetStation(GemStatPermutation(stat));
+                stat = gemDig->GetStation();
+                                
+                if (stat == 5 || stat == 7 || stat == 9) {
+                    if (gemDig->GetModule() == 0)
+                        gemDig->SetModule(1);
+                    else if (gemDig->GetModule() == 1)
+                        gemDig->SetModule(0);
+                    else {
+                        cout << "Something went wrong!" << endl;
+                        throw;
+                    }
+                } 
             }
 
             new((*fGemDigitsOut)[fGemDigitsOut->GetEntriesFast()]) BmnGemStripDigit(gemDig->GetStation(),
                     gemDig->GetModule(),
                     gemDig->GetStripLayer(),
-                    strip,
-                    gemDig->GetStripSignal());
+                    strip, signal);
         }
 
     // SILICON
@@ -196,8 +418,11 @@ void BmnDigiConverter::Exec(Option_t* opt) {
         for (UInt_t iDigi = 0; iDigi < fSiDigitsIn->GetEntriesFast(); iDigi++) {
             BmnSiliconDigit* siDig = (BmnSiliconDigit*) fSiDigitsIn->UncheckedAt(iDigi);
 
-            Int_t stat = siDig->GetStation() - 1;
-            Int_t strip = siDig->GetStripNumber() - 1; // strips are enumerated from 0
+            Int_t stat = siDig->GetStation();
+            siDig->SetStation(GemStatPermutation(stat));
+            stat = siDig->GetStation(); // Stations permuted already!
+
+            Int_t strip = siDig->GetStripNumber() - 1; // strips should be enumerated from zero
             Int_t signal = siDig->GetStripSignal();
 
             Int_t mod = siDig->GetModule();
@@ -206,7 +431,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
             new((*fSiDigitsOut)[fSiDigitsOut->GetEntriesFast()]) BmnSiliconDigit(stat, mod, layer, strip, signal);
         }
 
-    // TRIGGERS (Si, VETO, BC1, BC2, BD)
+    // TRIGGERS (BM@N and SRC)
     if (isTrig)
         ConvertTriggers(fTriggers);
 

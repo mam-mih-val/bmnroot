@@ -4,17 +4,6 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- #${CMAKE_SOURCE_DIR}/bmndata
- #${CMAKE_SOURCE_DIR}/bmndata/cbm
- #${CMAKE_SOURCE_DIR}/bmndata/math
- #${CMAKE_SOURCE_DIR}/bmnfield
- #${CMAKE_SOURCE_DIR}/globaltracking
- #${CMAKE_SOURCE_DIR}/silicon
- #${CMAKE_SOURCE_DIR}/mwpc
- #${CMAKE_SOURCE_DIR}/dch
- #${CMAKE_SOURCE_DIR}/uni_db
- #${CMAKE_SOURCE_DIR}/uni_db/db_classes
- #${CMAKE_SOURCE_DIR}/alignment
  ${CMAKE_SOURCE_DIR}/steering
 )
 
@@ -35,8 +24,7 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
- BmnSteeringGemTracking.cxx
- BmnSteeringCA.cxx
+ BmnSteering.cxx
 )
 
 Set(HEADERS)

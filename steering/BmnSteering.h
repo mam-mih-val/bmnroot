@@ -9,8 +9,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef BMNSTEERINGCA_H
-#define BMNSTEERINGCA_H 1
+#ifndef BMNSTEERING_H
+#define BMNSTEERING_H 1
 
 #include <iostream>
 #include <fstream>
@@ -24,13 +24,13 @@
 using namespace std;
 using namespace TMath;
 
-class BmnSteeringCA : public TNamed {
+class BmnSteering : public TNamed {
 public:
 
-    BmnSteeringCA();
-    BmnSteeringCA(TString);
+    BmnSteering();
+    BmnSteering(TString);
 
-    virtual ~BmnSteeringCA();
+    virtual ~BmnSteering();
 
     void PrintParamTable();
 
@@ -102,10 +102,9 @@ public:
         return fNHitsCutTotal;
     }
 
-    Int_t GetNCellsCut() {
-        return fNCellsCut;
+    const Char_t* GetName() {
+        return fSteerFile.Data();
     }
-
 
 private:
     void ParseSteerFile(TString);
@@ -138,12 +137,10 @@ private:
 
     Int_t fNHitsCut;
     Int_t fNHitsCutTotal;
-
-    Int_t fNCellsCut;
     
     Double_t fMarkerValue;
 
-    ClassDef(BmnSteeringCA, 1);
+    ClassDef(BmnSteering, 1);
 };
 
 #endif

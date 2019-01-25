@@ -3,7 +3,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
-// BmnSteeringCA                                                              //
+// BmnSteering                                                              //
 //                                                                            //
 //  Mechanism of steering files to set an appropriate values of parameters    //
 //                                                                            //
@@ -11,17 +11,17 @@
 
 #include <cfloat>
 #include <vector>
-#include "BmnSteeringCA.h"
+#include "BmnSteering.h"
 
-BmnSteeringCA::~BmnSteeringCA() {
-
-}
-
-BmnSteeringCA::BmnSteeringCA() {
+BmnSteering::~BmnSteering() {
 
 }
 
-BmnSteeringCA::BmnSteeringCA(TString fileName) :
+BmnSteering::BmnSteering() {
+
+}
+
+BmnSteering::BmnSteering(TString fileName) :
 fSteerFile(fileName),
 fMarkerValue(-1000.) {
     fDiffSlopeXZ0 = fMarkerValue;
@@ -33,13 +33,12 @@ fMarkerValue(-1000.) {
     fNIter = fMarkerValue;
     fNHitsCut = fMarkerValue;
     fNHitsCutTotal = fMarkerValue;
-    fNCellsCut = fMarkerValue;
 
     ParseSteerFile(fSteerFile);
     TestParsedInput();
 }
 
-void BmnSteeringCA::TestParsedInput() {
+void BmnSteering::TestParsedInput() {
     //Check for non-initialized elements of arrays
     vector <Double_t> test1;
     vector <Double_t> test2;
@@ -88,13 +87,13 @@ void BmnSteeringCA::TestParsedInput() {
     }
 
     if (fNIter == fMarkerValue || fNHitsCut == fMarkerValue ||
-            fNHitsCutTotal == fMarkerValue || fNCellsCut == fMarkerValue) {
+            fNHitsCutTotal == fMarkerValue) {
         cout << "Steering containes missing / incorrect elements!!!" << endl;
         throw;
     }
 }
 
-void BmnSteeringCA::PrintParamTable() {
+void BmnSteering::PrintParamTable() {
     cout << "Steering file: " << fSteerFile << endl;
 
     cout << "fNStations = " << fNStatsInnerTracker << endl;
@@ -139,10 +138,9 @@ void BmnSteeringCA::PrintParamTable() {
     cout << "nIter = " << fNIter << endl;
     cout << "nHitsCut = " << fNHitsCut << endl;
     cout << "nHitsCutTotal = " << fNHitsCutTotal << endl;
-    cout << "nCellsCut = " << fNCellsCut << endl;
 }
 
-void BmnSteeringCA::ParseSteerFile(TString fileName) {
+void BmnSteering::ParseSteerFile(TString fileName) {
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
     TString gPathFull = gPathConfig + "/macro/steering/" + fileName;
 
@@ -238,8 +236,5 @@ void BmnSteeringCA::ParseSteerFile(TString fileName) {
 
     getline(f, line);
     f >> tmp >> fNHitsCutTotal;
-
-    getline(f, line);
-    f >> tmp >> fNCellsCut;
 }
 

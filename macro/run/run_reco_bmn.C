@@ -240,7 +240,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ===                           Tracking (InnerTracker)              === //
     // ====================================================================== //
 
-    BmnCellAutoTracking* gemTF = new BmnCellAutoTracking(run_period, isField, isTarget);
+    BmnCellAutoTracking* gemTF = new BmnCellAutoTracking(run_period, run_number, isField, isTarget);
     gemTF->SetDetectorPresence(kSILICON, kTRUE);
     gemTF->SetDetectorPresence(kSSD, kFALSE);
     gemTF->SetDetectorPresence(kGEM, kTRUE);   

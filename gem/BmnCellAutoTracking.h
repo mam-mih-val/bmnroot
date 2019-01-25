@@ -28,7 +28,7 @@
 #include "BmnSiliconStationSet.h"
 #include "FairMCPoint.h"
 #include "CbmMCTrack.h"
-#include "BmnSteeringCA.h"
+#include "BmnSteering.h"
 
 using namespace std;
 
@@ -39,7 +39,7 @@ public:
 
     BmnCellAutoTracking() {
     };
-    BmnCellAutoTracking(Short_t period, Bool_t field, Bool_t target, TString steer = "");
+    BmnCellAutoTracking(Short_t period, UInt_t run, Bool_t field, Bool_t target, TString steer = "");
     virtual ~BmnCellAutoTracking();
 
     virtual InitStatus Init();
@@ -137,9 +137,12 @@ private:
     Int_t fNHitsCut;
     
     TString fSteerFile; 
-    BmnSteeringCA* fSteering;
+    BmnSteering* fSteering;
     
     Int_t fCellsCut;
+    
+    Bool_t isBMN;
+    Bool_t isSRC;
     
     ClassDef(BmnCellAutoTracking, 1);
 };

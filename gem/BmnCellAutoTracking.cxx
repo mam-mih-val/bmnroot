@@ -37,13 +37,25 @@ static Double_t selectTime = 0.0;
 using namespace std;
 using namespace TMath;
 
-BmnCellAutoTracking::BmnCellAutoTracking(Short_t period, Bool_t field, Bool_t target, TString steerFile) :
+BmnCellAutoTracking::BmnCellAutoTracking(Short_t period, UInt_t run, Bool_t field, Bool_t target, TString steerFile) :
 fSteering(NULL),
-fSteerFile(steerFile) {
-    if (steerFile == "")
-        fSteering = new BmnSteeringCA(field ? "gemTrackingSteerCA_withField.dat" : "gemTrackingSteerCA_noField.dat"); // FIXME (should be got from UniDb)
+fSteerFile(steerFile),
+isBMN(kTRUE),
+isSRC(kTRUE) {
+    // Define a setup to be used by comparing with current runID
+    const Int_t runTransition = 3589; // FIXME!
+    if (run < runTransition)
+        isBMN = kFALSE;
     else
-        fSteering = new BmnSteeringCA(fSteerFile);
+        isSRC = kFALSE;
+    
+    TString setup = isBMN ? "BMN" : isSRC ? "SRC" : "";
+    
+    if (steerFile == "")
+        fSteering = new BmnSteering(field ? TString(setup + "_run7_withField.dat") : 
+            TString(setup + "_run7_noField.dat")); // FIXME (should be got from UniDb)
+    else
+        fSteering = new BmnSteering(fSteerFile);   
     fPeriodId = period;
     fEventNo = 0;
     fIsField = field;
@@ -53,7 +65,6 @@ fSteerFile(steerFile) {
     fSilHitsArray = NULL;
     fSsdHitsArray = NULL;
     fHitsArray = NULL;
-    fRoughVertex = (fPeriodId == 7) ? TVector3(0.5, -4.6, -2.3) : (fPeriodId == 6) ? TVector3(0.0, -3.5, -21.9) : TVector3(0.0, 0.0, 0.0);
     fKalman = new BmnKalmanFilter();
     fGlobTracksArray = NULL;
     fGemTracksArray = NULL;
@@ -86,8 +97,15 @@ fSteerFile(steerFile) {
     fCellDiffSlopeXZCutMin = 0.0;
     fCellDiffSlopeXZCutMax = 0.0;
     fNHitsCut = 0;
-    fCellsCut = fSteering->GetNCellsCut();
     fSteering->PrintParamTable();
+
+    if (isBMN * isSRC) {
+        cout << "Setup (BM@N or SRC) not defined correctly!" << endl;
+        throw;
+    }
+    
+    Double_t Zp = (isBMN) ? -2.3 : -647.5;
+    fRoughVertex = (fPeriodId == 7) ? TVector3(0.5, -4.6, Zp) : (fPeriodId == 6) ? TVector3(0.0, -3.5, -21.9) : TVector3(0.0, 0.0, 0.0);
 }
 
 BmnCellAutoTracking::~BmnCellAutoTracking() {
@@ -149,20 +167,20 @@ InitStatus BmnCellAutoTracking::Init() {
 
     if (fInnerTrackerSetup[kGEM]) {
         TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
-        TString confGem = (fPeriodId == 7) ? "GemRunSpring2018.xml" : (fPeriodId == 6) ? "GemRunSpring2017.xml" : "GemRunSpring2017.xml";
+        TString confGem = (fPeriodId == 7) ? "GemRun" + TString(isSRC ? "SRC" : "") + "Spring2018.xml" : (fPeriodId == 6) ? "GemRunSpring2017.xml" : "GemRunSpring2017.xml";
         fGemDetector = new BmnGemStripStationSet(gPathGemConfig + confGem);
     }
 
     if (fInnerTrackerSetup[kSILICON]) {
         TString gPathSiConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
-        TString confSi = (fPeriodId == 7) ? "SiliconRunSpring2018.xml" : "SiliconRunSpring2017.xml";
+        TString confSi = (fPeriodId == 7) ? "SiliconRun" + TString(isSRC ? "SRC" : "") + "Spring2018.xml" : "SiliconRunSpring2017.xml";
         fSilDetector = new BmnSiliconStationSet(gPathSiConfig + confSi);
     }
 
     Int_t nGemStations = (fInnerTrackerSetup[kGEM]) ? fGemDetector->GetNStations() : 0;
     Int_t nSilStations = (fInnerTrackerSetup[kSILICON]) ? fSilDetector->GetNStations() : 0;
     Int_t nSsdStations = (fInnerTrackerSetup[kSSD]) ? 4 : 0;
-
+    
     fNStations = nGemStations + nSilStations + nSsdStations;
 
     if (fVerbose) cout << "======================== GEM tracking init finished ===================" << endl;
@@ -316,7 +334,8 @@ void BmnCellAutoTracking::Exec(Option_t* opt) {
 }
 
 BmnStatus BmnCellAutoTracking::SortTracks(vector<BmnTrack>& inTracks, vector<BmnTrack>& sortedTracks) {
-    const Int_t n = fNStations - fNHitsCut + 1; //6 for geometry 2018 (4, 5, 6, 7, 8, 9)
+    Int_t nActiveStats = isBMN ? fNStations : (fNStations - 4); // Arms in SRC are excluded from tracking procedure
+    const Int_t n = nActiveStats - fNHitsCut + 1; //6 for geometry 2018 (4, 5, 6, 7, 8, 9)
     multimap <Float_t, Int_t> sortedMap[n]; // array of map<Chi2,trIdx>. Each element of array corresponds fixed number of hits on track (4, 5, 6)
     for (Int_t iTr = 0; iTr < inTracks.size(); ++iTr) {
         if (inTracks.at(iTr).GetNHits() < fNHitsCut) continue;
@@ -367,6 +386,8 @@ BmnStatus BmnCellAutoTracking::CellsCreation(vector<BmnCellDuet>* cells) {
         if (!hit) continue;
         if (hit->IsUsed()) continue;
         Int_t station = hit->GetStation();
+        if (isSRC && station < 4) // FIXME
+            continue;
         if (hit->GetX() > fHitXCutMax[station] || hit->GetX() < fHitXCutMin[station]) continue;
         if (hit->GetY() > fHitYCutMax[station] || hit->GetY() < fHitYCutMin[station]) continue;
         hitsOnStation[station].push_back(iHit);

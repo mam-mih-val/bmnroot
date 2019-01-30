@@ -1201,6 +1201,13 @@ void BmnTof2Raw2DigitNew::readSlewing(Bool_t update)
   if (update) fSlewing = new TFile(filnr,"UPDATE");
   else        fSlewing = new TFile(filnr,"READ");
 
+  if (fSlewing->IsZombie())
+  {
+    fSlewing = 0;
+    printf("Error open slewing file %s, work without slewing corrections etc...!\n", filnr);
+    return;
+  }
+
   int planer = 0;
   for (int plane = 0; plane < MaxPlane; plane++)
   {
@@ -1747,6 +1754,8 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 
 	int ira = -1;
 
+	if (fSlewing == 0) goto createdigit;
+
 	if ((int)W1 < Wc && (int)W2 < Wc)
 	{
 	    ira = 0;
@@ -1820,6 +1829,7 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
     	    if      (USE_FINAL_OFFSETS == 1) L -= Toffsets[ira]->GetBinContent(Toffsets[ira]->FindBin(ind));
     	    else if (USE_FINAL_OFFSETS == 2) L -= Toffsetsf[ira]->GetBinContent(Toffsetsf[ira]->FindBin(ind));
 //	    if (idchambers[mapa[ind].plane] == 19.2f) printf("L5 = %f\n",L);;
+createdigit:
     	    Float_t D_corrected = get_hit_diff0(mapa[ind].plane,mapa[ind].strip,D*HPTIMEBIN);
     	    new((*tof2digit)[tof2digit->GetEntriesFast()]) BmnTof2Digit(mapa[ind].plane,mapa[ind].strip,L*HPTIMEBIN,W,D_corrected);  
     	    //printf("%d %d %f %f %f t0 %f t0width %f\n", mapa[ind].plane,mapa[ind].strip,L*HPTIMEBIN,W,D*HPTIMEBIN, t0, t0width);  

@@ -1,8 +1,8 @@
 #include "BmnDchRaw2Digit.h"
 
 BmnDchRaw2Digit::BmnDchRaw2Digit(Int_t period, Int_t run) {
-    //ReadMapFromDB(period, run);
-    ReadMapFromFile(period);
+    ReadMapFromDB(period, run);
+    //ReadMapFromFile(period);
 }
 
 BmnStatus BmnDchRaw2Digit::ReadMapFromDB(Int_t period, Int_t run) {
@@ -31,7 +31,7 @@ BmnStatus BmnDchRaw2Digit::ReadMapFromFile(Int_t period) {
     fMap1 = new DchMapStructure[fEntriesInMap1];
     fMap2 = new DchMapStructure[fEntriesInMap2];
     //    TString fileName = Form("DCH_map_Run%d.txt", period);
-    TString fileName = Form("DCH_map_Run%d_kirillov.txt", period);
+    TString fileName = Form("DCH_map_Run%d.txt", period);
     TString path = TString(getenv("VMCWORKDIR")) + "/input/" + fileName;
 
     TString dummy;
@@ -73,7 +73,7 @@ BmnStatus BmnDchRaw2Digit::ReadMapFromFile(Int_t period) {
         for (Int_t planeId = 0; planeId < 16; ++planeId) {
             if (name != planes[planeId]) continue;
 
-            //            printf("%s\t%d\t%d\t0x%x\t%d\t%d\t%d\n", name.Data(), planeId, group, ser, slot, ch_l, ch_h);
+                        printf("%s\t%d\t%d\t0x%x\t%d\t%d\t%d\n", name.Data(), planeId, group, ser, slot, ch_l, ch_h);
 
             if (planeId / 8 == 0) {
                 fMap1[i1].plane = planeId;

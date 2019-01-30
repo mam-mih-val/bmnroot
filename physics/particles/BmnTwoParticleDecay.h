@@ -50,7 +50,7 @@ using namespace TMath;
 
 class BmnTwoParticleDecay : public FairTask {
 private:
-    Int_t fRunPeriod; // run period (5, 6 ...) 6 is set by default
+    Int_t fRunPeriod; // run period
     Int_t fRunId; // runID
     UInt_t fEventCounter; //! event counter
     TDatabasePDG* fPDG; //!  PDG database
@@ -112,10 +112,6 @@ public:
 private:
     void Analysis();
     BmnStatus FindFirstPointOnMCTrack(Int_t, BmnGlobalTrack*, Int_t);
-    TVector3 FitParabola(vector <TVector3>); // XZ-plane
-    void CalculateMinDistance(TVector3, TVector3, Double_t*);
-    TVector2 SecondaryVertexY(FairTrackParam*, FairTrackParam*); // YZ-plane
-    vector <TVector3> KalmanTrackPropagation(BmnGlobalTrack*, Int_t);
     FairTrackParam KalmanTrackPropagation(BmnGlobalTrack* track, Int_t, Double_t);
     vector <Double_t> GeomTopology(FairTrackParam, FairTrackParam, FairTrackParam, FairTrackParam);
     Bool_t CheckTrack(BmnGlobalTrack*, Int_t, Double_t&, Double_t&);

@@ -16,14 +16,14 @@ void corrSummator(TString in1 = "it0.root", TString in2 = "align.root", TString 
   bmnloadlibs(); // load BmnRoot libraries
 
   TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
-  
+
   TString siConf = "SiliconRunSpring2018.xml";
   TString gemConf = "GemRunSpring2018.xml";
 
   TString fnames[2] = {in1, in2};
 
-  BmnGemStripStationSet* GEM = new BmnGemStripStationSet(gPathGemConfig +"/gem/XMLConfigs/" + gemConf);
-  BmnSiliconStationSet* SI = new BmnSiliconStationSet(gPathGemConfig +"/silicon/XMLConfigs/" + siConf);
+  BmnGemStripStationSet* GEM = new BmnGemStripStationSet(gPathGemConfig +"/parameters/gem/XMLConfigs/" + gemConf);
+  BmnSiliconStationSet* SI = new BmnSiliconStationSet(gPathGemConfig +"/parameters/silicon/XMLConfigs/" + siConf);
 
   const Int_t nStatGEM = GEM->GetNStations();
   const Int_t nStatSI = SI->GetNStations();
@@ -41,7 +41,7 @@ void corrSummator(TString in1 = "it0.root", TString in2 = "align.root", TString 
       }
     }
   }
-  
+
   Double_t*** corrSI = new Double_t**[nStatSI];
   for (Int_t iStat = 0; iStat < nStatSI; iStat++) {
     Int_t nModul = SI->GetSiliconStation(iStat)->GetNModules();
@@ -52,7 +52,7 @@ void corrSummator(TString in1 = "it0.root", TString in2 = "align.root", TString 
 	corrSI[iStat][iMod][iPar] = 0.;
       }
     }
-  } 
+  }
 
   for (Int_t iFile = 0; iFile < 2; iFile++)
     ReadFileCorrections(fnames[iFile], corrGEM, corrSI);
@@ -76,7 +76,7 @@ void corrSummator(TString in1 = "it0.root", TString in2 = "align.root", TString 
   }
 
   cout << endl;
-    
+
   for (Int_t iStat = 0; iStat < nStatSI; iStat++) {
     Int_t nModul = SI->GetSiliconStation(iStat)->GetNModules();
     for (Int_t iMod = 0; iMod < nModul; iMod++) {

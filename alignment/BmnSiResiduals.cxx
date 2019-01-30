@@ -13,7 +13,7 @@ isMergedDigits(kFALSE) {
         isField = kTRUE;
 
     TString gPathSiliconConfig = gSystem->Getenv("VMCWORKDIR");
-    gPathSiliconConfig += "/silicon/XMLConfigs/";
+    gPathSiliconConfig += "/parameters/silicon/XMLConfigs/";
 
     //Create Silicon detector --------------------------------------------------
     TString config = (fPeriod == 6) ? "SiliconRunSpring2017.xml" : (fPeriod == 7) ? "SiliconRunSpring2018.xml" : "";
@@ -82,7 +82,7 @@ void BmnSiResiduals::Residuals() {
             if (!isField) {
                 xRes = x - (X0 + Tx * (z - Z0));
                 yRes = y - (Y0 + Ty * (z - Z0));
-            }          
+            }
 
             BmnResiduals* resid = new((*fSiResiduals)[fSiResiduals->GetEntriesFast()]) BmnResiduals(stat, mod, xRes, yRes, 0., isField);
             resid->SetTrackId(iGlobTrack);

@@ -30,13 +30,8 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE) {
     decoder->SetDetectorSetup(setup);
 
     TString PeriodSetupExt = Form("%d%s.txt", period, ((stp == kBMNSETUP) ? "" : "_SRC"));
-    decoder->SetTrigMapping(TString("Trig_map_Run") + PeriodSetupExt); 
-    
-    TString NameInlTrig = "TRIG_INL_076D-16A8.txt"; //SRC RUN7, BM@N RUN6 RUN5 
-    if (period == 7 && stp == kBMNSETUP )
-        NameInlTrig = "TRIG_INL_076D-180A.txt"; //BM@N RUN7 (without Si detector)
-    decoder->SetTrigINLFile(NameInlTrig); 
-    
+    decoder->SetTrigPlaceMapping(TString("Trig_PlaceMap_Run") + PeriodSetupExt); 
+    decoder->SetTrigChannelMapping(TString("Trig_map_Run") + PeriodSetupExt); 
     decoder->SetSiliconMapping("SILICON_map_run7.txt");
     decoder->SetGemMapping(TString("GEM_map_run") + PeriodSetupExt);
     decoder->SetCSCMapping(TString("CSC_map_period") + PeriodSetupExt);

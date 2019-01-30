@@ -7,12 +7,12 @@ BmnEventHeader::BmnEventHeader()
 fEventId(0),
 fStartSignalTime(0),
 fStartSignalWidth(0),
-fEventTime(TDatime()),
+fEventTime(TTimeStamp()),
 fType(kBMNPAYLOAD) {
     fTrigInfo = NULL;
 }
 
-BmnEventHeader::BmnEventHeader(UInt_t run, UInt_t ev, TDatime time, BmnEventType type, Bool_t trip, BmnTrigInfo* info)
+BmnEventHeader::BmnEventHeader(UInt_t run, UInt_t ev, TTimeStamp time, BmnEventType type, Bool_t trip, BmnTrigInfo* info)
 : fRunId(run),
 fEventId(ev),
 fType(type),
@@ -24,7 +24,7 @@ fTrigInfo(info) {
 
 }
 
-BmnEventHeader::BmnEventHeader(UInt_t run, UInt_t ev, TDatime time, BmnEventType type, Bool_t trip, BmnTrigInfo* info, map<UInt_t, Long64_t> ts)
+BmnEventHeader::BmnEventHeader(UInt_t run, UInt_t ev, TTimeStamp time, BmnEventType type, Bool_t trip, BmnTrigInfo* info, map<UInt_t, Long64_t> ts)
 : fRunId(run),
 fEventId(ev),
 fType(type),

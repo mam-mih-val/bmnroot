@@ -39,7 +39,7 @@ InitStatus BmnSiliconHitProducer::Init() {
     ioman->Register(fOutputSiliconHitMatchesBranchName, "SILICON", fBmnSiliconHitMatchesArray, kTRUE);
 
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
-    gPathConfig += "/silicon/XMLConfigs/";
+    gPathConfig += "/parameters/silicon/XMLConfigs/";
     SiliconStationSet = new BmnSiliconStationSet(gPathConfig + "SiliconRunSpring2018.xml");
 
     return kSUCCESS;

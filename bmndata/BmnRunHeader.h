@@ -2,7 +2,7 @@
 #define BMNRUNHEADER_H
 
 #include "TNamed.h"
-#include "TDatime.h"
+#include "TTimeStamp.h"
 #include "BmnEnums.h"
 
 class BmnRunHeader : public TNamed {
@@ -13,9 +13,9 @@ private:
     /** Number of events in run */
     UInt_t fNev;
     /** Start time of run**/
-    TDatime fStartTime;
+    TTimeStamp fStartTime;
     /** Finish time of run**/
-    TDatime fFinishTime;
+    TTimeStamp fFinishTime;
 
 public:
 
@@ -23,7 +23,7 @@ public:
     BmnRunHeader();
 
     /** Constructor */
-    BmnRunHeader(UInt_t run, TDatime st, TDatime ft, UInt_t ne);
+    BmnRunHeader(UInt_t run, TTimeStamp st, TTimeStamp ft, UInt_t ne);
 
     /** Get the run ID for this run*/
     UInt_t GetRunId() {
@@ -34,11 +34,11 @@ public:
         return fNev;
     }
         
-    TDatime GetStartTime() {
+    TTimeStamp GetStartTime() {
         return fStartTime;
     }
         
-    TDatime GetFinishTime() {
+    TTimeStamp GetFinishTime() {
         return fFinishTime;
     }
 
@@ -53,11 +53,11 @@ public:
         fNev = ne;
     }
    
-    void SetStartTime(TDatime time) {
+    void SetStartTime(TTimeStamp time) {
         fStartTime = time;
     }
     
-    void SetFinishTime(TDatime time) {
+    void SetFinishTime(TTimeStamp time) {
         fFinishTime = time;
     }
     

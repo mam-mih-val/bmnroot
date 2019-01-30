@@ -4,7 +4,7 @@
 
 #include <map>
 #include "TNamed.h"
-#include "TDatime.h"
+#include "TTimeStamp.h"
 #include "BmnEnums.h"
 #include "BmnTrigInfo.h"
 
@@ -18,7 +18,7 @@ private:
     /** Event Id **/
     UInt_t fEventId;
     /** Event Time**/
-    TDatime fEventTime;
+    TTimeStamp fEventTime;
     /** Event Type (payload = 0 or pedestal = 1)**/
     BmnEventType fType;
 //    /** Trigger Type (beam = 6 or target = 1)**/
@@ -41,10 +41,10 @@ public:
     BmnEventHeader();
 
     /** Constructor */
-    BmnEventHeader(UInt_t run, UInt_t ev, TDatime time, BmnEventType type, Bool_t trip, BmnTrigInfo* info);
+    BmnEventHeader(UInt_t run, UInt_t ev, TTimeStamp time, BmnEventType type, Bool_t trip, BmnTrigInfo* info);
 
     /** Constructor */
-    BmnEventHeader(UInt_t run, UInt_t ev, TDatime time, BmnEventType type, Bool_t trip, BmnTrigInfo* info, map<UInt_t, Long64_t> ts);
+    BmnEventHeader(UInt_t run, UInt_t ev, TTimeStamp time, BmnEventType type, Bool_t trip, BmnTrigInfo* info, map<UInt_t, Long64_t> ts);
 
     /** Get the run ID for this run*/
     UInt_t GetRunId() {
@@ -74,7 +74,7 @@ public:
     }
 
     /** Get the time for this event*/
-    TDatime GetEventTime() {
+    TTimeStamp GetEventTime() {
         return fEventTime;
     }
     
@@ -98,7 +98,7 @@ public:
     }
 
     /** Set the time for this event in */
-    void SetEventTime(TDatime time) {
+    void SetEventTime(TTimeStamp time) {
         fEventTime = time;
     }
 

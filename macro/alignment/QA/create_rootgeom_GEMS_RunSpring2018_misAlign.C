@@ -200,7 +200,7 @@ void create_rootgeom_GEMS_RunSpring2018_misAlign(Double_t sigX, Double_t sigY, D
         }
 
     // Generate new XML-file according to introduced misalignment
-    const TString xmlPath = gPath + "/gem/XMLConfigs/";
+    const TString xmlPath = gPath + "/parameters/gem/XMLConfigs/";
     createNewXML(generateMisalign(sigX, sigY, sigZ), xmlPath + "GemRunSpring2018.xml", xmlPath + xmlMisalign);
 
     // -------   Geometry file name (output)   ----------------------------------

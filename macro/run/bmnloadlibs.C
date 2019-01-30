@@ -5,7 +5,7 @@ void bmnloadlibs()
 {
   // Load basic libraries
   basiclibs();
-  // Load other libraries  
+  // Load other libraries
   gSystem->Load("libBase");
   gSystem->Load("libFairTools");
   gSystem->Load("libGeoBase");
@@ -27,6 +27,7 @@ void bmnloadlibs()
   gSystem->Load("libBmnSteering");
   gSystem->Load("libGem");
   gSystem->Load("libSilicon");
+  gSystem->Load("libBmnSsd");
 
   gSystem->Load("libTOF1");
   gSystem->Load("libDch");
@@ -52,7 +53,7 @@ TString find_path_to_URQMD_files ()
   TString path_to_URQMD_files;
 
   if ((hostname=="nc2.jinr.ru")||(hostname=="nc3.jinr.ru") ||
-      (hostname=="nc8.jinr.ru")||(hostname=="nc9.jinr.ru") || 
+      (hostname=="nc8.jinr.ru")||(hostname=="nc9.jinr.ru") ||
       (hostname=="nc10.jinr.ru")||(hostname=="nc11.jinr.ru")) {
     path_to_URQMD_files="/nica/mpd1/data4mpd/UrQMD/1.3/";
   }
@@ -70,7 +71,7 @@ TString find_path_to_URQMD_files ()
 	else {
 	  if ((hostname=="kanske")||(hostname=="kanske.itep.ru"))     // Moscow
 	    path_to_URQMD_files ="/scratch2/kmikhail/data4mpd/UrQMD/1.3/";
-	  else 
+	  else
             path_to_URQMD_files = gSystem->Getenv("HOME") + TString("/");
 	}
       }

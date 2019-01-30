@@ -1,0 +1,25 @@
+nStatsInnerTracker 9 # Total number of stations in inner tracker (GEM + SILICON)
+
+hitXCutMin -6. -6. -12. -24. -40. -70. -80. -80. -80. # xLeft for each station of inn. tracker
+hitXCutMax 7. 6. 13. 30. 42. 70. 80. 80. 80. # xRight for each station of inn. tracker
+
+hitYCutMin -6. -6. -6. -6. -6. -6. -6. -6. -6. # yLeft for each station of inn. tracker
+hitYCutMax 1. 2. 8. 17. 30. 40. 40. 40. 40. # yLeft for each station of inn. tracker
+
+SlopeXZCutMin -0.6 -0.4 -0.5 -0.6 -0.6 -0.6 -0.6 -0.5 -0.5 # xzSlopeLeft per each station 
+SlopeXZCutMax +0.6 +0.4 +0.5 +0.6 +0.6 +0.6 +0.6 +0.5 +0.5 # xzSlopeRight per each station 
+
+SlopeYZCutMin -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 # yzSlopeLeft per each station
+SlopeYZCutMax +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 # yzSlopeRight per each station
+
+XZ0 0.01 # start value (b) when parametrizing diffSlopeXZ (a * x + b)
+XZSlope 0.05 # slope value (a) when parametrizing diffSlopeXZ
+
+YZ0 0.01 # start value (b) when parametrizing diffSlopeYZ
+YZSlope 0.05 # slope value (a) when parametrizing diffSlopeYZ
+
+chiSquareCut 1000 # Cut on Chi2/ndf
+nIter 2 # Number of iterations of algorithm when reconstructing one event
+
+nHitsCut 4 # Min. number of hits per track
+nHitsCutTotal 400 # Total number of hits per event in inner tracker

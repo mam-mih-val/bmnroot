@@ -219,8 +219,8 @@ public:
         return fLANDMapper;
     }
 
-    void SetTrigMapping(TString map) {
-        fTrigMapFileName = map;
+    void SetTrigPlaceMapping(TString map) {
+        fTrigPlaceMapFileName = map;
     }
 
     void SetSiliconMapping(TString map) {
@@ -231,8 +231,8 @@ public:
         fCscMapFileName = map;
     }
 
-    void SetTrigINLFile(TString file) {
-        fTrigINLFileName = file;
+    void SetTrigChannelMapping(TString file) {
+        fTrigChannelMapFileName = file;
     }
 
     void SetDchMapping(TString map) {
@@ -357,8 +357,8 @@ private:
     UInt_t fPedoCounter;
 
     UInt_t fRunId;
-    TDatime fRunStartTime;
-    TDatime fRunEndTime;
+    TTimeStamp fRunStartTime;
+    TTimeStamp fRunEndTime;
     UInt_t fPeriodId;
     UInt_t fEventId;
     UInt_t fNevents;
@@ -397,8 +397,8 @@ private:
     TString fLANDVScintFileName;
     TString fSiliconMapFileName;
     TString fCscMapFileName;
-    TString fTrigMapFileName;
-    TString fTrigINLFileName;
+    TString fTrigPlaceMapFileName;
+    TString fTrigChannelMapFileName;
 
     ifstream fDchMapFile;
     ifstream fMwpcMapFile;

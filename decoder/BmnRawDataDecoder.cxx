@@ -54,8 +54,8 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fDigiFileName = "";
     fDchMapFileName = "";
     fMwpcMapFileName = "";
-    fTrigMapFileName = "";
-    fTrigINLFileName = "";
+    fTrigPlaceMapFileName = "";
+    fTrigChannelMapFileName = "";
     fGemMapFileName = "";
     fCscMapFileName = "";
     fTof400StripMapFileName = "";
@@ -137,8 +137,8 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
     fDchMapFileName = "";
     fMwpcMapFileName = "";
-    fTrigMapFileName = "";
-    fTrigINLFileName = "";
+    fTrigPlaceMapFileName = "";
+    fTrigChannelMapFileName = "";
     fGemMapFileName = "";
     fCscMapFileName = "";
     fTof400StripMapFileName = "";
@@ -219,10 +219,12 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
 
     fRawTree->Branch("RunHeader", &runHeaderDAQ);
     runHeaderDAQ->SetRunId(fRunId);
-    TTimeStamp startT = TTimeStamp(time_t(fTimeStart_s), fTimeStart_ns);
-    TTimeStamp finishT = TTimeStamp(time_t(fTime_s), fTime_ns);
-    fRunStartTime = TDatime(Int_t(startT.GetDate(kFALSE)), Int_t(startT.GetTime(kFALSE)));
-    fRunEndTime = TDatime(Int_t(finishT.GetDate(kFALSE)), Int_t(finishT.GetTime(kFALSE)));
+    //    TTimeStamp startT = TTimeStamp(time_t(fTimeStart_s), fTimeStart_ns);
+    //    TTimeStamp finishT = TTimeStamp(time_t(fTime_s), fTime_ns);
+    //    fRunStartTime = TDatime(Int_t(startT.GetDate(kFALSE)), Int_t(startT.GetTime(kFALSE)));
+    //    fRunEndTime = TDatime(Int_t(finishT.GetDate(kFALSE)), Int_t(finishT.GetTime(kFALSE)));
+    fRunStartTime = TTimeStamp(time_t(fTimeStart_s), fTimeStart_ns);
+    fRunEndTime = TTimeStamp(time_t(fTime_s), fTime_ns);
     runHeaderDAQ->SetStartTime(fRunStartTime);
     runHeaderDAQ->SetFinishTime(fRunEndTime);
     runHeaderDAQ->SetNEvents(fNevents);
@@ -440,9 +442,9 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     msc->Delete();
     eventHeaderDAQ->Delete();
     BmnTrigInfo* trigInfo = new BmnTrigInfo();
-    
+
     DrawBar(fCurentPositionRawFile, fLengthRawFile);
-    
+
     Long64_t idx = 1;
     BmnEventType evType = kBMNPAYLOAD;
 
@@ -520,7 +522,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         idx += payload;
     }
     //printf("eventHeaderDAQ->GetEntriesFast() %d  eventID %d\n", eventHeaderDAQ->GetEntriesFast(), fEventId);
-    new((*eventHeaderDAQ)[eventHeaderDAQ->GetEntriesFast()]) BmnEventHeader(fRunId, fEventId, TDatime(Int_t(TTimeStamp(time_t(fTime_s), fTime_ns).GetDate(kFALSE)), Int_t(TTimeStamp(time_t(fTime_s), fTime_ns).GetTime(kFALSE))), evType, kFALSE, trigInfo);
+    new((*eventHeaderDAQ)[eventHeaderDAQ->GetEntriesFast()]) BmnEventHeader(fRunId, fEventId, TTimeStamp(time_t(fTime_s), fTime_ns), evType, kFALSE, trigInfo);
 }
 
 BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr) {
@@ -629,7 +631,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
             case kMODHEADER:
                 modId = (d[i] >> 16) & 0x7F;
                 slot = (d[i] >> 23) & 0x1F;
-                //printf("modid 0x%X slot %d serial 0x%X\n", modId, slot, serial);
+                //printf("modid 0x%02X slot %d serial 0x%08X\n", modId, slot, serial);
                 break;
             default: //data
             {
@@ -641,6 +643,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                         FillTDC(d, serial, slot, modId, i);
                         break;
                     case kTQDC16VS:
+                    case kTQDC16VS_ETH:
                         FillTQDC(d, serial, slot, modId, i);
                         break;
                     case kMSC:
@@ -962,7 +965,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             curEventType = headDAQ->GetType();
 
             if (curEventType != kBMNPEDESTAL) continue;
-            cout << "curEventType" << curEventType << endl;
             if (fPedEvCntr != fEvForPedestals - 1) {
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
                 fPedEvCntr++;
@@ -1029,33 +1031,33 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             fRunStartTime = runHeaderDAQ->GetStartTime();
             fRunEndTime = runHeaderDAQ->GetFinishTime();
 
-            if (!UniDbRun::GetRun(fPeriodId, runId))
-                UniDbRun::CreateRun(fPeriodId, runId, TString::Format("/nica/data4mpd1/dataBMN/bmndata2/run6/raw/mpd_run_Glob_%d.data", runId), "", NULL, NULL, fRunStartTime, &fRunEndTime, &nEv, NULL, &fSize, NULL);
+            //            if (!UniDbRun::GetRun(fPeriodId, runId))
+            //                UniDbRun::CreateRun(fPeriodId, runId, TString::Format("/nica/data4mpd1/dataBMN/bmndata2/run6/raw/mpd_run_Glob_%d.data", runId), "", NULL, NULL, fRunStartTime, &fRunEndTime, &nEv, NULL, &fSize, NULL);
 
             //check for trip information
-//            UniDbTangoData db_tango;
-//            enumConditions condition = conditionEqual;
-//            bool condition_value = 1;
-//            int map_channel[] = {1, 3, 0, 5, 2, 6, 4};
-//            TString date_start = fRunStartTime.AsSQLString(); // 1252 run
-//            TString date_end = fRunEndTime.AsSQLString();
-//
-//            UInt_t runLength = fRunEndTime.Convert() - fRunStartTime.Convert(); //in seconds
-//            Double_t timeStep = runLength * 1.0 / fNevents; //time for one event
-//            //printf("Run duration = %d sec.\t TimeStep = %f sec./event\n", runLength, timeStep);
-//
-//            TObjArray* tango_data_gem = db_tango.SearchTangoIntervals((char*) "gem", (char*) "trip", (char*) date_start.Data(), (char*) date_end.Data(), condition, condition_value, map_channel);
-//            if (tango_data_gem) {
-//                for (Int_t i = 0; i < tango_data_gem->GetEntriesFast(); ++i) {
-//                    TObjArray* currGemTripInfo = (TObjArray*) tango_data_gem->At(i);
-//                    if (currGemTripInfo->GetEntriesFast() != 0)
-//                        for (Int_t j = 0; j < currGemTripInfo->GetEntriesFast(); ++j) {
-//                            TangoTimeInterval* ti = (TangoTimeInterval*) currGemTripInfo->At(j);
-//                            startTripEvent.push_back(UInt_t((ti->start_time.Convert() - fRunStartTime.Convert()) / timeStep));
-//                            endTripEvent.push_back(UInt_t((ti->end_time.Convert() - fRunStartTime.Convert()) / timeStep));
-//                        }
-//                }
-//            }
+            //            UniDbTangoData db_tango;
+            //            enumConditions condition = conditionEqual;
+            //            bool condition_value = 1;
+            //            int map_channel[] = {1, 3, 0, 5, 2, 6, 4};
+            //            TString date_start = fRunStartTime.AsSQLString(); // 1252 run
+            //            TString date_end = fRunEndTime.AsSQLString();
+            //
+            //            UInt_t runLength = fRunEndTime.Convert() - fRunStartTime.Convert(); //in seconds
+            //            Double_t timeStep = runLength * 1.0 / fNevents; //time for one event
+            //            //printf("Run duration = %d sec.\t TimeStep = %f sec./event\n", runLength, timeStep);
+            //
+            //            TObjArray* tango_data_gem = db_tango.SearchTangoIntervals((char*) "gem", (char*) "trip", (char*) date_start.Data(), (char*) date_end.Data(), condition, condition_value, map_channel);
+            //            if (tango_data_gem) {
+            //                for (Int_t i = 0; i < tango_data_gem->GetEntriesFast(); ++i) {
+            //                    TObjArray* currGemTripInfo = (TObjArray*) tango_data_gem->At(i);
+            //                    if (currGemTripInfo->GetEntriesFast() != 0)
+            //                        for (Int_t j = 0; j < currGemTripInfo->GetEntriesFast(); ++j) {
+            //                            TangoTimeInterval* ti = (TangoTimeInterval*) currGemTripInfo->At(j);
+            //                            startTripEvent.push_back(UInt_t((ti->start_time.Convert() - fRunStartTime.Convert()) / timeStep));
+            //                            endTripEvent.push_back(UInt_t((ti->end_time.Convert() - fRunStartTime.Convert()) / timeStep));
+            //                        }
+            //                }
+            //            }
         }
 
         curEventType = headDAQ->GetType();
@@ -1108,8 +1110,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     printf(ANSI_COLOR_RED "\n=============== RUN" ANSI_COLOR_RESET);
     printf(ANSI_COLOR_BLUE " %04d " ANSI_COLOR_RESET, runId);
     printf(ANSI_COLOR_RED "SUMMARY ===============\n" ANSI_COLOR_RESET);
-    printf("START (event 1):\t%s\n", fRunStartTime.AsSQLString());
-    printf("FINISH (event %d):\t%s\n", fNevents, fRunEndTime.AsSQLString());
+    printf("START (event 1):\t%s\n", fRunStartTime.AsString());
+    printf("FINISH (event %d):\t%s\n", fNevents, fRunEndTime.AsString());
     printf(ANSI_COLOR_RED "================================================\n" ANSI_COLOR_RESET);
 
     fDigiTree->Branch("RunHeader", &runHeader);
@@ -1137,9 +1139,9 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
     if (fDetectorSetup[0]) {
-        fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName, fDigiTree);
+        fTrigMapper = new BmnTrigRaw2Digit(fTrigPlaceMapFileName, fTrigChannelMapFileName, fDigiTree);
         if (fT0Map == NULL) {
-            BmnTrigMapping tm = fTrigMapper->GetT0Map();
+            BmnTrigChannelData tm = fTrigMapper->GetT0Map();
             printf("T0 serial 0x%X got from trig mapping\n", tm.serial);
             if (tm.serial > 0) {
                 fT0Map = new TriggerMapStructure();
@@ -1188,15 +1190,13 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         fDigiTree->Branch("TOF700", &tof700);
         fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName, fTOF700ReferenceRun, fTOF700ReferenceChamber, fTof700GeomFileName);
         //        fTof700Mapper->print();
-	for (int i=0; i<60; i++)
-	{
-	    if (type_tof700_slewing[i])
-	    {
-		fTof700Mapper->SetSlewingReference(i+1,refrun_tof700_slewing[i],refchamber_tof700_slewing[i]);
-	    }
-	}
-//        fTof700Mapper->readSlewingT0();
-//        fTof700Mapper->readSlewingLimits();
+        for (int i = 0; i < 60; i++) {
+            if (type_tof700_slewing[i]) {
+                fTof700Mapper->SetSlewingReference(i + 1, refrun_tof700_slewing[i], refchamber_tof700_slewing[i]);
+            }
+        }
+        //        fTof700Mapper->readSlewingT0();
+        //        fTof700Mapper->readSlewingLimits();
         fTof700Mapper->readSlewing();
         fTof700Mapper->BookSlewingResults();
     }
@@ -1281,9 +1281,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     } else { // payload
         if (fPrevEventType == kBMNPEDESTAL) {
             if (fPedEvCntr >= fEvForPedestals - 1) {
-                if(fGemMapper)fGemMapper->RecalculatePedestals();
-                if(fSiliconMapper)fSiliconMapper->RecalculatePedestals();
-                if(fCscMapper)fCscMapper->RecalculatePedestals();
+                if (fGemMapper)fGemMapper->RecalculatePedestals();
+                if (fSiliconMapper)fSiliconMapper->RecalculatePedestals();
+                if (fCscMapper)fCscMapper->RecalculatePedestals();
                 fPedEvCntr = 0;
                 fPedEnough = kTRUE;
             }
@@ -1312,8 +1312,8 @@ BmnStatus BmnRawDataDecoder::FinishRun() {
     fRunEndTime = runHeaderDAQ->GetFinishTime();
     Int_t nEv = fNevents;
 
-    if (!UniDbRun::GetRun(fPeriodId, fRunId))
-        UniDbRun::CreateRun(fPeriodId, fRunId, fRawFileName, "", NULL, NULL, fRunStartTime, &fRunEndTime, &nEv, NULL, &fSize, NULL);
+    //    if (!UniDbRun::GetRun(fPeriodId, fRunId))
+    //        UniDbRun::CreateRun(fPeriodId, fRunId, fRawFileName, "", NULL, NULL, fRunStartTime, &fRunEndTime, &nEv, NULL, &fSize, NULL);
 
 }
 
@@ -1417,6 +1417,7 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
 
     return kBMNSUCCESS;
 }
+
 BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray* adcSil, UInt_t ev) {
     if (fGemMapper) {
         Double_t**** pedData = fGemMapper->GetPedData();
@@ -1542,9 +1543,9 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700Init() {
     fDigiTree->Branch("EventHeader", &eventHeader);
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
-    fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName, fDigiTree);
+    fTrigMapper = new BmnTrigRaw2Digit(fTrigPlaceMapFileName, fTrigChannelMapFileName, fDigiTree);
     if (fT0Map == NULL) {
-        BmnTrigMapping tm = fTrigMapper->GetT0Map();
+        BmnTrigChannelData tm = fTrigMapper->GetT0Map();
         printf("T0 serial 0x%X got from trig mapping\n", tm.serial);
         if (tm.serial > 0) {
             fT0Map = new TriggerMapStructure();
@@ -1705,27 +1706,23 @@ BmnStatus BmnRawDataDecoder::PreparationTOF700() {
     return kBMNSUCCESS;
 }
 
-void BmnRawDataDecoder::SetTof700SlewingReference(Int_t chamber, Int_t refrun, Int_t refchamber)
-{
-	if (chamber <= 0 || chamber > 60)
-	{
-	    printf("Wrong slewing chamber number %d\n", chamber);
-	    return;
-	}
-	if (refchamber <= 0 || refchamber > 60)
-	{
-	    printf("Wrong slewing reference chamber number %d\n", refchamber);
-	    return;
-	}
-	if (refrun < 0 || refrun > 9999)
-	{
-	    printf("Wrong slewing reference run number %d\n", refrun);
-	    return;
-	}
-	refrun_tof700_slewing[chamber-1] = refrun;
-	refchamber_tof700_slewing[chamber-1] = refchamber;
-	type_tof700_slewing[chamber-1] = 1;
-	return;
+void BmnRawDataDecoder::SetTof700SlewingReference(Int_t chamber, Int_t refrun, Int_t refchamber) {
+    if (chamber <= 0 || chamber > 60) {
+        printf("Wrong slewing chamber number %d\n", chamber);
+        return;
+    }
+    if (refchamber <= 0 || refchamber > 60) {
+        printf("Wrong slewing reference chamber number %d\n", refchamber);
+        return;
+    }
+    if (refrun < 0 || refrun > 9999) {
+        printf("Wrong slewing reference run number %d\n", refrun);
+        return;
+    }
+    refrun_tof700_slewing[chamber - 1] = refrun;
+    refchamber_tof700_slewing[chamber - 1] = refchamber;
+    type_tof700_slewing[chamber - 1] = 1;
+    return;
 }
 
 Int_t BmnRawDataDecoder::GetRunIdFromFile(TString name) {

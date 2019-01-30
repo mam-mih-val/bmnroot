@@ -1,5 +1,4 @@
-#include "../../gconfig/basiclibs.C"
-
+bool CheckFileExist(TString fileName);
 // Macro for changing single detector in facility geometry for a given run range in the database
 //
 // start_period - start number of the period to change single detector geometry in full geometry
@@ -8,17 +7,14 @@
 // end_run - end number of the run range to change single detector geometry in full geometry
 // detector_name - volume name of the detector geoemtry to replace it with new geometry
 // detector_file_path - path to the file with new subdetector geometry
-void change_1detector_geometry(int start_period=5, int start_run=798, int end_period=5, int end_run=1014, char* detector_name="GEM", char* detector_file_path = "$VMCWORKDIR/geometry/GEMS_RunWinter2016.root")
+void change_1detector_geometry(int start_period=5, int start_run=798, int end_period=5, int end_run=1014, const char* detector_name="GEM", const char* detector_file_path = "$VMCWORKDIR/geometry/GEMS_RunWinter2016.root")
 {
-    // load libraries
-    bmnloadlibs();
-
     // check existence of the file with new detector geometry
     TString strDetectorFilePath(detector_file_path);
     gSystem->ExpandPathName(strDetectorFilePath);
     if (!CheckFileExist(strDetectorFilePath))
     {
-        cout<<"Error: File path with a new detector geometry doesn't exist: "<<strDetectorFilePath<<endl;
+        cout<<"ERROR: File path with a new detector geometry does not exist: "<<strDetectorFilePath<<endl;
         exit(-5);
     }
 
@@ -44,7 +40,7 @@ void change_1detector_geometry(int start_period=5, int start_run=798, int end_pe
     TFile* fileFullGeo = new TFile(strFullGeoFileName, "READ");
     if (!fileFullGeo->IsOpen())
     {
-        cout<<"Error: could not open ROOT file with full geometry!"<<endl;
+        cout<<"ERROR: could not open ROOT file with full geometry!"<<endl;
         exit(-2);
     }
 
@@ -56,10 +52,12 @@ void change_1detector_geometry(int start_period=5, int start_run=798, int end_pe
         key->ReadObj();
     else
     {
-        cout<<"Error: TGeoManager isn't top element in given file "<<strFullGeoFileName<<endl;
+        cout<<"ERROR: TGeoManager is not top element in given file "<<strFullGeoFileName<<endl;
+        delete fileFullGeo;
         exit(-3);
     }
     fileFullGeo->Close();
+    delete fileFullGeo;
     gSystem->Unlink(strFullGeoFileName);
 
     // get old gGeoManager: name and title
@@ -87,7 +85,9 @@ void change_1detector_geometry(int start_period=5, int start_run=798, int end_pe
             fileDetectorGeo = new TFile(strDetectorFilePath, "READ");
             if (!fileDetectorGeo->IsOpen())
             {
-                cout<<"Error: could not open ROOT file with detector geometry: "<<strDetectorFilePath<<endl;
+                cout<<"ERROR: could not open ROOT file with detector geometry: "<<strDetectorFilePath<<endl;
+                arrDetectorNames.Delete();
+                arrDetectorGeoNames.Delete();
                 exit(-7);
             }
 
@@ -107,7 +107,10 @@ void change_1detector_geometry(int start_period=5, int start_run=798, int end_pe
             }
             if (!cur_volume)
             {
-                cout<<"Error: detector volume was not found in the file: "<<strDetectorFilePath<<endl;
+                cout<<"ERROR: detector volume was not found in the file: "<<strDetectorFilePath<<endl;
+                arrDetectorNames.Delete();
+                arrDetectorGeoNames.Delete();
+                delete fileDetectorGeo;
                 exit(-8);
             }
         }
@@ -120,7 +123,10 @@ void change_1detector_geometry(int start_period=5, int start_run=798, int end_pe
         cur_volume->Export(*strDetectorGeoName, volume_name);
 
         if (fileDetectorGeo != NULL)
+        {
             fileDetectorGeo->Close();
+            delete fileDetectorGeo;
+        }
     }
 
     // create new gGeoManager and import all detector geometries
@@ -140,7 +146,9 @@ void change_1detector_geometry(int start_period=5, int start_run=798, int end_pe
         TGeoVolume* detector_volume = TGeoVolume::Import(*impDetectorFile, *impDetectorName);
         if (detector_volume == NULL)
         {
-            cout<<"Error: Importing detector from file: "<<*impDetectorFile<<endl;
+            cout<<"ERROR: Importing detector from file: "<<*impDetectorFile<<endl;
+            arrDetectorNames.Delete();
+            arrDetectorGeoNames.Delete();
             exit(-6);
         }
         cave->AddNode(detector_volume, 0, 0);
@@ -150,6 +158,10 @@ void change_1detector_geometry(int start_period=5, int start_run=798, int end_pe
     }
     newGeoManager->SetTopVolume(cave);
     newGeoManager->CloseGeometry();
+
+    // clear arrays with tmeporary file names
+    arrDetectorNames.Delete();
+    arrDetectorGeoNames.Delete();
 
     // write new full geometry to the temporary file
     TString strNewGeoFile;
@@ -166,4 +178,17 @@ void change_1detector_geometry(int start_period=5, int start_run=798, int end_pe
     }
 
     cout << "\nMacro finished successfully" << endl;
+}
+
+// check whether file exists
+bool CheckFileExist(TString fileName)
+{
+    gSystem->ExpandPathName(fileName);
+    if (gSystem->AccessPathName(fileName.Data()) == true)
+    {
+        cout<<endl<<"no specified file: "<<fileName<<endl;
+        return false;
+    }
+
+    return true;
 }

@@ -1,63 +1,44 @@
-// -----------------------------------------------------------------------------
 // Macro for reconstruction of simulated or experimental events.
-//
-// inputFileName - input file with data.
-//
-// To process experimental data, you must use 'runN-NNN:'-like prefix
-// and then the geometry will be obtained from the Unified Database.
-//
-// bmndstFileName - output file with reconstructed data.
-//
-// nStartEvent - number of first event to process (starts with zero), default: 0.
-//
-// nEvents - number of events to process, 0 - all events of given file will be
-// processed, default: 10000.
-//
-// alignCorrFileName - argument for choosing input file with the alignment
-// corrections.
-//
-// If alignCorrFileName == 'default', (case insensitive) then corrections are
-// retrieved from UniDb according to the running period and run number.
-//
-// If alignCorrFileName == '', then no corrections are applied at all.
-//
-// If alignCorrFileName == '<path>/<file-name>', then the corrections are taken
-// from that file.
 
-#include "../../gem/BmnGemStripConfiguration.h"
-#include "bmnloadlibs.C"
+// To process experimental data, you must use 'run[#period]-[#run]:'-like prefix,
+// and then the geometry will be obtained from the Unified Database
+// e.g. "run7-2041:PATH_TO_DIGI_FILE/digi.root"
 
-void run_reco_src(TString inputFileName = "",
-        TString bmndstFileName = "",
-        Int_t nStartEvent = 0,
-        Int_t nEvents = 200000, 
-        TString alignCorrFileName = "default") { // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
-	
-	Int_t iVerbose = 0;
+#include <Rtypes.h>
+#include <TString.h>
+#include <TStopwatch.h>
+#include <TFile.h>
+#include <TKey.h>
+
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "macro/run/bmnloadlibs.C"
+
+void run_reco_src(TString inputFileName = "", TString srcdstFileName = "",
+        Int_t nStartEvent = 0, Int_t nEvents = 0) {
+    // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
+    Int_t iVerbose = 0;
+
     // ----    Debug option   --------------------------------------------------
     gDebug = 0;
-    // -------------------------------------------------------------------------
+
     // ----  Load libraries   --------------------------------------------------
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-#endif
     bmnloadlibs(); // load BmnRoot libraries
-    // -------------------------------------------------------------------------
+
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
     timer.Start();
-    // -------------------------------------------------------------------------
+
     // -----   Reconstruction run   --------------------------------------------
     FairRunAna* fRunAna = new FairRunAna();
 
-    Bool_t isField = kTRUE; // flag for tracking (to use mag.field or not)
-    Bool_t isTarget = kFALSE; // flag for tracking (run with target or not)
+    Bool_t isField = (inputFileName.Contains("noField")) ? kFALSE : kTRUE; // flag for tracking (to use mag.field or not)
+    Bool_t isTarget = kTRUE; //kFALSE; // flag for tracking (run with target or not)
     Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
 
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
     // for experimental datasource
-    Int_t run_period, run_number;
+    Int_t run_period = 7, run_number = -1;
     Double_t fieldScale = 0.;
     TPRegexp run_prefix("^run[0-9]+-[0-9]+:");
     if (inputFileName.Contains(run_prefix)) {
@@ -80,14 +61,14 @@ void run_reco_src(TString inputFileName = "",
         Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
         if (res_code != 0) {
             cout << "Geometry file can't be read from the database" << endl;
-            exit(-1);
+            exit(-2);
         }
 
         // get gGeoManager from ROOT file (if required)
         TFile* geoFile = new TFile(geoFileName, "READ");
         if (!geoFile->IsOpen()) {
             cout << "Error: could not open ROOT file with geometry: " + geoFileName << endl;
-            exit(-2);
+            exit(-3);
         }
         TList* keyList = geoFile->GetListOfKeys();
         TIter next(keyList);
@@ -97,21 +78,25 @@ void run_reco_src(TString inputFileName = "",
             key->ReadObj();
         else {
             cout << "Error: TGeoManager isn't top element in geometry file " + geoFileName << endl;
-            exit(-3);
+            exit(-4);
         }
+
         // set magnet field with factor corresponding to the given run
         UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
-        if (pCurrentRun == 0) {
-            exit(-2);
+        if (pCurrentRun == 0)
+            exit(-5);
+        Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
+        if (field_voltage == NULL) {
+            cout << "Error: no field voltage was found for run " << run_period << ":" << run_number << endl;
+            exit(-6);
         }
         Double_t map_current = 55.87;
-        Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
         if (*field_voltage < 10) {
             fieldScale = 0;
             isField = kFALSE;
-        } else {
+        } else
             fieldScale = (*field_voltage) / map_current;
-        }
+
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
         magField->SetScale(fieldScale);
         magField->Init();
@@ -140,7 +125,7 @@ void run_reco_src(TString inputFileName = "",
         fFileSource = new FairFileSource(inputFileName);
     }
     fRunAna->SetSource(fFileSource);
-    fRunAna->SetOutputFile(bmndstFileName);
+    fRunAna->SetOutputFile(srcdstFileName);
     fRunAna->SetGenerateRunInfo(false);
 
     // Digitisation files.
@@ -161,58 +146,38 @@ void run_reco_src(TString inputFileName = "",
         fRunAna->AddTask(cntr);
     }
     // ====================================================================== //
-    // ===                           Check Triggers                       === //
-    // ====================================================================== //
-    //BmnTriggersCheck* triggs = new BmnTriggersCheck(isExp);
-    //fRunAna->AddTask(triggs);
-    // ====================================================================== //
-    // ===                           MWPC hit finder                      === //
-    // ====================================================================== //
-    //BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp);
-    //mwpcHM->SetUseDigitsInTimeBin(kFALSE);
-    //fRunAna->AddTask(mwpcHM);
-    // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
-    //BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(isExp);
-    //fRunAna->AddTask(siliconHM);
+    BmnSiliconConfiguration::SILICON_CONFIG si_config;
+    switch (run_period) {
+        case 7: //SRC RUN-7
+            si_config = BmnSiliconConfiguration::RunSRCSpring2018;
+            break;
+        default:
+            si_config = BmnSiliconConfiguration::RunSRCSpring2018;
+    }
+
+    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
+    siliconHM->SetCurrentConfig(si_config);
+    fRunAna->AddTask(siliconHM);
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
-    //BmnGemStripConfiguration::GEM_CONFIG gem_config;
-    //if (!isExp || run_period == 6)
-    //    gem_config = BmnGemStripConfiguration::RunSpring2017;
-    //else if (run_period == 5) {
-    //    gem_config = BmnGemStripConfiguration::RunWinter2016;
-    //}
-    //BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
-    //gemHM->SetCurrentConfig(gem_config);
-    // Set name of file with the alignment corrections for GEMs using one of the
-    // two variants of the SetAlignmentCorrectionsFileName function defined in
-    // BmnGemStripHitMaker.h
-    //if (isExp) {
-    //    if (alignCorrFileName == "default")
-            // retrieve from UniDb (default)
-    //        gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
-    //    else {
-            // set explicitly, for testing purposes and for interactive
-            // alignment; in case of determining alignment corrections from
-            // scratch, set alignCorrFileName == "" (at first iteration) and it
-            // will be properly used in BmnGemStripHitMaker.cxx, i.e. the input
-            // alignment corrections will be set to zeros
-    //       gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
-    //    }
-    //}
-    //gemHM->SetHitMatching(kTRUE);
-    //fRunAna->AddTask(gemHM);
+    BmnGemStripConfiguration::GEM_CONFIG gem_config;
+    switch (run_period) {
+        case 7: // SRC RUN-7
+            gem_config = BmnGemStripConfiguration::RunSRCSpring2018;
+            break;
+        default:
+            gem_config = BmnGemStripConfiguration::RunSRCSpring2018;
+    }
+    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
+    gemHM->SetCurrentConfig(gem_config);
+    gemHM->SetHitMatching(kTRUE);
+    fRunAna->AddTask(gemHM);
+
     // ====================================================================== //
-    // ===                           Trigger hit finder                      === //
-    // ====================================================================== //
-    //BmnSRCTriggersCheck* srcTriggers = new BmnSRCTriggersCheck(kTRUE);
-    //fRunAna->AddTask(srcTriggers);
-    
-    // ====================================================================== //
-    // ===                           TOF1 hit finder                      === //
+    // ===                           Tracking                             === //
     // ====================================================================== //
     BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
     tof1HP->SetPeriod(run_period);
@@ -223,54 +188,17 @@ void run_reco_src(TString inputFileName = "",
     // ====================================================================== //
     BmnLANDHitProducer* land = new BmnLANDHitProducer("LAND", !isExp, iVerbose, kTRUE);
     fRunAna->AddTask(land);
-    // ====================================================================== //
-    // ===                           TOF2 hit finder                      === //
-    // ====================================================================== //
-    //BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run6.txt", !isExp, iVerbose, kTRUE);
-    //fRunAna->AddTask(tof2HP);
-    // ====================================================================== //
-    // ===                           Tracking (MWPC)                      === //
-    // ====================================================================== //
-    //BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp);
-    //fRunAna->AddTask(mwpcTF);
-    // ====================================================================== //
-    // ===                           Tracking (GEM)                       === //
-    // ====================================================================== //
-    //BmnGemTracking* gemTF = new BmnGemTracking();
-    //gemTF->SetTarget(isTarget);
-    //gemTF->SetField(isField);
-    //TVector3 vAppr = (isExp) ? TVector3(0.0, -3.5, -21.7) : TVector3(0.0, 0.0, -21.7);
-    //gemTF->SetRoughVertex(vAppr);
-    //fRunAna->AddTask(gemTF);  
-    // ====================================================================== //
-    // ===                           Tracking (DCH)                       === //
-    // ====================================================================== //
-    //BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
-    //dchTF->SetTransferFunction("pol_coord00813.txt");
-    //fRunAna->AddTask(dchTF);
-    // ====================================================================== //
-    // ===                          Global Tracking                       === //
-    // ====================================================================== //
-    //BmnGlobalTracking* globalTF = new BmnGlobalTracking();
-    //globalTF->SetField(isField);
-    //fRunAna->AddTask(globalTF);
-    // ====================================================================== //
-    // ===                     Primary vertex finding                     === //
-    // ====================================================================== //
-    //BmnGemVertexFinder* gemVF = new BmnGemVertexFinder();
-    //gemVF->SetField(isField);
-    //gemVF->SetVertexApproximation(vAppr);
-    //fRunAna->AddTask(gemVF);
-    
+
+    BmnCellAutoTracking* gemTF = new BmnCellAutoTracking(run_period, run_number, isField, isTarget);
+    gemTF->SetDetectorPresence(kSILICON, kTRUE);
+    gemTF->SetDetectorPresence(kSSD, kFALSE);
+    gemTF->SetDetectorPresence(kGEM, kTRUE);
+    // if (!isExp) gemTF->SetRoughVertex(TVector3(0.0, 0.0, 0.0)); //for MC case use correct vertex
+    fRunAna->AddTask(gemTF);
+
     // Residual analysis
-    //if (isExp) {
-    //    BmnGemResiduals* residAnalGem = new BmnGemResiduals(run_period, run_number, fieldScale);
-        // residAnal->SetPrintResToFile("file.txt");
-        // residAnal->SetUseDistance(kTRUE); // Use distance instead of residuals
-    //    fRunAna->AddTask(residAnalGem);
-    //    BmnSiResiduals* residAnalSi = new BmnSiResiduals(run_period, run_number, fieldScale);
-    //    fRunAna->AddTask(residAnalSi);
-    //}
+    BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
+    fRunAna->AddTask(res);
 
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();
@@ -296,8 +224,8 @@ void run_reco_src(TString inputFileName = "",
     cout << endl << endl;
     cout << "Macro finished successfully." << endl; // marker of successful execution for CDASH
     cout << "Input  file is " + inputFileName << endl;
-    cout << "Output file is " + bmndstFileName << endl;
+    cout << "Output file is " + srcdstFileName << endl;
     cout << "Real time " << rtime << " s, CPU time " << ctime << " s" << endl;
     cout << endl;
     // ------------------------------------------------------------------------
-} 
+}

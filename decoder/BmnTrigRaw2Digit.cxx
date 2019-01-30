@@ -45,7 +45,7 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString PlacementMapFile, TString StripMapFil
             }
     }
     // Fill elements of placement map with channel->(strip, mod, branchRef) map //
-    for (BmnTrigChannelData record : fMap) {
+    for (BmnTrigChannelData &record : fMap) {
         map< PlMapKey, BmnTrigParameters*>::iterator itPar = fPlacementMap.find(PlMapKey(record.serial, record.slot));
         if (itPar == fPlacementMap.end()) {
             printf("CrateSeral %08X slot %u not found in the placement map!\n", record.serial, record.slot);
@@ -74,7 +74,7 @@ BmnStatus BmnTrigRaw2Digit::ReadPlacementMap(TString mappingFile) {
     TPRegexp reBoardName("(\\D+)(\\d+)(.*)");
     pmFile >> dummy >> dummy >> dummy >> dummy;
     pmFile >> dummy;
-    while (!fMapFile.eof()) {
+    while (!pmFile.eof()) {
         pmFile >> name >> hex >> crateSerial >> dec >> slot >> hex >> boardSerial >> dec;
         if (!pmFile.good()) break;
         TString channelCountStr = name;
@@ -118,7 +118,7 @@ BmnStatus BmnTrigRaw2Digit::ReadChannelMap(TString mappingFile) {
     while (!fMapFile.eof()) {
         fMapFile >> name >> mod >> hex >> ser >> dec >> slot >> ch;
         if (!fMapFile.good()) break;
-        BmnTrigChannelData record; // = new BmnTrigChannelData();
+        BmnTrigChannelData record;
         record.branchArrayPtr = NULL;
         record.name = name;
         record.serial = ser;
@@ -128,27 +128,6 @@ BmnStatus BmnTrigRaw2Digit::ReadChannelMap(TString mappingFile) {
         fMap.push_back(record);
     }
     fMapFile.close();
-    return kBMNSUCCESS;
-}
-
-BmnStatus BmnTrigRaw2Digit::readINLCorrections(TString INLFile) {
-    for (int i = 0; i < 72; i++)
-        for (int j = 0; j < 1024; j++)
-            fINLTable[i][j] = 0.;
-
-    fINLFileName = TString(getenv("VMCWORKDIR")) + TString("/input/") + INLFile;
-    //========== read INL file            ==========//
-    fINLFile.open((fINLFileName).Data(), ios::in);
-    if (!fINLFile.is_open()) {
-        cout << "Error opening INL-file (" << fINLFileName << ")!" << endl;
-        return kBMNERROR;
-    }
-
-    for (int i = 0; i < 72; i++)
-        for (int j = 0; j < 1024; j++)
-            fINLFile >> fINLTable[i][j];
-
-    fINLFile.close();
     return kBMNSUCCESS;
 }
 
@@ -258,6 +237,11 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
 }
 
 BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
+    //printf("Event \n");
+    for (auto &el : fPlacementMap){
+        for (Int_t i = 0; i < CHANNEL_COUNT_MAX; i++)
+        el.second->t[i] = -1.0;
+    }
     for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
         BmnTDCDigit* tdcDig = (BmnTDCDigit*) tdc->At(iTdc);
         auto plIter = fPlacementMap.find(PlMapKey(tdcDig->GetSerial(), tdcDig->GetSlot()));
@@ -266,19 +250,22 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
         BmnTrigParameters * par = plIter->second;
         UShort_t rChannel = tdcDig->GetHptdcId() * kNCHANNELS + tdcDig->GetChannel();
         Double_t time = (tdcDig->GetValue() + par->INL[rChannel][tdcDig->GetValue() % TDC_BIN_COUNT]) * TDC_CLOCK / TDC_BIN_COUNT;
+//        if (tdcDig->GetSerial() == 0x076D3892 && tdcDig->GetSlot() == 18 && rChannel == 0)
+//            printf("\tCrateSeral %08X slot %02u channel %02u  time %+2.2f  leading %d\n", tdcDig->GetSerial(), tdcDig->GetSlot(), rChannel, time, tdcDig->GetLeading());
         if (tdcDig->GetLeading()) {
             par->t[rChannel] = time;
         } else {
-            if (time < par->t[rChannel]) {
-                //printf("Errore! digits are not ordered by time!\n");
+            if (time < par->t[rChannel])
                 continue;
-            }
+            if (par->t[rChannel] < 0)
+                continue;
             UShort_t iMod = par->ChannelMap[rChannel];
             TClonesArray *trigAr = par->branchArrayPtr[rChannel];
             if (trigAr == NULL)
                 continue;
             Double_t tL = par->t[rChannel];
             Double_t tT = time;
+            par->t[rChannel] = -1.0;
 //            printf("OK:   tT = %f    tL = %f\n", tT, tL);
             new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigDigit(iMod, tL, tT - tL);
         }

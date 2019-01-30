@@ -53,13 +53,12 @@ struct BmnTrigParameters {
     Double_t INL[CHANNEL_COUNT_MAX][TDC_BIN_COUNT];
     UShort_t ChannelMap[CHANNEL_COUNT_MAX];
     TClonesArray * branchArrayPtr[CHANNEL_COUNT_MAX];
-    double t[CHANNEL_COUNT_MAX];
+    Double_t t[CHANNEL_COUNT_MAX];
     BmnTrigParameters();
 };
 
 class BmnTrigRaw2Digit {
 public:
-    //BmnTrigRaw2Digit(TString mappingFile, TString INLFile);
     BmnTrigRaw2Digit(TString mappingFile, TString INLFile, TTree *digiTree = NULL);
 
     BmnTrigRaw2Digit() {
@@ -83,7 +82,6 @@ public:
 
     BmnStatus FillEvent(TClonesArray *tdc);
     BmnStatus FillEvent(TClonesArray *tdc, TClonesArray *adc);
-    BmnStatus readINLCorrections(TString INLFile);
     BmnStatus ReadINLFromFile(BmnTrigParameters* par);
     BmnStatus ReadChannelMap(TString mappingFile);
     BmnStatus ReadPlacementMap(TString mappingFile);

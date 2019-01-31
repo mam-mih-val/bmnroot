@@ -1,5 +1,5 @@
 #ifndef BMNZDCRAW2DIGIT_H
-#define	BMNZDCRAW2DIGIT_H 
+#define	BMNZDCRAW2DIGIT_H
 
 #include "TString.h"
 #include "TClonesArray.h"
@@ -12,11 +12,11 @@
 #include <iostream>
 #include "Riostream.h"
 #include "BmnZDCDigit.h"
-#include <cstdlib> 
+#include <cstdlib>
 
 #define MAX_EVENTS 10000
-#define MAX_CHANNELS 104
-#define MAX_LOG_CHANNELS 24
+#define MAX_CHANNELS 112
+#define MAX_LOG_CHANNELS 16
 
 static int nevents;
 static float amp_array[MAX_EVENTS][MAX_CHANNELS];
@@ -118,6 +118,7 @@ public:
 //    void fcn(Int_t& npar, Double_t *gin, Double_t& f, Double_t *par, Int_t iflag);
 
 private:
+    int digiPar[6];
     char filname_base[256];
     int maxchan;
     Bmn_ZDC_map_element zdc_map_element[256];
@@ -161,7 +162,7 @@ private:
     double PP1(double x, double h);
     double PP2(double x, double h);
     double shower(double x, double h);
-    float wave2amp(UChar_t ns, UShort_t *s, Float_t *p);
+    float wave2amp(UChar_t ns, UShort_t *s, Float_t *p, Float_t *sigMin, Float_t *sigMax, Float_t *sigPed, Float_t *sigInt);
     float testwave2amp(UChar_t ns, UShort_t *s, Float_t *p);
     int n_test;
     int test_chan[MAX_LOG_CHANNELS];
@@ -175,7 +176,7 @@ private:
     TH1F *hxmean, *hymean;
     TProfile *SampleProf[MAX_CHANNELS];
 
-    ClassDef(BmnZDCRaw2Digit, 2);
+    ClassDef(BmnZDCRaw2Digit, 3);
 };
 #endif	/* BMNZDCRAW2DIGIT_H */
 

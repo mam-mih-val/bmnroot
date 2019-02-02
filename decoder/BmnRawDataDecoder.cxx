@@ -1105,7 +1105,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         prevEventType = curEventType;
     }
 
-    if (fTof700Mapper) fTof700Mapper->WriteSlewingResults();
+    if (fTof700Mapper) { fTof700Mapper->WriteSlewingResults(); fDigiFileOut->cd(); }
 
     printf(ANSI_COLOR_RED "\n=============== RUN" ANSI_COLOR_RESET);
     printf(ANSI_COLOR_BLUE " %04d " ANSI_COLOR_RESET, runId);
@@ -1122,6 +1122,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
     fDigiTree->Write();
     DisposeDecoder();
+    fDigiFileOut->Write();
     fDigiFileOut->Close();
     fRootFileIn->Close();
 

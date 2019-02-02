@@ -444,6 +444,8 @@ BmnTof2Raw2DigitNew::~BmnTof2Raw2DigitNew() {
 	TvsWallmax[i] = 0;
     }
 
+    if (fSlewing == 0) return;
+    
     for (int i=0; i<MaxPlane; i++)
     {
 	for (int ir=0; ir<4; ir++)
@@ -1000,6 +1002,11 @@ void BmnTof2Raw2DigitNew::WritePreparationHists0()
 
 void BmnTof2Raw2DigitNew::WriteSlewingResults()
 {
+    if (fSlewing)
+    {
+	fSlewing->Close();
+	fSlewing = 0;
+    }
     if (!CHECK_SLEWING) return;
     TFile *f = NULL;
     char filn[128];
@@ -2434,6 +2441,7 @@ void BmnTof2Raw2DigitNew::Equalization()
     {
 	fSlewing->Write(0,TObject::kOverwrite);
 	fSlewing->Close();
+	fSlewing = 0;
     }
     return;
   }
@@ -2624,6 +2632,7 @@ void BmnTof2Raw2DigitNew::Equalization()
   {
     fSlewing->Write(0,TObject::kOverwrite);
     fSlewing->Close();
+    fSlewing = 0;
   }
 
   return;

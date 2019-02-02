@@ -41,6 +41,15 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
     fCurrentConfig = BmnSiliconConfiguration::None;
     StationSet = NULL;
 
+    switch(run_period) {
+        case 6: //BM@N RUN-6
+            fCurrentConfig = BmnSiliconConfiguration::RunSpring2017;
+            break;
+        case 7: //BM@N RUN-7
+            fCurrentConfig = BmnSiliconConfiguration::RunSpring2018;
+            break;
+    }
+
     if (isExp)
         fAlign = new BmnInnTrackerAlign(run_period, run_number, alignFile);
 }
@@ -82,7 +91,7 @@ InitStatus BmnSiliconHitMaker::Init() {
     TString gPathSiliconConfig = gSystem->Getenv("VMCWORKDIR");
     gPathSiliconConfig += "/parameters/silicon/XMLConfigs/";
 
-    //Create SILICON detector ------------------------------------------------------
+    //Create SILICON detector --------------------------------------------------
     switch (fCurrentConfig) {
 
         case BmnSiliconConfiguration::RunSpring2017:

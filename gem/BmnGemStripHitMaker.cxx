@@ -50,6 +50,18 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
     fCurrentConfig = BmnGemStripConfiguration::None;
     StationSet = NULL;
 
+    switch(run_period) {
+        case 5: //BM@N RUN-5
+            fCurrentConfig = BmnGemStripConfiguration::RunWinter2016;
+            break;
+        case 6: //BM@N RUN-6
+            fCurrentConfig = BmnGemStripConfiguration::RunSpring2017;
+            break;
+        case 7: //BM@N RUN-7
+            fCurrentConfig = BmnGemStripConfiguration::RunSpring2018;
+            break;
+    }
+
     if (isExp)
         fAlign = new BmnInnTrackerAlign(run_period, run_number, alignFile);
 }
@@ -99,28 +111,28 @@ InitStatus BmnGemStripHitMaker::Init() {
     switch (fCurrentConfig) {
         case BmnGemStripConfiguration::RunSummer2016:
             StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
-            if (fVerbose) cout << "   Current Configuration : RunSummer2016" << "\n";
+            if (fVerbose) cout << "   Current GEM Configuration : RunSummer2016" << "\n";
             break;
 
         case BmnGemStripConfiguration::RunWinter2016:
             StationSet = new BmnGemStripStationSet_RunWinter2016(fCurrentConfig);
-            if (fVerbose) cout << "   Current Configuration : RunWinter2016" << "\n";
+            if (fVerbose) cout << "   Current GEM Configuration : RunWinter2016" << "\n";
             break;
 
         case BmnGemStripConfiguration::RunSpring2017:
             StationSet = new BmnGemStripStationSet_RunSpring2017(fCurrentConfig);
             //StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2017.xml");
-            if (fVerbose) cout << "   Current Configuration : RunSpring2017" << "\n";
+            if (fVerbose) cout << "   Current GEM Configuration : RunSpring2017" << "\n";
             break;
 
         case BmnGemStripConfiguration::RunSpring2018:
             StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2018.xml");
-            cout << "   Current Configuration : RunSpring2018" << "\n";
+            if (fVerbose) cout << "   Current GEM Configuration : RunSpring2018" << "\n";
             break;
-            
+
         case BmnGemStripConfiguration::RunSRCSpring2018:
             StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSRCSpring2018.xml");
-            cout << "   Current Configuration : RunSpring2018" << "\n";
+            if (fVerbose) cout << "   Current GEM Configuration : RunSRCSpring2018" << "\n";
             break;
 
         default:

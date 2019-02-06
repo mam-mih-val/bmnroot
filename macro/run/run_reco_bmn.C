@@ -162,7 +162,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
 
     TObjString tofDigiFile = "$VMCWORKDIR/parameters/tof_standard.geom.par";
     parFileNameList->Add(&tofDigiFile);
-    
+
     if (iVerbose == 0) { // print only progress bar in terminal in quiet mode
         BmnCounter* cntr = new BmnCounter(nEvents);
         fRunAna->AddTask(cntr);
@@ -181,44 +181,16 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
-    BmnSiliconConfiguration::SILICON_CONFIG si_config;
-    switch(run_period) {
-        case 6: //BM@N RUN-6
-            si_config = BmnSiliconConfiguration::RunSpring2017;
-            break;
-        case 7: //BM@N RUN-7
-            si_config = BmnSiliconConfiguration::RunSpring2018;
-            break;
-        default:
-            si_config = BmnSiliconConfiguration::RunSpring2017;
-            //si_config = BmnSiliconConfiguration::RunSpring2018;
-    }
     BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
-    siliconHM->SetCurrentConfig(si_config);
+    //siliconHM->SetCurrentConfig(BmnSiliconConfiguration::RunSpring2018); //set explicitly
     fRunAna->AddTask(siliconHM);
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
-    BmnGemStripConfiguration::GEM_CONFIG gem_config;
-    switch(run_period) {
-        case 5: //BM@N RUN-5
-            gem_config = BmnGemStripConfiguration::RunWinter2016;
-            break;
-        case 6: //BM@N RUN-6
-            gem_config = BmnGemStripConfiguration::RunSpring2017;
-            break;
-        case 7: //BM@N RUN-7
-            gem_config = BmnGemStripConfiguration::RunSpring2018;
-            break;
-        default:
-            gem_config = BmnGemStripConfiguration::RunSpring2017;
-            //gem_config = BmnGemStripConfiguration::RunSpring2018;
-    }
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
-    gemHM->SetCurrentConfig(gem_config);
+    //gemHM->SetCurrentConfig(BmnGemStripConfiguration::RunSpring2018); //set explicitly
     gemHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(gemHM);
-
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //
     // ====================================================================== //
@@ -243,7 +215,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     BmnCellAutoTracking* gemTF = new BmnCellAutoTracking(run_period, run_number, isField, isTarget);
     gemTF->SetDetectorPresence(kSILICON, kTRUE);
     gemTF->SetDetectorPresence(kSSD, kFALSE);
-    gemTF->SetDetectorPresence(kGEM, kTRUE);   
+    gemTF->SetDetectorPresence(kGEM, kTRUE);
    // if (!isExp) gemTF->SetRoughVertex(TVector3(0.0, 0.0, 0.0)); //for MC case use correct vertex
     fRunAna->AddTask(gemTF);
 
@@ -264,7 +236,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // Residual analysis
     BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
     fRunAna->AddTask(res);
-        
+
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();
     FairParRootFileIo* parIo1 = new FairParRootFileIo();

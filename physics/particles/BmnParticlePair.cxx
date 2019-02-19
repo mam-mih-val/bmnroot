@@ -13,6 +13,7 @@
 
 BmnParticlePair::BmnParticlePair() :
 fV0X(0.), fV0Y(0.), fV0Z(0.),
+fDCA0(0.), 
 fDCA1(0.),
 fDCA2(0.),
 fDCA12(0.),
@@ -20,6 +21,8 @@ fPath(0.),
 fInvMass(0.),
 fMomPart1(0.), fMomPart2(0.),
 fEtaPart1(0.), fEtaPart2(0.),
+fTxPart1(0.), fTxPart2(0.),        
+fTyPart1(0.), fTyPart2(0.),        
 fAlpha(0.), fPtPodol(0.),
 fRecoTrackIdPart1(-1), fRecoTrackIdPart2(-1),
 fMCTrackIdPart1(-1), fMCTrackIdPart2(-1) {

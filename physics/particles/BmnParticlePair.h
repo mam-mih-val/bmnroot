@@ -36,6 +36,10 @@ public:
         fV0Z = val;
     }
 
+    void SetDCA0(Double_t val) {
+        fDCA0 = val;
+    }
+    
     void SetDCA1(Double_t val) {
         fDCA1 = val;
     }
@@ -64,6 +68,16 @@ public:
     void SetEtaPair(Double_t val1, Double_t val2) {
         fEtaPart1 = val1;
         fEtaPart2 = val2;
+    }
+    
+    void SetTxPair(Double_t val1, Double_t val2) {
+        fTxPart1 = val1;
+        fTxPart2 = val2;
+    }
+    
+    void SetTyPair(Double_t val1, Double_t val2) {
+        fTyPart1 = val1;
+        fTyPart2 = val2;
     }
 
     void SetMCTrackIdPart1(Int_t id);
@@ -106,6 +120,10 @@ public:
     Double_t GetDCA2() {
         return fDCA2;
     }
+    
+    Double_t GetDCA0() {
+        return fDCA0;
+    }
 
     Double_t GetMomPart1() {
         return fMomPart1;
@@ -133,6 +151,22 @@ public:
 
     Double_t GetV0Z() {
         return fV0Z;
+    }
+
+    Double_t GetTxPart1() {
+        return fTxPart1;
+    }
+
+    Double_t GetTxPart2() {
+        return fTxPart2;
+    }
+
+    Double_t GetTyPart1() {
+        return fTyPart1;
+    }
+
+    Double_t GetTyPart2() {
+        return fTyPart2;
     }
 
     void SetAlpha(Double_t val) {
@@ -167,6 +201,7 @@ private:
     Double_t fV0Y;
     Double_t fV0Z;
 
+    Double_t fDCA0;
     Double_t fDCA1;
     Double_t fDCA2;
 
@@ -182,6 +217,11 @@ private:
 
     Int_t fNHitsPart1;
     Int_t fNHitsPart2;
+
+    Double_t fTxPart1;
+    Double_t fTxPart2;
+    Double_t fTyPart1;
+    Double_t fTyPart2;
 
     // Armenteros-Podolyansky ... 
     Double_t fAlpha;

@@ -56,6 +56,6 @@ BmnDchTrack.cxx
 Set(HEADERS)
 Set(LINKDEF LinkDef.h)
 Set(LIBRARY_NAME Dch)
-Set(DEPENDENCIES Core Base)
+Set(DEPENDENCIES BmnData Core Base)
 
 GENERATE_LIBRARY()

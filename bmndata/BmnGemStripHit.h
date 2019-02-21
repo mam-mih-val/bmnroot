@@ -37,19 +37,19 @@ public:
         fUpperLayerClusterSize = csize;
     }
 
-    void SetStripPositionInLowerLayer(Int_t spos) {
+    void SetStripPositionInLowerLayer(Double_t spos) {
         fLowerLayerStripPos = spos;
     }
 
-    void SetStripPositionInUpperLayer(Int_t spos) {
+    void SetStripPositionInUpperLayer(Double_t spos) {
         fUpperLayerStripPos = spos;
     }
 
-    void SetStripTotalSignalInLowerLayer(Int_t sig) {
+    void SetStripTotalSignalInLowerLayer(Double_t sig) {
         fLowerLayerStripTotalSignal = sig;
     }
 
-    void SetStripTotalSignalInUpperLayer(Int_t sig) {
+    void SetStripTotalSignalInUpperLayer(Double_t sig) {
         fUpperLayerStripTotalSignal = sig;
     }
 

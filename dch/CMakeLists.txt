@@ -53,7 +53,28 @@ BmnDchTrackFinder.cxx
 BmnDchTrack.cxx
 )
 
-Set(HEADERS)
+set(HEADERS
+DCHgeometryconstants_bmn.h
+BmnDch.h
+BmnDchPoint.h
+BmnDchContFact.h 
+BmnDchGeo.h
+BmnDchGeoPar.h
+
+BmnDchHitProducer.h
+BmnDchHitProducerTmp.h
+BmnDchHitProducer_exp.h
+#BmnDchHitProducerCalib_exp.h
+DchTrackCand.h
+DchTrackManager.h
+ScalarD.h
+ScalarI.h
+ScalarUI.h
+DchHitPlane.h
+BmnDchTrackFinder.h
+BmnDchTrack.h
+)
+
 Set(LINKDEF LinkDef.h)
 Set(LIBRARY_NAME Dch)
 Set(DEPENDENCIES BmnData Core Base)

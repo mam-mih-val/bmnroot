@@ -5,9 +5,11 @@ fEventNo(0),
 fGemDigitsIn(nullptr),
 fSiDigitsIn(nullptr),
 fTOF400DigitsIn(nullptr),
+fDchDigitsIn(nullptr),
 fGemDigitsOut(nullptr),
 fSiDigitsOut(nullptr),
 fTOF400DigitsOut(nullptr),
+fDchDigitsOut(nullptr),
 fBC1In(nullptr),
 fBC2In(nullptr),
 fVetoIn(nullptr),
@@ -42,15 +44,18 @@ isTrig(kTRUE),
 isGem(kTRUE),
 isSil(kTRUE),
 isTof400(kTRUE),
+isDch(kTRUE),
 isBMN(kFALSE),
 isSRC(kFALSE) {
     // Set names for all branches available
     fGemBranchIn = "STRIPGEM";
     fSiBranchIn = "MYSILICON";
     fTOF400BranchIn = "TOF400";
+    fDchBranchIn = "DCH";
     fGemBranchOut = "GEM";
     fSiBranchOut = "SILICON";
     fTOF400BranchOut = "TOF400";
+    fDchBranchOut = "DCH";
 
     fBC1BranchIn = "BC1";
     fBC2BranchIn = "BC2";
@@ -110,6 +115,7 @@ InitStatus BmnDigiConverter::Init() {
     fGemDigitsIn = (TClonesArray*) ioman->GetObject(fGemBranchIn.Data());
     fSiDigitsIn = (TClonesArray*) ioman->GetObject(fSiBranchIn.Data());
     fTOF400DigitsIn = (TClonesArray*) ioman->GetObject(fTOF400BranchIn.Data());
+    fDchDigitsIn = (TClonesArray*) ioman->GetObject(fDchBranchIn.Data());
 
     fBC1In = (TClonesArray*) ioman->GetObject(fBC1BranchIn.Data());
     fBC2In = (TClonesArray*) ioman->GetObject(fBC2BranchIn.Data());
@@ -138,6 +144,7 @@ InitStatus BmnDigiConverter::Init() {
     fGemDigitsOut = new TClonesArray("BmnGemStripDigit");
     fSiDigitsOut = new TClonesArray("BmnSiliconDigit");
     fTOF400DigitsOut = new TClonesArray("BmnTof1Digit");
+    fDchDigitsOut = new TClonesArray("BmnDchDigit");
 
     fBC1Out = new TClonesArray("BmnTrigDigit");
     fBC2Out = new TClonesArray("BmnTrigDigit");
@@ -146,6 +153,7 @@ InitStatus BmnDigiConverter::Init() {
     ioman->Register(fGemBranchOut.Data(), "GEM_", fGemDigitsOut, isGem ? kTRUE : kFALSE);
     ioman->Register(fSiBranchOut.Data(), "SILICON_", fSiDigitsOut, isSil ? kTRUE : kFALSE);
     ioman->Register(fTOF400BranchOut.Data(), "TOF400_", fTOF400DigitsOut, isTof400 ? kTRUE : kFALSE);
+    ioman->Register(fDchBranchOut.Data(), "DCH_", fDchDigitsOut, isDch ? kTRUE : kFALSE);
 
     ioman->Register(fBC1BranchOut.Data(), "BC1_", fBC1Out, isWriteTrig);
     ioman->Register(fBC2BranchOut.Data(), "BC2_", fBC2Out, isWriteTrig);
@@ -343,6 +351,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
     fGemDigitsOut->Delete();
     fSiDigitsOut->Delete();
     fTOF400DigitsOut->Delete();
+    fDchDigitsOut->Delete();
 
     // Clear array with common triggers
     fBC1Out->Delete();
@@ -388,13 +397,13 @@ void BmnDigiConverter::Exec(Option_t* opt) {
             }
 
             if (isSRC) {
-               // CSC should be omitted
-               if (stat == 11)
-                   continue;
-               
+                // CSC should be omitted
+                if (stat == 11)
+                    continue;
+
                 gemDig->SetStation(GemStatPermutation(stat));
                 stat = gemDig->GetStation();
-                                
+
                 if (stat == 5 || stat == 7 || stat == 9) {
                     if (gemDig->GetModule() == 0)
                         gemDig->SetModule(1);
@@ -404,7 +413,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
                         cout << "Something went wrong!" << endl;
                         throw;
                     }
-                } 
+                }
             }
 
             new((*fGemDigitsOut)[fGemDigitsOut->GetEntriesFast()]) BmnGemStripDigit(gemDig->GetStation(),
@@ -442,6 +451,14 @@ void BmnDigiConverter::Exec(Option_t* opt) {
             new((*fTOF400DigitsOut)[fTOF400DigitsOut->GetEntriesFast()]) BmnTof1Digit(tofDig->GetPlane(), tofDig->GetStrip(),
                     tofDig->GetSide(), tofDig->GetTime(), tofDig->GetAmplitude());
         }
+
+    // DCH
+    if (isDch) {
+        for (UInt_t iDigi = 0; iDigi < fDchDigitsIn->GetEntriesFast(); iDigi++) {
+            BmnDchDigit* dchDig = (BmnDchDigit*) fDchDigitsIn->UncheckedAt(iDigi);
+            new((*fDchDigitsOut)[fDchDigitsOut->GetEntriesFast()]) BmnDchDigit(dchDig->GetPlane(), dchDig->GetWireNumber(), dchDig->GetTime(), dchDig->GetRefId());
+        }
+    }
 
     fEventNo++;
 }

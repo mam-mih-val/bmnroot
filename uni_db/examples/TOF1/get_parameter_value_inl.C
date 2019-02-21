@@ -9,10 +9,6 @@ string int_to_hex_string(int int_number)
 // macro for getting parameter value (if parameter exist - you could check existing parameters by 'UniDbParameter::PrintAll()' function)
 void get_parameter_value_inl()
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     // get 'INL' parameter value (int array) for 72 channels
     bool is_error = false;
     int TDC_SERIAL = (int)0x06e9da91; //(int)0x0168fdca;

@@ -14,10 +14,6 @@ using namespace std;
 
 void add_Tof1_INL(TString ListOfINLFiles = "ListINLFiles.txt", int sP = 7, int sR = 1, int eP = 7, int eR = 10000)
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     fstream fList(ListOfINLFiles, std::fstream::in);
     if (fList.fail())
     {

@@ -1,8 +1,4 @@
 void add_lorShift(Int_t run = 6) {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     bool return_error = false;
 
     const int nStats = (run == 5) ? 7 : (run == 6) ? 6 : -1;

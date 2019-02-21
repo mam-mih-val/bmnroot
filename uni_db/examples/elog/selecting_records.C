@@ -1,10 +1,6 @@
 // macro for ELOG record selection by specified conditions
 void selecting_records()
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     TObjArray arrayConditions;
     UniDbSearchCondition* searchCondition = new UniDbSearchCondition(columnPeriodNumber, conditionEqual, 6);
     arrayConditions.Add((TObject*)searchCondition);

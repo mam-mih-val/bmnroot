@@ -11,9 +11,6 @@ using namespace std;
 
 void delete_Tof1_mapping (int sP = 5, int sR = 419, int eP = 5, int eR = 1014)
 {
-  gROOT->LoadMacro ("$VMCWORKDIR/gconfig/basiclibs.C");
-  basiclibs ();
-  gSystem->Load ("libUniDb");
   char anwser;
 
   cout << endl << "!!!!!!!  Delete of TOF400 map from database  !!!!!!!" << endl << endl;

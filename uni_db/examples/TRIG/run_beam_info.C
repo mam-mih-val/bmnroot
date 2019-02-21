@@ -1,15 +1,9 @@
-#include "../../UniDbParser.h"
-
 //#define ScaleBorderInfo
 
-// print summary information about beam spill for a given 'run' in a 'period'
+// print summary information about beam spill for a given run in a period (or for a whole period)
 // if 'run' parameter is zero or absent then all runs in the period will be shown
 void run_beam_info(int period, int run = 0, TString target = "")
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     // get spill info
     UniDbParser parser;
     int res_code;

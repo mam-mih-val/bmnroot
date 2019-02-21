@@ -1,9 +1,7 @@
-// macro for getting average magnetic field for a given run (1886 run of 6-th period by default)
+// function for getting average magnetic field for a given run (1886 run of 6-th period by default)
 // returns average magnetic field coefficient (in case of errors the return value <= -1)
 double tango_avg_field(int period = 6, int run = 1886)
 {
-    gSystem->Load("libUniDb");
-
     UniDbTangoData db_tango;
 
     // get run time
@@ -66,8 +64,6 @@ double tango_avg_field(int period = 6, int run = 1886)
 // additional function for calculating Tango average magnetic field for all runs of the given period/session and writing it to the BM@N Database
 void tango_avg_field_write_db(int period = 7)
 {
-    gSystem->Load("libUniDb");
-
     UniqueRunNumber* run_numbers;
     int run_count = UniDbRunPeriod::GetRunNumbers(period, run_numbers);
     if (run_count <= 0)
@@ -143,8 +139,6 @@ void tango_avg_field_write_db(int period = 7)
 // if period_end == -1 and run_end != -1 then the end period is the same as begin period
 int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end = -1, int run_end = -1)
 {
-    gSystem->Load("libUniDb");
-
     UniDbTangoData db_tango;
 
     // get time of the begin run
@@ -215,8 +209,6 @@ int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end 
 // additional function to compare magnetic field value (current, A) from ELog database and average magnetic field (voltage, mV) from the Tango database
 void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
 {
-    gSystem->Load("libUniDb");
-
     UniqueRunNumber* run_numbers;
     int run_count = UniDbRun::GetRunNumbers(period, 1, period, 100000, run_numbers);
     if (run_count <= 0)
@@ -331,8 +323,6 @@ void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
 // and average magnetic field (voltage, mV) from UniDb saved from the Tango, and show in TGraph object
 void compare_avg_field_graph(int period = 7)
 {
-    gSystem->Load("libUniDb");
-
     UniqueRunNumber* run_numbers;
     int run_count = UniDbRun::GetRunNumbers(period, 1, period, 100000, run_numbers);
     if (run_count <= 0)

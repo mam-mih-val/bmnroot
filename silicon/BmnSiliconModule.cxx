@@ -714,7 +714,7 @@ void BmnSiliconModule::CalculateStripHitIntersectionPoints() {
                             //strip position in both strip layers for each intersection
                             Double_t iLayerStripPosition = StripLayers[ilayer].ConvertPointToStripPosition(xcoord, ycoord);
                             Double_t jLayerStripPosition = StripLayers[jlayer].ConvertPointToStripPosition(xcoord, ycoord);
-                            
+
                             IntersectionPoints_LowerLayerStripTotalSignal.push_back(StripLayers[ilayer].GetStripHitTotalSignal(i_strip_hit));
                             IntersectionPoints_UpperLayerStripTotalSignal.push_back(StripLayers[jlayer].GetStripHitTotalSignal(j_strip_hit));
 
@@ -844,6 +844,8 @@ void BmnSiliconModule::ResetIntersectionPoints() {
     IntersectionPoints_UpperLayerClusterSize.clear();
     IntersectionPoints_LowerLayerStripPosition.clear();
     IntersectionPoints_UpperLayerStripPosition.clear();
+    IntersectionPoints_LowerLayerStripTotalSignal.clear();
+    IntersectionPoints_UpperLayerStripTotalSignal.clear();
     IntersectionPointMatches.clear();
 }
 

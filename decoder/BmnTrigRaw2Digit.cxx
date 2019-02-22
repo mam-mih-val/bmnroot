@@ -37,7 +37,7 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString PlacementMapFile, TString StripMapFil
             trigArrays.push_back(ar);
             record.branchArrayPtr = ar;
         } else
-            for (auto *tca : trigArrays){
+            for (auto *tca : trigArrays) {
                 if (TString(tca->GetName()) == detName) {
                     record.branchArrayPtr = tca;
                     break;
@@ -70,7 +70,7 @@ BmnStatus BmnTrigRaw2Digit::ReadPlacementMap(TString mappingFile) {
     UInt_t crateSerial, boardSerial;
     UShort_t slot;
 
-//    regex reBoardName("(\\D+)(\\d+)(.*)");
+    //    regex reBoardName("(\\D+)(\\d+)(.*)");
     TPRegexp reBoardName("(\\D+)(\\d+)(.*)");
     pmFile >> dummy >> dummy >> dummy >> dummy;
     pmFile >> dummy;
@@ -78,14 +78,14 @@ BmnStatus BmnTrigRaw2Digit::ReadPlacementMap(TString mappingFile) {
         pmFile >> name >> hex >> crateSerial >> dec >> slot >> hex >> boardSerial >> dec;
         if (!pmFile.good()) break;
         TString channelCountStr = name;
-//        string channelCountStr = name;
+        //        string channelCountStr = name;
         UInt_t channelCount = CHANNEL_COUNT_MAX;
-        if (reBoardName.MatchB(name)){
-//        if (regex_match(name, reBoardName)){
-//            channelCountStr = regex_replace(name, reBoardName, "$2");
+        if (reBoardName.MatchB(name)) {
+            //        if (regex_match(name, reBoardName)){
+            //            channelCountStr = regex_replace(name, reBoardName, "$2");
             reBoardName.Substitute(channelCountStr, "$2");
             channelCount = strtoul(channelCountStr.Data(), nullptr, 10);
-//            channelCount = strtoul(channelCountStr.c_str(), nullptr, 10);
+            //            channelCount = strtoul(channelCountStr.c_str(), nullptr, 10);
         }
         BmnTrigParameters * par = new BmnTrigParameters();
         par->BoardSerial = boardSerial;
@@ -142,14 +142,14 @@ BmnStatus BmnTrigRaw2Digit::ReadINLFromFile(BmnTrigParameters* par) {
     }
     printf("Open INL file %s\n", fINLFileName.Data());
     TPRegexp reInlHdr("\\[.*(inl_corr).*\\]"); // INL block header
-//    regex reInlHdr("\\[.*(inl_corr).*\\]"); // INL block header
-//    regex reInlChannel("\\s*(\\d+)=(.+)"); // chID=c0, c1, ...
+    //    regex reInlHdr("\\[.*(inl_corr).*\\]"); // INL block header
+    //    regex reInlChannel("\\s*(\\d+)=(.+)"); // chID=c0, c1, ...
     Bool_t isInlHdr = kFALSE;
     while (!ff.eof()) {
         string line;
         std::getline(ff, line, '\n');
         if (reInlHdr.MatchB(line)) {
-//        if (regex_match(line, reInlHdr)) {
+            //        if (regex_match(line, reInlHdr)) {
             isInlHdr = kTRUE;
             break;
         }
@@ -162,11 +162,11 @@ BmnStatus BmnTrigRaw2Digit::ReadINLFromFile(BmnTrigParameters* par) {
     while (!ff.eof()) {
         string line;
         std::getline(ff, line, '\n');
-//        printf("Read %lu \n", line.length());
-//        if (!regex_match(line, reInlChannel))
-//            continue;
-//        line = regex_replace(line, reInlChannel, "$1 $2");
-//        printf("%s\n", line.c_str());
+        //        printf("Read %lu \n", line.length());
+        //        if (!regex_match(line, reInlChannel))
+        //            continue;
+        //        line = regex_replace(line, reInlChannel, "$1 $2");
+        //        printf("%s\n", line.c_str());
         istringstream ss(line);
         ss >> channelID;
         //printf("Channel ID = %u\n", channelID);
@@ -215,33 +215,36 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
             diff.push_back(fabs(time - (adcTimestamp - trgTimestamp)));
             times.push_back(time);
         }
+        Double_t matchTime = -999.0;
+        Double_t minUsed = 999.0;
+        TClonesArray *trigAr = NULL;
         if (diff.size() > 0) {
             auto result = min_element(begin(diff), end(diff));
             int idx = std::distance(begin(diff), result);
             // Found the match, so let's save that as and ADC and corresponding TDC
-            Double_t matchTime = times.at(idx);
-            Double_t minUsed = diff.at(idx);
-            TClonesArray *trigAr = par->branchArrayPtr[iChannel];
-            if (trigAr != NULL && minUsed < 296) { // ADC window
-                new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigWaveDigit(
-                        iMod,
-                        adcDig->GetShortValue(),
-                        adcDig->GetNSamples(),
-                        trgTimestamp,
-                        adcTimestamp,
-                        matchTime);
-            }
+            matchTime = times.at(idx);
+            minUsed = diff.at(idx);
+            trigAr = par->branchArrayPtr[iChannel];
         }
+        if (trigAr != NULL/* && minUsed < 296*/) { // ADC window
+            new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigWaveDigit(
+                    iMod,
+                    adcDig->GetShortValue(),
+                    adcDig->GetNSamples(),
+                    trgTimestamp,
+                    adcTimestamp,
+                    matchTime);
+        }
+
     }
     return kBMNSUCCESS;
 }
 
 BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
-    //printf("Event \n");
-    for (auto &el : fPlacementMap){
+//        printf("Event \n");
+    for (auto &el : fPlacementMap)
         for (Int_t i = 0; i < CHANNEL_COUNT_MAX; i++)
-        el.second->t[i] = -1.0;
-    }
+            el.second->t[i] = -1.0;
     for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
         BmnTDCDigit* tdcDig = (BmnTDCDigit*) tdc->At(iTdc);
         auto plIter = fPlacementMap.find(PlMapKey(tdcDig->GetSerial(), tdcDig->GetSlot()));
@@ -250,9 +253,10 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
         BmnTrigParameters * par = plIter->second;
         UShort_t rChannel = tdcDig->GetHptdcId() * kNCHANNELS + tdcDig->GetChannel();
         Double_t time = (tdcDig->GetValue() + par->INL[rChannel][tdcDig->GetValue() % TDC_BIN_COUNT]) * TDC_CLOCK / TDC_BIN_COUNT;
-//        if (tdcDig->GetSerial() == 0x076D3892 && tdcDig->GetSlot() == 18 && rChannel == 0)
-//            printf("\tCrateSeral %08X slot %02u channel %02u  time %+2.2f  leading %d\n", tdcDig->GetSerial(), tdcDig->GetSlot(), rChannel, time, tdcDig->GetLeading());
-        if (tdcDig->GetLeading()) {
+        //        if (tdcDig->GetSerial() == 0x076D3892 && tdcDig->GetSlot() == 18 && rChannel == 14)
+//                if (tdcDig->GetSerial() == 0x076D2E12 && tdcDig->GetSlot() == 10 && rChannel == 15)
+//                    printf("\tCrateSeral %08X slot %02u channel %02u  time %+2.2f  leading %d\n", tdcDig->GetSerial(), tdcDig->GetSlot(), rChannel, time, tdcDig->GetLeading());
+        if (tdcDig->GetLeading() ^ (tdcDig->GetSlot() == 18 && rChannel == 14)) {
             par->t[rChannel] = time;
         } else {
             if (time < par->t[rChannel])
@@ -266,7 +270,7 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
             Double_t tL = par->t[rChannel];
             Double_t tT = time;
             par->t[rChannel] = -1.0;
-//            printf("OK:   tT = %f    tL = %f\n", tT, tL);
+            //            printf("OK:   tT = %f    tL = %f\n", tT, tL);
             new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigDigit(iMod, tL, tT - tL);
         }
     }

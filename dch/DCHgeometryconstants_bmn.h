@@ -1,6 +1,8 @@
 #ifndef DCHGEOMETRYCONSTANTS_BMN_H
 #define DCHGEOMETRYCONSTANTS_BMN_H
 
+#include "TMath.h"
+
 //Basic detector parameters   
 const UShort_t numChambers = 2; // number of drift chambers
 const UShort_t numLayers = 8; // number of gas volumes in the drift chambers

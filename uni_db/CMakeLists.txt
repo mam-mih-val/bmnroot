@@ -30,7 +30,7 @@ UniDbGeoConverter.cxx
 UniDbGenerateClasses.cxx
 UniDbTangoData.cxx
 UniDbSearchCondition.cxx
-#UniDbParser.cxx
+UniDbParser.cxx
 
 db_classes/UniDbRunPeriod.cxx
 db_classes/UniDbRun.cxx
@@ -55,7 +55,7 @@ UniDbGeoConverter.h
 UniDbGenerateClasses.h
 UniDbTangoData.h
 UniDbSearchCondition.h
-#UniDbParser.h
+UniDbParser.h
 
 # add definitions of the possible database structures and enums
 db_structures.h
@@ -89,7 +89,7 @@ target_link_libraries(show_simulation_files ${ROOT_LIBRARIES})
 add_executable (show_experiment_files show_experiment_files.cxx)
 target_link_libraries(show_experiment_files ${ROOT_LIBRARIES})
 
-INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs/ DESTINATION ${CMAKE_INSTALL_PREFIX}/un_db/docs)
-INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/examples/ DESTINATION ${CMAKE_INSTALL_PREFIX}/un_db/examples)
-INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/macros/ DESTINATION ${CMAKE_INSTALL_PREFIX}/un_db/macros)
-INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/scheme/ DESTINATION ${CMAKE_INSTALL_PREFIX}/un_db/scheme)
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs/ DESTINATION ${CMAKE_INSTALL_PREFIX}/uni_db/docs)
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/examples/ DESTINATION ${CMAKE_INSTALL_PREFIX}/uni_db/examples)
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/macros/ DESTINATION ${CMAKE_INSTALL_PREFIX}/uni_db/macros)
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/scheme/ DESTINATION ${CMAKE_INSTALL_PREFIX}/uni_db/scheme)

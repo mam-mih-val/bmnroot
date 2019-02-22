@@ -160,7 +160,6 @@ find_package(GSL)
 # Defines all basic include directories from fairbase
 SetBasicVariables()
 find_package(FairLogger)
-SET(PATH ${EXECUTABLE_OUTPUT_PATH} ${PATH})
 set(BMNROOT TRUE)
 add_definitions(-DBMNROOT)
 
@@ -219,6 +218,7 @@ add_subdirectory (physics/particles)
 add_subdirectory (steering)
 add_subdirectory (identification)
 add_subdirectory (ssd)
+add_subdirectory (csc)
 add_subdirectory (miscellaneous)
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/macro/mpd_scheduler/CMakeLists.txt")
@@ -232,7 +232,10 @@ if(BUILD_DOXYGEN)
 endif(BUILD_DOXYGEN)
 
 WRITE_CONFIG_FILE(config.sh)
+
+SET(VMCWORKDIR ${CMAKE_INSTALL_PREFIX})
 SET(ROOT_INCLUDE_PATH ${CMAKE_INSTALL_PREFIX}/include)
+WRITE_CONFIG_FILE(install_config.sh)
 
 configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake
                ${CMAKE_BINARY_DIR}/CTestCustom.cmake

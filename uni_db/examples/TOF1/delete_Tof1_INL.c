@@ -15,10 +15,6 @@
 using namespace std;
 
 void delete_Tof1_INL(TString ListOfINLFiles, int sP = 5, int sR = 419, int eP = 5, int eR = 1014) {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     fstream fList(ListOfINLFiles, std::fstream::in);
     if (fList.fail()) {
         cout << "Failed to open " << filename << endl;

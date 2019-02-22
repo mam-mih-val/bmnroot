@@ -329,7 +329,28 @@ void BmnTwoParticleDecay::Analysis() {
             partPair.SetAlpha(armenPodol.X());
             partPair.SetPtPodol(armenPodol.Y());
             partPair.SetInvMass(TLorentzVector((lPos + lNeg)).Mag());
-
+            
+            // Part to be used when estimating omega ... (dca0 needed), 0 means a primary particle to be decayed...
+            partPair.SetTxPair(Tx1, Tx2);
+            partPair.SetTyPair(Ty1, Ty2);
+            
+            Double_t PzPart1 = Abs(p1) * A1;
+            Double_t PzPart2 = Abs(p2) * A2;
+            
+            Double_t PzPart0 = PzPart1 + PzPart2;
+            Double_t PxPart0 = PzPart1 * Tx1 + PzPart2 * Tx2;
+            Double_t PyPart0 = PzPart1 * Ty1 + PzPart2 * Ty2;
+            
+            Double_t TxPart0 = PxPart0 / PzPart0;
+            Double_t TyPart0 = PyPart0 / PzPart0;
+            
+            Double_t xPart0 = TxPart0 * (Vp.Z() - V0.Z()) + V0.X();
+            Double_t yPart0 = TyPart0 * (Vp.Z() - V0.Z()) + V0.Y();
+          
+            Double_t dca0 = Sqrt(Sq(xPart0 - Vp.X()) + Sq(yPart0 - Vp.Y()));
+            
+            partPair.SetDCA0(dca0);          
+            
             // To be used for real exp. data
             if (fAnalType[0].Contains("dst") && !fAnalType[0].Contains("eve") && fAnalType[1].Contains("OFF"))
                 new((*fParticlePair)[fParticlePair->GetEntriesFast()]) BmnParticlePair(partPair);

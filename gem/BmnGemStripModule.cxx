@@ -1055,6 +1055,8 @@ void BmnGemStripModule::ResetIntersectionPoints() {
     IntersectionPoints_UpperLayerClusterSize.clear();
     IntersectionPoints_LowerLayerStripPosition.clear();
     IntersectionPoints_UpperLayerStripPosition.clear();
+    IntersectionPoints_LowerLayerStripTotalSignal.clear();
+    IntersectionPoints_UpperLayerStripTotalSignal.clear();
     IntersectionPointMatches.clear();
 }
 

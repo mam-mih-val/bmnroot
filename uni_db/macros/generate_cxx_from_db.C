@@ -5,10 +5,6 @@ void generate_cxx_from_db()
     timer.Start();
     gDebug = 0;
 
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-    bmnloadlibs(); // load main libraries
-    gSystem->Load("libUniDb");
-
     UniDbGenerateClasses gen;
     int res = gen.GenerateClasses(UNIFIED_DB, "db_classes/UniDb", true); //(UniConnectionType connection_type, TString class_prefix, bool isOnlyUpdate)
     //int res = gen.GenerateClasses(ELOG_DB, "elog_classes/ElogDb", true);

@@ -14,10 +14,6 @@ int AssignMapStructure(GemMapStructure* pArray, int id, unsigned int ser, int ch
 // macro for adding parameter value (if parameter exist - you could check existing parameters by 'UniDbParameter::PrintAll()' function)
 
 void add_GEM_mapping() {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     bool return_error = false;
 
     const int kNitems = 28;

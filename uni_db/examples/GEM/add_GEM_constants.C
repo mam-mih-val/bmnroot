@@ -3,10 +3,6 @@
 // macro for adding parameter value (if parameter exist - you could check existing parameters by 'UniDbParameter::PrintAll()' function)
 
 void add_GEM_constants() {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     bool return_error = false;
 
 //    UniDbParameter::CreateParameter("GEM_N_ch_X_small", IntType);

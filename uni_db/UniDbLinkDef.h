@@ -13,7 +13,7 @@
 #pragma link C++ class TangoTimeInterval+;
 #pragma link C++ class UniDbTangoData+;
 #pragma link C++ class UniDbSearchCondition+;
-//#pragma link C++ class UniDbParser+;
+#pragma link C++ class UniDbParser+;
 #pragma link C++ struct BeamSpillStructure++;
 #pragma link C++ class vector<BeamSpillStructure*>+;
 
@@ -42,10 +42,10 @@
 #pragma link C++ struct TriggerMapStructure++;
 #pragma link C++ struct LorentzShiftStructure++;
 // the database enums
-#pragma link C++ struct enumColumns++;
-#pragma link C++ struct enumConditions++;
-#pragma link C++ struct enumParameterType++;
-#pragma link C++ struct UniConnectionType++;
+#pragma link C++ enum enumColumns++;
+#pragma link C++ enum enumConditions++;
+#pragma link C++ enum enumParameterType++;
+#pragma link C++ enum UniConnectionType++;
 
 #endif
 

@@ -1,12 +1,6 @@
-#include "../db_structures.h"
-
 // macro for printing TANGO data for GEM high voltage
 void tango_gem_trip()
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     UniDbTangoData db_tango;
 
     const char* detector_name = "gem";

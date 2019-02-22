@@ -428,7 +428,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
             BmnSiliconDigit* siDig = (BmnSiliconDigit*) fSiDigitsIn->UncheckedAt(iDigi);
 
             Int_t stat = siDig->GetStation();
-            siDig->SetStation(GemStatPermutation(stat));
+            siDig->SetStation(SiliconStatPermutation(stat));
             stat = siDig->GetStation(); // Stations permuted already!
 
             Int_t strip = siDig->GetStripNumber() - 1; // strips should be enumerated from zero

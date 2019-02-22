@@ -28,6 +28,7 @@ void bmnloadlibs()
   gSystem->Load("libGem");
   gSystem->Load("libSilicon");
   gSystem->Load("libBmnSsd");
+  gSystem->Load("libCSC");
 
   gSystem->Load("libTOF1");
   gSystem->Load("libDch");

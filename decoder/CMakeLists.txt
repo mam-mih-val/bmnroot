@@ -42,6 +42,7 @@ set(SRCS
  BmnTof1Raw2Digit.cxx
  BmnSiliconRaw2Digit.cxx
  BmnRawDataDecoder.cxx
+ BmnSlewingTOF700.cxx
  BmnTrigRaw2Digit.cxx
  BmnCscRaw2Digit.cxx
 )

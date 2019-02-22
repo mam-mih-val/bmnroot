@@ -5,7 +5,7 @@
 #include <TVector3.h>
 #include <TList.h>
 
-#define TOF2_MAX_CHAMBERS 60
+#define TOF2_MAX_CHAMBERS 59
 #define TOF2_MAX_STRIPS_IN_CHAMBER 32
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -90,6 +90,7 @@ typedef std::map<Int_t, LStrip> 	MStripType; // pair<detectorUID, Strip paramete
 typedef MStripType::const_iterator	MStripCIT;
 typedef MStripType::iterator		MStripIT;
 
+	Bool_t useMCdata;
 	Int_t nchambers;
 	Double_t halfxwidth[TOF2_MAX_CHAMBERS];
 	Double_t halfywidth[TOF2_MAX_CHAMBERS];
@@ -105,7 +106,7 @@ typedef MStripType::iterator		MStripIT;
 
 	MStripType			mStrips; //!  indexing strips by detectorUID
 public:
-	BmnTofGeoUtils();
+	BmnTofGeoUtils(Bool_t useMC = true);
 	
 	void			FindNeighborStrips(TH1D* h1 = nullptr, TH2D* h2 = nullptr, bool doTest = false);
 	void			ParseTGeoManager(bool useMCinput, TH2D* h1 = nullptr, bool forced = false);

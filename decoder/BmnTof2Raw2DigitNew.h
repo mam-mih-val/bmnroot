@@ -160,6 +160,8 @@ private:
     int WT0max;
     int LeadMin[TOF2_MAX_CHAMBERS];
     int LeadMax[TOF2_MAX_CHAMBERS];
+    int LeadMinW[TOF2_MAX_CHAMBERS][500];
+    int LeadMaxW[TOF2_MAX_CHAMBERS][500];
     int MaxPlane;
     int numstrip[TOF2_MAX_CHAMBERS];
     int numcr[TOF2_MAX_CRATES*TOF2_MAX_SLOTS_IN_CRATE], numcha[TOF2_MAX_CHAMBERS];

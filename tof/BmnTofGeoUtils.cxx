@@ -20,9 +20,9 @@
 
 
 //------------------------------------------------------------------------------------------------------------------------
-BmnTofGeoUtils::BmnTofGeoUtils()
+BmnTofGeoUtils::BmnTofGeoUtils(Bool_t useMC)
 {
-
+    useMCdata = useMC;
 }
 //------------------------------------------------------------------------------------------------------------------------
 void BmnTofGeoUtils::FindNeighborStrips(TH1D* h1, TH2D* h2, bool doTest)
@@ -148,6 +148,7 @@ void BmnTofGeoUtils::ParseStripsGeometry(const char *geomFile)
 	
   	for ( int i = 0; i < nchambers; i++) // detectors		
     	{
+//		printf("Chamber %d nstrips %d\n",i,nstrips[i]);
       		for ( int j = 0; j < nstrips[i]; j++ )		// strips
 		{
  			Int_t uid = ((i+1) << 8) | (j+1); 
@@ -316,9 +317,14 @@ Double_t LStrip::Distance(Side_t side, const LStrip& strip)
 //------------------------------------------------------------------------------------------------------------------------
 int BmnTofGeoUtils::readGeom(const char *geomfile)
 {
+	float idchambers[59] = {27.1,28.1,3.1,1.1,29.1,4.1,33.1,30.1,5.1,19.3,31.1,6.1,2.1,32.1,15.2,16.2,17.2,
+	18.2,19.2,20.2,7.1,115.2,113.1,117.1,35.1,9.1,37.1,11.1,39.1,13.1,34.1,8.1,36.1,10.1,38.1,12.1,21.2,
+	23.2,25.2,22.2,24.2,26.2,107.2,108.2,109.2,110.2,111.2,112.2,114.1,116.2,118.1,14.1,40.1,119.2,120.2,
+	121.2,122.2,123.2,124.2 };
+
 	char fname[128];
 	FILE *fg = 0;
-	char ic[16] = {""};
+	float ic = 0.f;
 	int n = 0;
 	Double_t step, sx, sy, x, y, z, xoffs, yoffs, zoffs;
 	if (strlen(geomfile) == 0)
@@ -342,8 +348,17 @@ int BmnTofGeoUtils::readGeom(const char *geomfile)
 	printf("Zoffs = %f\n", zoffs);
 	for (int i=0; i<TOF2_MAX_CHAMBERS; i++) nstrips[i] = 0;
 	int c = 0;
-	while(fscanf(fg,"%s %d %lf %lf %lf %lf %lf %lf\n", &ic[0], &n, &step, &sy, &sx, &x, &y, &z) == 8)
+	int cmax = 0;
+	while(fscanf(fg,"%f %d %lf %lf %lf %lf %lf %lf\n", &ic, &n, &step, &sy, &sx, &x, &y, &z) == 8)
 	{
+		if (!useMCdata)
+		{
+		    for (c=0; c<59; c++)
+		    {
+			if (ic == idchambers[c]) break;
+		    }
+		    if (c >= 59) continue;
+		}
 		halfxwidth[c] = sx/20.;
 		halfywidth[c] = sy/20.;
 		zchamb[c] = z/10. + zoffs;
@@ -362,11 +377,12 @@ int BmnTofGeoUtils::readGeom(const char *geomfile)
 		}
 //		printf("%s ns=%d step=%f sx=%f sy=%f x=%f y=%f z=%f\n",ic,n,step,sx,sy,x,y,z);
 		c++;
+		if (c > cmax) cmax = c;
 		if (c >= TOF2_MAX_CHAMBERS) break;
 	}
-	nchambers = c;
+	nchambers = cmax;
 	fclose(fg);
-	return c;
+	return cmax;
 }
 
 

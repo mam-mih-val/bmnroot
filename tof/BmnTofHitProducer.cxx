@@ -29,10 +29,11 @@ ClassImp(BmnTofHitProducer)
 //--------------------------------------------------------------------------------------------------------------------------------------
 BmnTofHitProducer::BmnTofHitProducer(const char *name, const char *geomFile, Bool_t useMCdata, Int_t verbose, Bool_t test)
 :  BmnTofHitProducerIdeal(name, useMCdata, verbose, test), fTimeSigma(0.100), fErrX(0.5), fErrY(1./sqrt(12.)), pRandom(new TRandom2), h2TestStrips(nullptr) , h1TestDistance(nullptr), h2TestNeighborPair(nullptr),
-	fDoINL(true), fDoSlewing(true), fSignalVelosity(0.060)
+	fDoINL(true), fDoSlewing(true), fSignalVelosity(0.050)
 {
-	pGeoUtils = new BmnTofGeoUtils;
+	pGeoUtils = new BmnTofGeoUtils(useMCdata);
 	fgeomFile = geomFile;
+	fMCTimeFile = NULL;
 	
     	if(fDoTest) 
     	{	
@@ -94,13 +95,15 @@ InitStatus BmnTofHitProducer::Init()
                   SetActive(kFALSE);
                   return kERROR;
                 }
-                aExpDigitsT0 = (TClonesArray*) FairRootManager::Instance()->GetObject("T0");
-                if (!aExpDigitsT0)
-                {
-                  cout<<"BmnTofHitProducer::Init(): branch T0 not found! Task will be deactivated"<<endl;
-                  SetActive(kFALSE);
-                  return kERROR;
-                }
+		if (fMCTimeFile == NULL)
+		{
+                    cout<<"BmnTofHitProducer::Init(): MC times file not defined! Use default!"<<endl;
+		    for (int c = 0; c < TOF2_MAX_CHAMBERS; c++) fMCTime[c] = 21.f;
+		}
+		else
+		{
+		    readMCTimeFile(fMCTimeFile);
+		}
 	}
 	
     	// Create and register output array
@@ -180,12 +183,12 @@ void BmnTofHitProducer::Exec(Option_t* opt)
   
 			trackID = pPoint->GetTrackID();	
 			UID	= pPoint->GetDetectorID();
-			Double_t time = pRandom->Gaus(pPoint->GetTime(), 0.140); // 100 ps		
+			Double_t time = pRandom->Gaus(pPoint->GetTime(), fTimeSigma); // time rsolution in ps		
 			Double_t length = pRandom->Gaus(pPoint->GetLength(), 1.); // 1 cm		
 			pPoint->Position(pos);
 			pPoint->Momentum(mom);
 			Double_t p = mom.Mag();
-			p = p*(1.+pRandom->Gaus(0.04*p));
+			p = p*(1.+pRandom->Gaus(0.04*p)); // momentum resolution 4%
 			Double_t cvel = 29.97925;
 			Double_t ct = cvel*time;
 			Double_t ctl = ct/length;
@@ -249,22 +252,20 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 	else
 	{
 		TVector3 crosspoint;
-                Int_t nT0Digits = aExpDigitsT0->GetEntriesFast();
-                if (nT0Digits == 1){                               // T0 digit should be
-                    BmnTrigDigit* digT0 = (BmnTrigDigit*) aExpDigitsT0->At(0);
 
-                    for(Int_t digitIndex = 0, nTof2Digits = aExpDigits->GetEntriesFast(); digitIndex < nTof2Digits; digitIndex++ )  // cycle by TOF digits
-                    {
+                for(Int_t digitIndex = 0, nTof2Digits = aExpDigits->GetEntriesFast(); digitIndex < nTof2Digits; digitIndex++ )  // cycle by TOF digits
+                {
                             BmnTof2Digit *pDigit = (BmnTof2Digit*) aExpDigits->UncheckedAt(digitIndex);		
-                            UID =  BmnTOFPoint::GetVolumeUID(0, pDigit->GetPlane() + 1, pDigit->GetStrip() + 1);
-                            Int_t strip = BmnTOFPoint::GetStrip(UID);
-                            Int_t chamber = BmnTOFPoint::GetChamber(UID);
-
-
+                            UID = ((pDigit->GetPlane() + 1)<<8) | (pDigit->GetStrip() + 1);
+                            Int_t strip = pDigit->GetStrip();
+                            Int_t chamber = pDigit->GetPlane();
+//			    if (chamber > 40 && strip > 15) continue;
+//			    printf("C %d s %d\n",pDigit->GetPlane(), pDigit->GetStrip());
+//			    pos.SetXYZ(xcens[chamber][strip],ycens[chamber][strip],zchamb[chamber]);
                             const LStrip *pStrip = pGeoUtils->FindStrip(UID);
                             if (GetCrossPoint(pStrip, pDigit->GetDiff(), crosspoint)) // crosspoint inside strip edges
 			    {
-                        	AddHit(UID, crosspoint, XYZ_err, -1, -1, pDigit->GetTime()); 	
+                        	AddHit(UID, crosspoint, XYZ_err, -1, -1, pDigit->GetTime()+fMCTime[chamber]); 	
                         	nSingleHits++;
 
                         	if(fDoTest)
@@ -274,8 +275,7 @@ void BmnTofHitProducer::Exec(Option_t* opt)
                             	    h2TestRZ->Fill(stripCenter.X(), stripCenter.Y());
                         	}			
 			    }
-            	    }
-                }
+            	}
 	}
 	
 	MergeHitsOnStrip(); // save only the fastest hit in the strip
@@ -327,7 +327,7 @@ bool BmnTofHitProducer::GetCrossPoint(const LStrip *pStrip, double dT, TVector3&
 	double maxDelta =   (stripLength + 1.0) * fSignalVelosity; // + 10 mm on the strip edge
 	if(abs(dT) > maxDelta) return false; // estimated position out the strip edge.
 	double dL = dT / fSignalVelosity;
-        s1(0) = 0; s1(1) = dL; s1(2) = 0; //TMP ALIGMENT CORRECTIONS
+        s1(0) = dL; s1(1) = 0; s1(2) = 0; //TMP ALIGMENT CORRECTIONS
 	crossPoint = centr + s1;
         /*if (time1 > time2)
         {
@@ -379,4 +379,74 @@ Double_t BmnTofHitProducer::CalculateToF (BmnTof2Digit *d1, BmnTof2Digit *d2, Bm
             CorrT0Coeff_It1[CorrT0_It1][2] * ampT0 * ampT0 +
             CorrT0Coeff_It1[CorrT0_It1][3] * ampT0 * ampT0 * ampT0); 
     return dt + 14.; // 14 ns
+}
+
+//------------------------------------------------------------------------------------------------------------------------
+int BmnTofHitProducer::readMCTimeFile(const char *MCTimeFile)
+{
+//	cout << "readMCTimeFile: " << MCTimeFile << endl;
+	float idchambers[59] = { 27.1,28.1,3.1,1.1,29.1,4.1,33.1,30.1,5.1,19.3,31.1,6.1,2.1,32.1,15.2,16.2,17.2,
+	18.2,19.2,20.2,7.1,115.2,113.1,117.1,35.1,9.1,37.1,11.1,39.1,13.1,34.1,8.1,36.1,10.1,38.1,12.1,21.2,
+	23.2,25.2,22.2,24.2,26.2,107.2,108.2,109.2,110.2,111.2,112.2,114.1,116.2,118.1,14.1,40.1,119.2,120.2,
+	121.2,122.2,123.2,124.2 };
+	bool notused[59] = {true};
+	int order[59] = {-1};
+	int c = 0, cmin = -1, c0 = 0;
+	float idmin = 200.f;
+	for (c0 = 0; c0 < 59; c0++) { notused[c0] = true; order[c0] = -1; }
+	for (c0 = 0; c0 < 59; c0++)
+	{
+	    cmin = -1;
+	    idmin = 200.f;
+	    for (c=0; c<59; c++)
+	    {
+		if (notused[c] && (idchambers[c]<idmin))
+		{
+		    idmin = idchambers[c];
+		    cmin = c;
+		}
+	    }
+//	    printf("c0 %d cmin %d notused %d\n",c0,cmin,(int)notused[cmin]);
+	    if (cmin >= 0)
+	    {
+		notused[cmin] = false;
+		order[c0] = cmin;
+	    }
+	}
+	char fname[128];
+	FILE *ft = 0;
+	float time = 0.f, timesigma = 0.f;
+	if (MCTimeFile == NULL)
+	{
+	    printf("TOF700 MC time-of-flight file name not defined!\n");
+	    return 0;
+	}
+	if (strlen(MCTimeFile) == 0)
+	{
+	    printf("TOF700 MC time-of-flight file name not defined!\n");
+	    return 0;
+	}
+	TString dir = getenv("VMCWORKDIR");
+	sprintf(fname,"%s/geometry/%s",dir.Data(),MCTimeFile);
+	ft = fopen(fname,"r");
+	if (ft == NULL)
+	{
+	    printf("TOF700 MC time-of-flight file %s open error!\n", fname);
+	    return 0;
+	}
+	for (int i=0; i<TOF2_MAX_CHAMBERS; i++) fMCTime[i] = 21.f;
+	for (int i=0; i<TOF2_MAX_CHAMBERS; i++) fMCTimeSigma[i] = 0.f;
+	int cexp = 0, ic = -1;
+	while(fscanf(ft,"%d %f %f\n", &ic, &time, &timesigma) == 3)
+	{
+		if (ic > 0 && ic <= 59)
+		{
+		    cexp = order[ic-1];
+		    fMCTime[cexp] = time;
+		    fMCTimeSigma[cexp] = timesigma;
+		    printf("Chamber %.1f (MC %d, EXP %d) average time-of-flight %f with sigma %f\n",idchambers[cexp], ic, cexp, time, timesigma);
+		}
+	}
+	fclose(ft);
+	return 1;
 }

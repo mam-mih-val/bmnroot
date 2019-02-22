@@ -120,13 +120,6 @@ public:
     BmnStatus DisposeDecoder();
     BmnStatus wait_stream(deque<UInt_t> *que, Int_t len, UInt_t limit = WAIT_LIMIT);
     BmnStatus wait_file(Int_t len, UInt_t limit = WAIT_LIMIT);
-    BmnStatus SlewingTOF700Init();
-    BmnStatus SlewingTOF700();
-
-    BmnStatus PreparationTOF700Init() {
-        return SlewingTOF700Init();
-    };
-    BmnStatus PreparationTOF700();
     BmnStatus TakeDataWordShort(UChar_t n, UInt_t *d, UInt_t i, Short_t* valI);
     BmnStatus TakeDataWordUShort(UChar_t n, UInt_t *d, UInt_t i, UShort_t* valU);
 

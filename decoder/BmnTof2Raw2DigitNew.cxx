@@ -14,6 +14,7 @@
 // Digitization stage flags
 //      use hits in time limits
 #define CHECK_SLEWING 0
+#define TIME_LIMITS_VS_WIDTH 0
 #define USE_PRELIMINARY_OFFSETS 1
 #define USE_FIT_SLEWING 0
 // USE_FINAL_OFFSETS 0 - don't apply final strip offsets
@@ -375,6 +376,8 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 
     for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) LeadMin[i] = -5000;
     for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) LeadMax[i] = +5000;
+    for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) for (int j = 0; j < 500; j++) LeadMinW[i][j] = -5000;
+    for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) for (int j = 0; j < 500; j++) LeadMaxW[i][j] = +5000;
     for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) Wcutc[i] = -1;
     for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) Wmaxc[i] = -1;
 
@@ -1023,8 +1026,8 @@ void BmnTof2Raw2DigitNew::WriteSlewingResults()
     Hchambrate->Write();
     H1chambrate->Write();
     Hstriprate->Write();
-    pLeadMin->Write();
-    pLeadMax->Write();
+//    pLeadMin->Write();
+//    pLeadMax->Write();
     pWlimits->Write();
     for (int i=0; i<MaxPlane; i++)
     {
@@ -1092,7 +1095,7 @@ void BmnTof2Raw2DigitNew::readSlewingLimits()
 {
   TString dir = getenv("VMCWORKDIR");
   TString path = dir + "/parameters/tof2_slewing/";
-  char filn[128], name[128];
+  char filn[128], name[128], nname[128];
   int i, im, y;
   float ymin, ymax, xmin, xmax;
   int j, lmi, lma, wc, wm, wt0mi, wt0ma;
@@ -1149,24 +1152,82 @@ void BmnTof2Raw2DigitNew::readSlewingLimits()
     if (PRINT_TIME_LIMITS) printf("\t\tTOF2.SetWT0(%d,%d);\n", WT0min, WT0max);
 
     TH2F *hs = 0;
+    int bymin  = 0;
+    int bymax  = 0;
+    int nb = 0;
+    double meant = 0, sigmat = 0.;
+    TH1D *tim = 0;
     for (int plane = 0; plane < MaxPlane; plane++)
     {
 	if (MAX_STRIP)
 	    sprintf(name, "Time_vs_Width_Chamber_%.1f_max",idchambers[plane]);
 	else
-	    sprintf(name, "Time_vs_Strip_Chamber_%.1f",idchambers[plane]);
+	    sprintf(name, "Time_vs_Width_Chamber_%.1f_all",idchambers[plane]);
 	hs = (TH2F *)fPreparation->Get(name);
 	if (!hs)
 	{
 	    printf("Error input Time vs Strip hist for chamber %.1f!\n", idchambers[plane]);
 	    continue;
 	}
-	im = (hs->ProjectionY())->GetMaximumBin();
-	y  = (int)((hs->ProjectionY())->GetBinCenter(im));
+	tim = hs->ProjectionY();
+	im = tim->GetMaximumBin();
+	y  = (int)(tim->GetBinCenter(im));
 	ymin = y - 60;
 	ymax = y + 60;
+        bymin  = (int)(tim->FindBin(ymin));
+        bymax  = (int)(tim->FindBin(ymax));
+	nb = hs->GetNbinsX();
+	sprintf(nname, "Fit_Time_vs_Width_Chamber%.1fall",idchambers[plane]);
+	TH2F *htvsw = new TH2F(nname,nname,nb,0,nb*50, 60, ymin, ymax);
+	for (int ibx = 1; ibx <= nb; ibx++)
+	    for (int iby = bymin; iby <= bymax; iby++)
+		htvsw->SetBinContent(ibx, iby-bymin+1, hs->GetBinContent(ibx,iby));
+	htvsw->FitSlicesY(0,0,-1,10,"QNR");
+	sprintf(nname, "Fit_Time_vs_Width_Chamber%.1fall_0",idchambers[plane]);
+	TH1D *htvsw_0 = (TH1D *)(gDirectory->Get(nname));
+	sprintf(nname, "Fit_Time_vs_Width_Chamber%.1fall_1",idchambers[plane]);
+	TH1D *htvsw_1 = (TH1D *)(gDirectory->Get(nname));
+	sprintf(nname, "Fit_Time_vs_Width_Chamber%.1fall_2",idchambers[plane]);
+	TH1D *htvsw_2 = (TH1D *)(gDirectory->Get(nname));
+	sprintf(nname, "Fit_Time_vs_Width_Chamber%.1fall_chi2",idchambers[plane]);
+	TH1D *htvsw_chi2 = (TH1D *)(gDirectory->Get(nname));
+//	printf("***************************************\n");
+	if (idchambers[plane] == 18.2f && 0)
+	{
+	    TCanvas *c = new TCanvas("c","c",800,900);
+	    c->Divide(1,3);
+	    c->cd(1);
+	    hs->Draw();
+	    c->cd(2);
+	    htvsw->Draw();
+	    c->cd(3);
+	    htvsw_1->Draw();
+	    gPad->WaitPrimitive();
+	}
+	for (int ibx = 1; ibx <= nb; ibx++)
+	{
+	    meant  = htvsw_1->GetBinContent(ibx);
+	    sigmat = htvsw_2->GetBinContent(ibx);
+	    if (sigmat == 0 || sigmat > 40)
+	    {
+		LeadMinW[plane][ibx-1] = (int)ymin;
+		LeadMaxW[plane][ibx-1] = (int)ymax;
+	    }
+	    else
+	    {
+		LeadMinW[plane][ibx-1] = meant - sigmat;
+		LeadMaxW[plane][ibx-1] = meant + sigmat;
+	    }
+//	    printf("pl %d binw %d min %d max %d\n",plane,ibx,LeadMinW[plane][ibx-1],LeadMaxW[plane][ibx-1]);
+	}
 	if (PRINT_TIME_LIMITS) printf("\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", plane+1, (int)ymin, (int)ymax);
 	SetLeadMinMax(plane+1,(int)ymin,(int)ymax);
+	delete htvsw_0;
+	delete htvsw_1;
+	delete htvsw_2;
+	delete htvsw_chi2;
+	delete htvsw;
+	delete hs;
     }
 
     TProfile *prof = 0;
@@ -1424,9 +1485,10 @@ void BmnTof2Raw2DigitNew::fillPreparation(TClonesArray *data, map<UInt_t,Long64_
 	}
 //	if (((W1 < Wc && W2 < Wc)||(W1 >= Wc && W2 >= Wc)))
 //	{
-	    TvsS[mapa[ind].plane]->Fill(mapa[ind].strip, L);
-	    WvsS[mapa[ind].plane]->Fill(mapa[ind].strip, W);
-	    TvsWall[mapa[ind].plane]->Fill(W, L);
+	TvsS[mapa[ind].plane]->Fill(mapa[ind].strip, L);
+	WvsS[mapa[ind].plane]->Fill(mapa[ind].strip, W);
+	TvsWall[mapa[ind].plane]->Fill(W, L);
+//	printf("%d %d %d %f %f %f\n", ind, mapa[ind].slot, mapa[ind].chan, L, W, t0);
 //	}
 //	if (W > wmaxs[mapa[ind].plane] && ((W1 < Wc && W2 < Wc)||(W1 >= Wc && W2 >= Wc)))
 	if (W > wmaxs[mapa[ind].plane])
@@ -1506,8 +1568,17 @@ void BmnTof2Raw2DigitNew::fillSlewingT0(TClonesArray *data, map<UInt_t,Long64_t>
 	float W1 = trail[ind]-lead[ind];
 	float W2 = trail[ind1]-lead[ind1];
 	float W = (W1+W2)/2.;
-	if (L >= LeadMin[mapa[ind].plane] && L < LeadMax[mapa[ind].plane])
+	if (TIME_LIMITS_VS_WIDTH)
 	{
+		int binw = (int)(W/50.f);
+		if (binw < 0 || binw >= 500) continue;
+		if (LeadMinW[mapa[ind].plane][binw] == 0 || LeadMaxW[mapa[ind].plane][binw] == 0) continue;
+		if (L < LeadMinW[mapa[ind].plane][binw] || L >= LeadMaxW[mapa[ind].plane][binw]) continue;
+	}
+	else
+		if (L < LeadMin[mapa[ind].plane] || L >= LeadMax[mapa[ind].plane]) continue;
+//	if (L >= LeadMin[mapa[ind].plane] && L < LeadMax[mapa[ind].plane])
+//	{
 	// inside time limits
 	ira = -1;
 	// inside time limits
@@ -1546,7 +1617,7 @@ void BmnTof2Raw2DigitNew::fillSlewingT0(TClonesArray *data, map<UInt_t,Long64_t>
 //		TvsWt0p[mapa[ind].plane][ira]->Fill(t0width*INVHPTIMEBIN, L);
 	    } // MAX_STRIP
 	} // inside width regions ira
-	} // inside time limits
+//	} // inside time limits
        } // lead and trail exists
     } // hits
     for (int i=0; i<MaxPlane && MAX_STRIP; i++)
@@ -1639,8 +1710,17 @@ void BmnTof2Raw2DigitNew::fillSlewing(TClonesArray *data, map<UInt_t,Long64_t> *
 	    ira = 3;
 	}
 //	printf("Plane %d Strip %d Lead %f Width %f LeadMin %d LeadMax %d\n", mapa[ind].plane, mapa[ind].strip, L, W, LeadMin[mapa[ind].plane], LeadMax[mapa[ind].plane]);
-	if (L >= LeadMin[mapa[ind].plane] && L < LeadMax[mapa[ind].plane])
+	if (TIME_LIMITS_VS_WIDTH)
 	{
+		int binw = (int)(W/50.f);
+		if (binw < 0 || binw >= 500) continue;
+		if (LeadMinW[mapa[ind].plane][binw] == 0 || LeadMaxW[mapa[ind].plane][binw] == 0) continue;
+		if (L < LeadMinW[mapa[ind].plane][binw] || L >= LeadMaxW[mapa[ind].plane][binw]) continue;
+	}
+	else
+		if (L < LeadMin[mapa[ind].plane] || L >= LeadMax[mapa[ind].plane]) continue;
+//	if (L >= LeadMin[mapa[ind].plane] && L < LeadMax[mapa[ind].plane])
+//	{
 	  if (idchambers[mapa[ind].plane] != 19.3f) H1chambrate->Fill(idchambers[mapa[ind].plane]);
 	  else                                      H1chambrate->Fill(70.f);
 	  if (idchambers[mapa[ind].plane] < 100.f && idchambers[mapa[ind].plane] != 19.3f)
@@ -1685,7 +1765,7 @@ void BmnTof2Raw2DigitNew::fillSlewing(TClonesArray *data, map<UInt_t,Long64_t> *
 //		TvsWp[mapa[ind].plane][ira]->Fill(W, L);
 	    } // MAX_STRIP
 	  } // in width limits
-	} // in time limits
+//	} // in time limits
        } // lead and trail exists
     } // hits
     for (int i=0; i<MaxPlane && MAX_STRIP; i++)
@@ -1761,6 +1841,8 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 
 	int ira = -1;
 
+	Int_t bin = 1;
+
 	if (fSlewing == 0) goto createdigit;
 
 	if ((int)W1 < Wc && (int)W2 < Wc)
@@ -1795,7 +1877,18 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 	}
 //test!!!!
 //	printf("Chamber %d Time %f Width %f Tmin %d Tmax %d Wcut %d Wmax %d T0shft %f\n",mapa[ind].plane,L,W,LeadMin[mapa[ind].plane],LeadMax[mapa[ind].plane],Wc,Wm,T0shift);
-	if (CHECK_SLEWING && (L < LeadMin[mapa[ind].plane] || L >= LeadMax[mapa[ind].plane])) continue;
+	if (CHECK_SLEWING)
+	{
+	    if (TIME_LIMITS_VS_WIDTH)
+	    {
+		int binw = (int)(W/50.f);
+		if (binw < 0 || binw >= 500) continue;
+		if (LeadMinW[mapa[ind].plane][binw] == 0 || LeadMaxW[mapa[ind].plane][binw] == 0) continue;
+		if (L < LeadMinW[mapa[ind].plane][binw] || L >= LeadMaxW[mapa[ind].plane][binw]) continue;
+	    }
+	    else
+		if (L < LeadMin[mapa[ind].plane] || L >= LeadMax[mapa[ind].plane]) continue;
+	}
 //
 //	if (idchambers[mapa[ind].plane] == 19.2f) printf("L1 = %f\n",L);;
 
@@ -1819,7 +1912,9 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 	    }
 	    else
 	    {
-    		L -= TvsWt0[mapa[ind].plane][ira]->GetBinContent(TvsWt0[mapa[ind].plane][ira]->FindBin(t0width*INVHPTIMEBIN,mapa[ind].strip));
+		bin = TvsWt0[mapa[ind].plane][ira]->FindBin(t0width*INVHPTIMEBIN,mapa[ind].strip);
+		if (TvsWt0[mapa[ind].plane][ira]->GetBinError(bin) <= 0.f) continue;
+    		L -= TvsWt0[mapa[ind].plane][ira]->GetBinContent(bin);
 //		if (idchambers[mapa[ind].plane] == 19.2f) printf("L3 = %f\n",L);;
 	    }
 	    if (CHECK_SLEWING) TvsWt0r[mapa[ind].plane][ira]->Fill(t0width*INVHPTIMEBIN, L);
@@ -1829,7 +1924,9 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 	    }
 	    else
 	    {
-    		L -= TvsW[mapa[ind].plane][ira]->GetBinContent(TvsW[mapa[ind].plane][ira]->FindBin(W,mapa[ind].strip));
+		bin = TvsW[mapa[ind].plane][ira]->FindBin(W,mapa[ind].strip);
+		if (TvsW[mapa[ind].plane][ira]->GetBinError(bin) <= 0.f) continue;
+    		L -= TvsW[mapa[ind].plane][ira]->GetBinContent(bin);
 //		if (idchambers[mapa[ind].plane] == 19.2f) printf("L4 = %f\n",L);;
 	    }
 	    if (CHECK_SLEWING) TvsWr[mapa[ind].plane][ira]->Fill(W, L);
@@ -1918,8 +2015,17 @@ void BmnTof2Raw2DigitNew::fillEqualization(TClonesArray *data, map<UInt_t,Long64
 	{
 	    ira = 3;
 	}
-	if (L >= LeadMin[mapa[ind].plane] && L < LeadMax[mapa[ind].plane])
+	if (TIME_LIMITS_VS_WIDTH)
 	{
+		int binw = (int)(W/50.f);
+		if (binw < 0 || binw >= 500) continue;
+		if (LeadMinW[mapa[ind].plane][binw] == 0 || LeadMaxW[mapa[ind].plane][binw] == 0) continue;
+		if (L < LeadMinW[mapa[ind].plane][binw] || L >= LeadMaxW[mapa[ind].plane][binw]) continue;
+	}
+	else
+		if (L < LeadMin[mapa[ind].plane] || L >= LeadMax[mapa[ind].plane]) continue;
+//	if (L >= LeadMin[mapa[ind].plane] && L < LeadMax[mapa[ind].plane])
+//	{
 	  if (ira >= 0)
 	  {
 	    if (USE_PRELIMINARY_OFFSETS) L -= Toffsets0->GetBinContent(Toffsets0->FindBin(ind));
@@ -1957,7 +2063,7 @@ void BmnTof2Raw2DigitNew::fillEqualization(TClonesArray *data, map<UInt_t,Long64
 	    continue;
 	  }
 	} // in width regions limits
-       } // in time limits
+//       } // in time limits
     } // loop on strips
 }
 
@@ -3492,7 +3598,7 @@ float BmnTof2Raw2DigitNew::get_hit_x0(int chamber, int strip, float diff)
     float x = 0., dx = 0.;
     if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fVelosity > 0.)
     {
-	dx = (-diff - lroffsets[chamber][strip]*HPTIMEBIN/2.f)*fVelosity;
+	dx = (diff + lroffsets[chamber][strip]*HPTIMEBIN)*fVelosity;
 	x = xcens[chamber][strip] + lrsign[chamber][strip]*dx;
 	return x;
     }
@@ -3505,7 +3611,7 @@ float BmnTof2Raw2DigitNew::get_hit_x(int chamber, int strip, float diff_correcte
     float x = 0., dx = 0.;
     if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fVelosity > 0.)
     {
-	dx = -diff_corrected*fVelosity;
+	dx = diff_corrected*fVelosity;
 	x = xcens[chamber][strip] + lrsign[chamber][strip]*dx;
 	return x;
     }
@@ -3517,7 +3623,7 @@ float BmnTof2Raw2DigitNew::get_hit_diff0(int chamber, int strip, float diff)
 {
     if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER)
     {
-	return (-diff - lroffsets[chamber][strip]*HPTIMEBIN/2.f);
+	return (diff + lroffsets[chamber][strip]*HPTIMEBIN);
     }
     else
 	return 0.;
@@ -3527,7 +3633,7 @@ float BmnTof2Raw2DigitNew::get_hit_diff(int chamber, int strip, float diff_corre
 {
     if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER)
     {
-	return -diff_corrected;
+	return diff_corrected;
     }
     else
 	return 0.;
@@ -3538,7 +3644,7 @@ void BmnTof2Raw2DigitNew::get_hit_xyz0(int chamber, int strip, float diff, float
     float xh = 0., dxh = 0.;
     if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fVelosity > 0.)
     {
-	dxh = (-diff - lroffsets[chamber][strip]*HPTIMEBIN/2.f)*fVelosity;
+	dxh = (diff + lroffsets[chamber][strip]*HPTIMEBIN)*fVelosity;
 	xh = xcens[chamber][strip] + lrsign[chamber][strip]*dxh;
 	*x = xh;
 	*y = ycens[chamber][strip];
@@ -3554,7 +3660,7 @@ void BmnTof2Raw2DigitNew::get_hit_xyz(int chamber, int strip, float diff_correct
     float xh = 0., dxh = 0.;
     if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fVelosity > 0.)
     {
-	dxh = -diff_corrected*fVelosity;
+	dxh = diff_corrected*fVelosity;
 	xh = xcens[chamber][strip] + lrsign[chamber][strip]*dxh;
 	*x = xh;
 	*y = ycens[chamber][strip];

@@ -1,5 +1,6 @@
-#include "../../bmndata/BmnEnums.h"
-#include "../run/bmnloadlibs.C"
+#include "../../../../bmndata/BmnEnums.h"
+//#include "../../../../decoder/BmnTof2Raw2DigitNew.h"
+#include "../../../run/bmnloadlibs.C"
 #include "TMath.h"
 #include "TH1F.h"
 #include "TH2F.h"
@@ -14,35 +15,38 @@
 #include "TGeoManager.h"
 
 #define NUMBER_CHAMBERS 59
-#define IN_WIDTH_LIMITS 0
-#define WIDTH_MAX 7000
+#define IN_WIDTH_LIMITS 1
+#define WIDTH_MAX 5000
+
+//-------------- Time difference between chambers -------------------------
 
 // No stack chambers
 //#define DIFF_CHAMB_1 -1
 //#define DIFF_CHAMB_2 -1
 
-// Stack chambers for run period 6
+// Stack chambers for run periods 6-7
 #define DIFF_CHAMB_1 9
 #define DIFF_CHAMB_2 18
 
+// all strips
 #define STRIP_1 0
 #define STRIP_2 31
 #define STRIP_1_2 0
 #define STRIP_2_2 31
 
-//#define STRIP_1 21
-//#define STRIP_2 23
-//#define STRIP_1_2 21
-//#define STRIP_2_2 23
-
+// strip 21
 //#define STRIP_1 21
 //#define STRIP_2 21
 //#define STRIP_1_2 21
 //#define STRIP_2_2 21
 
+//-------------------------------------------------------------------------
+
 int champos[NUMBER_CHAMBERS] = {0};
 int wmi[NUMBER_CHAMBERS] = {2800};
-int wma[NUMBER_CHAMBERS] = {7000};
+int wma[NUMBER_CHAMBERS] = {4000};
+#define NDX 8
+#define NDY 8
 
 float idchambers[59] = {27.1,28.1,3.1,1.1,29.1,4.1,33.1,30.1,5.1,19.3,31.1,6.1,2.1,32.1,15.2,16.2,17.2,
 18.2,19.2,20.2,7.1,115.2,113.1,117.1,35.1,9.1,37.1,11.1,39.1,13.1,34.1,8.1,36.1,10.1,38.1,12.1,21.2,
@@ -59,16 +63,15 @@ int champos_right[NUMBER_CHAMBERS-30] = {25, 9, 27,11,29,13,24, 8,26,10,28,12,17
 
 using namespace TMath;
 
-void draw_vs_cham(const char *,TH1F **);
-void draw_vs_cham_prof(const char *,TProfile **);
+void draw_vs_cham(char *,TH1F **);
+void draw_vs_cham_prof(char *,TProfile **);
 double FitIn(TH1F *h, Double_t xmin, Double_t xmax);
 
 class BmnTof2Raw2DigitNew;
 
 BmnTof2Raw2DigitNew *TOF2 = NULL;
 
-
-void BmnResultsTOF700(char *fname = "bmn_run9649_digi.root") {
+void BmnResultsTOF700(const char *fname = "./5070/bmn_run5070_digi.root") {
 
 #if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -83,7 +86,7 @@ void BmnResultsTOF700(char *fname = "bmn_run9649_digi.root") {
     strcat(runfile,"raw.root");
     printf("Decoded raw ROOT file name is %s\n",runfile);
 
-    TOF2 = new BmnTof2Raw2DigitNew("TOF700_map_period_7.txt", runfile, 0, 0, "TOF700_geometry_run7.txt");
+    TOF2 = new BmnTof2Raw2DigitNew("TOF700_map_period_7.txt", fname, 0, 0, "TOF700_geometry_run7.txt");
 
     if (NUMBER_CHAMBERS > 24)
     {
@@ -91,7 +94,7 @@ void BmnResultsTOF700(char *fname = "bmn_run9649_digi.root") {
 	{
 	    champos[i] = i;
 	    wmi[i] = 3000;
-	    wma[i] = 7000;
+	    wma[i] = 8000;
 	}
 
     }
@@ -298,6 +301,7 @@ void BmnResultsTOF700(char *fname = "bmn_run9649_digi.root") {
 		htvst->Fill(tmax[DIFF_CHAMB_2],tmax[DIFF_CHAMB_1]);
 		htimemax1->Fill(tmax[DIFF_CHAMB_1]);
 		htimemax2->Fill(tmax[DIFF_CHAMB_2]);
+//		if ((tmax[DIFF_CHAMB_1] > 0.3) && (tmax[DIFF_CHAMB_2] < 0.3) )
 		hdiff->Fill(tmax[DIFF_CHAMB_1]-tmax[DIFF_CHAMB_2]);
 	}
     } // event loop
@@ -310,19 +314,98 @@ void BmnResultsTOF700(char *fname = "bmn_run9649_digi.root") {
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htime[i], -0.2, +0.2);
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htimemax[i], -0.2, +0.2);
 
+//    FitIn2Sigma(hdiff);
+//    FitIn2Sigma(htimemax1);
+//    FitIn2Sigma(htimemax2);
+//    for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn2Sigma(htime[i]);
+//    for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn2Sigma(htimemax[i]);
+
+    draw_vs_cham((char *)"Time",htime);
+    draw_vs_cham((char *)"TimeMax",htimemax);
+    draw_vs_cham((char *)"Rate",hstrips);
+    draw_vs_cham((char *)"RateMax",hstripsmax);
+    draw_vs_cham((char *)"Width",hwidth);
+    draw_vs_cham((char *)"Diff",hlrdiff);
+    draw_vs_cham_prof((char *)"Profile",timeprof);
+
     TCanvas *cx = new TCanvas("cx", "X-coordinate", 900, 900);
     cx->Divide(1,1);
     cx->cd();
     cx->cd(1);
     hxhit->Draw();
 
-    draw_vs_cham("Time",htime);
-    draw_vs_cham("TimeMax",htimemax);
-    draw_vs_cham("Rate",hstrips);
-    draw_vs_cham("RateMax",hstripsmax);
-    draw_vs_cham("Width",hwidth);
-    draw_vs_cham("Diff",hlrdiff);
-    draw_vs_cham_prof("Profile",timeprof);
+/*
+    TCanvas *ct = new TCanvas("ct", "RPC time - T0 time", 900, 900);
+    ct->Divide(NDX,NDY);
+    ct->cd();
+    for (int i=0; i<NUMBER_CHAMBERS; i++)
+    {
+	ct->cd(champos[i]+1);
+	htime[i]->Draw();
+	gPad->AddExec("exselt","select_hist()");
+    }
+
+    TCanvas *c1m = new TCanvas("c1m", "RPC time max strip - T0 time", 900, 900);
+    c1m->Divide(NDX,NDY);
+    c1m->cd();
+    for (int i=0; i<NUMBER_CHAMBERS; i++)
+    {
+	c1m->cd(champos[i]+1);
+	htimemax[i]->Draw();
+	gPad->AddExec("exselt","select_hist()");
+    }
+
+
+    TCanvas *c2 = new TCanvas("c2", "RPC strip rate", 900, 900);
+    c2->Divide(NDX,NDY);
+    c2->cd();
+    for (int i=0; i<NUMBER_CHAMBERS; i++)
+    {
+	c2->cd(champos[i]+1);
+	hstrips[i]->Draw();
+	gPad->AddExec("exselt","select_hist()");
+    }
+
+    TCanvas *c2m = new TCanvas("c2m", "RPC maximal strip rate", 900, 900);
+    c2m->Divide(NDX,NDY);
+    c2m->cd();
+    for (int i=0; i<NUMBER_CHAMBERS; i++)
+    {
+	c2m->cd(champos[i]+1);
+	hstripsmax[i]->Draw();
+	gPad->AddExec("exselt","select_hist()");
+    }
+
+    TCanvas *cw = new TCanvas("cw", "RPC pulse width", 900, 900);
+    cw->Divide(NDX,NDY);
+    cw->cd();
+    for (int i=0; i<NUMBER_CHAMBERS; i++)
+    {
+	cw->cd(champos[i]+1);
+	hwidth[i]->Draw();
+	gPad->AddExec("exselt","select_hist()");
+    }
+
+    TCanvas *clr = new TCanvas("clr", "LR Time Difference", 900, 900);
+    clr->Divide(NDX,NDY);
+    clr->cd();
+    for (int i=0; i<NUMBER_CHAMBERS; i++)
+    {
+	clr->cd(champos[i]+1);
+	hlrdiff[i]->Draw();
+	gPad->AddExec("exselt","select_hist()");
+    }
+
+    TCanvas *ctim = new TCanvas("ctim", "Time Profiles", 900, 900);
+    ctim->Divide(NDX,NDY);
+    ctim->cd();
+    for (int i=0; i<NUMBER_CHAMBERS; i++)
+    {
+	ctim->cd(champos[i]+1);
+	timeprof[i]->Draw();
+	gPad->AddExec("exselt","select_hist()");
+    }
+*/
 
     if (DIFF_CHAMB_1 < 0) return;
 
@@ -360,6 +443,113 @@ void BmnResultsTOF700(char *fname = "bmn_run9649_digi.root") {
     gPad->AddExec("exselt","select_hist()");
 
     if (f) f->Write();
+}
+
+double FitIn2Sigma(TH1F *h)
+{
+  double mean, sigm, sigmw = 0., lev1 = 1.75, lev2 = 3.;
+  double total = 0, peak = 0;
+  int mib, mab, nbi;
+
+  if ((total = h->GetEntries()) < 5.)
+    {
+      printf("Number of histogram '%s' entries is too few!\n", h->GetTitle());
+      return 0.;
+    }
+  int nonzero = 0;
+  for (int i=1; i<h->GetNbinsX(); i++)
+    if (h->GetBinContent(i)>0) nonzero++;
+  if (nonzero < 3)
+    {
+      if (nonzero < 2)
+      {
+        printf("Number of non-empty bins is too few in histogram '%s'!\n", h->GetTitle());
+        return 0.;
+      }
+      lev1 = 5.;
+      mean = h->GetMean();
+      sigm = h->GetRMS();
+      sigmw = sigm;
+      if (sigm < h->GetBinWidth(1)) sigmw = h->GetBinWidth(1);
+      TF1 *fg = new TF1("fg","gaus",mean-lev1*sigmw,mean+lev1*sigmw);
+      fg->SetParameter(0,h->GetMaximum());
+      fg->SetParameter(1,mean);
+      fg->FixParameter(1,mean);
+      fg->SetParameter(2,sigm);
+      fg->FixParameter(2,sigm);
+      h->Fit(fg, "Q0IB", "", mean-lev1*sigmw, mean+lev1*sigmw);
+      fg = h->GetFunction("fg"); 
+      if (fg) fg->ResetBit(TF1::kNotDraw);
+      h->SetAxisRange(mean-lev1*sigmw, mean+lev1*sigmw);
+      fg->ResetBit(TF1::kNotDraw);
+      if (fg->GetParameter(0) > 1.) return 100.;
+    }
+  if (nonzero == 3)
+    {
+      lev1 = 5.;
+      mean = h->GetMean();
+      sigm = h->GetRMS();
+      sigmw = sigm;
+      if (sigm < h->GetBinWidth(1)) sigmw = h->GetBinWidth(1);
+      TF1 *fg = new TF1("fg","gaus",mean-lev1*sigmw,mean+lev1*sigmw);
+      fg->SetParameter(0,h->GetMaximum());
+      fg->SetParameter(1,mean);
+      fg->FixParameter(1,mean);
+      fg->SetParameter(2,sigm);
+      h->Fit(fg, "Q0IB", "", mean-lev1*sigmw, mean+lev1*sigmw);
+      fg = h->GetFunction("fg"); 
+      if (fg) fg->ResetBit(TF1::kNotDraw);
+      h->SetAxisRange(mean-lev1*sigmw, mean+lev1*sigmw);
+      fg->ResetBit(TF1::kNotDraw);
+      if (fg->GetParameter(0) > 1.) return 100.;
+    }
+//  mean = h->GetMean();
+  mean = h->GetBinCenter(h->GetMaximumBin());
+//  if (fabs(mean) > 1.) mean = 0.;
+//  mean = 0.;
+  sigm = h->GetRMS();
+//  if (sigm > 1.) sigm = 1.;
+//  sigm = 0.5;
+  mib = h->FindBin(mean-lev1*sigm);
+  mab = h->FindBin(mean+lev1*sigm);
+  if ((mab-mib+1) < 4)
+  {
+    lev1 = 2.;
+    mib = h->FindBin(mean-lev1*sigm);
+    mab = h->FindBin(mean+lev1*sigm);
+    if ((mab-mib+1) < 4)
+    {
+      lev1 = 2.25;
+    }
+  }
+  double min0 = mean-lev1*sigm;
+  double max0 = mean+lev1*sigm;
+  h->Fit("gaus", "Q0I", "", mean-lev1*sigm, mean+lev1*sigm);
+  TF1 *ff = h->GetFunction("gaus"); 
+  if (ff) mean = ff->GetParameter(1);
+  if (ff) sigm = ff->GetParameter(2);
+  if (mean < min0 || mean > max0)
+  {
+    h->Fit("gaus", "Q0I", "", mean-lev1*sigm, mean+lev1*sigm);
+    ff = h->GetFunction("gaus"); 
+    mean = ff->GetParameter(1);
+    sigm = ff->GetParameter(2);
+  }
+  h->Fit("gaus", "Q0I", "", mean-lev1*sigm, mean+lev1*sigm);
+  ff = h->GetFunction("gaus"); 
+  if (ff) mean = ff->GetParameter(1);
+  if (ff) sigm = ff->GetParameter(2);
+  h->Fit("gaus", "Q0I", "", mean-lev1*sigm, mean+lev1*sigm);
+  ff = h->GetFunction("gaus"); 
+  if (ff) mean = ff->GetParameter(1);
+  if (ff) sigm = ff->GetParameter(2);
+  if (ff) ff->ResetBit(TF1::kNotDraw);
+  mib = h->FindBin(mean-lev2*sigm);
+  mab = h->FindBin(mean+lev2*sigm);
+  nbi = h->GetNbinsX();
+  peak = h->Integral(mib < 1 ? 1 : mib, mab > nbi ? nbi : mab);
+  h->SetAxisRange(mean-10.*sigm, mean+10.*sigm);
+  return total > 0. ? peak/total*100. : 0.;
 }
 
 double FitIn(TH1F *h, Double_t xmin, Double_t xmax)
@@ -462,7 +652,7 @@ void select_hist()
   csingle->Update();
 }
 
-void draw_vs_cham(const char *name, TH1F **h)
+void draw_vs_cham(char *name, TH1F **h)
 {
   char namet[128], namen[128];
   strcpy(namet,name);
@@ -491,7 +681,7 @@ void draw_vs_cham(const char *name, TH1F **h)
   return;
 }
 
-void draw_vs_cham_prof(const char *name, TProfile **h)
+void draw_vs_cham_prof(char *name, TProfile **h)
 {
   char namet[128], namen[128];
   strcpy(namet,name);

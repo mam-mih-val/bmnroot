@@ -30,7 +30,7 @@ UniDbGeoConverter.cxx
 UniDbGenerateClasses.cxx
 UniDbTangoData.cxx
 UniDbSearchCondition.cxx
-#UniDbParser.cxx
+UniDbParser.cxx
 
 db_classes/UniDbRunPeriod.cxx
 db_classes/UniDbRun.cxx
@@ -55,7 +55,7 @@ UniDbGeoConverter.h
 UniDbGenerateClasses.h
 UniDbTangoData.h
 UniDbSearchCondition.h
-#UniDbParser.h
+UniDbParser.h
 
 # add definitions of the possible database structures and enums
 db_structures.h

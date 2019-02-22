@@ -8,6 +8,7 @@
 #include "BmnSiliconDigit.h"
 #include "BmnTrigDigit.h"
 #include "BmnTof1Digit.h"
+#include "BmnDchDigit.h"
 #include "BmnEventHeader.h"
 #include "FairEventHeader.h"
 
@@ -39,11 +40,12 @@ public:
     virtual void Exec(Option_t* opt);
     virtual void Finish();
     
-    void SetDetectors(Bool_t trig, Bool_t gem, Bool_t sil, Bool_t tof400) {
+    void SetDetectors(Bool_t trig, Bool_t gem, Bool_t sil, Bool_t tof400, Bool_t dch) {
         isTrig = trig;
         isGem = gem;
         isSil = sil;    
-        isTof400 = tof400;    
+        isTof400 = tof400;
+        isDch = dch;
     }
 
 private:
@@ -53,22 +55,26 @@ private:
     TClonesArray* fBmnHeaderIn;
     TClonesArray* fBmnHeaderOut;
     
-    // Common detectors (BM@N + SRC) - GEM, SILICON, TOF400 
+    // Common detectors (BM@N + SRC) - GEM, SILICON, TOF400, DCH 
     // input
     TString fGemBranchIn;
     TString fSiBranchIn;
     TString fTOF400BranchIn;
+    TString fDchBranchIn;
     // output 
     TString fGemBranchOut;
     TString fSiBranchOut;   
     TString fTOF400BranchOut;
+    TString fDchBranchOut;
     // arrays for input and output
     TClonesArray* fGemDigitsIn;
     TClonesArray* fSiDigitsIn;
     TClonesArray* fTOF400DigitsIn;
+    TClonesArray* fDchDigitsIn;
     TClonesArray* fGemDigitsOut;
     TClonesArray* fSiDigitsOut;
     TClonesArray* fTOF400DigitsOut;
+    TClonesArray* fDchDigitsOut;
     
     // Common triggers (BM@N + SRC) - BC1, BC2, VC
     // input
@@ -167,6 +173,7 @@ private:
     Bool_t isGem;
     Bool_t isSil;    
     Bool_t isTof400;    
+    Bool_t isDch;    
 
     FairRootManager* ioman;
     

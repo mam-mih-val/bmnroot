@@ -71,4 +71,8 @@ void geometry(FairRunSim *fRun)
     FairDetector* ssd = new BmnSsdMC(kTRUE, "SSDMC");
     ssd->SetGeometryFileName("sts_v18a_bmn.geo.root");
     //fRun->AddModule(ssd);
+
+    //FairDetector* csc = new BmnCSC("CSC", kTRUE);
+    //csc->SetGeometryFileName("some_file.root");
+    //fRun->AddModule(csc);
 }

@@ -22,10 +22,6 @@ using namespace std;
 
 void add_Tof1_mapping(string placement_map_filename = "TOF400_PlaceMap_RUN6.txt", string main_map_filename = "TOF400_StripMap_RUN6.txt", int sP = 6, int sR = 1, int eP = 6, int eR = 10000)
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     char anwser;
     int nLines;
     fstream ff;

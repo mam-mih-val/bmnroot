@@ -9,10 +9,6 @@ int AssignMapStructure(TriggerMapStructure* pArray, unsigned int ser, unsigned i
 }
 
 void add_TRIG_mapping() {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     bool return_error = false;
     
     //needed only to put new detector in dataBase

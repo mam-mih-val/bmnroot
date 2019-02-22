@@ -13,7 +13,7 @@ int append_log(TString log_name, TString message);
 // iAction - action, possible values: OnlyCreate, OnlyUpdate, CreateAndUpdate
 // error_log_name: full path to the log file with errors, default: "" - no log will be created
 // example: root 'BmnWriteRawInfo.C("~/bmnroot/macro/raw/mpd_run_trigCode_2185.data","", OnlyCreate, "error.log")'
-void BmnWriteRawInfo(TString file, TString output_file = "", WriteAction iAction = OnlyCreate, TString error_log_name = "")
+void BmnWriteRawInfo(UInt_t period, TString file, TString output_file = "", WriteAction iAction = OnlyCreate, TString error_log_name = "")
 {
     Int_t nEvents = 0;
     bool isLog = false;
@@ -45,7 +45,6 @@ void BmnWriteRawInfo(TString file, TString output_file = "", WriteAction iAction
     double file_size = l_file_size/1048576.0;   //MB
 
 
-    UInt_t period = 7;
     BmnSetup stp = kBMNSETUP; // use kSRCSETUP for Short-Range Correlation program and kBMNSETUP otherwise
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, period);
     decoder->SetBmnSetup(stp);
@@ -75,13 +74,8 @@ void BmnWriteRawInfo(TString file, TString output_file = "", WriteAction iAction
     decoder->SetDetectorSetup(setup);
 
     TString PeriodSetupExt = Form("%d%s.txt", period, ((stp == kBMNSETUP) ? "" : "_SRC"));
-    decoder->SetTrigMapping(TString("Trig_map_Run") + PeriodSetupExt);
-
-    TString NameInlTrig = "TRIG_INL_076D-16A8.txt"; //SRC RUN7, BM@N RUN6 RUN5
-    if (period == 7 && stp == kBMNSETUP )
-        NameInlTrig = "TRIG_INL_076D-180A.txt"; //BM@N RUN7 (without Si detector)
-    decoder->SetTrigINLFile(NameInlTrig);
-
+    decoder->SetTrigPlaceMapping(TString("Trig_PlaceMap_Run") + PeriodSetupExt);
+    decoder->SetTrigChannelMapping(TString("Trig_map_Run") + PeriodSetupExt);
     decoder->SetSiliconMapping("SILICON_map_run7.txt");
     decoder->SetGemMapping(TString("GEM_map_run") + PeriodSetupExt);
     decoder->SetCSCMapping(TString("CSC_map_period") + PeriodSetupExt);
@@ -119,8 +113,8 @@ void BmnWriteRawInfo(TString file, TString output_file = "", WriteAction iAction
         tree->GetEntry(0);
 
         // update start time, end time and event count in the Unified Database
-        TDatime startDate = fRunHeader->GetStartTime();
-        TDatime endDate = fRunHeader->GetFinishTime();
+        TTimeStamp startTime = fRunHeader->GetStartTime();
+        TTimeStamp endTime = fRunHeader->GetFinishTime();
         int event_count = fRunHeader->GetNEvents();
 
         if (event_count < 1)
@@ -129,8 +123,8 @@ void BmnWriteRawInfo(TString file, TString output_file = "", WriteAction iAction
             return;
         }
 
-        cout<<"Start time: "<<startDate.AsString()<<endl;
-        cout<<"End time: "<<endDate.AsString()<<endl;
+        cout<<"Start time: "<<startTime.AsString()<<endl;
+        cout<<"End time: "<<endTime.AsString()<<endl;
         cout<<"Event count: "<<event_count<<endl;
 
         if (isRunExist)
@@ -145,6 +139,8 @@ void BmnWriteRawInfo(TString file, TString output_file = "", WriteAction iAction
                 if (pRun == NULL) isErrors = true;
                 else
                 {
+                    TDatime startDate(Int_t(startTime.GetDate(kFALSE)), Int_t(startTime.GetTime(kFALSE)));
+                    TDatime endDate(Int_t(endTime.GetDate(kFALSE)), Int_t(endTime.GetTime(kFALSE)));
                     if (pRun->SetFilePath(file.Data()) != 0) isErrors = true;
                     if (pRun->SetStartDatetime(startDate) != 0) isErrors = true;
                     if (pRun->SetEndDatetime(&endDate) != 0) isErrors = true;
@@ -165,6 +161,8 @@ void BmnWriteRawInfo(TString file, TString output_file = "", WriteAction iAction
                 cout<<"Run "<<decoder->GetPeriodId()<<":"<<decoder->GetRunId()<<" does not exist and 'Only Update' flag was set"<<endl;
             else
             {
+                TDatime startDate(Int_t(startTime.GetDate(kFALSE)), Int_t(startTime.GetTime(kFALSE)));
+                TDatime endDate(Int_t(endTime.GetDate(kFALSE)), Int_t(endTime.GetTime(kFALSE)));
                 UniDbRun* pRun = UniDbRun::CreateRun(decoder->GetPeriodId(), decoder->GetRunId(), file, "", NULL, NULL, startDate, &endDate, &event_count, NULL, &file_size, NULL);
 
                 bool isErrors = false;

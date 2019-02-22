@@ -14,10 +14,6 @@ int AssignMapStructure(DchMapStructure* pArray, int id, int pl, int gr, unsigned
 // macro for adding parameter value (if parameter exist - you could check existing parameters by 'UniDbParameter::PrintAll()' function)
 
 void add_DCH_mapping() {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     Bool_t return_error = kFALSE;
 
     const int kNitems1 = 120;

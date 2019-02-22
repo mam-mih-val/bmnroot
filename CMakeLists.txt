@@ -218,6 +218,7 @@ add_subdirectory (physics/particles)
 add_subdirectory (steering)
 add_subdirectory (identification)
 add_subdirectory (ssd)
+add_subdirectory (csc)
 add_subdirectory (miscellaneous)
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/macro/mpd_scheduler/CMakeLists.txt")

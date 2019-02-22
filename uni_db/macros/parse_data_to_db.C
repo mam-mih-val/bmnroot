@@ -4,9 +4,6 @@ void parse_data_to_db()
     timer.Start();
     gDebug = 0;
 
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-    bmnloadlibs(); // load main libraries
-
     //(TString fileName, TString schemaPath, bool isUpdate = false)
     UniDbParser parser;
     //parser.ParseTxt2Db("parse_schemes/0168fdca_PRPC20g_A.dat", "parse_schemes/tdc_inl_txt.xslt");

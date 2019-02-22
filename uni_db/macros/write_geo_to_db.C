@@ -6,9 +6,6 @@ void write_geo_to_db(TString geo_file = "$VMCWORKDIR/macro/mpd/geofile_full.root
     timer.Start();
     gDebug = 0;
 
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-    bmnloadlibs(); // load main libraries
-
     int res = UniDbGeoConverter::WriteRootGeoToDB(geo_file);
 
     if (res == 0)

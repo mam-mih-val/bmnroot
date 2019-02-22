@@ -2,10 +2,6 @@
 class UniqueRunNumber;
 void move_field_2_parameter(int period)
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     UniqueRunNumber* run_numbers = NULL;
     int run_count = UniDbRun::GetRunNumbers(period, 1, period, 100000, run_numbers);
     if (run_count <= 0)
@@ -80,10 +76,6 @@ void move_field_2_parameter(int period)
 
 void print_parameter(int period)
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     UniqueRunNumber* run_numbers = NULL;
     int run_count = UniDbRun::GetRunNumbers(period, 1, period, 100000, run_numbers);
     if (run_count <= 0)

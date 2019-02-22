@@ -1,11 +1,7 @@
-// macro for calculating average run size for runs stoored in the database for one session
+// macro for calculating average event size for small runs (raw files) stored in Dhe database for one session
 class UniqueRunNumber;
-void avg_run_size(int period)
+void avg_event_size(int period)
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     UniqueRunNumber* run_numbers;
     int run_count = UniDbRun::GetRunNumbers(period, 1, period, 100000, run_numbers);
     if (run_count <= 0)
@@ -55,12 +51,12 @@ void avg_run_size(int period)
             sum_size += event_size;
             right_count++;
         }
-        cout<<"Run size for "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<" ("<<file_size/1024<<"MB/"<<event_count<<"): "<<event_size<<" KB";
+        cout<<"Event size for "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<" ("<<file_size/1024<<"MB/"<<event_count<<"): "<<event_size<<" KB";
         if ((event_size < 50) || (event_size > 500)) cout<<reset;
         cout<<endl;
     }
-    double average_run_size = sum_size / right_count;
-    cout<<endl<<"Average run size for period "<<period<<": "<<average_run_size<<" KB"<<endl;
+    double average_event_size = sum_size / right_count;
+    cout<<endl<<"Average event size for period "<<period<<": "<<average_event_size<<" KB"<<endl;
 
     delete run_numbers;
     cout<<"Macro finished successfully"<<endl;

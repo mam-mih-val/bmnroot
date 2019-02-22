@@ -213,6 +213,8 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         fMan->AddTask(SiliconPoint);
         MpdMCPointDraw* SSDPoint = new MpdMCPointDraw("SsdPoint", mcPointColor, pointMarker);
         fMan->AddTask(SSDPoint);
+        MpdMCPointDraw* SCSPoint = new MpdMCPointDraw("CSCPoint", mcPointColor, pointMarker);
+        fMan->AddTask(SCSPoint);
 
         // draw MC Geometry Tracks
         MpdMCTracks* GeoTrack = new MpdMCTracks("GeoTracks");

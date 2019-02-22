@@ -1,8 +1,4 @@
 void get_lorShift(Int_t runPeriod = 6, Int_t runNumber = 1217) {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     bool return_error = false;
 
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", runPeriod, runNumber);

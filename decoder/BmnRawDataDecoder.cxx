@@ -622,7 +622,6 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
         switch (type) {
             case kEVHEADER:
             case kEVTRAILER:
-            case kMODTRAILER:
             case kSPILLHEADER:
             case kSPILLTRAILER:
             case kSTATUS:
@@ -632,6 +631,16 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                 modId = (d[i] >> 16) & 0x7F;
                 slot = (d[i] >> 23) & 0x1F;
                 //printf("modid 0x%02X slot %d serial 0x%08X\n", modId, slot, serial);
+                break;
+            case kMODTRAILER:
+                //printf("module trailer\n");
+                // Reset module ID and module slot after we see module trailer
+                if( !((d[i] >> 16) & 0x1) ) printf(ANSI_COLOR_RED "Readout overflow error\n" ANSI_COLOR_RESET);
+                //if( !((d[i] >> 17) & 0x1) ) printf(ANSI_COLOR_RED "Readout error\n" ANSI_COLOR_RESET);
+                if( !((d[i] >> 18) & 0x1) ) printf(ANSI_COLOR_RED "TTC error\n" ANSI_COLOR_RESET);
+                if( !((d[i] >> 19) & 0x1) ) printf(ANSI_COLOR_RED "Access error\n" ANSI_COLOR_RESET);
+                modId = 0x00;
+                slot = 0x00;
                 break;
             default: //data
             {
@@ -842,28 +851,27 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
     while (type != kMODTRAILER) {
         UInt_t mode = (d[idx] >> 26) & 0x3; // good
         if (!inADC) {
-            //            printf("type %d mode %d\n", type, mode);
-            if ((mode == 0) && (type == 4 || type == 5)) {
-                UInt_t rcdata = (d[idx] >> 24) & 0x3;
+//                        printf("type %d mode %d\n", type, mode);
+            if ((mode == 0) && (type == 4 || type == 5)) { // TDC time
                 channel = (d[idx] >> 19) & 0x1F;
-                UInt_t time = 4 * (d[idx] & 0x7FFFF) + rcdata; // in 25 ps
+                UInt_t time = ((d[idx] & 0x7FFFF) << 2) | (d[idx] >> 24) & 0x3; // in 25 ps
                 new((*tqdc_tdc)[tqdc_tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), channel, 0, time, tdcTimestamp);
             } else if ((type == 4) && (mode == 2)) {
                 channel = (d[idx] >> 19) & 0x1F;
-                trigTimestamp = d[idx++] & 0xFF;
-                adcTimestamp = d[idx] & 0xFF;
+                trigTimestamp = d[idx++] & 0xFFFF;
+                adcTimestamp = d[idx] & 0xFFFF;
                 inADC = kTRUE;
-                //                printf("ADC: channel %d trigTimestamp %d  adcTimestamp %d\n", channel, trigTimestamp, adcTimestamp);
-            } else if ((type == 2) && (mode == 0)) {
-                UInt_t iEv = (d[idx] >> 12) & 0x1FFF;
+//                                printf("ADC: channel %d trigTimestamp %d  adcTimestamp %d\n", channel, trigTimestamp, adcTimestamp);
+            } else if (type == 2) {
+                UInt_t iEv = (d[idx] >> 12) & 0xFFF;
                 tdcTimestamp = d[idx] & 0xFFF;
                 //                printf("TDC ev header: %d\n", iEv);
-            } else if ((type == 3) && (mode == 0)) {
-                UInt_t iEv = (d[idx] >> 12) & 0x1FFF;
+            } else if (type == 3) {
+                UInt_t iEv = (d[idx] >> 12) & 0xFFF;
                 //                printf("TDC ev trailer: %d\n", iEv);
             }
         } else {
-            if ((type == 5) && ((mode == 2) || (mode == 1)) && (iSampl < ADC_SAMPLING_LIMIT)) {
+            if ((type == 5) && (mode == 2) && (iSampl < ADC_SAMPLING_LIMIT)) {
                 Short_t val = (d[idx] & ((1 << 14) - 1)) - (1 << (14 - 1));
                 valI[iSampl++] = val;
             } else {

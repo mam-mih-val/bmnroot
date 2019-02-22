@@ -73,7 +73,7 @@ BmnStatus BmnDchRaw2Digit::ReadMapFromFile(Int_t period) {
         for (Int_t planeId = 0; planeId < 16; ++planeId) {
             if (name != planes[planeId]) continue;
 
-                        printf("%s\t%d\t%d\t0x%x\t%d\t%d\t%d\n", name.Data(), planeId, group, ser, slot, ch_l, ch_h);
+                        //printf("%s\t%d\t%d\t0x%x\t%d\t%d\t%d\n", name.Data(), planeId, group, ser, slot, ch_l, ch_h);
 
             if (planeId / 8 == 0) {
                 fMap1[i1].plane = planeId;

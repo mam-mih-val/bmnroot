@@ -20,6 +20,7 @@
 #pragma link C++ class  DchHitPlane+;
 #pragma link C++ class  DchTrackCand+;
 #pragma link C++ class  DchTrackManager+;
+#pragma link C++ class  DchTrackManagerSim+;
 
 #pragma link C++ class BmnDchTrackFinder+;
 #pragma link C++ class BmnDchTrack+;

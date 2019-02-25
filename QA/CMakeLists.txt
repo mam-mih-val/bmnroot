@@ -34,23 +34,27 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnTrackingQa.cxx
-BmnLambdaQa.cxx
-BmnClusteringQa.cxx
-BmnUtils.cxx
-BmnTrackingQaReport.cxx
-BmnLambdaQaReport.cxx
-BmnClusteringQaReport.cxx
-BmnMCTrack.cxx
-BmnMCTrackCreator.cxx
-BmnAcceptanceFunction.h
-report/BmnSimulationReport.cxx
-report/BmnStudyReport.cxx
-report/BmnHtmlReportElement.cxx
-report/BmnReport.cxx
-report/BmnDrawHist.cxx
-report/BmnHistManager.cxx
-BmnMatchRecoToMC.cxx
+ report/BmnSimulationReport.cxx
+ report/BmnStudyReport.cxx
+ report/BmnHtmlReportElement.cxx
+ report/BmnReport.cxx
+ report/BmnDrawHist.cxx
+ report/BmnHistManager.cxx
+ report/BmnSimulationReport.cxx
+ report/BmnReportElement.h
+
+ BmnTrackingQa.cxx
+ BmnLambdaQa.cxx
+ BmnClusteringQa.cxx
+ BmnUtils.cxx
+ BmnTrackingQaReport.cxx
+ BmnLambdaQaReport.cxx
+ BmnClusteringQaReport.cxx
+ BmnMCTrack.cxx
+ BmnMCTrackCreator.cxx
+ BmnAcceptanceFunction.h
+ BmnMCPoint.h
+ BmnMatchRecoToMC.cxx
 )
 
 EXEC_PROGRAM( ${ROOT_CONFIG_EXECUTABLE}

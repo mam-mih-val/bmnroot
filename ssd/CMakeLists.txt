@@ -22,6 +22,7 @@ set(SRCS_SETUP
 set(SRCS_MC
     #mc/BmnSsdAcceptance.cxx
     mc/BmnSsdMC.cxx
+    mc/BmnSsdTrackStatus.h
     #mc/BmnSsdSensorFactory.cxx
     #mc/BmnSsdMCQa.cxx
 )

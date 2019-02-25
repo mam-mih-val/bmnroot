@@ -58,6 +58,9 @@ set(SRCS
   BmnGemStripMedium.cxx
   #BmnMaterialEffects.cxx
   BmnGemStripTransform.cxx
+
+  BmnGemStripConfiguration.h
+  BmnGemStripMediumConfiguration.h
 )
 
 IF (SSE_FOUND)

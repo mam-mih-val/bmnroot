@@ -45,6 +45,7 @@ BmnDchHitProducer_exp.cxx
 #BmnDchHitProducerCalib_exp.cxx
 DchTrackCand.cxx
 DchTrackManager.cxx
+DchTrackManagerSim.cxx
 ScalarD.cxx
 ScalarI.cxx
 ScalarUI.cxx
@@ -67,6 +68,7 @@ BmnDchHitProducer_exp.h
 #BmnDchHitProducerCalib_exp.h
 DchTrackCand.h
 DchTrackManager.h
+DchTrackManagerSim.h
 ScalarD.h
 ScalarI.h
 ScalarUI.h

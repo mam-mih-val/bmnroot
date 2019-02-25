@@ -15,9 +15,9 @@
 #include "TRandom.h"
 #include "BmnSsdCluster.h"
 #include "BmnSsdDigi.h"
-#include "digitize/BmnSsdSignal.h"
-#include "setup/BmnSsdElement.h"
-#include "setup/BmnSsdSensor.h"
+#include "BmnSsdSignal.h"
+#include "BmnSsdElement.h"
+#include "BmnSsdSensor.h"
 
 class TClonesArray;
 class BmnSsdPhysics;

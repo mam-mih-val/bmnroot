@@ -33,60 +33,32 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnDch.cxx 
-BmnDchPoint.cxx  
-BmnDchContFact.cxx  
-BmnDchGeo.cxx 
-BmnDchGeoPar.cxx
+ BmnDch.cxx
+ BmnDchPoint.cxx
+ BmnDchContFact.cxx
+ BmnDchGeo.cxx
+ BmnDchGeoPar.cxx
+ BmnDchHitProducer.cxx
+ BmnDchHitProducerTmp.cxx
+ BmnDchHitProducer_exp.cxx
+ #BmnDchHitProducerCalib_exp.cxx
+ DchTrackCand.cxx
+ DchTrackManager.cxx
+ DchTrackManagerSim.cxx
+ ScalarD.cxx
+ ScalarI.cxx
+ ScalarUI.cxx
+ DchHitPlane.cxx
+ BmnDchTrackFinder.cxx
+ BmnDchTrack.cxx
 
-BmnDchHitProducer.cxx
-BmnDchHitProducerTmp.cxx
-BmnDchHitProducer_exp.cxx
-#BmnDchHitProducerCalib_exp.cxx
-DchTrackCand.cxx
-DchTrackManager.cxx
-DchTrackManagerSim.cxx
-#${CMAKE_SOURCE_DIR}/bmnfield/BmnNewFieldMap.cxx
-#${CMAKE_SOURCE_DIR}/bmnfield/BmnFieldMap.cxx
-#${CMAKE_SOURCE_DIR}/bmnfield/BmnFieldMapData.cxx
-ScalarD.cxx
-ScalarI.cxx
-ScalarUI.cxx
-DchHitPlane.cxx
-${CMAKE_SOURCE_DIR}/decoder/BmnDchRaw2Digit.cxx
-BmnDchTrackFinder.cxx
-BmnDchTrack.cxx
+ DCHgeometryconstants_bmn.h
 )
 
-set(HEADERS
-DCHgeometryconstants_bmn.h
-BmnDch.h
-BmnDchPoint.h
-BmnDchContFact.h 
-BmnDchGeo.h
-BmnDchGeoPar.h
-
-BmnDchHitProducer.h
-BmnDchHitProducerTmp.h
-BmnDchHitProducer_exp.h
-#BmnDchHitProducerCalib_exp.h
-DchTrackCand.h
-DchTrackManager.h
-DchTrackManagerSim.h
-#${CMAKE_SOURCE_DIR}/bmnfield/BmnNewFieldMap.h
-#${CMAKE_SOURCE_DIR}/bmnfield/BmnFieldMap.h
-#${CMAKE_SOURCE_DIR}/bmnfield/BmnFieldMapData.h
-ScalarD.h
-ScalarI.h
-ScalarUI.h
-DchHitPlane.h
-${CMAKE_SOURCE_DIR}/decoder/BmnDchRaw2Digit.h
-BmnDchTrackFinder.h
-BmnDchTrack.h
-)
+set(HEADERS)
 
 Set(LINKDEF LinkDef.h)
 Set(LIBRARY_NAME Dch)
-Set(DEPENDENCIES BmnData Core Base BmnField Decoder Passive)
+Set(DEPENDENCIES BmnField BmnData Core Base Passive)
 
 GENERATE_LIBRARY()

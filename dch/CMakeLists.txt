@@ -46,10 +46,14 @@ BmnDchHitProducer_exp.cxx
 DchTrackCand.cxx
 DchTrackManager.cxx
 DchTrackManagerSim.cxx
+#${CMAKE_SOURCE_DIR}/bmnfield/BmnNewFieldMap.cxx
+#${CMAKE_SOURCE_DIR}/bmnfield/BmnFieldMap.cxx
+#${CMAKE_SOURCE_DIR}/bmnfield/BmnFieldMapData.cxx
 ScalarD.cxx
 ScalarI.cxx
 ScalarUI.cxx
 DchHitPlane.cxx
+${CMAKE_SOURCE_DIR}/decoder/BmnDchRaw2Digit.cxx
 BmnDchTrackFinder.cxx
 BmnDchTrack.cxx
 )
@@ -69,16 +73,20 @@ BmnDchHitProducer_exp.h
 DchTrackCand.h
 DchTrackManager.h
 DchTrackManagerSim.h
+#${CMAKE_SOURCE_DIR}/bmnfield/BmnNewFieldMap.h
+#${CMAKE_SOURCE_DIR}/bmnfield/BmnFieldMap.h
+#${CMAKE_SOURCE_DIR}/bmnfield/BmnFieldMapData.h
 ScalarD.h
 ScalarI.h
 ScalarUI.h
 DchHitPlane.h
+${CMAKE_SOURCE_DIR}/decoder/BmnDchRaw2Digit.h
 BmnDchTrackFinder.h
 BmnDchTrack.h
 )
 
 Set(LINKDEF LinkDef.h)
 Set(LIBRARY_NAME Dch)
-Set(DEPENDENCIES BmnData Core Base)
+Set(DEPENDENCIES BmnData Core Base BmnField Decoder Passive)
 
 GENERATE_LIBRARY()

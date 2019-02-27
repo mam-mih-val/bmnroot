@@ -172,11 +172,14 @@ public:
         cout << "To be implemented in BmnNewFieldMap";
     }
 
+    /** Reset the field parameters and data **/
+    void Reset();
+
 
 protected:
 
     /** Reset the field parameters and data **/
-    void Reset();
+    //void Reset();
 
     /** Read the field map from an ASCII file **/
     void ReadAsciiFile(const char* fileName);

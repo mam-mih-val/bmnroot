@@ -3,9 +3,13 @@
 // -----   Default constructor   -------------------------------------------
 
 BmnDchTrack::BmnDchTrack()
-: BmnTrack() {
+: BmnTrack(), 
+fEventID(0),
+fTrackID(0)
+{
 
 }
+
 
 // -----   Destructor   ----------------------------------------------------
 

@@ -18,9 +18,13 @@
 #pragma link C++ class  ScalarI+;
 #pragma link C++ class  ScalarUI+;
 #pragma link C++ class  DchHitPlane+;
+#pragma link C++ class  BmnDchRaw2Digit+;
 #pragma link C++ class  DchTrackCand+;
 #pragma link C++ class  DchTrackManager+;
 #pragma link C++ class  DchTrackManagerSim+;
+#pragma link C++ class  BmnNewFieldMap+;
+#pragma link C++ class  BmnFieldMap+;
+#pragma link C++ class  BmnFieldMapData+;
 
 #pragma link C++ class BmnDchTrackFinder+;
 #pragma link C++ class BmnDchTrack+;

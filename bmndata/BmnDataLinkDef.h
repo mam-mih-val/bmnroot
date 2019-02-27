@@ -106,5 +106,6 @@
 #pragma link C++ class BmnTrigInfo+;
 
 #pragma link C++ class BmnSiliconHit+;
+#pragma link C++ class BmnKalmanFilter+;
 
 #endif

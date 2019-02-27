@@ -33,52 +33,32 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnDch.cxx 
-BmnDchPoint.cxx  
-BmnDchContFact.cxx  
-BmnDchGeo.cxx 
-BmnDchGeoPar.cxx
+ BmnDch.cxx
+ BmnDchPoint.cxx
+ BmnDchContFact.cxx
+ BmnDchGeo.cxx
+ BmnDchGeoPar.cxx
+ BmnDchHitProducer.cxx
+ BmnDchHitProducerTmp.cxx
+ BmnDchHitProducer_exp.cxx
+ #BmnDchHitProducerCalib_exp.cxx
+ DchTrackCand.cxx
+ DchTrackManager.cxx
+ DchTrackManagerSim.cxx
+ ScalarD.cxx
+ ScalarI.cxx
+ ScalarUI.cxx
+ DchHitPlane.cxx
+ BmnDchTrackFinder.cxx
+ BmnDchTrack.cxx
 
-BmnDchHitProducer.cxx
-BmnDchHitProducerTmp.cxx
-BmnDchHitProducer_exp.cxx
-#BmnDchHitProducerCalib_exp.cxx
-DchTrackCand.cxx
-DchTrackManager.cxx
-DchTrackManagerSim.cxx
-ScalarD.cxx
-ScalarI.cxx
-ScalarUI.cxx
-DchHitPlane.cxx
-BmnDchTrackFinder.cxx
-BmnDchTrack.cxx
+ DCHgeometryconstants_bmn.h
 )
 
-set(HEADERS
-DCHgeometryconstants_bmn.h
-BmnDch.h
-BmnDchPoint.h
-BmnDchContFact.h 
-BmnDchGeo.h
-BmnDchGeoPar.h
-
-BmnDchHitProducer.h
-BmnDchHitProducerTmp.h
-BmnDchHitProducer_exp.h
-#BmnDchHitProducerCalib_exp.h
-DchTrackCand.h
-DchTrackManager.h
-DchTrackManagerSim.h
-ScalarD.h
-ScalarI.h
-ScalarUI.h
-DchHitPlane.h
-BmnDchTrackFinder.h
-BmnDchTrack.h
-)
+set(HEADERS)
 
 Set(LINKDEF LinkDef.h)
 Set(LIBRARY_NAME Dch)
-Set(DEPENDENCIES BmnData Core Base)
+Set(DEPENDENCIES BmnField BmnData Core Base)
 
 GENERATE_LIBRARY()

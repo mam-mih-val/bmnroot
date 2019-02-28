@@ -59,6 +59,6 @@ set(HEADERS)
 
 Set(LINKDEF LinkDef.h)
 Set(LIBRARY_NAME Dch)
-Set(DEPENDENCIES BmnField BmnData Core Base Passive)
+Set(DEPENDENCIES BmnField BmnData Core Base)
 
 GENERATE_LIBRARY()

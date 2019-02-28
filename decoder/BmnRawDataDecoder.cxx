@@ -835,8 +835,7 @@ BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt
 }
 
 BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {
-    //        printf("serial 0x%08X slot %d  modid 0x%X\n", serial, slot, modId);
-    UInt_t type = d[idx] >> 28; // good
+    UInt_t type = d[idx] >> 28;
     UShort_t trigTimestamp = 0;
     UShort_t adcTimestamp = 0;
     UShort_t tdcTimestamp = 0;
@@ -849,25 +848,27 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
         return kBMNSUCCESS;
     }
     while (type != kMODTRAILER) {
-        UInt_t mode = (d[idx] >> 26) & 0x3; // good
-        if (!inADC) {
-//                        printf("type %d mode %d\n", type, mode);
+        UInt_t mode = (d[idx] >> 26) & 0x3;
+        if (!inADC) {  //       printf("type %d mode %d word %0X\n", type, mode, d[idx]);
             if ((mode == 0) && (type == 4 || type == 5)) { // TDC time
                 channel = (d[idx] >> 19) & 0x1F;
                 UInt_t time = ((d[idx] & 0x7FFFF) << 2) | (d[idx] >> 24) & 0x3; // in 25 ps
+                 //               printf("TDC time %d channel %d\n", time, channel);
                 new((*tqdc_tdc)[tqdc_tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), channel, 0, time, tdcTimestamp);
-            } else if ((type == 4) && (mode == 2)) {
+            } else if ((type == 4) && (mode != 0)) { // Trig | ADC Timestamp
                 channel = (d[idx] >> 19) & 0x1F;
-                trigTimestamp = d[idx++] & 0xFFFF;
+                if (d[idx] & BIT(16)) { // ADC TS
                 adcTimestamp = d[idx] & 0xFFFF;
                 inADC = kTRUE;
-//                                printf("ADC: channel %d trigTimestamp %d  adcTimestamp %d\n", channel, trigTimestamp, adcTimestamp);
+                } else {// Trig TS
+                    trigTimestamp = d[idx] & 0xFFFF;
+                }
             } else if (type == 2) {
-                UInt_t iEv = (d[idx] >> 12) & 0xFFF;
                 tdcTimestamp = d[idx] & 0xFFF;
+                // UInt_t iEv = (d[idx] >> 12) & 0xFFF;
                 //                printf("TDC ev header: %d\n", iEv);
             } else if (type == 3) {
-                UInt_t iEv = (d[idx] >> 12) & 0xFFF;
+                // UInt_t iEv = (d[idx] >> 12) & 0xFFF;
                 //                printf("TDC ev trailer: %d\n", iEv);
             }
         } else {
@@ -878,6 +879,7 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
                 new((*tqdc_adc)[tqdc_adc->GetEntriesFast()]) BmnTQDCADCDigit(serial, channel, slot, iSampl, valI, trigTimestamp, adcTimestamp);
                 inADC = kFALSE;
                 iSampl = 0;
+                --idx;
             }
         }
         type = d[++idx] >> 28;

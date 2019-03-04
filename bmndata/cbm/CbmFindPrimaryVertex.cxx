@@ -88,7 +88,7 @@ InitStatus CbmFindPrimaryVertex::Init() {
 
   // Create and register CbmVertex object
   fPrimVert = new CbmVertex("Primary Vertex", "Global");
-  ioman->Register("PrimaryVertex", "Global", fPrimVert, kTRUE);
+  ioman->Register("PrimaryVertex.", "Global", fPrimVert, kTRUE);
 
 
   // Call the Init method of the vertex finder

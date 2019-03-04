@@ -19,6 +19,7 @@
 #include "FairField.h"
 #include "FairTask.h"
 #include "CbmStsDigiScheme.h"
+#include "../bmnfield/BmnNewFieldMap.h" //GP
 
 #include <iostream>
 #include <map>
@@ -50,7 +51,7 @@ class CbmKF :public FairTask {
   /**  Propagation of (T, C) to z_out without material, using linearisation at qp0
    */
   
-  Int_t Propagate( Double_t *T, Double_t *C, Double_t z_out, Double_t QP0 );
+  Int_t Propagate( Double_t *T, Double_t *C, Double_t z_out, Double_t QP0, Bool_t line=false );
 
   Int_t PassMaterial( CbmKFTrackInterface &track, Double_t &QP0, Int_t ifst, Int_t ilst );
   Int_t PassMaterialBetween( CbmKFTrackInterface &track, Double_t &QP0, Int_t ifst, Int_t ilst );
@@ -72,13 +73,16 @@ class CbmKF :public FairTask {
  
   /// * Usefull information 
   
-  FairField *GetMagneticField(){ return fMagneticField; }
+  //FairField *GetMagneticField(){ return fMagneticField; }
+  BmnNewFieldMap *GetMagneticField(){ return fMagneticField; }
 
   std::map<Int_t,Int_t> MvdStationIDMap;
   std::map<Int_t,Int_t> StsStationIDMap;
   std::map<Int_t,Int_t> SttStationIDMap;
 
   Int_t GetMethod(){ return fMethod; }
+
+  void SetMethod(Int_t fm){ fMethod=fm; }
 
   CbmStsDigiScheme StsDigi;
 
@@ -89,7 +93,9 @@ class CbmKF :public FairTask {
   
   static CbmKF *fInstance;
   
-  FairField *fMagneticField;
+ // FairField *fMagneticField;
+
+BmnNewFieldMap* fMagneticField;
 
   
   Int_t fMethod; /* 0 = straight line,

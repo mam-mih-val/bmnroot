@@ -35,6 +35,9 @@
 #include <list>
 #include <set>
 #include <vector>
+#include "TGeoManager.h" //GP
+#include "TGeoNode.h"//GP
+#include "TGeoVolume.h"//GP
 
 class CbmStsSensorDigiPar;
 
@@ -171,9 +174,14 @@ class CbmStsSensor : public TNamed
 
 
  private:
-
+  void SetRotZ( double angleMRad, double &x, double &y);
+  TString GeoMaskSi[3][8];//[6][4];
+  TString GeoMaskGem[6][4];
+  TGeoVolume* TopVolume;
   /** -------------   Data members   --------------------------**/
 
+  Int_t  ip=-1;// GP
+  Int_t flg;
   //TString    fName;             // Station name
   Int_t    fDetectorId;   // Unique detector ID
   Int_t    fType;         // Sensor type 
@@ -263,7 +271,7 @@ class CbmStsSensor : public TNamed
 
 
 
-  ClassDef(CbmStsSensor,1);
+  ClassDef(CbmStsSensor,4);
 
 };
 

@@ -37,8 +37,8 @@ using std::endl;
 using std::pair;
 
 // -----   Constructor   ---------------------------------------------------
-CbmStsDigiScheme::CbmStsDigiScheme() 
-  : 
+CbmStsDigiScheme::CbmStsDigiScheme()
+  :
   fStations(new TObjArray(10)),
   fNSectors(0),
   fNSensors(0),
@@ -67,15 +67,15 @@ CbmStsDigiScheme::~CbmStsDigiScheme() {
 
 
 // -----   Public method Init   --------------------------------------------
-Bool_t CbmStsDigiScheme::Init(CbmGeoStsPar*  geoPar, 
+Bool_t CbmStsDigiScheme::Init(CbmGeoStsPar*  geoPar,
 			      CbmStsDigiPar* digiPar) {
 
   // Check availability of parameters
-  if ( ! geoPar ) {
+/*  if ( ! geoPar ) {
     cout << "-W- CbmStsDigiScheme::Init: "
 	 << "No geometry parameters available!" << endl;
     return kFALSE;
-  }
+  } */
   if ( ! digiPar ) {
     cout << "-W-  CbmStsDigiScheme::Init: "
 	 << "No digitisation parameters available!" << endl;
@@ -84,13 +84,6 @@ Bool_t CbmStsDigiScheme::Init(CbmGeoStsPar*  geoPar,
 
   TGeoVolume* test = NULL;
 
-  // Check for old geometry version. Should contain stsstation01keepvol.
-  test = (TGeoVolume*) gGeoManager->GetListOfVolumes()->FindObject("stsstation01keepvol");
-  if ( test ) {
-    cout << "CbmStsDigiScheme:: Init for old geometry" << endl;
-    fIsNewGeometry = kFALSE;
-    return InitOld(geoPar, digiPar);
-  }
 
   // Check for new geometry version. Should contain STS volume on level 2.
   TGeoNode* top = gGeoManager->GetTopNode();
@@ -102,10 +95,10 @@ Bool_t CbmStsDigiScheme::Init(CbmGeoStsPar*  geoPar,
     }
   }
   if (test) {
-    cout << "CbmStsDigiScheme:: Init for new geometry " 
+    cout << "CbmStsDigiScheme:: Init for new geometry "
 	 << test->GetName() << endl;
     fIsNewGeometry = kTRUE;
-    return InitNew(geoPar, digiPar);
+    return InitNew(NULL, digiPar);
   }
 
   // If none found, bail out
@@ -115,8 +108,8 @@ Bool_t CbmStsDigiScheme::Init(CbmGeoStsPar*  geoPar,
 }
 // -------------------------------------------------------------------------
 
-  
-  
+
+
 // -------------------------------------------------------------------------
 
 
@@ -134,7 +127,7 @@ void CbmStsDigiScheme::Clear() {
 
 // -----   Public method Reset   -------------------------------------------
 void CbmStsDigiScheme::Reset() {
-  for (Int_t iStation=0; iStation<fStations->GetEntries(); iStation++) 
+  for (Int_t iStation=0; iStation<fStations->GetEntries(); iStation++)
     GetStation(iStation)->Reset();
 }
 // -------------------------------------------------------------------------
@@ -219,137 +212,9 @@ void CbmStsDigiScheme::Print(Bool_t kLong) {
 
 
 // ---- Init old  ----------------------------------------------------------
-Bool_t CbmStsDigiScheme::InitOld(CbmGeoStsPar* geoPar, 
+Bool_t CbmStsDigiScheme::InitOld(CbmGeoStsPar* geoPar,
 				 CbmStsDigiPar* digiPar) {
 
-  // Loop over stations in DigiPar
-  Int_t nStations = digiPar->GetNStations();
-  CbmStsStationDigiPar*  statPar = NULL;
-  CbmStsSectorDigiPar* sectorPar = NULL;
-  CbmStsSensorDigiPar* sensorPar = NULL;
-  TObjArray* passNodes = geoPar->GetGeoPassiveNodes();
-  TObjArray* sensNodes = geoPar->GetGeoSensitiveNodes();
-  for (Int_t iStation=0; iStation<nStations; iStation++) {
-
-    // Get digitisation parameters of station
-    statPar = (CbmStsStationDigiPar*) digiPar->GetStation(iStation);
-    Int_t    statNr   = statPar->GetStationNr();
-    Double_t statRot  = statPar->GetRotation();
-    Int_t    nSectors = statPar->GetNSectors();
-    Double_t statZPos = -666.;// = statPar->GetZPosition();
-
-    CbmStsStation* station;
-    TString stationName = Form("stat%02d",iStation+1);
-
-    TString statVolName = Form("stsstation%02ikeepvol",statNr);
-    FairGeoNode* statKeepVol = (FairGeoNode*) (passNodes->FindObject(statVolName));
-    if ( statKeepVol ) {
-      FairGeoTransform* transform = statKeepVol->getLabTransform();
-      FairGeoVector translat = transform->getTranslation();
-      FairGeoTransform center = statKeepVol->getCenterPosition();
-      FairGeoVector centerV = center.getTranslation();
-
-      statZPos = translat.Z() + centerV.Z();
-    }
-
-    Int_t sensorByIndex = 0;
-
-    for (Int_t iSector=0; iSector<nSectors; iSector++) {
-      sectorPar = (CbmStsSectorDigiPar*) statPar->GetSector(iSector);
-      Int_t sectorNr = iSector+1;
-      Int_t sectorDetId  = 2 << 24 | statNr << 16 | sectorNr << 4;
-
-      sectorPar = (CbmStsSectorDigiPar*) statPar->GetSector(iSector);
-      Int_t nSensors = sectorPar->GetNSensors();
-
-      CbmStsSector* sector;
-      TString sectorName = Form("stat%02dsect%d",iStation+1,iSector+1);
-
-      for (Int_t iSensor=0; iSensor<nSensors; iSensor++) {
-	Int_t sensorNr = iSensor+1;
-	Int_t    detId  = 2 << 24 | statNr << 16 | sectorNr << 4 | sensorNr << 1;
-	  
-	FairGeoNode* geoSensor;
-	if ( sensorByIndex ) geoSensor = (FairGeoNode*) (sensNodes->At(sensorByIndex++));
-	else {
-	  Int_t nofNodes = sensNodes->GetEntries();
-	  TString tempLookName = Form("stsstation%02isensor1#1",statNr);
-	  for (Int_t it=0; it<nofNodes; it++) {
-	    geoSensor = (FairGeoNode*) (sensNodes->At(it));
-	    TString tempNodeName = geoSensor->getName();
-	    if ( tempNodeName.Contains(tempLookName.Data()) ) {
-	      sensorByIndex = it+1;
-	      break;
-	    }
-	  }
-	}
-	fDetIdByName.insert(pair<TString, Int_t> (geoSensor->GetName(), detId));
-
-	sensorPar = (CbmStsSensorDigiPar*) sectorPar->GetSensor(iSensor);
-
-	Int_t    sensorType   = sensorPar->GetType();
-	Double_t sensorX      = sensorPar->GetX0();
-	Double_t sensorY      = sensorPar->GetY0();
-	Double_t sensorZ      = sensorPar->GetZ0();
-	Double_t sensorRot    = sensorPar->GetRotation();
-	Double_t sensorXDim   = sensorPar->GetLx();
-	Double_t sensorYDim   = sensorPar->GetLy();
-	Double_t sensorZDim   = sensorPar->GetD();
-	Double_t sensorDX     = sensorPar->GetDx();
-	Double_t sensorDY     = sensorPar->GetDy();
-	Double_t sensorStereoF = sensorPar->GetStereoF();
-	Double_t sensorStereoB = sensorPar->GetStereoB();
-
-	TString sensorName = geoSensor->GetName();
-	sensorName.ReplaceAll("#","_");
-
-	CbmStsSensor* sensor = new CbmStsSensor(sensorName.Data(), detId, 
-						sensorType, 
-						sensorX, sensorY, sensorZ,
-						sensorRot, 
-						sensorXDim, sensorYDim, sensorZDim, 
-						sensorDX, sensorDY, sensorStereoF, sensorStereoB);
-	
-
-	// create sector that will keep the sensor
-	if ( iSensor == 0 ) {
-	  sector  = new CbmStsSector(sectorName.Data(), sectorDetId);
-
-	  // create station that will keep the sector
-	  if ( iSector == 0 ) {
-	    FairGeoMedium* material = geoSensor->getMedium();
-	    Double_t sensorRL    = material->getRadiationLength();
-
-	    station = new CbmStsStation(stationName.Data(), statNr, statZPos,
-					sensorZDim, sensorRL, 0., 
-					100., statRot);
-	    fStations->Add(station);
-	    fStationMap[statNr] = station;
-	  }	
-	  station->AddSector(sector);
-	}
-	sector->AddSensor(sensor);
-
-	// put sensor into name/sensor map
-	map < TString, CbmStsSensor*>::iterator p;
-   	p=fSensorByName.find(sensorName);
-	if(p!=fSensorByName.end()){
-	  cout << " -E- Sensor \"" << sensorName.Data() << "\" is already inserted " << endl;
-	}else{
-	  fSensorByName.insert(pair<TString, CbmStsSensor*> (sensorName, sensor));
-	}
-
-      } // Loop over sensors
-
-      fNSensors  += sector->GetNSensors();
-    } // Loop over sectors
-    
-    fNSectors  += station->GetNSectors();
-    fNChannels += station->GetNChannels();
-
-  } // Loop over stations
-
-  Print();
   return kTRUE;
 
 }
@@ -358,8 +223,10 @@ Bool_t CbmStsDigiScheme::InitOld(CbmGeoStsPar* geoPar,
 
 
 // ---- Init new  ----------------------------------------------------------
-Bool_t CbmStsDigiScheme::InitNew(CbmGeoStsPar* geoPar, 
+Bool_t CbmStsDigiScheme::InitNew(CbmGeoStsPar* geoPar,
 				 CbmStsDigiPar* digiPar) {
+
+//cout<<digiPar->GetNStations()<<endl;
 
   // Get STS node
   TGeoNode* sts = NULL;
@@ -368,32 +235,48 @@ Bool_t CbmStsDigiScheme::InitNew(CbmGeoStsPar* geoPar,
   for (Int_t iNode = 0; iNode < cave->GetNdaughters(); iNode++) {
     TGeoNode* node = cave->GetDaughter(iNode);
     TString name = node->GetName();
-    if ( name.Contains("GEMS") ) {
+    cout<<"NODE: "<<name<<endl;
+    if ( name.Contains("GEMS_0") ) {
       sts = node;
       gGeoManager->CdDown(iNode);
       break;
     }
   }
   if ( ! sts ) {
-    cout << "-E- CbmStsDigiScheme::InitNew: Cannot find top STS node" 
+    cout << "-E- CbmStsDigiScheme::InitNew: Cannot find top GEM node"
 	 << endl;
     return kFALSE;
   }
 
+  cout<<"stantion: "<<sts->GetNdaughters()<<endl;
+//cout<<sts->GetNdaughters()<<endl;
   // Loop over stations in STS
-  Int_t statNr = 0; //AZ
-  for (Int_t iNode = 0; iNode < sts->GetNdaughters(); iNode++) {
 
+  Int_t statNr = 0, stNr=0; //AZ
+  for (Int_t iNode = 0; iNode < sts->GetNdaughters(); iNode++) {
     // Go to station node
+//if(iNode==0) continue;
     gGeoManager->CdDown(iNode);
     TGeoNode* stationNode = gGeoManager->GetCurrentNode();
     TString statName = stationNode->GetName();
-    if ( ! statName.Contains("Station") ) {
+    if ( ! statName.Contains("station") ) { //GP Station -> station
       gGeoManager->CdUp();
       continue;
     }
+    cout<<"stantion: "<< iNode << " " << sts->GetNdaughters()<< " " << statName << endl;
     //AZ Int_t statNr = stationNode->GetNumber();
-    ++statNr; //AZ
+    
+    ++stNr;
+    /*
+    if(stNr<4){
+gGeoManager->CdUp();
+cout<<" Station skipped !!!"<<endl;
+ continue;} */
+
+ ++statNr; //AZ
+//skip Si tracker
+
+
 
     // Get station parameters
     CbmStsStationDigiPar* stationPar = NULL;
@@ -405,7 +288,7 @@ Bool_t CbmStsDigiScheme::InitNew(CbmGeoStsPar* geoPar,
       }
     }
     if ( ! stationPar ) {
-      cout << "-E- CbmStsDigiScheme::InitNew: No parameters for station " 
+      cout << "-E- CbmStsDigiScheme::InitNew: No parameters for station "
 	   << statNr << endl;
       return kFALSE;
     }
@@ -428,142 +311,106 @@ Bool_t CbmStsDigiScheme::InitNew(CbmGeoStsPar* geoPar,
     Double_t  statRmax = 2. * TMath::Max(shape->GetDX(), shape->GetDY());
     Double_t  statRot = stationPar->GetRotation();
     CbmStsStation* station = new CbmStsStation(statName, statNr, statZ, statD,
-					       statRadLength, statRmin, 
+					       statRadLength, statRmin,
 					       statRmax, statRot);
     fStations->Add(station);
     fStationMap[statNr] = station;
-    
-      
-      
+
+
+
     // Loop over modules in the station
-    Int_t moduleNr = 0;
+    Int_t moduleNr = 0; // moduleNr ---> sector number in current station !!
+    Int_t sensNr = 0;
     Int_t nModules = stationNode->GetNdaughters();
 
+    //cout<<"nModules: "<<nModules<<endl;
+
+    //if(statNr==1) nModules=nModules/2; /// FIX AZ
+
     for (Int_t iModule = 0; iModule < nModules; iModule++) {
-      gGeoManager->CdDown(iModule);
+     // gGeoManager->CdDown(iModule);
+     //if(statNr>1) gGeoManager->CdDown(iModule);
+     if(statNr>-1) gGeoManager->CdDown(iModule); ///FIX AZ
+     //else gGeoManager->CdDown(iModule+8); /// FIX AZ
+     
       TGeoNode* moduleNode = gGeoManager->GetCurrentNode();
       TString moduleName = moduleNode->GetName();
-      if ( ! moduleName.Contains("Module") ) {
+      cout<<"moduleName: "<<moduleName<<endl;
+      if ( ! moduleName.Contains("module") ) {
 	gGeoManager->CdUp();
 	continue;
       }
-      //moduleNr++;
+      //-----------------------------------GP
+if(statNr<=3){
+	moduleNr++;
+fNSensors += SetSensor(moduleNr,statNr,station,stationPar)->GetNSensors();
+//cout <<"!!!!!!!!!!!!!!!!!!!! DIGI SHEME SI: " << gGeoManager->GetCurrentNode()->GetName() << " " << gGeoManager->GetCurrentMatrix()->GetTranslation()[2] << endl;
 
-      // Get module / sector parameters
-      /*
-      CbmStsSectorDigiPar* sectorPar = NULL;
-      for (Int_t iSector = 0; iSector < stationPar->GetNSectors(); iSector++) {
-	CbmStsSectorDigiPar* partest2 = stationPar->GetSector(iSector);
-	if ( partest2->GetSectorNr() == moduleNr + 1 ) {
-	  sectorPar = partest2;
-	  break;
-	}
-      }
-      if ( ! sectorPar ) {
-	cout << "-E- CbmStsDigiScheme::InitNew: No parameters for module " 
-	     << moduleNr << ", station " << statNr << endl;
-	return kFALSE;
-      }
+ /*  Int_t nSensors = moduleNode->GetNdaughters();
 
-      // Create CbmStsSector
-      TString sectName = Form("stat%02dsect%d", statNr, moduleNr);
-      Int_t   sectId = 2 << 24 | statNr << 16 | moduleNr << 4;
-      CbmStsSector* sector = new CbmStsSector(sectName.Data(), sectId);
-      station->AddSector(sector);
-      */
-      CbmStsSector* sector = NULL;
+      for (Int_t iSensor = 0; iSensor <  nSensors; iSensor++) {
 
-      // Loop over sensors in the sector
-      Int_t nSensors = moduleNode->GetNdaughters();
-      for (Int_t iSensor = 0; iSensor < moduleNode->GetNdaughters(); iSensor++) {
+//cout<<"iSensor: "<<iSensor<<endl;
 	gGeoManager->CdDown(iSensor);
+//cout<<"dbg: 1"<<endl;
 	TGeoNode* sensorNode = gGeoManager->GetCurrentNode();
+//cout<<"Ses name: "<<sensorNode->GetName()<<endl;
 	if ( ! TString(sensorNode->GetName()).Contains("Sensor") ) {
 	  gGeoManager->CdUp();
 	  continue;
 	}
 
 	moduleNr++;
- 
-	CbmStsSectorDigiPar* sectorPar = NULL;
-	for (Int_t iSector = 0; iSector < stationPar->GetNSectors(); iSector++) {
-	  CbmStsSectorDigiPar* partest2 = stationPar->GetSector(iSector);
-	  if ( partest2->GetSectorNr() == moduleNr ) {
-	    sectorPar = partest2;
-	    break;
-	  }
-	}
-	if ( ! sectorPar ) {
-	  cout << "-E- CbmStsDigiScheme::InitNew: No parameters for module " 
-	       << moduleNr << ", station " << statNr << endl;
-	  return kFALSE;
-	}
-
- 	// Create CbmStsSector
-	TString sectName = Form("stat%02dsect%d", statNr, moduleNr);
-	Int_t   sectId = 2 << 24 | statNr << 16 | moduleNr << 4;
-	sector = new CbmStsSector(sectName.Data(), sectId);
-	station->AddSector(sector);
-
-	//Int_t sensNr = sensorNode->GetNumber();
-	Int_t sensNr = 1;
-	    
-	// Get sensor parameters
-	CbmStsSensorDigiPar* sensorPar = NULL;
-	for (Int_t iPar = 0; iPar < sectorPar->GetNSensors(); iPar++) {
-	  CbmStsSensorDigiPar* partest3 = sectorPar->GetSensor(iPar);
-	  if ( partest3->GetSensorNr() == sensNr ) {
-	    sensorPar = partest3;
-	    break;
-	  }
-	}
-	if ( ! sensorPar ) {
-	  cout << "-E- CbmStsDigiScheme::InitNew: No parameters for sensor " 
-	       << sensNr << ", module " << moduleNr << ", station " << statNr << endl;
-	  return kFALSE;
-	}
-
-	// Create CbmStsSensor
-	Double_t* sensTrans = gGeoManager->GetCurrentMatrix()->GetTranslation();
-	TString   sensName = GetCurrentPath();
-	Int_t     sensId = 2 << 24 | statNr << 16 | moduleNr << 4 | sensNr << 1;
-	Int_t     sensType = sensorPar->GetType();
-	Double_t  sensX = sensTrans[0];
-	Double_t  sensY = sensTrans[1];
-	Double_t  sensZ = sensTrans[2];
-	Double_t  sensRot = sensorPar->GetRotation();
-	Double_t  sensLx = sensorPar->GetLx();
-	Double_t  sensLy = sensorPar->GetLy();
-	Double_t  sensD = sensorPar->GetD();
-	Double_t  sensDx = sensorPar->GetDx();
-	Double_t  sensDy = sensorPar->GetDy();
-	Double_t  sensStereoF = sensorPar->GetStereoF();
-	Double_t  sensStereoB = sensorPar->GetStereoB();
-	CbmStsSensor* sensor = new CbmStsSensor(sensName, sensId, sensType,
-						sensX, sensY, sensZ,
-						sensRot, sensLx, sensLy,
-						sensD, sensDx, sensDy,
-						sensStereoF, sensStereoB);
-	sector->AddSensor(sensor);
-	if ( fDetIdByName.find(sensName) != fDetIdByName.end() ) {
-	  cout << "-E- CbmStsDigiScheme: Duplicate sensor name " << sensName << endl;
-	  return kFALSE;
-	}
-	fDetIdByName[sensName] = sensId;
-	if ( fSensorByName.find(sensName) != fSensorByName.end() ) {
-	  cout << "-E- CbmStsDigiScheme: Duplicate sensor name " << sensName << endl;
-	  return kFALSE;
-	}
-	fSensorByName[sensName] = sensor;
-	    
-	
-	
-	
+fNSensors += SetSensor(moduleNr,statNr,station,stationPar)->GetNSensors();
+//cout <<"!!!!!!!!!!!!!!!!!!!! DIGI SHEME SI: " << gGeoManager->GetCurrentNode()->GetName() << " " << gGeoManager->GetCurrentMatrix()->GetTranslation()[2] << endl;
 	gGeoManager->CdUp();       // to module
-      }                            // sensor loop
-      fNSensors += sector->GetNSensors();
+      }
+*/
+//	  moduleNr++;
+	//  fprintf(parFile, "%4d %4d\n", moduleNr, 1);
+	  // ---> Sensor number
+   // geoMan->CdUp(); // back to module sensor
+	//  SaveSensor(geoMan, parFile, phiStat, sensor);
+//fNSensors += SetSensor(moduleNr,statNr, station, stationPar)->GetNSensors();
+	
+  	gGeoManager->CdUp();       // to station
+}else {
+
+
+
+      	moduleNr++;
+	cout << gGeoManager->GetCurrentNode()->GetName() << " " << gGeoManager->GetCurrentMatrix()->GetTranslation()[2] << endl;
+
+fNSensors += SetSensor(moduleNr,statNr, station, stationPar)->GetNSensors();
+
+      // Loop over sensors in the sector
+
+      Int_t nSensors = moduleNode->GetNdaughters();
+
+      for (Int_t iSensor = 0; iSensor <  nSensors; iSensor++) {
+
+//cout<<"iSensor: "<<iSensor<<endl;
+	gGeoManager->CdDown(iSensor);
+//cout<<"dbg: 1"<<endl;
+	TGeoNode* sensorNode = gGeoManager->GetCurrentNode();
+//cout<<"Ses name: "<<sensorNode->GetName()<<endl;
+	if ( ! TString(sensorNode->GetName()).Contains("Sensor") ) {
+	  gGeoManager->CdUp();
+	  continue;
+	}
+
+	moduleNr++;
+fNSensors += SetSensor(moduleNr,statNr,station,stationPar)->GetNSensors();
+
+	gGeoManager->CdUp();       // to module
+      }
+                        // sensor loop
+    //  cout<<"dbg: 2"<<endl;
+
+    //  cout<<"dbg: 3"<<endl;
       gGeoManager->CdUp();             // to station
     }                                  // ladder loop
+  }
     fNSectors  += station->GetNSectors();
     fNChannels += station->GetNChannels();
     gGeoManager->CdUp();               // to sts
@@ -603,9 +450,92 @@ TString CbmStsDigiScheme::GetCurrentPath() {
 }
 // -------------------------------------------------------------------------
 
+CbmStsSector* CbmStsDigiScheme::SetSensor(Int_t moduleNr,Int_t statNr, CbmStsStation* station, CbmStsStationDigiPar* stationPar)
+{
 
+  CbmStsSector* sector = NULL;
+  CbmStsSensorDigiPar* sensorPar = NULL;
+  CbmStsSectorDigiPar* sectorPar = NULL;
+
+	for (Int_t iSector = 0; iSector < stationPar->GetNSectors(); iSector++) {
+	  CbmStsSectorDigiPar* partest2 = stationPar->GetSector(iSector);
+	  if ( partest2->GetSectorNr() == moduleNr ) {
+	    sectorPar = partest2;
+	    break;
+	  }
+	}
+	if ( ! sectorPar ) {
+	  cout << "-E- CbmStsDigiScheme::InitNew: No parameters for module "
+	       << moduleNr << ", station " << statNr << endl;
+	//  return kFALSE;
+	}
+
+ 	// Create CbmStsSector
+	TString sectName = Form("stat%02dsect%d", statNr, moduleNr);
+	Int_t   sectId = 2 << 24 | statNr << 16 | moduleNr << 4;
+	sector = new CbmStsSector(sectName.Data(), sectId);
+	station->AddSector(sector);
+  //cout<<"DIGI SHEME: SEN N: "<<sector->GetSectorNr()<<endl;
+	//Int_t sensNr = sensorNode->GetNumber();
+	Int_t sensNr = 1;
+
+	// Get sensor parameters
+
+	for (Int_t iPar = 0; iPar < sectorPar->GetNSensors(); iPar++) {
+	  CbmStsSensorDigiPar* partest3 = sectorPar->GetSensor(iPar);
+	  if ( partest3->GetSensorNr() == sensNr ) {
+	    sensorPar = partest3;
+	    break;
+	  }
+	}
+	if ( ! sensorPar ) {
+	  cout << "-E- CbmStsDigiScheme::InitNew: No parameters for sensor "
+	       << sensNr << ", module " << moduleNr << ", station " << statNr << endl;
+	//  return kFALSE;
+	}
+	// Create CbmStsSensor
+	Double_t* sensTrans = gGeoManager->GetCurrentMatrix()->GetTranslation();
+	TString   sensName = gGeoManager->GetPath();//GetCurrentPath(); //GP FIX
+	Int_t     sensId = 2 << 24 | statNr << 16 | moduleNr << 4 | sensNr << 1;
+	Int_t     sensType = sensorPar->GetType();
+	Double_t  sensX = sensTrans[0];
+	Double_t  sensY = sensTrans[1];
+	//Double_t  sensZ =sensorPar->GetZ0();// sensTrans[2]; GP
+	Double_t  sensZ = sensTrans[2];
+	Double_t  sensRot = sensorPar->GetRotation();
+	Double_t  sensLx = sensorPar->GetLx();
+	Double_t  sensLy = sensorPar->GetLy();
+	Double_t  sensD = sensorPar->GetD();
+	Double_t  sensDx = sensorPar->GetDx();
+	Double_t  sensDy = sensorPar->GetDy();
+	Double_t  sensStereoF = sensorPar->GetStereoF();
+	Double_t  sensStereoB = sensorPar->GetStereoB();
+	CbmStsSensor* sensor = new CbmStsSensor(sensName, sensId, sensType,
+						sensX, sensY, sensZ,
+						sensRot, sensLx, sensLy,
+						sensD, sensDx, sensDy,
+						sensStereoF, sensStereoB);
+	sector->AddSensor(sensor);
+	if ( fDetIdByName.find(sensName) != fDetIdByName.end() ) {
+	  cout << "-E- CbmStsDigiScheme: Duplicate sensor name " << sensName << endl;
+	  //return kFALSE;
+	}
   
+	fDetIdByName[sensName] = sensId;
+	if ( fSensorByName.find(sensName) != fSensorByName.end() ) {
+	  cout << "-E- CbmStsDigiScheme: Duplicate sensor name " << sensName << endl;
+	  //return kFALSE;
+	}
+	fSensorByName[sensName] = sensor;
+	//if (sensX > 0) station->SetZ(sensZ); //AZ
+	//station->SetZ(sensZ); //AZ
 
 
-  
+return sector;
+}
+
+
+
+
+
 ClassImp(CbmStsDigiScheme)

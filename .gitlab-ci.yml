@@ -148,6 +148,7 @@ run_digi:ubuntu:
     - sed -i "s/\/opt\/fairroot\/install/\/cvmfs\/nica.jinr.ru\/$CI_ENVIRONMENT_NAME\/fairroot\/latest/g" SetEnv.sh
     - rm -rf /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME
     - source ./SetEnv.sh
+    - rm -rf build
     - mkdir build
     - cd build
     - echo "/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME"

@@ -136,6 +136,8 @@ run_digi:ubuntu:
   
 .deploy_template: &deploy
   stage: deploy
+  before_script:
+    - echo "Skipping global before_script"
   script:
     - IP=`ip -f inet addr show eth0 | grep -Po 'inet \K[\d.]+'`
     - eval $(ssh-agent -s)

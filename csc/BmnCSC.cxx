@@ -92,14 +92,14 @@ Bool_t BmnCSC::ProcessHits(FairVolume* vol)
         fPosOut.SetXYZ(PosOut.X(), PosOut.Y(), PosOut.Z());
 
         TLorentzVector MomOut;
-        gMC->TrackPosition(MomOut);
+        gMC->TrackMomentum(MomOut);
         fMomOut.SetXYZ(MomOut.X(), MomOut.Y(), MomOut.Z());
 
         BmnCSCPoint *p = AddHit(fTrackID, fVolumeID,
-                                    fPosIn, fPosOut,
-                                    fMomIn, fMomOut,
-                                    fTime, fLength, fELoss,
-                                    fIsPrimary, fCharge, fPdgId);
+                                fPosIn, fPosOut,
+                                fMomIn, fMomOut,
+                                fTime, fLength, fELoss,
+                                fIsPrimary, fCharge, fPdgId);
 
         ((CbmStack*)gMC->GetStack())->AddPoint(kSILICON);
     }

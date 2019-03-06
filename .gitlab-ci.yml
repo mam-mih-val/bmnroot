@@ -157,9 +157,9 @@ run_digi:ubuntu:
     - cmake -DCMAKE_INSTALL_PREFIX=/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME ..
     - make -j 5
     - make install
-    - ssh cfs.nica@cfs-f000.jinr.ru "sudo cvmfs_server transaction nica.jinr.ru"
-    - ssh cfs.nica@cfs-f000.jinr.ru "cvmfs_rsync -a $IP:/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/"
-    - ssh cfs.nica@cfs-f000.jinr.ru "sudo cvmfs_server publish nica.jinr.ru"
+    - ssh $STRATUM_0 "sudo cvmfs_server transaction nica.jinr.ru"
+    - ssh $STRATUM_0 "cvmfs_rsync -a $IP:/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/"
+    - ssh $STRATUM_0 "sudo cvmfs_server publish nica.jinr.ru"
     - ssh-agent -k
   only:
     - tags

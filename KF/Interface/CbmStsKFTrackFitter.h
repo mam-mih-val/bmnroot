@@ -5,7 +5,6 @@
 
 #include "CbmStsTrackFitter.h"
 #include "TClonesArray.h"
-
 #include <vector>
 
 class CbmKFTrack;
@@ -15,24 +14,24 @@ class CbmStsKFTrackFitter : public CbmStsTrackFitter{
 
  public:
 
-  /** Default constructor 
+  /** Default constructor
    */
-  CbmStsKFTrackFitter();
-  
-  /** Destructor 
+  CbmStsKFTrackFitter(Bool_t CheckTrigSi=false);
+
+  /** Destructor
    */
   ~CbmStsKFTrackFitter() { };
 
 
-  /** Initialisation 
+  /** Initialisation
    */
   void Init();
 
-  /** Fit given track using Kalman Filter algorithm 
+  /** Fit given track using Kalman Filter algorithm
    */
   Int_t DoFit( CbmStsTrack* track, Int_t pidHypo=211 );
- 
-  /** Extrapolate track to any Z position 
+
+  /** Extrapolate track to any Z position
    *
    * @param track    already fitted STS track
    * @param z        new z-position
@@ -40,7 +39,7 @@ class CbmStsKFTrackFitter : public CbmStsTrackFitter{
    */
   void Extrapolate( CbmStsTrack* track, Double_t z, FairTrackParam *e_track );
 
-  /** Extrapolate track param. to any Z position 
+  /** Extrapolate track param. to any Z position
    *
    * @param track    already fitted STS track
    * @param z        new z-position
@@ -61,10 +60,10 @@ class CbmStsKFTrackFitter : public CbmStsTrackFitter{
    * @param retrun   sqrt(Chi^2/NDF)
    */
   Double_t FitToVertex( CbmStsTrack* track, CbmVertex *vtx, FairTrackParam *v_track );
-
+  void SetKFHits(CbmKFTrack &T, CbmStsTrack* track); //AZ GP
  private:
 
-  void SetKFHits(CbmKFTrack &T, CbmStsTrack* track);
+  //AZ void SetKFHits(CbmKFTrack &T, CbmStsTrack* track);
   Bool_t CheckTrack( CbmKFTrack &T );
 
   std::vector<CbmKFStsHit>   fHits;
@@ -74,9 +73,11 @@ class CbmStsKFTrackFitter : public CbmStsTrackFitter{
 
   Bool_t fIsInitialised;
 
+  Bool_t fCheckTrigSi;
+
  public:
-  
-  ClassDef( CbmStsKFTrackFitter, 1 );
+   Bool_t bkg=false;
+  ClassDef( CbmStsKFTrackFitter, 2 );
  private:
   CbmStsKFTrackFitter(const CbmStsKFTrackFitter&);
   void operator=(const CbmStsKFTrackFitter&);

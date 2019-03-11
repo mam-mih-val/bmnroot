@@ -16,8 +16,8 @@
  **/
 
 
-#ifndef CBMSTSDIGISCHEME_H
-#define CBMSTSDIGISCHEME_H 1
+#ifndef CbmStsDigiScheme_H
+#define CbmStsDigiScheme_H 1
 
 #include "TObjArray.h"
 #include "TObject.h"
@@ -29,7 +29,7 @@ class CbmStsDigiPar;
 class CbmStsSector;
 class CbmStsSensor;
 class CbmStsStation;
-
+class CbmStsStationDigiPar;
 
 
 class CbmStsDigiScheme : public TObject
@@ -103,10 +103,11 @@ class CbmStsDigiScheme : public TObject
   /** New init method (from V12a on) **/
   Bool_t InitNew(CbmGeoStsPar* geoPar, CbmStsDigiPar* digiPar);
 
-  ClassDef(CbmStsDigiScheme,1);
+  CbmStsSector* SetSensor(Int_t moduleNr, Int_t statNr, CbmStsStation* station,CbmStsStationDigiPar* stationPar); //GP
+
+  ClassDef(CbmStsDigiScheme,2);
 };
 
 
 
 #endif
-

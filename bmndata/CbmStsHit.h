@@ -85,10 +85,11 @@ class CbmStsHit : public CbmHit
   /** Screen output **/
   virtual void Print(Option_t* opt) const;
 
-
- private:
   Int_t fDigiF;          // Channel number front side
-  Int_t fDigiB;          // Channel number back side
+  Int_t fDigiB;
+ private:
+  //Int_t fDigiF;          // Channel number front side
+  //Int_t fDigiB;          // Channel number back side
 
   Int_t fPosSX;          // discretized X position in sensor
   Int_t fPosSY;          // discretized Y position in sensor

@@ -13,7 +13,8 @@
 #include "CbmMvdGeoPar.h"
 #include "CbmGeoStsPar.h"
 #include "CbmGeoSttPar.h" //AZ
-#include "BmnTOFGeoPar.h"
+//#include "CbmGeoTofPar.h"
+#include "BmnTOFGeoPar.h" //YP
 #include "FairGeoPassivePar.h"
 #include "CbmStsStation.h"
 #include "FairRuntimeDb.h"
@@ -55,7 +56,7 @@ CbmKF::CbmKF(const char *name, Int_t iVerbose ):
 
   StsDigi(),
   fMagneticField(0),
-  fMethod(1),
+  fMethod(2),
   fMaterialID2IndexMap()
 {
   if( !fInstance ) fInstance = this;
@@ -74,7 +75,8 @@ void CbmKF::SetParContainers()
   rtdb->getContainer("FairGeoPassivePar");
   rtdb->getContainer("CbmMvdGeoPar");
   rtdb->getContainer("CbmGeoStsPar");
-  rtdb->getContainer("BmnTOFGeoPar");
+  //rtdb->getContainer("CbmGeoTofPar");
+   rtdb->getContainer("BmnTOFGeoPar");//YP
   rtdb->getContainer("CbmGeoSttPar"); //AZ
   rtdb->getContainer("BmnFieldPar");
   rtdb->getContainer("CbmStsDigiPar");
@@ -116,8 +118,9 @@ InitStatus CbmKF::Init()
   }
 
   if( fVerbose ) cout<<"KALMAN FILTER : === INIT MAGNETIC FIELD ==="<<endl;
+//BmnNewFieldMap *field = (BmnNewFieldMap*) fMagneticField; // GP
 
-  fMagneticField = reinterpret_cast<FairField*>(Run->GetField());
+  fMagneticField =  (BmnNewFieldMap*) (Run->GetField());//reinterpret_cast<FairField*>(Run->GetField());
   if( fVerbose && fMagneticField ) cout << "Magnetic field done" << endl;
 
   if( !fMagneticField ) cout<<"No Magnetic Field Found"<<endl;
@@ -205,6 +208,7 @@ InitStatus CbmKF::Init()
     
   CbmGeoSttPar *sttPar = reinterpret_cast<CbmGeoSttPar*>(RunDB->findContainer("CbmGeoSttPar"));
  
+ 
   if( sttPar ){
 
     /*
@@ -271,7 +275,8 @@ InitStatus CbmKF::Init()
 
   //=== Tof material ===
     
-  BmnTOFGeoPar *TofPar = reinterpret_cast<BmnTOFGeoPar*>(RunDB->findContainer("BmnTOFGeoPar"));
+ // CbmGeoTofPar *TofPar = reinterpret_cast<CbmGeoTofPar*>(RunDB->findContainer("CbmGeoTofPar"));
+BmnTOFGeoPar *TofPar = reinterpret_cast<BmnTOFGeoPar*>(RunDB->findContainer("BmnTOFGeoPar"));
  
   if( TofPar ){
 
@@ -365,15 +370,27 @@ InitStatus CbmKF::Init()
 	}
     }
     
+
     
     if( fVerbose ) cout<<"KALMAN FILTER : === READ TARGET MATERIAL ==="<<endl;
+      Nodes=gGeoManager->GetTopVolume()->GetNodes(); //GP
       
-    node = dynamic_cast<FairGeoNode*> (Nodes->FindObject("targ"));
-    if( node ){
+
+//TGeoVolume *trg=gGeoManager->GetVolume("targ");
+ //node->setRootVolume(trg); //why can't use "classical root geometry ?"
+//node = dynamic_cast<FairGeoNode*> (trg);
+
+    CbmKFTube tube1( 100500, 0,0,0/*-21.9*/, 2.*0.25, 0, 0.5, 0.5 ); //hard-coded target with Pb rad. lenght, -23.4 z pos.
+    vTargets.push_back( tube1 );
+    cout<<" Target material "<<tube1.Info()<<endl;
+
+    node = dynamic_cast<FairGeoNode*> (Nodes->FindObject("targ_0"));  // classes can't be cast
+   // cout<<" node: "<<node<<endl;
+     if( node ){
       CbmKFTube tube;
       if( !ReadTube( tube, node) ){
 	vTargets.push_back( tube );
-	if( fVerbose ) cout<<" Target material "<<tube.Info()<<endl;
+	if( true ) cout<<" Target material "<<tube.Info()<<endl;
       }
     }
   }
@@ -421,6 +438,7 @@ InitStatus CbmKF::Init()
     sort( vMaterial.begin(), vMaterial.end(), CbmKFMaterial::comparePDown );
     for( unsigned i=0; i<vMaterial.size(); i++ ){
       fMaterialID2IndexMap.insert(pair<Int_t,Int_t>(vMaterial[i]->ID, i));
+      cout<<" KF  TOTAL MATIREAL: "<<vMaterial[i]->ID<<endl;
     }    
     
   }
@@ -676,24 +694,32 @@ CbmKFMaterial *CbmKF::ReadPassive( FairGeoNode *node){
 }
 
 
-Int_t CbmKF::Propagate( Double_t *T, Double_t *C, Double_t z_out, Double_t QP0 ) 
+Int_t CbmKF::Propagate( Double_t *T, Double_t *C, Double_t z_out, Double_t QP0, Bool_t line ) 
 {
+
+
+if(line) fMethod=0;
+else fMethod=2;
+
   Bool_t err = 0;
   if( fabs(T[5]-z_out)<1.e-5 ) return 0;
 
   //AZ
   Double_t zmax = 0.0;
+  BmnNewFieldMap *field;
   if (fMagneticField) {
-    BmnFieldMap *field = (BmnFieldMap*) fMagneticField;
+    field = (BmnNewFieldMap*) fMagneticField; // GP
     zmax = field->GetZmax() + field->GetPositionZ();
-    //cout << field->GetZmax() << " " << field->GetPositionZ() << " " << zmax << endl;
+   // cout <<"asdassd: " << field->GetZmax() << " " << field->GetPositionZ() << " " << zmax << endl;
   }
   //AZ
-
+ // cout<<"extrap1: "<<z_out<<endl;
   //AZ if ( !fMagneticField || (300<=z_out && 300<=T[5]) )
-  if ( !fMagneticField || (zmax<=z_out && zmax<=T[5]) )
+  if ( !fMagneticField || z_out>400 )//(zmax<=z_out ))// && zmax<=T[5]) )
     {
-      CbmKFFieldMath::ExtrapolateLine( T, C, T, C, z_out );
+      //cout<<"extrap2: "<<z_out<<endl;
+   // CbmKFFieldMath::ExtrapolateLine( T, C, T, C, z_out );
+      CbmKFFieldMath::ExtrapolateALight( T, C, T, C, z_out , QP0, field);//fMagneticField );
       return 0;
     }
   Double_t zz = z_out;
@@ -722,12 +748,12 @@ Int_t CbmKF::Propagate( Double_t *T, Double_t *C, Double_t z_out, Double_t QP0 )
 	  }
 	case 1:
 	  { 
-	    err = err || CbmKFFieldMath::ExtrapolateALight( T, C, T, C, zzz , QP0, fMagneticField );
+	    err = err || CbmKFFieldMath::ExtrapolateALight( T, C, T, C, zzz , QP0, field );
 	    break;
 	  }
 	case 2:
 	  { 
-	    err = err || CbmKFFieldMath::ExtrapolateRK4( T, C, T, C, zzz , QP0, fMagneticField );
+	    err = err || CbmKFFieldMath::ExtrapolateRK4( T, C, T, C, zzz , QP0, field );
 	    break;
 	  }
 	  /*

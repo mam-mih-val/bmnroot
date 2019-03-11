@@ -1,14 +1,33 @@
 stages:
+ - check_permissions
  - build
  - test_run_sim
  - test_run_reco
  - test_run_digi
+ - deploy
  
 before_script:
  - source ./SetEnv.sh
  
 variables:
  GIT_SUBMODULE_STRATEGY: recursive
+ GREEN: '\033[1;32m'
+ RED: '\033[1;31m'
+ NC: '\033[0m'
+ 
+check_permissions:
+  variables:
+    PERMISSIONS_MESSAGE_FAUILURE: "Permissions check: ${RED}FAILED${NC}. You don't have permission to change some files, please contact your project maintainers."
+    PERMISSIONS_MESSAGE_SUCCESS: "Permissions check: ${GREEN}PASSED${NC}."
+  tags:
+    - test
+  stage: check_permissions
+  script:
+    - >
+      if git diff HEAD~ --name-only|grep .gitlab-ci.yml; then
+        if grep -q $GITLAB_USER_LOGIN <<< $MAINTAINERS; then echo -e $PERMISSIONS_MESSAGE_SUCCESS $(exit 0); else echo -e $PERMISSIONS_MESSAGE_FAUILURE; $(exit -1); fi
+      fi;
+  allow_failure: false
  
 .build_template: &build
   stage: build
@@ -114,3 +133,51 @@ run_digi:ubuntu:
   dependencies:
     - build:ubuntu
   <<: *run_digi
+  
+.deploy_template: &deploy
+  stage: deploy
+  before_script:
+    - echo "Skipping global before_script"
+  script:
+    - IP=`ip -f inet addr show eth0 | grep -Po 'inet \K[\d.]+'`
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add /dev/stdin > /dev/null
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - sed -i "s/\/opt\/fairsoft\/install/\/cvmfs\/nica.jinr.ru\/$CI_ENVIRONMENT_NAME\/fairsoft\/latest/g" SetEnv.sh
+    - sed -i "s/\/opt\/fairroot\/install/\/cvmfs\/nica.jinr.ru\/$CI_ENVIRONMENT_NAME\/fairroot\/latest/g" SetEnv.sh
+    - rm -rf /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME
+    - source ./SetEnv.sh
+    - rm -rf build
+    - mkdir build
+    - cd build
+    - echo "/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME"
+    - cmake -DCMAKE_INSTALL_PREFIX=/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME ..
+    - make -j 5
+    - make install
+    - ssh $STRATUM_0 "sudo cvmfs_server transaction nica.jinr.ru"
+    - ssh $STRATUM_0 "cvmfs_rsync -a $IP:/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/"
+    - ssh $STRATUM_0 "sudo cvmfs_server publish nica.jinr.ru"
+    - ssh-agent -k
+  only:
+    - tags
+    - dev
+  allow_failure: false
+  
+deploy:sl6:
+  environment:
+    name: sl6
+  tags:
+    - deploy
+    - sl6
+  <<: *deploy
+  
+deploy:centos7:
+  environment:
+    name: centos7
+  tags:
+    - deploy
+    - centos
+  <<: *deploy

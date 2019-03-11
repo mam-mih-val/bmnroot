@@ -41,6 +41,7 @@ struct BmnTrigChannelData {
     UInt_t serial;
     UShort_t slot;
     UShort_t channel;
+    Bool_t isNegative;
     TClonesArray* branchArrayPtr;
 };
 
@@ -52,6 +53,7 @@ struct BmnTrigParameters {
     UShort_t ChannelCount;
     Double_t INL[CHANNEL_COUNT_MAX][TDC_BIN_COUNT];
     UShort_t ChannelMap[CHANNEL_COUNT_MAX];
+    Bool_t NegativeMap[CHANNEL_COUNT_MAX];
     TClonesArray * branchArrayPtr[CHANNEL_COUNT_MAX];
     Double_t t[CHANNEL_COUNT_MAX];
     BmnTrigParameters();

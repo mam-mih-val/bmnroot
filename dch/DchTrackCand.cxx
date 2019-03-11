@@ -73,13 +73,14 @@ hits(2,0)=x2;hits(2,1)=y2;hits(2,2)=z2;hits(2,3)=tdc2;hits(2,4)=hitX3;hits(2,5)=
 hits(3,0)=x3;hits(3,1)=y3;hits(3,2)=z3;hits(3,3)=tdc3;hits(3,4)=hitX4;hits(3,5)=hitY4;hits(3,6)=hitZ4;hits(3,7)=hitX4_2;hits(3,8)=hitY4_2;hits(3,9)=hitZ4_2;hits(3,10)=ijk3;
 */
 hits(0,0)=xyzHit1.X();hits(0,1)=xyzHit1.Y();hits(0,2)=xyzHit1.Z();hits(0,3)=drifttim[ijk[0]]->GetSV();hits(0,4)=xyzWire1.X();hits(0,5)=xyzWire1.Y();hits(0,6)=xyzWire1.Z();hits(0,7)=xyzWire1_2.X();hits(0,8)=xyzWire1_2.Y();hits(0,9)=xyzWire1_2.Z();hits(0,10)=ijk[0];
+//hits(0,0)=xyzHit2.X();hits(0,1)=xyzHit2.Y();hits(0,2)=xyzHit2.Z();hits(0,3)=drifttim[ijk[0]]->GetSV();hits(0,4)=xyzWire2.X();hits(0,5)=xyzWire2.Y();hits(0,6)=xyzWire2.Z();hits(0,7)=xyzWire2_2.X();hits(0,8)=xyzWire2_2.Y();hits(0,9)=xyzWire2_2.Z();hits(0,10)=ijk[0];
 hits(1,0)=xyzHit2.X();hits(1,1)=xyzHit2.Y();hits(1,2)=xyzHit2.Z();hits(1,3)=drifttim[ijk[1]]->GetSV();hits(1,4)=xyzWire2.X();hits(1,5)=xyzWire2.Y();hits(1,6)=xyzWire2.Z();hits(1,7)=xyzWire2_2.X();hits(1,8)=xyzWire2_2.Y();hits(1,9)=xyzWire2_2.Z();hits(1,10)=ijk[1];
+//hits(1,0)=xyzHit2.X();hits(1,1)=xyzHit2.Y();hits(1,2)=xyzHit2.Z();hits(1,3)=drifttim[ijk[1]]->GetSV();hits(1,4)=xyzWire2.X();hits(1,5)=xyzWire2.Y();hits(1,6)=xyzWire2.Z();hits(1,7)=xyzWire2_2.X();hits(1,8)=xyzWire2_2.Y();hits(1,9)=xyzWire2_2.Z();hits(1,10)=ijk[1];
 hits(2,0)=xyzHit3.X();hits(2,1)=xyzHit3.Y();hits(2,2)=xyzHit3.Z();hits(2,3)=drifttim[ijk[2]]->GetSV();hits(2,4)=xyzWire3.X();hits(2,5)=xyzWire3.Y();hits(2,6)=xyzWire3.Z();hits(2,7)=xyzWire3_2.X();hits(2,8)=xyzWire3_2.Y();hits(2,9)=xyzWire3_2.Z();hits(2,10)=ijk[2];
 hits(3,0)=xyzHit4.X();hits(3,1)=xyzHit4.Y();hits(3,2)=xyzHit4.Z();hits(3,3)=drifttim[ijk[3]]->GetSV();hits(3,4)=xyzWire4.X();hits(3,5)=xyzWire4.Y();hits(3,6)=xyzWire4.Z();hits(3,7)=xyzWire4_2.X();hits(3,8)=xyzWire4_2.Y();hits(3,9)=xyzWire4_2.Z();hits(3,10)=ijk[3];
 //cout<<"hits print"<<endl;
 //hits.Print();
 new (ffDchTrackCand[n]) TMatrix(hits);
-
 }
 /*
 //________________________________________________________________

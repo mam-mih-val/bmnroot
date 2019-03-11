@@ -37,11 +37,15 @@ public:
     Double_t GetXOut()  const { return fX_out; }
     Double_t GetYOut()  const { return fY_out; }
     Double_t GetZOut()  const { return fZ_out; }
+    Double_t GetXCenter()  const { return fX_center; }
+    Double_t GetYCenter()  const { return fY_center; }
+    Double_t GetZCenter()  const { return fZ_center; }
     Double_t GetPxOut() const { return fPx_out; }
     Double_t GetPyOut() const { return fPy_out; }
     Double_t GetPzOut() const { return fPz_out; }
     void PositionIn(TVector3& pos)  { pos.SetXYZ(fX, fY, fZ); }
     void PositionOut(TVector3& pos) { pos.SetXYZ(fX_out, fY_out, fZ_out); }
+    void PositionCenter(TVector3& pos) { pos.SetXYZ(fX_center, fY_center, fZ_center); }
     void MomentumIn(TVector3& mom) { mom.SetXYZ(fPx, fPy, fPz); }
     void MomentumOut(TVector3& mom) { mom.SetXYZ(fPx_out, fPy_out, fPz_out); }
 
@@ -59,8 +63,8 @@ protected:
     Int_t fPdgId;
 
     Double_t fX_out,  fY_out,  fZ_out;
+    Double_t fX_center,  fY_center,  fZ_center; //middle plane of the chamber (hit position)
     Double_t fPx_out, fPy_out, fPz_out;
-
 
     ClassDef(BmnCSCPoint,1)
 };

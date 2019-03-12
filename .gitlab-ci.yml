@@ -14,7 +14,13 @@ variables:
  GREEN: '\033[1;32m'
  RED: '\033[1;31m'
  NC: '\033[0m'
- 
+
+.only-default: &only-default
+  only:
+    - merge_requests
+    - dev
+    - tags
+
 check_permissions:
   variables:
     PERMISSIONS_MESSAGE_FAUILURE: "Permissions check: ${RED}FAILED${NC}. You don't have permission to change some files, please contact your project maintainers."
@@ -28,6 +34,7 @@ check_permissions:
         if grep -q $GITLAB_USER_LOGIN <<< $MAINTAINERS; then echo -e $PERMISSIONS_MESSAGE_SUCCESS $(exit 0); else echo -e $PERMISSIONS_MESSAGE_FAUILURE; $(exit -1); fi
       fi;
   allow_failure: false
+  <<: *only-default
  
 .build_template: &build
   stage: build
@@ -40,6 +47,7 @@ check_permissions:
     - cmake "$CI_PROJECT_DIR"
     - make -j 5
   allow_failure: false
+  <<: *only-default
   
 build:centos:
   tags:
@@ -63,6 +71,7 @@ build:ubuntu:
     - root -b -q -l '$CI_PROJECT_DIR/macro/run/run_sim_bmn.C' | tee output.txt
     - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
   allow_failure: false
+  <<: *only-default
   
 run_sim:centos:
   tags:
@@ -90,6 +99,7 @@ run_sim:ubuntu:
     - root -b -q -l "$CI_PROJECT_DIR/macro/run/run_reco_bmn.C" | tee output.txt
     - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
   allow_failure: false
+  <<: *only-default
   
 run_reco:centos:
   tags:
@@ -116,6 +126,7 @@ run_reco:ubuntu:
     - root -b -q -l '$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("run7-4649:$VMCWORKDIR/macro/run/testDigi.root", "$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)' | tee output.txt
     - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
   allow_failure: false
+  <<: *only-default
   
 run_digi:centos:
   tags:

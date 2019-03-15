@@ -127,7 +127,7 @@ set(SRCS
  BmnZDCDigit.cxx
  BmnLANDDigit.cxx
 
-BmnVertex.cxx
+#BmnVertex.cxx
 )
 
 Set(HEADERS)

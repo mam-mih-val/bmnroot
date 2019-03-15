@@ -107,5 +107,5 @@
 #pragma link C++ class BmnSiliconHit+;
 #pragma link C++ class BmnKalmanFilter+;
 
-#pragma link C++ class BmnVertex+;
+// #pragma link C++ class BmnVertex+;
 #endif

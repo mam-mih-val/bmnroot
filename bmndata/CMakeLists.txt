@@ -123,10 +123,11 @@ set(SRCS
  BmnTof1Digit.cxx
  BmnTof2Digit.cxx
  BmnTofHit.cxx
- BmnEcalDigit.cxx
  BmnECALDigit.cxx
  BmnZDCDigit.cxx
  BmnLANDDigit.cxx
+
+BmnVertex.cxx
 )
 
 Set(HEADERS)

@@ -41,10 +41,14 @@ fBDIn(nullptr),
 fSiTrigOut(nullptr),
 fBDOut(nullptr),
 isTrig(kTRUE),
+isMwpc(kTRUE),
 isGem(kTRUE),
 isSil(kTRUE),
 isTof400(kTRUE),
+isTof700(kTRUE),
 isDch(kTRUE),
+isEcal(kTRUE),
+isZdc(kTRUE),
 isBMN(kFALSE),
 isSRC(kFALSE) {
     // Set names for all branches available
@@ -52,10 +56,18 @@ isSRC(kFALSE) {
     fSiBranchIn = "MYSILICON";
     fTOF400BranchIn = "TOF400";
     fDchBranchIn = "DCH";
+    fMwpcBranchIn = "MWPC";
+    fTOF700BranchIn = "TOF700";
+    fECALBranchIn = "ECAL";
+    fZDCBranchIn = "ZDC";
     fGemBranchOut = "GEM";
     fSiBranchOut = "SILICON";
     fTOF400BranchOut = "TOF400";
     fDchBranchOut = "DCH";
+    fMwpcBranchOut = "MWPC";
+    fTOF700BranchOut = "TOF700";
+    fECALBranchOut = "ECAL";
+    fZDCBranchOut = "ZDC";
 
     fBC1BranchIn = "BC1";
     fBC2BranchIn = "BC2";
@@ -116,6 +128,10 @@ InitStatus BmnDigiConverter::Init() {
     fSiDigitsIn = (TClonesArray*) ioman->GetObject(fSiBranchIn.Data());
     fTOF400DigitsIn = (TClonesArray*) ioman->GetObject(fTOF400BranchIn.Data());
     fDchDigitsIn = (TClonesArray*) ioman->GetObject(fDchBranchIn.Data());
+    fMwpcDigitsIn = (TClonesArray*) ioman->GetObject(fMwpcBranchIn.Data());
+    fTOF700DigitsIn = (TClonesArray*) ioman->GetObject(fTOF700BranchIn.Data());
+    fECALDigitsIn = (TClonesArray*) ioman->GetObject(fECALBranchIn.Data());
+    fZDCDigitsIn = (TClonesArray*) ioman->GetObject(fZDCBranchIn.Data());
 
     fBC1In = (TClonesArray*) ioman->GetObject(fBC1BranchIn.Data());
     fBC2In = (TClonesArray*) ioman->GetObject(fBC2BranchIn.Data());
@@ -145,6 +161,10 @@ InitStatus BmnDigiConverter::Init() {
     fSiDigitsOut = new TClonesArray("BmnSiliconDigit");
     fTOF400DigitsOut = new TClonesArray("BmnTof1Digit");
     fDchDigitsOut = new TClonesArray("BmnDchDigit");
+    fMwpcDigitsOut = new TClonesArray("BmnMwpcDigit");
+    fTOF700DigitsOut = new TClonesArray("BmnTof2Digit");
+    fECALDigitsOut = new TClonesArray("BmnECALDigit");
+    fZDCDigitsOut = new TClonesArray("BmnZDCDigit");
 
     fBC1Out = new TClonesArray("BmnTrigDigit");
     fBC2Out = new TClonesArray("BmnTrigDigit");
@@ -154,6 +174,10 @@ InitStatus BmnDigiConverter::Init() {
     ioman->Register(fSiBranchOut.Data(), "SILICON_", fSiDigitsOut, isSil ? kTRUE : kFALSE);
     ioman->Register(fTOF400BranchOut.Data(), "TOF400_", fTOF400DigitsOut, isTof400 ? kTRUE : kFALSE);
     ioman->Register(fDchBranchOut.Data(), "DCH_", fDchDigitsOut, isDch ? kTRUE : kFALSE);
+    ioman->Register(fMwpcBranchOut.Data(), "MWPC_", fMwpcDigitsOut, isMwpc ? kTRUE : kFALSE);
+    ioman->Register(fTOF700BranchOut.Data(), "TOF700_", fTOF700DigitsOut, isTof700 ? kTRUE : kFALSE);
+    ioman->Register(fECALBranchOut.Data(), "ECAL_", fECALDigitsOut, isEcal ? kTRUE : kFALSE);
+    ioman->Register(fZDCBranchOut.Data(), "ZDC_", fZDCDigitsOut, isZdc ? kTRUE : kFALSE);
 
     ioman->Register(fBC1BranchOut.Data(), "BC1_", fBC1Out, isWriteTrig);
     ioman->Register(fBC2BranchOut.Data(), "BC2_", fBC2Out, isWriteTrig);
@@ -352,6 +376,10 @@ void BmnDigiConverter::Exec(Option_t* opt) {
     fSiDigitsOut->Delete();
     fTOF400DigitsOut->Delete();
     fDchDigitsOut->Delete();
+    fMwpcDigitsOut->Delete();
+    fTOF700DigitsOut->Delete();
+    fECALDigitsOut->Delete();
+    fZDCDigitsOut->Delete();
 
     // Clear array with common triggers
     fBC1Out->Delete();
@@ -369,7 +397,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
         it.second->Delete();
 
     // GEM
-    if (isGem)
+    if (isGem && fGemDigitsIn)
         for (UInt_t iDigi = 0; iDigi < fGemDigitsIn->GetEntriesFast(); iDigi++) {
             BmnGemStripDigit* gemDig = (BmnGemStripDigit*) fGemDigitsIn->UncheckedAt(iDigi);
 
@@ -423,7 +451,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
         }
 
     // SILICON
-    if (isSil)
+    if (isSil && fSiDigitsIn)
         for (UInt_t iDigi = 0; iDigi < fSiDigitsIn->GetEntriesFast(); iDigi++) {
             BmnSiliconDigit* siDig = (BmnSiliconDigit*) fSiDigitsIn->UncheckedAt(iDigi);
 
@@ -445,7 +473,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
         ConvertTriggers(fTriggers);
 
     // TOF
-    if (isTof400)
+    if (isTof400 && fTOF400DigitsIn)
         for (UInt_t iDigi = 0; iDigi < fTOF400DigitsIn->GetEntriesFast(); iDigi++) {
             BmnTof1Digit* tofDig = (BmnTof1Digit*) fTOF400DigitsIn->UncheckedAt(iDigi);
             new((*fTOF400DigitsOut)[fTOF400DigitsOut->GetEntriesFast()]) BmnTof1Digit(tofDig->GetPlane(), tofDig->GetStrip(),
@@ -453,18 +481,48 @@ void BmnDigiConverter::Exec(Option_t* opt) {
         }
 
     // DCH
-    if (isDch) {
+    if (isDch && fDchDigitsIn)
         for (UInt_t iDigi = 0; iDigi < fDchDigitsIn->GetEntriesFast(); iDigi++) {
             BmnDchDigit* dchDig = (BmnDchDigit*) fDchDigitsIn->UncheckedAt(iDigi);
             new((*fDchDigitsOut)[fDchDigitsOut->GetEntriesFast()]) BmnDchDigit(dchDig->GetPlane(), dchDig->GetWireNumber(), dchDig->GetTime(), dchDig->GetRefId());
         }
-    }
+
+    // MWPC
+    if (isMwpc && fMwpcDigitsIn)
+        for (UInt_t iDigi = 0; iDigi < fMwpcDigitsIn->GetEntriesFast(); iDigi++) {
+            BmnMwpcDigit* mwpcDig = (BmnMwpcDigit*) fMwpcDigitsIn->UncheckedAt(iDigi);
+            new((*fMwpcDigitsOut)[fMwpcDigitsOut->GetEntriesFast()]) BmnMwpcDigit(mwpcDig->GetStation(), mwpcDig->GetPlane(), mwpcDig->GetWireNumber(), mwpcDig->GetTime());
+        }
+
+    // TOF700
+    if (isTof700 && fTOF700DigitsIn)
+        for (UInt_t iDigi = 0; iDigi < fTOF700DigitsIn->GetEntriesFast(); iDigi++) {
+            BmnTof2Digit* tofDig = (BmnTof2Digit*) fTOF700DigitsIn->UncheckedAt(iDigi);
+            new((*fTOF700DigitsOut)[fTOF700DigitsOut->GetEntriesFast()]) BmnTof2Digit(tofDig->GetPlane(), tofDig->GetStrip(), tofDig->GetTime(), tofDig->GetAmplitude(), tofDig->GetDiff());
+        }
+
+    // ECAL
+    if (isEcal && fECALDigitsIn)
+        for (UInt_t iDigi = 0; iDigi < fECALDigitsIn->GetEntriesFast(); iDigi++) {
+            BmnECALDigit* ecalDig = (BmnECALDigit*) fECALDigitsIn->UncheckedAt(iDigi);
+            new((*fECALDigitsOut)[fECALDigitsOut->GetEntriesFast()]) BmnECALDigit(ecalDig->GetIX(), ecalDig->GetIY(), ecalDig->GetX(), ecalDig->GetY(), ecalDig->GetSize(),
+                    ecalDig->GetChannel(), ecalDig->GetAmp());
+        }
+
+    // ZDC
+    if (isZdc && fZDCDigitsIn)
+        for (UInt_t iDigi = 0; iDigi < fZDCDigitsIn->GetEntriesFast(); iDigi++) {
+            BmnZDCDigit* zdcDig = (BmnZDCDigit*) fZDCDigitsIn->UncheckedAt(iDigi);
+            new((*fZDCDigitsOut)[fZDCDigitsOut->GetEntriesFast()]) BmnZDCDigit(zdcDig->GetIX(), zdcDig->GetIY(), zdcDig->GetX(), zdcDig->GetY(), zdcDig->GetSize(),
+                    zdcDig->GetChannel(), zdcDig->GetAmp());
+        }
 
     fEventNo++;
 }
 
 void BmnDigiConverter::Finish() {
-    ioman->GetOutTree()->SetName("cbmsim");
+    ioman->GetOutTree()->SetObject("bmndata", "digit");
+    gDirectory->Delete(TString::Format("%s;*", "BMN_DIGIT"));
 
     delete fDetectorSI;
     delete fDetectorGEM;

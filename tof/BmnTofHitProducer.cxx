@@ -195,8 +195,8 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 			Double_t sqr = TMath::Sqrt(ctl*ctl - 1.);
 			Double_t mass = p*sqr;
 			Double_t elcut = 0.; // 0.02e-3;
-			if (pPoint->GetEnergyLoss() > elcut) if (fDoTest) h1TestMass->Fill(mass);
-			if (pPoint->GetEnergyLoss() > elcut && length > 600.) if (fDoTest) h1TestMassLong->Fill(mass);
+			if (fDoTest) if (pPoint->GetEnergyLoss() > elcut) h1TestMass->Fill(mass);
+			if (fDoTest) if (pPoint->GetEnergyLoss() > elcut && length > 600.) h1TestMassLong->Fill(mass);
 			const LStrip *pStrip = pGeoUtils->FindStrip(UID, pos);
 //			const LStrip *pStrip = pGeoUtils->FindStrip(UID);
 			if (pStrip == NULL) continue;

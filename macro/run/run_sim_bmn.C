@@ -1,4 +1,3 @@
-#include <Rtypes.h>
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/bmnloadlibs.C"
 #include "macro/run/geometry.C"
@@ -17,8 +16,6 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
-
-    bmnloadlibs(); // load libraries
 
     // -----   Create simulation run   ----------------------------------------
     FairRunSim* fRun = new FairRunSim();
@@ -120,7 +117,8 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
 #endif
 #endif
 
-    fRun->SetOutputFile(outFile.Data());
+    fRun->SetSink(new FairRootFileSink(outFile.Data()));
+    fRun->SetIsMT(false);
 
     // -----   Create magnetic field   ----------------------------------------
     BmnFieldMap* magField = NULL;

@@ -8,6 +8,7 @@ BmnTrigParameters::BmnTrigParameters() {
         for (UInt_t j = 0; j < TDC_BIN_COUNT; j++)
             INL[i][j] = 0u;
         ChannelMap[i] = 0u;
+        NegativeMap[i] = kFALSE;
         branchArrayPtr[i] = NULL;
         t[i] = 0.0;
     }
@@ -54,6 +55,7 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString PlacementMapFile, TString StripMapFil
         BmnTrigParameters *par = itPar->second;
         par->ChannelMap[record.channel] = record.module;
         par->branchArrayPtr[record.channel] = record.branchArrayPtr;
+        par->NegativeMap[record.channel] = record.isNegative;
     }
 }
 
@@ -112,11 +114,12 @@ BmnStatus BmnTrigRaw2Digit::ReadChannelMap(TString mappingFile) {
     TString name;
     UInt_t ser;
     Short_t slot, ch, mod;
+    UShort_t neg;
 
-    fMapFile >> dummy >> dummy >> dummy >> dummy >> dummy;
+    fMapFile >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
     fMapFile >> dummy;
     while (!fMapFile.eof()) {
-        fMapFile >> name >> mod >> hex >> ser >> dec >> slot >> ch;
+        fMapFile >> name >> mod >> hex >> ser >> dec >> slot >> ch >> neg;
         if (!fMapFile.good()) break;
         BmnTrigChannelData record;
         record.branchArrayPtr = NULL;
@@ -125,6 +128,7 @@ BmnStatus BmnTrigRaw2Digit::ReadChannelMap(TString mappingFile) {
         record.module = mod;
         record.slot = slot;
         record.channel = ch;
+        record.isNegative = neg > 0 ? kTRUE : kFALSE;
         fMap.push_back(record);
     }
     fMapFile.close();
@@ -225,6 +229,8 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
             matchTime = times.at(idx);
             minUsed = diff.at(idx);
             trigAr = par->branchArrayPtr[iChannel];
+            if (minUsed > 296)
+                matchTime = -999.0;
         }
         if (trigAr != NULL/* && minUsed < 296*/) { // ADC window
             new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigWaveDigit(
@@ -241,7 +247,6 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
 }
 
 BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
-//        printf("Event \n");
     for (auto &el : fPlacementMap)
         for (Int_t i = 0; i < CHANNEL_COUNT_MAX; i++)
             el.second->t[i] = -1.0;
@@ -253,10 +258,8 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
         BmnTrigParameters * par = plIter->second;
         UShort_t rChannel = tdcDig->GetHptdcId() * kNCHANNELS + tdcDig->GetChannel();
         Double_t time = (tdcDig->GetValue() + par->INL[rChannel][tdcDig->GetValue() % TDC_BIN_COUNT]) * TDC_CLOCK / TDC_BIN_COUNT;
-        //        if (tdcDig->GetSerial() == 0x076D3892 && tdcDig->GetSlot() == 18 && rChannel == 14)
-//                if (tdcDig->GetSerial() == 0x076D2E12 && tdcDig->GetSlot() == 10 && rChannel == 15)
-//                    printf("\tCrateSeral %08X slot %02u channel %02u  time %+2.2f  leading %d\n", tdcDig->GetSerial(), tdcDig->GetSlot(), rChannel, time, tdcDig->GetLeading());
-        if (tdcDig->GetLeading() ^ (tdcDig->GetSlot() == 18 && rChannel == 14)) {
+//        printf("\tCrateSeral %08X slot %02u channel %02u  time %+2.2f  leading %d neg%d\n", tdcDig->GetSerial(), tdcDig->GetSlot(), rChannel, time, tdcDig->GetLeading(),par->NegativeMap[rChannel]);
+        if (tdcDig->GetLeading() ^ par->NegativeMap[rChannel]) {
             par->t[rChannel] = time;
         } else {
             if (time < par->t[rChannel])
@@ -270,7 +273,6 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
             Double_t tL = par->t[rChannel];
             Double_t tT = time;
             par->t[rChannel] = -1.0;
-            //            printf("OK:   tT = %f    tL = %f\n", tT, tL);
             new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigDigit(iMod, tL, tT - tL);
         }
     }

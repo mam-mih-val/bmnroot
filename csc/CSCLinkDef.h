@@ -8,5 +8,9 @@
 
 #pragma link C++ class BmnCSC+;
 #pragma link C++ class BmnCSCPoint+;
+#pragma link C++ class BmnCSCStationSet+;
+#pragma link C++ class BmnCSCStation+;
+#pragma link C++ class BmnCSCModule+;
+#pragma link C++ class BmnCSCLayer+;
 
 #endif

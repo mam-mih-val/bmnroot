@@ -30,6 +30,10 @@ link_directories(${LINK_DIRECTORIES})
 set(SRCS
  BmnCSC.cxx
  BmnCSCPoint.cxx
+ BmnCSCStationSet.cxx
+ BmnCSCStation.cxx
+ BmnCSCModule.cxx
+ BmnCSCLayer.cxx
 )
 
 Set(HEADERS)

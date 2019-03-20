@@ -29,75 +29,6 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-CbmBaseHit.cxx
-CbmHit.cxx
-CbmPixelHit.cxx
-CbmDetectorList.cxx
-CbmStack.cxx
-CbmMCTrack.cxx
-CbmStsPoint.cxx
-CbmStsDetectorId.cxx
-CbmStsDigi.cxx
-CbmStsDigiMatch.cxx
-CbmMCBuffer.cxx
-CbmMvdPoint.cxx
-CbmMvdDetectorId.cxx
-CbmTofPoint.cxx
-CbmTofHit.cxx         
-CbmTofTrack.cxx     
-CbmEcalPoint.cxx
-CbmDaqBuffer.cxx
-CbmDigi.cxx
-CbmStsDigiLight.cxx
-CbmStsHit.cxx
-CbmStsCluster.cxx
-CbmStsTrack.cxx
-CbmTrackMatch.cxx
-CbmMvdHit.cxx
-CbmMvdHitMatch.cxx
-CbmGlobalTrack.cxx
-CbmPsdPoint.cxx
-CbmPsdHit.cxx
-CbmPsdDigi.cxx
-CbmPsdEventData.cxx
-CbmMvdGeoPar.cxx
-CbmGeoSttPar.cxx
-BmnDchHit.cxx
-BmnDchHitOriginal.cxx
-BmnGlobalTrack.cxx
-BmnMwpcHit.cxx
-BmnTofHit.cxx
-BmnTrackMatch.cxx
-BmnMwpcDigit.cxx
-BmnTof1Digit.cxx
-BmnTof2Digit.cxx
-BmnTrigDigit.cxx
-BmnTrigWaveDigit.cxx
-BmnDchDigit.cxx
-BmnEcalDigit.cxx
-BmnADCDigit.cxx
-BmnTacquilaDigit.cxx
-BmnTQDCADCDigit.cxx
-BmnTDCDigit.cxx
-BmnHRBDigit.cxx
-BmnSyncDigit.cxx
-BmnTTBDigit.cxx
-BmnMSCDigit.cxx
-BmnZDCDigit.cxx
-BmnECALDigit.cxx
-BmnLANDDigit.cxx
-BmnCscDigit.cxx
-BmnEventHeader.cxx
-BmnRunHeader.cxx
-BmnCounterTask.cxx
-BmnIdentifiableTrack.cxx
-BmnFitNode.h
-BmnEnums.h
-DigiArrays.h
-BmnEventQuality.cxx
-BmnGemStripHit.cxx
-BmnSiliconHit.cxx
-BmnGemTrack.cxx
  cbm/CbmVertex.cxx
  cbm/CbmStsTrackFinder.cxx
  cbm/CbmStsTrackFitter.cxx
@@ -105,6 +36,7 @@ BmnGemTrack.cxx
  cbm/CbmTrackMerger.cxx
  cbm/CbmPrimaryVertexFinder.cxx
  cbm/CbmFindPrimaryVertex.cxx
+
  math/BmnMath.cxx
  math/BmnMatrixMath.cxx
  math/FitWLSQ.cxx
@@ -112,14 +44,90 @@ BmnGemTrack.cxx
  math/BmnKalmanFilter.cxx
  math/BmnMaterialEffects.cxx
  math/BmnMaterialInfo.h
- BmnFileSource.cxx
- 
- BmnTrack.cxx
+
+ CbmDetectorList.cxx
+ CbmMCBuffer.cxx
+ CbmMCPointBuffer.h
+ CbmDaqBuffer.cxx
+ CbmMCTrack.cxx
+ CbmStack.cxx
+ CbmDigi.cxx
+ CbmBaseHit.cxx
+ CbmHit.cxx
+ CbmPixelHit.cxx
+ CbmTrackMatch.cxx
+ CbmGlobalTrack.cxx
+
+ CbmStsDetectorId.cxx
+ CbmStsPoint.cxx
+ CbmStsDigi.cxx
+ CbmStsDigiMatch.cxx
+ CbmStsDigiLight.cxx
+ CbmStsHit.cxx
+ CbmStsCluster.cxx
+ CbmStsTrack.cxx
+ CbmMvdDetectorId.cxx
+ CbmMvdGeoPar.cxx
+ CbmMvdPoint.cxx
+ CbmMvdHit.cxx
+ CbmMvdHitMatch.cxx
+ CbmTofPoint.cxx
+ CbmTofHit.cxx
+ CbmTofTrack.cxx
+ CbmEcalPoint.cxx
+ CbmPsdPoint.cxx
+ CbmPsdDigi.cxx
+ CbmPsdHit.cxx
+ CbmPsdEventData.cxx
+ CbmGeoSttPar.cxx
+
+ BmnEnums.h
+ BmnStripData.h
  BmnHit.cxx
  BmnLink.cxx
  BmnMatch.cxx
-BmnTrigInfo.cxx
-BmnDecoSource.cxx
+ BmnTrack.cxx
+ BmnTrackMatch.cxx
+ BmnGlobalTrack.cxx
+ BmnIdentifiableTrack.cxx
+ BmnEventHeader.cxx
+ BmnEventQuality.cxx
+ BmnRunHeader.cxx
+ BmnFileSource.cxx
+ BmnDecoSource.cxx
+ BmnFitNode.h
+ BmnCounterTask.cxx
+
+ BmnTrigInfo.cxx
+ BmnTrigDigit.cxx
+ BmnTrigWaveDigit.cxx
+ BmnADCDigit.cxx
+ BmnTDCDigit.cxx
+ BmnTacquilaDigit.cxx
+ BmnTQDCADCDigit.cxx
+ BmnHRBDigit.cxx
+ BmnSyncDigit.cxx
+ BmnTTBDigit.cxx
+ BmnMSCDigit.cxx
+ DigiArrays.h
+
+ BmnSiliconHit.cxx
+ BmnGemStripHit.cxx
+ BmnGemTrack.cxx
+ BmnDchDigit.cxx
+ BmnDchHitOriginal.cxx
+ BmnDchHit.cxx
+ BmnCscDigit.cxx
+ BmnMwpcDigit.cxx
+ BmnMwpcHit.cxx
+ BmnTof1Digit.cxx
+ BmnTof2Digit.cxx
+ BmnTofHit.cxx
+ BmnECALDigit.cxx
+ BmnZDCDigit.cxx
+ BmnLANDDigit.cxx
+
+#BmnVertex.cxx
 )
 
 Set(HEADERS)

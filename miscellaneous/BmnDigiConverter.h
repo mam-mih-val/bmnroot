@@ -9,6 +9,12 @@
 #include "BmnTrigDigit.h"
 #include "BmnTof1Digit.h"
 #include "BmnDchDigit.h"
+#include "BmnCscDigit.h"
+#include "BmnMwpcDigit.h"
+#include "BmnECALDigit.h"
+#include "BmnTof2Digit.h"
+#include "BmnTof2Digit.h"
+#include "BmnZDCDigit.h"
 #include "BmnEventHeader.h"
 #include "FairEventHeader.h"
 
@@ -40,13 +46,13 @@ public:
     virtual void Exec(Option_t* opt);
     virtual void Finish();
     
-    void SetDetectors(Bool_t trig, Bool_t gem, Bool_t sil, Bool_t tof400, Bool_t dch) {
-        isTrig = trig;
-        isGem = gem;
-        isSil = sil;    
-        isTof400 = tof400;
-        isDch = dch;
-    }
+//    void SetDetectors(Bool_t trig, Bool_t gem, Bool_t sil, Bool_t tof400, Bool_t dch) {
+//        isTrig = trig;
+//        isGem = gem;
+//        isSil = sil;    
+//        isTof400 = tof400;
+//        isDch = dch;
+//    }
 
 private:
 
@@ -55,26 +61,42 @@ private:
     TClonesArray* fBmnHeaderIn;
     TClonesArray* fBmnHeaderOut;
     
-    // Common detectors (BM@N + SRC) - GEM, SILICON, TOF400, DCH 
+    // Common detectors (BM@N + SRC) - GEM, SILICON, TOF400, DCH, MWPC, TOF700, ECAL, ZDC 
     // input
     TString fGemBranchIn;
     TString fSiBranchIn;
     TString fTOF400BranchIn;
     TString fDchBranchIn;
+    TString fMwpcBranchIn;
+    TString fTOF700BranchIn;
+    TString fECALBranchIn;
+    TString fZDCBranchIn;
     // output 
     TString fGemBranchOut;
     TString fSiBranchOut;   
     TString fTOF400BranchOut;
     TString fDchBranchOut;
+    TString fMwpcBranchOut;
+    TString fTOF700BranchOut;
+    TString fECALBranchOut;
+    TString fZDCBranchOut;
     // arrays for input and output
     TClonesArray* fGemDigitsIn;
     TClonesArray* fSiDigitsIn;
     TClonesArray* fTOF400DigitsIn;
     TClonesArray* fDchDigitsIn;
+    TClonesArray* fMwpcDigitsIn;
+    TClonesArray* fTOF700DigitsIn;
+    TClonesArray* fECALDigitsIn;
+    TClonesArray* fZDCDigitsIn;
     TClonesArray* fGemDigitsOut;
     TClonesArray* fSiDigitsOut;
     TClonesArray* fTOF400DigitsOut;
     TClonesArray* fDchDigitsOut;
+    TClonesArray* fMwpcDigitsOut;
+    TClonesArray* fTOF700DigitsOut;
+    TClonesArray* fECALDigitsOut;
+    TClonesArray* fZDCDigitsOut;
     
     // Common triggers (BM@N + SRC) - BC1, BC2, VC
     // input
@@ -173,7 +195,11 @@ private:
     Bool_t isGem;
     Bool_t isSil;    
     Bool_t isTof400;    
-    Bool_t isDch;    
+    Bool_t isDch; 
+    Bool_t isMwpc;
+    Bool_t isTof700;
+    Bool_t isEcal;
+    Bool_t isZdc;
 
     FairRootManager* ioman;
     

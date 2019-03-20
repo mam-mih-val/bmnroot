@@ -37,6 +37,7 @@
 #pragma link C++ class CbmStsSimulationQa+;
 #pragma link C++ class CbmStsFindHitsQa+;
 #pragma link C++ class CbmStsReconstructionQa+;
+#pragma link C++ class CbmBmnStsDigitize+;
 
 // Setup
 //#pragma link C++ class CbmStsAddress;

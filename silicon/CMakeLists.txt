@@ -9,6 +9,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/uni_db
  ${CMAKE_SOURCE_DIR}/uni_db/db_classes
  ${CMAKE_SOURCE_DIR}/silicon
+ ${CMAKE_SOURCE_DIR}/gem
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -28,17 +29,19 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnSilicon.cxx
-BmnSiliconPoint.cxx
-BmnSiliconLayer.cxx
-BmnSiliconModule.cxx
-BmnSiliconStation.cxx
-BmnSiliconStationSet.cxx
-BmnSiliconDigitizer.cxx
-BmnSiliconHitMaker.cxx
-BmnSiliconDigit.cxx
-BmnSiliconTrack.cxx
-BmnSiliconHitProducer.cxx
+ BmnSilicon.cxx
+ BmnSiliconPoint.cxx
+ BmnSiliconLayer.cxx
+ BmnSiliconModule.cxx
+ BmnSiliconStation.cxx
+ BmnSiliconStationSet.cxx
+ BmnSiliconDigitizer.cxx
+ BmnSiliconHitMaker.cxx
+ BmnSiliconDigit.cxx
+ BmnSiliconTrack.cxx
+ BmnSiliconHitProducer.cxx
+
+ BmnSiliconConfiguration.h
 )
 
 Set(HEADERS)

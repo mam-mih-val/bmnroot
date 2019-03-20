@@ -1,20 +1,19 @@
 
-/** Abstract base class for track is being used by the CbmKF Kalman Filter 
+/** Abstract base class for track is being used by the CbmKF Kalman Filter
  *
  * @author  S.Gorbunov
  * @version 0.0
  * @since   02.12.05
- * 
- * The class members describes to the CbmKF Kalman Filter routines 
+ *
+ * The class members describes to the CbmKF Kalman Filter routines
  * how to get acces to data in a derived (or user) class.
  *
  * To be used by high-level utilites like StsTrackFitter
  *
- * IMPORTANT : you should keep your hits sorted downstream 
+ * IMPORTANT : you should keep your hits sorted downstream
  *
  * See how-to-use-it below.
  */
-
 #ifndef CBMKFTRACKINTERFACE_H
 #define CBMKFTRACKINTERFACE_H
 
@@ -24,8 +23,8 @@ class CbmKFHit;
 class CbmKFVertexInterface;
 
 class CbmKFTrackInterface {
-  
- public:  
+
+ public:
 
   CbmKFTrackInterface():fId(){}
   virtual ~CbmKFTrackInterface(){}
@@ -56,21 +55,26 @@ class CbmKFTrackInterface {
 
   /** Methods
    */
-  Int_t Extrapolate( Double_t z, Double_t *QP0=0 );
-  Int_t Fit( Bool_t downstream = 1 );
+  Int_t Extrapolate( Double_t z, Double_t *QP0=0, Bool_t line=false );
+  Int_t Fit( Bool_t downstream = 1 , Bool_t line=false);
   void Smooth( Double_t Z );
   void Fit2Vertex( CbmKFVertexInterface  &vtx );
 
-  Int_t Propagate( Double_t z_out, Double_t QP0 );
-  Int_t Propagate( Double_t z_out );
+  Int_t Propagate( Double_t z_out, Double_t QP0, Bool_t line=false );
+  Int_t Propagate( Double_t z_out, Bool_t line=false );
 
   int Id() const { return fId; };
   void SetId( int id ){ fId = id; };
-  
+  void SetTrkID( int id ){ ststrk = id; };
+  int GetTrkID(){ return ststrk; };
+
  protected:
-  
+
   int fId;
   
+  private: 
+  int ststrk;
+
   ClassDef( CbmKFTrackInterface, 1 )
 };
 
@@ -87,12 +91,12 @@ class CbmKFTrackInterface {
  * class CbmMyTrack :public CbmKFTrackInterface{
  *  public:
  *   // here overwrite CbmKF virtual methods
- *   Double_t *GetTrack(){ return fT; } 
+ *   Double_t *GetTrack(){ return fT; }
  *   ...
  *   // Here is my methods
  *   ...
  *  private:
- *   Double_t fT[6]; 
+ *   Double_t fT[6];
  *   Double_t fVariablesForMyNeeds;
  * };
  *
@@ -117,9 +121,9 @@ class CbmKFTrackInterface {
  * class CbmMyTrackInterface : public CbmKFTrackInterface{
  *  public:
  *   CbmMyTrackInterface( CbmMyTrack *track ):fTrack(track){}
- *   Double_t *GetTrack(){ 
- *     return ((CbmMyTrack*)fTrack)->GetFittedTrackParametersAtThePrimaryVertex(); 
- *   } 
+ *   Double_t *GetTrack(){
+ *     return ((CbmMyTrack*)fTrack)->GetFittedTrackParametersAtThePrimaryVertex();
+ *   }
  *   ...
  *  private:
  *   CbmMyTrackTrack *fTrack;

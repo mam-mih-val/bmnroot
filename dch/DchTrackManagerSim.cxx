@@ -7,7 +7,6 @@
 #include "TVirtualFitter.h"
 #include "Math/Vector3D.h"
 #include "TGraphErrors.h"
-#include "TGraph.h"
 #include "ScalarD.h"
 #include "Riostream.h"
 #include <iomanip>
@@ -17,6 +16,7 @@
 #include "Math/Vector3D.h"
 
 using namespace ROOT::Math;
+using namespace std;
 
 //
 //ClassImp(DchTrackCand)

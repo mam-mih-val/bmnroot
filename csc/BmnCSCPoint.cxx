@@ -9,6 +9,9 @@ BmnCSCPoint::BmnCSCPoint()
   fX_out(0.0),
   fY_out(0.0),
   fZ_out(0.0),
+  fX_center(0.0),
+  fY_center(0.0),
+  fZ_center(0.0),
   fPx_out(0.0),
   fPy_out(0.0),
   fPz_out(0.0),
@@ -31,14 +34,17 @@ BmnCSCPoint::BmnCSCPoint(Int_t trackID, Int_t detID,
   fPz_out(momOut.Pz()),
   fIsPrimary(isPrimary), fCharge(charge), fPdgId(pdgId) {
 
+    fX_center = (fX_out + fX)*0.5;
+    fY_center = (fY_out + fY)*0.5;
+    fZ_center = (fZ_out + fZ)*0.5;
 }
 
 BmnCSCPoint::~BmnCSCPoint() { }
 
 void BmnCSCPoint::Print(const Option_t* opt) const {
     cout << "-I- BmnCSCPoint: CSC point for track " << fTrackID << " in detector " << fDetectorID << endl;
-    cout << "    Position (" << fX << ", " << fY << ", " << fZ << ") cm" << endl;
-    cout << "    Momentum (" << fPx << ", " << fPy << ", " << fPz << ") GeV" << endl;
+    cout << "    Position (In) (" << fX << ", " << fY << ", " << fZ << ") cm" << endl;
+    cout << "    Momentum (In) (" << fPx << ", " << fPy << ", " << fPz << ") GeV" << endl;
     cout << "    Time " << fTime << " ns,  Length " << fLength << " cm,  Energy loss " << fELoss*1.0e06 << " keV" << endl;
 }
 

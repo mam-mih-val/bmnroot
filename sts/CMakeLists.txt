@@ -69,6 +69,7 @@ CbmStsTrackFitterIdeal.cxx
 CbmStsSimulationQa.cxx 
 CbmStsFindHitsQa.cxx
 CbmStsReconstructionQa.cxx
+CbmBmnStsDigitize.cxx 
 )
 
 #AZ - debug
@@ -78,6 +79,6 @@ SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS
 Set(HEADERS)
 Set(LINKDEF StsLinkDef.h)
 Set(LIBRARY_NAME Sts)
-Set(DEPENDENCIES Core)
+Set(DEPENDENCIES Core BmnData)
 
 GENERATE_LIBRARY()

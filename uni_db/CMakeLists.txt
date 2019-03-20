@@ -57,6 +57,7 @@ UniDbTangoData.h
 UniDbSearchCondition.h
 UniDbParser.h
 
+db_settings.h
 # add definitions of the possible database structures and enums
 db_structures.h
 

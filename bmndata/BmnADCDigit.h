@@ -3,7 +3,7 @@
 
 #include "TNamed.h"
 
-#define ADC_SAMPLING_LIMIT 8192
+#define ADC_SAMPLING_LIMIT 1024
 
 using namespace std;
 

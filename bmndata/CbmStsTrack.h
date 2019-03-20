@@ -23,6 +23,8 @@
 
 #include <map>
 
+#include "TClonesArray.h"
+
 class FairHit;
 
 
@@ -42,7 +44,7 @@ class CbmStsTrack : public TObject
 
   /** Add a StsHit to the list **/
   void AddStsHit(Int_t hitIndex, FairHit* hit);
-  
+
   //SM
   void AddPixelHit(Int_t hitIndex, CbmBaseHit* hit);
 
@@ -53,7 +55,7 @@ class CbmStsTrack : public TObject
 
 
   /** Public method Print
-   ** Output to screen 
+   ** Output to screen
    **/
   void Print();
 
@@ -70,8 +72,8 @@ class CbmStsTrack : public TObject
   /** Accessors  **/
   Int_t GetNStsHits()              const { return fStsHits.GetSize(); }
   Int_t GetNMvdHits()              const { return fMvdHits.GetSize(); }
-  Int_t GetStsHitIndex(Int_t iHit) const { return fStsHits.At(iHit); }  
-  Int_t GetMvdHitIndex(Int_t iHit) const { return fMvdHits.At(iHit); }  
+  Int_t GetStsHitIndex(Int_t iHit) const { return fStsHits.At(iHit); }
+  Int_t GetMvdHitIndex(Int_t iHit) const { return fMvdHits.At(iHit); }
   Int_t GetPidHypo()               const { return fPidHypo; }
   Int_t GetFlag()                  const { return fFlag; }
   Double_t GetChi2()               const { return fChi2; }
@@ -79,6 +81,12 @@ class CbmStsTrack : public TObject
   Double_t GetB()                  const { return fB; }
   FairTrackParam* GetParamFirst() { return &fParamFirst; }
   FairTrackParam* GetParamLast()  { return &fParamLast ; }
+  TArrayI*  GetStsHits()          { return &fStsHits; }
+  Int_t GetStsEv()                 const { return fnEv;}
+  TClonesArray* GetStsHitArr()     { return &fHitsArr;}
+
+  void SetTrkID( int id ){ ststrk = id; };
+  int GetTrkID(  ){ return ststrk; };
 
 
   /** Modifiers  **/
@@ -89,11 +97,14 @@ class CbmStsTrack : public TObject
   void SetChi2(Double_t chi2)               { fChi2       = chi2; }
   void SetNDF(Int_t ndf)                    { fNDF        = ndf;  }
   void SetB(Double_t b)                     { fB          = b;    }
-  
+  void SetStsHits(TArrayI& hitsArr)         { fStsHits = hitsArr;}
+  void SetStsEv(Int_t evNo)                 { fnEv = evNo;}
+  void SetStsHitArr(TClonesArray& hitar)    { fHitsArr=hitar;}
+
 
 
  private:
-
+ int ststrk;
   /** Array containg the indizes of the STS hits attached to the track **/
   TArrayI fStsHits;
 
@@ -129,9 +140,12 @@ class CbmStsTrack : public TObject
    **/
   std::map<Double_t, Int_t> fStsHitMap;        //!
   std::map<Double_t, Int_t> fMvdHitMap;        //!
-      
 
-  ClassDef(CbmStsTrack,1);
+
+  Int_t fnEv;
+  TClonesArray fHitsArr;
+
+  ClassDef(CbmStsTrack,6);
 
 };
 

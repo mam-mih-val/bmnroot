@@ -15,7 +15,7 @@ using std::endl;
 using std::map;
 
 // -----   Default constructor   -------------------------------------------
-CbmStsTrack::CbmStsTrack() 
+CbmStsTrack::CbmStsTrack()
   : TObject(),
     fStsHits(),
     fMvdHits(),
@@ -27,7 +27,9 @@ CbmStsTrack::CbmStsTrack()
     fNDF(0),
     fB(0.),
     fStsHitMap(),
-    fMvdHitMap()
+    fMvdHitMap(),
+    fnEv(),
+    fHitsArr("CbmStsHit", 10)
 {
 }
 // -------------------------------------------------------------------------
@@ -66,9 +68,9 @@ void CbmStsTrack::AddMvdHit(Int_t hitIndex, FairHit* hit) {
 
 // -----   Public method Print   -------------------------------------------
 void CbmStsTrack::Print() {
-  cout << " Number of attached STS hits : " 
+  cout << " Number of attached STS hits : "
        << fStsHits.GetSize()  << endl;
-  cout << " Number of attached MVD hits : " 
+  cout << " Number of attached MVD hits : "
        << fMvdHits.GetSize()  << endl;
   fParamFirst.Print();
   cout << " Chi2: " << fChi2 << ", Quality flag " << fFlag << endl;

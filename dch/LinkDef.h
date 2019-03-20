@@ -12,7 +12,6 @@
 
 #pragma link C++ class  BmnDchHitProducer+;
 #pragma link C++ class  BmnDchHitProducer_exp+;
-//#pragma link C++ class  BmnDchHitProducerCalib_exp+;
 #pragma link C++ class  BmnDchHitProducerTmp+;
 #pragma link C++ class  ScalarD+;
 #pragma link C++ class  ScalarI+;
@@ -20,6 +19,7 @@
 #pragma link C++ class  DchHitPlane+;
 #pragma link C++ class  DchTrackCand+;
 #pragma link C++ class  DchTrackManager+;
+#pragma link C++ class  DchTrackManagerSim+;
 
 #pragma link C++ class BmnDchTrackFinder+;
 #pragma link C++ class BmnDchTrack+;

@@ -92,7 +92,7 @@ Bool_t BmnSilicon::ProcessHits(FairVolume* vol)
         fPosOut.SetXYZ(PosOut.X(), PosOut.Y(), PosOut.Z());
 
         TLorentzVector MomOut;
-        gMC->TrackPosition(MomOut);
+        gMC->TrackMomentum(MomOut);
         fMomOut.SetXYZ(MomOut.X(), MomOut.Y(), MomOut.Z());
 
         BmnSiliconPoint *p = AddHit(fTrackID, fVolumeID,

@@ -27,8 +27,8 @@
 
 #include "BmnGemAlignCorrections.h"
 #include "BmnSiliconAlignCorrections.h"
-#include <../silicon/BmnSiliconStationSet.h>
-#include <../gem/BmnGemStripStationSet.h>
+#include <BmnSiliconStationSet.h>
+#include <BmnGemStripStationSet.h>
 
 using namespace std;
 using namespace TMath;

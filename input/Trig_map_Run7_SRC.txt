@@ -1,39 +1,43 @@
-Det            Mod              Serial      Slot     Channel
-============================================================
-TQDC_BC1        2           0x076D2E12        13           0 
-TQDC_BC2        2           0x076D2E12        14           1 
-TQDC_BC2        3           0x076D2E12        14           3 
-TQDC_BC2        4           0x076D2E12        14          15 
-TQDC_BC3        2           0x076D2E12        13           2 
-TQDC_BC4        2           0x076D2E12        13           3 
-TQDC_VC         2           0x076D2E12        13           4 
-TQDC_X1_Left    2           0x076D2E12        13           5
-TQDC_X1_Right   2           0x076D2E12        13           6
-TQDC_X2_Left    2           0x076D2E12        13           7
-TQDC_X2_Right   2           0x076D2E12        13           8
-TQDC_Y1_Left    2           0x076D2E12        13           9
-TQDC_Y1_Right   2           0x076D2E12        13          10
-TQDC_Y2_Left    2           0x076D2E12        13          11
-TQDC_Y2_Right   2           0x076D2E12        13          12
-BC1             0           0x076D2E12        10	  23
-BC1             1           0x076D2E12        10          19
-BC2		0           0x076D2E12        10	   9
-BC2		1           0x076D2E12        10	  14
-BC3		0           0x076D2E12        10	  15
-BC3		1           0x076D2E12        10	  22
-BC2             2           0x076D2E12        10	   0
-BC4             1           0x076D2E12        10	  10
-VC		0           0x076D2E12        10	  18
-X1_Left		0	    0x076D2E12        10	  11
-X1_Right	0	    0x076D2E12        10	  11
-Y1_Left		0           0x076D2E12        10	   2
-Y1_Right	0           0x076D2E12        10	   2
-X2_Left		0           0x076D2E12        10	   7
-X2_Right	0           0x076D2E12        10	   7
-Y2_Left		0           0x076D2E12        10	   3
-Y2_Right	0           0x076D2E12        10	   3
-FFD             0           0x076D2E12        5            15       
-FFD             1           0x076D2E12        5            28
-FFD             2           0x076D2E12        5            29
-FFD             3           0x076D2E12        5            30
-FFD             4           0x076D2E12        5            31      
+Det            Mod              Serial      Slot     Channel  IsNegative
+=========================================================================
+TQDC_BC1        2           0x076D2E12        13           0       0
+TQDC_BC2        2           0x076D2E12        14           1       0
+TQDC_BC2        3           0x076D2E12        14           3       0
+TQDC_BC2        4           0x076D2E12        14          15       0
+TQDC_FFD        0           0x076D2E12        14           6       0
+TQDC_FFD        1           0x076D2E12        14           7       0
+TQDC_FFD        2           0x076D2E12        14           8       0
+TQDC_FFD        3           0x076D2E12        14           9       0
+TQDC_BC3        2           0x076D2E12        13           2       0
+TQDC_BC4        2           0x076D2E12        13           3       0
+TQDC_VC         2           0x076D2E12        13           4       0
+TQDC_X1_Left    2           0x076D2E12        13           5       0
+TQDC_X1_Right   2           0x076D2E12        13           6       0
+TQDC_X2_Left    2           0x076D2E12        13           7       0
+TQDC_X2_Right   2           0x076D2E12        13           8       0
+TQDC_Y1_Left    2           0x076D2E12        13           9       0
+TQDC_Y1_Right   2           0x076D2E12        13          10       0
+TQDC_Y2_Left    2           0x076D2E12        13          11       0
+TQDC_Y2_Right   2           0x076D2E12        13          12       0
+BC1             0           0x076D2E12        10	  23       1
+BC1             1           0x076D2E12        10          19       1
+BC2		0           0x076D2E12        10	   9       0
+BC2		1           0x076D2E12        10	  14       0
+BC3		0           0x076D2E12        10	  15       1
+BC3		1           0x076D2E12        10	  22       1
+BC2             2           0x076D2E12        10	   0       0
+BC4             1           0x076D2E12        10	  10       1    
+VC		0           0x076D2E12        10	  18       1
+X1_Left		0	    0x076D2E12        10	  11       1
+X1_Right	0	    0x076D2E12        10	  11       1
+Y1_Left		0           0x076D2E12        10	   2       1
+Y1_Right	0           0x076D2E12        10	   2       1
+X2_Left		0           0x076D2E12        10	   7       1
+X2_Right	0           0x076D2E12        10	   7       1
+Y2_Left		0           0x076D2E12        10	   3       1
+Y2_Right	0           0x076D2E12        10	   3       1
+FFD_Sum         0           0x076D2E12        5            15      0     
+FFD             0           0x076D2E12        5            28      0
+FFD             1           0x076D2E12        5            29      0
+FFD             2           0x076D2E12        5            30      0
+FFD             3           0x076D2E12        5            31      0    

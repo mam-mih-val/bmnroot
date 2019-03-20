@@ -37,7 +37,7 @@ class CbmStsDigiScheme;
 class CbmStsSector;
 class CbmStsStation;
 class CbmStsCluster; //AZ
-
+class CbmStsDigiScheme; //GP
 
 class CbmStsClusterFinder : public FairTask
 {
@@ -67,11 +67,13 @@ class CbmStsClusterFinder : public FairTask
   /** Virtual method Finish **/
   virtual void Finish();
 
+  Bool_t MC=false;
+
  private:
 
   CbmGeoStsPar*     fGeoPar;      /** Geometry parameters **/
   CbmStsDigiPar*    fDigiPar;     /** Digitisation parameters **/
-  CbmStsDigiScheme* fDigiScheme;  /** Digitisation scheme **/
+  CbmStsDigiScheme* fDigiScheme;  /** Digitisation scheme **/ //FIX GP
   TClonesArray*     fDigis;       /** Input array of CbmStsDigi **/
   TClonesArray*     fClustersCand;    /** Input array of CbmStsCluster **/
   TClonesArray*     fClusters;    /** Input array of CbmStsCluster **/

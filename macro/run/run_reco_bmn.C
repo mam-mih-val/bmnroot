@@ -24,26 +24,17 @@
 // If alignCorrFileName == '<path>/<file-name>', then the corrections are taken
 // from that file.
 
-#include <Rtypes.h>
-#include <TString.h>
-#include <TStopwatch.h>
-#include <TFile.h>
-#include <TKey.h>
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/bmnloadlibs.C"
 
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0,
-        Int_t nEvents = 1000) {
+        Int_t nEvents = 1000)
+{
     // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
-
-    // ----    Debug option   --------------------------------------------------
-    gDebug = 0;
-
-    // ----  Load libraries   --------------------------------------------------
-    bmnloadlibs(); // load BmnRoot libraries
+    gDebug = 0; // Debug option
 
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
@@ -147,7 +138,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         fFileSource = new FairFileSource(inputFileName);
     }
     fRunAna->SetSource(fFileSource);
-    fRunAna->SetOutputFile(bmndstFileName);
+    fRunAna->SetSink(new FairRootFileSink(bmndstFileName));
     fRunAna->SetGenerateRunInfo(false);
 
     // Digitisation files.

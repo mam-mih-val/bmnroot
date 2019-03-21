@@ -1,6 +1,4 @@
-# Create a library called "libMpdField" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libBmnField" which includes the source files given in the array
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
@@ -19,20 +17,20 @@ set(LINK_DIRECTORIES
  ${FAIRROOT_LIBRARY_DIR}
 )
  
-link_directories( ${LINK_DIRECTORIES})
+link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnNewFieldMap.cxx
-BmnFieldConst.cxx     
-BmnFieldContFact.cxx    
-BmnFieldMap.cxx
-BmnFieldMapCreator.cxx         
-BmnFieldMapData.cxx     
-BmnFieldMapSym3.cxx     
-BmnFieldPar.cxx         
-BmnFieldCreator.cxx
-BmnSP41FieldMapCreator.cxx
+ BmnNewFieldMap.cxx
+ BmnFieldConst.cxx
+ BmnFieldContFact.cxx
+ BmnFieldMap.cxx
+ BmnFieldMapCreator.cxx
+ BmnFieldMapData.cxx
+ BmnFieldMapSym3.cxx
+ BmnFieldPar.cxx
+ BmnFieldCreator.cxx
+ BmnSP41FieldMapCreator.cxx
 )
 
 Set(HEADERS)

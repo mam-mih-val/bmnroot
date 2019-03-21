@@ -155,7 +155,7 @@ public:
         }
         return d;
     }
-
+    
     TTree* GetDigiTree() {
         return fDigiTree;
     }
@@ -334,7 +334,6 @@ private:
 
     Int_t fTOF700ReferenceRun;
     Int_t fTOF700ReferenceChamber;
-
     Int_t GetRunIdFromFile(TString name);
     vector<UInt_t> fSiliconSerials; //list of serial id for Silicon
     UInt_t fNSiliconSerials;
@@ -474,11 +473,15 @@ private:
     map<UInt_t, Long64_t> fTimeShifts;
     Double_t fT0Time; //ns
     Double_t fT0Width; //ns
+    map<TTimeStamp, Int_t> leaps;
+    TTimeStamp utc_valid;
+    Int_t tai_utc_dif;
 
     int refrun_tof700_slewing[60];
     int refchamber_tof700_slewing[60];
     int type_tof700_slewing[60];
 
+    BmnStatus InitUTCShift();
     BmnStatus GetT0Info(Double_t& t0time, Double_t &t0width);
     BmnStatus ProcessEvent(UInt_t *data, UInt_t len);
     BmnStatus Process_ADC64VE(UInt_t *data, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr);

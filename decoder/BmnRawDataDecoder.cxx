@@ -90,6 +90,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fEvForPedestals = N_EV_FOR_PEDESTALS;
     fBmnSetup = kBMNSETUP;
     fT0Map = NULL;
+    tai_utc_dif = 0;
 }
 
 BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t period) {
@@ -173,6 +174,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fEvForPedestals = N_EV_FOR_PEDESTALS;
     fBmnSetup = kBMNSETUP;
     fT0Map = NULL;
+    tai_utc_dif = 0;
     //InitMaps();
 }
 
@@ -223,7 +225,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     //    TTimeStamp finishT = TTimeStamp(time_t(fTime_s), fTime_ns);
     //    fRunStartTime = TDatime(Int_t(startT.GetDate(kFALSE)), Int_t(startT.GetTime(kFALSE)));
     //    fRunEndTime = TDatime(Int_t(finishT.GetDate(kFALSE)), Int_t(finishT.GetTime(kFALSE)));
-    fRunStartTime = TTimeStamp(time_t(fTimeStart_s), fTimeStart_ns);
+    //fRunStartTime = TTimeStamp(time_t(fTimeStart_s), fTimeStart_ns);
     fRunEndTime = TTimeStamp(time_t(fTime_s), fTime_ns);
     runHeaderDAQ->SetStartTime(fRunStartTime);
     runHeaderDAQ->SetFinishTime(fRunEndTime);
@@ -786,12 +788,15 @@ BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t s
     Bool_t countersDone = kFALSE;
     while (type == 2 || type == 3 || type == 4) {
         //printf("type %d  slot %d\n", type, slot);
-        if (fPeriodId > 4 && type == kGEMTRIGTYPE && slot == kEVENTTYPESLOT) {
-            trType = ((d[idx] & 0x7) == kTRIGMINBIAS) ? kBMNMINBIAS : kBMNBEAM;
+        if (fPeriodId > 4 && type == kGEMTRIGTYPE/* && slot == kEVENTTYPESLOT*/) {
+            //trType = ((d[idx] & 0x7) == kTRIGMINBIAS) ? kBMNMINBIAS : kBMNBEAM;//Deprecated 
             trigInfo->SetTrigType(trType);
             //                            evType = ((d[i] & 0x8) >> 3) ? kBMNPEDESTAL : kBMNPAYLOAD;
-            evType = (d[idx] & 0x8) ? kBMNPEDESTAL : kBMNPAYLOAD;
+            evType = (d[idx] & BIT(3)) ? kBMNPEDESTAL : kBMNPAYLOAD;
             //printf("evType %d\n", evType);
+//            if (!( ((d[idx]>>10) & 0x1) ^ (fPeriodId >= 7 && fBmnSetup == kBMNSETUP)))
+//                printf("Ev not Good!\n");
+//            printf("evGood %d\n", (d[idx] & BIT(10)));
             if (evType == kBMNPEDESTAL)
                 fPedoCounter++;
         }
@@ -818,8 +823,15 @@ BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t s
 
 BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {
     UInt_t type = d[idx] >> 28;
-    //    printf("fiiltdc\n");
     while (type != kMODTRAILER) { //data will be finished when module trailer appears 
+        if (type == 6){
+            fprintf(stderr, ANSI_COLOR_RED "ERROR: TDC (serial 0x%08X slot %d) error code: 0x%04X\n" ANSI_COLOR_RESET,
+                    serial, slot, (d[idx] & ((1<<16) - 1)));
+            if( ((d[idx] >>12) & 0x1) || ((d[idx] >> 13) & 0x1)){
+                fprintf(stderr, ANSI_COLOR_RED "ERROR: Critical TDC error thrown\n" ANSI_COLOR_RESET);
+                return kBMNERROR;
+            }
+        }
         if (type == 4 || type == 5) { // 4 - leading, 5 - trailing
             UInt_t tdcId = (d[idx] >> 24) & 0xF;
             UInt_t time = (modId == kTDC64V) ? (d[idx] & 0x7FFFF) : ((d[idx] & 0x7FFFF) << 2) | ((d[idx] & 0x180000) >> 19);
@@ -843,11 +855,15 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
     UInt_t channel = 0;
     Short_t valI[ADC_SAMPLING_LIMIT];
     Bool_t inADC = kFALSE;
-    if (type == 6) {
-        fprintf(stderr, "TQDC Error: %d\n", d[idx++] & 0xF); // @TODO logging
-        return kBMNSUCCESS;
-    }
     while (type != kMODTRAILER) {
+	if (type == 6){
+            fprintf(stderr, ANSI_COLOR_RED "ERROR: TDC (serial 0x%08X slot %d) error code: 0x%04X\n" ANSI_COLOR_RESET,
+                    serial, slot, (d[idx] & ((1<<16) - 1)));
+		if( ((d[idx] >>12) & 0x1) || ((d[idx] >> 13) & 0x1)){
+			fprintf(stderr,  ANSI_COLOR_RED "ERROR: Critical TQDC error thrown\n" ANSI_COLOR_RESET);
+			return kBMNERROR;
+		}
+	}
         UInt_t mode = (d[idx] >> 26) & 0x3;
         if (!inADC) {  //       printf("type %d mode %d word %0X\n", type, mode, d[idx]);
             if ((mode == 0) && (type == 4 || type == 5)) { // TDC time
@@ -903,13 +919,15 @@ BmnStatus BmnRawDataDecoder::FillSYNC(UInt_t *d, UInt_t serial, UInt_t & idx) {
         GlobalEvent = ((d3 & 0x0FFFFFFF) << 12) | ((d2 >> 16) & 0xFFF);
     }
 
-    fTime_ns = ts_t0_ns;
-    fTime_s = ts_t0_s;
-
     if (fEventId == 1) {
-        fTimeStart_s = ts_t0_s;
-        fTimeStart_ns = ts_t0_ns;
+//        fTimeStart_s = ts_t0_s;
+//        fTimeStart_ns = ts_t0_ns;
+        fRunStartTime = TTimeStamp(time_t(ts_t0_s), ts_t0_ns);
+        InitUTCShift();
     }
+    
+    fTime_ns = ts_t0_ns;
+    fTime_s = ts_t0_s - tai_utc_dif;
 
     TClonesArray &ar_sync = *sync;
     new(ar_sync[sync->GetEntriesFast()]) BmnSyncDigit(serial, GlobalEvent, ts_t0_s, ts_t0_ns);
@@ -1038,7 +1056,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             nEv = (Int_t) runHeaderDAQ->GetNEvents();
             fSize = Double_t(fLengthRawFile / 1024. / 1024.);
             runId = runHeaderDAQ->GetRunId();
-            fRunStartTime = runHeaderDAQ->GetStartTime();
+            //fRunStartTime = runHeaderDAQ->GetStartTime();
             fRunEndTime = runHeaderDAQ->GetFinishTime();
 
             //            if (!UniDbRun::GetRun(fPeriodId, runId))
@@ -1417,6 +1435,8 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
         BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
         if (syncDig->GetSerial() == fT0Map->serial) {
             t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
+            if (fEventId == 1)
+                fRunStartTime = TTimeStamp(time_t(syncDig->GetTime_sec()), syncDig->GetTime_ns());
             break;
         }
     }
@@ -1671,4 +1691,49 @@ BmnStatus BmnRawDataDecoder::GetT0Info(Double_t& t0time, Double_t &t0width) {
         }
     }
     return kBMNERROR;
+}
+
+BmnStatus BmnRawDataDecoder::InitUTCShift(){
+    if (tai_utc_dif > 0)
+        return kBMNSUCCESS;
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1972, 1, 1, 0, 0, 0), 10));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1972, 7, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1973, 1, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1974, 1, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1975, 1, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1976, 1, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1977, 1, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1978, 1, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1979, 1, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1980, 1, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1981, 7, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1982, 7, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1983, 7, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1985, 7, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1988, 1, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1990, 1, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1991, 1, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1992, 7, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1993, 7, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1994, 7, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1996, 1, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1997, 7, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(1999, 1, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(2006, 1, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(2009, 1, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(2012, 7, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(2015, 7, 1, 0, 0, 0), 1));
+    leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(2017, 1, 1, 0, 0, 0), 1));
+    utc_valid = TTimeStamp(2019, 6, 28, 0, 0, 0);
+    auto it = leaps.begin();
+    while (it != leaps.end()){
+        if (fRunStartTime >= it->first){
+            tai_utc_dif += (it++)->second;
+        } else
+            break;
+    }
+//    printf("tai-utc shift = %i s\n", tai_utc_dif);
+    if (fRunStartTime > utc_valid)
+        printf(ANSI_COLOR_RED "Warning! Leap seconds table expired!\n" ANSI_COLOR_RESET);
+    return kBMNSUCCESS;
 }

@@ -482,6 +482,7 @@ private:
     int type_tof700_slewing[60];
 
     BmnStatus InitUTCShift();
+    Int_t GetUTCShift(TTimeStamp t);
     BmnStatus GetT0Info(Double_t& t0time, Double_t &t0width);
     BmnStatus ProcessEvent(UInt_t *data, UInt_t len);
     BmnStatus Process_ADC64VE(UInt_t *data, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr);

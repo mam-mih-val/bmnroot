@@ -1,6 +1,4 @@
-# Create a library called "libMWPC" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libMwpc" which includes the source files given in the array
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
@@ -16,7 +14,7 @@ Set(SYSTEM_INCLUDE_DIRECTORIES
  ${ROOT_INCLUDE_DIR}
 )
 
-include_directories( ${INCLUDE_DIRECTORIES})
+include_directories(${INCLUDE_DIRECTORIES})
 Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
@@ -28,17 +26,17 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnMwpcHitProducer.cxx
-BmnMwpcHitFinder.cxx
-BmnMwpcGeometry.cxx
-BmnMwpcGeometrySRC.cxx
-BmnMwpcTrack.cxx
-BmnMwpcTrackFinder.cxx
-BmnMwpc.cxx
-BmnMwpcContFact.cxx
-BmnMwpcGeo.cxx
-BmnMwpcGeoPar.cxx
-BmnMwpcPoint.cxx
+ BmnMwpcHitProducer.cxx
+ BmnMwpcHitFinder.cxx
+ BmnMwpcGeometry.cxx
+ BmnMwpcGeometrySRC.cxx
+ BmnMwpcTrack.cxx
+ BmnMwpcTrackFinder.cxx
+ BmnMwpc.cxx
+ BmnMwpcContFact.cxx
+ BmnMwpcGeo.cxx
+ BmnMwpcGeoPar.cxx
+ BmnMwpcPoint.cxx
 )
 
 Set(HEADERS)

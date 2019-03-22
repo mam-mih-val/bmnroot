@@ -25,59 +25,35 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-UniDbConnection.cxx
-UniDbGeoConverter.cxx
-UniDbGenerateClasses.cxx
-UniDbTangoData.cxx
-UniDbSearchCondition.cxx
-UniDbParser.cxx
+ UniDbConnection.cxx
+ UniDbGeoConverter.cxx
+ UniDbGenerateClasses.cxx
+ UniDbTangoData.cxx
+ UniDbSearchCondition.cxx
+ UniDbParser.cxx
 
-db_classes/UniDbRunPeriod.cxx
-db_classes/UniDbRun.cxx
-db_classes/UniDbRunGeometry.cxx
-db_classes/UniDbDetector.cxx
-db_classes/UniDbParameter.cxx
-db_classes/UniDbDetectorParameter.cxx
-db_classes/UniDbSimulationFile.cxx
+ db_classes/UniDbRunPeriod.cxx
+ db_classes/UniDbRun.cxx
+ db_classes/UniDbRunGeometry.cxx
+ db_classes/UniDbDetector.cxx
+ db_classes/UniDbParameter.cxx
+ db_classes/UniDbDetectorParameter.cxx
+ db_classes/UniDbSimulationFile.cxx
 
-elog_classes/ElogDbPerson.cxx
-elog_classes/ElogDbType.cxx
-elog_classes/ElogDbTrigger.cxx
-elog_classes/ElogDbBeam.cxx
-elog_classes/ElogDbTarget.cxx
-elog_classes/ElogDbRecord.cxx
-elog_classes/ElogDbAttachment.cxx
+ elog_classes/ElogDbPerson.cxx
+ elog_classes/ElogDbType.cxx
+ elog_classes/ElogDbTrigger.cxx
+ elog_classes/ElogDbBeam.cxx
+ elog_classes/ElogDbTarget.cxx
+ elog_classes/ElogDbRecord.cxx
+ elog_classes/ElogDbAttachment.cxx
+
+ db_settings.h
+ # add definitions of the possible database structures and enums
+ db_structures.h
 )
 
-set(HEADERS
-UniDbConnection.h
-UniDbGeoConverter.h
-UniDbGenerateClasses.h
-UniDbTangoData.h
-UniDbSearchCondition.h
-UniDbParser.h
-
-db_settings.h
-# add definitions of the possible database structures and enums
-db_structures.h
-
-db_classes/UniDbRunPeriod.h
-db_classes/UniDbRun.h
-db_classes/UniDbRunGeometry.h
-db_classes/UniDbDetector.h
-db_classes/UniDbParameter.h
-db_classes/UniDbDetectorParameter.h
-db_classes/UniDbSimulationFile.h
-
-elog_classes/ElogDbPerson.h
-elog_classes/ElogDbType.h
-elog_classes/ElogDbTrigger.h
-elog_classes/ElogDbBeam.h
-elog_classes/ElogDbTarget.h
-elog_classes/ElogDbRecord.h
-elog_classes/ElogDbAttachment.h
-)
-
+set(HEADERS)
 Set(LINKDEF UniDbLinkDef.h)
 Set(LIBRARY_NAME UniDb)
 Set(DEPENDENCIES Core Geom Net xml2)

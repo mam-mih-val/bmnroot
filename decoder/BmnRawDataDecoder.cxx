@@ -9,93 +9,9 @@ using namespace std;
 
 class UniDbRun;
 
-BmnRawDataDecoder::BmnRawDataDecoder() {
-    fRunId = 0;
-    fPeriodId = 0;
-    fEventId = 0;
-    fNevents = 0;
-    fMaxEvent = 0;
-    fLengthRawFile = 0;
-    fCurentPositionRawFile = 0;
-    runHeaderDAQ = NULL;
-    eventHeaderDAQ = NULL;
-    runHeader = NULL;
-    eventHeader = NULL;
-    fTime_ns = 0;
-    fTime_s = 0;
-    fT0Time = 0.0;
-    fRawTree = NULL;
-    fDigiTree = NULL;
-    fRootFileIn = NULL;
-    fRootFileOut = NULL;
-    fRawFileIn = NULL;
-    fDigiFileOut = NULL;
-    sync = NULL;
-    tdc = NULL;
-    tqdc_tdc = NULL;
-    tqdc_adc = NULL;
-    hrb = NULL;
-    adc32 = NULL;
-    adc128 = NULL;
-    adc = NULL;
-    tacquila = NULL;
-    msc = NULL;
-    dch = NULL;
-    mwpc = NULL;
-    tof400 = NULL;
-    tof700 = NULL;
-    zdc = NULL;
-    ecal = NULL;
-    gem = NULL;
-    silicon = NULL;
-    land = NULL;
-    fRootFileName = "";
-    fRawFileName = "";
-    fDigiFileName = "";
-    fDchMapFileName = "";
-    fMwpcMapFileName = "";
-    fTrigPlaceMapFileName = "";
-    fTrigChannelMapFileName = "";
-    fGemMapFileName = "";
-    fCscMapFileName = "";
-    fTof400StripMapFileName = "";
-    fTof400PlaceMapFileName = "";
-    fTof700MapFileName = "";
-    fTof700GeomFileName = "";
-    fZDCCalibrationFileName = "";
-    fZDCMapFileName = "";
-    fECALCalibrationFileName = "";
-    fECALMapFileName = "";
-    fLANDMapFileName = "";
-    fLANDClockFileName = "";
-    fLANDTCalFileName = "";
-    fLANDDiffSyncFileName = "";
-    fLANDVScintFileName = "";
-    fDat = 0;
-    fGemMapper = NULL;
-    fCscMapper = NULL;
-    fDchMapper = NULL;
-    fTrigMapper = NULL;
-    fTof400Mapper = NULL;
-    fTof700Mapper = NULL;
-    fZDCMapper = NULL;
-    fECALMapper = NULL;
-    fLANDMapper = NULL;
-    fDataQueue = NULL;
-    fTimeStart_s = 0;
-    fTimeStart_ns = 0;
-    syncCounter = 0;
-    fPedoCounter = 0;
-    fGemMap = NULL;
-    fEvForPedestals = N_EV_FOR_PEDESTALS;
-    fBmnSetup = kBMNSETUP;
-    fT0Map = NULL;
-    tai_utc_dif = 0;
-    InitUTCShift();
-}
-
 BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t period) {
-
+    string confFileName = string(getenv("VMCWORKDIR")) + "/config/bmnconf.json";
+    pt::read_json(confFileName, conf);
     runHeaderDAQ = NULL;
     eventHeaderDAQ = NULL;
     runHeader = NULL;
@@ -134,9 +50,11 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fNevents = 0;
     fMaxEvent = nEvents;
     fPeriodId = period;
-    fRunId = GetRunIdFromFile(fRawFileName);
-    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
-    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
+    if (fRawFileName != ""){
+        fRunId = GetRunIdFromFile(fRawFileName);
+        fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
+        fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
+    }
     fDchMapFileName = "";
     fMwpcMapFileName = "";
     fTrigPlaceMapFileName = "";
@@ -209,12 +127,13 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
                 printf("Wrong data size: %d:  skip this event\n", fDat);
                 fread(data, kWORDSIZE, fDat, fRawFileIn);
             } else {
-
                 //read array of current event data and process them
                 if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) continue;
                 fEventId = data[0];
                 if (fEventId <= 0) continue; // skip bad events
                 ProcessEvent(data, fDat);
+                if( data[0] != (fNevents+1)) // Just a check to see if somehow ProcessEvent messed up our counting
+                    printf(ANSI_COLOR_RED "***Extreme warning, events are not synced: %i, %i***\n" ANSI_COLOR_RESET,  fEventId, fNevents+1);
                 fNevents++;
                 fRawTree->Fill();
             }
@@ -352,37 +271,11 @@ BmnStatus BmnRawDataDecoder::wait_file(Int_t len, UInt_t limit) {
 }
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate(UInt_t *buf, UInt_t len) {
-    //        fRawTree->Clear();
-    //    if (wait_stream(fDataQueue, 2) == kBMNERROR)
-    //        return kBMNTIMEOUT;
-    //    fDat = fDataQueue->front();
-    //    fDataQueue->pop_front();
-    //    if (fDat == kSYNC1) { //search for start of event
-    //        // read number of bytes in event
-    //        fDat = fDataQueue->front();
-    //        fDataQueue->pop_front();
-    //        if (wait_stream(fDataQueue, fDat) == kBMNERROR)
-    //            return kBMNTIMEOUT;
-    //        fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
-    //        if (fDat * kNBYTESINWORD >= 100000) { // what the constant?
-    //            printf("Wrong data size: %d:  skip this event\n", fDat);
-    //            fDataQueue->erase(fDataQueue->begin(), fDataQueue->begin() + fDat * kNBYTESINWORD);
-    //            return kBMNERROR;
-    //        } else {
-    //            //read array of current event data and process them
-    //            if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) return kBMNERROR;
-    //            for (Int_t iByte = 0; iByte < fDat * kNBYTESINWORD; iByte++) {
-    //                data[iByte] = fDataQueue->front();
-    //                fDataQueue->pop_front();
-    //            }
     fEventId = buf[0];
     //            printf("EventID = %d\n", fEventId);
-    if (fEventId <= 0) return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
+    if (fEventId <= 0) return kBMNERROR;
     ProcessEvent(buf, len);
     fNevents++;
-    //                fRawTree->Fill();
-    //        }
-    //    }
     return kBMNSUCCESS;
 }
 
@@ -458,7 +351,6 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     while (idx < len) {
         UInt_t serial = d[idx++];
         UInt_t id = (d[idx] >> 24);
-        //        printf("id %x\n", id);
         UInt_t payload = (d[idx++] & 0xFFFFFF) / kNBYTESINWORD;
         if (payload > 2000000) {
             printf("[WARNING] Event %d:\n serial = 0x%06X\n id = Ox%02X\n payload = %d\n", fEventId, serial, id, payload);
@@ -626,24 +518,28 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
     UInt_t type = 0;
     for (UInt_t i = 0; i < len; i++) {
         type = d[i] >> 28;
+//                printf("type 0x%X\n", type);
         switch (type) {
             case kEVHEADER:
+//                printf("Ev header %d\n",(d[i] & 0xFFFFF));
             case kEVTRAILER:
+//                printf("Ev trailer\n");
             case kSPILLHEADER:
+//                printf("SPILLHEADER  spill type %i\n", ((d[i] >> 26) &0x1));
             case kSPILLTRAILER:
+//                printf("SPILLTRAILER spill type %i\n", ((d[i] >> 26) &0x1));
             case kSTATUS:
             case kPADDING:
                 break;
             case kMODHEADER:
                 modId = (d[i] >> 16) & 0x7F;
                 slot = (d[i] >> 23) & 0x1F;
-                //printf("modid 0x%02X slot %d serial 0x%08X\n", modId, slot, serial);
+//                printf("modid 0x%02X slot %d serial 0x%08X\n", modId, slot, serial);
                 break;
             case kMODTRAILER:
-                //printf("module trailer\n");
-                // Reset module ID and module slot after we see module trailer
+//                printf("module trailer\n");
                 if( !((d[i] >> 16) & 0x1) ) printf(ANSI_COLOR_RED "Readout overflow error\n" ANSI_COLOR_RESET);
-                //if( !((d[i] >> 17) & 0x1) ) printf(ANSI_COLOR_RED "Readout error\n" ANSI_COLOR_RESET);
+                if( !((d[i] >> 17) & 0x1) ) printf(ANSI_COLOR_RED "Readout error\n" ANSI_COLOR_RESET);
                 if( !((d[i] >> 18) & 0x1) ) printf(ANSI_COLOR_RED "TTC error\n" ANSI_COLOR_RESET);
                 if( !((d[i] >> 19) & 0x1) ) printf(ANSI_COLOR_RED "Access error\n" ANSI_COLOR_RESET);
                 modId = 0x00;
@@ -828,10 +724,10 @@ BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t s
 
 BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {
     UInt_t type = d[idx] >> 28;
-    while (type != kMODTRAILER) { //data will be finished when module trailer appears 
+    while (type != kMODTRAILER) { //data will be finished when module trailer appears
         if (type == 6){
-            fprintf(stderr, ANSI_COLOR_RED "ERROR: TDC (serial 0x%08X slot %d) error code: 0x%04X\n" ANSI_COLOR_RESET,
-                    serial, slot, (d[idx] & ((1<<16) - 1)));
+            fprintf(stderr, ANSI_COLOR_RED "ERROR: TDC (modID 0x%02X serial 0x%08X slot %d tdcID %d) error code: 0x%04X\n" ANSI_COLOR_RESET,
+                    modId, serial, slot, ((d[idx] >> 24) & 0xF), d[idx]);//(d[idx] & ((1<<15) - 1)));
             if( ((d[idx] >>12) & 0x1) || ((d[idx] >> 13) & 0x1)){
                 fprintf(stderr, ANSI_COLOR_RED "ERROR: Critical TDC error thrown\n" ANSI_COLOR_RESET);
                 return kBMNERROR;
@@ -862,8 +758,8 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
     Bool_t inADC = kFALSE;
     while (type != kMODTRAILER) {
 	if (type == 6){
-            fprintf(stderr, ANSI_COLOR_RED "ERROR: TDC (serial 0x%08X slot %d) error code: 0x%04X\n" ANSI_COLOR_RESET,
-                    serial, slot, (d[idx] & ((1<<16) - 1)));
+            fprintf(stderr, ANSI_COLOR_RED "ERROR: TDC (serial 0x%08X slot %d tdcID %d) error code: 0x%04X\n" ANSI_COLOR_RESET,
+                    serial, slot, ((d[idx] >> 24) & ((1<<4) - 1)), (d[idx] & ((1<<15) - 1)));
 		if( ((d[idx] >>12) & 0x1) || ((d[idx] >> 13) & 0x1)){
 			fprintf(stderr,  ANSI_COLOR_RED "ERROR: Critical TQDC error thrown\n" ANSI_COLOR_RESET);
 			return kBMNERROR;
@@ -1111,7 +1007,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         }
         fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
-        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, isTripEvent, headDAQ->GetTrigInfo(), fTimeShifts);
+        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), TTimeStamp(time_t(fTime_s), fTime_ns), curEventType, isTripEvent, headDAQ->GetTrigInfo(), fTimeShifts);
         BmnEventHeader* evHdr = (BmnEventHeader*) eventHeader->At(eventHeader->GetEntriesFast() - 1);
         evHdr->SetStartSignalInfo(fT0Time, fT0Width);
         if (curEventType == kBMNPEDESTAL) {
@@ -1167,7 +1063,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 BmnStatus BmnRawDataDecoder::InitDecoder() {
 
     //    fDigiFileOut = new TFile(fDigiFileName, "recreate");
-    fDigiTree = new TTree("cbmsim", "bmn_digit");
+    fDigiTree = new TTree(
+            conf.get<string>("Digi.TreeName").c_str(),
+            conf.get<string>("Digi.TreeTitle").c_str());
 
     eventHeader = new TClonesArray("BmnEventHeader");
     runHeader = new BmnRunHeader();
@@ -1335,7 +1233,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
         if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
     }
-    new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), fCurEventType, kFALSE, headDAQ->GetTrigInfo());
+    new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), TTimeStamp(time_t(fTime_s), fTime_ns), fCurEventType, kFALSE, headDAQ->GetTrigInfo());
     //        fDigiTree->Fill();
     fPrevEventType = fCurEventType;
 
@@ -1374,23 +1272,6 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
     printf("\nRawData File %s;\nLength RawData - %lld bytes (%.3f Mb)\n", fRawFileName.Data(), fLengthRawFile, fLengthRawFile / 1024. / 1024.);
     fRawTree->Reset();
     fDigiTree->Reset();
-    //    fDigiTree->Branch("EventHeader", &eventHeader);
-    //    //fDigiTree->Branch("RunHeader", &runHeader);
-    //    fDigiTree->Branch("T0", &t0);
-    //    fDigiTree->Branch("BC1", &bc1);
-    //    fDigiTree->Branch("BC2", &bc2);
-    //    fDigiTree->Branch("VETO", &veto);
-    //    fDigiTree->Branch("FD", &fd);
-    //    fDigiTree->Branch("BD", &bd);
-    //    fDigiTree->Branch("DCH", &dch);
-    //    fDigiTree->Branch("GEM", &gem);
-    //    fDigiTree->Branch("TOF400", &tof400);
-    //    fDigiTree->Branch("TOF700", &tof700);
-    //    fDigiTree->Branch("ZDC", &zdc);
-    //    fDigiTree->Branch("ECAL", &ecal);
-    //    fRunId = GetRunIdFromFile(fRawFileName);
-    //    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
-    //    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
 }
 
 BmnStatus BmnRawDataDecoder::DisposeDecoder() {
@@ -1442,8 +1323,10 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
         BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
         if (syncDig->GetSerial() == fT0Map->serial) {
             t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
+            fTime_s = syncDig->GetTime_sec();
+            fTime_ns = syncDig->GetTime_ns();
             if (fEventId == 1)
-                fRunStartTime = TTimeStamp(time_t(syncDig->GetTime_sec()), syncDig->GetTime_ns());
+                fRunStartTime = TTimeStamp(time_t(fTime_s), fTime_ns);
             break;
         }
     }

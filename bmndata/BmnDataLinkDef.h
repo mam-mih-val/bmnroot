@@ -57,7 +57,6 @@
 #pragma link C++ class BmnTof2Digit+;
 #pragma link C++ class BmnTrigDigit+;
 #pragma link C++ class BmnDchDigit+;
-#pragma link C++ class BmnEcalDigit+;
 #pragma link C++ class BmnZDCDigit+;
 #pragma link C++ class BmnECALDigit+;
 #pragma link C++ class BmnLANDDigit+;
@@ -106,5 +105,7 @@
 #pragma link C++ class BmnTrigInfo+;
 
 #pragma link C++ class BmnSiliconHit+;
+#pragma link C++ class BmnKalmanFilter+;
 
+// #pragma link C++ class BmnVertex+;
 #endif

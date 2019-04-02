@@ -30,6 +30,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF SteeringLinkDef.h)
 Set(LIBRARY_NAME BmnSteering)
-#Set(DEPENDENCIES Core Base Mwpc)
+Set(DEPENDENCIES Core Base)
 
 GENERATE_LIBRARY()

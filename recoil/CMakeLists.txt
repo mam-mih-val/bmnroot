@@ -1,7 +1,4 @@
-
-# Create a library called "libRecoil" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libRecoil" which includes the source files given in the array
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
@@ -27,11 +24,11 @@ Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnRecoil.cxx 
-BmnRecoilPoint.cxx  
-BmnRecoilContFact.cxx  
-BmnRecoilGeo.cxx 
-BmnRecoilGeoPar.cxx
+ BmnRecoil.cxx
+ BmnRecoilPoint.cxx
+ BmnRecoilContFact.cxx
+ BmnRecoilGeo.cxx
+ BmnRecoilGeoPar.cxx
 )
 
 Set(HEADERS)

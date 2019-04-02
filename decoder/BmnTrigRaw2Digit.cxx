@@ -258,7 +258,7 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
         BmnTrigParameters * par = plIter->second;
         UShort_t rChannel = tdcDig->GetHptdcId() * kNCHANNELS + tdcDig->GetChannel();
         Double_t time = (tdcDig->GetValue() + par->INL[rChannel][tdcDig->GetValue() % TDC_BIN_COUNT]) * TDC_CLOCK / TDC_BIN_COUNT;
-//        printf("\tCrateSeral %08X slot %02u channel %02u  time %+2.2f  leading %d neg%d\n", tdcDig->GetSerial(), tdcDig->GetSlot(), rChannel, time, tdcDig->GetLeading(),par->NegativeMap[rChannel]);
+//        printf("\tCrateSeral %08X slot %02u channel %02u  time %+2.2f  leading %d neg %d\n", tdcDig->GetSerial(), tdcDig->GetSlot(), rChannel, time, tdcDig->GetLeading(),par->NegativeMap[rChannel]);
         if (tdcDig->GetLeading() ^ par->NegativeMap[rChannel]) {
             par->t[rChannel] = time;
         } else {

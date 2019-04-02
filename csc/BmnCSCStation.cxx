@@ -283,7 +283,8 @@ BmnCSCLayer BmnCSCStation::ParseLayer(TXMLNode *node, Int_t iLayer, Int_t iModul
     Double_t pitch;
     Double_t xsize, ysize, xorig, yorig;
     StripNumberingDirection strip_direction;
-    StripBorderPoint left_border, right_border;
+    Double_t lx_border, ly_border; //left border
+    Double_t rx_border, ry_border; //right border
 
     if( node->HasAttributes() ) {
         TList *attrList = node->GetAttributes();
@@ -328,21 +329,17 @@ BmnCSCLayer BmnCSCStation::ParseLayer(TXMLNode *node, Int_t iLayer, Int_t iModul
                     strip_direction = RightToLeft;
                 }
             }
-            if( strcmp(attr->GetName(), "lborder") == 0 ) {
-                if( strcmp(attr->GetValue(), "LeftTop") == 0 ) {
-                    left_border = LeftTop;
-                }
-                if( strcmp(attr->GetValue(), "LeftBottom") == 0 ) {
-                    left_border = LeftBottom;
-                }
+            if( strcmp(attr->GetName(), "lxborder") == 0 ) {
+                lx_border = -atof(attr->GetValue()); //inverted
             }
-            if( strcmp(attr->GetName(), "rborder") == 0 ) {
-                if( strcmp(attr->GetValue(), "RightTop") == 0 ) {
-                    right_border = RightTop;
-                }
-                if( strcmp(attr->GetValue(), "RightBottom") == 0 ) {
-                    right_border = RightBottom;
-                }
+            if( strcmp(attr->GetName(), "lyborder") == 0 ) {
+                ly_border = atof(attr->GetValue());
+            }
+            if( strcmp(attr->GetName(), "rxborder") == 0 ) {
+                rx_border = -atof(attr->GetValue()); //inverted
+            }
+            if( strcmp(attr->GetName(), "ryborder") == 0 ) {
+                ry_border = atof(attr->GetValue());
             }
         }
     }
@@ -353,7 +350,11 @@ BmnCSCLayer BmnCSCStation::ParseLayer(TXMLNode *node, Int_t iLayer, Int_t iModul
                       pitch, adeg);
 
     layer.SetStripNumberingOrder(strip_direction);
-    layer.SetStripNumberingBorders(left_border, right_border);
+    
+    layer.SetStripNumberingBorders(XShiftOfModules[iModule]+XPosition+lx_border,
+                                   YShiftOfModules[iModule]+YPosition+ly_border,
+                                   XShiftOfModules[iModule]+XPosition+rx_border,
+                                   YShiftOfModules[iModule]+YPosition+ry_border);
 
     //Dead zones
     node = node->GetChildren();

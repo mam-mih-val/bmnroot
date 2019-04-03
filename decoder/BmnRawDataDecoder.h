@@ -47,6 +47,8 @@
 #include <UniDbDetectorParameter.h>
 #include <UniDbRun.h>
 #include "UniDbTangoData.h"
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 /***************** SET OF DAQ CONSTANTS *****************/
 const UInt_t kSYNC1 = 0x2A502A50;
@@ -97,11 +99,11 @@ const UInt_t kTRIGMINBIAS = 1;
 // wait limit for input data (ms)
 #define WAIT_LIMIT 40000000
 using namespace std;
+namespace pt = boost::property_tree;
 
 class BmnRawDataDecoder {
 public:
-    BmnRawDataDecoder(TString file, ULong_t nEvents = 0, ULong_t period = 4);
-    BmnRawDataDecoder();
+    BmnRawDataDecoder(TString file = "", ULong_t nEvents = 0, ULong_t period = 4);
     virtual ~BmnRawDataDecoder();
 
     BmnStatus ConvertRawToRoot();
@@ -330,6 +332,7 @@ private:
 
     //9 bits correspond to detectors which we need to decode
     Bool_t fDetectorSetup[11];
+    pt::ptree conf;
 
 
     Int_t fTOF700ReferenceRun;
@@ -482,6 +485,7 @@ private:
     int type_tof700_slewing[60];
 
     BmnStatus InitUTCShift();
+    Int_t GetUTCShift(TTimeStamp t);
     BmnStatus GetT0Info(Double_t& t0time, Double_t &t0width);
     BmnStatus ProcessEvent(UInt_t *data, UInt_t len);
     BmnStatus Process_ADC64VE(UInt_t *data, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr);

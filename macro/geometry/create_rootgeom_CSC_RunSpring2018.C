@@ -23,14 +23,14 @@ const Double_t YStationPositions[NStations] = { 2.20575 }; //geometry center
 const Double_t ZStationPositions[NStations] = { 411.57 }; //outer side nearest to the target
 
 //(X-Y-Z)Shifts of modules in each station
-const Double_t XModuleShifts[NStations][NMaxModules] = {
+const Double_t XModuleShifts[NStations][NMaxModules] = { //centers of gas volume
     {0.0, 0.0}
 };
-const Double_t YModuleShifts[NStations][NMaxModules] = {
-    {0.0, 0.0}
+const Double_t YModuleShifts[NStations][NMaxModules] = { //centers of gas volume
+    {27.1875, -27.1875}
 };
-const Double_t ZModuleShifts[NStations][NMaxModules] = {
-    {0.0, 0.0}
+const Double_t ZModuleShifts[NStations][NMaxModules] = { //distances from st.side to mod.side
+    {1.25, 1.25}
 };
 
 //Sizes of elements (cm) -------------------------------------------------------
@@ -167,25 +167,20 @@ void create_rootgeom_CSC_RunSpring2018() {
         TGeoVolume *module1 = CreateModule(TString("module1_")+station->GetName());
 
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
-            module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0] + 0.5*(YGasSize+dYFrameSize), ZModuleShifts[stationNum][0]);
+            module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0] + 0.5*dYFrameSize, ZModuleShifts[stationNum][0]+0.5*ZGasSize);
 
         TGeoCombiTrans *module1_transform = new TGeoCombiTrans();
             module1_transform->RotateX(180);
-            module1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1] - 0.5*(YGasSize+dYFrameSize), ZModuleShifts[stationNum][1]);
-
+            module1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1] - 0.5*dYFrameSize, ZModuleShifts[stationNum][1]+0.5*ZGasSize);
 
         TGeoCombiTrans *station_transform = new TGeoCombiTrans();
-        station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum] + (0.5*ZGasSize+2.0*dZFiberglassPanel+dZHoneycombPanel));
-
+        station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
 
         station->AddNode(module0, 0, new TGeoCombiTrans(*module0_transform));
         station->AddNode(module1, 0, new TGeoCombiTrans(*module1_transform));
 
         CSC->AddNode(station, 0, station_transform);
     }
-
-
-
 
     top->AddNode(CSC, 0);
     top->SetVisContainers(kTRUE);

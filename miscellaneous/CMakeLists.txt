@@ -12,6 +12,8 @@ ${CMAKE_SOURCE_DIR}/uni_db
 ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 ${CMAKE_SOURCE_DIR}/gem
 ${CMAKE_SOURCE_DIR}/silicon
+${CMAKE_SOURCE_DIR}/miscellaneous/digiQA
+${CMAKE_SOURCE_DIR}/miscellaneous/digiMerge
 ${CMAKE_SOURCE_DIR}/miscellaneous
 )
 
@@ -34,12 +36,16 @@ link_directories(${LINK_DIRECTORIES})
 set(SRCS
 BmnDigiConverter.cxx
 Cbm2BmnHitConverter.cxx
-# BmnDigiMerger.cxx
+#digiQA/BmnGemDigiQa.cxx
+#digiQA/BmnSiliconDigiQa.cxx
+digiMerge/BmnDigiContainer.cxx
+digiMerge/BmnDigiMergeTask.cxx
+#BmnQaOffline.cxx
 )
 
 Set(HEADERS)
 Set(LINKDEF LinkDef.h)
 Set(LIBRARY_NAME BmnMisc)
-Set(DEPENDENCIES Core BmnData Base)
+Set(DEPENDENCIES Core BmnData Gem Silicon Base)
 
 GENERATE_LIBRARY()

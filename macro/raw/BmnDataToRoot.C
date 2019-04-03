@@ -1,14 +1,10 @@
-#include <Rtypes.h>
-R__ADD_INCLUDE_PATH($VMCWORKDIR)
-#include "macro/run/bmnloadlibs.C"
-#include "bmndata/BmnEnums.h"
-        
-//file: full path to raw-file
+//file: full path to raw file
 //nEvents: if 0 then decode all events
 //doConvert: convert RAW --> ROOT before decoding or use file converted before
+void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
+{
+    gSystem->ExpandPathName(file);
 
-void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE) {
-    bmnloadlibs(); // load BmnRoot libraries
     UInt_t period = 7;
     BmnSetup stp = kBMNSETUP; // use kSRCSETUP for Short-Range Correlation program and kBMNSETUP otherwise
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, period);
@@ -16,17 +12,17 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE) {
 
     Bool_t setup[11]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
-    setup[0] = 1; // TRIGGERS
-    setup[1] = 0; // MWPC
-    setup[2] = 1; // SILICON
-    setup[3] = 1; // GEM
-    setup[4] = 0; // TOF-400
-    setup[5] = 0; // TOF-700
-    setup[6] = 0; // DCH
-    setup[7] = 0; // ZDC
-    setup[8] = 0; // ECAL
-    setup[9] = 0; // LAND
-    setup[10] = 0; // CSC
+    setup[0]  = 1; // TRIGGERS
+    setup[1]  = 1; // MWPC
+    setup[2]  = 1; // SILICON
+    setup[3]  = 1; // GEM
+    setup[4]  = 1; // TOF-400
+    setup[5]  = 1; // TOF-700
+    setup[6]  = 1; // DCH
+    setup[7]  = 1; // ZDC
+    setup[8]  = 1; // ECAL
+    setup[9]  = 1; // LAND
+    setup[10] = 1; // CSC
     decoder->SetDetectorSetup(setup);
 
     TString PeriodSetupExt = Form("%d%s.txt", period, ((stp == kBMNSETUP) ? "" : "_SRC"));

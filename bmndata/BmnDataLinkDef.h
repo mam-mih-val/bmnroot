@@ -108,4 +108,7 @@
 #pragma link C++ class BmnKalmanFilter+;
 
 // #pragma link C++ class BmnVertex+;
+
+#pragma link C++ enum BmnSetup;
+
 #endif

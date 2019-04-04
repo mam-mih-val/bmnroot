@@ -7,6 +7,7 @@
 #include "BmnGemStripDigit.h"
 #include "BmnSiliconDigit.h"
 #include "BmnTrigDigit.h"
+#include "BmnTrigWaveDigit.h"
 #include "BmnTof1Digit.h"
 #include "BmnDchDigit.h"
 #include "BmnCscDigit.h"
@@ -46,14 +47,6 @@ public:
     virtual void Exec(Option_t* opt);
     virtual void Finish();
     
-//    void SetDetectors(Bool_t trig, Bool_t gem, Bool_t sil, Bool_t tof400, Bool_t dch) {
-//        isTrig = trig;
-//        isGem = gem;
-//        isSil = sil;    
-//        isTof400 = tof400;
-//        isDch = dch;
-//    }
-
 private:
 
     UInt_t fEventNo;
@@ -115,7 +108,8 @@ private:
     TClonesArray* fBC2Out;
     TClonesArray* fVetoOut;
     
-    // SRC triggers - BC3, BC4, X1L, X2L, Y1L, Y2L, X1R, X2R, Y1R, Y2R
+    // SRC triggers - BC3, BC4, X1L, X2L, Y1L, Y2L, X1R, X2R, Y1R, Y2R 
+    // SRC tqdc triggers - TQDC_BC1, TQDC_BC2, TQDC_BC3, TQDC_BC4, TQDC_VC
     // input
     TString fBC3BranchIn;
     TString fBC4BranchIn;
@@ -126,7 +120,13 @@ private:
     TString fX1RBranchIn;
     TString fX2RBranchIn;
     TString fY1RBranchIn;
-    TString fY2RBranchIn;   
+    TString fY2RBranchIn; 
+    TString fTQDC_BC1BranchIn;
+    TString fTQDC_BC2BranchIn;
+    TString fTQDC_BC3BranchIn;
+    TString fTQDC_BC4BranchIn;
+    TString fTQDC_VCBranchIn;
+    
     // output 
     TString fBC3BranchOut;
     TString fBC4BranchOut;
@@ -137,7 +137,13 @@ private:
     TString fX1RBranchOut;
     TString fX2RBranchOut;
     TString fY1RBranchOut;
-    TString fY2RBranchOut;   
+    TString fY2RBranchOut;
+    TString fTQDC_BC1BranchOut;
+    TString fTQDC_BC2BranchOut;
+    TString fTQDC_BC3BranchOut;
+    TString fTQDC_BC4BranchOut;
+    TString fTQDC_VCBranchOut;
+       
     // arrays for input and output
     TClonesArray* fBC3In;
     TClonesArray* fBC4In;
@@ -148,7 +154,12 @@ private:
     TClonesArray* fX1RIn;
     TClonesArray* fX2RIn;
     TClonesArray* fY1RIn;
-    TClonesArray* fY2RIn;    
+    TClonesArray* fY2RIn; 
+    TClonesArray* fTQDC_BC1In;
+    TClonesArray* fTQDC_BC2In;
+    TClonesArray* fTQDC_BC3In;
+    TClonesArray* fTQDC_BC4In;
+    TClonesArray* fTQDC_VCIn;
     TClonesArray* fBC3Out;
     TClonesArray* fBC4Out;
     TClonesArray* fX1LOut;
@@ -159,6 +170,11 @@ private:
     TClonesArray* fX2ROut;
     TClonesArray* fY1ROut;
     TClonesArray* fY2ROut;
+    TClonesArray* fTQDC_BC1Out;
+    TClonesArray* fTQDC_BC2Out;
+    TClonesArray* fTQDC_BC3Out;
+    TClonesArray* fTQDC_BC4Out;
+    TClonesArray* fTQDC_VCOut;
     
     // BM@N triggers
     // input

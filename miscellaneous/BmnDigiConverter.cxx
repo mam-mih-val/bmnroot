@@ -26,6 +26,11 @@ fX1RIn(nullptr),
 fX2RIn(nullptr),
 fY1RIn(nullptr),
 fY2RIn(nullptr),
+fTQDC_BC1In(nullptr),
+fTQDC_BC2In(nullptr),
+fTQDC_BC3In(nullptr),
+fTQDC_BC4In(nullptr),
+fTQDC_VCIn(nullptr),
 fBC3Out(nullptr),
 fBC4Out(nullptr),
 fX1LOut(nullptr),
@@ -36,6 +41,11 @@ fX1ROut(nullptr),
 fX2ROut(nullptr),
 fY1ROut(nullptr),
 fY2ROut(nullptr),
+fTQDC_BC1Out(nullptr),
+fTQDC_BC2Out(nullptr),
+fTQDC_BC3Out(nullptr),
+fTQDC_BC4Out(nullptr),
+fTQDC_VCOut(nullptr),
 fSiTrigIn(nullptr),
 fBDIn(nullptr),
 fSiTrigOut(nullptr),
@@ -86,6 +96,12 @@ isSRC(kFALSE) {
     fX2RBranchIn = "X2_Right";
     fY1RBranchIn = "Y1_Right";
     fY2RBranchIn = "Y2_Right";
+    fTQDC_BC1BranchIn = "TQDC_BC1";
+    fTQDC_BC2BranchIn = "TQDC_BC2";
+    fTQDC_BC3BranchIn = "TQDC_BC3";
+    fTQDC_BC4BranchIn = "TQDC_BC4";
+    fTQDC_VCBranchIn = "TQDC_VC";
+
     fBC3BranchOut = "BC3";
     fBC4BranchOut = "BC4";
     fX1LBranchOut = "X1L";
@@ -96,6 +112,11 @@ isSRC(kFALSE) {
     fX2RBranchOut = "X2R";
     fY1RBranchOut = "Y1R";
     fY2RBranchOut = "Y2R";
+    fTQDC_BC1BranchOut = "TQDC_BC1";
+    fTQDC_BC2BranchOut = "TQDC_BC2";
+    fTQDC_BC3BranchOut = "TQDC_BC3";
+    fTQDC_BC4BranchOut = "TQDC_BC4";
+    fTQDC_VCBranchOut = "TQDC_VC";
 
     fSiTrigBranchIn = "Si";
     fBDBranchIn = "BD";
@@ -147,6 +168,11 @@ InitStatus BmnDigiConverter::Init() {
     fX2RIn = (TClonesArray*) ioman->GetObject(fX2RBranchIn.Data());
     fY1RIn = (TClonesArray*) ioman->GetObject(fY1RBranchIn.Data());
     fY2RIn = (TClonesArray*) ioman->GetObject(fY2RBranchIn.Data());
+    fTQDC_BC1In = (TClonesArray*) ioman->GetObject(fTQDC_BC1BranchIn.Data());
+    fTQDC_BC2In = (TClonesArray*) ioman->GetObject(fTQDC_BC2BranchIn.Data());
+    fTQDC_BC3In = (TClonesArray*) ioman->GetObject(fTQDC_BC3BranchIn.Data());
+    fTQDC_BC4In = (TClonesArray*) ioman->GetObject(fTQDC_BC4BranchIn.Data());
+    fTQDC_VCIn = (TClonesArray*) ioman->GetObject(fTQDC_VCBranchIn.Data());
 
     fSiTrigIn = (TClonesArray*) ioman->GetObject(fSiTrigBranchIn.Data());
     fBDIn = (TClonesArray*) ioman->GetObject(fBDBranchIn.Data());
@@ -202,6 +228,11 @@ InitStatus BmnDigiConverter::Init() {
         fX2ROut = new TClonesArray("BmnTrigDigit");
         fY1ROut = new TClonesArray("BmnTrigDigit");
         fY2ROut = new TClonesArray("BmnTrigDigit");
+        fTQDC_BC1Out = new TClonesArray("BmnTrigWaveDigit");
+        fTQDC_BC2Out = new TClonesArray("BmnTrigWaveDigit");
+        fTQDC_BC3Out = new TClonesArray("BmnTrigWaveDigit");
+        fTQDC_BC4Out = new TClonesArray("BmnTrigWaveDigit");
+        fTQDC_VCOut = new TClonesArray("BmnTrigWaveDigit");
 
         ioman->Register(fBC3BranchOut.Data(), "BC3_", fBC3Out, isWriteTrig);
         ioman->Register(fBC4BranchOut.Data(), "BC4_", fBC4Out, isWriteTrig);
@@ -213,6 +244,11 @@ InitStatus BmnDigiConverter::Init() {
         ioman->Register(fX2RBranchOut.Data(), "X2R_", fX2ROut, isWriteTrig);
         ioman->Register(fY1RBranchOut.Data(), "Y1R_", fY1ROut, isWriteTrig);
         ioman->Register(fY2RBranchOut.Data(), "Y2R_", fY2ROut, isWriteTrig);
+        ioman->Register(fTQDC_BC1BranchOut.Data(), "TQDC_BC1_", fTQDC_BC1Out, isWriteTrig);
+        ioman->Register(fTQDC_BC2BranchOut.Data(), "TQDC_BC2_", fTQDC_BC2Out, isWriteTrig);
+        ioman->Register(fTQDC_BC3BranchOut.Data(), "TQDC_BC3_", fTQDC_BC3Out, isWriteTrig);
+        ioman->Register(fTQDC_BC4BranchOut.Data(), "TQDC_BC4_", fTQDC_BC4Out, isWriteTrig);
+        ioman->Register(fTQDC_VCBranchOut.Data(), "TQDC_VC_", fTQDC_VCOut, isWriteTrig);
     }
 
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
@@ -275,6 +311,11 @@ InitStatus BmnDigiConverter::Init() {
             fTriggers[fX2RIn] = fX2ROut;
             fTriggers[fY1RIn] = fY1ROut;
             fTriggers[fY2RIn] = fY2ROut;
+            fTriggers[fTQDC_BC1In] = fTQDC_BC1Out;
+            fTriggers[fTQDC_BC2In] = fTQDC_BC2Out;
+            fTriggers[fTQDC_BC3In] = fTQDC_BC3Out;
+            fTriggers[fTQDC_BC4In] = fTQDC_BC4Out;
+            fTriggers[fTQDC_VCIn] = fTQDC_VCOut;
         }
     }
 
@@ -532,9 +573,21 @@ void BmnDigiConverter::ConvertTriggers(map <TClonesArray*, TClonesArray*> trig) 
     for (auto &it : trig) {
         TClonesArray* in = it.first;
         TClonesArray* out = it.second;
+
+        TString arrName = in->GetName();
+        Bool_t isTqdcDig = (arrName.Contains("Wave")) ? kTRUE : kFALSE;
+
         for (UInt_t iDigi = 0; iDigi < in->GetEntriesFast(); iDigi++) {
-            BmnTrigDigit* dig = (BmnTrigDigit*) in->UncheckedAt(iDigi);
-            new((*out)[out->GetEntriesFast()]) BmnTrigDigit(dig->GetMod(), dig->GetTime(), dig->GetAmp());
+            if (isTqdcDig) {
+                BmnTrigWaveDigit* dig = (BmnTrigWaveDigit*) in->UncheckedAt(iDigi);
+                new((*out)[out->GetEntriesFast()]) BmnTrigWaveDigit(dig->GetMod(), dig->GetShortValue(), dig->GetNSamples(), 
+                        dig->GetTrigTimestamp(), dig->GetAdcTimestamp(), dig->GetTime());
+            }
+            
+            else {
+                BmnTrigDigit* dig = (BmnTrigDigit*) in->UncheckedAt(iDigi);
+                new((*out)[out->GetEntriesFast()]) BmnTrigDigit(dig->GetMod(), dig->GetTime(), dig->GetAmp());
+            }
         }
     }
 }

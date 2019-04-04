@@ -17,7 +17,6 @@
 #include "CbmStsDigiPar.h"
 #include "CbmMCTrack.h"
 #include "CbmStsPoint.h"
-#include "BmnSSDHitProducer.h"
 #include "CbmBaseHit.h"
 #include "TDatabasePDG.h"
 #include "TGeoManager.h"
@@ -78,8 +77,8 @@ void BmnMCTrackCreator::AddPoints(DetectorId detId, const TClonesArray* array) {
         if (detId == kSILICON) {
             stationId = fSilDetector->GetPointStationOwnership(fairPoint->GetZ());
         } else if (detId == kSSD) {
-            BmnSSDHitProducer hp;
-            stationId = hp.DefineStationByZ(fairPoint->GetZ(), 0);
+            // BmnSSDHitProducer hp;
+            // stationId = hp.DefineStationByZ(fairPoint->GetZ(), 0);
         } else if (detId == kGEM) {
             stationId = fGemDetector->GetPointStationOwnership(fairPoint->GetZ()) + fNSiliconStations;
         }

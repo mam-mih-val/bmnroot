@@ -42,10 +42,10 @@
 #pragma link C++ struct TriggerMapStructure++;
 #pragma link C++ struct LorentzShiftStructure++;
 // the database enums
-#pragma link C++ enum enumColumns++;
-#pragma link C++ enum enumConditions++;
-#pragma link C++ enum enumParameterType++;
-#pragma link C++ enum UniConnectionType++;
+#pragma link C++ enum enumColumns;
+#pragma link C++ enum enumConditions;
+#pragma link C++ enum enumParameterType;
+#pragma link C++ enum UniConnectionType;
 
 #endif
 

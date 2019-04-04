@@ -12,7 +12,6 @@
 #include "FairRunAna.h"
 #include "FairTrackParam.h"
 #include "BmnGemStripHit.h"
-#include "BmnSSDHitProducer.h"
 #include "BmnKalmanFilter.h"
 #include "BmnCellDuet.h"
 
@@ -21,16 +20,9 @@ static Double_t workTime = 0.0;
 static Double_t createTime = 0.0;
 static Double_t stateTime = 0.0;
 static Double_t connectTime = 0.0;
-static Double_t connectTime1 = 0.0;
-static Double_t connectTime2 = 0.0;
-static Double_t connectTime3 = 0.0;
-static Double_t connectTime01 = 0.0;
-static Double_t connectTime02 = 0.0;
-static Double_t connectTime03 = 0.0;
-static Double_t connectTime001 = 0.0;
-static Double_t connectTime002 = 0.0;
 static Double_t sortTime = 0.0;
-static Double_t refitTime = 0.0;
+static Double_t refitKFTime = 0.0;
+static Double_t refitLineTime = 0.0;
 static Double_t selectTime = 0.0;
 //-----------------------------------------
 
@@ -48,14 +40,14 @@ isSRC(kTRUE) {
         isBMN = kFALSE;
     else
         isSRC = kFALSE;
-    
+
     TString setup = isBMN ? "BMN" : isSRC ? "SRC" : "";
-    
+
     if (steerFile == "")
-        fSteering = new BmnSteering(field ? TString(setup + "_run7_withField.dat") : 
+        fSteering = new BmnSteering(field ? TString(setup + "_run7_withField.dat") :
             TString(setup + "_run7_noField.dat")); // FIXME (should be got from UniDb)
     else
-        fSteering = new BmnSteering(fSteerFile);   
+        fSteering = new BmnSteering(fSteerFile);
     fPeriodId = period;
     fEventNo = 0;
     fIsField = field;
@@ -103,7 +95,7 @@ isSRC(kTRUE) {
         cout << "Setup (BM@N or SRC) not defined correctly!" << endl;
         throw;
     }
-    
+
     Double_t Zp = (isBMN) ? -2.3 : -647.5;
     fRoughVertex = (fPeriodId == 7) ? TVector3(0.5, -4.6, Zp) : (fPeriodId == 6) ? TVector3(0.0, -3.5, -21.9) : TVector3(0.0, 0.0, 0.0);
 }
@@ -112,6 +104,17 @@ BmnCellAutoTracking::~BmnCellAutoTracking() {
     delete fKalman;
     if (fInnerTrackerSetup[kGEM]) delete fGemDetector;
     if (fInnerTrackerSetup[kSILICON]) delete fSilDetector;
+    delete fCellDistCut;
+    delete fHitXCutMin;
+    delete fHitXCutMax;
+    delete fHitYCutMin;
+    delete fHitYCutMax;
+    delete fCellSlopeXZCutMin;
+    delete fCellSlopeXZCutMax;
+    delete fCellSlopeYZCutMin;
+    delete fCellSlopeYZCutMax;
+    delete fCellDiffSlopeXZCut;
+    delete fCellDiffSlopeYZCut;
 }
 
 InitStatus BmnCellAutoTracking::Init() {
@@ -180,8 +183,22 @@ InitStatus BmnCellAutoTracking::Init() {
     Int_t nGemStations = (fInnerTrackerSetup[kGEM]) ? fGemDetector->GetNStations() : 0;
     Int_t nSilStations = (fInnerTrackerSetup[kSILICON]) ? fSilDetector->GetNStations() : 0;
     Int_t nSsdStations = (fInnerTrackerSetup[kSSD]) ? 4 : 0;
-    
+
+    if (isSRC) nGemStations -= 4;
+
     fNStations = nGemStations + nSilStations + nSsdStations;
+
+    fCellDistCut = new Double_t[fNStations];
+    fHitXCutMin = new Double_t[fNStations];
+    fHitXCutMax = new Double_t[fNStations];
+    fHitYCutMin = new Double_t[fNStations];
+    fHitYCutMax = new Double_t[fNStations];
+    fCellSlopeXZCutMin = new Double_t[fNStations];
+    fCellSlopeXZCutMax = new Double_t[fNStations];
+    fCellSlopeYZCutMin = new Double_t[fNStations];
+    fCellSlopeYZCutMax = new Double_t[fNStations];
+    fCellDiffSlopeXZCut = new Double_t[fNStations];
+    fCellDiffSlopeYZCut = new Double_t[fNStations];
 
     if (fVerbose) cout << "======================== GEM tracking init finished ===================" << endl;
 
@@ -230,6 +247,12 @@ void BmnCellAutoTracking::Exec(Option_t* opt) {
     if (fInnerTrackerSetup[kGEM]) {
         for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
             BmnHit hit = *((BmnHit*) fGemHitsArray->At(iHit));
+            //for SRC
+            if (isSRC) {
+                if (hit.GetStation() < 4) continue;
+                hit.SetStation(hit.GetStation() - 4);
+            }
+
             hit.SetStation(hit.GetStation() + nSilStations + nSsdStations); //shift for correct station numbering
             hit.SetIndex(iHit);
             hit.SetDetId(kGEM);
@@ -239,18 +262,18 @@ void BmnCellAutoTracking::Exec(Option_t* opt) {
 
     if (fHitsArray->GetEntriesFast() > nHitsCut || fHitsArray->GetEntriesFast() == 0) return;
 
-    fCellDistCut = new Double_t[fNStations];
-    fHitXCutMin = new Double_t[fNStations];
-    fHitXCutMax = new Double_t[fNStations];
-    fHitYCutMin = new Double_t[fNStations];
-    fHitYCutMax = new Double_t[fNStations];
-    fCellSlopeXZCutMin = new Double_t[fNStations];
-    fCellSlopeXZCutMax = new Double_t[fNStations];
-    fCellSlopeYZCutMin = new Double_t[fNStations];
-    fCellSlopeYZCutMax = new Double_t[fNStations];
+    fNHitsCut = fSteering->GetNHitsCut();
 
-    fCellDiffSlopeXZCut = new Double_t[fNStations];
-    fCellDiffSlopeYZCut = new Double_t[fNStations];
+    //    set<Int_t> usedSt;
+    //    Bool_t isGoodEv = kFALSE;
+    //    for (Int_t iHit = 0; iHit < fHitsArray->GetEntriesFast(); ++iHit) {
+    //        usedSt.insert(((BmnHit*) fHitsArray->At(iHit))->GetStation());
+    //        if (usedSt.size() == fNHitsCut) {
+    //            isGoodEv = kTRUE;
+    //            break;
+    //        }
+    //    }
+    //    if (!isGoodEv) return;
 
     for (Int_t iStat = 0; iStat < fNStations; iStat++) {
         fHitXCutMin[iStat] = fSteering->GetHitXCutMin()[iStat];
@@ -263,8 +286,6 @@ void BmnCellAutoTracking::Exec(Option_t* opt) {
         fCellSlopeYZCutMax[iStat] = fSteering->GetCellSlopeYZCutMax()[iStat];
     }
 
-    fNHitsCut = fSteering->GetNHitsCut();
-
     vector <BmnTrack> candidates;
     vector <BmnTrack> sortedCandidates;
 
@@ -274,56 +295,34 @@ void BmnCellAutoTracking::Exec(Option_t* opt) {
     Double_t diffSlopeYZSlope = fSteering->GetDiffSlopeYZSlope();
     fChiSquareCut = fSteering->GetChiSquareCut();
 
-    const Int_t nIter = fSteering->GetNIter();
+    Int_t iter = 3;
+    vector<BmnCellDuet> cells[fNStations];
 
-    for (Int_t iter = 0; iter < nIter; ++iter) {
-
-        vector<BmnCellDuet> cells[fNStations];
-
-        for (Int_t iSt = 0; iSt < fNStations; ++iSt) {
-            fCellDiffSlopeXZCut[iSt] = diffSlopeXZ0 + iter * diffSlopeXZSlope;
-            fCellDiffSlopeYZCut[iSt] = diffSlopeYZ0 + iter * diffSlopeYZSlope;
-        }
-
-        fCellDiffSlopeXZCutMax = 0.4 + 0.4 * iter;
-        fCellDiffSlopeXZCutMin = 0.0 + 0.4 * iter;
-
-        clock_t t0 = clock();
-        CellsCreation(cells);
-        //        printf("n cells[0] = %d\n", cells[0].size());
-        //        printf("n cells[1] = %d\n", cells[1].size());
-        //        printf("n cells[2] = %d\n", cells[2].size());
-        //        printf("n cells[3] = %d\n", cells[3].size());
-        //        printf("n cells[4] = %d\n", cells[4].size());
-        //        printf("n cells[5] = %d\n", cells[5].size());
-        //        printf("n cells[6] = %d\n", cells[6].size());
-        //        printf("n cells[7] = %d\n", cells[7].size());
-        //        printf("n cells[8] = %d\n", cells[8].size());
-        clock_t t1 = clock();
-        // StateCalculation(cells);
-        clock_t t2 = clock();
-        CellsConnection(cells, candidates);
-        clock_t t3 = clock();
-        if (fIsField) TrackUpdateByKalman(candidates);
-        else TrackUpdateByLine(candidates);
-        clock_t t4 = clock();
-
-        createTime += ((Double_t) (t1 - t0)) / CLOCKS_PER_SEC;
-        stateTime += ((Double_t) (t2 - t1)) / CLOCKS_PER_SEC;
-        connectTime += ((Double_t) (t3 - t2)) / CLOCKS_PER_SEC;
-        refitTime += ((Double_t) (t4 - t3)) / CLOCKS_PER_SEC;
+    for (Int_t iSt = 0; iSt < fNStations; ++iSt) {
+        vector<BmnCellDuet>().swap(cells[iSt]); //just for real clearing!
+        fCellDiffSlopeXZCut[iSt] = diffSlopeXZ0; // + iter * diffSlopeXZSlope;
+        fCellDiffSlopeYZCut[iSt] = diffSlopeYZ0; // + iter * diffSlopeYZSlope;
     }
 
-    clock_t t5 = clock();
+    CellsCreation(cells);
+    //    for (Int_t iSt = 0; iSt < fNStations; ++iSt) {
+    //        printf("cells[%d].size() = %d\n", iSt, cells[iSt].size());
+    //    }
+    // StateCalculation(cells);
+
+    CellsConnection(cells, candidates);
+    if (fIsField) TrackUpdateByKalman(candidates);
+    else TrackUpdateByLine(candidates);
+    //    TrackUpdateByKalman(candidates);
+
     SortTracks(candidates, sortedCandidates);
-    clock_t t6 = clock();
     TrackSelection(sortedCandidates);
-    clock_t t7 = clock();
 
-    //DrawHits();
+    vector<BmnTrack>().swap(candidates);
+    vector<BmnTrack>().swap(sortedCandidates);
 
-    sortTime += ((Double_t) (t6 - t5)) / CLOCKS_PER_SEC;
-    selectTime += ((Double_t) (t7 - t6)) / CLOCKS_PER_SEC;
+    //    DrawHits();
+
     clock_t tFinish = clock();
     if (fVerbose) cout << "GEM_TRACKING: Number of found tracks: " << fGlobTracksArray->GetEntriesFast() << endl;
 
@@ -334,10 +333,11 @@ void BmnCellAutoTracking::Exec(Option_t* opt) {
 }
 
 BmnStatus BmnCellAutoTracking::SortTracks(vector<BmnTrack>& inTracks, vector<BmnTrack>& sortedTracks) {
-    Int_t nActiveStats = isBMN ? fNStations : (fNStations - 4); // Arms in SRC are excluded from tracking procedure
-    const Int_t n = nActiveStats - fNHitsCut + 1; //6 for geometry 2018 (4, 5, 6, 7, 8, 9)
+    clock_t t0 = clock();
+    const Int_t n = fNStations - fNHitsCut + 1; //6 for geometry 2018 (4, 5, 6, 7, 8, 9)
     multimap <Float_t, Int_t> sortedMap[n]; // array of map<Chi2,trIdx>. Each element of array corresponds fixed number of hits on track (4, 5, 6)
     for (Int_t iTr = 0; iTr < inTracks.size(); ++iTr) {
+        if (inTracks.at(iTr).GetFlag() == -1) continue;
         if (inTracks.at(iTr).GetNHits() < fNHitsCut) continue;
         if (inTracks.at(iTr).GetChi2() / inTracks.at(iTr).GetNDF() > fChiSquareCut) continue;
         sortedMap[inTracks.at(iTr).GetNHits() - fNHitsCut].insert(pair<Float_t, Int_t>(inTracks.at(iTr).GetChi2() / inTracks.at(iTr).GetNDF(), iTr));
@@ -348,13 +348,8 @@ BmnStatus BmnCellAutoTracking::SortTracks(vector<BmnTrack>& inTracks, vector<Bmn
             sortedTracks.push_back(inTracks.at(it.second));
         sortedMap[i].clear();
     }
-
-    //    multimap <Float_t, Int_t> sortedTracksMap; //map<Chi2,trIdx>
-    //    for (Int_t iTr = 0; iTr < inTracks.size(); ++iTr)
-    //        sortedTracksMap.insert(pair<Float_t, Int_t>(inTracks.at(iTr).GetChi2() / inTracks.at(iTr).GetNDF(), iTr));
-    //
-    //    for (auto it : sortedTracksMap)
-    //        sortedTracks.push_back(inTracks.at(it.second));
+    clock_t t1 = clock();
+    sortTime += ((Double_t) (t1 - t0)) / CLOCKS_PER_SEC;
 }
 
 void BmnCellAutoTracking::Finish() {
@@ -362,23 +357,17 @@ void BmnCellAutoTracking::Finish() {
     outFile.open("QA/timing.txt");
     outFile << "Track Finder Time: " << workTime << endl;
     cout << "Cells creation time: " << createTime << endl;
-    cout << "States calculation time: " << stateTime << endl;
+    //cout << "States calculation time: " << stateTime << endl;
     cout << "Cells connection time: " << connectTime << endl;
-    cout << "connectTime01: " << connectTime01 << endl;
-    cout << "connectTime02: " << connectTime02 << endl;
-    cout << "connectTime03: " << connectTime03 << endl;
-    cout << "connectTime001: " << connectTime001 << endl;
-    cout << "connectTime002: " << connectTime002 << endl;
-    cout << "connectTime1: " << connectTime1 << endl;
-    cout << "connectTime2: " << connectTime2 << endl;
-    cout << "Tracks refit time: " << refitTime << endl;
+    cout << "Tracks refit by KF time: " << refitKFTime << endl;
+    cout << "Tracks refit by Line time: " << refitLineTime << endl;
     cout << "Tracks sorting time: " << sortTime << endl;
     cout << "Tracks selection time: " << selectTime << endl;
     cout << "Full work time of the GEM tracking: " << workTime << endl;
 }
 
 BmnStatus BmnCellAutoTracking::CellsCreation(vector<BmnCellDuet>* cells) {
-
+    clock_t t0 = clock();
     vector<Int_t> hitsOnStation[fNStations];
 
     for (Int_t iHit = 0; iHit < fHitsArray->GetEntriesFast(); ++iHit) {
@@ -386,12 +375,14 @@ BmnStatus BmnCellAutoTracking::CellsCreation(vector<BmnCellDuet>* cells) {
         if (!hit) continue;
         if (hit->IsUsed()) continue;
         Int_t station = hit->GetStation();
-        if (isSRC && station < 4) // FIXME
-            continue;
         if (hit->GetX() > fHitXCutMax[station] || hit->GetX() < fHitXCutMin[station]) continue;
         if (hit->GetY() > fHitYCutMax[station] || hit->GetY() < fHitYCutMin[station]) continue;
         hitsOnStation[station].push_back(iHit);
     }
+
+    //    for (Int_t iSt = 0; iSt < fNStations; ++iSt) {
+    //        printf("hitsOnStation[%d].size() = %d\n", iSt, hitsOnStation[iSt].size());
+    //    }
 
     //loop for virtual duets
     for (Int_t iHit = 0; iHit < hitsOnStation[0].size(); ++iHit) {
@@ -447,7 +438,8 @@ BmnStatus BmnCellAutoTracking::CellsCreation(vector<BmnCellDuet>* cells) {
                 cells[iSt].push_back(duet);
             }
         }
-
+    clock_t t1 = clock();
+    createTime += ((Double_t) (t1 - t0)) / CLOCKS_PER_SEC;
     return kBMNSUCCESS;
 }
 
@@ -481,189 +473,115 @@ BmnStatus BmnCellAutoTracking::StateCalculation(vector<BmnCellDuet>* cells) {
     //        }
 }
 
-//BmnStatus BmnCellAutoTracking::CellsConnection(vector<BmnCellDuet>* cells, vector<BmnTrack>& cands) {
-//    for (Int_t maxCell = fNStations - 1; maxCell > 0; maxCell--) {
-//
-//        BmnCellDuet curDuet;
-//        if (cells[maxCell].size() > fCellsCut)
-//            continue;
-//        for (BmnCellDuet &duet : cells[maxCell]) {
-//
-//            //            if (duet.GetOldState() != maxCell) continue; //FIXME: do we need this condition???
-//            BmnTrack trackCand;
-//            if (duet.GetFirstIdx() == -1) continue; // skip virtual duet
-//            trackCand.AddHit(duet.GetFirstIdx(), (BmnHit*) fHitsArray->At(duet.GetFirstIdx()));
-//            trackCand.AddHit(duet.GetLastIdx(), (BmnHit*) fHitsArray->At(duet.GetLastIdx()));
-//            trackCand.SortHits();
-//            curDuet = duet;
-//            for (Int_t iCellLeft = maxCell - 1; iCellLeft >= 0; iCellLeft--) {
-//                BmnCellDuet* minLeft = NULL;
-//                Double_t minSlopeDiff = 1e10;
-//                for (BmnCellDuet &itLeft : cells[iCellLeft]) {
-//                    //if (itLeft.GetOldState() != iCellLeft) continue; //FIXME! Maybe it is better not to use this cut?
-//                    if (curDuet.GetFirstIdx() != itLeft.GetLastIdx()) continue;
-//                    Double_t slopeDiffYZ = Abs(curDuet.GetSlopeYZ() - itLeft.GetSlopeYZ());
-//                    Double_t slopeDiffXZ = Abs(curDuet.GetSlopeXZ() - itLeft.GetSlopeXZ());
-//                    if (slopeDiffYZ < minSlopeDiff && slopeDiffYZ < fCellDiffSlopeYZCut[iCellLeft] && slopeDiffXZ < fCellDiffSlopeXZCut[iCellLeft]) { //FIXME!!! which slope to use???
-//                        minSlopeDiff = slopeDiffYZ;
-//                        minLeft = &itLeft;
-//                    }
-//                }
-//                if (minLeft != NULL) {
-//                    if (minLeft->GetFirstIdx() == -1) continue; // skip virtual duet
-//                    trackCand.AddHit(minLeft->GetFirstIdx(), (BmnHit*) fHitsArray->At(minLeft->GetFirstIdx()));
-//                    curDuet = *minLeft;
-//                    trackCand.SortHits();
-//                }
-//            }
-//
-//            if (CalculateTrackParams(&trackCand) == kBMNERROR) continue;
-//            if (IsParCorrect(trackCand.GetParamFirst(), fIsField) && IsParCorrect(trackCand.GetParamLast(), fIsField))
-//                cands.push_back(trackCand);
-//        }
-//    }
-//}
-
 BmnStatus BmnCellAutoTracking::CellsConnection(vector<BmnCellDuet>* cells, vector<BmnTrack>& cands) {
-    clock_t t1 = clock();
+    clock_t t0 = clock();
     vector<BmnTrack> candsIn;
     for (Int_t startSt = fNStations - 1; startSt >= fNHitsCut; startSt--) {
-        clock_t t01 = clock();
         for (BmnCellDuet &duet : cells[startSt]) {
             BmnTrack trackCand;
             trackCand.AddHit(duet.GetFirstIdx(), (BmnHit*) fHitsArray->At(duet.GetFirstIdx()));
             trackCand.AddHit(duet.GetLastIdx(), (BmnHit*) fHitsArray->At(duet.GetLastIdx()));
+//            ((BmnHit*) fHitsArray->At(duet.GetFirstIdx()))->SetUsing(kTRUE);
+//            ((BmnHit*) fHitsArray->At(duet.GetLastIdx()))->SetUsing(kTRUE);
             trackCand.SortHits();
             trackCand.GetParamFirst()->SetTx(duet.GetSlopeXZ());
             trackCand.GetParamFirst()->SetTy(duet.GetSlopeYZ());
             candsIn.push_back(trackCand);
         }
-        clock_t t02 = clock();
         for (Int_t iSt = startSt - 1; iSt > 0; iSt--) {
-            clock_t t001 = clock();
-            //            vector<BmnTrack> candsOut;
             CellToCandConnection(cells[iSt], candsIn);
-            //            CellToCandConnection(cells[iSt], candsIn, candsOut);
-            clock_t t002 = clock();
-            //            vector<BmnTrack>().swap(candsIn); //just for real clearing!
-            //clock_t t003 = clock();
-            //            for (BmnTrack &c : candsOut) candsIn.push_back(c);
-            //            vector<BmnTrack>().swap(candsOut); //just for real clearing!
-            connectTime001 += ((Double_t) (t002 - t001)) / CLOCKS_PER_SEC;
-            //connectTime002 += ((Double_t) (t003 - t002)) / CLOCKS_PER_SEC;
+            //            cout << "candsIn.size() = " << candsIn.size() << endl;
         }
-        clock_t t03 = clock();
         //        printf("candsIn.size() = %d\n", candsIn.size());
         for (BmnTrack &c : candsIn) {
-            if (c.GetNHits() > 3) {
-                Double_t chi2 = 0.0;
-                CircleFit(&c, fHitsArray, chi2); //we need it only to estimate chi^2 to reduce number of candidates
-                //                TrackUpdateByKalman(&c);
-                //                                printf("chi2 = %f\n", chi2);
-                if (chi2 / (c.GetNHits() - 3) > 100000) continue; //check this parameter!!!
+            if (c.GetNHits() < fNHitsCut) {
+//                SetHitsUsing(&c, kFALSE);
+                continue;
             }
-            if (CalculateTrackParams(&c) == kBMNERROR) continue;
-            if (!IsParCorrect(c.GetParamFirst(), fIsField)) continue;
-            if (!IsParCorrect(c.GetParamLast(), fIsField)) continue;
-
+            if (CalculateTrackParams(&c) == kBMNERROR) {
+//                SetHitsUsing(&c, kFALSE);
+                continue;
+            }
+            if (!IsParCorrect(c.GetParamFirst(), fIsField)) {
+//                SetHitsUsing(&c, kFALSE);
+                continue;
+            }
+            if (!IsParCorrect(c.GetParamLast(), fIsField)) {
+//                SetHitsUsing(&c, kFALSE);
+                continue;
+            }
 
             cands.push_back(c);
+            //            cout << "cands.size() = " << cands.size() << endl;
         }
-        clock_t t04 = clock();
-        connectTime01 += ((Double_t) (t02 - t01)) / CLOCKS_PER_SEC;
-        connectTime02 += ((Double_t) (t03 - t02)) / CLOCKS_PER_SEC;
-        connectTime03 += ((Double_t) (t04 - t03)) / CLOCKS_PER_SEC;
-        //        printf("cands.size() = %d\n", cands.size());
+        vector<BmnTrack>().swap(candsIn);
     }
-    clock_t t2 = clock();
-
-    connectTime1 += ((Double_t) (t2 - t1)) / CLOCKS_PER_SEC;
+    clock_t t1 = clock();
+    connectTime += ((Double_t) (t1 - t0)) / CLOCKS_PER_SEC;
 }
 
-//BmnStatus BmnCellAutoTracking::CellToCandConnection(vector<BmnCellDuet> cells, vector<BmnTrack>& candsIn, vector<BmnTrack>& candsOut) {
-//    clock_t t1 = clock();
+//BmnStatus BmnCellAutoTracking::CellToCandConnection(vector<BmnCellDuet> cells, vector<BmnTrack>& candsIn) {
+//    vector<BmnTrack> candsBranch;
 //    for (BmnTrack &candIn : candsIn) {
-//        Bool_t matched = kFALSE;
-//        //        Int_t candFirstSt = ((BmnHit*) fHitsArray->At(candIn.GetHitIndex(0)))->GetStation();
+//        FairTrackParam* parF = candIn.GetParamFirst();
 //        for (BmnCellDuet &duet : cells) {
-//            //            Int_t duetLastSt = ((BmnHit*) fHitsArray->At(duet.GetLastIdx()))->GetStation();
 //            if (candIn.GetHitIndex(0) == duet.GetLastIdx()) {
-//                //            if (((candFirstSt == duetLastSt) && (candIn.GetHitIndex(0) == duet.GetLastIdx())) || (candFirstSt != duetLastSt)) {
-//                //            if (candIn.GetHitIndex(0) == duet.GetLastIdx()) {
-//                FairTrackParam* parF = candIn.GetParamFirst();
 //                Double_t slopeDiffYZ = Abs(duet.GetSlopeYZ() - parF->GetTy());
 //                Double_t slopeDiffXZ = Abs(duet.GetSlopeXZ() - parF->GetTx());
-//                //                if (slopeDiffXZ < fCellDiffSlopeXZCutMax && slopeDiffXZ > fCellDiffSlopeXZCutMin && slopeDiffYZ < fCellDiffSlopeYZCut[0]) {
 //                if (slopeDiffYZ < fCellDiffSlopeYZCut[0] && slopeDiffXZ < fCellDiffSlopeXZCut[0]) {
-//                    //                if (slopeDiffYZ < fCellDiffSlopeYZCut[0]) {
-//                    BmnTrack candTmp = candIn;
+//                    BmnTrack candTmp(candIn);
 //                    candTmp.AddHit(duet.GetFirstIdx(), (BmnHit*) fHitsArray->At(duet.GetFirstIdx()));
 //                    candTmp.SortHits();
 //                    parF->SetTx(duet.GetSlopeXZ());
 //                    parF->SetTy(duet.GetSlopeYZ());
-//                    candsOut.push_back(candTmp);
-//                    matched = kTRUE;
+//                    candsBranch.push_back(candTmp);
+//                    //                    cout << "candsBranch.size() = " << candsBranch.size() << endl;
 //                }
 //            }
 //        }
-//        //        if (!matched && candIn.GetNHits() >= fNHitsCut) {
-//        if (!matched) {
-//            candsOut.push_back(candIn);
-//        }
 //    }
-//    clock_t t2 = clock();
 //
-//    connectTime2 += ((Double_t) (t2 - t1)) / CLOCKS_PER_SEC;
+//    candsIn.insert(candsIn.end(), candsBranch.begin(), candsBranch.end());
+//    vector<BmnTrack>().swap(candsBranch);
 //}
 
+//from Lytaev
+
 BmnStatus BmnCellAutoTracking::CellToCandConnection(vector<BmnCellDuet> cells, vector<BmnTrack>& candsIn) {
-    clock_t t1 = clock();
-    for (BmnTrack &candIn : candsIn) {
+
+    for (Int_t cnt = 0; cnt < candsIn.size(); cnt++) {
+        BmnTrack candTmp(candsIn.at(cnt));
+
         Bool_t matched = kFALSE;
-        FairTrackParam* parF = candIn.GetParamFirst();
-        //        Int_t candFirstSt = ((BmnHit*) fHitsArray->At(candIn.GetHitIndex(0)))->GetStation();
-        for (BmnCellDuet &duet : cells) {
-            //if (duet.isUsed()) continue; //CHECK IT!!! MAYBE NOT THE BEST IDEA TO USE IT!
-            //            Int_t duetLastSt = ((BmnHit*) fHitsArray->At(duet.GetLastIdx()))->GetStation();
-            if (candIn.GetHitIndex(0) == duet.GetLastIdx()) {
-                //            if (((candFirstSt == duetLastSt) && (candIn.GetHitIndex(0) == duet.GetLastIdx())) || (candFirstSt != duetLastSt)) {
-                //            if (candIn.GetHitIndex(0) == duet.GetLastIdx()) {
+        FairTrackParam* parF = candTmp.GetParamFirst();
+        for (Int_t cnt1 = 0; cnt1 < cells.size(); cnt1++) {
+            BmnCellDuet duet = cells.at(cnt1);
+            if (candTmp.GetHitIndex(0) == duet.GetLastIdx()) {
                 Double_t slopeDiffYZ = Abs(duet.GetSlopeYZ() - parF->GetTy());
                 Double_t slopeDiffXZ = Abs(duet.GetSlopeXZ() - parF->GetTx());
-                //                if (slopeDiffXZ < fCellDiffSlopeXZCutMax && slopeDiffXZ > fCellDiffSlopeXZCutMin && slopeDiffYZ < fCellDiffSlopeYZCut[0]) {
                 if (slopeDiffYZ < fCellDiffSlopeYZCut[0] && slopeDiffXZ < fCellDiffSlopeXZCut[0]) {
-                    //                if (slopeDiffYZ < fCellDiffSlopeYZCut[0]) {
                     if (matched) {
-                        BmnTrack candTmp = candIn;
-                        candTmp.AddHit(duet.GetFirstIdx(), (BmnHit*) fHitsArray->At(duet.GetFirstIdx()));
-                        candTmp.SortHits();
-                        candTmp.GetParamFirst()->SetTx(duet.GetSlopeXZ());
-                        candTmp.GetParamFirst()->SetTy(duet.GetSlopeYZ());
-                        //                        parF->SetTx(duet.GetSlopeXZ());
-                        //                        parF->SetTy(duet.GetSlopeYZ());
-                        candsIn.push_back(candTmp);
+                        BmnTrack candTmp1(candTmp);
+                        candTmp1.AddHit(duet.GetFirstIdx(), (BmnHit*) fHitsArray->At(duet.GetFirstIdx()));
+                        candTmp1.SortHits();
+                        candTmp1.GetParamFirst()->SetTx(duet.GetSlopeXZ());
+                        candTmp1.GetParamFirst()->SetTy(duet.GetSlopeYZ());
+                        candsIn.push_back(candTmp1);
                     } else {
-                        candIn.AddHit(duet.GetFirstIdx(), (BmnHit*) fHitsArray->At(duet.GetFirstIdx()));
-                        candIn.SortHits();
-                        parF->SetTx(duet.GetSlopeXZ());
-                        parF->SetTy(duet.GetSlopeYZ());
+                        candsIn.at(cnt).AddHit(duet.GetFirstIdx(), (BmnHit*) fHitsArray->At(duet.GetFirstIdx()));
+                        candsIn.at(cnt).SortHits();
+                        candsIn.at(cnt).GetParamFirst()->SetTx(duet.GetSlopeXZ());
+                        candsIn.at(cnt).GetParamFirst()->SetTy(duet.GetSlopeYZ());
                         matched = kTRUE;
                     }
-                    //duet.SetUsing(kTRUE);
                 }
             }
         }
-        //        if (!matched && candIn.GetNHits() >= fNHitsCut) {
-        //        if (!matched) {
-        //            candsOut.push_back(candIn);
-        //        }
     }
-    clock_t t2 = clock();
-
-    connectTime2 += ((Double_t) (t2 - t1)) / CLOCKS_PER_SEC;
 }
 
 BmnStatus BmnCellAutoTracking::TrackUpdateByLine(vector <BmnTrack>& cands) {
+    clock_t t0 = clock();
     for (BmnTrack& cand : cands) {
         Double_t Tx = LineFit((BmnTrack*) & cand, fHitsArray, "ZX").X();
         Double_t chiX = LineFit((BmnTrack*) & cand, fHitsArray, "ZX").Z();
@@ -678,11 +596,16 @@ BmnStatus BmnCellAutoTracking::TrackUpdateByLine(vector <BmnTrack>& cands) {
         cand.GetParamLast()->SetTx(Tx);
         cand.GetParamLast()->SetTy(Ty);
     }
+    clock_t t1 = clock();
+    refitLineTime += ((Double_t) (t1 - t0)) / CLOCKS_PER_SEC;
 }
 
 BmnStatus BmnCellAutoTracking::TrackUpdateByKalman(vector<BmnTrack>& cands) {
+    clock_t t0 = clock();
     for (BmnTrack &cand : cands)
         TrackUpdateByKalman(&cand);
+    clock_t t1 = clock();
+    refitKFTime += ((Double_t) (t1 - t0)) / CLOCKS_PER_SEC;
 }
 
 BmnStatus BmnCellAutoTracking::TrackUpdateByKalman(BmnTrack* cand) {
@@ -693,6 +616,10 @@ BmnStatus BmnCellAutoTracking::TrackUpdateByKalman(BmnTrack* cand) {
         Double_t chi = 0.0;
         fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 211, NULL, NULL, fIsField);
         fKalman->Update(&par, hit, chi);
+        if (chi > 1000) {
+            cand->SetFlag(-1);
+            return kBMNERROR;
+        }
     }
     cand->SetParamLast(par);
     for (Int_t iHit = cand->GetNHits() - 1; iHit >= 0; iHit--) {
@@ -700,6 +627,10 @@ BmnStatus BmnCellAutoTracking::TrackUpdateByKalman(BmnTrack* cand) {
         Double_t chi = 0.0;
         fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 211, NULL, NULL, fIsField);
         fKalman->Update(&par, hit, chi);
+        if (chi > 1000) {
+            cand->SetFlag(-1);
+            return kBMNERROR;
+        }
         chiTot += chi;
     }
     cand->SetParamFirst(par);
@@ -707,6 +638,7 @@ BmnStatus BmnCellAutoTracking::TrackUpdateByKalman(BmnTrack* cand) {
 }
 
 BmnStatus BmnCellAutoTracking::TrackSelection(vector<BmnTrack>& sortedTracks) {
+    clock_t t0 = clock();
     CheckSharedHits(sortedTracks);
     for (Int_t iTr = 0; iTr < sortedTracks.size(); ++iTr) {
 
@@ -751,6 +683,8 @@ BmnStatus BmnCellAutoTracking::TrackSelection(vector<BmnTrack>& sortedTracks) {
         SetHitsUsing(&tr, kTRUE);
         if (!fIsTarget && iTr == 0) break;
     }
+    clock_t t1 = clock();
+    selectTime += ((Double_t) (t1 - t0)) / CLOCKS_PER_SEC;
 }
 
 void BmnCellAutoTracking::SetHitsUsing(BmnTrack* tr, Bool_t use) {
@@ -863,6 +797,8 @@ BmnStatus BmnCellAutoTracking::CalculateTrackParams(BmnTrack * tr) {
     const UInt_t nHits = tr->GetNHits();
     if (nHits < fNHitsCut) return kBMNERROR;
     TVector3 lineParZY = LineFit(tr, fHitsArray, "ZY");
+    //    printf("chi2_line = %f   nHits = %d\n", lineParZY.Z(), tr->GetNHits());
+    if (lineParZY.Z() > 1000) return kBMNERROR; // cut for line chi^2
     tr->SetNDF(nHits - (fIsField ? 3 : 2));
     const Double_t B = lineParZY.X(); //angle coefficient for helicoid
 
@@ -1185,85 +1121,85 @@ BmnStatus BmnCellAutoTracking::DrawHits() {
             }
         }
     }
-
-    Int_t nMCtracks = 0;
-    for (Int_t iTr = 0; iTr < fMCTracksArray->GetEntriesFast(); ++iTr) {
-        CbmMCTrack* tr = (CbmMCTrack*) fMCTracksArray->At(iTr);
-        Int_t nPoints = 0; //tr->GetNPoints(kGEM);
-        vector<TLine*> vLineZX;
-        vector<TLine*> vLineZY;
-        Double_t z0 = tr->GetStartZ();
-        Double_t x0 = tr->GetStartX();
-        Double_t y0 = tr->GetStartY();
-        Double_t x1, y1, z1;
-        set<Int_t> vSt;
-        if (fInnerTrackerSetup[kSILICON])
-            for (Int_t i = 0; i < fSilPointsArray->GetEntriesFast(); ++i) {
-                FairMCPoint* pnt = (FairMCPoint*) fSilPointsArray->At(i);
-                if (pnt->GetTrackID() == iTr) {
-                    nPoints++;
-                    z1 = pnt->GetZ();
-                    x1 = pnt->GetX();
-                    y1 = pnt->GetY();
-                    vSt.insert(fSilDetector->GetPointStationOwnership(z1));
-                    vLineZX.push_back(new TLine(z0, x0, z1, x1));
-                    vLineZY.push_back(new TLine(z0, y0, z1, y1));
-                    z0 = z1;
-                    x0 = x1;
-                    y0 = y1;
-                }
-            }
-        if (fInnerTrackerSetup[kSSD])
-            for (Int_t i = 0; i < fSsdPointsArray->GetEntriesFast(); ++i) {
-                FairMCPoint* pnt = (FairMCPoint*) fSsdPointsArray->At(i);
-                if (pnt->GetTrackID() == iTr) {
-                    nPoints++;
-                    z1 = pnt->GetZ();
-                    x1 = pnt->GetX();
-                    y1 = pnt->GetY();
-                    BmnSSDHitProducer hp;
-                    vSt.insert(hp.DefineStationByZ(z1, 2));
-                    vLineZX.push_back(new TLine(z0, x0, z1, x1));
-                    vLineZY.push_back(new TLine(z0, y0, z1, y1));
-                    z0 = z1;
-                    x0 = x1;
-                    y0 = y1;
-                }
-            }
-        if (fInnerTrackerSetup[kGEM])
-            for (Int_t i = 0; i < fGemPointsArray->GetEntriesFast(); ++i) {
-                FairMCPoint* pnt = (FairMCPoint*) fGemPointsArray->At(i);
-                if (pnt->GetTrackID() == iTr) {
-                    nPoints++;
-                    z1 = pnt->GetZ();
-                    x1 = pnt->GetX();
-                    y1 = pnt->GetY();
-                    vSt.insert(fGemDetector->GetPointStationOwnership(z1) + fNSiliconStations);
-                    vLineZX.push_back(new TLine(z0, x0, z1, x1));
-                    vLineZY.push_back(new TLine(z0, y0, z1, y1));
-                    z0 = z1;
-                    x0 = x1;
-                    y0 = y1;
-                }
-            }
-        if (nPoints > 3 && vSt.size() > 3) {
-            nMCtracks++;
-            c->cd(1);
-            for (TLine* it : vLineZX) {
-                it->SetLineColor(kBlue);
-                it->SetLineStyle(9);
-                it->Draw("same");
-            }
-            c->cd(2);
-            for (TLine* it : vLineZY) {
-                it->SetLineColor(kBlue);
-                it->SetLineStyle(9);
-                it->Draw("same");
-            }
-        }
-    }
-
-    printf("NMCTracks = %d   GlobTracks = %d\n", nMCtracks, fGlobTracksArray->GetEntriesFast());
+    //
+    //    Int_t nMCtracks = 0;
+    //    for (Int_t iTr = 0; iTr < fMCTracksArray->GetEntriesFast(); ++iTr) {
+    //        CbmMCTrack* tr = (CbmMCTrack*) fMCTracksArray->At(iTr);
+    //        Int_t nPoints = 0; //tr->GetNPoints(kGEM);
+    //        vector<TLine*> vLineZX;
+    //        vector<TLine*> vLineZY;
+    //        Double_t z0 = tr->GetStartZ();
+    //        Double_t x0 = tr->GetStartX();
+    //        Double_t y0 = tr->GetStartY();
+    //        Double_t x1, y1, z1;
+    //        set<Int_t> vSt;
+    //        if (fInnerTrackerSetup[kSILICON])
+    //            for (Int_t i = 0; i < fSilPointsArray->GetEntriesFast(); ++i) {
+    //                FairMCPoint* pnt = (FairMCPoint*) fSilPointsArray->At(i);
+    //                if (pnt->GetTrackID() == iTr) {
+    //                    nPoints++;
+    //                    z1 = pnt->GetZ();
+    //                    x1 = pnt->GetX();
+    //                    y1 = pnt->GetY();
+    //                    vSt.insert(fSilDetector->GetPointStationOwnership(z1));
+    //                    vLineZX.push_back(new TLine(z0, x0, z1, x1));
+    //                    vLineZY.push_back(new TLine(z0, y0, z1, y1));
+    //                    z0 = z1;
+    //                    x0 = x1;
+    //                    y0 = y1;
+    //                }
+    //            }
+    //        if (fInnerTrackerSetup[kSSD])
+    //            for (Int_t i = 0; i < fSsdPointsArray->GetEntriesFast(); ++i) {
+    //                FairMCPoint* pnt = (FairMCPoint*) fSsdPointsArray->At(i);
+    //                if (pnt->GetTrackID() == iTr) {
+    //                    nPoints++;
+    //                    z1 = pnt->GetZ();
+    //                    x1 = pnt->GetX();
+    //                    y1 = pnt->GetY();
+    //                    BmnSSDHitProducer hp;
+    //                    vSt.insert(hp.DefineStationByZ(z1, 2));
+    //                    vLineZX.push_back(new TLine(z0, x0, z1, x1));
+    //                    vLineZY.push_back(new TLine(z0, y0, z1, y1));
+    //                    z0 = z1;
+    //                    x0 = x1;
+    //                    y0 = y1;
+    //                }
+    //            }
+    //        if (fInnerTrackerSetup[kGEM])
+    //            for (Int_t i = 0; i < fGemPointsArray->GetEntriesFast(); ++i) {
+    //                FairMCPoint* pnt = (FairMCPoint*) fGemPointsArray->At(i);
+    //                if (pnt->GetTrackID() == iTr) {
+    //                    nPoints++;
+    //                    z1 = pnt->GetZ();
+    //                    x1 = pnt->GetX();
+    //                    y1 = pnt->GetY();
+    //                    vSt.insert(fGemDetector->GetPointStationOwnership(z1) + fNSiliconStations);
+    //                    vLineZX.push_back(new TLine(z0, x0, z1, x1));
+    //                    vLineZY.push_back(new TLine(z0, y0, z1, y1));
+    //                    z0 = z1;
+    //                    x0 = x1;
+    //                    y0 = y1;
+    //                }
+    //            }
+    //        if (nPoints > 3 && vSt.size() > 3) {
+    //            nMCtracks++;
+    //            c->cd(1);
+    //            for (TLine* it : vLineZX) {
+    //                it->SetLineColor(kBlue);
+    //                it->SetLineStyle(9);
+    //                it->Draw("same");
+    //            }
+    //            c->cd(2);
+    //            for (TLine* it : vLineZY) {
+    //                it->SetLineColor(kBlue);
+    //                it->SetLineStyle(9);
+    //                it->Draw("same");
+    //            }
+    //        }
+    //    }
+    //
+    //    printf("NMCTracks = %d   GlobTracks = %d\n", nMCtracks, fGlobTracksArray->GetEntriesFast());
 
 
     //    arc->Draw("same");

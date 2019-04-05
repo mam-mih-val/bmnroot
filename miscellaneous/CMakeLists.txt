@@ -11,6 +11,7 @@ ${CMAKE_SOURCE_DIR}/bmnfield
 ${CMAKE_SOURCE_DIR}/uni_db
 ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 ${CMAKE_SOURCE_DIR}/gem
+${CMAKE_SOURCE_DIR}/csc
 ${CMAKE_SOURCE_DIR}/silicon
 ${CMAKE_SOURCE_DIR}/miscellaneous/digiQA
 ${CMAKE_SOURCE_DIR}/miscellaneous/digiMerge
@@ -46,6 +47,6 @@ digiMerge/BmnDigiMergeTask.cxx
 Set(HEADERS)
 Set(LINKDEF LinkDef.h)
 Set(LIBRARY_NAME BmnMisc)
-Set(DEPENDENCIES Core BmnData Gem Silicon Base)
+Set(DEPENDENCIES Core BmnData Gem CSC Silicon Base)
 
 GENERATE_LIBRARY()

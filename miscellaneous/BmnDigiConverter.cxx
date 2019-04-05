@@ -10,6 +10,7 @@ fGemDigitsOut(nullptr),
 fSiDigitsOut(nullptr),
 fTOF400DigitsOut(nullptr),
 fDchDigitsOut(nullptr),
+fCSCDigitsOut(nullptr),
 fBC1In(nullptr),
 fBC2In(nullptr),
 fVetoIn(nullptr),
@@ -59,6 +60,7 @@ isTof700(kTRUE),
 isDch(kTRUE),
 isEcal(kTRUE),
 isZdc(kTRUE),
+isCsc(kTRUE),
 isBMN(kFALSE),
 isSRC(kFALSE) {
     // Set names for all branches available
@@ -78,6 +80,7 @@ isSRC(kFALSE) {
     fTOF700BranchOut = "TOF700";
     fECALBranchOut = "ECAL";
     fZDCBranchOut = "ZDC";
+    fCSCBranchOut = "CSC";
 
     fBC1BranchIn = "BC1";
     fBC2BranchIn = "BC2";
@@ -191,6 +194,7 @@ InitStatus BmnDigiConverter::Init() {
     fTOF700DigitsOut = new TClonesArray("BmnTof2Digit");
     fECALDigitsOut = new TClonesArray("BmnECALDigit");
     fZDCDigitsOut = new TClonesArray("BmnZDCDigit");
+    fCSCDigitsOut = new TClonesArray("BmnCscDigit");
 
     fBC1Out = new TClonesArray("BmnTrigDigit");
     fBC2Out = new TClonesArray("BmnTrigDigit");
@@ -204,6 +208,7 @@ InitStatus BmnDigiConverter::Init() {
     ioman->Register(fTOF700BranchOut.Data(), "TOF700_", fTOF700DigitsOut, isTof700 ? kTRUE : kFALSE);
     ioman->Register(fECALBranchOut.Data(), "ECAL_", fECALDigitsOut, isEcal ? kTRUE : kFALSE);
     ioman->Register(fZDCBranchOut.Data(), "ZDC_", fZDCDigitsOut, isZdc ? kTRUE : kFALSE);
+    ioman->Register(fCSCBranchOut.Data(), "CSC_", fCSCDigitsOut, isCsc ? kTRUE : kFALSE);
 
     ioman->Register(fBC1BranchOut.Data(), "BC1_", fBC1Out, isWriteTrig);
     ioman->Register(fBC2BranchOut.Data(), "BC2_", fBC2Out, isWriteTrig);
@@ -254,6 +259,7 @@ InitStatus BmnDigiConverter::Init() {
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
     TString confSi = isBMN ? "SiliconRunSpring2018.xml" : isSRC ? "SiliconRunSRCSpring2018.xml" : "";
     TString confGem = isBMN ? "GemRunSpring2018.xml" : isSRC ? "GemRunSRCSpring2018.xml" : "";
+    TString confCsc = "CSCRunSpring2018.xml";
 
     // SI
     TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
@@ -262,6 +268,10 @@ InitStatus BmnDigiConverter::Init() {
     // GEM
     TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
     fDetectorGEM = new BmnGemStripStationSet(gPathGemConfig + confGem);
+
+    // CSC
+    TString gPathCscConfig = gPathConfig + "/parameters/csc/XMLConfigs/";
+    fDetectorCSC = new BmnCSCStationSet(gPathCscConfig + confCsc);
 
     Int_t* statsGem = new Int_t[fDetectorGEM->GetNStations()];
     Int_t* statsSil = new Int_t[fDetectorSI->GetNStations()];
@@ -421,6 +431,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
     fTOF700DigitsOut->Delete();
     fECALDigitsOut->Delete();
     fZDCDigitsOut->Delete();
+    fCSCDigitsOut->Delete();
 
     // Clear array with common triggers
     fBC1Out->Delete();
@@ -437,6 +448,47 @@ void BmnDigiConverter::Exec(Option_t* opt) {
     for (auto &it : fTriggers)
         it.second->Delete();
 
+    // CSC
+    if (isCsc && fGemDigitsIn) // NOTE: Csc is written to GEM digi array by BmnGemStripDigit !!!        
+        for (UInt_t iDigi = 0; iDigi < fGemDigitsIn->GetEntriesFast(); iDigi++) {
+            BmnGemStripDigit* cscDig = (BmnGemStripDigit*) fGemDigitsIn->UncheckedAt(iDigi);
+            Int_t stat = cscDig->GetStation();
+
+            if ((isBMN && stat != 8) || (isSRC && stat != 11))
+                continue;
+
+            Int_t strip = cscDig->GetStripNumber() - 1; // strips should be enumerated from zero
+            Double_t signal = cscDig->GetStripSignal();
+
+            // Modules should be permutated! (mod0 <--> mod1)
+            if (cscDig->GetModule() == 0) {
+                cscDig->SetModule(1);
+                // Layers should be permutated in mod0 only
+                if (cscDig->GetStripLayer() == 2)
+                    cscDig->SetStripLayer(0);
+                else if (cscDig->GetStripLayer() == 3)
+                    cscDig->SetStripLayer(1);
+                else if (cscDig->GetStripLayer() == 0)
+                    cscDig->SetStripLayer(2);
+                else if (cscDig->GetStripLayer() == 1)
+                    cscDig->SetStripLayer(3);
+                else {
+                    cout << "Something went wrong!" << endl;
+                    throw;
+                }
+            }
+
+            else if (cscDig->GetModule() == 1)
+                cscDig->SetModule(0);
+
+            else {
+                cout << "Something went wrong!" << endl;
+                throw;
+            }
+
+            new((*fCSCDigitsOut)[fCSCDigitsOut->GetEntriesFast()]) BmnCscDigit(0, cscDig->GetModule(), cscDig->GetStripLayer(), strip, signal);
+        }
+
     // GEM
     if (isGem && fGemDigitsIn)
         for (UInt_t iDigi = 0; iDigi < fGemDigitsIn->GetEntriesFast(); iDigi++) {
@@ -447,7 +499,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
             Double_t signal = gemDig->GetStripSignal();
 
             if (isBMN) {
-                // CSC should be omitted
+                // Gem stat 3 and Csc should be omitted
                 if (stat == 8 || stat == 3)
                     continue;
                 gemDig->SetStation(GemStatPermutation(stat));
@@ -580,11 +632,9 @@ void BmnDigiConverter::ConvertTriggers(map <TClonesArray*, TClonesArray*> trig) 
         for (UInt_t iDigi = 0; iDigi < in->GetEntriesFast(); iDigi++) {
             if (isTqdcDig) {
                 BmnTrigWaveDigit* dig = (BmnTrigWaveDigit*) in->UncheckedAt(iDigi);
-                new((*out)[out->GetEntriesFast()]) BmnTrigWaveDigit(dig->GetMod(), dig->GetShortValue(), dig->GetNSamples(), 
+                new((*out)[out->GetEntriesFast()]) BmnTrigWaveDigit(dig->GetMod(), dig->GetShortValue(), dig->GetNSamples(),
                         dig->GetTrigTimestamp(), dig->GetAdcTimestamp(), dig->GetTime());
-            }
-            
-            else {
+            } else {
                 BmnTrigDigit* dig = (BmnTrigDigit*) in->UncheckedAt(iDigi);
                 new((*out)[out->GetEntriesFast()]) BmnTrigDigit(dig->GetMod(), dig->GetTime(), dig->GetAmp());
             }

@@ -16,6 +16,7 @@
 #include "BmnTof2Digit.h"
 #include "BmnTof2Digit.h"
 #include "BmnZDCDigit.h"
+#include "BmnCscDigit.h"
 #include "BmnEventHeader.h"
 #include "FairEventHeader.h"
 
@@ -29,6 +30,7 @@
 
 #include "BmnSiliconStationSet.h"
 #include "BmnGemStripStationSet.h"
+#include "BmnCSCStationSet.h"
 
 #include <vector>
 #include <map>
@@ -54,7 +56,7 @@ private:
     TClonesArray* fBmnHeaderIn;
     TClonesArray* fBmnHeaderOut;
     
-    // Common detectors (BM@N + SRC) - GEM, SILICON, TOF400, DCH, MWPC, TOF700, ECAL, ZDC 
+    // Common detectors (BM@N + SRC) - GEM, SILICON, TOF400, DCH, MWPC, TOF700, ECAL, ZDC, CSC 
     // input
     TString fGemBranchIn;
     TString fSiBranchIn;
@@ -73,6 +75,7 @@ private:
     TString fTOF700BranchOut;
     TString fECALBranchOut;
     TString fZDCBranchOut;
+    TString fCSCBranchOut;
     // arrays for input and output
     TClonesArray* fGemDigitsIn;
     TClonesArray* fSiDigitsIn;
@@ -90,6 +93,7 @@ private:
     TClonesArray* fTOF700DigitsOut;
     TClonesArray* fECALDigitsOut;
     TClonesArray* fZDCDigitsOut;
+    TClonesArray* fCSCDigitsOut;
     
     // Common triggers (BM@N + SRC) - BC1, BC2, VC
     // input
@@ -191,6 +195,7 @@ private:
 
     BmnGemStripStationSet* fDetectorGEM; // GEM-geometry
     BmnSiliconStationSet* fDetectorSI; // SI-geometry   
+    BmnCSCStationSet* fDetectorCSC; // CSC-geometry   
 
     // map <Int_t, Int_t> fSiMods;
     map <Int_t, Int_t> fGemStats;
@@ -216,6 +221,7 @@ private:
     Bool_t isTof700;
     Bool_t isEcal;
     Bool_t isZdc;
+    Bool_t isCsc;
 
     FairRootManager* ioman;
     

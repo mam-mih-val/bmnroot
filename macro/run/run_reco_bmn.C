@@ -203,6 +203,14 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     //gemHM->SetCurrentConfig(BmnGemStripConfiguration::RunSpring2018); //set explicitly
     gemHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(gemHM);
+
+    // ====================================================================== //
+    // ===                          CSC hit finder                        === //
+    // ====================================================================== //
+    BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
+    //cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSpring2018); //set explicitly
+    cscHM->SetHitMatching(kTRUE);
+    fRunAna->AddTask(cscHM);
 #endif
 
     // ====================================================================== //

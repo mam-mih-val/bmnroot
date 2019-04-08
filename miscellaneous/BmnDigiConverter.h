@@ -10,13 +10,13 @@
 #include "BmnTrigWaveDigit.h"
 #include "BmnTof1Digit.h"
 #include "BmnDchDigit.h"
-#include "BmnCscDigit.h"
+#include "BmnCSCDigit.h"
 #include "BmnMwpcDigit.h"
 #include "BmnECALDigit.h"
 #include "BmnTof2Digit.h"
 #include "BmnTof2Digit.h"
 #include "BmnZDCDigit.h"
-#include "BmnCscDigit.h"
+#include "BmnCSCDigit.h"
 #include "BmnEventHeader.h"
 #include "FairEventHeader.h"
 
@@ -48,15 +48,15 @@ public:
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
     virtual void Finish();
-    
+
 private:
 
     UInt_t fEventNo;
-    
+
     TClonesArray* fBmnHeaderIn;
     TClonesArray* fBmnHeaderOut;
-    
-    // Common detectors (BM@N + SRC) - GEM, SILICON, TOF400, DCH, MWPC, TOF700, ECAL, ZDC, CSC 
+
+    // Common detectors (BM@N + SRC) - GEM, SILICON, TOF400, DCH, MWPC, TOF700, ECAL, ZDC, CSC
     // input
     TString fGemBranchIn;
     TString fSiBranchIn;
@@ -66,9 +66,9 @@ private:
     TString fTOF700BranchIn;
     TString fECALBranchIn;
     TString fZDCBranchIn;
-    // output 
+    // output
     TString fGemBranchOut;
-    TString fSiBranchOut;   
+    TString fSiBranchOut;
     TString fTOF400BranchOut;
     TString fDchBranchOut;
     TString fMwpcBranchOut;
@@ -94,7 +94,7 @@ private:
     TClonesArray* fECALDigitsOut;
     TClonesArray* fZDCDigitsOut;
     TClonesArray* fCSCDigitsOut;
-    
+
     // Common triggers (BM@N + SRC) - BC1, BC2, VC
     // input
     TString fBC1BranchIn;
@@ -111,8 +111,8 @@ private:
     TClonesArray* fBC1Out;
     TClonesArray* fBC2Out;
     TClonesArray* fVetoOut;
-    
-    // SRC triggers - BC3, BC4, X1L, X2L, Y1L, Y2L, X1R, X2R, Y1R, Y2R 
+
+    // SRC triggers - BC3, BC4, X1L, X2L, Y1L, Y2L, X1R, X2R, Y1R, Y2R
     // SRC tqdc triggers - TQDC_BC1, TQDC_BC2, TQDC_BC3, TQDC_BC4, TQDC_VC
     // input
     TString fBC3BranchIn;
@@ -124,14 +124,14 @@ private:
     TString fX1RBranchIn;
     TString fX2RBranchIn;
     TString fY1RBranchIn;
-    TString fY2RBranchIn; 
+    TString fY2RBranchIn;
     TString fTQDC_BC1BranchIn;
     TString fTQDC_BC2BranchIn;
     TString fTQDC_BC3BranchIn;
     TString fTQDC_BC4BranchIn;
     TString fTQDC_VCBranchIn;
-    
-    // output 
+
+    // output
     TString fBC3BranchOut;
     TString fBC4BranchOut;
     TString fX1LBranchOut;
@@ -147,7 +147,7 @@ private:
     TString fTQDC_BC3BranchOut;
     TString fTQDC_BC4BranchOut;
     TString fTQDC_VCBranchOut;
-       
+
     // arrays for input and output
     TClonesArray* fBC3In;
     TClonesArray* fBC4In;
@@ -158,7 +158,7 @@ private:
     TClonesArray* fX1RIn;
     TClonesArray* fX2RIn;
     TClonesArray* fY1RIn;
-    TClonesArray* fY2RIn; 
+    TClonesArray* fY2RIn;
     TClonesArray* fTQDC_BC1In;
     TClonesArray* fTQDC_BC2In;
     TClonesArray* fTQDC_BC3In;
@@ -179,44 +179,44 @@ private:
     TClonesArray* fTQDC_BC3Out;
     TClonesArray* fTQDC_BC4Out;
     TClonesArray* fTQDC_VCOut;
-    
+
     // BM@N triggers
     // input
-    TString fSiTrigBranchIn;   
-    TString fBDBranchIn;     
-    // output 
-    TString fSiTrigBranchOut;   
-    TString fBDBranchOut;       
+    TString fSiTrigBranchIn;
+    TString fBDBranchIn;
+    // output
+    TString fSiTrigBranchOut;
+    TString fBDBranchOut;
     // arrays for input and output
     TClonesArray* fSiTrigIn;
     TClonesArray* fBDIn;
     TClonesArray* fSiTrigOut;
-    TClonesArray* fBDOut; 
+    TClonesArray* fBDOut;
 
     BmnGemStripStationSet* fDetectorGEM; // GEM-geometry
-    BmnSiliconStationSet* fDetectorSI; // SI-geometry   
-    BmnCSCStationSet* fDetectorCSC; // CSC-geometry   
+    BmnSiliconStationSet* fDetectorSI; // SI-geometry
+    BmnCSCStationSet* fDetectorCSC; // CSC-geometry
 
     // map <Int_t, Int_t> fSiMods;
     map <Int_t, Int_t> fGemStats;
     map <Int_t, Int_t> fSilStats;
     map <TClonesArray*, TClonesArray*> fTriggers;
-       
+
     inline Int_t GemStatPermutation(Int_t stat) {
         return fGemStats.find(stat)->second;
     }
-    
+
     inline Int_t SiliconStatPermutation(Int_t stat) {
         return fSilStats.find(stat)->second;
     }
-    
+
     void ConvertTriggers(map <TClonesArray*, TClonesArray*>);
-    
+
     Bool_t isTrig;
     Bool_t isGem;
-    Bool_t isSil;    
-    Bool_t isTof400;    
-    Bool_t isDch; 
+    Bool_t isSil;
+    Bool_t isTof400;
+    Bool_t isDch;
     Bool_t isMwpc;
     Bool_t isTof700;
     Bool_t isEcal;
@@ -224,10 +224,10 @@ private:
     Bool_t isCsc;
 
     FairRootManager* ioman;
-    
+
     Bool_t isSRC;
     Bool_t isBMN;
-    
+
     void Run7(Int_t*, Int_t*, Int_t*, Int_t*);
 
     ClassDef(BmnDigiConverter, 1);

@@ -220,12 +220,12 @@ TGeoVolume *CreateModule(TString module_name) {
 
     //volumes
     TGeoVolume *moduleV = new TGeoVolume(TString("moduleV_") + module_name, moduleS);
-    TGeoVolume *gasV = new TGeoVolume(TString("gasV") + module_name, gasS);
-    TGeoVolume *sensV = new TGeoVolume(TString("Sensor") + module_name, sensS);
-    TGeoVolume *fiberglassV = new TGeoVolume(TString("fiberglassV") + module_name, fiberglassS);
-    TGeoVolume *honeycombV = new TGeoVolume(TString("honeycombV") + module_name, honeycombS);
-    TGeoVolume *verticalframeV = new TGeoVolume(TString("verticalframeV") + module_name, verticalframeS);
-    TGeoVolume *horizontalframeV = new TGeoVolume(TString("horizontalframeV") + module_name, horizontalframeS);
+    TGeoVolume *gasV = new TGeoVolume(TString("gasV_") + module_name, gasS);
+    TGeoVolume *sensV = new TGeoVolume(TString("SensorV_") + module_name, sensS);
+    TGeoVolume *fiberglassV = new TGeoVolume(TString("fiberglassV_") + module_name, fiberglassS);
+    TGeoVolume *honeycombV = new TGeoVolume(TString("honeycombV_") + module_name, honeycombS);
+    TGeoVolume *verticalframeV = new TGeoVolume(TString("verticalframeV_") + module_name, verticalframeS);
+    TGeoVolume *horizontalframeV = new TGeoVolume(TString("horizontalframeV_") + module_name, horizontalframeS);
 
     //medium
     if(pMedAir) moduleV->SetMedium(pMedAir);

@@ -220,7 +220,7 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         MpdMCTracks* GeoTrack = new MpdMCTracks("GeoTracks");
         fMan->AddTask(GeoTrack);
         // OR draw MC tracks by Geane - not implemented yet
-        //MpdMCStack* MCTrack = new MpdMCStack("MCTrack");
+        //MpdMCStack* MC      Track = new MpdMCStack("MCTrack");
         //fMan->AddTask(MCTrack);
 
         // draw Reconstructed Detector Hits
@@ -234,6 +234,8 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         fMan->AddTask(BmnTof2Hit);
         MpdHitPointSetDraw* BmnSiliconHit = new MpdHitPointSetDraw("BmnSiliconHit", recoPointColor, pointMarker);
         fMan->AddTask(BmnSiliconHit);
+        MpdHitPointSetDraw* BmnCSCHit = new MpdHitPointSetDraw("BmnCSCHit", recoPointColor, pointMarker);
+        fMan->AddTask(BmnCSCHit);
 
         // draw Reconstructed Global Tracks
         BmnGlobalTrackDraw* BmnGlobalTrack = new BmnGlobalTrackDraw("BmnGlobalTrack");

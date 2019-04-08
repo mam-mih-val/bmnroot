@@ -34,6 +34,13 @@ set(SRCS
  BmnCSCStation.cxx
  BmnCSCModule.cxx
  BmnCSCLayer.cxx
+ BmnCSCDigitizer.cxx
+ BmnCSCHitMaker.cxx
+
+ #BmnCSCDigit.cxx
+ #BmnCSCHit.cxx
+
+ BmnCSCConfiguration.h
 )
 
 Set(HEADERS)

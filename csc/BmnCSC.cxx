@@ -14,6 +14,9 @@
 #include "FairGeoMedia.h"
 #include "FairGeoRootBuilder.h"
 
+#include "TGeoManager.h"
+#include "TRegexp.h"
+
 #include "CbmStack.h"
 
 #include <iostream>
@@ -46,8 +49,30 @@ BmnCSC::~BmnCSC() {
 
 //------------------------------------------------------------------------------
 
-Bool_t BmnCSC::ProcessHits(FairVolume* vol)
-{
+Bool_t BmnCSC::ProcessHits(FairVolume* vol) {
+
+    // Determine station and module numbers for the current hit ----------------
+    Int_t stationNum = -1; // current station number (default)
+    Int_t moduleNum = -1; // current module number (default)
+
+    TGeoVolume *currentVolume = gGeoManager->GetCurrentVolume();
+    TString currentVolumeName = currentVolume->GetName();
+
+    TRegexp expr = "^SensorV_module[0-9]+_station[0-9]+$";
+    if(currentVolumeName.Contains(expr)) {
+        TRegexp mod_expt = "module[0-9]+";
+        TRegexp stat_expt = "station[0-9]+";
+
+        moduleNum = TString(TString(currentVolumeName(mod_expt))(TRegexp("[0-9]+"))).Atoi();
+        stationNum = TString(TString(currentVolumeName(stat_expt))(TRegexp("[0-9]+"))).Atoi();
+    }
+
+    //cout << "stationNum = " << stationNum << "\n";
+    //cout << "moduleNum = " << moduleNum << "\n";
+    //cout << "\n";
+
+    // -------------------------------------------------------------------------
+
     // Set parameters at entrance of volume. Reset ELoss.
     if(gMC->IsTrackEntering()) {
 
@@ -99,7 +124,8 @@ Bool_t BmnCSC::ProcessHits(FairVolume* vol)
                                 fPosIn, fPosOut,
                                 fMomIn, fMomOut,
                                 fTime, fLength, fELoss,
-                                fIsPrimary, fCharge, fPdgId);
+                                fIsPrimary, fCharge, fPdgId,
+                                stationNum, moduleNum);
 
         ((CbmStack*)gMC->GetStack())->AddPoint(kSILICON);
     }
@@ -344,15 +370,21 @@ BmnCSCPoint* BmnCSC::AddHit(Int_t trackID, Int_t detID,
                             TVector3 posIn, TVector3 posOut,
                             TVector3 momIn, TVector3 momOut,
                             Double_t time, Double_t length, Double_t eLoss,
-                            Int_t isPrimary, Double_t charge, Int_t pdgId) {
+                            Int_t isPrimary, Double_t charge, Int_t pdgId,
+                            Int_t stationNum, Int_t moduleNum) {
 
     TClonesArray& clref = *fPointCollection;
     Int_t size = clref.GetEntriesFast();
     //std::cout << "ELoss: " << eLoss << "\n";
-    return new(clref[size]) BmnCSCPoint(trackID, detID,
-                                            posIn, posOut, momIn, momOut,
-                                            time, length, eLoss,
-                                            isPrimary, charge, pdgId);
+    new(clref[size]) BmnCSCPoint(trackID, detID,
+                                        posIn, posOut, momIn, momOut,
+                                        time, length, eLoss,
+                                        isPrimary, charge, pdgId);
+
+    BmnCSCPoint *hit = (BmnCSCPoint*) clref.At(clref.GetEntriesFast() - 1);
+    hit->SetStation(stationNum);
+    hit->SetModule(moduleNum);
+    return hit;
 }
 //------------------------------------------------------------------------------
 

@@ -4,10 +4,10 @@
  * and open the template in the editor.
  */
 
-/* 
+/*
  * File:   BmnMonHists.cxx
  * Author: ilnur
- * 
+ *
  * Created on November 15, 2016, 12:57 PM
  */
 
@@ -74,7 +74,7 @@ BmnHistCsc::BmnHistCsc(TString title, TString path, Int_t PeriodID) : BmnHist(Pe
     Int_t modCtr = 0; // filling CSC Canvas' pads
     canStripPads.resize(sumMods * maxLayers);
     Names.resize(sumMods * maxLayers);
-    
+
     for (Int_t iStation = 0; iStation < 1/*cscStationSet->GetNStations()*/; iStation++) {
         //BmnCscStripStation * st = cscStationSet->GetCscStation(iStation);
         for (Int_t iModule = 0; iModule < 2/*st->GetNModules()*/; iModule++) {
@@ -136,12 +136,12 @@ void BmnHistCsc::DrawBoth() {
     BmnHist::DrawRef(canCscStrip, &canStripPads);
 }
 
-void BmnHistCsc::FillFromDigi(DigiArrays *fDigiArrays){ 
+void BmnHistCsc::FillFromDigi(DigiArrays *fDigiArrays){
     TClonesArray * cscDigits = fDigiArrays->csc;
     if (!cscDigits)
         return;
     for (Int_t digIndex = 0; digIndex < cscDigits->GetEntriesFast(); digIndex++) {
-        BmnCscDigit* gs = (BmnCscDigit*) cscDigits->At(digIndex);//!!!
+        BmnCSCDigit* gs = (BmnCSCDigit*) cscDigits->At(digIndex);//!!!
         Int_t module = gs->GetModule();
         Int_t station = gs->GetStation();
         Int_t layer = gs->GetStripLayer();

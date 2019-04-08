@@ -14,7 +14,7 @@ set(INCLUDE_DIRECTORIES
 Set(SYSTEM_INCLUDE_DIRECTORIES
  ${Boost_INCLUDE_DIRS}
  ${ROOT_INCLUDE_DIR}
- ${ZeroMQ_INCLUDE_DIR} 
+ ${ZeroMQ_INCLUDE_DIR}
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -24,7 +24,7 @@ set(LINK_DIRECTORIES
  ${ROOT_LIBRARY_DIR}
  ${FAIRROOT_LIBRARY_DIR}
 )
- 
+
 link_directories(${LINK_DIRECTORIES})
 
 # List of source files
@@ -113,11 +113,12 @@ set(SRCS
 
  BmnSiliconHit.cxx
  BmnGemStripHit.cxx
+ BmnCSCHit.cxx
  BmnGemTrack.cxx
  BmnDchDigit.cxx
  BmnDchHitOriginal.cxx
  BmnDchHit.cxx
- BmnCscDigit.cxx
+ BmnCSCDigit.cxx
  BmnMwpcDigit.cxx
  BmnMwpcHit.cxx
  BmnTof1Digit.cxx
@@ -132,7 +133,7 @@ set(SRCS
 
 Set(HEADERS)
 
-EXEC_PROGRAM( ${ROOT_CONFIG_EXECUTABLE} 
+EXEC_PROGRAM( ${ROOT_CONFIG_EXECUTABLE}
     ARGS "--has-gdml"
     OUTPUT_VARIABLE ROOT_HAS_GDML )
 

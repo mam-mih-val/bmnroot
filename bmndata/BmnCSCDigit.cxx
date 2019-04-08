@@ -1,6 +1,6 @@
-#include "BmnCscDigit.h"
+#include "BmnCSCDigit.h"
 
-BmnCscDigit::BmnCscDigit() {
+BmnCSCDigit::BmnCSCDigit() {
     fStation = -1;
     fModule = 0;
     fStripLayer = 0;
@@ -9,7 +9,7 @@ BmnCscDigit::BmnCscDigit() {
     fIsGoodDigit = kTRUE;
 }
 
-BmnCscDigit::BmnCscDigit(BmnCscDigit* digit) {
+BmnCSCDigit::BmnCSCDigit(BmnCSCDigit* digit) {
     fStation = digit->fStation;
     fModule = digit->fModule;
     fStripLayer = digit->fStripLayer;
@@ -17,7 +17,7 @@ BmnCscDigit::BmnCscDigit(BmnCscDigit* digit) {
     fStripSignal = digit->fStripSignal;
 }
 
-BmnCscDigit::BmnCscDigit(Short_t iStation, Short_t iModule, Short_t iStripLayer, Int_t iStripNumber, Double_t iStripSignal) {
+BmnCSCDigit::BmnCSCDigit(Short_t iStation, Short_t iModule, Short_t iStripLayer, Int_t iStripNumber, Double_t iStripSignal) {
     fStation = iStation;
     fModule = iModule;
     fStripLayer = iStripLayer;
@@ -25,8 +25,8 @@ BmnCscDigit::BmnCscDigit(Short_t iStation, Short_t iModule, Short_t iStripLayer,
     fStripSignal = iStripSignal;
 }
 
-BmnCscDigit::~BmnCscDigit() {
+BmnCSCDigit::~BmnCSCDigit() {
 
 }
 
-ClassImp(BmnCscDigit)
+ClassImp(BmnCSCDigit)

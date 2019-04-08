@@ -318,7 +318,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile(UInt_t limit) {
             fEventId = data[0];
             if (fEventId <= 0) {
                 printf("bad event #%d\n", fEventId);
-                return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
+                return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?)
             }
             ProcessEvent(data, fDat);
             fNevents++;
@@ -687,7 +687,7 @@ BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t s
     Bool_t countersDone = kFALSE;
     while (type == 2 || type == 3 || type == 4) {
         if (fPeriodId > 4 && type == kGEMTRIGTYPE && slot == kEVENTTYPESLOT) {
-            //trType = ((d[idx] & 0x7) == kTRIGMINBIAS) ? kBMNMINBIAS : kBMNBEAM;//Deprecated 
+            //trType = ((d[idx] & 0x7) == kTRIGMINBIAS) ? kBMNMINBIAS : kBMNBEAM;//Deprecated
             trigInfo->SetTrigType(trType);
             evType = ((d[idx] & BIT(3)) >> 3) ? kBMNPEDESTAL : kBMNPAYLOAD;
 //            if (!( ((d[idx]>>10) & 0x1) ^ (fPeriodId >= 7 && fBmnSetup == kBMNSETUP)))
@@ -804,7 +804,7 @@ BmnStatus BmnRawDataDecoder::FillSYNC(UInt_t *d, UInt_t serial, UInt_t & idx) {
     UInt_t d1 = d[idx + 1];
     UInt_t d2 = d[idx + 2];
     UInt_t d3 = d[idx + 3];
-    if ((d0 >> 28) != 2 || (d1 >> 28) != 2 || (d2 >> 28) != 2 || (d3 >> 28) != 2) return kBMNERROR; //check TAI code 
+    if ((d0 >> 28) != 2 || (d1 >> 28) != 2 || (d2 >> 28) != 2 || (d3 >> 28) != 2) return kBMNERROR; //check TAI code
     Long64_t ts_t0_s = -1;
     Long64_t ts_t0_ns = -1;
     Long64_t GlobalEvent = -1;
@@ -823,7 +823,7 @@ BmnStatus BmnRawDataDecoder::FillSYNC(UInt_t *d, UInt_t serial, UInt_t & idx) {
         tai_utc_dif = GetUTCShift(fRunStartTime);
         fRunStartTime = TTimeStamp(time_t(ts_t0_s - tai_utc_dif), ts_t0_ns);
     }
-    
+
     fTime_ns = ts_t0_ns;
     fTime_s = ts_t0_s - tai_utc_dif;
 
@@ -1160,7 +1160,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     }
 
     if (fDetectorSetup[10]) {
-        csc = new TClonesArray("BmnCscDigit");
+        csc = new TClonesArray("BmnCSCDigit");
         fDigiTree->Branch("CSC", &csc);
         fCscMapper = new BmnCscRaw2Digit(fPeriodId, fRunId, fCscSerials);
     }

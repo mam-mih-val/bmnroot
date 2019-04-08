@@ -91,7 +91,8 @@ private:
                         TVector3 posIn, TVector3 posOut,
                         TVector3 momIn, TVector3 momOut,
                         Double_t time, Double_t length, Double_t eLoss,
-                        Int_t isPrimary, Double_t charge, Int_t pdgId);
+                        Int_t isPrimary, Double_t charge, Int_t pdgId,
+                        Int_t stationNum, Int_t moduleNum);
 
     // Resets the private members for the track parameters
     void ResetParameters();

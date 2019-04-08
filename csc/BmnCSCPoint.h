@@ -48,10 +48,15 @@ public:
     void PositionCenter(TVector3& pos) { pos.SetXYZ(fX_center, fY_center, fZ_center); }
     void MomentumIn(TVector3& mom) { mom.SetXYZ(fPx, fPy, fPz); }
     void MomentumOut(TVector3& mom) { mom.SetXYZ(fPx_out, fPy_out, fPz_out); }
+    Int_t GetStation() const { return fStation; }
+    Int_t GetModule() const { return fModule; }
 
     Int_t GetIsPrimary() { return fIsPrimary; }
     Double_t GetCharge() { return fCharge; }
     Double_t GetPdgId() { return fPdgId; }
+
+    void SetStation(Int_t station) { fStation = station; }
+    void SetModule(Int_t module) { fModule = module; }
 
     // Output to screen
     virtual void Print(const Option_t* opt) const;
@@ -65,6 +70,9 @@ protected:
     Double_t fX_out,  fY_out,  fZ_out;
     Double_t fX_center,  fY_center,  fZ_center; //middle plane of the chamber (hit position)
     Double_t fPx_out, fPy_out, fPz_out;
+
+    Int_t fStation;
+    Int_t fModule;
 
     ClassDef(BmnCSCPoint,1)
 };

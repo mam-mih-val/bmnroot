@@ -94,7 +94,7 @@ BmnStatus BmnCscRaw2Digit::ReadMapFile() {
 BmnStatus BmnCscRaw2Digit::ReadMapLocalFile() {
     Int_t modules = 2;
     Int_t layers = 4;
-    
+
     for(Short_t iMod = 0; iMod < modules; ++iMod){
         vector< vector<Int_t> > mVec;
         vector< vector<Int_t> > mChannel;
@@ -181,7 +181,7 @@ BmnStatus BmnCscRaw2Digit::FillNoisyChannels() {
             }
 }
 
-Int_t BmnCscRaw2Digit::LayerPrediction(Int_t module, Int_t x) { 
+Int_t BmnCscRaw2Digit::LayerPrediction(Int_t module, Int_t x) {
     Int_t layer = -1;
     bool finded = false;
     for (Int_t j = 0; j < channelMap[module].size(); j++){
@@ -206,17 +206,17 @@ void BmnCscRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TCl
     for (iSer = 0; iSer < GetSerials().size(); ++iSer)
         if (ser == GetSerials()[iSer]) break;
 
-    BmnCscDigit candDig[nSmpl];
-    
+    BmnCSCDigit candDig[nSmpl];
+
     Short_t cscStation = cscM->station;
-    Short_t cscModule = cscM->module; 
+    Short_t cscModule = cscM->module;
     Int_t ch2048 = ch * nSmpl;
     Int_t counter = -1;
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         ch2048 = ch * nSmpl + iSmpl;
         Short_t cscLayer = LayerPrediction(cscModule, ch2048);
         if(cscLayer == -1) continue;
-        BmnCscDigit dig;
+        BmnCSCDigit dig;
         if(localMap[cscModule][cscLayer][ch2048]==-1) continue;
         else counter++;
         dig.SetStripNumber(localMap[cscModule][cscLayer][ch2048]);
@@ -240,7 +240,7 @@ void BmnCscRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TCl
     Double_t*** vPedRMS = GetPedestalsRMS();
     for (Int_t iSmpl = 0; iSmpl < counter; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
-        BmnCscDigit * dig = &candDig[iSmpl];
+        BmnCSCDigit * dig = &candDig[iSmpl];
         Double_t ped = vPed[iSer][ch][iSmpl];
         Double_t sig = Abs(dig->GetStripSignal() - CMS - ped);
         //cout << "strip " << iSer << " CMS " << ch << " ped " << iSmpl << endl;
@@ -250,7 +250,7 @@ void BmnCscRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TCl
         if (doFill) {
             fSigProf[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()]->Fill(dig->GetStripNumber());
         } else {
-            BmnCscDigit * resDig = new((*csc)[csc->GetEntriesFast()]) BmnCscDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
+            BmnCSCDigit * resDig = new((*csc)[csc->GetEntriesFast()]) BmnCSCDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
             if (fNoisyChannels[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()][dig->GetStripNumber()]){
                 resDig->SetIsGoodDigit(kFALSE);
             }

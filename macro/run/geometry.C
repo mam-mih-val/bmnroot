@@ -74,5 +74,5 @@ void geometry(FairRunSim *fRun)
 
     FairDetector* csc = new BmnCSC("CSC", kTRUE);
     csc->SetGeometryFileName("CSC_RunSpring2018.root");
-    //fRun->AddModule(csc);
+    fRun->AddModule(csc);
 }

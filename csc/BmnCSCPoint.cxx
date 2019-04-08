@@ -15,7 +15,8 @@ BmnCSCPoint::BmnCSCPoint()
   fPx_out(0.0),
   fPy_out(0.0),
   fPz_out(0.0),
-  fIsPrimary(0), fCharge(-1.0), fPdgId(0) {
+  fIsPrimary(0), fCharge(-1.0), fPdgId(0),
+  fStation(-1), fModule(-1) {
 
 }
 
@@ -32,7 +33,8 @@ BmnCSCPoint::BmnCSCPoint(Int_t trackID, Int_t detID,
   fPx_out(momOut.Px()),
   fPy_out(momOut.Py()),
   fPz_out(momOut.Pz()),
-  fIsPrimary(isPrimary), fCharge(charge), fPdgId(pdgId) {
+  fIsPrimary(isPrimary), fCharge(charge), fPdgId(pdgId),
+  fStation(-1), fModule(-1) {
 
     fX_center = (fX_out + fX)*0.5;
     fY_center = (fY_out + fY)*0.5;
@@ -46,6 +48,7 @@ void BmnCSCPoint::Print(const Option_t* opt) const {
     cout << "    Position (In) (" << fX << ", " << fY << ", " << fZ << ") cm" << endl;
     cout << "    Momentum (In) (" << fPx << ", " << fPy << ", " << fPz << ") GeV" << endl;
     cout << "    Time " << fTime << " ns,  Length " << fLength << " cm,  Energy loss " << fELoss*1.0e06 << " keV" << endl;
+    cout << "    StationNum " << fStation << ", ModuleNum " << fModule << endl;
 }
 
 ClassImp(BmnCSCPoint)

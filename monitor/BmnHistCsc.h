@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-/* 
+/*
  * File:   BmnMonHists.h
  * Author: ilnur
  *
@@ -29,7 +29,7 @@
 
 #include "BmnHist.h"
 
-#include "BmnCscDigit.h"
+#include "BmnCSCDigit.h"
 /*
 #include "BmnCscStripStationSet.h"
 #include "BmnCscStripConfiguration.h"
@@ -51,7 +51,7 @@ public:
     void FillFromDigi(DigiArrays *fDigiArrays);
     void ClearRefRun();
     BmnStatus  SetRefRun(Int_t id);
-    
+
 private:
     //BmnCscStripConfiguration::CSC_CONFIG cscStationConfig;
     //BmnCscStripStationSet *cscStationSet;

@@ -5,7 +5,7 @@
 #include "TTree.h"
 #include "TClonesArray.h"
 #include "BmnADCDigit.h"
-#include "BmnCscDigit.h"
+#include "BmnCSCDigit.h"
 #include "BmnEnums.h"
 #include "TMath.h"
 #include "BmnMath.h"
@@ -44,12 +44,12 @@ public:
 private:
 
     TString fMapFileName;
-    vector<BmnCscMapping*> fMap;    
+    vector<BmnCscMapping*> fMap;
     vector<UInt_t> fSerials;
     vector<vector<vector<Int_t>>> localMap;
     vector<vector<vector<Int_t>>> channelMap;
-    Int_t fEventId; 
-        
+    Int_t fEventId;
+
     TH1F**** fSigProf;
     Bool_t**** fNoisyChannels;
 

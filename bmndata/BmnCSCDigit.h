@@ -8,13 +8,13 @@
 
 using namespace std;
 
-class BmnCscDigit : public TNamed {
+class BmnCSCDigit : public TNamed {
 public:
-    BmnCscDigit();
-    BmnCscDigit(BmnCscDigit* digit);
-    BmnCscDigit(Short_t iStation, Short_t iModule, Short_t iStripLayer, Int_t iStripNumber, Double_t iStripSignal);
+    BmnCSCDigit();
+    BmnCSCDigit(BmnCSCDigit* digit);
+    BmnCSCDigit(Short_t iStation, Short_t iModule, Short_t iStripLayer, Int_t iStripNumber, Double_t iStripSignal);
 
-    virtual ~BmnCscDigit();
+    virtual ~BmnCSCDigit();
 
     Short_t GetStation() { return fStation; }
     Short_t GetModule() { return fModule; }
@@ -27,7 +27,7 @@ public:
     void SetStripLayer(Short_t layer) { fStripLayer = layer; }
     void SetStripNumber(Int_t num) { fStripNumber = num; }
     void SetStripSignal(Double_t signal) { fStripSignal = signal; }
-    
+
     void SetIsGoodDigit(Bool_t tmp) { fIsGoodDigit = tmp; }
     Bool_t IsGoodDigit() { return fIsGoodDigit; }
 
@@ -39,7 +39,7 @@ private:
     Double_t fStripSignal;
     Bool_t fIsGoodDigit;
 
-    ClassDef(BmnCscDigit,1);
+    ClassDef(BmnCSCDigit,1);
 };
 
 #endif

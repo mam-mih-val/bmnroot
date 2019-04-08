@@ -158,6 +158,14 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     gemDigit->SetStripMatching(kTRUE);
     fRun->AddTask(gemDigit);
 
+    // CSC-Digitizer
+    BmnCSCConfiguration::CSC_CONFIG csc_config = BmnCSCConfiguration::RunSpring2018;
+    BmnCSCDigitizer* cscDigit = new BmnCSCDigitizer();
+    cscDigit->SetCurrentConfig(csc_config);
+    cscDigit->SetOnlyPrimary(kFALSE);
+    cscDigit->SetStripMatching(kTRUE);
+    fRun->AddTask(cscDigit);
+
     fRun->Init();
     if (isFieldMap) magField->Print();
 

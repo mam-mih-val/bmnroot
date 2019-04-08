@@ -194,7 +194,7 @@ InitStatus BmnDigiConverter::Init() {
     fTOF700DigitsOut = new TClonesArray("BmnTof2Digit");
     fECALDigitsOut = new TClonesArray("BmnECALDigit");
     fZDCDigitsOut = new TClonesArray("BmnZDCDigit");
-    fCSCDigitsOut = new TClonesArray("BmnCscDigit");
+    fCSCDigitsOut = new TClonesArray("BmnCSCDigit");
 
     fBC1Out = new TClonesArray("BmnTrigDigit");
     fBC2Out = new TClonesArray("BmnTrigDigit");
@@ -449,7 +449,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
         it.second->Delete();
 
     // CSC
-    if (isCsc && fGemDigitsIn) // NOTE: Csc is written to GEM digi array by BmnGemStripDigit !!!        
+    if (isCsc && fGemDigitsIn) // NOTE: Csc is written to GEM digi array by BmnGemStripDigit !!!
         for (UInt_t iDigi = 0; iDigi < fGemDigitsIn->GetEntriesFast(); iDigi++) {
             BmnGemStripDigit* cscDig = (BmnGemStripDigit*) fGemDigitsIn->UncheckedAt(iDigi);
             Int_t stat = cscDig->GetStation();
@@ -486,7 +486,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
                 throw;
             }
 
-            new((*fCSCDigitsOut)[fCSCDigitsOut->GetEntriesFast()]) BmnCscDigit(0, cscDig->GetModule(), cscDig->GetStripLayer(), strip, signal);
+            new((*fCSCDigitsOut)[fCSCDigitsOut->GetEntriesFast()]) BmnCSCDigit(0, cscDig->GetModule(), cscDig->GetStripLayer(), strip, signal);
         }
 
     // GEM

@@ -350,8 +350,9 @@ void BmnDigiMergeTask::GlueEventsFromInputFiles() {
             BmnEventHeader* h = new ((*fHeaderOut)[fHeaderOut->GetEntriesFast()]) BmnEventHeader();
             h->SetRunId(head.GetRunId());
             h->SetEventId(head.GetEventId());
+            h->SetEventTimeTS(head.GetEventTimeTS());
             h->SetEventTime(head.GetEventTime());
-            h->SetEventTimeS(head.GetType());
+            h->SetType(head.GetType());
             h->SetTripWord(head.GetTripWord());
             // h->SetTrigInfo(head.GetTrigInfo());
             h->SetTimeShift(head.GetTimeShift());

@@ -2,26 +2,24 @@
 #ifndef BMNEVENTHEADER_H
 #define BMNEVENTHEADER_H
 
-#include "TNamed.h"
-#include "TTimeStamp.h"
 #include "BmnEnums.h"
-#include <map>
 #include "BmnTrigInfo.h"
 
+#include "FairEventHeader.h"
 
+#include "TTimeStamp.h"
+
+#include <map>
 #include <vector>
-
 using namespace std;
 
-class BmnEventHeader : public TNamed {
-private:
-
-    /** Run Id */
-    UInt_t fRunId;
+class BmnEventHeader : public FairEventHeader
+{
+ private:
     /** Event Id **/
     UInt_t fEventId;
-    /** Event Time**/
-    TTimeStamp fEventTime;
+    /** Event Time in TTimeStamp **/
+    TTimeStamp fEventTimeTS;
     /** Event Type (payload = 0 or pedestal = 1)**/
     BmnEventType fType;
     /** Trigger Type (beam = 6 or target = 1)**/
@@ -61,7 +59,7 @@ private:
     vector<Double_t> fTimeBC1;
     vector<Double_t> fTimeVETO;
 
-public:
+ public:
     /** Default constructor */
     BmnEventHeader();
 
@@ -73,11 +71,6 @@ public:
 
     /** Constructor */
     BmnEventHeader(UInt_t run, UInt_t ev, TTimeStamp time, BmnEventType type, Bool_t trip, BmnTrigInfo* info, map<UInt_t, Long64_t> ts);
-
-    /** Get the run ID for this run*/
-    UInt_t GetRunId() {
-        return fRunId;
-    }
 
     /** Get the type of this event*/
     BmnEventType GetType() {
@@ -100,8 +93,8 @@ public:
     }
 
     /** Get the time for this event*/
-    TTimeStamp GetEventTime() {
-        return fEventTime;
+    TTimeStamp GetEventTimeTS() {
+        return fEventTimeTS;
     }
 
     /** Get the spill statistics*/
@@ -202,29 +195,22 @@ public:
         return fAmpVETO;
     }
 
-    /** Set the run ID for this run
-     * @param runid : unique run id
-     */
-    void SetRunId(UInt_t runid) {
-        fRunId = runid;
-    }
-
     /** Set the event ID for this run
-     * @param runid : unique event id
+     * @param evid : unique event id
      */
     void SetEventId(UInt_t evid) {
         fEventId = evid;
     }
 
     /** Set the time for this event in */
-    void SetEventTime(TTimeStamp time) {
-        fEventTime = time;
+    void SetEventTimeTS(TTimeStamp time) {
+        fEventTimeTS = time;
     }
 
     /** Set the type for this event
      * @param type : type (0 or 1)
      */
-    void SetEventTimeS(BmnEventType type) {
+    void SetType(BmnEventType type) {
         fType = type;
     }
 
@@ -343,8 +329,7 @@ public:
      */
     virtual ~BmnEventHeader();
 
-    ClassDef(BmnEventHeader, 4)
-
+    ClassDef(BmnEventHeader, 5)
 };
-#endif /* BMNEVENTHEADER_H */
 
+#endif /* BMNEVENTHEADER_H */

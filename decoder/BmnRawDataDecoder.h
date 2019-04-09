@@ -424,7 +424,7 @@ private:
     TClonesArray *tqdc_tdc;
     TClonesArray *tqdc_adc;
     TClonesArray *msc;
-    TClonesArray *eventHeaderDAQ;
+    BmnEventHeader *eventHeaderDAQ;
     BmnRunHeader *runHeaderDAQ;
     //    TClonesArray *runHeaderDAQ;
     TClonesArray *pedestalAdc;
@@ -442,7 +442,7 @@ private:
     TClonesArray *mwpc;
 
     //header array
-    TClonesArray *eventHeader;
+    BmnEventHeader *eventHeader;
     BmnRunHeader *runHeader;
     //    TClonesArray *runHeader;
 

@@ -42,7 +42,7 @@ private:
     TTree* fInTree;
 
     Int_t iEventNumber;
-    TClonesArray* fEventHeader;
+    BmnEventHeader* fEventHeader;
     TClonesArray* fGemDigits;
     TClonesArray* fTof1Digits;
     TClonesArray* fT0Digits;

@@ -28,7 +28,7 @@
 #include <BmnGemStripDigit.h>
 #include <BmnDchDigit.h>
 #include "BmnDataReceiver.h"
-#include <BmnRawDataDecoder.h>
+#include "BmnRawDataDecoder.h"
 #include "BmnEventHeader.h"
 #include "BmnDecoSource.h"
 

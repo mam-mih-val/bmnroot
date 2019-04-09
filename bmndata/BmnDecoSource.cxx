@@ -34,7 +34,7 @@ Bool_t BmnDecoSource::Init() {
     //    _tBuf->SetReadMode();
 
     FairRootManager* ioman = FairRootManager::Instance();
-    fEventHeader = new TClonesArray("BmnEventHeader");
+    fEventHeader = new BmnEventHeader();
     ioman->Register("EventHeader", "Event", fEventHeader, kFALSE);
 
     fGemDigits = new TClonesArray("BmnGemStripDigit");
@@ -103,7 +103,7 @@ Int_t BmnDecoSource::ReadEvent(UInt_t i) {
         fDigiArrays = (DigiArrays*) (_tBuf->ReadObject(DigiArrays::Class()));
         //    if (fInChain->GetEntry(i))
         //        return 0;
-        BmnEventHeader* head = (BmnEventHeader*) fDigiArrays->header->At(0);
+        BmnEventHeader* head = fDigiArrays->header;
         //        cout<<"Current Run Id: "<<head->GetRunId()<<endl;
         //        cout<<"Count of BmnEventHeader: "<<fDigiArrays->header->GetEntriesFast()<<endl;
         //        cout << "Count of GEM digits: " << fDigiArrays->gem->GetEntriesFast() << endl;
@@ -117,7 +117,16 @@ Int_t BmnDecoSource::ReadEvent(UInt_t i) {
         fEventHeader->Delete();
         fGemDigits->Delete();
         fTof1Digits->Delete();
-        fEventHeader->AbsorbObjects(fDigiArrays->header);
+//        fEventHeader = fDigiArrays->header;
+        fEventHeader->SetRunId(fDigiArrays->header->GetRunId());
+        fEventHeader->SetEventId(fDigiArrays->header->GetEventId());
+        fEventHeader->SetEventTimeTS(fDigiArrays->header->GetEventTimeTS());
+        fEventHeader->SetEventTime(fDigiArrays->header->GetEventTime());
+        fEventHeader->SetType(fDigiArrays->header->GetType());
+        fEventHeader->SetTripWord(kFALSE);
+        fEventHeader->SetTrigInfo(fDigiArrays->header->GetTrigInfo());
+        fEventHeader->SetTimeShift(fDigiArrays->header->GetTimeShift());        
+        fEventHeader->SetStartSignalInfo(fDigiArrays->header->GetStartSignalTime(), fDigiArrays->header->GetStartSignalWidth());
         fGemDigits->AbsorbObjects(fDigiArrays->gem);
         //        fT0Digits->AbsorbObjects(fDigiArrays->t0);
         fTof1Digits->AbsorbObjects(fDigiArrays->tof400);
@@ -131,9 +140,8 @@ Int_t BmnDecoSource::ReadEvent(UInt_t i) {
 void BmnDecoSource::FillEventHeader(FairEventHeader* feh) {
 
 //    printf("fDigiArrays->header->GetEntriesFast() = %d\n", fEventHeader->GetEntriesFast());
-    if (fEventHeader->GetEntriesFast() > 0) {
-        BmnEventHeader* evHrd = (BmnEventHeader*) (fEventHeader->First());
-        feh->SetRunId(evHrd->GetRunId());
+    if (fEventHeader) {
+        feh->SetRunId(fEventHeader->GetRunId());
 //        printf("feh run id = %d\n", feh->GetRunId());
         //        feh->SetMCEntryNumber(fEvtHeader->GetMCEntryNumber());
     }

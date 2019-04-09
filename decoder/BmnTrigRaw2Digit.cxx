@@ -66,6 +66,7 @@ BmnStatus BmnTrigRaw2Digit::ReadPlacementMap(TString mappingFile) {
     pmFile.open(PlMapFileName.Data());
     if (!pmFile.is_open()) {
         cout << "Error opening map-file (" << PlMapFileName << ")!" << endl;
+        return kBMNERROR;
     }
     string dummy;
     string name;

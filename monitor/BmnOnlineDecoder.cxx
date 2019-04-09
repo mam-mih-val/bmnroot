@@ -441,9 +441,7 @@ void BmnOnlineDecoder::ProcessStream() {
                             DigiArrays iterDigi = rawDataDecoder->GetDigiArraysObject();
                             if (iterDigi.header == NULL)
                                 continue;
-                            if (iterDigi.header->GetEntriesFast() == 0)
-                                continue;
-                            BmnEventHeader* head = (BmnEventHeader*) iterDigi.header->At(0);
+                            BmnEventHeader* head = iterDigi.header;
                             if (head->GetType() != kBMNPAYLOAD)
                                 continue;
                             t.WriteObject(&iterDigi);
@@ -496,9 +494,7 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName, UInt_t timeLimit) {
             DigiArrays iterDigi = rawDataDecoder->GetDigiArraysObject();
             if (iterDigi.header == NULL)
                 continue;
-            if (iterDigi.header->GetEntriesFast() == 0)
-                continue;
-            BmnEventHeader* head = (BmnEventHeader*) iterDigi.header->At(0);
+            BmnEventHeader* head = (BmnEventHeader*) iterDigi.header;
             if (head->GetType() != kBMNPAYLOAD)
                 continue;
             t.WriteObject(&iterDigi);

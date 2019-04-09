@@ -218,6 +218,14 @@ class BmnEventHeader : public FairEventHeader
         fStartSignalTime = time;
         fStartSignalWidth = width;
     }
+    
+    Double_t GetStartSignalTime() {
+        return fStartSignalTime;
+    }
+    
+    Double_t GetStartSignalWidth() {
+        return fStartSignalWidth;
+    }
 
     void SetTrigType(BmnTriggerType type) {
         if (!fTrigInfo)
@@ -232,7 +240,7 @@ class BmnEventHeader : public FairEventHeader
     void SetTrigInfo(BmnTrigInfo* info) {
         if (fTrigInfo)
             delete fTrigInfo;
-        fTrigInfo = info;
+        fTrigInfo = new BmnTrigInfo(info);
     }
 
     void SetTimeShift(map <UInt_t, Long64_t> ts) {

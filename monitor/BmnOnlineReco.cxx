@@ -265,7 +265,7 @@ void BmnOnlineReco::RecoStream(TString dirname, TString refDir, TString decoAddr
 
 void BmnOnlineReco::ProcessDigi(Int_t iEv) {
     fEvents++;
-    BmnEventHeader* head = (BmnEventHeader*) fDigiArrays->header->At(0);
+//    BmnEventHeader* head = fDigiArrays->header;
     if (fEvents % itersToUpdate == 0) {
     }
 }
@@ -273,7 +273,6 @@ void BmnOnlineReco::ProcessDigi(Int_t iEv) {
 void BmnOnlineReco::FinishRun() {
     DBG("started")
     if (fHistOut) {
-        printf("fHistOut is gona be written\n");
         printf("fHistOut  Write result = %d\n", fHistOut->Write());
         fHistOut->Close();
         fHistOut = NULL;

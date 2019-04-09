@@ -17,6 +17,7 @@
 #include <vector>
 #include "TTree.h"
 #include "TClonesArray.h"
+#include "BmnEventHeader.h"
 
 class DigiArrays : public TObject {
 public:
@@ -114,7 +115,7 @@ public:
     TClonesArray *mwpc;
     std::vector<TClonesArray*> *trigAr;
     std::vector<TClonesArray*> *trigSrcAr;
-    TClonesArray *header; //->
+    BmnEventHeader *header; //->
 private:
     ClassDef(DigiArrays, 1)
 };

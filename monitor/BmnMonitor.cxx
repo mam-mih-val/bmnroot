@@ -131,8 +131,17 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
             t.SetBuffer(zmq_msg_data(&msg), zmq_msg_size(&msg));
             fDigiArrays = (DigiArrays*) (t.ReadObject(DigiArrays::Class()));
             //            gSystem->ProcessEvents();
-            if (fDigiArrays->header->GetEntriesFast() > 0) {
-                BmnEventHeader* head = (BmnEventHeader*) fDigiArrays->header->At(0);
+//            if (fDigiArrays->header->GetEntriesFast() > 0) {
+                BmnEventHeader* head = new BmnEventHeader();//fDigiArrays->header;
+        head->SetRunId(fDigiArrays->header->GetRunId());
+        head->SetEventId(fDigiArrays->header->GetEventId());
+        head->SetEventTimeTS(fDigiArrays->header->GetEventTimeTS());
+        head->SetEventTime(fDigiArrays->header->GetEventTime());
+        head->SetType(fDigiArrays->header->GetType());
+        head->SetTripWord(kFALSE);
+        head->SetTrigInfo(fDigiArrays->header->GetTrigInfo());
+        head->SetTimeShift(fDigiArrays->header->GetTimeShift());        
+        head->SetStartSignalInfo(fDigiArrays->header->GetStartSignalTime(), fDigiArrays->header->GetStartSignalWidth());
                 Int_t runID = head->GetRunId();
                 switch (fState) {
                     case kBMNWAIT:
@@ -156,9 +165,9 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                     default:
                         break;
                 }
-            } else {
-                printf("No header??\n");
-            }
+//            } else {
+//                printf("No header??\n");
+//            }
             fDigiArrays->Clear();
             delete fDigiArrays;
             t.DetachBuffer();
@@ -232,7 +241,7 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
 void BmnMonitor::ProcessDigi(Int_t iEv) {
     // histograms fill//
     fEvents++;
-    BmnEventHeader* head = (BmnEventHeader*) fDigiArrays->header->At(0);
+    BmnEventHeader* head = fDigiArrays->header;
     for (auto h : bhVec)
         if (h)
             h->FillFromDigi(fDigiArrays);
@@ -367,7 +376,6 @@ void BmnMonitor::FinishRun() {
             //    if (fRecoTree)
             //        printf("fRecoTree Write result = %d\n", fRecoTree->Write());
     if (fHistOut) {
-        printf("fHistOut is gona be written\n");
         printf("fHistOut  Write result = %d\n", fHistOut->Write());
         fHistOut->Close();
         fHistOut = NULL;

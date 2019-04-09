@@ -224,7 +224,7 @@ BmnStatus BmnRawDataDecoder::InitConverter() {
     tqdc_tdc = new TClonesArray("BmnTDCDigit");
     hrb = new TClonesArray("BmnHRBDigit");
     msc = new TClonesArray("BmnMSCDigit");
-    eventHeaderDAQ = new TClonesArray("BmnEventHeader");
+    eventHeaderDAQ = new BmnEventHeader();
     runHeaderDAQ = new BmnRunHeader();
 
     fRawTree->Branch("SYNC", &sync);
@@ -340,7 +340,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     adc->Delete();
     tacquila->Delete();
     msc->Delete();
-    eventHeaderDAQ->Delete();
+//    eventHeaderDAQ->Delete();
     BmnTrigInfo* trigInfo = new BmnTrigInfo();
 
     DrawBar(fCurentPositionRawFile, fLengthRawFile);
@@ -420,7 +420,16 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         }
         idx += payload;
     }
-    new((*eventHeaderDAQ)[eventHeaderDAQ->GetEntriesFast()]) BmnEventHeader(fRunId, fEventId, TTimeStamp(time_t(fTime_s), fTime_ns), evType, kFALSE, trigInfo);
+//    new((*eventHeaderDAQ)[eventHeaderDAQ->GetEntriesFast()]) BmnEventHeader(fRunId, fEventId, TTimeStamp(time_t(fTime_s), fTime_ns), evType, kFALSE, trigInfo);
+        eventHeaderDAQ->SetRunId(fRunId);
+        eventHeaderDAQ->SetEventId(fEventId);
+        eventHeaderDAQ->SetEventTimeTS(TTimeStamp(time_t(fTime_s), fTime_ns));
+        eventHeaderDAQ->SetEventTime(TTimeStamp(time_t(fTime_s), fTime_ns).AsDouble());
+        eventHeaderDAQ->SetType(evType);
+        eventHeaderDAQ->SetTripWord(kFALSE);
+        eventHeaderDAQ->SetTrigInfo(trigInfo);
+        eventHeaderDAQ->SetTimeShift(fTimeShifts);        
+        eventHeaderDAQ->SetStartSignalInfo(fT0Time, fT0Width);
 }
 
 BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr) {
@@ -858,7 +867,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     adc128 = new TClonesArray("BmnADCDigit");
     adc = new TClonesArray("BmnADCDigit");
     tacquila = new TClonesArray("BmnTacquilaDigit");
-    eventHeaderDAQ = new TClonesArray("BmnEventHeader");
+    eventHeaderDAQ = new BmnEventHeader();
     runHeaderDAQ = new BmnRunHeader();
     fRawTree->SetBranchAddress("TDC", &tdc);
     fRawTree->SetBranchAddress("TQDC_ADC", &tqdc_adc);
@@ -886,7 +895,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             DrawBar(fPedEvCntr, fEvForPedestals);
             fRawTree->GetEntry(iEv);
 
-            BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
+            BmnEventHeader* headDAQ = eventHeaderDAQ;
             if (!headDAQ) continue;
             curEventType = headDAQ->GetType();
 
@@ -946,7 +955,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         fRawTree->GetEntry(iEv);
         FillTimeShiftsMap();
 
-        BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
+        BmnEventHeader* headDAQ = eventHeaderDAQ;
         if (!headDAQ) continue;
 
         if (iEv == 0) {
@@ -1002,9 +1011,18 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         }
         fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
-        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), TTimeStamp(time_t(fTime_s), fTime_ns), curEventType, isTripEvent, headDAQ->GetTrigInfo(), fTimeShifts);
-        BmnEventHeader* evHdr = (BmnEventHeader*) eventHeader->At(eventHeader->GetEntriesFast() - 1);
-        evHdr->SetStartSignalInfo(fT0Time, fT0Width);
+//        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), TTimeStamp(time_t(fTime_s), fTime_ns),
+//                curEventType, isTripEvent, headDAQ->GetTrigInfo(), fTimeShifts);
+        eventHeader->SetRunId(headDAQ->GetRunId());
+        eventHeader->SetEventId(headDAQ->GetEventId());
+        eventHeader->SetEventTimeTS(TTimeStamp(time_t(fTime_s), fTime_ns));
+        eventHeader->SetEventTime(TTimeStamp(time_t(fTime_s), fTime_ns).AsDouble());
+        eventHeader->SetType(curEventType);
+        eventHeader->SetTripWord(isTripEvent);
+        eventHeader->SetTrigInfo(headDAQ->GetTrigInfo());
+        eventHeader->SetTimeShift(fTimeShifts);        
+        eventHeader->SetStartSignalInfo(fT0Time, fT0Width);
+        
         if (curEventType == kBMNPEDESTAL) {
             if (fPedEvCntr == fEvForPedestals - 1) continue;
             CopyDataToPedMap(adc32, adc128, fPedEvCntr);
@@ -1063,7 +1081,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
             conf.get<string>("Digi.TreeName").c_str(),
             conf.get<string>("Digi.TreeTitle").c_str());
 
-    eventHeader = new TClonesArray("BmnEventHeader");
+    eventHeader = new BmnEventHeader();
     runHeader = new BmnRunHeader();
     fDigiTree->Branch("EventHeader", &eventHeader);
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
@@ -1183,7 +1201,7 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
     if (land) land->Delete();
     if (fTrigMapper)
         fTrigMapper->ClearArrays();
-    eventHeader->Delete();
+    //eventHeader->Delete();
     //runHeader->Delete();
     fTimeShifts.clear();
     return kBMNSUCCESS;
@@ -1195,7 +1213,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     //            fRawTree->GetEntry(iEv);
 
     FillTimeShiftsMap();
-    BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
+    BmnEventHeader* headDAQ = eventHeaderDAQ;
     fCurEventType = headDAQ->GetType();
 
     if (fTrigMapper) {
@@ -1229,7 +1247,17 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
         if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
     }
-    new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), TTimeStamp(time_t(fTime_s), fTime_ns), fCurEventType, kFALSE, headDAQ->GetTrigInfo());
+//    new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(),
+//            TTimeStamp(time_t(fTime_s), fTime_ns), fCurEventType, kFALSE, headDAQ->GetTrigInfo());
+        eventHeader->SetRunId(headDAQ->GetRunId());
+        eventHeader->SetEventId(headDAQ->GetEventId());
+        eventHeader->SetEventTimeTS(TTimeStamp(time_t(fTime_s), fTime_ns));
+        eventHeader->SetEventTime(TTimeStamp(time_t(fTime_s), fTime_ns).AsDouble());
+        eventHeader->SetType(fCurEventType);
+        eventHeader->SetTripWord(kFALSE);
+        eventHeader->SetTrigInfo(headDAQ->GetTrigInfo());
+        eventHeader->SetTimeShift(fTimeShifts);        
+        eventHeader->SetStartSignalInfo(fT0Time, fT0Width);
     //        fDigiTree->Fill();
     fPrevEventType = fCurEventType;
 

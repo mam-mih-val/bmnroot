@@ -188,30 +188,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     FairTask* stsFindHits = new CbmStsFindHits("STS Hit Finder", iVerbose);
     fRunAna->AddTask(stsFindHits);
-#else
-    // ====================================================================== //
-    // ===                         Silicon hit finder                     === //
-    // ====================================================================== //
-    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
-    //siliconHM->SetCurrentConfig(BmnSiliconConfiguration::RunSpring2018); //set explicitly
-    fRunAna->AddTask(siliconHM);
-
-    // ====================================================================== //
-    // ===                          GEM hit finder                        === //
-    // ====================================================================== //
-    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
-    //gemHM->SetCurrentConfig(BmnGemStripConfiguration::RunSpring2018); //set explicitly
-    gemHM->SetHitMatching(kTRUE);
-    fRunAna->AddTask(gemHM);
-
-    // ====================================================================== //
-    // ===                          CSC hit finder                        === //
-    // ====================================================================== //
-    BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
-    //cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSpring2018); //set explicitly
-    cscHM->SetHitMatching(kTRUE);
-    fRunAna->AddTask(cscHM);
-#endif
 
     // ====================================================================== //
     // ===                          TOF1 hit finder                       === //
@@ -235,7 +211,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp);
     fRunAna->AddTask(mwpcTF);
 
-#ifdef L1
     // ====================================================================== //
     // ===                         STS track finding                      === //
     // ====================================================================== //
@@ -250,7 +225,66 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     CbmStsTrackFinder* stsTrackFinder = new CbmL1StsTrackFinder();
     FairTask*          stsFindTracks  = new CbmStsFindTracks(iVerbose, stsTrackFinder);
     fRunAna->AddTask(stsFindTracks);
+
+    // ====================================================================== //
+    // ===                          Tracking (DCH)                        === //
+    // ====================================================================== //
+    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
+    dchTF->SetTransferFunction("pol_coord00813.txt");
+    fRunAna->AddTask(dchTF);
+
+    // ====================================================================== //
+    // ===                      Primary vertex finding                    === //
+    // ====================================================================== //
+    CbmPrimaryVertexFinder* pvFinder   = new CbmPVFinderKF();
+    CbmFindPrimaryVertex *  findVertex = new CbmFindPrimaryVertex(pvFinder);
+    fRunAna->AddTask(findVertex);
 #else
+    // ====================================================================== //
+    // ===                         Silicon hit finder                     === //
+    // ====================================================================== //
+    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
+    //siliconHM->SetCurrentConfig(BmnSiliconConfiguration::RunSpring2018); //set explicitly
+    fRunAna->AddTask(siliconHM);
+
+    // ====================================================================== //
+    // ===                          GEM hit finder                        === //
+    // ====================================================================== //
+    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
+    //gemHM->SetCurrentConfig(BmnGemStripConfiguration::RunSpring2018); //set explicitly
+    gemHM->SetHitMatching(kTRUE);
+    fRunAna->AddTask(gemHM);
+
+    // ====================================================================== //
+    // ===                          CSC hit finder                        === //
+    // ====================================================================== //
+    BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
+    //cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSpring2018); //set explicitly
+    cscHM->SetHitMatching(kTRUE);
+    fRunAna->AddTask(cscHM);
+
+    // ====================================================================== //
+    // ===                          TOF1 hit finder                       === //
+    // ====================================================================== //
+    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
+    tof1HP->SetPeriod(run_period);
+    //tof1HP->SetOnlyPrimary(kTRUE);
+    fRunAna->AddTask(tof1HP);
+
+    // ====================================================================== //
+    // ===                          TOF2 hit finder                       === //
+    // ====================================================================== //
+    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7.txt", !isExp, iVerbose, kTRUE);
+    tof2HP->SetTimeResolution(0.115);
+    tof2HP->SetMCTimeFile("TOF700_MC_time_run7.txt");
+    fRunAna->AddTask(tof2HP);
+
+    // ====================================================================== //
+    // ===                          Tracking (MWPC)                       === //
+    // ====================================================================== //
+    BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp);
+    fRunAna->AddTask(mwpcTF);
+
     // ====================================================================== //
     // ===                       Tracking (InnerTracker)                  === //
     // ====================================================================== //
@@ -260,7 +294,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     gemTF->SetDetectorPresence(kGEM, kTRUE);
     //if (!isExp) gemTF->SetRoughVertex(TVector3(0.0, 0.0, 0.0)); //for MC case use correct vertex
     fRunAna->AddTask(gemTF);
-#endif
 
     // ====================================================================== //
     // ===                          Tracking (DCH)                        === //
@@ -269,14 +302,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     dchTF->SetTransferFunction("pol_coord00813.txt");
     fRunAna->AddTask(dchTF);
 
-#ifdef L1
-    // ====================================================================== //
-    // ===                      Primary vertex finding                    === //
-    // ====================================================================== //
-    CbmPrimaryVertexFinder* pvFinder   = new CbmPVFinderKF();
-    CbmFindPrimaryVertex *  findVertex = new CbmFindPrimaryVertex(pvFinder);
-    fRunAna->AddTask(findVertex);
-#else
     // ====================================================================== //
     // ===                      Primary vertex finding                    === //
     // ====================================================================== //

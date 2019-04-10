@@ -29,7 +29,7 @@ InitStatus BmnCounter::Init() {
     if (!ioman) {
         Fatal("Init", "FairRootManager is not instantiated");
     }
-    fEvHead = (TClonesArray*) ioman->GetObject("EventHeader");
+    fEvHead = (BmnEventHeader*) ioman->GetObject("EventHeader");
     if (!fEvHead)
         cout << "WARNING! No EventHeader array!!!" << endl;
 
@@ -40,7 +40,7 @@ InitStatus BmnCounter::Init() {
 
 void BmnCounter::Exec(Option_t* opt) {
 
-    fRunId = (fEvHead) ? ((BmnEventHeader*) fEvHead->At(0))->GetRunId() : 0;
+    fRunId = (fEvHead) ? fEvHead->GetRunId() : 0;
 
     printf(ANSI_COLOR_BLUE "RUN-" ANSI_COLOR_RESET);
     printf(ANSI_COLOR_RED "%d" ANSI_COLOR_RESET, fRunId);

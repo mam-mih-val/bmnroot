@@ -18,7 +18,7 @@ using namespace TMath;
 
 class BmnCounter : public FairTask {
 private:
-    TClonesArray* fEvHead;
+    BmnEventHeader* fEvHead;
     Long64_t fNEvents;
     Long64_t fIEvent;
     Int_t fRunId;

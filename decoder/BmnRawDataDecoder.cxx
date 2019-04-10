@@ -12,9 +12,7 @@ class UniDbRun;
 BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t period) {
     string confFileName = string(getenv("VMCWORKDIR")) + "/config/bmnconf.json";
     pt::read_json(confFileName, conf);
-    runHeaderDAQ = NULL;
     eventHeaderDAQ = NULL;
-    runHeader = NULL;
     eventHeader = NULL;
     fTime_ns = 0;
     fTime_s = 0;
@@ -140,8 +138,6 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
         }
     }
 
-    fRawTree->Branch("RunHeader", &runHeaderDAQ);
-    runHeaderDAQ->SetRunId(fRunId);
     //    TTimeStamp startT = TTimeStamp(time_t(fTimeStart_s), fTimeStart_ns);
     //    TTimeStamp finishT = TTimeStamp(time_t(fTime_s), fTime_ns);
     //    fRunStartTime = TDatime(Int_t(startT.GetDate(kFALSE)), Int_t(startT.GetTime(kFALSE)));
@@ -151,9 +147,6 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     Int_t shift = GetUTCShift(fRunEndTime);
     if (shift != tai_utc_dif)
         fprintf(stderr, ANSI_COLOR_RED "Critical Warning! Leap second added during the %i run!\n\n" ANSI_COLOR_RESET, fRunId);
-    runHeaderDAQ->SetStartTime(fRunStartTime);
-    runHeaderDAQ->SetFinishTime(fRunEndTime);
-    runHeaderDAQ->SetNEvents(fNevents);
     fRawTree->Fill();
 
     fCurentPositionRawFile = ftello64(fRawFileIn);
@@ -225,7 +218,6 @@ BmnStatus BmnRawDataDecoder::InitConverter() {
     hrb = new TClonesArray("BmnHRBDigit");
     msc = new TClonesArray("BmnMSCDigit");
     eventHeaderDAQ = new BmnEventHeader();
-    runHeaderDAQ = new BmnRunHeader();
 
     fRawTree->Branch("SYNC", &sync);
     fRawTree->Branch("ADC32", &adc32);
@@ -868,7 +860,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     adc = new TClonesArray("BmnADCDigit");
     tacquila = new TClonesArray("BmnTacquilaDigit");
     eventHeaderDAQ = new BmnEventHeader();
-    runHeaderDAQ = new BmnRunHeader();
     fRawTree->SetBranchAddress("TDC", &tdc);
     fRawTree->SetBranchAddress("TQDC_ADC", &tqdc_adc);
     fRawTree->SetBranchAddress("TQDC_TDC", &tqdc_tdc);
@@ -879,7 +870,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fRawTree->SetBranchAddress("ADC", &adc);
     fRawTree->SetBranchAddress("Tacquila", &tacquila);
     fRawTree->SetBranchAddress("EventHeader", &eventHeaderDAQ);
-    fRawTree->SetBranchAddress("RunHeader", &runHeaderDAQ);
 
     fDigiFileOut = new TFile(fDigiFileName, "recreate");
     InitDecoder();
@@ -960,11 +950,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
         if (iEv == 0) {
 
-            nEv = (Int_t) runHeaderDAQ->GetNEvents();
             fSize = Double_t(fLengthRawFile / 1024. / 1024.);
-            runId = runHeaderDAQ->GetRunId();
-            //fRunStartTime = runHeaderDAQ->GetStartTime();
-            fRunEndTime = runHeaderDAQ->GetFinishTime();
 
             //            if (!UniDbRun::GetRun(fPeriodId, runId))
             //                UniDbRun::CreateRun(fPeriodId, runId, TString::Format("/nica/data4mpd1/dataBMN/bmndata2/run6/raw/mpd_run_Glob_%d.data", runId), "", NULL, NULL, fRunStartTime, &fRunEndTime, &nEv, NULL, &fSize, NULL);
@@ -1059,11 +1045,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     printf("FINISH (event %d):\t%s\n", fNevents, fRunEndTime.AsString());
     printf(ANSI_COLOR_RED "================================================\n" ANSI_COLOR_RESET);
 
-    fDigiTree->Branch("RunHeader", &runHeader);
-    runHeader->SetRunId(runId);
-    runHeader->SetStartTime(fRunStartTime);
-    runHeader->SetFinishTime(fRunEndTime);
-    runHeader->SetNEvents(nEv);
 
     fDigiTree->Write();
     DisposeDecoder();
@@ -1082,7 +1063,6 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
             conf.get<string>("Digi.TreeTitle").c_str());
 
     eventHeader = new BmnEventHeader();
-    runHeader = new BmnRunHeader();
     fDigiTree->Branch("EventHeader", &eventHeader);
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
@@ -1201,8 +1181,6 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
     if (land) land->Delete();
     if (fTrigMapper)
         fTrigMapper->ClearArrays();
-    //eventHeader->Delete();
-    //runHeader->Delete();
     fTimeShifts.clear();
     return kBMNSUCCESS;
 }
@@ -1266,8 +1244,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
 
 BmnStatus BmnRawDataDecoder::FinishRun() {
     Double_t fSize = Double_t(fLengthRawFile / 1024. / 1024.);
-    fRunStartTime = runHeaderDAQ->GetStartTime();
-    fRunEndTime = runHeaderDAQ->GetFinishTime();
     Int_t nEv = fNevents;
 
     //    if (!UniDbRun::GetRun(fPeriodId, fRunId))
@@ -1333,8 +1309,6 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (land) delete land;
 
     delete eventHeader;
-    delete runHeader;
-    if (runHeaderDAQ) delete runHeaderDAQ;
     if (eventHeaderDAQ) delete eventHeaderDAQ;
     if (fRawTree) fRawTree->Delete();
     return kBMNSUCCESS;

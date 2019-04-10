@@ -425,8 +425,6 @@ private:
     TClonesArray *tqdc_adc;
     TClonesArray *msc;
     BmnEventHeader *eventHeaderDAQ;
-    BmnRunHeader *runHeaderDAQ;
-    //    TClonesArray *runHeaderDAQ;
     TClonesArray *pedestalAdc;
 
     //Digi arrays
@@ -443,8 +441,6 @@ private:
 
     //header array
     BmnEventHeader *eventHeader;
-    BmnRunHeader *runHeader;
-    //    TClonesArray *runHeader;
 
     UInt_t data[10000000];
     ULong_t fMaxEvent;

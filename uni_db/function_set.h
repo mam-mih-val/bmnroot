@@ -2,7 +2,7 @@
 // Name        : function_set.h
 // Author      : Konstantin Gertsenberger (gertsen@jinr.ru)
 // Description : set of common C++ functions
-// Version     : 1.03
+// Version     : 1.05
 //============================================================================
 
 #ifndef FUNCTION_SET_H
@@ -66,9 +66,11 @@ string find_first_number(string const &str, size_t &beg_pos, size_t &end_pos, bo
 string find_last_number(string const &str, size_t &beg_pos, size_t &end_pos, bool isOnlyPositive = true);  string find_last_double_number(string const &str, size_t &beg_pos, size_t &end_pos, bool isOnlyPositive = true);
 // convert array of chars to the new lowercase array
 char* convert_pchar_to_lowercase_new(char* input_char_array);
-// replace string 's' by string 'd' in text
-void replace_string_in_text(string &text, string s, string d);
-// replace char 'find' in string (char* str) by another char 'replace'; return number of replacement
+// replace string 'old_substring' by string 'new_substring' in 'text'
+void replace_string_in_text(string &text, string old_substring, string new_substring);
+// replace string 'old_substring' by integer 'new_subinteger' in 'text'
+void replace_string_in_text(string &text, string old_substring, int new_subinteger);
+// replace char 'find' in array of characters (char*) by another char 'replace'; return number of replacement
 int replace_char(char*& str, char find, char replace);
 // return string without leading and trailing spaces and tabs
 string trim(const string& str, const string& whitespace = " \t\r");
@@ -90,6 +92,8 @@ string get_directory_path(string file_path);
 /*  TIME FUNCTIONS  */
 // get current date as string
 string get_current_date();
+// convert string in a given format to datetime struct tm
+tm convert_string_to_datetime(string str_datetime, const char* format = "%d.%m.%Y %H:%M:%S");
 
 
 #ifndef ONLY_DECLARATIONS
@@ -499,7 +503,7 @@ char* convert_pchar_to_lowercase_new(char* input_char_array)
     return lower;
 }
 
-// replace string 's' by string 'd' in text
+// replace string 'old_substring' by string 'new_substring' in 'text'
 void replace_string_in_text(string &text, string old_substring, string new_substring)
 {
     int start = -1;
@@ -507,7 +511,33 @@ void replace_string_in_text(string &text, string old_substring, string new_subst
     {
         start = text.find(old_substring, start + 1);
         if (start > -1)
+        {
             text.replace(start, old_substring.length(), new_substring.c_str());
+            start += new_substring.length() - old_substring.length();
+        }
+    }
+    while (start > -1);
+}
+
+// replace string 'old_substring' by integer 'new_subinteger' in 'text'
+void replace_string_in_text(string &text, string old_substring, int new_subinteger)
+{
+	string new_substring = "";
+	int start = -1;
+    do
+    {
+        start = text.find(old_substring, start + 1);
+        if (start > -1)
+        {
+        	if (new_substring == "")
+        	{
+        		char buf_int[9];
+        		sprintf(buf_int, "%d", new_subinteger);
+        		new_substring = buf_int;
+        	}
+        	text.replace(start, old_substring.length(), new_substring.c_str());
+        	start += new_substring.length() - old_substring.length();
+        }
     }
     while (start > -1);
 }
@@ -662,6 +692,15 @@ string get_current_date()
     string str(buffer);
 
     return str;
+}
+
+// convert string in a given format to datetime struct tm
+tm convert_string_to_datetime(string str_datetime, const char* format)
+{
+    tm tmbuf[1] = {{0}};
+    strptime(str_datetime.c_str(), format, tmbuf);
+
+    return tmbuf[0];  // tmbuf->tm_year, tmbuf->tm_mon+1, tmbuf->tm_mday, tmbuf->tm_hour, tmbuf->tm_min, tmbuf->tm_sec
 }
 
 #endif /* ONLY_DECLARATIONS */

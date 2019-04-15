@@ -337,7 +337,7 @@ class BmnEventHeader : public FairEventHeader
      */
     virtual ~BmnEventHeader();
 
-    ClassDef(BmnEventHeader, 5)
+    ClassDef(BmnEventHeader, 6)
 };
 
 #endif /* BMNEVENTHEADER_H */

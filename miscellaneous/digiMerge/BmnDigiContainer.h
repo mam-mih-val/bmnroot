@@ -1,9 +1,11 @@
 #include <TNamed.h>
 #include <iostream>
 #include <map>
+#include <TClonesArray.h>
 
 #include <BmnEventHeader.h>
 #include <BmnGemStripDigit.h>
+#include <BmnCSCDigit.h>
 #include <BmnSiliconDigit.h>
 #include <BmnZDCDigit.h>
 #include <BmnTrigDigit.h>
@@ -30,145 +32,162 @@ public:
     };
 
     // Setters
-    void SetGemDigi(UInt_t evId, BmnGemStripDigit dig) {
-        gem.insert(pair <UInt_t, BmnGemStripDigit> (evId, dig));
+
+    void SetDigi(TString detName, UInt_t evId,
+            vector <BmnGemStripDigit> _gem,
+            vector <BmnCSCDigit> _csc,
+            vector <BmnSiliconDigit> _silicon,
+            vector <BmnZDCDigit> _zdc,
+            vector <BmnTrigDigit> _bc1,
+            vector <BmnTrigDigit> _bc2,
+            vector <BmnTrigDigit> _bc3,
+            vector <BmnTrigDigit> _veto,
+            vector <BmnTrigDigit> _bd,
+            vector <BmnTrigDigit> _si,
+            vector <BmnMwpcDigit> _mwpc,
+            vector <BmnDchDigit> _dch,
+            vector <BmnTof1Digit> _tof400,
+            vector <BmnTof2Digit> _tof700,
+            vector <BmnECALDigit> _ecal, 
+            vector <BmnTrigDigit> _t0,  
+            vector <BmnTrigDigit> _fd) {
+        if (detName.Contains("GEM")) 
+            gem[evId] = _gem;
+        else if (detName.Contains("CSC"))
+            csc[evId] = _csc;
+        else if (detName.Contains("SILICON"))
+            silicon[evId] = _silicon;
+        else if (detName.Contains("MWPC"))
+            mwpc[evId] = _mwpc;
+        else if (detName.Contains("DCH"))
+            dch[evId] = _dch;
+        else if (detName.Contains("TOF400"))
+            tof400[evId] = _tof400;
+        else if (detName.Contains("TOF700"))
+            tof700[evId] = _tof700;
+        else if (detName.Contains("ECAL"))
+            ecal[evId] = _ecal;
+        else if (detName.Contains("BC1"))
+            bc1[evId] = _bc1;
+        else if (detName.Contains("BC2"))
+            bc2[evId] = _bc2;
+        else if (detName.Contains("BC3"))
+            bc3[evId] = _bc3;
+        else if (detName.Contains("VC") || detName.Contains("VETO"))
+            veto[evId] = _veto;
+        else if (detName.Contains("Si"))
+            si[evId] = _si;
+        else if (detName.Contains("BD"))
+            bd[evId] = _bd;
+        else if (detName.Contains("ZDC"))
+            zdc[evId] = _zdc;
+        else if (detName.Contains("T0"))
+            t0[evId] = _t0;
+         else if (detName.Contains("FD"))
+            fd[evId] = _fd;
+        else
+            throw;
     }
 
-    void SetSiliconDigi(UInt_t evId, BmnSiliconDigit dig) {
-        silicon.insert(pair <UInt_t, BmnSiliconDigit> (evId, dig));
+    void SetEventHeadersPerEachDetector(TString detName, UInt_t evId, BmnEventHeader header) {
+        headerMap[pair <UInt_t, TString> (evId, detName)] = header;
     }
 
-    void SetZdcDigi(UInt_t evId, BmnZDCDigit dig) {
-        zdc.insert(pair <UInt_t, BmnZDCDigit> (evId, dig));
-    }
+    // Getters
 
-    void SetT0Digi(UInt_t evId, BmnTrigDigit dig) {
-        t0.insert(pair <UInt_t, BmnTrigDigit> (evId, dig));
-    }
-    
-    void SetBc1Digi(UInt_t evId, BmnTrigDigit dig) {   
-        bc1.insert(pair <UInt_t, BmnTrigDigit> (evId, dig));
-    }
-    
-    void SetBc2Digi(UInt_t evId, BmnTrigDigit dig) {   
-        bc2.insert(pair <UInt_t, BmnTrigDigit> (evId, dig));
-    }
-    
-     void SetVetoDigi(UInt_t evId, BmnTrigDigit dig) {   
-        veto.insert(pair <UInt_t, BmnTrigDigit> (evId, dig));
-    }
-     
-     void SetFdDigi(UInt_t evId, BmnTrigDigit dig) {   
-        fd.insert(pair <UInt_t, BmnTrigDigit> (evId, dig));
-    }
-     
-    void SetBdDigi(UInt_t evId, BmnTrigDigit dig) {   
-        bd.insert(pair <UInt_t, BmnTrigDigit> (evId, dig));
-    }
-
-    void SetMwpcDigi(UInt_t evId, BmnMwpcDigit dig) {
-        mwpc.insert(pair <UInt_t, BmnMwpcDigit> (evId, dig));
-    }
-    
-    void SetDchDigi(UInt_t evId, BmnDchDigit dig) {
-        dch.insert(pair <UInt_t, BmnDchDigit> (evId, dig));
-    }
-
-    void SetTof400Digi(UInt_t evId, BmnTof1Digit dig) {
-        tof400.insert(pair <UInt_t, BmnTof1Digit> (evId, dig));
-    }
-
-    void SetTof700Digi(UInt_t evId, BmnTof2Digit dig) {
-        tof700.insert(pair <UInt_t, BmnTof2Digit> (evId, dig));
-    }
-
-    void SetEcalDigi(UInt_t evId, BmnECALDigit dig) {
-        ecal.insert(pair <UInt_t, BmnECALDigit> (evId, dig));
-    }
-    
-    void SetEventHeader(UInt_t evId, BmnEventHeader head) {
-        header[evId] = head;
-    }
-    
-    // Getters 
-    multimap <UInt_t, BmnGemStripDigit> GetGemDigi() {
+    map <UInt_t, vector <BmnGemStripDigit>> GetGemDigi() {
         return gem;
     }
     
-    multimap <UInt_t, BmnSiliconDigit> GetSiliconDigi() {
+    map <UInt_t, vector <BmnCSCDigit>> GetCscDigi() {
+        return csc;
+    }
+
+    map <UInt_t, vector <BmnSiliconDigit>> GetSiliconDigi() {
         return silicon;
     }
-    
-    multimap <UInt_t, BmnZDCDigit> GetZdcDigi() {
+
+    map <UInt_t, vector <BmnZDCDigit>> GetZdcDigi() {
         return zdc;
     }
-    
-    multimap <UInt_t, BmnTrigDigit> GetT0Digi() {
-        return t0;
-    }
-    
-    multimap <UInt_t, BmnTrigDigit> GetBc1Digi() {
+
+    map <UInt_t, vector <BmnTrigDigit>> GetBc1Digi() {
         return bc1;
     }
-    
-    multimap <UInt_t, BmnTrigDigit> GetBc2Digi() {
+
+    map <UInt_t, vector <BmnTrigDigit>> GetBc2Digi() {
         return bc2;
     }
-    
-    multimap <UInt_t, BmnTrigDigit> GetVetoDigi() {
+
+    map <UInt_t, vector <BmnTrigDigit>> GetBc3Digi() {
+        return bc3;
+    }
+
+    map <UInt_t, vector <BmnTrigDigit>> GetVetoDigi() {
         return veto;
     }
-    
-    multimap <UInt_t, BmnTrigDigit> GetFdDigi() {
-        return fd;
-    }
-    
-    multimap <UInt_t, BmnTrigDigit> GetBdDigi() {
+
+    map <UInt_t, vector <BmnTrigDigit>> GetBdDigi() {
         return bd;
     }
-    
-    multimap <UInt_t, BmnMwpcDigit> GetMwpcDigi() {
+
+    map <UInt_t, vector <BmnTrigDigit>> GetSiDigi() {
+        return si;
+    }
+
+    map <UInt_t, vector <BmnMwpcDigit>> GetMwpcDigi() {
         return mwpc;
     }
-    
-    multimap <UInt_t, BmnDchDigit> GetDchDigi() {
+
+    map <UInt_t, vector <BmnDchDigit>> GetDchDigi() {
         return dch;
     }
-    
-    multimap <UInt_t, BmnTof1Digit> GetTof400Digi() {
+
+    map <UInt_t, vector <BmnTof1Digit>> GetTof400Digi() {
         return tof400;
     }
-    
-    multimap <UInt_t, BmnTof2Digit> GetTof700Digi() {
+
+    map <UInt_t, vector <BmnTof2Digit>> GetTof700Digi() {
         return tof700;
     }
-    
-    multimap <UInt_t, BmnECALDigit> GetEcalDigi() {
+
+    map <UInt_t, vector <BmnECALDigit>> GetEcalDigi() {
         return ecal;
     }
     
-    map <UInt_t, BmnEventHeader> GetEventHeader() {
-        return header;
+    map <UInt_t, vector <BmnTrigDigit>> GetT0Digi() {
+        return t0;
+    }
+    
+    map <UInt_t, vector <BmnTrigDigit>> GetFdDigi() {
+        return fd;
+    }
+    
+    map <pair <UInt_t, TString>, BmnEventHeader> GetEventHeaderMap() {
+        return headerMap;
     }
 
 private:
-    // eventId --> detector digi
-    multimap <UInt_t, BmnGemStripDigit> gem;
-    multimap <UInt_t, BmnSiliconDigit> silicon;
-    multimap <UInt_t, BmnZDCDigit> zdc;
-    multimap <UInt_t, BmnTrigDigit> t0;
-    multimap <UInt_t, BmnTrigDigit> bc1;
-    multimap <UInt_t, BmnTrigDigit> bc2;
-    multimap <UInt_t, BmnTrigDigit> veto;
-    multimap <UInt_t, BmnTrigDigit> fd;
-    multimap <UInt_t, BmnTrigDigit> bd;
-    multimap <UInt_t, BmnMwpcDigit> mwpc;
-    multimap <UInt_t, BmnDchDigit> dch;
-    multimap <UInt_t, BmnTof1Digit> tof400;
-    multimap <UInt_t, BmnTof2Digit> tof700;
-    multimap <UInt_t, BmnECALDigit> ecal;
+    // eventId --> detector digis
+    map <UInt_t, vector <BmnGemStripDigit>> gem;
+    map <UInt_t, vector <BmnCSCDigit>> csc;
+    map <UInt_t, vector <BmnSiliconDigit>> silicon;
+    map <UInt_t, vector <BmnZDCDigit>> zdc;
+    map <UInt_t, vector <BmnTrigDigit>> t0;
+    map <UInt_t, vector <BmnTrigDigit>> bc1;
+    map <UInt_t, vector <BmnTrigDigit>> bc2;
+    map <UInt_t, vector <BmnTrigDigit>> bc3;
+    map <UInt_t, vector <BmnTrigDigit>> veto;
+    map <UInt_t, vector <BmnTrigDigit>> fd;
+    map <UInt_t, vector <BmnTrigDigit>> bd;
+    map <UInt_t, vector <BmnTrigDigit>> si;
+    map <UInt_t, vector <BmnMwpcDigit>> mwpc;
+    map <UInt_t, vector <BmnDchDigit>> dch;
+    map <UInt_t, vector <BmnTof1Digit>> tof400;
+    map <UInt_t, vector <BmnTof2Digit>> tof700;
+    map <UInt_t, vector <BmnECALDigit>> ecal;
     
-    map <UInt_t, BmnEventHeader> header;
+    map <pair <UInt_t, TString>, BmnEventHeader> headerMap;
 
     ClassDef(BmnDigiContainer, 1);
 

@@ -140,6 +140,8 @@ private:
 
     void SplitToDetectorsRun6();
     void SplitToDetectorsRun7();
+    
+    Bool_t IsArraysEmpty();
 
     ClassDef(BmnDigiMergeTask, 1);
 

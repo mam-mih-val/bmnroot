@@ -609,14 +609,14 @@ void BmnDigiMergeTask::SplitToDetectorsRun7() {
         // cout << header << endl;
         new ((*fHeaderOut)[fHeaderOut->GetEntriesFast()]) BmnEventHeader(*header);
         // h->SetRunId(header->GetRunId());
-       // h->SetEventId(header.GetEventId());
-       // h->SetEventTimeTS(header.GetEventTimeTS());
+        // h->SetEventId(header.GetEventId());
+        // h->SetEventTimeTS(header.GetEventTimeTS());
         //h->SetEventTime(header.GetEventTime());
         //h->SetType(header.GetType());
         //h->SetTripWord(header.GetTripWord());
         // h->SetTrigInfo(head.GetTrigInfo());
         //h->SetTimeShift(header.GetTimeShift());
-  
+
         if (fBC1Digits)
             for (UInt_t iDigi = 0; iDigi < fBC1Digits->GetEntriesFast(); iDigi++) {
                 BmnTrigDigit* dig = (BmnTrigDigit*) fBC1Digits->UncheckedAt(iDigi);
@@ -864,13 +864,7 @@ void BmnDigiMergeTask::GlueEventsFromInputFiles(Bool_t flag, UInt_t s, UInt_t f)
                 BmnEventHeader head = it.second;
                 BmnEventHeader* h = new ((*fHeaderOut)[fHeaderOut->GetEntriesFast()]) BmnEventHeader();
                 h->SetRunId(head.GetRunId());
-                h->SetEventId(head.GetEventId());
-                h->SetEventTimeTS(head.GetEventTimeTS());
-                h->SetEventTime(head.GetEventTime());
-                h->SetType(head.GetType());
-                h->SetTripWord(head.GetTripWord());
-                // h->SetTrigInfo(head.GetTrigInfo());
-                h->SetTimeShift(head.GetTimeShift());
+                h->SetEventId(it.first.first);
             }
         }
 
@@ -1081,8 +1075,29 @@ void BmnDigiMergeTask::GlueEventsFromInputFiles(Bool_t flag, UInt_t s, UInt_t f)
                         new ((*fCsc)[fCsc->GetEntriesFast()]) BmnCSCDigit(it.second[iDig]);
                 }
         }
+
+        if (IsArraysEmpty())
+            continue;
+
         fOutTree->Fill();
     }
 }
 
-
+Bool_t BmnDigiMergeTask::IsArraysEmpty() {
+    if (fGem->GetEntriesFast() == 0 &&
+            fSil->GetEntriesFast() == 0 &&
+            fZdc->GetEntriesFast() == 0 &&
+            fBC1->GetEntriesFast() == 0 &&
+            fBC2->GetEntriesFast() == 0 &&
+            fVeto->GetEntriesFast() == 0 &&
+            fBd->GetEntriesFast() == 0 &&
+            fMwpc->GetEntriesFast() == 0 &&
+            fDch->GetEntriesFast() == 0 &&
+            fTof400->GetEntriesFast() == 0 &&
+            fTof700->GetEntriesFast() == 0 &&
+            fEcal->GetEntriesFast() == 0 &&
+            (isRun6 ? (fT0->GetEntriesFast() == 0 && fFd->GetEntriesFast() == 0) : (fBC3->GetEntriesFast() == 0 && fSi->GetEntriesFast() == 0 && fCsc->GetEntriesFast() == 0)))
+        return kTRUE;
+    else
+        return kFALSE;
+}

@@ -39,7 +39,9 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
 
     // -----   Reconstruction run   --------------------------------------------
     FairRunAna* fRunAna = new FairRunAna();
-    fRunAna->SetEventHeader(new BmnEventHeader());
+    BmnEventHeader* header = new BmnEventHeader();
+    header->SetHeaderName("DstEventHeader.");
+    fRunAna->SetEventHeader(header);
 
     Bool_t isField = (inputFileName.Contains("noField")) ? kFALSE : kTRUE; // flag for tracking (to use mag.field or not)
     Bool_t isTarget = kTRUE;//kFALSE; // flag for tracking (run with target or not)

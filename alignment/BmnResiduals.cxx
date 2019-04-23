@@ -17,7 +17,7 @@ fSilHits(nullptr) {
     fBranchSilTracks = "BmnSiliconTrack";
     fBranchGlobTracks = "BmnGlobalTrack";
 
-    fBranchFairEventHeader = "EventHeader.";
+    fBranchFairEventHeader = "DstEventHeader.";
 }
 
 InitStatus BmnResiduals::Init() {

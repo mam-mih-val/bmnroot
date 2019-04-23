@@ -6,6 +6,7 @@
 #include "BmnTrigInfo.h"
 
 #include "FairEventHeader.h"
+#include "FairRootManager.h"
 
 #include "TTimeStamp.h"
 
@@ -13,9 +14,8 @@
 #include <vector>
 using namespace std;
 
-class BmnEventHeader : public FairEventHeader
-{
- private:
+class BmnEventHeader : public FairEventHeader {
+private:
     /** Event Id **/
     UInt_t fEventId;
     /** Event Time in TTimeStamp **/
@@ -59,7 +59,9 @@ class BmnEventHeader : public FairEventHeader
     vector<Double_t> fTimeBC1;
     vector<Double_t> fTimeVETO;
 
- public:
+    TString fHeaderName;
+
+public:
     /** Default constructor */
     BmnEventHeader();
 
@@ -218,11 +220,11 @@ class BmnEventHeader : public FairEventHeader
         fStartSignalTime = time;
         fStartSignalWidth = width;
     }
-    
+
     Double_t GetStartSignalTime() {
         return fStartSignalTime;
     }
-    
+
     Double_t GetStartSignalWidth() {
         return fStartSignalWidth;
     }
@@ -330,6 +332,14 @@ class BmnEventHeader : public FairEventHeader
     void SetAmpVETO(Double_t AmpVETO) {
 
         fAmpVETO.push_back(AmpVETO);
+    }
+
+    void SetHeaderName(TString header_name) {
+        fHeaderName = header_name;
+    }
+
+    virtual void Register(Bool_t Persistence = kTRUE) {
+        FairRootManager::Instance()->Register(fHeaderName.Data(), "EvtHeader", this, Persistence);
     }
 
     /**

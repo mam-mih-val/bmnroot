@@ -4,83 +4,85 @@
 
 BmnEventHeader::BmnEventHeader()
 : FairEventHeader(),
- fEventId(0),
- fStartSignalTime(0),
- fStartSignalWidth(0),
- fEventTimeTS(TTimeStamp()),
- fType(kBMNPAYLOAD),
- fTrigT0(0),
- fTrigBC1(0),
- fTrigBC2(0),
- fTrigVETO(0),
- fTrigSi(0),
- fTrigBD(0) {
- fModT0.clear();
- fModBD.clear();
- fModSi.clear();
- fModVETO.clear();
- fModBC1.clear();
- fModBC2.clear();
+fEventId(0),
+fStartSignalTime(0),
+fStartSignalWidth(0),
+fEventTimeTS(TTimeStamp()),
+fType(kBMNPAYLOAD),
+fTrigT0(0),
+fTrigBC1(0),
+fTrigBC2(0),
+fTrigVETO(0),
+fTrigSi(0),
+fTrigBD(0),
+fHeaderName("BmnEventHeader.") {
 
- fAmpT0.clear();
- fAmpBD.clear();
- fAmpSi.clear();
- fAmpVETO.clear();
- fAmpBC1.clear();
- fAmpBC2.clear();
+    fModT0.clear();
+    fModBD.clear();
+    fModSi.clear();
+    fModVETO.clear();
+    fModBC1.clear();
+    fModBC2.clear();
 
- fTimeBD.clear();
- fTimeSi.clear();
- fTimeVETO.clear();
- fTimeBC1.clear();
- fTimeBC2.clear();
- fTrigInfo = NULL;
+    fAmpT0.clear();
+    fAmpBD.clear();
+    fAmpSi.clear();
+    fAmpVETO.clear();
+    fAmpBC1.clear();
+    fAmpBC2.clear();
+
+    fTimeBD.clear();
+    fTimeSi.clear();
+    fTimeVETO.clear();
+    fTimeBC1.clear();
+    fTimeBC2.clear();
+    fTrigInfo = NULL;
 }
 
 BmnEventHeader::BmnEventHeader(UInt_t run, UInt_t ev, TTimeStamp time, BmnEventType type, Bool_t trip, BmnTrigInfo* info)
 : FairEventHeader(),
- fEventId(ev),
- fType(type),
- fEventTimeTS(time),
- fStartSignalTime(0),
- fStartSignalWidth(0),
- fTripWord(trip),
- fTrigInfo(info)
-{
+fEventId(ev),
+fType(type),
+fEventTimeTS(time),
+fStartSignalTime(0),
+fStartSignalWidth(0),
+fTripWord(trip),
+fTrigInfo(info),
+fHeaderName("BmnEventHeader.") {
     this->SetRunId(run);
     this->SetEventTime(time.AsDouble());
 }
 
 BmnEventHeader::BmnEventHeader(UInt_t run, UInt_t ev, TTimeStamp time, BmnEventType type, Bool_t trip, BmnTrigInfo* info, map<UInt_t, Long64_t> ts)
 : FairEventHeader(),
- fEventId(ev),
- fType(type),
- fEventTimeTS(time),
- fTripWord(trip),
- fStartSignalTime(0),
- fStartSignalWidth(0),
- fTrigInfo(info),
- fTimeShift(ts)
-{
+fEventId(ev),
+fType(type),
+fEventTimeTS(time),
+fTripWord(trip),
+fStartSignalTime(0),
+fStartSignalWidth(0),
+fTrigInfo(info),
+fTimeShift(ts), 
+fHeaderName("BmnEventHeader.") {
     this->SetRunId(run);
     this->SetEventTime(time.AsDouble());
 }
 
 BmnEventHeader::BmnEventHeader(UInt_t run, UInt_t ev, TTimeStamp time, BmnEventType type, BmnTrigInfo* info, Bool_t trip, UInt_t T0, UInt_t BC1, UInt_t BC2, UInt_t VETO, UInt_t BD, UInt_t Si)
 : FairEventHeader(),
- fEventId(ev),
- fType(type),
- fEventTimeTS(time),
- fTripWord(trip),
- fTrigInfo(info),
- //fTrigType(trig),
- fTrigT0(T0),
- fTrigBC1(BC1),
- fTrigBC2(BC2),
- fTrigVETO(VETO),
- fTrigSi(Si),
- fTrigBD(BD)
-{
+fEventId(ev),
+fType(type),
+fEventTimeTS(time),
+fTripWord(trip),
+fTrigInfo(info),
+//fTrigType(trig),
+fTrigT0(T0),
+fTrigBC1(BC1),
+fTrigBC2(BC2),
+fTrigVETO(VETO),
+fTrigSi(Si),
+fTrigBD(BD), 
+fHeaderName("BmnEventHeader.") {
     fModT0.clear();
     fModBD.clear();
     fModSi.clear();
@@ -107,6 +109,8 @@ BmnEventHeader::BmnEventHeader(UInt_t run, UInt_t ev, TTimeStamp time, BmnEventT
 }
 
 // -----   Destructor   ----------------------------------------------------
-BmnEventHeader::~BmnEventHeader() {}
+
+BmnEventHeader::~BmnEventHeader() {
+}
 
 ClassImp(BmnEventHeader)

@@ -279,7 +279,7 @@ Int_t Si_broken=0;
 
 bevh= (BmnEventHeader*)fEventHeader->At(0);
 BmnEventHeader* behnew= new ((*fBMNEventHeader)[0]) BmnEventHeader(bevh->GetRunId(), bevh->GetEventId(), bevh->GetEventTime(),  bevh->GetType(),
- bevh->GetTrigInfo(), bevh->GetTripWord(), /*fPointsT0->GetEntries()*/0,fPointsBC1->GetEntries(),fPointsBC2->GetEntries(),fPointsVeto->GetEntries(),fPointsBD->GetEntries(),fPointsSi->GetEntries());
+ bevh->GetTripWord(), bevh->GetTrigInfo(), /*fPointsT0->GetEntries()*/0,fPointsBC1->GetEntries(),fPointsBC2->GetEntries(),fPointsVeto->GetEntries(),fPointsBD->GetEntries(),fPointsSi->GetEntries());
 
 for (Int_t i = 0; i < fPointsSi->GetEntries(); ++i) {
 BmnTrigDigit* sitrig =(BmnTrigDigit*)fPointsSi->UncheckedAt(i);

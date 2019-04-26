@@ -229,7 +229,7 @@ BmnStatus BmnRawDataDecoder::InitConverter() {
     fRawTree->Branch("TQDC_TDC", &tqdc_tdc);
     fRawTree->Branch("HRB", &hrb);
     fRawTree->Branch("MSC", &msc);
-    fRawTree->Branch("EventHeader", &eventHeaderDAQ);
+    fRawTree->Branch("BmnEventHeader.", &eventHeaderDAQ);
     return kBMNSUCCESS;
 }
 
@@ -869,7 +869,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fRawTree->SetBranchAddress("ADC128", &adc128);
     fRawTree->SetBranchAddress("ADC", &adc);
     fRawTree->SetBranchAddress("Tacquila", &tacquila);
-    fRawTree->SetBranchAddress("EventHeader", &eventHeaderDAQ);
+    fRawTree->SetBranchAddress("BmnEventHeader.", &eventHeaderDAQ);
 
     fDigiFileOut = new TFile(fDigiFileName, "recreate");
     InitDecoder();
@@ -1063,7 +1063,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
             conf.get<string>("Digi.TreeTitle").c_str());
 
     eventHeader = new BmnEventHeader();
-    fDigiTree->Branch("EventHeader", &eventHeader);
+    fDigiTree->Branch("BmnEventHeader.", &eventHeader);
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
     if (fDetectorSetup[0]) {

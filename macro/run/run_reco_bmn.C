@@ -39,9 +39,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
 
     // -----   Reconstruction run   --------------------------------------------
     FairRunAna* fRunAna = new FairRunAna();
-    BmnEventHeader* header = new BmnEventHeader();
-    header->SetHeaderName("DstEventHeader.");
-    fRunAna->SetEventHeader(header);
+    fRunAna->SetEventHeader(new DstEventHeader());
 
     Bool_t isField = (inputFileName.Contains("noField")) ? kFALSE : kTRUE; // flag for tracking (to use mag.field or not)
     Bool_t isTarget = kTRUE;//kFALSE; // flag for tracking (run with target or not)
@@ -155,10 +153,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     TObjString tofDigiFile = "$VMCWORKDIR/parameters/tof_standard.geom.par";
     parFileNameList->Add(&tofDigiFile);
 
-    if (iVerbose == 0) { // print only progress bar in terminal in quiet mode
-        BmnCounter* cntr = new BmnCounter(nEvents);
-        fRunAna->AddTask(cntr);
-    }
     // ====================================================================== //
     // ===                           Check Triggers                       === //
     // ====================================================================== //
@@ -315,6 +309,10 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // Residual analysis
     BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
     fRunAna->AddTask(res);
+
+    // Fill DST Event Header (if nEvents is present, print only progress bar)
+    BmnFillDstTask* dst_task = new BmnFillDstTask(nEvents);
+    fRunAna->AddTask(dst_task);
 
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();

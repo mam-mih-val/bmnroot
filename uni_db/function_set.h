@@ -94,10 +94,11 @@ string get_directory_path(string file_path);
 string get_current_date();
 // convert string in a given format to datetime struct tm
 tm convert_string_to_datetime(string str_datetime, const char* format = "%d.%m.%Y %H:%M:%S");
+// convert time in double (fractional number of seconds) to a timespec
+struct timespec convert_double_to_timespec(double sec);
 
 
 #ifndef ONLY_DECLARATIONS
-
 
 /*              */
 /*              */
@@ -570,7 +571,7 @@ string trim(const string& str, const string& whitespace)
     return str.substr(strBegin, strRange);
 }
 
-// return string changing whitespaces and tabs by single whitespace
+// return string changing whitespace and tabs by single whitespace
 string reduce(const string& str, const string& fill, const string& whitespace)
 {
     // trim first
@@ -701,6 +702,17 @@ tm convert_string_to_datetime(string str_datetime, const char* format)
     strptime(str_datetime.c_str(), format, tmbuf);
 
     return tmbuf[0];  // tmbuf->tm_year, tmbuf->tm_mon+1, tmbuf->tm_mday, tmbuf->tm_hour, tmbuf->tm_min, tmbuf->tm_sec
+}
+
+struct timespec convert_double_to_timespec(double sec)
+{
+	sec += 0.5e-9;
+	struct timespec ts = {
+		.tv_sec  = (time_t) sec,
+		.tv_nsec = (long) (sec - (long)(sec)) * 1000000000,
+	};
+
+	return ts;
 }
 
 #endif /* ONLY_DECLARATIONS */

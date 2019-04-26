@@ -1,4 +1,3 @@
-
 #ifndef BMNEVENTHEADER_H
 #define BMNEVENTHEADER_H
 
@@ -17,7 +16,7 @@ using namespace std;
 class BmnEventHeader : public FairEventHeader {
 private:
     /** Event Header branch name **/
-    TString fHeaderName;
+    TString fHeaderName;    //!
 
     /** Event Id **/
     UInt_t fEventId;
@@ -30,7 +29,7 @@ private:
     /** Tripped Gems (1 bit for 1 GEM module) **/
     Bool_t fTripWord;
 
-    map<UInt_t, Long64_t> fTimeShift;          //!
+    map<UInt_t, Long64_t> fTimeShift;   //!
 
     /** T0 information for current event**/
     Double_t fStartSignalTime; //ns

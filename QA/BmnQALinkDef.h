@@ -25,5 +25,13 @@
 #pragma link C++ class BmnHistManager+;
 #pragma link C++ class BmnMatchRecoToMC+;
 
+// QA offline
+#pragma link C++ class BmnQaHistoManager++;
+#pragma link C++ class BmnQaOffline++;
+#pragma link C++ class BmnCoordinateDetQa++;
+#pragma link C++ class BmnTimeDetQa++;
+#pragma link C++ class BmnCalorimeterDetQa++;
+#pragma link C++ class BmnTrigDetQa++;
+
 #endif
 

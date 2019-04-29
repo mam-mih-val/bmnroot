@@ -8,6 +8,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/csc
  ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/ssd
  ${CMAKE_SOURCE_DIR}/ssd/aux/data
@@ -15,6 +16,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/QA
  ${CMAKE_SOURCE_DIR}/QA/report
+ ${CMAKE_SOURCE_DIR}/QA/offline
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -55,6 +57,13 @@ set(SRCS
  BmnAcceptanceFunction.h
  BmnMCPoint.h
  BmnMatchRecoToMC.cxx
+
+offline/BmnQaHistoManager.cxx
+offline/BmnQaOffline.cxx
+offline/BmnCoordinateDetQa.cxx
+offline/BmnTimeDetQa.cxx
+offline/BmnCalorimeterDetQa.cxx
+offline/BmnTrigDetQa.cxx
 )
 
 EXEC_PROGRAM( ${ROOT_CONFIG_EXECUTABLE}

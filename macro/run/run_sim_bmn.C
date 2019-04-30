@@ -1,6 +1,7 @@
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/bmnloadlibs.C"
 #include "macro/run/geometry.C"
+//#include "macro/run/geometry_run/geometry_run7.C"
 
 #define BOX  // Choose generator: URQMD PART ION BOX HSD LAQGSM
 #define GEANT3  // Choose: GEANT3 GEANT4
@@ -198,7 +199,9 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     // Transport nEvents
     fRun->Run(nEvents);
 
-    fRun->CreateGeometryFile("geofile_full.root");  // save the result setup geometry to the additional file
+    //gGeoManager->CheckOverlaps(0.0001);
+    //gGeoManager->PrintOverlaps();
+    //fRun->CreateGeometryFile("full_geometry.root");  // save the result setup geometry to the additional file
 
 #ifdef LAQGSM
     TString Pdg_table_name = TString::Format("%s%s%c%s", gSystem->BaseName(inFile.Data()), ".g", (fRun->GetName())[6], ".pdg_table.dat");
@@ -208,5 +211,5 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
-    cout<<"Macro finished successfully."<<endl; // marker of successfully execution for CDASH
+    cout<<"Macro finished successfully."<<endl; // marker of successfully execution for software testing systems
 }

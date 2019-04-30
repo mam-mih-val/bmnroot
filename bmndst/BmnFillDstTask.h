@@ -27,6 +27,14 @@ class BmnFillDstTask : public FairTask
      ** in order to activate printing only progress bar in terminal **/
     BmnFillDstTask(Long64_t nEvents);
 
+    /** Constructor with input Event Header Name and event number to be processed
+     ** in order to activate printing only progress bar in terminal (if not equal -1) **/
+    BmnFillDstTask(TString input_event_header_name, Long64_t nEvents = -1);
+
+    /** Constructor with input and output Event Header Name, and event number to be processed
+     ** in order to activate printing only progress bar in terminal (if not equal -1) **/
+    BmnFillDstTask(TString input_event_header_name, TString output_event_header_name, Long64_t nEvents = -1);
+
     /** Destructor **/
     ~BmnFillDstTask();
 
@@ -48,6 +56,9 @@ class BmnFillDstTask : public FairTask
     virtual void Finish();
 
   private:
+    TString fInputEventHeaderName;
+    TString fOutputEventHeaderName;
+
     /** Input MCEventHeader from Simulation File **/
     FairMCEventHeader* fMCEventHead;
     /** Input BmnEventHeader from Digit File **/

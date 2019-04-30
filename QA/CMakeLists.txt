@@ -64,6 +64,7 @@ offline/BmnCoordinateDetQa.cxx
 offline/BmnTimeDetQa.cxx
 offline/BmnCalorimeterDetQa.cxx
 offline/BmnTrigDetQa.cxx
+offline/BmnDstQa.cxx
 )
 
 EXEC_PROGRAM( ${ROOT_CONFIG_EXECUTABLE}

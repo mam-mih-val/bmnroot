@@ -1,6 +1,7 @@
 #include "FairTask.h"
 #include "FairRootManager.h"
 
+#include <CbmVertex.h>
 #include <BmnGemStripDigit.h>
 #include <BmnCSCDigit.h>
 #include <BmnSiliconDigit.h>
@@ -12,11 +13,15 @@
 #include <BmnZDCDigit.h>
 #include <BmnTrigDigit.h>
 #include <BmnTrigWaveDigit.h>
+#include <BmnGlobalTrack.h>
+#include <BmnSiliconTrack.h>
+#include <BmnGemTrack.h>
 
 #include <BmnCoordinateDetQa.h>
 #include <BmnTimeDetQa.h>
 #include <BmnCalorimeterDetQa.h>
 #include <BmnTrigDetQa.h>
+#include <BmnDstQa.h>
 
 #include <BmnEventHeader.h>
 #include <TString.h>
@@ -31,7 +36,8 @@ using namespace TMath;
 class BmnQaOffline : public FairTask {
 public:
 
-    BmnQaOffline();
+    BmnQaOffline() {};
+    BmnQaOffline(TString);
 
     virtual ~BmnQaOffline() {
     };
@@ -98,7 +104,7 @@ private:
     TString fTQDC_BC3;
     TString fTQDC_BC4;
     TString fTQDC_Veto;
-    
+
     TClonesArray* fBC3Digits;
     TClonesArray* fBC4Digits;
     TClonesArray* fX1LDigits;
@@ -114,7 +120,7 @@ private:
     TClonesArray* fTQDC_BC3Digits;
     TClonesArray* fTQDC_BC4Digits;
     TClonesArray* fTQDC_VetoDigits;
-    
+
     // BM@N triggers
     TString fSiTrig;
     TString fBD;
@@ -135,87 +141,41 @@ private:
     BmnCalorimeterDetQa* zdc;
 
     BmnTrigDetQa* triggers;
-    
+
     TClonesArray** fTriggers;
     map <TClonesArray*, TString> fTrigCorr;
+    
+    Bool_t isDstRead;
+    TChain* fChainDst;
+    TClonesArray* fSiliconHits;
+    TClonesArray* fSiliconTracks;
+    TClonesArray* fGemHits;
+    TClonesArray* fGemTracks;
+    TClonesArray* fVertex;
+    TClonesArray* fGlobalTracks;
+    
+    BmnDstQa* dst;
 
 private:
-    void GEM();
-    void CSC();
-    void SILICON();
-
-    void TOF400();
-    void TOF700();
-    void DCH();
-    void MWPC();
-
-    void ECAL();
-    void ZDC();
-
-    void TRIGGERS();
+    Bool_t ReadDstTree(TString);
 
     // Coordinate detectors
-
-    template <class T> void GetDistributionOfFiredStrips(TClonesArray* digiArray, BmnCoordinateDetQa* detHistoClass, TString detName) {
-        for (Int_t iDig = 0; iDig < digiArray->GetEntriesFast(); iDig++) {
-            T* dig = (T*) digiArray->UncheckedAt(iDig);
-            Int_t module = dig->GetModule();
-            Int_t station = dig->GetStation();
-            Int_t layer = dig->GetStripLayer();
-            detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of fired strips, Stat %d Mod %d Lay %d", detName.Data(), station, module, layer))->Fill(dig->GetStripNumber());
-        }
-    }
+    template <class T> void GetDistributionOfFiredStrips(TClonesArray*, BmnCoordinateDetQa*, TString);
 
     // Time detectors
-
-    template <class T> void GetCommonInfo(TClonesArray* digiArray, BmnTimeDetQa* detHistoClass, TString detName) {
-        for (Int_t iDig = 0; iDig < digiArray->GetEntriesFast(); iDig++) {
-            T* dig = (T*) digiArray->UncheckedAt(iDig);
-            detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of planes", detName.Data()))->Fill(dig->GetPlane());
-            detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of times", detName.Data()))->Fill(dig->GetTime());
-
-        }
-    }
-
-    template <class T> void GetMwpcDchInfo(TClonesArray* digiArray, BmnTimeDetQa* detHistoClass, TString detName) {
-        for (Int_t iDig = 0; iDig < digiArray->GetEntriesFast(); iDig++) {
-            T* dig = (T*) digiArray->UncheckedAt(iDig);
-            detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of wires", detName.Data()))->Fill(dig->GetWireNumber());
-        }
-    }
-
-    template <class T> void GetTofInfo(TClonesArray* digiArray, BmnTimeDetQa* detHistoClass, TString detName) {
-        for (Int_t iDig = 0; iDig < digiArray->GetEntriesFast(); iDig++) {
-            T* dig = (T*) digiArray->UncheckedAt(iDig);
-            detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of strips", detName.Data()))->Fill(dig->GetStrip());
-            detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of amplitudes", detName.Data()))->Fill(dig->GetAmplitude());
-        }
-    }
+    template <class T> void GetCommonInfo(TClonesArray*, BmnTimeDetQa*, TString);
+    template <class T> void GetMwpcDchInfo(TClonesArray*, BmnTimeDetQa*, TString);
+    template <class T> void GetTofInfo(TClonesArray*, BmnTimeDetQa*, TString);
 
     // Calorim. detectors
-
-    template <class T> void GetCommonInfo(TClonesArray* digiArray, BmnCalorimeterDetQa* detHistoClass, TString detName) {
-        for (Int_t iDig = 0; iDig < digiArray->GetEntriesFast(); iDig++) {
-            T* dig = (T*) digiArray->UncheckedAt(iDig);
-            detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of iX", detName.Data()))->Fill(dig->GetIX());
-            detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of iY", detName.Data()))->Fill(dig->GetIY());
-            detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of X", detName.Data()))->Fill(dig->GetX());
-            detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of Y", detName.Data()))->Fill(dig->GetY());
-            detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of channels", detName.Data()))->Fill(dig->GetChannel());
-            detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of amplitudes", detName.Data()))->Fill(dig->GetAmp());
-        }
-    }
+    template <class T> void GetCommonInfo(TClonesArray*, BmnCalorimeterDetQa*, TString);
 
     // Trigger detectors
-
-    template <class T> void GetCommonInfo(TClonesArray* digiArray, BmnTrigDetQa* detHistoClass, TString detName) {
-        for (Int_t iDig = 0; iDig < digiArray->GetEntriesFast(); iDig++) {
-            T* dig = (T*) digiArray->UncheckedAt(iDig);
-            detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of inn. channels", detName.Data()))->Fill(dig->GetMod());
-            detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of times", detName.Data()))->Fill(dig->GetTime());
-            detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of amplitudes", detName.Data()))->Fill(dig->GetAmp());
-        }
-    }
+    template <class T> void GetCommonInfo(TClonesArray*, BmnTrigDetQa*, TString);
+    
+    // Dst
+    void GetGlobalTracksDistributions(TClonesArray*, BmnDstQa*);
+    template <class T> void GetInnerTracksDistributions(TClonesArray*, BmnDstQa*, TString);
 
     ClassDef(BmnQaOffline, 1);
 };

@@ -165,6 +165,7 @@ class CbmStack : public FairGenericStack
   void StoreSecondaries(Bool_t choice = kTRUE) { fStoreSecondaries = choice; }
   void SetMinPoints(Int_t min)                 { fMinPoints        = min;    }
   void SetEnergyCut(Double_t eMin)             { fEnergyCut        = eMin;   }
+  void SetStartZCut(Double_t zMax)             { fStartZCut        = zMax;   }
   void StoreMothers(Bool_t choice = kTRUE)     { fStoreMothers     = choice; }
 
 
@@ -228,6 +229,7 @@ class CbmStack : public FairGenericStack
   Bool_t     fStoreSecondaries;
   Int_t      fMinPoints;
   Double32_t fEnergyCut;
+  Double_t   fStartZCut;
   Bool_t     fStoreMothers;
 
 
@@ -237,7 +239,7 @@ class CbmStack : public FairGenericStack
   CbmStack(const CbmStack&);
   CbmStack& operator=(const CbmStack&);
 
-  ClassDef(CbmStack,1)      
+  ClassDef(CbmStack,2)      
 };
 
 

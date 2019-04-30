@@ -38,6 +38,7 @@ CbmStack::CbmStack(Int_t size)
     fStoreSecondaries(kTRUE),
     fMinPoints(1),
     fEnergyCut(0.),
+    fStartZCut(1000000.),
     fStoreMothers(kTRUE)
 {
 }
@@ -415,6 +416,7 @@ void CbmStack::SelectTracks()
       if (!fStoreSecondaries) { store = kFALSE; }
       if (nPoints < fMinPoints) { store = kFALSE; }
       if (eKin < fEnergyCut) { store = kFALSE; }
+      if (thisPart->Vz() > fStartZCut) { store = kFALSE; };
     }
 
     // --> Set storage flag

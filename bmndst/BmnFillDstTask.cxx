@@ -20,6 +20,8 @@ using namespace std;
 // ---- Default constructor -------------------------------------------
 BmnFillDstTask::BmnFillDstTask() :
  FairTask("BmnFillDstTask"),
+ fInputEventHeaderName("BmnEventHeader."),
+ fOutputEventHeaderName("DstEventHeader."),
  fEventHead(NULL),
  fDstHead(NULL),
  fNEvents(-1),
@@ -30,9 +32,38 @@ BmnFillDstTask::BmnFillDstTask() :
 }
 
 // ---- Constructor with the given event number to be processed -------
-// ---- in order to activate printing only progress bar in terminal ---
 BmnFillDstTask::BmnFillDstTask(Long64_t nEvents) :
  FairTask("BmnFillDstTask"),
+ fInputEventHeaderName("BmnEventHeader."),
+ fOutputEventHeaderName("DstEventHeader."),
+ fEventHead(NULL),
+ fDstHead(NULL),
+ fNEvents(nEvents),
+ fIEvent(0),
+ isSimulationInput(false)
+{
+    LOG(DEBUG)<<"Constructor of BmnFillDstTask"<<FairLogger::endl;
+}
+
+// Constructor with input Event Header Name and event number to be processed
+BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, Long64_t nEvents) :
+ FairTask("BmnFillDstTask"),
+ fInputEventHeaderName(input_event_header_name),
+ fOutputEventHeaderName("DstEventHeader."),
+ fEventHead(NULL),
+ fDstHead(NULL),
+ fNEvents(nEvents),
+ fIEvent(0),
+ isSimulationInput(false)
+{
+    LOG(DEBUG)<<"Constructor of BmnFillDstTask"<<FairLogger::endl;
+}
+
+// Constructor with input and output Event Header Name, and event number to be processed
+BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, TString output_event_header_name, Long64_t nEvents) :
+ FairTask("BmnFillDstTask"),
+ fInputEventHeaderName(input_event_header_name),
+ fOutputEventHeaderName(output_event_header_name),
  fEventHead(NULL),
  fDstHead(NULL),
  fNEvents(nEvents),
@@ -75,25 +106,34 @@ InitStatus BmnFillDstTask::Init()
         return kERROR;
     }
 
-    // Get a pointer to the BmnEventHeader
-    fEventHead = (BmnEventHeader*) ioman->GetObject("BmnEventHeader.");
+    // Get a pointer to the input Event Header
+    TObject* pObj = ioman->GetObject(fInputEventHeaderName);
     if (!fEventHead)
     {
-        // if no BmnEventHeader, searching for MCEventHeader
+        // if no input Event Header was found, searching for "MCEventHeader."
         fMCEventHead = (FairMCEventHeader*) ioman->GetObject("MCEventHeader.");
         if (!fMCEventHead)
         {
-            LOG(ERROR)<<"No BmnEventHeader or MCEventHeader was found!"<<FairLogger::endl<<"BmnFillDstTask will be inactive"<<FairLogger::endl;
+            LOG(ERROR)<<"No input Event Header ("<<fInputEventHeaderName<<") or MCEventHeader was found!"<<FairLogger::endl<<"BmnFillDstTask will be inactive"<<FairLogger::endl;
             return kERROR;
         }
         isSimulationInput = true;
     }
+    else
+    {
+        if (pObj->InheritsFrom(FairMCEventHeader::Class()))
+        {
+            fMCEventHead = (FairMCEventHeader*) pObj;
+            isSimulationInput = true;
+        }
+        else fEventHead = (BmnEventHeader*) pObj;
+    }
 
-    // Get a pointer to the output DstEventHeader
-    fDstHead = (DstEventHeader*) ioman->GetObject("DstEventHeader.");
+    // Get a pointer to the output DST Event Header
+    fDstHead = (DstEventHeader*) ioman->GetObject(fOutputEventHeaderName);
     if (!fDstHead)
     {
-        LOG(ERROR)<<"No DstEventHeader prepared for the output DST file!"<<FairLogger::endl<<"BmnFillDstTask will be inactive"<<FairLogger::endl;
+        LOG(ERROR)<<"No Event Header("<<fOutputEventHeaderName<<") prepared for the output DST file!"<<FairLogger::endl<<"BmnFillDstTask will be inactive"<<FairLogger::endl;
         return kERROR;
     }
 

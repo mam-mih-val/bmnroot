@@ -9,70 +9,60 @@ void geometry(FairRunSim *fRun)
     cave->SetGeometryFileName("cave.geo");
     fRun->AddModule(cave);
 
-//    FairModule* pipe = new FairPipe("PIPE");
-//    pipe->SetGeometryFileName("pipe_Be_kompozit_gap75cm_3.geo");
-//    fRun->AddModule(pipe);
+    //FairModule* pipe = new FairPipe("PIPE");
+    //pipe->SetGeometryFileName("pipe_Be_kompozit_gap75cm_3.geo");
+    //fRun->AddModule(pipe);
 
-    //    FairModule* target = new FairTarget("Target");
-    //    target->SetGeometryFileName("target_au_250mu.geo");
-    //    fRun->AddModule(target);
+    //FairModule* target = new FairTarget("Target");
+    //target->SetGeometryFileName("target_au_250mu.geo");
+    //fRun->AddModule(target);
 
     FairModule* magnet = new FairMagnet("MAGNET");
     magnet->SetGeometryFileName("magnet_modified.root");
     fRun->AddModule(magnet);
 
     // -----   Create detectors        -------------------------
-    FairDetector* tof = new BmnTOF("TOF", kTRUE);
-    tof->SetGeometryFileName("tof700_run7.root");
-    fRun->AddModule(tof);
+    FairDetector* mwpc = new BmnMwpc("MWPC", kTRUE);
+    mwpc->SetGeometryFileName("MWPC_RunWinter2016.root");
+    fRun->AddModule(mwpc);
 
-    CbmPsdv1* psd = new CbmPsdv1("PSD", kTRUE);
-    psd->SetXshift(45.);
-    psd->SetZposition(1000.);
-    psd->SetHole(1); // 0 for no hole
-    fRun->AddModule(psd);
+    FairDetector* bd = new BmnBd("BD", kTRUE);
+    bd->SetGeometryFileName("bd_v1_run7.geo");
+    fRun->AddModule(bd);
 
-    FairDetector* sts = new CbmSts("STS", kTRUE);
-    //sts->SetGeometryFileName("GEMS_RunWinter2016.root");
-//    sts->SetGeometryFileName("GEMS_RunSpring2017.root");
-    sts->SetGeometryFileName("GEMS_RunSpring2018.root");
-    fRun->AddModule(sts);
+    FairDetector* ssd = new BmnSsdMC(kTRUE, "SSDMC");
+    ssd->SetGeometryFileName("sts_v18a_bmn.geo.root");
+    //fRun->AddModule(ssd);
 
-    //    FairDetector* recoil = new BmnRecoil("RECOIL", kTRUE);
-    //    recoil->SetGeometryFileName("recoil_modules_70x12_v1.geo");
-    //    fRun->AddModule(recoil);
+    FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
+    silicon->SetGeometryFileName("Silicon_RunSpring2018.root");
+    fRun->AddModule(silicon);
+
+    FairDetector* gems = new CbmSts("STS", kTRUE);
+    gems->SetGeometryFileName("GEMS_RunSpring2018.root");
+    fRun->AddModule(gems);
+
+    FairDetector* csc = new BmnCSC("CSC", kTRUE);
+    csc->SetGeometryFileName("CSC_RunSpring2018.root");
+    fRun->AddModule(csc);
 
     FairDetector* tof1 = new BmnTOF1("TOF1", kTRUE);
-    tof1->SetGeometryFileName("TOF400_RUN5_part2.root");
+    tof1->SetGeometryFileName("TOF400_RUN7.root");
     fRun->AddModule(tof1);
 
     FairDetector* dch = new BmnDch("DCH", kTRUE);
     dch->SetGeometryFileName("DCH_RunWinter2016.root");
     fRun->AddModule(dch);
 
-    FairDetector* mwpc = new BmnMwpc("MWPC", kTRUE);
-    mwpc->SetGeometryFileName("MWPC_RunWinter2016.root");
-    fRun->AddModule(mwpc);
-
-    FairDetector* bd = new BmnBd("BD", kTRUE);
-    bd->SetGeometryFileName("bd_v1_0.geo");
-    //fRun->AddModule(bd);
+    FairDetector* tof2 = new BmnTOF("TOF", kTRUE);
+    tof2->SetGeometryFileName("tof700_run7_with_support.root");
+    fRun->AddModule(tof2);
 
     FairDetector* emc = new BmnEcal("EMC", kTRUE);
     emc->SetGeometryFileName("ecal_v1_0.geo");
     fRun->AddModule(emc);
 
-    FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
-//    silicon->SetGeometryFileName("Silicon_v1.root");
-//    silicon->SetGeometryFileName("Silicon_RunSpring2017.root");
-    silicon->SetGeometryFileName("Silicon_RunSpring2018.root");
-    fRun->AddModule(silicon);
-
-    FairDetector* ssd = new BmnSsdMC(kTRUE, "SSDMC");
-    ssd->SetGeometryFileName("sts_v18a_bmn.geo.root");
-    //fRun->AddModule(ssd);
-
-    FairDetector* csc = new BmnCSC("CSC", kTRUE);
-    csc->SetGeometryFileName("CSC_RunSpring2018.root");
-    fRun->AddModule(csc);
+    BmnZdc* zdc = new BmnZdc("ZDC", kTRUE);
+    zdc->SetGeometryFileName("rootgeom_bmnzdc_104mods_v1_Zpos_8759mm_Xshift_313mm_Yshift_14mm.root");
+    fRun->AddModule(zdc);
 }

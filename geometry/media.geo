@@ -2,6 +2,10 @@
 
 //  History of cvs commits:
 //  $Log: media.geo,v $
+//
+//  Revision 1.10  2019/04/29 21:00:00  Sergey Morozov
+//  add tyvec_ZDC and plasticWLS_ZDC
+//
 //  Revision 1.9  2006/06/21 13:56:09  hoehne
 //  set RICHglass (Rich mirror material) sensitive
 //
@@ -880,10 +884,19 @@ STScable           1  28.0855 14.0 2.33
                    0  1  20.  .001
                    0
 
+tyvec_ZDC         -2  12.011 1.00794 6.0 1.0 0.93 0.8562772 0.1437228
+                   0  0  20.  .001
+                   0
+
+plasticWLS_ZDC    -2  12.00 1.00 6. 1. 1.032  0.9230769  0.7692308e-01
+                   0  0  20.  .001
+                   0
+
 // Ar/CH4 (90/10)
 AUTONULL
 TPCmixture	   3 39.948 12.01 0.992 18. 6. 1. 1.56e-3 .9 .02 .08
                    1 1 20. 0.001
                    99. 1.0 0.001 0.01
                    0
+
 

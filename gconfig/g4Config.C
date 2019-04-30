@@ -35,6 +35,8 @@ void Config()
 /// create Cbm Specific stack
    CbmStack *stack = new CbmStack(1000);
    stack->StoreSecondaries(kTRUE);
+   //stack->SetStartZCut(750.); // run6 exclude ECAL + ZDC
+   //stack->SetStartZCut(850.); // run6 exclude ZDC
  //  stack->SetMinPoints(0);
    geant4->SetStack(stack);
 

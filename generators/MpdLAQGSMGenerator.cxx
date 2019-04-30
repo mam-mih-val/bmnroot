@@ -911,6 +911,14 @@ Bool_t MpdLAQGSMGenerator::FindParticle(Int_t Z, Int_t strange, Int_t lepton, In
                 result = 1;
                 break;
             }
+        } else { // unknown particle
+
+            // try fo create ion if A > 1
+            if (A > 1) {
+                PDG = CreatePdgCode(Z, A, strange, 0); //  1);   // MG 
+                sprintf(name, "Ion_%d_%d", A, Z);
+                result = 1;
+            }
         }
 
     } else { // must be ion

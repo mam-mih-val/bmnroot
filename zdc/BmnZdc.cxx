@@ -78,7 +78,6 @@ BmnZdc::~BmnZdc() {
 // -------------------------------------------------------------------------
 
 
-
 // -----   Public method Intialize   ---------------------------------------
 void BmnZdc::Initialize() {
   // Init function
@@ -90,8 +89,28 @@ void BmnZdc::Initialize() {
 // -------------------------------------------------------------------------
 void BmnZdc::BeginEvent(){
   // Begin of the event
-  
+
 }
+
+
+// -------------------------------------------------------------------------
+BmnZdcPoint* BmnZdc::GetHit(Int_t slice, Int_t module) const
+{
+// Returns the hit for the specified slice and module.
+// ---
+
+  BmnZdcPoint *hit;
+  Int_t nHits = fZdcCollection->GetEntriesFast();
+
+  for (Int_t i=0; i<nHits; i++) {
+    hit = (BmnZdcPoint*)fZdcCollection->At(i);
+    if(hit->GetCopy() == slice && hit->GetCopyMother() == module)
+      return hit;
+  }
+
+  return 0;
+}
+// -------------------------------------------------------------------------
 
 
 
@@ -121,8 +140,16 @@ Bool_t BmnZdc::ProcessHits(FairVolume* vol) {
     }
 
     Double_t eLoss   = gMC->Edep();
-    if (eLoss != 0.) 
-      fELoss += eLoss;
+
+    if (eLoss != 0.) {
+      //0.07943 *(0.1/0.001) = 7.943 cm/GeV
+      //0.126 *(0.1/0.001) = 12.6 cm/GeV
+      //(0.126 mm/MeV - from Wikipedia, 0.07943mm/MeV in Geant4)
+
+      //fELoss += eLoss;
+      fELoss += eLoss / (1. + 7.943 / gMC->TrackStep() * eLoss); // Birk;
+    }
+
 
     if ( gMC->IsTrackExiting()    ||
 	 gMC->IsTrackStop()       ||
@@ -148,12 +175,13 @@ Bool_t BmnZdc::ProcessHits(FairVolume* vol) {
       gMC->TrackMomentum(tMom);
 
       Int_t copyNo;
-      Int_t ivol1 = gMC->CurrentVolID(copyNo);
+      Int_t ivol1 = gMC->CurrentVolID(copyNo); // slice
       //      ivol1 = vol->getVolumeId();
       Int_t iCell, iCell2 ;
-      gMC->CurrentVolOffID(1, iCell); 
-      gMC->CurrentVolOffID(2, iCell2); 
- 	
+      gMC->CurrentVolOffID(1, iCell); // module
+      gMC->CurrentVolOffID(2, iCell2);
+      //copyNo = 1; // collect all hits in 1st slice
+      copyNo = (copyNo - 1) / 8 + 1; // to sections of 8 slices
 
 #ifdef EDEBUG
       static Bool_t already=0;
@@ -195,12 +223,12 @@ Bool_t BmnZdc::ProcessHits(FairVolume* vol) {
 // 	       time, length, fELoss);
 //       else 
 
-	AddHit(fTrackID, ivol, copyNo, iCell2, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
+	AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
 	       TVector3(tMom.Px(), tMom.Py(), tMom.Pz()),
 	       time, length, fELoss);
 #else
 
-      AddHit(fTrackID, ivol, copyNo, iCell2, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
+      AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
 	     TVector3(tMom.Px(), tMom.Py(), tMom.Pz()),
 	     time, length, fELoss);
 #endif
@@ -293,7 +321,15 @@ void BmnZdc::CopyClones(TClonesArray* cl1, TClonesArray* cl2, Int_t offset ) {
 
  // -----   Public method ConstructGeometry   ----------------------------------
 void BmnZdc::ConstructGeometry() {
- FairGeoLoader*    geoLoad = FairGeoLoader::Instance();
+
+  TString zdcGeoFileName = GetGeometryFileName();
+  if(zdcGeoFileName.EndsWith(".root")) {
+    LOG(INFO) << "Constructing ZDC geometry from ROOT file " << zdcGeoFileName.Data() << FairLogger::endl;
+    ConstructRootGeometry();
+  }
+
+
+  FairGeoLoader*    geoLoad = FairGeoLoader::Instance();
   FairGeoInterface* geoFace = geoLoad->getGeoInterface();
   BmnZdcGeo*      zdcGeo = new BmnZdcGeo();
   zdcGeo->setGeomFile(GetGeometryFileName());
@@ -329,20 +365,37 @@ void BmnZdc::ConstructGeometry() {
 
   ProcessNodes ( volList );
 }
-  
- 
+
+//Check if Sensitive-----------------------------------------------------------
+Bool_t BmnZdc::CheckIfSensitive(std::string name) {
+    TString tsname = name;
+    if (tsname.Contains("zdc01s") || tsname.Contains("zdc01s_small")) {
+        return kTRUE;
+    }
+    return kFALSE;
+}
+//-----------------------------------------------------------------------------
+
+
 
 // -----   Private method AddHit   --------------------------------------------
 BmnZdcPoint* BmnZdc::AddHit(Int_t trackID, Int_t module_groupID, Int_t copyNo, Int_t copyNoMother,
-			    TVector3 pos, TVector3 mom, Double_t time, 
+			    TVector3 pos, TVector3 mom, Double_t time,
 			    Double_t length, Double_t eLoss) {
-  TClonesArray& clref = *fZdcCollection;
-  Int_t size = clref.GetEntriesFast();
-  return new(clref[size]) BmnZdcPoint(trackID, module_groupID, copyNo, copyNoMother,pos, mom, 
-				      time, length, eLoss);
- }
 
+  if (!GetHit(copyNo,copyNoMother)) {
+    TClonesArray& clref = *fZdcCollection;
+    Int_t size = clref.GetEntriesFast();
+    return new(clref[size]) BmnZdcPoint(trackID, module_groupID, copyNo, copyNoMother,pos, mom,
+				        time, length, eLoss);
+  }
 
+  else {
+    GetHit(copyNo,copyNoMother)->AddVSC(trackID, module_groupID, copyNo, copyNoMother,pos, mom,
+                                        time, length, eLoss);
+  }
+
+}
 
 // ----
 

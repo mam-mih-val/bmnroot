@@ -111,6 +111,10 @@ class BmnZdc : public FairDetector
    **/
   virtual void ConstructGeometry();
 
+  virtual Bool_t CheckIfSensitive(std::string name);
+
+  BmnZdcPoint* GetHit(Int_t slice, Int_t module) const;
+
   BmnZdcPoint* AddHit(Int_t trackID, Int_t module_groupID,  Int_t copyNo, Int_t copyNoMother,
 		      TVector3 pos, TVector3 mom,
 		      Double_t tof, Double_t length, Double_t eLoss);
@@ -132,7 +136,7 @@ class BmnZdc : public FairDetector
   // reset all parameters   
   void ResetParameters();
 
-  ClassDef(BmnZdc,2)
+  ClassDef(BmnZdc,3)
 
 }; 
 

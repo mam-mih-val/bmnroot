@@ -60,13 +60,24 @@ class BmnZdcPoint : public FairMCPoint
   /** Output to screen **/
   virtual void Print(const Option_t* opt) const;
 
+  void AddVSC(Int_t trackID, Int_t detID, Int_t idvsc, Int_t idmod,
+              TVector3 pos,TVector3 mom,Double_t dt, Double_t dl, Double_t de) {
+      if(nCopy != idvsc)
+        cerr << "Warning: idvsc not equal in BmnZdcPoint::AddVSC";
+      if(nCopyMother != idmod)
+        cerr << "Warning: idmod not equal in BmnZdcPoint::AddVSC";
+      fTrackID = trackID; fDetectorID = detID;
+      fX = pos.X(); fY = pos.Y(); fZ = pos.Z();
+      fPx = mom.Px(); fPy = mom.Py(); fPz = mom.Pz();
+      nCopy = idvsc; nCopyMother = idmod; fELoss += de; fLength += dl; fTime+=dt;
+    }
 
  protected:
 
   Short_t nCopy;                // Copy number (for scintillator layer)
   Short_t nCopyMother;          // Copy number of mother volume (for Module inside its Group)
     
-  ClassDef(BmnZdcPoint,1)
+  ClassDef(BmnZdcPoint,2)
 
 };
 

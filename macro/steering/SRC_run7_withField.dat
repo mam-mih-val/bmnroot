@@ -1,16 +1,16 @@
-srcSetup 13 # (3SILICON + 10GEM - inn. tracker)
+srcSetup 6 # (6GEM - inn. tracker) NO SILICON AS INNER DETECTOR FOR SRC!
 
-hitXCutMin -7. -7. -13. +80. +80. -160. -160. -80. -80. -80. -80. -80. -80. # xLeft for each station of inn. tracker
-hitXCutMax +7. +7. +13. +160. +160. -80. -80. +80. +80. +80. +80. +80. +80. # xRight for each station of inn. tracker
+hitXCutMin -80. -80. -80. -80. -80. -80. # xLeft for each station of inn. tracker
+hitXCutMax +80. +80. +80. +80. +80. +80. # xRight for each station of inn. tracker
 
-hitYCutMin -11. -11. -17. -5. -45. -5. -45. -15. -15. -15. -15. -15. -15. # yLeft for each station of inn. tracker
-hitYCutMax +2. +2. +7. +40. -5. +40. -5. +30. +30. +30. +30. +30. +30. # yLeft for each station of inn. tracker
+hitYCutMin -15. -15. -15. -15. -15. -15. # yLeft for each station of inn. tracker
+hitYCutMax +30. +30. +30. +30. +30. +30. # yLeft for each station of inn. tracker
 
-SlopeXZCutMin -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 # xzSlopeLeft per each station 
-SlopeXZCutMax +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 # xzSlopeRight per each station 
+SlopeXZCutMin -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 # xzSlopeLeft per each station 
+SlopeXZCutMax +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 # xzSlopeRight per each station 
 
-SlopeYZCutMin -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 # yzSlopeLeft per each station
-SlopeYZCutMax +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 # yzSlopeRight per each station
+SlopeYZCutMin -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 # yzSlopeLeft per each station
+SlopeYZCutMax +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 # yzSlopeRight per each station
 
 XZ0 0.05 # start value (b) when parametrizing diffSlopeXZ (a * x + b)
 XZSlope 0.05 # slope value (a) when parametrizing diffSlopeXZ

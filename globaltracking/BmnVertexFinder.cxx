@@ -131,7 +131,7 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
                 TVector3 vI = PlaneHits[iPlane].at(i);
                 for (Int_t j = i + 1; j < fNTracks; ++j) {
                     TVector3 vJ = PlaneHits[iPlane].at(j);
-                    Double_t d = Sqrt(Sqr(vI.X() - vJ.X()) + Sqr(vI.Y() - vJ.Y()));
+                    Double_t d = Sqrt(Sq(vI.X() - vJ.X()) + Sq(vI.Y() - vJ.Y()));
                     distancesEachPlane[iPlane].push_back(d);
                     Dist[iPlane] += d;
                     nPairs++;
@@ -196,10 +196,10 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
         //c->Divide(1, 1);
         //c->cd(1);
         TGraph* vertex = new TGraph(nPlanes, zPlane, Dist);
-        vertex->Fit("pol2", "QF");
-        TF1 *fit_func = vertex->GetFunction("pol2");
-        Float_t b = fit_func->GetParameter(1);
-        Float_t a = fit_func->GetParameter(2);
+        TFitResultPtr ptr = vertex->Fit("pol2", "QFS");
+//        TF1 *fit_func = vertex->GetFunction("pol2");
+        Float_t b = ptr->Parameter(1);
+        Float_t a = ptr->Parameter(2);
         z_0 = -b / (2 * a);
         range /= 2;
 //        vertex->Draw("AP*");

@@ -73,22 +73,17 @@ BmnStatus BmnGeoNavigator::FindIntersections(const FairTrackParam* par, Float_t 
 }
 
 void BmnGeoNavigator::InitTrack(const FairTrackParam* par, Bool_t downstream) const {
-    Float_t nx, ny, nz;
-    //Calculate direction cosines
-    Float_t p = (std::abs(par->GetQp()) != 0.) ? 1. / std::abs(par->GetQp()) : 1.e20;
-    Float_t pz = std::sqrt(p * p / (par->GetTx() * par->GetTx() + par->GetTy() * par->GetTy() + 1));
-    Float_t px = par->GetTx() * pz;
-    Float_t py = par->GetTy() * pz;
-    TVector3 unit = TVector3(px, py, pz).Unit();
-    nx = unit.X();
-    ny = unit.Y();
-    nz = unit.Z();
+    Double_t nz = 1. / TMath::Sqrt(par->GetTx() * par->GetTx() + par->GetTy() * par->GetTy() + 1);
+    
+    Double_t nx = par->GetTx() * nz;
+    Double_t ny = par->GetTy() * nz;
+    
     // Change track direction for upstream
     if (downstream) {
         nx = -nx;
         ny = -ny;
         nz = -nz;
-    }
+    }   
     gGeoManager->InitTrack(par->GetX(), par->GetY(), par->GetZ(), nx, ny, nz);
 }
 

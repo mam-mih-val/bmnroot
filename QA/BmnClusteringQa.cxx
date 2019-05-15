@@ -76,9 +76,13 @@ BmnClusteringQa::~BmnClusteringQa() {
 InitStatus BmnClusteringQa::Init() {
     // Create histogram manager which is used throughout the program
     fHM = new BmnHistManager();
-
-    fGemDetector = new BmnGemStripStationSet_RunSpring2017(BmnGemStripConfiguration::RunSpring2017);
-    //fSilDetector = new BmnSiliconStationSet("$VMCWORKDIR/parameters/gem/XMLConfigs/GemRunSpring2017");
+    TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
+    TString gPathSiConfig = gPathConfig + "/silicon/XMLConfigs/";
+    TString confSi = "SiliconRunSpring2018.xml";
+    fSilDetector = new BmnSiliconStationSet(gPathSiConfig + confSi);
+    TString gPathGemConfig = gPathConfig + "/gem/XMLConfigs/";
+    TString confGem = "GemRunSpring2018.xml";
+    fGemDetector = new BmnGemStripStationSet(gPathGemConfig + confGem);
 
     //fDet.DetermineSetup();
     ReadDataBranches();
@@ -126,8 +130,8 @@ void BmnClusteringQa::Exec(Option_t* opt) {
 
 void BmnClusteringQa::Finish() {
     fHM->WriteToFile();
-    BmnSimulationReport* report = new BmnClusteringQaReport(fGemDetector->GetNStations(),1);
-    //BmnSimulationReport* report = new BmnClusteringQaReport(fGemDetector->GetNStations(),fSilDetector->GetNStations);
+    //    BmnSimulationReport* report = new BmnClusteringQaReport(fGemDetector->GetNStations(), 1);
+    BmnSimulationReport* report = new BmnClusteringQaReport(fGemDetector->GetNStations(), fSilDetector->GetNStations());
     report->Create(fHM, fOutputDir);
     delete report;
 }
@@ -234,6 +238,7 @@ void BmnClusteringQa::ProcessHits(const TClonesArray* hits, const TClonesArray* 
 //            fHM->H1("_hpa_" + detName + "Hit_NofPointsInHit_H2")->Fill(stationId, hitMatch->GetNofLinks());
 //        }
 //    }
+
     for (Int_t iSt = 0; iSt < fGemDetector->GetNStations(); ++iSt) {
         TString resXname = Form("ResX_%dst_gem", iSt);
         TString resYname = Form("ResY_%dst_gem", iSt);
@@ -263,17 +268,16 @@ void BmnClusteringQa::ProcessHits(const TClonesArray* hits, const TClonesArray* 
             fHM->H2(pntXhitXname.Data())->Fill(pnt->GetX(), hit->GetX());
             fHM->H2(pntYhitYname.Data())->Fill(pnt->GetY(), hit->GetY());
 
-            fHM->H1(pullXname)->Fill(resX/hit->GetDx());
-
-            fHM->H1(pullYname)->Fill(resY/hit->GetDy());
+            fHM->H1(pullXname)->Fill(resX / hit->GetDx());
+            fHM->H1(pullYname)->Fill(resY / hit->GetDy());
 
 
             fHM->H2(occupname.Data())->Fill(pnt->GetX(), pnt->GetY());
         }
     }
 
-    //for (Int_t iSt = 0; iSt < fSilDetector->GetNStations(); ++iSt){
-    for (Int_t iSt = 0; iSt < 1; ++iSt){
+    for (Int_t iSt = 0; iSt < fSilDetector->GetNStations(); ++iSt) {
+    //for (Int_t iSt = 0; iSt < 1; ++iSt){
         TString occupname = Form("Occupancy_%dst_sil", iSt);
         TString resXname = Form("ResX_%dst_sil", iSt);
         TString resYname = Form("ResY_%dst_sil", iSt);
@@ -297,9 +301,9 @@ void BmnClusteringQa::ProcessHits(const TClonesArray* hits, const TClonesArray* 
             fHM->H2(pntXhitXname.Data())->Fill(pnt->GetX(), hit->GetX());
             fHM->H2(pntYhitYname.Data())->Fill(pnt->GetY(), hit->GetY());
 
-            fHM->H1(pullXname)->Fill(resX/hit->GetDx());
-
-            fHM->H1(pullYname)->Fill(resY/hit->GetDy());
+            fHM->H1(pullXname)->Fill(resX / hit->GetDx());
+            fHM->H1(pullYname)->Fill(resY / hit->GetDy());
+            
             fHM->H2(occupname.Data())->Fill(pnt->GetX(), pnt->GetY());
         }
 
@@ -394,7 +398,7 @@ void BmnClusteringQa::FillHitEfficiencyHistograms(const TClonesArray* points, co
 void BmnClusteringQa::CreateHistograms() {
 
     Int_t nStationsGEM = fGemDetector->GetNStations();
-    Int_t nStationsSil = 1;//fSilDetector->GetNStations();
+    Int_t nStationsSil = fSilDetector->GetNStations();
     Int_t nStationsDCH1 = 3;
 
     for (Int_t iSt = 0; iSt < nStationsGEM; ++iSt) {
@@ -413,8 +417,8 @@ void BmnClusteringQa::CreateHistograms() {
 
         CreateH2(occupname.Data(), "X_{MC}, cm", "Y_{MC}, cm", "Occupancy, #frac{part}{event * cm^{2}}", 50, -100, 100, 50, -30, 30);
 
-        CreateH1(pullXname.Data(),"PullX", "Counter", 200, -5, 5);
-        CreateH1(pullYname.Data(),"PullY", "Counter", 200, -5, 5);
+        CreateH1(pullXname.Data(), "PullX", "Counter", 200, -10, 10);
+        CreateH1(pullYname.Data(), "PullY", "Counter", 200, -10, 10);
     }
 
     for (Int_t iSt = 0; iSt < nStationsSil; ++iSt) {
@@ -434,12 +438,12 @@ void BmnClusteringQa::CreateHistograms() {
 
         CreateH2(occupname.Data(), "X_{MC}, cm", "Y_{MC}, cm", "Occupancy, #frac{part}{event * cm^{2}}", 50, -20, 20, 50, -20, 20);
 
-        CreateH1(pullXname.Data(),"PullX", "Counter", 200, -1, 1);
-        CreateH1(pullYname.Data(),"PullY", "Counter", 200, -1, 1);
+        CreateH1(pullXname.Data(), "PullX", "Counter", 200, -10, 10);
+        CreateH1(pullYname.Data(), "PullY", "Counter", 200, -10, 10);
 
     }
 
-    for (Int_t iSt = 0; iSt < nStationsDCH1; ++iSt){
+    for (Int_t iSt = 0; iSt < nStationsDCH1; ++iSt) {
 
         TString occupname = Form("Occupancy_%dst_dch1", iSt);
 

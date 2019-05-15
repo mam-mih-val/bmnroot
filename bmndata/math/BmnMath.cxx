@@ -340,7 +340,7 @@ TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type) {
             Si = hit->GetDy();
         }
 
-//        chi2 += Sqr((Yi - a * Xi - b) / Si);
+        //        chi2 += Sqr((Yi - a * Xi - b) / Si);
         chi2 += Sq((Yi - a * Xi - b) / (a * Xi + b));
     }
 
@@ -523,8 +523,59 @@ TVector3 CircleFit(BmnTrack* track, const TClonesArray* arr, Double_t &chi2) {
 
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
-        chi2 += Sqr((R - Sqrt(Sqr(hit->GetX() - Xc) + Sqr(hit->GetZ() - Zc))) / hit->GetDx());
+        chi2 += Sq((R - Sqrt(Sq(hit->GetX() - Xc) + Sq(hit->GetZ() - Zc))) / hit->GetDx());
     }
+
+    return TVector3(Zc, Xc, R);
+}
+
+TVector3 CircleFit(vector<BmnHit*> hits, Int_t idSkip) {
+
+    //Weighted Least Square Method//
+    Double_t Xi = 0.0, Yi = 0.0, Zi = 0.0; // coordinates of current track point
+    Double_t Xc = 0.0, Zc = 0.0, R = 0.0;
+
+    Double_t Wi = 0.0; // weight = 1 / sigma^2
+
+    Double_t Sx = 0.0; // sum of weights
+    Double_t Sxx = 0.0;
+    Double_t Syy = 0.0;
+    Double_t Sxy = 0.0;
+    Double_t Sy = 0.0;
+    Double_t Sz = 0.0;
+    Double_t Szx = 0.0;
+    Double_t Szy = 0.0;
+
+    //        TH2F* h_Hits = new TH2F("h_Hits", "h_Hits", 400, 0.0, 250.0, 400, -10.0, 10.0);
+
+    const Float_t nHits = hits.size();
+    for (Int_t i = 0; i < nHits; ++i) {
+        if (i == idSkip) continue;
+        BmnHit* hit = hits[i];
+        //Use Z and X coordinates of hits to fit in ZX plane
+        Yi = hit->GetZ();
+        Xi = hit->GetX();
+        //                h_Hits->Fill(hit->GetZ(), hit->GetX());
+        Zi = Xi * Xi + Yi * Yi;
+        Wi = 1.0 / hit->GetDx() / hit->GetDx();
+
+        Sx += Wi * Xi;
+        Sy += Wi * Yi;
+        Sz += Wi * Zi;
+        Sxx += Wi * Xi * Xi;
+        Sxy += Wi * Xi * Yi;
+        Syy += Wi * Yi * Yi;
+        Szx += Wi * Zi * Xi;
+        Szy += Wi * Zi * Yi;
+    }
+
+    Double_t C = ((Sz * Sx - Szx) / (Sxx - Sx * Sx) - (Sz * Sy - Szy) / (Sxy - Sx * Sy)) / ((Sxy - Sx * Sy) / (Sxx - Sx * Sx) - (Syy - Sy * Sy) / (Sxy - Sx * Sy));
+    Double_t B = ((Sz * Sx - Szx) - C * (Sxy - Sx * Sy)) / (Sxx - Sx * Sx);
+    Double_t D = -Sz - B * Sx - C * Sy;
+
+    Xc = -0.5 * B;
+    Zc = -0.5 * C;
+    R = Sqrt(0.25 * B * B + 0.25 * C * C - D);
 
     return TVector3(Zc, Xc, R);
 }
@@ -539,10 +590,10 @@ Double_t CalcTx(const BmnHit* h0, const BmnHit* h1, const BmnHit* h2) {
 }
 
 Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2) {
-    if (Sqr(x1 - x2) + Sqr(y1 - y2) <= 0.0) {
+    if (Sq(x1 - x2) + Sq(y1 - y2) <= 0.0) {
         return 0.0;
     } else {
-        return Sqrt(Sqr(x1 - x2) + Sqr(y1 - y2));
+        return Sqrt(Sq(x1 - x2) + Sq(y1 - y2));
     }
 }
 
@@ -573,10 +624,6 @@ Float_t NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22) {
     }
 
     return xnew;
-}
-
-Float_t Sqr(Float_t x) {
-    return x * x;
 }
 
 TVector3 CircleBy3Hit(BmnTrack* track, const TClonesArray* arr) {
@@ -886,7 +933,7 @@ TVector3 Pol2Fit(vector<BmnHit*> hits, Int_t idSkip) {
     Double_t A = ptr->Parameter(2);
     Double_t B = ptr->Parameter(1);
     Double_t C = ptr->Parameter(0);
-    
+
     return TVector3(A, B, C);
 }
 
@@ -914,12 +961,12 @@ TVector2 LineFit(vector<BmnHit*> hits, Int_t idSkip, TString type) {
             Xi = hit->GetX();
             Yi = hit->GetY();
             Si = hit->GetDy();
-        } 
+        }
         else if (type.Contains("ZX")) {
             Xi = hit->GetZ();
             Yi = hit->GetX();
             Si = hit->GetDx();
-        } 
+        }
         else if (type.Contains("ZY")) {
             Xi = hit->GetZ();
             Yi = hit->GetY();

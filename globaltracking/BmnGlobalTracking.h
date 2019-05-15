@@ -73,8 +73,6 @@ public:
      */
     virtual void Finish();
 
-    Float_t Sqr(Float_t x);
-
     void SetRun1(Bool_t run) {
         isRUN1 = run;
     }
@@ -96,15 +94,6 @@ public:
 private:
     BmnSiliconStationSet* fDetectorSI; // SI-geometry
 
-    //AM 7.08
-    Bool_t expData;
-    TClonesArray* fGemHitArray;
-    BmnGemStripHit * GetGemHit(Int_t i);
-    BmnStatus MatchGemDCH(BmnGlobalTrack* tr);
-    BmnStatus MatchDCHTOF(BmnGlobalTrack* tr, Int_t num);
-    BmnStatus MatchDCHMPWC(BmnGlobalTrack* tr);
-    void FitDCHTracks();
-    void FitGemTracks();
     /*
      * \brief Calculate length of the global track
      */
@@ -121,7 +110,9 @@ private:
     void SelectTracksForTofMerging();
 
     // INPUT ARRAYS
-    TClonesArray* fInnerTracks;
+    TClonesArray* fInnerTracks; //GEM+SIL for BM@N, GEM for SRC
+    TClonesArray* fGemTracks;
+    TClonesArray* fSiliconTracks; //for SRC only
     TClonesArray* fGemVertex;
     TClonesArray* fGemHits;
     TClonesArray* fSilHits;
@@ -131,28 +122,48 @@ private:
     TClonesArray* fDchHits;
     TClonesArray* fTof1Hits;
     TClonesArray* fTof2Hits;
+    
+    TClonesArray* fBC1Digits;
+    TClonesArray* fBC2Digits;
+    TClonesArray* fBC3Digits;
+    TClonesArray* fBC4Digits;
+
+    TClonesArray* fBC1Digits_out;
+    TClonesArray* fBC2Digits_out;
+    TClonesArray* fBC3Digits_out;
+    TClonesArray* fBC4Digits_out;
 
     TClonesArray* fEvHead;
 
-    // INPUT FOR CHECKING EFFICIENCY
-    TClonesArray* fGemMcPoints;
-    TClonesArray* fTof1McPoints;
-    TClonesArray* fTof2McPoints;
-    TClonesArray* fDchMcPoints;
-    TClonesArray* fMcTracks;
-
     TClonesArray* fMCTracks;
-    TClonesArray* fBmnMPWCPointsArray;
-    TClonesArray* fBmnTOFPointsArray;
-    TClonesArray* fBmnTOF1PointsArray;
-    TClonesArray* fBmnDchPointsArray;
-    TClonesArray* fBmnGemPointsArray;
+    TH1F* fhXSiGemResid;
+    TH1F* fhYSiGemResid;
+    TH1F* fhTxSiGemResid;
+    TH1F* fhTySiGemResid;
+    TH2F* fhXdXSiGemResid;
+    TH2F* fhYdYSiGemResid;
+    TH2F* fhTxdXSiGemResid;
+    TH2F* fhTydYSiGemResid;
 
-    // OUTPUT ARRAYS
+    TH1F* fhXDchGemResid;
+    TH1F* fhYDchGemResid;
+    TH1F* fhTxDchGemResid;
+    TH1F* fhTyDchGemResid;
+    TH2F* fhXdXDchGemResid;
+    TH2F* fhYdYDchGemResid;
+    TH2F* fhTxdXDchGemResid;
+    TH2F* fhTydYDchGemResid;
 
-    TClonesArray* fGlobalTracks; //output BmnGlobalTrack array
+    TH1F** fhdXGemSt;
+    TH1F** fhdYGemSt;
+    TH1F** fhdTxGemSt;
+    TH1F** fhdTyGemSt;
+    TH2F** fhdXTxGemSt;
+    TH2F** fhdYTyGemSt;
 
+    Short_t fPeriod;
     Bool_t fIsField; // run with mag.field or not
+    Bool_t fIsSRC; // flag to turn on specific parts for SRC
 
     /*
      * Detector configuration, 5 bits:
@@ -162,6 +173,7 @@ private:
      * 4 - DCH2
      * 5 - TOF2
      */
+
     Short_t fDetConf;
     BmnDetectorSetup fDet; // Detector presence information
 
@@ -177,15 +189,9 @@ private:
     BmnStatus MatchingTOF(BmnGlobalTrack* tr, Int_t num, Int_t trIndex);
     BmnStatus MatchingDCH(BmnGlobalTrack* tr);
     BmnStatus MatchingMWPC(BmnGlobalTrack* tr);
-    BmnStatus MatchingSil(BmnGlobalTrack*, map <Double_t, pair<Int_t, Int_t>>&);
+    BmnStatus MatchingSil(BmnGlobalTrack*);
 
     BmnStatus Refit(BmnGlobalTrack* tr);
-    BmnStatus EfficiencyCalculation();
-
-    BmnStatus Run1GlobalTrackFinder();
-    BmnStatus FillHoughHistogram(TH1F* h, TGraph* orig, TH2F* cm, TGraph* seeds, TClonesArray* arr);
-
-    void FillIndexMap(map<Int_t, Int_t> &indexes, Int_t id);
 
     BmnGlobalTracking(const BmnGlobalTracking&);
     //    BmnGlobalTracking& operator=(const BmnGlobalTracking&);

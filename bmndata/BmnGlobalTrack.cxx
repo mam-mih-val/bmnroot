@@ -19,7 +19,8 @@ BmnGlobalTrack::BmnGlobalTrack()
     fDch1Hit(-1),
     fDch2Hit(-1),
     fDchTrack(-1),
-    fMwpcTrack(-1)
+    fMwpcTrack(-1),
+    fCscHit(-1)
 {
 }
 // -------------------------------------------------------------------------

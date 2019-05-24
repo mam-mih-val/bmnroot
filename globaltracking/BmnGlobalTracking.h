@@ -40,18 +40,19 @@
 #include "TFitResult.h"
 #include "TFitResultPtr.h"
 
-
 class TClonesArray;
 
 using namespace std;
 
-class BmnGlobalTracking : public FairTask {
+class BmnGlobalTracking : public FairTask
+{
 public:
     /**
      * \brief Constructor.
      */
     BmnGlobalTracking();
     BmnGlobalTracking(Bool_t);
+    BmnGlobalTracking(Bool_t isField, Bool_t doAlign);
 
     /**
      * \brief Destructor.
@@ -66,137 +67,123 @@ public:
     /**
      * \brief Inherited from FairTask.
      */
-    virtual void Exec(Option_t* opt);
+    virtual void Exec(Option_t *opt);
 
     /**
      * \brief Inherited from FairTask.
      */
     virtual void Finish();
 
-    void SetRun1(Bool_t run) {
-        isRUN1 = run;
-    }
-
-    void SetDetConf(Bool_t gem, Bool_t tof1, Bool_t dch1, Bool_t dch2, Bool_t tof2) {
-        fDetConf = Short_t(gem) * 16 + Short_t(tof1) * 8 + Short_t(dch1) * 4 + Short_t(dch2) * 2 + Short_t(tof2) * 1;
+    void SetDoAlign(Bool_t a)
+    {
+        fDoAlign = a;
     };
 
-    const Short_t GetDetConf() const {
-        return fDetConf;
+    const Short_t GetDoAlign() const
+    {
+        return fDoAlign;
     };
 
-    void SetField(Bool_t f) {
+    void SetField(Bool_t f)
+    {
         fIsField = f;
     }
 
     BmnStatus CreateDchHitsFromTracks();
 
 private:
-    BmnSiliconStationSet* fDetectorSI; // SI-geometry
+    BmnSiliconStationSet *fDetectorSI; // SI-geometry
 
     /*
      * \brief Calculate length of the global track
      */
     void CalculateLength();
 
-    /**
-     * \brief Run the track reconstruction
-     */
-    void RunTrackReconstruction();
-
-    /**
-     * \brief Select tracks for further merging with TOF.
-     */
-    void SelectTracksForTofMerging();
-
     // INPUT ARRAYS
-    TClonesArray* fInnerTracks; //GEM+SIL for BM@N, GEM for SRC
-    TClonesArray* fGemTracks;
-    TClonesArray* fSiliconTracks; //for SRC only
-    TClonesArray* fGemVertex;
-    TClonesArray* fGemHits;
-    TClonesArray* fSilHits;
-    TClonesArray* fMwpcTracks;
-    TClonesArray* fMwpcHits;
-    TClonesArray* fDchTracks;
-    TClonesArray* fDchHits;
-    TClonesArray* fTof1Hits;
-    TClonesArray* fTof2Hits;
-    
-    TClonesArray* fBC1Digits;
-    TClonesArray* fBC2Digits;
-    TClonesArray* fBC3Digits;
-    TClonesArray* fBC4Digits;
+    TClonesArray *fInnerTracks; //GEM+SIL for BM@N, GEM for SRC
+    TClonesArray *fGemTracks;
+    TClonesArray *fSiliconTracks; //for SRC only
+    TClonesArray *fGemVertex;
+    TClonesArray *fGemHits;
+    TClonesArray *fSilHits;
+    TClonesArray *fCscHits;
+    TClonesArray *fMwpcTracks;
+    TClonesArray *fMwpcHits;
+    TClonesArray *fDchTracks;
+    TClonesArray *fDchHits;
+    TClonesArray *fTof1Hits;
+    TClonesArray *fTof2Hits;
 
-    TClonesArray* fBC1Digits_out;
-    TClonesArray* fBC2Digits_out;
-    TClonesArray* fBC3Digits_out;
-    TClonesArray* fBC4Digits_out;
+    TClonesArray *fBC1Digits;
+    TClonesArray *fBC2Digits;
+    TClonesArray *fBC3Digits;
+    TClonesArray *fBC4Digits;
 
-    TClonesArray* fEvHead;
+    TClonesArray *fBC1Digits_out;
+    TClonesArray *fBC2Digits_out;
+    TClonesArray *fBC3Digits_out;
+    TClonesArray *fBC4Digits_out;
 
-    TClonesArray* fMCTracks;
-    TH1F* fhXSiGemResid;
-    TH1F* fhYSiGemResid;
-    TH1F* fhTxSiGemResid;
-    TH1F* fhTySiGemResid;
-    TH2F* fhXdXSiGemResid;
-    TH2F* fhYdYSiGemResid;
-    TH2F* fhTxdXSiGemResid;
-    TH2F* fhTydYSiGemResid;
+    TClonesArray *fEvHead;
 
-    TH1F* fhXDchGemResid;
-    TH1F* fhYDchGemResid;
-    TH1F* fhTxDchGemResid;
-    TH1F* fhTyDchGemResid;
-    TH2F* fhXdXDchGemResid;
-    TH2F* fhYdYDchGemResid;
-    TH2F* fhTxdXDchGemResid;
-    TH2F* fhTydYDchGemResid;
+    TClonesArray *fMCTracks;
+    TH1F *fhXSiGemResid;
+    TH1F *fhYSiGemResid;
+    TH1F *fhTxSiGemResid;
+    TH1F *fhTySiGemResid;
+    TH2F *fhXdXSiGemResid;
+    TH2F *fhYdYSiGemResid;
+    TH2F *fhTxdXSiGemResid;
+    TH2F *fhTydYSiGemResid;
 
-    TH1F** fhdXGemSt;
-    TH1F** fhdYGemSt;
-    TH1F** fhdTxGemSt;
-    TH1F** fhdTyGemSt;
-    TH2F** fhdXTxGemSt;
-    TH2F** fhdYTyGemSt;
+    TH1F *fhXDchGemResid;
+    TH1F *fhYDchGemResid;
+    TH1F *fhTxDchGemResid;
+    TH1F *fhTyDchGemResid;
+    TH2F *fhXdXDchGemResid;
+    TH2F *fhYdYDchGemResid;
+    TH2F *fhTxdXDchGemResid;
+    TH2F *fhTydYDchGemResid;
+
+    TH1F *fhXCscGemResid;
+    TH1F *fhYCscGemResid;
+
+    TH1F **fhdXGemSt;
+    TH1F **fhdYGemSt;
+    TH1F **fhdTxGemSt;
+    TH1F **fhdTyGemSt;
+    TH2F **fhdXTxGemSt;
+    TH2F **fhdYTyGemSt;
 
     Short_t fPeriod;
     Bool_t fIsField; // run with mag.field or not
-    Bool_t fIsSRC; // flag to turn on specific parts for SRC
+    Bool_t fIsSRC;   // flag to turn on specific parts for SRC
+    Bool_t fDoAlign;
 
-    /*
-     * Detector configuration, 5 bits:
-     * 1 - GEM
-     * 2 - TOF1
-     * 3 - DCH1
-     * 4 - DCH2
-     * 5 - TOF2
-     */
-
-    Short_t fDetConf;
     BmnDetectorSetup fDet; // Detector presence information
 
     Int_t fEventNo; // event counter
 
-    Bool_t isRUN1; // temporary flag for switching between full GEM-geometry and prototype
-
-    Int_t fPDG; // PDG hypothesis
+    Int_t fPDG;        // PDG hypothesis
     Float_t fChiSqCut; // Chi square cut for hit to be attached to track.
 
     CbmVertex *fVertex; // vertex information
 
-    BmnStatus MatchingTOF(BmnGlobalTrack* tr, Int_t num, Int_t trIndex);
-    BmnStatus MatchingDCH(BmnGlobalTrack* tr);
-    BmnStatus MatchingMWPC(BmnGlobalTrack* tr);
-    BmnStatus MatchingSil(BmnGlobalTrack*);
+    BmnKalmanFilter* fKalman;
 
-    BmnStatus Refit(BmnGlobalTrack* tr);
+    BmnStatus MatchingTOF(BmnGlobalTrack *tr, Int_t num, Int_t trIndex);
+    BmnStatus MatchingDCH(BmnGlobalTrack *tr);
+    BmnStatus MatchingMWPC(BmnGlobalTrack *tr);
+    BmnStatus MatchingSil(BmnGlobalTrack *tr); // for SRC
+    BmnStatus MatchingCSC(BmnGlobalTrack *tr);
 
-    BmnGlobalTracking(const BmnGlobalTracking&);
-    //    BmnGlobalTracking& operator=(const BmnGlobalTracking&);
-    BmnStatus RefitToDetector(BmnGlobalTrack* tr, Int_t hitId, TClonesArray* hitArr, FairTrackParam* par, Int_t* nodeIdx, vector<BmnFitNode>* nodes);
-    void CalcSiliconDist(Int_t, BmnGlobalTrack*, map <Double_t, pair<Int_t, Int_t>>&);
+    Int_t FindNearestHit(BmnGlobalTrack *tr, TClonesArray *hits, Float_t distCut);
+
+    BmnStatus Refit(BmnGlobalTrack *tr);
+
+    BmnGlobalTracking(const BmnGlobalTracking &);
+    BmnStatus RefitToDetector(BmnGlobalTrack *tr, Int_t hitId, TClonesArray *hitArr, FairTrackParam *par, Int_t *nodeIdx, vector<BmnFitNode> *nodes);
+    void CalcSiliconDist(Int_t, BmnGlobalTrack *, map<Double_t, pair<Int_t, Int_t>> &);
 
     ClassDef(BmnGlobalTracking, 1);
 };

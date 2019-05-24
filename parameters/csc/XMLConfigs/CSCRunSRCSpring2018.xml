@@ -14,7 +14,7 @@
 <StationSet>
 
 <!-- Station 0 -->
-    <Station xPosition="58.083" yPosition="7.77175" zPosition="412.352">
+    <Station xPosition="-43.517" yPosition="-47.33" zPosition="412.352">
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="27.1875" zShift="1.25" thickness="0.76">

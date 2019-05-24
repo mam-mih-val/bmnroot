@@ -16,47 +16,45 @@
 
 #include "BmnTrack.h"
 
-class BmnGlobalTrack : public BmnTrack {
+class BmnGlobalTrack : public BmnTrack
+{
 
- public:
-
+public:
   /** Default constructor **/
   BmnGlobalTrack();
-
 
   /** Destructor **/
   virtual ~BmnGlobalTrack();
 
-
   /** Accessors **/
-  Int_t GetGemTrackIndex()  const { return fGemTrack;  }
-  Int_t GetSilTrackIndex()  const { return fSilTrack;  }
-  Int_t GetSsdTrackIndex()  const { return fSsdTrack;  }
-  Int_t GetSilHitIndex()  const { return -1;  }
-  Int_t GetTof1HitIndex()   const { return fTof1Hit;   }
-  Int_t GetTof2HitIndex()   const { return fTof2Hit;   }
-  Int_t GetDch1HitIndex()   const { return fDch1Hit;   }
-  Int_t GetDch2HitIndex()   const { return fDch2Hit;   }
-  Int_t GetDchTrackIndex()  const { return fDchTrack;  }
+  Int_t GetGemTrackIndex() const { return fGemTrack; }
+  Int_t GetSilTrackIndex() const { return fSilTrack; }
+  Int_t GetSsdTrackIndex() const { return fSsdTrack; }
+  Int_t GetSilHitIndex() const { return -1; }
+  Int_t GetTof1HitIndex() const { return fTof1Hit; }
+  Int_t GetTof2HitIndex() const { return fTof2Hit; }
+  Int_t GetDch1HitIndex() const { return fDch1Hit; }
+  Int_t GetDch2HitIndex() const { return fDch2Hit; }
+  Int_t GetDchTrackIndex() const { return fDchTrack; }
   Int_t GetMwpcTrackIndex() const { return fMwpcTrack; }
+  Int_t GetCscHitIndex() const { return fCscHit; }
 
   /** Modifiers **/
-  void SetGemTrackIndex(Int_t iGem)    { fGemTrack  = iGem;     }
-  void SetSilTrackIndex(Int_t iSil)    { fSilTrack  = iSil;     }
-  void SetSsdTrackIndex(Int_t iSsd)    { fSsdTrack  = iSsd;     }
-  void SetTof1HitIndex(Int_t iTof1Hit) { fTof1Hit   = iTof1Hit; }
-  void SetTof2HitIndex(Int_t iTof2Hit) { fTof2Hit   = iTof2Hit; }
-  void SetDch1HitIndex(Int_t iDch1Hit) { fDch1Hit   = iDch1Hit; }
-  void SetDch2HitIndex(Int_t iDch2Hit) { fDch2Hit   = iDch2Hit; }
-  void SetDchTrackIndex(Int_t iDch)    { fDchTrack  = iDch;     }
-  void SetMwpcTrackIndex(Int_t iMwpc)  { fMwpcTrack = iMwpc;    }
+  void SetGemTrackIndex(Int_t iGem) { fGemTrack = iGem; }
+  void SetSilTrackIndex(Int_t iSil) { fSilTrack = iSil; }
+  void SetSsdTrackIndex(Int_t iSsd) { fSsdTrack = iSsd; }
+  void SetTof1HitIndex(Int_t iTof1Hit) { fTof1Hit = iTof1Hit; }
+  void SetTof2HitIndex(Int_t iTof2Hit) { fTof2Hit = iTof2Hit; }
+  void SetDch1HitIndex(Int_t iDch1Hit) { fDch1Hit = iDch1Hit; }
+  void SetDch2HitIndex(Int_t iDch2Hit) { fDch2Hit = iDch2Hit; }
+  void SetDchTrackIndex(Int_t iDch) { fDchTrack = iDch; }
+  void SetMwpcTrackIndex(Int_t iMwpc) { fMwpcTrack = iMwpc; }
+  void SetCscHitIndex(Int_t iCsc) { fCscHit = iCsc; }
 
   /** Output to screen **/
   void Print() const;
 
-
- private:
-
+private:
   /** Indices of local parts of global track **/
   Int_t fGemTrack;
   Int_t fSsdTrack;
@@ -67,10 +65,9 @@ class BmnGlobalTrack : public BmnTrack {
   Int_t fDch2Hit;
   Int_t fDchTrack;
   Int_t fMwpcTrack;
+  Int_t fCscHit;
 
   ClassDef(BmnGlobalTrack, 1);
-
 };
-
 
 #endif

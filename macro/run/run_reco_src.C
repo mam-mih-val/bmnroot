@@ -149,56 +149,65 @@ void run_reco_src(TString inputFileName = "", TString srcdstFileName = "",
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
     BmnSiliconConfiguration::SILICON_CONFIG si_config;
-    switch (run_period) {
-        case 7: //SRC RUN-7
-            si_config = BmnSiliconConfiguration::RunSRCSpring2018;
-            break;
-        default:
-            si_config = BmnSiliconConfiguration::RunSRCSpring2018;
-    }
-
     BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
-    siliconHM->SetCurrentConfig(si_config);
     fRunAna->AddTask(siliconHM);
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
     BmnGemStripConfiguration::GEM_CONFIG gem_config;
-    switch (run_period) {
-        case 7: // SRC RUN-7
-            gem_config = BmnGemStripConfiguration::RunSRCSpring2018;
-            break;
-        default:
-            gem_config = BmnGemStripConfiguration::RunSRCSpring2018;
-    }
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
-    gemHM->SetCurrentConfig(gem_config);
     gemHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(gemHM);
 
     // ====================================================================== //
-    // ===                           Tracking                             === //
+    // ===                          CSC hit finder                        === //
+    // ====================================================================== //
+    BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
+    // cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSRCSpring2018); //set explicitly
+    cscHM->SetHitMatching(kTRUE);
+    fRunAna->AddTask(cscHM);
+
+    // ====================================================================== //
+    // ===                         TOF400 hit finder                      === //
     // ====================================================================== //
     BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
     tof1HP->SetPeriod(run_period);
-    //tof1HP->SetOnlyPrimary(kTRUE);
     fRunAna->AddTask(tof1HP);
+
+    // ====================================================================== //
+    // ===                         TOF700 hit finder                      === //
+    // ====================================================================== //
+    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7.txt", isExp, 0, kTRUE);
+    tof2HP->SetTimeResolution(0.115);
+    tof2HP->SetMCTimeFile("TOF700_MC_time_run7.txt");
+    fRunAna->AddTask(tof2HP);
+
     // ====================================================================== //
     // ===                           LAND hit finder                      === //
     // ====================================================================== //
-    BmnLANDHitProducer* land = new BmnLANDHitProducer("LAND", !isExp, iVerbose, kTRUE);
-    fRunAna->AddTask(land);
+    // BmnLANDHitProducer* land = new BmnLANDHitProducer("LAND", !isExp, iVerbose, kTRUE);
+    // fRunAna->AddTask(land);
 
+    // ====================================================================== //
+    // ===                           Tracking                             === //
+    // ====================================================================== //
+    
     BmnCellAutoTracking* gemTF = new BmnCellAutoTracking(run_period, run_number, isField, isTarget);
-    gemTF->SetDetectorPresence(kSILICON, kTRUE);
+    gemTF->SetDetectorPresence(kSILICON, kFALSE);
     gemTF->SetDetectorPresence(kSSD, kFALSE);
     gemTF->SetDetectorPresence(kGEM, kTRUE);
     // if (!isExp) gemTF->SetRoughVertex(TVector3(0.0, 0.0, 0.0)); //for MC case use correct vertex
     fRunAna->AddTask(gemTF);
 
+    // BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
+    // fRunAna->AddTask(dchTF);
+
     // Residual analysis
-    BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
-    fRunAna->AddTask(res);
+    // BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
+    // fRunAna->AddTask(res);
+    
+    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, kTRUE);
+    fRunAna->AddTask(glTF);
 
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();

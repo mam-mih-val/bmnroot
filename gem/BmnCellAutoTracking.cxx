@@ -31,17 +31,14 @@ using namespace TMath;
 
 BmnCellAutoTracking::BmnCellAutoTracking(Short_t period, UInt_t run, Bool_t field, Bool_t target, TString steerFile) : fSteering(NULL),
                                                                                                                        fSteerFile(steerFile),
-                                                                                                                       isBMN(kTRUE),
-                                                                                                                       isSRC(kTRUE)
+                                                                                                                       isSRC(kFALSE)
 {
     // Define a setup to be used by comparing with current runID
     const Int_t runTransition = 3589; // FIXME!
     if (run < runTransition)
-        isBMN = kFALSE;
-    else
-        isSRC = kFALSE;
+        isSRC = kTRUE;
 
-    TString setup = isBMN ? "BMN" : isSRC ? "SRC" : "";
+    TString setup = isSRC ? "SRC" : "BMN";
 
     if (steerFile == "")
         fSteering = new BmnSteering(field ? TString(setup + "_run7_withField.dat") : TString(setup + "_run7_noField.dat")); // FIXME (should be got from UniDb)
@@ -88,15 +85,10 @@ BmnCellAutoTracking::BmnCellAutoTracking(Short_t period, UInt_t run, Bool_t fiel
     fCellDiffSlopeXZCutMin = 0.0;
     fCellDiffSlopeXZCutMax = 0.0;
     fNHitsCut = 0;
-    fSteering->PrintParamTable();
+    if (fVerbose)
+        fSteering->PrintParamTable();
 
-    if (isBMN * isSRC)
-    {
-        cout << "Setup (BM@N or SRC) not defined correctly!" << endl;
-        throw;
-    }
-
-    Double_t Zp = (isBMN) ? -2.3 : -647.5;
+    Double_t Zp = (isSRC) ? -647.5 : -2.3;
     fRoughVertex = (fPeriodId == 7) ? TVector3(0.5, -4.6, Zp) : (fPeriodId == 6) ? TVector3(0.0, -3.5, -21.9) : TVector3(0.0, 0.0, 0.0);
 }
 

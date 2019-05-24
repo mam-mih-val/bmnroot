@@ -59,6 +59,11 @@ InitStatus BmnCSCDigitizer::Init() {
             if (fVerbose) cout << "   Current CSC Configuration : RunSpring2018" << "\n";
             break;
 
+        case BmnCSCConfiguration::RunSRCSpring2018:
+            StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSRCSpring2018.xml");
+            if (fVerbose) cout << "   Current CSC Configuration : RunSRCSpring2018" << "\n";
+            break;
+
         default:
             StationSet = nullptr;
     }

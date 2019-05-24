@@ -141,7 +141,6 @@ private:
     
     Int_t fCellsCut;
     
-    Bool_t isBMN;
     Bool_t isSRC;
     
     ClassDef(BmnCellAutoTracking, 1);

@@ -48,8 +48,11 @@ BmnCSCHitMaker::BmnCSCHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp,
     StationSet = NULL;
 
     switch(run_period) {
-        case 7: //BM@N RUN-7
+        case 7: //BM@N RUN-7 (and SRC)
             fCurrentConfig = BmnCSCConfiguration::RunSpring2018;
+            if(run_number >= 2041 && run_number <= 3588) {
+                fCurrentConfig = BmnCSCConfiguration::RunSRCSpring2018;
+            }
             break;
     }
 }
@@ -97,6 +100,11 @@ InitStatus BmnCSCHitMaker::Init() {
         case BmnCSCConfiguration::RunSpring2018:
             StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSpring2018.xml");
             if (fVerbose) cout << "   Current CSC Configuration : RunSpring2018" << "\n";
+            break;
+
+        case BmnCSCConfiguration::RunSRCSpring2018:
+            StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSRCSpring2018.xml");
+            if (fVerbose) cout << "   Current CSC Configuration : RunSRCSpring2018" << "\n";
             break;
 
         default:

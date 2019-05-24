@@ -723,7 +723,6 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack *tr)
 
 void BmnGlobalTracking::Finish()
 {
-    dchTracks.clear();
     delete fDetectorSI;
     delete fKalman;
 

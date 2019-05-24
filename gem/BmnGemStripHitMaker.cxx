@@ -57,8 +57,11 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
         case 6: //BM@N RUN-6
             fCurrentConfig = BmnGemStripConfiguration::RunSpring2017;
             break;
-        case 7: //BM@N RUN-7
+        case 7: //BM@N RUN-7 (and SRC)
             fCurrentConfig = BmnGemStripConfiguration::RunSpring2018;
+            if(run_number >= 2041 && run_number <= 3588) {
+                fCurrentConfig = BmnGemStripConfiguration::RunSRCSpring2018;
+            }
             break;
     }
 

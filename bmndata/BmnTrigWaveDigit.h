@@ -14,12 +14,16 @@
 #ifndef BMNTRIGWAVEDIGIT_H
 #define BMNTRIGWAVEDIGIT_H
 
+#include <iostream>
+using namespace std;
+
+#include <TNamed.h>
 //#include "BmnTrigDigit.h"
-#include "BmnTQDCADCDigit.h"
 
 class BmnTrigWaveDigit : public TNamed {
 public:
     BmnTrigWaveDigit();
+    BmnTrigWaveDigit(const BmnTrigWaveDigit&);
     BmnTrigWaveDigit(Short_t iMod, Short_t *iValue, UInt_t nVals, Double_t trigTimestamp, Double_t adcTimestamp, Double_t time);
 
     Short_t GetMod() const {

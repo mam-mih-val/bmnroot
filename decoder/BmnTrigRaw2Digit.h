@@ -16,6 +16,7 @@
 #include "BmnTrigDigit.h"
 #include "BmnTrigWaveDigit.h"
 #include "TMath.h"
+#include "BmnTQDCADCDigit.h"
 
 #define CHANNEL_COUNT_MAX      72u
 #define TDC72_CHANNEL_COUNT    72u

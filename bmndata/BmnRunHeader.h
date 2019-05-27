@@ -6,69 +6,69 @@
 #include "BmnEnums.h"
 
 class BmnRunHeader : public TNamed {
-private:
-
-    /** Run Id */
-    UInt_t fRunId;
-    /** Number of events in run */
-    UInt_t fNev;
-    /** Start time of run**/
+ private:
+    /** Period Number **/
+    UInt_t fPeriodNumber;
+    /** Run Number **/
+    UInt_t fRunNumber;
+    /** Start time of run **/
     TTimeStamp fStartTime;
-    /** Finish time of run**/
+    /** Finish time of run **/
     TTimeStamp fFinishTime;
 
-public:
+    /** Beam, A (atomic weight) **/
+    Int_t fBeamA;
+    /** Beam, Z (charge) **/
+    Int_t fBeamZ;
+    /** Beam energy, GeV **/
+    Float_t fBeamEnergy;
+    /** Target, A (atomic weight) **/
+    Int_t fTargetA;
+    /** Target, Z (charge) **/
+    Int_t fTargetZ;
+    /** Magnetic field, mV **/
+    Double_t fMagneticField;
 
+ public:
     /** Default constructor */
     BmnRunHeader();
 
-    /** Constructor */
-    BmnRunHeader(UInt_t run, TTimeStamp st, TTimeStamp ft, UInt_t ne);
+    /** Constructor (short) */
+    BmnRunHeader(UInt_t period_number, UInt_t run_number, TTimeStamp start_time, TTimeStamp end_time);
 
-    /** Get the run ID for this run*/
-    UInt_t GetRunId() {
-        return fRunId;
-    }
-    
-    UInt_t GetNEvents() {
-        return fNev;
-    }
-        
-    TTimeStamp GetStartTime() {
-        return fStartTime;
-    }
-        
-    TTimeStamp GetFinishTime() {
-        return fFinishTime;
-    }
+    /** Constructor (full) */
+    BmnRunHeader(UInt_t period_number, UInt_t run_number, TTimeStamp start_time, TTimeStamp end_time,
+                 Int_t beam_a, Int_t beam_z, Float_t beam_energy, Int_t target_a, Int_t target_z, Double_t mag_field);
 
-    /** Set the run ID for this run
-     * @param runid : unique run id
-     */
-    void SetRunId(UInt_t runid) {
-        fRunId = runid;
-    }
-    
-    void SetNEvents(UInt_t ne) {
-        fNev = ne;
-    }
-   
-    void SetStartTime(TTimeStamp time) {
-        fStartTime = time;
-    }
-    
-    void SetFinishTime(TTimeStamp time) {
-        fFinishTime = time;
-    }
-    
-    /**
-     * Destructor
-     */
+    /** Destructor */
     virtual ~BmnRunHeader();
 
-    ClassDef(BmnRunHeader, 1)
+    /** Get the run ID for this run */
+    UInt_t GetPeriodNumber() { return fPeriodNumber; }
+    UInt_t GetRunNumber() { return fRunNumber; }
+    TTimeStamp GetStartTime() { return fStartTime; }
+    TTimeStamp GetFinishTime() { return fFinishTime; }
+    Int_t GetBeamA() { return fBeamA; }
+    Int_t GetBeamZ() { return fBeamZ; }
+    Float_t GetBeamEnergy() { return fBeamEnergy; }
+    Int_t GetTargetA() { return fTargetA; }
+    Int_t GetTargetZ() { return fTargetZ; }
+    Double_t GetMagneticField() { return fMagneticField; }
 
+    /** Set the run number for this run **/
+    void SetPeriodNumber(UInt_t period_number) { fPeriodNumber = period_number; }
+    void SetRunNumber(UInt_t run_number) { fRunNumber = run_number; }
+    void SetPeriodRun(UInt_t period_number, UInt_t run_number) { fPeriodNumber = period_number; fRunNumber = run_number; }
+    void SetStartTime(TTimeStamp start_time) { fStartTime = start_time; }
+    void SetFinishTime(TTimeStamp end_time) { fFinishTime = end_time; }
+    void SetBeamA(Int_t beam_a) { fBeamA = beam_a; }
+    void SetBeamZ(Int_t beam_z) { fBeamZ = beam_z; }
+    void SetBeamEnergy(Float_t beam_energy) { fBeamEnergy = beam_energy; }
+    void SetTargetA(Int_t target_a) { fTargetA = target_a; }
+    void SetTargetZ(Int_t target_z) { fTargetZ = target_z; }
+    void SetMagneticField(Double_t mag_field) { fMagneticField = mag_field; }
+
+    ClassDef(BmnRunHeader, 1)
 };
 
 #endif /* BMNRUNHEADER_H */
-

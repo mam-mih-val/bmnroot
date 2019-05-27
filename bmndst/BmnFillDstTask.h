@@ -9,6 +9,7 @@
 #ifndef BMNFILLDSTTASK_H
 #define BMNFILLDSTTASK_H
 
+#include "BmnRunHeader.h"
 #include "BmnEventHeader.h"
 #include "DstEventHeader.h"
 
@@ -16,6 +17,8 @@
 #include "FairMCEventHeader.h"
 
 #include "TClonesArray.h"
+
+#include <map>
 
 class BmnFillDstTask : public FairTask
 {
@@ -55,6 +58,18 @@ class BmnFillDstTask : public FairTask
     /** Finish task called at the end **/
     virtual void Finish();
 
+    /** Setting period-number information to fill RunHeader **/
+    void SetRunNumber(Int_t period_number, Int_t run_number) { fPeriodNumber = period_number; fRunNumber = run_number; }
+
+    /** Fill map with weight-charge of possible particles **/
+    void InitParticleInfo();
+
+    struct stParticleInfo
+    {
+        Int_t weight;
+        Int_t charge;
+    };
+
   private:
     TString fInputEventHeaderName;
     TString fOutputEventHeaderName;
@@ -67,11 +82,21 @@ class BmnFillDstTask : public FairTask
     Bool_t isSimulationInput;
     /** Output DstEventHeader prepared in FairRunAna **/
     DstEventHeader* fDstHead;
+    /** Output BmnRunHeader **/
+    BmnRunHeader* fRunHead;
 
     /** event count to be processed for progress bar **/
     Long64_t fNEvents;
     /** current event being processed for progress bar **/
     Long64_t fIEvent;
+
+    /** period number **/
+    Int_t fPeriodNumber;
+    /** run number **/
+    Int_t fRunNumber;
+
+    /** map with particle names and corresponding weight-charge pairs **/
+    map<TString,stParticleInfo> mapParticleInfo;
 
     BmnFillDstTask(const BmnFillDstTask&);
     BmnFillDstTask operator=(const BmnFillDstTask&);

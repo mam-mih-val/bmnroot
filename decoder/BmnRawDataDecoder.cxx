@@ -417,7 +417,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         eventHeaderDAQ->SetEventId(fEventId);
         eventHeaderDAQ->SetEventTimeTS(TTimeStamp(time_t(fTime_s), fTime_ns));
         eventHeaderDAQ->SetEventTime(TTimeStamp(time_t(fTime_s), fTime_ns).AsDouble());
-        eventHeaderDAQ->SetType(evType);
+        eventHeaderDAQ->SetEventType(evType);
         eventHeaderDAQ->SetTripWord(kFALSE);
         eventHeaderDAQ->SetTrigInfo(trigInfo);
         eventHeaderDAQ->SetTimeShift(fTimeShifts);        
@@ -887,7 +887,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
             BmnEventHeader* headDAQ = eventHeaderDAQ;
             if (!headDAQ) continue;
-            curEventType = headDAQ->GetType();
+            curEventType = headDAQ->GetEventType();
 
             if (curEventType != kBMNPEDESTAL) continue;
             if (fPedEvCntr != fEvForPedestals - 1) {
@@ -981,7 +981,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             //            }
         }
 
-        curEventType = headDAQ->GetType();
+        curEventType = headDAQ->GetEventType();
 
         Bool_t isTripEvent = kFALSE;
         for (Int_t iTrip = 0; iTrip < startTripEvent.size(); ++iTrip) {
@@ -1003,7 +1003,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         eventHeader->SetEventId(headDAQ->GetEventId());
         eventHeader->SetEventTimeTS(TTimeStamp(time_t(fTime_s), fTime_ns));
         eventHeader->SetEventTime(TTimeStamp(time_t(fTime_s), fTime_ns).AsDouble());
-        eventHeader->SetType(curEventType);
+        eventHeader->SetEventType(curEventType);
         eventHeader->SetTripWord(isTripEvent);
         eventHeader->SetTrigInfo(headDAQ->GetTrigInfo());
         eventHeader->SetTimeShift(fTimeShifts);        
@@ -1192,7 +1192,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
 
     FillTimeShiftsMap();
     BmnEventHeader* headDAQ = eventHeaderDAQ;
-    fCurEventType = headDAQ->GetType();
+    fCurEventType = headDAQ->GetEventType();
 
     if (fTrigMapper) {
         fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
@@ -1231,7 +1231,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         eventHeader->SetEventId(headDAQ->GetEventId());
         eventHeader->SetEventTimeTS(TTimeStamp(time_t(fTime_s), fTime_ns));
         eventHeader->SetEventTime(TTimeStamp(time_t(fTime_s), fTime_ns).AsDouble());
-        eventHeader->SetType(fCurEventType);
+        eventHeader->SetEventType(fCurEventType);
         eventHeader->SetTripWord(kFALSE);
         eventHeader->SetTrigInfo(headDAQ->GetTrigInfo());
         eventHeader->SetTimeShift(fTimeShifts);        

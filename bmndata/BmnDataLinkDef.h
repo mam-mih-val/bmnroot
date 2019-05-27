@@ -72,11 +72,11 @@
 
 #pragma link C++ class DigiArrays+;
 #pragma link C++ class vector<TClonesArray*>+;
-//#pragma link C++ class vector<BmnTrigModule>+;
 #pragma link C++ class BmnTQDCADCDigit+;
 #pragma link C++ class BmnTrigWaveDigit+;
 
 #pragma link C++ class BmnEventHeader+;
+#pragma link C++ class map<UInt_t, Long64_t>+;
 #pragma link C++ class BmnRunHeader+;
 
 #pragma link C++ class BmnCounter+;

@@ -137,7 +137,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
         head->SetEventId(fDigiArrays->header->GetEventId());
         head->SetEventTimeTS(fDigiArrays->header->GetEventTimeTS());
         head->SetEventTime(fDigiArrays->header->GetEventTime());
-        head->SetType(fDigiArrays->header->GetType());
+        head->SetEventType(fDigiArrays->header->GetEventType());
         head->SetTripWord(kFALSE);
         head->SetTrigInfo(fDigiArrays->header->GetTrigInfo());
         head->SetTimeShift(fDigiArrays->header->GetTimeShift());        
@@ -260,7 +260,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
         TVirtualPad *pad = infoCanvas->cd(1);
         pad->Clear();
         TString runType;
-        switch (head->GetTrig()) {
+        switch (head->GetTrigType()) {
             case kBMNBEAM:
                 runType = "beam";
                 break;

@@ -1,11 +1,6 @@
-#include "../../gconfig/basiclibs.C"
-
 // macro for run selection by specified conditions
 void selecting_runs()
 {
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     TObjArray arrayConditions;
     UniDbSearchCondition* searchCondition = new UniDbSearchCondition(columnBeamParticle, conditionEqual, TString("d"));
     arrayConditions.Add((TObject*)searchCondition);

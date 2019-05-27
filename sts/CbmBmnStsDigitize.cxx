@@ -278,14 +278,14 @@ Int_t Si_broken=0;
 
 
 bevh= (BmnEventHeader*)fEventHeader->At(0);
-BmnEventHeader* behnew= new ((*fBMNEventHeader)[0]) BmnEventHeader(bevh->GetRunId(), bevh->GetEventId(), bevh->GetEventTime(),  bevh->GetType(),
- bevh->GetTripWord(), bevh->GetTrigInfo(), /*fPointsT0->GetEntries()*/0,fPointsBC1->GetEntries(),fPointsBC2->GetEntries(),fPointsVeto->GetEntries(),fPointsBD->GetEntries(),fPointsSi->GetEntries());
+BmnEventHeader* behnew= new ((*fBMNEventHeader)[0]) BmnEventHeader(bevh->GetRunId(), bevh->GetEventId(), bevh->GetEventTime(),  bevh->GetEventType(),
+ bevh->GetTripWord(), bevh->GetTrigInfo());//, /*fPointsT0->GetEntries()*/0,fPointsBC1->GetEntries(),fPointsBC2->GetEntries(),fPointsVeto->GetEntries(),fPointsBD->GetEntries(),fPointsSi->GetEntries());
 
 for (Int_t i = 0; i < fPointsSi->GetEntries(); ++i) {
 BmnTrigDigit* sitrig =(BmnTrigDigit*)fPointsSi->UncheckedAt(i);
-behnew->SetModSi(sitrig->GetMod());
-behnew->SetAmpSi(sitrig->GetAmp());
-behnew->SetTimeSi(sitrig->GetTime());
+//behnew->SetModSi(sitrig->GetMod());
+//behnew->SetAmpSi(sitrig->GetAmp());
+//behnew->SetTimeSi(sitrig->GetTime());
 //cout<<bdtrig->GetMod()<<endl;
 
 //if(sitrig->GetMod()>=9 && sitrig->GetMod()<=54)
@@ -294,30 +294,30 @@ behnew->SetTimeSi(sitrig->GetTime());
 }
 for (Int_t i = 0; i < fPointsBD->GetEntries(); ++i) {
 BmnTrigDigit* bdtrig =(BmnTrigDigit*)fPointsBD->UncheckedAt(i);
-behnew->SetModBD(bdtrig->GetMod());
-behnew->SetAmpBD(bdtrig->GetAmp());
-behnew->SetTimeBD(bdtrig->GetTime());
+//behnew->SetModBD(bdtrig->GetMod());
+//behnew->SetAmpBD(bdtrig->GetAmp());
+//behnew->SetTimeBD(bdtrig->GetTime());
 //cout<<bdtrig->GetMod()<<endl;
 }
 for (Int_t i = 0; i < fPointsBC1->GetEntries(); ++i) {
 BmnTrigDigit* bc1trig =(BmnTrigDigit*)fPointsBC1->UncheckedAt(i);
-behnew->SetModBC1(bc1trig->GetMod());
-behnew->SetAmpBC1(bc1trig->GetAmp());
-behnew->SetTimeBC1(bc1trig->GetTime());
+//behnew->SetModBC1(bc1trig->GetMod());
+//behnew->SetAmpBC1(bc1trig->GetAmp());
+//behnew->SetTimeBC1(bc1trig->GetTime());
 //cout<<bdtrig->GetMod()<<endl;
 }
 for (Int_t i = 0; i < fPointsBC2->GetEntries(); ++i) {
 BmnTrigDigit* bc2trig =(BmnTrigDigit*)fPointsBC2->UncheckedAt(i);
-behnew->SetModBC2(bc2trig->GetMod());
-behnew->SetAmpBC2(bc2trig->GetAmp());
-behnew->SetTimeBC2(bc2trig->GetTime());
+//behnew->SetModBC2(bc2trig->GetMod());
+//behnew->SetAmpBC2(bc2trig->GetAmp());
+//behnew->SetTimeBC2(bc2trig->GetTime());
 //cout<<bdtrig->GetMod()<<endl;
 }
 for (Int_t i = 0; i < fPointsVeto->GetEntries(); ++i) {
 BmnTrigDigit* vetotrig =(BmnTrigDigit*)fPointsVeto->UncheckedAt(i);
-behnew->SetModVETO(vetotrig->GetMod());
-behnew->SetAmpVETO(vetotrig->GetAmp());
-behnew->SetTimeVETO(vetotrig->GetTime());
+//behnew->SetModVETO(vetotrig->GetMod());
+//behnew->SetAmpVETO(vetotrig->GetAmp());
+//behnew->SetTimeVETO(vetotrig->GetTime());
 //cout<<bdtrig->GetMod()<<endl;
 }
  /*

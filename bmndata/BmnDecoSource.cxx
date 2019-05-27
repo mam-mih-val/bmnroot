@@ -122,7 +122,7 @@ Int_t BmnDecoSource::ReadEvent(UInt_t i) {
         fEventHeader->SetEventId(fDigiArrays->header->GetEventId());
         fEventHeader->SetEventTimeTS(fDigiArrays->header->GetEventTimeTS());
         fEventHeader->SetEventTime(fDigiArrays->header->GetEventTime());
-        fEventHeader->SetType(fDigiArrays->header->GetType());
+        fEventHeader->SetEventType(fDigiArrays->header->GetEventType());
         fEventHeader->SetTripWord(kFALSE);
         fEventHeader->SetTrigInfo(fDigiArrays->header->GetTrigInfo());
         fEventHeader->SetTimeShift(fDigiArrays->header->GetTimeShift());        

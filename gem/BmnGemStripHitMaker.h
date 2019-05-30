@@ -20,6 +20,7 @@
 #include "BmnGemStripHit.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripConfiguration.h"
+#include "BmnGemStripTransform.h"
 #include "BmnInnTrackerAlign.h"
 #include <BmnEventQuality.h>
 
@@ -52,7 +53,7 @@ public:
     }
 
 private:
-    
+
     TString fInputPointsBranchName;
     TString fInputDigitsBranchName;
     TString fInputDigitMatchesBranchName;
@@ -78,13 +79,15 @@ private:
 
     BmnGemStripStationSet *StationSet; //Entire GEM detector
 
+    BmnGemStripTransform *TransfSet; //Transformations for each module of the detector
+
     FairField* fField;
-    
+
     TString fBmnEvQualityBranchName;
     TClonesArray* fBmnEvQuality;
-    
+
     BmnInnTrackerAlign* fAlign;
-    
+
     ClassDef(BmnGemStripHitMaker, 1);
 };
 

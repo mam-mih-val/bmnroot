@@ -11,65 +11,80 @@
 #define ANSI_COLOR_RESET "\x1b[0m"
 
 #include "BmnFillDstTask.h"
+#include "UniDbRun.h"
 #include "function_set.h"
 
 #include "FairLogger.h"
+
+#include "TFile.h"
+#include "TDirectory.h"
 
 using namespace std;
 
 // ---- Default constructor -------------------------------------------
 BmnFillDstTask::BmnFillDstTask() :
- FairTask("BmnFillDstTask"),
- fInputEventHeaderName("BmnEventHeader."),
- fOutputEventHeaderName("DstEventHeader."),
- fEventHead(NULL),
- fDstHead(NULL),
- fNEvents(-1),
- fIEvent(0),
- isSimulationInput(false)
+  FairTask("BmnFillDstTask"),
+  fInputEventHeaderName("BmnEventHeader."),
+  fOutputEventHeaderName("DstEventHeader."),
+  fEventHead(NULL),
+  fDstHead(NULL),
+  fNEvents(-1),
+  fIEvent(0),
+  fPeriodNumber(-1),
+  fRunNumber(-1),
+  isSimulationInput(false)
 {
     LOG(DEBUG)<<"Defaul Constructor of BmnFillDstTask"<<FairLogger::endl;
 }
 
 // ---- Constructor with the given event number to be processed -------
 BmnFillDstTask::BmnFillDstTask(Long64_t nEvents) :
- FairTask("BmnFillDstTask"),
- fInputEventHeaderName("BmnEventHeader."),
- fOutputEventHeaderName("DstEventHeader."),
- fEventHead(NULL),
- fDstHead(NULL),
- fNEvents(nEvents),
- fIEvent(0),
- isSimulationInput(false)
+  FairTask("BmnFillDstTask"),
+  fInputEventHeaderName("BmnEventHeader."),
+  fOutputEventHeaderName("DstEventHeader."),
+  fEventHead(NULL),
+  fDstHead(NULL),
+  fNEvents(nEvents),
+  fIEvent(0),
+  fPeriodNumber(-1),
+  fRunNumber(-1),
+  isSimulationInput(false)
 {
+    fRunHead = new BmnRunHeader();
     LOG(DEBUG)<<"Constructor of BmnFillDstTask"<<FairLogger::endl;
 }
 
 // Constructor with input Event Header Name and event number to be processed
 BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, Long64_t nEvents) :
- FairTask("BmnFillDstTask"),
- fInputEventHeaderName(input_event_header_name),
- fOutputEventHeaderName("DstEventHeader."),
- fEventHead(NULL),
- fDstHead(NULL),
- fNEvents(nEvents),
- fIEvent(0),
- isSimulationInput(false)
+  FairTask("BmnFillDstTask"),
+  fInputEventHeaderName(input_event_header_name),
+  fOutputEventHeaderName("DstEventHeader."),
+  fEventHead(NULL),
+  fDstHead(NULL),
+  fNEvents(nEvents),
+  fIEvent(0),
+  fPeriodNumber(-1),
+  fRunNumber(-1),
+  isSimulationInput(false)
 {
+    fRunHead = new BmnRunHeader();
     LOG(DEBUG)<<"Constructor of BmnFillDstTask"<<FairLogger::endl;
 }
 
 // Constructor with input and output Event Header Name, and event number to be processed
 BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, TString output_event_header_name, Long64_t nEvents) :
- FairTask("BmnFillDstTask"),
- fInputEventHeaderName(input_event_header_name),
- fOutputEventHeaderName(output_event_header_name),
- fEventHead(NULL),
- fDstHead(NULL),
- fNEvents(nEvents),
- fIEvent(0),
- isSimulationInput(false)
+  FairTask("BmnFillDstTask"),
+  fInputEventHeaderName(input_event_header_name),
+  fOutputEventHeaderName(output_event_header_name),
+  fEventHead(NULL),
+  fDstHead(NULL),
+  fNEvents(nEvents),
+  fIEvent(0),
+  fPeriodNumber(-1),
+  fRunNumber(-1),
+  isSimulationInput(false)
 {
+    fRunHead = new BmnRunHeader();
     LOG(DEBUG)<<"Constructor of BmnFillDstTask"<<FairLogger::endl;
 }
 
@@ -108,13 +123,13 @@ InitStatus BmnFillDstTask::Init()
 
     // Get a pointer to the input Event Header
     TObject* pObj = ioman->GetObject(fInputEventHeaderName);
-    if (!fEventHead)
+    if (!pObj)
     {
         // if no input Event Header was found, searching for "MCEventHeader."
         fMCEventHead = (FairMCEventHeader*) ioman->GetObject("MCEventHeader.");
         if (!fMCEventHead)
         {
-            LOG(ERROR)<<"No input Event Header ("<<fInputEventHeaderName<<") or MCEventHeader was found!"<<FairLogger::endl<<"BmnFillDstTask will be inactive"<<FairLogger::endl;
+            LOG(ERROR)<<"No input Event Header ("<<fInputEventHeaderName<<" or MCEventHeader.) was found!"<<FairLogger::endl<<"BmnFillDstTask will be inactive!"<<FairLogger::endl;
             return kERROR;
         }
         isSimulationInput = true;
@@ -147,13 +162,61 @@ InitStatus BmnFillDstTask::Init()
     if (ioman->CheckMaxEventNo(fNEvents) < fNEvents)
         fNEvents = ioman->CheckMaxEventNo(fNEvents);
 
+    // FIll Run Header
+    if (fRunNumber > 0)
+    {
+        InitParticleInfo();
+
+        UniDbRun* pCurrentRun = UniDbRun::GetRun(fPeriodNumber, fRunNumber);
+        if (pCurrentRun != 0)
+        {
+            fRunHead->SetPeriodRun(fPeriodNumber, fRunNumber);
+            TDatime start_date = pCurrentRun->GetStartDatetime();
+            TTimeStamp tsStartTime(start_date.GetYear(), start_date.GetMonth(), start_date.GetDay(),
+                                   start_date.GetHour(), start_date.GetMinute(), start_date.GetSecond());
+            fRunHead->SetStartTime(tsStartTime);
+            if (pCurrentRun->GetEndDatetime() != NULL)
+            {
+                //TTimeStamp tsEndTime((time_t) pCurrentRun->GetEndDatetime()->Convert(), 0);
+                TDatime* end_date = pCurrentRun->GetEndDatetime();
+                TTimeStamp tsEndTime(end_date->GetYear(), end_date->GetMonth(), end_date->GetDay(),
+                                     end_date->GetHour(), end_date->GetMinute(), end_date->GetSecond());
+                fRunHead->SetFinishTime(tsEndTime);
+            }
+            TString beam = pCurrentRun->GetBeamParticle(); beam.ToLower();
+            map<TString,stParticleInfo>::iterator it = mapParticleInfo.find(beam);
+            if (it != mapParticleInfo.end())
+            {
+                fRunHead->SetBeamA(it->second.weight);
+                fRunHead->SetBeamZ(it->second.charge);
+            }
+            double* energy = pCurrentRun->GetEnergy();
+            if (energy != NULL)
+                fRunHead->SetBeamEnergy(*energy);
+            TString* target = pCurrentRun->GetTargetParticle();
+            if (target != NULL)
+            {
+                target->ToLower();
+                it = mapParticleInfo.find(*target);
+                if (it != mapParticleInfo.end())
+                {
+                    fRunHead->SetTargetA(it->second.weight);
+                    fRunHead->SetTargetZ(it->second.charge);
+                }
+            }
+            Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
+            if (field_voltage != NULL)
+                fRunHead->SetMagneticField(*field_voltage);
+        }// if (pCurrentRun != 0)
+    }// FIll Run Header
+
     return kSUCCESS;
 }
 
 // ---- ReInit  -------------------------------------------------------
 InitStatus BmnFillDstTask::ReInit()
 {
-    LOG(DEBUG)<<"Initilization of BmnFillDstTask"<<FairLogger::endl;
+    LOG(DEBUG)<<"Re-initilization of BmnFillDstTask"<<FairLogger::endl;
     return kSUCCESS;
 }
 
@@ -177,7 +240,7 @@ void BmnFillDstTask::Exec(Option_t* /*option*/)
         fDstHead->SetEventId( fEventHead->GetEventId() );
         fDstHead->SetEventTime( fEventHead->GetEventTime() );
         fDstHead->SetEventTimeTS( fEventHead->GetEventTimeTS() );
-        fDstHead->SetTriggerType( fEventHead->GetTrig() );
+        fDstHead->SetTriggerType( fEventHead->GetTrigType() );
     }
 
     // printing progress bar in terminal
@@ -211,7 +274,38 @@ void BmnFillDstTask::Finish()
 {
     LOG(DEBUG)<<"Finish of BmnFillDstTask"<<FairLogger::endl;
 
+    FairRootManager* ioman = FairRootManager::Instance();
+    FairSink* fSink = ioman->GetSink();
+    fSink->WriteObject(fRunHead,"BmnRunHeader", TObject::kSingleKey);
+
     if (fNEvents > 0) printf("\n");
+}
+
+void BmnFillDstTask::InitParticleInfo()
+{
+    stParticleInfo particle_info;
+    particle_info.weight = 2; particle_info.charge = 1;
+    mapParticleInfo.insert(pair<TString,stParticleInfo>("d",particle_info));
+    particle_info.weight = 12; particle_info.charge = 6;
+    mapParticleInfo.insert(pair<TString,stParticleInfo>("c",particle_info));
+    particle_info.weight = 40; particle_info.charge = 18;
+    mapParticleInfo.insert(pair<TString,stParticleInfo>("ar",particle_info));
+    particle_info.weight = 84; particle_info.charge = 36;
+    mapParticleInfo.insert(pair<TString,stParticleInfo>("kr",particle_info));
+    particle_info.weight = 27; particle_info.charge = 13;
+    mapParticleInfo.insert(pair<TString,stParticleInfo>("al",particle_info));
+    particle_info.weight = 207; particle_info.charge = 82;
+    mapParticleInfo.insert(pair<TString,stParticleInfo>("pb",particle_info));
+    particle_info.weight = 119; particle_info.charge = 50;
+    mapParticleInfo.insert(pair<TString,stParticleInfo>("sn",particle_info));
+    particle_info.weight = 64; particle_info.charge = 29;
+    mapParticleInfo.insert(pair<TString,stParticleInfo>("cu",particle_info));
+    particle_info.weight = 2; particle_info.charge = 0;
+    mapParticleInfo.insert(pair<TString,stParticleInfo>("h2",particle_info));
+    particle_info.weight = 29; particle_info.charge = 0;
+    mapParticleInfo.insert(pair<TString,stParticleInfo>("c2h4",particle_info));
+
+    return;
 }
 
 

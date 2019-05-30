@@ -27,7 +27,8 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
     fField = NULL;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
-    StationSet = NULL;
+    StationSet = nullptr;
+    TransfSet = nullptr;
 }
 
 BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, TString alignFile)
@@ -48,7 +49,8 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
     fField = NULL;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
-    StationSet = NULL;
+    StationSet = nullptr;
+    TransfSet = nullptr;
 
     switch(run_period) {
         case 5: //BM@N RUN-5
@@ -133,9 +135,11 @@ InitStatus BmnGemStripHitMaker::Init() {
             if (fVerbose) cout << "   Current GEM Configuration : RunSpring2018" << "\n";
             break;
 
-        case BmnGemStripConfiguration::RunSRCSpring2018:
+        case BmnGemStripConfiguration::RunSRCSpring2018 :
             StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSRCSpring2018.xml");
-            if (fVerbose) cout << "   Current GEM Configuration : RunSRCSpring2018" << "\n";
+            TransfSet = new BmnGemStripTransform();
+            TransfSet->LoadFromXMLFile(gPathGemConfig + "GemRunSRCSpring2018.xml");
+            if (fVerbose) cout << "   Current GEM Configuration : GemRunSRCSpring2018" << "\n";
             break;
 
         default:
@@ -255,6 +259,14 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 Double_t y_err = module->GetIntersectionPointYError(iPoint);
                 Double_t z_err = 0.0;
 
+                 //Transform hit coordinates from local coordinate system of GEM-planes to global
+                if(TransfSet) {
+                    Plane3D::Point loc_point = TransfSet->ApplyTransforms(Plane3D::Point(-x, y, z), iStation, iModule);
+                    x = -loc_point.X();
+                    y = loc_point.Y();
+                    z = loc_point.Z();
+                }
+
                 Int_t RefMCIndex = 0;
 
                 //hit matching (define RefMCIndex)) ----------------------------
@@ -321,7 +333,16 @@ void BmnGemStripHitMaker::ProcessDigits() {
 }
 
 void BmnGemStripHitMaker::Finish() {
-    delete StationSet;
+    if (StationSet) {
+        delete StationSet;
+        StationSet = nullptr;
+    }
+
+    if(TransfSet) {
+        delete TransfSet;
+        TransfSet = nullptr;
+    }
+
     cout << "Work time of the GEM hit maker: " << workTime << endl;
 }
 

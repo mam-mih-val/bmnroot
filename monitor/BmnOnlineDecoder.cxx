@@ -442,7 +442,7 @@ void BmnOnlineDecoder::ProcessStream() {
                             if (iterDigi.header == NULL)
                                 continue;
                             BmnEventHeader* head = iterDigi.header;
-                            if (head->GetType() != kBMNPAYLOAD)
+                            if (head->GetEventType() != kBMNPAYLOAD)
                                 continue;
                             t.WriteObject(&iterDigi);
                             sendRes = zmq_send(_decoSocket, t.Buffer(), t.Length(), ZMQ_NOBLOCK);
@@ -495,7 +495,7 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName, UInt_t timeLimit) {
             if (iterDigi.header == NULL)
                 continue;
             BmnEventHeader* head = (BmnEventHeader*) iterDigi.header;
-            if (head->GetType() != kBMNPAYLOAD)
+            if (head->GetEventType() != kBMNPAYLOAD)
                 continue;
             t.WriteObject(&iterDigi);
             sendRes = zmq_send(_decoSocket, t.Buffer(), t.Length(), ZMQ_NOBLOCK);

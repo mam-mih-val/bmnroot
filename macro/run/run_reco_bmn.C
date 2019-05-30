@@ -312,6 +312,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
 
     // Fill DST Event Header (if nEvents is present, print only progress bar)
     BmnFillDstTask* dst_task = new BmnFillDstTask(nEvents);
+    dst_task->SetRunNumber(run_period, run_number);
     fRunAna->AddTask(dst_task);
 
     // -----   Parameter database   --------------------------------------------

@@ -187,8 +187,8 @@ InitStatus BmnFillDstTask::Init()
             map<TString,stParticleInfo>::iterator it = mapParticleInfo.find(beam);
             if (it != mapParticleInfo.end())
             {
-                fRunHead->SetBeamA(it->second.weight);
-                fRunHead->SetBeamZ(it->second.charge);
+                fRunHead->SetBeamA(it->second.A);
+                fRunHead->SetBeamZ(it->second.Z);
             }
             double* energy = pCurrentRun->GetEnergy();
             if (energy != NULL)
@@ -200,8 +200,8 @@ InitStatus BmnFillDstTask::Init()
                 it = mapParticleInfo.find(*target);
                 if (it != mapParticleInfo.end())
                 {
-                    fRunHead->SetTargetA(it->second.weight);
-                    fRunHead->SetTargetZ(it->second.charge);
+                    fRunHead->SetTargetA(it->second.A);
+                    fRunHead->SetTargetZ(it->second.Z);
                 }
             }
             Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
@@ -284,25 +284,25 @@ void BmnFillDstTask::Finish()
 void BmnFillDstTask::InitParticleInfo()
 {
     stParticleInfo particle_info;
-    particle_info.weight = 2; particle_info.charge = 1;
+    particle_info.A = 2; particle_info.Z = 1;
     mapParticleInfo.insert(pair<TString,stParticleInfo>("d",particle_info));
-    particle_info.weight = 12; particle_info.charge = 6;
+    particle_info.A = 12; particle_info.Z = 6;
     mapParticleInfo.insert(pair<TString,stParticleInfo>("c",particle_info));
-    particle_info.weight = 40; particle_info.charge = 18;
+    particle_info.A = 40; particle_info.Z = 18;
     mapParticleInfo.insert(pair<TString,stParticleInfo>("ar",particle_info));
-    particle_info.weight = 84; particle_info.charge = 36;
+    particle_info.A = 84; particle_info.Z = 36;
     mapParticleInfo.insert(pair<TString,stParticleInfo>("kr",particle_info));
-    particle_info.weight = 27; particle_info.charge = 13;
+    particle_info.A = 27; particle_info.Z = 13;
     mapParticleInfo.insert(pair<TString,stParticleInfo>("al",particle_info));
-    particle_info.weight = 207; particle_info.charge = 82;
+    particle_info.A = 207; particle_info.Z = 82;
     mapParticleInfo.insert(pair<TString,stParticleInfo>("pb",particle_info));
-    particle_info.weight = 119; particle_info.charge = 50;
+    particle_info.A = 119; particle_info.Z = 50;
     mapParticleInfo.insert(pair<TString,stParticleInfo>("sn",particle_info));
-    particle_info.weight = 64; particle_info.charge = 29;
+    particle_info.A = 64; particle_info.Z = 29;
     mapParticleInfo.insert(pair<TString,stParticleInfo>("cu",particle_info));
-    particle_info.weight = 2; particle_info.charge = 0;
+    particle_info.A = 1; particle_info.Z = 1;
     mapParticleInfo.insert(pair<TString,stParticleInfo>("h2",particle_info));
-    particle_info.weight = 29; particle_info.charge = 0;
+    particle_info.A = 29; particle_info.Z = 0;
     mapParticleInfo.insert(pair<TString,stParticleInfo>("c2h4",particle_info));
 
     return;

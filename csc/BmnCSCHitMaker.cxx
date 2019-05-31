@@ -24,7 +24,8 @@ BmnCSCHitMaker::BmnCSCHitMaker()
     fField = NULL;
 
     fCurrentConfig = BmnCSCConfiguration::None;
-    StationSet = NULL;
+    StationSet = nullptr;
+    TransfSet = nullptr;
 }
 
 BmnCSCHitMaker::BmnCSCHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, TString alignFile)
@@ -45,7 +46,8 @@ BmnCSCHitMaker::BmnCSCHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp,
     fField = NULL;
 
     fCurrentConfig = BmnCSCConfiguration::None;
-    StationSet = NULL;
+    StationSet = nullptr;
+    TransfSet = nullptr;
 
     switch(run_period) {
         case 7: //BM@N RUN-7 (and SRC)
@@ -104,11 +106,13 @@ InitStatus BmnCSCHitMaker::Init() {
 
         case BmnCSCConfiguration::RunSRCSpring2018:
             StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSRCSpring2018.xml");
+            TransfSet = new BmnGemStripTransform();
+            TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCRunSRCSpring2018.xml");
             if (fVerbose) cout << "   Current CSC Configuration : RunSRCSpring2018" << "\n";
             break;
 
         default:
-            StationSet = NULL;
+            StationSet = nullptr;
     }
 
     fField = FairRunAna::Instance()->GetField();
@@ -215,6 +219,14 @@ void BmnCSCHitMaker::ProcessDigits() {
                 Double_t y_err = module->GetIntersectionPointYError(iPoint);
                 Double_t z_err = 0.0;
 
+                //Transform hit coordinates from local coordinate system of GEM-planes to global
+                if(TransfSet) {
+                    Plane3D::Point loc_point = TransfSet->ApplyTransforms(Plane3D::Point(-x, y, z), iStation, iModule);
+                    x = -loc_point.X();
+                    y = loc_point.Y();
+                    z = loc_point.Z();
+                }
+
                 Int_t RefMCIndex = 0;
 
                 //hit matching (define RefMCIndex)) ----------------------------
@@ -270,7 +282,16 @@ void BmnCSCHitMaker::ProcessDigits() {
 }
 
 void BmnCSCHitMaker::Finish() {
-    delete StationSet;
+     if (StationSet) {
+        delete StationSet;
+        StationSet = nullptr;
+    }
+
+    if(TransfSet) {
+        delete TransfSet;
+        TransfSet = nullptr;
+    }
+     
     cout << "Work time of the CSC hit maker: " << workTime << endl;
 }
 

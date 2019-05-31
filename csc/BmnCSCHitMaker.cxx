@@ -106,7 +106,7 @@ InitStatus BmnCSCHitMaker::Init() {
 
         case BmnCSCConfiguration::RunSRCSpring2018:
             StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSRCSpring2018.xml");
-            TransfSet = new BmnGemStripTransform();
+            TransfSet = new BmnCSCTransform();
             TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCRunSRCSpring2018.xml");
             if (fVerbose) cout << "   Current CSC Configuration : RunSRCSpring2018" << "\n";
             break;
@@ -291,7 +291,7 @@ void BmnCSCHitMaker::Finish() {
         delete TransfSet;
         TransfSet = nullptr;
     }
-     
+
     cout << "Work time of the CSC hit maker: " << workTime << endl;
 }
 

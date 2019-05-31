@@ -66,8 +66,8 @@ class BmnFillDstTask : public FairTask
 
     struct stParticleInfo
     {
-        Int_t weight;
-        Int_t charge;
+        Int_t A;
+        Int_t Z;
     };
 
   private:

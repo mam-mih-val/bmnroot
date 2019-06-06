@@ -11,7 +11,7 @@
 #include <iostream>
 using namespace std;
 
-/* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+/* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
 ElogDbRecord::ElogDbRecord(UniDbConnection* connUniDb, int record_id, TDatime record_date, int* shift_leader_id, int type_id, int* period_number, int* run_number, int* trigger_id, TString* daq_status, int* sp_41, int* sp_57, int* vkm2, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment)
 {
@@ -147,7 +147,7 @@ ElogDbRecord* ElogDbRecord::CreateRecord(TDatime record_date, int* shift_leader_
 	// inserting new record to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new record to the Database has been failed"<<endl;
+		cout<<"ERROR: inserting new record to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -168,7 +168,7 @@ ElogDbRecord* ElogDbRecord::CreateRecord(TDatime record_date, int* shift_leader_
 		// if there is no last id then exit with error
 		if (!stmt_last->NextResultRow())
 		{
-			cout<<"Error: no last ID in DB!"<<endl;
+			cout<<"ERROR: no last ID in DB!"<<endl;
 			delete stmt_last;
 			return 0x00;
 		}
@@ -180,7 +180,7 @@ ElogDbRecord* ElogDbRecord::CreateRecord(TDatime record_date, int* shift_leader_
 	}
 	else
 	{
-		cout<<"Error: getting last ID has been failed!"<<endl;
+		cout<<"ERROR: getting last ID has been failed!"<<endl;
 		delete stmt_last;
 		return 0x00;
 	}
@@ -268,7 +268,7 @@ ElogDbRecord* ElogDbRecord::GetRecord(int record_id)
 	// get record from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting record from the database has been failed"<<endl;
+		cout<<"ERROR: getting record from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -281,7 +281,7 @@ ElogDbRecord* ElogDbRecord::GetRecord(int record_id)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: record wasn't found in the database"<<endl;
+		cout<<"ERROR: record was not found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -373,7 +373,7 @@ bool ElogDbRecord::CheckRecordExists(int record_id)
 	// get record from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting record from the database has been failed"<<endl;
+		cout<<"ERROR: getting record from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -416,7 +416,7 @@ int ElogDbRecord::DeleteRecord(int record_id)
 	// delete record from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting record from the dataBase has been failed"<<endl;
+		cout<<"ERROR: deleting record from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -444,7 +444,7 @@ int ElogDbRecord::PrintAll()
 	// get all 'records' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all 'records' from the dataBase has been failed"<<endl;
+		cout<<"ERROR: getting all 'records' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -554,7 +554,7 @@ int ElogDbRecord::SetRecordDate(TDatime record_date)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about record has been failed"<<endl;
+		cout<<"ERROR: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -592,7 +592,7 @@ int ElogDbRecord::SetShiftLeaderId(int* shift_leader_id)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about record has been failed"<<endl;
+		cout<<"ERROR: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -631,7 +631,7 @@ int ElogDbRecord::SetTypeId(int type_id)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about record has been failed"<<endl;
+		cout<<"ERROR: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -669,7 +669,7 @@ int ElogDbRecord::SetPeriodNumber(int* period_number)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about record has been failed"<<endl;
+		cout<<"ERROR: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -711,7 +711,7 @@ int ElogDbRecord::SetRunNumber(int* run_number)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about record has been failed"<<endl;
+		cout<<"ERROR: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -753,7 +753,7 @@ int ElogDbRecord::SetTriggerId(int* trigger_id)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about record has been failed"<<endl;
+		cout<<"ERROR: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -795,7 +795,7 @@ int ElogDbRecord::SetDaqStatus(TString* daq_status)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about record has been failed"<<endl;
+		cout<<"ERROR: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -837,7 +837,7 @@ int ElogDbRecord::SetSp41(int* sp_41)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about record has been failed"<<endl;
+		cout<<"ERROR: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -879,7 +879,7 @@ int ElogDbRecord::SetSp57(int* sp_57)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about record has been failed"<<endl;
+		cout<<"ERROR: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -921,7 +921,7 @@ int ElogDbRecord::SetVkm2(int* vkm2)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about record has been failed"<<endl;
+		cout<<"ERROR: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -963,7 +963,7 @@ int ElogDbRecord::SetFieldComment(TString* field_comment)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about record has been failed"<<endl;
+		cout<<"ERROR: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -1005,7 +1005,7 @@ int ElogDbRecord::SetBeam(TString* beam)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about record has been failed"<<endl;
+		cout<<"ERROR: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -1047,7 +1047,7 @@ int ElogDbRecord::SetEnergy(double* energy)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about record has been failed"<<endl;
+		cout<<"ERROR: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -1089,7 +1089,7 @@ int ElogDbRecord::SetTarget(TString* target)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about record has been failed"<<endl;
+		cout<<"ERROR: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -1131,7 +1131,7 @@ int ElogDbRecord::SetTargetWidth(double* target_width)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about record has been failed"<<endl;
+		cout<<"ERROR: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -1173,7 +1173,7 @@ int ElogDbRecord::SetRecordComment(TString* record_comment)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about record has been failed"<<endl;
+		cout<<"ERROR: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -1197,7 +1197,7 @@ void ElogDbRecord::Print()
 
 	return;
 }
-/* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
+/* END OF GENERATED CLASS PART (SHOULD NOT BE CHANGED MANUALLY) */
 
 TObjArray* ElogDbRecord::GetRecords(int period_number, int run_number)
 {

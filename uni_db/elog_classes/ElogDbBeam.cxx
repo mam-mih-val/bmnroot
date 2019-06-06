@@ -11,7 +11,7 @@
 #include <iostream>
 using namespace std;
 
-/* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+/* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
 ElogDbBeam::ElogDbBeam(UniDbConnection* connUniDb, TString beam)
 {
@@ -46,7 +46,7 @@ ElogDbBeam* ElogDbBeam::CreateBeam(TString beam)
 	// inserting new beam to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new beam to the Database has been failed"<<endl;
+		cout<<"ERROR: inserting new beam to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -77,7 +77,7 @@ ElogDbBeam* ElogDbBeam::GetBeam(TString beam)
 	// get beam from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting beam from the database has been failed"<<endl;
+		cout<<"ERROR: getting beam from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -90,7 +90,7 @@ ElogDbBeam* ElogDbBeam::GetBeam(TString beam)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: beam wasn't found in the database"<<endl;
+		cout<<"ERROR: beam was not found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -122,7 +122,7 @@ bool ElogDbBeam::CheckBeamExists(TString beam)
 	// get beam from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting beam from the database has been failed"<<endl;
+		cout<<"ERROR: getting beam from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -165,7 +165,7 @@ int ElogDbBeam::DeleteBeam(TString beam)
 	// delete beam from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting beam from the dataBase has been failed"<<endl;
+		cout<<"ERROR: deleting beam from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -193,7 +193,7 @@ int ElogDbBeam::PrintAll()
 	// get all 'beams' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all 'beams' from the dataBase has been failed"<<endl;
+		cout<<"ERROR: getting all 'beams' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -243,7 +243,7 @@ int ElogDbBeam::SetBeam(TString beam)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about beam has been failed"<<endl;
+		cout<<"ERROR: updating information about beam has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -263,7 +263,7 @@ void ElogDbBeam::Print()
 
 	return;
 }
-/* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
+/* END OF GENERATED CLASS PART (SHOULD NOT BE CHANGED MANUALLY) */
 
 // -------------------------------------------------------------------
 ClassImp(ElogDbBeam);

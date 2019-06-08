@@ -939,7 +939,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     printf(ANSI_COLOR_BLUE " Main loop over events:\n" ANSI_COLOR_RESET);
     for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
 
-        DrawBar(iEv, fNevents);
+        if (iEv % 5000 == 0) cout << "Digitization event #" << iEv << endl;
+//        DrawBar(iEv, fNevents);
         ClearArrays();
 
         fRawTree->GetEntry(iEv);
@@ -1005,7 +1006,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         eventHeader->SetEventTime(TTimeStamp(time_t(fTime_s), fTime_ns).AsDouble());
         eventHeader->SetEventType(curEventType);
         eventHeader->SetTripWord(isTripEvent);
-        eventHeader->SetTrigInfo(headDAQ->GetTrigInfo());
+//        eventHeader->SetTrigInfo(headDAQ->GetTrigInfo());
         eventHeader->SetTimeShift(fTimeShifts);        
         eventHeader->SetStartSignalInfo(fT0Time, fT0Width);
         
@@ -1114,6 +1115,18 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     }
 
     if (fDetectorSetup[5]) {
+	if (fTOF700ReferenceRun <= 0)
+	{
+	    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("TOF2", "slewing_file_id", fPeriodId, fRunId); //(detector_name, parameter_name, period_number, run_number)
+	    if (pDetectorParameter != NULL)
+	    {
+		fTOF700ReferenceRun = pDetectorParameter->GetInt();
+	    }
+	    else
+	    {
+		printf("Not found slewing run ID for run %d in DB\n",fRunId);
+	    }
+	}
         tof700 = new TClonesArray("BmnTof2Digit");
         fDigiTree->Branch("TOF700", &tof700);
         fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName, fTOF700ReferenceRun, fTOF700ReferenceChamber, fTof700GeomFileName);

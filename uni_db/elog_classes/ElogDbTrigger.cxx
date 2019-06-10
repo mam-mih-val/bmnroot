@@ -11,7 +11,7 @@
 #include <iostream>
 using namespace std;
 
-/* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+/* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
 ElogDbTrigger::ElogDbTrigger(UniDbConnection* connUniDb, int trigger_id, TString trigger_info)
 {
@@ -47,7 +47,7 @@ ElogDbTrigger* ElogDbTrigger::CreateTrigger(TString trigger_info)
 	// inserting new trigger to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new trigger to the Database has been failed"<<endl;
+		cout<<"ERROR: inserting new trigger to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -68,7 +68,7 @@ ElogDbTrigger* ElogDbTrigger::CreateTrigger(TString trigger_info)
 		// if there is no last id then exit with error
 		if (!stmt_last->NextResultRow())
 		{
-			cout<<"Error: no last ID in DB!"<<endl;
+			cout<<"ERROR: no last ID in DB!"<<endl;
 			delete stmt_last;
 			return 0x00;
 		}
@@ -80,7 +80,7 @@ ElogDbTrigger* ElogDbTrigger::CreateTrigger(TString trigger_info)
 	}
 	else
 	{
-		cout<<"Error: getting last ID has been failed!"<<endl;
+		cout<<"ERROR: getting last ID has been failed!"<<endl;
 		delete stmt_last;
 		return 0x00;
 	}
@@ -110,7 +110,7 @@ ElogDbTrigger* ElogDbTrigger::GetTrigger(int trigger_id)
 	// get trigger from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting trigger from the database has been failed"<<endl;
+		cout<<"ERROR: getting trigger from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -123,7 +123,7 @@ ElogDbTrigger* ElogDbTrigger::GetTrigger(int trigger_id)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: trigger wasn't found in the database"<<endl;
+		cout<<"ERROR: trigger was not found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -157,7 +157,7 @@ ElogDbTrigger* ElogDbTrigger::GetTrigger(TString trigger_info)
 	// get trigger from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting trigger from the database has been failed"<<endl;
+		cout<<"ERROR: getting trigger from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -170,7 +170,7 @@ ElogDbTrigger* ElogDbTrigger::GetTrigger(TString trigger_info)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: trigger wasn't found in the database"<<endl;
+		cout<<"ERROR: trigger was not found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -204,7 +204,7 @@ bool ElogDbTrigger::CheckTriggerExists(int trigger_id)
 	// get trigger from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting trigger from the database has been failed"<<endl;
+		cout<<"ERROR: getting trigger from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -245,7 +245,7 @@ bool ElogDbTrigger::CheckTriggerExists(TString trigger_info)
 	// get trigger from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting trigger from the database has been failed"<<endl;
+		cout<<"ERROR: getting trigger from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -288,7 +288,7 @@ int ElogDbTrigger::DeleteTrigger(int trigger_id)
 	// delete trigger from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting trigger from the dataBase has been failed"<<endl;
+		cout<<"ERROR: deleting trigger from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -319,7 +319,7 @@ int ElogDbTrigger::DeleteTrigger(TString trigger_info)
 	// delete trigger from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting trigger from the DataBase has been failed"<<endl;
+		cout<<"ERROR: deleting trigger from the DataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -347,7 +347,7 @@ int ElogDbTrigger::PrintAll()
 	// get all 'triggers' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all 'triggers' from the dataBase has been failed"<<endl;
+		cout<<"ERROR: getting all 'triggers' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -399,7 +399,7 @@ int ElogDbTrigger::SetTriggerInfo(TString trigger_info)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about trigger has been failed"<<endl;
+		cout<<"ERROR: updating information about trigger has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -419,7 +419,7 @@ void ElogDbTrigger::Print()
 
 	return;
 }
-/* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
+/* END OF GENERATED CLASS PART (SHOULD NOT BE CHANGED MANUALLY) */
 
 // -------------------------------------------------------------------
 ClassImp(ElogDbTrigger);

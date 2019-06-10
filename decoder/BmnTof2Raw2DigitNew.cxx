@@ -9,6 +9,7 @@
 #include "TROOT.h"
 #include "TFile.h"
 #include "TFitResult.h"
+#include "FairLogger.h"
 #include "BmnTof2Raw2DigitNew.h"
 
 // Digitization stage flags
@@ -85,7 +86,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(){
     n_rec=0;
 }
 
-BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, UInt_t SlewingRun, UInt_t SlewingChamber, TString geomFile) {
+BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, Int_t SlewingRun, UInt_t SlewingChamber, TString geomFile) {
 
     char *delim = 0, name[128], title[128];
     n_rec=0;
@@ -117,16 +118,24 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 
     fSlewCham = SlewingChamber;
     fSlewRun = fRUN;
-    if (SlewingRun != 0)
+    if (SlewingRun > 0)
     {
 	fSlewRun = SlewingRun;
 	sprintf((char *)&filname_base[strlen(filname_base) - 8], "%04d_raw", SlewingRun);
 	if (SlewingChamber == 0) printf("Loading TOF700 Map from file: %s , reference slewing run %d\n",mappingFile.Data(), SlewingRun);
 	else                     printf("Loading TOF700 Map from file: %s , reference slewing run %d, chamber %d\n",mappingFile.Data(), SlewingRun, SlewingChamber);
     }
+    else if (SlewingRun < 0)
+    {
+	fSlewRun = SlewingRun;
+	printf("Loading TOF700 Map from file: %s , reference slewing run %d\n",mappingFile.Data(), fRUN);
+//	printf("Loading TOF700 Map from file: %s\n",mappingFile.Data());
+//	printf("Loading TOF700 Map from file: %s, without slewing corrections!\n",mappingFile.Data());
+    }
     else
     {
-	printf("Loading TOF700 Map from file: %s\n",mappingFile.Data());
+	printf("Loading TOF700 Map from file: %s , reference slewing run %d\n",mappingFile.Data(), fRUN);
+//	printf("Loading TOF700 Map from file: %s\n",mappingFile.Data());
     }
 
     for (int i = 0; i < TOF2_MAX_CHAMBERS; i++)
@@ -1011,6 +1020,7 @@ void BmnTof2Raw2DigitNew::WriteSlewingResults()
 	fSlewing = 0;
     }
     if (!CHECK_SLEWING) return;
+    if (fSlewRun < 0) return;
     TFile *f = NULL;
     char filn[128];
     char rightname[128];
@@ -1272,8 +1282,16 @@ void BmnTof2Raw2DigitNew::readSlewing(Bool_t update)
   if (fSlewing->IsZombie())
   {
     fSlewing = 0;
-    printf("Error open slewing file %s, work without slewing corrections etc...!\n", filnr);
-    return;
+    if (fSlewRun < 0)
+    {
+	printf("Error open slewing file %s, work without slewing corrections!\n", filnr);
+	return;
+    }
+    else
+    {
+	LOG(FATAL)<<"Error open slewing file " << filnr << " - exit!" << FairLogger::endl;
+	return;
+    }
   }
 
   int planer = 0;

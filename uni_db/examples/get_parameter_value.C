@@ -1,11 +1,6 @@
-#include "../../gconfig/basiclibs.C"
-
 // macro for getting parameter value (if parameter exist - you could check existing parameters by 'UniDbParameter::PrintAll()' function)
 void get_parameter_value()
 {
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     // get 'on' parameter value (boolean value)
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("DCH1", "on", 1, 77); //(detector_name, parameter_name, period_number, run_number)
     if (pDetectorParameter == NULL)

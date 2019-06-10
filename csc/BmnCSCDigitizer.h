@@ -13,6 +13,7 @@
 #include "BmnCSCHit.h"
 #include "BmnCSCStationSet.h"
 #include "BmnCSCConfiguration.h"
+#include "BmnCSCTransform.h"
 
 using namespace std;
 
@@ -69,6 +70,8 @@ private:
     BmnCSCConfiguration::CSC_CONFIG fCurrentConfig;
 
     BmnCSCStationSet *StationSet; //Entire CSC detector
+
+    BmnCSCTransform *TransfSet; //Transformations for each module of the detector
 
     ClassDef(BmnCSCDigitizer,1);
 };

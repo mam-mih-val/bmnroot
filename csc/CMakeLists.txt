@@ -36,6 +36,7 @@ set(SRCS
  BmnCSCLayer.cxx
  BmnCSCDigitizer.cxx
  BmnCSCHitMaker.cxx
+ BmnCSCTransform.cxx
 
  #BmnCSCDigit.cxx
  #BmnCSCHit.cxx

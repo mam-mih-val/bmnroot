@@ -11,7 +11,7 @@
 #include <iostream>
 using namespace std;
 
-/* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+/* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
 ElogDbPerson::ElogDbPerson(UniDbConnection* connUniDb, int person_id, TString person_name, int is_active)
 {
@@ -49,7 +49,7 @@ ElogDbPerson* ElogDbPerson::CreatePerson(TString person_name, int is_active)
 	// inserting new person to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new person to the Database has been failed"<<endl;
+		cout<<"ERROR: inserting new person to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -70,7 +70,7 @@ ElogDbPerson* ElogDbPerson::CreatePerson(TString person_name, int is_active)
 		// if there is no last id then exit with error
 		if (!stmt_last->NextResultRow())
 		{
-			cout<<"Error: no last ID in DB!"<<endl;
+			cout<<"ERROR: no last ID in DB!"<<endl;
 			delete stmt_last;
 			return 0x00;
 		}
@@ -82,7 +82,7 @@ ElogDbPerson* ElogDbPerson::CreatePerson(TString person_name, int is_active)
 	}
 	else
 	{
-		cout<<"Error: getting last ID has been failed!"<<endl;
+		cout<<"ERROR: getting last ID has been failed!"<<endl;
 		delete stmt_last;
 		return 0x00;
 	}
@@ -114,7 +114,7 @@ ElogDbPerson* ElogDbPerson::GetPerson(int person_id)
 	// get person from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting person from the database has been failed"<<endl;
+		cout<<"ERROR: getting person from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -127,7 +127,7 @@ ElogDbPerson* ElogDbPerson::GetPerson(int person_id)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: person wasn't found in the database"<<endl;
+		cout<<"ERROR: person was not found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -163,7 +163,7 @@ ElogDbPerson* ElogDbPerson::GetPerson(TString person_name)
 	// get person from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting person from the database has been failed"<<endl;
+		cout<<"ERROR: getting person from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -176,7 +176,7 @@ ElogDbPerson* ElogDbPerson::GetPerson(TString person_name)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: person wasn't found in the database"<<endl;
+		cout<<"ERROR: person was not found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -212,7 +212,7 @@ bool ElogDbPerson::CheckPersonExists(int person_id)
 	// get person from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting person from the database has been failed"<<endl;
+		cout<<"ERROR: getting person from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -253,7 +253,7 @@ bool ElogDbPerson::CheckPersonExists(TString person_name)
 	// get person from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting person from the database has been failed"<<endl;
+		cout<<"ERROR: getting person from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -296,7 +296,7 @@ int ElogDbPerson::DeletePerson(int person_id)
 	// delete person from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting person from the dataBase has been failed"<<endl;
+		cout<<"ERROR: deleting person from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -327,7 +327,7 @@ int ElogDbPerson::DeletePerson(TString person_name)
 	// delete person from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting person from the DataBase has been failed"<<endl;
+		cout<<"ERROR: deleting person from the DataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -355,7 +355,7 @@ int ElogDbPerson::PrintAll()
 	// get all 'persons' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all 'persons' from the dataBase has been failed"<<endl;
+		cout<<"ERROR: getting all 'persons' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -409,7 +409,7 @@ int ElogDbPerson::SetPersonName(TString person_name)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about person has been failed"<<endl;
+		cout<<"ERROR: updating information about person has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -444,7 +444,7 @@ int ElogDbPerson::SetIsActive(int is_active)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about person has been failed"<<endl;
+		cout<<"ERROR: updating information about person has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -464,7 +464,7 @@ void ElogDbPerson::Print()
 
 	return;
 }
-/* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
+/* END OF GENERATED CLASS PART (SHOULD NOT BE CHANGED MANUALLY) */
 
 // -------------------------------------------------------------------
 ClassImp(ElogDbPerson);

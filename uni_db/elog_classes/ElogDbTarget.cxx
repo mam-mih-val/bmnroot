@@ -11,7 +11,7 @@
 #include <iostream>
 using namespace std;
 
-/* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+/* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
 ElogDbTarget::ElogDbTarget(UniDbConnection* connUniDb, TString target)
 {
@@ -46,7 +46,7 @@ ElogDbTarget* ElogDbTarget::CreateTarget(TString target)
 	// inserting new target to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new target to the Database has been failed"<<endl;
+		cout<<"ERROR: inserting new target to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -77,7 +77,7 @@ ElogDbTarget* ElogDbTarget::GetTarget(TString target)
 	// get target from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting target from the database has been failed"<<endl;
+		cout<<"ERROR: getting target from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -90,7 +90,7 @@ ElogDbTarget* ElogDbTarget::GetTarget(TString target)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: target wasn't found in the database"<<endl;
+		cout<<"ERROR: target was not found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -122,7 +122,7 @@ bool ElogDbTarget::CheckTargetExists(TString target)
 	// get target from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting target from the database has been failed"<<endl;
+		cout<<"ERROR: getting target from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -165,7 +165,7 @@ int ElogDbTarget::DeleteTarget(TString target)
 	// delete target from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting target from the dataBase has been failed"<<endl;
+		cout<<"ERROR: deleting target from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -193,7 +193,7 @@ int ElogDbTarget::PrintAll()
 	// get all 'targets' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all 'targets' from the dataBase has been failed"<<endl;
+		cout<<"ERROR: getting all 'targets' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -243,7 +243,7 @@ int ElogDbTarget::SetTarget(TString target)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about target has been failed"<<endl;
+		cout<<"ERROR: updating information about target has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -263,7 +263,7 @@ void ElogDbTarget::Print()
 
 	return;
 }
-/* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
+/* END OF GENERATED CLASS PART (SHOULD NOT BE CHANGED MANUALLY) */
 
 // -------------------------------------------------------------------
 ClassImp(ElogDbTarget);

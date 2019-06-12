@@ -78,7 +78,7 @@ protected:
     Double_t fAdcTimestamp;
     Double_t fTime;
 
-    ClassDef(BmnTrigWaveDigit, 1);
+    ClassDef(BmnTrigWaveDigit, 2);
 };
 
 #endif /* BMNTRIGWAVEDIGIT_H */

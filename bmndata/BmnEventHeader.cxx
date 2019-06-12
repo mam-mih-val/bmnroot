@@ -10,7 +10,7 @@ BmnEventHeader::BmnEventHeader() :
  fTripWord(false),
  fStartSignalTime(0),
  fStartSignalWidth(0),
- fTrigInfo(NULL)
+ fTrigInfo(new BmnTrigInfo())
 {}
 
 BmnEventHeader::BmnEventHeader(UInt_t run_id, UInt_t event_id, TTimeStamp event_time, BmnEventType event_type, Bool_t trip, BmnTrigInfo* trig_info) :

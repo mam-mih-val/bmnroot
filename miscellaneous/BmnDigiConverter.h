@@ -52,10 +52,10 @@ public:
 private:
 
     UInt_t fEventNo;
-
-    TClonesArray* fBmnHeaderIn;
-    TClonesArray* fBmnHeaderOut;
-
+    TClonesArray* fBmnHeader;
+    BmnEventHeader* fBmnHeaderIn;
+    BmnEventHeader* fBmnHeaderOut;
+    
     // Common detectors (BM@N + SRC) - GEM, SILICON, TOF400, DCH, MWPC, TOF700, ECAL, ZDC, CSC
     // input
     TString fGemBranchIn;
@@ -66,6 +66,7 @@ private:
     TString fTOF700BranchIn;
     TString fECALBranchIn;
     TString fZDCBranchIn;
+    TString fCSCBranchIn;
     // output
     TString fGemBranchOut;
     TString fSiBranchOut;
@@ -85,6 +86,7 @@ private:
     TClonesArray* fTOF700DigitsIn;
     TClonesArray* fECALDigitsIn;
     TClonesArray* fZDCDigitsIn;
+    TClonesArray* fCSCDigitsIn;
     TClonesArray* fGemDigitsOut;
     TClonesArray* fSiDigitsOut;
     TClonesArray* fTOF400DigitsOut;
@@ -95,27 +97,30 @@ private:
     TClonesArray* fZDCDigitsOut;
     TClonesArray* fCSCDigitsOut;
 
-    // Common triggers (BM@N + SRC) - BC1, BC2, VC
+    // Common triggers (BM@N + SRC) - BC1, BC2, BC3, VC
     // input
     TString fBC1BranchIn;
     TString fBC2BranchIn;
+    TString fBC3BranchIn;
     TString fVetoBranchIn;
     // output
     TString fBC1BranchOut;
     TString fBC2BranchOut;
+    TString fBC3BranchOut;
     TString fVetoBranchOut;
     // arrays for input and output
     TClonesArray* fBC1In;
     TClonesArray* fBC2In;
+    TClonesArray* fBC3In;
     TClonesArray* fVetoIn;
     TClonesArray* fBC1Out;
     TClonesArray* fBC2Out;
+    TClonesArray* fBC3Out;
     TClonesArray* fVetoOut;
 
-    // SRC triggers - BC3, BC4, X1L, X2L, Y1L, Y2L, X1R, X2R, Y1R, Y2R
+    // SRC triggers -BC4, X1L, X2L, Y1L, Y2L, X1R, X2R, Y1R, Y2R
     // SRC tqdc triggers - TQDC_BC1, TQDC_BC2, TQDC_BC3, TQDC_BC4, TQDC_VC
     // input
-    TString fBC3BranchIn;
     TString fBC4BranchIn;
     TString fX1LBranchIn;
     TString fX2LBranchIn;
@@ -132,7 +137,6 @@ private:
     TString fTQDC_VCBranchIn;
 
     // output
-    TString fBC3BranchOut;
     TString fBC4BranchOut;
     TString fX1LBranchOut;
     TString fX2LBranchOut;
@@ -149,7 +153,6 @@ private:
     TString fTQDC_VCBranchOut;
 
     // arrays for input and output
-    TClonesArray* fBC3In;
     TClonesArray* fBC4In;
     TClonesArray* fX1LIn;
     TClonesArray* fX2LIn;
@@ -164,7 +167,6 @@ private:
     TClonesArray* fTQDC_BC3In;
     TClonesArray* fTQDC_BC4In;
     TClonesArray* fTQDC_VCIn;
-    TClonesArray* fBC3Out;
     TClonesArray* fBC4Out;
     TClonesArray* fX1LOut;
     TClonesArray* fX2LOut;

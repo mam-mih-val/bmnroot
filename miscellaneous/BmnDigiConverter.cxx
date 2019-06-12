@@ -2,7 +2,10 @@
 
 BmnDigiConverter::BmnDigiConverter() :
 fEventNo(0),
+fBmnHeader(nullptr),   
+fBmnHeaderIn(nullptr), 
 fGemDigitsIn(nullptr),
+fCSCDigitsIn(nullptr),
 fSiDigitsIn(nullptr),
 fTOF400DigitsIn(nullptr),
 fDchDigitsIn(nullptr),
@@ -64,14 +67,15 @@ isCsc(kTRUE),
 isBMN(kFALSE),
 isSRC(kFALSE) {
     // Set names for all branches available
-    fGemBranchIn = "STRIPGEM";
-    fSiBranchIn = "MYSILICON";
+    fGemBranchIn = "GEM";
+    fSiBranchIn = "SILICON";
     fTOF400BranchIn = "TOF400";
     fDchBranchIn = "DCH";
     fMwpcBranchIn = "MWPC";
     fTOF700BranchIn = "TOF700";
     fECALBranchIn = "ECAL";
     fZDCBranchIn = "ZDC";
+    fCSCBranchIn = "CSC";
     fGemBranchOut = "GEM";
     fSiBranchOut = "SILICON";
     fTOF400BranchOut = "TOF400";
@@ -84,10 +88,10 @@ isSRC(kFALSE) {
 
     fBC1BranchIn = "BC1";
     fBC2BranchIn = "BC2";
-    fVetoBranchIn = "VC";
+    fVetoBranchIn = "VETO";
     fBC1BranchOut = "BC1";
     fBC2BranchOut = "BC2";
-    fVetoBranchOut = "VC";
+    fVetoBranchOut = "VETO";
 
     fBC3BranchIn = "BC3";
     fBC4BranchIn = "BC4";
@@ -123,7 +127,7 @@ isSRC(kFALSE) {
 
     fSiTrigBranchIn = "Si";
     fBDBranchIn = "BD";
-    fSiTrigBranchOut = "Si";
+    fSiTrigBranchOut = "SI";
     fBDBranchOut = "BD";
 }
 
@@ -131,17 +135,11 @@ InitStatus BmnDigiConverter::Init() {
     cout << " BmnDigiConverter::Init() " << endl;
 
     ioman = FairRootManager::Instance();
-    FairEventHeader* h = (FairEventHeader*) ioman->GetObject("EventHeader.");
-    h->SetNameTitle("FairEventHeader", "FairEventHeader");
-
-    fBmnHeaderIn = (TClonesArray*) ioman->GetObject("EventHeader");
-    if (!fBmnHeaderIn) {
-        cout << "Set correct input digi-tree (BMN_DIGIT at present) in $VMCWORKDIR/config/rootmanager.dat" << endl;
-        throw;
-    }
-
+    fBmnHeader = (TClonesArray*) ioman->GetObject("EventHeader");
+  
     // BM@N or SRC
-    UInt_t runId = ((BmnEventHeader*) fBmnHeaderIn->UncheckedAt(0))->GetRunId();
+    fBmnHeaderIn = (BmnEventHeader*) fBmnHeader->UncheckedAt(0);
+    UInt_t runId = fBmnHeaderIn->GetRunId();
     if (runId > 3589) // FIXME!
         isBMN = kTRUE;
     else
@@ -156,6 +154,7 @@ InitStatus BmnDigiConverter::Init() {
     fTOF700DigitsIn = (TClonesArray*) ioman->GetObject(fTOF700BranchIn.Data());
     fECALDigitsIn = (TClonesArray*) ioman->GetObject(fECALBranchIn.Data());
     fZDCDigitsIn = (TClonesArray*) ioman->GetObject(fZDCBranchIn.Data());
+    fCSCDigitsIn = (TClonesArray*) ioman->GetObject(fCSCBranchIn.Data());
 
     fBC1In = (TClonesArray*) ioman->GetObject(fBC1BranchIn.Data());
     fBC2In = (TClonesArray*) ioman->GetObject(fBC2BranchIn.Data());
@@ -179,10 +178,10 @@ InitStatus BmnDigiConverter::Init() {
 
     fSiTrigIn = (TClonesArray*) ioman->GetObject(fSiTrigBranchIn.Data());
     fBDIn = (TClonesArray*) ioman->GetObject(fBDBranchIn.Data());
-
+   
     // create output branches
-    fBmnHeaderOut = new TClonesArray("BmnEventHeader");
-    ioman->Register("EventHeader", "EventHeader_", fBmnHeaderOut, kTRUE);
+    fBmnHeaderOut = new BmnEventHeader();
+    ioman->Register("BmnEventHeader.", "EvttHeader", fBmnHeaderOut, kTRUE);
 
     Bool_t isWriteTrig = isTrig ? kTRUE : kFALSE;
 
@@ -198,6 +197,7 @@ InitStatus BmnDigiConverter::Init() {
 
     fBC1Out = new TClonesArray("BmnTrigDigit");
     fBC2Out = new TClonesArray("BmnTrigDigit");
+    fBC3Out = new TClonesArray("BmnTrigDigit");
     fVetoOut = new TClonesArray("BmnTrigDigit");
 
     ioman->Register(fGemBranchOut.Data(), "GEM_", fGemDigitsOut, isGem ? kTRUE : kFALSE);
@@ -212,6 +212,7 @@ InitStatus BmnDigiConverter::Init() {
 
     ioman->Register(fBC1BranchOut.Data(), "BC1_", fBC1Out, isWriteTrig);
     ioman->Register(fBC2BranchOut.Data(), "BC2_", fBC2Out, isWriteTrig);
+    ioman->Register(fBC3BranchOut.Data(), "BC3_", fBC3Out, isWriteTrig);
     ioman->Register(fVetoBranchOut.Data(), "VETO_", fVetoOut, isWriteTrig);
 
     if (isBMN) {
@@ -223,7 +224,6 @@ InitStatus BmnDigiConverter::Init() {
     }
 
     if (isSRC) {
-        fBC3Out = new TClonesArray("BmnTrigDigit");
         fBC4Out = new TClonesArray("BmnTrigDigit");
         fX1LOut = new TClonesArray("BmnTrigDigit");
         fX2LOut = new TClonesArray("BmnTrigDigit");
@@ -239,7 +239,6 @@ InitStatus BmnDigiConverter::Init() {
         fTQDC_BC4Out = new TClonesArray("BmnTrigWaveDigit");
         fTQDC_VCOut = new TClonesArray("BmnTrigWaveDigit");
 
-        ioman->Register(fBC3BranchOut.Data(), "BC3_", fBC3Out, isWriteTrig);
         ioman->Register(fBC4BranchOut.Data(), "BC4_", fBC4Out, isWriteTrig);
         ioman->Register(fX1LBranchOut.Data(), "X1L_", fX1LOut, isWriteTrig);
         ioman->Register(fX2LBranchOut.Data(), "X2L_", fX2LOut, isWriteTrig);
@@ -303,6 +302,7 @@ InitStatus BmnDigiConverter::Init() {
         // Common triggers
         fTriggers[fBC1In] = fBC1Out;
         fTriggers[fBC2In] = fBC2Out;
+        fTriggers[fBC3In] = fBC3Out;
         fTriggers[fVetoIn] = fVetoOut;
 
         if (isBMN) {
@@ -311,7 +311,6 @@ InitStatus BmnDigiConverter::Init() {
         }
 
         if (isSRC) {
-            fTriggers[fBC3In] = fBC3Out;
             fTriggers[fBC4In] = fBC4Out;
             fTriggers[fX1LIn] = fX1LOut;
             fTriggers[fX2LIn] = fX2LOut;
@@ -410,19 +409,10 @@ void BmnDigiConverter::Exec(Option_t* opt) {
     if (fEventNo % 1000 == 0)
         cout << "Ev# " << fEventNo << endl;
 
-    // Event Header
-    BmnEventHeader* evHeaderIn = (BmnEventHeader*) fBmnHeaderIn->UncheckedAt(0);
-    UInt_t runID = evHeaderIn->GetRunId();
-    UInt_t eventID = evHeaderIn->GetEventId();
-    TTimeStamp eventTime = evHeaderIn->GetEventTime();
-    BmnEventType eventType = evHeaderIn->GetEventType();
-    BmnTrigInfo* trigInfo = evHeaderIn->GetTrigInfo(); // cout << trigType << endl;
-    Bool_t tripWord = evHeaderIn->GetTripWord();
-
-    fBmnHeaderOut->Delete();
-
-    new((*fBmnHeaderOut)[fBmnHeaderOut->GetEntriesFast()]) BmnEventHeader(runID, eventID, eventTime, eventType, tripWord, trigInfo);
-
+    // Event Header   
+   fBmnHeaderOut->SetRunId(fBmnHeaderIn->GetRunId());
+   fBmnHeaderOut->SetEventId(fBmnHeaderIn->GetEventId());
+    
     fGemDigitsOut->Delete();
     fSiDigitsOut->Delete();
     fTOF400DigitsOut->Delete();
@@ -436,6 +426,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
     // Clear array with common triggers
     fBC1Out->Delete();
     fBC2Out->Delete();
+    fBC3Out->Delete();
     fVetoOut->Delete();
 
     // Clear BM@N triggers
@@ -449,14 +440,10 @@ void BmnDigiConverter::Exec(Option_t* opt) {
         it.second->Delete();
 
     // CSC
-    if (isCsc && fGemDigitsIn) // NOTE: Csc is written to GEM digi array by BmnGemStripDigit !!!
-        for (UInt_t iDigi = 0; iDigi < fGemDigitsIn->GetEntriesFast(); iDigi++) {
-            BmnGemStripDigit* cscDig = (BmnGemStripDigit*) fGemDigitsIn->UncheckedAt(iDigi);
-            Int_t stat = cscDig->GetStation();
-
-            if ((isBMN && stat != 8) || (isSRC && stat != 11))
-                continue;
-
+    if (isCsc && fCSCDigitsIn)
+        for (UInt_t iDigi = 0; iDigi < fCSCDigitsIn->GetEntriesFast(); iDigi++) {
+            BmnCSCDigit* cscDig = (BmnCSCDigit*) fCSCDigitsIn->UncheckedAt(iDigi);
+          
             Int_t strip = cscDig->GetStripNumber() - 1; // strips should be enumerated from zero
             Double_t signal = cscDig->GetStripSignal();
 
@@ -486,7 +473,7 @@ void BmnDigiConverter::Exec(Option_t* opt) {
                 throw;
             }
 
-            new((*fCSCDigitsOut)[fCSCDigitsOut->GetEntriesFast()]) BmnCSCDigit(0, cscDig->GetModule(), cscDig->GetStripLayer(), strip, signal);
+            new((*fCSCDigitsOut)[fCSCDigitsOut->GetEntriesFast()]) BmnCSCDigit(cscDig->GetStation(), cscDig->GetModule(), cscDig->GetStripLayer(), strip, signal);
         }
 
     // GEM

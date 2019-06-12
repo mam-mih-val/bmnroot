@@ -13,9 +13,8 @@ ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 ${CMAKE_SOURCE_DIR}/gem
 ${CMAKE_SOURCE_DIR}/csc
 ${CMAKE_SOURCE_DIR}/silicon
-${CMAKE_SOURCE_DIR}/miscellaneous/digiQA
-${CMAKE_SOURCE_DIR}/miscellaneous/digiMerge
 ${CMAKE_SOURCE_DIR}/miscellaneous
+${CMAKE_SOURCE_DIR}/miscellaneous/digiMerge
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -35,13 +34,8 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnDigiConverter.cxx
-Cbm2BmnHitConverter.cxx
-#digiQA/BmnGemDigiQa.cxx
-#digiQA/BmnSiliconDigiQa.cxx
-digiMerge/BmnDigiContainer.cxx
-digiMerge/BmnDigiMergeTask.cxx
-#BmnQaOffline.cxx
+BmnDigiContainer.cxx
+BmnDigiMergeTask.cxx
 )
 
 Set(HEADERS)

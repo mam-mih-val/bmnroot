@@ -4,31 +4,36 @@
 #include <TFile.h>
 #include <TKey.h>
 
+using namespace std;
+
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/bmnloadlibs.C"
 
-void SplitDetectors(TString, TString);  
+void SplitDetectors(TString, TString, TString);  
 void ComposeDigiFile(UInt_t);
         
 // Valid for RUN7
 // DIGITS_OTHER_DETECTORS - in1
 // DIGITS_ZDC_TRIGGERS - in2
-void digiMergerBMN_RUN7(UInt_t runN = 4910,
-        TString in1 = "/nica/bmndata5/bmn-group/lenivenko/run7/digit/bmn_run4910_sigemdigitthr2trig.root",
-        TString in2 = "test_4910.root") {
-//        TString in2 = "/nica/mpd22/lenivenko/run7/digit/bmn_run4910_digi_zdc.root") {
+// DIGITS_TOF700 - in3
+
+void digiMergerBMN_RUN7(UInt_t runN = 3692,
+        TString in1 = "/nica/bmn1/lenivenko/run7/digit/bmn_run3692_sigemdigitthr2trig.root",
+        TString in2 = "/nica/mpd22/lenivenko/run7/digit/bmn_run3692_digi_zdc.root", 
+        TString in3 = "/nica/mpd22/lenivenko/run7/digit/bmn_run3692_digi_tof700.root") {
 
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
     timer.Start();
 
-    SplitDetectors(in1, in2);
+    //SplitDetectors(in1, in2, in3);
     ComposeDigiFile(runN);
 }
 
-void SplitDetectors(TString in1, TString in2) {
-    BmnDigiMergeTask* mergeTask = new BmnDigiMergeTask(in1, in2);
+void SplitDetectors(TString in1, TString in2, TString in3) {
+    TString input[3] = {in1, in2, in3};
+    BmnDigiMergeTask* mergeTask = new BmnDigiMergeTask(input);
     mergeTask->SplitToDetectors();
     delete mergeTask;
 }
@@ -48,9 +53,9 @@ void ComposeDigiFile(UInt_t runN) {
     TString in10 = "MWPC_" + run + ".root"; // MWPC
     TString in11 = "DCH_" + run + ".root"; // DCH
     TString in12 = "TOF400_" + run + ".root"; // TOF400
-    TString in13 = "TOF700_" + run + ".root"; // TOF700
-    TString in14 = "ECAL_" + run + ".root"; // ECAL
-    TString in15 = "CSC_" + run + ".root"; // CSC
+    TString in13 = "ECAL_" + run + ".root"; // TOF700
+    TString in14 = "CSC_" + run + ".root"; // ECAL
+    TString in15 = "TOF700_" + run + ".root"; // CSC
     
     TString out = "bmn_run" + run + "_digi.root";
 

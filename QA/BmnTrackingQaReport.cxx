@@ -5,40 +5,38 @@
  * \date 2011-2014
  */
 #include "BmnTrackingQaReport.h"
-#include "report/BmnReportElement.h"
-#include "report/BmnHistManager.h"
-#include "report/BmnDrawHist.h"
-#include "BmnUtils.h"
-#include "TH1.h"
-#include "TF1.h"
-#include "map"
-#include "TCanvas.h"
-#include "TLine.h"
-#include "BmnTrackingQa.h"
-#include <vector>
+#include <fstream>
 #include <set>
+#include <vector>
+#include "BmnTrackingQa.h"
+#include "BmnUtils.h"
+#include "TCanvas.h"
+#include "TF1.h"
+#include "TGaxis.h"
+#include "TH1.h"
+#include "TLatex.h"
+#include "TLine.h"
+#include "TPaveStats.h"
 #include "TString.h"
 #include "TStyle.h"
-#include "TPaveStats.h"
-#include "TLatex.h"
-#include "TGaxis.h"
-#include <fstream>
+#include "map"
+#include "report/BmnDrawHist.h"
+#include "report/BmnHistManager.h"
+#include "report/BmnReportElement.h"
 
 const Float_t pMax = 5.0;
 
 using namespace std;
 using namespace lit;
 
-BmnTrackingQaReport::BmnTrackingQaReport() :
-BmnSimulationReport(),
-fGlobalTrackVariants() {
+BmnTrackingQaReport::BmnTrackingQaReport() : BmnSimulationReport(),
+                                             fGlobalTrackVariants() {
     SetReportName("tracking_qa");
 }
 
-BmnTrackingQaReport::BmnTrackingQaReport(TString name) :
-BmnSimulationReport(),
-fGlobalTrackVariants(),
-fPrefix(name + ": ") {
+BmnTrackingQaReport::BmnTrackingQaReport(TString name) : BmnSimulationReport(),
+                                                         fGlobalTrackVariants(),
+                                                         fPrefix(name + ": ") {
     SetReportName(name);
 }
 
@@ -56,14 +54,16 @@ void BmnTrackingQaReport::Create() {
 }
 
 string BmnTrackingQaReport::PrintEventInfo() {
-    Out() << "<h2>Event generator: QGSM</h2>" << endl; //FIXME!
-    Out() << "<h2>Energy: 4 GeV/n</h2>" << endl; //FIXME!
+    // Out() << "<h2>Event generator: QGSM</h2>" << endl;  //FIXME!
+    // Out() << "<h2>Energy: 4 GeV/n</h2>" << endl;        //FIXME!
     if (GetOnlyPrimes()) Out() << "<h2>Results only for primaries presented</h2>" << endl;
     Out() << "<h2>Number of events: " << HM()->H1("hen_EventNo_TrackingQa")->GetEntries() << "</h2>" << endl;
     Out() << "<h2>Mean multiplicity: " << HM()->H1("Multiplicity")->GetMean() << "</h2>" << endl;
     Out() << "<hr>" << endl;
-    Out() << "<h3><font color=\"red\">Reconstructable</font> MC-track:</h3>" << "Monte Carlo track with at least <font color=\"red\">4</font> Monte Carlo points in GEM" << endl;
-    Out() << "<h3><font color=\"red\">Good</font> track:</h3>" << "Reconstructed track with at least <font color=\"red\">4</font> hits in GEM and <font color=\"red\">60%</font> of them corresponded the same MC-track" << endl;
+    Out() << "<h3><font color=\"red\">Reconstructable</font> MC-track:</h3>"
+          << "Monte Carlo track with at least <font color=\"red\">4</font> Monte Carlo points in GEM" << endl;
+    Out() << "<h3><font color=\"red\">Good</font> track:</h3>"
+          << "Reconstructed track with at least <font color=\"red\">4</font> hits in GEM and <font color=\"red\">60%</font> of them corresponded the same MC-track" << endl;
     Out() << "<h3><font color=\"red\">Clone</font> tracks:</h3>";
     Out() << "Two or more reconstructed tracks with reference to the same MC-track." << endl;
     Out() << "The number of clones is subtracted from number of good tracks before efficiency calculation." << endl;
@@ -75,7 +75,9 @@ string BmnTrackingQaReport::PrintEventInfo() {
         Float_t workTime;
         while (!inTiming.eof()) {
             inTiming >> a1 >> a2 >> a3 >> workTime;
-            Out() << "<h3>" << "Average time of " << a1 << " " << a2 << ": " << workTime / HM()->H1("hen_EventNo_TrackingQa")->GetEntries() * 1000.0 << " ms/event " << "</h3>" << endl;
+            Out() << "<h3>"
+                  << "Average time of " << a1 << " " << a2 << ": " << workTime / HM()->H1("hen_EventNo_TrackingQa")->GetEntries() * 1000.0 << " ms/event "
+                  << "</h3>" << endl;
         }
     }
     inTiming.close();
@@ -171,13 +173,121 @@ void BmnTrackingQaReport::Draw() {
     DrawPar(fPrefix + "First parameters", namesParF);
     DrawPar(fPrefix + "Last parameters", namesParL);
 
-    DrawThreeH1(fPrefix + "Vertex", "VertX", "VertY", "VertZ");
     DrawThreeH2(fPrefix + "Vertex vs number of tracks in event", "VertX_vs_Ntracks", "VertY_vs_Ntracks", "VertZ_vs_Ntracks");
     DrawVertResGem(fPrefix + "Vertex resolution", "VertResX", "VertResY", "VertResZ");
+
+    TString multNamesIn[5] = {"Sim_vs_mult", "Rec_vs_mult", "Well_vs_mult", "Ghost_vs_mult", "Split_vs_mult"};
+    TString multNamesOut[3] = {"Eff_vs_mult", "Fake_vs_mult", "SplitEff_vs_mult"};
+    DrawEffGem(fPrefix + "", multNamesIn, multNamesOut);
 }
 
-void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames, TString* outNames) {
+// void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames, TString* outNames) {
+//     TString sim = inNames[0];
+//     TString rec = inNames[1];
+//     TString well = inNames[2];
+//     TString ghost = inNames[3];
+//     TString split = inNames[4];
 
+//     TString eff = outNames[0];
+//     TString fake = outNames[1];
+//     TString clon = outNames[2];
+
+//     Int_t nofEvents = HM()->H1("hen_EventNo_TrackingQa")->GetEntries();
+//     TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1200, 600);
+//     canvas->SetGrid();
+//     canvas->Divide(2, 1);
+//     canvas->cd(1);
+//     HM()->H1(sim)->Sumw2();
+//     //        HM()->H1(sim)->Scale(1. / nofEvents);
+//     HM()->H1(rec)->Sumw2();
+//     //        HM()->H1(rec)->Scale(1. / nofEvents);
+//     HM()->H1(well)->Sumw2();
+//     //        HM()->H1(well)->Scale(1. / nofEvents);
+//     HM()->H1(ghost)->Sumw2();
+//     //        HM()->H1(ghost)->Scale(1. / nofEvents);
+//     HM()->H1(split)->Sumw2();
+//     //        HM()->H1(split)->Scale(1. / nofEvents);
+
+//     HM()->H1(sim)->SetMinimum(0.0);
+//     HM()->H1(well)->SetMinimum(0.0);
+//     HM()->H1(ghost)->SetMinimum(0.0);
+//     HM()->H1(split)->SetMinimum(0.0);
+
+//     printf("NAME = %s\n", HM()->H1(sim)->GetName());
+//     printf("HM()->H1(sim) = %f\n", HM()->H1(sim)->GetEntries());
+//     printf("HM()->H1(well) = %f\n", HM()->H1(well)->GetEntries());
+//     printf("HM()->H1(ghost) = %f\n", HM()->H1(ghost)->GetEntries());
+//     printf("HM()->H1(split) = %f\n", HM()->H1(split)->GetEntries());
+
+//     vector<TH1*> histos1;
+//     histos1.push_back(HM()->H1(sim));
+//     histos1.push_back(HM()->H1(well));
+//     histos1.push_back(HM()->H1(ghost));
+//     histos1.push_back(HM()->H1(split));
+//     vector<string> labels1;
+//     labels1.push_back("MC tracks");
+//     labels1.push_back("Good tracks");
+//     labels1.push_back("Ghost tracks");
+//     labels1.push_back("Clones");
+//     DrawH1(histos1, labels1, kLinear, kLinear, true, 0.5, 0.8, 1.0, 0.99, "PE1", kFALSE);
+
+//     canvas->cd(2);
+//     vector<string> labels2;
+//     labels2.push_back("Efficiency");
+//     labels2.push_back("Ghosts");
+//     labels2.push_back("Clones");
+
+//     HM()->H1(eff)->Divide(HM()->H1(well), HM()->H1(sim), 1., 1., "B");
+//     HM()->H1(eff)->Scale(100.0);
+//     HM()->H1(fake)->Divide(HM()->H1(ghost), HM()->H1(rec), 1., 1., "B");
+//     HM()->H1(fake)->Scale(100.0);
+//     HM()->H1(clon)->Divide(HM()->H1(split), HM()->H1(rec), 1., 1., "B");
+//     HM()->H1(clon)->Scale(100.0);
+
+//     // Boundary checking.
+//     // These cases shouldn't happen, but they happen sometimes...
+//     for (Int_t i = 1; i < HM()->H1(eff)->GetNbinsX(); ++i) {
+//         if (HM()->H1(eff)->GetBinContent(i) > 100.0) {
+//             HM()->H1(eff)->SetBinContent(i, 100.0);
+//             HM()->H1(eff)->SetBinError(i, 0.0);
+//         }
+//         if (HM()->H1(fake)->GetBinContent(i) > 100.0) {
+//             HM()->H1(fake)->SetBinContent(i, 100.0);
+//             HM()->H1(fake)->SetBinError(i, 0.0);
+//         }
+//         if (HM()->H1(clon)->GetBinContent(i) > 100.0) {
+//             HM()->H1(clon)->SetBinContent(i, 100.0);
+//             HM()->H1(clon)->SetBinError(i, 0.0);
+//         }
+//         if (HM()->H1(eff)->GetBinContent(i) < 0.0) {
+//             HM()->H1(eff)->SetBinContent(i, 0.0);
+//             HM()->H1(eff)->SetBinError(i, 0.0);
+//         }
+//         if (HM()->H1(fake)->GetBinContent(i) < 0.0) {
+//             HM()->H1(fake)->SetBinContent(i, 0.0);
+//             HM()->H1(fake)->SetBinError(i, 0.0);
+//         }
+//         if (HM()->H1(clon)->GetBinContent(i) < 0.0) {
+//             HM()->H1(clon)->SetBinContent(i, 0.0);
+//             HM()->H1(clon)->SetBinError(i, 0.0);
+//         }
+//     }
+
+//     HM()->H1(eff)->SetMaximum(100.0);
+//     HM()->H1(fake)->SetMaximum(100.0);
+//     HM()->H1(clon)->SetMaximum(100.0);
+//     HM()->H1(eff)->SetMinimum(0.0);
+//     HM()->H1(fake)->SetMinimum(0.0);
+//     HM()->H1(clon)->SetMinimum(0.0);
+
+//     vector<TH1*> histos2;
+//     histos2.push_back(HM()->H1(eff));
+//     histos2.push_back(HM()->H1(fake));
+//     histos2.push_back(HM()->H1(clon));
+//     DrawH1(histos2, labels2, kLinear, kLinear, true, 0.5, 0.9, 1.0, 0.99, "PE1X0", kTRUE);
+// }
+
+void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames, TString* outNames) {
     TString sim = inNames[0];
     TString rec = inNames[1];
     TString well = inNames[2];
@@ -340,7 +450,7 @@ void BmnTrackingQaReport::DrawMomResGem(const TString canvasName, TString name2d
     //    DrawH1(projY, kLinear, kLinear, "", kBlue, 1, 0.75, 1.1, 20);
     HM()->H1(nameAver)->Fit("gaus", "RQWW", "", -10, 10);
     HM()->H1(nameAver)->SetMaximum(HM()->H1(nameAver)->GetMaximum() * 1.05);
-    TF1 *fit = HM()->H1(nameAver)->GetFunction("gaus");
+    TF1* fit = HM()->H1(nameAver)->GetFunction("gaus");
     if (!fit) return;
     TPaveStats* ps = new TPaveStats(3.0, HM()->H1(nameAver)->GetMaximum() / 1.5, 10.0, HM()->H1(nameAver)->GetMaximum());
     ps->SetFillColor(0);
@@ -360,7 +470,7 @@ void BmnTrackingQaReport::DrawResAndPull(const TString canvasName, TString* inNa
         if (i < 5 || i > 9) HM()->H1(inNames[i])->Fit("gaus", "RQWW", "", -20, 20);
         DrawH1(HM()->H1(inNames[i]), kLinear, kLog, "", kBlue, 1, 0.75, 1.1, 20);
         //if (i > 4) {
-        TF1 *fit = HM()->H1(inNames[i])->GetFunction("gaus");
+        TF1* fit = HM()->H1(inNames[i])->GetFunction("gaus");
         if (!fit) continue;
         Float_t xMax = HM()->H1(inNames[i])->GetXaxis()->GetXmax();
         Float_t yMax = HM()->H1(inNames[i])->GetMaximum();
@@ -406,7 +516,7 @@ void BmnTrackingQaReport::FillAndFitSlice(TString nameSigma, TString nameMean, T
         if (proj->GetEntries() < 5) continue;
         //        proj->Integral()
         proj->Fit("gaus", "SQRww", "", -5.0, 5.0);
-        TF1 *fit = proj->GetFunction("gaus");
+        TF1* fit = proj->GetFunction("gaus");
         if (!fit) continue;
         Float_t sigma = fit->GetParameter(2);
         Float_t sigmaError = fit->GetParError(2);
@@ -416,7 +526,6 @@ void BmnTrackingQaReport::FillAndFitSlice(TString nameSigma, TString nameMean, T
         HM()->H1(nameSigma)->SetBinError(bin, sigmaError);
         HM()->H1(nameMean)->SetBinContent(bin, mean);
         HM()->H1(nameMean)->SetBinError(bin, meanError);
-
     }
 }
 
@@ -441,7 +550,7 @@ void BmnTrackingQaReport::DrawVertResGem(const TString canvasName, TString name1
 
 void BmnTrackingQaReport::DrawMuSigma(TVirtualPad* pad, TH1* h) {
     pad->cd();
-    TF1 *fit = h->GetFunction("gaus");
+    TF1* fit = h->GetFunction("gaus");
     if (!fit) return;
     Float_t xMax = h->GetXaxis()->GetXmax();
     Float_t yMax = h->GetMaximum();

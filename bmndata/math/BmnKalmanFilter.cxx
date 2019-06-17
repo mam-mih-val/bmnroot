@@ -4,21 +4,17 @@
 using namespace std;
 using namespace TMath;
 
-BmnKalmanFilter::BmnKalmanFilter()
-{
+BmnKalmanFilter::BmnKalmanFilter() {
     fMaterial = new BmnMaterialEffects();
     fNavigator = new BmnGeoNavigator();
 }
 
-BmnKalmanFilter::~BmnKalmanFilter()
-{
+BmnKalmanFilter::~BmnKalmanFilter() {
     delete fMaterial;
     delete fNavigator;
 }
 
-BmnStatus BmnKalmanFilter::RK4TrackExtrapolate(FairTrackParam *par, Double_t zOut, vector<Double_t> *F)
-{
-
+BmnStatus BmnKalmanFilter::RK4TrackExtrapolate(FairTrackParam *par, Double_t zOut, vector<Double_t> *F) {
     Double_t zIn = par->GetZ();
     fField = FairRunAna::Instance()->GetField();
 
@@ -37,8 +33,7 @@ BmnStatus BmnKalmanFilter::RK4TrackExtrapolate(FairTrackParam *par, Double_t zOu
     vector<Double_t> cIn(15, 0.0);
     Double_t cIn_tmp[15];
     par->CovMatrix(cIn_tmp);
-    for (Int_t i = 0; i < 15; ++i)
-    {
+    for (Int_t i = 0; i < 15; ++i) {
         cIn[i] = cIn_tmp[i];
     }
     vector<Double_t> cOut(15, 0.0);
@@ -50,8 +45,7 @@ BmnStatus BmnKalmanFilter::RK4TrackExtrapolate(FairTrackParam *par, Double_t zOu
     par->SetTy(xOut[3]);
     par->SetQp(xOut[4]);
     Double_t cOut_tmp[15];
-    for (Int_t i = 0; i < 15; ++i)
-    {
+    for (Int_t i = 0; i < 15; ++i) {
         cOut_tmp[i] = cOut[i];
     }
     par->SetCovMatrix(cOut_tmp);
@@ -63,8 +57,7 @@ BmnStatus BmnKalmanFilter::RK4TrackExtrapolate(FairTrackParam *par, Double_t zOu
     return kBMNSUCCESS;
 }
 
-void BmnKalmanFilter::RK4Order(const vector<Double_t> &xIn, Double_t zIn, vector<Double_t> &xOut, Double_t zOut, vector<Double_t> &derivs)
-{
+void BmnKalmanFilter::RK4Order(const vector<Double_t> &xIn, Double_t zIn, vector<Double_t> &xOut, Double_t zOut, vector<Double_t> &derivs) {
     const Double_t fC = 0.000299792458;
 
     Double_t coef[4] = {0.0, 0.5, 0.5, 1.0};
@@ -80,12 +73,9 @@ void BmnKalmanFilter::RK4Order(const vector<Double_t> &xIn, Double_t zIn, vector
 
     Double_t x[4] = {xIn[0], xIn[1], xIn[2], xIn[3]};
 
-    for (UInt_t iStep = 0; iStep < 4; iStep++)
-    { // 1
-        if (iStep > 0)
-        {
-            for (UInt_t i = 0; i < 4; i++)
-            {
+    for (UInt_t iStep = 0; iStep < 4; iStep++) {  // 1
+        if (iStep > 0) {
+            for (UInt_t i = 0; i < 4; i++) {
                 x[i] = xIn[i] + coef[iStep] * k[i][iStep - 1];
             }
         }
@@ -116,10 +106,9 @@ void BmnKalmanFilter::RK4Order(const vector<Double_t> &xIn, Double_t zIn, vector
         k[2][iStep] = Ax[iStep] * hCqp;
         k[3][iStep] = Ay[iStep] * hCqp;
 
-    } // 1
+    }  // 1
 
-    for (UInt_t i = 0; i < 4; i++)
-    {
+    for (UInt_t i = 0; i < 4; i++) {
         xOut[i] = CalcOut(xIn[i], k[i]);
     }
     xOut[4] = xIn[4];
@@ -146,14 +135,10 @@ void BmnKalmanFilter::RK4Order(const vector<Double_t> &xIn, Double_t zIn, vector
     x[1] = x0[1] = 0.0;
     x[2] = x0[2] = 1.0;
     x[3] = x0[3] = 0.0;
-    for (UInt_t iStep = 0; iStep < 4; iStep++)
-    { // 2
-        if (iStep > 0)
-        {
-            for (UInt_t i = 0; i < 4; i++)
-            {
-                if (i != 2)
-                {
+    for (UInt_t iStep = 0; iStep < 4; iStep++) {  // 2
+        if (iStep > 0) {
+            for (UInt_t i = 0; i < 4; i++) {
+                if (i != 2) {
                     x[i] = x0[i] + coef[iStep] * k[i][iStep - 1];
                 }
             }
@@ -163,7 +148,7 @@ void BmnKalmanFilter::RK4Order(const vector<Double_t> &xIn, Double_t zIn, vector
         k[1][iStep] = x[3] * h;
         //k[2][iStep] = (dAx_dtx[iStep] * x[2] + dAx_dty[iStep] * x[3]) * hCqp;
         k[3][iStep] = (dAy_dtx[iStep] * x[2] + dAy_dty[iStep] * x[3]) * hCqp;
-    } // 2
+    }  // 2
 
     derivs[2] = CalcOut(x0[0], k[0]);
     derivs[7] = CalcOut(x0[1], k[1]);
@@ -177,14 +162,10 @@ void BmnKalmanFilter::RK4Order(const vector<Double_t> &xIn, Double_t zIn, vector
     x[1] = x0[1] = 0.0;
     x[2] = x0[2] = 0.0;
     x[3] = x0[3] = 1.0;
-    for (UInt_t iStep = 0; iStep < 4; iStep++)
-    { // 4
-        if (iStep > 0)
-        {
-            for (UInt_t i = 0; i < 4; i++)
-            {
-                if (i != 3)
-                {
+    for (UInt_t iStep = 0; iStep < 4; iStep++) {  // 4
+        if (iStep > 0) {
+            for (UInt_t i = 0; i < 4; i++) {
+                if (i != 3) {
                     x[i] = x0[i] + coef[iStep] * k[i][iStep - 1];
                 }
             }
@@ -194,7 +175,7 @@ void BmnKalmanFilter::RK4Order(const vector<Double_t> &xIn, Double_t zIn, vector
         k[1][iStep] = x[3] * h;
         k[2][iStep] = (dAx_dtx[iStep] * x[2] + dAx_dty[iStep] * x[3]) * hCqp;
         //k[3][iStep] = (dAy_dtx[iStep] * x[2] + dAy_dty[iStep] * x[3]) * hCqp;
-    } // 4
+    }  // 4
 
     derivs[3] = CalcOut(x0[0], k[0]);
     derivs[8] = CalcOut(x0[1], k[1]);
@@ -208,12 +189,9 @@ void BmnKalmanFilter::RK4Order(const vector<Double_t> &xIn, Double_t zIn, vector
     x[1] = x0[1] = 0.0;
     x[2] = x0[2] = 0.0;
     x[3] = x0[3] = 0.0;
-    for (UInt_t iStep = 0; iStep < 4; iStep++)
-    { // 4
-        if (iStep > 0)
-        {
-            for (UInt_t i = 0; i < 4; i++)
-            {
+    for (UInt_t iStep = 0; iStep < 4; iStep++) {  // 4
+        if (iStep > 0) {
+            for (UInt_t i = 0; i < 4; i++) {
                 x[i] = x0[i] + coef[iStep] * k[i][iStep - 1];
             }
         }
@@ -224,7 +202,7 @@ void BmnKalmanFilter::RK4Order(const vector<Double_t> &xIn, Double_t zIn, vector
                       hCqp * (dAx_dtx[iStep] * x[2] + dAx_dty[iStep] * x[3]);
         k[3][iStep] = Ay[iStep] * hC +
                       hCqp * (dAy_dtx[iStep] * x[2] + dAy_dty[iStep] * x[3]);
-    } // 4
+    }  // 4
 
     derivs[4] = CalcOut(x0[0], k[0]);
     derivs[9] = CalcOut(x0[1], k[1]);
@@ -236,8 +214,7 @@ void BmnKalmanFilter::RK4Order(const vector<Double_t> &xIn, Double_t zIn, vector
     // end calculation of the derivatives
 }
 
-void BmnKalmanFilter::TransportC(const vector<Double_t> &cIn, const vector<Double_t> &F, vector<Double_t> &cOut)
-{
+void BmnKalmanFilter::TransportC(const vector<Double_t> &cIn, const vector<Double_t> &F, vector<Double_t> &cOut) {
     // F*C*Ft
     Double_t A = cIn[2] + F[2] * cIn[9] + F[3] * cIn[10] + F[4] * cIn[11];
     Double_t B = cIn[3] + F[2] * cIn[10] + F[3] * cIn[12] + F[4] * cIn[13];
@@ -274,14 +251,11 @@ void BmnKalmanFilter::TransportC(const vector<Double_t> &cIn, const vector<Doubl
     cOut[14] = cIn[14];
 }
 
-Double_t BmnKalmanFilter::CalcOut(Double_t in, const Double_t k[4])
-{
+Double_t BmnKalmanFilter::CalcOut(Double_t in, const Double_t k[4]) {
     return in + k[0] / 6. + k[1] / 3. + k[2] / 3. + k[3] / 6.;
 }
 
-BmnStatus BmnKalmanFilter::Update(FairTrackParam *par, const BmnHit *hit, Double_t &chiSq)
-{
-
+BmnStatus BmnKalmanFilter::Update(FairTrackParam *par, const BmnHit *hit, Double_t &chiSq) {
     //   vector<Double_t> cIn = par->GetCovMatrix();
     Double_t cIn[15];
     par->CovMatrix(cIn);
@@ -376,23 +350,20 @@ BmnStatus BmnKalmanFilter::Update(FairTrackParam *par, const BmnHit *hit, Double
     return kBMNSUCCESS;
 }
 
-void BmnKalmanFilter::UpdateF(vector<Double_t> &F, const vector<Double_t> &newF)
-{
+void BmnKalmanFilter::UpdateF(vector<Double_t> &F, const vector<Double_t> &newF) {
     vector<Double_t> A(25);
     Mult25(newF, F, A);
     F.assign(A.begin(), A.end());
 }
 
-BmnStatus BmnKalmanFilter::FitSmooth(BmnGemTrack *track, TClonesArray *hits)
-{ //FIXME
+BmnStatus BmnKalmanFilter::FitSmooth(BmnGemTrack *track, TClonesArray *hits) {  //FIXME
 
     const Int_t n = track->GetNHits();
 
     vector<BmnFitNode> nodes = track->GetFitNodes();
     nodes[n - 1].SetSmoothedParam(nodes[n - 1].GetUpdatedParam());
 
-    for (int i = n - 1; i > 0; i--)
-    {
+    for (int i = n - 1; i > 0; i--) {
         //        nodes[i].GetSmoothedParam()->Print();
         //        if (Smooth(&nodes[i - 1], &nodes[i]) == kBMNERROR) return kBMNERROR;
         Smooth(&nodes[i - 1], &nodes[i]);
@@ -400,8 +371,7 @@ BmnStatus BmnKalmanFilter::FitSmooth(BmnGemTrack *track, TClonesArray *hits)
     }
 
     track->SetChi2(0.);
-    for (int i = 0; i < n; i++)
-    {
+    for (int i = 0; i < n; i++) {
         BmnGemStripHit *hit = (BmnGemStripHit *)hits->At(track->GetHitIndex(i));
         Double_t chi2Hit = lit::ChiSq(nodes[i].GetSmoothedParam(), hit);
         nodes[i].SetChiSqSmoothed(chi2Hit);
@@ -420,9 +390,7 @@ BmnStatus BmnKalmanFilter::FitSmooth(BmnGemTrack *track, TClonesArray *hits)
 // We are going in the upstream direction
 // this Node (k) , prevNode (k+1)
 
-BmnStatus BmnKalmanFilter::Smooth(BmnFitNode *thisNode, BmnFitNode *prevNode)
-{
-
+BmnStatus BmnKalmanFilter::Smooth(BmnFitNode *thisNode, BmnFitNode *prevNode) {
     if (thisNode->GetPredictedParam()->GetQp() == 0.0)
         return kBMNERROR;
     if (prevNode->GetPredictedParam()->GetQp() == 0.0)
@@ -431,8 +399,7 @@ BmnStatus BmnKalmanFilter::Smooth(BmnFitNode *thisNode, BmnFitNode *prevNode)
     Double_t cov1[15];
     prevNode->GetPredictedParam()->CovMatrix(cov1);
     vector<Double_t> invPrevPredC;
-    for (Int_t i = 0; i < 15; ++i)
-    {
+    for (Int_t i = 0; i < 15; ++i) {
         invPrevPredC.push_back(cov1[i]);
     }
     if (!InvSym15(invPrevPredC))
@@ -444,8 +411,7 @@ BmnStatus BmnKalmanFilter::Smooth(BmnFitNode *thisNode, BmnFitNode *prevNode)
     Double_t cov2[15];
     thisNode->GetUpdatedParam()->CovMatrix(cov2);
     vector<Double_t> thisUpdC;
-    for (Int_t i = 0; i < 15; ++i)
-    {
+    for (Int_t i = 0; i < 15; ++i) {
         thisUpdC.push_back(cov2[i]);
     }
 
@@ -484,16 +450,14 @@ BmnStatus BmnKalmanFilter::Smooth(BmnFitNode *thisNode, BmnFitNode *prevNode)
     Double_t cov3[15];
     prevNode->GetSmoothedParam()->CovMatrix(cov3);
     vector<Double_t> prevSmoothedC;
-    for (Int_t i = 0; i < 15; ++i)
-    {
+    for (Int_t i = 0; i < 15; ++i) {
         prevSmoothedC.push_back(cov3[i]);
     }
 
     Double_t cov4[15];
     prevNode->GetPredictedParam()->CovMatrix(cov4);
     vector<Double_t> prevPredC;
-    for (Int_t i = 0; i < 15; ++i)
-    {
+    for (Int_t i = 0; i < 15; ++i) {
         prevPredC.push_back(cov4[i]);
     }
 
@@ -514,8 +478,7 @@ BmnStatus BmnKalmanFilter::Smooth(BmnFitNode *thisNode, BmnFitNode *prevNode)
     par.SetQp(thisSmoothedX[4]);
 
     Double_t cov5[15];
-    for (Int_t i = 0; i < 15; ++i)
-    {
+    for (Int_t i = 0; i < 15; ++i) {
         cov5[i] = thisSmoothedC[i];
     }
     par.SetCovMatrix(cov5);
@@ -526,9 +489,7 @@ BmnStatus BmnKalmanFilter::Smooth(BmnFitNode *thisNode, BmnFitNode *prevNode)
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam *par, Double_t zOut, Int_t pdg, vector<Double_t> *F, Double_t *length, Bool_t isField)
-{
-
+BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam *par, Double_t zOut, Int_t pdg, vector<Double_t> *F, Double_t *length, Bool_t isField) {
     if (!IsParCorrect(par, isField))
         return kBMNERROR;
     Double_t zIn = par->GetZ();
@@ -538,11 +499,8 @@ BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam *par, Double_t zOut
     // TODO check upstream/downstream
     Bool_t downstream = dz < 0;
 
-    if (isField)
-    {
-
-        if (F != NULL)
-        {
+    if (isField) {
+        if (F != NULL) {
             F->assign(25, 0.);
             (*F)[0] = 1.;
             (*F)[6] = 1.;
@@ -553,12 +511,9 @@ BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam *par, Double_t zOut
 
         Int_t nofSteps = Int_t(abs(dz) / 10);
         Double_t stepSize;
-        if (nofSteps == 0)
-        {
+        if (nofSteps == 0) {
             stepSize = abs(dz);
-        }
-        else
-        {
+        } else {
             stepSize = 10.0;
         }
         Double_t z = zIn;
@@ -566,8 +521,7 @@ BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam *par, Double_t zOut
         //    cout << "Z = " << zIn << " Par q/p = " << par->GetQp() << endl;
         //if (length) *length = 0;
         // Loop over steps + additional step to propagate to virtual plane at zOut
-        for (Int_t iStep = 0; iStep < nofSteps + 1; iStep++)
-        { //FIXME possible problems with geometry...
+        for (Int_t iStep = 0; iStep < nofSteps + 1; iStep++) {  //FIXME possible problems with geometry...
             if (!IsParCorrect(par, isField))
                 return kBMNERROR;
             // Check if already at exit position
@@ -586,8 +540,7 @@ BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam *par, Double_t zOut
                 return kBMNERROR;
 
             // Loop over material layers
-            for (UInt_t iMat = 0; iMat < inter.size(); iMat++)
-            {
+            for (UInt_t iMat = 0; iMat < inter.size(); iMat++) {
                 BmnMaterialInfo mat = inter[iMat];
                 // Check if track parameters are correct
                 if (!IsParCorrect(par, isField))
@@ -597,8 +550,7 @@ BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam *par, Double_t zOut
                     Fnew = new vector<Double_t>(25, 0.);
 
                 // Extrapolate to the next boundary
-                if (RK4TrackExtrapolate(par, mat.GetZpos(), Fnew) == kBMNERROR)
-                { //Is it possible to return error from RK4 extrapolator???
+                if (RK4TrackExtrapolate(par, mat.GetZpos(), Fnew) == kBMNERROR) {  //Is it possible to return error from RK4 extrapolator???
                     return kBMNERROR;
                 }
 
@@ -613,9 +565,7 @@ BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam *par, Double_t zOut
                     *length += mat.GetLength();
             }
         }
-    }
-    else
-    { //line extrapolation
+    } else {  //line extrapolation
         Float_t x0 = par->GetX();
         Float_t y0 = par->GetY();
         Float_t z0 = par->GetZ();
@@ -628,12 +578,9 @@ BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam *par, Double_t zOut
         par->SetZ(zOut);
     }
 
-    if (!IsParCorrect(par, isField))
-    {
+    if (!IsParCorrect(par, isField)) {
         return kBMNERROR;
-    }
-    else
-    {
+    } else {
         return kBMNSUCCESS;
     }
 }

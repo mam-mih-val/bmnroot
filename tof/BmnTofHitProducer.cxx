@@ -444,7 +444,7 @@ int BmnTofHitProducer::readMCTimeFile(const char *MCTimeFile)
 		    cexp = order[ic-1];
 		    fMCTime[cexp] = time;
 		    fMCTimeSigma[cexp] = timesigma;
-		    printf("Chamber %.1f (MC %d, EXP %d) average time-of-flight %f with sigma %f\n",idchambers[cexp], ic, cexp, time, timesigma);
+		    if (fVerbose == 1) printf("Chamber %.1f (MC %d, EXP %d) average time-of-flight %f with sigma %f\n",idchambers[cexp], ic, cexp, time, timesigma);
 		}
 	}
 	fclose(ft);

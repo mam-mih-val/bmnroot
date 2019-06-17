@@ -37,9 +37,8 @@ public:
 
     // Constructors/Destructors ---------
 
-    BmnCellAutoTracking() {
-    };
-    BmnCellAutoTracking(Short_t period, UInt_t run, Bool_t field, Bool_t target, TString steer = "");
+    BmnCellAutoTracking() {};
+    BmnCellAutoTracking(Short_t period, UInt_t run, Bool_t field, Bool_t target, TString steerFile = "");
     virtual ~BmnCellAutoTracking();
 
     virtual InitStatus Init();
@@ -59,14 +58,10 @@ private:
     BmnStatus CellsCreation(vector<BmnCellDuet>* cells);
     BmnStatus StateCalculation(vector<BmnCellDuet>* cells);
     BmnStatus CellsConnection(vector<BmnCellDuet>* cells, vector<BmnTrack>& cands);
-    BmnStatus TrackUpdateByKalman(BmnTrack* cand);
     BmnStatus TrackUpdateByKalman(vector<BmnTrack>& cands);
     BmnStatus TrackUpdateByLine(vector <BmnTrack>& cands);
     BmnStatus SortTracks(vector<BmnTrack>& inTracks, vector<BmnTrack>& sortedTracks);
     BmnStatus TrackSelection(vector<BmnTrack>& cands);
-    
-//    BmnStatus CellToCandConnection(vector<BmnCellDuet> cells, vector<BmnTrack>& candsIn, vector<BmnTrack>& candsOut);
-    BmnStatus CellToCandConnection(vector<BmnCellDuet> cells, vector<BmnTrack>& candsIn);
 
     Double_t CalcQp(BmnTrack* track);
     BmnStatus CalculateTrackParams(BmnTrack* tr);
@@ -129,19 +124,14 @@ private:
 
     Double_t* fCellDiffSlopeYZCut;
     Double_t* fCellDiffSlopeXZCut;
-    
-    Double_t fCellDiffSlopeYZCutMin;
-    Double_t fCellDiffSlopeYZCutMax;
-    Double_t fCellDiffSlopeXZCutMin;
-    Double_t fCellDiffSlopeXZCutMax;
     Int_t fNHitsCut;
     
     TString fSteerFile; 
     BmnSteering* fSteering;
-    
-    Int_t fCellsCut;
-    
+
     Bool_t isSRC;
+    
+    Int_t kCellsCut;
     
     ClassDef(BmnCellAutoTracking, 1);
 };

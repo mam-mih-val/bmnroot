@@ -59,7 +59,7 @@ public:
 
     /** Setters **/
     void SetMinNofPointsSts(Int_t minNofPointsSts) {
-        fMinNofPointsGem = minNofPointsSts;
+        fMinNofPoints = minNofPointsSts;
     }
 
     void SetMinNofPointsTof(Int_t minNofPointsTof) {
@@ -159,7 +159,7 @@ private:
     BmnMCTrackCreator* fMCTrackCreator; // MC track creator tool
 
     // Acceptance defined by MC points
-    Int_t fMinNofPointsGem; // Minimal number of MCPoints in STS
+    Int_t fMinNofPoints; // Minimal number of MCPoints in STS
     Int_t fMinNofPointsTof; // Minimal number of MCPoints in TOF
     Int_t fMinNofPointsDch; // Minimal number of MCPoints in TOF
 

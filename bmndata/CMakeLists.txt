@@ -45,6 +45,8 @@ set(SRCS
  math/BmnMaterialEffects.cxx
  math/BmnMaterialInfo.h
 
+ common/BmnFunctionSet.cxx
+
  CbmDetectorList.cxx
  CbmMCBuffer.cxx
  CbmMCPointBuffer.h

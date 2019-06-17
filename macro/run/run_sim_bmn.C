@@ -1,16 +1,16 @@
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
-#include "macro/run/bmnloadlibs.C"
 #include "macro/run/geometry.C"
 //#include "macro/run/geometry_run/geometry_run7.C"
 
-#define BOX  // Choose generator: URQMD PART ION BOX HSD LAQGSM
+#define BOX     // Choose generator: URQMD QGSM HSD BOX PART ION
 #define GEANT3  // Choose: GEANT3 GEANT4
 
-// inFile - input file with generator data, default: dc4mb.r12 for LAQGSM event generator (deuteron - carbon target, mbias, 4 GeV)
+// inFile - input file with generator data, default: dC.04gev.mbias.100k.urqmd23.f14 for UrQMD event generator (deuteron - carbon target, mbias, 4 GeV)
 // outFile - output file with MC data, default: evetest.root
-// nStartEvent - for compatibility, any number
-// nEvents - number of events to transport, default: 1
-// flag_store_FairRadLenPoint
+// nStartEvent - start event in the input generator file to begin transporting, default: 0
+// nEvents - number of events to transport, default: 10
+// flag_store_FairRadLenPoint - whether the output file will contain values of radiation lengths
+// isFieldMap - whether the magnetic field map is used instead of the constant field value
 void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE)
 {
@@ -28,7 +28,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     fRun->SetName("TGeant4");
 #endif
 
-    geometry(fRun); // load bmn geometry
+    geometry(fRun); // load BM@N geometry
 
     // Use the experiment specific MC Event header instead of the default one
     // This one stores additional information about the reaction plane
@@ -46,8 +46,8 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     //primGen->SmearVertexXY(kTRUE);
 
 #ifdef URQMD
-    // ------- Urqmd  Generator
-    if (!CheckFileExist(inFile)) return;
+    // ------- UrQMD Generator
+    if (!BmnFunctionSet::CheckFileExist(inFile)) return;
 
     MpdUrqmdGenerator* urqmdGen = new MpdUrqmdGenerator(inFile);
     //urqmdGen->SetEventPlane(0., 360.);
@@ -68,7 +68,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
 #else
 #ifdef ION
     // ------- Ion Generator
-    FairIonGenerator *fIongen =
+    FairIonGenerator* fIongen =
             new FairIonGenerator(79, 197, 79, 1, 0., 0., 2., 0., -3.5, -21.7); // FairIonGenerator(6, 12, 6, 1, 0., 0., 4.4, 0., 0., -21.7);
     primGen->AddGenerator(fIongen);
 
@@ -86,7 +86,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
 #else
 #ifdef HSD
     // ------- HSD/PHSD Generator
-    if (!CheckFileExist(inFile)) return;
+    if (!BmnFunctionSet::CheckFileExist(inFile)) return;
 
     MpdPHSDGenerator* hsdGen = new MpdPHSDGenerator(inFile.Data());
     //hsdGen->SetPsiRP(0.); // set fixed Reaction Plane angle instead of random
@@ -98,9 +98,9 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
         nEvents = MpdGetNumEvents::GetNumPHSDEvents(inFile.Data()) - nStartEvent;
 
 #else
-#ifdef LAQGSM
-    // ------- LAQGSM Generator
-    if (!CheckFileExist(inFile)) return;
+#ifdef QGSM
+    // ------- LAQGSM/DCM-QGSM Generator
+    if (!BmnFunctionSet::CheckFileExist(inFile)) return;
 
     MpdLAQGSMGenerator* guGen = new MpdLAQGSMGenerator(inFile.Data(), kFALSE);
     guGen->SetXYZ(0., -3.5, -21.7); // IP = (0., 0., 0.)
@@ -142,16 +142,14 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     fRun->SetRadLenRegister(flag_store_FairRadLenPoint); // radiation length manager
 
     // SI-Digitizer
-    //BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2017;
-    BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2018;
+    BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2018; //BmnSiliconConfiguration::RunSpring2017;
     BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
     siliconDigit->SetCurrentConfig(si_config);
     siliconDigit->SetOnlyPrimary(kFALSE);
     fRun->AddTask(siliconDigit);
 
     // GEM-Digitizer
-    // BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017;
-    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2018;
+    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2018;  //BmnGemStripConfiguration::RunSpring2017;
     // BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARCO2_70_30_E_1000_2500_3750_6300_B_0_59T);
     BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
     gemDigit->SetCurrentConfig(gem_config);
@@ -201,9 +199,9 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
 
     //gGeoManager->CheckOverlaps(0.0001);
     //gGeoManager->PrintOverlaps();
-    //fRun->CreateGeometryFile("full_geometry.root");  // save the result setup geometry to the additional file
+    //fRun->CreateGeometryFile("full_geometry.root");  // save the full setup geometry to the additional file
 
-#ifdef LAQGSM
+#ifdef QGSM
     TString Pdg_table_name = TString::Format("%s%s%c%s", gSystem->BaseName(inFile.Data()), ".g", (fRun->GetName())[6], ".pdg_table.dat");
     (TDatabasePDG::Instance())->WritePDGTable(Pdg_table_name.Data());
 #endif

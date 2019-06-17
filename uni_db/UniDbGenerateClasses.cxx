@@ -281,11 +281,14 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
                     }
                     else
                     {
-                        sColumnInfo->strVariableType = "TTimeStamp";
-                        sColumnInfo->strStatementType = "Timestamp";
+                        //sColumnInfo->strVariableType = "TTimeStamp";
+                        //sColumnInfo->strStatementType = "Timestamp";
+                        sColumnInfo->strVariableType = "TDatime";
+                        sColumnInfo->strStatementType = "Datime";
                         sColumnInfo->strPrintfType = "s";
                         sColumnInfo->strVariableName = "ts_"+strColumnNameWO;
-                        sColumnInfo->isTimeStamp = true;
+                        //sColumnInfo->isTimeStamp = true;
+                        sColumnInfo->isDateTime = true;
                     }
 
                     break;
@@ -469,6 +472,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
 
             hFile<<"#include \"TString.h\"\n";
             hFile<<"#include \"TDatime.h\"\n";
+            hFile<<"#include \"TTimeStamp.h\"\n";
             hFile<<"\n#include \"UniDbConnection.h\"\n\n";
 
             hFile<<(TString::Format("class %s\n", strClassName.Data())).Data();

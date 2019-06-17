@@ -14,14 +14,11 @@
 //
 // alignCorrFileName - argument for choosing input file with the alignment corrections.
 //
-// If alignCorrFileName == 'default', (case insensitive) then corrections are
-// retrieved from UniDb according to the running period and run number.
+// If alignCorrFileName == 'default', (case insensitive) then corrections are retrieved from UniDb according to the running period and run number.
 // If alignCorrFileName == '', then no corrections are applied at all.
 // If alignCorrFileName == '<path>/<file-name>', then the corrections are taken from that file.
 
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
-#include "macro/run/bmnloadlibs.C"
-
 #define CellAuto // Choose Tracking: L1 or CellAuto
 
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
@@ -29,7 +26,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         Int_t nStartEvent = 0,
         Int_t nEvents = 1000)
 {
-    // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
+    // Verbosity level (0 = quiet (progress bar), 1 = event-level, 2 = track-level, 3 = full debug)
     Int_t iVerbose = 0;
     gDebug = 0; // Debug option
 
@@ -42,7 +39,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     fRunAna->SetEventHeader(new DstEventHeader());
 
     Bool_t isField = (inputFileName.Contains("noField")) ? kFALSE : kTRUE; // flag for tracking (to use mag.field or not)
-    Bool_t isTarget = kTRUE;//kFALSE; // flag for tracking (run with target or not)
+    Bool_t isTarget = kTRUE; //kFALSE; // flag for tracking (run with target or not)
     Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
 
     // Declare input source as simulation file or experimental data
@@ -59,18 +56,18 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         run_number = TString(inputFileName(indDash + 1, indColon - indDash - 1)).Atoi();
         inputFileName.Remove(0, indColon + 1);
 
-        if (!CheckFileExist(inputFileName)) {
+        if (!BmnFunctionSet::CheckFileExist(inputFileName)) {
             cout << "Error: digi file " + inputFileName + " does not exist!" << endl;
             exit(-1);
         }
-        // set source as raw data file
+        // set source as raw root data file (without additional directories)
         fFileSource = new BmnFileSource(inputFileName);
 
         // get geometry for run
         TString geoFileName = "current_geo_file.root";
         Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
         if (res_code != 0) {
-            cout << "Geometry file can't be read from the database" << endl;
+            cout << "Error: could not read geometry file from the database" << endl;
             exit(-2);
         }
 
@@ -87,7 +84,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         if (className.BeginsWith("TGeoManager"))
             key->ReadObj();
         else {
-            cout << "Error: TGeoManager isn't top element in geometry file " + geoFileName << endl;
+            cout << "Error: TGeoManager is not top element in geometry file " + geoFileName << endl;
             exit(-4);
         }
 
@@ -131,8 +128,10 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
         cout << "||\t\t\t\t\t\t\t||" << endl;
         cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
-    } else { // for simulated files
-        if (!CheckFileExist(inputFileName)) return;
+    }
+    // for simulated files
+    else {
+        if (!BmnFunctionSet::CheckFileExist(inputFileName)) return;
         fFileSource = new FairFileSource(inputFileName);
     }
     fRunAna->SetSource(fFileSource);
@@ -310,7 +309,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
     fRunAna->AddTask(res);
 
-    // Fill DST Event Header (if nEvents is present, print only progress bar)
+    // Fill DST Event Header (if iVerbose = 0, then print progress bar)
     BmnFillDstTask* dst_task = new BmnFillDstTask(nEvents);
     dst_task->SetRunNumber(run_period, run_number);
     fRunAna->AddTask(dst_task);

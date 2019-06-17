@@ -108,151 +108,23 @@ create table detector_parameter
  foreign key (end_period, end_run) references run_(period_number, run_number)
 );
 
-/*-- DETECTORS' MAPPING (special tables)
--- map_type: 1 - map_1dim, 2 - map_2dim
--- drop table mapping_
-create table mapping_
+-- NEW PARAMETER VALUES
+-- drop table detector_parameter
+create table detector_parameter_new
 (
- map_id serial primary key,
- map_type int not null
-);
-
--- drop table map_1dim
-create table map_1dim
-(
- map_id int not null references mapping_(map_id) on update cascade on delete cascade,
- map_row int not null,
- serial_hex varchar(20) not null,
- plane varchar(4) not null,
- map_group int not null,
- slot int not null,
- channel_low int not null,
- channel_high int not null,
- primary key (map_id, map_row),
- check (channel_high > channel_low)
-);
-
--- drop table map_2dim
-create table map_2dim
-(
- map_id int not null references mapping_(map_id) on update cascade on delete cascade,
- map_row int not null,
- serial_hex varchar(20) not null,
- channel int not null,
- f_channel int not null,
- channel_size int not null,
- x int not null,
- y int not null,
- is_connected boolean not null default true,
- primary key (map_id, map_row)
-);
-
--- drop table session_detector
-create table session_detector
-(
- session_number int not null references session_(session_number) on update cascade,
+ value_id serial primary key,
  detector_name varchar(10) not null references detector_(detector_name),
- map_id int null references mapping_(map_id) on update cascade on delete cascade,
- primary key (session_number, detector_name)
-);
---DETECTORS' MAPPING*/
-
-/*-- GEOMETRY PART (decomposition)
-create table geometry_media
-(
- media_name varchar(20) primary key,
- density float null,
- radiation_length float null,
- interaction_length float null,
- sensitivity_flag int null,
- field_flag int null,
- field_max float null,
- ang_deviation_max float null,
- step_max float null,
- energy_loss_max float,
- b_crossing_precision float null,
- step_min float null,
- media_desc varchar(50) null
+ parameter_id int not null references parameter_(parameter_id),
+ start_period int not null,
+ start_run int not null,
+ end_period int not null,
+ end_run int not null,
+ value_key int not null,
+ parameter_value bytea not null,
+ foreign key (start_period, start_run) references run_(period_number, run_number),
+ foreign key (end_period, end_run) references run_(period_number, run_number)
 );
 
-create table media_element
-(
- element_id serial primary key,
- media_name varchar(20) references geometry_media(media_name),
- atomic_weight float not null,
- atomic_number float not null,
- relative_weight float null
-);
-
--- dictionary of possible geometric shapes
-create table geometry_shape
-(
- shape_index int primary key,
- shape_name varchar(20) not null,
- shape_desc varchar(40) null
-);
-
--- filling all kinds of geometric shapes
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (0, "box", "box");
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (1, "pgon", "polygone");
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (2, "pcon", "polycone");
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (3, "tube", "cylindrical tube");
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (4, "tubeseg", "cylindrical tube segment");
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (5, "sphere", "sphere");
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (6, "torus", "torus");
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (7, "cone", "conical tube");
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (8, "coneseg", "conical tube segment");
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (9, "trd1", "TRD1 shape");
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (10, "trd2", "TRD2 shape");
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (11, "trap", "G3 TRAP");
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (12, "comb", "boolean composite shape");
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (13, "para", "parallelipeped");
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (14, "arb8", "arbitrary trapezoid with 8 vertices");
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (15, "eltu", "elliptical tube");
-insert into geometry_shape(shape_index, shape_name, shape_desc)
-values (16, "xtru", "extruded polygon");
-
-create table geometry_node
-(
- node_id serial primary key,
- node_name varchar(20) not null,
- parent_node_id int null references geometry_node(node_id),
- media_name varchar(20) references geometry_media(media_name),
- shape_index int references geometry_shape(shape_index)
-);
-
-create table component_geometry
-(
- geometry_id serial primary key,
- file_id int references raw_data(file_id),
- component_name varchar(10) references component(component_name),
- node_id int references geometry_volume(volume_id)
-);
-
-create table geometry_parameter
-(
- parameter_type int not null,
- node_id int not null references geometry_node(node_id),
- parameter_value float not null,
- primary key (parameter_type, node_id)
-);
--- GEOMETRY PART*/
 
 -- !!! GET INFORMATION ABOUT TABLES ---
 --

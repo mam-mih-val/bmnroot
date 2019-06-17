@@ -11,7 +11,7 @@
 #include <iostream>
 using namespace std;
 
-/* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+/* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
 ElogDbType::ElogDbType(UniDbConnection* connUniDb, int type_id, TString type_text)
 {
@@ -47,7 +47,7 @@ ElogDbType* ElogDbType::CreateType(TString type_text)
 	// inserting new type to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new type to the Database has been failed"<<endl;
+		cout<<"ERROR: inserting new type to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -68,7 +68,7 @@ ElogDbType* ElogDbType::CreateType(TString type_text)
 		// if there is no last id then exit with error
 		if (!stmt_last->NextResultRow())
 		{
-			cout<<"Error: no last ID in DB!"<<endl;
+			cout<<"ERROR: no last ID in DB!"<<endl;
 			delete stmt_last;
 			return 0x00;
 		}
@@ -80,7 +80,7 @@ ElogDbType* ElogDbType::CreateType(TString type_text)
 	}
 	else
 	{
-		cout<<"Error: getting last ID has been failed!"<<endl;
+		cout<<"ERROR: getting last ID has been failed!"<<endl;
 		delete stmt_last;
 		return 0x00;
 	}
@@ -110,7 +110,7 @@ ElogDbType* ElogDbType::GetType(int type_id)
 	// get type from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting type from the database has been failed"<<endl;
+		cout<<"ERROR: getting type from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -123,7 +123,7 @@ ElogDbType* ElogDbType::GetType(int type_id)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: type wasn't found in the database"<<endl;
+		cout<<"ERROR: type was not found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -157,7 +157,7 @@ ElogDbType* ElogDbType::GetType(TString type_text)
 	// get type from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting type from the database has been failed"<<endl;
+		cout<<"ERROR: getting type from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -170,7 +170,7 @@ ElogDbType* ElogDbType::GetType(TString type_text)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: type wasn't found in the database"<<endl;
+		cout<<"ERROR: type was not found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -204,7 +204,7 @@ bool ElogDbType::CheckTypeExists(int type_id)
 	// get type from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting type from the database has been failed"<<endl;
+		cout<<"ERROR: getting type from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -245,7 +245,7 @@ bool ElogDbType::CheckTypeExists(TString type_text)
 	// get type from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting type from the database has been failed"<<endl;
+		cout<<"ERROR: getting type from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -288,7 +288,7 @@ int ElogDbType::DeleteType(int type_id)
 	// delete type from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting type from the dataBase has been failed"<<endl;
+		cout<<"ERROR: deleting type from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -319,7 +319,7 @@ int ElogDbType::DeleteType(TString type_text)
 	// delete type from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting type from the DataBase has been failed"<<endl;
+		cout<<"ERROR: deleting type from the DataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -347,7 +347,7 @@ int ElogDbType::PrintAll()
 	// get all 'types' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all 'types' from the dataBase has been failed"<<endl;
+		cout<<"ERROR: getting all 'types' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -399,7 +399,7 @@ int ElogDbType::SetTypeText(TString type_text)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about type has been failed"<<endl;
+		cout<<"ERROR: updating information about type has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -419,7 +419,7 @@ void ElogDbType::Print()
 
 	return;
 }
-/* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
+/* END OF GENERATED CLASS PART (SHOULD NOT BE CHANGED MANUALLY) */
 
 // -------------------------------------------------------------------
 ClassImp(ElogDbType);

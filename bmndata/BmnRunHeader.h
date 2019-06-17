@@ -68,7 +68,7 @@ class BmnRunHeader : public TNamed {
     void SetTargetZ(Int_t target_z) { fTargetZ = target_z; }
     void SetMagneticField(Double_t mag_field) { fMagneticField = mag_field; }
 
-    ClassDef(BmnRunHeader, 1)
+    ClassDef(BmnRunHeader, 2)
 };
 
 #endif /* BMNRUNHEADER_H */

@@ -18,6 +18,7 @@ BmnCSCDigitizer::BmnCSCDigitizer()
 
     fCurrentConfig = BmnCSCConfiguration::None;
     StationSet = nullptr;
+    TransfSet = nullptr;
 }
 
 BmnCSCDigitizer::~BmnCSCDigitizer() {
@@ -61,6 +62,8 @@ InitStatus BmnCSCDigitizer::Init() {
 
         case BmnCSCConfiguration::RunSRCSpring2018:
             StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSRCSpring2018.xml");
+            TransfSet = new BmnCSCTransform();
+            TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCRunSRCSpring2018.xml");
             if (fVerbose) cout << "   Current CSC Configuration : RunSRCSpring2018" << "\n";
             break;
 
@@ -128,8 +131,23 @@ void BmnCSCDigitizer::ProcessMCPoints() {
         Int_t refId = ipoint;
 
         //Information from MC-points
-        //Int_t mc_station_num = ((CbmStsPoint*)CSCPoint)->GetStation();
-        //Int_t mc_module_num = ((CbmStsPoint*)CSCPoint)->GetModule();
+        Int_t mc_station_num = ((CbmStsPoint*)CSCPoint)->GetStation();
+        Int_t mc_module_num = ((CbmStsPoint*)CSCPoint)->GetModule();
+
+        //Transform mc-point coordinates to local coordinate system of CSC-planes
+        if(TransfSet && mc_station_num < StationSet->GetNStations()) {
+            if(mc_module_num < StationSet->GetStation(mc_station_num)->GetNModules()) {
+                Plane3D::Point loc_point = TransfSet->ApplyInverseTransforms(Plane3D::Point(-x, y, z), mc_station_num, mc_module_num);
+                Plane3D::Point loc_direct = TransfSet->ApplyInverseTransforms(Plane3D::Point(-(px+x), (py+y), (pz+z)), mc_station_num, mc_module_num);
+                x = -loc_point.X();
+                y = loc_point.Y();
+                z = loc_point.Z();
+
+                px = -(loc_direct.X() - loc_point.X());
+                py = loc_direct.Y() - loc_point.Y();
+                pz = loc_direct.Z() - loc_point.Z();
+            }
+        }
 
         StationSet->AddPointToDetector(x, y, z, px, py, pz, dEloss, refId);
     }
@@ -169,6 +187,11 @@ void BmnCSCDigitizer::Finish() {
     if (StationSet) {
         delete StationSet;
         StationSet = nullptr;
+    }
+
+    if(TransfSet) {
+        delete TransfSet;
+        TransfSet = nullptr;
     }
 
     cout << "Work time of the CSC digitizer: " << workTime << endl;

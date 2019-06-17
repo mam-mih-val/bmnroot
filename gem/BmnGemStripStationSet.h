@@ -43,6 +43,7 @@ public:
     Double_t GetZStationPosition(Int_t station_num);
     Double_t GetBeamHoleRadius(Int_t station_num);
     BmnGemStripStation* GetGemStation(Int_t station_num);
+    BmnGemStripStation* GetStation(Int_t station_num) {return GetGemStation(station_num);}
 
     //Reset all data in stations of the station set
     void Reset();

@@ -19,6 +19,8 @@
 #include "BmnTrigDigit.h"
 #include "BmnTrigWaveDigit.h"
 
+#include "BmnADCDigit.h"
+
 #define SRC_COLS  3
 
 using namespace std;

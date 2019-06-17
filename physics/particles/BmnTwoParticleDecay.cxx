@@ -252,7 +252,7 @@ void BmnTwoParticleDecay::Analysis() {
             FairTrackParam pion_Vp = KalmanTrackPropagation(track2, fPdgParticle2, Vpz);
 
             Double_t V0Z = FindV0ByVirtualPlanes(track1, track2, .5 * (Vpz + fDetector->GetGemStation(0)->GetZPosition()));
-            if (V0Z < fEventVertex->GetRoughZ() - 10. || V0Z > fDetector->GetGemStation(5)->GetZPosition()) // FIXME!
+            if (V0Z < Vpz - 10. || V0Z > fDetector->GetGemStation(5)->GetZPosition()) // FIXME!
                 continue;
 
             // Go to secondary vertex V0
@@ -292,7 +292,11 @@ void BmnTwoParticleDecay::Analysis() {
             partPair.SetDCA12(geomTopology.at(2));
 
             TVector3 V0(V0X, V0Y, V0Z);
-            TVector3 Vp(fEventVertex->GetX(), fEventVertex->GetY(), fEventVertex->GetZ());
+            TVector3 Vp;
+            Vp.SetX(isMC ? fMcVertex.X() : fIsUseRealVertex ? fEventVertex->GetX() : fEventVertex->GetRoughX());
+            Vp.SetY(isMC ? fMcVertex.Y() : fIsUseRealVertex ? fEventVertex->GetY() : fEventVertex->GetRoughY());
+            Vp.SetZ(isMC ? fMcVertex.Z() : fIsUseRealVertex ? fEventVertex->GetZ() : fEventVertex->GetRoughZ());
+            // TVector3 Vp(fEventVertex->GetX(), fEventVertex->GetY(), fEventVertex->GetZ());
             Double_t path = TVector3(V0 - Vp).Mag();
 
             partPair.SetPath(path);
@@ -465,9 +469,12 @@ void BmnTwoParticleDecay::Exec(Option_t * option) {
     fParticlePair_MC->Delete();
     fParticlePair_RECO->Delete();
     fParticlePair->Delete();
-
+    
     fEventCounter++;
 
+    if (fEventCounter % 500 == 0)
+        cout << "Event# " << fEventCounter << endl;
+    
     // In case of MC-data one has to extract coordinates of Vp known exactly ...
     if (fAnalType[0].Contains("eve") && !fAnalType[0].Contains("dst")) {
         for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {

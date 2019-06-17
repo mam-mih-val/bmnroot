@@ -1,4 +1,4 @@
--- createlang -d bmn_elog plpgsql;
+﻿-- createlang -d bmn_elog plpgsql;
 -- drop database bmn_elog;
 create database bmn_elog;
 
@@ -52,12 +52,13 @@ create table record_
  record_comment text
 );
 
+--drop table attachment_
 create table attachment_
 (
  record_id int not null references record_(record_id),
  attachment_number int not null,	-- start with 1
- file_name varchar(255) not null,
- file_data bytea not null,
+ file_path varchar(4096) unique not null,
+ --file_data bytea not null,
  primary key (record_id, attachment_number)
 );
 

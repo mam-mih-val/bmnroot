@@ -45,6 +45,7 @@ struct structColumnInfo
     bool isNullable;
     bool isBinary;
     bool isDateTime;
+    bool isTimeStamp;
 };
 
 // structure to join another table's fields (for read-only) - NOT IMPLEMENTED YET

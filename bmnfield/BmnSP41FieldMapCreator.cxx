@@ -208,7 +208,7 @@ void BmnSP41FieldMapCreator::CreateNewMap(TString fieldMapName) {
 
     Int_t Nx = fMap->GetNx();
     Int_t Ny = fMap->GetNy();
-    Int_t Nz = (Zmax - Zmin) / dz;
+    Int_t Nz = (Zmax - Zmin) / dz + 1;
 
     Print(fMap);
 

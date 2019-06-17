@@ -387,7 +387,6 @@ void BmnFieldMap::ReadAsciiFile(const char* fileName) {
 
     // Read grid parameters
     mapFile >> fXmin >> fXmax >> fNx;
-    cout << fXmin << " " << fXmax << " " << fNx;
     mapFile >> fYmin >> fYmax >> fNy;
     mapFile >> fZmin >> fZmax >> fNz;
     fXstep = (fXmax - fXmin) / Double_t(fNx - 1);

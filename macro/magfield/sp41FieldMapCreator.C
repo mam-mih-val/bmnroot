@@ -1,6 +1,8 @@
-void sp41FieldMapCreator(TString in = "field_sp41v2_ascii_noExtrap.dat", TString out = "testMap_200x200.dat") {
+#include <Rtypes.h>
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "macro/run/bmnloadlibs.C"
 
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+void sp41FieldMapCreator(TString in = "field_sp41v2_ascii_noExtrap.dat", TString out = "testMap_200x200.dat") {
     bmnloadlibs(); // load libraries    
 
     // field_sp41v2_ascii_noExtrap.dat - is an initial field map to be read and extrapolated ($VMCWORKDIR/input)

@@ -162,7 +162,7 @@ InitStatus BmnFillDstTask::Init()
     if (ioman->CheckMaxEventNo(fNEvents) < fNEvents)
         fNEvents = ioman->CheckMaxEventNo(fNEvents);
 
-    // FIll Run Header
+    // FIll Run Header from the Database
     if (fRunNumber > 0)
     {
         InitParticleInfo();
@@ -208,7 +208,7 @@ InitStatus BmnFillDstTask::Init()
             if (field_voltage != NULL)
                 fRunHead->SetMagneticField(*field_voltage);
         }// if (pCurrentRun != 0)
-    }// FIll Run Header
+    }// FIll Run Header from the Database
 
     return kSUCCESS;
 }
@@ -244,7 +244,7 @@ void BmnFillDstTask::Exec(Option_t* /*option*/)
     }
 
     // printing progress bar in terminal
-    if (fNEvents > 0)
+    if (fVerbose == 0)
     {
         UInt_t fRunId = (fDstHead) ? fDstHead->GetRunId() : 0;
 
@@ -278,7 +278,7 @@ void BmnFillDstTask::Finish()
     FairSink* fSink = ioman->GetSink();
     fSink->WriteObject(fRunHead,"BmnRunHeader", TObject::kSingleKey);
 
-    if (fNEvents > 0) printf("\n");
+    if (fVerbose == 0) printf("\n");
 }
 
 void BmnFillDstTask::InitParticleInfo()
@@ -307,6 +307,5 @@ void BmnFillDstTask::InitParticleInfo()
 
     return;
 }
-
 
 ClassImp(BmnFillDstTask)

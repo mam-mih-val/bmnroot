@@ -1,12 +1,8 @@
-#include "../../macro/run/bmnloadlibs.C"
-
 void test_db()
 {
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
-
-    bmnloadlibs(); // load main libraries
 
     UniDbConnection* connectionUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connectionUniDb == 0x00)
@@ -43,4 +39,17 @@ void test_db()
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
 
     cout<<"Test was successfull"<<endl;
+}
+
+void test_db(TString strDbHost, TString strDbName, TString strUserName, TString strDbPassword)
+{
+    TString conString = TString::Format("pgsql://%s/%s", strDbHost.Data(), strDbName.Data());
+    TSQLServer* pSQLServer =TSQLServer::Connect(conString, strUserName.Data(), strDbPassword.Data());
+    if (pSQLServer == 0x00)
+    {
+        cout<<"ERROR: database connection was not established (m.b. wrong login or password)"<<endl;
+        return 0x00;
+    }
+    cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;
+    cout<<"DB: "<<pSQLServer->GetDB()<<". Type: "<<pSQLServer->GetDBMS()<<"."<<endl;
 }

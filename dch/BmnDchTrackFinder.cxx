@@ -28,7 +28,6 @@
 static Double_t workTime = 0.0;
 //added
 TString                   fhTestFlnm;
-TList                     fhList;
 TH1D             *Ntrack1;
 TH1D             *Ntrack2;
 
@@ -272,6 +271,8 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
   delete [] rh_segment;
   delete [] rh_sigm_segment;
   delete [] singles;
+
+  fhList.Delete();
 }
 
 void BmnDchTrackFinder::Exec(Option_t* opt) {

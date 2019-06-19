@@ -145,6 +145,7 @@ private:
     Double_t* leng; //the distance from z = 0 to the global point of the matched segment
     Double_t* Chi2_match; //chi2 of the matched seg
 
+    TList fhList;
 
     void CreateDchTrack();
     void CreateDchTrack(Int_t, Double_t*, Double_t**, Int_t*, Double_t**, Double_t**);

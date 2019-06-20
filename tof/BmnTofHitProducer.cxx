@@ -32,6 +32,7 @@ BmnTofHitProducer::BmnTofHitProducer(const char *name, const char *geomFile, Boo
 	fDoINL(true), fDoSlewing(true), fSignalVelosity(0.050)
 {
 	pGeoUtils = new BmnTofGeoUtils(useMCdata);
+	pGeoUtils->SetVerbosity(fVerbose);
 	fgeomFile = geomFile;
 	fMCTimeFile = NULL;
 	
@@ -65,23 +66,23 @@ BmnTofHitProducer::~BmnTofHitProducer()
 //--------------------------------------------------------------------------------------------------------------------------------------
 InitStatus BmnTofHitProducer::Init() 
 {
-    	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "Begin [BmnTofHitProducer::Init].");
+    	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "Begin [BmnTof700HitProducer::Init].");
     	
-    	if(fOnlyPrimary) cout<<" Only primary particles are processed!!! \n"; // FIXME NOT used now ADDD
+    	if(fOnlyPrimary && fVerbose > 1) cout<<" Only primary particles are processed!!! \n"; // FIXME NOT used now ADDD
 
 	if(fUseMCData)
 	{
     		aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOFPoint");
                 if (!aMcPoints)
                 {
-                  cout<<"BmnTofHitProducer::Init(): branch TOFPoint not found! Task will be deactivated"<<endl;
+                  cout<<"BmnTof700HitProducer::Init(): branch TOFPoint not found! Task will be deactivated"<<endl;
                   SetActive(kFALSE);
                   return kERROR;
                 }
     		aMcTracks = (TClonesArray*) FairRootManager::Instance()->GetObject("MCTrack");
                 if (!aMcTracks)
                 {
-                  cout<<"BmnTofHitProducer::Init(): branch MCTrack not found! Task will be deactivated"<<endl;
+                  cout<<"BmnTof700HitProducer::Init(): branch MCTrack not found! Task will be deactivated"<<endl;
                   SetActive(kFALSE);
                   return kERROR;
                 }
@@ -91,13 +92,13 @@ InitStatus BmnTofHitProducer::Init()
     		aExpDigits = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF700");
                 if (!aExpDigits)
                 {
-                  cout<<"BmnTofHitProducer::Init(): branch TOF700 not found! Task will be deactivated"<<endl;
+                  cout<<"BmnTof700HitProducer::Init(): branch TOF700 not found! Task will be deactivated"<<endl;
                   SetActive(kFALSE);
                   return kERROR;
                 }
 		if (fMCTimeFile == NULL)
 		{
-                    cout<<"BmnTofHitProducer::Init(): MC times file not defined! Use default!"<<endl;
+                    cout<<"BmnTof700HitProducer::Init(): MC times file not defined! Use default!"<<endl;
 		    for (int c = 0; c < TOF2_MAX_CHAMBERS; c++) fMCTime[c] = 21.f;
 		}
 		else
@@ -115,7 +116,7 @@ InitStatus BmnTofHitProducer::Init()
 	pGeoUtils->ParseStripsGeometry(fgeomFile);
 	pGeoUtils->FindNeighborStrips(h1TestDistance, h2TestNeighborPair, fDoTest);
 	
-    	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "Initialization [BmnTofHitProducer::Init] finished succesfully.");
+    	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "Initialization [BmnTof700HitProducer::Init] finished succesfully.");
 
 	return kSUCCESS;
 }
@@ -164,7 +165,7 @@ void BmnTofHitProducer::Exec(Option_t* opt)
         return;
     
     clock_t tStart = clock();
-    if (fVerbose) cout << endl << "======================== TOF700 exec started ====================" << endl;
+    if (fVerbose > 1) cout << endl << "======================== TOF700 exec started ====================" << endl;
 	static const TVector3 XYZ_err(fErrX, fErrY, 0.); 
 
 	aTofHits->Clear();
@@ -285,15 +286,16 @@ void BmnTofHitProducer::Exec(Option_t* opt)
         clock_t tFinish = clock();
         workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 
-        if (fVerbose) cout<<"Tof700  single hits= "<<nSingleHits<<", double hits= "<<nDoubleHits<<", final hits= "<<nFinally<<endl;
-        if (fVerbose) cout << "======================== TOF700 exec finished ====================" << endl;
+        if (fVerbose > 1) cout<<"BmnTof700HitProducer: single hits= "<<nSingleHits<<", double hits= "<<nDoubleHits<<", final hits= "<<nFinally<<endl;
+        if (fVerbose == 1) cout << "BmnTof700HitProducer: " << nFinally << " hits" << endl;
+        if (fVerbose > 1) cout << "======================== TOF700 exec finished ===================" << endl;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 void BmnTofHitProducer::Finish() 
 {
   	if(fDoTest)
     	{
-      		FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTofHitProducer::Finish] Update  %s file. ", fTestFlnm.Data());
+      		FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTof700HitProducer::Finish] Update  %s file. ", fTestFlnm.Data());
 		TFile *ptr = gFile;
 		TFile file(fTestFlnm.Data(), "RECREATE");
 		fList.Write(); 
@@ -301,7 +303,7 @@ void BmnTofHitProducer::Finish()
 		gFile = ptr;
 	}
         
-    cout << "Work time of the TOF-700 hit finder: " << workTime << endl;
+    if (fVerbose > 0) cout << "Work time of the TOF-700 hit finder: " << workTime << endl;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // input- strip edge position & signal times; output- strip crosspoint; return false, if crosspoint outside strip 

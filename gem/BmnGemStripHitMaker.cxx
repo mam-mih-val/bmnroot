@@ -23,7 +23,6 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
     fOutputHitsBranchName = "BmnGemStripHit";
     fOutputHitMatchesBranchName = "BmnGemStripHitMatch";
 
-    fVerbose = 1;
     fField = NULL;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
@@ -45,7 +44,6 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
 
     fBmnEvQualityBranchName = "BmnEventQuality";
 
-    fVerbose = 1;
     fField = NULL;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
@@ -78,7 +76,7 @@ BmnGemStripHitMaker::~BmnGemStripHitMaker() {
 
 InitStatus BmnGemStripHitMaker::Init() {
 
-    if (fVerbose) cout << "\nBmnGemStripHitMaker::Init()\n ";
+    if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Init() started ===============" << endl;
 
     //if GEM configuration is not set -> return a fatal error
     if (!fCurrentConfig) Fatal("BmnGemStripHitMaker::Init()", " !!! Current GEM config is not set !!! ");
@@ -94,7 +92,7 @@ InitStatus BmnGemStripHitMaker::Init() {
 
     fBmnGemStripDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
 
-    if (fVerbose) {
+    if (fVerbose > 1) {
         if (fBmnGemStripDigitMatchesArray) cout << "  Strip matching information exists!\n";
         else cout << "  Strip matching information doesn`t exist!\n";
     }
@@ -116,30 +114,30 @@ InitStatus BmnGemStripHitMaker::Init() {
     switch (fCurrentConfig) {
         case BmnGemStripConfiguration::RunSummer2016:
             StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
-            if (fVerbose) cout << "   Current GEM Configuration : RunSummer2016" << "\n";
+            if (fVerbose > 1) cout << "   Current GEM Configuration : RunSummer2016" << "\n";
             break;
 
         case BmnGemStripConfiguration::RunWinter2016:
             StationSet = new BmnGemStripStationSet_RunWinter2016(fCurrentConfig);
-            if (fVerbose) cout << "   Current GEM Configuration : RunWinter2016" << "\n";
+            if (fVerbose > 1) cout << "   Current GEM Configuration : RunWinter2016" << "\n";
             break;
 
         case BmnGemStripConfiguration::RunSpring2017:
             StationSet = new BmnGemStripStationSet_RunSpring2017(fCurrentConfig);
             //StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2017.xml");
-            if (fVerbose) cout << "   Current GEM Configuration : RunSpring2017" << "\n";
+            if (fVerbose > 1) cout << "   Current GEM Configuration : RunSpring2017" << "\n";
             break;
 
         case BmnGemStripConfiguration::RunSpring2018:
             StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2018.xml");
-            if (fVerbose) cout << "   Current GEM Configuration : RunSpring2018" << "\n";
+            if (fVerbose > 1) cout << "   Current GEM Configuration : RunSpring2018" << "\n";
             break;
 
         case BmnGemStripConfiguration::RunSRCSpring2018 :
             StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSRCSpring2018.xml");
             TransfSet = new BmnGemStripTransform();
             TransfSet->LoadFromXMLFile(gPathGemConfig + "GemRunSRCSpring2018.xml");
-            if (fVerbose) cout << "   Current GEM Configuration : GemRunSRCSpring2018" << "\n";
+            if (fVerbose > 1) cout << "   Current GEM Configuration : GemRunSRCSpring2018" << "\n";
             break;
 
         default:
@@ -156,7 +154,7 @@ InitStatus BmnGemStripHitMaker::Init() {
     if (fIsExp)
         fAlign->Print();
 
-    if (fVerbose) cout << "BmnGemStripHitMaker::Init() finished\n";
+    if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Init() finished ==============" << endl;
 
     return kSUCCESS;
 }
@@ -177,16 +175,16 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
     if (!IsActive())
         return;
 
-    if (fVerbose) cout << "\nBmnGemStripHitMaker::Exec()\n ";
+    if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Exec() started ===============" << endl;
     clock_t tStart = clock();
 
     fField = FairRunAna::Instance()->GetField();
 
-    if (fVerbose) cout << " BmnGemStripHitMaker::Exec(), Number of BmnGemStripDigits = " << fBmnGemStripDigitsArray->GetEntriesFast() << "\n";
+    if (fVerbose > 1) cout << " BmnGemStripHitMaker::Exec(), Number of BmnGemStripDigits = " << fBmnGemStripDigitsArray->GetEntriesFast() << "\n";
 
     ProcessDigits();
 
-    if (fVerbose) cout << " BmnGemStripHitMaker::Exec() finished\n";
+    if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Exec() finished ==============" << endl;
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 }
@@ -219,15 +217,16 @@ void BmnGemStripHitMaker::ProcessDigits() {
         }
     }
 
-    if (fVerbose) cout << "   Processed strip digits  : " << AddedDigits << "\n";
-    if (fVerbose && fBmnGemStripDigitMatchesArray) cout << "   Added strip digit matches  : " << AddedStripDigitMatches << "\n";
+    if (fVerbose > 1) cout << "   Processed strip digits  : " << AddedDigits << "\n";
+    if (fVerbose > 1 && fBmnGemStripDigitMatchesArray) cout << "   Added strip digit matches  : " << AddedStripDigitMatches << "\n";
     //------------------------------------------------------------------------------
 
     //Processing digits
     StationSet->ProcessPointsInDetector();
 
     Int_t NCalculatedPoints = StationSet->CountNProcessedPointsInDetector();
-    if (fVerbose) cout << "   Calculated points  : " << NCalculatedPoints << "\n";
+    if (fVerbose > 1) cout << "   Calculated points  : " << NCalculatedPoints << "\n";
+    if (fVerbose == 1) cout << "BmnGemStripHitMaker: " << NCalculatedPoints << " hits\n";
 
     Int_t clear_matched_points_cnt = 0; // points with the only one match-index
 
@@ -327,7 +326,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
             }
         }
     }
-    if (fVerbose) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
+    if (fVerbose > 1) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();
 }

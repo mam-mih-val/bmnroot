@@ -172,6 +172,7 @@ private:
     BmnKalmanFilter* fKalman;
 
     BmnStatus MatchingTOF(BmnGlobalTrack *tr, Int_t num, Int_t trIndex);
+    BmnStatus MatchingTOF(Int_t num);
     BmnStatus MatchingDCH(BmnGlobalTrack *tr);
     BmnStatus MatchingMWPC(BmnGlobalTrack *tr);
     BmnStatus MatchingSil(BmnGlobalTrack *tr); // for SRC

@@ -31,7 +31,7 @@ BmnCellAutoTracking::BmnCellAutoTracking(Short_t period, UInt_t run, Bool_t fiel
                                                                                                                        isSRC(kFALSE),
                                                                                                                        fSteerFile(steerFile) {
     // Define a setup to be used by comparing with current runID
-    const Int_t runTransition = 3589;         // FIXME!
+    const Int_t runTransition = 3589;  // FIXME!
     if (run < runTransition) isSRC = kTRUE;
 
     TString setup = isSRC ? "SRC" : "BMN";
@@ -78,7 +78,7 @@ BmnCellAutoTracking::BmnCellAutoTracking(Short_t period, UInt_t run, Bool_t fiel
     fCellDiffSlopeYZCut = NULL;
     fNHitsCut = 0.0;
     kCellsCut = 10000000000;  //fSteering->GetNCellsCut();
-    fSteering->PrintParamTable();
+    if (fVerbose > 1) fSteering->PrintParamTable();
 }
 
 BmnCellAutoTracking::~BmnCellAutoTracking() {
@@ -99,7 +99,7 @@ BmnCellAutoTracking::~BmnCellAutoTracking() {
 }
 
 InitStatus BmnCellAutoTracking::Init() {
-    if (fVerbose) cout << "======================== GEM tracking init started ====================" << endl;
+    if (fVerbose > 1) cout << "======================== GEM tracking init started ====================" << endl;
 
     //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();
@@ -179,14 +179,14 @@ InitStatus BmnCellAutoTracking::Init() {
     fCellDiffSlopeXZCut = new Double_t[fNStations];
     fCellDiffSlopeYZCut = new Double_t[fNStations];
 
-    if (fVerbose) cout << "======================== GEM tracking init finished ===================" << endl;
+    if (fVerbose > 1) cout << "======================== GEM tracking init finished ===================" << endl;
 
     return kSUCCESS;
 }
 
 void BmnCellAutoTracking::Exec(Option_t* opt) {
-    if (fVerbose) cout << "\n======================== GEM tracking exec started ====================" << endl;
-    if (fVerbose) cout << "\n Event number: " << fEventNo << endl;
+    if (fVerbose > 1) cout << "\n======================== GEM tracking exec started ====================" << endl;
+    if (fVerbose > 1) cout << "\n Event number: " << fEventNo << endl;
 
     if (!IsActive()) return;
 
@@ -293,11 +293,11 @@ void BmnCellAutoTracking::Exec(Option_t* opt) {
     //DrawHits();
 
     clock_t tFinish = clock();
-    if (fVerbose) cout << "GEM_TRACKING: Number of found tracks: " << fGlobTracksArray->GetEntriesFast() << endl;
+    if (fVerbose > 0) cout << "BmnCellAutoTracking: " << fGlobTracksArray->GetEntriesFast() << " tracks" << endl;
 
     workTime += ((Double_t)(tFinish - tStart)) / CLOCKS_PER_SEC;
 
-    if (fVerbose) cout << "\n======================== GEM tracking exec finished ===================" << endl;
+    if (fVerbose > 1) cout << "\n======================== GEM tracking exec finished ===================" << endl;
 }
 
 BmnStatus BmnCellAutoTracking::SortTracks(vector<BmnTrack>& inTracks, vector<BmnTrack>& sortedTracks) {
@@ -327,12 +327,14 @@ void BmnCellAutoTracking::Finish() {
     ofstream outFile;
     outFile.open("QA/timing.txt");
     outFile << "Track Finder Time: " << workTime << endl;
-    cout << "Cells creation time: " << createTime << endl;
-    cout << "States calculation time: " << stateTime << endl;
-    cout << "Cells connection time: " << connectTime << endl;
-    cout << "Tracks sorting time: " << sortTime << endl;
-    cout << "Tracks selection time: " << selectTime << endl;
-    cout << "Full work time of the GEM tracking: " << workTime << endl;
+    if (fVerbose > 0) {
+        cout << "Cells creation time: " << createTime << endl;
+        cout << "States calculation time: " << stateTime << endl;
+        cout << "Cells connection time: " << connectTime << endl;
+        cout << "Tracks sorting time: " << sortTime << endl;
+        cout << "Tracks selection time: " << selectTime << endl;
+        cout << "Full work time of the GEM tracking: " << workTime << endl;
+    }
 }
 
 BmnStatus BmnCellAutoTracking::CellsCreation(vector<BmnCellDuet>* cells) {
@@ -767,7 +769,7 @@ Double_t BmnCellAutoTracking::CalcQp(BmnTrack* track) {
             TVector2 meanSig = CalcMeanSigma(QpSegmBefore);
             Double_t mean = meanSig.X();
             Double_t sigma = meanSig.Y();
-            if (std::isnan(sigma)) {
+            if (std::isnan(sigma) && fVerbose == 3) {
                 cout << "Bad refit convergence for track segment!!" << endl;
                 return kBMNERROR;
             }

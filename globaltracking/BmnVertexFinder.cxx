@@ -29,7 +29,7 @@ BmnVertexFinder::~BmnVertexFinder() {
 
 InitStatus BmnVertexFinder::Init() {
 
-    if (fVerbose) cout << "=========================== Vertex finder init started ====================" << endl;
+    if (fVerbose > 1) cout << "=========================== Vertex finder init started ====================" << endl;
 
     //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();
@@ -55,7 +55,7 @@ InitStatus BmnVertexFinder::Init() {
     }
     fDetector = new BmnGemStripStationSet(gPathGemConfig + confGem);
 
-    if (fVerbose) cout << "=========================== Vertex finder init finished ===================" << endl;
+    if (fVerbose > 1) cout << "=========================== Vertex finder init finished ===================" << endl;
 
     return kSUCCESS;
 }
@@ -65,20 +65,23 @@ void BmnVertexFinder::Exec(Option_t* opt) {
         return;
     clock_t tStart = clock();
 
-    if (fVerbose) cout << "======================== Vertex finder exec started  ======================" << endl;
-    if (fVerbose) cout << "Event number: " << fEventNo++ << endl;
+    if (fVerbose > 1) cout << "======================== Vertex finder exec started  ======================" << endl;
+    if (fVerbose > 1) cout << "Event number: " << fEventNo++ << endl;
 
     fVertexArray->Delete();
 
     fNTracks = fGlobalTracksArray->GetEntriesFast();
 
-    if (fNTracks > 1)
+    if (fNTracks > 1) {
         FindVertexByVirtualPlanes();
-        // To prevent crash caused by uninitialized TClonesArray due to unsufficient number of tracks when reading event by event in user's code
-    else
+        CbmVertex* vert = (CbmVertex*) fVertexArray->At(0);
+        if (fVerbose > 0) cout << "BmnVertexFinder: (" << vert->GetX() << ", " << vert->GetY() << ", " << vert->GetZ() << ")" << endl; 
+    } else  {
         new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", -1000., -1000., -1000., 0.0, 0, fNTracks, TMatrixFSym(3), fRoughVertex3D);
+        if (fVerbose > 0) cout << "BmnVertexFinder: Vertex NOT found" << endl; 
+    }
 
-    if (fVerbose) cout << "\n======================== Vertex finder exec finished ======================" << endl;
+    if (fVerbose > 1) cout << "\n======================== Vertex finder exec finished ======================" << endl;
 
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
@@ -210,74 +213,6 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
     return minZ;
 }
 
-//void BmnVertexFinder::FindVertexByVirtualPlanes() {
-//    Bool_t doIterations = kTRUE;
-//
-//    Double_t VX = -1000.;
-//    Double_t VY = -1000.;
-//    Double_t VZ = -1000.;
-//
-//    Int_t nBad = 0;
-//    Int_t itCounter = 0;
-//
-//    while (doIterations) {
-//        itCounter++;
-//        Float_t vz = FindVZByVirtualPlanes(fRoughVertex3D.Z(), 50.0);
-//        Double_t range = 50.0;
-//        if (Abs(vz - fRoughVertex3D.Z()) > range)
-//            break;
-//        Float_t vx = 0.0;
-//        Float_t vy = 0.0;
-//        UInt_t nOk = 0;
-//
-//        for (Int_t iTr = 0; iTr < fNTracks; ++iTr) {
-//            BmnGlobalTrack* track = (BmnGlobalTrack*) fGlobalTracksArray->UncheckedAt(iTr);
-//            if (track->GetFlag() == 666)
-//                continue;
-//            FairTrackParam par0 = *(track->GetParamFirst());
-//
-//            fKalman->TGeoTrackPropagate(&par0, vz, (par0.GetQp() > 0.) ? 2212 : 211, NULL, NULL, fIsField);
-//            vx += par0.GetX();
-//            vy += par0.GetY();
-//            track->SetB(Sqrt(par0.GetX() * par0.GetX() + par0.GetY() * par0.GetY())); //impact parameter
-//
-//            nOk++;
-//        }
-//
-//        vx /= nOk;
-//        vy /= nOk;
-//
-//        for (Int_t iTr = 0; iTr < fNTracks; ++iTr) {
-//            BmnGlobalTrack* track = (BmnGlobalTrack*) fGlobalTracksArray->At(iTr);
-//            if (track->GetFlag() == 666)
-//                continue;
-//            FairTrackParam par0 = *(track->GetParamFirst());
-//
-//            fKalman->TGeoTrackPropagate(&par0, vz, (par0.GetQp() > 0.) ? 2212 : 211, NULL, NULL, fIsField);
-//            cout << Abs(vx - par0.GetX()) << " " << Abs(vy - par0.GetY()) << endl;
-//            cout << vz << endl;
-//            if (Abs(vx - par0.GetX()) > 5. || Abs(vy - par0.GetY()) > 5.) {
-//                track->SetFlag(666);
-//                nBad++;
-//            } else
-//                doIterations = kFALSE;
-//        }
-//        //
-//
-//        // 2.5 - the best range from MC simulations and reconstruction (by A.Zelenoff)
-//        VX = (Abs(vz - fRoughVertex3D.Z()) < range) ? vx : -1000.;
-//        VY = (Abs(vz - fRoughVertex3D.Z()) < range) ? vy : -1000.;
-//        VZ = (Abs(vz - fRoughVertex3D.Z()) < range) ? vz : -1000.;
-//
-//        if (doIterations) {
-//            cout << itCounter << endl;
-//            cout << doIterations << " " << nBad << " " << fNTracks << endl;
-//        }
-//        delete fKalman;
-//    }
-//    new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", VX, VY, VZ, 0.0, 0, fNTracks, TMatrixFSym(3), fRoughVertex3D);
-//}
-
 void BmnVertexFinder::FindVertexByVirtualPlanes() {
 
     Float_t vz = FindVZByVirtualPlanes(fRoughVertex3D.Z(), 50.0);
@@ -301,7 +236,6 @@ void BmnVertexFinder::FindVertexByVirtualPlanes() {
     vy /= nOk;
 
     Double_t range = 50.0;
-    // 2.5 - the best range from MC simulations and reconstruction (by A.Zelenoff)
     Double_t VX = (Abs(vz - fRoughVertex3D.Z()) < range) ? vx : -1000.;
     Double_t VY = (Abs(vz - fRoughVertex3D.Z()) < range) ? vy : -1000.;
     Double_t VZ = (Abs(vz - fRoughVertex3D.Z()) < range) ? vz : -1000.;
@@ -315,6 +249,6 @@ void BmnVertexFinder::Finish() {
     ofstream outFile;
     outFile.open("QA/timing.txt", ofstream::app);
     outFile << "Vertex Finder Time: " << workTime;
-    cout << "Work time of the GEM vertex finder: " << workTime << endl;
+    if (fVerbose == 1) cout << "Work time of the GEM vertex finder: " << workTime << endl;
 }
 

@@ -90,6 +90,7 @@ typedef std::map<Int_t, LStrip> 	MStripType; // pair<detectorUID, Strip paramete
 typedef MStripType::const_iterator	MStripCIT;
 typedef MStripType::iterator		MStripIT;
 
+	Int_t fVerbose;
 	Bool_t useMCdata;
 	Int_t nchambers;
 	Double_t halfxwidth[TOF2_MAX_CHAMBERS];
@@ -111,6 +112,7 @@ public:
 	void			FindNeighborStrips(TH1D* h1 = nullptr, TH2D* h2 = nullptr, bool doTest = false);
 	void			ParseTGeoManager(bool useMCinput, TH2D* h1 = nullptr, bool forced = false);
 	void			ParseStripsGeometry(const char *geomFile);
+	void SetVerbosity(Int_t ver) {fVerbose = ver;}
 	const LStrip*		FindStrip(Int_t UID);
 	const LStrip*		FindStrip(Int_t UID, TVector3& p);
 	int			readGeom(const char *);

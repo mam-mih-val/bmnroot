@@ -63,7 +63,7 @@ BmnCSCHitMaker::~BmnCSCHitMaker() { }
 
 InitStatus BmnCSCHitMaker::Init() {
 
-    if (fVerbose) cout << "\nBmnCSCHitMaker::Init()\n ";
+    if (fVerbose > 1) cout << "=================== BmnCSCHitMaker::Init() started ====================" << endl;
 
     //if the configuration is not set -> return a fatal error
     if (!fCurrentConfig) Fatal("BmnCSCHitMaker::Init()", " !!! Current CSC config is not set !!! ");
@@ -79,7 +79,7 @@ InitStatus BmnCSCHitMaker::Init() {
 
     fBmnCSCDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
 
-    if (fVerbose) {
+    if (fVerbose > 1) {
         if (fBmnCSCDigitMatchesArray) cout << "  Strip matching information exists!\n";
         else cout << "  Strip matching information doesn`t exist!\n";
     }
@@ -101,14 +101,14 @@ InitStatus BmnCSCHitMaker::Init() {
     switch (fCurrentConfig) {
         case BmnCSCConfiguration::RunSpring2018:
             StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSpring2018.xml");
-            if (fVerbose) cout << "   Current CSC Configuration : RunSpring2018" << "\n";
+            if (fVerbose > 1) cout << "   Current CSC Configuration : RunSpring2018" << "\n";
             break;
 
         case BmnCSCConfiguration::RunSRCSpring2018:
             StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSRCSpring2018.xml");
             TransfSet = new BmnCSCTransform();
             TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCRunSRCSpring2018.xml");
-            if (fVerbose) cout << "   Current CSC Configuration : RunSRCSpring2018" << "\n";
+            if (fVerbose > 1) cout << "   Current CSC Configuration : RunSRCSpring2018" << "\n";
             break;
 
         default:
@@ -123,7 +123,7 @@ InitStatus BmnCSCHitMaker::Init() {
 
     fBmnEvQuality = (TClonesArray*) ioman->GetObject(fBmnEvQualityBranchName);
 
-    if (fVerbose) cout << "BmnCSCHitMaker::Init() finished\n";
+    if (fVerbose > 1) cout << "=================== BmnCSCHitMaker::Init() finished ===================" << endl;
 
     return kSUCCESS;
 }
@@ -144,16 +144,16 @@ void BmnCSCHitMaker::Exec(Option_t* opt) {
     if (!IsActive())
         return;
 
-    if (fVerbose) cout << "\nBmnCSCHitMaker::Exec()\n ";
+    if (fVerbose > 1) cout << "=================== BmnCSCHitMaker::Exec() started ====================" << endl;
     clock_t tStart = clock();
 
     fField = FairRunAna::Instance()->GetField();
 
-    if (fVerbose) cout << " BmnCSCHitMaker::Exec(), Number of BmnCSCDigits = " << fBmnCSCDigitsArray->GetEntriesFast() << "\n";
+    if (fVerbose > 1) cout << " BmnCSCHitMaker::Exec(), Number of BmnCSCDigits = " << fBmnCSCDigitsArray->GetEntriesFast() << "\n";
 
     ProcessDigits();
 
-    if (fVerbose) cout << " BmnCSCHitMaker::Exec() finished\n";
+    if (fVerbose > 1) cout << "=================== BmnCSCHitMaker::Exec() finished ===================" << endl;
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 }
@@ -186,15 +186,16 @@ void BmnCSCHitMaker::ProcessDigits() {
         }
     }
 
-    if (fVerbose) cout << "   Processed strip digits  : " << AddedDigits << "\n";
-    if (fVerbose && fBmnCSCDigitMatchesArray) cout << "   Added strip digit matches  : " << AddedStripDigitMatches << "\n";
+    if (fVerbose > 1) cout << "   Processed strip digits  : " << AddedDigits << "\n";
+    if (fVerbose > 1 && fBmnCSCDigitMatchesArray) cout << "   Added strip digit matches  : " << AddedStripDigitMatches << "\n";
     //------------------------------------------------------------------------------
 
     //Processing digits
     StationSet->ProcessPointsInDetector();
 
     Int_t NCalculatedPoints = StationSet->CountNProcessedPointsInDetector();
-    if (fVerbose) cout << "   Calculated points  : " << NCalculatedPoints << "\n";
+    if (fVerbose > 1) cout << "   Calculated points  : " << NCalculatedPoints << "\n";
+    if (fVerbose == 1) cout << "BmnCSCHitMaker: " << NCalculatedPoints << " hits\n";
 
     Int_t clear_matched_points_cnt = 0; // points with the only one match-index
 
@@ -276,7 +277,7 @@ void BmnCSCHitMaker::ProcessDigits() {
             }
         }
     }
-    if (fVerbose) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
+    if (fVerbose > 1) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();
 }

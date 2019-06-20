@@ -11,25 +11,24 @@
 #include <TKey.h>
 
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
-#include "macro/run/bmnloadlibs.C"
 
-void run_reco_src(TString inputFileName = "", TString srcdstFileName = "",
-        Int_t nStartEvent = 0, Int_t nEvents = 0) {
+// void run_reco_src(TString inputFileName = "run7-2320:/home/merz/batyuk/home/batyuk/bmnroot_run7/macro/miscellaneous/bmn_run2320_digi.root", TString srcdstFileName = "srcdst_2320.root",
+// void run_reco_src(TString inputFileName = "run7-2335:/home/merz/batyuk/home/batyuk/bmnroot_run7/macro/miscellaneous/bmn_run2335_digi.root", TString srcdstFileName = "srcdst_2335.root",
+void run_reco_src(TString inputFileName = "run7-2406:/home/merz/pavel/home/batyuk/bmnroot_run7/macro/miscellaneous/bmn_run2406_digi.root", TString srcdstFileName = "srcdst_2406.root",
+// void run_reco_src(TString inputFileName = "run7-3514:/home/merz/pavel/home/batyuk/bmnroot_run7/macro/miscellaneous/bmn_run3524_digi.root", TString srcdstFileName = "srcdst_3514.root",
+        Int_t nStartEvent = 0, Int_t nEvents = 1) {
     // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
-    Int_t iVerbose = 0;
+    Int_t iVerbose = 2;
 
     // ----    Debug option   --------------------------------------------------
     gDebug = 0;
 
-    // ----  Load libraries   --------------------------------------------------
-    bmnloadlibs(); // load BmnRoot libraries
-
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
     timer.Start();
-
     // -----   Reconstruction run   --------------------------------------------
     FairRunAna* fRunAna = new FairRunAna();
+    fRunAna->SetEventHeader(new DstEventHeader());
 
     Bool_t isField = (inputFileName.Contains("noField")) ? kFALSE : kTRUE; // flag for tracking (to use mag.field or not)
     Bool_t isTarget = kTRUE; //kFALSE; // flag for tracking (run with target or not)
@@ -49,18 +48,18 @@ void run_reco_src(TString inputFileName = "", TString srcdstFileName = "",
         run_number = TString(inputFileName(indDash + 1, indColon - indDash - 1)).Atoi();
         inputFileName.Remove(0, indColon + 1);
 
-        if (!CheckFileExist(inputFileName)) {
+        if (!BmnFunctionSet::CheckFileExist(inputFileName)) {
             cout << "Error: digi file " + inputFileName + " does not exist!" << endl;
             exit(-1);
         }
-        // set source as raw data file
+        // set source as raw root data file (without additional directories)
         fFileSource = new BmnFileSource(inputFileName);
 
         // get geometry for run
         TString geoFileName = "current_geo_file.root";
         Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
         if (res_code != 0) {
-            cout << "Geometry file can't be read from the database" << endl;
+            cout << "Error: could not read geometry file from the database" << endl;
             exit(-2);
         }
 
@@ -77,7 +76,7 @@ void run_reco_src(TString inputFileName = "", TString srcdstFileName = "",
         if (className.BeginsWith("TGeoManager"))
             key->ReadObj();
         else {
-            cout << "Error: TGeoManager isn't top element in geometry file " + geoFileName << endl;
+            cout << "Error: TGeoManager is not top element in geometry file " + geoFileName << endl;
             exit(-4);
         }
 
@@ -121,11 +120,11 @@ void run_reco_src(TString inputFileName = "", TString srcdstFileName = "",
         cout << "||\t\t\t\t\t\t\t||" << endl;
         cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
     } else { // for simulated files
-        if (!CheckFileExist(inputFileName)) return;
+        if (!BmnFunctionSet::CheckFileExist(inputFileName)) return;
         fFileSource = new FairFileSource(inputFileName);
     }
     fRunAna->SetSource(fFileSource);
-    fRunAna->SetOutputFile(srcdstFileName);
+    fRunAna->SetSink(new FairRootFileSink(srcdstFileName));
     fRunAna->SetGenerateRunInfo(false);
 
     // Digitisation files.
@@ -135,37 +134,28 @@ void run_reco_src(TString inputFileName = "", TString srcdstFileName = "",
     // concatenated input parameter file, which is then used during the
     // reconstruction.
     TList* parFileNameList = new TList();
-    TObjString stsDigiFile = "$VMCWORKDIR/parameters/sts_v15a_gem.digi.par";
-    parFileNameList->Add(&stsDigiFile);
 
     TObjString tofDigiFile = "$VMCWORKDIR/parameters/tof_standard.geom.par";
     parFileNameList->Add(&tofDigiFile);
 
-    if (iVerbose == 0) { // print only progress bar in terminal in quiet mode
-        BmnCounter* cntr = new BmnCounter(nEvents);
-        fRunAna->AddTask(cntr);
-    }
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
-    BmnSiliconConfiguration::SILICON_CONFIG si_config;
-    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
-    fRunAna->AddTask(siliconHM);
+    // BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
+    // fRunAna->AddTask(siliconHM);
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
-    BmnGemStripConfiguration::GEM_CONFIG gem_config;
-    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
-    gemHM->SetHitMatching(kTRUE);
-    fRunAna->AddTask(gemHM);
+    // BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
+    // gemHM->SetHitMatching(kTRUE);
+    // fRunAna->AddTask(gemHM);
 
     // ====================================================================== //
     // ===                          CSC hit finder                        === //
     // ====================================================================== //
-    BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
-    // cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSRCSpring2018); //set explicitly
-    cscHM->SetHitMatching(kTRUE);
-    fRunAna->AddTask(cscHM);
+    // BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
+    // cscHM->SetHitMatching(kTRUE);
+    // fRunAna->AddTask(cscHM);
 
     // ====================================================================== //
     // ===                         TOF400 hit finder                      === //
@@ -177,7 +167,7 @@ void run_reco_src(TString inputFileName = "", TString srcdstFileName = "",
     // ====================================================================== //
     // ===                         TOF700 hit finder                      === //
     // ====================================================================== //
-    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7.txt", isExp, 0, kTRUE);
+    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7.txt", !isExp, iVerbose, kTRUE);
     tof2HP->SetTimeResolution(0.115);
     tof2HP->SetMCTimeFile("TOF700_MC_time_run7.txt");
     fRunAna->AddTask(tof2HP);
@@ -206,8 +196,12 @@ void run_reco_src(TString inputFileName = "", TString srcdstFileName = "",
     // BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
     // fRunAna->AddTask(res);
     
-    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, kTRUE);
+    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, kFALSE);
     fRunAna->AddTask(glTF);
+    // Fill DST Event Header (if iVerbose = 0, then print progress bar)
+    BmnFillDstTask* dst_task = new BmnFillDstTask(nEvents);
+    dst_task->SetRunNumber(run_period, run_number);
+    fRunAna->AddTask(dst_task);
 
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();

@@ -17,8 +17,6 @@ BmnSiliconHitMaker::BmnSiliconHitMaker()
     fOutputHitsBranchName = "BmnSiliconHit";
     fOutputHitMatchesBranchName = "BmnSiliconHitMatch";
 
-    fVerbose = 1;
-
     fCurrentConfig = BmnSiliconConfiguration::None;
     StationSet = NULL;
 }
@@ -35,8 +33,6 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
     fOutputHitMatchesBranchName = "BmnSiliconHitMatch";
 
     fBmnEvQualityBranchName = "BmnEventQuality";
-
-    fVerbose = 1;
 
     fCurrentConfig = BmnSiliconConfiguration::None;
     StationSet = NULL;
@@ -61,7 +57,7 @@ BmnSiliconHitMaker::~BmnSiliconHitMaker() {
 
 InitStatus BmnSiliconHitMaker::Init() {
 
-    if (fVerbose) cout << "\nBmnSiliconHitMaker::Init()\n ";
+    if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Init() started ================" << endl;
 
     FairRootManager* ioman = FairRootManager::Instance();
 
@@ -73,7 +69,7 @@ InitStatus BmnSiliconHitMaker::Init() {
     }
     fBmnSiliconDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
 
-    if (fVerbose) {
+    if (fVerbose > 1) {
         if (fBmnSiliconDigitMatchesArray) cout << "  Strip matching information exists!\n";
         else cout << "  Strip matching information doesn`t exist!\n";
     }
@@ -96,17 +92,17 @@ InitStatus BmnSiliconHitMaker::Init() {
 
         case BmnSiliconConfiguration::RunSpring2017:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2017.xml");
-            if (fVerbose) cout << "   Current SILICON Configuration : RunSpring2017" << "\n";
+            if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSpring2017" << "\n";
             break;
 
         case BmnSiliconConfiguration::RunSpring2018:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2018.xml");
-            if (fVerbose) cout << "   Current SILICON Configuration : RunSpring2018" << "\n";
+            if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSpring2018" << "\n";
             break;
 
         case BmnSiliconConfiguration::RunSRCSpring2018:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSRCSpring2018.xml");
-            if (fVerbose) cout << "   Current SILICON Configuration : RunSRCSpring2018" << "\n";
+            if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSRCSpring2018" << "\n";
             break;
 
         default:
@@ -117,7 +113,7 @@ InitStatus BmnSiliconHitMaker::Init() {
 
     fBmnEvQuality = (TClonesArray*) ioman->GetObject(fBmnEvQualityBranchName);
 
-    if (fVerbose) cout << "BmnGemStripHitMaker::Init() finished\n";
+    if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Init() finished ===============" << endl;
 
     return kSUCCESS;
 }
@@ -139,11 +135,12 @@ void BmnSiliconHitMaker::Exec(Option_t* opt) {
         return;
     clock_t tStart = clock();
 
-    if (fVerbose) cout << " BmnSiliconHitMaker::Exec(), Number of BmnSiliconDigits = " << fBmnSiliconDigitsArray->GetEntriesFast() << "\n";
+    if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Exec() started ================" << endl;
+    if (fVerbose > 1) cout << " BmnGemStripHitMaker::Exec(), Number of BmnSiliconDigits = " << fBmnSiliconDigitsArray->GetEntriesFast() << "\n";
 
     ProcessDigits();
 
-    if (fVerbose) cout << " BmnSiliconHitMaker::Exec() finished\n";
+    if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Exec() finished ===============" << endl;
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 }
@@ -178,15 +175,16 @@ void BmnSiliconHitMaker::ProcessDigits() {
         }
     }
 
-    if (fVerbose) cout << "   Processed strip digits  : " << AddedDigits << "\n";
-    if (fVerbose && fBmnSiliconDigitMatchesArray) cout << "   Added strip digit matches  : " << AddedStripDigitMatches << "\n";
+    if (fVerbose > 1) cout << "   Processed strip digits  : " << AddedDigits << "\n";
+    if (fVerbose > 1 && fBmnSiliconDigitMatchesArray) cout << "   Added strip digit matches  : " << AddedStripDigitMatches << "\n";
     //------------------------------------------------------------------------------
 
     //Processing digits
     StationSet->ProcessPointsInDetector();
 
     Int_t NCalculatedPoints = StationSet->CountNProcessedPointsInDetector();
-    if (fVerbose) cout << "   Calculated points  : " << NCalculatedPoints << "\n";
+    if (fVerbose > 1) cout << "   Calculated points  : " << NCalculatedPoints << "\n";
+    if (fVerbose == 1) cout << "BmnSiliconHitMaker: " << NCalculatedPoints << " hits\n";
 
     Int_t clear_matched_points_cnt = 0; // points with the only one match-indexes
 
@@ -272,7 +270,7 @@ void BmnSiliconHitMaker::ProcessDigits() {
             }
         }
     }
-    if (fVerbose) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
+    if (fVerbose > 1) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();
 }

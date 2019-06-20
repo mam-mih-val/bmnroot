@@ -34,8 +34,6 @@ public:
 
     virtual ~BmnGemStripHitMaker();
 
-    //void SetVerbosity(Bool_t verbose);
-
     virtual InitStatus Init();
 
     virtual void Exec(Option_t* opt);

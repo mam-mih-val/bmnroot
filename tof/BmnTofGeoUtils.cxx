@@ -194,11 +194,11 @@ const LStrip* BmnTofGeoUtils::FindStrip(Int_t UID, TVector3& p)
 	    if ((p.X() < (xmins[i][j]-0.05)) || (p.X() >= (xmaxs[i][j]+0.05))) continue;
 	    if ((p.Y() < (ymins[i][j]-0.05)) || (p.Y() >= (ymaxs[i][j]+0.05))) continue;
 	    uid |= (j+1);
-	    if (0) if (UID != uid) printf("UID 0x%0x uid 0x%0x\n", UID, uid);
+	    if (0) if (UID != uid) if (fVerbose > 2) printf("UID 0x%0x uid 0x%0x\n", UID, uid);
 	    return FindStrip(uid);
 	}
-	printf("Point XYZ %f %f %f\n", p.X(), p.Y(), p.Z());
-	printf("Strip not found UID = %d (UID>>8-1) %d nstrips %d %f %f %f %f\n", UID, i, nstrips[i], xmins[i][0], xmaxs[i][0], ymins[i][0], ymaxs[i][0]);
+	if (fVerbose > 2) printf("Point XYZ %f %f %f\n", p.X(), p.Y(), p.Z());
+	if (fVerbose > 2) printf("Strip not found UID = %d (UID>>8-1) %d nstrips %d %f %f %f %f\n", UID, i, nstrips[i], xmins[i][0], xmaxs[i][0], ymins[i][0], ymaxs[i][0]);
 	return NULL;
 }
 //------------------------------------------------------------------------------------------------------------------------

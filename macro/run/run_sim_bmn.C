@@ -1,19 +1,18 @@
-R__ADD_INCLUDE_PATH($VMCWORKDIR)
-#include "macro/run/geometry.C"
-//#include "macro/run/geometry_run/geometry_run7.C"
+#include <Rtypes.h>
 
-#define BOX     // Choose generator: URQMD QGSM HSD BOX PART ION
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "macro/run/geometry_run/geometry_run7.C"
+
+#define ION     // Choose generator: URQMD QGSM HSD BOX PART ION
 #define GEANT3  // Choose: GEANT3 GEANT4
 
-// inFile - input file with generator data, default: dC.04gev.mbias.100k.urqmd23.f14 for UrQMD event generator (deuteron - carbon target, mbias, 4 GeV)
+// inFile - input file with generator data, if needed
 // outFile - output file with MC data, default: evetest.root
 // nStartEvent - start event in the input generator file to begin transporting, default: 0
-// nEvents - number of events to transport, default: 10
-// flag_store_FairRadLenPoint - whether the output file will contain values of radiation lengths
-// isFieldMap - whether the magnetic field map is used instead of the constant field value
-void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10,
-        Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE)
-{
+// nEvents - number of events to transport
+// useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
+
+void run_sim_bmn(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10, Bool_t useRealEffects = kFALSE) {
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
@@ -68,8 +67,8 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
 #else
 #ifdef ION
     // ------- Ion Generator
-    FairIonGenerator* fIongen =
-            new FairIonGenerator(79, 197, 79, 1, 0., 0., 2., 0., -3.5, -21.7); // FairIonGenerator(6, 12, 6, 1, 0., 0., 4.4, 0., 0., -21.7);
+    // Start beam from a far point to check mom. reconstruction procedure
+    FairIonGenerator* fIongen = new FairIonGenerator(6, 12, 6, 1, 0., 0., 4.4, 0., 0., -647.);
     primGen->AddGenerator(fIongen);
 
 #else
@@ -77,7 +76,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     gRandom->SetSeed(0);
     // ------- Box Generator
     FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 10); // 13 = muon; 1 = multipl.
-    boxGen->SetPRange(1., 1.);  // GeV/c, setPRange vs setPtRange
+    boxGen->SetPRange(1., 1.); // GeV/c, setPRange vs setPtRange
     boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
     boxGen->SetThetaRange(10, 15); // Polar angle in lab system range [degree]
     boxGen->SetXYZ(0.5, -4.6, -2.3); // Approximate position of target (RunSpring2018)
@@ -103,7 +102,6 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     if (!BmnFunctionSet::CheckFileExist(inFile)) return;
 
     MpdLAQGSMGenerator* guGen = new MpdLAQGSMGenerator(inFile.Data(), kFALSE);
-    guGen->SetXYZ(0., -3.5, -21.7); // IP = (0., 0., 0.)
     primGen->AddGenerator(guGen);
     if (nStartEvent > 0) guGen->SkipEvents(nStartEvent);
 
@@ -122,35 +120,25 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     fRun->SetIsMT(false);
 
     // -----   Create magnetic field   ----------------------------------------
-    BmnFieldMap* magField = NULL;
-    if (isFieldMap) {
-        Double_t fieldScale = 1.33;
-        // magField = new BmnNewFieldMap("field_sp41v2_ascii_noExtrap.dat");
-        magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
-        // Double_t fieldZ = 124.5; // field centre z position
-        // magField->SetPosition(0., 0., fieldZ);
-        magField->SetScale(fieldScale);
-        fRun->SetField(magField);
-    } else {
-        BmnFieldConst* magField = new BmnFieldConst();
-        magField->SetFieldRegion(-300., 300., -300., 300., -300., 300);
-        magField->SetField(0., -9. * 0.44, 0.);
-        fRun->SetField(magField);
-    }
+    BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
+    Double_t fieldScale = 1200. / 900.;
+    magField->SetScale(fieldScale);
+    fRun->SetField(magField);
 
     fRun->SetStoreTraj(kTRUE);
-    fRun->SetRadLenRegister(flag_store_FairRadLenPoint); // radiation length manager
+    fRun->SetRadLenRegister(kFALSE); // radiation length manager
 
     // SI-Digitizer
-    BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2018; //BmnSiliconConfiguration::RunSpring2017;
+    BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2018;
     BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
     siliconDigit->SetCurrentConfig(si_config);
     siliconDigit->SetOnlyPrimary(kFALSE);
     fRun->AddTask(siliconDigit);
 
     // GEM-Digitizer
-    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2018;  //BmnGemStripConfiguration::RunSpring2017;
-    // BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARCO2_70_30_E_1000_2500_3750_6300_B_0_59T);
+    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2018;
+    if (useRealEffects)
+        BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_6T);
     BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
     gemDigit->SetCurrentConfig(gem_config);
     gemDigit->SetOnlyPrimary(kFALSE);
@@ -166,7 +154,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     fRun->AddTask(cscDigit);
 
     fRun->Init();
-    if (isFieldMap) magField->Print();
+    magField->Print();
 
     // Trajectories Visualization (TGeoManager only)
     FairTrajFilter* trajFilter = FairTrajFilter::Instance();
@@ -209,5 +197,5 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
-    cout<<"Macro finished successfully."<<endl; // marker of successfully execution for software testing systems
+    cout << "Macro finished successfully." << endl; // marker of successfully execution for software testing systems
 }

@@ -1,31 +1,21 @@
-// Macro for reconstruction of simulated or experimental events.
+// Macro for reconstruction of simulated or experimental events for BM@N
 //
-// inputFileName - input file with data.
+// inputFileName - input file with data (MC or exp. data).
 //
 // To process experimental data, you must use 'run[#period]-[#run]:'-like prefix,
 // and then the geometry will be obtained from the Unified Database
-// e.g. "run6-1986:/dataBMN/bmndata1/run6/root/digi/bmn_run1986_digi.root"
+// e.g. "run[#period]-[#run]:PATH_TO_DIGI_DATA/digiFile.root"
 //
-// bmndstFileName - output file with reconstructed data.
-//
-// nStartEvent - number of first event to process (starts with zero), default: 0.
-//
-// nEvents - number of events to process, 0 - all events of given file will be processed, default: 10000.
-//
-// alignCorrFileName - argument for choosing input file with the alignment corrections.
-//
-// If alignCorrFileName == 'default', (case insensitive) then corrections are retrieved from UniDb according to the running period and run number.
-// If alignCorrFileName == '', then no corrections are applied at all.
-// If alignCorrFileName == '<path>/<file-name>', then the corrections are taken from that file.
-
+// bmndstFileName - output file with reconstructed data
+// nStartEvent - number of first event to process (starts with zero), default: 0
+// nEvents - number of events to process, 0 - all events of given file will be processed
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #define CellAuto // Choose Tracking: L1 or CellAuto
 
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0,
-        Int_t nEvents = 1000)
-{
+        Int_t nEvents = 1000) {
     // Verbosity level (0 = quiet (progress bar), 1 = event-level, 2 = track-level, 3 = full debug)
     Int_t iVerbose = 0;
     gDebug = 0; // Debug option
@@ -39,12 +29,14 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     fRunAna->SetEventHeader(new DstEventHeader());
 
     Bool_t isField = (inputFileName.Contains("noField")) ? kFALSE : kTRUE; // flag for tracking (to use mag.field or not)
-    Bool_t isTarget = kTRUE; //kFALSE; // flag for tracking (run with target or not)
+    Bool_t isTarget = kFALSE; //kTRUE; // flag for tracking (run with target or not)
     Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
 
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
-    // for experimental datasource
+
+    // -1 means use of the BM@N-setup when processing MC-input
+    // DO NOT change it manually!
     Int_t run_period = 7, run_number = -1;
     Double_t fieldScale = 0.;
     TPRegexp run_prefix("^run[0-9]+-[0-9]+:");
@@ -93,9 +85,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         if (pCurrentRun == 0)
             exit(-5);
         Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
-        if (field_voltage == NULL)
-        {
-            cout<<"Error: no field voltage was found for run "<<run_period<<":"<<run_number<<endl;
+        if (field_voltage == NULL) {
+            cout << "Error: no field voltage was found for run " << run_period << ":" << run_number << endl;
             exit(-6);
         }
         Double_t map_current = 55.87;
@@ -128,8 +119,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
         cout << "||\t\t\t\t\t\t\t||" << endl;
         cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
-    }
-    // for simulated files
+    }// for simulated files
     else {
         if (!BmnFunctionSet::CheckFileExist(inputFileName)) return;
         fFileSource = new FairFileSource(inputFileName);
@@ -218,7 +208,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     fRunAna->AddTask(l1);
 
     CbmStsTrackFinder* stsTrackFinder = new CbmL1StsTrackFinder();
-    FairTask*          stsFindTracks  = new CbmStsFindTracks(iVerbose, stsTrackFinder);
+    FairTask* stsFindTracks = new CbmStsFindTracks(iVerbose, stsTrackFinder);
     fRunAna->AddTask(stsFindTracks);
 
     // ====================================================================== //
@@ -231,22 +221,24 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                      Primary vertex finding                    === //
     // ====================================================================== //
-    CbmPrimaryVertexFinder* pvFinder   = new CbmPVFinderKF();
-    CbmFindPrimaryVertex *  findVertex = new CbmFindPrimaryVertex(pvFinder);
+    CbmPrimaryVertexFinder* pvFinder = new CbmPVFinderKF();
+    CbmFindPrimaryVertex * findVertex = new CbmFindPrimaryVertex(pvFinder);
     fRunAna->AddTask(findVertex);
 #else
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
     BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
-    //siliconHM->SetCurrentConfig(BmnSiliconConfiguration::RunSpring2018); //set explicitly
+    if (!isExp)
+        siliconHM->SetCurrentConfig(BmnSiliconConfiguration::RunSpring2018); //set explicitly
     fRunAna->AddTask(siliconHM);
 
     // ====================================================================== //
     // ===                          GEM hit finder                        === //
     // ====================================================================== //
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
-    //gemHM->SetCurrentConfig(BmnGemStripConfiguration::RunSpring2018); //set explicitly
+    if (!isExp)
+        gemHM->SetCurrentConfig(BmnGemStripConfiguration::RunSpring2018); //set explicitly
     gemHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(gemHM);
 
@@ -254,7 +246,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ===                          CSC hit finder                        === //
     // ====================================================================== //
     BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
-    //cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSpring2018); //set explicitly
+    if (!isExp)
+        cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSpring2018); //set explicitly
     cscHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(cscHM);
 
@@ -287,7 +280,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     gemTF->SetDetectorPresence(kSILICON, kTRUE);
     gemTF->SetDetectorPresence(kSSD, kFALSE);
     gemTF->SetDetectorPresence(kGEM, kTRUE);
-    //if (!isExp) gemTF->SetRoughVertex(TVector3(0.0, 0.0, 0.0)); //for MC case use correct vertex
     fRunAna->AddTask(gemTF);
 
     // ====================================================================== //
@@ -308,6 +300,9 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // Residual analysis
     BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
     fRunAna->AddTask(res);
+
+    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, kFALSE);
+    fRunAna->AddTask(glTF);
 
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)
     BmnFillDstTask* dst_task = new BmnFillDstTask(nEvents);

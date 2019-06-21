@@ -1,24 +1,19 @@
-// Macro for reconstruction of simulated or experimental events.
-
+// Macro for reconstruction of simulated or experimental events for SRC
+//
+// inputFileName - input file with data (MC or exp. data).
+//
 // To process experimental data, you must use 'run[#period]-[#run]:'-like prefix,
 // and then the geometry will be obtained from the Unified Database
-// e.g. "run7-2041:PATH_TO_DIGI_FILE/digi.root"
-
-#include <Rtypes.h>
-#include <TString.h>
-#include <TStopwatch.h>
-#include <TFile.h>
-#include <TKey.h>
-
+// e.g. "run[#period]-[#run]:PATH_TO_DIGI_DATA/digiFile.root"
+//
+// bmndstFileName - output file with reconstructed data
+// nStartEvent - number of first event to process (starts with zero), default: 0
+// nEvents - number of events to process, 0 - all events of given file will be processed
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 
-// void run_reco_src(TString inputFileName = "run7-2320:/home/merz/batyuk/home/batyuk/bmnroot_run7/macro/miscellaneous/bmn_run2320_digi.root", TString srcdstFileName = "srcdst_2320.root",
-// void run_reco_src(TString inputFileName = "run7-2335:/home/merz/batyuk/home/batyuk/bmnroot_run7/macro/miscellaneous/bmn_run2335_digi.root", TString srcdstFileName = "srcdst_2335.root",
-void run_reco_src(TString inputFileName = "run7-2406:/home/merz/pavel/home/batyuk/bmnroot_run7/macro/miscellaneous/bmn_run2406_digi.root", TString srcdstFileName = "srcdst_2406.root",
-// void run_reco_src(TString inputFileName = "run7-3514:/home/merz/pavel/home/batyuk/bmnroot_run7/macro/miscellaneous/bmn_run3524_digi.root", TString srcdstFileName = "srcdst_3514.root",
-        Int_t nStartEvent = 0, Int_t nEvents = 1) {
+void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", TString srcdstFileName = "$VMCWORKDIR/macro/run/srcdst.root", Int_t nStartEvent = 0, Int_t nEvents = 10) {
     // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
-    Int_t iVerbose = 2;
+    Int_t iVerbose = 0;
 
     // ----    Debug option   --------------------------------------------------
     gDebug = 0;
@@ -31,13 +26,15 @@ void run_reco_src(TString inputFileName = "run7-2406:/home/merz/pavel/home/batyu
     fRunAna->SetEventHeader(new DstEventHeader());
 
     Bool_t isField = (inputFileName.Contains("noField")) ? kFALSE : kTRUE; // flag for tracking (to use mag.field or not)
-    Bool_t isTarget = kTRUE; //kFALSE; // flag for tracking (run with target or not)
+    Bool_t isTarget = kFALSE; //kTRUE; // flag for tracking (run with target or not)
     Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
 
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
-    // for experimental datasource
-    Int_t run_period = 7, run_number = -1;
+
+    // -2 means use of the SRC-setup when processing MC-input  
+    // DO NOT change it manually!
+    Int_t run_period = 7, run_number = -2;
     Double_t fieldScale = 0.;
     TPRegexp run_prefix("^run[0-9]+-[0-9]+:");
     if (inputFileName.Contains(run_prefix)) {
@@ -141,21 +138,27 @@ void run_reco_src(TString inputFileName = "run7-2406:/home/merz/pavel/home/batyu
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
-    // BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
-    // fRunAna->AddTask(siliconHM);
+    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
+    if (!isExp)
+        siliconHM->SetCurrentConfig(BmnSiliconConfiguration::RunSRCSpring2018); //set explicitly
+    fRunAna->AddTask(siliconHM);
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
-    // BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
-    // gemHM->SetHitMatching(kTRUE);
-    // fRunAna->AddTask(gemHM);
+    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
+    if (!isExp)
+        gemHM->SetCurrentConfig(BmnGemStripConfiguration::RunSRCSpring2018); //set explicitly
+    gemHM->SetHitMatching(kTRUE);
+    fRunAna->AddTask(gemHM);
 
     // ====================================================================== //
     // ===                          CSC hit finder                        === //
     // ====================================================================== //
-    // BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
-    // cscHM->SetHitMatching(kTRUE);
-    // fRunAna->AddTask(cscHM);
+    BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
+    if (!isExp)
+        cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSRCSpring2018); //set explicitly
+    cscHM->SetHitMatching(kTRUE);
+    fRunAna->AddTask(cscHM);
 
     // ====================================================================== //
     // ===                         TOF400 hit finder                      === //
@@ -181,21 +184,20 @@ void run_reco_src(TString inputFileName = "run7-2406:/home/merz/pavel/home/batyu
     // ====================================================================== //
     // ===                           Tracking                             === //
     // ====================================================================== //
-    
-    BmnCellAutoTracking* gemTF = new BmnCellAutoTracking(run_period, run_number, isField, isTarget);
-    gemTF->SetDetectorPresence(kSILICON, kFALSE);
-    gemTF->SetDetectorPresence(kSSD, kFALSE);
-    gemTF->SetDetectorPresence(kGEM, kTRUE);
-    // if (!isExp) gemTF->SetRoughVertex(TVector3(0.0, 0.0, 0.0)); //for MC case use correct vertex
-    fRunAna->AddTask(gemTF);
 
-    // BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
-    // fRunAna->AddTask(dchTF);
+    BmnCellAutoTracking* tf = new BmnCellAutoTracking(run_period, run_number, isField, isTarget);
+    tf->SetDetectorPresence(kSILICON, kFALSE);
+    tf->SetDetectorPresence(kSSD, kFALSE);
+    tf->SetDetectorPresence(kGEM, kTRUE);
+    fRunAna->AddTask(tf);
+
+    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
+    fRunAna->AddTask(dchTF);
 
     // Residual analysis
-    // BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
-    // fRunAna->AddTask(res);
-    
+    BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
+    fRunAna->AddTask(res);
+
     BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, kFALSE);
     fRunAna->AddTask(glTF);
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)

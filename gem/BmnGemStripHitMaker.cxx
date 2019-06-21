@@ -151,7 +151,7 @@ InitStatus BmnGemStripHitMaker::Init() {
     //--------------------------------------------------------------------------
 
     fBmnEvQuality = (TClonesArray*) ioman->GetObject(fBmnEvQualityBranchName);
-    if (fIsExp)
+    if (fIsExp && fVerbose > 1)
         fAlign->Print();
 
     if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Init() finished ==============" << endl;

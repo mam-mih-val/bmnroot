@@ -25,18 +25,6 @@ public:
     /** Constructor to use **/
     BmnHit(Int_t detUID, TVector3 posHit, TVector3 posHitErr, Int_t pointIndx);
 
-    Int_t GetXaddr() const {
-        return fXaddr;
-    }
-
-    Int_t GetYaddr() const {
-        return fYaddr;
-    }
-
-    Long_t GetAddr() const {
-        return fAddr;
-    }
-
     Bool_t IsUsed() const {
         return fUsing;
     }
@@ -63,18 +51,6 @@ public:
 
     void SetUsing(Bool_t use) {
         fUsing = use;
-    }
-
-    void SetXaddr(Int_t addr) {
-        fXaddr = addr;
-    }
-
-    void SetYaddr(Int_t addr) {
-        fYaddr = addr;
-    }
-
-    void SetAddr(Long_t addr) {
-        fAddr = addr;
     }
 
     void SetIndex(Int_t id) {
@@ -128,15 +104,19 @@ public:
 
     /** Destructor **/
     virtual ~BmnHit();
+    
+    Double_t GetCovXY() { 
+        return fCovXY; 
+    }
+    
+    void SetCovXY(Double_t val) {
+        fCovXY = val;
+    }
 
 private:
 
     /** Is hit used or not **/
     Bool_t fUsing;
-    /** Some additional buffer addresses for seeding**/
-    Int_t fXaddr;
-    Int_t fYaddr;
-    Long_t fAddr;
     /** Is hit good or not **/
     Bool_t fFlag;
     /** Index in hits array **/
@@ -151,6 +131,8 @@ private:
     
     Double_t fResX;
     Double_t fResY;
+    
+    Double_t fCovXY;          // Covariance of x and y coordinates
 
     ClassDef(BmnHit, 1);
 

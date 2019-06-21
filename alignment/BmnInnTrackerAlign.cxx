@@ -76,8 +76,9 @@ void BmnInnTrackerAlign::Print() {
         }
 
     cout << "Lorentz coefficients: " << endl;
-    for (Int_t iCoeff = 0; iCoeff < 3; iCoeff++)
-        cout << fLorCorrs[0][iCoeff] << " ";
+    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+        for (Int_t iCoeff = 0; iCoeff < 3; iCoeff++)
+            cout << fLorCorrs[iStat][iCoeff] << " ";
     cout << endl;
 
     cout << "SILICON corrections: " << endl;

@@ -38,7 +38,7 @@ public:
     // Constructors/Destructors ---------
 
     BmnCellAutoTracking() {};
-    BmnCellAutoTracking(Short_t period, UInt_t run, Bool_t field, Bool_t target, TString steerFile = "");
+    BmnCellAutoTracking(Short_t period, Int_t run, Bool_t field, Bool_t target, TString steerFile = "");
     virtual ~BmnCellAutoTracking();
 
     virtual InitStatus Init();

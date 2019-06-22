@@ -51,10 +51,13 @@ fX(0.), fY(0.), fZ(0.) {
 
 MpdUrqmdGenerator::MpdUrqmdGenerator(const char* fileName)
 : FairGenerator(),
-fInputFile(NULL),
-fParticleTable(),
-fFileName(fileName),
-fX(0.), fY(0.), fZ(0.) {
+  fInputFile(NULL),
+  fParticleTable(),
+  fFileName(fileName),
+  fPhiMin(0.),
+  fPhiMax(0.),
+  fEventPlaneSet(kFALSE),
+  fX(0.), fY(0.), fZ(0.) {
     //  fFileName = fileName;
     cout << "-I MpdUrqmdGenerator: Opening input file " << fFileName << endl;
     fInputFile = gzopen(fFileName, "rb");
@@ -201,7 +204,6 @@ Bool_t MpdUrqmdGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
     Double_t phi = 0.;
     // ---> Generate rotation angle
     if (fEventPlaneSet) {
-        gRandom->SetSeed(0);
         phi = gRandom->Uniform(fPhiMin, fPhiMax);
     }
 

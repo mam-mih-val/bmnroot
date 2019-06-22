@@ -58,7 +58,16 @@ class CbmTrackMatch : public TObject
   /** Number of MCTracks with common hits **/
   Int_t GetNofMCTracks() const { return fNofMCTracks;  };
 
-
+  Int_t GetNofHits() const { return fNofTrueHits + fNofWrongHits + fNofFakeHits; } //AZ
+  Double_t GetTrueOverAllHitsRatio() const { //AZ
+    Double_t all = GetNofHits();
+    return (all == 0) ? 0. : (fNofTrueHits / all);
+  }
+  Double_t GetWrongOverAllHitsRatio() const { //AZ
+    Double_t all = GetNofHits();
+    return (all == 0) ? 0. : ((fNofWrongHits+fNofFakeHits) / all);
+  }
+  
  private:
 
   /** Index of matched CbmMCTrack  **/

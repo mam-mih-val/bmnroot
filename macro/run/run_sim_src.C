@@ -1,8 +1,7 @@
-#include <Rtypes.h>
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/geometry_run/geometry_src_run7.C"
 
-#define ION     // Choose generator: URQMD QGSM HSD BOX PART ION
+#define BOX     // Choose generator: URQMD QGSM HSD BOX PART ION
 #define GEANT3  // Choose: GEANT3 GEANT4
 
 // inFile - input file with generator data, if needed
@@ -32,11 +31,12 @@ void run_sim_src(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/e
     FairPrimaryGenerator* primGen = new FairPrimaryGenerator();
     fRun->SetGenerator(primGen);
 
-    // smearing of beam interaction point
-    //primGen->SetBeam(0.0,0.0,0.1,0.1);
-    //primGen->SetTarget(0.0,24.0);
-    //primGen->SmearGausVertexZ(kTRUE);
-    //primGen->SmearVertexXY(kTRUE);
+    // Smearing of beam interaction point, if needed, and primary vertex position
+    // DO NOT do it in corresponding gen. sections to avoid incorrect summation!!!
+    primGen->SetBeam(0.5, -4.6, 0.0, 0.0);
+    primGen->SetTarget(-647.5, 0.0);
+    primGen->SmearVertexZ(kFALSE);
+    primGen->SmearVertexXY(kFALSE);
 
 #ifdef URQMD
     // ------- UrQMD Generator
@@ -69,11 +69,10 @@ void run_sim_src(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/e
 #ifdef BOX
     gRandom->SetSeed(0);
     // ------- Box Generator
-    FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 5); // 13 = muon; 1 = multipl.
-    boxGen->SetPRange(0., 5.); // GeV/c, setPRange vs setPtRange
+    FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 10); // 13 = muon; 1 = multipl.
+    boxGen->SetPRange(2., 2.); // GeV/c, setPRange vs setPtRange
     boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
     boxGen->SetThetaRange(0., 40.); // Polar angle in lab system range [degree]
-    boxGen->SetXYZ(0., 0., -647.);
     primGen->AddGenerator(boxGen);
 
 #else
@@ -145,7 +144,7 @@ void run_sim_src(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/e
     cscDigit->SetCurrentConfig(csc_config);
     cscDigit->SetOnlyPrimary(kFALSE);
     cscDigit->SetStripMatching(kTRUE);
-    // fRun->AddTask(cscDigit);
+    fRun->AddTask(cscDigit);
 
     fRun->Init();
     magField->Print();

@@ -16,9 +16,9 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0,
         Int_t nEvents = 1000) {
+    gDebug = 0; // Debug option
     // Verbosity level (0 = quiet (progress bar), 1 = event-level, 2 = track-level, 3 = full debug)
     Int_t iVerbose = 0;
-    gDebug = 0; // Debug option
 
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
@@ -49,7 +49,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         inputFileName.Remove(0, indColon + 1);
 
         if (!BmnFunctionSet::CheckFileExist(inputFileName)) {
-            cout << "Error: digi file " + inputFileName + " does not exist!" << endl;
+            cout << "ERROR: digi file " + inputFileName + " does not exist!" << endl;
             exit(-1);
         }
         // set source as raw root data file (without additional directories)
@@ -59,14 +59,14 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         TString geoFileName = "current_geo_file.root";
         Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
         if (res_code != 0) {
-            cout << "Error: could not read geometry file from the database" << endl;
+            cout << "ERROR: could not read geometry file from the database" << endl;
             exit(-2);
         }
 
         // get gGeoManager from ROOT file (if required)
         TFile* geoFile = new TFile(geoFileName, "READ");
         if (!geoFile->IsOpen()) {
-            cout << "Error: could not open ROOT file with geometry: " + geoFileName << endl;
+            cout << "ERROR: could not open ROOT file with geometry: " + geoFileName << endl;
             exit(-3);
         }
         TList* keyList = geoFile->GetListOfKeys();
@@ -76,7 +76,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         if (className.BeginsWith("TGeoManager"))
             key->ReadObj();
         else {
-            cout << "Error: TGeoManager is not top element in geometry file " + geoFileName << endl;
+            cout << "ERROR: TGeoManager is not top element in geometry file " + geoFileName << endl;
             exit(-4);
         }
 
@@ -86,7 +86,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
             exit(-5);
         Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
         if (field_voltage == NULL) {
-            cout << "Error: no field voltage was found for run " << run_period << ":" << run_number << endl;
+            cout << "ERROR: no field voltage was found for run " << run_period << ":" << run_number << endl;
             exit(-6);
         }
         Double_t map_current = 55.87;
@@ -119,8 +119,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
         cout << "||\t\t\t\t\t\t\t||" << endl;
         cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
-    }// for simulated files
-    else {
+    }
+    else { // for simulation files
         if (!BmnFunctionSet::CheckFileExist(inputFileName)) return;
         fFileSource = new FairFileSource(inputFileName);
     }
@@ -134,11 +134,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     TList* parFileNameList = new TList();
 #ifdef L1
     TObjString stsDigiFile = "$VMCWORKDIR/parameters/sts_v1_BMN_SI_GEM.digi.par";
-#else
-    TObjString stsDigiFile = "$VMCWORKDIR/parameters/sts_v15a_gem.digi.par";
-#endif
     parFileNameList->Add(&stsDigiFile);
-
+#endif
     TObjString tofDigiFile = "$VMCWORKDIR/parameters/tof_standard.geom.par";
     parFileNameList->Add(&tofDigiFile);
 

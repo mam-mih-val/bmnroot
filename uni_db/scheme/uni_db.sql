@@ -8,6 +8,7 @@
 -- Unified experiment database
 -- createdb bmn_db;
 -- createlang -d bmn_db plpgsql;
+-- SET bytea_output = 'escape';
 
 -- MS SQL Server convertion
 -- replace serial : int identity
@@ -512,6 +513,32 @@ BEGIN
   END CASE;
 END;
 $$ LANGUAGE plpgsql;
+
+-- drop function read_geometry(oid)
+CREATE OR REPLACE FUNCTION read_geometry(oid) RETURNS bytea
+AS $$
+declare 
+  objID integer; objFD integer;
+  d bytea;
+--  sz integer;
+begin
+  objID = $1;
+  objFD = lo_open(objID, 262144); --, x'40000'::int);
+  if (objFD < 0) then
+    raise exception 'Failed to open large object %', $1;
+    --return -1;
+  end if;
+
+  d = loread(objFD, 1);
+--  sz = lo_lseek(objFD, 0, 2);
+  
+  if (lo_close(fd) != 0) then
+    raise exception 'Failed to close large object %', $1;
+    --return -2;
+  end if;
+  return d;
+end;
+$$ LANGUAGE 'plpgsql';
 
 -- drop function lo_size(int)
 CREATE OR REPLACE FUNCTION lo_size(bytea) RETURNS integer

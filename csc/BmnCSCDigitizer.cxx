@@ -2,7 +2,7 @@
 
 #include "BmnCSCDigitizer.h"
 #include "CbmMCTrack.h"
-#include "CbmStsPoint.h"
+#include "BmnCSCPoint.h"
 
 static Float_t workTime = 0.0;
 static int entrys = 0;
@@ -131,8 +131,12 @@ void BmnCSCDigitizer::ProcessMCPoints() {
         Int_t refId = ipoint;
 
         //Information from MC-points
-        Int_t mc_station_num = ((CbmStsPoint*)CSCPoint)->GetStation();
-        Int_t mc_module_num = ((CbmStsPoint*)CSCPoint)->GetModule();
+        Int_t mc_station_num = ((BmnCSCPoint*)CSCPoint)->GetStation();
+        Int_t mc_module_num = ((BmnCSCPoint*)CSCPoint)->GetModule();
+
+        //test output
+        //cout << "mc_station_num = " << mc_station_num << "\n";
+        //cout << "mc_module_num = " << mc_module_num << "\n";
 
         //Transform mc-point coordinates to local coordinate system of CSC-planes
         if(TransfSet && mc_station_num < StationSet->GetNStations()) {

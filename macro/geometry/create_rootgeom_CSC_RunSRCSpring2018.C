@@ -18,9 +18,12 @@ const Int_t NStations = 1;      //stations in the detector
 const Int_t NMaxModules = 2;    //max. number of modules in a station
 
 //(X-Y-Z)Positions of stations
-const Double_t XStationPositions[NStations] = { 58.083 }; //geometry center
-const Double_t YStationPositions[NStations] = { 7.77175 }; //geometry center
-const Double_t ZStationPositions[NStations] = { 412.352 }; //outer side nearest to the target
+//const Double_t XStationPositions[NStations] = { 58.083 }; //geometry center  (original)
+//const Double_t YStationPositions[NStations] = { 7.77175 }; //geometry center (original)
+//const Double_t ZStationPositions[NStations] = { 412.352 }; //outer side nearest to the target (original)
+const Double_t XStationPositions[NStations] = { -43.517 }; //geometry center  (S. Merts' corrections)
+const Double_t YStationPositions[NStations] = { -47.33 }; //geometry center (S. Merts' corrections)
+const Double_t ZStationPositions[NStations] = { 412.352 }; //outer side nearest to the target (S. Merts' corrections)
 
 //(X-Y-Z)Shifts of modules in each station
 const Double_t XModuleShifts[NStations][NMaxModules] = { //centers of gas volume

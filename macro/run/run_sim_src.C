@@ -1,7 +1,7 @@
 #include <Rtypes.h>
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/geometry_run/geometry_src_run7.C"
-        
+
 #define ION     // Choose generator: URQMD QGSM HSD BOX PART ION
 #define GEANT3  // Choose: GEANT3 GEANT4
 
@@ -9,8 +9,8 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 // outFile - output file with MC data, default: evetest.root
 // nStartEvent - start event in the input generator file to begin transporting, default: 0
 // nEvents - number of events to transport
-// useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)     
-        
+// useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
+
 void run_sim_src(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10, Bool_t useRealEffects = kFALSE) {
     TStopwatch timer;
     timer.Start();

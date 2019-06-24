@@ -11,7 +11,7 @@
 #include <iostream>
 using namespace std;
 
-/* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+/* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
 UniDbRunGeometry::UniDbRunGeometry(UniDbConnection* connUniDb, int geometry_id, unsigned char* root_geometry, Long_t size_root_geometry)
 {
@@ -50,7 +50,7 @@ UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(unsigned char* root_geomet
 	// inserting new run geometry to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new run geometry to the Database has been failed"<<endl;
+		cout<<"ERROR: inserting new run geometry to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -71,7 +71,7 @@ UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(unsigned char* root_geomet
 		// if there is no last id then exit with error
 		if (!stmt_last->NextResultRow())
 		{
-			cout<<"Error: no last ID in DB!"<<endl;
+			cout<<"ERROR: no last ID in DB!"<<endl;
 			delete stmt_last;
 			return 0x00;
 		}
@@ -83,7 +83,7 @@ UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(unsigned char* root_geomet
 	}
 	else
 	{
-		cout<<"Error: getting last ID has been failed!"<<endl;
+		cout<<"ERROR: getting last ID has been failed!"<<endl;
 		delete stmt_last;
 		return 0x00;
 	}
@@ -115,7 +115,7 @@ UniDbRunGeometry* UniDbRunGeometry::GetRunGeometry(int geometry_id)
 	// get run geometry from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting run geometry from the database has been failed"<<endl;
+		cout<<"ERROR: getting run geometry from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -128,7 +128,7 @@ UniDbRunGeometry* UniDbRunGeometry::GetRunGeometry(int geometry_id)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: run geometry wasn't found in the database"<<endl;
+		cout<<"ERROR: run geometry was not found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -164,7 +164,7 @@ bool UniDbRunGeometry::CheckRunGeometryExists(int geometry_id)
 	// get run geometry from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting run geometry from the database has been failed"<<endl;
+		cout<<"ERROR: getting run geometry from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -207,7 +207,7 @@ int UniDbRunGeometry::DeleteRunGeometry(int geometry_id)
 	// delete run geometry from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting run geometry from the dataBase has been failed"<<endl;
+		cout<<"ERROR: deleting run geometry from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -235,7 +235,7 @@ int UniDbRunGeometry::PrintAll()
 	// get all 'run geometrys' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all 'run geometrys' from the dataBase has been failed"<<endl;
+		cout<<"ERROR: getting all 'run geometrys' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -290,7 +290,7 @@ int UniDbRunGeometry::SetRootGeometry(unsigned char* root_geometry, Long_t size_
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about run geometry has been failed"<<endl;
+		cout<<"ERROR: updating information about run geometry has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -314,7 +314,7 @@ void UniDbRunGeometry::Print()
 
 	return;
 }
-/* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
+/* END OF GENERATED CLASS PART (SHOULD NOT BE CHANGED MANUALLY) */
 
 // -------------------------------------------------------------------
 ClassImp(UniDbRunGeometry);

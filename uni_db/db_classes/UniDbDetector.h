@@ -58,6 +58,7 @@ class UniDbDetector
 	int SetDetectorName(TString detector_name);
 	/// set description of the current detector
 	int SetDescription(TString* description);
+
 	/// print information about current detector
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */

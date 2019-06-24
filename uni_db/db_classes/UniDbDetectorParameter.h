@@ -122,6 +122,7 @@ class UniDbDetectorParameter
 	int SetChannel(int* channel);
 	/// set parameter value of the current detector parameter
 	int SetParameterValue(unsigned char* parameter_value, Long_t size_parameter_value);
+
 	/// print information about current detector parameter
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */

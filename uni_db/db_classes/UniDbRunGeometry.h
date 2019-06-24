@@ -60,6 +60,7 @@ class UniDbRunGeometry
 	// Setters
 	/// set root geometry of the current run geometry
 	int SetRootGeometry(unsigned char* root_geometry, Long_t size_root_geometry);
+
 	/// print information about current run geometry
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */

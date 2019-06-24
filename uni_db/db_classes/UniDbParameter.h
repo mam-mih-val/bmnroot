@@ -72,6 +72,7 @@ class UniDbParameter
 	int SetParameterName(TString parameter_name);
 	/// set parameter type of the current parameter
 	int SetParameterType(int parameter_type);
+
 	/// print information about current parameter
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
@@ -79,6 +80,7 @@ class UniDbParameter
     // enumeration 'enumParameterType' is corresponding parameter_type member UniDbParameter, you can see it in db_structures
     // enum enumParameterType{BoolType, IntType, DoubleType, StringType, IIArrayType, IntArrayType, DoubleArrayType, BinaryArrayType, ErrorType}
     static bool CheckAndGetParameterID(TSQLServer* uni_db, TString parameter_name, enumParameterType enum_parameter_type, int& parameter_id);
+    static bool CheckAndGetParameterID(TSQLServer* uni_db, TString parameter_name, enumParameterTypeNew enum_parameter_type, int& parameter_id);
 
  ClassDef(UniDbParameter,1);
 };

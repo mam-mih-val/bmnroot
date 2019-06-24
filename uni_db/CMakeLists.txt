@@ -30,7 +30,7 @@ set(SRCS
  UniDbGenerateClasses.cxx
  UniDbTangoData.cxx
  UniDbSearchCondition.cxx
- UniDbParser.cxx
+ #UniDbParser.cxx
 
  db_classes/UniDbRunPeriod.cxx
  db_classes/UniDbRun.cxx
@@ -38,6 +38,7 @@ set(SRCS
  db_classes/UniDbDetector.cxx
  db_classes/UniDbParameter.cxx
  db_classes/UniDbDetectorParameter.cxx
+ db_classes/UniDbDetectorParameterNew.cxx
  db_classes/UniDbSimulationFile.cxx
 
  elog_classes/ElogDbPerson.cxx

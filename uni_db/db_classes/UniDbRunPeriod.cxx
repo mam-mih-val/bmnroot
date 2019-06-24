@@ -11,15 +11,15 @@
 #include <iostream>
 using namespace std;
 
-/* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+/* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
 UniDbRunPeriod::UniDbRunPeriod(UniDbConnection* connUniDb, int period_number, TDatime start_datetime, TDatime* end_datetime)
 {
 	connectionUniDb = connUniDb;
 
 	i_period_number = period_number;
-	dt_start_datetime = start_datetime;
-	dt_end_datetime = end_datetime;
+	ts_start_datetime = start_datetime;
+	ts_end_datetime = end_datetime;
 }
 
 // -----   Destructor   -------------------------------------------------
@@ -27,8 +27,8 @@ UniDbRunPeriod::~UniDbRunPeriod()
 {
 	if (connectionUniDb)
 		delete connectionUniDb;
-	if (dt_end_datetime)
-		delete dt_end_datetime;
+	if (ts_end_datetime)
+		delete ts_end_datetime;
 }
 
 // -----   Creating new run period in the database  ---------------------------
@@ -55,7 +55,7 @@ UniDbRunPeriod* UniDbRunPeriod::CreateRunPeriod(int period_number, TDatime start
 	// inserting new run period to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new run period to the Database has been failed"<<endl;
+		cout<<"ERROR: inserting new run period to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -92,7 +92,7 @@ UniDbRunPeriod* UniDbRunPeriod::GetRunPeriod(int period_number)
 	// get run period from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting run period from the database has been failed"<<endl;
+		cout<<"ERROR: getting run period from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -105,7 +105,7 @@ UniDbRunPeriod* UniDbRunPeriod::GetRunPeriod(int period_number)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: run period wasn't found in the database"<<endl;
+		cout<<"ERROR: run period was not found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -143,7 +143,7 @@ bool UniDbRunPeriod::CheckRunPeriodExists(int period_number)
 	// get run period from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting run period from the database has been failed"<<endl;
+		cout<<"ERROR: getting run period from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -186,7 +186,7 @@ int UniDbRunPeriod::DeleteRunPeriod(int period_number)
 	// delete run period from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting run period from the dataBase has been failed"<<endl;
+		cout<<"ERROR: deleting run period from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -214,7 +214,7 @@ int UniDbRunPeriod::PrintAll()
 	// get all 'run periods' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all 'run periods' from the dataBase has been failed"<<endl;
+		cout<<"ERROR: getting all 'run periods' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -270,7 +270,7 @@ int UniDbRunPeriod::SetPeriodNumber(int period_number)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about run period has been failed"<<endl;
+		cout<<"ERROR: updating information about run period has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -305,13 +305,13 @@ int UniDbRunPeriod::SetStartDatetime(TDatime start_datetime)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about run period has been failed"<<endl;
+		cout<<"ERROR: updating information about run period has been failed"<<endl;
 
 		delete stmt;
 		return -2;
 	}
 
-	dt_start_datetime = start_datetime;
+	ts_start_datetime = start_datetime;
 
 	delete stmt;
 	return 0;
@@ -343,17 +343,17 @@ int UniDbRunPeriod::SetEndDatetime(TDatime* end_datetime)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about run period has been failed"<<endl;
+		cout<<"ERROR: updating information about run period has been failed"<<endl;
 
 		delete stmt;
 		return -2;
 	}
 
-	if (dt_end_datetime)
-		delete dt_end_datetime;
-	if (end_datetime == NULL) dt_end_datetime = NULL;
+	if (ts_end_datetime)
+		delete ts_end_datetime;
+	if (end_datetime == NULL) ts_end_datetime = NULL;
 	else
-		dt_end_datetime = new TDatime(*end_datetime);
+		ts_end_datetime = new TDatime(*end_datetime);
 
 	delete stmt;
 	return 0;
@@ -363,11 +363,11 @@ int UniDbRunPeriod::SetEndDatetime(TDatime* end_datetime)
 void UniDbRunPeriod::Print()
 {
 	cout<<"Table 'run_period'";
-	cout<<". period_number: "<<i_period_number<<". start_datetime: "<<dt_start_datetime.AsSQLString()<<". end_datetime: "<<(dt_end_datetime == NULL? "NULL": (*dt_end_datetime).AsSQLString())<<endl;
+	cout<<". period_number: "<<i_period_number<<". start_datetime: "<<ts_start_datetime.AsSQLString()<<". end_datetime: "<<(ts_end_datetime == NULL? "NULL": (*ts_end_datetime).AsSQLString())<<endl;
 
 	return;
 }
-/* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
+/* END OF GENERATED CLASS PART (SHOULD NOT BE CHANGED MANUALLY) */
 
 // get numbers of runs existing in the Database for a selected period
 int UniDbRunPeriod::GetRunNumbers(int period_number, UniqueRunNumber*& run_numbers)

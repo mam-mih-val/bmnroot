@@ -110,6 +110,7 @@ class UniDbSimulationFile
 	int SetFileDesc(TString* file_desc);
 	/// set file size of the current simulation file
 	int SetFileSize(double* file_size);
+
 	/// print information about current simulation file
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */

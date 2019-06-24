@@ -13,7 +13,7 @@
 #pragma link C++ class TangoTimeInterval+;
 #pragma link C++ class UniDbTangoData+;
 #pragma link C++ class UniDbSearchCondition+;
-#pragma link C++ class UniDbParser+;
+//#pragma link C++ class UniDbParser+;
 #pragma link C++ struct BeamSpillStructure++;
 #pragma link C++ class vector<BeamSpillStructure*>+;
 
@@ -23,6 +23,7 @@
 #pragma link C++ class UniDbDetector+;
 #pragma link C++ class UniDbParameter+;
 #pragma link C++ class UniDbDetectorParameter+;
+#pragma link C++ class UniDbDetectorParameterNew+;
 #pragma link C++ class UniDbSimulationFile+;
 
 #pragma link C++ class ElogDbPerson+;

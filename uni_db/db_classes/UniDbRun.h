@@ -38,9 +38,9 @@ class UniDbRun
 	/// energy
 	double* d_energy;
 	/// start datetime
-	TDatime dt_start_datetime;
+	TDatime ts_start_datetime;
 	/// end datetime
-	TDatime* dt_end_datetime;
+	TDatime* ts_end_datetime;
 	/// event count
 	int* i_event_count;
 	/// field voltage
@@ -90,9 +90,9 @@ class UniDbRun
 	/// get energy of the current run
 	double* GetEnergy() {if (d_energy == NULL) return NULL; else return new double(*d_energy);}
 	/// get start datetime of the current run
-	TDatime GetStartDatetime() {return dt_start_datetime;}
+	TDatime GetStartDatetime() {return ts_start_datetime;}
 	/// get end datetime of the current run
-	TDatime* GetEndDatetime() {if (dt_end_datetime == NULL) return NULL; else return new TDatime(*dt_end_datetime);}
+	TDatime* GetEndDatetime() {if (ts_end_datetime == NULL) return NULL; else return new TDatime(*ts_end_datetime);}
 	/// get event count of the current run
 	int* GetEventCount() {if (i_event_count == NULL) return NULL; else return new int(*i_event_count);}
 	/// get field voltage of the current run
@@ -127,6 +127,7 @@ class UniDbRun
 	int SetFileSize(double* file_size);
 	/// set geometry id of the current run
 	int SetGeometryId(int* geometry_id);
+
 	/// print information about current run
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */

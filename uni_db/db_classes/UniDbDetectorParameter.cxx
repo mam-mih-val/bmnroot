@@ -14,7 +14,7 @@
 
 #include <fstream>
 
-/* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+/* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
 UniDbDetectorParameter::UniDbDetectorParameter(UniDbConnection* connUniDb, int value_id, TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, unsigned int* dc_serial, int* channel, unsigned char* parameter_value, Long_t size_parameter_value)
 {
@@ -79,7 +79,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 	// inserting new detector parameter to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new detector parameter to the Database has been failed"<<endl;
+		cout<<"ERROR: inserting new detector parameter to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -100,7 +100,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 		// if there is no last id then exit with error
 		if (!stmt_last->NextResultRow())
 		{
-			cout<<"Error: no last ID in DB!"<<endl;
+			cout<<"ERROR: no last ID in DB!"<<endl;
 			delete stmt_last;
 			return 0x00;
 		}
@@ -112,7 +112,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 	}
 	else
 	{
-		cout<<"Error: getting last ID has been failed!"<<endl;
+		cout<<"ERROR: getting last ID has been failed!"<<endl;
 		delete stmt_last;
 		return 0x00;
 	}
@@ -164,7 +164,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(int value_i
 	// get detector parameter from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting detector parameter from the database has been failed"<<endl;
+		cout<<"ERROR: getting detector parameter from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -177,7 +177,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(int value_i
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: detector parameter wasn't found in the database"<<endl;
+		cout<<"ERROR: detector parameter was not found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -233,7 +233,7 @@ bool UniDbDetectorParameter::CheckDetectorParameterExists(int value_id)
 	// get detector parameter from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting detector parameter from the database has been failed"<<endl;
+		cout<<"ERROR: getting detector parameter from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -276,7 +276,7 @@ int UniDbDetectorParameter::DeleteDetectorParameter(int value_id)
 	// delete detector parameter from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting detector parameter from the dataBase has been failed"<<endl;
+		cout<<"ERROR: deleting detector parameter from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -304,7 +304,7 @@ int UniDbDetectorParameter::PrintAll()
 	// get all 'detector parameters' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all 'detector parameters' from the dataBase has been failed"<<endl;
+		cout<<"ERROR: getting all 'detector parameters' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -379,7 +379,7 @@ int UniDbDetectorParameter::SetDetectorName(TString detector_name)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -414,7 +414,7 @@ int UniDbDetectorParameter::SetParameterId(int parameter_id)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -449,7 +449,7 @@ int UniDbDetectorParameter::SetStartPeriod(int start_period)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -484,7 +484,7 @@ int UniDbDetectorParameter::SetStartRun(int start_run)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -519,7 +519,7 @@ int UniDbDetectorParameter::SetEndPeriod(int end_period)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -554,7 +554,7 @@ int UniDbDetectorParameter::SetEndRun(int end_run)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -592,7 +592,7 @@ int UniDbDetectorParameter::SetDcSerial(unsigned int* dc_serial)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -634,7 +634,7 @@ int UniDbDetectorParameter::SetChannel(int* channel)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -673,7 +673,7 @@ int UniDbDetectorParameter::SetParameterValue(unsigned char* parameter_value, Lo
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -697,7 +697,7 @@ void UniDbDetectorParameter::Print()
 
 	return;
 }
-/* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
+/* END OF GENERATED CLASS PART (SHOULD NOT BE CHANGED MANUALLY) */
 
 enumParameterType UniDbDetectorParameter::GetParameterTypeByString(string type_name, bool is_array)
 {

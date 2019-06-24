@@ -174,7 +174,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                          TOF1 hit finder                       === //
     // ====================================================================== //
-    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
+    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kFALSE);
     tof1HP->SetPeriod(run_period);
     //tof1HP->SetOnlyPrimary(kTRUE);
     fRunAna->AddTask(tof1HP);
@@ -182,7 +182,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                          TOF2 hit finder                       === //
     // ====================================================================== //
-    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7.txt", !isExp, iVerbose, kTRUE);
+    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7.txt", !isExp, iVerbose, kFALSE);
     tof2HP->SetTimeResolution(0.115);
     tof2HP->SetMCTimeFile("TOF700_MC_time_run7.txt");
     fRunAna->AddTask(tof2HP);
@@ -251,7 +251,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                          TOF1 hit finder                       === //
     // ====================================================================== //
-    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
+    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kFALSE);
     tof1HP->SetPeriod(run_period);
     //tof1HP->SetOnlyPrimary(kTRUE);
     fRunAna->AddTask(tof1HP);
@@ -259,7 +259,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                          TOF2 hit finder                       === //
     // ====================================================================== //
-    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7.txt", !isExp, iVerbose, kTRUE);
+    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7.txt", !isExp, iVerbose, kFALSE);
     tof2HP->SetTimeResolution(0.115);
     tof2HP->SetMCTimeFile("TOF700_MC_time_run7.txt");
     fRunAna->AddTask(tof2HP);

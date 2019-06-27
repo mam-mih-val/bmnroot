@@ -30,7 +30,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
 
     Bool_t isField = (inputFileName.Contains("noField")) ? kFALSE : kTRUE; // flag for tracking (to use mag.field or not)
     Bool_t isTarget = kTRUE; //kTRUE; // flag for tracking (run with target or not)
-    Bool_t isExp = kTRUE; // flag for hit finder (to create digits or take them from data-file)
+    Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
 
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;

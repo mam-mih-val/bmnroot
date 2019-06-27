@@ -25,7 +25,7 @@ class BmnMwpcGeometrySRC : public TNamed {
 public:
 
     /** Default constructor **/
-    BmnMwpcGeometrySRC();
+  BmnMwpcGeometrySRC(Int_t periodNum, Int_t runNum);//(Int_t periodNum)
 
     /** Destructor **/
     virtual ~BmnMwpcGeometrySRC();
@@ -67,23 +67,36 @@ public:
     }
     
     Double_t GetZPlanePos(Int_t chamber, Int_t plane) {
-        return zPlanePos[chamber][plane];
+        return fZPlanePos[chamber][plane];
     }
     
     TVector3 GetChamberCenter(Int_t chamber);
+    TVector3 GetAxisPrime(Int_t chamber, Int_t axis);
+    Double_t GetTx(Int_t chamber);
+    Double_t GetTy(Int_t chamber);
+    
+    Double_t GetAngleX(Int_t chamber){
+      return fAngleX[chamber];
+    }
+
+    Double_t GetAngleY(Int_t chamber){
+      return fAngleY[chamber];
+    }
     
     Double_t GetZRight(Int_t chamber) {
-        return zRight[chamber];
+        return fZright[chamber];
     }
     
     Double_t GetZLeft(Int_t chamber) {
-        return zLeft[chamber];
+        return fZleft[chamber];
     }
- 
+
 private:
 
-    Short_t fNChambers;
-    Short_t fNPlanes;
+    Int_t fNChambers;
+    Int_t fNPlanes;
+    Int_t kCh_min;
+    Int_t kCh_max;
     Short_t fTimeBin;  // in ns
     Short_t fNWires;   //in one plane
     Double_t fAngleStep;
@@ -93,16 +106,26 @@ private:
     Double_t fPlaneWidth; //in cm
     Double_t fSpaceLeft; //in cm
     Double_t fSpaceRight; //in cm
+ 
+    Double_t *fAngleX;
+    Double_t *fAngleY;
+   
+    Double_t **fZPlanePos;//[4][6];
+    Double_t *fZright;
+    Double_t *fZleft;
+    Double_t *fX;
+    Double_t *fY;
     
-    Double_t zPlanePos[4][6];
-    Double_t zRight[4];
-    Double_t zLeft[4];
-    
+
     Double_t fChamberWidth;
     //    Double_t fDistanceBetweenMWPC;
     Double_t fGlobalZdiff;
     
     Bool_t fDebug;
+
+    TVector3 fOXprime[4];
+    TVector3 fOYprime[4];
+    TVector3 fOZprime[4];
     
     ClassDef(BmnMwpcGeometrySRC, 1);
 };

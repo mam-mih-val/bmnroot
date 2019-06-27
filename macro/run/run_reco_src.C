@@ -136,6 +136,12 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     parFileNameList->Add(&tofDigiFile);
 
     // ====================================================================== //
+    // ===                           MWPC hit finder                      === //
+    // ====================================================================== //
+    BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp, run_period, run_number);
+    fRunAna->AddTask(mwpcHM);
+
+    // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
     BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
@@ -180,6 +186,12 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // ====================================================================== //
     // BmnLANDHitProducer* land = new BmnLANDHitProducer("LAND", !isExp, iVerbose, kTRUE);
     // fRunAna->AddTask(land);
+
+    // ====================================================================== //
+    // ===                          Tracking (MWPC)                       === //
+    // ====================================================================== //
+    BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp, run_period, run_number);
+    fRunAna->AddTask(mwpcTF);
 
     // ====================================================================== //
     // ===                           Tracking                             === //

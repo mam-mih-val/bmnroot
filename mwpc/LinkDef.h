@@ -4,6 +4,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
+#pragma link C++ class  BmnMwpcSegment+;
 #pragma link C++ class  BmnMwpcHitProducer+;
 #pragma link C++ class  BmnMwpcHitFinder+;
 #pragma link C++ class  BmnMwpcGeometry+;

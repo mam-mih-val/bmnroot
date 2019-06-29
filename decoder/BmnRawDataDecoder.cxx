@@ -890,12 +890,12 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             curEventType = headDAQ->GetEventType();
 
             if (curEventType != kBMNPEDESTAL) continue;
-            if (fPedEvCntr != fEvForPedestals - 1) {
+            if (fPedEvCntr != fEvForPedestals) {
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
                 fPedEvCntr++;
             } else break;
         }
-        if (fPedEvCntr != fEvForPedestals - 1) {
+        if (fPedEvCntr != fEvForPedestals) {
             printf(ANSI_COLOR_RED "\n[WARNING]" ANSI_COLOR_RESET);
             printf(" Not enough pedestal events (%d instead of %d)\n", fPedEvCntr, fEvForPedestals);
         }
@@ -916,6 +916,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         UInt_t n = Min(fNevents, nEvForNoiseCorrection);
         for (UInt_t iEv = 0; iEv < n; ++iEv) {
             fRawTree->GetEntry(iEv);
+            BmnEventHeader* headDAQ = eventHeaderDAQ;
+            if (!headDAQ) continue;
+            curEventType = headDAQ->GetEventType();
+            if (curEventType == kBMNPEDESTAL) continue;
             if (fGemMapper) fGemMapper->FillProfiles(adc32);
             if (fSiliconMapper) fSiliconMapper->FillProfiles(adc128);
             if (fCscMapper) fCscMapper->FillProfiles(adc32);
@@ -1521,7 +1525,7 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
     for (Int_t i = 0; i < 2; ++i) getline(inFileCSC, dummy); //comment line in input file
 
     while (!inFileCSC.eof()) {
-        inFileCSC >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy >> dummy;
+        inFileCSC >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
         if (!inFileCSC.good()) break;
         seials.insert(ser);
     }

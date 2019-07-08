@@ -42,10 +42,6 @@ void geometry(FairRunSim *fRun)
     tof2->SetGeometryFileName("tof700_run6_with_support.root");
     fRun->AddModule(tof2);
 
-    FairDetector* emc = new BmnEcal("EMC", kTRUE);
-    emc->SetGeometryFileName("ecal_v1_0.geo");
-    fRun->AddModule(emc);
-
     BmnZdc* zdc = new BmnZdc("ZDC", kTRUE);
     zdc->SetGeometryFileName("zdc_52modules_64layers_v1.geo");
     fRun->AddModule(zdc);

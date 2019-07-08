@@ -68,7 +68,7 @@ void BmnWriteRawInfo(UInt_t period, TString file, TString output_file = "", Writ
     setup[5] = 1; // TOF-700
     setup[6] = 1; // DCH
     setup[7] = 1; // ZDC
-    setup[8] = 1; // ECAL
+    setup[8] = 0; // ECAL
     setup[9] = 0; // LAND
     setup[10] = 0; // CSC
     decoder->SetDetectorSetup(setup);
@@ -85,8 +85,8 @@ void BmnWriteRawInfo(UInt_t period, TString file, TString output_file = "", Writ
     decoder->SetTof700Mapping("TOF700_map_period_7.txt");
     decoder->SetZDCMapping("ZDC_map_period_5.txt");
     decoder->SetZDCCalibration("zdc_muon_calibration.txt");
-    decoder->SetECALMapping("ECAL_map_period_7.txt");
-    decoder->SetECALCalibration("");
+    //decoder->SetECALMapping("ECAL_map_period_7.txt");
+    //decoder->SetECALCalibration("");
     decoder->SetMwpcMapping(TString("MWPC_map_period") + PeriodSetupExt);
     decoder->SetLANDMapping("land_mapping_jinr_triplex.txt");
     decoder->SetLANDPedestal("r0030_land_clock.hh");

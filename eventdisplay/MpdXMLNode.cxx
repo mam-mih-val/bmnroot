@@ -1,5 +1,5 @@
 /*
- * FairXMLNode.cxx
+ * MpdXMLNode.cxx
  *
  *  Created on: 01-10-2013
  *      Author: Daniel Wielanek
@@ -7,28 +7,28 @@
  *		Warsaw University of Technology, Faculty of Physics
  */
 
-#include "FairXMLNode.h"
+#include "MpdXMLNode.h"
 #include "TDOMParser.h"
 #include "TXMLEngine.h"
 #include <iostream>
 
 
-FairXMLNode::FairXMLNode(TString name,TString value) : TNamed(name, value){
+MpdXMLNode::MpdXMLNode(TString name,TString value) : TNamed(name, value){
 	fChildren.SetOwner(kTRUE);
 	fAttrib.SetOwner(kTRUE);
 }
 
-FairXMLNode::FairXMLNode(const FairXMLNode& other):
-		FairXMLNode(other.GetName(),other.GetValue()){
+MpdXMLNode::MpdXMLNode(const MpdXMLNode& other):
+        MpdXMLNode(other.GetName(),other.GetValue()){
 	for(int i=0;i<other.fChildren.GetEntries();i++){
-		fChildren.Add(new FairXMLNode(*other.GetChild(i)));
+        fChildren.Add(new MpdXMLNode(*other.GetChild(i)));
 	}
 	for(int i=0;i<other.fAttrib.GetEntries();i++){
-		fAttrib.Add(new FairXMLAttrib(*other.GetAttrib(i)));
+        fAttrib.Add(new MpdXMLAttrib(*other.GetAttrib(i)));
 	}
 }
 
-FairXMLNode& FairXMLNode::operator =(const FairXMLNode& other) {
+MpdXMLNode& MpdXMLNode::operator =(const MpdXMLNode& other) {
 	if(&other == this)
 	   return *this;
 	SetName(other.GetName());
@@ -36,15 +36,15 @@ FairXMLNode& FairXMLNode::operator =(const FairXMLNode& other) {
 	fChildren.Clear();
 	fAttrib.Clear();
 	for(int i=0;i<other.fChildren.GetEntries();i++){
-		fChildren.Add(new FairXMLNode(*other.GetChild(i)));
+        fChildren.Add(new MpdXMLNode(*other.GetChild(i)));
 	}
 	for(int i=0;i<other.fAttrib.GetEntries();i++){
-		fAttrib.Add(new FairXMLAttrib(*other.GetAttrib(i)));
+        fAttrib.Add(new MpdXMLAttrib(*other.GetAttrib(i)));
 	}
 	return *this;
 }
 
-void FairXMLNode::Copy(TXMLNode* node){
+void MpdXMLNode::Copy(TXMLNode* node){
 	fChildren.Clear();
 	fAttrib.Clear();
 	SetName(node->GetNodeName());
@@ -55,7 +55,7 @@ void FairXMLNode::Copy(TXMLNode* node){
 			if(child==NULL) break;
 			TString name = child->GetNodeName();
 			if(name!="text"){//skip "text" nodes
-				FairXMLNode *tempnode = new FairXMLNode();
+                MpdXMLNode *tempnode = new MpdXMLNode();
 				tempnode->Copy(child);
 				fChildren.Add(tempnode);
 			}
@@ -67,21 +67,21 @@ void FairXMLNode::Copy(TXMLNode* node){
 		TList *atr_list = node->GetAttributes();
 		for(int i=0;i<atr_list->GetEntries();i++){
 			TXMLAttr *atrib = (TXMLAttr*)atr_list->At(i);
-			fAttrib.Add(new FairXMLAttrib(atrib->GetName(),atrib->GetValue()));
+            fAttrib.Add(new MpdXMLAttrib(atrib->GetName(),atrib->GetValue()));
 		}
 	}
 }
 
-void FairXMLNode::AddAttrib(FairXMLAttrib* attrib) {
+void MpdXMLNode::AddAttrib(MpdXMLAttrib* attrib) {
 	TString new_atr = attrib->GetName();
 	if(GetAttrib(new_atr)!=nullptr){
-		std::cout<<"FairXMLNode::AddAttrib Can't have two attributes with the same name!"<<std::endl;
+        std::cout<<"MpdXMLNode::AddAttrib Can't have two attributes with the same name!"<<std::endl;
 		return;
 	}
 	fAttrib.AddLast(attrib);
 }
 
-Int_t FairXMLNode::GetNChildren(TString name) const{
+Int_t MpdXMLNode::GetNChildren(TString name) const{
 	Int_t counter =0;
 	for(int i=0;i<GetNChildren();i++){
 		TString name_temp = GetChild(i)->GetName();
@@ -92,10 +92,10 @@ Int_t FairXMLNode::GetNChildren(TString name) const{
 	return counter;
 }
 
-FairXMLNode* FairXMLNode::GetChild(TString name, Int_t count) const{
+MpdXMLNode* MpdXMLNode::GetChild(TString name, Int_t count) const{
 	Int_t control_index = 0;
 	for(int i=0;i<fChildren.GetEntries();i++){
-		FairXMLNode *node = GetChild(i);
+        MpdXMLNode *node = GetChild(i);
 		TString temp = node->GetName();
 		if(temp==name){
 			control_index++;
@@ -106,49 +106,49 @@ FairXMLNode* FairXMLNode::GetChild(TString name, Int_t count) const{
 	return nullptr;
 }
 
-FairXMLAttrib* FairXMLNode::GetAttrib(TString name) const{
-	return static_cast<FairXMLAttrib*>(fAttrib.FindObject(name));
+MpdXMLAttrib* MpdXMLNode::GetAttrib(TString name) const{
+    return static_cast<MpdXMLAttrib*>(fAttrib.FindObject(name));
 }
 
-FairXMLNode* FairXMLNode::GetChild(Int_t index) const{
-	return static_cast<FairXMLNode*>(fChildren.At(index));
+MpdXMLNode* MpdXMLNode::GetChild(Int_t index) const{
+    return static_cast<MpdXMLNode*>(fChildren.At(index));
 }
 
-FairXMLAttrib* FairXMLNode::GetAttrib(Int_t index) const{
-	return static_cast<FairXMLAttrib*>(fAttrib.At(index));
+MpdXMLAttrib* MpdXMLNode::GetAttrib(Int_t index) const{
+    return static_cast<MpdXMLAttrib*>(fAttrib.At(index));
 }
 
-FairXMLNode::~FairXMLNode() {
+MpdXMLNode::~MpdXMLNode() {
 }
 
-//---------- FairXMLFile ------------------------------------------------------------------------------------
+//---------- MpdXMLFile ------------------------------------------------------------------------------------
 
-FairXMLFile::FairXMLFile(TString name, TString mode) :fName(name){
+MpdXMLFile::MpdXMLFile(TString name, TString mode) :fName(name){
 	if(mode=="read"||mode=="READ"){
 		fOverwrite  = kFALSE;
 		TDOMParser Parser;
 		Parser.SetValidate(kFALSE);
 		Parser.ParseFile(name);
 		TXMLNode *MainNode = Parser.GetXMLDocument()->GetRootNode();
-		fRootNode.reset(new FairXMLNode());
+        fRootNode.reset(new MpdXMLNode());
 		fRootNode->Copy(MainNode);
 	}else{
 		fOverwrite  = kTRUE;
 	}
 }
 
-void FairXMLFile::CreateRootNode(TString name) {
-	fRootNode.reset(new FairXMLNode(name));
+void MpdXMLFile::CreateRootNode(TString name) {
+    fRootNode.reset(new MpdXMLNode(name));
 }
 
-void FairXMLFile::SetRootNode(FairXMLNode *node) {
+void MpdXMLFile::SetRootNode(MpdXMLNode *node) {
 	fRootNode.reset(node);
 }
 
-void FairXMLFile::Close() {
+void MpdXMLFile::Close() {
 	if(fOverwrite){
 		if(!fRootNode){
-			std::cout<<"FairXMLFile::Close() No root node!"<<std::endl;
+            std::cout<<"MpdXMLFile::Close() No root node!"<<std::endl;
 			return;
 		}
 		TXMLEngine engine;
@@ -162,8 +162,8 @@ void FairXMLFile::Close() {
 	}
 }
 
-void FairXMLFile::ExportNode(XMLNodePointer_t& nodePointer,
-		TXMLEngine &engine,const FairXMLNode &node) const {
+void MpdXMLFile::ExportNode(XMLNodePointer_t& nodePointer,
+        TXMLEngine &engine,const MpdXMLNode &node) const {
 	for(int i=0;i<node.GetNChildren();i++){
 		XMLNodePointer_t child = engine.NewChild(nodePointer,0,node.GetChild(i)->GetName(),node.GetChild(i)->GetValue());
 		for(int j=0;j<node.GetChild(i)->GetNAttributes();j++){
@@ -173,7 +173,7 @@ void FairXMLFile::ExportNode(XMLNodePointer_t& nodePointer,
 	}
 }
 
-FairXMLFile::~FairXMLFile() {
+MpdXMLFile::~MpdXMLFile() {
 	if(fRootNode&&fOverwrite)
 		Close();
 }

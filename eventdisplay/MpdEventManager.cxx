@@ -899,57 +899,55 @@ void MpdEventManager::LoadXMLSettings()
     Parser->ParseFile(fXMLConfig);
 
     TXMLNode* MainNode = Parser->GetXMLDocument()->GetRootNode();
-    FairXMLNode* xml = new FairXMLNode(MainNode);
+    MpdXMLFile xmlfile(fXMLConfig,"read");
+    MpdXMLNode* xml = xmlfile.GetRootNode();
     for (int i = 0; i < xml->GetNChildren(); i++)
     {
         TString nodename = xml->GetChild(i)->GetName();
         if (nodename.EqualTo("Detectors"))
         {
             TGeoNode* top = gGeoManager->GetTopNode();
-            FairXMLNode* top_xml = xml->GetChild(i)->GetChild(0);
-            if (!top_xml->IsNull())
+            MpdXMLNode* top_xml = xml->GetChild(i)->GetChild(0);
+            if(top_xml != nullptr)
                 LoadXMLDetector(top, top_xml);
         }
         else if (nodename.EqualTo("MCTracksColors"))
         {
-            FairXMLNode* colors = xml->GetChild(i);
+            MpdXMLNode* colors = xml->GetChild(i);
             for (int j = 0; j < colors->GetNChildren(); j++)
             {
-                FairXMLNode* color = colors->GetChild(j);
-                TString pgd_code = color->GetAttribValue("pdg");
-                TString color_code = color->GetAttribValue("color");
+                MpdXMLNode* color = colors->GetChild(j);
+                TString pgd_code = color->GetAttrib("pdg")->GetValue();
+                TString color_code = color->GetAttrib("color")->GetValue();
                 fPDGToColor[pgd_code.Atoi()] = StringToColor(color_code);
             }
         }
     }
-
-    delete xml;
-    delete Parser;
 }
 
-void MpdEventManager::LoadXMLDetector(TGeoNode* node, FairXMLNode* xml, Int_t depth)
+void MpdEventManager::LoadXMLDetector(TGeoNode* node, MpdXMLNode* xml, Int_t depth)
 {
-    TString name = xml->GetAttribValue("name");
+    TString name = xml->GetAttrib("name")->GetValue();
     TString node_name = node->GetName();
 
-    Bool_t recursive = (xml->GetAttribValue("recursive").Length() != 0 && !name.EqualTo(node_name));
+    Bool_t recursive = (xml->GetAttrib("recursive")->GetValue().Length()!=0&&!name.EqualTo(node_name));
     if (recursive && depth == 0)
         return;
 
-    TString color = xml->GetAttribValue("color");
+    TString color = xml->GetAttrib("color")->GetValue();
     if (!color.EqualTo(""))
     {
         node->GetVolume()->SetFillColor(StringToColor(color));
         node->GetVolume()->SetLineColor(StringToColor(color));
     }
 
-    TString transparency = xml->GetAttribValue("transparency");
+    TString transparency = xml->GetAttrib("transparency")->GetValue();
     if (!transparency.EqualTo(""))
         node->GetVolume()->SetTransparency((Char_t)(transparency.Atoi()));
 
-    if (xml->GetAttribValue("recursive").Length() > 0)
+    if (xml->GetAttrib("recursive")->GetValue().Length()>0)
     {
-        TString val = xml->GetAttribValue("recursive");
+        TString val = xml->GetAttrib("recursive")->GetValue();
         Int_t xml_depth = val.Atoi();
         if (recursive)
             xml_depth =depth-1;
@@ -968,8 +966,8 @@ void MpdEventManager::LoadXMLDetector(TGeoNode* node, FairXMLNode* xml, Int_t de
             TString subdetector_name = node->GetDaughter(i)->GetName();
             for (int j = 0; j < xml->GetNChildren(); j++)
             {
-                FairXMLNode* subnode = xml->GetChild(j);
-                TString subnode_name = subnode->GetAttribValue("name");
+                MpdXMLNode* subnode = xml->GetChild(j);
+                TString subnode_name = subnode->GetAttrib("name")->GetValue();
                 if (subnode_name == subdetector_name)
                     LoadXMLDetector(node->GetDaughter(i), subnode);
             }

@@ -31,8 +31,8 @@ MpdBoxSetEditor.cxx
 MpdPointSetDraw.cxx
 MpdMCPointDraw.cxx
 MpdHitDraw.cxx
+MpdXMLNode.cxx
 MpdHitPointSetDraw.cxx
-FairXMLNode.cxx
 MpdWebScreenshots.cxx
 )
 

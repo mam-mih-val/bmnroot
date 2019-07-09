@@ -6,8 +6,8 @@
  *		E-mail: daniel.wielanek@gmail.com
  *		Warsaw University of Technology, Faculty of Physics
  */
-#ifndef FAIRXLMNODE_H_
-#define FAIRXLMNODE_H_
+#ifndef MPDXLMNODE_H
+#define MPDXLMNODE_H
 #include <TXMLNode.h>
 #include <TList.h>
 #include <TXMLAttr.h>
@@ -17,18 +17,18 @@
 /**
  * class for representing node attributes
  */
-class FairXMLAttrib: public TNamed{
+class MpdXMLAttrib: public TNamed{
 public :
 	/**
 	 * default constructor
 	 */
-	FairXMLAttrib():TNamed(){}
+    MpdXMLAttrib():TNamed(){}
 	/**
 	 * default constructor
 	 * @param name name of attribute
 	 * @param value value of attribute
 	 */
-	FairXMLAttrib(TString name, TString value){
+    MpdXMLAttrib(TString name, TString value){
 		SetName(name);
 		SetTitle(value);}
 	/**
@@ -41,13 +41,13 @@ public :
 	 * @param val value of node to se
 	 */
 	void SetValue(TString val){SetTitle(val);};
-	virtual ~FairXMLAttrib(){};
-	ClassDef(FairXMLAttrib,1)
+    virtual ~MpdXMLAttrib(){};
+    ClassDef(MpdXMLAttrib,1)
 };
 /**
  * class for representing XML node
  */
-class FairXMLNode : public TNamed{
+class MpdXMLNode : public TNamed{
 	TList fChildren;
 	TList fAttrib;
 public:
@@ -55,19 +55,19 @@ public:
 	 * copy constructor
 	 * @param other
 	 */
-	FairXMLNode(const FairXMLNode &other);
+    MpdXMLNode(const MpdXMLNode &other);
 	/**
 	 * default constructor
 	 * @param name name of node
 	 * @param value value of node
 	 */
-	FairXMLNode(TString name="",TString value="");
+    MpdXMLNode(TString name="",TString value="");
 	/**
 	 * assignement operator
 	 * @param node
 	 * @return
 	 */
-	FairXMLNode& operator=(const FairXMLNode &other);
+    MpdXMLNode& operator=(const MpdXMLNode &other);
 	/**
 	 * copy data for node to this
 	 * @param node
@@ -83,12 +83,12 @@ public:
 	 *  parent node
 	 * @param node node to add
 	 */
-	void AddChild(FairXMLNode *node){fChildren.AddLast(node);};
+    void AddChild(MpdXMLNode *node){fChildren.AddLast(node);};
 	/**
 	 * add attribute to this class
 	 * @param attrib
 	 */
-	void AddAttrib(FairXMLAttrib *attrib);
+    void AddAttrib(MpdXMLAttrib *attrib);
 	/**
 	 *
 	 * @return number of childen nodes
@@ -115,45 +115,45 @@ public:
 	 * @param name name of atribute
 	 * @return
 	 */
-	FairXMLAttrib *GetAttrib(TString name)const;
+    MpdXMLAttrib *GetAttrib(TString name)const;
 	/**
 	 *
 	 * @param index index of atrribute
 	 * @return
 	 */
-	FairXMLAttrib *GetAttrib(Int_t index)const;
+    MpdXMLAttrib *GetAttrib(Int_t index)const;
 	/**
 	 *  search for node with given name
 	 * @param name name of node
 	 * @param count number of node (if more than one with given name exist)
 	 * @return node
 	 */
-	FairXMLNode *GetChild(TString name, Int_t count =0) const;
+    MpdXMLNode *GetChild(TString name, Int_t count =0) const;
 	/**
 	 *
 	 * @param index child number
 	 * @return child at given position
 	 */
-	FairXMLNode *GetChild(Int_t index) const;
-	virtual ~FairXMLNode();
-	ClassDef(FairXMLNode,1)
+    MpdXMLNode *GetChild(Int_t index) const;
+    virtual ~MpdXMLNode();
+    ClassDef(MpdXMLNode,1)
 };
 
 /**
  * class for opening XML files
  */
-class FairXMLFile: public TObject{
-	std::unique_ptr<FairXMLNode> fRootNode;
+class MpdXMLFile: public TObject{
+    std::unique_ptr<MpdXMLNode> fRootNode;
 	TString fName;
 	Bool_t fOverwrite;
-	void ExportNode(XMLNodePointer_t &nodePointer, TXMLEngine &engine,const FairXMLNode &node) const;
+    void ExportNode(XMLNodePointer_t &nodePointer, TXMLEngine &engine,const MpdXMLNode &node) const;
 public:
 	/**
 	 *
 	 * @param name name of xml file
 	 * @param mode if "READ" or "read" - only read file, otherwise create /overwrite file
 	 */
-	FairXMLFile(TString name="", TString mode="read");
+    MpdXMLFile(TString name="", TString mode="read");
 	/**
 	 * create new root node
 	 * @param name name of new node
@@ -163,12 +163,12 @@ public:
 	 * set new root node, old node will be overwritten
 	 * @param node root node
 	 */
-	void SetRootNode(FairXMLNode *node);
+    void SetRootNode(MpdXMLNode *node);
 	/**
 	 *
 	 * @return root node
 	 */
-	FairXMLNode *GetRootNode()const{return fRootNode.get();};
+    MpdXMLNode *GetRootNode()const{return fRootNode.get();};
 	/**
 	 * close and write xml (if needed)
 	 */
@@ -176,8 +176,8 @@ public:
 	/**
 	 * destroy object (and save xml file if needed and Close was not called)
 	 */
-	virtual ~FairXMLFile();
-	ClassDef(FairXMLFile,1)
+    virtual ~MpdXMLFile();
+    ClassDef(MpdXMLFile,1)
 };
 
-#endif /* FAIRXLMNODE_H_ */
+#endif /* MPDXLMNODE_H */

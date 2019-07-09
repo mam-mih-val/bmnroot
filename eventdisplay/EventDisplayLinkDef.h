@@ -6,6 +6,7 @@
 
 #pragma link C++ class FairXMLAttrib;
 #pragma link C++ class FairXMLNode;
+#pragma link C++ class FairXMLFile;
 #pragma link C++ class MpdEventManager;
 #pragma link C++ class MpdMCTracks;
 #pragma link C++ class MpdMCStack;

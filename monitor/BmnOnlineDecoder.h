@@ -24,7 +24,6 @@
 #include "TSocket.h"
 #include "TString.h"
 #include "TBuffer.h"
-#include <root/TPRegexp.h>
 #include "TObjString.h"
 #include <FairRunAna.h>
 // BmnRoot

@@ -13,8 +13,6 @@
 
 #include <algorithm>
 #include <numeric>
-#include <root/TNamed.h>
-#include <root/TH1.h>
 
 #include "BmnHistGem.h"
 #include "BmnRawDataDecoder.h"

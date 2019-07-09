@@ -8,8 +8,7 @@
 #include <sys/epoll.h>
 #include <fcntl.h>
 
-#include <root/TLatex.h>
-#include <root/TLegend.h>
+#include <TLatex.h>
 
 #include "BmnMonitor.h"
 

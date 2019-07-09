@@ -1,5 +1,3 @@
-#include <root/Rtypes.h>
-
 #include "BmnTof1Raw2Digit.h"
 
 //	Written by JINR summer programme 2016 student Kurganov Alexander

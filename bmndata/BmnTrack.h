@@ -37,6 +37,7 @@ public:
      ** and writes the hit indices into the member fHits
      **/
     void SortHits();
+    void DeleteHits() {fHitMap.clear(); fNhits=0;};
 
     /** Accessors  **/
 

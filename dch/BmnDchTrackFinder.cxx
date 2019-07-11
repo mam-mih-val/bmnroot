@@ -28,9 +28,11 @@
 static Double_t workTime = 0.0;
 //added
 TString                   fhTestFlnm;
+TList                     fhList;
 TH1D             *Ntrack1;
 TH1D             *Ntrack2;
 
+TH2F *hXvsAx;
 TH1F *hYa_wireOccupancy;
 TH1F *hYb_wireOccupancy;
 TH1F *haX2_aX1;
@@ -103,7 +105,8 @@ BmnDchTrackFinder::BmnDchTrackFinder(Bool_t isExp) :
   haY = new TH1F("haY", "aY", 100,-0.1,0.15);
   hlocXY1 = new TH2F("hlocXY1"," (X,Y) local coord of a seg in dc1",  240,-120,120,240,-120,120);
   hlocXY2 = new TH2F("hlocXY2"," (X,Y) local coord of a seg in dc2",  240,-120,120,240,-120,120);
-  fhList.Add(hSlot_1xa_time);
+ hXvsAx = new TH2F("hXvsAx"," X coord of a seg in dc1 vs x slope",  240,-120,120,100,-10,10); 
+ fhList.Add(hSlot_1xa_time);
   fhList.Add(hSlot_1xb_time);
   fhList.Add(haX2_aX1);
   fhList.Add(haY2_aY1);
@@ -137,14 +140,15 @@ BmnDchTrackFinder::BmnDchTrackFinder(Bool_t isExp) :
   fhList.Add(haY);
   fhList.Add(hlocXY1);
   fhList.Add(hlocXY2);
-
+  fhList.Add(hXvsAx);
   //end
 
   fEventNo = 0;
   N = 15;//needs to be adjusted according to hit multiplicity
   tracksDch = "BmnDchTrack";
   InputDigitsBranchName = "DCH";
-  fTransferFunctionName = "transfer_func.txt";
+//  fTransferFunctionName = "transfer_func2320.txt";
+  fTransferFunctionName = "transfer_func2332.txt";
 
   prev_wire = -1;
   prev_time = -1;
@@ -161,6 +165,8 @@ BmnDchTrackFinder::BmnDchTrackFinder(Bool_t isExp) :
   dZ_dch = Z_dch2 - Z_dch1;
 
   // Some alignment corrections
+ 
+  //argon
   x1_sh = 0;//15.77;//10.5;
   x2_sh = -5.9;//-0.97;//4.33;
   y1_sh = 0;//-2.86;//2.47;
@@ -171,6 +177,17 @@ BmnDchTrackFinder::BmnDchTrackFinder(Bool_t isExp) :
   x2_slope_sh = -0.007;//-0.07;//-0.077;
   y2_slope_sh = -0.007;//0.069;//0.077;
 
+  //src
+  x1_sh = 0;//11.2;//-8.56;//run6 10.9;// 5.34;//5.14;//10.31; //
+  x2_sh = 8.60;//9.-3.5;//0.0;//run6 5.56;//0;//7.95;// //
+  y1_sh = 0;//1.76;//5.76;//run6 -1.19;//0;//-1.03;
+  y2_sh = -12.40;//1.8;//-7.1;//run6 -2.47;//-1.38;//-3.7;
+
+  x1_slope_sh = 0;
+  y1_slope_sh = 0;                                                                              
+  x2_slope_sh = 0.;                                                                                                 
+  y2_slope_sh = 0.007;
+ 
 
   scale = 0.5;
 }
@@ -271,8 +288,6 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
   delete [] rh_segment;
   delete [] rh_sigm_segment;
   delete [] singles;
-
-  fhList.Delete();
 }
 
 void BmnDchTrackFinder::Exec(Option_t* opt) {
@@ -464,7 +479,7 @@ void BmnDchTrackFinder::SegmentsToBeMatched() {
 	double chi2_Match = (((dx*dx)/sigma2_dx) + ((dy*dy)/sigma2_dy) + ((daX*daX)/sigma2_dax) + ((daY*daY)/sigma2_day))
 	  /(segment_size[0][segdc1Nr] + segment_size[1][segdc2Nr] - 8);
 
-       	if((segment_size[0][segdc1Nr] + segment_size[1][segdc2Nr]) < 13 ) continue;
+       	if((segment_size[0][segdc1Nr] + segment_size[1][segdc2Nr]) < 12 ) continue;
 	if(fabs(dx) > 8. || fabs(dy) > 10. || fabs(daX) > 0.1 || fabs(daY) > 0.14 ) continue;
 	chi2_Match_min = chi2_Match;
 	best1 = segdc1Nr;
@@ -525,7 +540,7 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
       Double_t x_est = isqrt_2 * (VX - UX);
       Double_t y_est = isqrt_2 * (UY + VY);
       if (pairX > 0) {
-	Double_t dX_thresh = 0.5;
+	Double_t dX_thresh = 1.2;
 	for (Int_t k = 0; k < pairX; k++) {
 	  Double_t x_coord = (x_ab[0][k] + x_ab[1][k]) / 2;
 	  if (nDC_segments > 25*N - 1)
@@ -555,7 +570,7 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
 
       Bool_t foundY = kFALSE;
       if (pairY > 0) {
-	Double_t dY_thresh = 0.5;
+	Double_t dY_thresh = 1.2;
 	for (Int_t m = 0; m < pairY; m++) {
 	  if (nDC_segments > 25*N - 1)
 	    break;
@@ -580,7 +595,7 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
 	    Double_t min_a = 999;
 	    Double_t min_b = 999;
 	    for (Int_t kk = 0; kk < single_xa; kk++) {
-	      if (Abs(x_single[1][kk] - x_est) > 0.5)
+	      if (Abs(x_single[1][kk] - x_est) > 1.2)
 		continue; //????? 0.5 needs to be reviewed
 
 	      if (Abs(x_single[0][kk] - x_est) < min_a) {
@@ -592,7 +607,7 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
 	    }//for kk
 	    for (Int_t kk = 0; kk < single_xb; kk++) {
 
-	      if (Abs(x_single[1][kk] - x_est) > 0.5)
+	      if (Abs(x_single[1][kk] - x_est) > 1.2)
 		continue; //????? 0.5 needs to be reviewed
 	      if (Abs(x_single[1][kk] - x_est) < min_b) {
 		min_b = Abs(x_single[1][kk] - x_est);
@@ -609,7 +624,7 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
 	  Double_t min_a = 999;
 	  Double_t min_b = 999;
 	  for (Int_t kk = 0; kk < single_ya; kk++) {
-	    if (Abs(y_single[0][kk] - y_est) > 0.5)
+	    if (Abs(y_single[0][kk] - y_est) > 1.2)
 	      continue; //????? 0.5 needs to be reviewed
 	    if (Abs(y_single[0][kk] - y_est) < min_a) {
 	      min_a = Abs(y_single[0][kk] - y_est);
@@ -619,7 +634,7 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
 	    }
 	  }//for kk
 	  for (Int_t kk = 0; kk < single_yb; kk++) {
-	    if (Abs(y_single[1][kk] - y_est) > 0.5)
+	    if (Abs(y_single[1][kk] - y_est) > 1.2)
 	      continue; //????? 0.5 needs to be reviewed
 	    if (Abs(y_single[1][kk] - y_est) < min_b) {
 	      min_b = Abs(y_single[1][kk] - y_est);
@@ -664,7 +679,7 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
       Double_t u_est = isqrt_2 * (YU - XU);
       Double_t v_est = isqrt_2 * (YV + XV);
 
-      Double_t dU_thresh = 0.5;
+      Double_t dU_thresh = 1.2;
       for (Int_t k = 0; k < pairU; k++) {
 	Double_t u_coord = (u_ab[0][k] + u_ab[1][k]) / 2;
 
@@ -692,7 +707,7 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
 
       Bool_t foundV = kFALSE;
 
-      Double_t dV_thresh = 0.5;
+      Double_t dV_thresh = 1.2;
       for (Int_t m = 0; m < pairV; m++) {
 	if (nDC_segments > 25*N - 1)
 	  break;
@@ -720,7 +735,7 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
 	  Double_t min_a = 999;
 	  Double_t min_b = 999;
 	  for (Int_t kk = 0; kk < single_ua; kk++) {
-	    if (Abs(u_single[0][kk] - u_est) > 0.5)
+	    if (Abs(u_single[0][kk] - u_est) > 1.2)
 	      continue; //????? 0.5 needs to be reviewed
 	    if (Abs(u_single[0][kk] - u_est) < min_a) {
 	      min_a = Abs(u_single[0][kk] - u_est);
@@ -730,7 +745,7 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
 	    }
 	  }//for kk
 	  for (Int_t kk = 0; kk < single_ub; kk++) {
-	    if (Abs(u_single[1][kk] - u_est) > 0.5)
+	    if (Abs(u_single[1][kk] - u_est) > 1.2)
 	      continue; //????? 0.5 needs to be reviewed
 	    if (Abs(u_single[1][kk] - u_est) < min_b) {
 	      min_b = Abs(u_single[1][kk] - u_est);
@@ -751,7 +766,7 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
 	Double_t min_a = 999;
 	Double_t min_b = 999;
 	for (Int_t kk = 0; kk < single_va; kk++) {
-	  if (Abs(v_single[0][kk] - v_est) > 0.5)
+	  if (Abs(v_single[0][kk] - v_est) > 1.2)
 	    continue; //????? 0.5 needs to be reviewed
 	  if (Abs(v_single[0][kk] - v_est) < min_a) {
 	    min_a = Abs(v_single[0][kk] - v_est);
@@ -761,7 +776,7 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
 	  }
 	}//for kk
 	for (Int_t kk = 0; kk < single_vb; kk++) {
-	  if (Abs(v_single[1][kk] - v_est) > 0.5)
+	  if (Abs(v_single[1][kk] - v_est) > 1.2)
 	    continue; //????? 0.5 needs to be reviewed
 	  if (Abs(v_single[1][kk] - v_est) < min_b) {
 	    min_b = Abs(v_single[1][kk] - v_est);
@@ -945,9 +960,13 @@ void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Double_t* chi2Arr, Double_t*
     Double_t z0 = (dchID == 1) ? Z_dch1 : Z_dch2;
     Double_t x0 = parArr[1][iSegment];
     Double_t y0 = parArr[3][iSegment];
-    trackParam.SetPosition(TVector3(-x0, y0, z0));
-    trackParam.SetTx(-parArr[0][iSegment]);
-    trackParam.SetTy(parArr[2][iSegment]);
+    Double_t x_align = (dchID == 1) ? -9.25-1.45+1.28 : +5.129-1.82+2.03;
+    Double_t y_align = (dchID == 1) ? -3.78+0.16 : +8.67+0.16;
+    Double_t tx_align = (dchID == 1) ? +0.073 : +0.070; 
+    Double_t ty_align = (dchID == 1) ? +0.059 : +0.062;
+    trackParam.SetPosition(TVector3(-x0 + x_align, y0 + y_align, z0));
+    trackParam.SetTx(- parArr[0][iSegment] + tx_align);
+    trackParam.SetTy(parArr[2][iSegment] + ty_align);
     trackParam.SetCovariance(0,0,sigm_seg_par[0][iSegment]*sigm_seg_par[0][iSegment]);  // bx^2
     trackParam.SetCovariance(1,1,sigm_seg_par[1][iSegment]*sigm_seg_par[1][iSegment]);  // ax^2
     trackParam.SetCovariance(2,2,sigm_seg_par[2][iSegment]*sigm_seg_par[2][iSegment]);  // by^2
@@ -962,7 +981,7 @@ void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Double_t* chi2Arr, Double_t*
       hx1->Fill(parArr[1][iSegment]);
       hy1->Fill(parArr[3][iSegment]);
       hlocXY1->Fill(rh_seg[0][iSegment],rh_seg[2][iSegment]);
-    
+      hXvsAx->Fill(parArr[1][iSegment],-parArr[0][iSegment]);
     }else{
       haX2->Fill(-parArr[0][iSegment]);
       haY2->Fill(parArr[2][iSegment]);
@@ -982,11 +1001,11 @@ void BmnDchTrackFinder::CreateDchTrack() {
   for (Int_t iSeg = 0; iSeg < nSegmentsToBeMatched + 1; iSeg++) {
     FairTrackParam trackParam;
     Double_t z0 = Z_dch_mid;
-    Double_t x0 = x_mid[iSeg];
+    Double_t x0 = -x_mid[iSeg];
     Double_t y0 = y_mid[iSeg];
-    trackParam.SetPosition(TVector3(-x0, y0, z0)); // Go to right reference frame
-    trackParam.SetTx(-aX[iSeg]); // Go to right reference frame
-    trackParam.SetTy(aY[iSeg]);
+    trackParam.SetPosition(TVector3(x0 - 3.25, y0 + 4.91, z0)); // Go to right reference frame
+    trackParam.SetTx(aX[iSeg] + 0.073); // Go to right reference frame
+    trackParam.SetTy(aY[iSeg] + 0.061);
     Int_t iseg1 = int((pairID[iSeg]-1000)/1000); 
     Int_t iseg2 = (pairID[iSeg]%1000) - 1;
     Double_t sigma2_dx = ((params_sigmas[1][0][iseg2]*params_sigmas[1][0][iseg2])+

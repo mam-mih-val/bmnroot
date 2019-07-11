@@ -10,7 +10,8 @@
 // nStartEvent - number of first event to process (starts with zero), default: 0
 // nEvents - number of events to process, 0 - all events of given file will be processed
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
-
+R__LOAD_LIBRARY(libBmnAlignment.so)
+R__LOAD_LIBRARY(libSilicon.so)
 void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", TString srcdstFileName = "$VMCWORKDIR/macro/run/srcdst.root", Int_t nStartEvent = 0, Int_t nEvents = 10) {
     // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
@@ -32,7 +33,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
 
-    // -2 means use of the SRC-setup when processing MC-input  
+    // -2 means use of the SRC-setup when processing MC-input
     // DO NOT change it manually!
     Int_t run_period = 7, run_number = -2;
     Double_t fieldScale = 0.;
@@ -138,16 +139,16 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
-    BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp, run_period, run_number);
-    fRunAna->AddTask(mwpcHM);
+    // BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp, run_period, run_number);
+    // fRunAna->AddTask(mwpcHM);
 
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
-    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
-    if (!isExp)
-        siliconHM->SetCurrentConfig(BmnSiliconConfiguration::RunSRCSpring2018); //set explicitly
-    fRunAna->AddTask(siliconHM);
+    // BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
+    // if (!isExp)
+    //     siliconHM->SetCurrentConfig(BmnSiliconConfiguration::RunSRCSpring2018); //set explicitly
+    // fRunAna->AddTask(siliconHM);
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
@@ -169,9 +170,9 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // ====================================================================== //
     // ===                         TOF400 hit finder                      === //
     // ====================================================================== //
-    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
-    tof1HP->SetPeriod(run_period);
-    fRunAna->AddTask(tof1HP);
+    // BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
+    // tof1HP->SetPeriod(run_period);
+    // fRunAna->AddTask(tof1HP);
 
     // ====================================================================== //
     // ===                         TOF700 hit finder                      === //
@@ -190,8 +191,8 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // ====================================================================== //
     // ===                          Tracking (MWPC)                       === //
     // ====================================================================== //
-    BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp, run_period, run_number);
-    fRunAna->AddTask(mwpcTF);
+    // BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp, run_period, run_number);
+    // fRunAna->AddTask(mwpcTF);
 
     // ====================================================================== //
     // ===                           Tracking                             === //

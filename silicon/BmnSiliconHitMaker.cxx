@@ -277,7 +277,7 @@ void BmnSiliconHitMaker::ProcessDigits() {
 
 void BmnSiliconHitMaker::Finish() {
     delete StationSet;
-    cout << "Work time of the Silicon hit maker: " << workTime << endl;
+    if (fVerbose > 0) cout << "Work time of the Silicon hit maker: " << workTime << endl;
 }
 
 ClassImp(BmnSiliconHitMaker)

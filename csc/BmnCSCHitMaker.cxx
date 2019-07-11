@@ -251,7 +251,7 @@ void BmnCSCHitMaker::ProcessDigits() {
                 //--------------------------------------------------------------
 
                 //Add hit ------------------------------------------------------
-                x *= -1; // invert to global X
+                //x *= -1; // invert to global X //Temporary switched off
 
                 new ((*fBmnCSCHitsArray)[fBmnCSCHitsArray->GetEntriesFast()])
                         BmnCSCHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
@@ -293,7 +293,7 @@ void BmnCSCHitMaker::Finish() {
         TransfSet = nullptr;
     }
 
-    cout << "Work time of the CSC hit maker: " << workTime << endl;
+    if (fVerbose > 0) cout << "Work time of the CSC hit maker: " << workTime << endl;
 }
 
 ClassImp(BmnCSCHitMaker)

@@ -230,12 +230,13 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
     Int_t clear_matched_points_cnt = 0; // points with the only one match-index
 
-     //for SRC only!!! //Temporary! FIXME: move into DB
-    Double_t alignX[StationSet->GetNStations()] = {0.0, 0.0, 0.0, 0.0, +0.163, -0.061, -0.038, -0.037, +0.003, +0.074};
-    Double_t alignY[StationSet->GetNStations()] = {0.0, 0.0, 0.0, 0.0, -0.009, -0.080, +0.074, +0.009, +0.036, -0.089};
+    //for SRC only!!! //Temporary! FIXME: move into DB
+    const Int_t nSt = 10;
+    Double_t alignX[nSt] = {0.0, 0.0, 0.0, 0.0, +0.163, -0.061, -0.038, -0.037, +0.003, +0.074};
+    Double_t alignY[nSt] = {0.0, 0.0, 0.0, 0.0, -0.009, -0.080, +0.074, +0.009, +0.036, -0.089};
     const Int_t nFields = 6;
         
-    Double_t dX_ls[StationSet->GetNStations()][nFields] = {
+    Double_t dX_ls[nSt][nFields] = {
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
@@ -248,7 +249,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
         {0.0, +0.03, +0.02, +0.03, -0.01, +0.04}
     };
 
-    Double_t dY_ls[StationSet->GetNStations()][nFields] = {
+    Double_t dY_ls[nSt][nFields] = {
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},

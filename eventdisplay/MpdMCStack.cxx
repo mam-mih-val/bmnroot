@@ -46,7 +46,7 @@ InitStatus MpdMCStack::Init()
     fTrackList = (TClonesArray*) fManager->GetObject("MCTrack");
     if (fTrackList == 0)
     {
-        LOG(ERROR)<<"MpdMCStack::Init() branch "<<GetName()<<" not found! Task will be deactivated"<<FairLogger::endl;
+        LOG(ERROR)<<"MpdMCStack::Init() branch "<<GetName()<<" not found! Task will be deactivated";
         SetActive(kFALSE);
     }
     if (fVerbose > 2)

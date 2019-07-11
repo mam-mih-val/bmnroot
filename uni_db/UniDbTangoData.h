@@ -95,7 +95,7 @@ class UniDbTangoData
     //  mapChannel - array of integer values (map) to change the order of result TObjArray-s in the common result array, if, for example, channels go in a different sequence; NULL - if not used
     // Returns common TObjArray with TObjArray objects containing TangoTimeInterval (i.e. conditionally TObjArray<TObjArray<TangoTimeInterval*>>),
     // if no intervals found - returns the common TObjArray with zero TObjArray elements; in case of errors - returns NULL
-    TObjArray* SearchTangoIntervals(char* detector_name, char* parameter_name, char* date_start, char* date_end,  enumConditions condition = conditionEqual, bool value = true, int* mapChannel = NULL);
+    TObjArray* SearchTangoIntervals(const char* detector_name, const char* parameter_name, const char* date_start, const char* date_end,  enumConditions condition = conditionEqual, bool value = true, int* mapChannel = NULL);
 
     // Function PrintTangoDataConsole displays hardware data obtained from Tango, e.g. ZDC voltage in time interval, in console
     // Parameter: tango_data - TObjArray with TangoTimeParameter objects obtained from 'GetTangoParameter' function

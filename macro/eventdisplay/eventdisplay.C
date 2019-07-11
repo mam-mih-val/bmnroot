@@ -1,4 +1,3 @@
-#include "../run/bmnloadlibs.C"
 void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_number, bool isField, bool isTarget);
 
 // common EVENT DISPLAY macro for simulated and experimental data
@@ -21,13 +20,6 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root
 {
     gDebug = 0;
 
-    // load main libraries
-    bmnloadlibs();
-
-    // load Event Display libraries
-    gSystem->Load("libEve");
-    gSystem->Load("libEventDisplay");
-
     // CREATE FairRunAna
     FairRunAna* fRunAna = new FairRunAna();
 
@@ -39,7 +31,7 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root
     if (data_source == 0)
     {
         // check file existence with MC data and detector geometry
-        if (!CheckFileExist(sim_run_info))
+        if (!BmnFunctionSet::CheckFileExist(sim_run_info))
         {
             cout<<endl<<"ERROR: Simulation file with detector geometry wasn't found!"<<endl;
             return;
@@ -56,7 +48,7 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root
         rtdb->saveOutput();
 
         // add file with reconstructed data as a friend
-        if (CheckFileExist(reco_file))
+        if (BmnFunctionSet::CheckFileExist(reco_file))
             ((FairFileSource*)fFileSource)->AddFriend(reco_file);
         else
             cout<<endl<<"Warning: File with reconstructed data wasn't found!"<<endl;
@@ -142,7 +134,7 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root
             return;
         }
 
-        if (!CheckFileExist(reco_file)) return;
+        if (!BmnFunctionSet::CheckFileExist(reco_file)) return;
 
         // set source as raw data file
         if (data_source == 1)
@@ -172,7 +164,7 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root
     fMan->iDataSource = data_source;
 
     // set output file
-    fRunAna->SetOutputFile("ed_out.root");
+    fRunAna->SetSink(new FairRootFileSink("ed_out.root"));
 
     // set tasks to draw
     SetTasks(fMan, data_source, run_period, run_number, isField, isTarget);

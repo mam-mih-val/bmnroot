@@ -46,7 +46,7 @@ InitStatus FairMCModuleDraw::Init()
   fPointList = (TClonesArray*) fManager->GetObject(GetName());
   if(fPointList == 0)
   {
-    LOG(ERROR)<<"FairMCModuleDraw::Init() branch "<< GetName()<<" not found! Task will be deactivated"<<FairLogger::endl;
+    LOG(ERROR)<<"FairMCModuleDraw::Init() branch "<< GetName()<<" not found! Task will be deactivated";
     SetActive(kFALSE);
   }
   if (fVerbose > 2) cout<<"FairMCModuleDraw::Init() get point list"<<fPointList<<endl;

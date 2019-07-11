@@ -52,9 +52,9 @@ BmnFileSource::BmnFileSource(TFile *f, const char* Title, UInt_t identifier)
   ,fCheckFileLayout(kTRUE)
 {
     if (fRootFile->IsZombie())
-        LOG(FATAL)<<"Error opening the Input file"<<FairLogger::endl;
+        LOG(FATAL)<<"Error opening the Input file";
 
-    LOG(DEBUG)<<"BmnFileSource created------------"<<FairLogger::endl;
+    LOG(DEBUG)<<"BmnFileSource created------------";
 }
 
 //_____________________________________________________________________________
@@ -94,9 +94,9 @@ BmnFileSource::BmnFileSource(const TString* RootFileName, const char* Title, UIn
 {
     fRootFile = new TFile(RootFileName->Data());
     if (fRootFile->IsZombie())
-        LOG(FATAL)<<"Error opening the Input file"<<FairLogger::endl;
+        LOG(FATAL)<<"Error opening the Input file";
 
-    LOG(DEBUG)<<"BmnFileSource created------------"<<FairLogger::endl;
+    LOG(DEBUG)<<"BmnFileSource created------------";
 }
 
 //_____________________________________________________________________________
@@ -136,9 +136,9 @@ BmnFileSource::BmnFileSource(const TString RootFileName, const char* Title, UInt
 {
     fRootFile = new TFile(RootFileName.Data());
     if (fRootFile->IsZombie())
-        LOG(FATAL)<<"Error opening the Input file"<<FairLogger::endl;
+        LOG(FATAL)<<"Error opening the Input file";
 
-    LOG(DEBUG)<<"BmnFileSource created------------"<<FairLogger::endl;
+    LOG(DEBUG)<<"BmnFileSource created------------";
 }
 
 //_____________________________________________________________________________
@@ -151,14 +151,14 @@ Bool_t BmnFileSource::Init()
 {
     if (IsInitialized)
     {
-        LOG(INFO)<<"BmnFileSource already initialized"<<FairLogger::endl;
+        LOG(INFO)<<"BmnFileSource already initialized";
         return kTRUE;
     }
 
     if (!fInChain)
     {
         fInChain = new TChain(FairRootManager::GetTreeName(), "/cbmroot");
-        LOG(DEBUG)<<"BmnFileSource::Init() chain created"<<FairLogger::endl;
+        LOG(DEBUG)<<"BmnFileSource::Init() chain created";
 
         FairRootManager::Instance()->SetInChain(fInChain);
     }
@@ -186,14 +186,14 @@ Bool_t BmnFileSource::Init()
     if (fBranchList == NULL)
         return kFALSE;
 
-    LOG(DEBUG)<<"Entries in the chain "<<fBranchList->GetEntries()<<FairLogger::endl;
+    LOG(DEBUG)<<"Entries in the chain "<<fBranchList->GetEntries();
 
     TObject** ppObj = new TObject*[fBranchList->GetEntries()];
     for (int i = 0; i < fBranchList->GetEntries(); i++)
     {
         TBranch* pBranch = (TBranch*) fBranchList->At(i);
         TString ObjName = pBranch->GetName();
-        LOG(DEBUG)<<"Branch name "<<ObjName.Data()<<FairLogger::endl;
+        LOG(DEBUG)<<"Branch name "<<ObjName.Data();
 
         fCheckInputBranches[chainName]->push_back(ObjName.Data());
         FairRootManager::Instance()->AddBranchToList(ObjName.Data());
@@ -217,13 +217,13 @@ Bool_t BmnFileSource::Init()
         // is needed to bring the friend trees in the correct order
         TFile* inputFile = new TFile(*iter);
         if (inputFile->IsZombie())
-            LOG(FATAL)<<"Error opening the file "<<(*iter).Data()<<" which should be added to the input chain or as friend chain"<<FairLogger::endl;
+            LOG(FATAL)<<"Error opening the file "<<(*iter).Data()<<" which should be added to the input chain or as friend chain";
         
         // Check if the branchlist is the same as for the first input file.
         Bool_t isOk = CompareBranchList(inputFile, chainName);
         if (!isOk)
         {
-            LOG(FATAL)<<"Branch structure of the input file "<<fRootFile->GetName()<<" and the file to be added "<<(*iter).Data()<<" are different."<<FairLogger::endl;
+            LOG(FATAL)<<"Branch structure of the input file "<<fRootFile->GetName()<<" and the file to be added "<<(*iter).Data()<<" are different.";
             return kFALSE;
         }
         
@@ -236,7 +236,7 @@ Bool_t BmnFileSource::Init()
     }
 
     fNoOfEntries = fInChain->GetEntries(); 
-    LOG(DEBUG)<<"Entries in this Source "<<fNoOfEntries<<FairLogger::endl;
+    LOG(DEBUG)<<"Entries in this Source "<<fNoOfEntries;
 
     AddFriendsToChain();
 
@@ -327,7 +327,7 @@ void BmnFileSource::AddFriendsToChain()
             
             inputFile = new TFile((*iter1));
             if (inputFile->IsZombie())
-                LOG(FATAL)<<"Error opening the file "<<(*iter).Data()<<" which should be added to the input chain or as friend chain"<<FairLogger::endl;
+                LOG(FATAL)<<"Error opening the file "<<(*iter).Data()<<" which should be added to the input chain or as friend chain";
             
             // Check if the branchlist is already stored in the map. If it is
             // already stored add the file to the chain.
@@ -370,24 +370,24 @@ void BmnFileSource::PrintFriendList()
 {
     // Print information about the input structure
     // List files from the input chain together with all files of all friend chains
-    LOG(INFO)<<"The input consists out of the following trees and files: "<<FairLogger::endl<<" - "<<fInChain->GetName()<<FairLogger::endl;
+    LOG(INFO)<<"The input consists out of the following trees and files: \n"<<" - "<<fInChain->GetName();
     TObjArray* fileElements = fInChain->GetListOfFiles();
 
     TIter next(fileElements);
     TChainElement* chEl = 0;
     while (chEl = (TChainElement*)next())
-        LOG(INFO)<<"    - "<<chEl->GetTitle()<<FairLogger::endl;
+        LOG(INFO)<<"    - "<<chEl->GetTitle();
     
     map<TString, TChain*>::iterator mapIterator;
     for (mapIterator = fFriendTypeList.begin(); mapIterator != fFriendTypeList.end(); mapIterator++)
     {
         TChain* chain = (TChain*) mapIterator->second;
-        LOG(INFO)<<" - "<<chain->GetName()<<FairLogger::endl;
+        LOG(INFO)<<" - "<<chain->GetName();
         fileElements = chain->GetListOfFiles();
         TIter next1(fileElements);
         chEl = 0;
         while (chEl = (TChainElement*)next1())
-            LOG(INFO)<<"    - "<<chEl->GetTitle()<<FairLogger::endl;
+            LOG(INFO)<<"    - "<<chEl->GetTitle();
     }    
 }
 
@@ -450,17 +450,17 @@ void BmnFileSource::CheckFriendChains()
     // error_label:
     if (errorFlag>0)
     {
-        LOG(ERROR)<<"The input chain and the friend chain "<<inputLevel.Data()<<" have a different structure:"<<FairLogger::endl;
+        LOG(ERROR)<<"The input chain and the friend chain "<<inputLevel.Data()<<" have a different structure:";
         if (errorFlag == 1)
         {
-            LOG(ERROR)<<"The input chain has the following runids and event numbers:"<<FairLogger::endl;
+            LOG(ERROR)<<"The input chain has the following runids and event numbers:";
             for (UInt_t i=0; i < runid.size(); i++)
-                LOG(ERROR)<<" - Runid " << runid[i]<<" with "<<events[i]<<" events"<<FairLogger::endl;
-            LOG(ERROR)<<"The "<<inputLevel.Data()<<" chain has the following runids and event numbers:"<<FairLogger::endl;
+                LOG(ERROR)<<" - Runid " << runid[i]<<" with "<<events[i]<<" events";
+            LOG(ERROR)<<"The "<<inputLevel.Data()<<" chain has the following runids and event numbers:";
             for (it=map1.begin(); it != map1.end(); it++)
             {
                 TArrayI bla = (*it).second;
-                LOG(ERROR)<<" - Runid "<<bla[0]<<" with "<<bla[1]<<" events"<<FairLogger::endl;
+                LOG(ERROR)<<" - Runid "<<bla[0]<<" with "<<bla[1]<<" events";
             }
         }
         if (errorFlag == 2)
@@ -469,12 +469,12 @@ void BmnFileSource::CheckFriendChains()
             for (it=map1.begin(); it != map1.end(); it++)
             {
                 TArrayI bla = (*it).second;
-                LOG(ERROR)<<"Runid Input Chain, "<<inputLevel.Data()<<" chain: "<<bla[0]<<", "<<runid[counter]<<FairLogger::endl;
-                LOG(ERROR)<<"Event number Input Chain, "<<inputLevel.Data()<<" chain: "<<bla[1]<<", "<<events[counter]<<FairLogger::endl;
+                LOG(ERROR)<<"Runid Input Chain, "<<inputLevel.Data()<<" chain: "<<bla[0]<<", "<<runid[counter];
+                LOG(ERROR)<<"Event number Input Chain, "<<inputLevel.Data()<<" chain: "<<bla[1]<<", "<<events[counter];
                 counter++;
             }
         }
-        LOG(FATAL)<<"Event structure mismatch"<<FairLogger::endl;
+        LOG(FATAL)<<"Event structure mismatch";
     }
 }
 
@@ -545,9 +545,9 @@ Bool_t BmnFileSource::CompareBranchList(TFile* fileHandle, TString inputLevel)
     // same
     if (branches.size() != 0)
     {
-        LOG(INFO)<<"Compare Branch List will return kFALSE. The list has "<< branches.size()<<" branches:"<< FairLogger::endl;
+        LOG(INFO)<<"Compare Branch List will return kFALSE. The list has "<< branches.size()<<" branches:";
         for (set<TString>::iterator it = branches.begin(); it != branches.end(); it++)
-            LOG(INFO)<<"  -> "<<*it<<FairLogger::endl;
+            LOG(INFO)<<"  -> "<<*it;
         return kFALSE;
     }
 
@@ -578,9 +578,9 @@ void BmnFileSource::SetInputFile(TString name)
     fRootFile = new TFile(name.Data());
 
     if (fRootFile->IsZombie())
-        LOG(FATAL)<<"Error opening the Input file"<<FairLogger::endl;
+        LOG(FATAL)<<"Error opening the Input file";
 
-    LOG(INFO)<<"BmnFileSource set------------"<<FairLogger::endl;
+    LOG(INFO)<<"BmnFileSource set------------";
 }
 
 //_____________________________________________________________________________
@@ -622,7 +622,7 @@ void BmnFileSource::SetBeamTime(Double_t beamTime, Double_t gapTime)
 //_____________________________________________________________________________
 void BmnFileSource::SetEventTime()
 {
-    LOG(DEBUG)<<"Set event time for Entry = "<<fTimeforEntryNo<<" , where the current entry is "<<fCurrentEntryNo<<" and eventTime is "<<fEventTime<<FairLogger::endl;
+    LOG(DEBUG)<<"Set event time for Entry = "<<fTimeforEntryNo<<" , where the current entry is "<<fCurrentEntryNo<<" and eventTime is "<<fEventTime;
 
     if (fBeamTime < 0)
         fEventTime += GetDeltaEventTime();
@@ -634,7 +634,7 @@ void BmnFileSource::SetEventTime()
         } while (fmod(fEventTime, fBeamTime + fGapTime) > fBeamTime);
     }
 
-    LOG(DEBUG)<<"New time = "<<fEventTime<<FairLogger::endl;
+    LOG(DEBUG)<<"New time = "<<fEventTime;
     fTimeforEntryNo = fCurrentEntryNo;
 }
 
@@ -645,12 +645,12 @@ Double_t BmnFileSource::GetDeltaEventTime()
     if (fTimeProb != 0)
     {
         deltaTime = fTimeProb->GetRandom();
-        LOG(DEBUG)<<"Time set via sampling method : "<<deltaTime<<FairLogger::endl;
+        LOG(DEBUG)<<"Time set via sampling method : "<<deltaTime;
     }
     else
     {
         deltaTime = gRandom->Uniform(fEventTimeMin, fEventTimeMax);
-        LOG(DEBUG)<<"Time set via Uniform Random : "<<deltaTime<<FairLogger::endl;
+        LOG(DEBUG)<<"Time set via Uniform Random : "<<deltaTime;
     }
 
     return deltaTime;
@@ -659,7 +659,7 @@ Double_t BmnFileSource::GetDeltaEventTime()
 //_____________________________________________________________________________
 Double_t BmnFileSource::GetEventTime()
 {
-    LOG(DEBUG)<<"-- Get Event Time --"<<FairLogger::endl;
+    LOG(DEBUG)<<"-- Get Event Time --";
 
     if (!fEvtHeaderIsNew && fEvtHeader!=0)
     {
@@ -672,7 +672,7 @@ Double_t BmnFileSource::GetEventTime()
     if (fTimeforEntryNo != fCurrentEntryNo)
         SetEventTime();
 
-    LOG(DEBUG)<<"Calculate event time from user input : "<<fEventTime<<" ns"<<FairLogger::endl;
+    LOG(DEBUG)<<"Calculate event time from user input : "<<fEventTime<<" ns";
 
     return fEventTime;
 }

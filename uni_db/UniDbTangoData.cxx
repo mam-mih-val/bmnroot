@@ -245,7 +245,7 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
 //      mapChannel - array of integer values (map) to change the order of result TObjArray-s in the common result array, if, for example, channels go in a different sequence; NULL - if not used
 // Returns common TObjArray with TObjArray objects containing TangoTimeInterval (i.e. conditionally TObjArray<TObjArray<TangoTimeInterval*>>),
 // if no intervals found - returns the common TObjArray with zero TObjArray elements; in case of errors - returns NULL
-TObjArray* UniDbTangoData::SearchTangoIntervals(char* detector_name, char* parameter_name, char* date_start, char* date_end, enumConditions condition, bool value, int* mapChannel)
+TObjArray* UniDbTangoData::SearchTangoIntervals(const char* detector_name, const char* parameter_name, const char* date_start, const char* date_end, enumConditions condition, bool value, int* mapChannel)
 {
     // get Tango parameter values for the given time period
     TObjArray* tango_data = GetTangoParameter(detector_name, parameter_name, date_start, date_end);

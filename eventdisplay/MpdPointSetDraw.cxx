@@ -50,7 +50,7 @@ InitStatus MpdPointSetDraw::Init()
     fPointList = (TClonesArray*) fManager->GetObject(GetName());
     if (fPointList == 0)
     {
-        LOG(ERROR)<<"MpdPointSetDraw::Init() branch "<<GetName()<<" not found! Task will be deactivated"<<FairLogger::endl;
+        LOG(ERROR)<<"MpdPointSetDraw::Init() branch "<<GetName()<<" not found! Task will be deactivated";
         SetActive(kFALSE);
     }
     if (fVerbose > 1) cout<<"MpdPointSetDraw::Init() get point list "<<fPointList<<endl;

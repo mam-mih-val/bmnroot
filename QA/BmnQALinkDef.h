@@ -33,6 +33,7 @@
 #pragma link C++ class BmnCalorimeterDetQa++;
 #pragma link C++ class BmnTrigDetQa++;
 #pragma link C++ class BmnDstQa++;
+#pragma link C++ class BmnQaMonitor++;
 
 #endif
 

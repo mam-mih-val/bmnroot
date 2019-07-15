@@ -65,6 +65,7 @@ offline/BmnTimeDetQa.cxx
 offline/BmnCalorimeterDetQa.cxx
 offline/BmnTrigDetQa.cxx
 offline/BmnDstQa.cxx
+offline/BmnQaMonitor.cxx
 )
 
 EXEC_PROGRAM( ${ROOT_CONFIG_EXECUTABLE}
@@ -79,7 +80,7 @@ EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 Set(HEADERS)
 Set(LINKDEF BmnQALinkDef.h)
 Set(LIBRARY_NAME BmnQa)
-Set(DEPENDENCIES Core Base)
+Set(DEPENDENCIES Core Base Gem Silicon CSC XMLParser)
 
 If ( ${ROOT_HAS_GDML} STREQUAL yes )
  Set (DEPENDENCIES ${DEPENDENCIES} Gdml)

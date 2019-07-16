@@ -3,6 +3,7 @@
 #include <TGraph.h>
 #include <TObjString.h>
 #include <THttpServer.h>
+#include <TCanvas.h>
 
 #include <BmnCoordinateDetQa.h>
 #include <BmnTimeDetQa.h>
@@ -13,52 +14,38 @@
 #ifndef BMNQAMONITOR_H
 #define BMNQAMONITOR_H 1
 
-class PadInfo : public TNamed {
+class AllHistos : public TNamed {
 public:
-    PadInfo() {
-        current = nullptr;
-        ref = nullptr;
+
+    AllHistos() {
+
     }
 
-    ~PadInfo() {
-        if (current)
-            delete current;
-        if (ref)
-            delete ref;
-        current = nullptr;
-        ref = nullptr;
+    ~AllHistos() {
+
     }
 
-    TH1F* GetCurrentHisto() {
-        return current;
+    vector <TH1F*> Get1D() {
+        return _h1d;
     }
 
-    TH1F* GetRefHisto() {
-        return ref;
-    }
-    
-    TString GetOption() {
-        return opt;
-    } 
-
-    void SetCurrentHisto(TH1F* h) {
-        current = h;
+    vector <TH2F*> Get2D() {
+        return _h2d;
     }
 
-    void SetRefHisto(TH1F* h) {
-        ref = h;
+    void Set1D(TH1F* h) {
+        _h1d.push_back(h);
     }
-    
-    void SetOption(Option_t option) {
-        opt = option;
-    } 
+
+    void Set2D(TH2F* h) {
+        _h2d.push_back(h);
+    }
 
 private:
-    TH1F* current;
-    TH1F* ref;
-    TString opt;
-private:
-    ClassDef(PadInfo, 1)
+    vector <TH1F*> _h1d;
+    vector <TH2F*> _h2d;
+
+    ClassDef(AllHistos, 1)
 };
 
 class BmnQaMonitor : public TNamed {
@@ -67,20 +54,20 @@ public:
     BmnQaMonitor();
     virtual ~BmnQaMonitor();
 
-    void SetDebug(Bool_t opt) {
-        fDebug = opt;
+    AllHistos* GetRun(UInt_t);
+
+    AllHistos* GetCurrentRun(UInt_t run) {
+        return GetRun(run);
     }
 
-    vector <TH1F*> GetRun(UInt_t);
-    vector <TH1F*> GetCurrentRun(UInt_t run) {return GetRun(run);} 
-    vector <TH1F*> GetReferenceRun(UInt_t run) {return GetRun(run);}
-    
-    void DrawRef(TCanvas*, vector <PadInfo*>*);
+    AllHistos* GetReferenceRun(UInt_t run) {
+        return GetRun(run);
+    }
+
     void ShowCurrentHistos(Int_t);
     void ShowReferenceHistos(Int_t);
 
 private:
-    Bool_t fDebug;
     THttpServer* fServer;
 
     void InitServer(Int_t cgi = 9000, Int_t http = 8080);
@@ -88,8 +75,8 @@ private:
     void DivideCanvases(Int_t);
     void FillCanvasesWithHistos(Int_t);
     void RegisterUserCommands();
-    
-    void MakeNormalization(vector <TH1F*>, vector <TH1F*>);
+
+    // void MakeNormalization(vector <TH1F*>, vector <TH1F*>);
 
     template <class T> void FillCanvasesWithHistos(T* histos, TString name, Int_t iCanvas, Int_t padCounter = 1) {
         BmnQaHistoManager* man = histos->GetManager();
@@ -125,7 +112,7 @@ private:
 
             fHisto.push_back(histoMan->H1(it));
         }
-        // cout << fHisto.size() << " " << canv << endl;
+        // cout << fHisto.size() << " " << canv << endl; getchar();
     }
 
     BmnCoordinateDetQa* gem;
@@ -141,12 +128,12 @@ private:
     BmnCalorimeterDetQa* zdc;
 
     BmnDstQa* dst;
-    
+
     BmnTrigDetQa* triggers;
 
     vector <TString> fHistoNames; // Histo names to get by corresponding getter
     vector <TH1*> fHisto; // Histos to be registered via server
-    
+
     Int_t fCurrentRun;
 
     TCanvas** fCanvases;

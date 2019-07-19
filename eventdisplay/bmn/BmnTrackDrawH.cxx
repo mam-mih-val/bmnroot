@@ -64,7 +64,7 @@ InitStatus BmnTrackDrawH::Init()
     fTrackList = (TClonesArray*) fManager->GetObject(GetName());
     if(fTrackList == 0)
     {
-        LOG(ERROR)<<"BmnTrackDrawH::Init() branch "<<GetName()<<" not found! Task will be deactivated"<<FairLogger::endl;
+        LOG(ERROR)<<"BmnTrackDrawH::Init() branch "<<GetName()<<" not found! Task will be deactivated";
         SetActive(kFALSE);
     }
     if (fVerbose > 1) cout<<"BmnTrackDrawH::Init() get track list "<<fTrackList<<" from branch '"<<GetName()<<"'"<<endl;
@@ -72,7 +72,7 @@ InitStatus BmnTrackDrawH::Init()
     fHitList = (TClonesArray*) fManager->GetObject(fHitsBranchName);
     if(fHitList == 0)
     {
-        LOG(ERROR)<<"BmnTrackDrawH::Init()  branch "<<fHitsBranchName<<" not found! Task will be deactivated"<<FairLogger::endl;
+        LOG(ERROR)<<"BmnTrackDrawH::Init()  branch "<<fHitsBranchName<<" not found! Task will be deactivated";
         SetActive(kFALSE);
     }
     if (fVerbose > 1) cout<<"BmnTrackDrawH::Init() get list of hits "<<fHitList<<" from branch '"<<fHitsBranchName<<"'"<<endl;

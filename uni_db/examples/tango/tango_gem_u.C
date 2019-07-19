@@ -1,12 +1,8 @@
 // Macro for printing TANGO data for GEM high voltage
-#include "../../../gconfig/basiclibs.C"
 
 // for datetime range
 void tango_gem_u(const char* date_start = "2016-12-21 12:20:00", const char* date_end = "2016-12-21 12:40:00")
 {
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     UniDbTangoData db_tango;
 
     const char* detector_name = "gem";
@@ -36,9 +32,6 @@ void tango_gem_u(const char* date_start = "2016-12-21 12:20:00", const char* dat
 // for a given run
 void tango_gem_u(int period, int run)
 {
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     UniDbTangoData db_tango;
 
     // get run time

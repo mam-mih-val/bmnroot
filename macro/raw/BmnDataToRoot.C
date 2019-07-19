@@ -20,7 +20,7 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     setup[5]  = 1; // TOF-700
     setup[6]  = 1; // DCH
     setup[7]  = 1; // ZDC
-    setup[8]  = 1; // ECAL
+    setup[8]  = 0; // ECAL
     setup[9]  = 1; // LAND
     setup[10] = 1; // CSC
     decoder->SetDetectorSetup(setup);
@@ -39,8 +39,8 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     decoder->SetTof700Mapping("TOF700_map_period_7.txt");
     decoder->SetZDCMapping("ZDC_map_period_5.txt");
     decoder->SetZDCCalibration("zdc_muon_calibration.txt");
-    decoder->SetECALMapping("ECAL_map_period_7.txt");
-    decoder->SetECALCalibration("");
+    //decoder->SetECALMapping("ECAL_map_period_7.txt");
+    //decoder->SetECALCalibration("");
     decoder->SetMwpcMapping(TString("MWPC_map_period") + PeriodSetupExt);
     decoder->SetLANDMapping("land_mapping_jinr_triplex.txt");
     decoder->SetLANDPedestal("r0030_land_clock.hh");

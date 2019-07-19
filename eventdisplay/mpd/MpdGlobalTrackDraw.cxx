@@ -62,7 +62,7 @@ InitStatus MpdGlobalTrackDraw::Init()
     MpdEvent* fDstEvent = (MpdEvent*) fManager->GetObject("MPDEvent.");
     if (fDstEvent == 0)
     {
-        LOG(ERROR)<<"MpdGlobalTrackDraw::Init() branch 'MPDEvent.' not found! Task will be deactivated"<<FairLogger::endl;
+        LOG(ERROR)<<"MpdGlobalTrackDraw::Init() branch 'MPDEvent.' not found! Task will be deactivated";
         SetActive(kFALSE);
         return kERROR;
     }
@@ -70,7 +70,7 @@ InitStatus MpdGlobalTrackDraw::Init()
     fTrackList = fDstEvent->GetGlobalTracks();
     if (fTrackList == 0)
     {
-        LOG(ERROR)<<"MpdGlobalTrackDraw::Init() branch '"<<GetName()<<"' not found! Task will be deactivated"<<FairLogger::endl;
+        LOG(ERROR)<<"MpdGlobalTrackDraw::Init() branch '"<<GetName()<<"' not found! Task will be deactivated";
         SetActive(kFALSE);
         return kERROR;
     }
@@ -79,7 +79,7 @@ InitStatus MpdGlobalTrackDraw::Init()
     fKalmanTrackList = (TClonesArray*) fManager->GetObject("TpcKalmanTrack");
     if (fKalmanTrackList == 0)
     {
-        LOG(ERROR)<<"MpdGlobalTrackDraw::Init() branch 'TpcKalmanTrack' not found! Task will be deactivated"<<FairLogger::endl;
+        LOG(ERROR)<<"MpdGlobalTrackDraw::Init() branch 'TpcKalmanTrack' not found! Task will be deactivated";
         SetActive(kFALSE);
         return kERROR;
     } 
@@ -87,7 +87,7 @@ InitStatus MpdGlobalTrackDraw::Init()
     fTpcHitList = (TClonesArray*) fManager->GetObject("TpcHit");
     if (fTpcHitList == 0)
     {
-        LOG(ERROR)<<"MpdGlobalTrackDraw::Init() branch 'TpcHit' not found! Task will be deactivated"<<FairLogger::endl;
+        LOG(ERROR)<<"MpdGlobalTrackDraw::Init() branch 'TpcHit' not found! Task will be deactivated";
         SetActive(kFALSE);
         return kERROR;
     }

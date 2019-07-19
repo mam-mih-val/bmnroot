@@ -5,7 +5,7 @@
 
 #include "FairRunAna.h"
 #include "FairTask.h"
-#include "FairXMLNode.h"
+#include "MpdXMLNode.h"
 
 #include <TEveViewer.h>
 #include "TEveEventManager.h"
@@ -153,7 +153,7 @@ class MpdEventManager : public TEveEventManager
     TEveProjectionAxes* GetRhoZAxes() const { return fAxesRho; }
 
     virtual void LoadXMLSettings();
-    void LoadXMLDetector(TGeoNode *node, FairXMLNode *xml, Int_t depth=0);
+    void LoadXMLDetector(TGeoNode *node, MpdXMLNode *xml, Int_t depth=0);
 
   private:
     MpdEventManagerEditor* fEventEditor; //!

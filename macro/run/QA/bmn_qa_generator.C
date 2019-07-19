@@ -5,8 +5,15 @@
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/bmnloadlibs.C"
 
-void bmn_qa_generator(TString recoFile = "$VMCWORKDIR/macro/run/bmndst_XZ0_0.05_YZ0_0.001_XZSLOPE_0.01_YZSLOPE_0.01_NITER_5_CHI2_10.root",
-        TString mcFile = "/home/batyuk/bmnroot_run7/macro/run/testParams/evetest_ArPb_geo2018.root",
+void bmn_qa_generator(
+        // TString recoFile = "$VMCWORKDIR/macro/run/bmndst_ArPb_geo2018.root",
+        // TString recoFile = "$VMCWORKDIR/macro/run/bmndst_ArPb_noLor.root",
+        TString recoFile = "$VMCWORKDIR/macro/run/bmndst.root",
+        // TString recoFile = "$VMCWORKDIR/macro/run/bmndst_KrPb_noLor.root",
+        // TString mcFile = "/home/merz/batyuk/home/batyuk/bmnroot_run7/macro/run/testParams/evetest_ArPb_geo2018.root",
+        // TString mcFile = "/home/merz/batyuk/nfs/evetest_10k_ArPb_noLor.root",
+        TString mcFile = "/home/merz/pavel/nica/mpd22/BMN_run7_simulations/sim/evetest_25kEv_ArPb_minBias_noLor_0.root",
+        // TString mcFile = "/home/merz/batyuk/nfs/evetest_10k_KrPb_noLor.root",
         TString outFile = "qa.root",
         Int_t nStartEvent = 0,
         Bool_t isPrimary = kFALSE,
@@ -41,8 +48,8 @@ void bmn_qa_generator(TString recoFile = "$VMCWORKDIR/macro/run/bmndst_XZ0_0.05_
     //  fRun->AddTask(clQa);
 
     BmnTrackingQa* trQaAll = new BmnTrackingQa(0, "tracking_qa", confGem, confSil);
-    trQaAll->SetDetectorPresence(kSILICON, kFALSE);
-    trQaAll->SetDetectorPresence(kSSD, kTRUE);
+    trQaAll->SetDetectorPresence(kSILICON, kTRUE);
+    trQaAll->SetDetectorPresence(kSSD, kFALSE);
     trQaAll->SetDetectorPresence(kGEM, kTRUE);
     trQaAll->SetOnlyPrimes(isPrimary);
     fRun->AddTask(trQaAll);

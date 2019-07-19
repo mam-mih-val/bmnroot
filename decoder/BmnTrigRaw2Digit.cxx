@@ -1,7 +1,5 @@
 #include "BmnTrigRaw2Digit.h"
 #include <climits>
-#include <root/RtypesCore.h>
-#include <root/TPRegexp.h>
 
 BmnTrigParameters::BmnTrigParameters() {
     for (UInt_t i = 0; i < CHANNEL_COUNT_MAX; i++) {

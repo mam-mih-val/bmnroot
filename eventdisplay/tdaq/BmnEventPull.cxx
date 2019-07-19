@@ -135,7 +135,7 @@ class BmnPullSampling : public PullSampling
         setup[5] = 1; // TOF-700
         setup[6] = 1; // DCH
         setup[7] = 1; // ZDC
-        setup[8] = 1; // ECAL
+        setup[8] = 0; // ECAL
         setup[9] = 0; // LAND
         setup[10] = 0; // CSC
         rawDataDecoder->SetDetectorSetup(setup);
@@ -150,8 +150,8 @@ class BmnPullSampling : public PullSampling
         rawDataDecoder->SetTof700Mapping("TOF700_map_period_6.txt");
         rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
         rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
-        rawDataDecoder->SetECALMapping("ECAL_map_period_5.txt");
-        rawDataDecoder->SetECALCalibration("");
+        //rawDataDecoder->SetECALMapping("ECAL_map_period_5.txt");
+        //rawDataDecoder->SetECALCalibration("");
         rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
 
         rawDataDecoder->SetEvForPedestals(150);

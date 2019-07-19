@@ -39,10 +39,6 @@ void geometry(FairRunSim *fRun)
     tof2->SetGeometryFileName("tof2_v1.root");
     fRun->AddModule(tof2);
 
-    FairDetector* emc = new BmnEcal("EMC", kTRUE);
-    emc->SetGeometryFileName("ecal_v1_0.geo");
-    fRun->AddModule(emc);
-
     CbmPsdv1* zdc = new CbmPsdv1("PSD", kTRUE);
     zdc->SetXshift(45.);
     zdc->SetZposition(1000.);

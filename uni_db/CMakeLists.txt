@@ -56,7 +56,7 @@ set(SRCS
 set(HEADERS)
 Set(LINKDEF UniDbLinkDef.h)
 Set(LIBRARY_NAME UniDb)
-Set(DEPENDENCIES Core Geom Net xml2)
+Set(DEPENDENCIES Core Geom Gpad Net xml2)
 
 GENERATE_LIBRARY()
 

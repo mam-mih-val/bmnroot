@@ -4,8 +4,9 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class FairXMLAttrib;
-#pragma link C++ class FairXMLNode;
+#pragma link C++ class MpdXMLAttrib;
+#pragma link C++ class MpdXMLNode;
+#pragma link C++ class MpdXMLFile;
 #pragma link C++ class MpdEventManager;
 #pragma link C++ class MpdMCTracks;
 #pragma link C++ class MpdMCStack;

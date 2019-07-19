@@ -40,7 +40,7 @@ set(SRCS
  BmnSiliconDigit.cxx
  BmnSiliconTrack.cxx
  BmnSiliconHitProducer.cxx
-
+ BmnSiliconTrackFinder.cxx
  BmnSiliconConfiguration.h
 )
 

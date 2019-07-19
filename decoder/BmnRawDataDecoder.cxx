@@ -9,7 +9,7 @@ using namespace std;
 
 class UniDbRun;
 
-BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t period) {
+BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEvents, ULong_t period) {
     string confFileName = string(getenv("VMCWORKDIR")) + "/config/bmnconf.json";
     pt::read_json(confFileName, conf);
     eventHeaderDAQ = NULL;
@@ -51,7 +51,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     if (fRawFileName != ""){
         fRunId = GetRunIdFromFile(fRawFileName);
         fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
-        fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
+        fDigiFileName = (outfile == "") ? Form("bmn_run%04d_digi.root", fRunId): outfile;
     }
     fDchMapFileName = "";
     fMwpcMapFileName = "";
@@ -875,12 +875,26 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     InitDecoder();
     BmnEventType curEventType = kBMNPAYLOAD;
     BmnEventType prevEventType = curEventType;
-
+//    /****************** 1st Iter of Si mapper   *************/
+//    fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
+//    if (fDetectorSetup[2]) {
+////        silicon = new TClonesArray("BmnSiliconDigit");
+////        fDigiTree->Branch("SILICON", &silicon);
+//        fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId, fSiliconSerials, fBmnSetup);
+//        fSiliconMapper->InitAdcProcessorMK(fRunId, 0, 0, 1, 0);
+//    }
+//    if (fDetectorSetup[3] || fDetectorSetup[10]) {
+////        gem = new TClonesArray("BmnGemStripDigit");
+////        fDigiTree->Branch("GEM", &gem);
+//        fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId, fGemSerials, fGemMapFileName, fBmnSetup);
+//        fGemMapper->InitAdcProcessorMK(fRunId, 0, 0, 0, 0);
+//    }
     if (fGemMapper || fSiliconMapper || fCscMapper) {
         printf("\n[INFO]");
         printf(ANSI_COLOR_BLUE " Collecting data for ADC pedestals calculation:\n" ANSI_COLOR_RESET);
         printf("\tNumber of requested pedestal events is ");
         printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, fEvForPedestals);
+//        printf("fNevents %i\n",fNevents);
         for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
             DrawBar(fPedEvCntr, fEvForPedestals);
             fRawTree->GetEntry(iEv);
@@ -888,7 +902,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             BmnEventHeader* headDAQ = eventHeaderDAQ;
             if (!headDAQ) continue;
             curEventType = headDAQ->GetEventType();
-
             if (curEventType != kBMNPEDESTAL) continue;
             if (fPedEvCntr != fEvForPedestals) {
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
@@ -899,10 +912,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             printf(ANSI_COLOR_RED "\n[WARNING]" ANSI_COLOR_RESET);
             printf(" Not enough pedestal events (%d instead of %d)\n", fPedEvCntr, fEvForPedestals);
         }
-        if (fGemMapper) fGemMapper->RecalculatePedestals();
-        if (fSiliconMapper) fSiliconMapper->RecalculatePedestals();
-        if (fCscMapper) fCscMapper->RecalculatePedestals();
-        fPedEvCntr = 0;
+//        if (fGemMapper) fGemMapper->RecalculatePedestalsMK(fPedEvCntr);
+//        if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsMK(fPedEvCntr);
+////        if (fCscMapper) fCscMapper->RecalculatePedestals();
+//        fPedEvCntr = 0;
 
         UInt_t nEvForNoiseCorrection = 10000;
         printf("\n[INFO]");
@@ -932,14 +945,95 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         if (fCscMapper) fCscMapper->FillNoisyChannels();
         printf("\tNoisy channels marked\n");
     }
+//    printf(ANSI_COLOR_BLUE " First payload loop over events:\n" ANSI_COLOR_RESET);
+//    for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
+//        ClearArrays();
+//        fRawTree->GetEntry(iEv);
+//        FillTimeShiftsMap();
+//        BmnEventHeader* headDAQ = eventHeaderDAQ;
+//        if (!headDAQ) continue;
+//        curEventType = headDAQ->GetEventType();
+//        if (curEventType == kBMNPEDESTAL) continue;
+//        if (fSiliconMapper) fSiliconMapper->FillEventMK(adc128, nullptr);
+//        if (fGemMapper) fGemMapper->FillEventMK(adc128, nullptr, nullptr);
+//        
+//    }
+//    if (fSiliconMapper) delete fSiliconMapper;
+//    if (fGemMapper) delete fGemMapper;
+    
+    /******************  End of the 1st iter ******************/
+    
+//    InitDecoder();
+//    if (fSiliconMapper) fSiliconMapper->InitAdcProcessorMK(fRunId, 1, 0, 1, 0);
+//    if (fGemMapper) fGemMapper->InitAdcProcessorMK(fRunId, 1, 0, 0, 0);
+//    curEventType = kBMNPAYLOAD;
+//    prevEventType = curEventType;
 
-    Int_t nEv = -1;
+//    if (fGemMapper || fSiliconMapper || fCscMapper) {
+//        printf("\n[INFO]");
+//        printf(ANSI_COLOR_BLUE " Collecting data for ADC pedestals calculation:\n" ANSI_COLOR_RESET);
+//        printf("\tNumber of requested pedestal events is ");
+//        printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, fEvForPedestals);
+//        for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
+//            DrawBar(fPedEvCntr, fEvForPedestals);
+//            fRawTree->GetEntry(iEv);
+//
+//            BmnEventHeader* headDAQ = eventHeaderDAQ;
+//            if (!headDAQ) continue;
+//            curEventType = headDAQ->GetEventType();
+//
+//            if (curEventType != kBMNPEDESTAL) continue;
+//            if (fPedEvCntr != fEvForPedestals) {
+//                CopyDataToPedMap(adc32, adc128, fPedEvCntr);
+//                fPedEvCntr++;
+//            } else break;
+//        }
+//        if (fPedEvCntr != fEvForPedestals) {
+//            printf(ANSI_COLOR_RED "\n[WARNING]" ANSI_COLOR_RESET);
+//            printf(" Not enough pedestal events (%d instead of %d)\n", fPedEvCntr, fEvForPedestals);
+//        }
+//        if (fGemMapper) fGemMapper->RecalculatePedestals();
+////        if (fGemMapper) fGemMapper->RecalculatePedestalsMK(fPedEvCntr);
+//        if (fSiliconMapper) fSiliconMapper->RecalculatePedestals();
+////        if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsMK(fPedEvCntr);
+//        if (fCscMapper) fCscMapper->RecalculatePedestals();
+//        fPedEvCntr = 0;
+//
+////        UInt_t nEvForNoiseCorrection = 10000;
+////        printf("\n[INFO]");
+////        printf(ANSI_COLOR_BLUE " Clear noisy channels:\n" ANSI_COLOR_RESET);
+////        printf("\tFilling signal profiles for station-module-layer histograms\n");
+////        printf("\tNumber of requested events is ");
+////        printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, nEvForNoiseCorrection);
+////        printf("\tActual number of events is ");
+////        printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, fNevents);
+////
+////        UInt_t n = Min(fNevents, nEvForNoiseCorrection);
+////        for (UInt_t iEv = 0; iEv < n; ++iEv) {
+////            fRawTree->GetEntry(iEv);
+////            BmnEventHeader* headDAQ = eventHeaderDAQ;
+////            if (!headDAQ) continue;
+////            curEventType = headDAQ->GetEventType();
+////            if (curEventType == kBMNPEDESTAL) continue;
+////            if (fGemMapper) fGemMapper->FillProfiles(adc32);
+//////            if (fSiliconMapper) fSiliconMapper->FillProfiles(adc128);
+////            if (fCscMapper) fCscMapper->FillProfiles(adc32);
+////            DrawBar(iEv, n);
+////        }
+////
+////        printf("\n\tChecking noisy channels\n");
+////        if (fGemMapper) fGemMapper->FillNoisyChannels();
+//////        if (fSiliconMapper) fSiliconMapper->FillNoisyChannels();
+////        if (fCscMapper) fCscMapper->FillNoisyChannels();
+////        printf("\tNoisy channels marked\n");
+//    }
+
     Double_t fSize = 0.0;
     UInt_t runId = 0;
     vector<UInt_t> startTripEvent;
     vector<UInt_t> endTripEvent;
 
-    printf("\n[INFO]");
+    printf("\n[INFO]");    
     printf(ANSI_COLOR_BLUE " Main loop over events:\n" ANSI_COLOR_RESET);
     for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
 
@@ -1027,7 +1121,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             }
             if (fCscMapper) fCscMapper->FillEvent(adc32, csc);
             if (fGemMapper) fGemMapper->FillEvent(adc32, gem);
+//            if (fGemMapper) fGemMapper->FillEventMK(adc32, gem, csc);
             if (fSiliconMapper) fSiliconMapper->FillEvent(adc128, silicon);
+//            if (fSiliconMapper) fSiliconMapper->FillEventMK(adc128, silicon);
             if (fDchMapper) fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
             if (fMwpcMapper) fMwpcMapper->FillEvent(hrb, mwpc);
             if (fTof400Mapper) fTof400Mapper->FillEvent(tdc, &fTimeShifts, tof400);

@@ -1,13 +1,13 @@
 //file: full path to raw file
 //nEvents: if 0 then decode all events
 //doConvert: convert RAW --> ROOT before decoding or use file converted before
-void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE, Bool_t doHoldRawRoot = kFALSE)
+void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_t doConvert = kTRUE, Bool_t doHoldRawRoot = kTRUE)
 {
     gSystem->ExpandPathName(file);
 
     UInt_t period = 7;
     BmnSetup stp = kBMNSETUP; // use kSRCSETUP for Short-Range Correlation program and kBMNSETUP otherwise
-    BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, period);
+    BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, outfile, nEvents, period);
     decoder->SetBmnSetup(stp);
 
     Bool_t setup[11]; //array of flags to determine BM@N setup
@@ -33,6 +33,8 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE, B
     decoder->SetCSCMapping(TString("CSC_map_period") + PeriodSetupExt);
     // in case comment out the line decoder->SetTof400Mapping("...")  
     // the maps of TOF400 will be read from DB (only for JINR network)
+    decoder->SetTOF700ReferenceRun(-1);
+    decoder->SetTof700Geom("TOF700_geometry_run7.txt"); 
     decoder->SetTof400Mapping(TString("TOF400_PlaceMap_RUN") +PeriodSetupExt, TString("TOF400_StripMap_RUN") +PeriodSetupExt);
     decoder->SetTof700Mapping("TOF700_map_period_7.txt");
     decoder->SetZDCMapping("ZDC_map_period_5.txt");

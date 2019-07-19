@@ -103,7 +103,7 @@ namespace pt = boost::property_tree;
 
 class BmnRawDataDecoder {
 public:
-    BmnRawDataDecoder(TString file = "", ULong_t nEvents = 0, ULong_t period = 4);
+    BmnRawDataDecoder(TString file = "", TString outfile = "", ULong_t nEvents = 0, ULong_t period = 4);
     virtual ~BmnRawDataDecoder();
 
     BmnStatus ConvertRawToRoot();

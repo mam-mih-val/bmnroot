@@ -1,0 +1,57 @@
+<html>
+<head>
+    <title> DST </title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRootCore.js?2d"></script>
+<script>
+
+function redrawCanvases() {
+                setTimeout(redrawCanvases, 3000);
+                var filename = "/root.app/Objects/DST_1d/root.json";
+                JSROOT.NewHttpRequest(filename, 'object', function (obj) {
+                JSROOT.redraw("DSTTable", obj);
+                }).send(null);
+            }
+
+function SetRun() {
+                JSROOT.cleanup("DSTTable");
+                var runName = document.getElementById("Run").value;
+                var cmd = "/root.app/Objects/SelectRun/cmd.json";
+                cmd = cmd + "?" + "arg1=" + runName;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", cmd, true);
+                xhr.send();
+            }
+function SetRef() {
+                JSROOT.cleanup("DSTTable");
+                var runName = document.getElementById("Ref").value;
+                var cmd = "/root.app/Objects/SelectReferenceRun/cmd.json";
+                cmd = cmd + "?" + "arg1=" + runName;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", cmd, true);
+                xhr.send();
+            }
+</script>
+<body>
+        <ul>
+            <li><a href="../index.html"> <h3>Return to the main page of the system</h3></a></li>
+            </ul>
+</body>
+
+<button onclick="SetRun()" style="width: 10vw; height: 10vw;"> 
+Select Run
+</button>
+
+<input type="text" name="Run" id="Run">
+
+<button onclick="SetRef()" style="width: 10vw; height: 10vw;">
+Select Reference
+</button>
+
+<input type="text" name="Ref" id="Ref">
+
+<body onload="redrawCanvases()">
+<div id="DSTTable" style="width: 100vw; height: 100vw;" > </div>
+</body>
+</html>

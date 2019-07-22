@@ -85,8 +85,11 @@ class BmnGlobalTracking : public FairTask {
         fIsField = f;
     }
 
+    void SetSrcSetup(Bool_t f) {
+        fIsSRC = f;
+    }
+
    private:
-    BmnSiliconStationSet *fDetectorSI;  // SI-geometry
 
     /*
      * \brief Calculate length of the global track

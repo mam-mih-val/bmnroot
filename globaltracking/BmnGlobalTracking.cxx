@@ -66,15 +66,10 @@ BmnGlobalTracking::BmnGlobalTracking(Bool_t isField, Bool_t doAlign) : fInnerTra
                                                                        fChiSqCut(100.),
                                                                        fVertex(nullptr),
                                                                        fPeriod(7),
-                                                                       fIsSRC(kTRUE),
+                                                                       fIsSRC(kFALSE),
                                                                        fDoAlign(doAlign),
                                                                        fIsField(isField),
                                                                        fEventNo(0) {
-    TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
-    TString gPathSiConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
-    TString confSi = (fPeriod == 7) ? "SiliconRun" + TString(fIsSRC ? "SRC" : "") + "Spring2018.xml" : "SiliconRunSpring2017.xml";
-    fDetectorSI = new BmnSiliconStationSet(gPathSiConfig + confSi);
-
     fKalman = new BmnKalmanFilter();
 
     if (fDoAlign) {
@@ -263,9 +258,10 @@ BmnStatus BmnGlobalTracking::MatchingCSC(BmnGlobalTrack *tr) {
 
     for (Int_t hitIdx = 0; hitIdx < fCscHits->GetEntriesFast(); ++hitIdx) {
         BmnHit *hit = (BmnHit *)fCscHits->At(hitIdx);
-        //alignment for SRC!
-        hit->SetX(hit->GetX() - 0.53);
-        hit->SetY(hit->GetY() - 0.05);
+        if (fIsSRC) {
+            hit->SetX(hit->GetX() - 0.53);
+            hit->SetY(hit->GetY() - 0.05);
+        }
         //
         FairTrackParam par(*(tr->GetParamLast()));
         if (fKalman->TGeoTrackPropagate(&par, hit->GetZ(), fPDG, nullptr, nullptr, fIsField) == kBMNERROR)
@@ -558,7 +554,6 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack *tr) {
 }
 
 void BmnGlobalTracking::Finish() {
-    delete fDetectorSI;
     delete fKalman;
 
     if (fDoAlign) {

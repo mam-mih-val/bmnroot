@@ -30,6 +30,11 @@ using namespace TMath;
 
 BmnCellAutoTracking::BmnCellAutoTracking(Short_t period, Int_t run, Bool_t field, Bool_t target, TString steerFile) : fSteering(nullptr),
                                                                                                                       fSteerFile(steerFile) {
+
+
+    fInnerTrackerSetup[kGEM] = kTRUE;                                                                                                                          
+    fInnerTrackerSetup[kSILICON] = kTRUE;                                                                                                                          
+    fInnerTrackerSetup[kSSD] = kFALSE;                                                                                                                          
     // Deciding whether we are getting MC ...
     if (run < 0) {
         // MC-input given

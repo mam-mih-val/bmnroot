@@ -152,20 +152,20 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
-    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
-    if (!isExp)
+     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
+     if (!isExp)
         gemHM->SetCurrentConfig(BmnGemStripConfiguration::RunSRCSpring2018); //set explicitly
-    gemHM->SetHitMatching(kTRUE);
-    fRunAna->AddTask(gemHM);
+    // gemHM->SetHitMatching(kTRUE);
+    //fRunAna->AddTask(gemHM);
 
     // ====================================================================== //
     // ===                          CSC hit finder                        === //
     // ====================================================================== //
-    BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
+     BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
     if (!isExp)
         cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSRCSpring2018); //set explicitly
-    cscHM->SetHitMatching(kTRUE);
-    fRunAna->AddTask(cscHM);
+     cscHM->SetHitMatching(kTRUE);
+     fRunAna->AddTask(cscHM);
 
     // ====================================================================== //
     // ===                         TOF400 hit finder                      === //
@@ -177,10 +177,10 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // ====================================================================== //
     // ===                         TOF700 hit finder                      === //
     // ====================================================================== //
-    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7.txt", !isExp, iVerbose, kTRUE);
-    tof2HP->SetTimeResolution(0.115);
-    tof2HP->SetMCTimeFile("TOF700_MC_time_run7.txt");
-    fRunAna->AddTask(tof2HP);
+    // BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7.txt", !isExp, iVerbose, kTRUE);
+    // tof2HP->SetTimeResolution(0.115);
+    // tof2HP->SetMCTimeFile("TOF700_MC_time_run7.txt");
+    // fRunAna->AddTask(tof2HP);
 
     // ====================================================================== //
     // ===                           LAND hit finder                      === //
@@ -193,6 +193,11 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // ====================================================================== //
     // BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp, run_period, run_number);
     // fRunAna->AddTask(mwpcTF);
+    // ====================================================================== //
+    // ===                          Tracking (Silicon)                    === //
+    // ====================================================================== //
+    BmnSiliconTrackFinder* siTF = new BmnSiliconTrackFinder(isTarget, run_number);
+    fRunAna->AddTask(siTF);
 
     // ====================================================================== //
     // ===                           Tracking                             === //

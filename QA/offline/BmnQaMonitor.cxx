@@ -14,9 +14,16 @@ zdc(nullptr),
 dst(nullptr),
 triggers(nullptr),
 fCanvases(nullptr),
-fCurrentRun(-1) {
+fSteering(new BmnOfflineQaSteering()) {
+    fCurrentRun = -1;
+
+    // 1. Start server 
     InitServer();
+    
+    // 2. Register canvases to be shown 
     RegisterCanvases();
+    
+    // 3. Register user's commands to show current and reference runs
     RegisterUserCommands();
 }
 
@@ -40,66 +47,23 @@ BmnQaMonitor::~BmnQaMonitor() {
     delete fServer;
 }
 
-void BmnQaMonitor::DivideCanvases(Int_t nCanvs) {
-    // Divide canvases by pads gor from existing number of histos to be displayed
+void BmnQaMonitor::DivideCanvases() {
+    // Divide canvases by pads got from existing number of histos to be displayed
     // Division is a subject of change if a new histo added (FIXME!)
 
-    for (Int_t iCanvas = 0; iCanvas < nCanvs; iCanvas++) {
+    vector <TString> canvases = fSteering->GetCanvNames();
+
+    for (Int_t iCanvas = 0; iCanvas < fSteering->GetCanvNames().size(); iCanvas++) {
         TString name = TString(fCanvases[iCanvas]->GetName());
 
-        if (name.Contains("TRIGGERS"))
-            fCanvases[iCanvas]->Divide(5, 5);
-        else if (name.Contains("GEM"))
-            fCanvases[iCanvas]->Divide(10, 10);
-        else if (name.Contains("SILICON"))
-            fCanvases[iCanvas]->Divide(7, 7);
-        else if (name.Contains("CSC"))
-            fCanvases[iCanvas]->Divide(3, 3);
-        else if (name.Contains("TOF400"))
-            fCanvases[iCanvas]->Divide(3, 3);
-        else if (name.Contains("TOF700"))
-            fCanvases[iCanvas]->Divide(3, 3);
-        else if (name.Contains("DCH"))
-            fCanvases[iCanvas]->Divide(2, 2);
-        else if (name.Contains("MWPC"))
-            fCanvases[iCanvas]->Divide(2, 2);
-        else if (name.Contains("ECAL"))
-            fCanvases[iCanvas]->Divide(3, 3);
-        else if (name.Contains("ZDC"))
-            fCanvases[iCanvas]->Divide(3, 3);
-        else if (name.Contains("DST"))
-            fCanvases[iCanvas]->Divide(4, 4);
-        else
-            throw;
-    }
-}
-
-void BmnQaMonitor::FillCanvasesWithHistos(Int_t nCanvs) {
-    for (Int_t iCanvas = 0; iCanvas < nCanvs; iCanvas++) {
-        TCanvas* c = fCanvases[iCanvas];
-        TString name = TString(c->GetName());
-
-        FillCanvasesWithHistos <BmnTrigDetQa> (triggers, name, iCanvas);
-
-        FillCanvasesWithHistos <BmnCoordinateDetQa> (gem, name, iCanvas);
-        FillCanvasesWithHistos <BmnCoordinateDetQa> (silicon, name, iCanvas);
-        FillCanvasesWithHistos <BmnCoordinateDetQa> (csc, name, iCanvas);
-
-        FillCanvasesWithHistos <BmnTimeDetQa> (tof400, name, iCanvas);
-        FillCanvasesWithHistos <BmnTimeDetQa> (tof700, name, iCanvas);
-        FillCanvasesWithHistos <BmnTimeDetQa> (dch, name, iCanvas);
-        FillCanvasesWithHistos <BmnTimeDetQa> (mwpc, name, iCanvas);
-
-        FillCanvasesWithHistos <BmnCalorimeterDetQa> (ecal, name, iCanvas);
-        FillCanvasesWithHistos <BmnCalorimeterDetQa> (zdc, name, iCanvas);
-
-        FillCanvasesWithHistos <BmnDstQa> (dst, name, iCanvas);
+        if (name.Contains(canvases[iCanvas].Data())) {
+            Int_t idxDim = name.Contains("2d") ? 1 : 0;
+            fCanvases[iCanvas]->Divide(fSteering->GetDetCanvas()[iCanvas / 2][idxDim][0], fSteering->GetDetCanvas()[iCanvas / 2][idxDim][1]);
+        }
     }
 }
 
 void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
-    Int_t nCanvs = 11;
-
     AllHistos* currHistos = GetCurrentRun(fCurrentRun);
     vector <TH1F*> h1Curr = currHistos->Get1D();
     vector <TH2F*> h2Curr = currHistos->Get2D();
@@ -120,15 +84,13 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
     for (auto it : h2Ref)
         hRef.push_back((TNamed*) it);
 
-    TString dets[nCanvs] = {"TRIGGERS", "GEM", "SILICON", "CSC", "TOF400", "TOF700", "DCH", "MWPC", "ECAL", "ZDC", "DST"}; // FIXME !!!
-
-    for (Int_t iCanvas = 0; iCanvas < nCanvs; iCanvas++) {
+    for (Int_t iCanvas = 0; iCanvas < fSteering->GetCanvNames().size(); iCanvas++) {
         TCanvas* c = fCanvases[iCanvas];
         Int_t padCounter = 1;
         TString nameCanvas = (TString) c->GetName();
 
-        for (Int_t iDet = 0; iDet < nCanvs; iDet++) {
-            if (!nameCanvas.Contains(dets[iDet].Data()))
+        for (auto itMap : fSteering->GetCorrMap()) {
+           if (!nameCanvas.Contains(itMap.first.Data()))
                 continue;
 
             for (auto itCurr : hCurr)
@@ -140,7 +102,7 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
                         continue;
 
                     TString nameHisto = (TString) itRef->GetName();
-                    if (!nameHisto.Contains(dets[iDet].Data()))
+                    if (!nameHisto.Contains(itMap.first.Data()) || !nameHisto.Contains(nameCanvas.Data()))
                         continue;
                     TVirtualPad* pad = c->cd(padCounter);
 
@@ -177,8 +139,6 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
 }
 
 void BmnQaMonitor::ShowCurrentHistos(Int_t run) {
-    Int_t nCanvs = 11;
-
     AllHistos* allHistos = GetCurrentRun(run);
     vector <TH1F*> h1 = allHistos->Get1D();
     vector <TH2F*> h2 = allHistos->Get2D();
@@ -189,20 +149,18 @@ void BmnQaMonitor::ShowCurrentHistos(Int_t run) {
     for (auto it : h2)
         h.push_back((TNamed*) it);
 
-    TString dets[nCanvs] = {"TRIGGERS", "GEM", "SILICON", "CSC", "TOF400", "TOF700", "DCH", "MWPC", "ECAL", "ZDC", "DST"}; // FIXME !!!
-
-    for (Int_t iCanvas = 0; iCanvas < nCanvs; iCanvas++) {
+    for (Int_t iCanvas = 0; iCanvas < fSteering->GetCanvNames().size(); iCanvas++) {
         TCanvas* c = fCanvases[iCanvas];
         Int_t padCounter = 1;
         TString nameCanvas = (TString) c->GetName();
 
-        for (Int_t iDet = 0; iDet < nCanvs; iDet++) {
-            if (!nameCanvas.Contains(dets[iDet].Data()))
+        for (auto itMap : fSteering->GetCorrMap()) {
+            if (!nameCanvas.Contains(itMap.first.Data()))
                 continue;
 
             for (auto it : h) {
                 TString nameHisto = (TString) it->GetName();
-                if (!nameHisto.Contains(dets[iDet].Data()))
+                if (!nameHisto.Contains(itMap.first.Data()) || !nameHisto.Contains(nameCanvas.Data()))
                     continue;
                 c->cd(padCounter);
                 Bool_t isColz = nameHisto.Contains("vs.") ? kTRUE : kFALSE;
@@ -218,12 +176,11 @@ void BmnQaMonitor::ShowCurrentHistos(Int_t run) {
     fCurrentRun = run;
 }
 
-void BmnQaMonitor::InitServer(Int_t webPortCgi, Int_t webPortHttp) {
-    const Char_t* cgiStr = Form("fastcgi:%d", webPortCgi);
-    const Char_t* httpStr = Form("http:%d;noglobal", webPortHttp);
+void BmnQaMonitor::InitServer() {
+    const Char_t* cgiStr = Form("fastcgi:%d", 9000);
+    const Char_t* httpStr = Form("http:%d;noglobal", 8080);
 
-    // Start http-server ...
-  
+    // Start http-server ...  
     fServer = new THttpServer(httpStr);
 
     // Start fast-cgi engine to the server ...
@@ -232,16 +189,17 @@ void BmnQaMonitor::InitServer(Int_t webPortCgi, Int_t webPortHttp) {
 }
 
 void BmnQaMonitor::RegisterCanvases() {
-    const Int_t nCanvases = 11; // dets, triggers + DST
-    const TString detNames[nCanvases] = {"TRIGGERS", "GEM", "SILICON", "CSC", "TOF400", "TOF700", "DCH", "MWPC", "ECAL", "ZDC", "DST"};
+    Int_t nCanvases = fSteering->GetCanvNames().size();
 
     fCanvases = new TCanvas*[nCanvases];
+
     for (Int_t iCanvas = 0; iCanvas < nCanvases; iCanvas++)
-        fCanvases[iCanvas] = new TCanvas(Form("%s", detNames[iCanvas].Data()), Form("%s", detNames[iCanvas].Data()), 800, 800);
-    DivideCanvases(nCanvases);
+        fCanvases[iCanvas] = new TCanvas(Form("%s", fSteering->GetCanvNames()[iCanvas].Data()), Form("%s", fSteering->GetCanvNames()[iCanvas].Data()), 800, 800);
+
+    DivideCanvases();
 
     // Create a vector containing names of triggers to be displayed ...
-    const Int_t nTrigs = 6;
+    const Int_t nTrigs = 6; // FIXME !!!
     TString _trigNames[nTrigs] = {"BC1", "BC2", "BC3", "BD", "SI", "VETO"};
 
     vector <TString> trigNames;
@@ -264,7 +222,7 @@ void BmnQaMonitor::RegisterCanvases() {
 
     dst = new BmnDstQa();
 
-    // Get histo names ...
+    // 1. Get names ...
     GetHistoNames <BmnTrigDetQa> (triggers);
 
     GetHistoNames <BmnCoordinateDetQa> (gem);
@@ -281,7 +239,7 @@ void BmnQaMonitor::RegisterCanvases() {
 
     GetHistoNames <BmnDstQa> (dst);
 
-    // Get histos by names got before ...
+    // 2. Get histos by their names got before ...
     GetHistosToBeRegistered <BmnTrigDetQa> (triggers, 0);
 
     GetHistosToBeRegistered <BmnCoordinateDetQa> (gem, 1);
@@ -298,12 +256,8 @@ void BmnQaMonitor::RegisterCanvases() {
 
     GetHistosToBeRegistered <BmnDstQa> (dst, 10);
 
-    FillCanvasesWithHistos(nCanvases);
-
     for (Int_t iCanvas = 0; iCanvas < nCanvases; iCanvas++)
         fServer->Register("/Objects", fCanvases[iCanvas]);
-
-    // fillCanvasesWithHistos(nCanvases);
 }
 
 void BmnQaMonitor::RegisterUserCommands() {
@@ -320,20 +274,20 @@ void BmnQaMonitor::RegisterUserCommands() {
 
     TString cmd2 = "/" + fName + "/->ShowReferenceHistos(%arg1%)";
     fServer->RegisterCommand(cmdTitle2.Data(), cmd2.Data(), "button;");
-    // fServer->ProcessRequests();
-
 }
 
-AllHistos* BmnQaMonitor::GetRun(UInt_t run) {
-    TString workFile = gSystem->Getenv("VMCWORKDIR");
-    workFile += TString::Format("/macro/miscellaneous/qa_files/qa_%d.root", run);
-
-    if (fHistoNames.size() == 0)
-        Fatal("BmnQaMonitor::GetHistosFromFile()", "No histos to be displayed");
-
+AllHistos* BmnQaMonitor::GetRun(UInt_t run) {  
     AllHistos* histos = new AllHistos();
 
-    TFile* file = new TFile(workFile.Data(), "read");
+    if (fHistoNames.size() == 0) {
+        cout << "BmnQaMonitor::GetHistosFromFile(), No histos to be displayed" << endl;
+        return histos;
+    }
+
+    fPathToData = gSystem->Getenv("VMCWORKDIR");
+    fPathToData += "/macro/miscellaneous/qa_files/";
+    fPathToData += TString::Format("qa_%d.root", run);
+    TFile* file = new TFile(fPathToData.Data(), "read");
     if (!file->IsOpen()) {
         cout << "File does not exist! Exiting ... " << endl;
         return histos;
@@ -371,5 +325,6 @@ AllHistos* BmnQaMonitor::GetRun(UInt_t run) {
         else
             histos->Set1D((TH1F*) h);
     }
+    cout << "Run #" << run << " processed " << endl;
     return histos;
 }

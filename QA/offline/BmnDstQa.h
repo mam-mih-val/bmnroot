@@ -1,5 +1,6 @@
 #include <TNamed.h>
 #include <TH1F.h>
+#include <TH2F.h>
 #include "BmnQaHistoManager.h"
 
 #ifndef BMNDSTQA_H

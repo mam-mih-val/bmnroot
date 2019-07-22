@@ -161,6 +161,7 @@ private:
 
     // Coordinate detectors
     template <class T> void GetDistributionOfFiredStrips(TClonesArray*, BmnCoordinateDetQa*, TString);
+    template <class T> void GetDistributionOfFiredStripsVsSignal(TClonesArray*, BmnCoordinateDetQa*, TString);
 
     // Time detectors
     template <class T> void GetCommonInfo(TClonesArray*, BmnTimeDetQa*, TString);
@@ -174,7 +175,7 @@ private:
     template <class T> void GetCommonInfo(TClonesArray*, BmnTrigDetQa*, TString);
     
     // Dst
-    void GetGlobalTracksDistributions(TClonesArray*, BmnDstQa*);
+    void GetGlobalTracksDistributions(TClonesArray*, TClonesArray*, BmnDstQa*);
     template <class T> void GetInnerTracksDistributions(TClonesArray*, BmnDstQa*, TString);
 
     ClassDef(BmnQaOffline, 1);

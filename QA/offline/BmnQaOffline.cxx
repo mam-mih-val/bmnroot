@@ -74,7 +74,7 @@ fGlobalTracks(nullptr) {
     fTQDC_BC4 = "TQDC_BC4";
     fTQDC_Veto = "TQDC_VC";
 
-    fSiTrig = "SI";
+    fSiTrig = "Si";
     fBD = "BD";
 
     isDstRead = ReadDstTree(file);
@@ -185,7 +185,7 @@ InitStatus BmnQaOffline::Init() {
 
     // Dst
     dst = new BmnDstQa();
-
+    
     return kSUCCESS;
 }
 
@@ -220,7 +220,7 @@ void BmnQaOffline::Finish() {
 
     ioman->GetOutFile()->mkdir("DST")->cd();
     dst->GetManager()->WriteToFile();
-
+    
     // Delete detector classes and its histo classes
     delete gem;
     delete silicon;
@@ -245,7 +245,8 @@ void BmnQaOffline::Exec(Option_t* opt) {
         cout << "Event# = " << fCurrentEvent << endl;
 
     // Coord. dets
-    GetDistributionOfFiredStrips <BmnGemStripDigit> (fGemDigits, gem, "GEM");
+    GetDistributionOfFiredStrips <BmnGemStripDigit> (fGemDigits, gem, "GEM"); // histos 1
+    GetDistributionOfFiredStripsVsSignal <BmnGemStripDigit> (fGemDigits, gem, "GEM"); // histos 2
     GetDistributionOfFiredStrips <BmnSiliconDigit> (fSiDigits, silicon, "SILICON");
     GetDistributionOfFiredStrips <BmnCSCDigit> (fCscDigits, csc, "CSC");
 
@@ -268,7 +269,7 @@ void BmnQaOffline::Exec(Option_t* opt) {
         GetCommonInfo <BmnTrigDigit> (it.first, triggers, it.second);
 
     // Dst
-    GetGlobalTracksDistributions(fGlobalTracks, dst);
+    GetGlobalTracksDistributions(fGlobalTracks, fVertex, dst);
     GetInnerTracksDistributions <BmnSiliconTrack> (fSiliconTracks, dst, "silicon");
     GetInnerTracksDistributions <BmnGemTrack> (fGemTracks, dst, "gem");
 
@@ -277,13 +278,25 @@ void BmnQaOffline::Exec(Option_t* opt) {
 // Functions to be used when getting previously filled histos
 // Coordinate detectors
 
+// Histos 1
 template <class T> void BmnQaOffline::GetDistributionOfFiredStrips(TClonesArray* digiArray, BmnCoordinateDetQa* detHistoClass, TString detName) {
     for (Int_t iDig = 0; iDig < digiArray->GetEntriesFast(); iDig++) {
         T* dig = (T*) digiArray->UncheckedAt(iDig);
         Int_t module = dig->GetModule();
         Int_t station = dig->GetStation();
         Int_t layer = dig->GetStripLayer();
-        detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of fired strips, Stat %d Mod %d Lay %d", detName.Data(), station, module, layer))->Fill(dig->GetStripNumber());
+        detHistoClass->GetManager()->H1(TString::Format("%s_1d, Distribution of fired strips, Stat %d Mod %d Lay %d", detName.Data(), station, module, layer))->Fill(dig->GetStripNumber());
+    }
+}
+
+// Histos 2
+template <class T> void BmnQaOffline::GetDistributionOfFiredStripsVsSignal(TClonesArray* digiArray, BmnCoordinateDetQa* detHistoClass, TString detName) {
+    for (Int_t iDig = 0; iDig < digiArray->GetEntriesFast(); iDig++) {
+        T* dig = (T*) digiArray->UncheckedAt(iDig);
+        Int_t module = dig->GetModule();
+        Int_t station = dig->GetStation();
+        Int_t layer = dig->GetStripLayer();
+        detHistoClass->GetManager()->H2(TString::Format("%s_2d, Distribution of fired strips vs. signal, Stat %d Mod %d Lay %d", detName.Data(), station, module, layer))->Fill(dig->GetStripNumber(), dig->GetStripSignal());
     }
 }
 
@@ -292,24 +305,23 @@ template <class T> void BmnQaOffline::GetDistributionOfFiredStrips(TClonesArray*
 template <class T> void BmnQaOffline::GetCommonInfo(TClonesArray* digiArray, BmnTimeDetQa* detHistoClass, TString detName) {
     for (Int_t iDig = 0; iDig < digiArray->GetEntriesFast(); iDig++) {
         T* dig = (T*) digiArray->UncheckedAt(iDig);
-        detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of planes", detName.Data()))->Fill(dig->GetPlane());
-        detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of times", detName.Data()))->Fill(dig->GetTime());
-
+        detHistoClass->GetManager()->H1(TString::Format("%s_1d, Distribution of planes", detName.Data()))->Fill(dig->GetPlane());
+        detHistoClass->GetManager()->H1(TString::Format("%s_1d, Distribution of times", detName.Data()))->Fill(dig->GetTime());
     }
 }
 
 template <class T> void BmnQaOffline::GetMwpcDchInfo(TClonesArray* digiArray, BmnTimeDetQa* detHistoClass, TString detName) {
     for (Int_t iDig = 0; iDig < digiArray->GetEntriesFast(); iDig++) {
         T* dig = (T*) digiArray->UncheckedAt(iDig);
-        detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of wires", detName.Data()))->Fill(dig->GetWireNumber());
+        detHistoClass->GetManager()->H1(TString::Format("%s_1d, Distribution of wires", detName.Data()))->Fill(dig->GetWireNumber());
     }
 }
 
 template <class T> void BmnQaOffline::GetTofInfo(TClonesArray* digiArray, BmnTimeDetQa* detHistoClass, TString detName) {
     for (Int_t iDig = 0; iDig < digiArray->GetEntriesFast(); iDig++) {
         T* dig = (T*) digiArray->UncheckedAt(iDig);
-        detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of strips", detName.Data()))->Fill(dig->GetStrip());
-        detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of amplitudes", detName.Data()))->Fill(dig->GetAmplitude());
+        detHistoClass->GetManager()->H1(TString::Format("%s_1d, Distribution of strips", detName.Data()))->Fill(dig->GetStrip());
+        detHistoClass->GetManager()->H1(TString::Format("%s_1d, Distribution of amplitudes", detName.Data()))->Fill(dig->GetAmplitude());
     }
 }
 
@@ -318,12 +330,12 @@ template <class T> void BmnQaOffline::GetTofInfo(TClonesArray* digiArray, BmnTim
 template <class T> void BmnQaOffline::GetCommonInfo(TClonesArray* digiArray, BmnCalorimeterDetQa* detHistoClass, TString detName) {
     for (Int_t iDig = 0; iDig < digiArray->GetEntriesFast(); iDig++) {
         T* dig = (T*) digiArray->UncheckedAt(iDig);
-        detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of iX", detName.Data()))->Fill(dig->GetIX());
-        detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of iY", detName.Data()))->Fill(dig->GetIY());
-        detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of X", detName.Data()))->Fill(dig->GetX());
-        detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of Y", detName.Data()))->Fill(dig->GetY());
-        detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of channels", detName.Data()))->Fill(dig->GetChannel());
-        detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of amplitudes", detName.Data()))->Fill(dig->GetAmp());
+        detHistoClass->GetManager()->H1(TString::Format("%s_1d, Distribution of iX", detName.Data()))->Fill(dig->GetIX());
+        detHistoClass->GetManager()->H1(TString::Format("%s_1d, Distribution of iY", detName.Data()))->Fill(dig->GetIY());
+        detHistoClass->GetManager()->H1(TString::Format("%s_1d, Distribution of X", detName.Data()))->Fill(dig->GetX());
+        detHistoClass->GetManager()->H1(TString::Format("%s_1d, Distribution of Y", detName.Data()))->Fill(dig->GetY());
+        detHistoClass->GetManager()->H1(TString::Format("%s_1d, Distribution of channels", detName.Data()))->Fill(dig->GetChannel());
+        detHistoClass->GetManager()->H1(TString::Format("%s_1d, Distribution of amplitudes", detName.Data()))->Fill(dig->GetAmp());
     }
 }
 
@@ -332,23 +344,24 @@ template <class T> void BmnQaOffline::GetCommonInfo(TClonesArray* digiArray, Bmn
 template <class T> void BmnQaOffline::GetCommonInfo(TClonesArray* digiArray, BmnTrigDetQa* detHistoClass, TString detName) {
     for (Int_t iDig = 0; iDig < digiArray->GetEntriesFast(); iDig++) {
         T* dig = (T*) digiArray->UncheckedAt(iDig);
-        detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of inn. channels", detName.Data()))->Fill(dig->GetMod());
-        detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of times", detName.Data()))->Fill(dig->GetTime());
-        detHistoClass->GetManager()->H1(TString::Format("%s, Distribution of amplitudes", detName.Data()))->Fill(dig->GetAmp());
+        detHistoClass->GetManager()->H1(TString::Format("TRIGGERS_1d, %s, Distribution of inn. channels", detName.Data()))->Fill(dig->GetMod());
+        detHistoClass->GetManager()->H1(TString::Format("TRIGGERS_1d, %s, Distribution of times", detName.Data()))->Fill(dig->GetTime());
+        detHistoClass->GetManager()->H1(TString::Format("TRIGGERS_1d, %s, Distribution of amplitudes", detName.Data()))->Fill(dig->GetAmp());
     }
 }
 
 // Dst
 
-void BmnQaOffline::GetGlobalTracksDistributions(TClonesArray* tracksArray, BmnDstQa* detHistoClass) {
+void BmnQaOffline::GetGlobalTracksDistributions(TClonesArray* tracksArray, TClonesArray* vertex, BmnDstQa* detHistoClass) {
     const Int_t nDims = 3;
     TString dim[nDims] = {"X", "Y", "Z"};
 
-    detHistoClass->GetManager()->H1(Form("Distribution of total multiplicity"))->Fill(tracksArray->GetEntriesFast());
+    // Histos 1
+    detHistoClass->GetManager()->H1(Form("DST_1d, Distribution of total multiplicity"))->Fill(tracksArray->GetEntriesFast());
     for (Int_t iTrack = 0; iTrack < tracksArray->GetEntriesFast(); iTrack++) {
         BmnGlobalTrack* track = (BmnGlobalTrack*) tracksArray->UncheckedAt(iTrack);
-        detHistoClass->GetManager()->H1(Form("Distribution of momenta"))->Fill(1. / track->GetParamFirst()->GetQp());
-        detHistoClass->GetManager()->H1(Form("Distribution of Nhits"))->Fill(track->GetNHits());
+        detHistoClass->GetManager()->H1(Form("DST_1d, Distribution of momenta"))->Fill(1. / track->GetParamFirst()->GetQp());
+        detHistoClass->GetManager()->H1(Form("DST_1d, Distribution of Nhits"))->Fill(track->GetNHits());
 
         FairTrackParam* parFirst = track->GetParamFirst();
         FairTrackParam* parLast = track->GetParamLast();
@@ -360,20 +373,23 @@ void BmnQaOffline::GetGlobalTracksDistributions(TClonesArray* tracksArray, BmnDs
         Double_t txtyLast[] = {parLast->GetTx(), parLast->GetTy()};
 
         for (Int_t iDim = 0; iDim < nDims; iDim++) {
-            detHistoClass->GetManager()->H1(Form("Distribution of start%s", dim[iDim].Data()))->Fill(xyzFirst[iDim]);
+            detHistoClass->GetManager()->H1(Form("DST_1d, Distribution of start%s", dim[iDim].Data()))->Fill(xyzFirst[iDim]);
             if (!dim[iDim].Contains("Z"))
-                detHistoClass->GetManager()->H1(Form("Distribution of start T%s", dim[iDim].Data()))->Fill(txtyFirst[iDim]);
-            detHistoClass->GetManager()->H1(Form("Distribution of last%s", dim[iDim].Data()))->Fill(xyzLast[iDim]);
+                detHistoClass->GetManager()->H1(Form("DST_1d, Distribution of start T%s", dim[iDim].Data()))->Fill(txtyFirst[iDim]);
+            detHistoClass->GetManager()->H1(Form("DST_1d, Distribution of last%s", dim[iDim].Data()))->Fill(xyzLast[iDim]);
             if (!dim[iDim].Contains("Z"))
-                detHistoClass->GetManager()->H1(Form("Distribution of last T%s", dim[iDim].Data()))->Fill(txtyLast[iDim]);
+                detHistoClass->GetManager()->H1(Form("DST_1d, Distribution of last T%s", dim[iDim].Data()))->Fill(txtyLast[iDim]);
         }
     }
+    
+    // Histos 2
+    detHistoClass->GetManager()->H2(Form("DST_2d, Vp_{z} vs. Ntracks"))->Fill(tracksArray->GetEntriesFast(), ((CbmVertex*)vertex->UncheckedAt(0))->GetZ());
 }
 
 template <class T> void BmnQaOffline::GetInnerTracksDistributions(TClonesArray* tracksArray, BmnDstQa* detHistoClass, TString detName) {
     for (Int_t iTrack = 0; iTrack < tracksArray->GetEntriesFast(); iTrack++) {
         T* track = (T*) tracksArray->UncheckedAt(iTrack);
-        detHistoClass->GetManager()->H1(Form("Distribution of Nhits, %s track", detName.Data()))->Fill(track->GetNHits());
+        detHistoClass->GetManager()->H1(Form("DST_1d, Distribution of Nhits, %s track", detName.Data()))->Fill(track->GetNHits());
     }
 }
 

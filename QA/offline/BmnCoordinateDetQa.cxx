@@ -19,6 +19,7 @@ fHistoManager(new BmnQaHistoManager()) {
         fDetGem = new BmnGemStripStationSet(gPathGemConfig + confGEM);
 
         DistributionOfFiredStrips <BmnGemStripStationSet> ((void*) fDetGem, "GEM");
+        DistributionOfFiredStripsVsSignal <BmnGemStripStationSet> ((void*) fDetGem, "GEM");
     } 
     
     else if (det.Contains("SILICON")) {

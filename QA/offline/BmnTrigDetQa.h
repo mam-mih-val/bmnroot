@@ -30,9 +30,9 @@ private:
     BmnQaHistoManager* fHistoManager;
     
     void CommonInfo(TString detName) {
-        fHistoManager->Create1 <TH1F> (Form("%s, Distribution of inn. channels", detName.Data()), Form("Distribution of inn. channels"), 100, 0., 0.);
-        fHistoManager->Create1 <TH1F> (Form("%s, Distribution of times", detName.Data()), Form("Distribution of times"), 100, 0., 0.);
-        fHistoManager->Create1 <TH1F> (Form("%s, Distribution of amplitudes", detName.Data()), Form("Distribution of amplitudes"), 100, 0., 0.);      
+        fHistoManager->Create1 <TH1F> (Form("TRIGGERS_1d, %s, Distribution of inn. channels", detName.Data()), Form("%s, Distribution of inn. channels", detName.Data()), 100, 0., 0.);
+        fHistoManager->Create1 <TH1F> (Form("TRIGGERS_1d, %s, Distribution of times", detName.Data()), Form("%s, Distribution of times", detName.Data()), 100, 0., 0.);
+        fHistoManager->Create1 <TH1F> (Form("TRIGGERS_1d, %s, Distribution of amplitudes", detName.Data()), Form("%s, Distribution of amplitudes", detName.Data()), 100, 0., 0.);      
     }
    
     ClassDef(BmnTrigDetQa, 1);

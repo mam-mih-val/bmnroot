@@ -11,6 +11,8 @@
 #include <BmnTrigDetQa.h>
 #include <BmnDstQa.h>
 
+#include <BmnOfflineQaSteering.h>
+
 #ifndef BMNQAMONITOR_H
 #define BMNQAMONITOR_H 1
 
@@ -53,7 +55,21 @@ public:
 
     BmnQaMonitor();
     virtual ~BmnQaMonitor();
+   
+    void ShowCurrentHistos(Int_t);
+    void ShowReferenceHistos(Int_t);
+    
+    void SetPathToData();
 
+private:
+    THttpServer* fServer;
+    TString fPathToData;
+
+    void InitServer();
+    void RegisterCanvases();
+    void DivideCanvases();
+    void RegisterUserCommands();
+    
     AllHistos* GetRun(UInt_t);
 
     AllHistos* GetCurrentRun(UInt_t run) {
@@ -62,33 +78,6 @@ public:
 
     AllHistos* GetReferenceRun(UInt_t run) {
         return GetRun(run);
-    }
-
-    void ShowCurrentHistos(Int_t);
-    void ShowReferenceHistos(Int_t);
-
-private:
-    THttpServer* fServer;
-
-    void InitServer(Int_t cgi = 9000, Int_t http = 8080);
-    void RegisterCanvases();
-    void DivideCanvases(Int_t);
-    void FillCanvasesWithHistos(Int_t);
-    void RegisterUserCommands();
-
-    // void MakeNormalization(vector <TH1F*>, vector <TH1F*>);
-
-    template <class T> void FillCanvasesWithHistos(T* histos, TString name, Int_t iCanvas, Int_t padCounter = 1) {
-        BmnQaHistoManager* man = histos->GetManager();
-        for (auto it : fHistoNames) {
-            if (!it.Contains(name.Data()) || !man->Exists(it))
-                continue;
-            fCanvases[iCanvas]->cd(padCounter);
-            TH1F* h = (TH1F*) man->H1(it);
-            h->Draw();
-
-            padCounter++;
-        }
     }
 
     template <class T> void GetHistoNames(T* man) {
@@ -137,6 +126,8 @@ private:
     Int_t fCurrentRun;
 
     TCanvas** fCanvases;
+
+    BmnOfflineQaSteering* fSteering;
 
     ClassDef(BmnQaMonitor, 1)
 };

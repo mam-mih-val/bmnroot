@@ -31,17 +31,17 @@ private:
     BmnQaHistoManager* fHistoManager;
 
     void CommonInfo(TString detName) {
-        fHistoManager->Create1 <TH1F> (Form("%s, Distribution of times", detName.Data()), Form("Distribution of times"), 100, 0., 0.);
-        fHistoManager->Create1 <TH1F> (Form("%s, Distribution of planes", detName.Data()), Form("Distribution of planes"), 100, 0., 0.);
+        fHistoManager->Create1 <TH1F> (Form("%s_1d, Distribution of times", detName.Data()), Form("%s, Distribution of times", detName.Data()), 100, 0., 0.);
+        fHistoManager->Create1 <TH1F> (Form("%s_1d, Distribution of planes", detName.Data()), Form("%s, Distribution of planes", detName.Data()), 100, 0., 0.);
     }
 
     void MwpcDchInfo(TString detName) {
-        fHistoManager->Create1 <TH1F> (Form("%s, Distribution of wires", detName.Data()), Form("Distribution of wires"), 100, 0., 0.);
+        fHistoManager->Create1 <TH1F> (Form("%s_1d, Distribution of wires", detName.Data()), Form("%s, Distribution of wires", detName.Data()), 100, 0., 0.);
     }
 
     void TofInfo(TString detName) {
-        fHistoManager->Create1 <TH1F> (Form("%s, Distribution of strips", detName.Data()), Form("Distribution of strips"), 100, 0., 0.);
-        fHistoManager->Create1 <TH1F> (Form("%s, Distribution of amplitudes", detName.Data()), Form("Distribution of amplitudes"), 100, 0., 0.);
+        fHistoManager->Create1 <TH1F> (Form("%s_1d, Distribution of strips", detName.Data()), Form("%s, Distribution of strips", detName.Data()), 100, 0., 0.);
+        fHistoManager->Create1 <TH1F> (Form("%s_1d, Distribution of amplitudes", detName.Data()), Form("%s, Distribution of amplitudes", detName.Data()), 100, 0., 0.);
     }
 
     ClassDef(BmnTimeDetQa, 1);

@@ -24,7 +24,8 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
- BmnSteering.cxx
+BmnSteering.cxx
+BmnOfflineQaSteering.cxx
 )
 
 Set(HEADERS)

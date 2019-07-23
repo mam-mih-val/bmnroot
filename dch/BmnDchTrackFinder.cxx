@@ -148,7 +148,7 @@ BmnDchTrackFinder::BmnDchTrackFinder(Bool_t isExp) :
   tracksDch = "BmnDchTrack";
   InputDigitsBranchName = "DCH";
 //  fTransferFunctionName = "transfer_func2320.txt";
-  fTransferFunctionName = "transfer_func2332.txt";
+  fTransferFunctionName = "transfer_func.txt";
 
   prev_wire = -1;
   prev_time = -1;

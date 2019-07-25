@@ -16,11 +16,18 @@ BmnGlobalTrack::BmnGlobalTrack()
     fSsdTrack(-1),
     fTof1Hit(-1),
     fTof2Hit(-1),
-    fDch1Hit(-1),
-    fDch2Hit(-1),
+    fDch1Track(-1),
+    fDch2Track(-1),
     fDchTrack(-1),
-    fMwpcTrack(-1),
-    fCscHit(-1)
+    fMwpc1Track(-1),
+    fMwpc2Track(-1),
+    fCscHit(-1),
+    fTime(0.0),
+    fBeta(0.0),
+    fMass2(0.0),
+    fdQdNLower(0.0),
+    fdQdNUpper(0.0),
+    fIsPrimary(kTRUE)
 {
 }
 // -------------------------------------------------------------------------
@@ -33,7 +40,7 @@ BmnGlobalTrack::~BmnGlobalTrack() { }
 
 // -----   Public method Print   -------------------------------------------
 void BmnGlobalTrack::Print() const {
-  cout << endl << "MwpcTrack " << fMwpcTrack << ", SilHit " << fSilTrack << ", GemTrack " << fGemTrack << ", Tof1Hit " << fTof1Hit << ", Tof2Hit " << fTof2Hit << ", DchTrack " << fDchTrack << endl;
+  //cout << endl << "MwpcTrack " << fMwpc1Track << ", SilHit " << fSilTrack << ", GemTrack " << fGemTrack << ", Tof1Hit " << fTof1Hit << ", Tof2Hit " << fTof2Hit << ", DchTrack " << fDchTrack << endl;
 }
 // -------------------------------------------------------------------------
 

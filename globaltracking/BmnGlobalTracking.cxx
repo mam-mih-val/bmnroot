@@ -482,9 +482,9 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack *tr, Int_t num) {
             tr->SetParamLast(par);
 
             if (num == 1)
-                tr->SetDch1HitIndex(minIdx);
+                tr->SetDch1TrackIndex(minIdx);
             else
-                tr->SetDch2HitIndex(minIdx);
+                tr->SetDch2TrackIndex(minIdx);
         }
     }
 }

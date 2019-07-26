@@ -960,10 +960,10 @@ void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Double_t* chi2Arr, Double_t*
     Double_t z0 = (dchID == 1) ? Z_dch1 : Z_dch2;
     Double_t x0 = parArr[1][iSegment];
     Double_t y0 = parArr[3][iSegment];
-    Double_t x_align = (dchID == 1) ? -9.25-1.45+1.28 : +5.129-1.82+2.03;
-    Double_t y_align = (dchID == 1) ? -3.78+0.16 : +8.67+0.16;
-    Double_t tx_align = (dchID == 1) ? +0.073 : +0.070; 
-    Double_t ty_align = (dchID == 1) ? +0.059 : +0.062;
+    Double_t x_align = (dchID == 1) ? -10.89 : +4.93;
+    Double_t y_align = (dchID == 1) ?  -2.95 : +9.12;
+    Double_t tx_align = (dchID == 1) ? +0.073+0.049 : +0.070+0.052;
+    Double_t ty_align = (dchID == 1) ? +0.054 : +0.062-0.047;
     trackParam.SetPosition(TVector3(-x0 + x_align, y0 + y_align, z0));
     trackParam.SetTx(- parArr[0][iSegment] + tx_align);
     trackParam.SetTy(parArr[2][iSegment] + ty_align);

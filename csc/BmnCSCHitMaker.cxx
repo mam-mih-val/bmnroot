@@ -251,7 +251,7 @@ void BmnCSCHitMaker::ProcessDigits() {
                 //--------------------------------------------------------------
 
                 //Add hit ------------------------------------------------------
-                //x *= -1; // invert to global X //Temporary switched off
+                x *= -1; // invert to global X //Temporary switched off
 
                 new ((*fBmnCSCHitsArray)[fBmnCSCHitsArray->GetEntriesFast()])
                         BmnCSCHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);

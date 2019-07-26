@@ -202,6 +202,8 @@ class BmnGlobalTracking : public FairTask {
     BmnStatus RefitToDetector(BmnGlobalTrack *tr, Int_t hitId, TClonesArray *hitArr, FairTrackParam *par, Int_t *nodeIdx, vector<BmnFitNode> *nodes);
     void CalcSiliconDist(Int_t, BmnGlobalTrack *, map<Double_t, pair<Int_t, Int_t>> &);
 
+    void CalcdQdn(BmnGlobalTrack *tr);
+
     ClassDef(BmnGlobalTracking, 1);
 };
 

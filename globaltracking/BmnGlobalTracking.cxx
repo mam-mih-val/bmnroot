@@ -96,8 +96,8 @@ BmnGlobalTracking::BmnGlobalTracking(Bool_t isField, Bool_t doAlign) : fInnerTra
         fhTxdXTof2GemResid = new TH2F("fhTxdXTof2GemResid", "fhTxdXTof2GemResid", 200, -0.5, 0.5, 200, -100.0, 100.0);
         fhTydYTof2GemResid = new TH2F("fhTydYTof2GemResid", "fhTydYTof2GemResid", 200, -0.5, 0.5, 200, -100.0, 100.0);
 
-        fhXDch1GemResid = new TH1F("fhXDch1GemResid", "fhXDch1GemResid", 500, -20.0, 20.0);
-        fhYDch1GemResid = new TH1F("fhYDch1GemResid", "fhYDch1GemResid", 500, -20.0, 20.0);
+        fhXDch1GemResid = new TH1F("fhXDch1GemResid", "fhXDch1GemResid", 500, -100.0, 100.0);
+        fhYDch1GemResid = new TH1F("fhYDch1GemResid", "fhYDch1GemResid", 500, -100.0, 100.0);
         fhTxDch1GemResid = new TH1F("fhTxDch1GemResid", "fhTxDch1GemResid", 500, -0.5, 0.5);
         fhTyDch1GemResid = new TH1F("fhTyDch1GemResid", "fhTyDch1GemResid", 500, -0.5, 0.5);
         fhXdXDch1GemResid = new TH2F("fhXdXDch1GemResid", "fhXdXDch1GemResid", 200, -100, 100, 200, -100.0, 100.0);
@@ -105,8 +105,8 @@ BmnGlobalTracking::BmnGlobalTracking(Bool_t isField, Bool_t doAlign) : fInnerTra
         fhTxdXDch1GemResid = new TH2F("fhTxdXDch1GemResid", "fhTxdXDch1GemResid", 200, -0.5, 0.5, 200, -100.0, 100.0);
         fhTydYDch1GemResid = new TH2F("fhTydYDch1GemResid", "fhTydYDch1GemResid", 200, -0.5, 0.5, 200, -100.0, 100.0);
 
-        fhXDch2GemResid = new TH1F("fhXDch2GemResid", "fhXDch2GemResid", 500, -20.0, 20.0);
-        fhYDch2GemResid = new TH1F("fhYDch2GemResid", "fhYDch2GemResid", 500, -20.0, 20.0);
+        fhXDch2GemResid = new TH1F("fhXDch2GemResid", "fhXDch2GemResid", 500, -100.0, 100.0);
+        fhYDch2GemResid = new TH1F("fhYDch2GemResid", "fhYDch2GemResid", 500, -100.0, 100.0);
         fhTxDch2GemResid = new TH1F("fhTxDch2GemResid", "fhTxDch2GemResid", 500, -0.5, 0.5);
         fhTyDch2GemResid = new TH1F("fhTyDch2GemResid", "fhTyDch2GemResid", 500, -0.5, 0.5);
         fhXdXDch2GemResid = new TH2F("fhXdXDch22GemResid", "fhXdXDch2GemResid", 200, -100, 100, 200, -100.0, 100.0);
@@ -236,6 +236,7 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
         MatchingDCH(glTrack, 2);
 
         //Refit(glTr);
+        CalcdQdn(glTrack);
     }
 
     //CalculateLength();
@@ -249,6 +250,21 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
              << endl;
 }
 
+void BmnGlobalTracking::CalcdQdn(BmnGlobalTrack *tr) {
+    BmnGemTrack *gemTrack = (BmnGemTrack *)fGemTracks->At(tr->GetGemTrackIndex());
+    Double_t totSigLow = 0.0;
+    Double_t totSigUp = 0.0;
+    for (Int_t hitIdx = 0; hitIdx < gemTrack->GetNHits(); ++hitIdx) {
+        BmnGemStripHit *hit = (BmnGemStripHit *)fGemHits->At(gemTrack->GetHitIndex(hitIdx));
+        totSigLow += hit->GetStripTotalSignalInLowerLayer();
+        totSigUp += hit->GetStripTotalSignalInUpperLayer();
+    }
+    totSigLow /= gemTrack->GetNHits();
+    totSigUp /= gemTrack->GetNHits();
+    tr->SetdQdNLower(totSigLow);
+    tr->SetdQdNUpper(totSigUp);
+}
+
 BmnStatus BmnGlobalTracking::MatchingCSC(BmnGlobalTrack *tr) {
     if (!fCscHits) return kBMNERROR;
 
@@ -259,10 +275,10 @@ BmnStatus BmnGlobalTracking::MatchingCSC(BmnGlobalTrack *tr) {
     for (Int_t hitIdx = 0; hitIdx < fCscHits->GetEntriesFast(); ++hitIdx) {
         BmnHit *hit = (BmnHit *)fCscHits->At(hitIdx);
         if (fIsSRC) {
-            hit->SetX(hit->GetX() - 0.53);
-            hit->SetY(hit->GetY() - 0.05);
+            hit->SetX(hit->GetX() - 67.67);
+            hit->SetY(hit->GetY() +  0.12);
         }
-        //
+        
         FairTrackParam par(*(tr->GetParamLast()));
         if (fKalman->TGeoTrackPropagate(&par, hit->GetZ(), fPDG, nullptr, nullptr, fIsField) == kBMNERROR)
             continue;
@@ -361,9 +377,9 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack *tr, Int_t num) {
     FairTrackParam minParPredLast;  // predicted track parameters for closest hit
     for (Int_t hitIdx = 0; hitIdx < tofHits->GetEntriesFast(); ++hitIdx) {
         BmnHit *hit = (BmnHit *)tofHits->At(hitIdx);
-        if (num == 1) {
-            hit->SetX(hit->GetX() - 24.14 + 18.9);
-            hit->SetY(hit->GetY() - 3.65);
+        if (num == 2) {
+            hit->SetX(hit->GetX() + 4.33 - 24.14 + 18.9);
+            hit->SetY(hit->GetY() - 3.65 + 0.66);
         }
         if (hit->IsUsed())
             continue;  // skip Tof hit which used before
@@ -406,8 +422,18 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack *tr, Int_t num) {
             else
                 tr->SetTof2HitIndex(minIdx);
 
-            minHit->SetLength(LenPropFirst + LenTrack + LenPropLast);  // length from target to Tof hit
+            Double_t l = LenPropFirst + LenTrack + LenPropLast;            
+            Double_t t = minHit->GetTimeStamp();
+            Double_t beta = l / t / (TMath::C() * 1e-7); 
+            Double_t beta2 = beta * beta;
+            Double_t gamma2 = 1.0 / (1.0 - beta2);
+            Double_t m2 = tr->GetP() / gamma2 / beta2;
+
+            tr->SetMass2(m2);
+            tr->SetBeta(beta);
+            tr->SetTime(t);
             minHit->SetUsing(kTRUE);
+            minHit->SetLength(l);  // length from target to Tof hit
             tr->SetNHits(tr->GetNHits() + 1);
             return kBMNSUCCESS;
         } else

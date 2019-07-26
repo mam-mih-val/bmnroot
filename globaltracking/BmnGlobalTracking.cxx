@@ -48,29 +48,29 @@ BmnGlobalTracking::BmnGlobalTracking() : fDoAlign(kFALSE),
 }
 
 BmnGlobalTracking::BmnGlobalTracking(Bool_t isField, Bool_t isExp, Bool_t doAlign) : fInnerTracks(nullptr),
-                                                                       fSiliconTracks(nullptr),
-                                                                       fGemHits(nullptr),
-                                                                       fCscHits(nullptr),
-                                                                       fGemTracks(nullptr),
-                                                                       fGemVertex(nullptr),
-                                                                       fTof1Hits(nullptr),
-                                                                       fTof2Hits(nullptr),
-                                                                       fBC1Digits(nullptr),
-                                                                       fBC2Digits(nullptr),
-                                                                       fBC3Digits(nullptr),
-                                                                       fBC4Digits(nullptr),
-                                                                       fDchHits(nullptr),
-                                                                       fMCTracks(nullptr),
-                                                                       fEvHead(nullptr),
-                                                                       fPDG(2212),
-                                                                       fChiSqCut(100.),
-                                                                       fVertex(nullptr),
-                                                                       fPeriod(7),
-                                                                       fIsSRC(kFALSE),
-                                                                       fDoAlign(doAlign),
-                                                                       fIsExp(isExp),
-                                                                       fIsField(isField),
-                                                                       fEventNo(0) {
+                                                                                     fSiliconTracks(nullptr),
+                                                                                     fGemHits(nullptr),
+                                                                                     fCscHits(nullptr),
+                                                                                     fGemTracks(nullptr),
+                                                                                     fGemVertex(nullptr),
+                                                                                     fTof1Hits(nullptr),
+                                                                                     fTof2Hits(nullptr),
+                                                                                     fBC1Digits(nullptr),
+                                                                                     fBC2Digits(nullptr),
+                                                                                     fBC3Digits(nullptr),
+                                                                                     fBC4Digits(nullptr),
+                                                                                     fDchHits(nullptr),
+                                                                                     fMCTracks(nullptr),
+                                                                                     fEvHead(nullptr),
+                                                                                     fPDG(2212),
+                                                                                     fChiSqCut(100.),
+                                                                                     fVertex(nullptr),
+                                                                                     fPeriod(7),
+                                                                                     fIsSRC(kFALSE),
+                                                                                     fDoAlign(doAlign),
+                                                                                     fIsExp(isExp),
+                                                                                     fIsField(isField),
+                                                                                     fEventNo(0) {
     fKalman = new BmnKalmanFilter();
 
     if (fDoAlign) {
@@ -211,6 +211,20 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
 
     if (!fInnerTracks) return;
 
+    //Alignment for SRC. FIXME: move to DB
+    if (fIsExp && fIsSRC) {
+        for (Int_t hitIdx = 0; hitIdx < fCscHits->GetEntriesFast(); ++hitIdx) {
+            BmnHit *hit = (BmnHit *)fCscHits->At(hitIdx);
+            hit->SetX(hit->GetX() - 67.71);
+            hit->SetY(hit->GetY() +  0.17);
+        }
+        for (Int_t hitIdx = 0; hitIdx < fTof2Hits->GetEntriesFast(); ++hitIdx) {
+            BmnHit *hit = (BmnHit *)fTof2Hits->At(hitIdx);
+            hit->SetX(hit->GetX() - 2.90);
+            hit->SetY(hit->GetY() - 3.12);
+        }
+    }
+
     for (Int_t i = 0; i < fInnerTracks->GetEntriesFast(); ++i) {
         BmnGlobalTrack *glTrack = (BmnGlobalTrack *)fInnerTracks->At(i);
 
@@ -275,11 +289,6 @@ BmnStatus BmnGlobalTracking::MatchingCSC(BmnGlobalTrack *tr) {
 
     for (Int_t hitIdx = 0; hitIdx < fCscHits->GetEntriesFast(); ++hitIdx) {
         BmnHit *hit = (BmnHit *)fCscHits->At(hitIdx);
-        if (fIsExp && fIsSRC) {
-            hit->SetX(hit->GetX() - 67.67);
-            hit->SetY(hit->GetY() +  0.12);
-        }
-        
         FairTrackParam par(*(tr->GetParamLast()));
         if (fKalman->TGeoTrackPropagate(&par, hit->GetZ(), fPDG, nullptr, nullptr, fIsField) == kBMNERROR)
             continue;
@@ -378,10 +387,6 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack *tr, Int_t num) {
     FairTrackParam minParPredLast;  // predicted track parameters for closest hit
     for (Int_t hitIdx = 0; hitIdx < tofHits->GetEntriesFast(); ++hitIdx) {
         BmnHit *hit = (BmnHit *)tofHits->At(hitIdx);
-        if (fIsSRC && fIsExp && num == 2) {
-            hit->SetX(hit->GetX() + 4.33 - 24.14 + 18.9);
-            hit->SetY(hit->GetY() - 3.65 + 0.66);
-        }
         if (hit->IsUsed())
             continue;  // skip Tof hit which used before
         FairTrackParam parPredict(*(tr->GetParamLast()));
@@ -423,9 +428,9 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack *tr, Int_t num) {
             else
                 tr->SetTof2HitIndex(minIdx);
 
-            Double_t l = LenPropFirst + LenTrack + LenPropLast;            
+            Double_t l = LenPropFirst + LenTrack + LenPropLast;
             Double_t t = minHit->GetTimeStamp();
-            Double_t beta = l / t / (TMath::C() * 1e-7); 
+            Double_t beta = l / t / (TMath::C() * 1e-7);
             Double_t beta2 = beta * beta;
             Double_t gamma2 = 1.0 / (1.0 - beta2);
             Double_t m2 = tr->GetP() / gamma2 / beta2;

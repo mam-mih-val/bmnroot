@@ -36,6 +36,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
     fIsExp = isExp;
+    fIsSrc = kFALSE;
 
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
 
@@ -235,7 +236,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
     Double_t alignX[nSt] = {0.0, 0.0, 0.0, 0.0, +0.163, -0.061, -0.038, -0.037, +0.003, +0.074};
     Double_t alignY[nSt] = {0.0, 0.0, 0.0, 0.0, -0.009, -0.080, +0.074, +0.009, +0.036, -0.089};
     const Int_t nFields = 6;
-        
+
     Double_t dX_ls[nSt][nFields] = {
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
@@ -245,9 +246,8 @@ void BmnGemStripHitMaker::ProcessDigits() {
         {0.0, +0.14, +0.21, +0.30, +0.38, +0.45},
         {0.0, -0.08, -0.11, -0.10, -0.13, -0.11},
         {0.0, +0.10, +0.13, +0.20, +0.22, +0.31},
-        {0.0, -0.13, -0.19, -0.22, -0.30, -0.30},   
-        {0.0, +0.03, +0.02, +0.03, -0.01, +0.04}
-    };
+        {0.0, -0.13, -0.19, -0.22, -0.30, -0.30},
+        {0.0, +0.03, +0.02, +0.03, -0.01, +0.04}};
 
     Double_t dY_ls[nSt][nFields] = {
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
@@ -259,8 +259,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
         {0.0, -0.02, -0.01, +0.03, -0.01, -0.02},
         {0.0, -0.00, +0.02, +0.07, +0.04, +0.01},
         {0.0, -0.02, -0.00, +0.03, -0.02, -0.07},
-        {0.0, +0.05, +0.10, +0.17, +0.15, +0.09}
-    };
+        {0.0, +0.05, +0.10, +0.17, +0.15, +0.09}};
 
     Int_t fieldFactors[nFields] = {0, 900, 1200, 1500, 1800, 2100};
     Int_t iField = 4;
@@ -320,23 +319,23 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 //Add hit ------------------------------------------------------
                 x *= -1; // invert to global X
-                // Double_t deltaX = fIsExp ? fAlign->GetGemCorrs()[iStation][iModule][0] : 0.;
-                // Double_t deltaY = fIsExp ? fAlign->GetGemCorrs()[iStation][iModule][1] : 0.;
 
-                // x += deltaX;
-                // y += deltaY;
+                if (fIsExp) {
+                    Double_t deltaX = fIsSrc ? alignX[iStation] : fAlign->GetGemCorrs()[iStation][iModule][0];
+                    Double_t deltaY = fIsSrc ? alignY[iStation] : fAlign->GetGemCorrs()[iStation][iModule][1];
 
-                // if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
-                //     Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
-                //     Double_t lsX = fIsExp ? (fAlign->GetLorentzCorrs(Abs(fField->GetBy(x, y, z)), iStation) * sign) : 0.;
-                //     x += lsX;
-                //     Double_t lsY = fIsExp ? (fAlign->GetLorentzCorrs(Abs(fField->GetBx(x, y, z)), iStation) * sign) : 0.;
-                //     y += lsY;
-                // }
+                    x += deltaX;
+                    y += deltaY;
 
+                    if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
+                        Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
+                        Double_t lsX = fIsSrc ? dX_ls[iStation][iField] : (fAlign->GetLorentzCorrs(Abs(fField->GetBy(x, y, z)), iStation) * sign);
+                        x += lsX;
+                        Double_t lsY = fIsSrc ? dY_ls[iStation][iField] : (fAlign->GetLorentzCorrs(Abs(fField->GetBx(x, y, z)), iStation) * sign);
+                        y += lsY;
+                    }
 
-                x += (alignX[iStation] + dX_ls[iStation][iField]);
-                y += (alignY[iStation] + dY_ls[iStation][iField]);
+                }
 
                 new ((*fBmnGemStripHitsArray)[fBmnGemStripHitsArray->GetEntriesFast()])
                         BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);

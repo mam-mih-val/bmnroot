@@ -294,7 +294,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
     fRunAna->AddTask(res);
 
-    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, kFALSE);
+    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, kFALSE);
     fRunAna->AddTask(glTF);
 
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)

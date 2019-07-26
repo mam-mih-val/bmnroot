@@ -51,7 +51,7 @@ class BmnGlobalTracking : public FairTask {
      */
     BmnGlobalTracking();
     BmnGlobalTracking(Bool_t);
-    BmnGlobalTracking(Bool_t isField, Bool_t doAlign);
+    BmnGlobalTracking(Bool_t isField, Bool_t isExp, Bool_t doAlign);
 
     /**
      * \brief Destructor.
@@ -175,6 +175,7 @@ class BmnGlobalTracking : public FairTask {
     Short_t fPeriod;
     Bool_t fIsField;  // run with mag.field or not
     Bool_t fIsSRC;    // flag to turn on specific parts for SRC
+    Bool_t fIsExp;
     Bool_t fDoAlign;
 
     BmnDetectorSetup fDet;  // Detector presence information

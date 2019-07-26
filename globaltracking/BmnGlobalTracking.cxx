@@ -47,7 +47,7 @@ BmnGlobalTracking::BmnGlobalTracking() : fDoAlign(kFALSE),
                                          fEventNo(0) {
 }
 
-BmnGlobalTracking::BmnGlobalTracking(Bool_t isField, Bool_t doAlign) : fInnerTracks(nullptr),
+BmnGlobalTracking::BmnGlobalTracking(Bool_t isField, Bool_t isExp, Bool_t doAlign) : fInnerTracks(nullptr),
                                                                        fSiliconTracks(nullptr),
                                                                        fGemHits(nullptr),
                                                                        fCscHits(nullptr),
@@ -68,6 +68,7 @@ BmnGlobalTracking::BmnGlobalTracking(Bool_t isField, Bool_t doAlign) : fInnerTra
                                                                        fPeriod(7),
                                                                        fIsSRC(kFALSE),
                                                                        fDoAlign(doAlign),
+                                                                       fIsExp(isExp),
                                                                        fIsField(isField),
                                                                        fEventNo(0) {
     fKalman = new BmnKalmanFilter();
@@ -274,7 +275,7 @@ BmnStatus BmnGlobalTracking::MatchingCSC(BmnGlobalTrack *tr) {
 
     for (Int_t hitIdx = 0; hitIdx < fCscHits->GetEntriesFast(); ++hitIdx) {
         BmnHit *hit = (BmnHit *)fCscHits->At(hitIdx);
-        if (fIsSRC) {
+        if (fIsExp && fIsSRC) {
             hit->SetX(hit->GetX() - 67.67);
             hit->SetY(hit->GetY() +  0.12);
         }
@@ -377,7 +378,7 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack *tr, Int_t num) {
     FairTrackParam minParPredLast;  // predicted track parameters for closest hit
     for (Int_t hitIdx = 0; hitIdx < tofHits->GetEntriesFast(); ++hitIdx) {
         BmnHit *hit = (BmnHit *)tofHits->At(hitIdx);
-        if (num == 2) {
+        if (fIsSRC && fIsExp && num == 2) {
             hit->SetX(hit->GetX() + 4.33 - 24.14 + 18.9);
             hit->SetY(hit->GetY() - 3.65 + 0.66);
         }

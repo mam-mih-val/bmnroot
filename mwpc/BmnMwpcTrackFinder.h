@@ -84,6 +84,7 @@ class BmnMwpcTrackFinder : public FairTask {
         TVector3 *ChCent;
 
         Double_t ktarget_region;
+        Double_t ktarget_regionY;
         Float_t *kZmid;
         Float_t *ZCh;
         Float_t **kZ_loc;
@@ -103,6 +104,7 @@ class BmnMwpcTrackFinder : public FairTask {
         Float_t dw;
         Float_t dw_half;
         Double_t sq3;
+        Double_t sq2;
         Double_t sq12;
         Double_t sigma;
         Short_t kMiddlePl;

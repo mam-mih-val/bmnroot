@@ -13,7 +13,6 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-
 #include <Rtypes.h>
 #include <TMath.h>
 #include "FairLogger.h"
@@ -22,7 +21,6 @@
 #include <vector>
 
 static Double_t workTime = 0.0;
-//TString fhTestFlnm;
 TList fhList;
 
 //----------------------------------------------------------------------
@@ -34,7 +32,8 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
   PrepareArraysToProcessEvent();
   if (fDebug) cout << "\n======================== Silicon track finder exec started  ===================\n" << endl;
   if (fDebug) printf("Event number %d\n", fEventNo);
-
+  Int_t Track_counter = 0;
+  
   //------------------------Digi-file reading---------------------------
   Int_t stat, mod, layer, strip, new_strip; Double_t Ampl;
   for (Int_t iDig = 0; iDig < fBmnSiDigitsArray->GetEntriesFast(); ++iDig) {
@@ -71,7 +70,9 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
   Clustering(DigitsArrayX, DigitsArrayXp, XClust, XClust_width, sumQx, NclustX, XpClust, XpClust_width, sumQxp, NclustXp);
   
   if(fDebug) cout<<"------------Coordinate Calculation----------"<<endl;
-  CoordinateCalculation(NclustX, NclustXp, XCoord, XpCoord, SigmaX, SigmaXp, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, NhitsXYmod);
+  CoordinateCalculation(NclustX, NclustXp, XCoord, XpCoord, SigmaX, SigmaXp, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, NhitsXYmod, 
+                        XClust, XClust_width, sumQx,XpClust, XpClust_width, sumQxp,
+                        XspClust, XspClust_width, sumQxsp,XpspClust, XpspClust_width, sumQxpsp);
   Bool_t Skip = SkipEvent(NclustX, NclustXp, XCoord, XpCoord);
   if (Skip) return;
   CoordinateAlignment(NhitsXYmod,  XspCoord, XpspCoord, YspCoord,  NclustX, NclustXp, XCoord, XpCoord);
@@ -81,19 +82,22 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
   if(fDebug) cout<<"------------Case1: spatial track------------"<<endl;
   CountSpatialPoints(NhitsXYmod,Nsp_st);
   if ( (Nsp_st[1] > 0 && Nsp_st[1] && Nsp_st[3]) > 0){
-    Case1(NhitsXYmod, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, vec_tracks);
+    Case1(NhitsXYmod, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, vec_tracks,
+          XspClust, XspClust_width, sumQxsp,XpspClust, XpspClust_width, sumQxpsp);
     RecordingTracksAfterSpatialPoints(vec_tracks,CleanTr);
     CheckPoints(NclustX, NclustXp, XCoord, XpCoord, SigmaX, SigmaXp, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, NhitsXYmod, CleanTr,
                 Nleftoversp, NleftoverX, NleftoverXp,leftoverXsp,leftoverXpsp,leftoverYsp,leftoverXsigsp,leftoverXpsigsp,leftoverYsigsp,leftoverX,leftoverXp,leftoverXsig,leftoverXpsig);
   }
   if(fDebug) cout<<"------------Case1.--------------------------"<<endl;
  
-  if(fDebug) cout<<"------------Case2: 2spatial points + X/X'---"<<endl;
+  if(fDebug) cout<<"------------Case2: 2spatial points + XorX'---"<<endl;
   CountSpatialPoints(Nleftoversp,Nsp_st);
   if ( Nsp_st[3] > 0 && (Nsp_st[1] + Nsp_st[2]) > 0 ) {
     for (Int_t Istn = 1; Istn < 3; ++Istn) {
      Case2( Istn, Nleftoversp, leftoverXsp, leftoverXpsp, leftoverYsp, leftoverXsigsp,  leftoverXpsigsp, leftoverYsigsp, NleftoverX,  NleftoverXp, 
-           leftoverX, leftoverXp, leftoverXsig, leftoverXpsig, vec_tracks);
+           leftoverX, leftoverXp, leftoverXsig, leftoverXpsig, vec_tracks,
+           XClust, XClust_width, sumQx,XpspClust, XpClust_width, sumQxp,
+           XspClust, XspClust_width, sumQxsp,XpspClust, XpspClust_width, sumQxpsp);
      RecordingTracks(vec_tracks,CleanTr);
      CheckPoints(NclustX, NclustXp, XCoord, XpCoord, SigmaX, SigmaXp, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, NhitsXYmod, CleanTr,
                 Nleftoversp, NleftoverX, NleftoverXp,leftoverXsp,leftoverXpsp,leftoverYsp,leftoverXsigsp,leftoverXpsigsp,leftoverYsigsp,leftoverX,leftoverXp,leftoverXsig,leftoverXpsig);
@@ -104,7 +108,10 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
   if(fDebug) cout<<"------------Case3:2spatial points + check to the vertex--"<<endl;
   CountSpatialPoints(Nleftoversp,Nsp_st);
   if ( Nsp_st[1] > 0 && Nsp_st[2] > 0 ) {
-    Case3( Nleftoversp, leftoverXsp, leftoverXpsp, leftoverYsp, leftoverXsigsp,  leftoverXpsigsp, leftoverYsigsp, NleftoverX,  NleftoverXp, leftoverX, leftoverXp, leftoverXsig, leftoverXpsig, vec_tracks);
+    Case3( Nleftoversp, leftoverXsp, leftoverXpsp, leftoverYsp, leftoverXsigsp,  leftoverXpsigsp, leftoverYsigsp, 
+           NleftoverX,  NleftoverXp, leftoverX, leftoverXp, leftoverXsig, leftoverXpsig, vec_tracks,
+           XClust, XClust_width, sumQx,XpspClust, XpClust_width, sumQxp,
+           XspClust, XspClust_width, sumQxsp,XpspClust, XpspClust_width, sumQxpsp);
     RecordingTracks_case3(vec_tracks,CleanTr);
     CheckPoints(NclustX, NclustXp, XCoord, XpCoord, SigmaX, SigmaXp, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, NhitsXYmod, CleanTr,
                 Nleftoversp, NleftoverX, NleftoverXp,leftoverXsp,leftoverXpsp,leftoverYsp,leftoverXsigsp,leftoverXpsigsp,leftoverYsigsp,leftoverX,leftoverXp,leftoverXsig,leftoverXpsig);
@@ -115,7 +122,10 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
   CountSpatialPoints(Nleftoversp,Nsp_st);
   if ( Nsp_st[3] > 0) {
     for (Int_t Istn = 1; Istn < 3; ++Istn) {
-     Case4( Istn, Nleftoversp, leftoverXsp, leftoverXpsp, leftoverYsp, leftoverXsigsp,  leftoverXpsigsp, leftoverYsigsp, NleftoverX,  NleftoverXp, leftoverX, leftoverXp, leftoverXsig, leftoverXpsig, vec_tracks);
+     Case4( Istn, Nleftoversp, leftoverXsp, leftoverXpsp, leftoverYsp, leftoverXsigsp,  leftoverXpsigsp, leftoverYsigsp, NleftoverX,  
+            NleftoverXp, leftoverX, leftoverXp, leftoverXsig, leftoverXpsig, vec_tracks,
+            XClust, XClust_width, sumQx,XpspClust, XpClust_width, sumQxp,
+            XspClust, XspClust_width, sumQxsp,XpspClust, XpspClust_width, sumQxpsp);
      RecordingTracks(vec_tracks,CleanTr);
      CheckPoints(NclustX, NclustXp, XCoord, XpCoord, SigmaX, SigmaXp, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, NhitsXYmod, CleanTr,
                 Nleftoversp, NleftoverX, NleftoverXp,leftoverXsp,leftoverXpsp,leftoverYsp,leftoverXsigsp,leftoverXpsigsp,leftoverYsigsp,leftoverX,leftoverXp,leftoverXsig,leftoverXpsig);
@@ -125,16 +135,32 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
   
   if (fDebug) PrintAllTracks(CleanTr);
   
-  //--------------------------------------------------------------------
+  if(fDebug)cout<<"--------------------------------------------------------------------"<<endl;
   for (Int_t InIter = 0; InIter < CleanTr.size(); ++InIter) {
-    if (CleanTr.at(InIter).CoordZ[1] < -900.) continue;
     Double_t z1 = CleanTr.at(InIter).CoordZ[1] + Zcentr;
     Double_t x1 = CleanTr.at(InIter).param[0] * CleanTr.at(InIter).CoordZ[1] + CleanTr.at(InIter).param[1]; //ax(z)+bx
     Double_t y1 = CleanTr.at(InIter).param[2] * CleanTr.at(InIter).CoordZ[1] + CleanTr.at(InIter).param[3]; //y
     Double_t z3 = CleanTr.at(InIter).CoordZ[3] + Zcentr;
     Double_t x3 = CleanTr.at(InIter).param[0] * CleanTr.at(InIter).CoordZ[3] + CleanTr.at(InIter).param[1]; //ax(z)+bx
     Double_t y3 = CleanTr.at(InIter).param[2] * CleanTr.at(InIter).CoordZ[3] + CleanTr.at(InIter).param[3]; //y
-    if ( y1 > 50.) continue;
+    
+    for (Int_t st = 1; st < fNstations; ++st) { 
+      new ((*fBmnSiliconHitsArray)[Track_counter])
+                        BmnSiliconHit(0, TVector3(CleanTr.at(InIter).CoordX[st], CleanTr.at(InIter).CoordY[st], CleanTr.at(InIter).CoordZ[st]+ Zcentr), 
+                        TVector3(CleanTr.at(InIter).SigmaX[st], CleanTr.at(InIter).SigmaY[st], -1), InIter);
+      Track_counter++;                 
+      BmnSiliconHit* hit = (BmnSiliconHit*) fBmnSiliconHitsArray->At(InIter);
+      hit->SetStation(st-1);
+      hit->SetModule(CleanTr.at(InIter).ModNum[st]);
+      hit->SetIndex(InIter);
+      
+      hit->SetClusterSizeInLowerLayer(CleanTr.at(InIter).ClSizeX[st]);     //cluster size   (lower layer |||)
+      hit->SetClusterSizeInUpperLayer(CleanTr.at(InIter).ClSizeXp[st]);    //cluster size   (upper layer ///or\\\)
+      hit->SetStripPositionInLowerLayer(CleanTr.at(InIter).StripNumX[st]); //strip position (lower layer |||)
+      hit->SetStripPositionInUpperLayer(CleanTr.at(InIter).StripNumXp[st]);//strip position (upper layer ///or\\\)
+      hit->SetStripTotalSignalInLowerLayer(CleanTr.at(InIter).SumQX[st]);  //sumQx
+      hit->SetStripTotalSignalInUpperLayer(CleanTr.at(InIter).SumQXp[st]); //sumQxp
+    }
     
     FairTrackParam trackParamf;
     trackParamf.SetPosition(TVector3(x1, y1, z1));
@@ -147,7 +173,6 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
     trackParaml.SetTy(CleanTr.at(InIter).param[2]);
 
     BmnTrack *track = new ((*fSiTracks)[fSiTracks->GetEntriesFast()]) BmnTrack();
-    //BmnSiliconTrack* track = new((*fSiTracks)[fSiTracks->GetEntriesFast()]) BmnSiliconTrack();
     track->SetChi2(CleanTr.at(InIter).Chi2);
     track->SetNHits(CleanTr.at(InIter).Nhits);
     track->SetFlag(InIter);
@@ -168,7 +193,9 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
 
 //-------------------Spatial coordinate calculation---------------------
 void BmnSiliconTrackFinder::GetXYspatial(Int_t **NClX, Int_t **NClXp, Double_t ***XCoor, Double_t ***XpCoor, Double_t ***Xsp,
-  Double_t ***Xpsp, Double_t ***Ysp, Int_t **NXYsp, Double_t ***SigmX, Double_t ***SigmXp, Double_t ***SigspX, Double_t ***SigspXp, Double_t ***SigspY) {
+  Double_t ***Xpsp,  Double_t ***Ysp, Int_t **NXYsp, Double_t ***SigmX, Double_t ***SigmXp, Double_t ***SigspX, Double_t ***SigspXp, Double_t ***SigspY,
+  Double_t ***XCl,   Double_t ***XCl_width, Double_t ***sQx, Double_t ***XpCl, Double_t ***XpCl_width, Double_t ***sQxp,
+  Double_t ***XspCl, Double_t ***XspCl_width, Double_t ***sQxsp, Double_t ***XpspCl, Double_t ***XpspCl_width, Double_t ***sQxpsp){
 
   SensitiveAreaY = new Double_t[fNstations];
   SensitiveAreaY[0] = 0.;
@@ -194,7 +221,7 @@ void BmnSiliconTrackFinder::GetXYspatial(Int_t **NClX, Int_t **NClXp, Double_t *
             // if ( fDebug ) cout<<" SensitiveAreaY[istat] "<<SensitiveAreaY[istat]<<endl;
 
             if (YCoor_cand >= 0 && YCoor_cand <= SensitiveAreaY[istat]) {
-
+             /*
              if (istat > 1 && YCoor_cand <= half_module) {
 
               XpCoor[istat][imod][clxp] -= shift_after_zigzag;
@@ -204,46 +231,33 @@ void BmnSiliconTrackFinder::GetXYspatial(Int_t **NClX, Int_t **NClXp, Double_t *
               else
                YCoor_cand = (XpCoor[istat][imod][clxp] - XCoor[istat][imod][clx]) / tg2_5;
              }
-
-            // if ( fDebug ) cout<<" Y "<<YCoor_cand<<endl;
-             Xsp[istat][imod][NXYsp[istat][imod]] = XCoor[istat][imod][clx];
-             Xpsp[istat][imod][NXYsp[istat][imod]] = XpCoor[istat][imod][clxp];
-             Ysp[istat][imod][NXYsp[istat][imod]] = YCoor_cand;
-             SigspX[istat][imod][NXYsp[istat][imod]] = SigmX[istat][imod][clx];
-             SigspXp[istat][imod][NXYsp[istat][imod]] = SigmXp[istat][imod][clxp];
-             SigspY[istat][imod][NXYsp[istat][imod]] = sqrt(SigmX[istat][imod][clx] * SigmX[istat][imod][clx] + SigmXp[istat][imod][clxp] * SigmXp[istat][imod][clxp]) / tg2_5;
+              */
+             // if ( fDebug ) cout<<" Y "<<YCoor_cand<<endl;
+             Xsp[istat][imod][NXYsp[istat][imod]]         = XCoor[istat][imod][clx];
+             SigspX[istat][imod][NXYsp[istat][imod]]      = SigmX[istat][imod][clx];
+             XspCl[istat][imod][NXYsp[istat][imod]]       = XCl[istat][imod][clx];
+             XspCl_width[istat][imod][NXYsp[istat][imod]] = XCl_width[istat][imod][clx];
+             sQxsp[istat][imod][NXYsp[istat][imod]]       = sQx[istat][imod][clx];
+             
+             Xpsp[istat][imod][NXYsp[istat][imod]]        = XpCoor[istat][imod][clxp];
+             SigspXp[istat][imod][NXYsp[istat][imod]]     = SigmXp[istat][imod][clxp];
+             XpspCl[istat][imod][NXYsp[istat][imod]]      = XpCl[istat][imod][clxp];
+             XpspCl_width[istat][imod][NXYsp[istat][imod]]= XpCl_width[istat][imod][clxp];
+             sQxpsp[istat][imod][NXYsp[istat][imod]]      = sQxp[istat][imod][clxp];
+             
+             Ysp[istat][imod][NXYsp[istat][imod]]         = YCoor_cand;
+             SigspY[istat][imod][NXYsp[istat][imod]]      = sqrt( pow (SigmX[istat][imod][clx],2) + pow(SigmXp[istat][imod][clxp],2) ) / tg2_5;
              NXYsp[istat][imod]++;
               
             }
             //if (fDebug) cout<<" NXYsp["<<istat<<"]["<<imod<<"] "<<NXYsp[istat][imod]<<endl;
 
-          }//if X & Y >0
+          }//if X & Y > -900
         }//NClXp
       }//NClX
       // cout<<" NXYsp= "<<NXYsp[istat]<<endl;
     }//imod
   }// istat
-  
-  // fill some hists
-  for(Int_t ist = 1; ist < fNstations; ist++) {
-    for (Int_t imod = 0; imod < fNmodules; imod++) {
-      if (ist == 1 && imod > 3 ) continue;
-      if (ist == 2 && imod > 1 ) continue; 
-      for (Int_t cl = 0; cl < NXYsp[ist][imod]; cl++) {
-        if(fDebug) {
-          /*
-         hXYmodspatial[ist][imod]->Fill(XspCoord[ist][imod][cl], YspCoord[ist][imod][cl]);
-         hYspCoord[ist][imod]->Fill(YspCoord[ist][imod][cl]);
-         cout<<ist<<","<<imod<<" X "<<XspCoord[ist][imod][cl] <<" Y "<<YspCoord[ist][imod][cl]<<endl;
-         hXYspatial[ist]->Fill(XspCoord[ist][imod][cl], YspCoord[ist][imod][cl]);
-         hYspatialst[ist]-> Fill( YspCoord[ist][imod][cl]);
-         cout<<" X "<<XspCoord[ist][imod][cl] <<" Y "<<YspCoord[ist][imod][cl]<<endl;
-         */
-        }
-      }//cl
-    }//imod  
-  }//ist 
-  
   // if (fDebug) cout<<" end GetXYspatial "<<endl;
 }// 
 //----------------------------------------------------------------------
@@ -372,7 +386,7 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
           XClust_width_[istat][imod][NclustX_[istat][imod]] = ClusterSizeX;
           sumQx_[istat][imod][NclustX_[istat][imod]] = SumAmpl;
           // if(fDebug) cout<<" NclustX_["<<istat<<"]["<<imod<<"] "<<NclustX_[istat][imod]<<" NfX "<<NfirstX<<" NlX "<<NlastX<<" ClustSizeX "<<ClusterSizeX<<" XClust_ "<<XClust_[istat][imod][NclustX_[istat][imod]]<<endl;
-    
+
           NclustX_[istat][imod] ++;
           // if(fDebug) cout<<" NclustX_["<<istat<<"]["<<imod<<"] "<<NclustX_[istat][imod]<<endl;
 
@@ -480,7 +494,9 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
 //--------------CoordinateCalculation-----------------------------------
 void BmnSiliconTrackFinder::CoordinateCalculation(Int_t **NclustX_, Int_t **NclustXp_, Double_t ***XCoord_, Double_t ***XpCoord_, Double_t ***SigmaX_, Double_t ***SigmaXp_,
 Double_t ***XspCoord_, Double_t ***XpspCoord_, Double_t ***YspCoord_, Double_t ***SigmspX_, Double_t ***SigmspXp_, Double_t ***SigmspY_, 
-Int_t **NhitsXYmod_){
+Int_t **NhitsXYmod_,
+ Double_t ***XClust_, Double_t ***XClust_width_, Double_t ***sumQx_, Double_t ***XpClust_, Double_t ***XpClust_width_, Double_t ***sumQxp_,
+ Double_t ***XspClust_, Double_t ***XspClust_width_, Double_t ***sumQxsp_, Double_t ***XpspClust_, Double_t ***XpspClust_width_, Double_t ***sumQxpsp_){
   //move X and Xp coordinates on frame size
   for (Int_t ist = 1; ist < fNstations; ist++) {
     for (Int_t imod = 0; imod < fNmodules; imod++) {
@@ -490,6 +506,7 @@ Int_t **NhitsXYmod_){
       for (Int_t cl = 0; cl < NclustX_[ist][imod]; cl++) {
         XCoord_[ist][imod][cl] = deltaX * XClust[ist][imod][cl]; //cm
         SigmaX_[ist][imod][cl] = (XClust_width[ist][imod][cl] * deltaX) / sq12;
+        
         // if(fDebug) cout<<" XCoord_["<<ist<<"]["<<imod<<"]["<<cl<<"] "<<XCoord_[ist][imod][cl]<<" Sigma "<<SigmaX_[ist][imod][cl]<<endl;
        // if(fDebug) cout<<" XCoord_["<<ist<<"]["<<imod<<"]["<<cl<<"] "<<XCoord_[ist][imod][cl]<<endl;
       }
@@ -497,7 +514,7 @@ Int_t **NhitsXYmod_){
       for (Int_t cl = 0; cl < NclustXp_[ist][imod]; cl++) {
         XpCoord_[ist][imod][cl] = deltaXp * XpClust[ist][imod][cl]; //cm 
         SigmaXp_[ist][imod][cl] = (XpClust_width[ist][imod][cl] * deltaXp) / sq12;
-        // if(fDebug) cout<<"XpCoord_["<<ist<<"]["<<imod<<"]["<<cl<<"] "<<XpCoord_[ist][imod][cl]<<" Sigma "<<SigmaXp_[ist][imod][cl]<<endl;
+       //  if(fDebug) cout<<"XpCoord_["<<ist<<"]["<<imod<<"]["<<cl<<"] "<<XpCoord_[ist][imod][cl]<<" Sigma "<<SigmaXp_[ist][imod][cl]<<endl;
         //if(fDebug) cout<<"XpCoord_["<<ist<<"]["<<imod<<"]["<<cl<<"] "<<XpCoord_[ist][imod][cl]<<endl;
       }
     }//imod
@@ -528,7 +545,8 @@ Int_t **NhitsXYmod_){
   
   if (fDebug) cout<<" GetXYspatial "<<endl;
   */
-  GetXYspatial(NclustX_, NclustXp_, XCoord_, XpCoord_, XspCoord_, XpspCoord_, YspCoord_, NhitsXYmod_, SigmaX_, SigmaXp_, SigmspX_, SigmspXp_, SigmspY_);
+  GetXYspatial(NclustX_, NclustXp_, XCoord_, XpCoord_, XspCoord_, XpspCoord_, YspCoord_, NhitsXYmod_, SigmaX_, SigmaXp_, SigmspX_, SigmspXp_, SigmspY_,
+              XClust_, XClust_width_, sumQx_, XpClust_, XpClust_width_, sumQxp_, XspClust_, XspClust_width_, sumQxsp_, XpspClust_, XpspClust_width_, sumQxpsp_);
   
   /*
   for(Int_t ist = 1; ist < fNstations; ist++) {
@@ -558,7 +576,7 @@ Int_t **NhitsXYmod_){
     if(fDebug) cout<<endl;
   }
   if(fDebug) cout<<endl;
-  
+   
   for(Int_t ist = 1; ist < fNstations; ist++) {
     if(fDebug) cout<<" Yspatial["<<ist<<"] ";
      for (Int_t imod = 0; imod < fNmodules; imod++) {
@@ -566,13 +584,13 @@ Int_t **NhitsXYmod_){
       if (ist == 2 && imod > 1 ) continue;
 
       for (Int_t cl = 0; cl < NhitsXYmod_[ist][imod]; cl++) {
-      if(fDebug) cout<<YspCoord_[ist][imod][cl]<<" ";
+      if(fDebug) cout<<YspCoord_[ist][imod][cl]<<" SigmspY_"<<SigmspY_[ist][imod][cl] <<" ";
      }
     }
     if(fDebug) cout<<endl;
   }
   if(fDebug) cout<<endl;
-  */
+ */
 }
 //----------------------------------------------------------------------
 
@@ -830,15 +848,12 @@ Bool_t BmnSiliconTrackFinder::SkipEvent(Int_t **NclustX_, Int_t **NclustXp_, Dou
   if ( (NfithitsX[1] + NfithitsX[2] + NfithitsX[3]) > 21 && (NfithitsXp[1] + NfithitsXp[2] + NfithitsXp[3]) > 18 ){
    if(fDebug) cout<<" --Skip event!!!!! with high Si-hits multiplicity --"<<endl;
    skip = 1;
-   //return;//continue;
   }
   if ( (NfithitsX[1] + NfithitsX[2] + NfithitsX[3]) > 27 ){
    if(fDebug) cout<<" --Skip event!!!!! with high Si-hits multiplicity --"<<endl;
    skip = 1;
-   //return;//continue;
   }
-  
-   return(skip);
+  return(skip);
 }
 //----------------------------------------------------------------------
 
@@ -865,6 +880,13 @@ void BmnSiliconTrackFinder::RecordingTracksAfterSpatialPoints(vector<tracksX> & 
   if (fDebug) cout <<" sorting vector"<<endl;
   for (int itr = 0; itr < CleanTr_.size(); ++itr) {
     if (fDebug) cout << " itr " << itr << " Chi2 " << CleanTr_.at(itr).Chi2 <<endl;
+  }
+  for (int itr = 0; itr < CleanTr_.size(); ++itr) {
+    for (Int_t st = 1; st < fNstations; ++st) {
+     if (fDebug) cout<<" st "<<st<<" Z "<<CleanTr_.at(itr).CoordZ[st]<<endl;
+     if (fDebug) cout<<" CleanTr.CoordX["<<st <<"]  "<<CleanTr_.at(itr).CoordX[st]<<" strip "<<CleanTr_.at(itr).StripNumX[st]<<" Clsize "<<CleanTr_.at(itr).ClSizeX[st]<<" Q "<<CleanTr_.at(itr).SumQX[st]<<endl;
+     if (fDebug) cout<<" CleanTr.CoordXp["<<st <<"] "<<CleanTr_.at(itr).CoordXp[st]<<" strip "<<CleanTr_.at(itr).StripNumXp[st]<<" Clsize "<<CleanTr_.at(itr).ClSizeXp[st]<<" Q "<<CleanTr_.at(itr).SumQXp[st]<<endl;
+    }//st
   }
   vec_tracks_.clear();
 }
@@ -926,13 +948,14 @@ void BmnSiliconTrackFinder::RecordingTracks(vector<tracksX> & vec_tracks_, vecto
 
       if (fDebug) cout<<" itr "<<itr<<" Chi2 "<<CleanTr_.at(itr).Chi2<<" Nhits "<<CleanTr_.at(itr).Nhits<<" Xv "<<CleanTr_.at(itr).Xv<<" Yv "<<CleanTr_.at(itr).Yv<<endl;
       for (Int_t st = 1; st < fNstations; ++st) {
-        if (fDebug) cout<<" CleanTr_.at("<<itr<<").CoordX["<<st<<"] "<<CleanTr_.at(itr).CoordX[st]<< " Xp "<<CleanTr_.at(itr).CoordXp[st]<<endl;
-
+         if (fDebug) cout<<" st "<<st<<" Z "<<CleanTr_.at(itr).CoordZ[st]<<endl;
+         if (fDebug) cout<<" CleanTr.CoordX["<<st <<"]  "<<vec_tracks_.at(itr).CoordX[st]<<" strip "<<vec_tracks_.at(itr).StripNumX[st]<<" Clsize "<<vec_tracks_.at(itr).ClSizeX[st]<<" Q "<<vec_tracks_.at(itr).SumQX[st]<<endl;
+         if (fDebug) cout<<" CleanTr.CoordXp["<<st <<"] "<<vec_tracks_.at(itr).CoordXp[st]<<" strip "<<vec_tracks_.at(itr).StripNumXp[st]<<" Clsize "<<vec_tracks_.at(itr).ClSizeXp[st]<<" Q "<<vec_tracks_.at(itr).SumQXp[st]<<endl;
       }//st
     }//Cross
   }//itr
   if(fDebug) cout<<endl;
-  if(fDebug) cout<<" now CleanTr_.size() "<<CleanTr_.size()<<endl;
+  if(fDebug) cout<<" now CleanTr.size() "<<CleanTr_.size()<<endl;
   if(fDebug) cout<<endl;
   vec_tracks_.clear();
 }
@@ -1026,7 +1049,9 @@ void BmnSiliconTrackFinder::RecordingTracks_case3(vector<tracksX> & vec_tracks_,
            
             if (fDebug) cout<<" itr "<<itr<<" Chi2 "<<vec_tracks_.at(itr).Chi2<<" Nhits "<<vec_tracks_.at(itr).Nhits<<" Xv "<<vec_tracks_.at(itr).Xv<<" Yv "<<vec_tracks_.at(itr).Xv<<endl;
             for (Int_t st = 1; st < fNstations; ++st) {
-              if (fDebug) cout<<" CleanTr_.at("<<itr<<").CoordX["<<st<<"] "<<vec_tracks_.at(itr).CoordX[st]<< " Xp "<<vec_tracks_.at(itr).CoordXp[st]<<endl;
+              if (fDebug) cout<<" st "<<st<<" Z "<<CleanTr_.at(itr).CoordZ[st]<<endl;
+               if (fDebug) cout<<" CleanTr.CoordX["<<st <<"]  "<<vec_tracks_.at(itr).CoordX[st]<<" strip "<<vec_tracks_.at(itr).StripNumX[st]<<" Clsize "<<vec_tracks_.at(itr).ClSizeX[st]<<" Q "<<vec_tracks_.at(itr).SumQX[st]<<endl;
+               if (fDebug) cout<<" CleanTr.CoordXp["<<st <<"] "<<vec_tracks_.at(itr).CoordXp[st]<<" strip "<<vec_tracks_.at(itr).StripNumXp[st]<<" Clsize "<<vec_tracks_.at(itr).ClSizeXp[st]<<" Q "<<vec_tracks_.at(itr).SumQXp[st]<<endl;
             }
             
           }// if ( !Cross_6p && !rej_cand )
@@ -1041,10 +1066,10 @@ void BmnSiliconTrackFinder::RecordingTracks_case3(vector<tracksX> & vec_tracks_,
 
 
 
-
 //-----------------------Tracking:Case1---------------------------------
 void BmnSiliconTrackFinder::Case1(Int_t **NhitsXYmod_, Double_t ***XspCoord_, Double_t ***XpspCoord_, Double_t ***YspCoord_, Double_t ***SigmspX_, Double_t ***SigmspXp_, Double_t ***SigmspY_,
- vector<tracksX> & out_tracks){
+ vector<tracksX> & out_tracks,
+ Double_t ***XspClust_, Double_t ***XspClust_width_, Double_t ***sumQxsp_, Double_t ***XpspClust_, Double_t ***XpspClust_width_, Double_t ***sumQxpsp_){
   tracksX tmpTr;
   Int_t    NpX_in_line = 0;
   Double_t dminx1_x2   = 999.;
@@ -1251,7 +1276,16 @@ void BmnSiliconTrackFinder::Case1(Int_t **NhitsXYmod_, Double_t ***XspCoord_, Do
               tmpTr.SigmaXp[st] = SigmXpforglfit[st][iModX[st]]; 
               tmpTr.CoordZ[st]  = ZstnCforglfit[st][iModX[st]];
              
-              if (fDebug) cout<<" tmpTr.CoordX["<<st <<"] "<<tmpTr.CoordX[st]<<" tmpTr.CoordXp["<<st <<"] "<<tmpTr.CoordXp[st]<<" Z "<<tmpTr.CoordZ[st]<<endl;
+              tmpTr.StripNumX[st] = XspClust_[st][iModX[st]][iClustXMod[st]];
+              tmpTr.StripNumXp[st]= XpspClust_[st][iModX[st]][iClustXMod[st]];
+              tmpTr.ClSizeX[st]   = XspClust_width_[st][iModX[st]][iClustXMod[st]];
+              tmpTr.ClSizeXp[st]  = XpspClust_width_[st][iModX[st]][iClustXMod[st]];
+              tmpTr.SumQX[st]     = sumQxsp_[st][iModX[st]][iClustXMod[st]];
+              tmpTr.SumQXp[st]    = sumQxpsp_[st][iModX[st]][iClustXMod[st]];
+              
+              if (fDebug) cout<<" st "<<st<<" Z "<<tmpTr.CoordZ[st]<<endl;
+              if (fDebug) cout<<" tmpTr.CoordX["<<st <<"]  "<<tmpTr.CoordX[st]<<" strip "<<tmpTr.StripNumX[st]<<" Clsize "<<tmpTr.ClSizeX[st]<<" Q "<<tmpTr.SumQX[st]<<endl;
+              if (fDebug) cout<<" tmpTr.CoordXp["<<st <<"] "<<tmpTr.CoordXp[st]<<" strip "<<tmpTr.StripNumXp[st]<<" Clsize "<<tmpTr.ClSizeXp[st]<<" Q "<<tmpTr.SumQXp[st]<<endl;
             }//st
 
             out_tracks.push_back(tmpTr);
@@ -1404,7 +1438,7 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
   hNtracks->Fill(CleanTr_.size());
   for (Int_t InIter = 0;  InIter < CleanTr_.size(); ++InIter){
 
-    hNpoint->Fill( CleanTr_.at(InIter).Nhits  );
+    hNpoint->Fill(CleanTr_.at(InIter).Nhits  );
     hAxglob->Fill(CleanTr_.at(InIter).param[0]);
     hBxglob->Fill(CleanTr_.at(InIter).param[1]);
     hAyglob->Fill(CleanTr_.at(InIter).param[2]);
@@ -1425,7 +1459,7 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
       if ( CleanTr_.at(InIter).CoordX[st] < -900.) continue;
       Double_t Hit = CleanTr_.at(InIter).CoordX[st]; 
       Double_t Fit = CleanTr_.at(InIter).param[0] * CleanTr_.at(InIter).CoordZ[st] + CleanTr_.at(InIter).param[1];
-      cout<<" st "<<st<<" Xhit "<<Hit<<" Xfit "<< Fit<<" Z "<<CleanTr_.at(InIter).CoordZ[st]<<endl;
+      cout<<" st "<<st<<" Xhit "<<Hit<<" Xfit "<< Fit<<" Z "<<CleanTr_.at(InIter).CoordZ[st]<< " strip "<<CleanTr_.at(InIter).StripNumX[st]<<" Clsize "<<CleanTr_.at(InIter).ClSizeX[st]<<" Q "<<CleanTr_.at(InIter).SumQX[st]<<endl;
     }
     cout<<" --Xp--"<<endl;
     for (Int_t st = 1; st < fNstations; ++st) { 
@@ -1434,7 +1468,7 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
       Double_t Fit = ( CleanTr_.at(InIter).param[0] * CleanTr_.at(InIter).CoordZ[st] + CleanTr_.at(InIter).param[1] ) +
           ( CleanTr_.at(InIter).param[2] * CleanTr_.at(InIter).CoordZ[st] + CleanTr_.at(InIter).param[3] ) * Angle(st,CleanTr_.at(InIter).ModNum[st]) * tg2_5 ;
           // x' = x + y*tg   
-      cout<<" st "<<st<<" Xphit "<<Hit<<" Xpfit "<< Fit<<" Z "<<CleanTr_.at(InIter).CoordZ[st]<<endl;
+      cout<<" st "<<st<<" Xphit "<<Hit<<" Xpfit "<< Fit<<" Z "<<CleanTr_.at(InIter).CoordZ[st]<< " strip "<<CleanTr_.at(InIter).StripNumXp[st]<<" Clsize "<<CleanTr_.at(InIter).ClSizeXp[st]<<" Q "<<CleanTr_.at(InIter).SumQXp[st]<<endl;
     }
     if (fDebug) cout<<" --Y--"<<endl;
     for (Int_t st = 1; st < fNstations; ++st) { 
@@ -1465,8 +1499,10 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
 void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t ***leftoverXsp_, Double_t ***leftoverXpsp_, Double_t ***leftoverYsp_,
   Double_t ***leftoverXsigsp_, Double_t ***leftoverXpsigsp_, Double_t ***leftoverYsigsp_,
   Int_t  **NleftoverX_,  Int_t **NleftoverXp_,Double_t ***leftoverX_, Double_t ***leftoverXp_,Double_t ***leftoverXsig_, Double_t ***leftoverXpsig_,
-  vector<tracksX> & vec_tracks_){
-  
+  vector<tracksX> & vec_tracks_,
+  Double_t ***XClust_, Double_t ***XClust_width_, Double_t ***sumQx_, Double_t ***XpClust_, Double_t ***XpClust_width_, Double_t ***sumQxp_,
+  Double_t ***XspClust_, Double_t ***XspClust_width_, Double_t ***sumQxsp_, Double_t ***XpspClust_, Double_t ***XpspClust_width_, Double_t ***sumQxpsp_){
+
   if(fDebug) cout<<" case2:"<<Fi_St<<"time "<<endl;
 
   tracksX tmpTr;
@@ -1489,7 +1525,7 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
     Nmod_Sec = fNmodules1;
     Sec_St = 1;
   }
-
+  
   for (Int_t imod1 = 0; imod1 < Nmod_Fi; imod1++) {                  
    for (Int_t cl1 = 0; cl1 < Nleftoversp_[Fi_St][imod1]; cl1++){ 
     
@@ -1533,8 +1569,8 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
               ax_candidate         = ax_target_region;
               ay_candidate         = ay_target_region;
               
-              iModX_candidate      = imod3;//iModX[3];
-              iClustXMod_candidate = cl3;//iClustXMod[3];
+              iModX_candidate      = imod3;
+              iClustXMod_candidate = cl3;
               if (fDebug) cout<<" re - write.  bx_candidate "<<bx_candidate<<endl;
           }
         
@@ -1566,8 +1602,8 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
       
     for (Int_t ist = 1; ist < fNstations; ++ist) {
       if ( ist == Sec_St ) continue;
-      Xforglfit[ist][iModX[ist]]     = leftoverXsp_[ist][iModX[ist]][iClustXMod[ist]];
-      SigmXforglfit[ist][iModX[ist]] = leftoverXsigsp_[ist][iModX[ist]][iClustXMod[ist]];
+      Xforglfit[ist][iModX[ist]]      = leftoverXsp_[ist][iModX[ist]][iClustXMod[ist]];
+      SigmXforglfit[ist][iModX[ist]]  = leftoverXsigsp_[ist][iModX[ist]][iClustXMod[ist]];
       Xpforglfit[ist][iModX[ist]]     = leftoverXpsp_[ist][iModX[ist]][iClustXMod[ist]];
       SigmXpforglfit[ist][iModX[ist]] = leftoverXpsigsp_[ist][iModX[ist]][iClustXMod[ist]];
       Yforglfit[ist][iModX[ist]]      = leftoverYsp_[ist][iModX[ist]][iClustXMod[ist]];
@@ -1584,11 +1620,12 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
          for (Int_t clx2 = 0; clx2 <  NleftoverX_[Sec_St][imod2]; clx2++){
             if ( fDebug) cout<< "     clx2 "<<clx2  <<endl;   
            
-           iModX[Sec_St] = -1;//imod2;
+           iModX[Sec_St]                         = -1;
+           iClustXMod[Sec_St]                    = -1;
            Xforglfit[Sec_St][iModX[Sec_St]]      = -999.;
            SigmXforglfit[Sec_St][iModX[Sec_St]]  = -999.;
-           Xpforglfit[Sec_St][iModX[Sec_St]]             = -999.;
-           SigmXpforglfit[Sec_St][iModX[Sec_St]]         = -999.;
+           Xpforglfit[Sec_St][iModX[Sec_St]]     = -999.;
+           SigmXpforglfit[Sec_St][iModX[Sec_St]] = -999.;
            
            if ( fDebug) cout<< "search 5p in X. tmp x1  "<<leftoverXsp_[Fi_St][imod1][cl1] <<" x2 "<<leftoverX_[Sec_St][imod2][clx2]<<" hrd "<<half_roadX1_X2<<endl;
            if ( fabs(leftoverXsp_[Fi_St][imod1][cl1]  -  leftoverX_[Sec_St][imod2][clx2]) > half_roadX1_X2 ) continue;
@@ -1601,11 +1638,12 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
                continue;
             }
            
-           iModX[Sec_St] = imod2;
+           iModX[Sec_St]                         = imod2;
+           iClustXMod[Sec_St]                    = clx2;
            Xforglfit[Sec_St][iModX[Sec_St]]      = leftoverX_[Sec_St][iModX[Sec_St]][clx2];
            SigmXforglfit[Sec_St][iModX[Sec_St]]  = leftoverXsig_[Sec_St][iModX[Sec_St]][clx2];
-           Xpforglfit[Sec_St][iModX[Sec_St]]        = -999.;
-           SigmXpforglfit[Sec_St][iModX[Sec_St]]    = -999.;
+           Xpforglfit[Sec_St][iModX[Sec_St]]     = -999.;
+           SigmXpforglfit[Sec_St][iModX[Sec_St]] = -999.;
 
            //---------------------------	GlobalFit---------------------------------
             TotalNumberOfHits = 0;
@@ -1624,31 +1662,36 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
             else ChiSquareNdf = ChiSquare;
             
             if ( fDebug) cout<<" before cut ChiSquareNDF "<<ChiSquareNdf<<" TotalNumberOfHits  "<<TotalNumberOfHits <<endl;
-            if (fDebug) cout<<endl;
+            if (fDebug)  cout<<endl;
             
             if ( ChiSquareNdf > Chi2_Globcut ) {
               Npoint = 4;
-              iModX[Sec_St] = -1;
+              iModX[Sec_St]                         = -1;
+              iClustXMod[Sec_St]                    = -1;
               Xforglfit[Sec_St][iModX[Sec_St]]      = -999.;
               SigmXforglfit[Sec_St][iModX[Sec_St]]  = -999.;
-              Xpforglfit[Sec_St][imod2]        = -999.;
-              SigmXpforglfit[Sec_St][imod2]    = -999.;
+              Xpforglfit[Sec_St][imod2]             = -999.;
+              SigmXpforglfit[Sec_St][imod2]         = -999.;
               x5_exist = 0;
               continue;
             }
 
              x5_exist = 1;
+             if (fDebug) cout<<" case2: x5_exist "<<endl;
+             if (fDebug) cout<<" X "<<Xforglfit[Sec_St][iModX[Sec_St]]<<" strip "<<XClust_[Sec_St][iModX[Sec_St]][iClustXMod[Sec_St]]<<" Q "<<sumQx_[Sec_St][iModX[Sec_St]][iClustXMod[Sec_St]]<<endl;
+             
              break;   //   goto next iMod of 2-nd st
-
           }//clx2
        
          // --try to search 5th xp--
          if ( x5_exist ) continue;
          
          xp5_exist = 0;
-         for (Int_t clx2 = 0; clx2 <  NleftoverXp_[Sec_St][imod2]; clx2++){
+         for (Int_t clxp2 = 0; clxp2 <  NleftoverXp_[Sec_St][imod2]; clxp2++){
            if ( xp5_exist ) { Npoint = 5; break;}
-           iModX[Sec_St] = imod2;
+           
+           iModX[Sec_St]                         = -1;
+           iClustXMod[Sec_St]                    = -1;
            Xforglfit[Sec_St][iModX[Sec_St]]      = -999.;
            SigmXforglfit[Sec_St][iModX[Sec_St]]  = -999.;
            Xpforglfit[Sec_St][imod2]             = -999.;
@@ -1659,17 +1702,18 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
            Int_t sign2 = Angle(st2,imod2);
            if(fDebug) cout<<" sign1 "<<sign1<<" sign2 "<<sign2<<endl;
            
-           if ( (sign1 == sign2) && ( fabs(leftoverXpsp_[Fi_St][imod1][cl1]  -  leftoverXp_[Sec_St][imod2][clx2] )  > half_roadXp1_Xp2) )           continue;
-           if ( (sign1 != sign2) && ( fabs(leftoverXpsp_[Fi_St][imod1][cl1]  -  leftoverXp_[Sec_St][imod2][clx2] )  > half_roadXp1_Xp2_diff_sign) ) continue;
-           if ( fDebug) cout<<" --Xp1 "<<leftoverXpsp_[Fi_St][imod1][cl1]<<" Xp2 "<<leftoverXp_[Sec_St][imod2][clx2]<<" dXp "<<leftoverXpsp_[Fi_St][imod1][cl1]  -  leftoverXp_[Sec_St][imod2][clx2]<<endl;
+           if ( (sign1 == sign2) && ( fabs(leftoverXpsp_[Fi_St][imod1][cl1]  -  leftoverXp_[Sec_St][imod2][clxp2] )  > half_roadXp1_Xp2) )           continue;
+           if ( (sign1 != sign2) && ( fabs(leftoverXpsp_[Fi_St][imod1][cl1]  -  leftoverXp_[Sec_St][imod2][clxp2] )  > half_roadXp1_Xp2_diff_sign) ) continue;
+           if ( fDebug) cout<<" --Xp1 "<<leftoverXpsp_[Fi_St][imod1][cl1]<<" Xp2 "<<leftoverXp_[Sec_St][imod2][clxp2]<<" dXp "<<leftoverXpsp_[Fi_St][imod1][cl1]  -  leftoverXp_[Sec_St][imod2][clxp2]<<endl;
            
            Npoint = 5;
            
-           iModX[Sec_St] = imod2;
+           iModX[Sec_St]                         = imod2;
+           iClustXMod[Sec_St]                    = clxp2;
            Xforglfit[Sec_St][iModX[Sec_St]]      = -999.;
            SigmXforglfit[Sec_St][iModX[Sec_St]]  = -999.;
-           Xpforglfit[Sec_St][imod2]        = leftoverXp_[Sec_St][iModX[Sec_St]][clx2];
-           SigmXpforglfit[Sec_St][imod2]    = leftoverXpsig_[Sec_St][iModX[Sec_St]][clx2];
+           Xpforglfit[Sec_St][imod2]             = leftoverX_[Sec_St][iModX[Sec_St]][clxp2];
+           SigmXpforglfit[Sec_St][imod2]         = leftoverXsig_[Sec_St][iModX[Sec_St]][clxp2];
 
            //---------------------------	GlobalFit---------------------------------
            TotalNumberOfHits = 0;
@@ -1692,7 +1736,8 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
             
             if ( ChiSquareNdf > Chi2_Globcut ){
              Npoint = 4;
-             iModX[Sec_St] = -1;
+             iModX[Sec_St]                         = -1;
+             iClustXMod[Sec_St]                    = -1;
              Xforglfit[Sec_St][iModX[Sec_St]]      = -999.;
              SigmXforglfit[Sec_St][iModX[Sec_St]]  = -999.;
              Xpforglfit[Sec_St][imod2]             = -999.;
@@ -1702,13 +1747,16 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
             }
             
             xp5_exist = 1;
+            if (fDebug) cout<<" case2: xp5_exist "<<endl;
+            if (fDebug) cout<<" Xp "<<Xpforglfit[Sec_St][iModX[Sec_St]]<<" strip "<<XpClust_[Sec_St][iModX[Sec_St]][iClustXMod[Sec_St]]<<" Q "<<sumQxp_[Sec_St][iModX[Sec_St]][iClustXMod[Sec_St]]<<endl;
+
             break;
           }//clxp2
           if ( xp5_exist ) break;
         }//imod2
         //try find 5th xp.
         
-        if (fDebug) cout<<" case2: end search "<<endl;
+        if (fDebug) cout<<" case2: end search ------------"<<endl;
         
          TotalNumberOfHits = Npoint;
          Int_t  Mod_cand[fNstations];
@@ -1721,7 +1769,7 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
           }
          
          for (Int_t st = 1; st < fNstations; ++st) {
-           Mod_cand[st] = -1;
+           Mod_cand[st]   = -1;
            X_cand[st]     = -999.;
            Xp_cand[st]    = -999.;
            Y_cand[st]     = -999.;
@@ -1743,13 +1791,13 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
           for (Int_t st = 1; st < fNstations; ++st) {
             if (iModX[st] < 0) continue;
         
-            Mod_cand[st]   = iModX[st];//CleanTr.ModNum[st]  = iModXp[st];//
-            X_cand[st]     = Xforglfit[st][iModX[st]]; //CleanTr.CoordX[st]  = Xforglfit[st][iModX[st]];//
+            Mod_cand[st]   = iModX[st];
+            X_cand[st]     = Xforglfit[st][iModX[st]]; 
             Y_cand[st]     = Yforglfit[st][iModX[st]];
-            Xp_cand[st]    = Xpforglfit[st][iModX[st]];//CleanTr.CoordXp[st] = Xpforglfit[st][iModX[st]];//
-            SigX_cand[st]  = SigmXforglfit[st][iModX[st]]; //CleanTr.SigmaX[st]  = SigmXforglfit[st][iModX[st]]; //
+            Xp_cand[st]    = Xpforglfit[st][iModX[st]];
+            SigX_cand[st]  = SigmXforglfit[st][iModX[st]]; 
             SigY_cand[st]  = SigmYforglfit[st][iModX[st]];
-            SigXp_cand[st] = SigmXpforglfit[st][iModX[st]]; //CleanTr.SigmaXp[st] = SigmXpforglfit[st][iModX[st]]; // 
+            SigXp_cand[st] = SigmXpforglfit[st][iModX[st]]; 
             
             if (fDebug) cout<<" X_cand["<<st<<"] "<< X_cand[st] <<" Xp_cand["<<st<<"] "<<Xp_cand[st] <<" iModX "<<iModX[st]<<endl;
             
@@ -1771,13 +1819,13 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
           for (Int_t st = 1; st < fNstations; ++st) {
               if (iModX[st] < 0) continue;
           
-              Mod_cand[st]   = iModX[st];//CleanTr.ModNum[st]  = iModXp[st];//
-              X_cand[st]     = Xforglfit[st][iModX[st]]; //CleanTr.CoordX[st]  = Xforglfit[st][iModX[st]];//
+              Mod_cand[st]   = iModX[st];
+              X_cand[st]     = Xforglfit[st][iModX[st]]; 
               Y_cand[st]     = Yforglfit[st][iModX[st]];
-              Xp_cand[st]    = Xpforglfit[st][iModX[st]];//CleanTr.CoordXp[st] = Xpforglfit[st][iModX[st]];//
-              SigX_cand[st]  = SigmXforglfit[st][iModX[st]]; //CleanTr.SigmaX[st]  = SigmXforglfit[st][iModX[st]]; //
+              Xp_cand[st]    = Xpforglfit[st][iModX[st]];
+              SigX_cand[st]  = SigmXforglfit[st][iModX[st]]; 
               SigY_cand[st]  = SigmYforglfit[st][iModX[st]];
-              SigXp_cand[st] = SigmXpforglfit[st][iModX[st]]; //CleanTr.SigmaXp[st] = SigmXpforglfit[st][iModX[st]]; // 
+              SigXp_cand[st] = SigmXpforglfit[st][iModX[st]];
 
               if (fDebug) cout<<" X_cand["<<st<<"] "<< X_cand[st] <<" Xp_cand["<<st<<"] "<<Xp_cand[st] <<" iModX "<<iModX[st]<<endl;
               
@@ -1868,7 +1916,26 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
           tmpTr.CoordZ[st]  = ZstnCforglfit[st][Mod_cand[st]];
           tmpTr.CoordY[st]  = Y_cand[st];
           tmpTr.SigmaY[st]  = SigY_cand[st];
-          if (fDebug) cout<<" tmpTr.CoordX["<<st <<"] "<<tmpTr.CoordX[st]<<" tmpTr.CoordXp["<<st <<"] "<<tmpTr.CoordXp[st]<<" Z "<<tmpTr.CoordZ[st]<<endl;
+          
+          if ( st == Sec_St){
+            tmpTr.StripNumX[st] = XClust_[st][iModX[st]][iClustXMod[st]];
+            tmpTr.StripNumXp[st]= XpClust_[st][iModX[st]][iClustXMod[st]];
+            tmpTr.ClSizeX[st]   = XClust_width_[st][iModX[st]][iClustXMod[st]];
+            tmpTr.ClSizeXp[st]  = XpClust_width_[st][iModX[st]][iClustXMod[st]];
+            tmpTr.SumQX[st]     = sumQx_[st][iModX[st]][iClustXMod[st]];
+            tmpTr.SumQXp[st]    = sumQxp_[st][iModX[st]][iClustXMod[st]];
+            
+          }else{
+            tmpTr.StripNumX[st] = XspClust_[st][iModX[st]][iClustXMod[st]];
+            tmpTr.StripNumXp[st]= XpspClust_[st][iModX[st]][iClustXMod[st]];
+            tmpTr.ClSizeX[st]   = XspClust_width_[st][iModX[st]][iClustXMod[st]];
+            tmpTr.ClSizeXp[st]  = XpspClust_width_[st][iModX[st]][iClustXMod[st]];
+            tmpTr.SumQX[st]     = sumQxsp_[st][iModX[st]][iClustXMod[st]];
+            tmpTr.SumQXp[st]    = sumQxpsp_[st][iModX[st]][iClustXMod[st]];
+          }
+          if (fDebug) cout<<" st "<<st<<" Z "<<tmpTr.CoordZ[st]<<endl;
+          if (fDebug) cout<<" tmpTr.CoordX["<<st <<"]  "<<tmpTr.CoordX[st]<<" strip "<<tmpTr.StripNumX[st]<<" Clsize "<<tmpTr.ClSizeX[st]<<" Q "<<tmpTr.SumQX[st]<<endl;
+          if (fDebug) cout<<" tmpTr.CoordXp["<<st <<"] "<<tmpTr.CoordXp[st]<<" strip "<<tmpTr.StripNumXp[st]<<" Clsize "<<tmpTr.ClSizeXp[st]<<" Q "<<tmpTr.SumQXp[st]<<endl;
         }//st
 
         vec_tracks_.push_back(tmpTr);
@@ -1886,45 +1953,47 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
 //----------------------------------------------------------------------
 void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_, Double_t ***leftoverXpsp_, Double_t ***leftoverYsp_,Double_t ***leftoverXsigsp_, Double_t ***leftoverXpsigsp_, Double_t ***leftoverYsigsp_,
   Int_t  **NleftoverX_,  Int_t **NleftoverXp_,Double_t ***leftoverX_, Double_t ***leftoverXp_,Double_t ***leftoverXsig_, Double_t ***leftoverXpsig_,
-  vector<tracksX> & vec_tracks_){
+  vector<tracksX> & vec_tracks_,
+  Double_t ***XClust_, Double_t ***XClust_width_, Double_t ***sumQx_, Double_t ***XpClust_, Double_t ***XpClust_width_, Double_t ***sumQxp_,
+  Double_t ***XspClust_, Double_t ***XspClust_width_, Double_t ***sumQxsp_, Double_t ***XpspClust_, Double_t ***XpspClust_width_, Double_t ***sumQxpsp_){
   tracksX tmpTr;
   
   if(fDebug) cout<<" case3 "<<endl;
 
   Double_t hrd_case3 = 0.7;//0.5;
   Bool_t x5_exist = 0, xp5_exist = 0;
-  Int_t Npoint = 0;
+  Int_t  Npoint = 0;
   Double_t TotalNumberOfHits = 0;
   Double_t ChiSquareNdf      = 999.;
  
   for (Int_t imod1 = 0; imod1 < fNmodules1; imod1++) {
     for (Int_t cl1 = 0; cl1 < Nleftoversp_[1][imod1]; cl1++){ 
     
-      Double_t ax12_from_target = 999., ay12_from_target = 999., 
-      x_ex3 = 999., y_ex3 = 999.;
-      
-      Bool_t   was_candidate     = 0;
-      Int_t    iClustXMod_candidate = -1, iModX_candidate = -1;
-      Double_t y1_2_cand = 999, ay1_2_cand = 999; 
-      Double_t bx_candidate = 999., by_candidate = 999.;
-    
      for (Int_t imod2 = 0; imod2 < fNmodules2; imod2++) {                  
          for (Int_t cl2 = 0; cl2 < Nleftoversp_[2][imod2]; cl2++){ 
-        
+          
+          Bool_t   was_candidate     = 0;
+          Int_t    iClustXMod_candidate = -1, iModX_candidate = -1;
+          Double_t ax12_from_target = 999., x_ex3 = 999., ay12_from_target = 999., y_ex3 = 999.;
+          Double_t y1_2_cand = 999,     ay1_2_cand = 999; 
+          Double_t bx_candidate = 999., by_candidate = 999.;
+          
           for ( Int_t i = 1; i < fNstations; ++i){
            iClustXMod[i]= -1;// reset pointers
-           iModX[i]= -1;
+           iModX[i]     = -1;
           }
           
           if ( fabs(leftoverXsp_[1][imod1][cl1]  -  leftoverXsp_[2][imod2][cl2])   > half_roadX1_X2  ) continue;
           if ( fabs(leftoverXsp_[1][imod1][cl1]  - leftoverXpsp_[1][imod1][cl1])   > half_roadX1_Xp1 ) continue;
           if ( fabs(leftoverXsp_[2][imod2][cl2]  - leftoverXpsp_[2][imod2][cl2])   > half_roadX2_Xp2 ) continue;
-          if ( fabs(leftoverYsp_[1][imod1][cl1]  -  leftoverYsp_[2][imod2][cl2])   > half_roadY1_Y2) continue;
+          if ( fabs(leftoverYsp_[1][imod1][cl1]  -  leftoverYsp_[2][imod2][cl2])   > half_roadY1_Y2)   continue;
 
           iClustXMod[1]= cl1;
           iClustXMod[2]= cl2;
-          iModX[1]= imod1;
-          iModX[2]= imod2;
+          iModX[1]     = imod1;
+          iModX[2]     = imod2;
+          
+          if ( fDebug) cout<<"case3: iModX[1] "<<iModX[1]<<" iCl "<<iClustXMod[1]<<" iModX[2] "<<iModX[2]<<" iCl "<<iClustXMod[2]<<endl;
           
           Double_t  z1_2 = 0.5 * ( Zstation[1][imod1] + Zstation[2][imod2] );
           Double_t  y1_2 = 0.5 * ( leftoverYsp_[1][imod1][cl1] +leftoverYsp_[2][imod2][cl2] );
@@ -1944,15 +2013,15 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
           }
         
           for (Int_t ist = 1; ist < fNstations; ++ist) {
-            if ( ist == 3) continue;
-            Xforglfit[ist][iModX[ist]]     = leftoverXsp_[ist][iModX[ist]][iClustXMod[ist]];
-            SigmXforglfit[ist][iModX[ist]] = leftoverXsigsp_[ist][iModX[ist]][iClustXMod[ist]];
+            if ( ist > 2 ) continue;
+            Xforglfit[ist][iModX[ist]]      = leftoverXsp_[ist][iModX[ist]][iClustXMod[ist]];
+            SigmXforglfit[ist][iModX[ist]]  = leftoverXsigsp_[ist][iModX[ist]][iClustXMod[ist]];
             Xpforglfit[ist][iModX[ist]]     = leftoverXpsp_[ist][iModX[ist]][iClustXMod[ist]];
             SigmXpforglfit[ist][iModX[ist]] = leftoverXpsigsp_[ist][iModX[ist]][iClustXMod[ist]];
             Yforglfit[ist][iModX[ist]]      = leftoverYsp_[ist][iModX[ist]][iClustXMod[ist]];
             SigmYforglfit[ist][iModX[ist]]  = leftoverYsigsp_[ist][iModX[ist]][iClustXMod[ist]];
           }
-
+        // --start look 3st---
         for (Int_t imod3 = 0; imod3 < fNmodules3; imod3++) {   
           for (Int_t clx3 = 0; clx3 <  NleftoverX_[3][imod3]; clx3++){
       
@@ -1974,25 +2043,23 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
               ay1_2_cand = ay12_from_target;
               if (fDebug) cout<<" write candidate3 x3 = "<<leftoverX_[3][imod3][clx3]<<endl;
             } else{
-               
                 if ( (x_ex3 - leftoverX_[3][imod3][clx3]) < (x_ex3 - leftoverX_[3][iModX_candidate][iClustXMod_candidate]) ) {
-                  
                   iModX_candidate      = imod3;
                   iClustXMod_candidate = clx3;
                   y1_2_cand = y1_2;
                   ay1_2_cand = ay12_from_target;
                   if (fDebug) cout<<" re-write cand3 x3 = "<<leftoverX_[3][imod3][clx3]<<endl;
-                  
                 }
               }//else
                
-              Npoint = 5;
+              if ( was_candidate ) Npoint = 5;
            
           }//clx3
         }//st3
     
         if ( was_candidate ){
-          iModX[3] = iModX_candidate;
+          iModX[3]                             = iModX_candidate;
+          iClustXMod[3]                        = iClustXMod_candidate;
           Xforglfit[3][iModX_candidate]        = leftoverX_[3][iModX_candidate][iClustXMod_candidate];
           SigmXforglfit[3][iModX_candidate]    = leftoverXsig[3][iModX_candidate][iClustXMod_candidate];
           Xpforglfit[3][iModX_candidate]       = -999.;
@@ -2013,46 +2080,46 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
                ChiSquareNdf = ChiSquare/(TotalNumberOfHits - 4);
           else ChiSquareNdf = ChiSquare;
           
-          
           if ( fDebug) cout<<" case3 x: before cut ChiSquareNDF "<<ChiSquareNdf<<" TotalNumberOfHits  "<<TotalNumberOfHits 
                            <<" fitted line par "<<line[0]<<" "<<line[1]<<" "<<line[2]<<" "<<line[3]<<endl;
           if (fDebug) cout<<endl;
             
-        } //if ( was_candidate ){
+        }//if ( was_candidate )
         if ( ChiSquareNdf < Chi2_Globcut ){
             
-         x5_exist = 1;
+          x5_exist = 1;
           line[2] = ay1_2_cand;
           line[3] = Yv_av - line[2] * ( Z0_SRC_target - Zcentr ); 
           if ( fDebug) cout<<"              replace to Yv-Y12 line par "<<line[2]<<" "<<line[3]<<endl;
           
         }else {
-          Npoint = 0;
-          iModX[3] = -1;
+          Npoint                      =  0;
+          iModX[3]                    = -1;
+          iClustXMod[3]               = -1;
           Xforglfit[3][iModX[3]]      = -999.;
           SigmXforglfit[3][iModX[3]]  = -999.;
-          Xpforglfit[3][iModX[3]]        = -999.;
-          SigmXpforglfit[3][iModX[3]]    = -999.;
+          Xpforglfit[3][iModX[3]]     = -999.;
+          SigmXpforglfit[3][iModX[3]] = -999.;
+          iClustXMod_candidate        = -1;
           x5_exist = 0;
-          
-          //continue;
         }
-        //---x.----
-
+        if ( fDebug) cout<<"---x.----"<<endl;
+        if ( fDebug) cout<<"case3: end 3x st: iModX[1] "<<iModX[1]<<" iCl "<<iClustXMod[1]<<" iModX[2] "<<iModX[2]<<" iCl "<<iClustXMod[2]<<endl;
         // --try to search 5th xp--
         //---xp----
         xp5_exist = 0;
-        if ( !x5_exist){
-                
-        was_candidate = 0;
+      if ( !x5_exist){
+
+          was_candidate = 0;
         for (Int_t imod3 = 0; imod3 < fNmodules3; imod3++) {   
           for (Int_t clxp3 = 0; clxp3 <  NleftoverXp_[3][imod3]; clxp3++){
-              
-              iModX[3] = imod3;
+              was_candidate = 0;
+              iModX[3]                    = -1;
+              iClustXMod[3]               = -1;
               Xforglfit[3][iModX[3]]      = -999.;
               SigmXforglfit[3][iModX[3]]  = -999.;
-              Xpforglfit[3][iModX[3]]      = -999.;
-              SigmXpforglfit[3][iModX[3]]    = -999.;
+              Xpforglfit[3][iModX[3]]     = -999.;
+              SigmXpforglfit[3][iModX[3]] = -999.;
               
               x_ex3 = ax12_from_target*(Zstation[3][imod3] - Z0_SRC_target ) + Xv_av; 
               y_ex3 = ay12_from_target*(Zstation[3][imod3] - Z0_SRC_target ) + Yv_av; 
@@ -2065,12 +2132,11 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
               if ( fabs(xp_ex3 - leftoverXp_[3][imod3][clxp3]) > hrd_case3 ) continue;
               
               if ( !was_candidate  ) {
-
                 iModX_candidate      = imod3;
                 iClustXMod_candidate = clxp3;
                 was_candidate = 1;
                 if (fDebug) cout<<" write candidate3 xp3 = "<<leftoverXp_[3][imod3][clxp3]<<" xp_ex3 "<<xp_ex3<<endl;
-              } else{
+              }else{
                 if ( fabs(xp_ex3 - leftoverXp_[3][imod3][clxp3]) < fabs(xp_ex3 - leftoverXp_[3][iModX_candidate][iClustXMod_candidate]) ) {
                   
                   iModX_candidate      = imod3;
@@ -2080,13 +2146,14 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
                 }
               }//else
                
-              Npoint = 5;
+              if (was_candidate) Npoint = 5;
          
           }//clxp3
         }//st3
 
       if ( was_candidate ){
-          iModX[3] = iModX_candidate;
+          iModX[3]                             = iModX_candidate;
+          iClustXMod[3]                        = iClustXMod_candidate;
           Xforglfit[3][iModX_candidate]        = -999.;
           SigmXforglfit[3][iModX_candidate]    = -999.;
           Xpforglfit[3][iModX_candidate]       =  leftoverXp_[3][iModX_candidate][iClustXMod_candidate];
@@ -2120,7 +2187,6 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
       if ( ChiSquareNdf < Chi2_Globcut ){
 
         if ( fabs(line[2] * ( Z0_SRC_target - Zcentr ) + line[3]) > half_target_regionY ){
-
          line[2] = ay12_from_target;
          line[3] = Yv_av - line[2] * ( Z0_SRC_target - Zcentr ); 
           if ( fDebug) cout<<"       xp       replace to Yv-Y12 line par "<<line[2]<<" "<<line[3]<<endl;
@@ -2129,22 +2195,26 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
         xp5_exist = 1;
         if ( fDebug) cout<<"xp5_exist"<<endl;
          
-      }else {
-              Npoint = 0;
-              iModX[3] = -1;
-              Xforglfit[3][iModX[3]]       = -999.;
-              SigmXforglfit[3][iModX[3]]   = -999.;
-              Xpforglfit[3][iModX[3]]      = -999.;
-              SigmXpforglfit[3][iModX[3]]  = -999.;
-              xp5_exist = 0;
-            }
+      }
+      else{
+        Npoint = 0;
+        iModX[3]                     = -1;
+        iClustXMod[3]                = -1;
+        Xforglfit[3][iModX[3]]       = -999.;
+        SigmXforglfit[3][iModX[3]]   = -999.;
+        Xpforglfit[3][iModX[3]]      = -999.;
+        SigmXpforglfit[3][iModX[3]]  = -999.;
+        xp5_exist = 0;
+      }
           
     }//if ( !x5_exist){
-    //---xp.----
-          
+    if (fDebug) cout<<"---xp.----"<<endl;
+    if (fDebug) cout<<" was_candidate "<<was_candidate<<endl;
+    if (fDebug) cout<<"case3: end 3xp st: iModX[1] "<<iModX[1]<<" iCl "<<iClustXMod[1]<<" iModX[2] "<<iModX[2]<<" iCl "<<iClustXMod[2]<<endl;
+    if (fDebug) cout<<" TotalNumberOfHits "<<TotalNumberOfHits<<" ChiSquareNdf "<<ChiSquareNdf<<endl;
     // Xpforglfit - > Xp_cand
        
-       Int_t  Mod_cand[fNstations];
+       Int_t  Mod_cand[fNstations], iCl_cand[fNstations];
        Double_t X_cand[fNstations], Xp_cand[fNstations], Y_cand[fNstations],
        SigX_cand[fNstations], SigXp_cand[fNstations], SigY_cand[fNstations],
        Chi2_cand = 999., line_cand[4];
@@ -2154,7 +2224,8 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
         }
        
        for (Int_t st = 1; st < fNstations; ++st) {
-         Mod_cand[st] = -1;
+         Mod_cand[st]   = -1;
+         iCl_cand[st]   = -1;
          X_cand[st]     = -999.;
          Xp_cand[st]    = -999.;
          Y_cand[st]     = -999.;
@@ -2163,10 +2234,10 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
          SigY_cand[st]  = -999.;
         }
         
-         if (fDebug) cout<<" TotalNumberOfHits "<<TotalNumberOfHits<<" ChiSquareNdf "<<ChiSquareNdf<<" Chi2_Globcut "<<Chi2_Globcut<<endl;
+        if (fDebug) cout<<" TotalNumberOfHits "<<TotalNumberOfHits<<" ChiSquareNdf "<<ChiSquareNdf<<" Chi2_Globcut "<<Chi2_Globcut<<endl;
         
-        if (TotalNumberOfHits > 4 && ChiSquareNdf < Chi2_cand && ChiSquareNdf < Chi2_Globcut ){
-     
+        if (TotalNumberOfHits > 4 && ChiSquareNdf < Chi2_cand && ChiSquareNdf < Chi2_Globcut &&  was_candidate ){
+          if (fDebug) cout<<" TotalNumberOfHits "<<TotalNumberOfHits<<" ChiSquareNdf "<<ChiSquareNdf<<endl;
           Chi2_cand = ChiSquareNdf;
           line_cand[0] = line[0]; 
           line_cand[1] = line[1]; 
@@ -2176,20 +2247,21 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
           for (Int_t st = 1; st < fNstations; ++st) {
             if (iModX[st] < 0) continue;
         
-            Mod_cand[st]   = iModX[st];//CleanTr.ModNum[st]  = iModXp[st];//
-            X_cand[st]     = Xforglfit[st][iModX[st]]; //CleanTr.CoordX[st]  = Xforglfit[st][iModX[st]];//
+            Mod_cand[st]   = iModX[st];
+            iCl_cand[st]   = iClustXMod[st];
+            X_cand[st]     = Xforglfit[st][iModX[st]];
             Y_cand[st]     = Yforglfit[st][iModX[st]];
-            Xp_cand[st]    = Xpforglfit[st][iModX[st]];//CleanTr.CoordXp[st] = Xpforglfit[st][iModX[st]];//
-            SigX_cand[st]  = SigmXforglfit[st][iModX[st]]; //CleanTr.SigmaX[st]  = SigmXforglfit[st][iModX[st]]; //
+            Xp_cand[st]    = Xpforglfit[st][iModX[st]];
+            SigX_cand[st]  = SigmXforglfit[st][iModX[st]];
             SigY_cand[st]  = SigmYforglfit[st][iModX[st]];
-            SigXp_cand[st] = SigmXpforglfit[st][iModX[st]]; //CleanTr.SigmaXp[st] = SigmXpforglfit[st][iModX[st]]; // 
+            SigXp_cand[st] = SigmXpforglfit[st][iModX[st]]; 
             
-            if (fDebug) cout<<" X_cand["<<st<<"] "<< X_cand[st] <<" Xp_cand["<<st<<"] "<<Xp_cand[st] <<" iModX "<<iModX[st]<<endl;
+            if (fDebug) cout<<" X_cand["<<st<<"] "<< X_cand[st] <<" Xp_cand["<<st<<"] "<<Xp_cand[st] <<" iMod "<<iModX[st]<<" iCl "<<iClustXMod[st]<<" ClSizeXp "<<XpspClust_width_[st][Mod_cand[st]][iClustXMod[st]]<<endl;
             
           }
         }//5 points
        
-          if (TotalNumberOfHits >  4 && ChiSquareNdf < Chi2_Globcut ){
+          if (TotalNumberOfHits >  4 && Chi2_cand < Chi2_Globcut &&  was_candidate ){//ChiSquareNdf < Chi2_Globcut
           
             for(int itr = 0; itr< vec_tracks_.size(); ++itr){
               //deleting randomly recorded tracks
@@ -2213,10 +2285,10 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
             
             if ( Chi2_cand > Chi2_Globcut) continue;
 
-            tmpTr.Chi2     = Chi2_cand ;
+            tmpTr.Chi2     = Chi2_cand;
             tmpTr.Nhits    = TotalNumberOfHits;
-            bx_candidate = line_cand[0] * ( Z0_SRC_target -Zcentr) + line_cand[1];
-            by_candidate = line_cand[2] * ( Z0_SRC_target -Zcentr) + line_cand[3];
+            bx_candidate   = line_cand[0] * ( Z0_SRC_target -Zcentr) + line_cand[1];
+            by_candidate   = line_cand[2] * ( Z0_SRC_target -Zcentr) + line_cand[3];
             tmpTr.Xv       = bx_candidate;
             tmpTr.Yv       = by_candidate;
             tmpTr.param[0] = line_cand[0]; 
@@ -2236,9 +2308,27 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
               tmpTr.CoordZ[st]  = ZstnCforglfit[st][Mod_cand[st]];
               tmpTr.CoordY[st]  = Y_cand[st];
               tmpTr.SigmaY[st]  = SigY_cand[st];
+              
+              if ( st > 3 ){
+                tmpTr.StripNumX[st] =        XspClust_[st][Mod_cand[st]][iCl_cand[st]];
+                tmpTr.StripNumXp[st]=       XpspClust_[st][Mod_cand[st]][iCl_cand[st]];
+                tmpTr.ClSizeX[st]   =  XspClust_width_[st][Mod_cand[st]][iCl_cand[st]];
+                tmpTr.ClSizeXp[st]  = XpspClust_width_[st][Mod_cand[st]][iCl_cand[st]];
+                tmpTr.SumQX[st]     =         sumQxsp_[st][Mod_cand[st]][iCl_cand[st]];
+                tmpTr.SumQXp[st]    =        sumQxpsp_[st][Mod_cand[st]][iCl_cand[st]];// fix me: don't see iCl & Q for 2nd-st
+              }else{
+                tmpTr.StripNumX[st] =        XClust_[st][iModX[st]][iClustXMod_candidate];
+                tmpTr.StripNumXp[st]=       XpClust_[st][iModX[st]][iClustXMod_candidate];
+                tmpTr.ClSizeX[st]   =  XClust_width_[st][iModX[st]][iClustXMod_candidate];
+                tmpTr.ClSizeXp[st]  = XpClust_width_[st][iModX[st]][iClustXMod_candidate];
+                tmpTr.SumQX[st]     =         sumQx_[st][iModX[st]][iClustXMod_candidate];
+                tmpTr.SumQXp[st]    =        sumQxp_[st][iModX[st]][iClustXMod_candidate];
+              }
                
-              if (fDebug) cout<<" tmpTr.CoordX["<<st <<"] "<<tmpTr.CoordX[st]<<" tmpTr.CoordXp["<<st <<"] "<<tmpTr.CoordXp[st]<<" Z "<<tmpTr.CoordZ[st]<<endl;
-            }//st
+              if (fDebug) cout<<" st "<<st<<" Z "<<tmpTr.CoordZ[st]<<endl;
+              if (fDebug) cout<<" tmpTr.CoordX["<<st <<"]  "<<tmpTr.CoordX[st]<<" strip "<<tmpTr.StripNumX[st]<<" Clsize "<<tmpTr.ClSizeX[st]<<" Q "<<tmpTr.SumQX[st]<<endl;
+              if (fDebug) cout<<" tmpTr.CoordXp["<<st <<"] "<<tmpTr.CoordXp[st]<<" strip "<<tmpTr.StripNumXp[st]<<" Clsize "<<tmpTr.ClSizeXp[st]<<" Q "<<tmpTr.SumQXp[st]<<endl;
+             }//st
 
             vec_tracks_.push_back(tmpTr);
           }//chi2
@@ -2247,7 +2337,7 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
       }//st2
     }//cl1
   }//st1
-      
+  if (fDebug) cout<<endl;
   if (fDebug) cout<<" after second case 3 write cand: "<<vec_tracks_.size()<<endl;
 }
 //----------------case3.-----------------------------------------------
@@ -2257,7 +2347,9 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
 //----------------------------------------------------------------------
 void BmnSiliconTrackFinder::Case4( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t ***leftoverXsp_, Double_t ***leftoverXpsp_, Double_t ***leftoverYsp_,Double_t ***leftoverXsigsp_, Double_t ***leftoverXpsigsp_, Double_t ***leftoverYsigsp_,
   Int_t  **NleftoverX_,  Int_t **NleftoverXp_,Double_t ***leftoverX_, Double_t ***leftoverXp_,Double_t ***leftoverXsig_, Double_t ***leftoverXpsig_,
-  vector<tracksX> & vec_tracks_){
+  vector<tracksX> & vec_tracks_,
+  Double_t ***XClust_, Double_t ***XClust_width_, Double_t ***sumQx_, Double_t ***XpClust_, Double_t ***XpClust_width_, Double_t ***sumQxp_,
+  Double_t ***XspClust_, Double_t ***XspClust_width_, Double_t ***sumQxsp_, Double_t ***XpspClust_, Double_t ***XpspClust_width_, Double_t ***sumQxpsp_){
     
   tracksX tmpTr;
 
@@ -2271,7 +2363,7 @@ void BmnSiliconTrackFinder::Case4( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
     Sec_St = 1;
   }
 
-  Int_t  Mod_cand[fNstations];
+  Int_t  Mod_cand[fNstations], iCl_cand[fNstations];
   Double_t X_cand[fNstations], Xp_cand[fNstations], Y_cand[fNstations],
   SigX_cand[fNstations], SigXp_cand[fNstations], SigY_cand[fNstations],
   Chi2_cand = 999., line_cand[4];
@@ -2281,7 +2373,8 @@ void BmnSiliconTrackFinder::Case4( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
   }
 
   for (Int_t st = 1; st < fNstations; ++st) {
-   Mod_cand[st] = -1;
+   Mod_cand[st]   = -1;
+   iCl_cand[st]   = -1;
    X_cand[st]     = -999.;
    Xp_cand[st]    = -999.;
    Y_cand[st]     = -999.;
@@ -2292,13 +2385,13 @@ void BmnSiliconTrackFinder::Case4( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
 
   Double_t bx_candidate = 999., by_candidate = 999.;
   //st 3 best Xv Yv
-  
+  //spatial points in 3 st
   for (Int_t imod3 = 0; imod3 < fNmodules3; imod3++) {                  
     for (Int_t cl3 = 0; cl3 < Nleftoversp_[3][imod3]; cl3++){ 
       
       Double_t Xv_min = 2.5, Yv_min = 2.5;
       Bool_t   was_candidate     = 0;
-    
+      // points in 1 or 2 st
       for (Int_t imod1 = 0; imod1 < Nmod_Fi; imod1++) {                  
         for (Int_t cl1 = 0; cl1 < NleftoverX[Fi_St][imod1]; cl1++){ 
         
@@ -2337,6 +2430,7 @@ void BmnSiliconTrackFinder::Case4( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
               line_cand[3] = Yv_cand + ay_target_region * (  Zcentr - Z0_SRC_target );
               
               Mod_cand[Fi_St]   = imod1;
+              iCl_cand[Fi_St]   = cl1;
               X_cand[Fi_St]     = leftoverX_[Fi_St][imod1][cl1];
               Xp_cand[Fi_St]    = -999.;
               Y_cand[Fi_St]     = -999.;
@@ -2345,6 +2439,7 @@ void BmnSiliconTrackFinder::Case4( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
               SigY_cand[Fi_St]  = 1.;
               
               Mod_cand[Sec_St]   = imod2;
+              iCl_cand[Sec_St]   = cl2;
               X_cand[Sec_St]     = -999.;
               Xp_cand[Sec_St]    = leftoverXp_[Sec_St][imod2][cl2];
               Y_cand[Sec_St]     = -999.;
@@ -2353,6 +2448,7 @@ void BmnSiliconTrackFinder::Case4( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
               SigY_cand[Sec_St]  = 1.;
               
               Mod_cand[3]   = imod3;
+              iCl_cand[3]   = cl3;
               X_cand[3]     = leftoverXsp_[3][imod3][cl3];
               Xp_cand[3]    = leftoverXpsp_[3][imod3][cl3];
               Y_cand[3]     = leftoverYsp_[3][imod3][cl3];
@@ -2363,35 +2459,7 @@ void BmnSiliconTrackFinder::Case4( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
           }//2st
         }
       }//1st
-    
-      if (was_candidate){
-
-        tmpTr.Chi2     = Chi2_cand ;
-        tmpTr.Nhits    = 4;
-        tmpTr.Xv       = bx_candidate;
-        tmpTr.Yv       = by_candidate;
-        tmpTr.param[0] = line_cand[0]; 
-        tmpTr.param[1] = line_cand[1]; 
-        tmpTr.param[2] = line_cand[2]; 
-        tmpTr.param[3] = line_cand[3]; 
-
-        if (fDebug) cout<<" Xv_candidate  "<<bx_candidate<<" Yv_candidate "<<by_candidate<<endl;
-        for (Int_t st = 1; st < fNstations; ++st) {
-          if (Mod_cand[st] < 0) continue;
-          
-            tmpTr.ModNum[st]  = iModX[st];
-            tmpTr.CoordX[st]  = X_cand[st]; 
-            tmpTr.CoordXp[st] = Xp_cand[st];
-            tmpTr.SigmaX[st]  = SigX_cand[st]; 
-            tmpTr.SigmaXp[st] = SigXp_cand[st]; 
-            tmpTr.CoordZ[st]  = ZstnCforglfit[st][Mod_cand[st]];
-            tmpTr.CoordY[st]  = Y_cand[st];
-            tmpTr.SigmaY[st]  = SigY_cand[st];
-
-            if (fDebug) cout<<" tmpTr.CoordX["<<st <<"] "<<tmpTr.CoordX[st]<<" tmpTr.CoordXp["<<st <<"] "<<tmpTr.CoordXp[st]<<" Z "<<tmpTr.CoordZ[st]<<endl;
-        }//st
-      }
-      
+     
       for(int itr = 0; itr< vec_tracks.size(); ++itr){
         //deleting randomly recorded tracks
         if ( 
@@ -2401,7 +2469,6 @@ void BmnSiliconTrackFinder::Case4( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
         ||
         ( (vec_tracks.at(itr).CoordX[3] ==  X_cand[3] && X_cand[3] > -900.)   ||  (vec_tracks.at(itr).CoordXp[3] == Xp_cand[3] && Xp_cand[3] > -900.) )
         ){
-
           if ( (fabs(vec_tracks.at(itr).Xv) + 0.25*fabs(vec_tracks.at(itr).Yv) ) > ( fabs(bx_candidate) + 0.25*fabs(by_candidate) ) ){ // v2 closed to v1 
             vec_tracks.erase(vec_tracks.begin()+ itr); 
             continue;
@@ -2410,23 +2477,22 @@ void BmnSiliconTrackFinder::Case4( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
             Chi2_cand = 999.;
             continue;
           }
-          
         }//if
-
       }//itr
       
       if ( Chi2_cand > Chi2_Globcut) continue;
 
-        tmpTr.Chi2     = Chi2_cand ;
-        tmpTr.Nhits    = 4;
-        tmpTr.Xv       = bx_candidate;
-        tmpTr.Yv       = by_candidate;
-        tmpTr.param[0] = line_cand[0]; 
-        tmpTr.param[1] = line_cand[1]; 
-        tmpTr.param[2] = line_cand[2]; 
-        tmpTr.param[3] = line_cand[3]; 
-
-      if (fDebug) cout<<" Xv_candidate  "<<bx_candidate<<" Yv_candidate "<<by_candidate<<endl;
+      tmpTr.Chi2     = Chi2_cand ;
+      tmpTr.Nhits    = 4;
+      tmpTr.Xv       = bx_candidate;
+      tmpTr.Yv       = by_candidate;
+      tmpTr.param[0] = line_cand[0]; 
+      tmpTr.param[1] = line_cand[1]; 
+      tmpTr.param[2] = line_cand[2]; 
+      tmpTr.param[3] = line_cand[3]; 
+      
+      if (fDebug) cout<<endl;
+      if (fDebug) cout<<" Xv_candidate  "<<bx_candidate<<" Yv_candidate "<<by_candidate<<" Nhits "<<tmpTr.Nhits<<endl;
       for (Int_t st = 1; st < fNstations; ++st) {
         if (Mod_cand[st] < 0) continue;
         
@@ -2438,13 +2504,32 @@ void BmnSiliconTrackFinder::Case4( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
         tmpTr.CoordZ[st]  = ZstnCforglfit[st][Mod_cand[st]];
         tmpTr.CoordY[st]  = Y_cand[st];
         tmpTr.SigmaY[st]  = SigY_cand[st];
+        
+        if ( st > 3 ){
+          tmpTr.StripNumX[st] =        XClust_[st][Mod_cand[st]][iCl_cand[st]];
+          tmpTr.StripNumXp[st]=       XpClust_[st][Mod_cand[st]][iCl_cand[st]];
+          tmpTr.ClSizeX[st]   =  XClust_width_[st][Mod_cand[st]][iCl_cand[st]];
+          tmpTr.ClSizeXp[st]  = XpClust_width_[st][Mod_cand[st]][iCl_cand[st]];
+          tmpTr.SumQX[st]     =         sumQx_[st][Mod_cand[st]][iCl_cand[st]];
+          tmpTr.SumQXp[st]    =        sumQxp_[st][Mod_cand[st]][iCl_cand[st]];
+        }else{
+          tmpTr.StripNumX[st] =        XspClust_[st][Mod_cand[st]][iCl_cand[st]];
+          tmpTr.StripNumXp[st]=       XpspClust_[st][Mod_cand[st]][iCl_cand[st]];
+          tmpTr.ClSizeX[st]   =  XspClust_width_[st][Mod_cand[st]][iCl_cand[st]];
+          tmpTr.ClSizeXp[st]  = XpspClust_width_[st][Mod_cand[st]][iCl_cand[st]];
+          tmpTr.SumQX[st]     =         sumQxsp_[st][Mod_cand[st]][iCl_cand[st]];
+          tmpTr.SumQXp[st]    =        sumQxpsp_[st][Mod_cand[st]][iCl_cand[st]];
+        }
          
-        if (fDebug) cout<<" tmpTr.CoordX["<<st <<"] "<<tmpTr.CoordX[st]<<" tmpTr.CoordXp["<<st <<"] "<<tmpTr.CoordXp[st]<<" Z "<<tmpTr.CoordZ[st]<<endl;
+        if (fDebug) cout<<" st "<<st<<" Z "<<tmpTr.CoordZ[st]<<endl;
+        if (fDebug) cout<<" tmpTr.CoordX["<<st <<"]  "<<tmpTr.CoordX[st]<<" strip "<<tmpTr.StripNumX[st]<<" Clsize "<<tmpTr.ClSizeX[st]<<" Q "<<tmpTr.SumQX[st]<<endl;
+        if (fDebug) cout<<" tmpTr.CoordXp["<<st <<"] "<<tmpTr.CoordXp[st]<<" strip "<<tmpTr.StripNumXp[st]<<" Clsize "<<tmpTr.ClSizeXp[st]<<" Q "<<tmpTr.SumQXp[st]<<endl;
+             
       }//st
 
       vec_tracks.push_back(tmpTr);
       if (fDebug) cout<<" tmpTr.Xv "<<tmpTr.Xv<<" tmpTr.Yv "<<tmpTr.Yv<<endl;
-
+      if (fDebug) cout<<endl;
     }
   }//3st sp
 
@@ -2459,6 +2544,8 @@ Double_t BmnSiliconTrackFinder::GetXYspatial_station1_2(Int_t &Fi_St, Int_t &imo
   Int_t Nmod_Fi = fNmodules1;
   Int_t Nmod_Sec = fNmodules2;
   Int_t Sec_St = 2;
+  Double_t Ysp_1_2 = -999.0;
+  Double_t YCoor_cand;
   
   if ( Fi_St == 2) {
     Nmod_Fi = fNmodules2;
@@ -2466,9 +2553,6 @@ Double_t BmnSiliconTrackFinder::GetXYspatial_station1_2(Int_t &Fi_St, Int_t &imo
     Sec_St = 1;
   }
   
-  Double_t Ysp_1_2 = -999.0;
-  Double_t YCoor_cand;
-
   if ( XCoor > -900. && XpCoor > -900.){
    YCoor_cand =  ( XpCoor - XCoor  ) / tg2_5;
 
@@ -2836,6 +2920,12 @@ InitStatus BmnSiliconTrackFinder::Init() {
   XpClust_width  = new Double_t**[fNstations];
   sumQx          = new Double_t**[fNstations];
   sumQxp         = new Double_t**[fNstations];
+  XspClust         = new Double_t**[fNstations];
+  XpspClust        = new Double_t**[fNstations];
+  XspClust_width   = new Double_t**[fNstations];
+  XpspClust_width  = new Double_t**[fNstations];
+  sumQxsp          = new Double_t**[fNstations];
+  sumQxpsp         = new Double_t**[fNstations];
   leftoverXsp    = new Double_t**[fNstations];
   leftoverXpsp   = new Double_t**[fNstations];
   leftoverYsp    = new Double_t**[fNstations];
@@ -2892,6 +2982,12 @@ InitStatus BmnSiliconTrackFinder::Init() {
     XpClust_width[istat]  = new Double_t*[fNmodules];
     sumQx[istat]          = new Double_t*[fNmodules];
     sumQxp[istat]         = new Double_t*[fNmodules];
+    XspClust[istat]         = new Double_t*[fNmodules];
+    XpspClust[istat]        = new Double_t*[fNmodules];
+    XspClust_width[istat]   = new Double_t*[fNmodules];
+    XpspClust_width[istat]  = new Double_t*[fNmodules];
+    sumQxsp[istat]          = new Double_t*[fNmodules];
+    sumQxpsp[istat]         = new Double_t*[fNmodules];
 
     for (Int_t im = 0; im < fNmodules; im++) {
       leftoverXsp[istat][im]     = new Double_t[kBig];
@@ -2922,6 +3018,12 @@ InitStatus BmnSiliconTrackFinder::Init() {
       XpClust_width[istat][im]   = new Double_t[fNstrips];
       sumQx[istat][im]           = new Double_t[fNstrips];
       sumQxp[istat][im]          = new Double_t[fNstrips];
+      XspClust[istat][im]          = new Double_t[fNstrips];
+      XpspClust[istat][im]         = new Double_t[fNstrips];
+      XspClust_width[istat][im]    = new Double_t[fNstrips];
+      XpspClust_width[istat][im]   = new Double_t[fNstrips];
+      sumQxsp[istat][im]           = new Double_t[fNstrips];
+      sumQxpsp[istat][im]          = new Double_t[fNstrips];
     }
   }
 
@@ -3022,9 +3124,14 @@ InitStatus BmnSiliconTrackFinder::Init() {
       
     }
   }
+  // Create and register hits arrays
+  fBmnSiliconHitsArray = new TClonesArray(fOutputHitsBranchName);
+  ioman->Register("BmnSiliconHits", "SI", fBmnSiliconHitsArray, kTRUE);
+  
   // Create and register track arrays
   fSiTracks = new TClonesArray("BmnSiliconTrack");
   ioman->Register("BmnSiliconTrack", "SI", fSiTracks, kTRUE);
+  
   return kSUCCESS;
 }
 //----------------------------------------------------------------------
@@ -3033,6 +3140,7 @@ InitStatus BmnSiliconTrackFinder::Init() {
 //---------------------Initialisation-----------------------------------
 void BmnSiliconTrackFinder::PrepareArraysToProcessEvent() {
   fSiTracks->Clear();
+  fBmnSiliconHitsArray->Delete();
   CleanTr.clear();
   vec_tracks.clear();
   
@@ -3082,12 +3190,18 @@ void BmnSiliconTrackFinder::PrepareArraysToProcessEvent() {
        SigmspX[istat][im][ii]         = -999.;
        SigmspXp[istat][im][ii]        = -999.;
        SigmspY[istat][im][ii]         = -999.;
-       sumQx[istat][im][ii]           = 0.;
-       sumQxp[istat][im][ii]          = 0.;
        XClust[istat][im][ii]          = 0.;
        XpClust[istat][im][ii]         = 0.;
        XClust_width[istat][im][ii]    = 0.;
        XpClust_width[istat][im][ii]   = 0.;
+       sumQx[istat][im][ii]           = 0.;
+       sumQxp[istat][im][ii]          = 0.;
+       XspClust[istat][im][ii]        = 0.;
+       XpspClust[istat][im][ii]       = 0.;
+       XspClust_width[istat][im][ii]  = 0.;
+       XpspClust_width[istat][im][ii] = 0.;
+       sumQxsp[istat][im][ii]         = 0.;
+       sumQxpsp[istat][im][ii]        = 0.;
       }
     }
   }
@@ -3102,6 +3216,7 @@ BmnSiliconTrackFinder::BmnSiliconTrackFinder(Bool_t isTarget, Int_t runNumber) {
 
   fRunNumber = runNumber;
   fTarget    = isTarget;
+  fOutputHitsBranchName = "BmnSiliconHit";
   
 }
 //----------------------------------------------------------------------
@@ -3156,6 +3271,12 @@ BmnSiliconTrackFinder::~BmnSiliconTrackFinder() {
    delete[] XpClust_width[istat];
    delete[] sumQx[istat];
    delete[] sumQxp[istat];
+   delete[] XspClust[istat];
+   delete[] XpspClust[istat];
+   delete[] XspClust_width[istat];
+   delete[] XpspClust_width[istat];
+   delete[] sumQxsp[istat];
+   delete[] sumQxpsp[istat];
    
     for (Int_t im = 0; im < fNmodules; im++) {
      delete[] XCoord[istat][im];
@@ -3186,6 +3307,12 @@ BmnSiliconTrackFinder::~BmnSiliconTrackFinder() {
      delete[] XpClust_width[istat][im];
      delete[] sumQx[istat][im];
      delete[] sumQxp[istat][im];
+     delete[] XspClust[istat][im];
+     delete[] XpspClust[istat][im];
+     delete[] XspClust_width[istat][im];
+     delete[] XpspClust_width[istat][im];
+     delete[] sumQxsp[istat][im];
+     delete[] sumQxpsp[istat][im];
     }
   }
  
@@ -3241,6 +3368,12 @@ BmnSiliconTrackFinder::~BmnSiliconTrackFinder() {
   delete[] XpClust_width;
   delete[] sumQx;
   delete[] sumQxp;
+  delete[] XspClust;
+  delete[] XpspClust;
+  delete[] XspClust_width;
+  delete[] XpspClust_width;
+  delete[] sumQxsp;
+  delete[] sumQxpsp;
 
   for (Int_t i = 0; i < 4; i++) {
    delete[] Amatr[i];

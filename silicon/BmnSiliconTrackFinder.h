@@ -35,6 +35,8 @@
 #include "BmnTrack.h"
 #include "BmnSiliconDigit.h"
 #include "BmnSiliconTrack.h"
+#include "BmnSiliconHit.h"
+
 
 struct tracksX {
   Int_t    Nhits = 0;
@@ -45,11 +47,18 @@ struct tracksX {
   Double_t CoordX[4]  = {-999., -999., -999., -999.};
   Double_t CoordXp[4] = {-999., -999., -999., -999.};
   Double_t CoordY[4]  = {-999., -999., -999., -999.};
-  Int_t    ModNum[4]  = {-1, -1, -1, -1};
-  Double_t SigmaX[4]  = {-999., -999., -999., -999.};
-  Double_t SigmaY[4]  = {-999., -999., -999., -999.};
-  Double_t SigmaXp[4] = {-999., -999., -999., -999.};
   Double_t CoordZ[4]  = {-999., -999., -999., -999.};
+  Double_t SigmaX[4]  = {-999., -999., -999., -999.};
+  Double_t SigmaXp[4] = {-999., -999., -999., -999.};
+  Double_t SigmaY[4]  = {-999., -999., -999., -999.};
+  
+  Int_t    ModNum[4]    = {-1, -1, -1, -1};
+  Double_t StripNumX[4] = {-999., -999., -999., -999.};
+  Double_t StripNumXp[4]= {-999., -999., -999., -999.};
+  Double_t ClSizeX[4]   = {-999., -999., -999., -999.};
+  Double_t ClSizeXp[4]  = {-999., -999., -999., -999.};
+  Double_t SumQX[4]     = {-999., -999., -999., -999.};
+  Double_t SumQXp[4]    = {-999., -999., -999., -999.};
 };
 
 using namespace std;
@@ -82,7 +91,10 @@ private:
   Bool_t expData;
   TList fList;
   TClonesArray* fBmnSiDigitsArray;
-  TClonesArray* fSiTracks;  
+  TClonesArray* fSiTracks;
+  /** Output array of Silicon Hits **/
+  TString fOutputHitsBranchName;
+  TClonesArray* fBmnSiliconHitsArray;
   TString fOutputFileName;
   
   //--
@@ -125,6 +137,12 @@ private:
   Double_t ***XpClust_width;
   Double_t ***sumQx;
   Double_t ***sumQxp;
+  Double_t ***XspClust;
+  Double_t ***XpspClust;
+  Double_t ***XspClust_width;
+  Double_t ***XpspClust_width;
+  Double_t ***sumQxsp;
+  Double_t ***sumQxpsp;
   Double_t ***XCoord;
   Double_t ***XpCoord;
   Double_t ***XspCoord;
@@ -154,28 +172,41 @@ private:
   
   void PrepareArraysToProcessEvent();
   
-  void Case1(Int_t **, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, vector<tracksX>& );
-  void Case2(Int_t & , Int_t **, Double_t ***, Double_t ***, Double_t ***,Double_t ***, Double_t ***, Double_t ***, Int_t  **, Int_t **,Double_t ***, Double_t ***, Double_t ***, Double_t ***, vector<tracksX>& );
-  void Case3(Int_t **, Double_t ***, Double_t ***, Double_t ***,Double_t ***, Double_t ***, Double_t ***, Int_t  **, Int_t **,Double_t ***, Double_t ***, Double_t ***, Double_t ***, vector<tracksX>& );
-  void Case4(Int_t & , Int_t **, Double_t ***, Double_t ***, Double_t ***,Double_t ***, Double_t ***, Double_t ***, Int_t  **, Int_t **,Double_t ***, Double_t ***, Double_t ***, Double_t ***, vector<tracksX>& );
-  Double_t FindClusterCenter(Double_t*, Int_t , Double_t &);
-  Int_t Angle(Int_t &, Int_t &);
+  void Case1(Int_t **, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, vector<tracksX>&,
+            Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***);
+  void Case2(Int_t & , Int_t **, Double_t ***, Double_t ***, Double_t ***,Double_t ***, Double_t ***, Double_t ***, Int_t  **, Int_t **,Double_t ***, Double_t ***, Double_t ***, Double_t ***, vector<tracksX>&,
+            Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***,
+            Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***);
+  void Case3(Int_t **, Double_t ***, Double_t ***, Double_t ***,Double_t ***, Double_t ***, Double_t ***, Int_t  **, Int_t **,Double_t ***, Double_t ***, Double_t ***, Double_t ***, vector<tracksX>&, 
+            Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***,
+            Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***);
+  void Case4(Int_t & , Int_t **, Double_t ***, Double_t ***, Double_t ***,Double_t ***, Double_t ***, Double_t ***, Int_t  **, Int_t **,Double_t ***, Double_t ***, Double_t ***, Double_t ***, vector<tracksX>&,
+            Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***,
+            Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***);
+  
+  void Clustering( Double_t***, Double_t *** , Double_t *** ,  Double_t *** , Double_t  *** , Int_t **, Double_t *** , Double_t *** , Double_t *** , Int_t **);
   void GlobalFit( Double_t **, Double_t **, Double_t **,Double_t **, Double_t **, Double_t **, Double_t *);
   bool InvertMatrix(Double_t *, Double_t *);
-  void GetXYspatial(Int_t **NClX, Int_t **NClXp, Double_t ***XCoor, Double_t ***XpCoor, Double_t ***Xsp, Double_t ***Xpsp, Double_t ***Ysp, Int_t **NXYsp, Double_t ***SigmX, Double_t ***SigmXp, Double_t ***SigspX, Double_t ***SigspXp, Double_t ***SigspY);
-  void Clustering( Double_t***, Double_t *** , Double_t *** ,  Double_t *** , Double_t  *** , Int_t **, Double_t *** , Double_t *** , Double_t *** , Int_t **);
-  void CoordinateCalculation(Int_t **, Int_t **, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Int_t **);
+  void GetXYspatial(Int_t **NClX, Int_t **NClXp, Double_t ***XCoor, Double_t ***XpCoor, Double_t ***Xsp, Double_t ***Xpsp, Double_t ***Ysp, Int_t **NXYsp, Double_t ***SigmX, Double_t ***SigmXp, Double_t ***SigspX, Double_t ***SigspXp, Double_t ***SigspY,
+                    Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***,
+                    Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***);
+  void CoordinateCalculation(Int_t **, Int_t **, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Int_t **,
+                             Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***,
+                             Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***);
   void calculationOfChi2(Double_t **, Double_t **, Double_t **, Double_t **,  Int_t *,  Int_t *, Double_t & , Double_t *);
   void CoordinateAlignment( Int_t **,  Double_t ***, Double_t ***, Double_t ***, Int_t **, Int_t **, Double_t ***, Double_t ***);
   void RecordingTracksAfterSpatialPoints(vector<tracksX> & , vector<tracksX> & );
   void RecordingTracks(vector<tracksX> & , vector<tracksX> & );
   void RecordingTracks_case3(vector<tracksX> & , vector<tracksX> & );
   void CheckPoints(Int_t **, Int_t **, Double_t ***, Double_t ***, Double_t ***, Double_t ***,Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, 
-    Int_t **,  vector<tracksX> & ,Int_t **, Int_t **,Int_t **, Double_t ***, Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***);
-  Double_t GetXYspatial_station1_2(Int_t &, Int_t &, Double_t & , Double_t &);
-  Bool_t SkipEvent(Int_t **NclustX_, Int_t **NclustXp_, Double_t ***XCoord_, Double_t ***XpCoord_);
+                  Int_t **,  vector<tracksX> & ,Int_t **, Int_t **,Int_t **, Double_t ***, Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***);
   void PrintAllTracks(vector<tracksX> & );
   void CountSpatialPoints(Int_t **, Int_t *);
+  Double_t GetXYspatial_station1_2(Int_t &, Int_t &, Double_t & , Double_t &);
+  Double_t FindClusterCenter(Double_t*, Int_t , Double_t &);
+  Bool_t   SkipEvent(Int_t **NclustX_, Int_t **NclustXp_, Double_t ***XCoord_, Double_t ***XpCoord_);
+  Int_t    Angle(Int_t &, Int_t &);
+  
   
   const float tg2_5      = tan(2.5*TMath::Pi()/180.);
   const float sin2_5     = sin(2.5*TMath::Pi()/180.);

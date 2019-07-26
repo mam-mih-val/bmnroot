@@ -96,7 +96,7 @@ class BmnMwpcHitFinder : public FairTask {
         TVector3 *ChCent;
         Float_t *Zmid;
         Float_t *ChZ;
-
+        TH1D * hNclust_ch0_pl1, *hNclust_ch3_pl1;
         vector<TH1D*> hNp_best_Ch, hNbest_Ch, hOccupancy, hTime,
                hoccupancyXp, hoccupancyUp, hoccupancyVp, hoccupancyXm, hoccupancyUm, hoccupancyVm, hWireClust, hClusterSize, hChisq_ndf_Ch, hNFired_layers_Ch,
                hResiduals_pl0_Ch, hResiduals_pl1_Ch, hResiduals_pl2_Ch, hResiduals_pl3_Ch, hResiduals_pl4_Ch, hResiduals_pl5_Ch;

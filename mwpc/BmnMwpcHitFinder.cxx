@@ -1,29 +1,27 @@
 // Author: Vasilisa Lenivenko <vasilisa@jinr.ru> 2018-07-18
 
 ////////////////////////////////////////////////////////////////////////////////
-//                                      //
-// BmnMwpcHitFinder                            //
-//                                      //
-// Implementation of an algorithm developed by                //
-// Vasilisa Lenivenko and Vladimir Palchik                  //
-// to the BmnRoot software                          //
-//                                      //
-// The algorithm serves for searching for hits                //
-// in the Multi Wire Prop. Chambers of the BM@N experiment          //
-//                                      //
+//                                                                            //
+// BmnMwpcHitFinder                                                           //
+//                                                                            //
+// Implementation of an algorithm developed by                                //
+// Vasilisa Lenivenko and Vladimir Palchik                                    //
+// to the BmnRoot software                                                    //
+//                                                                            //
+// The algorithm serves for searching for hits                                //
+// in the Multi Wire Prop. Chambers of the BM@N experiment                    //
+//                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 #include <Rtypes.h>
 #include <climits>
 #include <vector>
 #include "TCanvas.h"
-
 #include "BmnMwpcHitFinder.h"
 #include "BmnTrack.h"
 #include "BmnMwpcTrack.h"
 #include "BmnMwpcSegment.h"
 #include <BmnEventHeader.h>
 #include <algorithm>
-
 
 static Float_t workTime = 0.0;
 
@@ -62,7 +60,6 @@ BmnMwpcHitFinder::BmnMwpcHitFinder(Bool_t isExp, Int_t runPeriod, Int_t runNumbe
     kCh_max     = 4;
   }
   fBmnEvQualityBranchName = "BmnEventQuality";
-
 }
 BmnMwpcHitFinder::~BmnMwpcHitFinder() {
 }
@@ -157,7 +154,7 @@ InitStatus BmnMwpcHitFinder::Init() {
       h2 = new TH2D(Form("Event_display_Ch%d", i), Form("Event_display_Ch%d; Events; Wires",i), 100, 0., 700., 100, 0., 100.);
       fList.Add(h2);
       hEvent_display_Ch.push_back(h2);
-      h2 = new TH2D(Form("time_wire_Ch%d",  i), Form("time_wire_allplane_Ch%d; Wires; Time",  i), 95, 0., 95., 100, 0, 500.);
+      h2 = new TH2D(Form("time_wire_Ch%d",  i), Form("time_wire_allplane_Ch%d; Wires; Time",  i), kNWires, 0., kNWires, 100, 0, 500.);
       fList.Add(h2);
       htime_wire_Ch.push_back(h2);
       h2 = new TH2D(Form("time_fast_cut50_wire_Ch%d", i), Form("time_fast_cut50_wire_allplane_Ch%d; Wires; Time", i), 600, 0., 600., 100, -1000., 1000);
@@ -171,6 +168,10 @@ InitStatus BmnMwpcHitFinder::Init() {
     ChZ[i]  = ChCent[i].Z();
   }
   if (fDebug) {
+    hNclust_ch0_pl1 = new TH1D("Nclust_ch0_pl1","Number of clusters(chamber0,plane1); Number of cluster;Events", 15, 0.,15.); 
+    fList.Add(hNclust_ch0_pl1);
+    hNclust_ch3_pl1 = new TH1D("Nclust_ch3_pl1","Number of clusters(chamber3,plane1); Number of cluster;Events", 15, 0.,15.); 
+    fList.Add(hNclust_ch3_pl1);
     for (int i=0; i < kNChambers*kNPlanes; ++i) {
       TH1D *h;
       h = new TH1D(Form("Time%d", i), Form("Time%d", i), 500, 0., 500.);
@@ -180,6 +181,7 @@ InitStatus BmnMwpcHitFinder::Init() {
       fList.Add(h);
       hOccupancy.push_back(h);
     }
+    
   }
   // Segment finding cuts
   kMinHits = 5;//5;// for alignment kMinHits = 6;
@@ -419,10 +421,10 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
   for (Int_t iDigit = 0; iDigit < fBmnMwpcDigitArray -> GetEntries(); iDigit++) {
     BmnMwpcDigit* digit = (BmnMwpcDigit*) fBmnMwpcDigitArray ->At (iDigit);
 
-    st = digit  -> GetStation();
+    st = digit   -> GetStation();
     wire = digit -> GetWireNumber();
-    pl = digit  -> GetPlane();
-    ts = digit  -> GetTime(); //ns
+    pl = digit   -> GetPlane();
+    ts = digit   -> GetTime(); //ns
 
     if (fRunPeriod == 7 && fRunNumber > 3588) {
       if(st>1) st = st - 2;
@@ -567,10 +569,10 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
           Min_time_wires = DigitsArray_[chNum][ipll][iwire];
         }
       }
-      //if ( fDebug) cout<<" --ipll "<<ipll<<" Min_time_wires "<<Min_time_wires<<endl;
+      if ( fDebug) cout<<" --ipll "<<ipll<<" Min_time_wires "<<Min_time_wires<<endl;
 
-      for (Int_t iwire = 0; iwire < 95; iwire++) {
-        //if (fDebug && DigitsArray_[chNum][ipll][iwire] > 0) cout<<" DigitsArray_["<<chNum<<"]["<<ipll<<"]["<<iwire<<"] "<<DigitsArray_[chNum][ipll][iwire]<<endl;
+      for (Int_t iwire = 0; iwire < kNWires; iwire++) {
+        if (fDebug && DigitsArray_[chNum][ipll][iwire] > 0) cout<<" DigitsArray_["<<chNum<<"]["<<ipll<<"]["<<iwire<<"] "<<DigitsArray_[chNum][ipll][iwire]<<endl;
 
         if ( fDebug && ipll == 0 && DigitsArray_[chNum][ipll][iwire] > 0 ) htime_wire_Ch.at(chNum)->Fill(iwire, DigitsArray_[chNum][ipll][iwire]);
 
@@ -596,16 +598,17 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
 
           ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]] = Nlast[chNum][ipll] - Nfirst[chNum][ipll] + 1;
 
-          //  cout<<" Nfirst "<<Nfirst[chNum][ipll]<<" Nlast "<<Nlast[chNum][ipll]<<" ClusterSize_["<<chNum<<"]["<<ipll<<"] "<<ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]]<<endl;
+         
           if (fDebug) hClusterSize.at(chNum)->Fill(ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]]);
 
           if ( min_time_in_clust < 900) {
-            Coord_wire_[chNum][ipll][Nclust_[chNum][ipll] ] = Nfirst[chNum][ipll] + 0.5*ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]];//num_fast_wire;
-            Coord_xuv_[chNum][ipll][Nclust_[chNum][ipll]] = (Coord_wire_[chNum][ipll][Nclust_[chNum][ipll]] - kMiddlePl)* dw;
+            Coord_wire_[chNum][ipll][Nclust_[chNum][ipll] ] = Nfirst[chNum][ipll] + 0.5*ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]];
+            Coord_xuv_[chNum][ipll][Nclust_[chNum][ipll]] = (Coord_wire_[chNum][ipll][Nclust_[chNum][ipll]] - kMiddlePl)* dw;//cm
 
             // made for the canonical sequence / x- v- u+ x+ v+ u-/ 0 1 5 have back reading
             if (ipll == 0 || ipll == 1 || ipll == 5 ) Coord_xuv_[chNum][ipll][Nclust_[chNum][ipll]] = - Coord_xuv_[chNum][ipll][Nclust_[chNum][ipll]];
           }
+           if ( fDebug)  cout<<" Nfirst "<<Nfirst[chNum][ipll]<<" Nlast "<<Nlast[chNum][ipll]<<" ClusterSize_["<<chNum<<"]["<<ipll<<"] "<<ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]]<<" Coord_xuv "<<Coord_xuv_[chNum][ipll][Nclust_[chNum][ipll]]<<endl;
 
           if (fDebug) {
             hoccupancyXm.at(chNum)->Fill(Coord_xuv_[chNum][0][Nclust_[chNum][ipll]]);
@@ -633,18 +636,23 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
       Bool_t Next_next_wire = 0;
       Int_t Last_wire_Digit = 1000;
 
-      for (Int_t iwire = 0; iwire < 95; iwire++) {
+      for (Int_t iwire = 0; iwire < kNWires; iwire++) {
+        
+        
         if ( fDebug && ipll == 0 && DigitsArray_[chNum][ipll][iwire] > 0 ) {
           htime_wire_Ch.at(chNum)->Fill(iwire, DigitsArray_[chNum][ipll][iwire]);
         }
-        // if (fDebug && DigitsArray_[chNum][ipll][iwire] > 0) cout<<" DigitsArray_["<<chNum<<"]["<<ipll<<"]["<<iwire<<"] "<<DigitsArray_[chNum][ipll][iwire]<<endl;
+        
+        //if (fDebug ) cout<<" 1 first "<<Nfirst[chNum][ipll]<<" time "<<DigitsArray_[chNum][ipll][iwire]<<endl;
+        if (fDebug && DigitsArray_[chNum][ipll][iwire] > 0 ) cout<<" DigitsArray_["<<chNum<<"]["<<ipll<<"]["<<iwire<<"] "<<DigitsArray_[chNum][ipll][iwire]<<" first "<<Nfirst[chNum][ipll]<<endl;
 
-        if( Nfirst[chNum][ipll] < 0 && DigitsArray_[chNum][ipll][iwire] == 0.) {
+        if( Nfirst[chNum][ipll] < 0 && DigitsArray_[chNum][ipll][iwire] == 0) {
           Next_next_wire = 0;
           Last_wire_Digit = 1000;
+          //if (fDebug) cout<<" -------------0? Next_next_wire "<<Next_next_wire<<" wire "<<iwire<<endl;
           continue;
         }
-
+         if (fDebug) cout<<" Next_next_wire "<<Next_next_wire<<endl;
         if( Nfirst[chNum][ipll] < 0 && DigitsArray_[chNum][ipll][iwire] > 0. && Next_next_wire) {
 
           if ( DigitsArray_[chNum][ipll][iwire] > DigitsArray_[chNum][ipll][iwire-1] ) {
@@ -665,8 +673,7 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
             if (fDebug) {
               hClusterSize.at(chNum)->Fill(ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]]);
               cout<<" Coord_xuv_["<< chNum<<"]["<<ipll<<"]["<<Nclust_[chNum][ipll]<<"] "<<Coord_xuv_[chNum][ipll][Nclust_[chNum][ipll]]<<endl;
-              cout<<" Nfirst "<< Nfirst[chNum][ipll]<<" ClusterSize_ "<<ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]]<<" Coord_wire_ "<<Coord_wire_[chNum][ipll][Nclust_[chNum][ipll]]<<endl;
-              cout<<" Coord_xuv_ "<<Coord_xuv_[chNum][ipll][Nclust_[chNum][ipll]]<<endl;
+              cout<<"2 Nfirst "<< Nfirst[chNum][ipll]<<" ClusterSize_ "<<ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]]<<" Coord_wire_ "<<Coord_wire_[chNum][ipll][Nclust_[chNum][ipll]]<<endl;
 
               hoccupancyXm.at(chNum)->Fill(Coord_xuv_[chNum][0][Nclust_[chNum][ipll]]);
               hoccupancyVm.at(chNum)->Fill(Coord_xuv_[chNum][1][Nclust_[chNum][ipll]]);
@@ -678,11 +685,13 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
 
             Nclust_[chNum][ipll]++;
             Nfirst[chNum][ipll] = -1;
-          }
+          }//else
         }
 
         if( Nfirst[chNum][ipll] >= 0 && (DigitsArray_[chNum][ipll][iwire] > 0 && DigitsArray_[chNum][ipll][iwire] < DigitsArray_[chNum][ipll][Nfirst[chNum][ipll]]) )
-          Nfirst[chNum][ipll] = iwire;
+          {Nfirst[chNum][ipll] = iwire; 
+            if (fDebug) cout<<" first  Nfirst "<<Nfirst[chNum][ipll]<<endl;
+            }
 
         if( Nfirst[chNum][ipll] >= 0 && (DigitsArray_[chNum][ipll][iwire] == 0 ||
                          (DigitsArray_[chNum][ipll][iwire] > 0 && DigitsArray_[chNum][ipll][iwire] > DigitsArray_[chNum][ipll][Nfirst[chNum][ipll]]) )) {
@@ -690,7 +699,8 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
           ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]] = 1;
           Coord_wire_[chNum][ipll][Nclust_[chNum][ipll]] = Nfirst[chNum][ipll]+ 0.5*ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]];
           Coord_xuv_[chNum][ipll][Nclust_[chNum][ipll]] = (Coord_wire_[chNum][ipll][Nclust_[chNum][ipll]]- kMiddlePl)* dw;
-          Next_next_wire = 1;
+          if ( DigitsArray_[chNum][ipll][iwire] > 0) Next_next_wire = 1;
+          
           Last_wire_Digit = DigitsArray_[chNum][ipll][Nfirst[chNum][ipll]];
 
           // made for the canonical sequence / x- v- u+ x+ v+ u-/ 0 1 5 have back reading
@@ -698,8 +708,9 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
           if (fDebug) {
             hClusterSize.at(chNum)->Fill(ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]]);
             cout<<" Coord_xuv_["<< chNum<<"]["<<ipll<<"]["<<Nclust_[chNum][ipll]<<"] "<<Coord_xuv_[chNum][ipll][Nclust_[chNum][ipll]]<<endl;
-            cout<<" Nfirst "<< Nfirst[chNum][ipll]<<" ClusterSize_ "<<ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]]<<" Coord_wire_ "<<Coord_wire_[chNum][ipll][Nclust_[chNum][ipll]]<<endl;
-            cout<<" Coord_xuv_ "<<Coord_xuv_[chNum][ipll][Nclust_[chNum][ipll]]<<endl;
+            cout<<"1 Nfirst "<< Nfirst[chNum][ipll]<<" ClusterSize_ "<<ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]]<<" Coord_wire_ "<<Coord_wire_[chNum][ipll][Nclust_[chNum][ipll]]<<endl;
+            cout<<" iwire "<<iwire<<endl;
+
             hoccupancyXm.at(chNum)->Fill(Coord_xuv_[chNum][0][Nclust_[chNum][ipll]]);
             hoccupancyVm.at(chNum)->Fill(Coord_xuv_[chNum][1][Nclust_[chNum][ipll]]);
             hoccupancyUp.at(chNum)->Fill(Coord_xuv_[chNum][2][Nclust_[chNum][ipll]]);
@@ -707,15 +718,30 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
             hoccupancyVp.at(chNum)->Fill(Coord_xuv_[chNum][4][Nclust_[chNum][ipll]]);
             hoccupancyUm.at(chNum)->Fill(Coord_xuv_[chNum][5][Nclust_[chNum][ipll]]);
           }
+          
+          Nclust_[chNum][ipll]++;
+          Nfirst[chNum][ipll] = -1;
+        }
+        
+        if( Nfirst[chNum][ipll] < 0 && DigitsArray_[chNum][ipll][iwire] > 0. && !Next_next_wire)  Nfirst[chNum][ipll] = iwire;
+        
+        if (iwire == 95 && Nfirst[chNum][ipll] > 0 ){
+          ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]] = 1;
+          Coord_wire_[chNum][ipll][Nclust_[chNum][ipll]] = Nfirst[chNum][ipll]+ 0.5*ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]];
+          Coord_xuv_[chNum][ipll][Nclust_[chNum][ipll]] = (Coord_wire_[chNum][ipll][Nclust_[chNum][ipll]]- kMiddlePl)* dw;
+          if (fDebug) cout<<" Coord_xuv_["<< chNum<<"]["<<ipll<<"]["<<Nclust_[chNum][ipll]<<"] "<<Coord_xuv_[chNum][ipll][Nclust_[chNum][ipll]]<<endl;
+          if (fDebug)  cout<<"3 Nfirst "<< Nfirst[chNum][ipll]<<" ClusterSize_ "<<ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]]<<" Coord_wire_ "<<Coord_wire_[chNum][ipll][Nclust_[chNum][ipll]]<<endl;
+          if (fDebug)  cout<<" iwire "<<iwire<<endl;
           Nclust_[chNum][ipll]++;
           Nfirst[chNum][ipll] = -1;
         }
 
-        if( Nfirst[chNum][ipll] < 0 && DigitsArray_[chNum][ipll][iwire] > 0. && !Next_next_wire)  Nfirst[chNum][ipll] = iwire;
-
       }//iwire
     }// ipll
   }//else chamber 23
+  
+  if (fDebug && chNum == 0) hNclust_ch0_pl1->Fill(Nclust_[0][1]);
+  if (fDebug && Nclust_[3][1] > 0 && chNum == 3) hNclust_ch3_pl1->Fill(Nclust_[3][1]);
 
 }//Clustering
 //----------------------------------------------------------------------
@@ -1017,7 +1043,7 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
       for(Int_t i = 0; i < 6; i++) {
         sigm[i]= 0.;
         h1[i] = 0;
-        if ( XVU_coor[chNum][i][iseg] > -999.) {
+        if ( XVU_coor[chNum][i][iseg] > -900.) {
           h1[i] = 1;
           sigm[i] = ( Cluster_coor[chNum][i][iseg]*dw)/sq12;
           sigm2_[i] = sigm[i]*sigm[i];
@@ -1153,8 +1179,8 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
       x_target  = par_ab[chNum][0][iseg]*( Z0_SRC - ChZ[chNum]) + par_ab[chNum][1][iseg];
       y_target  = par_ab[chNum][2][iseg]*( Z0_SRC - ChZ[chNum]) + par_ab[chNum][3][iseg];
       // if (fDebug) cout<<Nhits_Ch_[chNum][iseg]<<" ";
-      if (fDebug && Nhits_Ch_[chNum][iseg] > 0) cout<<" chNum "<<chNum<<" iseg "<<iseg<<" Nhits_Ch "<<Nhits_Ch_[chNum][iseg]<<" x_target "<< x_target<<" y_target "<< y_target<<" Chi2 "<<Chi2_ndf[chNum][iseg]<<endl;
-      if (fDebug && Nhits_Ch_[chNum][iseg] > 0) cout<<" ax "<<par_ab[chNum][0][iseg]<<" bx "<<par_ab[chNum][1][iseg]<<" ay "<<par_ab[chNum][2][iseg]<<" by "<<par_ab[chNum][3][iseg]<<endl;
+      if (fDebug && Nhits_Ch_[chNum][iseg] == Nhitm ) cout<<" chNum "<<chNum<<" iseg "<<iseg<<" Nhits_Ch "<<Nhits_Ch_[chNum][iseg]<<" Chi2 "<<Chi2_ndf[chNum][iseg]<<endl;
+      if (fDebug && Nhits_Ch_[chNum][iseg] == Nhitm ) cout<<" ax "<<par_ab[chNum][0][iseg]<<" bx "<<par_ab[chNum][1][iseg]<<" ay "<<par_ab[chNum][2][iseg]<<" by "<<par_ab[chNum][3][iseg]<<endl;
 
     }
     if (fDebug) cout<<endl;

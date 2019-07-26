@@ -1,17 +1,17 @@
 // Author: Vasilisa Lenivenko <vasilisa@jinr.ru> 2018-07-18
 
 ////////////////////////////////////////////////////////////////////////////////
-//                                      //
-// BmnMwpcTrackFinder                             //
-//                                      //
-//                                      //
-//Implementation of an algorithm developed by                 //
-// Vasilisa Lenivenko and Vladimir Palchik                  //
-// to the BmnRoot software                          //
-//                                      //
-// The algorithm serves for searching for track segments           //
-// in the MWPC of the BM@N experiment                     //
-//                                      //
+//                                                                            //
+// BmnMwpcTrackFinder                                                         //
+//                                                                            //
+//                                                                            //
+//Implementation of an algorithm developed by                                 //
+// Vasilisa Lenivenko and Vladimir Palchik                                    //
+// to the BmnRoot software                                                    //
+//                                                                            //
+// The algorithm serves for searching for track segments                      //
+// in the MWPC of the BM@N experiment                                         //
+//                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 #include <Rtypes.h>
 #include "BmnMwpcTrack.h"
@@ -92,6 +92,7 @@ void BmnMwpcTrackFinder::Exec(Option_t* opt) {
     for(Int_t i1 = 0 ; i1 < 6; i1++) {
       XVU_Ch[iCh][i1][ise]  = segment -> GetCoord().at(i1);
       Clust_Ch[iCh][i1][ise] = segment -> GetClust().at(i1);
+      
     }
     Nbest_Ch[iCh]++;
   }//iSegment
@@ -106,6 +107,9 @@ void BmnMwpcTrackFinder::Exec(Option_t* opt) {
         hpar_Ay_Ch.at(iChamber) -> Fill( par_ab_Ch[iChamber][2][ise]);
         hpar_By_Ch.at(iChamber) -> Fill( par_ab_Ch[iChamber][3][ise]);
         cout<<" iChamber "<<iChamber<<" ax= "<<par_ab_Ch[iChamber][0][ise]<<" bx= "<<par_ab_Ch[iChamber][1][ise]<<" ay= "<<par_ab_Ch[iChamber][2][ise]<<" by= "<<par_ab_Ch[iChamber][3][ise]<<" Chi2 "<<Chi2_ndf_Ch[iChamber][ise]<<endl;
+        for(Int_t i1 = 0 ; i1 < 6; i1++) {
+          cout<<" Coord "<<i1 <<" " <<XVU_Ch[iChamber][i1][ise] <<endl;
+        }
       }
     }
   }//iChamber
@@ -438,7 +442,7 @@ void BmnMwpcTrackFinder::SegmentMatchingAfterTarget( Int_t first_Ch, Int_t *Nbes
         }
         //if (fDebug)cout<<" Pairr "<<Pairr<<" bst1 "<<bst1<<" Nhits "<<Nhits_[first_Ch][bst1]<<" bst2 "<<bst2<<" Nhits "<<Nhits_[Secon_Ch][bst2]<<" Chi2_m "<<Chi2_m<<endl;
 
-        if (Chi2_m < min_Chi2m && Nvariat < Nvariations && fabs(x_target) < ktarget_region && fabs(y_target) < ktarget_region) {
+        if (Chi2_m < min_Chi2m && Nvariat < Nvariations && fabs(x_target) < ktarget_region && fabs(y_target) < ktarget_regionY) {
 
           tmpSeg.Chi2m = Chi2_m;
           tmpSeg.Ind1  = bst1;
@@ -487,7 +491,7 @@ void BmnMwpcTrackFinder::SegmentMatchingAfterTarget( Int_t first_Ch, Int_t *Nbes
           if ( !exist_pair[iter]) continue;
           if (fDebug) cout<<" vtmpSeg.at(iter).Ind1 "<<vtmpSeg.at(iter).Ind1<<" OutVector.at(InIter).Ind1 "<<OutVector.at(InIter).Ind1<<endl;
           if(vtmpSeg.at(iter).Ind1 == OutVector.at(InIter).Ind1 || vtmpSeg.at(iter).Ind2 == OutVector.at(InIter).Ind2) {
-            exist_pair[iter] = 0;
+           // exist_pair[iter] = 0; //VVP 17.07.2019 -> for matching with silicon!!!
 
           }
         }//iter
@@ -533,6 +537,7 @@ void BmnMwpcTrackFinder::SegmentMatchingAfterTarget( Int_t first_Ch, Int_t *Nbes
         FillEfficiency( Secon_Ch, XVU_Ch, Nhits_m, kMinHits, best_Ch[Secon_Ch][ii], Min_distX[ii], Min_distY[ii]);
       }
     }
+    
   }//if (Nbest_Ch[first_Ch] > 0 && Nbest_Ch[Secon_Ch] > 0)
 }// SegmentMatching
 //----------------------------------------------------------------------
@@ -785,68 +790,22 @@ void BmnMwpcTrackFinder::FillFitMatrix(Int_t chN, Double_t** AA, Float_t** z, Do
   // Float_t z2_[nPlanes];
   Float_t z2_[6] = {z[chN][0] * z[chN][0], z[chN][1] * z[chN][1], z[chN][2] * z[chN][2], z[chN][3] * z[chN][3], z[chN][4] * z[chN][4], z[chN][5] * z[chN][5]}; //cm
 
-  AA[0][0] += 2 * z2_[0] * h_[0] / sigmm2[0]
-        +   z2_[2] * h_[2] / (2 * sigmm2[2])
-        +   z2_[1] * h_[1] / (2 * sigmm2[1])
-        + 2 * z2_[3] * h_[3] / sigmm2[3]
-        +   z2_[5] * h_[5] / (2 * sigmm2[5])
-        +   z2_[4] * h_[4] / (2 * sigmm2[4]); //Ax
-
-  AA[0][1] += 2 * z[chN][0] * h_[0] / sigmm2[0]
-        +   z[chN][2] * h_[2] / (2 * sigmm2[2])
-        +   z[chN][1] * h_[1] / (2 * sigmm2[1])
-        + 2 * z[chN][3] * h_[3] / sigmm2[3]
-        +   z[chN][5] * h_[5] / (2 * sigmm2[5])
-        +   z[chN][4] * h_[4] / (2 * sigmm2[4]); //Bx
-
-  AA[0][2] += sq3 * (z2_[2] * h_[2] / (2 * sigmm2[2])
-            -     z2_[1] * h_[1] / (2 * sigmm2[1])
-            +     z2_[5] * h_[5] / (2 * sigmm2[5])
-            -     z2_[4] * h_[4] / (2 * sigmm2[4])); //Ay
-
-  AA[0][3] += sq3 * (z[chN][2] * h_[2] / (2 * sigmm2[2])
-            -     z[chN][1] * h_[1] / (2 * sigmm2[1])
-            +     z[chN][5] * h_[5] / (2 * sigmm2[5])
-            -     z[chN][4] * h_[4] / (2 * sigmm2[4])); //By
-
+  AA[0][0] += 2 * z2_[0] * h_[0] / sigmm2[0]+   z2_[2] * h_[2] / (2 * sigmm2[2])+   z2_[1] * h_[1] / (2 * sigmm2[1])+ 2 * z2_[3] * h_[3] / sigmm2[3]+   z2_[5] * h_[5] / (2 * sigmm2[5]) +   z2_[4] * h_[4] / (2 * sigmm2[4]); //Ax
+  AA[0][1] += 2 * z[chN][0] * h_[0] / sigmm2[0]+   z[chN][2] * h_[2] / (2 * sigmm2[2])+   z[chN][1] * h_[1] / (2 * sigmm2[1])+ 2 * z[chN][3] * h_[3] / sigmm2[3]+   z[chN][5] * h_[5] / (2 * sigmm2[5])+   z[chN][4] * h_[4] / (2 * sigmm2[4]); //Bx
+  AA[0][2] += sq3 * (z2_[2] * h_[2] / (2 * sigmm2[2]) -     z2_[1] * h_[1] / (2 * sigmm2[1]) +     z2_[5] * h_[5] / (2 * sigmm2[5])-     z2_[4] * h_[4] / (2 * sigmm2[4])); //Ay
+  AA[0][3] += sq3 * (z[chN][2] * h_[2] / (2 * sigmm2[2]) -     z[chN][1] * h_[1] / (2 * sigmm2[1]) +     z[chN][5] * h_[5] / (2 * sigmm2[5]) -     z[chN][4] * h_[4] / (2 * sigmm2[4])); //By
   AA[1][0] = AA[0][1];
-
-  AA[1][1] +=  2 * h_[0] / sigmm2[0]
-         + 0.5 * h_[2] / sigmm2[2] + 0.5 * h_[1] / sigmm2[1]
-         +  2 * h_[3] / sigmm2[3] + 0.5 * h_[5] / sigmm2[5]
-         + 0.5 * h_[4] / sigmm2[4];
-
-  AA[1][2] += sq3 * (z[chN][2] * h_[2] / sigmm2[2]
-            - z[chN][1] * h_[1] / sigmm2[1]
-            + z[chN][5] * h_[5] / sigmm2[5]
-            - z[chN][4] * h_[4] / sigmm2[4]) * 0.5;
-
-  AA[1][3] += sq3 * (h_[2] / sigmm2[2]
-            -     h_[1] / sigmm2[1]
-            +     h_[5] / sigmm2[5]
-            -     h_[4] / sigmm2[4]) * 0.5;
-
+  AA[1][1] +=  2 * h_[0] / sigmm2[0] + 0.5 * h_[2] / sigmm2[2] + 0.5 * h_[1] / sigmm2[1]+  2 * h_[3] / sigmm2[3] + 0.5 * h_[5] / sigmm2[5]+ 0.5 * h_[4] / sigmm2[4];
+  AA[1][2] += sq3 * (z[chN][2] * h_[2] / sigmm2[2]- z[chN][1] * h_[1] / sigmm2[1] + z[chN][5] * h_[5] / sigmm2[5]- z[chN][4] * h_[4] / sigmm2[4]) * 0.5;
+  AA[1][3] += sq3 * (h_[2] / sigmm2[2] -     h_[1] / sigmm2[1] +     h_[5] / sigmm2[5]-     h_[4] / sigmm2[4]) * 0.5;
   AA[2][0] = AA[0][2];
-
   AA[2][1] = AA[1][2];
-
-  AA[2][2] += 3.0 * (z2_[2] * h_[2] / sigmm2[2]
-            +     z2_[1] * h_[1] / sigmm2[1]
-            +     z2_[5] * h_[5] / sigmm2[5]
-            +     z2_[4] * h_[4] / sigmm2[4]) * 0.5;
-
-  AA[2][3] += 3.0 * (z[chN][2] * h_[2] / sigmm2[2]
-            +     z[chN][1] * h_[1] / sigmm2[1]
-            +     z[chN][5] * h_[5] / sigmm2[5]
-            +     z[chN][4] * h_[4] / sigmm2[4])  * 0.5;
-
+  AA[2][2] += 3.0 * (z2_[2] * h_[2] / sigmm2[2]+     z2_[1] * h_[1] / sigmm2[1]+     z2_[5] * h_[5] / sigmm2[5]+     z2_[4] * h_[4] / sigmm2[4]) * 0.5;
+  AA[2][3] += 3.0 * (z[chN][2] * h_[2] / sigmm2[2]+     z[chN][1] * h_[1] / sigmm2[1] +     z[chN][5] * h_[5] / sigmm2[5] +     z[chN][4] * h_[4] / sigmm2[4])  * 0.5;
   AA[3][0] = AA[0][3];
   AA[3][1] = AA[1][3];
   AA[3][2] = AA[2][3];
-  AA[3][3] += 3.0 * (0.5 * h_[2] / sigmm2[2]
-            + 0.5 *    h_[1] / sigmm2[1]
-            + 0.5 *    h_[5] / sigmm2[5]
-            + 0.5 *    h_[4] / sigmm2[4]);
+  AA[3][3] += 3.0 * (0.5 * h_[2] / sigmm2[2]+ 0.5 *    h_[1] / sigmm2[1]+ 0.5 *    h_[5] / sigmm2[5]+ 0.5 *    h_[4] / sigmm2[4]);
 
 }
 //----------------------------------------------------------------------
@@ -972,10 +931,12 @@ InitStatus BmnMwpcTrackFinder::Init() {
   dw = fMwpcGeo->GetWireStep();//0.25; // [cm] // wires step
   dw_half = 0.5*dw;
   sq3 = sqrt(3.);
+  sq2 = sqrt(2.);
   sq12 = sqrt(12.);
   sigma = dw/sq12;
   kMiddlePl = 47.25;
   ktarget_region = 4.;
+  ktarget_regionY = 4.*sq2;
   kZ_target = -645.191;//-648.4;//cm
   kZ_DC = 488.81;
   //cout<<" kZ_target "<<kZ_target<<" kNumPairs "<<kNumPairs<<endl;
@@ -1216,13 +1177,15 @@ InitStatus BmnMwpcTrackFinder::Init() {
 
     if (i == 1) {
       i1=2;
+      // pair 0
       sigma_delta[0][0] = 3*.14;
-      sigma_delta[1][0] = 3*.09;// sigm_dax //VP
-      sigma_delta[0][2] = 3*.14;
-      sigma_delta[1][2] = 3*.09;// sigm_day
       sigma_delta[0][1] = 2*.35;
-      sigma_delta[1][1] = 6.;//4.08;//2*.35;//4.08;// sigm_dx
+      sigma_delta[0][2] = 3*.14;
       sigma_delta[0][3] = 2*.35;
+      // pair 1
+      sigma_delta[1][0] = 6 *.1;// sigm_dax //VP
+      sigma_delta[1][1] = 6.;//4.08;//2*.35;//4.08;// sigm_dx
+      sigma_delta[1][2] = 6 *.15;// sigm_day
       sigma_delta[1][3] = 2*7.;//shift +10cm?  4.30;// 2*.35;//4.30;// sigm_dy
     }
     kZ_midle_pair[i] = ZCh[i1] + kZmid[i1+1];
@@ -1308,7 +1271,6 @@ InitStatus BmnMwpcTrackFinder::Init() {
 
 //------ Arrays Initialization -----------------------------------------
 void BmnMwpcTrackFinder::PrepareArraysToProcessEvent() {
-
   fBmnMwpcTracksArray->Clear();
 
   // Clean and initialize arrays:

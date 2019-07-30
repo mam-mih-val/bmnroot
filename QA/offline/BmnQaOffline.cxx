@@ -185,7 +185,7 @@ InitStatus BmnQaOffline::Init() {
 
     // Dst
     dst = new BmnDstQa();
-    
+
     return kSUCCESS;
 }
 
@@ -220,7 +220,7 @@ void BmnQaOffline::Finish() {
 
     ioman->GetOutFile()->mkdir("DST")->cd();
     dst->GetManager()->WriteToFile();
-    
+
     // Delete detector classes and its histo classes
     delete gem;
     delete silicon;
@@ -238,8 +238,12 @@ void BmnQaOffline::Finish() {
 }
 
 void BmnQaOffline::Exec(Option_t* opt) {
-    if (isDstRead)
-        fChainDst->GetEntry(fCurrentEvent);
+    if (isDstRead) {
+        if (fCurrentEvent > fChainDst->GetEntries() - 1)
+            return;
+        else
+            fChainDst->GetEntry(fCurrentEvent);
+    }
     fCurrentEvent++;
     if (fCurrentEvent % 1000 == 0)
         cout << "Event# = " << fCurrentEvent << endl;
@@ -272,13 +276,13 @@ void BmnQaOffline::Exec(Option_t* opt) {
     GetGlobalTracksDistributions(fGlobalTracks, fVertex, dst);
     GetInnerTracksDistributions <BmnSiliconTrack> (fSiliconTracks, dst, "silicon");
     GetInnerTracksDistributions <BmnGemTrack> (fGemTracks, dst, "gem");
-
 }
 
 // Functions to be used when getting previously filled histos
 // Coordinate detectors
 
 // Histos 1
+
 template <class T> void BmnQaOffline::GetDistributionOfFiredStrips(TClonesArray* digiArray, BmnCoordinateDetQa* detHistoClass, TString detName) {
     for (Int_t iDig = 0; iDig < digiArray->GetEntriesFast(); iDig++) {
         T* dig = (T*) digiArray->UncheckedAt(iDig);
@@ -290,6 +294,7 @@ template <class T> void BmnQaOffline::GetDistributionOfFiredStrips(TClonesArray*
 }
 
 // Histos 2
+
 template <class T> void BmnQaOffline::GetDistributionOfFiredStripsVsSignal(TClonesArray* digiArray, BmnCoordinateDetQa* detHistoClass, TString detName) {
     for (Int_t iDig = 0; iDig < digiArray->GetEntriesFast(); iDig++) {
         T* dig = (T*) digiArray->UncheckedAt(iDig);
@@ -381,9 +386,9 @@ void BmnQaOffline::GetGlobalTracksDistributions(TClonesArray* tracksArray, TClon
                 detHistoClass->GetManager()->H1(Form("DST_1d, Distribution of last T%s", dim[iDim].Data()))->Fill(txtyLast[iDim]);
         }
     }
-    
+
     // Histos 2
-    detHistoClass->GetManager()->H2(Form("DST_2d, Vp_{z} vs. Ntracks"))->Fill(tracksArray->GetEntriesFast(), ((CbmVertex*)vertex->UncheckedAt(0))->GetZ());
+    detHistoClass->GetManager()->H2(Form("DST_2d, Vp_{z} vs. Ntracks"))->Fill(tracksArray->GetEntriesFast(), ((CbmVertex*) vertex->UncheckedAt(0))->GetZ());
 }
 
 template <class T> void BmnQaOffline::GetInnerTracksDistributions(TClonesArray* tracksArray, BmnDstQa* detHistoClass, TString detName) {

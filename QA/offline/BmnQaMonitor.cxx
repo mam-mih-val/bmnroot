@@ -15,14 +15,15 @@ dst(nullptr),
 triggers(nullptr),
 fCanvases(nullptr),
 fSteering(new BmnOfflineQaSteering()) {
+    fHistoDir = "";
     fCurrentRun = -1;
 
     // 1. Start server 
     InitServer();
-    
+
     // 2. Register canvases to be shown 
     RegisterCanvases();
-    
+
     // 3. Register user's commands to show current and reference runs
     RegisterUserCommands();
 }
@@ -90,7 +91,7 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
         TString nameCanvas = (TString) c->GetName();
 
         for (auto itMap : fSteering->GetCorrMap()) {
-           if (!nameCanvas.Contains(itMap.first.Data()))
+            if (!nameCanvas.Contains(itMap.first.Data()))
                 continue;
 
             for (auto itCurr : hCurr)
@@ -106,8 +107,12 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
                         continue;
                     TVirtualPad* pad = c->cd(padCounter);
 
+                    // 1d histos for triggers are drawn in logarithmic scale !!!
+                    if (nameCanvas.Contains("TRIGGERS_1d"))
+                        pad->SetLogy();
+
                     // We do not draw reference for a 2d-histo !!!
-                    if (!currName.Contains(".vs") && !refName.Contains("vs.")) {
+                    if (!currName.Contains("vs.") && !refName.Contains("vs.")) {
                         TH1F* cur = (TH1F*) itCurr;
                         TH1F* ref = (TH1F*) itRef;
 
@@ -115,18 +120,19 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
                         Double_t maxRef = ref->GetMaximum();
 
                         if (maxRef > maxCurr) {
-                            TH1F* h = (TH1F*) pad->GetPrimitive(itCurr->GetName());
+                            TH1F* h = (TH1F*) pad->GetPrimitive(cur->GetName());
                             pad->GetListOfPrimitives()->Remove(h);
 
+                            ref->Draw();
+                            ref->SetLineColor(kRed);
                             cur->GetYaxis()->SetRangeUser(0., maxRef * 1.1);
-                            itRef->Draw();
-                            itCurr->Draw("same");
 
+                            cur->DrawNormalized("same", ref->Integral());
                         } else
-                            itRef->Draw("same");
-
-                        ref->SetLineColor(kRed);
+                            if (ref->GetEntries() > FLT_EPSILON)
+                            ref->DrawNormalized("same", cur->Integral())->SetLineColor(kRed);
                     }
+
                     pad->Update();
                     pad->Modified();
 
@@ -162,7 +168,11 @@ void BmnQaMonitor::ShowCurrentHistos(Int_t run) {
                 TString nameHisto = (TString) it->GetName();
                 if (!nameHisto.Contains(itMap.first.Data()) || !nameHisto.Contains(nameCanvas.Data()))
                     continue;
-                c->cd(padCounter);
+
+                TVirtualPad* pad = c->cd(padCounter);
+                // 1d histos for triggers are drawn in logarithmic scale !!!
+                if (nameCanvas.Contains("TRIGGERS_1d"))
+                    pad->SetLogy();
                 Bool_t isColz = nameHisto.Contains("vs.") ? kTRUE : kFALSE;
                 if (isColz) {
                     TH2F* tmp = (TH2F*) it;
@@ -261,37 +271,53 @@ void BmnQaMonitor::RegisterCanvases() {
 }
 
 void BmnQaMonitor::RegisterUserCommands() {
-    //    TString path = "GEM";
     TString cmdTitle1 = "SelectRun";
     TString cmdTitle2 = "SelectReferenceRun";
+    TString cmdTitle3 = "Clear";
     //
     // Displaying current histograms ...
     fServer->Register("/", this);
     fName += "_";
 
+    // Current run
     TString cmd1 = "/" + fName + "/->ShowCurrentHistos(%arg1%)";
     fServer->RegisterCommand(cmdTitle1.Data(), cmd1.Data(), "button;");
 
+    // Reference run
     TString cmd2 = "/" + fName + "/->ShowReferenceHistos(%arg1%)";
     fServer->RegisterCommand(cmdTitle2.Data(), cmd2.Data(), "button;");
+
+    // Clear pads
+    TString cmd3 = "/" + fName + "/->ClearCanvases()";
+    fServer->RegisterCommand(cmdTitle3.Data(), cmd3.Data(), "button;");
 }
 
-AllHistos* BmnQaMonitor::GetRun(UInt_t run) {  
+void BmnQaMonitor::ClearCanvases() {
+    Int_t nCanvases = fSteering->GetCanvNames().size();
+    for (Int_t iCanvas = 0; iCanvas < nCanvases; iCanvas++)
+        fCanvases[iCanvas]->Clear("D");
+}
+
+AllHistos* BmnQaMonitor::GetRun(UInt_t run) {
     AllHistos* histos = new AllHistos();
+    if (run == 0) {
+        ClearCanvases();
+        return histos;
+    }
 
     if (fHistoNames.size() == 0) {
         cout << "BmnQaMonitor::GetHistosFromFile(), No histos to be displayed" << endl;
         return histos;
     }
 
-    fPathToData = gSystem->Getenv("VMCWORKDIR");
-    fPathToData += "/macro/miscellaneous/qa_files/";
-    fPathToData += TString::Format("qa_%d.root", run);
+    fPathToData += fHistoDir + TString::Format("/qa_%d.root", run);
     TFile* file = new TFile(fPathToData.Data(), "read");
     if (!file->IsOpen()) {
         cout << "File does not exist! Exiting ... " << endl;
         return histos;
     }
+    
+    fPathToData = "";
 
     for (auto it : fHistoNames) {
         TNamed* h = nullptr;

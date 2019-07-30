@@ -59,7 +59,11 @@ public:
     void ShowCurrentHistos(Int_t);
     void ShowReferenceHistos(Int_t);
     
-    void SetPathToData();
+    void ClearCanvases();
+    
+    void SetHistoDir(TString path) {
+        fHistoDir = path;
+    }
 
 private:
     THttpServer* fServer;
@@ -128,6 +132,8 @@ private:
     TCanvas** fCanvases;
 
     BmnOfflineQaSteering* fSteering;
+    
+    TString fHistoDir;
 
     ClassDef(BmnQaMonitor, 1)
 };

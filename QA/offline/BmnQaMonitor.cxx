@@ -314,6 +314,7 @@ AllHistos* BmnQaMonitor::GetRun(UInt_t run) {
     TFile* file = new TFile(fPathToData.Data(), "read");
     if (!file->IsOpen()) {
         cout << "File does not exist! Exiting ... " << endl;
+        fPathToData = "";
         return histos;
     }
     

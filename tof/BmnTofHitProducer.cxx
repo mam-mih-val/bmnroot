@@ -264,8 +264,8 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 	{
 		TVector3 crosspoint;
 		Int_t tofWidths[TOF2_MAX_CHAMBERS][32] = {{0}};
-		Float_t tof[TOF2_MAX_CHAMBERS][32] = {{0}};
-		Float_t lrdiff[TOF2_MAX_CHAMBERS][32] = {{0}};
+		Float_t tof[TOF2_MAX_CHAMBERS][32] = {{0.}};
+		Float_t lrdiff[TOF2_MAX_CHAMBERS][32] = {{0.}};
 		if (MAKE_CLUSTERS)
 		{
             	    for(Int_t digitIndex = 0, nTof2Digits = aExpDigits->GetEntriesFast(); digitIndex < nTof2Digits; digitIndex++ )  // cycle by TOF digits
@@ -296,6 +296,7 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 				    {
 					clstart = j;
 					timemin = tof[i][j];
+					cstr = j;
 				    }
 				    else
 				    {
@@ -309,11 +310,9 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 					clwidth = (j+1-clstart);
 					ncl0++;
 					ncl[i]++;
-					samps = 0.;
-					timemin =  1000000000.;
                         		UID = ((i + 1)<<8) | (cstr + 1);
                         		Float_t xcl, ycl, zcl;
-                        		fTOF2->get_hit_xyz(i,j,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+                        		fTOF2->get_hit_xyz(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
                         		crosspoint.SetXYZ(xcl,ycl,zcl);
                         		AddHit(UID, crosspoint, XYZ_err, -1, -1, timemin+fMCTime[i]);
                         		nSingleHits++;
@@ -325,6 +324,8 @@ void BmnTofHitProducer::Exec(Option_t* opt)
                         		    fTOF2->get_strip_xyz(i,j,&xc,&yc,&zc);
                             		    h2TestRZ->Fill(xc, yc);
                         		}			
+					samps = 0.;
+					timemin =  1000000000.;
 				    }
 				}
 				else if (clstart >= 0)
@@ -334,12 +335,9 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 				    clwidth = (j-clstart);
 				    ncl0++;
 				    ncl[i]++;
-				    samps = 0.;
-				    timemin =  1000000000.;
-				    clstart = -1;
                         	    UID = ((i + 1)<<8) | (cstr + 1);
                         	    Float_t xcl, ycl, zcl;
-                        	    fTOF2->get_hit_xyz(i,j,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+                        	    fTOF2->get_hit_xyz(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
                         	    crosspoint.SetXYZ(xcl,ycl,zcl);
                         	    AddHit(UID, crosspoint, XYZ_err, -1, -1, timemin+fMCTime[i]);
                         	    nSingleHits++;
@@ -351,6 +349,10 @@ void BmnTofHitProducer::Exec(Option_t* opt)
                         		fTOF2->get_strip_xyz(i,j,&xc,&yc,&zc);
                             		h2TestRZ->Fill(xc, yc);
                         	    }			
+
+				    samps = 0.;
+				    timemin =  1000000000.;
+				    clstart = -1;
 				}
 			    }
 		    }

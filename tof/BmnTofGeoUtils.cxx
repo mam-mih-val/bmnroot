@@ -56,7 +56,7 @@ void BmnTofGeoUtils::FindNeighborStrips(TH1D* h1, TH2D* h2, bool doTest)
 		}// cycle2 by strips	
 	}// cycle1 by strips
 	
-	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN," [BmnTofGeoUtils::FindNeighborStrips] Neighbor strips: left = %d, right = %d. ", NL, NR);
+	LOG(INFO) <<" [BmnTofGeoUtils::FindNeighborStrips] Neighbor strips: left = "<<NL<<", right = "<<NR<<". ";
 }
 //------------------------------------------------------------------------------------------------------------------------	
 void BmnTofGeoUtils::ParseTGeoManager(bool useMCinput, TH2D* h1, bool forced)
@@ -135,7 +135,7 @@ void BmnTofGeoUtils::ParseTGeoManager(bool useMCinput, TH2D* h1, bool forced)
     		} // strips
     	} // detectors	
 
-    	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTofHitProducer::ParseTGeoManager] detectors= %d, strips= %d. ", nDetectors, nStrips);
+    	LOG(INFO) << "[BmnTofHitProducer::ParseTGeoManager] detectors= "<<nDetectors<<" strips= "<<nStrips<<". ";
 }
 //------------------------------------------------------------------------------------------------------------------------	
 void BmnTofGeoUtils::ParseStripsGeometry(const char *geomFile)
@@ -174,7 +174,7 @@ void BmnTofGeoUtils::ParseStripsGeometry(const char *geomFile)
     		} // strips
     	} // detectors	
 
-    	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTofHitProducer::ParseStripGeometry] detectors= %d, strips= %d. ", nchambers, nStrips);
+    	LOG(INFO) << "[BmnTofHitProducer::ParseStripGeometry] detectors= "<<nchambers<<", strips= "<<nStrips;
 }
 //------------------------------------------------------------------------------------------------------------------------
 const LStrip* BmnTofGeoUtils::FindStrip(Int_t UID) 

@@ -23,7 +23,7 @@ public:
 
     }
 
-    ~AllHistos() {
+    virtual ~AllHistos() {
 
     }
 
@@ -134,6 +134,7 @@ private:
     BmnOfflineQaSteering* fSteering;
     
     TString fHistoDir;
+    AllHistos* fHistos;
 
     ClassDef(BmnQaMonitor, 1)
 };

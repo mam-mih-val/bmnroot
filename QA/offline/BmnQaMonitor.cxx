@@ -14,6 +14,7 @@ zdc(nullptr),
 dst(nullptr),
 triggers(nullptr),
 fCanvases(nullptr),
+fHistos(nullptr),    
 fSteering(new BmnOfflineQaSteering()) {
     fHistoDir = "";
     fCurrentRun = -1;
@@ -299,15 +300,18 @@ void BmnQaMonitor::ClearCanvases() {
 }
 
 AllHistos* BmnQaMonitor::GetRun(UInt_t run) {
-    AllHistos* histos = new AllHistos();
+    if (fHistos)
+        delete fHistos;
+    
+    fHistos = new AllHistos();
     if (run == 0) {
         ClearCanvases();
-        return histos;
+        return fHistos;
     }
 
     if (fHistoNames.size() == 0) {
         cout << "BmnQaMonitor::GetHistosFromFile(), No histos to be displayed" << endl;
-        return histos;
+        return fHistos;
     }
 
     fPathToData += fHistoDir + TString::Format("/qa_%d.root", run);
@@ -315,7 +319,7 @@ AllHistos* BmnQaMonitor::GetRun(UInt_t run) {
     if (!file->IsOpen()) {
         cout << "File does not exist! Exiting ... " << endl;
         fPathToData = "";
-        return histos;
+        return fHistos;
     }
     
     fPathToData = "";
@@ -348,10 +352,10 @@ AllHistos* BmnQaMonitor::GetRun(UInt_t run) {
         TString hName = TString::Format("%s", h->GetName());
 
         if (hName.Contains(".vs")) // .vs in histo name must be present if 2d-histo assumed
-            histos->Set2D((TH2F*) h);
+            fHistos->Set2D((TH2F*) h);
         else
-            histos->Set1D((TH1F*) h);
+            fHistos->Set1D((TH1F*) h);
     }
     cout << "Run #" << run << " processed " << endl;
-    return histos;
+    return fHistos;
 }

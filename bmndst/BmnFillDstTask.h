@@ -9,9 +9,9 @@
 #ifndef BMNFILLDSTTASK_H
 #define BMNFILLDSTTASK_H
 
-#include "BmnRunHeader.h"
-#include "BmnEventHeader.h"
+#include "DstRunHeader.h"
 #include "DstEventHeader.h"
+#include "BmnEventHeader.h"
 
 #include "FairTask.h"
 #include "FairMCEventHeader.h"
@@ -83,7 +83,7 @@ class BmnFillDstTask : public FairTask
     /** Output DstEventHeader prepared in FairRunAna **/
     DstEventHeader* fDstHead;
     /** Output BmnRunHeader **/
-    BmnRunHeader* fRunHead;
+    DstRunHeader* fRunHead;
 
     /** event count to be processed for progress bar **/
     Long64_t fNEvents;

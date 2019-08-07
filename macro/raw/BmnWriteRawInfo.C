@@ -13,7 +13,7 @@ int append_log(TString log_name, TString message);
 // iAction - action, possible values: OnlyCreate, OnlyUpdate, CreateAndUpdate
 // error_log_name: full path to the log file with errors, default: "" - no log will be created
 // example: root 'BmnWriteRawInfo.C("~/bmnroot/macro/raw/mpd_run_trigCode_2185.data","", OnlyCreate, "error.log")'
-void BmnWriteRawInfo(UInt_t period, TString file, TString output_file = "", WriteAction iAction = OnlyCreate, TString error_log_name = "")
+void BmnWriteRawInfo(TString input_file, TString output_file = "", UInt_t period = 7, WriteAction iAction = OnlyCreate, TString error_log_name = "")
 {
     Int_t nEvents = 0;
     bool isLog = false;
@@ -24,20 +24,20 @@ void BmnWriteRawInfo(UInt_t period, TString file, TString output_file = "", Writ
     }
 
     // check input file exist and get file size
-    gSystem->ExpandPathName(file);
-    if (gSystem->AccessPathName(file.Data()) == true)
+    gSystem->ExpandPathName(input_file);
+    if (gSystem->AccessPathName(input_file.Data()) == true)
     {
-        TString message = TString::Format("ERROR: no input file was found: %s", file.Data());
+        TString message = TString::Format("ERROR: no input file was found: %s", input_file.Data());
         cout<<endl<<message<<endl;
         if (isLog) append_log(error_log_name, message);
         return;
     }
     Long_t id, flags, modtime;
     Long64_t l_file_size = -1;
-    gSystem->GetPathInfo(file.Data(), &id, &l_file_size, &flags, &modtime);
+    gSystem->GetPathInfo(input_file.Data(), &id, &l_file_size, &flags, &modtime);
     if (l_file_size <= 0)
     {
-        TString message = TString::Format("ERROR: input file has zero size: %s", file.Data());
+        TString message = TString::Format("ERROR: input file has zero size: %s", input_file.Data());
         cout<<endl<<message<<endl;
         //if (isLog) append_log(error_log_name, message);
         return;
@@ -46,12 +46,12 @@ void BmnWriteRawInfo(UInt_t period, TString file, TString output_file = "", Writ
 
 
     BmnSetup stp = kBMNSETUP; // use kSRCSETUP for Short-Range Correlation program and kBMNSETUP otherwise
-    BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, period);
+    BmnRawDataDecoder* decoder = new BmnRawDataDecoder(input_file, output_file, nEvents, period);
     decoder->SetBmnSetup(stp);
 
     bool isRunExist = UniDbRun::CheckRunExists(decoder->GetPeriodId(), decoder->GetRunId());
     // if run exists and flag 'OnlyCreate' was set then exit
-    if ((output_file == "") && (iAction == OnlyCreate) && (isRunExist))
+    if ((iAction == OnlyCreate) && (isRunExist))
     {
         cout<<endl<<"Run "<<decoder->GetPeriodId()<<":"<<decoder->GetRunId()<<" already exists and 'Only Create' flag was set"<<endl;
         delete decoder;
@@ -60,17 +60,17 @@ void BmnWriteRawInfo(UInt_t period, TString file, TString output_file = "", Writ
 
     Bool_t setup[11]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
-    setup[0] = 1; // TRIGGERS
-    setup[1] = 1; // MWPC
-    setup[2] = 1; // SILICON
-    setup[3] = 1; // GEM
-    setup[4] = 1; // TOF-400
-    setup[5] = 1; // TOF-700
-    setup[6] = 1; // DCH
-    setup[7] = 1; // ZDC
-    setup[8] = 0; // ECAL
-    setup[9] = 0; // LAND
-    setup[10] = 0; // CSC
+    setup[0]  = 1; // TRIGGERS
+    setup[1]  = 1; // MWPC
+    setup[2]  = 1; // SILICON
+    setup[3]  = 1; // GEM
+    setup[4]  = 1; // TOF-400
+    setup[5]  = 1; // TOF-700
+    setup[6]  = 1; // DCH
+    setup[7]  = 1; // ZDC
+    setup[8]  = 0; // ECAL
+    setup[9]  = 1; // LAND
+    setup[10] = 1; // CSC
     decoder->SetDetectorSetup(setup);
 
     TString PeriodSetupExt = Form("%d%s.txt", period, ((stp == kBMNSETUP) ? "" : "_SRC"));
@@ -81,6 +81,8 @@ void BmnWriteRawInfo(UInt_t period, TString file, TString output_file = "", Writ
     decoder->SetCSCMapping(TString("CSC_map_period") + PeriodSetupExt);
     // in case comment out the line decoder->SetTof400Mapping("...")
     // the maps of TOF400 will be read from DB (only for JINR network)
+    decoder->SetTOF700ReferenceRun(-1);
+    decoder->SetTof700Geom("TOF700_geometry_run7.txt");
     decoder->SetTof400Mapping(TString("TOF400_PlaceMap_RUN") +PeriodSetupExt, TString("TOF400_StripMap_RUN") +PeriodSetupExt);
     decoder->SetTof700Mapping("TOF700_map_period_7.txt");
     decoder->SetZDCMapping("ZDC_map_period_5.txt");
@@ -103,8 +105,8 @@ void BmnWriteRawInfo(UInt_t period, TString file, TString output_file = "", Writ
     tree->Add(fRootFileName);
 
     // link run header to get information about run
-    BmnRunHeader* fRunHeader = NULL;
-    tree->SetBranchAddress("RunHeader", &fRunHeader);
+    BmnEventHeader* fEventHeader = NULL;
+    tree->SetBranchAddress("BmnEventHeader.", &fEventHeader);
 
     Int_t records = tree->GetEntries(); // events = records - 1; (-RunHeader)
     //cout<<"Number of events in RAW file = "<<events<<endl;
@@ -113,9 +115,12 @@ void BmnWriteRawInfo(UInt_t period, TString file, TString output_file = "", Writ
         tree->GetEntry(0);
 
         // update start time, end time and event count in the Unified Database
-        TTimeStamp startTime = fRunHeader->GetStartTime();
-        TTimeStamp endTime = fRunHeader->GetFinishTime();
-        int event_count = fRunHeader->GetNEvents();
+        TTimeStamp startTime = fEventHeader->GetEventTimeTS();
+
+        tree->GetEntry(records-1);
+
+        TTimeStamp endTime = fEventHeader->GetEventTimeTS();
+        int event_count = records;
 
         if (event_count < 1)
         {
@@ -141,7 +146,7 @@ void BmnWriteRawInfo(UInt_t period, TString file, TString output_file = "", Writ
                 {
                     TDatime startDate(Int_t(startTime.GetDate(kFALSE)), Int_t(startTime.GetTime(kFALSE)));
                     TDatime endDate(Int_t(endTime.GetDate(kFALSE)), Int_t(endTime.GetTime(kFALSE)));
-                    if (pRun->SetFilePath(file.Data()) != 0) isErrors = true;
+                    if (pRun->SetFilePath(input_file.Data()) != 0) isErrors = true;
                     if (pRun->SetStartDatetime(startDate) != 0) isErrors = true;
                     if (pRun->SetEndDatetime(&endDate) != 0) isErrors = true;
                     if (pRun->SetEventCount(&event_count) != 0) isErrors = true;
@@ -163,7 +168,7 @@ void BmnWriteRawInfo(UInt_t period, TString file, TString output_file = "", Writ
             {
                 TDatime startDate(Int_t(startTime.GetDate(kFALSE)), Int_t(startTime.GetTime(kFALSE)));
                 TDatime endDate(Int_t(endTime.GetDate(kFALSE)), Int_t(endTime.GetTime(kFALSE)));
-                UniDbRun* pRun = UniDbRun::CreateRun(decoder->GetPeriodId(), decoder->GetRunId(), file, "", NULL, NULL, startDate, &endDate, &event_count, NULL, &file_size, NULL);
+                UniDbRun* pRun = UniDbRun::CreateRun(decoder->GetPeriodId(), decoder->GetRunId(), input_file, "", NULL, NULL, startDate, &endDate, &event_count, NULL, &file_size, NULL);
 
                 bool isErrors = false;
                 if (pRun == NULL)

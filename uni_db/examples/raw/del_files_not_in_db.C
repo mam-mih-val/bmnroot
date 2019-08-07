@@ -20,7 +20,7 @@ int del_files_not_in_db(TString dir_name, int period_number, double limit_size_i
     while ((cur_file = (TSystemFile*)iterFile.Next()))
     {
         TString file_name = cur_file->GetName();
-        if ((file_name == ".") ||  (file_name == "..")) continue;
+        if ((file_name == ".") || (file_name == "..")) continue;
 
         TString file_dir = cur_file->GetTitle();
         if (cur_file->IsDirectory())

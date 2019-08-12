@@ -1,53 +1,613 @@
 <html>
-<head>
-    <title>TRIGGERS</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRootCore.js?2d"></script>
-<script>
+    <head>
+        <title> TRIGGERS </title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRootCore.js?2d"></script>
+        <script>
 
-function redrawCanvases() {
-                setTimeout(redrawCanvases, 1000);
+            function redrawCanvases() {
+                setTimeout(redrawCanvases, 3000);
                 var filename = "/root.app/Objects/TRIGGERS_2d/root.json";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
-                JSROOT.redraw("TrigTable", obj);
+                    JSROOT.redraw("DetTable", obj);
                 }).send(null);
-}
+            }
 
-function SetRun() {
-                JSROOT.cleanup("TrigTable");
-                var runName = document.getElementById("Run").value;
+            function SetRun() {
+                JSROOT.cleanup("DetTable");
+                var runName = document.getElementById("selectRun").value;
                 var cmd = "/root.app/Objects/SelectRun/cmd.json";
                 cmd = cmd + "?" + "arg1=" + runName;
                 var xhr = new XMLHttpRequest();
                 xhr.open("POST", cmd, true);
                 xhr.send();
             }
-function SetRef() {
-                JSROOT.cleanup("TrigTable");
-                var runName = document.getElementById("Ref").value;
+            function SetRef() {
+                JSROOT.cleanup("DetTable");
+                var runName = document.getElementById("selectRef").value;
                 var cmd = "/root.app/Objects/SelectReferenceRun/cmd.json";
                 cmd = cmd + "?" + "arg1=" + runName;
                 var xhr = new XMLHttpRequest();
                 xhr.open("POST", cmd, true);
                 xhr.send();
             }
-</script>
-<body>
+        </script>
+    <body>
         <ul>
             <li><a href="../index.html"> <h3>Return to the main page of the system</h3></a></li>
-            </ul>
-</body>
+        </ul>
+	<table border="1">
+            <caption></caption>
+            <tr>
+                <th>Description:</th>
+                <th>List of histos drawn:</th>
+            </tr>
+            <tr>
+                <td align="center"> <div align="center"> </div></td>
+              
+                </td>
+            </tr>
+        </table>
+    <br>
 
-<button onclick="SetRun()" style="width: 10vw; height: 10vw;"> 
-Select Run
-</button>
-
-<input type="text" name="Run" id="Run">
-
-<body onload="redrawCanvases()">
-<div id="TrigTable" style="width: 100vw; height: 100vw;" > </div>
-</body>
-
-
+        <table border="1"> 
+            <tr>
+                <th> Select Current Run:</th>
+                <th> Select Reference Run:</th>
+            </tr>
+            <tr> 
+                <td> 
+                    <div align="center">
+                        <select id="selectRun" onchange="SetRun()">
+                            <option value="0" selected> - </option>
+                            <option value="3756"> 3756 ArAl @ 3.2 AGeV </option>
+                            <option value="3759"> 3759 ArAl @ 3.2 AGeV </option>
+                            <option value="3760"> 3760 ArAl @ 3.2 AGeV </option>
+                            <option value="3763"> 3763 ArAl @ 3.2 AGeV </option>
+                            <option value="3767"> 3767 ArAl @ 3.2 AGeV </option>
+                            <option value="3768"> 3768 ArAl @ 3.2 AGeV </option>
+                            <option value="3770"> 3770 ArAl @ 3.2 AGeV </option>
+                            <option value="3771"> 3771 ArAl @ 3.2 AGeV </option>
+                            <option value="3772"> 3772 ArAl @ 3.2 AGeV </option>
+                            <option value="3774"> 3774 ArAl @ 3.2 AGeV </option>
+                            <option value="3775"> 3775 ArAl @ 3.2 AGeV </option>
+                            <option value="3783"> 3783 ArAl @ 3.2 AGeV </option>
+                            <option value="3784"> 3784 ArAl @ 3.2 AGeV </option>
+                            <option value="3785"> 3785 ArAl @ 3.2 AGeV </option>
+                            <option value="3786"> 3786 ArAl @ 3.2 AGeV </option>
+                            <option value="3820"> 3820 ArPb @ 3.2 AGeV </option>
+                            <option value="3821"> 3821 ArPb @ 3.2 AGeV </option>
+                            <option value="3825"> 3825 ArPb @ 3.2 AGeV </option>
+                            <option value="3826"> 3826 ArPb @ 3.2 AGeV </option>
+                            <option value="3827"> 3827 ArPb @ 3.2 AGeV </option>
+                            <option value="3828"> 3828 ArPb @ 3.2 AGeV </option>
+                            <option value="3829"> 3829 ArPb @ 3.2 AGeV </option>
+                            <option value="3833"> 3833 ArPb @ 3.2 AGeV </option>
+                            <option value="3834"> 3834 ArPb @ 3.2 AGeV </option>
+                            <option value="3842"> 3842 ArAl @ 3.2 AGeV </option>
+                            <option value="3843"> 3843 ArAl @ 3.2 AGeV </option>
+                            <option value="3846"> 3846 ArAl @ 3.2 AGeV </option>
+                            <option value="3847"> 3847 ArAl @ 3.2 AGeV </option>
+                            <option value="3849"> 3849 ArAl @ 3.2 AGeV </option>
+                            <option value="3850"> 3850 ArAl @ 3.2 AGeV </option>
+                            <option value="3851"> 3851 ArAl @ 3.2 AGeV </option>
+                            <option value="3852"> 3852 ArAl @ 3.2 AGeV </option>
+                            <option value="3853"> 3853 ArAl @ 3.2 AGeV </option>
+                            <option value="3854"> 3854 ArAl @ 3.2 AGeV </option>
+                            <option value="3855"> 3855 ArAl @ 3.2 AGeV </option>
+                            <option value="3856"> 3856 ArAl @ 3.2 AGeV </option>
+                            <option value="3914"> 3914 ArPb @ 3.2 AGeV </option>
+                            <option value="3915"> 3915 ArPb @ 3.2 AGeV </option>
+                            <option value="3918"> 3918 ArPb @ 3.2 AGeV </option>
+                            <option value="3919"> 3919 ArPb @ 3.2 AGeV </option>
+                            <option value="3920"> 3920 ArPb @ 3.2 AGeV </option>
+                            <option value="3921"> 3921 ArPb @ 3.2 AGeV </option>
+                            <option value="3922"> 3922 ArPb @ 3.2 AGeV </option>
+                            <option value="3926"> 3926 ArPb @ 3.2 AGeV </option>
+                            <option value="3928"> 3928 ArPb @ 3.2 AGeV </option>
+                            <option value="3931"> 3931 ArPb @ 3.2 AGeV </option>
+                            <option value="3932"> 3932 ArPb @ 3.2 AGeV </option>
+                            <option value="3939"> 3939 ArPb @ 3.2 AGeV </option>
+                            <option value="3940"> 3940 ArPb @ 3.2 AGeV </option>
+                            <option value="3942"> 3942 ArPb @ 3.2 AGeV </option>
+                            <option value="3976"> 3976 ArAl @ 3.2 AGeV </option>
+                            <option value="3977"> 3977 ArAl @ 3.2 AGeV </option>
+                            <option value="3978"> 3978 ArAl @ 3.2 AGeV </option>
+                            <option value="3979"> 3979 ArAl @ 3.2 AGeV </option>
+                            <option value="3980"> 3980 ArAl @ 3.2 AGeV </option>
+                            <option value="3982"> 3982 ArAl @ 3.2 AGeV </option>
+                            <option value="3983"> 3983 ArAl @ 3.2 AGeV </option>
+                            <option value="3986"> 3986 ArAl @ 3.2 AGeV </option>
+                            <option value="3988"> 3988 ArAl @ 3.2 AGeV </option>
+                            <option value="3989"> 3989 ArAl @ 3.2 AGeV </option>
+                            <option value="3990"> 3990 ArAl @ 3.2 AGeV </option>
+                            <option value="3991"> 3991 ArAl @ 3.2 AGeV </option>
+                            <option value="3993"> 3993 ArAl @ 3.2 AGeV </option>
+                            <option value="3994"> 3994 ArAl @ 3.2 AGeV </option>
+                            <option value="4044"> 4044 ArSn @ 3.2 AGeV </option>
+                            <option value="4046"> 4046 ArAl @ 3.2 AGeV </option>
+                            <option value="4047"> 4047 ArAl @ 3.2 AGeV </option>
+                            <option value="4048"> 4048 ArAl @ 3.2 AGeV </option>
+                            <option value="4049"> 4049 ArAl @ 3.2 AGeV </option>
+                            <option value="4050"> 4050 ArAl @ 3.2 AGeV </option>
+                            <option value="4052"> 4052 ArAl @ 3.2 AGeV </option>
+                            <option value="4053"> 4053 ArAl @ 3.2 AGeV </option>
+                            <option value="4054"> 4054 ArAl @ 3.2 AGeV </option>
+                            <option value="4055"> 4055 ArAl @ 3.2 AGeV </option>
+                            <option value="4056"> 4056 ArAl @ 3.2 AGeV </option>
+                            <option value="4057"> 4057 ArAl @ 3.2 AGeV </option>
+                            <option value="4058"> 4058 ArAl @ 3.2 AGeV </option>
+                            <option value="4061"> 4061 ArAl @ 3.2 AGeV </option>
+                            <option value="4062"> 4062 ArAl @ 3.2 AGeV </option>
+                            <option value="4063"> 4063 ArAl @ 3.2 AGeV </option>
+                            <option value="4064"> 4064 ArCu @ 3.2 AGeV </option>
+                            <option value="4067"> 4067 ArCu @ 3.2 AGeV </option>
+                            <option value="4069"> 4069 ArCu @ 3.2 AGeV </option>
+                            <option value="4081"> 4081 ArCu @ 3.2 AGeV </option>
+                            <option value="4098"> 4098 ArSn @ 3.2 AGeV </option>
+                            <option value="4138"> 4138 ArC @ 3.2 AGeV </option>
+                            <option value="4139"> 4139 ArC @ 3.2 AGeV </option>
+                            <option value="4140"> 4140 ArC @ 3.2 AGeV </option>
+                            <option value="4141"> 4141 ArC @ 3.2 AGeV </option>
+                            <option value="4142"> 4142 ArC @ 3.2 AGeV </option>
+                            <option value="4143"> 4143 ArC @ 3.2 AGeV </option>
+                            <option value="4144"> 4144 ArC @ 3.2 AGeV </option>
+                            <option value="4145"> 4145 ArC @ 3.2 AGeV </option>
+                            <option value="4146"> 4146 ArC @ 3.2 AGeV </option>
+                            <option value="4147"> 4147 ArC @ 3.2 AGeV </option>
+                            <option value="4159"> 4159 ArPb @ 3.2 AGeV </option>
+                            <option value="4160"> 4160 ArPb @ 3.2 AGeV </option>
+                            <option value="4161"> 4161 ArPb @ 3.2 AGeV </option>
+                            <option value="4162"> 4162 ArPb @ 3.2 AGeV </option>
+                            <option value="4163"> 4163 ArPb @ 3.2 AGeV </option>
+                            <option value="4164"> 4164 ArPb @ 3.2 AGeV </option>
+                            <option value="4165"> 4165 ArPb @ 3.2 AGeV </option>
+                            <option value="4167"> 4167 ArPb @ 3.2 AGeV </option>
+                            <option value="4168"> 4168 ArPb @ 3.2 AGeV </option>
+                            <option value="4169"> 4169 ArPb @ 3.2 AGeV </option>
+                            <option value="4170"> 4170 ArPb @ 3.2 AGeV </option>
+                            <option value="4171"> 4171 ArPb @ 3.2 AGeV </option>
+                            <option value="4173"> 4173 ArPb @ 3.2 AGeV </option>
+                            <option value="4174"> 4174 ArPb @ 3.2 AGeV </option>
+                            <option value="4177"> 4177 ArPb @ 3.2 AGeV </option>
+                            <option value="4178"> 4178 ArPb @ 3.2 AGeV </option>
+                            <option value="4196"> 4196 ArAl @ 3.2 AGeV </option>
+                            <option value="4201"> 4201 ArCu @ 3.2 AGeV </option>
+                            <option value="4210"> 4210 ArCu @ 3.2 AGeV </option>
+                            <option value="4220"> 4220 ArSn @ 3.2 AGeV </option>
+                            <option value="4226"> 4226 ArSn @ 3.2 AGeV </option>
+                            <option value="4239"> 4239 ArAl @ 3.2 AGeV </option>
+                            <option value="4240"> 4240 ArAl @ 3.2 AGeV </option>
+                            <option value="4241"> 4241 ArAl @ 3.2 AGeV </option>
+                            <option value="4242"> 4242 ArAl @ 3.2 AGeV </option>
+                            <option value="4244"> 4244 ArAl @ 3.2 AGeV </option>
+                            <option value="4245"> 4245 ArAl @ 3.2 AGeV </option>
+                            <option value="4246"> 4246 ArAl @ 3.2 AGeV </option>
+                            <option value="4247"> 4247 ArAl @ 3.2 AGeV </option>
+                            <option value="4251"> 4251 ArAl @ 3.2 AGeV </option>
+                            <option value="4252"> 4252 ArAl @ 3.2 AGeV </option>
+                            <option value="4253"> 4253 ArAl @ 3.2 AGeV </option>
+                            <option value="4254"> 4254 ArAl @ 3.2 AGeV </option>
+                            <option value="4255"> 4255 ArAl @ 3.2 AGeV </option>
+                            <option value="4256"> 4256 ArAl @ 3.2 AGeV </option>
+                            <option value="4257"> 4257 ArAl @ 3.2 AGeV </option>
+                            <option value="4258"> 4258 ArAl @ 3.2 AGeV </option>
+                            <option value="4259"> 4259 ArAl @ 3.2 AGeV </option>
+                            <option value="4260"> 4260 ArAl @ 3.2 AGeV </option>
+                            <option value="4261"> 4261 ArAl @ 3.2 AGeV </option>
+                            <option value="4262"> 4262 ArAl @ 3.2 AGeV </option>
+                            <option value="4268"> 4268 ArCu @ 3.2 AGeV </option>
+                            <option value="4279"> 4279 ArCu @ 3.2 AGeV </option>
+                            <option value="4288"> 4288 ArSn @ 3.2 AGeV </option>
+                            <option value="4295"> 4295 ArSn @ 3.2 AGeV </option>
+                            <option value="4329"> 4329 ArAl @ 3.2 AGeV </option>
+                            <option value="4331"> 4331 ArAl @ 3.2 AGeV </option>
+                            <option value="4334"> 4334 ArAl @ 3.2 AGeV </option>
+                            <option value="4335"> 4335 ArAl @ 3.2 AGeV </option>
+                            <option value="4336"> 4336 ArAl @ 3.2 AGeV </option>
+                            <option value="4340"> 4340 ArAl @ 3.2 AGeV </option>
+                            <option value="4343"> 4343 ArAl @ 3.2 AGeV </option>
+                            <option value="4345"> 4345 ArAl @ 3.2 AGeV </option>
+                            <option value="4346"> 4346 ArAl @ 3.2 AGeV </option>
+                            <option value="4347"> 4347 ArAl @ 3.2 AGeV </option>
+                            <option value="4348"> 4348 ArAl @ 3.2 AGeV </option>
+                            <option value="4350"> 4350 ArAl @ 3.2 AGeV </option>
+                            <option value="4351"> 4351 ArAl @ 3.2 AGeV </option>
+                            <option value="4352"> 4352 ArAl @ 3.2 AGeV </option>
+                            <option value="4354"> 4354 ArAl @ 3.2 AGeV </option>
+                            <option value="4373"> 4373 ArCu @ 3.2 AGeV </option>
+                            <option value="4384"> 4384 ArSn @ 3.2 AGeV </option>
+                            <option value="4397"> 4397 ArSn @ 3.2 AGeV </option>
+                            <option value="4404"> 4404 ArAl @ 3.2 AGeV </option>
+                            <option value="4405"> 4405 ArAl @ 3.2 AGeV </option>
+                            <option value="4407"> 4407 ArAl @ 3.2 AGeV </option>
+                            <option value="4408"> 4408 ArAl @ 3.2 AGeV </option>
+                            <option value="4409"> 4409 ArAl @ 3.2 AGeV </option>
+                            <option value="4410"> 4410 ArAl @ 3.2 AGeV </option>
+                            <option value="4411"> 4411 ArAl @ 3.2 AGeV </option>
+                            <option value="4412"> 4412 ArAl @ 3.2 AGeV </option>
+                            <option value="4413"> 4413 ArAl @ 3.2 AGeV </option>
+                            <option value="4420"> 4420 ArAl @ 3.2 AGeV </option>
+                            <option value="4421"> 4421 ArAl @ 3.2 AGeV </option>
+                            <option value="4422"> 4422 ArAl @ 3.2 AGeV </option>
+                            <option value="4426"> 4426 ArAl @ 3.2 AGeV </option>
+                            <option value="4427"> 4427 ArAl @ 3.2 AGeV </option>
+                            <option value="4429"> 4429 ArAl @ 3.2 AGeV </option>
+                            <option value="4430"> 4430 ArAl @ 3.2 AGeV </option>
+                            <option value="4431"> 4431 ArAl @ 3.2 AGeV </option>
+                            <option value="4435"> 4435 ArAl @ 3.2 AGeV </option>
+                            <option value="4436"> 4436 ArAl @ 3.2 AGeV </option>
+                            <option value="4437"> 4437 ArAl @ 3.2 AGeV </option>
+                            <option value="4438"> 4438 ArAl @ 3.2 AGeV </option>
+                            <option value="4439"> 4439 ArAl @ 3.2 AGeV </option>
+                            <option value="4440"> 4440 ArAl @ 3.2 AGeV </option>
+                            <option value="4441"> 4441 ArAl @ 3.2 AGeV </option>
+                            <option value="4442"> 4442 ArAl @ 3.2 AGeV </option>
+                            <option value="4443"> 4443 ArAl @ 3.2 AGeV </option>
+                            <option value="4444"> 4444 ArAl @ 3.2 AGeV </option>
+                            <option value="4445"> 4445 ArAl @ 3.2 AGeV </option>
+                            <option value="4446"> 4446 ArAl @ 3.2 AGeV </option>
+                            <option value="4459"> 4459 ArCu @ 3.2 AGeV </option>
+                            <option value="4486"> 4486 ArSn @ 3.2 AGeV </option>
+                            <option value="4494"> 4494 ArPb @ 3.2 AGeV </option>
+                            <option value="4495"> 4495 ArPb @ 3.2 AGeV </option>
+                            <option value="4496"> 4496 ArPb @ 3.2 AGeV </option>
+                            <option value="4497"> 4497 ArPb @ 3.2 AGeV </option>
+                            <option value="4498"> 4498 ArPb @ 3.2 AGeV </option>
+                            <option value="4500"> 4500 ArPb @ 3.2 AGeV </option>
+                            <option value="4502"> 4502 ArPb @ 3.2 AGeV </option>
+                            <option value="4503"> 4503 ArPb @ 3.2 AGeV </option>
+                            <option value="4504"> 4504 ArPb @ 3.2 AGeV </option>
+                            <option value="4505"> 4505 ArPb @ 3.2 AGeV </option>
+                            <option value="4508"> 4508 ArPb @ 3.2 AGeV </option>
+                            <option value="4509"> 4509 ArPb @ 3.2 AGeV </option>
+                            <option value="4512"> 4512 ArPb @ 3.2 AGeV </option>
+                            <option value="4513"> 4513 ArPb @ 3.2 AGeV </option>
+                            <option value="4514"> 4514 ArPb @ 3.2 AGeV </option>
+                            <option value="4519"> 4519 ArAl @ 3.2 AGeV </option>
+                            <option value="4520"> 4520 ArAl @ 3.2 AGeV </option>
+                            <option value="4521"> 4521 ArAl @ 3.2 AGeV </option>
+                            <option value="4522"> 4522 ArAl @ 3.2 AGeV </option>
+                            <option value="4525"> 4525 ArAl @ 3.2 AGeV </option>
+                            <option value="4527"> 4527 ArAl @ 3.2 AGeV </option>
+                            <option value="4529"> 4529 ArAl @ 3.2 AGeV </option>
+                            <option value="4534"> 4534 ArAl @ 3.2 AGeV </option>
+                            <option value="4535"> 4535 ArAl @ 3.2 AGeV </option>
+                            <option value="4537"> 4537 ArAl @ 3.2 AGeV </option>
+                            <option value="4538"> 4538 ArAl @ 3.2 AGeV </option>
+                            <option value="4539"> 4539 ArAl @ 3.2 AGeV </option>
+                            <option value="4540"> 4540 ArAl @ 3.2 AGeV </option>
+                            <option value="4541"> 4541 ArAl @ 3.2 AGeV </option>
+                            <option value="4611"> 4611 ArC @ 3.2 AGeV </option>
+                            <option value="4612"> 4612 ArC @ 3.2 AGeV </option>
+                            <option value="4615"> 4615 ArC @ 3.2 AGeV </option>
+                            <option value="4616"> 4616 ArC @ 3.2 AGeV </option>
+                            <option value="4617"> 4617 ArC @ 3.2 AGeV </option>
+                            <option value="4620"> 4620 ArC @ 3.2 AGeV </option>
+                            <option value="4622"> 4622 ArC @ 3.2 AGeV </option>
+                            <option value="4624"> 4624 ArC @ 3.2 AGeV </option>
+                            <option value="4625"> 4625 ArC @ 3.2 AGeV </option>
+                            <option value="4626"> 4626 ArC @ 3.2 AGeV </option>
+                            <option value="4630"> 4630 ArPb @ 3.2 AGeV </option>
+                            <option value="4631"> 4631 ArPb @ 3.2 AGeV </option>
+                            <option value="4632"> 4632 ArPb @ 3.2 AGeV </option>
+                            <option value="4633"> 4633 ArPb @ 3.2 AGeV </option>
+                            <option value="4634"> 4634 ArPb @ 3.2 AGeV </option>
+                            <option value="4635"> 4635 ArPb @ 3.2 AGeV </option>
+                            <option value="4637"> 4637 ArPb @ 3.2 AGeV </option>
+                            <option value="4638"> 4638 ArPb @ 3.2 AGeV </option>
+                            <option value="4639"> 4639 ArPb @ 3.2 AGeV </option>
+                            <option value="4640"> 4640 ArPb @ 3.2 AGeV </option>
+                            <option value="4649"> 4649 ArAl @ 3.2 AGeV </option>
+                            <option value="4651"> 4651 ArAl @ 3.2 AGeV </option>
+                            <option value="4652"> 4652 ArAl @ 3.2 AGeV </option>
+                            <option value="4653"> 4653 ArAl @ 3.2 AGeV </option>
+                            <option value="4654"> 4654 ArAl @ 3.2 AGeV </option>
+                            <option value="4655"> 4655 ArAl @ 3.2 AGeV </option>
+                            <option value="4656"> 4656 ArAl @ 3.2 AGeV </option>
+                            <option value="4657"> 4657 ArAl @ 3.2 AGeV </option>
+                            <option value="4658"> 4658 ArAl @ 3.2 AGeV </option>
+                            <option value="4669"> 4669 ArCu @ 3.2 AGeV </option>
+                            <option value="4670"> 4670 ArCu @ 3.2 AGeV </option>
+                            <option value="4672"> 4672 ArCu @ 3.2 AGeV </option>
+                            <option value="4673"> 4673 ArCu @ 3.2 AGeV </option>
+                            <option value="4674"> 4674 ArCu @ 3.2 AGeV </option>
+                            <option value="4675"> 4675 ArCu @ 3.2 AGeV </option>
+                            <option value="4677"> 4677 ArCu @ 3.2 AGeV </option>
+                            <option value="4678"> 4678 ArCu @ 3.2 AGeV </option>
+                            <option value="4679"> 4679 ArCu @ 3.2 AGeV </option>
+                            <option value="4680"> 4680 ArCu @ 3.2 AGeV </option>
+                            <option value="4687"> 4687 ArSn @ 3.2 AGeV </option>
+                            <option value="4688"> 4688 ArSn @ 3.2 AGeV </option>
+                            <option value="4689"> 4689 ArSn @ 3.2 AGeV </option>
+                            <option value="4691"> 4691 ArSn @ 3.2 AGeV </option>
+                            <option value="4693"> 4693 ArSn @ 3.2 AGeV </option>
+                            <option value="4697"> 4697 ArSn @ 3.2 AGeV </option>
+                            <option value="4698"> 4698 ArSn @ 3.2 AGeV </option>
+                            <option value="4699"> 4699 ArSn @ 3.2 AGeV </option>
+                            <option value="4700"> 4700 ArSn @ 3.2 AGeV </option>
+                            <option value="4701"> 4701 ArSn @ 3.2 AGeV </option>
+                        </select>
+                    </div>
+                </td>
+                <td>
+                    <div align="center">
+                        <select id="selectRef" onchange="SetRef()">
+                            <option value="0" selected> - </option>
+                            <option value="3756"> 3756 ArAl @ 3.2 AGeV </option>
+                            <option value="3759"> 3759 ArAl @ 3.2 AGeV </option>
+                            <option value="3760"> 3760 ArAl @ 3.2 AGeV </option>
+                            <option value="3763"> 3763 ArAl @ 3.2 AGeV </option>
+                            <option value="3767"> 3767 ArAl @ 3.2 AGeV </option>
+                            <option value="3768"> 3768 ArAl @ 3.2 AGeV </option>
+                            <option value="3770"> 3770 ArAl @ 3.2 AGeV </option>
+                            <option value="3771"> 3771 ArAl @ 3.2 AGeV </option>
+                            <option value="3772"> 3772 ArAl @ 3.2 AGeV </option>
+                            <option value="3774"> 3774 ArAl @ 3.2 AGeV </option>
+                            <option value="3775"> 3775 ArAl @ 3.2 AGeV </option>
+                            <option value="3783"> 3783 ArAl @ 3.2 AGeV </option>
+                            <option value="3784"> 3784 ArAl @ 3.2 AGeV </option>
+                            <option value="3785"> 3785 ArAl @ 3.2 AGeV </option>
+                            <option value="3786"> 3786 ArAl @ 3.2 AGeV </option>
+                            <option value="3820"> 3820 ArPb @ 3.2 AGeV </option>
+                            <option value="3821"> 3821 ArPb @ 3.2 AGeV </option>
+                            <option value="3825"> 3825 ArPb @ 3.2 AGeV </option>
+                            <option value="3826"> 3826 ArPb @ 3.2 AGeV </option>
+                            <option value="3827"> 3827 ArPb @ 3.2 AGeV </option>
+                            <option value="3828"> 3828 ArPb @ 3.2 AGeV </option>
+                            <option value="3829"> 3829 ArPb @ 3.2 AGeV </option>
+                            <option value="3833"> 3833 ArPb @ 3.2 AGeV </option>
+                            <option value="3834"> 3834 ArPb @ 3.2 AGeV </option>
+                            <option value="3842"> 3842 ArAl @ 3.2 AGeV </option>
+                            <option value="3843"> 3843 ArAl @ 3.2 AGeV </option>
+                            <option value="3846"> 3846 ArAl @ 3.2 AGeV </option>
+                            <option value="3847"> 3847 ArAl @ 3.2 AGeV </option>
+                            <option value="3849"> 3849 ArAl @ 3.2 AGeV </option>
+                            <option value="3850"> 3850 ArAl @ 3.2 AGeV </option>
+                            <option value="3851"> 3851 ArAl @ 3.2 AGeV </option>
+                            <option value="3852"> 3852 ArAl @ 3.2 AGeV </option>
+                            <option value="3853"> 3853 ArAl @ 3.2 AGeV </option>
+                            <option value="3854"> 3854 ArAl @ 3.2 AGeV </option>
+                            <option value="3855"> 3855 ArAl @ 3.2 AGeV </option>
+                            <option value="3856"> 3856 ArAl @ 3.2 AGeV </option>
+                            <option value="3914"> 3914 ArPb @ 3.2 AGeV </option>
+                            <option value="3915"> 3915 ArPb @ 3.2 AGeV </option>
+                            <option value="3918"> 3918 ArPb @ 3.2 AGeV </option>
+                            <option value="3919"> 3919 ArPb @ 3.2 AGeV </option>
+                            <option value="3920"> 3920 ArPb @ 3.2 AGeV </option>
+                            <option value="3921"> 3921 ArPb @ 3.2 AGeV </option>
+                            <option value="3922"> 3922 ArPb @ 3.2 AGeV </option>
+                            <option value="3926"> 3926 ArPb @ 3.2 AGeV </option>
+                            <option value="3928"> 3928 ArPb @ 3.2 AGeV </option>
+                            <option value="3931"> 3931 ArPb @ 3.2 AGeV </option>
+                            <option value="3932"> 3932 ArPb @ 3.2 AGeV </option>
+                            <option value="3939"> 3939 ArPb @ 3.2 AGeV </option>
+                            <option value="3940"> 3940 ArPb @ 3.2 AGeV </option>
+                            <option value="3942"> 3942 ArPb @ 3.2 AGeV </option>
+                            <option value="3976"> 3976 ArAl @ 3.2 AGeV </option>
+                            <option value="3977"> 3977 ArAl @ 3.2 AGeV </option>
+                            <option value="3978"> 3978 ArAl @ 3.2 AGeV </option>
+                            <option value="3979"> 3979 ArAl @ 3.2 AGeV </option>
+                            <option value="3980"> 3980 ArAl @ 3.2 AGeV </option>
+                            <option value="3982"> 3982 ArAl @ 3.2 AGeV </option>
+                            <option value="3983"> 3983 ArAl @ 3.2 AGeV </option>
+                            <option value="3986"> 3986 ArAl @ 3.2 AGeV </option>
+                            <option value="3988"> 3988 ArAl @ 3.2 AGeV </option>
+                            <option value="3989"> 3989 ArAl @ 3.2 AGeV </option>
+                            <option value="3990"> 3990 ArAl @ 3.2 AGeV </option>
+                            <option value="3991"> 3991 ArAl @ 3.2 AGeV </option>
+                            <option value="3993"> 3993 ArAl @ 3.2 AGeV </option>
+                            <option value="3994"> 3994 ArAl @ 3.2 AGeV </option>
+                            <option value="4044"> 4044 ArSn @ 3.2 AGeV </option>
+                            <option value="4046"> 4046 ArAl @ 3.2 AGeV </option>
+                            <option value="4047"> 4047 ArAl @ 3.2 AGeV </option>
+                            <option value="4048"> 4048 ArAl @ 3.2 AGeV </option>
+                            <option value="4049"> 4049 ArAl @ 3.2 AGeV </option>
+                            <option value="4050"> 4050 ArAl @ 3.2 AGeV </option>
+                            <option value="4052"> 4052 ArAl @ 3.2 AGeV </option>
+                            <option value="4053"> 4053 ArAl @ 3.2 AGeV </option>
+                            <option value="4054"> 4054 ArAl @ 3.2 AGeV </option>
+                            <option value="4055"> 4055 ArAl @ 3.2 AGeV </option>
+                            <option value="4056"> 4056 ArAl @ 3.2 AGeV </option>
+                            <option value="4057"> 4057 ArAl @ 3.2 AGeV </option>
+                            <option value="4058"> 4058 ArAl @ 3.2 AGeV </option>
+                            <option value="4061"> 4061 ArAl @ 3.2 AGeV </option>
+                            <option value="4062"> 4062 ArAl @ 3.2 AGeV </option>
+                            <option value="4063"> 4063 ArAl @ 3.2 AGeV </option>
+                            <option value="4064"> 4064 ArCu @ 3.2 AGeV </option>
+                            <option value="4067"> 4067 ArCu @ 3.2 AGeV </option>
+                            <option value="4069"> 4069 ArCu @ 3.2 AGeV </option>
+                            <option value="4081"> 4081 ArCu @ 3.2 AGeV </option>
+                            <option value="4098"> 4098 ArSn @ 3.2 AGeV </option>
+                            <option value="4138"> 4138 ArC @ 3.2 AGeV </option>
+                            <option value="4139"> 4139 ArC @ 3.2 AGeV </option>
+                            <option value="4140"> 4140 ArC @ 3.2 AGeV </option>
+                            <option value="4141"> 4141 ArC @ 3.2 AGeV </option>
+                            <option value="4142"> 4142 ArC @ 3.2 AGeV </option>
+                            <option value="4143"> 4143 ArC @ 3.2 AGeV </option>
+                            <option value="4144"> 4144 ArC @ 3.2 AGeV </option>
+                            <option value="4145"> 4145 ArC @ 3.2 AGeV </option>
+                            <option value="4146"> 4146 ArC @ 3.2 AGeV </option>
+                            <option value="4147"> 4147 ArC @ 3.2 AGeV </option>
+                            <option value="4159"> 4159 ArPb @ 3.2 AGeV </option>
+                            <option value="4160"> 4160 ArPb @ 3.2 AGeV </option>
+                            <option value="4161"> 4161 ArPb @ 3.2 AGeV </option>
+                            <option value="4162"> 4162 ArPb @ 3.2 AGeV </option>
+                            <option value="4163"> 4163 ArPb @ 3.2 AGeV </option>
+                            <option value="4164"> 4164 ArPb @ 3.2 AGeV </option>
+                            <option value="4165"> 4165 ArPb @ 3.2 AGeV </option>
+                            <option value="4167"> 4167 ArPb @ 3.2 AGeV </option>
+                            <option value="4168"> 4168 ArPb @ 3.2 AGeV </option>
+                            <option value="4169"> 4169 ArPb @ 3.2 AGeV </option>
+                            <option value="4170"> 4170 ArPb @ 3.2 AGeV </option>
+                            <option value="4171"> 4171 ArPb @ 3.2 AGeV </option>
+                            <option value="4173"> 4173 ArPb @ 3.2 AGeV </option>
+                            <option value="4174"> 4174 ArPb @ 3.2 AGeV </option>
+                            <option value="4177"> 4177 ArPb @ 3.2 AGeV </option>
+                            <option value="4178"> 4178 ArPb @ 3.2 AGeV </option>
+                            <option value="4196"> 4196 ArAl @ 3.2 AGeV </option>
+                            <option value="4201"> 4201 ArCu @ 3.2 AGeV </option>
+                            <option value="4210"> 4210 ArCu @ 3.2 AGeV </option>
+                            <option value="4220"> 4220 ArSn @ 3.2 AGeV </option>
+                            <option value="4226"> 4226 ArSn @ 3.2 AGeV </option>
+                            <option value="4239"> 4239 ArAl @ 3.2 AGeV </option>
+                            <option value="4240"> 4240 ArAl @ 3.2 AGeV </option>
+                            <option value="4241"> 4241 ArAl @ 3.2 AGeV </option>
+                            <option value="4242"> 4242 ArAl @ 3.2 AGeV </option>
+                            <option value="4244"> 4244 ArAl @ 3.2 AGeV </option>
+                            <option value="4245"> 4245 ArAl @ 3.2 AGeV </option>
+                            <option value="4246"> 4246 ArAl @ 3.2 AGeV </option>
+                            <option value="4247"> 4247 ArAl @ 3.2 AGeV </option>
+                            <option value="4251"> 4251 ArAl @ 3.2 AGeV </option>
+                            <option value="4252"> 4252 ArAl @ 3.2 AGeV </option>
+                            <option value="4253"> 4253 ArAl @ 3.2 AGeV </option>
+                            <option value="4254"> 4254 ArAl @ 3.2 AGeV </option>
+                            <option value="4255"> 4255 ArAl @ 3.2 AGeV </option>
+                            <option value="4256"> 4256 ArAl @ 3.2 AGeV </option>
+                            <option value="4257"> 4257 ArAl @ 3.2 AGeV </option>
+                            <option value="4258"> 4258 ArAl @ 3.2 AGeV </option>
+                            <option value="4259"> 4259 ArAl @ 3.2 AGeV </option>
+                            <option value="4260"> 4260 ArAl @ 3.2 AGeV </option>
+                            <option value="4261"> 4261 ArAl @ 3.2 AGeV </option>
+                            <option value="4262"> 4262 ArAl @ 3.2 AGeV </option>
+                            <option value="4268"> 4268 ArCu @ 3.2 AGeV </option>
+                            <option value="4279"> 4279 ArCu @ 3.2 AGeV </option>
+                            <option value="4288"> 4288 ArSn @ 3.2 AGeV </option>
+                            <option value="4295"> 4295 ArSn @ 3.2 AGeV </option>
+                            <option value="4329"> 4329 ArAl @ 3.2 AGeV </option>
+                            <option value="4331"> 4331 ArAl @ 3.2 AGeV </option>
+                            <option value="4334"> 4334 ArAl @ 3.2 AGeV </option>
+                            <option value="4335"> 4335 ArAl @ 3.2 AGeV </option>
+                            <option value="4336"> 4336 ArAl @ 3.2 AGeV </option>
+                            <option value="4340"> 4340 ArAl @ 3.2 AGeV </option>
+                            <option value="4343"> 4343 ArAl @ 3.2 AGeV </option>
+                            <option value="4345"> 4345 ArAl @ 3.2 AGeV </option>
+                            <option value="4346"> 4346 ArAl @ 3.2 AGeV </option>
+                            <option value="4347"> 4347 ArAl @ 3.2 AGeV </option>
+                            <option value="4348"> 4348 ArAl @ 3.2 AGeV </option>
+                            <option value="4350"> 4350 ArAl @ 3.2 AGeV </option>
+                            <option value="4351"> 4351 ArAl @ 3.2 AGeV </option>
+                            <option value="4352"> 4352 ArAl @ 3.2 AGeV </option>
+                            <option value="4354"> 4354 ArAl @ 3.2 AGeV </option>
+                            <option value="4373"> 4373 ArCu @ 3.2 AGeV </option>
+                            <option value="4384"> 4384 ArSn @ 3.2 AGeV </option>
+                            <option value="4397"> 4397 ArSn @ 3.2 AGeV </option>
+                            <option value="4404"> 4404 ArAl @ 3.2 AGeV </option>
+                            <option value="4405"> 4405 ArAl @ 3.2 AGeV </option>
+                            <option value="4407"> 4407 ArAl @ 3.2 AGeV </option>
+                            <option value="4408"> 4408 ArAl @ 3.2 AGeV </option>
+                            <option value="4409"> 4409 ArAl @ 3.2 AGeV </option>
+                            <option value="4410"> 4410 ArAl @ 3.2 AGeV </option>
+                            <option value="4411"> 4411 ArAl @ 3.2 AGeV </option>
+                            <option value="4412"> 4412 ArAl @ 3.2 AGeV </option>
+                            <option value="4413"> 4413 ArAl @ 3.2 AGeV </option>
+                            <option value="4420"> 4420 ArAl @ 3.2 AGeV </option>
+                            <option value="4421"> 4421 ArAl @ 3.2 AGeV </option>
+                            <option value="4422"> 4422 ArAl @ 3.2 AGeV </option>
+                            <option value="4426"> 4426 ArAl @ 3.2 AGeV </option>
+                            <option value="4427"> 4427 ArAl @ 3.2 AGeV </option>
+                            <option value="4429"> 4429 ArAl @ 3.2 AGeV </option>
+                            <option value="4430"> 4430 ArAl @ 3.2 AGeV </option>
+                            <option value="4431"> 4431 ArAl @ 3.2 AGeV </option>
+                            <option value="4435"> 4435 ArAl @ 3.2 AGeV </option>
+                            <option value="4436"> 4436 ArAl @ 3.2 AGeV </option>
+                            <option value="4437"> 4437 ArAl @ 3.2 AGeV </option>
+                            <option value="4438"> 4438 ArAl @ 3.2 AGeV </option>
+                            <option value="4439"> 4439 ArAl @ 3.2 AGeV </option>
+                            <option value="4440"> 4440 ArAl @ 3.2 AGeV </option>
+                            <option value="4441"> 4441 ArAl @ 3.2 AGeV </option>
+                            <option value="4442"> 4442 ArAl @ 3.2 AGeV </option>
+                            <option value="4443"> 4443 ArAl @ 3.2 AGeV </option>
+                            <option value="4444"> 4444 ArAl @ 3.2 AGeV </option>
+                            <option value="4445"> 4445 ArAl @ 3.2 AGeV </option>
+                            <option value="4446"> 4446 ArAl @ 3.2 AGeV </option>
+                            <option value="4459"> 4459 ArCu @ 3.2 AGeV </option>
+                            <option value="4486"> 4486 ArSn @ 3.2 AGeV </option>
+                            <option value="4494"> 4494 ArPb @ 3.2 AGeV </option>
+                            <option value="4495"> 4495 ArPb @ 3.2 AGeV </option>
+                            <option value="4496"> 4496 ArPb @ 3.2 AGeV </option>
+                            <option value="4497"> 4497 ArPb @ 3.2 AGeV </option>
+                            <option value="4498"> 4498 ArPb @ 3.2 AGeV </option>
+                            <option value="4500"> 4500 ArPb @ 3.2 AGeV </option>
+                            <option value="4502"> 4502 ArPb @ 3.2 AGeV </option>
+                            <option value="4503"> 4503 ArPb @ 3.2 AGeV </option>
+                            <option value="4504"> 4504 ArPb @ 3.2 AGeV </option>
+                            <option value="4505"> 4505 ArPb @ 3.2 AGeV </option>
+                            <option value="4508"> 4508 ArPb @ 3.2 AGeV </option>
+                            <option value="4509"> 4509 ArPb @ 3.2 AGeV </option>
+                            <option value="4512"> 4512 ArPb @ 3.2 AGeV </option>
+                            <option value="4513"> 4513 ArPb @ 3.2 AGeV </option>
+                            <option value="4514"> 4514 ArPb @ 3.2 AGeV </option>
+                            <option value="4519"> 4519 ArAl @ 3.2 AGeV </option>
+                            <option value="4520"> 4520 ArAl @ 3.2 AGeV </option>
+                            <option value="4521"> 4521 ArAl @ 3.2 AGeV </option>
+                            <option value="4522"> 4522 ArAl @ 3.2 AGeV </option>
+                            <option value="4525"> 4525 ArAl @ 3.2 AGeV </option>
+                            <option value="4527"> 4527 ArAl @ 3.2 AGeV </option>
+                            <option value="4529"> 4529 ArAl @ 3.2 AGeV </option>
+                            <option value="4534"> 4534 ArAl @ 3.2 AGeV </option>
+                            <option value="4535"> 4535 ArAl @ 3.2 AGeV </option>
+                            <option value="4537"> 4537 ArAl @ 3.2 AGeV </option>
+                            <option value="4538"> 4538 ArAl @ 3.2 AGeV </option>
+                            <option value="4539"> 4539 ArAl @ 3.2 AGeV </option>
+                            <option value="4540"> 4540 ArAl @ 3.2 AGeV </option>
+                            <option value="4541"> 4541 ArAl @ 3.2 AGeV </option>
+                            <option value="4611"> 4611 ArC @ 3.2 AGeV </option>
+                            <option value="4612"> 4612 ArC @ 3.2 AGeV </option>
+                            <option value="4615"> 4615 ArC @ 3.2 AGeV </option>
+                            <option value="4616"> 4616 ArC @ 3.2 AGeV </option>
+                            <option value="4617"> 4617 ArC @ 3.2 AGeV </option>
+                            <option value="4620"> 4620 ArC @ 3.2 AGeV </option>
+                            <option value="4622"> 4622 ArC @ 3.2 AGeV </option>
+                            <option value="4624"> 4624 ArC @ 3.2 AGeV </option>
+                            <option value="4625"> 4625 ArC @ 3.2 AGeV </option>
+                            <option value="4626"> 4626 ArC @ 3.2 AGeV </option>
+                            <option value="4630"> 4630 ArPb @ 3.2 AGeV </option>
+                            <option value="4631"> 4631 ArPb @ 3.2 AGeV </option>
+                            <option value="4632"> 4632 ArPb @ 3.2 AGeV </option>
+                            <option value="4633"> 4633 ArPb @ 3.2 AGeV </option>
+                            <option value="4634"> 4634 ArPb @ 3.2 AGeV </option>
+                            <option value="4635"> 4635 ArPb @ 3.2 AGeV </option>
+                            <option value="4637"> 4637 ArPb @ 3.2 AGeV </option>
+                            <option value="4638"> 4638 ArPb @ 3.2 AGeV </option>
+                            <option value="4639"> 4639 ArPb @ 3.2 AGeV </option>
+                            <option value="4640"> 4640 ArPb @ 3.2 AGeV </option>
+                            <option value="4649"> 4649 ArAl @ 3.2 AGeV </option>
+                            <option value="4651"> 4651 ArAl @ 3.2 AGeV </option>
+                            <option value="4652"> 4652 ArAl @ 3.2 AGeV </option>
+                            <option value="4653"> 4653 ArAl @ 3.2 AGeV </option>
+                            <option value="4654"> 4654 ArAl @ 3.2 AGeV </option>
+                            <option value="4655"> 4655 ArAl @ 3.2 AGeV </option>
+                            <option value="4656"> 4656 ArAl @ 3.2 AGeV </option>
+                            <option value="4657"> 4657 ArAl @ 3.2 AGeV </option>
+                            <option value="4658"> 4658 ArAl @ 3.2 AGeV </option>
+                            <option value="4669"> 4669 ArCu @ 3.2 AGeV </option>
+                            <option value="4670"> 4670 ArCu @ 3.2 AGeV </option>
+                            <option value="4672"> 4672 ArCu @ 3.2 AGeV </option>
+                            <option value="4673"> 4673 ArCu @ 3.2 AGeV </option>
+                            <option value="4674"> 4674 ArCu @ 3.2 AGeV </option>
+                            <option value="4675"> 4675 ArCu @ 3.2 AGeV </option>
+                            <option value="4677"> 4677 ArCu @ 3.2 AGeV </option>
+                            <option value="4678"> 4678 ArCu @ 3.2 AGeV </option>
+                            <option value="4679"> 4679 ArCu @ 3.2 AGeV </option>
+                            <option value="4680"> 4680 ArCu @ 3.2 AGeV </option>
+                            <option value="4687"> 4687 ArSn @ 3.2 AGeV </option>
+                            <option value="4688"> 4688 ArSn @ 3.2 AGeV </option>
+                            <option value="4689"> 4689 ArSn @ 3.2 AGeV </option>
+                            <option value="4691"> 4691 ArSn @ 3.2 AGeV </option>
+                            <option value="4693"> 4693 ArSn @ 3.2 AGeV </option>
+                            <option value="4697"> 4697 ArSn @ 3.2 AGeV </option>
+                            <option value="4698"> 4698 ArSn @ 3.2 AGeV </option>
+                            <option value="4699"> 4699 ArSn @ 3.2 AGeV </option>
+                            <option value="4700"> 4700 ArSn @ 3.2 AGeV </option>
+                            <option value="4701"> 4701 ArSn @ 3.2 AGeV </option>
+                        </select>
+                    </div>
+                </td>  
+            </tr>
+        </table>
+    <body onload="redrawCanvases()">
+        <div id="DetTable" style="width: 100vw; height: 100vw;" > </div>
+    </body>
 </html>

@@ -7,6 +7,7 @@
  *  e-mail:   litvin@nf.jinr.ru
  *  Version:  10-02-2016
  *  Last update:  10-02-2016 (EL)  
+ *  Updated:  09-08-2019 by Petr Alekseev <pnaleks@gmail.com>
  *
  ************************************************************************************/
 
@@ -288,6 +289,13 @@ void BmnEcal::CopyClones(TClonesArray* cl1, TClonesArray* cl2, Int_t offset ) {
 
  // -----   Public method ConstructGeometry   ----------------------------------
 void BmnEcal::ConstructGeometry() {
+
+  TString geoFileName = GetGeometryFileName();
+  if(geoFileName.EndsWith(".root")) {
+    LOG(INFO) << "Constructing ECAL geometry from ROOT file " << geoFileName.Data() << FairLogger::endl;
+    ConstructRootGeometry();
+  }
+    
  FairGeoLoader*    geoLoad = FairGeoLoader::Instance();
   FairGeoInterface* geoFace = geoLoad->getGeoInterface();
   BmnEcalGeo*      ecalGeo = new BmnEcalGeo();
@@ -325,6 +333,13 @@ void BmnEcal::ConstructGeometry() {
   ProcessNodes ( volList );
 }
   
+// -----   Public method CheckIfSensitive   -----------------------------------
+Bool_t BmnEcal::CheckIfSensitive(std::string name){
+    TString tsname = name;
+    if (tsname.Contains("laySci")) return kTRUE; //lay
+    
+    return kFALSE;
+}
  
 
 // -----   Private method AddHit   --------------------------------------------

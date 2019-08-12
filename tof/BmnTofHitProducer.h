@@ -12,8 +12,9 @@
 #include "BmnTofGeoUtils.h"
 #include "BmnTof2Digit.h"
 #include "BmnTrigDigit.h"
+#include "BmnTof2Raw2DigitNew.h"
 
-#define TOF2_MAX_CHAMBERS 59
+#define TOF2_MAX_CHAMBERS 60
 #define TOF2_MAX_STRIPS_IN_CHAMBER 32
 
 class TRandom2;
@@ -53,6 +54,7 @@ class BmnTofHitProducer : public BmnTofHitProducerIdeal
 	bool			GetCrossPoint(const TVector3& p1, double time1, const TVector3& p2, double time2, TVector3& crossPoint);
 	bool                    GetCrossPoint(const LStrip *pStrip, double dtime, TVector3& crossPoint);
         Double_t                CalculateToF (BmnTof2Digit *d1, BmnTof2Digit *d2, BmnTrigDigit *t0);
+	BmnTof2Raw2DigitNew     *fTOF2;
 
 public:
 	BmnTofHitProducer(const char *name = "TOF HitProducer", const char *geomFile = "", Bool_t useMCdata = true, Int_t verbose = 1, Bool_t DoTest = false);

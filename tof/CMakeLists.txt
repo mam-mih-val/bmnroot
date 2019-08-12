@@ -7,6 +7,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/mcstack
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/tof
+ ${CMAKE_SOURCE_DIR}/decoder
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -39,6 +40,6 @@ BmnTofGeoUtils.cxx
 Set(HEADERS)
 Set(LINKDEF BmnTOFLinkDef.h)
 Set(LIBRARY_NAME TOF)
-Set(DEPENDENCIES BmnData Core Base)
+Set(DEPENDENCIES BmnData Core Base Decoder)
 
 GENERATE_LIBRARY()

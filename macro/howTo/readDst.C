@@ -21,7 +21,7 @@ void readDst(TString fileName = "") {
     cout << "#recorded entries = " << out->GetEntries() << endl;
 
     // read first Run Header if present
-    BmnRunHeader* run_header = (BmnRunHeader*) out->GetCurrentFile()->Get("BmnRunHeader");
+    DstRunHeader* run_header = (DstRunHeader*) out->GetCurrentFile()->Get("DstRunHeader");
     if (run_header)
     {
         cout << "\n|||||||||||||||| RUN SUMMARY |||||||||||||||" << endl;

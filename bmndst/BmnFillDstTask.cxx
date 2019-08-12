@@ -47,7 +47,7 @@ BmnFillDstTask::BmnFillDstTask(Long64_t nEvents) : FairTask("BmnFillDstTask"),
                                                    fPeriodNumber(-1),
                                                    fRunNumber(-1),
                                                    isSimulationInput(false) {
-    fRunHead = new BmnRunHeader();
+    fRunHead = new DstRunHeader();
     LOG(DEBUG) << "Constructor of BmnFillDstTask";
 }
 
@@ -62,7 +62,7 @@ BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, Long64_t nEvents
                                                                                     fPeriodNumber(-1),
                                                                                     fRunNumber(-1),
                                                                                     isSimulationInput(false) {
-    fRunHead = new BmnRunHeader();
+    fRunHead = new DstRunHeader();
     LOG(DEBUG) << "Constructor of BmnFillDstTask";
 }
 
@@ -77,7 +77,7 @@ BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, TString output_e
                                                                                                                       fPeriodNumber(-1),
                                                                                                                       fRunNumber(-1),
                                                                                                                       isSimulationInput(false) {
-    fRunHead = new BmnRunHeader();
+    fRunHead = new DstRunHeader();
     LOG(DEBUG) << "Constructor of BmnFillDstTask";
 }
 
@@ -264,7 +264,7 @@ void BmnFillDstTask::Finish() {
 
     FairRootManager* ioman = FairRootManager::Instance();
     FairSink* fSink = ioman->GetSink();
-    fSink->WriteObject(fRunHead, "BmnRunHeader", TObject::kSingleKey);
+    fSink->WriteObject(fRunHead, "DstRunHeader", TObject::kSingleKey);
 
     if (fVerbose == 0) printf("\n");
 }

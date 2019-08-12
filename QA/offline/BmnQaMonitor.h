@@ -4,6 +4,8 @@
 #include <TObjString.h>
 #include <THttpServer.h>
 #include <TCanvas.h>
+#include <TObjArray.h>
+#include <TObjString.h>
 
 #include <BmnCoordinateDetQa.h>
 #include <BmnTimeDetQa.h>
@@ -128,6 +130,8 @@ private:
     vector <TH1*> fHisto; // Histos to be registered via server
 
     Int_t fCurrentRun;
+    vector <TString>* fRefHistosNames;
+    Bool_t isOneRefDrawn;
 
     TCanvas** fCanvases;
 

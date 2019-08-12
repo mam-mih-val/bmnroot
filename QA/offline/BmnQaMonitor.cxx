@@ -14,10 +14,12 @@ zdc(nullptr),
 dst(nullptr),
 triggers(nullptr),
 fCanvases(nullptr),
-fHistos(nullptr),    
-fSteering(new BmnOfflineQaSteering()) {
+fHistos(nullptr),
+fSteering(new BmnOfflineQaSteering()),
+fRefHistosNames(nullptr) {
     fHistoDir = "";
     fCurrentRun = -1;
+    isOneRefDrawn = kFALSE;
 
     // 1. Start server 
     InitServer();
@@ -77,6 +79,9 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
     vector <TNamed*> hCurr;
     vector <TNamed*> hRef;
 
+    if (!isOneRefDrawn)
+        fRefHistosNames = new vector <TString>;
+
     for (auto it : h1Curr)
         hCurr.push_back((TNamed*) it);
     for (auto it : h2Curr)
@@ -108,6 +113,23 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
                         continue;
                     TVirtualPad* pad = c->cd(padCounter);
 
+                    // Remove a reference histo if drawn ...
+                    if (isOneRefDrawn) {
+                        vector <TString>& vec = *fRefHistosNames;
+                        for (auto it : vec) {
+                            TObject* obj = pad->GetPrimitive(it.Data());
+                            if (!obj)
+                                continue;
+
+                            pad->GetListOfPrimitives()->Remove(obj);
+                        }
+                    } else {
+                        TString baseName = TString(itRef->GetName());
+                        baseName += ", Ref";
+                        itRef->SetName(baseName.Data());
+                        fRefHistosNames->push_back(itRef->GetName());
+                    }
+
                     // 1d histos for triggers are drawn in logarithmic scale !!!
                     if (nameCanvas.Contains("TRIGGERS_1d"))
                         pad->SetLogy();
@@ -115,6 +137,12 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
                     // We do not draw reference for a 2d-histo !!!
                     if (!currName.Contains("vs.") && !refName.Contains("vs.")) {
                         TH1F* cur = (TH1F*) itCurr;
+
+                        if (!refName.Contains(", Ref")) {
+                            refName += ", Ref";
+                            itRef->SetName(refName.Data());
+                        }
+
                         TH1F* ref = (TH1F*) itRef;
 
                         Double_t maxCurr = cur->GetMaximum();
@@ -126,12 +154,14 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
 
                             ref->Draw();
                             ref->SetLineColor(kRed);
-                            cur->GetYaxis()->SetRangeUser(0., maxRef * 1.1);
+                            cur->GetYaxis()->SetRangeUser(0., maxRef * 1.3);
 
-                            cur->DrawNormalized("same", ref->Integral());
-                        } else
-                            if (ref->GetEntries() > FLT_EPSILON)
-                            ref->DrawNormalized("same", cur->Integral())->SetLineColor(kRed);
+                            if (ref->GetSumOfWeights() > FLT_EPSILON)
+                                cur->DrawNormalized("same", ref->Integral());
+                        } else {
+                            if (ref->GetSumOfWeights() > FLT_EPSILON)
+                                ref->DrawNormalized("same", cur->Integral())->SetLineColor(kRed);
+                        }
                     }
 
                     pad->Update();
@@ -143,6 +173,7 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
         c->Update();
         c->Modified();
     }
+    isOneRefDrawn = kTRUE;
 }
 
 void BmnQaMonitor::ShowCurrentHistos(Int_t run) {
@@ -150,6 +181,11 @@ void BmnQaMonitor::ShowCurrentHistos(Int_t run) {
     vector <TH1F*> h1 = allHistos->Get1D();
     vector <TH2F*> h2 = allHistos->Get2D();
 
+    if (isOneRefDrawn)
+        delete fRefHistosNames;
+
+    isOneRefDrawn = kFALSE;
+   
     vector <TNamed*> h;
     for (auto it : h1)
         h.push_back((TNamed*) it);
@@ -178,8 +214,11 @@ void BmnQaMonitor::ShowCurrentHistos(Int_t run) {
                 if (isColz) {
                     TH2F* tmp = (TH2F*) it;
                     tmp->Draw("colz");
-                } else
+                } else {
+                    TH1F* tmp = (TH1F*) it;
                     it->Draw();
+                    tmp->GetYaxis()->UnZoom();
+                }
                 padCounter++;
             }
         }
@@ -299,10 +338,10 @@ void BmnQaMonitor::ClearCanvases() {
         fCanvases[iCanvas]->Clear("D");
 }
 
-AllHistos* BmnQaMonitor::GetRun(UInt_t run) {
+AllHistos * BmnQaMonitor::GetRun(UInt_t run) {
     if (fHistos)
         delete fHistos;
-    
+
     fHistos = new AllHistos();
     if (run == 0) {
         ClearCanvases();
@@ -321,7 +360,7 @@ AllHistos* BmnQaMonitor::GetRun(UInt_t run) {
         fPathToData = "";
         return fHistos;
     }
-    
+
     fPathToData = "";
 
     for (auto it : fHistoNames) {

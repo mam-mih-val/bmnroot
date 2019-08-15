@@ -18,6 +18,9 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/QA/report
  ${CMAKE_SOURCE_DIR}/QA/offline
  ${CMAKE_SOURCE_DIR}/steering
+ ${CMAKE_SOURCE_DIR}/monitor
+ ${CMAKE_SOURCE_DIR}/uni_db
+ ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -81,7 +84,7 @@ EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 Set(HEADERS)
 Set(LINKDEF BmnQALinkDef.h)
 Set(LIBRARY_NAME BmnQa)
-Set(DEPENDENCIES Core Base Gem Silicon CSC XMLParser BmnSteering)
+Set(DEPENDENCIES Core Base Gem Silicon CSC XMLParser BmnSteering BmnMonitor)
 
 If ( ${ROOT_HAS_GDML} STREQUAL yes )
  Set (DEPENDENCIES ${DEPENDENCIES} Gdml)

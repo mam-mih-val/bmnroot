@@ -14,9 +14,22 @@ zdc(nullptr),
 dst(nullptr),
 triggers(nullptr),
 fCanvases(nullptr),
-fSteering(new BmnOfflineQaSteering()) {
+fHistos(nullptr),
+fSteering(new BmnOfflineQaSteering()),
+fRefHistosNames(nullptr) {
     fHistoDir = "";
+    fPeriodId = 7;
     fCurrentRun = -1;
+    fCurrentVer = -1;
+    isOneRefDrawn = kFALSE;
+    verList = new TObjArray();
+    verList->SetName("verList");
+    refList = new TObjArray();
+    refList->SetName("refList");
+    TString name = "infoCanvas";
+    infoCanvas = new TCanvas(name, name, 3 * 320, 1 * 240 * 2 / 3);
+    infoCanvas->Divide(3, 1);
+    DrawInfoC();
 
     // 1. Start server 
     InitServer();
@@ -76,6 +89,9 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
     vector <TNamed*> hCurr;
     vector <TNamed*> hRef;
 
+    if (!isOneRefDrawn)
+        fRefHistosNames = new vector <TString>;
+
     for (auto it : h1Curr)
         hCurr.push_back((TNamed*) it);
     for (auto it : h2Curr)
@@ -107,6 +123,23 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
                         continue;
                     TVirtualPad* pad = c->cd(padCounter);
 
+                    // Remove a reference histo if drawn ...
+                    if (isOneRefDrawn) {
+                        vector <TString>& vec = *fRefHistosNames;
+                        for (auto it : vec) {
+                            TObject* obj = pad->GetPrimitive(it.Data());
+                            if (!obj)
+                                continue;
+
+                            pad->GetListOfPrimitives()->Remove(obj);
+                        }
+                    } else {
+                        TString baseName = TString(itRef->GetName());
+                        baseName += ", Ref";
+                        itRef->SetName(baseName.Data());
+                        fRefHistosNames->push_back(itRef->GetName());
+                    }
+
                     // 1d histos for triggers are drawn in logarithmic scale !!!
                     if (nameCanvas.Contains("TRIGGERS_1d"))
                         pad->SetLogy();
@@ -114,6 +147,12 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
                     // We do not draw reference for a 2d-histo !!!
                     if (!currName.Contains("vs.") && !refName.Contains("vs.")) {
                         TH1F* cur = (TH1F*) itCurr;
+
+                        if (!refName.Contains(", Ref")) {
+                            refName += ", Ref";
+                            itRef->SetName(refName.Data());
+                        }
+
                         TH1F* ref = (TH1F*) itRef;
 
                         Double_t maxCurr = cur->GetMaximum();
@@ -125,12 +164,14 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
 
                             ref->Draw();
                             ref->SetLineColor(kRed);
-                            cur->GetYaxis()->SetRangeUser(0., maxRef * 1.1);
+                            cur->GetYaxis()->SetRangeUser(0., maxRef * 1.3);
 
-                            cur->DrawNormalized("same", ref->Integral());
-                        } else
-                            if (ref->GetEntries() > FLT_EPSILON)
-                            ref->DrawNormalized("same", cur->Integral())->SetLineColor(kRed);
+                            if (ref->GetSumOfWeights() > FLT_EPSILON)
+                                cur->DrawNormalized("same", ref->Integral());
+                        } else {
+                            if (ref->GetSumOfWeights() > FLT_EPSILON)
+                                ref->DrawNormalized("same", cur->Integral())->SetLineColor(kRed);
+                        }
                     }
 
                     pad->Update();
@@ -142,12 +183,26 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
         c->Update();
         c->Modified();
     }
+    isOneRefDrawn = kTRUE;
+    TObjArray* ar = (TObjArray*) refList->At(fCurrentVer);
+    for (auto it = ar->begin(); it != ar->end(); it.Next()) {
+        if (run == ((BmnRunInfo*) * it)->GetRunNumber()) {
+            fRefRunInfo = (BmnRunInfo*) * it;
+            break;
+        }
+    }
+    DrawInfoC();
 }
 
 void BmnQaMonitor::ShowCurrentHistos(Int_t run) {
     AllHistos* allHistos = GetCurrentRun(run);
     vector <TH1F*> h1 = allHistos->Get1D();
     vector <TH2F*> h2 = allHistos->Get2D();
+
+    if (isOneRefDrawn)
+        delete fRefHistosNames;
+
+    isOneRefDrawn = kFALSE;
 
     vector <TNamed*> h;
     for (auto it : h1)
@@ -177,13 +232,24 @@ void BmnQaMonitor::ShowCurrentHistos(Int_t run) {
                 if (isColz) {
                     TH2F* tmp = (TH2F*) it;
                     tmp->Draw("colz");
-                } else
+                } else {
+                    TH1F* tmp = (TH1F*) it;
                     it->Draw();
+                    tmp->GetYaxis()->UnZoom();
+                }
                 padCounter++;
             }
         }
     }
     fCurrentRun = run;
+    TObjArray* ar = (TObjArray*) refList->At(fCurrentVer);
+    for (auto it = ar->begin(); it != ar->end(); it.Next()) {
+        if (run == ((BmnRunInfo*) * it)->GetRunNumber()) {
+            fCurRunInfo = (BmnRunInfo*) * it;
+            break;
+        }
+    }
+    DrawInfoC();
 }
 
 void BmnQaMonitor::InitServer() {
@@ -268,9 +334,26 @@ void BmnQaMonitor::RegisterCanvases() {
 
     for (Int_t iCanvas = 0; iCanvas < nCanvases; iCanvas++)
         fServer->Register("/Objects", fCanvases[iCanvas]);
+
+    TNamed* v0 = new TNamed("0", "0");
+    verList->Add((TObject*) v0);
+    TNamed* v1 = new TNamed("1.0a", "1.0a");
+    verList->Add((TObject*) v1);
+
+    for (Int_t i = 0; i < verList->GetEntriesFast(); i++) {
+        TObjArray* l = new TObjArray();
+        l->SetName(Form("refList%i", i));
+        fServer->Register("/Objects", l);
+        refList->Add(l);
+    }
+    createFileList();
+
+    fServer->Register("/Objects", verList);
+    fServer->Register("/Objects", infoCanvas);
 }
 
 void BmnQaMonitor::RegisterUserCommands() {
+    TString cmdTitle0 = "SelectVer";
     TString cmdTitle1 = "SelectRun";
     TString cmdTitle2 = "SelectReferenceRun";
     TString cmdTitle3 = "Clear";
@@ -278,6 +361,10 @@ void BmnQaMonitor::RegisterUserCommands() {
     // Displaying current histograms ...
     fServer->Register("/", this);
     fName += "_";
+
+    // Current ver
+    TString cmd0 = "/" + fName + "/->SetVersion(%arg1%)";
+    fServer->RegisterCommand(cmdTitle0.Data(), cmd0.Data(), "button;");
 
     // Current run
     TString cmd1 = "/" + fName + "/->ShowCurrentHistos(%arg1%)";
@@ -298,16 +385,19 @@ void BmnQaMonitor::ClearCanvases() {
         fCanvases[iCanvas]->Clear("D");
 }
 
-AllHistos* BmnQaMonitor::GetRun(UInt_t run) {
-    AllHistos* histos = new AllHistos();
+AllHistos * BmnQaMonitor::GetRun(UInt_t run) {
+    if (fHistos)
+        delete fHistos;
+
+    fHistos = new AllHistos();
     if (run == 0) {
         ClearCanvases();
-        return histos;
+        return fHistos;
     }
 
     if (fHistoNames.size() == 0) {
         cout << "BmnQaMonitor::GetHistosFromFile(), No histos to be displayed" << endl;
-        return histos;
+        return fHistos;
     }
 
     fPathToData += fHistoDir + TString::Format("/qa_%d.root", run);
@@ -315,9 +405,9 @@ AllHistos* BmnQaMonitor::GetRun(UInt_t run) {
     if (!file->IsOpen()) {
         cout << "File does not exist! Exiting ... " << endl;
         fPathToData = "";
-        return histos;
+        return fHistos;
     }
-    
+
     fPathToData = "";
 
     for (auto it : fHistoNames) {
@@ -348,10 +438,78 @@ AllHistos* BmnQaMonitor::GetRun(UInt_t run) {
         TString hName = TString::Format("%s", h->GetName());
 
         if (hName.Contains(".vs")) // .vs in histo name must be present if 2d-histo assumed
-            histos->Set2D((TH2F*) h);
+            fHistos->Set2D((TH2F*) h);
         else
-            histos->Set1D((TH1F*) h);
+            fHistos->Set1D((TH1F*) h);
     }
     cout << "Run #" << run << " processed " << endl;
-    return histos;
+    return fHistos;
+}
+
+void BmnQaMonitor::createFileList() {
+    printf("%s\n", getenv("VMCWORKDIR"));
+    for (Int_t iVer = 0; iVer < verList->GetEntriesFast(); iVer++)
+        for (Int_t iFile = 3589; iFile < 5186; iFile++) {
+            TString ext = (strcmp(verList->At(iVer)->GetName(), "0") == 0) ? "" : Form("_v%s", verList->At(iVer)->GetName());
+            TFile* f = new TFile(TString(getenv("VMCWORKDIR")) + Form("/macro/miscellaneous/qa_files/qa_%d%s.root", iFile, ext.Data()), "r");
+            if (!f->IsOpen()) {
+                delete f;
+                continue;
+            }
+            UniDbRun* runInfo = UniDbRun::GetRun(fPeriodId, iFile);
+            TString targ = *runInfo->GetTargetParticle();
+            Double_t ene = *runInfo->GetEnergy();
+            printf("<option value=\"%d\"> %d %s%s @ %G AGeV </option>\n", iFile, iFile, runInfo->GetBeamParticle().Data(), targ.Data(), ene);
+            BmnRunInfo* bri = new BmnRunInfo(runInfo);
+            ((TObjArray*) refList->At(iVer))->Add((TObject*) bri);
+            delete f;
+        }
+}
+
+void BmnQaMonitor::DrawInfoC() {
+    TLatex Tl;
+    TVirtualPad *pad = infoCanvas->cd(1);
+    pad->Clear();
+    Tl.SetTextAlign(12);
+    Tl.SetTextSize(0.10);
+    if (fCurRunInfo) {
+        Tl.DrawLatex(0.1, 0.9, Form("Current Run: %i", fCurRunInfo->GetRunNumber()));
+        Tl.DrawLatex(0.1, 0.75, Form("Energy: %1.2f", fCurRunInfo->GetEnergy()));
+        Tl.DrawLatex(0.1, 0.6, Form("Beam: %s", fCurRunInfo->GetBeamParticle().Data()));
+        Tl.DrawLatex(0.1, 0.45, Form("Target: %s", fCurRunInfo->GetTargetParticle().Data()));
+        Tl.DrawLatex(0.1, 0.3, Form("Field Voltage: %1.0f", fCurRunInfo->GetFieldVoltage()));
+        Tl.Draw();
+    }
+    pad->Update();
+    pad->Modified();
+
+    pad = infoCanvas->cd(2);
+    pad->Clear();
+    Tl.SetTextAlign(12);
+    Tl.SetTextSize(0.10);
+    if (fRefRunInfo) {
+        Tl.DrawLatex(0.1, 0.9, Form("Ref. Run: %i", fRefRunInfo->GetRunNumber()));
+        Tl.DrawLatex(0.1, 0.75, Form("Energy: %1.2f", fRefRunInfo->GetEnergy()));
+        Tl.DrawLatex(0.1, 0.6, Form("Beam: %s", fRefRunInfo->GetBeamParticle().Data()));
+        Tl.DrawLatex(0.1, 0.45, Form("Target: %s", fRefRunInfo->GetTargetParticle().Data()));
+        Tl.DrawLatex(0.1, 0.3, Form("Field Voltage: %1.0f", fRefRunInfo->GetFieldVoltage()));
+        Tl.Draw();
+    }
+    pad->Update();
+    pad->Modified();
+
+    pad = infoCanvas->cd(3);
+    pad->Clear();
+    Tl.SetTextAlign(12);
+    Tl.SetTextSize(0.10);
+    if (fCurrentVer >= 0) {
+        Tl.DrawLatex(0.1, 0.9, Form("Version: %s", verList->At(fCurrentVer)->GetName()));
+    }
+    pad->Update();
+    pad->Modified();
+}
+
+void BmnQaMonitor::SetVersion(Int_t iVer) {
+    fCurrentVer = iVer;
+
 }

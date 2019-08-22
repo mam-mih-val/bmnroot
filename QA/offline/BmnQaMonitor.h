@@ -4,6 +4,8 @@
 #include <TObjString.h>
 #include <THttpServer.h>
 #include <TCanvas.h>
+#include <TObjArray.h>
+#include <TObjString.h>
 
 #include <BmnCoordinateDetQa.h>
 #include <BmnTimeDetQa.h>
@@ -12,6 +14,9 @@
 #include <BmnDstQa.h>
 
 #include <BmnOfflineQaSteering.h>
+#include <BmnRunInfo.h>
+#include <UniDbRun.h>
+#include <TLatex.h>
 
 #ifndef BMNQAMONITOR_H
 #define BMNQAMONITOR_H 1
@@ -23,7 +28,7 @@ public:
 
     }
 
-    ~AllHistos() {
+    virtual ~AllHistos() {
 
     }
 
@@ -58,6 +63,7 @@ public:
    
     void ShowCurrentHistos(Int_t);
     void ShowReferenceHistos(Int_t);
+    void SetVersion(Int_t);
     
     void ClearCanvases();
     
@@ -73,6 +79,8 @@ private:
     void RegisterCanvases();
     void DivideCanvases();
     void RegisterUserCommands();
+    void createFileList();
+    void DrawInfoC();
     
     AllHistos* GetRun(UInt_t);
 
@@ -127,13 +135,23 @@ private:
     vector <TString> fHistoNames; // Histo names to get by corresponding getter
     vector <TH1*> fHisto; // Histos to be registered via server
 
+    Int_t fPeriodId;
     Int_t fCurrentRun;
+    Int_t fCurrentVer;
+    vector <TString>* fRefHistosNames;
+    Bool_t isOneRefDrawn;
 
     TCanvas** fCanvases;
 
     BmnOfflineQaSteering* fSteering;
     
     TString fHistoDir;
+    AllHistos* fHistos;
+    TObjArray* refList;
+    TObjArray *verList;
+    TCanvas *infoCanvas;
+    BmnRunInfo* fCurRunInfo = nullptr;
+    BmnRunInfo* fRefRunInfo = nullptr;
 
     ClassDef(BmnQaMonitor, 1)
 };

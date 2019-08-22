@@ -1,53 +1,121 @@
 <html>
-<head>
-    <title> DCH </title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRootCore.js?2d"></script>
-<script>
-
-function redrawCanvases() {
+    <head>
+        <title> DCH </title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRootCore.js?2d"></script>
+        <script type="text/javascript" src="../scripts/BMTools.js"></script>
+        <script>
+            function makeLists() {
+                var verPath = "/root.app/Objects/verList/root.json";
+                JSROOT.NewHttpRequest(verPath, 'text', function (obj) {
+                    var list = JSON.parse(obj);
+                    var sel = document.getElementById("selectVer");
+                    sel.innerHTML = "";
+                    var iv = 0;
+                    list.arr.forEach(function (item) {
+                        var op = document.createElement("option");
+                        op.value = iv++;
+                        op.innerHTML = item.fName;
+                        sel.appendChild(op);
+                    });
+                    sel.value = 0;
+                    SetVer();
+                }).send(null);
                 setTimeout(redrawCanvases, 3000);
+            }
+
+            function redrawCanvases() {
+                setTimeout(redrawCanvases, 3000);
+                var filename = "/root.app/Objects/infoCanvas/root.json";
+                JSROOT.NewHttpRequest(filename, 'object', function (obj) {
+                    JSROOT.redraw("infoC", obj);
+                }).send(null);
                 var filename = "/root.app/Objects/DCH_2d/root.json";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
-                JSROOT.redraw("DCHTable", obj);
+                    JSROOT.redraw("DetTable", obj);
                 }).send(null);
             }
 
-function SetRun() {
-                JSROOT.cleanup("DCHTable");
-                var runName = document.getElementById("Run").value;
+            function SetVer() {
+                var iver = document.getElementById("selectVer").value;
+                var cmd = "/root.app/Objects/SelectVer/cmd.json";
+                cmd = cmd + "?" + "arg1=" + iver;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", cmd, true);
+                xhr.send();
+                FillRefTable("/root.app/Objects/refList" + iver + "/root.json", "selectRun");
+                FillRefTable("/root.app/Objects/refList" + iver + "/root.json", "selectRef");
+            }
+
+            function SetRun() {
+                JSROOT.cleanup("DetTable");
+                var runName = document.getElementById("selectRun").value;
                 var cmd = "/root.app/Objects/SelectRun/cmd.json";
                 cmd = cmd + "?" + "arg1=" + runName;
                 var xhr = new XMLHttpRequest();
                 xhr.open("POST", cmd, true);
                 xhr.send();
             }
-function SetRef() {
-                JSROOT.cleanup("DCHTable");
-                var runName = document.getElementById("Ref").value;
+            function SetRef() {
+                JSROOT.cleanup("DetTable");
+                var runName = document.getElementById("selectRef").value;
                 var cmd = "/root.app/Objects/SelectReferenceRun/cmd.json";
                 cmd = cmd + "?" + "arg1=" + runName;
                 var xhr = new XMLHttpRequest();
                 xhr.open("POST", cmd, true);
                 xhr.send();
             }
-</script>
-<body>
+        </script>
+    <body>
         <ul>
             <li><a href="../index.html"> <h3>Return to the main page of the system</h3></a></li>
-            </ul>
-</body>
+        </ul>
+	<table border="1">
+            <caption></caption>
+            <tr>
+                <th>Description:</th>
+                <th>List of histos drawn:</th>
+            </tr>
+            <tr>
+                <td align="center"> <div align="center"> </div></td>
+             
+                </td>
+            </tr>
+        </table>
+    <br>
 
-<button onclick="SetRun()" style="width: 10vw; height: 10vw;"> 
-Select Run
-</button>
-
-<input type="text" name="Run" id="Run">
-
-<body onload="redrawCanvases()">
-<div id="DCHTable" style="width: 100vw; height: 100vw;" > </div>
-</body>
-
-
+        <div align="center">
+            <div id="infoC" style="width: 90vw;height: 20vw"> </div>
+        </div>
+        <table border="1"> 
+            <tr>
+                <th> Select Version:</th>
+                <th> Select Current Run:</th>
+                <th> Select Reference Run:</th>
+            </tr>
+            <tr> 
+                <td> 
+                    <div align="center">
+                        <select id="selectVer" onchange="SetVer()">
+                        </select>
+                    </div>
+                </td>
+                <td> 
+                    <div align="center">
+                        <select id="selectRun" onchange="SetRun()">
+                        </select>
+                    </div>
+                </td>
+                <td>
+                    <div align="center">
+                        <select id="selectRef" onchange="SetRef()">
+                        </select>
+                    </div>
+                </td>  
+            </tr>
+        </table>
+    <body onload="makeLists()">
+        <div id="DetTable" style="width: 100vw; height: 100vw;" > </div>
+    </body>
 </html>

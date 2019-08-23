@@ -19,8 +19,7 @@ foreach(p
   endif()
 endforeach()
 
-# Set name of our project to "BMNROOT". Has to be done
-# after check of cmake version
+# Set name of our project to "BMNROOT"
 project(BMNROOT)
 
 Option(USE_PATH_INFO "Information from PATH and LD_LIBRARY_PATH are used." ON)
@@ -89,19 +88,16 @@ Else(USE_PATH_INFO)
 EndIf(USE_PATH_INFO)
 
 # Check if the user wants to build the project in the source
-# directory and if the install directory is different from the build
-# directory
+# directory and if the install directory is different from the build directory
 CHECK_OUT_OF_SOURCE_BUILD()
 CHECK_INSTALL_DIRECTORY()
 
-# Check if we are on an UNIX system. If not stop with an error
-# message
+# Check if we are on an UNIX system. If not stop with an error message
 IF(NOT UNIX)
   MESSAGE(FATAL_ERROR "You're not on an UNIX system. The project was up to now only tested on UNIX systems, so we break here. If you want to go on please edit the CMakeLists.txt in the source directory.")
 ENDIF(NOT UNIX)
 
-# Check if the external packages are installed into a separate install
-# directory
+# Check if the external packages are installed into a separate install directory
 CHECK_EXTERNAL_PACKAGE_INSTALL_DIR()
 
 # searches for needed packages
@@ -143,8 +139,7 @@ Message("-- Looking for Boost ...")
 # If an older version of boost is found both of the variables below are
 # cached and in a second cmake run, a good boost version is found even
 # if the version is to old.
-# To overcome this problem both variables are cleared before checking
-# for boost.
+# To overcome this problem both variables are cleared before checking for boost.
 Unset(Boost_INCLUDE_DIR CACHE)
 Unset(Boost_LIBRARY_DIRS CACHE)
 find_package(Boost 1.41)

@@ -363,11 +363,11 @@ void BmnFieldMap::ReadAsciiFile(const char* fileName) {
 
     // Open file
     LOG(INFO) << "BmnFieldMap: Reading field map from ASCII file "
-            << fileName << FairLogger::endl;
+            << fileName;
     ifstream mapFile(fileName);
     if (!mapFile.is_open()) {
-        LOG(ERROR) << "BmnFieldMap:ReadAsciiFile: Could not open file!" << FairLogger::endl;
-        LOG(FATAL) << "BmnFieldMap:ReadAsciiFile: Could not open file!" << FairLogger::endl;
+        LOG(ERROR) << "BmnFieldMap:ReadAsciiFile: Could not open file!";
+        LOG(FATAL) << "BmnFieldMap:ReadAsciiFile: Could not open file!";
     }
 
     // Read map type
@@ -446,12 +446,12 @@ void BmnFieldMap::ReadRootFile(const char* fileName) {
 
     // Open root file
     LOG(INFO) << "BmnFieldMap: Reading field map from ROOT file "
-            << fileName << FairLogger::endl;
+            << fileName;
     TFile* file = new TFile(fileName, "READ");
 
     if (!(file->IsOpen())) {
-        LOG(ERROR) << "BmnFieldMap:ReadRootFile: Could not open file!" << FairLogger::endl;
-        LOG(FATAL) << "BmnFieldMap:ReadRootFile: Could not open file!" << FairLogger::endl;
+        LOG(ERROR) << "BmnFieldMap:ReadRootFile: Could not open file!";
+        LOG(FATAL) << "BmnFieldMap:ReadRootFile: Could not open file!";
     }
   
     TTree *tree = (TTree*) file->Get("Main_info");

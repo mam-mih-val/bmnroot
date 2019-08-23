@@ -25,8 +25,8 @@ const Double_t InnerRadiusOfOctagon = 12.0;
 void create_rootgeom_DCH_RunWinter2016() {
 
     // Load the necessary FairRoot libraries
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-    bmnloadlibs(); // load libraries
+    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+    //bmnloadlibs(); // load libraries
 
     // -------   Load media from media file   -----------------------------------
     FairGeoLoader* geoLoad = new FairGeoLoader("TGeo", "FairGeoLoader");

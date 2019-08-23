@@ -34,7 +34,7 @@
 #include "FairGeoMedia.h"
 
 //------------------------------------------------------------------------------------------------------------------------
-BmnDch::BmnDch() 
+BmnDch::BmnDch()
  : FairDetector("DCH", kTRUE)
 {
 	fPointCollection = new TClonesArray("BmnDchPoint");
@@ -45,32 +45,32 @@ BmnDch::BmnDch()
 //------------------------------------------------------------------------------------------------------------------------
 BmnDch::BmnDch(const char* name, Bool_t active)
  : FairDetector(name, active)
-{  
+{
 	fPointCollection = new TClonesArray("BmnDchPoint");
 	fPosIndex = 0;
     fVerboseLevel = 1;
 	ResetParameters();
 }
 //------------------------------------------------------------------------------------------------------------------------
-BmnDch::~BmnDch() 
+BmnDch::~BmnDch()
 {
 	if(fPointCollection){fPointCollection->Delete(); delete fPointCollection; }
 }
 //------------------------------------------------------------------------------------------------------------------------
-int BmnDch::DistAndPoints(TVector3 p3, TVector3 p4, TVector3& pa, TVector3& pb) {                                         
+int BmnDch::DistAndPoints(TVector3 p3, TVector3 p4, TVector3& pa, TVector3& pb) {
     pa=(p3+p4)*0.5;
     pb=pa;
-    
+
     //pa=p3; //del
     //pb=pa; //del
     return 0;
-} 
+}
 //------------------------------------------------------------------------------------------------------------------------
 TVector3 BmnDch::GlobalToLocal(TVector3& global) {
     Double_t globPos[3];
     Double_t localPos[3];
     global.GetXYZ(globPos);
-    gMC->Gmtod(globPos, localPos, 1); 
+    gMC->Gmtod(globPos, localPos, 1);
     return TVector3(localPos);
 }
 //------------------------------------------------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ TVector3 BmnDch::LocalToGlobal(TVector3& local) {
     Double_t globPos[3];
     Double_t localPos[3];
     local.GetXYZ(localPos);
-    gMC->Gdtom(localPos, globPos, 1);  
+    gMC->Gdtom(localPos, globPos, 1);
     return TVector3(globPos);
 }
 //----------------------------------------------------------------------------------------------------------------------
@@ -116,7 +116,7 @@ Bool_t  BmnDch::ProcessHits(FairVolume* vol)
   fELoss += gMC->Edep();
 
   // Create BmnDchPoint at EXIT of active volume;
-  if ((gMC->IsTrackExiting() || gMC->IsTrackStop() || gMC->IsTrackDisappeared()) && fELoss > 0) {
+  if ((gMC->IsTrackExiting() || gMC->IsTrackStop() || gMC->IsTrackDisappeared()) && fELoss >= 0) {
     TLorentzVector PosOut;
     gMC->TrackPosition(PosOut);
     fPosOut.SetXYZ(PosOut.X(), PosOut.Y(), PosOut.Z());
@@ -149,7 +149,7 @@ Bool_t  BmnDch::ProcessHits(FairVolume* vol)
   return kTRUE;
 }
 //------------------------------------------------------------------------------------------------------------------------
-void BmnDch::EndOfEvent() 
+void BmnDch::EndOfEvent()
 {
 	if(fVerboseLevel) Print();
   	fPointCollection->Clear();
@@ -158,18 +158,18 @@ void BmnDch::EndOfEvent()
 //------------------------------------------------------------------------------------------------------------------------
 void BmnDch::Register(){ FairRootManager::Instance()->Register("DCHPoint", "DCH", fPointCollection, kTRUE); }
 //------------------------------------------------------------------------------------------------------------------------
-TClonesArray* BmnDch::GetCollection(Int_t iColl) const 
+TClonesArray* BmnDch::GetCollection(Int_t iColl) const
 {
 	if(iColl == 0) 	return fPointCollection;
-	
+
 return NULL;
 }
 //------------------------------------------------------------------------------------------------------------------------
-void BmnDch::Print() const 
+void BmnDch::Print() const
 {
 	Int_t nHits = fPointCollection->GetEntriesFast();
 	cout << "-I- BmnDch: " << nHits << " points registered in this event." << endl;
-	
+
 	if(fVerboseLevel > 1)
     		for(Int_t i=0; i<nHits; i++) (*fPointCollection)[i]->Print();
 }
@@ -182,8 +182,8 @@ void BmnDch::CopyClones(TClonesArray* cl1, TClonesArray* cl2, Int_t offset)
 	cout << "-I- BmnDch: " << nEntries << " entries to add." << endl;
 	TClonesArray& clref = *cl2;
 	BmnDchPoint* oldpoint = NULL;
-	
-	for(Int_t i=0; i<nEntries; i++) 
+
+	for(Int_t i=0; i<nEntries; i++)
 	{
 		oldpoint = (BmnDchPoint*) cl1->At(i);
 		Int_t index = oldpoint->GetTrackID() + offset;
@@ -191,23 +191,23 @@ void BmnDch::CopyClones(TClonesArray* cl1, TClonesArray* cl2, Int_t offset)
 		new (clref[fPosIndex]) BmnDchPoint(*oldpoint);
 		fPosIndex++;
 	}
-	
+
 	cout << "-I- BmnDch: " << cl2->GetEntriesFast() << " merged entries."  << endl;
 }
 //------------------------------------------------------------------------------------------------------------------------
-void BmnDch::ConstructGeometry() 
+void BmnDch::ConstructGeometry()
 {
   TString fileName = GetGeometryFileName();
-  
+
   if ( fileName.EndsWith(".root") ) {
     gLogger->Info(MESSAGE_ORIGIN,
-                "Constructing DCH geometry from ROOT file %s", 
+                "Constructing DCH geometry from ROOT file %s",
                 fileName.Data());
     ConstructRootGeometry();
   }
   else if ( fileName.EndsWith(".geo") ) {
     gLogger->Info(MESSAGE_ORIGIN,
-		  "Constructing DCH geometry from ASCII file %s", 
+		  "Constructing DCH geometry from ASCII file %s",
 		  fileName.Data());
     ConstructAsciiGeometry();
   }
@@ -228,7 +228,7 @@ void BmnDch::ConstructGeometry()
 
 // -----   ConstructAsciiGeometry   -------------------------------------------
 void BmnDch::ConstructAsciiGeometry() {
-  
+
   FairGeoLoader*    geoLoad = FairGeoLoader::Instance();
   FairGeoInterface* geoFace = geoLoad->getGeoInterface();
   BmnDchGeo*       DCHGeo  = new BmnDchGeo();
@@ -536,24 +536,24 @@ Bool_t BmnDch::CheckIfSensitive(std::string name)
     return kTRUE;
   }
   return kFALSE;
-    
-    
+
+
 //  if(0 == TString(name).CompareTo("DCHDetV")) {
 //    return kTRUE;
 //  }
 //  return kFALSE;
 
 }
-//---------------------------------------------------------  
+//---------------------------------------------------------
 
 //------------------------------------------------------------------------------------------------------------------------
 BmnDchPoint* BmnDch::AddHit(Int_t trackID, Int_t detID, TVector3 pos, Double_t radius,
-			    TVector3 mom, Double_t time, Double_t length, 
-			    Double_t eLoss, Int_t isPrimary, Double_t charge, Int_t pdgId, TVector3 trackPos) 
+			    TVector3 mom, Double_t time, Double_t length,
+			    Double_t eLoss, Int_t isPrimary, Double_t charge, Int_t pdgId, TVector3 trackPos)
 {
 	TClonesArray& clref = *fPointCollection;
 	Int_t size = clref.GetEntriesFast();
-    //std::cout << "ELoss: " << eLoss << "\n";	
+    //std::cout << "ELoss: " << eLoss << "\n";
     return new(clref[size]) BmnDchPoint(trackID, detID, pos, radius, mom, time, length, eLoss, isPrimary, charge, pdgId, trackPos);
 }
 //------------------------------------------------------------------------------------------------------------------------

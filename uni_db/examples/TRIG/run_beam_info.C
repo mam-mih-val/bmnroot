@@ -8,9 +8,9 @@ void run_beam_info(int period, int run = 0, TString target = "")
     UniDbParser parser;
     int res_code;
     vector<BeamSpillStructure*> beam_spill = parser.ParseTxt2Struct("../../macros/parse_schemes/summary.txt", res_code);
-    if (res_code > 0)
+    if (res_code < 0)
     {
-        cout<<"Macro finished with errors: parser error #"<<res_code<<endl;
+        cout<<endl<<"Macro finished with errors: parser error ("<<res_code<<")"<<endl;
         exit(-1);
     }
 
@@ -24,7 +24,7 @@ void run_beam_info(int period, int run = 0, TString target = "")
             run_count = UniDbRunPeriod::GetRunNumbers(period, run_numbers);
             if (run_count <= 0)
             {
-                cout<<"Macro finished with errors: no runs exists in the given period #"<<period<<endl;
+                cout<<endl<<"Macro finished with errors: no runs exists in the given period #"<<period<<endl;
                 exit(-2);
             }
         }
@@ -43,7 +43,7 @@ void run_beam_info(int period, int run = 0, TString target = "")
             run_count = pRunArray->GetEntriesFast();
             if (run_count <= 0)
             {
-                cout<<"Macro finished with errors: no runs exists for the given target: "<<target<<endl;
+                cout<<endl<<"Macro finished with errors: no runs exists for the given target: "<<target<<endl;
                 exit(-3);
             }
             arrayConditions.Delete();
@@ -60,7 +60,7 @@ void run_beam_info(int period, int run = 0, TString target = "")
         UniDbRun* pRun = UniDbRun::GetRun(period, run);
         if (pRun == NULL)
         {
-            cout<<"Macro finished with errors: no experimental run was found "<<period<<" : "<<run<<" / "<<((UniDbRun*) pRunArray->At(i))->GetRunNumber()<<endl;
+            cout<<endl<<"Macro finished with errors: no experimental run was found "<<period<<" : "<<run<<" / "<<((UniDbRun*) pRunArray->At(i))->GetRunNumber()<<endl;
             if (run_numbers != NULL)
                 delete [] run_numbers;
             if (pRunArray != NULL)

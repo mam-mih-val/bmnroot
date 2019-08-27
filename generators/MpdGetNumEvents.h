@@ -39,13 +39,13 @@ class MpdGetNumEvents
     MpdGetNumEvents(){}
     ~MpdGetNumEvents(){}
 
-    static bool GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t& fQGSM_format_ID);
+    static bool GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t& fQGSM_format_ID, int iVerbose);
 
   public:
-    static Int_t GetNumROOTEvents(const char* filename);
-    static Int_t GetNumPHSDEvents(const char* filename);
-    static Int_t GetNumQGSMEvents(const char* fileName);
-    static Int_t GetNumURQMDEvents(const char* fileName);
+    static Int_t GetNumROOTEvents(const char* filename, int iVerbose = 2);
+    static Int_t GetNumPHSDEvents(const char* filename, int iVerbose = 2);
+    static Int_t GetNumQGSMEvents(const char* fileName, int iVerbose = 2);
+    static Int_t GetNumURQMDEvents(const char* fileName, int iVerbose = 2);
 
     ClassDef(MpdGetNumEvents, 1);
 };

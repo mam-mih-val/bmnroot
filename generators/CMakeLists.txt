@@ -58,3 +58,5 @@ Set(DEPENDENCIES Base EG MathCore Physics RIO Core)
 
 GENERATE_LIBRARY()
 
+add_executable (show_event_count show_event_count.cxx)
+target_link_libraries(show_event_count MpdGen ${ROOT_LIBRARIES})

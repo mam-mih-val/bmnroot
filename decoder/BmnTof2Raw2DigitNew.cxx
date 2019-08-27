@@ -356,7 +356,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, I
 	}
     readLRoffsets((char *)"TOF700_left_right_offsets.txt");
     // 19.5 cm/ns
-    fVelosity = 19.5f;
+    fVelosity = 7.5f;
 
     for(int ind=0;ind<n_rec;ind++){ 
      if (mapa[ind].pair == -1) continue; 

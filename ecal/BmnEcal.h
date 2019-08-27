@@ -4,9 +4,10 @@
  *         
  *  Adopted for BMN by:   Elena Litvinenko
  *  e-mail:   litvin@nf.jinr.ru
- *  Version:  10-02-2016   
+ *  Version:  10-02-2016
+ *  Updated:  09-08-2019 by Petr Alekseev <pnaleks@gmail.com>
  *
- ************************************************************************************/
+************************************************************************************/
 
 #ifndef BMNECAL_H
 #define BMNECAL_H
@@ -111,6 +112,8 @@ class BmnEcal : public FairDetector
    **/
   virtual void ConstructGeometry();
 
+  virtual Bool_t CheckIfSensitive(std::string name);
+  
   BmnEcalPoint* AddHit(Int_t trackID, Int_t detID,  Int_t copyNo, Int_t copyNoMother,
 		      TVector3 pos, TVector3 mom,
 		      Double_t tof, Double_t length, Double_t eLoss);

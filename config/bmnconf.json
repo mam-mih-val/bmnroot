@@ -1,6 +1,7 @@
 {
-    "Digi": {
-        "TreeName": "bmndata",
-        "TreeTitle": "bmndigit"
+    "Decoder": {
+        "AdcDecoMode": "MK",
+        "DigiTreeName": "bmndata",
+        "DigiTreeTitle": "bmndigit"
     }
 }

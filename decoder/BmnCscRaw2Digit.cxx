@@ -35,6 +35,8 @@ BmnCscRaw2Digit::BmnCscRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer) :
             }
         }
     }
+    thrMax = 80;
+    thrDif = 15;
 }
 
 BmnCscRaw2Digit::~BmnCscRaw2Digit() {
@@ -151,7 +153,7 @@ BmnCscMapping* BmnCscRaw2Digit::FindMapEntry(BmnADCDigit* adcDig) {
 
 BmnStatus BmnCscRaw2Digit::FillNoisyChannels() {
     const Int_t kNStations = 1;
-    const Int_t kNStrips = 2048; //FIXME
+    const Int_t kNStrips = 640;//2048; //FIXME
     const Int_t kNStripsInBunch = 32;
     const Int_t kNBunches = kNStrips / kNStripsInBunch;
     const Int_t kNThresh = 3;
@@ -162,23 +164,36 @@ BmnStatus BmnCscRaw2Digit::FillNoisyChannels() {
                 TH1F* prof = fSigProf[iSt][iMod][iLay];
                 for (Int_t iBunch = 0; iBunch < kNBunches; ++iBunch) {
                     Double_t meanDiff = 0.0;
+                    Double_t mean = 0.0;
                     for (Int_t iStrip = 0; iStrip < kNStripsInBunch - 1; ++iStrip) {
                         Int_t strip = iStrip + iBunch * kNStripsInBunch;
                         Double_t curr = prof->GetBinContent(strip);
                         Double_t next = prof->GetBinContent(strip + 1);
                         meanDiff += Abs(next - curr);
+                        mean += next;
                     }
                     meanDiff /= kNStripsInBunch;
+                    mean /= kNStripsInBunch;
                     for (Int_t iStrip = 0; iStrip < kNStripsInBunch - 1; ++iStrip) {
                         Int_t strip = iStrip + iBunch * kNStripsInBunch;
                         Double_t curr = prof->GetBinContent(strip);
                         Double_t next = prof->GetBinContent(strip + 1);
-
-                        if (kNThresh * meanDiff < next - curr)
+//                        if (kNThresh * meanDiff < next - curr)
+                        if (kNThresh * mean < Abs(next - mean)) 
                             fNoisyChannels[iSt][iMod][iLay][strip] = kTRUE;
                     }
                 }
             }
+    for (Int_t iCr = 0; iCr < GetNSerials(); ++iCr)
+        for (Int_t iCh = 0; iCh < GetNChannels(); ++iCh)
+            for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl)
+                for (auto &it : fMap)
+                    if (GetSerials()[iCr] == it->serial && iCh >= it->channel_low && iCh <= it->channel_high) {
+                        if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) {
+                            UInt_t iStrip = (iCh - it->channel_low) * GetNSamples() + 1 + iSmpl;
+                            fNoisyChannels[it->station][it->module][it->layer][iStrip] = kTRUE;
+                        }
+                    }
 }
 
 Int_t BmnCscRaw2Digit::LayerPrediction(Int_t module, Int_t x) {
@@ -197,7 +212,7 @@ Int_t BmnCscRaw2Digit::LayerPrediction(Int_t module, Int_t x) {
 }
 
 void BmnCscRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TClonesArray * csc, Bool_t doFill) {
-    if (!adcDig || !cscM || !csc) return;
+    if (!adcDig || !cscM) return;
     const UInt_t nSmpl = adcDig->GetNSamples();
     UInt_t ch = adcDig->GetChannel();
     UInt_t ser = adcDig->GetSerial();
@@ -231,20 +246,22 @@ void BmnCscRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TCl
     for (Int_t iSmpl = 0; iSmpl < counter; ++iSmpl) signals[iSmpl] = 0.0;
     Int_t nOk = 0;
     for (Int_t iSmpl = 0; iSmpl < counter; ++iSmpl) {
-        if ((candDig[iSmpl]).GetStripSignal() == 0) continue;
+        if ((candDig[iSmpl]).GetStripSignal() == 0 ||
+                fNoisyChannels[candDig[iSmpl].GetStation()][candDig[iSmpl].GetModule()][candDig[iSmpl].GetStripLayer()][candDig[iSmpl].GetStripNumber()] == kTRUE) continue;
         signals[iSmpl] = (candDig[iSmpl]).GetStripSignal();
         nOk++;
     }
     Double_t CMS = CalcCMS(signals, nOk);
+    Double_t SCMS = CalcSCMS(signals, nSmpl, iSer, ch);
     Double_t*** vPed = GetPedestals();
     Double_t*** vPedRMS = GetPedestalsRMS();
     for (Int_t iSmpl = 0; iSmpl < counter; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
         BmnCSCDigit * dig = &candDig[iSmpl];
         Double_t ped = vPed[iSer][ch][iSmpl];
-        Double_t sig = Abs(dig->GetStripSignal() - CMS - ped);
+        Double_t sig = Abs(dig->GetStripSignal() - SCMS - ped);
         //cout << "strip " << iSer << " CMS " << ch << " ped " << iSmpl << endl;
-        Float_t threshold = 50 + 4 * vPedRMS[iSer][ch][iSmpl]; //20;
+        Float_t threshold = Max(50.0, 4 * vPedRMS[iSer][ch][iSmpl]);//50 + 4 * vPedRMS[iSer][ch][iSmpl]; //20;
         //if(threshold != 0) cout << threshold << endl;
         if (sig < threshold || sig == 0.0) continue; //FIXME: check cases with sig == 0
         if (doFill) {

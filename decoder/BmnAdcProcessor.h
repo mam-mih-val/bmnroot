@@ -20,6 +20,11 @@
 #include <vector>
 #include <UniDbDetectorParameter.h>
 #include <UniDbDetector.h>
+#include <TH2F.h>
+#include <TCanvas.h>
+#include <BmnSiliconStationSet.h>
+#include <BmnGemStripStationSet.h>
+#include <BmnCSCStationSet.h>
 
 #define N_EV_FOR_PEDESTALS 500
 #define ADC_N_CHANNELS 64 //number of ADC channels
@@ -36,7 +41,15 @@ public:
     virtual ~BmnAdcProcessor();
 
     BmnStatus RecalculatePedestals();
+    BmnStatus RecalculatePedestalsAugmented();
+    BmnStatus FillProfiles(TClonesArray *adc);
+    BmnStatus FillNoisyChannels();
     Double_t CalcCMS(Double_t* samples, Int_t size);
+    
+    /**
+     * Calculate signal CM - pedestal CM
+     * */
+    Double_t CalcSCMS(Double_t* samples, Int_t size, UInt_t iCr, UInt_t iCh);
 
     Double_t**** GetPedData() {
         return fPedDat;
@@ -54,6 +67,18 @@ public:
         fNChannels = n;
     }
 
+    Int_t GetNSerials() {
+        return fNSerials;
+    }
+    
+    Int_t GetNChannels() {
+        return fNChannels;
+    }
+    
+    Int_t GetNSamples() {
+        return fNSamples;
+    }
+    
     Double_t GetPedestal(Int_t ser, Int_t ch, Int_t smpl) {
         return fPedVal[ser][ch][smpl];
     }
@@ -66,6 +91,10 @@ public:
         return fPedRms;
     }
 
+    Bool_t*** GetNoisyChipChannels() {
+        return fNoisyChipChannels;
+    }
+
     Int_t GetPeriod() {
         return fPeriod;
     }
@@ -75,7 +104,7 @@ public:
     }
 
     vector<UInt_t> GetSerials() {
-        return fSerials;
+        return fAdcSerials;
     }
 
     UInt_t GetBoundaryRun(UInt_t nSmpl) {
@@ -84,25 +113,61 @@ public:
         //so we have to use this crutch.
         return (nSmpl == 128) ? 1542 : 1992;
     }
-
+    
+protected:
+    Double_t thrMax;
+    Double_t thrDif;
+    UInt_t   thrIters;
+    Int_t fNSerials;
+    vector<UInt_t> fAdcSerials; //list of serial id for ADC-detector
+    Int_t fNSamples;
+    Int_t fNChannels;
+    Double_t**** fPedDat; //data set to calculate pedestals
+    BmnSetup fBmnSetup;
+    void Run7(Int_t* statsGem, Int_t* statsSil, Int_t* statsGemPermut, Int_t* statsSilPermut);
+    void CreateGeometries();
+    Int_t* statsGem;
+    Int_t* statsSil;
+    Int_t* statsGemPermut;
+    Int_t* statsSilPermut;
+    map <Int_t, Int_t> fGemStats;
+    map <Int_t, Int_t> fSilStats;
+    BmnGemStripStationSet* fDetectorGEM;
+    BmnSiliconStationSet* fDetectorSI;
+    BmnCSCStationSet* fDetectorCSC;
 
 private:
 
-    vector<UInt_t> fSerials; //list of serial id for ADC-detector
 
     Int_t fEntriesInGlobMap; // number of entries in BD table for Global Mapping
 
     Int_t fPeriod;
     Int_t fRun;
-    Int_t fNSerials;
-    Int_t fNSamples;
-    Int_t fNChannels;
     TString fDetName; //it's used for .txt files name 
 
-    Double_t**** fPedDat; //data set to calculate pedestals
     Double_t*** fPedVal; //set of calculated pedestals
+    Double_t*** fPedValTemp; //set of calculated pedestals
+    UInt_t** fNvals; // number of valid (under threshold) pedestals
+    UInt_t*** fNvalsADC; // number of valid (under threshold) ADC signals
+    Double_t** fPedCMS; //set of calculated pedestal CMSs
+    Double_t** fPedCMS0; //set of calculated pedestal CMSs
     Double_t*** fPedRms; // set of calculated pedestal errors
+    Double_t*** fPedSigRms; // set of calculated (pedestal - signal CMS) errors
+    Double_t*** fPedSigRms2; // set of calculated (pedestal - signal CMS) errors squared
+    Bool_t*** fNoisyChipChannels; // set of noisy channel flags
+    Double_t** fSigCMS; //set of calculated signal CMSs
     UInt_t*** fAdcProfiles;
+    TH2F * h;
+    TH2F * hcms;
+    TH2F * hscms_adc;
+    TH1F * hcms1;
+    TH2F * hscms1_adc;
+    TH1F * hcms1p;
+    TH1F * hscms1p_adc;
+    TH2F * hp;
+    TH2F * hfilter;
+    TH2F * hfilterMK;
+    TCanvas *canStrip;
 
     ClassDef(BmnAdcProcessor, 1);
 };

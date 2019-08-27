@@ -9,6 +9,7 @@
 #include "TSQLResult.h"
 #include "TSQLRow.h"
 #include "TSQLStatement.h"
+#include "TPRegexp.h"
 
 // XML
 #include <libxml/parser.h>
@@ -1195,12 +1196,14 @@ vector<BeamSpillStructure*> UniDbParser::ParseTxt2Struct(TString txtName, int& r
     txtFile.open(txtName, ios::in);
     if (!txtFile.is_open())
     {
-        cout<<"Error: reading TXT file '"<<txtName<<"' was failed"<<endl;
+        cout<<"ERROR: reading TXT file '"<<txtName<<"' was failed"<<endl;
         result_code = -1;
         return vector<BeamSpillStructure*>();
     }
 
+    TDatime dtSpillPrevious;
     string cur_line;
+    bool notFirstLine = false;
     while (getline(txtFile, cur_line))
     {
         // parse fields
@@ -1236,18 +1239,66 @@ vector<BeamSpillStructure*> UniDbParser::ParseTxt2Struct(TString txtName, int& r
                     iTriggerAll = atoi(token.c_str());
                     break;
                 default:
-                    cout<<"Error: field count is wrong for line: '"<<reduce_line<<endl;
+                    cout<<"ERROR: field count is wrong for line: '"<<reduce_line<<endl;
                     result_code = -2;
                     return vector<BeamSpillStructure*>();
             }
 
             num++;
         }
+        if (num < 7)
+        {
+            cout<<"WARNING: not all fields are present in the line: "<<reduce_line<<endl;
+            // trying to recover if date or time are absent
+            TPRegexp date_prefix("^[0-9][1-9]?[.][0-9][1-9]?[.][0-9][0-9][0-9]?[0-9]?");
+            if (!strDate.Contains(date_prefix))
+            {
+                iTriggerAll = iTriggerDaq; iTriggerDaq = iBeamAll; iBeamAll = iBeamDaq; iBeamDaq = atoi(strTime.Data()); strTime = strDate;
+                if (notFirstLine)
+                {
+                    TString strSQLDate = dtSpillPrevious.AsSQLString();
+                    strDate = TString::Format("%s.%s.%s", strSQLDate(8,2).Data(), strSQLDate(5,2).Data(), strSQLDate(0,4).Data());
+                    cout<<"WARNING: recovery date: "<<strDate<<endl;
+                }
+                else
+                {
+                    cout<<"ERROR: field count is wrong for line: '"<<reduce_line<<endl;
+                    result_code = -3;
+                    return vector<BeamSpillStructure*>();
+                }
+                num++;
+            }
+            if (num < 7)
+            {
+                TPRegexp time_prefix("^[0-9][0-9]?[:][0-9][0-9]?[:][0-9][0-9]?");
+                if (!strTime.Contains(time_prefix))
+                {
+                    iTriggerAll = iTriggerDaq; iTriggerDaq = iBeamAll; iBeamAll = iBeamDaq; iBeamDaq = atoi(strTime.Data());;
+                    strTime = "00:00:00";
+                    num++;
+                }
+            }
+            if (num < 7)
+            {
+                cout<<"ERROR: field count is wrong for line: '"<<reduce_line<<endl;
+                result_code = -3;
+                return vector<BeamSpillStructure*>();
+            }
+            //cout<<"RECOVERY STRING: "<<strDate<<" "<<strTime<<" "<<iBeamDaq<<" "<<iBeamAll<<" "<<iTriggerDaq<<" "<<iTriggerAll<<endl;
+        }
         strSpillEnd = TString::Format("%s %s", strDate.Data(), strTime.Data());
 
         tm tmbuf[1] = {{0}};
         strptime(strSpillEnd.Data(), "%d.%m.%Y %H:%M:%S", tmbuf);
         TDatime dtSpillEnd(tmbuf->tm_year, tmbuf->tm_mon+1, tmbuf->tm_mday, tmbuf->tm_hour, tmbuf->tm_min, tmbuf->tm_sec);
+        if ((notFirstLine) && (dtSpillPrevious > dtSpillEnd))
+        {
+            cout<<"ERROR: the order of the lines was corrupted"<<endl;
+            result_code = -4;
+            return vector<BeamSpillStructure*>();
+        }
+        dtSpillPrevious = dtSpillEnd;
+        notFirstLine = true;
 
         // write to vector
         BeamSpillStructure* st = new BeamSpillStructure();

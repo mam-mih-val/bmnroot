@@ -77,7 +77,6 @@
 
 #pragma link C++ class BmnEventHeader+;
 #pragma link C++ class map<UInt_t, Long64_t>+;
-#pragma link C++ class BmnRunHeader+;
 
 #pragma link C++ class BmnCounter+;
 

@@ -20,7 +20,6 @@
 #include "BmnTof1Digit.h"
 #include "BmnEventHeader.h"
 #include "BmnTrigDigit.h"
-#include "BmnRunHeader.h"
 #include "BmnTOF1Point.h"
 #include "BmnTof1GeoUtils.h"
 #include "BmnTofHit.h"

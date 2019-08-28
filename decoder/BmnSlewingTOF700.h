@@ -33,7 +33,6 @@
 #include "BmnTrigRaw2Digit.h"
 #include "BmnCscRaw2Digit.h"
 #include "BmnEventHeader.h"
-#include "BmnRunHeader.h"
 #include "BmnEnums.h"
 #include "DigiArrays.h"
 #include <bitset>
@@ -205,14 +204,11 @@ private:
     TClonesArray *tqdc_adc;
     TClonesArray *msc;
     TClonesArray *eventHeaderDAQ;
-    BmnRunHeader *runHeaderDAQ;
     //    TClonesArray *runHeaderDAQ;
     TClonesArray *pedestalAdc;
 
     //header array
     TClonesArray *eventHeader;
-    BmnRunHeader *runHeader;
-    //    TClonesArray *runHeader;
 
     UInt_t data[10000000];
     ULong_t fMaxEvent;

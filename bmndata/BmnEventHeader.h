@@ -20,6 +20,8 @@ private:
 
     /** Event Id **/
     UInt_t fEventId;
+    /** Period Id **/
+    UInt_t fPeriodId;
     /** Event Time in TTimeStamp **/
     TTimeStamp fEventTimeTS;
     /** Event Type (payload = 0 or pedestal = 1) **/
@@ -58,6 +60,9 @@ public:
     /** Get the run ID for this run */
     UInt_t GetEventId() { return fEventId; }
 
+    /** Get the period ID for this run */
+    UInt_t GetPeriodId() { return fPeriodId; }
+
     /** Get the time for this event */
     TTimeStamp GetEventTimeTS() { return fEventTimeTS; }
 
@@ -86,6 +91,11 @@ public:
      * @param evid : unique event id
      */
     void SetEventId(UInt_t event_id) { fEventId = event_id; }
+
+    /** Set the event ID for this run
+     * @param evid : unique event id
+     */
+    void SetPeriodId(UInt_t period_id) { fPeriodId = period_id; }
 
     /** Set the time for this event in */
     void SetEventTimeTS(TTimeStamp event_time) { fEventTimeTS = event_time; }

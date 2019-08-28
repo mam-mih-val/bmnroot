@@ -152,14 +152,12 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
     delete[] fNoisyChannels;
     delete[] fSigProf;
 
-    if (Rnoisefile == nullptr)
+    if (Rnoisefile == nullptr && Wnoisefile == nullptr)
         return;
     // MK Postprocessing
     // !!!! search for noisy channels to write to the file
     if (test != 2) {
         for (Int_t it = 0; it < niter; ++it) {
-            cout << " noisetest iter= " << it << endl;
-
             for (Int_t det = 0; det < ndet; ++det) {
                 Int_t mChan = nchdet[det];
 
@@ -191,8 +189,8 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
                         //                            printf("nhits = %f sum = %f  det = %i ichip = %i j = %i\n", hNhits[det]->GetBinContent(j + 1), sum, det, ichip, j);
 
                         // cuts to define channel as noisy
-                        if ((hNhits[det]->GetBinContent(j + 1) > 5 * sum && sum > 10) ||
-                                (hNhits[det]->GetBinContent(j + 1) > 4 * sum && sum > 100) ||
+                        if ((hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 10) ||
+                                (hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 100) ||
                                 (hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 1000)) {
 
 //                            cout << " new noise det= " << det << " chan= " << j << " iter= " << it << endl;
@@ -1025,7 +1023,6 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
 }
 
 void BmnGemRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped, Int_t ithr, Int_t itest) {
-    printf("iread = %i \n", iread);
     test = itest;
     if (iread > 0) read = kTRUE;
     if (iped > 0) pedestals = kTRUE;
@@ -1143,7 +1140,7 @@ void BmnGemRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped, Int
     for (Int_t ind = 0; ind < nadc; ind++) {
         inFile >> std::hex >> ser;
         fSerials[ind] = ser;
-        cout << " Serials= " << ind << " " << std::hex << ser << std::dec << endl;
+//        cout << " Serials= " << ind << " " << std::hex << ser << std::dec << endl;
     }
     for (Int_t i = 0; i < nadc; i++) {
         for (Int_t ic = 0; ic < maxAdc; ic++) {

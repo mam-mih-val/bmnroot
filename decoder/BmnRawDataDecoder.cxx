@@ -59,8 +59,10 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fPeriodId = period;
     if (fRawFileName != "") {
         fRunId = GetRunIdFromFile(fRawFileName);
-        fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
         fDigiFileName = (outfile == "") ? Form("bmn_run%04d_digi.root", fRunId) : outfile;
+        Int_t lastSlash = fDigiFileName.Last('/');
+        TString digiPath = (lastSlash == TString::kNPOS) ? "" : TString(fDigiFileName(0, lastSlash + 1));
+        fRootFileName = Form("%sbmn_run%04d_raw.root", digiPath.Data(), fRunId);
     }
     fDchMapFileName = "";
     fMwpcMapFileName = "";
@@ -439,6 +441,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     }
     //    new((*eventHeaderDAQ)[eventHeaderDAQ->GetEntriesFast()]) BmnEventHeader(fRunId, fEventId, TTimeStamp(time_t(fTime_s), fTime_ns), evType, kFALSE, trigInfo);
     eventHeaderDAQ->SetRunId(fRunId);
+    eventHeaderDAQ->SetPeriodId(fPeriodId);
     eventHeaderDAQ->SetEventId(fEventId);
     eventHeaderDAQ->SetEventTimeTS(TTimeStamp(time_t(fTime_s), fTime_ns));
     eventHeaderDAQ->SetEventTime(TTimeStamp(time_t(fTime_s), fTime_ns).AsDouble());
@@ -1125,6 +1128,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         //                curEventType, isTripEvent, headDAQ->GetTrigInfo(), fTimeShifts);
         eventHeader->SetRunId(headDAQ->GetRunId());
         eventHeader->SetEventId(headDAQ->GetEventId());
+        eventHeader->SetPeriodId(headDAQ->GetPeriodId());
         eventHeader->SetEventTimeTS(TTimeStamp(time_t(fTime_s), fTime_ns));
         eventHeader->SetEventTime(TTimeStamp(time_t(fTime_s), fTime_ns).AsDouble());
         eventHeader->SetEventType(curEventType);
@@ -1370,6 +1374,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     //            TTimeStamp(time_t(fTime_s), fTime_ns), fCurEventType, kFALSE, headDAQ->GetTrigInfo());
     eventHeader->SetRunId(headDAQ->GetRunId());
     eventHeader->SetEventId(headDAQ->GetEventId());
+    eventHeader->SetPeriodId(headDAQ->GetPeriodId());
     eventHeader->SetEventTimeTS(TTimeStamp(time_t(fTime_s), fTime_ns));
     eventHeader->SetEventTime(TTimeStamp(time_t(fTime_s), fTime_ns).AsDouble());
     eventHeader->SetEventType(fCurEventType);

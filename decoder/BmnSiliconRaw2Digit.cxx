@@ -139,7 +139,7 @@ void BmnSiliconRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped,
     for (Int_t ind = 0; ind < nadc; ind++) {
         inFile >> std::hex >> ser;
         fSerials[ind] = ser;
-        cout << "Serials= " << ind << " " << std::hex << ser << std::dec << endl;
+//        cout << "Serials= " << ind << " " << std::hex << ser << std::dec << endl;
     }
 
     // module 8->14
@@ -771,7 +771,7 @@ void BmnSiliconRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped,
             Int_t chan = noise - det * 10000;
             if (chan >= 0 && chan < maxChan) {
                 noisech[det][chan] = 1;
-                cout << "read noise " << noise << " det " << det << " chan " << chan << endl;
+//                cout << "read noise " << noise << " det " << det << " chan " << chan << endl;
             }
         }
         //     cout << endl;
@@ -992,7 +992,7 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
         delete[] fSigProf;
         if (canStrip) delete canStrip;
 
-    if (Rnoisefile == nullptr)
+    if (Rnoisefile == nullptr && Wnoisefile == nullptr)
         return;
     // MK Postprocessing
     if (test != 2) {

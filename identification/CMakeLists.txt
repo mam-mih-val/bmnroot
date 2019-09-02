@@ -34,7 +34,6 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 Set(SRCS
-BmnTofIdentification.cxx
 )
 
 If (Boost_FOUND)

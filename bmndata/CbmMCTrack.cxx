@@ -233,6 +233,8 @@ void CbmMCTrack::SetNPoints(Int_t iDet, Int_t nPoints) {
 
   else if ( iDet == kSSD) { }
 
+  else if ( iDet == kFD) { }
+
   else LOG(ERROR) << "Unknown detector ID "
           << iDet << FairLogger::endl;
 

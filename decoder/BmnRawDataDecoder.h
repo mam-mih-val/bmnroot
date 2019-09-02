@@ -33,7 +33,6 @@
 #include "BmnTrigRaw2Digit.h"
 #include "BmnCscRaw2Digit.h"
 #include "BmnEventHeader.h"
-#include "BmnRunHeader.h"
 #include "BmnEnums.h"
 #include "DigiArrays.h"
 #include <bitset>
@@ -314,11 +313,19 @@ public:
     }
 
     void SetBmnSetup(BmnSetup v) {
-        this->fBmnSetup = v;
+        fBmnSetup = v;
     }
 
     BmnSetup GetBmnSetup() const {
         return fBmnSetup;
+    }
+
+    void SetAdcDecoMode(BmnADCDecoMode v) {
+        fAdcDecoMode = v;
+    }
+
+    BmnADCDecoMode GetAdcDecoMode() const {
+        return fAdcDecoMode;
     }
 
     UInt_t GetBoundaryRun(UInt_t nSmpl) {
@@ -461,6 +468,7 @@ private:
     BmnEventType fCurEventType;
     BmnEventType fPrevEventType;
     BmnSetup fBmnSetup;
+    BmnADCDecoMode fAdcDecoMode;
     UInt_t fPedEvCntr;
     Int_t fEvForPedestals;
     Bool_t fPedEnough;

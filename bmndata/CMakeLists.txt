@@ -94,7 +94,6 @@ set(SRCS
  BmnIdentifiableTrack.cxx
  BmnEventHeader.cxx
  BmnEventQuality.cxx
- BmnRunHeader.cxx
  BmnFileSource.cxx
  BmnDecoSource.cxx
  BmnFitNode.h

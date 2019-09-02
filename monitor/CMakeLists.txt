@@ -8,6 +8,7 @@ Set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/csc
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/mwpc
  ${CMAKE_SOURCE_DIR}/alignment
@@ -68,6 +69,6 @@ EndIf (Boost_FOUND)
 Set(HEADERS)
 Set(LINKDEF MonitorLinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)
-Set(DEPENDENCIES Dch Sts BmnData Base Gem Silicon Decoder ${ZeroMQ_LIBRARY_SHARED} BmnField)
+Set(DEPENDENCIES Dch Sts BmnData Base Gem CSC Silicon Decoder ${ZeroMQ_LIBRARY_SHARED} BmnField)
 
 GENERATE_LIBRARY()

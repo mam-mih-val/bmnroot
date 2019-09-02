@@ -7,6 +7,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/csc
  ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/uni_db
@@ -51,6 +52,6 @@ Set(HEADERS)
 
 Set(LINKDEF DecoderLinkDef.h)
 Set(LIBRARY_NAME Decoder)
-Set(DEPENDENCIES Core Base BmnData UniDb)
+Set(DEPENDENCIES Core Base BmnData UniDb Silicon CSC Gem)
 
 GENERATE_LIBRARY()

@@ -17,9 +17,7 @@ BmnSlewingTOF700::BmnSlewingTOF700() {
     fMaxEvent = 0;
     fLengthRawFile = 0;
     fCurentPositionRawFile = 0;
-    runHeaderDAQ = NULL;
     eventHeaderDAQ = NULL;
-    runHeader = NULL;
     eventHeader = NULL;
     fTime_ns = 0;
     fTime_s = 0;
@@ -57,9 +55,7 @@ BmnSlewingTOF700::BmnSlewingTOF700() {
 
 BmnSlewingTOF700::BmnSlewingTOF700(TString file, ULong_t nEvents, ULong_t period) {
 
-    runHeaderDAQ = NULL;
     eventHeaderDAQ = NULL;
-    runHeader = NULL;
     eventHeader = NULL;
     fTime_ns = 0;
     fTime_s = 0;
@@ -156,7 +152,6 @@ BmnStatus BmnSlewingTOF700::SlewingTOF700Init() {
 
     fDigiTree = new TTree("cbmsim", "bmn_digit");
     eventHeader = new TClonesArray("BmnEventHeader");
-    runHeader = new BmnRunHeader();
     fDigiTree->Branch("EventHeader", &eventHeader);
 
     fRootFileIn = new TFile(fRootFileName, "READ");
@@ -172,7 +167,6 @@ BmnStatus BmnSlewingTOF700::SlewingTOF700Init() {
     tqdc_tdc = new TClonesArray("BmnTDCDigit");
     sync = new TClonesArray("BmnSyncDigit");
     eventHeaderDAQ = new TClonesArray("BmnEventHeader");
-    runHeaderDAQ = new BmnRunHeader();
     hrb = new TClonesArray("BmnHRBDigit");
     adc32 = new TClonesArray("BmnADCDigit");
     adc128 = new TClonesArray("BmnADCDigit");
@@ -184,7 +178,6 @@ BmnStatus BmnSlewingTOF700::SlewingTOF700Init() {
     fRawTree->SetBranchAddress("TQDC_TDC", &tqdc_tdc);
     fRawTree->SetBranchAddress("SYNC", &sync);
     fRawTree->SetBranchAddress("EventHeader", &eventHeaderDAQ);
-    fRawTree->SetBranchAddress("RunHeader", &runHeaderDAQ);
     fRawTree->SetBranchAddress("HRB", &hrb);
     fRawTree->SetBranchAddress("ADC32", &adc32);
     fRawTree->SetBranchAddress("ADC128", &adc128);

@@ -32,7 +32,7 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(tof1);
 
     FairDetector* dch = new BmnDch("DCH", kTRUE);
-    dch->SetGeometryFileName("DCH_RunWinter2016.root");
+    dch->SetGeometryFileName("DCH_RunSpring2018.root");
     fRun->AddModule(dch);
 
     FairDetector* tof2 = new CbmTof("TOF", kTRUE);

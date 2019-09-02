@@ -5,6 +5,7 @@ BmnEventHeader::BmnEventHeader() :
  FairEventHeader(),
  fHeaderName("BmnEventHeader."),
  fEventId(0),
+ fPeriodId(0),
  fEventTimeTS(TTimeStamp()),
  fEventType(kBMNPAYLOAD),
  fTripWord(false),

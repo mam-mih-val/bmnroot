@@ -20,7 +20,7 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(fd);
     
     FairDetector* mwpc = new BmnMwpc("MWPC", kTRUE);
-    mwpc->SetGeometryFileName("MWPC_RunWinter2016.root");
+    mwpc->SetGeometryFileName("MWPC_RunSpring2018.root");
     fRun->AddModule(mwpc);
 
     FairDetector* bd = new BmnBd("BD", kTRUE);
@@ -56,6 +56,6 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(ecal);
 
     BmnZdc* zdc = new BmnZdc("ZDC", kTRUE);
-    zdc->SetGeometryFileName("rootgeom_bmnzdc_104mods_v1_Zpos_8759mm_Xshift_313mm_Yshift_14mm.root");
+    zdc->SetGeometryFileName("ZDC_RunSpring2018.root");
     fRun->AddModule(zdc);
 }

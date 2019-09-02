@@ -18,6 +18,10 @@ void geometry_src_run7(FairRunSim *fRun)
     FairDetector* fd = new BmnFD("FD", kTRUE);
     fd->SetGeometryFileName("FD_v10.root");
     fRun->AddModule(fd);
+    
+    FairDetector* mwpc = new BmnMwpc("MWPC", kTRUE);
+    mwpc->SetGeometryFileName("MWPC_RunSRCSpring2018.root");
+    fRun->AddModule(mwpc);
 
     FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
     silicon->SetGeometryFileName("Silicon_RunSRCSpring2018.root");
@@ -42,5 +46,9 @@ void geometry_src_run7(FairRunSim *fRun)
     FairDetector* dch = new BmnDch("DCH", kTRUE);
     dch->SetGeometryFileName("DCH_RunSpring2018.root");
     fRun->AddModule(dch);
+
+    BmnZdc* zdc = new BmnZdc("ZDC", kTRUE);
+    zdc->SetGeometryFileName("ZDC_RunSpring2018.root");
+    fRun->AddModule(zdc);
 
 }

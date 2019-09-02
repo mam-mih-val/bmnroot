@@ -283,6 +283,7 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 		    int clstrip[TOF2_MAX_CHAMBERS] = {0};
 		    for (int i = 0; i<TOF2_MAX_CHAMBERS; i++)
 		    {
+			    if (fMCTimeFile && fMCTime[i] == 0.f) continue;
 			    ncl[i] = 0;
 			    int clstart = -1, clwidth = -1, cstr = -1;
 			    float samps = 0., timemin = 1000000000.;
@@ -365,6 +366,7 @@ void BmnTofHitProducer::Exec(Option_t* opt)
                             UID = ((pDigit->GetPlane() + 1)<<8) | (pDigit->GetStrip() + 1);
                             Int_t strip = pDigit->GetStrip();
                             Int_t chamber = pDigit->GetPlane();
+			    if (fMCTimeFile && fMCTime[chamber] == 0.f) continue;
 //			    if (chamber > 40 && strip > 15) continue;
 //			    printf("C %d s %d\n",pDigit->GetPlane(), pDigit->GetStrip());
 //			    pos.SetXYZ(xcens[chamber][strip],ycens[chamber][strip],zchamb[chamber]);

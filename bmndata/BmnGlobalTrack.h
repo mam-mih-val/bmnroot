@@ -32,9 +32,8 @@ class BmnGlobalTrack : public BmnTrack {
     Int_t GetMwpc2TrackIndex() const { return fMwpc2Track; }
     Int_t GetCscHitIndex() const { return fCscHit; }
 
-    Double_t GetTime() const { return fTime; }
-    Double_t GetBeta() const { return fBeta; }
-    Double_t GetMass2() const { return fMass2; }
+    Double_t GetBeta(Int_t tofID) const { return (tofID == 1) ? fBeta400 : (tofID == 2) ? fBeta700 : -1000.0; }
+    Double_t GetMass2(Int_t tofID);
     Double_t GetdQdNUpper() const { return fdQdNUpper; }
     Double_t GetdQdNLower() const { return fdQdNLower; }
 
@@ -53,9 +52,7 @@ class BmnGlobalTrack : public BmnTrack {
     void SetMwpc2TrackIndex(Int_t iMwpc) { fMwpc2Track = iMwpc; }
     void SetCscHitIndex(Int_t iCsc) { fCscHit = iCsc; }
 
-    void SetTime(Double_t t) { fTime = t; }
-    void SetBeta(Double_t b) { fBeta = b; }
-    void SetMass2(Double_t m2) { fMass2 = m2; }
+    void SetBeta(Double_t b, Int_t tofID);
     void SetdQdNLower(Double_t q) { fdQdNLower = q; }
     void SetdQdNUpper(Double_t q) { fdQdNUpper = q; }
 
@@ -79,9 +76,8 @@ class BmnGlobalTrack : public BmnTrack {
     Int_t fCscHit;
 
     // members for PID
-    Double_t fTime;       // information from TOF
-    Double_t fBeta;       // l/t/c
-    Double_t fMass2;      // p^2/gamma^2/beta^2
+    Double_t fBeta400;    // l/t/c //for tof-400
+    Double_t fBeta700;    // l/t/c //for tof-700
     Double_t fdQdNUpper;  //cluster charge over number of hits in GEM detector for X' strips
     Double_t fdQdNLower;  //cluster charge over number of hits in GEM detector for X strips
 

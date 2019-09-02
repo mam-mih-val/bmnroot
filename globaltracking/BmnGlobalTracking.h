@@ -133,6 +133,13 @@ class BmnGlobalTracking : public FairTask {
     TH2F *fhTxdXSiGemResid;
     TH2F *fhTydYSiGemResid;
 
+    TH1F *fhXTof1GemResid;
+    TH1F *fhYTof1GemResid;
+    TH2F *fhXdXTof1GemResid;
+    TH2F *fhYdYTof1GemResid;
+    TH2F *fhTxdXTof1GemResid;
+    TH2F *fhTydYTof1GemResid;
+
     TH1F *fhXTof2GemResid;
     TH1F *fhYTof2GemResid;
     TH2F *fhXdXTof2GemResid;

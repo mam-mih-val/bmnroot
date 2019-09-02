@@ -171,28 +171,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     fRunAna->AddTask(stsFindHits);
 
     // ====================================================================== //
-    // ===                          TOF1 hit finder                       === //
-    // ====================================================================== //
-    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kFALSE);
-    tof1HP->SetPeriod(run_period);
-    //tof1HP->SetOnlyPrimary(kTRUE);
-    fRunAna->AddTask(tof1HP);
-
-    // ====================================================================== //
-    // ===                          TOF2 hit finder                       === //
-    // ====================================================================== //
-    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7.txt", !isExp, iVerbose, kFALSE);
-    tof2HP->SetTimeResolution(0.115);
-    tof2HP->SetMCTimeFile("TOF700_MC_time_run7.txt");
-    fRunAna->AddTask(tof2HP);
-
-    // ====================================================================== //
-    // ===                          Tracking (MWPC)                       === //
-    // ====================================================================== //
-    BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp, run_period, run_number);
-    fRunAna->AddTask(mwpcTF);
-
-    // ====================================================================== //
     // ===                         STS track finding                      === //
     // ====================================================================== //
     CbmKF* kalman = new CbmKF();
@@ -206,13 +184,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     CbmStsTrackFinder* stsTrackFinder = new CbmL1StsTrackFinder();
     FairTask* stsFindTracks = new CbmStsFindTracks(iVerbose, stsTrackFinder);
     fRunAna->AddTask(stsFindTracks);
-
-    // ====================================================================== //
-    // ===                          Tracking (DCH)                        === //
-    // ====================================================================== //
-    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
-    dchTF->SetTransferFunction("pol_coord00813.txt");
-    fRunAna->AddTask(dchTF);
 
     // ====================================================================== //
     // ===                      Primary vertex finding                    === //
@@ -248,11 +219,23 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     fRunAna->AddTask(cscHM);
 
     // ====================================================================== //
+    // ===                       Tracking (InnerTracker)                  === //
+    // ====================================================================== //
+    BmnCellAutoTracking* gemTF = new BmnCellAutoTracking(run_period, run_number, isField, isTarget);
+    fRunAna->AddTask(gemTF);
+
+    // ====================================================================== //
+    // ===                      Primary vertex finding                    === //
+    // ====================================================================== //
+    BmnVertexFinder* gemVF = new BmnVertexFinder(run_period, isField);
+    fRunAna->AddTask(gemVF);
+#endif
+
+    // ====================================================================== //
     // ===                          TOF1 hit finder                       === //
     // ====================================================================== //
     BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kFALSE);
     tof1HP->SetPeriod(run_period);
-    //tof1HP->SetOnlyPrimary(kTRUE);
     fRunAna->AddTask(tof1HP);
 
     // ====================================================================== //
@@ -270,31 +253,17 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     fRunAna->AddTask(mwpcTF);
 
     // ====================================================================== //
-    // ===                       Tracking (InnerTracker)                  === //
-    // ====================================================================== //
-    BmnCellAutoTracking* gemTF = new BmnCellAutoTracking(run_period, run_number, isField, isTarget);
-    fRunAna->AddTask(gemTF);
-
-    // ====================================================================== //
     // ===                          Tracking (DCH)                        === //
     // ====================================================================== //
-    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
-    dchTF->SetTransferFunction("pol_coord00813.txt");
+    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);    
+    dchTF->SetTransferFunction("transfer_func.txt");
     fRunAna->AddTask(dchTF);
-
-    // ====================================================================== //
-    // ===                      Primary vertex finding                    === //
-    // ====================================================================== //
-    BmnVertexFinder* gemVF = new BmnVertexFinder(run_period, isField);
-    // gemVF->SetVertexApproximation(TVector3(0., 0., 0.));
-    fRunAna->AddTask(gemVF);
-#endif
 
     // Residual analysis
     BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
     fRunAna->AddTask(res);
 
-    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, kFALSE);
+    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, kTRUE);
     fRunAna->AddTask(glTF);
 
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)

@@ -14,27 +14,33 @@ void geometry_src_run7(FairRunSim *fRun)
     fRun->AddModule(magnet);
 
     // -----   Create detectors        -------------------------
-    FairDetector* tof = new BmnTOF("TOF", kTRUE);
-    tof->SetGeometryFileName("tof700_run7_with_support.root");
-    fRun->AddModule(tof);
+
+    FairDetector* fd = new BmnFD("FD", kTRUE);
+    fd->SetGeometryFileName("FD_v10.root");
+    fRun->AddModule(fd);
+
+    FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
+    silicon->SetGeometryFileName("Silicon_RunSRCSpring2018.root");
+    fRun->AddModule(silicon);
 
     FairDetector* sts = new CbmSts("STS", kTRUE);
     sts->SetGeometryFileName("GEMS_RunSRCSpring2018.root");
     fRun->AddModule(sts);
+    
+    FairDetector* csc = new BmnCSC("CSC", kTRUE);
+    csc->SetGeometryFileName("CSC_RunSRCSpring2018.root");
+    fRun->AddModule(csc);
 
     FairDetector* tof1 = new BmnTOF1("TOF1", kTRUE);
     tof1->SetGeometryFileName("TOF400_RUN7_SRC.root");
     fRun->AddModule(tof1);
 
+    FairDetector* tof = new BmnTOF("TOF", kTRUE);
+    tof->SetGeometryFileName("tof700_run7_with_support.root");
+    fRun->AddModule(tof);
+
     FairDetector* dch = new BmnDch("DCH", kTRUE);
-    dch->SetGeometryFileName("DCH_RunWinter2016.root");
+    dch->SetGeometryFileName("DCH_RunSpring2018.root");
     fRun->AddModule(dch);
 
-    FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
-    silicon->SetGeometryFileName("Silicon_RunSRCSpring2018.root");
-    fRun->AddModule(silicon);
-    
-    FairDetector* csc = new BmnCSC("CSC", kTRUE);
-    csc->SetGeometryFileName("CSC_RunSRCSpring2018.root");
-    fRun->AddModule(csc);
 }

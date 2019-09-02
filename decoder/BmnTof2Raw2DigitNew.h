@@ -118,6 +118,7 @@ public:
     int Offsets_read();
     int readGeom(char *geomFile);
     int readLRoffsets(char *LRoffsetsFile);
+    int readXYCalibration(char *xcalibration, char *ycalibration);
     int printGeom();
     int get_strip_xyz(int chamber, int strip, float *x, float *y, float *z);
     int get_chamber_z(int chamber, float *z);
@@ -128,6 +129,8 @@ public:
     float get_hit_diff(int chamber, int strip, float diff_corrected);
     float get_hit_x(int chamber, int strip, float diff_corrected);
     void get_hit_xyz(int chamber, int strip, float diff_corrected, float *x, float *y, float *z);
+    float get_hit_xp(int chamber, int strip, float diff);
+    void get_hit_xyzp(int chamber, int strip, float diff, float *x, float *y, float *z);
     void ReBook(int i);
     void Book();
     void BookSlewing();
@@ -222,6 +225,11 @@ private:
     float lroffsets[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
     int lrsign[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
     float fVelosity;
+
+    float xslope[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
+    float xoffset[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
+    float yslope[TOF2_MAX_CHAMBERS];
+    float yoffset[TOF2_MAX_CHAMBERS];
 
     TFile *fSlewing;
     TFile *fSlewingr;

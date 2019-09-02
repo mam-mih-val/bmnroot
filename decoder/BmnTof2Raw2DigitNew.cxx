@@ -349,14 +349,21 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, I
 
 // read Left-Right offsets
     for (int c=0; c<TOF2_MAX_CHAMBERS; c++)
+    {
+	yslope[c] = 1.;
+	yoffset[c] = 0.;
 	for (int i=0; i<TOF2_MAX_STRIPS_IN_CHAMBER; i++)
 	{
 		    lroffsets[c][i] = 0.;
 		    lrsign[c][i] = +1;
+		    xoffset[c][i] = 0.;
+		    xslope[c][i] = 0.;
 	}
+    }
     readLRoffsets((char *)"TOF700_left_right_offsets.txt");
-    // 19.5 cm/ns
+    // 15 cm/ns
     fVelosity = 7.5f;
+    readXYCalibration((char *)"TOF700_tdiff_to_x_final_2019071.txt",(char *)"Y_calibration.txt");
 
     for(int ind=0;ind<n_rec;ind++){ 
      if (mapa[ind].pair == -1) continue; 
@@ -3687,6 +3694,113 @@ void BmnTof2Raw2DigitNew::get_hit_xyz(int chamber, int strip, float diff_correct
     }
     else
 	return;
+}
+
+int BmnTof2Raw2DigitNew::readXYCalibration(char *xcalibrationfile, char *ycalibrationfile)
+{
+	char fname[128];
+	FILE *fg = 0;
+	int i;
+	float xoff,xslop,yoff,yslop,yofferr,ysloperr;
+	
+// X calibration
+	if (strlen(xcalibrationfile) == 0)
+	{
+	    printf("TOF700 X calibration file name not defined!\n");
+	    return 0;
+	}
+	TString dir = getenv("VMCWORKDIR");
+	sprintf(fname,"%s/geometry/%s",dir.Data(),xcalibrationfile);
+	fg = fopen(fname,"r");
+	if (fg == NULL)
+	{
+	    printf("TOF700 X calibration file %s open error!\n", fname);
+	    return 0;
+	}
+	printf("Loading TOF700 X calibration from file %s\n", xcalibrationfile);
+	int ip, is, n = 0;
+	while(fscanf(fg, "%d %d %f %f\n", &ip, &is, &xoff, &xslop) == 4)
+	{
+	    if (ip>=MaxPlane)
+	    {
+		printf("X calibration: Chamber number %d >= %d, skip!\n", ip, MaxPlane);
+		continue;
+	    }
+	    if (is>=TOF2_MAX_STRIPS_IN_CHAMBER)
+	    {
+		printf("X calibration: Strip number %d >= %d, skip!\n", is, TOF2_MAX_STRIPS_IN_CHAMBER);
+		continue;
+	    }
+	    xoffset[ip][is] = xoff;
+	    xslope[ip][is] = xslop;
+	    n++;
+	}
+	fclose(fg);
+	printf("Read X calibration for %d strips.\n", n);
+// Y calibration
+	n = 0;
+	if (strlen(ycalibrationfile) == 0)
+	{
+	    printf("TOF700 Y calibration file name not defined!\n");
+	    return 0;
+	}
+	sprintf(fname,"%s/geometry/%s",dir.Data(),ycalibrationfile);
+	fg = fopen(fname,"r");
+	if (fg == NULL)
+	{
+	    printf("TOF700 Y calibration file %s open error!\n", fname);
+	    return 0;
+	}
+	printf("Loading TOF700 Y calibration from file %s\n", ycalibrationfile);
+	while(fscanf(fg, "%d %f %f %f %f\n", &ip, &yoff, &yofferr, &yslop, &ysloperr) == 5)
+	{
+	    if (ip>=MaxPlane)
+	    {
+		printf("Y calibration: Chamber number %d >= %d, skip!\n", ip, MaxPlane);
+		continue;
+	    }
+	    yoffset[ip] = yoff;
+	    yslope[ip] = yslop;
+	    n++;
+	}
+	fclose(fg);
+	printf("Read Y calibrations for %d strips.\n", n);
+
+	return 1;
+}
+
+
+float BmnTof2Raw2DigitNew::get_hit_xp(int chamber, int strip, float diff)
+{
+    float x = 0., dx = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER)
+    {
+	x = xoffset[chamber][strip] + xslope[chamber][strip]*(diff - lroffsets[chamber][strip]*HPTIMEBIN)/2.;
+	return x;
+    }
+    else
+	return 0.;
+}
+
+void BmnTof2Raw2DigitNew::get_hit_xyzp(int chamber, int strip, float diff, float *x, float *y, float *z)
+{
+    float xh = 0., yh = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER)
+    {
+	xh = xoffset[chamber][strip] + xslope[chamber][strip]*(diff - lroffsets[chamber][strip]*HPTIMEBIN)/2.;
+	yh = yoffset[chamber] + yslope[chamber]*ycens[chamber][strip];
+	*x = xh;
+	*y = yh;
+	*z = zchamb[chamber];
+	return;
+    }
+    else
+    {
+	*x = 0.;
+	*y = 0.;
+	*z = zchamb[chamber];
+	return;
+    }
 }
 
 int BmnTof2Raw2DigitNew::get_ch_tdc32vl(unsigned int tdc,unsigned int ch){

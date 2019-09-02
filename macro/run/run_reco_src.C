@@ -145,10 +145,10 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
-    // BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
-    // if (!isExp)
-    //     siliconHM->SetCurrentConfig(BmnSiliconConfiguration::RunSRCSpring2018); //set explicitly
-    // fRunAna->AddTask(siliconHM);
+    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
+    if (!isExp)
+        siliconHM->SetCurrentConfig(BmnSiliconConfiguration::RunSRCSpring2018); //set explicitly
+    fRunAna->AddTask(siliconHM);
     
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
@@ -211,6 +211,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     fRunAna->AddTask(tf);
 
     BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
+    dchTF->SetTransferFunction("transfer_func2932.txt");
     fRunAna->AddTask(dchTF);
 
     // Residual analysis

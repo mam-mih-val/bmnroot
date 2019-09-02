@@ -14,10 +14,6 @@ void geometry_src_run7(FairRunSim *fRun)
     fRun->AddModule(magnet);
 
     // -----   Create detectors        -------------------------
-
-    FairDetector* fd = new BmnFD("FD", kTRUE);
-    fd->SetGeometryFileName("FD_v10.root");
-    fRun->AddModule(fd);
     
     FairDetector* mwpc = new BmnMwpc("MWPC", kTRUE);
     mwpc->SetGeometryFileName("MWPC_RunSRCSpring2018.root");

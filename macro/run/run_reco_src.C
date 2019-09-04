@@ -181,7 +181,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // ====================================================================== //
     BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7.txt", !isExp, iVerbose, kTRUE);
     tof2HP->SetTimeResolution(0.115);
-    tof2HP->SetMCTimeFile("TOF700_MC_time_run7.txt");
+    tof2HP->SetMCTimeFile("TOF700_MC_gamma_time_run7.txt");
     fRunAna->AddTask(tof2HP);
 
     // ====================================================================== //

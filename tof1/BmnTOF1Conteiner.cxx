@@ -9,7 +9,7 @@
 //--------------------------------------------------------------------------------------------------------------------------------------
 BmnTOF1Conteiner::BmnTOF1Conteiner()
 {
-    //Clear();
+    Clear();
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 BmnTOF1Conteiner::BmnTOF1Conteiner(Short_t plane, Short_t strip, Float_t timeL, Float_t timeR, Float_t time, Float_t widthL, Float_t widthR, Float_t width, Float_t x, Float_t y, Float_t z, Float_t timeT0, Float_t widthT0)
@@ -18,7 +18,7 @@ BmnTOF1Conteiner::BmnTOF1Conteiner(Short_t plane, Short_t strip, Float_t timeL, 
     fStrip = strip;
     fTimeL = timeL;
     fTimeR = timeR;
-    fTime = -time;
+    fTime = time;
     fWidthL = widthL;
     fWidthR = widthR;
     fWidth = width;
@@ -35,7 +35,7 @@ void BmnTOF1Conteiner::SetParameters (Short_t plane, Short_t strip, Float_t time
     fStrip = strip;
     fTimeL = timeL;
     fTimeR = timeR;
-    fTime = -time;
+    fTime = time;
     fWidthL = widthL;
     fWidthR = widthR;
     fWidth = width;
@@ -44,12 +44,6 @@ void BmnTOF1Conteiner::SetParameters (Short_t plane, Short_t strip, Float_t time
     fZ = z;
     fTimeT0 = timeT0;
     fWidthT0 = widthT0;    
-}
-//--------------------------------------------------------------------------------------------------------------------------------------
-void	BmnTOF1Conteiner::print( std::ostream& os, const char* comment)const
-{
-	os<<" [BmnTof1Digit] "; if(nullptr != comment) os<<comment;
-	os<<"  detID: "<<fPlane<<", stripID: "<<fStrip<<", Time: "<<fTime<<", Width: "<<fWidth<<std::endl;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 void	BmnTOF1Conteiner::Clear()
@@ -68,6 +62,10 @@ void	BmnTOF1Conteiner::Clear()
     fTimeT0 = -1;
     fWidthT0 = -1;
 }
-//
+
+BmnTOF1Conteiner::~BmnTOF1Conteiner(){
+    
+}
+
 ClassImp(BmnTOF1Conteiner)
         

@@ -430,10 +430,10 @@ Bool_t BmnTOF1Detector::SetCorrSlewing(TString NameFile) {
         f_corr->cd(dirname.Data());
         Dir = f_corr-> CurrentDirectory();
         for (Int_t i = 0; i < fNStr; i++) {
-            name = Form("fPol1_Plane%d_Str%d", fNPlane, i);
+            name = Form("T0_TA_Plane%d_Str%d", fNPlane, i);
             funT0[i] = (TF1*) Dir->Get(name.Data());
             if (funT0[i] == NULL) printf("funT0[%d] is NULL\n", i);
-            name = Form("RpcGauss_for_Plane%d_Str%d", fNPlane, i);
+            name = Form("Rpc_TA_Plane%d_Str%d", fNPlane, i);
             gSlew[i] = (TGraphErrors*) Dir->Get(name.Data());
             if (gSlew[i] == NULL) printf("gSlew[%d] is NULL\n", i);
         }

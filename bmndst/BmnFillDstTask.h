@@ -84,7 +84,8 @@ class BmnFillDstTask : public FairTask
     DstEventHeader* fDstHead;
     /** Output BmnRunHeader **/
     DstRunHeader* fRunHead;
-
+    /*For Z^2 (summation of squared charge) calculation*/
+    TClonesArray *fT0, *fBC1, *fBC2, *fBC3, *fBC4;
     /** event count to be processed for progress bar **/
     Long64_t fNEvents;
     /** current event being processed for progress bar **/

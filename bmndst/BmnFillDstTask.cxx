@@ -14,6 +14,8 @@
 #include "UniDbRun.h"
 #include "function_set.h"
 
+#include "ExtractZ2.cxx"
+
 #include "FairLogger.h"
 
 #include "TDirectory.h"
@@ -130,6 +132,12 @@ InitStatus BmnFillDstTask::Init() {
             fEventHead = (BmnEventHeader*)pObj;
     }
 
+    //Get input branches	
+    fT0 = (TClonesArray*) ioman->GetObject("BC2");
+    fBC1 = (TClonesArray*) ioman->GetObject("TQDC_BC1");
+    fBC2 = (TClonesArray*) ioman->GetObject("TQDC_BC2");
+    fBC3 = (TClonesArray*) ioman->GetObject("TQDC_BC3");
+    fBC4 = (TClonesArray*) ioman->GetObject("TQDC_BC4");
     // Get a pointer to the output DST Event Header
     fDstHead = (DstEventHeader*)ioman->GetObject(fOutputEventHeaderName);
     if (!fDstHead) {
@@ -217,6 +225,25 @@ void BmnFillDstTask::Exec(Option_t* /*option*/) {
         fDstHead->SetEventTime(fEventHead->GetEventTime());
         fDstHead->SetEventTimeTS(fEventHead->GetEventTimeTS());
         fDstHead->SetTriggerType(fEventHead->GetTrigType());
+    }
+
+    //calculate Z2in and Z2out:
+    Double_t Z2in = -1000.0, Z2out = -1000.0;
+    Double_t adcIn = -1000.0, adcOut = -1000.0;
+    if (fT0 && fBC1 && fBC2 && fBC3 && fBC4) {
+        BmnTrigDigit* digT0 = (BmnTrigDigit*)fT0->At(0);
+        Int_t t0Count = 0;
+        for (UInt_t i = 0; i < fT0->GetEntriesFast(); i++)
+            if (digT0->GetMod() == 0) t0Count++;
+        if (t0Count == 1) {
+            Double_t t0Time = digT0->GetTime();
+            grabZ2(fBC1, fBC2, t0Time, Z2in, adcIn, true);
+            grabZ2(fBC3, fBC4, t0Time, Z2out, adcOut, false);
+        }
+        fDstHead->SetZ2in(Z2in);
+        fDstHead->SetZ2out(Z2out);
+        fDstHead->SetADCin(adcIn);
+        fDstHead->SetADCout(adcOut);
     }
 
     // printing progress bar in terminal

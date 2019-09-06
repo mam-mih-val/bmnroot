@@ -5,15 +5,18 @@
  *
  * Created on January 18, 2018, 12:19 PM
  */
-
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "macro/run/bmnloadlibs.C"
+        
 using namespace std;
 
 void create_rootgeom_TOF400_RUN7_SRC() {
     // Load the necessary FairRoot libraries 
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+//    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load libraries
 
     // -------   Load media from media file   --------------------------------
+    TGeoManager *gGeoMan;
     FairGeoLoader* geoLoad = new FairGeoLoader("TGeo", "FairGeoLoader");
     FairGeoInterface* geoFace = geoLoad->getGeoInterface();
     TString geoPath = gSystem->Getenv("VMCWORKDIR");
@@ -24,8 +27,8 @@ void create_rootgeom_TOF400_RUN7_SRC() {
 
     // -------   Geometry file name (output)   -------------------------------
     const TString geoDetectorName = "TOF400";
-    const TString geoDetectorVersion = "RUN7_SRC";
-    const TString geoFileName = /*geoPath + "/geometry/"*/ + geoDetectorName + "_" + geoDetectorVersion + ".root";
+    const TString geoDetectorVersion = "RUN7_SRC_AllignmentZY";
+    const TString geoFileName = Form("%s_%s%s",geoDetectorName.Data(),geoDetectorVersion.Data(),".root");
 
     // -----------------   Get and create the required media    --------------
     FairGeoMedia* geoMedia = geoFace->getMedia();
@@ -150,7 +153,8 @@ void create_rootgeom_TOF400_RUN7_SRC() {
     const double tofZ_4box = -217.27; // [cm] :
 
     double tofX = tofXgap / 2. + DetXsize / 2.;
-    double tofZshift = tofZgap + DetZsize;
+    double tofZshift = -1. * (tofZgap + DetZsize);
+    double tofYshift = -2.9; //[cm] base ot BM@N alignment
     double box1_x = 222.701; // [cm]
     double box2_x = 277.299; // [cm]
     double box3_x = -277.299; // [cm]
@@ -163,69 +167,69 @@ void create_rootgeom_TOF400_RUN7_SRC() {
 
     // 1 box
     //        topTof->AddNode(vDetector, 1, new TGeoTranslation("t1", box1_x, 2. * DetYsize - 2 * tofYoverlap, tofZ_1box + tofZshift)); // right side, x > 0
-    TGeoCombiTrans *cR1 = new TGeoCombiTrans("", box1_x, 2. * DetYsize - 2 * tofYoverlap, tofZ_1box + tofZshift, geoRot);
+    TGeoCombiTrans *cR1 = new TGeoCombiTrans("", box1_x, 2. * DetYsize - 2 * tofYoverlap + tofYshift, tofZ_1box + tofZshift, geoRot);
     topTof->AddNode(vDetector, 1, cR1); // right side, x > 0
 
-    TGeoCombiTrans *cR2 = new TGeoCombiTrans("", box1_x, 1. * DetYsize - tofYoverlap, tofZ_1box, geoRot);
+    TGeoCombiTrans *cR2 = new TGeoCombiTrans("", box1_x, 1. * DetYsize - tofYoverlap + tofYshift, tofZ_1box, geoRot);
     topTof->AddNode(vDetector, 2, cR2);
 
-    TGeoCombiTrans *cR3 = new TGeoCombiTrans("", box1_x, 0, tofZ_1box + tofZshift, geoRot);
+    TGeoCombiTrans *cR3 = new TGeoCombiTrans("", box1_x, 0 + tofYshift, tofZ_1box + tofZshift, geoRot);
     topTof->AddNode(vDetector, 3, cR3);
 
-    TGeoCombiTrans *cR4 = new TGeoCombiTrans("", box1_x, -1. * DetYsize + tofYoverlap, tofZ_1box, geoRot);
+    TGeoCombiTrans *cR4 = new TGeoCombiTrans("", box1_x, -1. * DetYsize + tofYoverlap + tofYshift, tofZ_1box, geoRot);
     topTof->AddNode(vDetector, 4, cR4);
 
-    TGeoCombiTrans *cR5 = new TGeoCombiTrans("", box1_x, -2. * DetYsize + 2 * tofYoverlap, tofZ_1box + tofZshift, geoRot);
+    TGeoCombiTrans *cR5 = new TGeoCombiTrans("", box1_x, -2. * DetYsize + 2 * tofYoverlap + tofYshift, tofZ_1box + tofZshift, geoRot);
     topTof->AddNode(vDetector, 5, cR5);
 
     //2 box
-    TGeoCombiTrans *cR6 = new TGeoCombiTrans("", box2_x, 2. * DetYsize - 2 * tofYoverlap, tofZ_2box + tofZshift, geoRot);
+    TGeoCombiTrans *cR6 = new TGeoCombiTrans("", box2_x, 2. * DetYsize - 2 * tofYoverlap + tofYshift, tofZ_2box + tofZshift, geoRot);
     topTof->AddNode(vDetector, 6, cR6); // right side, x > 0
 
-    TGeoCombiTrans *cR7 = new TGeoCombiTrans("", box2_x, 1. * DetYsize - tofYoverlap, tofZ_2box, geoRot);
+    TGeoCombiTrans *cR7 = new TGeoCombiTrans("", box2_x, 1. * DetYsize - tofYoverlap + tofYshift, tofZ_2box, geoRot);
     topTof->AddNode(vDetector, 7, cR7);
 
-    TGeoCombiTrans *cR8 = new TGeoCombiTrans("", box2_x, 0, tofZ_2box + tofZshift, geoRot);
+    TGeoCombiTrans *cR8 = new TGeoCombiTrans("", box2_x, 0 + tofYshift, tofZ_2box + tofZshift, geoRot);
     topTof->AddNode(vDetector, 8, cR8);
 
-    TGeoCombiTrans *cR9 = new TGeoCombiTrans("", box2_x, -1. * DetYsize + tofYoverlap, tofZ_2box, geoRot);
+    TGeoCombiTrans *cR9 = new TGeoCombiTrans("", box2_x, -1. * DetYsize + tofYoverlap + tofYshift, tofZ_2box, geoRot);
     topTof->AddNode(vDetector, 9, cR9);
 
-    TGeoCombiTrans *cR10 = new TGeoCombiTrans("", box2_x, -2 * DetYsize + 2 * tofYoverlap, tofZ_2box + tofZshift, geoRot);
+    TGeoCombiTrans *cR10 = new TGeoCombiTrans("", box2_x, -2 * DetYsize + 2 * tofYoverlap + tofYshift, tofZ_2box + tofZshift, geoRot);
     topTof->AddNode(vDetector, 10, cR10);
 
     TGeoRotation *geoRot2 = new TGeoRotation;
     geoRot2->RotateY(angleDegBox3_4);
     //3 box
-    TGeoCombiTrans *cR11 = new TGeoCombiTrans("", box3_x, 2. * DetYsize - 2 * tofYoverlap, tofZ_2box + tofZshift, geoRot2);
+    TGeoCombiTrans *cR11 = new TGeoCombiTrans("", box3_x, 2. * DetYsize - 2 * tofYoverlap + tofYshift, tofZ_2box + tofZshift, geoRot2);
     topTof->AddNode(vDetector, 11, cR11); // right side, x > 0
 
-    TGeoCombiTrans *cR12 = new TGeoCombiTrans("", box3_x, 1. * DetYsize - tofYoverlap, tofZ_2box, geoRot2);
+    TGeoCombiTrans *cR12 = new TGeoCombiTrans("", box3_x, 1. * DetYsize - tofYoverlap + tofYshift, tofZ_2box, geoRot2);
     topTof->AddNode(vDetector, 12, cR12);
 
-    TGeoCombiTrans *cR13 = new TGeoCombiTrans("", box3_x, 0, tofZ_2box + tofZshift, geoRot2);
+    TGeoCombiTrans *cR13 = new TGeoCombiTrans("", box3_x, 0 + tofYshift, tofZ_2box + tofZshift, geoRot2);
     topTof->AddNode(vDetector, 13, cR13);
 
-    TGeoCombiTrans *cR14 = new TGeoCombiTrans("", box3_x, -1. * DetYsize + tofYoverlap, tofZ_2box, geoRot2);
+    TGeoCombiTrans *cR14 = new TGeoCombiTrans("", box3_x, -1. * DetYsize + tofYoverlap + tofYshift, tofZ_2box, geoRot2);
     topTof->AddNode(vDetector, 14, cR14);
 
-    TGeoCombiTrans *cR15 = new TGeoCombiTrans("", box3_x, -2 * DetYsize + 2 * tofYoverlap, tofZ_2box + tofZshift, geoRot2);
+    TGeoCombiTrans *cR15 = new TGeoCombiTrans("", box3_x, -2 * DetYsize + 2 * tofYoverlap + tofYshift, tofZ_2box + tofZshift, geoRot2);
     topTof->AddNode(vDetector, 15, cR15);
 
     // 4 box
-    TGeoCombiTrans *cR16 = new TGeoCombiTrans("", box4_x, 2. * DetYsize - 2 * tofYoverlap, tofZ_1box + tofZshift, geoRot2);
+    TGeoCombiTrans *cR16 = new TGeoCombiTrans("", box4_x, 2. * DetYsize - 2 * tofYoverlap + tofYshift, tofZ_1box + tofZshift, geoRot2);
     topTof->AddNode(vDetector, 16, cR16); // right side, x > 0
 
-    TGeoCombiTrans *cR17 = new TGeoCombiTrans("", box4_x, 1. * DetYsize - tofYoverlap, tofZ_1box, geoRot2);
+    TGeoCombiTrans *cR17 = new TGeoCombiTrans("", box4_x, 1. * DetYsize - tofYoverlap + tofYshift, tofZ_1box, geoRot2);
     topTof->AddNode(vDetector, 17, cR17);
 
-    TGeoCombiTrans *cR18 = new TGeoCombiTrans("", box4_x, 0, tofZ_1box + tofZshift, geoRot2);
+    TGeoCombiTrans *cR18 = new TGeoCombiTrans("", box4_x, 0 + tofYshift, tofZ_1box + tofZshift, geoRot2);
     topTof->AddNode(vDetector, 18, cR18);
 
-    TGeoCombiTrans *cR19 = new TGeoCombiTrans("", box4_x, -1. * DetYsize + tofYoverlap, tofZ_1box, geoRot2);
+    TGeoCombiTrans *cR19 = new TGeoCombiTrans("", box4_x, -1. * DetYsize + tofYoverlap + tofYshift, tofZ_1box, geoRot2);
     topTof->AddNode(vDetector, 19, cR19);
 
-    TGeoCombiTrans *cR20 = new TGeoCombiTrans("", box4_x, -2. * DetYsize + 2 * tofYoverlap, tofZ_1box + tofZshift, geoRot2);
+    TGeoCombiTrans *cR20 = new TGeoCombiTrans("", box4_x, -2. * DetYsize + 2 * tofYoverlap + tofYshift, tofZ_1box + tofZshift, geoRot2);
     topTof->AddNode(vDetector, 20, cR20);
 
 

@@ -14,7 +14,7 @@ void geometry_src_run7(FairRunSim *fRun)
     fRun->AddModule(magnet);
 
     // -----   Create detectors        -------------------------
-    
+
     FairDetector* mwpc = new BmnMwpc("MWPC", kTRUE);
     mwpc->SetGeometryFileName("MWPC_RunSRCSpring2018.root");
     fRun->AddModule(mwpc);
@@ -26,13 +26,13 @@ void geometry_src_run7(FairRunSim *fRun)
     FairDetector* sts = new CbmSts("STS", kTRUE);
     sts->SetGeometryFileName("GEMS_RunSRCSpring2018.root");
     fRun->AddModule(sts);
-    
+
     FairDetector* csc = new BmnCSC("CSC", kTRUE);
     csc->SetGeometryFileName("CSC_RunSRCSpring2018.root");
     fRun->AddModule(csc);
 
     FairDetector* tof1 = new BmnTOF1("TOF1", kTRUE);
-    tof1->SetGeometryFileName("TOF400_RUN7_SRC.root");
+    tof1->SetGeometryFileName("TOF400_RUN7_SRC_AllignmentZY.root");
     fRun->AddModule(tof1);
 
     FairDetector* tof = new BmnTOF("TOF", kTRUE);
@@ -46,5 +46,5 @@ void geometry_src_run7(FairRunSim *fRun)
     BmnZdc* zdc = new BmnZdc("ZDC", kTRUE);
     zdc->SetGeometryFileName("ZDC_RunSpring2018.root");
     fRun->AddModule(zdc);
-
+    
 }

@@ -18,7 +18,7 @@ void geometry(FairRunSim *fRun)
     FairDetector* fd = new BmnFD("FD", kTRUE);
     fd->SetGeometryFileName("FD_v10.root");
     fRun->AddModule(fd);
-    
+
     FairDetector* mwpc = new BmnMwpc("MWPC", kTRUE);
     mwpc->SetGeometryFileName("MWPC_RunSpring2018.root");
     fRun->AddModule(mwpc);
@@ -40,7 +40,7 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(csc);
 
     FairDetector* tof1 = new BmnTOF1("TOF1", kTRUE);
-    tof1->SetGeometryFileName("TOF400_RUN7.root");
+    tof1->SetGeometryFileName("TOF400_RUN7_BMN_byKolesnicov_Aligned.root");
     fRun->AddModule(tof1);
 
     FairDetector* dch = new BmnDch("DCH", kTRUE);
@@ -50,8 +50,8 @@ void geometry(FairRunSim *fRun)
     FairDetector* tof2 = new BmnTOF("TOF", kTRUE);
     tof2->SetGeometryFileName("tof700_run7_with_support.root");
     fRun->AddModule(tof2);
-    
-	FairDetector* ecal = new BmnEcal("ECAL", kTRUE);
+
+    FairDetector* ecal = new BmnEcal("ECAL", kTRUE);
     ecal->SetGeometryFileName("ECAL_v2_run7_pos4.root");
     fRun->AddModule(ecal);
 

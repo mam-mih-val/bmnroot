@@ -55,6 +55,12 @@ class BmnTofHitProducer : public BmnTofHitProducerIdeal
 	bool                    GetCrossPoint(const LStrip *pStrip, double dtime, TVector3& crossPoint);
         Double_t                CalculateToF (BmnTof2Digit *d1, BmnTof2Digit *d2, BmnTrigDigit *t0);
 	BmnTof2Raw2DigitNew     *fTOF2;
+	Int_t			fMainStripSelection;
+	Int_t			fSelectXYCalibration;
+	Double_t		fTimeMin;
+	Double_t		fTimeMax;
+	Double_t		fDiffTimeMaxSmall;
+	Double_t		fDiffTimeMaxBig;
 
 public:
 	BmnTofHitProducer(const char *name = "TOF HitProducer", const char *geomFile = "", Bool_t useMCdata = true, Int_t verbose = 1, Bool_t DoTest = false);
@@ -70,6 +76,12 @@ public:
 	
 	void 			SetDoINL(bool val){ fDoINL = val;}
 	void 			SetDoSlewing(bool val){ fDoSlewing = val;}		
+	void			SetMainStripSelection(Int_t);
+	void			SetSelectXYCalibration(Int_t);
+	void			SetTimeMin(Double_t);
+	void			SetTimeMax(Double_t);
+	void			SetDiffTimeMaxSmall(Double_t);
+	void			SetDiffTimeMaxBig(Double_t);
 	
 	TString			GetParameters()
 	{ 

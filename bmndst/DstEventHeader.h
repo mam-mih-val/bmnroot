@@ -22,6 +22,11 @@ class DstEventHeader : public FairEventHeader
     BmnTriggerType fTriggerType;
     /** Impact parameter [fm] **/
     Double_t fB;
+    /** Total charge before and after the target **/
+    Double_t fZ2in;
+    Double_t fZ2out;
+    Double_t fADCin;
+    Double_t fADCout;
 
  public:
     /** Default constructor */
@@ -54,6 +59,11 @@ class DstEventHeader : public FairEventHeader
     /** Get impact parameter - b, fm */
     Double_t GetB() { return fB; }
 
+    /** Get total charge before and after the target */
+    Double_t GetZ2in() { return fZ2in; }
+    Double_t GetZ2out() { return fZ2out; }
+    Double_t GetADCin() { return fADCin; }
+    Double_t GetADCout() { return fADCout; }
 
     /** Set Event Header branch name */
     void SetHeaderName(TString header_name) { fHeaderName = header_name; }
@@ -72,6 +82,11 @@ class DstEventHeader : public FairEventHeader
     /** Set impact parameter - b, fm */
     void SetB(Double_t b) { fB = b; }
 
+    /** Set total charge before and after the target */
+    void SetZ2in(Double_t z2in) { fZ2in = z2in; }
+    void SetZ2out(Double_t z2out) { fZ2out = z2out; }
+    void SetADCin(Double_t adcin) { fADCin = adcin; }
+    void SetADCout(Double_t adcout) {fADCout = adcout; }
 
     ClassDef(DstEventHeader, 1)
 };

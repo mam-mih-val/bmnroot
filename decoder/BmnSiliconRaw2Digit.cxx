@@ -1216,26 +1216,26 @@ BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
                     }
                 }
             }
-    for (Int_t iSt = 0; iSt < kNStations; ++iSt)
-        for (UInt_t iMod = 0; iMod < kNModules; ++iMod)
-            for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
-                for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip) {
-                    if (fNoisyChannels[iSt][iMod][iLay][iStrip] == kTRUE) {
-                        for (auto &it : fMap)
-                            if (it.station == iSt && it.module == iMod && it.layer == iLay) {
-                                UInt_t iCr = 0;
-                                for (iCr = 0; iCr < GetSerials().size(); iCr++) {
-                                    if (GetSerials()[iCr] == it.serial)
-                                        break;
-                                }
-                                UInt_t iCh = it.channel_low + iStrip / GetNSamples();
-                                UInt_t iSmpl = iStrip % GetNSamples();
-                                GetNoisyChipChannels()[iCr][iCh][iSmpl] = kTRUE;
-                                //                                printf("noise on iCr %d, iCh %i, iSmpl %i\n", iCr, iCh, iSmpl);
-                            }
-                    }
-                }
-            }
+//    for (Int_t iSt = 0; iSt < kNStations; ++iSt)
+//        for (UInt_t iMod = 0; iMod < kNModules; ++iMod)
+//            for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
+//                for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip) {
+//                    if (fNoisyChannels[iSt][iMod][iLay][iStrip] == kTRUE) {
+//                        for (auto &it : fMap)
+//                            if (it.station == iSt && it.module == iMod && it.layer == iLay) {
+//                                UInt_t iCr = 0;
+//                                for (iCr = 0; iCr < GetSerials().size(); iCr++) {
+//                                    if (GetSerials()[iCr] == it.serial)
+//                                        break;
+//                                }
+//                                UInt_t iCh = it.channel_low + iStrip / GetNSamples();
+//                                UInt_t iSmpl = iStrip % GetNSamples();
+//                                GetNoisyChipChannels()[iCr][iCh][iSmpl] = kTRUE;
+//                                //                                printf("noise on iCr %d, iCh %i, iSmpl %i\n", iCr, iCh, iSmpl);
+//                            }
+//                    }
+//                }
+//            }
     for (Int_t iCr = 0; iCr < GetNSerials(); ++iCr)
         for (Int_t iCh = 0; iCh < GetNChannels(); ++iCh)
             for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl)

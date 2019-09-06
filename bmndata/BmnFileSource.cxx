@@ -6,6 +6,8 @@
 //
 
 #include "BmnFileSource.h"
+#include "BmnEventHeader.h"
+
 #include "FairLogger.h"
 #include "FairRootManager.h"
 
@@ -137,6 +139,94 @@ BmnFileSource::BmnFileSource(const TString RootFileName, const char* Title, UInt
     fRootFile = new TFile(RootFileName.Data());
     if (fRootFile->IsZombie())
         LOG(FATAL)<<"Error opening the Input file";
+
+    LOG(DEBUG)<<"BmnFileSource created------------";
+}
+
+//_____________________________________________________________________________
+BmnFileSource::BmnFileSource(const TString RootFileName, int& period_number, int& run_number)
+  :FairSource()
+  ,fInputTitle("BmnRootFile")
+  ,fRootFile(0)
+  ,fCurrentEntryNr(0)
+  ,fFriendFileList()
+  ,fInputChainList()
+  ,fFriendTypeList()
+  ,fCheckInputBranches()
+  ,fInputLevel()
+  ,fRunIdInfoAll()
+  ,fInChain(0)
+  ,fInTree(0)
+  ,fListFolder(new TObjArray(16))
+  ,fRtdb(FairRuntimeDb::instance())
+  ,fCbmout(0)
+  ,fCbmroot(0)
+  ,fSourceIdentifier(0)
+  ,fNoOfEntries(-1)
+  ,IsInitialized(kFALSE)
+  ,fEvtHeader(0)
+  ,fFileHeader(0)
+  ,fEvtHeaderIsNew(kFALSE)
+  ,fCurrentEntryNo(0)
+  ,fTimeforEntryNo(-1)
+  ,fEventTimeMin(0.)
+  ,fEventTimeMax(0.)
+  ,fEventTime(0.)
+  ,fBeamTime(-1.)
+  ,fGapTime(-1.)
+  ,fEventMeanTime(0.)
+  ,fTimeProb(0)
+  ,fCheckFileLayout(kTRUE)
+{
+    fRootFile = new TFile(RootFileName.Data());
+    if (fRootFile->IsZombie())
+    {
+        LOG(FATAL)<<"Error opening the Input file";
+        return;
+    }
+
+    // get period and run number
+    /* WAITING FOR ILNOUR digirunheader
+    DigiRunHeader* run_header = (DigiRunHeader*) fRootFile->Get("DigiRunHeader");  // read Digi Run Header if present
+    if (run_header)
+    {
+        period_number = run_header->GetPeriodId();
+        run_number = run_header->GetRunId();
+    }
+    else    // temporary solution supporting run 4 - run 7
+    {*/
+        TTree* bmn_tree = (TTree*) fRootFile->Get("bmndata");
+        if (!bmn_tree)
+        {
+            LOG(FATAL)<<"ERROR: no 'bmndata' tree in file: "<<RootFileName;
+            return;
+        }
+
+        BmnEventHeader* fEventHeader = NULL;
+        bmn_tree->SetBranchAddress("BmnEventHeader.", &fEventHeader);
+        if (bmn_tree->GetEntries() < 1)
+        {
+            LOG(FATAL)<<"ERROR: no entries in 'bmndata' tree (file: "<<RootFileName<<")";
+            return;
+        }
+
+        bmn_tree->GetEntry(0);
+        if (!fEventHeader)
+        {
+            LOG(FATAL)<<"ERROR: no 'BmnEventHeader.' in 'bmndata' tree (file: "<<RootFileName<<")";
+            return;
+        }
+        run_number = fEventHeader->GetRunId();
+        if (run_number > 2000) period_number = 7;
+        else
+        {
+            if (run_number > 1100) period_number = 6;
+            else {
+                if (run_number > 400) period_number = 5;
+                else period_number = 4;
+            }
+        }
+    //}
 
     LOG(DEBUG)<<"BmnFileSource created------------";
 }

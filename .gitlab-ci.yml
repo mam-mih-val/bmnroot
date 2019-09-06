@@ -123,7 +123,7 @@ run_reco:ubuntu:
   stage: test_run_digi
   script:
     - source build/config.sh
-    - root -b -q -l '$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("run7-4649:$VMCWORKDIR/macro/run/testDigi.root", "$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)' | tee output.txt
+    - root -b -q -l '$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("$VMCWORKDIR/macro/run/testDigi.root", "$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)' | tee output.txt
     - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
   allow_failure: false
   <<: *only-default

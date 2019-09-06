@@ -1,11 +1,6 @@
 // Macro for reconstruction of simulated or experimental events for BM@N
 //
-// inputFileName - input file with data (MC or exp. data).
-//
-// To process experimental data, you must use 'run[#period]-[#run]:'-like prefix,
-// and then the geometry will be obtained from the Unified Database
-// e.g. "run[#period]-[#run]:PATH_TO_DIGI_DATA/digiFile.root"
-//
+// inputFileName - input file with data (MC or exp. data)
 // bmndstFileName - output file with reconstructed data
 // nStartEvent - number of first event to process (starts with zero), default: 0
 // nEvents - number of events to process, 0 - all events of given file will be processed
@@ -30,7 +25,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
 
     Bool_t isField = (inputFileName.Contains("noField")) ? kFALSE : kTRUE; // flag for tracking (to use mag.field or not)
     Bool_t isTarget = kTRUE; //kTRUE; // flag for tracking (run with target or not)
-    Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
+    Bool_t isExp = !BmnFunctionSet::isSimulationFile(inputFileName); // flag for hit finder (to create digits or take them from data-file)
 
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
@@ -39,21 +34,15 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // DO NOT change it manually!
     Int_t run_period = 7, run_number = -1;
     Double_t fieldScale = 0.;
-    TPRegexp run_prefix("^run[0-9]+-[0-9]+:");
-    if (inputFileName.Contains(run_prefix)) {
-        Ssiz_t indDash = inputFileName.First('-'), indColon = inputFileName.First(':');
-        // get run period
-        run_period = TString(inputFileName(3, indDash - 3)).Atoi();
-        // get run number
-        run_number = TString(inputFileName(indDash + 1, indColon - indDash - 1)).Atoi();
-        inputFileName.Remove(0, indColon + 1);
-
+    if (isExp)
+    {
         if (!BmnFunctionSet::CheckFileExist(inputFileName)) {
             cout << "ERROR: digi file " + inputFileName + " does not exist!" << endl;
             exit(-1);
         }
-        // set source as raw root data file (without additional directories)
-        fFileSource = new BmnFileSource(inputFileName);
+
+        // set source as raw root data file
+        fFileSource = new BmnFileSource(inputFileName, run_period, run_number);
 
         // get geometry for run
         TString geoFileName = "current_geo_file.root";
@@ -235,7 +224,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ===                          TOF1 hit finder                       === //
     // ====================================================================== //
     BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kFALSE);
-    tof1HP->SetPeriod(run_period);
+    tof1HP->SetPeriodRun(run_period, run_number);
     fRunAna->AddTask(tof1HP);
 
     // ====================================================================== //

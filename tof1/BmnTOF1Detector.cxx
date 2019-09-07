@@ -495,13 +495,13 @@ Bool_t BmnTOF1Detector::GetCrossPoint(Int_t NStrip = 0) {
     double dL = (fTimeL[NStrip] - fTimeR[NStrip]) * 0.5 / fSignalVelosity;
 
     fVectorTemp(0) = dL * TMath::Cos(fStripAngle[NStrip].X());
-    fVectorTemp(0) = dL * TMath::Cos(fStripAngle[NStrip].Y());
-    fVectorTemp(0) = dL * TMath::Cos(fStripAngle[NStrip].Z());
+    fVectorTemp(1) = dL * TMath::Cos(fStripAngle[NStrip].Y());
+    fVectorTemp(2) = dL * TMath::Cos(fStripAngle[NStrip].Z());
 
-//    fVectorTemp(0) = 0;
-//    fVectorTemp(1) = dL;
-//    fVectorTemp(2) = 0; 
-    
+    //    fVectorTemp(0) = 0;
+    //    fVectorTemp(1) = dL;
+    //    fVectorTemp(2) = 0; 
+
     fCrossPoint[NStrip] = fCentrStrip[NStrip] + fVectorTemp;
     //    cout << "Z = " << fCrossPoint[NStrip].Z() << endl;
     return kTRUE;
@@ -546,6 +546,8 @@ Bool_t BmnTOF1Detector::SetGeoFile(TString NameFile) {
         fStripAngle[i](1) = fVectorTemp.Angle(y);
         fStripAngle[i](2) = fVectorTemp.Angle(z);
 
+        //        Printf ("Plane%d, Strip%d\t A=%.3f\t B=%.3f\t C=%.3f\n", fNPlane, i, fStripAngle[i](0), fStripAngle[i](1), fStripAngle[i](2));
+
         //        cout << "Strip = " << i << "; Centr XYZ = " << fCentrStrip[i].x() << "  " << fCentrStrip[i].y() << "  " << fCentrStrip[i].z() << endl;
         //        if (fNPlane >= 5) fCentrStrip[i].SetX(fCentrStrip[i].X() + 5.5); // for field run only
         //        else fCentrStrip[i].SetX(fCentrStrip[i].X() + 2.5);
@@ -559,10 +561,20 @@ Bool_t BmnTOF1Detector::SetGeoFile(TString NameFile) {
 
 Bool_t BmnTOF1Detector::SetGeo(BmnTof1GeoUtils *pGeoUtils) {
     Int_t UID;
+    TVector3 x(1, 0, 0);
+    TVector3 y(0, 1, 0);
+    TVector3 z(0, 0, 1);
     for (Int_t i = 0; i < fNStr; i++) {
         UID = BmnTOF1Point::GetVolumeUID(0, fNPlane + 1, i + 1); // strip [0,47] -> [1, 48]
         const LStrip1 *pStrip = pGeoUtils->FindStrip(UID);
         fCentrStrip[i] = pStrip->center;
+        fVectorTemp = (pStrip->C + pStrip->D) * 0.5 - (pStrip->A + pStrip->B) * 0.5;
+        fStripAngle[i](0) = fVectorTemp.Angle(x);
+        fStripAngle[i](1) = fVectorTemp.Angle(y);
+        fStripAngle[i](2) = fVectorTemp.Angle(z);
+
+        //        Printf("Plane%d, Strip%d\t A=%.3f\t B=%.3f\t C=%.3f\n", fNPlane, i, fStripAngle[i](0), fStripAngle[i](1), fStripAngle[i](2));
+
         //        if (fNPlane >= 5) fCentrStrip[i].SetX(fCentrStrip[i].X()+5.5); // for field run only
         //        else fCentrStrip[i].SetX(fCentrStrip[i].X()+2.5);
     }

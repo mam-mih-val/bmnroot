@@ -356,7 +356,7 @@ Double_t BmnTOF1Detector::CalculateDt(Int_t Str = 0) {
         dt = dt - funRPC[Str]->Eval(fWidth[Str]);
         if (fVerbose > 3) printf("After RPC corr dt = %.3f\t", dt);
     }
-    
+
     dt = dt + fCorrTimeShift[Str]; // CorrTimeShift is ToF for Gamma
     if (fVerbose > 3) printf("After Shift on Proton mass dt = %.3f\n", dt);
 
@@ -491,11 +491,17 @@ Bool_t BmnTOF1Detector::GetCrossPoint(Int_t NStrip = 0) {
 
     fVectorTemp.SetXYZ(0., 0., 0.);
     if (TMath::Abs((fTimeL[NStrip] - fTimeR[NStrip]) * 0.5) >= fMaxDelta)
-        return kFALSE; // estimated position out the strip edge.
+        return kFALSE; // estimated position is out of the strip edge.
     double dL = (fTimeL[NStrip] - fTimeR[NStrip]) * 0.5 / fSignalVelosity;
-    fVectorTemp(0) = 0;
-    fVectorTemp(1) = dL;
-    fVectorTemp(2) = 0; //TMP ALIGMENT CORRECTIONS
+
+    fVectorTemp(0) = dL * TMath::Cos(fStripAngle[NStrip].X());
+    fVectorTemp(0) = dL * TMath::Cos(fStripAngle[NStrip].Y());
+    fVectorTemp(0) = dL * TMath::Cos(fStripAngle[NStrip].Z());
+
+//    fVectorTemp(0) = 0;
+//    fVectorTemp(1) = dL;
+//    fVectorTemp(2) = 0; 
+    
     fCrossPoint[NStrip] = fCentrStrip[NStrip] + fVectorTemp;
     //    cout << "Z = " << fCrossPoint[NStrip].Z() << endl;
     return kTRUE;
@@ -526,11 +532,20 @@ Bool_t BmnTOF1Detector::SetGeoFile(TString NameFile) {
     BmnTof1GeoUtils *pGeoUtils = new BmnTof1GeoUtils();
     pGeoUtils->ParseTGeoManager(false, NULL, true);
 
+    TVector3 x(1, 0, 0);
+    TVector3 y(0, 1, 0);
+    TVector3 z(0, 0, 1);
+
     Int_t UID;
     for (Int_t i = 0; i < fNStr; i++) {
         UID = BmnTOF1Point::GetVolumeUID(0, fNPlane + 1, i + 1); // strip [0,47] -> [1, 48]
         const LStrip1 *pStrip = pGeoUtils->FindStrip(UID);
         fCentrStrip[i] = pStrip->center;
+        fVectorTemp = (pStrip->C + pStrip->D) * 0.5 - (pStrip->A + pStrip->B) * 0.5;
+        fStripAngle[i](0) = fVectorTemp.Angle(x);
+        fStripAngle[i](1) = fVectorTemp.Angle(y);
+        fStripAngle[i](2) = fVectorTemp.Angle(z);
+
         //        cout << "Strip = " << i << "; Centr XYZ = " << fCentrStrip[i].x() << "  " << fCentrStrip[i].y() << "  " << fCentrStrip[i].z() << endl;
         //        if (fNPlane >= 5) fCentrStrip[i].SetX(fCentrStrip[i].X() + 5.5); // for field run only
         //        else fCentrStrip[i].SetX(fCentrStrip[i].X() + 2.5);

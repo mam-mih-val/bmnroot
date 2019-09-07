@@ -68,7 +68,7 @@ private:
     Double_t fCorrLR[fNStr], fCorrTimeShift[fNStr];
     Double_t fDigitL[fNStr], fDigitR[fNStr], fHit[fNStr];
     Double_t fCommonTimeShift;
-    TVector3 fCentrStrip[fNStr], fCrossPoint[fNStr], fVectorTemp;
+    TVector3 fCentrStrip[fNStr], fStripAngle[fNStr], fCrossPoint[fNStr], fVectorTemp;
     BmnTrigDigit *fT0;
 
     TList *fHistListStat;

@@ -76,12 +76,12 @@ public:
 	
 	void 			SetDoINL(bool val){ fDoINL = val;}
 	void 			SetDoSlewing(bool val){ fDoSlewing = val;}		
-	void			SetMainStripSelection(Int_t);
-	void			SetSelectXYCalibration(Int_t);
-	void			SetTimeMin(Double_t);
-	void			SetTimeMax(Double_t);
-	void			SetDiffTimeMaxSmall(Double_t);
-	void			SetDiffTimeMaxBig(Double_t);
+	void			SetMainStripSelection(Int_t s = 0) { fMainStripSelection = s; };
+	void			SetSelectXYCalibration(Int_t s = 0) { fSelectXYCalibration = s; };
+	void			SetTimeMin(Double_t mi = -2.) { fTimeMin = mi; };
+	void			SetTimeMax(Double_t ma = +15.) { fTimeMax = ma; };
+	void			SetDiffTimeMaxSmall(Double_t ds = 0.) { fDiffTimeMaxSmall = ds; };
+	void			SetDiffTimeMaxBig(Double_t db = 0.) { fDiffTimeMaxBig = db; };
 	
 	TString			GetParameters()
 	{ 

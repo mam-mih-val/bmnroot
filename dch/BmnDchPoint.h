@@ -28,11 +28,11 @@ public:
    *@param length   Track length since creation [cm]
    *@param eLoss    Energy deposit [GeV]
    **/
-  	BmnDchPoint(Int_t trackID, Int_t detID, TVector3 pos, Double_t radius, TVector3 mom, Double_t tof, 
+  	BmnDchPoint(Int_t trackID, Int_t detID, TVector3 pos, Double_t radius, TVector3 mom, Double_t tof,
   	    Double_t length, Double_t eLoss, Int_t isPrimary, Double_t charge, Int_t pdgId, TVector3 trackPos);
   	BmnDchPoint(const BmnDchPoint& point) { *this = point; };
 
-  	BmnDchPoint();	
+  	BmnDchPoint();
   	virtual ~BmnDchPoint();
 
 	Double_t GetDistance(); // DCA between track and straw
@@ -42,18 +42,22 @@ public:
 	Double_t GetPdgId() { return fPdgId; }
 	Double_t GetCharge() { return fCharge; }
 	Double_t GetPhi() const { return fPhi; } //AZ
-        Int_t GetIsPrimary() { return fIsPrimary; } 
+        Int_t GetIsPrimary() { return fIsPrimary; }
 	void SetPhi(Double_t phi) { fPhi = phi; } //AZ
 
-	// Output to screen 
+        void SetPlaneNumber(Int_t plane_num) { fPlaneNumber = plane_num; }
+        Int_t GetPlaneNumber() { return fPlaneNumber; }
+
+	// Output to screen
   	virtual void Print(const Option_t* opt) const;
 protected:
     Int_t fIsPrimary;
-    Double_t fCharge; 
+    Double_t fCharge;
     Double_t fRadius;
     Int_t fPdgId;
     Double_t fTX, fTY, fTZ; // track coordinates at DCA to straw
     Double_t fPhi; // tube rotation angle - AZ (interim solution)
+    Int_t fPlaneNumber; // number of an active plane
 
   ClassDef(BmnDchPoint,2)
 

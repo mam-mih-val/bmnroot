@@ -84,6 +84,14 @@ TVector3 BmnDch::LocalToGlobal(TVector3& local) {
 //----------------------------------------------------------------------------------------------------------------------
 Bool_t  BmnDch::ProcessHits(FairVolume* vol)
 {
+    // Determine plane number for the current hit ------------------------------
+    Int_t planeNum = -1; // current plane number (default)
+
+    TGeoVolume *currentVolume = gGeoManager->GetCurrentVolume();
+    TString currentVolumeName = currentVolume->GetName();
+
+    planeNum = gGeoManager->GetCurrentNode()->GetNumber();
+
   // Set parameters at entrance of volume. Reset ELoss.
   if (gMC->IsTrackEntering()) {
 
@@ -141,7 +149,9 @@ Bool_t  BmnDch::ProcessHits(FairVolume* vol)
                 TVector3(fMom.Px(), fMom.Py(), fMom.Pz()),
                 fTime, (fLength+gMC->TrackLength())/2, fELoss,
                 fIsPrimary, fCharge, fPdgId, trackPosition);
+
     p->SetPhi(phi); //AZ
+    p->SetPlaneNumber(planeNum);
 
     ((CbmStack*)gMC->GetStack())->AddPoint(kDCH);
   }

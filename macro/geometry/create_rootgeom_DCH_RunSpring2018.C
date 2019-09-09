@@ -158,23 +158,23 @@ void create_rootgeom_DCH_RunSpring2018() {
     TubeV->SetTransparency(40);
     //--------------------------------------------------------------------------
 
-    DCHDetV->AddNode(DCHActivePlaneV, 1, new TGeoTranslation(0.,0.,-7.8));
-    DCHDetV->AddNode(DCHActivePlaneV, 2, new TGeoTranslation(0.,0.,-6.6));
-    DCHDetV->AddNode(DCHActivePlaneV, 3, new TGeoTranslation(0.,0.,-3.0));
-    DCHDetV->AddNode(DCHActivePlaneV, 4, new TGeoTranslation(0.,0.,-1.8));
-    DCHDetV->AddNode(DCHActivePlaneV, 5, new TGeoTranslation(0.,0.,1.8));
-    DCHDetV->AddNode(DCHActivePlaneV, 6, new TGeoTranslation(0.,0.,3.0));
-    DCHDetV->AddNode(DCHActivePlaneV, 7, new TGeoTranslation(0.,0.,6.6));
-    DCHDetV->AddNode(DCHActivePlaneV, 8, new TGeoTranslation(0.,0.,7.8));
+    DCHDetV->AddNode(DCHActivePlaneV, 0, new TGeoTranslation(0.,0.,-7.8));
+    DCHDetV->AddNode(DCHActivePlaneV, 1, new TGeoTranslation(0.,0.,-6.6));
+    DCHDetV->AddNode(DCHActivePlaneV, 2, new TGeoTranslation(0.,0.,-3.0));
+    DCHDetV->AddNode(DCHActivePlaneV, 3, new TGeoTranslation(0.,0.,-1.8));
+    DCHDetV->AddNode(DCHActivePlaneV, 4, new TGeoTranslation(0.,0.,1.8));
+    DCHDetV->AddNode(DCHActivePlaneV, 5, new TGeoTranslation(0.,0.,3.0));
+    DCHDetV->AddNode(DCHActivePlaneV, 6, new TGeoTranslation(0.,0.,6.6));
+    DCHDetV->AddNode(DCHActivePlaneV, 7, new TGeoTranslation(0.,0.,7.8));
 
-    DCHDetV->AddNode(DCHCoverLayerV, 1, new TGeoTranslation(0.,0.,-9.6 - CoverFoilThickness*0.5));
-    DCHDetV->AddNode(DCHCoverLayerV, 2, new TGeoTranslation(0.,0.,-4.8 - CoverFoilThickness*0.5));
-    DCHDetV->AddNode(DCHCoverLayerV, 3, new TGeoTranslation(0.,0.,-4.8 + CoverFoilThickness*0.5));
-    DCHDetV->AddNode(DCHCoverLayerV, 4, new TGeoTranslation(0.,0.,0.0 - CoverFoilThickness*0.5));
-    DCHDetV->AddNode(DCHCoverLayerV, 5, new TGeoTranslation(0.,0.,0.0 + CoverFoilThickness*0.5));
-    DCHDetV->AddNode(DCHCoverLayerV, 6, new TGeoTranslation(0.,0.,4.8 - CoverFoilThickness*0.5));
-    DCHDetV->AddNode(DCHCoverLayerV, 7, new TGeoTranslation(0.,0.,4.8 + CoverFoilThickness*0.5));
-    DCHDetV->AddNode(DCHCoverLayerV, 8, new TGeoTranslation(0.,0.,9.6 + CoverFoilThickness*0.5));
+    DCHDetV->AddNode(DCHCoverLayerV, 0, new TGeoTranslation(0.,0.,-9.6 - CoverFoilThickness*0.5));
+    DCHDetV->AddNode(DCHCoverLayerV, 1, new TGeoTranslation(0.,0.,-4.8 - CoverFoilThickness*0.5));
+    DCHDetV->AddNode(DCHCoverLayerV, 2, new TGeoTranslation(0.,0.,-4.8 + CoverFoilThickness*0.5));
+    DCHDetV->AddNode(DCHCoverLayerV, 3, new TGeoTranslation(0.,0.,0.0 - CoverFoilThickness*0.5));
+    DCHDetV->AddNode(DCHCoverLayerV, 4, new TGeoTranslation(0.,0.,0.0 + CoverFoilThickness*0.5));
+    DCHDetV->AddNode(DCHCoverLayerV, 5, new TGeoTranslation(0.,0.,4.8 - CoverFoilThickness*0.5));
+    DCHDetV->AddNode(DCHCoverLayerV, 6, new TGeoTranslation(0.,0.,4.8 + CoverFoilThickness*0.5));
+    DCHDetV->AddNode(DCHCoverLayerV, 7, new TGeoTranslation(0.,0.,9.6 + CoverFoilThickness*0.5));
 
 
     //Adding volumes to the DCH Volume
@@ -183,7 +183,7 @@ void create_rootgeom_DCH_RunSpring2018() {
     DCH->AddNode(FlangeV, 2, new TGeoTranslation(DCH1_Xpos, DCH1_Ypos, +11.6 + ZLengthOfFlange*0.5 + DCH1_Zpos));
     DCH->AddNode(TubeV, 1, new TGeoTranslation(DCH1_Xpos, DCH1_Ypos, DCH1_Zpos));
 
-    DCH->AddNode(DCHDetV, 0, combi2);
+    DCH->AddNode(DCHDetV, 1, combi2);
     DCH->AddNode(FlangeV, 3, new TGeoTranslation(DCH2_Xpos, DCH2_Ypos, -11.6 - ZLengthOfFlange*0.5 + DCH2_Zpos));
     DCH->AddNode(FlangeV, 4, new TGeoTranslation(DCH2_Xpos, DCH2_Ypos, +11.6 + ZLengthOfFlange*0.5 + DCH2_Zpos));
     DCH->AddNode(TubeV, 2, new TGeoTranslation(DCH2_Xpos, DCH2_Ypos, DCH2_Zpos));

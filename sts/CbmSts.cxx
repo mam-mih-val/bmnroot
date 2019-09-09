@@ -128,11 +128,11 @@ Bool_t CbmSts::ProcessHits(FairVolume* vol) {
 
     TRegexp expr = "^Sensor_module[0-9]+_station[0-9]+$";
     if(currentVolumeName.Contains(expr)) {
-        TRegexp mod_expt = "module[0-9]+";
-        TRegexp stat_expt = "station[0-9]+";
+        TRegexp mod_expr = "module[0-9]+";
+        TRegexp stat_expr = "station[0-9]+";
 
-        moduleNum = TString(TString(currentVolumeName(mod_expt))(TRegexp("[0-9]+"))).Atoi();
-        stationNum = TString(TString(currentVolumeName(stat_expt))(TRegexp("[0-9]+"))).Atoi();
+        moduleNum = TString(TString(currentVolumeName(mod_expr))(TRegexp("[0-9]+"))).Atoi();
+        stationNum = TString(TString(currentVolumeName(stat_expr))(TRegexp("[0-9]+"))).Atoi();
     }
 
     //cout << "stationNum = " << stationNum << "\n";

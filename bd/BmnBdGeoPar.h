@@ -1,12 +1,3 @@
-/*************************************************************************************
- *
- *         Class BmnBdGeoPar
- *         
- *  Adopted for BMN by:   Elena Litvinenko
- *  e-mail:   litvin@nf.jinr.ru
- *  Version:  10-02-2016   
- *
- ************************************************************************************/
 
 #ifndef BMNGEOBDPAR_H
 #define BMNGEOBDPAR_H
@@ -20,7 +11,7 @@ public:
   TObjArray      *fGeoPassNodes; /** List of FairGeoNodes for passive  volumes */
   
   BmnBdGeoPar(const char* name="BmnBdGeoPar",
-	     const char* title="Bd Geometry Parameters",
+	     const char* title="BD Geometry Parameters",
              const char* context="BdDefaultContext");
   ~BmnBdGeoPar(void);
   void clear(void);

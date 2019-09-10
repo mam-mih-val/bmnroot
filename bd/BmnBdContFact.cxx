@@ -1,12 +1,3 @@
-/*************************************************************************************
- *
- *         Class BmnBdContFact
- *         
- *  Adopted for BMN by:   Elena Litvinenko
- *  e-mail:   litvin@nf.jinr.ru
- *  Version:  10-02-2016   
- *
- ************************************************************************************/
 
 using namespace std;
 #include "BmnBdContFact.h"
@@ -31,14 +22,14 @@ BmnBdContFact::BmnBdContFact() {
 
 void BmnBdContFact::setAllContainers() {
   /** Creates the Container objects with all accepted contexts and adds them to
-   *  the list of containers for the BD library.*/
+   *  the list of containers for the BD1 library.*/
 
-    FairContainer* p= new FairContainer("BmnBdGeoPar",
-                                          "Bd Geometry Parameters",
+    FairContainer* t= new FairContainer("BmnBdGeoPar",
+                                          "BD Geometry Parameters",
                                           "BdDefaultContext");
-    p->addContext("BdNonDefaultContext");
+    t->addContext("BdNonDefaultContext");
 
-    containers->Add(p);
+    containers->Add(t);
 
     //    p->print();
 }
@@ -48,9 +39,9 @@ FairParSet* BmnBdContFact::createContainer(FairContainer* c) {
    * For an actual context, which is not an empty string and not the default context
    * of this container, the name is concatinated with the context. */
   const char* name=c->GetName();
-  FairParSet* p=NULL;
+  FairParSet* t=NULL;
   if (strcmp(name,"BmnBdGeoPar")==0) {
-    p=new BmnBdGeoPar(c->getConcatName().Data(),c->GetTitle(),c->getContext());
+    t=new BmnBdGeoPar(c->getConcatName().Data(),c->GetTitle(),c->getContext());
   }
-  return p;
+  return t;
 }

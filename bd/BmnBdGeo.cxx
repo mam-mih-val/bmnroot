@@ -1,12 +1,3 @@
-/*************************************************************************************
- *
- *         Class BmnBdGeo
- *         
- *  Adopted for BMN by:   Elena Litvinenko
- *  e-mail:   litvin@nf.jinr.ru
- *  Version:  10-02-2016   
- *
- ************************************************************************************/
 
 #include <iostream>
 
@@ -22,24 +13,24 @@ ClassImp(BmnBdGeo)
 // -----   Default constructor   -------------------------------------------
 BmnBdGeo::BmnBdGeo() {
   // Constructor
-  fName="bd";
-  maxSectors=0;
-  maxModules=4;
+  fName="BD";
+  maxSectors=10;
+  maxModules=100;
  }
 // -------------------------------------------------------------------------
 
-const char* BmnBdGeo::getModuleName(Int_t m) {
+const char* BmnBdGeo::getModule2Name(Int_t q) {
   // Returns the module name of muo number m
 
-  sprintf(modName,"bd0%i",m+1);
-  return modName;
-  cout << "MODNAME: " << modName << endl;
+  sprintf(mod2Name,"BD0%i",q+1);
+  return mod2Name;
+  cout << "MOD2NAME: " << mod2Name << endl;
 }
 
-const char* BmnBdGeo::getEleName(Int_t m) {
+const char* BmnBdGeo::getEle2Name(Int_t q) {
   // Returns the element name of muo number m
  
-  sprintf(eleName,"s%i",m+1);
-  return eleName;
-  cout << "ELENAME: " << eleName << endl;
+  sprintf(ele2Name,"s%i",q+1);
+  return ele2Name;
+  cout << "ELE2NAME: " << ele2Name << endl;
 }

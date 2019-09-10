@@ -835,10 +835,10 @@ Bool_t BmnDchTrackFinder::FitDchSegments(Int_t dchID, Int_t* size_seg, Double_t*
         }
 
         // Add shifts to slopes and coords
-        Double_t x_slope_sh = (dchID == 1) ? x1_slope_sh : x2_slope_sh;
-        Double_t y_slope_sh = (dchID == 1) ? y1_slope_sh : y2_slope_sh;
-        Double_t x_sh = (dchID == 1) ? x1_sh : x2_sh;
-        Double_t y_sh = (dchID == 1) ? y1_sh : y2_sh;
+        Double_t x_slope_sh = 0.0;//(dchID == 1) ? x1_slope_sh : x2_slope_sh;
+        Double_t y_slope_sh = 0.0;//(dchID == 1) ? y1_slope_sh : y2_slope_sh;
+        Double_t x_sh = 0.0;//(dchID == 1) ? x1_sh : x2_sh;
+        Double_t y_sh = 0.0;//(dchID == 1) ? y1_sh : y2_sh;
 
         par_ab[0][j] += x_slope_sh + x_slope_sh * par_ab[0][j] * par_ab[0][j];
         par_ab[2][j] += y_slope_sh + y_slope_sh * par_ab[2][j] * par_ab[2][j];
@@ -938,10 +938,10 @@ void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Double_t* chi2Arr, Double_t*
         Double_t z0 = (dchID == 1) ? Z_dch1 : Z_dch2;
         Double_t x0 = parArr[1][iSegment];
         Double_t y0 = parArr[3][iSegment];
-        Double_t x_align = (dchID == 1) ? -10.89 : +4.93;
-        Double_t y_align = (dchID == 1) ? -2.95 : +9.12;
-        Double_t tx_align = (dchID == 1) ? +0.073 + 0.049 : +0.070 + 0.052;
-        Double_t ty_align = (dchID == 1) ? +0.054 : +0.062 - 0.047;
+        Double_t x_align = 0.0;//(dchID == 1) ? -10.89 : +4.93;
+        Double_t y_align = 0.0;//(dchID == 1) ? -2.95 : +9.12;
+        Double_t tx_align = 0.0;//(dchID == 1) ? +0.073 + 0.049 : +0.070 + 0.052;
+        Double_t ty_align = 0.0;//(dchID == 1) ? +0.054 : +0.062 - 0.047;
         trackParam.SetPosition(TVector3(-x0 + x_align, y0 + y_align, z0));
         trackParam.SetTx(-parArr[0][iSegment] + tx_align);
         trackParam.SetTy(parArr[2][iSegment] + ty_align);
@@ -981,9 +981,12 @@ void BmnDchTrackFinder::CreateDchTrack() {
         Double_t z0 = Z_dch_mid;
         Double_t x0 = -x_mid[iSeg];
         Double_t y0 = y_mid[iSeg];
-        trackParam.SetPosition(TVector3(x0 - 3.25, y0 + 4.91, z0));  // Go to right reference frame
-        trackParam.SetTx(aX[iSeg] + 0.073);                          // Go to right reference frame
-        trackParam.SetTy(aY[iSeg] + 0.061);
+        // trackParam.SetPosition(TVector3(x0 - 3.25, y0 + 4.91, z0));  // Go to right reference frame
+        // trackParam.SetTx(aX[iSeg] + 0.073);                          // Go to right reference frame
+        // trackParam.SetTy(aY[iSeg] + 0.061);
+        trackParam.SetPosition(TVector3(x0, y0, z0));  // Go to right reference frame
+        trackParam.SetTx(aX[iSeg]);                          // Go to right reference frame
+        trackParam.SetTy(aY[iSeg]);
         Int_t iseg1 = int((pairID[iSeg] - 1000) / 1000);
         Int_t iseg2 = (pairID[iSeg] % 1000) - 1;
         Double_t sigma2_dx = ((params_sigmas[1][0][iseg2] * params_sigmas[1][0][iseg2]) +

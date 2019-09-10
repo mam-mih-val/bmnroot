@@ -219,6 +219,24 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
     //Alignment. FIXME: move to DB
     if (fIsExp) {
         if (fIsSRC) {
+            if (fDchTracks)
+                for (Int_t trIdx = 0; trIdx < fDchTracks->GetEntriesFast(); ++trIdx) {
+                    BmnTrack *dchTr = (BmnTrack *)fDchTracks->At(trIdx);
+                    FairTrackParam* parDch = dchTr->GetParamFirst();
+                    Double_t zDCH = parDch->GetZ();
+                    if (zDCH < 550) {
+                        parDch->SetTx(parDch->GetTx() + 0.072);
+                        parDch->SetTy(parDch->GetTy() + 0.06);
+                        parDch->SetX(parDch->GetX() - 9.92);
+                        parDch->SetY(parDch->GetY() - 3.34);
+                    }
+                    if (zDCH > 650) {
+                        parDch->SetTx(parDch->GetTx() + 0.073);
+                        parDch->SetTy(parDch->GetTy() + 0.071);
+                        parDch->SetX(parDch->GetX() - 4.40);
+                        parDch->SetY(parDch->GetY() - 3.77);
+                    }
+                }
             if (fCscHits)
                 for (Int_t hitIdx = 0; hitIdx < fCscHits->GetEntriesFast(); ++hitIdx) {
                     BmnHit *hit = (BmnHit *)fCscHits->At(hitIdx);
@@ -228,8 +246,8 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
             if (fTof2Hits)
                 for (Int_t hitIdx = 0; hitIdx < fTof2Hits->GetEntriesFast(); ++hitIdx) {
                     BmnHit *hit = (BmnHit *)fTof2Hits->At(hitIdx);
-                    hit->SetX(hit->GetX() - 2.90);
-                    hit->SetY(hit->GetY() - 3.12);
+                    hit->SetX(hit->GetX() - 0.04);
+                    hit->SetY(hit->GetY() - 5.57);
                 }
         } else {
             if (fCscHits)
@@ -330,14 +348,14 @@ BmnStatus BmnGlobalTracking::MatchingCSC(BmnGlobalTrack *tr) {
             matchedIdx = hitIdx;
         }
         if (fDoAlign) {
-            if (Abs(par.GetY() - hit->GetY()) < 3) {
-                fhXCscGemResid->Fill(par.GetX() - hit->GetX());
-                fhYCscGemResid->Fill(par.GetY() - hit->GetY());
-                fhXdXCscGemResid->Fill(par.GetX(), par.GetX() - hit->GetX());
-                fhYdYCscGemResid->Fill(par.GetY(), par.GetY() - hit->GetY());
-                fhTxdXCscGemResid->Fill(par.GetTx(), par.GetX() - hit->GetX());
-                fhTydYCscGemResid->Fill(par.GetTy(), par.GetY() - hit->GetY());
-            }
+            // if (Abs(par.GetY() - hit->GetY()) < 3) {
+            fhXCscGemResid->Fill(par.GetX() - hit->GetX());
+            fhYCscGemResid->Fill(par.GetY() - hit->GetY());
+            fhXdXCscGemResid->Fill(par.GetX(), par.GetX() - hit->GetX());
+            fhYdYCscGemResid->Fill(par.GetY(), par.GetY() - hit->GetY());
+            fhTxdXCscGemResid->Fill(par.GetTx(), par.GetX() - hit->GetX());
+            fhTydYCscGemResid->Fill(par.GetTy(), par.GetY() - hit->GetY());
+            // }
         }
     }
 
@@ -434,14 +452,14 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack *tr, Int_t num) {
                 fhTxdXTof1GemResid->Fill(parPredict.GetTx(), parPredict.GetX() - hit->GetX());
                 fhTydYTof1GemResid->Fill(parPredict.GetTy(), parPredict.GetY() - hit->GetY());
             } else if (num == 2) {
-                if (Abs(parPredict.GetY() - hit->GetY()) < 3) {
-                    fhXTof2GemResid->Fill(parPredict.GetX() - hit->GetX());
-                    fhYTof2GemResid->Fill(parPredict.GetY() - hit->GetY());
-                    fhXdXTof2GemResid->Fill(parPredict.GetX(), parPredict.GetX() - hit->GetX());
-                    fhYdYTof2GemResid->Fill(parPredict.GetY(), parPredict.GetY() - hit->GetY());
-                    fhTxdXTof2GemResid->Fill(parPredict.GetTx(), parPredict.GetX() - hit->GetX());
-                    fhTydYTof2GemResid->Fill(parPredict.GetTy(), parPredict.GetY() - hit->GetY());
-                }
+                //if (Abs(parPredict.GetY() - hit->GetY()) < 2) {
+                fhXTof2GemResid->Fill(parPredict.GetX() - hit->GetX());
+                fhYTof2GemResid->Fill(parPredict.GetY() - hit->GetY());
+                fhXdXTof2GemResid->Fill(parPredict.GetX(), parPredict.GetX() - hit->GetX());
+                fhYdYTof2GemResid->Fill(parPredict.GetY(), parPredict.GetY() - hit->GetY());
+                fhTxdXTof2GemResid->Fill(parPredict.GetTx(), parPredict.GetX() - hit->GetX());
+                fhTydYTof2GemResid->Fill(parPredict.GetTy(), parPredict.GetY() - hit->GetY());
+                //}
             }
         }
         if (dist < minDist && dist <= 5.) {
@@ -486,8 +504,16 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack *tr, Int_t num) {
 
     Double_t threshDist = 5;
     Double_t minDist = DBL_MAX;
+    Double_t minDX = DBL_MAX;
+    Double_t minDY = DBL_MAX;
     BmnTrack *matchedDch = nullptr;
     Int_t minIdx = -1;
+
+    //residuals after peak fitting of all-to-all histograms
+    Double_t sigmaXdch1gemResid = 1.67;
+    Double_t sigmaYdch1gemResid = 0.72;
+    Double_t sigmaXdch2gemResid = 0.69;
+    Double_t sigmaYdch2gemResid = 0.65;
 
     Double_t Z = (num == 1) ? 500 : 700;
     FairTrackParam parL(*(tr->GetParamLast()));
@@ -500,10 +526,15 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack *tr, Int_t num) {
         if (num == 1 && zDCH > 550) continue;
         if (num == 2 && zDCH < 650) continue;
         fKalman->TGeoTrackPropagate(&parDch, Z, fPDG, nullptr, nullptr, kFALSE);
-        Double_t dist = Sqrt(Sq(parL.GetX() - parDch.GetX()) + Sq(parL.GetY() - parDch.GetY()));
-        if (dist < threshDist && dist < minDist) {
+        Double_t dX = Abs(parL.GetX() - parDch.GetX());
+        Double_t dY = Abs(parL.GetY() - parDch.GetY());
+        Double_t xCut = (num == 1) ? 3 * sigmaXdch1gemResid : 3 * sigmaXdch2gemResid;
+        Double_t yCut = (num == 1) ? 3 * sigmaYdch1gemResid : 3 * sigmaYdch2gemResid;
+        if (dX < xCut && dY < yCut && dX < minDX && dY < minDY) {
             minIdx = trIdx;
             matchedDch = dchTr;
+            minDX = dX;
+            minDY = dY;
         }
         if (fDoAlign)
             if (num == 1) {
@@ -679,7 +710,7 @@ void BmnGlobalTracking::Finish() {
         matchResid.Close();
     }
 
-    if (fVerbose > 0) cout << "Work time of the Global matching: " << workTime << endl;
+    cout << "Work time of the Global matching: " << workTime << endl;
 }
 
 void BmnGlobalTracking::CalculateLength() {

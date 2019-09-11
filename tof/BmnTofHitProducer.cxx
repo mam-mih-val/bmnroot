@@ -328,18 +328,23 @@ void BmnTofHitProducer::Exec(Option_t* opt)
                         		    Float_t xcl, ycl, zcl;
 					    if (fSelectXYCalibration == 0)
                         			fTOF2->get_hit_xyz(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
-					    if (fSelectXYCalibration != 0)
+					    else if (fSelectXYCalibration == 1)
                         			fTOF2->get_hit_xyzp(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
-                        		    crosspoint.SetXYZ(xcl,ycl,zcl);
-                        		    AddHit(UID, crosspoint, XYZ_err, -1, -1, tof[i][cstr]+fMCTime[i]);
-                        		    nSingleHits++;
+					    else
+                        			fTOF2->get_hit_xyzs(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					    if (zcl != 0.)
+					    {
+                        			crosspoint.SetXYZ(xcl,ycl,zcl);
+                        			AddHit(UID, crosspoint, XYZ_err, -1, -1, tof[i][cstr]+fMCTime[i]);
+                        			nSingleHits++;
 
-                        		    if(fDoTest)
-                        		    {
-                            			h2TestXYSmeared2->Fill(crosspoint.X(), crosspoint.Y());
-                        			Float_t xc, yc, zc;
-                        			fTOF2->get_strip_xyz(i,cstr,&xc,&yc,&zc);
-                            			h2TestRZ->Fill(xc, yc);
+                        			if(fDoTest)
+                        			{
+                            			    h2TestXYSmeared2->Fill(crosspoint.X(), crosspoint.Y());
+                        			    Float_t xc, yc, zc;
+                        			    fTOF2->get_strip_xyz(i,cstr,&xc,&yc,&zc);
+                            			    h2TestRZ->Fill(xc, yc);
+                        			}
                         		    }
                         		}			
 					samps = 0.;
@@ -361,18 +366,23 @@ void BmnTofHitProducer::Exec(Option_t* opt)
                         		Float_t xcl, ycl, zcl;
 					if (fSelectXYCalibration == 0)
                         		    fTOF2->get_hit_xyz(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
-					if (fSelectXYCalibration != 0)
+					else if (fSelectXYCalibration == 1)
                         		    fTOF2->get_hit_xyzp(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
-                        		crosspoint.SetXYZ(xcl,ycl,zcl);
-                        		AddHit(UID, crosspoint, XYZ_err, -1, -1, tof[i][cstr]+fMCTime[i]);
-                        		nSingleHits++;
+					else
+                        		    fTOF2->get_hit_xyzs(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					if (zcl != 0.)
+					{
+                        		    crosspoint.SetXYZ(xcl,ycl,zcl);
+                        		    AddHit(UID, crosspoint, XYZ_err, -1, -1, tof[i][cstr]+fMCTime[i]);
+                        		    nSingleHits++;
 
-                        		if(fDoTest)
-                        		{
-                            		    h2TestXYSmeared2->Fill(crosspoint.X(), crosspoint.Y());
-                        		    Float_t xc, yc, zc;
-                        		    fTOF2->get_strip_xyz(i,cstr,&xc,&yc,&zc);
-                            		    h2TestRZ->Fill(xc, yc);
+                        		    if(fDoTest)
+                        		    {
+                            			h2TestXYSmeared2->Fill(crosspoint.X(), crosspoint.Y());
+                        			Float_t xc, yc, zc;
+                        			fTOF2->get_strip_xyz(i,cstr,&xc,&yc,&zc);
+                            			h2TestRZ->Fill(xc, yc);
+                        		    }
                         		}			
 				    }
 				    samps = 0.;
@@ -405,17 +415,22 @@ void BmnTofHitProducer::Exec(Option_t* opt)
                     	    Float_t xcl, ycl, zcl;
 			    if (fSelectXYCalibration == 0)
                         	fTOF2->get_hit_xyz(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
-			    if (fSelectXYCalibration != 0)
+			    else if (fSelectXYCalibration != 0)
                         	fTOF2->get_hit_xyzp(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
-                    	    crosspoint.SetXYZ(xcl,ycl,zcl);
-                    	    AddHit(UID, crosspoint, XYZ_err, -1, -1, dtime+fMCTime[chamber]); 	
-                    	    nSingleHits++;
+			    else
+                        	fTOF2->get_hit_xyzs(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
+			    if (zcl != 0.)
+			    {
+                    		crosspoint.SetXYZ(xcl,ycl,zcl);
+                    		AddHit(UID, crosspoint, XYZ_err, -1, -1, dtime+fMCTime[chamber]); 	
+                    		nSingleHits++;
 
-                    	    if(fDoTest)
-                    	    {
+                    		if(fDoTest)
+                    		{
                             	    h2TestXYSmeared2->Fill(crosspoint.X(), crosspoint.Y());
                             	    TVector3 stripCenter(pStrip->center);
                             	    h2TestRZ->Fill(stripCenter.X(), stripCenter.Y());
+                    		}
                     	    }			
             	    }
             	}

@@ -126,9 +126,13 @@ public:
     float get_hit_diff0(int chamber, int strip, float diff);
     float get_hit_x0(int chamber, int strip, float diff);
     void get_hit_xyz0(int chamber, int strip, float diff, float *x, float *y, float *z);
+    float get_hit_xs0(int chamber, int strip, float diff);
+    void get_hit_xyzs0(int chamber, int strip, float diff, float *x, float *y, float *z);
     float get_hit_diff(int chamber, int strip, float diff_corrected);
     float get_hit_x(int chamber, int strip, float diff_corrected);
     void get_hit_xyz(int chamber, int strip, float diff_corrected, float *x, float *y, float *z);
+    float get_hit_xs(int chamber, int strip, float diff_corrected);
+    void get_hit_xyzs(int chamber, int strip, float diff_corrected, float *x, float *y, float *z);
     float get_hit_xp(int chamber, int strip, float diff);
     void get_hit_xyzp(int chamber, int strip, float diff, float *x, float *y, float *z);
     void ReBook(int i);

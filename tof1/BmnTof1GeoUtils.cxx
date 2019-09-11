@@ -130,7 +130,7 @@ assert(gGeoManager);
     		} // strips
     	} // detectors	
 
-    	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTof1HitProducer::ParseTGeoManager] detectors= %d, strips= %d. ", nDetectors, nStrips);
+    	LOG(info) << "[BmnTof1HitProducer::ParseTGeoManager] detectors = " << nDetectors << ", strips= " << nStrips << ". ";
         return nDetectors;
 }
 //------------------------------------------------------------------------------------------------------------------------

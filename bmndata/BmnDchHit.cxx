@@ -63,14 +63,14 @@ void BmnDchHit::Print(const Option_t* opt) const {
     cout << "    Flag: " << fFlag << endl;
 }
 //------------------------------------------------------------------------------------------------------------------------
-
+/*
 void BmnDchHit::SetIndex(Int_t indx) {
     /// Add point index
 
     Int_t size = fIndex.GetSize();
     fIndex.Set(size + 1);
     fIndex[size] = indx;
-}
+}*/
 //------------------------------------------------------------------------------------------------------------------------
 
 Int_t BmnDchHit::Compare(const TObject* hit) const {

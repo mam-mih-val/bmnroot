@@ -20,6 +20,7 @@
 #include <vector>
 #include <fstream>
 //#include <regex>
+#include "BmnDigiRunHeader.h"
 #include "BmnGemRaw2Digit.h"
 #include "BmnGemStripDigit.h"
 #include "BmnMwpcRaw2Digit.h"
@@ -328,6 +329,14 @@ public:
         return fAdcDecoMode;
     }
 
+    void SetVerbose(Int_t v) {
+        fVerbose = v;
+    }
+
+    Int_t GetVerbose() const {
+        return fVerbose;
+    }
+
     UInt_t GetBoundaryRun(UInt_t nSmpl) {
         //format for SILICON data was changed during March 2017 seance (run 1542)
         //format for GEM was changed after March 2017 seance (run 1992)
@@ -381,6 +390,7 @@ private:
     TString fRootFileName;
     TString fRawFileName;
     TString fDigiFileName;
+    TString fDigiRunHdrName;
     TString fDchMapFileName;
     TString fMwpcMapFileName;
     TString fGemMapFileName;
@@ -483,6 +493,7 @@ private:
     map<TTimeStamp, Int_t> leaps;
     TTimeStamp utc_valid;
     Int_t tai_utc_dif;
+    Int_t fVerbose;
 
     int refrun_tof700_slewing[60];
     int refchamber_tof700_slewing[60];

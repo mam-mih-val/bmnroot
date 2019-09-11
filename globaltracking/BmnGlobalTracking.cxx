@@ -31,10 +31,6 @@ BmnGlobalTracking::BmnGlobalTracking() : fDoAlign(kFALSE),
                                          fGemVertex(nullptr),
                                          fTof1Hits(nullptr),
                                          fTof2Hits(nullptr),
-                                         fBC1Digits(nullptr),
-                                         fBC2Digits(nullptr),
-                                         fBC3Digits(nullptr),
-                                         fBC4Digits(nullptr),
                                          fDchHits(nullptr),
                                          fMCTracks(nullptr),
                                          fEvHead(nullptr),
@@ -55,10 +51,6 @@ BmnGlobalTracking::BmnGlobalTracking(Bool_t isField, Bool_t isExp, Bool_t doAlig
                                                                                      fGemVertex(nullptr),
                                                                                      fTof1Hits(nullptr),
                                                                                      fTof2Hits(nullptr),
-                                                                                     fBC1Digits(nullptr),
-                                                                                     fBC2Digits(nullptr),
-                                                                                     fBC3Digits(nullptr),
-                                                                                     fBC4Digits(nullptr),
                                                                                      fDchHits(nullptr),
                                                                                      fMCTracks(nullptr),
                                                                                      fEvHead(nullptr),
@@ -161,11 +153,6 @@ InitStatus BmnGlobalTracking::Init() {
     if (fVerbose > 1)
         cout << fDet.ToString();
 
-    fBC1Digits = (TClonesArray *)ioman->GetObject("TQDC_BC1");
-    fBC2Digits = (TClonesArray *)ioman->GetObject("TQDC_BC2");
-    fBC3Digits = (TClonesArray *)ioman->GetObject("TQDC_BC3");
-    fBC4Digits = (TClonesArray *)ioman->GetObject("TQDC_BC4");
-
     fSilHits = (TClonesArray *)ioman->GetObject("BmnSiliconHit");
     fGemHits = (TClonesArray *)ioman->GetObject("BmnGemStripHit");
     fCscHits = (TClonesArray *)ioman->GetObject("BmnCSCHit");
@@ -193,11 +180,6 @@ InitStatus BmnGlobalTracking::Init() {
     if (!fEvHead)
         if (fVerbose > 1)
             cout << "Init. No EventHeader array!" << endl;
-
-    // ioman->Register("TQDC_BC1", "TQDC", fBC1Digits, kTRUE);
-    // ioman->Register("TQDC_BC2", "TQDC", fBC2Digits, kTRUE);
-    // ioman->Register("TQDC_BC3", "TQDC", fBC3Digits, kTRUE);
-    // ioman->Register("TQDC_BC4", "TQDC", fBC4Digits, kTRUE);
 
     if (fVerbose > 1)
         cout << "BmnGlobalTracking::Init finished\n";
@@ -253,14 +235,14 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
             if (fCscHits)
                 for (Int_t hitIdx = 0; hitIdx < fCscHits->GetEntriesFast(); ++hitIdx) {
                     BmnHit *hit = (BmnHit *)fCscHits->At(hitIdx);
-                    hit->SetX(hit->GetX() - 1.13);
+                    hit->SetX(hit->GetX() - 67.71);
                     hit->SetY(hit->GetY() + 0.44);
                 }
             if (fTof1Hits)
                 for (Int_t hitIdx = 0; hitIdx < fTof1Hits->GetEntriesFast(); ++hitIdx) {
                     BmnHit *hit = (BmnHit *)fTof1Hits->At(hitIdx);
-                    hit->SetX(hit->GetX() + 1.18);
-                    hit->SetY(hit->GetY() - 2.44);
+                    hit->SetX(hit->GetX());
+                    hit->SetY(hit->GetY());
                 }
             if (fTof2Hits)
                 for (Int_t hitIdx = 0; hitIdx < fTof2Hits->GetEntriesFast(); ++hitIdx) {

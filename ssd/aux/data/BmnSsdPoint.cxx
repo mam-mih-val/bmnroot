@@ -86,7 +86,6 @@ BmnSsdPoint::BmnSsdPoint(const BmnSsdPoint& point, Int_t eventId,
 
 // -----   Point x coordinate from linear extrapolation   ------------------
 Double_t BmnSsdPoint::GetX(Double_t z) const {
-  //  LOG(INFO) << fZ << " " << z << " " << fZ_out << FairLogger::endl;
   if ( (fZ_out-z)*(fZ-z) >= 0. ) return (fX_out+fX)/2.;
   Double_t dz = fZ_out - fZ;
   return ( fX + (z-fZ) / dz * (fX_out-fX) );

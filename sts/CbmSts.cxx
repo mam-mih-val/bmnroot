@@ -324,27 +324,19 @@ void CbmSts::ConstructGeometry()
 {
   TString fileName = GetGeometryFileName();
   if ( fileName.EndsWith(".root") ) {
-    gLogger->Info(MESSAGE_ORIGIN,
-		  "Constructing STS geometry from ROOT file %s",
-		  fileName.Data());
+    LOG(info) << "Constructing STS geometry from ROOT file " << fileName.Data();
     ConstructRootGeometry();
   }
   else if ( fileName.EndsWith(".geo") ) {
-    gLogger->Info(MESSAGE_ORIGIN,
-		  "Constructing STS geometry from ASCII file %s",
-		  fileName.Data());
+    LOG(info) << "Constructing STS geometry from ASCII file " << fileName.Data();
     ConstructAsciiGeometry();
   }
   else if ( fileName.EndsWith(".gdml") ) {
-    gLogger->Info(MESSAGE_ORIGIN,
-          "Constructing STS geometry from GDML file %s",
-          fileName.Data());
+    LOG(info) << "Constructing STS geometry from GDML file " << fileName.Data();
     ConstructGDMLGeometry();
   }
   else
-    gLogger->Fatal(MESSAGE_ORIGIN,
-           "Geometry format of STS file %s not supported",
-		   fileName.Data());
+    LOG(fatal) << "Geometry format of STS file " << fileName.Data() << " not supported";
 }
 // ----------------------------------------------------------------------------
 
@@ -393,7 +385,7 @@ void CbmSts::ConstructGDMLGeometry()
     TGeoVolume* v1 = parser.GDMLReadFile(GetGeometryFileName());
 
     if (v1 == 0)
-        fLogger->Fatal(MESSAGE_ORIGIN, "\033[5m\033[31mFairModule::ConstructGDMLGeometry(): could construct geometry from GDML File!!  \033[0m", GetGeometryFileName().Data());
+        LOG(fatal) << "\033[5m\033[31mFairModule::ConstructGDMLGeometry(): could construct geometry from GDML File!!  \033[0m" << GetGeometryFileName().Data();
 
     TGeoNode* n = v1->GetNode(0);
 

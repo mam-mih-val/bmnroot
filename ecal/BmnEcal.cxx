@@ -292,7 +292,7 @@ void BmnEcal::ConstructGeometry() {
 
   TString geoFileName = GetGeometryFileName();
   if(geoFileName.EndsWith(".root")) {
-    LOG(INFO) << "Constructing ECAL geometry from ROOT file " << geoFileName.Data() << FairLogger::endl;
+    LOG(info) << "Constructing ECAL geometry from ROOT file " << geoFileName.Data();
     ConstructRootGeometry();
   }
     

@@ -189,7 +189,7 @@ CbmStsSensor* CbmStsDigiScheme::GetSensorByName(TString sensorName)
     return p->second;
   }else{
     LOG(DEBUG) << "StsDigiScheme: sensor " << sensorName.Data()
-               << " not found " << FairLogger::endl;
+               << " not found ";
     return NULL;
   }
 }

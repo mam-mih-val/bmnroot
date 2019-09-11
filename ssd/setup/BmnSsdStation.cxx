@@ -119,8 +119,7 @@ void BmnSsdStation::CheckSensorProperties() {
     		  // Get sensor thickness
     		  TGeoBBox* sBox = dynamic_cast<TGeoBBox*>(sensorNode->GetShape());
     		  if ( ! sBox )
-    		  	LOG(FATAL) << GetName() << ": sensor shape is not a box!"
-    		  	           << FairLogger::endl;
+    		  	LOG(FATAL) << GetName() << ": sensor shape is not a box!";
     		  	Double_t sD = 2. * sBox->GetDZ();
     		    if ( ! nSensors ) fSensorD = sD; // first sensor
     		    else {
@@ -147,8 +146,7 @@ Double_t BmnSsdStation::GetSensorPitch(Int_t side) const {
   assert( side == 0 || side == 1);
 
   if ( ! fFirstSensor ) {
-    LOG(WARNING) << GetName() << ": No sensors connected to station!"
-        << FairLogger::endl;
+    LOG(WARNING) << GetName() << ": No sensors connected to station!";
     return 0.;
   }
 
@@ -157,8 +155,7 @@ Double_t BmnSsdStation::GetSensorPitch(Int_t side) const {
   Double_t pitch = -1.;
   if ( sensor ) pitch = sensor->GetPitch(side);
   else {
-    LOG(WARNING) << GetName() << ": Cannot get pitch for non-Dssd sensor."
-        << FairLogger::endl;
+    LOG(WARNING) << GetName() << ": Cannot get pitch for non-Dssd sensor.";
   }
 
   return pitch;
@@ -173,8 +170,7 @@ Double_t BmnSsdStation::GetSensorStereoAngle(Int_t side) const {
   assert ( side == 0 || side == 1);
 
   if ( ! fFirstSensor ) {
-     LOG(WARNING) << GetName() << ": No sensors connected to station!"
-         << FairLogger::endl;
+     LOG(WARNING) << GetName() << ": No sensors connected to station!";
      return 0.;
   }
 
@@ -185,8 +181,7 @@ Double_t BmnSsdStation::GetSensorStereoAngle(Int_t side) const {
   if ( sensor ) stereo = sensor->GetStereoAngle(side);
   else {
     LOG(WARNING) << GetName()
-        << ": Cannot get stereo angle for non-DssdStereo sensor."
-        << FairLogger::endl;
+        << ": Cannot get stereo angle for non-DssdStereo sensor.";
   }
 
   return stereo;
@@ -205,7 +200,7 @@ void BmnSsdStation::Init() {
 	if ( fNode ) {
 		TGeoBBox* box = dynamic_cast<TGeoBBox*>(fNode->GetShape());
 		if ( ! box )
-			LOG(FATAL) << GetName() << ": shape is not box! " << FairLogger::endl;
+			LOG(FATAL) << GetName() << ": shape is not box! ";
 		Double_t local[3] = { 0., 0., 0.};
 		Double_t global[3];
 	  fNode->GetMatrix()->LocalToMaster(local, global);
@@ -242,8 +237,7 @@ void BmnSsdStation::Init() {
 
 	// Warning if varying sensor properties are found
 	if ( fDiffSensorD )
-		LOG(WARNING) << GetName() << ": Different values for sensor thickness!"
-		             << FairLogger::endl;
+		LOG(WARNING) << GetName() << ": Different values for sensor thickness!";
 
 	// Determine the rotation (in x-y) of the first sensor
 	assert(fFirstSensor);

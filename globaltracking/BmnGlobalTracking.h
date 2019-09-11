@@ -111,16 +111,6 @@ class BmnGlobalTracking : public FairTask {
     TClonesArray *fTof1Hits;
     TClonesArray *fTof2Hits;
 
-    TClonesArray *fBC1Digits;
-    TClonesArray *fBC2Digits;
-    TClonesArray *fBC3Digits;
-    TClonesArray *fBC4Digits;
-
-    TClonesArray *fBC1Digits_out;
-    TClonesArray *fBC2Digits_out;
-    TClonesArray *fBC3Digits_out;
-    TClonesArray *fBC4Digits_out;
-
     TClonesArray *fEvHead;
 
     TClonesArray *fMCTracks;

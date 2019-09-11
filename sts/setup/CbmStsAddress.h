@@ -123,7 +123,7 @@ class CbmStsAddress : public CbmAddress
        if ( newId >= ( 1 << fgkBits[level]) ) {
          LOG(ERROR) << "Id " << newId << " for STS level " << level
                     << " exceeds maximum (" << (1 << fgkBits[level]) - 1
-                    << ")" << FairLogger::endl;
+                    << ")";
          return 0;
        }
        return ( address & (~ (fgkMask[level] << fgkShift[level]) ) )

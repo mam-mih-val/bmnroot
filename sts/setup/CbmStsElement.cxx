@@ -45,8 +45,7 @@ void CbmStsElement::AddDaughter(CbmStsElement* element) {
   if ( element->GetLevel() != fLevel + 1) {
     LOG(ERROR) << fName << ": Trying to add an element of level "
                << element->GetLevel() << " as daughter of level "
-               << fLevel << "! Command will be ignored."
-               << FairLogger::endl;
+               << fLevel << "! Command will be ignored.";
     return;
 
   }
@@ -74,8 +73,7 @@ void CbmStsElement::InitDaughters() {
 
   // --- Catch absence of TGeoManager
   if ( ! gGeoManager ) {
-    LOG(ERROR) << fName << ": cannot initialise without TGeoManager!"
-               << FairLogger::endl;
+    LOG(ERROR) << fName << ": cannot initialise without TGeoManager!";
     return;
   }
 
@@ -84,8 +82,7 @@ void CbmStsElement::InitDaughters() {
 
   // --- Catch physical node not being set
   if ( ! fNode ) {
-    LOG(ERROR) << fName << ": physical node is not set!"
-               << FairLogger::endl;
+    LOG(ERROR) << fName << ": physical node is not set!";
     return;
   }
 
@@ -124,8 +121,7 @@ void CbmStsElement::InitDaughters() {
 // -----   Print   ---------------------------------------------------------
 void CbmStsElement::Print(Option_t* opt) const {
   LOG(INFO) << fName << ": " << fTitle << ", address " << fAddress
-            << ", index " << GetIndex() << ", level " << fLevel
-            << FairLogger::endl;
+            << ", index " << GetIndex() << ", level " << fLevel;
 }
 // -------------------------------------------------------------------------
 
@@ -142,7 +138,7 @@ void CbmStsElement::SetLevel(Int_t level) {
     case kStsSensor:     fLevel = kStsSensor;     break;
     default: LOG(ERROR) << fName << ": trying to set the level to "
                         << level << " while max. level is "
-                        << kStsNofLevels - 1 << FairLogger::endl; break;
+                        << kStsNofLevels - 1; break;
   }
 }
 // -------------------------------------------------------------------------

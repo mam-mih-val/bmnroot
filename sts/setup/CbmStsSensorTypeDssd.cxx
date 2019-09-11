@@ -42,7 +42,7 @@ Int_t CbmStsSensorTypeDssd::GetModuleChannel(Int_t strip, Int_t side,
 
   // --- Check side
   if ( side < 0 || side > 1 ) {
-    LOG(ERROR) << "Illegal side qualifier " << side << FairLogger::endl;
+    LOG(ERROR) << "Illegal side qualifier " << side;
     return -1;
   }
 
@@ -99,21 +99,17 @@ void CbmStsSensorTypeDssd::GetStrip(Int_t channel, Int_t sensorId,
 // -----   Print parameters   ----------------------------------------------
 void CbmStsSensorTypeDssd::Print(Option_t* opt) const {
 
-  LOG(INFO) << "Properties of sensor type " << GetName() << ": "
-            << FairLogger::endl
+  LOG(INFO) << "Properties of sensor type " << GetName() << ": ";
             << "\t  Dimensions: (" << fixed << setprecision(4)
-            << fDx << ", " << fDy << ", " << fDz << ") cm"
-            << FairLogger::endl
+            << fDx << ", " << fDy << ", " << fDz << ") cm";
             << "\t  Front side: pitch = "
             << setprecision(0) << fPitch[0]*1.e4 << " mum, "
             << fNofStrips[0] << " strips, stereo angle "
-            << setprecision(1) << fStereo[0] << " degrees"
-            << FairLogger::endl
+            << setprecision(1) << fStereo[0] << " degrees";
             << "\t  Back side:  pitch = "
             << setprecision(0) << fPitch[1]*1.e4 << " mum, "
             << fNofStrips[1] << " strips, stereo angle "
-            << setprecision(1) << fStereo[1] << " degrees"
-            << FairLogger::endl;
+            << setprecision(1) << fStereo[1] << " degrees";
 
 }
 // -------------------------------------------------------------------------
@@ -126,8 +122,7 @@ void CbmStsSensorTypeDssd::ProcessPoint(CbmStsSensorPoint* point,
 
   // --- Catch if parameters are not set
   if ( ! fIsSet ) {
-    LOG(FATAL) << fName << ": parameters are not set!"
-               << FairLogger::endl;
+    LOG(FATAL) << fName << ": parameters are not set!";
     return;
   }
 
@@ -146,14 +141,14 @@ void CbmStsSensorTypeDssd::ProduceCharge(CbmStsSensorPoint* point,
 
   // --- Protect against being called without parameters being set
   if ( ! fIsSet ) LOG(FATAL) << "Parameters of sensor " << fName
-                             << " are not set!" << FairLogger::endl;
+                             << " are not set!";
 
   // This implementation assumes a straight trajectory in the sensor
   // and a constant charge distribution along it.
 
   // Check for side qualifier
   if ( side < 0 || side > 1 )  {
-    LOG(ERROR) << "Illegal side qualifier!" << FairLogger::endl;
+    LOG(ERROR) << "Illegal side qualifier!";
     return;
   }
 
@@ -226,7 +221,7 @@ void CbmStsSensorTypeDssd::RegisterCharge(const CbmStsSenzor* sensor,
   // --- Debug output
   LOG(DEBUG3) << fName << ": Registering charge: side " << side
               << ", strip " << strip << ", time " << time
-              << ", charge " << charge << FairLogger::endl;
+              << ", charge " << charge;
 
 }
 // -------------------------------------------------------------------------
@@ -246,15 +241,14 @@ Bool_t CbmStsSensorTypeDssd::SelfTest() {
           LOG(ERROR) << fName << "Self test failed! Sensor " << sensorId
                      << " side " << side << " strip " << strip
                      << " gives channel " << channel << " gives strip "
-                     << testStrip << " side " << testSide
-                     << FairLogger::endl;
+                     << testStrip << " side " << testSide;
           return kFALSE;
         }
       } // strip loop
     } // side loop
   } // sensor loop
 
-  LOG(INFO) << fName << ": self test passed" << FairLogger::endl;
+  LOG(INFO) << fName << ": self test passed";
   return kTRUE;
 }
 // -------------------------------------------------------------------------
@@ -271,13 +265,11 @@ void CbmStsSensorTypeDssd::SetParameters(Double_t dx, Double_t dy,
   if ( TMath::Abs(stereoF) > 85. )
     LOG(FATAL) << "Stereo angle for front side " << stereoF
                << "outside allowed limits! "
-               << "Must be between -85 and 85 degrees."
-               << FairLogger::endl;
+               << "Must be between -85 and 85 degrees.";
   if ( TMath::Abs(stereoB) > 85. )
     LOG(FATAL) << "Stereo angle for back side " << stereoB
                << "outside allowed limits! "
-               << "Must be between -85 and 85 degrees."
-               << FairLogger::endl;
+               << "Must be between -85 and 85 degrees.";
 
   // --- Set members
   fDx           = dx;

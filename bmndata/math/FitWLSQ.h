@@ -34,7 +34,7 @@ private:
 
 	Bool_t Initial(Double_t *trk);
 
-	void CheckMatrix(Double_t *pdA, Double_t *pdB, char *sz);
+	void CheckMatrix(Double_t *pdA, Double_t *pdB, TString sz);
 
 	Bool_t SymMatrix(Double_t *pdA, Double_t *pdB);
 

@@ -63,7 +63,7 @@ BmnLANDHitProducer::~BmnLANDHitProducer()
 //--------------------------------------------------------------------------------------------------------------------------------------
 InitStatus 		BmnLANDHitProducer::Init() 
 {
-	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "Begin [BmnLANDHitProducer::Init].");
+	LOG(info) << "Begin [BmnLANDHitProducer::Init].";
 
 	if(fOnlyPrimary) cout<<" Only primary particles are processed!!! \n"; // FIXME NOT used now ADDD
 
@@ -92,7 +92,7 @@ InitStatus 		BmnLANDHitProducer::Init()
 	}
 	
 
-	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "Initialization [BmnLANDHitProducer::Init] finished succesfully.");
+	LOG(info) << "Initialization [BmnLANDHitProducer::Init] finished succesfully.";
 
 	return kSUCCESS;
 }

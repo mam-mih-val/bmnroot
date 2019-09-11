@@ -106,38 +106,32 @@ Int_t BmnSsdAddress::GetAddress(UInt_t unit,
   // Catch overrun of allowed ranges
   if ( unit >= ( 1 << kBits[version][kSsdUnit] ) ) {
     LOG(ERROR) << "Unit Id "  << unit << " exceeds maximum ("
-        << ( 1 << kBits[version][kSsdUnit] ) - 1 << ")"
-        << FairLogger::endl;
+        << ( 1 << kBits[version][kSsdUnit] ) - 1 << ")";
     return 0;
   }
   if ( ladder >= ( 1 << kBits[version][kSsdLadder]) ) {
     LOG(ERROR) << "Ladder Id "  << ladder << " exceeds maximum ("
-        << ( 1 << kBits[version][kSsdLadder] ) - 1 << ")"
-        << FairLogger::endl;
+        << ( 1 << kBits[version][kSsdLadder] ) - 1 << ")";
     return 0;
   }
   if ( halfladder >= ( 1 << kBits[version][kSsdHalfLadder]) ) {
     LOG(ERROR) << "HalfLadder Id "  << halfladder << " exceeds maximum ("
-        << ( 1 << kBits[version][kSsdHalfLadder] ) - 1 << ")"
-        << FairLogger::endl;
+        << ( 1 << kBits[version][kSsdHalfLadder] ) - 1 << ")";
     return 0;
   }
   if ( module >= ( 1 << kBits[version][kSsdModule]) ) {
     LOG(ERROR) << "Module Id "  << module << " exceeds maximum ("
-        << ( 1 << kBits[version][kSsdModule] ) - 1 << ")"
-        << FairLogger::endl;
+        << ( 1 << kBits[version][kSsdModule] ) - 1 << ")";
     return 0;
   }
   if ( sensor >= ( 1 << kBits[version][kSsdSensor]) ) {
     LOG(ERROR) << "Sensor Id "  << sensor << " exceeds maximum ("
-        << ( 1 << kBits[version][kSsdSensor] ) - 1 << ")"
-        << FairLogger::endl;
+        << ( 1 << kBits[version][kSsdSensor] ) - 1 << ")";
     return 0;
   }
   if ( side >= ( 1 << kBits[version][kSsdSide]) ) {
     LOG(ERROR) << "Side Id "  << side << " exceeds maximum ("
-        << ( 1 << kBits[version][kSsdSide] ) - 1 << ")"
-        << FairLogger::endl;
+        << ( 1 << kBits[version][kSsdSide] ) - 1 << ")";
     return 0;
   }
 
@@ -165,7 +159,7 @@ Int_t BmnSsdAddress::GetAddress(UInt_t* elementId, UInt_t version) {
     if ( elementId[level] >= ( 1 << kBits[version][level] ) ) {
       LOG(ERROR) << "Id " << elementId[level] << " for SSD level " << level
           << " exceeds maximum (" << (1 << kBits[version][level]) - 1
-          << ")" << FairLogger::endl;
+          << ")";
       return 0;
     }
     address = address | ( elementId[level] << kShift[version][level] );
@@ -227,7 +221,7 @@ Int_t BmnSsdAddress::SetElementId(Int_t address, Int_t level,
   if ( newId >= ( 1 << kBits[version][level]) ) {
     LOG(FATAL) << "Id " << newId << " for SSD level " << level
         << " exceeds maximum (" << (1 << kBits[version][level]) - 1
-        << ")" << FairLogger::endl;
+        << ")";
     return 0;
   }
   return ( address & (~ (kMask[version][level] << kShift[version][level]) ) )

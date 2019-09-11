@@ -108,8 +108,7 @@ BmnDigi* BmnDaqBuffer::GetNextData(Int_t iDet) {
 
   // --- Check for system ID
   if ( iDet >= kNOFDETS ) {
-    LOG(WARNING) << "DaqBuffer: Illegal system ID " << iDet
-                 << FairLogger::endl;
+    LOG(WARNING) << "DaqBuffer: Illegal system ID " << iDet;
     return NULL;
   }
 
@@ -135,8 +134,7 @@ BmnDigi* BmnDaqBuffer::GetNextData(Int_t iDet, Double_t time) {
 
   // --- Check for system ID
   if ( iDet >= kNOFDETS ) {
-    LOG(WARNING) << "DaqBuffer: Illegal system ID " << iDet
-                 << FairLogger::endl;
+    LOG(WARNING) << "DaqBuffer: Illegal system ID " << iDet;
     return NULL;
   }
 
@@ -183,13 +181,11 @@ Int_t BmnDaqBuffer::GetSize(Int_t det) const {
 // -----   Insert data into buffer   -----------------------------------------
 void BmnDaqBuffer::InsertData(BmnDigi* digi) {
 
-  if ( ! digi ) LOG(FATAL) << "DaqBuffer: invalid digi pointer"
-                           << FairLogger::endl;
+  if ( ! digi ) LOG(FATAL) << "DaqBuffer: invalid digi pointer";
 
   Int_t iDet = digi->GetSystemId();
   if ( iDet >= kNOFDETS) {
-    LOG(WARNING) << "DaqBuffer: Illegal system ID " << iDet
-                 << FairLogger::endl;
+    LOG(WARNING) << "DaqBuffer: Illegal system ID " << iDet;
     return;
   }
 
@@ -197,8 +193,7 @@ void BmnDaqBuffer::InsertData(BmnDigi* digi) {
   fData[iDet].insert(value);
 
   LOG(DEBUG2) << "DaqBuffer: Inserting digi, detectorID "
-              << digi->GetAddress() << ", time " << digi->GetTime()
-              << FairLogger::endl;
+              << digi->GetAddress() << ", time " << digi->GetTime();
 
 }
 // ---------------------------------------------------------------------------
@@ -220,7 +215,7 @@ void BmnDaqBuffer::PrintStatus() const {
   Int_t size = GetSize();
   LOG(INFO) << "DaqBuffer: Status ";
   if ( ! size ) {
-    LOG(INFO) << "empty" << FairLogger::endl;
+    LOG(INFO) << "empty";
     return;
   }
   for (Int_t det = kREF; det < kNOFDETS; det++) {
@@ -231,7 +226,7 @@ void BmnDaqBuffer::PrintStatus() const {
   }
   LOG(INFO) << "\t     " << "Total: " << GetSize() << " from "
             << fixed << setprecision(3) << GetFirstTime() << " ns to "
-            << GetLastTime() << " ns" << FairLogger::endl;
+            << GetLastTime() << " ns";
 }
 // ---------------------------------------------------------------------------
 

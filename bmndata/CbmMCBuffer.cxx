@@ -178,7 +178,7 @@ void CbmMCBuffer::Print(const char* option) const {
             << fixed << setprecision(3) << fTime << " ns, "
             << GetNofEntries() << " points from " << GetMinTime()
             << " ns to " << GetMaxTime() << " ns, size " << GetSize()
-            << " MB" << FairLogger::endl;
+            << " MB";
 
   if ( fMvdBuffer.GetSize() )  fMvdBuffer.Print();
   if ( fGemBuffer.GetSize() )  fGemBuffer.Print();

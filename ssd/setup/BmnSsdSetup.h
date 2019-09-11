@@ -165,7 +165,7 @@ class BmnSsdSetup : public BmnSsdElement
     /** Print list of sensors with parameters **/
     void ListSensors() const {
       for (auto it = fSensors.begin(); it != fSensors.end(); it++)
-        LOG(INFO) << it->second->ToString() << FairLogger::endl;
+        LOG(INFO) << it->second->ToString();
     }
 
 

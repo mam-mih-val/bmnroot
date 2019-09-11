@@ -55,8 +55,7 @@ Int_t BmnModuleList::GetModuleId(const char* moduleName) {
 // ------   Get module name from module Id   --------------------------------
 TString BmnModuleList::GetModuleName(Int_t moduleId) {
   if ( fModules.find(moduleId) == fModules.end() ) {
-    LOG(ERROR) << "Module List: Illegal module Id " << moduleId
-    		       << FairLogger::endl;
+    LOG(ERROR) << "Module List: Illegal module Id " << moduleId;
     return "";
   }
   return fModules.find(moduleId)->second;

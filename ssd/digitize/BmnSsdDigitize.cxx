@@ -123,7 +123,7 @@ BmnSsdDigitize::BmnSsdDigitize()
 
 // -----   Destructor   ----------------------------------------------------
 BmnSsdDigitize::~BmnSsdDigitize() {
-  LOG(DEBUG) << "Destructing " << fName << FairLogger::endl;
+  LOG(DEBUG) << "Destructing " << fName;
   ResetArrays();
   delete fDigis;
   delete fMatches;
@@ -208,7 +208,7 @@ void BmnSsdDigitize::CreateDigi(Int_t address, UShort_t channel,
       << " (module "
       << fSetup->GetElement(address, kSsdModule)->GetName()
       << ", channel " << channel
-      << ")" << FairLogger::endl;
+      << ")";
 
 }
 // -------------------------------------------------------------------------
@@ -225,7 +225,7 @@ void BmnSsdDigitize::Exec(Option_t* /*opt*/) {
   // --- For debug: status of analogue buffers
   if ( gLogger->IsLogNeeded(DEBUG)) {
     std::cout << std::endl;
-    LOG(DEBUG) << GetName() << ": " << BufferStatus() << FairLogger::endl;
+    LOG(DEBUG) << GetName() << ": " << BufferStatus();
   }
 
   // --- Store previous event time.  Get current event time.
@@ -243,7 +243,7 @@ void BmnSsdDigitize::Exec(Option_t* /*opt*/) {
     fNofNoiseTot += Double_t(nNoise);
     LOG(INFO) << "+ " << setw(20) << GetName() << ": Generated  " << nNoise
         << " noise signals from t = " << tNoiseStart << " ns to "
-        << tNoiseEnd << " ns" << FairLogger::endl;
+        << tNoiseEnd << " ns";
   }
 
   // --- Analogue response: Process the input array of SsdPoints
@@ -251,10 +251,10 @@ void BmnSsdDigitize::Exec(Option_t* /*opt*/) {
   LOG(DEBUG) << GetName() << ": " << fNofSignalsF + fNofSignalsB
       << " signals generated ( "
       << fNofSignalsF << " / " << fNofSignalsB << " )"
-      << FairLogger::endl;
+     ;
   // --- For debug: status of analogue buffers
   if ( gLogger->IsLogNeeded(DEBUG)) {
-    LOG(DEBUG) << GetName() << ": " << BufferStatus() << FairLogger::endl;
+    LOG(DEBUG) << GetName() << ": " << BufferStatus();
   }
 
   // --- Readout time: in stream mode the time of the current event.
@@ -269,7 +269,7 @@ void BmnSsdDigitize::Exec(Option_t* /*opt*/) {
 
   // --- Check status of analogue module buffers
   if ( gLogger->IsLogNeeded(DEBUG)) {
-    LOG(DEBUG) << GetName() << ": " << BufferStatus() << FairLogger::endl;
+    LOG(DEBUG) << GetName() << ": " << BufferStatus();
   }
 
   // --- Event log
@@ -278,7 +278,7 @@ void BmnSsdDigitize::Exec(Option_t* /*opt*/) {
          << fCurrentEventTime << " ns, points: " << fNofPoints
          << ", signals: " << fNofSignalsF << " / " << fNofSignalsB
          << ", digis: " << fNofDigis << ". Exec time " << setprecision(6)
-         << fTimer.RealTime() << " s." << FairLogger::endl;
+         << fTimer.RealTime() << " s.";
 
   // --- Counters
   fTimer.Stop();
@@ -307,7 +307,7 @@ void BmnSsdDigitize::Finish() {
   // --- In event-by-event mode, the analogue buffers should be empty.
   if ( fEventMode ) {
     if ( BufferSize() ) {
-      LOG(INFO) << fName << BufferStatus() << FairLogger::endl;
+      LOG(INFO) << fName << BufferStatus();
       LOG(FATAL) << fName << ": Non-empty analogue buffers at end of event "
           << " in event-by-event mode!";
     } //? buffers not empty
@@ -316,11 +316,11 @@ void BmnSsdDigitize::Finish() {
   // ---  In time-based mode: process the remaining signals in the buffers
   else {
     std::cout << std::endl;
-    LOG(INFO) << GetName() << ": Finish run" << FairLogger::endl;
+    LOG(INFO) << GetName() << ": Finish run";
     LOG(INFO) << GetName() << ": " << BufferStatus()
-                << FairLogger::endl;
+               ;
     LOG(INFO) << GetName() << ": Processing analogue buffers"
-        << FairLogger::endl;
+       ;
 
     // --- Loop over all modules in the setup and process their buffers
     for (Int_t iModule = 0; iModule < fSetup->GetNofModules(); iModule++)
@@ -333,9 +333,9 @@ void BmnSsdDigitize::Finish() {
     if ( fNofDigis ) LOG(DEBUG) << "( from " << fixed
         << setprecision(3) << fTimeDigiFirst << " ns to "
         << fTimeDigiLast << " ns )";
-    LOG(INFO) << FairLogger::endl;
+    LOG(INFO);
     LOG(INFO) << GetName() << ": " << BufferStatus()
-                << FairLogger::endl;
+               ;
   }
 
   fTimer.Stop();
@@ -346,30 +346,30 @@ void BmnSsdDigitize::Finish() {
   fTimeTot        += fTimer.RealTime();
 
   std::cout << std::endl;
-  LOG(INFO) << "=====================================" << FairLogger::endl;
-  LOG(INFO) << GetName() << ": Run summary" << FairLogger::endl;
-  LOG(INFO) << "Events processed    : " << fNofEvents << FairLogger::endl;
+  LOG(INFO) << "=====================================";
+  LOG(INFO) << GetName() << ": Run summary";
+  LOG(INFO) << "Events processed    : " << fNofEvents;
   LOG(INFO) << "SsdPoint / event    : " << setprecision(1)
 			                  << fNofPointsTot / Double_t(fNofEvents)
-			                  << FairLogger::endl;
+			                 ;
   LOG(INFO) << "Signals / event     : "
       << fNofSignalsFTot / Double_t(fNofEvents)
       << " / " << fNofSignalsBTot / Double_t(fNofEvents)
-      << FairLogger::endl;
+     ;
   LOG(INFO) << "SsdDigi / event     : "
-      << fNofDigisTot  / Double_t(fNofEvents) << FairLogger::endl;
+      << fNofDigisTot  / Double_t(fNofEvents);
   LOG(INFO) << "Digis per point     : " << setprecision(6)
-			                  << fNofDigisTot / fNofPointsTot << FairLogger::endl;
+			                  << fNofDigisTot / fNofPointsTot;
   LOG(INFO) << "Digis per signal    : "
       << fNofDigisTot / ( fNofSignalsFTot + fNofSignalsBTot )
-      << FairLogger::endl;
+     ;
   LOG(INFO) << "Noise digis / event : " << fNofNoiseTot / Double_t(fNofEvents)
-	                      << FairLogger::endl;
+	                     ;
   LOG(INFO) << "Noise fraction      : " << fNofNoiseTot / fNofDigisTot
-      << FairLogger::endl;
+     ;
   LOG(INFO) << "Real time per event : " << fTimeTot / Double_t(fNofEvents)
-			                  << " s" << FairLogger::endl;
-  LOG(INFO) << "=====================================" << FairLogger::endl;
+			                  << " s";
+  LOG(INFO) << "=====================================";
 }
 // -------------------------------------------------------------------------
 
@@ -394,7 +394,7 @@ void BmnSsdDigitize::GetEventInfo(Int_t& inputNr, Int_t& eventNr,
   else {
     if ( ! FairRunSim::Instance() )
       LOG(FATAL) << GetName() << ": neither SIM nor ANA run."
-      << FairLogger::endl;
+     ;
     inputNr   = 0;
     eventTime = 0.;
   } //? Not FairRunAna
@@ -417,14 +417,12 @@ InitStatus BmnSsdDigitize::Init() {
 
   // Screen output
   std::cout << std::endl;
-  LOG(INFO) << "=========================================================="
-      << FairLogger::endl;
-  LOG(INFO) << GetName() << ": Initialisation" << FairLogger::endl
-      << FairLogger::endl;
+  LOG(INFO) << "==========================================================";
+  LOG(INFO) << GetName() << ": Initialisation";
 
   // Deactivate noise in event-by-event mode
   if ( fEventMode ) {
-    LOG(INFO) << GetName() << ": Using event mode." << FairLogger::endl;
+    LOG(INFO) << GetName() << ": Using event mode.";
     SetGenerateNoise(kFALSE);
   }
 
@@ -438,7 +436,7 @@ InitStatus BmnSsdDigitize::Init() {
                          fUseCrossTalk, fGenerateNoise);
 
   // --- Screen output of settings
-  LOG(INFO) << GetName() << ": " << fDigiPar->ToString() << FairLogger::endl;
+  LOG(INFO) << GetName() << ": " << fDigiPar->ToString();
 
   // --- Get FairRootManager instance
   FairRootManager* ioman = FairRootManager::Instance();
@@ -467,9 +465,9 @@ InitStatus BmnSsdDigitize::Init() {
 
   // --- Screen output
   LOG(INFO) << GetName() << ": Initialisation successful"
-      << FairLogger::endl;
+     ;
   LOG(INFO) << "=========================================================="
-      << FairLogger::endl;
+     ;
   std::cout << std::endl;
 
   // Set static initialisation flag
@@ -524,7 +522,7 @@ void BmnSsdDigitize::ProcessAnalogBuffers(Double_t readoutTime) {
 
   // --- Debug
   LOG(DEBUG) << GetName() << ": Processing analog buffers with readout "
-      << "time " << readoutTime << " ns" << FairLogger::endl;
+      << "time " << readoutTime << " ns";
 
   // --- Loop over all modules in the setup and process their buffers
   for (Int_t iModule = 0; iModule < fSetup->GetNofModules(); iModule++)
@@ -537,7 +535,7 @@ void BmnSsdDigitize::ProcessAnalogBuffers(Double_t readoutTime) {
   if ( fNofDigis ) LOG(DEBUG) << "( from " << fixed
       << setprecision(3) << fTimeDigiFirst << " ns to "
       << fTimeDigiLast << " ns )";
-  LOG(DEBUG) << FairLogger::endl;
+  LOG(DEBUG);
 
 }
 // -------------------------------------------------------------------------
@@ -551,7 +549,7 @@ void BmnSsdDigitize::ProcessMCEvent() {
   LOG(DEBUG) << GetName() << ": Processing event " << fCurrentEvent
       << " from input " << fCurrentInput << " at t = " << fCurrentEventTime
       << " ns with " << fPoints->GetEntriesFast() << " SsdPoints "
-      << FairLogger::endl;
+     ;
 
 
   // --- Loop over all SsdPoints and execute the ProcessPoint method
@@ -589,7 +587,7 @@ void BmnSsdDigitize::ProcessPoint(const BmnSsdPoint* point,
   LOG(DEBUG2) << GetName() << ": Point coordinates: in (" << point->GetXIn()
 			            << ", " << point->GetYIn() << ", " << point->GetZIn() << ")"
 			            << ", out (" << point->GetXOut() << ", " << point->GetYOut()
-			            << ", " << point->GetZOut() << ")" << FairLogger::endl;
+			            << ", " << point->GetZOut() << ")";
 
 
   // --- Get the sensor the point is in
@@ -598,20 +596,20 @@ void BmnSsdDigitize::ProcessPoint(const BmnSsdPoint* point,
   (fSetup->GetElement(address, kSsdSensor));
   if ( ! sensor ) {
     LOG(INFO) << GetName() << ": No sensor for address " << address
-        << FairLogger::endl;
+       ;
     LOG(INFO) << "Unit " << BmnSsdAddress::GetElementId(address, kSsdUnit);
     LOG(INFO) << " Ladder " << BmnSsdAddress::GetElementId(address, kSsdLadder);
     LOG(INFO) << " Half-ladder " << BmnSsdAddress::GetElementId(address, kSsdHalfLadder);
     LOG(INFO) << " Module " << BmnSsdAddress::GetElementId(address, kSsdModule);
     LOG(INFO) << " Sensor " << BmnSsdAddress::GetElementId(address, kSsdSensor);
-    LOG(INFO) << FairLogger::endl;
+    LOG(INFO);
   }
   if ( ! sensor ) LOG(ERROR) << GetName() << ": Sensor of SsdPoint not found!"
-      << FairLogger::endl;
+     ;
   assert(sensor);
   LOG(DEBUG2) << GetName() << ": Sending point to sensor "
       << sensor->GetName() << " ( " << sensor->GetAddress()
-      << " ) " << FairLogger::endl;
+      << " ) ";
 
   // --- Process the point on the sensor
   Int_t status = sensor->ProcessPoint(point, eventTime, link);
@@ -621,7 +619,7 @@ void BmnSsdDigitize::ProcessPoint(const BmnSsdPoint* point,
   Int_t nSignalsB = status - 1000 * nSignalsF;
   LOG(DEBUG2) << GetName() << ": Produced signals: "
       << nSignalsF + nSignalsB << " ( " << nSignalsF << " / "
-      << nSignalsB << " )" << FairLogger::endl;
+      << nSignalsB << " )";
   fNofSignalsF += nSignalsF;
   fNofSignalsB += nSignalsB;
 
@@ -725,7 +723,7 @@ void BmnSsdDigitize::SetGenerateNoise(Bool_t choice) {
   if ( fIsInitialised ) {
     LOG(ERROR) << GetName() << ": physics processes must be set before "
         << "initialisation! Statement will have no effect."
-        << FairLogger::endl;
+       ;
     return;
   }
 
@@ -756,7 +754,7 @@ void BmnSsdDigitize::SetParameters(Double_t dynRange, Double_t threshold,
   if ( fIsInitialised ) {
     LOG(ERROR) << GetName() << ": physics processes must be set before "
         << "initialisation! Statement will have no effect."
-        << FairLogger::endl;
+       ;
     return;
   }
   assert(fDigiPar);
@@ -777,7 +775,7 @@ void BmnSsdDigitize::SetProcesses(Int_t eLossModel,
   if ( fIsInitialised ) {
     LOG(ERROR) << GetName() << ": physics processes must be set before "
         << "initialisation! Statement will have no effect."
-        << FairLogger::endl;
+       ;
     return;
   }
   fEnergyLossModel = eLossModel;
@@ -796,7 +794,7 @@ void BmnSsdDigitize::SetSensorConditionFile(const char* fileName) {
   if ( fIsInitialised ) {
     LOG(FATAL) << GetName()
             <<": sensor conditions must be set before initialisation!"
-            << FairLogger::endl;
+           ;
     return;
   }
   fSensorConditionFile = fileName;
@@ -812,7 +810,7 @@ void BmnSsdDigitize::SetSensorParameterFile(const char* fileName) {
   if ( fIsInitialised ) {
     LOG(FATAL) << GetName()
             <<": sensor parameters must be set before initialisation!"
-            << FairLogger::endl;
+           ;
     return;
   }
   fSensorParameterFile = fileName;
@@ -828,7 +826,7 @@ void BmnSsdDigitize::WriteDigi(BmnDigi* digi) {
   // --- Assert that it is a SsdDigi
   BmnSsdDigi* ssdDigi = dynamic_cast<BmnSsdDigi*>(digi);
   if ( ! ssdDigi ) LOG(FATAL) << fName
-      << ": not a valid SsdDigi pointer!" << FairLogger::endl;
+      << ": not a valid SsdDigi pointer!";
 
   assert(fDigis);
   assert(fMatches);

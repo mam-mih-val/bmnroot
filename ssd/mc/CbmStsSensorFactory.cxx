@@ -24,8 +24,7 @@ CbmStsSensorFactory::CbmStsSensorFactory()
     fSensors()
 {
 	Int_t nSensors = DefineSensors();
-	LOG(INFO) << GetName() << ": " << nSensors << " sensors created."
-			      << FairLogger::endl;
+	LOG(INFO) << GetName() << ": " << nSensors << " sensors created.";
 }
 // -------------------------------------------------------------------------
 
@@ -39,16 +38,14 @@ Bool_t CbmStsSensorFactory::CreateSensor(TString& name, TString& material,
 
 	// --- Check presence of TGeoManager
 	if ( ! gGeoManager ) {
-		LOG(ERROR) << GetName() << ": no TGeoManager present!"
-		           << FairLogger::endl;
+		LOG(ERROR) << GetName() << ": no TGeoManager present!";
 	  return kFALSE;
 	}
 
 	// --- Check presence of material
 	TGeoMedium* medium = gGeoManager->GetMedium(material.Data());
 	if ( ! medium ) {
-		LOG(ERROR) << GetName() << ": medium " << material << " not found!"
-				       << FairLogger::endl;
+		LOG(ERROR) << GetName() << ": medium " << material << " not found!";
 		return kFALSE;
 	}
 
@@ -61,8 +58,7 @@ Bool_t CbmStsSensorFactory::CreateSensor(TString& name, TString& material,
 			      << std::setw(10) << name
 			      << ", material " << std::setw(10) << material
 			      << ", size (" << std::fixed << std::setprecision(5) << xSize
-			      << ", " << ySize << ", " << thickness << ") cm"
-			      << FairLogger::endl;
+			      << ", " << ySize << ", " << thickness << ") cm";
 	return kTRUE;
 
 }
@@ -78,8 +74,7 @@ Int_t CbmStsSensorFactory::DefineSensors() {
 
 	// --- Check presence of TGeoManager
 	if ( ! gGeoManager ) {
-		LOG(ERROR) << "StsSensorFactory: no TGeoManeger present!"
-		           << FairLogger::endl;
+		LOG(ERROR) << "StsSensorFactory: no TGeoManeger present!";
 	  return 0;
 	}
 

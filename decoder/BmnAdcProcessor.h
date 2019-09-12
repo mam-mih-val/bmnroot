@@ -107,7 +107,7 @@ public:
         return fAdcSerials;
     }
 
-    UInt_t GetBoundaryRun(UInt_t nSmpl) {
+    inline UInt_t GetBoundaryRun(UInt_t nSmpl) {
         //format for SILICON data was changed during March 2017 seance (run 1542)
         //format for GEM was changed after March 2017 seance (run 1992)
         //so we have to use this crutch.

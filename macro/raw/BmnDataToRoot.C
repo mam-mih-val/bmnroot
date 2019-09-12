@@ -1,14 +1,16 @@
 //file: full path to raw file
 //nEvents: if 0 then decode all events
 //doConvert: convert RAW --> ROOT before decoding or use file converted before
-void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_t doConvert = kTRUE, Bool_t doHoldRawRoot = kTRUE)
+void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_t doConvert = kTRUE, Bool_t doHoldRawRoot = kFALSE)
 {
     gSystem->ExpandPathName(file);
 
+    Int_t iVerbose = 0; ///<- Verbosity level
     UInt_t period = 7;
     BmnSetup stp = kBMNSETUP; // use kSRCSETUP for Short-Range Correlation program and kBMNSETUP otherwise
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, outfile, nEvents, period);
     decoder->SetBmnSetup(stp);
+    decoder->SetVerbose(iVerbose);
 
     Bool_t setup[11]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
@@ -29,20 +31,20 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     TString PeriodSetupExt = Form("%d%s.txt", period, ((stp == kBMNSETUP) ? "" : "_SRC"));
     decoder->SetTrigPlaceMapping(TString("Trig_PlaceMap_Run") + PeriodSetupExt); 
     decoder->SetTrigChannelMapping(TString("Trig_map_Run") + PeriodSetupExt); 
-    decoder->SetSiliconMapping("SILICON_map_run7.txt");
+    decoder->SetSiliconMapping(TString("SILICON_map_run") + PeriodSetupExt);
     decoder->SetGemMapping(TString("GEM_map_run") + PeriodSetupExt);
     decoder->SetCSCMapping(TString("CSC_map_period") + PeriodSetupExt);
     // in case comment out the line decoder->SetTof400Mapping("...")  
     // the maps of TOF400 will be read from DB (only for JINR network)
     decoder->SetTOF700ReferenceRun(-1);
-    decoder->SetTof700Geom("TOF700_geometry_run7.txt"); 
+    decoder->SetTof700Geom(TString("TOF700_geometry_run") + PeriodSetupExt); 
     decoder->SetTof400Mapping(TString("TOF400_PlaceMap_RUN") +PeriodSetupExt, TString("TOF400_StripMap_RUN") +PeriodSetupExt);
-    decoder->SetTof700Mapping("TOF700_map_period_7.txt");
+    decoder->SetTof700Mapping(TString("TOF700_map_period_") + PeriodSetupExt);
     decoder->SetZDCMapping("ZDC_map_period_5.txt");
     decoder->SetZDCCalibration("zdc_muon_calibration.txt");
-    //decoder->SetECALMapping("ECAL_map_period_7.txt");
-    //decoder->SetECALCalibration("");
-    decoder->SetMwpcMapping(TString("MWPC_map_period") + PeriodSetupExt);
+    decoder->SetECALMapping(TString("ECAL_map_period_") + PeriodSetupExt);
+    decoder->SetECALCalibration("");
+    decoder->SetMwpcMapping(TString("MWPC_map_period") + ((period == 6 && decoder->GetRunId() < 1397) ? 5 : PeriodSetupExt));
     decoder->SetLANDMapping("land_mapping_jinr_triplex.txt");
     decoder->SetLANDPedestal("r0030_land_clock.hh");
     decoder->SetLANDTCal("r0030_land_tcal.hh");

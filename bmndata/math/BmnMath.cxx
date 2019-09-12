@@ -1057,11 +1057,12 @@ Double_t Mu(vector <Double_t> qp, vector <Double_t> w) {
 //}
 
 void DrawBar(UInt_t iEv, UInt_t nEv) {
-    cout.flush();
+    if ((iEv % (nEv / 100)) > 100.0/nEv)
+        return;
     Float_t progress = iEv * 1.0 / nEv;
     Int_t barWidth = 70;
-
-    Int_t pos = barWidth * progress;
+    Int_t pos = barWidth * progress;    
+    cout.flush();
     for (Int_t i = 0; i < barWidth; ++i) {
         if (i <= pos) printf(ANSI_COLOR_BLUE_BG " " ANSI_COLOR_RESET);
         else printf(ANSI_COLOR_YELLOW_BG " " ANSI_COLOR_RESET);
@@ -1076,7 +1077,7 @@ void DrawBar(Long64_t iEv, Long64_t nEv) {
     Float_t progress = iEv * 1.0 / nEv;
     Int_t barWidth = 70;
 
-    Int_t pos = barWidth * progress;
+    Int_t pos = barWidth * progress;    
     for (Int_t i = 0; i < barWidth; ++i) {
         if (i <= pos) printf(ANSI_COLOR_BLUE_BG " " ANSI_COLOR_RESET);
         else printf(ANSI_COLOR_YELLOW_BG " " ANSI_COLOR_RESET);

@@ -162,7 +162,7 @@ void 		BmnLANDHitProducer::Exec(Option_t* opt) {
 
 void BmnLANDHitProducer::Finish() {
 	/*if (fDoTest) {
-		FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnLANDHitProducer::Finish] Update  %s file. ", fTestFlnm.Data());
+		LOG(info) << "[BmnLANDHitProducer::Finish] Update " << fTestFlnm.Data() << " file.";
 		TFile *ptr = gFile;
 		TFile file(fTestFlnm.Data(), "RECREATE");
 		fList.Write();

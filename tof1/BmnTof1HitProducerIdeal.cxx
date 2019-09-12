@@ -34,7 +34,7 @@ BmnTof1HitProducerIdeal::~BmnTof1HitProducerIdeal()
 //------------------------------------------------------------------------------------------------------------------------
 InitStatus	BmnTof1HitProducerIdeal::Init() 
 {
-	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTof1HitProducerIdeal::Init] Begin initialization.");
+	LOG(info) << "[BmnTof1HitProducerIdeal::Init] Begin initialization.";
 
 	FairRootManager *ioman = FairRootManager::Instance(); assert(ioman);
 
@@ -70,7 +70,7 @@ InitStatus	BmnTof1HitProducerIdeal::Init()
         aTofHits = new TClonesArray("BmnTofHit");
         ioman->Register("TOF1Hit", "TOF1", aTofHits, kTRUE);
 
-        FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTof1HitProducerIdeal::Init] Initialization finished succesfully.");
+        LOG(info) << "[BmnTof1HitProducerIdeal::Init] Initialization finished succesfully.";
 
     return kSUCCESS;
 }
@@ -122,7 +122,7 @@ void 			BmnTof1HitProducerIdeal::Finish()
 {
   	if(fDoTest)
     	{
-      		FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, " [BmnTof1HitProducerIdeal::Finish] Update  %s file. ", fTestFlnm.Data());
+      		LOG(info) << " [BmnTof1HitProducerIdeal::Finish] Update " << fTestFlnm.Data() << " file. ";
 		TFile *ptr = gFile;
 		TFile file(fTestFlnm.Data(), "RECREATE");
 		fList.Write(); 

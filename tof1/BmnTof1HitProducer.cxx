@@ -74,7 +74,6 @@ BmnTof1HitProducer::~BmnTof1HitProducer() {
 //--------------------------------------------------------------------------------------------------------------------------------------
 
 InitStatus BmnTof1HitProducer::Init() {
-    //FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "Begin [BmnTof1HitProducer::Init].");
 
     if (fVerbose) cout << endl << "BmnTof1HitProducer::Init(): Start" << endl;
 
@@ -172,7 +171,6 @@ InitStatus BmnTof1HitProducer::Init() {
 
     if (fVerbose) cout << "BmnTof1HitProducer::Init(): Initialization finished succesfully." << endl;
 
-    //FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "Initialization [BmnTof1HitProducer::Init] finished succesfully.");
 
     return kSUCCESS;
 }
@@ -323,7 +321,6 @@ void BmnTof1HitProducer::Exec(Option_t* opt) {
 void BmnTof1HitProducer::Finish() {
 
     if (fDoTest) {
-        //FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTof1HitProducer::Finish] Update  %s file. ", fTestFlnm.Data());
         TFile *ptr = gFile;
         TFile file(fTestFlnm.Data(), "RECREATE");
         fList.Write();

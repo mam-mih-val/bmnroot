@@ -109,6 +109,7 @@
 #pragma link C++ class BmnCSCHit+;
 
 #pragma link C++ class BmnKalmanFilter+;
+#pragma link C++ class BmnDigiRunHeader+;
 
 // #pragma link C++ class BmnVertex+;
 

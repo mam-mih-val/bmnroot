@@ -184,18 +184,18 @@ void CbmStsSector::AddSensor(CbmStsSensorDigiPar* sensorPar) {
     fNChannelsBack  = nofChB;
   }
   else {
-    if ( fType     != iType   ) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor types do not match: %d vs %d",fType,iType);
-    if ( fRotation != rotRel  ) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor rotation do not match");
-    if ( fDx       != dx      ) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor dx do not match");
-    if ( fDy       != dy      ) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor dy do not match");
-    if ( fStereoF  != stereoF ) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor stereoF do not match");
-    if ( fStereoB  != stereoB ) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor stereoB do not match");
-    if ( fSigmaX   != sigmaX  ) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor sigmaX do not match");
+    if ( fType     != iType   ) LOG(fatal) << "Sensor types do not match: " << fType << " vs " << iType;
+    if ( fRotation != rotRel  ) LOG(fatal) << "Sensor rotation do not match";
+    if ( fDx       != dx      ) LOG(fatal) << "Sensor dx do not match";
+    if ( fDy       != dy      ) LOG(fatal) << "Sensor dy do not match";
+    if ( fStereoF  != stereoF ) LOG(fatal) << "Sensor stereoF do not match";
+    if ( fStereoB  != stereoB ) LOG(fatal) << "Sensor stereoB do not match";
+    if ( fSigmaX   != sigmaX  ) LOG(fatal) << "Sensor sigmaX do not match";
     
-    if ( fSigmaY   != sigmaY ) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor sigmaY do not match");
-    if ( fSigmaXY  != sigmaXY) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor sigmaXY do not match");
-    if ( fNChannelsFront != nofChF ) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor nofChanF do not match");
-    if ( fNChannelsBack  != nofChB ) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor nofChanB do not match");
+    if ( fSigmaY   != sigmaY ) LOG(fatal) << "Sensor sigmaY do not match";
+    if ( fSigmaXY  != sigmaXY) LOG(fatal) << "Sensor sigmaXY do not match";
+    if ( fNChannelsFront != nofChF ) LOG(fatal) << "Sensor nofChanF do not match";
+    if ( fNChannelsBack  != nofChB ) LOG(fatal) << "Sensor nofChanB do not match";
   }
 
 
@@ -235,19 +235,19 @@ void CbmStsSector::AddSensor(CbmStsSensor* sensor) {
     fNChannelsBack  = nofChB;
   }
   else {
-    if ( fType     != iType  )  gLogger->Fatal(MESSAGE_ORIGIN,"Sensor types do not match: %d vs %d",fType,iType);
-    if ( fRotation != rotRel )  gLogger->Fatal(MESSAGE_ORIGIN,"Sensor rotation do not match");
-    if ( fDx       != dx     )  gLogger->Fatal(MESSAGE_ORIGIN,"Sensor dx do not match");
-    if ( fDy       != dy     )  gLogger->Fatal(MESSAGE_ORIGIN,"Sensor dy do not match");
-    if ( fStereoF  != stereoF ) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor stereoF do not match");
-    if ( fStereoB  != stereoB ) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor stereoB do not match");
-    if ( fSigmaX   != sigmaX )  gLogger->Fatal(MESSAGE_ORIGIN,"Sensor sigmaX do not match");
+    if ( fType     != iType  )  LOG(fatal) << "Sensor types do not match: " << fType << " vs " << iType;
+    if ( fRotation != rotRel )  LOG(fatal) << "Sensor rotation do not match";
+    if ( fDx       != dx     )  LOG(fatal) << "Sensor dx do not match";
+    if ( fDy       != dy     )  LOG(fatal) << "Sensor dy do not match";
+    if ( fStereoF  != stereoF ) LOG(fatal) << "Sensor stereoF do not match";
+    if ( fStereoB  != stereoB ) LOG(fatal) << "Sensor stereoB do not match";
+    if ( fSigmaX   != sigmaX )  LOG(fatal) << "Sensor sigmaX do not match";
     
-    if ( fSigmaY   != sigmaY ) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor sigmaY do not match");
-    if ( fSigmaXY  != sigmaXY) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor sigmaXY do not match");
+    if ( fSigmaY   != sigmaY ) LOG(fatal) << "Sensor sigmaY do not match";
+    if ( fSigmaXY  != sigmaXY) LOG(fatal) << "Sensor sigmaXY do not match";
     
-    if ( fNChannelsFront != nofChF ) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor nofChanF do not match");
-    if ( fNChannelsBack  != nofChB ) gLogger->Fatal(MESSAGE_ORIGIN,"Sensor nofChanB do not match");
+    if ( fNChannelsFront != nofChF ) LOG(fatal) << "Sensor nofChanF do not match";
+    if ( fNChannelsBack  != nofChB ) LOG(fatal) << "Sensor nofChanB do not match";
   }
 
   fSensors->Add(sensor);
@@ -285,7 +285,7 @@ Int_t CbmStsSector::Intersect(Int_t iFStrip, Int_t iBStrip,
     } //
     
     if ( zCross > 0.001 ) {
-      gLogger->Fatal(MESSAGE_ORIGIN,"Software do not cope with two strips intersecting in different regions");
+      LOG(fatal) << "Software do not cope with two strips intersecting in different regions";
       
     }
 
@@ -321,7 +321,7 @@ Int_t CbmStsSector::IntersectClusters(Double_t fChan, Double_t bChan,
     if ( tempDetId  == -1 ) continue; //not in the sensor
     
     if ( zCross > 0.001 ) 
-      gLogger->Fatal(MESSAGE_ORIGIN,"Software do not cope with two strips intersecting in different regions");
+      LOG(fatal) << "Software do not cope with two strips intersecting in different regions";
     
     xCross = xTemp;
     yCross = yTemp;

@@ -391,7 +391,7 @@ Bool_t BmnTof1HitProducer::SetCorrFiles() {
             
             //for first time will be used correction from BM@N
             NameFileLRcorrection = Form("TOF400_LRCorr_RUN%i_BMN.dat", fPeriod); 
-            NameFileSlewingCorrection = Form("TOF400_SlewingCorr_RUN%i_Bmn.root", fPeriod);
+            NameFileSlewingCorrection = Form("TOF400_SlewingCorr_RUN%i_BMN.root", fPeriod);
             
             //NameFileLRcorrection = Form("TOF400_LRCorr_RUN%i_SRC.dat", fPeriod);
             //NameFileSlewingCorrection = Form("TOF400_SlewingCorr_RUN%i_SRC.root", fPeriod);

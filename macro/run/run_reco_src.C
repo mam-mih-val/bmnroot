@@ -139,8 +139,8 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
-    BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp, run_period, run_number);
-    fRunAna->AddTask(mwpcHM);
+  //  BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp, run_period, run_number);
+  //  fRunAna->AddTask(mwpcHM);
 
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
@@ -172,16 +172,22 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // ====================================================================== //
     // ===                         TOF400 hit finder                      === //
     // ====================================================================== //
-    // BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
-    // tof1HP->SetPeriod(run_period);
-    // fRunAna->AddTask(tof1HP);
+    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
+    tof1HP->SetPeriodRun(run_period, run_number);
+    fRunAna->AddTask(tof1HP);
 
     // ====================================================================== //
     // ===                         TOF700 hit finder                      === //
     // ====================================================================== //
-    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7.txt", !isExp, iVerbose, kTRUE);
+    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7_panin.txt", !isExp, iVerbose, kTRUE);
     tof2HP->SetTimeResolution(0.115);
-    tof2HP->SetMCTimeFile("TOF700_MC_gamma_time_run7.txt");
+    tof2HP->SetMCTimeFile("TOF700_MC_src_qgsm_time_run7.txt");
+    tof2HP->SetMainStripSelection(0); // 0 - minimal time, 1 - maximal amplitude
+    tof2HP->SetSelectXYCalibration(1); // 0 - Petukhov, 1 - Panin
+    tof2HP->SetTimeMin(-2.f); // minimal digit time
+    tof2HP->SetTimeMax(+15.f); // Maximal digit time
+    tof2HP->SetDiffTimeMaxSmall(1.3f); // Abs maximal difference for small chambers
+    tof2HP->SetDiffTimeMaxBig(3.5f); // Abs maximal difference for big chambers
     fRunAna->AddTask(tof2HP);
 
     // ====================================================================== //
@@ -193,14 +199,14 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // ====================================================================== //
     // ===                          Tracking (MWPC)                       === //
     // ====================================================================== //
-    BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp, run_period, run_number);
-    fRunAna->AddTask(mwpcTF);
+   // BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp, run_period, run_number);
+   // fRunAna->AddTask(mwpcTF);
 
     // ====================================================================== //
     // ===                          Tracking (Silicon)                    === //
     // ====================================================================== //
-    BmnSiliconTrackFinder* siTF = new BmnSiliconTrackFinder(isTarget, run_number);
-    fRunAna->AddTask(siTF);
+   // BmnSiliconTrackFinder* siTF = new BmnSiliconTrackFinder(isTarget, run_number);
+   // fRunAna->AddTask(siTF);
 
     // ====================================================================== //
     // ===                   Tracking (GEM in magnet)                     === //

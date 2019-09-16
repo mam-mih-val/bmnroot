@@ -116,7 +116,7 @@ void create_rootgeom_TOF700_run7_with_support() {
     FairGeoMedium* mAir = geoMedia->getMedium("air");
     if ( ! mAir ) Fatal("Main", "FairMedium air not found");
     geoBuild->createMedium(mAir);
-    TGeoMedium* pMedAir = gGeoMan->GetMedium("air");
+    pMedAir = gGeoMan->GetMedium("air");
     if ( ! pMedAir ) Fatal("Main", "Medium air not found");
   
     FairGeoMedium* mRPCglass = geoMedia->getMedium("RPCglass");
@@ -135,7 +135,7 @@ void create_rootgeom_TOF700_run7_with_support() {
     FairGeoMedium* matAl = geoMedia->getMedium("aluminium");
     if (!matAl) Fatal("Main", "FairMedium aluminium not found");
     geoBuild->createMedium(matAl);
-    TGeoMedium* medAl = gGeoMan->GetMedium("aluminium");
+    medAl = gGeoMan->GetMedium("aluminium");
     if (!medAl) Fatal("Main", "Medium aluminium not found");
 
     // G10

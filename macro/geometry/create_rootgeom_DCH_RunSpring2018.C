@@ -23,6 +23,7 @@ const Double_t HoleSize = 16.0;
 
 const Double_t SideLengthOfOctagon = 120.0;
 const Double_t OuterRadiusOfOctagon = (2.414 * SideLengthOfOctagon) / 2.0; //incircle radius, where 2.414 is a constant
+const Double_t OuterRadiusOfOctagon_ActivePlane = 120.0;
 const Double_t InnerRadiusOfOctagon = 16.0;
 
 //Flange parameters
@@ -123,8 +124,8 @@ void create_rootgeom_DCH_RunSpring2018() {
 
     //Active plane (sense wires) -----------------------------------------------
     TGeoPgon *OctagonActivePlaneS = new TGeoPgon("OctagonActivePlaneS", 0, 360, 8, 2);
-    OctagonActivePlaneS->DefineSection(0, -ActiveVolumeThickness*0.5, InnerRadiusOfOctagon, OuterRadiusOfOctagon);
-    OctagonActivePlaneS->DefineSection(1, +ActiveVolumeThickness*0.5, InnerRadiusOfOctagon, OuterRadiusOfOctagon);
+    OctagonActivePlaneS->DefineSection(0, -ActiveVolumeThickness*0.5, InnerRadiusOfOctagon, OuterRadiusOfOctagon_ActivePlane);
+    OctagonActivePlaneS->DefineSection(1, +ActiveVolumeThickness*0.5, InnerRadiusOfOctagon, OuterRadiusOfOctagon_ActivePlane);
 
     TGeoVolume *DCHActivePlaneV = new TGeoVolume("DCHActivePlaneV", OctagonActivePlaneS);
     DCHActivePlaneV->SetMedium(pMedArgonIsobutane7525);

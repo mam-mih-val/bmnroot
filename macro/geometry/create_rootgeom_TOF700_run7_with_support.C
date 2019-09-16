@@ -76,7 +76,7 @@ void create_rootgeom_TOF700_run7_with_support() {
 	TOF2_X_center[i] = xcens[i][nstrips[i]-1];
 	TOF2_Y_center[i] = (ycens[i][nstrips[i]-1] + ycens[i][0])/2.;
 	TOF2_Z_center[i] = zchamb[i];
-	printf("Chamber %d  Z = %f\n", i+1, TOF2_Z_center[i]);
+	//printf("Chamber %d  Z = %f\n", i+1, TOF2_Z_center[i]);
 	XActWidthOfModule_TOF2[chtype[i]] = xmaxs[i][0] - xmins[i][0];
 	YActWidthOfModule_TOF2[chtype[i]] = ymaxs[i][nstrips[i]-1] - ymins[i][0] + dy;
 	XWidthOfModule_TOF2[chtype[i]] = xmaxs[i][0] - xmins[i][0] + 3.0;
@@ -181,7 +181,7 @@ void create_rootgeom_TOF700_run7_with_support() {
     Double_t GlassLayer2Pos = AlLayerThickness_TOF2 + GlassLayerThickness_TOF2 + GasLayerThickness_TOF2 + GlassLayerThickness_TOF2/2. - ZWidthOfModule_TOF2/2.;
     sprintf(name,"GlassLayer2PosTOF2_trans");
     TGeoTranslation *GlassLayer2PosTOF2_trans = new TGeoTranslation(name, 0., 0., GlassLayer2Pos);
-    Double_t G10LayerPos = AlLayerThickness_TOF2 + GlassLayerThickness_TOF2 + GasLayerThickness_TOF2 + GlassLayerThickness_TOF2 + G10LayerThickness_TOF2/2. - ZWidthOfModule_TOF2/2.;
+    Double_t G10LayerPos = 0.5*(AlLayerThickness_TOF2 + GlassLayerThickness_TOF2 + GasLayerThickness_TOF2 + GlassLayerThickness_TOF2) + G10LayerThickness_TOF2/2. - ZWidthOfModule_TOF2/2.;
     sprintf(name,"G10LayerPosTOF2_trans");
     TGeoTranslation *G10LayerPosTOF2_trans = new TGeoTranslation(name, 0., 0., G10LayerPos);
       

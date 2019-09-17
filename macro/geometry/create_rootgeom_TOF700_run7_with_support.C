@@ -29,7 +29,7 @@ Double_t ChamberThickness_TOF2    = 1.680;
 Double_t AlLayerThickness_TOF2    = 0.150;  
 Double_t GasLayerThickness_TOF2   = 0.264;  
 Double_t GlassLayerThickness_TOF2 = 0.860/2.;  
-Double_t G10LayerThickness_TOF2 = ChamberThickness_TOF2-AlLayerThickness_TOF2-GasLayerThickness_TOF2-2.*GlassLayerThickness_TOF2 + 0.01;  
+Double_t G10LayerThickness_TOF2 = ChamberThickness_TOF2-AlLayerThickness_TOF2-GasLayerThickness_TOF2-2.*GlassLayerThickness_TOF2;  
 Double_t XWidthOfModule_TOF2[2] = {0.};
 Double_t YWidthOfModule_TOF2[2] = {0.};
 Double_t XActWidthOfModule_TOF2[2] = {0.};
@@ -76,7 +76,7 @@ void create_rootgeom_TOF700_run7_with_support() {
 	TOF2_X_center[i] = xcens[i][nstrips[i]-1];
 	TOF2_Y_center[i] = (ycens[i][nstrips[i]-1] + ycens[i][0])/2.;
 	TOF2_Z_center[i] = zchamb[i];
-	printf("Chamber %d  Z = %f\n", i+1, TOF2_Z_center[i]);
+	//printf("Chamber %d  Z = %f\n", i+1, TOF2_Z_center[i]);
 	XActWidthOfModule_TOF2[chtype[i]] = xmaxs[i][0] - xmins[i][0];
 	YActWidthOfModule_TOF2[chtype[i]] = ymaxs[i][nstrips[i]-1] - ymins[i][0] + dy;
 	XWidthOfModule_TOF2[chtype[i]] = xmaxs[i][0] - xmins[i][0] + 3.0;

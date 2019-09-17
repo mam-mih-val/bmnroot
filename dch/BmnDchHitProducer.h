@@ -9,7 +9,6 @@
 
 #include <iostream>
 
-#include "TString.h"
 #include "TClonesArray.h"
 #include "FairTask.h"
 
@@ -47,6 +46,10 @@ private:
 
     /** Output array of Hits **/
     TClonesArray* fBmnHitsArray;
+
+    //DCH parameters
+    UInt_t fNActivePlanes; //number of active wire planes in DHC
+    TString *fPlaneTypes;
 
     ClassDef(BmnDchHitProducer, 1);
 };

@@ -181,7 +181,7 @@ void create_rootgeom_TOF700_run7_with_support() {
     Double_t GlassLayer2Pos = AlLayerThickness_TOF2 + GlassLayerThickness_TOF2 + GasLayerThickness_TOF2 + GlassLayerThickness_TOF2/2. - ZWidthOfModule_TOF2/2.;
     sprintf(name,"GlassLayer2PosTOF2_trans");
     TGeoTranslation *GlassLayer2PosTOF2_trans = new TGeoTranslation(name, 0., 0., GlassLayer2Pos);
-    Double_t G10LayerPos = 0.5*(AlLayerThickness_TOF2 + GlassLayerThickness_TOF2 + GasLayerThickness_TOF2 + GlassLayerThickness_TOF2) + G10LayerThickness_TOF2/2. - ZWidthOfModule_TOF2/2.;
+    Double_t G10LayerPos = AlLayerThickness_TOF2 + GlassLayerThickness_TOF2 + GasLayerThickness_TOF2 + GlassLayerThickness_TOF2 + G10LayerThickness_TOF2/2. - ZWidthOfModule_TOF2/2.;
     sprintf(name,"G10LayerPosTOF2_trans");
     TGeoTranslation *G10LayerPosTOF2_trans = new TGeoTranslation(name, 0., 0., G10LayerPos);
       

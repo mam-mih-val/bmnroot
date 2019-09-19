@@ -41,13 +41,8 @@ public:
     BmnStatus FillEventMK(TClonesArray *adc, TClonesArray *sts);
     BmnStatus FillProfiles(TClonesArray *adc);
     BmnStatus FillNoisyChannels();
-    BmnStatus RecalculatePedestalsMK(Int_t nPedEv);
     BmnStatus LoadPedestalsMK(TTree* tin, TClonesArray *adc, BmnEventHeader* evhead, Int_t npedev);
     void InitAdcProcessorMK(Int_t run, Int_t iread = 0, Int_t iped = 0, Int_t ithr = 0, Int_t test = 0);
-
-//    vector<UInt_t> GetSerials() {
-//        return fSerials;
-//    }
 
 private:
 
@@ -72,166 +67,115 @@ private:
     TH1F* hped1 = nullptr;
     TH1F* hsig = nullptr;
     
-    static const Int_t nx1bin = 640;
-    static const Int_t ny1bin = 640;
+    Int_t nx1bin;
+    Int_t ny1bin;
 
-    static const Int_t nallmid = 1280;
+    Int_t nallmid;
 
-    static const Int_t maxChan = 1280;
-    static const Int_t maxchip2 = 10;
-    static const Int_t maxAdc = 8192;
+    Int_t maxChan;
+    Int_t maxchip2;
+    Int_t maxAdc;
 
-    static const Int_t ndet = 14;
-    static const Int_t nadc = 4;
-    static const Int_t nadc_samples = 128;
+    Int_t ndet;
+    Int_t nadc;
+    Int_t nadc_samples;
 
-    static const Int_t nadcmax = 5;
+    Int_t nadcmax;
 
-    static const Int_t ncoor = 28;
-    static const Int_t nclmax = 2;
+    Int_t ncoor;
+    Int_t nclmax;
 
-    static const Int_t nx1max = 640;
-    static const Int_t ny1max = 640;
-    static const Int_t nevmax = 2;
+    Int_t nx1max;
+    Int_t ny1max;
+    Int_t nevmax;
 
-//    TH1I * hChan[ndet];
-//    TH1F * hAmp[ndet];
-    TH1I * hNhits[ndet];
-//    TH1I * hNhitsall[ndet];
-//    TH1F * hPeds[ndet];
-//    TH1F * hPrms[ndet];
-//    TH1F * hPmCmod[ndet];
-//    TH1F * hPmCrms[ndet];
-//    TH1F * hCmode[ndet];
-//    TH1F * hCrms[ndet];
-//
-//    TH1F * hSCmode[ndet];
-//    TH1F * hSCmodex1[ndet];
-//    TH1F * hSCmodey1[ndet];
-//
-//    TH1F * hAmpx1[ndet];
-//    TH1I * hNAmpx1[ndet];
-//
-//    TH1F * hAmpy1[ndet];
-//    TH1I * hNAmpy1[ndet];
-//
-//    TH1F * Clust[ndet];
-//
-//    TH1F * ClustX1[ndet];
-//    TH1F * ClustY1[ndet];
-//
-//    TH1I * NClust[ndet];
-//
-//    TH1I * NClustX1[ndet];
-//    TH1I * NClustY1[ndet];
-//
-//    TH1I * Width[ndet];
-//
-//    TH1I * WidthX1[ndet];
-//    TH1I * WidthY1[ndet];
-//
-//    TH1F * Samp[ndet];
-//
-//    TH1F * SampX1[ndet];
-//    TH1F * SampY1[ndet];
-//
-//
-//    TH1F * hrawx1[ndet];
-//    TH1F * hsigx1[ndet];
-//    TH1F * hpedx1[ndet];
-//    TH1F * hcmdx1[ndet];
-//
-//    TH1F * hnoise[ndet];
+    vector<TH1I *> hNhits;
 
-    UInt_t fSerials[nadc];
-//    UInt_t rSerials[nadcmax];
-    Int_t nx1det[ndet];
-    Int_t ny1det[ndet];
-    Int_t nchdet[ndet];
+    vector<Int_t> modul;
+    vector<Int_t> detorder;
+    vector<UInt_t> fSerials;
+    vector<Int_t> nx1det;
+    vector<Int_t> ny1det;
+    vector<Int_t> nchdet;
 
-    Int_t detadc[nadc][maxAdc];
-    Int_t ichadc[nadc][maxAdc];
+    vector<vector<Int_t> > detadc;
+    vector<vector<Int_t> > ichadc;
 
-    Double_t Pedadc[nadc][maxAdc];
-    Double_t Pedadc2[nadc][maxAdc];
-    Int_t nchadc[nadc][maxAdc];
+    vector<vector<Double_t> > Pedadc;
+    vector<vector<Double_t> > Pedadc2;
+    vector<vector<Int_t> > nchadc;
+    vector<vector<Int_t> > noisech;
+    vector<vector<Double_t> > Pedchr;
+    vector<vector<Double_t> > Pedchr2;
+    vector<Int_t> x1map;
+    vector<Int_t> y1map;
+    vector<vector<Double_t> > Ampx1;
+    vector<vector<Double_t> > Ampy1;
+    vector<vector<Int_t> > cmodhitx1;
+    vector<vector<Int_t> > cmodhity1;
+    vector<Int_t> Nclustx;
+    vector<Int_t> Nclusty;
 
-    // Run 6
-    //   Int_t modul[ndet]    = {0,3,7,4,2,5,6,1};
-    // Run7
-    Int_t modul[ndet] = {0, 3, 7, 4, 2, 5, 6, 1, 0, 1, 2, 3, 1, 0};
-    Int_t detorder[ndet] = {3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 2, 2};
+    vector<vector<Int_t> > nchan;
+    vector<vector<Int_t> > nchan1;
 
+    vector<vector<Double_t> > Ampch;
+    vector<vector<Double_t> > Pedch;
+    vector<vector<Double_t> > Pedch2;
 
-    Int_t noisech[ndet][maxChan];
-    Double_t Pedchr[ndet][maxChan];
-    Double_t Pedchr2[ndet][maxChan];
-    Int_t x1map[nx1bin];
-    Int_t y1map[ny1bin];
-    Double_t Ampx1[ndet][nx1max];
-    Double_t Ampy1[ndet][ny1max];
-    Int_t Nclustx[ndet];
-    Int_t Nclusty[ndet];
+    vector<vector<Double_t> > Ped1ch;
+    vector<vector<Double_t> > Ped1ch2;
 
-    Int_t nchan[ndet][maxchip2];
-    Int_t nchan1[ndet][maxChan];
+    vector<vector<Double_t> > Ped1cmod;
+    vector<vector<Double_t> > Ped1cmod2;
 
-    Double_t Ampch[ndet][maxChan];
-    Double_t Pedch[ndet][maxChan];
-    Double_t Pedch2[ndet][maxChan];
+    vector<vector<Double_t> > Pedcmod;
+    vector<vector<Double_t> > Pedcmod2;
 
-    Double_t Ped1ch[ndet][maxChan];
-    Double_t Ped1ch2[ndet][maxChan];
+    vector<vector<Double_t> > Cmode;
+    vector<vector<Double_t> > C1mode;
+    vector<vector<Double_t> > Cmall;
+    vector<vector<Double_t> > Smode;
+    vector<vector<Double_t> > Cmode2;
 
-    Double_t Ped1cmod[ndet][maxChan];
-    Double_t Ped1cmod2[ndet][maxChan];
+    vector<vector<Double_t> > Cmode1;
+    vector<vector<Double_t> > Smode1;
 
-    Double_t Pedcmod[ndet][maxChan];
-    Double_t Pedcmod2[ndet][maxChan];
+    vector<Double_t> Clustx;
+    vector<Double_t> Clusty;
 
-    Double_t Cmode[ndet][maxchip2];
-    Double_t C1mode[ndet][maxchip2];
-    Double_t Cmall[ndet][maxchip2];
-    Double_t Smode[ndet][maxchip2];
-    Double_t Cmode2[ndet][maxchip2];
+    vector<vector<Double_t> > Clustxx;
+    vector<vector<Double_t> > Clustyy;
 
-    Double_t Cmode1[ndet][maxchip2];
-    Double_t Smode1[ndet][maxchip2];
+    vector<vector<Double_t> > Asample;
 
-    Double_t Clustx[ndet];
-    Double_t Clusty[ndet];
+    vector<vector<Double_t> > sigx1;
+    vector<vector<Int_t> > nsigx1;
+    vector<vector<Int_t> > cmodfl;
+    vector<Int_t> nchsig;
 
-    Double_t Clustxx[ndet][nclmax];
-    Double_t Clustyy[ndet][nclmax];
-
-    Double_t Asample[ndet][maxChan];
-
-    Float_t sigx1[ncoor][maxChan];
-    Int_t nsigx1[ncoor][maxChan];
-    Int_t nchsig[ncoor];
-
-    Double_t rawx1[nevmax][ndet][maxChan];
-    Double_t subx1[nevmax][ndet][maxChan];
-    Double_t pedx1[nevmax][ndet][maxChan];
-    Double_t cmdx1[nevmax][ndet][maxchip2];
+    vector<vector<vector<Double_t> > > rawx1;
+    vector<vector<vector<Double_t> > > subx1;
+    vector<vector<vector<Double_t> > > pedx1;
+    vector<vector<vector<Double_t> > > cmdx1;
+    vector<Int_t> chmap;
     Int_t nev = -1;
-    Int_t nradc = 0;
-    Int_t niter = 4;
-    Int_t niterped = 3;
-    Int_t nchip = 128;
-    Int_t nchmin = 32;
-    Int_t npevents = 0;
-    Double_t cmodcut = 100;
+//    Int_t nradc = 0;
+    Int_t niter;
+    Int_t niterped;
+    Int_t nchip;
+    Int_t nchmin;
+    Int_t npevents;
+    Double_t cmodcut;
 
-    Double_t thresh = 420;
+    Double_t thresh;
 
-    Float_t thrnoise = 0.03;
+    Double_t thrnoise;
 
-    Double_t dthr = 80;
+    Double_t dthr;
 
-    Double_t thrped = 340;
+    Double_t thrped;
 
-    Int_t chmap[nallmid];
     Int_t test = 0;
     Bool_t read = kFALSE;
     Bool_t pedestals = kFALSE;

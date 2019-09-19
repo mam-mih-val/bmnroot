@@ -21,24 +21,24 @@ BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t>
     const Int_t kNLayers = 2;
     const Int_t kNStrips = 640;
 
-        fSigProf = new TH1F***[kNStations];
-        fNoisyChannels = new Bool_t***[kNStations];
-        for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
-            fSigProf[iSt] = new TH1F**[kNModules];
-            fNoisyChannels[iSt] = new Bool_t**[kNModules];
-            for (UInt_t iMod = 0; iMod < kNModules; ++iMod) {
-                fSigProf[iSt][iMod] = new TH1F*[kNLayers];
-                fNoisyChannels[iSt][iMod] = new Bool_t*[kNLayers];
-                for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
-                    TString histName;
-                    histName.Form("SIL_%d_%d_%d", iSt, iMod, iLay);
-                    fSigProf[iSt][iMod][iLay] = new TH1F(histName, histName, kNStrips, 0, kNStrips);
-                    fNoisyChannels[iSt][iMod][iLay] = new Bool_t[kNStrips];
-                    for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip)
-                        fNoisyChannels[iSt][iMod][iLay][iStrip] = kFALSE;
-                }
+    fSigProf = new TH1F***[kNStations];
+    fNoisyChannels = new Bool_t***[kNStations];
+    for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
+        fSigProf[iSt] = new TH1F**[kNModules];
+        fNoisyChannels[iSt] = new Bool_t**[kNModules];
+        for (UInt_t iMod = 0; iMod < kNModules; ++iMod) {
+            fSigProf[iSt][iMod] = new TH1F*[kNLayers];
+            fNoisyChannels[iSt][iMod] = new Bool_t*[kNLayers];
+            for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
+                TString histName;
+                histName.Form("SIL_%d_%d_%d", iSt, iMod, iLay);
+                fSigProf[iSt][iMod][iLay] = new TH1F(histName, histName, kNStrips, 0, kNStrips);
+                fNoisyChannels[iSt][iMod][iLay] = new Bool_t[kNStrips];
+                for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip)
+                    fNoisyChannels[iSt][iMod][iLay][iStrip] = kFALSE;
             }
         }
+    }
     //    Int_t high = 2400;
     //    Int_t pRange = 500;
     //    canStrip = new TCanvas("canprof", "can", 1920, 3200);
@@ -84,53 +84,154 @@ BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t>
     //
     //    FillNoisyChannels();
 
+    cmodcut = 100;
+    thrMax = 420;
+    switch (GetPeriod()) {
+        case 7:
+            thrDif = 80.0;
+            niter = 4;
+            niterped = 3;
+            thrped = 340;
+            break;
+        default:
+            thrDif = 60.0;
+            niter = 5;
+            niterped = 4;
+            thrped = 360;
+            break;
+    }
 }
 
 void BmnSiliconRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped, Int_t ithr, Int_t itest) {
     test = itest;
     if (iread > 0) read = kTRUE;
     if (iped > 0) pedestals = kTRUE;
+    thrnoise = 0.03;
+    nchip = 128;
+    nchmin = 32;
+    npevents = 0;
+    cmodcut = 100;
+
+    switch (GetPeriod()) {
+        case 7:
+            ndet = 14;
+            nadc = 4;
+            ncoor = 28;
+            nadcmax = 5;
+            modul = {0, 3, 7, 4, 2, 5, 6, 1, 0, 1, 2, 3, 1, 0};
+            detorder = {3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 2, 2};
+
+            dthr = 80;
+            niter = 4;
+            niterped = 3;
+            thrped = 340;
+            if (ithr == 1) thrped = 280;
+            break;
+        case 6:
+            ndet = 8;
+            nadc = 2;
+            ncoor = 16;
+            modul = {0, 1, 2, 3, 4, 5, 6, 7};
+            detorder = {0, 0, 0, 0, 0, 0, 0, 0};
+
+            dthr = 60;
+            niter = 5;
+            niterped = 4;
+            thrped = 360;
+            if (ithr == 1) thrped = 300;
+            break;
+        default:
+            fprintf(stderr, "Unsupported Period %d !\n", GetPeriod());
+            break;
+    }
+    thresh = 420;
     if (ithr == 1) thresh = 360;
-    if (ithr == 1) thrped = 280;
     if (test == 2) {
         thresh = thrped;
         niter = niterped;
     }
+    nx1bin = 640;
+    ny1bin = 640;
+    nallmid = 1280;
+    maxChan = 1280;
+    maxchip2 = 10;
+    maxAdc = 8192;
+    nclmax = 2;
+    nx1max = 640;
+    ny1max = 640;
+    nadc_samples = 128;
+    nevmax = 2;
 
+    fSerials.resize(nadc, 0);
+    nx1det.resize(ndet, nx1bin);
+    ny1det.resize(ndet, ny1bin);
+    nchdet.resize(ndet, nallmid);
 
-    for (Int_t i = 0; i < ndet; i++) {
-        for (Int_t ich = 0; ich < maxChan; ich++) {
-            Pedchr[i][ich] = 0;
-            Pedchr2[i][ich] = 0;
-        }
-    }
+    detadc.resize(nadc, vector<Int_t>(maxAdc, -1));
+    ichadc.resize(nadc, vector<Int_t>(maxAdc, -1));
 
-    for (Int_t i = 0; i < nadc; i++) {
-        for (Int_t ic = 0; ic < maxAdc; ic++) {
-            detadc[i][ic] = -1;
-            ichadc[i][ic] = -1;
-            nchadc[i][ic] = 0;
-            Pedadc[i][ic] = 0;
-            Pedadc2[i][ic] = 0;
-        }
-    }
+    Pedadc.resize(nadc, vector<Double_t>(maxAdc, 0.0));
+    Pedadc2.resize(nadc, vector<Double_t>(maxAdc, 0.0));
+    nchadc.resize(nadc, vector<Int_t>(maxAdc, 0));
+    noisech.resize(ndet, vector<Int_t>(maxChan, 0));
+    Pedchr.resize(ndet, vector<Double_t>(maxChan, 0.0));
+    Pedchr2.resize(ndet, vector<Double_t>(maxChan, 0.0));
+    x1map.resize(nx1bin, 0);
+    y1map.resize(ny1bin, 0);
+    Ampx1.resize(ndet, vector<Double_t>(nx1max, 0.0));
+    Ampy1.resize(ndet, vector<Double_t>(ny1max, 0.0));
+    cmodhitx1.resize(ndet, vector<Int_t>(nx1max, 0));
+    cmodhity1.resize(ndet, vector<Int_t>(ny1max, 0));
+    Nclustx.resize(ndet, 0);
+    Nclusty.resize(ndet, 0);
 
-    for (Int_t i = 0; i < nx1bin; i++)
-        x1map[i] = 0;
-    for (Int_t i = 0; i < ny1bin; i++)
-        y1map[i] = 0;
+    nchan.resize(ndet, vector<Int_t>(maxchip2, 0));
+    nchan1.resize(ndet, vector<Int_t>(maxChan, 0));
 
-    for (Int_t i = 0; i < ndet; i++) {
-        nx1det[i] = nx1bin;
-        ny1det[i] = ny1bin;
-        nchdet[i] = nallmid;
-    }
-    for (Int_t i = 0; i < nadc; i++)
-        fSerials[i] = 0;
-    //    for (Int_t i = 0; i < nadcmax; i++)
-    //        rSerials[i] = 0;
+    Ampch.resize(ndet, vector<Double_t>(maxChan, 0.0));
+    Pedch.resize(ndet, vector<Double_t>(maxChan, 0.0));
+    Pedch2.resize(ndet, vector<Double_t>(maxChan, 0.0));
 
-    TString FSerials = TString(getenv("VMCWORKDIR")) + TString("/input/") + "Si_Serials_Run7.txt";
+    Ped1ch.resize(ndet, vector<Double_t>(maxChan, 0.0));
+    Ped1ch2.resize(ndet, vector<Double_t>(maxChan, 0.0));
+
+    Ped1cmod.resize(ndet, vector<Double_t>(maxChan, 0.0));
+    Ped1cmod2.resize(ndet, vector<Double_t>(maxChan, 0.0));
+
+    Pedcmod.resize(ndet, vector<Double_t>(maxChan, 0.0));
+    Pedcmod2.resize(ndet, vector<Double_t>(maxChan, 0.0));
+
+    Cmode.resize(ndet, vector<Double_t>(maxchip2, 0.0));
+    C1mode.resize(ndet, vector<Double_t>(maxchip2, 0.0));
+    Cmall.resize(ndet, vector<Double_t>(maxchip2, 0.0));
+    Smode.resize(ndet, vector<Double_t>(maxchip2, 0.0));
+    Cmode2.resize(ndet, vector<Double_t>(maxchip2, 0.0));
+
+    Cmode1.resize(ndet, vector<Double_t>(maxchip2, 0.0));
+    Smode1.resize(ndet, vector<Double_t>(maxchip2, 0.0));
+
+    Clustx.resize(ndet, 0.0);
+    Clusty.resize(ndet, 0.0);
+
+    Clustxx.resize(ndet, vector<Double_t>(nclmax, 0.0));
+    Clustyy.resize(ndet, vector<Double_t>(nclmax, 0.0));
+
+    Asample.resize(ndet, vector<Double_t>(maxChan, 0.0));
+
+    sigx1.resize(ncoor, vector<Double_t>(maxChan, 0.0));
+    nsigx1.resize(ncoor, vector<Int_t>(maxChan, 0));
+    cmodfl.resize(ncoor, vector<Int_t>(maxChan, 0));
+    nchsig.resize(ncoor, 0);
+
+    rawx1.resize(nevmax, vector<vector<Double_t> >(ndet, vector<Double_t>(maxChan, 0.0)));
+    subx1.resize(nevmax, vector<vector<Double_t> >(ndet, vector<Double_t>(maxChan, 0.0)));
+    pedx1.resize(nevmax, vector<vector<Double_t> >(ndet, vector<Double_t>(maxChan, 0.0)));
+    cmdx1.resize(nevmax, vector<vector<Double_t> >(ndet, vector<Double_t>(maxchip2, 0.0)));
+    //    Double_t cmdx1[nevmax][ndet][maxchip2];
+    chmap.resize(nallmid, 0);
+    hNhits.resize(ndet, nullptr);
+
+    TString FSerials = Form("%s/input/Si_Serials_Run%d.txt", getenv("VMCWORKDIR"), GetPeriod());
     ifstream inFile(FSerials);
     if (!inFile.is_open())
         cout << "Error opening File with ADC Serials (" << FSerials << ")!" << endl;
@@ -139,7 +240,7 @@ void BmnSiliconRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped,
     for (Int_t ind = 0; ind < nadc; ind++) {
         inFile >> std::hex >> ser;
         fSerials[ind] = ser;
-//        cout << "Serials= " << ind << " " << std::hex << ser << std::dec << endl;
+        //        cout << "Serials= " << ind << " " << std::hex << ser << std::dec << endl;
     }
 
     // module 8->14
@@ -446,281 +547,240 @@ void BmnSiliconRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped,
         }
     }
 
-    // module 1 vert_near
+    if (GetPeriod() == 7) {
+        // module 1 vert_near
 
-    iadc = 2;
-    idet = 8;
-    //MK table channel -1
-    minchip = 5;
-    maxchip = 9;
-    isidet = 0;
+        iadc = 2;
+        idet = 8;
+        //MK table channel -1
+        minchip = 5;
+        maxchip = 9;
+        isidet = 0;
 
-    for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
-        for (Int_t ic = 0; ic < nadc_samples; ic++) {
-            Int_t ich = ichip * nadc_samples + ic;
-            Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
-            Int_t ibin = (ichip - minchip) * nadc_samples + ic;
-            detadc[iadc][ich] = idet;
-            ichadc[iadc][ich] = ich2;
-            if (ibin >= 0 && ibin < nx1bin) x1map[ibin] = ich2;
-            else cout << " x1map ibin= " << ibin << " ich= " << ich2 << endl;
+        for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
+            for (Int_t ic = 0; ic < nadc_samples; ic++) {
+                Int_t ich = ichip * nadc_samples + ic;
+                Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
+                Int_t ibin = (ichip - minchip) * nadc_samples + ic;
+                detadc[iadc][ich] = idet;
+                ichadc[iadc][ich] = ich2;
+                if (ibin >= 0 && ibin < nx1bin) x1map[ibin] = ich2;
+                else cout << " x1map ibin= " << ibin << " ich= " << ich2 << endl;
+            }
+        }
+
+        //MK table channel -1
+        minchip = 10;
+        maxchip = 14;
+        isidet = 1;
+
+        for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
+            for (Int_t ic = 0; ic < nadc_samples; ic++) {
+                Int_t ich = ichip * nadc_samples + ic;
+                Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
+                Int_t ibin = (ichip - minchip) * nadc_samples + ic;
+                detadc[iadc][ich] = idet;
+                ichadc[iadc][ich] = ich2;
+                if (ibin >= 0 && ibin < ny1bin) y1map[ibin] = ich2;
+                else cout << " y1map ibin= " << ibin << " ich= " << ich2 << endl;
+            }
+        }
+
+
+        // module 2 vert_near
+
+        idet = 9;
+        //MK table channel -1
+        minchip = 21;
+        maxchip = 25;
+        isidet = 0;
+
+        for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
+            for (Int_t ic = 0; ic < nadc_samples; ic++) {
+                Int_t ich = ichip * nadc_samples + ic;
+                Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
+                Int_t ibin = (ichip - minchip) * nadc_samples + ic;
+                detadc[iadc][ich] = idet;
+                ichadc[iadc][ich] = ich2;
+                if (ibin >= 0 && ibin < nx1bin) x1map[ibin] = ich2;
+                else cout << " x1map ibin= " << ibin << " ich= " << ich2 << endl;
+            }
+        }
+
+        //MK table channel -1
+        minchip = 26;
+        maxchip = 30;
+        isidet = 1;
+
+        for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
+            for (Int_t ic = 0; ic < nadc_samples; ic++) {
+                Int_t ich = ichip * nadc_samples + ic;
+                Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
+                Int_t ibin = (ichip - minchip) * nadc_samples + ic;
+                detadc[iadc][ich] = idet;
+                ichadc[iadc][ich] = ich2;
+                if (ibin >= 0 && ibin < ny1bin) y1map[ibin] = ich2;
+                else cout << " y1map ibin= " << ibin << " ich= " << ich2 << endl;
+            }
+        }
+
+
+        // module 3 vert_near
+
+        idet = 10;
+        //MK table channel -1
+        minchip = 37;
+        maxchip = 41;
+        isidet = 0;
+
+        for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
+            for (Int_t ic = 0; ic < nadc_samples; ic++) {
+                Int_t ich = ichip * nadc_samples + ic;
+                Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
+                Int_t ibin = (ichip - minchip) * nadc_samples + ic;
+                detadc[iadc][ich] = idet;
+                ichadc[iadc][ich] = ich2;
+                if (ibin >= 0 && ibin < nx1bin) x1map[ibin] = ich2;
+                else cout << " x1map ibin= " << ibin << " ich= " << ich2 << endl;
+            }
+        }
+
+        //MK table channel -1
+        minchip = 42;
+        maxchip = 46;
+        isidet = 1;
+
+        for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
+            for (Int_t ic = 0; ic < nadc_samples; ic++) {
+                Int_t ich = ichip * nadc_samples + ic;
+                Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
+                Int_t ibin = (ichip - minchip) * nadc_samples + ic;
+                detadc[iadc][ich] = idet;
+                ichadc[iadc][ich] = ich2;
+                if (ibin >= 0 && ibin < ny1bin) y1map[ibin] = ich2;
+                else cout << " y1map ibin= " << ibin << " ich= " << ich2 << endl;
+            }
+        }
+
+
+        // module 4 vert_near
+
+        idet = 11;
+        //MK table channel -1
+        minchip = 53;
+        maxchip = 57;
+        isidet = 0;
+
+        for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
+            for (Int_t ic = 0; ic < nadc_samples; ic++) {
+                Int_t ich = ichip * nadc_samples + ic;
+                Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
+                Int_t ibin = (ichip - minchip) * nadc_samples + ic;
+                detadc[iadc][ich] = idet;
+                ichadc[iadc][ich] = ich2;
+                if (ibin >= 0 && ibin < nx1bin) x1map[ibin] = ich2;
+                else cout << " x1map ibin= " << ibin << " ich= " << ich2 << endl;
+            }
+        }
+
+        //MK table channel -1
+        minchip = 58;
+        maxchip = 62;
+        isidet = 1;
+
+        for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
+            for (Int_t ic = 0; ic < nadc_samples; ic++) {
+                Int_t ich = ichip * nadc_samples + ic;
+                Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
+                Int_t ibin = (ichip - minchip) * nadc_samples + ic;
+                detadc[iadc][ich] = idet;
+                ichadc[iadc][ich] = ich2;
+                if (ibin >= 0 && ibin < ny1bin) y1map[ibin] = ich2;
+                else cout << " y1map ibin= " << ibin << " ich= " << ich2 << endl;
+            }
+        }
+
+        // module 1 vert_far
+
+        iadc = 3;
+        idet = 12;
+        //MK table channel -1
+        minchip = 5;
+        maxchip = 9;
+        isidet = 0;
+
+        for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
+            for (Int_t ic = 0; ic < nadc_samples; ic++) {
+                Int_t ich = ichip * nadc_samples + ic;
+                Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
+                Int_t ibin = (ichip - minchip) * nadc_samples + ic;
+                detadc[iadc][ich] = idet;
+                ichadc[iadc][ich] = ich2;
+                if (ibin >= 0 && ibin < nx1bin) x1map[ibin] = ich2;
+                else cout << " x1map ibin= " << ibin << " ich= " << ich2 << endl;
+            }
+        }
+
+        //MK table channel -1
+        minchip = 10;
+        maxchip = 14;
+        isidet = 1;
+
+        for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
+            for (Int_t ic = 0; ic < nadc_samples; ic++) {
+                Int_t ich = ichip * nadc_samples + ic;
+                Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
+                Int_t ibin = (ichip - minchip) * nadc_samples + ic;
+                detadc[iadc][ich] = idet;
+                ichadc[iadc][ich] = ich2;
+                if (ibin >= 0 && ibin < ny1bin) y1map[ibin] = ich2;
+                else cout << " y1map ibin= " << ibin << " ich= " << ich2 << endl;
+            }
+        }
+
+
+        // module 2 vert_far
+
+        idet = 13;
+        //MK table channel -1
+        minchip = 21;
+        maxchip = 25;
+        isidet = 0;
+
+        for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
+            for (Int_t ic = 0; ic < nadc_samples; ic++) {
+                Int_t ich = ichip * nadc_samples + ic;
+                Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
+                Int_t ibin = (ichip - minchip) * nadc_samples + ic;
+                detadc[iadc][ich] = idet;
+                ichadc[iadc][ich] = ich2;
+                if (ibin >= 0 && ibin < nx1bin) x1map[ibin] = ich2;
+                else cout << " x1map ibin= " << ibin << " ich= " << ich2 << endl;
+            }
+        }
+
+        //MK table channel -1
+        minchip = 26;
+        maxchip = 30;
+        isidet = 1;
+
+        for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
+            for (Int_t ic = 0; ic < nadc_samples; ic++) {
+                Int_t ich = ichip * nadc_samples + ic;
+                Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
+                Int_t ibin = (ichip - minchip) * nadc_samples + ic;
+                detadc[iadc][ich] = idet;
+                ichadc[iadc][ich] = ich2;
+                if (ibin >= 0 && ibin < ny1bin) y1map[ibin] = ich2;
+                else cout << " y1map ibin= " << ibin << " ich= " << ich2 << endl;
+            }
         }
     }
-
-    //MK table channel -1
-    minchip = 10;
-    maxchip = 14;
-    isidet = 1;
-
-    for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
-        for (Int_t ic = 0; ic < nadc_samples; ic++) {
-            Int_t ich = ichip * nadc_samples + ic;
-            Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
-            Int_t ibin = (ichip - minchip) * nadc_samples + ic;
-            detadc[iadc][ich] = idet;
-            ichadc[iadc][ich] = ich2;
-            if (ibin >= 0 && ibin < ny1bin) y1map[ibin] = ich2;
-            else cout << " y1map ibin= " << ibin << " ich= " << ich2 << endl;
-        }
-    }
-
-
-    // module 2 vert_near
-
-    idet = 9;
-    //MK table channel -1
-    minchip = 21;
-    maxchip = 25;
-    isidet = 0;
-
-    for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
-        for (Int_t ic = 0; ic < nadc_samples; ic++) {
-            Int_t ich = ichip * nadc_samples + ic;
-            Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
-            Int_t ibin = (ichip - minchip) * nadc_samples + ic;
-            detadc[iadc][ich] = idet;
-            ichadc[iadc][ich] = ich2;
-            if (ibin >= 0 && ibin < nx1bin) x1map[ibin] = ich2;
-            else cout << " x1map ibin= " << ibin << " ich= " << ich2 << endl;
-        }
-    }
-
-    //MK table channel -1
-    minchip = 26;
-    maxchip = 30;
-    isidet = 1;
-
-    for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
-        for (Int_t ic = 0; ic < nadc_samples; ic++) {
-            Int_t ich = ichip * nadc_samples + ic;
-            Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
-            Int_t ibin = (ichip - minchip) * nadc_samples + ic;
-            detadc[iadc][ich] = idet;
-            ichadc[iadc][ich] = ich2;
-            if (ibin >= 0 && ibin < ny1bin) y1map[ibin] = ich2;
-            else cout << " y1map ibin= " << ibin << " ich= " << ich2 << endl;
-        }
-    }
-
-
-    // module 3 vert_near
-
-    idet = 10;
-    //MK table channel -1
-    minchip = 37;
-    maxchip = 41;
-    isidet = 0;
-
-    for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
-        for (Int_t ic = 0; ic < nadc_samples; ic++) {
-            Int_t ich = ichip * nadc_samples + ic;
-            Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
-            Int_t ibin = (ichip - minchip) * nadc_samples + ic;
-            detadc[iadc][ich] = idet;
-            ichadc[iadc][ich] = ich2;
-            if (ibin >= 0 && ibin < nx1bin) x1map[ibin] = ich2;
-            else cout << " x1map ibin= " << ibin << " ich= " << ich2 << endl;
-        }
-    }
-
-    //MK table channel -1
-    minchip = 42;
-    maxchip = 46;
-    isidet = 1;
-
-    for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
-        for (Int_t ic = 0; ic < nadc_samples; ic++) {
-            Int_t ich = ichip * nadc_samples + ic;
-            Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
-            Int_t ibin = (ichip - minchip) * nadc_samples + ic;
-            detadc[iadc][ich] = idet;
-            ichadc[iadc][ich] = ich2;
-            if (ibin >= 0 && ibin < ny1bin) y1map[ibin] = ich2;
-            else cout << " y1map ibin= " << ibin << " ich= " << ich2 << endl;
-        }
-    }
-
-
-    // module 4 vert_near
-
-    idet = 11;
-    //MK table channel -1
-    minchip = 53;
-    maxchip = 57;
-    isidet = 0;
-
-    for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
-        for (Int_t ic = 0; ic < nadc_samples; ic++) {
-            Int_t ich = ichip * nadc_samples + ic;
-            Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
-            Int_t ibin = (ichip - minchip) * nadc_samples + ic;
-            detadc[iadc][ich] = idet;
-            ichadc[iadc][ich] = ich2;
-            if (ibin >= 0 && ibin < nx1bin) x1map[ibin] = ich2;
-            else cout << " x1map ibin= " << ibin << " ich= " << ich2 << endl;
-        }
-    }
-
-    //MK table channel -1
-    minchip = 58;
-    maxchip = 62;
-    isidet = 1;
-
-    for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
-        for (Int_t ic = 0; ic < nadc_samples; ic++) {
-            Int_t ich = ichip * nadc_samples + ic;
-            Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
-            Int_t ibin = (ichip - minchip) * nadc_samples + ic;
-            detadc[iadc][ich] = idet;
-            ichadc[iadc][ich] = ich2;
-            if (ibin >= 0 && ibin < ny1bin) y1map[ibin] = ich2;
-            else cout << " y1map ibin= " << ibin << " ich= " << ich2 << endl;
-        }
-    }
-
-    // module 1 vert_far
-
-    iadc = 3;
-    idet = 12;
-    //MK table channel -1
-    minchip = 5;
-    maxchip = 9;
-    isidet = 0;
-
-    for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
-        for (Int_t ic = 0; ic < nadc_samples; ic++) {
-            Int_t ich = ichip * nadc_samples + ic;
-            Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
-            Int_t ibin = (ichip - minchip) * nadc_samples + ic;
-            detadc[iadc][ich] = idet;
-            ichadc[iadc][ich] = ich2;
-            if (ibin >= 0 && ibin < nx1bin) x1map[ibin] = ich2;
-            else cout << " x1map ibin= " << ibin << " ich= " << ich2 << endl;
-        }
-    }
-
-    //MK table channel -1
-    minchip = 10;
-    maxchip = 14;
-    isidet = 1;
-
-    for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
-        for (Int_t ic = 0; ic < nadc_samples; ic++) {
-            Int_t ich = ichip * nadc_samples + ic;
-            Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
-            Int_t ibin = (ichip - minchip) * nadc_samples + ic;
-            detadc[iadc][ich] = idet;
-            ichadc[iadc][ich] = ich2;
-            if (ibin >= 0 && ibin < ny1bin) y1map[ibin] = ich2;
-            else cout << " y1map ibin= " << ibin << " ich= " << ich2 << endl;
-        }
-    }
-
-
-    // module 2 vert_far
-
-    idet = 13;
-    //MK table channel -1
-    minchip = 21;
-    maxchip = 25;
-    isidet = 0;
-
-    for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
-        for (Int_t ic = 0; ic < nadc_samples; ic++) {
-            Int_t ich = ichip * nadc_samples + ic;
-            Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
-            Int_t ibin = (ichip - minchip) * nadc_samples + ic;
-            detadc[iadc][ich] = idet;
-            ichadc[iadc][ich] = ich2;
-            if (ibin >= 0 && ibin < nx1bin) x1map[ibin] = ich2;
-            else cout << " x1map ibin= " << ibin << " ich= " << ich2 << endl;
-        }
-    }
-
-    //MK table channel -1
-    minchip = 26;
-    maxchip = 30;
-    isidet = 1;
-
-    for (Int_t ichip = minchip; ichip <= maxchip; ichip++) {
-        for (Int_t ic = 0; ic < nadc_samples; ic++) {
-            Int_t ich = ichip * nadc_samples + ic;
-            Int_t ich2 = isidet * nx1max + (ichip - minchip) * nadc_samples + ic;
-            Int_t ibin = (ichip - minchip) * nadc_samples + ic;
-            detadc[iadc][ich] = idet;
-            ichadc[iadc][ich] = ich2;
-            if (ibin >= 0 && ibin < ny1bin) y1map[ibin] = ich2;
-            else cout << " y1map ibin= " << ibin << " ich= " << ich2 << endl;
-        }
-    }
-
     // variables initialization
     for (Int_t ibin = 0; ibin < nallmid; ibin++) chmap[ibin] = -1;
 
     for (Int_t det = 0; det < ndet; det++) {
         for (Int_t ich = 0; ich < maxChan; ich++) noisech[det][ich] = 0;
-    }
-
-    for (Int_t coor = 0; coor < ncoor; coor++) {
-        nchsig[coor] = 0;
-
-        for (Int_t ich = 0; ich < maxChan; ich++) {
-            sigx1[coor][ich] = 0;
-            nsigx1[coor][ich] = 0;
-        }
-    }
-
-    for (Int_t det = 0; det < ndet; det++) {
-        Nclustx[det] = 0;
-        Nclusty[det] = 0;
-
-        Clustx[det] = 0;
-        Clusty[det] = 0;
-
-        for (Int_t ncl = 0; ncl < nclmax; ncl++) {
-            Clustxx[det][ncl] = 0;
-            Clustyy[det][ncl] = 0;
-        }
-
-        for (Int_t ich = 0; ich < maxChan; ich++) {
-            Ampch[det][ich] = 0;
-            Pedch[det][ich] = 0;
-            Pedch2[det][ich] = 0;
-            Pedcmod[det][ich] = 0;
-            Pedcmod2[det][ich] = 0;
-
-            Ped1ch[det][ich] = 0;
-            Ped1ch2[det][ich] = 0;
-            Ped1cmod[det][ich] = 0;
-            Ped1cmod2[det][ich] = 0;
-            nchan1[det][ich] = 0;
-
-            for (Int_t ii = 0; ii < nevmax; ++ii) {
-                rawx1[ii][det][ich] = 0;
-                subx1[ii][det][ich] = 0;
-                pedx1[ii][det][ich] = 0;
-            }
-        }
     }
 
     pedname = TString(getenv("VMCWORKDIR")) + TString("/input/") + "RSiPed_";
@@ -771,7 +831,7 @@ void BmnSiliconRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped,
             Int_t chan = noise - det * 10000;
             if (chan >= 0 && chan < maxChan) {
                 noisech[det][chan] = 1;
-//                cout << "read noise " << noise << " det " << det << " chan " << chan << endl;
+                //                cout << "read noise " << noise << " det " << det << " chan " << chan << endl;
             }
         }
         //     cout << endl;
@@ -779,148 +839,10 @@ void BmnSiliconRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped,
 
 
     for (Int_t det = 0; det < ndet; det++) {
-        TString tmp;
-        //        tmp = "ActChan_";
-        //        tmp += det;
-        //        hChan[det] = new TH1I(tmp, tmp, nchip + 1, 0, nchip + 1);
-        //
-        //        tmp = "Amp_";
-        //        tmp += det;
-        //        hAmp[det] = new TH1F(tmp, tmp, 100, 0, 2500);
-
-        tmp = "Nhits_";
+        TString tmp = "Nhits_";
         tmp += det;
         Int_t mChan = nchdet[det];
         hNhits[det] = new TH1I(tmp, tmp, mChan, 0, mChan);
-
-        //        tmp = "Nhitsall_";
-        //        tmp += det;
-        //        hNhitsall[det] = new TH1I(tmp, tmp, mChan, 0, mChan);
-        //
-        //        tmp = "Peds_";
-        //        tmp += det;
-        //        hPeds[det] = new TH1F(tmp, tmp, mChan, 0, mChan);
-        //
-        //        tmp = "Prms_";
-        //        tmp += det;
-        //        hPrms[det] = new TH1F(tmp, tmp, mChan, 0, mChan);
-        //
-        //        tmp = "PmCmod_";
-        //        tmp += det;
-        //        hPmCmod[det] = new TH1F(tmp, tmp, mChan, 0, mChan);
-        //
-        //        tmp = "PmCrms_";
-        //        tmp += det;
-        //        hPmCrms[det] = new TH1F(tmp, tmp, mChan, 0, mChan);
-        //
-        //        tmp = "Cmode_";
-        //        tmp += det;
-        //        Int_t mchip = (Int_t) mChan / nchip;
-        //
-        //        hCmode[det] = new TH1F(tmp, tmp, mchip, 0, mchip);
-        //
-        //        tmp = "Crms_";
-        //        tmp += det;
-        //        hCrms[det] = new TH1F(tmp, tmp, mchip, 0, mchip);
-        //
-        //        tmp = "SCmode_";
-        //        tmp += det;
-        //        hSCmode[det] = new TH1F(tmp, tmp, 100, -250, 250);
-        //
-        //        tmp = "SCmodex1_";
-        //        tmp += det;
-        //        hSCmodex1[det] = new TH1F(tmp, tmp, 150, -250, 500);
-        //
-        //        tmp = "SCmodey1_";
-        //        tmp += det;
-        //        hSCmodey1[det] = new TH1F(tmp, tmp, 150, -250, 500);
-        //
-        //        tmp = "Ampx1_";
-        //        tmp += det;
-        //        hAmpx1[det] = new TH1F(tmp, tmp, 100, 0, 2500);
-        //
-        //        tmp = "NAmpx1_";
-        //        tmp += det;
-        //        Int_t nx1 = nx1det[det];
-        //        hNAmpx1[det] = new TH1I(tmp, tmp, nx1, 0, nx1);
-        //
-        //        tmp = "Ampy1_";
-        //        tmp += det;
-        //        hAmpy1[det] = new TH1F(tmp, tmp, 100, 0, 2500);
-        //
-        //        tmp = "NAmpy1_";
-        //        tmp += det;
-        //        Int_t ny1 = ny1det[det];
-        //        hNAmpy1[det] = new TH1I(tmp, tmp, ny1, 0, ny1);
-        //
-        //        tmp = "Clust_";
-        //        tmp += det;
-        //        Clust[det] = new TH1F(tmp, tmp, mChan, 0, mChan);
-        //
-        //        tmp = "ClustX1_";
-        //        tmp += det;
-        //        ClustX1[det] = new TH1F(tmp, tmp, nx1, 0, nx1);
-        //
-        //        tmp = "ClustY1_";
-        //        tmp += det;
-        //        ClustY1[det] = new TH1F(tmp, tmp, ny1, 0, ny1);
-        //
-        //        tmp = "NClust_";
-        //        tmp += det;
-        //        NClust[det] = new TH1I(tmp, tmp, 10, 0, 10);
-        //
-        //        tmp = "NClustX1_";
-        //        tmp += det;
-        //        NClustX1[det] = new TH1I(tmp, tmp, 10, 0, 10);
-        //
-        //        tmp = "NClustY1_";
-        //        tmp += det;
-        //        NClustY1[det] = new TH1I(tmp, tmp, 10, 0, 10);
-        //
-        //        tmp = "Cluster_Width_";
-        //        tmp += det;
-        //        Width[det] = new TH1I(tmp, tmp, 10, 0, 10);
-        //
-        //        tmp = "Cluster_Width_X1_";
-        //        tmp += det;
-        //        WidthX1[det] = new TH1I(tmp, tmp, 10, 0, 10);
-        //
-        //        tmp = "Cluster_Width_Y1_";
-        //        tmp += det;
-        //        WidthY1[det] = new TH1I(tmp, tmp, 10, 0, 10);
-        //
-        //        tmp = "Cluster_Amplitude_";
-        //        tmp += det;
-        //        Samp[det] = new TH1F(tmp, tmp, 100, 0, 2500);
-        //
-        //        tmp = "Cluster_Amplidude_X1_";
-        //        tmp += det;
-        //        SampX1[det] = new TH1F(tmp, tmp, 100, 0, 2500);
-        //
-        //        tmp = "Cluster_Amplidude_Y1_";
-        //        tmp += det;
-        //        SampY1[det] = new TH1F(tmp, tmp, 100, 0, 2500);
-        //
-        //        tmp = "Noise_";
-        //        tmp += det;
-        //        hnoise[det] = new TH1F(tmp, tmp, 18, 0.02, 0.20);
-        //
-        //        tmp = "Rawev_";
-        //        tmp += det;
-        //        hrawx1[det] = new TH1F(tmp, tmp, mChan, 0, mChan);
-        //
-        //        tmp = "Sigev_";
-        //        tmp += det;
-        //        hsigx1[det] = new TH1F(tmp, tmp, mChan, 0, mChan);
-        //
-        //        tmp = "Pedev_";
-        //        tmp += det;
-        //        hpedx1[det] = new TH1F(tmp, tmp, mChan, 0, mChan);
-        //
-        //        tmp = "Cmodev_";
-        //        tmp += det;
-        //        hcmdx1[det] = new TH1F(tmp, tmp, mChan, 0, mChan);
-
     }
 
     //    FILE *Wnoisefile;
@@ -976,21 +898,21 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
     //    hsig->Draw("");
     //    canStrip->SaveAs("can-prof.png");
 
-        for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
-            for (UInt_t iMod = 0; iMod < kNModules; ++iMod) {
-                for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
-                    delete fSigProf[iSt][iMod][iLay];
-                    delete[] fNoisyChannels[iSt][iMod][iLay];
-                }
-                delete[] fSigProf[iSt][iMod];
-                delete[] fNoisyChannels[iSt][iMod];
+    for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
+        for (UInt_t iMod = 0; iMod < kNModules; ++iMod) {
+            for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
+                delete fSigProf[iSt][iMod][iLay];
+                delete[] fNoisyChannels[iSt][iMod][iLay];
             }
-            delete[] fSigProf[iSt];
-            delete[] fNoisyChannels[iSt];
+            delete[] fSigProf[iSt][iMod];
+            delete[] fNoisyChannels[iSt][iMod];
         }
-        delete[] fNoisyChannels;
-        delete[] fSigProf;
-        if (canStrip) delete canStrip;
+        delete[] fSigProf[iSt];
+        delete[] fNoisyChannels[iSt];
+    }
+    delete[] fNoisyChannels;
+    delete[] fSigProf;
+    if (canStrip) delete canStrip;
 
     if (Rnoisefile == nullptr && Wnoisefile == nullptr)
         return;
@@ -1024,13 +946,13 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
                 for (Int_t j = 0; j < mChan; ++j) {
                     if (noisech[det][j] == 0) {
                         Int_t ichip = (Int_t) j / 128;
-                        Float_t sum = sumhits[ichip];
+                        Double_t sum = sumhits[ichip];
                         //                        printf("nhits = %f sum = %f  ichip = %i j = %i\n", hNhits[det]->GetBinContent(j + 1), sum, ichip, j);
                         if ((hNhits[det]->GetBinContent(j + 1) > 5 * sum && sum > 10) ||
                                 (hNhits[det]->GetBinContent(j + 1) > 4 * sum && sum > 100) ||
                                 (hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 1000)) {
 
-//                            cout << " new noise det= " << det << " chan= " << j << " iter= " << it << endl;
+                            //                            cout << " new noise det= " << det << " chan= " << j << " iter= " << it << endl;
                             noisech[det][j] = 1;
                             if (!read) {
                                 Int_t cont1 = j + det * 10000;
@@ -1049,10 +971,10 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
 
             for (Int_t j = 0; j < mChan; ++j) {
                 if (noisech[det][j] == 0) {
-                    Float_t sumhitdet = hNhits[det]->GetBinContent(j + 1) / (Float_t) npevents;
+                    Double_t sumhitdet = hNhits[det]->GetBinContent(j + 1) / (Double_t) npevents;
                     //                    hnoise[det]->Fill(sumhitdet);
                     if (sumhitdet > thrnoise) {
-//                        cout << " new noise det= " << det << " chan= " << j << " test2: noise> " << thrnoise << endl;
+                        //                        cout << " new noise det= " << det << " chan= " << j << " test2: noise> " << thrnoise << endl;
                         noisech[det][j] = 1;
                         if (!read) {
                             Int_t cont1 = j + det * 10000;
@@ -1136,7 +1058,6 @@ BmnStatus BmnSiliconRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *silico
 }
 
 BmnStatus BmnSiliconRaw2Digit::FillEventMK(TClonesArray *adc, TClonesArray *silicon) {
-    Int_t sumChan = 0;
     nev++;
 
     for (Int_t det = 0; det < ndet; det++) {
@@ -1168,7 +1089,6 @@ BmnStatus BmnSiliconRaw2Digit::FillProfiles(TClonesArray *adc) {
 }
 
 BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
-    printf("fill noisy channels\n");
     const Int_t kNStations = 3;
     const Int_t kNModules = 8;
     const Int_t kNLayers = 2;
@@ -1216,26 +1136,26 @@ BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
                     }
                 }
             }
-//    for (Int_t iSt = 0; iSt < kNStations; ++iSt)
-//        for (UInt_t iMod = 0; iMod < kNModules; ++iMod)
-//            for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
-//                for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip) {
-//                    if (fNoisyChannels[iSt][iMod][iLay][iStrip] == kTRUE) {
-//                        for (auto &it : fMap)
-//                            if (it.station == iSt && it.module == iMod && it.layer == iLay) {
-//                                UInt_t iCr = 0;
-//                                for (iCr = 0; iCr < GetSerials().size(); iCr++) {
-//                                    if (GetSerials()[iCr] == it.serial)
-//                                        break;
-//                                }
-//                                UInt_t iCh = it.channel_low + iStrip / GetNSamples();
-//                                UInt_t iSmpl = iStrip % GetNSamples();
-//                                GetNoisyChipChannels()[iCr][iCh][iSmpl] = kTRUE;
-//                                //                                printf("noise on iCr %d, iCh %i, iSmpl %i\n", iCr, iCh, iSmpl);
-//                            }
-//                    }
-//                }
-//            }
+    //    for (Int_t iSt = 0; iSt < kNStations; ++iSt)
+    //        for (UInt_t iMod = 0; iMod < kNModules; ++iMod)
+    //            for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
+    //                for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip) {
+    //                    if (fNoisyChannels[iSt][iMod][iLay][iStrip] == kTRUE) {
+    //                        for (auto &it : fMap)
+    //                            if (it.station == iSt && it.module == iMod && it.layer == iLay) {
+    //                                UInt_t iCr = 0;
+    //                                for (iCr = 0; iCr < GetSerials().size(); iCr++) {
+    //                                    if (GetSerials()[iCr] == it.serial)
+    //                                        break;
+    //                                }
+    //                                UInt_t iCh = it.channel_low + iStrip / GetNSamples();
+    //                                UInt_t iSmpl = iStrip % GetNSamples();
+    //                                GetNoisyChipChannels()[iCr][iCh][iSmpl] = kTRUE;
+    //                                //                                printf("noise on iCr %d, iCh %i, iSmpl %i\n", iCr, iCh, iSmpl);
+    //                            }
+    //                    }
+    //                }
+    //            }
     for (Int_t iCr = 0; iCr < GetNSerials(); ++iCr)
         for (Int_t iCh = 0; iCh < GetNChannels(); ++iCh)
             for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl)
@@ -1269,10 +1189,10 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         Double_t sig = (GetRun() > GetBoundaryRun(ADC128_N_SAMPLES)) ? ((Double_t) ((adcDig->GetShortValue())[iSmpl] / 16)) : ((Double_t) ((adcDig->GetUShortValue())[iSmpl] / 16));
         dig.SetStripSignal(sig);
         candDig[iSmpl] = dig;
-//        if (dig.GetStation() == 0 && dig.GetModule() == 0 && dig.GetStripLayer() == 0) {
-//            hraw->Fill(dig.GetStripNumber(), dig.GetStripSignal());
-//            hsig->Fill(dig.GetStripSignal());
-//        }
+        //        if (dig.GetStation() == 0 && dig.GetModule() == 0 && dig.GetStripLayer() == 0) {
+        //            hraw->Fill(dig.GetStripNumber(), dig.GetStripSignal());
+        //            hsig->Fill(dig.GetStripSignal());
+        //        }
     }
 
     Double_t signals[nSmpl];
@@ -1303,43 +1223,44 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
 
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
-//        if ((candDig[iSmpl]).GetStation() == 0 && (candDig[iSmpl]).GetModule() == 0 && (candDig[iSmpl]).GetStripLayer() == 0)
-//            hrms->Fill((candDig[iSmpl]).GetStripNumber(), vPedRMS[iSer][ch][iSmpl]);
+        //        if ((candDig[iSmpl]).GetStation() == 0 && (candDig[iSmpl]).GetModule() == 0 && (candDig[iSmpl]).GetStripLayer() == 0)
+        //            hrms->Fill((candDig[iSmpl]).GetStripNumber(), vPedRMS[iSer][ch][iSmpl]);
 
         BmnSiliconDigit * dig = &candDig[iSmpl];
         Double_t ped = vPed[iSer][ch][iSmpl];
-//        Double_t sig = Abs(dig->GetStripSignal() - CMS - ped);
+        //        Double_t sig = Abs(dig->GetStripSignal() - CMS - ped);
         Double_t sig = Abs(dig->GetStripSignal() - SCMS - ped);
         //        Double_t sig = Abs(dig->GetStripSignal() - CMS + pedCMS - ped);
-//        if (dig->GetStation() == 0 && dig->GetModule() == 0 && dig->GetStripLayer() == 0) {
-//            //            hcorrp->Fill(dig->GetStripNumber(), dig->GetStripSignal() - ped);
-//            //            hcorr->Fill(dig->GetStripNumber(), sig);
-//            hped->Fill(dig->GetStripNumber(), ped);
-//            hscms->Fill(dig->GetStripNumber(), SCMS);
-//            hcms->Fill(dig->GetStripNumber(), pedCMS);
-//            if (dig->GetStripNumber() > 511)
-//                hscms1->Fill(SCMS);
-//            hscms1full->Fill(SCMS);
-//        }
+        //        if (dig->GetStation() == 0 && dig->GetModule() == 0 && dig->GetStripLayer() == 0) {
+        //            //            hcorrp->Fill(dig->GetStripNumber(), dig->GetStripSignal() - ped);
+        //            //            hcorr->Fill(dig->GetStripNumber(), sig);
+        //            hped->Fill(dig->GetStripNumber(), ped);
+        //            hscms->Fill(dig->GetStripNumber(), SCMS);
+        //            hcms->Fill(dig->GetStripNumber(), pedCMS);
+        //            if (dig->GetStripNumber() > 511)
+        //                hscms1->Fill(SCMS);
+        //            hscms1full->Fill(SCMS);
+        //        }
         //                printf("(dig->GetStripSignal() = %f    SCMS %f CMS %f ped %f\n", dig->GetStripSignal(), SCMS, CMS, ped);
         Double_t threshold = Max(120.0, 3.5 * vPedRMS[iSer][ch][iSmpl]); //50;//120;//160;
 
-//        if (dig->GetStation() == 0 && dig->GetModule() == 0 && dig->GetStripLayer() == 0) {
-//            if (dig->GetStripSignal() - ped > threshold)
-//                hcorrp->Fill(dig->GetStripNumber(), dig->GetStripSignal() - ped);
-//            if (sig > threshold)
-//                hcorr->Fill(dig->GetStripNumber(), sig);
-//        }
+        //        if (dig->GetStation() == 0 && dig->GetModule() == 0 && dig->GetStripLayer() == 0) {
+        //            if (dig->GetStripSignal() - ped > threshold)
+        //                hcorrp->Fill(dig->GetStripNumber(), dig->GetStripSignal() - ped);
+        //            if (sig > threshold)
+        //                hcorr->Fill(dig->GetStripNumber(), sig);
+        //        }
 
         if (sig < threshold || sig == 0.0) continue;
-//        if (dig->GetStation() == 0 && dig->GetModule() == 0 && dig->GetStripLayer() == 0) {
-//            hfilter->Fill(dig->GetStripNumber(), sig);
-//        }
+        //        if (dig->GetStation() == 0 && dig->GetModule() == 0 && dig->GetStripLayer() == 0) {
+        //            hfilter->Fill(dig->GetStripNumber(), sig);
+        //        }
         if (doFill) {
-            fSigProf[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()]->Fill(dig->GetStripNumber());
+            if (Abs(SCMS) < cmodcut)
+                fSigProf[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()]->Fill(dig->GetStripNumber());
         } else {
             BmnSiliconDigit * resDig = new((*silicon)[silicon->GetEntriesFast()]) BmnSiliconDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
-            if (fNoisyChannels[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()][dig->GetStripNumber()])
+            if (fNoisyChannels[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()][dig->GetStripNumber()] || (Abs(SCMS) > cmodcut))
                 resDig->SetIsGoodDigit(kFALSE);
             else
                 resDig->SetIsGoodDigit(kTRUE);
@@ -1348,29 +1269,388 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
 
 }
 
+BmnStatus BmnSiliconRaw2Digit::LoadPedestalsMK(TTree* t_in, TClonesArray* adc128, BmnEventHeader* evhead, Int_t npedev) {
+    for (Int_t iEv = 0; iEv < npedev; iEv++) {
+        t_in->GetEntry(iEv);
+
+        BmnEventHeader* evtype = (BmnEventHeader*) evhead;
+
+        if (evtype->GetEventType() == 0) {
+            npevents++;
+
+            for (Int_t iAdc = 0; iAdc < adc128->GetEntriesFast(); ++iAdc) {
+                BmnADCDigit* adcDig = (BmnADCDigit*) adc128->At(iAdc);
+
+                UInt_t chan = adcDig->GetChannel();
+                UInt_t ser = adcDig->GetSerial();
+                Int_t nsmpl = adcDig->GetNSamples();
+
+                Int_t iadc = -1;
+                for (Int_t jadc = 0; jadc < nadc; ++jadc) {
+                    if (ser == fSerials[jadc]) {
+                        iadc = jadc;
+                        break;
+                    }
+                }
+
+                if (iadc == -1 || nsmpl != nadc_samples) {
+                    //               cout << " iAdc= " << iAdc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
+                } else {
+                    for (Int_t ichan = 0; ichan < nadc_samples; ++ichan) {
+                        Int_t ic = chan * nadc_samples + ichan;
+                        Double_t Adc = (GetRun() > GetBoundaryRun(ADC128_N_SAMPLES)) ?
+                                ((Double_t) (adcDig->GetShortValue())[ichan] / 16) :
+                                ((Double_t) (adcDig->GetUShortValue())[ichan] / 16);
+
+                        Int_t det = detadc[iadc][ic];
+                        Int_t ich = ichadc[iadc][ic];
+                        if (ich >= 0 && det >= 0 && det < ndet) {
+                            Int_t mChan = nchdet[det];
+
+                            if (ich < mChan && noisech[det][ich] == 0) {
+                                Ped1ch[det][ich] += Adc;
+                                nchan1[det][ich]++;
+                            }
+                        }
+                    }
+                }
+            } // iAdc
+        } // evtype = 1
+    } // npedev
+
+    for (Int_t det = 0; det < ndet; det++) {
+        Int_t mChan = nchdet[det];
+
+        for (Int_t ich = 0; ich < mChan; ich++) {
+            Int_t nch = nchan1[det][ich];
+            if (noisech[det][ich] == 0 && nch > 0) {
+                Double_t Amp = Ped1ch[det][ich] / nch;
+                Ped1ch[det][ich] = Amp;
+
+                Int_t ichip = (Int_t) ich / nchip;
+                Smode[det][ichip] += Amp;
+                nchan[det][ichip]++;
+            }
+        }
+    }
+
+    for (Int_t det = 0; det < ndet; det++) {
+        Int_t mChan = nchdet[det];
+        Int_t mchip = (Int_t) mChan / nchip;
+
+        for (Int_t ich = 0; ich < mchip; ich++) {
+            Int_t nch = nchan[det][ich];
+            if (nch > 0) {
+                Double_t Amp = Smode[det][ich] / nch;
+                Smode[det][ich] = Amp;
+                Cmall[det][ich] = Amp;
+            }
+        }
+    }
+
+    for (Int_t iter = 1; iter < niterped; iter++) {
+
+        for (Int_t det = 0; det < ndet; det++) {
+            for (Int_t ich = 0; ich < maxchip2; ich++) {
+                Cmode[det][ich] = Smode[det][ich];
+            }
+            for (Int_t ich = 0; ich < maxChan; ich++) {
+                Pedch[det][ich] = Ped1ch[det][ich];
+                Pedcmod2[det][ich] = Ped1cmod2[det][ich];
+                nchan1[det][ich] = 0;
+                Ped1ch[det][ich] = 0;
+                Ped1ch2[det][ich] = 0;
+
+                Ped1cmod[det][ich] = 0;
+                Ped1cmod2[det][ich] = 0;
+            }
+        }
+
+        for (Int_t iEv = 0; iEv < npedev; iEv++) {
+            t_in->GetEntry(iEv);
+
+            BmnEventHeader* evtype = (BmnEventHeader*) evhead;
+            if (evtype->GetEventType() == 0) {
+
+                for (Int_t det = 0; det < ndet; det++) {
+                    for (Int_t ich = 0; ich < maxchip2; ich++) {
+                        Smode1[det][ich] = 0;
+                        Cmode1[det][ich] = 0;
+                        nchan[det][ich] = 0;
+                    }
+                }
+
+                for (Int_t iAdc = 0; iAdc < adc128->GetEntriesFast(); ++iAdc) {
+                    BmnADCDigit* adcDig = (BmnADCDigit*) adc128->At(iAdc);
+
+                    UInt_t chan = adcDig->GetChannel();
+                    UInt_t ser = adcDig->GetSerial();
+                    Int_t nsmpl = adcDig->GetNSamples();
+
+                    Int_t iadc = -1;
+                    for (Int_t jadc = 0; jadc < nadc; ++jadc) {
+                        if (ser == fSerials[jadc]) {
+                            iadc = jadc;
+                            break;
+                        }
+                    }
+
+
+                    if (iadc == -1 || nsmpl != nadc_samples) {
+                        //               cout << " iAdc= " << iAdc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
+                    } else {
+                        for (Int_t ichan = 0; ichan < nadc_samples; ++ichan) {
+                            Int_t ic = chan * nadc_samples + ichan;
+                            Int_t det = detadc[iadc][ic];
+                            Int_t ich = ichadc[iadc][ic];
+
+                            if (ich >= 0 && det >= 0 && det < ndet) {
+                                Int_t mChan = nchdet[det];
+
+                                if (ich < mChan && noisech[det][ich] == 0) {
+                                    Int_t ichip = (Int_t) ich / nchip;
+                                    
+                                    Asample[det][ich] = (GetRun() > GetBoundaryRun(ADC128_N_SAMPLES)) ?
+                                            ((Double_t) (adcDig->GetShortValue())[ichan] / 16) :
+                                            ((Double_t) (adcDig->GetUShortValue())[ichan] / 16);
+                                    Double_t Adc = Asample[det][ich];
+                                    Double_t Ped = Pedch[det][ich];
+                                    if (pedestals) Ped = Pedchr[det][ich];
+
+                                    Double_t Sig = Adc - Ped;
+                                    Double_t Asig = TMath::Abs(Sig);
+                                    Double_t thr = thresh - iter*dthr;
+
+                                    //MK          Double_t thrmin1 = 3.5*Pedcmod2[det][ich];
+                                    //MK          if (thr < thrmin1 && thrmin1 > 0 && iter > 1) thr = thrmin1;  
+
+                                    if (Asig < thr) {
+                                        Smode1[det][ichip] += Adc;
+                                        Cmode1[det][ichip] += Ped;
+                                        nchan[det][ichip]++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                for (Int_t det = 0; det < ndet; det++) {
+                    Int_t mChan = nchdet[det];
+                    Int_t mchip = (Int_t) mChan / nchip;
+
+                    for (Int_t ich = 0; ich < mchip; ich++) {
+                        Int_t nch = nchan[det][ich];
+                        if (nch > 0) {
+                            Double_t Amp = Smode1[det][ich] / nch;
+                            Smode1[det][ich] = Amp;
+                            Amp = Cmode1[det][ich] / nch;
+                            Cmode1[det][ich] = Amp;
+                        }
+                    }
+                }
+
+                for (Int_t iAdc = 0; iAdc < adc128->GetEntriesFast(); ++iAdc) {
+                    BmnADCDigit* adcDig = (BmnADCDigit*) adc128->At(iAdc);
+
+                    UInt_t chan = adcDig->GetChannel();
+                    UInt_t ser = adcDig->GetSerial();
+                    Int_t nsmpl = adcDig->GetNSamples();
+
+
+                    Int_t iadc = -1;
+                    for (Int_t jadc = 0; jadc < nadc; ++jadc) {
+                        if (ser == fSerials[jadc]) {
+                            iadc = jadc;
+                            break;
+                        }
+                    }
+
+                    if (iadc == -1 || nsmpl != nadc_samples) {
+                        //               cout << " iAdc= " << iAdc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
+                    } else {
+                        for (Int_t ichan = 0; ichan < nadc_samples; ++ichan) {
+                            Int_t ic = chan * nadc_samples + ichan;
+                            Int_t det = detadc[iadc][ic];
+                            Int_t ich = ichadc[iadc][ic];
+
+                            if (ich >= 0 && det >= 0 && det < ndet) {
+                                Int_t mChan = nchdet[det];
+
+                                if (ich < mChan && noisech[det][ich] == 0) {
+                                    Int_t ichip = (Int_t) ich / nchip;
+
+                                    Asample[det][ich] = (GetRun() > GetBoundaryRun(ADC128_N_SAMPLES)) ?
+                                            ((Double_t) (adcDig->GetShortValue())[ichan] / 16) :
+                                            ((Double_t) (adcDig->GetUShortValue())[ichan] / 16);
+                                    Double_t smode = Smode1[det][ichip];
+                                    Double_t cmode = Cmode1[det][ichip];
+
+                                    Double_t Ped = Pedch[det][ich];
+                                    if (pedestals) Ped = Pedchr[det][ich];
+
+                                    Double_t Sig = Asample[det][ich] - Ped + cmode - smode;
+                                    Double_t Asig = TMath::Abs(Sig);
+                                    Double_t thr = thresh - iter*dthr;
+
+                                    //MK              Double_t thrmin1 = 3.5*Pedcmod2[det][ich];
+                                    //MK              if (thr < thrmin1 && thrmin1 > 0 && iter > 1) thr = thrmin1;  
+
+                                    if (Asig < thr) {
+                                        Double_t Adc = Asample[det][ich];
+                                        Ped1ch[det][ich] += Adc;
+                                        Ped1ch2[det][ich] += Adc*Adc;
+                                        nchan1[det][ich]++;
+
+                                        Adc = Asample[det][ich] - smode;
+                                        Ped1cmod[det][ich] += Adc;
+                                        Ped1cmod2[det][ich] += Adc*Adc;
+
+                                        if (iter == (niter - 1)) {
+                                            Pedadc[iadc][ic] += Adc;
+                                            Pedadc2[iadc][ic] += Adc * (Adc);
+                                            nchadc[iadc][ic]++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } // evtype = 0
+        } // ped event loop
+
+        for (Int_t det = 0; det < ndet; det++) {
+            Int_t mChan = nchdet[det];
+
+            for (Int_t ich = 0; ich < mChan; ich++) {
+                Int_t nch = nchan1[det][ich];
+                if (noisech[det][ich] == 0 && nch > 0) {
+                    Double_t Amp = Ped1ch[det][ich] / nch;
+                    Ped1ch[det][ich] = Amp;
+
+                    Amp = Ped1cmod[det][ich] / nch;
+                    Ped1cmod[det][ich] = Amp;
+
+                    Double_t prms2 = Ped1ch2[det][ich] / nch - Ped1ch[det][ich] * Ped1ch[det][ich];
+                    Double_t prms = 0;
+                    if (prms2 > 0) prms = TMath::Sqrt(prms2);
+                    Ped1ch2[det][ich] = prms;
+
+                    prms2 = Ped1cmod2[det][ich] / nch - Ped1cmod[det][ich] * Ped1cmod[det][ich];
+                    prms = 0;
+                    if (prms2 > 0) prms = TMath::Sqrt(prms2);
+                    Ped1cmod2[det][ich] = prms;
+                }
+            }
+        }
+
+    } // iter loop
+
+    Int_t nrms = 0;
+    Double_t sumrms = 0;
+
+    for (Int_t det = 0; det < ndet; det++) {
+        Int_t mChan = nchdet[det];
+
+        for (Int_t ich = 0; ich < mChan; ich++) {
+            if (noisech[det][ich] == 0) {
+                Double_t Amp = Ped1ch[det][ich];
+                Pedch[det][ich] = Amp;
+                //                hPeds[det]->SetBinContent(ich + 1, (Float_t) Amp);
+                Double_t prms = Ped1ch2[det][ich];
+                Pedch2[det][ich] = prms;
+                //                hPrms[det]->SetBinContent(ich + 1, (Float_t) prms);
+                prms = Ped1cmod2[det][ich];
+                nrms++;
+                sumrms += prms;
+            }
+        }
+    }
+
+    if (nrms > 0) sumrms /= nrms;
+
+    Int_t cont1 = 0;
+    for (Int_t det = 0; det < ndet; det++) {
+        Int_t mChan = nchdet[det];
+
+        for (Int_t ich = 0; ich < mChan; ich++) {
+            if (noisech[det][ich] == 0) {
+                Double_t Amp = Ped1cmod[det][ich];
+                Pedcmod[det][ich] = Amp;
+                //                    hPmCmod[det]->SetBinContent(ich + 1, (Float_t) Amp);
+                Double_t prms = Ped1cmod2[det][ich];
+                Pedcmod2[det][ich] = prms;
+                //                    hPmCrms[det]->SetBinContent(ich + 1, (Float_t) prms);
+                if (prms > 5 * sumrms) {
+//                    cout << " NEW RMS noise det= " << det << " channel= " << ich << endl;
+                    noisech[det][ich] = 1;
+                    if (!read) {
+                        cont1 = ich + det * 10000;
+                        fprintf(Wnoisefile, " %d\n", cont1);
+                    }
+                }
+
+            }
+        }
+    }
+
+    for (Int_t det = 0; det < nadc; det++) {
+
+        for (Int_t ich = 0; ich < maxAdc; ich++) {
+            Int_t nch = nchadc[det][ich];
+            if (nch > 0) {
+                Double_t Amp = Pedadc[det][ich] / nch;
+                //                hPedadc[det]->SetBinContent(ich + 1, (Float_t) Amp);
+                Pedadc[det][ich] = Amp;
+
+                Double_t prms2 = Pedadc2[det][ich] / nch - Pedadc[det][ich] * Pedadc[det][ich];
+                Double_t prms = 0;
+                if (prms2 > 0) prms = TMath::Sqrt(prms2);
+                Pedadc2[det][ich] = prms;
+                //                hPrmsadc[det]->SetBinContent(ich + 1, (Float_t) prms);
+            }
+        }
+    }
+
+    for (Int_t det = 0; det < ndet; det++) {
+        Int_t mChan = nchdet[det];
+        Int_t mchip = (Int_t) mChan / nchip;
+
+        for (Int_t ich = 0; ich < mchip; ich++) {
+            if (nchan[det][ich] > 0) {
+                Double_t Amp = Cmode[det][ich];
+                //                hCmode[det]->SetBinContent(ich + 1, (Float_t) Amp);
+                Double_t crms = Cmode2[det][ich];
+                //                hCrms[det]->SetBinContent(ich + 1, (Float_t) crms);
+            }
+        }
+    }
+
+    if (!pedestals && !read) {
+        //        Int_t cont1 = 0;
+        for (Int_t det = 0; det < ndet; det++) {
+            Int_t mChan = nchdet[det];
+            fprintf(Wpedfile, " %d %d\n", det, mChan);
+
+            for (Int_t ich = 0; ich < mChan; ich++) {
+                Float_t ped = Pedch[det][ich];
+                Float_t rms = Pedcmod2[det][ich];
+                fprintf(Wpedfile, " %g %g\n", ped, rms);
+            }
+        }
+    }
+}
+
+
 void BmnSiliconRaw2Digit::ProcessDigitMK(BmnADCDigit* adcDig, TClonesArray *silicon, Bool_t doFill) {
 
     UInt_t chan = adcDig->GetChannel();
     UInt_t ser = adcDig->GetSerial();
     Int_t nsmpl = adcDig->GetNSamples();
+    
     Int_t iadc = -1;
-    Int_t iradc = -1;
-
     for (Int_t jadc = 0; jadc < nadc; ++jadc) {
-
-        //        if (nradc > 0 && nradc < nadcmax) {
-        //            for (Int_t jradc = 0; jradc < nradc; ++jradc) {
-        //                if (ser == rSerials[iradc]) {
-        //                    iradc = jradc;
-        //                    break;
-        //                }
-        //            }
-        //        }
-        //
-        //        if (iradc == -1 && nradc < nadcmax) {
-        //            rSerials[nradc] = ser;
-        //            nradc++;
-        //        }
         if (ser == fSerials[jadc]) {
             iadc = jadc;
             break;
@@ -1381,19 +1661,20 @@ void BmnSiliconRaw2Digit::ProcessDigitMK(BmnADCDigit* adcDig, TClonesArray *sili
     } else {
         for (Int_t ichan = 0; ichan < nadc_samples; ++ichan) {
             Int_t ic = chan * nadc_samples + ichan;
+            
             Int_t det = detadc[iadc][ic];
             Int_t ich = ichadc[iadc][ic];
-
-
             if (ich >= 0 && det >= 0 && det < ndet) {
                 Int_t mChan = nchdet[det];
 
                 if (ich < mChan && noisech[det][ich] == 0) {
-                    Double_t Adc = (Double_t) (adcDig->GetShortValue())[ichan] / 16;
+                    Double_t Adc = (GetRun() > GetBoundaryRun(ADC128_N_SAMPLES)) ?
+                            ((Double_t) (adcDig->GetShortValue())[ichan] / 16) :
+                            ((Double_t) (adcDig->GetUShortValue())[ichan] / 16);
                     Double_t Ped = Pedch[det][ich];
                     if (pedestals) Ped = Pedchr[det][ich];
                     Ampch[det][ich] = Adc;
-                    Double_t Sig = Ampch[det][ich] - Ped; // ic or ich ?
+                    Double_t Sig = Ampch[det][ic] - Ped; // ic or ich ?
                     Double_t Asig = TMath::Abs(Sig);
                     Int_t ichip = (Int_t) ich / nchip;
 
@@ -1521,8 +1802,14 @@ void BmnSiliconRaw2Digit::PostprocessDigitMK(TClonesArray *silicon) {
                 Int_t nclselx1 = 0;
                 Int_t nclsely1 = 0;
 
-                for (Int_t ibin = 0; ibin < nx1max; ibin++) Ampx1[det][ibin] = 0;
-                for (Int_t ibin = 0; ibin < ny1max; ibin++) Ampy1[det][ibin] = 0;
+                for (Int_t ibin = 0; ibin < nx1max; ibin++) {
+                    Ampx1[det][ibin] = 0;
+                    cmodhitx1[det][ibin] = 0;
+                }
+                for (Int_t ibin = 0; ibin < ny1max; ibin++) {
+                    Ampy1[det][ibin] = 0;
+                    cmodhity1[det][ibin] = 0;
+                }
 
                 Int_t mChan = nchdet[det];
 
@@ -1545,11 +1832,16 @@ void BmnSiliconRaw2Digit::PostprocessDigitMK(TClonesArray *silicon) {
                     if (pedestals) thrmin1 = 3.5 * Pedchr2[det][ich];
 
                     if (thr < thrmin1 && thrmin1 > 0) thr = thrmin1;
+                    if (GetPeriod() == 6)
+                        if (det == 6 && ichip == 1 && thr < 200) thr = 200;
 
                     Double_t scmode = smode - cmode;
                     Int_t icmodcut = 1;
                     if (test == 1 && scmode < cmodcut) icmodcut = 0;
-                    else if (test == 3 && scmode > cmodcut) icmodcut = 0;
+                    else if (test == 3 && TMath::Abs(scmode) > cmodcut) icmodcut = 0;
+
+                    Int_t cmodflag = 0;
+                    if (TMath::Abs(scmode) < cmodcut) cmodflag = 1;
 
                     if (nev < nevmax) {
                         cmdx1[nev][det][ichip] = scmode;
@@ -1565,9 +1857,9 @@ void BmnSiliconRaw2Digit::PostprocessDigitMK(TClonesArray *silicon) {
 
                     //KV final hits and clusters
 
-                    //                    if (noisech[det][ich] == 0 && nch > nchmin && TMath::Abs(Sig) > thr && ibin >= 0 && icmodcut > 0) hNhitsall[det]->Fill(ich);
+                    //                    if (noisech[det][ich] == 0 && nch > nchmin && TMath::Abs(Sig) > thr && ibin >= 0 && cmodflag > 0) hNhitsall[det]->Fill(ich);
 
-                    if (noisech[det][ich] == 0 && nch > nchmin && Sig > thr && ibin >= 0 && icmodcut > 0) {
+                    if (noisech[det][ich] == 0 && nch > nchmin && Sig > thr && ibin >= 0) {
                         hNhits[det]->Fill(ich);
                         //                        hAmp[det]->Fill(Sig);
                         //                        if (scmode != 0) hSCmode[det]->Fill(scmode);
@@ -1591,6 +1883,7 @@ void BmnSiliconRaw2Digit::PostprocessDigitMK(TClonesArray *silicon) {
                                 //                                hAmpx1[det]->Fill(Sig);
                                 //                                hNAmpx1[det]->Fill(ibinx1);
                                 Ampx1[det][ibinx1] = Sig;
+                                cmodhitx1[det][ibinx1] = cmodflag;
                                 //                                if (scmode != 0) hSCmodex1[det]->Fill(scmode);
                             } else cout << " ich= " << ich << " ibinx1= " << ibinx1 << endl;
                         } else if (ibin < 2000) {
@@ -1600,10 +1893,10 @@ void BmnSiliconRaw2Digit::PostprocessDigitMK(TClonesArray *silicon) {
                                 //                                hAmpy1[det]->Fill(Sig);
                                 //                                hNAmpy1[det]->Fill(ibiny1);
                                 Ampy1[det][ibiny1] = Sig;
+                                cmodhity1[det][ibiny1] = cmodflag;
                                 //                                if (scmode != 0) hSCmodey1[det]->Fill(scmode);
                             } else cout << " ich= " << ich << " ibiny1= " << ibiny1 << endl;
                         }
-
                     } // threshold
 
                     if (ich > jlast + 1 && ich > jfirst + 1 && jfirst > -1 && jlast > -1 && nclust > nclsel) {
@@ -1622,12 +1915,14 @@ void BmnSiliconRaw2Digit::PostprocessDigitMK(TClonesArray *silicon) {
                 Int_t ny1 = ny1det[det];
                 for (Int_t ibin = 0; ibin < ny1; ibin++) {
                     Double_t Sig = Ampy1[det][ibin];
+                    Int_t cmodhit = cmodhity1[det][ibin];
                     if (Sig > 0) {
 
                         Int_t coor = det * 2 + 1;
                         Int_t nch = nchsig[coor];
                         sigx1[coor][nch] = Sig;
                         nsigx1[coor][nch] = ibin;
+                        cmodfl[coor][nch] = cmodhit;
                         nchsig[coor]++;
                         //           if (iEv < npedev+10) 
                         //             cout << " iEv= " << iEv << " det= " << det << " coory1= " << coor << " nch= " << nch << " ibin= " << ibin << " Sig= " << Sig << endl;
@@ -1664,12 +1959,14 @@ void BmnSiliconRaw2Digit::PostprocessDigitMK(TClonesArray *silicon) {
                 Int_t nx1 = nx1det[det];
                 for (Int_t ibin = 0; ibin < nx1; ibin++) {
                     Double_t Sig = Ampx1[det][ibin];
+                    Int_t cmodhit = cmodhitx1[det][ibin];
                     if (Sig > 0) {
 
                         Int_t coor = det * 2 + 0;
                         Int_t nch = nchsig[coor];
                         sigx1[coor][nch] = Sig;
                         nsigx1[coor][nch] = ibin;
+                        cmodfl[coor][nch] = cmodhit;
                         nchsig[coor]++;
                         //           if (iEv < npedev+10) 
                         //             cout << " iEv= " << iEv << " det= " << det << " coorx1= " << coor << " nch= " << nch << " ibin= " << ibin << " Sig= " << Sig << endl;
@@ -1711,8 +2008,6 @@ void BmnSiliconRaw2Digit::PostprocessDigitMK(TClonesArray *silicon) {
 
             } // ndet
 
-
-
             Int_t nchsum = 0;
             Int_t maxcoor = ncoor;
             for (Int_t coor = 0; coor < maxcoor; ++coor) {
@@ -1721,6 +2016,7 @@ void BmnSiliconRaw2Digit::PostprocessDigitMK(TClonesArray *silicon) {
                 if (nch > 0) {
                     for (int ich = 0; ich < nch; ++ich) {
                         Int_t isig = nsigx1[coor][ich];
+                        Int_t icmodfl = cmodfl[coor][ich];
                         Double_t sig = sigx1[coor][ich];
                         Int_t strip = isig + 1;
                         Int_t det0 = (Int_t) coor / 2;
@@ -1732,15 +2028,9 @@ void BmnSiliconRaw2Digit::PostprocessDigitMK(TClonesArray *silicon) {
                         det = fSilStats.find(det)->second;
                         strip -= 1;
 
-                        //new(ar_gem[gem_digit->GetEntriesFast()]) BmnSiliconDigit(det, mod, plane, strip, sig);
-
                         if (read) {
                             BmnSiliconDigit * resDig = new((*silicon)[silicon->GetEntriesFast()]) BmnSiliconDigit(det, mod, plane, strip, sig);
-                            //                        if (fNoisyChannels[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()][dig->GetStripNumber()])
-                            //                            resDig->SetIsGoodDigit(kFALSE);
-                            //                        else
-                            resDig->SetIsGoodDigit(kTRUE);
-                            //          if (iEv < npedev+10) cout << " nchsum= " << nchsum << " ich= " << isig << " sig= " << sig << endl;
+                            resDig->SetIsGoodDigit(icmodfl);
                         }
                         nchsum++;
                     }
@@ -1751,886 +2041,5 @@ void BmnSiliconRaw2Digit::PostprocessDigitMK(TClonesArray *silicon) {
 
     } // niter
 }
-
-BmnStatus BmnSiliconRaw2Digit::RecalculatePedestalsMK(Int_t nPedEv) {
-    npevents = nPedEv;
-    for (Int_t det = 0; det < ndet; det++) {
-        for (Int_t ich = 0; ich < maxchip2; ich++) {
-            Cmode[det][ich] = 0;
-            C1mode[det][ich] = 0;
-            Cmode2[det][ich] = 0;
-
-            for (Int_t ii = 0; ii < nevmax; ++ii) {
-                cmdx1[ii][det][ich] = 0;
-            }
-        }
-    }
-    //KV pedestal events
-    // pedestals: first iteration
-
-    for (Int_t det = 0; det < ndet; det++) {
-        for (Int_t ich = 0; ich < maxchip2; ich++) {
-            Smode[det][ich] = 0;
-            nchan[det][ich] = 0;
-        }
-    }
-
-    for (Int_t iEv = 0; iEv < nPedEv; iEv++) {
-        //            t_in->GetEntry(iEv);
-
-        //            BmnEventHeader* evtype = (BmnEventHeader*) evhead->At(0);
-        //            hEvtype->Fill(evtype->GetType());
-        //            hTrtype->Fill(evtype->GetTrig());
-
-        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-            for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                //                for (Int_t iAdc = 0; iAdc < adc128->GetEntriesFast(); ++iAdc) {
-                //                    BmnADCDigit* adcDig = (BmnADCDigit*) adc128->At(iAdc);
-
-                UInt_t chan = iCh; //adcDig->GetChannel();
-                UInt_t ser = fAdcSerials[iCr]; //adcDig->GetSerial();
-                Int_t nsmpl = fNSamples; //adcDig->GetNSamples();
-
-                Int_t iadc = -1;
-                Int_t iradc = -1;
-
-                for (Int_t jadc = 0; jadc < nadc; ++jadc) {
-
-                    //                    if (nradc > 0 && nradc < nadcmax) {
-                    //                        for (Int_t jradc = 0; jradc < nradc; ++jradc) {
-                    //                            if (ser == rSerials[iradc]) {
-                    //                                iradc = jradc;
-                    //                                break;
-                    //                            }
-                    //                        }
-                    //                    }
-                    //
-                    //                    if (iradc == -1 && nradc < nadcmax) {
-                    //                        rSerials[nradc] = ser;
-                    //                        nradc++;
-                    //                    }
-                    if (ser == fSerials[jadc]) {
-                        iadc = jadc;
-                        break;
-                    }
-                }
-
-
-                if (iadc == -1 || nsmpl != nadc_samples) {
-                    //               cout << " iAdc= " << iAdc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
-                } else {
-                    for (Int_t ichan = 0; ichan < nadc_samples; ++ichan) {
-                        Int_t ic = chan * nadc_samples + ichan;
-
-                        Double_t Adc = fPedDat[iCr][iEv][iCh][ichan]; //(Double_t) (adcDig->GetShortValue())[ichan] / 16;
-                        ;
-                        //                            if (run < 1542) Adc = (Double_t) (adcDig->GetUShortValue())[ichan] / 16;
-                        //                            ;
-
-                        Int_t det = detadc[iadc][ic];
-                        Int_t ich = ichadc[iadc][ic];
-                        if (ich >= 0 && det >= 0 && det < ndet) {
-                            Int_t mChan = nchdet[det];
-
-                            if (ich < mChan && noisech[det][ich] == 0) {
-                                Ped1ch[det][ich] += Adc;
-                                nchan1[det][ich]++;
-                            }
-                        }
-                    }
-                }
-            } // iAdc
-    } // npedev
-
-    for (Int_t det = 0; det < ndet; det++) {
-        Int_t mChan = nchdet[det];
-
-        for (Int_t ich = 0; ich < mChan; ich++) {
-            Int_t nch = nchan1[det][ich];
-            if (noisech[det][ich] == 0 && nch > 0) {
-                Double_t Amp = Ped1ch[det][ich] / nch;
-                Ped1ch[det][ich] = Amp;
-
-                Int_t ichip = (Int_t) ich / nchip;
-                Smode[det][ichip] += Amp;
-                nchan[det][ichip]++;
-            }
-        }
-    }
-
-    for (Int_t det = 0; det < ndet; det++) {
-        Int_t mChan = nchdet[det];
-        Int_t mchip = (Int_t) mChan / nchip;
-
-        for (Int_t ich = 0; ich < mchip; ich++) {
-            Int_t nch = nchan[det][ich];
-            if (nch > 0) {
-                Double_t Amp = Smode[det][ich] / nch;
-                Smode[det][ich] = Amp;
-                Cmall[det][ich] = Amp;
-            }
-        }
-    }
-
-    for (Int_t iter = 1; iter < niterped; iter++) {
-
-        for (Int_t det = 0; det < ndet; det++) {
-            for (Int_t ich = 0; ich < maxchip2; ich++) {
-                Cmode[det][ich] = Smode[det][ich];
-            }
-            for (Int_t ich = 0; ich < maxChan; ich++) {
-                Pedch[det][ich] = Ped1ch[det][ich];
-                Pedcmod2[det][ich] = Ped1cmod2[det][ich];
-                nchan1[det][ich] = 0;
-                Ped1ch[det][ich] = 0;
-                Ped1ch2[det][ich] = 0;
-
-                Ped1cmod[det][ich] = 0;
-                Ped1cmod2[det][ich] = 0;
-            }
-        }
-
-        for (Int_t iEv = 0; iEv < nPedEv; iEv++) {
-            //                t_in->GetEntry(iEv);
-
-            //                BmnEventHeader* evtype = (BmnEventHeader*) evhead->At(0);
-            //                if (evtype->GetType() == 0) {
-
-            for (Int_t det = 0; det < ndet; det++) {
-                for (Int_t ich = 0; ich < maxchip2; ich++) {
-                    Smode1[det][ich] = 0;
-                    Cmode1[det][ich] = 0;
-                    nchan[det][ich] = 0;
-                }
-            }
-            for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-                for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                    //                    for (Int_t iAdc = 0; iAdc < adc128->GetEntriesFast(); ++iAdc) {
-                    //                        BmnADCDigit* adcDig = (BmnADCDigit*) adc128->At(iAdc);
-
-                    UInt_t chan = iCh; //adcDig->GetChannel();
-                    UInt_t ser = fAdcSerials[iCr]; //adcDig->GetSerial();
-                    Int_t nsmpl = fNSamples; //adcDig->GetNSamples();
-
-                    Int_t iadc = -1;
-                    Int_t iradc = -1;
-
-                    for (Int_t jadc = 0; jadc < nadc; ++jadc) {
-
-                        //                        if (nradc > 0 && nradc < nadcmax) {
-                        //                            for (Int_t jradc = 0; jradc < nradc; ++jradc) {
-                        //                                if (ser == rSerials[iradc]) {
-                        //                                    iradc = jradc;
-                        //                                    break;
-                        //                                }
-                        //                            }
-                        //                        }
-                        //
-                        //                        if (iradc == -1 && nradc < nadcmax) {
-                        //                            rSerials[nradc] = ser;
-                        //                            nradc++;
-                        //                        }
-                        if (ser == fSerials[jadc]) {
-                            iadc = jadc;
-                            break;
-                        }
-                    }
-
-
-                    if (iadc == -1 || nsmpl != nadc_samples) {
-                        //               cout << " iAdc= " << iAdc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
-                    } else {
-                        for (Int_t ichan = 0; ichan < nadc_samples; ++ichan) {
-                            Int_t ic = chan * nadc_samples + ichan;
-                            Int_t det = detadc[iadc][ic];
-                            Int_t ich = ichadc[iadc][ic];
-
-                            if (ich >= 0 && det >= 0 && det < ndet) {
-                                Int_t mChan = nchdet[det];
-
-                                if (ich < mChan && noisech[det][ich] == 0) {
-                                    Int_t ichip = (Int_t) ich / nchip;
-
-                                    Asample[det][ich] = fPedDat[iCr][iEv][iCh][ichan]; //(Double_t) (adcDig->GetShortValue())[ichan] / 16;
-                                    //                                        if (run < 1542) Asample[det][ich] = (Double_t) (adcDig->GetUShortValue())[ichan] / 16;
-                                    Double_t Adc = Asample[det][ich];
-                                    Double_t Ped = Pedch[det][ich];
-                                    if (pedestals) Ped = Pedchr[det][ich];
-
-                                    Double_t Sig = Adc - Ped;
-                                    Double_t Asig = TMath::Abs(Sig);
-                                    Double_t thr = thresh - iter*dthr;
-
-                                    //MK          Double_t thrmin1 = 3.5*Pedcmod2[det][ich];
-                                    //MK          if (thr < thrmin1 && thrmin1 > 0 && iter > 1) thr = thrmin1;  
-
-                                    if (Asig < thr) {
-                                        Smode1[det][ichip] += Adc;
-                                        Cmode1[det][ichip] += Ped;
-                                        nchan[det][ichip]++;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-            for (Int_t det = 0; det < ndet; det++) {
-                Int_t mChan = nchdet[det];
-                Int_t mchip = (Int_t) mChan / nchip;
-
-                for (Int_t ich = 0; ich < mchip; ich++) {
-                    Int_t nch = nchan[det][ich];
-                    if (nch > 0) {
-                        Double_t Amp = Smode1[det][ich] / nch;
-                        Smode1[det][ich] = Amp;
-                        Amp = Cmode1[det][ich] / nch;
-                        Cmode1[det][ich] = Amp;
-                    }
-                }
-            }
-
-            for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-                for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                    //                    for (Int_t iAdc = 0; iAdc < adc128->GetEntriesFast(); ++iAdc) {
-                    //                        BmnADCDigit* adcDig = (BmnADCDigit*) adc128->At(iAdc);
-
-                    UInt_t chan = iCh; //adcDig->GetChannel();
-                    UInt_t ser = fAdcSerials[iCr]; //adcDig->GetSerial();
-                    Int_t nsmpl = fNSamples; //adcDig->GetNSamples();
-
-
-                    Int_t iadc = -1;
-                    Int_t iradc = -1;
-
-                    for (Int_t jadc = 0; jadc < nadc; ++jadc) {
-
-                        //                        if (nradc > 0 && nradc < nadcmax) {
-                        //                            for (Int_t jradc = 0; jradc < nradc; ++jradc) {
-                        //                                if (ser == rSerials[iradc]) {
-                        //                                    iradc = jradc;
-                        //                                    break;
-                        //                                }
-                        //                            }
-                        //                        }
-                        //
-                        //                        if (iradc == -1 && nradc < nadcmax) {
-                        //                            rSerials[nradc] = ser;
-                        //                            nradc++;
-                        //                        }
-                        if (ser == fSerials[jadc]) {
-                            iadc = jadc;
-                            break;
-                        }
-                    }
-
-
-                    if (iadc == -1 || nsmpl != nadc_samples) {
-                        //               cout << " iAdc= " << iAdc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
-                    } else {
-                        for (Int_t ichan = 0; ichan < nadc_samples; ++ichan) {
-                            Int_t ic = chan * nadc_samples + ichan;
-                            Int_t det = detadc[iadc][ic];
-                            Int_t ich = ichadc[iadc][ic];
-
-                            if (ich >= 0 && det >= 0 && det < ndet) {
-                                Int_t mChan = nchdet[det];
-
-                                if (ich < mChan && noisech[det][ich] == 0) {
-                                    Int_t ichip = (Int_t) ich / nchip;
-
-                                    Asample[det][ich] = fPedDat[iCr][iEv][iCh][ichan]; //(Double_t) (adcDig->GetShortValue())[ichan] / 16;
-                                    //                                        if (run < 1542) Asample[det][ich] = (Double_t) (adcDig->GetUShortValue())[ichan] / 16;
-                                    Double_t smode = Smode1[det][ichip];
-                                    Double_t cmode = Cmode1[det][ichip];
-
-                                    Double_t Ped = Pedch[det][ich];
-                                    if (pedestals) Ped = Pedchr[det][ich];
-
-                                    Double_t Sig = Asample[det][ich] - Ped + cmode - smode;
-                                    Double_t Asig = TMath::Abs(Sig);
-                                    Double_t thr = thresh - iter*dthr;
-
-                                    //MK              Double_t thrmin1 = 3.5*Pedcmod2[det][ich];
-                                    //MK              if (thr < thrmin1 && thrmin1 > 0 && iter > 1) thr = thrmin1;  
-
-                                    if (Asig < thr) {
-                                        Double_t Adc = Asample[det][ich];
-                                        Ped1ch[det][ich] += Adc;
-                                        Ped1ch2[det][ich] += Adc*Adc;
-                                        nchan1[det][ich]++;
-
-                                        Adc = Asample[det][ich] - smode;
-                                        Ped1cmod[det][ich] += Adc;
-                                        Ped1cmod2[det][ich] += Adc*Adc;
-
-                                        if (iter == (niter - 1)) {
-                                            Pedadc[iadc][ic] += Adc;
-                                            Pedadc2[iadc][ic] += Adc * (Adc);
-                                            nchadc[iadc][ic]++;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-        } // ped event loop
-
-        for (Int_t det = 0; det < ndet; det++) {
-            Int_t mChan = nchdet[det];
-
-            for (Int_t ich = 0; ich < mChan; ich++) {
-                Int_t nch = nchan1[det][ich];
-                if (noisech[det][ich] == 0 && nch > 0) {
-                    Double_t Amp = Ped1ch[det][ich] / nch;
-                    Ped1ch[det][ich] = Amp;
-
-                    Amp = Ped1cmod[det][ich] / nch;
-                    Ped1cmod[det][ich] = Amp;
-
-                    Double_t prms2 = Ped1ch2[det][ich] / nch - Ped1ch[det][ich] * Ped1ch[det][ich];
-                    Double_t prms = 0;
-                    if (prms2 > 0) prms = TMath::Sqrt(prms2);
-                    Ped1ch2[det][ich] = prms;
-
-                    prms2 = Ped1cmod2[det][ich] / nch - Ped1cmod[det][ich] * Ped1cmod[det][ich];
-                    prms = 0;
-                    if (prms2 > 0) prms = TMath::Sqrt(prms2);
-                    Ped1cmod2[det][ich] = prms;
-                }
-            }
-        }
-
-    } // iter loop
-
-    Int_t nrms = 0;
-    Double_t sumrms = 0;
-
-    for (Int_t det = 0; det < ndet; det++) {
-        Int_t mChan = nchdet[det];
-
-        for (Int_t ich = 0; ich < mChan; ich++) {
-            if (noisech[det][ich] == 0) {
-                Double_t Amp = Ped1ch[det][ich];
-                Pedch[det][ich] = Amp;
-                //                    hPeds[det]->SetBinContent(ich + 1, (Float_t) Amp);
-
-                Double_t prms = Ped1ch2[det][ich];
-                Pedch2[det][ich] = prms;
-                //                    hPrms[det]->SetBinContent(ich + 1, (Float_t) prms);
-
-                prms = Ped1cmod2[det][ich];
-                nrms++;
-                sumrms += prms;
-            }
-        }
-    }
-
-    if (nrms > 0) sumrms /= nrms;
-
-    Int_t cont1 = 0;
-    for (Int_t det = 0; det < ndet; det++) {
-        Int_t mChan = nchdet[det];
-
-        for (Int_t ich = 0; ich < mChan; ich++) {
-            if (noisech[det][ich] == 0) {
-                Double_t Amp = Ped1cmod[det][ich];
-                Pedcmod[det][ich] = Amp;
-                //                    hPmCmod[det]->SetBinContent(ich + 1, (Float_t) Amp);
-
-                Double_t prms = Ped1cmod2[det][ich];
-                Pedcmod2[det][ich] = prms;
-                //                    hPmCrms[det]->SetBinContent(ich + 1, (Float_t) prms);
-
-                if (prms > 5 * sumrms) {
-//                    cout << " NEW RMS noise det= " << det << " channel= " << ich << endl;
-                    noisech[det][ich] = 1;
-                    if (!read) {
-                        cont1 = ich + det * 10000;
-                        fprintf(Wnoisefile, " %d\n", cont1);
-                    }
-                }
-
-            }
-        }
-    }
-
-    for (Int_t det = 0; det < nadc; det++) {
-
-        for (Int_t ich = 0; ich < maxAdc; ich++) {
-            Int_t nch = nchadc[det][ich];
-            if (nch > 0) {
-                Double_t Amp = Pedadc[det][ich] / nch;
-                //                    hPedadc[det]->SetBinContent(ich + 1, (Float_t) Amp);
-                Pedadc[det][ich] = Amp;
-
-                Double_t prms2 = Pedadc2[det][ich] / nch - Pedadc[det][ich] * Pedadc[det][ich];
-                Double_t prms = 0;
-                if (prms2 > 0) prms = TMath::Sqrt(prms2);
-                Pedadc2[det][ich] = prms;
-                //                    hPrmsadc[det]->SetBinContent(ich + 1, (Float_t) prms);
-            }
-        }
-    }
-
-    //    for (Int_t det = 0; det < ndet; det++) {
-    //        Int_t mChan = nchdet[det];
-    //        Int_t mchip = (Int_t) mChan / nchip;
-    //
-    //        for (Int_t ich = 0; ich < mchip; ich++) {
-    //            if (nchan[det][ich] > 0) {
-    //                Double_t Amp = Cmode[det][ich];
-    //                hCmode[det]->SetBinContent(ich + 1, (Float_t) Amp);
-    //                Double_t crms = Cmode2[det][ich];
-    //                hCrms[det]->SetBinContent(ich + 1, (Float_t) crms);
-    //            }
-    //        }
-    //    }
-
-    if (!pedestals && !read) {
-        for (Int_t det = 0; det < ndet; det++) {
-            Int_t mChan = nchdet[det];
-            fprintf(Wpedfile, " %d %d\n", det, mChan);
-
-            for (Int_t ich = 0; ich < mChan; ich++) {
-                Float_t ped = Pedch[det][ich];
-                Float_t rms = Pedcmod2[det][ich];
-                fprintf(Wpedfile, " %g %g\n", ped, rms);
-            }
-        }
-    }
-    nev = -1;
-}
-
-BmnStatus BmnSiliconRaw2Digit::LoadPedestalsMK(TTree* t_in, TClonesArray* adc128, BmnEventHeader* evhead, Int_t npedev) {
-    for (Int_t iEv = 0; iEv < npedev; iEv++) {
-        t_in->GetEntry(iEv);
-
-        BmnEventHeader* evtype = (BmnEventHeader*) evhead;
-        //        hEvtype->Fill(evtype->GetType());
-        //        hTrtype->Fill(evtype->GetTrig());
-
-
-        if (evtype->GetEventType() == 0) {
-            npevents++;
-
-            for (Int_t iAdc = 0; iAdc < adc128->GetEntriesFast(); ++iAdc) {
-                BmnADCDigit* adcDig = (BmnADCDigit*) adc128->At(iAdc);
-
-                UInt_t chan = adcDig->GetChannel();
-                UInt_t ser = adcDig->GetSerial();
-                Int_t nsmpl = adcDig->GetNSamples();
-
-                Int_t iadc = -1;
-                Int_t iradc = -1;
-
-                for (Int_t jadc = 0; jadc < nadc; ++jadc) {
-                    //                    if (nradc > 0 && nradc < nadcmax) {
-                    //                        for (Int_t jradc = 0; jradc < nradc; ++jradc) {
-                    //                            if (ser == rSerials[iradc]) {
-                    //                                iradc = jradc;
-                    //                                break;
-                    //                            }
-                    //                        }
-                    //                    }
-                    //
-                    //                    if (iradc == -1 && nradc < nadcmax) {
-                    //                        rSerials[nradc] = ser;
-                    //                        nradc++;
-                    //                    }
-                    if (ser == fSerials[jadc]) {
-                        iadc = jadc;
-                        break;
-                    }
-                }
-
-
-                if (iadc == -1 || nsmpl != nadc_samples) {
-                    //               cout << " iAdc= " << iAdc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
-                } else {
-                    for (Int_t ichan = 0; ichan < nadc_samples; ++ichan) {
-                        Int_t ic = chan * nadc_samples + ichan;
-
-                        Double_t Adc = (Double_t) (adcDig->GetShortValue())[ichan] / 16;
-                        ;
-                        if (GetRun() < 1542) Adc = (Double_t) (adcDig->GetUShortValue())[ichan] / 16;
-                        ;
-
-                        Int_t det = detadc[iadc][ic];
-                        Int_t ich = ichadc[iadc][ic];
-                        if (ich >= 0 && det >= 0 && det < ndet) {
-                            Int_t mChan = nchdet[det];
-
-                            if (ich < mChan && noisech[det][ich] == 0) {
-                                Ped1ch[det][ich] += Adc;
-                                nchan1[det][ich]++;
-                            }
-                        }
-                    }
-                }
-            } // iAdc
-        } // evtype = 1
-    } // npedev
-
-    for (Int_t det = 0; det < ndet; det++) {
-        Int_t mChan = nchdet[det];
-
-        for (Int_t ich = 0; ich < mChan; ich++) {
-            Int_t nch = nchan1[det][ich];
-            if (noisech[det][ich] == 0 && nch > 0) {
-                Double_t Amp = Ped1ch[det][ich] / nch;
-                Ped1ch[det][ich] = Amp;
-
-                Int_t ichip = (Int_t) ich / nchip;
-                Smode[det][ichip] += Amp;
-                nchan[det][ichip]++;
-            }
-        }
-    }
-
-    for (Int_t det = 0; det < ndet; det++) {
-        Int_t mChan = nchdet[det];
-        Int_t mchip = (Int_t) mChan / nchip;
-
-        for (Int_t ich = 0; ich < mchip; ich++) {
-            Int_t nch = nchan[det][ich];
-            if (nch > 0) {
-                Double_t Amp = Smode[det][ich] / nch;
-                Smode[det][ich] = Amp;
-                Cmall[det][ich] = Amp;
-            }
-        }
-    }
-
-    for (Int_t iter = 1; iter < niterped; iter++) {
-
-        for (Int_t det = 0; det < ndet; det++) {
-            for (Int_t ich = 0; ich < maxchip2; ich++) {
-                Cmode[det][ich] = Smode[det][ich];
-            }
-            for (Int_t ich = 0; ich < maxChan; ich++) {
-                Pedch[det][ich] = Ped1ch[det][ich];
-                Pedcmod2[det][ich] = Ped1cmod2[det][ich];
-                nchan1[det][ich] = 0;
-                Ped1ch[det][ich] = 0;
-                Ped1ch2[det][ich] = 0;
-
-                Ped1cmod[det][ich] = 0;
-                Ped1cmod2[det][ich] = 0;
-            }
-        }
-
-        for (Int_t iEv = 0; iEv < npedev; iEv++) {
-            t_in->GetEntry(iEv);
-
-            BmnEventHeader* evtype = (BmnEventHeader*) evhead;
-            if (evtype->GetEventType() == 0) {
-
-                for (Int_t det = 0; det < ndet; det++) {
-                    for (Int_t ich = 0; ich < maxchip2; ich++) {
-                        Smode1[det][ich] = 0;
-                        Cmode1[det][ich] = 0;
-                        nchan[det][ich] = 0;
-                    }
-                }
-
-                for (Int_t iAdc = 0; iAdc < adc128->GetEntriesFast(); ++iAdc) {
-                    BmnADCDigit* adcDig = (BmnADCDigit*) adc128->At(iAdc);
-
-                    UInt_t chan = adcDig->GetChannel();
-                    UInt_t ser = adcDig->GetSerial();
-                    Int_t nsmpl = adcDig->GetNSamples();
-
-                    Int_t iadc = -1;
-                    Int_t iradc = -1;
-
-                    for (Int_t jadc = 0; jadc < nadc; ++jadc) {
-
-                        //                        if (nradc > 0 && nradc < nadcmax) {
-                        //                            for (Int_t jradc = 0; jradc < nradc; ++jradc) {
-                        //                                if (ser == rSerials[iradc]) {
-                        //                                    iradc = jradc;
-                        //                                    break;
-                        //                                }
-                        //                            }
-                        //                        }
-                        //
-                        //                        if (iradc == -1 && nradc < nadcmax) {
-                        //                            rSerials[nradc] = ser;
-                        //                            nradc++;
-                        //                        }
-                        if (ser == fSerials[jadc]) {
-                            iadc = jadc;
-                            break;
-                        }
-                    }
-
-
-                    if (iadc == -1 || nsmpl != nadc_samples) {
-                        //               cout << " iAdc= " << iAdc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
-                    } else {
-                        for (Int_t ichan = 0; ichan < nadc_samples; ++ichan) {
-                            Int_t ic = chan * nadc_samples + ichan;
-                            Int_t det = detadc[iadc][ic];
-                            Int_t ich = ichadc[iadc][ic];
-
-                            if (ich >= 0 && det >= 0 && det < ndet) {
-                                Int_t mChan = nchdet[det];
-
-                                if (ich < mChan && noisech[det][ich] == 0) {
-                                    Int_t ichip = (Int_t) ich / nchip;
-
-                                    Asample[det][ich] = (Double_t) (adcDig->GetShortValue())[ichan] / 16;
-                                    if (GetRun() < 1542) Asample[det][ich] = (Double_t) (adcDig->GetUShortValue())[ichan] / 16;
-                                    Double_t Adc = Asample[det][ich];
-                                    Double_t Ped = Pedch[det][ich];
-                                    if (pedestals) Ped = Pedchr[det][ich];
-
-                                    Double_t Sig = Adc - Ped;
-                                    Double_t Asig = TMath::Abs(Sig);
-                                    Double_t thr = thresh - iter*dthr;
-
-                                    //MK          Double_t thrmin1 = 3.5*Pedcmod2[det][ich];
-                                    //MK          if (thr < thrmin1 && thrmin1 > 0 && iter > 1) thr = thrmin1;  
-
-                                    if (Asig < thr) {
-                                        Smode1[det][ichip] += Adc;
-                                        Cmode1[det][ichip] += Ped;
-                                        nchan[det][ichip]++;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                for (Int_t det = 0; det < ndet; det++) {
-                    Int_t mChan = nchdet[det];
-                    Int_t mchip = (Int_t) mChan / nchip;
-
-                    for (Int_t ich = 0; ich < mchip; ich++) {
-                        Int_t nch = nchan[det][ich];
-                        if (nch > 0) {
-                            Double_t Amp = Smode1[det][ich] / nch;
-                            Smode1[det][ich] = Amp;
-                            Amp = Cmode1[det][ich] / nch;
-                            Cmode1[det][ich] = Amp;
-                        }
-                    }
-                }
-
-                for (Int_t iAdc = 0; iAdc < adc128->GetEntriesFast(); ++iAdc) {
-                    BmnADCDigit* adcDig = (BmnADCDigit*) adc128->At(iAdc);
-
-                    UInt_t chan = adcDig->GetChannel();
-                    UInt_t ser = adcDig->GetSerial();
-                    Int_t nsmpl = adcDig->GetNSamples();
-
-
-                    Int_t iadc = -1;
-                    Int_t iradc = -1;
-
-                    for (Int_t jadc = 0; jadc < nadc; ++jadc) {
-
-                        //                        if (nradc > 0 && nradc < nadcmax) {
-                        //                            for (Int_t jradc = 0; jradc < nradc; ++jradc) {
-                        //                                if (ser == rSerials[iradc]) {
-                        //                                    iradc = jradc;
-                        //                                    break;
-                        //                                }
-                        //                            }
-                        //                        }
-                        //
-                        //                        if (iradc == -1 && nradc < nadcmax) {
-                        //                            rSerials[nradc] = ser;
-                        //                            nradc++;
-                        //                        }
-                        if (ser == fSerials[jadc]) {
-                            iadc = jadc;
-                            break;
-                        }
-                    }
-
-
-                    if (iadc == -1 || nsmpl != nadc_samples) {
-                        //               cout << " iAdc= " << iAdc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
-                    } else {
-                        for (Int_t ichan = 0; ichan < nadc_samples; ++ichan) {
-                            Int_t ic = chan * nadc_samples + ichan;
-                            Int_t det = detadc[iadc][ic];
-                            Int_t ich = ichadc[iadc][ic];
-
-                            if (ich >= 0 && det >= 0 && det < ndet) {
-                                Int_t mChan = nchdet[det];
-
-                                if (ich < mChan && noisech[det][ich] == 0) {
-                                    Int_t ichip = (Int_t) ich / nchip;
-
-                                    Asample[det][ich] = (Double_t) (adcDig->GetShortValue())[ichan] / 16;
-                                    if (GetRun() < 1542) Asample[det][ich] = (Double_t) (adcDig->GetUShortValue())[ichan] / 16;
-                                    Double_t smode = Smode1[det][ichip];
-                                    Double_t cmode = Cmode1[det][ichip];
-
-                                    Double_t Ped = Pedch[det][ich];
-                                    if (pedestals) Ped = Pedchr[det][ich];
-
-                                    Double_t Sig = Asample[det][ich] - Ped + cmode - smode;
-                                    Double_t Asig = TMath::Abs(Sig);
-                                    Double_t thr = thresh - iter*dthr;
-
-                                    //MK              Double_t thrmin1 = 3.5*Pedcmod2[det][ich];
-                                    //MK              if (thr < thrmin1 && thrmin1 > 0 && iter > 1) thr = thrmin1;  
-
-                                    if (Asig < thr) {
-                                        Double_t Adc = Asample[det][ich];
-                                        Ped1ch[det][ich] += Adc;
-                                        Ped1ch2[det][ich] += Adc*Adc;
-                                        nchan1[det][ich]++;
-
-                                        Adc = Asample[det][ich] - smode;
-                                        Ped1cmod[det][ich] += Adc;
-                                        Ped1cmod2[det][ich] += Adc*Adc;
-
-                                        if (iter == (niter - 1)) {
-                                            Pedadc[iadc][ic] += Adc;
-                                            Pedadc2[iadc][ic] += Adc * (Adc);
-                                            nchadc[iadc][ic]++;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            } // evtype = 0
-        } // ped event loop
-
-        for (Int_t det = 0; det < ndet; det++) {
-            Int_t mChan = nchdet[det];
-
-            for (Int_t ich = 0; ich < mChan; ich++) {
-                Int_t nch = nchan1[det][ich];
-                if (noisech[det][ich] == 0 && nch > 0) {
-                    Double_t Amp = Ped1ch[det][ich] / nch;
-                    Ped1ch[det][ich] = Amp;
-
-                    Amp = Ped1cmod[det][ich] / nch;
-                    Ped1cmod[det][ich] = Amp;
-
-                    Double_t prms2 = Ped1ch2[det][ich] / nch - Ped1ch[det][ich] * Ped1ch[det][ich];
-                    Double_t prms = 0;
-                    if (prms2 > 0) prms = TMath::Sqrt(prms2);
-                    Ped1ch2[det][ich] = prms;
-
-                    prms2 = Ped1cmod2[det][ich] / nch - Ped1cmod[det][ich] * Ped1cmod[det][ich];
-                    prms = 0;
-                    if (prms2 > 0) prms = TMath::Sqrt(prms2);
-                    Ped1cmod2[det][ich] = prms;
-                }
-            }
-        }
-
-    } // iter loop
-
-    Int_t nrms = 0;
-    Double_t sumrms = 0;
-
-    for (Int_t det = 0; det < ndet; det++) {
-        Int_t mChan = nchdet[det];
-
-        for (Int_t ich = 0; ich < mChan; ich++) {
-            if (noisech[det][ich] == 0) {
-                Double_t Amp = Ped1ch[det][ich];
-                Pedch[det][ich] = Amp;
-                //                hPeds[det]->SetBinContent(ich + 1, (Float_t) Amp);
-
-                Double_t prms = Ped1ch2[det][ich];
-                Pedch2[det][ich] = prms;
-                //                hPrms[det]->SetBinContent(ich + 1, (Float_t) prms);
-
-                prms = Ped1cmod2[det][ich];
-                nrms++;
-                sumrms += prms;
-            }
-        }
-    }
-
-    if (nrms > 0) sumrms /= nrms;
-
-    Int_t cont1 = 0;
-    for (Int_t det = 0; det < ndet; det++) {
-        Int_t mChan = nchdet[det];
-
-        for (Int_t ich = 0; ich < mChan; ich++) {
-            if (noisech[det][ich] == 0) {
-                Double_t Amp = Ped1cmod[det][ich];
-                Pedcmod[det][ich] = Amp;
-                //                hPmCmod[det]->SetBinContent(ich + 1, (Float_t) Amp);
-
-                Double_t prms = Ped1cmod2[det][ich];
-                Pedcmod2[det][ich] = prms;
-                //                hPmCrms[det]->SetBinContent(ich + 1, (Float_t) prms);
-
-                if (prms > 5 * sumrms) {
-//                    cout << " new noise det= " << det << " channel= " << ich << endl;
-                    noisech[det][ich] = 1;
-                    if (!read) {
-                        cont1 = ich + det * 10000;
-                        fprintf(Wnoisefile, " %d\n", cont1);
-                    }
-                }
-
-            }
-        }
-    }
-
-    for (Int_t det = 0; det < nadc; det++) {
-
-        for (Int_t ich = 0; ich < maxAdc; ich++) {
-            Int_t nch = nchadc[det][ich];
-            if (nch > 0) {
-                Double_t Amp = Pedadc[det][ich] / nch;
-                //                hPedadc[det]->SetBinContent(ich + 1, (Float_t) Amp);
-                Pedadc[det][ich] = Amp;
-
-                Double_t prms2 = Pedadc2[det][ich] / nch - Pedadc[det][ich] * Pedadc[det][ich];
-                Double_t prms = 0;
-                if (prms2 > 0) prms = TMath::Sqrt(prms2);
-                Pedadc2[det][ich] = prms;
-                //                hPrmsadc[det]->SetBinContent(ich + 1, (Float_t) prms);
-            }
-        }
-    }
-
-    for (Int_t det = 0; det < ndet; det++) {
-        Int_t mChan = nchdet[det];
-        Int_t mchip = (Int_t) mChan / nchip;
-
-        for (Int_t ich = 0; ich < mchip; ich++) {
-            if (nchan[det][ich] > 0) {
-                Double_t Amp = Cmode[det][ich];
-                //                hCmode[det]->SetBinContent(ich + 1, (Float_t) Amp);
-                Double_t crms = Cmode2[det][ich];
-                //                hCrms[det]->SetBinContent(ich + 1, (Float_t) crms);
-            }
-        }
-    }
-
-    if (!pedestals && !read) {
-        //        Int_t cont1 = 0;
-        for (Int_t det = 0; det < ndet; det++) {
-            Int_t mChan = nchdet[det];
-            fprintf(Wpedfile, " %d %d\n", det, mChan);
-
-            for (Int_t ich = 0; ich < mChan; ich++) {
-                Float_t ped = Pedch[det][ich];
-                Float_t rms = Pedcmod2[det][ich];
-                fprintf(Wpedfile, " %g %g\n", ped, rms);
-            }
-        }
-    }
-}
-
 
 ClassImp(BmnSiliconRaw2Digit)

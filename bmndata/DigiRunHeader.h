@@ -6,7 +6,7 @@
 
 using namespace std;
 
-class BmnDigiRunHeader : public TObject {
+class DigiRunHeader : public TObject {
 private:
     /** Period Id **/
     UInt_t fPeriodId;
@@ -18,7 +18,7 @@ private:
 
 public:
     /** Default constructor */
-    BmnDigiRunHeader();
+    DigiRunHeader();
 
     /** Constructor 
      * \param[in] period_id : unique period id
@@ -26,10 +26,10 @@ public:
      * \param[in] run_start_time : run start time
      * \param[in] run_end_time : run end time 
      */
-    BmnDigiRunHeader(UInt_t period_id, UInt_t run_id, TTimeStamp run_start_time, TTimeStamp run_end_time);
+    DigiRunHeader(UInt_t period_id, UInt_t run_id, TTimeStamp run_start_time, TTimeStamp run_end_time);
     
     /** Destructor */
-    virtual ~BmnDigiRunHeader();
+    virtual ~DigiRunHeader();
 
 
     /** Get the period ID for this run */
@@ -62,7 +62,7 @@ public:
     void SetRunEndTime(TTimeStamp run_end_time) { fRunEndTime = run_end_time; }
 
 
-    ClassDef(BmnDigiRunHeader, 1)
+    ClassDef(DigiRunHeader, 1)
 };
 
 #endif /* BMNDIGIRUNHEADER_H */

@@ -49,7 +49,7 @@ struct BmnGemMap {
 
 class BmnGemRaw2Digit : public BmnAdcProcessor {
 public:
-    BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, TString mapFileName, BmnSetup bmnSetup = kBMNSETUP);
+    BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, TString mapFileName, BmnSetup bmnSetup = kBMNSETUP, BmnADCDecoMode decoMode = kBMNADCMK);
     BmnGemRaw2Digit();
     ~BmnGemRaw2Digit();
 

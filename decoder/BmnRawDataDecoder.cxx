@@ -1011,14 +1011,14 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         printf("\n[INFO]" ANSI_COLOR_BLUE " Processing pedestals\n" ANSI_COLOR_RESET);
         if (fSiliconMapper) {
             delete fSiliconMapper;
-            fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId, fSiliconSerials, fBmnSetup);
+            fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId, fSiliconSerials, fBmnSetup, GetAdcDecoMode());
             fSiliconMapper->InitAdcProcessorMK(fRunId, 1, 0, 0, 0);
             fSiliconMapper->LoadPedestalsMK(fRawTree, adc128, eventHeaderDAQ, Min(fNevents, (UInt_t) 100000));
             //            fSiliconMapper->RecalculatePedestalsMK(fPedEvCntr);
         }
         if (fGemMapper) {
             delete fGemMapper;
-            fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId, fGemSerials, fGemMapFileName, fBmnSetup);
+            fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId, fGemSerials, fGemMapFileName, fBmnSetup, GetAdcDecoMode());
             fGemMapper->InitAdcProcessorMK(fRunId, 1, 0, 0, 0);
             fGemMapper->LoadPedestalsMK(fRawTree, adc32, eventHeaderDAQ, Min(fNevents, (UInt_t) 100000));
             //            fGemMapper->RecalculatePedestalsMK(fPedEvCntr);
@@ -1253,13 +1253,13 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     if (fDetectorSetup[2]) {
         silicon = new TClonesArray("BmnSiliconDigit");
         fDigiTree->Branch("SILICON", &silicon);
-        fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId, fSiliconSerials, fBmnSetup);
+        fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId, fSiliconSerials, fBmnSetup, GetAdcDecoMode());
     }
 
     if (fDetectorSetup[3] || fDetectorSetup[10] && GetAdcDecoMode() == kBMNADCMK) {
         gem = new TClonesArray("BmnGemStripDigit");
         fDigiTree->Branch("GEM", &gem);
-        fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId, fGemSerials, fGemMapFileName, fBmnSetup);
+        fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId, fGemSerials, fGemMapFileName, fBmnSetup, GetAdcDecoMode());
     }
 
     if (fDetectorSetup[4]) {

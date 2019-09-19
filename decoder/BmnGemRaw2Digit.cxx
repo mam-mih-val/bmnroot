@@ -10,10 +10,9 @@ BmnGemRaw2Digit::BmnGemRaw2Digit() {
     fBigR1 = NULL;
 }
 
-BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, TString mapFileName, BmnSetup bmnSetup) : BmnAdcProcessor(period, run, "GEM", ADC_N_CHANNELS, ADC32_N_SAMPLES, vSer) {
+BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, TString mapFileName, BmnSetup bmnSetup, BmnADCDecoMode decoMode) : BmnAdcProcessor(period, run, "GEM", ADC_N_CHANNELS, ADC32_N_SAMPLES, vSer) {
 
     fBmnSetup = bmnSetup;
-    CreateGeometries();
     fSmall = NULL;
     fMid = NULL;
     fBigL0 = NULL;
@@ -92,26 +91,29 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
     const Int_t kNStations = 10;
     const Int_t kNStrips = 1300;
 
-    fSigProf = new TH1F***[kNStations];
-    fNoisyChannels = new Bool_t***[kNStations];
-    for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
-        fSigProf[iSt] = new TH1F**[N_MODULES];
-        fNoisyChannels[iSt] = new Bool_t**[N_MODULES];
-        for (UInt_t iMod = 0; iMod < N_MODULES; ++iMod) {
-            fSigProf[iSt][iMod] = new TH1F*[N_LAYERS];
-            fNoisyChannels[iSt][iMod] = new Bool_t*[N_LAYERS];
-            for (Int_t iLay = 0; iLay < N_LAYERS; ++iLay) {
-                TString histName;
-                histName.Form("GEM_%d_%d_%d", iSt, iMod, iLay);
-                fSigProf[iSt][iMod][iLay] = new TH1F(histName, histName, kNStrips, 0, kNStrips);
-                fNoisyChannels[iSt][iMod][iLay] = new Bool_t[kNStrips];
-                for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip)
-                    fNoisyChannels[iSt][iMod][iLay][iStrip] = kFALSE;
+    if (decoMode == kBMNADCSM) {
+        fSigProf = new TH1F***[kNStations];
+        fNoisyChannels = new Bool_t***[kNStations];
+        for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
+            fSigProf[iSt] = new TH1F**[N_MODULES];
+            fNoisyChannels[iSt] = new Bool_t**[N_MODULES];
+            for (UInt_t iMod = 0; iMod < N_MODULES; ++iMod) {
+                fSigProf[iSt][iMod] = new TH1F*[N_LAYERS];
+                fNoisyChannels[iSt][iMod] = new Bool_t*[N_LAYERS];
+                for (Int_t iLay = 0; iLay < N_LAYERS; ++iLay) {
+                    TString histName;
+                    histName.Form("GEM_%d_%d_%d", iSt, iMod, iLay);
+                    fSigProf[iSt][iMod][iLay] = new TH1F(histName, histName, kNStrips, 0, kNStrips);
+                    fSigProf[iSt][iMod][iLay]->SetDirectory(0);
+                    fNoisyChannels[iSt][iMod][iLay] = new Bool_t[kNStrips];
+                    for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip)
+                        fNoisyChannels[iSt][iMod][iLay][iStrip] = kFALSE;
+                }
             }
         }
+        thrMax = 35;
+        thrDif = 10;
     }
-    thrMax = 35;
-    thrDif = 10;
 
 }
 
@@ -137,23 +139,23 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
 
     const Int_t kNStations = 10;
 
-    for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
-        for (UInt_t iMod = 0; iMod < N_MODULES; ++iMod) {
-            for (Int_t iLay = 0; iLay < N_LAYERS; ++iLay) {
-                delete fSigProf[iSt][iMod][iLay];
-                delete[] fNoisyChannels[iSt][iMod][iLay];
+    if (Rnoisefile == nullptr && Wnoisefile == nullptr) {
+        for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
+            for (UInt_t iMod = 0; iMod < N_MODULES; ++iMod) {
+                for (Int_t iLay = 0; iLay < N_LAYERS; ++iLay) {
+                    delete fSigProf[iSt][iMod][iLay];
+                    delete[] fNoisyChannels[iSt][iMod][iLay];
+                }
+                delete[] fSigProf[iSt][iMod];
+                delete[] fNoisyChannels[iSt][iMod];
             }
-            delete[] fSigProf[iSt][iMod];
-            delete[] fNoisyChannels[iSt][iMod];
+            delete[] fSigProf[iSt];
+            delete[] fNoisyChannels[iSt];
         }
-        delete[] fSigProf[iSt];
-        delete[] fNoisyChannels[iSt];
-    }
-    delete[] fNoisyChannels;
-    delete[] fSigProf;
-
-    if (Rnoisefile == nullptr && Wnoisefile == nullptr)
+        delete[] fNoisyChannels;
+        delete[] fSigProf;
         return;
+    }
     // MK Postprocessing
     // !!!! search for noisy channels to write to the file
     if (test != 2) {
@@ -1029,6 +1031,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
 }
 
 void BmnGemRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped, Int_t ithr, Int_t itest) {
+    CreateGeometries();
     test = itest;
     if (iread > 0) read = kTRUE;
     if (iped > 0) pedestals = kTRUE;
@@ -1731,6 +1734,7 @@ void BmnGemRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped, Int
         tmp += det;
         Int_t mChan = nchdet[det];
         hNhits[det] = new TH1I(tmp, tmp, mChan, 0, mChan);
+        hNhits[det]->SetDirectory(0);
     }
 
     for (Int_t coor = 0; coor < ncoor; coor++) {

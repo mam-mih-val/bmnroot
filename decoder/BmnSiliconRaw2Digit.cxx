@@ -6,10 +6,9 @@ BmnSiliconRaw2Digit::BmnSiliconRaw2Digit() {
     fMapFileName = "";
 }
 
-BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, BmnSetup bmnSetup) : BmnAdcProcessor(period, run, "SILICON", ADC_N_CHANNELS, ADC128_N_SAMPLES, vSer) {
+BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, BmnSetup bmnSetup, BmnADCDecoMode decoMode) : BmnAdcProcessor(period, run, "SILICON", ADC_N_CHANNELS, ADC128_N_SAMPLES, vSer) {
 
     fBmnSetup = bmnSetup;
-    CreateGeometries();
     cout << "Loading SILICON Map from FILE: Period " << period << ", Run " << run << "..." << endl;
 
     fEventId = 0;
@@ -21,22 +20,41 @@ BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t>
     const Int_t kNLayers = 2;
     const Int_t kNStrips = 640;
 
-    fSigProf = new TH1F***[kNStations];
-    fNoisyChannels = new Bool_t***[kNStations];
-    for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
-        fSigProf[iSt] = new TH1F**[kNModules];
-        fNoisyChannels[iSt] = new Bool_t**[kNModules];
-        for (UInt_t iMod = 0; iMod < kNModules; ++iMod) {
-            fSigProf[iSt][iMod] = new TH1F*[kNLayers];
-            fNoisyChannels[iSt][iMod] = new Bool_t*[kNLayers];
-            for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
-                TString histName;
-                histName.Form("SIL_%d_%d_%d", iSt, iMod, iLay);
-                fSigProf[iSt][iMod][iLay] = new TH1F(histName, histName, kNStrips, 0, kNStrips);
-                fNoisyChannels[iSt][iMod][iLay] = new Bool_t[kNStrips];
-                for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip)
-                    fNoisyChannels[iSt][iMod][iLay][iStrip] = kFALSE;
+    if (decoMode == kBMNADCSM) {
+        fSigProf = new TH1F***[kNStations];
+        fNoisyChannels = new Bool_t***[kNStations];
+        for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
+            fSigProf[iSt] = new TH1F**[kNModules];
+            fNoisyChannels[iSt] = new Bool_t**[kNModules];
+            for (UInt_t iMod = 0; iMod < kNModules; ++iMod) {
+                fSigProf[iSt][iMod] = new TH1F*[kNLayers];
+                fNoisyChannels[iSt][iMod] = new Bool_t*[kNLayers];
+                for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
+                    TString histName;
+                    histName.Form("SIL_%d_%d_%d", iSt, iMod, iLay);
+                    fSigProf[iSt][iMod][iLay] = new TH1F(histName, histName, kNStrips, 0, kNStrips);
+                    fSigProf[iSt][iMod][iLay]->SetDirectory(0);
+                    fNoisyChannels[iSt][iMod][iLay] = new Bool_t[kNStrips];
+                    for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip)
+                        fNoisyChannels[iSt][iMod][iLay][iStrip] = kFALSE;
+                }
             }
+        }
+        cmodcut = 100;
+        thrMax = 420;
+        switch (GetPeriod()) {
+            case 7:
+                thrDif = 80.0;
+                niter = 4;
+                niterped = 3;
+                thrped = 340;
+                break;
+            default:
+                thrDif = 60.0;
+                niter = 5;
+                niterped = 4;
+                thrped = 360;
+                break;
         }
     }
     //    Int_t high = 2400;
@@ -54,55 +72,10 @@ BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t>
     //    hscms1 = new TH1F("hscms1D > 512", "hscms1D > 512", 2 * pRange + 1, -pRange, pRange);
     //    hscms1full = new TH1F("hscms1D", "hscms1D", 2 * pRange + 1, -pRange, pRange);
     //    hsig = new TH1F("hsig", "hsig", high + 1, 0, high);
-
-    // read Si noise channels MK
-    //    FILE *Rnoisefile;
-    //    TString rnoisename = "RSiNoise2_";
-    //    rnoisename += run;
-    //    rnoisename += ".dat";
-    //    Rnoisefile = fopen(rnoisename, "r");
-    //    cout << " Read noise file " << rnoisename << endl;
-    //    cout << endl;
-    //
-    //    Int_t noise;
-    //    while (!feof(Rnoisefile)) {
-    //        fgets(ss, 10, Rnoisefile);
-    //        sscanf(ss, "%d", &noise);
-    //        Int_t det = (Int_t) noise / 10000;
-    //        Int_t chan = noise - det * 10000;
-    //        if (chan >= 0 && chan < (ADC128_N_SAMPLES * 10)) {
-    //            Int_t iSt = detorder[det] - 1;
-    //            Int_t iMod = modul[det];
-    //            Int_t iLay = chan > 640 ? 1 : 0;
-    //            Int_t strip = chan % 640;
-    //            fNoisyChannels[iSt][iMod][iLay][strip] = kTRUE;
-    //            printf("noise on iSt %i, iMod %i, iLay %i, strip %i\n", iSt, iMod, iLay, strip);
-    //            //                noisech[det][chan] = 1;
-    //            //        cout << " noise " << noise << " det " << det << " chan " << chan << endl;
-    //        }
-    //    }
-    //
-    //    FillNoisyChannels();
-
-    cmodcut = 100;
-    thrMax = 420;
-    switch (GetPeriod()) {
-        case 7:
-            thrDif = 80.0;
-            niter = 4;
-            niterped = 3;
-            thrped = 340;
-            break;
-        default:
-            thrDif = 60.0;
-            niter = 5;
-            niterped = 4;
-            thrped = 360;
-            break;
-    }
 }
 
 void BmnSiliconRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped, Int_t ithr, Int_t itest) {
+    CreateGeometries();
     test = itest;
     if (iread > 0) read = kTRUE;
     if (iped > 0) pedestals = kTRUE;
@@ -843,6 +816,7 @@ void BmnSiliconRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped,
         tmp += det;
         Int_t mChan = nchdet[det];
         hNhits[det] = new TH1I(tmp, tmp, mChan, 0, mChan);
+        hNhits[det]->SetDirectory(0);
     }
 
     //    FILE *Wnoisefile;
@@ -898,24 +872,24 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
     //    hsig->Draw("");
     //    canStrip->SaveAs("can-prof.png");
 
-    for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
-        for (UInt_t iMod = 0; iMod < kNModules; ++iMod) {
-            for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
-                delete fSigProf[iSt][iMod][iLay];
-                delete[] fNoisyChannels[iSt][iMod][iLay];
+    if (Rnoisefile == nullptr && Wnoisefile == nullptr) {
+        for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
+            for (UInt_t iMod = 0; iMod < kNModules; ++iMod) {
+                for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
+                    delete fSigProf[iSt][iMod][iLay];
+                    delete[] fNoisyChannels[iSt][iMod][iLay];
+                }
+                delete[] fSigProf[iSt][iMod];
+                delete[] fNoisyChannels[iSt][iMod];
             }
-            delete[] fSigProf[iSt][iMod];
-            delete[] fNoisyChannels[iSt][iMod];
+            delete[] fSigProf[iSt];
+            delete[] fNoisyChannels[iSt];
         }
-        delete[] fSigProf[iSt];
-        delete[] fNoisyChannels[iSt];
-    }
-    delete[] fNoisyChannels;
-    delete[] fSigProf;
-    if (canStrip) delete canStrip;
-
-    if (Rnoisefile == nullptr && Wnoisefile == nullptr)
+        delete[] fNoisyChannels;
+        delete[] fSigProf;
+        if (canStrip) delete canStrip;
         return;
+    }
     // MK Postprocessing
     if (test != 2) {
         for (Int_t it = 0; it < niter; ++it) {
@@ -1409,7 +1383,7 @@ BmnStatus BmnSiliconRaw2Digit::LoadPedestalsMK(TTree* t_in, TClonesArray* adc128
 
                                 if (ich < mChan && noisech[det][ich] == 0) {
                                     Int_t ichip = (Int_t) ich / nchip;
-                                    
+
                                     Asample[det][ich] = (GetRun() > GetBoundaryRun(ADC128_N_SAMPLES)) ?
                                             ((Double_t) (adcDig->GetShortValue())[ichan] / 16) :
                                             ((Double_t) (adcDig->GetUShortValue())[ichan] / 16);
@@ -1583,7 +1557,7 @@ BmnStatus BmnSiliconRaw2Digit::LoadPedestalsMK(TTree* t_in, TClonesArray* adc128
                 Pedcmod2[det][ich] = prms;
                 //                    hPmCrms[det]->SetBinContent(ich + 1, (Float_t) prms);
                 if (prms > 5 * sumrms) {
-//                    cout << " NEW RMS noise det= " << det << " channel= " << ich << endl;
+                    //                    cout << " NEW RMS noise det= " << det << " channel= " << ich << endl;
                     noisech[det][ich] = 1;
                     if (!read) {
                         cont1 = ich + det * 10000;
@@ -1642,13 +1616,12 @@ BmnStatus BmnSiliconRaw2Digit::LoadPedestalsMK(TTree* t_in, TClonesArray* adc128
     }
 }
 
-
 void BmnSiliconRaw2Digit::ProcessDigitMK(BmnADCDigit* adcDig, TClonesArray *silicon, Bool_t doFill) {
 
     UInt_t chan = adcDig->GetChannel();
     UInt_t ser = adcDig->GetSerial();
     Int_t nsmpl = adcDig->GetNSamples();
-    
+
     Int_t iadc = -1;
     for (Int_t jadc = 0; jadc < nadc; ++jadc) {
         if (ser == fSerials[jadc]) {
@@ -1661,7 +1634,7 @@ void BmnSiliconRaw2Digit::ProcessDigitMK(BmnADCDigit* adcDig, TClonesArray *sili
     } else {
         for (Int_t ichan = 0; ichan < nadc_samples; ++ichan) {
             Int_t ic = chan * nadc_samples + ichan;
-            
+
             Int_t det = detadc[iadc][ic];
             Int_t ich = ichadc[iadc][ic];
             if (ich >= 0 && det >= 0 && det < ndet) {

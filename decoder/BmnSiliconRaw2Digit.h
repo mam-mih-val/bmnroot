@@ -33,7 +33,7 @@ struct BmnSiliconMapping {
 
 class BmnSiliconRaw2Digit : public BmnAdcProcessor {
 public:
-    BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, BmnSetup bmnSetup = kBMNSETUP);
+    BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, BmnSetup bmnSetup = kBMNSETUP, BmnADCDecoMode decoMode = kBMNADCMK);
     BmnSiliconRaw2Digit();
     virtual ~BmnSiliconRaw2Digit();
 

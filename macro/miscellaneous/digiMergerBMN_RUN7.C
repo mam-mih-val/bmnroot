@@ -17,17 +17,17 @@ void ComposeDigiFile(UInt_t);
 // DIGITS_ZDC_TRIGGERS - in2
 // DIGITS_TOF700 - in3
 
-void digiMergerBMN_RUN7(UInt_t runN = 3692,
-        TString in1 = "/nica/bmn1/lenivenko/run7/digit/bmn_run3692_sigemdigitthr2trig.root",
-        TString in2 = "/nica/mpd22/lenivenko/run7/digit/bmn_run3692_digi_zdc.root", 
-        TString in3 = "/nica/mpd22/lenivenko/run7/digit/bmn_run3692_digi_tof700.root") {
+void digiMergerBMN_RUN7(UInt_t runN = 4649,
+        TString in1 = "/nica/mpd20/kapishin/run7/digit/bmn_run4649_sigemdigittrigcmode.root",
+        TString in2 = "/nica/mpd22/lenivenko/run7/digit/bmn_run4649_digi_zdc.root", 
+        TString in3 = "/nica/mpd22/lenivenko/run7/digit/bmn_run4649_digi_tof700.root") {
 
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
     timer.Start();
 
-    //SplitDetectors(in1, in2, in3);
+    SplitDetectors(in1, in2, in3);
     ComposeDigiFile(runN);
 }
 

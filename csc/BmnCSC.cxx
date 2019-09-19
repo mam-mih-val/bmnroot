@@ -127,7 +127,7 @@ Bool_t BmnCSC::ProcessHits(FairVolume* vol) {
                                 fIsPrimary, fCharge, fPdgId,
                                 stationNum, moduleNum);
 
-        ((CbmStack*)gMC->GetStack())->AddPoint(kSILICON);
+        ((CbmStack*)gMC->GetStack())->AddPoint(kCSC);
     }
 
     return kTRUE;

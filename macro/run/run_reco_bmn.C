@@ -244,7 +244,13 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                          Tracking (DCH)                        === //
     // ====================================================================== //
-    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);    
+
+    if(!isExp) {
+        BmnDchHitProducer *dchHP = new BmnDchHitProducer();
+        fRunAna->AddTask(dchHP);
+    }
+
+    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
     dchTF->SetTransferFunction("transfer_func.txt");
     fRunAna->AddTask(dchTF);
 

@@ -159,17 +159,17 @@ void BmnSilicon::ConstructGeometry() {
     TString fileName = GetGeometryFileName();
 
     if( fileName.EndsWith(".root") ) {
-        gLogger->Info(MESSAGE_ORIGIN, "Constructing Silicon geometry from ROOT file %s", fileName.Data());
+        LOG(info) << "Constructing Silicon geometry from ROOT file " << fileName.Data();
         ConstructRootGeometry();
     }
 
     else if ( fileName.EndsWith(".gdml") ) {
-        gLogger->Info(MESSAGE_ORIGIN, "Constructing Silicon geometry from GDML file %s", fileName.Data());
+        LOG(info) << "Constructing Silicon geometry from GDML file " << fileName.Data();
         ConstructGDMLGeometry();
     }
 
     else {
-        gLogger->Fatal(MESSAGE_ORIGIN, "Geometry format of Silicon file %s not supported.", fileName.Data());
+        LOG(fatal) << "Geometry format of Silicon file " << fileName.Data() << " not supported.";
     }
 }
 

@@ -952,6 +952,7 @@ void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Double_t* chi2Arr, Double_t*
         BmnDchTrack* track = new ((*fDchTracks)[fDchTracks->GetEntriesFast()]) BmnDchTrack();
         track->SetChi2(chi2Arr[iSegment]);
         track->SetNHits(sizeArr[iSegment]);
+        track->SetFlag(iSegment);
         track->SetParamFirst(trackParam);
         if (dchID == 1) {
             haX1->Fill(-parArr[0][iSegment]);

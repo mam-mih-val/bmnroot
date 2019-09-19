@@ -127,7 +127,7 @@ Bool_t BmnCSC::ProcessHits(FairVolume* vol) {
                                 fIsPrimary, fCharge, fPdgId,
                                 stationNum, moduleNum);
 
-        ((CbmStack*)gMC->GetStack())->AddPoint(kSILICON);
+        ((CbmStack*)gMC->GetStack())->AddPoint(kCSC);
     }
 
     return kTRUE;
@@ -185,17 +185,17 @@ void BmnCSC::ConstructGeometry() {
     TString fileName = GetGeometryFileName();
 
     if( fileName.EndsWith(".root") ) {
-        gLogger->Info(MESSAGE_ORIGIN, "Constructing CSC geometry from ROOT file %s", fileName.Data());
+        LOG(info) << "Constructing CSC geometry from ROOT file " << fileName.Data();
         ConstructRootGeometry();
     }
 
     else if ( fileName.EndsWith(".gdml") ) {
-        gLogger->Info(MESSAGE_ORIGIN, "Constructing CSC geometry from GDML file %s", fileName.Data());
+        LOG(info) << "Constructing CSC geometry from GDML file " << fileName.Data();
         ConstructGDMLGeometry();
     }
 
     else {
-        gLogger->Fatal(MESSAGE_ORIGIN, "Geometry format of CSC file %s not supported.", fileName.Data());
+        LOG(fatal) << "Geometry format of CSC file " << fileName.Data() << " not supported.";
     }
 }
 

@@ -926,10 +926,11 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 DrawBar(iEv, fNevents);
             ClearArrays();
             fRawTree->GetEntry(iEv);
-            FillTimeShiftsMap();
             BmnEventHeader* headDAQ = eventHeaderDAQ;
             if (!headDAQ) continue;
             curEventType = headDAQ->GetEventType();
+            fEventId = headDAQ->GetEventId();
+            FillTimeShiftsMap();
             if (curEventType == kBMNPEDESTAL) continue;
             //        for (UInt_t iAdc = 0; iAdc < adc32->GetEntriesFast(); ++iAdc) {
             //            BmnADCDigit* adcDig = (BmnADCDigit*) adc32->At(iAdc);
@@ -1094,9 +1095,11 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         ClearArrays();
 
         fRawTree->GetEntry(iEv);
-        FillTimeShiftsMap();
 
         BmnEventHeader* headDAQ = eventHeaderDAQ;
+        curEventType = headDAQ->GetEventType();
+        fEventId = headDAQ->GetEventId();
+        FillTimeShiftsMap();
         if (!headDAQ) continue;
 
         if (iEv == 0) {
@@ -1131,8 +1134,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             //                }
             //            }
         }
-
-        curEventType = headDAQ->GetEventType();
 
         Bool_t isTripEvent = kFALSE;
         for (Int_t iTrip = 0; iTrip < startTripEvent.size(); ++iTrip) {
@@ -1362,9 +1363,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     //            Int_t iEv = fRawTree->GetEntries();
     //            fRawTree->GetEntry(iEv);
 
-    FillTimeShiftsMap();
     BmnEventHeader* headDAQ = eventHeaderDAQ;
     fCurEventType = headDAQ->GetEventType();
+    fEventId = headDAQ->GetEventId();
+    FillTimeShiftsMap();
 
     if (fTrigMapper) {
         fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
@@ -1507,7 +1509,6 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
         Long64_t syncTime = (t0time == 0.0) ? 0 : syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
         fTimeShifts.insert(pair<UInt_t, Long64_t>(syncDig->GetSerial(), syncTime - t0time));
     }
-
     return kBMNSUCCESS;
 }
 

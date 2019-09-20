@@ -93,7 +93,7 @@ set(SRCS
  BmnGlobalTrack.cxx
  BmnIdentifiableTrack.cxx
  BmnEventHeader.cxx
- BmnDigiRunHeader.cxx
+ DigiRunHeader.cxx
  BmnEventQuality.cxx
  BmnFileSource.cxx
  BmnDecoSource.cxx

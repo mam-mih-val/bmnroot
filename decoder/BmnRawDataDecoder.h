@@ -20,7 +20,7 @@
 #include <vector>
 #include <fstream>
 //#include <regex>
-#include "BmnDigiRunHeader.h"
+#include "DigiRunHeader.h"
 #include "BmnGemRaw2Digit.h"
 #include "BmnGemStripDigit.h"
 #include "BmnMwpcRaw2Digit.h"

@@ -85,7 +85,7 @@ void BmnDchHitProducer::Exec(Option_t* opt) {
 
         if(wire_pos > 2*owdist) continue; //ignore the point outside the wire plane
 
-        Int_t nearest_wire = (wire_pos - int(wire_pos) < 0.5) ? int(wire_pos) : int(wire_pos) + 1;
+        Int_t nearest_wire = (wire_pos - Int_t(wire_pos) < 0.5) ? Int_t(wire_pos) : Int_t(wire_pos) + 1;
 
         //distance from the point to the nearest wire
         Double_t wdist = TMath::Abs(wire_pos - nearest_wire);
@@ -93,13 +93,13 @@ void BmnDchHitProducer::Exec(Option_t* opt) {
         //sigma error dependent on the distance to the nearest wire
         Double_t sigm_err = (wdist < 0.02) ? 0.08 : (wdist >= 0.02 && wdist < 0.1) ? 0.06 : (wdist >= 0.1 && wdist < 0.4) ? 0.025 : (wdist >= 0.4 && wdist < 0.41) ? 0.08 : 0.10;
 
-        const Double_t dx = rand_gen->Gaus(0, sigm_err);
-        const Double_t dy = rand_gen->Gaus(0, sigm_err);
-        const Double_t dz = rand_gen->Gaus(0, 0.0);
+        Double_t dx = rand_gen->Gaus(0, sigm_err);
+        Double_t dy = rand_gen->Gaus(0, sigm_err);
+        Double_t dz = rand_gen->Gaus(0, 0.0);
 
-        const Double_t x_smeared = x + dx;
-        const Double_t y_smeared = y + dy;
-        const Double_t z_smeared = z + dz;
+        Double_t x_smeared = x + dx;
+        Double_t y_smeared = y + dy;
+        Double_t z_smeared = z + dz;
 
         /*
         //Output information for debugging

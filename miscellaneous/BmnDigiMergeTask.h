@@ -191,14 +191,17 @@ private:
     TClonesArray** fInArrs;
     TClonesArray** fOutArrs;
     BmnEventHeader** fHeaders;
-    
+
     BmnGemStripStationSet* fDetectorGEM;
     BmnSiliconStationSet* fDetectorSI;
     BmnCSCStationSet* fDetectorCSC;
-    
+
     map <Int_t, Int_t> fGemStats;
     map <Int_t, Int_t> fSilStats;
-    
+
+    Long_t** evId_evNum;
+    UInt_t maxEvId;
+
     inline Int_t GemStatPermutation(Int_t stat) {
         return fGemStats.find(stat)->second;
     }
@@ -207,8 +210,7 @@ private:
         return fSilStats.find(stat)->second;
     }
 
-    void FillDigiContainer(UInt_t, UInt_t);
-    void GlueEventsFromInputFiles(Bool_t, UInt_t, UInt_t);
+    void GlueEventsFromInputFiles();
     void CreateOutputFile(TString);
     void CreateOutputFiles();
 
@@ -216,8 +218,6 @@ private:
     void SplitToDetectorsRun7();
     void SplitToDetectorsSrc();
 
-    Bool_t IsArraysEmpty();
-    
     void CreateGeometries();
     void Run7(Int_t*, Int_t*, Int_t*, Int_t*);
 
@@ -225,64 +225,7 @@ private:
         for (UInt_t iDigi = 0; iDigi < inDigiArr->GetEntriesFast(); iDigi++)
             new ((*outDigiArr)[outDigiArr->GetEntriesFast()]) T(*(T*) inDigiArr->UncheckedAt(iDigi));
     };
-
-    template <class T> void FillDetDigi(UInt_t iEvId, map <UInt_t, vector <T>> digiMap, TClonesArray* outArr) {
-        for (auto it : digiMap) {
-            if (it.first != iEvId)
-                continue;
-
-            for (Int_t iDig = 0; iDig < it.second.size(); iDig++)
-                new ((*outArr)[outArr->GetEntriesFast()]) T(it.second[iDig]);
-        }
-    };
-
-    template <class D1, class D2, class D3> void FillDigisOverRuns(UInt_t iEvId,
-            map <UInt_t, vector <D1>> digiMap1,
-            map <UInt_t, vector <D2>> digiMap2,
-            map <UInt_t, vector <D3>> digiMap3,
-            TClonesArray* outArr1, TClonesArray* outArr2, TClonesArray* outArr3) {
-        if (isRun7 && !isSrc)
-            FillDetDigi <D1> (iEvId, digiMap1, outArr1);
-        else if (isRun6 && !isSrc)
-            FillDetDigi <D2> (iEvId, digiMap2, outArr2);
-        else
-            FillDetDigi <D3> (iEvId, digiMap3, outArr3);
-    };
-
-    template <class D1, class D2> void FillDigisOverRuns(UInt_t iEvId,
-            map <UInt_t, vector <D1>> digiMap1,
-            map <UInt_t, vector <D2>> digiMap2,
-            TClonesArray* outArr1, TClonesArray* outArr2) {
-        if (isRun7 && !isSrc)
-            FillDetDigi <D1> (iEvId, digiMap1, outArr1);
-        else
-            FillDetDigi <D2> (iEvId, digiMap2, outArr2);
-    };
-
-    template <class D1, class D2, class D3> void PushDigiVectors(Int_t iDet, vector <D1>& vec1, vector <D2>& vec2, vector <D3>& vec3) {
-        for (UInt_t iDigi = 0; iDigi < fInArrs[iDet]->GetEntriesFast(); iDigi++) {
-            if (isRun7 && !isSrc)
-                vec1.push_back(*(D1*) fInArrs[iDet]->UncheckedAt(iDigi));
-            else if (isRun6 && !isSrc)
-                vec2.push_back(*(D2*) fInArrs[iDet]->UncheckedAt(iDigi));
-            else
-                vec3.push_back(*(D3*) fInArrs[iDet]->UncheckedAt(iDigi));}
-    };
-
-    template <class D1, class D2> void PushDigiVectors(Int_t iDet, vector <D1>& vec1, vector <D2>& vec2) {
-        for (UInt_t iDigi = 0; iDigi < fInArrs[iDet]->GetEntriesFast(); iDigi++) {
-            if (isRun7 && !isSrc)
-                vec1.push_back(*(D1*) fInArrs[iDet]->UncheckedAt(iDigi));
-            else
-                vec2.push_back(*(D2*) fInArrs[iDet]->UncheckedAt(iDigi));
-        }
-    };
-
-    template <class T> void PushDigiVectors(Int_t iDet, vector <T>& vec) {
-        for (UInt_t iDigi = 0; iDigi < fInArrs[iDet]->GetEntriesFast(); iDigi++)
-            vec.push_back(*(T*) fInArrs[iDet]->UncheckedAt(iDigi));
-    };
-
+ 
     ClassDef(BmnDigiMergeTask, 1);
 
 };

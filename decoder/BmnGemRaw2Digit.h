@@ -49,7 +49,7 @@ struct BmnGemMap {
 
 class BmnGemRaw2Digit : public BmnAdcProcessor {
 public:
-    BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, TString mapFileName, BmnSetup bmnSetup = kBMNSETUP);
+    BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, TString mapFileName, BmnSetup bmnSetup = kBMNSETUP, BmnADCDecoMode decoMode = kBMNADCMK);
     BmnGemRaw2Digit();
     ~BmnGemRaw2Digit();
 
@@ -80,11 +80,11 @@ private:
     Int_t nmiddle;
     Int_t nbig;
     Int_t ndet;
-    static const Int_t nadc = 26;
+    Int_t nadc;
     static const Int_t nadcmax = 30;
     static const Int_t nadc_samples = 32;
 
-    Int_t ncoor = 64;
+    Int_t ncoor;
     static const Int_t nclmax = 4;
 
     static const Int_t nx0big = 500;
@@ -111,7 +111,16 @@ private:
     Int_t ndetgem = 14;
     static const Int_t ncsc = 2;
     Int_t nev = -1;
-    // correspondence adc - > detector (big Gems)
+    
+    Int_t nbigL = 5;
+    Int_t nbigR = 6;
+    // only for period 6
+    static const Int_t nsmall = 256;
+    static const Int_t nallsma = 512;
+    Int_t nallbig2 = 4224;
+    Int_t nbigL2 = 7;
+    Int_t nbigR2 = 8;
+    Int_t nsma = 9;
 
     vector<Int_t> nmidadd;
     vector<Int_t> nbigLdet;
@@ -129,8 +138,8 @@ private:
     vector<Int_t> nbigLadd;
     vector<Int_t> nbigRadd;
 
-    UInt_t fSerials[nadc] = {};
-    UInt_t rSerials[nadcmax] = {};
+    vector<UInt_t> fSerials;
+    vector<UInt_t> rSerials;
     
     vector<Int_t> nx0det;
     vector<Int_t> ny0det;
@@ -148,8 +157,8 @@ private:
     vector<Int_t> dettype;
 
 
-    Int_t detadc[nadc][maxAdc] = {{}};
-    Int_t ichadc[nadc][maxAdc] = {{}};
+    vector< vector<Int_t> > detadc;
+    vector< vector<Int_t> > ichadc;
 
     /*
         Double_t Pedadc[nadc][maxAdc];
@@ -217,6 +226,9 @@ private:
     Int_t chbigR2[nallbig] = {-1};
     Int_t chuppercsc[nallcsc] = {-1};
     Int_t chlowercsc[nallcsc] = {-1};
+    Int_t chsma[nallsma] = {-1};
+    Int_t xsmall[nsmall];
+    Int_t ysmall[nsmall];
     
     Int_t nchip = 32;
     Int_t nchmin = 8;
@@ -231,93 +243,7 @@ private:
     Int_t niterped = 3;
     Float_t thrped = 35;
     Float_t thrpedcsc = 80;
-//    TH1I* hEvtype = new TH1I("PedEvType", "PedEvType", 2, 0, 2);
-//    TH1I* hEvtype2 = new TH1I("EventType", "EventType", 2, 0, 2);
-//
-//    TH1I* hTrtype = new TH1I("PedTrType", "PedTrType", 10, 0, 10);
-//    TH1I* hTrtype2 = new TH1I("TrigType", "TrigType", 10, 0, 10);
-//
-//    TH1I* hAdc = new TH1I("ActiveAdc", "ActiveAdc", nadc, 0, nadc);
-    /*
-        TH1F* hPedadc[nadc];
-        TH1F* hPrmsadc[nadc];
-
-        for (Int_t det = 0; det < nadc; det++) {
-         TString tmp = "Pedadc_";
-         tmp += det;
-         hPedadc[det] = new TH1F(tmp, tmp, maxAdc, 0, maxAdc);
-
-         tmp = "Prmsadc_";
-         tmp += det;
-         hPrmsadc[det] = new TH1F(tmp, tmp, maxAdc, 0, maxAdc);
-        }
-     */
-
-//    TH1I * hChan[ndet];
-//    TH1F * hAmp[ndet];
-
     vector<TH1I *> hNhits;
-
-//    TH1F * hPeds[ndet];
-//    TH1F * hPrms[ndet];
-//    TH1F * hPmCmod[ndet];
-//    TH1F * hPmCrms[ndet];
-//    TH1F * hCmode[ndet];
-//    TH1F * hCrms[ndet];
-//
-//    TH1F * hSCmode[ndet];
-//
-//    TH1F * hAmpx0[ndet];
-//    TH1I * hNAmpx0[ndet];
-//
-//    TH1F * hAmpx1[ndet];
-//    TH1I * hNAmpx1[ndet];
-//
-//    TH1F * hAmpy0[ndet];
-//    TH1I * hNAmpy0[ndet];
-//
-//    TH1F * hAmpy1[ndet];
-//    TH1I * hNAmpy1[ndet];
-//
-//
-//
-//    TH1F * Clust[ndet];
-//
-//    TH1F * ClustX1[ndet];
-//    TH1F * ClustX0[ndet];
-//    TH1F * ClustY1[ndet];
-//    TH1F * ClustY0[ndet];
-//
-//    TH1I * NClust[ndet];
-//
-//    TH1I * NClustX1[ndet];
-//    TH1I * NClustX0[ndet];
-//    TH1I * NClustY1[ndet];
-//    TH1I * NClustY0[ndet];
-//
-//    TH1I * Width[ndet];
-//
-//    TH1I * WidthX1[ndet];
-//    TH1I * WidthX0[ndet];
-//    TH1I * WidthY1[ndet];
-//    TH1I * WidthY0[ndet];
-//
-//    TH1F * Samp[ndet];
-//
-//    TH1F * SampX1[ndet];
-//    TH1F * SampX0[ndet];
-//    TH1F * SampY1[ndet];
-//    TH1F * SampY0[ndet];
-
-
-    /*
-      TH1F *hrawx1[ndet];
-      TH1F *hsigx1[ndet];
-      TH1F *hpedx1[ndet];
-      TH1F *hcmdx1[ndet];
-
-      TH1F *hnoise[ndet];
-     */
     
     vector<Int_t> Nclustx;
     vector<Int_t> Nclusty;

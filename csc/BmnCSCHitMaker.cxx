@@ -101,6 +101,8 @@ InitStatus BmnCSCHitMaker::Init() {
     switch (fCurrentConfig) {
         case BmnCSCConfiguration::RunSpring2018:
             StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSpring2018.xml");
+            TransfSet = new BmnCSCTransform();
+            TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCRunSpring2018.xml");
             if (fVerbose > 1) cout << "   Current CSC Configuration : RunSpring2018" << "\n";
             break;
 

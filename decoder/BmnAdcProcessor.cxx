@@ -13,8 +13,6 @@ BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh
     fNChannels = nCh;
     fNSamples = nSmpl;
     fAdcSerials = vSer;
-    thrMax = 360; //420.0;
-    thrDif = 40.0;
     Int_t high = 120;
     Int_t highcms = 500;
     //    h = new TH2F("h", "h", fNSamples, 0, fNSamples, 2 * high + 1, -high, high);

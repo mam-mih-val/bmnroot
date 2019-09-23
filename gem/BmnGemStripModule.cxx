@@ -129,14 +129,19 @@ Bool_t BmnGemStripModule::IsPointInsideModule(Double_t x, Double_t y) {
 }
 
 Bool_t BmnGemStripModule::IsPointInsideModule(Double_t x, Double_t y, Double_t z) {
-    if( z >= ZStartModulePosition && z <= (ZStartModulePosition+ModuleThickness) ) {
+    //old condition: if( z >= ZStartModulePosition && z <= (ZStartModulePosition+ModuleThickness) )
+    Double_t coord_eps = 0.01; //100 um
+    if( ((z > ZStartModulePosition) || (fabs(z - ZStartModulePosition) < coord_eps)) &&
+        ((z < (ZStartModulePosition + ModuleThickness)) || (fabs(z - (ZStartModulePosition + ModuleThickness))) < coord_eps) ) {
         if( IsPointInsideModule(x, y) ) return true;
     }
     return false;
 }
 
 Bool_t BmnGemStripModule::IsPointInsideZThickness(Double_t z) {
-    if( z >= ZStartModulePosition && z <= (ZStartModulePosition+ModuleThickness) ) {
+    Double_t coord_eps = 0.01; //100 um
+    if( ((z > ZStartModulePosition) || (fabs(z - ZStartModulePosition) < coord_eps)) &&
+        ((z < (ZStartModulePosition + ModuleThickness)) || (fabs(z - (ZStartModulePosition + ModuleThickness))) < coord_eps) ) {
         return true;
     }
     return false;
@@ -173,7 +178,7 @@ Bool_t BmnGemStripModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
 
         //Components of the track vector
         Double_t x_vec_from_in_to_out = vector_coeff*px;
-        Double_t y_vec_from_in_to_out= vector_coeff*py;
+        Double_t y_vec_from_in_to_out = vector_coeff*py;
         Double_t z_vec_from_in_to_out = vector_coeff*pz;
 
         //Exit point coordinates (x_out, y_out, z_out)

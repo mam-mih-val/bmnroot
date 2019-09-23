@@ -210,14 +210,18 @@ Bool_t BmnSiliconModule::IsPointInsideModule(Double_t x, Double_t y) {
 }
 
 Bool_t BmnSiliconModule::IsPointInsideModule(Double_t x, Double_t y, Double_t z) {
-    if( z >= ZStartModulePosition && z <= (ZStartModulePosition+ModuleThickness) ) {
+    Double_t coord_eps = 0.01; //100 um
+    if( ((z > ZStartModulePosition) || (fabs(z - ZStartModulePosition) < coord_eps)) &&
+        ((z < (ZStartModulePosition + ModuleThickness)) || (fabs(z - (ZStartModulePosition + ModuleThickness))) < coord_eps) ) {
         if( IsPointInsideModule(x, y) ) return true;
     }
     return false;
 }
 
 Bool_t BmnSiliconModule::IsPointInsideZThickness(Double_t z) {
-    if( z >= ZStartModulePosition && z <= (ZStartModulePosition+ModuleThickness) ) {
+    Double_t coord_eps = 0.01; //100 um
+    if( ((z > ZStartModulePosition) || (fabs(z - ZStartModulePosition) < coord_eps)) &&
+        ((z < (ZStartModulePosition + ModuleThickness)) || (fabs(z - (ZStartModulePosition + ModuleThickness))) < coord_eps) ) {
         return true;
     }
     return false;

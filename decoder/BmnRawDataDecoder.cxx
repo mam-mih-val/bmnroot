@@ -1329,7 +1329,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
                 fLANDVScintFileName);
     }
 
-    if (fDetectorSetup[3] && GetAdcDecoMode() == kBMNADCMK || fDetectorSetup[10]) {
+    if (fDetectorSetup[3] && GetAdcDecoMode() == kBMNADCMK && GetPeriodId() > 6 || fDetectorSetup[10]) {
         csc = new TClonesArray("BmnCSCDigit");
         fDigiTree->Branch("CSC", &csc);
         if (GetAdcDecoMode() == kBMNADCSM)

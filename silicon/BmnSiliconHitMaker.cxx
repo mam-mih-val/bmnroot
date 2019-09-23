@@ -193,9 +193,6 @@ void BmnSiliconHitMaker::ProcessDigits() {
 
         for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             module = station->GetModule(iModule);
-            Double_t z = module->GetZPositionRegistered();
-            z += fIsExp ? fAlign->GetSiliconCorrs()[iStation][iModule][2] : 0.; //alignment shift
-
             Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
 
             for (Int_t iPoint = 0; iPoint < NIntersectionPointsInModule; ++iPoint) {
@@ -211,6 +208,8 @@ void BmnSiliconHitMaker::ProcessDigits() {
 
                 Double_t x = module->GetIntersectionPointX(iPoint);
                 Double_t y = module->GetIntersectionPointY(iPoint);
+                Double_t z = module->GetZPositionRegistered();
+                z += fIsExp ? fAlign->GetSiliconCorrs()[iStation][iModule][2] : 0.; //alignment shift
 
                 Double_t x_err = module->GetIntersectionPointXError(iPoint);
                 Double_t y_err = module->GetIntersectionPointYError(iPoint);

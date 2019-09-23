@@ -269,9 +269,6 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
         for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             BmnGemStripModule *module = station->GetModule(iModule);
-            Double_t z = module->GetZPositionRegistered();
-            z += fIsExp ? fAlign->GetGemCorrs()[iStation][iModule][2] : 0.; //alignment implementation
-
             Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
 
             for (Int_t iPoint = 0; iPoint < NIntersectionPointsInModule; ++iPoint) {
@@ -282,6 +279,8 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 Double_t x = module->GetIntersectionPointX(iPoint);
                 Double_t y = module->GetIntersectionPointY(iPoint);
+                Double_t z = module->GetZPositionRegistered();
+                z += fIsExp ? fAlign->GetGemCorrs()[iStation][iModule][2] : 0.; //alignment implementation
 
                 Double_t x_err = module->GetIntersectionPointXError(iPoint);
                 Double_t y_err = module->GetIntersectionPointYError(iPoint);
@@ -289,10 +288,10 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                  //Transform hit coordinates from local coordinate system of GEM-planes to global
                 if(TransfSet) {
-                    Plane3D::Point loc_point = TransfSet->ApplyTransforms(Plane3D::Point(-x, y, z), iStation, iModule);
-                    x = -loc_point.X();
-                    y = loc_point.Y();
-                    z = loc_point.Z();
+                    Plane3D::Point glob_point = TransfSet->ApplyTransforms(Plane3D::Point(-x, y, z), iStation, iModule);
+                    x = -glob_point.X();
+                    y = glob_point.Y();
+                    z = glob_point.Z();
                 }
 
                 Int_t RefMCIndex = 0;

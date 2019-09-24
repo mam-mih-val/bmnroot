@@ -18,9 +18,9 @@
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="27.1875" zShift="1.25" thickness="0.76">
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-110.1895" yTranslation="-29.39325" zTranslation="-412.82" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-110.1895" yTranslation="-29.39325" zTranslation="-413.2" />
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="180.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+110.1895" yTranslation="+29.39325" zTranslation="+412.82" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+110.1895" yTranslation="+29.39325" zTranslation="+413.2" />
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-14.1125" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="27.1875" rxborder="-56.5" ryborder="-14.1125">
                 <DeadZone>
                     <DeadPoint x="+56.5" y="+26.0625" />
@@ -96,9 +96,9 @@
 
         <!-- module 1 -->
         <Module xShift="0.0" yShift="-27.1875" zShift="1.25" thickness="0.76">
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-110.1895" yTranslation="+24.98175" zTranslation="-412.82" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-110.1895" yTranslation="+24.98175" zTranslation="-413.2" />
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="180.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+110.1895" yTranslation="-24.98175" zTranslation="+412.82" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+110.1895" yTranslation="-24.98175" zTranslation="+413.2" />
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="+14.1325" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+27.1975" rxborder="-56.5" ryborder="+14.1325">
                 <DeadZone>
                     <DeadPoint x="+56.5" y="+27.1775" />

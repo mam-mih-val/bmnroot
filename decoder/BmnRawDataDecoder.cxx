@@ -105,6 +105,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fT0Map = NULL;
     tai_utc_dif = 0;
     fVerbose = 0;
+    isSpillStart = kFALSE;
     InitUTCShift();
     //InitMaps();
 }
@@ -123,6 +124,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     printf("\nRAW FILE LENGTH: ");
     printf(ANSI_COLOR_BLUE "%.3f MB\n" ANSI_COLOR_RESET, fLengthRawFile / 1024. / 1024.);
     fRootFileOut = new TFile(fRootFileName, "recreate");
+    isSpillStart = kTRUE;
 
     for (;;) {
         if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
@@ -130,6 +132,10 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
         fread(&fDat, kWORDSIZE, 1, fRawFileIn);
         fCurentPositionRawFile = ftello64(fRawFileIn);
         if (fCurentPositionRawFile >= fLengthRawFile) break;
+        if (fDat == kENDOFSPILL) {
+            //                printf("EOS!!\n");
+            isSpillStart = kTRUE;
+        }
         if (fDat == kSYNC1) { //search for start of event
             // read number of bytes in event
             if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
@@ -444,6 +450,9 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     eventHeaderDAQ->SetTrigInfo(trigInfo);
     eventHeaderDAQ->SetTimeShift(fTimeShifts);
     eventHeaderDAQ->SetStartSignalInfo(fT0Time, fT0Width);
+    eventHeaderDAQ->SetSpillStart(isSpillStart);
+    if (isSpillStart == kTRUE)
+        isSpillStart = kFALSE;
 }
 
 /**
@@ -556,6 +565,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64WR(UInt_t *d, UInt_t len, UInt_t seria
 }
 
 BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, BmnEventType &evType, BmnTrigInfo* spillInfo) {
+    //                                printf("FVME serial %08X\n",serial);
     UInt_t modId = 0;
     UInt_t slot = 0;
     UInt_t type = 0;
@@ -726,33 +736,41 @@ BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
 }
 
 BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t slot, UInt_t & idx, BmnTrigInfo* trigInfo) {
-    BmnTriggerType trType;
     UInt_t type = d[idx] >> 28;
+    //            printf("start type %u slot %u\n", type, slot);
     Bool_t countersDone = kFALSE;
-    while (type == 2 || type == 3 || type == 4) {
-        if (fPeriodId > 4 && type == kGEMTRIGTYPE && slot == kEVENTTYPESLOT) {
-            //trType = ((d[idx] & 0x7) == kTRIGMINBIAS) ? kBMNMINBIAS : kBMNBEAM;//Deprecated
-            trigInfo->SetTrigType(trType);
+    while (type == kWORDTAI || type == kWORDTRIG || type == kWORDAUX) {
+        if (fPeriodId > 4 && type == kWORDTRIG && slot == kEVENTTYPESLOT) {
             evType = ((d[idx] & BIT(3)) >> 3) ? kBMNPEDESTAL : kBMNPAYLOAD;
+            UInt_t trigSrc = ((d[idx] >> 16) & (BIT(8) - 1));
+            //            printf("trig source %u\n", trigSrc);
             //            if (!( ((d[idx]>>10) & 0x1) ^ (fPeriodId >= 7 && fBmnSetup == kBMNSETUP)))
             //                printf("Ev not Good!\n");
             //            printf("evGood %d\n", (d[idx] & BIT(10)));
             if (evType == kBMNPEDESTAL)
                 fPedoCounter++;
         }
-        if (type == 4 && !countersDone) {
-            trigInfo->SetTrigCand(d[idx + 0] & 0x1FFFFFFF);
-            trigInfo->SetTrigAccepted(d[idx + 1] & 0x1FFFFFFF);
-            trigInfo->SetTrigBefo(d[idx + 2] & 0x1FFFFFFF);
-            trigInfo->SetTrigAfter(d[idx + 3] & 0x1FFFFFFF);
-            trigInfo->SetTrigRjct(d[idx + 4] & 0x1FFFFFFF);
+        if (type == kWORDAUX && !countersDone) {
+            trigInfo->SetTrigCand(d[idx + 0] & 0xFFFFFFF);
+            trigInfo->SetTrigAccepted(d[idx + 1] & 0xFFFFFFF);
+            trigInfo->SetTrigBefo(d[idx + 2] & 0xFFFFFFF);
+            trigInfo->SetTrigAfter(d[idx + 3] & 0xFFFFFFF);
+            trigInfo->SetTrigRjct(d[idx + 4] & 0xFFFFFFF);
+            trigInfo->SetTrigAll(d[idx + 5] & 0xFFFFFFF);
+            trigInfo->SetTrigAvail(d[idx + 6] & 0xFFFFFFF);
+            //            for (Int_t j = 0; j <= 6; j++){
+            //            type = (d[idx + j] >> 28) & (BIT(5) - 1);
+            //            printf("%d type = %u %08X\n", j, type, type);
+            //            }
             idx += 4;
-            //                            printf("cand %04u, acc %04u, bef %04u, after %04u, rjct %04u\n",
-            //                                    trigInfo->GetTrigCand(),
-            //                                    trigInfo->GetTrigAccepted(),
-            //                                    trigInfo->GetTrigBefo(),
-            //                                    trigInfo->GetTrigAfter(),
-            //                                    trigInfo->GetTrigRjct());
+            //            printf("cand %04u, acc %04u, bef %04u, after %04u, rjct %04u, all %04u, avail %04u\n",
+            //                    trigInfo->GetTrigCand(),
+            //                    trigInfo->GetTrigAccepted(),
+            //                    trigInfo->GetTrigBefo(),
+            //                    trigInfo->GetTrigAfter(),
+            //                    trigInfo->GetTrigRjct(),
+            //                    trigInfo->GetTrigAll(),
+            //                    trigInfo->GetTrigAvail());
             countersDone = kTRUE;
         }
         idx++; //go to the next DATA-word
@@ -1158,9 +1176,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         eventHeader->SetEventTime(TTimeStamp(time_t(fTime_s), fTime_ns).AsDouble());
         eventHeader->SetEventType(curEventType);
         eventHeader->SetTripWord(isTripEvent);
-        //        eventHeader->SetTrigInfo(headDAQ->GetTrigInfo());
+        eventHeader->SetTrigInfo(headDAQ->GetTrigInfo());
         eventHeader->SetTimeShift(fTimeShifts);
         eventHeader->SetStartSignalInfo(fT0Time, fT0Width);
+        eventHeader->SetSpillStart(headDAQ->GetSpillStart());
 
         if (curEventType == kBMNPEDESTAL && GetAdcDecoMode() == kBMNADCSM) {
             if (fPedEvCntr == fEvForPedestals - 1) continue;
@@ -1411,6 +1430,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     eventHeader->SetTrigInfo(headDAQ->GetTrigInfo());
     eventHeader->SetTimeShift(fTimeShifts);
     eventHeader->SetStartSignalInfo(fT0Time, fT0Width);
+    eventHeader->SetSpillStart(headDAQ->GetSpillStart());
     //        fDigiTree->Fill();
     fPrevEventType = fCurEventType;
 

@@ -51,8 +51,7 @@ void BmnHist::DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
                 if (maxy < k)
                     maxy = k;
             }
-//            info->current->GetYaxis()->SetRangeUser(0, maxy * 1.1);
-            info->current->GetYaxis()->SetRange(0, maxy * 1.1);
+            info->current->GetYaxis()->SetRange(0, maxy * 1.4);
         }
         pad->Update();
         pad->Modified();
@@ -63,7 +62,6 @@ void BmnHist::DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
 
 BmnStatus BmnHist::LoadRefRun(Int_t refID, TString FullName, TString fTitle, vector<PadInfo*> canPads, vector<TString> Names) {
     printf("Loading ref histos\n");
-    //    TString FileName = Form("bmn_run%04d_hist.root", refID);
     TFile *refFile = new TFile(FullName, "read");
     if (refFile->IsOpen() == false) {
         printf("Cannot open file %s !\n", FullName.Data());
@@ -85,7 +83,6 @@ BmnStatus BmnHist::LoadRefRun(Int_t refID, TString FullName, TString fTitle, vec
         if (tempH == NULL) {
             printf("Cannot load %s !\n", name.Data());
             continue;
-            //                return kBMNERROR;
         }
         canPads[iPad]->ref = (TH1F*) (tempH->Clone(refName + name));
         canPads[iPad]->ref->SetLineColor(kRed);

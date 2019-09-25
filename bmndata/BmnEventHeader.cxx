@@ -8,7 +8,8 @@ BmnEventHeader::BmnEventHeader() :
  fPeriodId(0),
  fEventTimeTS(TTimeStamp()),
  fEventType(kBMNPAYLOAD),
- fTripWord(false),
+ fTripWord(kFALSE),
+ fSpillStart(kFALSE),
  fStartSignalTime(0),
  fStartSignalWidth(0),
  fTrigInfo(new BmnTrigInfo())
@@ -21,6 +22,7 @@ BmnEventHeader::BmnEventHeader(UInt_t run_id, UInt_t event_id, TTimeStamp event_
  fEventTimeTS(event_time),
  fEventType(event_type),
  fTripWord(trip),
+ fSpillStart(kFALSE),
  fStartSignalTime(0),
  fStartSignalWidth(0),
  fTrigInfo(trig_info)
@@ -36,6 +38,7 @@ BmnEventHeader::BmnEventHeader(UInt_t run_id, UInt_t event_id, TTimeStamp event_
  fEventTimeTS(event_time),
  fEventType(event_type),
  fTripWord(trip),
+ fSpillStart(kFALSE),
  fStartSignalTime(0),
  fStartSignalWidth(0),
  fTrigInfo(trig_info),

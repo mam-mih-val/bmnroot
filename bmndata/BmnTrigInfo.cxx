@@ -14,7 +14,6 @@
 #include "BmnTrigInfo.h"
 
 BmnTrigInfo::BmnTrigInfo() {
-    fTrigType = kBMNBEAM;
     fTrigCand = 0;
     fTrigAcce = 0;
     fTrigBefo = 0;
@@ -22,8 +21,7 @@ BmnTrigInfo::BmnTrigInfo() {
     fTrigRjct = 0;
 }
 
-BmnTrigInfo::BmnTrigInfo(BmnTriggerType trig, UInt_t cand, UInt_t acc, UInt_t befo, UInt_t afte, UInt_t rjct) {
-    fTrigType = trig;
+BmnTrigInfo::BmnTrigInfo(UInt_t cand, UInt_t acc, UInt_t befo, UInt_t afte, UInt_t rjct) {
     fTrigCand = cand;
     fTrigAcce = acc;
     fTrigBefo = befo;
@@ -32,7 +30,6 @@ BmnTrigInfo::BmnTrigInfo(BmnTriggerType trig, UInt_t cand, UInt_t acc, UInt_t be
 }
 
 BmnTrigInfo::BmnTrigInfo(BmnTrigInfo* orig) {
-    fTrigType = orig->GetTrigType();
     fTrigCand = orig->GetTrigCand();
     fTrigAcce = orig->GetTrigAccepted();
     fTrigBefo = orig->GetTrigBefo();

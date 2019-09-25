@@ -224,7 +224,6 @@ void BmnFillDstTask::Exec(Option_t* /*option*/) {
         fDstHead->SetEventId(fEventHead->GetEventId());
         fDstHead->SetEventTime(fEventHead->GetEventTime());
         fDstHead->SetEventTimeTS(fEventHead->GetEventTimeTS());
-        fDstHead->SetTriggerType(fEventHead->GetTrigType());
     }
 
     //calculate Z2in and Z2out:

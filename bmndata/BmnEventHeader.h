@@ -28,6 +28,8 @@ private:
     BmnEventType fEventType;
     /** Tripped Gems (1 bit for 1 GEM module) **/
     Bool_t fTripWord;
+    /** start of new spill **/
+    Bool_t fSpillStart;
     /** T0 information for current event**/
     Double_t fStartSignalTime; //ns
     Double_t fStartSignalWidth; //ns
@@ -69,11 +71,11 @@ public:
     /** Get the type of this event */
     BmnEventType GetEventType() { return fEventType; }
 
-    /** Get trigger type */
-    BmnTriggerType GetTrigType() { return fTrigInfo->GetTrigType(); }
-
     /** Get the trip word for this event */
     Bool_t GetTripWord() { return fTripWord; }
+
+    /** Get wether new spill is started */
+    Bool_t GetSpillStart() { return fSpillStart; }
 
     Double_t GetStartSignalTime() { return fStartSignalTime; }
     Double_t GetStartSignalWidth() { return fStartSignalWidth; }
@@ -105,13 +107,9 @@ public:
      */
     void SetEventType(BmnEventType event_type) { fEventType = event_type; }
 
-    void SetTrigType(BmnTriggerType trig_type)
-    {
-        if (!fTrigInfo) fTrigInfo = new BmnTrigInfo();
-        fTrigInfo->SetTrigType(trig_type);
-    }
-
     void SetTripWord(Bool_t flag) { fTripWord = flag; }
+
+    void SetSpillStart(Bool_t flag) { fSpillStart = flag; }
 
     void SetStartSignalInfo(Double_t time, Double_t width)
     {

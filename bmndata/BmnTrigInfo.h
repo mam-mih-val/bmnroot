@@ -20,7 +20,7 @@
 class BmnTrigInfo : public TNamed {
 public:
     BmnTrigInfo();
-    BmnTrigInfo(BmnTriggerType trig, UInt_t cand, UInt_t acc, UInt_t befo, UInt_t afte, UInt_t rjct);
+    BmnTrigInfo(UInt_t cand, UInt_t acc, UInt_t befo, UInt_t afte, UInt_t rjct);
     BmnTrigInfo(BmnTrigInfo* orig);
     virtual ~BmnTrigInfo();
     
@@ -63,25 +63,31 @@ public:
     UInt_t GetTrigRjct() {
         return fTrigRjct;
     }
-    
-    void SetTrigType(BmnTriggerType type) {
-        fTrigType = type;
+
+    void SetTrigAll(UInt_t _v) {
+        fTrigAll = _v;
     }
 
-    /** Get the type of this event*/
-    BmnTriggerType GetTrigType() {
-        return fTrigType;
+    UInt_t GetTrigAll() {
+        return fTrigAll;
+    }
+
+    void SetTrigAvail(UInt_t _v) {
+        fTrigAvail = _v;
+    }
+
+    UInt_t GetTrigAvail() {
+        return fTrigAvail;
     }
     
-    
 private:
-    /** Trigger Type (beam = 6 or target = 1)**/
-    BmnTriggerType fTrigType;
     UInt_t fTrigCand;
     UInt_t fTrigAcce;
     UInt_t fTrigBefo;
     UInt_t fTrigAfte;
     UInt_t fTrigRjct;
+    UInt_t fTrigAll;
+    UInt_t fTrigAvail;
 
     ClassDef(BmnTrigInfo, 1)
 };

@@ -1,16 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/*
- * File:   BmnHistSilicon.cxx
- * Author: ilnur
- *
- * Created on March 9, 2017, 10:39 AM
- */
-
 #include "BmnHistSilicon.h"
 
 BmnHistSilicon::BmnHistSilicon(TString title, TString path, Int_t PeriodID) : BmnHist(PeriodID) {
@@ -57,15 +44,18 @@ BmnHistSilicon::BmnHistSilicon(TString title, TString path, Int_t PeriodID) : Bm
     canStrip->Divide(maxLayers, sumMods);
     Int_t modCtr = 0; // filling GEM Canvas' pads
     canStripPads.resize(sumMods * maxLayers);
+    for (auto &pad : canStripPads){
+        pad = nullptr;
+    }
     Names.resize(sumMods * maxLayers);
     for (Int_t iStation = 0; iStation < stationSet->GetNStations(); iStation++) {
         BmnSiliconStation * st = stationSet->GetSiliconStation(iStation);
         for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
             BmnSiliconModule *mod = st->GetModule(iModule);
             for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
+                Int_t iPad = modCtr * maxLayers + iLayer;
                 PadInfo *p = new PadInfo();
                 p->current = histSiliconStrip[iStation][iModule][iLayer];
-                Int_t iPad = modCtr * maxLayers + iLayer;
                 canStripPads[iPad] = p;
                 canStrip->GetPad(iPad + 1)->SetGrid();
                 Names[iPad] = canStripPads[iPad]->current->GetName();
@@ -84,10 +74,6 @@ void BmnHistSilicon::Register(THttpServer * serv) {
     fServer->Register("/", this);
     TString path = "/" + fTitle + "/";
     fServer->Register(path, canStrip);
-    //    for (auto row : histGemStrip)
-    //        for (auto col : row)
-    //            for (auto el : col)
-    //                fServer->Register(path, el);
     fServer->SetItemField(path, "_monitoring", "2000");
     fServer->SetItemField(path, "_layout", "grid3x3");
     TString cmd = "/" + fName + "/->Reset()";
@@ -99,8 +85,6 @@ void BmnHistSilicon::Register(THttpServer * serv) {
     cmd = "/" + fName + "/->SetRefRun(%arg1%)";
     cmdTitle = path + "SetRefRun";
     fServer->RegisterCommand(cmdTitle.Data(), cmd.Data(), "button;");
-    //    fServer->Restrict(cmdTitle.Data(), "deny=guest");
-
 }
 
 void BmnHistSilicon::SetDir(TFile *outFile, TTree * recoTree) {
@@ -146,17 +130,19 @@ BmnStatus BmnHistSilicon::SetRefRun(Int_t id) {
 }
 
 void BmnHistSilicon::ClearRefRun() {
-    for (auto pad : canStripPads){
-        if (pad->ref) delete pad->ref;
-        pad->ref = NULL;
+    for (auto &pad : canStripPads){
+        if (pad){
+            if (pad->ref) delete pad->ref;
+            pad->ref = NULL;
+        }
     }
     refID = 0;
 }
 
 void BmnHistSilicon::Reset() {
-    for (auto row : histSiliconStrip)
-        for (auto col : row)
-            for (auto el : col)
+    for (auto &row : histSiliconStrip)
+        for (auto &col : row)
+            for (auto &el : col)
                 el->Reset();
 }
 

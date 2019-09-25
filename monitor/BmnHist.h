@@ -1,11 +1,3 @@
-/* 
- * File:   BmnHist.h
- * Author: ilnur
- *
- * Created on February 2, 2017, 2:10 PM
- * 
- * Base class for histogram sets
- */
 
 #ifndef BMNHIST_H
 #define BMNHIST_H 1
@@ -59,6 +51,9 @@ private:
 };
 ClassImp(PadInfo)
 
+/** 
+ * Base class for histogram sets
+ */
 class BmnHist : public TNamed {
 public:
 

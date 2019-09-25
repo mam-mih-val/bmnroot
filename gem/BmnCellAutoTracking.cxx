@@ -30,11 +30,9 @@ using namespace TMath;
 
 BmnCellAutoTracking::BmnCellAutoTracking(Short_t period, Int_t run, Bool_t field, Bool_t target, TString steerFile) : fSteering(nullptr),
                                                                                                                       fSteerFile(steerFile) {
-
-
-    fInnerTrackerSetup[kGEM] = kTRUE;                                                                                                                          
-    fInnerTrackerSetup[kSILICON] = kTRUE;                                                                                                                          
-    fInnerTrackerSetup[kSSD] = kFALSE;                                                                                                                          
+    fInnerTrackerSetup[kGEM] = kTRUE;
+    fInnerTrackerSetup[kSILICON] = kTRUE;
+    fInnerTrackerSetup[kSSD] = kFALSE;
     // Deciding whether we are getting MC ...
     if (run < 0) {
         // MC-input given
@@ -49,13 +47,13 @@ BmnCellAutoTracking::BmnCellAutoTracking(Short_t period, Int_t run, Bool_t field
     }
     // Define a setup to be used by comparing with current runID, exp. data input given
     else {
-        const Int_t runTransition = 3589; // FIXME!
+        const Int_t runTransition = 3589;  // FIXME!
         isSRC = (run < runTransition) ? kTRUE : kFALSE;
     }
 
     TString setup = isSRC ? "SRC" : "BMN";
     if (steerFile == "")
-        fSteering = new BmnSteering(field ? TString(setup + "_run7_withField.dat") : TString(setup + "_run7_noField.dat")); // FIXME (should be got from UniDb)
+        fSteering = new BmnSteering(field ? TString(setup + "_run7_withField.dat") : TString(setup + "_run7_noField.dat"));  // FIXME (should be got from UniDb)
     else
         fSteering = new BmnSteering(fSteerFile);
     fPeriodId = period;
@@ -96,7 +94,7 @@ BmnCellAutoTracking::BmnCellAutoTracking(Short_t period, Int_t run, Bool_t field
     fCellDiffSlopeXZCut = nullptr;
     fCellDiffSlopeYZCut = nullptr;
     fNHitsCut = 0.0;
-    kCellsCut = 10000000000; //fSteering->GetNCellsCut();
+    kCellsCut = 10000000000;  //fSteering->GetNCellsCut();
     if (fVerbose > 1) fSteering->PrintParamTable();
 }
 
@@ -126,7 +124,7 @@ InitStatus BmnCellAutoTracking::Init() {
         Fatal("Init", "FairRootManager is not instantiated");
 
     //MC tracks for drawing during debugging
-    fMCTracksArray = (TClonesArray*)ioman->GetObject("MCTrack"); //in
+    fMCTracksArray = (TClonesArray*)ioman->GetObject("MCTrack");  //in
 
     //GEM
     if (fInnerTrackerSetup[kGEM]) {
@@ -356,8 +354,8 @@ void BmnCellAutoTracking::Finish() {
         cout << "Cells connection time: " << connectTime << endl;
         cout << "Tracks sorting time: " << sortTime << endl;
         cout << "Tracks selection time: " << selectTime << endl;
-        cout << "Full work time of the GEM tracking: " << workTime << endl;
     }
+    cout << "Work time of the GEM tracking: " << workTime << endl;
 }
 
 BmnStatus BmnCellAutoTracking::CellsCreation(vector<BmnCellDuet>* cells) {
@@ -462,59 +460,58 @@ BmnStatus BmnCellAutoTracking::StateCalculation(vector<BmnCellDuet>* cells) {
 }
 
 vector<BmnTrack> BmnCellAutoTracking::CellsConnection(vector<BmnCellDuet>* cells) {
-
     vector<BmnTrack> cands;
-    Int_t nThreads = 1;//omp_get_max_threads();
+    Int_t nThreads = 1;  //omp_get_max_threads();
 
     vector<vector<BmnTrack>> candsThread(nThreads);
     for (Int_t maxCell = fNStations - 1; maxCell > 0; maxCell--) {
         BmnCellDuet curDuet;
         if (cells[maxCell].size() > kCellsCut)
             continue;
-//#pragma omp parallel firstprivate(curDuet)
-//        {
-//#pragma omp for
-            // for (BmnCellDuet& duet : cells[maxCell]) {
-            for (Int_t i = 0; i < cells[maxCell].size(); ++i) {
-                BmnCellDuet duet = cells[maxCell].at(i);
-                //            if (duet.GetOldState() != maxCell) continue; //FIXME: do we need this condition???
-                BmnTrack trackCand;
-                if (duet.GetFirstIdx() == -1) continue; // skip virtual duet
-                trackCand.AddHit(duet.GetFirstIdx(), (BmnHit*) fHitsArray->At(duet.GetFirstIdx()));
-                trackCand.AddHit(duet.GetLastIdx(), (BmnHit*) fHitsArray->At(duet.GetLastIdx()));
-                trackCand.SortHits();
-                curDuet = duet;
-                for (Int_t iCellLeft = maxCell - 1; iCellLeft >= 0; iCellLeft--) {
-                    BmnCellDuet* minLeft = nullptr;
-                    Double_t minSlopeDiff = 1e10;
-                    for (BmnCellDuet& itLeft : cells[iCellLeft]) {
-                        //if (itLeft.GetOldState() != iCellLeft) continue; //FIXME! Maybe it is better not to use this cut?
-                        if (curDuet.GetFirstIdx() != itLeft.GetLastIdx()) continue;
-                        Double_t slopeDiffYZ = Abs(curDuet.GetSlopeYZ() - itLeft.GetSlopeYZ());
-                        Double_t slopeDiffXZ = Abs(curDuet.GetSlopeXZ() - itLeft.GetSlopeXZ());
-                        if (slopeDiffYZ < minSlopeDiff && slopeDiffYZ < fCellDiffSlopeYZCut[iCellLeft] && slopeDiffXZ < fCellDiffSlopeXZCut[iCellLeft]) {  //FIXME!!! which slope to use???
-                            minSlopeDiff = slopeDiffYZ;
-                            minLeft = &itLeft;
-                        }
-                    }
-                    if (minLeft != nullptr) {
-                        if (minLeft->GetFirstIdx() == -1) continue;  // skip virtual duet
-                        trackCand.AddHit(minLeft->GetFirstIdx(), (BmnHit*)fHitsArray->At(minLeft->GetFirstIdx()));
-                        curDuet = *minLeft;
-                        trackCand.SortHits();
+        //#pragma omp parallel firstprivate(curDuet)
+        //        {
+        //#pragma omp for
+        // for (BmnCellDuet& duet : cells[maxCell]) {
+        for (Int_t i = 0; i < cells[maxCell].size(); ++i) {
+            BmnCellDuet duet = cells[maxCell].at(i);
+            //            if (duet.GetOldState() != maxCell) continue; //FIXME: do we need this condition???
+            BmnTrack trackCand;
+            if (duet.GetFirstIdx() == -1) continue;  // skip virtual duet
+            trackCand.AddHit(duet.GetFirstIdx(), (BmnHit*)fHitsArray->At(duet.GetFirstIdx()));
+            trackCand.AddHit(duet.GetLastIdx(), (BmnHit*)fHitsArray->At(duet.GetLastIdx()));
+            trackCand.SortHits();
+            curDuet = duet;
+            for (Int_t iCellLeft = maxCell - 1; iCellLeft >= 0; iCellLeft--) {
+                BmnCellDuet* minLeft = nullptr;
+                Double_t minSlopeDiff = 1e10;
+                for (BmnCellDuet& itLeft : cells[iCellLeft]) {
+                    //if (itLeft.GetOldState() != iCellLeft) continue; //FIXME! Maybe it is better not to use this cut?
+                    if (curDuet.GetFirstIdx() != itLeft.GetLastIdx()) continue;
+                    Double_t slopeDiffYZ = Abs(curDuet.GetSlopeYZ() - itLeft.GetSlopeYZ());
+                    Double_t slopeDiffXZ = Abs(curDuet.GetSlopeXZ() - itLeft.GetSlopeXZ());
+                    if (slopeDiffYZ < minSlopeDiff && slopeDiffYZ < fCellDiffSlopeYZCut[iCellLeft] && slopeDiffXZ < fCellDiffSlopeXZCut[iCellLeft]) {  //FIXME!!! which slope to use???
+                        minSlopeDiff = slopeDiffYZ;
+                        minLeft = &itLeft;
                     }
                 }
-
-                if (CalculateTrackParams(&trackCand) == kBMNERROR) continue;
-                if (IsParCorrect(trackCand.GetParamFirst(), fIsField) && IsParCorrect(trackCand.GetParamLast(), fIsField))
-                    candsThread.at(0/*omp_get_thread_num()*/).push_back(trackCand);
+                if (minLeft != nullptr) {
+                    if (minLeft->GetFirstIdx() == -1) continue;  // skip virtual duet
+                    trackCand.AddHit(minLeft->GetFirstIdx(), (BmnHit*)fHitsArray->At(minLeft->GetFirstIdx()));
+                    curDuet = *minLeft;
+                    trackCand.SortHits();
+                }
             }
+
+            if (CalculateTrackParams(&trackCand) == kBMNERROR) continue;
+            if (IsParCorrect(trackCand.GetParamFirst(), fIsField) && IsParCorrect(trackCand.GetParamLast(), fIsField))
+                candsThread.at(0 /*omp_get_thread_num()*/).push_back(trackCand);
+        }
         //}
     }
     for (Int_t i = 0; i < nThreads; ++i)
         for (Int_t j = 0; j < candsThread[i].size(); ++j)
-             cands.push_back(candsThread[i][j]); 
-    
+            cands.push_back(candsThread[i][j]);
+
     return cands;
 }
 
@@ -538,19 +535,19 @@ BmnStatus BmnCellAutoTracking::TrackUpdateByLine(vector<BmnTrack>& cands) {
 BmnStatus BmnCellAutoTracking::TrackUpdateByKalman(vector<BmnTrack>& cands) {
     for (BmnTrack& cand : cands) {
         FairTrackParam par = *(cand.GetParamFirst());
-        // par.SetQp(1.0/8.0);
+        //par.SetQp(1.0/8.0);
         Double_t chiTot = 0.0;
         for (Int_t iHit = 0; iHit < cand.GetNHits(); ++iHit) {
             BmnHit* hit = (BmnHit*)fHitsArray->At(cand.GetHitIndex(iHit));
             Double_t chi = 0.0;
-            fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 211, nullptr, nullptr, fIsField);
+            fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 2212, nullptr, nullptr, fIsField);
             fKalman->Update(&par, hit, chi);
         }
         cand.SetParamLast(par);
         for (Int_t iHit = cand.GetNHits() - 1; iHit >= 0; iHit--) {
             BmnHit* hit = (BmnHit*)fHitsArray->At(cand.GetHitIndex(iHit));
             Double_t chi = 0.0;
-            fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 211, nullptr, nullptr, fIsField);
+            fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 2212, nullptr, nullptr, fIsField);
             fKalman->Update(&par, hit, chi);
             chiTot += chi;
         }

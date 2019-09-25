@@ -52,7 +52,7 @@
 
 /***************** SET OF DAQ CONSTANTS *****************/
 const UInt_t kSYNC1 = 0x2A502A50;
-const UInt_t kSYNC2 = 0x4A624A62;
+const UInt_t kENDOFSPILL = 0x4A624A62;
 const UInt_t kRUNSTARTSYNC = 0x72617453;
 const UInt_t kRUNSTOPSYNC = 0x706F7453;
 const UInt_t kRUNNUMBERSYNC = 0x236E7552;
@@ -91,7 +91,9 @@ const UInt_t kU40VE_RC = 0x4C;
 
 //event type trigger
 const UInt_t kEVENTTYPESLOT = 12;
-const UInt_t kGEMTRIGTYPE = 3;
+const UInt_t kWORDTAI = 2;
+const UInt_t kWORDTRIG = 3;
+const UInt_t kWORDAUX = 4;
 const UInt_t kTRIGBEAM = 6;
 const UInt_t kTRIGMINBIAS = 1;
 
@@ -349,6 +351,7 @@ private:
     //9 bits correspond to detectors which we need to decode
     Bool_t fDetectorSetup[11];
     pt::ptree conf;
+    Bool_t isSpillStart;
 
 
     Int_t fTOF700ReferenceRun;

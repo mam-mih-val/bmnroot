@@ -15,7 +15,7 @@
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/bmnloadlibs.C"
 //
-void drawMultCorrSRC(TString fileName = "../run/srcdst_3400.root", Int_t nEvents = 10000) {
+void drawMultCorrSRC(TString fileName = "../run/srcdst_3332.root", Int_t nEvents = 50000) {
     bmnloadlibs();  // load libraries
 
     TChain* out = new TChain("bmndata");
@@ -61,16 +61,18 @@ void drawMultCorrSRC(TString fileName = "../run/srcdst_3400.root", Int_t nEvents
         Int_t nDch = (dchTracks) ? dchTracks->GetEntriesFast() : 0;
         Int_t nDch1 = 0;
         Int_t nDch2 = 0;
-        for (Int_t iTrack = 0; iTrack < dchTracks->GetEntriesFast(); iTrack++) {
-            BmnDchTrack* track = (BmnDchTrack*)dchTracks->At(iTrack);
-            if (track->GetParamFirst()->GetZ() < 550.0) nDch1++;
-            if (track->GetParamFirst()->GetZ() > 650.0) nDch2++;
-        }
+        if (dchTracks)
+            for (Int_t iTrack = 0; iTrack < dchTracks->GetEntriesFast(); iTrack++) {
+                BmnDchTrack* track = (BmnDchTrack*)dchTracks->At(iTrack);
+                if (track->GetParamFirst()->GetZ() < 550.0) nDch1++;
+                if (track->GetParamFirst()->GetZ() > 650.0) nDch2++;
+            }
         Int_t nMwpc = 0;
-        for (Int_t iTrack = 0; iTrack < MwpcTracks->GetEntriesFast(); iTrack++) {
-            BmnMwpcTrack* track = (BmnMwpcTrack*)MwpcTracks->At(iTrack);
-            if (track->GetParamFirst()->GetZ() > -300.0) nMwpc++;
-        }
+        if (MwpcTracks)
+            for (Int_t iTrack = 0; iTrack < MwpcTracks->GetEntriesFast(); iTrack++) {
+                BmnMwpcTrack* track = (BmnMwpcTrack*)MwpcTracks->At(iTrack);
+                if (track->GetParamFirst()->GetZ() > -300.0) nMwpc++;
+            }
 
         Int_t nItem[nDet] = {nMwpc, nSil, nGem, nCsc, nTof700, nDch1, nDch2};
 

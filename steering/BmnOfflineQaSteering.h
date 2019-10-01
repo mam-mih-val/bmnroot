@@ -7,6 +7,10 @@
 #include <TVector3.h>
 #include <TSystem.h>
 
+#include <BmnGemStripStationSet.h>
+#include <BmnSiliconStationSet.h>
+#include <BmnCSCStationSet.h>
+
 #ifndef BMNOFFLINEQASTEERING_H
 #define BMNOFFLINEQASTEERING_H 1
 
@@ -76,8 +80,7 @@ public:
             } else if (type == "time") {
                 if (det.Contains("TOF400") || det.Contains("TOF700") || det.Contains("MWPC") || det.Contains("DCH"))
                     detCounter++;
-            }
-            else if (type == "calorimeter") {
+            } else if (type == "calorimeter") {
                 if (det.Contains("ECAL") || det.Contains("ZDC"))
                     detCounter++;
             }
@@ -85,8 +88,59 @@ public:
         return detCounter;
     }
 
+    void SetGeometriesByRunId(Int_t id, BmnGemStripStationSet*& gem, BmnSiliconStationSet*& silicon, BmnCSCStationSet*& csc) {
+        TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
+
+        TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
+        TString gPathSilConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
+        TString gPathCscConfig = gPathConfig + "/parameters/csc/XMLConfigs/";
+
+        const Int_t nPeriods = 2;
+        const Int_t nSetups = 2;
+
+        Int_t runPeriods[nPeriods] = {6, 7};
+        TString setups[nSetups] = {"BM@N", "SRC"};
+
+        TString confGEM = "";
+        TString confSIL = "";
+        TString confCSC = "";
+
+        for (Int_t iPeriod = 0; iPeriod < nPeriods; iPeriod++)
+            for (Int_t iSetup = 0; iSetup < nSetups; iSetup++)
+                if (id >= GetBorderRuns(runPeriods[iPeriod], setups[iSetup]).first && id <= GetBorderRuns(runPeriods[iPeriod], setups[iSetup]).second) {
+
+                    if (iPeriod == 0 && iSetup == 0) {
+                        // RUN6, BM@N 
+
+                        confGEM = "GemRunSpring2017.xml";
+                        confSIL = "SiliconRunSpring2017.xml";
+                    } else if (iPeriod == 1 && iSetup == 0) {
+                        // RUN7, BM@N 
+
+                        confGEM = "GemRunSpring2018.xml";
+                        confSIL = "SiliconRunSpring2018.xml";
+                        confCSC = "CSCRunSpring2018.xml";
+                    } else if (iPeriod == 1 && iSetup == 1) {
+                        // RUN7, SRC 
+
+                        confGEM = "GemRunSRCSpring2018.xml";
+                        confSIL = "SiliconRunSRCSpring2018.xml";
+                        confCSC = "CSCRunSRCSpring2018.xml";
+                    }
+
+                    if (!gem) 
+                        gem = new BmnGemStripStationSet(gPathGemConfig + confGEM);
+                        
+                    if (!silicon)
+                        silicon = new BmnSiliconStationSet(gPathSilConfig + confSIL);
+
+                    if (!confCSC.IsNull() && !csc)
+                        csc = new BmnCSCStationSet(gPathCscConfig + confCSC);
+                }
+    }
+
 private:
-    void ParseSteerFile(TString f = "qaOffline_run7.dat");
+    void ParseSteerFile(TString f = "qaOffline.dat");
 
     // TRIGGERS -- [0][1d -- 2d][columns -- rows]
     // GEM       [1][][]

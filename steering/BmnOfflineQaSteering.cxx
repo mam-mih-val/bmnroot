@@ -41,7 +41,6 @@ void BmnOfflineQaSteering::ParseSteerFile(TString fileName) {
         for (Int_t iDim = 0; iDim < 2; iDim++) {
             getline(f, line);
             f >> det >> fDetCanvas[iDet][iDim][0] >> fDetCanvas[iDet][iDim][1];
-            fCanvNames.push_back(det);
         }
     }
 

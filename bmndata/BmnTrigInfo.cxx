@@ -1,16 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   TrigInfo.cxx
- * Author: ilnur
- * 
- * Created on 25 апреля 2018 г., 12:12
- */
-
 #include "BmnTrigInfo.h"
 
 BmnTrigInfo::BmnTrigInfo() {

@@ -4,6 +4,7 @@
 void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_t doConvert = kTRUE, Bool_t doHoldRawRoot = kFALSE)
 {
     gSystem->ExpandPathName(file);
+    gSystem->ExpandPathName(outfile);
 
     Int_t iVerbose = 0; ///<- Verbosity level
     UInt_t period = 7;

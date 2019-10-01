@@ -8,6 +8,8 @@
 #include <BmnSiliconStationSet.h>
 #include <BmnCSCStationSet.h>
 
+#include <BmnOfflineQaSteering.h>
+
 #ifndef BMNCOORDDETQA_H
 #define BMNCOORDDETQA_H 1
 
@@ -23,6 +25,7 @@ public:
 
     /** Destructor **/
     virtual ~BmnCoordinateDetQa() {
+        delete fSteering;
     };
 
     // Setters
@@ -33,7 +36,9 @@ public:
         return fHistoManager;
     }
 
-private:
+private:  
+    BmnOfflineQaSteering* fSteering;
+    
     BmnQaHistoManager* fHistoManager;
     BmnGemStripStationSet* fDetGem;
     BmnCSCStationSet* fDetCsc;

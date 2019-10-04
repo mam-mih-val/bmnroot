@@ -6,8 +6,8 @@ BmnHit::BmnHit() : FairHit() {
     fFlag = kTRUE;
     fIndex = -1;
     fDetId = kREF;
-    fStation = 1;
-    fModule = 1;
+    fStation = -1;
+    fModule = -1;
     fType = -1;
     fLength = -1.0;
     fResX = -1000.;
@@ -21,8 +21,8 @@ BmnHit::BmnHit(Int_t detID, TVector3 pos, TVector3 dpos, Int_t index)
     fFlag = kTRUE;
     fIndex = -1;
     fDetId = kREF;
-    fStation = 1;
-    fModule = 1;
+    fStation = -1;
+    fModule = -1;
     fType = -1;
     fLength = -1.0;
     fResX = -1000.;

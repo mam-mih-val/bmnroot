@@ -92,6 +92,6 @@ endif()
 Set(HEADERS)
 set(LINKDEF GemLinkDef.h)
 Set(LIBRARY_NAME Gem)
-Set(DEPENDENCIES BmnSteering KF Sts BmnData Base GenVector)
+Set(DEPENDENCIES BmnSteering KF Sts BmnData Base GenVector XMLParser Silicon)
 
 GENERATE_LIBRARY()

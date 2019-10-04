@@ -924,12 +924,6 @@ void BmnGemRaw2Digit::PostprocessDigitMK(TClonesArray * gem, TClonesArray * csc)
                             }
                         }
                     }
-                    //                        new(ar_gem[gem_digit->GetEntriesFast()]) BmnGemStripDigit(det, mod, plane, strip, sig);
-
-                    //MK      new(ar_gem[gem_digit->GetEntriesFast()]) BmnGemDigit(isig, coor, sig);
-                    //	  new(ar_gem[nchsum]) BmnGemDigit(isig, coor, sig);
-                    // 	  new(ar_gem[gem_digit->GetEntriesFast()]) BmnGemDigit(isig, coor, sig);
-                    //          if (iEv < npedev+10) cout << " nchsum= " << nchsum << " ich= " << isig << " sig= " << sig << endl;  
                     nchsum++;
                 }
             }

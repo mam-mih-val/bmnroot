@@ -259,17 +259,17 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
         TVirtualPad *pad = infoCanvas->cd(1);
         pad->Clear();
         TString runType;
-        switch (head->GetTrigType()) {
-            case kBMNBEAM:
-                runType = "beam";
-                break;
-            case kBMNMINBIAS:
-                runType = "target";
-                break;
-            default:
-                runType = "???";
-                break;
-        }
+//        switch (head->GetTrigType()) {
+//            case kBMNBEAM:
+//                runType = "beam";
+//                break;
+//            case kBMNMINBIAS:
+//                runType = "target";
+//                break;
+//            default:
+//                runType = "???";
+//                break;
+//        }
         TLatex Tl;
         Tl.SetTextAlign(12);
         Tl.SetTextSize(0.16);

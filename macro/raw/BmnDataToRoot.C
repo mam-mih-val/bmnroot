@@ -4,6 +4,7 @@
 void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_t doConvert = kTRUE, Bool_t doHoldRawRoot = kFALSE)
 {
     gSystem->ExpandPathName(file);
+    gSystem->ExpandPathName(outfile);
 
     Int_t iVerbose = 0; ///<- Verbosity level
     UInt_t period = 7;
@@ -39,7 +40,10 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     decoder->SetTOF700ReferenceRun(-1);
     decoder->SetTof700Geom(TString("TOF700_geometry_run") + PeriodSetupExt); 
     decoder->SetTof400Mapping(TString("TOF400_PlaceMap_RUN") +PeriodSetupExt, TString("TOF400_StripMap_RUN") +PeriodSetupExt);
-    decoder->SetTof700Mapping(TString("TOF700_map_period_") + PeriodSetupExt);
+    if (decoder->GetRunId() >= 4278 && decoder->GetPeriodId() == 7)
+        decoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d_from_run_4278.txt", period));
+    else
+        decoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d.txt", period));
     decoder->SetZDCMapping("ZDC_map_period_5.txt");
     decoder->SetZDCCalibration("zdc_muon_calibration.txt");
     decoder->SetECALMapping(TString("ECAL_map_period_") + PeriodSetupExt);
@@ -50,7 +54,7 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     decoder->SetLANDTCal("r0030_land_tcal.hh");
     decoder->SetLANDDiffSync("r352_cosmic1.hh");
     decoder->SetLANDVScint("neuland_sync_2.txt");
-    decoder->InitMaps();
+    decoder->InitMaps(); /// <- should be run after all mappings set
     if (doConvert) decoder->ConvertRawToRoot(); // Convert raw data in .data format into adc-,tdc-, ..., sync-digits in .root format
     decoder->DecodeDataToDigi(); // Decode data into detector-digits using current mappings.
     if (!doHoldRawRoot) gSystem->Exec(TString::Format("rm -f %s", decoder->GetRootFileName().Data()));

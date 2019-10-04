@@ -233,8 +233,8 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
     //for SRC only!!! //Temporary! FIXME: move into DB
     const Int_t nSt = 10;
-    Double_t alignX[nSt] = {0.0, 0.0, 0.0, 0.0, +0.163, -0.061, -0.038, -0.037, +0.003, +0.074};
-    Double_t alignY[nSt] = {0.0, 0.0, 0.0, 0.0, -0.009, -0.080, +0.074, +0.009, +0.036, -0.089};
+    Double_t alignX[nSt] = {0.0, 0.0, 0.0, 0.0, +0.163, -0.060, -0.036, -0.037, +0.006, +0.071};
+    Double_t alignY[nSt] = {0.0, 0.0, 0.0, 0.0, -0.008, -0.082, +0.072, +0.009, +0.030, -0.082};
     const Int_t nFields = 6;
 
     Double_t dX_ls[nSt][nFields] = {
@@ -242,24 +242,24 @@ void BmnGemStripHitMaker::ProcessDigits() {
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-        {0.0, -0.05, -0.04, -0.02, -0.00, -0.04},
-        {0.0, +0.14, +0.21, +0.30, +0.38, +0.45},
+        {0.0, -0.05, -0.04, -0.02, -0.11, -0.04},
+        {0.0, +0.14, +0.21, +0.30, +0.31, +0.45},
         {0.0, -0.08, -0.11, -0.10, -0.13, -0.11},
-        {0.0, +0.10, +0.13, +0.20, +0.22, +0.31},
-        {0.0, -0.13, -0.19, -0.22, -0.30, -0.30},
-        {0.0, +0.03, +0.02, +0.03, -0.01, +0.04}};
+        {0.0, +0.10, +0.13, +0.20, +0.23, +0.31},
+        {0.0, -0.13, -0.19, -0.22, -0.26, -0.30},
+        {0.0, +0.03, +0.02, +0.03, +0.04, +0.04}};
 
     Double_t dY_ls[nSt][nFields] = {
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-        {0.0, +0.00, -0.00, -0.00, -0.02, -0.01},
-        {0.0, +0.01, +0.02, +0.06, +0.04, +0.04},
-        {0.0, -0.02, -0.01, +0.03, -0.01, -0.02},
-        {0.0, -0.00, +0.02, +0.07, +0.04, +0.01},
-        {0.0, -0.02, -0.00, +0.03, -0.02, -0.07},
-        {0.0, +0.05, +0.10, +0.17, +0.15, +0.09}};
+        {0.0, +0.00, -0.00, -0.00, -0.0, -0.01},
+        {0.0, +0.01, +0.02, +0.06, +0.05, +0.04},
+        {0.0, -0.02, -0.01, +0.03, -0.02, -0.02},
+        {0.0, -0.00, +0.02, +0.07, +0.0, +0.01},
+        {0.0, -0.02, -0.00, +0.03, -0.08, -0.07},
+        {0.0, +0.05, +0.10, +0.17, +0.07, +0.09}};
 
     Int_t fieldFactors[nFields] = {0, 900, 1200, 1500, 1800, 2100};
     Int_t iField = 4;
@@ -269,9 +269,6 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
         for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             BmnGemStripModule *module = station->GetModule(iModule);
-            Double_t z = module->GetZPositionRegistered();
-            z += fIsExp ? fAlign->GetGemCorrs()[iStation][iModule][2] : 0.; //alignment implementation
-
             Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
 
             for (Int_t iPoint = 0; iPoint < NIntersectionPointsInModule; ++iPoint) {
@@ -282,6 +279,8 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 Double_t x = module->GetIntersectionPointX(iPoint);
                 Double_t y = module->GetIntersectionPointY(iPoint);
+                Double_t z = module->GetZPositionRegistered();
+                z += fIsExp ? fAlign->GetGemCorrs()[iStation][iModule][2] : 0.; //alignment implementation
 
                 Double_t x_err = module->GetIntersectionPointXError(iPoint);
                 Double_t y_err = module->GetIntersectionPointYError(iPoint);
@@ -289,10 +288,10 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                  //Transform hit coordinates from local coordinate system of GEM-planes to global
                 if(TransfSet) {
-                    Plane3D::Point loc_point = TransfSet->ApplyTransforms(Plane3D::Point(-x, y, z), iStation, iModule);
-                    x = -loc_point.X();
-                    y = loc_point.Y();
-                    z = loc_point.Z();
+                    Plane3D::Point glob_point = TransfSet->ApplyTransforms(Plane3D::Point(-x, y, z), iStation, iModule);
+                    x = -glob_point.X();
+                    y = glob_point.Y();
+                    z = glob_point.Z();
                 }
 
                 Int_t RefMCIndex = 0;

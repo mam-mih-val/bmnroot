@@ -36,6 +36,10 @@ class BmnGlobalTrack : public BmnTrack {
     Double_t GetMass2(Int_t tofID);
     Double_t GetdQdNUpper() const { return fdQdNUpper; }
     Double_t GetdQdNLower() const { return fdQdNLower; }
+    Int_t GetA() { return fA; }
+    Int_t GetZ() { return fZ; }
+    Double_t GetAoverZ() { return (Double_t)fA / fZ; }
+    Int_t GetPDG() { return fPDG; }
 
     Bool_t IsPrimary() const { return fIsPrimary; }
 
@@ -53,6 +57,9 @@ class BmnGlobalTrack : public BmnTrack {
     void SetCscHitIndex(Int_t iCsc) { fCscHit = iCsc; }
 
     void SetBeta(Double_t b, Int_t tofID);
+    void SetA(Int_t a) { fA = a; }
+    void SetZ(Int_t z) { fZ = z; }
+    void SetPDG(Int_t pdg) { fPDG = pdg; }
     void SetdQdNLower(Double_t q) { fdQdNLower = q; }
     void SetdQdNUpper(Double_t q) { fdQdNUpper = q; }
 
@@ -80,6 +87,9 @@ class BmnGlobalTrack : public BmnTrack {
     Double_t fBeta700;    // l/t/c //for tof-700
     Double_t fdQdNUpper;  //cluster charge over number of hits in GEM detector for X' strips
     Double_t fdQdNLower;  //cluster charge over number of hits in GEM detector for X strips
+    Int_t fA;
+    Int_t fZ;
+    Int_t fPDG;
 
     Bool_t fIsPrimary;  // decision after vertex finder task
 

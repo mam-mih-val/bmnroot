@@ -1,12 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
-// renameTree.C                                                               //
+// renameBranch.C                                                             //
 //                                                                            //
-// An example macro how to rename Tree in the ROOT file                       //
+// An example macro how to rename Branch in the ROOT file                     //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-int renameTree(TString filePath = "", TString oldName="cbmsim", TString newName = "bmndata", TString newTitle = "bmndigit")
+int renameBranch(TString filePath = "", TString treeName="bmndata", TString oldName="VC", TString newName = "VETO")
 {
     if (filePath == "")
     {
@@ -23,16 +23,26 @@ int renameTree(TString filePath = "", TString oldName="cbmsim", TString newName 
         return -2;
     }
 
-    TTree* oldTree = (TTree*) rootFile->Get(oldName.Data());
+    TTree* oldTree = (TTree*) rootFile->Get(treeName.Data());
     if (!oldTree)
     {
-        cout<<"ERROR: Tree was not found: "<<oldName<<endl;
+        cout<<"ERROR: Tree was not found: "<<treeName<<endl;
         return -3;
     }
-
-    //oldTree->SetNameTitle(newName.Data(), newName.Data());
-    oldTree->SetObject(newName.Data(), newTitle.Data());
-    gDirectory->Delete(TString::Format("%s;*", oldName.Data()));
+    TBranch* branch = nullptr;
+    branch = oldTree->GetBranch(oldName.Data());
+    if (branch)
+        branch->SetName(newName.Data());
+//    DigiRunHeader * rh = (DigiRunHeader *)rootFile->Get(oldObjectName.Data());    
+//    rootFile->WriteObject(rh, newObjectName.Data());
+    
+    TString oldObjectName = "BmnDigiRunHeader";
+    TString newObjectName = "DigiRunHeader";
+    TKey* k = nullptr;
+    k = rootFile->GetKey(oldObjectName.Data());
+    if (k) {
+        k->SetName(newObjectName.Data());
+    }
 
     rootFile->Write();
     rootFile->Close();
@@ -41,7 +51,7 @@ int renameTree(TString filePath = "", TString oldName="cbmsim", TString newName 
     return 0;
 }
 
-int renameTree_dir(TString dirPath = "", TString oldName="cbmsim", TString newName = "bmndata", TString newTitle = "bmndigit")
+int renameBranch_dir(TString dirPath = "", TString treeName="bmndata", TString oldName="VC", TString newName = "VETO")
 {
     if (dirPath == "")
     {
@@ -76,10 +86,13 @@ int renameTree_dir(TString dirPath = "", TString oldName="cbmsim", TString newNa
         else
         {
             TString file_path = file_dir + "/" + file_name;
-            if (file_name.EndsWith(".root"))
+            if (file_name.EndsWith("_digi.root"))
             {
-                int error_code = renameTree(file_path, oldName, newName, newTitle);
-                if (error_code == 0) rename_count++;
+                int error_code = renameBranch(file_path, treeName, oldName, newName);
+                if (error_code == 0){
+                    printf("successful rename of %s\n", file_path.Data());
+                    rename_count++;
+                }
             }//if (file_name.EndsWith(".root"))
         }//if not a directory
     }//while file list

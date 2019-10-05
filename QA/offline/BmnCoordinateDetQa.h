@@ -21,7 +21,7 @@ public:
     /** Default constructor **/
     BmnCoordinateDetQa() {
     };
-    BmnCoordinateDetQa(TString, UInt_t runId = 3590);
+    BmnCoordinateDetQa(TString, UInt_t runId);
 
     /** Destructor **/
     virtual ~BmnCoordinateDetQa() {

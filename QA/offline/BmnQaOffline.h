@@ -106,11 +106,11 @@ private:
     template <class T> void GetCommonInfo(TClonesArray*, BmnCalorimeterDetQa*, TString);
 
     // Trigger detectors
-    template <class T> void GetCommonInfo(TClonesArray*, BmnTrigDetQa*, TString);
+    template <class T> void GetCommonInfo(TClonesArray*, BmnTrigDetQa*, TString, TString);
     
     // Dst
-    void GetGlobalTracksDistributions(TClonesArray*, TClonesArray*, BmnDstQa*);
-    template <class T> void GetInnerTracksDistributions(TClonesArray*, BmnDstQa*, TString);
+    void GetGlobalTracksDistributions(TClonesArray*, TClonesArray*, BmnDstQa*, TString);
+    template <class T> void GetInnerTracksDistributions(TClonesArray*, BmnDstQa*, TString, TString);
 
     ClassDef(BmnQaOffline, 1);
 };

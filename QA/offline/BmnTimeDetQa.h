@@ -2,6 +2,8 @@
 #include <TH1F.h>
 #include "BmnQaHistoManager.h"
 
+#include <BmnOfflineQaSteering.h>
+
 #ifndef BMNTIMEDETQA_H
 #define BMNTIMEDETQA_H 1
 
@@ -13,7 +15,7 @@ public:
     /** Default constructor **/
     BmnTimeDetQa() {
     };
-    BmnTimeDetQa(TString);
+    BmnTimeDetQa(TString, UInt_t);
 
     /** Destructor **/
     virtual ~BmnTimeDetQa() {
@@ -28,6 +30,7 @@ public:
     }
 
 private:
+    BmnOfflineQaSteering* fSteering;
     BmnQaHistoManager* fHistoManager;
 
     void CommonInfo(TString detName) {

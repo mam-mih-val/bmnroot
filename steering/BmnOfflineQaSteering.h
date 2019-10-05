@@ -25,16 +25,31 @@ public:
 
     virtual ~BmnOfflineQaSteering();
 
-    Int_t*** GetDetCanvas() {
-        return fDetCanvas;
+    pair <Int_t, Int_t> GetCanvasSizes(Int_t run, TString setup, TString name, TString dim) {
+        for (auto it : fCanvasAttributes) {
+            if (TString(it[0]).Atoi() == run && it[1] == setup && name.Contains(TString(it[2]).Data())) {
+                return (dim == "1d") ? make_pair(TString(it[3]).Atoi(), TString(it[4]).Atoi()) :
+                        (dim == "2d") ? make_pair(TString(it[5]).Atoi(), TString(it[6]).Atoi()) :
+                        make_pair(-1, -1);
+            }
+        }
+        return make_pair(-1, -1);
     }
 
-    vector <TString> GetCanvNames() {
-        return fCanvNames;
+    Int_t GetNCanvases() {
+        return fNCanvases;
+    }
+    
+    Int_t GetNReleases() {
+        return fNReleases;
+    }
+    
+    vector <TString> GetListOfReleases() {
+        return fListReleases;
     }
 
-    map <TString, pair <Int_t, Int_t>> GetCorrMap() {
-        return fCanvDetCorresp;
+    vector <TString> GetListOfCanvases() {
+        return fListCanvases;
     }
 
     pair <Int_t, Int_t> GetBorderRuns(Int_t period, TString setup = "BM@N") {
@@ -44,11 +59,23 @@ public:
     }
 
     vector <TString> GetDetectors(Int_t period, TString setup = "BM@N") {
-        return fDetectors.find(make_pair(period, setup))->second;
+        if (period == 6 && setup == "SRC") {
+            // Configuration does not exist !!!
+            vector <TString> tmp;
+            tmp.resize(0);
+            return tmp;
+        } else
+            return fDetectors.find(make_pair(period, setup))->second;
     }
 
     vector <TString> GetTriggers(Int_t period, TString setup = "BM@N") {
-        return fTriggers.find(make_pair(period, setup))->second;
+        if (period == 6 && setup == "SRC") {
+            // Configuration does not exist !!!
+            vector <TString> tmp;
+            tmp.resize(0);
+            return tmp;
+        } else
+            return fTriggers.find(make_pair(period, setup))->second;
     }
 
     pair <Int_t, TString> GetRunAndSetupByRunId(Int_t id) {
@@ -128,9 +155,9 @@ public:
                         confCSC = "CSCRunSRCSpring2018.xml";
                     }
 
-                    if (!gem) 
+                    if (!gem)
                         gem = new BmnGemStripStationSet(gPathGemConfig + confGEM);
-                        
+
                     if (!silicon)
                         silicon = new BmnSiliconStationSet(gPathSilConfig + confSIL);
 
@@ -142,24 +169,13 @@ public:
 private:
     void ParseSteerFile(TString f = "qaOffline.dat");
 
-    // TRIGGERS -- [0][1d -- 2d][columns -- rows]
-    // GEM       [1][][]
-    // SILICON   [2][][]
-    // CSC       [3][][]
-    // TOF400    [4][][]
-    // TOF700    [5][][]
-    // DCH       [6][][]
-    // MWPC      [7][][]
-    // ECAL      [8][][]
-    // ZDC       [9][][]
-    // DST       [10][][]
-
-    Int_t fNdets;
-    Int_t*** fDetCanvas;
-
-    vector <TString> fCanvNames;
-
-    map <TString, pair <Int_t, Int_t>> fCanvDetCorresp;
+    Int_t fNCanvases;
+    Int_t fNReleases; 
+    
+    vector <TString> fListCanvases;
+    vector <TString> fListReleases;
+    
+    vector <vector <TString>> fCanvasAttributes;
 
     map <pair <Int_t, TString>, pair <Int_t, Int_t>> fBorderRuns; // (period, setup) --> (start, finish)
     map <pair <Int_t, TString>, vector <TString>> fDetectors; // (period, setup) --> list of detectors

@@ -114,14 +114,14 @@ if (CMAKE_SYSTEM_NAME MATCHES Linux)
      MESSAGE("--- Found GNU compiler collection")
 
      # Configure build types
-     set(CMAKE_CONFIGURATION_TYPES "RELWITHDEBINFO" "NIGHTLY" "TEST" "RELEASE" "DEBUG" "DEBUGFULL" "PROFILE" "ARRAY_CHECK")
+     set(CMAKE_CONFIGURATION_TYPES "RELWITHDEBINFO" "NIGHTLY" "TEST" "RELEASE" "OMP" "DEBUG" "DEBUGFULL" "PROFILE" "ARRAY_CHECK")
 
      set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -Wshadow")
      set(CMAKE_CXX_FLAGS_NIGHTLY        "-O0 -g -Wshadow")
      set(CMAKE_CXX_FLAGS_TEST           "-O2 -g -Wshadow")
-     set(CMAKE_CXX_FLAGS_RELEASE        "-O2 -Wshadow -fopenmp")
-
-     set(CMAKE_CXX_FLAGS_DEBUG          "-g -Wshadow -fopenmp")
+     set(CMAKE_CXX_FLAGS_RELEASE        "-O2 -Wshadow")
+     set(CMAKE_CXX_FLAGS_OMP            "-O3 -fopenmp -Wshadow")
+     set(CMAKE_CXX_FLAGS_DEBUG          "-g -Wshadow")
      set(CMAKE_CXX_FLAGS_DEBUGFULL      "-g3 -fno-inline  -Wnon-virtual-dtor -Wno-long-long -ansi -Wundef -Wcast-align -Wchar-subscripts -Wall -W -Wpointer-arith -Wformat-security -fno-exceptions -fno-check-new -fno-common -fexceptions")
      set(CMAKE_CXX_FLAGS_PROFILE        "-g3 -fno-inline -ftest-coverage -fprofile-arcs -Wshadow -Wall -Wextra -Wunused-variable")
      set(CMAKE_CXX_FLAGS_ARRAY_CHECK    "-g3 -fno-inline -ftest-coverage -fprofile-arcs -fstack-protector")

@@ -8,15 +8,15 @@ import re
 import subprocess
 import logging
 
-simulation_directory = "/eos/nica/bmn/sim"
+simulation_directory = "/eos/nica/bmn/sim/gen"
 VMCWORKDIR = "$HOME/bmnroot"
 
 name_to_generator = {
     "urqmd": "UrQMD",
-    "dcmqgsm": "DCM-QGSM",
-    "dcm-qgsm": "DCM-QGSM",
-    "dqgsm": "DCM-QGSM",
-    "dcqgsm": "DCM-QGSM"
+    "dcmqgsm": "DQGSM",
+    "dcm-qgsm": "DQGSM",
+    "dqgsm": "DQGSM",
+    "dcqgsm": "DQGSM"
 }
 
 name_to_particle = {

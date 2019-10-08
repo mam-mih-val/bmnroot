@@ -62,7 +62,7 @@ include(WriteConfigFile)
 include(CTest)
 include(CheckCompiler)
 
-# Set the build type: None, Debug, Release, RelWithDebInfo or MinSizeRel
+# Set the build type: None, Debug, Release, RelWithDebInfo, MinSizeRel or OMP
 If(NOT CMAKE_BUILD_TYPE)
   Message("Set BuildType DEBUG")
   set(CMAKE_BUILD_TYPE Debug)

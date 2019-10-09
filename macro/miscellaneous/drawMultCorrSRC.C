@@ -1,22 +1,7 @@
-
-#include <TCanvas.h>
-#include <TChain.h>
-#include <TClonesArray.h>
-#include <TFitResultPtr.h>
-#include <TH2F.h>
-#include <TLatex.h>
-#include <TString.h>
-#include <TStyle.h>
-
-#include <FairHit.h>
-#include <Rtypes.h>
-#include <TGraph.h>
-
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/bmnloadlibs.C"
 //
 void drawMultCorrSRC(TString fileName = "../run/srcdst_3332.root", Int_t nEvents = 50000) {
-    bmnloadlibs();  // load libraries
 
     TChain* out = new TChain("bmndata");
     out->Add(fileName.Data());

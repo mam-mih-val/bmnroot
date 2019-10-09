@@ -56,6 +56,7 @@ const UInt_t kENDOFSPILL = 0x4A624A62;
 const UInt_t kRUNSTARTSYNC = 0x72617453;
 const UInt_t kRUNSTOPSYNC = 0x706F7453;
 const UInt_t kRUNNUMBERSYNC = 0x236E7552;
+const UInt_t kRUNINDEXSYNC = 0x78646E49;
 const size_t kWORDSIZE = sizeof (UInt_t);
 const Short_t kNBYTESINWORD = 4;
 

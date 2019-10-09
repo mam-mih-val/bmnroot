@@ -1,16 +1,21 @@
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/geometry_run/geometry_run7.C"
 
-#define BOX     // Choose generator: URQMD QGSM HSD BOX PART ION
 #define GEANT3  // Choose: GEANT3 GEANT4
+// enumeration of generator names corresponding input files
+enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DQGSM};
 
 // inFile - input file with generator data, if needed
 // outFile - output file with MC data, default: evetest.root
 // nStartEvent - start event in the input generator file to begin transporting, default: 0
 // nEvents - number of events to transport
+// generatorName - generator name for the input file (enumeration above)
 // useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
-
 void run_sim_bmn(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1000, Bool_t useRealEffects = kFALSE) {
+
+  //void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10,
+  //             enumGenerators generatorName = BOX, Bool_t useRealEffects = kFALSE)
+  //{
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
@@ -43,76 +48,90 @@ void run_sim_bmn(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/e
     primGen->SmearVertexZ(kFALSE);
     primGen->SmearVertexXY(kFALSE);
 
-#ifdef URQMD
+    switch (generatorName)
+    {
     // ------- UrQMD Generator
-    if (!BmnFunctionSet::CheckFileExist(inFile)) return;
+    case URQMD:{
+        if (!BmnFunctionSet::CheckFileExist(inFile)) return;
 
-    MpdUrqmdGenerator* urqmdGen = new MpdUrqmdGenerator(inFile);
-    //urqmdGen->SetEventPlane(0., 360.);
-    primGen->AddGenerator(urqmdGen);
-    if (nStartEvent > 0) urqmdGen->SkipEvents(nStartEvent);
+        MpdUrqmdGenerator* urqmdGen = new MpdUrqmdGenerator(inFile);
+        //urqmdGen->SetEventPlane(0., 360.);
+        primGen->AddGenerator(urqmdGen);
+        if (nStartEvent > 0) urqmdGen->SkipEvents(nStartEvent);
 
-    // if nEvents is equal 0 then all events (start with nStartEvent) of the given file should be processed
-    if (nEvents == 0)
-        nEvents = MpdGetNumEvents::GetNumURQMDEvents(inFile.Data()) - nStartEvent;
+        // if nEvents is equal 0 then all events (start with nStartEvent) of the given file should be processed
+        if (nEvents == 0)
+            nEvents = MpdGetNumEvents::GetNumURQMDEvents(inFile.Data()) - nStartEvent;
+        break;
+    }
 
-#else
-#ifdef PART
     // ------- Particle Generator
-    FairParticleGenerator* partGen =
-            new FairParticleGenerator(211, 10, 1, 0, 3, 1, 0, 0);
-    primGen->AddGenerator(partGen);
+    case PART:{
+        FairParticleGenerator* partGen =
+                new FairParticleGenerator(211, 10, 1, 0, 3, 1, 0, 0);
+        primGen->AddGenerator(partGen);
+        break;
+    }
 
-#else
-#ifdef ION
     // ------- Ion Generator
-    // Start beam from a far point to check mom. reconstruction procedure
-    FairIonGenerator* fIongen = new FairIonGenerator(6, 12, 6, 1, 0., 0., 4.4, 0., 0., -647.);
-    primGen->AddGenerator(fIongen);
+    case ION:{
+        // Start beam from a far point to check mom. reconstruction procedure
+        FairIonGenerator* fIongen = new FairIonGenerator(6, 12, 6, 1, 0., 0., 4.4, 0., 0., -647.);
+        primGen->AddGenerator(fIongen);
+        break;
+    }
 
-#else
-#ifdef BOX
-    gRandom->SetSeed(0);
     // ------- Box Generator
+
     FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 10); // 13 = muon; 1 = multipl.
     boxGen->SetPRange(0, 8.); // GeV/c, setPRange vs setPtRange
     boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
     boxGen->SetThetaRange(0, 150.); // Polar angle in lab system range [degree]
     primGen->AddGenerator(boxGen);
 
-#else
-#ifdef HSD
+    /*    case BOX:{
+        gRandom->SetSeed(0);
+        FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 10); // 13 = muon; 1 = multipl.
+        boxGen->SetPRange(1., 1.); // GeV/c, setPRange vs setPtRange
+        boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
+        boxGen->SetThetaRange(10, 15); // Polar angle in lab system range [degree]
+        primGen->AddGenerator(boxGen);
+        break;
+    */
+
     // ------- HSD/PHSD Generator
-    if (!BmnFunctionSet::CheckFileExist(inFile)) return;
+    case HSD:{
+        if (!BmnFunctionSet::CheckFileExist(inFile)) return;
 
-    MpdPHSDGenerator* hsdGen = new MpdPHSDGenerator(inFile.Data());
-    //hsdGen->SetPsiRP(0.); // set fixed Reaction Plane angle instead of random
-    primGen->AddGenerator(hsdGen);
-    if (nStartEvent > 0) hsdGen->SkipEvents(nStartEvent);
+        MpdPHSDGenerator* hsdGen = new MpdPHSDGenerator(inFile.Data());
+        //hsdGen->SetPsiRP(0.); // set fixed Reaction Plane angle instead of random
+        primGen->AddGenerator(hsdGen);
+        if (nStartEvent > 0) hsdGen->SkipEvents(nStartEvent);
 
-    // if nEvents is equal 0 then all events (start with nStartEvent) of the given file should be processed
-    if (nEvents == 0)
-        nEvents = MpdGetNumEvents::GetNumPHSDEvents(inFile.Data()) - nStartEvent;
+        // if nEvents is equal 0 then all events (start with nStartEvent) of the given file should be processed
+        if (nEvents == 0)
+            nEvents = MpdGetNumEvents::GetNumPHSDEvents(inFile.Data()) - nStartEvent;
+        break;
+    }
 
-#else
-#ifdef QGSM
     // ------- LAQGSM/DCM-QGSM Generator
-    if (!BmnFunctionSet::CheckFileExist(inFile)) return;
+    case QGSM:
+    case DQGSM:{
 
-    MpdLAQGSMGenerator* guGen = new MpdLAQGSMGenerator(inFile.Data(), kFALSE);
-    primGen->AddGenerator(guGen);
-    if (nStartEvent > 0) guGen->SkipEvents(nStartEvent);
+        if (!BmnFunctionSet::CheckFileExist(inFile)) return;
 
-    // if nEvents is equal 0 then all events (start with nStartEvent) of the given file should be processed
-    if (nEvents == 0)
-        nEvents = MpdGetNumEvents::GetNumQGSMEvents(inFile.Data()) - nStartEvent;
+        MpdLAQGSMGenerator* guGen = new MpdLAQGSMGenerator(inFile.Data(), kFALSE);
+        primGen->AddGenerator(guGen);
+        if (nStartEvent > 0) guGen->SkipEvents(nStartEvent);
 
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
+        // if nEvents is equal 0 then all events (start with nStartEvent) of the given file should be processed
+        if (nEvents == 0)
+            nEvents = MpdGetNumEvents::GetNumQGSMEvents(inFile.Data()) - nStartEvent;
+        break;
+    }
+
+    default: { cout<<"ERROR: Generator name was not pre-defined: "<<generatorName<<endl; return; }
+    }// end of switch (generatorName)
 
     fRun->SetSink(new FairRootFileSink(outFile.Data()));
     fRun->SetIsMT(false);
@@ -185,12 +204,13 @@ void run_sim_bmn(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/e
 
     //gGeoManager->CheckOverlaps(0.0001);
     //gGeoManager->PrintOverlaps();
+
     //fRun->CreateGeometryFile("full_geometry.root");  // save the full setup geometry to the additional file
 
-#ifdef QGSM
+if ((generatorName == QGSM) || (generatorName == DQGSM)){
     TString Pdg_table_name = TString::Format("%s%s%c%s", gSystem->BaseName(inFile.Data()), ".g", (fRun->GetName())[6], ".pdg_table.dat");
     (TDatabasePDG::Instance())->WritePDGTable(Pdg_table_name.Data());
-#endif
+}
 
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();

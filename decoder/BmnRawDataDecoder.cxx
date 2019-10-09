@@ -83,7 +83,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fLANDTCalFileName = "";
     fLANDDiffSyncFileName = "";
     fLANDVScintFileName = "";
-    fDigiRunHdrName = "BmnDigiRunHeader";
+    fDigiRunHdrName = "DigiRunHeader";
     fDat = 0;
     fGemMapper = NULL;
     fCscMapper = NULL;

@@ -26,6 +26,9 @@ BmnGlobalTrack::BmnGlobalTrack()
       fBeta700(-1000.0),
       fdQdNLower(0.0),
       fdQdNUpper(0.0),
+      fA(-1),
+      fZ(0),
+      fPDG(0),
       fIsPrimary(kTRUE) {
 }
 // -------------------------------------------------------------------------

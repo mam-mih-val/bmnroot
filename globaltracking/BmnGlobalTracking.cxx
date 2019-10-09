@@ -158,8 +158,8 @@ InitStatus BmnGlobalTracking::Init() {
     fSilHits = (TClonesArray *)ioman->GetObject("BmnSiliconHit");
     fGemHits = (TClonesArray *)ioman->GetObject("BmnGemStripHit");
     fCscHits = (TClonesArray *)ioman->GetObject("BmnCSCHit");
-    fTof1Hits = (TClonesArray *)ioman->GetObject("BmnTof1Hit");
-    fTof2Hits = (TClonesArray *)ioman->GetObject("BmnTofHit");
+    fTof1Hits = (TClonesArray *)ioman->GetObject("BmnTof400Hit");
+    fTof2Hits = (TClonesArray *)ioman->GetObject("BmnTof700Hit");
 
     fInnerTracks = (TClonesArray *)ioman->GetObject("BmnGlobalTrack");
     fGemTracks = (TClonesArray *)ioman->GetObject("BmnGemTrack");

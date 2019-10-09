@@ -40,7 +40,7 @@ InitStatus	BmnTofHitProducerIdeal::Init()
 
 	if(fUseMCData)
 	{
-    		aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOFPoint");
+            aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF700Point");
                 if (!aMcPoints)
                 {
                   cout<<"BmnTofHitProducerIdeal::Init(): branch TOFPoint not found! Task will be deactivated"<<endl;
@@ -68,7 +68,7 @@ InitStatus	BmnTofHitProducerIdeal::Init()
 	
         // Create and register output array
         aTofHits = new TClonesArray("BmnTofHit");
-        ioman->Register("TOFHit", "TOF", aTofHits, kTRUE);
+        ioman->Register("TOF700Hit", "TOF", aTofHits, kTRUE);
 
         LOG(info) << "[BmnTofHitProducerIdeal::Init] Initialization finished succesfully.";
 

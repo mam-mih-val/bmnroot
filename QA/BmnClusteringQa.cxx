@@ -152,8 +152,8 @@ void BmnClusteringQa::ReadDataBranches() {
 
     fGemPoints = (TClonesArray*) ioman->GetObject("StsPoint");
     fSilPoints = (TClonesArray*) ioman->GetObject("SiliconPoint");
-    //    fTof1Points = (TClonesArray*) ioman->GetObject("TOF1Point");
-    //    fTof2Points = (TClonesArray*) ioman->GetObject("TofPoint");
+    //    fTof1Points = (TClonesArray*) ioman->GetObject("TOF400Point");
+    //    fTof2Points = (TClonesArray*) ioman->GetObject("TOF700Point");
     fDch1Points = (TClonesArray*) ioman->GetObject("DCHPoint");
     //    fDch2Points = (TClonesArray*) ioman->GetObject("DCH2Point");
 

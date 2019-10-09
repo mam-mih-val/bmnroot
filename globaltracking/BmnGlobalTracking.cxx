@@ -158,8 +158,8 @@ InitStatus BmnGlobalTracking::Init() {
     fSilHits = (TClonesArray *)ioman->GetObject("BmnSiliconHit");
     fGemHits = (TClonesArray *)ioman->GetObject("BmnGemStripHit");
     fCscHits = (TClonesArray *)ioman->GetObject("BmnCSCHit");
-    fTof1Hits = (TClonesArray *)ioman->GetObject("BmnTof1Hit");
-    fTof2Hits = (TClonesArray *)ioman->GetObject("BmnTofHit");
+    fTof1Hits = (TClonesArray *)ioman->GetObject("BmnTof400Hit");
+    fTof2Hits = (TClonesArray *)ioman->GetObject("BmnTof700Hit");
 
     fInnerTracks = (TClonesArray *)ioman->GetObject("BmnGlobalTrack");
     fGemTracks = (TClonesArray *)ioman->GetObject("BmnGemTrack");
@@ -445,6 +445,7 @@ BmnStatus BmnGlobalTracking::MatchingCSC(BmnGlobalTrack *tr) {
         if (Abs(dX) < xCut && Abs(dY) < yCut && Abs(dX) < minDX && Abs(dY) < minDY) {
             minDX = dX;
             minDY = dY;
+            minHit = hit;
             minIdx = hitIdx;
         }
     }
@@ -677,7 +678,7 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack *tr) {
         fKalman->Update(&par, hit, chi);
     }
     if (tr->GetCscHitIndex() != -1) {
-        BmnHit *hit = (BmnHit *)fDchHits->At(tr->GetCscHitIndex());
+        BmnHit *hit = (BmnHit *)fCscHits->At(tr->GetCscHitIndex());
         fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 2212, nullptr, nullptr, fIsField);
         Double_t chi = 0.0;
         fKalman->Update(&par, hit, chi);

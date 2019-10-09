@@ -84,7 +84,7 @@ InitStatus BmnTofHitProducer::Init()
 
 	if(fUseMCData)
 	{
-    		aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOFPoint");
+            aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF700Point");
                 if (!aMcPoints)
                 {
                   cout<<"BmnTof700HitProducer::Init(): branch TOFPoint not found! Task will be deactivated"<<endl;
@@ -121,7 +121,7 @@ InitStatus BmnTofHitProducer::Init()
 	
     	// Create and register output array
     	aTofHits = new TClonesArray("BmnTofHit");
-    	FairRootManager::Instance()->Register("BmnTofHit", "TOF", aTofHits, kTRUE);
+        FairRootManager::Instance()->Register("BmnTof700Hit", "TOF", aTofHits, kTRUE);
 
 //	readGeom(geomFile);
 //	pGeoUtils->ParseTGeoManager(fUseMCData, h2TestStrips, true);

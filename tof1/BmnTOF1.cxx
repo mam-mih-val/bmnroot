@@ -102,7 +102,7 @@ void BmnTOF1::EndOfEvent()
 //--------------------------------------------------------------------------------------------------------------------------------------
 void BmnTOF1::Register()
 {
-	FairRootManager::Instance()->Register("TOF1Point","TOF1", fTofCollection, kTRUE);
+    FairRootManager::Instance()->Register("TOF400Point","TOF1", fTofCollection, kTRUE);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------

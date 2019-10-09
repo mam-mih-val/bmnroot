@@ -34,6 +34,7 @@ struct segments {
   Double_t coord[6] = {-999., -999., -999., -999., -999., -999.};
   Double_t clust[6] = {0.,  0.,  0.,  0.,  0.,  0.};
   Double_t param[4] = { 999., 999., 999., 999.};
+  Double_t sigma2[4][4] = {{ 0., 0., 0., 0.},{ 0., 0., 0., 0.},{ 0., 0., 0., 0.},{ 0., 0., 0., 0.}};
 };
 
 bool compareSegments(const segments &a, const segments &b) {
@@ -184,8 +185,9 @@ InitStatus BmnMwpcHitFinder::Init() {
     
   }
   // Segment finding cuts
-  kMinHits = 5;//5;// for alignment kMinHits = 6;
-  kmaxSeg = 10;
+  kMinHits = 4;//5;// for alignment kMinHits = 6;
+  kMinHits_before_target = 5;
+  kmaxSeg = 15;
   kChMaxAllWires = 200;
   // Constants
   dw    = fMwpcGeometrySRC -> GetWireStep(); //0.25; // [cm] // wires step
@@ -199,42 +201,43 @@ InitStatus BmnMwpcHitFinder::Init() {
   matrb = new Double_t*[4];
   // Arrays
   Nlay_w_wires  = new Int_t[kNChambers];
-  kPln       = new Int_t*[kNChambers];
-  iw_Ch      = new Int_t*[kNChambers];
-  shift      = new Float_t*[kNChambers];
-  wire_Ch     = new Int_t**[kNChambers];
-  xuv_Ch      = new Float_t**[kNChambers];
-  Wires_Ch     = new Int_t**[kNChambers];
-  clust_Ch     = new Int_t**[kNChambers];
-  XVU_Ch      = new Float_t**[kNChambers];
-  Nhits_Ch     = new Int_t*[kNChambers];
-  Nseg_Ch     = new Int_t[kNChambers];
-  Nbest_Ch     = new Int_t[kNChambers];
+  kPln          = new Int_t*[kNChambers];
+  iw_Ch         = new Int_t*[kNChambers];
+  shift         = new Float_t*[kNChambers];
+  wire_Ch       = new Int_t**[kNChambers];
+  xuv_Ch        = new Float_t**[kNChambers];
+  Wires_Ch      = new Int_t**[kNChambers];
+  clust_Ch      = new Int_t**[kNChambers];
+  XVU_Ch        = new Float_t**[kNChambers];
+  Nhits_Ch      = new Int_t*[kNChambers];
+  Nseg_Ch       = new Int_t[kNChambers];
+  Nbest_Ch      = new Int_t[kNChambers];
   ind_best_Ch   = new Int_t*[kNChambers];
   best_Ch_gl    = new Int_t*[kNChambers];
   Chi2_ndf_Ch   = new Double_t*[kNChambers];
   Chi2_ndf_best_Ch = new Double_t*[kNChambers];
-  par_ab_Ch    = new Double_t**[kNChambers];
-  XVU       = new Float_t*[kNChambers];
-  XVU_cl      = new Float_t*[kNChambers];
-  kZ_loc      = new Float_t*[kNChambers];
-  z_gl       = new Float_t*[kNChambers];
-  sigm2      = new Float_t[kNPlanes];
-  ipl       = new Int_t[kNPlanes];
-  z2        = new Float_t[kNPlanes];
+  par_ab_Ch     = new Double_t**[kNChambers];
+  XVU           = new Float_t*[kNChambers];
+  XVU_cl        = new Float_t*[kNChambers];
+  kZ_loc        = new Float_t*[kNChambers];
+  z_gl          = new Float_t*[kNChambers];
+  sigm2         = new Float_t[kNPlanes];
+  ipl           = new Int_t[kNPlanes];
+  z2            = new Float_t[kNPlanes];
   DigitsArray   = new Double_t**[kNChambers];
   ClusterSize   = new Int_t**[kNChambers];
-  Nclust      = new Int_t*[kNChambers];
+  Nclust        = new Int_t*[kNChambers];
   Coord_wire    = new Double_t**[kNChambers];
-  Coord_xuv    = new Double_t**[kNChambers];
-  XVU_coord    = new Double_t**[kNChambers];
-  Cluster_coord  = new Double_t**[kNChambers];
-  Nhits_seg    = new Int_t*[kNChambers];
-  Chi2_ndf_seg   = new Double_t*[kNChambers];
-  Coor_seg     = new Double_t**[kNChambers];
+  Coord_xuv     = new Double_t**[kNChambers];
+  XVU_coord     = new Double_t**[kNChambers];
+  Cluster_coord = new Double_t**[kNChambers];
+  Nhits_seg     = new Int_t*[kNChambers];
+  Chi2_ndf_seg  = new Double_t*[kNChambers];
+  Coor_seg      = new Double_t**[kNChambers];
   Cluster_seg   = new Double_t**[kNChambers];
   par_ab_seg    = new Double_t**[kNChambers];
-  Nbest_seg    = new Int_t[kNChambers];
+  sigma2_seg    = new Double_t***[kNChambers];
+  Nbest_seg     = new Int_t[kNChambers];
 
   for(Int_t i = 0; i < kNChambers; ++i) {
 
@@ -246,36 +249,37 @@ InitStatus BmnMwpcHitFinder::Init() {
     }
     if (fDebug) printf("Chamber %d Z: %f Zmid: %f\n", i, ChZ[i], Zmid[i]);
 
-    kPln[i]       = new Int_t[kNPlanes];
-    iw_Ch[i]      = new Int_t[kNPlanes];
-    kZ_loc[i]      = new Float_t[kNPlanes];
-    z_gl[i]       = new Float_t[kNPlanes];
-    Nhits_Ch[i]     = new Int_t[kBig];
-    shift[i]      = new Float_t[4];
-    wire_Ch[i]     = new Int_t*[kNWires];
-    xuv_Ch[i]      = new Float_t*[kNWires];
-    Wires_Ch[i]     = new Int_t*[kNPlanes];
-    clust_Ch[i]     = new Int_t*[kNPlanes];
-    XVU_Ch[i]      = new Float_t*[kNPlanes];
-    par_ab_Ch[i]    = new Double_t*[4];
-    XVU[i]       = new Float_t[kNPlanes];
-    XVU_cl[i]      = new Float_t[kNPlanes];
+    kPln[i]          = new Int_t[kNPlanes];
+    iw_Ch[i]         = new Int_t[kNPlanes];
+    kZ_loc[i]        = new Float_t[kNPlanes];
+    z_gl[i]          = new Float_t[kNPlanes];
+    Nhits_Ch[i]      = new Int_t[kBig];
+    shift[i]         = new Float_t[4];
+    wire_Ch[i]       = new Int_t*[kNWires];
+    xuv_Ch[i]        = new Float_t*[kNWires];
+    Wires_Ch[i]      = new Int_t*[kNPlanes];
+    clust_Ch[i]      = new Int_t*[kNPlanes];
+    XVU_Ch[i]        = new Float_t*[kNPlanes];
+    par_ab_Ch[i]     = new Double_t*[4];
+    XVU[i]           = new Float_t[kNPlanes];
+    XVU_cl[i]        = new Float_t[kNPlanes];
     ind_best_Ch[i]   = new Int_t[kmaxSeg];
     best_Ch_gl[i]    = new Int_t[kmaxSeg];
     Chi2_ndf_Ch[i]   = new Double_t[kBig];
     Chi2_ndf_best_Ch[i] = new Double_t[kmaxSeg];
     DigitsArray[i]   = new Double_t*[kNPlanes];
     ClusterSize[i]   = new Int_t*[kNPlanes];
-    Nclust[i]      = new Int_t[kNPlanes];
+    Nclust[i]        = new Int_t[kNPlanes];
     Coord_wire[i]    = new Double_t*[kNPlanes];
-    Coord_xuv[i]    = new Double_t*[kNPlanes];
-    XVU_coord[i]    = new Double_t*[kNPlanes];
-    Cluster_coord[i]  = new Double_t*[kNPlanes];
-    Nhits_seg[i]    = new Int_t[kBig];
-    Chi2_ndf_seg[i]   = new Double_t[kBig];
-    Coor_seg[i]     = new Double_t*[kNPlanes];
+    Coord_xuv[i]     = new Double_t*[kNPlanes];
+    XVU_coord[i]     = new Double_t*[kNPlanes];
+    Cluster_coord[i] = new Double_t*[kNPlanes];
+    Nhits_seg[i]     = new Int_t[kBig];
+    Chi2_ndf_seg[i]  = new Double_t[kBig];
+    Coor_seg[i]      = new Double_t*[kNPlanes];
     Cluster_seg[i]   = new Double_t*[kNPlanes];
     par_ab_seg[i]    = new Double_t*[4];
+    sigma2_seg[i]    = new Double_t**[kBig];
 
     shift[i][0]   = fMwpcGeometrySRC -> GetTx(i);
     shift[i][2]   = fMwpcGeometrySRC -> GetTy(i);
@@ -287,16 +291,16 @@ InitStatus BmnMwpcHitFinder::Init() {
       xuv_Ch[i][iWire] = new Float_t[kNPlanes];
     }
     for(int iPla = 0; iPla < kNPlanes; ++iPla) {
-      Wires_Ch[i][iPla]   = new Int_t[kBig];
-      clust_Ch[i][iPla]   = new Int_t[kBig];
-      XVU_Ch[i][iPla]    = new Float_t[kBig];
+      Wires_Ch[i][iPla]    = new Int_t[kBig];
+      clust_Ch[i][iPla]    = new Int_t[kBig];
+      XVU_Ch[i][iPla]      = new Float_t[kBig];
       DigitsArray[i][iPla] = new Double_t[kNWires];
       ClusterSize[i][iPla] = new Int_t[kBig];
       Coord_wire[i][iPla]  = new Double_t[kBig];
-      Coord_xuv[i][iPla]  = new Double_t[kBig];
-      XVU_coord[i][iPla]  = new Double_t[kBig];
+      Coord_xuv[i][iPla]   = new Double_t[kBig];
+      XVU_coord[i][iPla]   = new Double_t[kBig];
       Cluster_coord[i][iPla]= new Double_t[kBig];
-      Coor_seg[i][iPla]   = new Double_t[kBig];
+      Coor_seg[i][iPla]    = new Double_t[kBig];
       Cluster_seg[i][iPla] = new Double_t[kBig];
 
       if (fRunPeriod == 6 || (fRunPeriod == 7 && fRunNumber > 3588) ) { // if ( i == 2 || i == 3){
@@ -373,10 +377,22 @@ InitStatus BmnMwpcHitFinder::Init() {
       matrb[ii]    = new Double_t[4];
     }//4
   }//kChamber
+  for(Int_t i = 0; i < kNChambers; ++i) {
+    for(Int_t j = 0; j < kBig; ++j) {
+      sigma2_seg[i][j]    = new Double_t*[4];
+    }
+  }
+  for(Int_t i = 0; i < kNChambers; ++i) {
+    for(Int_t j = 0; j < kBig; ++j) {
+      for(Int_t k = 0; k < 4; ++k) {
+        sigma2_seg[i][j][k]  = new Double_t[4];
+      }
+    }
+  }
 
   if (fRunPeriod == 6) {
     // kPln[1][0] = 1; kZ_loc[1][0] =-2.5;//  kPln[3][0] = 1;//run6-II
-    //  kPln[1][3] = 4; kZ_loc[1][3] = 0.5;//  kPln[3][3] = 4;//
+    // kPln[1][3] = 4; kZ_loc[1][3] = 0.5;//  kPln[3][3] = 4;//
   }
 
   // if (fDebug) printf("Chamber Plane kZ_loc  z_gl\n");
@@ -480,12 +496,11 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
     }
     if (fDebug) cout<<" after SegmentFinder: Nseg_["<<iChamber<<"]= "<<Nseg_Ch[iChamber]<<endl;
 
-
     ProcessSegments(iChamber, Nseg_Ch, XVU_coord, Cluster_coord, Nhits_Ch, kZ_loc, kMinHits, sigma,
-            kChi2_Max,Nhits_seg ,Chi2_ndf_seg, Coor_seg, Cluster_seg, par_ab_seg, Nbest_seg, Nlay_w_wires); // Segment fitting & finding the best track-candidate
+            kChi2_Max,Nhits_seg ,Chi2_ndf_seg, Coor_seg, Cluster_seg, par_ab_seg, Nbest_seg, Nlay_w_wires,sigma2_seg); // Segment fitting & finding the best track-candidate
 
     if (fDebug) cout<<"after ProcessSegments: Nbest["<<iChamber<<"] "<<Nbest_seg[iChamber]<<endl;
-    if ( fDebug && Nbest_seg[iChamber] > 0) hNbest_Ch.at(iChamber) -> Fill(Nbest_seg[iChamber]);
+    if (fDebug && Nbest_seg[iChamber] > 0) hNbest_Ch.at(iChamber) -> Fill(Nbest_seg[iChamber]);
 
     if (fDebug) {
       for(Int_t iseg= 0; iseg < Nbest_seg[iChamber]; iseg ++) {
@@ -506,7 +521,8 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
   for (Int_t iChamber = 0; iChamber < kNChambers; iChamber++) {
     for (Int_t ise = 0; ise < Nbest_seg[iChamber]; ise++) {
       if (Nhits_seg[iChamber][ise] > 3) {
-
+        
+        //cout<<" Chi2_ndf_seg "<<Chi2_ndf_seg[iChamber][ise]<<" Nhits_seg["<<iChamber<<"]["<<ise<<"] "<<Nhits_seg[iChamber][ise]<<endl;
         BmnMwpcSegment *pSeg = new ((*fBmnMwpcSegmentsArray)[fBmnMwpcSegmentsArray->GetEntriesFast()]) BmnMwpcSegment();
         pSeg->SetChi2(Chi2_ndf_seg[iChamber][ise]);
         pSeg->SetNHits(Nhits_seg[iChamber][ise]);
@@ -521,11 +537,17 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
         }
         pSeg -> SetClust(vtmpClust);
         pSeg -> SetCoord(vtmpCoor);
-
+        
         FairTrackParam pSegParams;
         pSegParams.SetPosition(TVector3(par_ab_seg[iChamber][1][ise], par_ab_seg[iChamber][3][ise],ChZ[iChamber]));
         pSegParams.SetTx(par_ab_seg[iChamber][0][ise]);
         pSegParams.SetTy(par_ab_seg[iChamber][2][ise]);
+        for(Int_t i1 = 0 ; i1 < 4; i1++) {
+          for(Int_t j1 = 0; j1 < 4; j1++) {
+            //cout<<" sigma2_seg["<<iChamber<<"]["<<ise<<"]["<<i1<<"]["<<j1<<"] "<<sigma2_seg[iChamber][ise][i1][j1]<<endl;
+            pSegParams.SetCovariance(i1, j1, sigma2_seg[iChamber][ise][i1][j1]);
+          }
+        } 
         pSeg->SetParamFirst(pSegParams);
       }//if
     }//ise
@@ -569,7 +591,7 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
           Min_time_wires = DigitsArray_[chNum][ipll][iwire];
         }
       }
-      if ( fDebug) cout<<" --ipll "<<ipll<<" Min_time_wires "<<Min_time_wires<<endl;
+      if (fDebug) cout<<" --ipll "<<ipll<<" Min_time_wires "<<Min_time_wires<<endl;
 
       for (Int_t iwire = 0; iwire < kNWires; iwire++) {
         if (fDebug && DigitsArray_[chNum][ipll][iwire] > 0) cout<<" DigitsArray_["<<chNum<<"]["<<ipll<<"]["<<iwire<<"] "<<DigitsArray_[chNum][ipll][iwire]<<endl;
@@ -652,7 +674,7 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
           //if (fDebug) cout<<" -------------0? Next_next_wire "<<Next_next_wire<<" wire "<<iwire<<endl;
           continue;
         }
-         if (fDebug) cout<<" Next_next_wire "<<Next_next_wire<<endl;
+         //if (fDebug) cout<<" Next_next_wire "<<Next_next_wire<<endl;
         if( Nfirst[chNum][ipll] < 0 && DigitsArray_[chNum][ipll][iwire] > 0. && Next_next_wire) {
 
           if ( DigitsArray_[chNum][ipll][iwire] > DigitsArray_[chNum][ipll][iwire-1] ) {
@@ -709,7 +731,7 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
             hClusterSize.at(chNum)->Fill(ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]]);
             cout<<" Coord_xuv_["<< chNum<<"]["<<ipll<<"]["<<Nclust_[chNum][ipll]<<"] "<<Coord_xuv_[chNum][ipll][Nclust_[chNum][ipll]]<<endl;
             cout<<"1 Nfirst "<< Nfirst[chNum][ipll]<<" ClusterSize_ "<<ClusterSize_[chNum][ipll][Nclust_[chNum][ipll]]<<" Coord_wire_ "<<Coord_wire_[chNum][ipll][Nclust_[chNum][ipll]]<<endl;
-            cout<<" iwire "<<iwire<<endl;
+            //cout<<" iwire "<<iwire<<endl;
 
             hoccupancyXm.at(chNum)->Fill(Coord_xuv_[chNum][0][Nclust_[chNum][ipll]]);
             hoccupancyVm.at(chNum)->Fill(Coord_xuv_[chNum][1][Nclust_[chNum][ipll]]);
@@ -752,8 +774,10 @@ void BmnMwpcHitFinder::SegmentFinder(Int_t chNum, Int_t **Nclust_, Double_t ***C
                    Int_t *Nsegm, Double_t ***XVU_coor, Double_t ***Cluster_coor, Int_t **Nhits_Ch_,Int_t minHits, Short_t code, Int_t kBig_ ) {
 
   //Coord_xuv_   - coordinates of all clusters
-  Int_t minHits4_5  = minHits;
-  if ( chNum > 1 ) minHits4_5 = 4;//for run7
+  Int_t minHits4_5;  
+  if ( chNum > 1 ) minHits4_5 = minHits;//for run7
+  else minHits4_5 = kMinHits_before_target;
+  //if (fDebug) cout<<" chNum "<<chNum<<" minHits4_5 "<<minHits4_5<<endl;
 
   Double_t min_for_triples  = 5.; // minimum delta wires for tree planes
   Double_t min_for_conjugate = 3.; // minimum delta wires for conjugate plane
@@ -942,14 +966,16 @@ void BmnMwpcHitFinder::SegmentFinder(Int_t chNum, Int_t **Nclust_, Double_t ***C
             }//iu2
           } //if it was
 
-          if ( chNum > 1 && Nhits_Ch_[chNum][Nsegm[chNum]] > 4 ) minHits4_5 = 5;
-          if (Nsegm[chNum] > 15) minHits4_5=5;
-          if (Nsegm[chNum] > 30) minHits4_5=6;
+          if ( chNum > 1 && Nhits_Ch_[chNum][Nsegm[chNum]] > 4 ) minHits4_5 = minHits;
+          if (Nsegm[chNum] > 15) minHits4_5 = 5;
+          if (Nsegm[chNum] > 30) minHits4_5 = 6;
+          
+          //if (fDebug) cout<<" chNum "<<chNum<<" minHits4_5 "<<minHits4_5<<" Nsegm "<< Nsegm[chNum]<<endl;
 
           if (Nhits_Ch_[chNum][Nsegm[chNum]] >= minHits4_5) {
-            if (fDebug) cout<<endl;
-            if (fDebug) cout<<" Nsegm "<< Nsegm[chNum] <<" Nhits_Ch_["<<chNum<<"]["<<Nsegm[chNum]<<"] "<<Nhits_Ch_[chNum][Nsegm[chNum]]<<" minHits4_5 "<< minHits4_5 <<endl;
-            if (fDebug) cout<<" coord "<<XVU_coor[chNum][0][Nsegm[chNum]]<<" "<<XVU_coor[chNum][1][Nsegm[chNum]]<<" "<<XVU_coor[chNum][2][Nsegm[chNum]]<<" "<<XVU_coor[chNum][3][Nsegm[chNum]]<<" "<<XVU_coor[chNum][4][Nsegm[chNum]]<<" "<<XVU_coor[chNum][5][Nsegm[chNum]]<<" "<<endl;
+            //if (fDebug) cout<<endl;
+            //if (fDebug) cout<<" Nsegm "<< Nsegm[chNum] <<" Nhits_Ch_["<<chNum<<"]["<<Nsegm[chNum]<<"] "<<Nhits_Ch_[chNum][Nsegm[chNum]]<<" minHits4_5 "<< minHits4_5 <<endl;
+            //if (fDebug) cout<<" coord "<<XVU_coor[chNum][0][Nsegm[chNum]]<<" "<<XVU_coor[chNum][1][Nsegm[chNum]]<<" "<<XVU_coor[chNum][2][Nsegm[chNum]]<<" "<<XVU_coor[chNum][3][Nsegm[chNum]]<<" "<<XVU_coor[chNum][4][Nsegm[chNum]]<<" "<<XVU_coor[chNum][5][Nsegm[chNum]]<<" "<<endl;
 
             Nsegm[chNum]++; //go to next segment
           }
@@ -987,7 +1013,8 @@ void BmnMwpcHitFinder::SegmentFinder(Int_t chNum, Int_t **Nclust_, Double_t ***C
 //------------ Segment fitting & finding the best track-candidate ------
 void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***XVU_coor, Double_t ***Cluster_coor, Int_t **Nhits_Ch_,
   Float_t **z_loc, Int_t Min_hits, Double_t sigma_, Double_t kChi2_Max_,
-  Int_t **Nhits_seg_ , Double_t **Chi2_ndf_seg_, Double_t ***coor_seg, Double_t ***cluster_seg, Double_t ***Par_ab_seg, Int_t *Nbest_seg_, Int_t *Nlay_w_wires_) {
+  Int_t **Nhits_seg_ , Double_t **Chi2_ndf_seg_, Double_t ***coor_seg, Double_t ***cluster_seg, Double_t ***Par_ab_seg, Int_t *Nbest_seg_, Int_t *Nlay_w_wires_,
+  Double_t ****sigma2_s) {
 
   segments seg[kNChambers][kBig];
 
@@ -997,10 +1024,20 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
   Double_t Chi2_ndf[kNChambers][kBig];
   Double_t sigm[kNPlanes], sigm2_[kNPlanes];
   Int_t h1[kNPlanes];
+  Double_t bmatr_seg[kBig][4][4];
+  for (Int_t i = 0; i < kBig; i++) {
+    for (Int_t i1 = 0; i1 < 4; i1++) {
+      for (Int_t j1 = 0; j1 < 4; j1++) {
+        bmatr_seg[i][i1][j1] = 0.;
+      }
+    }
+  }
 
   Double_t delta = 3*dw;
   Double_t Chi2_Super_min = 0.001;
-  Int_t Min_hits6 = Min_hits;
+  Int_t Min_hits6;
+  if ( chNum > 1 ) Min_hits6 = Min_hits;//for run7
+  else Min_hits6 = kMinHits_before_target;
 
   // cout<<" Nlay_w_wires["<<chNum<<"] "<<Nlay_w_wires_[chNum]<<endl;
   // TEMPORARY OUT SEGMENTS ARRY
@@ -1014,11 +1051,16 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
   }
 
   if (Nsegm[chNum] > kBig - 2) return;
+  /*
+  if (fDebug) cout<<" ProcessSegments "<<endl;
+  for (Int_t iseg = 0; iseg < Nsegm[chNum]; iseg++) { //---print number of hits
+    if (fDebug) cout<<" iseg "<<iseg<<" Nhits "<<Nhits_Ch_[chNum][iseg]<<endl;
+  }
+  */
 
   for (Int_t Nhitm = kNPlanes; Nhitm > Min_hits6 - 1; Nhitm--) {// -- first view 6 points
     Bool_t ifNhitm = 0;
 
-    //if (fDebug) cout<<" Nhitm "<<Nhitm<<" Min_hits6 "<<Min_hits6<<endl;
     if (Nhitm < Min_hits6) break;
 
     for (Int_t iseg = 0; iseg < Nsegm[chNum]; iseg++) { //---cycle by segments
@@ -1026,7 +1068,7 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
       ifNhitm = 1;
 
       if (Nhits_Ch_[chNum][iseg] != Nhitm) continue;
-      if (fDebug) cout<<" iseg "<<iseg<<" Nhits "<<Nhits_Ch_[chNum][iseg]<<endl;
+     // if (fDebug) cout<<" iseg "<<iseg<<" Nhits "<<Nhits_Ch_[chNum][iseg]<<endl;
       if ( Nhits_Ch_[chNum][iseg] != 0) {
         Nhits_Ch_[chNum][iseg] = 0;
         for (Int_t i1 = 0; i1 < kNPlanes; i1++) {
@@ -1036,7 +1078,7 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
       }
 
 
-      if (fDebug) cout<<"after recalc nhits iseg "<<iseg<<" Nhits "<<Nhits_Ch_[chNum][iseg]<<endl;
+      //if (fDebug) cout<<"after recalc nhits iseg "<<iseg<<" Nhits "<<Nhits_Ch_[chNum][iseg]<<endl;
       //-----!!!----
       if ( Nhits_Ch_[chNum][iseg] == 0) continue; // go to next segment!
 
@@ -1048,11 +1090,12 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
           sigm[i] = ( Cluster_coor[chNum][i][iseg]*dw)/sq12;
           sigm2_[i] = sigm[i]*sigm[i];
         }//if coord was
-        if (fDebug) cout<<" chNum "<<chNum<<" i "<<i<<" iseg "<<iseg<<" z_loc "<<z_loc[chNum][i]<<" coor "<<XVU_coor[chNum][i][iseg]<<endl;
-        if (fDebug)	cout<<" h "<<h1[i]<<" Cluster_coor["<<chNum<<"]["<<i<<"]["<<iseg<<"]= "<<Cluster_coor[chNum][i][iseg]<<" sigm "<<sigm[i]<<endl;
+        //if (fDebug) cout<<" chNum "<<chNum<<" i "<<i<<" iseg "<<iseg<<" coor "<<XVU_coor[chNum][i][iseg]<<endl;
+        //if (fDebug) cout<<" chNum "<<chNum<<" h "<<h1[i]<<" coor "<<XVU_coor[chNum][i][iseg]<<" z_loc "<<z_loc[chNum][i]<<endl;
+        //if (fDebug)	cout<<" h "<<h1[i]<<" Cluster_coor["<<chNum<<"]["<<i<<"]["<<iseg<<"]= "<<Cluster_coor[chNum][i][iseg]<<" sigm "<<sigm[i]<<endl;
       }
       if (fDebug) cout<<endl;
-
+      
       Amatr = new Double_t*[4];
       bmatr = new Double_t*[4];
       for(Int_t ii=0; ii<4; ii++) {
@@ -1075,6 +1118,7 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
       for (Int_t i1 = 0; i1 < 4; i1++) {
         for (Int_t j1 = 0; j1 < 4; j1++) {
           A0matr[i1][j1] = Amatr[i1][j1];
+          //if (fDebug) cout<<" Amatr["<<i1<<"]["<<j1<<"] "<<Amatr[i1][j1]<<endl;
         }
       }
 
@@ -1098,6 +1142,7 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
         par_ab[chNum][i1][iseg] = 0;
         for(Int_t j1 = 0; j1 < 4; j1++) {
           par_ab[chNum][i1][iseg] += bmatr[i1][j1]*matrF[j1];
+          bmatr_seg[iseg][i1][j1] = 2*bmatr[i1][j1];
           //if (fDebug) 	cout<<" i1 "<<i1<<" bmatr "<<bmatr[i1][j1]<<" F "<<matrF[j1] <<endl;
         }
       } // i1
@@ -1106,47 +1151,48 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
       Chi2[chNum][iseg] = 0.;
       Chi2_ndf[chNum][iseg] = 999.;
 
-
       for(Int_t i1 = 0 ; i1 < 6; i1++) {
         dx_[i1] = 0.;
 
         if ( XVU_coor[chNum][i1][iseg] > -999.) {
           if(i1==0 || i1==3) {
             dx_[i1] = XVU_coor[chNum][i1][iseg] - par_ab[chNum][0][iseg]*z_loc[chNum][i1]-par_ab[chNum][1][iseg];
-            if (fDebug) cout<<" fitX "<<par_ab[chNum][0][iseg]*z_loc[chNum][i1]+par_ab[chNum][1][iseg]<<endl;
+            //if (fDebug) cout<<" fitX "<<par_ab[chNum][0][iseg]*z_loc[chNum][i1]+par_ab[chNum][1][iseg]<<endl;
           }
           if (fDebug && i1 == 0) hResiduals_pl0_Ch.at(chNum)->Fill(dx_[i1]);
           if (fDebug && i1 == 3) hResiduals_pl3_Ch.at(chNum)->Fill(dx_[i1]);
           if(i1==2 || i1==5) {
             dx_[i1] = XVU_coor[chNum][i1][iseg]-0.5*(par_ab[chNum][0][iseg]+sq3*par_ab[chNum][2][iseg])*z_loc[chNum][i1]-0.5*(par_ab[chNum][1][iseg]+sq3*par_ab[chNum][3][iseg]);
-            if (fDebug) cout<<" fitU "<<0.5*(par_ab[chNum][0][iseg]+sq3*par_ab[chNum][2][iseg])*z_loc[chNum][i1]+0.5*(par_ab[chNum][1][iseg]+sq3*par_ab[chNum][3][iseg])<<endl;
+           // if (fDebug) cout<<" fitU "<<0.5*(par_ab[chNum][0][iseg]+sq3*par_ab[chNum][2][iseg])*z_loc[chNum][i1]+0.5*(par_ab[chNum][1][iseg]+sq3*par_ab[chNum][3][iseg])<<endl;
           }
           if (fDebug && i1 == 2) hResiduals_pl2_Ch.at(chNum)->Fill(dx_[i1]);
           if (fDebug && i1 == 5) hResiduals_pl5_Ch.at(chNum)->Fill(dx_[i1]);
           if(i1==1 || i1==4) {
             dx_[i1] = XVU_coor[chNum][i1][iseg]-0.5*(par_ab[chNum][0][iseg]-sq3*par_ab[chNum][2][iseg])*z_loc[chNum][i1]-0.5*(par_ab[chNum][1][iseg]-sq3*par_ab[chNum][3][iseg]);
-            if (fDebug) cout<<" fitV "<<0.5*(par_ab[chNum][0][iseg]-sq3*par_ab[chNum][2][iseg])*z_loc[chNum][i1]+0.5*(par_ab[chNum][1][iseg]-sq3*par_ab[chNum][3][iseg])<<endl;
+            //if (fDebug) cout<<" fitV "<<0.5*(par_ab[chNum][0][iseg]-sq3*par_ab[chNum][2][iseg])*z_loc[chNum][i1]+0.5*(par_ab[chNum][1][iseg]-sq3*par_ab[chNum][3][iseg])<<endl;
           }
           if (fDebug && i1 == 1) hResiduals_pl1_Ch.at(chNum)->Fill(dx_[i1]);
           if (fDebug && i1 == 4) hResiduals_pl4_Ch.at(chNum)->Fill(dx_[i1]);
           Chi2[chNum][iseg] += dx_[i1]*dx_[i1]/(sigm2_[i1]);
-          if (fDebug) cout<<"iseg "<<iseg <<" i "<<i1<<" dx "<<dx_[i1]<<" coor "<<XVU_coor[chNum][i1][iseg]<<" Chi2 "<<Chi2[chNum][iseg]<<" z "<<z_loc[chNum][i1]<<endl;
+          //if (fDebug) cout<<"iseg "<<iseg <<" i "<<i1<<" dx "<<dx_[i1]<<" coor "<<XVU_coor[chNum][i1][iseg]<<" Chi2 "<<Chi2[chNum][iseg]<<" z "<<z_loc[chNum][i1]<<endl;
         }
       }//i1
       //---Chi2 calculating.---
-      if (fDebug) cout<<" Nhits["<<chNum<<"]["<<iseg<<"] "<<Nhits_Ch_[chNum][iseg]<<" Chi2[chNum][iseg] "<< Chi2[chNum][iseg]<<endl;
+      if (fDebug) cout<<"---Chi2 calculating.--- Nhits["<<chNum<<"]["<<iseg<<"] "<<Nhits_Ch_[chNum][iseg]<<" Chi2 "<< Chi2[chNum][iseg]<<endl;
       if (Nhits_Ch_[chNum][iseg] > 4) {
         Chi2_ndf[chNum][iseg] = Chi2[chNum][iseg]/(Nhits_Ch_[chNum][iseg]-4);
-        //if (fDebug)	cout<<" Chi2_ndf["<<chNum<<"]["<<iseg<<"] "<< Chi2_ndf[chNum][iseg]<<endl;
+        if (fDebug)	cout<<" Chi2_ndf["<<chNum<<"]["<<iseg<<"] "<< Chi2_ndf[chNum][iseg]<<endl;
+      }else{ 
+        Chi2_ndf[chNum][iseg] = 0.;
       }
 
-      if (Chi2_ndf[chNum][iseg] > kChi2_Max_ ) { // --if bad chi2--
-
+      if (Chi2_ndf[chNum][iseg] > kChi2_Max_ ){ // --if bad chi2--
+       
         if (Nhits_Ch_[chNum][iseg] <= Min_hits6) { // --if no enough points--
           Nhits_Ch_[chNum][iseg] = 0;
           continue;
-        }
-        else { //--reject most distant point--
+        } else { //--reject most distant point--
+          if (fDebug) cout<<" iseg "<<iseg<<" --reject bad point"<<endl;
           for (Int_t i1 = 0; i1 < kNPlanes; i1++) {
             if (XVU_coor[chNum][i1][iseg] > -999. && fabs(dx_[i1]) > delta) {
               XVU_coor[chNum][i1][iseg] = -999.;
@@ -1158,6 +1204,8 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
         }//else
 
       }// if bad chi2.
+      
+      if (fDebug) cout<<"---Nhits calc--- Nhits["<<chNum<<"]["<<iseg<<"] "<<Nhits_Ch_[chNum][iseg]<<" Chi2 "<< Chi2[chNum][iseg]<<endl;
 
       if ( Nhits_Ch_[chNum][iseg] != 0) {
         // if ( Chi2_ndf[chNum][iseg] > Chi2_Super_min && Chi2_ndf[chNum][iseg] < kChi2_Max_ && Nhits_Ch_[chNum][iseg] != 0){
@@ -1165,23 +1213,21 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
         for (Int_t i1 = 0; i1 < kNPlanes; i1++) {
           if (XVU_coor[chNum][i1][iseg] > -900.) Nhits_Ch_[chNum][iseg]++;
         }
+        if (fDebug) cout<<"if ( Nhits_Ch_[chNum][iseg] != 0)  Nhits_Ch "<<Nhits_Ch_[chNum][iseg]<<" Min_hits6 "<<Min_hits6<<endl;
         if (Nhits_Ch_[chNum][iseg] < Min_hits6) Nhits_Ch_[chNum][iseg] = 0; // control shot
       }
 
     }//--iseg--------------
-    
 
     Double_t Z0_SRC = -647.476;
     Double_t x_target,y_target;
 
-    // if (fDebug) cout<<" Nhits_Ch_[chNum][iseg] ";
     for (Int_t iseg = 0; iseg < Nsegm[chNum]; iseg++) {
       x_target  = par_ab[chNum][0][iseg]*( Z0_SRC - ChZ[chNum]) + par_ab[chNum][1][iseg];
       y_target  = par_ab[chNum][2][iseg]*( Z0_SRC - ChZ[chNum]) + par_ab[chNum][3][iseg];
-      // if (fDebug) cout<<Nhits_Ch_[chNum][iseg]<<" ";
-      if (fDebug && Nhits_Ch_[chNum][iseg] == Nhitm ) cout<<" chNum "<<chNum<<" iseg "<<iseg<<" Nhits_Ch "<<Nhits_Ch_[chNum][iseg]<<" Chi2 "<<Chi2_ndf[chNum][iseg]<<endl;
-      if (fDebug && Nhits_Ch_[chNum][iseg] == Nhitm ) cout<<" ax "<<par_ab[chNum][0][iseg]<<" bx "<<par_ab[chNum][1][iseg]<<" ay "<<par_ab[chNum][2][iseg]<<" by "<<par_ab[chNum][3][iseg]<<endl;
-
+     // if (fDebug) cout<<Nhits_Ch_[chNum][iseg]<<" ";
+     // if (fDebug && Nhits_Ch_[chNum][iseg] == Nhitm ) cout<<" chNum "<<chNum<<" iseg "<<iseg<<" Nhits_Ch "<<Nhits_Ch_[chNum][iseg]<<" Chi2 "<<Chi2_ndf[chNum][iseg]<<" x_target "<<x_target<<" y_target "<<y_target<<endl;
+     // if (fDebug && Nhits_Ch_[chNum][iseg] == Nhitm ) cout<<" ax "<<par_ab[chNum][0][iseg]<<" bx "<<par_ab[chNum][1][iseg]<<" ay "<<par_ab[chNum][2][iseg]<<" by "<<par_ab[chNum][3][iseg]<<endl;
     }
     if (fDebug) cout<<endl;
     if (!ifNhitm) continue;
@@ -1197,7 +1243,6 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
       vec_ind_best_seg[ind_best] = -1;
 
       for (Int_t iseg = 0; iseg < Nsegm[chNum]; iseg++) {
-     // if (fDebug)cout<<" Nhitm "<<Nhitm<<" Chi2_ndf["<<chNum<<"]["<<iseg<<"] "<<Chi2_ndf[chNum][iseg]<<endl;
 
         if (Nhits_Ch_[chNum][iseg] != Nhitm) continue;
         if (Nhitm > 4 && Chi2_ndf[chNum][iseg] >= Chi2_best) continue;
@@ -1237,17 +1282,16 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
         for (Int_t i1 = 0; i1 < kNPlanes; i1++) {
           if ( XVU_coor[chNum][i1][iseg] > -999.) {
             if( fabs(XVU_coor[chNum][i1][iseg] - XVU_coor[chNum][i1][iseg_best]) < 3*dw_half ) {
-              if (fDebug) cout<<" reject point Nhits_Ch = 0 iseg = "<<iseg<<endl;
+              //if (fDebug) cout<<" reject point Nhits_Ch = 0 iseg = "<<iseg<<endl;
               Nhits_Ch_[chNum][iseg] = 0;
             }
           }
         }//i1
       }// iseg
-      if (fDebug) cout<<" Nbest_vec_ind "<<Nbest_vec_ind<<endl;
-      if (fDebug) cout<<" Chi2_best "<<Chi2_best<<" Nhits "<<Nhits_Ch_[chNum][iseg_best]<<endl;
+      //if (fDebug) cout<<" Nbest_vec_ind "<<Nbest_vec_ind<<endl;
+      //if (fDebug) cout<<" Chi2_best "<<Chi2_best<<" Nhits "<<Nhits_Ch_[chNum][iseg_best]<<endl;
     }//ind_best
-
-
+    
     vector<segments> vtmpSeg;
     segments tmpSeg;
 
@@ -1263,12 +1307,17 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
         for(int ipar = 0; ipar < 4; ipar++) {
           tmpSeg.param[ipar] = par_ab[chNum][ipar][itSeg];
         }
+        for (Int_t i1 = 0; i1 < 4; i1++) {
+          for (Int_t j1 = 0; j1 < 4; j1++) {
+            tmpSeg.sigma2[i1][j1] = bmatr_seg[itSeg][i1][j1];
+          }
+        }
         vtmpSeg.push_back(tmpSeg);
       }
     }
 
     // vector sorting
-    sort(vtmpSeg.begin(), vtmpSeg.end(), compareSegments);
+    if ( Nhitm > 4) sort(vtmpSeg.begin(), vtmpSeg.end(), compareSegments);
 
     // storing
     for (int iterOut = 0; iterOut < vtmpSeg.size(); iterOut++) {
@@ -1280,7 +1329,12 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
     // !!! vector clear for next Nhitm
     //if ( Nhitm == 5)
     vtmpSeg.clear(); //clear for 4p-segments
-
+    
+   // if (fDebug) cout<<" ---------Nhitm "<<Nhitm<<endl;
+   // for (Int_t iseg = 0; iseg < Nsegm[chNum]; iseg++) { //---print number of hits
+   // if (fDebug) cout<<" iseg "<<iseg<<" Nhits "<<Nhits_Ch_[chNum][iseg]<<endl;
+   // }
+   // if (fDebug) cout<<" ---------"<<endl;
   }//Nhitm--
 
   for (int iterOut = 0; iterOut < kmaxSeg; iterOut++) {
@@ -1295,6 +1349,11 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
       }
       for(int ipar = 0; ipar < 4; ipar++) {
         Par_ab_seg[chNum][ipar][iterOut] = OutSegArray[iterOut].param[ipar];
+      }
+      for (int i1 = 0; i1 < 4; i1++) {
+        for (int j1 = 0; j1 < 4; j1++) {
+          sigma2_s[chNum][iterOut][i1][j1] =  OutSegArray[iterOut].sigma2[i1][j1];
+        }
       }
     }
   }
@@ -1314,6 +1373,7 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
 
 // --------------local parameters to Global parameters------------------
 void BmnMwpcHitFinder::SegmentParamAlignment(Int_t chNum, Int_t *Nbest, Double_t ***par_ab, Float_t **shiftt ) {
+  if (fDebug) cout<<endl;
   if (fDebug) cout<<" SegmentParamAlignment "<<endl;
 
   for (Int_t iBest = 0; iBest < Nbest[chNum]; iBest++) {
@@ -1323,12 +1383,13 @@ void BmnMwpcHitFinder::SegmentParamAlignment(Int_t chNum, Int_t *Nbest, Double_t
     par_ab[chNum][2][iBest] += shiftt[chNum][2] + shiftt[chNum][2]* par_ab[chNum][2][iBest]* par_ab[chNum][2][iBest];
     par_ab[chNum][1][iBest] += shiftt[chNum][1];
     par_ab[chNum][3][iBest] += shiftt[chNum][3];
+    if (fDebug ) cout<<" ax "<<par_ab[chNum][0][iBest]<<" bx "<<par_ab[chNum][1][iBest]<<" ay "<<par_ab[chNum][2][iBest] <<" by "<<par_ab[chNum][3][iBest]<<endl;
 
     Double_t Z0_SRC = -647.476;
     Double_t x_target  = par_ab[chNum][0][iBest]*( Z0_SRC - ChZ[chNum]) + par_ab[chNum][1][iBest];
     Double_t y_target  = par_ab[chNum][2][iBest]*( Z0_SRC - ChZ[chNum]) + par_ab[chNum][3][iBest];
-    if (fDebug ) cout<<" chNum "<<chNum<<" Z "<<ChZ[chNum]<<" iBest "<<iBest<<" x_target "<< x_target<<" y_target "<< y_target<<endl;
-    if (fDebug) cout<<endl;
+    //if (fDebug ) cout<<" chNum "<<chNum<<" Z "<<ChZ[chNum]<<" iBest "<<iBest<<" x_target "<< x_target<<" y_target "<< y_target<<endl;
+    //if (fDebug) cout<<endl;
 
   }//iBest
 }//SegmentParamAlignment
@@ -1376,6 +1437,9 @@ void BmnMwpcHitFinder::PrepareArraysToProcessEvent() {
       for(Int_t jj=0; jj < kBig; jj++) {
         par_ab_Ch[iCh][ii][jj] = 999.;
         par_ab_seg[iCh][ii][jj] = 999.;
+        for(Int_t j = 0; j < 4; j++) {
+          sigma2_seg[iCh][jj][ii][j] = 0;
+        }
       }
     }
 
@@ -1489,10 +1553,10 @@ void BmnMwpcHitFinder::InverseMatrix(Double_t** AA, Double_t** bb) {
   for (Int_t i1 = 0; i1 < 4; i1++) {
     for (Int_t j1 = i1 + 1; j1 < 4; j1++) {
       if (fabs(AA[i1][i1]) < fabs(AA[j1][i1])) {
-        for (Int_t l1 = 0; l1 < 4; l1++) temp[l1] = AA[i1][l1];
+        for (Int_t l1 = 0; l1 < 4; l1++) temp[l1]   = AA[i1][l1];
         for (Int_t l1 = 0; l1 < 4; l1++) AA[i1][l1] = AA[j1][l1];
         for (Int_t l1 = 0; l1 < 4; l1++) AA[j1][l1] = temp[l1];
-        for (Int_t l1 = 0; l1 < 4; l1++) temp[l1] = bb[i1][l1];
+        for (Int_t l1 = 0; l1 < 4; l1++) temp[l1]   = bb[i1][l1];
         for (Int_t l1 = 0; l1 < 4; l1++) bb[i1][l1] = bb[j1][l1];
         for (Int_t l1 = 0; l1 < 4; l1++) bb[j1][l1] = temp[l1];
       }
@@ -1528,7 +1592,7 @@ void BmnMwpcHitFinder::Finish() {
 
   if (fDebug) {
     printf("MWPC hit finder: write hists to file... ");
-    fOutputFileName = Form("hMWPChits_p%d_run%d.root", fRunPeriod, fRunNumber);
+    //fOutputFileName = Form("hMWPChits_p%d_run%d.root", fRunPeriod, fRunNumber);
     cout<< fOutputFileName <<endl;
     TFile file(fOutputFileName, "RECREATE");
     if(fDoTest) fList.Write();

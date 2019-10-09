@@ -139,8 +139,8 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
-  //  BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp, run_period, run_number);
-  //  fRunAna->AddTask(mwpcHM);
+     BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp, run_period, run_number);
+     fRunAna->AddTask(mwpcHM);
 
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
@@ -199,14 +199,14 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // ====================================================================== //
     // ===                          Tracking (MWPC)                       === //
     // ====================================================================== //
-   // BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp, run_period, run_number);
-   // fRunAna->AddTask(mwpcTF);
+     BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp, run_period, run_number);
+     fRunAna->AddTask(mwpcTF);
 
     // ====================================================================== //
     // ===                          Tracking (Silicon)                    === //
     // ====================================================================== //
-   // BmnSiliconTrackFinder* siTF = new BmnSiliconTrackFinder(isTarget, run_number);
-   // fRunAna->AddTask(siTF);
+     BmnSiliconTrackFinder* siTF = new BmnSiliconTrackFinder(isTarget, run_number);
+     fRunAna->AddTask(siTF);
 
     // ====================================================================== //
     // ===                   Tracking (GEM in magnet)                     === //

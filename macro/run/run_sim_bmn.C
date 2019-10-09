@@ -10,7 +10,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 // nEvents - number of events to transport
 // useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
 
-void run_sim_bmn(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10, Bool_t useRealEffects = kFALSE) {
+void run_sim_bmn(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1000, Bool_t useRealEffects = kFALSE) {
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
@@ -75,9 +75,9 @@ void run_sim_bmn(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/e
     gRandom->SetSeed(0);
     // ------- Box Generator
     FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 10); // 13 = muon; 1 = multipl.
-    boxGen->SetPRange(1., 1.); // GeV/c, setPRange vs setPtRange
+    boxGen->SetPRange(0, 8.); // GeV/c, setPRange vs setPtRange
     boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
-    boxGen->SetThetaRange(10, 15); // Polar angle in lab system range [degree]
+    boxGen->SetThetaRange(0, 150.); // Polar angle in lab system range [degree]
     primGen->AddGenerator(boxGen);
 
 #else

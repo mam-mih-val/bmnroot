@@ -15,29 +15,29 @@ dst(nullptr),
 triggers(nullptr),
 fCanvases(nullptr),
 fHistos(nullptr),
-fSteering(new BmnOfflineQaSteering()),        
+fSteering(new BmnOfflineQaSteering()),
 fRefHistosNames(nullptr),
 fCurRunInfo(nullptr),
 fRefRunInfo(nullptr),
-runs(nullptr), 
+runs(nullptr),
 setups(nullptr) {
     nReleases = fSteering->GetNReleases();
     nRuns = 2; // 6, 7
     nSetups = 2; // BM@N, SRC
-    
+
     runs = new Int_t[nRuns]{6, 7};
     setups = new TString[nRuns]{"BM@N", "SRC"};
-    
+
     nCanvases = fSteering->GetNCanvases();
     nDims = 2; // 1d, 2d
-  
+
     // Default parameters if release, period, setup are not being initialized in future
-    fRelease = "0.0";
-    fPeriod = 6;
-    fSetup = "BM@N";
+    fRelease = -1;
+    fPeriod = -1;
+    fSetup = -1;
     if (!dir.IsNull())
         fHistoDir = dir;
-    else 
+    else
         Fatal("BmnQaMonitor::BmnQaMonitor(TString dir)", "Histogram directory is empty or does no exist!!!");
     isOneRefDrawn = kFALSE;
 
@@ -78,8 +78,8 @@ void BmnQaMonitor::CreateInfoLists() {
     // Create run and reference lists for all periods and setups ...
     vector <TString> listOfReleases = fSteering->GetListOfReleases();
 
-    fVerList = new TObjArray***[nReleases];
-    fRefList = new TObjArray***[nReleases];
+    fRefList = new TList();
+    fRefList->SetName("refList");
 
     TNamed** versions = new TNamed*[nReleases];
     BmnRunInfo***** bri = new BmnRunInfo****[nReleases];
@@ -87,13 +87,15 @@ void BmnQaMonitor::CreateInfoLists() {
     for (Int_t iRelease = 0; iRelease < nReleases; iRelease++) {
         bri[iRelease] = new BmnRunInfo***[nRuns];
         versions[iRelease] = new TNamed(listOfReleases[iRelease].Data(), listOfReleases[iRelease].Data());
-        fVerList[iRelease] = new TObjArray**[nRuns];
-        fRefList[iRelease] = new TObjArray**[nRuns];
+        TList *listForRel = new TList();
+        listForRel->SetName(listOfReleases[iRelease].Data());
+        fRefList->Add(listForRel);
 
         for (Int_t iRun = 0; iRun < nRuns; iRun++) {
             bri[iRelease][iRun] = new BmnRunInfo**[nSetups];
-            fVerList[iRelease][iRun] = new TObjArray*[nSetups];
-            fRefList[iRelease][iRun] = new TObjArray*[nSetups];
+            TList *listForPeriod = new TList();
+            listForPeriod->SetName(Form("%d", runs[iRun]));
+            listForRel->Add(listForPeriod);
 
             for (Int_t iSetup = 0; iSetup < nSetups; iSetup++) {
                 TString prefix = TString::Format("RELEASE%s_RUN%d_SETUP_%s_", listOfReleases[iRelease].Data(), runs[iRun], setups[iSetup].Data());
@@ -101,13 +103,9 @@ void BmnQaMonitor::CreateInfoLists() {
                 pair <Int_t, Int_t> borderFiles = fSteering->GetBorderRuns(runs[iRun], setups[iSetup]);
                 const Int_t nFiles = borderFiles.second - borderFiles.first + 1;
 
-                fVerList[iRelease][iRun][iSetup] = new TObjArray();
-                fVerList[iRelease][iRun][iSetup]->SetName(TString(prefix + "verList").Data());
-                fVerList[iRelease][iRun][iSetup]->Add((TObject*) versions[iRelease]);
-
-                fRefList[iRelease][iRun][iSetup] = new TObjArray();
-                fRefList[iRelease][iRun][iSetup]->SetName(TString(prefix + "refList").Data());
-                fRefList[iRelease][iRun][iSetup]->Add((TObject*) versions[iRelease]);
+                TList *listForSetup = new TList();
+                listForSetup->SetName(Form("%s", setups[iSetup].Data()));
+                listForPeriod->Add(listForSetup);
 
                 bri[iRelease][iRun][iSetup] = new BmnRunInfo*[nFiles];
 
@@ -120,8 +118,8 @@ void BmnQaMonitor::CreateInfoLists() {
 
                     UniDbRun* run = UniDbRun::GetRun(runs[iRun], iFile);
                     if (run) {
-                        bri[iRelease][iRun][iSetup][iFile] = new BmnRunInfo(run);
-                        ((TObjArray*) fRefList[iRelease][iRun][iSetup])->Add((TObject*) bri[iRelease][iRun][iSetup][iFile]);
+                        bri[iRelease][iRun][iSetup][iFile] = new BmnRunInfo(run);                     
+                        listForSetup->Add((TObject*) bri[iRelease][iRun][iSetup][iFile]);
                     }
                     delete f;
                 }
@@ -136,21 +134,19 @@ void BmnQaMonitor::CreateInfoLists() {
 }
 
 void BmnQaMonitor::DivideCanvases() {
-    // Divide histograms according to the rules got from steering file
-    for (Int_t iRun = 0; iRun < nRuns; iRun++)
-        for (Int_t iSetup = 0; iSetup < nSetups; iSetup++)
-            for (Int_t iDim = 0; iDim < nDims; iDim++)
-                for (Int_t iCanvas = 0; iCanvas < nCanvases; iCanvas++) {
-                    TString name = TString(fCanvases[iRun][iSetup][iDim][iCanvas]->GetName());
-                    TString prefix = name.Contains("1d") ? "1d" : "2d";
-                    Int_t nRows = fSteering->GetCanvasSizes(runs[iRun], setups[iSetup], name, prefix).first;
-                    Int_t nColumns = fSteering->GetCanvasSizes(runs[iRun], setups[iSetup], name, prefix).second;
+    for (Int_t iDim = 0; iDim < nDims; iDim++)
+        for (Int_t iCanvas = 0; iCanvas < nCanvases; iCanvas++) {
+            TString name = TString(fCanvases[iDim][iCanvas]->GetName());
+            TString prefix = name.Contains("1d") ? "1d" : "2d";
+            Int_t nRows = fSteering->GetCanvasSizes(runs[fPeriod], setups[fSetup].Data(), name, prefix).first;
+            Int_t nColumns = fSteering->GetCanvasSizes(runs[fPeriod], setups[fSetup].Data(), name, prefix).second;
 
-                    if (nRows == -1 && nColumns == -1)
-                        continue;
-                    else
-                        fCanvases[iRun][iSetup][iDim][iCanvas]->Divide(nColumns, nRows);
-                }
+            if (nRows == -1 && nColumns == -1)
+                continue;
+            else {
+                fCanvases[iDim][iCanvas]->Divide(nColumns, nRows);
+            }
+        }
 }
 
 void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
@@ -183,104 +179,101 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
     detectors.push_back("TRIGGERS");
     detectors.push_back("DST");
 
-    for (Int_t iRun = 0; iRun < nRuns; iRun++)
-        for (Int_t iSetup = 0; iSetup < nSetups; iSetup++)
-            for (Int_t iDim = 0; iDim < nDims; iDim++)
-                for (Int_t iCanvas = 0; iCanvas < nCanvases; iCanvas++) {
-                    TCanvas * c = fCanvases[iRun][iSetup][iDim][iCanvas];
-                    Int_t padCounter = 1;
-                    TString nameCanvas = (TString) c->GetName();
+    for (Int_t iDim = 0; iDim < nDims; iDim++)
+        for (Int_t iCanvas = 0; iCanvas < nCanvases; iCanvas++) {
+            TCanvas * c = fCanvases[iDim][iCanvas];
+            Int_t padCounter = 1;
+            TString nameCanvas = (TString) c->GetName();
 
-                    for (auto det : detectors) {
-                        if (!nameCanvas.Contains(det.Data()))
+            for (auto det : detectors) {
+                if (!nameCanvas.Contains(det.Data()))
+                    continue;
+
+                for (auto itCurr : hCurr)
+                    for (auto itRef : hRef) {
+                        TString currName = (TString) itCurr->GetName();
+                        TString refName = (TString) itRef->GetName();
+
+                        if (currName != refName)
                             continue;
 
-                        for (auto itCurr : hCurr)
-                            for (auto itRef : hRef) {
-                                TString currName = (TString) itCurr->GetName();
-                                TString refName = (TString) itRef->GetName();
+                        TString nameHisto = (TString) itRef->GetName();
+                        if (!nameHisto.Contains(det.Data()) || !nameHisto.Contains(nameCanvas.Data()))
+                            continue;
+                        TVirtualPad* pad = c->cd(padCounter);
 
-                                if (currName != refName)
+                        // Remove a reference histo if drawn ...
+                        if (isOneRefDrawn) {
+                            vector <TString>& vec = *fRefHistosNames;
+                            for (auto it : vec) {
+                                TObject* obj = pad->GetPrimitive(it.Data());
+                                if (!obj)
                                     continue;
 
-                                TString nameHisto = (TString) itRef->GetName();
-                                if (!nameHisto.Contains(det.Data()) || !nameHisto.Contains(nameCanvas.Data()))
-                                    continue;
-                                TVirtualPad* pad = c->cd(padCounter);
-
-                                // Remove a reference histo if drawn ...
-                                if (isOneRefDrawn) {
-                                    vector <TString>& vec = *fRefHistosNames;
-                                    for (auto it : vec) {
-                                        TObject* obj = pad->GetPrimitive(it.Data());
-                                        if (!obj)
-                                            continue;
-
-                                        pad->GetListOfPrimitives()->Remove(obj);
-                                    }
-                                } else {
-                                    TString baseName = TString(itRef->GetName());
-                                    baseName += ", Ref";
-                                    itRef->SetName(baseName.Data());
-                                    fRefHistosNames->push_back(itRef->GetName());
-                                }
-
-                                // 1d histos for triggers are drawn in logarithmic scale !!!
-                                if (nameCanvas.Contains("TRIGGERS_1d"))
-                                    pad->SetLogy();
-
-                                // We do not draw reference for a 2d-histo !!!
-                                if (!currName.Contains("vs.") && !refName.Contains("vs.")) {
-                                    TH1F* cur = (TH1F*) itCurr;
-
-                                    if (!refName.Contains(", Ref")) {
-                                        refName += ", Ref";
-                                        itRef->SetName(refName.Data());
-                                    }
-
-                                    TH1F* ref = (TH1F*) itRef;
-
-                                    Double_t maxCurr = cur->GetMaximum();
-                                    Double_t maxRef = ref->GetMaximum();
-
-                                    if (maxRef > maxCurr) {
-                                        TH1F* h = (TH1F*) pad->GetPrimitive(cur->GetName());
-                                        pad->GetListOfPrimitives()->Remove(h);
-
-                                        ref->Draw();
-                                        ref->SetLineColor(kRed);
-                                        cur->GetYaxis()->SetRangeUser(0., maxRef * 1.3);
-
-                                        if (ref->GetSumOfWeights() > FLT_EPSILON)
-                                            cur->DrawNormalized("same", ref->Integral());
-                                    } else {
-                                        if (ref->GetSumOfWeights() > FLT_EPSILON)
-                                            ref->DrawNormalized("same", cur->Integral())->SetLineColor(kRed);
-                                    }
-                                }
-
-                                pad->Update();
-                                pad->Modified();
-
-                                padCounter++;
+                                pad->GetListOfPrimitives()->Remove(obj);
                             }
+                        } else {
+                            TString baseName = TString(itRef->GetName());
+                            baseName += ", Ref";
+                            itRef->SetName(baseName.Data());
+                            fRefHistosNames->push_back(itRef->GetName());
+                        }
+
+                        // 1d histos for triggers are drawn in logarithmic scale !!!
+                        if (nameCanvas.Contains("TRIGGERS_1d"))
+                            pad->SetLogy();
+
+                        // We do not draw reference for a 2d-histo !!!
+                        if (!currName.Contains("vs.") && !refName.Contains("vs.")) {
+                            TH1F* cur = (TH1F*) itCurr;
+
+                            if (!refName.Contains(", Ref")) {
+                                refName += ", Ref";
+                                itRef->SetName(refName.Data());
+                            }
+
+                            TH1F* ref = (TH1F*) itRef;
+
+                            Double_t maxCurr = cur->GetMaximum();
+                            Double_t maxRef = ref->GetMaximum();
+
+                            if (maxRef > maxCurr) {
+                                TH1F* h = (TH1F*) pad->GetPrimitive(cur->GetName());
+                                pad->GetListOfPrimitives()->Remove(h);
+
+                                ref->Draw();
+                                ref->SetLineColor(kRed);
+                                cur->GetYaxis()->SetRangeUser(0., maxRef * 1.3);
+
+                                if (ref->GetSumOfWeights() > FLT_EPSILON)
+                                    cur->DrawNormalized("same", ref->Integral());
+                            } else {
+                                if (ref->GetSumOfWeights() > FLT_EPSILON)
+                                    ref->DrawNormalized("same", cur->Integral())->SetLineColor(kRed);
+                            }
+                        }
+
+                        pad->Update();
+                        pad->Modified();
+
+                        padCounter++;
                     }
-                    c->Update();
-                    c->Modified();
-                }
+            }
+            c->Update();
+            c->Modified();
+        }
     isOneRefDrawn = kTRUE;
 
-    for (Int_t iRelease = 0; iRelease < nReleases; iRelease++)
-        for (Int_t iRun = 0; iRun < nRuns; iRun++)
-            for (Int_t iSetup = 0; iSetup < nSetups; iSetup++)
-                for (Int_t iObject = 0; iObject < fRefList[iRelease][iRun][iSetup]->GetEntriesFast(); iObject++) {
-                    TObjArray* ar = (TObjArray*) fRefList[iRelease][iRun][iSetup]->UncheckedAt(iObject);
-                    BmnRunInfo* tmp = (BmnRunInfo*) ar;
-                    if (tmp->GetRunNumber() == run) {
-                        fRefRunInfo = (BmnRunInfo*) ar;
-                        break;
-                    }
-                }
+    TList* periodList = (TList*) fRefList->At(fRelease);
+    TList* setupList = (TList*) periodList->At(fPeriod);
+    TList* runList = (TList*) setupList->At(fSetup);
+    TIter it(runList);
+    while (BmnRunInfo * tmp = (BmnRunInfo*) it.Next()) {
+        if (tmp->GetRunNumber() == run) {
+            fRefRunInfo = tmp;
+            break;
+        }
+    }
     DrawInfoC();
 }
 
@@ -306,54 +299,54 @@ void BmnQaMonitor::ShowCurrentHistos(Int_t run) {
     vector <TString> detectors = fSteering->GetDetectors(period, setup);
     detectors.push_back("TRIGGERS");
     detectors.push_back("DST");
+    // Divide canvases according to number of divisions assumed ...
+    ClearCanvases();
+    DivideCanvases();
 
-    for (Int_t iRun = 0; iRun < nRuns; iRun++)
-        for (Int_t iSetup = 0; iSetup < nSetups; iSetup++)
-            for (Int_t iDim = 0; iDim < nDims; iDim++)
-                for (Int_t iCanvas = 0; iCanvas < nCanvases; iCanvas++) {
-                    TCanvas* c = fCanvases[iRun][iSetup][iDim][iCanvas];
-                    Int_t padCounter = 1;
-                    TString nameCanvas = (TString) c->GetName();
+    for (Int_t iDim = 0; iDim < nDims; iDim++)
+        for (Int_t iCanvas = 0; iCanvas < nCanvases; iCanvas++) {
+            TCanvas* c = fCanvases[iDim][iCanvas];
+            Int_t padCounter = 1;
+            TString nameCanvas = (TString) c->GetName();
 
-                    for (auto det : detectors) {
-                        if (!nameCanvas.Contains(det.Data()))
-                            continue;
+            for (auto det : detectors) {
+                if (!nameCanvas.Contains(det.Data()))
+                    continue;
 
-                        for (auto it : h) {
-                            TString nameHisto = (TString) it->GetName();
-                            if (!nameHisto.Contains(det.Data()) || !nameHisto.Contains(nameCanvas.Data()))
-                                continue;
+                for (auto it : h) {
+                    TString nameHisto = (TString) it->GetName();
+                    if (!nameHisto.Contains(det.Data()) || !nameHisto.Contains(nameCanvas.Data()))
+                        continue;
 
-                            TVirtualPad* pad = c->cd(padCounter);
-                            // 1d-histograms for triggers are drawn in logarithmic scale !!!
-                            if (nameCanvas.Contains("TRIGGERS_1d"))
-                                pad->SetLogy();
-                            Bool_t isColz = nameHisto.Contains("vs.") ? kTRUE : kFALSE;
-                            if (isColz) {
-                                TH2F* tmp = (TH2F*) it;
-                                tmp->Draw("colz");
-                            } else {
-                                TH1F* tmp = (TH1F*) it;
-                                it->Draw();
-                                tmp->GetYaxis()->UnZoom();
-                            }
-                            padCounter++;
-                        }
+                    TVirtualPad* pad = c->cd(padCounter);
+                    // 1d-histograms for triggers are drawn in logarithmic scale !!!
+                    if (nameCanvas.Contains("TRIGGERS_1d"))
+                        pad->SetLogy();
+                    Bool_t isColz = nameHisto.Contains("vs.") ? kTRUE : kFALSE;
+                    if (isColz) {
+                        TH2F* tmp = (TH2F*) it;
+                        tmp->Draw("colz");
+                    } else {
+                        TH1F* tmp = (TH1F*) it;
+                        it->Draw();
+                        tmp->GetYaxis()->UnZoom();
                     }
+                    padCounter++;
                 }
+            }
+        }
     fCurrentRun = run;
 
-    for (Int_t iRelease = 0; iRelease < nReleases; iRelease++)
-        for (Int_t iRun = 0; iRun < nRuns; iRun++)
-            for (Int_t iSetup = 0; iSetup < nSetups; iSetup++)
-                for (Int_t iObject = 0; iObject < fRefList[iRelease][iRun][iSetup]->GetEntriesFast(); iObject++) {
-                    TObjArray* ar = (TObjArray*) fRefList[iRelease][iRun][iSetup]->UncheckedAt(iObject);
-                    BmnRunInfo* tmp = (BmnRunInfo*) ar;
-                    if (tmp->GetRunNumber() == fCurrentRun) {
-                        fCurRunInfo = (BmnRunInfo*) ar;
-                        break;
-                    }
-                } 
+    TList* periodList = (TList*) fRefList->At(fRelease);
+    TList* setupList = (TList*) periodList->At(fPeriod);
+    TList* runList = (TList*) setupList->At(fSetup);
+    TIter it(runList);
+    while (BmnRunInfo * tmp = (BmnRunInfo*) it.Next()) {
+        if (tmp->GetRunNumber() == run) {
+            fCurRunInfo = tmp;
+            break;
+        }
+    }
     DrawInfoC();
 }
 
@@ -370,27 +363,18 @@ void BmnQaMonitor::InitServer() {
 }
 
 void BmnQaMonitor::RegisterCanvases() {
-    // Register all canvases for all possible setups ...
-    fCanvases = new TCanvas****[nRuns];
-    for (Int_t iRun = 0; iRun < nRuns; iRun++) {
-        fCanvases[iRun] = new TCanvas***[nSetups];
-        for (Int_t iSetup = 0; iSetup < nSetups; iSetup++) {
-            fCanvases[iRun][iSetup] = new TCanvas**[nDims];
-            for (Int_t iDim = 0; iDim < nDims; iDim++) {
-                fCanvases[iRun][iSetup][iDim] = new TCanvas*[nCanvases];
-                for (Int_t iCanvas = 0; iCanvas < nCanvases; iCanvas++) {
-                    TString prefix = (iDim == 0) ? "1d" : "2d";
+    fCanvases = new TCanvas**[nDims];
+    for (Int_t iDim = 0; iDim < nDims; iDim++) {
+        fCanvases[iDim] = new TCanvas*[nCanvases];
+        for (Int_t iCanvas = 0; iCanvas < nCanvases; iCanvas++) {
+            TString prefix = (iDim == 0) ? "1d" : "2d";
 
-                    fCanvases[iRun][iSetup][iDim][iCanvas] =
-                            new TCanvas(Form("RUN%d_SETUP_%s_%s_%s", runs[iRun], setups[iSetup].Data(), fSteering->GetListOfCanvases()[iCanvas].Data(), prefix.Data()),
-                            Form("RUN%d_SETUP_%s_%s_%s", runs[iRun], setups[iSetup].Data(), fSteering->GetListOfCanvases()[iCanvas].Data(), prefix.Data()), 800, 800);
-                }
-            }
+            fCanvases[iDim][iCanvas] =
+                    new TCanvas(Form("%s_%s", fSteering->GetListOfCanvases()[iCanvas].Data(), prefix.Data()),
+                    Form("%s_%s", fSteering->GetListOfCanvases()[iCanvas].Data(), prefix.Data()), 800, 800);
         }
     }
 
-    // Divide canvases according to number of divisions assumed ...
-    DivideCanvases();
 
     // Create all possible sets with detectors and triggers to be shown for all possible runs, setups ...
     gem = new BmnCoordinateDetQa**[nRuns];
@@ -506,20 +490,12 @@ void BmnQaMonitor::RegisterCanvases() {
             GetHistosToBeRegistered <BmnDstQa> (dst[iRun][iSetup]);
         }
 
-    for (Int_t iRun = 0; iRun < nRuns; iRun++)
-        for (Int_t iSetup = 0; iSetup < nSetups; iSetup++)
-            for (Int_t iDim = 0; iDim < nDims; iDim++) {
-                TString prefix = (iDim == 0) ? "1D" : "2D";
-                for (Int_t iCanvas = 0; iCanvas < nCanvases; iCanvas++)
-                    fServer->Register(Form("/Objects/Run%d/Setup%s/Dim%s", runs[iRun], setups[iSetup].Data(), prefix.Data()), fCanvases[iRun][iSetup][iDim][iCanvas]);
-            }
+    for (Int_t iDim = 0; iDim < nDims; iDim++) {
+        for (Int_t iCanvas = 0; iCanvas < nCanvases; iCanvas++)
+            fServer->Register("/Objects", fCanvases[iDim][iCanvas]);
+    }
 
-    for (Int_t iRelease = 0; iRelease < nReleases; iRelease++)
-        for (Int_t iRun = 0; iRun < nRuns; iRun++)
-            for (Int_t iSetup = 0; iSetup < nSetups; iSetup++) {
-                fServer->Register("/Objects", fVerList[iRelease][iRun][iSetup]);
-                fServer->Register("/Objects", fRefList[iRelease][iRun][iSetup]);
-            }
+    fServer->Register("/Objects", fRefList);
     fServer->Register("/Objects", infoCanvas);
 }
 
@@ -561,11 +537,9 @@ void BmnQaMonitor::RegisterUserCommands() {
 }
 
 void BmnQaMonitor::ClearCanvases() {
-    for (Int_t iRun = 0; iRun < nRuns; iRun++)
-        for (Int_t iSetup = 0; iSetup < nSetups; iSetup++)
-            for (Int_t iDim = 0; iDim < nDims; iDim++)
-                for (Int_t iCanvas = 0; iCanvas < nCanvases; iCanvas++)
-                    fCanvases[iRun][iSetup][iDim][iCanvas]->Clear("D");
+    for (Int_t iDim = 0; iDim < nDims; iDim++)
+        for (Int_t iCanvas = 0; iCanvas < nCanvases; iCanvas++)
+            fCanvases[iDim][iCanvas]->Clear("C");
 }
 
 AllHistos * BmnQaMonitor::GetRun(UInt_t run) {
@@ -586,18 +560,15 @@ AllHistos * BmnQaMonitor::GetRun(UInt_t run) {
         return fHistos;
     }
 
-    TString path = fHistoDir + "/" + fRelease + "/" +
-            TString::Format("run%d", fPeriod) + "/" + fSetup +
+    TString path = fHistoDir + "/" + fSteering->GetListOfReleases()[fRelease] + "/" +
+            TString::Format("run%d", runs[fPeriod]) + "/" + setups[fSetup] +
             TString::Format("/qa_%d.root", run);
 
     TFile* file = new TFile(path.Data(), "read");
     if (!file->IsOpen()) {
         cout << "File does not exist! Exiting ... " << endl;
-        // fPathToData = "";
         return fHistos;
     }
-
-    // fPathToData = "";
 
     for (auto it : fHistoNames) {
         if (!it.Contains(TString::Format("RUN%d_SETUP_%s", period, setup.Data()).Data()))
@@ -652,8 +623,8 @@ void BmnQaMonitor::DrawInfoC() {
         Tl.DrawLatex(0.1, 0.45, Form("Target: %s", fCurRunInfo->GetTargetParticle().Data()));
         Tl.Draw();
     }
-    pad->Update();
     pad->Modified();
+    pad->Update();
 
     pad = infoCanvas->cd(2);
     pad->Clear();
@@ -675,11 +646,12 @@ void BmnQaMonitor::DrawInfoC() {
     Tl.SetTextAlign(12);
     Tl.SetTextSize(0.10);
     Tl.SetTextColor(kBlack);
-    Tl.DrawLatex(0.1, 0.9, Form("Release: %s", fRelease.Data()));
-    Tl.DrawLatex(0.1, 0.75, Form("Period: %d", fPeriod));
-    Tl.DrawLatex(0.1, 0.6, Form("Setup: %s", fSetup.Data()));
+    Tl.DrawLatex(0.1, 0.9, Form("Release: %s", fSteering->GetListOfReleases()[fRelease].Data()));
+    Tl.DrawLatex(0.1, 0.75, Form("Period: %d", runs[fPeriod]));
+    Tl.DrawLatex(0.1, 0.6, Form("Setup: %s", setups[fSetup].Data()));
 
     pad->Update();
     pad->Modified();
+
 }
 

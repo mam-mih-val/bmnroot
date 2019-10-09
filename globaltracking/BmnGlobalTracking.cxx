@@ -445,6 +445,7 @@ BmnStatus BmnGlobalTracking::MatchingCSC(BmnGlobalTrack *tr) {
         if (Abs(dX) < xCut && Abs(dY) < yCut && Abs(dX) < minDX && Abs(dY) < minDY) {
             minDX = dX;
             minDY = dY;
+            minHit = hit;
             minIdx = hitIdx;
         }
     }
@@ -677,7 +678,7 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack *tr) {
         fKalman->Update(&par, hit, chi);
     }
     if (tr->GetCscHitIndex() != -1) {
-        BmnHit *hit = (BmnHit *)fDchHits->At(tr->GetCscHitIndex());
+        BmnHit *hit = (BmnHit *)fCscHits->At(tr->GetCscHitIndex());
         fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 2212, nullptr, nullptr, fIsField);
         Double_t chi = 0.0;
         fKalman->Update(&par, hit, chi);

@@ -7,6 +7,7 @@
 
 #include "BmnFileSource.h"
 #include "BmnEventHeader.h"
+#include "DigiRunHeader.h"
 
 #include "FairLogger.h"
 #include "FairRootManager.h"
@@ -186,15 +187,14 @@ BmnFileSource::BmnFileSource(const TString RootFileName, int& period_number, int
     }
 
     // get period and run number
-    /* WAITING FOR ILNOUR digirunheader
-    DigiRunHeader* run_header = (DigiRunHeader*) fRootFile->Get("DigiRunHeader");  // read Digi Run Header if present
+    DigiRunHeader* run_header = (DigiRunHeader*) fRootFile->Get("DigiRunHeader");  // read DigiRunHeader if present
     if (run_header)
     {
         period_number = run_header->GetPeriodId();
         run_number = run_header->GetRunId();
     }
-    else    // temporary solution supporting run 4 - run 7
-    {*/
+    else // temporary solution supporting run 4 - run 7
+    {
         TTree* bmn_tree = (TTree*) fRootFile->Get("bmndata");
         if (!bmn_tree)
         {
@@ -226,7 +226,7 @@ BmnFileSource::BmnFileSource(const TString RootFileName, int& period_number, int
                 else period_number = 4;
             }
         }
-    //}
+    }
 
     LOG(DEBUG)<<"BmnFileSource created------------";
 }

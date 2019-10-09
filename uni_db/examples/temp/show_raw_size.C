@@ -35,7 +35,7 @@ void show_raw_size(int period = 7, int limit_run_gb = 100)
             continue;
         }
 
-        // get run size (MB) and event count
+        // get run size in bytes and event count
         double* p_run_size = pRun->GetFileSize();
         int* p_event_count = pRun->GetEventCount();
         delete pRun;
@@ -51,10 +51,10 @@ void show_raw_size(int period = 7, int limit_run_gb = 100)
             continue;
         }
 
-        double run_size_mb = *p_run_size;
-        double run_size_gb = run_size_mb / 1024;
+        double run_size_mb = *p_run_size / 1024.0 / 1024.0;
+        double run_size_gb = run_size_mb / 1024.0;
         int event_count = *p_event_count;
-        double event_size_kb = run_size_mb * 1024 / event_count;
+        double event_size_kb = *p_run_size / 1024.0 / event_count;
 
         if (run_size_gb >= limit_run_gb)
         {

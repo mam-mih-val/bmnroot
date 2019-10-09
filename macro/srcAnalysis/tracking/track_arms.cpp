@@ -79,7 +79,7 @@ int main(int argc, char ** argv)
       cerr << "Successfully loaded tree at address " << intree << "\n";
     }
   const int nEvents = intree->GetEntries();
-  intree->SetBranchAddress("BmnTof1Hit",&tofData);
+  intree->SetBranchAddress("BmnTof400Hit",&tofData);
   intree->SetBranchAddress("BmnMwpcHit",&mwpcData);
   intree->SetBranchAddress("BmnGemStripHit",&gemData);
 

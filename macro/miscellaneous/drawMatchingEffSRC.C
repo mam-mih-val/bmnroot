@@ -177,7 +177,7 @@ void AnalizeFile(TString fileName) {
     TClonesArray* cscHits = nullptr;
     out->SetBranchAddress("BmnCSCHit", &cscHits);
     TClonesArray* tof700Hits = nullptr;
-    out->SetBranchAddress("BmnTofHit", &tof700Hits);
+    out->SetBranchAddress("BmnTof700Hit", &tof700Hits);
 
     Double_t dX = -1000.0;
     Double_t dY = -1000.0;

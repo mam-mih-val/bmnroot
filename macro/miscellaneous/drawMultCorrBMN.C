@@ -34,9 +34,9 @@ void drawMultCorrBMN(TString fileName = "../run/bmndst_4699.root", Int_t nEvents
     TClonesArray* cscHits = nullptr;
     out->SetBranchAddress("BmnCSCHit", &cscHits);
     TClonesArray* tof400Hits = nullptr;
-    out->SetBranchAddress("BmnTof1Hit", &tof400Hits);
+    out->SetBranchAddress("BmnTof400Hit", &tof400Hits);
     TClonesArray* tof700Hits = nullptr;
-    out->SetBranchAddress("BmnTofHit", &tof700Hits);
+    out->SetBranchAddress("BmnTof700Hit", &tof700Hits);
 
     const Int_t nDet = 8;
 

@@ -95,6 +95,9 @@ private:
   /** Output array of Silicon Hits **/
   TString fOutputHitsBranchName;
   TClonesArray* fBmnSiliconHitsArray;
+  TClonesArray* fBmnSiliconHitsXArray;
+  TClonesArray* fBmnSiliconHitsXpArray;
+  TClonesArray* fBmnSiliconHitsXYArray;
   TString fOutputFileName;
   
   //--
@@ -167,8 +170,10 @@ private:
   vector<tracksX> vec_tracks;
   vector<tracksX> CleanTr;
   
-  TH1D *hNpoint, *hChiSquareNdf, *hNtracks, *hAxglob, *hBxglob, *hAyglob,*hByglob;
-  TH2D *hvertexXY, * hvertex_aver_XY,* hprofile_beam_z1,* hprofile_beam_z2,* hprofile_beam_z3;
+  TH1D *hNpoint, *hChiSquareNdf, *hNtracks, *hAxglob, *hBxglob, *hAyglob,*hByglob, *hY_st_1,*hY_st_2,*hY_st_3, *hdY_st_1,*hdY_st_2,*hdY_st_3;
+  TH2D *hvertexXY, * hvertex_aver_XY,* hprofile_beam_z1,* hprofile_beam_z2,* hprofile_beam_z3, *hdYvsYst_1,*hdYvsYst_2,*hdYvsYst_3,
+   *hdYvsYst1_mod0, *hdYvsYst1_mod1,*hdYvsYst1_mod2,*hdYvsYst1_mod3,*hdYvsYst2_mod0,*hdYvsYst2_mod1,*hdYvsYst3_mod1,*hdYvsYst3_mod2;
+
   
   void PrepareArraysToProcessEvent();
   

@@ -65,16 +65,16 @@ public:
     void ShowCurrentHistos(Int_t);
     void ShowReferenceHistos(Int_t);
 
-    void SetRelease(TString release) {
-        fRelease = release;
+    void SetRelease(Int_t iRel) {
+        fRelease = iRel;
     }
 
     void SetPeriod(Int_t period) {
         fPeriod = period;
     }
 
-    void SetSetup(TString setup) {
-        fSetup = setup;
+    void SetSetup(Int_t iSetup) {
+        fSetup = iSetup;
     }
 
     void ClearCanvases();
@@ -156,21 +156,21 @@ private:
     Int_t nDims;
     
     Int_t fPeriod;
-    TString fRelease;
-    TString fSetup;
+    Int_t fRelease;
+    Int_t fSetup;
 
     vector <TString>* fRefHistosNames;
     Bool_t isOneRefDrawn;
 
-    TCanvas***** fCanvases;
+    TCanvas*** fCanvases;
 
     BmnOfflineQaSteering* fSteering;
 
     TString fHistoDir;
     AllHistos* fHistos;
 
-    TObjArray**** fRefList;
-    TObjArray**** fVerList;
+//    TObjArray**** fRefList;
+    TList* fRefList;
 
     TCanvas *infoCanvas;
 

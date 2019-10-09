@@ -102,6 +102,7 @@ class BmnMwpcHitFinder : public FairTask {
                hResiduals_pl0_Ch, hResiduals_pl1_Ch, hResiduals_pl2_Ch, hResiduals_pl3_Ch, hResiduals_pl4_Ch, hResiduals_pl5_Ch;
         vector<TH2D*>   hEvent_display_Ch, htime_wire_Ch, htime_fast_cut50_wire_Ch, htime_fast_cut30_wire_Ch;
         Int_t kMinHits;
+        Int_t kMinHits_before_target;
         Int_t *Nlay_w_wires;
         Int_t kmaxSeg;
         Int_t kChMaxAllWires;
@@ -150,6 +151,7 @@ class BmnMwpcHitFinder : public FairTask {
         Double_t ***Coor_seg;
         Double_t ***Cluster_seg;
         Double_t ***par_ab_seg;
+        Double_t ****sigma2_seg;
         Int_t    *Nbest_seg;
 
         Double_t **matrA;
@@ -162,7 +164,7 @@ class BmnMwpcHitFinder : public FairTask {
         void Clustering(Int_t, Int_t***, Double_t***, Double_t***, Double_t***, Int_t **);
         void SegmentParamAlignment(Int_t, Int_t *,  Double_t ***, Float_t **);
         void SegmentFinder(Int_t , Int_t** , Double_t ***,  Int_t ***,Int_t *, Double_t ***, Double_t ***, Int_t **,Int_t , Short_t , Int_t );
-        void ProcessSegments( Int_t ,  Int_t *, Double_t ***, Double_t ***, Int_t **, Float_t **, Int_t , Double_t , Double_t ,Int_t ** , Double_t **, Double_t ***, Double_t ***, Double_t ***, Int_t *, Int_t *);
+        void ProcessSegments( Int_t ,  Int_t *, Double_t ***, Double_t ***, Int_t **, Float_t **, Int_t , Double_t , Double_t ,Int_t ** , Double_t **, Double_t ***, Double_t ***, Double_t ***, Int_t *, Int_t *, Double_t ****);
         void FillFreeCoefVectorXUV(Int_t, Double_t*, Float_t**,  Float_t**, Float_t*, Int_t*);
         void FillFreeCoefVector(Int_t , Double_t*, Double_t*** , Int_t , Float_t** , Double_t*, Int_t*);
         void FillFitMatrix(Int_t, Double_t **, Float_t **, Double_t *, Int_t *);

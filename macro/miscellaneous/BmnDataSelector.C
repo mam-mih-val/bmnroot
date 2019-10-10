@@ -1,5 +1,5 @@
 // @(#)bmnroot/macro/miscellaneous:$Id$
-// Author: Pavel Batyuk <pavel.batyuk@jinr.ru> 2018-06-12
+// Author: Pavel Batyuk <pavel.batyuk@jinr.ru> 2019-09-24
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -7,7 +7,7 @@
 //                                                                            //
 // A useful macro to select data either for alignment (TString data = "align")//
 // or phys. analysis (TString data = "phys")                                  //
-//                                                                            // 
+// Valid for RUN6 amn 7  (BM@N, SRC)                                          // 
 // The  BM@N UniDb used                                                       //
 ////////////////////////////////////////////////////////////////////////////////
 #include <vector>
@@ -19,40 +19,101 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 
 using namespace std;
 
-void BmnDataSelector(Int_t run_period = 7, TString data = "align") {
+void BmnDataSelector(Int_t run_period = 6, // 6 or 7
+        TString setup = "BM@N", // BM@N or SRC
+        TString data = "align") { // phys or align
     // ----  Load libraries   --------------------------------------------------
     bmnloadlibs(); // load BmnRoot libraries
 
-    const Int_t nTargets = 5;
-    const TString targets[nTargets] = {"C", "Al", "Cu", "Sn", "Pb"};
+    Int_t nTargets;
+    TString* targets = nullptr;
 
-    const Int_t nEne = 4;
-    const Double_t energies[nEne] = {2.3, 2.6, 2.94, 3.2};
+    Int_t nEne;
+    Double_t* energies = nullptr;
+
+    Int_t kStart = -1;
+    Int_t kFinish = -1;
+
+    if (run_period == 7 && setup.Contains("BM@N")) {
+        nTargets = 6;
+        targets = new TString[nTargets];
+        targets[0] = "C";
+        targets[1] = "Al";
+        targets[2] = "Cu";
+        targets[3] = "Sn";
+        targets[4] = "Pb";
+        targets[5] = "-";
+
+        nEne = 4;
+        energies = new Double_t[nEne];
+        energies[0] = 2.3;
+        energies[1] = 2.6;
+        energies[2] = 2.94;
+        energies[3] = 3.2;
+
+        kStart = 3589;
+        kFinish = 5186;
+    }
+    else if (run_period == 7 && setup.Contains("SRC")) {
+        nTargets = 6;
+        targets = new TString[nTargets];
+        targets[0] = "H2";
+        targets[1] = "Pb";
+        targets[2] = "SRC Lead 1";
+        targets[3] = "SRC Lead 2";
+        targets[4] = "SRC Lead 3";
+        targets[5] = "-";
+
+        nEne = 1;
+        energies = new Double_t[nEne];
+        energies[0] = 3.17;
+
+        kStart = 2041;
+        kFinish = 3589;
+
+    } else {
+        setup = "";
+
+        nTargets = 6;
+        targets = new TString[nTargets];
+        targets[0] = "C";
+        targets[1] = "Al";
+        targets[2] = "Cu";
+        targets[3] = "Pb";
+        targets[4] = "C2H4";
+        targets[5] = "-";
+
+        nEne = 3;
+        energies = new Double_t[nEne];
+        energies[0] = 3.5;
+        energies[1] = 4.0;
+        energies[2] = 4.5;
+
+        kStart = 1170;
+        kFinish = 1993;
+    }
 
     vector <Double_t> ene;
     vector <TString> targ;
     vector <Int_t> run;
     vector <Double_t> apprCurrent;
 
-    // BM@N file numbers ...
-    const Int_t kStart = 3681;
-    const Int_t kFinish = 5185;
-
     for (Int_t iRun = kStart; iRun < kFinish; iRun++) {
-        // cout << iRun << endl;
         UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, iRun);
         if (pCurrentRun == NULL) {
             delete pCurrentRun;
             continue;
         }
 
-        if (pCurrentRun->GetTargetParticle() == NULL ||
-                pCurrentRun->GetEnergy() == NULL ||
+        if (pCurrentRun->GetEnergy() == NULL ||
                 pCurrentRun->GetFieldVoltage() == NULL)
             continue;
 
         run.push_back(iRun);
-        targ.push_back(*pCurrentRun->GetTargetParticle());
+        if (pCurrentRun->GetTargetParticle())
+            targ.push_back(*pCurrentRun->GetTargetParticle());
+        else
+            targ.push_back("-");
         ene.push_back(*pCurrentRun->GetEnergy());
         apprCurrent.push_back(*pCurrentRun->GetFieldVoltage());
 
@@ -101,4 +162,6 @@ void BmnDataSelector(Int_t run_period = 7, TString data = "align") {
     }
     fclose(outFile);
 
+    delete [] targets;
+    delete [] energies;
 }

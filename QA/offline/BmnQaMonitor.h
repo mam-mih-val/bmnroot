@@ -58,30 +58,41 @@ private:
 class BmnQaMonitor : public TNamed {
 public:
 
-    BmnQaMonitor();
+    BmnQaMonitor() {}
+    BmnQaMonitor(TString);
     virtual ~BmnQaMonitor();
-   
+
     void ShowCurrentHistos(Int_t);
     void ShowReferenceHistos(Int_t);
-    void SetVersion(Int_t);
-    
+
+    void SetRelease(Int_t iRel) {
+        fRelease = iRel;
+    }
+
+    void SetPeriod(Int_t period) {
+        fPeriod = period;
+    }
+
+    void SetSetup(Int_t iSetup) {
+        fSetup = iSetup;
+    }
+
     void ClearCanvases();
-    
+
     void SetHistoDir(TString path) {
         fHistoDir = path;
     }
 
 private:
     THttpServer* fServer;
-    TString fPathToData;
 
+    void CreateInfoLists();
     void InitServer();
     void RegisterCanvases();
     void DivideCanvases();
     void RegisterUserCommands();
-    void createFileList();
     void DrawInfoC();
-    
+
     AllHistos* GetRun(UInt_t);
 
     AllHistos* GetCurrentRun(UInt_t run) {
@@ -104,7 +115,7 @@ private:
         }
     }
 
-    template <class T> void GetHistosToBeRegistered(T* man, Int_t canv) {
+    template <class T> void GetHistosToBeRegistered(T* man) {
         BmnQaHistoManager* histoMan = man->GetManager();
 
         for (auto it : fHistoNames) {
@@ -113,45 +124,58 @@ private:
 
             fHisto.push_back(histoMan->H1(it));
         }
-        // cout << fHisto.size() << " " << canv << endl; getchar();
     }
 
-    BmnCoordinateDetQa* gem;
-    BmnCoordinateDetQa* silicon;
-    BmnCoordinateDetQa* csc;
+    BmnCoordinateDetQa*** gem;
+    BmnCoordinateDetQa*** silicon;
+    BmnCoordinateDetQa*** csc;
 
-    BmnTimeDetQa* tof400;
-    BmnTimeDetQa* tof700;
-    BmnTimeDetQa* dch;
-    BmnTimeDetQa* mwpc;
+    BmnTimeDetQa*** tof400;
+    BmnTimeDetQa*** tof700;
+    BmnTimeDetQa*** dch;
+    BmnTimeDetQa*** mwpc;
 
-    BmnCalorimeterDetQa* ecal;
-    BmnCalorimeterDetQa* zdc;
+    BmnCalorimeterDetQa*** ecal;
+    BmnCalorimeterDetQa*** zdc;
 
-    BmnDstQa* dst;
+    BmnDstQa*** dst;
 
-    BmnTrigDetQa* triggers;
+    BmnTrigDetQa*** triggers;
 
     vector <TString> fHistoNames; // Histo names to get by corresponding getter
     vector <TH1*> fHisto; // Histos to be registered via server
-
-    Int_t fPeriodId;
+    
     Int_t fCurrentRun;
-    Int_t fCurrentVer;
+
+    Int_t nReleases;
+    Int_t nRuns;
+    Int_t* runs;
+    Int_t nSetups;
+    TString* setups;
+    Int_t nCanvases;
+    Int_t nDims;
+    
+    Int_t fPeriod;
+    Int_t fRelease;
+    Int_t fSetup;
+
     vector <TString>* fRefHistosNames;
     Bool_t isOneRefDrawn;
 
-    TCanvas** fCanvases;
+    TCanvas*** fCanvases;
 
     BmnOfflineQaSteering* fSteering;
-    
+
     TString fHistoDir;
     AllHistos* fHistos;
-    TObjArray* refList;
-    TObjArray *verList;
+
+//    TObjArray**** fRefList;
+    TList* fRefList;
+
     TCanvas *infoCanvas;
-    BmnRunInfo* fCurRunInfo = nullptr;
-    BmnRunInfo* fRefRunInfo = nullptr;
+
+    BmnRunInfo* fCurRunInfo;
+    BmnRunInfo* fRefRunInfo;
 
     ClassDef(BmnQaMonitor, 1)
 };

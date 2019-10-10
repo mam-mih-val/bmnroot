@@ -147,18 +147,18 @@ void create_rootgeom_TOF400_RUN7_SRC() {
 
     const double tofXgap = 0.; // [cm] RUN5, part1
     //const double tofXgap = 2. * 24.4; // [cm] RUN5, part2
-    const double tofZ_1box = -217.27; // [cm] :
-    const double tofZ_2box = -234.705; // [cm] :
-    const double tofZ_3box = -234.705; // [cm] :
-    const double tofZ_4box = -217.27; // [cm] :
+    const double tofZ_1box = -234.705; // [cm] :
+    const double tofZ_2box = -217.27; // [cm] :
+    const double tofZ_3box = -217.27; // [cm] :
+    const double tofZ_4box = -234.705; // [cm] :
 
     double tofX = tofXgap / 2. + DetXsize / 2.;
     double tofZshift = -1. * (tofZgap + DetZsize);
-    double tofYshift = -2.9; //[cm] base ot BM@N alignment
-    double box1_x = 222.701; // [cm]
-    double box2_x = 277.299; // [cm]
-    double box3_x = -277.299; // [cm]
-    double box4_x = -222.701; // [cm]
+    double tofYshift = -2.9; //[cm] base on BM@N alignment
+    double box1_x = 277.299; // [cm]
+    double box2_x = 222.701; // [cm]
+    double box3_x = -222.701; // [cm]
+    double box4_x = -277.299; // [cm]
 
     Double_t angleDegBox1_2 = 30., angleDegBox3_4 = -30.;
 

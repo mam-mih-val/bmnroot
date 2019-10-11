@@ -30,7 +30,7 @@ void drawResidualsSRC(TString fileName = "../run/srcdst_3332.root", Int_t nEvent
     TClonesArray* cscHits = nullptr;
     out->SetBranchAddress("BmnCSCHit", &cscHits);
     TClonesArray* tof700Hits = nullptr;
-    out->SetBranchAddress("BmnTofHit", &tof700Hits);
+    out->SetBranchAddress("BmnTof700Hit", &tof700Hits);
 
     const Int_t nDet = 4;
     const Int_t nRes = 2;

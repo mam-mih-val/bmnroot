@@ -2,6 +2,8 @@
 #include <TH1F.h>
 #include "BmnQaHistoManager.h"
 
+#include <BmnOfflineQaSteering.h>
+
 #ifndef BMNCALORIMDETQA_H
 #define BMNCALORIMDETQA_H 1
 
@@ -13,7 +15,7 @@ public:
     /** Default constructor **/
     BmnCalorimeterDetQa() {
     };
-    BmnCalorimeterDetQa(TString);
+    BmnCalorimeterDetQa(TString, UInt_t);
 
     /** Destructor **/
     virtual ~BmnCalorimeterDetQa() {
@@ -29,6 +31,7 @@ public:
 
 
 private:
+    BmnOfflineQaSteering* fSteering;
     BmnQaHistoManager* fHistoManager;
 
     void CommonInfo(TString detName) {

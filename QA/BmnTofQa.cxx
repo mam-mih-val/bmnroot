@@ -95,7 +95,7 @@ void CbmLitTofQa::ReadDataBranches()
    fStsTracks = (TClonesArray*) ioman->GetObject("StsTrack");
    fStsTrackMatches = (TClonesArray*) ioman->GetObject("StsTrackMatch");
    fTofHits = (TClonesArray*) ioman->GetObject("TofHit");
-   fTofPoints = (TClonesArray*) ioman->GetObject("TofPoint");
+   fTofPoints = (TClonesArray*) ioman->GetObject("TOF700Point");
    fTofTracks = (TClonesArray*) ioman->GetObject("TofTrack");
    fMCTracks = (TClonesArray*) ioman->GetObject("MCTrack");
    fPrimVertex = (CbmVertex*) ioman->GetObject("PrimaryVertex");

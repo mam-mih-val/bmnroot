@@ -30,9 +30,9 @@ void drawResidualsBMN(TString fileName = "/home/merz/pavel/nfs/RUN7_res/BMNDST_4
     TClonesArray* cscHits = nullptr;
     out->SetBranchAddress("BmnCSCHit", &cscHits);
     TClonesArray* tof700Hits = nullptr;
-    out->SetBranchAddress("BmnTofHit", &tof700Hits);
+    out->SetBranchAddress("BmnTof700Hit", &tof700Hits);
     TClonesArray* tof400Hits = nullptr;
-    out->SetBranchAddress("BmnTof1Hit", &tof400Hits);
+    out->SetBranchAddress("BmnTof400Hit", &tof400Hits);
 
     const Int_t nDet = 3;
     const Int_t nRes = 2;

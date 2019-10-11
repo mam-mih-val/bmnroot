@@ -68,11 +68,11 @@ class BmnMwpcTrackFinder : public FairTask {
 
         BmnMwpcGeometrySRC* fMwpcGeo;
 
-        vector<TH1D*> hpar_Ax_Ch, hpar_Bx_Ch, hpar_Ay_Ch, hpar_By_Ch, hChi2_match_pair, hChi2_ndf_Ch, hpar_Ax_pair, hpar_Bx_pair, hpar_Ay_pair, hpar_By_pair, hpar_theta_pair, hpar_phi_pair, Nomin_Ch, Denom_Ch, Eff_Ch, hX_in_target_pair, hY_in_target_pair, hdX_Zmid_pair, hdY_Zmid_pair, hdAx_Zmid_pair, hdAy_Zmid_pair, hdU_zmid_pair, hdV_zmid_pair, hdX_zmid_pair, hoccupancyXp, hoccupancyUp, hoccupancyVp,hoccupancyXm, hoccupancyUm, hoccupancyVm, hNbest_pair, hChi2_ndf_pair;
+        vector<TH1D*> hpar_Ax_Ch, hpar_Bx_Ch, hpar_Ay_Ch, hpar_By_Ch, hChi2_match_pair, hChi2_ndf_Ch, hpar_Ax_pair, hpar_Bx_pair, hpar_Ay_pair, hpar_By_pair, hpar_theta_pair, hpar_phi_pair, Nomin_Ch, Denom_Ch, Eff_Ch, hX_in_target_pair, hY_in_target_pair, hdX_pair, hdY_pair, hdAx_pair, hdAy_pair, hoccupancyXp, hoccupancyUp, hoccupancyVp,hoccupancyXm, hoccupancyUm, hoccupancyVm, hNbest_pair, hChi2_ndf_pair;
 
         vector<TH2D*> hAx_bx_in_target_pair, hAy_by_in_target_pair, hY_X_in_target_pair ;
-        TH1D *hdX_target, *hdY_target, *hX_in_target, *hY_in_target, *hdAx_target, *hdAy_target, *hChi2_m_target, *hdX_pair01_inZpair1, *hdY_pair01_inZpair1, *hpar_Ax_3ch, *hpar_Bx_3ch, *hpar_Ay_3ch, *hpar_By_3ch,
-             *hdX_Zmid_pair_1,*hdY_Zmid_pair_1,*hdAx_Zmid_pair_1,*hdAy_Zmid_pair_1,*hChi2m_pair_1,*hXv_pair_1  ,*hYv_pair_1;
+        TH1D *hdX_target, *hdY_target, *hX_in_target, *hY_in_target, *hdAx_target, *hdAy_target, *hChi2_m_target, *hdX_pair01_inZpair1, *hdY_pair01_inZpair1,
+             *hdX_pair_1,*hdY_pair_1,*hdAx_pair_1,*hdAy_pair_1,*hChi2m_pair_1,*hXv_pair_1  ,*hYv_pair_1;
         TH2D *hAx_bx_in_target, *hAy_by_in_target, *hY_X_in_target, *hdX_pair01_vs_x1, *hdY_pair01_vs_y1, *htheta_p1vsp0, *hChi2best_Chi2fake_after_target, *hChi2best_Chi2fake_before_target;
 
         Short_t kNChambers;
@@ -108,7 +108,6 @@ class BmnMwpcTrackFinder : public FairTask {
         Double_t sq12;
         Double_t sigma;
         Short_t kMiddlePl;
-        Int_t *Nbest_3ch;
 
         Int_t **kPln;
         Float_t *sigm2;
@@ -121,6 +120,7 @@ class BmnMwpcTrackFinder : public FairTask {
 
         Double_t ***par_ab_Ch;
         Double_t ***par_ab_pair;
+        Double_t****sigma2_pair;
         Double_t ***XVU_Ch;
         Double_t ***Clust_Ch;
         Double_t **Chi2_match_pair;
@@ -131,7 +131,6 @@ class BmnMwpcTrackFinder : public FairTask {
         Int_t **Nhits_match;
         Int_t *Nbest_pair;
         Int_t *Nbest_Ch;
-        Double_t **par_ab_3ch;
         Int_t **Nhits_Ch;
         Int_t **Nhits_pair;
 
@@ -141,7 +140,7 @@ class BmnMwpcTrackFinder : public FairTask {
         void SegmentParamAlignment(Int_t, Int_t *,  Double_t ***, Float_t **);
         void SegmentMatching(Int_t,Int_t *, Double_t ***, Float_t *, Int_t **,  Int_t *,Double_t **,Double_t ***, Int_t **, Int_t **);
         void SegmentMatchingAfterTarget(Int_t,Int_t *, Double_t ***, Float_t *, Int_t **,  Int_t *,Double_t **,Double_t ***, Int_t **, Int_t **);
-        void SegmentFit(Int_t, Float_t **, Float_t *,Int_t *, Int_t **, Double_t ***,  Double_t **, Double_t ***, Double_t ***, Int_t **,Int_t **, Int_t **);
+        void SegmentFit(Int_t, Float_t **, Float_t *,Int_t *, Int_t **, Double_t ***,  Double_t **, Double_t ***, Double_t ***, Int_t **,Int_t **, Int_t **, Double_t ****);
         void FillFitMatrix(Int_t, Double_t** , Float_t** , Double_t* , Int_t*);
         void FillFreeCoefVector(Int_t, Double_t*, Double_t***, Int_t, Float_t**, Double_t*, Int_t*);
         void InverseMatrix(Double_t**, Double_t**);

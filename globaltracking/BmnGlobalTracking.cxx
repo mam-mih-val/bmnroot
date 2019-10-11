@@ -158,8 +158,8 @@ InitStatus BmnGlobalTracking::Init() {
     fSilHits = (TClonesArray *)ioman->GetObject("BmnSiliconHit");
     fGemHits = (TClonesArray *)ioman->GetObject("BmnGemStripHit");
     fCscHits = (TClonesArray *)ioman->GetObject("BmnCSCHit");
-    fTof1Hits = (TClonesArray *)ioman->GetObject("BmnTof1Hit");
-    fTof2Hits = (TClonesArray *)ioman->GetObject("BmnTofHit");
+    fTof1Hits = (TClonesArray *)ioman->GetObject("BmnTof400Hit");
+    fTof2Hits = (TClonesArray *)ioman->GetObject("BmnTof700Hit");
 
     fInnerTracks = (TClonesArray *)ioman->GetObject("BmnGlobalTrack");
     fGemTracks = (TClonesArray *)ioman->GetObject("BmnGemTrack");
@@ -261,39 +261,42 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
                     if (zDCH < 550) {
                         parDch->SetTx(parDch->GetTx() + 0.072);
                         parDch->SetTy(parDch->GetTy() + 0.06);
-                        parDch->SetX(parDch->GetX() - 9.92);
-                        parDch->SetY(parDch->GetY() - 3.34);
+                        parDch->SetX(parDch->GetX() - 8.05);
+                        parDch->SetY(parDch->GetY() - 3.57);
                         dchHit.SetStation(0);
                     }
                     if (zDCH > 650) {
                         parDch->SetTx(parDch->GetTx() + 0.073);
                         parDch->SetTy(parDch->GetTy() + 0.071);
-                        parDch->SetX(parDch->GetX() - 4.40);
-                        parDch->SetY(parDch->GetY() - 3.77);
+                        parDch->SetX(parDch->GetX() - 3.68);
+                        parDch->SetY(parDch->GetY() - 3.39);
                         dchHit.SetStation(1);
                     }
                     dchHit.SetXYZ(parDch->GetX(), parDch->GetY(), zDCH);
-                    dchHit.SetDxyz(0.03, 0.03, 0.0);
+                    dchHit.SetDxyz(0.1, 0.1, 0.0);
                     dchHit.SetIndex(trIdx);  //index of dch track instead of index of hit. In order to have fast link hit->track
                     new ((*fDchHits)[fDchHits->GetEntriesFast()]) BmnHit(dchHit);
                 }
             if (fCscHits)
                 for (Int_t hitIdx = 0; hitIdx < fCscHits->GetEntriesFast(); ++hitIdx) {
                     BmnHit *hit = (BmnHit *)fCscHits->At(hitIdx);
-                    hit->SetX(hit->GetX() + 0.89);
-                    hit->SetY(hit->GetY());
+                    hit->SetX(hit->GetX() + 1.38);
+                    hit->SetY(hit->GetY() + 0.07);
                 }
             if (fTof1Hits)
                 for (Int_t hitIdx = 0; hitIdx < fTof1Hits->GetEntriesFast(); ++hitIdx) {
                     BmnHit *hit = (BmnHit *)fTof1Hits->At(hitIdx);
-                    hit->SetX(hit->GetX() - 1.83);
+                    hit->SetX(hit->GetX() - 1.91);
                     hit->SetY(hit->GetY() + 0.34);
                 }
             if (fTof2Hits)
                 for (Int_t hitIdx = 0; hitIdx < fTof2Hits->GetEntriesFast(); ++hitIdx) {
                     BmnHit *hit = (BmnHit *)fTof2Hits->At(hitIdx);
-                    hit->SetX(hit->GetX() + 0.42);
-                    hit->SetY(hit->GetY() - 9.64 + 4.47);
+                    //hit->SetX(hit->GetX() + 0.42);
+                    //hit->SetY(hit->GetY() - 9.64 + 4.47);
+                    //Panin
+                    hit->SetX(hit->GetX() + 0.70);
+                    hit->SetY(hit->GetY() - 9.84);
                 }
         }
     }
@@ -445,6 +448,7 @@ BmnStatus BmnGlobalTracking::MatchingCSC(BmnGlobalTrack *tr) {
         if (Abs(dX) < xCut && Abs(dY) < yCut && Abs(dX) < minDX && Abs(dY) < minDY) {
             minDX = dX;
             minDY = dY;
+            minHit = hit;
             minIdx = hitIdx;
         }
     }
@@ -544,6 +548,7 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack *tr, Int_t num) {
     minHit->SetUsing(kTRUE);
     minHit->SetLength(l);  // length from target to Tof hit
     tr->SetNHits(tr->GetNHits() + 1);
+    tr->SetLength(tr->GetLength() + LenPropLast);
     tr->SetParamLast(minParPredLast);
     return kBMNSUCCESS;
 }
@@ -677,7 +682,7 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack *tr) {
         fKalman->Update(&par, hit, chi);
     }
     if (tr->GetCscHitIndex() != -1) {
-        BmnHit *hit = (BmnHit *)fDchHits->At(tr->GetCscHitIndex());
+        BmnHit *hit = (BmnHit *)fCscHits->At(tr->GetCscHitIndex());
         fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 2212, nullptr, nullptr, fIsField);
         Double_t chi = 0.0;
         fKalman->Update(&par, hit, chi);

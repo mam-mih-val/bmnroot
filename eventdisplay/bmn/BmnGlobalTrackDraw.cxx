@@ -65,8 +65,8 @@ InitStatus BmnGlobalTrackDraw::Init()
     fGemTrackList = (TClonesArray*) fManager->GetObject("BmnGemTrack");
     fGemHitList = (TClonesArray*) fManager->GetObject("BmnGemStripHit");
 
-    fTof1HitList = (TClonesArray*) fManager->GetObject("BmnTof1Hit");
-    fTof2HitList = (TClonesArray*) fManager->GetObject("BmnTofHit");
+    fTof1HitList = (TClonesArray*) fManager->GetObject("BmnTof400Hit");
+    fTof2HitList = (TClonesArray*) fManager->GetObject("BmnTof700Hit");
     fDchHitList = (TClonesArray*) fManager->GetObject("BmnDchHit");
 
     fEventManager = MpdEventManager::Instance();

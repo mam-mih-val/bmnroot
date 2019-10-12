@@ -118,7 +118,7 @@ void BmnQaMonitor::CreateInfoLists() {
 
                     UniDbRun* run = UniDbRun::GetRun(runs[iRun], iFile);
                     if (run) {
-                        bri[iRelease][iRun][iSetup][iFile] = new BmnRunInfo(run);                     
+                        bri[iRelease][iRun][iSetup][iFile] = new BmnRunInfo(run);
                         listForSetup->Add((TObject*) bri[iRelease][iRun][iSetup][iFile]);
                     }
                     delete f;
@@ -220,8 +220,8 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
                         }
 
                         // 1d histos for triggers are drawn in logarithmic scale !!!
-                        if (nameCanvas.Contains("TRIGGERS_1d"))
-                            pad->SetLogy();
+//                        if (nameCanvas.Contains("TRIGGERS_1d"))
+//                            pad->SetLogy();
 
                         // We do not draw reference for a 2d-histo !!!
                         if (!currName.Contains("vs.") && !refName.Contains("vs.")) {
@@ -320,8 +320,8 @@ void BmnQaMonitor::ShowCurrentHistos(Int_t run) {
 
                     TVirtualPad* pad = c->cd(padCounter);
                     // 1d-histograms for triggers are drawn in logarithmic scale !!!
-                    if (nameCanvas.Contains("TRIGGERS_1d"))
-                        pad->SetLogy();
+//                    if (nameCanvas.Contains("TRIGGERS_1d"))
+//                        pad->SetLogy();
                     Bool_t isColz = nameHisto.Contains("vs.") ? kTRUE : kFALSE;
                     if (isColz) {
                         TH2F* tmp = (TH2F*) it;
@@ -573,7 +573,7 @@ AllHistos * BmnQaMonitor::GetRun(UInt_t run) {
     for (auto it : fHistoNames) {
         if (!it.Contains(TString::Format("RUN%d_SETUP_%s", period, setup.Data()).Data()))
             continue;
-
+        
         TNamed* h = nullptr;
         h = (TNamed*) file->Get(TString("TRIGGERS/" + it).Data()); // FIXME!! Not elegant representation
 
@@ -598,12 +598,14 @@ AllHistos * BmnQaMonitor::GetRun(UInt_t run) {
         if (!h)
             h = (TNamed*) file->Get(TString("DST/" + it).Data());
 
-        TString hName = TString::Format("%s", h->GetName());
+        if (h) { 
+            TString hName = TString::Format("%s", h->GetName());
 
-        if (hName.Contains(".vs")) // .vs in histogram name must be present if 2d-histogram assumed
-            fHistos->Set2D((TH2F*) h);
-        else
-            fHistos->Set1D((TH1F*) h);
+            if (hName.Contains(".vs")) // .vs in histogram name must be present if 2d-histogram assumed
+                fHistos->Set2D((TH2F*) h);
+            else
+                fHistos->Set1D((TH1F*) h);
+        }
     }
     cout << "Run #" << run << " processed " << endl;
     return fHistos;

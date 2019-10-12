@@ -36,9 +36,9 @@ public:
         return fHistoManager;
     }
 
-private:  
+private:
     BmnOfflineQaSteering* fSteering;
-    
+
     BmnQaHistoManager* fHistoManager;
     BmnGemStripStationSet* fDetGem;
     BmnCSCStationSet* fDetCsc;
@@ -52,7 +52,10 @@ private:
             for (Int_t iMod = 0; iMod < geo->GetStation(iStat)->GetNModules(); iMod++)
                 for (Int_t iLay = 0; iLay < geo->GetStation(iStat)->GetModule(iMod)->GetNStripLayers(); iLay++)
                     fHistoManager->Create1 <TH1F> (Form("%s_1d, Distribution of fired strips, Stat %d Mod %d Lay %d", detName.Data(), iStat, iMod, iLay),
-                        Form("%s, Distribution of fired strips, Stat %d Mod %d Lay %d", detName.Data(), iStat, iMod, iLay), 100, 0., 0.);
+                        Form("%s, Distribution of fired strips, Stat %d Mod %d Lay %d", detName.Data(), iStat, iMod, iLay),
+                        fSteering->GetAxisAttributes(Form("%s_1d, Distribution of fired strips, Stat %d Mod %d Lay %d", detName.Data(), iStat, iMod, iLay))[0],
+                        fSteering->GetAxisAttributes(Form("%s_1d, Distribution of fired strips, Stat %d Mod %d Lay %d", detName.Data(), iStat, iMod, iLay))[1],
+                        fSteering->GetAxisAttributes(Form("%s_1d, Distribution of fired strips, Stat %d Mod %d Lay %d", detName.Data(), iStat, iMod, iLay))[2]);
     }
 
     // Histos 2
@@ -63,7 +66,13 @@ private:
             for (Int_t iMod = 0; iMod < geo->GetStation(iStat)->GetNModules(); iMod++)
                 for (Int_t iLay = 0; iLay < geo->GetStation(iStat)->GetModule(iMod)->GetNStripLayers(); iLay++)
                     fHistoManager->Create2 <TH2F> (Form("%s_2d, Distribution of fired strips vs. signal, Stat %d Mod %d Lay %d", detName.Data(), iStat, iMod, iLay),
-                        Form("%s, Distribution of fired strips vs. signal, Stat %d Mod %d Lay %d", detName.Data(), iStat, iMod, iLay), 100, 0., 0., 100, 0., 0.);
+                        Form("%s, Distribution of fired strips vs. signal, Stat %d Mod %d Lay %d", detName.Data(), iStat, iMod, iLay),
+                        fSteering->GetAxisAttributes(Form("%s_2d, Distribution of fired strips vs. signal, Stat %d Mod %d Lay %d", detName.Data(), iStat, iMod, iLay))[0],
+                        fSteering->GetAxisAttributes(Form("%s_2d, Distribution of fired strips vs. signal, Stat %d Mod %d Lay %d", detName.Data(), iStat, iMod, iLay))[1],
+                        fSteering->GetAxisAttributes(Form("%s_2d, Distribution of fired strips vs. signal, Stat %d Mod %d Lay %d", detName.Data(), iStat, iMod, iLay))[2],
+                        fSteering->GetAxisAttributes(Form("%s_2d, Distribution of fired strips vs. signal, Stat %d Mod %d Lay %d", detName.Data(), iStat, iMod, iLay))[3],
+                        fSteering->GetAxisAttributes(Form("%s_2d, Distribution of fired strips vs. signal, Stat %d Mod %d Lay %d", detName.Data(), iStat, iMod, iLay))[4],
+                        fSteering->GetAxisAttributes(Form("%s_2d, Distribution of fired strips vs. signal, Stat %d Mod %d Lay %d", detName.Data(), iStat, iMod, iLay))[5]);
     }
 
     ClassDef(BmnCoordinateDetQa, 1);

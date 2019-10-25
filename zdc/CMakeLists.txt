@@ -35,6 +35,7 @@ BmnZdcDigi.cxx
 BmnZdcDigiPar.cxx
 BmnZdcDigiScheme.cxx
 BmnZdcDigiProducer.cxx
+BmnZdcBScanner.cxx
 )
 
 Set(HEADERS)

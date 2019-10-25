@@ -14,4 +14,5 @@
 #pragma link C++ class  BmnZdcDigiPar+;
 #pragma link C++ class  BmnZdcDigiScheme+;
 #pragma link C++ class  BmnZdcDigiProducer+;
+#pragma link C++ class  BmnZdcBScanner+;
 #endif

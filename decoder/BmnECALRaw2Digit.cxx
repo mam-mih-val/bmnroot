@@ -541,7 +541,9 @@ void BmnECALRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ecaldigit) {
        {
 	   hampl->Fill(amp);
 	   amp *= cal[ecal_map_element[ind].chan];
-           new(ar_ecal[ecaldigit->GetEntriesFast()]) BmnECALDigit(ecal_map_element[ind].ix,ecal_map_element[ind].iy,ecal_map_element[ind].x,ecal_map_element[ind].y,ecal_map_element[ind].size+1,
+//           new(ar_ecal[ecaldigit->GetEntriesFast()]) BmnECALDigit(ecal_map_element[ind].ix,ecal_map_element[ind].iy,ecal_map_element[ind].x,ecal_map_element[ind].y,ecal_map_element[ind].size+1,
+//           ecal_map_element[ind].chan+1,amp);  
+           new(ar_ecal[ecaldigit->GetEntriesFast()]) BmnECALDigit(ecal_map_element[ind].x,ecal_map_element[ind].y,
            ecal_map_element[ind].chan+1,amp);  
 	   ecal_amp[ecal_map_element[ind].chan] = amp;
        }

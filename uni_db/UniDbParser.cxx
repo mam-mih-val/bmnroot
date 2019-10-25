@@ -1186,6 +1186,8 @@ int UniDbParser::ParseDb2Db()
     delete stmt_source;
     delete source_db;
     delete dest_db;
+
+    return 0;
 }
 
 // parse text file with beam spill to the C++ structure (temporary function)

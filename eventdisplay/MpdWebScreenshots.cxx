@@ -531,6 +531,8 @@ int MpdWebScreenshots::acceptConnection(int currentSocket, TString output_dir)
 	close(connecting_socket);
 
 	while (-1 != waitpid(-1, NULL, WNOHANG));
+
+    return 0;
 }
 
 int MpdWebScreenshots::start(int webPort, TString output_dir)

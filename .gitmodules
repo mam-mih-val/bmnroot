@@ -1,3 +1,3 @@
-[submodule "macro/mpd_scheduler"]
-	path = macro/mpd_scheduler
+[submodule "macro/nica_scheduler"]
+	path = macro/nica_scheduler
 	url = https://git.jinr.ru/nica_modules/mpd_scheduler.git

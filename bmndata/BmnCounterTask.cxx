@@ -26,8 +26,10 @@ BmnCounter::~BmnCounter() {
 
 InitStatus BmnCounter::Init() {
     FairRootManager* ioman = FairRootManager::Instance();
-    if (!ioman) {
+    if (!ioman)
+    {
         Fatal("Init", "FairRootManager is not instantiated");
+        return kERROR;
     }
     fEvHead = (BmnEventHeader*) ioman->GetObject("EventHeader");
     if (!fEvHead)
@@ -36,6 +38,7 @@ InitStatus BmnCounter::Init() {
     if (ioman->CheckMaxEventNo(fNEvents) < fNEvents)
         fNEvents = ioman->CheckMaxEventNo(fNEvents);
 
+    return kSUCCESS;
 }
 
 void BmnCounter::Exec(Option_t* opt) {

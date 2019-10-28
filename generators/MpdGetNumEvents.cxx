@@ -83,16 +83,16 @@ int MpdLibZ::read(voidp buf, unsigned len) { return gzread(file, buf, len); }
 int MpdLibZ::write(voidpc buf, unsigned len) { return gzwrite(file, buf, len); }
 
 /* Sets the starting position for the next gzread or gzwrite on the given
-   compressed file.  The offset represents a number of bytes in the
-   uncompressed data stream.  The whence parameter is defined as in lseek(2);
+   compressed file. The offset represents a number of bytes in the
+   uncompressed data stream. The whence parameter is defined as in lseek(2);
    the value SEEK_END is not supported.
 
-     If the file is opened for reading, this function is emulated but can be
-   extremely slow.  If the file is opened for writing, only forward seeks are
+   If the file is opened for reading, this function is emulated but can be
+   extremely slow. If the file is opened for writing, only forward seeks are
    supported; gzseek then compresses a sequence of zeroes up to the new
    starting position.
 
-     gzseek returns the resulting offset location as measured in bytes from
+   gzseek returns the resulting offset location as measured in bytes from
    the beginning of the uncompressed stream, or -1 in case of error, in
    particular if the file is opened for writing and the new starting position
    would be before the current position. */
@@ -105,6 +105,8 @@ off_t MpdLibZ::seek(off_t pos, int whence)
         case 1:
             return gzseek(file, pos, SEEK_SET);
     }
+
+    return -1;
 }
 
 /* Returns the starting position for the next gzread or gzwrite on the given

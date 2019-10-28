@@ -143,7 +143,7 @@ void Tof400Alignment(TString NameFileIn = "bmndst.root", Int_t nEvForRead = 0) {
     eveTree->Add(inName);
 
     TClonesArray *Tof400Hits;
-    eveTree->SetBranchAddress("BmnTof1Hit", &Tof400Hits);
+    eveTree->SetBranchAddress("BmnTof400Hit", &Tof400Hits);
 
     TClonesArray *GemSeeds;
     eveTree->SetBranchAddress("BmnGemTrack", &GemSeeds);

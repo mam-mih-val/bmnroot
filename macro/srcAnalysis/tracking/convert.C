@@ -39,7 +39,7 @@ void convert()
   TClonesArray *tofArray = new TClonesArray("BmnTofHit");
   TClonesArray *gemArray = new TClonesArray("BmnGemStripHit");
   TClonesArray *mwpcArray = new TClonesArray("BmnMwpcHit");
-  outtree->Branch("BmnTof1Hit",&tofArray);
+  outtree->Branch("BmnTof400Hit",&tofArray);
   outtree->Branch("BmnGemStripHit",&gemArray);
   outtree->Branch("BmnMwpcHit",&mwpcArray);
   TClonesArray &tRef=*tofArray;

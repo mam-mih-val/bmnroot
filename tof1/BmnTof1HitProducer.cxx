@@ -80,7 +80,7 @@ InitStatus BmnTof1HitProducer::Init() {
     if (fOnlyPrimary) cout << " Only primary particles are processed!!! \n"; // FIXME NOT used now ADDD
 
     if (fUseMCData) {
-        aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF1Point");
+        aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF400Point");
         if (!aMcPoints) {
             cout << "BmnTof1HitProducer::Init(): branch TOF1Point not found! Task will be deactivated" << endl;
             SetActive(kFALSE);
@@ -115,7 +115,7 @@ InitStatus BmnTof1HitProducer::Init() {
 
     // Create and register output array
     aTofHits = new TClonesArray("BmnTofHit");
-    FairRootManager::Instance()->Register("BmnTof1Hit", "TOF1", aTofHits, kTRUE);
+    FairRootManager::Instance()->Register("BmnTof400Hit", "TOF1", aTofHits, kTRUE);
 
     //Parsing geometry
     fNDetectors = pGeoUtils->ParseTGeoManager(fUseMCData, h2TestStrips, true);

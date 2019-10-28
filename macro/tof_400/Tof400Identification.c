@@ -54,7 +54,7 @@ void Tof400Identification(TString NameFileIn = "bmndst.root", Int_t nEvForRead =
     eveTree->Add(inName);
 
     TClonesArray *Tof400Hits;
-    eveTree->SetBranchAddress("BmnTof1Hit", &Tof400Hits);
+    eveTree->SetBranchAddress("BmnTof400Hit", &Tof400Hits);
 
     TClonesArray *BmnGlobTr;
     eveTree->SetBranchAddress("BmnGlobalTrack", &BmnGlobTr);

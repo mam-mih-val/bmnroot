@@ -225,6 +225,8 @@ Float_t ChiSq(const TVector3* par, const BmnGemTrack* tr, const TClonesArray* ar
         }
         return Sqrt(sum);
     }
+
+    return -1;
 }
 
 Float_t NumericalRootFinder(TF1 f, Float_t left, Float_t right) {

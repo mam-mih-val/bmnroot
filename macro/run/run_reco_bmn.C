@@ -11,7 +11,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0,
         Int_t nEvents = 1000) {
-    gDebug = 0; // Debug option
+                gDebug = 0; // Debug option
     // Verbosity level (0 = quiet (progress bar), 1 = event-level, 2 = track-level, 3 = full debug)
     Int_t iVerbose = 0;
 
@@ -230,9 +230,15 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                          TOF2 hit finder                       === //
     // ====================================================================== //
-    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7.txt", !isExp, iVerbose, kFALSE);
+    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7_panin.txt", !isExp, iVerbose, kFALSE);
     tof2HP->SetTimeResolution(0.115);
-    tof2HP->SetMCTimeFile("TOF700_MC_time_run7.txt");
+    tof2HP->SetMCTimeFile("TOF700_MC_argon_qgsm_time_run7.txt");
+    tof2HP->SetMainStripSelection(0); // 0 - minimal time, 1 - maximal amplitude
+    tof2HP->SetSelectXYCalibration(1); // 0 - Petukhov, 1 - Panin
+    tof2HP->SetTimeMin(-2.f); // minimal digit time
+    tof2HP->SetTimeMax(+15.f); // Maximal digit time
+    tof2HP->SetDiffTimeMaxSmall(1.3f); // Abs maximal difference for small chambers
+    tof2HP->SetDiffTimeMaxBig(3.5f); // Abs maximal difference for big chambers
     fRunAna->AddTask(tof2HP);
 
     // ====================================================================== //

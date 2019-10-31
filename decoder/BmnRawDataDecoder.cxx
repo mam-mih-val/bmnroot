@@ -349,8 +349,8 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     msc->Delete();
     //    eventHeaderDAQ->Delete();
     BmnTrigInfo* trigInfo = new BmnTrigInfo();
-    //    if (fVerbose)
-    DrawBar(fCurentPositionRawFile, fLengthRawFile);
+    if (fVerbose)
+        DrawBar(fCurentPositionRawFile, fLengthRawFile);
 
     Long64_t idx = 1;
     BmnEventType evType = kBMNPAYLOAD;

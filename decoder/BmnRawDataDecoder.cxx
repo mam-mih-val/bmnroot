@@ -349,7 +349,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     msc->Delete();
     //    eventHeaderDAQ->Delete();
     BmnTrigInfo* trigInfo = new BmnTrigInfo();
-    if (fVerbose)
+    if (fVerbose > 1)
         DrawBar(fCurentPositionRawFile, fLengthRawFile);
 
     Long64_t idx = 1;
@@ -940,7 +940,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         if (fGemMapper) fGemMapper->LoadPedestalsMK(fRawTree, adc32, eventHeaderDAQ, Min(fNevents, (UInt_t) 100000));
         printf("[INFO]" ANSI_COLOR_BLUE " First payload loop\n" ANSI_COLOR_RESET);
         for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
-            if (fVerbose)
+            if (fVerbose > 1)
                 DrawBar(iEv, fNevents);
             ClearArrays();
             fRawTree->GetEntry(iEv);
@@ -963,7 +963,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         printf("\tNumber of requested pedestal events is ");
         printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, fEvForPedestals);
         for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
-            if (fVerbose)
+            if (fVerbose > 1)
                 DrawBar(fPedEvCntr, fEvForPedestals);
             fRawTree->GetEntry(iEv);
 
@@ -1013,7 +1013,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             if (fSiliconMapper) fSiliconMapper->FillProfiles(adc128);
             if (fCscMapper) fCscMapper->FillProfiles(adc32);
             prevEventType = curEventType;
-            if (fVerbose)
+            if (fVerbose > 1)
                 DrawBar(iEv, n);
         }
         printf("\tMarking noisy channels\n");
@@ -1050,7 +1050,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         printf("\tNumber of requested pedestal events is ");
         printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, fEvForPedestals);
         for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
-            if (fVerbose)
+            if (fVerbose > 1)
                 DrawBar(fPedEvCntr, fEvForPedestals);
             fRawTree->GetEntry(iEv);
 
@@ -1106,9 +1106,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     printf("\n[INFO]");
     printf(ANSI_COLOR_BLUE " Main loop over events:\n" ANSI_COLOR_RESET);
     for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
-        if (fVerbose == 0) {
+        if (fVerbose == 1) {
             if (iEv % 5000 == 0) cout << "Digitization event #" << iEv << endl;
-        } else
+        } else if (fVerbose > 1)
             DrawBar(iEv, fNevents);
         ClearArrays();
 

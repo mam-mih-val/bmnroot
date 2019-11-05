@@ -164,7 +164,7 @@ void BmnMwpcTrackFinder::Exec(Option_t* opt) {
   //--------------------------------------------------------------------
 
   //--------------------MWPC pairs matching ----------------------------
-  // if ( Nbest_pair[0] > 0 && Nbest_pair[1] > 0 ) PairMatching(Nbest_pair, par_ab_pair, kZ_midle_pair);
+  if ( Nbest_pair[0] > 0 && Nbest_pair[1] > 0 ) PairMatching(Nbest_pair, par_ab_pair, kZ_midle_pair);
   //--------------------------------------------------------------------
   
   

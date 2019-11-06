@@ -353,6 +353,7 @@ private:
     Bool_t fDetectorSetup[11];
     pt::ptree conf;
     Bool_t isSpillStart;
+    UInt_t fSpillCntr;
 
 
     Int_t fTOF700ReferenceRun;

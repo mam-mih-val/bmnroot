@@ -1592,7 +1592,7 @@ void BmnMwpcHitFinder::Finish() {
 
   if (fDebug) {
     printf("MWPC hit finder: write hists to file... ");
-    //fOutputFileName = Form("hMWPChits_p%d_run%d.root", fRunPeriod, fRunNumber);
+    fOutputFileName = Form("hMWPChits_p%d_run%d.root", fRunPeriod, fRunNumber);
     cout<< fOutputFileName <<endl;
     TFile file(fOutputFileName, "RECREATE");
     if(fDoTest) fList.Write();

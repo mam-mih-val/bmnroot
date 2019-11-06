@@ -62,7 +62,8 @@ include(WriteConfigFile)
 include(CTest)
 include(CheckCompiler)
 
-# Set the build type: None, Debug, Release, RelWithDebInfo, MinSizeRel or OMP
+# Set the build type: None, Debug, Release, RelWithDebInfo, MinSizeRel, OMP
+# OMP - the quickest multithreading BmnRoot version for a multicore machine
 If(NOT CMAKE_BUILD_TYPE)
   Message("Set BuildType DEBUG")
   set(CMAKE_BUILD_TYPE Debug)

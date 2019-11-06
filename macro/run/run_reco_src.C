@@ -208,6 +208,12 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
      BmnSiliconTrackFinder* siTF = new BmnSiliconTrackFinder(isTarget, run_number);
      fRunAna->AddTask(siTF);
 
+     // ====================================================================== //
+     // ===                        Tracking (Upstream magnet)              === //
+     // ====================================================================== //
+     BmnUpstreamTracking* upTF = new BmnUpstreamTracking(run_number);
+     fRunAna->AddTask(upTF);
+
     // ====================================================================== //
     // ===                   Tracking (GEM in magnet)                     === //
     // ====================================================================== //

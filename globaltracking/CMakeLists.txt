@@ -34,6 +34,7 @@ link_directories(${LINK_DIRECTORIES})
 Set(SRCS
  BmnDetectorSetup.cxx
  BmnGlobalTracking.cxx
+ BmnUpstreamTracking.cxx
  #BmnSRCTriggersCheck.cxx
  BmnTriggersCheck.cxx
  BmnVertexFinder.cxx
@@ -42,6 +43,7 @@ Set(SRCS
 Set(HEADERS
  BmnDetectorSetup.h
  BmnGlobalTracking.h
+ BmnUpstreamTracking.h
  #BmnSRCTriggersCheck.h - compilation failed
  BmnTriggersCheck.h
  BmnHitFinderRun1.h

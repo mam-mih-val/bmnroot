@@ -1,12 +1,12 @@
 //file: full path to raw file
 //nEvents: if 0 then decode all events
 //doConvert: convert RAW --> ROOT before decoding or use file converted before
-void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_t doConvert = kTRUE, Bool_t doHoldRawRoot = kFALSE)
+void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_t doConvert = kTRUE, Bool_t doHoldRawRoot = kTRUE)
 {
     gSystem->ExpandPathName(file);
     gSystem->ExpandPathName(outfile);
 
-    Int_t iVerbose = 0; ///<- Verbosity level
+    Int_t iVerbose = 1; ///<- Verbosity level: 0 - Progress Bar; 1 - short info on passed events
     UInt_t period = 7;
     BmnSetup stp = kBMNSETUP; // use kSRCSETUP for Short-Range Correlation program and kBMNSETUP otherwise
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, outfile, nEvents, period);

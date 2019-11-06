@@ -282,9 +282,9 @@ void BmnSiliconTrackFinder::GetXYspatial(Int_t **NClX, Int_t **NClXp, Double_t *
 
   SensitiveAreaY = new Double_t[fNstations];
   SensitiveAreaY[0] = 0.;
-  SensitiveAreaY[1] = 6.0705;
-  SensitiveAreaY[2] = 2 * 6.07005 + 0.2303;
-  SensitiveAreaY[3] = 2 * 6.07005 + 0.2303;
+  SensitiveAreaY[1] = 6.0705 + 0.1148;
+  SensitiveAreaY[2] = 2 * 6.0705 + 0.1148 + 0.2303;
+  SensitiveAreaY[3] = 2 * 6.0705 + 0.1148 + 0.2303;
   Double_t YCoor_cand = -1.;
 
   for (Int_t istat = 1; istat < fNstations; istat++) {
@@ -300,36 +300,29 @@ void BmnSiliconTrackFinder::GetXYspatial(Int_t **NClX, Int_t **NClXp, Double_t *
             // if ( fDebug ) cout<<" istat "<<istat<<" imod "<<imod<<" X "<<XCoor[istat][imod][clx]<<" Xp "<<XpCoor[istat][imod][clxp] <<" Ycand "<<YCoor_cand <<endl;
             // if ( fDebug ) cout<<" SensitiveAreaY[istat] "<<SensitiveAreaY[istat]<<endl;
 
-            if (YCoor_cand >= 0 && YCoor_cand <= SensitiveAreaY[istat]) {
-              // /*
+           if (YCoor_cand >= 0.1148 && YCoor_cand <= SensitiveAreaY[istat]) { // if (YCoor_cand >= 0 && YCoor_cand <= SensitiveAreaY[istat]) {
+               
+              if( istat > 1 && YCoor_cand > 6.0705 + 0.1148  &&  YCoor_cand < 6.0705 + 0.1148 + 0.2303 ) continue;
+               
               if (istat > 1 && YCoor_cand <= half_module) {
-
-                
-               //if (istat == 2 && imod == 1 || istat == 3 && imod == 2) XpCoor[2][1][clxp]+= shift_after_zigzag;
-              // else                         XpCoor[istat][imod][clxp] -= shift_after_zigzag;
-              //XpCoor[istat][imod][clxp] -= shift_after_zigzag;
-              XpCoor[istat][imod][clxp] += shift_after_zigzag;
-
-               YCoor_cand = (XpCoor[istat][imod][clxp] - XCoor[istat][imod][clx]) / tg2_5;
+                YCoor_cand -= shift_after_zigzag;
               }
-             // */
-             // if ( fDebug ) cout<<" Y "<<YCoor_cand<<endl;
-             Xsp[istat][imod][NXYsp[istat][imod]]         = XCoor[istat][imod][clx];
-             SigspX[istat][imod][NXYsp[istat][imod]]      = SigmX[istat][imod][clx];
-             XspCl[istat][imod][NXYsp[istat][imod]]       = XCl[istat][imod][clx];
-             XspCl_width[istat][imod][NXYsp[istat][imod]] = XCl_width[istat][imod][clx];
-             sQxsp[istat][imod][NXYsp[istat][imod]]       = sQx[istat][imod][clx];
+              // if ( fDebug ) cout<<" Y "<<YCoor_cand<<endl;
+              Xsp[istat][imod][NXYsp[istat][imod]]         = XCoor[istat][imod][clx];
+              SigspX[istat][imod][NXYsp[istat][imod]]      = SigmX[istat][imod][clx];
+              XspCl[istat][imod][NXYsp[istat][imod]]       = XCl[istat][imod][clx];
+              XspCl_width[istat][imod][NXYsp[istat][imod]] = XCl_width[istat][imod][clx];
+              sQxsp[istat][imod][NXYsp[istat][imod]]       = sQx[istat][imod][clx];
              
-             Xpsp[istat][imod][NXYsp[istat][imod]]        = XpCoor[istat][imod][clxp];
-             SigspXp[istat][imod][NXYsp[istat][imod]]     = SigmXp[istat][imod][clxp];
-             XpspCl[istat][imod][NXYsp[istat][imod]]      = XpCl[istat][imod][clxp];
-             XpspCl_width[istat][imod][NXYsp[istat][imod]]= XpCl_width[istat][imod][clxp];
-             sQxpsp[istat][imod][NXYsp[istat][imod]]      = sQxp[istat][imod][clxp];
+              Xpsp[istat][imod][NXYsp[istat][imod]]        = XpCoor[istat][imod][clxp];
+              SigspXp[istat][imod][NXYsp[istat][imod]]     = SigmXp[istat][imod][clxp];
+              XpspCl[istat][imod][NXYsp[istat][imod]]      = XpCl[istat][imod][clxp];
+              XpspCl_width[istat][imod][NXYsp[istat][imod]]= XpCl_width[istat][imod][clxp];
+              sQxpsp[istat][imod][NXYsp[istat][imod]]      = sQxp[istat][imod][clxp];
              
-             Ysp[istat][imod][NXYsp[istat][imod]]         = YCoor_cand;
-             SigspY[istat][imod][NXYsp[istat][imod]]      = sqrt( pow (SigmX[istat][imod][clx],2) + pow(SigmXp[istat][imod][clxp],2) ) / tg2_5;
-             NXYsp[istat][imod]++;
-              
+              Ysp[istat][imod][NXYsp[istat][imod]]         = YCoor_cand;
+              SigspY[istat][imod][NXYsp[istat][imod]]      = sqrt( pow (SigmX[istat][imod][clx],2) + pow(SigmXp[istat][imod][clxp],2) ) / tg2_5;
+              NXYsp[istat][imod]++;
             }
             //if (fDebug) cout<<" NXYsp["<<istat<<"]["<<imod<<"] "<<NXYsp[istat][imod]<<endl;
 
@@ -702,22 +695,22 @@ Int_t **NclustX_, Int_t **NclustXp_, Double_t ***XCoord_, Double_t ***XpCoord_){
       if (ist == 2 && imod > 1 ) continue;
       for (Int_t cl = 0; cl < NhitsXYmod_[ist][imod]; cl++) {
 
-          //if(ist == 2 || ist == 3) { // gap between Si planes implemented for Run-7
-          // if( YspCoord_[ist][imod][cl] > 0. && YspCoord_[ist][imod][cl] <= 0.1151) continue;
-          //if( YspCoord_[ist][imod][cl] < 0. && YspCoord_[ist][imod][cl] >= -0.1151) continue;
+        if(ist == 2 || ist == 3) { // gap between Si planes implemented for Run-7
+         //if( YspCoord_[ist][imod][cl] > 0. && YspCoord_[ist][imod][cl] <= 0.1151) continue;
+         //if( YspCoord_[ist][imod][cl] < 0. && YspCoord_[ist][imod][cl] >= -0.1151) continue;
           //if( YspCoord_[ist][imod][cl] > 0. ) YspCoord_[ist][imod][cl] += 0.1151;
+          //else (YspCoord_[ist][imod][cl] -= 0.1151;
           // else{
           //XpCoord[ist][imod][cl]
           // YspCoord_[ist][imod][cl] -= 0.1151;
           // }
-          // }
-
+        }
         //rotate around X
         if (
           (ist == 1 && (imod == 1 || imod == 3)) || 
           (ist == 2 && imod == 1) ||
           (ist == 3 && (imod == 2 || imod ==3 || imod ==6 || imod ==7) )
-        ) {
+        ){
           XspCoord_[ist][imod][cl]  = -XspCoord_[ist][imod][cl];
           XpspCoord_[ist][imod][cl] = -XpspCoord_[ist][imod][cl];
         }
@@ -1524,7 +1517,6 @@ Double_t ***pointsX, Double_t ***pointsXp, Double_t ***pointsXsig,Double_t ***po
 //----------------------------------------------------------------------
 
 
-
 //----------------------------------------------------------------------
 void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
   cout<<endl;
@@ -1549,14 +1541,87 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
     " Chi2 "<<CleanTr_.at(InIter).Chi2<<endl;
     cout<<"    Xv "<<CleanTr_.at(InIter).Xv<<" Yv "<<CleanTr_.at(InIter).Yv<<endl;
     cout<<" --X--"<<endl;
-    for (Int_t st = 1; st < fNstations; ++st) { 
-      if ( CleanTr_.at(InIter).CoordX[st] < -900.) continue;
+    Double_t X1_0 = 999., X1_1= 999., X1_2= 999., X1_3= 999., X2_0= 999.,X2_1= 999.,X3_1= 999.,X3_2= 999.;
+    //-------X--------
+    for (Int_t st = 1; st < fNstations; ++st) {
       if ( CleanTr_.at(InIter).CoordX[st] < -900.) continue;
       Double_t Hit = CleanTr_.at(InIter).CoordX[st]; 
       Double_t Fit = CleanTr_.at(InIter).param[0] * CleanTr_.at(InIter).CoordZ[st] + CleanTr_.at(InIter).param[1];
-      cout<<" st "<<st<<" Xhit "<<Hit<<" Xfit "<< Fit<<" Z "<<CleanTr_.at(InIter).CoordZ[st]<< " strip "<<CleanTr_.at(InIter).StripNumX[st]<<" Clsize "<<CleanTr_.at(InIter).ClSizeX[st]<<" Q "<<CleanTr_.at(InIter).SumQX[st]<<endl;
+      cout<<" st "<<st<<" mod "<<CleanTr_.at(InIter).ModNum[st]<<" Xhit "<<Hit<<" Xfit "<< Fit<<" Z "<<CleanTr_.at(InIter).CoordZ[st]<< " strip "<<CleanTr_.at(InIter).StripNumX[st]<<" Clsize "<<CleanTr_.at(InIter).ClSizeX[st]<<" Q "<<CleanTr_.at(InIter).SumQX[st]<<endl;
+      
+      if (st == 1 ){
+        hX_st_1 -> Fill(CleanTr_.at(InIter).CoordX[st]);
+        hdXvsXst_1 -> Fill(Hit,Hit - Fit); 
+        hdX_st_1-> Fill(Hit - Fit);
+        if (CleanTr_.at(InIter).ModNum[st] == 0 ) {
+          X1_0 = CleanTr_.at(InIter).CoordX[1];
+          hdXvsXst1_0 -> Fill(CleanTr_.at(InIter).CoordX[1],CleanTr_.at(InIter).CoordX[1] - Fit);
+        }
+        if (CleanTr_.at(InIter).ModNum[st] == 1 ){
+          X1_1 = CleanTr_.at(InIter).CoordX[1];
+          hdXvsXst1_1 -> Fill(CleanTr_.at(InIter).CoordX[1],CleanTr_.at(InIter).CoordX[1] - Fit);
+        }
+        if (CleanTr_.at(InIter).ModNum[st] == 2 ){
+          X1_2 = CleanTr_.at(InIter).CoordX[1];
+          hdXvsXst1_2 -> Fill(CleanTr_.at(InIter).CoordX[1],CleanTr_.at(InIter).CoordX[1] - Fit);
+        }
+        if (CleanTr_.at(InIter).ModNum[st] == 3 ){
+          X1_3 = CleanTr_.at(InIter).CoordX[1];
+          hdXvsXst1_3 -> Fill(CleanTr_.at(InIter).CoordX[1],CleanTr_.at(InIter).CoordX[1] - Fit);
+        }
+      }
+      if (st == 2 ){
+        hX_st_2 -> Fill(CleanTr_.at(InIter).CoordX[st]);
+        hdXvsXst_2 -> Fill(Hit,Hit - Fit); 
+        hdX_st_2-> Fill(Hit - Fit);
+        if (CleanTr_.at(InIter).ModNum[2] == 0 ){
+          X2_0 = CleanTr_.at(InIter).CoordX[2];
+          hdXvsXst2_0 -> Fill(CleanTr_.at(InIter).CoordX[2],CleanTr_.at(InIter).CoordX[2] - Fit);
+        }
+        if (CleanTr_.at(InIter).ModNum[2] == 1 ){
+          X2_1 = CleanTr_.at(InIter).CoordX[2];
+          hdXvsXst2_1 -> Fill(CleanTr_.at(InIter).CoordX[2],CleanTr_.at(InIter).CoordX[2] - Fit);
+        }
+      }
+      if (st == 3 ){
+        hX_st_3 -> Fill(CleanTr_.at(InIter).CoordX[st]);
+        hdXvsXst_3 -> Fill(Hit,Hit - Fit); 
+        hdX_st_3-> Fill(Hit - Fit);
+        if (CleanTr_.at(InIter).ModNum[3] == 1 ){
+          X3_1 = CleanTr_.at(InIter).CoordX[3];
+          hdXvsXst3_1 -> Fill(CleanTr_.at(InIter).CoordX[3],CleanTr_.at(InIter).CoordX[3] - Fit);
+        }
+        if (CleanTr_.at(InIter).ModNum[3] == 2 ){
+          X3_2 = CleanTr_.at(InIter).CoordX[3];
+          hdXvsXst3_2 -> Fill(CleanTr_.at(InIter).CoordX[3],CleanTr_.at(InIter).CoordX[3] - Fit);
+        }
+      }
+    }//st
+    if (X1_0 < 900. && X2_0 < 900.) hdXst1_0_st2_0->Fill(X1_0 - X2_0);
+    if (X1_0 < 900. && X2_1 < 900.) hdXst1_0_st2_1->Fill(X1_0 - X2_1);
+    if (X1_1 < 900. && X2_0 < 900.) hdXst1_1_st2_0->Fill(X1_1 - X2_0);
+    if (X1_1 < 900. && X2_1 < 900.) hdXst1_1_st2_1->Fill(X1_1 - X2_1);
+    if (X1_2 < 900. && X2_0 < 900.) hdXst1_2_st2_0->Fill(X1_2 - X2_0);
+    if (X1_2 < 900. && X2_1 < 900.) hdXst1_2_st2_1->Fill(X1_2 - X2_1);
+    if (X1_3 < 900. && X2_0 < 900.) hdXst1_3_st2_0->Fill(X1_3 - X2_0);
+    if (X1_3 < 900. && X2_1 < 900.) hdXst1_3_st2_1->Fill(X1_3 - X2_1);
+    if (X2_0 < 900. && X3_1 < 900.) hdXst2_0_st3_1->Fill(X2_0 - X3_1);
+    if (X2_0 < 900. && X3_2 < 900.) hdXst2_0_st3_2->Fill(X2_0 - X3_2);
+    if (X2_1 < 900. && X3_1 < 900.) hdXst2_1_st3_1->Fill(X2_1 - X3_1);
+    if (X2_1 < 900. && X3_2 < 900.) hdXst2_1_st3_2->Fill(X2_1 - X3_2);
+    
+    if(CleanTr_.at(InIter).Nhits == 6 ){
+      Double_t Ax = (CleanTr_.at(InIter).CoordX[1] -CleanTr_.at(InIter).CoordX[3])/(CleanTr_.at(InIter).CoordZ[1] -CleanTr_.at(InIter).CoordZ[3]);
+      if (X2_0 < 900.) hX13_X2_m0->Fill( X2_0 - (Ax*(CleanTr_.at(InIter).CoordZ[2] - CleanTr_.at(InIter).CoordZ[1]) + CleanTr_.at(InIter).CoordX[1]) );
+      if (X2_1 < 900.) hX13_X2_m1->Fill( X2_1 - (Ax*(CleanTr_.at(InIter).CoordZ[2] - CleanTr_.at(InIter).CoordZ[1]) + CleanTr_.at(InIter).CoordX[1]) );
     }
+    hdX_st1_st2->Fill( CleanTr_.at(InIter).CoordX[1] -CleanTr_.at(InIter).CoordX[2] );
+    hdX_st2_st3->Fill( CleanTr_.at(InIter).CoordX[2] -CleanTr_.at(InIter).CoordX[3] );
+    hdX_st1_st3->Fill( CleanTr_.at(InIter).CoordX[1] -CleanTr_.at(InIter).CoordX[3] );
+    
+    //-------Xp--------
     cout<<" --Xp--"<<endl;
+    Double_t Xp2_0= 999.,Xp2_1= 999.;
     for (Int_t st = 1; st < fNstations; ++st) { 
       if ( CleanTr_.at(InIter).CoordXp[st] < -900.) continue;
       Double_t Hit = CleanTr_.at(InIter).CoordXp[st];
@@ -1564,33 +1629,123 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
           ( CleanTr_.at(InIter).param[2] * CleanTr_.at(InIter).CoordZ[st] + CleanTr_.at(InIter).param[3] ) * Angle(st,CleanTr_.at(InIter).ModNum[st]) * tg2_5 ;
           // x' = x + y*tg   
       cout<<" st "<<st<<" Xphit "<<Hit<<" Xpfit "<< Fit<<" Z "<<CleanTr_.at(InIter).CoordZ[st]<< " strip "<<CleanTr_.at(InIter).StripNumXp[st]<<" Clsize "<<CleanTr_.at(InIter).ClSizeXp[st]<<" Q "<<CleanTr_.at(InIter).SumQXp[st]<<endl;
+      if (st == 2 ){
+        if (CleanTr_.at(InIter).ModNum[2] == 0 ){
+          Xp2_0 = CleanTr_.at(InIter).CoordXp[2];
+        }
+        if (CleanTr_.at(InIter).ModNum[2] == 1 ){
+          Xp2_1 = CleanTr_.at(InIter).CoordXp[2];
+        }
+      }
     }
+    if(CleanTr_.at(InIter).Nhits == 6 ){
+      Double_t Axp = (CleanTr_.at(InIter).CoordXp[1] -CleanTr_.at(InIter).CoordXp[3])/(CleanTr_.at(InIter).CoordZ[1] -CleanTr_.at(InIter).CoordZ[3]);
+      if (Xp2_0 < 900.) hXp13_Xp2_m0->Fill( Xp2_0 - (Axp*(CleanTr_.at(InIter).CoordZ[2] - CleanTr_.at(InIter).CoordZ[1]) + CleanTr_.at(InIter).CoordXp[1]) );
+      if (Xp2_1 < 900.) hXp13_Xp2_m1->Fill( Xp2_1 - (Axp*(CleanTr_.at(InIter).CoordZ[2] - CleanTr_.at(InIter).CoordZ[1]) + CleanTr_.at(InIter).CoordXp[1]) );
+    }
+    
     if (fDebug) cout<<" --Y--"<<endl;
+    Double_t Y1_0 = 999., Y1_1= 999., Y1_2= 999., Y1_3= 999., Y2_0= 999.,Y2_1= 999.,Y3_1= 999.,Y3_2= 999.;
+    //-------Y--------
     for (Int_t st = 1; st < fNstations; ++st) { 
       if ( CleanTr_.at(InIter).CoordY[st] < -900. ) continue;
       Double_t Hit = CleanTr_.at(InIter).CoordY[st];
       Double_t Fit = CleanTr_.at(InIter).param[2] * CleanTr_.at(InIter).CoordZ[st] + CleanTr_.at(InIter).param[3];
       cout<<" st "<<st<<" Yhit "<<Hit<<" Yfit "<< Fit<<" Z "<<CleanTr_.at(InIter).CoordZ[st]<<endl;
-      if (st == 1 && CleanTr_.at(InIter).Nhits == 6) {hY_st_1    -> Fill(CleanTr_.at(InIter).CoordY[st]);hdYvsYst_1 -> Fill(Hit,Hit - Fit); hdY_st_1-> Fill(Hit - Fit);}
-      if (st == 2 && CleanTr_.at(InIter).Nhits == 6) {hY_st_2    -> Fill(CleanTr_.at(InIter).CoordY[st]);hdYvsYst_2 -> Fill(Hit,Hit - Fit); hdY_st_2-> Fill(Hit - Fit);}
-      if (st == 3 && CleanTr_.at(InIter).Nhits == 6) {hY_st_3    -> Fill(CleanTr_.at(InIter).CoordY[st]);hdYvsYst_3 -> Fill(Hit,Hit - Fit); hdY_st_3-> Fill(Hit - Fit);}
+      
+      if (st == 1 ) {hY_st_1 -> Fill(CleanTr_.at(InIter).CoordY[st]);hdYvsYst_1 -> Fill(Hit,Hit - Fit); hdY_st_1-> Fill(Hit - Fit);}
+      if (st == 2 ) {hY_st_2 -> Fill(CleanTr_.at(InIter).CoordY[st]);hdYvsYst_2 -> Fill(Hit,Hit - Fit); hdY_st_2-> Fill(Hit - Fit);}
+      if (st == 3 ) {hY_st_3 -> Fill(CleanTr_.at(InIter).CoordY[st]);hdYvsYst_3 -> Fill(CleanTr_.at(InIter).CoordY[3],CleanTr_.at(InIter).CoordY[3] - Fit); hdY_st_3-> Fill(CleanTr_.at(InIter).CoordY[3] - Fit);}
      
-      if (st == 1 && CleanTr_.at(InIter).ModNum[1] == 0 && CleanTr_.at(InIter).Nhits == 6) hdYvsYst1_mod0 -> Fill(Hit,Hit - Fit);
-      if (st == 1 && CleanTr_.at(InIter).ModNum[1] == 1 && CleanTr_.at(InIter).Nhits == 6) hdYvsYst1_mod1 -> Fill(Hit,Hit - Fit);
-      if (st == 1 && CleanTr_.at(InIter).ModNum[1] == 2 && CleanTr_.at(InIter).Nhits == 6) hdYvsYst1_mod2 -> Fill(Hit,Hit - Fit);
-      if (st == 1 && CleanTr_.at(InIter).ModNum[1] == 3 && CleanTr_.at(InIter).Nhits == 6) hdYvsYst1_mod3 -> Fill(Hit,Hit - Fit);
-      if (st == 2 && CleanTr_.at(InIter).ModNum[2] == 0 && CleanTr_.at(InIter).Nhits == 6) hdYvsYst2_mod0 -> Fill(Hit,Hit - Fit);
-      if (st == 2 && CleanTr_.at(InIter).ModNum[2] == 1 && CleanTr_.at(InIter).Nhits == 6) hdYvsYst2_mod1 -> Fill(Hit,Hit - Fit);
-      if (st == 3 && CleanTr_.at(InIter).ModNum[3] == 1 && CleanTr_.at(InIter).Nhits == 6) hdYvsYst3_mod1 -> Fill(Hit,Hit - Fit);
-      if (st == 3 && CleanTr_.at(InIter).ModNum[3] == 2 && CleanTr_.at(InIter).Nhits == 6) hdYvsYst3_mod2 -> Fill(Hit,Hit - Fit);
-
+      if (st == 1 ){
+        if ( CleanTr_.at(InIter).ModNum[1] == 0 ){
+          hdYvsYst1_mod0 -> Fill(Hit,Hit - Fit);
+          Y1_0 = CleanTr_.at(InIter).CoordY[st];
+        }
+        if ( CleanTr_.at(InIter).ModNum[1] == 1 ){
+          hdYvsYst1_mod1 -> Fill(Hit,Hit - Fit);
+          Y1_1 = CleanTr_.at(InIter).CoordY[st];
+        }
+        if ( CleanTr_.at(InIter).ModNum[1] == 2 ){
+          hdYvsYst1_mod2 -> Fill(Hit,Hit - Fit);
+          Y1_2 = CleanTr_.at(InIter).CoordY[st];
+        }
+        if ( CleanTr_.at(InIter).ModNum[1] == 3 ){
+          hdYvsYst1_mod3 -> Fill(Hit,Hit - Fit);
+          Y1_3 = CleanTr_.at(InIter).CoordY[st];
+        }
+      }
+      if (st == 2){
+        if (CleanTr_.at(InIter).ModNum[2] == 0 ){
+          hdYvsYst2_mod0 -> Fill(Hit,Hit - Fit);
+          Y2_0 = CleanTr_.at(InIter).CoordY[st];
+        }
+        if (CleanTr_.at(InIter).ModNum[2] == 1 ){
+          hdYvsYst2_mod1 -> Fill(Hit,Hit - Fit);
+          Y2_1 = CleanTr_.at(InIter).CoordY[st];
+        }
+      }
+      if (st == 3){
+        if ( CleanTr_.at(InIter).ModNum[3] == 1 ){
+          hdYvsYst3_mod1 -> Fill(Hit,Hit - Fit);
+          Y3_1 = CleanTr_.at(InIter).CoordY[st];
+        }
+        if ( CleanTr_.at(InIter).ModNum[3] == 2 ){
+          hdYvsYst3_mod2 -> Fill(Hit,Hit - Fit);
+          Y3_2 = CleanTr_.at(InIter).CoordY[st];
+        }
+      }
     }//st
     
+    hdY_st1_st2->Fill( CleanTr_.at(InIter).CoordY[1] -CleanTr_.at(InIter).CoordY[2] );
+    hdY_st2_st3->Fill( CleanTr_.at(InIter).CoordY[2] -CleanTr_.at(InIter).CoordY[3] );
+    hdY_st1_st3->Fill( CleanTr_.at(InIter).CoordY[1] -CleanTr_.at(InIter).CoordY[3] );
+    
+    
+    if (Y1_0 < 900. && Y2_0 < 900.) hdYst1_0_st2_0->Fill(Y1_0 - Y2_0);
+    if (Y1_0 < 900. && Y2_1 < 900.) hdYst1_0_st2_1->Fill(Y1_0 - Y2_1);
+    if (Y1_1 < 900. && Y2_0 < 900.) hdYst1_1_st2_0->Fill(Y1_1 - Y2_0);
+    if (Y1_1 < 900. && Y2_1 < 900.) hdYst1_1_st2_1->Fill(Y1_1 - Y2_1);
+    if (Y1_2 < 900. && Y2_0 < 900.) hdYst1_2_st2_0->Fill(Y1_2 - Y2_0);
+    if (Y1_2 < 900. && Y2_1 < 900.) hdYst1_2_st2_1->Fill(Y1_2 - Y2_1);
+    if (Y1_3 < 900. && Y2_0 < 900.) hdYst1_3_st2_0->Fill(Y1_3 - Y2_0);
+    if (Y1_3 < 900. && Y2_1 < 900.) hdYst1_3_st2_1->Fill(Y1_3 - Y2_1);
+    if (Y2_0 < 900. && Y3_1 < 900.) hdYst2_0_st3_1->Fill(Y2_0 - Y3_1);
+    if (Y2_0 < 900. && Y3_2 < 900.) hdYst2_0_st3_2->Fill(Y2_0 - Y3_2);
+    if (Y2_1 < 900. && Y3_1 < 900.) hdYst2_1_st3_1->Fill(Y2_1 - Y3_1);
+    if (Y2_1 < 900. && Y3_2 < 900.) hdYst2_1_st3_2->Fill(Y2_1 - Y3_2);
+    
+    if(CleanTr_.at(InIter).Nhits == 6 ){
+      Double_t Ax = (CleanTr_.at(InIter).CoordY[1] -CleanTr_.at(InIter).CoordY[3])/(CleanTr_.at(InIter).CoordZ[1] -CleanTr_.at(InIter).CoordZ[3]);
+      Double_t Ax23 = (CleanTr_.at(InIter).CoordY[2] -CleanTr_.at(InIter).CoordY[3])/(CleanTr_.at(InIter).CoordZ[2] -CleanTr_.at(InIter).CoordZ[3]);
+      
+      if (Y1_0 < 900.) hY1m0_Y23->Fill( Y1_0 - (Ax23*(CleanTr_.at(InIter).CoordZ[1] - CleanTr_.at(InIter).CoordZ[2]) + CleanTr_.at(InIter).CoordY[2]) );
+      if (Y1_1 < 900.) hY1m1_Y23->Fill( Y1_1 - (Ax23*(CleanTr_.at(InIter).CoordZ[1] - CleanTr_.at(InIter).CoordZ[2]) + CleanTr_.at(InIter).CoordY[2]) );
+      if (Y1_2 < 900.) hY1m2_Y23->Fill( Y1_2 - (Ax23*(CleanTr_.at(InIter).CoordZ[1] - CleanTr_.at(InIter).CoordZ[2]) + CleanTr_.at(InIter).CoordY[2]) );
+      if (Y1_3 < 900.) hY1m3_Y23->Fill( Y1_3 - (Ax23*(CleanTr_.at(InIter).CoordZ[1] - CleanTr_.at(InIter).CoordZ[2]) + CleanTr_.at(InIter).CoordY[2]) );
+      
+      if (Y2_0 < 900.) hY13_Y2_m0->Fill( Y2_0 - (Ax*(CleanTr_.at(InIter).CoordZ[2] - CleanTr_.at(InIter).CoordZ[1]) + CleanTr_.at(InIter).CoordY[1]) );
+      if (Y2_1 < 900.) hY13_Y2_m1->Fill( Y2_1 - (Ax*(CleanTr_.at(InIter).CoordZ[2] - CleanTr_.at(InIter).CoordZ[1]) + CleanTr_.at(InIter).CoordY[1]) );
+    }
     
     hprofile_beam_z1->Fill(CleanTr_.at(InIter).param[0] * CleanTr_.at(InIter).CoordZ[1] + CleanTr_.at(InIter).param[1],CleanTr_.at(InIter).param[2] * CleanTr_.at(InIter).CoordZ[1] + CleanTr_.at(InIter).param[3] );
     hprofile_beam_z2->Fill(CleanTr_.at(InIter).param[0] * CleanTr_.at(InIter).CoordZ[2] + CleanTr_.at(InIter).param[1],CleanTr_.at(InIter).param[2] * CleanTr_.at(InIter).CoordZ[2] + CleanTr_.at(InIter).param[3] );
     hprofile_beam_z3->Fill(CleanTr_.at(InIter).param[0] * CleanTr_.at(InIter).CoordZ[3] + CleanTr_.at(InIter).param[1],CleanTr_.at(InIter).param[2] * CleanTr_.at(InIter).CoordZ[3] + CleanTr_.at(InIter).param[3] );
-
+    
+    for (Int_t st = 1; st < fNstations; ++st) { 
+       
+      if (CleanTr_.at(InIter).Nhits ==  N_min_points) {
+        if ( CleanTr_.at(InIter).CoordX[st]  < -900. ) D_eff->Fill(2*st-1); 
+        if ( CleanTr_.at(InIter).CoordXp[st] < -900. ) D_eff->Fill(2*st); 
+      }
+      if (CleanTr_.at(InIter).Nhits >  N_min_points) {
+        D_eff->Fill(2*st-1);
+        D_eff->Fill(2*st);
+        if ( CleanTr_.at(InIter).CoordX[st] > -900. )  N_eff->Fill(2*st-1);
+        if ( CleanTr_.at(InIter).CoordXp[st] > -900. ) N_eff->Fill(2*st);
+      }
+    }// st 
+    
   }//InIter
   
   if (CleanTr_.size() > 0) {
@@ -2990,47 +3145,6 @@ InitStatus BmnSiliconTrackFinder::Init() {
     hprofile_beam_z1 = new TH2D("profile_beam_z1", "beam_profile_Siz1; [cm];[cm]", 100, -10, 10, 100, -10, 10);
     hprofile_beam_z2 = new TH2D("profile_beam_z2", "beam_profile_Siz2; [cm];[cm]", 100, -10, 10, 100, -10, 10);
     hprofile_beam_z3 = new TH2D("profile_beam_z3", "beam_profile_Siz3; [cm];[cm]", 100, -10, 10, 100, -10, 10);
-    
-    
-    hY_st_1    = new TH1D("Y_st_1", "Y_st_1", 100, -6, 6);
-    hdYvsYst_1 = new TH2D("dYvsYst_1","dYvsYst_1", 100, -6, 6, 100, -0.6, 0.6);
-    fList.Add(hY_st_1);
-    hY_st_2    = new TH1D("Y_st_2", "Y_st_2", 100, -6, 6);
-    hdYvsYst_2 = new TH2D("dYvsYst_2","dYvsYst_2", 100, -6, 6, 100, -0.6, 0.6);
-    fList.Add(hY_st_2);
-    hY_st_3    = new TH1D("Y_st_3", "Y_st_3", 100, -6, 6);
-    hdYvsYst_3 = new TH2D("dYvsYst_3","dYvsYst_3", 100, -6, 6, 100, -0.2, 0.2);
-    fList.Add(hY_st_3);
-    fList.Add(hdYvsYst_1);
-    fList.Add(hdYvsYst_2);
-    fList.Add(hdYvsYst_3);
-    
-    hdY_st_1    = new TH1D("dY_st_1", "dY_st_1", 100, -0.6, 0.6);
-    hdY_st_2    = new TH1D("dY_st_2", "dY_st_2", 100, -0.6, 0.6);
-    hdY_st_3    = new TH1D("dY_st_3", "dY_st_3", 100, -0.6, 0.6);
-    fList.Add(hdY_st_1);
-    fList.Add(hdY_st_2);
-    fList.Add(hdY_st_3);
-    
-    hdYvsYst1_mod0 = new TH2D("dYvsYst1_mod0","dYvsYst1_mod0", 100, -6, 6,100, -0.6, 0.6);
-    hdYvsYst1_mod1 = new TH2D("dYvsYst1_mod1","dYvsYst1_mod1", 100, -6, 6,100, -0.6, 0.6);
-    hdYvsYst1_mod2 = new TH2D("dYvsYst1_mod2","dYvsYst1_mod2", 100, -6, 6,100, -0.6, 0.6);
-    hdYvsYst1_mod3 = new TH2D("dYvsYst1_mod3","dYvsYst1_mod3", 100, -6, 6,100, -0.6, 0.6);
-    hdYvsYst2_mod0 = new TH2D("dYvsYst2_mod0","dYvsYst2_mod0", 100, -6, 6,100, -0.6, 0.6);
-    hdYvsYst2_mod1 = new TH2D("dYvsYst2_mod1","dYvsYst2_mod1", 100, -6, 6,100, -0.6, 0.6);
-    hdYvsYst3_mod1 = new TH2D("dYvsYst3_mod1","dYvsYst3_mod1", 100, -6, 6, 100, -0.1, 0.1);
-    hdYvsYst3_mod2 = new TH2D("dYvsYst3_mod2","dYvsYst3_mod2", 100, -6, 6, 100, -0.1, 0.1);
-    
-    fList.Add(hdYvsYst1_mod0);
-    fList.Add(hdYvsYst1_mod1);
-    fList.Add(hdYvsYst1_mod2);
-    fList.Add(hdYvsYst1_mod3);
-    fList.Add(hdYvsYst2_mod0);
-    fList.Add(hdYvsYst2_mod1);
-    fList.Add(hdYvsYst3_mod1);
-    fList.Add(hdYvsYst3_mod2);
-    
-
     fList.Add(hNpoint);
     fList.Add(hChiSquareNdf);
     fList.Add(hNtracks);
@@ -3043,7 +3157,178 @@ InitStatus BmnSiliconTrackFinder::Init() {
     fList.Add(hprofile_beam_z1);
     fList.Add(hprofile_beam_z2);
     fList.Add(hprofile_beam_z3);
-  }
+    
+    hdX_st1_st2 = new TH1D("X_st1_st2","X (st1-st2)",100, -0.1, 0.1);
+    hdX_st2_st3 = new TH1D("X_st2_st3","X (st2-st3)",100, -5., 5.);
+    hdX_st1_st3 = new TH1D("X_st1_st3","X (st1-st3)",100, -5., 5.);
+    fList.Add(hdX_st1_st2);
+    fList.Add(hdX_st2_st3);
+    fList.Add(hdX_st1_st3);
+    
+    hdY_st1_st2 = new TH1D("Y_st1_st2","Y (st1-st2)",100, -1,  1);
+    hdY_st2_st3 = new TH1D("Y_st2_st3","Y (st2-st3)",100, -5., 5.);
+    hdY_st1_st3 = new TH1D("Y_st1_st3","Y (st1-st3)",100, -5., 5.);
+    fList.Add(hdY_st1_st2);
+    fList.Add(hdY_st2_st3);
+    fList.Add(hdY_st1_st3);
+    
+    hX_st_1    = new TH1D("X_st_1", "X_st_1", 100, -6, 6);
+    hX_st_2    = new TH1D("X_st_2", "X_st_2", 100, -6, 6);
+    hX_st_3    = new TH1D("X_st_3", "X_st_3", 100, -6, 6);
+    fList.Add(hX_st_1);
+    fList.Add(hX_st_2);
+    fList.Add(hX_st_3);
+    
+    hdX_st_1    = new TH1D("dX_st_1", "dX_st_1", 100, -0.05, 0.05);
+    hdX_st_2    = new TH1D("dX_st_2", "dX_st_2", 100, -0.05, 0.05);
+    hdX_st_3    = new TH1D("dX_st_3", "dX_st_3", 100, -0.005, 0.005);
+    fList.Add(hdX_st_1);
+    fList.Add(hdX_st_2);
+    fList.Add(hdX_st_3);
+    
+    hdXvsXst_1 = new TH2D("dXvsXst_1","dXvsXst_1;XSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.03, 0.03);
+    hdXvsXst_2 = new TH2D("dXvsXst_2","dXvsXst_2;XSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.03, 0.03);
+    hdXvsXst_3 = new TH2D("dXvsXst_3","dXvsXst_3;XSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.0005, 0.0005);
+    fList.Add(hdXvsXst_1);
+    fList.Add(hdXvsXst_2);
+    fList.Add(hdXvsXst_3);
+    
+    hX13_X2_m0 = new TH1D("X13_X2_m0","X2_X13_m0", 200, -0.05, 0.05);
+    hX13_X2_m1 = new TH1D("X13_X2_m1","X2_X13_m1", 200, -0.05, 0.05);
+    fList.Add(hX13_X2_m0);
+    fList.Add(hX13_X2_m1);
+    hXp13_Xp2_m0 = new TH1D("Xp13_Xp2_m0","Xp2_Xp13__m0", 200, -0.4, 0.4);
+    hXp13_Xp2_m1 = new TH1D("Xp13_Xp2_m1","Xp2_Xp13__m1", 200, -0.4, 0.4);
+    fList.Add(hXp13_Xp2_m0);
+    fList.Add(hXp13_Xp2_m1);
+    hY13_Y2_m0 = new TH1D("Y13_Y2_m0","Y2_Y13_m0", 200, -1, 1);
+    hY13_Y2_m1 = new TH1D("Y13_Y2_m1","Y2_Y13_m1", 200, -1, 1);
+    fList.Add(hY13_Y2_m0);
+    fList.Add(hY13_Y2_m1);
+    
+    hY1m0_Y23 = new TH1D("Y1m0_Y23","Y1m0_Y23",  200, -1, 1);
+    hY1m1_Y23 = new TH1D("Y1m1_Y23","Y1m1_Y23",  200, -1, 1);
+    hY1m2_Y23 = new TH1D("Y1m2_Y23","Y1m2_Y23",  200, -1, 1);
+    hY1m3_Y23 = new TH1D("Y1m3_Y23","Y1m3_Y23",  200, -1, 1);
+    fList.Add(hY1m0_Y23);
+    fList.Add(hY1m1_Y23);
+    fList.Add(hY1m2_Y23);
+    fList.Add(hY1m3_Y23);
+    
+    hY_st_1    = new TH1D("Y_st_1", "Y_st_1", 100, -6, 6);
+    hY_st_2    = new TH1D("Y_st_2", "Y_st_2", 100, -6, 6);
+    hY_st_3    = new TH1D("Y_st_3", "Y_st_3", 100, -6, 6);
+    fList.Add(hY_st_1);
+    fList.Add(hY_st_2);
+    fList.Add(hY_st_3);
+    
+    hdY_st_1    = new TH1D("dY_st_1", "dY_st_1", 100, -0.6, 0.6);
+    hdY_st_2    = new TH1D("dY_st_2", "dY_st_2", 100, -0.6, 0.6);
+    hdY_st_3    = new TH1D("dY_st_3", "dY_st_3", 100, -0.6, 0.6);
+    fList.Add(hdY_st_1);
+    fList.Add(hdY_st_2);
+    fList.Add(hdY_st_3);
+    
+    hdYvsYst_1 = new TH2D("dYvsYst_1","dYvsYst_1;YSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.6, 0.6);
+    hdYvsYst_2 = new TH2D("dYvsYst_2","dYvsYst_2;YSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.6, 0.6);
+    hdYvsYst_3 = new TH2D("dYvsYst_3","dYvsYst_3;YSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.4, 0.4);
+    fList.Add(hdYvsYst_1);
+    fList.Add(hdYvsYst_2);
+    fList.Add(hdYvsYst_3);
+   
+    hdXst1_0_st2_0= new TH1D("dXst1_0_st2_0","dXst1_0_st2_0",100, -0.1, 0.1);
+    hdXst1_0_st2_1= new TH1D("dXst1_0_st2_1","dXst1_0_st2_1",100, -0.1, 0.1);
+    hdXst1_1_st2_0= new TH1D("dXst1_1_st2_0","dXst1_1_st2_0",100, -0.1, 0.1);
+    hdXst1_1_st2_1= new TH1D("dXst1_1_st2_1","dXst1_1_st2_1",100, -0.1, 0.1);
+    hdXst1_2_st2_0= new TH1D("dXst1_2_st2_0","dXst1_2_st2_0",100, -0.1, 0.1);
+    hdXst1_2_st2_1= new TH1D("dXst1_2_st2_1","dXst1_2_st2_1",100, -0.1, 0.1);
+    hdXst1_3_st2_0= new TH1D("dXst1_3_st2_0","dXst1_3_st2_0",100, -0.1, 0.1);
+    hdXst1_3_st2_1= new TH1D("dXst1_3_st2_1","dXst1_3_st2_1",100, -0.1, 0.1);
+    hdXst2_0_st3_1= new TH1D("dXst2_0_st3_1","dXst2_0_st3_1",100, -3, 3);
+    hdXst2_0_st3_2= new TH1D("dXst2_0_st3_2","dXst2_0_st3_2",100, -3, 3);
+    hdXst2_1_st3_1= new TH1D("dXst2_1_st3_1","dXst2_1_st3_1",100, -3, 3);
+    hdXst2_1_st3_2= new TH1D("dXst2_1_st3_2","dXst2_1_st3_2",100, -3, 3);
+    fList.Add(hdXst1_0_st2_0);
+    fList.Add(hdXst1_1_st2_0);
+    fList.Add(hdXst1_2_st2_0);
+    fList.Add(hdXst1_3_st2_0);
+    fList.Add(hdXst1_0_st2_1);
+    fList.Add(hdXst1_1_st2_1);
+    fList.Add(hdXst1_2_st2_1);
+    fList.Add(hdXst1_3_st2_1);
+    fList.Add(hdXst2_0_st3_1);
+    fList.Add(hdXst2_0_st3_2);
+    fList.Add(hdXst2_1_st3_1);
+    fList.Add(hdXst2_1_st3_2);
+    
+    hdXvsXst1_0 = new TH2D("dXvsXst1_0","dXvsXst1_0", 100, -6, 6, 100, -0.05, 0.05);
+    hdXvsXst1_1 = new TH2D("dXvsXst1_1","dXvsXst1_1", 100, -6, 6, 100, -0.05, 0.05);
+    hdXvsXst1_2 = new TH2D("dXvsXst1_2","dXvsXst1_2", 100, -6, 6, 100, -0.05, 0.05);
+    hdXvsXst1_3 = new TH2D("dXvsXst1_3","dXvsXst1_3", 100, -6, 6, 100, -0.05, 0.05);
+    hdXvsXst2_0 = new TH2D("dXvsXst2_0","dXvsXst2_0", 100, -6, 6, 100, -0.05, 0.05);
+    hdXvsXst2_1 = new TH2D("dXvsXst2_1","dXvsXst2_1", 100, -6, 6, 100, -0.05, 0.05);
+    hdXvsXst3_1 = new TH2D("dXvsXst3_1","dXvsXst3_1", 100, -6, 6, 100, -0.001, 0.001);
+    hdXvsXst3_2 = new TH2D("dXvsXst3_2","dXvsXst3_2", 100, -6, 6, 100, -0.001, 0.001);
+    fList.Add(hdXvsXst1_0);
+    fList.Add(hdXvsXst1_1);
+    fList.Add(hdXvsXst1_2);
+    fList.Add(hdXvsXst1_3);
+    fList.Add(hdXvsXst2_0);
+    fList.Add(hdXvsXst2_1);
+    fList.Add(hdXvsXst3_1);
+    fList.Add(hdXvsXst3_2);
+    
+    hdYvsYst1_mod0 = new TH2D("dYvsYst1_mod0","dYvsYst1_mod0", 100, -6, 6, 100, -0.6, 0.6);
+    hdYvsYst1_mod1 = new TH2D("dYvsYst1_mod1","dYvsYst1_mod1", 100, -6, 6, 100, -0.6, 0.6);
+    hdYvsYst1_mod2 = new TH2D("dYvsYst1_mod2","dYvsYst1_mod2", 100, -6, 6, 100, -0.6, 0.6);
+    hdYvsYst1_mod3 = new TH2D("dYvsYst1_mod3","dYvsYst1_mod3", 100, -6, 6, 100, -0.6, 0.6);
+    hdYvsYst2_mod0 = new TH2D("dYvsYst2_mod0","dYvsYst2_mod0", 100, -6, 6, 100, -0.6, 0.6);
+    hdYvsYst2_mod1 = new TH2D("dYvsYst2_mod1","dYvsYst2_mod1", 100, -6, 6, 100, -0.6, 0.6);
+    hdYvsYst3_mod1 = new TH2D("dYvsYst3_mod1","dYvsYst3_mod1", 100, -6, 6, 100, -0.1, 0.1);
+    hdYvsYst3_mod2 = new TH2D("dYvsYst3_mod2","dYvsYst3_mod2", 100, -6, 6, 100, -0.1, 0.1);
+    fList.Add(hdYvsYst1_mod0);
+    fList.Add(hdYvsYst1_mod1);
+    fList.Add(hdYvsYst1_mod2);
+    fList.Add(hdYvsYst1_mod3);
+    fList.Add(hdYvsYst2_mod0);
+    fList.Add(hdYvsYst2_mod1);
+    fList.Add(hdYvsYst3_mod1);
+    fList.Add(hdYvsYst3_mod2);
+    
+    hdYst1_0_st2_0= new TH1D("dYst1_0_st2_0","dYst1_0_st2_0",100, -1, 1);
+    hdYst1_0_st2_1= new TH1D("dYst1_0_st2_1","dYst1_0_st2_1",100, -1, 1);
+    hdYst1_1_st2_0= new TH1D("dYst1_1_st2_0","dYst1_1_st2_0",100, -1, 1);
+    hdYst1_1_st2_1= new TH1D("dYst1_1_st2_1","dYst1_1_st2_1",100, -1, 1);
+    hdYst1_2_st2_0= new TH1D("dYst1_2_st2_0","dYst1_2_st2_0",100, -1, 1);
+    hdYst1_2_st2_1= new TH1D("dYst1_2_st2_1","dYst1_2_st2_1",100, -1, 1);
+    hdYst1_3_st2_0= new TH1D("dYst1_3_st2_0","dYst1_3_st2_0",100, -1, 1);
+    hdYst1_3_st2_1= new TH1D("dYst1_3_st2_1","dYst1_3_st2_1",100, -1, 1);
+    hdYst2_0_st3_1= new TH1D("dYst2_0_st3_1","dYst2_0_st3_1",100, -3, 3);
+    hdYst2_0_st3_2= new TH1D("dYst2_0_st3_2","dYst2_0_st3_2",100, -3, 3);
+    hdYst2_1_st3_1= new TH1D("dYst2_1_st3_1","dYst2_1_st3_1",100, -3, 3);
+    hdYst2_1_st3_2= new TH1D("dYst2_1_st3_2","dYst2_1_st3_2",100, -3, 3);
+    fList.Add(hdYst1_0_st2_0);
+    fList.Add(hdYst1_1_st2_0);
+    fList.Add(hdYst1_2_st2_0);
+    fList.Add(hdYst1_3_st2_0);
+    fList.Add(hdYst1_0_st2_1);
+    fList.Add(hdYst1_1_st2_1);
+    fList.Add(hdYst1_2_st2_1);
+    fList.Add(hdYst1_3_st2_1);
+    fList.Add(hdYst2_0_st3_1);
+    fList.Add(hdYst2_0_st3_2);
+    fList.Add(hdYst2_1_st3_1);
+    fList.Add(hdYst2_1_st3_2);
+
+    N_eff = new TH1D("N_eff","N_eff", 6,1,7);
+    D_eff = new TH1D("D_eff","D_eff", 6,1,7);
+    E_eff = new TH1D("E_eff","Hit Efficiency per Layer on Track", 6,1,7);
+    E_eff->Sumw2();
+    fList.Add(N_eff);
+    fList.Add(D_eff);
+    fList.Add(E_eff);
+  }//if (fDebug)
+  
   //--Some Arrays--
   AmatrInverted = new Double_t[16];
   rhs = new Double_t[4];
@@ -3095,12 +3380,12 @@ InitStatus BmnSiliconTrackFinder::Init() {
   XpClust_width  = new Double_t**[fNstations];
   sumQx          = new Double_t**[fNstations];
   sumQxp         = new Double_t**[fNstations];
-  XspClust         = new Double_t**[fNstations];
-  XpspClust        = new Double_t**[fNstations];
-  XspClust_width   = new Double_t**[fNstations];
-  XpspClust_width  = new Double_t**[fNstations];
-  sumQxsp          = new Double_t**[fNstations];
-  sumQxpsp         = new Double_t**[fNstations];
+  XspClust       = new Double_t**[fNstations];
+  XpspClust      = new Double_t**[fNstations];
+  XspClust_width = new Double_t**[fNstations];
+  XpspClust_width= new Double_t**[fNstations];
+  sumQxsp        = new Double_t**[fNstations];
+  sumQxpsp       = new Double_t**[fNstations];
   leftoverXsp    = new Double_t**[fNstations];
   leftoverXpsp   = new Double_t**[fNstations];
   leftoverYsp    = new Double_t**[fNstations];
@@ -3157,12 +3442,12 @@ InitStatus BmnSiliconTrackFinder::Init() {
     XpClust_width[istat]  = new Double_t*[fNmodules];
     sumQx[istat]          = new Double_t*[fNmodules];
     sumQxp[istat]         = new Double_t*[fNmodules];
-    XspClust[istat]         = new Double_t*[fNmodules];
-    XpspClust[istat]        = new Double_t*[fNmodules];
-    XspClust_width[istat]   = new Double_t*[fNmodules];
-    XpspClust_width[istat]  = new Double_t*[fNmodules];
-    sumQxsp[istat]          = new Double_t*[fNmodules];
-    sumQxpsp[istat]         = new Double_t*[fNmodules];
+    XspClust[istat]       = new Double_t*[fNmodules];
+    XpspClust[istat]      = new Double_t*[fNmodules];
+    XspClust_width[istat] = new Double_t*[fNmodules];
+    XpspClust_width[istat]= new Double_t*[fNmodules];
+    sumQxsp[istat]        = new Double_t*[fNmodules];
+    sumQxpsp[istat]       = new Double_t*[fNmodules];
 
     for (Int_t im = 0; im < fNmodules; im++) {
       leftoverXsp[istat][im]     = new Double_t[kBig];
@@ -3193,12 +3478,12 @@ InitStatus BmnSiliconTrackFinder::Init() {
       XpClust_width[istat][im]   = new Double_t[fNstrips];
       sumQx[istat][im]           = new Double_t[fNstrips];
       sumQxp[istat][im]          = new Double_t[fNstrips];
-      XspClust[istat][im]          = new Double_t[fNstrips];
-      XpspClust[istat][im]         = new Double_t[fNstrips];
-      XspClust_width[istat][im]    = new Double_t[fNstrips];
-      XpspClust_width[istat][im]   = new Double_t[fNstrips];
-      sumQxsp[istat][im]           = new Double_t[fNstrips];
-      sumQxpsp[istat][im]          = new Double_t[fNstrips];
+      XspClust[istat][im]        = new Double_t[fNstrips];
+      XpspClust[istat][im]       = new Double_t[fNstrips];
+      XspClust_width[istat][im]  = new Double_t[fNstrips];
+      XpspClust_width[istat][im] = new Double_t[fNstrips];
+      sumQxsp[istat][im]         = new Double_t[fNstrips];
+      sumQxpsp[istat][im]        = new Double_t[fNstrips];
     }
   }
 
@@ -3213,36 +3498,36 @@ InitStatus BmnSiliconTrackFinder::Init() {
   }
   
   //--cm--
-  //--X--
-  shiftX[1][0] = -6.4 + 0.1148 - 0.0004;
-  shiftX[1][1] =  5.9 - 0.1148 + 0.0045;
-  shiftX[1][2] = -5.9 + 0.1148 + 0.014;
-  shiftX[1][3] =  6.4 - 0.1148 + 0.014;
+  //--X--                                       Si-PC   Si-Si
+  shiftX[1][0] = -6.4 + 0.1148 + 0.0026;//- 0.0004 + 0.05 -0.008 - 0.043 +0.004;//+ 0.0026;//
+  shiftX[1][1] =  5.9 - 0.1148 + 0.0085;//  0.0045 -0.008 + 0.005 + 0.012 - 0.005;//+ 0.0085;// 
+  shiftX[1][2] = -5.9 + 0.1148 + 0.014 -0.003;//   0.014  +0.009 - 0.013 - 0.001  +0.01 -.005;//0.014;//    - 0.006;??
+  shiftX[1][3] =  6.4 - 0.1148 + 0.019;//   0.014  -0.003 + 0.001 - 0.003+0.01;//0.019;//
   
-  shiftX[2][0] = -5.9 + .1148 + 0.0135 - 0.001;
-  shiftX[2][1] =  6.4 - .1148 + 0.0005 - 0.0025;
+  shiftX[2][0] = -5.9 + .1148 + 0.0085       - .001;//  0.0135 +0.001 + 0.009 -0.007 -0.005-0.002-0.001;//0.0085;// 
+  shiftX[2][1] =  6.4 - .1148 + 0.0075+0.003 - .0015;//  0.0005 -0.005  - 0.002 + 0.008 + 0.006;//0.0075;//
   
   shiftX[3][0] = -12.15 + 0.1148;
-  shiftX[3][1] = -6.15  + 0.1148;          // + 0.3;
-  shiftX[3][2] =  6.15  - 0.1148;          // - 0.2;
+  shiftX[3][1] = -6.15  + 0.1148;      //  + 0.306;
+  shiftX[3][2] =  6.15  - 0.1148;      //  - 0.204;
   shiftX[3][3] =  12.15 - 0.1148;
   shiftX[3][4] = -12.15 + 0.1148;
   shiftX[3][5] = -6.15  + 0.1148;
   shiftX[3][6] =  6.15  - 0.1148;
   shiftX[3][7] =  12.15 - 0.1148;
   
-  //--Y--
-  shiftY[1][0] = -0.4 -0.3;//;           -0.1;
-  shiftY[1][1] =  0.1 -0.3;//;           -0.1;
-  shiftY[1][2] = -0.2 +0.1;//-0.1;    //-.09 +0.2 -0.1;    // -0.2;//- 0.22;
-  shiftY[1][3] =  0.4 +0.12;//+0.31;   //-.29 +0.38-0.1;    //;//- 0.3;
+  //--Y--             Si-Si  Pc-Si
+  shiftY[1][0] = -0.4 +0.01 -0.02 -0.06;      //-0.08 +0.23-0.1;               
+  shiftY[1][1] =  0.1 +0.01 -0.04 -0.03;//-0.07 +0.14-0.1;           
+  shiftY[1][2] = -0.2 -0.03       -0.02;//-0.07 +0.01+0.05;//-0.13-0.15;             
+  shiftY[1][3] =  0.4 -0.18 +0.01;//-0.08 ;//-0.14-0.14;            
   
-  shiftY[2][0] = -6.22 - 0.05;          //-0.05;           //-.0065
-  shiftY[2][1] = -6.72 - 0.05;          //-0.05;           //+.008
+  shiftY[2][0] = -6.22 -0.02;//+0.1 +0.12;//- 0.05;         
+  shiftY[2][1] = -6.72 ;//+0.14-0.005;//- 0.05;          
   
   shiftY[3][0] = -0.15;
-  shiftY[3][1] = -0.15 -0.015;
-  shiftY[3][2] = -0.15 -0.015;
+  shiftY[3][1] = -0.15 -0.25;//+0.12;//-0.015;
+  shiftY[3][2] = -0.15 -0.4;//+0.15-0.007;//-0.015;
   shiftY[3][3] = -0.15;
   shiftY[3][4] =  0.15;
   shiftY[3][5] =  0.15;
@@ -3251,14 +3536,14 @@ InitStatus BmnSiliconTrackFinder::Init() {
 
   //--cm--                   Shift
   shiftStXtoGlob[0] = 0.;
-  shiftStXtoGlob[1] = 0.149;
-  shiftStXtoGlob[2] = 0.149;
-  shiftStXtoGlob[3] = 0.047;
+  shiftStXtoGlob[1] = 0.149;// -0.5;
+  shiftStXtoGlob[2] = 0.149;// -0.5;
+  shiftStXtoGlob[3] = 0.047;// -0.5;
   //                         Shift
   shiftStYtoGlob[0] =  0.;
-  shiftStYtoGlob[1] =  0.096 +0.1;      //-0.14;           //- 0.1;
-  shiftStYtoGlob[2] =  0.096 +0.09;      //+0.08;           //+ 0.06+ 0.05;
-  shiftStYtoGlob[3] = -6.274 ;      //-0.03;           //-0.5;//- 0.03;
+  shiftStYtoGlob[1] =  0.096 +0.001 -0.05 -0.06;// -0.08;//-0.08;     
+  shiftStYtoGlob[2] =  0.096 +0.001 -0.05 -0.07;// -0.004;// +0.01;     
+  shiftStYtoGlob[3] = -6.274 + .14        -0.15;      
     
   for (Int_t ist = 1; ist < fNstations; ist++) {
     //if ( fDebug ) cout<<" shiftStXtoGlob["<<ist<<"]= "<<shiftStXtoGlob[ist]<<" Y "<< shiftStYtoGlob[ist]<<endl;
@@ -3584,6 +3869,8 @@ BmnSiliconTrackFinder::~BmnSiliconTrackFinder() {
 void BmnSiliconTrackFinder::Finish() {
 
   if (fDebug) {
+    
+   E_eff->Divide(N_eff,D_eff,1,1);
    printf("BmnSiliconTrackFinder: write hists to file... ");
    fOutputFileName = Form("HistSiliconTracks_run%d.root", fRunNumber);
    cout<< fOutputFileName <<endl;

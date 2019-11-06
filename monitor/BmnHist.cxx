@@ -1,18 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   BmnHist.cxx
- * Author: ilnur
- * 
- * Created on February 2, 2017, 2:10 PM
- */
-
-//#include <root/RtypesCore.h>
-
 #include "BmnHist.h"
 
 BmnHist::BmnHist(Int_t PeriodID) {
@@ -38,7 +23,7 @@ void BmnHist::DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
         PadInfo* info = canGemStripPads->at(iPad);
         if (!info) continue;
         if (info->current) {
-            maxy = info->current->GetBinContent(info->current->GetMaximumBin());
+            maxy = info->current->GetMaximum();//GetBinContent(info->current->GetMaximumBin());
             info->current->Draw(info->opt.Data());
             if (info->ref != NULL) {
                 k = (info->ref->Integral() > 0) ?
@@ -47,11 +32,12 @@ void BmnHist::DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
                 if (k == 0) k = 1;
                 if (info->ref->Integral() > 0)
                     info->ref->DrawNormalized("same hist", info->current->Integral());
-                k = k * info->ref->GetBinContent(info->ref->GetMaximumBin());
+                k = k * info->ref->GetMaximum();//GetBinContent(info->ref->GetMaximumBin());
                 if (maxy < k)
                     maxy = k;
             }
-            info->current->GetYaxis()->SetRange(0, maxy * 1.4);
+//            info->current->GetYaxis()->SetRange(0, maxy * 1.4);
+            info->current->SetMaximum(maxy * 1.2);
         }
         pad->Update();
         pad->Modified();

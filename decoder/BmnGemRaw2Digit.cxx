@@ -229,7 +229,7 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
 
         }
     }
-    cout << " npedevents= " << npevents << " nloopev= " << nev << endl;
+//    cout << " npedevents= " << npevents << " nloopev= " << nev << endl;
     cout << endl;
 
     //    UInt_t ser = 0;

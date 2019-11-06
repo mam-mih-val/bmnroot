@@ -2,10 +2,12 @@
 -- drop database bmn_elog;
 create database bmn_elog;
 
+-- alter table person_ add column email varchar(30) null
 create table person_
 (
  person_id serial primary key,
  person_name varchar(30) unique not null,
+ email varchar(30) null,
  is_active boolean not null default true
 );
 
@@ -62,6 +64,32 @@ create table attachment_
  primary key (record_id, attachment_number)
 );
 
+--drop table _notification_
+-- event_id = type_.type_id + 100 (Ref. Book changing)
+create table _notification_
+(
+ event_id int not null,
+ person_id int not null references person_(person_id) on delete cascade,
+ primary key (event_id, person_id)
+);
+
+-- TRIGGERS
+-- trigger to remove personal notifications, if a corresponding type of records has been removed 
+CREATE OR REPLACE FUNCTION delete_notifications() RETURNS TRIGGER AS $$
+DECLARE
+  valueID integer;
+BEGIN
+  valueID = OLD.type_id;
+  EXECUTE 'DELETE FROM _notification_ WHERE event_id = $1' USING valueID;
+  
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER delete_record_type
+AFTER DELETE ON type_ FOR EACH ROW EXECUTE PROCEDURE delete_notifications();
+--drop trigger delete_record_type on type_;
+
+-- FUNCTIONS
 CREATE or REPLACE FUNCTION bytea_import(file_path text, p_result out bytea)
 AS $$
 declare

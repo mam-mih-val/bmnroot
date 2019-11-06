@@ -682,6 +682,8 @@ void* RunOnlineDisplay(void* ptr)
 
     fEditor->UnblockUI();
     fEditor->iThreadState = 0;
+
+    return NULL;
 }
 
 ClassImp(MpdEventManagerEditor);

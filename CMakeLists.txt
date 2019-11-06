@@ -62,7 +62,8 @@ include(WriteConfigFile)
 include(CTest)
 include(CheckCompiler)
 
-# Set the build type: None, Debug, Release, RelWithDebInfo, MinSizeRel or OMP
+# Set the build type: None, Debug, Release, RelWithDebInfo, MinSizeRel, OMP
+# OMP - the quickest multithreading BmnRoot version for a multicore machine
 If(NOT CMAKE_BUILD_TYPE)
   Message("Set BuildType DEBUG")
   set(CMAKE_BUILD_TYPE Debug)
@@ -219,8 +220,8 @@ add_subdirectory (physics/particles)
 add_subdirectory (steering)
 add_subdirectory (miscellaneous)
 
-if(EXISTS "${CMAKE_SOURCE_DIR}/macro/mpd_scheduler/CMakeLists.txt")
- add_subdirectory (macro/mpd_scheduler)
+if(EXISTS "${CMAKE_SOURCE_DIR}/macro/nica_scheduler/CMakeLists.txt")
+ add_subdirectory (macro/nica_scheduler)
 endif()
 
 Option(BUILD_DOXYGEN "Build Doxygen" OFF)

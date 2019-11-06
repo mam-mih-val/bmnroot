@@ -26,7 +26,7 @@ void findIdx( TClonesArray* data, int &index , double refT){
 	}
 }
 
-void grabZ2( TClonesArray *TQDC_BC1, TClonesArray *bc2Data, double t0Time, double &z2, double &x, bool isIncoming, float a_from_calibration, float b_from_calibration ){
+void grabZ2( TClonesArray *TQDC_BC1, TClonesArray *bc2Data, double t0Time, double &z2, double &x, bool isIncoming ){
 	double adcBC1, adcBC2;
 	int bc1Idx, bc2Idx;
 
@@ -52,18 +52,7 @@ void grabZ2( TClonesArray *TQDC_BC1, TClonesArray *bc2Data, double t0Time, doubl
 		// Ask if this is for before target or after target
 		// because the calibration constants are different for the
 		// different PMTs
-		if( isIncoming ){
-		  if (a_from_calibration != 0 && b_from_calibration !=0){
-		    z2 = a_from_calibration*x + b_from_calibration;
-		  }else{
-		    z2 = a_in + b_in*x + c_in*x*x;
-		  }
-		}else{
-		  if (a_from_calibration != 0 && b_from_calibration !=0){
-		    z2 = a_from_calibration*x + b_from_calibration;
-		  }else{
-		    z2 = a_out + b_out*x + c_out*x*x;
-		  }
-		}
+		if( isIncoming ) z2 = a_in + b_in*x + c_in*x*x;
+		else z2 = a_out + b_out*x + c_out*x*x;
 	}
 }

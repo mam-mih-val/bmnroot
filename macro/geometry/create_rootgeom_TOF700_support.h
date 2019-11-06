@@ -142,9 +142,8 @@ void create_rootgeom_TOF700_support() {
     //Adding volumes to the TOP Volume
     for (int i = 0; i < TOF2_MAX_UBEAMS; i++)
     {
-	TOF2Top->AddNode(TOF2ChannelV[i], i+1, ChannelPosTOF2_trans[i]);
+      TOF2Top->AddNode(TOF2ChannelV[i], i+1, ChannelPosTOF2_trans[i]);
     }
- 
 }
 
 int readGeomSupport(char *geomfile)

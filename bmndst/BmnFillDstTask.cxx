@@ -21,6 +21,7 @@
 #include "TDirectory.h"
 #include "TFile.h"
 #include "TROOT.h"
+#include "TSystem.h"
 
 using namespace std;
 
@@ -34,6 +35,8 @@ BmnFillDstTask::BmnFillDstTask() : FairTask("BmnFillDstTask"),
                                    fIEvent(0),
                                    fPeriodNumber(-1),
                                    fRunNumber(-1),
+				   fZCalib1(0),
+				   fZCalib2(0),
                                    isSimulationInput(false) {
     LOG(DEBUG) << "Defaul Constructor of BmnFillDstTask";
 }
@@ -48,6 +51,8 @@ BmnFillDstTask::BmnFillDstTask(Long64_t nEvents) : FairTask("BmnFillDstTask"),
                                                    fIEvent(0),
                                                    fPeriodNumber(-1),
                                                    fRunNumber(-1),
+						   fZCalib1(0),
+						   fZCalib2(0),
                                                    isSimulationInput(false) {
     fRunHead = new DstRunHeader();
     LOG(DEBUG) << "Constructor of BmnFillDstTask";
@@ -63,6 +68,8 @@ BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, Long64_t nEvents
                                                                                     fIEvent(0),
                                                                                     fPeriodNumber(-1),
                                                                                     fRunNumber(-1),
+										    fZCalib1(0),
+										    fZCalib2(0),
                                                                                     isSimulationInput(false) {
     fRunHead = new DstRunHeader();
     LOG(DEBUG) << "Constructor of BmnFillDstTask";
@@ -78,6 +85,8 @@ BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, TString output_e
                                                                                                                       fIEvent(0),
                                                                                                                       fPeriodNumber(-1),
                                                                                                                       fRunNumber(-1),
+														      fZCalib1(0),
+														      fZCalib2(0),
                                                                                                                       isSimulationInput(false) {
     fRunHead = new DstRunHeader();
     LOG(DEBUG) << "Constructor of BmnFillDstTask";
@@ -132,6 +141,39 @@ InitStatus BmnFillDstTask::Init() {
             fEventHead = (BmnEventHeader*)pObj;
     }
 
+    // Read in the z-calibration file
+    TString gPathWorkdir = gSystem->Getenv("VMCWORKDIR");
+    TString gPathFull = gPathWorkdir + "/input/ZOutCorrections3.txt";
+
+    string line;
+    ifstream f(gPathFull.Data(), ios::in);
+
+    vector <Double_t> axisAttr;
+
+    while (!f.eof()) {
+      getline(f, line);
+      
+      TString currString(line);
+      int run;
+      TString str_run( currString(0,4) );
+      run = str_run.Atoi();
+      
+      if(run == fRunNumber){
+	//cout<<"++++++++++++FILLDSTTASK!!!!"<<endl;
+	cout<<currString.Data()<<endl;
+	TString ab( currString(5, currString.Length()) );
+	TString a ( ab(0, ab.First(" ")) );
+	float a_float;
+	fZCalib1 = a.Atof();
+	TString c ( ab( a.Length()+1, ab.Length() ) );
+	//cout<<"c = "<<c.Data()<<endl;
+	TString b ( c(0, c.First(" ")) );
+	fZCalib2 = b.Atof();
+	//cout<<"ab = "<<ab.Data()<<", a = "<<fZCalib1<<", b = "<<fZCalib2<<endl;
+      }
+    }
+      
+    
     //Get input branches	
     fT0 = (TClonesArray*) ioman->GetObject("BC2");
     fBC1 = (TClonesArray*) ioman->GetObject("TQDC_BC1");
@@ -156,7 +198,7 @@ InitStatus BmnFillDstTask::Init() {
     if (ioman->CheckMaxEventNo(fNEvents) < fNEvents)
         fNEvents = ioman->CheckMaxEventNo(fNEvents);
 
-    // FIll Run Header from the Database
+    // Fill Run Header from the Database
     if (fRunNumber > 0) {
         InitParticleInfo();
 
@@ -236,8 +278,8 @@ void BmnFillDstTask::Exec(Option_t* /*option*/) {
             if (digT0->GetMod() == 0) t0Count++;
         if (t0Count == 1) {
             Double_t t0Time = digT0->GetTime();
-            grabZ2(fBC1, fBC2, t0Time, Z2in, adcIn, true);
-            grabZ2(fBC3, fBC4, t0Time, Z2out, adcOut, false);
+            grabZ2(fBC1, fBC2, t0Time, Z2in, adcIn, true, fZCalib1, fZCalib2);
+            grabZ2(fBC3, fBC4, t0Time, Z2out, adcOut, false, fZCalib1, fZCalib2);
         }
         fDstHead->SetZ2in(Z2in);
         fDstHead->SetZ2out(Z2out);

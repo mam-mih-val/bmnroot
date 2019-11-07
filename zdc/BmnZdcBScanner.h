@@ -10,7 +10,7 @@
 
 #include <TClonesArray.h>
 #include <TH1D.h>
-#include <math/BmnMath.h>
+#include <BmnMath.h>
 #include <BmnZDCDigit.h>
 
 class ZdcMoment {

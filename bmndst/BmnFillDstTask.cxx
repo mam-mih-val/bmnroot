@@ -159,7 +159,7 @@ InitStatus BmnFillDstTask::Init() {
       run = str_run.Atoi();
       
       if(run == fRunNumber){
-	//cout<<"++++++++++++FILLDSTTASK!!!!"<<endl;
+	//	cout<<"++++++++++++FILLDSTTASK!!!!"<<endl;
 	cout<<currString.Data()<<endl;
 	TString ab( currString(5, currString.Length()) );
 	TString a ( ab(0, ab.First(" ")) );
@@ -278,8 +278,15 @@ void BmnFillDstTask::Exec(Option_t* /*option*/) {
             if (digT0->GetMod() == 0) t0Count++;
         if (t0Count == 1) {
             Double_t t0Time = digT0->GetTime();
-            grabZ2(fBC1, fBC2, t0Time, Z2in, adcIn, true, fZCalib1, fZCalib2);
-            grabZ2(fBC3, fBC4, t0Time, Z2out, adcOut, false, fZCalib1, fZCalib2);
+            grabZ2(fBC1, fBC2, t0Time, Z2in, adcIn, true);
+            grabZ2(fBC3, fBC4, t0Time, Z2out, adcOut, false);
+            if (Z2out!=-1000)
+            {
+                Z2out=sqrt(Z2out);
+                Z2out=Z2out*fZCalib1+fZCalib2;
+                Z2out=Z2out*Z2out;
+            }
+            //cout<<Z2out;
         }
         fDstHead->SetZ2in(Z2in);
         fDstHead->SetZ2out(Z2out);

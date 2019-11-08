@@ -236,7 +236,7 @@ void BmnPidSRC::AzPID(){
                         //BmnDchTrack *dchTrack = (BmnDchTrack *)fBmnDchTrack->At(m);
                         //if(dchTrack->GetParamFirst()->GetZ()<550 || dchTrack->GetParamFirst()->GetZ()>650) continue; // global dch tracks
                         FairTrackParam parPrev(*(track->GetParamLast()));
-                        //fKalman->TGeoTrackPropagate(&parPrev, 750, 2212, NULL, NULL, kTRUE);
+                        fKalman->TGeoTrackPropagate(&parPrev, 750, 2212, NULL, NULL, kTRUE);
                         Double_t xdch=parPrev.GetX();
                         Double_t Txdch=parPrev.GetTx();
                         Double_t Az=(xdch - Txdch * 1470.88) * 0.026106 + 4.33385;

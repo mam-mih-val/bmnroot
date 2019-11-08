@@ -3,15 +3,16 @@
 // inputFileName - input file with data (MC or exp. data)
 // bmndstFileName - output file with reconstructed data
 // nStartEvent - number of first event to process (starts with zero), default: 0
-// nEvents - number of events to process, 0 - all events of given file will be processed
+// nEvents - number of events to process, 0 - all events of given file will be processed, default: 1 000 events
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #define CellAuto // Choose Tracking: L1 or CellAuto
 
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0,
-        Int_t nEvents = 1000) {
-                gDebug = 0; // Debug option
+        Int_t nEvents = 1000)
+{
+    gDebug = 0; // Debug option
     // Verbosity level (0 = quiet (progress bar), 1 = event-level, 2 = track-level, 3 = full debug)
     Int_t iVerbose = 0;
 
@@ -116,6 +117,10 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     fRunAna->SetSource(fFileSource);
     fRunAna->SetSink(new FairRootFileSink(bmndstFileName));
     fRunAna->SetGenerateRunInfo(false);
+
+    // if nEvents is equal 0 then all events of the given file starting with "nStartEvent" should be processed
+    if (nEvents == 0)
+        nEvents = MpdGetNumEvents::GetNumROOTEvents((char*)inputFileName.Data()) - nStartEvent;
 
     // Digitisation files.
     // Add TObjectString file names to a TList which is passed as input to the FairParAsciiFileIo.

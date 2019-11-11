@@ -229,8 +229,6 @@ BmnStatus BmnAdcProcessor::RecalculatePedestals() {
 BmnStatus BmnAdcProcessor::RecalculatePedestalsAugmented() {
     const UInt_t PAD_WIDTH_SIL = 1920; //8192;
     const UInt_t PAD_HEIGHT_SIL = 1920;
-    printf("\n[INFO]");
-    printf(ANSI_COLOR_BLUE " ADC pedestals recalculation\n" ANSI_COLOR_RESET);
     const UShort_t nSmpl = fNSamples;
 
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr)

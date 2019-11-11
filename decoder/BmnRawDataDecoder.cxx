@@ -106,6 +106,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     tai_utc_dif = 0;
     fVerbose = 0;
     isSpillStart = kFALSE;
+    fSpillCntr = 0;
     InitUTCShift();
     //InitMaps();
 }
@@ -349,8 +350,10 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     msc->Delete();
     //    eventHeaderDAQ->Delete();
     BmnTrigInfo* trigInfo = new BmnTrigInfo();
-    //    if (fVerbose)
-    DrawBar(fCurentPositionRawFile, fLengthRawFile);
+        if (fVerbose == 1) {
+            if (fEventId % 5000 == 0) cout << "Converted event #" << fEventId << endl;
+        } else if (fVerbose == 0)
+            DrawBar(fCurentPositionRawFile, fLengthRawFile);
 
     Long64_t idx = 1;
     BmnEventType evType = kBMNPAYLOAD;
@@ -940,14 +943,16 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         if (fGemMapper) fGemMapper->LoadPedestalsMK(fRawTree, adc32, eventHeaderDAQ, Min(fNevents, (UInt_t) 100000));
         printf("[INFO]" ANSI_COLOR_BLUE " First payload loop\n" ANSI_COLOR_RESET);
         for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
-            if (fVerbose)
-                DrawBar(iEv, fNevents);
             ClearArrays();
             fRawTree->GetEntry(iEv);
             BmnEventHeader* headDAQ = eventHeaderDAQ;
             if (!headDAQ) continue;
             curEventType = headDAQ->GetEventType();
             fEventId = headDAQ->GetEventId();
+            if (fVerbose == 1) {
+                if (iEv % 5000 == 0) cout << "Digitization event #" << fEventId << "/" << fNevents << ";" << endl;
+            } else if (fVerbose == 0)
+                DrawBar(iEv, fNevents);
             FillTimeShiftsMap();
             if (curEventType == kBMNPEDESTAL) continue;
             //        for (UInt_t iAdc = 0; iAdc < adc32->GetEntriesFast(); ++iAdc) {
@@ -963,8 +968,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         printf("\tNumber of requested pedestal events is ");
         printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, fEvForPedestals);
         for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
-            if (fVerbose)
-                DrawBar(fPedEvCntr, fEvForPedestals);
             fRawTree->GetEntry(iEv);
 
             BmnEventHeader* headDAQ = eventHeaderDAQ;
@@ -974,6 +977,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             if (fPedEvCntr != fEvForPedestals) {
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
                 fPedEvCntr++;
+                if (fVerbose == 1) {
+                    if (fPedEvCntr % 100 == 0 && fPedEvCntr > 0) cout << "Pedestal event #" << fPedEvCntr << "/" << fEvForPedestals << ";" << endl;
+                } else if (fVerbose == 0)
+                    DrawBar(fPedEvCntr, fEvForPedestals);
             } else break;
         }
         if (fPedEvCntr != fEvForPedestals) {
@@ -1001,8 +1008,14 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 if (fPedEvCntr == fEvForPedestals - 1) continue;
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
                 fPedEvCntr++;
+                if (fVerbose == 1) {
+                    if (fPedEvCntr % 100 == 0 && fPedEvCntr > 0) cout << "Pedestal event #" << fPedEvCntr << "/" << fEvForPedestals << ";" << endl;
+                } else if (fVerbose == 0)
+                    DrawBar(fPedEvCntr, fEvForPedestals);
             } else { // payload
                 if (prevEventType == kBMNPEDESTAL && fPedEvCntr == fEvForPedestals - 1) {
+                    printf("\n[INFO]");
+                    printf(ANSI_COLOR_BLUE " ADC pedestals recalculation\n" ANSI_COLOR_RESET);
                     if (fGemMapper) fGemMapper->RecalculatePedestalsAugmented();
                     if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsAugmented();
                     if (fCscMapper)fCscMapper->RecalculatePedestalsAugmented();
@@ -1013,8 +1026,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             if (fSiliconMapper) fSiliconMapper->FillProfiles(adc128);
             if (fCscMapper) fCscMapper->FillProfiles(adc32);
             prevEventType = curEventType;
-            if (fVerbose)
-                DrawBar(iEv, n);
         }
         printf("\tMarking noisy channels\n");
         if (fGemMapper) fGemMapper->FillNoisyChannels();
@@ -1050,8 +1061,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         printf("\tNumber of requested pedestal events is ");
         printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, fEvForPedestals);
         for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
-            if (fVerbose)
-                DrawBar(fPedEvCntr, fEvForPedestals);
             fRawTree->GetEntry(iEv);
 
             BmnEventHeader* headDAQ = eventHeaderDAQ;
@@ -1062,6 +1071,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             if (fPedEvCntr != fEvForPedestals) {
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
                 fPedEvCntr++;
+                if (fVerbose == 1) {
+                    if (fPedEvCntr % 100 == 0 && fPedEvCntr > 0) cout << "Pedestal event #" << fPedEvCntr << "/" << fEvForPedestals << ";" << endl;
+                } else if (fVerbose == 0)
+                    DrawBar(fPedEvCntr, fEvForPedestals);
             } else break;
         }
         if (fPedEvCntr != fEvForPedestals) {
@@ -1106,10 +1119,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     printf("\n[INFO]");
     printf(ANSI_COLOR_BLUE " Main loop over events:\n" ANSI_COLOR_RESET);
     for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
-        if (fVerbose == 0) {
-            if (iEv % 5000 == 0) cout << "Digitization event #" << iEv << endl;
-        } else
-            DrawBar(iEv, fNevents);
         ClearArrays();
 
         fRawTree->GetEntry(iEv);
@@ -1153,6 +1162,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             //            }
         }
 
+        fSpillCntr += headDAQ->GetSpillStart() ? 1 : 0;
         Bool_t isTripEvent = kFALSE;
         for (Int_t iTrip = 0; iTrip < startTripEvent.size(); ++iTrip) {
             if (headDAQ->GetEventId() > startTripEvent[iTrip] && headDAQ->GetEventId() < endTripEvent[iTrip]) {
@@ -1160,6 +1170,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 break;
             }
         }
+        if (fVerbose == 1) {
+            if (iEv % 5000 == 0) cout << "Digitization event #" << fEventId << "/" << fNevents << "; Spill #"<< fSpillCntr << endl;
+        } else if (fVerbose == 0)
+            DrawBar(iEv, fNevents);
 
         if (fTrigMapper) {
             fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
@@ -1180,7 +1194,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         eventHeader->SetTimeShift(fTimeShifts);
         eventHeader->SetStartSignalInfo(fT0Time, fT0Width);
         eventHeader->SetSpillStart(headDAQ->GetSpillStart());
-
+        
         if (curEventType == kBMNPEDESTAL && GetAdcDecoMode() == kBMNADCSM) {
             if (fPedEvCntr == fEvForPedestals - 1) continue;
             CopyDataToPedMap(adc32, adc128, fPedEvCntr);

@@ -170,13 +170,18 @@ private:
   vector<tracksX> vec_tracks;
   vector<tracksX> CleanTr;
   
-  TH1D *hNpoint, *hChiSquareNdf, *hNtracks, *hAxglob, *hBxglob, *hAyglob,*hByglob, *hY_st_1,*hY_st_2,*hY_st_3, *hdY_st_1,*hdY_st_2,*hdY_st_3;
+  TH1D *hNpoint, *hChiSquareNdf, *hNtracks, *hAxglob, *hBxglob, *hAyglob,*hByglob, *hY_st_1,*hY_st_2,*hY_st_3, *hdY_st_1,*hdY_st_2,*hdY_st_3, 
+      *hX_st_1,*hX_st_2,*hX_st_3, *hdX_st_1,*hdX_st_2,*hdX_st_3,
+      *N_eff,* D_eff,* E_eff, *hdX_st1_st2, *hdX_st2_st3, *hdX_st1_st3,*hdY_st1_st2, *hdY_st2_st3, *hdY_st1_st3,*hdXst1_0_st2_0,*hdXst1_0_st2_1,*hdXst1_1_st2_0,*hdXst1_1_st2_1,
+      *hdXst1_2_st2_0,*hdXst1_2_st2_1,*hdXst1_3_st2_0,*hdXst1_3_st2_1,*hdXst2_0_st3_1,*hdXst2_0_st3_2,*hdXst2_1_st3_1,*hdXst2_1_st3_2,*hdYst1_0_st2_0,
+      *hdYst1_0_st2_1,*hdYst1_1_st2_0,*hdYst1_1_st2_1,*hdYst1_2_st2_0,*hdYst1_2_st2_1,*hdYst1_3_st2_0,*hdYst1_3_st2_1,*hdYst2_0_st3_1,*hdYst2_0_st3_2,
+      *hdYst2_1_st3_1,*hdYst2_1_st3_2,*hX13_X2_m0,*hX13_X2_m1, *hXp13_Xp2_m0,*hXp13_Xp2_m1, *hY13_Y2_m0,*hY13_Y2_m1, *hY1m0_Y23, *hY1m1_Y23, *hY1m2_Y23, *hY1m3_Y23;
   TH2D *hvertexXY, * hvertex_aver_XY,* hprofile_beam_z1,* hprofile_beam_z2,* hprofile_beam_z3, *hdYvsYst_1,*hdYvsYst_2,*hdYvsYst_3,
-   *hdYvsYst1_mod0, *hdYvsYst1_mod1,*hdYvsYst1_mod2,*hdYvsYst1_mod3,*hdYvsYst2_mod0,*hdYvsYst2_mod1,*hdYvsYst3_mod1,*hdYvsYst3_mod2;
-
-  
+      *hdXvsXst_1,*hdXvsXst_2,*hdXvsXst_3,
+     *hdYvsYst1_mod0, *hdYvsYst1_mod1,*hdYvsYst1_mod2,*hdYvsYst1_mod3,*hdYvsYst2_mod0,*hdYvsYst2_mod1,*hdYvsYst3_mod1,*hdYvsYst3_mod2,
+     *hdXvsXst1_0,*hdXvsXst1_1,*hdXvsXst1_2,*hdXvsXst1_3,*hdXvsXst2_0,*hdXvsXst2_1,*hdXvsXst3_1,*hdXvsXst3_2;
+     
   void PrepareArraysToProcessEvent();
-  
   void Case1(Int_t **, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, vector<tracksX>&,
             Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***);
   void Case2(Int_t & , Int_t **, Double_t ***, Double_t ***, Double_t ***,Double_t ***, Double_t ***, Double_t ***, Int_t  **, Int_t **,Double_t ***, Double_t ***, Double_t ***, Double_t ***, vector<tracksX>&,
@@ -232,7 +237,7 @@ private:
   const Double_t Zcentr             = -392.524; // Zc = Zi/3
   const Double_t half_module        = 6.0705; 
   const Double_t half_target_region = 2.5;
-  const Double_t shift_after_zigzag = 0.010055; //cm
+  const Double_t shift_after_zigzag = 0.01;//cm 
   const Double_t Xv_av              = 0.4;
   const Double_t Yv_av              = 0.4;
   const Double_t half_roadX1_X2     = 0.11;

@@ -378,60 +378,60 @@ BmnDchTrackFinder::BmnDchTrackFinder(Bool_t isExp) : expData(isExp) {
 
   //pulls
 
-  hPullsx1a_0p1= new TH1F("hPullsx1a_0p1","dc1 xa pull (0 - 0.1) away from wire",100,-2,2);
-  hPullsu1a_0p1= new TH1F("hPullsu1a_0p1","dc1 ua pull (0 - 0.1) away from wire",100,-2,2);
-  hPullsy1a_0p1= new TH1F("hPullsy1a_0p1","dc1 ya pull (0 - 0.1) away from wire",100,-2,2);
-  hPullsv1a_0p1= new TH1F("hPullsv1a_0p1","dc1 va pull (0 - 0.1) away from wire",100,-2,2);
-  hPullsx2a_0p1= new TH1F("hPullsx2a_0p1","dc2 xa pull (0 - 0.1) away from wire",100,-2,2);
-  hPullsu2a_0p1= new TH1F("hPullsu2a_0p1","dc2 ua pull (0 - 0.1) away from wire",100,-2,2);
-  hPullsy2a_0p1= new TH1F("hPullsy2a_0p1","dc2 ya pull (0 - 0.1) away from wire",100,-2,2);
-  hPullsv2a_0p1= new TH1F("hPullsv2a_0p1","dc2 va pull (0 - 0.1) away from wire",100,-2,2);
+  hPullsx1a_0p1= new TH1F("hPullsx1a_0p1","dc1 xa pull (0 - 0.1) away from wire",100,-3,3);
+  hPullsu1a_0p1= new TH1F("hPullsu1a_0p1","dc1 ua pull (0 - 0.1) away from wire",100,-3,3);
+  hPullsy1a_0p1= new TH1F("hPullsy1a_0p1","dc1 ya pull (0 - 0.1) away from wire",100,-3,3);
+  hPullsv1a_0p1= new TH1F("hPullsv1a_0p1","dc1 va pull (0 - 0.1) away from wire",100,-3,3);
+  hPullsx2a_0p1= new TH1F("hPullsx2a_0p1","dc2 xa pull (0 - 0.1) away from wire",100,-3,3);
+  hPullsu2a_0p1= new TH1F("hPullsu2a_0p1","dc2 ua pull (0 - 0.1) away from wire",100,-3,3);
+  hPullsy2a_0p1= new TH1F("hPullsy2a_0p1","dc2 ya pull (0 - 0.1) away from wire",100,-3,3);
+  hPullsv2a_0p1= new TH1F("hPullsv2a_0p1","dc2 va pull (0 - 0.1) away from wire",100,-3,3);
 
 
-  hPullsx1a_0p1_0p4= new TH1F("hPullsx1a_0p1_0p4","dc1 xa pull (0.1 - 0.4) away from wire",100,-2,2);
-  hPullsu1a_0p1_0p4= new TH1F("hPullsu1a_0p1_0p4","dc1 ua pull (0.1 - 0.4) away from wire",100,-2,2);
-  hPullsy1a_0p1_0p4= new TH1F("hPullsy1a_0p1_0p4","dc1 ya pull (0.1 - 0.4) away from wire",100,-2,2);
-  hPullsv1a_0p1_0p4= new TH1F("hPullsv1a_0p1_0p4","dc1 va pull (0.1 - 0.4) away from wire",100,-2,2);
-  hPullsx2a_0p1_0p4= new TH1F("hPullsx2a_0p1_0p4","dc2 xa pull (0.1 - 0.4) away from wire",100,-2,2);
-  hPullsu2a_0p1_0p4= new TH1F("hPullsu2a_0p1_0p4","dc2 ua pull (0.1 - 0.4) away from wire",100,-2,2);
-  hPullsy2a_0p1_0p4= new TH1F("hPullsy2a_0p1_0p4","dc2 ya pull (0.1 - 0.4) away from wire",100,-2,2);
-  hPullsv2a_0p1_0p4= new TH1F("hPullsv2a_0p1_0p4","dc2 va pull (0.1 - 0.4) away from wire",100,-2,2);
+  hPullsx1a_0p1_0p4= new TH1F("hPullsx1a_0p1_0p4","dc1 xa pull (0.1 - 0.4) away from wire",100,-3,3);
+  hPullsu1a_0p1_0p4= new TH1F("hPullsu1a_0p1_0p4","dc1 ua pull (0.1 - 0.4) away from wire",100,-3,3);
+  hPullsy1a_0p1_0p4= new TH1F("hPullsy1a_0p1_0p4","dc1 ya pull (0.1 - 0.4) away from wire",100,-3,3);
+  hPullsv1a_0p1_0p4= new TH1F("hPullsv1a_0p1_0p4","dc1 va pull (0.1 - 0.4) away from wire",100,-3,3);
+  hPullsx2a_0p1_0p4= new TH1F("hPullsx2a_0p1_0p4","dc2 xa pull (0.1 - 0.4) away from wire",100,-3,3);
+  hPullsu2a_0p1_0p4= new TH1F("hPullsu2a_0p1_0p4","dc2 ua pull (0.1 - 0.4) away from wire",100,-3,3);
+  hPullsy2a_0p1_0p4= new TH1F("hPullsy2a_0p1_0p4","dc2 ya pull (0.1 - 0.4) away from wire",100,-3,3);
+  hPullsv2a_0p1_0p4= new TH1F("hPullsv2a_0p1_0p4","dc2 va pull (0.1 - 0.4) away from wire",100,-3,3);
 
-  hPullsx1a_0p4_0p5= new TH1F("hPullsx1a_0p4_0p5","dc1 xa pull (0.4 - 0.5) away from wire",100,-2,2);
-  hPullsu1a_0p4_0p5= new TH1F("hPullsu1a_0p4_0p5","dc1 ua pull (0.4 - 0.5) away from wire",100,-2,2);
-  hPullsy1a_0p4_0p5= new TH1F("hPullsy1a_0p4_0p5","dc1 ya pull (0.4 - 0.5) away from wire",100,-2,2);
-  hPullsv1a_0p4_0p5= new TH1F("hPullsv1a_0p4_0p5","dc1 va pull (0.4 - 0.5) away from wire",100,-2,2);
-  hPullsx2a_0p4_0p5= new TH1F("hPullsx2a_0p4_0p5","dc2 xa pull (0.4 - 0.5) away from wire",100,-2,2);
-  hPullsu2a_0p4_0p5= new TH1F("hPullsu2a_0p4_0p5","dc2 ua pull (0.4 - 0.5) away from wire",100,-2,2);
-  hPullsy2a_0p4_0p5= new TH1F("hPullsy2a_0p4_0p5","dc2 ya pull (0.4 - 0.5) away from wire",100,-2,2);
-  hPullsv2a_0p4_0p5= new TH1F("hPullsv2a_0p4_0p5","dc2 va pull (0.4 - 0.5) away from wire",100,-2,2);
+  hPullsx1a_0p4_0p5= new TH1F("hPullsx1a_0p4_0p5","dc1 xa pull (0.4 - 0.5) away from wire",100,-3,3);
+  hPullsu1a_0p4_0p5= new TH1F("hPullsu1a_0p4_0p5","dc1 ua pull (0.4 - 0.5) away from wire",100,-3,3);
+  hPullsy1a_0p4_0p5= new TH1F("hPullsy1a_0p4_0p5","dc1 ya pull (0.4 - 0.5) away from wire",100,-3,3);
+  hPullsv1a_0p4_0p5= new TH1F("hPullsv1a_0p4_0p5","dc1 va pull (0.4 - 0.5) away from wire",100,-3,3);
+  hPullsx2a_0p4_0p5= new TH1F("hPullsx2a_0p4_0p5","dc2 xa pull (0.4 - 0.5) away from wire",100,-3,3);
+  hPullsu2a_0p4_0p5= new TH1F("hPullsu2a_0p4_0p5","dc2 ua pull (0.4 - 0.5) away from wire",100,-3,3);
+  hPullsy2a_0p4_0p5= new TH1F("hPullsy2a_0p4_0p5","dc2 ya pull (0.4 - 0.5) away from wire",100,-3,3);
+  hPullsv2a_0p4_0p5= new TH1F("hPullsv2a_0p4_0p5","dc2 va pull (0.4 - 0.5) away from wire",100,-3,3);
 
-  hPullsx1b_0p1= new TH1F("hPullsx1b_0p1","dc1 xb pull (0 - 0.1) away from wire",100,-2,2);
-  hPullsu1b_0p1= new TH1F("hPullsu1b_0p1","dc1 ub pull (0 - 0.1) away from wire",100,-2,2);
-  hPullsy1b_0p1= new TH1F("hPullsy1b_0p1","dc1 yb pull (0 - 0.1) away from wire",100,-2,2);
-  hPullsv1b_0p1= new TH1F("hPullsv1b_0p1","dc1 vb pull (0 - 0.1) away from wire",100,-2,2);
-  hPullsx2b_0p1= new TH1F("hPullsx2b_0p1","dc2 xb pull (0 - 0.1) away from wire",100,-2,2);
-  hPullsu2b_0p1= new TH1F("hPullsu2b_0p1","dc2 ub pull (0 - 0.1) away from wire",100,-2,2);
-  hPullsy2b_0p1= new TH1F("hPullsy2b_0p1","dc2 yb pull (0 - 0.1) away from wire",100,-2,2);
-  hPullsv2b_0p1= new TH1F("hPullsv2b_0p1","dc2 vb pull (0 - 0.1) away from wire",100,-2,2);
+  hPullsx1b_0p1= new TH1F("hPullsx1b_0p1","dc1 xb pull (0 - 0.1) away from wire",100,-3,3);
+  hPullsu1b_0p1= new TH1F("hPullsu1b_0p1","dc1 ub pull (0 - 0.1) away from wire",100,-3,3);
+  hPullsy1b_0p1= new TH1F("hPullsy1b_0p1","dc1 yb pull (0 - 0.1) away from wire",100,-3,3);
+  hPullsv1b_0p1= new TH1F("hPullsv1b_0p1","dc1 vb pull (0 - 0.1) away from wire",100,-3,3);
+  hPullsx2b_0p1= new TH1F("hPullsx2b_0p1","dc2 xb pull (0 - 0.1) away from wire",100,-3,3);
+  hPullsu2b_0p1= new TH1F("hPullsu2b_0p1","dc2 ub pull (0 - 0.1) away from wire",100,-3,3);
+  hPullsy2b_0p1= new TH1F("hPullsy2b_0p1","dc2 yb pull (0 - 0.1) away from wire",100,-3,3);
+  hPullsv2b_0p1= new TH1F("hPullsv2b_0p1","dc2 vb pull (0 - 0.1) away from wire",100,-3,3);
 
-  hPullsx1b_0p1_0p4= new TH1F("hPullsx1b_0p1_0p4","dc1 xb pull (0.1 - 0.4) away from wire",100,-2,2);
-  hPullsu1b_0p1_0p4= new TH1F("hPullsu1b_0p1_0p4","dc1 ub pull (0.1 - 0.4) away from wire",100,-2,2);
-  hPullsy1b_0p1_0p4= new TH1F("hPullsy1b_0p1_0p4","dc1 yb pull (0.1 - 0.4) away from wire",100,-2,2);
-  hPullsv1b_0p1_0p4= new TH1F("hPullsv1b_0p1_0p4","dc1 vb pull (0.1 - 0.4) away from wire",100,-2,2);
-  hPullsx2b_0p1_0p4= new TH1F("hPullsx2b_0p1_0p4","dc2 xb pull (0.1 - 0.4) away from wire",100,-2,2);
-  hPullsu2b_0p1_0p4= new TH1F("hPullsu2b_0p1_0p4","dc2 ub pull (0.1 - 0.4) away from wire",100,-2,2);
-  hPullsy2b_0p1_0p4= new TH1F("hPullsy2b_0p1_0p4","dc2 yb pull (0.1 - 0.4) away from wire",100,-2,2);
-  hPullsv2b_0p1_0p4= new TH1F("hPullsv2b_0p1_0p4","dc2 vb pull (0.1 - 0.4) away from wire",100,-2,2);
+  hPullsx1b_0p1_0p4= new TH1F("hPullsx1b_0p1_0p4","dc1 xb pull (0.1 - 0.4) away from wire",100,-3,3);
+  hPullsu1b_0p1_0p4= new TH1F("hPullsu1b_0p1_0p4","dc1 ub pull (0.1 - 0.4) away from wire",100,-3,3);
+  hPullsy1b_0p1_0p4= new TH1F("hPullsy1b_0p1_0p4","dc1 yb pull (0.1 - 0.4) away from wire",100,-3,3);
+  hPullsv1b_0p1_0p4= new TH1F("hPullsv1b_0p1_0p4","dc1 vb pull (0.1 - 0.4) away from wire",100,-3,3);
+  hPullsx2b_0p1_0p4= new TH1F("hPullsx2b_0p1_0p4","dc2 xb pull (0.1 - 0.4) away from wire",100,-3,3);
+  hPullsu2b_0p1_0p4= new TH1F("hPullsu2b_0p1_0p4","dc2 ub pull (0.1 - 0.4) away from wire",100,-3,3);
+  hPullsy2b_0p1_0p4= new TH1F("hPullsy2b_0p1_0p4","dc2 yb pull (0.1 - 0.4) away from wire",100,-3,3);
+  hPullsv2b_0p1_0p4= new TH1F("hPullsv2b_0p1_0p4","dc2 vb pull (0.1 - 0.4) away from wire",100,-3,3);
 
-  hPullsx1b_0p4_0p5= new TH1F("hPullsx1b_0p4_0p5","dc1 xb pull (0.4 - 0.5) away from wire",100,-2,2);
-  hPullsu1b_0p4_0p5= new TH1F("hPullsu1b_0p4_0p5","dc1 ub pull (0.4 - 0.5) away from wire",100,-2,2);
-  hPullsy1b_0p4_0p5= new TH1F("hPullsy1b_0p4_0p5","dc1 yb pull (0.4 - 0.5) away from wire",100,-2,2);
-  hPullsv1b_0p4_0p5= new TH1F("hPullsv1b_0p4_0p5","dc1 vb pull (0.4 - 0.5) away from wire",100,-2,2);
-  hPullsx2b_0p4_0p5= new TH1F("hPullsx2b_0p4_0p5","dc2 xb pull (0.4 - 0.5) away from wire",100,-2,2);
-  hPullsu2b_0p4_0p5= new TH1F("hPullsu2b_0p4_0p5","dc2 ub pull (0.4 - 0.5) away from wire",100,-2,2);
-  hPullsy2b_0p4_0p5= new TH1F("hPullsy2b_0p4_0p5","dc2 yb pull (0.4 - 0.5) away from wire",100,-2,2);
-  hPullsv2b_0p4_0p5= new TH1F("hPullsv2b_0p4_0p5","dc2 vb pull (0.4 - 0.5) away from wire",100,-2,2);
+  hPullsx1b_0p4_0p5= new TH1F("hPullsx1b_0p4_0p5","dc1 xb pull (0.4 - 0.5) away from wire",100,-3,3);
+  hPullsu1b_0p4_0p5= new TH1F("hPullsu1b_0p4_0p5","dc1 ub pull (0.4 - 0.5) away from wire",100,-3,3);
+  hPullsy1b_0p4_0p5= new TH1F("hPullsy1b_0p4_0p5","dc1 yb pull (0.4 - 0.5) away from wire",100,-3,3);
+  hPullsv1b_0p4_0p5= new TH1F("hPullsv1b_0p4_0p5","dc1 vb pull (0.4 - 0.5) away from wire",100,-3,3);
+  hPullsx2b_0p4_0p5= new TH1F("hPullsx2b_0p4_0p5","dc2 xb pull (0.4 - 0.5) away from wire",100,-3,3);
+  hPullsu2b_0p4_0p5= new TH1F("hPullsu2b_0p4_0p5","dc2 ub pull (0.4 - 0.5) away from wire",100,-3,3);
+  hPullsy2b_0p4_0p5= new TH1F("hPullsy2b_0p4_0p5","dc2 yb pull (0.4 - 0.5) away from wire",100,-3,3);
+  hPullsv2b_0p4_0p5= new TH1F("hPullsv2b_0p4_0p5","dc2 vb pull (0.4 - 0.5) away from wire",100,-3,3);
 
   hSlot_1xa_time = new TH1F("hSlot_1xa_time", "times_for_plane_DC1_xa", 2000, 0, 2000);
   hSlot_1xb_time = new TH1F("hSlot_1xb_time", "times_for_plane_DC1_xb", 2000, 0, 2000);
@@ -1295,7 +1295,7 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
 	    Double_t min_a = 999;
 	    Double_t min_b = 999;
 	    for (Int_t kk = 0; kk < single_xa; kk++) {
-	      if (Abs(x_single[1][kk] - x_est) > 1.2)
+	      if (Abs(x_single[0][kk] - x_est) > 1.2)
 		continue;  //????? 0.5 needs to be reviewed
 
 	      if (Abs(x_single[0][kk] - x_est) < min_a) {
@@ -1593,11 +1593,11 @@ Bool_t BmnDchTrackFinder::FitDchSegments(Int_t dchID, Int_t* size_seg, Double_t*
 }
 
 void BmnDchTrackFinder::CompareDaDb(Double_t d, Double_t& ele) {
-  ele = (d < 0.02) ? (0.032 * 0.032) : (d >= 0.02 && d < 0.1) ? (0.025 * 0.025) : (d >= 0.1 && d < 0.4) ? (0.01 * 0.01) : (d >= 0.4 && d < 0.41) ? (0.032 * 0.032) : (0.04 * 0.04);//2019.11.5
+  ele = (d < 0.02) ? (0.04 * 0.04) : (d >= 0.02 && d < 0.1) ? (0.03* 0.03) : (d >= 0.1 && d < 0.4) ? (0.015 * 0.015) : (d >= 0.4 && d < 0.41) ? (0.04 * 0.04) : (0.05 * 0.05);//2019.11.5
 }
 
 void BmnDchTrackFinder::CompareDaDb(Double_t d, Double_t& ele1, Double_t& ele2) {
-  ele1 = (d < 0.02) ? (0.032 * 0.032) : (d >= 0.02 && d < 0.1) ? (0.025 * 0.025) : (d >= 0.1 && d < 0.4) ? (0.01 * 0.01) : (d >= 0.4 && d < 0.41) ? (0.032 * 0.032) : (0.04 * 0.04);//2019.11.5
+  ele1 = (d < 0.02) ? (0.04 * 0.04) : (d >= 0.02 && d < 0.1) ? (0.03* 0.03) : (d >= 0.1 && d < 0.4) ? (0.015 * 0.015) : (d >= 0.4 && d < 0.41) ? (0.04 * 0.04) : (0.05 * 0.05);//2019.11.5
   ele2 = ele1;
 }
 

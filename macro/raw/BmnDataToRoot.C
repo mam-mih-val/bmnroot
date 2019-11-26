@@ -8,8 +8,9 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
 
     Int_t iVerbose = 1; ///<- Verbosity level: 0 - Progress Bar; 1 - short info on passed events
     UInt_t period = 7;
-    BmnSetup stp = kBMNSETUP; // use kSRCSETUP for Short-Range Correlation program and kBMNSETUP otherwise
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, outfile, nEvents, period);
+    // use kSRCSETUP for Short-Range Correlation program and kBMNSETUP otherwise
+    BmnSetup stp = (decoder->GetRunId() >= 2041 && decoder->GetRunId() <= 3588) ? kSRCSETUP : kBMNSETUP;
     decoder->SetBmnSetup(stp);
     decoder->SetVerbose(iVerbose);
 

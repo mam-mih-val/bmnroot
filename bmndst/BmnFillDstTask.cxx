@@ -143,7 +143,7 @@ InitStatus BmnFillDstTask::Init() {
 
     // Read in the z-calibration file
     TString gPathWorkdir = gSystem->Getenv("VMCWORKDIR");
-    TString gPathFull = gPathWorkdir + "/input/ZOutCorrections3.txt";
+    TString gPathFull = gPathWorkdir + "/input/ZOutCorrections4.txt";
 
     string line;
     ifstream f(gPathFull.Data(), ios::in);

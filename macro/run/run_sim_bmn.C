@@ -11,11 +11,9 @@ enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DQGSM};
 // nEvents - number of events to transport
 // generatorName - generator name for the input file (enumeration above)
 // useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
-void run_sim_bmn(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1000, Bool_t useRealEffects = kFALSE) {
-
-  //void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10,
-  //             enumGenerators generatorName = BOX, Bool_t useRealEffects = kFALSE)
-  //{
+void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10,
+                 enumGenerators generatorName = BOX, Bool_t useRealEffects = kFALSE)
+{
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
@@ -82,14 +80,7 @@ void run_sim_bmn(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/e
     }
 
     // ------- Box Generator
-
-    FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 10); // 13 = muon; 1 = multipl.
-    boxGen->SetPRange(0, 8.); // GeV/c, setPRange vs setPtRange
-    boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
-    boxGen->SetThetaRange(0, 150.); // Polar angle in lab system range [degree]
-    primGen->AddGenerator(boxGen);
-
-    /*    case BOX:{
+    case BOX:{
         gRandom->SetSeed(0);
         FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 10); // 13 = muon; 1 = multipl.
         boxGen->SetPRange(1., 1.); // GeV/c, setPRange vs setPtRange
@@ -97,7 +88,7 @@ void run_sim_bmn(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/e
         boxGen->SetThetaRange(10, 15); // Polar angle in lab system range [degree]
         primGen->AddGenerator(boxGen);
         break;
-    */
+    }
 
     // ------- HSD/PHSD Generator
     case HSD:{

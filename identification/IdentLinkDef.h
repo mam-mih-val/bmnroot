@@ -5,7 +5,7 @@
 #pragma link off all functions;
 #pragma link C++ nestedclasses;
 
-//#pragma link C++ class BmnTofIdentification++;
+#pragma link C++ class BmnPidSRC++;
 
 #endif
 

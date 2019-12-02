@@ -54,12 +54,12 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
         fFileSource = new BmnFileSource(inputFileName);
 
         // get geometry for run
-        TString geoFileName = "current_geo_file.root";
-        Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
-        if (res_code != 0) {
-            cout << "Error: could not read geometry file from the database" << endl;
-            exit(-2);
-        }
+        TString geoFileName = "full_geometry.root";
+        // Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
+        // if (res_code != 0) {
+        //     cout << "Error: could not read geometry file from the database" << endl;
+        //     exit(-2);
+        // }
 
         // get gGeoManager from ROOT file (if required)
         TFile* geoFile = new TFile(geoFileName, "READ");
@@ -234,10 +234,14 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     glTF->SetSrcSetup(kTRUE);
     //glTF->SetDoAlign(1);
     fRunAna->AddTask(glTF);
+
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)
     BmnFillDstTask* dst_task = new BmnFillDstTask(nEvents);
     dst_task->SetRunNumber(run_period, run_number);
     fRunAna->AddTask(dst_task);
+
+    BmnPidSRC* pid = new BmnPidSRC();
+    fRunAna->AddTask(pid);
 
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();

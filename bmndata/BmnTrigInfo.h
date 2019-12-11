@@ -89,7 +89,7 @@ private:
     UInt_t fTrigAll;
     UInt_t fTrigAvail;
 
-    ClassDef(BmnTrigInfo, 1)
+    ClassDef(BmnTrigInfo, 2)
 };
 
 #endif /* TRIGINFO_H */

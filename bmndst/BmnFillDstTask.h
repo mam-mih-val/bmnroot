@@ -96,6 +96,10 @@ class BmnFillDstTask : public FairTask
     /** run number **/
     Int_t fRunNumber;
 
+    /** z calibration parameters: **/
+    Double_t fZCalib1;
+    Double_t fZCalib2;
+    
     /** map with particle names and corresponding weight-charge pairs **/
     map<TString,stParticleInfo> mapParticleInfo;
 

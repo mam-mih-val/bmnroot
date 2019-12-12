@@ -35,7 +35,7 @@ BmnFillDstTask::BmnFillDstTask() : FairTask("BmnFillDstTask"),
                                    fIEvent(0),
                                    fPeriodNumber(-1),
                                    fRunNumber(-1),
-				   fZCalib1(0),
+				   fZCalib1(1),
 				   fZCalib2(0),
                                    isSimulationInput(false) {
     LOG(DEBUG) << "Defaul Constructor of BmnFillDstTask";
@@ -51,7 +51,7 @@ BmnFillDstTask::BmnFillDstTask(Long64_t nEvents) : FairTask("BmnFillDstTask"),
                                                    fIEvent(0),
                                                    fPeriodNumber(-1),
                                                    fRunNumber(-1),
-						   fZCalib1(0),
+						   fZCalib1(1),
 						   fZCalib2(0),
                                                    isSimulationInput(false) {
     fRunHead = new DstRunHeader();
@@ -68,7 +68,7 @@ BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, Long64_t nEvents
                                                                                     fIEvent(0),
                                                                                     fPeriodNumber(-1),
                                                                                     fRunNumber(-1),
-										    fZCalib1(0),
+										    fZCalib1(1),
 										    fZCalib2(0),
                                                                                     isSimulationInput(false) {
     fRunHead = new DstRunHeader();
@@ -85,7 +85,7 @@ BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, TString output_e
                                                                                                                       fIEvent(0),
                                                                                                                       fPeriodNumber(-1),
                                                                                                                       fRunNumber(-1),
-														      fZCalib1(0),
+														      fZCalib1(1),
 														      fZCalib2(0),
                                                                                                                       isSimulationInput(false) {
     fRunHead = new DstRunHeader();

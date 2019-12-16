@@ -35,16 +35,16 @@ fDebug(kFALSE) {
     fZPlanePos[i] = new Double_t[fNPlanes];
   }
   
-  fTimeBin = 8;
-  fNWires = 96;
+  fTimeBin   = 8;
+  fNWires    = 96;
   fAngleStep = 60 * DegToRad();
-  fWireStep = 0.25;
+  fWireStep  = 0.25;
   fPlaneStep = 1.0015; // According to schemes provided by M. Rumyantsev
 
   fPlaneHeight = 43.3;
   fPlaneWidth = fNWires * fWireStep;
   
-  fSpaceLeft = 2.1338; // According to schemes provided by M. Rumyantsev
+  fSpaceLeft  = 2.1338; // According to schemes provided by M. Rumyantsev
   fSpaceRight = 2.1328; // According to schemes given by M. Rumyantsev
   
   fChamberWidth = fSpaceLeft + fSpaceLeft + (fNPlanes - 1) * fPlaneStep;
@@ -66,23 +66,23 @@ fDebug(kFALSE) {
       fY[0] = 6.038;                                                                                                                                             fZright[0] = fGlobalZdiff + 287.858 -.4;                                                                                                                   fZleft[0] = fZright[2] - fChamberWidth;                                                                                                                                                                                                                                                                               fX[1] = 0.234;                                                                                                                                             fY[1] = 6.140;                                                                                                                                             fZright[1] = fGlobalZdiff + 437.568 +1.1;                                                                                                                  fZleft[1] = fZright[3] - fChamberWidth;
 
     }else if(periodNum == 7 && runNum <= 3588){//shift//cm
-      fX[0] = -0.24 ;
-      fY[0] = -3.342;
+      fX[0] = -0.24  + 0.516;
+      fY[0] = -3.342 + 0.44 -4.5;
       fZright[0] = fGlobalZdiff - 206.042;
       fZleft[0] = fZright[0] - fChamberWidth;
       
-      fX[1] = -0.109;
-      fY[1] = -3.601;
+      fX[1] = -0.109 + 0.516;
+      fY[1] = -3.601 + 0.44 -4.5;
       fZright[1] = fGlobalZdiff - 107.363;
       fZleft[1] = fZright[1] - fChamberWidth;
       
-      fX[2] = 0.271;
-      fY[2] = 6.038;
+      fX[2] = 0.271 + 0.56;
+      fY[2] = 6.038 + 0.1 -4.5;
       fZright[2] = fGlobalZdiff + 287.858;
       fZleft[2] = fZright[2] - fChamberWidth;
       
-      fX[3] = 0.234;
-      fY[3] = 6.140;
+      fX[3] = 0.234 + 0.56;
+      fY[3] = 6.140 + 0.1 -4.5;
       fZright[3] = fGlobalZdiff + 437.568;
       fZleft[3] = fZright[3] - fChamberWidth;
     }else if(periodNum == 7 && runNum > 3588){

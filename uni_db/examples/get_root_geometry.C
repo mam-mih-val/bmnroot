@@ -2,12 +2,13 @@
 #include <stdio.h>
 
 // macro for downloading ROOT file with detector geometry from database
-void get_root_geometry(char* root_file_path, int period_number, int run_number)
+void get_root_geometry(int period_number, int run_number, const char* root_file_path)
 {
     basiclibs();
     gSystem->Load("libUniDb");
 
-    int res_code = UniDbRun::ReadGeometryFile(period_number, run_number, root_file_path); //(int period_number, int run_number, char* geo_file_path)
+    // FIX 3rd parameter const char*
+    int res_code = UniDbRun::ReadGeometryFile(period_number, run_number, (char*)root_file_path); //(int period_number, int run_number, char* geo_file_path)
     if (res_code != 0)
     {
         cout << "\nMacro finished with errors" << endl;
@@ -18,7 +19,7 @@ void get_root_geometry(char* root_file_path, int period_number, int run_number)
     TFile* geoFile = new TFile(root_file_path, "READ");
     if (!geoFile->IsOpen())
     {
-        cout<<"Error: could not open ROOT file with geometry!"<<endl;
+        cout<<"ERROR: could not open ROOT file with geometry!"<<endl;
         exit(-2);
     }
 
@@ -30,7 +31,7 @@ void get_root_geometry(char* root_file_path, int period_number, int run_number)
         key->ReadObj();
     else
     {
-        cout<<"Error: TGeoManager isn't top element in given file "<<root_file_path<<endl;
+        cout<<"ERROR: TGeoManager isn't top element in given file "<<root_file_path<<endl;
         exit(-3);
     }
 

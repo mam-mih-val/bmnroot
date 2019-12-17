@@ -251,6 +251,8 @@ private:
   const Double_t half_target_regionX = 2.5;
   const Double_t half_target_regionY = 3.5;
   const Double_t half_roadX1_Xp2     = .5;
+  const Double_t Shift_toCenterOfMagnetX = 0.55;
+  const Double_t Shift_toCenterOfMagnetY = 0.11 -4.5;
 
   //cut for cluster charge
   const Double_t Cut_AmplX       = 120.;

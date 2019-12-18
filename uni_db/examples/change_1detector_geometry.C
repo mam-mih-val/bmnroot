@@ -1,3 +1,4 @@
+//#define DEBUG
 bool CheckFileExist(TString fileName);
 // Macro for changing single detector in facility geometry for a given run range in the database
 //
@@ -7,7 +8,9 @@ bool CheckFileExist(TString fileName);
 // end_run - end number of the run range to change single detector geometry in full geometry
 // detector_name - volume name of the detector geoemtry to replace it with new geometry
 // detector_file_path - path to the file with new subdetector geometry
-void change_1detector_geometry(int start_period=5, int start_run=798, int end_period=5, int end_run=1014, const char* detector_name="GEM", const char* detector_file_path = "$VMCWORKDIR/geometry/GEMS_RunWinter2016.root")
+void change_1detector_geometry(int start_period = 7, int start_run = 2041, int end_period = 7, int end_run = 3588,
+                               const char* detector_name = "TOF400",
+                               const char* detector_file_path = "$VMCWORKDIR/geometry/TOF400_RUN7_SRC_AllignmentZY_v2.root")
 {
     // check existence of the file with new detector geometry
     TString strDetectorFilePath(detector_file_path);
@@ -29,7 +32,7 @@ void change_1detector_geometry(int start_period=5, int start_run=798, int end_pe
                           //    rand(), rand(), rand());        // Generates a 96-bit Hex number
 
     // get full geometry from database for a given run
-    int res_code = UniDbRun::ReadGeometryFile(start_period, start_run, strFullGeoFileName.Data());
+    int res_code = UniDbRun::ReadGeometryFile(start_period, start_run, (char*)strFullGeoFileName.Data()); // FIX 3rd parameter - const char*
     if (res_code != 0)
     {
         cout<<"\nMacro finished with errors"<<endl;
@@ -76,7 +79,7 @@ void change_1detector_geometry(int start_period=5, int start_run=798, int end_pe
         TGeoNode* cur_node = (TGeoNode*) arrNodes->At(i);
         TGeoVolume* cur_volume = cur_node->GetVolume();
         TString volume_name = cur_volume->GetName();
-        arrDetectorNames.AddLast((TObject*)(new TString(cur_volume->GetName())));
+        arrDetectorNames.AddLast((TObject*)(new TObjString(cur_volume->GetName())));
 
         TFile* fileDetectorGeo = NULL;
         if (volume_name == TString(detector_name))
@@ -113,14 +116,18 @@ void change_1detector_geometry(int start_period=5, int start_run=798, int end_pe
                 delete fileDetectorGeo;
                 exit(-8);
             }
+
+            cout<<"Replacing detector "<<detector_name<<"..."<<endl;
         }
 
-        TString* strDetectorGeoName = new TString(TString::Format("%s_%x%x.root", volume_name.Data(), rand(), rand()));
+        TObjString* strDetectorGeoName = new TObjString((TString::Format("%s_%x%x.root", volume_name.Data(), rand(), rand())).Data());
         arrDetectorGeoNames.AddLast((TObject*)strDetectorGeoName);
 
         // export top detector geometries to different files
-        //cout<<"Exporting detector '"<<volume_name<<"' to file: "<<*strDetectorGeoName<<"..."<<endl;
-        cur_volume->Export(*strDetectorGeoName, volume_name);
+#ifdef DEBUG
+        cout<<"Exporting detector '"<<volume_name<<"' to file: "<<strDetectorGeoName->String()<<"..."<<endl;
+#endif
+        cur_volume->Export(strDetectorGeoName->String(), volume_name);
 
         if (fileDetectorGeo != NULL)
         {
@@ -139,14 +146,16 @@ void change_1detector_geometry(int start_period=5, int start_run=798, int end_pe
     // cycle for all detector volumes and importing them from the temporary files
     for (int i = 0; i < top_volume_number; i++)
     {
-        TString* impDetectorName = (TString*)arrDetectorNames.At(i);
-        TString* impDetectorFile = (TString*)arrDetectorGeoNames.At(i);
-        //cout<<"Importing detector '"<<*impDetectorName<<"' from file: "<<*impDetectorFile<<"..."<<endl;
+        TObjString* impDetectorName = (TObjString*)arrDetectorNames.At(i);
+        TObjString* impDetectorFile = (TObjString*)arrDetectorGeoNames.At(i);
+#ifdef DEBUG
+        cout<<"Importing detector '"<<impDetectorName->String()<<"' from file: "<<impDetectorFile->String()<<"..."<<endl;
+#endif
 
-        TGeoVolume* detector_volume = TGeoVolume::Import(*impDetectorFile, *impDetectorName);
+        TGeoVolume* detector_volume = TGeoVolume::Import(impDetectorFile->String(), impDetectorName->String());
         if (detector_volume == NULL)
         {
-            cout<<"ERROR: Importing detector from file: "<<*impDetectorFile<<endl;
+            cout<<"ERROR: Importing detector from file: "<<impDetectorFile->String()<<endl;
             arrDetectorNames.Delete();
             arrDetectorGeoNames.Delete();
             exit(-6);
@@ -154,12 +163,12 @@ void change_1detector_geometry(int start_period=5, int start_run=798, int end_pe
         cave->AddNode(detector_volume, 0, 0);
 
         // delete temporary files with single detector geometry
-        gSystem->Unlink(*impDetectorFile);
+        gSystem->Unlink(impDetectorFile->String());
     }
     newGeoManager->SetTopVolume(cave);
     newGeoManager->CloseGeometry();
 
-    // clear arrays with tmeporary file names
+    // clear arrays with temporary file names
     arrDetectorNames.Delete();
     arrDetectorGeoNames.Delete();
 

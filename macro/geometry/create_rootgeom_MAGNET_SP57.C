@@ -11,9 +11,9 @@ using namespace TMath;
 TGeoManager* gGeoMan = NULL;
 
 //--------Magnet position-------------------------------------------------------
-    const double XMagnetPos = -3.5;
-    const double YMagnetPos = 3.0;
-    const double ZMagnetPos = 124.5; //cm
+    const double XMagnetPos = 6.83;
+    const double YMagnetPos = 3.47;
+    const double ZMagnetPos = -576.2; //cm
 
 //--------Magnet construct parameters-------------------------------------------
 
@@ -35,7 +35,6 @@ TGeoManager* gGeoMan = NULL;
     const double HPole = 5.0;
     const double RPole = 105.0/2.;
     const double YDistanceBetweenPoles = 38.0;
-
 
 void create_rootgeom_MAGNET_SP57() {
 
@@ -77,10 +76,12 @@ void create_rootgeom_MAGNET_SP57() {
     TGeoMedium* pMedSteel = gGeoMan->GetMedium("steel");
     if ( ! pMedSteel ) Fatal("Main", "Medium steel not found");
 
-    FairGeoMedium* mCopper = geoMedia->getMedium("copper");
+    //the structure of the SP57 coil includes copper and iron with pores for water cooling.
+    // To simplify that we assume there is a copper with 0.75 density of real copper, which is called copperSP57.
+    FairGeoMedium* mCopper = geoMedia->getMedium("copperSP75");
     if ( ! mCopper ) Fatal("Main", "FairMedium copper not found");
     geoBuild->createMedium(mCopper);
-    TGeoMedium* pMedCopper = gGeoMan->GetMedium("copper");
+    TGeoMedium* pMedCopper = gGeoMan->GetMedium("copperSP75");
     if ( ! pMedCopper ) Fatal("Main", "Medium copper not found");
 
     // --------------------------------------------------------------------------
@@ -118,7 +119,7 @@ void create_rootgeom_MAGNET_SP57() {
     //YokeV->SetVisLeaves(kTRUE);
     //YokeV->SetTransparency(60);
     
-    TGeoVolume *CoilV = new TGeoVolume("Coil", CoilS);
+    TGeoVolume *CoilV = new TGeoVolume("Coil", CoilS); // copper + steel, the coil has pores for water cooling. density = 0.75!!!!
     CoilV->SetMedium(pMedCopper);
     CoilV->SetLineColor(kRed);
     //CoilV->SetVisLeaves(kTRUE);
@@ -132,10 +133,10 @@ void create_rootgeom_MAGNET_SP57() {
     
 //--------------Adding volumes to the TOP Volume--------------------------------
     MagnetContainerV->AddNode(CoilV, 1, new TGeoCombiTrans(0, -(YDistanceBetweenCoils/2 + HCoil/2), 0, rotCoil));
-    MagnetContainerV->AddNode(CoilV, 2, new TGeoCombiTrans(0, YDistanceBetweenCoils/2 + HCoil/2, 0, rotCoil));
+    MagnetContainerV->AddNode(CoilV, 2, new TGeoCombiTrans(0,   YDistanceBetweenCoils/2 + HCoil/2,  0, rotCoil));
 
     MagnetContainerV->AddNode(PoleV, 1, new TGeoCombiTrans(0, -(YDistanceBetweenPoles/2 + HPole/2), 0, rotCoil));
-    MagnetContainerV->AddNode(PoleV, 2, new TGeoCombiTrans(0, YDistanceBetweenPoles/2 + HPole/2, 0, rotCoil));
+    MagnetContainerV->AddNode(PoleV, 2, new TGeoCombiTrans(0,   YDistanceBetweenPoles/2 + HPole/2,  0, rotCoil));
 
     MagnetContainerV->AddNode(YokeV, 0);
 

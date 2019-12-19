@@ -12,7 +12,7 @@ TGeoManager* gGeoMan = NULL;
 
 //--------Magnet position-------------------------------------------------------
     const double XMagnetPos = 6.83;
-    const double YMagnetPos = -6.13;
+    const double YMagnetPos = -1.13;
     const double ZMagnetPos = -576.2; //cm
 
 //--------Magnet construct parameters-------------------------------------------

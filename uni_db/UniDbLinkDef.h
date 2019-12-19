@@ -14,8 +14,10 @@
 #pragma link C++ class UniDbTangoData+;
 #pragma link C++ class UniDbSearchCondition+;
 #pragma link C++ class UniDbParser+;
-#pragma link C++ struct BeamSpillStructure++;
-#pragma link C++ class vector<BeamSpillStructure*>+;
+//#pragma link C++ struct structParseSchema++;
+//#pragma link C++ class vector<structParseSchema>+;
+//#pragma link C++ struct structParseValue++;
+//#pragma link C++ class vector<structParseValue*>+;
 
 #pragma link C++ class UniDbRunPeriod+;
 #pragma link C++ class UniDbRun+;

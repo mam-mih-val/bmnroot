@@ -6,12 +6,11 @@
 #include <regex>
 #include <dirent.h>
 
-#include <root/TString.h>
-#include <root/TClonesArray.h>
-#include <root/TBranch.h>
-#include <root/TLeaf.h>
-#include <root/TChain.h>
-#include <root/TGeoTrack.h>
+#include <TClonesArray.h>
+#include <TBranch.h>
+#include <TLeaf.h>
+#include <TChain.h>
+#include <TGeoTrack.h>
 
 #include <FairMCEventHeader.h>
 

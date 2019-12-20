@@ -7,7 +7,7 @@
 #ifndef BMNCHECKMCTASK_H
 #define BMNCHECKMCTASK_H
 
-#include <root/TClonesArray.h>
+#include <TClonesArray.h>
 
 #include <FairTask.h>
 #include <FairMCApplication.h>

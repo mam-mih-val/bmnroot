@@ -7,8 +7,8 @@
 #ifndef BMNPVGETTER_H
 #define BMNPVGETTER_H
 
-#include <root/TClonesArray.h>
-#include <root/TFile.h>
+#include <TClonesArray.h>
+#include <TFile.h>
 
 #include <FairTask.h>
 

@@ -1,6 +1,4 @@
-/**
- * Macro for decoders comparison
- */
+
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 
 #if !defined(__CINT__) || defined(__MAKECINT__)
@@ -27,8 +25,6 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include <Rtypes.h>
 #include <root/TVirtualPad.h>
 #include <../../bmndata/BmnEventHeader.h>
-#include <../../bmndata/DigiRunHeader.h>
-#include <limits.h>
 #include "../../monitor/BmnHist.h"
 #include "BmnSiliconDigit.h"
 #include "BmnSiliconStationSet.h"
@@ -48,10 +44,8 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #endif
 
 
-//#define PAD_WIDTH_SIL   1920
-//#define PAD_HEIGHT_SIL  1280
-#define PAD_WIDTH_SIL   1280
-#define PAD_HEIGHT_SIL  720
+#define PAD_WIDTH_SIL   1920
+#define PAD_HEIGHT_SIL  1280
 //#define ROWS  2
 #define COLS  2
 #define EV_LIMIT  4
@@ -61,7 +55,7 @@ using namespace TMath;
 void DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
     Double_t maxy;
     Double_t k = 1;
-    for (UInt_t iPad = 0; iPad < canGemStripPads->size(); iPad++) {
+    for (Int_t iPad = 0; iPad < canGemStripPads->size(); iPad++) {
         TVirtualPad *pad = canGemStrip->cd(iPad + 1);
         pad->Clear();
         //        pad->SetLogy();
@@ -75,21 +69,21 @@ void DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
                 //                        (Double_t) info->ref->Integral() : 1;
                 //                if (k == 0) k = 1;
                 //                if (info->ref->Integral() > 0)
-                //                k = info->ref->GetBinContent(info->ref->GetMaximumBin());
-                //                                if (maxy < k) {
-                //                                    maxy = k;
-                //                                    info->ref->Draw(info->opt.Data());
-                //                                    info->current->Draw("same hist"); //, info->current->Integral());
-                //                                } else {
-                //                                    info->current->Draw(info->opt.Data());
-                //                                    info->ref->Draw("same hist"); //, info->current->Integral());
-                //                
-                //                                }
+                k = info->ref->GetBinContent(info->ref->GetMaximumBin());
+                //                if (maxy < k) {
+                //                    maxy = k;
+                //                    info->ref->Draw(info->opt.Data());
+                //                    info->current->Draw("same hist"); //, info->current->Integral());
+                //                } else {
+                //                    info->current->Draw(info->opt.Data());
+                //                    info->ref->Draw("same hist"); //, info->current->Integral());
+                //
+                //                }
             }
             //                    info->current->Draw(info->opt.Data());
             //                    info->ref->Draw("same hist"); //, info->current->Integral());
-            info->current->Draw(info->opt.Data());
-            info->ref->Draw("same hist"); //, info->current->Integral());
+            info->ref->Draw(info->opt.Data());
+            info->current->Draw("same hist"); //, info->current->Integral());
             //            info->current->GetYaxis()->SetLimits(0, floor(maxy * 1.2));
             //            info->ref->GetYaxis()->SetLimits(0, floor(maxy * 1.2));
             //            
@@ -114,18 +108,14 @@ void StripView(Int_t runID) {
     Int_t ColorMap[nColors] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 49, 11, 12, 13, 14, 15, 16};
     //    Int_t runID = 4600;
     Int_t fPeriodID = 7;
-    Int_t sumMods = 0;
-    Int_t maxLayers = 0;
+    UInt_t sumMods = 0;
+    UInt_t maxLayers = 0;
     BmnSetup fBmnSetup = kBMNSETUP;
-    //    TString inFileNameMK = Form("bmn_run%04i_sidigitthr2all.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
-    TString inFileNameMK = Form("MK_digi_%04i.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
-    //    TString inFileNameBmn = Form("/ncx/nica/mpd22/batyuk/digi/run7/bmn/bmn_run%04i_digi.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
-    TString inFileNameBmn = Form("bmn_run%04i_digi_test.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    TString inFileNameMK = Form("MK_digi_%04i.root", runID);
+    TString inFileNameBmn = Form("bmn_run%04i_digi.root", runID);
 
     TString fnames[COLS] = {inFileNameMK, inFileNameBmn};
     TString treeNames[COLS] = {"bmndata", "bmndata"};
-    TString hdrNames[COLS] = {"BmnEventHeader.", "BmnEventHeader."};
-    TString runhdrNames[COLS] = {"DigiRunHeader", "DigiRunHeader"};
     TString silNames[COLS] = {"SILICON", "SILICON"};
     TString gemNames[COLS] = {"GEM", "GEM"};
     TString cscNames[COLS] = {"CSC", "CSC"};
@@ -133,8 +123,6 @@ void StripView(Int_t runID) {
     TTree * trees[COLS] = {NULL};
     TClonesArray * hits[COLS] = {NULL};
     TClonesArray * tracks[COLS] = {NULL};
-    DigiRunHeader * runHeaders[COLS] = {NULL, NULL};
-    BmnEventHeader * headers[COLS] = {NULL, NULL};
     TClonesArray * silDigit[COLS] = {NULL, NULL};
     TClonesArray * gemDigit[COLS] = {NULL, NULL};
     TClonesArray * cscDigit[COLS] = {NULL, NULL};
@@ -159,13 +147,13 @@ void StripView(Int_t runID) {
     TH1F* hsigMK = new TH1F("hsigMK", "hsigMK", hf + 1, 0, hf);
 
     TString name;
-
+    
     // ********************
     // silicon pads
     // ********************
     sumMods = 0;
     maxLayers = 0;
-    TString xmlConfFileName = TString("SiliconRun") + ((fBmnSetup == kSRCSETUP) ? "SRC" : "") + (fPeriodID == 7 ? "Spring2018.xml" : "Spring2017.xml");
+    TString xmlConfFileName = fPeriodID == 7 ? "SiliconRunSpring2018.xml" : "SiliconRunSpring2017.xml";
     xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/parameters/silicon/XMLConfigs/" + xmlConfFileName;
     printf("xmlConfFileName %s\n", xmlConfFileName.Data());
     BmnSiliconStationSet* stationSet = new BmnSiliconStationSet(xmlConfFileName);
@@ -211,7 +199,6 @@ void StripView(Int_t runID) {
     }
     for (Int_t iStation = 0; iStation < stationSet->GetNStations(); iStation++) {
         BmnSiliconStation * st = stationSet->GetSiliconStation(iStation);
-        printf("st[%d]->GetNModules()=%d\n", iStation, st->GetNModules());
         for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
             BmnSiliconModule *mod = st->GetModule(iModule);
             for (Int_t iLayer = 0; iLayer < 2; iLayer++) {
@@ -231,7 +218,7 @@ void StripView(Int_t runID) {
     // ********************
     sumMods = 0;
     maxLayers = 0;
-    xmlConfFileName = TString("GemRun") + ((fBmnSetup == kSRCSETUP) ? "SRC" : "") + (fPeriodID == 7 ? "Spring2018.xml" : "Spring2017.xml");
+    xmlConfFileName = fPeriodID == 7 ? "GemRunSpring2018.xml" : "GemRunSpring2017.xml";
     xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/parameters/gem/XMLConfigs/" + xmlConfFileName;
     printf("xmlConfFileName %s\n", xmlConfFileName.Data());
     BmnGemStripStationSet *gemStationSet = new BmnGemStripStationSet(xmlConfFileName);
@@ -266,7 +253,6 @@ void StripView(Int_t runID) {
 
         }
     }
-    sumMods = sumMods / COLS;
     name = "GemCanvas";
     canStripGem = new TCanvas(name, name, PAD_WIDTH_SIL * maxLayers, PAD_HEIGHT_SIL * sumMods);
     canStripGem->Divide(maxLayers, sumMods);
@@ -294,7 +280,7 @@ void StripView(Int_t runID) {
     // ********************
     sumMods = 0;
     maxLayers = 0;
-    xmlConfFileName = TString("CSCRun") + ((fBmnSetup == kSRCSETUP) ? "SRC" : "") + "Spring2018.xml";
+    xmlConfFileName = "CSCRunSpring2018.xml";
     xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/parameters/csc/XMLConfigs/" + xmlConfFileName;
     printf("xmlConfFileName %s\n", xmlConfFileName.Data());
     BmnCSCStationSet *StationSet = new BmnCSCStationSet(xmlConfFileName);
@@ -329,7 +315,6 @@ void StripView(Int_t runID) {
 
         }
     }
-    sumMods = sumMods / COLS;
     name = "CscCanvas";
     canStripCsc = new TCanvas(name, name, PAD_WIDTH_SIL * maxLayers, PAD_HEIGHT_SIL * sumMods);
     canStripCsc->Divide(maxLayers, sumMods);
@@ -353,13 +338,7 @@ void StripView(Int_t runID) {
         }
     }
 
-    // ********************
-    // Trees processing
-    // ********************
 
-    Int_t curEv = 0;
-    Int_t preEv = 0;
-    Long64_t nEvs = LONG_MAX;
     for (Int_t i = 0; i < COLS; i++) {
         files[i] = new TFile(fnames[i], "READ");
         if (files[i]->IsOpen())
@@ -369,107 +348,66 @@ void StripView(Int_t runID) {
             return;
         }
         trees[i] = (TTree*) files[i]->Get(treeNames[i]);
-        nEvs = Min(nEvs, trees[i]->GetEntries());
         cout << "#recorded entries = " << trees[i]->GetEntries() << endl;
-        if (i > 0)
-            runHeaders[i] = (DigiRunHeader*) files[i]->Get(runhdrNames[i].Data());
-        //                runHeaders[i]);
-        trees[i]->SetBranchAddress(hdrNames[i], &headers[i]);
         trees[i]->SetBranchAddress(silNames[i], &silDigit[i]);
         trees[i]->SetBranchAddress(gemNames[i], &gemDigit[i]);
         trees[i]->SetBranchAddress(cscNames[i], &cscDigit[i]);
-
     }
     for (Int_t i = 0; i < COLS; i++) {
         cout << "tree # " << i << endl;
-        if (i > 0 && runHeaders[i]) {
-            printf("START (event 1):\t%s\n", runHeaders[i]->GetRunStartTime().AsString());
-            printf("FINISH (event %lld):\t%s\n", nEvs, runHeaders[i]->GetRunEndTime().AsString());
-        }
-        for (Int_t iEv = 0; iEv < nEvs; iEv++) {
+        UInt_t nEvs = trees[i]->GetEntries();
+        for (Int_t iEv = 0; iEv < 10000/*nEvs/*11000/*nEvs*/; iEv++) {
             trees[i]->GetEntry(iEv);
             if (iEv % 10000 == 0)
                 cout << "iEv = " << iEv << endl;
-            BmnEventHeader *hdr = (BmnEventHeader*) headers[i];
-            BmnTrigInfo * trigInfo = hdr->GetTrigInfo();
-            preEv = curEv;
-            curEv = hdr->GetEventId();
-            if (curEv - preEv > 1)
-                printf("Events between %d & %d missed\n", preEv, curEv);
-            //            printf("cand %04u, acc %04u, bef %04u, after %04u, rjct %04u, all %04u, avail %04u\n",
-            //                    trigInfo->GetTrigCand(),
-            //                    trigInfo->GetTrigAccepted(),
-            //                    trigInfo->GetTrigBefo(),
-            //                    trigInfo->GetTrigAfter(),
-            //                    trigInfo->GetTrigRjct(),
-            //                    trigInfo->GetTrigAll(),
-            //                    trigInfo->GetTrigAvail());
             // silicon
             if (silDigit[i])
-                for (Int_t iDig = 0; iDig < silDigit[i]->GetEntriesFast(); iDig++) {
-                    //                                                printf("iDig %d Silicon\n", iDig);
-                    BmnSiliconDigit *dig = (BmnSiliconDigit*) silDigit[i]->UncheckedAt(iDig);
-                    if (!(dig->IsGoodDigit())) {
-                        //                        printf("ev %d is not good\n", curEv);
-                        continue;
-                    }
-                    Int_t module = dig->GetModule();
-                    Int_t station = dig->GetStation();
-                    Int_t layer = dig->GetStripLayer();
-                    Int_t strip = dig->GetStripNumber();
-                    if (fPeriodID == 6 && i == 0) {
-                        module--;
+            for (Int_t iDig = 0; iDig < silDigit[i]->GetEntriesFast(); iDig++) {
+                BmnSiliconDigit *dig = (BmnSiliconDigit*) silDigit[i]->UncheckedAt(iDig);
+                if (!(dig->IsGoodDigit()))
+                    continue;
+                Int_t module = dig->GetModule();
+                Int_t station = dig->GetStation();
+                Int_t layer = dig->GetStripLayer();
+                Int_t strip = dig->GetStripNumber();
+                histStrip[i][station][module][layer]->Fill(strip);
+                if (station == 0 && module == 0 && layer == 0)
+                    if (i == 0) {
+                        hfilterMK->Fill(strip, dig->GetStripSignal());
+                        if (dig->GetStripNumber() > 511)
+                            hsigMK->Fill(dig->GetStripSignal());
+                    } else {
+                        hfilter->Fill(strip, dig->GetStripSignal());
 
+                        if (dig->GetStripNumber() > 511)
+                            hsig->Fill(dig->GetStripSignal());
                     }
-                    //                    if (i == 1)
-                    //                        printf("station %d module %d layer %d strip %d\n", station, module, layer, strip);
-                    histStrip[i][station][module][layer]->Fill(strip);
-                    if (station == 0 && module == 0 && layer == 0) {
-                        if (i == 0) {
-                            hfilterMK->Fill(strip, dig->GetStripSignal());
-                            if (dig->GetStripNumber() > 511)
-                                hsigMK->Fill(dig->GetStripSignal());
-                        } else {
-                            hfilter->Fill(strip, dig->GetStripSignal());
-
-                            if (dig->GetStripNumber() > 511)
-                                hsig->Fill(dig->GetStripSignal());
-                        }
-                    }
-                }
+            }
             // gem
             if (gemDigit[i])
-                for (Int_t iDig = 0; iDig < gemDigit[i]->GetEntriesFast(); iDig++) {
-                    //                                                printf("iDig %d GEM of %d\n", iDig, gemDigit[i]->GetEntriesFast());
-                    BmnGemStripDigit *dig = (BmnGemStripDigit*) gemDigit[i]->UncheckedAt(iDig);
-                    if (!(dig->IsGoodDigit()))
-                        continue;
-                    Int_t module = dig->GetModule();
-                    Int_t station = dig->GetStation();
-                    Int_t layer = dig->GetStripLayer();
-                    Int_t strip = dig->GetStripNumber();
-                    if (fPeriodID == 6 && i == 0) {
-                        station--;
-                    }
-                    //                                        if (i == 1)
-                    //                                            printf("station %d module %d layer %d strip %d\n", station, module, layer, strip);
-                    histStripGem[i][station][module][layer]->Fill(strip);
-                }
+            for (Int_t iDig = 0; iDig < gemDigit[i]->GetEntriesFast(); iDig++) {
+                BmnGemStripDigit *dig = (BmnGemStripDigit*) gemDigit[i]->UncheckedAt(iDig);
+                if (!(dig->IsGoodDigit()))
+                    continue;
+                Int_t module = dig->GetModule();
+                Int_t station = dig->GetStation();
+                Int_t layer = dig->GetStripLayer();
+                Int_t strip = dig->GetStripNumber();
+                histStripGem[i][station][module][layer]->Fill(strip);
+            }
             // csc
             if (cscDigit[i])
-                for (Int_t iDig = 0; iDig < cscDigit[i]->GetEntriesFast(); iDig++) {
-                    //                                                printf("iDig %d CSC\n", iDig);
-                    BmnCSCDigit *dig = (BmnCSCDigit*) cscDigit[i]->UncheckedAt(iDig);
-                    if (!(dig->IsGoodDigit()))
-                        continue;
-                    Int_t module = dig->GetModule();
-                    Int_t station = dig->GetStation();
-                    Int_t layer = dig->GetStripLayer();
-                    Int_t strip = dig->GetStripNumber();
-                    histStripCsc[i][station][module][layer]->Fill(strip);
-                }
+            for (Int_t iDig = 0; iDig < cscDigit[i]->GetEntriesFast(); iDig++) {
+                BmnCSCDigit *dig = (BmnCSCDigit*) cscDigit[i]->UncheckedAt(iDig);
+                if (!(dig->IsGoodDigit()))
+                    continue;
+                Int_t module = dig->GetModule();
+                Int_t station = dig->GetStation();
+                Int_t layer = dig->GetStripLayer();
+                Int_t strip = dig->GetStripNumber();
+                histStripCsc[i][station][module][layer]->Fill(strip);
+            }
         }
-        printf("Last event %d\n", curEv);
     }
 
     //    for (Int_t col = 0; col < maxLayers; col++)
@@ -488,11 +426,11 @@ void StripView(Int_t runID) {
     //        }
 
     DrawRef(canStrip, &canStripPads);
-    canStrip->SaveAs(Form("can-run-%d-sil.png", runID));
+    canStrip->SaveAs(Form("can-run-%d.png", runID));
     DrawRef(canStripGem, &canStripPadsGem);
-    canStripGem->SaveAs(Form("can-run-%d-gem.png", runID));
+    canStripGem->SaveAs(Form("can-run-gem-%d.png", runID));
     DrawRef(canStripCsc, &canStripPadsCsc);
-    canStripCsc->SaveAs(Form("can-run-%d-csc.png", runID));
+    canStripCsc->SaveAs(Form("can-run-csc-%d.png", runID));
     canProf->cd(1);
     hfilter->Draw("colz");
     canProf->cd(2);
@@ -504,4 +442,44 @@ void StripView(Int_t runID) {
     canProf->SaveAs("can-prof.png");
     //    canStrip->SaveAs(Form("can-run-%d.eps", runID));
     //    canStrip->SaveAs(Form("can-run-%d.pdf", runID));
+    //    Int_t q = getchar();
+    //    printf("%i\n", q);
+    //    do {
+    //        if (hitCount[0] < EV_LIMIT || hitCount[1] < EV_LIMIT || hitCount[2] < EV_LIMIT) {
+    //            iEv++;
+    //            continue;
+    //        }
+    //        for (Int_t col = 0; col < COLS; col++)
+    //            for (Int_t row = 0; row < ROWS; row++) {
+    //                TVirtualPad *pad = can->cd(row * 3 + col + 1);
+    //                pad->Clear();
+    //                //                if (row > 2)
+    //                //                    h[col][row]->Draw();
+    //                //                else
+    //                for (Int_t iTrack = 0; iTrack < nColors; iTrack++)
+    //                    if (iTrack)
+    //                        h[col][row][iTrack]->Draw("SAME");
+    //                    else
+    //                        h[col][row][iTrack]->Draw("");
+    //            }
+    //        can->Update();
+    //        can->Modified();
+    //        can->SaveAs(Form("can-%d.pdf", runID));
+    //        cout << " Ev# " << iEv << endl;
+    //        ch = getchar();
+    //        switch (ch) {
+    //            case 'a':
+    //                iEv = (iEv == 0) ? iEv : iEv - 1;
+    //                break;
+    //            case 'd':
+    //                iEv = (iEv < nEvs) ? iEv + 1 : iEv;
+    //                break;
+    //            default:
+    //                iEv++;
+    //                break;
+    //        }
+    //    } while (ch != 'q');
+
+
+    // return;
 }

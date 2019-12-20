@@ -1,25 +1,29 @@
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
+R__ADD_INCLUDE_PATH($SIMPATH / include / fairmq)
+
+#include <cstdint>
+
 #include "macro/run/geometry_run/geometry_run7.C"
+
 
 #define GEANT3  // Choose: GEANT3 GEANT4
 // enumeration of generator names corresponding input files
-enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DQGSM};
+enum enumGenerators {
+    URQMD, QGSM, HSD, BOX, PART, ION, DQGSM
+};
 
-// inFile - input file with generator data, if needed
-// outFile - output file with MC data, default: evetest.root
-// nStartEvent - start event in the input generator file to begin transporting, default: 0
-// nEvents - number of events to transport
-// generatorName - generator name for the input file (enumeration above)
-// useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
-void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10,
-                 enumGenerators generatorName = BOX, Bool_t useRealEffects = kFALSE)
-{
+
+void run_sim_prefilter(
+        TString dir = "/ncx/eos/nica/bmn/sim/gen/DCMQGSM/ArAl_3.2AGeV_mb/",
+        TString outFile = "$VMCWORKDIR/macro/run/Filtered_ArAl_3.2AGeV.root",
+        Int_t SelPDG = 3122) {
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
+    Int_t fVerbose = 2;
 
     // -----   Create simulation run   ----------------------------------------
-    FairRunSim* fRun = new FairRunSim();
+    BmnFairRunSim* fRun = new BmnFairRunSim();
 
     // Choose the Geant Navigation System
 #ifdef GEANT3
@@ -28,12 +32,18 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     fRun->SetName("TGeant4");
 #endif
 
-    geometry(fRun); // load BM@N geometry
+//    geometry(fRun); // load BM@N geometry
+    // Set Material file Name
+    fRun->SetMaterials("media.geo");
 
-    // Use the experiment specific MC Event header instead of the default one
-    // This one stores additional information about the reaction plane
-    //MpdMCEventHeader* mcHeader = new MpdMCEventHeader();
-    //fRun->SetMCEventHeader(mcHeader);
+    // -----   Create passive volumes   -------------------------
+    FairModule* cave = new FairCave("CAVE");
+    cave->SetGeometryFileName("cave.geo");
+    fRun->AddModule(cave);
+
+    FairModule* magnet = new FairMagnet("MAGNET");
+    magnet->SetGeometryFileName("magnet_modified.root");
+    fRun->AddModule(magnet);
 
     // Create and Set Event Generator
     FairPrimaryGenerator* primGen = new FairPrimaryGenerator();
@@ -41,91 +51,25 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
 
     // Smearing of beam interaction point, if needed, and primary vertex position
     // DO NOT do it in corresponding gen. sections to avoid incorrect summation!!!
-    primGen->SetBeam(0.5, -4.6, 0.0, 0.0);
-    primGen->SetTarget(-2.3, 0.0);
+    primGen->SetBeam(0.0, 0.0, 0.0, 0.0);
+    primGen->SetTarget(0.0, 0.0);
     primGen->SmearVertexZ(kFALSE);
     primGen->SmearVertexXY(kFALSE);
-
-    switch (generatorName)
-    {
-    // ------- UrQMD Generator
-    case URQMD:{
-        if (!BmnFunctionSet::CheckFileExist(inFile)) return;
-
-        MpdUrqmdGenerator* urqmdGen = new MpdUrqmdGenerator(inFile);
-        //urqmdGen->SetEventPlane(0., 360.);
-        primGen->AddGenerator(urqmdGen);
-        if (nStartEvent > 0) urqmdGen->SkipEvents(nStartEvent);
-
-        // if nEvents is equal 0 then all events (start with nStartEvent) of the given file should be processed
-        if (nEvents == 0)
-            nEvents = MpdGetNumEvents::GetNumURQMDEvents(inFile.Data()) - nStartEvent;
-        break;
-    }
-
-    // ------- Particle Generator
-    case PART:{
-        FairParticleGenerator* partGen =
-                new FairParticleGenerator(211, 10, 1, 0, 3, 1, 0, 0);
-        primGen->AddGenerator(partGen);
-        break;
-    }
-
-    // ------- Ion Generator
-    case ION:{
-        // Start beam from a far point to check mom. reconstruction procedure
-        FairIonGenerator* fIongen = new FairIonGenerator(6, 12, 6, 1, 0., 0., 4.4, 0., 0., -647.);
-        primGen->AddGenerator(fIongen);
-        break;
-    }
-
-    // ------- Box Generator
-    case BOX:{
-        gRandom->SetSeed(0);
-        FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 10); // 13 = muon; 1 = multipl.
-        boxGen->SetPRange(1., 1.); // GeV/c, setPRange vs setPtRange
-        boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
-        boxGen->SetThetaRange(10, 15); // Polar angle in lab system range [degree]
-        primGen->AddGenerator(boxGen);
-        break;
-    }
-
-    // ------- HSD/PHSD Generator
-    case HSD:{
-        if (!BmnFunctionSet::CheckFileExist(inFile)) return;
-
-        MpdPHSDGenerator* hsdGen = new MpdPHSDGenerator(inFile.Data());
-        //hsdGen->SetPsiRP(0.); // set fixed Reaction Plane angle instead of random
-        primGen->AddGenerator(hsdGen);
-        if (nStartEvent > 0) hsdGen->SkipEvents(nStartEvent);
-
-        // if nEvents is equal 0 then all events (start with nStartEvent) of the given file should be processed
-        if (nEvents == 0)
-            nEvents = MpdGetNumEvents::GetNumPHSDEvents(inFile.Data()) - nStartEvent;
-        break;
-    }
-
-    // ------- LAQGSM/DCM-QGSM Generator
-    case QGSM:
-    case DQGSM:{
-
-        if (!BmnFunctionSet::CheckFileExist(inFile)) return;
-
-        MpdLAQGSMGenerator* guGen = new MpdLAQGSMGenerator(inFile.Data(), kFALSE);
-        primGen->AddGenerator(guGen);
-        if (nStartEvent > 0) guGen->SkipEvents(nStartEvent);
-
-        // if nEvents is equal 0 then all events (start with nStartEvent) of the given file should be processed
-        if (nEvents == 0)
-            nEvents = MpdGetNumEvents::GetNumQGSMEvents(inFile.Data()) - nStartEvent;
-        break;
-    }
-
-    default: { cout<<"ERROR: Generator name was not pre-defined: "<<generatorName<<endl; return; }
-    }// end of switch (generatorName)
-
-    fRun->SetSink(new FairRootFileSink(outFile.Data()));
+    //    FairMQProxy * sink = new FairMQProxy();
+    //    fRun->SetSink((FairSink*)sink);
+    FairRootFileSink* sink = new FairRootFileSink(outFile.Data());
+    fRun->SetSink(sink);
+    sink->InitSink();
     fRun->SetIsMT(false);
+
+//    Int_t lastSlash = dir.Last('/');
+//    TString simDir = (lastSlash == TString::kNPOS) ? "" : TString(dir(0, lastSlash + 1));
+    vector<TString> fileVec = BmnRecoTools::GetFileVecFromDir(dir);
+    printf("Found %lu files\n", fileVec.size());
+    MpdLAQGSMGeneratorExt* guGen = new MpdLAQGSMGeneratorExt(fileVec, kFALSE, 0, 0, SelPDG, kTRUE);
+    guGen->SetRunSimInst(fRun);
+
+    primGen->AddGenerator(guGen);
 
     // -----   Create magnetic field   ----------------------------------------
     BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
@@ -136,44 +80,17 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     fRun->SetStoreTraj(kTRUE);
     fRun->SetRadLenRegister(kFALSE); // radiation length manager
 
-    // SI-Digitizer
-    BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2018;
-    BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
-    siliconDigit->SetCurrentConfig(si_config);
-    siliconDigit->SetOnlyPrimary(kFALSE);
-    fRun->AddTask(siliconDigit);
-
-    // GEM-Digitizer
-    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2018;
-    if (useRealEffects)
-        BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_6T);
-    BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
-    gemDigit->SetCurrentConfig(gem_config);
-    gemDigit->SetOnlyPrimary(kFALSE);
-    gemDigit->SetStripMatching(kTRUE);
-    fRun->AddTask(gemDigit);
-
-    // CSC-Digitizer
-    BmnCSCConfiguration::CSC_CONFIG csc_config = BmnCSCConfiguration::RunSpring2018;
-    BmnCSCDigitizer* cscDigit = new BmnCSCDigitizer();
-    cscDigit->SetCurrentConfig(csc_config);
-    cscDigit->SetOnlyPrimary(kFALSE);
-    cscDigit->SetStripMatching(kTRUE);
-    fRun->AddTask(cscDigit);
-
     fRun->Init();
     magField->Print();
-
-    // Trajectories Visualization (TGeoManager only)
-    FairTrajFilter* trajFilter = FairTrajFilter::Instance();
-    // Set cuts for storing the trajectories
-    trajFilter->SetStepSizeCut(0.01); // 1 cm
-    trajFilter->SetVertexCut(-200., -200., -150., 200., 200., 1100.);
-    trajFilter->SetMomentumCutP(10e-3); // p_lab > 10 MeV
-    trajFilter->SetEnergyCut(0., 4.); // 0 < Etot < 1.04 GeV //
-    trajFilter->SetStorePrimaries(kTRUE);
-    trajFilter->SetStoreSecondaries(kTRUE); //kFALSE
-
+//    // Trajectories Visualization (TGeoManager only)
+//    FairTrajFilter* trajFilter = FairTrajFilter::Instance();
+//    // Set cuts for storing the trajectories
+//    trajFilter->SetStepSizeCut(0.01); // 1 cm
+//    trajFilter->SetVertexCut(-200., -200., -150., 200., 200., 1100.);
+//    trajFilter->SetMomentumCutP(10e-3); // p_lab > 10 MeV
+//    trajFilter->SetEnergyCut(0., 4.); // 0 < Etot < 1.04 GeV //
+//    trajFilter->SetStorePrimaries(kTRUE);
+//    trajFilter->SetStoreSecondaries(kTRUE); //kFALSE
     // Fill the Parameter containers for this run
     FairRuntimeDb *rtdb = fRun->GetRuntimeDb();
 
@@ -190,18 +107,12 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     rtdb->saveOutput();
     rtdb->print();
 
-    // Transport nEvents
-    fRun->Run(nEvents);
-
-    //gGeoManager->CheckOverlaps(0.0001);
-    //gGeoManager->PrintOverlaps();
-
-    //fRun->CreateGeometryFile("full_geometry.root");  // save the full setup geometry to the additional file
-
-if ((generatorName == QGSM) || (generatorName == DQGSM)){
-    TString Pdg_table_name = TString::Format("%s%s%c%s", gSystem->BaseName(inFile.Data()), ".g", (fRun->GetName())[6], ".pdg_table.dat");
-    (TDatabasePDG::Instance())->WritePDGTable(Pdg_table_name.Data());
-}
+    Int_t doNEvents = 1000000;//INT32_MAX;
+    TTree * tree = sink->GetOutTree();
+    TFile *fRootFile = tree->GetCurrentFile();
+    printf("frootfile name %s\n", fRootFile->GetName());
+    fRootFile->cd();
+    fRun->Run(doNEvents);
 
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();

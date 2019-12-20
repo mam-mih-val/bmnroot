@@ -12,7 +12,7 @@ static Float_t workTime = 0.0;
 static int entrys = 0;
 
 BmnGemStripDigitizer::BmnGemStripDigitizer()
-: fOnlyPrimary(kFALSE), fStripMatching(kTRUE) {
+: fOnlyPrimary(kFALSE), fStripMatching(kTRUE), fUseRealEffects(kFALSE) {
 
     fInputBranchName = "StsPoint";
     fOutputDigitsBranchName = "BmnGemStripDigit";
@@ -23,10 +23,13 @@ BmnGemStripDigitizer::BmnGemStripDigitizer()
     fCurrentConfig = BmnGemStripConfiguration::None;
     StationSet = nullptr;
     TransfSet = nullptr;
+    fAlign = nullptr;
+    fField = nullptr;
 }
 
 BmnGemStripDigitizer::~BmnGemStripDigitizer() {
-
+    if (fAlign)
+        delete fAlign;
 }
 
 InitStatus BmnGemStripDigitizer::Init() {
@@ -55,39 +58,39 @@ InitStatus BmnGemStripDigitizer::Init() {
     }
 
     TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
-        gPathGemConfig += "/parameters/gem/XMLConfigs/";
+    gPathGemConfig += "/parameters/gem/XMLConfigs/";
 
     //Create GEM detector ------------------------------------------------------
     switch (fCurrentConfig) {
-        case BmnGemStripConfiguration::RunSummer2016 :
+        case BmnGemStripConfiguration::RunSummer2016:
             StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
             if (fVerbose) cout << "   Current GEM Configuration : RunSummer2016" << "\n";
             break;
 
-        case BmnGemStripConfiguration::RunWinter2016 :
+        case BmnGemStripConfiguration::RunWinter2016:
             StationSet = new BmnGemStripStationSet_RunWinter2016(fCurrentConfig);
             if (fVerbose) cout << "   Current GEM Configuration : RunWinter2016" << "\n";
             break;
 
-        case BmnGemStripConfiguration::RunSpring2017 :
+        case BmnGemStripConfiguration::RunSpring2017:
             StationSet = new BmnGemStripStationSet_RunSpring2017(fCurrentConfig);
             //StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2017.xml");
             if (fVerbose) cout << "   Current GEM Configuration : RunSpring2017" << "\n";
             break;
 
-        case BmnGemStripConfiguration::RunSpring2018 :
+        case BmnGemStripConfiguration::RunSpring2018:
             StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2018.xml");
             if (fVerbose) cout << "   Current GEM Configuration : RunSpring2018" << "\n";
             break;
 
-        case BmnGemStripConfiguration::RunSRCSpring2018 :
+        case BmnGemStripConfiguration::RunSRCSpring2018:
             StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSRCSpring2018.xml");
             TransfSet = new BmnGemStripTransform();
             TransfSet->LoadFromXMLFile(gPathGemConfig + "GemRunSRCSpring2018.xml");
             if (fVerbose) cout << "   Current GEM Configuration : GemRunSRCSpring2018" << "\n";
             break;
 
-        case BmnGemStripConfiguration::RunSpring2018_misAlign :
+        case BmnGemStripConfiguration::RunSpring2018_misAlign:
             StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2018_misAlign.xml");
             if (fVerbose) cout << "   Current GEM Configuration : RunSpring2018" << "\n";
             break;
@@ -95,6 +98,15 @@ InitStatus BmnGemStripDigitizer::Init() {
         default:
             StationSet = nullptr;
     }
+    if (fUseRealEffects) {
+        Int_t periodID = 7;
+        Int_t runID = 4649;
+        fAlign = new BmnInnTrackerAlign(periodID, runID, "default");
+        if (fVerbose)
+            fAlign->Print();
+        fField = FairRunSim::Instance()->GetField();
+    }
+
     //--------------------------------------------------------------------------
 
     if (fVerbose) cout << "BmnGemStripDigitizer::Init() finished\n\n";
@@ -155,14 +167,30 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
         Double_t dEloss = GemStripPoint->GetEnergyLoss()*1e6; // in keV
         Int_t refId = ipoint;
 
-        Int_t mc_station_num = ((CbmStsPoint*)GemStripPoint)->GetStation();
-        Int_t mc_module_num = ((CbmStsPoint*)GemStripPoint)->GetModule();
+        Int_t mc_station_num = ((CbmStsPoint*) GemStripPoint)->GetStation();
+        Int_t mc_module_num = ((CbmStsPoint*) GemStripPoint)->GetModule();
 
         //Transform mc-point coordinates to local coordinate system of GEM-planes
-        if(TransfSet && mc_station_num < StationSet->GetNStations()) {
-            if(mc_module_num < StationSet->GetGemStation(mc_station_num)->GetNModules()) {
+        if (TransfSet && mc_station_num < StationSet->GetNStations()) {
+            BmnGemStripStation* station = StationSet->GetGemStation(mc_station_num);
+            if (mc_module_num < station->GetNModules()) {
+                if (fUseRealEffects) {
+                    BmnGemStripModule *module = station->GetModule(mc_module_num);
+                    Double_t deltaX = fAlign->GetGemCorrs()[mc_station_num][mc_module_num][0];
+                    Double_t deltaY = fAlign->GetGemCorrs()[mc_station_num][mc_module_num][1];
+                    x -= deltaX;
+                    y -= deltaY;
+                    if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
+                        Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
+                        Double_t lsX = (fAlign->GetLorentzCorrs(Abs(fField->GetBy(x, y, z)), mc_station_num) * sign);
+                        x -= lsX;
+                        Double_t lsY = (fAlign->GetLorentzCorrs(Abs(fField->GetBx(x, y, z)), mc_station_num) * sign);
+                        y -= lsY;
+                    }
+                }
+
                 Plane3D::Point loc_point = TransfSet->ApplyInverseTransforms(Plane3D::Point(-x, y, z), mc_station_num, mc_module_num);
-                Plane3D::Point loc_direct = TransfSet->ApplyInverseTransforms(Plane3D::Point(-(px+x), (py+y), (pz+z)), mc_station_num, mc_module_num);
+                Plane3D::Point loc_direct = TransfSet->ApplyInverseTransforms(Plane3D::Point(-(px + x), (py + y), (pz + z)), mc_station_num, mc_module_num);
                 x = -loc_point.X();
                 y = loc_point.Y();
                 z = loc_point.Z();
@@ -191,7 +219,7 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
 
                 for (Int_t iStrip = 0; iStrip < layer.GetNStrips(); ++iStrip) {
                     Double_t signal = layer.GetStripSignal(iStrip);
-                    if(signal > 0.0) {
+                    if (signal > 0.0) {
                         new ((*fBmnGemStripDigitsArray)[fBmnGemStripDigitsArray->GetEntriesFast()])
                                 BmnGemStripDigit(iStation, iModule, iLayer, iStrip, signal);
 
@@ -213,7 +241,7 @@ void BmnGemStripDigitizer::Finish() {
         StationSet = nullptr;
     }
 
-    if(TransfSet) {
+    if (TransfSet) {
         delete TransfSet;
         TransfSet = nullptr;
     }

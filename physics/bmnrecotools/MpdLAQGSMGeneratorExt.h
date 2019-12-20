@@ -1,114 +1,103 @@
 // -------------------------------------------------------------------------
-// -----                MpdLAQGSMGenerator header file                 -----
+// -----                MpdLAQGSMGeneratorExt header file                 -----
 // -------------------------------------------------------------------------
 
-/** MpdLAQGSMGenerator
+/** MpdLAQGSMGeneratorExt
+ * Extracts specific particle from sim files and stores momentum to the branch
+ * Or reads events as ordinary simulator depending on passed parameters
+ * 
  *@author Elena Litvinenko  <litvin@nf.jinr.ru>
- *@version 15.02.2016
+ *@author Ilnur Gabdrakhmanov <ilnur@jinr.ru>
+ *@version 9.12.2019
  *
- ** The MpdLAQGSMGenerator uses the ASCII input 
+ ** The MpdLAQGSMGeneratorExt uses the ASCII input 
  ** provided by K.Gudima LAQGSM event generator.
-**/
+ **/
 
-#ifndef MPDLAQGSMGENERATOR_H
-#define MPDLAQGSMGENERATOR_H 1
+#ifndef MPDLAQGSMGENERATOREXT_H
+#define MPDLAQGSMGENERATOREX_H 1
 
-#include "FairGenerator.h"
+#include "MpdLAQGSMGenerator.h"
 
 #include <fstream>
 #include <map>
 #include <vector>
 
+#include <TVector3.h>
+#include <TClonesArray.h>
+
+#include <BmnFairRunSim.h>
+
 #ifndef __CINT__
 #include <zlib.h>
+#include <root/RtypesCore.h>
 #endif
 
-class TDatabasePDG;
-class FairPrimaryGenerator;
-class FairIon;
+using namespace std;
 
-class MpdLAQGSMGenerator : public FairGenerator
-{
+class MpdLAQGSMGeneratorExt : public MpdLAQGSMGenerator {
+public:
 
-struct la_tab_t {
-  Int_t pdg;
-  Int_t Z;
-  Int_t strange;
-  Int_t lepton;
-  Int_t A;
-  Float_t mass;
-  char  name[10];
-};
+    /** Default constructor without arguments should not be used. **/
+    MpdLAQGSMGeneratorExt();
 
- public: 
+    /** Standard constructor. 
+     ** @param fileName The input file name vector
+     ** @param use_collider_system 
+     ** @param QGSM_format_ID
+     ** @param Max_Event_Number
+     ** @param pdg PDG code to extract
+     ** @param extract_from_dir true - Do extraction from text files to the branch
+     * false - read events from previously extracted
+     **/
+    MpdLAQGSMGeneratorExt(
+            const vector<TString> &fileNames,
+            const Bool_t use_collider_system = kTRUE,
+            Int_t QGSM_format_ID = 0,
+            Int_t Max_Event_Number = 0,
+            Int_t pdg = 3122,
+            Bool_t extract_from_dir = kTRUE);
 
-  /** Default constructor without arguments should not be used. **/
-  MpdLAQGSMGenerator();
+    /** Destructor. **/
+    virtual ~MpdLAQGSMGeneratorExt();
 
-  /** Standard constructor. 
-   ** @param fileName The input file name
-   **/
-  MpdLAQGSMGenerator(const char* fileName, const Bool_t use_collider_system=kTRUE, Int_t QGSM_format_ID=0,Int_t Max_Event_Number=0);
+    //  static la_tab_t la_tab[78];    //!  list of light particles known for MpdLAQGSMGeneratorExt
 
-  /** Destructor. **/
-  virtual ~MpdLAQGSMGenerator();
-
-  //  static la_tab_t la_tab[78];    //!  list of light particles known for MpdLAQGSMGenerator
-
-  void Init (const char *light_particles_filename=0);  // fill list of known light particles
-	
-  /** Reads on event from the input file and pushes the tracks onto
-   ** the stack. Abstract method in base class.
-   ** @param primGen  pointer to the FairPrimaryGenerator
-   **/
-  virtual Bool_t ReadEvent(FairPrimaryGenerator* primGen);
-
-  virtual Bool_t GetEventHeader(char *ss);
-
-  Bool_t SkipEvents(Int_t nSkip); //AZ
-
-  Bool_t general_fgets (char *ss, Int_t nn=250, FILE* p=0);
-  Bool_t general_feof (void *p);
+    /** Reads on event from the input file and pushes the tracks onto
+     ** the stack. Abstract method in base class.
+     ** @param primGen  pointer to the FairPrimaryGenerator
+     **/
+    Bool_t ReadEvent(FairPrimaryGenerator* primGen);
+    Bool_t(MpdLAQGSMGeneratorExt::*ReadEventImpl)(FairPrimaryGenerator* primGen);
+    Bool_t ReadEventFromTxt(FairPrimaryGenerator* primGen);
+    Bool_t ExtractEventFromTxt(FairPrimaryGenerator* primGen);
+    Bool_t ReadEventFromFiltered(FairPrimaryGenerator* primGen);
+    Bool_t SkipEvents(Int_t nSkip); //AZ
     
-  void SetXYZ (Double_t x = 0., Double_t y = 0., Double_t z = 0.) {
-        fX = x;
-        fY = y;
-        fZ = z;
-  }
+    BmnFairRunSim* GetRunSimInst() {
+        return fRunSimInst;
+    }
+    void SetRunSimInst(BmnFairRunSim* v) {
+        fRunSimInst = v;
+    }
 
- private:
+protected:
+    Bool_t fExtract_from_dir;
+    Int_t iFile;
+    Int_t fSelPDG; ///<- particle to extract
+    vector<TString> fFileVec; ///<- files to cycle
+    TClonesArray *fMom;//!
+    TString fMomBranchName;
+    BmnFairRunSim * fRunSimInst;//!
+    
+    TTree * fMTree;//!
+    TFile *fSourceFile;//!
+    Long64_t fNEvents;
+    Long64_t fIEvent;
+    
+    Bool_t OpenNext();
 
-  FILE* fInputFile;                    //!  Input file
-  #ifndef __CINT__
-  gzFile fGZInputFile;                 //!  GZ Input file
-  #endif
-  const Char_t*  fFileName;           //! Input file Name
-  TDatabasePDG*  fPDG;                //!  PDG database
-  Int_t fQGSM_format_ID;              //   Reflect format changes
-  Bool_t fUseColliderSystem;          //   kTRUE- for NICA/MPD, kFALSE - for lab system (CBM)
-  //la_tab_t la_tab[84];                //!  list of light particles known for MpdLAQGSMGenerator
-  std::vector<la_tab_t*> fLa_tab;     //!  list of light particles known for MpdLAQGSMGenerator
-  Bool_t fGZ_input;                   //!  0: ascii input, 1: gzipped input
-  
-  Double_t fX, fY, fZ; // Point vertex coordinates [cm]
-	
-  /** Private method CloseInput. Just for convenience. Closes the 
-   ** input file properly. Called from destructor and from ReadEvent. **/
-  void CloseInput();
-
-  /** Private method RegisterIons. Goes through the input file and registers
-   ** any ion needed. **/
-  Int_t RegisterIons(Int_t Max_Event_Number=0);
-  Int_t RegisterIons1(); //AZ
-
-  Int_t CreatePdgCode(Int_t Z, Int_t A, Int_t Strange,Int_t user=0);
-  Bool_t FindParticle (Int_t Z, Int_t strange, Int_t lepton, Int_t A, Float_t mass, Int_t &PDG, char name[11]);
-  Bool_t CreateNucleus (Int_t Z, Float_t mass, Int_t pdgCode, char pdgName[11]);
-
-  /** STL map from ion name to FairIon **/
-  std::map<TString, FairIon*> fIonMap;       //!
-	
-  ClassDef(MpdLAQGSMGenerator,1);
+    ClassDef(MpdLAQGSMGeneratorExt, 1);
 
 };
 

@@ -1,698 +1,760 @@
-#include "BmnAdcProcessor.h"
-#include <BmnMath.h>
 
-BmnAdcProcessor::BmnAdcProcessor() {
+
+#include "BmnRecoTools.h"
+
+BmnRecoTools::BmnRecoTools() {
 }
 
-BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh, Int_t nSmpl, vector<UInt_t> vSer) {
-
-    fPeriod = period;
-    fRun = run;
-    fDetName = det;
-    fNSerials = vSer.size();
-    fNChannels = nCh;
-    fNSamples = nSmpl;
-    fAdcSerials = vSer;
-    Int_t high = 120;
-    Int_t highcms = 500;
-    //    h = new TH2F("h", "h", fNSamples, 0, fNSamples, 2 * high + 1, -high, high);
-    //    hp = new TH2F("hp", "hp", fNSamples, 0, fNSamples, 2 * high + 1, -high, high);
-    //    hcms = new TH2F("hcms", "hcms", fNSamples, 0, fNSamples, 2 * high + 1, -high / 2, high / 2);
-    //    hscms_adc = new TH2F("hscms ADC", "hscms", fNSamples, 0, fNSamples, 2 * high + 1, -high / 2, high / 2);
-    //    hcms1p = new TH1F("hcms1D pedestal", "hcms1D pedestal", 2 * high + 1, -high, high);
-    //    hscms1p_adc = new TH1F("hscms1D ADC pedestal", "hscms1D pedestal", 2 * highcms + 1, -high, high);
-    //    hcms1 = new TH1F("hcms1D", "hcms1D", 2 * high + 1, -high, high);
-    //    hscms1_adc = new TH2F("hscms1D ADC", "hscms1D", fNSamples, 0, fNSamples, 2 * highcms + 1, -high, high);
-    //    printf("fnserials %i\n", fNSerials);
-    //    for (int i = 0; i < fNSerials; i++)
-    //        printf("%i ser %08X\n", i, vSer[i]);
-
-    fPedVal = new Double_t**[fNSerials];
-    fPedValTemp = new Double_t**[fNSerials];
-    fNvals = new UInt_t*[fNSerials];
-    fNvalsADC = new UInt_t**[fNSerials];
-    fPedRms = new Double_t**[fNSerials];
-    fPedSigRms = new Double_t**[fNSerials];
-    fPedSigRms2 = new Double_t**[fNSerials];
-    fNoisyChipChannels = new Bool_t**[fNSerials];
-    fPedCMS = new Double_t*[fNSerials];
-    fPedCMS0 = new Double_t*[fNSerials];
-    fSigCMS = new Double_t*[fNSerials];
-    fAdcProfiles = new UInt_t**[fNSerials];
-    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
-        fPedVal[iCr] = new Double_t*[fNChannels];
-        fPedValTemp[iCr] = new Double_t*[fNChannels];
-        fNvals[iCr] = new UInt_t[fNChannels];
-        memset(fNvals[iCr], 0, sizeof (UInt_t) * fNChannels);
-        fNvalsADC[iCr] = new UInt_t*[fNChannels];
-        fPedRms[iCr] = new Double_t*[fNChannels];
-        fPedSigRms[iCr] = new Double_t*[fNChannels];
-        fPedSigRms2[iCr] = new Double_t*[fNChannels];
-        fNoisyChipChannels[iCr] = new Bool_t*[fNChannels];
-        fAdcProfiles[iCr] = new UInt_t*[fNChannels];
-        fPedCMS[iCr] = new Double_t[fNChannels];
-        fPedCMS0[iCr] = new Double_t[fNChannels];
-        fSigCMS[iCr] = new Double_t[fNChannels];
-        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-            fPedVal[iCr][iCh] = new Double_t[fNSamples];
-            fPedValTemp[iCr][iCh] = new Double_t[fNSamples];
-            fNvalsADC[iCr][iCh] = new UInt_t[fNSamples];
-            memset(fNvalsADC[iCr][iCh], 0, sizeof (UInt_t) * fNSamples);
-            fPedRms[iCr][iCh] = new Double_t[fNSamples];
-            fPedSigRms[iCr][iCh] = new Double_t[fNSamples];
-            fPedSigRms2[iCr][iCh] = new Double_t[fNSamples];
-            fNoisyChipChannels[iCr][iCh] = new Bool_t[fNSamples];
-            fAdcProfiles[iCr][iCh] = new UInt_t[fNSamples];
-            fPedCMS[iCr][iCh] = 0.0;
-            fPedCMS0[iCr][iCh] = 0.0;
-            fSigCMS[iCr][iCh] = 0.0;
-            for (Int_t iSmpl = 0; iSmpl < fNSamples; ++iSmpl) {
-                fPedVal[iCr][iCh][iSmpl] = 0.0;
-                fPedValTemp[iCr][iCh][iSmpl] = 0.0;
-                fPedRms[iCr][iCh][iSmpl] = 0.0;
-                fPedSigRms[iCr][iCh][iSmpl] = 0.0;
-                fPedSigRms2[iCr][iCh][iSmpl] = 0.0;
-                fNoisyChipChannels[iCr][iCh][iSmpl] = kFALSE;
-                fAdcProfiles[iCr][iCh][iSmpl] = 0;
-            }
-        }
-    }
-
-    fPedDat = new Double_t***[fNSerials];
-    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
-        fPedDat[iCr] = new Double_t**[N_EV_FOR_PEDESTALS];
-        for (UInt_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
-            fPedDat[iCr][iEv] = new Double_t*[fNChannels];
-            for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                fPedDat[iCr][iEv][iCh] = new Double_t[fNSamples];
-                for (Int_t iSmpl = 0; iSmpl < fNSamples; ++iSmpl)
-                    fPedDat[iCr][iEv][iCh][iSmpl] = 0;
-            }
-        }
-    }
-    const UInt_t PAD_WIDTH_SIL = 1920; //8192;
-    const UInt_t PAD_HEIGHT_SIL = 2200;
-    //    canStrip = new TCanvas("can cms", "can", PAD_WIDTH_SIL, PAD_HEIGHT_SIL * 2);
-    //    canStrip->Divide(1, 8);
+BmnRecoTools::~BmnRecoTools() {
 }
 
-BmnAdcProcessor::~BmnAdcProcessor() {
-    for (Int_t iCr = 0; iCr < fNSerials; iCr++) {
-        for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; iEv++) {
-            for (Int_t iCh = 0; iCh < fNChannels; iCh++)
-                delete[] fPedDat[iCr][iEv][iCh];
-            delete[] fPedDat[iCr][iEv];
-        }
-        delete[] fPedDat[iCr];
+BmnStatus BmnRecoTools::Embed(TString inSourceName, TString inBaseName, TString destName,
+        Int_t code, vector<Int_t> outCodes,
+        Bool_t turnOffBaseDigits) {
+
+    fCode = code;
+    fOutCodes = outCodes;
+    UInt_t fPeriodId = 7;
+    Int_t EmbeddedType = 1;
+    Bool_t addMatch = kFALSE;
+    Bool_t isExp = kTRUE;
+
+    /* Hits branches */
+    vector<TString> digiNames = {
+        "BmnSiliconDigit", "BmnGemStripDigit", "BmnCSCDigit"
+    };
+    vector<TString> outMCNames = {
+        "BmnSiliconDigit", "BmnGemStripDigit", "BmnCSCDigit", "StsPoint", "SiliconPoint", "CSCPoint",
+        "GeoTracks"
+    };
+    vector<TString> outExpNames = {
+        "SILICON", "GEM", "CSC"
+    };
+    vector<TString> digiOutExpNames = (isExp == kTRUE) ? outExpNames : outMCNames;
+
+    vector<TClass*> digiClasses = {
+        BmnSiliconDigit::Class(), BmnGemStripDigit::Class(), BmnCSCDigit::Class()
+    };
+    vector<TString> matchNames = {"BmnSiliconDigitMatch", "BmnGemStripDigitMatch", "BmnCSCDigitMatch"};
+
+    DstEventHeader * copyBaseEH = nullptr;
+    DstEventHeader * copyDestEH = nullptr;
+    BmnEventHeader * bmnEH = nullptr;
+    TBranch *EHBranch = nullptr;
+    FairMCEventHeader * mcEH = nullptr;
+    TString EHMCName = "MCEventHeader.";
+    TString EHDigiName = "BmnEventHeader.";
+    TString FieldParName = "BmnFieldPar";
+    TList* fBranchList = new TList();
+    BmnFieldPar *fieldPar = nullptr;
+    UInt_t fNArs = digiNames.size();
+
+
+    //    Int_t retn = system(Form("cp %s %s", inBaseName.Data(), destName.Data()));
+    //    printf("copy return %d\n", retn);
+    //    RemoveBranches(destName, digiExpNames);
+
+    /*****************************/
+    /** Open input source digits **/
+    /*****************************/
+    TFile *fSourceHits = new TFile(inSourceName, "READ");
+    if (fSourceHits->IsOpen() == false) {
+        printf("\n!!!!\ncannot open file %s !\n", inSourceName.Data());
+        return kBMNERROR;
     }
-    delete[] fPedDat;
-    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
-        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-            delete[] fPedVal[iCr][iCh];
-            delete[] fPedValTemp[iCr][iCh];
-            delete[] fNvalsADC[iCr][iCh];
-            delete[] fPedRms[iCr][iCh];
-            delete[] fPedSigRms[iCr][iCh];
-            delete[] fPedSigRms2[iCr][iCh];
-            delete[] fAdcProfiles[iCr][iCh];
-            delete[] fNoisyChipChannels[iCr][iCh];
-        }
-        delete[] fPedVal[iCr];
-        delete[] fPedValTemp[iCr];
-        delete[] fNvalsADC[iCr];
-        delete[] fPedRms[iCr];
-        delete[] fPedSigRms[iCr];
-        delete[] fPedSigRms2[iCr];
-        delete[] fAdcProfiles[iCr];
-        delete[] fPedCMS[iCr];
-        delete[] fSigCMS[iCr];
-        delete[] fNoisyChipChannels[iCr];
+    printf("\nINPUT SOURCE FILE: ");
+    printf("%s\n", inSourceName.Data());
+    fInTreeSource = (TTree *) fSourceHits->Get("bmndata");
+    UInt_t fNEventSource = fInTreeSource->GetEntries();
+    for (Int_t i = 0; i < fNArs; i++) {
+        TClonesArray* arDigi = nullptr; // new TClonesArray(BmnCSCHit::Class());
+        fInTreeSource->SetBranchAddress(digiNames[i].Data(), &arDigi);
+        digiSourceArs.push_back(arDigi);
+        if (addMatch == kTRUE) {
+            if (i < matchNames.size()) {
+                TClonesArray* ar = nullptr;
+                fInTreeSource->SetBranchAddress(matchNames[i].Data(), &ar);
+                matchSourceArs.push_back(ar);
+            }
+        } else
+            for (Int_t j = 0; j < matchNames.size(); j++)
+                fInTreeSource->SetBranchStatus(matchNames[j] + ".*", 0);
     }
-    delete[] fPedVal;
-    delete[] fPedValTemp;
-    delete[] fNvalsADC;
-    delete[] fPedRms;
-    delete[] fPedSigRms;
-    delete[] fPedSigRms2;
-    delete[] fAdcProfiles;
-    delete[] fPedCMS;
-    delete[] fSigCMS;
-    delete[] fNoisyChipChannels;
-    /*canStrip->cd(1);
-    h->Draw("colz");
-    canStrip->cd(2);
-    hp->Draw("colz");
-    canStrip->cd(3);
-    hcms->Draw("colz");
-    canStrip->cd(4);
-    hscms_adc->Draw("colz");
-    canStrip->cd(5);
-    hcms1p->Draw("colz");
-    canStrip->cd(6);
-    hscms1p_adc->Draw("colz");
-    canStrip->cd(7);
-    hcms1->Draw("colz");
-    canStrip->cd(8);
-    hscms1_adc->Draw("colz");
-    canStrip->SaveAs("can-cms.png");*/
-}
+    mcTracks = digiSourceArs[3];
+    stsPoints = digiSourceArs[4];
+    silPoints = digiSourceArs[5];
+    cscPoints = digiSourceArs[6];
+    fInTreeSource->SetBranchAddress(EHMCName.Data(), &mcEH);
 
-BmnStatus BmnAdcProcessor::RecalculatePedestals() {
-    //    printf("\n[INFO]");
-    //    printf(ANSI_COLOR_BLUE " ADC pedestals recalculation\n" ANSI_COLOR_RESET);
-    const UShort_t nSmpl = fNSamples;
-
-    for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-            for (Int_t iSmpl = 0; iSmpl < fNSamples; ++iSmpl) {
-                fPedVal[iCr][iCh][iSmpl] = 0.0;
-                fPedRms[iCr][iCh][iSmpl] = 0.0;
-                fAdcProfiles[iCr][iCh][iSmpl] = 0;
-            }
-        }
-    //cout << fDetName << " pedestals calculation..." << endl;
-    for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
-        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-            for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                Double_t signals[nSmpl];
-                for (Int_t i = 0; i < nSmpl; ++i) signals[i] = 0.0;
-                Int_t nOk = 0;
-                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-                    if (fPedDat[iCr][iEv][iCh][iSmpl] == 0) continue;
-                    signals[iSmpl] = fPedDat[iCr][iEv][iCh][iSmpl];
-                    nOk++;
-                }
-                Double_t CMS = CalcCMS(signals, nOk);
-                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-                    fPedVal[iCr][iCh][iSmpl] += ((signals[iSmpl] - CMS) / N_EV_FOR_PEDESTALS);
-                }
-            }
+    Int_t retn = system(Form("cp  %s %s", inBaseName.Data(), destName.Data()));
+    printf("ret %d\n", retn);
+    fflush(stdout);
+    /*****************************/
+    /** Open  dest digits **/
+    /*****************************/
+    TFile *fDestHitsFile = new TFile(destName, "UPDATE");
+    if (fDestHitsFile->IsOpen() == false) {
+        printf("\n!!!!\ncannot open file %s !\n", destName.Data());
+        return kBMNERROR;
     }
-
-    //cout << fDetName << " RMS calculation..." << endl;
-    for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
-        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-            for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                Double_t signals[nSmpl];
-                for (Int_t i = 0; i < nSmpl; ++i) signals[i] = 0.0;
-                Int_t nOk = 0;
-                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-                    if (fPedDat[iCr][iEv][iCh][iSmpl] == 0) continue;
-                    signals[iSmpl] = fPedDat[iCr][iEv][iCh][iSmpl];
-                    nOk++;
-                }
-                Double_t CMS = CalcCMS(signals, nOk);
-                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-                    Float_t ped = fPedVal[iCr][iCh][iSmpl];
-                    fPedRms[iCr][iCh][iSmpl] += ((signals[iSmpl] - CMS - ped) * (signals[iSmpl] - CMS - ped));
-                }
-            }
-    }
-
-    for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-        for (Int_t iCh = 0; iCh < fNChannels; ++iCh)
-            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
-                fPedRms[iCr][iCh][iSmpl] = Sqrt(fPedRms[iCr][iCh][iSmpl] / N_EV_FOR_PEDESTALS);
-
-    ofstream pedFile(Form("%s/input/%s_pedestals_%d.txt", getenv("VMCWORKDIR"), fDetName.Data(), fRun));
-    pedFile << "Serial\tCh_id\tPed\tRMS" << endl;
-    pedFile << "============================================" << endl;
-    for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-        for (Int_t iCh = 0; iCh < fNChannels; ++iCh)
-            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
-                pedFile << hex << fAdcSerials[iCr] << dec << "\t" << iCh * nSmpl + iSmpl << "\t" << fPedVal[iCr][iCh][iSmpl] << "\t" << fPedRms[iCr][iCh][iSmpl] << endl;
-    pedFile.close();
-
-    return kBMNSUCCESS;
-}
-
-BmnStatus BmnAdcProcessor::RecalculatePedestalsAugmented() {
-    const UInt_t PAD_WIDTH_SIL = 1920; //8192;
-    const UInt_t PAD_HEIGHT_SIL = 1920;
-    const UShort_t nSmpl = fNSamples;
-
-    for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-            memset(fNvalsADC[iCr][iCh], 0, sizeof (UInt_t) * fNSamples);
-            for (Int_t iSmpl = 0; iSmpl < fNSamples; ++iSmpl) {
-                fPedVal[iCr][iCh][iSmpl] = 0.0;
-                fPedValTemp[iCr][iCh][iSmpl] = 0.0;
-                fPedRms[iCr][iCh][iSmpl] = 0.0;
-                fPedSigRms[iCr][iCh][iSmpl] = 0.0;
-                fPedSigRms2[iCr][iCh][iSmpl] = 0.0;
-                fAdcProfiles[iCr][iCh][iSmpl] = 0;
-                //                fNoisyChipChannels[iCr][iCh][iSmpl] = kFALSE;
-            }
-        }
-    for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
-        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-            for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                Int_t nOk = 0;
-                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-                    if (fPedDat[iCr][iEv][iCh][iSmpl] == 0.0 || fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE) continue;
-                    fPedVal[iCr][iCh][iSmpl] += fPedDat[iCr][iEv][iCh][iSmpl]; // / N_EV_FOR_PEDESTALS);
-                    fNvalsADC[iCr][iCh][iSmpl]++;
-                    nOk++;
-                }
-            }
-    }
-    for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-        for (Int_t iCh = 0; iCh < fNChannels; ++iCh)
-            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
-                if (fNvalsADC[iCr][iCh][iSmpl])
-                    fPedVal[iCr][iCh][iSmpl] /= fNvalsADC[iCr][iCh][iSmpl];
-    // iteratively calculate pedestals and CMSs
-    Double_t rmsthr = 200.0;
-    Double_t rmsthrf = 200.0;
-    Double_t sumRms = 200.0;
-    Int_t nIters = 3;
-    for (Int_t iter = 1; iter < nIters; iter++) {
-        Double_t thr = thrMax - thrDif * iter; //(2 + (nIters - iter)/2.0) * sumRms; //thrMax - thrDif * iter;
-        rmsthr = 0.0;
-        rmsthrf = 0.0;
-        sumRms = 0.0;
-        UInt_t nFiltered = 0;
-        UInt_t npreFiltered = 0;
-        // clear
-        for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
-            for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                memset(fNvalsADC[iCr][iCh], 0, sizeof (UInt_t) * fNSamples);
-                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-                    fPedValTemp[iCr][iCh][iSmpl] = 0.0;
-                    //                    fPedVal[iCr][iCh][iSmpl] = 0.0;
-                    fPedSigRms[iCr][iCh][iSmpl] = 0.0;
-                    fPedSigRms2[iCr][iCh][iSmpl] = 0.0;
-                }
-            }
-        }
-        for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS - 1; ++iEv) {
-            // clear
-            for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
-                memset(fNvals[iCr], 0, sizeof (UInt_t) * fNChannels);
-                for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                    fPedCMS[iCr][iCh] = 0.0;
-                    fSigCMS[iCr][iCh] = 0.0;
-                }
-            }
-            // Pedestals pre filtering
-            for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-                for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-                        //                        if (iCr == 3 && iCh == 8) {
-                        //                            printf("iter %i iEv %i fpedDat %f noise %i\n", iter, iEv, fPedDat[iCr][iEv][iCh][iSmpl], fNoisyChipChannels[iCr][iCh][iSmpl]);
-                        //                        }
-                        if (fPedDat[iCr][iEv][iCh][iSmpl] == 0 || fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE) continue;
-                        Double_t Asig = TMath::Abs(fPedDat[iCr][iEv][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl]);
-                        if (Asig < thr) {
-                            fSigCMS[iCr][iCh] += fPedDat[iCr][iEv][iCh][iSmpl]; // CMS from current event
-                            fPedCMS[iCr][iCh] += fPedVal[iCr][iCh][iSmpl]; // CMS over all pedestals
-                            //                        fPedValTemp[iCr][iCh][iSmpl] += fPedDat[iCr][iEv][iCh][iSmpl]; // CMS from current event
-                            //                        fNvalsADC[iCr][iCh][iSmpl]++;
-                            fNvals[iCr][iCh]++;
-                            rmsthr += Asig * Asig;
-                            npreFiltered++;
-
-                        }
-                    }
-                }
-            // normalize
-            for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-                for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                    if (fNvals[iCr][iCh]) {
-                        fSigCMS[iCr][iCh] /= fNvals[iCr][iCh];
-                        fPedCMS[iCr][iCh] /= fNvals[iCr][iCh];
-                    }
-                    //                    if (iCr == 3 && iCh == 8) {
-                    //                        printf("iter %i iEv %i nvals %i fPedCMS[iCr][iCh] %f\n", iter, iEv, fNvals[iCr][iCh], fPedCMS[iCr][iCh]);
-                    //                    }
-                }
-            // Pedestals filtering
-            for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-                for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                    //                    if (iCr == 3 && iCh == 8)
-                    //                        printf("iev %04i iter %i sig cms %f  cms %f\n", iEv, iter, fSigCMS[iCr][iCh], fPedCMS[iCr][iCh]);
-                    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-                        if (fPedDat[iCr][iEv][iCh][iSmpl] == 0 || fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE) continue;
-                        Double_t Asig = TMath::Abs(
-                                fPedDat[iCr][iEv][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl] + fPedCMS[iCr][iCh] - fSigCMS[iCr][iCh]);
-                        if (Asig < thr) {
-                            fPedValTemp[iCr][iCh][iSmpl] += fPedDat[iCr][iEv][iCh][iSmpl];
-                            fNvalsADC[iCr][iCh][iSmpl]++;
-                            rmsthrf += Sq(fPedDat[iCr][iEv][iCh][iSmpl] - fSigCMS[iCr][iCh]);
-                            nFiltered++;
-
-                        }
-                        //                        if (iter == nIters - 1 && iCr == 0 && iCh == 9) {
-                        //                            h->Fill(iSmpl, fPedDat[iCr][iEv][iCh][iSmpl]);
-                        //                            hp->Fill(iSmpl, /* fPedDat[iCr][iEv][iCh][iSmpl] - */fPedVal[iCr][iCh][iSmpl]);
-                        //                            //                            hcms->Fill(iSmpl, fPedDat[iCr][iEv][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl] - fSigCMS[iCr][iCh] + fPedCMS0[iCr][iCh]);
-                        //                            hcms->Fill(iSmpl, fPedCMS0[iCr][iCh]);
-                        //                            hscms_adc->Fill(iSmpl, fSigCMS[iCr][iCh]);
-                        //                            hcms1p->Fill(fPedCMS0[iCr][iCh]);
-                        //                            hscms1p_adc->Fill(fSigCMS[iCr][iCh]);
-                        //                        }
-                    }
-                }
-            for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-                for (Int_t iCh = 0; iCh < fNChannels; ++iCh)
-                    fPedCMS0[iCr][iCh] = fPedCMS[iCr][iCh];
-        }
-
-
-
-
-        //hists fill
-        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-            for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-                    if (fNvalsADC[iCr][iCh][iSmpl])
-                        fPedVal[iCr][iCh][iSmpl] = fPedValTemp[iCr][iCh][iSmpl] / fNvalsADC[iCr][iCh][iSmpl];
-                    fNvalsADC[iCr][iCh][iSmpl] = 0;
-                    fPedCMS[iCr][iCh] += fPedVal[iCr][iCh][iSmpl]; // CMS over all pedestals
-                    fNvals[iCr][iCh]++;
-                }
-            }
-        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-            for (Int_t iCh = 0; iCh < fNChannels; ++iCh)
-                if (fNvals[iCr][iCh]) {
-                    fPedCMS[iCr][iCh] /= fNvals[iCr][iCh];
-                }
-
-        for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
-            for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-                for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                    //                                    if (iter == nIters - 1 && iCr == 3 && iCh == 9) {
-                    //        //                                printf("  fill     iter %i   cms %f\n", iter, fPedCMS[iCr][iCh]);
-                    //                                        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-                    //                                            //                        printf("cr %i channel %i  val %f\n", iCr, iCh,fPedDat[iCr][iEv][iCh][iSmpl]);
-                    //                                            h->Fill( iSmpl, fPedDat[iCr][iEv][iCh][iSmpl]);
-                    //                                            hp->Fill( iSmpl, fPedVal[iCr][iCh][iSmpl]);
-                    //                                            hcms->Fill(iSmpl, fPedCMS[iCr][iCh]);
-                    //                                            hscms_adc->Fill(iSmpl, /*fPedCMS[iCr][iCh] - */fSigCMS[iCr][iCh]);
-                    //                                        }
-                    //                                    }
-                }
-        }
-        rmsthr = Sqrt(rmsthr / (npreFiltered));
-        //        printf("(sig -ped) rms = %f            filtered %i\n", rmsthr, npreFiltered);
-        rmsthrf = Sqrt(rmsthrf / (nFiltered));
-        //        printf("(sig -ped + cms -scms) rms = %f  filtered %i\n", rmsthrf, nFiltered);
-
-
-        // noise ch detection
-        //cout << fDetName << " RMS calculation..." << endl;
-        for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS - 1; ++iEv) {
-            for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-                for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                    Double_t signals[nSmpl];
-                    for (Int_t i = 0; i < nSmpl; ++i) signals[i] = 0.0;
-                    Int_t nOk = 0;
-                    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-                        if (fPedDat[iCr][iEv][iCh][iSmpl] == 0 || fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE) continue;
-                        signals[iSmpl] = fPedDat[iCr][iEv][iCh][iSmpl];
-                        nOk++;
-                    }
-                    Double_t CMS = CalcCMS(signals, nOk);
-                    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-                        if (fPedDat[iCr][iEv][iCh][iSmpl] == 0 || fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE) continue;
-                        Float_t ped = fPedVal[iCr][iCh][iSmpl];
-                        fPedRms[iCr][iCh][iSmpl] += Sq(signals[iSmpl] /*- fPedCMS[iCr][iCh] + CMS*/ - ped);
-                        Double_t sig = signals[iSmpl] - fSigCMS[iCr][iCh]; // + fPedCMS[iCr][iCh] - ped; //fSigCMS[iCr][iCh];
-                        fPedSigRms[iCr][iCh][iSmpl] += sig;
-                        fPedSigRms2[iCr][iCh][iSmpl] += Sq(sig);
-                        fNvalsADC[iCr][iCh][iSmpl]++;
-                        //                                            printf(" iSmpl %d, signal %f, ped %f fSigCMS[iCr][iCh] %f fPedCMS[iCr][iCh] %f"
-                        //                                                    "  CMS %f\n", iSmpl ,signals[iSmpl], ped, fSigCMS[iCr][iCh],fPedCMS[iCr][iCh],  CMS);
-                    }
-                }
-        }
-        sumRms = 0.0;
-        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-            for (Int_t iCh = 0; iCh < fNChannels; ++iCh)
-                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-                    if (fNvalsADC[iCr][iCh][iSmpl]) {
-                        fPedRms[iCr][iCh][iSmpl] = Sqrt(fPedRms[iCr][iCh][iSmpl] / fNvalsADC[iCr][iCh][iSmpl]);
-                        fPedSigRms[iCr][iCh][iSmpl] /= fNvalsADC[iCr][iCh][iSmpl];
-                        fPedSigRms2[iCr][iCh][iSmpl] = Sqrt(Abs(fPedSigRms2[iCr][iCh][iSmpl] / fNvalsADC[iCr][iCh][iSmpl] - Sq(fPedSigRms[iCr][iCh][iSmpl])));
-                        sumRms += fPedSigRms2[iCr][iCh][iSmpl];
-                    }
-                }
-        if (fNSerials * fNChannels)
-            sumRms /= (fNSerials * fNChannels * nSmpl);
-        //        printf("sumRms = %f\n", sumRms);
-        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-            for (Int_t iCh = 0; iCh < fNChannels; ++iCh)
-                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-
-                    //                    if (iCr == 3 && iCh == 8)
-                    //                        printf("fPedSigRms[iCr][iCh][iSmpl] %f\n", fPedSigRms[iCr][iCh][iSmpl]);
-                    if (fPedSigRms2[iCr][iCh][iSmpl] > 5 * sumRms) {
-                        fNoisyChipChannels[iCr][iCh][iSmpl] = kTRUE;
-                        //                                        printf("new noisy ch on  cr %i ch %i smpl %i\n", iCr, iCh, iSmpl);
-                    }
-                }
-    }
-    //    for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-    //        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-    //            for (Int_t iSmpl = 0; iSmpl < fNSamples; ++iSmpl) {
-    //                if (fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE) continue;
-    //                //                fPedVal[iCr][iCh][iSmpl] -= fPedCMS[iCr][iCh];
-    //                //                printf("fPedVal[iCr][iCh][iSmpl] = %f  fPedCMS0[iCr][iCh] = %f   iSmpl %i\n", fPedVal[iCr][iCh][iSmpl], fPedCMS[iCr][iCh], iSmpl);
+    printf("\n DEST FILE: ");
+    printf("%s\n", destName.Data());
+    fDestTree = (TTree *) fDestHitsFile->Get("bmndata");
+    UInt_t fNEventDest = fDestTree->GetEntries();
+    //    fDestTree->SetBranchStatus("*", 0);
+    //
+    //
+    //    for (Int_t i = 0; i < fNArs; i++) {
+    //        fDestTree->SetBranchStatus(digiNames[i].Data(), 1);
+    //        if (addMatch == kTRUE)
+    //            if (i < matchNames.size()) {
+    //                fDestTree->SetBranchStatus(matchNames[i].Data(), 1);
     //            }
-    //        }
+    //    }
+    fInTreeBase = fDestTree; // o_O
+    for (Int_t i = 0; i < fNArs; i++) {
+        TClonesArray* arDigi = nullptr; // new TClonesArray(BmnCSCHit::Class());
+        TBranch* brDigi = nullptr;
+        printf("digiNames[i] %s \n", digiOutExpNames[i].Data());
+        fInTreeBase->SetBranchAddress(digiOutExpNames[i].Data(), &arDigi, &brDigi);
+        digiBaseArs.push_back(arDigi);
+        digiBaseBrs.push_back(brDigi);
+        arDigi->SetName(Form("Old_%s", arDigi->GetName()));
+        brDigi->SetName(Form("Old_%s", brDigi->GetName()));
+
+        if (addMatch == kTRUE)
+            if (i < matchNames.size()) {
+                TClonesArray* ar = nullptr;
+                fInTreeBase->SetBranchAddress(matchNames[i].Data(), &ar);
+                matchBaseArs.push_back(ar);
+            }
+    }
+    for (Int_t i = 0; i < fNArs; i++) {
+        printf("digiOutExpNames[i] %s \n", digiOutExpNames[i].Data());
+        TClonesArray* arDigi = new TClonesArray(digiClasses[i]); //nullptr;
+        TBranch * brDigi = fDestTree->Branch(digiOutExpNames[i], &arDigi); //nullptr;
+        //        fDestTree->SetBranchAddress(digiOutExpNames[i], &arDigi, &brDigi);
+        digiDestArs.push_back(arDigi);
+        digiDestBrs.push_back(brDigi);
+
+    }
+    //        if (addMatch == kTRUE)
+    //            for (Int_t i = 0; i < matchNames.size(); i++) {
+    //                TClonesArray* ar = new TClonesArray(BmnMatch::Class()); //nullptr;
+    //                TBranch * br = fDestTree->Branch(matchNames[i], &ar); //nullptr;
+    //                //            fDestTree->SetBranchAddress(matchNames[i], &ar, &br);
+    //                matchDestArs.push_back(ar);
+    //                matchDestBrs.push_back(br);
+    //            }
+
+    //    /*****************************/
+    //    /** Open input base digits **/
+    //    /*****************************/
+    //    TFile *fBaseHits = new TFile(inBaseName, "READ");
+    //    if (fBaseHits->IsOpen() == false) {
+    //        printf("\n!!!!\ncannot open file %s !\n", inBaseName.Data());
+    //        return kBMNERROR;
+    //    }
+    //    printf("\nINPUT SOURCE HITS FILE: ");
+    //    printf("%s\n", inBaseName.Data());
+    //    fInTreeBase = (TTree *) fBaseHits->Get("bmndata");
+    //    UInt_t fNEventBase = fInTreeBase->GetEntries();
+    //    for (Int_t i = 0; i < fNArs; i++) {
+    //        TClonesArray* arDigi = nullptr; // new TClonesArray(BmnCSCHit::Class());
+    //        fInTreeBase->SetBranchAddress(digiNames[i].Data(), &arDigi);
+    //        digiBaseArs.push_back(arDigi);
+    //        if (addMatch == kTRUE)
+    //            if (i < matchNames.size()) {
+    //                TClonesArray* ar = nullptr;
+    //                fInTreeBase->SetBranchAddress(matchNames[i].Data(), &ar);
+    //                matchBaseArs.push_back(ar);
+    //            }
+    //    }
+    //    fieldPar = (BmnFieldPar*) fBaseHits->Get(FieldParName.Data());
+    //    fInTreeBase->SetBranchAddress(EHMCName.Data(), &mcEH);
+    //    TObject * fhdr = fBaseHits->Get("FileHeader");
+    //    TObject * cbmr = fBaseHits->Get("cbmroot");
     //
-    //        canStrip->cd(1);
-    //        h->Draw("colz");
-    //        canStrip->cd(2);
-    //        hp->Draw("colz");
-    //        canStrip->cd(3);
-    //        hcms->Draw("colz");
-    //        canStrip->cd(4);
-    //        hscms->Draw("colz");
-    //        canStrip->SaveAs("can-cms.png");
-    ofstream pedFile(Form("%s/input/%s_pedestals_%d.txt", getenv("VMCWORKDIR"), fDetName.Data(), fRun));
-    pedFile << "Serial\tCh_id\tPed\tRMS" << endl;
-    pedFile << "============================================" << endl;
-    for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-        for (Int_t iCh = 0; iCh < fNChannels; ++iCh)
-            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
-                pedFile << hex << fAdcSerials[iCr] << dec << "\t" << iCh * nSmpl + iSmpl << "\t" << fPedVal[iCr][iCh][iSmpl] << "\t" << fPedRms[iCr][iCh][iSmpl] << endl;
-    pedFile.close();
+
+    //    /*****************************/
+    //    /** Create output digits file **/
+    //    /*****************************/
+    //    TFile *fDestHitsFile = new TFile(destName, "RECREATE");
+    //    if (fDestHitsFile->IsOpen() == false) {
+    //        printf("\n!!!!\ncannot open file %s !\n", destName.Data());
+    //        return kBMNERROR;
+    //    }
+    //    printf("\nOUT HITS FILE: ");
+    //    printf("%s\n", destName.Data());
+    //    //    TTree * fDestTree = new TTree("bmndata", "bmndata");
+    //    //    TTree * fDestTree = (TTree *) fDestHitsFile->Get("bmndata");
+    //
+    //    // clone tree except some branches (deactivate=>clone=>activate)
+    //    for (Int_t i = 0; i < fNArs; i++)
+    //        fInTreeBase->SetBranchStatus(digiOutExpNames[i] + ".*", 0);
+    //    for (Int_t i = 0; i < matchNames.size(); i++)
+    //        fInTreeBase->SetBranchStatus(matchNames[i] + ".*", 0);
+    //    fDestTree = fInTreeBase->CloneTree(-1, "fast");
+    //    fDestTree->Write();
+    //    for (Int_t i = 0; i < fNArs; i++)
+    //        fInTreeBase->SetBranchStatus(digiOutExpNames[i] + ".*", 1);
+    //    if (addMatch == kTRUE)
+    //        for (Int_t i = 0; i < matchNames.size(); i++)
+    //            fInTreeBase->SetBranchStatus(matchNames[i] + ".*", 1);
+    //
+    //    // create that branches in the new tree    
+    //    UInt_t fNEventDest = fDestTree->GetEntries();
+    //    for (Int_t i = 0; i < fNArs; i++) {
+    //        TClonesArray* arDigi = new TClonesArray(digiClasses[i]); //nullptr;
+    //        TBranch * brDigi = fDestTree->Branch(digiOutExpNames[i], &arDigi); //nullptr;
+    //        //        fDestTree->SetBranchAddress(digiOutExpNames[i], &arDigi, &brDigi);
+    //        digiDestArs.push_back(arDigi);
+    //        digiDestBrs.push_back(brDigi);
+    //
+    //    }
+    //    if (addMatch == kTRUE)
+    //        for (Int_t i = 0; i < matchNames.size(); i++) {
+    //            TClonesArray* ar = new TClonesArray(BmnMatch::Class()); //nullptr;
+    //            TBranch * br = fDestTree->Branch(matchNames[i], &ar); //nullptr;
+    //            //            fDestTree->SetBranchAddress(matchNames[i], &ar, &br);
+    //            matchDestArs.push_back(ar);
+    //            matchDestBrs.push_back(br);
+    //        }
+    //    //    mcEHOut = new DstEventHeader();
+    //    //    fDestTree->Branch("DstEventHeader.", mcEHOut);
+    ////    bmnEH = new BmnEventHeader();
+    ////    EHBranch = fDestTree->Branch(EHDigiName.Data(), bmnEH);
+    //    TList * branches = (TList*) fDestTree->GetListOfBranches();
+    //    for (Int_t i = 0; i < branches->GetEntries(); i++) {
+    //        TObjString * s = new TObjString(branches->At(i)->GetName());
+    //        fBranchList->Add(s);
+    //    }
+
+    /*****************************/
+    /** Fill hits **/
+    /*****************************/
+    //    UInt_t minEvents = Min(fNEventSource, fNEventDest);
+    iSourceEvent = 0;
+    for (UInt_t iEv = 0; iEv < fNEventDest; ++iEv) {
+        DrawBar(iEv, fNEventDest);
+        for (UInt_t iBr = 0; iBr < fNArs; iBr++) {
+            digiDestArs[iBr]->Clear("C");
+            if (addMatch == kTRUE && iBr < matchNames.size())
+                matchDestArs[iBr]->Clear("C");
+        }
+        fInTreeBase->GetEntry(iEv);
+        //        fInTreeSource->GetEntry(iEv);
+        if (GetNextValidSourceEvent() == kBMNERROR) {
+            printf("Not enough source events!\n");
+            break;
+        }
+        fDestTree->GetEntry(iEv);
+        for (UInt_t iBr = 0; iBr < fNArs; iBr++) {
+            //                        printf("iEv %u iBr %u \n", iEv, iBr);
+            //                        printf(" was %d entries source\n", digiSourceArs[iBr]->GetEntries());
+            //                        printf(" was %d entries base\n", digiBaseArs[iBr]->GetEntries());
+            if (turnOffBaseDigits == kTRUE) {
+                for (Int_t i = 0; i < digiBaseArs[iBr]->GetEntriesFast(); i++) {
+                    BmnSiliconDigit * dig;
+                    BmnGemStripDigit * dig1;
+                    BmnCSCDigit * dig2;
+                    switch (iBr) {
+                        case 0:
+//                            dig = (decltype (BmnSiliconDigit::Class())*) digiBaseArs[iBr]->At(i);
+                            dig = (BmnSiliconDigit*) digiBaseArs[iBr]->At(i);
+                            dig->SetIsGoodDigit(kFALSE);
+                            break;
+                        case 1:
+                            dig1 = (BmnGemStripDigit*) digiBaseArs[iBr]->At(i);
+                            dig1->SetIsGoodDigit(kFALSE);
+                            break;
+                        case 2:
+                            dig2 = (BmnCSCDigit*) digiBaseArs[iBr]->At(i);
+                            dig2->SetIsGoodDigit(kFALSE);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+//            // add corresponding channel signal
+//            for (Int_t i = 0; i < digiSourceArs[iBr]->GetEntriesFast(); i++) {
+//                Double_t sig = 0.0;
+//                Int_t st = 0;
+//                Int_t mod = 0;
+//                Int_t lay = 0;
+//                Int_t strip = 0;
+//                BmnSiliconDigit * dig;
+//                BmnGemStripDigit * dig1;
+//                BmnCSCDigit * dig2;
+//                switch (iBr) {
+//                    case 0:
+//                        dig = (typeof (BmnSiliconDigit::Class())*) digiBaseArs[iBr]->At(i);
+//                        sig = dig->GetStripSignal();
+//                        st = dig->GetStation();
+//                        mod = dig->GetStation();
+//                        lay = dig->GetStation();
+//                        strip = dig->GetStation();
+//                        break;
+//                    case 1:
+//                        dig1 = (BmnGemStripDigit*) digiBaseArs[iBr]->At(i);
+//                        sig = dig1->GetStripSignal();
+//                        break;
+//                    case 2:
+//                        dig2 = (BmnCSCDigit*) digiBaseArs[iBr]->At(i);
+//                        sig = dig2->GetStripSignal();
+//                        break;
+//                    default:
+//                        break;
+//                }
+//                for (Int_t j = 0; j < digiBaseArs[iBr]->GetEntriesFast(); j++) {
+//
+//                BmnSiliconDigit * digInner;
+//                BmnGemStripDigit * digInner1;
+//                BmnCSCDigit * digInner2;
+//                switch (iBr) {
+//                    case 0:
+//                        digInner = (typeof (BmnSiliconDigit::Class())*) digiBaseArs[iBr]->At(j);
+//                        sig = digInner->GetStripSignal();
+//                        break;
+//                    case 1:
+//                        digInner1 = (BmnGemStripDigit*) digiBaseArs[iBr]->At(j);
+//                        sig = digInner1->GetStripSignal();
+//                        break;
+//                    case 2:
+//                        digInner2 = (BmnCSCDigit*) digiBaseArs[iBr]->At(j);
+//                        sig = digInner2->GetStripSignal();
+//                        break;
+//                    default:
+//                        break;
+//                }
+//                }
+//            }
+
+            Int_t fNDigiBase = digiBaseArs[iBr]->GetEntriesFast();
+            digiDestArs[iBr]->AbsorbObjects(digiBaseArs[iBr]);
+            digiDestArs[iBr]->AbsorbObjects(digiSourceArs[iBr]);
+
+            digiDestBrs[iBr]->Fill();
+            //            if (addMatch)
+            //                if (iBr < matchNames.size()) {
+            //                    for (UInt_t iMatch = 0; iMatch < fNDigiBase; iMatch++) {
+            //                        new ((*matchDestArs[iBr])[matchDestArs[iBr]->GetEntriesFast()]) BmnMatch();
+            //                    }
+            //                    matchDestArs[iBr]->AbsorbObjects(matchSourceArs[iBr]);
+            //                    matchDestBrs[iBr]->Fill();
+            //                }
+            //                        printf(" is %d entries\n", digiDestArs[iBr]->GetEntries());
+
+        }
+        //        mcEHOut->Clear();
+        //        mcEHOut->SetEventId(mcEH->GetEventId());
+        //        mcEHOut->SetEventTime(mcEH->GetEventTime());
+        //        mcEHOut->SetEventTimeTS(mcEH->GetEventTimeTS());
+        //        mcEHOut->SetADCin(mcEH->GetADCin());
+        //        mcEHOut->SetADCout(mcEH->GetADCout());
+        //        mcEHOut->SetB(mcEH->GetB());
+        //        mcEHOut->SetHeaderName(mcEH->GetHeaderName());
+        //        mcEHOut->SetInputFileId(mcEH->GetInputFileId());
+        //        mcEHOut->SetMCEntryNumber(mcEH->GetMCEntryNumber());
+        //        //        mcEHOut->SetRunId(mcEH->GetRunId());
+        //        mcEHOut->SetTriggerType(mcEH->GetTriggerType());
+        //        mcEHOut->SetZ2in(mcEH->GetZ2in());
+        //        mcEHOut->SetZ2out(mcEH->GetZ2out());
+        //        bmnEH->Clear();
+        //        bmnEH->SetEventId(mcEH->GetEventID());
+        //        //        bmnEH->SetEventTime(mcEH->GetEventTime());
+        //        //        bmnEH->SetEventTimeTS(mcEH->GetEventTimeTS());
+        //        bmnEH->SetEventType(kBMNPAYLOAD);
+        //        bmnEH->SetPeriodId(fPeriodId);
+        //        bmnEH->SetRunId(4649); //mcEH->GetRunID());
+        //        EHBranch->Fill();
+        //        fDestTree->Fill();
+    }
+    fDestTree->Write();
+    for (UInt_t iBr = 0; iBr < fNArs; iBr++) {
+        //        TObjArray* list = digiBaseBrs[iBr]->GetListOfLeaves();
+        //        TIter it(list);
+        //        while (TLeaf * l = (TLeaf*) it.Next()) {
+        //            //                    printf("lname %s size %d\n", l->GetName(),l->GetLen());
+        //            l->SetName(Form("oldLeaf%d", iBr));
+        //        }
+        digiBaseBrs[iBr]->SetName(Form("oldDigi%d", iBr));
+        //            digiDestBrs[iBr]->SetName(digiOutExpNames[iBr].Data());
+    }
+    fDestTree->Write();
+    fDestHitsFile->Write();
+    if (fSourceHits)
+        fSourceHits->Close();
+    //    if (fBaseHits)
+    //        fBaseHits->Close();
+    if (fDestHitsFile)
+        fDestHitsFile->Close();
+
+    printf("\nFinished! Search made over %d source events\n", iSourceEvent);
 
     return kBMNSUCCESS;
 }
 
-void BmnAdcProcessor::Run7(Int_t* _statsGem, Int_t* _statsSil, Int_t* _statsGemPermut, Int_t* _statsSilPermut) {
-    // Setup is valid for two modes (BM@N and SRC)
-    // To be moved to the UniDb
-    if (fBmnSetup == kBMNSETUP) {
-        _statsGem[0] = 1; // MK-numeration
-        _statsGem[1] = 2; // MK-numeration
-        _statsGem[2] = 4; // MK-numeration
-        _statsGem[3] = 5; // MK-numeration
-        _statsGem[4] = 6; // MK-numeration
-        _statsGem[5] = 7; // MK-numeration
+BmnStatus BmnRecoTools::GetNextValidSourceEvent() {
+    do {
+        fInTreeSource->GetEntry(iSourceEvent++);
+        //        if (IsReconstructable(mcTracks, stsPoints, silPoints, cscPoints, fCode, fOutCodes, fMinHits))
+        return kBMNSUCCESS;
+    } while (iSourceEvent < fInTreeSource->GetEntriesFast());
+    return kBMNERROR;
+}
 
-        _statsGemPermut[0] = 0;
-        _statsGemPermut[1] = 1;
-        _statsGemPermut[2] = 2;
-        _statsGemPermut[3] = 3;
-        _statsGemPermut[4] = 4;
-        _statsGemPermut[5] = 5;
+Bool_t BmnRecoTools::IsReconstructable(
+        TClonesArray* mcTracks, TClonesArray* gemPoints, TClonesArray* silPoints, TClonesArray* cscPoints,
+        Int_t code, vector<Int_t> outCodes, Int_t minHits) {
 
-        _statsSil[0] = 1; // MK-numeration
-        _statsSil[1] = 2; // MK-numeration
-        _statsSil[2] = 3; // MK-numeration
+    Int_t decaysWritten = 0;
 
-        _statsSilPermut[0] = 0;
-        _statsSilPermut[1] = 1;
-        _statsSilPermut[2] = 2;
+    for (Int_t iTrack = 0; iTrack < mcTracks->GetEntriesFast(); iTrack++) {
+        CbmMCTrack* track = (CbmMCTrack*) mcTracks->UncheckedAt(iTrack);
+        if (track->GetMotherId() != -1 || track->GetPdgCode() != code)
+            continue;
+        //                        printf("found %dth track for %d\n", iTrack, track->GetPdgCode());
+        vector<Int_t> outHitsCnt; ///<- found hits for the each offspring
+        outHitsCnt.resize(outCodes.size(), 0);
+        // find the offsprings & count their hits in the inner tracker
+        for (Int_t jTrack = 0; jTrack < mcTracks->GetEntriesFast(); jTrack++) {
+            CbmMCTrack* offspringTrack = (CbmMCTrack*) mcTracks->UncheckedAt(jTrack);
+            if (offspringTrack->GetMotherId() != iTrack)
+                continue;
+            auto it = find(outCodes.begin(), outCodes.end(), offspringTrack->GetPdgCode());
+            if (it == outCodes.end())
+                continue;
+            Int_t iOffspring = it - outCodes.begin();
+            //                                printf("found %dth offspring for %d\n", iOffspring, offspringTrack->GetPdgCode());
 
-    } else if (fBmnSetup == kSRCSETUP) {
-        _statsGem[0] = 1; // MK-numeration
-        _statsGem[1] = 2; // MK-numeration
-        _statsGem[2] = 3; // MK-numeration
-        _statsGem[3] = 4; // MK-numeration
-        _statsGem[4] = 5; // MK-numeration
-        _statsGem[5] = 6; // MK-numeration
-        _statsGem[6] = 7; // MK-numeration
-        _statsGem[7] = 8; // MK-numeration
-        _statsGem[8] = 9; // MK-numeration
-        _statsGem[9] = 10; // MK-numeration
+            for (Int_t iPoint = 0; iPoint < gemPoints->GetEntriesFast(); iPoint++) {
+                CbmStsPoint* stsPoint = (CbmStsPoint*) gemPoints->UncheckedAt(iPoint);
+                if (stsPoint->GetTrackID() != jTrack)
+                    continue;
+                //                                printf("found %dth gem point for %d\n", iPoint, offspringTrack->GetPdgCode());
+                outHitsCnt[iOffspring]++;
+            }
+            for (Int_t iPoint = 0; iPoint < silPoints->GetEntriesFast(); iPoint++) {
+                BmnSiliconPoint* silPoint = (BmnSiliconPoint*) silPoints->UncheckedAt(iPoint);
+                if (silPoint->GetTrackID() != jTrack)
+                    continue;
+                //                                printf("found %dth sil point for %d\n", iPoint, offspringTrack->GetPdgCode());
+                outHitsCnt[iOffspring]++;
+            }
+            for (Int_t iPoint = 0; iPoint < cscPoints->GetEntriesFast(); iPoint++) {
+                BmnCSCPoint* cscPoint = (BmnCSCPoint*) cscPoints->UncheckedAt(iPoint);
+                if (cscPoint->GetTrackID() != jTrack)
+                    continue;
+                //                                printf("found %dth csc point for %d\n", iPoint, offspringTrack->GetPdgCode());
+                outHitsCnt[iOffspring]++;
+            }
+        }
+        Int_t insuff = -1;
+        for (Int_t iOffspring = 0; iOffspring < outCodes.size(); iOffspring++) {
+            //                                printf("%d counts %d hits\n", iOffspring, outHitsCnt[iOffspring]);
+            if (outHitsCnt[iOffspring] < minHits) {
+                insuff = iOffspring;
+                break;
+            }
+        }
+        if (insuff > -1)
+            continue;
+        decaysWritten++;
+    }
+    //        printf("\n Found %d Good Lambda Decays\n", decaysWritten);
+    return (decaysWritten == 1);
 
-        _statsGemPermut[0] = 0;
-        _statsGemPermut[1] = 1;
-        _statsGemPermut[2] = 2;
-        _statsGemPermut[3] = 3;
-        _statsGemPermut[4] = 4;
-        _statsGemPermut[5] = 5;
-        _statsGemPermut[6] = 6;
-        _statsGemPermut[7] = 7;
-        _statsGemPermut[8] = 8;
-        _statsGemPermut[9] = 9;
+}
 
-        _statsSil[0] = 1; // MK-numeration
-        _statsSil[1] = 2; // MK-numeration
-        _statsSil[2] = 3; // MK-numeration
+//BmnStatus BmnRecoTools::FilterDecayR(TString inSourceName, TString outName, Int_t code, vector<Int_t> outCodes) {
+//    BmnStatus st = FilterDecayR(chain, outName, code, outCodes);
+////    TChain * chain = new TChain("bmndata");
+////    chain->Add(inSourceName.Data());
+////    BmnStatus st = FilterDecayR(chain, outName, code, outCodes);
+////    delete chain;
+//    return st;
+//}
 
-        _statsSilPermut[0] = 0;
-        _statsSilPermut[1] = 1;
-        _statsSilPermut[2] = 2;
+//BmnStatus BmnRecoTools::FilterDecayR(TChain* inSourceChain, TString outName, Int_t code, vector<Int_t> outCodes) {
+
+BmnStatus BmnRecoTools::FilterDecayR(TString inSourceName, TString outName, Bool_t isExp, Int_t code, vector<Int_t> outCodes) {
+    Int_t fPeriodID = 7;
+    Bool_t addMatch = kFALSE;
+    const Int_t minHits = 5;
+
+    TString EHName = "BmnEventHeader.";
+    TString EHNameCopy = "EventHeader.";
+    TString EHMCName = "MCEventHeader.";
+    TString EHDigiName = "BmnEventHeader.";
+    TString FieldParName = "BmnFieldPar";
+    TString MCTrackName = "MCTrack";
+    TString StsPointName = "StsPoint";
+    vector<TString> digiNames = {
+        "BmnSiliconDigit", "BmnGemStripDigit", "BmnCSCDigit", "MCTrack", "StsPoint", "SiliconPoint", "CSCPoint",
+        "GeoTracks"
+    };
+    vector<TString> digiExpNames = {
+        "BmnSiliconDigit", "BmnGemStripDigit", "BmnCSCDigit", "MCTrack", "StsPoint", "SiliconPoint", "CSCPoint",
+        "GeoTracks"
+    };
+    vector<TString> outMCNames = {
+        "BmnSiliconDigit", "BmnGemStripDigit", "BmnCSCDigit", "MCTrack", "StsPoint", "SiliconPoint", "CSCPoint",
+        "GeoTracks"
+    };
+    vector<TString> outExpNames = {
+        "SILICON", "GEM", "CSC", "MCTrack", "StsPoint", "SiliconPoint", "CSCPoint",
+        "GeoTracks"
+    };
+    vector<TString> digiOutExpNames = (isExp == kTRUE) ? outExpNames : outMCNames;
+
+    vector<TClass*> digiClasses = {
+        BmnSiliconDigit::Class(), BmnGemStripDigit::Class(), BmnCSCDigit::Class(), CbmMCTrack::Class(),
+        CbmStsPoint::Class(), BmnSiliconPoint::Class(), BmnCSCPoint::Class(), TGeoTrack::Class()
+    };
+    vector<TString> matchNames = {"BmnSiliconDigitMatch", "BmnGemStripDigitMatch", "BmnCSCDigitMatch"};
+    vector<TClonesArray*> digiSourceArs; ///<- source digi arrays
+    vector<TClonesArray*> digiDestArs; ///<- destination digi arrays
+    vector<TBranch*> digiDestBrs; ///<- destination digi branches
+    vector<TClonesArray*> matchSourceArs; ///<- source match arrays
+    vector<TClonesArray*> matchDestArs; ///<- destination match arrays
+    vector<TBranch*> matchDestBrs; ///<- destination match branches
+    TClonesArray * mcTracks = nullptr;
+    TClonesArray* stsPoints = nullptr;
+    TClonesArray* silPoints = nullptr;
+    TClonesArray* cscPoints = nullptr;
+    TBranch *EHBranch = nullptr; ///<- input event header
+    TBranch *EHBranchOut = nullptr; ///<- output event header
+    FairMCEventHeader * mcEH = nullptr;
+    FairMCEventHeader * mcEHOut = nullptr;
+    BmnEventHeader * EHOut = nullptr;
+    BmnEventHeader * EHOutCopy = nullptr;
+    BmnFieldPar *fieldPar = nullptr;
+
+    TList* fBranchList = new TList();
+
+    UInt_t fNArs = digiNames.size();
+
+    /***********************/
+    /** Open input digits **/
+    /***********************/
+    TFile *fSourceHits = new TFile(inSourceName, "READ");
+    if (fSourceHits->IsOpen() == false) {
+        printf("\n!!!!\ncannot open file %s !\n", inSourceName.Data());
+        return kBMNERROR;
+    }
+    printf("\nINPUT SOURCE FILE: ");
+    printf("%s\n", inSourceName.Data());
+    TTree * inSourceChain = (TTree *) fSourceHits->Get("bmndata");
+    UInt_t fNEventSource = inSourceChain->GetEntries();
+    printf("Found %d events\n", fNEventSource);
+    for (Int_t i = 0; i < fNArs; i++) {
+        TClonesArray* arDigi = nullptr; // new TClonesArray(BmnCSCHit::Class());
+        inSourceChain->SetBranchAddress(digiNames[i].Data(), &arDigi);
+        digiSourceArs.push_back(arDigi);
+        if (i < matchNames.size()) {
+            TClonesArray* ar = nullptr;
+            inSourceChain->SetBranchAddress(matchNames[i].Data(), &ar);
+            matchSourceArs.push_back(ar);
+        }
+    }
+    mcTracks = digiSourceArs[3];
+    stsPoints = digiSourceArs[4];
+    silPoints = digiSourceArs[5];
+    cscPoints = digiSourceArs[6];
+    inSourceChain->SetBranchAddress(EHMCName.Data(), &mcEH);
+    //    inSourceChain->SetBranchAddress(MCTrackName.Data(), &mcTracks);
+    //    inSourceChain->SetBranchAddress(StsPointName.Data(), &stsPoints);
+    fieldPar = (BmnFieldPar*) fSourceHits->Get(FieldParName.Data());
+
+    /*******************************/
+    /** Create output digits file **/
+    /*******************************/
+    TFile *fDestHitsFile = new TFile(outName, "RECREATE");
+    if (fDestHitsFile->IsOpen() == false) {
+        printf("\n!!!!\ncannot open file %s !\n", outName.Data());
+        return kBMNERROR;
+    }
+    printf("\nOUT FILE: %s\n", outName.Data());
+    if (addMatch == kFALSE)
+        for (Int_t i = 0; i < matchNames.size(); i++) {
+            inSourceChain->SetBranchStatus(matchNames[i] + ".*", 0);
+            //            inSourceChain->SetBranchStatus(matchNames[i], 0);
+        }
+    TTree * fDestTree = inSourceChain->CloneTree(0);
+    //    TTree * fDestTree = new TTree("bmndata", "bmndata");
+    //    for (Int_t i = 0; i < fNArs; i++) {
+    //        TClonesArray* arDigi = new TClonesArray(digiClasses[i]);
+    //        TBranch* brDigi = fDestTree->Branch(digiOutExpNames[i], &arDigi);
+    //        digiDestArs.push_back(arDigi);
+    //        digiDestBrs.push_back(brDigi);
+    //    }
+    if (addMatch)
+        for (Int_t i = 0; i < matchNames.size(); i++) {
+            TClonesArray* ar = new TClonesArray(BmnMatch::Class());
+            TBranch * br = fDestTree->Branch(matchNames[i], &ar);
+            matchDestArs.push_back(ar);
+            matchDestBrs.push_back(br);
+        }
+    //    if (isExp == kTRUE) {
+    //        EHOut = new BmnEventHeader();
+    //        fDestTree->Branch(EHName.Data(), EHOut);
+    //        EHOutCopy = new BmnEventHeader();
+    //        fDestTree->Branch(EHNameCopy.Data(), EHOutCopy);
+    //    } else {
+    //        mcEHOut = new FairMCEventHeader();
+    //        EHBranchOut = fDestTree->Branch(EHMCName.Data(), mcEHOut);
+    //    }
+    TList * branches = (TList*) fDestTree->GetListOfBranches();
+    for (Int_t i = 0; i < branches->GetEntries(); i++) {
+        TObjString * s = new TObjString(branches->At(i)->GetName());
+        fBranchList->Add(s);
+    }
+    UInt_t nRecEv = 0;
+
+    for (UInt_t iEv = 0; iEv < fNEventSource; ++iEv) {
+        //        for (UInt_t iBr = 0; iBr < fNArs; iBr++) {
+        //            digiDestArs[iBr]->Clear("C");
+        //            if (addMatch && iBr < matchNames.size())
+        //                matchDestArs[iBr]->Clear("C");
+        //        }
+        inSourceChain->GetEntry(iEv);
+        DrawBar(iEv, fNEventSource);
+
+        Int_t decaysWritten = 0;
+        // run over MC tracks & search for needed particle code
+        //                printf("iev %d ntracks %d\n", iEv, mcTracks->GetEntriesFast());
+        for (Int_t iTrack = 0; iTrack < mcTracks->GetEntriesFast(); iTrack++) {
+            CbmMCTrack* track = (CbmMCTrack*) mcTracks->UncheckedAt(iTrack);
+            if (track->GetMotherId() != -1 || track->GetPdgCode() != code)
+                continue;
+            //                        printf("found %dth track for %d\n", iTrack, track->GetPdgCode());
+            vector<Int_t> outHitsCnt; ///<- found hits for the each offspring
+            outHitsCnt.resize(outCodes.size(), 0);
+            // find the offsprings & count their hits in the inner tracker
+            for (Int_t jTrack = 0; jTrack < mcTracks->GetEntriesFast(); jTrack++) {
+                CbmMCTrack* offspringTrack = (CbmMCTrack*) mcTracks->UncheckedAt(jTrack);
+                if (offspringTrack->GetMotherId() != iTrack)
+                    continue;
+                auto it = find(outCodes.begin(), outCodes.end(), offspringTrack->GetPdgCode());
+                if (it == outCodes.end())
+                    continue;
+                Int_t iOffspring = it - outCodes.begin();
+                //                                printf("found %dth offspring for %d\n", iOffspring, offspringTrack->GetPdgCode());
+
+                for (Int_t iPoint = 0; iPoint < stsPoints->GetEntriesFast(); iPoint++) {
+                    CbmStsPoint* stsPoint = (CbmStsPoint*) stsPoints->UncheckedAt(iPoint);
+                    if (stsPoint->GetTrackID() != jTrack)
+                        continue;
+                    //                                printf("found %dth gem point for %d\n", iPoint, offspringTrack->GetPdgCode());
+                    outHitsCnt[iOffspring]++;
+                }
+                for (Int_t iPoint = 0; iPoint < silPoints->GetEntriesFast(); iPoint++) {
+                    BmnSiliconPoint* silPoint = (BmnSiliconPoint*) silPoints->UncheckedAt(iPoint);
+                    if (silPoint->GetTrackID() != jTrack)
+                        continue;
+                    //                                printf("found %dth sil point for %d\n", iPoint, offspringTrack->GetPdgCode());
+                    outHitsCnt[iOffspring]++;
+                }
+                for (Int_t iPoint = 0; iPoint < cscPoints->GetEntriesFast(); iPoint++) {
+                    BmnCSCPoint* cscPoint = (BmnCSCPoint*) cscPoints->UncheckedAt(iPoint);
+                    if (cscPoint->GetTrackID() != jTrack)
+                        continue;
+                    //                                printf("found %dth csc point for %d\n", iPoint, offspringTrack->GetPdgCode());
+                    outHitsCnt[iOffspring]++;
+                }
+            }
+            Int_t insuff = -1;
+            for (Int_t iOffspring = 0; iOffspring < outCodes.size(); iOffspring++) {
+                //                                printf("%d counts %d hits\n", iOffspring, outHitsCnt[iOffspring]);
+                if (outHitsCnt[iOffspring] < minHits) {
+                    insuff = iOffspring;
+                    break;
+                }
+            }
+            if (insuff > -1)
+                continue;
+            decaysWritten++;
+        }
+        if (decaysWritten == 0)
+            continue;
+        //        for (UInt_t iBr = 0; iBr < fNArs; iBr++) {
+        //            digiDestArs[iBr]->AbsorbObjects(digiSourceArs[iBr]);
+        //            if (iBr < matchNames.size()) {
+        //                if (addMatch) {
+        //                    matchDestArs[iBr]->AbsorbObjects(matchSourceArs[iBr]);
+        //                }
+        //            }
+        //        }
+        //        if (isExp) {
+        //            EHOut->Clear();
+        //            EHOut->SetEventId(mcEH->GetEventID());
+        //            //                EHOut->SetEventTime(mcEH->GetEventTime());
+        //            //                EHOut->SetEventTimeTS(mcEH->GetEventTimeTS());
+        //            EHOut->SetEventType(kBMNPAYLOAD);
+        //            EHOut->SetPeriodId(fPeriodID);
+        //            EHOut->SetRunId(4649); //mcEH->GetRunID());
+        //            EHOutCopy->Clear();
+        //            EHOutCopy->SetEventId(mcEH->GetEventID());
+        //            //                EHOutCopy->SetEventTime(mcEH->GetEventTime());
+        //            //                EHOutCopy->SetEventTimeTS(mcEH->GetEventTimeTS());
+        //            EHOutCopy->SetEventType(kBMNPAYLOAD);
+        //            EHOutCopy->SetPeriodId(fPeriodID);
+        //            EHOutCopy->SetRunId(4649); //mcEH->GetRunID());
+        //        } else {
+        //            mcEHOut->Clear();
+        //            mcEHOut->SetEventID(mcEH->GetEventID());
+        //            mcEHOut->SetRunID(mcEH->GetRunID());
+        //            mcEHOut->SetTime(mcEH->GetT());
+        //            mcEHOut->SetB(mcEH->GetB());
+        //            mcEHOut->SetNPrim(mcEH->GetNPrim());
+        //            mcEHOut->MarkSet(mcEH->IsSet());
+        //            TVector3 vertex;
+        //            mcEH->GetVertex(vertex);
+        //            mcEHOut->SetVertex(vertex);
+        //            mcEHOut->SetRotX(mcEH->GetRotX());
+        //            mcEHOut->SetRotY(mcEH->GetRotY());
+        //            mcEHOut->SetRotZ(mcEH->GetRotZ());
+        //        }
+
+        fDestTree->Fill();
+        nRecEv++;
+    }
+    printf("\nFound %u reconstuctable events\n", nRecEv);
+    fDestTree->AutoSave();
+    //    fDestTree->Write();
+    if (isExp == kFALSE)
+        fDestHitsFile->WriteObject(fBranchList, "BranchList");
+    //    fDestHitsFile->WriteObject(fieldPar, FieldParName.Data());
+    fDestHitsFile->Write();
+    if (fDestHitsFile)
+        fDestHitsFile->Close();
+    //    if (fSourceHits)
+    //        fSourceHits->Close();
+}
+
+vector<TString> BmnRecoTools::GetFileVecFromDir(TString dir) {
+    vector<TString> vec;
+    struct dirent **namelist;
+    const regex re(".+.r12");
+    Int_t n;
+    n = scandir(dir, &namelist, 0, alphasort);
+    if (n < 0) {
+        perror("scandir");
+        return vec;
     } else {
-        cout << "Configuration not defined!" << endl;
-        throw;
-    }
-}
-
-void BmnAdcProcessor::CreateGeometries() {
-    // Initialize det. geometries for converter
-    TString gPathConfig = getenv("VMCWORKDIR");
-    TString confSi = (fBmnSetup == kBMNSETUP) ? "SiliconRunSpring2018.xml" : "SiliconRunSRCSpring2018.xml";
-    TString confGem = (fBmnSetup == kBMNSETUP) ? "GemRunSpring2018.xml" : "GemRunSRCSpring2018.xml";
-    TString confCsc = "CSCRunSpring2018.xml";
-
-    // SI
-    TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
-    fDetectorSI = new BmnSiliconStationSet(gPathSiliconConfig + confSi);
-
-    // GEM
-    TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
-    fDetectorGEM = new BmnGemStripStationSet(gPathGemConfig + confGem);
-
-    // CSC
-    TString gPathCscConfig = gPathConfig + "/parameters/csc/XMLConfigs/";
-    fDetectorCSC = new BmnCSCStationSet(gPathCscConfig + confCsc);
-    // Prepare arrays for GEM- and SI-converters and make
-    statsGem = new Int_t[fDetectorGEM->GetNStations()];
-    statsSil = new Int_t[fDetectorSI->GetNStations()];
-
-    statsGemPermut = new Int_t[fDetectorGEM->GetNStations()];
-    statsSilPermut = new Int_t[fDetectorSI->GetNStations()];
-
-    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++) {
-        statsGem[iStat] = -1;
-        statsGemPermut[iStat] = -1;
-    }
-
-    for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++) {
-        statsSil[iStat] = -1;
-        statsSilPermut[iStat] = -1;
-    }
-
-    Run7(statsGem, statsSil, statsGemPermut, statsSilPermut);
-
-    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
-        fGemStats[statsGem[iStat]] = statsGemPermut[iStat];
-
-    for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++)
-        fSilStats[statsSil[iStat]] = statsSilPermut[iStat];
-}
-
-Double_t BmnAdcProcessor::CalcSCMS(Double_t* samples, Int_t nSmpl, UInt_t iCr, UInt_t iCh) {
-    Double_t pedCMS = 0;
-    Double_t sigCMS = 0;
-    Double_t pedCMStemp = 0;
-    Double_t sigCMStemp = 0;
-    UInt_t nvals = 0;
-
-
-    pedCMStemp = 0;
-    sigCMStemp = 0;
-    nvals = 0;
-    //                    printf("iCr = %i  iCh %i\n", iCr, iCh);
-    //    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-    //        if (samples[iSmpl] == 0 || fPedVal[iCr][iCh][iSmpl] == 0 || fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE) continue;
-    //        Double_t Asig = TMath::Abs(samples[iSmpl] - fPedVal[iCr][iCh][iSmpl]);
-    ////                    printf("\tAsig = %f  sample = %f fpedVal = %f  iSmpl %i\n", Asig, samples[iSmpl], fPedVal[iCr][iCh][iSmpl], iSmpl);
-    //        if (Asig < thrMax - thrDif * 1.0) {
-    //            sigCMStemp += samples[iSmpl]; // CMS from current event
-    //            pedCMStemp += fPedVal[iCr][iCh][iSmpl]; // CMS over all pedestals
-    //            nvals++;
-    //
-    //        }
-    //    }
-    //    if (nvals) {
-    //        sigCMS = sigCMStemp / nvals;
-    //        pedCMS = pedCMStemp / nvals;
-    //    }
-
-    Double_t rmsthr = 500.0;
-    Double_t sumRms = 200.0;
-    Double_t sumRms2 = thrMax;
-    Int_t nIters = 4;
-    for (Int_t iter = 1; iter < nIters; iter++) {
-        Double_t thr = /*(3.0 ) * sumRms2;*/ thrMax - thrDif * iter; //(2 + nIters - iter) * sumRms2; //thrMax - thrDif * iter;
-        sumRms = 0.0;
-        sumRms2 = 0.0;
-        rmsthr = 0.0;
-        pedCMStemp = 0.0;
-        sigCMStemp = 0.0;
-        nvals = 0;
-        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-            if (samples[iSmpl] == 0 || fPedVal[iCr][iCh][iSmpl] == 0 || fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE) continue;
-            Double_t Asig = TMath::Abs(samples[iSmpl] - fPedVal[iCr][iCh][iSmpl] - sigCMS + pedCMS);
-            //            printf("Asig = %f  thr = %f   iSmpl %i\n", Asig, thr, iSmpl);
-            if (Asig < thr) {
-                sigCMStemp += samples[iSmpl]; // CMS from current event
-                pedCMStemp += fPedVal[iCr][iCh][iSmpl]; // CMS over all pedestals
-                rmsthr += Asig * Asig;
-                sumRms += samples[iSmpl] - sigCMS;
-                sumRms2 += Sq(samples[iSmpl] - sigCMS);
-                //                if (iter == nIters - 1 && iCr == 0 && iCh == 9) {
-                //                    hscms1_adc->Fill(iSmpl, samples[iSmpl]);
-                //                    hcms1->Fill(pedCMS);
-                //                }
-                nvals++;
-
+        for (Int_t i = 0; i < n; ++i) {
+            TString _curFile = TString(namelist[i]->d_name);
+            if (regex_match(namelist[i]->d_name, re)) {
+                vec.push_back(dir + _curFile);
+                //                printf("dir file %d %s\n", i, _curFile.Data());
             }
+            free(namelist[i]);
         }
-        // normalize
-        if (nvals) {
-            sigCMS = sigCMStemp / nvals;
-            pedCMS = pedCMStemp / nvals;
-            rmsthr = Sqrt(rmsthr / nvals);
-            sumRms = sumRms / nvals;
-            sumRms2 = Sqrt(Abs(sumRms2 / nvals - sumRms * sumRms));
-            if (iter == nIters - 1 && iCr == 0 && iCh == 9) {
-                //                hcms1->Fill(pedCMS);
-                //                hscms1_adc->Fill(sigCMS);
-            }
-        }
-        //                printf("\n iter %i sig cms %f  cms %f\n", iter, sigCMS, pedCMS);
-        //                printf("\t\t(sig -ped) rms = %f          filtered %i  on iter %i\n", rmsthr, nvals, iter);
+        free(namelist);
     }
-    //        printf("(sigCMS - pedCMS) = %f \n", (sigCMS - pedCMS));
-    return (sigCMS - pedCMS);
+    return vec;
 }
 
-Double_t BmnAdcProcessor::CalcCMS(Double_t* samples, Int_t size) {
-
-    const UShort_t kNITER = 10;
-    Double_t CMS = 0.0;
-    UInt_t nStr = size;
-    Double_t upd[size];
-    for (Int_t iSmpl = 0; iSmpl < size; ++iSmpl)
-        upd[iSmpl] = samples[iSmpl];
-
-    for (Int_t itr = 0; itr < kNITER; ++itr) {
-        if (nStr == 0) break;
-        Double_t cms = 0.0; //common mode shift
-        for (Int_t iSmpl = 0; iSmpl < nStr; ++iSmpl)
-            cms += upd[iSmpl];
-        cms /= nStr;
-        Double_t rms = 0.0; //chip noise
-        for (Int_t iSmpl = 0; iSmpl < nStr; ++iSmpl)
-            rms += (upd[iSmpl] - cms) * (upd[iSmpl] - cms);
-        rms = Sqrt(rms / nStr);
-
-        UInt_t nOk = 0;
-        for (Int_t iSmpl = 0; iSmpl < nStr; ++iSmpl)
-            if (Abs(upd[iSmpl] - cms) < 3 * rms)
-                upd[nOk++] = upd[iSmpl];
-        nStr = nOk;
-        CMS = cms;
-    }
-    return CMS;
-}
-
-ClassImp(BmnAdcProcessor)
+ClassImp(BmnRecoTools)

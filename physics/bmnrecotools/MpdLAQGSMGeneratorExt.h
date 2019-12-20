@@ -30,7 +30,6 @@
 
 #ifndef __CINT__
 #include <zlib.h>
-#include <root/RtypesCore.h>
 #endif
 
 using namespace std;

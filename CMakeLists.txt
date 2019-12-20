@@ -219,6 +219,7 @@ add_subdirectory (monitor)
 add_subdirectory (physics/particles)
 add_subdirectory (steering)
 add_subdirectory (miscellaneous)
+add_subdirectory (embedding)
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/macro/nica_scheduler/CMakeLists.txt")
  add_subdirectory (macro/nica_scheduler)

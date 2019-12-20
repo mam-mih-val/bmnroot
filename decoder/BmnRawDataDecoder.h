@@ -34,7 +34,6 @@
 #include "BmnTrigRaw2Digit.h"
 #include "BmnCscRaw2Digit.h"
 #include "BmnEventHeader.h"
-#include "BmnEnums.h"
 #include "DigiArrays.h"
 #include <bitset>
 #include <stdio.h>
@@ -526,9 +525,7 @@ private:
     BmnStatus FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);
 
-    BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t &idx) {
-        return kBMNSUCCESS;
-    };
+    BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t &idx);
     BmnStatus FillTimeShiftsMap();
     BmnStatus FillTimeShiftsMapNoDB(UInt_t t0serial);
 

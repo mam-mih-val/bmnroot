@@ -272,10 +272,12 @@ void BmnFillDstTask::Exec(Option_t* /*option*/) {
     Double_t Z2in = -1000.0, Z2out = -1000.0;
     Double_t adcIn = -1000.0, adcOut = -1000.0;
     if (fT0 && fBC1 && fBC2 && fBC3 && fBC4) {
-        BmnTrigDigit* digT0 = (BmnTrigDigit*)fT0->At(0);
+        BmnTrigDigit* digT0 = NULL;
         Int_t t0Count = 0;
-        for (UInt_t i = 0; i < fT0->GetEntriesFast(); i++)
+        for (UInt_t i = 0; i < fT0->GetEntriesFast(); i++){
+	    digT0 = (BmnTrigDigit*)fT0->At(i);
             if (digT0->GetMod() == 0) t0Count++;
+	}
         if (t0Count == 1) {
             Double_t t0Time = digT0->GetTime();
             grabZ2(fBC1, fBC2, t0Time, Z2in, adcIn, true);

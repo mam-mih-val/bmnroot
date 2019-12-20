@@ -106,7 +106,7 @@ namespace pt = boost::property_tree;
 
 class BmnRawDataDecoder {
 public:
-    BmnRawDataDecoder(TString file = "", TString outfile = "", ULong_t nEvents = 0, ULong_t period = 4);
+    BmnRawDataDecoder(TString file = "", TString outfile = "", ULong_t nEvents = 0, ULong_t period = 7);
     virtual ~BmnRawDataDecoder();
 
     BmnStatus ConvertRawToRoot();
@@ -345,6 +345,14 @@ public:
         //format for GEM was changed after March 2017 seance (run 1992)
         //so we have to use this crutch.
         return (nSmpl == 128) ? 1542 : 1992;
+    }
+    
+    void SetRawRootFile(TString filename) {
+        fRootFileName = filename;
+    }
+    
+    void SetDigiRootFile(TString filename) {
+        fDigiFileName = filename;
     }
 
 private:

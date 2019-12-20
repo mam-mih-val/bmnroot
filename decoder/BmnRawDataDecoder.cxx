@@ -50,6 +50,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     gem = NULL;
     silicon = NULL;
     land = NULL;
+    mwpc = NULL;
     fRawFileName = file;
     fTOF700ReferenceRun = 0;
     fTOF700ReferenceChamber = 0;
@@ -86,6 +87,8 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fDigiRunHdrName = "DigiRunHeader";
     fDat = 0;
     fGemMapper = NULL;
+    fSiliconMapper = NULL;
+    fMwpcMapper = NULL;
     fCscMapper = NULL;
     fDchMapper = NULL;
     fTrigMapper = NULL;

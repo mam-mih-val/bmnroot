@@ -645,12 +645,6 @@ void BmnGemRaw2Digit::PostprocessDigitMK(TClonesArray * gem, TClonesArray * csc)
                         else if (ibin >= 4000) {
                             Int_t ibiny1 = ibin - 4000;
                             Int_t ny1 = ny1det[det];
-                            /*
-                                       if (iEv == 5483) {
-                                       if (dettype[det] == 5) subupy1[ibiny1] = Sig;
-                                       else if (dettype[det] == 6) sublowy1[ibiny1] = Sig;
-                                       }
-                             */
                             if (ibiny1 < ny1) {
                                 //                                hAmpy1[det]->Fill(Sig);
                                 //                                hNAmpy1[det]->Fill(ibiny1);
@@ -1066,7 +1060,7 @@ void BmnGemRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped, Int
                 // swaped R<->L Gem 6 and Gem7
                 // correspondence adc - > detector (big Gems), additional channels
                 nbigLadd = {640, 1920, 1664, 1024, 1280, 896, 512};
-                nbigRadd = {768, 1728, 1536, 1152, 1408, 0, 0};
+                nbigRadd = {768, 1792, 1536, 1152, 1408, 0, 0};
                 //Run 7 BM@N configuration
                 // detector order and modul number in the final array
                 detorder = {4, 4, 5, 5, 3, 3, 6, 6, 7, 7, 2, 2, 1, 1, 8, 8};
@@ -1091,7 +1085,7 @@ void BmnGemRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped, Int
                     nbigshift = {0, 1024, 1024, 0, 1024, 0};
                     // swaped R<->L Gem 6 and Gem7
                     nbigLadd = {640, 1920, 1664, 1024, 1280, 896};
-                    nbigRadd = {768, 1728, 1536, 1152, 1408, 0};
+                    nbigRadd = {768, 1792, 1536, 1152, 1408, 0};
                     detorder = {4, 1, 3, 2, 7, 7, 8, 8, 6, 6, 9, 9, 10, 10, 5, 5, 11, 11};
                     modul = {0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0};
                     dettype = {0, 0, 0, 0, 3, 4, 1, 2, 3, 4, 3, 4, 1, 2, 1, 2, 5, 6};

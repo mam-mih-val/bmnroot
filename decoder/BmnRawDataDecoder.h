@@ -34,7 +34,6 @@
 #include "BmnTrigRaw2Digit.h"
 #include "BmnCscRaw2Digit.h"
 #include "BmnEventHeader.h"
-#include "BmnEnums.h"
 #include "DigiArrays.h"
 #include <bitset>
 #include <stdio.h>
@@ -106,7 +105,7 @@ namespace pt = boost::property_tree;
 
 class BmnRawDataDecoder {
 public:
-    BmnRawDataDecoder(TString file = "", TString outfile = "", ULong_t nEvents = 0, ULong_t period = 4);
+    BmnRawDataDecoder(TString file = "", TString outfile = "", ULong_t nEvents = 0, ULong_t period = 7);
     virtual ~BmnRawDataDecoder();
 
     BmnStatus ConvertRawToRoot();
@@ -346,6 +345,14 @@ public:
         //so we have to use this crutch.
         return (nSmpl == 128) ? 1542 : 1992;
     }
+    
+    void SetRawRootFile(TString filename) {
+        fRootFileName = filename;
+    }
+    
+    void SetDigiRootFile(TString filename) {
+        fDigiFileName = filename;
+    }
 
 private:
 
@@ -518,9 +525,7 @@ private:
     BmnStatus FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);
 
-    BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t &idx) {
-        return kBMNSUCCESS;
-    };
+    BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t &idx);
     BmnStatus FillTimeShiftsMap();
     BmnStatus FillTimeShiftsMapNoDB(UInt_t t0serial);
 

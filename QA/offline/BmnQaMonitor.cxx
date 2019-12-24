@@ -45,7 +45,7 @@ setups(nullptr) {
     CreateInfoLists();
 
     // 2. Start web-server ...
-    InitServer();
+     InitServer();
 
     // 3. Register canvases to be shown ...
     RegisterCanvases();
@@ -81,12 +81,10 @@ void BmnQaMonitor::CreateInfoLists() {
     fRefList = new TList();
     fRefList->SetName("refList");
 
-    TNamed** versions = new TNamed*[nReleases];
     BmnRunInfo***** bri = new BmnRunInfo****[nReleases];
 
     for (Int_t iRelease = 0; iRelease < nReleases; iRelease++) {
         bri[iRelease] = new BmnRunInfo***[nRuns];
-        versions[iRelease] = new TNamed(listOfReleases[iRelease].Data(), listOfReleases[iRelease].Data());
         TList *listForRel = new TList();
         listForRel->SetName(listOfReleases[iRelease].Data());
         fRefList->Add(listForRel);
@@ -116,10 +114,10 @@ void BmnQaMonitor::CreateInfoLists() {
                         continue;
                     }
 
-                    UniDbRun* run = UniDbRun::GetRun(runs[iRun], iFile);
-                    if (run) {
-                        bri[iRelease][iRun][iSetup][iFile] = new BmnRunInfo(run);                     
-                        listForSetup->Add((TObject*) bri[iRelease][iRun][iSetup][iFile]);
+                   UniDbRun* run = UniDbRun::GetRun(runs[iRun], iFile);
+                    if (run) {                        
+                        bri[iRelease][iRun][iSetup][iFile - borderFiles.first] = new BmnRunInfo(run);
+                        listForSetup->Add((TObject*) bri[iRelease][iRun][iSetup][iFile - borderFiles.first]);
                     }
                     delete f;
                 }
@@ -220,8 +218,8 @@ void BmnQaMonitor::ShowReferenceHistos(Int_t run) {
                         }
 
                         // 1d histos for triggers are drawn in logarithmic scale !!!
-                        if (nameCanvas.Contains("TRIGGERS_1d"))
-                            pad->SetLogy();
+                        //                        if (nameCanvas.Contains("TRIGGERS_1d"))
+                        //                            pad->SetLogy();
 
                         // We do not draw reference for a 2d-histo !!!
                         if (!currName.Contains("vs.") && !refName.Contains("vs.")) {
@@ -320,8 +318,8 @@ void BmnQaMonitor::ShowCurrentHistos(Int_t run) {
 
                     TVirtualPad* pad = c->cd(padCounter);
                     // 1d-histograms for triggers are drawn in logarithmic scale !!!
-                    if (nameCanvas.Contains("TRIGGERS_1d"))
-                        pad->SetLogy();
+                    //                    if (nameCanvas.Contains("TRIGGERS_1d"))
+                    //                        pad->SetLogy();
                     Bool_t isColz = nameHisto.Contains("vs.") ? kTRUE : kFALSE;
                     if (isColz) {
                         TH2F* tmp = (TH2F*) it;
@@ -598,12 +596,14 @@ AllHistos * BmnQaMonitor::GetRun(UInt_t run) {
         if (!h)
             h = (TNamed*) file->Get(TString("DST/" + it).Data());
 
-        TString hName = TString::Format("%s", h->GetName());
+        if (h) {
+            TString hName = TString::Format("%s", h->GetName());
 
-        if (hName.Contains(".vs")) // .vs in histogram name must be present if 2d-histogram assumed
-            fHistos->Set2D((TH2F*) h);
-        else
-            fHistos->Set1D((TH1F*) h);
+            if (hName.Contains(".vs")) // .vs in histogram name must be present if 2d-histogram assumed
+                fHistos->Set2D((TH2F*) h);
+            else
+                fHistos->Set1D((TH1F*) h);
+        }
     }
     cout << "Run #" << run << " processed " << endl;
     return fHistos;

@@ -26,6 +26,9 @@
 
 #include "TString.h"
 #include "TDatime.h"
+#include "TObjArray.h"
+
+#include <boost/any.hpp>
 
 #include <vector>
 using namespace std;
@@ -33,6 +36,7 @@ using namespace std;
 struct structParseRow
 {
     TString strColumnName;
+    // int, hex, double, string, datetime, binary
     TString strStatementType;
     bool isParse;
     int iStartIndex;
@@ -78,14 +82,10 @@ struct structParseSchema
     }
 };
 
-// temporary structure for beam spill
-struct BeamSpillStructure
+struct structParseValue
 {
-    TDatime spill_end;
-    int beam_daq;
-    int beam_all;
-    int trigger_daq;
-    int trigger_all;
+    TDatime dtSpillEnd;
+    vector<boost::any> arrValues;
 };
 
 class UniDbParser
@@ -105,8 +105,8 @@ class UniDbParser
     // parse DB fields to write to other fields (temporary function)
     int ParseDb2Db();
 
-    // parse text file with beam spill to the C++ structure (temporary function)
-    vector<BeamSpillStructure*> ParseTxt2Struct(TString txtName, int& result_code);
+    // parse text file to structure with values
+    int ParseTxt2Struct(TString txtName, TString schemaPath, vector<structParseValue*>& parse_values, vector<structParseSchema>& vecElements);
 
     // save text ELOG of the BM@N experiemnt in CSV format to new Elog DB (temporary function)
     int ConvertElogCsv(TString csvName = "parse_schemes/elog.csv", char separate_symbol = ';');

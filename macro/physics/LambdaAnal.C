@@ -10,7 +10,7 @@ void LambdaAnal(UInt_t nEvents = 10e6,
         TString inSim = "",  // evetest.root
         TString inReco = "", // bmndst.root (with matches or obtained from exp. data processing)
         TString output = "",
-        Int_t runId) {
+        Int_t runId = 4649) {
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;

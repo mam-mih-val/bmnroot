@@ -6,6 +6,8 @@
 #include <TMath.h>
 #include <TVector3.h>
 #include <TSystem.h>
+#include <TObjArray.h>
+#include <TObjString.h>
 
 #include <BmnGemStripStationSet.h>
 #include <BmnSiliconStationSet.h>
@@ -165,6 +167,8 @@ public:
                         csc = new BmnCSCStationSet(gPathCscConfig + confCSC);
                 }
     }
+    
+    vector <Double_t> GetAxisAttributes(TString); 
 
 private:
     void ParseSteerFile(TString f = "qaOffline.dat");
@@ -180,7 +184,7 @@ private:
     map <pair <Int_t, TString>, pair <Int_t, Int_t>> fBorderRuns; // (period, setup) --> (start, finish)
     map <pair <Int_t, TString>, vector <TString>> fDetectors; // (period, setup) --> list of detectors
     map <pair <Int_t, TString>, vector <TString>> fTriggers; // (period, setup) --> list of triggers
-
+    
     ClassDef(BmnOfflineQaSteering, 1);
 };
 

@@ -28,6 +28,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include <root/TVirtualPad.h>
 #include <../../bmndata/BmnEventHeader.h>
 #include <../../bmndata/DigiRunHeader.h>
+#include <limits.h>
 #include "../../monitor/BmnHist.h"
 #include "BmnSiliconDigit.h"
 #include "BmnSiliconStationSet.h"
@@ -60,7 +61,7 @@ using namespace TMath;
 void DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
     Double_t maxy;
     Double_t k = 1;
-    for (Int_t iPad = 0; iPad < canGemStripPads->size(); iPad++) {
+    for (UInt_t iPad = 0; iPad < canGemStripPads->size(); iPad++) {
         TVirtualPad *pad = canGemStrip->cd(iPad + 1);
         pad->Clear();
         //        pad->SetLogy();
@@ -113,13 +114,13 @@ void StripView(Int_t runID) {
     Int_t ColorMap[nColors] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 49, 11, 12, 13, 14, 15, 16};
     //    Int_t runID = 4600;
     Int_t fPeriodID = 7;
-    UInt_t sumMods = 0;
-    UInt_t maxLayers = 0;
-    BmnSetup fBmnSetup = kSRCSETUP;
+    Int_t sumMods = 0;
+    Int_t maxLayers = 0;
+    BmnSetup fBmnSetup = kBMNSETUP;
     //    TString inFileNameMK = Form("bmn_run%04i_sidigitthr2all.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
     TString inFileNameMK = Form("MK_digi_%04i.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
-//    TString inFileNameBmn = Form("/ncx/nica/mpd22/batyuk/digi/run7/bmn/bmn_run%04i_digi.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
-        TString inFileNameBmn = Form("bmn_run%04i_digi.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    //    TString inFileNameBmn = Form("/ncx/nica/mpd22/batyuk/digi/run7/bmn/bmn_run%04i_digi.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    TString inFileNameBmn = Form("bmn_run%04i_digi_test.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
 
     TString fnames[COLS] = {inFileNameMK, inFileNameBmn};
     TString treeNames[COLS] = {"bmndata", "bmndata"};
@@ -358,6 +359,7 @@ void StripView(Int_t runID) {
 
     Int_t curEv = 0;
     Int_t preEv = 0;
+    Long64_t nEvs = LONG_MAX;
     for (Int_t i = 0; i < COLS; i++) {
         files[i] = new TFile(fnames[i], "READ");
         if (files[i]->IsOpen())
@@ -367,6 +369,7 @@ void StripView(Int_t runID) {
             return;
         }
         trees[i] = (TTree*) files[i]->Get(treeNames[i]);
+        nEvs = Min(nEvs, trees[i]->GetEntries());
         cout << "#recorded entries = " << trees[i]->GetEntries() << endl;
         if (i > 0)
             runHeaders[i] = (DigiRunHeader*) files[i]->Get(runhdrNames[i].Data());
@@ -379,13 +382,11 @@ void StripView(Int_t runID) {
     }
     for (Int_t i = 0; i < COLS; i++) {
         cout << "tree # " << i << endl;
-        UInt_t nEvs = trees[i]->GetEntries();
         if (i > 0 && runHeaders[i]) {
             printf("START (event 1):\t%s\n", runHeaders[i]->GetRunStartTime().AsString());
-            printf("FINISH (event %d):\t%s\n", nEvs, runHeaders[i]->GetRunEndTime().AsString());
+            printf("FINISH (event %lld):\t%s\n", nEvs, runHeaders[i]->GetRunEndTime().AsString());
         }
-//        for (Int_t iEv = 0; iEv < Min(nEvs,(UInt_t)1000)/*nEvs*/; iEv++) {
-                    for (Int_t iEv = 0; iEv < 10000/*nEvs*/; iEv++) {
+        for (Int_t iEv = 0; iEv < nEvs; iEv++) {
             trees[i]->GetEntry(iEv);
             if (iEv % 10000 == 0)
                 cout << "iEv = " << iEv << endl;
@@ -395,17 +396,18 @@ void StripView(Int_t runID) {
             curEv = hdr->GetEventId();
             if (curEv - preEv > 1)
                 printf("Events between %d & %d missed\n", preEv, curEv);
-//            printf("cand %04u, acc %04u, bef %04u, after %04u, rjct %04u, all %04u, avail %04u\n",
-//                    trigInfo->GetTrigCand(),
-//                    trigInfo->GetTrigAccepted(),
-//                    trigInfo->GetTrigBefo(),
-//                    trigInfo->GetTrigAfter(),
-//                    trigInfo->GetTrigRjct(),
-//                    trigInfo->GetTrigAll(),
-//                    trigInfo->GetTrigAvail());
+            //            printf("cand %04u, acc %04u, bef %04u, after %04u, rjct %04u, all %04u, avail %04u\n",
+            //                    trigInfo->GetTrigCand(),
+            //                    trigInfo->GetTrigAccepted(),
+            //                    trigInfo->GetTrigBefo(),
+            //                    trigInfo->GetTrigAfter(),
+            //                    trigInfo->GetTrigRjct(),
+            //                    trigInfo->GetTrigAll(),
+            //                    trigInfo->GetTrigAvail());
             // silicon
             if (silDigit[i])
                 for (Int_t iDig = 0; iDig < silDigit[i]->GetEntriesFast(); iDig++) {
+                    //                                                printf("iDig %d Silicon\n", iDig);
                     BmnSiliconDigit *dig = (BmnSiliconDigit*) silDigit[i]->UncheckedAt(iDig);
                     if (!(dig->IsGoodDigit())) {
                         //                        printf("ev %d is not good\n", curEv);
@@ -438,6 +440,7 @@ void StripView(Int_t runID) {
             // gem
             if (gemDigit[i])
                 for (Int_t iDig = 0; iDig < gemDigit[i]->GetEntriesFast(); iDig++) {
+                    //                                                printf("iDig %d GEM of %d\n", iDig, gemDigit[i]->GetEntriesFast());
                     BmnGemStripDigit *dig = (BmnGemStripDigit*) gemDigit[i]->UncheckedAt(iDig);
                     if (!(dig->IsGoodDigit()))
                         continue;
@@ -448,13 +451,14 @@ void StripView(Int_t runID) {
                     if (fPeriodID == 6 && i == 0) {
                         station--;
                     }
-                    //                    if (i == 1)
-                    //                        printf("station %d module %d layer %d strip %d\n", station, module, layer, strip);
+                    //                                        if (i == 1)
+                    //                                            printf("station %d module %d layer %d strip %d\n", station, module, layer, strip);
                     histStripGem[i][station][module][layer]->Fill(strip);
                 }
             // csc
             if (cscDigit[i])
                 for (Int_t iDig = 0; iDig < cscDigit[i]->GetEntriesFast(); iDig++) {
+                    //                                                printf("iDig %d CSC\n", iDig);
                     BmnCSCDigit *dig = (BmnCSCDigit*) cscDigit[i]->UncheckedAt(iDig);
                     if (!(dig->IsGoodDigit()))
                         continue;

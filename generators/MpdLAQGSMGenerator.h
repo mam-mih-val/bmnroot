@@ -76,7 +76,7 @@ struct la_tab_t {
         fZ = z;
   }
 
- private:
+ protected:
 
   FILE* fInputFile;                    //!  Input file
   #ifndef __CINT__

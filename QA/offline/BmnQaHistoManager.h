@@ -19,7 +19,7 @@ public:
     TString GetListOfHistos() {
         return ToString();
     }
-
+    
     // Setters
 
 private:

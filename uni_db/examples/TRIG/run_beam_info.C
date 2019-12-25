@@ -2,7 +2,7 @@
 
 // print summary information about beam spill for a given run in a period (or for a whole period)
 // if 'run' parameter is zero or absent then all runs in the period will be shown
-void run_beam_info(int period, int run = 0, TString target = "",
+void run_beam_info(int period = 7, int run = 0, TString target = "",
                    TString txtfile_path= "$VMCWORKDIR/uni_db/macros/parse_schemes/spill_run7/summaryMK.txt",
                    TString scheme_path = "$VMCWORKDIR/uni_db/macros/parse_schemes/spill_run7/spill_run7.xslt")
 {

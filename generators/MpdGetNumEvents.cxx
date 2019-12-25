@@ -359,6 +359,37 @@ Int_t MpdGetNumEvents::GetNumURQMDEvents(const char* fileName, int iVerbose)
     return num;
 }
 
+Int_t MpdGetNumEvents::GetNumDCMSMMEvents(const char* fileName, int iVerbose)
+{
+    MpdLibZ *libz = new MpdLibZ(fileName);
+    libz->open("rb");
+
+    char r200[200];
+    for( Int_t i=0; i<3; i++) libz->gets(r200, 200);
+
+    char read[80];
+    int ntracks, num = 0;
+    Int_t evnr=0;
+    while (!libz->eof())
+    {
+      libz->gets(read, 80);
+      sscanf(read, "%d", &evnr);
+      if( evnr-num != 1) break; // otherwise it gives 1 more event after eof
+      for( Int_t ibeam=0; ibeam<3; ibeam++) {
+	libz->gets(read, 80);
+	sscanf(read, "%d", &ntracks);
+	for( Int_t i=0; i<ntracks; i++) libz->gets(read, 80);
+      }
+      num++;
+    }
+
+    libz->close();
+    delete libz;
+
+    if (iVerbose > 1) cout<<"The total number of events in the DCMSMM file will be processed - "<<num<<endl;
+    return num;
+}
+
 Int_t MpdGetNumEvents::GetNumROOTEvents(const char* filename, int iVerbose)
 {
     TChain* fileTree = new TChain(FairRootManager::GetTreeName());

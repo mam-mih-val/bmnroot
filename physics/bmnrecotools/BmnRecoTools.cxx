@@ -255,81 +255,63 @@ BmnStatus BmnRecoTools::Embed(TString inSourceName, TString inBaseName, TString 
             //                        printf(" was %d entries base\n", digiBaseArs[iBr]->GetEntries());
             if (turnOffBaseDigits == kTRUE) {
                 for (Int_t i = 0; i < digiBaseArs[iBr]->GetEntriesFast(); i++) {
-                    BmnSiliconDigit * dig;
-                    BmnGemStripDigit * dig1;
-                    BmnCSCDigit * dig2;
-                    switch (iBr) {
-                        case 0:
-//                            dig = (decltype (BmnSiliconDigit::Class())*) digiBaseArs[iBr]->At(i);
-                            dig = (BmnSiliconDigit*) digiBaseArs[iBr]->At(i);
-                            dig->SetIsGoodDigit(kFALSE);
-                            break;
-                        case 1:
-                            dig1 = (BmnGemStripDigit*) digiBaseArs[iBr]->At(i);
-                            dig1->SetIsGoodDigit(kFALSE);
-                            break;
-                        case 2:
-                            dig2 = (BmnCSCDigit*) digiBaseArs[iBr]->At(i);
-                            dig2->SetIsGoodDigit(kFALSE);
-                            break;
-                        default:
-                            break;
-                    }
+                    BmnStripDigit * dig = (BmnStripDigit*) digiBaseArs[iBr]->At(i);
+                    dig->SetIsGoodDigit(kFALSE);
                 }
             }
-//            // add corresponding channel signal
-//            for (Int_t i = 0; i < digiSourceArs[iBr]->GetEntriesFast(); i++) {
-//                Double_t sig = 0.0;
-//                Int_t st = 0;
-//                Int_t mod = 0;
-//                Int_t lay = 0;
-//                Int_t strip = 0;
-//                BmnSiliconDigit * dig;
-//                BmnGemStripDigit * dig1;
-//                BmnCSCDigit * dig2;
-//                switch (iBr) {
-//                    case 0:
-//                        dig = (typeof (BmnSiliconDigit::Class())*) digiBaseArs[iBr]->At(i);
-//                        sig = dig->GetStripSignal();
-//                        st = dig->GetStation();
-//                        mod = dig->GetStation();
-//                        lay = dig->GetStation();
-//                        strip = dig->GetStation();
-//                        break;
-//                    case 1:
-//                        dig1 = (BmnGemStripDigit*) digiBaseArs[iBr]->At(i);
-//                        sig = dig1->GetStripSignal();
-//                        break;
-//                    case 2:
-//                        dig2 = (BmnCSCDigit*) digiBaseArs[iBr]->At(i);
-//                        sig = dig2->GetStripSignal();
-//                        break;
-//                    default:
-//                        break;
-//                }
-//                for (Int_t j = 0; j < digiBaseArs[iBr]->GetEntriesFast(); j++) {
-//
-//                BmnSiliconDigit * digInner;
-//                BmnGemStripDigit * digInner1;
-//                BmnCSCDigit * digInner2;
-//                switch (iBr) {
-//                    case 0:
-//                        digInner = (typeof (BmnSiliconDigit::Class())*) digiBaseArs[iBr]->At(j);
-//                        sig = digInner->GetStripSignal();
-//                        break;
-//                    case 1:
-//                        digInner1 = (BmnGemStripDigit*) digiBaseArs[iBr]->At(j);
-//                        sig = digInner1->GetStripSignal();
-//                        break;
-//                    case 2:
-//                        digInner2 = (BmnCSCDigit*) digiBaseArs[iBr]->At(j);
-//                        sig = digInner2->GetStripSignal();
-//                        break;
-//                    default:
-//                        break;
-//                }
-//                }
-//            }
+            //            // add corresponding channel signal
+            //            for (Int_t i = 0; i < digiSourceArs[iBr]->GetEntriesFast(); i++) {
+            //                Double_t sig = 0.0;
+            //                Int_t st = 0;
+            //                Int_t mod = 0;
+            //                Int_t lay = 0;
+            //                Int_t strip = 0;
+            //                BmnSiliconDigit * dig;
+            //                BmnGemStripDigit * dig1;
+            //                BmnCSCDigit * dig2;
+            //                switch (iBr) {
+            //                    case 0:
+            //                        dig = (typeof (BmnSiliconDigit::Class())*) digiBaseArs[iBr]->At(i);
+            //                        sig = dig->GetStripSignal();
+            //                        st = dig->GetStation();
+            //                        mod = dig->GetStation();
+            //                        lay = dig->GetStation();
+            //                        strip = dig->GetStation();
+            //                        break;
+            //                    case 1:
+            //                        dig1 = (BmnGemStripDigit*) digiBaseArs[iBr]->At(i);
+            //                        sig = dig1->GetStripSignal();
+            //                        break;
+            //                    case 2:
+            //                        dig2 = (BmnCSCDigit*) digiBaseArs[iBr]->At(i);
+            //                        sig = dig2->GetStripSignal();
+            //                        break;
+            //                    default:
+            //                        break;
+            //                }
+            //                for (Int_t j = 0; j < digiBaseArs[iBr]->GetEntriesFast(); j++) {
+            //
+            //                BmnSiliconDigit * digInner;
+            //                BmnGemStripDigit * digInner1;
+            //                BmnCSCDigit * digInner2;
+            //                switch (iBr) {
+            //                    case 0:
+            //                        digInner = (typeof (BmnSiliconDigit::Class())*) digiBaseArs[iBr]->At(j);
+            //                        sig = digInner->GetStripSignal();
+            //                        break;
+            //                    case 1:
+            //                        digInner1 = (BmnGemStripDigit*) digiBaseArs[iBr]->At(j);
+            //                        sig = digInner1->GetStripSignal();
+            //                        break;
+            //                    case 2:
+            //                        digInner2 = (BmnCSCDigit*) digiBaseArs[iBr]->At(j);
+            //                        sig = digInner2->GetStripSignal();
+            //                        break;
+            //                    default:
+            //                        break;
+            //                }
+            //                }
+            //            }
 
             Int_t fNDigiBase = digiBaseArs[iBr]->GetEntriesFast();
             digiDestArs[iBr]->AbsorbObjects(digiBaseArs[iBr]);

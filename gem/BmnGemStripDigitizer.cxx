@@ -174,20 +174,6 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
         if (TransfSet && mc_station_num < StationSet->GetNStations()) {
             BmnGemStripStation* station = StationSet->GetGemStation(mc_station_num);
             if (mc_module_num < station->GetNModules()) {
-                if (fUseRealEffects) {
-                    BmnGemStripModule *module = station->GetModule(mc_module_num);
-                    Double_t deltaX = fAlign->GetGemCorrs()[mc_station_num][mc_module_num][0];
-                    Double_t deltaY = fAlign->GetGemCorrs()[mc_station_num][mc_module_num][1];
-                    x -= deltaX;
-                    y -= deltaY;
-                    if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
-                        Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
-                        Double_t lsX = (fAlign->GetLorentzCorrs(Abs(fField->GetBy(x, y, z)), mc_station_num) * sign);
-                        x -= lsX;
-                        Double_t lsY = (fAlign->GetLorentzCorrs(Abs(fField->GetBx(x, y, z)), mc_station_num) * sign);
-                        y -= lsY;
-                    }
-                }
 
                 Plane3D::Point loc_point = TransfSet->ApplyInverseTransforms(Plane3D::Point(-x, y, z), mc_station_num, mc_module_num);
                 Plane3D::Point loc_direct = TransfSet->ApplyInverseTransforms(Plane3D::Point(-(px + x), (py + y), (pz + z)), mc_station_num, mc_module_num);
@@ -199,6 +185,15 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
                 py = loc_direct.Y() - loc_point.Y();
                 pz = loc_direct.Z() - loc_point.Z();
             }
+        }
+        if (fUseRealEffects) {
+            //BmnGemStripModule *module = station->GetModule(mc_module_num);
+            Double_t deltaX = fAlign->GetGemCorrs()[mc_station_num][mc_module_num][0];
+            Double_t deltaY = fAlign->GetGemCorrs()[mc_station_num][mc_module_num][1];
+            Double_t deltaZ = fAlign->GetGemCorrs()[mc_station_num][mc_module_num][2];
+            x += deltaX;
+            y -= deltaY;
+            //z -= deltaZ;
         }
 
         StationSet->AddPointToDetector(x, y, z, px, py, pz, dEloss, refId);

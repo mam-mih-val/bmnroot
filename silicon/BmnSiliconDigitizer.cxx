@@ -9,7 +9,7 @@ static Float_t workTime = 0.0;
 static int entries = 0;
 
 BmnSiliconDigitizer::BmnSiliconDigitizer()
-: fOnlyPrimary(kFALSE), fStripMatching(kTRUE) {
+: fOnlyPrimary(kFALSE), fStripMatching(kTRUE), fUseRealEffects(kFALSE) {
 
     fInputBranchName = "SiliconPoint";
     fOutputDigitsBranchName = "BmnSiliconDigit";
@@ -143,15 +143,19 @@ void BmnSiliconDigitizer::ProcessMCPoints() {
         Double_t dEloss = SiliconPoint->GetEnergyLoss()*1e6; // in keV
         Int_t refId = ipoint;
 
-        Int_t iSt = StationSet->GetPointStationOwnership(z);
-        Int_t iMod = StationSet->GetStation(iSt)->GetPointModuleOwnership(x, y, z);
-        
-        Double_t deltaX = fAlign->GetSiliconCorrs()[iSt][iMod][0];
-        Double_t deltaY = fAlign->GetSiliconCorrs()[iSt][iMod][1];
+        if (fUseRealEffects) {
+            Int_t iSt = StationSet->GetPointStationOwnership(z);
+            Int_t iMod = StationSet->GetStation(iSt)->GetPointModuleOwnership(x, y, z);
 
-        x -= deltaX;
-        y -= deltaY;
-        
+            Double_t deltaX = fAlign->GetSiliconCorrs()[iSt][iMod][0];
+            Double_t deltaY = fAlign->GetSiliconCorrs()[iSt][iMod][1];
+            Double_t deltaZ = fAlign->GetSiliconCorrs()[iSt][iMod][2];
+
+            x += deltaX;
+            y -= deltaY;
+            //z -= deltaZ;
+        }
+
         StationSet->AddPointToDetector(x, y, z, px, py, pz, dEloss, refId);
     }
 

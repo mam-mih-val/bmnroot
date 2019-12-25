@@ -1,6 +1,6 @@
 #include "BmnPVGetter.h"
 
-BmnPVGetter::BmnPVGetter(TString fname) {
+BmnPVGetter::BmnPVGetter(TString fname, Long64_t nEvs) {
     fDstTreeName = "bmndata";
     fDstFileName = fname;
     fPVertexName = "BmnVertex";
@@ -9,6 +9,10 @@ BmnPVGetter::BmnPVGetter(TString fname) {
     fPVertex = nullptr;
     iEv = -1;
     doNext = kTRUE;
+    if (nEvs == 0LL)
+        nFEvents = LONG_LONG_MAX;
+    else
+        nFEvents = nEvs;
 }
 
 BmnPVGetter::~BmnPVGetter() {
@@ -26,7 +30,7 @@ InitStatus BmnPVGetter::Init() {
     fDstTree = (TTree *) fDstFile->Get(fDstTreeName.Data());
     if (fDstTree->SetBranchAddress(fPVertexName.Data(), &fPVertex) < 0)
         return kERROR;
-    nFEvents = fDstTree->GetEntries();
+    nFEvents = Min(fDstTree->GetEntries(), nFEvents);
 
     FairRootManager* ioman = FairRootManager::Instance();
     if (NULL == ioman) Fatal("Init", "FairRootManager is not instantiated");

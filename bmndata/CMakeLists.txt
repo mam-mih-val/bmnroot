@@ -101,6 +101,7 @@ set(SRCS
  BmnCounterTask.cxx
 
  BmnTrigInfo.cxx
+ BmnStripDigit.cxx
  BmnTrigDigit.cxx
  BmnTrigWaveDigit.cxx
  BmnADCDigit.cxx

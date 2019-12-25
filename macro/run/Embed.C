@@ -3,7 +3,6 @@
 #include "../../bmndata/BmnSiliconHit.h"
 #include "../../bmndata/BmnGemStripHit.h"
 #include "../../bmndata/BmnCSCHit.h"
-#include <root/Rtypes.h>
 #include <root/TString.h>
 #include <root/TFile.h>
 #include <root/TTree.h>

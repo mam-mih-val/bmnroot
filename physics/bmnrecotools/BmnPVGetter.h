@@ -7,6 +7,8 @@
 #ifndef BMNPVGETTER_H
 #define BMNPVGETTER_H
 
+#include <limits.h>
+
 #include <TClonesArray.h>
 #include <TFile.h>
 
@@ -20,7 +22,7 @@
 
 class BmnPVGetter : public FairTask {
 public:
-    BmnPVGetter(TString fname);
+    BmnPVGetter(TString fname, Long64_t nEvs = 0);
     virtual ~BmnPVGetter();
     
     InitStatus Init();

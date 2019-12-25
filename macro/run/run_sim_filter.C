@@ -58,7 +58,7 @@ void run_sim_filter(
     primGen->SmearVertexZ(kFALSE);
     primGen->SmearVertexXY(kFALSE);
 
-    BmnPVGetter* pvg = new BmnPVGetter(expFile);
+    BmnPVGetter* pvg = new BmnPVGetter(expFile, nEvents);
     pvg->SetVerbose(fVerbose);
     pvg->SetGenerator(primGen);
 
@@ -182,8 +182,8 @@ void run_sim_filter(
 
     // GEM-Digitizer
     BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2018;
-//    if (useRealEffects)
-//        BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_6T);
+    if (useRealEffects)
+        BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_6T);
     BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
     gemDigit->SetCurrentConfig(gem_config);
     gemDigit->SetOnlyPrimary(kFALSE);

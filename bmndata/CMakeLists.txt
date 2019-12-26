@@ -90,6 +90,7 @@ set(SRCS
  BmnMatch.cxx
  BmnTrack.cxx
  BmnTrackMatch.cxx
+ BmnGemDchTrack.cxx
  BmnGlobalTrack.cxx
  BmnIdentifiableTrack.cxx
  BmnEventHeader.cxx

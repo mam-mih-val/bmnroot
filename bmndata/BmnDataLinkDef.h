@@ -101,6 +101,7 @@
 #pragma link C++ class BmnFunctionSet+;
 
 #pragma link C++ class BmnTrack+;
+#pragma link C++ class BmnGemDchTrack+;
 #pragma link C++ class BmnHit+;
 #pragma link C++ class BmnLink+;
 #pragma link C++ class BmnMatch+;

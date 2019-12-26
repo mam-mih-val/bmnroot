@@ -25,18 +25,20 @@ InitStatus BmnPVGetter::Init() {
     fDstFile = new TFile(fDstFileName, "READ");
     if (fDstFile->IsOpen() == kFALSE) {
         printf("\n!!!!\ncannot open file %s !\n", fDstFileName.Data());
-        return kERROR;
+        return kFATAL;
     }
     fDstTree = (TTree *) fDstFile->Get(fDstTreeName.Data());
     if (fDstTree->SetBranchAddress(fPVertexName.Data(), &fPVertex) < 0)
-        return kERROR;
+        return kFATAL;
     nFEvents = Min(fDstTree->GetEntries(), nFEvents);
+    if (fVerbose > 0)
+        printf("Primary Vertex Extractor : will run up to %lld events.\n", nFEvents);
 
     FairRootManager* ioman = FairRootManager::Instance();
     if (NULL == ioman) Fatal("Init", "FairRootManager is not instantiated");
 
     fPVertexShow = new TClonesArray(CbmVertex::Class(), 1); //out
-    ioman->Register(fPVertexName, "GEM", fPVertexShow, kTRUE);// last arg: save to file
+    ioman->Register(fPVertexName, "GEM", fPVertexShow, kTRUE); // last arg: save to file
 }
 
 void BmnPVGetter::Exec(Option_t *option) {
@@ -46,13 +48,14 @@ void BmnPVGetter::Exec(Option_t *option) {
 }
 
 void BmnPVGetter::Finish() {
+    printf("\n%s: Iterated over %lld of %lld events\n", typeid (*this).name(), iEv + 1, nFEvents);
     fDstFile->Close();
     delete fDstFile;
 }
 
 void BmnPVGetter::FinishEvent() {
     //    printf("PVG Finish:  fVZ %f   getsave = %d\n", fVZ, fRunSimInst->GetSaveEvent());
-    if (fVZ > MinValidZ && fRunSimInst->GetSaveEvent() == kFALSE)
+    if (Abs(fVZ) < Abs(CutValidZ) && fRunSimInst->GetSaveEvent() == kFALSE)
         return;
     doNext = kTRUE;
 }
@@ -67,13 +70,13 @@ void BmnPVGetter::NextFileEvent() {
         fGen->SetBeam(v->GetX(), v->GetY(), 0.0, 0.0);
         fGen->SetTarget(v->GetZ(), 0.0);
         fVZ = v->GetZ();
-    if (fVerbose > 1)
-        printf("v( %f %f %f)\n", v->GetX(), v->GetY(), v->GetZ());
+        if (fVerbose > 1)
+            printf("v( %f %f %f)\n", v->GetX(), v->GetY(), v->GetZ());
     }
     //    } while (vz < MinValidZ);
     fPVertexShow->AbsorbObjects(fPVertex);
-//    if (fVZ < MinValidZ)
-//        fRunSimInst->SetSaveEvent(kFALSE);
+    //    if (fVZ < MinValidZ)
+    //        fRunSimInst->SetSaveEvent(kFALSE);
     if (iEv == nFEvents - 1)
         fRunSimInst->GetMCApp()->StopMCRun();
 }

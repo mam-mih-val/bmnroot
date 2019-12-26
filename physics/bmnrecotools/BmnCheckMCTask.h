@@ -20,7 +20,11 @@ using namespace std;
 
 class BmnCheckMCTask : public FairTask {
 public:
-    BmnCheckMCTask(Long64_t nevents, Int_t minHits);
+    BmnCheckMCTask(
+            Long64_t nevents,
+            Int_t minHits = 4,
+            Int_t code = 3122,
+            vector<Int_t> outCodes = {2212, -211});
     virtual ~BmnCheckMCTask();
 
     InitStatus Init();
@@ -37,6 +41,8 @@ public:
     }
 protected:
     Int_t fMinHits;
+    Int_t fPDGCode;
+    vector<Int_t> fPDGOutCodes;
     Long64_t nMaxValidEvents;
     Long64_t nValidEvents;
     BmnFairRunSim * fRunSimInst;

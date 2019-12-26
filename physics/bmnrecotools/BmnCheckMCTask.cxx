@@ -1,6 +1,10 @@
 #include "BmnCheckMCTask.h"
 
-BmnCheckMCTask::BmnCheckMCTask(Long64_t nevents, Int_t minHits) {
+BmnCheckMCTask::BmnCheckMCTask(
+        Long64_t nevents,
+        Int_t minHits,
+        Int_t code,
+        vector<Int_t> outCodes) {
     fMCTracksBranchName = "MCTrack";
     fGemPointsBranchName = "StsPoint";
     fSilPointsBranchName = "SiliconPoint";
@@ -13,6 +17,8 @@ BmnCheckMCTask::BmnCheckMCTask(Long64_t nevents, Int_t minHits) {
     fRunSimInst = nullptr;
     fPVertexShow = nullptr;
     fMinHits = minHits;
+    fPDGCode = code;
+    fPDGOutCodes = outCodes;
     nMaxValidEvents = nevents;
     nValidEvents = 0;
 }
@@ -44,10 +50,10 @@ void BmnCheckMCTask::Exec(Option_t* option) {
 //        if (fVerbose > 1)
 //            printf(" Read PV ( %f %f %f)\n", v->GetX(), v->GetY(), v->GetZ());
     }
-    if (fVZ < MinValidZ)
+    if (Abs(fVZ) > Abs(CutValidZ))
         return;
     if (BmnRecoTools::IsReconstructable(fMCTracks, fGemPoints, fSilPoints, fCSCPoints,
-            3122,{2212, -211}, fMinHits)) {
+            fPDGCode, fPDGOutCodes, fMinHits)) {
         fRunSimInst->SetSaveEvent(kTRUE);
         nValidEvents++;
         if (fVerbose > 1)
@@ -66,6 +72,7 @@ void BmnCheckMCTask::Exec(Option_t* option) {
 }
 
 void BmnCheckMCTask::Finish() {
+    printf("\n%s: Found %lld valid events\n", typeid (*this).name(), nValidEvents);
 
 }
 

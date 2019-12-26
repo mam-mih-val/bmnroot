@@ -9,7 +9,7 @@
 
 #include <FairRunSim.h>
 
-#define MinValidZ  -100.0
+#define CutValidZ  -4.0
 
 class BmnFairRunSim : public FairRunSim {
 public:

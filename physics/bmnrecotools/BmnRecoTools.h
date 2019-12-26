@@ -45,7 +45,7 @@ public:
             Bool_t turnOffBaseDigits = kFALSE);
     static Bool_t IsReconstructable(
             TClonesArray* tracks, TClonesArray* gemPoints, TClonesArray* silPoints, TClonesArray* cscPoints,
-            Int_t code = 3122, vector<Int_t> outCodes = {2212, -211}, Int_t minHits = 4);
+            Int_t code, vector<Int_t> &outCodes, Int_t minHits = 4);
     static BmnStatus FilterDecayR(TString inSourceName, TString outName, Bool_t isExp = kFALSE, Int_t code = 3122, vector<Int_t> outCodes = {2212, -211});
     static BmnStatus FilterDecayR(TChain* inSourceChain, TString outName, Bool_t isExp = kFALSE, Int_t code = 3122, vector<Int_t> outCodes = {2212, -211});
     static vector<TString> GetFileVecFromDir(TString dir);

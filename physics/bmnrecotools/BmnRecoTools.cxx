@@ -389,7 +389,7 @@ BmnStatus BmnRecoTools::GetNextValidSourceEvent() {
 
 Bool_t BmnRecoTools::IsReconstructable(
         TClonesArray* mcTracks, TClonesArray* gemPoints, TClonesArray* silPoints, TClonesArray* cscPoints,
-        Int_t code, vector<Int_t> outCodes, Int_t minHits) {
+        Int_t code, vector<Int_t> &outCodes, Int_t minHits) {
 
     Int_t decaysWritten = 0;
 

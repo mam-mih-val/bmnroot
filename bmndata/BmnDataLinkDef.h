@@ -52,6 +52,7 @@
 #pragma link C++ class BmnMwpcHit+;
 #pragma link C++ class BmnTrackMatch+;
 
+#pragma link C++ class BmnStripDigit+;
 #pragma link C++ class BmnMwpcDigit+;
 #pragma link C++ class BmnTof1Digit+;
 #pragma link C++ class BmnTof2Digit+;

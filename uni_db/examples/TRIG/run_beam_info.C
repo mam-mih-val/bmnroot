@@ -2,21 +2,31 @@
 
 // print summary information about beam spill for a given run in a period (or for a whole period)
 // if 'run' parameter is zero or absent then all runs in the period will be shown
-void run_beam_info(int period, int run = 0, TString target = "")
+void run_beam_info(int period = 7, int run = 0, TString target = "",
+                   TString txtfile_path= "$VMCWORKDIR/uni_db/macros/parse_schemes/spill_run7/summaryMK.txt",
+                   TString scheme_path = "$VMCWORKDIR/uni_db/macros/parse_schemes/spill_run7/spill_run7.xslt")
 {
     // get spill info
     UniDbParser parser;
-    int res_code;
-    vector<BeamSpillStructure*> beam_spill = parser.ParseTxt2Struct("../../macros/parse_schemes/summary.txt", res_code);
-    if (res_code < 0)
+    vector<structParseValue*> parse_values;
+    vector<structParseSchema> vecElements;
+    int res_code = parser.ParseTxt2Struct(txtfile_path, scheme_path, parse_values, vecElements);
+    if (res_code != 0)
     {
         cout<<endl<<"Macro finished with errors: parser error ("<<res_code<<")"<<endl;
         exit(-1);
     }
 
+    if (parse_values.size() < 1)
+    {
+        cout<<endl<<"Macro finished with errors: there are no lines to parse"<<endl;
+        exit(-2);
+    }
+
     UniqueRunNumber* run_numbers = NULL;
     TObjArray* pRunArray = NULL;
     int run_count = 1;
+    // get all runs for the given period if run_number = 0
     if (run == 0)
     {
         if (target == "")
@@ -25,7 +35,7 @@ void run_beam_info(int period, int run = 0, TString target = "")
             if (run_count <= 0)
             {
                 cout<<endl<<"Macro finished with errors: no runs exists in the given period #"<<period<<endl;
-                exit(-2);
+                exit(-3);
             }
         }
         else
@@ -44,13 +54,17 @@ void run_beam_info(int period, int run = 0, TString target = "")
             if (run_count <= 0)
             {
                 cout<<endl<<"Macro finished with errors: no runs exists for the given target: "<<target<<endl;
-                exit(-3);
+                exit(-4);
             }
             arrayConditions.Delete();
         }
     }
 
-    Long64_t totalBeamDaq = 0, totalBeamAll = 0, totalTriggerDaq = 0, totalTriggerAll = 0;
+    int sum_size = parse_values[0]->arrValues.size();
+    vector<Long64_t> total_columns;
+    for (int i_total = 0; i_total < sum_size; i_total++)
+        total_columns.push_back(0);
+    // cycle for all runs to sum the spill data
     for (int i = 0; i < run_count; i++)
     {
         if (run_numbers != NULL) run = run_numbers[i].run_number;
@@ -65,7 +79,7 @@ void run_beam_info(int period, int run = 0, TString target = "")
                 delete [] run_numbers;
             if (pRunArray != NULL)
                 delete pRunArray;
-            exit(-4);
+            exit(-5);
         }
 
         TDatime dtStart = pRun->GetStartDatetime();
@@ -78,51 +92,47 @@ void run_beam_info(int period, int run = 0, TString target = "")
                 delete [] run_numbers;
             if (pRunArray != NULL)
                 delete pRunArray;
-            exit(-5);
+            exit(-6);
         }
         TDatime dtEnd = *dateEnd;
         delete pRun;
 
-        Long64_t sumBeamDaq = 0, sumBeamAll = 0, sumTriggerDaq = 0, sumTriggerAll = 0;
-        BeamSpillStructure* stPrevious;
+        vector<Long64_t> sum_columns;
+        for (int i_sum = 0; i_sum < sum_size; i_sum++)
+            sum_columns.push_back(0);
+        structParseValue* stPrevious;
         bool isFound = false;
-        for (int ind = 0; ind < beam_spill.size(); ind++)
+        // cycle for all spills to sum for the given run
+        for (int ind = 0; ind < parse_values.size(); ind++)
         {
-            BeamSpillStructure* st = beam_spill.at(ind);
-            if (st->spill_end > dtEnd)
+            structParseValue* st = parse_values.at(ind);
+            //cout<<"dtStart = "<<dtStart.AsSQLString()<<" : dtEnd = "<<dtEnd.AsSQLString()<<". st->dtSpillEnd = "<<st->dtSpillEnd.AsSQLString()<<endl;
+            if (st->dtSpillEnd >= dtEnd)
             {
                 if (isFound)
                 {
-                    int curBeamDaq = 0, curBeamAll = 0, curTriggerDaq = 0, curTriggerAll = 0;
-                    stPrevious = beam_spill.at(ind - 1);
-                    curBeamDaq = st->beam_daq; curBeamAll = st->beam_all;
-                    curTriggerDaq = st->trigger_daq, curTriggerAll = st->trigger_all;
-                    //cout<<"Spill End: "<<st->spill_end.AsSQLString()<<". Beam DAQ: "<<st->beam_daq<<". Beam All: "<<st->beam_all<<". Trigger DAQ: "<<st->trigger_daq<<". Trigger All: "<<st->trigger_all<<endl;
+                    stPrevious = parse_values.at(ind - 1);
 
                     #ifdef ScaleBorderInfo
                     // scale values
-                    int sec1 = st->spill_end.Convert() - stPrevious->spill_end.Convert();
-                    int sec2 = dtEnd.Convert() - stPrevious->spill_end.Convert();
+                    int sec1 = st->dtSpillEnd.Convert() - stPrevious->dtSpillEnd.Convert();
+                    int sec2 = dtEnd.Convert() - stPrevious->dtSpillEnd.Convert();
                     double sec_ratio = sec2 / sec1;
-                    curBeamDaq = TMath::Nint(curBeamDaq * sec_ratio); curBeamAll = TMath::Nint(curBeamAll * sec_ratio);
-                    curTriggerDaq = TMath::Nint(curTriggerDaq * sec_ratio), curTriggerAll = TMath::Nint(curTriggerAll * sec_ratio);
+                    for (int i_sum = 0; i_sum < sum_size; i_sum++)
+                        sum_columns[i_sum] += TMath::Nint(boost::any_cast<int>(st->arrValues[i_sum]) * sec_ratio); // fix (Int_t)
+                    #else
+                    for (int i_sum = 0; i_sum < sum_size; i_sum++)
+                        sum_columns[i_sum] += boost::any_cast<int>(st->arrValues[i_sum]); // fix (Int_t)
                     #endif
-
-                    sumBeamDaq += curBeamDaq; sumBeamAll += curBeamAll;
-                    sumTriggerDaq += curTriggerDaq; sumTriggerAll += curTriggerAll;
                 }
                 break;
             }
 
-            if (st->spill_end > dtStart)
+            if (st->dtSpillEnd > dtStart)
             {
-                int curBeamDaq = 0, curBeamAll = 0, curTriggerDaq = 0, curTriggerAll = 0;
                 if (ind > 0)
                 {
-                    stPrevious = beam_spill.at(ind - 1);
-                    curBeamDaq = st->beam_daq; curBeamAll = st->beam_all;
-                    curTriggerDaq = st->trigger_daq, curTriggerAll = st->trigger_all;
-                    //cout<<"Spill End: "<<st->spill_end.AsSQLString()<<". Beam DAQ: "<<st->beam_daq<<". Beam All: "<<st->beam_all<<". Trigger DAQ: "<<st->trigger_daq<<". Trigger All: "<<st->trigger_all<<endl;
+                    stPrevious = parse_values.at(ind - 1);
 
                     if (!isFound)
                     {
@@ -130,30 +140,80 @@ void run_beam_info(int period, int run = 0, TString target = "")
 
                         #ifdef ScaleBorderInfo
                         // scale values
-                        int sec1 = st->spill_end.Convert() - stPrevious->spill_end.Convert();
-                        int sec2 = st->spill_end.Convert() - dtStart.Convert();
+                        int sec1 = st->dtSpillEnd.Convert() - stPrevious->dtSpillEnd.Convert();
+                        int sec2 = st->dtSpillEnd.Convert() - dtStart.Convert();
                         double sec_ratio = sec2 / sec1;
-                        curBeamDaq = TMath::Nint(curBeamDaq * sec_ratio); curBeamAll = TMath::Nint(curBeamAll * sec_ratio);
-                        curTriggerDaq = TMath::Nint(curTriggerDaq * sec_ratio), curTriggerAll = TMath::Nint(curTriggerAll * sec_ratio);
+                        for (int i_sum = 0; i_sum < sum_size; i_sum++)
+                            sum_columns[i_sum] += TMath::Nint(boost::any_cast<int>(st->arrValues[i_sum]) * sec_ratio); // fix (Int_t)
                         #endif
                     }
                 }
 
-                sumBeamDaq += curBeamDaq; sumBeamAll += curBeamAll;
-                sumTriggerDaq += curTriggerDaq; sumTriggerAll += curTriggerAll;
-            }//if (st->spill_end > dtStart)
-        }//for (int ind = 0; ind < beam_spill.size(); ind++)
+                for (int i_sum = 0; i_sum < sum_size; i_sum++)
+                    sum_columns[i_sum] += boost::any_cast<int>(st->arrValues[i_sum]); // fix (Int_t)
+            }//if (st->dtSpillEnd > dtStart)
+        }//for (int ind = 0; ind < parse_values.size(); ind++)
 
-        totalBeamDaq += sumBeamDaq; totalBeamAll += sumBeamAll;
-        totalTriggerDaq += sumTriggerDaq; totalTriggerAll += sumTriggerAll;
+        for (int i_sum = 0; i_sum < sum_size; i_sum++)
+            total_columns[i_sum] += sum_columns[i_sum];
 
-        cout<<endl<<"Run #"<<run<<endl
-           <<"sumBeamDaq: "<<sumBeamDaq<<". sumBeamAll: "<<sumBeamAll<<". sumTriggerDaq: "<<sumTriggerDaq<<". sumTriggerAll: "<<sumTriggerAll<<endl<<endl;
+
+        cout<<endl<<"Run #"<<run<<" ("<<dtStart.AsSQLString()<<" - "<<dtEnd.AsSQLString()<<")"<<endl;
+        if (isFound)
+        {
+            int count_column = 0;
+            for (vector<structParseSchema>::iterator it = vecElements.begin(); it != vecElements.end(); ++it)
+            {
+                structParseSchema schema = *it;
+                if (schema.isSkip)
+                    continue;
+
+                if (schema.vecRows[0].strStatementType == "int")
+                {
+                    if (count_column > 0) cout<<", ";
+                    cout<<"sum"<<schema.vecRows[0].strColumnName<<": "<<sum_columns[count_column];
+                    count_column++;
+                }
+                else {
+                    if (schema.vecRows[0].strStatementType == "double")
+                    {
+                        cout<<"ERROR: type of the column is not supported: "<<schema.vecRows[0].strStatementType<<endl;
+                        exit(-7);
+                    }
+                }
+            }
+            cout<<endl;
+        }
+        else
+            cout<<"No spill data!"<<endl;
     }
 
     if (run_count > 1)
-        cout<<endl<<"Total count for all runs:"<<endl
-           <<"totalBeamDaq: "<<totalBeamDaq<<". totalBeamAll: "<<totalBeamAll<<". totalTriggerDaq: "<<totalTriggerDaq<<". totalTriggerAll: "<<totalTriggerAll<<endl<<endl;
+    {
+        cout<<endl<<"Total count for all runs:"<<endl;
+        int count_column = 0;
+        for (vector<structParseSchema>::iterator it = vecElements.begin(); it != vecElements.end(); ++it)
+        {
+            structParseSchema schema = *it;
+            if (schema.isSkip)
+                continue;
+
+            if (schema.vecRows[0].strStatementType == "int")
+            {
+                if (count_column > 0) cout<<", ";
+                cout<<"total"<<schema.vecRows[0].strColumnName<<": "<<total_columns[count_column];
+                count_column++;
+            }
+            else {
+                if (schema.vecRows[0].strStatementType == "double")
+                {
+                    cout<<"ERROR: type of the column is not supported: "<<schema.vecRows[0].strStatementType<<endl;
+                    exit(-8);
+                }
+            }
+        }
+        cout<<endl<<endl;
+    }
 
     // cleaning memory after work
     if (run_numbers != NULL)

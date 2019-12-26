@@ -50,6 +50,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     gem = NULL;
     silicon = NULL;
     land = NULL;
+    mwpc = NULL;
     fRawFileName = file;
     fTOF700ReferenceRun = 0;
     fTOF700ReferenceChamber = 0;
@@ -86,6 +87,8 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fDigiRunHdrName = "DigiRunHeader";
     fDat = 0;
     fGemMapper = NULL;
+    fSiliconMapper = NULL;
+    fMwpcMapper = NULL;
     fCscMapper = NULL;
     fDchMapper = NULL;
     fTrigMapper = NULL;
@@ -893,6 +896,10 @@ BmnStatus BmnRawDataDecoder::FillSYNC(UInt_t *d, UInt_t serial, UInt_t & idx) {
     return kBMNSUCCESS;
 }
 
+BmnStatus BmnRawDataDecoder::FillMSC(UInt_t* d, UInt_t serial, UInt_t& idx) {
+    return kBMNSUCCESS;
+};
+
 BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
     printf(ANSI_COLOR_RED "================= DECODING =================\n" ANSI_COLOR_RESET);
@@ -993,13 +1000,13 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         fPedEvCntr = 0;
         printf("\n[INFO]" ANSI_COLOR_BLUE " Clear noisy channels:\n" ANSI_COLOR_RESET);
         printf("\tFilling signal profiles for station-module-layer histograms\n");
-        //        UInt_t nEvForNoiseCorrection = 10000;
-        //                printf("\tNumber of requested events is ");
-        //                printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, nEvForNoiseCorrection);
-        //                printf("\tActual number of events is ");
-        //                printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, fNevents);        
-        UInt_t n = fNevents; //Min(fNevents, nEvForNoiseCorrection);
-        for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
+        UInt_t nEvForNoiseCorrection = 10000;
+        printf("\tNumber of requested events is ");
+        printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, nEvForNoiseCorrection);
+        printf("\tActual number of events is ");
+        printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, fNevents);        
+        UInt_t n = Min(fNevents, nEvForNoiseCorrection);
+        for (UInt_t iEv = 0; iEv < n; ++iEv) {
             fRawTree->GetEntry(iEv);
             BmnEventHeader* headDAQ = eventHeaderDAQ;
             if (!headDAQ) continue;
@@ -1009,9 +1016,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
                 fPedEvCntr++;
                 if (fVerbose == 1) {
-                    if (fPedEvCntr % 100 == 0 && fPedEvCntr > 0) cout << "Pedestal event #" << fPedEvCntr << "/" << fEvForPedestals << ";" << endl;
+                    if (iEv % 100 == 0 && iEv > 0) cout << "Profile event #" << iEv << "/" << n << ";" << endl;
                 } else if (fVerbose == 0)
-                    DrawBar(fPedEvCntr, fEvForPedestals);
+                    DrawBar(iEv, n);
             } else { // payload
                 if (prevEventType == kBMNPEDESTAL && fPedEvCntr == fEvForPedestals - 1) {
                     printf("\n[INFO]");
@@ -1171,7 +1178,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             }
         }
         if (fVerbose == 1) {
-            if (iEv % 5000 == 0) cout << "Digitization event #" << fEventId << "/" << fNevents << "; Spill #"<< fSpillCntr << endl;
+            if (iEv % 5000 == 0) cout << "Digitization event #" << fEventId << "/" << fNevents << "; Spill #" << fSpillCntr << endl;
         } else if (fVerbose == 0)
             DrawBar(iEv, fNevents);
 
@@ -1236,7 +1243,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fDigiFileOut->WriteObject(runHeader, fDigiRunHdrName.Data());
 
     printf(ANSI_COLOR_RED "\n=============== RUN" ANSI_COLOR_RESET);
-    printf(ANSI_COLOR_BLUE " %04d " ANSI_COLOR_RESET, runId);
+    printf(ANSI_COLOR_BLUE " %04d " ANSI_COLOR_RESET, fRunId);
     printf(ANSI_COLOR_RED "SUMMARY ===============\n" ANSI_COLOR_RESET);
     printf("START (event 1):\t%s\n", fRunStartTime.AsString());
     printf("FINISH (event %d):\t%s\n", fNevents, fRunEndTime.AsString());

@@ -1,5 +1,7 @@
-#include "FairTask.h"
-#include "FairRootManager.h"
+#include <FairTask.h>
+#include <FairRootManager.h>
+#include <UniDbDetectorParameter.h>
+#include <UniDbRun.h>
 
 #include <CbmVertex.h>
 #include <BmnGemStripDigit.h>
@@ -16,6 +18,13 @@
 #include <BmnGlobalTrack.h>
 #include <BmnSiliconTrack.h>
 #include <BmnGemTrack.h>
+#include <BmnDchTrack.h>
+
+#include <BmnGemStripHit.h>
+#include <BmnSiliconHit.h>
+#include <BmnCSCHit.h>
+#include <BmnTofHit.h>
+#include <BmnDchHit.h>
 
 #include <BmnOfflineQaSteering.h>
 
@@ -28,6 +37,10 @@
 #include <BmnEventHeader.h>
 #include <TString.h>
 #include <TClonesArray.h>
+#include <TGeoManager.h>
+
+#include <DstEventHeader.h>
+#include <BmnKalmanFilter.h>
 
 #ifndef BMNQAOFFLINE_H
 #define BMNQAOFFLINE_H 1
@@ -51,11 +64,22 @@ public:
     virtual void Finish();
 
 private:
+    void doOccupancyAnal();
+    void doOccupancy(TClonesArray*);
+    void doMatchingAnal();
+    void doEfficiencyAnal();
+    void doResidualsPullsAnal();
+    void doAverageStripValuePerHit(TClonesArray*);
+    void doAverageStripValuePerTrack();
+    
+    void changeHistoContent(TH2F*);
+    
     static Int_t fCurrentEvent;
     Int_t fNEvents;
 
     FairRootManager* ioman;
     BmnEventHeader* fBmnHeader;
+    DstEventHeader* fDstHeader;
     
     TClonesArray** DETECTORS;
     TClonesArray** TRIGGERS;
@@ -63,6 +87,7 @@ private:
     map <TClonesArray*, TString> fTrigCorr;
     
     Bool_t isDstRead;
+    Bool_t isField;
     
     Int_t nDets;   
     Int_t nCoordinate;
@@ -74,6 +99,13 @@ private:
     TClonesArray* fSiliconTracks;
     TClonesArray* fGemHits;
     TClonesArray* fGemTracks;
+    TClonesArray* fCscHits;
+    TClonesArray* fTof400Hits;
+    TClonesArray* fTof700Hits;
+    TClonesArray* fDchTracks;
+    TClonesArray* fMwpcTracks;
+    TClonesArray* fDchHits;
+    TClonesArray* fMwpcHits;
     TClonesArray* fVertex;
     TClonesArray* fGlobalTracks;
    
@@ -86,12 +118,20 @@ private:
     
     Int_t period;
     TString setup;
+    TString prefix;
     
     // Steering for the QA-system
     BmnOfflineQaSteering* fSteering;
     
+    // Detector geometries 
+    BmnGemStripStationSet* fDetGem;
+    BmnCSCStationSet* fDetCsc;
+    BmnSiliconStationSet* fDetSilicon;
+    
 private:
     Bool_t ReadDstTree(TString);
+    
+    BmnHit* MatchDetector(FairTrackParam*, TClonesArray*, Bool_t, Int_t);
 
     // Coordinate detectors
     template <class T> void GetDistributionOfFiredStrips(TClonesArray*, BmnCoordinateDetQa*, TString);
@@ -106,11 +146,13 @@ private:
     template <class T> void GetCommonInfo(TClonesArray*, BmnCalorimeterDetQa*, TString);
 
     // Trigger detectors
-    template <class T> void GetCommonInfo(TClonesArray*, BmnTrigDetQa*, TString, TString);
+    template <class T> void GetCommonInfo(TClonesArray*, BmnTrigDetQa*, TString);
     
     // Dst
-    void GetGlobalTracksDistributions(TClonesArray*, TClonesArray*, BmnDstQa*, TString);
-    template <class T> void GetInnerTracksDistributions(TClonesArray*, BmnDstQa*, TString, TString);
+    void GetBasicTrackDistributions();
+    // template <class T> void GetInnerTracksDistributions(TClonesArray*, BmnDstQa*, TString, TString);
+    void doHitsDistributions(TClonesArray*, BmnDstQa*, TString);
+    //template <class T> void GetSpecificHitsDistributions(TClonesArray*, BmnDstQa*, TString, TString);
 
     ClassDef(BmnQaOffline, 1);
 };

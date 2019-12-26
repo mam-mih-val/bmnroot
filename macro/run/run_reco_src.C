@@ -54,12 +54,12 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
         fFileSource = new BmnFileSource(inputFileName);
 
         // get geometry for run
-        TString geoFileName = "current_geo_file.root";
-        Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
-        if (res_code != 0) {
-            cout << "Error: could not read geometry file from the database" << endl;
-            exit(-2);
-        }
+        TString geoFileName = "full_geometry.root";
+        // Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
+        // if (res_code != 0) {
+        //     cout << "Error: could not read geometry file from the database" << endl;
+        //     exit(-2);
+        // }
 
         // get gGeoManager from ROOT file (if required)
         TFile* geoFile = new TFile(geoFileName, "READ");
@@ -179,11 +179,11 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // ====================================================================== //
     // ===                         TOF700 hit finder                      === //
     // ====================================================================== //
-    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7.txt", !isExp, iVerbose, kTRUE);
+    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7_panin.txt", !isExp, iVerbose, kTRUE);
     tof2HP->SetTimeResolution(0.115);
     tof2HP->SetMCTimeFile("TOF700_MC_src_qgsm_time_run7.txt");
-    tof2HP->SetMainStripSelection(0); // 0 - minimal time, 1 - maximal amplitude
-    tof2HP->SetSelectXYCalibration(2); // 2 - Petukhov, 1 - Panin
+    tof2HP->SetMainStripSelection(1); // 0 - minimal time, 1 - maximal amplitude
+    tof2HP->SetSelectXYCalibration(1); // 2 - Petukhov, 1 - Panin
     tof2HP->SetTimeMin(-2.f); // minimal digit time
     tof2HP->SetTimeMax(+15.f); // Maximal digit time
     tof2HP->SetDiffTimeMaxSmall(1.3f); // Abs maximal difference for small chambers
@@ -232,11 +232,16 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
 
     BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, kFALSE);
     glTF->SetSrcSetup(kTRUE);
+    //glTF->SetDoAlign(1);
     fRunAna->AddTask(glTF);
+
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)
     BmnFillDstTask* dst_task = new BmnFillDstTask(nEvents);
     dst_task->SetRunNumber(run_period, run_number);
     fRunAna->AddTask(dst_task);
+
+    BmnPidSRC* pid = new BmnPidSRC();
+    fRunAna->AddTask(pid);
 
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();

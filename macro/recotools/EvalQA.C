@@ -1,0 +1,206 @@
+#include <TClonesArray.h>
+#include <TChain.h>
+#include <TString.h>
+#include <TCanvas.h>
+#include <TH2.h>
+#include <TH1.h>
+#include <TF1.h>
+#include <TPad.h>
+#include <TVirtualPad.h>
+#include <TMath.h>
+
+#include <TString.h>
+#include <Rtypes.h>
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "macro/run/bmnloadlibs.C"
+
+using namespace std;
+using namespace TMath;
+
+const Int_t dim = 2;
+// Redefine histo limits (supposing exclusion - less(idx0) or more(idx1)) due to cuts obtained (useCutHistoLimits should be kTRUE)
+
+// C-Cu, T = 4 GeV/n
+Double_t Mom1[dim] = {0., 3.};
+Double_t Mom2[dim] = {0., 1.};
+Double_t Eta1[dim] = {1.5, 2.5};
+Double_t Eta2[dim] = {1.5, 2.5};
+
+// more than in sense of exclusion ...
+Double_t Dca1[dim] = {.1, 100.};
+Double_t Dca2[dim] = {.1, 100.};
+
+Double_t Dca12X[dim] = {0., 0.7};
+Double_t Dca12Y[dim] = {0., 0.7};
+Double_t Path = 50.;
+
+Double_t Alpha = 0.5;
+Double_t PtPodol = 0.11;
+
+
+void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t useCutHistoLimits = kFALSE) {
+    gStyle->SetOptStat(1);
+    bmnloadlibs(); // load BmnRoot libraries
+    // -----   Timer   ---------------------------------------------------------
+    TStopwatch timer;
+    timer.Start();
+
+    TChain* out = new TChain("bmndata");
+    out->Add(fileName.Data());
+    cout << "#recorded entries = " << out->GetEntries() << endl;
+    if (out->GetEntries() == 0) {
+        cout << "Something is wrong! Please, check file you passed as input!" << endl;
+        exit(-1);
+    }
+
+    TClonesArray* particlePair = NULL;
+    out->SetBranchAddress("ParticlePair", &particlePair);
+
+    TCanvas* canvLambda = new TCanvas("c2", "c2", 800, 800);
+    canvLambda->Divide(1, 1);
+
+    Double_t rL = 1.1;
+    Double_t rB = 1.22;
+    TH1F* invMassSpectrum = new TH1F("invMassSpectrum", "invMassSpectrum", 75, rL, rB);
+    invMassSpectrum->SetTitle("Invariant mass: #Lambda^{0} #rightarrow p + #pi^{-}");
+
+    TString _par = "X";
+    TString _parY = "Y";
+    // Fill histos ...
+    for (Int_t iEv = 0; iEv < out->GetEntries(); iEv++) {
+        out->GetEntry(iEv);
+        if (iEv % 1000000 == 0)
+            cout << "Ev# = " << iEv << endl;
+
+        for (Int_t iPair = 0; iPair < particlePair->GetEntriesFast(); iPair++) {
+            BmnParticlePair* pair = (BmnParticlePair*) particlePair->UncheckedAt(iPair);
+            Double_t invMass = pair->GetInvMass();
+            Double_t mom1 = pair->GetMomPart1();
+            Double_t mom2 = pair->GetMomPart2();
+            Double_t eta1 = pair->GetEtaPart1();
+            Double_t eta2 = pair->GetEtaPart2();
+            Double_t dca1 = pair->GetDCA1();
+            Double_t dca2 = pair->GetDCA2();
+            Double_t dca12X = pair->GetDCA12();
+            Double_t dca12Y = pair->GetDCA12();
+            Double_t path = pair->GetPath();
+
+            Double_t alpha = pair->GetAlpha();
+            Double_t ptPodol = pair->GetPtPodol();
+
+            // Cuts to be applied ...
+            if (useCuts) {
+                //                if (alpha < Alpha)
+                //                    continue;
+                //                if (ptPodol > PtPodol)
+                //                    continue;
+                //
+	       if (path < 7.)
+	       	continue;
+
+	       //  if (mom1 < Mom1[0] || mom1 > Mom1[1])
+	       //	continue;
+
+	       // if (eta1 < Eta1[0] || eta1 > Eta1[1])
+	       //	continue;
+
+	       // if (eta2 < Eta2[0] || eta2 > Eta2[1])
+	       //	continue;
+
+	       // if (dca12X < Dca12X[0] || dca12X > Dca12X[1])
+	       //	continue;
+
+	      //              if (dca12Y < Dca12Y[0] || dca12Y > Dca12Y[1])
+              //                      continue;
+
+               //  if (dca1 < Dca1[0] || dca1 > Dca1[1])
+	       //     continue;
+
+               //  if (dca2 < Dca2[0] || dca2 > Dca2[1])
+               //      continue;
+
+               //  if (mom2 < Mom2[0] || mom2 > Mom2[1])
+               //      continue;
+            }
+            invMassSpectrum->Fill(invMass);
+        }
+    }
+
+
+    Double_t par[8];
+    TF1* bg = new TF1("BG", "pol4", rL, rB);
+    TF1* sig = new TF1("SIG", "gaus", 1.11, 1.122);
+    TVirtualPad* pad = canvLambda->cd();
+    pad->SetLeftMargin(0.2);
+    invMassSpectrum->Fit(bg, "R");
+    //sig->SetParameter(1, 1.115);
+    //    sig->SetParameter(2, 0.002);
+    invMassSpectrum->Fit(sig, "R");
+    bg->GetParameters(&par[0]);
+    sig->GetParameters(&par[5]);
+    TF1 *f = new TF1("f", "pol4(0)+gaus(5)", rL, rB);
+    f->SetNpx(500);
+
+    f->SetParameters(par);
+    f->SetLineColor(kMagenta + 1);
+    f->SetLineWidth(3);
+    TString fitOpt = "RS";
+    //f->SetParameter(6, 1.1152);
+    f->SetParameter(7, 0.002);
+//    TFitResultPtr fitRes = invMassSpectrum->Fit(f, (useCuts) ? fitOpt.Data() : TString(fitOpt + "0").Data());
+    TFitResultPtr fitRes = invMassSpectrum->Fit(f, fitOpt.Data());
+    Double_t mean = fitRes->Parameter(6);
+    Double_t sigma = fitRes->Parameter(7);
+    Double_t T = invMassSpectrum->Integral(invMassSpectrum->FindBin(mean - 3 * sigma), invMassSpectrum->FindBin(mean + 3 * sigma));
+    Double_t B = bg->Integral(mean - 3 * sigma, mean + 3 * sigma) / invMassSpectrum->GetBinWidth(1);
+    Double_t S_to_B = T / B - 1;
+    Double_t Signif = (T - B) / T;
+    
+    f->GetParameters(par);
+    sig->SetParameters(&par[5]);
+
+    invMassSpectrum->SetMarkerStyle(20);
+    invMassSpectrum->SetMarkerColor(kSpring - 6);
+    invMassSpectrum->SetLineColor(kSpring - 6);
+    invMassSpectrum->SetLineWidth(1);
+
+    canvLambda->cd(1);
+    invMassSpectrum->Draw("PE1X0");
+    //invMassSpectrum->GetYaxis()->SetRangeUser(0., 40.);
+    invMassSpectrum->GetXaxis()->SetTitle("M_{(p + #pi^{-})}, GeV/c^{2}");
+    invMassSpectrum->GetYaxis()->SetTitle("Entries / 2 MeV/c^{2}");
+    invMassSpectrum->GetXaxis()->SetLabelSize(0.035);
+    invMassSpectrum->GetYaxis()->SetLabelSize(0.035);
+    invMassSpectrum->GetXaxis()->SetTitleSize(0.05);
+    invMassSpectrum->GetYaxis()->SetTitleSize(0.05);
+    invMassSpectrum->GetXaxis()->SetTitleOffset(0.85);
+    invMassSpectrum->GetYaxis()->SetTitleOffset(1.5);
+    invMassSpectrum->GetYaxis()->CenterTitle();
+    invMassSpectrum->SetMinimum(0);
+
+    // Draw the legend
+    TLegend *legend = new TLegend(0.55, 0.65, 0.61, 0.8);
+    legend->SetTextFont(72);
+    legend->SetTextSize(0.03);
+    legend->AddEntry("", Form("Mass = %.4f", mean), 0);
+    legend->AddEntry("", Form("Sigma = %.4f", sigma), 0);
+    legend->AddEntry("", Form("S/B = %.4f", S_to_B), 0);
+    legend->AddEntry("", Form("S/(S + B) = %.4f", Signif), 0);
+    legend->AddEntry("", Form("Sig integral = %.4f", (T - B)), 0);
+    legend->SetLineColor(0);
+//    if (useCuts){
+        legend->Draw();
+        sig->Draw("SAME");
+//    }
+    // -----   Finish   --------------------------------------------------------
+    canvLambda->SaveAs("L2.pdf");
+    delete out;
+    timer.Stop();
+    Double_t rtime = timer.RealTime();
+    Double_t ctime = timer.CpuTime();
+    cout << endl << endl;
+    cout << "Macro finished successfully." << endl;
+    cout << "Real time " << rtime << " s, CPU time " << ctime << " s" << endl;
+    cout << endl;
+}
+

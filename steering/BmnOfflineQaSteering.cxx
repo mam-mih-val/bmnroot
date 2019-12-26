@@ -8,6 +8,36 @@ BmnOfflineQaSteering::~BmnOfflineQaSteering() {
 
 }
 
+vector<Double_t> BmnOfflineQaSteering::GetAxisAttributes(TString histoName) {
+    TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
+    TString gPathFull = gPathConfig + "/macro/steering/qaHisto.dat";
+
+    string line;
+    ifstream f(gPathFull.Data(), ios::in);
+    
+    vector <Double_t> axisAttr;
+
+    while (!f.eof()) {
+        getline(f, line);
+
+        TString currString(line);
+
+        if (currString.Contains(histoName.Data())) {
+            TObjArray* arr = currString.Tokenize(" ");
+            for (Int_t iEle = 0; iEle < arr->GetEntriesFast(); iEle++) {
+                TString str = ((TObjString*) arr->UncheckedAt(iEle))->GetString();
+                if (str.Contains("nBins") || str.Contains("nBinsX") || str.Contains("nBinsY") ||
+                        str.Contains("xLow") || str.Contains("xUp") || str.Contains("yLow") || str.Contains("yUp")) {
+                    TString tmp = ((TObjString*) arr->UncheckedAt(iEle + 1))->GetString();
+                    axisAttr.push_back(tmp.Atof());
+                }
+            }
+            break;
+        }
+    }
+    return axisAttr;
+}
+
 void BmnOfflineQaSteering::ParseSteerFile(TString fileName) {
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
     TString gPathFull = gPathConfig + "/macro/steering/" + fileName;
@@ -78,7 +108,7 @@ void BmnOfflineQaSteering::ParseSteerFile(TString fileName) {
     getline(f, line);
     for (Int_t iRelease = 0; iRelease < fNReleases; iRelease++) {
         TString releaseName;
-        if (iRelease == 0) 
+        if (iRelease == 0)
             f >> buff >> releaseName;
         else
             f >> releaseName;

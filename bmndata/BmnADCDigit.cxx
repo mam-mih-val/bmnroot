@@ -1,6 +1,7 @@
 #include "BmnADCDigit.h"
 
-BmnADCDigit::BmnADCDigit() {
+BmnADCDigit::BmnADCDigit() : 
+isEmbedded(kFALSE) {
     fSerial = 0;
     fChannel = 0;
     fNsmpl = 0;
@@ -12,7 +13,8 @@ BmnADCDigit::BmnADCDigit() {
     }
 }
 
-BmnADCDigit::BmnADCDigit(UInt_t iSerial, UInt_t iChannel, UInt_t n, UShort_t *iValue) {
+BmnADCDigit::BmnADCDigit(UInt_t iSerial, UInt_t iChannel, UInt_t n, UShort_t *iValue) :
+isEmbedded(kFALSE) {
     fSerial = iSerial;
     fChannel = iChannel;
     fNsmpl = n;
@@ -24,7 +26,8 @@ BmnADCDigit::BmnADCDigit(UInt_t iSerial, UInt_t iChannel, UInt_t n, UShort_t *iV
     }
 }
 
-BmnADCDigit::BmnADCDigit(UInt_t iSerial, UInt_t iChannel, UInt_t n, Short_t *iValue) {
+BmnADCDigit::BmnADCDigit(UInt_t iSerial, UInt_t iChannel, UInt_t n, Short_t *iValue, Bool_t flagEmb) {
+    isEmbedded = flagEmb;
     fSerial = iSerial;
     fChannel = iChannel;
     fNsmpl = n;

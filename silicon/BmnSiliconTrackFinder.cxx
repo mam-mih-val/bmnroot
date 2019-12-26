@@ -149,7 +149,7 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
         
        //if(fDebug)cout<<" st "<<ist<<" hit: X "<<XCoord[ist][imod][cl] <<" Y "<<-100.<<" SigX "<<SigmaX[ist][imod][cl]<<" SigY "<<-100.<<endl;
        BmnSiliconHit* hit = new ((*fBmnSiliconHitsXArray)[countX])
-                        BmnSiliconHit(0, TVector3(XCoord[ist][imod][cl], -100., Zstation[ist][imod]), 
+                        BmnSiliconHit(0, TVector3(XCoord[ist][imod][cl]+Shift_toCenterOfMagnetX, -100., Zstation[ist][imod]), 
                         TVector3(SigmaX[ist][imod][cl], -100, -1), cl);
         hit->SetStation(ist);
         hit->SetModule(imod);
@@ -175,7 +175,7 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
         
        //if(fDebug)cout<<" st "<<ist<<" hit: X "<<XCoord[ist][imod][cl] <<" Y "<<-100.<<" SigX "<<SigmaX[ist][imod][cl]<<" SigY "<<-100.<<endl;
        BmnSiliconHit* hit = new ((*fBmnSiliconHitsXpArray)[countXp])
-                        BmnSiliconHit(0, TVector3(XpCoord[ist][imod][cl], -100., Zstation[ist][imod]), 
+                        BmnSiliconHit(0, TVector3(XpCoord[ist][imod][cl]+Shift_toCenterOfMagnetX, -100., Zstation[ist][imod]), 
                         TVector3(SigmaXp[ist][imod][cl], -100, -1), cl);
         hit->SetStation(ist);
         hit->SetModule(imod);
@@ -201,7 +201,7 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
         
        //if(fDebug)cout<<" st "<<ist<<" hit: X "<<XCoord[ist][imod][cl] <<" Y "<<-100.<<" SigX "<<SigmaX[ist][imod][cl]<<" SigY "<<-100.<<endl;
        BmnSiliconHit* hit = new ((*fBmnSiliconHitsXYArray)[countXY])
-                        BmnSiliconHit(0, TVector3(XspCoord[ist][imod][cl], YspCoord[ist][imod][cl], Zstation[ist][imod]), 
+                        BmnSiliconHit(0, TVector3(XspCoord[ist][imod][cl]+Shift_toCenterOfMagnetX, YspCoord[ist][imod][cl]+Shift_toCenterOfMagnetY, Zstation[ist][imod]), 
                         TVector3(SigmspX[ist][imod][cl], SigmspY[ist][imod][cl], -1), cl);
         hit->SetStation(ist);
         hit->SetModule(imod);
@@ -230,7 +230,7 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
        
      // if(fDebug)cout<<" st "<<st<<" hit: X "<<CleanTr.at(InIter).CoordX[st]<<" Y "<<CleanTr.at(InIter).CoordY[st]<<" SigX "<<CleanTr.at(InIter).SigmaX[st]<<" SigY "<<CleanTr.at(InIter).SigmaY[st]<<endl;
       BmnSiliconHit* hit = new ((*fBmnSiliconHitsArray)[Track_counter])
-                        BmnSiliconHit(0, TVector3(CleanTr.at(InIter).CoordX[st], CleanTr.at(InIter).CoordY[st], CleanTr.at(InIter).CoordZ[st]+ Zcentr), 
+                        BmnSiliconHit(0, TVector3(CleanTr.at(InIter).CoordX[st]+Shift_toCenterOfMagnetX, CleanTr.at(InIter).CoordY[st]+Shift_toCenterOfMagnetY, CleanTr.at(InIter).CoordZ[st]+ Zcentr), 
                         TVector3(CleanTr.at(InIter).SigmaX[st], CleanTr.at(InIter).SigmaY[st], -1), InIter);
       Track_counter++;                 
       hit->SetStation(st);
@@ -246,12 +246,12 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
     }
     
     FairTrackParam trackParamf;
-    trackParamf.SetPosition(TVector3(x1, y1, z1));
+    trackParamf.SetPosition(TVector3(x1+Shift_toCenterOfMagnetX, y1+Shift_toCenterOfMagnetY, z1));
     trackParamf.SetTx(CleanTr.at(InIter).param[0]);
     trackParamf.SetTy(CleanTr.at(InIter).param[2]);
 
     FairTrackParam trackParaml;
-    trackParaml.SetPosition(TVector3(x3, y3, z3));
+    trackParaml.SetPosition(TVector3(x3+Shift_toCenterOfMagnetX, y3+Shift_toCenterOfMagnetY, z3));
     trackParaml.SetTx(CleanTr.at(InIter).param[0]);
     trackParaml.SetTy(CleanTr.at(InIter).param[2]);
 
@@ -3517,17 +3517,17 @@ InitStatus BmnSiliconTrackFinder::Init() {
   shiftX[3][7] =  12.15 - 0.1148;
   
   //--Y--             Si-Si  Pc-Si
-  shiftY[1][0] = -0.4 +0.01 -0.02 -0.06;      //-0.08 +0.23-0.1;               
-  shiftY[1][1] =  0.1 +0.01 -0.04 -0.03;//-0.07 +0.14-0.1;           
-  shiftY[1][2] = -0.2 -0.03       -0.02;//-0.07 +0.01+0.05;//-0.13-0.15;             
-  shiftY[1][3] =  0.4 -0.18 +0.01;//-0.08 ;//-0.14-0.14;            
+  shiftY[1][0] = -0.4 +0.01 -0.02 -0.06 -0.01;  //-0.08 +0.23-0.1;               
+  shiftY[1][1] =  0.1 +0.01 -0.04 -0.03;        //-0.07 +0.14-0.1;           
+  shiftY[1][2] = -0.2 -0.03       -0.02;        //-0.07 +0.01+0.05;//-0.13-0.15;             
+  shiftY[1][3] =  0.4 -0.18 +0.01      + 0.01;   //-0.08 ;//-0.14-0.14;            
   
-  shiftY[2][0] = -6.22 -0.02;//+0.1 +0.12;//- 0.05;         
-  shiftY[2][1] = -6.72 ;//+0.14-0.005;//- 0.05;          
+  shiftY[2][0] = -6.22 -0.02 ;         
+  shiftY[2][1] = -6.72       ;            
   
   shiftY[3][0] = -0.15;
-  shiftY[3][1] = -0.15 -0.25;//+0.12;//-0.015;
-  shiftY[3][2] = -0.15 -0.4;//+0.15-0.007;//-0.015;
+  shiftY[3][1] = -0.15 -0.25;
+  shiftY[3][2] = -0.15 -0.4;
   shiftY[3][3] = -0.15;
   shiftY[3][4] =  0.15;
   shiftY[3][5] =  0.15;
@@ -3536,14 +3536,14 @@ InitStatus BmnSiliconTrackFinder::Init() {
 
   //--cm--                   Shift
   shiftStXtoGlob[0] = 0.;
-  shiftStXtoGlob[1] = 0.149;// -0.5;
-  shiftStXtoGlob[2] = 0.149;// -0.5;
-  shiftStXtoGlob[3] = 0.047;// -0.5;
+  shiftStXtoGlob[1] = 0.149 ;//+0.55;// -0.5;
+  shiftStXtoGlob[2] = 0.149 ;//+0.55;// -0.5;
+  shiftStXtoGlob[3] = 0.047 ;//+0.55;// -0.5;
   //                         Shift
   shiftStYtoGlob[0] =  0.;
-  shiftStYtoGlob[1] =  0.096 +0.001 -0.05 -0.06;// -0.08;//-0.08;     
-  shiftStYtoGlob[2] =  0.096 +0.001 -0.05 -0.07;// -0.004;// +0.01;     
-  shiftStYtoGlob[3] = -6.274 + .14        -0.15;      
+  shiftStYtoGlob[1] =  0.096 +0.001 -0.05 -0.06       +0.32 -0.02;//  + 0.11 -4.5;  
+  shiftStYtoGlob[2] =  0.096 +0.001 -0.05 -0.07 + 0.1 +0.32 -0.02;//  + 0.11 -4.5; 
+  shiftStYtoGlob[3] = -6.274 + .14        -0.15       +0.32 -0.006;// + 0.11 -4.5;      
     
   for (Int_t ist = 1; ist < fNstations; ist++) {
     //if ( fDebug ) cout<<" shiftStXtoGlob["<<ist<<"]= "<<shiftStXtoGlob[ist]<<" Y "<< shiftStYtoGlob[ist]<<endl;

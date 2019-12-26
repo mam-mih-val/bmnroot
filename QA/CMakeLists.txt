@@ -8,6 +8,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/dch
  ${CMAKE_SOURCE_DIR}/csc
  ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/ssd
@@ -21,6 +22,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/monitor
  ${CMAKE_SOURCE_DIR}/uni_db
  ${CMAKE_SOURCE_DIR}/uni_db/db_classes
+ ${CMAKE_SOURCE_DIR}/bmndst
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -84,7 +86,7 @@ EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 Set(HEADERS)
 Set(LINKDEF BmnQALinkDef.h)
 Set(LIBRARY_NAME BmnQa)
-Set(DEPENDENCIES Core Base Gem Silicon CSC XMLParser BmnSteering BmnMonitor)
+Set(DEPENDENCIES Core Base Gem Silicon CSC XMLParser BmnSteering BmnMonitor BmnDst)
 
 If ( ${ROOT_HAS_GDML} STREQUAL yes )
  Set (DEPENDENCIES ${DEPENDENCIES} Gdml)

@@ -8,11 +8,14 @@
 
 #include "FairTask.h"
 #include "FairMCPoint.h"
+#include "FairField.h"
+#include "FairRunSim.h"
 
 #include "BmnSiliconDigit.h"
 #include "BmnSiliconStationSet.h"
 
 #include "BmnSiliconConfiguration.h"
+#include "BmnInnTrackerAlign.h"
 
 using namespace std;
 
@@ -41,6 +44,10 @@ public:
         fStripMatching = opt;
     }
 
+    void SetUseRealEffects(Bool_t opt = kTRUE) {
+        fUseRealEffects = opt;
+    }
+
     void SetCurrentConfig(BmnSiliconConfiguration::SILICON_CONFIG config) {
         fCurrentConfig = config;
     }
@@ -65,6 +72,10 @@ private:
 
     Bool_t fOnlyPrimary;
     Bool_t fStripMatching;
+    Bool_t fUseRealEffects;
+    
+    BmnInnTrackerAlign* fAlign;
+    FairField* fField;
 
     BmnSiliconConfiguration::SILICON_CONFIG fCurrentConfig;
 

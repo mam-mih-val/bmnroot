@@ -344,6 +344,8 @@ BmnStatus BmnCellAutoTracking::SortTracks(vector<BmnTrack>& inTracks, vector<Bmn
     //
     //    for (auto it : sortedTracksMap)
     //        sortedTracks.push_back(inTracks.at(it.second));
+
+    return kBMNSUCCESS;
 }
 
 void BmnCellAutoTracking::Finish() {
@@ -459,6 +461,8 @@ BmnStatus BmnCellAutoTracking::StateCalculation(vector<BmnCellDuet>* cells) {
     //                printf("state[%d] = %d\n", iCell, it.GetOldState());
     //            }
     //        }
+
+    return kBMNSUCCESS;
 }
 
 vector<BmnTrack> BmnCellAutoTracking::CellsConnection(vector<BmnCellDuet>* cells) {
@@ -543,6 +547,8 @@ BmnStatus BmnCellAutoTracking::TrackUpdateByLine(vector<BmnTrack>& cands) {
         cand.GetParamLast()->SetTx(Tx);
         cand.GetParamLast()->SetTy(Ty);
     }
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnCellAutoTracking::TrackUpdateByKalman(vector<BmnTrack>& cands) {
@@ -567,6 +573,8 @@ BmnStatus BmnCellAutoTracking::TrackUpdateByKalman(vector<BmnTrack>& cands) {
         cand.SetParamFirst(par);
         cand.SetChi2(chiTot);
     }
+
+    return kBMNSUCCESS;
 }
 
 // BmnStatus BmnCellAutoTracking::TrackUpdateByKalman(vector<BmnTrack>& cands) {
@@ -608,6 +616,7 @@ BmnStatus BmnCellAutoTracking::TrackUpdateByKalman(vector<BmnTrack>& cands) {
 //             cand.SetChi2(chiTot);
 //         }
 // }
+// return kBMNSUCCESS;
 // }
 
 BmnStatus BmnCellAutoTracking::TrackSelection(vector<BmnTrack>& sortedTracks) {
@@ -660,6 +669,8 @@ BmnStatus BmnCellAutoTracking::TrackSelection(vector<BmnTrack>& sortedTracks) {
         SetHitsUsing(&tr, kTRUE);
         if (!fIsTarget && iTr == 0) break;
     }
+
+    return kBMNSUCCESS;
 }
 
 void BmnCellAutoTracking::SetHitsUsing(BmnTrack* tr, Bool_t use) {
@@ -763,6 +774,8 @@ BmnStatus BmnCellAutoTracking::CalcCovMatrix(BmnTrack* tr) {
 
     tr->SetParamFirst(par);
     tr->SetParamLast(par);
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnCellAutoTracking::CalculateTrackParams(BmnTrack* tr) {
@@ -964,6 +977,8 @@ BmnStatus BmnCellAutoTracking::CheckSharedHits(vector<BmnTrack>& sortedTracks) {
             hitsId.insert(tr->GetHitIndex(iHit));
     }
     hitsId.clear();
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnCellAutoTracking::DrawHits() {
@@ -1174,4 +1189,6 @@ BmnStatus BmnCellAutoTracking::DrawHits() {
     delete h_HitsZX;
     delete h_HitsZY;
     delete c;
+
+    return kBMNSUCCESS;
 }

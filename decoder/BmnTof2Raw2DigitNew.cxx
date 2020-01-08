@@ -2774,7 +2774,7 @@ void BmnTof2Raw2DigitNew::Equalization0()
   if (!PRELIMINARY_OFFSETS) return;
   float tmeane_average[TOF2_MAX_CHAMBERS] = {0.};
   float tmeane[TOF2_MAX_CHANNEL] = {0.};
-  TH1D *proj = 0;
+  TH1D *proj = 0, *hmain = 0;
   TF1 *gr = 0;
   char namp[64], namf[64];
   int ncon = 0;
@@ -2801,6 +2801,15 @@ void BmnTof2Raw2DigitNew::Equalization0()
   int ip, is;
   int na = 0;
   tmeane_average[plane] = 0.;
+
+// Select working area around main time peak for current chamber
+  int im, y, bymin, bymax;
+  float ymin, ymax;
+  im = (hmain = (TvsS[plane]->ProjectionY("lims")))->GetMaximumBin();
+  y  = (int)(hmain->GetBinCenter(im));
+  ymin = y - 60;
+  ymax = y + 60;
+
   for (int ind=0; ind<n_rec; ind++)
   {
 	if (mapa[ind].pair < 0) continue;
@@ -2812,8 +2821,14 @@ void BmnTof2Raw2DigitNew::Equalization0()
 	proj = TvsS[ip]->ProjectionY(namp,is+1,is+1);
 	if (EQUAL_MAXIMA0)
 	{
-	    int mbin = proj->GetMaximumBin();
 	    int nbin = proj->GetNbinsX();
+// reset bins outside main peak area
+	    bymin  = (int)(proj->FindBin(ymin));
+	    bymax  = (int)(proj->FindBin(ymax));
+	    for (int ib = 1; ib <= nbin; ib++)
+		if (ib <= bymin || ib >= bymax) proj->SetBinContent(ib, 0);
+//
+	    int mbin = proj->GetMaximumBin();
 	    mpos = proj->GetBinCenter(mbin);
 	    ncon = proj->GetBinContent(mbin);
 	    //printf("Chamber %d strip %d max %d at %f\n", ip,is,ncon,mpos);

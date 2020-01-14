@@ -37,6 +37,7 @@ BmnTofHitProducer::BmnTofHitProducer(const char *name, const char *geomFile, Boo
 	pGeoUtils->SetVerbosity(fVerbose);
 	fgeomFile = geomFile;
 	fMCTimeFile = NULL;
+	fProtonTimeCorrectionFile = NULL;
 	fMainStripSelection = 0; // 0 - minimal time, != 0 - maximal amplitude
 	fSelectXYCalibration = 0; // 0 - Petukhov, != 0 - Panin
 	fTimeMin = -2.f; // Minimal digit time, ns
@@ -116,6 +117,66 @@ InitStatus BmnTofHitProducer::Init()
 		else
 		{
 		    readMCTimeFile(fMCTimeFile);
+		}
+// Proton hit based corrections
+		for (int c = 0; c < TOF2_MAX_CHAMBERS; c++)
+		{
+		    tofcalc[c] = 0.f;
+		    for (int s = 0; s < 32; s++)
+		    {
+			tofcals[c][s] = 0.f;
+		    }
+		}
+		if (fProtonTimeCorrectionFile == NULL)
+		{
+                    cout<<"BmnTof700HitProducer::Init(): Proton-based time corrections file not defined! Don't use corrections!"<<endl;
+		}
+		else
+		{
+		    TProfile2D *itcalibr = 0;
+		    TProfile   *itcalibrc = 0;
+		    float idchambers[59] = {27.1,28.1,3.1,1.1,29.1,4.1,33.1,30.1,5.1,19.3,31.1,6.1,2.1,32.1,15.2,16.2,17.2,
+		    18.2,19.2,20.2,7.1,115.2,113.1,117.1,35.1,9.1,37.1,11.1,39.1,13.1,34.1,8.1,36.1,10.1,38.1,12.1,21.2,
+		    23.2,25.2,22.2,24.2,26.2,107.2,108.2,109.2,110.2,111.2,112.2,114.1,116.2,118.1,14.1,40.1,119.2,120.2,
+		    121.2,122.2,123.2,124.2 };
+		    char fname[256];
+		    TString dir = getenv("VMCWORKDIR");
+		    sprintf(fname,"%s/input/%s",dir.Data(), fProtonTimeCorrectionFile);
+		    TFile *fc = new TFile(fname,"READ", "Proton mass based calibration of BmnTOF700");
+		    if (fc->IsZombie())
+		    {
+                	cout<<"BmnTof700HitProducer::Init(): Error open Proton-based time corrections file "<< fname <<endl;
+			return kERROR;
+		    }
+		    if (CVERS == 0)
+		    {
+		        itcalibr = (TProfile2D *)fc->Get("tcalibr");
+		        itcalibrc = (TProfile *)fc->Get("tcalibrc");
+		    }
+		    else
+		    {
+		        itcalibr = (TProfile2D *)fc->Get("tcalibr;1");
+		        itcalibrc = (TProfile *)fc->Get("tcalibrc;1");
+		    }
+		    printf("\n ******************* Time offsets for whole chamber **********************\n");
+		    for (int c=0; c<TOF2_MAX_CHAMBERS; c++) { tofcalc[c] = itcalibrc->GetBinContent(c+1); printf("%d %f\n",c,tofcalc[c]); }
+		    if (STRIP_CORRECTIONS)
+		    {
+		        if (LIST_STRIP_CORRECTIONS) printf("\n ******************* Time offsets for each strip **************************\n");
+		        for (int c=0; c<TOF2_MAX_CHAMBERS; c++)
+		        {
+		    	if (LIST_STRIP_CORRECTIONS) printf("\n Chamber  %d %.1f\n",c,idchambers[c]);
+		    	int smax = 32;
+		    	if (idchambers[c] >= 100.f) smax = 16;
+		    	for (int s=0; s<smax; s++)
+		    	{
+		    	    tofcals[c][s] = itcalibr->GetBinContent(c+1,s+1);
+		    	    if (LIST_STRIP_CORRECTIONS) printf("   strip %d %f\n",s,tofcals[c][s]);
+		    	}
+		    	if (LIST_STRIP_CORRECTIONS) printf("\n *************************************************************************\n");
+		        }
+		    }
+		    fc->Close();
 		}
 	}
 	
@@ -335,7 +396,10 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 					    if (zcl != 0.)
 					    {
                         			crosspoint.SetXYZ(xcl,ycl,zcl);
-                        			AddHit(UID, crosspoint, XYZ_err, -1, -1, tof[i][cstr]+fMCTime[i]);
+						if (STRIP_CORRECTIONS)
+                    				    AddHit(UID, crosspoint, XYZ_err, -1, -1, tof[i][cstr]+fMCTime[i] + tofcals[i][cstr]);
+						else
+                    				    AddHit(UID, crosspoint, XYZ_err, -1, -1, tof[i][cstr]+fMCTime[i] + tofcalc[i]);
                         			nSingleHits++;
 
                         			if(fDoTest)
@@ -373,7 +437,10 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 					if (zcl != 0.)
 					{
                         		    crosspoint.SetXYZ(xcl,ycl,zcl);
-                        		    AddHit(UID, crosspoint, XYZ_err, -1, -1, tof[i][cstr]+fMCTime[i]);
+					    if (STRIP_CORRECTIONS)
+                    				AddHit(UID, crosspoint, XYZ_err, -1, -1, tof[i][cstr]+fMCTime[i] + tofcals[i][cstr]);
+					    else
+                    				AddHit(UID, crosspoint, XYZ_err, -1, -1, tof[i][cstr]+fMCTime[i] + tofcalc[i]);
                         		    nSingleHits++;
 
                         		    if(fDoTest)
@@ -422,7 +489,10 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 			    if (zcl != 0.)
 			    {
                     		crosspoint.SetXYZ(xcl,ycl,zcl);
-                    		AddHit(UID, crosspoint, XYZ_err, -1, -1, dtime+fMCTime[chamber]); 	
+				if (STRIP_CORRECTIONS)
+                    		    AddHit(UID, crosspoint, XYZ_err, -1, -1, dtime+fMCTime[chamber] + tofcals[chamber][strip]);
+				else
+                    		    AddHit(UID, crosspoint, XYZ_err, -1, -1, dtime+fMCTime[chamber] + tofcalc[chamber]);
                     		nSingleHits++;
 
                     		if(fDoTest)

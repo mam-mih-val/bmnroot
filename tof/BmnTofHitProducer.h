@@ -17,6 +17,11 @@
 #define TOF2_MAX_CHAMBERS 60
 #define TOF2_MAX_STRIPS_IN_CHAMBER 32
 
+#define STRIP_CORRECTIONS 0
+#define LIST_STRIP_CORRECTIONS 0
+// CVERS=0 -  use last calibration tables, 1 - use *;1 version
+#define CVERS 1
+
 class TRandom2;
 class TEfficiency;
 class TH1D;
@@ -27,6 +32,10 @@ class BmnTofHitProducer : public BmnTofHitProducerIdeal
 {
 	Double_t		fMCTime[TOF2_MAX_CHAMBERS];
 	Double_t		fMCTimeSigma[TOF2_MAX_CHAMBERS];
+
+	Double_t tofcalc[TOF2_MAX_CHAMBERS] = {0.f};
+	Double_t tofcals[TOF2_MAX_CHAMBERS][32] = {{0.f}};
+
         Double_t 		fTimeSigma;     // Uncertainties of time, gaus sigma [ns],  default: 100 ps
    	Double_t		fErrX, fErrY; 	// Uncertainties of coordinates, gaus sigma [cm], dX= 10./sqrt(12.) mm, default: dY= 5 mm.
         TRandom2 		*pRandom;    
@@ -47,6 +56,8 @@ class BmnTofHitProducer : public BmnTofHitProducerIdeal
 	const char *fgeomFile;
 
 	const char *fMCTimeFile;
+
+	const char *fProtonTimeCorrectionFile;
 
 	const 	double		fSignalVelosity; // [ns/cm]
 
@@ -96,6 +107,7 @@ public:
 
 	int			readMCTimeFile(const char *);
 	void			SetMCTimeFile(const char * file) {fMCTimeFile = file;}
+	void			SetProtonTimeCorrectionFile(const char * file) {fProtonTimeCorrectionFile = file;}
 	
 ClassDef(BmnTofHitProducer, 2);
 };

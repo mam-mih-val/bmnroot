@@ -133,9 +133,6 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // reconstruction.
     TList* parFileNameList = new TList();
 
-    TObjString tofDigiFile = "$VMCWORKDIR/parameters/tof_standard.geom.par";
-    parFileNameList->Add(&tofDigiFile);
-
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //

@@ -130,8 +130,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     TObjString stsDigiFile = "$VMCWORKDIR/parameters/sts_v1_BMN_SI_GEM.digi.par";
     parFileNameList->Add(&stsDigiFile);
 #endif
-    TObjString tofDigiFile = "$VMCWORKDIR/parameters/tof_standard.geom.par";
-    parFileNameList->Add(&tofDigiFile);
 
     // ====================================================================== //
     // ===                           Check Triggers                       === //

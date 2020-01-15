@@ -153,6 +153,7 @@ Int_t CbmMCTrack::GetNPoints(DetectorId detId) const
   else if ( detId == kBD  ) return ( (fNPoints & ( 1  << 24) ) >> 24);
   else if ( detId == kRECOIL ) return ((fNPoints & ( 63  << 25) ) >> 25);
   else if ( detId == kMWPC ) return 0;
+  else if ( detId == kARMTRIG) return 0;
   else if ( detId == kSILICON ) return 0;
   else if ( detId == kCSC ) return 0;
   else if ( detId == kSSD ) return 0;
@@ -229,6 +230,8 @@ void CbmMCTrack::SetNPoints(Int_t iDet, Int_t nPoints) {
   }
 
   else if ( iDet == kMWPC) { }
+  
+  else if ( iDet == kARMTRIG) { }
 
   else if ( iDet == kSILICON) { }
 

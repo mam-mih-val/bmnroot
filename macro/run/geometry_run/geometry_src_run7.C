@@ -51,4 +51,8 @@ void geometry_src_run7(FairRunSim *fRun)
     zdc->SetGeometryFileName("ZDC_RunSpring2018.root");
     fRun->AddModule(zdc);
     
+    FairDetector* arm = new BmnArmTrig("SRCArmTriggers", kTRUE);
+    arm->SetGeometryFileName("SRCArmTriggers_Spring2018.root");
+    fRun->AddModule(arm);
+
 }

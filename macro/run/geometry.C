@@ -21,6 +21,10 @@ void geometry(FairRunSim *fRun)
     magnet->SetGeometryFileName("magnet_modified.root");
     fRun->AddModule(magnet);
 
+    FairModule* magnetSP57 = new FairMagnet("MAGNET_SP57");
+    magnet->SetGeometryFileName("magnetSP57_1.root");
+    fRun->AddModule(magnetSP57);
+    
     // -----   Create detectors        -------------------------
     FairDetector* mwpc = new BmnMwpc("MWPC", kTRUE);
     mwpc->SetGeometryFileName("MWPC_RunWinter2016.root");

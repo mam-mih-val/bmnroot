@@ -8,10 +8,18 @@ DstEventHeader::DstEventHeader() :
  fEventTimeTS(TTimeStamp()),
  fTriggerType(kBMNMINBIAS),
  fB(0),
- fZ2in(-1000),
- fZ2out(-1000),
- fADCin(-1000),
- fADCout(-1000)
+ fZ2in(-100.0),
+ fZ2out(-100.0),
+ fADCin(-100.0),
+ fADCout(-100.0),
+ fZ1(-100.0),
+ fZ2(-100.0),
+ fZ3(-100.0),
+ fZ4(-100.0),
+ fADC1(-100.0),
+ fADC2(-100.0),
+ fADC3(-100.0),
+ fADC4(-100.0)
 {}
 
 // -----   Constructor with parameters   -----------------------------------
@@ -22,10 +30,18 @@ DstEventHeader::DstEventHeader(UInt_t run_id, UInt_t event_id, TTimeStamp event_
  fEventTimeTS(event_time),
  fTriggerType(trigger_type),
  fB(b),
- fZ2in(-1000),
- fZ2out(-1000),
- fADCin(-1000),
- fADCout(-1000)
+ fZ2in(-100.0),
+ fZ2out(-100.0),
+ fADCin(-100.0),
+ fADCout(-100.0),
+ fZ1(-100.0),
+ fZ2(-100.0),
+ fZ3(-100.0),
+ fZ4(-100.0),
+ fADC1(-100.0),
+ fADC2(-100.0),
+ fADC3(-100.0),
+ fADC4(-100.0)
 {
     SetRunId(run_id);
     SetEventTime(event_time.AsDouble());

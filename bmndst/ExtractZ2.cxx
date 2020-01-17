@@ -56,3 +56,37 @@ void grabZ2( TClonesArray *TQDC_BC1, TClonesArray *bc2Data, double t0Time, doubl
 		else z2 = a_out + b_out*x + c_out*x*x;
 	}
 }
+
+void grabZ2OR( TClonesArray *TQDC_BC1, TClonesArray *bc2Data, double t0Time, double &z2A, double &z2B, double &x, double &y,  bool \
+isIncoming ){
+        double adcBC1, adcBC2;
+        int bc1Idx, bc2Idx;
+
+        // Require that BC1 and T0 had TQDC digits                                                                                  
+        x = -100.0;
+        y = -100.0;
+        z2A = -100.0;
+        z2B = -100.0;
+        if( TQDC_BC1->GetEntriesFast() )
+        {
+                // Find the waveform closest in time to T0 time                                                                     
+                findIdx(TQDC_BC1,bc1Idx,t0Time);
+                BmnTrigWaveDigit * signal1 = (BmnTrigWaveDigit *) TQDC_BC1->At(bc1Idx);
+                if( isIncoming ) adcBC1 = signal1->GetPeak() - pedBC1;
+                else{ adcBC1 = signal1->GetPeak() - pedBC3; }
+                x = adcBC1;
+                if( isIncoming ) z2A = a_in + b_in*x + c_in*x*x;
+                else z2A = a_out + b_out*x + c_out*x*x;
+        }
+        if (bc2Data->GetEntriesFast())
+        {
+                findIdx(bc2Data,bc2Idx,t0Time);
+                BmnTrigWaveDigit * signal2 = (BmnTrigWaveDigit *) bc2Data->At(bc2Idx);
+                if (isIncoming) adcBC2 = signal2->GetPeak() - pedBC2;
+                else{ adcBC2 = signal2->GetPeak() - pedBC4; }
+                y = adcBC2;
+                if( isIncoming ) z2B = a_in + b_in*y + c_in*y*y;
+                else z2B = a_out + b_out*y + c_out*y*y;
+
+        }
+}

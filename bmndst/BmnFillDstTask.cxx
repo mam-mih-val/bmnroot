@@ -269,8 +269,8 @@ void BmnFillDstTask::Exec(Option_t* /*option*/) {
     }
 
     //calculate Z2in and Z2out:
-    Double_t Z2in = -1000.0, Z2out = -1000.0;
-    Double_t adcIn = -1000.0, adcOut = -1000.0;
+    Double_t Z2in = -100.0, Z2out = -100.0;
+    Double_t adcIn = -100.0, adcOut = -100.0;
     if (fT0 && fBC1 && fBC2 && fBC3 && fBC4) {
         BmnTrigDigit* digT0 = NULL;
         Int_t t0Count = 0;
@@ -282,20 +282,42 @@ void BmnFillDstTask::Exec(Option_t* /*option*/) {
             Double_t t0Time = digT0->GetTime();
             grabZ2(fBC1, fBC2, t0Time, Z2in, adcIn, true);
             grabZ2(fBC3, fBC4, t0Time, Z2out, adcOut, false);
-            if (Z2out!=-1000)
-            {
-                Z2out=sqrt(Z2out);
-                Z2out=Z2out*fZCalib1+fZCalib2;
-                Z2out=Z2out*Z2out;
-            }
-            //cout<<Z2out;
-        }
-        fDstHead->SetZ2in(Z2in);
-        fDstHead->SetZ2out(Z2out);
-        fDstHead->SetADCin(adcIn);
-        fDstHead->SetADCout(adcOut);
+	}
+	fDstHead->SetZ2in(Z2in);
+	fDstHead->SetZ2out(Z2out);
+	fDstHead->SetADCin(adcIn);
+	fDstHead->SetADCout(adcOut);
     }
 
+    Double_t Z1 = - 100.0, Z2 = -100.0, Z3 = -100.0, Z4 = -100.0, ADC1 = -100.0, ADC2 = -100.0, ADC3 = -100.0, ADC4 = -100.0;	
+    if(fT0) {
+      Int_t t0Count = 0;
+      BmnTrigDigit* digT0 = NULL;
+      Double_t t0Time = -100000;
+      for (UInt_t i = 0; i < fT0->GetEntriesFast(); i++) {
+	digT0 = (BmnTrigDigit*)fT0->At(i);
+	if (digT0->GetMod() == 0) {
+	  t0Count++;
+	  t0Time = digT0->GetTime();
+	}
+      }
+      if (t0Count == 1) {
+	grabZ2OR(fBC1, fBC2, t0Time, Z1, Z2, ADC1, ADC2, true);
+	grabZ2OR(fBC3, fBC4, t0Time, Z3, Z4, ADC3, ADC4, false);
+      }
+
+      //no calibration from single adc to charge yet
+      /*fDstHead->SetZ1(Z1);
+      fDstHead->SetZ2(Z2);
+      fDstHead->SetZ3(Z3);
+      fDstHead->SetZ4(Z4);*/
+    
+      fDstHead->SetADC1(ADC1);
+      fDstHead->SetADC2(ADC2);
+      fDstHead->SetADC3(ADC3);
+      fDstHead->SetADC4(ADC4);
+    }
+    
     // printing progress bar in terminal
     if (fVerbose == 0) {
         if (gROOT->IsBatch()) {

@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="nica-db-monitor-pklimai",
+    name="mon-service",
     version="0.0.1",
     author="Peter Klimai",
     author_email="pklimai@gmail.com",
@@ -14,11 +14,11 @@ setuptools.setup(
     # url="",
     packages=setuptools.find_packages(),
     install_requires=['psycopg2-binary', 'influxdb'],
-    scripts=['nica-db-mon.py'],
+    scripts=['mon-service.py'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: Linux",
     ],
-    python_requires='>=3.4',
+    python_requires='>=3.5',
 )

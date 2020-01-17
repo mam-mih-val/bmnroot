@@ -57,8 +57,7 @@ void grabZ2( TClonesArray *TQDC_BC1, TClonesArray *bc2Data, double t0Time, doubl
 	}
 }
 
-void grabZ2OR( TClonesArray *TQDC_BC1, TClonesArray *bc2Data, double t0Time, double &z2A, double &z2B, double &x, double &y,  bool \
-isIncoming ){
+void grabZ2OR( TClonesArray *TQDC_BC1, TClonesArray *bc2Data, double t0Time, double &z2A, double &z2B, double &x, double &y,  bool isIncoming ){
         double adcBC1, adcBC2;
         int bc1Idx, bc2Idx;
 

@@ -288,7 +288,7 @@ void BmnFillDstTask::Exec(Option_t* /*option*/) {
 	fDstHead->SetADCin(adcIn);
 	fDstHead->SetADCout(adcOut);
     }
-
+    
     Double_t Z1 = - 100.0, Z2 = -100.0, Z3 = -100.0, Z4 = -100.0, ADC1 = -100.0, ADC2 = -100.0, ADC3 = -100.0, ADC4 = -100.0;	
     if(fT0) {
       Int_t t0Count = 0;
@@ -302,15 +302,19 @@ void BmnFillDstTask::Exec(Option_t* /*option*/) {
 	}
       }
       if (t0Count == 1) {
-	grabZ2OR(fBC1, fBC2, t0Time, Z1, Z2, ADC1, ADC2, true);
-	grabZ2OR(fBC3, fBC4, t0Time, Z3, Z4, ADC3, ADC4, false);
+	if(fBC1 && fBC2){
+	  grabZ2OR(fBC1, fBC2, t0Time, Z1, Z2, ADC1, ADC2, true);
+	}
+	if(fBC3 && fBC4){
+	  grabZ2OR(fBC3, fBC4, t0Time, Z3, Z4, ADC3, ADC4, false);
+	}
       }
-
+    
       //no calibration from single adc to charge yet
-      /*fDstHead->SetZ1(Z1);
-      fDstHead->SetZ2(Z2);
-      fDstHead->SetZ3(Z3);
-      fDstHead->SetZ4(Z4);*/
+      //fDstHead->SetZ1(Z1);
+      //fDstHead->SetZ2(Z2);
+      //fDstHead->SetZ3(Z3);
+      //fDstHead->SetZ4(Z4);
     
       fDstHead->SetADC1(ADC1);
       fDstHead->SetADC2(ADC2);

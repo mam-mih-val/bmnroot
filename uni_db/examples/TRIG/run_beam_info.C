@@ -3,7 +3,7 @@
 // print summary information about beam spill for a given run in a period (or for a whole period)
 // if 'run' parameter is zero or absent then all runs in the period will be shown
 void run_beam_info(int period = 7, int run = 0, TString target = "",
-                   TString txtfile_path= "$VMCWORKDIR/uni_db/macros/parse_schemes/spill_run7/summaryMK.txt",
+                   TString txtfile_path= "$VMCWORKDIR/uni_db/macros/parse_schemes/spill_run7/summary_corr_v2.txt",
                    TString scheme_path = "$VMCWORKDIR/uni_db/macros/parse_schemes/spill_run7/spill_run7.xslt")
 {
     // get spill info
@@ -171,7 +171,7 @@ void run_beam_info(int period = 7, int run = 0, TString target = "",
                 if (schema.vecRows[0].strStatementType == "int")
                 {
                     if (count_column > 0) cout<<", ";
-                    cout<<"sum"<<schema.vecRows[0].strColumnName<<": "<<sum_columns[count_column];
+                    cout<<"sum("<<schema.vecRows[0].strColumnName<<"): "<<sum_columns[count_column];
                     count_column++;
                 }
                 else {

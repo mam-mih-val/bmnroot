@@ -3490,8 +3490,8 @@ InitStatus BmnSiliconTrackFinder::Init() {
   if (fVerbose) cout << "BmnSiliconTrackFinder::Init()" << endl;
   FairRootManager* ioman = FairRootManager::Instance();
 
-  fBmnSiDigitsArray = (TClonesArray*) ioman->GetObject("SILICON");
-  if (!fBmnSiDigitsArray) {
+  fBmnSiDigitsArray = (TClonesArray*) ioman->GetObject("BmnSiliconDigit");
+  if ((!fBmnSiDigitsArray) || (!fBmnSiDigitsArray->InheritsFrom(TClonesArray::Class()))){
     cout << "BmnSiliconTrackFinder::Init(): branch " << " not found! Task will be deactivated" << endl;
     SetActive(kFALSE);
     return kERROR;

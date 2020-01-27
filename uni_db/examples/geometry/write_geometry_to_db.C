@@ -1,10 +1,8 @@
-// macro for writing links to the existed ROOT setup geometry for a selecting run period to the Unified Database
+// macro for writing a link to the existed ROOT setup geometry for a selecting run period to the Unified Database
 // in case of geometry_link is -1 - get geometry from the previous run
 // e.g. root 'write_geometry_to_db.C(45, 7, 1, 7, 10000)'
 void write_geometry_to_db(int geometry_link, int start_period, int start_run, int end_period, int end_run)
 {
-    gSystem->Load("libUniDb");
-
     if (geometry_link < -1)
     {
         cout<<"\nERROR: geometry link should be positive or be equal -1 to get geometry from the previous run"<<endl;
@@ -72,12 +70,10 @@ void write_geometry_to_db(int geometry_link, int start_period, int start_run, in
     cout<<"\nMacro finished successfully"<<endl;
 }
 
-// macro for creating and writing ROOT file with full setup geometry to the Unified Database and creating links for the given runs (from start to end run)
-// e.g. root 'write_geometry_to_db.C("$VMCWORKDIR/macro/run/geometry_run/geometry_src_run7.root", 7, 1, 7, 10000)'
+// macro for creating and writing a ROOT file with a full setup geometry to the Unified Database and writing links for the given runs (from start to end run)
+// e.g. root 'write_geometry_to_db.C("$VMCWORKDIR/macro/run/geometry_run/geometry_src_run7.root", 7, 1, 7, 3600)'
 void write_geometry_to_db(const char* root_file_path, int start_period, int start_run, int end_period, int end_run)
 {
-    gSystem->Load("libUniDb");
-
     // write ROOT file with detector geometry for run range
     int res_code = UniDbRun::WriteGeometryFile(start_period, start_run, end_period, end_run, root_file_path); //(int start_period, int start_run, int end_period, int end_run, char* geo_file_path)
     if (res_code != 0)

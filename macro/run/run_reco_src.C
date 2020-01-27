@@ -193,7 +193,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                          Tracking (Silicon)                    === //
     // ====================================================================== //
-     BmnSiliconTrackFinder* siTF = new BmnSiliconTrackFinder(isTarget, run_number);
+     BmnSiliconTrackFinder* siTF = new BmnSiliconTrackFinder(isExp, isTarget, run_number);
      fRunAna->AddTask(siTF);
 
      // ====================================================================== //

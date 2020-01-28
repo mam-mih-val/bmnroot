@@ -70,12 +70,14 @@ build:ubuntu:
       - macro/run/evetest.root
   script:
     - source build/config.sh
-    - root -b -q -l '$CI_PROJECT_DIR/macro/run/run_sim_bmn.C' | tee output.txt
+    - root -b -q -l '$CI_PROJECT_DIR/$MACRO_NAME' | tee output.txt
     - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
   allow_failure: false
   <<: *only-default
   
-run_sim:centos:
+run_sim_bmn:centos:
+  variables:
+    MACRO_NAME: "macro/run/run_sim_bmn.C"
   tags:
     - test
     - centos
@@ -83,14 +85,36 @@ run_sim:centos:
     - build:centos
   <<: *run_sim
 
-run_sim:ubuntu:
+run_sim_bmn:ubuntu:
+  variables:
+    MACRO_NAME: "macro/run/run_sim_bmn.C"
   tags:
     - test
     - ubuntu
   dependencies:
     - build:ubuntu
   <<: *run_sim
-  
+
+run_sim_src:centos:
+  variables:
+    MACRO_NAME: "macro/run/run_sim_src.C"
+  tags:
+    - test
+    - centos
+  dependencies:
+    - build:centos
+  <<: *run_sim
+
+run_sim_src:ubuntu:
+  variables:
+    MACRO_NAME: "macro/run/run_sim_src.C"
+  tags:
+    - test
+    - ubuntu
+  dependencies:
+    - build:ubuntu
+  <<: *run_sim
+
 .run_reco_template: &run_reco
   stage: test_run_reco
   artifacts:
@@ -98,27 +122,53 @@ run_sim:ubuntu:
       - macro/run/bmndst_exp.root
   script:
     - source build/config.sh
-    - root -b -q -l "$CI_PROJECT_DIR/macro/run/run_reco_bmn.C" | tee output.txt
+    - root -b -q -l "$CI_PROJECT_DIR/$MACRO_NAME" | tee output.txt
     - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
   allow_failure: false
   <<: *only-default
   
-run_reco:centos:
+run_reco_bmn:centos:
+  variables:
+    MACRO_NAME: "macro/run/run_reco_bmn.C"
   tags:
     - test
     - centos
   dependencies:
     - build:centos
-    - run_sim:centos
+    - run_sim_bmn:centos
   <<: *run_reco
   
-run_reco:ubuntu:
+run_reco_bmn:ubuntu:
+  variables:
+    MACRO_NAME: "macro/run/run_reco_bmn.C"
   tags:
     - test
     - ubuntu
   dependencies:
     - build:ubuntu
-    - run_sim:ubuntu
+    - run_sim_bmn:ubuntu
+  <<: *run_reco
+
+run_reco_src:centos:
+  variables:
+    MACRO_NAME: "macro/run/run_reco_src.C"
+  tags:
+    - test
+    - centos
+  dependencies:
+    - build:centos
+    - run_sim_src:centos
+  <<: *run_reco
+  
+run_reco_src:ubuntu:
+  variables:
+    MACRO_NAME: "macro/run/run_reco_src.C"
+  tags:
+    - test
+    - ubuntu
+  dependencies:
+    - build:ubuntu
+    - run_sim_src:ubuntu
   <<: *run_reco
   
 .run_digi_template: &run_digi
@@ -136,7 +186,6 @@ run_digi:centos:
     - centos
   dependencies:
     - build:centos
-    - run_sim:centos
   <<: *run_digi
   
 run_digi:ubuntu:

@@ -105,6 +105,11 @@ InitStatus BmnSiliconHitMaker::Init() {
             if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSRCSpring2018" << "\n";
             break;
 
+        case BmnSiliconConfiguration::FutureConfig2020:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconFutureConfig2020.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : FutureConfig2020" << "\n";
+            break;
+
         default:
             StationSet = NULL;
     }

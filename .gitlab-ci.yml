@@ -184,7 +184,7 @@ run_reco_src:ubuntu:
   
 run_digi_bmn:centos:
   variables:
-    MACRO_NAME: "$CI_PROJECT_DIR/macro/run/run_reco_bmn.C('$VMCWORKDIR/macro/run/testDigi.root', '$VMCWORKDIR/macro/run/bmndst_exp.root', 0, 100)"
+    MACRO_NAME: "$$CI_PROJECT_DIR/macro/run/run_reco_bmn.C('$$VMCWORKDIR/macro/run/testDigi.root', '$$VMCWORKDIR/macro/run/bmndst_exp.root', 0, 100)"
   tags:
     - test
     - centos
@@ -194,7 +194,7 @@ run_digi_bmn:centos:
   
 run_digi_bmn:ubuntu:
   variables:
-    MACRO_NAME: "$CI_PROJECT_DIR/macro/run/run_reco_bmn.C('$VMCWORKDIR/macro/run/testDigi.root', '$VMCWORKDIR/macro/run/bmndst_exp.root', 0, 100)"
+    MACRO_NAME: "$$CI_PROJECT_DIR/macro/run/run_reco_bmn.C('$$VMCWORKDIR/macro/run/testDigi.root', '$$VMCWORKDIR/macro/run/bmndst_exp.root', 0, 100)"
   tags:
     - test
     - ubuntu
@@ -204,7 +204,7 @@ run_digi_bmn:ubuntu:
 
 run_digi_src:centos:
   variables:
-    MACRO_NAME: "$CI_PROJECT_DIR/macro/run/run_reco_bmn.C('$VMCWORKDIR/macro/run/testSRCDigi.root', '$VMCWORKDIR/macro/run/srcdst_exp.root', 0, 100)"
+    MACRO_NAME: "$$CI_PROJECT_DIR/macro/run/run_reco_bmn.C('$$VMCWORKDIR/macro/run/testSRCDigi.root', '$$VMCWORKDIR/macro/run/srcdst_exp.root', 0, 100)"
   tags:
     - test
     - centos
@@ -214,7 +214,7 @@ run_digi_src:centos:
   
 run_digi_src:ubuntu:
   variables:
-    MACRO_NAME: "$CI_PROJECT_DIR/macro/run/run_reco_bmn.C('$VMCWORKDIR/macro/run/testSRCDigi.root', '$VMCWORKDIR/macro/run/srcdst_exp.root', 0, 100)"
+    MACRO_NAME: "$$CI_PROJECT_DIR/macro/run/run_reco_bmn.C('$$VMCWORKDIR/macro/run/testSRCDigi.root', '$$VMCWORKDIR/macro/run/srcdst_exp.root', 0, 100)"
   tags:
     - test
     - ubuntu

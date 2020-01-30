@@ -67,7 +67,8 @@ build:ubuntu:
   stage: test_run_sim
   artifacts:
     paths:
-      - macro/run/evetest.root
+      - macro/run/bmnsim.root
+      - macro/run/srcsim.root
   script:
     - source build/config.sh
     - root -b -q -l '$CI_PROJECT_DIR/$MACRO_NAME' | tee output.txt

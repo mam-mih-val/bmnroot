@@ -6,7 +6,7 @@
 // nEvents - number of events to process, 0 - all events of given file will be processed, default: 1 000 events
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 
-void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
+void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
                   TString srcdstFileName = "$VMCWORKDIR/macro/run/srcdst.root",
                   Int_t nStartEvent = 0, Int_t nEvents = 1000)
 {

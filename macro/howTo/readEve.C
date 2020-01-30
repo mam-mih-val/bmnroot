@@ -9,7 +9,7 @@
 //                                                                            //
 // readEve.C                                                                  //
 //                                                                            //
-// An example how to read data (MC) from evetest.root                         //
+// An example how to read data (MC) from bmnsim.root                          //
 // It demonstrates how to select GEM hits which belong to the GEM track       //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////

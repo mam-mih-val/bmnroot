@@ -14,6 +14,9 @@ private:
     UInt_t fRunId;
     TTimeStamp fRunStartTime;
     TTimeStamp fRunEndTime;
+    UInt_t fBeamTrigger;
+    UInt_t fBTnBusy;
+    UInt_t fBTAccepted;
 
 
 public:
@@ -36,6 +39,12 @@ public:
     UInt_t GetPeriodId() { return fPeriodId; }
     /** Get the run ID */
     UInt_t GetRunId() { return fRunId; }
+    /** Get the BeamTrigger counter */
+    UInt_t GetBT() { return fBeamTrigger; }
+    /** Get the BT and not Busy  */
+    UInt_t GetBTnBusy() { return fBTnBusy; }
+    /** Get the (BT and not Busy) by live time  */
+    UInt_t GetBTAccepted() { return fBTAccepted; }
 
     TTimeStamp GetRunStartTime() { return fRunStartTime; }
     TTimeStamp GetRunEndTime() { return fRunEndTime; }
@@ -60,7 +69,19 @@ public:
      * \param[in] run_end_time : run end time
      */
     void SetRunEndTime(TTimeStamp run_end_time) { fRunEndTime = run_end_time; }
-
+    
+    /** Set the Beam Trigger counter
+     * \param[in] cntr : Beam Trigger counter
+     */
+    void SetBT(UInt_t cntr) { fBeamTrigger = cntr; }
+    /** Set the BT and Busy counter
+     * \param[in] cntr : BT and Busy
+     */
+    void SetBTnBusy(UInt_t cntr) { fBTnBusy = cntr; }
+    /** Set the (BT and not Busy) by live time
+     * \param[in] cntr : BT Accepted
+     */
+    void SetBTAccepted(UInt_t cntr) { fBTAccepted = cntr; }
 
     ClassDef(DigiRunHeader, 1)
 };

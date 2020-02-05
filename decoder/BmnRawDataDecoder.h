@@ -1,8 +1,29 @@
 #ifndef BMNRAWDATADECODER_H
 #define BMNRAWDATADECODER_H 1
 
+#include <bitset>
+#include <stdio.h>
+#include <stdlib.h>
+#include <cstdlib>
+#include <cstdio>
+#include <list>
+#include <map>
+#include <deque>
+#include <iostream>
+#include <vector>
+#include <fstream>
+//#include <regex>
+
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
 #include "TString.h"
 #include "TSystem.h"
+#include "TFile.h"
+#include "TTimeStamp.h"
+#include "TTree.h"
+#include "TClonesArray.h"
+
 #include "BmnEnums.h"
 #include "BmnTTBDigit.h"
 #include "BmnTDCDigit.h"
@@ -12,14 +33,6 @@
 #include "BmnTQDCADCDigit.h"
 #include "BmnLANDDigit.h"
 #include "BmnSyncDigit.h"
-#include "TFile.h"
-#include "TTimeStamp.h"
-#include "TTree.h"
-#include "TClonesArray.h"
-#include <iostream>
-#include <vector>
-#include <fstream>
-//#include <regex>
 #include "DigiRunHeader.h"
 #include "BmnGemRaw2Digit.h"
 #include "BmnGemStripDigit.h"
@@ -35,19 +48,11 @@
 #include "BmnCscRaw2Digit.h"
 #include "BmnEventHeader.h"
 #include "DigiArrays.h"
-#include <bitset>
-#include <stdio.h>
-#include <stdlib.h>
-#include <cstdlib>
-#include <cstdio>
-#include <list>
-#include <map>
-#include <deque>
+#include "BmnMSCDigit.h"
 #include <UniDbDetectorParameter.h>
 #include <UniDbRun.h>
 #include "UniDbTangoData.h"
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
+#include "BmnMscRaw2Digit.h"
 
 /***************** SET OF DAQ CONSTANTS *****************/
 const UInt_t kSYNC1 = 0x2A502A50;
@@ -275,6 +280,10 @@ public:
         fECALCalibrationFileName = cal;
     }
 
+    void SetMSCMapping(TString map) {
+        fMSCMapFileName = map;
+    }
+
     void SetLANDMapping(TString map) {
         fLANDMapFileName = map;
     }
@@ -398,6 +407,7 @@ private:
     Long64_t fCurentPositionRawFile;
 
     TTree *fRawTree;
+    TTree *fRawTreeSpills;
     TTree *fDigiTree;
     TString fRootFileName;
     TString fRawFileName;
@@ -414,6 +424,7 @@ private:
     TString fZDCCalibrationFileName;
     TString fECALMapFileName;
     TString fECALCalibrationFileName;
+    TString fMSCMapFileName;
     TString fLANDMapFileName;
     TString fLANDClockFileName;
     TString fLANDTCalFileName;
@@ -453,6 +464,7 @@ private:
     TClonesArray *tqdc_tdc;
     TClonesArray *tqdc_adc;
     TClonesArray *msc;
+    BmnMSCDigit *fMSCRunTotal;
     BmnEventHeader *eventHeaderDAQ;
     TClonesArray *pedestalAdc;
 
@@ -487,6 +499,10 @@ private:
     BmnZDCRaw2Digit *fZDCMapper;
     BmnECALRaw2Digit *fECALMapper;
     BmnLANDRaw2Digit *fLANDMapper;
+    BmnMscRaw2Digit *fMSCMapper;
+    UInt_t nSpillEvents;    
+    BmnTrigInfo* trigInfoTemp;
+    BmnTrigInfo* trigInfoSum;
     BmnEventType fCurEventType;
     BmnEventType fPrevEventType;
     BmnSetup fBmnSetup;
@@ -525,7 +541,7 @@ private:
     BmnStatus FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);
 
-    BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t &idx);
+    BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t &idx);
     BmnStatus FillTimeShiftsMap();
     BmnStatus FillTimeShiftsMapNoDB(UInt_t t0serial);
 

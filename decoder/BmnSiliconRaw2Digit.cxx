@@ -975,9 +975,9 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
     }
     if (!read) {
         Int_t retn = system(Form("mv %s %s", wnoisename.Data(), rnoisename.Data()));
-        printf("mv    noise ret %d\n", retn);
+//        printf("mv    noise ret %d\n", retn);
         Int_t retp = system(Form("mv %s %s", wpedname.Data(), pedname.Data()));
-        printf("mv pedestal ret %d\n", retp);
+//        printf("mv pedestal ret %d\n", retp);
     }
 }
 
@@ -1151,6 +1151,8 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
     Int_t iSer = -1;
     for (iSer = 0; iSer < GetSerials().size(); ++iSer)
         if (ser == GetSerials()[iSer]) break;
+    if (iSer == GetSerials().size())
+        return; // serial not found
 
     BmnSiliconDigit candDig[nSmpl];
 

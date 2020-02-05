@@ -27,6 +27,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fTime_s = 0;
     fT0Time = 0.0;
     fRawTree = NULL;
+    fRawTreeSpills = NULL;
     fDigiTree = NULL;
     fRootFileIn = NULL;
     fRootFileOut = NULL;
@@ -110,6 +111,8 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fVerbose = 0;
     isSpillStart = kFALSE;
     fSpillCntr = 0;
+    fMSCRunTotal = nullptr;
+    fMSCMapper = nullptr;
     InitUTCShift();
     //InitMaps();
 }
@@ -137,7 +140,15 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
         fCurentPositionRawFile = ftello64(fRawFileIn);
         if (fCurentPositionRawFile >= fLengthRawFile) break;
         if (fDat == kENDOFSPILL) {
-            //                printf("EOS!!\n");
+            // read number of bytes in event
+            if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
+            fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
+            //read array of current event data and process them
+            if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) continue;
+            //                        printf(ANSI_COLOR_BLUE "EOS iEv = %u\n" ANSI_COLOR_RESET, data[0]);
+            ProcessEvent(data, fDat);
+            if (msc->GetEntriesFast() > 0)
+                fRawTreeSpills->Fill();
             isSpillStart = kTRUE;
         }
         if (fDat == kSYNC1) { //search for start of event
@@ -151,16 +162,39 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
                 //read array of current event data and process them
                 if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) continue;
                 fEventId = data[0];
+                //                                printf(ANSI_COLOR_BLUE "iEv = %u\n" ANSI_COLOR_RESET, data[0]);
                 if (fEventId <= 0) continue; // skip bad events
                 ProcessEvent(data, fDat);
                 if (data[0] != (fNevents + 1)) // Just a check to see if somehow ProcessEvent messed up our counting
                     printf(ANSI_COLOR_RED "***Extreme warning, events are not synced: %i, %i***\n" ANSI_COLOR_RESET, fEventId, fNevents + 1);
-                fNevents++;
                 fRawTree->Fill();
+                if (isSpillStart == kTRUE)
+                    isSpillStart = kFALSE;
+                fNevents++;
+                nSpillEvents++;
             }
         }
     }
-
+    //    printf(ANSI_COLOR_BLUE "\n\tTotal:\n" ANSI_COLOR_RESET);
+    //    UInt_t *cntrArr = fMSCRunTotal->GetValue();
+    //    printf(ANSI_COLOR_BLUE "MSC16:" ANSI_COLOR_RESET"\tBC1  %6u,        BC2  %6u,      BC3  %4u, BeamTrigger %6u,    L0 %6u, TrigProtection %6u, BT&Busy %6u\n",
+    //            cntrArr[0],
+    //            cntrArr[2],
+    //            cntrArr[4],
+    //            cntrArr[6],
+    //            cntrArr[8],
+    //            cntrArr[10],
+    //            cntrArr[12]
+    //            ); // BM@N
+    //
+    //    printf(ANSI_COLOR_BLUE "U40VE:" ANSI_COLOR_RESET"\tcand %6u,       acc   %6u,   before  %4u,      after  %6u,  rjct %6u,  all %6u,  avail %6u\n",
+    //            trigInfoSum->GetTrigCand(),
+    //            trigInfoSum->GetTrigAccepted(),
+    //            trigInfoSum->GetTrigBefo(),
+    //            trigInfoSum->GetTrigAfter(),
+    //            trigInfoSum->GetTrigRjct(),
+    //            trigInfoSum->GetTrigAll(),
+    //            trigInfoSum->GetTrigAvail());
     fRunEndTime = TTimeStamp(time_t(fTime_s), fTime_ns);
     Int_t shift = GetUTCShift(fRunEndTime);
     if (shift != tai_utc_dif)
@@ -172,6 +206,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     printf("Read %d events; %lld bytes (%.3f Mb)\n\n", fNevents, fCurentPositionRawFile, fCurentPositionRawFile / 1024. / 1024.);
 
     fRawTree->Write();
+    fRawTreeSpills->Write();
     fRootFileOut->Close();
     fclose(fRawFileIn);
 
@@ -185,6 +220,8 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     delete tqdc_tdc;
     delete tqdc_adc;
     delete msc;
+    if (fMSCRunTotal) delete fMSCRunTotal;
+    if (fMSCMapper) delete fMSCMapper;
 
     return kBMNSUCCESS;
 }
@@ -235,7 +272,6 @@ BmnStatus BmnRawDataDecoder::InitConverter() {
     tqdc_adc = new TClonesArray("BmnTQDCADCDigit");
     tqdc_tdc = new TClonesArray("BmnTDCDigit");
     hrb = new TClonesArray("BmnHRBDigit");
-    msc = new TClonesArray("BmnMSCDigit");
     eventHeaderDAQ = new BmnEventHeader();
 
     fRawTree->Branch("SYNC", &sync);
@@ -247,8 +283,14 @@ BmnStatus BmnRawDataDecoder::InitConverter() {
     fRawTree->Branch("TQDC_ADC", &tqdc_adc);
     fRawTree->Branch("TQDC_TDC", &tqdc_tdc);
     fRawTree->Branch("HRB", &hrb);
-    fRawTree->Branch("MSC", &msc);
     fRawTree->Branch("BmnEventHeader.", &eventHeaderDAQ);
+
+    fRawTreeSpills = new TTree("BMN_RAW_SPILLS", "BMN_RAW_SPILLS");
+    msc = new TClonesArray(BmnMSCDigit::Class());
+    fRawTreeSpills->Branch("MSC", &msc);
+//
+//    fMSCRunTotal = new BmnMSCDigit();
+//    trigInfoSum = new BmnTrigInfo();
     return kBMNSUCCESS;
 }
 
@@ -353,10 +395,10 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     msc->Delete();
     //    eventHeaderDAQ->Delete();
     BmnTrigInfo* trigInfo = new BmnTrigInfo();
-        if (fVerbose == 1) {
-            if (fEventId % 5000 == 0) cout << "Converted event #" << fEventId << endl;
-        } else if (fVerbose == 0)
-            DrawBar(fCurentPositionRawFile, fLengthRawFile);
+    if (fVerbose == 1) {
+        if (fEventId % 5000 == 0) cout << "Converted event #" << fEventId << endl;
+    } else if (fVerbose == 0)
+        DrawBar(fCurentPositionRawFile, fLengthRawFile);
 
     Long64_t idx = 1;
     BmnEventType evType = kBMNPAYLOAD;
@@ -369,6 +411,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             printf("[WARNING] Event %d:\n serial = 0x%06X\n id = Ox%02X\n payload = %d\n", fEventId, serial, id, payload);
             break;
         }
+        //    printf("  idev %02X serial 0x%08X\n", id, serial);
         switch (id) {
             case kADC64VE_XGE:
             case kADC64VE:
@@ -401,8 +444,8 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                 payload -= 5;
                 idx += 5;
                 Double_t nSmpl = 2 * (payload / (Double_t) nCh - 3); // MStream ADC payload count
-                //                printf("nCh %d nSmpl %f\n", nCh, nSmpl);
-                if (nSmpl > 100.0)
+                //                                printf("payload %08d nCh %d nSmpl %f\n", payload, nCh, nSmpl);
+                if (nSmpl > 100.0) // number means nothing but an arbitrary number betweeen 128 and 32
                     Process_ADC64VE(&d[idx], payload, serial, 128, adc128);
                 else
                     Process_ADC64VE(&d[idx], payload, serial, 32, adc32);
@@ -457,8 +500,6 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     eventHeaderDAQ->SetTimeShift(fTimeShifts);
     eventHeaderDAQ->SetStartSignalInfo(fT0Time, fT0Width);
     eventHeaderDAQ->SetSpillStart(isSpillStart);
-    if (isSpillStart == kTRUE)
-        isSpillStart = kFALSE;
 }
 
 /**
@@ -571,31 +612,30 @@ BmnStatus BmnRawDataDecoder::Process_ADC64WR(UInt_t *d, UInt_t len, UInt_t seria
 }
 
 BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, BmnEventType &evType, BmnTrigInfo* spillInfo) {
-    //                                printf("FVME serial %08X\n",serial);
+    //                                    printf("FVME serial %08X len %u\n",serial, len);
     UInt_t modId = 0;
     UInt_t slot = 0;
     UInt_t type = 0;
     for (UInt_t i = 0; i < len; i++) {
         type = d[i] >> 28;
+        //    printf("     type %02X  i %u\n", type, i);
         switch (type) {
             case kEVHEADER:
-                //                printf("Ev header %d\n",(d[i] & 0xFFFFF));
+                //                printf("Ev header \n"));
+                //                break;
             case kEVTRAILER:
                 //                printf("Ev trailer\n");
-            case kSPILLHEADER:
-                //                printf("SPILLHEADER  spill type %i\n", ((d[i] >> 26) &0x1));
-            case kSPILLTRAILER:
-                //                printf("SPILLTRAILER spill type %i\n", ((d[i] >> 26) &0x1));
+                //                break;
             case kSTATUS:
             case kPADDING:
                 break;
             case kMODHEADER:
                 modId = (d[i] >> 16) & 0x7F;
                 slot = (d[i] >> 23) & 0x1F;
-                //                printf("modid 0x%02X slot %d serial 0x%08X\n", modId, slot, serial);
+                //                                printf("\tmodid 0x%02X slot %d serial 0x%08X\n", modId, slot, serial);
                 break;
             case kMODTRAILER:
-                //                printf("module trailer\n");
+                //                                printf("\tmodule trailer\n");
                 if (!((d[i] >> 16) & 0x1)) printf(ANSI_COLOR_RED "Readout overflow error\n" ANSI_COLOR_RESET);
                 if (!((d[i] >> 17) & 0x1)) printf(ANSI_COLOR_RED "Readout error\n" ANSI_COLOR_RESET);
                 if (!((d[i] >> 18) & 0x1)) printf(ANSI_COLOR_RED "TTC error\n" ANSI_COLOR_RESET);
@@ -617,7 +657,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                         FillTQDC(d, serial, slot, modId, i);
                         break;
                     case kMSC:
-                        FillMSC(d, serial, i); //empty now
+                        FillMSC(d, serial, slot, i);
                         break;
                     case kTRIG:
                         FillSYNC(d, serial, i);
@@ -743,13 +783,13 @@ BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
 
 BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t slot, UInt_t & idx, BmnTrigInfo* trigInfo) {
     UInt_t type = d[idx] >> 28;
-    //            printf("start type %u slot %u\n", type, slot);
+    //                printf("\t\tU40VE start type %u slot %u idx %u\n", type, slot, idx);
     Bool_t countersDone = kFALSE;
     while (type == kWORDTAI || type == kWORDTRIG || type == kWORDAUX) {
         if (fPeriodId > 4 && type == kWORDTRIG && slot == kEVENTTYPESLOT) {
             evType = ((d[idx] & BIT(3)) >> 3) ? kBMNPEDESTAL : kBMNPAYLOAD;
             UInt_t trigSrc = ((d[idx] >> 16) & (BIT(8) - 1));
-            //            printf("trig source %u\n", trigSrc);
+            //                        printf("trig source %u  evType %d\t", trigSrc, evType);
             //            if (!( ((d[idx]>>10) & 0x1) ^ (fPeriodId >= 7 && fBmnSetup == kBMNSETUP)))
             //                printf("Ev not Good!\n");
             //            printf("evGood %d\n", (d[idx] & BIT(10)));
@@ -769,31 +809,35 @@ BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t s
             //            printf("%d type = %u %08X\n", j, type, type);
             //            }
             idx += 4;
-            //            printf("cand %04u, acc %04u, bef %04u, after %04u, rjct %04u, all %04u, avail %04u\n",
-            //                    trigInfo->GetTrigCand(),
-            //                    trigInfo->GetTrigAccepted(),
-            //                    trigInfo->GetTrigBefo(),
-            //                    trigInfo->GetTrigAfter(),
-            //                    trigInfo->GetTrigRjct(),
-            //                    trigInfo->GetTrigAll(),
-            //                    trigInfo->GetTrigAvail());
+            //                        printf("cand %04u, acc %04u, bef %04u, after %04u, rjct %04u, all %04u, avail %04u\n",
+            //                                trigInfo->GetTrigCand(),
+            //                                trigInfo->GetTrigAccepted(),
+            //                                trigInfo->GetTrigBefo(),
+            //                                trigInfo->GetTrigAfter(),
+            //                                trigInfo->GetTrigRjct(),
+            //                                trigInfo->GetTrigAll(),
+            //                                trigInfo->GetTrigAvail());
             countersDone = kTRUE;
+            //            if (trigInfoTemp)
+            //                delete trigInfoTemp;
+            //            trigInfoTemp = new BmnTrigInfo(trigInfo);
         }
         idx++; //go to the next DATA-word
         type = d[idx] >> 28;
     }
-    idx--;
 }
 
 BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {
     UInt_t type = d[idx] >> 28;
     while (type != kMODTRAILER) { //data will be finished when module trailer appears
         if (type == 6) {
-            fprintf(stderr, ANSI_COLOR_RED "Warning: TDC (modID 0x%02X serial 0x%08X slot %d tdcID %d) error code: 0x%04X\n" ANSI_COLOR_RESET,
-                    modId, serial, slot, ((d[idx] >> 24) & 0xF), d[idx]); //(d[idx] & ((1<<15) - 1)));
-            if (((d[idx] >> 12) & 0x1) || ((d[idx] >> 13) & 0x1)) {
-                fprintf(stderr, ANSI_COLOR_RED "Warning: Critical TDC error thrown\n" ANSI_COLOR_RESET);
-                return kBMNERROR;
+            if (fVerbose == 0) {
+                fprintf(stderr, ANSI_COLOR_RED "Warning: TDC (modID 0x%02X serial 0x%08X slot %d tdcID %d) error flags: 0x%04X\n" ANSI_COLOR_RESET,
+                        modId, serial, slot, ((d[idx] >> 24) & 0xF), (d[idx] & ((1 << 15) - 1)));
+                if ((d[idx] & BIT(12)) || (d[idx] & BIT(13))) {
+                    fprintf(stderr, ANSI_COLOR_RED "Warning: Critical TDC error thrown\n" ANSI_COLOR_RESET);
+                    return kBMNERROR;
+                }
             }
         }
         if (type == 4 || type == 5) { // 4 - leading, 5 - trailing
@@ -821,11 +865,13 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
     Bool_t inADC = kFALSE;
     while (type != kMODTRAILER) {
         if (type == 6) {
-            fprintf(stderr, ANSI_COLOR_RED "ERROR: TDC (serial 0x%08X slot %d tdcID %d) error code: 0x%04X\n" ANSI_COLOR_RESET,
-                    serial, slot, ((d[idx] >> 24) & ((1 << 4) - 1)), (d[idx] & ((1 << 15) - 1)));
-            if (((d[idx] >> 12) & 0x1) || ((d[idx] >> 13) & 0x1)) {
-                fprintf(stderr, ANSI_COLOR_RED "ERROR: Critical TQDC error thrown\n" ANSI_COLOR_RESET);
-                return kBMNERROR;
+            if (fVerbose == 0) {
+                fprintf(stderr, ANSI_COLOR_RED "ERROR: TDC (serial 0x%08X slot %d tdcID %d) error flags: 0x%04X\n" ANSI_COLOR_RESET,
+                        serial, slot, ((d[idx] >> 24) & ((1 << 4) - 1)), (d[idx] & ((1 << 15) - 1)));
+                if ((d[idx] & BIT(12)) || (d[idx] & BIT(13))) {
+                    fprintf(stderr, ANSI_COLOR_RED "ERROR: Critical TQDC error thrown\n" ANSI_COLOR_RESET);
+                    return kBMNERROR;
+                }
             }
         }
         UInt_t mode = (d[idx] >> 26) & 0x3;
@@ -896,7 +942,35 @@ BmnStatus BmnRawDataDecoder::FillSYNC(UInt_t *d, UInt_t serial, UInt_t & idx) {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::FillMSC(UInt_t* d, UInt_t serial, UInt_t& idx) {
+BmnStatus BmnRawDataDecoder::FillMSC(UInt_t* d, UInt_t serial, UInt_t slot, UInt_t& idx) {
+    const UInt_t nCnt = 16;
+    UInt_t type = d[idx] >> 28;
+    UInt_t iCnt = 0;
+    BmnMSCDigit *dig = new((*msc)[msc->GetEntriesFast()]) BmnMSCDigit(serial, slot, fEventId);
+    //    UInt_t *cntrArr = fMSCRunTotal->GetValue(); // delete
+    UInt_t *cntrArrCur = dig->GetValue();
+    //    printf("MSC type %u serial %08X\n", type, serial);
+    while (type < 6) {
+        if (type < 5) {
+            UInt_t cnt3 = (d[idx] >> 21) & (BIT(8) - 1);
+            UInt_t cnt2 = (d[idx] >> 14) & (BIT(8) - 1);
+            UInt_t cnt1 = (d[idx] >> 7) & (BIT(8) - 1);
+            UInt_t cnt0 = d[idx] & (BIT(8) - 1);
+            //            printf("type = %u  %06u  %06u  %06u  %06u  \n", type, cnt3, cnt2, cnt1, cnt0);
+        } else
+            if (type == 5) {
+            UInt_t cnt = d[idx] & (BIT(28) - 1);
+            if (iCnt >= nCnt)
+                continue;
+            cntrArrCur[iCnt++] = cnt;
+            //            cntrArr[iCnt++] += cnt;
+            //                                    printf("type = %u  %u  arr[%u] == %u\n", type, cnt, iCnt-1, cntrArr[iCnt-1]);
+        }
+        type = (d[++idx] >> 28) & (BIT(5) - 1);
+    }
+
+    //    printf("%u events in the spill\n", nSpillEvents);
+    nSpillEvents = 0;
     return kBMNSUCCESS;
 };
 
@@ -935,6 +1009,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fRawTree->SetBranchAddress("ADC", &adc);
     fRawTree->SetBranchAddress("Tacquila", &tacquila);
     fRawTree->SetBranchAddress("BmnEventHeader.", &eventHeaderDAQ);
+
+    fRawTreeSpills = (TTree *) fRootFileIn->Get("BMN_RAW_SPILLS");
+    msc = new TClonesArray(BmnMSCDigit::Class());
+    fRawTreeSpills->SetBranchAddress("MSC", &msc);
 
     fDigiFileOut = new TFile(fDigiFileName, "recreate");
     BmnEventType curEventType = kBMNPAYLOAD;
@@ -1004,7 +1082,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         printf("\tNumber of requested events is ");
         printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, nEvForNoiseCorrection);
         printf("\tActual number of events is ");
-        printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, fNevents);        
+        printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, fNevents);
         UInt_t n = Min(fNevents, nEvForNoiseCorrection);
         for (UInt_t iEv = 0; iEv < n; ++iEv) {
             fRawTree->GetEntry(iEv);
@@ -1015,10 +1093,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 if (fPedEvCntr == fEvForPedestals - 1) continue;
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
                 fPedEvCntr++;
-                if (fVerbose == 1) {
-                    if (iEv % 100 == 0 && iEv > 0) cout << "Profile event #" << iEv << "/" << n << ";" << endl;
-                } else if (fVerbose == 0)
-                    DrawBar(iEv, n);
             } else { // payload
                 if (prevEventType == kBMNPEDESTAL && fPedEvCntr == fEvForPedestals - 1) {
                     printf("\n[INFO]");
@@ -1029,12 +1103,16 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                     fPedEvCntr = 0;
                 }
             }
+            if (fVerbose == 1) {
+                if (iEv % 1000 == 0 && iEv > 0) cout << "Profile event #" << iEv << "/" << n << ";" << endl;
+            } else if (fVerbose == 0)
+                DrawBar(iEv, n);
             if (fGemMapper) fGemMapper->FillProfiles(adc32);
             if (fSiliconMapper) fSiliconMapper->FillProfiles(adc128);
             if (fCscMapper) fCscMapper->FillProfiles(adc32);
             prevEventType = curEventType;
         }
-        printf("\tMarking noisy channels\n");
+        printf("\n[INFO]" ANSI_COLOR_BLUE " Marking noisy channels\n" ANSI_COLOR_RESET);
         if (fGemMapper) fGemMapper->FillNoisyChannels();
         if (fSiliconMapper) fSiliconMapper->FillNoisyChannels();
         if (fCscMapper) fCscMapper->FillNoisyChannels();
@@ -1201,7 +1279,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         eventHeader->SetTimeShift(fTimeShifts);
         eventHeader->SetStartSignalInfo(fT0Time, fT0Width);
         eventHeader->SetSpillStart(headDAQ->GetSpillStart());
-        
+
         if (curEventType == kBMNPEDESTAL && GetAdcDecoMode() == kBMNADCSM) {
             if (fPedEvCntr == fEvForPedestals - 1) continue;
             CopyDataToPedMap(adc32, adc128, fPedEvCntr);
@@ -1229,6 +1307,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
             if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
         }
+        if (fMSCMapper) fMSCMapper->SumEvent(msc, eventHeader->GetTrigInfo(), fEventId);
 
         fDigiTree->Fill();
         prevEventType = curEventType;
@@ -1240,6 +1319,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     }
     fRunEndTime = TTimeStamp(time_t(fTime_s), fTime_ns);
     DigiRunHeader * runHeader = new DigiRunHeader(fPeriodId, fRunId, fRunStartTime, fRunEndTime);
+    if (fMSCMapper) fMSCMapper->FillRunHeader(runHeader);
     fDigiFileOut->WriteObject(runHeader, fDigiRunHdrName.Data());
 
     printf(ANSI_COLOR_RED "\n=============== RUN" ANSI_COLOR_RESET);
@@ -1375,6 +1455,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         if (GetAdcDecoMode() == kBMNADCSM)
             fCscMapper = new BmnCscRaw2Digit(fPeriodId, fRunId, fCscSerials);
     }
+    fMSCMapper = new BmnMscRaw2Digit(fMSCMapFileName, fRawTreeSpills);
 
     fPedEvCntr = 0; // counter for pedestal events between two spills
     fPedEnough = kFALSE;
@@ -1535,13 +1616,15 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
     Long64_t t0time = 0;
     for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
         BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
+        t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
+        fTime_s = syncDig->GetTime_sec();
+        fTime_ns = syncDig->GetTime_ns();
+        //        printf("serial %08X sync: %s\n", syncDig->GetSerial(), TTimeStamp(time_t(fTime_s), fTime_ns).AsString());
+        if (fEventId == 1) {
+            fRunStartTime = TTimeStamp(time_t(fTime_s), fTime_ns);
+        }
         if (syncDig->GetSerial() == fT0Map->serial) {
-            t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
-            fTime_s = syncDig->GetTime_sec();
-            fTime_ns = syncDig->GetTime_ns();
-            if (fEventId == 1) {
-                fRunStartTime = TTimeStamp(time_t(fTime_s), fTime_ns);
-            }
+            //            printf("T0 sync: %s \n", TTimeStamp(time_t(fTime_s), fTime_ns).AsString());
             break;
         }
     }

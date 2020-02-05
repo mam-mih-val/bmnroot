@@ -229,7 +229,7 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
 
         }
     }
-//    cout << " npedevents= " << npevents << " nloopev= " << nev << endl;
+    //    cout << " npedevents= " << npevents << " nloopev= " << nev << endl;
     cout << endl;
 
     //    UInt_t ser = 0;
@@ -264,9 +264,9 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
     }
     if (!read) {
         Int_t retn = system(Form("mv %s %s", wnoisename.Data(), rnoisename.Data()));
-        printf("mv     noise ret %d\n", retn);
+//        printf("mv     noise ret %d\n", retn);
         Int_t retp = system(Form("mv %s %s", wpedname.Data(), pedname.Data()));
-        printf("mv  pedestal ret %d\n", retp);
+//        printf("mv  pedestal ret %d\n", retp);
     }
 }
 
@@ -379,7 +379,7 @@ void BmnGemRaw2Digit::ProcessDigitMK(BmnADCDigit* adcDig, TClonesArray * gem, Bo
         }
     }
     if (iadc == -1 || nsmpl != nadc_samples) {
-        cout << " iAdc= " << iadc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
+        //        cout << " iAdc= " << iadc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
     } else {
 
         for (Int_t ichan = 0; ichan < nadc_samples; ++ichan) {
@@ -935,6 +935,8 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
     Int_t iSer = -1;
     for (iSer = 0; iSer < GetSerials().size(); ++iSer)
         if (ser == GetSerials()[iSer]) break;
+    if (iSer == GetSerials().size())
+        return; // serial not found
 
     BmnGemStripDigit candDig[nSmpl];
 
@@ -1392,30 +1394,33 @@ void BmnGemRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped, Int
     pedname += run;
     pedname += ".dat";
     if (pedestals) {
-        Pedfile = fopen(pedname, "r");
         cout << " Read pedestal file " << pedname << endl;
         cout << endl;
+        Pedfile = fopen(pedname, "r");
+        if (!Pedfile)
+            perror("Pedestal file %s open error");
+        else {
 
-        Int_t det, chan;
-        Float_t ped, rms;
+            Int_t det, chan;
+            Float_t ped, rms;
 
-        while (!feof(Pedfile)) {
-            fgets(sped, 10, Pedfile);
-            sscanf(sped, "%d %d", &det, &chan);
-            if (det >= 0 && det < ndet && chan == nchdet[det]) {
-                //       cout << " det= " << det << " nchan= " << chan << endl;
-                //       cout << endl;
+            while (!feof(Pedfile)) {
+                fgets(sped, 10, Pedfile);
+                sscanf(sped, "%d %d", &det, &chan);
+                if (det >= 0 && det < ndet && chan == nchdet[det]) {
+                    //       cout << " det= " << det << " nchan= " << chan << endl;
+                    //       cout << endl;
 
-                for (Int_t ic = 0; ic < chan; ic++) {
-                    fgets(sped, 20, Pedfile);
-                    sscanf(sped, "%g %g", &ped, &rms);
-                    //        cout << " ic= " << ic << " ped= " << ped << " rms= " << rms << endl;
-                    Pedchr[det][ic] = ped;
-                    Pedchr2[det][ic] = rms;
+                    for (Int_t ic = 0; ic < chan; ic++) {
+                        fgets(sped, 20, Pedfile);
+                        sscanf(sped, "%g %g", &ped, &rms);
+                        //        cout << " ic= " << ic << " ped= " << ped << " rms= " << rms << endl;
+                        Pedchr[det][ic] = ped;
+                        Pedchr2[det][ic] = rms;
+                    }
                 }
             }
         }
-        //     cout << endl;
     }
 
     rnoisename = TString(getenv("VMCWORKDIR")) + TString("/input/") + "RNoise_";
@@ -1425,22 +1430,25 @@ void BmnGemRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped, Int
     else if (ithr == 0 && test == 1) rnoisename += "thr15test1.dat";
     else if (ithr == 1 && test == 1) rnoisename += "thr18test1.dat";
     if (read) {
-        Rnoisefile = fopen(rnoisename, "r");
         cout << " Read noise file " << rnoisename << endl;
         cout << endl;
+        Rnoisefile = fopen(rnoisename, "r");
+        if (!Rnoisefile)
+            perror("Noise file %s open error");
+        else {
 
-        Int_t noise = 0;
-        while (!feof(Rnoisefile)) {
-            fgets(ss, 10, Rnoisefile);
-            if (sscanf(ss, "%d", &noise) > 0) {
-                Int_t det = (Int_t) noise / 10000;
-                Int_t chan = noise - det * 10000;
-                //                cout << "read GEM noise " << noise << " det " << det << " chan " << chan << endl;
-                if (chan >= 0 && chan < maxChan) noisech[det][chan] = 1;
-            } else
-                fprintf(stderr, "!Noise file read error!\n");
+            Int_t noise = 0;
+            while (!feof(Rnoisefile)) {
+                fgets(ss, 10, Rnoisefile);
+                if (sscanf(ss, "%d", &noise) > 0) {
+                    Int_t det = (Int_t) noise / 10000;
+                    Int_t chan = noise - det * 10000;
+                    //                cout << "read GEM noise " << noise << " det " << det << " chan " << chan << endl;
+                    if (chan >= 0 && chan < maxChan) noisech[det][chan] = 1;
+                } else
+                    fprintf(stderr, "!Noise file read error!\n");
+            }
         }
-        //     cout << endl;
     }
     wnoisename = TString(getenv("VMCWORKDIR")) + TString("/input/") + "WNoise_";
     wnoisename += run;
@@ -1455,6 +1463,8 @@ void BmnGemRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped, Int
         printf("Create noise file %s\n", wnoisename.Data());
         Wnoisefile = fopen(wnoisename, "w");
         Wpedfile = fopen(wpedname, "w");
+        if (!Wnoisefile && !Wpedfile)
+            Fatal("InitAdcProcessorMK", "Could not create noise/pedestal file!");
     }
     if (GetPeriod() == 6) {
         // Small GEM
@@ -1803,7 +1813,7 @@ BmnStatus BmnGemRaw2Digit::RecalculatePedestalsMK(Int_t nPedEv) {
                 }
 
                 if (iadc == -1 || nsmpl != nadc_samples) {
-                    cout << " iAdc= " << iadc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
+                    //                    cout << " iAdc= " << iadc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
                 } else {
 
                     for (Int_t ichan = 0; ichan < nadc_samples; ++ichan) {
@@ -1925,7 +1935,7 @@ BmnStatus BmnGemRaw2Digit::RecalculatePedestalsMK(Int_t nPedEv) {
 
 
                     if (iadc == -1 || nsmpl != nadc_samples) {
-                        cout << " iAdc= " << iadc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
+                        //                        cout << " iAdc= " << iadc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
                     } else {
 
                         // adc / channel -> detector / channel
@@ -2244,9 +2254,9 @@ BmnStatus BmnGemRaw2Digit::LoadPedestalsMK(TTree* t_in, TClonesArray* adc32, Bmn
                     }
                 }
 
-                if (iadc == -1 || nsmpl != nadc_samples)
-                    cout << " iAdc= " << iAdc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
-                else {
+                if (iadc == -1 || nsmpl != nadc_samples) {
+                    //                    cout << " iAdc= " << iAdc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
+                } else {
 
                     for (Int_t ichan = 0; ichan < nadc_samples; ++ichan) {
                         Int_t ic = chan * nadc_samples + ichan;
@@ -2380,9 +2390,9 @@ BmnStatus BmnGemRaw2Digit::LoadPedestalsMK(TTree* t_in, TClonesArray* adc32, Bmn
                     }
 
 
-                    if (iadc == -1 || nsmpl != nadc_samples)
-                        cout << " iAdc= " << iAdc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
-                    else {
+                    if (iadc == -1 || nsmpl != nadc_samples) {
+                        //                        cout << " iAdc= " << iAdc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
+                    } else {
 
                         // adc / channel -> detector / channel
 
@@ -2459,9 +2469,9 @@ BmnStatus BmnGemRaw2Digit::LoadPedestalsMK(TTree* t_in, TClonesArray* adc32, Bmn
                     }
 
 
-                    if (iadc == -1 || nsmpl != nadc_samples)
-                        cout << " iAdc= " << iAdc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
-                    else {
+                    if (iadc == -1 || nsmpl != nadc_samples) {
+                        //                        cout << " iAdc= " << iAdc << " chan= " << chan << " Wrong serial= " << std::hex << ser << std::dec << " Or nsmpl= " << nsmpl << endl;
+                    } else {
 
                         for (Int_t ichan = 0; ichan < nadc_samples; ++ichan) {
                             Int_t ic = chan * nadc_samples + ichan;

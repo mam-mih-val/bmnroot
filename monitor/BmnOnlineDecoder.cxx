@@ -65,8 +65,8 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     setup[1] = 1; // MWPC
     setup[2] = 1; // SILICON
     setup[3] = 1; // GEM
-    setup[4] = 1; // TOF-400
-    setup[5] = 1; // TOF-700
+    setup[4] = 0; // TOF-400
+    setup[5] = 0; // TOF-700
     setup[6] = 1; // DCH
     setup[7] = 1; // ZDC
     setup[8] = 1; // ECAL
@@ -75,7 +75,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetBmnSetup(fBmnSetup);
     TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((fBmnSetup == kBMNSETUP) ? "" : "_SRC"));
-    rawDataDecoder->SetTof400Mapping(TString("TOF400_PlaceMap_RUN") +PeriodSetupExt, TString("TOF400_StripMap_RUN") +PeriodSetupExt);
+    rawDataDecoder->SetTof400Mapping(TString("TOF400_PlaceMap_RUN") + PeriodSetupExt, TString("TOF400_StripMap_RUN") + PeriodSetupExt);
     rawDataDecoder->SetTof700Mapping(TString("TOF700_map_period_") + PeriodSetupExt);
     rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
     rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
@@ -85,35 +85,36 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     rawDataDecoder->SetLANDTCal("r0030_land_tcal.hh");
     rawDataDecoder->SetLANDDiffSync("r352_cosmic1.hh");
     rawDataDecoder->SetLANDVScint("neuland_sync_2.txt");
-    rawDataDecoder->SetTrigPlaceMapping(TString("Trig_PlaceMap_Run") + PeriodSetupExt); 
-    rawDataDecoder->SetTrigChannelMapping(TString("Trig_map_Run") + PeriodSetupExt); 
+    rawDataDecoder->SetTrigPlaceMapping(TString("Trig_PlaceMap_Run") + PeriodSetupExt);
+    rawDataDecoder->SetTrigChannelMapping(TString("Trig_map_Run") + PeriodSetupExt);
     rawDataDecoder->SetSiliconMapping(TString("SILICON_map_run") + PeriodSetupExt);
     rawDataDecoder->SetGemMapping(TString("GEM_map_run") + PeriodSetupExt);
     rawDataDecoder->SetCSCMapping(TString("CSC_map_period") + PeriodSetupExt);
     rawDataDecoder->SetMwpcMapping(TString("MWPC_map_period") + PeriodSetupExt);
+    rawDataDecoder->SetMSCMapping(TString("MSC_map_Run") + PeriodSetupExt);
     rawDataDecoder->InitMaps();
     if (_curFile.Length() > 0)
         rawDataDecoder->InitConverter(_curDir + _curFile);
     else
         rawDataDecoder->InitConverter();
     BmnStatus iniStatus = rawDataDecoder->InitDecoder();
-    if (iniStatus == kBMNSUCCESS){
+    if (iniStatus == kBMNSUCCESS) {
         //InitReco();
     }
     return iniStatus;
-    
+
 }
 
-BmnStatus BmnOnlineDecoder::InitReco(){
-        TTree *digiTree = rawDataDecoder->GetDigiTree();
-        fRecoChain = new TChain();
-        fRecoChain->AddFriend(digiTree);
-        fRunAna = new FairRunAna();
-        //fRunAna->SetSource(fRecoChain);
+BmnStatus BmnOnlineDecoder::InitReco() {
+    TTree *digiTree = rawDataDecoder->GetDigiTree();
+    fRecoChain = new TChain();
+    fRecoChain->AddFriend(digiTree);
+    fRunAna = new FairRunAna();
+    //fRunAna->SetSource(fRecoChain);
 }
 
-BmnStatus BmnOnlineDecoder::IterReco(){
-    
+BmnStatus BmnOnlineDecoder::IterReco() {
+
 }
 
 BmnStatus BmnOnlineDecoder::DecodeStream() {
@@ -246,8 +247,8 @@ void BmnOnlineDecoder::ProcessStream() {
     //    UInt_t *buf = (UInt_t*) malloc(MAX_BUF_LEN);
     Char_t conID[MAX_ADDR_LEN];
     Int_t conID_size;
-    Int_t msg_len = 0;
-    Int_t frame_size = 0;
+    UInt_t msg_len = 0;
+    UInt_t frame_size = 0;
     Int_t iEv = 0;
     Int_t lastEv = -1;
     BmnStatus convertResult = kBMNSUCCESS;
@@ -300,13 +301,13 @@ void BmnOnlineDecoder::ProcessStream() {
                 //                UChar_t *str = (UChar_t*) malloc((frame_size + 1) * sizeof (UChar_t));
                 //                msgPtr = (UInt_t*) zmq_msg_data(&msg);
                 if (frame_size) {
-                    if (msg_len + frame_size < MAX_BUF_LEN)
-                        memcpy(buf + msg_len/* / kNBYTESINWORD*/, zmq_msg_data(&msg), frame_size); // sizeof(UInt_t) == kNBYTESINWORD always?
-                    else {
-                        msg_len -= frame_size;
-                        printf("buf overflow!\t %d will move by %d bytes\n", msg_len, frame_size);
-                        memmove(&buf[0], &buf[frame_size], msg_len);
+                    if (msg_len + frame_size > MAX_BUF_LEN) {
+                        UInt_t dropped = msg_len + frame_size - MAX_BUF_LEN;
+                        msg_len -= dropped;
+                        printf("buf overflow!\t %d will move by %d bytes\n", msg_len, dropped);
+                        memmove(buf, &buf[frame_size], msg_len);
                     }
+                    memcpy(buf + msg_len/* / kNBYTESINWORD*/, zmq_msg_data(&msg), frame_size); // sizeof(UInt_t) == kNBYTESINWORD always?
                     msg_len += frame_size;
                 }
                 //                printf("frame_size = %d\n", frame_size);

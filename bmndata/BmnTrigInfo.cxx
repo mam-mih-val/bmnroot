@@ -1,19 +1,16 @@
 #include "BmnTrigInfo.h"
 
 BmnTrigInfo::BmnTrigInfo() {
-    fTrigCand = 0;
-    fTrigAcce = 0;
-    fTrigBefo = 0;
-    fTrigAfte = 0;
-    fTrigRjct = 0;
 }
 
-BmnTrigInfo::BmnTrigInfo(UInt_t cand, UInt_t acc, UInt_t befo, UInt_t afte, UInt_t rjct) {
+BmnTrigInfo::BmnTrigInfo(UInt_t cand, UInt_t acc, UInt_t befo, UInt_t afte, UInt_t rjct, UInt_t all, UInt_t avail) {
     fTrigCand = cand;
     fTrigAcce = acc;
     fTrigBefo = befo;
     fTrigAfte = afte;
     fTrigRjct = rjct;
+    fTrigAll = all;
+    fTrigAvail = avail;
 }
 
 BmnTrigInfo::BmnTrigInfo(BmnTrigInfo* orig) {
@@ -22,6 +19,8 @@ BmnTrigInfo::BmnTrigInfo(BmnTrigInfo* orig) {
     fTrigBefo = orig->GetTrigBefo();
     fTrigAfte = orig->GetTrigAfter();
     fTrigRjct = orig->GetTrigRjct();
+    fTrigAll = orig->GetTrigAll();
+    fTrigAvail = orig->GetTrigAvail();
 }
 
 BmnTrigInfo::~BmnTrigInfo() {

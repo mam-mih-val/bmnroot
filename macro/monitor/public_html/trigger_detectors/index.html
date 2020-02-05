@@ -33,7 +33,7 @@ and open the template in the editor.
         <script type="text/javascript" src="../scripts/BMTools.js"></script>
         <script>
             var loco = window.location;
-            var path0 = loco.protocol + "//" + loco.hostname + "/root.app/";
+            var path0 = /*loco.protocol + "//" + loco.hostname + */"../root.app/";
             var path = path0 + "Triggers/";
             var runPath = "../root.app/CurRun/root.json";
             var refPath = "../root.app/refTable/root.json";
@@ -55,11 +55,13 @@ and open the template in the editor.
                 xhr.send();
             }
             function createTable() {
+                sessionStorage.clear();
+
                 setRunInfo(runPath);
                 drawInfo();
             }
             function drawInfo() {
-                setTimeout(drawInfo, 10000);
+                setTimeout(drawInfo, 5000);
                 JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
                     var info = JSON.parse(obj);
                     if (info.arr.length > 0){
@@ -80,7 +82,8 @@ and open the template in the editor.
             function redrawCanvases(){
                 var filename = path0 + "infoCanvas" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
-                    JSROOT.redraw("infoC", obj, "");
+                    //alert('addr: ' + filename + '\n' + 'obj: ' + JSON.stringify(obj));
+                    JSROOT.redraw('infoC', obj, 'colz');
                 }).send(null);
                 filename = path + "TriggersCanvasTimesByChannel" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
@@ -92,9 +95,9 @@ and open the template in the editor.
                 }).send(null);
             }
             function cleanCanvases() {
-                JSROOT.cleanup("infoC");
-                JSROOT.cleanup("srcTableC");
-                var sel = document.getElementById("refTable");
+                JSROOT.cleanup('infoC');
+                JSROOT.cleanup('srcTableC');
+                var sel = document.getElementById('refTable');
                 sel.innerHTML = "";
             }
             function SetRefRun() {
@@ -130,7 +133,7 @@ and open the template in the editor.
             <h1>BM@N Triggers</h1>          
         </div>
         <div align="center">
-            <div id="infoC" style="width: 20vw;"> </div>
+            <div id="infoC" style="position:relative;width: 90vw;height: 20vw;"> </div>
         </div>
         <!--style="visibility:hidden;display:none"-->
         <button onclick="ResetTrigHist()">
@@ -149,14 +152,15 @@ and open the template in the editor.
             </tb>
                 <tb>
                     <select class="styleRefTable" id="refTable" onchange="makeSelection()">
+                    </select>
                 </tb>
 
         </tr>
-    </table>
+        </table>
 
     <div align="center">
-        <div id="timeChannelTableC" style="width: 98vw;"> </div>
-        <div id="timeTableC" style="width: 98vw;"> </div>
+        <div id="timeChannelTableC" style="position:relative;width: 98vw;height: 40vw;"> </div>
+        <div id="timeTableC" style="position:relative;width: 98vw;height: 100vw;"> </div>
     </div>
 </body>
 </html>

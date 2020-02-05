@@ -33,7 +33,7 @@ and open the template in the editor.
         <script type="text/javascript" src="../scripts/BMTools.js"></script>
         <script>
             var loco = window.location;
-            var path0 = loco.protocol + "//" + loco.hostname + "/root.app/";
+            var path0 = /*loco.protocol + "//" + loco.hostname + */"../root.app/";
             var path = path0 + "Silicon/";
             var runPath = "../root.app/CurRun/root.json";
             var refPath = "../root.app/refTable/root.json";
@@ -45,14 +45,10 @@ and open the template in the editor.
                 xhr.send();
             }
 //            window.onload = setInterval("reloadIFrame();", 2000);
-//            body.onload = createSiliconTable();
-            function reloadIFrame() {
-                var tc = document.getElementById("trig_counter");
-                var temp = tc.src;
-                tc.src = "";
-                tc.src = temp;
-            }
+            body.onload = createTable();
             function createTable() {
+                alert('path '+filename);
+                sessionStorage.clear();
                 setRunInfo(runPath);
                 drawInfo();
             }
@@ -77,6 +73,8 @@ and open the template in the editor.
             }
             function redrawCanvases() {
                 var filename = path0 + "infoCanvas" + "/root.json";
+
+                alert('path '+filename);
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("infoC", obj, "");
                 }).send(null);
@@ -125,7 +123,7 @@ and open the template in the editor.
             <!--<iframe id="infoCan" ></iframe>--> 
         </div>
         <div align="center">
-            <div id="infoC" style="width: 20vw;"> </div>
+            <div id="infoC" style="width: 90vw;"> </div>
         </div>
 
         <table>

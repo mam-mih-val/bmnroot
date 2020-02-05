@@ -7,9 +7,9 @@
 #include <map>
 #include <vector>
 
-#include <root/TClonesArray.h>
-#include <root/TString.h>
-#include <root/TTree.h>
+#include <TClonesArray.h>
+#include <TString.h>
+#include <TTree.h>
 
 #include "BmnEnums.h"
 #include "BmnMSCDigit.h"

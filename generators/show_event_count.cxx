@@ -77,6 +77,11 @@ int main(int argc, char** argv)
         cout<<MpdGetNumEvents::GetNumQGSMEvents(strFilePath.Data(), 1);
         return 0;
     }
+    else if (ends_with(generator_name, "smm"))
+    {
+        cout<<MpdGetNumEvents::GetNumDCMSMMEvents(strFilePath.Data(), 1);
+        return 0;
+    }
     else
     {
         cout<<"The generator name was not defined. See possible values: show_event_count /?";

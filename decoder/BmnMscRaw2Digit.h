@@ -49,7 +49,7 @@ public:
 
     void FillRunHeader(DigiRunHeader *rh);
 
-    BmnStatus SumEvent(TClonesArray *msc, BmnTrigInfo *ti, UInt_t iEv);
+    BmnStatus SumEvent(TClonesArray *msc, BmnTrigInfo *ti, UInt_t iEv, UInt_t &nPedEvBySpill);
 
     TTree *GetSpillTree() {
         return fRawTreeSpills;

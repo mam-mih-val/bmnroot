@@ -48,16 +48,17 @@ void BmnMscRaw2Digit::FillRunHeader(DigiRunHeader *rh) {
     }
 }
 
-BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnTrigInfo *ti, UInt_t iEv) {
-//    printf("iEv %u  iSpill %u msc->GetEntriesFast() %d\n", iEv, iSpill, msc->GetEntriesFast());
+BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnTrigInfo *ti, UInt_t iEv, UInt_t &nPedEvBySpill) {
+    //    printf("iEv %u  iSpill %u msc->GetEntriesFast() %d\n", iEv, iSpill, msc->GetEntriesFast());
     for (Int_t iAdc = 0; iAdc < msc->GetEntriesFast(); ++iAdc) {
         BmnMSCDigit* dig = (BmnMSCDigit*) msc->At(iAdc);
-//                printf("dig->GetLastEventId() %u \n", dig->GetLastEventId());
+        //                printf("dig->GetLastEventId() %u \n", dig->GetLastEventId());
         if (dig->GetLastEventId() > iEv)
             break;
         if (dig->GetLastEventId() < iEv) {
-//            fprintf(stderr, "Spill %u last event lost!\n", iSpill);
+            //            fprintf(stderr, "Spill %u last event lost!\n", iSpill);
             fRawTreeSpills->GetEntry(++iSpill);
+            nPedEvBySpill = 0;
             return kBMNERROR;
         }
         UInt_t *arr = dig->GetValue();
@@ -66,14 +67,16 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnTrigInfo *ti, UInt_t i
             if (mRec.serial == serial) {
                 fBT += arr[mRec.BT];
                 fBTnBusy += arr[mRec.BTnBusy];
+                UInt_t AcceptedReal = ti->GetTrigAccepted() - nPedEvBySpill;
                 UInt_t den =
-                        ti->GetTrigAccepted() +
+                        AcceptedReal +
                         ti->GetTrigBefo() +
                         ti->GetTrigAfter();
                 if (den > 0)
-                    fBTAccepted += arr[mRec.BTnBusy] * ti->GetTrigAccepted() / (Double_t) den;
-//                printf("iEv %u  iSpill %u  BT %u BTnB %u  BTAcc %f\n", iEv, iSpill, fBT, fBTnBusy, fBTAccepted);
+                    fBTAccepted += arr[mRec.BTnBusy] * AcceptedReal / (Double_t) den;
+                //                printf("iEv %u  iSpill %u  BT %u BTnB %u  BTAcc %f\n", iEv, iSpill, fBT, fBTnBusy, fBTAccepted);
                 fRawTreeSpills->GetEntry(++iSpill);
+                nPedEvBySpill = 0;
                 break;
             }
         }

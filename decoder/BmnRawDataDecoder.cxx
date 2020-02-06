@@ -288,9 +288,9 @@ BmnStatus BmnRawDataDecoder::InitConverter() {
     fRawTreeSpills = new TTree("BMN_RAW_SPILLS", "BMN_RAW_SPILLS");
     msc = new TClonesArray(BmnMSCDigit::Class());
     fRawTreeSpills->Branch("MSC", &msc);
-//
-//    fMSCRunTotal = new BmnMSCDigit();
-//    trigInfoSum = new BmnTrigInfo();
+    //
+    //    fMSCRunTotal = new BmnMSCDigit();
+    //    trigInfoSum = new BmnTrigInfo();
     return kBMNSUCCESS;
 }
 
@@ -1279,7 +1279,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         eventHeader->SetTimeShift(fTimeShifts);
         eventHeader->SetStartSignalInfo(fT0Time, fT0Width);
         eventHeader->SetSpillStart(headDAQ->GetSpillStart());
-
+        if (curEventType == kBMNPEDESTAL)
+            fPedEvCntrBySpill++;
         if (curEventType == kBMNPEDESTAL && GetAdcDecoMode() == kBMNADCSM) {
             if (fPedEvCntr == fEvForPedestals - 1) continue;
             CopyDataToPedMap(adc32, adc128, fPedEvCntr);
@@ -1307,7 +1308,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
             if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
         }
-        if (fMSCMapper) fMSCMapper->SumEvent(msc, eventHeader->GetTrigInfo(), fEventId);
+        if (fMSCMapper) fMSCMapper->SumEvent(msc, eventHeader->GetTrigInfo(), fEventId, fPedEvCntrBySpill);
 
         fDigiTree->Fill();
         prevEventType = curEventType;
@@ -1457,7 +1458,8 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     }
     fMSCMapper = new BmnMscRaw2Digit(fMSCMapFileName, fRawTreeSpills);
 
-    fPedEvCntr = 0; // counter for pedestal events between two spills
+    fPedEvCntr = 0; // counter for pedestal events between two recalculations
+    fPedEvCntrBySpill = 0; // counter for pedestal events between two spills
     fPedEnough = kFALSE;
     return kBMNSUCCESS;
 }

@@ -466,7 +466,6 @@ private:
     TClonesArray *msc;
     BmnMSCDigit *fMSCRunTotal;
     BmnEventHeader *eventHeaderDAQ;
-    TClonesArray *pedestalAdc;
 
     //Digi arrays
     TClonesArray *silicon;
@@ -507,6 +506,7 @@ private:
     BmnEventType fPrevEventType;
     BmnSetup fBmnSetup;
     BmnADCDecoMode fAdcDecoMode;
+    UInt_t fPedEvCntrBySpill;
     UInt_t fPedEvCntr;
     Int_t fEvForPedestals;
     Bool_t fPedEnough;

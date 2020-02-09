@@ -43,7 +43,7 @@ public:
     Double_t GetPhi() {
         Double_t Pz = fP / TMath::Sqrt(1 + fTx * fTx + fTy * fTy);
         TVector3 tmp(fTx * Pz, fTy * Pz, Pz);
-        return tmp.Phi() * TMath::RadToDeg();
+        return tmp.Phi() * TMath::RadToDeg() + 180.;
     }
 
 private:

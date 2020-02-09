@@ -6,7 +6,10 @@
 #ifndef BMNSTRIPDIGIT_H
 #define BMNSTRIPDIGIT_H
 
+#include <iostream>
 #include "TNamed.h"
+
+using namespace std;
 
 class BmnStripDigit : public TNamed {
 public:
@@ -28,6 +31,15 @@ public:
     void SetStripNumber(Int_t num) { fStripNumber = num; }
     void SetStripSignal(Double_t signal) { fStripSignal = signal; }
     void SetIsGoodDigit(Bool_t tmp) { fIsGoodDigit = tmp; }
+    
+    void Print() {
+        cout << "Digi info# " << endl;
+        cout << "Stat# " << std::dec << fStation << endl;
+        cout << "Mod# " << std::dec << fModule << endl;
+        cout << "Layer# " << std::dec << fStripLayer << endl;
+        cout << "Strip# " << std::dec << fStripNumber << endl;
+        cout << "Signal# " << std::dec << fStripSignal << endl;
+    }
 
 protected:
     Int_t fStation;

@@ -445,7 +445,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                 idx += 5;
                 Double_t nSmpl = 2 * (payload / (Double_t) nCh - 3); // MStream ADC payload count
                 //                                printf("payload %08d nCh %d nSmpl %f\n", payload, nCh, nSmpl);
-                if (nSmpl > 100.0) // number means nothing but an arbitrary number betweeen 128 and 32
+                if (nSmpl > 100.0) // number means nothing but an arbitrary number between 128 and 32
                     Process_ADC64VE(&d[idx], payload, serial, 128, adc128);
                 else
                     Process_ADC64VE(&d[idx], payload, serial, 32, adc32);
@@ -989,16 +989,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         printf(ANSI_COLOR_BLUE "%s\n\n" ANSI_COLOR_RESET, fDigiFileName.Data());
     }
     fRawTree = (TTree *) fRootFileIn->Get("BMN_RAW");
-    tdc = new TClonesArray("BmnTDCDigit");
-    tqdc_adc = new TClonesArray("BmnTQDCADCDigit");
-    tqdc_tdc = new TClonesArray("BmnTDCDigit");
-    hrb = new TClonesArray("BmnHRBDigit");
-    sync = new TClonesArray("BmnSyncDigit");
-    adc32 = new TClonesArray("BmnADCDigit");
-    adc128 = new TClonesArray("BmnADCDigit");
-    adc = new TClonesArray("BmnADCDigit");
-    tacquila = new TClonesArray("BmnTacquilaDigit");
-    eventHeaderDAQ = new BmnEventHeader();
     fRawTree->SetBranchAddress("TDC", &tdc);
     fRawTree->SetBranchAddress("TQDC_ADC", &tqdc_adc);
     fRawTree->SetBranchAddress("TQDC_TDC", &tqdc_tdc);
@@ -1011,8 +1001,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fRawTree->SetBranchAddress("BmnEventHeader.", &eventHeaderDAQ);
 
     fRawTreeSpills = (TTree *) fRootFileIn->Get("BMN_RAW_SPILLS");
-    msc = new TClonesArray(BmnMSCDigit::Class());
-    fRawTreeSpills->SetBranchAddress("MSC", &msc);
+    if (fRawTreeSpills)
+        fRawTreeSpills->SetBranchAddress("MSC", &msc);
 
     fDigiFileOut = new TFile(fDigiFileName, "recreate");
     BmnEventType curEventType = kBMNPAYLOAD;

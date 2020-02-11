@@ -975,6 +975,19 @@ BmnStatus BmnRawDataDecoder::FillMSC(UInt_t* d, UInt_t serial, UInt_t slot, UInt
 };
 
 BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
+    fRawTree = nullptr;
+    fRawTreeSpills = nullptr;
+    tdc = nullptr;
+    tqdc_adc = nullptr;
+    tqdc_tdc = nullptr;
+    hrb = nullptr;
+    sync = nullptr;
+    adc32 = nullptr;
+    adc128 = nullptr;
+    adc = nullptr;
+    tacquila = nullptr;
+    eventHeaderDAQ = nullptr;
+    msc = nullptr;
 
     printf(ANSI_COLOR_RED "================= DECODING =================\n" ANSI_COLOR_RESET);
 
@@ -1128,7 +1141,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             fGemMapper->LoadPedestalsMK(fRawTree, adc32, eventHeaderDAQ, Min(fNevents, (UInt_t) 100000));
             //            fGemMapper->RecalculatePedestalsMK(fPedEvCntr);
         }
-        //        InitDecoder();
     } else
         if (fGemMapper || fSiliconMapper || fCscMapper) {
         printf("\n[INFO]");

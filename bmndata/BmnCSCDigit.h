@@ -15,7 +15,7 @@ public:
     
 private:
 
-    ClassDef(BmnCSCDigit,1);
+    ClassDef(BmnCSCDigit,2);
 };
 
 #endif

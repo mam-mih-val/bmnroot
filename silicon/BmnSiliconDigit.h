@@ -14,8 +14,8 @@ public:
     virtual ~BmnSiliconDigit();
 
 private:
-//    Int_t fLayer; // 0 - lower layer, 1 - upper layer
-    ClassDef(BmnSiliconDigit, 1);
+//    Int_t fStripLayer; // 0 - lower layer, 1 - upper layer
+    ClassDef(BmnSiliconDigit, 2);
 };
 
 #endif /* BMNSILICONDIGIT_H */

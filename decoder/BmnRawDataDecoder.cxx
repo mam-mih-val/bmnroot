@@ -1265,9 +1265,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         if (fTrigMapper) {
             fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
             fTrigMapper->FillEvent(tdc);
+            fT0Time = 0.;
+            GetT0Info(fT0Time, fT0Width);
         }
-        fT0Time = 0.;
-        GetT0Info(fT0Time, fT0Width);
         //        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), TTimeStamp(time_t(fTime_s), fTime_ns),
         //                curEventType, isTripEvent, headDAQ->GetTrigInfo(), fTimeShifts);
         eventHeader->SetRunId(headDAQ->GetRunId());
@@ -1458,7 +1458,8 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         if (GetAdcDecoMode() == kBMNADCSM)
             fCscMapper = new BmnCscRaw2Digit(fPeriodId, fRunId, fCscSerials);
     }
-    fMSCMapper = new BmnMscRaw2Digit(fMSCMapFileName, fRawTreeSpills);
+    if (fRawTreeSpills)
+        fMSCMapper = new BmnMscRaw2Digit(fMSCMapFileName, fRawTreeSpills);
 
     fPedEvCntr = 0; // counter for pedestal events between two recalculations
     fPedEvCntrBySpill = 0; // counter for pedestal events between two spills

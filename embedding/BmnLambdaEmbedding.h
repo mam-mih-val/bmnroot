@@ -33,10 +33,18 @@
 #include <DstEventHeader.h>
 #include <BmnADCDigit.h>
 #include <BmnGemStripDigit.h>
+#include <BmnSiliconDigit.h>
 #include <BmnRawDataDecoder.h>
 #include <BmnMatch.h>
+#include <BmnCSCPoint.h>
+#include <BmnParticlePair.h>
 
 #include "BmnLambdaMisc.h"
+#include "BmnLambdaEmbeddingMonitor.h"
+
+#if defined(_OPENMP)
+#include "omp.h"
+#endif       
 
 using namespace std;
 
@@ -49,8 +57,18 @@ public:
 public:
     void Embedding();
 
-    vector <BmnGemStripDigit> GetDigitsFromLambda(TString, Int_t);
+    vector <BmnStripDigit> GetDigitsFromLambda(TString, Int_t, TString);
 
+    void SetStorePath(TString path) {
+        fStorePath = path;
+    }
+    
+    void SetDetsToBeEmbedded(Bool_t gem, Bool_t silicon, Bool_t csc) {
+        isGemEmbedded = gem;
+        isSilEmbedded = silicon;
+        isCscEmbedded = csc;
+    }
+    
     void DoLambdaStore(Bool_t flag) {
         doLambdaStore = flag;
     }
@@ -63,14 +81,52 @@ public:
         doSimulateLambdaThroughSetup = flag;
     }
 
+    void DoRawRootConvertion(Bool_t flag) {
+        doRawRootConvertion = flag;
+    }
+
+    void DoEmbedding(Bool_t flag) {
+        doEmbedding = flag;
+    }
+
+    void DoDecode(Bool_t flag) {
+        doDecode = flag;
+    }
+
+    void DoPrintStoreInfo(Bool_t flag) {
+        doPrintStoreInfo = flag;
+    }
+    
+    void DoEmbeddingMonitor(Bool_t flag) {
+        doEmbeddingMonitor = flag;
+    }
+
+    // Set cut values ...
+
+    void SetNHitsProton(Int_t nhits) {
+        fNHitsProton = nhits;
+    }
+
+    void SetNHitsPion(Int_t nhits) {
+        fNHitsPion = nhits;
+    }
+
+    void SetUseRealSignals(Bool_t flag) {
+        isUseRealSignal = flag;
+    }
+
+    void SetSignal(Short_t sigGem, Short_t sigSilicon, Short_t sigCsc) {
+        fSignal.push_back(sigGem);
+        fSignal.push_back(sigSilicon);
+        fSignal.push_back(sigCsc);
+    }
+
 private:
     Int_t fEvents;
-    Int_t fNeventsForStore;
     BmnLambdaMisc* fInfo;
 
     TChain* fSim;
     TChain* fReco;
-    // TChain* fRaw;
     TChain* fLambdaSim;
 
     TClonesArray* fMCTracks;
@@ -79,6 +135,10 @@ private:
     TClonesArray* fGemPoints;
     TClonesArray* fGemDigits;
     TClonesArray* fGemMatch;
+    
+    TClonesArray* fCscPoints;
+    TClonesArray* fCscDigits;
+    TClonesArray* fCscMatch;
 
     TClonesArray* fSiliconPoints;
     TClonesArray* fSiliconDigits;
@@ -86,44 +146,69 @@ private:
 
     TClonesArray* fADC32; // GEM
     TClonesArray* fADC128; // SILICON
+    TClonesArray* fSync; // SYNC
 
     TClonesArray* fLambdaStore;
 
     DstEventHeader* fHeader;
 
-    Double_t fZmin;
-    Double_t fZmax;
     UInt_t fRunId;
     Double_t fFieldScale;
 
     TString fRawRootFileName;
     TString fDataFileName;
     TString fDigiFileName;
+    TString fStorePath;
 
     // Some bool flags to be used for steering of the whole stages of the code ...
     Bool_t doLambdaStore;
     Bool_t doListOfEventsWithReconstructedVertex;
     Bool_t doSimulateLambdaThroughSetup;
+    Bool_t doRawRootConvertion;
+    Bool_t doEmbedding;
+    Bool_t doDecode;
+    Bool_t doPrintStoreInfo;
+    Bool_t doEmbeddingMonitor;
+
+    // Cuts to be used if necessary ...
+    Double_t fZmin;
+    Double_t fZmax;
+    Int_t fNeventsForStore;
+    Int_t fNHitsProton;
+    Int_t fNHitsPion;
+    Bool_t isUseRealSignal;
+    vector <Short_t> fSignal;
+    
+    // Dets. to be embedded ...
+    Bool_t isGemEmbedded;
+    Bool_t isSilEmbedded;
+    Bool_t isCscEmbedded;
+
+    // Embedding monitor ...
+    BmnLambdaEmbeddingMonitor* fMon;
 
 private:
     void CreateLambdaStore();
     void PrintStoreInfo();
-    TString AddInfoToRawFile(map <UInt_t, vector < BmnGemStripDigit>>, map <UInt_t, map <pair <Int_t, Int_t>, Long_t>>);
-        
+    TString AddInfoToRawFile(map <UInt_t, vector < BmnStripDigit>>, map <UInt_t, map <pair <Int_t, Int_t>, Long_t>>,
+            map <UInt_t, vector < BmnStripDigit>>, map <UInt_t, map < vector <Int_t>, Long_t>>, 
+            map <UInt_t, vector < BmnStripDigit>>, map <UInt_t, map <pair <Int_t, Int_t>, Long_t>>);
+
     void DoRawRootFromBinaryData(TString);
     void StartDecodingWithEmbeddedLambdas(TString);
 
     void SimulateLambdaPassing(Double_t, TVector2, TVector3, Int_t, Int_t);
-    Int_t FindReconstructableLambdaFromStore(Int_t, Int_t);
+    Int_t FindReconstructableLambdaFromStore(Int_t, Int_t, BmnParticlePair&);
 
     map <UInt_t, TVector3> ListOfEventsWithReconstructedVp();
-    map <pair <Int_t, Int_t>, Long_t> GetChannelSerialFromDigi(vector <BmnGemStripDigit>);
-    
+    map <pair <Int_t, Int_t>, Long_t> GetGemChannelSerialFromDigi(vector <BmnStripDigit>);
+    map <pair <Int_t, Int_t>, Long_t> GetCscChannelSerialFromDigi(vector <BmnStripDigit>);
+    map <vector <Int_t>, Long_t> GetSiliconChannelSerialFromDigi(vector <BmnStripDigit>);
+
     Int_t DefineSiliconStatByZpoint(Double_t);
 
     ClassDef(BmnLambdaEmbedding, 1)
 };
-
 
 #endif
 

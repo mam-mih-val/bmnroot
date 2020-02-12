@@ -15,6 +15,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/csc
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/embedding
+ ${CMAKE_SOURCE_DIR}/physics/particles
  ### Additional include sources 
  )
 
@@ -44,6 +45,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF EmbeddingLinkDef.h)
 Set(LIBRARY_NAME BmnEmbedding)
-Set(DEPENDENCIES Core Base BmnDst Gem Decoder)
+Set(DEPENDENCIES Core Base BmnDst Gem Decoder BmnParticles)
 
 GENERATE_LIBRARY()

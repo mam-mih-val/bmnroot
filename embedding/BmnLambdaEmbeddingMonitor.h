@@ -7,7 +7,7 @@
 class BmnLambdaEmbeddingMonitor : public TNamed {
 public:
     BmnLambdaEmbeddingMonitor();
-    ~BmnLambdaEmbeddingMonitor();
+    virtual ~BmnLambdaEmbeddingMonitor();
 
     void SetId(UInt_t evId) {
         id = evId;
@@ -16,11 +16,9 @@ public:
     void IsEmbedded(Bool_t flag) {
         isEmbedded = flag;
     }
-
-    void SetVertex(TVector3 vtx) {
-        fVx = vtx.X();
-        fVy = vtx.Y();
-        fVz = vtx.Z();
+    
+    Bool_t IsEmbedded() {
+        return isEmbedded;
     }
 
     void SetStoreVertexEvent(TVector3 info) {
@@ -37,9 +35,37 @@ public:
         nHitsPion = nhits;
     }
     
+    void SetTxProton(Double_t val) {
+        txProton = val;
+    }
+    
+    void SetTyProton(Double_t val) {
+        tyProton = val;
+    }
+    
+    void SetTxPion(Double_t val) {
+        txPion = val;
+    }
+    
+    void SetTyPion(Double_t val) {
+        tyPion = val;
+    }
+    
+    void SetProtonP(Double_t val) {
+        pProton = val;
+    }
+    
+    void SetPionP(Double_t val) {
+        pPion = val;  
+    }
+    
     UInt_t GetEventId() {
         return id;
     } 
+    
+    Int_t GetNHitsProton() {
+        return nHitsProton;
+    }
     
     TVector3 GetStoreVertexEvent() {
         return TVector3(store, vertex, event);
@@ -49,16 +75,21 @@ private:
     UInt_t id;
     Bool_t isEmbedded;
 
-    Double_t fVx;
-    Double_t fVy;
-    Double_t fVz;
-
     Int_t store;
     Int_t vertex;
     Int_t event;
 
     Int_t nHitsProton;
     Int_t nHitsPion;
+    
+    Double_t pProton;
+    Double_t pPion;
+    
+    Double_t txProton;
+    Double_t txPion;
+    
+    Double_t tyProton;
+    Double_t tyPion;
 
     ClassDef(BmnLambdaEmbeddingMonitor, 1)
 };

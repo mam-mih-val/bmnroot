@@ -21,6 +21,11 @@
 #include <TSystem.h>
 
 #include <BmnGemStripDigit.h>
+#include <BmnSiliconDigit.h>
+#include <BmnCSCDigit.h>
+#include <BmnGemStripStationSet.h>
+#include <BmnSiliconStationSet.h>
+#include <BmnCSCStationSet.h>
 
 using namespace std;
 
@@ -28,33 +33,52 @@ class BmnLambdaMisc : public TNamed {
 public:
     BmnLambdaMisc();
 
-    ~BmnLambdaMisc() {
-    };
+    virtual ~BmnLambdaMisc();
 
-    Int_t GemDigiToChannel(BmnGemStripDigit*); // GEM-digi ---> channel 
-    Long_t GemDigiChannelToSerial(pair <BmnGemStripDigit, Int_t>); // GEM-digi + channel ---> serial 
+    /* GEM */
+    Int_t GemDigiToChannel(BmnStripDigit*, Long_t&); // GEM-digi ---> channel (serial) 
+    Long_t GemDigiChannelToSerial(pair <BmnStripDigit, Int_t>); // GEM-digi + channel ---> serial 
     Long_t GetGemSerial(Int_t, Int_t, Int_t, Int_t); // (st, mod, id, channel ---> serial)
-
-    inline void GetSerial() {
-        // To be used when doing debug procedure ...
-        cout << "Printed sorted GEM mapping info ... " << endl;
-        for (auto it : fGem)
-            cout << std::dec << it.first[0] << " " << it.first[1] << " " << std::hex << it.first[2] << " ---> "
-                << std::dec << it.second[0] << " " << it.second[1] << " " << it.second[2] << endl;
-    }
+    
+    /* CSC */
+    Int_t CscDigiToChannel(BmnStripDigit*, Long_t&); // CSC-digi ---> channel (serial)
+    
+    /* SILICON */
+    void SiliconDigiToChannelSampleSerial(BmnStripDigit*, Int_t&, Int_t&, Long_t&); // SILICON-digi ---> &channel, &sample, &serial  
 
 private:
     void GEM();
     void SILICON();
+    void CSC();
 
 private:
+    /* GEM */
     vector <vector <Int_t>> fGemStatModId; // vector of (stat, module, id)
+    /* SILICON */
+    vector <vector <Int_t>> fSiliconStatModLayId; // vector of (stat, module, layer, id)
+    /* CSC */
+    vector <vector <Int_t>> fCscStatModLay; // vector of (stat, module, layer)
 
-    // All entries are unique by key !!!
-    // The separation done in GEM() is taken into account here !!!
-    map <vector <Long_t>, vector <Int_t>> fGem; // <low, high, serial> ---> <st, mod, id>
+    /* GEM */
+    // Map with commonSerial only ...
+    map <vector <Int_t>, vector < Long_t>> corrMapCommonSerial; // <st, mod, id> ---> <low, high, serial>
+    
+    // Map with no commonSerial included ...
+    map <vector <Int_t>, vector < Long_t>> corrMapNoCommonSerial; // <st, mod, id> ---> <low, high, serial>
 
-
+    /* SILICON */
+    // Map with SILICON serials ...
+    map <vector <Int_t>, vector < Long_t>> serialsSilicon;  // <st, mod, layer, id> ---> <low, high, serial>
+    
+    /* CSC */
+    // Map with CSC serials ...
+    map <vector <Int_t>, vector < Long_t>> serialsCsc;  // <st, mod, layer> ---> <low, high, serial>
+    
+    // Geometry sets ...
+    BmnGemStripStationSet* fDetectorGEM;
+    BmnSiliconStationSet* fDetectorSI;
+    BmnCSCStationSet* fDetectorCSC;
+    
     ClassDef(BmnLambdaMisc, 1)
 };
 

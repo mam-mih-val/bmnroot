@@ -60,7 +60,7 @@ BmnGemStripLayer::BmnGemStripLayer(Int_t zone_number, StripLayerType layer_type,
         }
     }
 
-    ClusterFindingThreshold = 20.0;
+    ClusterFindingThreshold = 0.0;
 }
 
 BmnGemStripLayer::~BmnGemStripLayer() {

@@ -1268,8 +1268,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             fT0Time = 0.;
             GetT0Info(fT0Time, fT0Width);
         }
-        //        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), TTimeStamp(time_t(fTime_s), fTime_ns),
-        //                curEventType, isTripEvent, headDAQ->GetTrigInfo(), fTimeShifts);
         eventHeader->SetRunId(headDAQ->GetRunId());
         eventHeader->SetEventId(headDAQ->GetEventId());
         eventHeader->SetPeriodId(headDAQ->GetPeriodId());
@@ -1283,10 +1281,12 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         eventHeader->SetSpillStart(headDAQ->GetSpillStart());
         if (curEventType == kBMNPEDESTAL)
             fPedEvCntrBySpill++;
-        if (curEventType == kBMNPEDESTAL && GetAdcDecoMode() == kBMNADCSM) {
-            if (fPedEvCntr == fEvForPedestals - 1) continue;
-            CopyDataToPedMap(adc32, adc128, fPedEvCntr);
-            fPedEvCntr++;
+        if (curEventType == kBMNPEDESTAL) {
+            if (GetAdcDecoMode() == kBMNADCSM) {
+                if (fPedEvCntr == fEvForPedestals - 1) continue;
+                CopyDataToPedMap(adc32, adc128, fPedEvCntr);
+                fPedEvCntr++;
+            }
         } else { // payload
             if (prevEventType == kBMNPEDESTAL && fPedEvCntr == fEvForPedestals - 1) {
                 if (fGemMapper) fGemMapper->RecalculatePedestalsAugmented();

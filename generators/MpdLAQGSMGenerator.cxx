@@ -278,6 +278,10 @@ Bool_t MpdLAQGSMGenerator::GetEventHeader(char *ss) {
             general_fgets(ss, 250, fInputFile);
             general_fgets(ss, 250, fInputFile);
             break;
+        case 4: //AZ
+            general_fgets(ss, 250, fInputFile);
+            general_fgets(ss, 250, fInputFile);
+            break;
         default:
             break;
     }
@@ -460,20 +464,21 @@ Bool_t MpdLAQGSMGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
 
         general_fgets(ss, 250, fInputFile);
 
-        if (fQGSM_format_ID < 3)
+        //AZ if (fQGSM_format_ID < 3)
+        if (fQGSM_format_ID < 3 || fQGSM_format_ID == 4)
             sscanf(ss, " %d %d %d %d %d", &iCharge, &iLeptonic, &iStrange, &iBarionic, &iCode);
         else
             sscanf(ss, " %d %d %d %d %d %d %d", &iCharge, &iLeptonic, &iStrange, &iBarionic, &io1, &io2, &io3);
 
         Int_t p_num = 21;
         if (fQGSM_format_ID == 3)
-            p_num = 36;
+	  p_num = 36;
+        else if (fQGSM_format_ID == 4) p_num = 30;
 
         if (!fQGSM_format_ID)
             sscanf(&(ss[p_num]), "%g%g%g%g%g", &px, &py, &pz, &pz1, &mass);
         else
             sscanf(&(ss[p_num]), "%g%g%g%g%g%g", &px, &py, &pz, &pz1, &pza1, &mass);
-
 
         if (FindParticle(iCharge, iStrange, iLeptonic, iBarionic, mass, PDG, ionName)) {
 
@@ -646,7 +651,7 @@ Int_t MpdLAQGSMGenerator::RegisterIons(Int_t Max_Event_Number) {
                     }
 
                     else { // hyper
-
+if(false)
                         if (CreateNucleus(Z, mass, PDG, buf_ionName)) {
                             //	      FairParticle *pa=new FairParticle(buf_ionName,Z, iBarionic, abs(iStrange), mass,Z,0,2.6e-10);
                             /*
@@ -742,7 +747,7 @@ Int_t MpdLAQGSMGenerator::RegisterIons1() {
                     }
                 } else {
                     // hyper
-
+if(false)
                     if (CreateNucleus(Z, mass, PDG, buf_ionName)) {
                         //	      FairParticle *pa=new FairParticle(buf_ionName,Z, iBarionic, abs(iStrange), mass,Z,0,2.6e-10);
                         if (Z) {
@@ -910,14 +915,6 @@ Bool_t MpdLAQGSMGenerator::FindParticle(Int_t Z, Int_t strange, Int_t lepton, In
                 strncpy(name, fLa_tab[i]->name, 10);
                 result = 1;
                 break;
-            }
-        } else { // unknown particle
-
-            // try fo create ion if A > 1
-            if (A > 1) {
-                PDG = CreatePdgCode(Z, A, strange, 0); //  1);   // MG 
-                sprintf(name, "Ion_%d_%d", A, Z);
-                result = 1;
             }
         }
 

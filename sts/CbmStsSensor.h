@@ -35,6 +35,7 @@
 #include <list>
 #include <set>
 #include <vector>
+
 #include "TGeoManager.h" //GP
 #include "TGeoNode.h"//GP
 #include "TGeoVolume.h"//GP
@@ -74,7 +75,6 @@ class CbmStsSensor : public TNamed
 
   /** Destructor **/
   virtual ~CbmStsSensor();
-
 
   /** Accessors **/
   TString GetDetectorName() const { return fName.Data(); }
@@ -122,8 +122,10 @@ class CbmStsSensor : public TNamed
 
   Float_t GetChannelPlus(Double_t x, Double_t y, Int_t iSide);
 
-  Int_t GetFrontChannel(Double_t x, Double_t y, Double_t z);
-  Int_t GetBackChannel (Double_t x, Double_t y, Double_t z);
+ // Int_t GetFrontChannel(Double_t x, Double_t y, Double_t z);
+ // Int_t GetBackChannel (Double_t x, Double_t y, Double_t z);
+  Int_t GetFrontChannel(Double_t x, Double_t y, Double_t z, Double_t &dPitch); //AZ
+  Int_t GetBackChannel (Double_t x, Double_t y, Double_t z, Double_t &dPitch); //AZ
 
   /** Test whether a coordinate pair (x,y) in global coordinates is
    ** inside the sensor **/
@@ -174,14 +176,13 @@ class CbmStsSensor : public TNamed
 
 
  private:
-  void SetRotZ( double angleMRad, double &x, double &y);
-  TString GeoMaskSi[3][8];//[6][4];
+  TString GeoMaskSi[3][8];
   TString GeoMaskGem[6][4];
   TGeoVolume* TopVolume;
+  Double_t PIR = 3.1415926536 / 180.; // Ruf
+
   /** -------------   Data members   --------------------------**/
 
-  Int_t  ip=-1;// GP
-  Int_t flg;
   //TString    fName;             // Station name
   Int_t    fDetectorId;   // Unique detector ID
   Int_t    fType;         // Sensor type 
@@ -192,6 +193,7 @@ class CbmStsSensor : public TNamed
   Double_t fDy;           // Pixel size in y [cm] for pixel sensor
   Double_t fStereoF;      // StereoF angle [rad] for strip sensor.
   Double_t fStereoB;      // StereoB angle [rad] for strip sensor.
+  Double_t fTanF,fTanB,fSinRot,fCosRot;
   
   Double_t fD;            // thickness of the sensor [cm]
 
@@ -271,7 +273,7 @@ class CbmStsSensor : public TNamed
 
 
 
-  ClassDef(CbmStsSensor,4);
+  ClassDef(CbmStsSensor,1);
 
 };
 

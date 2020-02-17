@@ -5,7 +5,6 @@
 // -----                  Created 31/08/06  by V. Friese               -----
 // -------------------------------------------------------------------------
 
-
 /** CbmStsDigiScheme
  **@author Volker Friese <v.friese@gsi.de>
  **@since 31.08.06

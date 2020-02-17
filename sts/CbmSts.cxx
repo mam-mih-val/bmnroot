@@ -148,6 +148,15 @@ Bool_t CbmSts::ProcessHits(FairVolume* vol) {
     fLength = gMC->TrackLength();
     gMC->TrackPosition(fPosIn);
     gMC->TrackMomentum(fMomIn);
+
+    // AZ - for GEANT4 (precision issue)
+    TVector3 mom = fMomIn.Vect();
+    mom.SetMag(0.001); // 10 um
+    TVector3 pos = fPosIn.Vect();
+    pos += mom;
+    fPosIn.SetVect(pos);
+    //AZ
+
   }
 
   // Sum energy loss for all steps in the active volume

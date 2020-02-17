@@ -31,6 +31,7 @@ BmnBdPoint.cxx
 BmnBdContFact.cxx  
 BmnBdGeo.cxx 
 BmnBdGeoPar.cxx
+BmnBdHitProducer.cxx
 )
 
 Set(HEADERS)

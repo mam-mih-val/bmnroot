@@ -68,7 +68,7 @@ void BmnTofGeoUtils::ParseTGeoManager(bool useMCinput, TH2D* h1, bool forced)
 	mStrips.clear();
 	
 //	TString stripName, pathTOF = "/cave_1/TOFB1_0";
-	TString stripName, pathTOF = "/cave_1/TOF700_0";
+	TString stripName, gasName, pathTOF = "/cave_1/tof700_0";
 	gGeoManager->cd(pathTOF);
 	
 	Double_t *X0Y0Z0 = new Double_t[3]; X0Y0Z0[0] = X0Y0Z0[1] = X0Y0Z0[2] = 0.; // center of sensetive detector
@@ -80,19 +80,26 @@ void BmnTofGeoUtils::ParseTGeoManager(bool useMCinput, TH2D* h1, bool forced)
 	TObjArray *array = gGeoManager->GetCurrentVolume()->GetNodes();
   	TIterator *it1 = array->MakeIterator();	
   	
-  	TGeoNode *detectorNode, *stripNode;
+  	TGeoNode *detectorNode, *detectorNodeGas, *stripNode;
   	while( (detectorNode = (TGeoNode*) it1->Next()) ) // detectors		
     	{
     		TString PATH1 = pathTOF + "/" + detectorNode->GetName(); detectorID = detectorNode->GetNumber(); nDetectors++;
 //    		cout<<"\n DETECTOR: "<<detectorNode->GetName()<<", copy# "<<detectorID<<" path= "<<PATH1.Data();
     	
     	    	TIterator *it2 = detectorNode->GetNodes()->MakeIterator(); 		
-      		while( (stripNode = (TGeoNode*) it2->Next()) )		// strips
+      		while( (detectorNodeGas = (TGeoNode*) it2->Next()) )		// gas
+		{
+		gasName = detectorNodeGas->GetName();
+    		if(!gasName.Contains("Gas")) continue;
+//		printf("\nGas name %s\n", gasName.Data());
+		TString PATHG = PATH1 + "/" + gasName;
+		TIterator *it3 = detectorNodeGas->GetNodes()->MakeIterator();
+      		while( (stripNode = (TGeoNode*) it3->Next()) )		// strips
 		{
 			stripName = stripNode->GetName();
-    			if(!stripName.Contains("StripActiveGas")) continue;
+    			if(!stripName.Contains("ActiveGasStrip")) continue;
     			
-    			TString PATH2 = PATH1 + "/" + stripName;  stripID = stripNode->GetNumber(); nStrips++;
+    			TString PATH2 = PATHG + "/" + stripName;  stripID = stripNode->GetNumber(); nStrips++;
 //    			cout<<"\n \tSTRIP: "<<stripNode->GetName()<<", copy# "<<stripID<<" path= "<<PATH2.Data();
     	
     			gGeoManager->cd(PATH2);
@@ -133,6 +140,7 @@ void BmnTofGeoUtils::ParseTGeoManager(bool useMCinput, TH2D* h1, bool forced)
 			assert(IsUniqueUID);	   			   	
 			
     		} // strips
+    		} // gas
     	} // detectors	
 
     	LOG(INFO) << "[BmnTofHitProducer::ParseTGeoManager] detectors= "<<nDetectors<<" strips= "<<nStrips<<". ";
@@ -167,7 +175,7 @@ void BmnTofGeoUtils::ParseStripsGeometry(const char *geomFile)
 					
 			stripData.InitCenterPerp();
    			
-// stripData.Dump("\n strip:");		
+// if (i==18&&j==31) stripData.Dump("\n strip:");		
 			bool IsUniqueUID = mStrips.insert(make_pair(uid, stripData)).second;
 			nStrips++;
 			
@@ -194,9 +202,10 @@ const LStrip* BmnTofGeoUtils::FindStrip(Int_t UID, TVector3& p)
 	    if ((p.X() < (xmins[i][j]-0.05)) || (p.X() >= (xmaxs[i][j]+0.05))) continue;
 	    if ((p.Y() < (ymins[i][j]-0.05)) || (p.Y() >= (ymaxs[i][j]+0.05))) continue;
 	    uid |= (j+1);
-	    if (0) if (UID != uid) if (fVerbose > 2) printf("UID 0x%0x uid 0x%0x\n", UID, uid);
+	    if (1) if (UID != uid) if (fVerbose >= 0) printf("Error! UID from MC data 0x%0x not equal uid 0x%0x from geometry text file\n", UID, uid);
 	    return FindStrip(uid);
 	}
+	if (fVerbose > 2) printf("Geometry from MC data file not equal geometry from geometry text file\n");
 	if (fVerbose > 2) printf("Point XYZ %f %f %f\n", p.X(), p.Y(), p.Z());
 	if (fVerbose > 2) printf("Strip not found UID = %d (UID>>8-1) %d nstrips %d %f %f %f %f\n", UID, i, nstrips[i], xmins[i][0], xmaxs[i][0], ymins[i][0], ymaxs[i][0]);
 	return NULL;

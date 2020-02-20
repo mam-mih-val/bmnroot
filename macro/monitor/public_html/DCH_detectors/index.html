@@ -59,20 +59,20 @@ and open the template in the editor.
                 dch1.src = path + "DCH_h_DCH1/draw.htm?monitoring=10000&opt=colz";
                 var dch2 = document.getElementById("h_DCH2");
                 dch2.src = path + "DCH_h_DCH2/draw.htm?monitoring=10000&opt=colz";
-                setRunInfo(runPath);
+                sessionStorage.clear();
                 drawInfo();
+                setRunInfo(runPath);
 
             }
 
             function drawInfo() {
-                setTimeout(drawInfo, 10000);
+                setTimeout(drawInfo, 5000);
                 JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
                     var info = JSON.parse(obj);
                     if (info.arr.length > 0){
                         var runInfo = info.arr[0];
                         var runID = runInfo.i_run_number;
                         var storedRunId = sessionStorage.getItem('runID');
-                        //alert('stored '+ storedRunId +'\n received '+ runID);
                         if ((storedRunId === null) || (storedRunId == runID))
                             return;
                         sessionStorage.setItem('runID', runID);
@@ -145,7 +145,7 @@ and open the template in the editor.
             <!--<iframe id="infoCan" ></iframe>-->             
         </div>
         <div align="center">
-            <div id="infoC" style="width: 20vw;"> </div>
+            <div id="infoC" style="width: 90vw;"> </div>
         </div>
         <button onclick="ResetDchHist()">
             <h1 style="color:red;">Reset</h1>
@@ -194,12 +194,12 @@ and open the template in the editor.
         </div>
         <div id="txt_2">
             <div align="center">
-                <div id="wireTableC" style="width: 98vw;"> </div>
+                <div id="wireTableC" style="width: 98vw;height: 50vw;"> </div>
             </div>
         </div>
         <div id="txt_3">
             <div align="center">
-                <div id="timeTableC" style="width: 98vw;"> </div>
+                <div id="timeTableC" style="width: 98vw;height: 50vw;"> </div>
             </div>
         </div>
     </div>

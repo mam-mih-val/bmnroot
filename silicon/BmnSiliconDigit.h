@@ -6,9 +6,6 @@
 using namespace std;
 
 class BmnSiliconDigit : public BmnStripDigit {
-private:
-//    Int_t fLayer; // 0 - lower layer, 1 - upper layer
-    
 public:
     BmnSiliconDigit();
     BmnSiliconDigit(BmnSiliconDigit* digit);
@@ -16,7 +13,9 @@ public:
 
     virtual ~BmnSiliconDigit();
 
-    ClassDef(BmnSiliconDigit, 1);
+private:
+//    Int_t fStripLayer; // 0 - lower layer, 1 - upper layer
+    ClassDef(BmnSiliconDigit, 2);
 };
 
 #endif /* BMNSILICONDIGIT_H */

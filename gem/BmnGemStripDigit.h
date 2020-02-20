@@ -15,7 +15,7 @@ public:
 
 private:
 
-    ClassDef(BmnGemStripDigit,1);
+    ClassDef(BmnGemStripDigit,2);
 };
 
 #endif

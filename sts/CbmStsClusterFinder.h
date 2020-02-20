@@ -89,7 +89,7 @@ class CbmStsClusterFinder : public FairTask
   Int_t fNofClustersWM;
   Int_t fLongestCluster;
   Int_t fLongestGoodCluster;
-
+  Bool_t fUseLinks;
   /** Get parameter containers **/
   virtual void SetParContainers();
 

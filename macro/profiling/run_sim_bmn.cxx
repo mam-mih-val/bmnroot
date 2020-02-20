@@ -82,11 +82,11 @@ TString find_path_to_URQMD_files ()
 }
 
 // inFile - input file with generator data, default: dc4mb.r12 for LAQGSM event generator (deuteron - carbon target, mbias, 4 GeV)
-// outFile - output file with MC data, default: evetest.root
+// outFile - output file with MC data, default: bmnsim.root
 // nStartEvent - for compatibility, any number
 // nEvents - number of events to transport, default: 1
 // flag_store_FairRadLenPoint
-void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10,
+void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString outFile = "$VMCWORKDIR/macro/run/bmnsim.root", Int_t nStartEvent = 0, Int_t nEvents = 10,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE) {
 
 #define BOX

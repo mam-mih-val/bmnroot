@@ -46,6 +46,7 @@ set(SRCS
  BmnSlewingTOF700.cxx
  BmnTrigRaw2Digit.cxx
  BmnCscRaw2Digit.cxx
+ BmnMscRaw2Digit.cxx
 )
 
 Set(HEADERS)

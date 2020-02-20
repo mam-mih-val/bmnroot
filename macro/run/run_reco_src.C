@@ -1,34 +1,30 @@
 // Macro for reconstruction of simulated or experimental events for SRC
 //
-// inputFileName - input file with data (MC or exp. data).
-//
-// To process experimental data, you must use 'run[#period]-[#run]:'-like prefix,
-// and then the geometry will be obtained from the Unified Database
-// e.g. "run[#period]-[#run]:PATH_TO_DIGI_DATA/digiFile.root"
-//
+// inputFileName - input file with data (MC or exp. data)
 // bmndstFileName - output file with reconstructed data
 // nStartEvent - number of first event to process (starts with zero), default: 0
-// nEvents - number of events to process, 0 - all events of given file will be processed
+// nEvents - number of events to process, 0 - all events of given file will be processed, default: 1 000 events
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
-R__LOAD_LIBRARY(libBmnAlignment.so)
-R__LOAD_LIBRARY(libSilicon.so)
-void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", TString srcdstFileName = "$VMCWORKDIR/macro/run/srcdst.root", Int_t nStartEvent = 0, Int_t nEvents = 10) {
-    // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
-    Int_t iVerbose = 0;
 
-    // ----    Debug option   --------------------------------------------------
-    gDebug = 0;
+void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
+                  TString srcdstFileName = "$VMCWORKDIR/macro/run/srcdst.root",
+                  Int_t nStartEvent = 0, Int_t nEvents = 1000)
+{
+    gDebug = 0; // Debug option
+    // Verbosity level (0 = quiet (progress bar), 1 = event-level, 2 = track-level, 3 = full debug)
+    Int_t iVerbose = 0;
 
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
     timer.Start();
+
     // -----   Reconstruction run   --------------------------------------------
     FairRunAna* fRunAna = new FairRunAna();
     fRunAna->SetEventHeader(new DstEventHeader());
 
     Bool_t isField = (inputFileName.Contains("noField")) ? kFALSE : kTRUE; // flag for tracking (to use mag.field or not)
     Bool_t isTarget = kTRUE; //kTRUE; // flag for tracking (run with target or not)
-    Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
+    Bool_t isExp = !BmnFunctionSet::isSimulationFile(inputFileName); // flag for hit finder (to create digits or take them from data-file)
 
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
@@ -37,34 +33,27 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // DO NOT change it manually!
     Int_t run_period = 7, run_number = -2;
     Double_t fieldScale = 0.;
-    TPRegexp run_prefix("^run[0-9]+-[0-9]+:");
-    if (inputFileName.Contains(run_prefix)) {
-        Ssiz_t indDash = inputFileName.First('-'), indColon = inputFileName.First(':');
-        // get run period
-        run_period = TString(inputFileName(3, indDash - 3)).Atoi();
-        // get run number
-        run_number = TString(inputFileName(indDash + 1, indColon - indDash - 1)).Atoi();
-        inputFileName.Remove(0, indColon + 1);
-
+    if (isExp)
+    {
         if (!BmnFunctionSet::CheckFileExist(inputFileName)) {
-            cout << "Error: digi file " + inputFileName + " does not exist!" << endl;
+            cout << "ERROR: digi file " + inputFileName + " does not exist!" << endl;
             exit(-1);
         }
         // set source as raw root data file (without additional directories)
-        fFileSource = new BmnFileSource(inputFileName);
+        fFileSource = new BmnFileSource(inputFileName, run_period, run_number);
 
         // get geometry for run
         TString geoFileName = "full_geometry.root";
-        // Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
-        // if (res_code != 0) {
-        //     cout << "Error: could not read geometry file from the database" << endl;
-        //     exit(-2);
-        // }
+        Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
+        if (res_code != 0) {
+            cout << "ERROR: could not read geometry file from the database" << endl;
+            exit(-2);
+        }
 
         // get gGeoManager from ROOT file (if required)
         TFile* geoFile = new TFile(geoFileName, "READ");
         if (!geoFile->IsOpen()) {
-            cout << "Error: could not open ROOT file with geometry: " + geoFileName << endl;
+            cout << "ERROR: could not open ROOT file with geometry: " + geoFileName << endl;
             exit(-3);
         }
         TList* keyList = geoFile->GetListOfKeys();
@@ -74,7 +63,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
         if (className.BeginsWith("TGeoManager"))
             key->ReadObj();
         else {
-            cout << "Error: TGeoManager is not top element in geometry file " + geoFileName << endl;
+            cout << "ERROR: TGeoManager is not top element in geometry file " + geoFileName << endl;
             exit(-4);
         }
 
@@ -84,7 +73,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
             exit(-5);
         Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
         if (field_voltage == NULL) {
-            cout << "Error: no field voltage was found for run " << run_period << ":" << run_number << endl;
+            cout << "ERROR: no field voltage was found for run " << run_period << ":" << run_number << endl;
             exit(-6);
         }
         Double_t map_current = 55.87;
@@ -117,7 +106,8 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
         cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
         cout << "||\t\t\t\t\t\t\t||" << endl;
         cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
-    } else { // for simulated files
+    }
+    else { // for simulation files
         if (!BmnFunctionSet::CheckFileExist(inputFileName)) return;
         fFileSource = new FairFileSource(inputFileName);
     }
@@ -125,12 +115,13 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     fRunAna->SetSink(new FairRootFileSink(srcdstFileName));
     fRunAna->SetGenerateRunInfo(false);
 
+    // if nEvents is equal 0 then all events of the given file starting with "nStartEvent" should be processed
+    if (nEvents == 0)
+        nEvents = MpdGetNumEvents::GetNumROOTEvents((char*)inputFileName.Data()) - nStartEvent;
+
     // Digitisation files.
-    // Add TObjectString file names to a TList which is passed as input to the
-    // FairParAsciiFileIo.
-    // The FairParAsciiFileIo will take care to create on fly a
-    // concatenated input parameter file, which is then used during the
-    // reconstruction.
+    // Add TObjectString file names to a TList which is passed as input to the FairParAsciiFileIo.
+    // The FairParAsciiFileIo will create on fly a concatenated input parameter file, which is then used during the reconstruction.
     TList* parFileNameList = new TList();
 
     // ====================================================================== //
@@ -202,7 +193,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root", 
     // ====================================================================== //
     // ===                          Tracking (Silicon)                    === //
     // ====================================================================== //
-     BmnSiliconTrackFinder* siTF = new BmnSiliconTrackFinder(isTarget, run_number);
+     BmnSiliconTrackFinder* siTF = new BmnSiliconTrackFinder(isExp, isTarget, run_number);
      fRunAna->AddTask(siTF);
 
      // ====================================================================== //

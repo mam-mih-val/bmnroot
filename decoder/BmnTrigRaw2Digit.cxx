@@ -176,7 +176,7 @@ BmnStatus BmnTrigRaw2Digit::ReadINLFromFile(BmnTrigParameters* par) {
         UShort_t i_bin = 0;
         while (ss.tellg() != -1) {
             if (i_bin > TDC_BIN_COUNT) {
-                perror("INL File contains too many bins in channel.\n");
+                printf("INL File contains too many bins in channel.\n");
                 ff.close();
                 return kBMNERROR;
             }

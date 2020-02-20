@@ -38,7 +38,7 @@ BmnHistTrigger::BmnHistTrigger(TString title, TString path, Int_t periodID) : Bm
         TString trName = map.name;
         re.Substitute(trName, "$1");
         //        printf("trname %s mod %d\n", map.name.Data(), map.module);
-        if (trName.Contains("BD") || trName.Contains("Si")) {
+        if (trName.Contains("BD") || trName.Contains("SI")) {
             Bool_t dupl = kFALSE;
             for (auto &tr : trigNames) {
                 if (!strcmp(tr.Data(), trName.Data())) {

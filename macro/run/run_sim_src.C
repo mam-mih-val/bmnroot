@@ -5,12 +5,12 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #define GEANT3  // Choose: GEANT3 GEANT4
 
 // inFile - input file with generator data, if needed
-// outFile - output file with MC data, default: evetest.root
+// outFile - output file with MC data, default: srcsim.root
 // nStartEvent - start event in the input generator file to begin transporting, default: 0
 // nEvents - number of events to transport
 // useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
 
-void run_sim_src(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10, Bool_t useRealEffects = kFALSE) {
+void run_sim_src(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/srcsim.root", Int_t nStartEvent = 0, Int_t nEvents = 10, Bool_t useRealEffects = kFALSE) {
     TStopwatch timer;
     timer.Start();
     gDebug = 0;

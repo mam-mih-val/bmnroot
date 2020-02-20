@@ -23,6 +23,11 @@ function FillRefTable(path, selID) {
     if ((sel.size == 0) || (sel.innerHTML == ""))
         JSROOT.NewHttpRequest(path, 'text', function (obj) {
             var refList = JSON.parse(obj);
+            var refLen = refList.arr.length;
+            var storedLen = sessionStorage.getItem('refLen');
+            //alert('stored ' + storedLen + '  reflen '+ refLen);
+            if (refLen == storedLen)
+                return;
             sel.innerHTML = "";
             refList.arr.forEach(function (item) {
                 var op = document.createElement("option");
@@ -36,8 +41,9 @@ function FillRefTable(path, selID) {
             });
             var id = sel.value;
             var refInput = document.getElementById("refInput");
-            refInput.value = id;
+            //refInput.value = id;
             sessionStorage.setItem('runID', item.i_run_number);
+            sessionStorage.setItem('refLen', refLen);
         }).send(null);
 }
 
@@ -61,4 +67,10 @@ function setRunInfo(path) {
     }).send(null);
 }
 
+function createSelectorsTable(selID) {
+    var div = document.getElementById(selID);
+    var table = div.create("table");
+    table.borderWidth = 1;
+
+}
 

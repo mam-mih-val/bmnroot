@@ -13,10 +13,11 @@ VMCWORKDIR = "$HOME/bmnroot"
 
 name_to_generator = {
     "urqmd": "UrQMD",
-    "dcmqgsm": "DQGSM",
-    "dcm-qgsm": "DQGSM",
-    "dqgsm": "DQGSM",
-    "dcqgsm": "DQGSM"
+    "dqgsm": "DCMQGSM",
+    "dcmqgsm": "DCMQGSM",
+    "dcm-qgsm": "DCMQGSM",
+    "dcmsmm": "DCMSMM",
+    "dcm-smm": "DCMSMM"
 }
 
 name_to_particle = {
@@ -28,7 +29,12 @@ name_to_particle = {
     "ar": "Ar",
     "kr": "Kr",
     "au": "Au",
-    "c" : "C"
+    "c" : "C",
+    "p" : "p"
+}
+
+exclude_extensions = {
+    ".out"
 }
 
 # Print iterations progress
@@ -42,6 +48,8 @@ def printProgress(iteration, total, prefix = 'Progress:', suffix = 'Complete', p
     decimals = 1 # positive number of decimals in percent complete
     length = 25 # character length of bar
     fill = '█' # bar fill character
+    iteration += 1
+    total += 1
     filledLength = int(length * iteration // total)
     bar = fill * filledLength + '-' * (length - filledLength)
     if percent_view == 1:
@@ -66,10 +74,13 @@ def recurse_path(dir_path, generator_type, conn, existing_files, exist_validity)
         # whether it is a normal file
         if os.path.isfile(filepath):
             # Check if the file has a correct extension
-            #for sim_extension in sim_extensions:
-            #    if not filepath.endswith(sim_extension)
-            #        continue
-            #    print_sim_files.counter += 1
+            isSkip = False
+            for excl_extension in exclude_extensions:
+                if filepath.endswith(excl_extension):
+                    logging.debug('File was skipped because of the extension : {0}'.format(filepath))
+                    isSkip = True
+                    break
+            if isSkip: continue
 
             if first_file == 1:
                 first_file = 0
@@ -85,29 +96,52 @@ def recurse_path(dir_path, generator_type, conn, existing_files, exist_validity)
 
             logging.debug('{0}'.format(filepath))
             logging.debug(generator_type)
+            # remove extension
+            file_name = os.path.splitext(file_name)[0]
             file_tokens = file_name.split("_")
 
-            beam_target = re.search(r"(?P<beam>(d|ar|kr|au|c).*?)(?P<target>(cu|al|pb|sn|au|c).*?)", file_tokens[0].lower())
-            if not beam_target:   
+            token_num = 0
+            # parse generator
+            if not generator_type:
+                # parse generator name
+                for gen_name in name_to_generator:
+                    if gen_name in file_tokens[token_num].lower():
+                        generator_type = name_to_generator[gen_name]
+                        logging.debug('generator type in name: {0}'.format(generator_type))
+                        token_num += 1
+                        break
+
+            # parse beam and target
+            beam_target = ""
+            while not beam_target:
+                beam_target = re.search(r"(?P<beam>(d|ar|kr|au|c|p).*?)(?P<target>(cu|al|pb|sn|au|c|p).*?)", file_tokens[token_num].lower())
+                token_num += 1
+                if token_num == len(file_tokens):
+                    break
+            if not beam_target:
                 logging.error("Beam and Target were not found in the file name: {0}".format(filepath))
                 continue
             else:
                 logging.debug('{0}-{1}'.format(beam_target.group('beam'),beam_target.group('target')))
             beam = name_to_particle[beam_target.group('beam')]
             target = name_to_particle[beam_target.group('target')]
-            energy_gr = re.search("\d+\.?\d*", file_tokens[1])
+
+            energy_gr = re.search("\d+\.?\d*", file_tokens[token_num])
             if not energy_gr:
                 logging.error("Energy was not found in the file name: {0}".format(filepath))
                 continue
             else:
                 energy = energy_gr.group()
                 logging.debug('energy: {0}'.format(energy))
-            centrality = file_tokens[2]
+                token_num += 1
+
+            centrality = file_tokens[token_num]
             if not centrality:
                 logging.error("Centrality was not found in the file name: {0}".format(filepath))
                 continue
             else:
                 logging.debug('centrality: {0}'.format(centrality))
+                token_num += 1
 
             # get event count via BmnRoot executable file
             popen = subprocess.Popen(". {0}/build/config.sh > /dev/null; show_event_count {1} \"{2}\"".format(VMCWORKDIR, generator_type, filepath), stdout=subprocess.PIPE, shell=True)
@@ -116,6 +150,19 @@ def recurse_path(dir_path, generator_type, conn, existing_files, exist_validity)
             logging.debug(event_count)
             if not event_count.isdigit():
                 logging.error("Event count was not defined: {0}".format(filepath))
+                event_count = None
+                continue
+            else:
+                if event_count < 1:
+                    logging.error("Event count is less than zero: {0}".format(filepath))
+                    event_count = None
+                    continue 
+                else: logging.debug('event count: {0}'.format(event_count))
+
+            logging.debug('file size: {0} MB'.format(file_size/1024.0/1024.0))
+            if file_size <= 0:
+                logging.error("File size is wrong: {0}".format(filepath))
+                file_size = None
                 continue
 
             logging.info("\nINSERT INTO simulation_file(file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_size) \
@@ -133,6 +180,7 @@ def recurse_path(dir_path, generator_type, conn, existing_files, exist_validity)
                 for gen_name in name_to_generator:
                     if gen_name in file_name.lower():
                         generator_type = name_to_generator[gen_name]
+                        break
                 recurse_path(filepath, generator_type, conn, existing_files, exist_validity)
 
     return 0

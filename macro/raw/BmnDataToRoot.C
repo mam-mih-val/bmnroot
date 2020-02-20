@@ -36,6 +36,7 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     decoder->SetSiliconMapping(TString("SILICON_map_run") + PeriodSetupExt);
     decoder->SetGemMapping(TString("GEM_map_run") + PeriodSetupExt);
     decoder->SetCSCMapping(TString("CSC_map_period") + PeriodSetupExt);
+    decoder->SetMSCMapping(TString("MSC_map_Run") + PeriodSetupExt);
     // in case comment out the line decoder->SetTof400Mapping("...")  
     // the maps of TOF400 will be read from DB (only for JINR network)
     decoder->SetTOF700ReferenceRun(-1);
@@ -57,8 +58,10 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     decoder->SetLANDVScint("neuland_sync_2.txt");
     decoder->InitMaps(); /// <- should be run after all mappings set
     if (doConvert) decoder->ConvertRawToRoot(); // Convert raw data in .data format into adc-,tdc-, ..., sync-digits in .root format
-    decoder->DecodeDataToDigi(); // Decode data into detector-digits using current mappings.
+    BmnStatus decoStatus = decoder->DecodeDataToDigi(); // Decode data into detector-digits using current mappings.
     if (!doHoldRawRoot) gSystem->Exec(TString::Format("rm -f %s", decoder->GetRootFileName().Data()));
+    if (decoStatus == kBMNSUCCESS)
+        printf("\tMacro finished successfully!\n\n"); // marker of successfully execution for software testing systems
 
     delete decoder;
 }

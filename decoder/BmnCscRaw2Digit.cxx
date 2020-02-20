@@ -220,7 +220,8 @@ void BmnCscRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TCl
     Int_t iSer = -1;
     for (iSer = 0; iSer < GetSerials().size(); ++iSer)
         if (ser == GetSerials()[iSer]) break;
-
+    if (iSer == GetSerials().size())
+        return; // serial not found
     BmnCSCDigit candDig[nSmpl];
 
     Short_t cscStation = cscM->station;
@@ -252,7 +253,7 @@ void BmnCscRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TCl
         nOk++;
     }
     Double_t CMS = CalcCMS(signals, nOk);
-    Double_t SCMS = CalcSCMS(signals, nSmpl, iSer, ch);
+    Double_t SCMS = CalcSCMS(signals, counter, iSer, ch);
     Double_t*** vPed = GetPedestals();
     Double_t*** vPedRMS = GetPedestalsRMS();
     for (Int_t iSmpl = 0; iSmpl < counter; ++iSmpl) {

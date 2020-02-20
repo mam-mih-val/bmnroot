@@ -55,7 +55,6 @@ public:
             delete csc;
         }
         if (header) {
-            header->Delete();
             delete header;
         }
         if (mwpc) {

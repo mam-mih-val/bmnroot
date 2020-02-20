@@ -10,4 +10,6 @@
 #pragma link C++ class  BmnBdGeo+;
 #pragma link C++ class  BmnBdGeoPar+;
 #pragma link C++ class  BmnBdContFact+;
+#pragma link C++ class  BmnBdHit+;
+#pragma link C++ class  BmnBdHitProducer+;
 #endif

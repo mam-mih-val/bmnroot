@@ -7,6 +7,8 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/passive
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
+ ${CMAKE_SOURCE_DIR}/silicon
+ ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/sts
 )
 
@@ -44,7 +46,7 @@ CbmStsDigiPar.cxx
 CbmStsDigiScheme.cxx 
 CbmStsIdealDigitize.cxx 
 CbmStsDigitize.cxx 
-CbmStsDigitizeTb.cxx 
+#CbmStsDigitizeTb.cxx 
 CbmStsIdealFindHits.cxx 
 CbmStsClusterFinder.cxx 
 CbmStsFindHits.cxx 
@@ -73,8 +75,16 @@ CbmBmnStsDigitize.cxx
 )
 
 #AZ - debug
+If(CMAKE_BUILD_TYPE EQUAL "Debug")
 SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS
-  "-g -O0 ")
+  "-g -O0")
+EndIf(CMAKE_BUILD_TYPE EQUAL "Debug")
+
+#GP - optimize
+If(CMAKE_BUILD_TYPE EQUAL "Release")
+SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS
+  "-Ofast")
+EndIf(CMAKE_BUILD_TYPE EQUAL "Release")
 
 Set(HEADERS)
 Set(LINKDEF StsLinkDef.h)

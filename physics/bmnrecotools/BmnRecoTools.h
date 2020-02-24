@@ -11,8 +11,10 @@
 #include <TLeaf.h>
 #include <TChain.h>
 #include <TGeoTrack.h>
+#include <TFile.h>
 
 #include <FairMCEventHeader.h>
+#include <DigiRunHeader.h>
 
 #include <CbmMCTrack.h>
 #include <CbmStsPoint.h>
@@ -52,6 +54,7 @@ public:
 
 private:
     BmnStatus GetNextValidSourceEvent();
+    BmnStatus CloneSelected(TString BaseName, TString TempBaseName);
 
     TTree * fInTreeSource;
     TTree * fInTreeBase;
@@ -76,6 +79,14 @@ private:
     TClonesArray* stsPoints = nullptr;
     TClonesArray* silPoints = nullptr;
     TClonesArray* cscPoints = nullptr;
+    DstEventHeader * copyBaseEH = nullptr;
+    DstEventHeader * copyDestEH = nullptr;
+    FairMCEventHeader * mcEH = nullptr;
+    TBranch *EHBranch = nullptr;
+    const TString EHMCName = "MCEventHeader.";
+    const TString EHDigiName = "BmnEventHeader.";
+    const TString RHDigiName = "DigiRunHeader";
+    const TString FieldParName = "BmnFieldPar";
 
 
 

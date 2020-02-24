@@ -37,16 +37,9 @@ BmnStatus BmnRecoTools::Embed(TString inSourceName, TString inBaseName, TString 
     };
     vector<TString> matchNames = {"BmnSiliconDigitMatch", "BmnGemStripDigitMatch", "BmnCSCDigitMatch"};
 
-    DstEventHeader * copyBaseEH = nullptr;
-    DstEventHeader * copyDestEH = nullptr;
-    BmnEventHeader * bmnEH = nullptr;
-    TBranch *EHBranch = nullptr;
-    FairMCEventHeader * mcEH = nullptr;
-    TString EHMCName = "MCEventHeader.";
-    TString EHDigiName = "BmnEventHeader.";
-    TString FieldParName = "BmnFieldPar";
     TList* fBranchList = new TList();
     BmnFieldPar *fieldPar = nullptr;
+    DigiRunHeader *rhBase = nullptr;
     UInt_t fNArs = digiNames.size();
 
 
@@ -68,17 +61,16 @@ BmnStatus BmnRecoTools::Embed(TString inSourceName, TString inBaseName, TString 
     UInt_t fNEventSource = fInTreeSource->GetEntries();
     for (Int_t i = 0; i < fNArs; i++) {
         TClonesArray* arDigi = nullptr; // new TClonesArray(BmnCSCHit::Class());
+        printf("digiNames[%d] %s \n", i, digiNames[i].Data());
         fInTreeSource->SetBranchAddress(digiNames[i].Data(), &arDigi);
         digiSourceArs.push_back(arDigi);
-        if (addMatch == kTRUE) {
-            if (i < matchNames.size()) {
+        if (i < matchNames.size())
+            if (addMatch == kTRUE) {
                 TClonesArray* ar = nullptr;
                 fInTreeSource->SetBranchAddress(matchNames[i].Data(), &ar);
                 matchSourceArs.push_back(ar);
-            }
-        } else
-            for (Int_t j = 0; j < matchNames.size(); j++)
-                fInTreeSource->SetBranchStatus(matchNames[j] + ".*", 0);
+            } else
+                fInTreeSource->SetBranchStatus(matchNames[i] + ".*", 0);
     }
     mcTracks = digiSourceArs[3];
     stsPoints = digiSourceArs[4];
@@ -86,42 +78,30 @@ BmnStatus BmnRecoTools::Embed(TString inSourceName, TString inBaseName, TString 
     cscPoints = digiSourceArs[6];
     fInTreeSource->SetBranchAddress(EHMCName.Data(), &mcEH);
 
-    Int_t retn = system(Form("cp  %s %s", inBaseName.Data(), destName.Data()));
-    printf("ret %d\n", retn);
-    fflush(stdout);
+    //    Int_t retn = system(Form("cp  %s %s", inBaseName.Data(), destName.Data()));
+    //    printf("ret %d\n", retn);
+    //    fflush(stdout);
+
+    TString tempBaseName = inBaseName + "-temp.root";
+    CloneSelected(inBaseName, tempBaseName);
+
     /*****************************/
-    /** Open  dest digits **/
+    /** Open input base digits **/
     /*****************************/
-    TFile *fDestHitsFile = new TFile(destName, "UPDATE");
-    if (fDestHitsFile->IsOpen() == false) {
-        printf("\n!!!!\ncannot open file %s !\n", destName.Data());
+    TFile *fBaseHits = new TFile(tempBaseName, "READ");
+    if (fBaseHits->IsOpen() == false) {
+        printf("\n!!!!\ncannot open file %s !\n", tempBaseName.Data());
         return kBMNERROR;
     }
-    printf("\n DEST FILE: ");
-    printf("%s\n", destName.Data());
-    fDestTree = (TTree *) fDestHitsFile->Get("bmndata");
-    UInt_t fNEventDest = fDestTree->GetEntries();
-    //    fDestTree->SetBranchStatus("*", 0);
-    //
-    //
-    //    for (Int_t i = 0; i < fNArs; i++) {
-    //        fDestTree->SetBranchStatus(digiNames[i].Data(), 1);
-    //        if (addMatch == kTRUE)
-    //            if (i < matchNames.size()) {
-    //                fDestTree->SetBranchStatus(matchNames[i].Data(), 1);
-    //            }
-    //    }
-    fInTreeBase = fDestTree; // o_O
+    printf("\nINPUT BASE FILE: ");
+    printf("%s\n", tempBaseName.Data());
+    fInTreeBase = (TTree *) fBaseHits->Get("bmndata");
+    rhBase = (DigiRunHeader*) fBaseHits->Get(RHDigiName.Data());
+    UInt_t fNEventBase = fInTreeBase->GetEntries();
     for (Int_t i = 0; i < fNArs; i++) {
         TClonesArray* arDigi = nullptr; // new TClonesArray(BmnCSCHit::Class());
-        TBranch* brDigi = nullptr;
-        printf("digiNames[i] %s \n", digiOutExpNames[i].Data());
-        fInTreeBase->SetBranchAddress(digiOutExpNames[i].Data(), &arDigi, &brDigi);
+        fInTreeBase->SetBranchAddress(digiOutExpNames[i].Data(), &arDigi);
         digiBaseArs.push_back(arDigi);
-        digiBaseBrs.push_back(brDigi);
-        arDigi->SetName(Form("Old_%s", arDigi->GetName()));
-        brDigi->SetName(Form("Old_%s", brDigi->GetName()));
-
         if (addMatch == kTRUE)
             if (i < matchNames.size()) {
                 TClonesArray* ar = nullptr;
@@ -129,204 +109,98 @@ BmnStatus BmnRecoTools::Embed(TString inSourceName, TString inBaseName, TString 
                 matchBaseArs.push_back(ar);
             }
     }
+    //        fieldPar = (BmnFieldPar*) fBaseHits->Get(FieldParName.Data());
+    BmnEventHeader * baseEH = nullptr;
+    fInTreeBase->SetBranchAddress(EHDigiName.Data(), &baseEH);
+    //        TObject * fhdr = fBaseHits->Get("FileHeader");
+    //        TObject * cbmr = fBaseHits->Get("cbmroot");
+
+
+    /*****************************/
+    /** Open  dest digits **/
+    /*****************************/
+    TFile *fDestHitsFile = new TFile(destName, "RECREATE");
+    if (fDestHitsFile->IsOpen() == false) {
+        printf("\n!!!!\ncannot open file %s !\n", destName.Data());
+        return kBMNERROR;
+    }
+    printf("\n DEST FILE: ");
+    printf("%s\n", destName.Data());
+    fDestTree = new TTree("bmndata", "bmndata");
+    //    for (Int_t i = 0; i < fNArs; i++) {
+    //        fDestTree->SetBranchStatus(digiNames[i].Data(), 1);
+    //        if (addMatch == kTRUE)
+    //            if (i < matchNames.size()) {
+    //                fDestTree->SetBranchStatus(matchNames[i].Data(), 1);
+    //            }
+    //    }
     for (Int_t i = 0; i < fNArs; i++) {
-        printf("digiOutExpNames[i] %s \n", digiOutExpNames[i].Data());
         TClonesArray* arDigi = new TClonesArray(digiClasses[i]); //nullptr;
         TBranch * brDigi = fDestTree->Branch(digiOutExpNames[i], &arDigi); //nullptr;
-        //        fDestTree->SetBranchAddress(digiOutExpNames[i], &arDigi, &brDigi);
         digiDestArs.push_back(arDigi);
         digiDestBrs.push_back(brDigi);
 
     }
-    //        if (addMatch == kTRUE)
-    //            for (Int_t i = 0; i < matchNames.size(); i++) {
-    //                TClonesArray* ar = new TClonesArray(BmnMatch::Class()); //nullptr;
-    //                TBranch * br = fDestTree->Branch(matchNames[i], &ar); //nullptr;
-    //                //            fDestTree->SetBranchAddress(matchNames[i], &ar, &br);
-    //                matchDestArs.push_back(ar);
-    //                matchDestBrs.push_back(br);
-    //            }
-
-    //    /*****************************/
-    //    /** Open input base digits **/
-    //    /*****************************/
-    //    TFile *fBaseHits = new TFile(inBaseName, "READ");
-    //    if (fBaseHits->IsOpen() == false) {
-    //        printf("\n!!!!\ncannot open file %s !\n", inBaseName.Data());
-    //        return kBMNERROR;
-    //    }
-    //    printf("\nINPUT SOURCE HITS FILE: ");
-    //    printf("%s\n", inBaseName.Data());
-    //    fInTreeBase = (TTree *) fBaseHits->Get("bmndata");
-    //    UInt_t fNEventBase = fInTreeBase->GetEntries();
-    //    for (Int_t i = 0; i < fNArs; i++) {
-    //        TClonesArray* arDigi = nullptr; // new TClonesArray(BmnCSCHit::Class());
-    //        fInTreeBase->SetBranchAddress(digiNames[i].Data(), &arDigi);
-    //        digiBaseArs.push_back(arDigi);
-    //        if (addMatch == kTRUE)
-    //            if (i < matchNames.size()) {
-    //                TClonesArray* ar = nullptr;
-    //                fInTreeBase->SetBranchAddress(matchNames[i].Data(), &ar);
-    //                matchBaseArs.push_back(ar);
-    //            }
-    //    }
-    //    fieldPar = (BmnFieldPar*) fBaseHits->Get(FieldParName.Data());
-    //    fInTreeBase->SetBranchAddress(EHMCName.Data(), &mcEH);
-    //    TObject * fhdr = fBaseHits->Get("FileHeader");
-    //    TObject * cbmr = fBaseHits->Get("cbmroot");
-    //
-
-    //    /*****************************/
-    //    /** Create output digits file **/
-    //    /*****************************/
-    //    TFile *fDestHitsFile = new TFile(destName, "RECREATE");
-    //    if (fDestHitsFile->IsOpen() == false) {
-    //        printf("\n!!!!\ncannot open file %s !\n", destName.Data());
-    //        return kBMNERROR;
-    //    }
-    //    printf("\nOUT HITS FILE: ");
-    //    printf("%s\n", destName.Data());
-    //    //    TTree * fDestTree = new TTree("bmndata", "bmndata");
-    //    //    TTree * fDestTree = (TTree *) fDestHitsFile->Get("bmndata");
-    //
-    //    // clone tree except some branches (deactivate=>clone=>activate)
-    //    for (Int_t i = 0; i < fNArs; i++)
-    //        fInTreeBase->SetBranchStatus(digiOutExpNames[i] + ".*", 0);
-    //    for (Int_t i = 0; i < matchNames.size(); i++)
-    //        fInTreeBase->SetBranchStatus(matchNames[i] + ".*", 0);
-    //    fDestTree = fInTreeBase->CloneTree(-1, "fast");
-    //    fDestTree->Write();
-    //    for (Int_t i = 0; i < fNArs; i++)
-    //        fInTreeBase->SetBranchStatus(digiOutExpNames[i] + ".*", 1);
-    //    if (addMatch == kTRUE)
-    //        for (Int_t i = 0; i < matchNames.size(); i++)
-    //            fInTreeBase->SetBranchStatus(matchNames[i] + ".*", 1);
-    //
-    //    // create that branches in the new tree    
-    //    UInt_t fNEventDest = fDestTree->GetEntries();
-    //    for (Int_t i = 0; i < fNArs; i++) {
-    //        TClonesArray* arDigi = new TClonesArray(digiClasses[i]); //nullptr;
-    //        TBranch * brDigi = fDestTree->Branch(digiOutExpNames[i], &arDigi); //nullptr;
-    //        //        fDestTree->SetBranchAddress(digiOutExpNames[i], &arDigi, &brDigi);
-    //        digiDestArs.push_back(arDigi);
-    //        digiDestBrs.push_back(brDigi);
-    //
-    //    }
-    //    if (addMatch == kTRUE)
-    //        for (Int_t i = 0; i < matchNames.size(); i++) {
-    //            TClonesArray* ar = new TClonesArray(BmnMatch::Class()); //nullptr;
-    //            TBranch * br = fDestTree->Branch(matchNames[i], &ar); //nullptr;
-    //            //            fDestTree->SetBranchAddress(matchNames[i], &ar, &br);
-    //            matchDestArs.push_back(ar);
-    //            matchDestBrs.push_back(br);
-    //        }
-    //    //    mcEHOut = new DstEventHeader();
-    //    //    fDestTree->Branch("DstEventHeader.", mcEHOut);
-    ////    bmnEH = new BmnEventHeader();
-    ////    EHBranch = fDestTree->Branch(EHDigiName.Data(), bmnEH);
-    //    TList * branches = (TList*) fDestTree->GetListOfBranches();
-    //    for (Int_t i = 0; i < branches->GetEntries(); i++) {
-    //        TObjString * s = new TObjString(branches->At(i)->GetName());
-    //        fBranchList->Add(s);
-    //    }
+    BmnEventHeader* destEH = new BmnEventHeader();
+    fDestTree->Branch("BmnEventHeader.", &destEH);
+    if (addMatch == kTRUE)
+        for (Int_t i = 0; i < matchNames.size(); i++) {
+            TClonesArray* ar = new TClonesArray(BmnMatch::Class()); //nullptr;
+            TBranch * br = fDestTree->Branch(matchNames[i], &ar); //nullptr;
+            //            fDestTree->SetBranchAddress(matchNames[i], &ar, &br);
+            matchDestArs.push_back(ar);
+            matchDestBrs.push_back(br);
+        }
 
     /*****************************/
     /** Fill hits **/
     /*****************************/
     //    UInt_t minEvents = Min(fNEventSource, fNEventDest);
-    iSourceEvent = 0;
-    for (UInt_t iEv = 0; iEv < fNEventDest; ++iEv) {
-        DrawBar(iEv, fNEventDest);
+
+
+    //    for (UInt_t iEv = 0; iEv < 10/*fNEventSource*/; ++iEv) {
+    for (UInt_t iEv = 0; iEv < fNEventSource; ++iEv) {
+        DrawBar(iEv, fNEventSource);
+        fInTreeBase->GetEntry(iEv);
+        //        fDestTree->GetEntry(iEv);
+        fInTreeSource->GetEntry(iEv);
         for (UInt_t iBr = 0; iBr < fNArs; iBr++) {
             digiDestArs[iBr]->Clear("C");
             if (addMatch == kTRUE && iBr < matchNames.size())
                 matchDestArs[iBr]->Clear("C");
         }
-        fInTreeBase->GetEntry(iEv);
-        //        fInTreeSource->GetEntry(iEv);
-        if (GetNextValidSourceEvent() == kBMNERROR) {
-            printf("Not enough source events!\n");
-            break;
-        }
-        fDestTree->GetEntry(iEv);
+        //        if (GetNextValidSourceEvent() == kBMNERROR) {
+        //            printf("Not enough source events!\n");
+        //            break;
+        //        }
+        //        fDestTree->GetEntry(iEv);
         for (UInt_t iBr = 0; iBr < fNArs; iBr++) {
-            //                        printf("iEv %u iBr %u \n", iEv, iBr);
-            //                        printf(" was %d entries source\n", digiSourceArs[iBr]->GetEntries());
-            //                        printf(" was %d entries base\n", digiBaseArs[iBr]->GetEntries());
+//            printf("iEv %u iBr %u \n", iEv, iBr);
+//            printf(" was %d entries source\n", digiSourceArs[iBr]->GetEntries());
+//            //            printf(" was %d entries dest\n", digiDestArs[iBr]->GetEntries());
+//            printf(" was %d entries base\n", digiBaseArs[iBr]->GetEntries());
+
             if (turnOffBaseDigits == kTRUE) {
                 for (Int_t i = 0; i < digiBaseArs[iBr]->GetEntriesFast(); i++) {
                     BmnStripDigit * dig = (BmnStripDigit*) digiBaseArs[iBr]->At(i);
                     dig->SetIsGoodDigit(kFALSE);
                 }
             }
-            //            // add corresponding channel signal
-            //            for (Int_t i = 0; i < digiSourceArs[iBr]->GetEntriesFast(); i++) {
-            //                Double_t sig = 0.0;
-            //                Int_t st = 0;
-            //                Int_t mod = 0;
-            //                Int_t lay = 0;
-            //                Int_t strip = 0;
-            //                BmnSiliconDigit * dig;
-            //                BmnGemStripDigit * dig1;
-            //                BmnCSCDigit * dig2;
-            //                switch (iBr) {
-            //                    case 0:
-            //                        dig = (typeof (BmnSiliconDigit::Class())*) digiBaseArs[iBr]->At(i);
-            //                        sig = dig->GetStripSignal();
-            //                        st = dig->GetStation();
-            //                        mod = dig->GetStation();
-            //                        lay = dig->GetStation();
-            //                        strip = dig->GetStation();
-            //                        break;
-            //                    case 1:
-            //                        dig1 = (BmnGemStripDigit*) digiBaseArs[iBr]->At(i);
-            //                        sig = dig1->GetStripSignal();
-            //                        break;
-            //                    case 2:
-            //                        dig2 = (BmnCSCDigit*) digiBaseArs[iBr]->At(i);
-            //                        sig = dig2->GetStripSignal();
-            //                        break;
-            //                    default:
-            //                        break;
-            //                }
-            //                for (Int_t j = 0; j < digiBaseArs[iBr]->GetEntriesFast(); j++) {
-            //
-            //                BmnSiliconDigit * digInner;
-            //                BmnGemStripDigit * digInner1;
-            //                BmnCSCDigit * digInner2;
-            //                switch (iBr) {
-            //                    case 0:
-            //                        digInner = (typeof (BmnSiliconDigit::Class())*) digiBaseArs[iBr]->At(j);
-            //                        sig = digInner->GetStripSignal();
-            //                        break;
-            //                    case 1:
-            //                        digInner1 = (BmnGemStripDigit*) digiBaseArs[iBr]->At(j);
-            //                        sig = digInner1->GetStripSignal();
-            //                        break;
-            //                    case 2:
-            //                        digInner2 = (BmnCSCDigit*) digiBaseArs[iBr]->At(j);
-            //                        sig = digInner2->GetStripSignal();
-            //                        break;
-            //                    default:
-            //                        break;
-            //                }
-            //                }
-            //            }
 
-            Int_t fNDigiBase = digiBaseArs[iBr]->GetEntriesFast();
+            //            Int_t fNDigiBase = digiBaseArs[iBr]->GetEntriesFast();
             digiDestArs[iBr]->AbsorbObjects(digiBaseArs[iBr]);
             digiDestArs[iBr]->AbsorbObjects(digiSourceArs[iBr]);
 
-            digiDestBrs[iBr]->Fill();
-            //            if (addMatch)
-            //                if (iBr < matchNames.size()) {
-            //                    for (UInt_t iMatch = 0; iMatch < fNDigiBase; iMatch++) {
-            //                        new ((*matchDestArs[iBr])[matchDestArs[iBr]->GetEntriesFast()]) BmnMatch();
-            //                    }
-            //                    matchDestArs[iBr]->AbsorbObjects(matchSourceArs[iBr]);
-            //                    matchDestBrs[iBr]->Fill();
-            //                }
-            //                        printf(" is %d entries\n", digiDestArs[iBr]->GetEntries());
+            //            digiDestBrs[iBr]->Fill();
+            if (addMatch)
+                if (iBr < matchNames.size()) {
+                    //                    for (UInt_t iMatch = 0; iMatch < fNDigiBase; iMatch++) {
+                    //                        new ((*matchDestArs[iBr])[matchDestArs[iBr]->GetEntriesFast()]) BmnMatch();
+                    //                    }
+                    matchDestArs[iBr]->AbsorbObjects(matchSourceArs[iBr]);
+                    //                    matchDestBrs[iBr]->Fill();
+                }
+//            printf(" is %d entries dest\n", digiDestArs[iBr]->GetEntries());
 
         }
         //        mcEHOut->Clear();
@@ -343,38 +217,79 @@ BmnStatus BmnRecoTools::Embed(TString inSourceName, TString inBaseName, TString 
         //        mcEHOut->SetTriggerType(mcEH->GetTriggerType());
         //        mcEHOut->SetZ2in(mcEH->GetZ2in());
         //        mcEHOut->SetZ2out(mcEH->GetZ2out());
-        //        bmnEH->Clear();
-        //        bmnEH->SetEventId(mcEH->GetEventID());
-        //        //        bmnEH->SetEventTime(mcEH->GetEventTime());
-        //        //        bmnEH->SetEventTimeTS(mcEH->GetEventTimeTS());
-        //        bmnEH->SetEventType(kBMNPAYLOAD);
-        //        bmnEH->SetPeriodId(fPeriodId);
-        //        bmnEH->SetRunId(4649); //mcEH->GetRunID());
+        destEH->Clear();
+        destEH->SetEventId(baseEH->GetEventId());
+        destEH->SetEventTime(baseEH->GetEventTime());
+        destEH->SetEventTimeTS(baseEH->GetEventTimeTS());
+        destEH->SetEventType(baseEH->GetEventType());
+        destEH->SetPeriodId(baseEH->GetPeriodId());
+        destEH->SetRunId(baseEH->GetRunId());
         //        EHBranch->Fill();
-        //        fDestTree->Fill();
+        fDestTree->Fill();
     }
     fDestTree->Write();
-    for (UInt_t iBr = 0; iBr < fNArs; iBr++) {
-        //        TObjArray* list = digiBaseBrs[iBr]->GetListOfLeaves();
-        //        TIter it(list);
-        //        while (TLeaf * l = (TLeaf*) it.Next()) {
-        //            //                    printf("lname %s size %d\n", l->GetName(),l->GetLen());
-        //            l->SetName(Form("oldLeaf%d", iBr));
-        //        }
-        digiBaseBrs[iBr]->SetName(Form("oldDigi%d", iBr));
-        //            digiDestBrs[iBr]->SetName(digiOutExpNames[iBr].Data());
-    }
-    fDestTree->Write();
+    fDestHitsFile->WriteObject(rhBase, RHDigiName.Data());
     fDestHitsFile->Write();
     if (fSourceHits)
         fSourceHits->Close();
-    //    if (fBaseHits)
-    //        fBaseHits->Close();
+    if (fBaseHits)
+        fBaseHits->Close();
     if (fDestHitsFile)
         fDestHitsFile->Close();
 
     printf("\nFinished! Search made over %d source events\n", iSourceEvent);
 
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRecoTools::CloneSelected(TString BaseName, TString TempBaseName) {
+    printf("\nPreliminary clone selected exp events!\n");
+    TFile *BaseHits = new TFile(BaseName, "READ");
+    if (BaseHits->IsOpen() == false) {
+        printf("\n!!!!\ncannot open file %s !\n", BaseName.Data());
+        return kBMNERROR;
+    }
+    TTree *TreeBase = (TTree *) BaseHits->Get("bmndata");
+    DigiRunHeader* RHBase = (DigiRunHeader*) BaseHits->Get(RHDigiName.Data());
+    /*******************************/
+    /** Create temp digits base file **/
+    /*******************************/
+    TFile *DestHitsFile = new TFile(TempBaseName, "RECREATE");
+    if (DestHitsFile->IsOpen() == false) {
+        printf("\n!!!!\ncannot open file %s !\n", TempBaseName.Data());
+        return kBMNERROR;
+    }
+    printf("\nOUT HITS FILE: ");
+    printf("%s\n", TempBaseName.Data());
+    TTree * DestTree = TreeBase->CloneTree(0); //-1, "fast");
+    BmnEventHeader * baseEH = nullptr;
+    TreeBase->SetBranchAddress(EHDigiName.Data(), &baseEH);
+    iSourceEvent = 0;
+    UInt_t iBaseEvent = 0;
+    UInt_t NSrcEvents = fInTreeSource->GetEntries();
+    UInt_t NBaseEvents = TreeBase->GetEntries();
+    for (UInt_t iEv = 0; iEv < NSrcEvents; iEv++) {
+        printf("iev %u nsrc %u\n", iEv, NSrcEvents);
+        DrawBar(iEv, NSrcEvents);
+        if (GetNextValidSourceEvent() == kBMNERROR) {
+            printf("Not enough source events!\n");
+            break;
+        }
+        while (iBaseEvent < NBaseEvents) {
+            TreeBase->GetEntry(iBaseEvent++);
+            if (mcEH->GetEventID() == baseEH->GetEventId()) {
+                DestTree->Fill();
+                break;
+            }
+        }
+    }
+    DestTree->Write();
+    DestHitsFile->WriteObject(RHBase, RHDigiName.Data());
+    DestHitsFile->Write();
+    DestHitsFile->Close();
+    DestHitsFile = nullptr;
+    BaseHits->Close();
+    printf("\nPreliminary cloning finished!\n");
     return kBMNSUCCESS;
 }
 

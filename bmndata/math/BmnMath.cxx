@@ -1059,6 +1059,8 @@ Double_t Mu(vector <Double_t> qp, vector <Double_t> w) {
 //}
 
 void DrawBar(UInt_t iEv, UInt_t nEv) {
+    if (nEv < 100)
+        return;
     if ((iEv % (nEv / 100)) > 100.0/nEv)
         return;
     Float_t progress = iEv * 1.0 / nEv;

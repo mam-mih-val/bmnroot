@@ -614,6 +614,7 @@ Int_t MpdLAQGSMGenerator::RegisterIons(Int_t Max_Event_Number) {
             Int_t p_num = 21;
             if (fQGSM_format_ID == 3)
                 p_num = 36;
+	    else if (fQGSM_format_ID == 4) p_num = 30;
 
             if (!fQGSM_format_ID)
                 sscanf(&(ss[p_num]), "%g%g%g%g%g", &px, &py, &pz, &pz1, &mass);
@@ -793,7 +794,8 @@ Bool_t MpdLAQGSMGenerator::FindParticle(Int_t Z, Int_t strange, Int_t lepton, In
     n_mass,
             result = 0;
 
-    if (mass < 6) { // use table
+    //AZ if (mass < 6) { // use table
+    if (strange || Z <= 2) { // use table
 
         Int_t
         l_min = -1, // line number first

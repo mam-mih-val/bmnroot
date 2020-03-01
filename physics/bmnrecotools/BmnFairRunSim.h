@@ -9,6 +9,7 @@
 
 #include <FairRunSim.h>
 
+#define CutExistentVertex  -100.0
 #define CutValidZ  -4.0
 
 class BmnFairRunSim : public FairRunSim {

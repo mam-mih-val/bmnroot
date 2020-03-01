@@ -56,8 +56,11 @@ protected:
     TString fDstTreeName;
     TString fDstFileName;
     TString fPVertexName;
+    TString fEvHeaderName;
     TFile *fDstFile;
     TTree *fDstTree;
+    DstEventHeader* fEvHeader;
+    DstEventHeader* fEvHeaderShow;
     TClonesArray* fPVertex;
     TClonesArray* fPVertexShow;
     Long64_t iEv;

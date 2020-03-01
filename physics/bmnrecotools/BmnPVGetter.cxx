@@ -4,9 +4,11 @@ BmnPVGetter::BmnPVGetter(TString fname, Long64_t nEvs) {
     fDstTreeName = "bmndata";
     fDstFileName = fname;
     fPVertexName = "BmnVertex";
+    fEvHeaderName = "DstEventHeader.";
     fDstFile = nullptr;
     fDstTree = nullptr;
     fPVertex = nullptr;
+    fEvHeader = nullptr;
     iEv = -1;
     doNext = kTRUE;
     if (nEvs == 0LL)
@@ -30,6 +32,8 @@ InitStatus BmnPVGetter::Init() {
     fDstTree = (TTree *) fDstFile->Get(fDstTreeName.Data());
     if (fDstTree->SetBranchAddress(fPVertexName.Data(), &fPVertex) < 0)
         return kFATAL;
+    if (fDstTree->SetBranchAddress(fEvHeaderName.Data(), &fEvHeader) < 0)
+        return kFATAL;
     nFEvents = Min(fDstTree->GetEntries(), nFEvents);
     if (fVerbose > 0)
         printf("Primary Vertex Extractor : will run up to %lld events.\n", nFEvents);
@@ -39,6 +43,8 @@ InitStatus BmnPVGetter::Init() {
 
     fPVertexShow = new TClonesArray(CbmVertex::Class(), 1); //out
     ioman->Register(fPVertexName, "GEM", fPVertexShow, kTRUE); // last arg: save to file
+    fEvHeaderShow = new DstEventHeader(); //out
+    ioman->Register(fEvHeaderName, "", fEvHeaderShow, kTRUE); // last arg: save to file
 }
 
 void BmnPVGetter::Exec(Option_t *option) {
@@ -54,7 +60,8 @@ void BmnPVGetter::Finish() {
 }
 
 void BmnPVGetter::FinishEvent() {
-    //    printf("PVG Finish:  fVZ %f   getsave = %d\n", fVZ, fRunSimInst->GetSaveEvent());
+    if (fVerbose > 1)
+        printf("PVG Finish:  fVZ %f   getsave = %d\n", fVZ, fRunSimInst->GetSaveEvent());
     if (Abs(fVZ) < Abs(CutValidZ) && fRunSimInst->GetSaveEvent() == kFALSE)
         return;
     doNext = kTRUE;
@@ -64,7 +71,7 @@ void BmnPVGetter::NextFileEvent() {
     //    do {
     fPVertexShow->Delete();
     fDstTree->GetEntry(++iEv);
-    printf("\nPVs on event %lld\n", iEv);
+    printf("\nPVs on event %lld eventID = %u\n", iEv, fEvHeader->GetEventId());
     for (Int_t iTrack = 0; iTrack < fPVertex->GetEntriesFast(); iTrack++) {
         CbmVertex* v = (CbmVertex*) fPVertex->UncheckedAt(iTrack);
         fGen->SetBeam(v->GetX(), v->GetY(), 0.0, 0.0);
@@ -77,6 +84,7 @@ void BmnPVGetter::NextFileEvent() {
     fPVertexShow->AbsorbObjects(fPVertex);
     //    if (fVZ < MinValidZ)
     //        fRunSimInst->SetSaveEvent(kFALSE);
+    fEvHeaderShow->SetEventId(fEvHeader->GetEventId());
     if (iEv == nFEvents - 1)
         fRunSimInst->GetMCApp()->StopMCRun();
 }

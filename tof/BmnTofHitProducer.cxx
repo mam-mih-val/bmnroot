@@ -185,8 +185,8 @@ InitStatus BmnTofHitProducer::Init()
         FairRootManager::Instance()->Register("BmnTof700Hit", "TOF", aTofHits, kTRUE);
 
 //	readGeom(geomFile);
-//	pGeoUtils->ParseTGeoManager(fUseMCData, h2TestStrips, true);
-	pGeoUtils->ParseStripsGeometry(fgeomFile);
+	pGeoUtils->ParseTGeoManager(fUseMCData, h2TestStrips, true);
+//	pGeoUtils->ParseStripsGeometry(fgeomFile);
 	pGeoUtils->FindNeighborStrips(h1TestDistance, h2TestNeighborPair, fDoTest);
 	
     	LOG(INFO) << "Initialization [BmnTof700HitProducer::Init] finished succesfully.";
@@ -275,9 +275,11 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 			Double_t elcut = 0.; // 0.02e-3;
 			if (fDoTest) if (pPoint->GetEnergyLoss() > elcut) h1TestMass->Fill(mass);
 			if (fDoTest) if (pPoint->GetEnergyLoss() > elcut && length > 600.) h1TestMassLong->Fill(mass);
-			const LStrip *pStrip = pGeoUtils->FindStrip(UID, pos);
-//			const LStrip *pStrip = pGeoUtils->FindStrip(UID);
+//			const LStrip *pStrip = pGeoUtils->FindStrip(UID, pos);
+			const LStrip *pStrip = pGeoUtils->FindStrip(UID);
 			if (pStrip == NULL) continue;
+
+//			if (UID == ((19<<8)|32)) printf("Hit x %f y %f z %f, strip x %f y %f z %f\n", pos.X(), pos.Y(), pos.Z(), pStrip->center.X(), pStrip->center.Y(), pStrip->center.Z());
 		
 			XYZ_smeared.SetXYZ( pRandom->Gaus(pos.X(), fErrX), pStrip->center.Y(), pStrip->center.Z());
 
@@ -304,7 +306,8 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 		
 			if(fDoTest) effTestEfficiencySingleHit->Fill(passed, distance);
         	
-        		if((passed = DoubleHitExist(distance))) // check cross hit
+//        		if((passed = DoubleHitExist(distance))) // check cross hit
+			if(false) // check efficiency 
         		{
         			Int_t CrossUID = (side == LStrip::kUpper) ? pStrip->neighboring[LStrip::kUpper] : pStrip->neighboring[LStrip::kLower];
   			

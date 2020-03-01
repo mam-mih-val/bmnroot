@@ -67,6 +67,18 @@ public:
         return nHitsProton;
     }
     
+    Int_t GetNHitsPion() {
+        return nHitsPion;
+    }
+    
+    Double_t GetProtonP() {
+        return pProton;
+    }
+    
+    Double_t GetPionP() {
+        return pPion;
+    }
+    
     TVector3 GetStoreVertexEvent() {
         return TVector3(store, vertex, event);
     }

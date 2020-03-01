@@ -62,13 +62,26 @@ public:
     void SetStorePath(TString path) {
         fStorePath = path;
     }
+
+    void SetNLambdaStore(Int_t nStores) {
+        fNstores = nStores;
+    }
     
+    void SetLambdaEtaRange(Double_t min, Double_t max) {
+        fEtaMin = min;
+        fEtaMax = max;    
+    }
+
+    void SetLambdaMinMomentum(Double_t min) {
+      fMomMin = min;
+    }
+
     void SetDetsToBeEmbedded(Bool_t gem, Bool_t silicon, Bool_t csc) {
         isGemEmbedded = gem;
         isSilEmbedded = silicon;
         isCscEmbedded = csc;
     }
-    
+
     void DoLambdaStore(Bool_t flag) {
         doLambdaStore = flag;
     }
@@ -96,7 +109,7 @@ public:
     void DoPrintStoreInfo(Bool_t flag) {
         doPrintStoreInfo = flag;
     }
-    
+
     void DoEmbeddingMonitor(Bool_t flag) {
         doEmbeddingMonitor = flag;
     }
@@ -135,7 +148,7 @@ private:
     TClonesArray* fGemPoints;
     TClonesArray* fGemDigits;
     TClonesArray* fGemMatch;
-    
+
     TClonesArray* fCscPoints;
     TClonesArray* fCscDigits;
     TClonesArray* fCscMatch;
@@ -173,12 +186,12 @@ private:
     // Cuts to be used if necessary ...
     Double_t fZmin;
     Double_t fZmax;
-    Int_t fNeventsForStore;
+    Int_t fNstores;
     Int_t fNHitsProton;
     Int_t fNHitsPion;
     Bool_t isUseRealSignal;
     vector <Short_t> fSignal;
-    
+
     // Dets. to be embedded ...
     Bool_t isGemEmbedded;
     Bool_t isSilEmbedded;
@@ -186,12 +199,17 @@ private:
 
     // Embedding monitor ...
     BmnLambdaEmbeddingMonitor* fMon;
+    
+    // Cuts to be used when doing stores with lambda
+    Double_t fEtaMin;
+    Double_t fEtaMax;
+    Double_t fMomMin;
 
 private:
     void CreateLambdaStore();
     void PrintStoreInfo();
     TString AddInfoToRawFile(map <UInt_t, vector < BmnStripDigit>>, map <UInt_t, map <pair <Int_t, Int_t>, Long_t>>,
-            map <UInt_t, vector < BmnStripDigit>>, map <UInt_t, map < vector <Int_t>, Long_t>>, 
+            map <UInt_t, vector < BmnStripDigit>>, map <UInt_t, map < vector <Int_t>, Long_t>>,
             map <UInt_t, vector < BmnStripDigit>>, map <UInt_t, map <pair <Int_t, Int_t>, Long_t>>);
 
     void DoRawRootFromBinaryData(TString);

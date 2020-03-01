@@ -68,7 +68,10 @@ fMon(nullptr) {
     // Default cut values ...
     fZmin = -3.;
     fZmax = +3.;
-    fNeventsForStore = 120;
+    fEtaMin = 0.;
+    fEtaMax = 100.;
+    fMomMin = 0.;
+    fNstores = 10;
     fNHitsProton = 4;
     fNHitsPion = 4;
     isUseRealSignal = kTRUE;
@@ -102,7 +105,7 @@ void BmnLambdaEmbedding::Embedding() {
     // 4. Loop over store with lambdas ...
     Int_t nThreads = 1;
 #if defined(_OPENMP)
-    nThreads = 15;
+    // nThreads = 4;
     omp_set_num_threads(nThreads);
 #endif
 #pragma omp parallel for
@@ -183,21 +186,21 @@ void BmnLambdaEmbedding::Embedding() {
             fMon->SetStoreVertexEvent(par);
 
             auto itEmbInfoMap = embMonitorMap.find(id);
-            if (itEmbInfoMap != embMonitorMap.end()) {
-                BmnParticlePair pair = (*itEmbInfoMap).second;
+            // if (itEmbInfoMap != embMonitorMap.end()) {
+            BmnParticlePair pair = (*itEmbInfoMap).second;
 
-                fMon->SetProtonP(pair.GetMomPart1());
-                fMon->SetPionP(pair.GetMomPart2());
+            fMon->SetProtonP(pair.GetMomPart1());
+            fMon->SetPionP(pair.GetMomPart2());
 
-                fMon->SetTxProton(pair.GetTxPart1());
-                fMon->SetTxPion(pair.GetTxPart2());
+            fMon->SetTxProton(pair.GetTxPart1());
+            fMon->SetTxPion(pair.GetTxPart2());
 
-                fMon->SetTyProton(pair.GetTyPart1());
-                fMon->SetTyPion(pair.GetTyPart2());
+            fMon->SetTyProton(pair.GetTyPart1());
+            fMon->SetTyPion(pair.GetTyPart2());
 
-                fMon->SetNHitsProton(pair.GetNHitsPart1());
-                fMon->SetNHitsPion(pair.GetNHitsPart2());
-            }
+            fMon->SetNHitsProton(pair.GetNHitsPart1());
+            fMon->SetNHitsPion(pair.GetNHitsPart2());
+            // }
 
             if ((Int_t) par[0] != -1 && (Int_t) par[1] != -1 && (Int_t) par[2] != -1)
                 fMon->IsEmbedded(kTRUE);
@@ -269,8 +272,7 @@ void BmnLambdaEmbedding::Embedding() {
     }
 
     // 9. Do *.data --> *raw.root convertion for requested events ...
-    if (doRawRootConvertion)
-        DoRawRootFromBinaryData(fDataFileName);
+    DoRawRootFromBinaryData(fDataFileName);
 
     // 10. Loop over *raw.root to embed lambda digits ...
     TString rawRoot = "";
@@ -540,7 +542,8 @@ void BmnLambdaEmbedding::DoRawRootFromBinaryData(TString raw) {
     decoder->SetPeriodId(7);
     decoder->SetRunId(fRunId);
 
-    decoder->ConvertRawToRoot();
+    if (doRawRootConvertion)
+        decoder->ConvertRawToRoot();
     fRawRootFileName = decoder->GetRootFileName();
 
     delete decoder;
@@ -669,6 +672,7 @@ vector <BmnStripDigit> BmnLambdaEmbedding::GetDigitsFromLambda(TString lambdaEve
                 continue;
 
             BmnStripDigit* digi = (BmnStripDigit*) fGemDigits->UncheckedAt(iDig);
+            // digi->Print();
             digits.push_back(*digi);
         }
 
@@ -797,7 +801,7 @@ TString BmnLambdaEmbedding::AddInfoToRawFile(map <UInt_t, vector <BmnStripDigit>
     ch->SetBranchAddress("BmnEventHeader.", &fEventHeader);
 
     // Loop over existing *raw.root file ...
-    for (Int_t iEntry = 0; iEntry < ch->GetEntries(); iEntry++) {
+    for (Int_t iEntry = 0; iEntry < fEvents; iEntry++) {
         if (iEntry % 1000 == 0)
             cout << "Embedding, event# " << iEntry << endl;
         // Clear TClonesArrays from the previous event ...
@@ -973,10 +977,15 @@ TString BmnLambdaEmbedding::AddInfoToRawFile(map <UInt_t, vector <BmnStripDigit>
 void BmnLambdaEmbedding::CreateLambdaStore() {
     const Int_t lambdaPdg = 3122;
 
-    for (Int_t iEntry = 0; iEntry < fNeventsForStore; iEntry++) {
+    for (Int_t iEntry = 0; iEntry < fSim->GetEntries(); iEntry++) {
         fSim->GetEntry(iEntry);
-        if (iEntry % 1000 == 0)
+        if (iEntry % 1000 == 0) {
             cout << "Event# " << iEntry << " processed" << endl;
+            cout << "Size of LambdaStore# " << fLambdaStore->GetEntriesFast() << endl;
+        }
+
+        if (fLambdaStore->GetEntriesFast() == fNstores) // Maximum size of current store
+            break;
 
         for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
             CbmMCTrack* track = (CbmMCTrack*) fMCTracks->UncheckedAt(iTrack);
@@ -992,6 +1001,12 @@ void BmnLambdaEmbedding::CreateLambdaStore() {
             Double_t p = track->GetP();
             Double_t Tx = track->GetPx() / track->GetPz();
             Double_t Ty = track->GetPy() / track->GetPz();
+
+            Double_t Pz = p / TMath::Sqrt(1 + Tx * Tx + Ty * Ty);
+            Double_t eta = 0.5 * TMath::Log((p + Pz) / (p - Pz));
+
+            if (eta < fEtaMin || eta > fEtaMax || p < fMomMin)
+                continue;
 
             new ((*fLambdaStore)[fLambdaStore->GetEntriesFast()]) BmnLambdaStore(p, Tx, Ty);
         }

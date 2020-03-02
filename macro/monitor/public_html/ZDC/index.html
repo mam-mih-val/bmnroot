@@ -45,6 +45,7 @@ and open the template in the editor.
                 xhr.send();
             }
             function createTable() {
+                sessionStorage.clear();
                 var mwpc1 = document.getElementById("h2d_Grid");
                 mwpc1.src = path + "ZDC_h2d_Grid/draw.htm?monitoring=10000&opt=colz";
                 var mwpc2 = document.getElementById("h2d_Profile");
@@ -53,7 +54,7 @@ and open the template in the editor.
                 drawInfo();
             }
             function drawInfo() {
-                setTimeout(drawInfo, 10000);
+                setTimeout(drawInfo, 5000);
                 JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
                     var info = JSON.parse(obj);
                     if (info.arr.length > 0){
@@ -114,14 +115,13 @@ and open the template in the editor.
             <li><a href="../SRC/index.html"><h3>SRC Triggers</h3></a></li>
             <li><a href="../LAND/index.html"><h3>LAND</h3></a></li>
             <li><a href="../msc/index.html"><h3>MSC</h3></a></li>
-            <li><a href="../csc/index.html"><h3>CSC</h3></a></li>
         </ul>
         <div id="total_counter" align="center">
             <h1>BM@N ZDC</h1> 
             <!--<iframe id="infoCan" ></iframe>-->             
         </div>
         <div align="center">
-            <div id="infoC" style="width: 20vw;"> </div>
+            <div id="infoC" style="width: 90vw;"> </div>
         </div>
         <button onclick="ResetHist()"> 
             <h1 style="color:red;">Reset</h1>

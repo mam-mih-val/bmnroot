@@ -760,30 +760,33 @@ void BmnSiliconRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped,
     pedname += run;
     pedname += ".dat";
     if (pedestals) {
-        Pedfile = fopen(pedname, "r");
         cout << " Read pedestal file " << pedname << endl;
         cout << endl;
+        Pedfile = fopen(pedname, "r");
+        if (!Pedfile)
+            perror("Pedestal file %s open error");
+        else {
 
-        Int_t det, chan;
-        Float_t ped, rms;
+            Int_t det, chan;
+            Float_t ped, rms;
 
-        while (!feof(Pedfile)) {
-            fgets(sped, 10, Pedfile);
-            sscanf(sped, "%d %d", &det, &chan);
-            if (det >= 0 && det < ndet && chan == nchdet[det]) {
-                //       cout << " det= " << det << " nchan= " << chan << endl;
-                //       cout << endl;
+            while (!feof(Pedfile)) {
+                fgets(sped, 10, Pedfile);
+                sscanf(sped, "%d %d", &det, &chan);
+                if (det >= 0 && det < ndet && chan == nchdet[det]) {
+                    //       cout << " det= " << det << " nchan= " << chan << endl;
+                    //       cout << endl;
 
-                for (Int_t ic = 0; ic < chan; ic++) {
-                    fgets(sped, 20, Pedfile);
-                    sscanf(sped, "%g %g", &ped, &rms);
-                    //        cout << " ic= " << ic << " ped= " << ped << " rms= " << rms << endl;
-                    Pedchr[det][ic] = ped;
-                    Pedchr2[det][ic] = rms;
+                    for (Int_t ic = 0; ic < chan; ic++) {
+                        fgets(sped, 20, Pedfile);
+                        sscanf(sped, "%g %g", &ped, &rms);
+                        //        cout << " ic= " << ic << " ped= " << ped << " rms= " << rms << endl;
+                        Pedchr[det][ic] = ped;
+                        Pedchr2[det][ic] = rms;
+                    }
                 }
             }
         }
-        //     cout << endl;
     }
 
     //        FILE *Rnoisefile;
@@ -792,22 +795,25 @@ void BmnSiliconRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped,
     rnoisename += run;
     rnoisename += ".dat";
     if (read) {
-        Rnoisefile = fopen(rnoisename, "r");
         cout << " Read noise file " << rnoisename << endl;
         cout << endl;
+        Rnoisefile = fopen(rnoisename, "r");
+        if (!Rnoisefile)
+            perror("Noise file %s open error");
+        else {
 
-        Int_t noise;
-        while (!feof(Rnoisefile)) {
-            fgets(ss, 10, Rnoisefile);
-            sscanf(ss, "%d", &noise);
-            Int_t det = (Int_t) noise / 10000;
-            Int_t chan = noise - det * 10000;
-            if (chan >= 0 && chan < maxChan) {
-                noisech[det][chan] = 1;
-                //                cout << "read noise " << noise << " det " << det << " chan " << chan << endl;
+            Int_t noise;
+            while (!feof(Rnoisefile)) {
+                fgets(ss, 10, Rnoisefile);
+                sscanf(ss, "%d", &noise);
+                Int_t det = (Int_t) noise / 10000;
+                Int_t chan = noise - det * 10000;
+                if (chan >= 0 && chan < maxChan) {
+                    noisech[det][chan] = 1;
+                    //                cout << "read noise " << noise << " det " << det << " chan " << chan << endl;
+                }
             }
         }
-        //     cout << endl;
     }
 
 
@@ -831,6 +837,8 @@ void BmnSiliconRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped,
     if (!read) {
         Wnoisefile = fopen(wnoisename, "w");
         Wpedfile = fopen(wpedname, "w");
+        if (!Wnoisefile && !Wpedfile)
+            Fatal("InitAdcProcessorMK", "Could not create noise/pedestal file!");
     }
 
 
@@ -975,9 +983,9 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
     }
     if (!read) {
         Int_t retn = system(Form("mv %s %s", wnoisename.Data(), rnoisename.Data()));
-        printf("mv    noise ret %d\n", retn);
+        //        printf("mv    noise ret %d\n", retn);
         Int_t retp = system(Form("mv %s %s", wpedname.Data(), pedname.Data()));
-        printf("mv pedestal ret %d\n", retp);
+        //        printf("mv pedestal ret %d\n", retp);
     }
 }
 
@@ -1151,6 +1159,8 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
     Int_t iSer = -1;
     for (iSer = 0; iSer < GetSerials().size(); ++iSer)
         if (ser == GetSerials()[iSer]) break;
+    if (iSer == GetSerials().size())
+        return; // serial not found
 
     BmnSiliconDigit candDig[nSmpl];
 

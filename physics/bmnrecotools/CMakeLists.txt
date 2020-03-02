@@ -47,6 +47,6 @@ Set(HEADERS)
 
 Set(LINKDEF LinkDef.h)
 Set(LIBRARY_NAME RecoTools)
-Set(DEPENDENCIES Core Base BmnData BmnField UniDb Silicon CSC Gem Gen MpdGen)
+Set(DEPENDENCIES Core Base BmnData BmnField UniDb Silicon CSC Gem Gen MpdGen BmnDst)
 
 GENERATE_LIBRARY()

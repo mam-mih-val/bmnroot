@@ -242,7 +242,7 @@ void BmnHistToF::SetSelection(Int_t Plane, Int_t Strip, Int_t Side) {
         histAmpSpecific->SetTitle("Amplitude For: " + command);
         TString direction = "fAmplitude>>" + TString(histAmpSpecific->GetName());
         //        TCanvas *c1 = new TCanvas("c1");
-        frecoTree->Draw(direction.Data(), command.Data(), "");
+        frecoTree->Draw(direction.Data(), command.Data(), "goff");
         histLeadingTimeSpecific->SetTitle("Leading Time For: " + command);
         direction = "fTime>>" + TString(histLeadingTimeSpecific->GetName());
         //        TDirectory *d = gDirectory->GetDirectory();

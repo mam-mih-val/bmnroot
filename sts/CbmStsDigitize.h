@@ -23,10 +23,18 @@
 #include <set>
 #include "TStopwatch.h"
 #include "FairTask.h"
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <sstream> 
+#include <TVector3.h>
+
+#include "TRandom.h"
 
 using std::set;
 using std::map;
 using std::pair;
+using namespace std;
 
 class TClonesArray;
 class CbmGeostsPar;
@@ -61,12 +69,15 @@ class CbmStsDigitize : public FairTask
   /** Execution **/
   virtual void Exec(Option_t* opt);
 
+  /**Spacer **/
+  
   /** Virtual method Finish **/
   virtual void Finish();
 
   virtual void SetRealisticResponse(Bool_t real=kTRUE) {fRealistic = real;}
 
-  void FindFiredStrips(CbmStsPoint* pnt,Int_t& nofStr,Int_t*& strips,Double_t*& signals,Int_t side){}
+  void FindFiredStrips(CbmStsPoint* pnt,Int_t& nofStr,Int_t*& strips,Double_t*& signals,Int_t side);
+  void ProduceHitResponseSi(CbmStsSensor* sensor); //AZ
   void ProduceHitResponse(CbmStsSensor* sensor);
 
   void SetFrontThreshold (Double_t  frontThr=0.)      {fFThreshold    =  frontThr;}
@@ -80,9 +91,16 @@ class CbmStsDigitize : public FairTask
   void SetBackNofElPerAdc    (Double_t   backMS=0.) {fBNofElPerAdc    =   backMS;}
   
   void SetStripDeadTime  (Double_t  StripDeadTime=0.) {fStripDeadTime =  StripDeadTime;}
+  void SetLoss2Signal (Double_t coef) { fEnergyLossToSignal = coef; } //AZ
+  Int_t GetNofModules(TGeoNode* station); //AZ
 
+  Double_t GetNumberOfClusters(Double_t beta, Double_t gamma, Double_t p0, Double_t p1);
 
  private:
+ //global declaration with reserve alloc.,
+ //+push to emplace give a 10-15% up-speed.
+      std::vector<std::vector<Double_t>> collision_points; 
+      std::vector<Double_t> collPoint; 
 
   CbmGeoStsPar*     fGeoPar;       /** Geometry parameter container **/
   CbmStsDigiPar*    fDigiPar;      /** Digitisation parameter container **/
@@ -90,11 +108,11 @@ class CbmStsDigitize : public FairTask
   TClonesArray*     fPoints;       /** Input array of CbmStsPoint **/
   TClonesArray*     fDigis;        /** Output array of CbmStsDigi **/
   TClonesArray*     fDigiMatches;  /** Output array of CbmStsDigiMatches**/
+  TClonesArray*     fMCTracks;      /** AZ - Input array of CbmMCTracks**/
 
   // statistics
   Int_t             fNDigis;
   Int_t             fNMulti;
-
   Double_t          fNEvents;
   Double_t          fNPoints;     
   Double_t          fNDigisFront;
@@ -116,6 +134,7 @@ class CbmStsDigitize : public FairTask
 
   Double_t  fStripDeadTime;
   
+  TString   fGeoFile;
   Int_t     fFNofBits;
   Int_t     fBNofBits;
   Double_t  fFNofElPerAdc;

@@ -19,7 +19,7 @@ const Int_t NMaxModules = 2;    //max. number of modules in a station
 
 //(X-Y-Z)Positions of stations
 const Double_t XStationPositions[NStations] = { 110.1895 }; //geometry center
-const Double_t YStationPositions[NStations] = { 2.20575 }; //geometry center
+const Double_t YStationPositions[NStations] = { 2.21575 }; //geometry center
 const Double_t ZStationPositions[NStations] = { 411.57 }; //outer side nearest to the target
 
 //(X-Y-Z)Shifts of modules in each station

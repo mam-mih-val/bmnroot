@@ -3,15 +3,15 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 
 #define GEANT3  // Choose: GEANT3 GEANT4
 // enumeration of generator names corresponding input files
-enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DQGSM};
+enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM};
 
 // inFile - input file with generator data, if needed
-// outFile - output file with MC data, default: evetest.root
+// outFile - output file with MC data, default: bmnsim.root
 // nStartEvent - start event in the input generator file to begin transporting, default: 0
 // nEvents - number of events to transport
 // generatorName - generator name for the input file (enumeration above)
 // useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
-void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10,
+void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString outFile = "$VMCWORKDIR/macro/run/bmnsim.root", Int_t nStartEvent = 0, Int_t nEvents = 10,
                  enumGenerators generatorName = BOX, Bool_t useRealEffects = kFALSE)
 {
     TStopwatch timer;
@@ -107,7 +107,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
 
     // ------- LAQGSM/DCM-QGSM Generator
     case QGSM:
-    case DQGSM:{
+    case DCMQGSM:{
 
         if (!BmnFunctionSet::CheckFileExist(inFile)) return;
 
@@ -198,7 +198,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
 
     //fRun->CreateGeometryFile("full_geometry.root");  // save the full setup geometry to the additional file
 
-if ((generatorName == QGSM) || (generatorName == DQGSM)){
+if ((generatorName == QGSM) || (generatorName == DCMQGSM)){
     TString Pdg_table_name = TString::Format("%s%s%c%s", gSystem->BaseName(inFile.Data()), ".g", (fRun->GetName())[6], ".pdg_table.dat");
     (TDatabasePDG::Instance())->WritePDGTable(Pdg_table_name.Data());
 }

@@ -68,7 +68,7 @@ class BmnSiliconTrackFinder : public FairTask {
   
 public:
   
-  BmnSiliconTrackFinder(Bool_t, Int_t);
+  BmnSiliconTrackFinder(Bool_t, Bool_t, Int_t);
   virtual ~BmnSiliconTrackFinder();
   
   virtual InitStatus Init();

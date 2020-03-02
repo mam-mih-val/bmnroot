@@ -105,9 +105,10 @@ InitStatus BmnMwpcHitFinder::Init() {
       h = new TH1D(Form("Chisq_ndf_Ch%d",i), Form("Chisq_ndf_Ch%d", i), 100, 0.,kChi2_Max);fList.Add(h);hChisq_ndf_Ch.push_back(h);
       h = new TH1D(Form("Np_best_Ch%d", i), Form("Np_best_Ch%d", i), 6, 1.0, 7.0);fList.Add(h);hNp_best_Ch.push_back(h);
       h = new TH1D(Form("Nbest_Ch%d",  i), Form("Nbest_Ch%d",  i), 6, 0.0, 6.0);fList.Add(h);hNbest_Ch.push_back(h);
-      h = new TH1D(Form("NFired_layers_Ch%d",  i), Form("NFired_layers_Ch%d; NFired_layers; Events",  i), 7, 0.0, 7.0);
+      h = new TH1D(Form("NFired_layers_Ch%d",  i), Form("NFired_layers_Ch%d; NFired_layers; Events",  i), 7, 0.0, 7.0); fList.Add(h);hNFired_layers_Ch.push_back(h);
+      h = new TH1D(Form("Num_layers_out_beam_Ch%d",  i), Form("Num_layers_out_beam_Ch%d; NFired_layers; Events",  i), 7, 0.0, 7.0);
       fList.Add(h);
-      hNFired_layers_Ch.push_back(h);
+      hNum_layers_out_beam_Ch.push_back(h);
       h = new TH1D(Form("Residuals_pl0_Ch%d",  i),Form("Residuals_pl0_Ch%d",i), 10, 0.,10.);
       fList.Add(h);
       hResiduals_pl0_Ch.push_back(h);
@@ -144,31 +145,52 @@ InitStatus BmnMwpcHitFinder::Init() {
       h = new TH1D(Form("occupancyVm%d", i), Form("occupancyVm%d",i), 250, -10.,10.);
       fList.Add(h);
       hoccupancyVm.push_back(h);
-      h = new TH1D(Form("WireClust_Ch%d", i), Form("WireClust_Ch%d",i), 100, 0., 100.);
+      h = new TH1D(Form("firedWire_Ch%d", i), Form("firedWire_Ch%d",i), 100, 0., 100.);
       fList.Add(h);
-      hWireClust.push_back(h);
+      hfiredWire_Ch.push_back(h);
       h = new TH1D(Form("ClusterSize_Ch%d", i), Form("ClusterSize_Ch%d", i), 15, 0.,15.);
       fList.Add(h);
       hClusterSize.push_back(h);
+      
+      h = new TH1D(Form("fired_wire_Ch%d", i),Form("fired_wire_Ch%d;Wires;Events", i), kNWires*6, 0., kNWires*6);
+      fList.Add(h);
+      hfired_wire_Ch.push_back(h);
+      
+      h = new TH1D(Form("WiresXm_Ch%d", i),Form("WiresXm_Ch%d", i),kNWires, 0., kNWires);
+      fList.Add(h);
+      hWiresXm.push_back(h);
+      h = new TH1D(Form("WiresVm_Ch%d", i),Form("WiresVm_Ch%d", i),kNWires, 0., kNWires);
+      fList.Add(h);
+      hWiresVm.push_back(h);
+      h = new TH1D(Form("WiresUp_Ch%d", i),Form("WiresUp_Ch%d", i),kNWires, 0., kNWires);
+      fList.Add(h);
+      hWiresUp.push_back(h);
+      h = new TH1D(Form("WiresXp_Ch%d", i),Form("WiresXp_Ch%d", i),kNWires, 0., kNWires);
+      fList.Add(h);
+      hWiresXp.push_back(h);
+      h = new TH1D(Form("WiresVp_Ch%d", i),Form("WiresVp_Ch%d", i),kNWires, 0., kNWires);
+      fList.Add(h);
+      hWiresVp.push_back(h);
+      h = new TH1D(Form("WiresUm_Ch%d", i),Form("WiresUm_Ch%d", i),kNWires, 0., kNWires);
+      fList.Add(h);
+      hWiresUm.push_back(h);
 
       TH2D *h2;
       h2 = new TH2D(Form("Event_display_Ch%d", i), Form("Event_display_Ch%d; Events; Wires",i), 100, 0., 700., 100, 0., 100.);
       fList.Add(h2);
       hEvent_display_Ch.push_back(h2);
-      h2 = new TH2D(Form("time_wire_Ch%d",  i), Form("time_wire_allplane_Ch%d; Wires; Time",  i), kNWires, 0., kNWires, 100, 0, 500.);
+      
+      h2 = new TH2D(Form("all_pl_time_wire_Ch%d",  i),Form("time_wire_allplane_Ch%d; Wires; Time",  i), kNWires*6, 0., kNWires*6, 100, 0, 500.);
       fList.Add(h2);
       htime_wire_Ch.push_back(h2);
-      h2 = new TH2D(Form("time_fast_cut50_wire_Ch%d", i), Form("time_fast_cut50_wire_allplane_Ch%d; Wires; Time", i), 600, 0., 600., 100, -1000., 1000);
-      fList.Add(h2);
-      htime_fast_cut50_wire_Ch.push_back(h2);
-      h2 = new TH2D(Form("time_fast_cut30_wire_Ch%d", i), Form("time_fast_cut30_wire_allplane_Ch%d; Wires; Time", i), 600, 0., 600., 100, -1000., 1000.);
-      fList.Add(h2);
-      htime_fast_cut30_wire_Ch.push_back(h2);
+      
+      
     }
     ChCent[i] = fMwpcGeometrySRC->GetChamberCenter(i);
     ChZ[i]  = ChCent[i].Z();
   }
   if (fDebug) {
+    
     hNclust_ch0_pl1 = new TH1D("Nclust_ch0_pl1","Number of clusters(chamber0,plane1); Number of cluster;Events", 15, 0.,15.); 
     fList.Add(hNclust_ch0_pl1);
     hNclust_ch3_pl1 = new TH1D("Nclust_ch3_pl1","Number of clusters(chamber3,plane1); Number of cluster;Events", 15, 0.,15.); 
@@ -483,7 +505,7 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
       counter_pl[iplane] = 0;
       counter += iw_Ch[iChamber][iplane];
       counter_pl[iplane] += iw_Ch[iChamber][iplane];
-      if (fDebug) hWireClust.at(iChamber)->Fill(counter_pl[iplane]);
+      if (fDebug) hfiredWire_Ch.at(iChamber)->Fill(counter_pl[iplane]);
     }//iplane
 
     if (fDebug) hNFired_layers_Ch[iChamber]->Fill(Nlay_w_wires[iChamber]);
@@ -569,6 +591,17 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
   Double_t earlyWires[kNChambers][kNPlanes][kNWires];
   Double_t Coord_fast[kNChambers][kNPlanes][kBig];
   Double_t Cut_time_wire = 16.;//ns
+  Double_t Num_layers_out_beam = 0;
+  Int_t Fired_layer[kNChambers][kNPlanes];
+  
+  
+  for (Int_t ipll = 0; ipll < kNPlanes; ipll++) {
+    Fired_layer[chNum][ipll] =0;
+    for (Int_t iwire = 0; iwire < kNWires; iwire++) {
+      //if ( DigitsArray_[chNum][ipll][iwire] > 0 ) Fired_layer[chNum][ipll] = 1;
+    }
+  }
+  
 
   for (Int_t ipll = 0; ipll < kNPlanes; ipll++) {
     N_wires[chNum][ipll] = 0;
@@ -577,7 +610,7 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
       Coord_fast[chNum][ipll][ib] = 0.;
     }
   }
-
+  /*
   if ( chNum < 2 ) {
     for (Int_t ipll = 0; ipll < kNPlanes; ipll++) {
       Nfirst[chNum][ipll] = -1;
@@ -596,7 +629,19 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
       for (Int_t iwire = 0; iwire < kNWires; iwire++) {
         if (fDebug && DigitsArray_[chNum][ipll][iwire] > 0) cout<<" DigitsArray_["<<chNum<<"]["<<ipll<<"]["<<iwire<<"] "<<DigitsArray_[chNum][ipll][iwire]<<endl;
 
-        if ( fDebug && ipll == 0 && DigitsArray_[chNum][ipll][iwire] > 0 ) htime_wire_Ch.at(chNum)->Fill(iwire, DigitsArray_[chNum][ipll][iwire]);
+        if ( fDebug && DigitsArray_[chNum][ipll][iwire] > 0 ){
+          htime_wire_Ch.at(chNum)->Fill(iwire + kNWires*ipll, DigitsArray_[chNum][ipll][iwire]);
+          hfired_wire_Ch.at(chNum)->Fill(iwire + kNWires*ipll);
+          
+          if(ipll == 0) hWiresXm.at(chNum)->Fill(iwire);
+          if(ipll == 1) hWiresVm.at(chNum)->Fill(iwire);
+          if(ipll == 2) hWiresUp.at(chNum)->Fill(iwire);
+          if(ipll == 3) hWiresXp.at(chNum)->Fill(iwire);
+          if(ipll == 4) hWiresVp.at(chNum)->Fill(iwire);
+          if(ipll == 5) hWiresUm.at(chNum)->Fill(iwire);
+          
+          if ( ipll == 0 && fEventNo < 700) hEvent_display_Ch.at(chNum)->Fill(fEventNo,iwire);
+        }
 
         if( Nfirst[chNum][ipll] < 0 && DigitsArray_[chNum][ipll][iwire] == 0.)  continue;
         if( Nfirst[chNum][ipll] < 0 && DigitsArray_[chNum][ipll][iwire] > (Min_time_wires + Cut_time_wire) ) continue;
@@ -650,9 +695,12 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
       }//iwire
     }// ipll
   } else {
+  */
     // if (fDebug ) cout<<"chamber 2 or 3"<<endl;
-
+    Num_layers_out_beam = 0;
+    
     for (Int_t ipll = 0; ipll < kNPlanes; ipll++) {
+
       Nfirst[chNum][ipll] = -1;
       Nlast[chNum][ipll] = -1;
       Bool_t Next_next_wire = 0;
@@ -660,9 +708,29 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
 
       for (Int_t iwire = 0; iwire < kNWires; iwire++) {
         
+        if((ipll == 0 || ipll == 3) && (iwire < 33 || iwire > 63) ){
+          if ( DigitsArray_[chNum][ipll][iwire] > 0 ) Fired_layer[chNum][ipll] = 1;
+        }
         
-        if ( fDebug && ipll == 0 && DigitsArray_[chNum][ipll][iwire] > 0 ) {
-          htime_wire_Ch.at(chNum)->Fill(iwire, DigitsArray_[chNum][ipll][iwire]);
+        if((ipll == 1 || ipll == 2) && (iwire < 12 || iwire > 42) ){
+          if ( DigitsArray_[chNum][ipll][iwire] > 0 ) Fired_layer[chNum][ipll] = 1;
+        }
+        if((ipll == 4 || ipll == 5) && (iwire < 50 || iwire > 80) ){
+          if ( DigitsArray_[chNum][ipll][iwire] > 0 ) Fired_layer[chNum][ipll] = 1;
+        }
+        
+        if ( fDebug && DigitsArray_[chNum][ipll][iwire] > 0 ){
+          htime_wire_Ch.at(chNum)->Fill(iwire + kNWires*ipll, DigitsArray_[chNum][ipll][iwire]);
+          hfired_wire_Ch.at(chNum)->Fill(iwire + kNWires*ipll);
+          
+          if(ipll == 0) hWiresXm.at(chNum)->Fill(iwire);
+          if(ipll == 1) hWiresVm.at(chNum)->Fill(iwire);
+          if(ipll == 2) hWiresUp.at(chNum)->Fill(iwire);
+          if(ipll == 3) hWiresXp.at(chNum)->Fill(iwire);
+          if(ipll == 4) hWiresVp.at(chNum)->Fill(iwire);
+          if(ipll == 5) hWiresUm.at(chNum)->Fill(iwire);
+          
+          if ( ipll == 0 && fEventNo < 700) hEvent_display_Ch.at(chNum)->Fill(fEventNo,iwire);
         }
         
         //if (fDebug ) cout<<" 1 first "<<Nfirst[chNum][ipll]<<" time "<<DigitsArray_[chNum][ipll][iwire]<<endl;
@@ -759,8 +827,11 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
         }
 
       }//iwire
+      Num_layers_out_beam += Fired_layer[chNum][ipll];
     }// ipll
-  }//else chamber 23
+    
+    if (fDebug) hNum_layers_out_beam_Ch.at(chNum)->Fill( Num_layers_out_beam);
+ //}//else chamber 23
   
   if (fDebug && chNum == 0) hNclust_ch0_pl1->Fill(Nclust_[0][1]);
   if (fDebug && Nclust_[3][1] > 0 && chNum == 3) hNclust_ch3_pl1->Fill(Nclust_[3][1]);

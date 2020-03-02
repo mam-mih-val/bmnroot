@@ -51,7 +51,7 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
 // is_online: false (default) - use Offline Mode (manual switching of events); true - use Online Mode (continious view events)
 //void eventdisplay(char* sim_run_info = "run6-1220", char* reco_file = "$VMCWORKDIR/macro/run/bmn_run1220.root", int data_source = 1, bool is_online = false)
 //void eventdisplay(char* sim_run_info = "run6-1220", char* reco_file = "/tdaq/data/", int data_source = 2, bool is_online = true)
-void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", const char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 0, bool is_online = false)
+void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/bmnsim.root", const char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 0, bool is_online = false)
 {
     gDebug = 0;
 

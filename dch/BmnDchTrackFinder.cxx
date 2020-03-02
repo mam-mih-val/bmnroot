@@ -1219,6 +1219,7 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
 	break;
 	    
       Double_t v_coord = (v_ab[0][j] + v_ab[1][j]) / 2;
+      if(fabs(u_coord)<12. && fabs(v_coord)<12.)continue;
       Double_t v_slope = (v_ab[0][j] - v_ab[1][j]) / (z_loc[6] - z_loc[7]);
       Double_t VX = v_coord + v_slope * 0.5 * (z_loc[1] + z_loc[0] - z_loc[6] - z_loc[7]);
       Double_t VY = v_coord + v_slope * 0.5 * (z_loc[3] + z_loc[2] - z_loc[6] - z_loc[7]);
@@ -1371,6 +1372,7 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
 
     for (Int_t j = 0; j < pairY; j++) {
       Double_t y_coord = (y_ab[0][j] + y_ab[1][j]) / 2;
+      if(fabs(y_coord)<12. && fabs(x_coord)<12.)continue;
       Double_t y_slope = (y_ab[0][j] - y_ab[1][j]) / (z_loc[2] - z_loc[3]);
       Double_t YU = y_coord + y_slope * 0.5 * (z_loc[5] + z_loc[4] - z_loc[3] - z_loc[2]);
       Double_t YV = y_coord + y_slope * 0.5 * (z_loc[7] + z_loc[6] - z_loc[3] - z_loc[2]);

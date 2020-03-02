@@ -3490,8 +3490,11 @@ InitStatus BmnSiliconTrackFinder::Init() {
   if (fVerbose) cout << "BmnSiliconTrackFinder::Init()" << endl;
   FairRootManager* ioman = FairRootManager::Instance();
 
-  fBmnSiDigitsArray = (TClonesArray*) ioman->GetObject("SILICON");
-  if (!fBmnSiDigitsArray) {
+  if (expData)
+    fBmnSiDigitsArray = (TClonesArray*) ioman->GetObject("SILICON");
+  else
+    fBmnSiDigitsArray = (TClonesArray*) ioman->GetObject("BmnSiliconDigit");
+  if ((!fBmnSiDigitsArray) || (!fBmnSiDigitsArray->InheritsFrom(TClonesArray::Class()))){
     cout << "BmnSiliconTrackFinder::Init(): branch " << " not found! Task will be deactivated" << endl;
     SetActive(kFALSE);
     return kERROR;
@@ -3688,9 +3691,10 @@ void BmnSiliconTrackFinder::PrepareArraysToProcessEvent() {
 
 
 //-------------------------constructor----------------------------------
-BmnSiliconTrackFinder::BmnSiliconTrackFinder(Bool_t isTarget, Int_t runNumber) {
+BmnSiliconTrackFinder::BmnSiliconTrackFinder(Bool_t isExp, Bool_t isTarget, Int_t runNumber) {
 
   fRunNumber = runNumber;
+  expData = isExp;
   fTarget    = isTarget;
   fOutputHitsBranchName = "BmnSiliconHit";
   

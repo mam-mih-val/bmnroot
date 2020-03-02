@@ -98,9 +98,10 @@ class BmnMwpcHitFinder : public FairTask {
   Float_t *ChZ;
   TH1D * hNclust_ch0_pl1, *hNclust_ch3_pl1;
   vector<TH1D*> hNp_best_Ch, hNbest_Ch, hOccupancy, hTime,
-         hoccupancyXp, hoccupancyUp, hoccupancyVp, hoccupancyXm, hoccupancyUm, hoccupancyVm, hWireClust, hClusterSize, hChisq_ndf_Ch, hNFired_layers_Ch,
-         hResiduals_pl0_Ch, hResiduals_pl1_Ch, hResiduals_pl2_Ch, hResiduals_pl3_Ch, hResiduals_pl4_Ch, hResiduals_pl5_Ch;
-  vector<TH2D*>   hEvent_display_Ch, htime_wire_Ch, htime_fast_cut50_wire_Ch, htime_fast_cut30_wire_Ch;
+         hoccupancyXp, hoccupancyUp, hoccupancyVp, hoccupancyXm, hoccupancyUm, hoccupancyVm, hfiredWire_Ch, hClusterSize, hChisq_ndf_Ch, hNFired_layers_Ch,
+         hWiresXp, hWiresUp, hWiresVp, hWiresXm, hWiresUm, hWiresVm,
+         hResiduals_pl0_Ch, hResiduals_pl1_Ch, hResiduals_pl2_Ch, hResiduals_pl3_Ch, hResiduals_pl4_Ch, hResiduals_pl5_Ch,hfired_wire_Ch, hNum_layers_out_beam_Ch;
+  vector<TH2D*>   hEvent_display_Ch, htime_wire_Ch;
   Int_t kMinHits;
   Int_t kMinHits_before_target;
   Int_t *Nlay_w_wires;

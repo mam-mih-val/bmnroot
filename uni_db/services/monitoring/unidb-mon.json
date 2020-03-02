@@ -1,0 +1,54 @@
+{
+  "MONITORING": {
+    "unit": {
+      "SERVER": "vm221-53.jinr.ru",
+      "DBMS": "PGSQL",
+      "PORT": 5432,
+      "DBNAME": "bmn_db",
+      "USER": "db_reader",
+      "PASS": "reader_pass",
+      "NOTIFY": "email@jinr.ru"
+    }
+  },
+
+  "PING": {
+    "db_server": {
+      "IP": "vm221-53.jinr.ru",
+      "NOTIFY": "email@jinr.ru"
+    },
+    "db_interface": {
+      "IP": "se51-98.jinr.ru",
+      "NOTIFY": "email@jinr.ru"
+    }
+  },
+  "DATABASE": {
+    "uni_db": {
+      "SERVER": "vm221-53.jinr.ru",
+      "DBMS": "PGSQL",
+      "PORT": 5432,
+      "DBNAME": "bmn_db",
+      "USER": "db_reader",
+      "PASS": "reader_pass",
+      "NOTIFY": "email@jinr.ru"
+    }
+  },
+
+  "OUTPUT": {
+    "DBMS": "INFLUXDB",
+    "SERVER": "192.168.65.52",
+    "PORT": 8086,
+    "DBNAME": "pgsqltest",
+    "NOTIFY": "email@jinr.ru"
+  },
+
+  "INTERVAL_SEC": 60,
+
+  "MAIL": {
+    "SERVER": "mail.jinr.ru",
+    "PORT": 587,
+    "USER": "*",
+    "PASS": "*"
+  },
+
+  "LOG": "email@jinr.ru"
+}

@@ -30,15 +30,14 @@ Double_t Eta2[dim] = {1.5, 2.5};
 Double_t Dca1[dim] = {.1, 100.};
 Double_t Dca2[dim] = {.1, 100.};
 
-Double_t Dca12X[dim] = {0., 0.7};
+Double_t Dca12X[dim] = {0., 1.};
 Double_t Dca12Y[dim] = {0., 0.7};
-Double_t Path = 50.;
+Double_t Path = 2.5;
 
 Double_t Alpha = 0.5;
 Double_t PtPodol = 0.11;
 
-
-void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t useCutHistoLimits = kFALSE) {
+void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFit = true) {
     gStyle->SetOptStat(1);
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
@@ -66,10 +65,13 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t useCut
 
     TString _par = "X";
     TString _parY = "Y";
-    // Fill histos ...
+    vector<TString> cutStrVec;
+//    cutStrVec.push_back(Form("Path   >= %.1f", Path));
+    cutStrVec.push_back(Form("%.1f < Dca12X < %.1f", Dca12X[0], Dca12X[1]));
+
     for (Int_t iEv = 0; iEv < out->GetEntries(); iEv++) {
         out->GetEntry(iEv);
-        if (iEv % 1000000 == 0)
+        if (iEv % 10000 == 0)
             cout << "Ev# = " << iEv << endl;
 
         for (Int_t iPair = 0; iPair < particlePair->GetEntriesFast(); iPair++) {
@@ -95,32 +97,32 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t useCut
                 //                if (ptPodol > PtPodol)
                 //                    continue;
                 //
-	       if (path < 7.)
-	       	continue;
+//                if (path < Path)
+//                    continue;
 
-	       //  if (mom1 < Mom1[0] || mom1 > Mom1[1])
-	       //	continue;
+                //  if (mom1 < Mom1[0] || mom1 > Mom1[1])
+                //	continue;
 
-	       // if (eta1 < Eta1[0] || eta1 > Eta1[1])
-	       //	continue;
+                // if (eta1 < Eta1[0] || eta1 > Eta1[1])
+                //	continue;
 
-	       // if (eta2 < Eta2[0] || eta2 > Eta2[1])
-	       //	continue;
+                // if (eta2 < Eta2[0] || eta2 > Eta2[1])
+                //	continue;
 
-	       // if (dca12X < Dca12X[0] || dca12X > Dca12X[1])
-	       //	continue;
+                if (dca12X < Dca12X[0] || dca12X > Dca12X[1])
+                    continue;
 
-	      //              if (dca12Y < Dca12Y[0] || dca12Y > Dca12Y[1])
-              //                      continue;
+                //              if (dca12Y < Dca12Y[0] || dca12Y > Dca12Y[1])
+                //                      continue;
 
-               //  if (dca1 < Dca1[0] || dca1 > Dca1[1])
-	       //     continue;
+                //  if (dca1 < Dca1[0] || dca1 > Dca1[1])
+                //     continue;
 
-               //  if (dca2 < Dca2[0] || dca2 > Dca2[1])
-               //      continue;
+                //  if (dca2 < Dca2[0] || dca2 > Dca2[1])
+                //      continue;
 
-               //  if (mom2 < Mom2[0] || mom2 > Mom2[1])
-               //      continue;
+                //  if (mom2 < Mom2[0] || mom2 > Mom2[1])
+                //      continue;
             }
             invMassSpectrum->Fill(invMass);
         }
@@ -129,7 +131,7 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t useCut
 
     Double_t par[8];
     TF1* bg = new TF1("BG", "pol4", rL, rB);
-    TF1* sig = new TF1("SIG", "gaus", 1.11, 1.122);
+    TF1* sig = new TF1("SIG", "gaus", 1.1, 1.13);
     TVirtualPad* pad = canvLambda->cd();
     pad->SetLeftMargin(0.2);
     invMassSpectrum->Fit(bg, "R");
@@ -147,18 +149,24 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t useCut
     TString fitOpt = "RS";
     //f->SetParameter(6, 1.1152);
     f->SetParameter(7, 0.002);
-//    TFitResultPtr fitRes = invMassSpectrum->Fit(f, (useCuts) ? fitOpt.Data() : TString(fitOpt + "0").Data());
-    TFitResultPtr fitRes = invMassSpectrum->Fit(f, fitOpt.Data());
+    TFitResultPtr fitRes = invMassSpectrum->Fit(f, (drawFit) ? fitOpt.Data() : TString(fitOpt + "0").Data());
     Double_t mean = fitRes->Parameter(6);
     Double_t sigma = fitRes->Parameter(7);
     Double_t T = invMassSpectrum->Integral(invMassSpectrum->FindBin(mean - 3 * sigma), invMassSpectrum->FindBin(mean + 3 * sigma));
     Double_t B = bg->Integral(mean - 3 * sigma, mean + 3 * sigma) / invMassSpectrum->GetBinWidth(1);
+    Double_t S = sig->Integral(mean - 3 * sigma, mean + 3 * sigma) / invMassSpectrum->GetBinWidth(1);
     Double_t S_to_B = T / B - 1;
     Double_t Signif = (T - B) / T;
-    
+    printf("Tot %f  Bg %f sig %f\n", T, B, S);
     f->GetParameters(par);
     sig->SetParameters(&par[5]);
-
+    bg->SetParameters(&par[0]);
+    T = invMassSpectrum->Integral(invMassSpectrum->FindBin(mean - 3 * sigma), invMassSpectrum->FindBin(mean + 3 * sigma));
+    B = bg->Integral(mean - 3 * sigma, mean + 3 * sigma) / invMassSpectrum->GetBinWidth(1);
+    S = sig->Integral(mean - 3 * sigma, mean + 3 * sigma) / invMassSpectrum->GetBinWidth(1);
+    S_to_B = T / B - 1;
+    Signif = (T - B) / T;
+    printf("Tot %f  Bg %f sig %f after refit\n", T, B, S);
     invMassSpectrum->SetMarkerStyle(20);
     invMassSpectrum->SetMarkerColor(kSpring - 6);
     invMassSpectrum->SetLineColor(kSpring - 6);
@@ -179,19 +187,26 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t useCut
     invMassSpectrum->SetMinimum(0);
 
     // Draw the legend
-    TLegend *legend = new TLegend(0.55, 0.65, 0.61, 0.8);
+    Double_t legendX = 0.55;
+    Double_t legendY = 0.85;
+    TLegend *legend = new TLegend(legendX, legendY - (4 + cutStrVec.size() )* 0.05, legendX + 0.05, legendY);
     legend->SetTextFont(72);
     legend->SetTextSize(0.03);
     legend->AddEntry("", Form("Mass = %.4f", mean), 0);
-    legend->AddEntry("", Form("Sigma = %.4f", sigma), 0);
+    legend->AddEntry("", Form("  #sigma    = %.4f", sigma), 0);
     legend->AddEntry("", Form("S/B = %.4f", S_to_B), 0);
     legend->AddEntry("", Form("S/(S + B) = %.4f", Signif), 0);
-    legend->AddEntry("", Form("Sig integral = %.4f", (T - B)), 0);
+    legend->AddEntry("", Form("Sig integral = %.4f", S), 0);
+    if (cutStrVec.size() > 0)
+        legend->AddEntry("", "", 0);
+    for (TString &cutS : cutStrVec) {
+        legend->AddEntry("", cutS.Data(), 0);
+    }
     legend->SetLineColor(0);
-//    if (useCuts){
-        legend->Draw();
-        sig->Draw("SAME");
-//    }
+    //    if (useCuts){
+    legend->Draw();
+    sig->Draw("SAME");
+    //    }
     // -----   Finish   --------------------------------------------------------
     canvLambda->SaveAs("L2.pdf");
     delete out;

@@ -67,15 +67,18 @@ build:ubuntu:
   stage: test_run_sim
   artifacts:
     paths:
-      - macro/run/evetest.root
+      - macro/run/bmnsim.root
+      - macro/run/srcsim.root
   script:
     - source build/config.sh
-    - root -b -q -l '$CI_PROJECT_DIR/macro/run/run_sim_bmn.C' | tee output.txt
+    - root -b -q -l '$CI_PROJECT_DIR/$MACRO_NAME' | tee output.txt
     - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
   allow_failure: false
   <<: *only-default
   
-run_sim:centos:
+run_sim_bmn:centos:
+  variables:
+    MACRO_NAME: "macro/run/run_sim_bmn.C"
   tags:
     - test
     - centos
@@ -83,70 +86,142 @@ run_sim:centos:
     - build:centos
   <<: *run_sim
 
-run_sim:ubuntu:
+run_sim_bmn:ubuntu:
+  variables:
+    MACRO_NAME: "macro/run/run_sim_bmn.C"
   tags:
     - test
     - ubuntu
   dependencies:
     - build:ubuntu
   <<: *run_sim
-  
-.run_reco_template: &run_reco
-  stage: test_run_reco
-  artifacts:
-    paths:
-      - macro/run/bmndst_exp.root
-  script:
-    - source build/config.sh
-    - root -b -q -l "$CI_PROJECT_DIR/macro/run/run_reco_bmn.C" | tee output.txt
-    - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
-  allow_failure: false
-  <<: *only-default
-  
-run_reco:centos:
+
+run_sim_src:centos:
+  variables:
+    MACRO_NAME: "macro/run/run_sim_src.C"
   tags:
     - test
     - centos
   dependencies:
     - build:centos
-    - run_sim:centos
-  <<: *run_reco
-  
-run_reco:ubuntu:
+  <<: *run_sim
+
+run_sim_src:ubuntu:
+  variables:
+    MACRO_NAME: "macro/run/run_sim_src.C"
   tags:
     - test
     - ubuntu
   dependencies:
     - build:ubuntu
-    - run_sim:ubuntu
+  <<: *run_sim
+
+.run_reco_template: &run_reco
+  stage: test_run_reco
+  artifacts:
+    paths:
+      - macro/run/bmndst.root
+      - macro/run/srcdst.root
+  script:
+    - source build/config.sh
+    - root -b -q -l "$CI_PROJECT_DIR/$MACRO_NAME" | tee output.txt
+    - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
+  allow_failure: false
+  <<: *only-default
+  
+run_reco_bmn:centos:
+  variables:
+    MACRO_NAME: "macro/run/run_reco_bmn.C"
+  tags:
+    - test
+    - centos
+  dependencies:
+    - build:centos
+    - run_sim_bmn:centos
+  <<: *run_reco
+  
+run_reco_bmn:ubuntu:
+  variables:
+    MACRO_NAME: "macro/run/run_reco_bmn.C"
+  tags:
+    - test
+    - ubuntu
+  dependencies:
+    - build:ubuntu
+    - run_sim_bmn:ubuntu
+  <<: *run_reco
+
+run_reco_src:centos:
+  variables:
+    MACRO_NAME: "macro/run/run_reco_src.C"
+  tags:
+    - test
+    - centos
+  dependencies:
+    - build:centos
+    - run_sim_src:centos
+  <<: *run_reco
+  
+run_reco_src:ubuntu:
+  variables:
+    MACRO_NAME: "macro/run/run_reco_src.C"
+  tags:
+    - test
+    - ubuntu
+  dependencies:
+    - build:ubuntu
+    - run_sim_src:ubuntu
   <<: *run_reco
   
 .run_digi_template: &run_digi
   stage: test_run_digi
   script:
     - source build/config.sh
-    - root -b -q -l '$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("$VMCWORKDIR/macro/run/testDigi.root", "$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)' | tee output.txt
+    - root -b -q -l "$MACRO_NAME" | tee output.txt
     - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
   allow_failure: false
   <<: *only-default
   
-run_digi:centos:
+run_digi_bmn:centos:
+  variables:
+    MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("$$VMCWORKDIR/macro/run/testDigi.root", "$$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)'
   tags:
     - test
     - centos
   dependencies:
     - build:centos
-    - run_sim:centos
   <<: *run_digi
   
-run_digi:ubuntu:
+run_digi_bmn:ubuntu:
+  variables:
+    MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("$$VMCWORKDIR/macro/run/testDigi.root", "$$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)'
   tags:
     - test
     - ubuntu
   dependencies:
     - build:ubuntu
   <<: *run_digi
+
+run_digi_src:centos:
+  variables:
+    MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_src.C("$$VMCWORKDIR/macro/run/testSRCDigi.root", "$$VMCWORKDIR/macro/run/srcdst_exp.root", 0, 100)'
+  tags:
+    - test
+    - centos
+  dependencies:
+    - build:centos
+  <<: *run_digi
   
+run_digi_src:ubuntu:
+  variables:
+    MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_src.C("$$VMCWORKDIR/macro/run/testSRCDigi.root", "$$VMCWORKDIR/macro/run/srcdst_exp.root", 0, 100)'
+  tags:
+    - test
+    - ubuntu
+  dependencies:
+    - build:ubuntu
+  <<: *run_digi
+
 .deploy_template: &deploy
   stage: deploy
   before_script:

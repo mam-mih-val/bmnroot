@@ -58,13 +58,14 @@ and open the template in the editor.
                 xhr.send();
             }
             function createTable() {
+                sessionStorage.clear();
                 var sel = document.getElementById("refTable");
                 //sel.innerHTML = "";
                 setRunInfo(runPath);
                 drawInfo();
             }
             function drawInfo() {
-                setTimeout(drawInfo, 10000);
+                setTimeout(drawInfo, 5000);
                 JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
                     var info = JSON.parse(obj);
                     if (info.arr.length > 0){
@@ -90,6 +91,10 @@ and open the template in the editor.
                 var filename2 = path + "ToF400CanvasTimes" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename2, 'object', function (obj) {
                     JSROOT.redraw("timeTableC", obj, "");
+                }).send(null);
+                var filename2 = path + "ToF400Canvas2d" + "/root.json.gz?compact=3";
+                JSROOT.NewHttpRequest(filename2, 'object', function (obj) {
+                    JSROOT.redraw("can2d", obj, "");
                 }).send(null);
             }
             function cleanCanvases() {
@@ -130,7 +135,7 @@ and open the template in the editor.
         <div align="center">
             <h1>ToF400</h1>
             <div align="center">
-                <div id="infoC" style="width: 20vw;"> </div>
+                <div id="infoC" style="width: 90vw;"> </div>
             </div>
         </div>
  <br/>
@@ -206,70 +211,14 @@ and open the template in the editor.
         <div align="center">
             <div id="timeTableC" style="width: 98vw;"> </div>
         </div>
+        <div align="center">
+            <div id="can2d" style="width: 98vw;"> </div>
+        </div>
 
-        <iframe src="../root.app/ToF400/ToF400_State/draw.htm?monitoring=5000&opt=colz"
+        <!--<iframe src="../root.app/ToF400/ToF400_State/draw.htm?monitoring=5000&opt=colz"
                 class="inframe_hist" style="width: 80vw;height: 30vw;"
                 >
 
-        </iframe>
-
-        <!--<table class="hist_trig_table" style="width:100%">
-            <tr>
-                <td>
-                    <iframe src="../root.app/ToF400/ToF400_Leading_Time/draw.htm?monitoring=2000"
-                            class="inframe_hist" style="width: 48vw;height: 30vw;"
-                            >
-        
-                    </iframe>
-                </td>
-                <td>
-                    <iframe src="../root.app/ToF400/ToF400_Amplitude/draw.htm?monitoring=2000"
-                            class="inframe_hist" style="width: 48vw;height: 30vw;"
-                            >                
-                    </iframe>                    
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <iframe src="../root.app/ToF400/ToF400_Leading_Time_Specific/draw.htm?monitoring=2000"
-                            class="inframe_hist" style="width: 48vw;height: 30vw;"
-                            >
-        
-                    </iframe>
-                </td>
-                <td>
-                    <iframe src="../root.app/ToF400/ToF400_Amplitude_Specific/draw.htm?monitoring=2000"
-                            class="inframe_hist" style="width: 48vw;height: 30vw;"
-                            >                
-                    </iframe>                    
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <iframe src="../root.app/ToF400/ToF400_Strip/draw.htm?monitoring=2000"
-                            class="inframe_hist" style="width: 48vw;height: 30vw;"
-                            >
-        
-                    </iframe>
-                </td>
-                <td>
-                    <iframe src="../root.app/ToF400/ToF400_StripSimult/draw.htm?monitoring=2000"
-                            class="inframe_hist" style="width: 48vw;height: 30vw;"
-                            >                
-                    </iframe>                    
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <iframe src="../root.app/ToF400/ToF400_State/draw.htm?monitoring=2000&opt=colz"
-                            class="inframe_hist" style="width: 80vw;height: 30vw;"
-                            >
-        
-                    </iframe>
-                </td>
-                <td>
-                </td>
-            </tr>
-        </table>-->
+        </iframe>-->
     </body>
 </html>

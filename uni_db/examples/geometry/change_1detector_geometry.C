@@ -68,7 +68,9 @@ void change_1detector_geometry(int start_period = 7, int start_run = 2041, int e
 
     // get top node
     TGeoNode* top_node = gGeoManager->GetTopNode();
-    //cout<<"The top node of gGeoManager is "<<top_node->GetName()<<endl;
+#ifdef DEBUG
+    cout<<"The top node of the old gGeoManager is "<<top_node->GetName()<<endl;
+#endif
 
     // cycle for all detector volumes and exporting them to temporary files
     TObjArray* arrNodes = top_node->GetNodes();
@@ -81,6 +83,7 @@ void change_1detector_geometry(int start_period = 7, int start_run = 2041, int e
         TString volume_name = cur_volume->GetName();
         arrDetectorNames.AddLast((TObject*)(new TObjString(cur_volume->GetName())));
 
+        TString new_det = " ";
         TFile* fileDetectorGeo = NULL;
         if (volume_name == TString(detector_name))
         {
@@ -117,6 +120,7 @@ void change_1detector_geometry(int start_period = 7, int start_run = 2041, int e
                 exit(-8);
             }
 
+            new_det = " new ";
             cout<<"Replacing detector "<<detector_name<<"..."<<endl;
         }
 
@@ -125,7 +129,7 @@ void change_1detector_geometry(int start_period = 7, int start_run = 2041, int e
 
         // export top detector geometries to different files
 #ifdef DEBUG
-        cout<<"Exporting detector '"<<volume_name<<"' to file: "<<strDetectorGeoName->String()<<"..."<<endl;
+        cout<<"Exporting"<<new_det<<"detector '"<<volume_name<<"' to file: "<<strDetectorGeoName->String()<<"..."<<endl;
 #endif
         cur_volume->Export(strDetectorGeoName->String(), volume_name);
 

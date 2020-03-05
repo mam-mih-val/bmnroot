@@ -25,7 +25,7 @@ void run_sim_src(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/s
     fRun->SetName("TGeant4");
 #endif
 
-    geometry_src_run7(fRun); // load SRC geometry
+    geometry(fRun); // load SRC geometry
 
     // Create and Set Event Generator
     FairPrimaryGenerator* primGen = new FairPrimaryGenerator();

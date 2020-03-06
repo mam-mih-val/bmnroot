@@ -15,6 +15,10 @@ fNofDim(1),
 fPhi(0.),
 fUsing(kFALSE) {
     fMeas[1] = fError[1] = 0.;
+    fDchLayerType = "";
+    fDchIdNumber = -1;
+    fWireNumber = -1;
+    fDistanceToWire = 0.0;
 }
 //------------------------------------------------------------------------------------------------------------------------
 
@@ -28,6 +32,10 @@ fNofDim(1),
 fPhi(0.),
 fUsing(kFALSE) {
     fMeas[1] = fError[1] = 0.;
+    fDchLayerType = "";
+    fDchIdNumber = -1;
+    fWireNumber = -1;
+    fDistanceToWire = 0.0;
 }
 //------------------------------------------------------------------------------------------------------------------------
 
@@ -38,6 +46,10 @@ fNofDim(1),
 fPhi(0.),
 fUsing(kFALSE) {
     fMeas[1] = fError[1] = 0.;
+    fDchLayerType = "";
+    fDchIdNumber = -1;
+    fWireNumber = -1;
+    fDistanceToWire = 0.0;
 }
 //------------------------------------------------------------------------------------------------------------------------
 
@@ -48,6 +60,10 @@ fNofDim(1),
 fPhi(0.),
 fUsing(kFALSE) {
     fMeas[1] = fError[1] = 0.;
+    fDchLayerType = "";
+    fDchIdNumber = -1;
+    fWireNumber = -1;
+    fDistanceToWire = 0.0;
 }
 //------------------------------------------------------------------------------------------------------------------------
 

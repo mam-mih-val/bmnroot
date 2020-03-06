@@ -104,70 +104,66 @@ void BmnDchHitProducer::Exec(Option_t* opt) {
         //sigma error dependent on the distance to the nearest wire
         Double_t sigm_err = (wdist < 0.02) ? 0.08 : (wdist >= 0.02 && wdist < 0.1) ? 0.06 : (wdist >= 0.1 && wdist < 0.4) ? 0.025 : (wdist >= 0.4 && wdist < 0.41) ? 0.08 : 0.10;
 
-        Double_t dx1 = rand_gen.Gaus(0, sigm_err);
-        Double_t dy1 = rand_gen.Gaus(0, sigm_err);
-        Double_t dz1 = rand_gen.Gaus(0, 0.0);
+        Double_t dsmear = rand_gen.Gaus(0, sigm_err);
 
-        Double_t dx2 = rand_gen.Gaus(0, sigm_err);
-        Double_t dy2 = rand_gen.Gaus(0, sigm_err);
-        Double_t dz2 = rand_gen.Gaus(0, 0.0);
-
-        //Double_t x_smeared = x + dx;
-        //Double_t y_smeared = y + dy;
-        //Double_t z_smeared = z + dz;
-
-        //hit-1 with smearing
-        Double_t x1_smeared = -x_loc + x_shift + dx1;
-        Double_t y1_smeared = y_loc + y_shift + dy1;
-        Double_t z1_smeared = z + dz1;
-
-        //hit-2 (symmetrical) with smearing
-        Double_t x2_smeared;
-        Double_t y2_smeared;
-        Double_t z2_smeared = z + dz2;
-
+        Double_t x1_glob;
+        Double_t y1_glob;
+        Double_t x2_glob;
+        Double_t y2_glob;
 
         if(fPlaneTypes[currentPlaneNum][0] == 'x') {
+            x1_glob = -(x_loc + dsmear) + x_shift;
+            y1_glob = y_loc + y_shift;
+
             if(left) {
-                x2_smeared = -(x_loc + 2*wdist) + x_shift + dx2;
-                y2_smeared = y_loc + y_shift + dy2;
+                x2_glob = -((x_loc - dsmear) + 2*wdist) + x_shift;
+                y2_glob = y_loc + y_shift;
             }
             else {
-                x2_smeared = -(x_loc - 2*wdist) + x_shift + dx2;
-                y2_smeared = y_loc + y_shift + dy2;
+                x2_glob = -((x_loc - dsmear) - 2*wdist) + x_shift;
+                y2_glob = y_loc + y_shift;
             }
         }
 
         if(fPlaneTypes[currentPlaneNum][0] == 'y') {
+            x1_glob = -x_loc + x_shift;
+            y1_glob = (y_loc + dsmear) + y_shift;
+
             if(left) {
-                x2_smeared = -x_loc + x_shift + dx2;
-                y2_smeared = y_loc + 2*wdist + y_shift + dy2;
+                x2_glob = -x_loc + x_shift;
+                y2_glob = (y_loc - dsmear) + 2*wdist + y_shift;
             }
             else {
-                x2_smeared = -x_loc + x_shift + dx2;
-                y2_smeared = y_loc - 2*wdist + y_shift + dy2;
+                x2_glob = -x_loc + x_shift;
+                y2_glob = (y_loc - dsmear) - 2*wdist + y_shift;
             }
         }
 
         if(fPlaneTypes[currentPlaneNum][0] == 'v') {
+            x1_glob = -(x_loc + TMath::Sqrt2()*dsmear*0.5) + x_shift;
+            y1_glob = (y_loc + TMath::Sqrt2()*dsmear*0.5) + y_shift;
+
             if(left) {
-                x2_smeared = -(((v_loc + 2*wdist) - u_loc)/TMath::Sqrt2()) + x_shift + dx2;
-                y2_smeared = (((v_loc + 2*wdist) + u_loc)/TMath::Sqrt2()) + y_shift + dy2;
+                x2_glob = -((((v_loc - dsmear) + 2*wdist) - u_loc)/TMath::Sqrt2()) + x_shift;
+                y2_glob = ((((v_loc - dsmear) + 2*wdist) + u_loc)/TMath::Sqrt2()) + y_shift;
             }
             else {
-                x2_smeared = -(((v_loc - 2*wdist) - u_loc)/TMath::Sqrt2()) + x_shift + dx2;
-                y2_smeared = (((v_loc - 2*wdist) + u_loc)/TMath::Sqrt2()) + y_shift + dy2;
+                x2_glob = -((((v_loc - dsmear) - 2*wdist) - u_loc)/TMath::Sqrt2()) + x_shift;
+                y2_glob = ((((v_loc - dsmear) - 2*wdist) + u_loc)/TMath::Sqrt2()) + y_shift;
             }
         }
 
         if(fPlaneTypes[currentPlaneNum][0] == 'u') {
+            x1_glob = -(x_loc - TMath::Sqrt2()*dsmear*0.5) + x_shift;
+            y1_glob = (y_loc + TMath::Sqrt2()*dsmear*0.5) + y_shift;
+
             if(left) {
-                x2_smeared = -((v_loc  - (u_loc + 2*wdist))/TMath::Sqrt2()) + x_shift + dx2;
-                y2_smeared = ((v_loc + (u_loc + 2*wdist))/TMath::Sqrt2()) + y_shift + dy2;
+                x2_glob = -((v_loc  - ((u_loc - dsmear) + 2*wdist))/TMath::Sqrt2()) + x_shift;
+                y2_glob = ((v_loc + ((u_loc - dsmear) +  2*wdist))/TMath::Sqrt2()) + y_shift;
             }
             else {
-                x2_smeared = -((v_loc  - (u_loc - 2*wdist))/TMath::Sqrt2()) + x_shift + dx2;
-                y2_smeared = ((v_loc + (u_loc - 2*wdist))/TMath::Sqrt2()) + y_shift + dy2;
+                x2_glob = -((v_loc  - ((u_loc - dsmear) - 2*wdist))/TMath::Sqrt2()) + x_shift;
+                y2_glob = ((v_loc + ((u_loc - dsmear) - 2*wdist))/TMath::Sqrt2()) + y_shift;
             }
         }
 
@@ -178,10 +174,9 @@ void BmnDchHitProducer::Exec(Option_t* opt) {
             cout << "(x:y:z) = ( " << x << " : " << y << " : " << z << " )\n";
             cout << "  currentPlaneNum = " << currentPlaneNum << "\n";
             cout << "  PlaneType = " << fPlaneTypes[currentPlaneNum][0] << "\n";
-            cout << "  (dx1:dy1:dz1) = ( " << dx1 << " : " << dy1 << " : " << dz1 << " )\n";
-            cout << "  (dx2:dy2:dz2) = ( " << dx2 << " : " << dy2 << " : " << dz2 << " )\n";
-            cout << "  smeared1(x:y:z) = ( " << x1_smeared << " : " << y1_smeared << " : " << z1_smeared << " )\n";
-            cout << "  smeared2(x:y:z) = ( " << x2_smeared << " : " << y2_smeared << " : " << z2_smeared << " )\n";
+            cout << "  dsmear = " << dsmear << "\n";
+            cout << "  smeared1(x:y:z) = ( " << x1_glob << " : " << y1_glob << " : " << z << " )\n";
+            cout << "  smeared2(x:y:z) = ( " << x2_glob << " : " << y2_glob << " : " << z << " )\n";
             cout << "  wdist = " << wdist << "\n";
             cout << "  wire_pos = " << wire_pos << "\n";
             cout << "  nearest_wire = " << nearest_wire << "\n";
@@ -193,11 +188,30 @@ void BmnDchHitProducer::Exec(Option_t* opt) {
 
         //adding a new hit with probability 90%
         if(rand_gen.Uniform() <= 0.9) {
-            new ((*fBmnHitsArray)[fBmnHitsArray->GetEntriesFast()])
-                   BmnDchHit(0, TVector3(x1_smeared, y1_smeared, z1_smeared), TVector3(sigm_err, sigm_err, 0.0), iPoint);
 
+            UInt_t current_DCH_number = z < 700.0 ? 0 : 1; // find the current DCH number (0, 1) - temp. decision
+
+            //add the fisrt hit
             new ((*fBmnHitsArray)[fBmnHitsArray->GetEntriesFast()])
-                   BmnDchHit(0, TVector3(x2_smeared, y2_smeared, z2_smeared), TVector3(sigm_err, sigm_err, 0.0), iPoint);
+                   BmnDchHit(0, TVector3(x1_glob, y1_glob, z), TVector3(sigm_err, sigm_err, 0.0), iPoint);
+
+            BmnDchHit* hit = (BmnDchHit*) fBmnHitsArray->At(fBmnHitsArray->GetEntriesFast() - 1);
+                hit->SetDchIdNumber(current_DCH_number);
+                hit->SetDchLayerNumber(currentPlaneNum);
+                hit->SetDchLayerType(fPlaneTypes[currentPlaneNum]);
+                hit->SetWireNumber(nearest_wire);
+                hit->SetDistanceToWire(wdist);
+
+            //add the second (symmetric) hit
+            new ((*fBmnHitsArray)[fBmnHitsArray->GetEntriesFast()])
+                   BmnDchHit(0, TVector3(x2_glob, y2_glob, z), TVector3(sigm_err, sigm_err, 0.0), iPoint);
+
+            hit = (BmnDchHit*) fBmnHitsArray->At(fBmnHitsArray->GetEntriesFast() - 1);
+                hit->SetDchIdNumber(current_DCH_number);
+                hit->SetDchLayerNumber(currentPlaneNum);
+                hit->SetDchLayerType(fPlaneTypes[currentPlaneNum]);
+                hit->SetWireNumber(nearest_wire);
+                hit->SetDistanceToWire(wdist);
         }
 
         //delete rand_gen;

@@ -28,6 +28,9 @@ public:
   //Int_t GetIndex(Int_t indx = 0) const { return fIndex[indx]; } //
   UChar_t GetLayer() const { return  fDchLayer; } //
   UShort_t GetLayerNumber() const { return  fDchLayerNumber; } //
+  TString GetLayerType() const { return fDchLayerType;}
+  Int_t GetWireNumber() { return fWireNumber; }
+  Double_t GetDistanceToWire() { return fDistanceToWire; }
   Int_t GetDetectorID() const { return  fDetectorID; } //
   Double_t GetPhi() const { return fPhi; } // get rotation angle
   Double_t GetMeas(Int_t indx = 0) const { return fMeas[indx]; } // get measurement
@@ -55,6 +58,9 @@ public:
   void SetDchId(UChar_t id) { fDchId = id; }
   void SetDchIdNumber(UShort_t id) { fDchIdNumber = id; }
   void SetDchLayerNumber(UShort_t id) { fDchLayerNumber = id; }
+  void SetDchLayerType(TString layer_type) { fDchLayerType = layer_type; }
+  void SetWireNumber(Int_t wire_num) { fWireNumber = wire_num; }
+  void SetDistanceToWire(Double_t dist) { fDistanceToWire = dist; }
   void SetNofDim(Int_t dim) { fNofDim = dim; } // set number of measurements per point
   void SetPhi(Double_t phi) { fPhi = phi; } // set rotation angle
   void SetMeas(Double_t meas, Int_t indx = 0) { fMeas[indx] = meas; } // set measurement
@@ -81,8 +87,11 @@ protected:
   Int_t fEventID; // identifier of event
   Int_t fID; // identifier of hit in hits array
   Int_t fDetectorID;            // Detector ID
-  UChar_t fDchLayer;             // Dch layer ID (0-7)
-  UShort_t fDchLayerNumber;             // Dch layer ID (0-7)
+  UChar_t fDchLayer;            // Dch layer ID (0-7)
+  UShort_t fDchLayerNumber;     // Dch layer ID (0-7)
+  TString fDchLayerType;        // DCH layer type (x, y, v, u)
+  Int_t fWireNumber;            // Nearest wire to a MC-track
+  Double_t fDistanceToWire;     // Distance from a MC-point to the nearest wire
   Int_t fTrackID;               // track ID
   Int_t fFlag; 			// Flag for general purposes [TDC, event tagging...]
   Int_t fNofDim; 		// number of measurements per point

@@ -3,6 +3,7 @@
 #include "TSystem.h"
 
 #include "CbmMCTrack.h"
+#include "BmnSiliconPoint.h"
 
 
 static Float_t workTime = 0.0;
@@ -147,6 +148,9 @@ void BmnSiliconDigitizer::ProcessMCPoints() {
 
         Double_t dEloss = SiliconPoint->GetEnergyLoss()*1e6; // in keV
         Int_t refId = ipoint;
+
+        //Int_t mc_station_num = ((BmnSiliconPoint*) SiliconPoint)->GetStation();
+        //Int_t mc_module_num = ((BmnSiliconPoint*) SiliconPoint)->GetModule();
 
         if (fUseRealEffects) {
             Int_t iSt = StationSet->GetPointStationOwnership(z);

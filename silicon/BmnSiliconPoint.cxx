@@ -12,7 +12,8 @@ BmnSiliconPoint::BmnSiliconPoint()
   fPx_out(0.0),
   fPy_out(0.0),
   fPz_out(0.0),
-  fIsPrimary(0), fCharge(-1.0), fPdgId(0) {
+  fIsPrimary(0), fCharge(-1.0), fPdgId(0),
+  fStation(-1), fModule(-1) {
 
 }
 
@@ -29,7 +30,8 @@ BmnSiliconPoint::BmnSiliconPoint(Int_t trackID, Int_t detID,
   fPx_out(momOut.Px()),
   fPy_out(momOut.Py()),
   fPz_out(momOut.Pz()),
-  fIsPrimary(isPrimary), fCharge(charge), fPdgId(pdgId) {
+  fIsPrimary(isPrimary), fCharge(charge), fPdgId(pdgId),
+  fStation(-1), fModule(-1) {
 
 }
 

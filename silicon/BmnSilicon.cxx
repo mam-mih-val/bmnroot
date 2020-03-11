@@ -7,6 +7,7 @@
 #include "TParticlePDG.h"
 #include "TGDMLParse.h"
 #include "TGeoManager.h"
+#include "TRegexp.h"
 
 #include "FairRootManager.h"
 #include "FairVolume.h"
@@ -46,8 +47,27 @@ BmnSilicon::~BmnSilicon() {
 
 //------------------------------------------------------------------------------
 
-Bool_t BmnSilicon::ProcessHits(FairVolume* vol)
-{
+Bool_t BmnSilicon::ProcessHits(FairVolume* vol) {
+
+    // Determine station and module numbers for the current hit ----------------
+    Int_t stationNum = -1; // current station number (default)
+    Int_t moduleNum = -1; // current module number (default)
+
+    TString moduleVolumeName = gGeoManager->GetCurrentNode()->GetMotherVolume()->GetName();
+
+    TRegexp expr = "^module[0-9]+_station[0-9]+$";
+    if(moduleVolumeName.Contains(expr)) {
+        TRegexp mod_expr = "module[0-9]+";
+        TRegexp stat_expr = "station[0-9]+";
+
+        moduleNum = TString(TString(moduleVolumeName(mod_expr))(TRegexp("[0-9]+"))).Atoi();
+        stationNum = TString(TString(moduleVolumeName(stat_expr))(TRegexp("[0-9]+"))).Atoi();
+    }
+
+    //cout << "stationNum = " << stationNum << "\n";
+    //cout << "moduleNum = " << moduleNum << "\n";
+    //cout << "\n";
+
     // Set parameters at entrance of volume. Reset ELoss.
     if(gMC->IsTrackEntering()) {
 
@@ -100,6 +120,9 @@ Bool_t BmnSilicon::ProcessHits(FairVolume* vol)
                                     fMomIn, fMomOut,
                                     fTime, fLength, fELoss,
                                     fIsPrimary, fCharge, fPdgId);
+
+        p->SetStation(stationNum);
+        p->SetModule(moduleNum);
 
         ((CbmStack*)gMC->GetStack())->AddPoint(kSILICON);
     }

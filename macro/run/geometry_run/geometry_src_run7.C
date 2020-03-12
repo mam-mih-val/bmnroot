@@ -1,5 +1,5 @@
 // construct detector geometry
-void geometry_src_run7(FairRunSim *fRun)
+void geometry(FairRunSim *fRun)
 {
     // Set Material file Name
     fRun->SetMaterials("media.geo");
@@ -36,7 +36,7 @@ void geometry_src_run7(FairRunSim *fRun)
     fRun->AddModule(csc);
 
     FairDetector* tof1 = new BmnTOF1("TOF1", kTRUE);
-    tof1->SetGeometryFileName("TOF400_RUN7_SRC_AllignmentZY.root");
+    tof1->SetGeometryFileName("TOF400_RUN7_SRC_AllignmentZY_v3.root");
     fRun->AddModule(tof1);
 
     FairDetector* tof = new BmnTOF("TOF", kTRUE);

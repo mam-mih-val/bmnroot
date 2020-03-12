@@ -90,6 +90,13 @@ InitStatus BmnGemStripDigitizer::Init() {
             if (fVerbose) cout << "   Current GEM Configuration : GemRunSRCSpring2018" << "\n";
             break;
 
+        case BmnGemStripConfiguration::FutureConfig2020:
+            StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemFutureConfig2020.xml");
+            TransfSet = new BmnGemStripTransform();
+            TransfSet->LoadFromXMLFile(gPathGemConfig + "GemFutureConfig2020.xml");
+            if (fVerbose) cout << "   Current GEM Configuration : GemFutureConfig2020" << "\n";
+            break;
+
         case BmnGemStripConfiguration::RunSpring2018_misAlign:
             StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2018_misAlign.xml");
             if (fVerbose) cout << "   Current GEM Configuration : RunSpring2018" << "\n";

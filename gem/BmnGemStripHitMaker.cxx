@@ -141,6 +141,13 @@ InitStatus BmnGemStripHitMaker::Init() {
             if (fVerbose > 1) cout << "   Current GEM Configuration : GemRunSRCSpring2018" << "\n";
             break;
 
+        case BmnGemStripConfiguration::FutureConfig2020:
+            StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemFutureConfig2020.xml");
+            TransfSet = new BmnGemStripTransform();
+            TransfSet->LoadFromXMLFile(gPathGemConfig + "GemFutureConfig2020.xml");
+            if (fVerbose) cout << "   Current GEM Configuration : GemFutureConfig2020" << "\n";
+            break;
+
         default:
             StationSet = NULL;
     }

@@ -35,6 +35,8 @@
     "SERVER": "192.168.65.52",
     "PORT": 8086,
     "DBNAME": "pgsqltest",
+    "USER": "influx",
+    "PASS": "123456",
     "NOTIFY": "mail1.jinr.ru,mail2.jinr.ru"
   },
 
@@ -47,5 +49,6 @@
     "PASS": "***"
   },
 
-  "LOG": "mail1.jinr.ru,mail2.jinr.ru"
+  "LOG": "mail1.jinr.ru,mail2.jinr.ru",
+  "NAME": "Monitoring Service"
 }

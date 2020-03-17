@@ -18,6 +18,7 @@ BmnStatus BmnRecoTools::Embed(TString inSourceName, TString inBaseName, TString 
     Int_t EmbeddedType = 1;
     Bool_t addMatch = kFALSE;
     Bool_t isExp = kTRUE;
+    Bool_t isHitMakerEfficiencyMode = kTRUE;
 
     /* Hits branches */
     vector<TString> digiNames = {
@@ -175,21 +176,47 @@ BmnStatus BmnRecoTools::Embed(TString inSourceName, TString inBaseName, TString 
         //        }
         //        fDestTree->GetEntry(iEv);
         for (UInt_t iBr = 0; iBr < fNArs; iBr++) {
-//            printf("iEv %u iBr %u \n", iEv, iBr);
-//            printf(" was %d entries source\n", digiSourceArs[iBr]->GetEntries());
-//            //            printf(" was %d entries dest\n", digiDestArs[iBr]->GetEntries());
-//            printf(" was %d entries base\n", digiBaseArs[iBr]->GetEntries());
+            //            printf("iEv %u iBr %u \n", iEv, iBr);
+            //            printf(" was %d entries source\n", digiSourceArs[iBr]->GetEntries());
+            //            //            printf(" was %d entries dest\n", digiDestArs[iBr]->GetEntries());
+            //            printf(" was %d entries base\n", digiBaseArs[iBr]->GetEntries());
 
-            if (turnOffBaseDigits == kTRUE) {
-                for (Int_t i = 0; i < digiBaseArs[iBr]->GetEntriesFast(); i++) {
-                    BmnStripDigit * dig = (BmnStripDigit*) digiBaseArs[iBr]->At(i);
-                    dig->SetIsGoodDigit(kFALSE);
-                }
-            }
+            //            if (turnOffBaseDigits == kTRUE) {
+            //                for (Int_t i = 0; i < digiBaseArs[iBr]->GetEntriesFast(); i++) {
+            //                    BmnStripDigit * dig = (BmnStripDigit*) digiBaseArs[iBr]->At(i);
+            //                    dig->SetIsGoodDigit(kFALSE);
+            //                }
+            //            }
 
             //            Int_t fNDigiBase = digiBaseArs[iBr]->GetEntriesFast();
-            digiDestArs[iBr]->AbsorbObjects(digiBaseArs[iBr]);
-            digiDestArs[iBr]->AbsorbObjects(digiSourceArs[iBr]);
+            if (turnOffBaseDigits == kFALSE)
+                digiDestArs[iBr]->AbsorbObjects(digiBaseArs[iBr]);
+            //            digiDestArs[iBr]->AbsorbObjects(digiSourceArs[iBr]);
+            /** summ strip signals */
+            for (UInt_t iSrcDig = 0; iSrcDig < digiSourceArs[iBr]->GetEntriesFast(); iSrcDig++) {
+                BmnStripDigit * src = (BmnStripDigit*) digiSourceArs[iBr]->At(iSrcDig);
+                Int_t iSame = -1;
+                //                printf("iSrc %d\n", iSrcDig);
+                for (UInt_t iDestDig = 0; iDestDig < digiDestArs[iBr]->GetEntriesFast(); iDestDig++) {
+                    BmnStripDigit * des = (BmnStripDigit*) digiDestArs[iBr]->At(iDestDig);
+                    if (
+                            (des->GetStation() == src->GetStation()) &&
+                            (des->GetModule() == src->GetModule()) &&
+                            (des->GetStripLayer() == src->GetStripLayer()) &&
+                            (des->GetStripNumber() == src->GetStripNumber())
+                            ) {
+                        iSame = iDestDig;
+                        if (isHitMakerEfficiencyMode)
+                            des->SetStripSignal(src->GetStripSignal());
+                        else
+                            des->SetStripSignal(des->GetStripSignal() + src->GetStripSignal());
+                    }
+                }
+                if (iSame == -1) {
+                    new ((*digiDestArs[iBr])[digiDestArs[iBr]->GetEntriesFast()])
+                            BmnStripDigit(src);
+                }
+            }
 
             //            digiDestBrs[iBr]->Fill();
             if (addMatch)
@@ -200,7 +227,7 @@ BmnStatus BmnRecoTools::Embed(TString inSourceName, TString inBaseName, TString 
                     matchDestArs[iBr]->AbsorbObjects(matchSourceArs[iBr]);
                     //                    matchDestBrs[iBr]->Fill();
                 }
-//            printf(" is %d entries dest\n", digiDestArs[iBr]->GetEntries());
+            //            printf(" is %d entries dest\n", digiDestArs[iBr]->GetEntries());
 
         }
         //        mcEHOut->Clear();
@@ -243,7 +270,7 @@ BmnStatus BmnRecoTools::Embed(TString inSourceName, TString inBaseName, TString 
 }
 
 BmnStatus BmnRecoTools::CloneSelected(TString BaseName, TString TempBaseName) {
-    printf("\nPreliminary clone selected exp events!\n");
+    printf("\nPreliminary clone selected exp events:");
     TFile *BaseHits = new TFile(BaseName, "READ");
     if (BaseHits->IsOpen() == false) {
         printf("\n!!!!\ncannot open file %s !\n", BaseName.Data());
@@ -269,7 +296,6 @@ BmnStatus BmnRecoTools::CloneSelected(TString BaseName, TString TempBaseName) {
     UInt_t NSrcEvents = fInTreeSource->GetEntries();
     UInt_t NBaseEvents = TreeBase->GetEntries();
     for (UInt_t iEv = 0; iEv < NSrcEvents; iEv++) {
-        printf("iev %u nsrc %u\n", iEv, NSrcEvents);
         DrawBar(iEv, NSrcEvents);
         if (GetNextValidSourceEvent() == kBMNERROR) {
             printf("Not enough source events!\n");
@@ -292,6 +318,26 @@ BmnStatus BmnRecoTools::CloneSelected(TString BaseName, TString TempBaseName) {
     printf("\nPreliminary cloning finished!\n");
     return kBMNSUCCESS;
 }
+
+//void BmnRecoTools::HighlightDecay(TClonesArray* mcTracks, TClonesArray* gemPoints, TClonesArray* silPoints) { printf("Highlight\n");
+//    for (Int_t iTrack = 0; iTrack < mcTracks->GetEntriesFast(); iTrack++) {
+//        CbmMCTrack* track = (CbmMCTrack*) mcTracks->UncheckedAt(iTrack);
+//        if (track->GetMotherId() != -1 || track->GetPdgCode() != fCode)
+//            continue;
+//                                printf("found %dth track for %d\n", iTrack, track->GetPdgCode());
+//        vector<Int_t> outHitsCnt; ///<- found hits for the each offspring
+////        outHitsCnt.resize(fOutCodes.size(), 0);
+//        // find the offsprings & count their hits in the inner tracker
+//        for (Int_t jTrack = 0; jTrack < mcTracks->GetEntriesFast(); jTrack++) {
+//            CbmMCTrack* offspringTrack = (CbmMCTrack*) mcTracks->UncheckedAt(jTrack);
+//            if (offspringTrack->GetMotherId() != iTrack)
+//                continue;
+//            auto it = find(fOutCodes.begin(), fOutCodes.end(), offspringTrack->GetPdgCode());
+//            if (it == fOutCodes.end())
+//                continue;
+//        }
+//    }
+//}
 
 BmnStatus BmnRecoTools::GetNextValidSourceEvent() {
     do {
@@ -365,271 +411,26 @@ Bool_t BmnRecoTools::IsReconstructable(
 
 }
 
-//BmnStatus BmnRecoTools::FilterDecayR(TString inSourceName, TString outName, Int_t code, vector<Int_t> outCodes) {
-//    BmnStatus st = FilterDecayR(chain, outName, code, outCodes);
-////    TChain * chain = new TChain("bmndata");
-////    chain->Add(inSourceName.Data());
-////    BmnStatus st = FilterDecayR(chain, outName, code, outCodes);
-////    delete chain;
-//    return st;
+//static void BmnRecoTools::ShowHitMakerEff(TClonesArray * hits, BmnSiliconStationSet set) {
+//    
+//    vector<vector<vector<Int_t  > > > histSiliconStrip;
+//    for (Int_t iStation = 0; iStation < set->GetNStations(); iStation++) {
+//        vector<vector<TH1F*> > rowGEM;
+//        BmnSiliconStation* st = set->GetSiliconStation(iStation);
+//        for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
+//            vector<UInt_t> colGEM;
+//            BmnSiliconModule *mod = st->GetModule(iModule);
+//            colGEM.resize(mod->GetNStripLayers(), 0)
+//            rowGEM.push_back(colGEM);
+//        }
+//        histSiliconStrip.push_back(rowGEM);
+//    }
+//
+//    for (Int_t iHit = 0; iHit < hits->GetEntriesFast(); iHit++) {
+//        BmnHit *hit = (BmnHit *) hits->UncheckedAt(iHit);
+//        hit->Get
+//    }
 //}
-
-//BmnStatus BmnRecoTools::FilterDecayR(TChain* inSourceChain, TString outName, Int_t code, vector<Int_t> outCodes) {
-
-BmnStatus BmnRecoTools::FilterDecayR(TString inSourceName, TString outName, Bool_t isExp, Int_t code, vector<Int_t> outCodes) {
-    Int_t fPeriodID = 7;
-    Bool_t addMatch = kFALSE;
-    const Int_t minHits = 5;
-
-    TString EHName = "BmnEventHeader.";
-    TString EHNameCopy = "EventHeader.";
-    TString EHMCName = "MCEventHeader.";
-    TString EHDigiName = "BmnEventHeader.";
-    TString FieldParName = "BmnFieldPar";
-    TString MCTrackName = "MCTrack";
-    TString StsPointName = "StsPoint";
-    vector<TString> digiNames = {
-        "BmnSiliconDigit", "BmnGemStripDigit", "BmnCSCDigit", "MCTrack", "StsPoint", "SiliconPoint", "CSCPoint",
-        "GeoTracks"
-    };
-    vector<TString> digiExpNames = {
-        "BmnSiliconDigit", "BmnGemStripDigit", "BmnCSCDigit", "MCTrack", "StsPoint", "SiliconPoint", "CSCPoint",
-        "GeoTracks"
-    };
-    vector<TString> outMCNames = {
-        "BmnSiliconDigit", "BmnGemStripDigit", "BmnCSCDigit", "MCTrack", "StsPoint", "SiliconPoint", "CSCPoint",
-        "GeoTracks"
-    };
-    vector<TString> outExpNames = {
-        "SILICON", "GEM", "CSC", "MCTrack", "StsPoint", "SiliconPoint", "CSCPoint",
-        "GeoTracks"
-    };
-    vector<TString> digiOutExpNames = (isExp == kTRUE) ? outExpNames : outMCNames;
-
-    vector<TClass*> digiClasses = {
-        BmnSiliconDigit::Class(), BmnGemStripDigit::Class(), BmnCSCDigit::Class(), CbmMCTrack::Class(),
-        CbmStsPoint::Class(), BmnSiliconPoint::Class(), BmnCSCPoint::Class(), TGeoTrack::Class()
-    };
-    vector<TString> matchNames = {"BmnSiliconDigitMatch", "BmnGemStripDigitMatch", "BmnCSCDigitMatch"};
-    vector<TClonesArray*> digiSourceArs; ///<- source digi arrays
-    vector<TClonesArray*> digiDestArs; ///<- destination digi arrays
-    vector<TBranch*> digiDestBrs; ///<- destination digi branches
-    vector<TClonesArray*> matchSourceArs; ///<- source match arrays
-    vector<TClonesArray*> matchDestArs; ///<- destination match arrays
-    vector<TBranch*> matchDestBrs; ///<- destination match branches
-    TClonesArray * mcTracks = nullptr;
-    TClonesArray* stsPoints = nullptr;
-    TClonesArray* silPoints = nullptr;
-    TClonesArray* cscPoints = nullptr;
-    TBranch *EHBranch = nullptr; ///<- input event header
-    TBranch *EHBranchOut = nullptr; ///<- output event header
-    FairMCEventHeader * mcEH = nullptr;
-    FairMCEventHeader * mcEHOut = nullptr;
-    BmnEventHeader * EHOut = nullptr;
-    BmnEventHeader * EHOutCopy = nullptr;
-    BmnFieldPar *fieldPar = nullptr;
-
-    TList* fBranchList = new TList();
-
-    UInt_t fNArs = digiNames.size();
-
-    /***********************/
-    /** Open input digits **/
-    /***********************/
-    TFile *fSourceHits = new TFile(inSourceName, "READ");
-    if (fSourceHits->IsOpen() == false) {
-        printf("\n!!!!\ncannot open file %s !\n", inSourceName.Data());
-        return kBMNERROR;
-    }
-    printf("\nINPUT SOURCE FILE: ");
-    printf("%s\n", inSourceName.Data());
-    TTree * inSourceChain = (TTree *) fSourceHits->Get("bmndata");
-    UInt_t fNEventSource = inSourceChain->GetEntries();
-    printf("Found %d events\n", fNEventSource);
-    for (Int_t i = 0; i < fNArs; i++) {
-        TClonesArray* arDigi = nullptr; // new TClonesArray(BmnCSCHit::Class());
-        inSourceChain->SetBranchAddress(digiNames[i].Data(), &arDigi);
-        digiSourceArs.push_back(arDigi);
-        if (i < matchNames.size()) {
-            TClonesArray* ar = nullptr;
-            inSourceChain->SetBranchAddress(matchNames[i].Data(), &ar);
-            matchSourceArs.push_back(ar);
-        }
-    }
-    mcTracks = digiSourceArs[3];
-    stsPoints = digiSourceArs[4];
-    silPoints = digiSourceArs[5];
-    cscPoints = digiSourceArs[6];
-    inSourceChain->SetBranchAddress(EHMCName.Data(), &mcEH);
-    //    inSourceChain->SetBranchAddress(MCTrackName.Data(), &mcTracks);
-    //    inSourceChain->SetBranchAddress(StsPointName.Data(), &stsPoints);
-    fieldPar = (BmnFieldPar*) fSourceHits->Get(FieldParName.Data());
-
-    /*******************************/
-    /** Create output digits file **/
-    /*******************************/
-    TFile *fDestHitsFile = new TFile(outName, "RECREATE");
-    if (fDestHitsFile->IsOpen() == false) {
-        printf("\n!!!!\ncannot open file %s !\n", outName.Data());
-        return kBMNERROR;
-    }
-    printf("\nOUT FILE: %s\n", outName.Data());
-    if (addMatch == kFALSE)
-        for (Int_t i = 0; i < matchNames.size(); i++) {
-            inSourceChain->SetBranchStatus(matchNames[i] + ".*", 0);
-            //            inSourceChain->SetBranchStatus(matchNames[i], 0);
-        }
-    TTree * fDestTree = inSourceChain->CloneTree(0);
-    //    TTree * fDestTree = new TTree("bmndata", "bmndata");
-    //    for (Int_t i = 0; i < fNArs; i++) {
-    //        TClonesArray* arDigi = new TClonesArray(digiClasses[i]);
-    //        TBranch* brDigi = fDestTree->Branch(digiOutExpNames[i], &arDigi);
-    //        digiDestArs.push_back(arDigi);
-    //        digiDestBrs.push_back(brDigi);
-    //    }
-    if (addMatch)
-        for (Int_t i = 0; i < matchNames.size(); i++) {
-            TClonesArray* ar = new TClonesArray(BmnMatch::Class());
-            TBranch * br = fDestTree->Branch(matchNames[i], &ar);
-            matchDestArs.push_back(ar);
-            matchDestBrs.push_back(br);
-        }
-    //    if (isExp == kTRUE) {
-    //        EHOut = new BmnEventHeader();
-    //        fDestTree->Branch(EHName.Data(), EHOut);
-    //        EHOutCopy = new BmnEventHeader();
-    //        fDestTree->Branch(EHNameCopy.Data(), EHOutCopy);
-    //    } else {
-    //        mcEHOut = new FairMCEventHeader();
-    //        EHBranchOut = fDestTree->Branch(EHMCName.Data(), mcEHOut);
-    //    }
-    TList * branches = (TList*) fDestTree->GetListOfBranches();
-    for (Int_t i = 0; i < branches->GetEntries(); i++) {
-        TObjString * s = new TObjString(branches->At(i)->GetName());
-        fBranchList->Add(s);
-    }
-    UInt_t nRecEv = 0;
-
-    for (UInt_t iEv = 0; iEv < fNEventSource; ++iEv) {
-        //        for (UInt_t iBr = 0; iBr < fNArs; iBr++) {
-        //            digiDestArs[iBr]->Clear("C");
-        //            if (addMatch && iBr < matchNames.size())
-        //                matchDestArs[iBr]->Clear("C");
-        //        }
-        inSourceChain->GetEntry(iEv);
-        DrawBar(iEv, fNEventSource);
-
-        Int_t decaysWritten = 0;
-        // run over MC tracks & search for needed particle code
-        //                printf("iev %d ntracks %d\n", iEv, mcTracks->GetEntriesFast());
-        for (Int_t iTrack = 0; iTrack < mcTracks->GetEntriesFast(); iTrack++) {
-            CbmMCTrack* track = (CbmMCTrack*) mcTracks->UncheckedAt(iTrack);
-            if (track->GetMotherId() != -1 || track->GetPdgCode() != code)
-                continue;
-            //                        printf("found %dth track for %d\n", iTrack, track->GetPdgCode());
-            vector<Int_t> outHitsCnt; ///<- found hits for the each offspring
-            outHitsCnt.resize(outCodes.size(), 0);
-            // find the offsprings & count their hits in the inner tracker
-            for (Int_t jTrack = 0; jTrack < mcTracks->GetEntriesFast(); jTrack++) {
-                CbmMCTrack* offspringTrack = (CbmMCTrack*) mcTracks->UncheckedAt(jTrack);
-                if (offspringTrack->GetMotherId() != iTrack)
-                    continue;
-                auto it = find(outCodes.begin(), outCodes.end(), offspringTrack->GetPdgCode());
-                if (it == outCodes.end())
-                    continue;
-                Int_t iOffspring = it - outCodes.begin();
-                //                                printf("found %dth offspring for %d\n", iOffspring, offspringTrack->GetPdgCode());
-
-                for (Int_t iPoint = 0; iPoint < stsPoints->GetEntriesFast(); iPoint++) {
-                    CbmStsPoint* stsPoint = (CbmStsPoint*) stsPoints->UncheckedAt(iPoint);
-                    if (stsPoint->GetTrackID() != jTrack)
-                        continue;
-                    //                                printf("found %dth gem point for %d\n", iPoint, offspringTrack->GetPdgCode());
-                    outHitsCnt[iOffspring]++;
-                }
-                for (Int_t iPoint = 0; iPoint < silPoints->GetEntriesFast(); iPoint++) {
-                    BmnSiliconPoint* silPoint = (BmnSiliconPoint*) silPoints->UncheckedAt(iPoint);
-                    if (silPoint->GetTrackID() != jTrack)
-                        continue;
-                    //                                printf("found %dth sil point for %d\n", iPoint, offspringTrack->GetPdgCode());
-                    outHitsCnt[iOffspring]++;
-                }
-                for (Int_t iPoint = 0; iPoint < cscPoints->GetEntriesFast(); iPoint++) {
-                    BmnCSCPoint* cscPoint = (BmnCSCPoint*) cscPoints->UncheckedAt(iPoint);
-                    if (cscPoint->GetTrackID() != jTrack)
-                        continue;
-                    //                                printf("found %dth csc point for %d\n", iPoint, offspringTrack->GetPdgCode());
-                    outHitsCnt[iOffspring]++;
-                }
-            }
-            Int_t insuff = -1;
-            for (Int_t iOffspring = 0; iOffspring < outCodes.size(); iOffspring++) {
-                //                                printf("%d counts %d hits\n", iOffspring, outHitsCnt[iOffspring]);
-                if (outHitsCnt[iOffspring] < minHits) {
-                    insuff = iOffspring;
-                    break;
-                }
-            }
-            if (insuff > -1)
-                continue;
-            decaysWritten++;
-        }
-        if (decaysWritten == 0)
-            continue;
-        //        for (UInt_t iBr = 0; iBr < fNArs; iBr++) {
-        //            digiDestArs[iBr]->AbsorbObjects(digiSourceArs[iBr]);
-        //            if (iBr < matchNames.size()) {
-        //                if (addMatch) {
-        //                    matchDestArs[iBr]->AbsorbObjects(matchSourceArs[iBr]);
-        //                }
-        //            }
-        //        }
-        //        if (isExp) {
-        //            EHOut->Clear();
-        //            EHOut->SetEventId(mcEH->GetEventID());
-        //            //                EHOut->SetEventTime(mcEH->GetEventTime());
-        //            //                EHOut->SetEventTimeTS(mcEH->GetEventTimeTS());
-        //            EHOut->SetEventType(kBMNPAYLOAD);
-        //            EHOut->SetPeriodId(fPeriodID);
-        //            EHOut->SetRunId(4649); //mcEH->GetRunID());
-        //            EHOutCopy->Clear();
-        //            EHOutCopy->SetEventId(mcEH->GetEventID());
-        //            //                EHOutCopy->SetEventTime(mcEH->GetEventTime());
-        //            //                EHOutCopy->SetEventTimeTS(mcEH->GetEventTimeTS());
-        //            EHOutCopy->SetEventType(kBMNPAYLOAD);
-        //            EHOutCopy->SetPeriodId(fPeriodID);
-        //            EHOutCopy->SetRunId(4649); //mcEH->GetRunID());
-        //        } else {
-        //            mcEHOut->Clear();
-        //            mcEHOut->SetEventID(mcEH->GetEventID());
-        //            mcEHOut->SetRunID(mcEH->GetRunID());
-        //            mcEHOut->SetTime(mcEH->GetT());
-        //            mcEHOut->SetB(mcEH->GetB());
-        //            mcEHOut->SetNPrim(mcEH->GetNPrim());
-        //            mcEHOut->MarkSet(mcEH->IsSet());
-        //            TVector3 vertex;
-        //            mcEH->GetVertex(vertex);
-        //            mcEHOut->SetVertex(vertex);
-        //            mcEHOut->SetRotX(mcEH->GetRotX());
-        //            mcEHOut->SetRotY(mcEH->GetRotY());
-        //            mcEHOut->SetRotZ(mcEH->GetRotZ());
-        //        }
-
-        fDestTree->Fill();
-        nRecEv++;
-    }
-    printf("\nFound %u reconstuctable events\n", nRecEv);
-    fDestTree->AutoSave();
-    //    fDestTree->Write();
-    if (isExp == kFALSE)
-        fDestHitsFile->WriteObject(fBranchList, "BranchList");
-    //    fDestHitsFile->WriteObject(fieldPar, FieldParName.Data());
-    fDestHitsFile->Write();
-    if (fDestHitsFile)
-        fDestHitsFile->Close();
-    //    if (fSourceHits)
-    //        fSourceHits->Close();
-}
 
 vector<TString> BmnRecoTools::GetFileVecFromDir(TString dir) {
     vector<TString> vec;
@@ -652,6 +453,129 @@ vector<TString> BmnRecoTools::GetFileVecFromDir(TString dir) {
         free(namelist);
     }
     return vec;
+}
+
+void BmnRecoTools::FillSetStsPoints(
+        TClonesArray* pts,
+        BmnGemStripStationSet* set,
+        vector<TH2* > &hitVec) {
+    //        vector<vector<vector<TH2* > > > &hitVec) {
+    //        vector<vector<vector<UInt_t > > > &hitVec) {
+    for (Int_t iHit = 0; iHit < pts->GetEntriesFast(); iHit++) {
+        CbmStsPoint *pt = (CbmStsPoint *) pts->UncheckedAt(iHit);
+        Int_t iSt = pt->GetStation();
+        Int_t iMod = pt->GetModule();
+//        Double_t x = ((FairMCPoint*) pt)->GetX();
+//        Double_t y = ((FairMCPoint*) pt)->GetY();
+        BmnGemStripModule* mod = set->GetStation(iSt)->GetModule(iMod);
+        Double_t driftCenterShift = 0.0;
+        if (mod->GetElectronDriftDirection() == ForwardZAxisEDrift)
+            driftCenterShift = 0.15;
+        else
+            driftCenterShift = 0.75;
+        Double_t x = pt->GetX(pt->GetZ() + driftCenterShift);
+        Double_t y = pt->GetY(pt->GetZ() + driftCenterShift);
+        Int_t iLayerOwned = -1;
+        for (Int_t iLay = 0; iLay < mod->GetStripLayers().size(); iLay++) {
+            BmnGemStripLayer l = mod->GetStripLayer(iLay);
+            if (l.IsPointInsideStripLayer(x * (-1.0), y)) {
+                iLayerOwned = iLay;
+                break;
+            }
+        }
+        if (iLayerOwned == -1)
+            continue;
+        Int_t iZone = iLayerOwned / 2;
+        //        printf("zax = %08X\n",hitVec[pt->GetStation()][pt->GetModule()][iZone]->GetZaxis());
+        Double_t Pz = ((FairMCPoint*) pt)->GetPz();
+        if (Pz > 0)
+            hitVec[pt->GetStation()]->Fill(
+                ((FairMCPoint*) pt)->GetPx() / Pz,
+                ((FairMCPoint*) pt)->GetPy() / Pz);
+        //        hitVec[pt->GetStation()]->Fill(x, y);
+        //        hitVec[pt->GetStation()][pt->GetModule()][iZone]->Fill(x, y);
+        //        hitVec[pt->GetStation()][pt->GetModule()][iZone]++;
+    }
+}
+
+void BmnRecoTools::FillSetStsHits(
+        TClonesArray* pts, TClonesArray* hits,
+        BmnGemStripStationSet* set,
+        vector<TH2* > &hitVec,
+        vector<TH1D* > &hrx,
+        vector<TH1D* > &hry
+) {
+    //        vector<vector<vector<TH2* > > > &hitVec) {
+    //        vector<vector<vector<UInt_t > > > &hitVec) {
+
+    for (Int_t iPt = 0; iPt < pts->GetEntriesFast(); iPt++) {
+        CbmStsPoint *pt = (CbmStsPoint *) pts->UncheckedAt(iPt);
+        Int_t iSt = pt->GetStation();
+        Int_t iMod = pt->GetModule();
+//        Double_t x = ((FairMCPoint*) pt)->GetX();
+//        Double_t y = ((FairMCPoint*) pt)->GetY();
+        Double_t thr = 0.;
+        Int_t iLayerOwned = -1;
+        BmnGemStripModule* mod = set->GetStation(iSt)->GetModule(iMod);
+        Double_t driftCenterShift = 0.0;
+        if (mod->GetElectronDriftDirection() == ForwardZAxisEDrift)
+            driftCenterShift = 0.15;
+        else
+            driftCenterShift = 0.75;
+        Double_t x = pt->GetX(pt->GetZ() + driftCenterShift);
+        Double_t y = pt->GetY(pt->GetZ() + driftCenterShift);
+        for (Int_t iLay = 0; iLay < mod->GetStripLayers().size(); iLay++) {
+            BmnGemStripLayer l = mod->GetStripLayer(iLay);
+            //                printf("%d th layer pitch %f\n", iLay, l.GetPitch());
+            if (l.IsPointInsideStripLayer(x * (-1.0), y)) {
+                //                layers.push_back(l);
+                iLayerOwned = iLay;
+                //                printf("%d th layer found\n", iLay);
+                if (iLay > 1) // hot zone
+                    thr = 0.5;
+                else
+                    thr = 0.5;
+                thr = thr*thr;
+                break;
+            }
+        }
+        if (iLayerOwned == -1)
+            continue;
+        Int_t iZone = iLayerOwned / 2;
+        //        printf("Point   %f : %f     thr %f\n", x, y, thr); 
+        BmnHit *hitClosest = nullptr;
+        Double_t MinDistance = DBL_MAX;
+        for (Int_t iHit = 0; iHit < hits->GetEntriesFast(); iHit++) {
+            BmnHit *hit = (BmnHit *) hits->UncheckedAt(iHit);
+            if (
+                    hit->GetFlag() == kFALSE ||
+                    hit->GetStation() != iSt ||
+                    hit->GetModule() != iMod)
+                continue;
+            Double_t dist = Sq(hit->GetX() - x) + Sq(hit->GetY() - y);
+            hrx[pt->GetStation()]->Fill(hit->GetX() - x);
+            hry[pt->GetStation()]->Fill(hit->GetY() - y);
+            //            printf("Hit     %f : %f   dist = %f\n", hit->GetX(), hit->GetY(), dist);
+            if (dist < MinDistance) {
+                hitClosest = hit;
+                MinDistance = dist;
+            }
+        }
+        if (MinDistance < thr) {
+            //            printf("Hit     %f : %f   dist = %f   Minimum! \n", hitClosest->GetX(), hitClosest->GetY(), MinDistance);
+            Double_t Pz = ((FairMCPoint*) pt)->GetPz();
+            if (Pz > 0)
+                hitVec[pt->GetStation()]->Fill(
+                    ((FairMCPoint*) pt)->GetPx() / Pz,
+                    ((FairMCPoint*) pt)->GetPy() / Pz);
+            //            hitVec[pt->GetStation()]->Fill(x, y);
+            //            hitVec[pt->GetStation()][pt->GetModule()][iZone]->Fill(x, y);
+            //        hitVec[pt->GetStation()][pt->GetModule()][iZone]++;
+            hitClosest->SetFlag(kFALSE);
+        } else {
+//            printf("\tnot found in st %d mod %d\n", iSt, iMod);
+        }
+    }
 }
 
 ClassImp(BmnRecoTools)

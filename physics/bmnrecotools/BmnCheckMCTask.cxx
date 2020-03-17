@@ -51,9 +51,9 @@ void BmnCheckMCTask::Exec(Option_t* option) {
         FairRootManager* ioman = FairRootManager::Instance();
         fMCEvHeader = (FairMCEventHeader*) ioman->GetObject(fMCEvHeaderName);
     }
-    printf("\nBmnCheckMCTask::Exec eventID = %u\n", fEvHeaderShow->GetEventId());
     if (fVerbose > 1)
-        printf("\n%s : exec  fRunSimInst->GetSaveEvent() = %d\n", typeid (*this).name(), fRunSimInst->GetSaveEvent());
+        printf("\nBmnCheckMCTask::Exec eventID = %u  GetSaveEvent() = %d\n",
+                fEvHeaderShow->GetEventId(), fRunSimInst->GetSaveEvent());
     if (fMCTracks == nullptr)
         return;
     for (Int_t iTrack = 0; iTrack < fPVertexShow->GetEntriesFast(); iTrack++) {

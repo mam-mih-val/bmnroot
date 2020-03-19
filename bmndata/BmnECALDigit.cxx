@@ -1,59 +1,54 @@
 #include "BmnECALDigit.h"
 
-Bool_t BmnECALMapElement::Scan(ifstream& in) {
-    in >> std::hex >> fAdcId >> std::dec >> fAdcChan >> fChan >> fX >> fY;
-    if (in.good()) {
-        fX *= 10.;
-        fY *= 10.;
-        fIX = (Short_t) (fX / 40.);
-        fIY = (Short_t) (fY / 40.);
-        //Print();
-        return kTRUE;
+void BmnECALMapElement::SetAdcMap(Int_t chan, ULong_t adcId, UShort_t adcChan) {
+    if (fChan > -1 && fChan != chan) {
+        Error(__func__,"ECAL channel does't match: was %d, become %d, reinitializing", fChan, chan);
     }
-    fChan = -1;
-    return in.eof();
+    fChan = chan;
+    fAdcId = adcId;
+    fAdcChan = adcChan;
+}
+
+void BmnECALMapElement::SetCoeff(Int_t chan, Double_t coeff) {
+    if (fChan > -1 && fChan != chan) {
+        Error(__func__,"ECAL channel does't match: was %d, become %d, reinitializing", fChan, chan);
+    }
+    fChan = chan;
+    fCoeff = coeff;
+}
+
+void BmnECALMapElement::SetCoords(TGeoNode* cell, TGeoNode* mother) {
+    Int_t chan = cell->GetNumber();
+    if (fChan > -1 && fChan != chan) {
+        Fatal(__func__,"ECAL channel does't match: was %d, become %d, fatal!", fChan, chan);
+    }
+    static const Double_t base[] = {0.,0.,0.};
+    cell->LocalToMaster(base, EcalCoords());
+    mother->LocalToMaster(EcalCoords(),LabCoords());
+}
+
+void BmnECALMapElement::PrintTitle() {
+    cout << "Id#" 
+            << "\t" << "fAdcChan" 
+            << "\t" << "fChan"
+            << "\t" << "fCoeff"
+            << "\t" << "fX" 
+            << "\t" << "fY"
+            << "\t" << "fLabX"
+            << "\t" << "fLabY"
+            << "\t" << "fLabZ" << "\n";
 }
 
 void BmnECALMapElement::Print() {
     cout << "0x" << std::hex << fAdcId << std::dec 
             << "\t" << fAdcChan 
-            << "\t" << fChan 
+            << "\t" << fChan
+            << "\t" << fCoeff
             << "\t" << fX 
-            << "\t" << fY << "\n";
-}
-
-Bool_t BmnECALMap::Load() {
-    TString dir = getenv("VMCWORKDIR");
-    TString mapFile = dir + "/input/ECAL_map_period_7.txt";
-    
-    ifstream in;
-    in.open(mapFile.Data());
-    if (!in.is_open())
-    {
-	printf("Loading ECAL Map from file: %s - file open error!\n", mapFile.Data());
-	return kFALSE;
-    }
-    printf("Loading ECAL Map from file: %s\n", mapFile.Data());
-    
-    TString dummy;
-    in >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
-
-    BmnECALMapElement e;
-    Int_t line = 2;
-    while (!in.eof()) {
-        line++;
-        if (!e.Scan(in)) {
-            printf("Loading ECAL Map: scan error at line %d!\n", line);
-            in.close();
-            return kFALSE;
-        }
-        if (!in.eof() && e.GetChan()) {
-            fMap[e.GetChan()] = e;
-        }
-    }
-    in.close();
-    printf("Loading ECAL map: success\n");
-    return kTRUE;
+            << "\t" << fY
+            << "\t" << fLabX
+            << "\t" << fLabY
+            << "\t" << fLabZ << "\n";
 }
 
 BmnECALDigit::BmnECALDigit(){
@@ -78,15 +73,24 @@ BmnECALDigit::BmnECALDigit(Float_t x,Float_t y,Short_t ch,Float_t amp){
     fLabX = fLabY = fLabZ = 0;
 }
 
-BmnECALDigit::BmnECALDigit(BmnECALMapElement* e, Float_t amp) {
-    fChannel = e->GetChan();
-    fX = e->GetX();
-    fY = e->GetY();
-    fAmp = amp;
-    fPeakAmp = 0;
-    fPeakTime = 0;
-    fStartTime = 0;
-    fLabX = fLabY = fLabZ = 0;
+BmnECALDigit::BmnECALDigit(BmnECALMapElement* e) {
+    Set(e);
 }
+
+void BmnECALDigit::Set(BmnECALMapElement* e, Float_t amp, Float_t peakAmp, Float_t startTime, Float_t peakTime) {
+    if (e) {
+        fChannel = e->GetChan();
+        fX = e->GetX();
+        fY = e->GetY();
+        fLabX = e->GetLabX();
+        fLabY = e->GetLabY();
+        fLabZ = e->GetLabZ();
+    }
+    fAmp = amp;
+    fPeakAmp = peakAmp;
+    fPeakTime = peakTime;
+    fStartTime = startTime;
+}
+
 
 ClassImp(BmnECALDigit)

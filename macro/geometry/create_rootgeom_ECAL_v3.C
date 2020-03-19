@@ -46,6 +46,21 @@ struct {
     }
 } ecalLeft, ecalRight;
 
+//int disabled[] = {510,511,512,531,532,533,552,553,554,0};
+int disabled[] = {0};
+int IsMod(int n) {
+	int i = 0;
+	while(disabled[i]) { 
+		if (disabled[i] == n) {
+			printf("\n------------------------\nMOD %d - DISABLED!\n------------------------\n",n);
+			return 0;
+		}
+		i++;
+	}
+	return 1;
+}
+
+
 void SetEcalPosition(Int_t run, Int_t pos) {
     if (run == 7) {
         switch (pos) {
@@ -68,13 +83,18 @@ void SetEcalPosition(Int_t run, Int_t pos) {
     }
     if (run == 8) { // Two shoulders
         switch (pos) {
-//            case 1:
-//                ecalLeft.Set(-44,12.4,843.1,0);
+            case 1:
+				// Single arm on the beam!!!
+                //ecalLeft.Set(0., 0., 283.1, 0.);
 //                ecalRight.Set(44,12.4,843.1,0);
-//                return;
+                ecalLeft.Set(-48-4,12.4,283.1,-10);
+                ecalRight.Set(48+20,12.4,283.1,10);
+                return;
             case 2:
-                ecalLeft.Set(-175,12.4,883.1,-10);
-                ecalRight.Set(175,12.4,883.1,10);
+				// Two arms close to the axis, no rotation, 3x3 module will be removed to provide beam hole
+                ecalLeft.Set(-48,12.4,283.1,0);
+                ecalRight.Set(48,12.4,283.1,0);
+				//disabled = (int[]){510,511,512,531,532,533,552,553,554,0};
                 return;
             case 3:
                 ecalLeft.Set(-175,12.4,283.1,-10);
@@ -132,7 +152,7 @@ TGeoMedium * DefineMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild, const
 void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
 
     mMed.vacuum = DefineMedia(geoMedia, geoBuild, "vacuum");
-    //mMed.air = DefineMedia(geoMedia, geoBuild, "air");
+    mMed.air = DefineMedia(geoMedia, geoBuild, "air");
     //mMed.iron = DefineMedia(geoMedia, geoBuild, "iron");
     //mMed.tyvec = DefineMedia(geoMedia, geoBuild, "tyvec_ZDC");
     mMed.lead = DefineMedia(geoMedia, geoBuild, "lead");
@@ -196,6 +216,10 @@ void create_rootgeom_ECAL_v3(Int_t run, Int_t pos){
     gGeoManager->SetName(geoDetectorName + "_geom");
     gGeoManager->SetTopVolume(top);
 //    gGeoManager->SetTopVisible(1);
+
+    TGeoVolume* ecal = new TGeoVolumeAssembly("ecal");
+    ecal->SetMedium(mMed.air); // ??? it was vacuum ???
+	top->AddNode(ecal,0);
  
     TGeoVolume *ecal1 = 0;
     TGeoVolume *ecal2 = 0;
@@ -203,11 +227,11 @@ void create_rootgeom_ECAL_v3(Int_t run, Int_t pos){
 //    ecal->SetTransparency(100);
     if (combi1) {
         ecal1 = gGeoManager->MakeBox("ecal1", mMed.vacuum, Xmodules*modwidth/2, Ymodules*modheight/2, modlength/2);
-        top->AddNode(ecal1, 0, combi1);
+        ecal->AddNode(ecal1, 0, combi1);
     }
     if (combi2) {
         ecal2 = gGeoManager->MakeBox("ecal2", mMed.vacuum, Xmodules*modwidth/2, Ymodules*modheight/2, modlength/2);
-        top->AddNode(ecal2, 1, combi2);
+        ecal->AddNode(ecal2, 1, combi2);
     }
 	
     TGeoVolume *module = gGeoManager->MakeBox("mod", mMed.vacuum, modwidth/2, modheight/2, modlength/2);
@@ -266,10 +290,12 @@ void create_rootgeom_ECAL_v3(Int_t run, Int_t pos){
     if (ecal1) {
         for(int xmod = 0 ; xmod < Xmodules; xmod++){
             for(int ymod = 0; ymod < Ymodules; ymod++){
-                ecal1->AddNode(module, nmod, new TGeoTranslation(-x0 + modwidth * xmod, -y0 + modheight * ymod,0));
-                MC.Set(-x0 + modwidth * xmod, -y0 + modheight * ymod, 0);
-                combi1->LocalToMaster(MC.Ptr(), TC.Ptr());
-                printf("----------> Ch %d (%f, %f, %f)\n",nmod,TC.x,TC.y,TC.z);
+				if (IsMod(nmod)) {
+					ecal1->AddNode(module, nmod, new TGeoTranslation(-x0 + modwidth * xmod, -y0 + modheight * ymod,0));
+					MC.Set(-x0 + modwidth * xmod, -y0 + modheight * ymod, 0);
+					combi1->LocalToMaster(MC.Ptr(), TC.Ptr());
+					//printf("----------> Ch %d (%f, %f, %f)\n",nmod,TC.x,TC.y,TC.z);
+				}
                 nmod++;
             }//ymod
         }//xmod			
@@ -277,10 +303,12 @@ void create_rootgeom_ECAL_v3(Int_t run, Int_t pos){
     if (ecal2) {
         for(int xmod = 0 ; xmod < Xmodules; xmod++){
             for(int ymod = 0; ymod < Ymodules; ymod++){
-                ecal2->AddNode(module, nmod, new TGeoTranslation(-x0 + modwidth * xmod, -y0 + modheight * ymod,0));
-                MC.Set(-x0 + modwidth * xmod, -y0 + modheight * ymod, 0);
-                combi2->LocalToMaster(MC.Ptr(), TC.Ptr());
-                printf("----------> Ch %d (%f, %f, %f)\n",nmod,TC.x,TC.y,TC.z);
+				if (IsMod(nmod)) {
+					ecal2->AddNode(module, nmod, new TGeoTranslation(-x0 + modwidth * xmod, -y0 + modheight * ymod,0));
+					MC.Set(-x0 + modwidth * xmod, -y0 + modheight * ymod, 0);
+					combi2->LocalToMaster(MC.Ptr(), TC.Ptr());
+					//printf("----------> Ch %d (%f, %f, %f)\n",nmod,TC.x,TC.y,TC.z);
+				}
                 nmod++;
             }//ymod
         }//xmod			

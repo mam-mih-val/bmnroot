@@ -5,44 +5,47 @@
 #include <iostream>
 #include <fstream>
 
+#include <TError.h>
+#include <TGeoNode.h>
+
 #include "TNamed.h"
 #include "TArrayS.h"
 
 using namespace std;
 
 class BmnECALMapElement {
-    ULong_t fAdcId;
-    UShort_t fAdcChan;
-    Int_t fChan;
-    Short_t fIX;
-    Short_t fIY;
-    Float_t fX;
-    Float_t fY;
+    ULong_t fAdcId = 0;
+    UShort_t fAdcChan = 0;
+    Int_t fChan = -1;
+    Double_t fX, fY, fZ;
+    Double_t fLabX, fLabY, fLabZ;
+    Double_t fCoeff = 1.;
     
 public:
-    BmnECALMapElement() { fChan = -1; }
+    BmnECALMapElement() {};
     virtual ~BmnECALMapElement() {}
     
-    Bool_t Scan(ifstream &in);
+    void SetAdcMap(Int_t chan, ULong_t adcId, UShort_t adcChan);
+    void SetCoeff(Int_t chan, Double_t coeff);
+    void SetCoords(TGeoNode * cell, TGeoNode * mother);
 
+    static void PrintTitle();
     void Print();
     
+    Bool_t IsAdcMatch(ULong_t adcId, UShort_t adcChan) { return fChan > -1 && fAdcId == adcId && fAdcChan == adcChan+1; }
+    
     Int_t GetChan() { return fChan; }
-    Float_t GetIX() { return fIX; }
-    Float_t GetIY() { return fIY; }
     Float_t GetX() { return fX; }
     Float_t GetY() { return fY; }
-};
-
-class BmnECALMap {
     
-    std::map<Int_t,BmnECALMapElement> fMap;
+    Double_t GetLabX() { return fLabX; }
+    Double_t GetLabY() { return fLabY; }
+    Double_t GetLabZ() { return fLabZ; }
     
-public:
+    Double_t GetCoeff() { return fCoeff; }
     
-    BmnECALMapElement& Get(Int_t chan)  { return fMap[chan]; }
-    
-    Bool_t Load();
+    Double_t * EcalCoords() {return &fX;}
+    Double_t * LabCoords() {return &fLabX;}
 };
 
 class BmnECALDigit : public TNamed
@@ -54,8 +57,10 @@ class BmnECALDigit : public TNamed
     /** Main constructor **/
     BmnECALDigit(Float_t x,Float_t y,Short_t ch,Float_t amp);
     
-    BmnECALDigit(BmnECALMapElement * e, Float_t amp);
+    BmnECALDigit(BmnECALMapElement * e);
 
+    void Set(BmnECALMapElement * e, Float_t amp = 0., Float_t peakAmp = 0., Float_t startTime = 0., Float_t peakTime = 0.);
+    
     void SetIX(UChar_t ix)        {}
     void SetIY(UChar_t iy)        {}
     void SetX(Float_t x)        { fX = x;        }

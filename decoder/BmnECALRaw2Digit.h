@@ -39,8 +39,6 @@ private:
         void Print() { printf("sample0=%d, samples=%d, min=%g, max=%g\n",sample0,samples,min,max); }
     } fPedestal = {0,8,-30.,30.}, fSignal = {15,20,-5e4,-50.};
             
-    Double_t fELoosRatio = 0.3547; // ELoss / Energy
-
     Bool_t UseNovosibirskFit(BmnADCDigit* digit, Int_t chan, TClonesArray *ecaldigit);
     
     static Double_t Novosibirsk(Double_t* x, Double_t* p);

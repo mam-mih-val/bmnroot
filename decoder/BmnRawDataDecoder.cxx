@@ -1440,10 +1440,8 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     if (fDetectorSetup[8]) {
         ecal = new TClonesArray("BmnECALDigit");
         fDigiTree->Branch("ECAL", &ecal);
-        // pnaleks 15.03.2020
-        //fECALMapper = new BmnECALRaw2Digit(fECALMapFileName, fRootFileName, fECALCalibrationFileName);
         fECALMapper = new BmnECALRaw2Digit(fRunId);
-        fECALMapper->print();
+        //        fECALMapper->print();
     }
 
     if (fDetectorSetup[9]) {

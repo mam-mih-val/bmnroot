@@ -196,7 +196,7 @@ Bool_t BmnECALRaw2Digit::UseNovosibirskFit(BmnADCDigit* digit, Int_t chan, TClon
     Int_t min_n = 0;
     Int_t min_cnt = 0;
     Short_t min_v = 0;
-    Float_t scale = fECALMapArray[chan].GetCoeff() * fELoosRatio; // !!! Convert the Energy to eLoss to conform with MC
+    Float_t scale = fECALMapArray[chan].GetCoeff();
     for (Int_t n = 0; n < N; n++) {
         Short_t v = s[n];
         if (min_v > v) {

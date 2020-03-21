@@ -132,7 +132,7 @@ private:
     FairTrackParam fParamLast;
 
     /** Quality flag **/
-    Int_t fFlag;
+    Int_t fFlag; // 13 for tracks not used in vertex finder
 
     /** Chi square and NDF of track fit **/
     Float_t fChi2;

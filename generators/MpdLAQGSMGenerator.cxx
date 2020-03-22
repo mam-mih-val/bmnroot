@@ -414,7 +414,7 @@ Bool_t MpdLAQGSMGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
     if (event && (!event->IsSet())) {
         event->SetEventID(eventId - 1);
         event->SetB(b);
-        //    event->SetPhi(bb.Phi());    // MG
+        event->SetRotZ(bb.Phi());    // MG
         event->MarkSet(kTRUE);
     }
 
@@ -652,7 +652,7 @@ Int_t MpdLAQGSMGenerator::RegisterIons(Int_t Max_Event_Number) {
                     }
 
                     else { // hyper
-if(false)
+		      //AZ if(false)
                         if (CreateNucleus(Z, mass, PDG, buf_ionName)) {
                             //	      FairParticle *pa=new FairParticle(buf_ionName,Z, iBarionic, abs(iStrange), mass,Z,0,2.6e-10);
                             /*

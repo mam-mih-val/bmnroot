@@ -207,8 +207,8 @@ private:
     Int_t y3csc[ncscin] = {};
     Int_t y4csc[ncscout] = {};
     
-    char ss[10];
-    char sped[20];
+    char ss[10] = {0};
+    char sped[20] = {0};
     FILE *Rnoisefile = nullptr;
     FILE *Wnoisefile = nullptr;
     FILE *Pedfile = nullptr;
@@ -292,6 +292,62 @@ private:
     Int_t nradc = 0;
     Int_t npevents = 0;
     Int_t test = 0;
+    
+    TH1I* hAdc;
+    TH1I * hChan[18];
+    TH1F * hAmp[18];
+
+    TH1F * hPeds[18];
+    TH1F * hPrms[18];
+    TH1F * hPmCmod[18];
+    TH1F * hPmCrms[18];
+    TH1F * hCmode[18];
+    TH1F * hCrms[18];
+
+    TH1F * hSCmode[18];
+
+    TH1F * hAmpx0[18];
+    TH1I * hNAmpx0[18];
+
+    TH1F * hAmpx1[18];
+    TH1I * hNAmpx1[18];
+
+    TH1F * hAmpy0[18];
+    TH1I * hNAmpy0[18];
+
+    TH1F * hAmpy1[18];
+    TH1I * hNAmpy1[18];
+
+
+
+    TH1F * Clust[18];
+
+    TH1F * ClustX1[18];
+    TH1F * ClustX0[18];
+    TH1F * ClustY1[18];
+    TH1F * ClustY0[18];
+
+    TH1I * NClust[18];
+
+    TH1I * NClustX1[18];
+    TH1I * NClustX0[18];
+    TH1I * NClustY1[18];
+    TH1I * NClustY0[18];
+
+    TH1I * Width[18];
+
+    TH1I * WidthX1[18];
+    TH1I * WidthX0[18];
+    TH1I * WidthY1[18];
+    TH1I * WidthY0[18];
+
+    TH1F * Samp[18];
+
+    TH1F * SampX1[18];
+    TH1F * SampX0[18];
+    TH1F * SampY1[18];
+    TH1F * SampY0[18];
+
 
     BmnGemMap* fSmall;
     BmnGemMap* fMid;

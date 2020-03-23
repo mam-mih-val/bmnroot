@@ -122,19 +122,19 @@ protected:
     vector<UInt_t> fAdcSerials; //list of serial id for ADC-detector
     Int_t fNSamples;
     Int_t fNChannels;
-    Double_t**** fPedDat; //data set to calculate pedestals
+    Double_t**** fPedDat = nullptr; //data set to calculate pedestals
     BmnSetup fBmnSetup;
     void Run7(Int_t* statsGem, Int_t* statsSil, Int_t* statsGemPermut, Int_t* statsSilPermut);
     void CreateGeometries();
-    Int_t* statsGem;
-    Int_t* statsSil;
-    Int_t* statsGemPermut;
-    Int_t* statsSilPermut;
+    Int_t* statsGem = nullptr;
+    Int_t* statsSil = nullptr;
+    Int_t* statsGemPermut = nullptr;
+    Int_t* statsSilPermut = nullptr;
     map <Int_t, Int_t> fGemStats;
     map <Int_t, Int_t> fSilStats;
-    BmnGemStripStationSet* fDetectorGEM;
-    BmnSiliconStationSet* fDetectorSI;
-    BmnCSCStationSet* fDetectorCSC;
+    BmnGemStripStationSet* fDetectorGEM = nullptr;
+    BmnSiliconStationSet* fDetectorSI = nullptr;
+    BmnCSCStationSet* fDetectorCSC = nullptr;
 
 private:
 

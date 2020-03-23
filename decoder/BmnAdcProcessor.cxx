@@ -120,22 +120,26 @@ BmnAdcProcessor::~BmnAdcProcessor() {
         delete[] fPedVal[iCr];
         delete[] fPedValTemp[iCr];
         delete[] fNvalsADC[iCr];
+        delete[] fNvals[iCr];
         delete[] fPedRms[iCr];
         delete[] fPedSigRms[iCr];
         delete[] fPedSigRms2[iCr];
         delete[] fAdcProfiles[iCr];
         delete[] fPedCMS[iCr];
+        delete[] fPedCMS0[iCr];
         delete[] fSigCMS[iCr];
         delete[] fNoisyChipChannels[iCr];
     }
     delete[] fPedVal;
     delete[] fPedValTemp;
     delete[] fNvalsADC;
+    delete[] fNvals;
     delete[] fPedRms;
     delete[] fPedSigRms;
     delete[] fPedSigRms2;
     delete[] fAdcProfiles;
     delete[] fPedCMS;
+    delete[] fPedCMS0;
     delete[] fSigCMS;
     delete[] fNoisyChipChannels;
     /*canStrip->cd(1);
@@ -155,6 +159,20 @@ BmnAdcProcessor::~BmnAdcProcessor() {
     canStrip->cd(8);
     hscms1_adc->Draw("colz");
     canStrip->SaveAs("can-cms.png");*/
+    if(fDetectorGEM)
+        delete fDetectorGEM;
+    if(fDetectorSI)
+        delete fDetectorSI;
+    if(fDetectorCSC)
+        delete fDetectorCSC;
+    if(statsGem)
+        delete[] statsGem;
+    if(statsSil)
+        delete[] statsSil;
+    if(statsGemPermut)
+        delete[] statsGemPermut;
+    if(statsSilPermut)
+        delete[] statsSilPermut;
 }
 
 BmnStatus BmnAdcProcessor::RecalculatePedestals() {

@@ -221,7 +221,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     delete tqdc_adc;
     delete msc;
     if (fMSCRunTotal) delete fMSCRunTotal;
-    if (fMSCMapper) delete fMSCMapper;
+    if (eventHeaderDAQ) delete eventHeaderDAQ;
 
     return kBMNSUCCESS;
 }
@@ -393,8 +393,6 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     adc->Delete();
     tacquila->Delete();
     msc->Delete();
-    //    eventHeaderDAQ->Delete();
-    BmnTrigInfo* trigInfo = new BmnTrigInfo();
     if (fVerbose == 1) {
         if (fEventId % 5000 == 0) cout << "Converted event #" << fEventId << endl;
     } else if (fVerbose == 0)
@@ -477,7 +475,10 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                 break;
             }
             case kFVME:
-                Process_FVME(&d[idx], payload, serial, evType, trigInfo);
+                {
+                    BmnTrigInfo* trigInfo = eventHeaderDAQ->GetTrigInfo();
+                    Process_FVME(&d[idx], payload, serial, evType, trigInfo);
+                }
                 break;
             case kHRB:
                 Process_HRB(&d[idx], payload, serial);
@@ -488,7 +489,6 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         }
         idx += payload;
     }
-    //    new((*eventHeaderDAQ)[eventHeaderDAQ->GetEntriesFast()]) BmnEventHeader(fRunId, fEventId, TTimeStamp(time_t(fTime_s), fTime_ns), evType, kFALSE, trigInfo);
     eventHeaderDAQ->SetRunId(fRunId);
     eventHeaderDAQ->SetPeriodId(fPeriodId);
     eventHeaderDAQ->SetEventId(fEventId);
@@ -496,7 +496,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     eventHeaderDAQ->SetEventTime(TTimeStamp(time_t(fTime_s), fTime_ns).AsDouble());
     eventHeaderDAQ->SetEventType(evType);
     eventHeaderDAQ->SetTripWord(kFALSE);
-    eventHeaderDAQ->SetTrigInfo(trigInfo);
+    //eventHeaderDAQ->SetTrigInfo(trigInfo);
     eventHeaderDAQ->SetTimeShift(fTimeShifts);
     eventHeaderDAQ->SetStartSignalInfo(fT0Time, fT0Width);
     eventHeaderDAQ->SetSpillStart(isSpillStart);
@@ -1332,11 +1332,11 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     printf("FINISH (event %d):\t%s\n", fNevents, fRunEndTime.AsString());
     printf(ANSI_COLOR_RED "================================================\n" ANSI_COLOR_RESET);
 
-
     fDigiTree->Write();
     DisposeDecoder();
     fDigiFileOut->Write();
     fDigiFileOut->Close();
+    delete runHeader;
     fRootFileIn->Close();
 
     return kBMNSUCCESS;
@@ -1405,6 +1405,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
             UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("TOF2", "slewing_file_id", fPeriodId, fRunId); //(detector_name, parameter_name, period_number, run_number)
             if (pDetectorParameter != NULL) {
                 fTOF700ReferenceRun = pDetectorParameter->GetInt();
+                delete pDetectorParameter;
             } else {
                 printf("Not found slewing run ID for run %d in DB\n", fRunId);
             }
@@ -1578,8 +1579,9 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
 
 BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (fGemMap) delete[] fGemMap;
-    if (fT0Map) delete[] fT0Map;
+    if (fT0Map) delete fT0Map;
     if (fGemMapper) delete fGemMapper;
+    if (fCscMapper) delete fCscMapper;
     if (fSiliconMapper) delete fSiliconMapper;
     if (fDchMapper) delete fDchMapper;
     if (fMwpcMapper) delete fMwpcMapper;
@@ -1587,8 +1589,11 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (fTof400Mapper) delete fTof400Mapper;
     if (fTof700Mapper) delete fTof700Mapper;
     if (fZDCMapper) delete fZDCMapper;
+    printf("deleted fZDCMapper\n");
     if (fECALMapper) delete fECALMapper;
+    printf("deleted fECALMapper\n");
     if (fLANDMapper) delete fLANDMapper;
+    if (fMSCMapper) delete fMSCMapper;
 
     delete sync;
     delete adc32;
@@ -1598,6 +1603,8 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     delete tdc;
     delete tqdc_adc;
     delete tqdc_tdc;
+    delete hrb;
+    if (msc) delete msc;
 
     if (gem) delete gem;
     if (csc) delete csc;

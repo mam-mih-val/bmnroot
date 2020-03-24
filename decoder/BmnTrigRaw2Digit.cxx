@@ -120,6 +120,8 @@ BmnStatus BmnTrigRaw2Digit::ReadChannelMap(TString mappingFile) {
     while (!fMapFile.eof()) {
         fMapFile >> name >> mod >> hex >> ser >> dec >> slot >> ch >> neg;
         if (!fMapFile.good()) break;
+        if (ch < 0)
+            continue;
         BmnTrigChannelData record;
         record.branchArrayPtr = NULL;
         record.name = name;

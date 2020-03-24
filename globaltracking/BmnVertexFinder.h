@@ -44,6 +44,9 @@ public:
 
 private:
 
+    Double_t CalcRms2D(vector<Double_t> x, vector<Double_t> y);
+    Double_t CalcMeanDist(vector<Double_t> x, vector<Double_t> y);
+
     // Private Data Members ------------
     TString fGlobalTracksBranchName;
     TString fVertexBranchName;

@@ -14,6 +14,6 @@ const char* const TANGO_DB_HOST = "10.18.11.66";        // option for DB adninis
 const char* const ELOG_DB_USERNAME = "shift";           // option for DB adninistrator only
 const char* const ELOG_DB_PASSWORD = "shift";           // option for DB adninistrator only
 const char* const ELOG_DB_NAME = "bmn_elog";            // option for DB adninistrator only
-const char* const ELOG_DB_HOST = "vm221-53.jinr.ru";    // option for DB adninistrator only
+const char* const ELOG_DB_HOST = "nc13.jinr.ru";        // option for DB adninistrator only
 
 #endif // DB_SETTINGS_H

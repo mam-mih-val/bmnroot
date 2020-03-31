@@ -410,7 +410,10 @@ void BmnTof1Raw2Digit::FillEvent(TClonesArray *data, map<UInt_t, Long64_t> *mapT
 			continue;
 		}
                 map<UInt_t,Long64_t>::iterator itTS = mapTS->find(si->GetSerial());
-                if (itTS == mapTS->end()) continue;
+                if (itTS == mapTS->end()){
+                    si++;
+                    continue;
+                }
 		Long64_t TimeShift = itTS->second;
                 
                 //Get the TDC Serial for this crate serial and slot

@@ -60,16 +60,16 @@ public:
     static void FillSetStsPoints(
             TClonesArray* pts,
             BmnGemStripStationSet* set,
-            vector<TH2* > &hitVec);
-//            vector<vector<vector<TH2* > > > &hitVec);
+//            vector<TH2* > &hitVec);
+            vector<vector<vector<TH2* > > > &hitVec);
     
     static void FillSetStsHits(
             TClonesArray* pts, TClonesArray* hits,
             BmnGemStripStationSet* set,
-            vector<TH2* > &hitVec,
-        vector<TH1D* > &hrx,
-        vector<TH1D* > &hry);
-//            vector<vector<vector<TH2* > > > &hitVec);
+//            vector<TH2* > &hitVec,
+//        vector<TH1D* > &hrx,
+//        vector<TH1D* > &hry);
+            vector<vector<vector<TH2* > > > &hitVec);
 
 private:
     void RescaleFunc(TClonesArray* base, TClonesArray* src);

@@ -372,27 +372,40 @@ Bool_t BmnRecoTools::IsReconstructable(
             Int_t iOffspring = it - outCodes.begin();
             //                                printf("found %dth offspring for %d\n", iOffspring, offspringTrack->GetPdgCode());
 
+            /** Count GEM points */
+            UInt_t stations = 0u;
             for (Int_t iPoint = 0; iPoint < gemPoints->GetEntriesFast(); iPoint++) {
-                CbmStsPoint* stsPoint = (CbmStsPoint*) gemPoints->UncheckedAt(iPoint);
-                if (stsPoint->GetTrackID() != jTrack)
+                CbmStsPoint* point = (CbmStsPoint*) gemPoints->UncheckedAt(iPoint);
+                if (point->GetTrackID() != jTrack)
                     continue;
                 //                                printf("found %dth gem point for %d\n", iPoint, offspringTrack->GetPdgCode());
+                UInt_t iStation = point->GetStation();
+                if (TESTBIT(stations, iStation)) // primitive test whether the track is curly
+                    return kFALSE;
+                SETBIT(stations, iStation);
                 outHitsCnt[iOffspring]++;
             }
+            /** Count Silicon points */
+            stations = 0u;
             for (Int_t iPoint = 0; iPoint < silPoints->GetEntriesFast(); iPoint++) {
-                BmnSiliconPoint* silPoint = (BmnSiliconPoint*) silPoints->UncheckedAt(iPoint);
-                if (silPoint->GetTrackID() != jTrack)
+                BmnSiliconPoint* point = (BmnSiliconPoint*) silPoints->UncheckedAt(iPoint);
+                if (point->GetTrackID() != jTrack)
                     continue;
                 //                                printf("found %dth sil point for %d\n", iPoint, offspringTrack->GetPdgCode());
+                UInt_t iStation = point->GetStation();
+                if (TESTBIT(stations, iStation))
+                    return kFALSE;
+                SETBIT(stations, iStation);
                 outHitsCnt[iOffspring]++;
             }
-            for (Int_t iPoint = 0; iPoint < cscPoints->GetEntriesFast(); iPoint++) {
-                BmnCSCPoint* cscPoint = (BmnCSCPoint*) cscPoints->UncheckedAt(iPoint);
-                if (cscPoint->GetTrackID() != jTrack)
-                    continue;
-                //                                printf("found %dth csc point for %d\n", iPoint, offspringTrack->GetPdgCode());
-                outHitsCnt[iOffspring]++;
-            }
+            /** Count CSC points */
+//            for (Int_t iPoint = 0; iPoint < cscPoints->GetEntriesFast(); iPoint++) {
+//                BmnCSCPoint* cscPoint = (BmnCSCPoint*) cscPoints->UncheckedAt(iPoint);
+//                if (cscPoint->GetTrackID() != jTrack)
+//                    continue;
+//                //                                printf("found %dth csc point for %d\n", iPoint, offspringTrack->GetPdgCode());
+//                outHitsCnt[iOffspring]++;
+//            }
         }
         Int_t insuff = -1;
         for (Int_t iOffspring = 0; iOffspring < outCodes.size(); iOffspring++) {
@@ -458,8 +471,8 @@ vector<TString> BmnRecoTools::GetFileVecFromDir(TString dir) {
 void BmnRecoTools::FillSetStsPoints(
         TClonesArray* pts,
         BmnGemStripStationSet* set,
-        vector<TH2* > &hitVec) {
-    //        vector<vector<vector<TH2* > > > &hitVec) {
+//        vector<TH2* > &hitVec) {
+            vector<vector<vector<TH2* > > > &hitVec) {
     //        vector<vector<vector<UInt_t > > > &hitVec) {
     for (Int_t iHit = 0; iHit < pts->GetEntriesFast(); iHit++) {
         CbmStsPoint *pt = (CbmStsPoint *) pts->UncheckedAt(iHit);
@@ -489,11 +502,11 @@ void BmnRecoTools::FillSetStsPoints(
         //        printf("zax = %08X\n",hitVec[pt->GetStation()][pt->GetModule()][iZone]->GetZaxis());
         Double_t Pz = ((FairMCPoint*) pt)->GetPz();
         if (Pz > 0)
-            hitVec[pt->GetStation()]->Fill(
-                ((FairMCPoint*) pt)->GetPx() / Pz,
-                ((FairMCPoint*) pt)->GetPy() / Pz);
+//            hitVec[pt->GetStation()]->Fill(
+//                ((FairMCPoint*) pt)->GetPx() / Pz,
+//                ((FairMCPoint*) pt)->GetPy() / Pz);
         //        hitVec[pt->GetStation()]->Fill(x, y);
-        //        hitVec[pt->GetStation()][pt->GetModule()][iZone]->Fill(x, y);
+                hitVec[pt->GetStation()][pt->GetModule()][iZone]->Fill(x, y);
         //        hitVec[pt->GetStation()][pt->GetModule()][iZone]++;
     }
 }
@@ -501,11 +514,11 @@ void BmnRecoTools::FillSetStsPoints(
 void BmnRecoTools::FillSetStsHits(
         TClonesArray* pts, TClonesArray* hits,
         BmnGemStripStationSet* set,
-        vector<TH2* > &hitVec,
-        vector<TH1D* > &hrx,
-        vector<TH1D* > &hry
-) {
-    //        vector<vector<vector<TH2* > > > &hitVec) {
+//        vector<TH2* > &hitVec,
+//        vector<TH1D* > &hrx,
+//        vector<TH1D* > &hry
+//) {
+            vector<vector<vector<TH2* > > > &hitVec) {
     //        vector<vector<vector<UInt_t > > > &hitVec) {
 
     for (Int_t iPt = 0; iPt < pts->GetEntriesFast(); iPt++) {
@@ -553,8 +566,8 @@ void BmnRecoTools::FillSetStsHits(
                     hit->GetModule() != iMod)
                 continue;
             Double_t dist = Sq(hit->GetX() - x) + Sq(hit->GetY() - y);
-            hrx[pt->GetStation()]->Fill(hit->GetX() - x);
-            hry[pt->GetStation()]->Fill(hit->GetY() - y);
+//            hrx[pt->GetStation()]->Fill(hit->GetX() - x);
+//            hry[pt->GetStation()]->Fill(hit->GetY() - y);
             //            printf("Hit     %f : %f   dist = %f\n", hit->GetX(), hit->GetY(), dist);
             if (dist < MinDistance) {
                 hitClosest = hit;
@@ -565,11 +578,11 @@ void BmnRecoTools::FillSetStsHits(
             //            printf("Hit     %f : %f   dist = %f   Minimum! \n", hitClosest->GetX(), hitClosest->GetY(), MinDistance);
             Double_t Pz = ((FairMCPoint*) pt)->GetPz();
             if (Pz > 0)
-                hitVec[pt->GetStation()]->Fill(
-                    ((FairMCPoint*) pt)->GetPx() / Pz,
-                    ((FairMCPoint*) pt)->GetPy() / Pz);
+//                hitVec[pt->GetStation()]->Fill(
+//                    ((FairMCPoint*) pt)->GetPx() / Pz,
+//                    ((FairMCPoint*) pt)->GetPy() / Pz);
             //            hitVec[pt->GetStation()]->Fill(x, y);
-            //            hitVec[pt->GetStation()][pt->GetModule()][iZone]->Fill(x, y);
+                        hitVec[pt->GetStation()][pt->GetModule()][iZone]->Fill(x, y);
             //        hitVec[pt->GetStation()][pt->GetModule()][iZone]++;
             hitClosest->SetFlag(kFALSE);
         } else {

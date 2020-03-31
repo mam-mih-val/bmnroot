@@ -30,14 +30,13 @@ Double_t Eta2[dim] = {1.5, 2.5};
 Double_t Dca1[dim] = {.1, 100.};
 Double_t Dca2[dim] = {.1, 100.};
 
-Double_t Dca12X[dim] = {0., 1.};
-Double_t Dca12Y[dim] = {0., 0.7};
-Double_t Path = 2.5;
+Double_t Dca12[dim]  = {0., 1.};
+Double_t Path[dim] = {2.5, 20};
 
 Double_t Alpha = 0.5;
 Double_t PtPodol = 0.11;
 
-void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFit = true) {
+void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFit = true, TString outNameInvMass = "im.pdf") {
     gStyle->SetOptStat(1);
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
@@ -66,8 +65,10 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFi
     TString _par = "X";
     TString _parY = "Y";
     vector<TString> cutStrVec;
-//    cutStrVec.push_back(Form("Path   >= %.1f", Path));
-    cutStrVec.push_back(Form("%.1f < Dca12X < %.1f", Dca12X[0], Dca12X[1]));
+    if (useCuts) {
+        cutStrVec.push_back(Form("%.1f < Path < %.1f", Path[0], Path[1]));
+        cutStrVec.push_back(Form("%.1f < Dca12 < %.1f", Dca12[0], Dca12[1]));
+    }
 
     for (Int_t iEv = 0; iEv < out->GetEntries(); iEv++) {
         out->GetEntry(iEv);
@@ -83,8 +84,7 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFi
             Double_t eta2 = pair->GetEtaPart2();
             Double_t dca1 = pair->GetDCA1();
             Double_t dca2 = pair->GetDCA2();
-            Double_t dca12X = pair->GetDCA12();
-            Double_t dca12Y = pair->GetDCA12();
+            Double_t dca12 = pair->GetDCA12();
             Double_t path = pair->GetPath();
 
             Double_t alpha = pair->GetAlpha();
@@ -97,7 +97,7 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFi
                 //                if (ptPodol > PtPodol)
                 //                    continue;
                 //
-//                if (path < Path)
+//                if (path < Path[0] || path > Path[1])
 //                    continue;
 
                 //  if (mom1 < Mom1[0] || mom1 > Mom1[1])
@@ -108,12 +108,8 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFi
 
                 // if (eta2 < Eta2[0] || eta2 > Eta2[1])
                 //	continue;
-
-                if (dca12X < Dca12X[0] || dca12X > Dca12X[1])
-                    continue;
-
-                //              if (dca12Y < Dca12Y[0] || dca12Y > Dca12Y[1])
-                //                      continue;
+//                if (dca12 < Dca12[0] || dca12 > Dca12[1])
+//                    continue;
 
                 //  if (dca1 < Dca1[0] || dca1 > Dca1[1])
                 //     continue;
@@ -208,7 +204,7 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFi
     sig->Draw("SAME");
     //    }
     // -----   Finish   --------------------------------------------------------
-    canvLambda->SaveAs("L2.pdf");
+    canvLambda->SaveAs(outNameInvMass.Data());
     delete out;
     timer.Stop();
     Double_t rtime = timer.RealTime();

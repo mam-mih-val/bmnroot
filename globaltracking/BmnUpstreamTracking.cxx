@@ -768,9 +768,9 @@ void BmnUpstreamTracking::TrackRecording(vector<UpTracks> & vecUp){
 */
 
     FairTrackParam trackParaml;
-    trackParaml.SetPosition(TVector3(vecUp.at(InIter).param[1], vecUp.at(InIter).param[3],Zcentr));
-    trackParaml.SetTx(vecUp.at(InIter).param[0]);
-    trackParaml.SetTy(vecUp.at(InIter).param[2]);
+    trackParaml.SetPosition(TVector3(vecUp.at(InIter).param[1]+ Shift_toCenterOfMagnetX, vecUp.at(InIter).param[3]+ Shift_toCenterOfMagnetY,Zcentr));
+    trackParaml.SetTx(vecUp.at(InIter).param[0]+Shift_toCenterOfMagnetAX);
+    trackParaml.SetTy(vecUp.at(InIter).param[2]+Shift_toCenterOfMagnetAY);
 
     BmnTrack *track = new ((*fBmnUpstreamTracksArray)[fBmnUpstreamTracksArray->GetEntriesFast()]) BmnTrack();
     track->SetChi2(vecUp.at(InIter).Chi2);

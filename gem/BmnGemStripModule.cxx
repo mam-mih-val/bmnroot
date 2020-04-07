@@ -87,9 +87,16 @@ Bool_t BmnGemStripModule::AddStripSignalInLayer(Int_t layer_num, Int_t strip_num
     return false;
 }
 
-Bool_t BmnGemStripModule::SetStripMatchInLayer(Int_t layer_num, Int_t strip_num, BmnMatch strip_match) {
+Bool_t BmnGemStripModule::SetStripMatchInLayer(Int_t layer_num, Int_t strip_num, BmnMatch mc_match) {
     if( layer_num >= 0 && layer_num < StripLayers.size() ) {
-        return StripLayers[layer_num].SetStripMatch(strip_num, strip_match);
+        return StripLayers[layer_num].SetStripMatch(strip_num, mc_match);
+    }
+    return false;
+}
+
+Bool_t BmnGemStripModule::SetStripDigitNumberMatchInLayer(Int_t layer_num, Int_t strip_num, BmnMatch digit_num_match) {
+    if( layer_num >= 0 && layer_num < StripLayers.size() ) {
+        return StripLayers[layer_num].SetStripDigitNumberMatch(strip_num, digit_num_match);
     }
     return false;
 }
@@ -104,6 +111,13 @@ Double_t BmnGemStripModule::GetStripSignalInLayer(Int_t layer_num, Int_t strip_n
 BmnMatch BmnGemStripModule::GetStripMatchInLayer(Int_t layer_num, Int_t strip_num) {
     if( layer_num >= 0 && layer_num < StripLayers.size() ) {
         return StripLayers[layer_num].GetStripMatch(strip_num);
+    }
+    return BmnMatch();
+}
+
+BmnMatch BmnGemStripModule::GetStripDigitNumberMatchInLayer(Int_t layer_num, Int_t strip_num) {
+    if( layer_num >= 0 && layer_num < StripLayers.size() ) {
+        return StripLayers[layer_num].GetStripDigitNumberMatch(strip_num);
     }
     return BmnMatch();
 }
@@ -938,7 +952,7 @@ void BmnGemStripModule::CalculateStripHitIntersectionPoints() {
                         IntersectionPointsYErrors.push_back(ycoord_err);
                         //------------------------------------------------------
 
-                        //intersection matching ----------------------------------------
+                        //intersection MC-matching -----------------------------
                         BmnMatch iStripMatch = StripLayers[ilayer].GetStripMatch((Int_t)iStripHitPos);
                         BmnMatch jStripMatch = StripLayers[jlayer].GetStripMatch((Int_t)jStripHitPos);
 
@@ -947,7 +961,18 @@ void BmnGemStripModule::CalculateStripHitIntersectionPoints() {
                         intersection_match.AddLink(jStripMatch);
 
                         IntersectionPointMatches.push_back(intersection_match);
-                        //--------------------------------------------------------------
+                        //------------------------------------------------------
+
+                        //intersection digit number matching -------------------
+                        BmnMatch iStripDigitNumberMatch = StripLayers[ilayer].GetStripDigitNumberMatch((Int_t)iStripHitPos);
+                        BmnMatch jStripDigitNumberMatch = StripLayers[jlayer].GetStripDigitNumberMatch((Int_t)jStripHitPos);
+
+                        BmnMatch intersection_digit_num_match;
+                        intersection_digit_num_match.AddLink(iStripDigitNumberMatch);
+                        intersection_digit_num_match.AddLink(jStripDigitNumberMatch);
+
+                        IntersectionPointDigitNumberMatches.push_back(intersection_digit_num_match);
+                        //------------------------------------------------------
 
                         //Additional information about the intersection ------------
                             //cluster size (number strips) in both strip layers for each intersection
@@ -1063,6 +1088,7 @@ void BmnGemStripModule::ResetIntersectionPoints() {
     IntersectionPoints_LowerLayerStripTotalSignal.clear();
     IntersectionPoints_UpperLayerStripTotalSignal.clear();
     IntersectionPointMatches.clear();
+    IntersectionPointDigitNumberMatches.clear();
 }
 
 void BmnGemStripModule::DefineModuleBorders() {

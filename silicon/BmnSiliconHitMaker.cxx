@@ -141,7 +141,7 @@ void BmnSiliconHitMaker::Exec(Option_t* opt) {
     clock_t tStart = clock();
 
     if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Exec() started ================" << endl;
-    if (fVerbose > 1) cout << " BmnGemStripHitMaker::Exec(), Number of BmnSiliconDigits = " << fBmnSiliconDigitsArray->GetEntriesFast() << "\n";
+    if (fVerbose > 1) cout << " BmnSiliconHitMaker::Exec(), Number of BmnSiliconDigits = " << fBmnSiliconDigitsArray->GetEntriesFast() << "\n";
 
     ProcessDigits();
 
@@ -154,7 +154,7 @@ void BmnSiliconHitMaker::ProcessDigits() {
 
     FairMCPoint* MCPoint;
     BmnSiliconDigit* digit;
-    BmnMatch *strip_match;
+    BmnMatch *strip_match; // MC-information for a strip
 
     BmnSiliconStation* station;
     BmnSiliconModule* module;
@@ -174,14 +174,20 @@ void BmnSiliconHitMaker::ProcessDigits() {
 
         if (module->SetStripSignalInLayerByZoneId(digit->GetStripLayer(), digit->GetStripNumber(), digit->GetStripSignal())) AddedDigits++;
 
+        //Add a MC-match to the current strip if this MC-match array exists
         if (fBmnSiliconDigitMatchesArray) {
             strip_match = (BmnMatch*) fBmnSiliconDigitMatchesArray->At(idigit);
             if (module->SetStripMatchInLayerByZoneId(digit->GetStripLayer(), digit->GetStripNumber(), *strip_match)) AddedStripDigitMatches++;
         }
+
+        //Add a digit number match to the current strip
+        BmnMatch stripDigitNumberMatch; // digit number information for the current strip
+        stripDigitNumberMatch.AddLink(1.0, idigit);
+        module->SetStripDigitNumberMatchInLayerByZoneId(digit->GetStripLayer(), digit->GetStripNumber(), stripDigitNumberMatch);
     }
 
     if (fVerbose > 1) cout << "   Processed strip digits  : " << AddedDigits << "\n";
-    if (fVerbose > 1 && fBmnSiliconDigitMatchesArray) cout << "   Added strip digit matches  : " << AddedStripDigitMatches << "\n";
+    if (fVerbose > 1 && fBmnSiliconDigitMatchesArray) cout << "   Added strip digit MC-matches  : " << AddedStripDigitMatches << "\n";
     //------------------------------------------------------------------------------
 
     //Processing digits
@@ -222,17 +228,17 @@ void BmnSiliconHitMaker::ProcessDigits() {
 
                 Int_t RefMCIndex = 0;
 
-                //hit matching (define RefMCIndex)) ----------------------------
-                BmnMatch match = module->GetIntersectionPointMatch(iPoint);
+                //MC-matching for the current hit (define RefMCIndex)) ---------
+                BmnMatch mc_match_hit = module->GetIntersectionPointMatch(iPoint);
 
                 Int_t most_probably_index = -1;
                 Double_t max_weight = 0;
 
-                Int_t n_links = match.GetNofLinks();
+                Int_t n_links = mc_match_hit.GetNofLinks();
                 if (n_links == 1) clear_matched_points_cnt++;
                 for (Int_t ilink = 0; ilink < n_links; ilink++) {
-                    Int_t index = match.GetLink(ilink).GetIndex();
-                    Double_t weight = match.GetLink(ilink).GetWeight();
+                    Int_t index = mc_match_hit.GetLink(ilink).GetIndex();
+                    Double_t weight = mc_match_hit.GetLink(ilink).GetWeight();
                     if (weight > max_weight) {
                         max_weight = weight;
                         most_probably_index = index;
@@ -263,9 +269,10 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 hit->SetStripPositionInUpperLayer(module->GetIntersectionPoint_UpperLayerSripPosition(iPoint)); //strip position (upper layer ///or\\\)
                 hit->SetStripTotalSignalInLowerLayer(sigL);
                 hit->SetStripTotalSignalInUpperLayer(sigU);
+                hit->SetDigitNumberMatch(module->GetIntersectionPointDigitNumberMatch(iPoint)); //digit number match for the hit
                 //--------------------------------------------------------------
 
-                //hit matching -------------------------------------------------
+                //hit MC-matching ----------------------------------------------
                 if (fHitMatching && fBmnSiliconHitMatchesArray) {
                     new ((*fBmnSiliconHitMatchesArray)[fBmnSiliconHitMatchesArray->GetEntriesFast()])
                             BmnMatch(module->GetIntersectionPointMatch(iPoint));

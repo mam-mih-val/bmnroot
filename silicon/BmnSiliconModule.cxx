@@ -82,9 +82,16 @@ Bool_t BmnSiliconModule::AddStripSignalInLayer(Int_t layer_num, Int_t strip_num,
     return false;
 }
 
-Bool_t BmnSiliconModule::SetStripMatchInLayer(Int_t layer_num, Int_t strip_num, BmnMatch strip_match) {
+Bool_t BmnSiliconModule::SetStripMatchInLayer(Int_t layer_num, Int_t strip_num, BmnMatch mc_match) {
     if( layer_num >= 0 && layer_num < StripLayers.size() ) {
-        return StripLayers[layer_num].SetStripMatch(strip_num, strip_match);
+        return StripLayers[layer_num].SetStripMatch(strip_num, mc_match);
+    }
+    return false;
+}
+
+Bool_t BmnSiliconModule::SetStripDigitNumberMatchInLayer(Int_t layer_num, Int_t strip_num, BmnMatch digit_num_match) {
+    if( layer_num >= 0 && layer_num < StripLayers.size() ) {
+        return StripLayers[layer_num].SetStripDigitNumberMatch(strip_num, digit_num_match);
     }
     return false;
 }
@@ -109,21 +116,41 @@ Bool_t BmnSiliconModule::AddStripSignalInLayerByZoneId(Int_t zone_id, Int_t stri
     return (Bool_t)n_layers_the_same_id;
 }
 
-Bool_t BmnSiliconModule::SetStripMatchInLayerByZoneId(Int_t zone_id, Int_t strip_num, BmnMatch strip_match) {
+Bool_t BmnSiliconModule::SetStripMatchInLayerByZoneId(Int_t zone_id, Int_t strip_num, BmnMatch mc_match) {
     Int_t n_layers_the_same_id = 0;
     for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
         if( (StripLayers[ilayer].GetZoneID() == zone_id) ) {
-            if(StripLayers[ilayer].SetStripMatch(strip_num, strip_match)) n_layers_the_same_id++;
+            if(StripLayers[ilayer].SetStripMatch(strip_num, mc_match)) n_layers_the_same_id++;
         }
     }
     return (Bool_t)n_layers_the_same_id;
 }
 
-Bool_t BmnSiliconModule::AddStripMatchInLayerByZoneId(Int_t zone_id, Int_t strip_num, Double_t weight, Int_t refID) {
+Bool_t BmnSiliconModule::AddStripMatchInLayerByZoneId(Int_t zone_id, Int_t strip_num, Double_t weight, Int_t mc_num) {
     Int_t n_layers_the_same_id = 0;
     for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
         if( (StripLayers[ilayer].GetZoneID() == zone_id) ) {
-            if(StripLayers[ilayer].AddLinkToStripMatch(strip_num, weight, refID)) n_layers_the_same_id++;
+            if(StripLayers[ilayer].AddLinkToStripMatch(strip_num, weight, mc_num)) n_layers_the_same_id++;
+        }
+    }
+    return (Bool_t)n_layers_the_same_id;
+}
+
+Bool_t BmnSiliconModule::SetStripDigitNumberMatchInLayerByZoneId(Int_t zone_id, Int_t strip_num, BmnMatch digit_num_match) {
+    Int_t n_layers_the_same_id = 0;
+    for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
+        if( (StripLayers[ilayer].GetZoneID() == zone_id) ) {
+            if(StripLayers[ilayer].SetStripDigitNumberMatch(strip_num, digit_num_match)) n_layers_the_same_id++;
+        }
+    }
+    return (Bool_t)n_layers_the_same_id;
+}
+
+Bool_t BmnSiliconModule::AddStripDigitNumberMatchInLayerByZoneId(Int_t zone_id, Int_t strip_num, Double_t weight, Int_t digit_num) {
+    Int_t n_layers_the_same_id = 0;
+    for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
+        if( (StripLayers[ilayer].GetZoneID() == zone_id) ) {
+            if(StripLayers[ilayer].AddLinkToStripDigitNumberMatch(strip_num, weight, digit_num)) n_layers_the_same_id++;
         }
     }
     return (Bool_t)n_layers_the_same_id;
@@ -139,6 +166,13 @@ Double_t BmnSiliconModule::GetStripSignalInLayer(Int_t layer_num, Int_t strip_nu
 BmnMatch BmnSiliconModule::GetStripMatchInLayer(Int_t layer_num, Int_t strip_num) {
     if( layer_num >= 0 && layer_num < StripLayers.size() ) {
         return StripLayers[layer_num].GetStripMatch(strip_num);
+    }
+    return BmnMatch();
+}
+
+BmnMatch BmnSiliconModule::GetStripDigitNumberMatchInLayer(Int_t layer_num, Int_t strip_num) {
+    if( layer_num >= 0 && layer_num < StripLayers.size() ) {
+        return StripLayers[layer_num].GetStripDigitNumberMatch(strip_num);
     }
     return BmnMatch();
 }
@@ -183,6 +217,17 @@ BmnMatch BmnSiliconModule::GetStripMatchInZone(Int_t zone_id, Int_t strip_num) {
         if( (StripLayers[ilayer].GetZoneID() == zone_id) ) {
             if( strip_num >= StripLayers[ilayer].GetFirstStripNumber() && strip_num <= StripLayers[ilayer].GetLastStripNumber() ) {
                 return StripLayers[ilayer].GetStripMatch(strip_num);
+            }
+        }
+    }
+    return BmnMatch();
+}
+
+BmnMatch BmnSiliconModule::GetStripDigitNumberMatchInZone(Int_t zone_id, Int_t strip_num) {
+    for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
+        if( (StripLayers[ilayer].GetZoneID() == zone_id) ) {
+            if( strip_num >= StripLayers[ilayer].GetFirstStripNumber() && strip_num <= StripLayers[ilayer].GetLastStripNumber() ) {
+                return StripLayers[ilayer].GetStripDigitNumberMatch(strip_num);
             }
         }
     }
@@ -699,7 +744,7 @@ void BmnSiliconModule::CalculateStripHitIntersectionPoints() {
                         IntersectionPointsYErrors.push_back(ycoord_err);
                         //------------------------------------------------------
 
-                        //intersection matching ----------------------------------------
+                        //intersection MC-matching -----------------------------
                         BmnMatch iStripMatch = StripLayers[ilayer].GetStripMatch((Int_t)iStripHitPos);
                         BmnMatch jStripMatch = StripLayers[jlayer].GetStripMatch((Int_t)jStripHitPos);
 
@@ -708,9 +753,20 @@ void BmnSiliconModule::CalculateStripHitIntersectionPoints() {
                         intersection_match.AddLink(jStripMatch);
 
                         IntersectionPointMatches.push_back(intersection_match);
-                        //--------------------------------------------------------------
+                        //------------------------------------------------------
 
-                        //Additional information about the intersection ------------
+                        //intersection digit number matching -------------------
+                        BmnMatch iStripDigitNumberMatch = StripLayers[ilayer].GetStripDigitNumberMatch((Int_t)iStripHitPos);
+                        BmnMatch jStripDigitNumberMatch = StripLayers[jlayer].GetStripDigitNumberMatch((Int_t)jStripHitPos);
+
+                        BmnMatch intersection_digit_num_match;
+                        intersection_digit_num_match.AddLink(iStripDigitNumberMatch);
+                        intersection_digit_num_match.AddLink(jStripDigitNumberMatch);
+
+                        IntersectionPointDigitNumberMatches.push_back(intersection_digit_num_match);
+                        //------------------------------------------------------
+
+                        //Additional information about the intersection --------
                             //cluster size (number strips) in both strip layers for each intersection
                             Int_t iLayerClusterSize = StripLayers[ilayer].GetStripHitClusterSize(i_strip_hit);
                             Int_t jLayerClusterSize = StripLayers[jlayer].GetStripHitClusterSize(j_strip_hit);
@@ -851,6 +907,7 @@ void BmnSiliconModule::ResetIntersectionPoints() {
     IntersectionPoints_LowerLayerStripTotalSignal.clear();
     IntersectionPoints_UpperLayerStripTotalSignal.clear();
     IntersectionPointMatches.clear();
+    IntersectionPointDigitNumberMatches.clear();
 }
 
 void BmnSiliconModule::DefineModuleBorders() {

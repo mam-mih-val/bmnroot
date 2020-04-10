@@ -27,6 +27,7 @@
 #include "FairRun.h"
 #include "FairVolume.h"
 #include "TMath.h"
+#include "TFile.h"
 #include "CbmStack.h"
 
 #include "TParticlePDG.h"

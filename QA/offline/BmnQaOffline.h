@@ -38,6 +38,7 @@
 #include <TString.h>
 #include <TClonesArray.h>
 #include <TGeoManager.h>
+#include "TFile.h"
 
 #include <DstEventHeader.h>
 #include <BmnKalmanFilter.h>

@@ -8,6 +8,7 @@
 #include <TGeoMatrix.h>
 #include <TH1D.h>
 #include <TH2D.h>
+#include "TFile.h"
 #include <TEfficiency.h>
 #include <TVector3.h>
 

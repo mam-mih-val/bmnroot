@@ -10,6 +10,7 @@
 #include "TGeoBBox.h"
 #include "TObjArray.h"
 #include "TMath.h"
+#include "TFile.h"
 #include "TF1.h"
 #include "TRandom3.h"
 

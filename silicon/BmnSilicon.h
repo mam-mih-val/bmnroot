@@ -3,6 +3,7 @@
 
 #include "FairDetector.h"
 #include "TVector3.h"
+#include "TGeoMedium.h"
 #include "TLorentzVector.h"
 #include "TClonesArray.h"
 

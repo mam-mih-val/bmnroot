@@ -16,6 +16,7 @@
 
 #include <Rtypes.h>
 #include <TMath.h>
+#include "TFile.h"
 #include "FairLogger.h"
 #include "BmnUpstreamTracking.h"
 #include <vector>

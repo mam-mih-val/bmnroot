@@ -14,6 +14,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 #include <Rtypes.h>
+#include "TFile.h"
 #include "BmnMwpcTrack.h"
 #include "BmnMwpcSegment.h"
 #include "BmnMwpcTrackFinder.h"

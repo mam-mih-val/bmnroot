@@ -16,6 +16,7 @@
 #include "BmnSiliconTrack.h"
 #include "FitWLSQ.h"
 #include "TH1F.h"
+#include "TFile.h"
 #include "omp.h"
 
 using namespace TMath;

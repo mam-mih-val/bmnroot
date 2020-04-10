@@ -24,6 +24,8 @@ project(BMNROOT)
 
 Option(USE_PATH_INFO "Information from PATH and LD_LIBRARY_PATH are used." ON)
 Option(ALIBUILD "Flag if we are building with AliBuild." OFF)
+# Possibility to run BmnRoot on cluster nodes with different OS (stability cannot be guaranteed)
+Option(IGNORE_DIFFERENT_SYSTEM "Allow running compiled BmnRoot on different OS" ON)
 
 #Check if necessary environment variables are set
 #If not stop execution

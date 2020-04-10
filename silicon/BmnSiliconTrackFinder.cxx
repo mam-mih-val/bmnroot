@@ -15,6 +15,7 @@
 
 #include <Rtypes.h>
 #include <TMath.h>
+#include "TFile.h"
 #include "FairLogger.h"
 #include "BmnSiliconTrackFinder.h"
 #include "FairMCPoint.h"

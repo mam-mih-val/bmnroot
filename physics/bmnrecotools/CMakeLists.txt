@@ -41,6 +41,7 @@ BmnRecoTools.cxx
 BmnCheckMCTask.cxx
 BmnPVGetter.cxx
 MpdLAQGSMGeneratorExt.cxx
+BmnEmbedding.cxx
 )
 
 Set(HEADERS)

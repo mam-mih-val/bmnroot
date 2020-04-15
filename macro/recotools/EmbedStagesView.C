@@ -99,10 +99,10 @@ void EmbedStagesView(Int_t runID = 0) {
     const TString drawExpPDst = TString("1/BmnGlobalTrack.fParamFirst.fQp");
     const TString drawExpNHitsDst = TString("BmnGlobalTrack.GetNHits()>>");
 
-    TString eveBG = "evetest-p.root";
-    TString eveLam = "eve-lam-filtered.root";
-    TString eveEmb = "merged-digi.root";
-    TString dstBG = "dst-p.root";
+    TString eveBG = Form("dst-%d.root", runID);
+    TString eveLam = Form("eve-%d-isAll.root", runID);
+    TString eveEmb = Form("merged-%d-qgsm-4h-isAll.root", runID);
+    TString dstBG = Form("dst-%d.root", runID);
     TString dstLam = "dst-lam.root";
     TString dstEmb = "dst-emb.root";
 

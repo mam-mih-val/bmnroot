@@ -1589,9 +1589,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (fTof400Mapper) delete fTof400Mapper;
     if (fTof700Mapper) delete fTof700Mapper;
     if (fZDCMapper) delete fZDCMapper;
-    printf("deleted fZDCMapper\n");
     if (fECALMapper) delete fECALMapper;
-    printf("deleted fECALMapper\n");
     if (fLANDMapper) delete fLANDMapper;
     if (fMSCMapper) delete fMSCMapper;
 

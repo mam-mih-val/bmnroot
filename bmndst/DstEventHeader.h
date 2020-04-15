@@ -109,7 +109,7 @@ class DstEventHeader : public FairEventHeader {
 
     void SetZin(Short_t Zin) { fZin = Zin; }
 
-    ClassDef(DstEventHeader, 1)
+    ClassDef(DstEventHeader, 2)
 };
 
 #endif /* DstEventHeader_H */

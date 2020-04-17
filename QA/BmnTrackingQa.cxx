@@ -738,7 +738,9 @@ void BmnTrackingQa::ProcessGlobal() {
 }
 
 Int_t BmnTrackingQa::CalcNumberOfMcPointInTrack(BmnMCTrack mcTrack) {
-    Int_t nHitsOnStation[fNStations] = {};
+    Int_t nHitsOnStation[fNStations];
+    for (Int_t i = 0; i < fNStations; ++i)
+        nHitsOnStation[i] = 0;
     vector<BmnMCPoint> pointsGem = mcTrack.GetPoints(kGEM);
     for (BmnMCPoint pntGEM : pointsGem) {
         nHitsOnStation[pntGEM.GetStationId()]++;

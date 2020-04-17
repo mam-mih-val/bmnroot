@@ -13,6 +13,7 @@
 #include "BmnDetectorSetup.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnSiliconStationSet.h"
+#include "BmnMCTrackCreator.h"
 
 class BmnHistManager;
 class BmnTrackMatch;
@@ -151,6 +152,8 @@ private:
 
     void CreateHistograms();
     void ProcessGlobal();
+
+    Int_t CalcNumberOfMcPointInTrack(BmnMCTrack mcTrack);
     
     TString fOutName;
 
@@ -202,10 +205,13 @@ private:
     // Pointers to data arrays
     TClonesArray* fMCTracks; // CbmMCTrack array
     TClonesArray* fGlobalTracks; // BmnGlobalTrack array
+    TClonesArray* fGemTracks;
+    TClonesArray* fSilTracks;
     TClonesArray* fGlobalTrackMatches; // BmnGemTrackMatch array
     TClonesArray* fGemHits;
     TClonesArray* fSilHits;
     TClonesArray* fSsdHits;
+    TClonesArray* fInnerHits;
     
     TClonesArray* fVertex;
     TString fConfigGem;

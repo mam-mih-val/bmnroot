@@ -7,13 +7,16 @@
  */
 
 #include "BmnTrackingQa.h"
+
+#include <fstream>
+#include <iostream>
+
 #include "BmnAcceptanceFunction.h"
 #include "BmnDchHit.h"
 #include "BmnEnums.h"
 #include "BmnGemStripHit.h"
 #include "BmnGemTrack.h"
 #include "BmnMCPoint.h"
-#include "BmnMCTrackCreator.h"
 #include "BmnMatch.h"
 #include "BmnMath.h"
 #include "BmnSiliconHit.h"
@@ -37,16 +40,13 @@
 #include "TH2F.h"
 #include "report/BmnHistManager.h"
 
-#include <fstream>
-#include <iostream>
-
 using namespace std;
 using namespace TMath;
 using lit::FindAndReplace;
 using lit::Split;
 
 BmnTrackingQa::BmnTrackingQa(Short_t ch, TString name, TString gemConf, TString silConf) : FairTask("BmnTrackingQA", 1),
-                                                                                           fHM(NULL),
+                                                                                           fHM(nullptr),
                                                                                            fOutputDir("./"),
                                                                                            fMinNofPoints(4),
                                                                                            fMinNofPointsTof(1),
@@ -72,12 +72,14 @@ BmnTrackingQa::BmnTrackingQa(Short_t ch, TString name, TString gemConf, TString 
                                                                                            fOutName(name),
                                                                                            fConfigGem(gemConf),
                                                                                            fConfigSil(silConf),
-                                                                                           fMCTracks(NULL),
-                                                                                           fSilHits(NULL),
+                                                                                           fMCTracks(nullptr),
+                                                                                           fSilHits(nullptr),
                                                                                            fPrimes(kFALSE),
                                                                                            fNHitsCut(2000),
                                                                                            fNStations(0),
-                                                                                           fGlobalTracks(NULL) {
+                                                                                           fGlobalTracks(nullptr),
+                                                                                           fGemTracks(nullptr),
+                                                                                           fSilTracks(nullptr) {
     fChargeCut = ch;
 }
 
@@ -132,15 +134,19 @@ void BmnTrackingQa::Finish() {
 
 void BmnTrackingQa::ReadDataBranches() {
     FairRootManager* ioman = FairRootManager::Instance();
-    if (NULL == ioman) Fatal("Init", "BmnRootManager is not instantiated");
+    if (nullptr == ioman) Fatal("Init", "BmnRootManager is not instantiated");
 
     fMCTracks = (TClonesArray*)ioman->GetObject("MCTrack");
-    if (NULL == fMCTracks) Fatal("Init", "No MCTrack array!");
+    if (nullptr == fMCTracks) Fatal("Init", "No MCTrack array!");
 
     fGlobalTracks = (TClonesArray*)ioman->GetObject("BmnGlobalTrack");
     fGlobalTrackMatches = (TClonesArray*)ioman->GetObject("BmnGlobalTrackMatch");
 
+    fGemTracks = (TClonesArray*)ioman->GetObject("BmnGemTrack");
+    fSilTracks = (TClonesArray*)ioman->GetObject("BmnSiliconTrack");
+
     fNStations = 0;
+    fInnerHits = (TClonesArray*)ioman->GetObject("BmnInnerHits");
 
     if (fInnerTrackerSetup[kSILICON]) {
         fSilHits = (TClonesArray*)ioman->GetObject("BmnSiliconHit");
@@ -222,15 +228,29 @@ void BmnTrackingQa::CreateHistograms() {
 
     // Physics
     CreateH2("momRes_2D", "P_{sim}/q, GeV/c", "#Delta P / P, %", "", 100, fPRangeMin, 10, 100, -10.0, 10.0);
+    CreateH1("momRes_1D", "P_{sim}/q, GeV/c", "#LT#Delta P / P#GT, %", fPRangeBins / 2, fPRangeMin, 10);
+    CreateH1("momMean_1D", "P_{sim}/q, GeV/c", "#Delta P / P, #mu, %", fPRangeBins / 2, fPRangeMin, 10);
+    CreateH1("momRes_Mean", "#Delta P / P, %", "Counter", 100, -10.0, 10.0);
+
+    CreateH2("MomRes_vs_Theta", "#theta_{sim}", "#Delta P / P, %", "", fThetaRangeBins * 2, fThetaRangeMin, fThetaRangeMax, 100, -10, 10);
+    CreateH1("MomRes_vs_Theta_1D", "#theta_{sim}", "#Delta P / P, #sigma, %", fThetaRangeBins / 2, fThetaRangeMin, fThetaRangeMax);
+    CreateH1("MomMean_vs_Theta_1D", "#theta_{sim}", "#Delta P / P, #mu, %", fThetaRangeBins / 2, fThetaRangeMin, fThetaRangeMax);
+
+    CreateH2("MomRes_vs_Length", "Length, cm", "#Delta P / P, %", "", 400, 0, 200, 100, -10, 10);
+    CreateH1("MomRes_vs_Length_1D", "Length, cm", "#Delta P / P, #sigma, %", 50, 0, 200);
+    CreateH1("MomMean_vs_Length_1D", "Length, cm", "#Delta P / P, #mu, %", 50, 0, 200);
+
+    CreateH2("MomRes_vs_nHits", "N_{hits}", "#Delta P / P, %", "", 12, 0, 12, 100, -10, 10);
+    CreateH1("MomRes_vs_nHits_1D", "N_{hits}", "#Delta P / P, #sigma, %", 12, 0, 12);
+    CreateH1("MomMean_vs_nHits_1D", "N_{hits}", "#Delta P / P, #mu, %", 12, 0, 12);
+
     CreateH2("EtaP_rec", "#eta_{rec}", "P_{rec}/q, GeV/c", "", 100, fEtaRangeMin, fEtaRangeMax, 100, fPRangeMin, fPRangeMax);
     CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}/q, GeV/c", "", 100, fEtaRangeMin, fEtaRangeMax, 100, fPRangeMin, fPRangeMax);
     CreateH2("EtaP_fakes_sim", "#eta_{sim}", "P_{sim}/q, GeV/c", "", 100, fEtaRangeMin, fEtaRangeMax, 100, fPRangeMin, fPRangeMax);
     CreateH2("EtaP_clones_sim", "#eta_{sim}", "P_{sim}/q, GeV/c", "", 100, fEtaRangeMin, fEtaRangeMax, 100, fPRangeMin, fPRangeMax);
     CreateH2("ThetaP_sim", "#theta_{sim}", "P_{sim}/q, GeV/c", "", 100, fThetaRangeMin, fThetaRangeMax, 100, fPRangeMin, fPRangeMax);
     CreateH2("ThetaP_rec", "#theta_{rec}", "P_{rec}/q, GeV/c", "", 100, fThetaRangeMin, fThetaRangeMax, 100, fPRangeMin, fPRangeMax);
-    CreateH1("momRes_1D", "P_{sim}/q, GeV/c", "#LT#Delta P / P#GT, %", fPRangeBins / 2, fPRangeMin, 10);
-    CreateH1("momMean_1D", "P_{sim}/q, GeV/c", "#Delta P / P, #mu, %", fPRangeBins / 2, fPRangeMin, 10);
-    CreateH1("momRes_Mean", "#Delta P / P, %", "Counter", 100, -10.0, 10.0);
+
     CreateH2("P_rec_P_sim", "P_{sim}/q, GeV/c", "P_{rec}/q, GeV/c", "", 100, fPRangeMin, fPRangeMax, 100, fPRangeMin, fPRangeMax);
     CreateH2("Px_rec_Px_sim", "P^{x}_{sim}/q, GeV/c", "P^{x}/q_{rec}, GeV/c", "", 100, -fPtRangeMax, fPtRangeMax, 100, -fPtRangeMax, fPtRangeMax);
     CreateH2("Py_rec_Py_sim", "P^{y}_{sim}/q, GeV/c", "P^{y}/q_{rec}, GeV/c", "", 100, -fPtRangeMax, fPtRangeMax, 100, -fPtRangeMax, fPtRangeMax);
@@ -240,6 +260,7 @@ void BmnTrackingQa::CreateHistograms() {
 
     CreateH2("Tx_rec_Tx_sim", "T^{x}_{sim}", "T^{x}_{rec}", "", 100, -1.0, 1.0, 100, -1.0, 1.0);
     CreateH2("Ty_rec_Ty_sim", "T^{y}_{sim}", "T^{y}_{rec}", "", 100, -1.0, 1.0, 100, -1.0, 1.0);
+    CreateH2("Nh_rec_Nh_sim", "Number of mc-points", "Number of reco-hits", "", nofBinsPoints, minNofPoints, maxNofPoints, nofBinsPoints, minNofPoints, maxNofPoints);
 
     CreateH2("Nh_sim_Eta_sim", "Number of mc-points", "#eta_{sim}", "", nofBinsPoints, minNofPoints, maxNofPoints, 100, fEtaRangeMin, fEtaRangeMax);
     CreateH2("Nh_rec_Eta_rec", "Number of hits", "#eta_{rec}", "", nofBinsPoints, minNofPoints, maxNofPoints, 100, fEtaRangeMin, fEtaRangeMax);
@@ -294,13 +315,10 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Fake_vs_Nh", "Number of hits", "Ghosts, %", nofBinsPoints, minNofPoints, maxNofPoints);
 
     CreateH2("MomRes_vs_Chi2", "#chi^{2}", "#Delta P / P, %", "", 100, 0, 10, 100, -10, 10);
-    CreateH2("MomRes_vs_Length", "Length, cm", "#Delta P / P, %", "", 100, 0, 100, 100, -10, 10);
-    CreateH2("MomRes_vs_nHits", "N_{hits}", "#Delta P / P, %", "", 10, 0, 10, 100, -10, 10);
-    CreateH2("MomRes_vs_Theta", "#theta_{sim}", "#Delta P / P, %", "", fThetaRangeBins, fThetaRangeMin, fThetaRangeMax, 100, -10, 10);
     CreateH2("Mom_vs_Chi2", "#chi^{2}", "P_{rec}/q, GeV/c", "", 100, 0, 10, 100, fPRangeMin, fPRangeMax);
-    CreateH2("Mom_vs_Length", "Length, cm", "P_{rec}/q, GeV/c", "", 100, 0, 100, 100, fPRangeMin, fPRangeMax);
+    CreateH2("Mom_vs_Length", "Length, cm", "P_{rec}/q, GeV/c", "", 400, 0, 200, 100, fPRangeMin, fPRangeMax);
     CreateH1("Chi2", "#chi^{2} / NDF", "Counter", 100, 0, 10);
-    CreateH1("Length", "length, cm", "Counter", 100, 0, 400);
+    CreateH1("Length", "length, cm", "Counter", 400, 0, 200);
 
     CreateH1("VertResX", "#DeltaV_{x}, cm", "Counter", 100, -1.0, 1.0);
     CreateH1("VertResY", "#DeltaV_{y}, cm", "Counter", 100, -1.0, 1.0);
@@ -389,9 +407,9 @@ void BmnTrackingQa::ProcessGlobal() {
     nBadRecoInEvent = 0;
     nAllRecoInEvent = 0;
 
-    CbmVertex* vrt = (fVertex == NULL) ? NULL : (CbmVertex*)fVertex->At(0);
+    CbmVertex* vrt = (fVertex == nullptr) ? nullptr : (CbmVertex*)fVertex->At(0);
 
-    if (vrt != NULL) {
+    if (vrt != nullptr) {
         fHM->H1("VertResX")->Fill(vrt->GetX() - 0.5);
         fHM->H1("VertResY")->Fill(vrt->GetY() - (-4.6));
         fHM->H1("VertResZ")->Fill(vrt->GetZ() - (-2.3));
@@ -454,7 +472,9 @@ void BmnTrackingQa::ProcessGlobal() {
         else
             refs.push_back(globMCId);
 
-        Int_t N_rec = glTrack->GetNHits();
+        Int_t Nsil = (glTrack->GetSilTrackIndex() != -1) ? ((BmnTrack*)fSilTracks->At(glTrack->GetSilTrackIndex()))->GetNHits() : 0;
+        Int_t Ngem = (glTrack->GetGemTrackIndex() != -1) ? ((BmnTrack*)fGemTracks->At(glTrack->GetGemTrackIndex()))->GetNHits() : 0;
+        Int_t N_rec = Nsil + Ngem;  //glTrack->GetNHits();
         Bool_t isTrackOk = globTrackMatch->GetTrueOverAllHitsRatio() >= fQuota && N_rec >= fMinNofPoints;
         //        printf("globTrackMatch->GetTrueOverAllHitsRatio() = %f\n", globTrackMatch->GetTrueOverAllHitsRatio());
         Float_t P_sim = pntFirst.GetP();
@@ -494,6 +514,17 @@ void BmnTrackingQa::ProcessGlobal() {
             fHM->H1("Ghost_vs_Eta")->Fill(Eta_sim);
             fHM->H1("Ghost_vs_Theta")->Fill(Theta_sim);
             fHM->H1("Fakes_vs_EtaP")->Fill(Eta_sim, P_sim);
+
+            // BmnHit* hit0 = (BmnHit*)fInnerHits->At(glTrack->GetHitIndex(0));
+            // Int_t stPrev = hit0->GetStation();
+            // for (Int_t iHit = 1; iHit < glTrack->GetNHits(); ++iHit) {
+            //     BmnHit* hit = (BmnHit*)fInnerHits->At(glTrack->GetHitIndex(iHit));
+            //     Int_t st = hit->GetStation();
+            //     Int_t dSt = st - stPrev;
+            //     stPrev = st;
+            //     if (dSt == 1) continue;
+            // }
+
         } else {
             nGoodRecoTracks++;
             nWellRecoInEvent++;
@@ -503,6 +534,8 @@ void BmnTrackingQa::ProcessGlobal() {
             fHM->H1("Well_vs_Nh")->Fill(N_rec);
             fHM->H1("Well_vs_Eta")->Fill(Eta_sim);
             fHM->H1("Well_vs_Theta")->Fill(Theta_sim);
+
+            fHM->H1("Nh_rec_Nh_sim")->Fill(CalcNumberOfMcPointInTrack(mcTrack), N_rec);
 
             Float_t chi2 = glTrack->GetChi2() / glTrack->GetNDF();
             fHM->H2("momRes_2D")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
@@ -610,6 +643,9 @@ void BmnTrackingQa::ProcessGlobal() {
         //            uniqStations.insert(points[iPnt].GetStationId());
         //        if (uniqStations.size() < fMinNofPoints) continue;
 
+        Int_t nPointsPerTrack = CalcNumberOfMcPointInTrack(mcTrack);
+        if (nPointsPerTrack < fMinNofPoints) continue;
+
         BmnMCPoint pnt;
         if (mcTrack.GetNofPoints(kSILICON) != 0)
             pnt = mcTrack.GetPoint(kSILICON, 0);
@@ -635,56 +671,32 @@ void BmnTrackingQa::ProcessGlobal() {
         fHM->H1("Split_vs_P_wide")->Fill(P);
         fHM->H1("Split_vs_Eta")->Fill(eta);
         fHM->H1("Split_vs_Theta")->Fill(theta);
-        fHM->H1("Split_vs_Nh")->Fill(mcTrack.GetNofPoints(kGEM) + mcTrack.GetNofPoints(kSILICON));
+        fHM->H1("Split_vs_Nh")->Fill(nPointsPerTrack);
         fHM->H1("Well_vs_P")->Fill(P, -1);          //remove splitted tracks from efficiency
         fHM->H1("Well_vs_Eta")->Fill(eta, -1);      //remove splitted tracks from efficiency
         fHM->H1("Well_vs_Theta")->Fill(theta, -1);  //remove splitted tracks from efficiency
-        fHM->H1("Well_vs_P_wide")->Fill(P, -1);  //remove splitted tracks from efficiency
+        fHM->H1("Well_vs_P_wide")->Fill(P, -1);     //remove splitted tracks from efficiency
         fHM->H2("Eff_vs_EtaP")->Fill(eta, P, -1);
         fHM->H2("Clones_vs_EtaP")->Fill(eta, P);
     }
 
-    Int_t momResStep = 10;
-    for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D")->GetNbinsX(); iBin += momResStep) {
-        TH1D* proj = fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
-        fHM->H1("momRes_1D")->SetBinContent(iBin, proj->GetBinCenter(proj->GetMaximumBin()));
-    }
+    // Int_t momResStep = 10;
+    // for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D")->GetNbinsX(); iBin += momResStep) {
+    //     TH1D* proj = fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
+    //     fHM->H1("momRes_1D")->SetBinContent(iBin, proj->GetBinCenter(proj->GetMaximumBin()));
+    // }
+    // for (Int_t iBin = 0; iBin < fHM->H2("MomRes_vs_Theta")->GetNbinsX(); iBin += momResStep) {
+    //     TH1D* proj = fHM->H2("MomRes_vs_Theta")->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
+    //     fHM->H1("MomRes_vs_Theta_1D")->SetBinContent(iBin, proj->GetBinCenter(proj->GetMaximumBin()));
+    // }
     Int_t nReconstructable = 0;
 
     for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
         if (!fMCTrackCreator->TrackExists(iTrack)) continue;  //?
         const BmnMCTrack mcTrack = fMCTrackCreator->GetTrack(iTrack);
 
-        //        vector<BmnMCPoint> pointsGem = mcTrack.GetPoints(kGEM);
-        //        set<Int_t> uniqStationsGem;
-        //        for (Int_t i = 0; i < pointsGem.size(); ++i)
-        //            uniqStationsGem.insert(pointsGem[i].GetStationId());
-        //
-        //        vector<BmnMCPoint> pointsSil = mcTrack.GetPoints(kSILICON);
-        //        set<Int_t> uniqStationsSil;
-        //        for (Int_t i = 0; i < pointsSil.size(); ++i)
-        //            uniqStationsSil.insert(pointsSil[i].GetStationId());
-        //
-        //        vector<BmnMCPoint> pointsSsd = mcTrack.GetPoints(kSSD);
-        //        set<Int_t> uniqStationsSsd;
-        //        for (Int_t i = 0; i < pointsSsd.size(); ++i)
-        //            uniqStationsSsd.insert(pointsSsd[i].GetStationId());
-        //
-        ////        printf("nPointsGem = %d,   nPointsSil = %d,   nPointsSsd = %d\n", uniqStationsGem.size(), uniqStationsSil.size(), uniqStationsSsd.size());
-        //
-        //        if (uniqStationsGem.size() + uniqStationsSil.size() + uniqStationsSsd.size() < fMinNofPoints) continue;
-
-        Int_t nSil = mcTrack.GetNofPoints(kSILICON);
-        Int_t nSsd = mcTrack.GetNofPoints(kSSD);
-        Int_t nGem = mcTrack.GetNofPoints(kGEM);
-        Int_t nHits = 0;
-
-        if (fInnerTrackerSetup[kSILICON]) nHits += nSil;
-        if (fInnerTrackerSetup[kSSD]) nHits += nSsd;
-        if (fInnerTrackerSetup[kGEM]) nHits += nGem;
-
-        if (nHits < fMinNofPoints || nHits > fNStations) continue;
-
+        Int_t nHitsPerTrack = CalcNumberOfMcPointInTrack(mcTrack);
+        if (nHitsPerTrack < fMinNofPoints) continue;
         nAllMcTracks++;
         nReconstructable++;
 
@@ -710,10 +722,10 @@ void BmnTrackingQa::ProcessGlobal() {
         fHM->H1("Sim_vs_P_wide")->Fill(P);
         fHM->H1("Sim_vs_Eta")->Fill(eta);
         fHM->H1("Sim_vs_Theta")->Fill(theta);
-        fHM->H1("Sim_vs_Nh")->Fill(nHits);
-        fHM->H2("Nh_sim_Eta_sim")->Fill(nHits, eta);
-        fHM->H2("Nh_sim_Theta_sim")->Fill(nHits, theta);
-        fHM->H2("Nh_sim_P_sim")->Fill(nHits, P);
+        fHM->H1("Sim_vs_Nh")->Fill(nHitsPerTrack);
+        fHM->H2("Nh_sim_Eta_sim")->Fill(nHitsPerTrack, eta);
+        fHM->H2("Nh_sim_Theta_sim")->Fill(nHitsPerTrack, theta);
+        fHM->H2("Nh_sim_P_sim")->Fill(nHitsPerTrack, P);
         fHM->H2("ThetaP_sim")->Fill(theta, P);
         fHM->H2("EtaP_sim")->Fill(eta, P);
     }
@@ -723,7 +735,26 @@ void BmnTrackingQa::ProcessGlobal() {
     fHM->H1("Rec_vs_mult")->SetBinContent(nReconstructable, fHM->H1("Rec_vs_mult")->GetBinContent(nReconstructable) + nAllRecoInEvent);
     fHM->H1("Split_vs_mult")->SetBinContent(nReconstructable, fHM->H1("Split_vs_mult")->GetBinContent(nReconstructable) + nSplitInOneEvent);
     fHM->H1("Ghost_vs_mult")->SetBinContent(nReconstructable, fHM->H1("Ghost_vs_mult")->GetBinContent(nReconstructable) + nBadRecoInEvent);
+}
 
+Int_t BmnTrackingQa::CalcNumberOfMcPointInTrack(BmnMCTrack mcTrack) {
+    Int_t nHitsOnStation[fNStations] = {};
+    vector<BmnMCPoint> pointsGem = mcTrack.GetPoints(kGEM);
+    for (BmnMCPoint pntGEM : pointsGem) {
+        nHitsOnStation[pntGEM.GetStationId()]++;
+    }
+    vector<BmnMCPoint> pointsSil = mcTrack.GetPoints(kSILICON);
+    for (BmnMCPoint pntSIL : pointsSil)
+        nHitsOnStation[pntSIL.GetStationId()]++;
+
+    Int_t nHitsPerTrack = 0;
+    Bool_t isGood = kTRUE;
+    for (Int_t iSt = 0; iSt < fNStations; iSt++) {
+        if (nHitsOnStation[iSt] == 0) continue;
+        if (nHitsOnStation[iSt] > 1) return -1;
+        nHitsPerTrack++;
+    }
+    return nHitsPerTrack;
 }
 
 ClassImp(BmnTrackingQa);

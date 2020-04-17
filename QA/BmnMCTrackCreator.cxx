@@ -45,7 +45,7 @@ BmnMCTrackCreator* BmnMCTrackCreator::Instance(TString gem, TString sil) {
 
 void BmnMCTrackCreator::Create() {
     fBmnMCTracks.clear();
-    fNSiliconStations = 4;//fSilDetector->GetNStations()
+    fNSiliconStations = fSilDetector->GetNStations();
     AddPoints(kSILICON, fSilPoints);
     AddPoints(kSSD, fSsdPoints);
     AddPoints(kGEM, fGemPoints);

@@ -8,8 +8,10 @@
 #define BMNTRACKINGQAREPORT_H_
 
 #include "report/BmnSimulationReport.h"
+#include "report/BmnDrawOnline.h"
 #include <string>
 #include <vector>
+extern BmnDrawOnline* drawHist;
 using std::string;
 using std::vector;
 class TH1;
@@ -22,6 +24,8 @@ class TH1;
  */
 class BmnTrackingQaReport : public BmnSimulationReport {
 public:
+
+
     /**
      * \brief Constructor.
      */
@@ -38,6 +42,9 @@ public:
     virtual ~BmnTrackingQaReport();
 
 protected:
+
+
+
     /**
      * \brief Inherited from BmnSimulationReport.
      */
@@ -78,6 +85,10 @@ protected:
     vector<string> fGlobalTrackVariants;
 
     TString fPrefix;
+private:
+	BmnDrawOnline* drawHist;
+	
+	
 
     ClassDef(BmnTrackingQaReport, 1)
 };

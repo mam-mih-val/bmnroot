@@ -1,10 +1,10 @@
 nStatsInnerTracker 9 # Total number of stations in inner tracker (GEM + SILICON)
 
-hitXCutMin -6. -6. -12. -24. -40. -70. -80. -80. -80. # xLeft for each station of inn. tracker
-hitXCutMax 7. 6. 13. 30. 42. 70. 80. 80. 80. # xRight for each station of inn. tracker
+hitXCutMin -7. -7. -13. -30. -40. -70. -80. -80. -80. # xLeft for each station of inn. tracker
+hitXCutMax 7. 7. 13. 30. 40. 70. 80. 80. 80. # xRight for each station of inn. tracker
 
 hitYCutMin -6. -6. -6. -6. -6. -6. -6. -6. -6. # yLeft for each station of inn. tracker
-hitYCutMax 1. 2. 8. 17. 30. 40. 40. 40. 40. # yLeft for each station of inn. tracker
+hitYCutMax 5. 5. 10. 20. 30. 40. 40. 40. 40. # yLeft for each station of inn. tracker
 
 cellSlopeXZCutMin -0.6 -0.4 -0.5 -0.6 -0.6 -0.6 -0.6 -0.5 -0.5 # xzSlopeLeft per each station 
 cellSlopeXZCutMax +0.6 +0.4 +0.5 +0.6 +0.6 +0.6 +0.6 +0.5 +0.5 # xzSlopeRight per each station 
@@ -12,14 +12,14 @@ cellSlopeXZCutMax +0.6 +0.4 +0.5 +0.6 +0.6 +0.6 +0.6 +0.5 +0.5 # xzSlopeRight pe
 cellSlopeYZCutMin -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 # yzSlopeLeft per each station
 cellSlopeYZCutMax +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 +0.5 # yzSlopeRight per each station
 
-diffSlopeXZ0 0.05 # start value (b) when parametrizing diffSlopeXZ (a * x + b)
+diffSlopeXZ0 0.1 # start value (b when parametrizing diffSlopeXZ (a * x + b)
 diffSlopeXZSlope 0.01 # slope value (a) when parametrizing diffSlopeXZ
 
-diffSlopeYZ0 0.001 # start value (b) when parametrizing diffSlopeYZ
-diffSlopeYZSlope 0.01 # slope value (a) when parametrizing diffSlopeYZ
+diffSlopeYZ0 0.041 # start value (b) when parametrizing diffSlopeYZ
+diffSlopeYZSlope 0.0 # slope value (a) when parametrizing diffSlopeYZ
 
-chiSquareCut 15 # Cut on Chi2/ndf
-nIter 5 # Number of iterations of algorithm when reconstructing one event
+chiSquareCut 1.0 # Cut on Chi2/ndf
+nIter 1 # Number of iterations of algorithm when reconstructing one event
 
 nHitsCut 4 # Min. number of hits per track
 nHitsCutTotal 2000 # Total number of hits per event in inner tracker

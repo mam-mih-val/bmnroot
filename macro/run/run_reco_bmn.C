@@ -46,7 +46,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         fFileSource = new BmnFileSource(inputFileName, run_period, run_number);
 
         // get geometry for run
-        TString geoFileName = "current_geo_file.root";
+        gRandom->SetSeed(0);
+        TString geoFileName = Form("current_geo_file_%d.root", UInt_t(gRandom->Integer(UINT32_MAX)));
         Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
         if (res_code != 0) {
             cout << "ERROR: could not read geometry file from the database" << endl;
@@ -109,6 +110,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
         cout << "||\t\t\t\t\t\t\t||" << endl;
         cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
+        remove(geoFileName.Data());
     }
     else { // for simulation files
         if (!BmnFunctionSet::CheckFileExist(inputFileName)) return;
@@ -213,14 +215,9 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ====================================================================== //
     // ===                       Tracking (InnerTracker)                  === //
     // ====================================================================== //
-    BmnCellAutoTracking* gemTF = new BmnCellAutoTracking(run_period, run_number, isField, isTarget);
-    fRunAna->AddTask(gemTF);
+    BmnInnerTrackingRun7* innerTF = new BmnInnerTrackingRun7(run_number, isField, isTarget);
+    fRunAna->AddTask(innerTF);
 
-    // ====================================================================== //
-    // ===                      Primary vertex finding                    === //
-    // ====================================================================== //
-    BmnVertexFinder* gemVF = new BmnVertexFinder(run_period, isField);
-    fRunAna->AddTask(gemVF);
 #endif
 
     // ====================================================================== //
@@ -267,8 +264,16 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
     fRunAna->AddTask(res);
 
-    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, kTRUE);
+    Bool_t doAlign = kTRUE;
+    if (!isExp) doAlign = kFALSE;
+    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, doAlign);
     fRunAna->AddTask(glTF);
+
+    // ====================================================================== //
+    // ===                      Primary vertex finding                    === //
+    // ====================================================================== //
+    BmnVertexFinder* gemVF = new BmnVertexFinder(run_period, isField);
+    fRunAna->AddTask(gemVF);
 
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)
     BmnFillDstTask* dst_task = new BmnFillDstTask(nEvents);

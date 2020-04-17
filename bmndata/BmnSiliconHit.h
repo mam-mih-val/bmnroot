@@ -46,9 +46,9 @@ public:
         fUpperLayerStripTotalSignal = sig;
     }
 
-    void SetDigitNumberMatch(BmnMatch match) {
-        fDigitNumberMatch = match;
-    }
+    // void SetDigitNumberMatch(BmnMatch match) {
+    //     fDigitNumberMatch = match;
+    // }
 
     Double_t GetStripTotalSignalInLowerLayer() {
         return fLowerLayerStripTotalSignal;
@@ -83,9 +83,9 @@ public:
         return fUpperLayerStripPos;
     }
 
-    BmnMatch GetDigitNumberMatch() {
-        return fDigitNumberMatch;
-    }
+    // BmnMatch GetDigitNumberMatch() {
+    //     return fDigitNumberMatch;
+    // }
 
 private:
    // Int_t fModule;
@@ -96,7 +96,7 @@ private:
     Double_t fUpperLayerStripPos; //strip position in the upper layer (\\\ or ///)
     Double_t fLowerLayerStripTotalSignal;
     Double_t fUpperLayerStripTotalSignal;
-    BmnMatch fDigitNumberMatch; //digit numbers used for the hit (as weighed center (one strip) of a cluster in each layer
+    //BmnMatch fDigitNumberMatch; //digit numbers used for the hit (as weighed center (one strip) of a cluster in each layer
 
     ClassDef(BmnSiliconHit, 1);
 };

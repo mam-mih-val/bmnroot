@@ -47,6 +47,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF SiliconLinkDef.h)
 Set(LIBRARY_NAME Silicon)
-Set(DEPENDENCIES BmnData XMLParser Core Base)
+Set(DEPENDENCIES BmnData XMLParser Core Base BmnAlignment)
 
 GENERATE_LIBRARY()

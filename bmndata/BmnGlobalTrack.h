@@ -31,6 +31,7 @@ class BmnGlobalTrack : public BmnTrack {
     Int_t GetMwpc1TrackIndex() const { return fMwpc1Track; }
     Int_t GetMwpc2TrackIndex() const { return fMwpc2Track; }
     Int_t GetCscHitIndex() const { return fCscHit; }
+    Int_t GetUpstreamTrackIndex() const { return fUpstreamTrack; }
 
     Double_t GetBeta(Int_t tofID) const { return (tofID == 1) ? fBeta400 : (tofID == 2) ? fBeta700 : -1000.0; }
     Double_t GetMass2(Int_t tofID);
@@ -55,6 +56,7 @@ class BmnGlobalTrack : public BmnTrack {
     void SetMwpc1TrackIndex(Int_t iMwpc) { fMwpc1Track = iMwpc; }
     void SetMwpc2TrackIndex(Int_t iMwpc) { fMwpc2Track = iMwpc; }
     void SetCscHitIndex(Int_t iCsc) { fCscHit = iCsc; }
+    void SetUpstreamTrackIndex(Int_t iUp) { fUpstreamTrack = iUp; }
 
     void SetBeta(Double_t b, Int_t tofID);
     void SetA(Int_t a) { fA = a; }
@@ -66,7 +68,7 @@ class BmnGlobalTrack : public BmnTrack {
     void SetPrimaryMark(Bool_t p) { fIsPrimary = p; }
 
     /** Output to screen **/
-    void Print() const;
+    //void Print() const;
 
    private:
     /** Indices of local parts of global track **/
@@ -81,6 +83,7 @@ class BmnGlobalTrack : public BmnTrack {
     Int_t fMwpc1Track;
     Int_t fMwpc2Track;
     Int_t fCscHit;
+    Int_t fUpstreamTrack;
 
     // members for PID
     Double_t fBeta400;    // l/t/c //for tof-400

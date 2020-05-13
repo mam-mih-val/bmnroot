@@ -75,6 +75,14 @@ def send_email(to, short_msg, long_msg=""):
         print("Error sending email - ignoring. Details: " + str(e))
 
 
+def get_notify(params_dict):
+    global config
+    if "NOTIFY" in params_dict:
+        return params_dict["NOTIFY"]
+    else:
+        return config["NOTIFY"]
+
+
 def main():
     # Config loaded from JSON file
     global config
@@ -134,9 +142,9 @@ def main():
                 success = result_ping["success"]
                 if ping_prev_success[test_name] != success:
                     if success:
-                        send_email(test_params["NOTIFY"], test_name + " - PING state changed to UP")
+                        send_email(get_notify(test_params), test_name + " - PING state changed to UP")
                     else:
-                        send_email(test_params["NOTIFY"], test_name + " - PING state changed to *** DOWN ***")
+                        send_email(get_notify(test_params), test_name + " - PING state changed to *** DOWN ***")
                     ping_prev_success[test_name] = success
 
             # Do all PGSQL tests
@@ -149,9 +157,9 @@ def main():
                 success = result_pgsql["success"]
                 if pgsql_prev_success[test_name] != success:
                     if success:
-                        send_email(test_params["NOTIFY"], test_name + " - PGSQL state changed to UP")
+                        send_email(get_notify(test_params), test_name + " - PGSQL state changed to UP")
                     else:
-                        send_email(test_params["NOTIFY"], test_name + " - PGSQL state changed to *** DOWN ***")
+                        send_email(get_notify(test_params), test_name + " - PGSQL state changed to *** DOWN ***")
                     pgsql_prev_success[test_name] = success
 
                 if "OUTPUT" in config and config["OUTPUT"]["DBMS"].upper() == "INFLUXDB":
@@ -170,12 +178,12 @@ def main():
                                              batch_size=10000, protocol='line')
                         if influxdb_prev_success == False:
                             influxdb_prev_success = True
-                            send_email(config["OUTPUT"]["NOTIFY"], "InfluxDB is reachable again.")
+                            send_email(get_notify(config["OUTPUT"]), "InfluxDB is reachable again.")
                     except (ConnectionRefusedError, ConnectionError) as err:
                         print("Error writing to InfluxDB - ignoring...")
                         if influxdb_prev_success == True:
                             influxdb_prev_success = False
-                            send_email(config["OUTPUT"]["NOTIFY"], "InfluxDB is unreachable!", str(err))
+                            send_email(get_notify(config["OUTPUT"]), "InfluxDB is unreachable!", str(err))
                 else:
                     print("Skip writing to InfluxDB due to no configuration.")
 

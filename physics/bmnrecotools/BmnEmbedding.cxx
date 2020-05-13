@@ -13,7 +13,8 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
     Int_t EmbeddedType = 1;
     Bool_t addMatch = kFALSE;
     Bool_t isExp = kTRUE;
-    Bool_t isHitMakerEfficiencyMode = kTRUE;
+    Bool_t isHitMakerEfficiencyMode = kFALSE;
+    Bool_t isRescale = kTRUE;
 
     /* Hits branches */
     vector<TString> digiNames = {
@@ -27,10 +28,13 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
     vector<TString> outExpNames = {
         "SILICON", "GEM", "CSC"
     };
+    vector<TF1*> funcsMC;
+    vector<TF1*> funcsEx;
+    vector<TF1*> funcsRescale;
     vector<TString> digiOutExpNames = (isExp == kTRUE) ? outExpNames : outMCNames;
 
-    vector<TClass*> digiClasses;// = {
-        //BmnSiliconDigit::Class(), BmnGemStripDigit::Class(), BmnCSCDigit::Class()};
+    vector<TClass*> digiClasses; // = {
+    //BmnSiliconDigit::Class(), BmnGemStripDigit::Class(), BmnCSCDigit::Class()};
     vector<TClass*> digiClassesOther;
     vector<TString> matchNames = {"BmnSiliconDigitMatch", "BmnGemStripDigitMatch", "BmnCSCDigitMatch"};
 
@@ -79,6 +83,7 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
     //    printf("ret %d\n", retn);
     //    fflush(stdout);
 
+
     TString tempBaseName = inBaseName + "-temp.root";
     CloneSelected(inBaseName, tempBaseName);
 
@@ -98,15 +103,13 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
     TIterator* it = digiBaseBrsFull->MakeIterator();
     it->Reset();
     TBranch* b = NULL;
-    while( (b = (TBranch*)it->Next() ) ) {
-        printf("%s\n",b->GetName());
+    while ((b = (TBranch*) it->Next())) {
         TClass * cl = nullptr;
         EDataType type;
         b->GetExpectedType(cl, type);
-        printf("\t%s\n", cl->GetName());
         Bool_t isOther = kFALSE;
-        for (Int_t i = 0; i < fNArs; i++){
-            if (strcmp(b->GetName(), digiOutExpNames[i].Data()) == 0){
+        for (Int_t i = 0; i < fNArs; i++) {
+            if (strcmp(b->GetName(), digiOutExpNames[i].Data()) == 0) {
                 isOther = kTRUE;
                 break;
             }
@@ -115,15 +118,13 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
             isOther = kTRUE;
         if (isOther)
             continue;
-        printf("\t other\n");
         TClonesArray* arDigi = nullptr;
         fInTreeBase->SetBranchAddress(b->GetName(), &arDigi);
         digiNamesOther.push_back(TString(b->GetName()));
         digiBaseArsOther.push_back(arDigi);
         digiClassesOther.push_back(arDigi->GetClass());
         arDigi->GetClass();
-        printf("\tarDigi->GetClass() %s \n",arDigi->GetClass()->GetName());
-  }
+    }
     UInt_t fNEventBase = fInTreeBase->GetEntries();
     for (Int_t i = 0; i < fNArs; i++) {
         TClonesArray* arDigi = nullptr; // new TClonesArray(BmnCSCHit::Class());
@@ -143,6 +144,43 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
     //        TObject * fhdr = fBaseHits->Get("FileHeader");
     //        TObject * cbmr = fBaseHits->Get("cbmroot");
 
+    //    BmnRecoTools::GeSignalDistribution(fInTreeBase, "GEM");
+
+    /** GetRescaleFunc */
+
+    //    Double_t p = 0.0005;
+    //    printf("inv h(%f) = %f\n", p, sig->GetX(p));
+    for (Int_t i = 0; i < digiSourceArs.size(); i++) {
+        TF1 *mc = BmnRecoTools::GetSignalDistribution(fInTreeSource, digiSourceArs[i]);
+        TF1 *ex = BmnRecoTools::GetSignalDistribution(fInTreeBase, digiBaseArs[i]);
+        TF1 *funcRescale = BmnRecoTools::GetRescaleFunc(TString("Rescale") + outExpNames[i], mc, ex);
+        funcsMC.push_back(mc);
+        funcsEx.push_back(ex);
+        funcsRescale.push_back(funcRescale);
+        //    funcRescale->SetNpx(50000);
+//        printf("%s : xmin %f  xmax %f\n", outExpNames[i].Data(), mc->GetXmin(), mc->GetXmax());
+//        //            printf("h(%f) = %f r = %f\n", p, funcRescale->Eval(p), mc->Eval(p));
+//
+//        TString name = TString("Rescale_") + digiSourceArs[i]->GetName();
+//        TCanvas* can = new TCanvas(name, name, 1600 * 2, 900* 2);
+//        can->Divide(2, 1);
+//        TVirtualPad * padDistributions = can->cd(2);
+//        padDistributions->Divide(1, 2);
+//        // draw mc distr
+//        TVirtualPad * padMC = padDistributions->cd(1);
+//        padMC->SetLogy();
+//        mc->Draw();
+//        // draw exp distr
+//        TVirtualPad * padEx = padDistributions->cd(2);
+//        padEx->SetLogy();
+//        ex->Draw();
+//        // draw Rescale func
+//        TVirtualPad * padRescale = can->cd(1);
+//        padRescale->SetLogx();
+//        padRescale->SetLogy();
+//        funcRescale->Draw();
+//        can->Print(Form("%s.pdf", can->GetName()));
+    }
 
     /*****************************/
     /** Open  dest digits **/
@@ -171,7 +209,7 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
     }
     for (Int_t i = 0; i < digiBaseArsOther.size(); i++) {
         TClonesArray* arDigi = new TClonesArray(digiClassesOther[i]);
-//        printf("branch name  %s  class  %s\n", digiNamesOther[i], digiClassesOther[i]->GetName());
+        //        printf("branch name  %s  class  %s\n", digiNamesOther[i], digiClassesOther[i]->GetName());
         fDestTree->Branch(digiNamesOther[i], &arDigi);
         digiDestArsOther.push_back(arDigi);
     }
@@ -231,8 +269,9 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
             /** summ strip signals */
             for (UInt_t iSrcDig = 0; iSrcDig < digiSourceArs[iBr]->GetEntriesFast(); iSrcDig++) {
                 BmnStripDigit * src = (BmnStripDigit*) digiSourceArs[iBr]->At(iSrcDig);
+                Double_t mc_signal = isRescale ? funcsRescale[iBr]->Eval(src->GetStripSignal()) : src->GetStripSignal();
+                src->SetStripSignal(mc_signal);
                 Int_t iSame = -1;
-                //                printf("iSrc %d\n", iSrcDig);
                 for (UInt_t iDestDig = 0; iDestDig < digiDestArs[iBr]->GetEntriesFast(); iDestDig++) {
                     BmnStripDigit * des = (BmnStripDigit*) digiDestArs[iBr]->At(iDestDig);
                     if (
@@ -303,6 +342,13 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
         fBaseHits->Close();
     if (fDestHitsFile)
         fDestHitsFile->Close();
+    
+    for (Int_t i = 0; i < digiSourceArs.size(); i++) {
+        delete funcsMC[i];
+        delete funcsEx[i];
+        delete funcsRescale[i];
+    }
+    
     system(Form("rm -f %s", tempBaseName.Data()));
     printf("\nFinished! Search made over %d source events\n", iSourceEvent);
 
@@ -358,7 +404,6 @@ BmnStatus BmnEmbedding::CloneSelected(TString BaseName, TString TempBaseName) {
     printf("\nPreliminary cloning finished!\n");
     return kBMNSUCCESS;
 }
-
 
 BmnStatus BmnEmbedding::GetNextValidSourceEvent() {
     do {

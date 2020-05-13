@@ -5,6 +5,7 @@
 #include <vector>
 #include <regex>
 #include <dirent.h>
+#include <math.h>
 
 #include <TClonesArray.h>
 #include <TBranch.h>
@@ -13,6 +14,7 @@
 #include <TGeoTrack.h>
 #include <TFile.h>
 #include <TH2F.h>
+#include <TCanvas.h>
 
 #include <TCutG.h>
 
@@ -74,8 +76,13 @@ public:
             TString name,
             Double_t x, Double_t y, Double_t rx, Double_t ry = -1.0,
             Double_t theta = 0.0);
+    static TF1* GetSignalDistribution(TTree * tree, TClonesArray *ar);
+    static TF1* GetRescaleFunc(TString name, TF1 *mc, TF1 *ex);
+    
 
 private:
+    
+    static const Int_t nBins = 10000;
     
 //    ClassDef(BmnRecoTools, 1);
 };

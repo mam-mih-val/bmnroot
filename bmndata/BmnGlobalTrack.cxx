@@ -22,6 +22,7 @@ BmnGlobalTrack::BmnGlobalTrack()
       fMwpc1Track(-1),
       fMwpc2Track(-1),
       fCscHit(-1),
+      fUpstreamTrack(-1),
       fBeta400(-1000.0),
       fBeta700(-1000.0),
       fdQdNLower(0.0),
@@ -38,9 +39,10 @@ BmnGlobalTrack::~BmnGlobalTrack() {}
 // -------------------------------------------------------------------------
 
 // -----   Public method Print   -------------------------------------------
-void BmnGlobalTrack::Print() const {
+//void BmnGlobalTrack::Print() const {
+
     //cout << endl << "MwpcTrack " << fMwpc1Track << ", SilHit " << fSilTrack << ", GemTrack " << fGemTrack << ", Tof1Hit " << fTof1Hit << ", Tof2Hit " << fTof2Hit << ", DchTrack " << fDchTrack << endl;
-}
+//}
 // -------------------------------------------------------------------------
 
 void BmnGlobalTrack::SetBeta(Double_t b, Int_t tofID) {

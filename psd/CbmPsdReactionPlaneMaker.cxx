@@ -8,6 +8,7 @@
 
 #include "TClonesArray.h"
 #include "TMath.h"
+#include "TFile.h"
 #include "TH1F.h"
 
 #include "FairRootManager.h"

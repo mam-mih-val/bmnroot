@@ -36,6 +36,8 @@ BmnSiliconLayer::BmnSiliconLayer() {
     }
 
     ClusterFindingThreshold = 0.0;
+
+    InitializeLayer();
 }
 
 BmnSiliconLayer::BmnSiliconLayer(Int_t zone_id,
@@ -71,6 +73,8 @@ BmnSiliconLayer::BmnSiliconLayer(Int_t zone_id,
     }
 
     ClusterFindingThreshold = 0.0;
+
+    InitializeLayer();
 }
 
 BmnSiliconLayer::~BmnSiliconLayer() {
@@ -84,8 +88,9 @@ void BmnSiliconLayer::InitializeLayer() {
     Strips.clear();
     Strips.resize(NStrips, 0.0);
 
-    //strip matches
+    //matches
     ResetStripMatches();
+    ResetStripDigitNumberMatches();
 
     //strip hits
     ResetStripHits();
@@ -260,17 +265,33 @@ Double_t BmnSiliconLayer::GetStripSignal(Int_t strip_num) {
     else return -1;
 }
 
-Bool_t BmnSiliconLayer::SetStripMatch(Int_t strip_num, BmnMatch strip_match) {
+Bool_t BmnSiliconLayer::SetStripMatch(Int_t strip_num, BmnMatch mc_match) {
     if( strip_num >= FirstStripNumber && strip_num < (StripMatches.size()+FirstStripNumber) ) {
-        StripMatches[strip_num-FirstStripNumber] = strip_match;
+        StripMatches[strip_num-FirstStripNumber] = mc_match;
         return true;
     }
     else return false;
 }
 
-Bool_t BmnSiliconLayer::AddLinkToStripMatch(Int_t strip_num, Double_t weight, Int_t refID) {
+Bool_t BmnSiliconLayer::AddLinkToStripMatch(Int_t strip_num, Double_t weight, Int_t mc_num) {
     if( strip_num >= FirstStripNumber && strip_num < (StripMatches.size()+FirstStripNumber) ) {
-        StripMatches[strip_num-FirstStripNumber].AddLink(weight, refID);
+        StripMatches[strip_num-FirstStripNumber].AddLink(weight, mc_num);
+        return true;
+    }
+    else return false;
+}
+
+Bool_t BmnSiliconLayer::SetStripDigitNumberMatch(Int_t strip_num, BmnMatch digit_num_match) {
+    if( strip_num >= FirstStripNumber && strip_num < (StripDigitNumberMatches.size()+FirstStripNumber) ) {
+        StripDigitNumberMatches[strip_num-FirstStripNumber] = digit_num_match;
+        return true;
+    }
+    else return false;
+}
+
+Bool_t BmnSiliconLayer::AddLinkToStripDigitNumberMatch(Int_t strip_num, Double_t weight, Int_t digit_num) {
+    if( strip_num >= FirstStripNumber && strip_num < (StripDigitNumberMatches.size()+FirstStripNumber) ) {
+        StripDigitNumberMatches[strip_num-FirstStripNumber].AddLink(weight, digit_num);
         return true;
     }
     else return false;
@@ -283,11 +304,25 @@ BmnMatch BmnSiliconLayer::GetStripMatch(Int_t strip_num) {
     else return BmnMatch(); //return an empty match
 }
 
+BmnMatch BmnSiliconLayer::GetStripDigitNumberMatch(Int_t strip_num) {
+    if( strip_num >= FirstStripNumber && strip_num < (StripDigitNumberMatches.size()+FirstStripNumber) ) {
+        return StripDigitNumberMatches[strip_num-FirstStripNumber];
+    }
+    else return BmnMatch(); //return an empty match
+}
+
 void BmnSiliconLayer::ResetStripMatches() {
     Int_t NStrips = GetNStrips();
 
     StripMatches.clear();
     StripMatches.resize(NStrips, BmnMatch());
+}
+
+void BmnSiliconLayer::ResetStripDigitNumberMatches() {
+    Int_t NStrips = GetNStrips();
+
+    StripDigitNumberMatches.clear();
+    StripDigitNumberMatches.resize(NStrips, BmnMatch());
 }
 
 Double_t BmnSiliconLayer::GetStripHitPos(Int_t num) {

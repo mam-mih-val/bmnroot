@@ -30,6 +30,7 @@
 #include "TGeoVoxelFinder.h"
 #include "TGeoManager.h"
 #include "TRegexp.h"
+#include "TFile.h"
 
 #include <iostream>
 

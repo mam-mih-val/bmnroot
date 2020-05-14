@@ -89,6 +89,10 @@ class BmnGlobalTracking : public FairTask {
         fIsSRC = f;
     }
 
+    void SetRunNumber(Int_t r) {
+        fRunId = r;
+    }
+
    private:
 
     /*
@@ -110,6 +114,7 @@ class BmnGlobalTracking : public FairTask {
     TClonesArray *fDchHits;
     TClonesArray *fTof1Hits;
     TClonesArray *fTof2Hits;
+    TClonesArray *fUpstreamTracks;
 
     TClonesArray *fEvHead;
 
@@ -155,6 +160,15 @@ class BmnGlobalTracking : public FairTask {
     TH2F *fhTxdXDch2GemResid;
     TH2F *fhTydYDch2GemResid;
 
+    TH1F *fhXDchGGemResid;
+    TH1F *fhYDchGGemResid;
+    TH1F *fhTxDchGGemResid;
+    TH1F *fhTyDchGGemResid;
+    TH2F *fhXdXDchGGemResid;
+    TH2F *fhYdYDchGGemResid;
+    TH2F *fhTxdXDchGGemResid;
+    TH2F *fhTydYDchGGemResid;
+
     TH1F *fhXCscGemResid;
     TH1F *fhYCscGemResid;
     TH2F *fhXdXCscGemResid;
@@ -169,6 +183,14 @@ class BmnGlobalTracking : public FairTask {
     TH2F **fhXdXGemSt;
     TH2F **fhYdYGemSt;
 
+    TH1F *fhXUResid;
+    TH1F *fhYUResid;
+    TH1F *fhTxUResid;
+    TH1F *fhTyUResid;
+    TH2F *fhXdXUResid;
+    TH2F *fhYdYUResid;
+    TH2F *fhTxdXUResid;
+    TH2F *fhTydYUResid;
     Short_t fPeriod;
     Bool_t fIsField;  // run with mag.field or not
     Bool_t fIsSRC;    // flag to turn on specific parts for SRC
@@ -178,6 +200,7 @@ class BmnGlobalTracking : public FairTask {
     BmnDetectorSetup fDet;  // Detector presence information
 
     Int_t fEventNo;  // event counter
+    Int_t fRunId;
 
     Int_t fPDG;         // PDG hypothesis
     Float_t fChiSqCut;  // Chi square cut for hit to be attached to track.
@@ -189,12 +212,14 @@ class BmnGlobalTracking : public FairTask {
     BmnStatus MatchingTOF(BmnGlobalTrack *tr, Int_t num);
     BmnStatus MatchingDCH(BmnGlobalTrack *tr, Int_t num);
     BmnStatus MatchingMWPC(BmnGlobalTrack *tr);
-    BmnStatus MatchingSil(BmnGlobalTrack *tr);
+    BmnStatus MatchingUpstream(BmnGlobalTrack *tr);
     BmnStatus MatchingCSC(BmnGlobalTrack *tr);
 
     Int_t FindNearestHit(BmnGlobalTrack *tr, TClonesArray *hits, Float_t distCut);
 
     BmnStatus Refit(BmnGlobalTrack *tr);
+    Double_t MagFieldIntegral(FairTrackParam& par, Double_t zMin, Double_t zMax, Double_t step);
+    BmnStatus UpdateMomentum(BmnGlobalTrack *tr);
 
     BmnGlobalTracking(const BmnGlobalTracking &);
     BmnStatus RefitToDetector(BmnGlobalTrack *tr, Int_t hitId, TClonesArray *hitArr, FairTrackParam *par, Int_t *nodeIdx, vector<BmnFitNode> *nodes);

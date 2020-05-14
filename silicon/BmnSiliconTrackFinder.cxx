@@ -15,6 +15,7 @@
 
 #include <Rtypes.h>
 #include <TMath.h>
+#include "TFile.h"
 #include "FairLogger.h"
 #include "BmnSiliconTrackFinder.h"
 #include "FairMCPoint.h"
@@ -247,13 +248,13 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
     
     FairTrackParam trackParamf;
     trackParamf.SetPosition(TVector3(x1+Shift_toCenterOfMagnetX, y1+Shift_toCenterOfMagnetY, z1));
-    trackParamf.SetTx(CleanTr.at(InIter).param[0]);
-    trackParamf.SetTy(CleanTr.at(InIter).param[2]);
+    trackParamf.SetTx(CleanTr.at(InIter).param[0]+ Shift_toCenterOfMagnetAX + Shift_toCenterOfMagnetAX * CleanTr.at(InIter).param[0]* CleanTr.at(InIter).param[0]); 
+    trackParamf.SetTy(CleanTr.at(InIter).param[2]+ Shift_toCenterOfMagnetAY + Shift_toCenterOfMagnetAY * CleanTr.at(InIter).param[2]* CleanTr.at(InIter).param[2]);
 
     FairTrackParam trackParaml;
     trackParaml.SetPosition(TVector3(x3+Shift_toCenterOfMagnetX, y3+Shift_toCenterOfMagnetY, z3));
-    trackParaml.SetTx(CleanTr.at(InIter).param[0]);
-    trackParaml.SetTy(CleanTr.at(InIter).param[2]);
+    trackParaml.SetTx(CleanTr.at(InIter).param[0]+ Shift_toCenterOfMagnetAX + Shift_toCenterOfMagnetAX * CleanTr.at(InIter).param[0]* CleanTr.at(InIter).param[0]);
+    trackParaml.SetTy(CleanTr.at(InIter).param[2]+ Shift_toCenterOfMagnetAY + Shift_toCenterOfMagnetAY * CleanTr.at(InIter).param[2]* CleanTr.at(InIter).param[2]);
 
     BmnTrack *track = new ((*fSiTracks)[fSiTracks->GetEntriesFast()]) BmnTrack();
     track->SetChi2(CleanTr.at(InIter).Chi2);
@@ -3501,18 +3502,18 @@ InitStatus BmnSiliconTrackFinder::Init() {
   }
   
   //--cm--
-  //--X--                                       Si-PC   Si-Si
-  shiftX[1][0] = -6.4 + 0.1148 + 0.0026;//- 0.0004 + 0.05 -0.008 - 0.043 +0.004;//+ 0.0026;//
-  shiftX[1][1] =  5.9 - 0.1148 + 0.0085;//  0.0045 -0.008 + 0.005 + 0.012 - 0.005;//+ 0.0085;// 
-  shiftX[1][2] = -5.9 + 0.1148 + 0.014 -0.003;//   0.014  +0.009 - 0.013 - 0.001  +0.01 -.005;//0.014;//    - 0.006;??
-  shiftX[1][3] =  6.4 - 0.1148 + 0.019;//   0.014  -0.003 + 0.001 - 0.003+0.01;//0.019;//
+  //--X--    
+  shiftX[1][0] = -6.4 + 0.1148 + 0.0026;
+  shiftX[1][1] =  5.9 - 0.1148 + 0.0085;
+  shiftX[1][2] = -5.9 + 0.1148 + 0.014 -0.003;
+  shiftX[1][3] =  6.4 - 0.1148 + 0.019;
   
-  shiftX[2][0] = -5.9 + .1148 + 0.0085       - .001;//  0.0135 +0.001 + 0.009 -0.007 -0.005-0.002-0.001;//0.0085;// 
-  shiftX[2][1] =  6.4 - .1148 + 0.0075+0.003 - .0015;//  0.0005 -0.005  - 0.002 + 0.008 + 0.006;//0.0075;//
+  shiftX[2][0] = -5.9 + .1148 + 0.0085       - .001;
+  shiftX[2][1] =  6.4 - .1148 + 0.0075+0.003 - .0015;
   
   shiftX[3][0] = -12.15 + 0.1148;
-  shiftX[3][1] = -6.15  + 0.1148;      //  + 0.306;
-  shiftX[3][2] =  6.15  - 0.1148;      //  - 0.204;
+  shiftX[3][1] = -6.15  + 0.1148;      
+  shiftX[3][2] =  6.15  - 0.1148;      
   shiftX[3][3] =  12.15 - 0.1148;
   shiftX[3][4] = -12.15 + 0.1148;
   shiftX[3][5] = -6.15  + 0.1148;
@@ -3520,10 +3521,10 @@ InitStatus BmnSiliconTrackFinder::Init() {
   shiftX[3][7] =  12.15 - 0.1148;
   
   //--Y--             Si-Si  Pc-Si
-  shiftY[1][0] = -0.4 +0.01 -0.02 -0.06 -0.01;  //-0.08 +0.23-0.1;               
-  shiftY[1][1] =  0.1 +0.01 -0.04 -0.03;        //-0.07 +0.14-0.1;           
-  shiftY[1][2] = -0.2 -0.03       -0.02;        //-0.07 +0.01+0.05;//-0.13-0.15;             
-  shiftY[1][3] =  0.4 -0.18 +0.01      + 0.01;   //-0.08 ;//-0.14-0.14;            
+  shiftY[1][0] = -0.4 +0.01 -0.02 -0.06 -0.01;
+  shiftY[1][1] =  0.1 +0.01 -0.04 -0.03;       
+  shiftY[1][2] = -0.2 -0.03       -0.02;           
+  shiftY[1][3] =  0.4 -0.18 +0.01 + 0.01; 
   
   shiftY[2][0] = -6.22 -0.02 ;         
   shiftY[2][1] = -6.72       ;            
@@ -3539,9 +3540,9 @@ InitStatus BmnSiliconTrackFinder::Init() {
 
   //--cm--                   Shift
   shiftStXtoGlob[0] = 0.;
-  shiftStXtoGlob[1] = 0.149 ;//+0.55;// -0.5;
-  shiftStXtoGlob[2] = 0.149 ;//+0.55;// -0.5;
-  shiftStXtoGlob[3] = 0.047 ;//+0.55;// -0.5;
+  shiftStXtoGlob[1] = 0.149 ;
+  shiftStXtoGlob[2] = 0.149 ;
+  shiftStXtoGlob[3] = 0.047 ;
   //                         Shift
   shiftStYtoGlob[0] =  0.;
   shiftStYtoGlob[1] =  0.096 +0.001 -0.05 -0.06       +0.32 -0.02;//  + 0.11 -4.5;  

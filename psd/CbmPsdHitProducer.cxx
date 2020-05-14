@@ -7,6 +7,7 @@
 
 #include "TClonesArray.h"
 #include "TMath.h"
+#include "TFile.h"
 
 #include "FairRootManager.h"
 

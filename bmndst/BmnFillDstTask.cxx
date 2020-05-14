@@ -172,7 +172,7 @@ InitStatus BmnFillDstTask::Init() {
         if (fVerbose > 0)
             if (safeindex == 20000) cout << "run number not found in file " << gPathFullBC << endl;
 
-        TString gPathFull = gPathWorkdir + "/input/ZOutCorrections4.txt";
+        TString gPathFull = gPathWorkdir + "/input/ZOutCorrections5.txt";
 
         string line;
         ifstream f(gPathFull.Data(), ios::in);
@@ -326,7 +326,25 @@ void BmnFillDstTask::Exec(Option_t* /*option*/) {
         fDstHead->SetADCin(adcIn);
         fDstHead->SetADCout(adcOut);
         fDstHead->SetZin(Zin);
+    } else 
+        if (fT0 && fBC1 && fBC2) {
+            BmnTrigDigit* digT0 = NULL;
+            Int_t t0Count = 0;
+            for (UInt_t i = 0; i < fT0->GetEntriesFast(); i++) {
+                digT0 = (BmnTrigDigit*)fT0->At(i);
+                if (digT0->GetMod() == 0) t0Count++;
     }
+            if (t0Count == 1) {
+                Double_t t0Time = digT0->GetTime();
+
+                grabZ2(fBC1, fBC2, t0Time, Z2in, adcIn, fBC1Calib, fBC2Calib, Zin, true);
+            }
+            fDstHead->SetZ2in(Z2in);
+//            fDstHead->SetZ2out(Z2out);
+            fDstHead->SetADCin(adcIn);
+//            fDstHead->SetADCout(adcOut);
+            fDstHead->SetZin(Zin);
+        }
 
     Double_t Z1 = -100.0, Z2 = -100.0, Z3 = -100.0, Z4 = -100.0, ADC1 = -100.0, ADC2 = -100.0, ADC3 = -100.0, ADC4 = -100.0;
     if (fT0) {

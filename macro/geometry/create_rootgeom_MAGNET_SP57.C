@@ -11,10 +11,9 @@ using namespace TMath;
 TGeoManager* gGeoMan = NULL;
 
 //--------Magnet position-------------------------------------------------------
-    const double XMagnetPos = 0.5055 - 0.167 + 7.; // cm   x=0.5055 cm - Z SRC relative to Z BMN in X direction (D. Baranov),  x=-0.167 - coordinate of the mark in SRC coordinate system (A. Kolesnikov), x = 7 cm - center of the magnet relative to the mark in X direction (M. Patsyuk)
-const double YMagnetPos = -4.62 - 20.53 + 5. + 19.; // cm  x=-4.62  cm - Z SRC relative to Z BMN in Y direction (D. Baranov),  x=-20.53 - coordinate of the mark in SRC coordinate system (A. Kolesnikov), x = 5+19 cm - center of the magnet relative to the mark in Y direction (S. Piyadin, technical drawing)
-    const double ZMagnetPos = -576.2; //cm
-
+    const double XMagnetPos = 0.5055 - 0.167 + 7.-3.521; // cm   x=0.5055 cm - Z SRC relative to Z BMN in X direction (D. Baranov),  x=-0.167 - coordinate of the mark in SRC coordinate system (A. Kolesnikov), x = 7 cm - center of the magnet relative to the mark in X direction (M. Patsyuk), x=-3.521 - difference with A. Kolesnikov's measurements (T. Atovullaev)
+const double YMagnetPos = -4.62 - 20.53 + 5. + 19.+4.9285; // cm  x=-4.62  cm - Z SRC relative to Z BMN in Y direction (D. Baranov),  x=-20.53 - coordinate of the mark in SRC coordinate system (A. Kolesnikov), x = 5+19 cm - center of the magnet relative to the mark in Y direction (S. Piyadin, technical drawing), x=4.9285 - difference with A. Kolesnikov's measurements (T. Atovullaev)
+    const double ZMagnetPos = -576.2; //cm  
 //--------Magnet construct parameters-------------------------------------------
 
     //Yoke parameters:

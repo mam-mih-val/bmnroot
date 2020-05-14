@@ -16,6 +16,7 @@
 #include <climits>
 #include <vector>
 #include "TCanvas.h"
+#include "TFile.h"
 #include "BmnMwpcHitFinder.h"
 #include "BmnTrack.h"
 #include "BmnMwpcTrack.h"

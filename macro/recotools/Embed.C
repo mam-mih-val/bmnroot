@@ -36,7 +36,7 @@ BmnStatus RemoveBranches(TString fileName, vector<TString> branchNames) {
 BmnStatus Embed(TString inSourceName = "eve-4649-isAll.root", TString inBaseName = "bmn_run4649_digi.root", TString outHitsName = "merged-digi.root",
         Int_t code = 3122, vector<Int_t> outCodes = {2212, -211}, Bool_t turnOffBaseDigits = kFALSE) {
 
-    BmnRecoTools * rt = new BmnRecoTools();
+    BmnEmbedding * rt = new BmnEmbedding();
     rt->Embed(inSourceName, inBaseName, outHitsName, code, outCodes, turnOffBaseDigits);
     delete rt;
     return kBMNSUCCESS;

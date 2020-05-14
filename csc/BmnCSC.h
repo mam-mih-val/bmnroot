@@ -5,6 +5,7 @@
 #include "TVector3.h"
 #include "TLorentzVector.h"
 #include "TClonesArray.h"
+#include "TGeoMedium.h"
 
 #include <map>
 

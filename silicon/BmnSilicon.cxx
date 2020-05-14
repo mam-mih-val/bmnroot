@@ -8,6 +8,7 @@
 #include "TGDMLParse.h"
 #include "TGeoManager.h"
 #include "TRegexp.h"
+#include "TFile.h"
 
 #include "FairRootManager.h"
 #include "FairVolume.h"

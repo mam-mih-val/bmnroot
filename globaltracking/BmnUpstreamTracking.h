@@ -183,6 +183,11 @@ private:
   const Double_t cutY      = 2.0;//cm
   const Double_t Zcentr    = -350.;//cm
   
+  const Double_t Shift_toCenterOfMagnetX  = 0.039;
+  const Double_t Shift_toCenterOfMagnetY  = 0.13;
+  const Double_t Shift_toCenterOfMagnetAX = 0.;
+  const Double_t Shift_toCenterOfMagnetAY = 0.0019;
+  
   //--------
   TH1D  *hNSi_NPC, *hNPC_NSi, *hAx_fitUp,*hAy_fitUp,* hx_fitUp,* hy_fitUp,* hchi2_fitUp,* hNhitsUp;
   vector<TH1D*> hResXst, hResYst;

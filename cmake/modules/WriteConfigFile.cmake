@@ -31,9 +31,26 @@ MACRO (WRITE_CONFIG_FILE filename)
   EndIf(NOT DEFINED FULL_CONFIG_FILE)
 
   
+  IF (IGNORE_DIFFERENT_SYSTEM)
+    SET(SAME_SYSTEM_ERROR_MESSAGE
+"\"The option was turned on to bypass the security issue, 
+but the stability of the software cannot be guaranteed\"")
+    SET(SAME_SYSTEM_FLAG 1)
+  ELSE (IGNORE_DIFFERENT_SYSTEM)
+    SET(SAME_SYSTEM_ERROR_MESSAGE
+"\"This is normaly a serious error, so we stop 
+the execution at this point. 
+If you know what you do you can change the 
+config.sh script to bypass this security issue.\"")
+    SET(SAME_SYSTEM_FLAG 0)
+  ENDIF (IGNORE_DIFFERENT_SYSTEM)
+
   IF(CMAKE_SYSTEM_NAME MATCHES Linux)
     IF(FAIRROOTPATH)
-      configure_file(${FAIRROOTPATH}/share/fairbase/cmake/scripts/check_system.sh.in
+      #configure_file(${FAIRROOTPATH}/share/fairbase/cmake/scripts/check_system.sh.in
+      #               ${CMAKE_CURRENT_BINARY_DIR}/check_system.sh
+      #              )
+      configure_file(${PROJECT_SOURCE_DIR}/cmake/modules/check_system.sh.in
                      ${CMAKE_CURRENT_BINARY_DIR}/check_system.sh
                     )
       configure_file(${FAIRROOTPATH}/share/fairbase/cmake/scripts/check_system.csh.in

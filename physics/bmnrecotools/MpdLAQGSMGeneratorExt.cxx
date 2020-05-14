@@ -22,6 +22,7 @@
 #include "TParticlePDG.h"
 #include "TParticle.h"
 #include "TSystem.h"
+#include "TFile.h"
 
 #include "FairMCEventHeader.h"
 

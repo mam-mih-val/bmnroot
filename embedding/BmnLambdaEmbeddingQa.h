@@ -13,8 +13,10 @@
 #include <TH2.h>
 #include <TMarker.h>
 #include <TProfile.h>
+#include <TProfile2D.h>
 #include <TColor.h>
 #include <TStyle.h>
+#include <TLegend.h>
 
 #include <BmnGlobalTrack.h>
 #include <BmnGemStripHit.h>
@@ -25,8 +27,11 @@
 #include <BmnGemStripStationSet.h>
 #include <BmnSiliconStationSet.h>
 #include <BmnLambdaEmbeddingMonitor.h>
+#include <BmnLambdaMisc.h>
 #include <BmnNewFieldMap.h>
 #include <DstEventHeader.h>
+#include <BmnEventHeader.h>
+#include <BmnStripDigit.h>
 #include <UniDbDetectorParameter.h>
 #include <UniDbRun.h>
 #include <BmnInnerTrackerGeometryDraw.h>
@@ -49,6 +54,8 @@ public:
     virtual ~BmnLambdaEmbeddingQa();
 
     // Types of analysis available ...
+    void DoDigiMcAnalysis();
+    void DoDigiEmbeddedAnalysis();
     void DoDrawEventsWithEmbeddedSignals(); // Draw events with embedded hits from Lambda decay products 
     void DoInnerTrackerEmbeddingEfficiency(); // Calculate efficiency of embedding 
     void DoInnerTrackerRecoEfficiency(); // Calculate some params. showing hit reconstruction and tracking efficiency
@@ -56,6 +63,23 @@ public:
     void DoDrawFoundTracks(Bool_t flag) {
         drawFoundTracks = flag;
     }
+    
+    // Setting prefix name if needed ...
+    void SetPrefixName(TString name) {
+        fPrefix = name;
+    }
+    
+    void ShowLays(Int_t lay1, Int_t lay2) {
+        aLaysToShow[0] = lay1;
+        aLaysToShow[1] = lay2;
+    }
+    
+    void SetSignalCuts(Double_t min, Double_t max) {
+        fSignalWindow[0] = min;
+        fSignalWindow[1] = max;
+    }
+    
+    void DrawHistos6(TClonesArray*, TClonesArray*); // Function to draw histos from BmnLambdaMisc::CheckStripOverlaps(), temporarily solution 
 
 private:
     Int_t nInputs;
@@ -66,6 +90,7 @@ private:
     BmnInnerTrackerGeometryDraw* geoms;
 
     // Files
+    TString* fDigi;
     TString* fDst;
     TString* fEmb;
     TString* fPath;
@@ -74,6 +99,9 @@ private:
     BmnFieldMap* fMagField;
     BmnLambdaEmbeddingMonitor* fMon;
     DstEventHeader* hDst;
+    BmnEventHeader* hDigi;
+    TClonesArray* fGemDigits;
+    TClonesArray* fSiliconDigits;
     TClonesArray* fGemHits;
     TClonesArray* fSiliconHits;
     TClonesArray* fSiliconTracks;
@@ -117,19 +145,35 @@ private:
     
     TProfile* pEffProton;
     TProfile* pEffPion;
+    
+    TProfile2D** pEffGemStatXY;
+    
+    TH1F***** hGemStripInfo; // [events with just embedded digits (0) or without embedding (1)][stat][mod][lay] --> strip number
+    Int_t aLaysToShow[2]; // array of strips lays to be shown in histos
+    
+    TH2F**** hStripChannel; // Strip vs. Chan for main part of big zone and common ADC [main, common][stat][Right or Left]
+    
+    Double_t fSignalWindow[2]; // set signal window
 
     // Options to be reset by user if necessary 
     Bool_t drawFoundTracks;
-
+    
 private:
 
     Int_t DefineSiliconStatByZpoint(Double_t);
     Int_t DefineSiliconModuleByStatAndXY(TBox***, Int_t, Double_t, Double_t);
     void DrawFoundTracks();
 
+    Int_t GetStripBoundValues(TString, Int_t&, Int_t&);
+
+    // Additional prefix, if necessary, in output file names...
+    TString fPrefix;
+    
     void DrawHistos1(); // Histos taken from DoDrawEventsWithEmbeddedSignals-analysis
     void DrawHistos2(); // Histos taken from DoInnerTrackerEmbeddingEfficiency-analysis
     void DrawHistos3(); // Histos taken from DoInnerTrackerRecoEfficiency-analysis
+    void DrawHistos4(); // histos taken from DoDigiEmbeddedAnalysis-analysis
+    void DrawHistos5(); // histos taken from DoDigiMcAnalysis-analysis
     
     ClassDef(BmnLambdaEmbeddingQa, 1)
 };

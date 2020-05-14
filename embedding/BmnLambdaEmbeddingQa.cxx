@@ -1,18 +1,20 @@
+#include <cinttypes>
+
 #include "BmnLambdaEmbeddingQa.h"
 
-BmnLambdaEmbeddingQa::BmnLambdaEmbeddingQa() {
-
-}
-
-BmnLambdaEmbeddingQa::BmnLambdaEmbeddingQa(TString list) :
+BmnLambdaEmbeddingQa::BmnLambdaEmbeddingQa() :
 fRunAna(nullptr),
 geoms(nullptr),
+fDigi(nullptr),
 fDst(nullptr),
 fEmb(nullptr),
 fPath(nullptr),
 fMon(nullptr),
 hDst(nullptr),
+hDigi(nullptr),
 fGemHits(nullptr),
+fGemDigits(nullptr),
+fSiliconDigits(nullptr),
 fSiliconHits(nullptr),
 fSiliconTracks(nullptr),
 fGlobTracks(nullptr),
@@ -39,13 +41,71 @@ hProtonNhitsEmb(nullptr),
 hPionNhitsEmb(nullptr),
 hProtonNhitsReco(nullptr),
 hPionNhitsReco(nullptr),
+hGemStripInfo(nullptr),
 pEffProton(nullptr),
-pEffPion(nullptr) {
+pEffPion(nullptr),
+hStripChannel(nullptr),
+fPrefix("") {
+    // Get inn. tracker geometry ...
+    geoms = new BmnInnerTrackerGeometryDraw();
+}
+
+BmnLambdaEmbeddingQa::BmnLambdaEmbeddingQa(TString list) :
+fRunAna(nullptr),
+geoms(nullptr),
+fDigi(nullptr),
+fDst(nullptr),
+fEmb(nullptr),
+fPath(nullptr),
+fMon(nullptr),
+hDst(nullptr),
+hDigi(nullptr),
+fGemHits(nullptr),
+fGemDigits(nullptr),
+fSiliconDigits(nullptr),
+fSiliconHits(nullptr),
+fSiliconTracks(nullptr),
+fGlobTracks(nullptr),
+fMcTracks(nullptr),
+fSiliconPoints(nullptr),
+fGemPoints(nullptr),
+fMagField(nullptr),
+hXzMC(nullptr),
+hXzReco(nullptr),
+hYzMC(nullptr),
+hYzReco(nullptr),
+hGemXYProfiles(nullptr),
+hSiliconXYProfiles(nullptr),
+hXzRecoFromTracks(nullptr),
+pEmbSilHitEff(nullptr),
+pEmbGemHitEff(nullptr),
+hProtonMomentaEmb(nullptr),
+hPionMomentaEmb(nullptr),
+hProtonMomentaReco(nullptr),
+hPionMomentaReco(nullptr),
+hProtonNhitsRecoAll(nullptr),
+hPionNhitsRecoAll(nullptr),
+hProtonNhitsEmb(nullptr),
+hPionNhitsEmb(nullptr),
+hProtonNhitsReco(nullptr),
+hPionNhitsReco(nullptr),
+hGemStripInfo(nullptr),
+pEffProton(nullptr),
+pEffPion(nullptr),
+fPrefix("") {
     // Get inn. tracker geometry ...
     geoms = new BmnInnerTrackerGeometryDraw();
 
     nInputs = -1;
     drawFoundTracks = kFALSE;
+
+    // Strip lays to be shown by default ...
+    aLaysToShow[0] = 0;
+    aLaysToShow[1] = 1;
+
+    // Signal window by default ...
+    fSignalWindow[0] = 0;
+    fSignalWindow[1] = LDBL_MAX;
 
     // 1. Process list of passed files ...
     ifstream f(list.Data());
@@ -57,6 +117,7 @@ pEffPion(nullptr) {
     cout << "List file contains " << nLines << " inputs" << endl;
 
     if (nLines != 0) {
+        fDigi = new TString[nLines];
         fDst = new TString[nLines];
         fEmb = new TString[nLines];
         fPath = new TString[nLines];
@@ -65,7 +126,7 @@ pEffPion(nullptr) {
     nLines = 0;
     ifstream g(list.Data());
     while (!g.eof()) {
-        g >> fDst[nLines] >> fEmb[nLines] >> fPath[nLines];
+        g >> fDigi[nLines] >> fDst[nLines] >> fEmb[nLines] >> fPath[nLines];
         nLines++;
     }
     g.close();
@@ -73,7 +134,229 @@ pEffPion(nullptr) {
     nInputs = nLines;
 
     for (Int_t iLine = 0; iLine < nLines; iLine++)
-        cout << fDst[iLine] << " " << fEmb[iLine] << " " << fPath[iLine] << endl;
+        cout << fDigi[iLine] << " " << fDst[iLine] << " " << fEmb[iLine] << " " << fPath[iLine] << endl;
+}
+
+void BmnLambdaEmbeddingQa::DoDigiMcAnalysis() {
+    Int_t naturalGemOrder[geoms->GetGemGeometry()->GetNStations()] = {11, 10, 5, 6, 8, 9};
+
+    // Preparing needed histograms ...
+    const Int_t nTypesOfStations = 2; // <stat 0, 3, 5> and <stat 1, 2, 4>
+
+    hGemStripInfo = new TH1F****[nTypesOfStations];
+
+    for (Int_t iType = 0; iType < nTypesOfStations; iType++) {
+        const Int_t nStats = geoms->GetGemGeometry()->GetNStations();
+        hGemStripInfo[iType] = new TH1F***[nStats];
+
+        for (Int_t iStat = 0; iStat < nStats; iStat++) {
+            Int_t nMods = geoms->GetGemGeometry()->GetStation(iStat)->GetNModules();
+            hGemStripInfo[iType][iStat] = new TH1F**[nMods];
+
+            for (Int_t iMod = 0; iMod < nMods; iMod++) {
+                Int_t nLays = geoms->GetGemGeometry()->GetStation(iStat)->GetModule(iMod)->GetNStripLayers();
+                hGemStripInfo[iType][iStat][iMod] = new TH1F*[nLays];
+
+                for (Int_t iLay = 0; iLay < nLays; iLay++) {
+                    hGemStripInfo[iType][iStat][iMod][iLay] = new TH1F(Form("Type# %d Stat# %d Mod# %d Lay# %d", iType, iStat, iMod, iLay),
+                            Form("Stat# %d (GEM %d), Mod# %d", iStat, naturalGemOrder[iStat], iMod), 1200, 0., 1200.);
+                    hGemStripInfo[iType][iStat][iMod][iLay]->GetXaxis()->SetLabelSize(0.1);
+                    hGemStripInfo[iType][iStat][iMod][iLay]->GetYaxis()->SetLabelSize(0.1);
+                    hGemStripInfo[iType][iStat][iMod][iLay]->GetXaxis()->SetTitle("Strips#");
+                    hGemStripInfo[iType][iStat][iMod][iLay]->GetXaxis()->SetTitleOffset(-.28);
+                    hGemStripInfo[iType][iStat][iMod][iLay]->GetXaxis()->SetTitleSize(0.15);
+                    hGemStripInfo[iType][iStat][iMod][iLay]->GetXaxis()->CenterTitle();
+
+                }
+            }
+        }
+    }
+
+    if (nInputs != -1)
+        for (Int_t iInput = 0; iInput < nInputs; iInput++) {
+
+            TChain* emb = new TChain("bmndata");
+            emb->Add(fEmb[iInput].Data());
+
+            emb->SetBranchAddress("EmbeddingMonitor.", &fMon);
+
+            for (Int_t iEmb = 0; iEmb < emb->GetEntries(); iEmb++) {
+                emb->GetEntry(iEmb);
+
+                if (iEmb % 1000 == 0)
+                    cout << "Event# " << iEmb << endl;
+
+                if (!fMon->IsEmbedded())
+                    continue;
+
+                Int_t store = fMon->GetStoreVertexEvent()[0];
+                Int_t vertex = fMon->GetStoreVertexEvent()[1];
+                Int_t event = fMon->GetStoreVertexEvent()[2];
+
+                TChain* lambda = new TChain("bmndata");
+                lambda->Add(Form("%s/lambda%d_vertex%d.root", fPath[iInput].Data(), store, vertex));
+
+                lambda->SetBranchAddress("BmnGemStripDigit", &fGemDigits);
+                lambda->SetBranchAddress("BmnSiliconDigit", &fSiliconDigits);
+
+                lambda->GetEntry(event);
+
+                for (Int_t iDig = 0; iDig < fGemDigits->GetEntriesFast(); iDig++) {
+                    BmnStripDigit* dig = (BmnStripDigit*) fGemDigits->UncheckedAt(iDig);
+
+                    Int_t stat = dig->GetStation();
+                    Int_t mod = dig->GetModule();
+                    Int_t lay = dig->GetStripLayer();
+                    Int_t strip = dig->GetStripNumber();
+
+                    Int_t idx = (stat == 0 || stat == 3 || stat == 5) ? 0 : 1;
+                    hGemStripInfo[idx][stat][mod][lay]->Fill(strip);
+                }
+
+                delete lambda;
+            }
+
+            delete emb;
+        }
+
+    DrawHistos5();
+}
+
+void BmnLambdaEmbeddingQa::DoDigiEmbeddedAnalysis() {
+    Int_t naturalGemOrder[geoms->GetGemGeometry()->GetNStations()] = {11, 10, 5, 6, 8, 9};
+
+    // Preparing needed histograms ...
+    const Int_t nTypesOfEvents = 2;
+
+    hGemStripInfo = new TH1F****[nTypesOfEvents];
+
+    for (Int_t iType = 0; iType < nTypesOfEvents; iType++) {
+        const Int_t nStats = geoms->GetGemGeometry()->GetNStations();
+        hGemStripInfo[iType] = new TH1F***[nStats];
+
+        for (Int_t iStat = 0; iStat < nStats; iStat++) {
+            Int_t nMods = geoms->GetGemGeometry()->GetStation(iStat)->GetNModules();
+            hGemStripInfo[iType][iStat] = new TH1F**[nMods];
+
+            for (Int_t iMod = 0; iMod < nMods; iMod++) {
+                Int_t nLays = geoms->GetGemGeometry()->GetStation(iStat)->GetModule(iMod)->GetNStripLayers();
+                hGemStripInfo[iType][iStat][iMod] = new TH1F*[nLays];
+
+                for (Int_t iLay = 0; iLay < nLays; iLay++) {
+                    hGemStripInfo[iType][iStat][iMod][iLay] = new TH1F(Form("Type# %d Stat# %d Mod# %d Lay# %d", iType, iStat, iMod, iLay),
+                            Form("Stat# %d (GEM %d), Mod# %d", iStat, naturalGemOrder[iStat], iMod), 1200, 0., 1200);
+                    hGemStripInfo[iType][iStat][iMod][iLay]->GetXaxis()->SetLabelSize(0.1);
+                    hGemStripInfo[iType][iStat][iMod][iLay]->GetYaxis()->SetLabelSize(0.1);
+                }
+            }
+        }
+    }
+
+    // Analyzing events with embedded digits ...
+    if (nInputs != -1)
+        for (Int_t iInput = 0; iInput < nInputs; iInput++) {
+
+            TChain* emb = new TChain("bmndata");
+            emb->Add(fEmb[iInput].Data());
+
+            emb->SetBranchAddress("EmbeddingMonitor.", &fMon);
+
+            TChain* digi = new TChain("bmndata");
+            digi->Add(fDigi[iInput].Data());
+
+            digi->SetBranchAddress("BmnEventHeader.", &hDigi);
+            digi->SetBranchAddress("GEM", &fGemDigits);
+
+            vector <UInt_t> eventIdsWithEmbedding;
+
+            // Analyzing events without embedded digits ...
+            for (Int_t iEmb = 0; iEmb < emb->GetEntries(); iEmb++) {
+                emb->GetEntry(iEmb);
+
+                if (iEmb % 1000 == 0)
+                    cout << "Event# " << iEmb << endl;
+
+                if (!fMon->IsEmbedded())
+                    continue;
+
+                UInt_t idEmb = fMon->GetEventId();
+                eventIdsWithEmbedding.push_back(idEmb);
+
+                for (Int_t iEvent = idEmb - 1; iEvent < idEmb + 1; iEvent++) {
+                    digi->GetEntry(iEvent);
+
+                    for (Int_t iDigi = 0; iDigi < fGemDigits->GetEntriesFast(); iDigi++) {
+                        BmnStripDigit* dig = (BmnStripDigit*) fGemDigits->UncheckedAt(iDigi);
+
+                        Int_t stat = dig->GetStation();
+                        Int_t mod = dig->GetModule();
+                        Int_t lay = dig->GetStripLayer();
+                        Int_t strip = dig->GetStripNumber();
+                        Double_t signal = dig->GetStripSignal();
+
+                        // Skipping digits not satisfied to chosen signal window ...
+                        if (signal < fSignalWindow[0] || signal > fSignalWindow[1])
+                            continue;
+
+                        hGemStripInfo[0][stat][mod][lay]->Fill(strip);
+                    }
+                }
+            }
+
+            // Analyzing events without embedded digits ...
+            for (Int_t iEvent = 0; iEvent < digi->GetEntries(); iEvent++) {
+                digi->GetEntry(iEvent);
+
+                auto it = find(eventIdsWithEmbedding.begin(), eventIdsWithEmbedding.end(), hDigi->GetEventId());
+                // Skipping found events ...
+                if (it != eventIdsWithEmbedding.end())
+                    continue;
+
+                if (iEvent % 1000 == 0)
+                    cout << "Event# " << iEvent << endl;
+
+                for (Int_t iDigi = 0; iDigi < fGemDigits->GetEntriesFast(); iDigi++) {
+                    BmnStripDigit* dig = (BmnStripDigit*) fGemDigits->UncheckedAt(iDigi);
+
+                    Int_t stat = dig->GetStation();
+                    Int_t mod = dig->GetModule();
+                    Int_t lay = dig->GetStripLayer();
+                    Int_t strip = dig->GetStripNumber();
+                    Double_t signal = dig->GetStripSignal();
+
+                    // Skipping digits not satisfied to chosen signal window ...
+                    if (signal < fSignalWindow[0] || signal > fSignalWindow[1])
+                        continue;
+
+                    hGemStripInfo[1][stat][mod][lay]->Fill(strip);
+                }
+            }
+            delete emb;
+            delete digi;
+
+            // Trying to exclude permanently noizing strips ...
+            for (Int_t iStat = 0; iStat < geoms->GetGemGeometry()->GetNStations(); iStat++) {
+                Int_t nMods = geoms->GetGemGeometry()->GetStation(iStat)->GetNModules();
+
+                for (Int_t iMod = 0; iMod < nMods; iMod++) {
+                    Int_t nLays = geoms->GetGemGeometry()->GetStation(iStat)->GetModule(iMod)->GetNStripLayers();
+
+                    for (Int_t iLay = 0; iLay < nLays; iLay++) {
+                        Int_t nBins = hGemStripInfo[0][iStat][iMod][iLay]->GetNbinsX();
+                        
+                        for (Int_t iBin = 1; iBin < nBins + 1; iBin++) {
+                            Double_t content = hGemStripInfo[0][iStat][iMod][iLay]->GetBinContent(iBin);
+                            
+                            if (content < 2000)
+                                continue;
+                            
+                            hGemStripInfo[0][iStat][iMod][iLay]->SetBinContent(iBin, 0.);                        
+                        }
+                    }
+                }
+            }
+        }
+    DrawHistos4();
 }
 
 void BmnLambdaEmbeddingQa::DoInnerTrackerRecoEfficiency() {
@@ -88,7 +371,7 @@ void BmnLambdaEmbeddingQa::DoInnerTrackerRecoEfficiency() {
 
     hProtonNhitsReco = new TH1F("pNhitsReco", "pNhitsReco", 10, 0., 10.);
     hPionNhitsReco = new TH1F("pionNhitsReco", "pionNhitsReco", 10, 0., 10.);
-    
+
     hProtonNhitsRecoAll = new TH1F("pNhitsRecoAll", "pNhitsRecoAll", 10, 0., 10.);
     hPionNhitsRecoAll = new TH1F("pionNhitsRecoAll", "pionNhitsRecoAll", 10, 0., 10.);
 
@@ -144,13 +427,11 @@ void BmnLambdaEmbeddingQa::DoInnerTrackerRecoEfficiency() {
                     lambda->SetBranchAddress("MCTrack", &fMcTracks);
 
                     lambda->GetEntry(event);
-                   
+
                     // [0] --> GEM, [1] --> SILICON
                     Int_t nRecoHitsProton[2] = {0, 0};
                     Int_t nRecoHitsPion[2] = {0, 0};
 
-                    // cout << "McPointsProton# " << fMon->GetNHitsProton()<< " McPointsPion# " << fMon->GetNHitsPion() << endl;
-                    
                     // Loop over GEM-points and reconstructed hits
                     for (Int_t iPoint = 0; iPoint < fGemPoints->GetEntriesFast(); iPoint++) {
                         CbmStsPoint* point = (CbmStsPoint*) fGemPoints->UncheckedAt(iPoint);
@@ -168,7 +449,7 @@ void BmnLambdaEmbeddingQa::DoInnerTrackerRecoEfficiency() {
 
                             if (dist < 0.5) {
                                 // Probably this hit corresponds to the considering MC-point ...
-                                // Here we should decide whether we consider proton or pion right now ...                                                      
+                                // Here we should decide whether we consider proton or pion right now ...
                                 CbmMCTrack* track = (CbmMCTrack*) fMcTracks->UncheckedAt(point->GetTrackID());
                                 if (track->GetPdgCode() > 0)
                                     isProton = kTRUE;
@@ -178,15 +459,13 @@ void BmnLambdaEmbeddingQa::DoInnerTrackerRecoEfficiency() {
                                 break;
                             }
                         }
-                        
+
                         if (isProton)
                             nRecoHitsProton[0]++;
                         else if (isPion)
                             nRecoHitsPion[0]++;
                     }
 
-                    // cout << "gRecoHitsProton# " << nRecoHitsProton[0] << " gRecoHitsPion# " << nRecoHitsPion[0] << endl;
-                    
                     // Loop over GEM-points and reconstructed hits
                     for (Int_t iPoint = 0; iPoint < fSiliconPoints->GetEntriesFast(); iPoint++) {
                         FairMCPoint* point = (FairMCPoint*) fSiliconPoints->UncheckedAt(iPoint);
@@ -204,7 +483,7 @@ void BmnLambdaEmbeddingQa::DoInnerTrackerRecoEfficiency() {
 
                             if (dist < 0.3) {
                                 // Probably this hit corresponds to the considering MC-point ...
-                                // Here we should decide whether we consider proton or pion right now ...                                                      
+                                // Here we should decide whether we consider proton or pion right now ...
                                 CbmMCTrack* track = (CbmMCTrack*) fMcTracks->UncheckedAt(point->GetTrackID());
                                 if (track->GetPdgCode() > 0)
                                     isProton = kTRUE;
@@ -214,21 +493,19 @@ void BmnLambdaEmbeddingQa::DoInnerTrackerRecoEfficiency() {
                                 break;
                             }
                         }
-                        
+
                         if (isProton)
                             nRecoHitsProton[1]++;
                         else if (isPion)
                             nRecoHitsPion[1]++;
                     }
 
-                    // cout << "sRecoHitsProton# " << nRecoHitsProton[1] << " sRecoHitsPion# " << nRecoHitsPion[1] << endl;
-
                     hProtonMomentaEmb->Fill(fMon->GetProtonP());
                     hPionMomentaEmb->Fill(fMon->GetPionP());
 
                     hProtonNhitsEmb->Fill(fMon->GetNHitsProton());
                     hPionNhitsEmb->Fill(fMon->GetNHitsPion());
-                    
+
                     hProtonNhitsRecoAll->Fill(nRecoHitsProton[0] + nRecoHitsProton[1]);
                     hPionNhitsRecoAll->Fill(nRecoHitsPion[0] + nRecoHitsPion[1]);
 
@@ -269,6 +546,8 @@ void BmnLambdaEmbeddingQa::DoInnerTrackerRecoEfficiency() {
 void BmnLambdaEmbeddingQa::DoInnerTrackerEmbeddingEfficiency() {
     BmnGemStripStationSet* GEM = geoms->GetGemGeometry();
     BmnSiliconStationSet* SILICON = geoms->GetSiliconGeometry();
+    
+    Int_t naturalGemOrder[geoms->GetGemGeometry()->GetNStations()] = {11, 10, 5, 6, 8, 9};
 
     TBox*** modBoxesSil = nullptr;
     geoms->GetSiliconBorders(modBoxesSil);
@@ -290,9 +569,24 @@ void BmnLambdaEmbeddingQa::DoInnerTrackerEmbeddingEfficiency() {
             pEmbGemHitEff[iStat][iMod] = new TProfile*[nZones];
             for (Int_t iZone = 0; iZone < nZones; iZone++) {
                 TString zone = (iZone == 0) ? "Hot Zone" : "Big Zone";
-                pEmbGemHitEff[iStat][iMod][iZone] = new TProfile(Form("Stat# %d Mod# %d, %s", iStat, iMod, zone.Data()), Form("Stat# %d Mod# %d, %s", iStat, iMod, zone.Data()), 1, 0., 1.);
+                pEmbGemHitEff[iStat][iMod][iZone] = new TProfile(Form("Stat# %d Mod# %d, %s", iStat, iMod, zone.Data()), 
+                        Form("Stat# %d (GEM %d), Mod# %d", iStat, naturalGemOrder[iStat], iMod), 1, 0., 1.);                
             }
         }
+    }
+
+    pEffGemStatXY = new TProfile2D*[GEM->GetNStations()];
+    for (Int_t iStat = 0; iStat < GEM->GetNStations(); iStat++) {
+        pEffGemStatXY[iStat] = new TProfile2D(Form("GEM eff. vs. X and Y, stat# %d", iStat), 
+                Form("Stat# %d (GEM %d); X [cm]; Y [cm]", iStat, naturalGemOrder[iStat]), 500, -100., +100, 500, -10., +50., 0, 1);
+        pEffGemStatXY[iStat]->GetXaxis()->SetLabelSize(0.07);
+        pEffGemStatXY[iStat]->GetYaxis()->SetLabelSize(0.07);
+        
+        pEffGemStatXY[iStat]->GetXaxis()->SetTitleSize(0.06);
+        pEffGemStatXY[iStat]->GetYaxis()->SetTitleSize(0.06);
+        
+        pEffGemStatXY[iStat]->GetXaxis()->SetTitleOffset(.83);
+        pEffGemStatXY[iStat]->GetYaxis()->SetTitleOffset(.77);
     }
 
     if (nInputs != -1)
@@ -340,10 +634,7 @@ void BmnLambdaEmbeddingQa::DoInnerTrackerEmbeddingEfficiency() {
                     TChain* lambda = new TChain("bmndata");
                     lambda->Add(Form("%s/lambda%d_vertex%d.root", fPath[iInput].Data(), store, vertex));
 
-                    //TClonesArray* gemPoints = nullptr;
                     lambda->SetBranchAddress("StsPoint", &fGemPoints);
-
-                    //TClonesArray* siliconPoints = nullptr;
                     lambda->SetBranchAddress("SiliconPoint", &fSiliconPoints);
 
                     lambda->GetEntry(event);
@@ -388,18 +679,20 @@ void BmnLambdaEmbeddingQa::DoInnerTrackerEmbeddingEfficiency() {
                     }
 
                     // Get GEM hit info ...
-                    for (Int_t iHit = 0; iHit < fGemHits->GetEntriesFast(); iHit++) {
-                        BmnHit* hit = (BmnHit*) fGemHits->UncheckedAt(iHit);
+                    if (fGemHits)
+                        for (Int_t iHit = 0; iHit < fGemHits->GetEntriesFast(); iHit++) {
+                            BmnHit* hit = (BmnHit*) fGemHits->UncheckedAt(iHit);
 
-                        gemsReco.find(hit->GetStation())->second.push_back(*hit);
-                    }
+                            gemsReco.find(hit->GetStation())->second.push_back(*hit);
+                        }
 
                     // Get SILICON hit info ...
-                    for (Int_t iHit = 0; iHit < fSiliconHits->GetEntriesFast(); iHit++) {
-                        BmnHit* hit = (BmnHit*) fSiliconHits->UncheckedAt(iHit);
+                    if (fSiliconHits)
+                        for (Int_t iHit = 0; iHit < fSiliconHits->GetEntriesFast(); iHit++) {
+                            BmnHit* hit = (BmnHit*) fSiliconHits->UncheckedAt(iHit);
 
-                        siliconsReco.find(hit->GetStation())->second.push_back(*hit);
-                    }
+                            siliconsReco.find(hit->GetStation())->second.push_back(*hit);
+                        }
 
                     // Loop over siliconMc and siliconReco maps to find embedded MC-points (in digits) and reconstructed hits ...
                     for (auto mc : siliconsMc)
@@ -456,12 +749,20 @@ void BmnLambdaEmbeddingQa::DoInnerTrackerEmbeddingEfficiency() {
 
                             for (auto mcPoint : points) {
                                 Bool_t isEmbedded = kFALSE;
+                                
+                                // Taking into account correct Z-readout position for GEM ... 
+                                BmnGemStripModule* mod = GEM->GetStation(mcPoint.GetStation())->GetModule(mcPoint.GetModule());
+                                Double_t driftCenterShift = 0.;
+                                if (mod->GetElectronDriftDirection() == ForwardZAxisEDrift)
+                                    driftCenterShift = 0.15;
+                                else
+                                    driftCenterShift = 0.75;
 
                                 vector <Double_t> distances;
 
                                 if (hits.size() != 0)
                                     for (auto recoHit : hits) {
-                                        Double_t xMC = mcPoint.GetXIn();
+                                        Double_t xMC = mcPoint.GetX(mcPoint.GetZ() + driftCenterShift);
                                         Double_t xReco = recoHit.GetX();
 
                                         // Calculate distance between a hit and a point in X-direction ...
@@ -483,7 +784,7 @@ void BmnLambdaEmbeddingQa::DoInnerTrackerEmbeddingEfficiency() {
 
                                 for (Int_t iLayer = 0; iLayer < GEM->GetStation(mcPoint.GetStation())->GetModule(mcPoint.GetModule())->GetNStripLayers(); iLayer++) {
                                     BmnGemStripLayer layer = GEM->GetStation(mcPoint.GetStation())->GetModule(mcPoint.GetModule())->GetStripLayer(iLayer);
-                                    isLayerActive[iLayer] = layer.IsPointInsideStripLayer((-1.) * mcPoint.GetXIn(), mcPoint.GetYIn());
+                                    isLayerActive[iLayer] = layer.IsPointInsideStripLayer((-1.) * mcPoint.GetX(mcPoint.GetZ() + driftCenterShift), mcPoint.GetY(mcPoint.GetZ() + driftCenterShift));
                                 }
 
                                 if (isLayerActive[0] && isLayerActive[1])
@@ -493,8 +794,10 @@ void BmnLambdaEmbeddingQa::DoInnerTrackerEmbeddingEfficiency() {
 
                                 Int_t idx = isBigZone ? 1 : isHotZone ? 0 : -1;
 
-                                if (idx != -1)
+                                if (idx != -1) {
                                     pEmbGemHitEff[mcPoint.GetStation()][mcPoint.GetModule()][idx]->Fill(0., isEmbedded ? 1. : 0.);
+                                    pEffGemStatXY[mcPoint.GetStation()]->Fill(mcPoint.GetX(mcPoint.GetZ() + driftCenterShift), mcPoint.GetY(mcPoint.GetZ() + driftCenterShift), isEmbedded ? 1. : 0.);
+                                }
                             }
                         }
 
@@ -545,14 +848,18 @@ void BmnLambdaEmbeddingQa::DoDrawEventsWithEmbeddedSignals() {
     dst->SetBranchAddress("BmnSiliconTrack", &fSiliconTracks);
     dst->SetBranchAddress("BmnGlobalTrack", &fGlobTracks);
 
-    hXzMC = new TH2F("", "", 500, 0., 0., 500, 0., 0.);
-    hXzReco = new TH2F("", "", 500, 0., 0., 500, 0., 0.);
+    hXzMC = new TH2F("", "", 500, 0., 200., 500, -80., 20.);
+    hXzReco = new TH2F("", "", 500, 0., 200., 500, -80., 20.);
     hYzMC = new TH2F("", "", 500, 0., 0., 500, 0., 0.);
     hYzReco = new TH2F("", "", 500, 0., 0., 500, 0., 0.);
 
     hGemXYProfiles = new TH2F*[GEM->GetNStations()];
-    for (Int_t iStat = 0; iStat < GEM->GetNStations(); iStat++)
+    for (Int_t iStat = 0; iStat < GEM->GetNStations(); iStat++) {
         hGemXYProfiles[iStat] = new TH2F(Form("GEM: X vs. Y, stat# %d", iStat), Form("GEM: X vs. Y, stat# %d", iStat), 500, -90., +90., 500, -10., +40.);
+        hGemXYProfiles[iStat]->GetXaxis()->SetLabelSize(0.1);
+        hGemXYProfiles[iStat]->GetXaxis()->SetLabelSize(0.1);
+        hGemXYProfiles[iStat]->GetYaxis()->SetLabelSize(0.1);
+    }
 
     hSiliconXYProfiles = new TH2F*[SILICON->GetNStations()];
     for (Int_t iStat = 0; iStat < SILICON->GetNStations(); iStat++) {
@@ -563,6 +870,9 @@ void BmnLambdaEmbeddingQa::DoDrawEventsWithEmbeddedSignals() {
         Double_t yUp = (iStat == 0) ? +3. : (iStat == 1) ? +4. : +10.;
 
         hSiliconXYProfiles[iStat] = new TH2F(Form("SILICON: X vs. Y, stat# %d", iStat), Form("SILICON: X vs. Y, stat# %d", iStat), 500, xLow, xUp, 500, yLow, yUp);
+        hSiliconXYProfiles[iStat]->GetXaxis()->SetLabelSize(0.1);
+        hSiliconXYProfiles[iStat]->GetXaxis()->SetLabelSize(0.1);
+        hSiliconXYProfiles[iStat]->GetYaxis()->SetLabelSize(0.1);
     }
 
     if (drawFoundTracks) {
@@ -690,28 +1000,31 @@ void BmnLambdaEmbeddingQa::DoDrawEventsWithEmbeddedSignals() {
             }
 
             // Get GEM hit info ...
-            for (Int_t iHit = 0; iHit < fGemHits->GetEntriesFast(); iHit++) {
-                BmnHit* hit = (BmnHit*) fGemHits->UncheckedAt(iHit);
-                Double_t x = hit->GetX();
-                Double_t y = hit->GetY();
-                Double_t z = hit->GetZ();
-                hXzReco->Fill(z, x);
-                hYzReco->Fill(z, y);
+            if (fGemHits)
+                for (Int_t iHit = 0; iHit < fGemHits->GetEntriesFast(); iHit++) {
+                    BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(iHit);
 
-                gems[1].find(hit->GetStation())->second.push_back(make_pair(x, y));
-            }
+                    Double_t x = hit->GetX();
+                    Double_t y = hit->GetY();
+                    Double_t z = hit->GetZ();
+                    hXzReco->Fill(z, x);
+                    hYzReco->Fill(z, y);
+
+                    gems[1].find(hit->GetStation())->second.push_back(make_pair(x, y));
+                }
 
             // Get SILICON hit info ...
-            for (Int_t iHit = 0; iHit < fSiliconHits->GetEntriesFast(); iHit++) {
-                BmnHit* hit = (BmnHit*) fSiliconHits->UncheckedAt(iHit);
-                Double_t x = hit->GetX();
-                Double_t y = hit->GetY();
-                Double_t z = hit->GetZ();
-                hXzReco->Fill(z, x);
-                hYzReco->Fill(z, y);
+            if (fSiliconHits)
+                for (Int_t iHit = 0; iHit < fSiliconHits->GetEntriesFast(); iHit++) {
+                    BmnHit* hit = (BmnHit*) fSiliconHits->UncheckedAt(iHit);
+                    Double_t x = hit->GetX();
+                    Double_t y = hit->GetY();
+                    Double_t z = hit->GetZ();
+                    hXzReco->Fill(z, x);
+                    hYzReco->Fill(z, y);
 
-                silicons[1].find(hit->GetStation())->second.push_back(make_pair(x, y));
-            }
+                    silicons[1].find(hit->GetStation())->second.push_back(make_pair(x, y));
+                }
 
             delete lambda;
 
@@ -768,6 +1081,246 @@ BmnLambdaEmbeddingQa::~BmnLambdaEmbeddingQa() {
         delete pEffProton;
     if (pEffPion)
         delete pEffPion;
+
+    if (hGemStripInfo)
+        delete hGemStripInfo;
+}
+
+void BmnLambdaEmbeddingQa::DrawHistos5() {
+    gStyle->SetOptStat(0);
+
+    TCanvas* c = new TCanvas("c1", "c1", 1200, 800);
+
+    gStyle->SetTitleFontSize(0.1);
+    gStyle->SetTitleY(1.0);
+
+    c->Divide(2, 3);
+
+    const Int_t nPads = 6;
+    Int_t statsC[nPads] = {0, 0, 3, 3, 5, 5}; // LeftToRight
+    Int_t statsD[nPads] = {1, 1, 2, 2, 4, 4}; // RightToLeft
+
+    for (Int_t iPad = 1; iPad < nPads + 1; iPad++) {
+
+        Int_t statType = (iPad % 2 == 1) ? 0 : 1;
+
+        TVirtualPad* vPadC = c->cd(iPad);
+        vPadC->Divide(1, 2, 0.01, 0.01);
+
+        vPadC->cd(1); // mod0
+        Int_t mod = 0;
+
+        Int_t stat = (iPad % 2 == 1) ? statsC[iPad - 1] : statsD[iPad - 1];
+
+        hGemStripInfo[statType][stat][mod][aLaysToShow[0]]->Draw();
+        hGemStripInfo[statType][stat][mod][aLaysToShow[1]]->Draw("same");
+
+        hGemStripInfo[statType][stat][mod][aLaysToShow[0]]->SetLineColor(kRed);
+        hGemStripInfo[statType][stat][mod][aLaysToShow[1]]->SetLineColor(kBlue);
+
+        vPadC->cd(2); // mod1
+        mod = 1;
+
+        hGemStripInfo[statType][stat][mod][aLaysToShow[0]]->Draw();
+        hGemStripInfo[statType][stat][mod][aLaysToShow[1]]->Draw("same");
+
+        hGemStripInfo[statType][stat][mod][aLaysToShow[0]]->SetLineColor(kRed);
+        hGemStripInfo[statType][stat][mod][aLaysToShow[1]]->SetLineColor(kBlue);
+    }
+
+    c->SaveAs(Form("gemMcDigiStrips%s.pdf", fPrefix.Data()));
+
+    delete c;
+}
+
+void BmnLambdaEmbeddingQa::DrawHistos4() {
+    // Getting info on strip bounds for common serial (layer = 1)
+    // depending on mapping scenario (1, 2, 3 (consudered to be valid), 4) used when doing embedding ...
+
+    const Int_t nStats = geoms->GetGemGeometry()->GetNStations();
+    const Int_t nMods = 2;
+
+    const Int_t nTypes = 2;
+
+    TBox**** boundBoxes = new TBox***[nTypes];
+
+    BmnLambdaMisc* misc = new BmnLambdaMisc();
+
+    for (Int_t iType = 0; iType < nTypes; iType++) {
+        boundBoxes[iType] = new TBox**[nStats];
+
+        for (Int_t iStat = 0; iStat < nStats; iStat++) {
+            boundBoxes[iType][iStat] = new TBox*[nMods];
+            for (Int_t iMod = 0; iMod < nMods; iMod++) {
+                BmnStripDigit* dig = new BmnStripDigit(iStat, iMod, 1, 0., 0.);
+
+                Int_t low = -1, up = -1;
+                GetStripBoundValues(misc->GemDigiToMapping(dig), low, up);
+
+                boundBoxes[iType][iStat][iMod] = new TBox(low, 0., up, 50.);
+                boundBoxes[iType][iStat][iMod]->SetFillColorAlpha(TColor::GetColor("#cccccc"), 0.3);
+                boundBoxes[iType][iStat][iMod]->SetFillStyle(1);
+
+                delete dig;
+            }
+        }
+    }
+
+    delete misc;
+
+    gStyle->SetOptStat(0);
+
+    TCanvas* c = new TCanvas("c1", "c1", 1200, 800);
+    TCanvas* d = new TCanvas("c2", "c2", 1200, 800);
+
+    gStyle->SetTitleFontSize(0.1);
+    gStyle->SetTitleY(1.0);
+
+    c->Divide(2, 3);
+    d->Divide(2, 3);
+
+    const Int_t nPads = 6;
+    Int_t statsC[nPads] = {0, 0, 3, 3, 5, 5}; // LeftToRight
+    Int_t statsD[nPads] = {1, 1, 2, 2, 4, 4}; // RightToLeft
+
+    Double_t max1, max2, min;
+
+    // Doing appropriate scaling ...
+    for (Int_t iStat = 0; iStat < nStats; iStat++)
+        for (Int_t iMod = 0; iMod < nMods; iMod++)
+            for (Int_t iLay = 0; iLay < 2; iLay++) {
+                TH1F* h0 = hGemStripInfo[0][iStat][iMod][aLaysToShow[iLay]];
+                TH1F* h1 = hGemStripInfo[1][iStat][iMod][aLaysToShow[iLay]];
+
+                h1->Scale(1. / h0->Integral(), "nosw2");
+            }
+
+
+    TLegend* legend = nullptr;
+    for (Int_t iPad = 1; iPad < nPads + 1; iPad++) {
+
+        Int_t evType = (iPad % 2 == 1) ? 0 : 1;
+
+        TVirtualPad* vPadC = c->cd(iPad);
+        vPadC->Divide(1, 2, 0.01, 0.01);
+
+        TVirtualPad* vPadD = d->cd(iPad);
+        vPadD->Divide(1, 2, 0.01, 0.01);
+
+        // LeftToRight ...
+        vPadC->cd(1); // mod0
+
+        Int_t stat = statsC[iPad - 1];
+
+        Int_t mod = 0;
+
+        hGemStripInfo[evType][stat][mod][aLaysToShow[0]]->GetMinimumAndMaximum(min, max1);
+        hGemStripInfo[evType][stat][mod][aLaysToShow[1]]->GetMinimumAndMaximum(min, max2);
+
+        if (max1 > max2) {
+            hGemStripInfo[evType][stat][mod][aLaysToShow[0]]->Draw();
+            hGemStripInfo[evType][stat][mod][aLaysToShow[1]]->Draw("same");
+        } else {
+            hGemStripInfo[evType][stat][mod][aLaysToShow[1]]->Draw();
+            hGemStripInfo[evType][stat][mod][aLaysToShow[0]]->Draw("same");
+        }
+
+        hGemStripInfo[evType][stat][mod][aLaysToShow[0]]->SetLineColor(kRed);
+        hGemStripInfo[evType][stat][mod][aLaysToShow[1]]->SetLineColor(kBlue);
+
+        if (!legend) {
+            legend = new TLegend(0.1, 0.7, 0.41, 0.9);
+            legend->AddEntry(hGemStripInfo[evType][stat][mod][aLaysToShow[0]], "Layer 0", "l");
+            legend->AddEntry(hGemStripInfo[evType][stat][mod][aLaysToShow[1]], "Layer 1 (big zone, X-prime)", "l");
+            legend->Draw();
+        }
+
+        // Draw bounds ...
+        boundBoxes[evType][stat][mod]->SetY2(TMath::Max(max1, max2));
+        boundBoxes[evType][stat][mod]->Draw("l");
+
+        mod = 1;
+        vPadC->cd(2); // mod1
+
+        hGemStripInfo[evType][stat][mod][aLaysToShow[0]]->GetMinimumAndMaximum(min, max1);
+        hGemStripInfo[evType][stat][mod][aLaysToShow[1]]->GetMinimumAndMaximum(min, max2);
+
+        if (max1 > max2) {
+            hGemStripInfo[evType][stat][mod][aLaysToShow[0]]->Draw();
+            hGemStripInfo[evType][stat][mod][aLaysToShow[1]]->Draw("same");
+
+
+        } else {
+            hGemStripInfo[evType][stat][mod][aLaysToShow[1]]->Draw();
+            hGemStripInfo[evType][stat][mod][aLaysToShow[0]]->Draw("same");
+        }
+
+        hGemStripInfo[evType][stat][mod][aLaysToShow[0]]->SetLineColor(kRed);
+        hGemStripInfo[evType][stat][mod][aLaysToShow[1]]->SetLineColor(kBlue);
+
+        // Draw bounds ...
+        boundBoxes[evType][stat][mod]->SetY2(TMath::Max(max1, max2));
+        boundBoxes[evType][stat][mod]->Draw("l");
+
+        // RightToLeft ...
+        vPadD->cd(1); // mod0
+
+        stat = statsD[iPad - 1];
+
+        mod = 0;
+
+        hGemStripInfo[evType][stat][mod][aLaysToShow[0]]->GetMinimumAndMaximum(min, max1);
+        hGemStripInfo[evType][stat][mod][aLaysToShow[1]]->GetMinimumAndMaximum(min, max2);
+
+        if (max1 > max2) {
+            hGemStripInfo[evType][stat][mod][aLaysToShow[0]]->Draw();
+            hGemStripInfo[evType][stat][mod][aLaysToShow[1]]->Draw("same");
+        } else {
+            hGemStripInfo[evType][stat][mod][aLaysToShow[1]]->Draw();
+            hGemStripInfo[evType][stat][mod][aLaysToShow[0]]->Draw("same");
+        }
+
+        hGemStripInfo[evType][stat][mod][aLaysToShow[0]]->SetLineColor(kRed);
+        hGemStripInfo[evType][stat][mod][aLaysToShow[1]]->SetLineColor(kBlue);
+
+        if (!legend) {
+            legend = new TLegend(0.1, 0.7, 0.41, 0.9);
+            legend->AddEntry(hGemStripInfo[evType][stat][mod][aLaysToShow[0]], "Layer 0", "l");
+            legend->AddEntry(hGemStripInfo[evType][stat][mod][aLaysToShow[1]], "Layer 1 (big zone, X-prime)", "l");
+            legend->Draw();
+        }
+
+        // Draw bounds ...
+        boundBoxes[evType][stat][mod]->SetY2(TMath::Max(max1, max2));
+        boundBoxes[evType][stat][mod]->Draw("l");
+
+        vPadD->cd(2); // mod1
+
+        mod = 1;
+        hGemStripInfo[evType][stat][mod][aLaysToShow[0]]->GetMinimumAndMaximum(min, max1);
+        hGemStripInfo[evType][stat][mod][aLaysToShow[1]]->GetMinimumAndMaximum(min, max2);
+
+        if (max1 > max2) {
+            hGemStripInfo[evType][stat][mod][aLaysToShow[0]]->Draw();
+            hGemStripInfo[evType][stat][mod][aLaysToShow[1]]->Draw("same");
+        } else {
+            hGemStripInfo[evType][stat][mod][aLaysToShow[1]]->Draw();
+            hGemStripInfo[evType][stat][mod][aLaysToShow[0]]->Draw("same");
+        }
+
+        hGemStripInfo[evType][stat][mod][aLaysToShow[0]]->SetLineColor(kRed);
+        hGemStripInfo[evType][stat][mod][aLaysToShow[1]]->SetLineColor(kBlue);
+
+        // Draw bounds ...
+        boundBoxes[evType][stat][mod]->SetY2(TMath::Max(max1, max2));
+        boundBoxes[evType][stat][mod]->Draw("l");
+    }
+
+    c->SaveAs(Form("gemDigiStrips_LeftToRight035%s.pdf", fPrefix.Data()));
+    d->SaveAs(Form("gemDigiStrips_RightToLeft124%s.pdf", fPrefix.Data()));
+
+    delete c;
+    delete d;
 }
 
 Int_t BmnLambdaEmbeddingQa::DefineSiliconStatByZpoint(Double_t z) {
@@ -810,7 +1363,6 @@ void BmnLambdaEmbeddingQa::DrawFoundTracks() {
         Double_t zStart = first->GetZ();
         hXzRecoFromTracks->Fill(first->GetZ(), first->GetX());
 
-        // Int_t stat0 = -1;
         map <Int_t, Int_t> statMod0;
         if (zStart < geoms->GetGemGeometry()->GetStation(0)->GetZPosition()) {
             BmnTrack* silTrack = (BmnTrack*) fSiliconTracks->UncheckedAt(glTrack->GetSilTrackIndex());
@@ -877,6 +1429,8 @@ void BmnLambdaEmbeddingQa::DrawHistos1() {
     geoms->GetSiliconBorders(siliconModBoxes, siliconLayBoxes, siliconDeadZones);
 
     TCanvas* c = new TCanvas("c1", "c1", 1200, 1200);
+    gStyle->SetTitleFontSize(0.1);
+    gStyle->SetTitleY(1.015);
     c->Divide(1, 2);
     TVirtualPad* pad = c->cd(1);
     pad->Divide(2, 1);
@@ -991,17 +1545,27 @@ void BmnLambdaEmbeddingQa::DrawHistos2() {
     const Int_t nModsGem = 2;
     const Int_t nModsSil = 8;
 
+    TBox*** gemModBoxes = nullptr;
+    TBox**** gemLayBoxes = nullptr;
+    TPolyLine**** gemDeadZones = nullptr;
+    geoms->GetGemBorders(gemModBoxes, gemLayBoxes, gemDeadZones);
+    
+    Int_t naturalGemOrder[geoms->GetGemGeometry()->GetNStations()] = {11, 10, 5, 6, 8, 9};
+
     TCanvas* c = new TCanvas("Emb. hit efficiency, GEM", "Emb. hit efficiency, GEM", 1200, 800);
     c->Divide(2, 1);
 
     TCanvas* d = new TCanvas("Emb. hit efficiency, SILICON", "Emb. hit efficiency, SILICON", 1200, 800);
     d->Divide(1, 1);
 
+    TCanvas* e = new TCanvas("Emb. hit efficiency per each GEM station", "Emb. hit efficiency per each GEM station", 1200, 800);
+    e->Divide(2, 3);
+
     TH2F* effHotZone = new TH2F("eff. hot zone", "eff. hot zone", nStatsGem, 0., nStatsGem, nModsGem, 0., nModsGem);
     TAxis* xAxis = effHotZone->GetXaxis();
     TAxis* yAxis = effHotZone->GetYaxis();
     for (Int_t iBin = 0; iBin < nStatsGem; iBin++)
-        xAxis->SetBinLabel(iBin + 1, Form("Stat# %d", iBin));
+        xAxis->SetBinLabel(iBin + 1, Form("Stat# %d (GEM %d)", iBin, naturalGemOrder[iBin]));
     for (Int_t iBin = 0; iBin < nModsGem; iBin++)
         yAxis->SetBinLabel(iBin + 1, Form("Mod# %d", iBin));
 
@@ -1009,7 +1573,7 @@ void BmnLambdaEmbeddingQa::DrawHistos2() {
     xAxis = effBigZone->GetXaxis();
     yAxis = effBigZone->GetYaxis();
     for (Int_t iBin = 0; iBin < nStatsGem; iBin++)
-        xAxis->SetBinLabel(iBin + 1, Form("Stat# %d", iBin));
+        xAxis->SetBinLabel(iBin + 1, Form("Stat# %d (GEM %d)", iBin, naturalGemOrder[iBin]));
     for (Int_t iBin = 0; iBin < nModsGem; iBin++)
         yAxis->SetBinLabel(iBin + 1, Form("Mod# %d", iBin));
 
@@ -1049,8 +1613,23 @@ void BmnLambdaEmbeddingQa::DrawHistos2() {
     d->cd()->SetGrid();
     effSil->Draw("TEXT");
 
-    c->SaveAs("gemEmbHitEff.pdf");
-    d->SaveAs("silEmbHitEff.pdf");
+    for (Int_t iStat = 0; iStat < nStatsGem; iStat++) {
+        e->cd(iStat + 1);
+        pEffGemStatXY[iStat]->Draw("colz");
+
+        for (Int_t iMod = 0; iMod < geoms->GetGemGeometry()->GetStation(iStat)->GetNModules(); iMod++) {
+            gemModBoxes[iStat][iMod]->Draw("l");
+
+            for (Int_t iLayer = 0; iLayer < geoms->GetGemGeometry()->GetStation(iStat)->GetModule(iMod)->GetNStripLayers(); iLayer++) {
+                gemLayBoxes[iStat][iMod][iLayer]->Draw("l");
+                gemDeadZones[iStat][iMod][iLayer]->Draw("l");
+            }
+        }
+    }
+
+    c->SaveAs(Form("gemEmbHitEff%s.pdf", fPrefix.Data()));
+    d->SaveAs(Form("silEmbHitEff%s.pdf", fPrefix.Data()));
+    e->SaveAs(Form("gemEmbHitEffPerStations%s.pdf", fPrefix.Data()));
 
     delete effHotZone;
     delete effBigZone;
@@ -1058,47 +1637,232 @@ void BmnLambdaEmbeddingQa::DrawHistos2() {
 
     delete c;
     delete d;
+    delete e;
 }
 
 void BmnLambdaEmbeddingQa::DrawHistos3() {
     TCanvas* c = new TCanvas("c1", "c1", 1200, 800);
-    c->Divide(3, 2);
+    gStyle->SetOptStat(0);
 
-    c->cd(1);
-    hProtonMomentaEmb->Draw();
-    hProtonMomentaEmb->SetLineColor(kRed);
-    hProtonMomentaReco->Draw("same");
-    hProtonMomentaReco->SetLineColor(kBlue);
+    if (drawFoundTracks) {
+        c->Divide(3, 2);
 
-    c->cd(2);
-    hPionMomentaEmb->Draw();
-    hPionMomentaEmb->SetLineColor(kRed);
-    hPionMomentaReco->Draw("same");
-    hPionMomentaReco->SetLineColor(kBlue);
+        c->cd(1);
+        hProtonMomentaEmb->Draw();
+        hProtonMomentaEmb->SetLineColor(kRed);
+        hProtonMomentaReco->Draw("same");
+        hProtonMomentaReco->SetLineColor(kBlue);
 
-    c->cd(3);
-    hProtonNhitsEmb->Draw();
-    hProtonNhitsEmb->SetLineColor(kRed);
-    hProtonNhitsReco->Draw("same");
-    hProtonNhitsReco->SetLineColor(kBlue);
-    hProtonNhitsRecoAll->Draw("same");
-    hProtonNhitsRecoAll->SetLineColor(kMagenta);
+        c->cd(2);
+        hPionMomentaEmb->Draw();
+        hPionMomentaEmb->SetLineColor(kRed);
+        hPionMomentaReco->Draw("same");
+        hPionMomentaReco->SetLineColor(kBlue);
 
-    c->cd(4);
-    hPionNhitsEmb->Draw();
-    hPionNhitsEmb->SetLineColor(kRed);
-    hPionNhitsReco->Draw("same");
-    hPionNhitsReco->SetLineColor(kBlue);
-    hPionNhitsRecoAll->Draw("same");
-    hPionNhitsRecoAll->SetLineColor(kMagenta);
+        c->cd(3);
+        hProtonNhitsEmb->Draw();
+        hProtonNhitsEmb->SetLineColor(kRed);
+        hProtonNhitsReco->Draw("same");
+        hProtonNhitsReco->SetLineColor(kBlue);
+        hProtonNhitsRecoAll->Draw("same");
+        hProtonNhitsRecoAll->SetLineColor(kMagenta);
 
-    c->cd(5);
-    pEffProton->Draw();
+        c->cd(4);
+        hPionNhitsEmb->Draw();
+        hPionNhitsEmb->SetLineColor(kRed);
+        hPionNhitsReco->Draw("same");
+        hPionNhitsReco->SetLineColor(kBlue);
+        hPionNhitsRecoAll->Draw("same");
+        hPionNhitsRecoAll->SetLineColor(kMagenta);
 
-    c->cd(6);
-    pEffPion->Draw();
+        c->cd(5);
+        pEffProton->Draw();
 
-    c->SaveAs("tmp1.pdf");
+        c->cd(6);
+        pEffPion->Draw();
+    } else {
+        c->Divide(2, 1);
+
+        c->cd(1);
+        hProtonNhitsEmb->Draw();
+        hProtonNhitsEmb->SetLineColor(kRed);
+        hProtonNhitsRecoAll->Draw("same");
+        hProtonNhitsRecoAll->SetLineColor(kBlue);
+        hProtonNhitsEmb->GetXaxis()->SetTitle("N_{hits}");
+        hProtonNhitsEmb->GetXaxis()->SetTitleSize(0.05);
+
+        c->cd(2);
+        hPionNhitsEmb->Draw();
+        hPionNhitsEmb->SetLineColor(kRed);
+        hPionNhitsRecoAll->Draw("same");
+        hPionNhitsRecoAll->SetLineColor(kBlue);
+        hPionNhitsEmb->GetXaxis()->SetTitle("N_{hits}");
+        hPionNhitsEmb->GetXaxis()->SetTitleSize(0.05);
+    }
+
+    c->SaveAs(Form("gemEmbRecoEff%s.pdf", fPrefix.Data()));
+
+    delete c;
+}
+
+Int_t BmnLambdaEmbeddingQa::GetStripBoundValues(TString mapFile, Int_t& min, Int_t & max) {
+    TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
+    TString gPathFull = gPathConfig + "/input/" + mapFile;
+
+    ifstream f(gPathFull.Data());
+
+    map <Int_t, Int_t> stripChannels; // Map to store read channel for each strip
+    TString channel = "";
+
+    Int_t stripCounter = 0;
+
+    vector <Int_t> strips;
+
+    while (!f.eof()) {
+        f >> channel;
+        stripChannels[stripCounter] = channel.Atoi();
+
+        if (channel.Atoi() >= 2048)
+            strips.push_back(stripCounter);
+
+        stripCounter++;
+    }
+
+    max = *max_element(strips.begin(), strips.end());
+    min = *min_element(strips.begin(), strips.end());
+}
+
+void BmnLambdaEmbeddingQa::DrawHistos6(TClonesArray* map1, TClonesArray* map2) {
+    // map1 - main part
+    // map2 - common ADC
+
+    const Int_t nZones = 2; // main zone and common ADC
+
+    hStripChannel = new TH2F***[nZones];
+    TBox**** boundBoxesStrips = new TBox***[nZones];
+    TBox**** boundBoxesChannels = new TBox***[nZones];
+
+    // Creating necessary histograms and help boxes on histograms...
+    Int_t naturalGemOrder[geoms->GetGemGeometry()->GetNStations()] = {11, 10, 5, 6, 8, 9};
+
+    for (Int_t iZone = 0; iZone < nZones; iZone++) {
+        const Int_t nStats = geoms->GetGemGeometry()->GetNStations();
+        boundBoxesStrips[iZone] = new TBox**[nStats];
+        boundBoxesChannels[iZone] = new TBox**[nStats];
+        hStripChannel[iZone] = new TH2F**[nStats];
+
+        for (Int_t iStat = 0; iStat < nStats; iStat++) {
+
+            const Int_t nMaps = 2; // Right, Left
+            hStripChannel[iZone][iStat] = new TH2F*[nMaps];
+            boundBoxesStrips[iZone][iStat] = new TBox*[nMaps];
+            boundBoxesChannels[iZone][iStat] = new TBox*[nMaps];
+
+            for (Int_t iMap = 0; iMap < nMaps; iMap++) {
+
+                TString mapping = (iMap == 0) ? "Left Part" : "Right Part";
+
+                hStripChannel[iZone][iStat][iMap] = new TH2F(Form("Zone# %d Stat# %d Map# %d", iZone, iStat, iMap),
+                        Form("Stat# %d (GEM %d), %s", iStat, naturalGemOrder[iStat], mapping.Data()), 2060, 0., 2060., 1200, 0., 1200.);
+                hStripChannel[iZone][iStat][iMap]->GetXaxis()->SetLabelSize(0.1);
+                hStripChannel[iZone][iStat][iMap]->GetYaxis()->SetLabelSize(0.1);
+                hStripChannel[iZone][iStat][iMap]->GetXaxis()->SetTitle("Channel#");
+                hStripChannel[iZone][iStat][iMap]->GetXaxis()->SetTitleOffset(-.28);
+                hStripChannel[iZone][iStat][iMap]->GetXaxis()->SetTitleSize(0.15);
+                hStripChannel[iZone][iStat][iMap]->GetXaxis()->CenterTitle();
+
+                hStripChannel[iZone][iStat][iMap]->GetYaxis()->SetTitle("Strip#");
+                hStripChannel[iZone][iStat][iMap]->GetYaxis()->SetTitleOffset(-.15);
+                hStripChannel[iZone][iStat][iMap]->GetYaxis()->SetTitleSize(0.15);
+                hStripChannel[iZone][iStat][iMap]->GetYaxis()->CenterTitle();
+
+                Int_t low = (iMap == 0) ? 985 : 1024;
+                Int_t up = (iMap == 0) ? 1080 : 1129;
+
+                boundBoxesStrips[iZone][iStat][iMap] = new TBox(0., low, 2048., up);
+                boundBoxesStrips[iZone][iStat][iMap]->SetFillColorAlpha(TColor::GetColor("#cccccc"), 0.3);
+                boundBoxesStrips[iZone][iStat][iMap]->SetFillStyle(3001);
+
+                boundBoxesChannels[iZone][iStat][iMap] = new TBox(0., 0., 0., 1200.);
+                boundBoxesChannels[iZone][iStat][iMap]->SetFillColorAlpha(TColor::GetColor("#cccccc"), 0.3);
+                boundBoxesChannels[iZone][iStat][iMap]->SetFillStyle(3001);
+            }
+        }
+    }
+
+    // Filling histograms ...
+
+    // Main part of big zone [0] ...
+    for (Int_t iInfo = 0; iInfo < map1->GetEntriesFast(); iInfo++) {
+        MappingInfo* info = (MappingInfo*) map1->UncheckedAt(iInfo);
+
+        Int_t stat = info->station;
+        TString mapping = info->mapFile;
+
+        Int_t ch = info->channel;
+        Int_t str = info->strip;
+
+        Int_t mapIdx = (mapping.Contains("Left")) ? 0 : 1;
+
+        hStripChannel[0][stat][mapIdx]->Fill(ch, str);
+    }
+
+    // Common ADC [1] ...
+    for (Int_t iInfo = 0; iInfo < map2->GetEntriesFast(); iInfo++) {
+        MappingInfo* info = (MappingInfo*) map2->UncheckedAt(iInfo);
+
+        Int_t stat = info->station;
+        TString mapping = info->mapFile;
+
+        Int_t mapIdx = (mapping.Contains("Left")) ? 0 : 1;
+
+        map <Int_t, Int_t> stripGlobChan = info->stripChan;
+
+        if ((stat == 0 || stat == 1) && mapIdx == 1)
+            continue;
+
+        for (auto it : stripGlobChan) 
+            hStripChannel[1][stat][mapIdx]->Fill(it.second, it.first);
+
+        boundBoxesChannels[1][stat][mapIdx]->SetX1(info->channels.first);
+        boundBoxesChannels[1][stat][mapIdx]->SetX2(info->channels.second);
+    }
+
+    TCanvas* c = new TCanvas("c1", "c1", 1200, 800);
+    c->Divide(2, 3);
+
+    gStyle->SetOptStat(0);
+    gStyle->SetTitleFontSize(0.1);
+    gStyle->SetTitleY(1.0);
+
+    const Int_t nPads = 6;
+    Int_t statsC[nPads] = {0, 0, 3, 3, 5, 5}; // LeftToRight
+    Int_t statsD[nPads] = {1, 1, 2, 2, 4, 4}; // RightToLeft
+
+    for (Int_t iPad = 1; iPad < nPads + 1; iPad++) {
+        TVirtualPad* vPadC = c->cd(iPad);
+        vPadC->Divide(1, 2, 0.01, 0.01);
+
+        vPadC->cd(1);
+        Int_t mapping = 0;
+
+        Int_t stat = (iPad % 2 == 1) ? statsC[iPad - 1] : statsD[iPad - 1];
+
+        hStripChannel[0][stat][mapping]->Draw("");
+        hStripChannel[1][stat][mapping]->Draw("same");
+        boundBoxesStrips[1][stat][mapping]->Draw("l");
+        boundBoxesChannels[1][stat][mapping]->Draw("l");
+
+        vPadC->cd(2);
+        mapping = 1;
+
+        hStripChannel[0][stat][mapping]->Draw("");
+        hStripChannel[1][stat][mapping]->Draw("same");
+        boundBoxesStrips[1][stat][mapping]->Draw("l");
+        boundBoxesChannels[1][stat][mapping]->Draw("l");
+    }
+
+    c->SaveAs("strChan.pdf");
 
     delete c;
 }

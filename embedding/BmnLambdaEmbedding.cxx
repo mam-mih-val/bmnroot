@@ -1,8 +1,31 @@
 #include "BmnLambdaEmbedding.h"
 #include "CbmStsPoint.h"
 
-BmnLambdaEmbedding::BmnLambdaEmbedding() {
+BmnLambdaEmbedding::BmnLambdaEmbedding() :
+fSim(nullptr),
+fLambdaSim(nullptr),
+fReco(nullptr),
+fMCTracks(nullptr),
+fVertices(nullptr),
+fLambdaStore(nullptr),
+fHeader(nullptr),
+fADC32(nullptr),
+fADC128(nullptr),
+fSync(nullptr),
+fSiliconPoints(nullptr),
+fSiliconDigits(nullptr),
+fSiliconMatch(nullptr),
+fGemPoints(nullptr),
+fGemDigits(nullptr),
+fGemMatch(nullptr),
+fCscPoints(nullptr),
+fCscDigits(nullptr),
+fCscMatch(nullptr),
+fInfo(nullptr),
+fMon(nullptr) {
 
+    // Useful tools 
+    fInfo = new BmnLambdaMisc(); // Initialize useful tools to work with mapping ...
 }
 
 BmnLambdaEmbedding::BmnLambdaEmbedding(TString raw, TString sim, TString reco, TString out, Int_t nEvs) :
@@ -70,6 +93,8 @@ fMon(nullptr) {
     fZmax = +3.;
     fEtaMin = 0.;
     fEtaMax = 100.;
+    fPhiMin = 0.;
+    fPhiMax = 360.;
     fMomMin = 0.;
     fNstores = 10;
     fNHitsProton = 4;
@@ -105,7 +130,7 @@ void BmnLambdaEmbedding::Embedding() {
     // 4. Loop over store with lambdas ...
     Int_t nThreads = 1;
 #if defined(_OPENMP)
-    // nThreads = 4;
+    nThreads = 20;
     omp_set_num_threads(nThreads);
 #endif
 #pragma omp parallel for
@@ -146,7 +171,7 @@ void BmnLambdaEmbedding::Embedding() {
         BmnParticlePair aPairToBeWritten;
         embMonitorMap[id] = aPairToBeWritten;
 
-        for (Int_t iLambda = 0; iLambda < fLambdaStore->GetEntriesFast(); iLambda++) {
+        for (Int_t iLambda = 0; iLambda < fNstores; iLambda++) {
             BmnParticlePair currentPair;
 
             Int_t eve = FindReconstructableLambdaFromStore(iLambda, iVertex, currentPair);
@@ -230,7 +255,7 @@ void BmnLambdaEmbedding::Embedding() {
             if (lambda == -1 || vertex == -1 || event == -1)
                 continue;
 
-            if (isGemEmbedded)
+            if (isGemEmbedded) 
                 digsFromLambdasGem[it.first] = GetDigitsFromLambda(TString::Format("%s/lambda%d_vertex%d.root", fStorePath.Data(), lambda, vertex), event, "GEM");
             if (isSilEmbedded)
                 digsFromLambdasSilicon[it.first] = GetDigitsFromLambda(TString::Format("%s/lambda%d_vertex%d.root", fStorePath.Data(), lambda, vertex), event, "SILICON");
@@ -566,7 +591,6 @@ void BmnLambdaEmbedding::StartDecodingWithEmbeddedLambdas(TString raw) {
     setup[0] = kFALSE; // TRIGGERS
     setup[2] = kTRUE; // SILICON
     setup[3] = kTRUE; // GEM
-    setup[10] = kTRUE; // CSC
 
     decoder->SetDetectorSetup(setup);
     decoder->SetAdcDecoMode(kBMNADCMK);
@@ -662,7 +686,7 @@ vector <BmnStripDigit> BmnLambdaEmbedding::GetDigitsFromLambda(TString lambdaEve
     }
 
     // Loop over GEM-digits
-    if (isGem)
+    if (isGem) 
         for (Int_t iDig = 0; iDig < fGemDigits->GetEntriesFast(); iDig++) {
             BmnMatch* digiMatch = (BmnMatch*) fGemMatch->UncheckedAt(iDig);
 
@@ -672,10 +696,10 @@ vector <BmnStripDigit> BmnLambdaEmbedding::GetDigitsFromLambda(TString lambdaEve
                 continue;
 
             BmnStripDigit* digi = (BmnStripDigit*) fGemDigits->UncheckedAt(iDig);
-            // digi->Print();
+            // digi->SetName((point->GetTrackID() == idxProt) ? "PROTON" : "PION");
             digits.push_back(*digi);
         }
-
+       
     // Loop over CSC-digits
     if (isCsc)
         for (Int_t iDig = 0; iDig < fCscDigits->GetEntriesFast(); iDig++) {
@@ -712,12 +736,16 @@ vector <BmnStripDigit> BmnLambdaEmbedding::GetDigitsFromLambda(TString lambdaEve
 map <pair <Int_t, Int_t>, Long_t> BmnLambdaEmbedding::GetGemChannelSerialFromDigi(vector <BmnStripDigit> digits) {
     map <Int_t, Int_t> digiToChannel; // (digi index in vector ---> channel)
     map <pair <Int_t, Int_t>, Long_t> digiChannelToSerial; // (digi index in vector + channel ---> serial)
-
+    
+    const Int_t nDigs = digits.size();
+    
     // Fill digiToChannel map ...
-    Long_t serial = 0x0;
-    for (Int_t iDigi = 0; iDigi < digits.size(); iDigi++) {
+    Long_t serial[nDigs];
+    
+    for (Int_t iDigi = 0; iDigi < nDigs; iDigi++) {
+        serial[iDigi] = 0x0;       
         BmnStripDigit* dig = &digits[iDigi];
-        digiToChannel[iDigi] = fInfo->GemDigiToChannel(dig, serial);
+        digiToChannel[iDigi] = fInfo->GemDigiToChannel(dig, serial[iDigi]);
     }
 
     // Fill digiChannelToSerial map ...
@@ -727,7 +755,7 @@ map <pair <Int_t, Int_t>, Long_t> BmnLambdaEmbedding::GetGemChannelSerialFromDig
         if (it.second == -1)
             continue;
 
-        Long_t value = (serial == 0) ? fInfo->GemDigiChannelToSerial(make_pair(digits[it.first], it.second)) : serial;
+        Long_t value = (serial[it.first] == 0) ? fInfo->GemDigiChannelToSerial(make_pair(digits[it.first], it.second)) : serial[it.first];
         digiChannelToSerial[make_pair(it.first, it.second)] = value;
     }
 
@@ -873,7 +901,7 @@ TString BmnLambdaEmbedding::AddInfoToRawFile(map <UInt_t, vector <BmnStripDigit>
             for (Int_t iAdc32 = 0; iAdc32 < fADC32->GetEntriesFast(); iAdc32++) {
                 BmnADCDigit* adc32 = (BmnADCDigit*) fADC32->UncheckedAt(iAdc32);
 
-                UInt_t channel = adc32->GetChannel();
+                UInt_t channel = adc32->GetChannel(); // ---> (0 ... 63)
                 UInt_t serial = adc32->GetSerial();
 
                 // GEM: 
@@ -889,10 +917,10 @@ TString BmnLambdaEmbedding::AddInfoToRawFile(map <UInt_t, vector <BmnStripDigit>
                             continue;
 
                         Int_t sample = Int_t(channelTmp % 32);
-                        Int_t signal = Int_t(digitsGem[itCorr.first.first].GetStripSignal() * 16.);
-
+                        Int_t signal = Int_t(digitsGem[itCorr.first.first].GetStripSignal());
+                      
                         if (isUseRealSignal)
-                            adc32->GetShortValue()[sample] += signal;
+                            adc32->GetShortValue()[sample] += signal * 16;
                         else
                             adc32->GetShortValue()[sample] += fSignal[0] * 16;
 
@@ -974,7 +1002,7 @@ TString BmnLambdaEmbedding::AddInfoToRawFile(map <UInt_t, vector <BmnStripDigit>
 
 // Create store of possible primary lambdas to be used for embedding ...
 
-void BmnLambdaEmbedding::CreateLambdaStore() {
+TClonesArray* BmnLambdaEmbedding::CreateLambdaStore() {
     const Int_t lambdaPdg = 3122;
 
     for (Int_t iEntry = 0; iEntry < fSim->GetEntries(); iEntry++) {
@@ -1005,12 +1033,16 @@ void BmnLambdaEmbedding::CreateLambdaStore() {
             Double_t Pz = p / TMath::Sqrt(1 + Tx * Tx + Ty * Ty);
             Double_t eta = 0.5 * TMath::Log((p + Pz) / (p - Pz));
 
-            if (eta < fEtaMin || eta > fEtaMax || p < fMomMin)
+            TVector3 tmp(Tx * Pz, Ty * Pz, Pz);
+            Double_t phi = tmp.Phi() * TMath::RadToDeg() + 180.;
+
+            if (eta < fEtaMin || eta > fEtaMax || p < fMomMin || phi < fPhiMin || phi > fPhiMax)
                 continue;
 
             new ((*fLambdaStore)[fLambdaStore->GetEntriesFast()]) BmnLambdaStore(p, Tx, Ty);
         }
     }
+    return fLambdaStore;
 }
 
 void BmnLambdaEmbedding::PrintStoreInfo() {
@@ -1068,9 +1100,3 @@ Int_t BmnLambdaEmbedding::DefineSiliconStatByZpoint(Double_t z) {
 
     return shift + tmp;
 }
-
-
-
-
-
-

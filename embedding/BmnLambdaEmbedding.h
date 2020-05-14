@@ -41,6 +41,7 @@
 
 #include "BmnLambdaMisc.h"
 #include "BmnLambdaEmbeddingMonitor.h"
+#include "BmnInnerTrackerGeometryDraw.h"
 
 #if defined(_OPENMP)
 #include "omp.h"
@@ -56,24 +57,29 @@ public:
 
 public:
     void Embedding();
-
-    vector <BmnStripDigit> GetDigitsFromLambda(TString, Int_t, TString);
+    
+    TClonesArray* CreateLambdaStore();
 
     void SetStorePath(TString path) {
         fStorePath = path;
     }
-
+   
     void SetNLambdaStore(Int_t nStores) {
         fNstores = nStores;
     }
-    
+
     void SetLambdaEtaRange(Double_t min, Double_t max) {
         fEtaMin = min;
-        fEtaMax = max;    
+        fEtaMax = max;
     }
 
     void SetLambdaMinMomentum(Double_t min) {
-      fMomMin = min;
+        fMomMin = min;
+    }
+
+    void SetLambdaPhiRange(Double_t min, Double_t max) {
+        fPhiMin = min;
+        fPhiMax = max;
     }
 
     void SetDetsToBeEmbedded(Bool_t gem, Bool_t silicon, Bool_t csc) {
@@ -199,14 +205,16 @@ private:
 
     // Embedding monitor ...
     BmnLambdaEmbeddingMonitor* fMon;
-    
+
     // Cuts to be used when doing stores with lambda
     Double_t fEtaMin;
     Double_t fEtaMax;
     Double_t fMomMin;
+    Double_t fPhiMin;
+    Double_t fPhiMax;
 
 private:
-    void CreateLambdaStore();
+    vector <BmnStripDigit> GetDigitsFromLambda(TString, Int_t, TString);
     void PrintStoreInfo();
     TString AddInfoToRawFile(map <UInt_t, vector < BmnStripDigit>>, map <UInt_t, map <pair <Int_t, Int_t>, Long_t>>,
             map <UInt_t, vector < BmnStripDigit>>, map <UInt_t, map < vector <Int_t>, Long_t>>,
@@ -218,7 +226,7 @@ private:
     void SimulateLambdaPassing(Double_t, TVector2, TVector3, Int_t, Int_t);
     Int_t FindReconstructableLambdaFromStore(Int_t, Int_t, BmnParticlePair&);
 
-    map <UInt_t, TVector3> ListOfEventsWithReconstructedVp();
+    map <UInt_t, TVector3> ListOfEventsWithReconstructedVp();    
     map <pair <Int_t, Int_t>, Long_t> GetGemChannelSerialFromDigi(vector <BmnStripDigit>);
     map <pair <Int_t, Int_t>, Long_t> GetCscChannelSerialFromDigi(vector <BmnStripDigit>);
     map <vector <Int_t>, Long_t> GetSiliconChannelSerialFromDigi(vector <BmnStripDigit>);
@@ -229,5 +237,4 @@ private:
 };
 
 #endif
-
 

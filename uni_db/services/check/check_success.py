@@ -25,7 +25,7 @@ for opt, arg in options:
         remove_option = True
 
 if file_list == "":
-  print 'USAGE: python check_success.py -i \"[<input_direcory>,<regular_expression_files>]\"\n'
+  print 'USAGE: python check_success.py -i \"[<input_direcory>,<regular_expression_files>]\" [--remove]\n'
   sys.exit(2)
 
 if file_list.endswith("/"):

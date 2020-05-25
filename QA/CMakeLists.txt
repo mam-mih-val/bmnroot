@@ -47,6 +47,7 @@ set(SRCS
  report/BmnHtmlReportElement.cxx
  report/BmnReport.cxx
  report/BmnDrawHist.cxx
+ report/BmnDrawOnline.cxx
  report/BmnHistManager.cxx
  report/BmnSimulationReport.cxx
  report/BmnReportElement.h

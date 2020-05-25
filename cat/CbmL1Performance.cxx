@@ -35,6 +35,8 @@
 #include "CbmL1PartEfficiencies.h"
 #include "CbmL1ParticlesFinder.h"
 
+#include "TFile.h"
+
 #include <iostream>
 #include <vector>
 #include <list>

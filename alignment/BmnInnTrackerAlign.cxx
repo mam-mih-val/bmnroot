@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "BmnInnTrackerAlign.h"
+#include "TRandom.h"
 
 BmnInnTrackerAlign::BmnInnTrackerAlign(Int_t period, Int_t run, TString fileName) {
     fBranchGemCorrs = "BmnGemAlignCorrections";
@@ -19,7 +20,8 @@ BmnInnTrackerAlign::BmnInnTrackerAlign(Int_t period, Int_t run, TString fileName
     //  TString alCorrFileName = "";
 
     if (fileName.Contains("default")) {
-        fFilename = "alignment_innTracker.root";
+        gRandom->SetSeed(0);
+        fFilename = Form("alignment_innTracker_%d.root", UInt_t(gRandom->Integer(UINT32_MAX)));
         UniDbDetectorParameter::ReadRootFile(period, run, "BM@N", "alignment", (Char_t*) fFilename.Data());
     } else
         fFilename = fileName;
@@ -48,6 +50,7 @@ BmnInnTrackerAlign::BmnInnTrackerAlign(Int_t period, Int_t run, TString fileName
             fCorrsSil = GetSiliconCorrs(f);
         delete f;
     }
+    remove(fFilename.Data());
 
     // Get Lorentz corrections ...
     const Int_t nStat = fDetectorGEM->GetNStations();

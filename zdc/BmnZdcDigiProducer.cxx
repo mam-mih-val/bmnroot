@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include "TClonesArray.h"
+#include "TFile.h"
 
 #include "FairRootManager.h"
 #include "FairRun.h"

@@ -30,14 +30,14 @@ Double_t Eta2[dim] = {1.5, 2.5};
 Double_t Dca1[dim] = {.1, 100.};
 Double_t Dca2[dim] = {.1, 100.};
 
-Double_t Dca12X[dim] = {0., 1.};
-Double_t Dca12Y[dim] = {0., 0.7};
-Double_t Path = 2.5;
+Double_t Dca12[dim]  = {0., 1.};
+Double_t Path[dim] = {2.5, 20};
 
 Double_t Alpha = 0.5;
 Double_t PtPodol = 0.11;
 
-void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFit = true) {
+void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFit = true, TString outNameInvMass = "im.pdf")//, TString dstName = "dst-4649.root")
+{
     gStyle->SetOptStat(1);
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
@@ -46,31 +46,43 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFi
 
     TChain* out = new TChain("bmndata");
     out->Add(fileName.Data());
+//    TChain* dst = new TChain("bmndata");
+//    dst->Add(dstName.Data());
     cout << "#recorded entries = " << out->GetEntries() << endl;
     if (out->GetEntries() == 0) {
         cout << "Something is wrong! Please, check file you passed as input!" << endl;
         exit(-1);
     }
+//    cout << "#recorded entries = " << dst->GetEntries() << " in DST "<< endl;
+//    if (dst->GetEntries() == 0) {
+//        cout << "Something is wrong! Please, check file you passed as input!" << endl;
+//        exit(-1);
+//    }
 
     TClonesArray* particlePair = NULL;
     out->SetBranchAddress("ParticlePair", &particlePair);
+//    DstEventHeader* dstEventHdr = NULL;
+//    dst->SetBranchAddress("DstEventHeader.", &dstEventHdr);
 
     TCanvas* canvLambda = new TCanvas("c2", "c2", 800, 800);
     canvLambda->Divide(1, 1);
 
     Double_t rL = 1.1;
-    Double_t rB = 1.22;
-    TH1F* invMassSpectrum = new TH1F("invMassSpectrum", "invMassSpectrum", 75, rL, rB);
+    Double_t rR = 1.22;
+    TH1F* invMassSpectrum = new TH1F("invMassSpectrum", "invMassSpectrum", 75, rL, rR);
     invMassSpectrum->SetTitle("Invariant mass: #Lambda^{0} #rightarrow p + #pi^{-}");
 
     TString _par = "X";
     TString _parY = "Y";
     vector<TString> cutStrVec;
-//    cutStrVec.push_back(Form("Path   >= %.1f", Path));
-    cutStrVec.push_back(Form("%.1f < Dca12X < %.1f", Dca12X[0], Dca12X[1]));
+    if (useCuts) {
+        cutStrVec.push_back(Form("%.1f < Path < %.1f", Path[0], Path[1]));
+        cutStrVec.push_back(Form("%.1f < Dca12 < %.1f", Dca12[0], Dca12[1]));
+    }
 
     for (Int_t iEv = 0; iEv < out->GetEntries(); iEv++) {
         out->GetEntry(iEv);
+//        dst->GetEntry(iEv);
         if (iEv % 10000 == 0)
             cout << "Ev# = " << iEv << endl;
 
@@ -83,8 +95,7 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFi
             Double_t eta2 = pair->GetEtaPart2();
             Double_t dca1 = pair->GetDCA1();
             Double_t dca2 = pair->GetDCA2();
-            Double_t dca12X = pair->GetDCA12();
-            Double_t dca12Y = pair->GetDCA12();
+            Double_t dca12 = pair->GetDCA12();
             Double_t path = pair->GetPath();
 
             Double_t alpha = pair->GetAlpha();
@@ -97,8 +108,8 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFi
                 //                if (ptPodol > PtPodol)
                 //                    continue;
                 //
-//                if (path < Path)
-//                    continue;
+                if (path < Path[0] || path > Path[1])
+                    continue;
 
                 //  if (mom1 < Mom1[0] || mom1 > Mom1[1])
                 //	continue;
@@ -108,12 +119,8 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFi
 
                 // if (eta2 < Eta2[0] || eta2 > Eta2[1])
                 //	continue;
-
-                if (dca12X < Dca12X[0] || dca12X > Dca12X[1])
+                if (dca12 < Dca12[0] || dca12 > Dca12[1])
                     continue;
-
-                //              if (dca12Y < Dca12Y[0] || dca12Y > Dca12Y[1])
-                //                      continue;
 
                 //  if (dca1 < Dca1[0] || dca1 > Dca1[1])
                 //     continue;
@@ -124,31 +131,43 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFi
                 //  if (mom2 < Mom2[0] || mom2 > Mom2[1])
                 //      continue;
             }
+//            if (dstEventHdr->GetADC1() <1200 || dstEventHdr->GetADC1() > 1600)
+//                continue;
+                
             invMassSpectrum->Fill(invMass);
         }
     }
 
 
     Double_t par[8];
-    TF1* bg = new TF1("BG", "pol4", rL, rB);
-    TF1* sig = new TF1("SIG", "gaus", 1.1, 1.13);
+    TF1* bg = new TF1("BG", "pol4", rL, rR);
+    invMassSpectrum->Fit(bg, "R");
+    bg->GetParameters(&par[0]);
+    
+    Double_t rL_Resonance = 1.1;
+    Double_t rR_Resonance = 1.13;
+    const Double_t bgCenter = bg->Eval((rL_Resonance+rR_Resonance)/2.0);
+    printf("center %f\n", bgCenter);
+    TF1* sig = new TF1(
+            "SIG",
+            [bgCenter](Double_t *x, Double_t *p){
+                return p[0]*Exp(-0.5*pow((x[0]-p[1])/p[2], 2))/*/(p[2] * sqrt(2 * M_PI))*/+bgCenter;
+            },
+                    rL_Resonance, rR_Resonance, 3);
+    Double_t temp[3] = {100, (rR_Resonance + rL_Resonance)/2.0, (rR_Resonance - rL_Resonance)/100.0};
+    sig->SetParameters(temp);
+    invMassSpectrum->Fit(sig, "R");
+    sig->GetParameters(&par[5]);
+    
     TVirtualPad* pad = canvLambda->cd();
     pad->SetLeftMargin(0.2);
-    invMassSpectrum->Fit(bg, "R");
-    //sig->SetParameter(1, 1.115);
-    //    sig->SetParameter(2, 0.002);
-    invMassSpectrum->Fit(sig, "R");
-    bg->GetParameters(&par[0]);
-    sig->GetParameters(&par[5]);
-    TF1 *f = new TF1("f", "pol4(0)+gaus(5)", rL, rB);
+    TF1 *f = new TF1("f", "pol4(0)+gaus(5)", rL, rR);
     f->SetNpx(500);
 
     f->SetParameters(par);
     f->SetLineColor(kMagenta + 1);
     f->SetLineWidth(3);
     TString fitOpt = "RS";
-    //f->SetParameter(6, 1.1152);
-    f->SetParameter(7, 0.002);
     TFitResultPtr fitRes = invMassSpectrum->Fit(f, (drawFit) ? fitOpt.Data() : TString(fitOpt + "0").Data());
     Double_t mean = fitRes->Parameter(6);
     Double_t sigma = fitRes->Parameter(7);
@@ -159,6 +178,8 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFi
     Double_t Signif = (T - B) / T;
     printf("Tot %f  Bg %f sig %f\n", T, B, S);
     f->GetParameters(par);
+    delete sig;
+    sig = new TF1("SIG", "gaus", rL_Resonance, rR_Resonance);
     sig->SetParameters(&par[5]);
     bg->SetParameters(&par[0]);
     T = invMassSpectrum->Integral(invMassSpectrum->FindBin(mean - 3 * sigma), invMassSpectrum->FindBin(mean + 3 * sigma));
@@ -208,8 +229,9 @@ void EvalQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t drawFi
     sig->Draw("SAME");
     //    }
     // -----   Finish   --------------------------------------------------------
-    canvLambda->SaveAs("L2.pdf");
+    canvLambda->SaveAs(outNameInvMass.Data());
     delete out;
+//    delete dst;
     timer.Stop();
     Double_t rtime = timer.RealTime();
     Double_t ctime = timer.CpuTime();

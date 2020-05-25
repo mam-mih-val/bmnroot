@@ -40,6 +40,7 @@ set(SRCS
   BmnManageQA.cxx
   BmnGemDigitizerQAHistograms.cxx
   BmnCellAutoTracking.cxx
+  BmnInnerTrackingRun7.cxx
   BmnCellDuet.cxx
   BmnGemStripLayer.cxx
   BmnGemStripModule.cxx

@@ -84,11 +84,17 @@ public:
     //--------------------------------------------------------------------------
 
     //Strip matches controls ---------------------------------------------------
-    Bool_t SetStripMatch(Int_t strip_num, BmnMatch strip_match);
-    Bool_t AddLinkToStripMatch(Int_t strip_num, Double_t weight, Int_t refID);
+    Bool_t SetStripMatch(Int_t strip_num, BmnMatch mc_match); // set a MC-match for a strip
+    Bool_t AddLinkToStripMatch(Int_t strip_num, Double_t weight, Int_t mc_num); // add a mc-number to a MC-match
 
-    BmnMatch GetStripMatch(Int_t strip_num); //match of strip_num-strip
+    Bool_t SetStripDigitNumberMatch(Int_t strip_num, BmnMatch digit_num_match); // set a digit number match for a strip
+    Bool_t AddLinkToStripDigitNumberMatch(Int_t strip_num, Double_t weight, Int_t digit_num); // add a digit number match for a strip
+
+    BmnMatch GetStripMatch(Int_t strip_num); //mc-match for a strip
+    BmnMatch GetStripDigitNumberMatch(Int_t strip_num); //digit number match for a strip
+
     void ResetStripMatches();
+    void ResetStripDigitNumberMatches();
     //--------------------------------------------------------------------------
 
     //Strip hits ---------------------------------------------------------------
@@ -153,7 +159,8 @@ private:
     vector<Double_t> Strips;
 
     //Strip matches
-    vector<BmnMatch> StripMatches; //ID-point matches for all strips
+    vector<BmnMatch> StripMatches; //MC-point matches for all strips
+    vector<BmnMatch> StripDigitNumberMatches; //Digit number matches for all strips
 
     //Strip hits (It is filled after cluster finding and fitting) --------------
     vector<Double_t> StripHits; //positions of strip hits

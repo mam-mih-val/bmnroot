@@ -23,6 +23,10 @@
 #include "TROOT.h"
 #include "TSystem.h"
 
+#include <fstream>
+#include <iostream>
+#include <cstring>
+
 using namespace std;
 
 // ---- Default constructor -------------------------------------------
@@ -35,8 +39,11 @@ BmnFillDstTask::BmnFillDstTask() : FairTask("BmnFillDstTask"),
                                    fIEvent(0),
                                    fPeriodNumber(-1),
                                    fRunNumber(-1),
-				   fZCalib1(1),
-				   fZCalib2(0),
+                                   fZCalib1(1),
+                                   fZCalib2(0),
+                                   fBC1Calib(0),
+                                   fBC2Calib(0),
+                                   fDoCalibration(kFALSE),
                                    isSimulationInput(false) {
     LOG(DEBUG) << "Defaul Constructor of BmnFillDstTask";
 }
@@ -51,8 +58,11 @@ BmnFillDstTask::BmnFillDstTask(Long64_t nEvents) : FairTask("BmnFillDstTask"),
                                                    fIEvent(0),
                                                    fPeriodNumber(-1),
                                                    fRunNumber(-1),
-						   fZCalib1(1),
-						   fZCalib2(0),
+                                                   fZCalib1(1),
+                                                   fZCalib2(0),
+                                                   fBC1Calib(0),
+                                                   fBC2Calib(0),
+                                                   fDoCalibration(kFALSE),
                                                    isSimulationInput(false) {
     fRunHead = new DstRunHeader();
     LOG(DEBUG) << "Constructor of BmnFillDstTask";
@@ -68,8 +78,11 @@ BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, Long64_t nEvents
                                                                                     fIEvent(0),
                                                                                     fPeriodNumber(-1),
                                                                                     fRunNumber(-1),
-										    fZCalib1(1),
-										    fZCalib2(0),
+                                                                                    fZCalib1(1),
+                                                                                    fZCalib2(0),
+                                                                                    fBC1Calib(0),
+                                                                                    fBC2Calib(0),
+                                                                                    fDoCalibration(kFALSE),
                                                                                     isSimulationInput(false) {
     fRunHead = new DstRunHeader();
     LOG(DEBUG) << "Constructor of BmnFillDstTask";
@@ -85,8 +98,11 @@ BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, TString output_e
                                                                                                                       fIEvent(0),
                                                                                                                       fPeriodNumber(-1),
                                                                                                                       fRunNumber(-1),
-														      fZCalib1(1),
-														      fZCalib2(0),
+                                                                                                                      fZCalib1(1),
+                                                                                                                      fZCalib2(0),
+                                                                                                                      fBC1Calib(0),
+                                                                                                                      fBC2Calib(0),
+                                                                                                                      fDoCalibration(kFALSE),
                                                                                                                       isSimulationInput(false) {
     fRunHead = new DstRunHeader();
     LOG(DEBUG) << "Constructor of BmnFillDstTask";
@@ -140,46 +156,59 @@ InitStatus BmnFillDstTask::Init() {
         } else
             fEventHead = (BmnEventHeader*)pObj;
     }
+    if (fDoCalibration) {
+        // Read in the z-calibration file
+        TString gPathWorkdir = gSystem->Getenv("VMCWORKDIR");
+        TString gPathFullBC = gPathWorkdir + "/input/BC12Corrections.txt";
+        ifstream fin(gPathFullBC.Data());
+        int runBC = 0;
+        int safeindex = 0;
+        while (runBC != fRunNumber && safeindex != 20000) {
+            fin >> runBC;
+            fin >> fBC1Calib;
+            fin >> fBC2Calib;
+            safeindex = safeindex + 1;
+        }
+        if (fVerbose > 0)
+            if (safeindex == 20000) cout << "run number not found in file " << gPathFullBC << endl;
 
-    // Read in the z-calibration file
-    TString gPathWorkdir = gSystem->Getenv("VMCWORKDIR");
-    TString gPathFull = gPathWorkdir + "/input/ZOutCorrections4.txt";
+        TString gPathFull = gPathWorkdir + "/input/ZOutCorrections5.txt";
 
-    string line;
-    ifstream f(gPathFull.Data(), ios::in);
+        string line;
+        ifstream f(gPathFull.Data(), ios::in);
+        vector<Double_t> axisAttr;
 
-    vector <Double_t> axisAttr;
+        while (!f.eof()) {
+            getline(f, line);
 
-    while (!f.eof()) {
-      getline(f, line);
-      
-      TString currString(line);
-      int run;
-      TString str_run( currString(0,4) );
-      run = str_run.Atoi();
-      
-      if(run == fRunNumber){
-	//	cout<<"++++++++++++FILLDSTTASK!!!!"<<endl;
-	cout<<currString.Data()<<endl;
-	TString ab( currString(5, currString.Length()) );
-	TString a ( ab(0, ab.First(" ")) );
-	float a_float;
-	fZCalib1 = a.Atof();
-	TString c ( ab( a.Length()+1, ab.Length() ) );
-	//cout<<"c = "<<c.Data()<<endl;
-	TString b ( c(0, c.First(" ")) );
-	fZCalib2 = b.Atof();
-	//cout<<"ab = "<<ab.Data()<<", a = "<<fZCalib1<<", b = "<<fZCalib2<<endl;
-      }
+            TString currString(line);
+            int run;
+            TString str_run(currString(0, 4));
+            run = str_run.Atoi();
+
+            if (run == fRunNumber) {
+                //	cout<<"++++++++++++FILLDSTTASK!!!!"<<endl;
+                cout << currString.Data() << endl;
+                TString ab(currString(5, currString.Length()));
+                TString a(ab(0, ab.First(" ")));
+                float a_float;
+                fZCalib1 = a.Atof();
+                TString c(ab(a.Length() + 1, ab.Length()));
+                //cout<<"c = "<<c.Data()<<endl;
+                TString b(c(0, c.First(" ")));
+                fZCalib2 = b.Atof();
+                //cout<<"ab = "<<ab.Data()<<", a = "<<fZCalib1<<", b = "<<fZCalib2<<endl;
+            }
+        }
+        //f.close();
     }
-      
-    
-    //Get input branches	
-    fT0 = (TClonesArray*) ioman->GetObject("BC2");
-    fBC1 = (TClonesArray*) ioman->GetObject("TQDC_BC1");
-    fBC2 = (TClonesArray*) ioman->GetObject("TQDC_BC2");
-    fBC3 = (TClonesArray*) ioman->GetObject("TQDC_BC3");
-    fBC4 = (TClonesArray*) ioman->GetObject("TQDC_BC4");
+
+    //Get input branches
+    fT0 = (TClonesArray*)ioman->GetObject("BC2");
+    fBC1 = (TClonesArray*)ioman->GetObject("TQDC_BC1");
+    fBC2 = (TClonesArray*)ioman->GetObject("TQDC_BC2");
+    fBC3 = (TClonesArray*)ioman->GetObject("TQDC_BC3");
+    fBC4 = (TClonesArray*)ioman->GetObject("TQDC_BC4");
     // Get a pointer to the output DST Event Header
     fDstHead = (DstEventHeader*)ioman->GetObject(fOutputEventHeaderName);
     if (!fDstHead) {
@@ -271,57 +300,85 @@ void BmnFillDstTask::Exec(Option_t* /*option*/) {
     //calculate Z2in and Z2out:
     Double_t Z2in = -100.0, Z2out = -100.0;
     Double_t adcIn = -100.0, adcOut = -100.0;
+    Short_t Zin = -100;
+    Short_t Zout = -100;
     if (fT0 && fBC1 && fBC2 && fBC3 && fBC4) {
         BmnTrigDigit* digT0 = NULL;
         Int_t t0Count = 0;
-        for (UInt_t i = 0; i < fT0->GetEntriesFast(); i++){
-	    digT0 = (BmnTrigDigit*)fT0->At(i);
+        for (UInt_t i = 0; i < fT0->GetEntriesFast(); i++) {
+            digT0 = (BmnTrigDigit*)fT0->At(i);
             if (digT0->GetMod() == 0) t0Count++;
-	}
+        }
         if (t0Count == 1) {
             Double_t t0Time = digT0->GetTime();
-            grabZ2(fBC1, fBC2, t0Time, Z2in, adcIn, true);
-            grabZ2(fBC3, fBC4, t0Time, Z2out, adcOut, false);
-	}
-	fDstHead->SetZ2in(Z2in);
-	fDstHead->SetZ2out(Z2out);
-	fDstHead->SetADCin(adcIn);
-	fDstHead->SetADCout(adcOut);
+
+            grabZ2(fBC1, fBC2, t0Time, Z2in, adcIn, fBC1Calib, fBC2Calib, Zin, true);
+            grabZ2(fBC3, fBC4, t0Time, Z2out, adcOut, 0, 0, Zout, false);
+            if (Z2out != -1000) {
+                Z2out = sqrt(Z2out);
+                Z2out = Z2out * fZCalib1 + fZCalib2;
+                Z2out = Z2out * Z2out;
+            }
+            //cout<<Z2out;
+        }
+        fDstHead->SetZ2in(Z2in);
+        fDstHead->SetZ2out(Z2out);
+        fDstHead->SetADCin(adcIn);
+        fDstHead->SetADCout(adcOut);
+        fDstHead->SetZin(Zin);
+    } else 
+        if (fT0 && fBC1 && fBC2) {
+            BmnTrigDigit* digT0 = NULL;
+            Int_t t0Count = 0;
+            for (UInt_t i = 0; i < fT0->GetEntriesFast(); i++) {
+                digT0 = (BmnTrigDigit*)fT0->At(i);
+                if (digT0->GetMod() == 0) t0Count++;
     }
-    
-    Double_t Z1 = - 100.0, Z2 = -100.0, Z3 = -100.0, Z4 = -100.0, ADC1 = -100.0, ADC2 = -100.0, ADC3 = -100.0, ADC4 = -100.0;	
-    if(fT0) {
-      Int_t t0Count = 0;
-      BmnTrigDigit* digT0 = NULL;
-      Double_t t0Time = -100000;
-      for (UInt_t i = 0; i < fT0->GetEntriesFast(); i++) {
-	digT0 = (BmnTrigDigit*)fT0->At(i);
-	if (digT0->GetMod() == 0) {
-	  t0Count++;
-	  t0Time = digT0->GetTime();
-	}
-      }
-      if (t0Count == 1) {
-	if(fBC1 && fBC2){
-	  grabZ2OR(fBC1, fBC2, t0Time, Z1, Z2, ADC1, ADC2, true);
-	}
-	if(fBC3 && fBC4){
-	  grabZ2OR(fBC3, fBC4, t0Time, Z3, Z4, ADC3, ADC4, false);
-	}
-      }
-    
-      //no calibration from single adc to charge yet
-      //fDstHead->SetZ1(Z1);
-      //fDstHead->SetZ2(Z2);
-      //fDstHead->SetZ3(Z3);
-      //fDstHead->SetZ4(Z4);
-    
-      fDstHead->SetADC1(ADC1);
-      fDstHead->SetADC2(ADC2);
-      fDstHead->SetADC3(ADC3);
-      fDstHead->SetADC4(ADC4);
+            if (t0Count == 1) {
+                Double_t t0Time = digT0->GetTime();
+
+                grabZ2(fBC1, fBC2, t0Time, Z2in, adcIn, fBC1Calib, fBC2Calib, Zin, true);
+            }
+            fDstHead->SetZ2in(Z2in);
+//            fDstHead->SetZ2out(Z2out);
+            fDstHead->SetADCin(adcIn);
+//            fDstHead->SetADCout(adcOut);
+            fDstHead->SetZin(Zin);
+        }
+
+    Double_t Z1 = -100.0, Z2 = -100.0, Z3 = -100.0, Z4 = -100.0, ADC1 = -100.0, ADC2 = -100.0, ADC3 = -100.0, ADC4 = -100.0;
+    if (fT0) {
+        Int_t t0Count = 0;
+        BmnTrigDigit* digT0 = NULL;
+        Double_t t0Time = -100000;
+        for (UInt_t i = 0; i < fT0->GetEntriesFast(); i++) {
+            digT0 = (BmnTrigDigit*)fT0->At(i);
+            if (digT0->GetMod() == 0) {
+                t0Count++;
+                t0Time = digT0->GetTime();
+            }
+        }
+        if (t0Count == 1) {
+            if (fBC1 && fBC2) {
+                grabZ2OR(fBC1, fBC2, t0Time, Z1, Z2, ADC1, ADC2, true);
+            }
+            if (fBC3 && fBC4) {
+                grabZ2OR(fBC3, fBC4, t0Time, Z3, Z4, ADC3, ADC4, false);
+            }
+        }
+
+        //no calibration from single adc to charge yet
+        //fDstHead->SetZ1(Z1);
+        //fDstHead->SetZ2(Z2);
+        //fDstHead->SetZ3(Z3);
+        //fDstHead->SetZ4(Z4);
+
+        fDstHead->SetADC1(ADC1);
+        fDstHead->SetADC2(ADC2);
+        fDstHead->SetADC3(ADC3);
+        fDstHead->SetADC4(ADC4);
     }
-    
+
     // printing progress bar in terminal
     if (fVerbose == 0) {
         if (gROOT->IsBatch()) {

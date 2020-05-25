@@ -27,7 +27,9 @@ BmnGemStripLayer::BmnGemStripLayer() {
         }
     }
 
-    ClusterFindingThreshold = 20.0;
+    ClusterFindingThreshold = 0.0;
+
+    InitializeLayer();
 }
 
 BmnGemStripLayer::BmnGemStripLayer(Int_t zone_number, StripLayerType layer_type,
@@ -60,7 +62,9 @@ BmnGemStripLayer::BmnGemStripLayer(Int_t zone_number, StripLayerType layer_type,
         }
     }
 
-    ClusterFindingThreshold = 20.0;
+    ClusterFindingThreshold = 0.0;
+
+    InitializeLayer();
 }
 
 BmnGemStripLayer::~BmnGemStripLayer() {
@@ -74,8 +78,9 @@ void BmnGemStripLayer::InitializeLayer() {
     Strips.clear();
     Strips.resize(NStrips, 0.0);
 
-    //strip matches
+    //matches
     ResetStripMatches();
+    ResetStripDigitNumberMatches();
 
     //strip hits
     ResetStripHits();
@@ -250,17 +255,33 @@ Double_t BmnGemStripLayer::GetStripSignal(Int_t strip_num) {
     else return -1;
 }
 
-Bool_t BmnGemStripLayer::SetStripMatch(Int_t strip_num, BmnMatch strip_match) {
+Bool_t BmnGemStripLayer::SetStripMatch(Int_t strip_num, BmnMatch mc_match) {
     if(strip_num >= 0 && strip_num < StripMatches.size()) {
-        StripMatches[strip_num] = strip_match;
+        StripMatches[strip_num] = mc_match;
         return true;
     }
     else return false;
 }
 
-Bool_t BmnGemStripLayer::AddLinkToStripMatch(Int_t strip_num, Double_t weight, Int_t refID) {
+Bool_t BmnGemStripLayer::AddLinkToStripMatch(Int_t strip_num, Double_t weight, Int_t mc_num) {
     if(strip_num >= 0 && strip_num < StripMatches.size()) {
-        StripMatches[strip_num].AddLink(weight, refID);
+        StripMatches[strip_num].AddLink(weight, mc_num);
+        return true;
+    }
+    else return false;
+}
+
+Bool_t BmnGemStripLayer::SetStripDigitNumberMatch(Int_t strip_num, BmnMatch digit_num_match) {
+    if(strip_num >= 0 && strip_num < StripDigitNumberMatches.size()) {
+        StripDigitNumberMatches[strip_num] = digit_num_match;
+        return true;
+    }
+    else return false;
+}
+
+Bool_t BmnGemStripLayer::AddLinkToStripDigitNumberMatch(Int_t strip_num, Double_t weight, Int_t digit_num) {
+    if(strip_num >= 0 && strip_num < StripDigitNumberMatches.size()) {
+        StripDigitNumberMatches[strip_num].AddLink(weight, digit_num);
         return true;
     }
     else return false;
@@ -273,11 +294,25 @@ BmnMatch BmnGemStripLayer::GetStripMatch(Int_t strip_num) {
     else return BmnMatch(); //return an empty match
 }
 
+BmnMatch BmnGemStripLayer::GetStripDigitNumberMatch(Int_t strip_num) {
+    if(strip_num >= 0 && strip_num < StripDigitNumberMatches.size()) {
+        return StripDigitNumberMatches[strip_num];
+    }
+    else return BmnMatch(); //return an empty match
+}
+
 void BmnGemStripLayer::ResetStripMatches() {
     Int_t NStrips = GetNStrips();
 
     StripMatches.clear();
     StripMatches.resize(NStrips, BmnMatch());
+}
+
+void BmnGemStripLayer::ResetStripDigitNumberMatches() {
+    Int_t NStrips = GetNStrips();
+
+    StripDigitNumberMatches.clear();
+    StripDigitNumberMatches.resize(NStrips, BmnMatch());
 }
 
 Double_t BmnGemStripLayer::GetStripHitPos(Int_t num) {

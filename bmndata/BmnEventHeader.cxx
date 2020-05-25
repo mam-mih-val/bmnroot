@@ -49,7 +49,9 @@ BmnEventHeader::BmnEventHeader(UInt_t run_id, UInt_t event_id, TTimeStamp event_
 }
 
 // -----   Destructor   ----------------------------------------------------
-BmnEventHeader::~BmnEventHeader() {}
+BmnEventHeader::~BmnEventHeader() {
+    delete fTrigInfo;
+}
 
 
 ClassImp(BmnEventHeader)

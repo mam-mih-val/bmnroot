@@ -180,8 +180,8 @@ private:
     Bool_t read = kFALSE;
     Bool_t pedestals = kFALSE;
     char fname[100];
-    char ss[10];
-    char sped[20];
+    char ss[10] = {0};
+    char sped[20] = {0};
     FILE *Rnoisefile = nullptr;
     FILE *Wnoisefile = nullptr;
     FILE *Pedfile = nullptr;

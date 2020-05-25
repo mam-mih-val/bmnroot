@@ -36,7 +36,7 @@ void SetDefaultDrawStyle() {
     gStyle->SetPadColor(kWhite);
     gStyle->SetStatColor(kWhite);
     gStyle->SetTitleFillColor(kWhite);
-    gStyle->SetPalette(110);
+    gStyle->SetPalette(77);
 }
 
 /* Draw TH1 histogram.*/

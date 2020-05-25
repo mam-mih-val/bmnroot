@@ -20,6 +20,7 @@
 #include "FairLogger.h"
 #include "TH1F.h"
 #include "TH2F.h"
+#include "TFile.h"
 #include "TProfile.h"
 
 #include "BmnDchTrackFinder.h"

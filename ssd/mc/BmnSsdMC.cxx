@@ -15,6 +15,7 @@
 #include "TVirtualMC.h"
 #include "TVector3.h"
 #include "TKey.h"
+#include "TFile.h"
 
 #include "FairLogger.h"
 

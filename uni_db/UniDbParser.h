@@ -18,6 +18,7 @@
 //   - converted value from start symbol (default, 0) OR special values to write to the database table column
 // action="parse"  parse_type=["counter" - current element number from 1, "value:fixed_value"] column_name="database column name" type="type name"/> - special values to write to the database table column
 // </cycle>
+// possible data types: "int", "hex", "double", "string", "datetime", "binary"
 
 #ifndef UNIDBPARSER_H
 #define UNIDBPARSER_H 1
@@ -106,7 +107,7 @@ class UniDbParser
     int ParseDb2Db();
 
     // parse text file to structure with values
-    int ParseTxt2Struct(TString txtName, TString schemaPath, vector<structParseValue*>& parse_values, vector<structParseSchema>& vecElements);
+    int ParseTxt2Struct(TString txtName, TString schemaPath, vector<structParseValue*>& parse_values, vector<structParseSchema>& vecElements, int iVerbose = 1);
 
     // save text ELOG of the BM@N experiemnt in CSV format to new Elog DB (temporary function)
     int ConvertElogCsv(TString csvName = "parse_schemes/elog.csv", char separate_symbol = ';');

@@ -220,12 +220,13 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
 
     BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, kFALSE);
     glTF->SetSrcSetup(kTRUE);
-    //glTF->SetDoAlign(1);
+    //glTF->SetRunNumber(run_number);
     fRunAna->AddTask(glTF);
 
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)
     BmnFillDstTask* dst_task = new BmnFillDstTask(nEvents);
     dst_task->SetRunNumber(run_period, run_number);
+    dst_task->DoZCalibration(kTRUE);
     fRunAna->AddTask(dst_task);
 
     BmnPidSRC* pid = new BmnPidSRC();

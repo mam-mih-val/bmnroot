@@ -248,7 +248,7 @@ int write_string_to_db(string &write_string, TSQLStatement* stmt, structParseSch
             if (row.strParseType != "")
             {
                 if (row.strParseType == "counter")
-                    token = convert_int_to_string(cycle_counter);
+                    token = int_to_string(cycle_counter);
                 if (row.strParseType(0,5) == "value")
                     token = row.strParseType(6,row.strParseType.Length()-6).Data();
 
@@ -1195,7 +1195,7 @@ int UniDbParser::ParseDb2Db()
 }
 
 // parse text file to the C++ structure
-int UniDbParser::ParseTxt2Struct(TString txtName, TString schemaPath, vector<structParseValue*>& parse_values, vector<structParseSchema>& vecElements)
+int UniDbParser::ParseTxt2Struct(TString txtName, TString schemaPath, vector<structParseValue*>& parse_values, vector<structParseSchema>& vecElements, int iVerbose)
 {
     gSystem->ExpandPathName(txtName);
     gSystem->ExpandPathName(schemaPath);
@@ -1204,7 +1204,7 @@ int UniDbParser::ParseTxt2Struct(TString txtName, TString schemaPath, vector<str
     txtFile.open(txtName.Data(), ios::in);
     if (!txtFile.is_open())
     {
-        cout<<"ERROR: reading TXT file '"<<txtName<<"' was failed"<<endl;
+        if (iVerbose > 0) cout<<"ERROR: reading TXT file '"<<txtName<<"' was failed"<<endl;
         return -1;
     }
 
@@ -1212,20 +1212,20 @@ int UniDbParser::ParseTxt2Struct(TString txtName, TString schemaPath, vector<str
     xmlDocPtr docSchema = xmlReadFile(schemaPath.Data(), NULL, 0);
     if (!docSchema)
     {
-        cout<<"ERROR: reading schema file '"<<schemaPath<<"' was failed"<<endl;
+        if (iVerbose > 0) cout<<"ERROR: reading schema file '"<<schemaPath<<"' was failed"<<endl;
         return - 2;
     }
 
     xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
     if (!cur_schema_node)
     {
-        cout<<"ERROR: schema of XML parsing is empty"<<endl;
+        if (iVerbose > 0) cout<<"ERROR: schema of XML parsing is empty"<<endl;
         xmlFreeDoc(docSchema);
         return -3;
     }
     if (strcmp((char*)cur_schema_node->name, "unidbparser_schema") != 0)
     {
-        cout<<"ERROR: it is not UniDbParser schema"<<endl;
+        if (iVerbose > 0) cout<<"ERROR: it is not UniDbParser schema"<<endl;
         xmlFreeDoc(docSchema);
         return -4;
     }
@@ -1236,13 +1236,13 @@ int UniDbParser::ParseTxt2Struct(TString txtName, TString schemaPath, vector<str
     TDatime dtSpillPrevious;
     while (cur_schema_node)
     {
-        //cout<<"Current schema node: "<<cur_schema_node->name<<endl;
+        if (iVerbose > 1) cout<<"Current schema node: "<<cur_schema_node->name<<endl;
 
         // parse table name if exists
         if ((char*)xmlGetProp(cur_schema_node, (unsigned char*)"table_name") != 0)
         {
             strTableName = (char*)xmlGetProp(cur_schema_node, (unsigned char*)"table_name");
-            cout<<"Current database table: "<<strTableName<<endl;
+            if (iVerbose > 0) cout<<"Current database table: "<<strTableName<<endl;
         }
 
         if (strcmp((char*)cur_schema_node->name, "skip") == 0)
@@ -1277,7 +1277,7 @@ int UniDbParser::ParseTxt2Struct(TString txtName, TString schemaPath, vector<str
             {
                 //string trim_line = trim(cur_line);
                 string reduce_line = reduce(cur_line);
-                //cout<<"Current line: "<<reduce_line<<endl;
+                if (iVerbose > 1) cout<<"Current line: "<<reduce_line<<endl;
 
                 if (reduce_line == "")
                     continue;
@@ -1292,14 +1292,20 @@ int UniDbParser::ParseTxt2Struct(TString txtName, TString schemaPath, vector<str
                 structParseValue* st = new structParseValue();
                 while (getline(line_stream, token, delimiter_char))
                 {
+                    if (i >= vecElements.size())
+                    {
+                        if (iVerbose > 0) cout<<"WARNING: Some columns were not parsed (starting with "<<token<<")"<<endl;
+                        break;
+                    }
                     structParseSchema schema = vecElements[i];
-                    //cout<<"schema.isSkip: "<<schema.isSkip<<endl;
                     if (schema.isSkip)
                     {
                         i++;
+                        if (iVerbose > 1) cout<<"schema.isSkip: "<<schema.isSkip<<endl;
                         continue;
                     }
 
+                    if (iVerbose > 1) cout<<"The current type of the column '"<<schema.vecRows[0].strColumnName<<"': "<<schema.vecRows[0].strStatementType<<endl;
                     // parse columns
                     if (schema.vecRows[0].strStatementType == "datetime")
                     {
@@ -1309,7 +1315,7 @@ int UniDbParser::ParseTxt2Struct(TString txtName, TString schemaPath, vector<str
                         {
                             TString strSQLDate = dtSpillPrevious.AsSQLString();
                             strDate = TString::Format("%s.%s.%s", strSQLDate(8,2).Data(), strSQLDate(5,2).Data(), strSQLDate(0,4).Data());
-                            cout<<"WARNING: recovery date: "<<strDate<<endl;
+                            if (iVerbose > 0) cout<<"WARNING: recovery date: "<<strDate<<endl;
                         }
                         else
                             getline(line_stream, token, delimiter_char);
@@ -1332,7 +1338,6 @@ int UniDbParser::ParseTxt2Struct(TString txtName, TString schemaPath, vector<str
                         }
                     }
 
-                    //cout<<"The current type of the column '"<<schema.vecRows[0].strColumnName<<"': "<<schema.vecRows[0].strStatementType<<endl;
                     if (schema.vecRows[0].strStatementType == "int")
                     {
                         st->arrValues.push_back(atoi(token.c_str()));
@@ -1343,19 +1348,13 @@ int UniDbParser::ParseTxt2Struct(TString txtName, TString schemaPath, vector<str
                             st->arrValues.push_back(atof(token.c_str()));
                         }
                         else {
-                            cout<<"ERROR: type of the column is not supported: "<<schema.vecRows[0].strStatementType<<endl;
+                            if (iVerbose > 0) cout<<"ERROR: type of the column is not supported: "<<schema.vecRows[0].strStatementType<<endl;
                             return -5;
                         }
                     }
 
                     i++;
                 }// parse TXT line by tokens separated by symbols
-
-                /*if (num < 7)
-                {
-                    cout<<"ERROR: field count is wrong for line: '"<<reduce_line<<endl;
-                    return -6;
-                }*/
 
                 strSpillEnd = TString::Format("%s %s", strDate.Data(), strTime.Data());
                 tm tmbuf[1] = {{0}};
@@ -1364,7 +1363,7 @@ int UniDbParser::ParseTxt2Struct(TString txtName, TString schemaPath, vector<str
                 st->dtSpillEnd = dtSpillEnd;
                 if ((notFirstLine) && (dtSpillPrevious > dtSpillEnd))
                 {
-                    if (!isSkipLines) cout<<endl<<"ERROR: The time sequence of the lines is corrupted. The following lines is skipped:"<<endl;
+                    if ((!isSkipLines) && (iVerbose > 0)) cout<<endl<<"ERROR: The time sequence of the lines is corrupted. The following lines is skipped:"<<endl;
                     cout<<reduce_line<<endl;
                     isSkipLines = true;
                     delete st;
@@ -1374,22 +1373,22 @@ int UniDbParser::ParseTxt2Struct(TString txtName, TString schemaPath, vector<str
                 {
                     if (isSkipLines)
                     {
-                        cout<<"Skipped fragment is finished"<<endl<<endl;
+                        if (iVerbose > 0) cout<<"Skipped fragment is finished"<<endl<<endl;
                         isSkipLines = false;
                     }
                 }
                 dtSpillPrevious = dtSpillEnd;
                 notFirstLine = true;
 
-                //cout<<"Spill End: "<<st->spill_end.AsSQLString()<<". Beam DAQ: "<<st->beam_daq<<". Beam All: "<<st->beam_all<<". Trigger DAQ: "<<st->trigger_daq<<". Trigger All: "<<st->trigger_all<<endl;
+                //if (iVerbose > 1) cout<<"Spill End: "<<st->dtSpillEnd.AsSQLString()<<". Beam DAQ: "<<st->beam_daq<<". Beam All: "<<st->beam_all<<". Trigger DAQ: "<<st->trigger_daq<<". Trigger All: "<<st->trigger_all<<endl;
                 parse_values.push_back(st);
 
-                //cout<<endl;
+                if (iVerbose > 1) cout<<endl;
             }// run TXT file cycle and write the fields to the structure
         }// CYCLE PROCESSING
 
         cur_schema_node = cur_schema_node->next;
-    }// parse SCHEMA file
+    }// (while) parse SCHEMA file
 
     txtFile.close();
     xmlFreeDoc(docSchema);

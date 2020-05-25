@@ -14,6 +14,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 #include <Rtypes.h>
+#include "TFile.h"
 #include "BmnMwpcTrack.h"
 #include "BmnMwpcSegment.h"
 #include "BmnMwpcTrackFinder.h"
@@ -1212,6 +1213,27 @@ InitStatus BmnMwpcTrackFinder::Init() {
     shift_pair[i][2]= (shift[i1+1][3] - shift[i1][3])/( ZCh[i1+1] - ZCh[i1] );
     shift_pair[i][1]= 0.5*(shift[i1+1][1] + shift[i1][1]);
     shift_pair[i][3]= 0.5*(shift[i1+1][3] + shift[i1][3]);
+    //Additional alignment 
+    /*
+    if (i == 0){// alignment with GEM detectors
+      shift_pair[i][0] +=  0.;//Ax
+      shift_pair[i][1] +=  0.05;//Bx
+      shift_pair[i][2] += -0.0008;//Ay
+      shift_pair[i][3] += -0.4;//By
+    }
+    */
+    if (i == 0){
+      shift_pair[i][0] +=  0.;//Ax
+      shift_pair[i][1] +=  0.;//Bx
+      shift_pair[i][2] +=  0.;//Ay
+      shift_pair[i][3] +=  0.;//By
+    }
+    if (i == 1){
+      shift_pair[i][0] +=  0.;//Ax
+      shift_pair[i][1] +=  -0.05;//Bx
+      shift_pair[i][2] +=  0.0009;//Ay
+      shift_pair[i][3] +=  0.7;//By
+    }
 
     if (fDebug) cout<<" i "<<i<<" kZ_midle_pair[i] "<<kZ_midle_pair[i]<<" i1 "<<i1<<" i1+1 "<<i1+1<<" -( ZCh[i1]- ZCh[i1+1] )= "<<-( ZCh[i1]- ZCh[i1+1] )<<endl;
   }

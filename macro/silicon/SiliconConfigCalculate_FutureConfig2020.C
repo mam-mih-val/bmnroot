@@ -2,7 +2,7 @@
  * Description:
  * Macro for calculating parameters of SILICON detector and writing them
  * into the XML-file needed for simulation and reconstruction procedures.
- * The obtained XML-file should be moved into the 'silicon/XMLConfigs' directory
+ * The obtained XML-file should be moved into the 'parameters/silicon/XMLConfigs' directory
  *
  * SILICON configuration: FutureConfig2020 (3 SI-stations (10-14-18 mods))
  *
@@ -109,7 +109,7 @@ Int_t FirstStripNumberLowLayer[2] = { 26, 0 };
 Double_t x_delta[2] = { XYBevelBorder[0]/TMath::Cos(BevelAngleRad), XYBevelBorder[1]/TMath::Cos(BevelAngleRad) };
 Double_t y_delta[2] = { XYBevelBorder[0]/TMath::Sin(BevelAngleRad), XYBevelBorder[1]/TMath::Sin(BevelAngleRad) };
 
-//find shifts of the sensetive zone from module borders via the equation of the straight line for the inner bevel
+//find shifts of the sensitive zone from module borders via the equation of the straight line for the inner bevel
 Double_t x_delta_top_BP[2] = { XLeftBorder[0], XLeftBorder[1] };
 Double_t y_delta_top_BP[2] = { TMath::Tan(TMath::PiOver2()+BevelAngleRad)*x_delta_top_BP[0] + (YBevelSize+y_delta[0]), TMath::Tan(TMath::PiOver2()+BevelAngleRad)*x_delta_top_BP[1] + (YBevelSize+y_delta[1]) };
 

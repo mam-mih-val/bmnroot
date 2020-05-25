@@ -42,7 +42,7 @@ void BmnTrack::AddHit(Int_t hitIndex, FairHit* hit) {
 // -----   Public method Print   -------------------------------------------
 
 void BmnTrack::Print() {
-    cout << " Number of attached GEM hits : " << fHits.GetSize() << endl;
+    cout << " Number of attached hits : " << fNhits << endl;
     cout << "PARAM FIRST: " << endl;
     fParamFirst.Print();
     cout << "PARAM LAST: " << endl;

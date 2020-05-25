@@ -16,6 +16,7 @@
 
 #include "TGeoManager.h"
 #include "TRegexp.h"
+#include "TFile.h"
 
 #include "CbmStack.h"
 

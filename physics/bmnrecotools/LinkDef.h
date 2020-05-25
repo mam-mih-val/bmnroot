@@ -9,5 +9,6 @@
 #pragma link C++ class BmnPVGetter+;
 #pragma link C++ class BmnFairRunSim+;
 #pragma link C++ class MpdLAQGSMGeneratorExt+;
+#pragma link C++ class BmnEmbedding+;
 
 #endif

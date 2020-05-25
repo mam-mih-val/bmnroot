@@ -3,8 +3,10 @@
 // print summary information about beam spill for a given run in a period (or for a whole period)
 // if 'run' parameter is zero or absent then all runs in the period will be shown
 void run_beam_info(int period = 7, int run = 0, TString target = "",
-                   TString txtfile_path= "$VMCWORKDIR/uni_db/macros/parse_schemes/spill_run7/summary_corr_v2.txt",
-                   TString scheme_path = "$VMCWORKDIR/uni_db/macros/parse_schemes/spill_run7/spill_run7.xslt")
+                   //TString txtfile_path= "$VMCWORKDIR/uni_db/macros/parse_schemes/spill_run7/summary_corr_v2.txt",
+                   //TString scheme_path = "$VMCWORKDIR/uni_db/macros/parse_schemes/spill_run7/spill_run7_bmn.xslt")
+                   TString txtfile_path= "$VMCWORKDIR/uni_db/macros/parse_schemes/spill_run7/SRC_Data.txt",
+                   TString scheme_path = "$VMCWORKDIR/uni_db/macros/parse_schemes/spill_run7/spill_run7_src_full.xslt")
 {
     // get spill info
     UniDbParser parser;
@@ -157,13 +159,15 @@ void run_beam_info(int period = 7, int run = 0, TString target = "",
         for (int i_sum = 0; i_sum < sum_size; i_sum++)
             total_columns[i_sum] += sum_columns[i_sum];
 
-
+        // PRINT SUMS FOR ALL COLUMNS
         cout<<endl<<"Run #"<<run<<" ("<<dtStart.AsSQLString()<<" - "<<dtEnd.AsSQLString()<<")"<<endl;
         if (isFound)
         {
             int count_column = 0;
             for (vector<structParseSchema>::iterator it = vecElements.begin(); it != vecElements.end(); ++it)
             {
+                if (count_column >= sum_size) break;
+
                 structParseSchema schema = *it;
                 if (schema.isSkip)
                     continue;
@@ -185,15 +189,18 @@ void run_beam_info(int period = 7, int run = 0, TString target = "",
             cout<<endl;
         }
         else
-            cout<<"No spill data!"<<endl;
+            cout<<"No spill data in the file!"<<endl;
     }
 
+    // PRINT TOTAL FOR ALL COLUMNS
     if (run_count > 1)
     {
         cout<<endl<<"Total count for all runs:"<<endl;
         int count_column = 0;
         for (vector<structParseSchema>::iterator it = vecElements.begin(); it != vecElements.end(); ++it)
         {
+            if (count_column >= sum_size) break;
+
             structParseSchema schema = *it;
             if (schema.isSkip)
                 continue;
@@ -201,7 +208,7 @@ void run_beam_info(int period = 7, int run = 0, TString target = "",
             if (schema.vecRows[0].strStatementType == "int")
             {
                 if (count_column > 0) cout<<", ";
-                cout<<"total"<<schema.vecRows[0].strColumnName<<": "<<total_columns[count_column];
+                cout<<"total("<<schema.vecRows[0].strColumnName<<"): "<<total_columns[count_column];
                 count_column++;
             }
             else {

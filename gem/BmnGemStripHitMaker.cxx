@@ -201,7 +201,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
     FairMCPoint* MCPoint;
     BmnGemStripDigit* digit;
-    BmnMatch *strip_match;
+    BmnMatch *strip_match; // MC-information for a strip
 
     BmnGemStripStation* station;
     BmnGemStripModule* module;
@@ -219,14 +219,20 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
         if (module->SetStripSignalInLayer(digit->GetStripLayer(), digit->GetStripNumber(), digit->GetStripSignal())) AddedDigits++;
 
+        //Add a MC-match to the current strip if this MC-match array exists
         if (fBmnGemStripDigitMatchesArray) {
             strip_match = (BmnMatch*) fBmnGemStripDigitMatchesArray->At(idigit);
             if (module->SetStripMatchInLayer(digit->GetStripLayer(), digit->GetStripNumber(), *strip_match)) AddedStripDigitMatches++;
         }
+
+        //Add a digit number match to the current strip
+        BmnMatch stripDigitNumberMatch; // digit number information for the current strip
+        stripDigitNumberMatch.AddLink(1.0, idigit);
+        module->SetStripDigitNumberMatchInLayer(digit->GetStripLayer(), digit->GetStripNumber(), stripDigitNumberMatch);
     }
 
     if (fVerbose > 1) cout << "   Processed strip digits  : " << AddedDigits << "\n";
-    if (fVerbose > 1 && fBmnGemStripDigitMatchesArray) cout << "   Added strip digit matches  : " << AddedStripDigitMatches << "\n";
+    if (fVerbose > 1 && fBmnGemStripDigitMatchesArray) cout << "   Added strip digit MC-matches  : " << AddedStripDigitMatches << "\n";
     //------------------------------------------------------------------------------
 
     //Processing digits
@@ -303,17 +309,17 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 Int_t RefMCIndex = 0;
 
-                //hit matching (define RefMCIndex)) ----------------------------
-                BmnMatch match = module->GetIntersectionPointMatch(iPoint);
+                //MC-matching for the current hit (define RefMCIndex)) ---------
+                BmnMatch mc_match_hit = module->GetIntersectionPointMatch(iPoint);
 
                 Int_t most_probably_index = -1;
                 Double_t max_weight = 0;
 
-                Int_t n_links = match.GetNofLinks();
+                Int_t n_links = mc_match_hit.GetNofLinks();
                 if (n_links == 1) clear_matched_points_cnt++;
                 for (Int_t ilink = 0; ilink < n_links; ilink++) {
-                    Int_t index = match.GetLink(ilink).GetIndex();
-                    Double_t weight = match.GetLink(ilink).GetWeight();
+                    Int_t index = mc_match_hit.GetLink(ilink).GetIndex();
+                    Double_t weight = mc_match_hit.GetLink(ilink).GetWeight();
                     if (weight > max_weight) {
                         max_weight = weight;
                         most_probably_index = index;
@@ -356,9 +362,10 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 hit->SetStripPositionInUpperLayer(module->GetIntersectionPoint_UpperLayerSripPosition(iPoint)); //strip position (upper layer ///or\\\)
                 hit->SetStripTotalSignalInLowerLayer(sigL);
                 hit->SetStripTotalSignalInUpperLayer(sigU);
+                hit->SetDigitNumberMatch(module->GetIntersectionPointDigitNumberMatch(iPoint)); //digit number match for the hit
                 //--------------------------------------------------------------
 
-                //hit matching -------------------------------------------------
+                //hit MC-matching ----------------------------------------------
                 if (fHitMatching && fBmnGemStripHitMatchesArray) {
                     new ((*fBmnGemStripHitMatchesArray)[fBmnGemStripHitMatchesArray->GetEntriesFast()])
                             BmnMatch(module->GetIntersectionPointMatch(iPoint));

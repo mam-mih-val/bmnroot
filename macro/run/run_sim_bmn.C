@@ -141,6 +141,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
     siliconDigit->SetCurrentConfig(si_config);
     siliconDigit->SetOnlyPrimary(kFALSE);
+    siliconDigit->SetUseRealEffects(useRealEffects);
     fRun->AddTask(siliconDigit);
 
     // GEM-Digitizer
@@ -151,6 +152,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     gemDigit->SetCurrentConfig(gem_config);
     gemDigit->SetOnlyPrimary(kFALSE);
     gemDigit->SetStripMatching(kTRUE);
+    gemDigit->SetUseRealEffects(useRealEffects);
     fRun->AddTask(gemDigit);
 
     // CSC-Digitizer

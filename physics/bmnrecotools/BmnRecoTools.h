@@ -15,6 +15,7 @@
 #include <TFile.h>
 #include <TH2F.h>
 #include <TCanvas.h>
+#include <TStyle.h>
 
 #include <TCutG.h>
 
@@ -34,8 +35,9 @@
 #include <BmnSiliconHit.h>
 #include <BmnGemStripHit.h>
 #include <BmnCSCHit.h>
-#include "BmnSiliconStationSet.h"
-#include "BmnGemStripStationSet.h"
+#include <BmnSiliconStationSet.h>
+#include <BmnGemStripStationSet.h>
+#include <BmnGlobalTrack.h>
 
 using namespace std;
 using namespace TMath;
@@ -50,41 +52,46 @@ public:
 
     BmnRecoTools();
     virtual ~BmnRecoTools();
-    
+
     static Bool_t IsReconstructable(
             TClonesArray* tracks, TClonesArray* gemPoints, TClonesArray* silPoints, TClonesArray* cscPoints,
             Int_t code, vector<Int_t> &outCodes, Int_t minHits = 4);
-    
+
     static vector<TString> GetFileVecFromDir(TString dir);
-    
+
     static void ShowHitMakerEff(TClonesArray * hits, BmnSiliconStationSet set);
-    
+
     static void FillSetStsPoints(
             TClonesArray* pts,
             BmnGemStripStationSet* set,
-//            vector<TH2* > &hitVec);
+            //            vector<TH2* > &hitVec);
             vector<vector<vector<TH2* > > > &hitVec);
-    
+
     static void FillSetStsHits(
             TClonesArray* pts, TClonesArray* hits,
             BmnGemStripStationSet* set,
-//            vector<TH2* > &hitVec,
-//        vector<TH1D* > &hrx,
-//        vector<TH1D* > &hry);
+            //            vector<TH2* > &hitVec,
+            //        vector<TH1D* > &hrx,
+            //        vector<TH1D* > &hry);
             vector<vector<vector<TH2* > > > &hitVec);
     static TCutG* Ellipse2CutG(
             TString name,
             Double_t x, Double_t y, Double_t rx, Double_t ry = -1.0,
             Double_t theta = 0.0);
-    static TF1* GetSignalDistribution(TTree * tree, TClonesArray *ar);
+    static TF1* GetSignalDistribution(
+            TTree *tree, TClonesArray *ar,
+            TTree *treeDST = nullptr,
+            TClonesArray *gemHits = nullptr,
+            TClonesArray *gemTracks = nullptr,
+            TClonesArray *tracks = nullptr,
+            Double_t lowThr = 0, Int_t nBins = 100000);
     static TF1* GetRescaleFunc(TString name, TF1 *mc, TF1 *ex);
-    
+
 
 private:
-    
-    static const Int_t nBins = 10000;
-    
-//    ClassDef(BmnRecoTools, 1);
+
+
+    //    ClassDef(BmnRecoTools, 1);
 };
 
 #endif /* BMNRECOTOOLS_H */

@@ -275,15 +275,17 @@ TCutG* BmnRecoTools::Ellipse2CutG(TString name, Double_t x, Double_t y, Double_t
     return cutg;
 }
 
-TF1* BmnRecoTools::GetSignalDistribution(TTree* tree, TClonesArray *ar) {
-    //    printf("Max of  %s  = %f\n", branchName.Data(), tree->GetMaximum(branchName + ".fStripSignal"));
-    //    Double_t MaxSignal = tree->GetMaximum(branchName + ".fStripSignal");
+TF1* BmnRecoTools::GetSignalDistribution(TTree *tree, TClonesArray *arMC,
+        TTree *treeDST, TClonesArray *gemHits, TClonesArray *gemTracks, TClonesArray *tracks,
+        Double_t lowThr, Int_t nBins) {
     Double_t minVal = DBL_MAX;
     Double_t maxVal = DBL_MIN;
     for (Long64_t i = 0; i < tree->GetEntries(); i++) {
         tree->GetEntry(i);
-        for (Int_t iDig = 0; iDig < ar->GetEntriesFast(); iDig++) {
-            BmnStripDigit* dig = (BmnStripDigit*) ar->At(iDig);
+        for (Int_t iDig = 0; iDig < arMC->GetEntriesFast(); iDig++) {
+            BmnStripDigit* dig = (BmnStripDigit*) arMC->At(iDig);
+            if (dig->GetStripSignal() < lowThr)
+                continue;
             Double_t val = dig->GetStripSignal();
             if (maxVal < val)
                 maxVal = val;
@@ -291,66 +293,107 @@ TF1* BmnRecoTools::GetSignalDistribution(TTree* tree, TClonesArray *ar) {
                 minVal = val;
         }
     }
-//    minVal = log(minVal);
-//    maxVal = log(maxVal);
-//    printf("Min  = %f max = %f\n", minVal, maxVal);
-    TString name = Form("hSig_%s_%d", ar->GetName(), rand());
+    //    minVal = log(minVal);
+    //    maxVal = log(maxVal);
+    printf("Min  = %f max = %f\n", minVal, maxVal);
+    TString name = Form("hSig_%s_%d", arMC->GetName(), rand());
     TH1F *hSig = new TH1F(name, name, nBins, minVal, maxVal);
+
     for (Long64_t i = 0; i < tree->GetEntries(); i++) {
         tree->GetEntry(i);
-        for (Int_t iDig = 0; iDig < ar->GetEntriesFast(); iDig++) {
-            BmnStripDigit* dig = (BmnStripDigit*) ar->At(iDig);
-            Double_t val = dig->GetStripSignal();
-//            val = log(val);
-            hSig->Fill(val);
-        }
-    }
-    //    hSig->SetBins(nBins, minVal, maxVal);
 
-    name = Form("hIntSig_%s_%d", ar->GetName(), rand());
-    TH1F hIntSig = TH1F(name, Form("Signal_%s", ar->GetName()), nBins, minVal - 0.5 * (maxVal - minVal) / (Double_t) nBins, maxVal + 0.5 * (maxVal - minVal) / (Double_t) nBins);
+        /** digs from tracks*/
+        if (treeDST && gemHits && gemTracks && tracks) {
+            treeDST->GetEntry(i);
+            for (Int_t iTrack = 0; iTrack < tracks->GetEntriesFast(); iTrack++) {
+                BmnGlobalTrack* track = (BmnGlobalTrack*) tracks->UncheckedAt(iTrack);
+                if (track->GetGemTrackIndex() != -1) {
+                    //                for (Int_t iTrack = 0; iTrack < gemTrack->GetEntriesFast(); iTrack++) {
+                    BmnTrack * gemTr = (BmnTrack*) gemTracks->UncheckedAt(track->GetGemTrackIndex());
+                    for (Int_t iHit = 0; iHit < gemTr->GetNHits(); iHit++) {
+                        BmnHit *hit = (BmnHit *) gemHits->UncheckedAt(gemTr->GetHitIndex(iHit));
+                        BmnMatch match = hit->GetDigitNumberMatch();
+                        const vector<BmnLink> links = match.GetLinks();
+                        for (const BmnLink& link : links) {
+                            if (link.GetIndex() > (arMC->GetEntriesFast() - 1))
+                                continue;
+                            BmnStripDigit * dig = (BmnStripDigit*) arMC->At(link.GetIndex());
+                            if (dig->GetStripSignal() < lowThr)
+                                continue;
+                            Double_t val = dig->GetStripSignal();
+                            hSig->Fill(val);
+                        }
+                    }
+                    //                }
+                }
+            }
+        } else // all digs
+            for (Int_t iDig = 0; iDig < arMC->GetEntriesFast(); iDig++) {
+                BmnStripDigit* dig = (BmnStripDigit*) arMC->At(iDig);
+                if (dig->GetStripSignal() < lowThr)
+                    continue;
+                Double_t val = dig->GetStripSignal();
+                //            val = log(val);
+                hSig->Fill(val);
+            }
+    }
+
+    name = Form("hIntSig_%s_%d", arMC->GetName(), rand());
+    TH1F hIntSig = TH1F(name, Form("Signal_%s", arMC->GetName()), nBins, minVal - 0.5 * (maxVal - minVal) / (Double_t) nBins, maxVal + 0.5 * (maxVal - minVal) / (Double_t) nBins);
     Double_t bc = 0;
     for (Int_t i = 0; i < nBins; i++) {
         bc += hSig->GetBinContent(i);
         hIntSig.SetBinContent(i, bc);
         //        printf("i = %d  center = %f  content = %f\n", i, hIntSig.GetBinCenter(i), bc);
-
     }
-    //    for (Int_t i = 0; i < nBins; i++) {
-    //        printf("binc = %f new = %f\n", hIntSig.GetBinContent(i), (bc - hIntSig.GetBinContent(i)) / bc);
-    //        hIntSig.SetBinContent(i, (bc - hIntSig.GetBinContent(i)) / bc);
-    //
-    //    }
     name = "can";
-    TCanvas* can = new TCanvas(name, name, 1600, 900);
-    can->SetLogy();
-    can->SetLogx();
+    gStyle->SetOptStat(0);
+    TCanvas* can = new TCanvas(name, name, 1600, 900 * 2);
+    can->Divide(1, 2);
+    TVirtualPad * padSig = can->cd(1);
+    padSig->SetLogy();
+    padSig->SetLogx();
+    hSig->Scale();
+    hSig->Draw();
+
+    TVirtualPad * padInt = can->cd(2);
+    padInt->SetLogy();
+    padInt->SetLogx();
     if (bc == 0)
         return nullptr;
     hIntSig.Scale(1 / bc);
     hIntSig.SetLineColor(kRed);
     hIntSig.Draw();
-    hSig->Scale(0.01 * nBins / hSig->Integral());
-    hSig->Draw("same");
-    TF1 *sig = new TF1(Form("SignalInt_%s", ar->GetName()),
-            [hIntSig, bc, minVal, maxVal](Double_t *x, Double_t * p) {
+
+    TF1 *sig = new TF1(Form("SignalInt_%s", arMC->GetName()),
+            [hIntSig, bc, minVal, maxVal, nBins](Double_t *x, Double_t * p) {
                 //            Double_t val = (bc - x[0])/bc;//log(x[0]);
-                return (x[0] >= maxVal) ? 1 : hIntSig.GetBinContent(nBins * (x[0] - minVal) / (maxVal - minVal));
+                if (x[0] >= maxVal) return 1.0;
+                Int_t iBin = hIntSig.GetXaxis()->FindBin(x[0]); //(Int_t) floor(nBins * (x[0] - minVal) / (maxVal - minVal));
+                Int_t jBin = iBin + ((x[0] > hIntSig.GetBinCenter(iBin)) ? 1 : -1); // next bin along direction from center to x
+                Double_t v = hIntSig.GetBinContent(iBin) +
+                        (hIntSig.GetBinContent(jBin) - hIntSig.GetBinContent(iBin))*
+                        2 * abs(x[0] - hIntSig.GetBinCenter(iBin)) / (hIntSig.GetBinWidth(iBin) + hIntSig.GetBinWidth(jBin));
+//                printf("x = %f bincenter = %f  iBin = %d  jBin  %d  f(ibin) = %f  f(x) = %f\n",
+//                        x[0], hIntSig.GetBinCenter(iBin), iBin, jBin, hIntSig.GetBinContent(iBin), v);
+                return v;
             }, minVal, maxVal, 0); //(bc - maxVal) / bc, (bc - minVal) / bc, 0);
     sig->SetNpx(nBins);
     sig->SetLineColor(kBlue);
     //    hIntSig.Fit(sig, "R");
     //    sig->Draw("same");
-    can->Print(Form("sigs_%s_%d.pdf", ar->GetName(), tree->GetNbranches()));
+    can->Print(Form("sigs_%s_%d.pdf", arMC->GetName(), tree->GetNbranches()));
+    delete hSig;
+    delete can;
     return sig;
 }
 
 TF1* BmnRecoTools::GetRescaleFunc(TString name, TF1 *mc, TF1 *ex) {
     TF1 *funcRescale = new TF1(name,
             [mc, ex](Double_t *x, Double_t * p) {
-                Double_t r = ex->Eval(x[0]);
-                Double_t f = ex->GetX(r); //, ex->GetXmin(), ex->GetXmax()); //, 1.E-15, 100, kTRUE);
-                //            printf("x = %f  mc = %f  y = %f\n", x[0], r, f);
+                Double_t r = mc->Eval(x[0]);
+                Double_t f = ex->GetX(r); //, ex->GetXmin(), ex->GetXmax(), 1.E-15, 100, kTRUE);
+//                printf("x = %f  mc = %f  y = %f\n", x[0], r, f);
                 return f;
             }, mc->GetXmin(), mc->GetXmax(), 0);
     return funcRescale;

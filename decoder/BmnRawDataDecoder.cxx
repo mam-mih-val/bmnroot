@@ -949,14 +949,14 @@ BmnStatus BmnRawDataDecoder::FillMSC(UInt_t* d, UInt_t serial, UInt_t slot, UInt
     BmnMSCDigit *dig = new((*msc)[msc->GetEntriesFast()]) BmnMSCDigit(serial, slot, fEventId);
     UInt_t *cntrArrCur = dig->GetValue();
 //    printf("MSC type %u serial %08X  eventID = %6u\n", type, serial, fEventId);
-        printf("\n%u events \n", nSpillEvents);
+//        printf("\n%u events \n", nSpillEvents);
     while (type < 6) {
         if (type < 5) {
             UInt_t cnt3 = (d[idx] >> 21) & (BIT(8) - 1);
             UInt_t cnt2 = (d[idx] >> 14) & (BIT(8) - 1);
             UInt_t cnt1 = (d[idx] >> 7) & (BIT(8) - 1);
             UInt_t cnt0 = d[idx] & (BIT(8) - 1);
-                        printf("type = %u  %06u  %06u  %06u  %06u  \n", type, cnt3, cnt2, cnt1, cnt0);
+//                        printf("type = %u  %06u  %06u  %06u  %06u  \n", type, cnt3, cnt2, cnt1, cnt0);
         } else
             if (type == 5) {
             UInt_t cnt = d[idx] & (BIT(28) - 1);
@@ -964,7 +964,7 @@ BmnStatus BmnRawDataDecoder::FillMSC(UInt_t* d, UInt_t serial, UInt_t slot, UInt
                 continue;
             cntrArrCur[iCnt++] = cnt;
 //            printf("\ttype = %u  arr[%2u] = %8u\n", type, iCnt-1, cntrArrCur[iCnt-1]);
-            printf(" %4u \n", cntrArrCur[iCnt-1]);
+//            printf(" %4u \n", cntrArrCur[iCnt-1]);
         }
         type = (d[++idx] >> 28) & (BIT(5) - 1);
     }

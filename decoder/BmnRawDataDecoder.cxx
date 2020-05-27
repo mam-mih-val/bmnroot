@@ -498,7 +498,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     eventHeaderDAQ->SetTripWord(kFALSE);
     //eventHeaderDAQ->SetTrigInfo(trigInfo);
     eventHeaderDAQ->SetTimeShift(fTimeShifts);
-    eventHeaderDAQ->SetStartSignalInfo(fT0Time, fT0Width);
+//    eventHeaderDAQ->SetStartSignalInfo(fT0Time, fT0Width);
     eventHeaderDAQ->SetSpillStart(isSpillStart);
 }
 
@@ -789,7 +789,7 @@ BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t s
         if (fPeriodId > 4 && type == kWORDTRIG && slot == kEVENTTYPESLOT) {
             evType = ((d[idx] & BIT(3)) >> 3) ? kBMNPEDESTAL : kBMNPAYLOAD;
             UInt_t trigSrc = ((d[idx] >> 16) & (BIT(8) - 1));
-            //                        printf("trig source %u  evType %d\t", trigSrc, evType);
+//            printf("EvId %6u trig source %u  evType %d\n", fEventId, trigSrc, evType);
             //            if (!( ((d[idx]>>10) & 0x1) ^ (fPeriodId >= 7 && fBmnSetup == kBMNSETUP)))
             //                printf("Ev not Good!\n");
             //            printf("evGood %d\n", (d[idx] & BIT(10)));
@@ -809,14 +809,14 @@ BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t s
             //            printf("%d type = %u %08X\n", j, type, type);
             //            }
             idx += 4;
-            //                        printf("cand %04u, acc %04u, bef %04u, after %04u, rjct %04u, all %04u, avail %04u\n",
-            //                                trigInfo->GetTrigCand(),
-            //                                trigInfo->GetTrigAccepted(),
-            //                                trigInfo->GetTrigBefo(),
-            //                                trigInfo->GetTrigAfter(),
-            //                                trigInfo->GetTrigRjct(),
-            //                                trigInfo->GetTrigAll(),
-            //                                trigInfo->GetTrigAvail());
+//                                    printf("cand %04u, acc %04u, bef %04u, after %04u, rjct %04u, all %04u, avail %04u\n",
+//                                            trigInfo->GetTrigCand(),
+//                                            trigInfo->GetTrigAccepted(),
+//                                            trigInfo->GetTrigBefo(),
+//                                            trigInfo->GetTrigAfter(),
+//                                            trigInfo->GetTrigRjct(),
+//                                            trigInfo->GetTrigAll(),
+//                                            trigInfo->GetTrigAvail());
             countersDone = kTRUE;
             //            if (trigInfoTemp)
             //                delete trigInfoTemp;
@@ -947,29 +947,28 @@ BmnStatus BmnRawDataDecoder::FillMSC(UInt_t* d, UInt_t serial, UInt_t slot, UInt
     UInt_t type = d[idx] >> 28;
     UInt_t iCnt = 0;
     BmnMSCDigit *dig = new((*msc)[msc->GetEntriesFast()]) BmnMSCDigit(serial, slot, fEventId);
-    //    UInt_t *cntrArr = fMSCRunTotal->GetValue(); // delete
     UInt_t *cntrArrCur = dig->GetValue();
-    //    printf("MSC type %u serial %08X\n", type, serial);
+//    printf("MSC type %u serial %08X  eventID = %6u\n", type, serial, fEventId);
+        printf("\n%u events \n", nSpillEvents);
     while (type < 6) {
         if (type < 5) {
             UInt_t cnt3 = (d[idx] >> 21) & (BIT(8) - 1);
             UInt_t cnt2 = (d[idx] >> 14) & (BIT(8) - 1);
             UInt_t cnt1 = (d[idx] >> 7) & (BIT(8) - 1);
             UInt_t cnt0 = d[idx] & (BIT(8) - 1);
-            //            printf("type = %u  %06u  %06u  %06u  %06u  \n", type, cnt3, cnt2, cnt1, cnt0);
+                        printf("type = %u  %06u  %06u  %06u  %06u  \n", type, cnt3, cnt2, cnt1, cnt0);
         } else
             if (type == 5) {
             UInt_t cnt = d[idx] & (BIT(28) - 1);
             if (iCnt >= nCnt)
                 continue;
             cntrArrCur[iCnt++] = cnt;
-            //            cntrArr[iCnt++] += cnt;
-            //                                    printf("type = %u  %u  arr[%u] == %u\n", type, cnt, iCnt-1, cntrArr[iCnt-1]);
+//            printf("\ttype = %u  arr[%2u] = %8u\n", type, iCnt-1, cntrArrCur[iCnt-1]);
+            printf(" %4u \n", cntrArrCur[iCnt-1]);
         }
         type = (d[++idx] >> 28) & (BIT(5) - 1);
     }
 
-    //    printf("%u events in the spill\n", nSpillEvents);
     nSpillEvents = 0;
     return kBMNSUCCESS;
 };
@@ -1434,7 +1433,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     if (fDetectorSetup[7]) {
         zdc = new TClonesArray("BmnZDCDigit");
         fDigiTree->Branch("ZDC", &zdc);
-        fZDCMapper = new BmnZDCRaw2Digit(fZDCMapFileName, fRootFileName, fZDCCalibrationFileName);
+        fZDCMapper = new BmnZDCRaw2Digit(fPeriodId, fRunId, fZDCMapFileName, fZDCCalibrationFileName);
         //        fZDCMapper->print();
     }
 

@@ -55,8 +55,6 @@ private:
     Int_t fPeriodId; // event counter
     Int_t fNTracks; // number of reco tracks in event
 
-    BmnGemStripStationSet* fDetector;
-
     TClonesArray* fGlobalTracksArray;
     TClonesArray* fVertexArray;
 

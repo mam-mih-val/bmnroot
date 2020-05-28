@@ -39,6 +39,7 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TMath.h"
+#include <TStopwatch.h>
 
 class TClonesArray;
 
@@ -115,18 +116,11 @@ class BmnGlobalTracking : public FairTask {
     TClonesArray *fTof1Hits;
     TClonesArray *fTof2Hits;
     TClonesArray *fUpstreamTracks;
+    TClonesArray *fUpsHits;
 
     TClonesArray *fEvHead;
 
     TClonesArray *fMCTracks;
-    TH1F *fhXSiGemResid;
-    TH1F *fhYSiGemResid;
-    TH1F *fhTxSiGemResid;
-    TH1F *fhTySiGemResid;
-    TH2F *fhXdXSiGemResid;
-    TH2F *fhYdYSiGemResid;
-    TH2F *fhTxdXSiGemResid;
-    TH2F *fhTydYSiGemResid;
 
     TH1F *fhXTof1GemResid;
     TH1F *fhYTof1GemResid;
@@ -208,6 +202,7 @@ class BmnGlobalTracking : public FairTask {
     CbmVertex *fVertex;  // vertex information
 
     BmnKalmanFilter *fKalman;
+    Double_t fTime;
 
     BmnStatus MatchingTOF(BmnGlobalTrack *tr, Int_t num);
     BmnStatus MatchingDCH(BmnGlobalTrack *tr, Int_t num);

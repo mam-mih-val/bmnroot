@@ -56,6 +56,7 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(ecal);
 
     BmnZdc* zdc = new BmnZdc("ZDC", kTRUE);
+    //zdc->SetBirk();
     zdc->SetGeometryFileName("ZDC_RunSpring2018.root");
     fRun->AddModule(zdc);
 }

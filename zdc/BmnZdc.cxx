@@ -147,7 +147,7 @@ Bool_t BmnZdc::ProcessHits(FairVolume* vol) {
       //(0.126 mm/MeV - from Wikipedia, 0.07943mm/MeV in Geant4)
 
       //fELoss += eLoss;
-      fELoss += eLoss / (1. + 7.943 / gMC->TrackStep() * eLoss); // Birk;
+      fELoss += eLoss / (1. + fBirksConstant / gMC->TrackStep() * eLoss); // Birk;
     }
 
 

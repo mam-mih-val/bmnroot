@@ -118,6 +118,14 @@ class BmnZdc : public FairDetector
   BmnZdcPoint* AddHit(Int_t trackID, Int_t module_groupID,  Int_t copyNo, Int_t copyNoMother,
 		      TVector3 pos, TVector3 mom,
 		      Double_t tof, Double_t length, Double_t eLoss);
+  
+  ///
+  /// Sets saaturation by Birks' formula
+  /// \param val Bitks' constant in cm/GeV, set to zero for no saturation.
+  ///
+  /// 12.6 cm/GeV - from Wikipedia, 7.943 cm/GeV in Geant4
+  ///
+  void SetBirk(Double_t val = 7.943) { fBirksConstant = val; }
 
  private:
   Int_t          fTrackID;           //!  track index
@@ -130,6 +138,11 @@ class BmnZdc : public FairDetector
   Double32_t     fELoss;             //!  energy loss
   Int_t fPosIndex;      //! 
   Int_t volDetector;     //!  MC volume ID of MUO
+  
+  ///
+  /// Birks' constant set to zero, no saturation by default
+  ///
+  Double_t fBirksConstant = 0.;
   
   TClonesArray* fZdcCollection;        //! Hit collection
   

@@ -12,7 +12,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/csc
  ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/ssd
- ${CMAKE_SOURCE_DIR}/ssd/aux/data
+ ${CMAKE_SOURCE_DIR}/ssd/auxx/data
  ${CMAKE_SOURCE_DIR}/sts
  ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/QA

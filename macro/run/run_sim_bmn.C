@@ -162,6 +162,12 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     cscDigit->SetOnlyPrimary(kFALSE);
     cscDigit->SetStripMatching(kTRUE);
     fRun->AddTask(cscDigit);
+    
+    // ZDC-Digitizer
+    BmnZdcDigitizer * zdcDigit = new BmnZdcDigitizer();
+    zdcDigit->SetScale(39e3);
+    zdcDigit->SetThreshold(500.);
+    fRun->AddTask(zdcDigit);
 
     fRun->Init();
     magField->Print();

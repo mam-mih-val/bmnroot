@@ -37,11 +37,12 @@ BmnZdcDigiPar.cxx
 BmnZdcDigiScheme.cxx
 BmnZdcDigiProducer.cxx
 BmnZdcBScanner.cxx
+BmnZdcDigitizer.cxx
 )
 
 Set(HEADERS)
 Set(LINKDEF BmnZdcLinkDef.h)
 Set(LIBRARY_NAME Zdc)
-Set(DEPENDENCIES Core Base)
+Set(DEPENDENCIES BmnData Core Base)
 
 GENERATE_LIBRARY()

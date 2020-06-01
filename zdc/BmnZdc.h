@@ -120,12 +120,12 @@ class BmnZdc : public FairDetector
 		      Double_t tof, Double_t length, Double_t eLoss);
   
   ///
-  /// Sets saaturation by Birks' formula
+  /// Sets saturation by Birks' formula
   /// \param val Bitks' constant in cm/GeV, set to zero for no saturation.
   ///
   /// 12.6 cm/GeV - from Wikipedia, 7.943 cm/GeV in Geant4
   ///
-  void SetBirk(Double_t val = 7.943) { fBirksConstant = val; }
+  void SetBirk(Double_t val) { fBirksConstant = val; }
 
  private:
   Int_t          fTrackID;           //!  track index
@@ -140,16 +140,16 @@ class BmnZdc : public FairDetector
   Int_t volDetector;     //!  MC volume ID of MUO
   
   ///
-  /// Birks' constant set to zero, no saturation by default
+  /// Birks' constant
   ///
-  Double_t fBirksConstant = 0.;
+  Double_t fBirksConstant = 7.943;
   
   TClonesArray* fZdcCollection;        //! Hit collection
   
   // reset all parameters   
   void ResetParameters();
 
-  ClassDef(BmnZdc,3)
+  ClassDef(BmnZdc,4)
 
 }; 
 

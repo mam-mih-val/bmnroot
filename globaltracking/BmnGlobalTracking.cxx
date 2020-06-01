@@ -395,14 +395,12 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
 
     //CalculateLength();
 
-    clock_t tFinish = clock();
     sw.Stop();
     fTime += sw.RealTime();
 
     //if (fVerbose) cout << "GLOBAL_TRACKING: Number of merged tracks: " << fGlobalTracks->GetEntriesFast() << endl;
     if (fVerbose > 1)
-        cout << "\n======================== Global tracking exec finished ====================\n"
-             << endl;
+        cout << "\n======================== Global tracking exec finished ====================\n" << endl;
 }
 
 void BmnGlobalTracking::CalcdQdn(BmnGlobalTrack *tr) {

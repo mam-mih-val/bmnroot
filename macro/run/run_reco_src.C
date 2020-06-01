@@ -221,6 +221,12 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     glTF->SetRunNumber(run_number);
     fRunAna->AddTask(glTF);
 
+    // ====================================================================== //
+    // ===                      Primary vertex finding                    === //
+    // ====================================================================== //
+    SrcVertexFinder* VF = new SrcVertexFinder(run_period, isField);
+    fRunAna->AddTask(VF);
+
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)
     BmnFillDstTask* dst_task = new BmnFillDstTask(nEvents);
     dst_task->SetRunNumber(run_period, run_number);

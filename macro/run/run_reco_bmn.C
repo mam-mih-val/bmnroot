@@ -232,6 +232,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ====================================================================== //
     BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7_panin.txt", !isExp, iVerbose, kFALSE);
     tof2HP->SetTimeResolution(0.115);
+    tof2HP->SetProtonTimeCorrectionFile("bmn_run9687_digi_calibration.root");
     tof2HP->SetMCTimeFile("TOF700_MC_argon_qgsm_time_run7.txt");
     tof2HP->SetMainStripSelection(0); // 0 - minimal time, 1 - maximal amplitude
     tof2HP->SetSelectXYCalibration(1); // 0 - Petukhov, 1 - Panin

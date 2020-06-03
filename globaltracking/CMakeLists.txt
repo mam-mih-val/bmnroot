@@ -38,6 +38,7 @@ Set(SRCS
  #BmnSRCTriggersCheck.cxx
  BmnTriggersCheck.cxx
  BmnVertexFinder.cxx
+ SrcVertexFinder.cxx
 )
 
 Set(HEADERS
@@ -48,6 +49,7 @@ Set(HEADERS
  BmnTriggersCheck.h
  BmnHitFinderRun1.h
  BmnVertexFinder.h
+ SrcVertexFinder.h
 )
 
 If (Boost_FOUND)

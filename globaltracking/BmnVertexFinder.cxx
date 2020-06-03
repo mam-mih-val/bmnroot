@@ -44,15 +44,6 @@ InitStatus BmnVertexFinder::Init() {
     fVertexArray = new TClonesArray("CbmVertex", 1);  //out
     ioman->Register(fVertexBranchName, "GEM", fVertexArray, kTRUE);
 
-    TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
-    TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
-    TString confGem = (fPeriodId == 7) ? "GemRunSpring2018.xml" : (fPeriodId == 6) ? "GemRunSpring2017.xml" : "GemRunSpring2017.xml";
-    if (confGem == "") {
-        printf(ANSI_COLOR_RED "No GEM geometry defined!\n" ANSI_COLOR_RESET);
-        throw;
-    }
-    fDetector = new BmnGemStripStationSet(gPathGemConfig + confGem);
-
     if (fVerbose > 1) cout << "=========================== Vertex finder init finished ===================" << endl;
 
     return kSUCCESS;

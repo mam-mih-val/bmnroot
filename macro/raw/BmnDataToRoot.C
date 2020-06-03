@@ -51,7 +51,7 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     else
         decoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d.txt", period));
     decoder->SetZDCMapping("ZDC_map_period_5.txt");
-    decoder->SetZDCCalibration("zdc_muon_calibration.txt");
+//    decoder->SetZDCCalibration("zdc_muon_calibration.txt");
     decoder->SetECALMapping(TString("ECAL_map_period_") + PeriodSetupExt);
     decoder->SetECALCalibration("");
     decoder->SetMwpcMapping(TString("MWPC_map_period") + ((period == 6 && decoder->GetRunId() < 1397) ? 5 : PeriodSetupExt));

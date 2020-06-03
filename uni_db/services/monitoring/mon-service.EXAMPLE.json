@@ -50,5 +50,6 @@
   },
 
   "LOG": "mail1.jinr.ru,mail2.jinr.ru",
+  "NOTIFY": "mail-default@jinr.ru",
   "NAME": "Monitoring Service"
 }

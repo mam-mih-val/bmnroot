@@ -8,7 +8,6 @@ BmnRecoTools::BmnRecoTools() {
 BmnRecoTools::~BmnRecoTools() {
 }
 
-
 Bool_t BmnRecoTools::IsReconstructable(
         TClonesArray* mcTracks, TClonesArray* gemPoints, TClonesArray* silPoints, TClonesArray* cscPoints,
         Int_t code, vector<Int_t> &outCodes, Int_t minHits) {
@@ -60,13 +59,13 @@ Bool_t BmnRecoTools::IsReconstructable(
                 outHitsCnt[iOffspring]++;
             }
             /** Count CSC points */
-//            for (Int_t iPoint = 0; iPoint < cscPoints->GetEntriesFast(); iPoint++) {
-//                BmnCSCPoint* cscPoint = (BmnCSCPoint*) cscPoints->UncheckedAt(iPoint);
-//                if (cscPoint->GetTrackID() != jTrack)
-//                    continue;
-//                //                                printf("found %dth csc point for %d\n", iPoint, offspringTrack->GetPdgCode());
-//                outHitsCnt[iOffspring]++;
-//            }
+            //            for (Int_t iPoint = 0; iPoint < cscPoints->GetEntriesFast(); iPoint++) {
+            //                BmnCSCPoint* cscPoint = (BmnCSCPoint*) cscPoints->UncheckedAt(iPoint);
+            //                if (cscPoint->GetTrackID() != jTrack)
+            //                    continue;
+            //                //                                printf("found %dth csc point for %d\n", iPoint, offspringTrack->GetPdgCode());
+            //                outHitsCnt[iOffspring]++;
+            //            }
         }
         Int_t insuff = -1;
         for (Int_t iOffspring = 0; iOffspring < outCodes.size(); iOffspring++) {
@@ -132,15 +131,15 @@ vector<TString> BmnRecoTools::GetFileVecFromDir(TString dir) {
 void BmnRecoTools::FillSetStsPoints(
         TClonesArray* pts,
         BmnGemStripStationSet* set,
-//        vector<TH2* > &hitVec) {
-            vector<vector<vector<TH2* > > > &hitVec) {
+        //        vector<TH2* > &hitVec) {
+        vector<vector<vector<TH2* > > > &hitVec) {
     //        vector<vector<vector<UInt_t > > > &hitVec) {
     for (Int_t iHit = 0; iHit < pts->GetEntriesFast(); iHit++) {
         CbmStsPoint *pt = (CbmStsPoint *) pts->UncheckedAt(iHit);
         Int_t iSt = pt->GetStation();
         Int_t iMod = pt->GetModule();
-//        Double_t x = ((FairMCPoint*) pt)->GetX();
-//        Double_t y = ((FairMCPoint*) pt)->GetY();
+        //        Double_t x = ((FairMCPoint*) pt)->GetX();
+        //        Double_t y = ((FairMCPoint*) pt)->GetY();
         BmnGemStripModule* mod = set->GetStation(iSt)->GetModule(iMod);
         Double_t driftCenterShift = 0.0;
         if (mod->GetElectronDriftDirection() == ForwardZAxisEDrift)
@@ -163,11 +162,11 @@ void BmnRecoTools::FillSetStsPoints(
         //        printf("zax = %08X\n",hitVec[pt->GetStation()][pt->GetModule()][iZone]->GetZaxis());
         Double_t Pz = ((FairMCPoint*) pt)->GetPz();
         if (Pz > 0)
-//            hitVec[pt->GetStation()]->Fill(
-//                ((FairMCPoint*) pt)->GetPx() / Pz,
-//                ((FairMCPoint*) pt)->GetPy() / Pz);
-        //        hitVec[pt->GetStation()]->Fill(x, y);
-                hitVec[pt->GetStation()][pt->GetModule()][iZone]->Fill(x, y);
+            //            hitVec[pt->GetStation()]->Fill(
+            //                ((FairMCPoint*) pt)->GetPx() / Pz,
+            //                ((FairMCPoint*) pt)->GetPy() / Pz);
+            //        hitVec[pt->GetStation()]->Fill(x, y);
+            hitVec[pt->GetStation()][pt->GetModule()][iZone]->Fill(x, y);
         //        hitVec[pt->GetStation()][pt->GetModule()][iZone]++;
     }
 }
@@ -175,19 +174,19 @@ void BmnRecoTools::FillSetStsPoints(
 void BmnRecoTools::FillSetStsHits(
         TClonesArray* pts, TClonesArray* hits,
         BmnGemStripStationSet* set,
-//        vector<TH2* > &hitVec,
-//        vector<TH1D* > &hrx,
-//        vector<TH1D* > &hry
-//) {
-            vector<vector<vector<TH2* > > > &hitVec) {
+        //        vector<TH2* > &hitVec,
+        //        vector<TH1D* > &hrx,
+        //        vector<TH1D* > &hry
+        //) {
+        vector<vector<vector<TH2* > > > &hitVec) {
     //        vector<vector<vector<UInt_t > > > &hitVec) {
 
     for (Int_t iPt = 0; iPt < pts->GetEntriesFast(); iPt++) {
         CbmStsPoint *pt = (CbmStsPoint *) pts->UncheckedAt(iPt);
         Int_t iSt = pt->GetStation();
         Int_t iMod = pt->GetModule();
-//        Double_t x = ((FairMCPoint*) pt)->GetX();
-//        Double_t y = ((FairMCPoint*) pt)->GetY();
+        //        Double_t x = ((FairMCPoint*) pt)->GetX();
+        //        Double_t y = ((FairMCPoint*) pt)->GetY();
         Double_t thr = 0.;
         Int_t iLayerOwned = -1;
         BmnGemStripModule* mod = set->GetStation(iSt)->GetModule(iMod);
@@ -227,8 +226,8 @@ void BmnRecoTools::FillSetStsHits(
                     hit->GetModule() != iMod)
                 continue;
             Double_t dist = Sq(hit->GetX() - x) + Sq(hit->GetY() - y);
-//            hrx[pt->GetStation()]->Fill(hit->GetX() - x);
-//            hry[pt->GetStation()]->Fill(hit->GetY() - y);
+            //            hrx[pt->GetStation()]->Fill(hit->GetX() - x);
+            //            hry[pt->GetStation()]->Fill(hit->GetY() - y);
             //            printf("Hit     %f : %f   dist = %f\n", hit->GetX(), hit->GetY(), dist);
             if (dist < MinDistance) {
                 hitClosest = hit;
@@ -239,41 +238,165 @@ void BmnRecoTools::FillSetStsHits(
             //            printf("Hit     %f : %f   dist = %f   Minimum! \n", hitClosest->GetX(), hitClosest->GetY(), MinDistance);
             Double_t Pz = ((FairMCPoint*) pt)->GetPz();
             if (Pz > 0)
-//                hitVec[pt->GetStation()]->Fill(
-//                    ((FairMCPoint*) pt)->GetPx() / Pz,
-//                    ((FairMCPoint*) pt)->GetPy() / Pz);
-            //            hitVec[pt->GetStation()]->Fill(x, y);
-                        hitVec[pt->GetStation()][pt->GetModule()][iZone]->Fill(x, y);
+                //                hitVec[pt->GetStation()]->Fill(
+                //                    ((FairMCPoint*) pt)->GetPx() / Pz,
+                //                    ((FairMCPoint*) pt)->GetPy() / Pz);
+                //            hitVec[pt->GetStation()]->Fill(x, y);
+                hitVec[pt->GetStation()][pt->GetModule()][iZone]->Fill(x, y);
             //        hitVec[pt->GetStation()][pt->GetModule()][iZone]++;
             hitClosest->SetFlag(kFALSE);
         } else {
-//            printf("\tnot found in st %d mod %d\n", iSt, iMod);
+            //            printf("\tnot found in st %d mod %d\n", iSt, iMod);
         }
     }
 }
 
-TCutG* BmnRecoTools::Ellipse2CutG(TString name, Double_t x, Double_t y, Double_t rx, Double_t ry, Double_t theta){
+TCutG* BmnRecoTools::Ellipse2CutG(TString name, Double_t x, Double_t y, Double_t rx, Double_t ry, Double_t theta) {
     if (ry < 0.0)
         ry = rx;
     const Int_t nIters = 20;
     TCutG *cutg = new TCutG(name, nIters);
-    Double_t ct   = TMath::Cos(theta);
-    Double_t st   = TMath::Sin(theta);
+    Double_t ct = TMath::Cos(theta);
+    Double_t st = TMath::Sin(theta);
     Double_t dphi = 2 * M_PI / nIters;
     Double_t phi = 0.0;
     for (Int_t i = 0; i < nIters - 1; i++) {
         phi += dphi;
-        Double_t projX = rx * TMath::Cos(phi); 
-        Double_t projY = ry * TMath::Sin(phi); 
+        Double_t projX = rx * TMath::Cos(phi);
+        Double_t projY = ry * TMath::Sin(phi);
         cutg->SetPoint(i,
-                x + projX*ct - projY*st,
-                y + projX*st + projY*ct);
+                x + projX * ct - projY*st,
+                y + projX * st + projY * ct);
     }
     Double_t firstX = 0.0;
     Double_t firstY = 0.0;
     cutg->GetPoint(0, firstX, firstY);
     cutg->SetPoint(nIters - 1, firstX, firstY); // why??
     return cutg;
+}
+
+TF1* BmnRecoTools::GetSignalDistribution(TTree *tree, TClonesArray *arMC,
+        TTree *treeDST, TClonesArray *gemHits, TClonesArray *gemTracks, TClonesArray *tracks,
+        Double_t lowThr, Int_t nBins) {
+    Double_t minVal = DBL_MAX;
+    Double_t maxVal = DBL_MIN;
+    for (Long64_t i = 0; i < tree->GetEntries(); i++) {
+        tree->GetEntry(i);
+        for (Int_t iDig = 0; iDig < arMC->GetEntriesFast(); iDig++) {
+            BmnStripDigit* dig = (BmnStripDigit*) arMC->At(iDig);
+            if (dig->GetStripSignal() < lowThr)
+                continue;
+            Double_t val = dig->GetStripSignal();
+            if (maxVal < val)
+                maxVal = val;
+            if (minVal > val)
+                minVal = val;
+        }
+    }
+    //    minVal = log(minVal);
+    //    maxVal = log(maxVal);
+    printf("Min  = %f max = %f\n", minVal, maxVal);
+    TString name = Form("hSig_%s_%d", arMC->GetName(), rand());
+    TH1F *hSig = new TH1F(name, name, nBins, minVal, maxVal);
+
+    for (Long64_t i = 0; i < tree->GetEntries(); i++) {
+        tree->GetEntry(i);
+
+        /** digs from tracks*/
+        if (treeDST && gemHits && gemTracks && tracks) {
+            treeDST->GetEntry(i);
+            for (Int_t iTrack = 0; iTrack < tracks->GetEntriesFast(); iTrack++) {
+                BmnGlobalTrack* track = (BmnGlobalTrack*) tracks->UncheckedAt(iTrack);
+                if (track->GetGemTrackIndex() != -1) {
+                    //                for (Int_t iTrack = 0; iTrack < gemTrack->GetEntriesFast(); iTrack++) {
+                    BmnTrack * gemTr = (BmnTrack*) gemTracks->UncheckedAt(track->GetGemTrackIndex());
+                    for (Int_t iHit = 0; iHit < gemTr->GetNHits(); iHit++) {
+                        BmnHit *hit = (BmnHit *) gemHits->UncheckedAt(gemTr->GetHitIndex(iHit));
+                        BmnMatch match = hit->GetDigitNumberMatch();
+                        const vector<BmnLink> links = match.GetLinks();
+                        for (const BmnLink& link : links) {
+                            if (link.GetIndex() > (arMC->GetEntriesFast() - 1))
+                                continue;
+                            BmnStripDigit * dig = (BmnStripDigit*) arMC->At(link.GetIndex());
+                            if (dig->GetStripSignal() < lowThr)
+                                continue;
+                            Double_t val = dig->GetStripSignal();
+                            hSig->Fill(val);
+                        }
+                    }
+                    //                }
+                }
+            }
+        } else // all digs
+            for (Int_t iDig = 0; iDig < arMC->GetEntriesFast(); iDig++) {
+                BmnStripDigit* dig = (BmnStripDigit*) arMC->At(iDig);
+                if (dig->GetStripSignal() < lowThr)
+                    continue;
+                Double_t val = dig->GetStripSignal();
+                //            val = log(val);
+                hSig->Fill(val);
+            }
+    }
+
+    name = Form("hIntSig_%s_%d", arMC->GetName(), rand());
+    TH1F hIntSig = TH1F(name, Form("Signal_%s", arMC->GetName()), nBins, minVal - 0.5 * (maxVal - minVal) / (Double_t) nBins, maxVal + 0.5 * (maxVal - minVal) / (Double_t) nBins);
+    Double_t bc = 0;
+    for (Int_t i = 0; i < nBins; i++) {
+        bc += hSig->GetBinContent(i);
+        hIntSig.SetBinContent(i, bc);
+        //        printf("i = %d  center = %f  content = %f\n", i, hIntSig.GetBinCenter(i), bc);
+    }
+    name = "can";
+    gStyle->SetOptStat(0);
+    TCanvas* can = new TCanvas(name, name, 1600, 900 * 2);
+    can->Divide(1, 2);
+    TVirtualPad * padSig = can->cd(1);
+    padSig->SetLogy();
+    padSig->SetLogx();
+    hSig->Scale();
+    hSig->Draw();
+
+    TVirtualPad * padInt = can->cd(2);
+    padInt->SetLogy();
+    padInt->SetLogx();
+    if (bc == 0)
+        return nullptr;
+    hIntSig.Scale(1 / bc);
+    hIntSig.SetLineColor(kRed);
+    hIntSig.Draw();
+
+    TF1 *sig = new TF1(Form("SignalInt_%s", arMC->GetName()),
+            [hIntSig, bc, minVal, maxVal, nBins](Double_t *x, Double_t * p) {
+                //            Double_t val = (bc - x[0])/bc;//log(x[0]);
+                if (x[0] >= maxVal) return 1.0;
+                Int_t iBin = hIntSig.GetXaxis()->FindBin(x[0]); //(Int_t) floor(nBins * (x[0] - minVal) / (maxVal - minVal));
+                Int_t jBin = iBin + ((x[0] > hIntSig.GetBinCenter(iBin)) ? 1 : -1); // next bin along direction from center to x
+                Double_t v = hIntSig.GetBinContent(iBin) +
+                        (hIntSig.GetBinContent(jBin) - hIntSig.GetBinContent(iBin))*
+                        2 * abs(x[0] - hIntSig.GetBinCenter(iBin)) / (hIntSig.GetBinWidth(iBin) + hIntSig.GetBinWidth(jBin));
+//                printf("x = %f bincenter = %f  iBin = %d  jBin  %d  f(ibin) = %f  f(x) = %f\n",
+//                        x[0], hIntSig.GetBinCenter(iBin), iBin, jBin, hIntSig.GetBinContent(iBin), v);
+                return v;
+            }, minVal, maxVal, 0); //(bc - maxVal) / bc, (bc - minVal) / bc, 0);
+    sig->SetNpx(nBins);
+    sig->SetLineColor(kBlue);
+    //    hIntSig.Fit(sig, "R");
+    //    sig->Draw("same");
+    can->Print(Form("sigs_%s_%d.pdf", arMC->GetName(), tree->GetNbranches()));
+    delete hSig;
+    delete can;
+    return sig;
+}
+
+TF1* BmnRecoTools::GetRescaleFunc(TString name, TF1 *mc, TF1 *ex) {
+    TF1 *funcRescale = new TF1(name,
+            [mc, ex](Double_t *x, Double_t * p) {
+                Double_t r = mc->Eval(x[0]);
+                Double_t f = ex->GetX(r); //, ex->GetXmin(), ex->GetXmax(), 1.E-15, 100, kTRUE);
+//                printf("x = %f  mc = %f  y = %f\n", x[0], r, f);
+                return f;
+            }, mc->GetXmin(), mc->GetXmax(), 0);
+    return funcRescale;
 }
 
 //ClassImp(BmnRecoTools)

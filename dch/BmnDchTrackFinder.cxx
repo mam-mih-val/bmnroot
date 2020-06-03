@@ -2314,16 +2314,19 @@ InitStatus BmnDchTrackFinder::Init() {
   TString dir = getenv("VMCWORKDIR");
   dir += "/input/";
   fin.open((TString(dir + fTransferFunctionName)).Data(), ios::in);
+  cout << "Transfer function for DCH: " << fTransferFunctionName << endl;
   for (Int_t fi = 0; fi < 16; fi++) {
     fin >> t_dc[0][fi] >> t_dc[1][fi] >> t_dc[2][fi] >> t_dc[3][fi] >>
       pol_par_dc[0][0][fi] >> pol_par_dc[0][1][fi] >> pol_par_dc[0][2][fi] >> pol_par_dc[0][3][fi] >> pol_par_dc[0][4][fi] >>
       pol_par_dc[1][0][fi] >> pol_par_dc[1][1][fi] >> pol_par_dc[1][2][fi] >> pol_par_dc[1][3][fi] >> pol_par_dc[1][4][fi] >>
       pol_par_dc[2][0][fi] >> pol_par_dc[2][1][fi] >> pol_par_dc[2][2][fi] >> pol_par_dc[2][3][fi] >> pol_par_dc[2][4][fi] >>
       scaling[fi];
+    if (fVerbose) {
     cout<< t_dc[0][fi] << t_dc[1][fi] << t_dc[2][fi] << t_dc[3][fi] <<
       pol_par_dc[0][0][fi] << pol_par_dc[0][1][fi] << pol_par_dc[0][2][fi] << pol_par_dc[0][3][fi] << pol_par_dc[0][4][fi] <<
       pol_par_dc[1][0][fi] << pol_par_dc[1][1][fi] << pol_par_dc[1][2][fi] << pol_par_dc[1][3][fi] << pol_par_dc[1][4][fi] <<
       pol_par_dc[2][0][fi] << pol_par_dc[2][1][fi] << pol_par_dc[2][2][fi] << pol_par_dc[2][3][fi] << pol_par_dc[2][4][fi] <<endl;
+    }
   }
   fin.close();
    

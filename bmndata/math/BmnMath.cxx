@@ -181,15 +181,17 @@ Bool_t IsParCorrect(const FairTrackParam* par, const Bool_t isField) {
     const Float_t maxSlopeY = 0.5;
     const Float_t maxX = 150.0;
     const Float_t maxY = 100.0;
-    const Float_t minSlope = 1e-10;
-    const Float_t maxQp = 1000.; // p = 10 MeV
+    //const Float_t minSlope = 1e-10;
+    const Float_t maxQp = 100.; // p = 10 MeV
+    const Float_t minQp = 0.01; // p = 100 GeV
 
-    if (abs(par->GetTx()) > maxSlopeX || abs(par->GetTy()) > maxSlopeY || abs(par->GetTx()) < minSlope || abs(par->GetTy()) < minSlope) return kFALSE;
+    if (abs(par->GetTx()) > maxSlopeX || abs(par->GetTy()) > maxSlopeY) return kFALSE;
     if (abs(par->GetX()) > maxX || abs(par->GetY()) > maxY) return kFALSE;
     if (IsNaN(par->GetX()) || IsNaN(par->GetY()) || IsNaN(par->GetTx()) || IsNaN(par->GetTy())) return kFALSE;
 
     if (isField) {
         if (abs(par->GetQp()) > maxQp) return kFALSE;
+        if (abs(par->GetQp()) < minQp) return kFALSE;
         if (IsNaN(par->GetQp())) return kFALSE;
     }
 

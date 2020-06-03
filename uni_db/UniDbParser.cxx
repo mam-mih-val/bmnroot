@@ -248,7 +248,7 @@ int write_string_to_db(string &write_string, TSQLStatement* stmt, structParseSch
             if (row.strParseType != "")
             {
                 if (row.strParseType == "counter")
-                    token = convert_int_to_string(cycle_counter);
+                    token = int_to_string(cycle_counter);
                 if (row.strParseType(0,5) == "value")
                     token = row.strParseType(6,row.strParseType.Length()-6).Data();
 

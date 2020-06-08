@@ -345,7 +345,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, I
 	}
 	if(Offsets_read()) return;
     }
-    readGeom((char *)geomFile.Data());
+    readGeom(geomFile.Data());
 
 // read Left-Right offsets
     for (int c=0; c<TOF2_MAX_CHAMBERS; c++)
@@ -1296,7 +1296,7 @@ void BmnTof2Raw2DigitNew::readSlewing(Bool_t update)
     }
     else
     {
-	LOG(FATAL)<<"Error open slewing file " << filnr << " - exit!" << FairLogger::endl;
+	LOG(FATAL)<<"Error open slewing file " << filnr << " - exit!";
 	return;
     }
   }
@@ -3468,9 +3468,9 @@ void BmnTof2Raw2DigitNew::drawproft0()
 }
 
 
-int BmnTof2Raw2DigitNew::readGeom(char *geomfile)
+int BmnTof2Raw2DigitNew::readGeom(const char *geomfile)
 {
-	char fname[128];
+	const char * fname;
 	FILE *fg = 0;
 	float ic = 0;
 	int nf = 0, n = 0, i;
@@ -3480,8 +3480,8 @@ int BmnTof2Raw2DigitNew::readGeom(char *geomfile)
 	    printf("TOF700 geometry file name not defined!\n");
 	    return 0;
 	}
-	TString dir = getenv("VMCWORKDIR");
-	sprintf(fname,"%s/geometry/%s",dir.Data(),geomfile);
+	TString dir = TString::Format("%s/geometry/%s", getenv("VMCWORKDIR"), geomfile);
+        fname = dir.Data();
 	fg = fopen(fname,"r");
 	if (fg == NULL)
 	{
@@ -3514,11 +3514,11 @@ int BmnTof2Raw2DigitNew::readGeom(char *geomfile)
 		xmaxs[i][ns] = xcens[i][ns] + halfxwidth[i];
 		ymins[i][ns] = ycens[i][ns] - halfywidth[i];
 		ymaxs[i][ns] = ycens[i][ns] + halfywidth[i];
-//		printf("C %d S %d %f %f %f %f %f\n",ic,ns,zchamb[i],xmins[i][ns],xmaxs[i][ns],ymins[i][ns],ymaxs[i][ns]);
+		//printf("C %f S %d %f %f %f %f %f\n",ic,ns,zchamb[i],xmins[i][ns],xmaxs[i][ns],ymins[i][ns],ymaxs[i][ns]);
 		}
 		nf++;
 	}
-	fclose(fg);
+	int result = fclose(fg);
 	if (nf == MaxPlane) return 1;
 	else
 	{

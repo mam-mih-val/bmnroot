@@ -116,7 +116,7 @@ public:
     void drawprof();
     void drawproft0();
     int Offsets_read();
-    int readGeom(char *geomFile);
+    int readGeom(const char *geomFile);
     int readLRoffsets(char *LRoffsetsFile);
     int readXYCalibration(char *xcalibration, char *ycalibration);
     int printGeom();

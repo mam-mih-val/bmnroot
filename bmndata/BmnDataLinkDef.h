@@ -85,6 +85,7 @@
 #pragma link C++ class BmnIdentifiableTrack+;
 
 #pragma link C++ class BmnEventQuality+;
+#pragma link C++ class BmnZDCEventData+;
 
 #pragma link C++ class CbmVertex+;
 #pragma link C++ class CbmStsTrackFitter+;

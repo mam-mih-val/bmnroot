@@ -38,6 +38,7 @@ BmnZdcDigiScheme.cxx
 BmnZdcDigiProducer.cxx
 BmnZdcBScanner.cxx
 BmnZdcDigitizer.cxx
+BmnZdcAnalyzer.cxx
 )
 
 Set(HEADERS)

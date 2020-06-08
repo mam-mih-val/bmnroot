@@ -130,6 +130,7 @@ set(SRCS
  BmnTofHit.cxx
  BmnECALDigit.cxx
  BmnZDCDigit.cxx
+ BmnZDCEventData.cxx
  BmnLANDDigit.cxx
 
 #BmnVertex.cxx

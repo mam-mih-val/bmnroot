@@ -84,7 +84,9 @@ public:
             TClonesArray *gemHits = nullptr,
             TClonesArray *gemTracks = nullptr,
             TClonesArray *tracks = nullptr,
-            Double_t lowThr = 0, Int_t nBins = 100000);
+            Double_t lowThr = 0,
+            Int_t ClusterSizeThr = 0,
+            Int_t nBins = 100000);
     static TF1* GetRescaleFunc(TString name, TF1 *mc, TF1 *ex);
 
 

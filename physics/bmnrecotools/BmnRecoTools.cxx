@@ -277,67 +277,166 @@ TCutG* BmnRecoTools::Ellipse2CutG(TString name, Double_t x, Double_t y, Double_t
 
 TF1* BmnRecoTools::GetSignalDistribution(TTree *tree, TClonesArray *arMC,
         TTree *treeDST, TClonesArray *gemHits, TClonesArray *gemTracks, TClonesArray *tracks,
-        Double_t lowThr, Int_t nBins) {
+        Double_t lowThr, Int_t ClusterSizeThr, Int_t nBins) {
     Double_t minVal = DBL_MAX;
     Double_t maxVal = DBL_MIN;
-    for (Long64_t i = 0; i < tree->GetEntries(); i++) {
-        tree->GetEntry(i);
-        for (Int_t iDig = 0; iDig < arMC->GetEntriesFast(); iDig++) {
-            BmnStripDigit* dig = (BmnStripDigit*) arMC->At(iDig);
-            if (dig->GetStripSignal() < lowThr)
-                continue;
-            Double_t val = dig->GetStripSignal();
-            if (maxVal < val)
-                maxVal = val;
-            if (minVal > val)
-                minVal = val;
+    if (treeDST && gemHits/* && gemTracks && tracks*/) {
+        Double_t val = 0.0;
+        if (gemHits->GetClass() == BmnGemStripHit::Class()) {
+            for (Long64_t i = 0; i < tree->GetEntries(); i++) {
+                treeDST->GetEntry(i);
+                for (Int_t iHit = 0; iHit < gemHits->GetEntriesFast(); iHit++) {
+                    BmnGemStripHit *hit = (BmnGemStripHit *) gemHits->UncheckedAt(iHit);
+                    val = hit->GetStripTotalSignalInLowerLayer();
+                    if (val <= lowThr)
+                        continue;
+                    if (hit->GetClusterSizeInLowerLayer() <= ClusterSizeThr)
+                        continue;
+                    if (maxVal < val)
+                        maxVal = val;
+                    if (minVal > val)
+                        minVal = val;
+                }
+            }
         }
-    }
+        if (gemHits->GetClass() == BmnSiliconHit::Class()) {
+            for (Long64_t i = 0; i < tree->GetEntries(); i++) {
+                treeDST->GetEntry(i);
+                for (Int_t iHit = 0; iHit < gemHits->GetEntriesFast(); iHit++) {
+                    BmnSiliconHit *hit = (BmnSiliconHit *) gemHits->UncheckedAt(iHit);
+                    val = hit->GetStripTotalSignalInLowerLayer();
+                    if (val <= lowThr)
+                        continue;
+                    if (hit->GetClusterSizeInLowerLayer() <= ClusterSizeThr)
+                        continue;
+                    if (maxVal < val)
+                        maxVal = val;
+                    if (minVal > val)
+                        minVal = val;
+                }
+            }
+
+        }
+        if (gemHits->GetClass() == BmnCSCHit::Class()) {
+            for (Long64_t i = 0; i < tree->GetEntries(); i++) {
+                treeDST->GetEntry(i);
+                for (Int_t iHit = 0; iHit < gemHits->GetEntriesFast(); iHit++) {
+                    BmnCSCHit *hit = (BmnCSCHit *) gemHits->UncheckedAt(iHit);
+                    val = hit->GetStripTotalSignalInLowerLayer();
+                    if (val <= lowThr)
+                        continue;
+                    if (hit->GetClusterSizeInLowerLayer() <= ClusterSizeThr)
+                        continue;
+                    if (maxVal < val)
+                        maxVal = val;
+                    if (minVal > val)
+                        minVal = val;
+                }
+            }
+        }
+    } else
+        for (Long64_t i = 0; i < tree->GetEntries(); i++) {
+            tree->GetEntry(i);
+            for (Int_t iDig = 0; iDig < arMC->GetEntriesFast(); iDig++) {
+                BmnStripDigit* dig = (BmnStripDigit*) arMC->At(iDig);
+                if (dig->GetStripSignal() <= lowThr)
+                    continue;
+                Double_t val = dig->GetStripSignal();
+                if (maxVal < val)
+                    maxVal = val;
+                if (minVal > val)
+                    minVal = val;
+            }
+        }
     //    minVal = log(minVal);
     //    maxVal = log(maxVal);
     printf("Min  = %f max = %f\n", minVal, maxVal);
     TString name = Form("hSig_%s_%d", arMC->GetName(), rand());
     TH1F *hSig = new TH1F(name, name, nBins, minVal, maxVal);
 
-    for (Long64_t i = 0; i < tree->GetEntries(); i++) {
-        tree->GetEntry(i);
-
+    if (treeDST && gemHits/* && gemTracks && tracks*/) {
         /** digs from tracks*/
-        if (treeDST && gemHits && gemTracks && tracks) {
-            treeDST->GetEntry(i);
-            for (Int_t iTrack = 0; iTrack < tracks->GetEntriesFast(); iTrack++) {
-                BmnGlobalTrack* track = (BmnGlobalTrack*) tracks->UncheckedAt(iTrack);
-                if (track->GetGemTrackIndex() != -1) {
-                    //                for (Int_t iTrack = 0; iTrack < gemTrack->GetEntriesFast(); iTrack++) {
-                    BmnTrack * gemTr = (BmnTrack*) gemTracks->UncheckedAt(track->GetGemTrackIndex());
-                    for (Int_t iHit = 0; iHit < gemTr->GetNHits(); iHit++) {
-                        BmnHit *hit = (BmnHit *) gemHits->UncheckedAt(gemTr->GetHitIndex(iHit));
-                        BmnMatch match = hit->GetDigitNumberMatch();
-                        const vector<BmnLink> links = match.GetLinks();
-                        for (const BmnLink& link : links) {
-                            if (link.GetIndex() > (arMC->GetEntriesFast() - 1))
-                                continue;
-                            BmnStripDigit * dig = (BmnStripDigit*) arMC->At(link.GetIndex());
-                            if (dig->GetStripSignal() < lowThr)
-                                continue;
-                            Double_t val = dig->GetStripSignal();
-                            hSig->Fill(val);
-                        }
-                    }
-                    //                }
+        if (gemHits->GetClass() == BmnGemStripHit::Class()) {
+            for (Long64_t i = 0; i < tree->GetEntries(); i++) {
+                treeDST->GetEntry(i);
+                for (Int_t iHit = 0; iHit < gemHits->GetEntriesFast(); iHit++) {
+                    BmnGemStripHit *hit = (BmnGemStripHit *) gemHits->UncheckedAt(iHit);
+                    //                for (Int_t iTrack = 0; iTrack < tracks->GetEntriesFast(); iTrack++) {
+                    //                    BmnGlobalTrack* track = (BmnGlobalTrack*) tracks->UncheckedAt(iTrack);
+                    //                    if (track->GetGemTrackIndex() != -1) {
+                    //                        //                for (Int_t iTrack = 0; iTrack < gemTrack->GetEntriesFast(); iTrack++) {
+                    //                        BmnTrack * gemTr = (BmnTrack*) gemTracks->UncheckedAt(track->GetGemTrackIndex());
+                    //                        for (Int_t iHit = 0; iHit < gemTr->GetNHits(); iHit++) {
+                    //                            BmnGemStripHit *hit = (BmnGemStripHit *) gemHits->UncheckedAt(gemTr->GetHitIndex(iHit));
+                    if (hit->GetClusterSizeInLowerLayer() <= ClusterSizeThr)
+                        continue;
+                    Double_t val = hit->GetStripTotalSignalInLowerLayer();
+                    if (val <= lowThr)
+                        continue;
+                    hSig->Fill(val);
+                    //                            BmnMatch match = hit->GetDigitNumberMatch();
+                    //                            const vector<BmnLink> links = match.GetLinks();
+                    //                            for (const BmnLink& link : links) {
+                    //                                if (link.GetIndex() > (arMC->GetEntriesFast() - 1)) {
+                    //                                    printf("Warning in event %lld  hit %d! Hits Link index out of range! index = %d  entries %d\n",
+                    //                                            i, iHit, link.GetIndex(), arMC->GetEntriesFast());
+                    //                                    continue;
+                    //                                }
+                    //                                BmnStripDigit * dig = (BmnStripDigit*) arMC->At(link.GetIndex());
+                    //                                if (dig->GetStripSignal() <= lowThr)
+                    //                                    continue;
+                    //                                if (strcmp(dig->GetName(), ""))
+                    //                                    continue;
+                    //                                dig->SetName("used");
+                    //                                Double_t val = dig->GetStripSignal();
+                    //                                hSig->Fill(val);
+                    //                            }
+                    //                        }
+                    //                        //                }
+                    //                    }
                 }
             }
-        } else // all digs
+        }
+        if (gemHits->GetClass() == BmnSiliconHit::Class()) {
+            for (Long64_t i = 0; i < tree->GetEntries(); i++) {
+                treeDST->GetEntry(i);
+                for (Int_t iHit = 0; iHit < gemHits->GetEntriesFast(); iHit++) {
+                    BmnSiliconHit *hit = (BmnSiliconHit *) gemHits->UncheckedAt(iHit);
+                    if (hit->GetClusterSizeInLowerLayer() <= ClusterSizeThr)
+                        continue;
+                    Double_t val = hit->GetStripTotalSignalInLowerLayer();
+                    if (val <= lowThr)
+                        continue;
+                    hSig->Fill(val);
+                }
+            }
+        }
+        if (gemHits->GetClass() == BmnCSCHit::Class()) {
+            for (Long64_t i = 0; i < tree->GetEntries(); i++) {
+                treeDST->GetEntry(i);
+                for (Int_t iHit = 0; iHit < gemHits->GetEntriesFast(); iHit++) {
+                    BmnCSCHit *hit = (BmnCSCHit *) gemHits->UncheckedAt(iHit);
+                    if (hit->GetClusterSizeInLowerLayer() <= ClusterSizeThr)
+                        continue;
+                    Double_t val = hit->GetStripTotalSignalInLowerLayer();
+                    if (val <= lowThr)
+                        continue;
+                    hSig->Fill(val);
+                }
+            }
+        }
+    } else // all digs
+        for (Long64_t i = 0; i < tree->GetEntries(); i++) {
+            tree->GetEntry(i);
             for (Int_t iDig = 0; iDig < arMC->GetEntriesFast(); iDig++) {
                 BmnStripDigit* dig = (BmnStripDigit*) arMC->At(iDig);
-                if (dig->GetStripSignal() < lowThr)
-                    continue;
                 Double_t val = dig->GetStripSignal();
+                if (val <= lowThr)
+                    continue;
                 //            val = log(val);
                 hSig->Fill(val);
             }
-    }
-
+        }
     name = Form("hIntSig_%s_%d", arMC->GetName(), rand());
     TH1F hIntSig = TH1F(name, Form("Signal_%s", arMC->GetName()), nBins, minVal - 0.5 * (maxVal - minVal) / (Double_t) nBins, maxVal + 0.5 * (maxVal - minVal) / (Double_t) nBins);
     Double_t bc = 0;
@@ -374,8 +473,8 @@ TF1* BmnRecoTools::GetSignalDistribution(TTree *tree, TClonesArray *arMC,
                 Double_t v = hIntSig.GetBinContent(iBin) +
                         (hIntSig.GetBinContent(jBin) - hIntSig.GetBinContent(iBin))*
                         2 * abs(x[0] - hIntSig.GetBinCenter(iBin)) / (hIntSig.GetBinWidth(iBin) + hIntSig.GetBinWidth(jBin));
-//                printf("x = %f bincenter = %f  iBin = %d  jBin  %d  f(ibin) = %f  f(x) = %f\n",
-//                        x[0], hIntSig.GetBinCenter(iBin), iBin, jBin, hIntSig.GetBinContent(iBin), v);
+                //                printf("x = %f bincenter = %f  iBin = %d  jBin  %d  f(ibin) = %f  f(x) = %f\n",
+                //                        x[0], hIntSig.GetBinCenter(iBin), iBin, jBin, hIntSig.GetBinContent(iBin), v);
                 return v;
             }, minVal, maxVal, 0); //(bc - maxVal) / bc, (bc - minVal) / bc, 0);
     sig->SetNpx(nBins);
@@ -393,7 +492,7 @@ TF1* BmnRecoTools::GetRescaleFunc(TString name, TF1 *mc, TF1 *ex) {
             [mc, ex](Double_t *x, Double_t * p) {
                 Double_t r = mc->Eval(x[0]);
                 Double_t f = ex->GetX(r); //, ex->GetXmin(), ex->GetXmax(), 1.E-15, 100, kTRUE);
-//                printf("x = %f  mc = %f  y = %f\n", x[0], r, f);
+                //                printf("x = %f  mc = %f  y = %f\n", x[0], r, f);
                 return f;
             }, mc->GetXmin(), mc->GetXmax(), 0);
     return funcRescale;

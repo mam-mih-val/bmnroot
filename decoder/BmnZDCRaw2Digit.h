@@ -13,6 +13,7 @@
 #include "Riostream.h"
 #include "BmnZDCDigit.h"
 #include <cstdlib>
+#include <UniDbRun.h>
 
 #define MAX_EVENTS 10000
 #define MAX_CHANNELS 112
@@ -45,7 +46,7 @@ public:
 class BmnZDCRaw2Digit{
 
 public:
-    BmnZDCRaw2Digit(TString mappingFile, TString runFile, TString calibrationFile = "", TString MaxPositionFile = "");
+    BmnZDCRaw2Digit(Int_t period, Int_t run, TString mappingFile, TString calibrationFile = "", TString MaxPositionFile = "");
     BmnZDCRaw2Digit();
 
     ~BmnZDCRaw2Digit();
@@ -119,7 +120,7 @@ public:
 
 private:
     int digiPar[6];
-    char filname_base[256];
+//    char filname_base[256];
     int maxchan;
     Bmn_ZDC_map_element zdc_map_element[256];
     float cell_size[10];
@@ -164,6 +165,8 @@ private:
     double shower(double x, double h);
     float wave2amp(UChar_t ns, UShort_t *s, Float_t *p, Float_t *sigMin, Float_t *sigMax, Float_t *sigPed, Float_t *sigInt);
     float testwave2amp(UChar_t ns, UShort_t *s, Float_t *p);
+    Int_t periodId;
+    Int_t runId;
     int n_test;
     int test_chan[MAX_LOG_CHANNELS];
     int test_id[MAX_LOG_CHANNELS];

@@ -14,7 +14,7 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(magnet);
 
     FairModule* magnetSP57 = new FairMagnet("MAGNET_SP57");
-    magnet->SetGeometryFileName("magnetSP57_1.root");
+    magnetSP57->SetGeometryFileName("magnetSP57_1.root");
     fRun->AddModule(magnetSP57);
     
     // -----   Create detectors        -------------------------

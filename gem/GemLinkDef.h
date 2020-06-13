@@ -24,6 +24,7 @@
 #pragma link C++ class BmnGemStripHitMaker+;
 // #pragma link C++ class BmnKalmanFilter+;
 #pragma link C++ class BmnInnerTrackingRun7+;
+#pragma link C++ class SrcInnerTrackingRun7+;
 #pragma link C++ class BmnCellAutoTracking+;
 #pragma link C++ class BmnCellDuet+;
 #pragma link C++ class BmnGemStripMedium+;

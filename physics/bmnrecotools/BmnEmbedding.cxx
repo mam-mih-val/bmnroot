@@ -4,8 +4,9 @@ BmnEmbedding::BmnEmbedding() {
 }
 
 BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString destName,
-        Int_t code, vector<Int_t> outCodes,
-        Bool_t turnOffBaseDigits) {
+        Int_t code, vector<Int_t> outCodes, Bool_t turnOffBaseDigits
+//        TString inDSTName
+) {
 
     fCode = code;
     fOutCodes = outCodes;
@@ -25,9 +26,8 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
         "BmnSiliconDigit", "BmnGemStripDigit", "BmnCSCDigit", "StsPoint", "SiliconPoint", "CSCPoint",
         "GeoTracks"
     };
-    vector<TString> outExpNames = {
-        "SILICON", "GEM", "CSC"
-    };
+    vector<TString> outExpNames = {"SILICON", "GEM", "CSC"};
+//    vector<Double_t> stripDigitThreshold = {180, 15, 50};
     vector<TF1*> funcsMC;
     vector<TF1*> funcsEx;
     vector<TF1*> funcsRescale;
@@ -103,20 +103,18 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
     TIterator* it = digiBaseBrsFull->MakeIterator();
     it->Reset();
     TBranch* b = NULL;
-    while ((b = (TBranch*) it->Next())) {
+    while ((b = (TBranch*) it->Next())) { // select other branches(not strip digits)
         TClass * cl = nullptr;
-        EDataType type;
-        b->GetExpectedType(cl, type);
-        Bool_t isOther = kFALSE;
+        Bool_t notOther = kFALSE;
         for (Int_t i = 0; i < fNArs; i++) {
             if (strcmp(b->GetName(), digiOutExpNames[i].Data()) == 0) {
-                isOther = kTRUE;
+                notOther = kTRUE;
                 break;
             }
         }
         if (strcmp(b->GetName(), EHDigiName.Data()) == 0)
-            isOther = kTRUE;
-        if (isOther)
+            notOther = kTRUE;
+        if (notOther)
             continue;
         TClonesArray* arDigi = nullptr;
         fInTreeBase->SetBranchAddress(b->GetName(), &arDigi);
@@ -151,35 +149,39 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
     //    Double_t p = 0.0005;
     //    printf("inv h(%f) = %f\n", p, sig->GetX(p));
     for (Int_t i = 0; i < digiSourceArs.size(); i++) {
-        TF1 *mc = BmnRecoTools::GetSignalDistribution(fInTreeSource, digiSourceArs[i]);
+        TF1 *mc = BmnRecoTools::GetSignalDistribution(fInTreeSource, digiSourceArs[i]);//, 0, 1e6);
         TF1 *ex = BmnRecoTools::GetSignalDistribution(fInTreeBase, digiBaseArs[i]);
         TF1 *funcRescale = BmnRecoTools::GetRescaleFunc(TString("Rescale") + outExpNames[i], mc, ex);
         funcsMC.push_back(mc);
         funcsEx.push_back(ex);
         funcsRescale.push_back(funcRescale);
         //    funcRescale->SetNpx(50000);
-//        printf("%s : xmin %f  xmax %f\n", outExpNames[i].Data(), mc->GetXmin(), mc->GetXmax());
-//        //            printf("h(%f) = %f r = %f\n", p, funcRescale->Eval(p), mc->Eval(p));
-//
-//        TString name = TString("Rescale_") + digiSourceArs[i]->GetName();
-//        TCanvas* can = new TCanvas(name, name, 1600 * 2, 900* 2);
-//        can->Divide(2, 1);
-//        TVirtualPad * padDistributions = can->cd(2);
-//        padDistributions->Divide(1, 2);
-//        // draw mc distr
-//        TVirtualPad * padMC = padDistributions->cd(1);
-//        padMC->SetLogy();
-//        mc->Draw();
-//        // draw exp distr
-//        TVirtualPad * padEx = padDistributions->cd(2);
-//        padEx->SetLogy();
-//        ex->Draw();
-//        // draw Rescale func
-//        TVirtualPad * padRescale = can->cd(1);
-//        padRescale->SetLogx();
-//        padRescale->SetLogy();
-//        funcRescale->Draw();
-//        can->Print(Form("%s.pdf", can->GetName()));
+        printf("%s : xmin %f  xmax %f\n", outExpNames[i].Data(), mc->GetXmin(), mc->GetXmax());
+        //            printf("h(%f) = %f r = %f\n", p, funcRescale->Eval(p), mc->Eval(p));
+
+        TString name = TString("Rescale_") + digiSourceArs[i]->GetName();
+        TCanvas* can = new TCanvas(name, name, 1600 * 2, 900* 2);
+        can->Divide(2, 1);
+        TVirtualPad * padDistributions = can->cd(2);
+        padDistributions->Divide(1, 2);
+        // draw mc distr
+        TVirtualPad * padMC = padDistributions->cd(1);
+        padMC->SetLogx();
+        padMC->SetLogy();
+        mc->SetTitle("MC  Integral Distribution");
+        mc->Draw();
+        // draw exp distr
+        TVirtualPad * padEx = padDistributions->cd(2);
+        padEx->SetLogx();
+        padEx->SetLogy();
+        ex->SetTitle("Exp Integral Distribution");
+        ex->Draw();
+        // draw Rescale func
+        TVirtualPad * padRescale = can->cd(1);
+        padRescale->SetLogx();
+        padRescale->SetLogy();
+        funcRescale->Draw();
+        can->Print(Form("%s.pdf", can->GetName()));
     }
 
     /*****************************/
@@ -269,6 +271,8 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
             /** summ strip signals */
             for (UInt_t iSrcDig = 0; iSrcDig < digiSourceArs[iBr]->GetEntriesFast(); iSrcDig++) {
                 BmnStripDigit * src = (BmnStripDigit*) digiSourceArs[iBr]->At(iSrcDig);
+//                if (src->GetStripSignal() < stripDigitThreshold[iBr])
+//                    continue;
                 Double_t mc_signal = isRescale ? funcsRescale[iBr]->Eval(src->GetStripSignal()) : src->GetStripSignal();
                 src->SetStripSignal(mc_signal);
                 Int_t iSame = -1;

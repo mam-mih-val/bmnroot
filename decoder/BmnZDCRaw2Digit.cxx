@@ -13,10 +13,14 @@ static void fcn1(Int_t& npar, Double_t *gin, Double_t& f, Double_t *par, Int_t i
 BmnZDCRaw2Digit::BmnZDCRaw2Digit(){
   n_rec=0;
   n_test=0;
+  runId = 0;
+  periodId = 0;
   for (int i = 0; i < 6; i++) digiPar[i] = 0;
 }
 
-BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString CalibrationFile, TString MaxPositionFile) {
+BmnZDCRaw2Digit::BmnZDCRaw2Digit(Int_t period, Int_t run, TString mappingFile, TString CalibrationFile, TString MaxPositionFile) {
+    periodId = period; 
+    runId = run;
     for (int i=0; i<MAX_CHANNELS; i++) zdc_amp[i] = -1.;
     for (int i=0; i<MAX_LOG_CHANNELS; i++) log_amp[i] = -1.;
     for (int i=0; i<MAX_LOG_CHANNELS; i++) test_chan[i] = -1;
@@ -128,17 +132,20 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString C
 	y_max = +1000.;
     }
 //-------------------------------
-    int RUN;
-    const char *fname = RunFile.Data();
-    char *delim = NULL;
-    sscanf(&fname[strlen(fname) - 8], "%d", &RUN);
-    strcpy(filname_base, gSystem->BaseName(fname));
-    if ((delim = strrchr(filname_base, (int)'.'))) *delim = '\0';
     FILE *fin = 0;
     char filn[128], tit1[32] = {"Channel"}, tit2[32] = {"Calibration"}, tit3[32] = {"Error"};
     TString path1 = dir + "/parameters/zdc/";
-    if (strlen(CalibrationFile.Data()) == 0) sprintf(filn, "%s%s_calibration.txt", path1.Data(), filname_base);
-    else sprintf(filn, "%s%s", path1.Data(), CalibrationFile.Data());
+    
+    UniDbRun* Run = UniDbRun::GetRun(periodId, runId);
+    if (strlen(CalibrationFile.Data()) == 0){
+        if (Run == nullptr)
+            sprintf(filn, "%szdc_muon_calibration.txt", path1.Data()); //default
+        else{
+            sprintf(filn, "%szdc_muon_calibration_run%d_%s.txt",
+                    path1.Data(), periodId, Run->GetBeamParticle().Data());
+        }
+    } else
+        sprintf(filn, "%s%s", path1.Data(), CalibrationFile.Data());
     fin = fopen(filn,"r");
     for (int i=0; i<maxchan; i++)
     {
@@ -153,6 +160,7 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString C
     }
     else
     {
+        printf("Calibration file %s applied.\n", filn);
 	Int_t ch1;
 	Float_t ca = 1., cae = 0.;
 
@@ -200,7 +208,7 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString C
 	    Float_t mpos = 10., msig = 2.;
 	    while (fscanf(fin, "%d %f %f\n", &runn, &mpos, &msig) == 3)
 	    {
-		if (runn == RUN)
+		if (runn == runId)
 		{
 		    MaxPos_min = (int)(mpos - 2.*msig);
 		    MaxPos_max = (int)(mpos + 2.*msig + 0.5);
@@ -1109,7 +1117,7 @@ void BmnZDCRaw2Digit::calibrate() {
     TString path = dir + "/parameters/zdc/";
     FILE *fout = 0;
     char filn[128], tit1[32] = {"Channel"}, tit2[32] = {"Calibration"}, tit3[32] = {"Error"};
-    sprintf(filn, "%s%s_calibration_out.txt", path.Data(), filname_base);
+    sprintf(filn, "%szdc_period%d_run%d_calibration_out.txt", path.Data(), periodId, runId);
     fout = fopen(filn,"w");
     if (!fout)
     {

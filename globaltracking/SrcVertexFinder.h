@@ -1,5 +1,5 @@
-#ifndef BMNVERTEXFINDER_H
-#define BMNVERTEXFINDER_H
+#ifndef SRCVERTEXFINDER_H
+#define SRCVERTEXFINDER_H
 
 #include "FairTask.h"
 #include "TClonesArray.h"
@@ -14,18 +14,17 @@
 #include "FairField.h"
 #include "CbmVertex.h"
 #include "BmnKalmanFilter.h"
-#include "BmnGemStripStationSet.h"
-#include "BmnGemStripStationSet_RunSpring2017.h"
+#include <TStopwatch.h>
 
 using namespace std;
 
-class BmnVertexFinder : public FairTask {
+class SrcVertexFinder : public FairTask {
 public:
 
     // Constructors/Destructors ---------
-    BmnVertexFinder() {};
-    BmnVertexFinder(Int_t period, Bool_t isField);
-    virtual ~BmnVertexFinder();
+    SrcVertexFinder() {};
+    SrcVertexFinder(Int_t period, Bool_t isField);
+    virtual ~SrcVertexFinder();
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
@@ -58,16 +57,15 @@ private:
     TClonesArray* fGlobalTracksArray;
     TClonesArray* fVertexArray;
 
+    Double_t fTime;
+
     Bool_t fIsField;
-    Bool_t fRobustRefit;
     FairField* fField;
     BmnKalmanFilter* fKalman;
     TVector3 fRoughVertex3D;
 
-    ClassDef(BmnVertexFinder, 1);
+    ClassDef(SrcVertexFinder, 1);
 };
 
 
-#endif /* BMNVERTEXFINDER_H */
-
-
+#endif /* SRCVERTEXFINDER_H */

@@ -2,7 +2,7 @@
 // Name        : function_set.h
 // Author      : Konstantin Gertsenberger (gertsen@jinr.ru)
 // Description : set of common C++ functions
-// Version     : 1.05
+// Version     : 1.06
 //============================================================================
 
 #ifndef FUNCTION_SET_H
@@ -10,6 +10,7 @@
 
 // C++ includes
 #include <unistd.h>
+#include <iomanip>
 #include <iostream>
 #include <cstring>
 #include <string>
@@ -17,12 +18,14 @@
 #include <stdio.h>
 #include <sstream>
 #include <ctime>
+#include <math.h>
 //#include <sys/types.h>
 #include <sys/stat.h>
 
 using namespace std;
 
 /* declarations */
+enum BATCH_SYSTEM_NAME {SGE_BATCH_SYSTEM, TORQUE_BATCH_SYSTEM, SLURM_BATCH_SYSTEM}; // 'get_batch_processor_count' function
 
 /* OS FUNCTIONS */
 // execute system command in shell (bash)
@@ -33,7 +36,6 @@ string replace_home_symbol_linux(string path);
 string replace_vmc_path_linux(string path);
 // get processor core count on this machine
 int get_linux_processor_count();
-enum BATCH_SYSTEM_NAME {SGE_BATCH_SYSTEM, TORQUE_BATCH_SYSTEM, SLURM_BATCH_SYSTEM};
 // get maximum available processor count on Sun Grid Engine system
 int get_batch_processor_count(BATCH_SYSTEM_NAME batch_system, string queue_name = "");
 
@@ -48,12 +50,17 @@ string get_app_dir_linux();
 #define CHECK_BIT(variable,position) ((variable) & (1ULL<<(position)))
 
 /* STRING FUNCTIONS */
+// convert double number to string with a given precision
+// is_fixed_point: true - {precision = number of decimal digits after point}; false - {precision = number of all decimal digits in the number}
+string double_to_string(double number, int precision, bool is_fixed_point = true);
 // convert integer number to string
-string convert_int_to_string(int number);
+string int_to_string(int number);
 // convert integer (hexadecimal value) to string with hexadecimal presentation without "0x"
-string int_to_hex_string(int int_number);
+string int_to_hex_string(int number);
 // convert string with hexadecimal presentation without "0x" to integer
 int hex_string_to_int(string hex_string);
+// convert string specified size in bytes to double value; "convert_to" - possible values "BKMGTP"
+double byte_size_to_double(string byte_size_in_string, char convert_to = 'B');
 // is string an integer number?
 bool is_string_number(const string& s);
 // extract first number or last number in string, only positive number by default (result number has string type)
@@ -76,6 +83,8 @@ int replace_char(char*& str, char find, char replace);
 string trim(const string& str, const string& whitespace = " \t\r");
 // return string changing whitespaces and tabs by single whitespace
 string reduce(const string& str, const string& fill = " ", const string& whitespace = " \t\r");
+// is string ('full_str') ending with the given substring ('ending')
+bool endswith(string const &full_str, string const &ending);
 
 /*   DIR & FILE FUNCTIONS   */
 // check directory exists: 0 - not exists, 1 - exists, -2 - cannot access
@@ -311,8 +320,18 @@ string get_app_dir_linux()
 /*                  */
 /*                  */
 
+// convert double number to string with a given precision
+// is_fixed_point: true - {precision = number of decimal digits after point}; false - {precision = number of all decimal digits in the number}
+string double_to_string(double number, int precision, bool is_fixed_point)
+{
+	stringstream stream;
+	if (is_fixed_point) stream << std::fixed;
+	stream << std::setprecision(precision) << number;
+	return stream.str();
+}
+
 // convert integer number to string
-string convert_int_to_string(int number)
+string int_to_string(int number)
 {
     stringstream ss;
     ss<<number;
@@ -320,10 +339,10 @@ string convert_int_to_string(int number)
 }
 
 // convert integer (hexadecimal value) to string with hexadecimal presentation without "0x"
-string int_to_hex_string(int int_number)
+string int_to_hex_string(int number)
 {
     stringstream stream;
-    stream<<std::hex<<int_number;
+    stream<<std::hex<<number;
     return stream.str();
 }
 
@@ -336,6 +355,43 @@ int hex_string_to_int(string hex_string)
     stream>>x;
     return x;
 }
+
+// convert string specified size in bytes to double value; "convert_to" - possible values "BKMGTP"
+// return byte size in double or code error if negative
+double byte_size_to_double(string byte_size_in_string, char convert_to)
+{
+	if (byte_size_in_string.empty()) return -1;	// empty string
+
+	// remove spaces
+	replace_string_in_text(byte_size_in_string, " ", "");
+	// find text
+	size_t indText = byte_size_in_string.find_first_not_of("0123456789,.");
+    if (indText == 0) return -2;	// no number at the beginning
+
+    string units = "BKMGTP";
+
+    size_t convert_dim = units.find(::toupper(convert_to)), value_dim = -1;
+    if (convert_dim == string::npos) convert_dim = 0;
+
+    double number = -3;
+    if (indText == string::npos)
+    {
+    	number = atof(byte_size_in_string.c_str());
+    	value_dim = 0;
+    }
+    else
+    {
+    	number = atof(byte_size_in_string.substr(0, indText).c_str());
+    	value_dim = units.find(::toupper(byte_size_in_string[indText]));
+    	if (value_dim == string::npos) value_dim = 0;
+    }
+
+    if (convert_dim != value_dim)
+    	number *= pow(1024, convert_dim - value_dim);
+
+    return number;
+}
+
 
 // is string an integer number?
 bool is_string_number(const string& s)
@@ -591,6 +647,15 @@ string reduce(const string& str, const string& fill, const string& whitespace)
     }
 
     return result;
+}
+
+// is string ('full_str') ending with the given susbtring ('ending')
+bool endswith(string const &full_str, string const &ending)
+{
+    if (full_str.length() >= ending.length())
+        return (0 == full_str.compare(full_str.length() - ending.length(), ending.length(), ending));
+    else
+        return false;
 }
 
 

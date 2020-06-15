@@ -13,6 +13,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
  * readHeaders
  * Example of reading valuable content of the DigiRunHeader and BmnEventHeader
  * @param fileName
+ * @param examples number of events to show
  */
 void readHeaders(TString fileName = "", Int_t examples = 10) {
     if (fileName == "") {
@@ -71,7 +72,7 @@ void readHeaders(TString fileName = "", Int_t examples = 10) {
 
     }
     
-    printf(" %lld events shown.\n To se more events change the second argument of the macro.\n", NExamples); 
+    printf(" %lld events shown.\n To see more events change the second argument of the macro.\n", NExamples); 
 
 
 }

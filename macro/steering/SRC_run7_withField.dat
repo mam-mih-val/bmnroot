@@ -18,7 +18,7 @@ XZSlope 0.05 # slope value (a) when parametrizing diffSlopeXZ
 YZ0 0.01 # start value (b) when parametrizing diffSlopeYZ
 YZSlope 0.01 # slope value (a) when parametrizing diffSlopeYZ
 
-chiSquareCut 100 # Cut on Chi2/ndf
+chiSquareCut 1.0 # Cut on Chi2/ndf
 nIter 4 # Number of iterations of algorithm when reconstructing one event
 
 nHitsCut 4 # Min. number of hits per track

@@ -258,7 +258,7 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
                     } else {  //global dch
                         parDch->SetTx(parDch->GetTx() + 0.001);
                         parDch->SetTy(parDch->GetTy() - 0.001);
-                        parDch->SetX(parDch->GetX() - 8.58);
+                        parDch->SetX(parDch->GetX() - 8.52);
                         parDch->SetY(parDch->GetY() - 3.01);
                         dchHit.SetStation(7);
                     }
@@ -277,7 +277,7 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
                 for (Int_t hitIdx = 0; hitIdx < fTof2Hits->GetEntriesFast(); ++hitIdx) {
                     BmnHit *hit = (BmnHit *)fTof2Hits->At(hitIdx);
                     //Panin
-                    hit->SetX(hit->GetX() + 1.33);
+                    hit->SetX(hit->GetX() + 1.26);
                     hit->SetY(hit->GetY() - 9.95);
                     //Petukhov
                     //hit->SetX(hit->GetX() - 1.47);
@@ -290,10 +290,10 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
                     //FairTrackParam par1(*(glTr->GetParamFirst()));
                     FairTrackParam *parUp = upTr->GetParamLast();
 
-                    parUp->SetX(parUp->GetX() - 0.57);   //- 0.93
-                    parUp->SetY(parUp->GetY() - 0.83);  //+ 0.3
-                    parUp->SetTx(parUp->GetTx() + 0.002);                        //+ 0.00265
-                    parUp->SetTy(parUp->GetTy() + 0.000);                        //+ 0.00060
+                    parUp->SetX(parUp->GetX() - 0.57 - 0.24);  //- 0.93
+                    parUp->SetY(parUp->GetY() - 0.83);         //+ 0.3
+                    parUp->SetTx(parUp->GetTx() + 0.002);      //+ 0.00265
+                    parUp->SetTy(parUp->GetTy() + 0.000);      //+ 0.00060
                     BmnHit upsHit;
                     upsHit.SetXYZ(parUp->GetX(), parUp->GetY(), parUp->GetZ());
                     upsHit.SetDxyz(0.02, 0.02, 0.0);
@@ -310,18 +310,15 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
                     BmnHit dchHit;
 
                     if (zDCH < 550) {
-                        parDch->SetTx(parDch->GetTx() + 0.008);
-                        parDch->SetTy(parDch->GetTy() + 0.000);
-                        parDch->SetX(parDch->GetX() - 7.55);
-                        parDch->SetY(parDch->GetY() - 2.95);
                         dchHit.SetStation(0);
-                    }
-                    if (zDCH > 650) {
-                        parDch->SetTx(parDch->GetTx() + 0.002);
-                        parDch->SetTy(parDch->GetTy() + 0.003);
-                        parDch->SetX(parDch->GetX() - 6.96);
-                        parDch->SetY(parDch->GetY() - 2.87);
+                    } else if (zDCH > 650) {
                         dchHit.SetStation(1);
+                    } else {  //global dch
+                        parDch->SetTx(parDch->GetTx() + 0.003);
+                        parDch->SetTy(parDch->GetTy() - 0.000);
+                        parDch->SetX(parDch->GetX() - 8.17);
+                        parDch->SetY(parDch->GetY() - 2.70);
+                        dchHit.SetStation(7);
                     }
                     dchHit.SetXYZ(parDch->GetX(), parDch->GetY(), zDCH);
                     dchHit.SetDxyz(0.02, 0.02, 0.0);
@@ -331,14 +328,14 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
             if (fCscHits)
                 for (Int_t hitIdx = 0; hitIdx < fCscHits->GetEntriesFast(); ++hitIdx) {
                     BmnHit *hit = (BmnHit *)fCscHits->At(hitIdx);
-                    hit->SetX(hit->GetX() + 1.22);
-                    hit->SetY(hit->GetY() + 0.12);
+                    hit->SetX(hit->GetX() + 0.54);
+                    hit->SetY(hit->GetY() - 0.06);
                 }
             if (fTof1Hits)
                 for (Int_t hitIdx = 0; hitIdx < fTof1Hits->GetEntriesFast(); ++hitIdx) {
                     BmnHit *hit = (BmnHit *)fTof1Hits->At(hitIdx);
-                    hit->SetX(hit->GetX() - 1.63);
-                    hit->SetY(hit->GetY() + 0.45);
+                    hit->SetX(hit->GetX() - 2.34);
+                    hit->SetY(hit->GetY() + 0.57);
                 }
             if (fTof2Hits)
                 for (Int_t hitIdx = 0; hitIdx < fTof2Hits->GetEntriesFast(); ++hitIdx) {
@@ -346,8 +343,8 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
                     //hit->SetX(hit->GetX() + 0.42);
                     //hit->SetY(hit->GetY() - 9.64 + 4.47);
                     //Panin
-                    hit->SetX(hit->GetX() + 2.65);
-                    hit->SetY(hit->GetY() - 9.93);
+                    hit->SetX(hit->GetX() + 1.38);
+                    hit->SetY(hit->GetY() - 10.18);
                 }
         }
     }
@@ -400,7 +397,8 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
 
     //if (fVerbose) cout << "GLOBAL_TRACKING: Number of merged tracks: " << fGlobalTracks->GetEntriesFast() << endl;
     if (fVerbose > 1)
-        cout << "\n======================== Global tracking exec finished ====================\n" << endl;
+        cout << "\n======================== Global tracking exec finished ====================\n"
+             << endl;
 }
 
 void BmnGlobalTracking::CalcdQdn(BmnGlobalTrack *tr) {
@@ -469,8 +467,8 @@ BmnStatus BmnGlobalTracking::MatchingCSC(BmnGlobalTrack *tr) {
     if (!fCscHits) return kBMNERROR;
 
     //residuals after peak fitting of all-to-all histograms
-    Double_t sigmaXcscgemResid = 1.0;  //1.25;
-    Double_t sigmaYcscgemResid = 1.0;  //0.79;
+    Double_t sigmaXcscgemResid = 5.95;  //1.25;
+    Double_t sigmaYcscgemResid = 1.16;  //0.79;
     Double_t xCut = 3 * sigmaXcscgemResid;
     Double_t yCut = 3 * sigmaYcscgemResid;
 
@@ -492,8 +490,8 @@ BmnStatus BmnGlobalTracking::MatchingCSC(BmnGlobalTrack *tr) {
         dY = par.GetY() - hit->GetY();
         Double_t dist = Sqrt(Sq(par.GetX() - hit->GetX()) + Sq(par.GetY() - hit->GetY()));
         if (fDoAlign) {
-            fhXCscGemResid->Fill(par.GetX() - hit->GetX());
-            fhYCscGemResid->Fill(par.GetY() - hit->GetY());
+            if (Abs(par.GetY() - hit->GetY()) < 3) fhXCscGemResid->Fill(par.GetX() - hit->GetX());
+            if (Abs(par.GetX() - hit->GetX()) < 4) fhYCscGemResid->Fill(par.GetY() - hit->GetY());
             fhXdXCscGemResid->Fill(par.GetX(), par.GetX() - hit->GetX());
             fhYdYCscGemResid->Fill(par.GetY(), par.GetY() - hit->GetY());
             fhTxdXCscGemResid->Fill(par.GetTx(), par.GetX() - hit->GetX());
@@ -529,10 +527,10 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack *tr, Int_t num) {
     if (!tofHits) return kBMNERROR;
 
     //residuals after peak fitting of all-to-all histograms
-    Double_t sigmaXtof1gemResid = 1.0;  //1000;
-    Double_t sigmaYtof1gemResid = 1.0;  //1000;
-    Double_t sigmaXtof2gemResid = 1.0;  //1.34;
-    Double_t sigmaYtof2gemResid = 1.0;  //1.38;
+    Double_t sigmaXtof1gemResid = 1.18;  //1000;
+    Double_t sigmaYtof1gemResid = 1.17;  //1000;
+    Double_t sigmaXtof2gemResid = 7.76;  //6.2;                                 //1.34;
+    Double_t sigmaYtof2gemResid = 1.99;  //1.38;
     Double_t xCut = (num == 1) ? 3 * sigmaXtof1gemResid : 3 * sigmaXtof2gemResid;
     Double_t yCut = (num == 1) ? 3 * sigmaYtof1gemResid : 3 * sigmaYtof2gemResid;
 
@@ -554,16 +552,16 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack *tr, Int_t num) {
         dY = parPredict.GetY() - hit->GetY();
         if (fDoAlign) {
             if (num == 1) {
-                fhXTof1GemResid->Fill(parPredict.GetX() - hit->GetX());
-                fhYTof1GemResid->Fill(parPredict.GetY() - hit->GetY());
+                if (Abs(parPredict.GetY() - hit->GetY()) < 2) fhXTof1GemResid->Fill(parPredict.GetX() - hit->GetX());
+                if (Abs(parPredict.GetX() - hit->GetX()) < 3) fhYTof1GemResid->Fill(parPredict.GetY() - hit->GetY());
                 fhXdXTof1GemResid->Fill(parPredict.GetX(), parPredict.GetX() - hit->GetX());
                 fhYdYTof1GemResid->Fill(parPredict.GetY(), parPredict.GetY() - hit->GetY());
                 fhTxdXTof1GemResid->Fill(parPredict.GetTx(), parPredict.GetX() - hit->GetX());
                 fhTydYTof1GemResid->Fill(parPredict.GetTy(), parPredict.GetY() - hit->GetY());
             } else if (num == 2) {
                 //if (Abs(parPredict.GetY() - hit->GetY()) < 2) {
-                fhXTof2GemResid->Fill(parPredict.GetX() - hit->GetX());
-                fhYTof2GemResid->Fill(parPredict.GetY() - hit->GetY());
+                if (Abs(parPredict.GetY() - hit->GetY()) < 2) fhXTof2GemResid->Fill(parPredict.GetX() - hit->GetX());
+                if (Abs(parPredict.GetX() - hit->GetX()) < 3) fhYTof2GemResid->Fill(parPredict.GetY() - hit->GetY());
                 fhXdXTof2GemResid->Fill(parPredict.GetX(), parPredict.GetX() - hit->GetX());
                 fhYdYTof2GemResid->Fill(parPredict.GetY(), parPredict.GetY() - hit->GetY());
                 fhTxdXTof2GemResid->Fill(parPredict.GetTx(), parPredict.GetX() - hit->GetX());
@@ -681,12 +679,12 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack *tr, Int_t num) {
     BmnHit *minHit = nullptr;
 
     //residuals after peak fitting of all-to-all histograms
-    Double_t sigmaXdch1gemResid = 1.0;  //2.16;
-    Double_t sigmaYdch1gemResid = 1.0;  //0.75;
-    Double_t sigmaXdch2gemResid = 1.0;  //0.90;
-    Double_t sigmaYdch2gemResid = 1.0;  //0.53;
-    Double_t sigmaXdchGgemResid = 1.0;
-    Double_t sigmaYdchGgemResid = 1.0;
+    Double_t sigmaXdch1gemResid = 1.0;    //2.16;
+    Double_t sigmaYdch1gemResid = 1.0;    //0.75;
+    Double_t sigmaXdch2gemResid = 1.0;    //0.90;
+    Double_t sigmaYdch2gemResid = 1.0;    //0.53;
+    Double_t sigmaXdchGgemResid = 14.69;  //8.18;
+    Double_t sigmaYdchGgemResid = 8.58;
     Double_t xCut = (num == 0) ? 3 * sigmaXdch1gemResid : (num == 1) ? 3 * sigmaXdch2gemResid : 3 * sigmaXdchGgemResid;
     Double_t yCut = (num == 0) ? 3 * sigmaYdch1gemResid : (num == 1) ? 3 * sigmaYdch2gemResid : 3 * sigmaYdchGgemResid;
 
@@ -724,10 +722,10 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack *tr, Int_t num) {
                 fhTxdXDch2GemResid->Fill(par.GetTx(), dX);
                 fhTydYDch2GemResid->Fill(par.GetTy(), dY);
             } else if (num == 7) {
-                fhXDchGGemResid->Fill(dX);
-                fhYDchGGemResid->Fill(dY);
-                fhTxDchGGemResid->Fill(par.GetTx() - dchPar.GetTx());
-                fhTyDchGGemResid->Fill(par.GetTy() - dchPar.GetTy());
+                if (Abs(dY) < 3) fhXDchGGemResid->Fill(dX);
+                if (Abs(dX) < 5) fhYDchGGemResid->Fill(dY);
+                if (Abs(dY) < 3) fhTxDchGGemResid->Fill(par.GetTx() - dchPar.GetTx());
+                if (Abs(dX) < 5) fhTyDchGGemResid->Fill(par.GetTy() - dchPar.GetTy());
                 fhXdXDchGGemResid->Fill(par.GetX(), dX);
                 fhYdYDchGGemResid->Fill(par.GetY(), dY);
                 fhTxdXDchGGemResid->Fill(par.GetTx(), dX);
@@ -837,7 +835,6 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack *tr) {
     FairTrackParam parLast = *(tr->GetParamLast());
 
     // =============Refitting to the vertex =================
-
 
     if (tr->GetCscHitIndex() != -1) {
         BmnHit *hit = (BmnHit *)fCscHits->At(tr->GetCscHitIndex());

@@ -311,7 +311,8 @@ void BmnLambdaEmbeddingDrawHistos::ProcessHistos() {
         TCanvas* e = new TCanvas("e", "e", 1200, 800);
         TCanvas* f = new TCanvas("f", "f", 1200, 800);
 
-        TCanvas * arrCanv[nCanvs] = {a, b, c, d, e, f};
+        // TCanvas * arrCanv[nCanvs] = {a, b, c, d, e, f};
+        vector <TCanvas*> arrCanv{a, b, c, d, e, f};
 
         for (Int_t iCanv = 0; iCanv < nCanvs; iCanv++) {
             arrCanv[iCanv]->Divide(2, 3);
@@ -383,7 +384,8 @@ void BmnLambdaEmbeddingDrawHistos::ProcessHistos() {
         TCanvas* g = new TCanvas("g", "g", 1200, 800);
         TCanvas* h = new TCanvas("h", "h", 1200, 800);
 
-        TCanvas * arrCanv[nCanvs] = {g, h};
+        //TCanvas * arrCanv[nCanvs] = {g, h};
+        vector <TCanvas*> arrCanv{g, h};
         for (Int_t iCanv = 0; iCanv < nCanvs; iCanv++) {
             arrCanv[iCanv]->Divide(2, 3);
             for (Int_t iPad = 1; iPad < nPads + 1; iPad++) {

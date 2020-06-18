@@ -977,7 +977,7 @@ BmnStatus BmnInnerTrackingRun7::TrackSelection(vector<BmnTrack>& sortedTracks) {
 
     // for (Int_t iTr = 0; iTr < sortedTracks.size(); ++iTr) {
     //     BmnTrack* tr = &(sortedTracks[iTr]);
-    //     if (tr->GetFlag() == -1 || !IsParCorrect(tr->GetParamFirst(), fIsField) || !IsParCorrect(tr->GetParamLast(), fIsField)) continue;
+    //     if (tr->GetFlag() == 666 || !IsParCorrect(tr->GetParamFirst(), fIsField) || !IsParCorrect(tr->GetParamLast(), fIsField)) continue;
     //     Bool_t badTrack = kFALSE;
     //     BmnHit* hit0 = (BmnHit*)fHitsArray->At(tr->GetHitIndex(0));
     //     Int_t stPrev = hit0->GetStation();
@@ -991,12 +991,12 @@ BmnStatus BmnInnerTrackingRun7::TrackSelection(vector<BmnTrack>& sortedTracks) {
     //             break;
     //         }
     //     }
-    //     if (badTrack) tr->SetFlag(-1);
+    //     if (badTrack) tr->SetFlag(666);
     // }
     CheckSharedHits(sortedTracks);
     for (Int_t iTr = 0; iTr < sortedTracks.size(); ++iTr) {
         BmnTrack tr = sortedTracks[iTr];
-        if (tr.GetFlag() == -1 || !IsParCorrect(tr.GetParamFirst(), fIsField) || !IsParCorrect(tr.GetParamLast(), fIsField)) continue;
+        if (tr.GetFlag() == 666 || !IsParCorrect(tr.GetParamFirst(), fIsField) || !IsParCorrect(tr.GetParamLast(), fIsField)) continue;
         BmnTrack gemTr;
         BmnTrack silTr;
         BmnGlobalTrack globTr;
@@ -1352,7 +1352,7 @@ BmnStatus BmnInnerTrackingRun7::CheckSharedHits(vector<BmnTrack>& sortedTracks) 
 
     for (Int_t iTr = 0; iTr < sortedTracks.size(); ++iTr) {
         BmnTrack* tr = &(sortedTracks.at(iTr));
-        if (tr->GetFlag() == -1) continue;
+        if (tr->GetFlag() == 666) continue;
 
         Int_t nofSharedHits = 0;
         Int_t nofHits = tr->GetNHits();
@@ -1360,11 +1360,11 @@ BmnStatus BmnInnerTrackingRun7::CheckSharedHits(vector<BmnTrack>& sortedTracks) 
             if (hitsId.find(tr->GetHitIndex(iHit)) != hitsId.end()) {
                 nofSharedHits++;
                 if (nofSharedHits > kNSharedHits) {
-                    tr->SetFlag(-1);
+                    tr->SetFlag(666);
                     break;
                 }
             }
-        if (tr->GetFlag() == -1) continue;
+        if (tr->GetFlag() == 666) continue;
 
         for (Int_t iHit = 0; iHit < nofHits; iHit++)
             hitsId.insert(tr->GetHitIndex(iHit));

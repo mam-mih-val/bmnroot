@@ -49,7 +49,8 @@ fCscPoints(nullptr),
 fCscDigits(nullptr),
 fCscMatch(nullptr),
 fInfo(nullptr),
-fMon(nullptr) {
+fMon(nullptr),
+normUtils(nullptr) {
     fDataFileName = raw;
     fDigiFileName = out;
     fStorePath = "outputDataStore";
@@ -106,6 +107,38 @@ fMon(nullptr) {
 }
 
 void BmnLambdaEmbedding::Embedding() {
+
+    // 0. Get a function from current dst to be used for rescaling ...
+    if (isUseRealSignal) {
+        TString digiFile = "";
+
+        TString eos_host = "root://ncm.jinr.ru/";
+        TString digiDir = "/eos/nica/bmn/exp/digi/";
+        TString run = "run7";
+        TString release = "20.02.0";
+        TString dirList[2] = {"4720-5186_BMN_Krypton", "3590-4707_BMN_Argon"};
+
+        fReco->GetEntry();
+
+        Int_t idx = (UniDbRun::GetRun(7, fHeader->GetRunId())->GetBeamParticle() == "Ar") ? 1 :
+                (UniDbRun::GetRun(7, fHeader->GetRunId())->GetBeamParticle() == "Kr") ? 0 : -1;
+
+        TString command = TString::Format("xrdcp %s/%s/%s/%s/%s/bmn_run%d_digi.root %s",
+                eos_host.Data(), digiDir.Data(), run.Data(), release.Data(), dirList[idx].Data(), fHeader->GetRunId(), gSystem->GetFromPipe("pwd").Data());
+
+        gSystem->Exec(command.Data());
+
+        TFile* file = new TFile(Form("bmn_run%d_digi.root", fHeader->GetRunId()));
+
+        if (file->IsOpen())
+            digiFile = file->GetName();
+
+        delete file;
+
+        if (!digiFile.IsNull())
+            normUtils = new SignalNormalizationUtils(digiFile, TString(fReco->GetFile()->GetName()));
+    }
+
     // 1. Create a store with lambdas ...
     if (doLambdaStore)
         CreateLambdaStore();
@@ -255,7 +288,7 @@ void BmnLambdaEmbedding::Embedding() {
             if (lambda == -1 || vertex == -1 || event == -1)
                 continue;
 
-            if (isGemEmbedded) 
+            if (isGemEmbedded)
                 digsFromLambdasGem[it.first] = GetDigitsFromLambda(TString::Format("%s/lambda%d_vertex%d.root", fStorePath.Data(), lambda, vertex), event, "GEM");
             if (isSilEmbedded)
                 digsFromLambdasSilicon[it.first] = GetDigitsFromLambda(TString::Format("%s/lambda%d_vertex%d.root", fStorePath.Data(), lambda, vertex), event, "SILICON");
@@ -264,6 +297,91 @@ void BmnLambdaEmbedding::Embedding() {
         }
 
     cout << "GEM# " << digsFromLambdasGem.size() << " SILICON# " << digsFromLambdasSilicon.size() << " CSC# " << digsFromLambdasCsc.size() << endl;
+
+    // 7a. Collecting all MC-digits together ...
+    if (isUseRealSignal) {
+        TTree* tree = new TTree("bmndata", "bmndata");
+
+        TClonesArray* digitsGem = new TClonesArray("BmnGemStripDigit");
+        tree->Branch("BmnGemStripDigit", &digitsGem);
+
+        TClonesArray* digitsSil = new TClonesArray("BmnSiliconDigit");
+        tree->Branch("BmnSiliconDigit", &digitsSil);
+
+        for (auto digs : digsFromLambdasGem) {
+            digitsGem->Delete();
+
+            vector <BmnStripDigit> digitsInEvent = digs.second;
+
+            for (BmnStripDigit digit : digitsInEvent) {
+                BmnStripDigit* dig = &digit;
+
+                new ((*digitsGem) [digitsGem->GetEntriesFast()]) BmnStripDigit(dig);
+            }
+            tree->Fill();
+        }
+
+        for (auto digs : digsFromLambdasSilicon) {
+            digitsSil->Delete();
+
+            vector <BmnStripDigit> digitsInEvent = digs.second;
+
+            for (BmnStripDigit digit : digitsInEvent) {
+                BmnStripDigit* dig = &digit;
+
+                new ((*digitsSil) [digitsSil->GetEntriesFast()]) BmnStripDigit(dig);
+            }
+            tree->Fill();
+        }
+
+        normUtils->SetMcDataSet((TChain*) tree);
+        delete tree;
+        delete digitsGem;
+        delete digitsSil;
+
+        // Recalculating all signals according to the scal function got ...
+        TF1* scaleFuncGem = normUtils->GetRescaleFunction("GEM");
+        TF1* scaleFuncSil = normUtils->GetRescaleFunction("SILICON");
+
+        if (!scaleFuncGem || !scaleFuncSil) {
+            cout << "Something is wrong, exiting ..." << endl;
+            throw;
+        }
+
+        for (auto& digs : digsFromLambdasGem) {
+            vector <BmnStripDigit> &digitsInEvent = digs.second;
+
+            for (BmnStripDigit& digit : digitsInEvent)
+                digit.SetStripSignal(scaleFuncGem->Eval(digit.GetStripSignal()));
+        }
+
+        for (auto& digs : digsFromLambdasSilicon) {
+            vector <BmnStripDigit> &digitsInEvent = digs.second;
+
+            for (BmnStripDigit& digit : digitsInEvent)
+                digit.SetStripSignal(scaleFuncSil->Eval(digit.GetStripSignal()));
+        }
+    }
+
+//        for (auto digs : digsFromLambdasGem) {
+//            vector <BmnStripDigit> digitsInEvent = digs.second;
+//    
+//            for (auto digit : digitsInEvent) {
+//                BmnStripDigit* dig = &digit;
+//    
+//                cout << "GEM# " << dig->GetStripSignal() << endl;
+//            }
+//        }
+    //    
+    //    for (auto digs : digsFromLambdasSilicon) {
+    //        vector <BmnStripDigit> digitsInEvent = digs.second;
+    //
+    //        for (auto digit : digitsInEvent) {
+    //            BmnStripDigit* dig = &digit;
+    //
+    //            cout << "SIL# " << dig->GetStripSignal() << endl;
+    //        }
+    //    }
 
     // 8. Make correspondence between evId and lambda digits with info on channel and serial ...
     map <UInt_t, map < pair <Int_t, Int_t>, Long_t>> evIdGemChannelSerial; // GEM     --- <evId ---> <digi index + ch, serial>>
@@ -686,7 +804,7 @@ vector <BmnStripDigit> BmnLambdaEmbedding::GetDigitsFromLambda(TString lambdaEve
     }
 
     // Loop over GEM-digits
-    if (isGem) 
+    if (isGem)
         for (Int_t iDig = 0; iDig < fGemDigits->GetEntriesFast(); iDig++) {
             BmnMatch* digiMatch = (BmnMatch*) fGemMatch->UncheckedAt(iDig);
 
@@ -699,7 +817,7 @@ vector <BmnStripDigit> BmnLambdaEmbedding::GetDigitsFromLambda(TString lambdaEve
             // digi->SetName((point->GetTrackID() == idxProt) ? "PROTON" : "PION");
             digits.push_back(*digi);
         }
-       
+
     // Loop over CSC-digits
     if (isCsc)
         for (Int_t iDig = 0; iDig < fCscDigits->GetEntriesFast(); iDig++) {
@@ -736,14 +854,14 @@ vector <BmnStripDigit> BmnLambdaEmbedding::GetDigitsFromLambda(TString lambdaEve
 map <pair <Int_t, Int_t>, Long_t> BmnLambdaEmbedding::GetGemChannelSerialFromDigi(vector <BmnStripDigit> digits) {
     map <Int_t, Int_t> digiToChannel; // (digi index in vector ---> channel)
     map <pair <Int_t, Int_t>, Long_t> digiChannelToSerial; // (digi index in vector + channel ---> serial)
-    
+
     const Int_t nDigs = digits.size();
-    
+
     // Fill digiToChannel map ...
     Long_t serial[nDigs];
-    
+
     for (Int_t iDigi = 0; iDigi < nDigs; iDigi++) {
-        serial[iDigi] = 0x0;       
+        serial[iDigi] = 0x0;
         BmnStripDigit* dig = &digits[iDigi];
         digiToChannel[iDigi] = fInfo->GemDigiToChannel(dig, serial[iDigi]);
     }
@@ -918,7 +1036,7 @@ TString BmnLambdaEmbedding::AddInfoToRawFile(map <UInt_t, vector <BmnStripDigit>
 
                         Int_t sample = Int_t(channelTmp % 32);
                         Int_t signal = Int_t(digitsGem[itCorr.first.first].GetStripSignal());
-                      
+
                         if (isUseRealSignal)
                             adc32->GetShortValue()[sample] += signal * 16;
                         else
@@ -1062,6 +1180,9 @@ BmnLambdaEmbedding::~BmnLambdaEmbedding() {
 
     if (fMon)
         delete fMon;
+
+    if (normUtils)
+        delete normUtils;
 }
 
 void BmnLambdaEmbedding::SimulateLambdaPassing(Double_t P, TVector2 pos, TVector3 Vp, Int_t iLambda, Int_t iVertex) {

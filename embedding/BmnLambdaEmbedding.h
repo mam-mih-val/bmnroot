@@ -13,6 +13,7 @@
 #define BMNLAMBDAEMBEDDING_H 1
 
 #include <iostream>
+#include <stdlib.h>
 #include <vector>
 #include <fstream>
 #include <map>
@@ -38,6 +39,7 @@
 #include <BmnMatch.h>
 #include <BmnCSCPoint.h>
 #include <BmnParticlePair.h>
+#include <BmnRecoTools.h>
 
 #include "BmnLambdaMisc.h"
 #include "BmnLambdaEmbeddingMonitor.h"
@@ -49,21 +51,105 @@
 
 using namespace std;
 
+class SignalNormalizationUtils : public TNamed {
+public:
+
+    SignalNormalizationUtils() {
+        ;
+    }
+
+    virtual ~SignalNormalizationUtils() {
+        ;
+    }
+
+    SignalNormalizationUtils(TString digiFile, TString recoFile, Int_t clustSize = 0, Int_t lowThresh = 10) :
+    expGem(nullptr),
+    mcGem(nullptr),
+    expSil(nullptr),
+    mcSil(nullptr),
+    fClustSizeThresh(clustSize),
+    fLowThresh(lowThresh) {
+
+        TChain* chainEx = new TChain("bmndata");
+        chainEx->Add(digiFile.Data());
+
+        TClonesArray* gemEx = nullptr;
+        chainEx->SetBranchAddress("GEM", &gemEx);
+        
+        TClonesArray* silEx = nullptr;
+        chainEx->SetBranchAddress("SILICON", &silEx);
+
+        TChain* chainDST = new TChain("bmndata");
+        chainDST->Add(recoFile.Data());
+
+        TClonesArray* gemHits = nullptr;
+        chainDST->SetBranchAddress("BmnGemStripHit", &gemHits);
+        
+        TClonesArray* silHits = nullptr;
+        chainDST->SetBranchAddress("BmnSiliconHit", &silHits);
+        
+        chainEx->GetEntry();
+        chainDST->GetEntry();
+
+        // Getting experimental TF1 from current dst to be used further for rescaling ...
+        expGem = BmnRecoTools::GetSignalDistribution(chainEx, gemEx, chainDST, gemHits, nullptr, nullptr, 0, fClustSizeThresh);
+        expSil = BmnRecoTools::GetSignalDistribution(chainEx, silEx, chainDST, silHits, nullptr, nullptr, 0, fClustSizeThresh);
+
+        delete chainEx;
+        delete chainDST;
+    }
+    
+    void SetMcDataSet(TChain* chainMC) {        
+        TClonesArray* gemMC = nullptr;
+        chainMC->SetBranchAddress("BmnGemStripDigit", &gemMC);
+        
+        TClonesArray* silMC = nullptr;
+        chainMC->SetBranchAddress("BmnSiliconDigit", &silMC);
+        
+        chainMC->GetEntry();
+        
+        mcGem = BmnRecoTools::GetSignalDistribution(chainMC, gemMC,
+            nullptr, nullptr, nullptr, nullptr, fLowThresh, 0, 1e6);
+        
+        mcSil = BmnRecoTools::GetSignalDistribution(chainMC, silMC,
+            nullptr, nullptr, nullptr, nullptr, fLowThresh, 0, 1e6);
+    }
+
+    TF1* GetRescaleFunction(TString det) {
+        if (det.Contains("GEM") && mcGem && expGem)
+            return BmnRecoTools::GetRescaleFunc(TString("RescaleFuncGem"), mcGem, expGem);
+        else if (det.Contains("SILICON") && mcSil && expSil)
+             return BmnRecoTools::GetRescaleFunc(TString("RescaleFuncSil"), mcSil, expSil);
+        else
+            return nullptr;       
+    }
+
+private:
+    TF1* expGem;
+    TF1* mcGem;
+    
+    TF1* expSil;
+    TF1* mcSil;
+
+    Int_t fClustSizeThresh;
+    Int_t fLowThresh;
+};
+
 class BmnLambdaEmbedding : public TNamed {
 public:
     BmnLambdaEmbedding();
     BmnLambdaEmbedding(TString, TString, TString, TString, Int_t nEvs = 250);
-    ~BmnLambdaEmbedding();
+    virtual ~BmnLambdaEmbedding();
 
 public:
     void Embedding();
-    
+
     TClonesArray* CreateLambdaStore();
 
     void SetStorePath(TString path) {
         fStorePath = path;
     }
-   
+
     void SetNLambdaStore(Int_t nStores) {
         fNstores = nStores;
     }
@@ -206,6 +292,9 @@ private:
     // Embedding monitor ...
     BmnLambdaEmbeddingMonitor* fMon;
 
+    // Normalization utils ...
+    SignalNormalizationUtils* normUtils;
+
     // Cuts to be used when doing stores with lambda
     Double_t fEtaMin;
     Double_t fEtaMax;
@@ -226,7 +315,7 @@ private:
     void SimulateLambdaPassing(Double_t, TVector2, TVector3, Int_t, Int_t);
     Int_t FindReconstructableLambdaFromStore(Int_t, Int_t, BmnParticlePair&);
 
-    map <UInt_t, TVector3> ListOfEventsWithReconstructedVp();    
+    map <UInt_t, TVector3> ListOfEventsWithReconstructedVp();
     map <pair <Int_t, Int_t>, Long_t> GetGemChannelSerialFromDigi(vector <BmnStripDigit>);
     map <pair <Int_t, Int_t>, Long_t> GetCscChannelSerialFromDigi(vector <BmnStripDigit>);
     map <vector <Int_t>, Long_t> GetSiliconChannelSerialFromDigi(vector <BmnStripDigit>);

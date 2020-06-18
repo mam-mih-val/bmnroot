@@ -5,6 +5,7 @@
 #pragma link off all functions;
 
 #pragma link C++ class BmnInnerTrackerGeometryDraw+;
+#pragma link C++ class BmnLambdaEmbeddingDrawHistos+;
 #pragma link C++ class BmnLambdaEmbeddingQa+;
 #pragma link C++ class BmnLambdaEmbeddingMonitor+;
 #pragma link C++ class BmnLambdaEmbedding+;

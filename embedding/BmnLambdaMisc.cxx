@@ -160,8 +160,6 @@ void BmnLambdaMisc::CheckStripOverlaps() {
             MappingInfo* info = new ((*mapInfo)[mapInfo->GetEntriesFast()]) MappingInfo(iStat, filename, stripGlobChan);
             info->channels = make_pair(min, max);
         }
-
-        cout << endl;
     }
 
     // Looking for overlapping channels with main part of big zone ...

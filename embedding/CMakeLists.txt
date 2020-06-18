@@ -17,6 +17,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/embedding
  ${CMAKE_SOURCE_DIR}/physics/particles
+ ${CMAKE_SOURCE_DIR}/physics/bmnrecotools
  ### Additional include sources 
  )
 
@@ -43,11 +44,12 @@ set(SRCS
  BmnLambdaEmbeddingMonitor.cxx
  BmnLambdaEmbeddingQa.cxx 
  BmnInnerTrackerGeometryDraw.cxx 
+BmnLambdaEmbeddingDrawHistos.cxx
 )
 
 Set(HEADERS)
 Set(LINKDEF EmbeddingLinkDef.h)
 Set(LIBRARY_NAME BmnEmbedding)
-Set(DEPENDENCIES Core Base BmnDst Gem Decoder BmnParticles BmnField)
+Set(DEPENDENCIES Core Base BmnDst Gem Decoder BmnParticles BmnField RecoTools)
 
 GENERATE_LIBRARY()

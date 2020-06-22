@@ -50,25 +50,6 @@ BmnSilicon::~BmnSilicon() {
 
 Bool_t BmnSilicon::ProcessHits(FairVolume* vol) {
 
-    // Determine station and module numbers for the current hit ----------------
-    Int_t stationNum = -1; // current station number (default)
-    Int_t moduleNum = -1; // current module number (default)
-
-    TString moduleVolumeName = gGeoManager->GetCurrentNode()->GetMotherVolume()->GetName();
-
-    TRegexp expr = "^module[0-9]+_station[0-9]+$";
-    if(moduleVolumeName.Contains(expr)) {
-        TRegexp mod_expr = "module[0-9]+";
-        TRegexp stat_expr = "station[0-9]+";
-
-        moduleNum = TString(TString(moduleVolumeName(mod_expr))(TRegexp("[0-9]+"))).Atoi();
-        stationNum = TString(TString(moduleVolumeName(stat_expr))(TRegexp("[0-9]+"))).Atoi();
-    }
-
-    //cout << "stationNum = " << stationNum << "\n";
-    //cout << "moduleNum = " << moduleNum << "\n";
-    //cout << "\n";
-
     // Set parameters at entrance of volume. Reset ELoss.
     if(gMC->IsTrackEntering()) {
 
@@ -88,7 +69,6 @@ Bool_t BmnSilicon::ProcessHits(FairVolume* vol) {
         gMC->TrackMomentum(MomIn);
         fMomIn.SetXYZ(MomIn.X(), MomIn.Y(), MomIn.Z());
 
-
         TParticle* part = 0;
         part = gMC->GetStack()->GetCurrentTrack();
         if (part) {
@@ -98,7 +78,6 @@ Bool_t BmnSilicon::ProcessHits(FairVolume* vol) {
         }
 
         fVolumeID = vol->getMCid();
-
         fTrackID = gMC->GetStack()->GetCurrentTrackNumber();
     }
 
@@ -116,11 +95,43 @@ Bool_t BmnSilicon::ProcessHits(FairVolume* vol) {
         gMC->TrackMomentum(MomOut);
         fMomOut.SetXYZ(MomOut.X(), MomOut.Y(), MomOut.Z());
 
+        //correction step to avoid the seg. violation error due to invalid memory access
+        TVector3 diff_pos = fPosIn - fPosOut;
+
+        if(diff_pos.Mag() < 0.001) return kFALSE; //ignore points produced by tracks with zero length inside the current sens. volume
+        if(fMomOut.Mag() == 0) return kFALSE; // ignore points produced by tracks with zero momentum inside the current sens. volume
+
+        TVector3 corr_step = fMomOut;
+        corr_step.SetMag(0.001); // 10 um
+        TVector3 pos = fPosOut;
+	fPosOut = pos - corr_step;
+        gGeoManager->FindNode(fPosOut[0],fPosOut[1],fPosOut[2]);
+
+        if(gGeoManager->GetCurrentNode()->GetMotherVolume() == 0) return kFALSE; //check if the current node has its mother vol.
+
         BmnSiliconPoint *p = AddHit(fTrackID, fVolumeID,
                                     fPosIn, fPosOut,
                                     fMomIn, fMomOut,
                                     fTime, fLength, fELoss,
                                     fIsPrimary, fCharge, fPdgId);
+
+        // Determine station and module numbers for the current hit ------------
+        Int_t stationNum = -1; // current station number (default)
+        Int_t moduleNum = -1; // current module number (default)
+
+        TGeoVolume *motherVolume = gGeoManager->GetCurrentNode()->GetMotherVolume();
+        TString moduleVolumeName = motherVolume->GetName();
+
+        TRegexp expr = "^module[0-9]+_station[0-9]+$";
+        if(moduleVolumeName.Contains(expr)) {
+            TRegexp mod_expr = "module[0-9]+";
+            TRegexp stat_expr = "station[0-9]+";
+            moduleNum = TString(TString(moduleVolumeName(mod_expr))(TRegexp("[0-9]+"))).Atoi();
+            stationNum = TString(TString(moduleVolumeName(stat_expr))(TRegexp("[0-9]+"))).Atoi();
+        }
+        //cout << "stationNum = " << stationNum << "\n";
+        //cout << "moduleNum = " << moduleNum << "\n";
+        //cout << "\n";
 
         p->SetStation(stationNum);
         p->SetModule(moduleNum);

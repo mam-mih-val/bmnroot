@@ -1,24 +1,10 @@
 {
-  "MONITORING": {
-    "unit": {
-      "SERVER": "vm221-53.jinr.ru",
-      "DBMS": "PGSQL",
-      "PORT": 5432,
-      "DBNAME": "bmn_db",
-      "USER": "db_reader",
-      "PASS": "reader_pass",
-      "NOTIFY": "email@jinr.ru"
-    }
-  },
-
   "PING": {
     "db_server": {
-      "IP": "vm221-53.jinr.ru",
-      "NOTIFY": "email@jinr.ru"
+      "IP": "vm221-53.jinr.ru"
     },
     "db_interface": {
-      "IP": "se51-98.jinr.ru",
-      "NOTIFY": "email@jinr.ru"
+      "IP": "se51-98.jinr.ru"
     }
   },
   "DATABASE": {
@@ -28,17 +14,17 @@
       "PORT": 5432,
       "DBNAME": "bmn_db",
       "USER": "db_reader",
-      "PASS": "reader_pass",
-      "NOTIFY": "email@jinr.ru"
+      "PASS": "reader_pass"
     }
   },
 
   "OUTPUT": {
     "DBMS": "INFLUXDB",
-    "SERVER": "192.168.65.52",
+    "SERVER": "nc13.jinr.ru",
     "PORT": 8086,
-    "DBNAME": "pgsqltest",
-    "NOTIFY": "email@jinr.ru"
+    "DBNAME": "mon_unidb",
+    "USER": "*",
+    "PASS": "*"
   },
 
   "INTERVAL_SEC": 60,
@@ -50,5 +36,7 @@
     "PASS": "*"
   },
 
-  "LOG": "email@jinr.ru"
+  "LOG": "email@jinr.ru",
+  "NOTIFY": "email@jinr.ru",
+  "NAME": "UniDB Monitoring"
 }

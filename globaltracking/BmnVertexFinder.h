@@ -14,8 +14,7 @@
 #include "FairField.h"
 #include "CbmVertex.h"
 #include "BmnKalmanFilter.h"
-#include "BmnGemStripStationSet.h"
-#include "BmnGemStripStationSet_RunSpring2017.h"
+#include <TStopwatch.h>
 
 using namespace std;
 
@@ -39,10 +38,11 @@ public:
         fRoughVertex3D = vertex;
     }
 
-    void FindVertexByVirtualPlanes();
-    Float_t FindVZByVirtualPlanes(Float_t z_0, Float_t range);
+    void FindPrimaryVertex();
+    void FindSecondaryVertex();
+    Float_t FindVZByVirtualPlanes(Float_t z_0, Float_t range, TClonesArray* tracks, Int_t flag);
 
-private:
+   private:
 
     Double_t CalcRms2D(vector<Double_t> x, vector<Double_t> y);
     Double_t CalcMeanDist(vector<Double_t> x, vector<Double_t> y);
@@ -57,6 +57,8 @@ private:
 
     TClonesArray* fGlobalTracksArray;
     TClonesArray* fVertexArray;
+
+    Double_t fTime;
 
     Bool_t fIsField;
     Bool_t fRobustRefit;

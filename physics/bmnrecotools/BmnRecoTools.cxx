@@ -445,24 +445,24 @@ TF1* BmnRecoTools::GetSignalDistribution(TTree *tree, TClonesArray *arMC,
         hIntSig.SetBinContent(i, bc);
         //        printf("i = %d  center = %f  content = %f\n", i, hIntSig.GetBinCenter(i), bc);
     }
-    name = "can";
-    gStyle->SetOptStat(0);
-    TCanvas* can = new TCanvas(name, name, 1600, 900 * 2);
-    can->Divide(1, 2);
-    TVirtualPad * padSig = can->cd(1);
-    padSig->SetLogy();
-    padSig->SetLogx();
-    hSig->Scale();
-    hSig->Draw();
-
-    TVirtualPad * padInt = can->cd(2);
-    padInt->SetLogy();
-    padInt->SetLogx();
+//    name = "can";
+//    gStyle->SetOptStat(0);
+//    TCanvas* can = new TCanvas(name, name, 1600, 900 * 2);
+//    can->Divide(1, 2);
+//    TVirtualPad * padSig = can->cd(1);
+//    padSig->SetLogy();
+//    padSig->SetLogx();
+//    hSig->Scale();
+//    hSig->Draw();
+//
+//    TVirtualPad * padInt = can->cd(2);
+//    padInt->SetLogy();
+//    padInt->SetLogx();
     if (bc == 0)
         return nullptr;
     hIntSig.Scale(1 / bc);
     hIntSig.SetLineColor(kRed);
-    hIntSig.Draw();
+//    hIntSig.Draw();
 
     TF1 *sig = new TF1(Form("SignalInt_%s", arMC->GetName()),
             [hIntSig, bc, minVal, maxVal, nBins](Double_t *x, Double_t * p) {
@@ -481,9 +481,9 @@ TF1* BmnRecoTools::GetSignalDistribution(TTree *tree, TClonesArray *arMC,
     sig->SetLineColor(kBlue);
     //    hIntSig.Fit(sig, "R");
     //    sig->Draw("same");
-    can->Print(Form("sigs_%s_%d.pdf", arMC->GetName(), tree->GetNbranches()));
+//    can->Print(Form("sigs_%s_%d.pdf", arMC->GetName(), tree->GetNbranches()));
     delete hSig;
-    delete can;
+//    delete can;
     return sig;
 }
 

@@ -31,13 +31,14 @@ void rescaleAmplitude(TString fileNameMC, TString fileNameEx, TString fileNameDS
         cout << "Files need to be specified!" << endl;
         return;
     }
+    gStyle->SetOptStat(0);
     Int_t ClusterSizeThr = 0;
-    Double_t lowThr = 10;
+    Double_t lowThr = 0;
     Int_t xBins = 400;
     Double_t xLow = 0.0;
     Double_t xUp = 2300.0;
-    Int_t nCSize = 4;
-    vector<EColor> cols = {kBlack, kBlue, kTeal, kViolet};
+    Int_t nCSize = 5;
+    vector<EColor> cols = {kBlack, kBlue, kTeal, kViolet, kOrange};
 
     bmnloadlibs(); // load libraries
     //    gSystem->Load("libBmnRecoTools");
@@ -72,10 +73,10 @@ void rescaleAmplitude(TString fileNameMC, TString fileNameEx, TString fileNameDS
 
     TF1 *mc = BmnRecoTools::GetSignalDistribution(chainMC, gemMC,
             nullptr, nullptr, nullptr, nullptr,
-            lowThr, 0, 1e6);
+            lowThr, 0, 2e6);
     TF1 *ex = BmnRecoTools::GetSignalDistribution(chainEx, gemEx,
             chainDST, gemHits, gemTracks, tracks,
-            0, ClusterSizeThr);
+            0, ClusterSizeThr, 2e6);
     TF1 *funcRescale = BmnRecoTools::GetRescaleFunc(TString("RescaleGEM"), mc, ex);
     printf("rescaling func created\n");
 
@@ -221,7 +222,7 @@ void rescaleAmplitude(TString fileNameMC, TString fileNameEx, TString fileNameDS
     legend->AddEntry(hGemMC, "MC rescaled by all exp digits");
     legend->Draw();
 
-    can->Print(Form("%s-th-%.1f-cs-%d-Lower.pdf", can->GetName(), lowThr, ClusterSizeThr));
+    can->Print(Form("%s-th-%.1f-cs-%d-Lower-2m2m.pdf", can->GetName(), lowThr, ClusterSizeThr));
     can->Clear();
 
     can->SetLogy(kFALSE);

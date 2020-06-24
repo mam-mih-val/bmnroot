@@ -56,7 +56,12 @@ void BmnZdcDigitizer::Exec(Option_t* opt) {
     for (Int_t i = 1; i < 105; i++) {
         Double_t amp = fModules[i].GetAmp() * fScale;
         
-        if (amp == 0. || amp < fThreshold) continue;
+        if (amp == 0.) continue;
+        if (i < 69) {
+            if (amp < fLargeModThreshold) continue;
+        } else {
+            if (amp < fSmallModThreshold) continue;
+        }
         
         BmnZDCDigit * p = new((*fArrayOfZdcDigits)[fArrayOfZdcDigits->GetEntriesFast()]) BmnZDCDigit();
         *p = fModules[i];

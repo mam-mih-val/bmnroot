@@ -24,7 +24,11 @@ public:
     void LoadMap(const char * fileName);
     
     void SetScale(Double_t val) { fScale = val; }
-    void SetThreshold(Double_t val) { fThreshold = val; }
+    void SetThreshold(Double_t val) { fSmallModThreshold = fLargeModThreshold = val; }
+    void SetThreshold(Double_t small, Double_t lagre) { 
+        fSmallModThreshold = small;
+        fLargeModThreshold = lagre; 
+    }
     
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
@@ -37,9 +41,10 @@ private:
     TClonesArray * fArrayOfZdcDigits; // output
     
     Double_t fScale = 1.;
-    Double_t fThreshold = 0.;
+    Double_t fSmallModThreshold = 0.;
+    Double_t fLargeModThreshold = 0.;
 
-    ClassDef(BmnZdcDigitizer,2);
+    ClassDef(BmnZdcDigitizer,3);
 };
 
 #endif /* BMNZDCDIGITIZER_H */

@@ -52,17 +52,17 @@ private:
     Float_t fEp;   // Protons side (12 large modules), GeV
     Float_t fEn;   // Nutrons side (12 large modules), GeV
     
-    Int_t fH;       // Number of hits (modules triggered)
-    Int_t fHc;      // Central hits
-    Int_t fHp;      // Proton-side hits
-    Int_t fHn;      // Nutron-side hits
+    UChar_t fH;       // Number of hits (modules triggered)
+    UChar_t fHc;      // Central hits
+    UChar_t fHp;      // Proton-side hits
+    UChar_t fHn;      // Nutron-side hits
 
     Float_t fX;
     Float_t fY;
     Float_t fAsymmetry;
     Float_t fMoment;
     
-    ClassDef(BmnZDCEventData, 1);
+    ClassDef(BmnZDCEventData, 2);
 };
 
 #endif /* BMNZDCEVENTDATA_H */

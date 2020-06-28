@@ -132,6 +132,7 @@ set(SRCS
  BmnZDCDigit.cxx
  BmnZDCEventData.cxx
  BmnLANDDigit.cxx
+ BmnTrigUnion.h
 
 #BmnVertex.cxx
 )

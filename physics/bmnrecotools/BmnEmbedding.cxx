@@ -238,6 +238,7 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
         fInTreeBase->GetEntry(iEv);
         //        fDestTree->GetEntry(iEv);
         fInTreeSource->GetEntry(iEv);
+        destEH->Clear();
         for (UInt_t iBr = 0; iBr < fNArs; iBr++) {
             digiDestArs[iBr]->Clear("C");
             if (addMatch == kTRUE && iBr < matchNames.size())
@@ -334,6 +335,15 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
         destEH->SetEventType(baseEH->GetEventType());
         destEH->SetPeriodId(baseEH->GetPeriodId());
         destEH->SetRunId(baseEH->GetRunId());
+        BmnTrigUnion s = destEH->GetTrigState();
+        BmnTrigStructPeriod7SetupBMN bs;
+        bs.BC1 = true;
+        bs.BC2 = true;
+        bs.VETO = true;
+        bs.ThrBD = 2;
+        bs.ThrSI = 3;
+        s.Period7BMN = bs;
+        destEH->SetTrigState(s);
         //        EHBranch->Fill();
         fDestTree->Fill();
     }

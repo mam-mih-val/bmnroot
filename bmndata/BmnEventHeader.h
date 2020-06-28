@@ -8,6 +8,7 @@
 #include "FairRootManager.h"
 
 #include "TTimeStamp.h"
+#include "BmnTrigUnion.h"
 
 #include <map>
 #include <vector>
@@ -34,6 +35,7 @@ private:
     Double_t fStartSignalTime; //ns
     Double_t fStartSignalWidth; //ns
     BmnTrigInfo* fTrigInfo;
+    UInt_t fTrigUnion;
 
     map<UInt_t, Long64_t> fTimeShift;
 
@@ -54,7 +56,8 @@ public:
     {
         FairRootManager::Instance()->Register(fHeaderName.Data(), "EvtHeader", this, Persistence);
     }
-
+    
+    void Clear();
 
     /** Get Event Header branch name */
     TString GetHeaderName() { return fHeaderName; }
@@ -82,6 +85,9 @@ public:
 
     /** Get the spill statistics */
     BmnTrigInfo* GetTrigInfo() { return fTrigInfo; }
+    
+    /** Get the trigger state */
+    BmnTrigUnion GetTrigState() {BmnTrigUnion u; u.storage = fTrigUnion; return u; }
 
     map<UInt_t, Long64_t> GetTimeShift() { return fTimeShift; }
 
@@ -122,10 +128,13 @@ public:
         if (fTrigInfo) delete fTrigInfo;
         fTrigInfo = new BmnTrigInfo(trig_info);
     }
+    
+    /** Set the trigger state */
+    void SetTrigState(BmnTrigUnion &v) { fTrigUnion = v.storage; }
 
     void SetTimeShift(map <UInt_t, Long64_t> time_shift) { fTimeShift = time_shift; }
 
-    ClassDef(BmnEventHeader, 1)
+    ClassDef(BmnEventHeader, 2)
 };
 
 #endif /* BMNEVENTHEADER_H */

@@ -31,6 +31,7 @@
 #include "BmnSiliconStationSet.h"
 #include "BmnGemStripStationSet.h"
 #include <BmnRecoTools.h>
+#include <BmnTrigUnion.h>
 
 /**
  * BmnEmbedding - operational class for digit level embedding procedure

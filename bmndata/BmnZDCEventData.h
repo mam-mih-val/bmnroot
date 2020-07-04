@@ -18,7 +18,17 @@ public:
     BmnZDCEventData();
     virtual ~BmnZDCEventData();
     
+    /// 
+    /// Calculate all parameters values from BmnZDCDigits passed
+    //
+    /// \param pArrayOfBmnZDCDigits - array of BmnZDCDigit 
+    /// \param pModuleScale - Array of coeffs for each ZDC module
+    ///                            (starting from 1 to 104, index 0 is not used)
+    /// \param pModuleThreshold - Array of thresholds for each ZDC module 
+    ///                            (starting from 1 to 104, index 0 is not used)
+    ///
     void Set(TClonesArray * pArrayOfBmnZDCDigits, Float_t * pModuleScale = 0, Float_t * pModuleThreshold = 0);
+    
     /// 
     /// Get ZDC energy
     ///

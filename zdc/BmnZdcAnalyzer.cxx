@@ -25,7 +25,7 @@ InitStatus BmnZdcAnalyzer::Init() {
 }
 
 void BmnZdcAnalyzer::Exec(Option_t* opt) {
-    fBmnZDCEventData->Set(fArrayOfZdcDigits);
+    fBmnZDCEventData->Set(fArrayOfZdcDigits, fModuleScale, fModuleThreshold);
 }
 
 //ClassImp(BmnZdcAnalyzer)

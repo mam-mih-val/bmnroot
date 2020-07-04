@@ -271,6 +271,12 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     fRunAna->AddTask(glTF);
 
     // ====================================================================== //
+    // ===                             ZDC                                === //
+    // ====================================================================== //
+    BmnZdcAnalyzer * zdcAna = new BmnZdcAnalyzer();
+    fRunAna->AddTask(zdcAna);
+
+    // ====================================================================== //
     // ===                      Primary vertex finding                    === //
     // ====================================================================== //
     BmnVertexFinder* gemVF = new BmnVertexFinder(run_period, isField);

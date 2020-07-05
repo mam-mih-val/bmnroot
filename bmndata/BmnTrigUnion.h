@@ -26,7 +26,8 @@ struct __attribute__ ((packed)) BmnTrigStructPeriod7SetupBMN
     bool BC2:1;
     bool BC3:1;
     bool VETO:1; ///<- means not VETO
-    UShort_t :8; // not used
+    UShort_t :7; // not used
+    bool IsSpecial:1;
     UShort_t ThrBD:5;
     UShort_t ThrSI:5;
     UShort_t :10; // not used
@@ -36,17 +37,17 @@ struct __attribute__ ((packed)) BmnTrigStructPeriod7SetupSRC
 {
     bool BC1:1;
     bool BC2:1;
-    bool BC3Hi:1;///<- means not BC3-Hi
+    bool AntiBC3Hi:1;
+    bool BC3Hi:1;
     bool VETO:1; ///<- means not VETO
     bool X1:1;
     bool Y1:1;
     bool X1Y1_and_X2Y2:1; ///<- 1 - and, 0 - or
     bool X2:1;
     bool Y2:1;
-    UShort_t :3; // not used
-    UShort_t ThrBD:5;
-    UShort_t ThrSI:5;
-    UShort_t :10; // not used
+    UShort_t :1; // not used
+    bool IsSpecial:1;
+    UInt_t :20; // not used
 };
 
 struct __attribute__ ((packed)) BmnTrigStructPeriod6
@@ -55,7 +56,8 @@ struct __attribute__ ((packed)) BmnTrigStructPeriod6
     bool BC2:1;
     bool T0:1;
     bool VETO:1; ///<- means not VETO
-    UShort_t :8; // not used
+    UShort_t :7; // not used
+    bool IsSpecial:1;
     UShort_t ThrBD:5;
     UShort_t :15; // not used
 };
@@ -66,7 +68,7 @@ union BmnTrigUnion {
     BmnTrigStructPeriod6 Period6;
     UInt_t storage; 
     BmnTrigUnion(){memset(this, 0, sizeof(BmnTrigUnion));}
-    BmnTrigUnion(const BmnTrigUnion &v){this->Period7BMN = v.Period7BMN;}
+    BmnTrigUnion(const BmnTrigUnion &v){this->storage = v.storage;}
 };
 
 #endif /* BMNTRIGUNION_H */

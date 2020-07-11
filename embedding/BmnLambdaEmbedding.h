@@ -138,7 +138,7 @@ private:
 class BmnLambdaEmbedding : public TNamed {
 public:
     BmnLambdaEmbedding();
-    BmnLambdaEmbedding(TString, TString, TString, TString, Int_t nEvs = 250);
+    BmnLambdaEmbedding(TString, TString, TString, TString, Int_t nEvs = 250, TString lambdaStore = "");
     virtual ~BmnLambdaEmbedding();
 
 public:
@@ -225,6 +225,11 @@ public:
         fSignal.push_back(sigSilicon);
         fSignal.push_back(sigCsc);
     }
+    
+    // Set a store to be passed to simulations if necessary 
+    void SetStoreToProcess(Int_t storeNumber) {
+        fStoreToProcess = storeNumber;
+    }
 
 private:
     Int_t fEvents;
@@ -254,9 +259,11 @@ private:
     TClonesArray* fSync; // SYNC
 
     TClonesArray* fLambdaStore;
+    TClonesArray** fWrittenStores;
 
     DstEventHeader* fHeader;
 
+    Int_t fStoreToProcess;
     UInt_t fRunId;
     Double_t fFieldScale;
 

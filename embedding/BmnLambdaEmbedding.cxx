@@ -28,13 +28,14 @@ fMon(nullptr) {
     fInfo = new BmnLambdaMisc(); // Initialize useful tools to work with mapping ...
 }
 
-BmnLambdaEmbedding::BmnLambdaEmbedding(TString raw, TString sim, TString reco, TString out, Int_t nEvs) :
+BmnLambdaEmbedding::BmnLambdaEmbedding(TString raw, TString sim, TString reco, TString out, Int_t nEvs, TString lambdaStore) :
 fSim(nullptr),
 fLambdaSim(nullptr),
 fReco(nullptr),
 fMCTracks(nullptr),
 fVertices(nullptr),
 fLambdaStore(nullptr),
+fWrittenStores(nullptr),
 fHeader(nullptr),
 fADC32(nullptr),
 fADC128(nullptr),
@@ -84,7 +85,33 @@ normUtils(nullptr) {
 
     // Useful tools 
     fInfo = new BmnLambdaMisc(); // Initialize useful tools to work with mapping ...
-    fLambdaStore = new TClonesArray("BmnLambdaStore"); // Initialize container to store primary lambdas to be used for simulations ...
+
+    fNstores = 10;
+    fStoreToProcess = -1;
+
+    if (!lambdaStore.IsNull()) {
+        fWrittenStores = new TClonesArray*[fNstores];
+        for (Int_t iStore = 0; iStore < fNstores; iStore++)
+            fWrittenStores[iStore] = nullptr;
+
+        for (Int_t iStore = 0; iStore < fNstores; iStore++)
+            fWrittenStores[iStore] = new TClonesArray("BmnLambdaStore");
+
+        TChain* ch = new TChain("bmndata");
+        ch->Add(lambdaStore.Data());
+
+        TClonesArray* tmp = nullptr;
+        ch->SetBranchAddress("BmnLambdaStore", &tmp);
+
+        for (Int_t iStore = 0; iStore < fNstores; iStore++) {
+            ch->GetEntry(iStore);
+
+            fWrittenStores[iStore] = (TClonesArray*) (tmp->UncheckedAt(0))->Clone();
+        }
+
+        delete ch;
+    } else
+        fLambdaStore = new TClonesArray("BmnLambdaStore");
 
     fRunId = -1;
     fFieldScale = -1.;
@@ -97,13 +124,51 @@ normUtils(nullptr) {
     fPhiMin = 0.;
     fPhiMax = 360.;
     fMomMin = 0.;
-    fNstores = 10;
     fNHitsProton = 4;
     fNHitsPion = 4;
     isUseRealSignal = kTRUE;
 
-    for (auto it : fSignal)
-        it = 0;
+    fSignal.push_back(1000);
+    fSignal.push_back(1500);
+    fSignal.push_back(1000);
+
+    // Resetting default values of flags depending on an user's scenario if recognized
+    // Scenario 1 (just selecting Lambdas ...)
+    if ((!out.Contains("digi") && !out.IsNull()) && raw.IsNull() && !sim.IsNull() && reco.IsNull() && lambdaStore.IsNull()) {
+        cout << "Recognized scenario 1" << endl;
+        DoLambdaStore(kTRUE);
+        DoPrintStoreInfo(kTRUE);
+        SetUseRealSignals(kFALSE);
+        DoListOfEventsWithReconstructedVertex(kFALSE);
+        DoSimulateLambdaThroughSetup(kFALSE);
+        DoRawRootConvertion(kFALSE);
+        DoEmbeddingMonitor(kFALSE);
+        DoEmbedding(kFALSE);
+        DoDecode(kFALSE);
+    }        // Scenario 2 (passing all stores (or selected one) in file to simulation ...)
+    else if (raw.IsNull() && sim.IsNull() && !reco.IsNull() && out.IsNull() && !lambdaStore.IsNull()) {
+        cout << "Recognized scenario 2 (or 3)" << endl;
+        DoLambdaStore(kFALSE);
+        DoPrintStoreInfo(kFALSE);
+        SetUseRealSignals(kFALSE);
+        DoSimulateLambdaThroughSetup(kTRUE);
+        DoRawRootConvertion(kFALSE);
+        DoEmbeddingMonitor(kFALSE);
+        DoEmbedding(kFALSE);
+        DoDecode(kFALSE);
+    }
+        // Scenario 4 (namely, embedding )
+    else if (!raw.IsNull() && (out.Contains("digi") && !out.IsNull()) && sim.IsNull() && !reco.IsNull() && lambdaStore.IsNull()) {
+        cout << "Recognized scenario 4" << endl;
+        DoLambdaStore(kFALSE);
+        DoPrintStoreInfo(kFALSE);
+        DoRawRootConvertion(kTRUE);
+        DoSimulateLambdaThroughSetup(kFALSE);
+        SetUseRealSignals(kTRUE);
+        DoEmbeddingMonitor(kTRUE);
+        DoEmbedding(kTRUE);
+        DoDecode(kTRUE);
+    }
 }
 
 void BmnLambdaEmbedding::Embedding() {
@@ -140,8 +205,34 @@ void BmnLambdaEmbedding::Embedding() {
     }
 
     // 1. Create a store with lambdas ...
-    if (doLambdaStore)
-        CreateLambdaStore();
+    if (doLambdaStore) {
+        if (!fDigiFileName.Contains("digi") && !fDigiFileName.IsNull()) {
+            TClonesArray* store = CreateLambdaStore();
+
+            TFile* f = new TFile(fDigiFileName.Data(), "recreate");
+            TTree* tree = new TTree("bmndata", "bmndata");
+
+            TClonesArray* tmp = new TClonesArray("BmnLambdaStore");
+            tree->Branch("BmnLambdaStore", &tmp);
+
+            for (Int_t iEntry = 0; iEntry < store->GetEntriesFast(); iEntry++) {
+                tmp->Delete();
+                TClonesArray* arr = (TClonesArray*) store->UncheckedAt(iEntry);
+
+                new ((*tmp)[tmp->GetEntriesFast()]) BmnLambdaStore(*((BmnLambdaStore*) arr));
+                tree->Fill();
+            }
+
+            tree->Write();
+
+            delete tmp;
+            delete tree;
+            delete f;
+
+        } else
+            CreateLambdaStore();
+    }
+
     if (doPrintStoreInfo)
         PrintStoreInfo();
 
@@ -163,29 +254,79 @@ void BmnLambdaEmbedding::Embedding() {
     // 4. Loop over store with lambdas ...
     Int_t nThreads = 1;
 #if defined(_OPENMP)
-    nThreads = 20;
+    nThreads = fNstores;
     omp_set_num_threads(nThreads);
 #endif
+
+    if (doSimulateLambdaThroughSetup) {
+        Int_t low = (fStoreToProcess != -1) ? fStoreToProcess : 0;
+        Int_t up = (fStoreToProcess != -1) ? (fStoreToProcess + 1) : fNstores;
+
 #pragma omp parallel for
-    for (Int_t iLambda = 0; iLambda < fLambdaStore->GetEntriesFast(); iLambda++) {
-        BmnLambdaStore* lambda = (BmnLambdaStore*) fLambdaStore->UncheckedAt(iLambda);
-        Double_t eta = lambda->GetEta();
-        Double_t phi = lambda->GetPhi();
-        Double_t p = lambda->GetP();
+        for (Int_t iLambda = low; iLambda < up; iLambda++) {
+            BmnLambdaStore* lambda = (BmnLambdaStore*) fWrittenStores[iLambda];
+            Double_t eta = lambda->GetEta();
+            Double_t phi = lambda->GetPhi();
+            Double_t p = lambda->GetP();
 
-        Int_t iVertex = 0;
+            Int_t iVertex = 0;
 
-        for (auto it : EventIdsVpMap) {
-            // Get reconstructed primary vertex ...
-            TVector3 Vp = it.second;
+            for (auto it : EventIdsVpMap) {
+                // Get reconstructed primary vertex ...
+                TVector3 Vp = it.second;
 
-            if (doSimulateLambdaThroughSetup)
                 SimulateLambdaPassing(p, TVector2(eta, phi), Vp, iLambda, iVertex);
 
-            iVertex++;
+                iVertex++;
+            }
         }
 
-        lambda->SetUsing(kTRUE);
+
+
+
+
+
+        //        if (fStoreToProcess != -1) {
+        //            BmnLambdaStore* lambda = (BmnLambdaStore*) fWrittenStores[fStoreToProcess];
+        //            Double_t eta = lambda->GetEta();
+        //            Double_t phi = lambda->GetPhi();
+        //            Double_t p = lambda->GetP();
+        //
+        //            Int_t iVertex = 0;
+        //
+        //            for (auto it : EventIdsVpMap) {
+        //                // Get reconstructed primary vertex ...
+        //                TVector3 Vp = it.second;
+        //
+        //                SimulateLambdaPassing(p, TVector2(eta, phi), Vp, fStoreToProcess, iVertex);
+        //
+        //                iVertex++;
+        //            }
+        //
+        //            lambda->SetUsing(kTRUE);
+        //        }
+        //        else {
+        //#pragma omp parallel for
+        //            for (Int_t iLambda = 0; iLambda < fNstores; iLambda++) {
+        //                BmnLambdaStore* lambda = (BmnLambdaStore*) fWrittenStores[iLambda];
+        //                Double_t eta = lambda->GetEta();
+        //                Double_t phi = lambda->GetPhi();
+        //                Double_t p = lambda->GetP();
+        //
+        //                Int_t iVertex = 0;
+        //
+        //                for (auto it : EventIdsVpMap) {
+        //                    // Get reconstructed primary vertex ...
+        //                    TVector3 Vp = it.second;
+        //
+        //                    SimulateLambdaPassing(p, TVector2(eta, phi), Vp, iLambda, iVertex);
+        //
+        //                    iVertex++;
+        //                }
+        //
+        //                lambda->SetUsing(kTRUE);
+        //            }
+        //        }
     }
 
     // 5. Find at least one lambda to be reconstructed for a given Vp
@@ -363,26 +504,6 @@ void BmnLambdaEmbedding::Embedding() {
         }
     }
 
-//        for (auto digs : digsFromLambdasGem) {
-//            vector <BmnStripDigit> digitsInEvent = digs.second;
-//    
-//            for (auto digit : digitsInEvent) {
-//                BmnStripDigit* dig = &digit;
-//    
-//                cout << "GEM# " << dig->GetStripSignal() << endl;
-//            }
-//        }
-    //    
-    //    for (auto digs : digsFromLambdasSilicon) {
-    //        vector <BmnStripDigit> digitsInEvent = digs.second;
-    //
-    //        for (auto digit : digitsInEvent) {
-    //            BmnStripDigit* dig = &digit;
-    //
-    //            cout << "SIL# " << dig->GetStripSignal() << endl;
-    //        }
-    //    }
-
     // 8. Make correspondence between evId and lambda digits with info on channel and serial ...
     map <UInt_t, map < pair <Int_t, Int_t>, Long_t>> evIdGemChannelSerial; // GEM     --- <evId ---> <digi index + ch, serial>>
     map <UInt_t, map < pair <Int_t, Int_t>, Long_t>> evIdCscChannelSerial; // CSC     --- <evId ---> <digi index + ch, serial>>
@@ -432,7 +553,8 @@ void BmnLambdaEmbedding::Embedding() {
 Int_t BmnLambdaEmbedding::FindReconstructableLambdaFromStore(Int_t iLambda, Int_t iVertex, BmnParticlePair& pairFromLambda) {
     TString fileName = TString::Format("%s/lambda%d_vertex%d.root", fStorePath.Data(), iLambda, iVertex);
     TChain ch("bmndata");
-    ch.Add(fileName.Data());
+    if (ch.Add(fileName.Data()) == 0)
+        return -1;
 
     // Open lambda file
     TClonesArray* tracks = nullptr;

@@ -114,6 +114,8 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fMSCRunTotal = nullptr;
     fMSCMapper = nullptr;
     InitUTCShift();
+    fNECALSerials = 0;
+    fNZDCSerials = 0;
     //InitMaps();
 }
 

@@ -23,14 +23,14 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 
 /**
  * rescaleAmplitudes
- * Example of ADC signal rescaling procedures for CSC strip digits
+ * Example of ADC signal rescaling procedures for Si strip digits
  * @param fileNameMC
  * @param fileNameEx
  * @param fileNameDST
  * @param aClusterSizeThr cluster size lower threshold
  * @param aLowThr strip signal lower threshold
  */
-void rescaleAmplitudeCSC(TString fileNameMC, TString fileNameEx, TString fileNameDST,
+void rescaleAmplitudeGem(TString fileNameMC, TString fileNameEx, TString fileNameDST,
         Double_t aClusterSizeThr = 1.0,
         Double_t aLowThr = 0.0) {
     if (fileNameMC == "" || fileNameEx == "") {
@@ -42,7 +42,7 @@ void rescaleAmplitudeCSC(TString fileNameMC, TString fileNameEx, TString fileNam
     gStyle->SetOptStat(0);
     Int_t ClusterSizeThr = aClusterSizeThr;
     Double_t lowThr = aLowThr;
-    Int_t RescalingBins = 1e5;
+    Int_t RescalingBins = 1e6;
     Int_t xBins = 400;
     Double_t xLow = 0.0;
     Double_t xUp = 3200.0;
@@ -60,26 +60,26 @@ void rescaleAmplitudeCSC(TString fileNameMC, TString fileNameEx, TString fileNam
     UInt_t sumMods = 0;
     UInt_t maxLayers = 0;
     TString name;
-    TString xmlConfFileName = periodId == 7 ? "CSCRunSpring2018.xml" : "CSCRunSpring2017.xml";
-    xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/parameters/csc/XMLConfigs/" + xmlConfFileName;
+    TString xmlConfFileName = periodId == 7 ? "GemRunSpring2018.xml" : "GemRunSpring2017.xml";
+    xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/parameters/gem/XMLConfigs/" + xmlConfFileName;
     printf("xmlConfFileName %s\n", xmlConfFileName.Data());
-    BmnCSCStationSet* stationSet = new BmnCSCStationSet(xmlConfFileName);
+    BmnGemStripStationSet* stationSet = new BmnGemStripStationSet(xmlConfFileName);
     for (Int_t iStation = 0; iStation < stationSet->GetNStations(); iStation++) {
         vector<vector<TH1D*> > rowGEM;
         vector<vector<TH1D*> > rowGEM2;
-        BmnCSCStation* st = stationSet->GetStation(iStation);
+        BmnGemStripStation* st = stationSet->GetStation(iStation);
         sumMods += st->GetNModules();
         for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
             vector<TH1D*> colGEM;
             vector<TH1D*> colGEM2;
-            BmnCSCModule *mod = st->GetModule(iModule);
+            BmnGemStripModule *mod = st->GetModule(iModule);
             Int_t nStripLayers = mod->GetNStripLayers();
             if (maxLayers < nStripLayers)
                 maxLayers = nStripLayers;
             for (Int_t iLayer = 0; iLayer < nStripLayers; iLayer++) {
-                BmnCSCLayer lay = mod->GetStripLayer(iLayer);
-                name = Form("CSC_Station_%d_module_%d_layer_%d", iStation, iModule, iLayer);
-                TH1D *h = new TH1D(name, name, xBins, 0, xUp);
+                BmnGemStripLayer lay = mod->GetStripLayer(iLayer);
+                name = Form("GEM_Station_%d_module_%d_layer_%d", iStation, iModule, iLayer);
+                TH1D *h = new TH1D(name, name, xBins, xLow, xUp);
                 h->SetTitleSize(0.06, "XY");
                 h->SetLabelSize(0.08, "XY");
                 h->GetXaxis()->SetTitle("Signal");
@@ -87,7 +87,7 @@ void rescaleAmplitudeCSC(TString fileNameMC, TString fileNameEx, TString fileNam
                 h->GetYaxis()->SetTitle("Activation Count");
                 h->GetYaxis()->SetTitleColor(kOrange + 10);
                 colGEM.push_back(h);
-                name = Form("CSC_Station_%d_module_%d_layer_%d_Ex", iStation, iModule, iLayer);
+                name = Form("GEM_Station_%d_module_%d_layer_%d_Ex", iStation, iModule, iLayer);
                 TH1D *h2 = new TH1D(name, name, xBins, xLow, xUp);
                 h2->SetTitleSize(0.06, "XY");
                 h2->SetLabelSize(0.08, "XY");
@@ -108,15 +108,15 @@ void rescaleAmplitudeCSC(TString fileNameMC, TString fileNameEx, TString fileNam
 
     }
     // Create canvas
-    name = "CSC-full";
+    name = "Gem-full";
     TCanvas *canStrip = new TCanvas(name, name, Pad_Width * maxLayers, Pad_Height * sumMods);
     canStrip->Divide(maxLayers, sumMods);
 
 
     BmnRescale* rescale = new BmnRescale(periodId, runId, lowThr, ClusterSizeThr, RescalingBins);
     rescale->CreateRescales(fileNameMC, fileNameDST);
-    auto infoVecExp = rescale->GetCSCInfoVectorExp();
-    auto ResVec = rescale->GetCSCRescaleVector();
+    auto infoVecExp = rescale->GetGemInfoVectorExp();
+    auto ResVec = rescale->GetGemRescaleVector();
 
     vector<vector<vector<TH1D* > > > hMC; // MC
     vector<vector<vector<TH1D* > > > hMCR; // MC Rescaled
@@ -129,7 +129,7 @@ void rescaleAmplitudeCSC(TString fileNameMC, TString fileNameEx, TString fileNam
     Long64_t NEventsMC = chainMC->GetEntries();
     printf("#recorded  MC entries = %lld\n", NEventsMC);
     TClonesArray * gemMC = nullptr;
-    chainMC->SetBranchAddress("BmnCSCDigit", &gemMC);
+    chainMC->SetBranchAddress("BmnGemStripDigit", &gemMC);
 
     // Load Exp digits
     TChain* chainEx = new TChain("bmndata");
@@ -137,7 +137,7 @@ void rescaleAmplitudeCSC(TString fileNameMC, TString fileNameEx, TString fileNam
     Long64_t NEventsEx = chainEx->GetEntries();
     printf("#recorded Exp entries = %lld\n", NEventsEx);
     TClonesArray * gemEx = nullptr;
-    chainEx->SetBranchAddress("CSC", &gemEx);
+    chainEx->SetBranchAddress("GEM", &gemEx);
 
     // Load tracks
     TChain* chainDST = new TChain("bmndata");
@@ -145,27 +145,29 @@ void rescaleAmplitudeCSC(TString fileNameMC, TString fileNameEx, TString fileNam
     Long64_t NEventsDST = chainDST->GetEntries();
     printf("#recorded Track entries = %lld\n", NEventsDST);
     TClonesArray * tracks = nullptr;
+    TClonesArray * gemTracks = nullptr;
     TClonesArray * gemHits = nullptr;
     chainDST->SetBranchAddress("BmnGlobalTrack", &tracks);
-    chainDST->SetBranchAddress("BmnCSCHit", &gemHits);
+    chainDST->SetBranchAddress("BmnGemTrack", &gemTracks);
+    chainDST->SetBranchAddress("BmnGemStripHit", &gemHits);
 
     printf("rescaling func created\n");
 
-    TString title = "CSC MC  Rescaled";
+    TString title = "Si MC  Rescaled";
     TH1D* hGemMC = new TH1D("mc", title, xBins, xLow, xUp);
-    title = "CSC Exp ";
+    title = "Gem Exp ";
     TH1D* hGemEx = new TH1D("digs", title, xBins, xLow, xUp);
-    title = "CSC Exp Hits' Digits";
+    title = "Gem Exp Hits' Digits";
     TH1D* hGemExHits = new TH1D("digs-hits", title, xBins, xLow, xUp);
-    title = "CSC Exp Cluster Signal Lower";
+    title = "Gem Exp Cluster Signal Lower";
     TH1D* hGemExCS = new TH1D("cluster-signal-upper", title, xBins, xLow, xUp);
-    title = "CSC Exp Tracks' Digits";
+    title = "Gem Exp Tracks' Digits";
     TH1D* hGemExTracks = new TH1D("digs-tracks", title, xBins, xLow, xUp);
     vector < TH1D* > hGemCluster;
     for (Int_t i = 0; i < nCSize; i++) {
-        title = "CSC Cluster Size";
+        title = "Gem Cluster Size";
         TH1D* h = new TH1D(
-                Form("csc csize %.d", i),
+                Form("gem csize %.d", i),
                 title,
                 xBins, xLow, xUp);
         hGemCluster.push_back(h);
@@ -188,22 +190,25 @@ void rescaleAmplitudeCSC(TString fileNameMC, TString fileNameEx, TString fileNam
         //        }
         //
         /** digs from hits*/
-        //        for (Int_t iHit = 0; iHit < gemHits->GetEntriesFast(); iHit++) {
-        //            BmnCSCHit *hit = (BmnCSCHit *) gemHits->UncheckedAt(iHit);
-        /** digs from hits of tracks*/
         for (Int_t iTrack = 0; iTrack < tracks->GetEntriesFast(); iTrack++) {
             BmnGlobalTrack* track = (BmnGlobalTrack*) tracks->UncheckedAt(iTrack);
-            if (track->GetCscHitIndex() != -1) {
-                BmnCSCHit* hit = (BmnCSCHit*) gemHits->UncheckedAt(track->GetCscHitIndex());
+            BmnTrack* subTrack = nullptr;
+            if ((track->GetGemTrackIndex() != -1))
+                subTrack = static_cast<BmnTrack*> (gemTracks->UncheckedAt(track->GetGemTrackIndex()));
+            if (!subTrack)
+                continue;
+            for (Int_t iHit = 0; iHit < subTrack->GetNHits(); iHit++) {
+                //        for (Int_t iHit = 0; iHit < gemHits->GetEntriesFast(); iHit++) {
+                BmnGemStripHit *hit = (BmnGemStripHit *) gemHits->UncheckedAt(subTrack->GetHitIndex(iHit));
                 if (hit->GetFlag() == kFALSE)
                     continue;
                 // fill cluster signal for different cluster sizes
                 hGemCluster[0]->Fill(hit->GetStripTotalSignalInLowerLayer());
                 Int_t s = hit->GetStation();
                 Int_t m = hit->GetModule();
-                BmnCSCModule * mod = stationSet->GetStation(s)->GetModule(m);
+                BmnGemStripModule * mod = stationSet->GetStation(s)->GetModule(m);
                 for (Int_t l = 0; l < mod->GetStripLayers().size(); l++) {
-                    BmnCSCLayer lay = mod->GetStripLayer(l);
+                    BmnGemStripLayer lay = mod->GetStripLayer(l);
                     Double_t x = hit->GetX();
                     Double_t y = hit->GetY();
                     if (lay.IsPointInsideStripLayer(-x, y)) {
@@ -299,19 +304,17 @@ void rescaleAmplitudeCSC(TString fileNameMC, TString fileNameEx, TString fileNam
 
     Int_t modCtr = 0;
     for (Int_t iStation = 0; iStation < stationSet->GetNStations(); iStation++) {
-        BmnCSCStation* st = stationSet->GetStation(iStation);
+        BmnGemStripStation* st = stationSet->GetStation(iStation);
         for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
-            BmnCSCModule *mod = st->GetModule(iModule);
+            BmnGemStripModule *mod = st->GetModule(iModule);
             for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
-                BmnCSCLayer lay = mod->GetStripLayer(iLayer);
+                BmnGemStripLayer lay = mod->GetStripLayer(iLayer);
                 Int_t iPad = modCtr * maxLayers + iLayer;
                 TVirtualPad * pad = canStrip->cd(iPad + 1);
                 pad->Clear();
                 pad->SetLogy();
 
                 TH1D *hR = histSiliconStrip[iStation][iModule][iLayer];
-                if (!hR)
-                    continue;
                 if (hR->GetIntegral() == 0)
                     continue;
                 hR->SetLineColor(kRed);

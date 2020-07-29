@@ -267,7 +267,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
 
     Bool_t doAlign = kTRUE;
     if (!isExp) doAlign = kFALSE;
-    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, doAlign);
+    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, kFALSE/*doAlign*/);
     fRunAna->AddTask(glTF);
 
     // ====================================================================== //

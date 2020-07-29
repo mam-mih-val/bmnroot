@@ -13,6 +13,7 @@
 #include "BmnKalmanFilter.h"
 #include "BmnMatch.h"
 #include "BmnMath.h"
+#include "BmnSiliconHit.h"
 #include "FairRunAna.h"
 #include "FairTrackParam.h"
 #include "TStyle.h"
@@ -90,6 +91,7 @@ BmnInnerTrackingRun7::BmnInnerTrackingRun7(Int_t run, Bool_t field, Bool_t targe
     fHitYCutMin = nullptr;
     fHitYCutMax = nullptr;
     fNHitsCut = 0;
+    fDoHitAsymFiltration = kTRUE;
     if (fVerbose > 1) fSteering->PrintParamTable();
 }
 
@@ -129,7 +131,7 @@ InitStatus BmnInnerTrackingRun7::Init() {
     if (!fGemHitsArray && !fSilHitsArray) {
         cout << "BmnInnerTrackingRun7::Init(): branch " << fGemHitsBranchName << " not found! Task will be deactivated" << endl;
         SetActive(kFALSE);
-        return kERROR;
+        return InitStatus::kERROR;
     }
 
     fGlobTracksArray = new TClonesArray("BmnGlobalTrack", 100);  //out
@@ -188,21 +190,47 @@ void BmnInnerTrackingRun7::Exec(Option_t* opt) {
     Int_t nHitsCut = fSteering->GetNHitsCutTotal();
 
     Int_t nSilStations = fSilDetector->GetNStations();
+    Int_t nGemStations = fGemDetector->GetNStations();
+
+    Double_t a[2][nSilStations + nGemStations] = {{1.29, 1.50, 1.33, 1.14, 1.17, 1.14, 1.00, 1.14, 1.14},
+                                                  {1.33, 1.17, 1.00, 1.14, 1.33, 1.33, 1.14, 1.33, 1.33}};
+    Double_t b[2][nSilStations + nGemStations] = {{-645, -1500, -1330, -570, -585, -570, -500, -570, -570},
+                                                  {500, 1000, 1000, 500, 500, 500, 500, 500, 500}};
 
     for (Int_t iHit = 0; iHit < fSilHitsArray->GetEntriesFast(); ++iHit) {
-        BmnHit hit = *((BmnHit*)fSilHitsArray->At(iHit));
-        hit.SetIndex(iHit);
-        hit.SetDetId(kSILICON);
-        hit.SetDxyz(0.5, 0.5, 0.5);
-        new ((*fHitsArray)[fHitsArray->GetEntriesFast()]) BmnHit(hit);
+        BmnSiliconHit* hit = (BmnSiliconHit*)fSilHitsArray->At(iHit);
+        Double_t Sl = hit->GetStripTotalSignalInLowerLayer();
+        Double_t Su = hit->GetStripTotalSignalInUpperLayer();
+        Int_t iSt = hit->GetStation();
+        if (fDoHitAsymFiltration)
+            if (Sl < a[0][iSt] * Su + b[0][iSt] || Sl > a[1][iSt] * Su + b[1][iSt]) {
+                hit->SetType(0);
+                continue;
+            } else
+                hit->SetType(1);
+        BmnHit innerHit = *hit;
+        innerHit.SetIndex(iHit);
+        innerHit.SetDetId(kSILICON);
+        innerHit.SetDxyz(0.5, 0.5, 0.5);
+        new ((*fHitsArray)[fHitsArray->GetEntriesFast()]) BmnHit(innerHit);
     }
     for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
-        BmnHit hit = *((BmnHit*)fGemHitsArray->At(iHit));
-        hit.SetStation(hit.GetStation() + (isSRC ? -4 : 0) + nSilStations);  //shift for correct station numbering
-        hit.SetIndex(iHit);
-        hit.SetDetId(kGEM);
-        hit.SetDxyz(0.5, 0.5, 0.5);
-        new ((*fHitsArray)[fHitsArray->GetEntriesFast()]) BmnHit(hit);
+        BmnGemStripHit* hit = (BmnGemStripHit*)fGemHitsArray->At(iHit);
+        Double_t Sl = hit->GetStripTotalSignalInLowerLayer();
+        Double_t Su = hit->GetStripTotalSignalInUpperLayer();
+        Int_t iSt = hit->GetStation() + nSilStations;
+        if (fDoHitAsymFiltration)
+            if (Sl < a[0][iSt] * Su + b[0][iSt] || Sl > a[1][iSt] * Su + b[1][iSt]) {
+                hit->SetType(0);
+                continue;
+            } else
+                hit->SetType(1);
+        BmnHit innerHit = *hit;
+        innerHit.SetStation(iSt);  //shift for correct station numbering
+        innerHit.SetIndex(iHit);
+        innerHit.SetDetId(kGEM);
+        innerHit.SetDxyz(0.5, 0.5, 0.5);
+        new ((*fHitsArray)[fHitsArray->GetEntriesFast()]) BmnHit(innerHit);
     }
 
     if (fHitsArray->GetEntriesFast() > nHitsCut || fHitsArray->GetEntriesFast() == 0) return;
@@ -1348,7 +1376,7 @@ Double_t BmnInnerTrackingRun7::CalculateLength(BmnTrack* tr) {
 BmnStatus BmnInnerTrackingRun7::CheckSharedHits(vector<BmnTrack>& sortedTracks) {
     set<Int_t> hitsId;
 
-    const Int_t kNSharedHits = 0;  //fSteering->GetNSharedHits();
+    const Int_t kNSharedHits = 1;  //fSteering->GetNSharedHits();
 
     for (Int_t iTr = 0; iTr < sortedTracks.size(); ++iTr) {
         BmnTrack* tr = &(sortedTracks.at(iTr));

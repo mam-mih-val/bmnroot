@@ -93,6 +93,7 @@ class BmnInnerTrackingRun7 : public FairTask {
 
     Bool_t fIsField;   // run with mag.field or not
     Bool_t fIsTarget;  // run with target or not
+    Bool_t fDoHitAsymFiltration;
 
     UInt_t fEventNo;
     Short_t fNStations;

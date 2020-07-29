@@ -239,19 +239,27 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range, TClon
         if (nOkTr < 2) return -1000.0;
 
         Double_t minRMS = DBL_MAX;
-        // Int_t minZ = -1000;
 
+        //Calculation minZ as minimal value
+        // for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
+        //     rRMS[iPlane] = CalcMeanDist(xHits[iPlane], yHits[iPlane]);
+        //     if (rRMS[iPlane] < minRMS) {
+        //         minRMS = rRMS[iPlane];
+        //         minZ = zPlane[iPlane];
+        //     }
+        // }
+        
+        //Calculation minZ as minimum of parabola
         for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
             rRMS[iPlane] = CalcMeanDist(xHits[iPlane], yHits[iPlane]);
-            //cout << "Plane" << iPlane << ": rms = " << rRMS[iPlane] << endl;
-            // rRMS[iPlane] = CalcRms2D(xHits[iPlane], yHits[iPlane]);
-            // if (flag == 1)
-            //     cout << "minRMS = " << minRMS << "  rRMS[" << iPlane << "] = " << rRMS[iPlane] << endl;
-            if (rRMS[iPlane] < minRMS) {
-                minRMS = rRMS[iPlane];
-                minZ = zPlane[iPlane];
-            }
         }
+        TGraph* vertex = new TGraph(nPlanes, zPlane, rRMS);
+        TFitResultPtr ptr = vertex->Fit("pol2", "QFS");
+        Float_t b = ptr->Parameter(1);
+        Float_t a = ptr->Parameter(2);
+        minZ = -b / (2 * a);
+        delete vertex;
+        
         range /= 2;
 
         // for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane)

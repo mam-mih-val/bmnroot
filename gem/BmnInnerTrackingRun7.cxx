@@ -189,13 +189,13 @@ void BmnInnerTrackingRun7::Exec(Option_t* opt) {
 
     Int_t nHitsCut = fSteering->GetNHitsCutTotal();
 
-    const Int_t nSilStations = fSilDetector->GetNStations();
-    const Int_t nGemStations = fGemDetector->GetNStations();
+    Int_t nSilStations = fSilDetector->GetNStations();
+    Int_t nGemStations = fGemDetector->GetNStations();
 
-    Double_t a[2][nSilStations + nGemStations] = {{1.29, 1.50, 1.33, 1.14, 1.17, 1.14, 1.00, 1.14, 1.14},
-                                                  {1.33, 1.17, 1.00, 1.14, 1.33, 1.33, 1.14, 1.33, 1.33}};
-    Double_t b[2][nSilStations + nGemStations] = {{-645, -1500, -1330, -570, -585, -570, -500, -570, -570},
-                                                  {500, 1000, 1000, 500, 500, 500, 500, 500, 500}};
+    Double_t a[2][9] = {{1.29, 1.50, 1.33, 1.14, 1.17, 1.14, 1.00, 1.14, 1.14},
+                        {1.33, 1.17, 1.00, 1.14, 1.33, 1.33, 1.14, 1.33, 1.33}};
+    Double_t b[2][9] = {{-645, -1500, -1330, -570, -585, -570, -500, -570, -570},
+                        {500, 1000, 1000, 500, 500, 500, 500, 500, 500}};
 
     for (Int_t iHit = 0; iHit < fSilHitsArray->GetEntriesFast(); ++iHit) {
         BmnSiliconHit* hit = (BmnSiliconHit*)fSilHitsArray->At(iHit);

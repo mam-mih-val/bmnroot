@@ -257,7 +257,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         fRunAna->AddTask(dchHP);
     }
 
-    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
+    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(run_period, run_number, isExp);
     dchTF->SetTransferFunction("transfer_func.txt");
     fRunAna->AddTask(dchTF);
 

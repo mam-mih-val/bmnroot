@@ -189,8 +189,8 @@ void BmnInnerTrackingRun7::Exec(Option_t* opt) {
 
     Int_t nHitsCut = fSteering->GetNHitsCutTotal();
 
-    Int_t nSilStations = fSilDetector->GetNStations();
-    Int_t nGemStations = fGemDetector->GetNStations();
+    const Int_t nSilStations = fSilDetector->GetNStations();
+    const Int_t nGemStations = fGemDetector->GetNStations();
 
     Double_t a[2][nSilStations + nGemStations] = {{1.29, 1.50, 1.33, 1.14, 1.17, 1.14, 1.00, 1.14, 1.14},
                                                   {1.33, 1.17, 1.00, 1.14, 1.33, 1.33, 1.14, 1.33, 1.33}};

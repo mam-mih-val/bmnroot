@@ -8,7 +8,9 @@
 #include <TTimeStamp.h>
 #include <TMathBase.h>
 #include <TCanvas.h>
+#include <TH1D.h>
 #include <TH2D.h>
+#include <TF1.h>
 #include <TLegend.h>
 
 //#include "../../bmndata/math/BmnMath.h"
@@ -25,23 +27,101 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
  * @param fileNameMC
  * @param fileNameEx
  * @param fileNameDST
+ * @param aClusterSizeThr cluster size lower threshold
+ * @param aLowThr strip signal lower threshold
  */
-void rescaleAmplitudeSi(TString fileNameMC, TString fileNameEx, TString fileNameDST) {
+void rescaleAmplitudeSi(TString fileNameMC, TString fileNameEx, TString fileNameDST,
+        Double_t aClusterSizeThr = 1.0,
+        Double_t aLowThr = 0.0) {
     if (fileNameMC == "" || fileNameEx == "") {
         cout << "Files need to be specified!" << endl;
         return;
     }
+    Int_t periodId = 7;
+    Int_t runId = 4649;
     gStyle->SetOptStat(0);
-    Int_t ClusterSizeThr = 0;
-    Double_t lowThr = 2;
+    Int_t ClusterSizeThr = aClusterSizeThr;
+    Double_t lowThr = aLowThr;
+    Int_t RescalingBins = 4e5;
     Int_t xBins = 400;
     Double_t xLow = 0.0;
-    Double_t xUp = 500.0;
+    Double_t xUp = 3200.0;
     Int_t nCSize = 5;
+    const UInt_t Pad_Width = 1280;
+    const UInt_t Pad_Height = 720;
     vector<EColor> cols = {kBlack, kBlue, kTeal, kViolet, kOrange};
 
     bmnloadlibs(); // load libraries
     //    gSystem->Load("libBmnRecoTools");
+
+    vector<vector<vector<TH1D* > > > histSiliconStrip;
+    vector<vector<vector<TH1D* > > > histSiliconStripEx;
+    vector<PadInfo*> canStripPads;
+    UInt_t sumMods = 0;
+    UInt_t maxLayers = 0;
+    TString name;
+    TString xmlConfFileName = periodId == 7 ? "SiliconRunSpring2018.xml" : "SiliconRunSpring2017.xml";
+    xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/parameters/silicon/XMLConfigs/" + xmlConfFileName;
+    printf("xmlConfFileName %s\n", xmlConfFileName.Data());
+    BmnSiliconStationSet* stationSet = new BmnSiliconStationSet(xmlConfFileName);
+    for (Int_t iStation = 0; iStation < stationSet->GetNStations(); iStation++) {
+        vector<vector<TH1D*> > rowGEM;
+        vector<vector<TH1D*> > rowGEM2;
+        BmnSiliconStation* st = stationSet->GetStation(iStation);
+        sumMods += st->GetNModules();
+        for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
+            vector<TH1D*> colGEM;
+            vector<TH1D*> colGEM2;
+            BmnSiliconModule *mod = st->GetModule(iModule);
+            Int_t nStripLayers = (iStation ? (mod->GetNStripLayers() / 2) : mod->GetNStripLayers());
+            if (maxLayers < nStripLayers)
+                maxLayers = nStripLayers;
+            for (Int_t iLayer = 0; iLayer < nStripLayers; iLayer++) {
+                BmnSiliconLayer lay = mod->GetStripLayer(iLayer);
+                name = Form("Silicon_Station_%d_module_%d_layer_%d", iStation, iModule, iLayer);
+                TH1D *h = new TH1D(name, name, xBins, xLow, xUp);
+                h->SetTitleSize(0.06, "XY");
+                h->SetLabelSize(0.08, "XY");
+                h->GetXaxis()->SetTitle("Signal");
+                h->GetXaxis()->SetTitleColor(kOrange + 10);
+                h->GetYaxis()->SetTitle("Activation Count");
+                h->GetYaxis()->SetTitleColor(kOrange + 10);
+                colGEM.push_back(h);
+                name = Form("Silicon_Station_%d_module_%d_layer_%d_Ex", iStation, iModule, iLayer);
+                TH1D *h2 = new TH1D(name, name, xBins, xLow, xUp);
+                h2->SetTitleSize(0.06, "XY");
+                h2->SetLabelSize(0.08, "XY");
+                h2->GetXaxis()->SetTitle("Signal");
+                h2->GetXaxis()->SetTitleOffset(0.5);
+                h2->GetXaxis()->SetTitleColor(kOrange + 10);
+                h2->GetYaxis()->SetTitle("Activation Count");
+                h2->GetYaxis()->SetTitleOffset(0.5);
+                h2->GetYaxis()->SetTitleColor(kOrange + 10);
+                colGEM2.push_back(h2);
+            }
+            rowGEM.push_back(colGEM);
+            rowGEM2.push_back(colGEM2);
+
+        }
+        histSiliconStrip.push_back(rowGEM);
+        histSiliconStripEx.push_back(rowGEM2);
+
+    }
+    // Create canvas
+    name = "Si-full";
+    TCanvas *canStrip = new TCanvas(name, name, Pad_Width * maxLayers, Pad_Height * sumMods);
+    canStrip->Divide(maxLayers, sumMods);
+
+
+    BmnRescale* rescale = new BmnRescale(periodId, runId, lowThr, ClusterSizeThr, RescalingBins);
+    rescale->CreateRescales(fileNameMC, fileNameDST);
+    auto infoVecExp = rescale->GetSilInfoVectorExp();
+    auto ResVec = rescale->GetSilRescaleVector();
+
+    vector<vector<vector<TH1D* > > > hMC; // MC
+    vector<vector<vector<TH1D* > > > hMCR; // MC Rescaled
+    vector<vector<vector<TH1D* > > > hEx; // Exp
+    vector<vector<vector<TH1D* > > > hExCS;
 
     // Load MC digits
     TChain* chainMC = new TChain("bmndata");
@@ -71,13 +151,6 @@ void rescaleAmplitudeSi(TString fileNameMC, TString fileNameEx, TString fileName
     chainDST->SetBranchAddress("BmnSiliconTrack", &gemTracks);
     chainDST->SetBranchAddress("BmnSiliconHit", &gemHits);
 
-    TF1 *mc = BmnRecoTools::GetSignalDistribution(chainMC, gemMC,
-            nullptr, nullptr, nullptr, nullptr,
-            lowThr, 0, 2e6);
-    TF1 *ex = BmnRecoTools::GetSignalDistribution(chainEx, gemEx,
-            chainDST, gemHits, gemTracks, tracks,
-            0, ClusterSizeThr, 2e5);
-    TF1 *funcRescale = BmnRecoTools::GetRescaleFunc(TString("RescaleSi"), mc, ex);
     printf("rescaling func created\n");
 
     TString title = "Si MC  Rescaled";
@@ -106,96 +179,86 @@ void rescaleAmplitudeSi(TString fileNameMC, TString fileNameEx, TString fileName
         DrawBar((UInt_t) iEv, (UInt_t) NEventsEx);
         chainEx->GetEntry(iEv);
         chainDST->GetEntry(iEv);
-        /** summ strip signals */
-
-        /** digs all*/
-        for (UInt_t iDig = 0; iDig < gemEx->GetEntriesFast(); iDig++) {
-            BmnStripDigit * dig = (BmnStripDigit*) gemEx->At(iDig);
-            Double_t signal = dig->GetStripSignal();
-            dig->SetName(""); // clear marks
-            hGemEx->Fill(signal);
-        }
-
+        //        /** summ strip signals */
+        //
+        //        /** digs all*/
+        //        for (UInt_t iDig = 0; iDig < gemEx->GetEntriesFast(); iDig++) {
+        //            BmnStripDigit * dig = (BmnStripDigit*) gemEx->At(iDig);
+        //            Double_t signal = dig->GetStripSignal();
+        //            dig->SetName(""); // clear marks
+        //            hGemEx->Fill(signal);
+        //        }
+        //
         /** digs from hits*/
-        for (Int_t iHit = 0; iHit < gemHits->GetEntriesFast(); iHit++) {
-            BmnSiliconHit *hit = (BmnSiliconHit *) gemHits->UncheckedAt(iHit);
-            // fill cluster signal for different cluster sizes
-            hGemCluster[0]->Fill(hit->GetStripTotalSignalInLowerLayer());
-            Int_t csize = hit->GetClusterSizeInLowerLayer();
-            if (csize < hGemCluster.size())
-                hGemCluster[csize]->Fill(hit->GetStripTotalSignalInLowerLayer());
-            if (hit->GetClusterSizeInLowerLayer() <= ClusterSizeThr)
+        for (Int_t iTrack = 0; iTrack < tracks->GetEntriesFast(); iTrack++) {
+            BmnGlobalTrack* track = (BmnGlobalTrack*) tracks->UncheckedAt(iTrack);
+            BmnTrack* subTrack = nullptr;
+            if ((track->GetSilTrackIndex() != -1))
+                subTrack = static_cast<BmnTrack*> (gemTracks->UncheckedAt(track->GetSilTrackIndex()));
+            if (!subTrack)
                 continue;
-            hGemExCS->Fill(hit->GetStripTotalSignalInLowerLayer());
-
-            BmnMatch match = hit->GetDigitNumberMatch();
-            const vector<BmnLink> links = match.GetLinks();
-            //                                        printf("\t event %lld  ihit %d: links = %d  digi entries = %d\n",
-            //                                               iEv, iHit, links.size(), gemEx->GetEntriesFast());
-            for (const BmnLink& link : links) {
-                if (link.GetIndex() > (gemEx->GetEntriesFast() - 1)) {
-                    printf("Warning in event %lld  hit %d! Hits Link index out of range! index = %d  entries %d\n",
-                            iEv, iHit, link.GetIndex(), gemEx->GetEntriesFast());
+            for (Int_t iHit = 0; iHit < subTrack->GetNHits(); iHit++) {
+                //        for (Int_t iHit = 0; iHit < gemHits->GetEntriesFast(); iHit++) {
+                BmnSiliconHit *hit = (BmnSiliconHit *) gemHits->UncheckedAt(subTrack->GetHitIndex(iHit));
+                if (hit->GetFlag() == kFALSE)
                     continue;
+                // fill cluster signal for different cluster sizes
+                hGemCluster[0]->Fill(hit->GetStripTotalSignalInLowerLayer());
+                Int_t s = hit->GetStation();
+                Int_t m = hit->GetModule();
+                BmnSiliconModule * mod = stationSet->GetStation(s)->GetModule(m);
+                for (Int_t l = 0; l < mod->GetStripLayers().size(); l++) {
+                    BmnSiliconLayer lay = mod->GetStripLayer(l);
+                    Double_t x = hit->GetX();
+                    Double_t y = hit->GetY();
+                    if (lay.IsPointInsideStripLayer(-x, y)) {
+                        hit->SetFlag(kFALSE);
+                        Int_t iLayCorr = (s > 0) ? (l / 2) : l;
+                        Double_t val = (lay.GetType() == UpperStripLayer) ? hit->GetStripTotalSignalInUpperLayer() : hit->GetStripTotalSignalInLowerLayer();
+                        Int_t cs = (lay.GetType() == UpperStripLayer) ? hit->GetClusterSizeInUpperLayer() : hit->GetClusterSizeInLowerLayer();
+                        if ((val > lowThr) && (cs > ClusterSizeThr)) {
+                            if (histSiliconStripEx[s][m][iLayCorr])
+                                histSiliconStripEx[s][m][iLayCorr]->Fill(val);
+                            else
+                                printf("WTF? histStripEx[%d][%d][%d] == NULL!\n", s, m, l);
+                            hGemExCS->Fill(hit->GetStripTotalSignalInLowerLayer());
+                        }
+                    }
                 }
-                BmnStripDigit * dig = (BmnStripDigit*) gemEx->At(link.GetIndex());
-                if (strcmp(dig->GetName(), ""))
-                    continue;
-                dig->SetName("used");
-                hGemExHits->Fill(dig->GetStripSignal());
             }
         }
         // clear marks
+        for (Int_t iHit = 0; iHit < gemHits->GetEntriesFast(); iHit++) {
+            BmnHit *hit = static_cast<BmnHit*> (gemHits->UncheckedAt(iHit));
+            hit->SetFlag(kTRUE);
+        }
         for (UInt_t iDig = 0; iDig < gemEx->GetEntriesFast(); iDig++) {
             BmnStripDigit * dig = (BmnStripDigit*) gemEx->At(iDig);
             dig->SetName("");
         }
 
-        /** digs from tracks*/
-        for (Int_t iTrack = 0; iTrack < tracks->GetEntriesFast(); iTrack++) {
-            BmnGlobalTrack* track = (BmnGlobalTrack*) tracks->UncheckedAt(iTrack);
-            if (track->GetSilTrackIndex() != -1) {
-                //                for (Int_t iTrack = 0; iTrack < gemTrack->GetEntriesFast(); iTrack++) {
-                BmnTrack * gemTr = (BmnTrack*) gemTracks->UncheckedAt(track->GetSilTrackIndex());
-                for (Int_t iHit = 0; iHit < gemTr->GetNHits(); iHit++) {
-                    BmnSiliconHit *hit = (BmnSiliconHit *) gemHits->UncheckedAt(gemTr->GetHitIndex(iHit));
-
-                    BmnMatch match = hit->GetDigitNumberMatch();
-                    const vector<BmnLink> links = match.GetLinks();
-                    for (const BmnLink& link : links) {
-                        if (link.GetIndex() > (gemEx->GetEntriesFast() - 1)) {
-                            printf("Warning in event %lld!Tracks Link index out of range! index = %d  entries %d\n",
-                                    iEv, link.GetIndex(), gemEx->GetEntriesFast());
-                            continue;
-                        }
-                        BmnStripDigit * dig = (BmnStripDigit*) gemEx->At(link.GetIndex());
-                        hGemExTracks->Fill(dig->GetStripSignal());
-                    }
-                }
-                //                }
-            }
-        }
     }
     printf("Exp histograms filled\n");
 
 
-    title = "Si-rescaled";
-    TCanvas* can = new TCanvas(title, title, 1600, 900);
-    can->SetLogy();
-    hGemEx->SetLineColor(kBlack);
-    if (hGemEx->Integral() > 0)
-        hGemEx->Scale(1 / hGemEx->Integral());
-    hGemEx->SetMinimum(3e-4);
-    hGemEx->SetMaximum(5e-2);
-    hGemEx->Draw();
-    hGemExHits->SetLineColor(kBlue);
-//    hGemExHits->DrawNormalized("same");
-    hGemExCS->SetLineColor(kViolet);
-    hGemExCS->DrawNormalized("same");
-    hGemExTracks->SetLineColor(kTeal);
-//    hGemExTracks->DrawNormalized("same");
+    //    title = "Si-rescaled";
+    //    TCanvas* can = new TCanvas(title, title, 1600, 900);
+    //    can->SetLogy();
+    //    hGemEx->SetLineColor(kBlack);
+    //    if (hGemEx->Integral() > 0)
+    //        hGemEx->Scale(1 / hGemEx->Integral());
+    //    hGemEx->SetMinimum(3e-4);
+    //    hGemEx->SetMaximum(5e-2);
+    //    hGemEx->Draw();
+    //    hGemExHits->SetLineColor(kBlue);
+    //    //    hGemExHits->DrawNormalized("same");
+    //    hGemExCS->SetLineColor(kViolet);
+    //    hGemExCS->DrawNormalized("same");
+    //    hGemExTracks->SetLineColor(kTeal);
+    //    //    hGemExTracks->DrawNormalized("same");
 
     for (Long64_t iEv = 0; iEv < NEventsMC; ++iEv) {
+        //        printf("iev %lld\n", iEv);
         DrawBar((UInt_t) iEv, (UInt_t) NEventsMC);
         chainMC->GetEntry(iEv);
         /** summ strip signals */
@@ -203,47 +266,96 @@ void rescaleAmplitudeSi(TString fileNameMC, TString fileNameEx, TString fileName
             BmnStripDigit * dig = (BmnStripDigit*) gemMC->At(iDig);
             if (dig->GetStripSignal() <= lowThr)
                 continue;
-            //            if (dig->GetStripSignal() > 2)
-            //                continue;
-            Double_t signal = funcRescale->Eval(dig->GetStripSignal());
-            hGemMC->Fill(signal);
+            Int_t s = dig->GetStation();
+            Int_t m = dig->GetModule();
+            Int_t l = dig->GetStripLayer();
+            TF1* func = ResVec[s][m][l];
+            if (!func)
+                continue;
+            Double_t val = dig->GetStripSignal();
+            histSiliconStrip[s][m][l]->Fill(func->Eval(val));
         }
     }
     printf("MC  histogram  filled\n");
-    hGemMC->SetLineColor(kRed);
-    hGemMC->DrawNormalized("same");
+    ////    hGemMC->SetLineColor(kRed);
+    ////    hGemMC->DrawNormalized("same");
+    //
+    //    auto legend = new TLegend(0.6, 0.65, 0.8, 0.9);
+    //    legend->SetHeader("The Legend", "C");
+    //    legend->AddEntry(hGemEx, "All digits"); // lpfe
+    //    //    legend->AddEntry(hGemExHits, "Digits from hits");
+    //    legend->AddEntry(hGemExCS, "Cluster signal lower");
+    //    //    legend->AddEntry(hGemExTracks, "Digits from tracks");
+    //    legend->AddEntry(hGemMC, "MC rescaled by cluster exp");
+    //    legend->Draw();
+    //
+    //    can->Print(Form("%s-th-%.1f-cs-%d-Lower-up500-2m.pdf", can->GetName(), lowThr, ClusterSizeThr));
+    //    can->Clear();
+    //
+    //    can->SetLogy(kFALSE);
+    //    auto legendCluster = new TLegend(0.4, 0.65, 0.6, 0.9);
+    //    for (Int_t i = 0; i < nCSize; i++) {
+    //        hGemCluster[i]->SetLineColor(cols[i]);
+    //        hGemCluster[i]->Draw(i == 0 ? "" : "same");
+    //        legendCluster->AddEntry(hGemCluster[i], hGemCluster[i]->GetName());
+    //    }
+    //    legendCluster->Draw();
+    //    can->Print(Form("%s-cluster-Lower.pdf", can->GetName()));
+    //    can->Clear();
 
-    auto legend = new TLegend(0.6, 0.65, 0.8, 0.9);
-    legend->SetHeader("The Legend", "C");
-    legend->AddEntry(hGemEx, "All digits"); // lpfe
-//    legend->AddEntry(hGemExHits, "Digits from hits");
-    legend->AddEntry(hGemExCS, "Cluster signal lower");
-//    legend->AddEntry(hGemExTracks, "Digits from tracks");
-    legend->AddEntry(hGemMC, "MC rescaled by all exp digits");
-    legend->Draw();
 
-    can->Print(Form("%s-th-%.1f-cs-%d-Lower-up500-2m.pdf", can->GetName(), lowThr, ClusterSizeThr));
-    can->Clear();
+    Int_t modCtr = 0;
+    for (Int_t iStation = 0; iStation < stationSet->GetNStations(); iStation++) {
+        BmnSiliconStation* st = stationSet->GetStation(iStation);
+        for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
+            BmnSiliconModule *mod = st->GetModule(iModule);
+            for (Int_t iLayer = 0; iLayer < (iStation ? (mod->GetNStripLayers() / 2) : mod->GetNStripLayers()); iLayer++) {
+                BmnSiliconLayer lay = mod->GetStripLayer(iLayer);
+                Int_t iPad = modCtr * maxLayers + iLayer;
+                TVirtualPad * pad = canStrip->cd(iPad + 1);
+                pad->Clear();
+                pad->SetLogy();
 
-    can->SetLogy(kFALSE);
-    auto legendCluster = new TLegend(0.4, 0.65, 0.6, 0.9);
-    for (Int_t i = 0; i < nCSize; i++) {
-        hGemCluster[i]->SetLineColor(cols[i]);
-        hGemCluster[i]->Draw(i == 0 ? "" : "same");
-        legendCluster->AddEntry(hGemCluster[i], hGemCluster[i]->GetName());
+                TH1D *hR = histSiliconStrip[iStation][iModule][iLayer];
+                if (!hR)
+                    continue;
+                if (hR->GetIntegral() == 0)
+                    continue;
+                hR->SetLineColor(kRed);
+                hR->DrawNormalized();
+
+                //                TH1D *hExp = infoVecExp[iStation][iModule][iLayer]->hSig;
+                TH1D *hExp = histSiliconStripEx[iStation][iModule][iLayer];
+                if (!hExp)
+                    continue;
+                if (hExp->GetIntegral() == 0)
+                    continue;
+                hExp->SetLineColor(kViolet);
+                hExp->DrawNormalized("same");
+
+                auto legend = new TLegend(0.6, 0.65, 0.8, 0.9);
+                legend->SetHeader("The Legend", "C");
+                legend->AddEntry(hExp, "Cluster signal");
+                legend->AddEntry(hR, "MC rescaled by cluster exp");
+                legend->Draw();
+
+                pad->Update();
+                pad->Modified();
+            }
+            modCtr++;
+        }
     }
-    legendCluster->Draw();
-    can->Print(Form("%s-cluster-Lower.pdf", can->GetName()));
-    can->Clear();
+    //canStrip->SaveAs("rescale-sil-strip.png");
+    //    canStrip->Print(Form("%s-th-%.1f-cs-%d-2m.pdf", canStrip->GetName(), lowThr, ClusterSizeThr));
+    canStrip->Print(Form("%s-th-%.1f-cs-%d-tracks.png", canStrip->GetName(), lowThr, ClusterSizeThr));
 
-
-    delete can;
+    //    delete can;
     delete hGemEx;
     delete hGemExHits;
     delete hGemExTracks;
     delete hGemMC;
-    delete legend;
-    delete legendCluster;
+    //    delete legend;
+    //    delete legendCluster;
     delete chainMC;
     delete chainEx;
 }

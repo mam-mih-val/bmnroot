@@ -118,4 +118,8 @@
 
 #pragma link C++ enum BmnSetup;
 
+#pragma link C++ enum BmnTrigStructPeriod7SetupBMN;
+#pragma link C++ enum BmnTrigStructPeriod7SetupSRC;
+#pragma link C++ enum BmnTrigStructPeriod6;
+
 #endif

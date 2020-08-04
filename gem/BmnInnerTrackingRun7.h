@@ -38,6 +38,9 @@ class BmnInnerTrackingRun7 : public FairTask {
 
     BmnInnerTrackingRun7(){};
     BmnInnerTrackingRun7(Int_t run, Bool_t field, Bool_t target, TString steerFile = "");
+    void SetFiltration(Bool_t f) {
+        fDoHitAsymFiltration = f;
+    }
     virtual ~BmnInnerTrackingRun7();
 
     virtual InitStatus Init();
@@ -93,6 +96,7 @@ class BmnInnerTrackingRun7 : public FairTask {
 
     Bool_t fIsField;   // run with mag.field or not
     Bool_t fIsTarget;  // run with target or not
+    Bool_t fDoHitAsymFiltration;
 
     UInt_t fEventNo;
     Short_t fNStations;

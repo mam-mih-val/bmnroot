@@ -40,7 +40,7 @@ class BmnDchTrackFinder : public FairTask {
 public:
 
     BmnDchTrackFinder() {};
-    BmnDchTrackFinder(Bool_t);
+    BmnDchTrackFinder(Int_t, Int_t, Bool_t);
     virtual ~BmnDchTrackFinder();
     
     virtual InitStatus Init();
@@ -55,6 +55,8 @@ public:
     
    
 private:
+    Int_t fPeriod;
+    Int_t fRunId;
     Int_t N;
     Bool_t expData;
     UInt_t fEventNo; // event counter

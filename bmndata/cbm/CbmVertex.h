@@ -71,7 +71,7 @@ class CbmVertex : public TNamed
   void Position(TVector3& pos) const { pos.SetXYZ(fX,fY,fZ); };
   void CovMatrix(TMatrixFSym& covMat) const;
   Double_t GetCovariance(Int_t i, Int_t j) const;
-
+  std::vector<Int_t>& GetTrackInds() { return fTrackInds; } //AZ 
 
   /** Set the member variables
    *@param x         x coordinate [cm]
@@ -110,9 +110,10 @@ class CbmVertex : public TNamed
    ** sequence is a[0,0], a[0,1], a[0,2], a[1,1], a[1,2], a[2,2]
    **/
   Double32_t fCovMatrix[6];
+  std::vector<Int_t> fTrackInds; //AZ
 
-
-  ClassDef(CbmVertex,1);
+  //AZ  ClassDef(CbmVertex,1);
+  ClassDef(CbmVertex,2);
 
 };
 

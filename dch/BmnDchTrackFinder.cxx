@@ -277,7 +277,8 @@ TH1F *hNoFiredWiresOnLayerDc1;
 TH1F *hNoFiredWiresOnLayerDc2;
 //end
 
-BmnDchTrackFinder::BmnDchTrackFinder(Bool_t isExp) : expData(isExp) {
+BmnDchTrackFinder::BmnDchTrackFinder(Int_t period, Int_t number, Bool_t isExp) : 
+fPeriod(period), fRunId(number), expData(isExp) {
   //added temporary hists
   fhTestFlnm = "test.BmnDCHTracking.root";
   hNLayWithFiredWiresDc1 = new TH1F("hNLayWithFiredWiresDc1","layers with fired wires in dc1",9,0,9);
@@ -778,7 +779,7 @@ BmnDchTrackFinder::BmnDchTrackFinder(Bool_t isExp) : expData(isExp) {
   //end
 
   fEventNo = 0;
-  N = 15;  //needs to be adjusted according to hit multiplicity
+  N = (fPeriod == 7 && fRunId > 3589) ? 100 : 15;  //needs to be adjusted according to hit multiplicity
   tracksDch = "BmnDchTrack";
   InputDigitsBranchName = "DCH";
   fTransferFunctionName = "transfer_func.txt";
@@ -1221,6 +1222,12 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
 	    
       Double_t v_coord = (v_ab[0][j] + v_ab[1][j]) / 2;
       if(fabs(u_coord)<12. && fabs(v_coord)<12.)continue;
+      if (fPeriod == 7 && fRunId > 3589) {
+      if(dchID == 1)
+	if(fabs(u_coord-30)<12 && fabs(v_coord+22)<12)continue;//cut on beam for Ar
+      else
+	if(fabs(u_coord-37)<14 && fabs(v_coord+25)<16)continue;//cut on beam for Ar   
+      }
       Double_t v_slope = (v_ab[0][j] - v_ab[1][j]) / (z_loc[6] - z_loc[7]);
       Double_t VX = v_coord + v_slope * 0.5 * (z_loc[1] + z_loc[0] - z_loc[6] - z_loc[7]);
       Double_t VY = v_coord + v_slope * 0.5 * (z_loc[3] + z_loc[2] - z_loc[6] - z_loc[7]);
@@ -1373,6 +1380,12 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
 
     for (Int_t j = 0; j < pairY; j++) {
       Double_t y_coord = (y_ab[0][j] + y_ab[1][j]) / 2;
+      if (fPeriod == 7 && fRunId > 3589) {
+      if(dchID == 1)
+        if(fabs(x_coord+37)<12 && fabs(y_coord-5)<12)continue;//cut on beam for Ar
+      else
+        if(fabs(x_coord+45)<12 && fabs(y_coord-8)<12)continue;//cut on beam for Ar
+      }
       if(fabs(y_coord)<12. && fabs(x_coord)<12.)continue;
       Double_t y_slope = (y_ab[0][j] - y_ab[1][j]) / (z_loc[2] - z_loc[3]);
       Double_t YU = y_coord + y_slope * 0.5 * (z_loc[5] + z_loc[4] - z_loc[3] - z_loc[2]);
@@ -2531,6 +2544,7 @@ void BmnDchTrackFinder::Finish() {
   //added
   //===============================================================================================================
 
+if (fVerbose) {
   TFile file(fhTestFlnm.Data(), "RECREATE");
    
   hEff1->Divide(hNomin1,hDenom1,1.,1.);
@@ -2538,7 +2552,7 @@ void BmnDchTrackFinder::Finish() {
     
   fhList.Write();
   file.Close();
-
+}
   //===============================================================================================================
 
   ///end

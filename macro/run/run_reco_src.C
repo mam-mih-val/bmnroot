@@ -208,7 +208,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     SrcInnerTrackingRun7* innerTF = new SrcInnerTrackingRun7(run_number, isField, isTarget);
     fRunAna->AddTask(innerTF);
 
-    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
+    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(run_period, run_number, isExp);
     dchTF->SetTransferFunction("transfer_func2932.txt");
     fRunAna->AddTask(dchTF);
 

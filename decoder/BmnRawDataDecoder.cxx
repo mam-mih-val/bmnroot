@@ -114,6 +114,8 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fMSCRunTotal = nullptr;
     fMSCMapper = nullptr;
     InitUTCShift();
+    fNECALSerials = 0;
+    fNZDCSerials = 0;
     //InitMaps();
 }
 
@@ -1278,6 +1280,17 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         eventHeader->SetTimeShift(fTimeShifts);
         eventHeader->SetStartSignalInfo(fT0Time, fT0Width);
         eventHeader->SetSpillStart(headDAQ->GetSpillStart());
+//        BmnTrigUnion s;
+//        BmnTrigStructPeriod7SetupBMN bs;
+//        bs.BC1 = true;
+//        bs.BC2 = true;
+//        bs.VETO = true;
+//        bs.ThrBD = 2;
+//        bs.ThrSI = 3;
+//        s.Period7BMN = bs;
+//        eventHeader->SetTrigState(s);
+//        BmnTrigUnion ws = eventHeader->GetTrigState();
+//        printf("ThrBD set to %u\n", ws.Period7BMN.ThrBD);
         if (curEventType == kBMNPEDESTAL)
             fPedEvCntrBySpill++;
         if (curEventType == kBMNPEDESTAL) {
@@ -1481,6 +1494,7 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
     if (fTrigMapper)
         fTrigMapper->ClearArrays();
     fTimeShifts.clear();
+    eventHeader->Clear();
     return kBMNSUCCESS;
 }
 

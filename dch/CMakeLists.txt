@@ -39,16 +39,6 @@ set(SRCS
  BmnDchGeo.cxx
  BmnDchGeoPar.cxx
  BmnDchHitProducer.cxx
- BmnDchHitProducerTmp.cxx
- BmnDchHitProducer_exp.cxx
- #BmnDchHitProducerCalib_exp.cxx
- DchTrackCand.cxx
- DchTrackManager.cxx
- DchTrackManagerSim.cxx
- ScalarD.cxx
- ScalarI.cxx
- ScalarUI.cxx
- DchHitPlane.cxx
  BmnDchTrackFinder.cxx
  BmnDchTrack.cxx
 

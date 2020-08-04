@@ -7,8 +7,10 @@ stages:
  - deploy
  
 before_script:
- - export SIMPATH=/opt/fairsoft/bmn
- - export FAIRROOTPATH=/opt/fairroot/bmn
+ - export SIMPATH=/cvmfs/nica.jinr.ru/$OS_TYPE/fairsoft/bmn
+ - export FAIRROOTPATH=/cvmfs/nica.jinr.ru/$OS_TYPE/fairroot/bmn
+ - sed -i "s/\/opt\/fairsoft\/install/\/cvmfs\/nica.jinr.ru\/$OS_TYPE\/fairsoft\/bmn/g" SetEnv.sh
+ - sed -i "s/\/opt\/fairroot\/install/\/cvmfs\/nica.jinr.ru\/$OS_TYPE\/fairroot\/bmn/g" SetEnv.sh
  - source ./SetEnv.sh
  
 variables:
@@ -24,11 +26,13 @@ variables:
     - tags
 
 check_permissions:
+  image: git.jinr.ru:5005/nica/docker-images/centos7/base:latest
   variables:
+    OS_TYPE: "centos7"
     PERMISSIONS_MESSAGE_FAUILURE: "Permissions check: ${RED}FAILED${NC}. You don't have permission to change some files, please contact your project maintainers."
     PERMISSIONS_MESSAGE_SUCCESS: "Permissions check: ${GREEN}PASSED${NC}."
   tags:
-    - test
+    - docker
   stage: check_permissions
   script:
     - >
@@ -52,15 +56,19 @@ check_permissions:
   <<: *only-default
   
 build:centos:
+  image: git.jinr.ru:5005/nica/docker-images/centos7/base:latest
+  variables:
+    OS_TYPE: "centos7"
   tags:
-    - build
-    - centos
+    - docker
   <<: *build
 
 build:ubuntu:
+  image: git.jinr.ru:5005/nica/docker-images/ubuntu/base:latest
+  variables:
+    OS_TYPE: "ubuntu"
   tags: 
-    - build
-    - ubuntu
+    - docker
   <<: *build 
   
 .run_sim_template: &run_sim
@@ -71,47 +79,51 @@ build:ubuntu:
       - macro/run/srcsim.root
   script:
     - source build/config.sh
-    - root -b -q -l '$CI_PROJECT_DIR/$MACRO_NAME' | tee output.txt
+    - export MALLOC_CHECK_=2 && root -b -q -l '$CI_PROJECT_DIR/$MACRO_NAME' | tee output.txt
     - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
   allow_failure: false
   <<: *only-default
   
 run_sim_bmn:centos:
+  image: git.jinr.ru:5005/nica/docker-images/centos7/base:latest
   variables:
+    OS_TYPE: "centos7"
     MACRO_NAME: "macro/run/run_sim_bmn.C"
   tags:
-    - test
-    - centos
+    - docker
   dependencies:
     - build:centos
   <<: *run_sim
 
 run_sim_bmn:ubuntu:
+  image: git.jinr.ru:5005/nica/docker-images/ubuntu/base:latest
   variables:
     MACRO_NAME: "macro/run/run_sim_bmn.C"
+    OS_TYPE: "ubuntu"
   tags:
-    - test
-    - ubuntu
+    - docker
   dependencies:
     - build:ubuntu
   <<: *run_sim
 
 run_sim_src:centos:
+  image: git.jinr.ru:5005/nica/docker-images/centos7/base:latest
   variables:
+    OS_TYPE: "centos7"
     MACRO_NAME: "macro/run/run_sim_src.C"
   tags:
-    - test
-    - centos
+    - docker
   dependencies:
     - build:centos
   <<: *run_sim
 
 run_sim_src:ubuntu:
+  image: git.jinr.ru:5005/nica/docker-images/ubuntu/base:latest
   variables:
+    OS_TYPE: "ubuntu"
     MACRO_NAME: "macro/run/run_sim_src.C"
   tags:
-    - test
-    - ubuntu
+    - docker
   dependencies:
     - build:ubuntu
   <<: *run_sim
@@ -130,44 +142,48 @@ run_sim_src:ubuntu:
   <<: *only-default
   
 run_reco_bmn:centos:
+  image: git.jinr.ru:5005/nica/docker-images/centos7/base:latest
   variables:
+    OS_TYPE: "centos7"
     MACRO_NAME: "macro/run/run_reco_bmn.C"
   tags:
-    - test
-    - centos
+    - docker
   dependencies:
     - build:centos
     - run_sim_bmn:centos
   <<: *run_reco
   
 run_reco_bmn:ubuntu:
+  image: git.jinr.ru:5005/nica/docker-images/ubuntu/base:latest
   variables:
+    OS_TYPE: "ubuntu"
     MACRO_NAME: "macro/run/run_reco_bmn.C"
   tags:
-    - test
-    - ubuntu
+    - docker
   dependencies:
     - build:ubuntu
     - run_sim_bmn:ubuntu
   <<: *run_reco
 
 run_reco_src:centos:
+  image: git.jinr.ru:5005/nica/docker-images/centos7/base:latest
   variables:
+    OS_TYPE: "centos7"
     MACRO_NAME: "macro/run/run_reco_src.C"
   tags:
-    - test
-    - centos
+    - docker
   dependencies:
     - build:centos
     - run_sim_src:centos
   <<: *run_reco
   
 run_reco_src:ubuntu:
+  image: git.jinr.ru:5005/nica/docker-images/ubuntu/base:latest
   variables:
+    OS_TYPE: "ubuntu"
     MACRO_NAME: "macro/run/run_reco_src.C"
   tags:
-    - test
-    - ubuntu
+    - docker
   dependencies:
     - build:ubuntu
     - run_sim_src:ubuntu
@@ -177,47 +193,51 @@ run_reco_src:ubuntu:
   stage: test_run_digi
   script:
     - source build/config.sh
-    - root -b -q -l "$MACRO_NAME" | tee output.txt
+    - export MALLOC_CHECK_=0 && root -b -q -l "$MACRO_NAME" | tee output.txt
     - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
   allow_failure: false
   <<: *only-default
   
 run_digi_bmn:centos:
+  image: git.jinr.ru:5005/nica/docker-images/centos7/base:latest
   variables:
+    OS_TYPE: "centos7"
     MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("$$VMCWORKDIR/macro/run/testDigi.root", "$$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)'
   tags:
-    - test
-    - centos
+    - docker
   dependencies:
     - build:centos
   <<: *run_digi
   
 run_digi_bmn:ubuntu:
+  image: git.jinr.ru:5005/nica/docker-images/ubuntu/base:latest
   variables:
+    OS_TYPE: "ubuntu"
     MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("$$VMCWORKDIR/macro/run/testDigi.root", "$$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)'
   tags:
-    - test
-    - ubuntu
+    - docker
   dependencies:
     - build:ubuntu
   <<: *run_digi
 
 run_digi_src:centos:
+  image: git.jinr.ru:5005/nica/docker-images/centos7/base:latest
   variables:
+    OS_TYPE: "centos7"
     MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_src.C("$$VMCWORKDIR/macro/run/testSRCDigi.root", "$$VMCWORKDIR/macro/run/srcdst_exp.root", 0, 100)'
   tags:
-    - test
-    - centos
+    - docker
   dependencies:
     - build:centos
   <<: *run_digi
   
 run_digi_src:ubuntu:
+  image: git.jinr.ru:5005/nica/docker-images/ubuntu/base:latest
   variables:
+    OS_TYPE: "ubuntu"
     MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_src.C("$$VMCWORKDIR/macro/run/testSRCDigi.root", "$$VMCWORKDIR/macro/run/srcdst_exp.root", 0, 100)'
   tags:
-    - test
-    - ubuntu
+    - docker
   dependencies:
     - build:ubuntu
   <<: *run_digi

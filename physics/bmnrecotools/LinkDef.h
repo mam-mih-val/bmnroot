@@ -10,5 +10,6 @@
 #pragma link C++ class BmnFairRunSim+;
 #pragma link C++ class MpdLAQGSMGeneratorExt+;
 #pragma link C++ class BmnEmbedding+;
+#pragma link C++ class BmnRescale+;
 
 #endif

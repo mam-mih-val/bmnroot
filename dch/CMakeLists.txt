@@ -1,17 +1,9 @@
-# Create a library called "libDch" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libDch"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/mcstack
- ${CMAKE_SOURCE_DIR}/passive
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/bmnfield
- ${CMAKE_SOURCE_DIR}/gem
- ${CMAKE_SOURCE_DIR}/uni_db
- ${CMAKE_SOURCE_DIR}/uni_db/db_classes
  ${CMAKE_SOURCE_DIR}/dch
 )
 
@@ -45,10 +37,9 @@ set(SRCS
  DCHgeometryconstants_bmn.h
 )
 
-set(HEADERS)
-
-Set(LINKDEF LinkDef.h)
+Set(HEADERS)
+Set(LINKDEF DchLinkDef.h)
 Set(LIBRARY_NAME Dch)
-Set(DEPENDENCIES BmnField BmnData Passive Core Base)
+Set(DEPENDENCIES BmnData Base Core)
 
 GENERATE_LIBRARY()

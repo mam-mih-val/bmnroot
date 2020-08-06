@@ -1,11 +1,8 @@
-# Create a library called "BmnPidSRC" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "BmnPidSRC"
 
 Set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndst
  ${CMAKE_SOURCE_DIR}/dch
@@ -41,6 +38,6 @@ BmnPidSRC.h
 )
 Set(LINKDEF IdentLinkDef.h)
 Set(LIBRARY_NAME BmnPidSRC)
-Set(DEPENDENCIES BmnData Base)
+Set(DEPENDENCIES BmnDst Dch BmnData Base)
 
 GENERATE_LIBRARY()

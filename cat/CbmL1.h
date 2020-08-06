@@ -60,7 +60,7 @@
 #include "TProfile.h"
 #include "TProfile2D.h"
 
-#include "../bmnfield/BmnNewFieldMap.h" //GP
+#include "BmnNewFieldMap.h" //GP
 
 #include <iostream>
 #include <fstream>

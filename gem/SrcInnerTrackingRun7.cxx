@@ -168,6 +168,7 @@ void SrcInnerTrackingRun7::Exec(Option_t* opt) {
     workTime += ((Double_t)(tFinish - tStart)) / CLOCKS_PER_SEC;
 
     if (fVerbose > 1) cout << "\n======================== GEM tracking exec finished ===================" << endl;
+    return;
 }
 
 BmnStatus SrcInnerTrackingRun7::FindTracks_6of6() {
@@ -211,6 +212,8 @@ BmnStatus SrcInnerTrackingRun7::FindTracks_6of6() {
         TrackUpdateByLine(candidates);
     SortTracks(candidates, sortedCandidates);
     TrackSelection(sortedCandidates);
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus SrcInnerTrackingRun7::FindTracks_3of6() {
@@ -231,6 +234,8 @@ BmnStatus SrcInnerTrackingRun7::FindTracks_3of6() {
         TrackUpdateByLine(candidates);
     SortTracks(candidates, sortedCandidates);
     TrackSelection(sortedCandidates);
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus SrcInnerTrackingRun7::FindTracks_5of6() {
@@ -253,6 +258,8 @@ BmnStatus SrcInnerTrackingRun7::FindTracks_5of6() {
         TrackUpdateByLine(candidates);
     SortTracks(candidates, sortedCandidates);
     TrackSelection(sortedCandidates);
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus SrcInnerTrackingRun7::FindTracks_4of6() {
@@ -286,6 +293,8 @@ BmnStatus SrcInnerTrackingRun7::FindTracks_4of6() {
         TrackUpdateByLine(candidates);
     SortTracks(candidates, sortedCandidates);
     TrackSelection(sortedCandidates);
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus SrcInnerTrackingRun7::FindCandidateByFiveStations(Short_t st0, Short_t st1, Short_t st2, Short_t st3, Short_t st4, vector<BmnTrack>& candidates, vector<BmnHit*>* sortedHits) {
@@ -447,6 +456,7 @@ void SrcInnerTrackingRun7::Finish() {
     outFile.open("QA/timing.txt");
     outFile << "Track Finder Time: " << workTime << endl;
     cout << "Work time of the GEM tracking: " << workTime << endl;
+    return;
 }
 
 BmnStatus SrcInnerTrackingRun7::SortHits(vector<BmnHit*>* sortedHits) {
@@ -574,6 +584,7 @@ void SrcInnerTrackingRun7::SetHitsUsing(BmnTrack* tr, Bool_t use) {
         //     }
         // }
     }
+    return;
 }
 
 BmnStatus SrcInnerTrackingRun7::CalcCovMatrix(BmnTrack* tr) {
@@ -701,6 +712,7 @@ BmnStatus SrcInnerTrackingRun7::CalculateTrackParams(BmnTrack* tr) {
     Double_t QP = fIsField ? CalcQp(tr, doSimple) : 0.0;
     tr->GetParamFirst()->SetQp(QP);
     tr->GetParamLast()->SetQp(QP);
+
     return kBMNSUCCESS;
 }
 

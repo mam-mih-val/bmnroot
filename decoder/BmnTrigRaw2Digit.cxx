@@ -283,6 +283,7 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
 BmnStatus BmnTrigRaw2Digit::ClearArrays() {
     for (TClonesArray *ar : trigArrays)
         ar->Clear("C");
+    return kBMNSUCCESS;
 }
 
 ClassImp(BmnTrigRaw2Digit)

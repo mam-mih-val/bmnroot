@@ -1,10 +1,7 @@
-# Create a library called "libSts" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libSts"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/passive
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/silicon
@@ -89,6 +86,6 @@ EndIf(CMAKE_BUILD_TYPE EQUAL "Release")
 Set(HEADERS)
 Set(LINKDEF StsLinkDef.h)
 Set(LIBRARY_NAME Sts)
-Set(DEPENDENCIES Core BmnData)
+Set(DEPENDENCIES Gem Silicon BmnData Base Core)
 
 GENERATE_LIBRARY()

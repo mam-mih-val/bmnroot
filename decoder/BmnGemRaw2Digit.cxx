@@ -126,6 +126,8 @@ BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int
     for (Int_t i = 0; i < size; ++i)
         m[iiArr[i].int_2] = BmnGemMap(iiArr[i].int_1, lay, mod);
     delete[] iiArr;
+
+    return kBMNSUCCESS;
 }
 
 BmnGemRaw2Digit::~BmnGemRaw2Digit() {
@@ -282,6 +284,8 @@ BmnStatus BmnGemRaw2Digit::FillProfiles(TClonesArray *adc) {
             }
         }
     }
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnGemRaw2Digit::FillNoisyChannels() {
@@ -327,6 +331,8 @@ BmnStatus BmnGemRaw2Digit::FillNoisyChannels() {
     //                            fNoisyChannels[it.station][it.module][it.layer][iStrip] = kTRUE;
     //                        }
     //                    }
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * gem) {
@@ -342,6 +348,8 @@ BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * gem) {
             }
         }
     }
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnGemRaw2Digit::FillEventMK(TClonesArray *adc, TClonesArray * gem, TClonesArray * csc) {
@@ -362,6 +370,8 @@ BmnStatus BmnGemRaw2Digit::FillEventMK(TClonesArray *adc, TClonesArray * gem, TC
         ProcessDigitMK(adcDig, gem, kFALSE);
     }
     PostprocessDigitMK(gem, csc);
+
+    return kBMNSUCCESS;
 }
 
 void BmnGemRaw2Digit::ProcessDigitMK(BmnADCDigit* adcDig, TClonesArray * gem, Bool_t doFill) {
@@ -2213,6 +2223,8 @@ BmnStatus BmnGemRaw2Digit::RecalculatePedestalsMK(Int_t nPedEv) {
         }
     }
     nev = -1;
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnGemRaw2Digit::LoadPedestalsMK(TTree* t_in, TClonesArray* adc32, BmnEventHeader* evhead, Int_t npedev) {

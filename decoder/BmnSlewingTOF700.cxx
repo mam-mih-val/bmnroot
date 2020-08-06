@@ -7,8 +7,6 @@
 
 using namespace std;
 
-class UniDbRun;
-
 BmnSlewingTOF700::BmnSlewingTOF700() {
     fRunId = 0;
     fPeriodId = 0;

@@ -1,5 +1,6 @@
 #include "BmnLambdaEmbedding.h"
 #include "CbmStsPoint.h"
+#include "UniDbRun.h"
 
 BmnLambdaEmbedding::BmnLambdaEmbedding() :
 fSim(nullptr),

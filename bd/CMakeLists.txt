@@ -1,10 +1,7 @@
-# Create a library called "libBd" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libBd"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/mcstack
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bd
 )
@@ -38,6 +35,6 @@ BmnBdHitProducer.cxx
 Set(HEADERS)
 Set(LINKDEF BmnBdLinkDef.h)
 Set(LIBRARY_NAME Bd)
-Set(DEPENDENCIES Core Base)
+Set(DEPENDENCIES BmnData Base Core)
 
 GENERATE_LIBRARY()

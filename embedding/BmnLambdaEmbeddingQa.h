@@ -32,7 +32,6 @@
 #include <DstEventHeader.h>
 #include <BmnEventHeader.h>
 #include <BmnStripDigit.h>
-#include <UniDbDetectorParameter.h>
 #include <UniDbRun.h>
 #include <BmnInnerTrackerGeometryDraw.h>
 

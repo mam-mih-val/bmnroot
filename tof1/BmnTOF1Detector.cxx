@@ -371,6 +371,8 @@ TList* BmnTOF1Detector::GetList(Int_t n = 0) {
     if (fFillHist > 0) {
         if (n == 0) return fHistListStat;
     } else return NULL;
+
+    return NULL;
 }
 
 //----------------------------------------------------------------------------------------

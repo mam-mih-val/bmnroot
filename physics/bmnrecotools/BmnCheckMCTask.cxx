@@ -44,6 +44,8 @@ InitStatus BmnCheckMCTask::Init() {
     fPVertexShow = (TClonesArray*) ioman->GetObject(fPVertexName);
     fEvHeaderShow = (DstEventHeader*) ioman->GetObject(fEvHeaderName);
     //    fMCEvHeader = (FairMCEventHeader*) ioman->GetObject(fMCEvHeaderName);
+
+    return kSUCCESS;
 }
 
 void BmnCheckMCTask::Exec(Option_t* option) {

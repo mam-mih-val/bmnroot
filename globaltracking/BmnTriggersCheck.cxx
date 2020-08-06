@@ -29,6 +29,8 @@ InitStatus BmnTriggersCheck::Init() {
     
     fBmnEvQuality = new TClonesArray(fBmnEvQualityBranchName);
     ioman->Register(fBmnEvQualityBranchName, "QUALITY", fBmnEvQuality, true);
+
+    return kSUCCESS;
 }
 
 void BmnTriggersCheck::Exec(Option_t* opt) {
@@ -76,7 +78,7 @@ void BmnTriggersCheck::Exec(Option_t* opt) {
          evQual->SetIsGoodEvent("BAD");
 
 	 // if (fVetoArray != NULL){
-	 Bool_t cntrv = 0;
+         Int_t cntrv = 0;
         for (Int_t iDig = 0; iDig < fVetoArray->GetEntriesFast(); ++iDig) {
 	   BmnTrigDigit *dig = (BmnTrigDigit*) fVetoArray->At(iDig);
 	   if (dig->GetMod() == 0)
@@ -139,3 +141,4 @@ void BmnTriggersCheck::Finish() {
  
 }
 
+ClassImp(BmnTriggersCheck);

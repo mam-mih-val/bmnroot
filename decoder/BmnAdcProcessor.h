@@ -18,8 +18,6 @@
 #include <list>
 #include <map>
 #include <vector>
-#include <UniDbDetectorParameter.h>
-#include <UniDbDetector.h>
 #include <TH2F.h>
 #include <TCanvas.h>
 #include <BmnSiliconStationSet.h>

@@ -10,6 +10,7 @@
 
 #include <TLatex.h>
 
+#include "UniDbRun.h"
 #include "BmnMonitor.h"
 
 BmnMonitor::BmnMonitor() {

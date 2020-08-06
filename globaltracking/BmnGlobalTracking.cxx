@@ -461,6 +461,8 @@ Int_t BmnGlobalTracking::FindNearestHit(BmnGlobalTrack *tr, TClonesArray *hits, 
 
 BmnStatus BmnGlobalTracking::MatchingMWPC(BmnGlobalTrack *tr) {
     if (!fSilHits) return kBMNERROR;
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnGlobalTracking::MatchingCSC(BmnGlobalTrack *tr) {
@@ -895,6 +897,8 @@ BmnStatus BmnGlobalTracking::UpdateMomentum(BmnGlobalTrack *tr) {
         tr->GetParamFirst()->SetQp(1.0 / momInt);
     }
     // cout << Alpha_in << " " << Alpha_out << " " << Bdl << " " << momInt << endl;
+
+    return kBMNSUCCESS;
 }
 
 void BmnGlobalTracking::Finish() {

@@ -32,6 +32,8 @@ InitStatus BmnResiduals::Init() {
     fSilHits = (TClonesArray*)ioman->GetObject(fBranchSilHits.Data());
 
     fFairEventHeader->SetRunId(fNumber);
+
+    return kSUCCESS;
 }
 
 void BmnResiduals::Exec(Option_t* opt) {

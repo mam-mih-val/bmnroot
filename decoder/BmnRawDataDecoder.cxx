@@ -7,8 +7,6 @@
 
 using namespace std;
 
-class UniDbRun;
-
 BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEvents, ULong_t period) {
     string confFileName = string(getenv("VMCWORKDIR")) + "/config/bmnconf.json";
     //    conf.put<string>("Decoder.AdcDecoMode", "MK");
@@ -502,6 +500,8 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     eventHeaderDAQ->SetTimeShift(fTimeShifts);
 //    eventHeaderDAQ->SetStartSignalInfo(fT0Time, fT0Width);
     eventHeaderDAQ->SetSpillStart(isSpillStart);
+
+    return kBMNSUCCESS;
 }
 
 /**
@@ -827,6 +827,8 @@ BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t s
         idx++; //go to the next DATA-word
         type = d[idx] >> 28;
     }
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {
@@ -1565,6 +1567,7 @@ BmnStatus BmnRawDataDecoder::FinishRun() {
     //    if (!UniDbRun::GetRun(fPeriodId, fRunId))
     //        UniDbRun::CreateRun(fPeriodId, fRunId, fRawFileName, "", NULL, NULL, fRunStartTime, &fRunEndTime, &nEv, NULL, &fSize, NULL);
 
+    return kBMNSUCCESS;
 }
 
 void BmnRawDataDecoder::ResetDecoder(TString file) {
@@ -1879,6 +1882,8 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
     //        cerr << "No TO map found in DB" << endl;
     //        return kBMNERROR;
     //    }
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnRawDataDecoder::GetT0Info(Double_t& t0time, Double_t &t0width) {

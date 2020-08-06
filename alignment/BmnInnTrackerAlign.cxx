@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "BmnInnTrackerAlign.h"
+#include "UniDbDetectorParameter.h"
 #include "TRandom.h"
 
 BmnInnTrackerAlign::BmnInnTrackerAlign(Int_t period, Int_t run, TString fileName) {

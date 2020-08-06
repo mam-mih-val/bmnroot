@@ -1,10 +1,7 @@
-# Create a library called "libZdc" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libZdc"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/mcstack
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/zdc
@@ -44,6 +41,6 @@ BmnZdcAnalyzer.cxx
 Set(HEADERS)
 Set(LINKDEF BmnZdcLinkDef.h)
 Set(LIBRARY_NAME Zdc)
-Set(DEPENDENCIES BmnData Core Base)
+Set(DEPENDENCIES BmnData Base Core)
 
 GENERATE_LIBRARY()

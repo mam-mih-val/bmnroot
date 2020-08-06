@@ -51,6 +51,8 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
         }
     }
     InitDecoder(runID);
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
@@ -111,10 +113,14 @@ BmnStatus BmnOnlineDecoder::InitReco() {
     fRecoChain->AddFriend(digiTree);
     fRunAna = new FairRunAna();
     //fRunAna->SetSource(fRecoChain);
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnOnlineDecoder::IterReco() {
 
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnOnlineDecoder::DecodeStream() {
@@ -185,6 +191,7 @@ BmnStatus BmnOnlineDecoder::CloseStream() {
     zmq_close(_decoSocket);
     zmq_ctx_destroy(_ctx);
     _ctx = NULL;
+    return kBMNFINISH;
 }
 
 BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t runCurrent) {

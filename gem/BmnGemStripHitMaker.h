@@ -13,8 +13,6 @@
 #include "FairTask.h"
 #include "FairMCPoint.h"
 
-#include <UniDbDetectorParameter.h>
-#include <UniDbRun.h>
 #include "FairField.h"
 #include "BmnGemStripDigit.h"
 #include "BmnGemStripHit.h"

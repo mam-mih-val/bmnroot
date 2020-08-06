@@ -12,9 +12,9 @@
 #include "CbmDrawHist.h"
 #include "CbmHistManager.h"
 
-#include "../../../parallel/LitFieldGrid.h"
-#include "../../../parallel/LitFieldSlice.h"
-#include "../../../parallel/LitFieldValue.h"
+#include "parallel/LitFieldGrid.h"
+#include "parallel/LitFieldSlice.h"
+#include "parallel/LitFieldValue.h"
 
 #include "FairRunAna.h"
 #include "FairRuntimeDb.h"

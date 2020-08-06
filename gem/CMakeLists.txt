@@ -1,18 +1,12 @@
-# Create a library called "libGem".
+# Create a library called "libGem"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/silicon
- ${CMAKE_SOURCE_DIR}/ssd
- ${CMAKE_SOURCE_DIR}/alignment
- ${CMAKE_SOURCE_DIR}/globaltracking
- ${CMAKE_SOURCE_DIR}/uni_db
- ${CMAKE_SOURCE_DIR}/uni_db/db_classes
  ${CMAKE_SOURCE_DIR}/steering
+ ${CMAKE_SOURCE_DIR}/alignment
  ${CMAKE_SOURCE_DIR}/gem
 )
 
@@ -94,6 +88,6 @@ endif()
 Set(HEADERS)
 set(LINKDEF GemLinkDef.h)
 Set(LIBRARY_NAME Gem)
-Set(DEPENDENCIES BmnSteering KF Sts BmnData Base GenVector XMLParser Silicon BmnAlignment TMVA)
+Set(DEPENDENCIES BmnSteering Silicon BmnData GenVector Base XMLParser Core)
 
 GENERATE_LIBRARY()

@@ -20,6 +20,13 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     TStopwatch timer;
     timer.Start();
 
+    // check input file exists
+    if (!BmnFunctionSet::CheckFileExist(inputFileName))
+    {
+        cout << "ERROR: input file " + inputFileName + " does not exist!" << endl;
+        exit(-1);
+    }
+
     // -----   Reconstruction run   --------------------------------------------
     FairRunAna* fRunAna = new FairRunAna();
     fRunAna->SetEventHeader(new DstEventHeader());
@@ -35,13 +42,10 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // DO NOT change it manually!
     Int_t run_period = 7, run_number = -1;
     Double_t fieldScale = 0.;
-    if (isExp)
+    if (!isExp) // for simulation files
+        fFileSource = new FairFileSource(inputFileName);
+    else        // for experimental files
     {
-        if (!BmnFunctionSet::CheckFileExist(inputFileName)) {
-            cout << "ERROR: digi file " + inputFileName + " does not exist!" << endl;
-            exit(-1);
-        }
-
         // set source as raw root data file
         fFileSource = new BmnFileSource(inputFileName, run_period, run_number);
 
@@ -112,10 +116,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
         remove(geoFileName.Data());
     }
-    else { // for simulation files
-        if (!BmnFunctionSet::CheckFileExist(inputFileName)) return;
-        fFileSource = new FairFileSource(inputFileName);
-    }
+
     fRunAna->SetSource(fFileSource);
     fRunAna->SetSink(new FairRootFileSink(bmndstFileName));
     fRunAna->SetGenerateRunInfo(false);

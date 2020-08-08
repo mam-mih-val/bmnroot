@@ -10,4 +10,5 @@
 #pragma link C++ class  BmnEcalGeo+;
 #pragma link C++ class  BmnEcalGeoPar+;
 #pragma link C++ class  BmnEcalContFact+;
+#pragma link C++ class  BmnEcalDigitizer+;
 #endif

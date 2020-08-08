@@ -80,10 +80,10 @@ class BmnECALDigit : public TNamed
     UChar_t GetSize()      const  { return 1;}
     Short_t GetChannel()   const  { return fChannel;}
     Float_t GetAmp()  const  { return fAmp;}
-    Float_t GetPeakAmp() { return fPeakAmp; }
-    Float_t GetPeakTime() { return fPeakTime; }
-    Float_t GetStartTime() { return fStartTime; }
-    void GetLabCoords(Float_t &x, Float_t &y, Float_t &z) { x = fLabX; y = fLabY; z = fLabZ; }
+    Float_t GetPeakAmp() const { return fPeakAmp; }
+    Float_t GetPeakTime() const { return fPeakTime; }
+    Float_t GetStartTime() const { return fStartTime; }
+    void GetLabCoords(Float_t &x, Float_t &y, Float_t &z) const { x = fLabX; y = fLabY; z = fLabZ; }
     
     /** Destructor **/
     virtual ~BmnECALDigit() {}

@@ -168,6 +168,10 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     zdcDigit->SetScale(39e3);
     zdcDigit->SetThreshold(500.);
     fRun->AddTask(zdcDigit);
+    
+    // ECAL-Digitizer
+    BmnEcalDigitizer * ecalDigit = new BmnEcalDigitizer();
+    fRun->AddTask(ecalDigit);
 
     fRun->Init();
     magField->Print();

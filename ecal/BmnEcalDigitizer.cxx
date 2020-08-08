@@ -1,0 +1,194 @@
+/* 
+ * File:   BmnEcalDigitizer.cxx
+ * Author: Petr Alekseev
+ * 
+ * Created on 05.08.2020, 19:31
+ */
+
+#include <TObject.h>
+#include <TCollection.h>
+#include <FairGeoLoader.h>
+#include <FairGeoInterface.h>
+#include <FairGeoSet.h>
+
+#include "BmnEcalPoint.h"
+
+#include "BmnEcalDigitizer.h"
+
+BmnEcalDigitizer::BmnEcalDigitizer() {
+}
+
+BmnEcalDigitizer::~BmnEcalDigitizer() {
+}
+
+InitStatus BmnEcalDigitizer::Init() {
+
+    FairRootManager* ioman = FairRootManager::Instance();
+    fArrayOfEcalPoints = (TClonesArray*) ioman->GetObject("EcalPoint");
+    fArrayOfEcalDigits = new TClonesArray("BmnECALDigit");
+    ioman->Register("ECAL", "Ecal", fArrayOfEcalDigits, kTRUE);
+    
+    LoadGeometry();
+    
+    Info(__func__,"ECAL digitizer ready");
+    return kSUCCESS;
+    
+}
+
+void BmnEcalDigitizer::Exec(Option_t* opt) {
+    
+    // Initialize
+    fArrayOfEcalDigits->Delete();
+
+    for (Int_t i = 0; i < fCellsSize; i++) {
+        fCells[i].SetAmp(0.);
+        fCells[i].SetStartTime(0.);
+    }
+    
+    // Collect points
+    Int_t N = fArrayOfEcalPoints->GetEntries();
+    for (Int_t i = 0; i < N; i++) {
+        BmnEcalPoint * p = (BmnEcalPoint *)fArrayOfEcalPoints->At(i);
+        
+        Int_t ch = p->GetCopyMother();
+        if (ch < fCellsSize) {
+            if (fCells[ch].GetChannel() == ch) {
+                fCells[ch].SetAmp(fCells[ch].GetAmp() + p->GetEnergyLoss());
+                fCells[ch].SetStartTime(fCells[ch].GetStartTime() + p->GetTime() * p->GetEnergyLoss());
+            } else {
+                Error(__func__, "ECAL ch %d was not initialized",ch);
+            }   
+        } else {
+            Error(__func__,"ECAL ch %d ignored",ch);
+        }
+    }
+    
+    // Store digits
+    for (Int_t i = 0; i < fCellsSize; i++) {
+        if (fCells[i].GetChannel() != i) continue;
+        
+        Float_t amp = fCells[i].GetAmp() * 1000.;
+        
+        if (amp == 0.) continue;
+        if (amp < fThreshold) continue;
+        
+        Float_t time = fCells[i].GetStartTime()/fCells[i].GetAmp();
+        
+        if (fMaxPointTime > 0 && time > fMaxPointTime) continue;
+        
+        BmnECALDigit * p = new((*fArrayOfEcalDigits)[fArrayOfEcalDigits->GetEntriesFast()]) BmnECALDigit();
+        *p = fCells[i];
+        p->SetAmp(amp);
+        p->SetPeakAmp(amp);
+        p->SetStartTime(time);
+        p->SetPeakTime(time + fPeakTimeDelay);
+    }
+    
+}
+
+void BmnEcalDigitizer::Print(Option_t *option) const {
+
+    printf("\n" "\e[1;92m");
+    printf("BMN ECAL Digitizer\n");
+    printf("ECAL geometry fileN: %s\n", fEcalGeometryFileName);
+    printf("ECAL interaction depth shift: %f\n", fDepthShift);    
+    printf("ECAL cells coords (((\n");
+    Float_t x, y, z;
+    for (Int_t i = 1; i < fCellsSize; i++) {
+        if (fCells[i].GetChannel() == i) {
+            fCells[i].GetLabCoords(x,y,z);
+            printf("    % 4d [%3.0f,%3.0f] -> [%7.2f,%7.2f,%7.2f]\n", i, fCells[i].GetX(), fCells[i].GetY(), x, y, z);
+        } else {
+            //printf("    % 04d - Not initialized\n", i);
+        }
+    }
+    printf("))) ECAL cells coords\n"); 
+    printf("\e[0m" "\n");
+    
+}
+
+void BmnEcalDigitizer::LoadGeometry() {
+
+    if (fEcalGeometryFileName == 0) {
+        // Try to get geometry file name from ecal geo set
+        FairGeoLoader * geoLoader = FairGeoLoader::Instance();
+        if (geoLoader) {
+            FairGeoInterface * geoInterface = geoLoader->getGeoInterface();
+            if (geoInterface) {
+                FairGeoSet * geoSet = geoInterface->findSet("ecal");
+                if (geoSet) {
+                    fEcalGeometryFileName = geoSet->getGeomFile();
+                }
+            }
+        }
+    }
+    
+    if (fEcalGeometryFileName == 0) {
+        Fatal(__func__, "ECAL geometry file name does't set");
+    }
+
+    Info(__func__, "Loading coordinates of ECAL cells from %s\n", fEcalGeometryFileName);
+    
+    TGeoVolume *top = TGeoVolume::Import(fEcalGeometryFileName,"TOP");
+    if (!top) {
+        Fatal(__func__, "Volume TOP not found in %s\n", fEcalGeometryFileName);
+    }
+    
+    TGeoNode * ecal = top->GetNode(0);
+    if (!ecal /*|| ecal->GetNdaughters() < 2*/) {
+        Fatal(__func__, "Unexpected geometry structure %s\n",fEcalGeometryFileName);
+    }
+    
+    for (Int_t i = 0; i < fCellsSize; i++) {
+        fCells[i].SetChannel(0);
+    }
+
+    Double_t coords[] = {0.,0.,0.};
+    Double_t ecalCoords[3];
+    Double_t labCoords[3];
+    
+    coords[2] = fDepthShift;
+
+    TGeoNode * ecal1 = ecal->GetDaughter(0);
+    if (ecal1) {
+        Int_t n = ecal1->GetNdaughters();
+        if (n > 504) {
+            Fatal(__func__,"Expected ecal node 1 with 504 daughters or less in %s\n",fEcalGeometryFileName);
+        }
+        for (Int_t i = 0; i < n; i++) {
+            Int_t ch = ecal1->GetDaughter(i)->GetNumber();
+            if (ch < 1 || ch > 504) {
+                Fatal(__func__,"Unexpected chan %d at ecal node 1 in %s\n",ch,fEcalGeometryFileName);
+            }
+            ecal1->GetDaughter(i)->LocalToMaster(coords, ecalCoords);
+            ecal1->LocalToMaster(ecalCoords,labCoords);
+            fCells[ch].SetChannel(ch);
+            fCells[ch].SetX(ecalCoords[0]);
+            fCells[ch].SetY(ecalCoords[1]);
+            fCells[ch].SetLabCoords(labCoords[0],labCoords[1],labCoords[2]);
+        }
+    }
+
+    TGeoNode * ecal2 = ecal->GetDaughter(1);
+    if (ecal2) {
+        Int_t n = ecal2->GetNdaughters();
+        if (n > 504) {
+            Fatal(__func__,"Expected ecal node 2 with 504 daughters or less in %s\n",fEcalGeometryFileName);
+        }
+        for (Int_t i = 0; i < n; i++) {
+            Int_t ch = ecal2->GetDaughter(i)->GetNumber();
+            if (ch < 505 || ch > 1008) {
+                Fatal(__func__,"Unexpected chan=%d at ecal node 2 in %s\n",ch,fEcalGeometryFileName);
+            }
+            ecal2->GetDaughter(i)->LocalToMaster(coords, ecalCoords);
+            ecal2->LocalToMaster(ecalCoords,labCoords);
+            fCells[ch].SetChannel(ch);
+            fCells[ch].SetX(ecalCoords[0]);
+            fCells[ch].SetX(ecalCoords[1]);
+            fCells[ch].SetLabCoords(labCoords[0],labCoords[1],labCoords[2]);
+        }
+    }
+
+}
+
+ClassImp(BmnEcalDigitizer)

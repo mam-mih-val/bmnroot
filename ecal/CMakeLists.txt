@@ -31,11 +31,12 @@ BmnEcalPoint.cxx
 BmnEcalContFact.cxx  
 BmnEcalGeo.cxx 
 BmnEcalGeoPar.cxx
+BmnEcalDigitizer.cxx
 )
 
 Set(HEADERS)
 Set(LINKDEF BmnEcalLinkDef.h)
 Set(LIBRARY_NAME Ecal)
-Set(DEPENDENCIES Core Base)
+Set(DEPENDENCIES BmnData Core Base)
 
 GENERATE_LIBRARY()

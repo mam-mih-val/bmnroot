@@ -1,23 +1,21 @@
-# Create a library called "libBmnAlignment" which includes the source files given in
-# the array.
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libBmnEmbedding"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/uni_db
  ${CMAKE_SOURCE_DIR}/uni_db/db_classes
- ${CMAKE_SOURCE_DIR}/decoder
+ ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/bmndst
- ${CMAKE_SOURCE_DIR}/bmnfield
- ${CMAKE_SOURCE_DIR}/gem
- ${CMAKE_SOURCE_DIR}/silicon
- ${CMAKE_SOURCE_DIR}/csc
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
- ${CMAKE_SOURCE_DIR}/embedding
+ ${CMAKE_SOURCE_DIR}/csc
+ ${CMAKE_SOURCE_DIR}/silicon
+ ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/bmndst
+ ${CMAKE_SOURCE_DIR}/decoder
  ${CMAKE_SOURCE_DIR}/physics/particles
  ${CMAKE_SOURCE_DIR}/physics/bmnrecotools
+ ${CMAKE_SOURCE_DIR}/embedding
  ### Additional include sources 
  )
 
@@ -44,12 +42,12 @@ set(SRCS
  BmnLambdaEmbeddingMonitor.cxx
  BmnLambdaEmbeddingQa.cxx 
  BmnInnerTrackerGeometryDraw.cxx 
-BmnLambdaEmbeddingDrawHistos.cxx
+ BmnLambdaEmbeddingDrawHistos.cxx
 )
 
 Set(HEADERS)
 Set(LINKDEF EmbeddingLinkDef.h)
 Set(LIBRARY_NAME BmnEmbedding)
-Set(DEPENDENCIES Core Base BmnDst Gem Decoder BmnParticles BmnField RecoTools)
+Set(DEPENDENCIES RecoTools BmnParticles Decoder BmnDst Gem Silicon CSC BmnData BmnField UniDb Base Core)
 
 GENERATE_LIBRARY()

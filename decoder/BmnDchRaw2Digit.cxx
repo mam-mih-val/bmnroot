@@ -21,6 +21,8 @@ BmnStatus BmnDchRaw2Digit::ReadMapFromDB(Int_t period, Int_t run) {
         pDetectorParameter2->GetDchMapArray(fMap2, fEntriesInMap2);
     delete pDetectorParameter1;
     delete pDetectorParameter2;
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnDchRaw2Digit::ReadMapFromFile(Int_t period) {
@@ -94,6 +96,8 @@ BmnStatus BmnDchRaw2Digit::ReadMapFromFile(Int_t period) {
             }
         }
     }
+
+    return kBMNSUCCESS;
 }
 
 void BmnDchRaw2Digit::FillEvent(TClonesArray *tdc, map<UInt_t, Long64_t> *ts, TClonesArray *dch, Double_t t0) {

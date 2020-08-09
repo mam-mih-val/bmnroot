@@ -1,20 +1,12 @@
-# Create a library called "libBmnMisc" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libBmnMisc"
 
 set(INCLUDE_DIRECTORIES
-${BASE_INCLUDE_DIRECTORIES}
-${CMAKE_SOURCE_DIR}/bmndata
-${CMAKE_SOURCE_DIR}/bmndata/cbm
-${CMAKE_SOURCE_DIR}/bmndata/math
-${CMAKE_SOURCE_DIR}/bmnfield
-${CMAKE_SOURCE_DIR}/uni_db
-${CMAKE_SOURCE_DIR}/uni_db/db_classes
-${CMAKE_SOURCE_DIR}/gem
-${CMAKE_SOURCE_DIR}/csc
-${CMAKE_SOURCE_DIR}/silicon
-${CMAKE_SOURCE_DIR}/miscellaneous
-${CMAKE_SOURCE_DIR}/miscellaneous/digiMerge
+ ${BASE_INCLUDE_DIRECTORIES}
+ ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/csc
+ ${CMAKE_SOURCE_DIR}/silicon
+ ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/miscellaneous
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -34,13 +26,13 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnDigiContainer.cxx
-BmnDigiMergeTask.cxx
+ BmnDigiContainer.cxx
+ BmnDigiMergeTask.cxx
 )
 
 Set(HEADERS)
-Set(LINKDEF LinkDef.h)
+Set(LINKDEF MiscLinkDef.h)
 Set(LIBRARY_NAME BmnMisc)
-Set(DEPENDENCIES Core BmnData Gem CSC Silicon Base)
+Set(DEPENDENCIES Gem Silicon CSC BmnData Base Core)
 
 GENERATE_LIBRARY()

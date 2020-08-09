@@ -2,7 +2,7 @@
  *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
  *                                                                              *
  *              This software is distributed under the terms of the             * 
- *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *              GNU Lesser General Public Licence (LGPL) version 3,             *  
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
 #ifndef PIPE_H
@@ -21,6 +21,10 @@ class FairPipe : public FairModule
     virtual ~FairPipe();
     virtual void ConstructGeometry();
 
+    virtual FairModule* CloneModule() const;
+
+  private:
+    FairPipe(const FairPipe& rhs);
     ClassDef(FairPipe,1) //PNDPIPE
 
 };

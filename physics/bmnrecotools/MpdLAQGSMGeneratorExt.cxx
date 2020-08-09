@@ -238,6 +238,7 @@ Bool_t MpdLAQGSMGeneratorExt::SkipEvents(Int_t count) {
 
 Bool_t MpdLAQGSMGeneratorExt::ReadEvent(FairPrimaryGenerator* primGen) {
     (this->*ReadEventImpl)(primGen);
+    return kTRUE;
 }
 
 Bool_t MpdLAQGSMGeneratorExt::ReadEventFromTxt(FairPrimaryGenerator* primGen) {

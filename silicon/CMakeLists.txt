@@ -1,15 +1,11 @@
-# Create a library called "libSilicon" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libSilicon"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/alignment
- ${CMAKE_SOURCE_DIR}/uni_db
- ${CMAKE_SOURCE_DIR}/uni_db/db_classes
- ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/alignment
+ ${CMAKE_SOURCE_DIR}/silicon
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -47,6 +43,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF SiliconLinkDef.h)
 Set(LIBRARY_NAME Silicon)
-Set(DEPENDENCIES BmnData XMLParser Core Base BmnAlignment)
+Set(DEPENDENCIES BmnData Base XMLParser Core)
 
 GENERATE_LIBRARY()

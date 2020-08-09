@@ -17,8 +17,8 @@
 #include <TClonesArray.h>
 #include "report/BmnSimulationReport.h"
 #include "CbmMCTrack.h"
-#include "../physics/particles/BmnParticlePair.h"
-#include "../physics/particles/BmnRecLambda.h"
+#include "BmnParticlePair.h"
+#include "BmnRecLambda.h"
 #include "BmnSiliconPoint.h"
 #include "BmnSsdPoint.h"
 

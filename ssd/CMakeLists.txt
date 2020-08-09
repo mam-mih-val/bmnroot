@@ -94,7 +94,6 @@ set(SRCS
 set(INCLUDE_DIRECTORIES
     ${BASE_INCLUDE_DIRECTORIES}
     ${CMAKE_SOURCE_DIR}/bmndata
-    #${CMAKE_SOURCE_DIR}/bmndata/ssd
 
     ${CMAKE_SOURCE_DIR}/ssd
     ${CMAKE_SOURCE_DIR}/ssd/setup
@@ -123,7 +122,7 @@ set(LINK_DIRECTORIES
 
 
 # -----   Specify library dependences   -------------------
-Set(DEPENDENCIES Base)
+Set(DEPENDENCIES BmnData Base Core)
 # ---------------------------------------------------------
 
 
@@ -133,7 +132,7 @@ set(LINKDEF ${LIBRARY_NAME}LinkDef.h)
 
 
 # -----  Let cmake do the job   ---------------------------
-include_directories( ${INCLUDE_DIRECTORIES})
+include_directories(${INCLUDE_DIRECTORIES})
 include_directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 link_directories( ${LINK_DIRECTORIES})
 GENERATE_LIBRARY()

@@ -8,7 +8,7 @@
 #include <iostream>
 using namespace std;
 
-bool BmnFunctionSet::CheckFileExist(TString fileName)
+bool BmnFunctionSet::CheckFileExist(TString& fileName)
 {
     gSystem->ExpandPathName(fileName);
     if (gSystem->AccessPathName(fileName.Data()) == true)

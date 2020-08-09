@@ -408,6 +408,8 @@ Double_t BmnSiliconLayer::ConvertPointToStripPosition(Double_t x, Double_t y) {
             return (XRightPointOfStripNumbering-ConvertNormalPointToStripX(x, y))/Pitch + FirstStripNumber;
         }
     }
+
+    return -1;
 }
 
 Double_t BmnSiliconLayer::CalculateStripEquationB(Double_t strip_pos) {

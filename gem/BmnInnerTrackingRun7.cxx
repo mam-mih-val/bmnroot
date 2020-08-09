@@ -487,6 +487,8 @@ BmnStatus BmnInnerTrackingRun7::FindCandidateByThreeStations(Short_t st0,
     }
     clock_t t1 = 0;  //clock();
     construct_3of4_time += ((Double_t)(t1 - t0)) / CLOCKS_PER_SEC;
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnInnerTrackingRun7::FindTracks_3of4_OnLastGEMStations() {
@@ -524,6 +526,8 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_3of4_OnLastGEMStations() {
         TrackUpdateByLine(candidates);
     SortTracks(candidates, sortedCandidates);
     TrackSelection(sortedCandidates);
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnInnerTrackingRun7::MatchHit(BmnTrack* cand, vector<BmnHit*> sortedHits, Bool_t downstream) {
@@ -565,6 +569,8 @@ BmnStatus BmnInnerTrackingRun7::MatchHit(BmnTrack* cand, vector<BmnHit*> sortedH
     clock_t t1 = 0;  //clock();
     hitMatchTime += ((Double_t)(t1 - t0)) / CLOCKS_PER_SEC;
     hitMatchTimeLoop += ((Double_t)(t0_1 - t0_0)) / CLOCKS_PER_SEC;
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnInnerTrackingRun7::FindCandidateByTwoStations(Short_t st0, Short_t st1, vector<BmnTrack>& candidates, vector<BmnHit*>* sortedHits) {
@@ -608,6 +614,8 @@ BmnStatus BmnInnerTrackingRun7::FindCandidateByTwoStations(Short_t st0, Short_t 
             candidates.push_back(cand);
         }
     }
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnInnerTrackingRun7::FindTracks_2of2_OnFirstGEMStationsDownstream() {
@@ -806,6 +814,8 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_2of2_OnFirstGEMStationsDownstream() {
         TrackUpdateByLine(candidates);
     SortTracks(candidates, sortedCandidates);
     TrackSelection(sortedCandidates);
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnInnerTrackingRun7::FindTracks_2of2_OnFirstGEMStationsUpstream() {
@@ -883,6 +893,8 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_2of2_OnFirstGEMStationsUpstream() {
         TrackUpdateByLine(candidates);
     SortTracks(candidates, sortedCandidates);
     TrackSelection(sortedCandidates);
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnInnerTrackingRun7::SortTracks(vector<BmnTrack>& inTracks, vector<BmnTrack>& sortedTracks) {
@@ -929,6 +941,7 @@ void BmnInnerTrackingRun7::Finish() {
         cout << "trackSelectionTime: " << trackSelectionTime << endl;
     }
     cout << "Work time of the GEM tracking: " << workTime << endl;
+    return;
 }
 
 BmnStatus BmnInnerTrackingRun7::SortHits(vector<BmnHit*>* sortedHits) {

@@ -15,7 +15,7 @@
 #include "BmnGemStripStationSet_RunSpring2017.h"
 #include <TClonesArray.h>
 #include <string>
-#include "../physics/particles/BmnParticlePairsInfo.h"
+#include "BmnParticlePairsInfo.h"
 using std::string;
 
 class BmnLambdaQaReport : public BmnSimulationReport {

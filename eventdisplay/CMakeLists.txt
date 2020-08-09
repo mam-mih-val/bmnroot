@@ -42,8 +42,6 @@ if (BMNROOT)
     ${CMAKE_SOURCE_DIR}/bmndata
     ${CMAKE_SOURCE_DIR}/globaltracking
     ${CMAKE_SOURCE_DIR}/gem
-    ${CMAKE_SOURCE_DIR}/uni_db
-    ${CMAKE_SOURCE_DIR}/uni_db/db_classes
     ${CMAKE_SOURCE_DIR}/silicon
   )
   Set(SRCS
@@ -121,9 +119,9 @@ if (MPDROOT)
 endif (MPDROOT)
 
 if (TDAQ_FOUND)
-  Set(DEPENDENCIES Base Eve Geom EG Physics Ged Gui Graf3d Tree Core xml2 emon emon-dal cmdline ipc owl omniORB4 omnithread ers)
+  Set(DEPENDENCIES Base XMLParser Eve Geom EG Physics Ged Gui Graf3d Tree Core xml2 emon emon-dal cmdline ipc owl omniORB4 omnithread ers)
 else (TDAQ_FOUND)
-  Set(DEPENDENCIES Base Eve Geom EG Physics Ged Gui Graf3d Tree Core xml2)
+  Set(DEPENDENCIES Base XMLParser Eve Geom EG Physics Ged Gui Graf3d Tree Core xml2)
 endif (TDAQ_FOUND)
 if (BMNROOT)
  Set(DEPENDENCIES BmnData Geane ${DEPENDENCIES})

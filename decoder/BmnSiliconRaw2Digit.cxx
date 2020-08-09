@@ -1037,6 +1037,8 @@ BmnStatus BmnSiliconRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *silico
                 ProcessDigit(adcDig, &it, silicon, kFALSE);
             }
         }
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnSiliconRaw2Digit::FillEventMK(TClonesArray *adc, TClonesArray *silicon) {
@@ -1058,6 +1060,8 @@ BmnStatus BmnSiliconRaw2Digit::FillEventMK(TClonesArray *adc, TClonesArray *sili
         ProcessDigitMK(adcDig, silicon, kFALSE);
     }
     PostprocessDigitMK(silicon);
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnSiliconRaw2Digit::FillProfiles(TClonesArray *adc) {
@@ -1068,6 +1072,8 @@ BmnStatus BmnSiliconRaw2Digit::FillProfiles(TClonesArray *adc) {
                 ProcessDigit(adcDig, &it, NULL, kTRUE);
             }
         }
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
@@ -1149,6 +1155,7 @@ BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
                         }
                     }
 
+    return kBMNSUCCESS;
 }
 
 void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* silM, TClonesArray *silicon, Bool_t doFill) {
@@ -1624,6 +1631,8 @@ BmnStatus BmnSiliconRaw2Digit::LoadPedestalsMK(TTree* t_in, TClonesArray* adc128
             }
         }
     }
+
+    return kBMNSUCCESS;
 }
 
 void BmnSiliconRaw2Digit::ProcessDigitMK(BmnADCDigit* adcDig, TClonesArray *silicon, Bool_t doFill) {

@@ -1,10 +1,7 @@
-# Create a library called "libEcal" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libEcal"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/mcstack
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/ecal
 )
@@ -37,6 +34,6 @@ BmnEcalDigitizer.cxx
 Set(HEADERS)
 Set(LINKDEF BmnEcalLinkDef.h)
 Set(LIBRARY_NAME Ecal)
-Set(DEPENDENCIES BmnData Core Base)
+Set(DEPENDENCIES BmnData Base Core)
 
 GENERATE_LIBRARY()

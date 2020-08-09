@@ -43,9 +43,6 @@
 #include <list>
 #include <map>
 #include <deque>
-#include <UniDbDetectorParameter.h>
-#include <UniDbRun.h>
-#include "UniDbTangoData.h"
 
 const UInt_t kRUNNUMBERSYNC1 = 0x236E7552;
 const size_t kWORDSIZE1 = sizeof (UInt_t);

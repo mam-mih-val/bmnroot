@@ -1,21 +1,18 @@
-# Create a library called "libBmnAlignment" which includes the source files given in
-# the array.
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libBmnAlignment"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmndata/math
+ ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmnfield
- ${CMAKE_SOURCE_DIR}/globaltracking
- ${CMAKE_SOURCE_DIR}/silicon
- ${CMAKE_SOURCE_DIR}/mwpc
- ${CMAKE_SOURCE_DIR}/dch
  ${CMAKE_SOURCE_DIR}/uni_db
  ${CMAKE_SOURCE_DIR}/uni_db/db_classes
- ${CMAKE_SOURCE_DIR}/alignment
+ ${CMAKE_SOURCE_DIR}/mwpc
+ ${CMAKE_SOURCE_DIR}/dch
+ ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/alignment
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -50,6 +47,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF AlignLinkDef.h)
 Set(LIBRARY_NAME BmnAlignment)
-Set(DEPENDENCIES Core Base Mwpc)
+Set(DEPENDENCIES Gem Silicon Dch Mwpc BmnData BmnField UniDb Base Core)
 
 GENERATE_LIBRARY()

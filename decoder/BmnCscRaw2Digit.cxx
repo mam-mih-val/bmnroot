@@ -91,6 +91,8 @@ BmnStatus BmnCscRaw2Digit::ReadMapFile() {
         record->station = station;
         fMap.push_back(record);
     }
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnCscRaw2Digit::ReadMapLocalFile() {
@@ -124,6 +126,8 @@ BmnStatus BmnCscRaw2Digit::ReadMapLocalFile() {
         localMap.push_back(mVec);
         channelMap.push_back(mChannel);
     }
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnCscRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * csc) {
@@ -132,6 +136,8 @@ BmnStatus BmnCscRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * csc) {
         BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
         ProcessDigit(adcDig, FindMapEntry(adcDig), csc, kFALSE);
     }
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnCscRaw2Digit::FillProfiles(TClonesArray *adc) {
@@ -139,6 +145,8 @@ BmnStatus BmnCscRaw2Digit::FillProfiles(TClonesArray *adc) {
         BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
         ProcessDigit(adcDig, FindMapEntry(adcDig), NULL, kTRUE);
     }
+
+    return kBMNSUCCESS;
 }
 
 BmnCscMapping* BmnCscRaw2Digit::FindMapEntry(BmnADCDigit* adcDig) {
@@ -194,6 +202,8 @@ BmnStatus BmnCscRaw2Digit::FillNoisyChannels() {
                             fNoisyChannels[it->station][it->module][it->layer][iStrip] = kTRUE;
                         }
                     }
+
+    return kBMNSUCCESS;
 }
 
 Int_t BmnCscRaw2Digit::LayerPrediction(Int_t module, Int_t x) {

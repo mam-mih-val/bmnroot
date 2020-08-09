@@ -13,7 +13,6 @@
 #include <list>
 #include <map>
 #include <vector>
-#include <UniDbDetectorParameter.h>
 #include "BmnSiliconDigit.h"
 #include "BmnAdcProcessor.h"
 #include <TSystem.h>

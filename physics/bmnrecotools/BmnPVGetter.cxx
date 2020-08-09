@@ -45,6 +45,8 @@ InitStatus BmnPVGetter::Init() {
     ioman->Register(fPVertexName, "GEM", fPVertexShow, kTRUE); // last arg: save to file
     fEvHeaderShow = new DstEventHeader(); //out
     ioman->Register(fEvHeaderName, "", fEvHeaderShow, kTRUE); // last arg: save to file
+
+    return kSUCCESS;
 }
 
 void BmnPVGetter::Exec(Option_t *option) {

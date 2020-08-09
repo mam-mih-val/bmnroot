@@ -1,14 +1,11 @@
-# Create a library called "libBmnData" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libBmnData"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/globaltracking
- ${CMAKE_SOURCE_DIR}/uni_db
- ${CMAKE_SOURCE_DIR}/uni_db/db_classes
- ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/cbm
+ ${CMAKE_SOURCE_DIR}/bmndata/common
+ ${CMAKE_SOURCE_DIR}/bmndata/math
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -154,6 +151,6 @@ EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 
 Set(LINKDEF BmnDataLinkDef.h)
 Set(LIBRARY_NAME BmnData)
-Set(DEPENDENCIES Minuit Core Base ${ZeroMQ_LIBRARY_SHARED})
+Set(DEPENDENCIES Base Core ${ZeroMQ_LIBRARY_SHARED})
 
 GENERATE_LIBRARY()

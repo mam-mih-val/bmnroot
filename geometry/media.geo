@@ -98,6 +98,10 @@ RPCglass           -2  28.09  16.  14.  8.  2.55  1.  2.
                    0  1  20.  .001
                    0
 
+brass              2 63.546 65.37 29.0 30.0 8.73 0.6 0.4
+                   0  1  20.  .001
+                   0
+
 RICHglass          -2  28.09  16.  14.  8.  2.2  1.  2.
                    1  0  20.  .0001
                    53
@@ -737,6 +741,26 @@ polystyrene	   2	12.00 1.00 6. 1. 1.032  0.9230769  0.7692308e-01
                    1  0  20.  .001
                    0
 
+//Polyurethane for GEM (low density)
+polyurethane_ld    -4 12.011 14.007 1.008 15.999 6.0 7.0 1.0 8.0 0.25 17.0 2.0 16.0 4.0
+                   0  0  20.  .001
+                   0
+
+//Polyurethane for GEM (medium density)
+polyurethane_md    -4 12.011 14.007 1.008 15.999 6.0 7.0 1.0 8.0 0.59 17.0 2.0 16.0 4.0
+                   0  0  20.  .001
+                   0
+
+//Polyurethane for GEM (high density)
+polyurethane_hd    -4 12.011 14.007 1.008 15.999 6.0 7.0 1.0 8.0 1.8 17.0 2.0 16.0 4.0
+                   0  0  20.  .001
+                   0
+
+//PVAC glue for GEM
+pvac_glue          -3 12.011 1.008 15.999 6.0 1.0 8.0 1.1 4.0 6.0 2.0
+                   0  0  20.  .001
+                   0
+
 //polystyrene as a base:
 //FscFiber    -2 12.01 1.008 6. 1. 1.032 8. 8.
 //             1 0 20. .001
@@ -857,6 +881,11 @@ kevlar             -3 14.006 1. 15.999 7. 1. 8. 1.44 2. 2. 2.
                    0
 
 nomex              -3 14.06 1. 15.999 7. 1. 8. 0.03 2. 2. 2.
+                   0 1 20. 0.001
+                   0
+
+//Nomex Aramid HoneyComb for GEM (Kevlal chemical structure)
+AramidHoneyComb    -3 14.06 1. 15.999 7. 1. 8. 0.048 2. 2. 2.
                    0 1 20. 0.001
                    0
 

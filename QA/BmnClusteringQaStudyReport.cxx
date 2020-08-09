@@ -6,7 +6,7 @@
 #include "CbmLitClusteringQaStudyReport.h"
 #include "CbmReportElement.h"
 #include "CbmHistManager.h"
-#include "../../../std/utils/CbmLitUtils.h"
+#include "CbmLitUtils.h"
 #include "TH1.h"
 #include <boost/assign/list_of.hpp>
 #include <vector>

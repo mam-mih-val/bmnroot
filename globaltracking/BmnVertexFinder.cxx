@@ -323,3 +323,5 @@ Double_t BmnVertexFinder::CalcMeanDist(vector<Double_t> x, vector<Double_t> y) {
     }
     return sumDist / nPairs;  // calc. ave. dist value
 }
+
+ClassImp(BmnVertexFinder);

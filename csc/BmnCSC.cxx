@@ -52,28 +52,6 @@ BmnCSC::~BmnCSC() {
 
 Bool_t BmnCSC::ProcessHits(FairVolume* vol) {
 
-    // Determine station and module numbers for the current hit ----------------
-    Int_t stationNum = -1; // current station number (default)
-    Int_t moduleNum = -1; // current module number (default)
-
-    TGeoVolume *currentVolume = gGeoManager->GetCurrentVolume();
-    TString currentVolumeName = currentVolume->GetName();
-
-    TRegexp expr = "^SensorV_module[0-9]+_station[0-9]+$";
-    if(currentVolumeName.Contains(expr)) {
-        TRegexp mod_expt = "module[0-9]+";
-        TRegexp stat_expt = "station[0-9]+";
-
-        moduleNum = TString(TString(currentVolumeName(mod_expt))(TRegexp("[0-9]+"))).Atoi();
-        stationNum = TString(TString(currentVolumeName(stat_expt))(TRegexp("[0-9]+"))).Atoi();
-    }
-
-    //cout << "stationNum = " << stationNum << "\n";
-    //cout << "moduleNum = " << moduleNum << "\n";
-    //cout << "\n";
-
-    // -------------------------------------------------------------------------
-
     // Set parameters at entrance of volume. Reset ELoss.
     if(gMC->IsTrackEntering()) {
 
@@ -92,7 +70,6 @@ Bool_t BmnCSC::ProcessHits(FairVolume* vol) {
         TLorentzVector MomIn;
         gMC->TrackMomentum(MomIn);
         fMomIn.SetXYZ(MomIn.X(), MomIn.Y(), MomIn.Z());
-
 
         TParticle* part = 0;
         part = gMC->GetStack()->GetCurrentTrack();
@@ -120,6 +97,35 @@ Bool_t BmnCSC::ProcessHits(FairVolume* vol) {
         TLorentzVector MomOut;
         gMC->TrackMomentum(MomOut);
         fMomOut.SetXYZ(MomOut.X(), MomOut.Y(), MomOut.Z());
+
+        //correction step to avoid the seg. violation error due to invalid memory access
+        TVector3 diff_pos = fPosIn - fPosOut;
+
+        if(diff_pos.Mag() < 0.001) return kFALSE; //ignore points produced by tracks with zero length inside the current sens. volume
+        if(fMomOut.Mag() == 0) return kFALSE; // ignore points produced by tracks with zero momentum inside the current sens. volume
+
+        TVector3 corr_step = fMomOut;
+        corr_step.SetMag(0.001); // 10 um
+        TVector3 pos = fPosOut;
+	fPosOut = pos - corr_step;
+        gGeoManager->FindNode(fPosOut[0],fPosOut[1],fPosOut[2]);
+
+        // Determine station and module numbers for the current hit ------------
+        Int_t stationNum = -1; // current station number (default)
+        Int_t moduleNum = -1; // current module number (default)
+
+        TGeoVolume *currentVolume = gGeoManager->GetCurrentVolume();
+        TString currentVolumeName = currentVolume->GetName();
+        TRegexp expr = "^SensorV_module[0-9]+_station[0-9]+$";
+        if(currentVolumeName.Contains(expr)) {
+            TRegexp mod_expt = "module[0-9]+";
+            TRegexp stat_expt = "station[0-9]+";
+
+            moduleNum = TString(TString(currentVolumeName(mod_expt))(TRegexp("[0-9]+"))).Atoi();
+            stationNum = TString(TString(currentVolumeName(stat_expt))(TRegexp("[0-9]+"))).Atoi();
+        }
+
+        if(stationNum == -1 || moduleNum == -1) return kFALSE; //check if the current point has incorrect indices
 
         BmnCSCPoint *p = AddHit(fTrackID, fVolumeID,
                                 fPosIn, fPosOut,

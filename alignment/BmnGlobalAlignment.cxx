@@ -386,6 +386,7 @@ const Int_t BmnGlobalAlignment::MakeBinFile() {
     }
 
     delete Mille;
+    return 0;
 }
 
 void BmnGlobalAlignment::MakeSteerFile() {

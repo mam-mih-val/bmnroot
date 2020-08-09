@@ -1,6 +1,5 @@
 #include <FairTask.h>
 #include <FairRootManager.h>
-#include <UniDbDetectorParameter.h>
 #include <UniDbRun.h>
 
 #include <CbmVertex.h>

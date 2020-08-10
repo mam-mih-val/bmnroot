@@ -52,7 +52,7 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(tof2);
 
     FairDetector* ecal = new BmnEcal("ECAL", kTRUE);
-    ecal->SetGeometryFileName("ECAL_v2_run7_pos4.root");
+    ecal->SetGeometryFileName("ECAL_v3_run7_pos4.root");
     fRun->AddModule(ecal);
 
     BmnZdc* zdc = new BmnZdc("ZDC", kTRUE);

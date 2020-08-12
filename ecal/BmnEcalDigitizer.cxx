@@ -10,6 +10,7 @@
 #include <FairGeoLoader.h>
 #include <FairGeoInterface.h>
 #include <FairGeoSet.h>
+#include <TGeoManager.h>
 
 #include "BmnEcalPoint.h"
 
@@ -109,34 +110,39 @@ void BmnEcalDigitizer::Print(Option_t *option) const {
 
 void BmnEcalDigitizer::LoadGeometry() {
 
-    if (fEcalGeometryFileName == 0) {
-        // Try to get geometry file name from ecal geo set
-        FairGeoLoader * geoLoader = FairGeoLoader::Instance();
-        if (geoLoader) {
-            FairGeoInterface * geoInterface = geoLoader->getGeoInterface();
-            if (geoInterface) {
-                FairGeoSet * geoSet = geoInterface->findSet("ecal");
-                if (geoSet) {
-                    fEcalGeometryFileName = geoSet->getGeomFile();
-                }
-            }
+    Bool_t loadFromFile = fEcalGeometryFileName != 0;
+    TGeoNode * ecal1 = 0;
+    TGeoNode * ecal2 = 0;
+    if (gGeoManager) {
+        TGeoVolume * ecal = gGeoManager->FindVolumeFast("ecal");
+        if (ecal) {
+            if (ecal->GetNdaughters() > 0) ecal1 = ecal->GetNode(0);
+            if (ecal->GetNdaughters() > 1) ecal2 = ecal->GetNode(1);
+            loadFromFile = kFALSE;
+        } else {
+            Info(__func__, "Ecal geometry not found by TGeoManager\n");
         }
-    }
+    } 
     
-    if (fEcalGeometryFileName == 0) {
-        Fatal(__func__, "ECAL geometry file name does't set");
-    }
+    if (loadFromFile) {
+        Info(__func__, "Loading coordinates of ECAL cells from %s\n", fEcalGeometryFileName);
+        TGeoVolume * top = TGeoVolume::Import(fEcalGeometryFileName,"TOP");
 
-    Info(__func__, "Loading coordinates of ECAL cells from %s\n", fEcalGeometryFileName);
+        if (!top) {
+            Fatal(__func__, "Volume TOP not found in %s\n", fEcalGeometryFileName);
+        }
+        
+        TGeoNode * ecal = top->GetNode(0);
     
-    TGeoVolume *top = TGeoVolume::Import(fEcalGeometryFileName,"TOP");
-    if (!top) {
-        Fatal(__func__, "Volume TOP not found in %s\n", fEcalGeometryFileName);
+        if (!ecal /*|| ecal->GetNdaughters() < 2*/) {
+            Fatal(__func__, "Unexpected geometry structure %s\n",fEcalGeometryFileName);
+        }        
+        ecal1 = ecal->GetDaughter(0);
+        ecal2 = ecal->GetDaughter(1);
     }
     
-    TGeoNode * ecal = top->GetNode(0);
-    if (!ecal /*|| ecal->GetNdaughters() < 2*/) {
-        Fatal(__func__, "Unexpected geometry structure %s\n",fEcalGeometryFileName);
+    if (ecal1 == 0 && ecal2 == 0) {
+        Fatal(__func__, "ECAL geometry not found");
     }
     
     for (Int_t i = 0; i < fCellsSize; i++) {
@@ -148,8 +154,7 @@ void BmnEcalDigitizer::LoadGeometry() {
     Double_t labCoords[3];
     
     coords[2] = fDepthShift;
-
-    TGeoNode * ecal1 = ecal->GetDaughter(0);
+  
     if (ecal1) {
         Int_t n = ecal1->GetNdaughters();
         if (n > 504) {
@@ -169,7 +174,6 @@ void BmnEcalDigitizer::LoadGeometry() {
         }
     }
 
-    TGeoNode * ecal2 = ecal->GetDaughter(1);
     if (ecal2) {
         Int_t n = ecal2->GetNdaughters();
         if (n > 504) {

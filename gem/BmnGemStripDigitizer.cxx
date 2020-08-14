@@ -177,6 +177,9 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
         Int_t mc_station_num = ((CbmStsPoint*) GemStripPoint)->GetStation();
         Int_t mc_module_num = ((CbmStsPoint*) GemStripPoint)->GetModule();
 
+        //cout << "mc_station_num = " << mc_station_num << "\n";
+        //cout << "mc_module_num = " << mc_module_num << "\n";
+
         //Transform mc-point coordinates to local coordinate system of GEM-planes
         if (TransfSet && mc_station_num < StationSet->GetNStations()) {
             BmnGemStripStation* station = StationSet->GetGemStation(mc_station_num);

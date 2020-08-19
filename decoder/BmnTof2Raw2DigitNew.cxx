@@ -26,7 +26,7 @@
 
 // Slewing Time limits flags
 #define LIMITS_ROOT_FILE 1
-#define PRINT_TIME_LIMITS 1
+#define PRINT_TIME_LIMITS 0
 
 // Strip equalization before slewing
 #define PRELIMINARY_OFFSETS 1
@@ -345,7 +345,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, I
 	}
 	if(Offsets_read()) return;
     }
-    readGeom(geomFile.Data());
+    readGeom((char *)geomFile.Data());
 
 // read Left-Right offsets
     for (int c=0; c<TOF2_MAX_CHAMBERS; c++)
@@ -364,6 +364,8 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, I
     // 15 cm/ns
     fVelosity = 7.5f;
     readXYCalibration((char *)"TOF700_tdiff_to_x_final_2019071.txt",(char *)"Y_calibration.txt");
+    // Argon data calibration
+    readXYCalibrationNew((char *)"bmn_run9687_digi_x_calibration.txt",(char *)"bmn_run9687_digi_y_calibration.txt");
 
     for(int ind=0;ind<n_rec;ind++){ 
      if (mapa[ind].pair == -1) continue; 
@@ -1136,7 +1138,14 @@ void BmnTof2Raw2DigitNew::readSlewingLimits()
     if (PRINT_TIME_LIMITS) printf("\t\tTOF2.SetWT0(%d,%d);\n", WT0min, WT0max);
     for (i=0; i<MaxPlane; i++)
     {
+      lmi = 0;
+      lma = 0;
       fscanf(finl,"\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", &j, &lmi, &lma);
+      if (lmi >= lma)
+      {
+        printf("\t\tWrong limits - TOF2.SetLeadMinMax(%d, %d,%d);\n", j, lmi, lma);
+	continue;
+      }
       if (PRINT_TIME_LIMITS) printf("\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", j, lmi, lma);
       SetLeadMinMax(j,lmi,lma);
     }   
@@ -1238,7 +1247,12 @@ void BmnTof2Raw2DigitNew::readSlewingLimits()
 //	    printf("pl %d binw %d min %d max %d\n",plane,ibx,LeadMinW[plane][ibx-1],LeadMaxW[plane][ibx-1]);
 	}
 	if (PRINT_TIME_LIMITS) printf("\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", plane+1, (int)ymin, (int)ymax);
-	SetLeadMinMax(plane+1,(int)ymin,(int)ymax);
+	if (ymin >= ymax)
+	{
+	    printf("\t\tWrong limits - TOF2.SetLeadMinMax(%d, %d,%d);\n", plane+1, (int)ymin, (int)ymax);
+	}
+	else
+	    SetLeadMinMax(plane+1,(int)ymin,(int)ymax);
 	delete htvsw_0;
 	delete htvsw_1;
 	delete htvsw_2;
@@ -1296,7 +1310,7 @@ void BmnTof2Raw2DigitNew::readSlewing(Bool_t update)
     }
     else
     {
-	LOG(FATAL)<<"Error open slewing file " << filnr << " - exit!";
+	LOG(FATAL)<<"Error open slewing file " << filnr << " - exit!" << FairLogger::endl;
 	return;
     }
   }
@@ -3468,9 +3482,9 @@ void BmnTof2Raw2DigitNew::drawproft0()
 }
 
 
-int BmnTof2Raw2DigitNew::readGeom(const char *geomfile)
+int BmnTof2Raw2DigitNew::readGeom(char *geomfile)
 {
-	const char * fname;
+	char fname[128];
 	FILE *fg = 0;
 	float ic = 0;
 	int nf = 0, n = 0, i;
@@ -3480,8 +3494,8 @@ int BmnTof2Raw2DigitNew::readGeom(const char *geomfile)
 	    printf("TOF700 geometry file name not defined!\n");
 	    return 0;
 	}
-	TString dir = TString::Format("%s/geometry/%s", getenv("VMCWORKDIR"), geomfile);
-        fname = dir.Data();
+	TString dir = getenv("VMCWORKDIR");
+	sprintf(fname,"%s/geometry/%s",dir.Data(),geomfile);
 	fg = fopen(fname,"r");
 	if (fg == NULL)
 	{
@@ -3514,11 +3528,11 @@ int BmnTof2Raw2DigitNew::readGeom(const char *geomfile)
 		xmaxs[i][ns] = xcens[i][ns] + halfxwidth[i];
 		ymins[i][ns] = ycens[i][ns] - halfywidth[i];
 		ymaxs[i][ns] = ycens[i][ns] + halfywidth[i];
-		//printf("C %f S %d %f %f %f %f %f\n",ic,ns,zchamb[i],xmins[i][ns],xmaxs[i][ns],ymins[i][ns],ymaxs[i][ns]);
+//		printf("C %d S %d %f %f %f %f %f\n",ic,ns,zchamb[i],xmins[i][ns],xmaxs[i][ns],ymins[i][ns],ymaxs[i][ns]);
 		}
 		nf++;
 	}
-	int result = fclose(fg);
+	fclose(fg);
 	if (nf == MaxPlane) return 1;
 	else
 	{
@@ -3584,8 +3598,6 @@ int BmnTof2Raw2DigitNew::printGeom()
 //		printf("   Strip %d X %f Y %f\n", k+1, xcens[j][k],ycens[j][k]);
 //	}
     }
-
-    return 0;
 }
 
 int BmnTof2Raw2DigitNew::readLRoffsets(char *offsetsfile)
@@ -3848,6 +3860,38 @@ int BmnTof2Raw2DigitNew::readXYCalibration(char *xcalibrationfile, char *ycalibr
 	return 1;
 }
 
+int BmnTof2Raw2DigitNew::readXYCalibrationNew(char *xcalibrationfile, char *ycalibrationfile)
+{
+	FILE *fcalx = 0;
+	FILE *fcaly = 0;
+	char fname_calibr[128];
+	TString dir = getenv("VMCWORKDIR");
+	sprintf(fname_calibr,"%s/geometry/%s",dir.Data(),xcalibrationfile);
+	fcalx = fopen(fname_calibr,"r");
+	if (fcalx == NULL)
+	{
+	    printf("File %s open error!\n", fname_calibr);
+	    return 0;
+	}
+	sprintf(fname_calibr,"%s/geometry/%s",dir.Data(),ycalibrationfile);
+	fcaly = fopen(fname_calibr,"r");
+	if (fcaly == NULL)
+	{
+	    printf("File %s open error!\n", fname_calibr);
+	    return 0;
+	}
+//
+	Int_t nx = 0, ny = 0, ip = 0, is = 0;
+	while(fscanf(fcalx, " l %d %d %f %f\n", &ip, &is, &interxl[ip][is], &slopexl[ip][is]) == 4) \
+	    { fscanf(fcalx, " g %d %d %f %f\n", &ip, &is, &interxg[ip][is], &slopexg[ip][is]); nx++; };
+	while (fscanf(fcaly, " %d %d %f\n", &ip, &is, &shifty[ip][is]) == 3) {ny++;};
+//
+	printf(" Read TOF700 X calibration parameters - %d strips\n",nx);
+	printf(" Read TOF700 Y calibration parameters - %d strips\n",ny);
+	if (fcalx) fclose(fcalx);
+	if (fcaly) fclose(fcaly);
+	return nx;
+}
 
 float BmnTof2Raw2DigitNew::get_hit_xp(int chamber, int strip, float diff)
 {
@@ -3868,6 +3912,72 @@ void BmnTof2Raw2DigitNew::get_hit_xyzp(int chamber, int strip, float diff, float
     {
 	xh = xoffset[chamber][strip] + xslope[chamber][strip]*(diff - lroffsets[chamber][strip]*HPTIMEBIN)/2.;
 	yh = yoffset[chamber] + yslope[chamber]*ycens[chamber][strip];
+	*x = xh;
+	*y = yh;
+	*z = zchamb[chamber];
+	return;
+    }
+    else
+    {
+	*x = 0.;
+	*y = 0.;
+	*z = 0.;
+	return;
+    }
+}
+
+float BmnTof2Raw2DigitNew::get_hit_xng(int chamber, int strip, float diff)
+{
+    float x = 0., dx = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && slopexg[chamber][strip] != 0.)
+    {
+	x = interxg[chamber][strip] + slopexg[chamber][strip]*diff;
+	return x;
+    }
+    else
+	return 0.;
+}
+
+void BmnTof2Raw2DigitNew::get_hit_xyzng(int chamber, int strip, float diff, float *x, float *y, float *z)
+{
+    float xh = 0., yh = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && slopexg[chamber][strip] != 0. && shifty[chamber][strip] != 0.)
+    {
+	xh = interxg[chamber][strip] + slopexg[chamber][strip]*diff;
+	yh = shifty[chamber][strip] + ycens[chamber][strip];
+	*x = xh;
+	*y = yh;
+	*z = zchamb[chamber];
+	return;
+    }
+    else
+    {
+	*x = 0.;
+	*y = 0.;
+	*z = 0.;
+	return;
+    }
+}
+
+float BmnTof2Raw2DigitNew::get_hit_xnl(int chamber, int strip, float diff)
+{
+    float x = 0., dx = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && slopexl[chamber][strip] != 0.)
+    {
+	x = interxl[chamber][strip] + slopexl[chamber][strip]*diff + xcens[chamber][strip];
+	return x;
+    }
+    else
+	return 0.;
+}
+
+void BmnTof2Raw2DigitNew::get_hit_xyznl(int chamber, int strip, float diff, float *x, float *y, float *z)
+{
+    float xh = 0., yh = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && slopexl[chamber][strip] != 0. && shifty[chamber][strip] != 0.)
+    {
+	xh = interxl[chamber][strip] + slopexl[chamber][strip]*diff + xcens[chamber][strip];
+	yh = shifty[chamber][strip] + ycens[chamber][strip];
 	*x = xh;
 	*y = yh;
 	*z = zchamb[chamber];

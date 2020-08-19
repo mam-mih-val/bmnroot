@@ -231,12 +231,12 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ====================================================================== //
     // ===                          TOF2 hit finder                       === //
     // ====================================================================== //
-    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7_panin.txt", !isExp, iVerbose, kFALSE);
+    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7.txt", !isExp, iVerbose, kFALSE);
     tof2HP->SetTimeResolution(0.115);
     tof2HP->SetProtonTimeCorrectionFile("bmn_run9687_digi_calibration.root");
     tof2HP->SetMCTimeFile("TOF700_MC_argon_qgsm_time_run7.txt");
-    tof2HP->SetMainStripSelection(0); // 0 - minimal time, 1 - maximal amplitude
-    tof2HP->SetSelectXYCalibration(1); // 0 - Petukhov, 1 - Panin
+    tof2HP->SetMainStripSelection(1); // 0 - minimal time, 1 - maximal amplitude
+    tof2HP->SetSelectXYCalibration(2); // 0 - Petukhov, 1 - Panin SRC, 2 - Petukhov Argon (default)
     tof2HP->SetTimeMin(-2.f); // minimal digit time
     tof2HP->SetTimeMax(+15.f); // Maximal digit time
     tof2HP->SetDiffTimeMaxSmall(1.3f); // Abs maximal difference for small chambers

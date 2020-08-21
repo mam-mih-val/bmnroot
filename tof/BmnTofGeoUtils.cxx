@@ -68,7 +68,7 @@ void BmnTofGeoUtils::ParseTGeoManager(bool useMCinput, TH2D* h1, bool forced)
 	mStrips.clear();
 	
 //	TString stripName, pathTOF = "/cave_1/TOFB1_0";
-	TString stripName, gasName, pathTOF = "/cave_1/tof700_0";
+	TString stripName, gasName, pathTOF = "/cave_1/tof700_0", chamName;
 	gGeoManager->cd(pathTOF);
 	
 	Double_t *X0Y0Z0 = new Double_t[3]; X0Y0Z0[0] = X0Y0Z0[1] = X0Y0Z0[2] = 0.; // center of sensetive detector
@@ -83,7 +83,10 @@ void BmnTofGeoUtils::ParseTGeoManager(bool useMCinput, TH2D* h1, bool forced)
   	TGeoNode *detectorNode, *detectorNodeGas, *stripNode;
   	while( (detectorNode = (TGeoNode*) it1->Next()) ) // detectors		
     	{
-    		TString PATH1 = pathTOF + "/" + detectorNode->GetName(); detectorID = detectorNode->GetNumber(); nDetectors++;
+    		TString PATH1 = pathTOF + "/" + detectorNode->GetName(); detectorID = detectorNode->GetNumber();
+		chamName = detectorNode->GetName();
+    		if(!chamName.Contains("Chamber")) continue;
+		nDetectors++;
 //    		cout<<"\n DETECTOR: "<<detectorNode->GetName()<<", copy# "<<detectorID<<" path= "<<PATH1.Data();
     	
     	    	TIterator *it2 = detectorNode->GetNodes()->MakeIterator(); 		
@@ -386,8 +389,9 @@ int BmnTofGeoUtils::readGeom(const char *geomfile)
 		}
 //		printf("%s ns=%d step=%f sx=%f sy=%f x=%f y=%f z=%f\n",ic,n,step,sx,sy,x,y,z);
 		c++;
+		if (c > TOF2_MAX_CHAMBERS) break;
 		if (c > cmax) cmax = c;
-		if (c >= TOF2_MAX_CHAMBERS) break;
+		if (c == TOF2_MAX_CHAMBERS) break;
 	}
 	nchambers = cmax;
 	fclose(fg);

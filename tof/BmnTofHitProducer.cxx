@@ -31,7 +31,7 @@ static Float_t workTime = 0.0;
 ClassImp(BmnTofHitProducer)
 //--------------------------------------------------------------------------------------------------------------------------------------
 BmnTofHitProducer::BmnTofHitProducer(const char *name, const char *geomFile, Bool_t useMCdata, Int_t verbose, Bool_t test)
-:  BmnTofHitProducerIdeal(name, useMCdata, verbose, test), fTimeSigma(0.100), fErrX(0.5), fErrY(1./sqrt(12.)), pRandom(new TRandom2), h2TestStrips(nullptr) , h1TestDistance(nullptr), h2TestNeighborPair(nullptr),
+:  BmnTofHitProducerIdeal(name, useMCdata, verbose, test), fTimeSigma(0.100), fErrX(1.0), fErrY(1.0), pRandom(new TRandom2), h2TestStrips(nullptr) , h1TestDistance(nullptr), h2TestNeighborPair(nullptr),
 	fDoINL(true), fDoSlewing(true), fSignalVelosity(0.050)
 {
 	pGeoUtils = new BmnTofGeoUtils(useMCdata);
@@ -40,7 +40,7 @@ BmnTofHitProducer::BmnTofHitProducer(const char *name, const char *geomFile, Boo
 	fMCTimeFile = NULL;
 	fProtonTimeCorrectionFile = NULL;
 	fMainStripSelection = 0; // 0 - minimal time, != 0 - maximal amplitude
-	fSelectXYCalibration = 0; // 0 - Petukhov, != 0 - Panin
+	fSelectXYCalibration = 2; // 0 - Petukhov, 1 - Panin, 2 - new Petukhov
 	fTimeMin = -2.f; // Minimal digit time, ns
 	fTimeMax = +15.f; // Maximal digit time, ns
 	fDiffTimeMaxSmall = 1.3f; // Maximal abs time difference, small chambers
@@ -159,8 +159,12 @@ InitStatus BmnTofHitProducer::Init()
 		        itcalibr = (TProfile2D *)fc->Get("tcalibr;1");
 		        itcalibrc = (TProfile *)fc->Get("tcalibrc;1");
 		    }
-		    printf("\n ******************* Time offsets for whole chamber **********************\n");
-		    for (int c=0; c<TOF2_MAX_CHAMBERS; c++) { tofcalc[c] = itcalibrc->GetBinContent(c+1); printf("%d %f\n",c,tofcalc[c]); }
+		    for (int c=0; c<TOF2_MAX_CHAMBERS; c++) { tofcalc[c] = itcalibrc->GetBinContent(c+1); }
+		    if (LIST_CHAMBER_CORRECTIONS)
+		    {
+			printf("\n ******************* Time offsets for whole chamber **********************\n");
+			for (int c=0; c<TOF2_MAX_CHAMBERS; c++) { printf("%d %f\n",c,tofcalc[c]); }
+		    }
 		    if (STRIP_CORRECTIONS)
 		    {
 		        if (LIST_STRIP_CORRECTIONS) printf("\n ******************* Time offsets for each strip **************************\n");
@@ -396,8 +400,12 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 					    else if (fSelectXYCalibration == 1)
                         			fTOF2->get_hit_xyzp(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
 					    else if (fSelectXYCalibration == 2)
-                        			fTOF2->get_hit_xyzng(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+                        			fTOF2->get_hit_xyzng(i,cstr,-lrdiff[i][cstr],&xcl,&ycl,&zcl);
 					    else if (fSelectXYCalibration == 3)
+                        			fTOF2->get_hit_xyznl(i,cstr,-lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					    else if (fSelectXYCalibration == 4)
+                        			fTOF2->get_hit_xyzng(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					    else if (fSelectXYCalibration == 5)
                         			fTOF2->get_hit_xyznl(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
 					    else
                         			fTOF2->get_hit_xyzs(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
@@ -441,8 +449,12 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 					else if (fSelectXYCalibration == 1)
                         		    fTOF2->get_hit_xyzp(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
 					else if (fSelectXYCalibration == 2)
-                        		    fTOF2->get_hit_xyzng(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+                        		    fTOF2->get_hit_xyzng(i,cstr,-lrdiff[i][cstr],&xcl,&ycl,&zcl);
 					else if (fSelectXYCalibration == 3)
+                        		    fTOF2->get_hit_xyznl(i,cstr,-lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					else if (fSelectXYCalibration == 4)
+                        		    fTOF2->get_hit_xyzng(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					else if (fSelectXYCalibration == 5)
                         		    fTOF2->get_hit_xyznl(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
 					else
                         		    fTOF2->get_hit_xyzs(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
@@ -494,11 +506,15 @@ void BmnTofHitProducer::Exec(Option_t* opt)
                     	    Float_t xcl, ycl, zcl;
 			    if (fSelectXYCalibration == 0)
                         	fTOF2->get_hit_xyz(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
-			    else if (fSelectXYCalibration != 0)
+			    else if (fSelectXYCalibration == 1)
                         	fTOF2->get_hit_xyzp(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
 			    else if (fSelectXYCalibration == 2)
-                        	fTOF2->get_hit_xyzng(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
+                        	fTOF2->get_hit_xyzng(chamber,strip,-dlrdiff,&xcl,&ycl,&zcl);
 			    else if (fSelectXYCalibration == 3)
+                        	fTOF2->get_hit_xyznl(chamber,strip,-dlrdiff,&xcl,&ycl,&zcl);
+			    else if (fSelectXYCalibration == 4)
+                        	fTOF2->get_hit_xyzng(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
+			    else if (fSelectXYCalibration == 5)
                         	fTOF2->get_hit_xyznl(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
 			    else
                         	fTOF2->get_hit_xyzs(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);

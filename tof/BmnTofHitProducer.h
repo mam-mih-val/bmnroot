@@ -18,6 +18,7 @@
 #define TOF2_MAX_STRIPS_IN_CHAMBER 32
 
 #define STRIP_CORRECTIONS 0
+#define LIST_CHAMBER_CORRECTIONS 0
 #define LIST_STRIP_CORRECTIONS 0
 // CVERS=0 -  use last calibration tables, 1 - use *;1 version
 #define CVERS 1

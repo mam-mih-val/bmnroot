@@ -2,6 +2,7 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
+ ${CMAKE_SOURCE_DIR}/passive
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/silicon
@@ -86,6 +87,6 @@ EndIf(CMAKE_BUILD_TYPE EQUAL "Release")
 Set(HEADERS)
 Set(LINKDEF StsLinkDef.h)
 Set(LIBRARY_NAME Sts)
-Set(DEPENDENCIES Gem Silicon BmnData Base Core)
+Set(DEPENDENCIES Gem Silicon BmnData Passive Base Core)
 
 GENERATE_LIBRARY()

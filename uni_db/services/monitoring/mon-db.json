@@ -5,6 +5,12 @@
     },
     "db_interface": {
       "IP": "se51-98.jinr.ru"
+    },
+    "elog_server": {
+      "IP": "nc13.jinr.ru"
+    },
+    "elog_interface": {
+      "IP": "nc9.jinr.ru"
     }
   },
   "DATABASE": {
@@ -15,6 +21,14 @@
       "DBNAME": "bmn_db",
       "USER": "db_reader",
       "PASS": "reader_pass"
+    },
+    "elog_db": {
+      "SERVER": "nc13.jinr.ru",
+      "DBMS": "PGSQL",
+      "PORT": 5432,
+      "DBNAME": "bmn_elog",
+      "USER": "shift",
+      "PASS": "shift"
     }
   },
 
@@ -38,5 +52,5 @@
 
   "LOG": "email@jinr.ru",
   "NOTIFY": "email@jinr.ru",
-  "NAME": "UniDB Monitoring"
+  "NAME": "BM@N Database Monitoring"
 }

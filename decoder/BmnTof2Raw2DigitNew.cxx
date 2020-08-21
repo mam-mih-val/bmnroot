@@ -365,6 +365,17 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, I
     fVelosity = 7.5f;
     readXYCalibration((char *)"TOF700_tdiff_to_x_final_2019071.txt",(char *)"Y_calibration.txt");
     // Argon data calibration
+    for (int c=0; c<TOF2_MAX_CHAMBERS; c++)
+    {
+	for (int i=0; i<TOF2_MAX_STRIPS_IN_CHAMBER; i++)
+	{
+		    interxg[c][i] = 0.;
+		    slopexg[c][i] = 0.;
+		    interxl[c][i] = 0.;
+		    slopexl[c][i] = 0.;
+		    shifty[c][i] = 0.;
+	}
+    }
     readXYCalibrationNew((char *)"bmn_run9687_digi_x_calibration.txt",(char *)"bmn_run9687_digi_y_calibration.txt");
 
     for(int ind=0;ind<n_rec;ind++){ 
@@ -1310,7 +1321,7 @@ void BmnTof2Raw2DigitNew::readSlewing(Bool_t update)
     }
     else
     {
-	LOG(FATAL)<<"Error open slewing file " << filnr << " - exit!" << FairLogger::endl;
+	LOG(FATAL)<<"Error open slewing file " << filnr << " - exit!";
 	return;
     }
   }

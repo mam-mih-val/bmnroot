@@ -240,9 +240,9 @@ private:
     float yslope[TOF2_MAX_CHAMBERS];
     float yoffset[TOF2_MAX_CHAMBERS];
 
-    float interxg[TOF2_MAX_CHAMBERS][32] = {{0.}}, slopexg[TOF2_MAX_CHAMBERS][32] = {{0.}};
-    float interxl[TOF2_MAX_CHAMBERS][32] = {{0.}}, slopexl[TOF2_MAX_CHAMBERS][32] = {{0.}};
-    float shifty[TOF2_MAX_CHAMBERS][32] = {{0.}};
+    float interxg[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER], slopexg[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
+    float interxl[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER], slopexl[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
+    float shifty[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
 
     TFile *fSlewing;
     TFile *fSlewingr;

@@ -54,8 +54,13 @@ void BmnEcalDigitizer::Exec(Option_t* opt) {
         Int_t ch = p->GetCopyMother();
         if (ch < fCellsSize) {
             if (fCells[ch].GetChannel() == ch) {
-                fCells[ch].SetAmp(fCells[ch].GetAmp() + p->GetEnergyLoss());
-                fCells[ch].SetStartTime(fCells[ch].GetStartTime() + p->GetTime() * p->GetEnergyLoss());
+                Float_t energyLoss = p->GetEnergyLoss();
+                if (energyLoss > 0) {
+                    Float_t pointTime = p->GetTime();
+                    if (fMaxPointTime > 0 && pointTime > fMaxPointTime) continue;
+                    fCells[ch].SetAmp(fCells[ch].GetAmp() + energyLoss);
+                    fCells[ch].SetStartTime(fCells[ch].GetStartTime() + pointTime * energyLoss);
+                }
             } else {
                 Error(__func__, "ECAL ch %d was not initialized",ch);
             }   
@@ -74,8 +79,6 @@ void BmnEcalDigitizer::Exec(Option_t* opt) {
         if (amp < fThreshold) continue;
         
         Float_t time = fCells[i].GetStartTime()/fCells[i].GetAmp();
-        
-        if (fMaxPointTime > 0 && time > fMaxPointTime) continue;
         
         BmnECALDigit * p = new((*fArrayOfEcalDigits)[fArrayOfEcalDigits->GetEntriesFast()]) BmnECALDigit();
         *p = fCells[i];

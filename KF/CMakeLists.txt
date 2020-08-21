@@ -2,6 +2,7 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
+ ${CMAKE_SOURCE_DIR}/passive
  ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
@@ -124,6 +125,6 @@ ENDIF (SSE_FOUND)
 
 Set(LINKDEF KFLinkDef.h)
 Set(LIBRARY_NAME KF)
-Set(DEPENDENCIES Sts TOF BmnData BmnField Base Core)
+Set(DEPENDENCIES Sts TOF BmnData BmnField Passive Base Core)
 
 GENERATE_LIBRARY()

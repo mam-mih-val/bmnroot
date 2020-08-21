@@ -248,7 +248,7 @@ void create_rootgeom_GEMS_FutureConfig2020_detailed() {
     GEMS->SetMedium(pMedAir);
 
     for(Int_t istation = 0; istation < NStations; ++istation) {
-    //for(Int_t istation = 0; istation < 7; ++istation) {
+    //for(Int_t istation = 0; istation < 1; ++istation) {
 
         Int_t stationNum = istation;
         TGeoVolume *station = CreateStation(TString("station")+ TString::Itoa(stationNum, 10));
@@ -1541,7 +1541,123 @@ TGeoVolume *CreateFrameForHalfPlane_Station163x45(TString frame_name) {
     //frames->AddNode(boschShapeV, 1, boschShape_transf[1]);
     //--------------------------------------------------------------------------
 
-    //lower fiberglass block ---------------------------------------------------------
+    //polyacetal shape ---------------------------------------------------------
+    Double_t insidePolyacetalShapeUpper_XSize = 11.46; //cm
+    Double_t insidePolyacetalShapeUpper_YSize = 52.6; //cm
+    Double_t insidePolyacetalShapeUpper_ZSize = 3.0; //cm
+    Double_t insidePolyacetalShapeUpper_XDistBetweenParts = 186.22; //cm
+
+    Double_t outsidePolyacetalShapeUpper_XSize = 23.5; //cm
+    Double_t outsidePolyacetalShapeUpper_YSize = 5.405; //cm
+    Double_t outsidePolyacetalShapeUpper_ZSize = 3.0; //cm
+    Double_t outsidePolyacetalShapeUpper_XDistBetweenParts = 209.14; //cm
+
+    Double_t insidePolyacetalShapeLower_XSize = 8.4; //cm
+    Double_t insidePolyacetalShapeLower_YSize = 52.6; //cm
+    Double_t insidePolyacetalShapeLower_ZSize = 3.0; //cm
+    Double_t insidePolyacetalShapeLower_XDistBetweenParts = 186.22; //cm
+
+    Double_t outsidePolyacetalShapeLower_XSize = 26.7; //cm
+    Double_t outsidePolyacetalShapeLower_YSize = 24.4; //cm
+    Double_t outsidePolyacetalShapeLower_ZSize = 3.0; //cm
+    Double_t outsidePolyacetalShapeLower_XDistBetweenParts = 203.02; //cm
+
+
+    TGeoShape *insidePolyacetalShapeUpperS = new TGeoBBox("insidePolyacetalShapeUpperS", insidePolyacetalShapeUpper_XSize*0.5, insidePolyacetalShapeUpper_YSize*0.5, insidePolyacetalShapeUpper_ZSize*0.5);
+    TGeoShape *outsidePolyacetalShapeUpperS = new TGeoBBox("outsidePolyacetalShapeUpperS", outsidePolyacetalShapeUpper_XSize*0.5, outsidePolyacetalShapeUpper_YSize*0.5, outsidePolyacetalShapeUpper_ZSize*0.5);
+    TGeoShape *insidePolyacetalShapeLowerS = new TGeoBBox("insidePolyacetalShapeLowerS", insidePolyacetalShapeLower_XSize*0.5, insidePolyacetalShapeLower_YSize*0.5, insidePolyacetalShapeLower_ZSize*0.5);
+    TGeoShape *outsidePolyacetalShapeLowerS = new TGeoBBox("outsidePolyacetalShapeLowerS", outsidePolyacetalShapeLower_XSize*0.5, outsidePolyacetalShapeLower_YSize*0.5, outsidePolyacetalShapeLower_ZSize*0.5);
+
+    TGeoVolume *insidePolyacetalShapeUpperV = new TGeoVolume(TString("insidePolyacetalShapeUpperV")+=TString("_") + frames->GetName(), insidePolyacetalShapeUpperS);
+    TGeoVolume *outsidePolyacetalShapeUpperV = new TGeoVolume(TString("outsidePolyacetalShapeUpperV")+=TString("_") + frames->GetName(), outsidePolyacetalShapeUpperS);
+    TGeoVolume *insidePolyacetalShapeLowerV = new TGeoVolume(TString("insidePolyacetalShapeLowerV")+=TString("_") + frames->GetName(), insidePolyacetalShapeLowerS);
+    TGeoVolume *outsidePolyacetalShapeLowerV = new TGeoVolume(TString("outsidePolyacetalShapeLowerV")+=TString("_") + frames->GetName(), outsidePolyacetalShapeLowerS);
+
+    //volume medium
+    TGeoMedium *polyacetalShapeV_medium = pMedPolyacetal;
+    if(polyacetalShapeV_medium) {
+        insidePolyacetalShapeUpperV->SetMedium(polyacetalShapeV_medium);
+        outsidePolyacetalShapeUpperV->SetMedium(polyacetalShapeV_medium);
+        insidePolyacetalShapeLowerV->SetMedium(polyacetalShapeV_medium);
+        outsidePolyacetalShapeLowerV->SetMedium(polyacetalShapeV_medium);
+    }
+    else Fatal("Main", "Invalid medium for insidePolyacetalShapeUpperV!");
+
+    //volume visual property (transparency)
+    insidePolyacetalShapeUpperV->SetLineColor(TColor::GetColor("#ffcccc"));
+    insidePolyacetalShapeUpperV->SetTransparency(0);
+    outsidePolyacetalShapeUpperV->SetLineColor(TColor::GetColor("#ffcccc"));
+    outsidePolyacetalShapeUpperV->SetTransparency(0);
+    insidePolyacetalShapeLowerV->SetLineColor(TColor::GetColor("#ffcccc"));
+    insidePolyacetalShapeLowerV->SetTransparency(0);
+    outsidePolyacetalShapeLowerV->SetLineColor(TColor::GetColor("#ffcccc"));
+    outsidePolyacetalShapeLowerV->SetTransparency(0);
+
+    TGeoCombiTrans *insidePolyacetalShapeUpper_transf[2];
+
+    insidePolyacetalShapeUpper_transf[0] = new TGeoCombiTrans();
+    insidePolyacetalShapeUpper_transf[0]->SetDx(+(insidePolyacetalShapeUpper_XSize*0.5 + insidePolyacetalShapeUpper_XDistBetweenParts*0.5));
+    insidePolyacetalShapeUpper_transf[0]->SetDy(+1.8/*shift*/);
+    insidePolyacetalShapeUpper_transf[0]->SetDz(0.0);
+
+    insidePolyacetalShapeUpper_transf[1] = new TGeoCombiTrans();
+    insidePolyacetalShapeUpper_transf[1]->SetDx(-(insidePolyacetalShapeUpper_XSize*0.5 + insidePolyacetalShapeUpper_XDistBetweenParts*0.5));
+    insidePolyacetalShapeUpper_transf[1]->SetDy(+1.8/*shift*/);
+    insidePolyacetalShapeUpper_transf[1]->SetDz(0.0);
+
+    TGeoCombiTrans *outsidePolyacetalShapeUpper_transf[2];
+
+    outsidePolyacetalShapeUpper_transf[0] = new TGeoCombiTrans();
+    outsidePolyacetalShapeUpper_transf[0]->SetDx(+(outsidePolyacetalShapeUpper_XSize*0.5 + outsidePolyacetalShapeUpper_XDistBetweenParts*0.5));
+    outsidePolyacetalShapeUpper_transf[0]->SetDy(-insidePolyacetalShapeUpper_YSize*0.5 + 1.8/*shift*/ + outsidePolyacetalShapeUpper_YSize*0.5);
+    outsidePolyacetalShapeUpper_transf[0]->SetDz(0.0);
+
+    outsidePolyacetalShapeUpper_transf[1] = new TGeoCombiTrans();
+    outsidePolyacetalShapeUpper_transf[1]->SetDx(-(outsidePolyacetalShapeUpper_XSize*0.5 + outsidePolyacetalShapeUpper_XDistBetweenParts*0.5));
+    outsidePolyacetalShapeUpper_transf[1]->SetDy(-insidePolyacetalShapeUpper_YSize*0.5 + 1.8/*shift*/ + outsidePolyacetalShapeUpper_YSize*0.5);
+    outsidePolyacetalShapeUpper_transf[1]->SetDz(0.0);
+
+    TGeoCombiTrans *insidePolyacetalShapeLower_transf[2];
+
+    insidePolyacetalShapeLower_transf[0] = new TGeoCombiTrans();
+    insidePolyacetalShapeLower_transf[0]->SetDx(+(insidePolyacetalShapeLower_XSize*0.5 + insidePolyacetalShapeLower_XDistBetweenParts*0.5));
+    insidePolyacetalShapeLower_transf[0]->SetDy(+1.8/*shift*/);
+    insidePolyacetalShapeLower_transf[0]->SetDz(0.0);
+
+    insidePolyacetalShapeLower_transf[1] = new TGeoCombiTrans();
+    insidePolyacetalShapeLower_transf[1]->SetDx(-(insidePolyacetalShapeLower_XSize*0.5 + insidePolyacetalShapeLower_XDistBetweenParts*0.5));
+    insidePolyacetalShapeLower_transf[1]->SetDy(+1.8/*shift*/);
+    insidePolyacetalShapeLower_transf[1]->SetDz(0.0);
+
+    TGeoCombiTrans *outsidePolyacetalShapeLower_transf[2];
+
+    outsidePolyacetalShapeLower_transf[0] = new TGeoCombiTrans();
+    outsidePolyacetalShapeLower_transf[0]->SetDx(+(outsidePolyacetalShapeLower_XSize*0.5 + outsidePolyacetalShapeLower_XDistBetweenParts*0.5));
+    outsidePolyacetalShapeLower_transf[0]->SetDy(-insidePolyacetalShapeLower_YSize*0.5 + 1.8/*shift*/ + outsidePolyacetalShapeLower_YSize*0.5);
+    outsidePolyacetalShapeLower_transf[0]->SetDz(0.0);
+
+    outsidePolyacetalShapeLower_transf[1] = new TGeoCombiTrans();
+    outsidePolyacetalShapeLower_transf[1]->SetDx(-(outsidePolyacetalShapeLower_XSize*0.5 + outsidePolyacetalShapeLower_XDistBetweenParts*0.5));
+    outsidePolyacetalShapeLower_transf[1]->SetDy(-insidePolyacetalShapeLower_YSize*0.5 + 1.8/*shift*/ + outsidePolyacetalShapeLower_YSize*0.5);
+    outsidePolyacetalShapeLower_transf[1]->SetDz(0.0);
+
+    if(TString(frames->GetName()).Contains("upper")) {
+        frames->AddNode(insidePolyacetalShapeUpperV, 0, insidePolyacetalShapeUpper_transf[0]);
+        frames->AddNode(insidePolyacetalShapeUpperV, 1, insidePolyacetalShapeUpper_transf[1]);
+        frames->AddNode(outsidePolyacetalShapeUpperV, 0, outsidePolyacetalShapeUpper_transf[0]);
+        frames->AddNode(outsidePolyacetalShapeUpperV, 1, outsidePolyacetalShapeUpper_transf[1]);
+    }
+
+    if(TString(frames->GetName()).Contains("lower")) {
+        frames->AddNode(insidePolyacetalShapeLowerV, 0, insidePolyacetalShapeLower_transf[0]);
+        frames->AddNode(insidePolyacetalShapeLowerV, 1, insidePolyacetalShapeLower_transf[1]);
+        frames->AddNode(outsidePolyacetalShapeLowerV, 0, outsidePolyacetalShapeLower_transf[0]);
+        frames->AddNode(outsidePolyacetalShapeLowerV, 1, outsidePolyacetalShapeLower_transf[1]);
+    }
+
+    //--------------------------------------------------------------------------
+
+    //lower fiberglass block ---------------------------------------------------
     Double_t lowerFiberGlassBlock_XSize = 165.1; //cm
     Double_t lowerFiberGlassBlock_YSize = 1.75; //cm
     Double_t lowerFiberGlassBlock_ZSize = 0.9; //cm

@@ -400,15 +400,11 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 					    else if (fSelectXYCalibration == 1)
                         			fTOF2->get_hit_xyzp(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
 					    else if (fSelectXYCalibration == 2)
-                        			fTOF2->get_hit_xyzng(i,cstr,-lrdiff[i][cstr],&xcl,&ycl,&zcl);
-					    else if (fSelectXYCalibration == 3)
-                        			fTOF2->get_hit_xyznl(i,cstr,-lrdiff[i][cstr],&xcl,&ycl,&zcl);
-					    else if (fSelectXYCalibration == 4)
                         			fTOF2->get_hit_xyzng(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
-					    else if (fSelectXYCalibration == 5)
+					    else if (fSelectXYCalibration == 3)
                         			fTOF2->get_hit_xyznl(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
 					    else
-                        			fTOF2->get_hit_xyzs(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+                        			fTOF2->get_hit_xyzng(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
 					    if (zcl != 0.)
 					    {
                         			crosspoint.SetXYZ(xcl,ycl,zcl);
@@ -449,15 +445,11 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 					else if (fSelectXYCalibration == 1)
                         		    fTOF2->get_hit_xyzp(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
 					else if (fSelectXYCalibration == 2)
-                        		    fTOF2->get_hit_xyzng(i,cstr,-lrdiff[i][cstr],&xcl,&ycl,&zcl);
-					else if (fSelectXYCalibration == 3)
-                        		    fTOF2->get_hit_xyznl(i,cstr,-lrdiff[i][cstr],&xcl,&ycl,&zcl);
-					else if (fSelectXYCalibration == 4)
                         		    fTOF2->get_hit_xyzng(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
-					else if (fSelectXYCalibration == 5)
+					else if (fSelectXYCalibration == 3)
                         		    fTOF2->get_hit_xyznl(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
 					else
-                        		    fTOF2->get_hit_xyzs(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+                        		    fTOF2->get_hit_xyzng(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
 					if (zcl != 0.)
 					{
                         		    crosspoint.SetXYZ(xcl,ycl,zcl);
@@ -509,15 +501,11 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 			    else if (fSelectXYCalibration == 1)
                         	fTOF2->get_hit_xyzp(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
 			    else if (fSelectXYCalibration == 2)
-                        	fTOF2->get_hit_xyzng(chamber,strip,-dlrdiff,&xcl,&ycl,&zcl);
-			    else if (fSelectXYCalibration == 3)
-                        	fTOF2->get_hit_xyznl(chamber,strip,-dlrdiff,&xcl,&ycl,&zcl);
-			    else if (fSelectXYCalibration == 4)
                         	fTOF2->get_hit_xyzng(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
-			    else if (fSelectXYCalibration == 5)
+			    else if (fSelectXYCalibration == 3)
                         	fTOF2->get_hit_xyznl(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
 			    else
-                        	fTOF2->get_hit_xyzs(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
+                        	fTOF2->get_hit_xyzng(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
 			    if (zcl != 0.)
 			    {
                     		crosspoint.SetXYZ(xcl,ycl,zcl);

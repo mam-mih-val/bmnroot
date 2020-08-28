@@ -3940,7 +3940,7 @@ void BmnTof2Raw2DigitNew::get_hit_xyzp(int chamber, int strip, float diff, float
 float BmnTof2Raw2DigitNew::get_hit_xng(int chamber, int strip, float diff)
 {
     float x = 0., dx = 0.;
-    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fabs(slopexg[chamber][strip]) > 6.0f)
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fabs(slopexg[chamber][strip]) > 7.5f)
     {
 	x = interxg[chamber][strip] + slopexg[chamber][strip]*diff;
 	return x;
@@ -3952,7 +3952,7 @@ float BmnTof2Raw2DigitNew::get_hit_xng(int chamber, int strip, float diff)
 void BmnTof2Raw2DigitNew::get_hit_xyzng(int chamber, int strip, float diff, float *x, float *y, float *z)
 {
     float xh = 0., yh = 0.;
-    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fabs(slopexg[chamber][strip]) > 6.0f && shifty[chamber][strip] != 0.)
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fabs(slopexg[chamber][strip]) > 7.5f && shifty[chamber][strip] != 0.)
     {
 	xh = interxg[chamber][strip] + slopexg[chamber][strip]*diff;
 	yh = shifty[chamber][strip] + ycens[chamber][strip];
@@ -3973,7 +3973,7 @@ void BmnTof2Raw2DigitNew::get_hit_xyzng(int chamber, int strip, float diff, floa
 float BmnTof2Raw2DigitNew::get_hit_xnl(int chamber, int strip, float diff)
 {
     float x = 0., dx = 0.;
-    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fabs(slopexl[chamber][strip]) > 6.0f)
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fabs(slopexl[chamber][strip]) > 7.5f)
     {
 	x = interxl[chamber][strip] + slopexl[chamber][strip]*diff + xcens[chamber][strip];
 	return x;
@@ -3985,7 +3985,7 @@ float BmnTof2Raw2DigitNew::get_hit_xnl(int chamber, int strip, float diff)
 void BmnTof2Raw2DigitNew::get_hit_xyznl(int chamber, int strip, float diff, float *x, float *y, float *z)
 {
     float xh = 0., yh = 0.;
-    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fabs(slopexl[chamber][strip]) > 6.0f && shifty[chamber][strip] != 0.)
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fabs(slopexl[chamber][strip]) > 7.5f && shifty[chamber][strip] != 0.)
     {
 	xh = interxl[chamber][strip] + slopexl[chamber][strip]*diff + xcens[chamber][strip];
 	yh = shifty[chamber][strip] + ycens[chamber][strip];

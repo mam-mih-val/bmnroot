@@ -43,6 +43,7 @@ set(SRCS
  BmnLambdaEmbeddingQa.cxx 
  BmnInnerTrackerGeometryDraw.cxx 
  BmnLambdaEmbeddingDrawHistos.cxx
+ BmnEfficiency.cxx
 )
 
 Set(HEADERS)

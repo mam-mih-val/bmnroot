@@ -11,5 +11,7 @@
 #pragma link C++ class BmnLambdaEmbedding+;
 #pragma link C++ class BmnLambdaStore+;
 #pragma link C++ class BmnLambdaMisc+;
+#pragma link C++ class BmnEfficiency+;
+#pragma link C++ class EffStore+;
 
 #endif

@@ -21,6 +21,8 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/QA
  ${CMAKE_SOURCE_DIR}/QA/report
  ${CMAKE_SOURCE_DIR}/QA/offline
+ ${CMAKE_SOURCE_DIR}/uni_db/elog_classes
+ ${CMAKE_SOURCE_DIR}/bmnfield
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -71,6 +73,8 @@ set(SRCS
  offline/BmnTrigDetQa.cxx
  offline/BmnDstQa.cxx
  offline/BmnQaMonitor.cxx
+ offline/BmnTrackingQaOffline.cxx
+ offline/BmnTrackingQaOfflineDraw.cxx
 )
 
 EXEC_PROGRAM( ${ROOT_CONFIG_EXECUTABLE}

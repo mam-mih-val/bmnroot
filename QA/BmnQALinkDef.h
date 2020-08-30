@@ -35,6 +35,8 @@
 #pragma link C++ class BmnTrigDetQa++;
 #pragma link C++ class BmnDstQa++;
 #pragma link C++ class BmnQaMonitor++;
+#pragma link C++ class BmnTrackingQaOffline++;
+#pragma link C++ class BmnTrackingQaOfflineDraw++;
 #pragma link C++ class AllHistos++;
 
 #endif

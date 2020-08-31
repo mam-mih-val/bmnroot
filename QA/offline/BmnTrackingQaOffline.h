@@ -23,11 +23,7 @@
 
 #ifndef BMNTRACKINGQAOFFLINE_H
 #define BMNTRACKINGQAOFFLINE_H 1
-
-#if defined(_OPENMP)
-#include "omp.h"
-#endif       
-
+     
 using namespace std;
 
 class BmnTrackingQaOffline : public TNamed {

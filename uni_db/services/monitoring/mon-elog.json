@@ -1,0 +1,42 @@
+{
+  "PING": {
+    "db_server": {
+      "IP": "nc13.jinr.ru"
+    },
+    "db_interface": {
+      "IP": "nc9.jinr.ru"
+    }
+  },
+  "DATABASE": {
+    "bmn_elog": {
+      "SERVER": "nc13.jinr.ru",
+      "DBMS": "PGSQL",
+      "PORT": 5432,
+      "DBNAME": "bmn_elog",
+      "USER": "shift",
+      "PASS": "shift"
+    }
+  },
+
+  "OUTPUT": {
+    "DBMS": "INFLUXDB",
+    "SERVER": "nc13.jinr.ru",
+    "PORT": 8086,
+    "DBNAME": "mon_elog",
+    "USER": "*",
+    "PASS": "*"
+  },
+
+  "INTERVAL_SEC": 60,
+
+  "MAIL": {
+    "SERVER": "mail.jinr.ru",
+    "PORT": 587,
+    "USER": "*",
+    "PASS": "*"
+  },
+
+  "LOG": "email@jinr.ru",
+  "NOTIFY": "email@jinr.ru",
+  "NAME": "eLog Monitoring"
+}

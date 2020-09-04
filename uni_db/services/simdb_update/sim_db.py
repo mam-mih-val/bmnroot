@@ -37,6 +37,8 @@ exclude_extensions = {
     ".out"
 }
 
+log_level= logging.INFO #logging.DEBUG
+
 # Print iterations progress
 def printProgress(iteration, total, prefix = 'Progress:', suffix = 'Complete', percent_view = 1):
     """
@@ -61,7 +63,7 @@ def printProgress(iteration, total, prefix = 'Progress:', suffix = 'Complete', p
     sys.stdout.flush()
 
 # Recursive processing the simulation directory
-def recurse_path(dir_path, generator_type, conn, existing_files, exist_validity):
+def recurse_path(dir_path, generator_type_dir, conn, existing_files, exist_validity):
     dir_list = os.listdir(dir_path)
     logging.debug(dir_list)
 
@@ -87,29 +89,47 @@ def recurse_path(dir_path, generator_type, conn, existing_files, exist_validity)
                 sys.stdout.write('\n') # Print New Line
             printProgress(idx, total_files, base_dir_path, "files", 0)
 
-            # find file in the list obtained from the Database
+            # find file in the list obtained from the Database: if exists, then skip
             if filepath in existing_files:
                 exist_validity[existing_files.index(filepath)] = 1
                 continue
 
+            # get file size
             file_size = os.path.getsize(filepath)
+            logging.debug('file size: {0} MB'.format(file_size/1024.0/1024.0))
+            if file_size <= 0:
+                logging.error("File size is wrong: {0}".format(filepath))
+                file_size = None
+                continue
 
             logging.debug('{0}'.format(filepath))
-            logging.debug(generator_type)
+            logging.debug('generator_type_dir: {0}'.format(generator_type_dir))
             # remove extension
             file_name = os.path.splitext(file_name)[0]
+            # split file name by '_' symbol
             file_tokens = file_name.split("_")
 
+            is_exit = False
             token_num = 0
-            # parse generator
-            if not generator_type:
-                # parse generator name
-                for gen_name in name_to_generator:
-                    if gen_name in file_tokens[token_num].lower():
-                        generator_type = name_to_generator[gen_name]
-                        logging.debug('generator type in name: {0}'.format(generator_type))
-                        token_num += 1
+            # parse generator name if exists
+            generator_type_file = ""
+            for gen_name in name_to_generator:
+                if gen_name in file_tokens[token_num].lower():
+		    generator_type_file = name_to_generator[gen_name]
+                    if generator_type_dir and generator_type_dir != generator_type_file:
+                        logging.error('generator types do not match for the directory and file name: {0}'.format(filepath))
+			is_exit = True
+                    else: logging.debug('generator type in file: {0}'.format(generator_type_file))
+                    token_num += 1
+                    if token_num == len(file_tokens):
+                        logging.error('unexpected end of the file name after generator definition: {0}'.format(filepath))
+                        is_exit = True
                         break
+                    break
+            if is_exit: continue
+            if not generator_type_file: generator_type_file = generator_type_dir
+            if not generator_type_file:
+                logging.error('generator type was not set for file: {0}'.format(filepath))
 
             # parse beam and target
             beam_target = ""
@@ -123,17 +143,23 @@ def recurse_path(dir_path, generator_type, conn, existing_files, exist_validity)
                 continue
             else:
                 logging.debug('{0}-{1}'.format(beam_target.group('beam'),beam_target.group('target')))
+            if token_num == len(file_tokens):
+                logging.error('unexpected end of the file name after beam-target definition: {0}'.format(filepath))
+                continue
             beam = name_to_particle[beam_target.group('beam')]
             target = name_to_particle[beam_target.group('target')]
 
             energy_gr = re.search("\d+\.?\d*", file_tokens[token_num])
             if not energy_gr:
-                logging.error("Energy was not found in the file name: {0}".format(filepath))
+                logging.error("Energy was not found in the file name: {0} with token: {1}".format(filepath, file_tokens[token_num]))
                 continue
             else:
                 energy = energy_gr.group()
                 logging.debug('energy: {0}'.format(energy))
                 token_num += 1
+                if token_num == len(file_tokens):
+                    logging.error('unexpected end of the file name after energy definition: {0}'.format(filepath))
+                    continue
 
             centrality = file_tokens[token_num]
             if not centrality:
@@ -143,8 +169,8 @@ def recurse_path(dir_path, generator_type, conn, existing_files, exist_validity)
                 logging.debug('centrality: {0}'.format(centrality))
                 token_num += 1
 
-            # get event count via BmnRoot executable file
-            popen = subprocess.Popen(". {0}/build/config.sh > /dev/null; show_event_count {1} \"{2}\"".format(VMCWORKDIR, generator_type, filepath), stdout=subprocess.PIPE, shell=True)
+            # get event count via BmnRoot executable file    
+            popen = subprocess.Popen(". {0}/build/config.sh > /dev/null; show_event_count {1} \"{2}\"".format(VMCWORKDIR, generator_type_file, filepath), stdout=subprocess.PIPE, shell=True)
             popen.wait()
             event_count = popen.stdout.read()
             logging.debug(event_count)
@@ -153,35 +179,29 @@ def recurse_path(dir_path, generator_type, conn, existing_files, exist_validity)
                 event_count = None
                 continue
             else:
-                if event_count < 1:
-                    logging.error("Event count is less than zero: {0}".format(filepath))
+                i_event_count = int(event_count)
+                if i_event_count < 1:
+                    logging.error("Event count is zero or less: {0}".format(filepath))
                     event_count = None
                     continue 
-                else: logging.debug('event count: {0}'.format(event_count))
-
-            logging.debug('file size: {0} MB'.format(file_size/1024.0/1024.0))
-            if file_size <= 0:
-                logging.error("File size is wrong: {0}".format(filepath))
-                file_size = None
-                continue
+                else: logging.debug('event count: {0}'.format(event_count))            
 
             logging.info("\nINSERT INTO simulation_file(file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_size) \
-            \nVALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7})".format(filepath, generator_type, beam, target, energy, centrality, event_count, file_size))
+            \nVALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7})".format(filepath, generator_type_file, beam, target, energy, centrality, event_count, file_size))
             # insert new file into the Database
             cursor = conn.cursor()
             cursor.execute("INSERT INTO simulation_file(file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_size) \
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (filepath, generator_type, beam, target, energy, centrality, event_count, file_size))
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (filepath, generator_type_file, beam, target, energy, centrality, event_count, file_size))
             conn.commit()
             cursor.close()
         
         # whether it is a directory        
         elif os.path.isdir(filepath):
-            if "mpd" not in file_name.lower():
-                for gen_name in name_to_generator:
-                    if gen_name in file_name.lower():
-                        generator_type = name_to_generator[gen_name]
-                        break
-                recurse_path(filepath, generator_type, conn, existing_files, exist_validity)
+            for gen_name in name_to_generator:
+                if gen_name in file_name.lower():
+                    generator_type_dir = name_to_generator[gen_name]
+                    break
+            recurse_path(filepath, generator_type_dir, conn, existing_files, exist_validity)
 
     return 0
 
@@ -190,7 +210,7 @@ def recurse_path(dir_path, generator_type, conn, existing_files, exist_validity)
 simulation_directory = os.path.abspath(simulation_directory)
 
 # create log file
-logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', filename='sim_db.log', filemode='w', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', filename='sim_db.log', filemode='w', level=log_level)
 
 # load JSON configuration
 config = json.load(open("sim_db.json"))

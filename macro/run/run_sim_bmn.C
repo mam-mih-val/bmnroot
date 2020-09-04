@@ -3,7 +3,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 
 #define GEANT3  // Choose: GEANT3 GEANT4
 // enumeration of generator names corresponding input files
-enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM};
+enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM};
 
 // inFile - input file with generator data, if needed
 // outFile - output file with MC data, default: bmnsim.root
@@ -65,8 +65,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
 
     // ------- Particle Generator
     case PART:{
-        FairParticleGenerator* partGen =
-                new FairParticleGenerator(211, 10, 1, 0, 3, 1, 0, 0);
+        FairParticleGenerator* partGen = new FairParticleGenerator(211, 10, 1, 0, 3, 1, 0, 0);
         primGen->AddGenerator(partGen);
         break;
     }
@@ -118,6 +117,19 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
         // if nEvents is equal 0 then all events (start with nStartEvent) of the given file should be processed
         if (nEvents == 0)
             nEvents = MpdGetNumEvents::GetNumQGSMEvents(inFile.Data()) - nStartEvent;
+        break;
+    }
+    case DCMSMM:{
+
+        if (!BmnFunctionSet::CheckFileExist(inFile)) return;
+
+        MpdDCMSMMGenerator* smmGen = new MpdDCMSMMGenerator(inFile.Data());
+        primGen->AddGenerator(smmGen);
+        if (nStartEvent > 0) smmGen->SkipEvents(nStartEvent);
+
+        // if nEvents is equal 0 then all events (start with nStartEvent) of the given file should be processed
+        if (nEvents == 0)
+            nEvents = MpdGetNumEvents::GetNumDCMSMMEvents(inFile.Data()) - nStartEvent;
         break;
     }
 

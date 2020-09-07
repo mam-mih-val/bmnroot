@@ -33,6 +33,7 @@ check_permissions:
     PERMISSIONS_MESSAGE_SUCCESS: "Permissions check: ${GREEN}PASSED${NC}."
   tags:
     - docker
+    - cvmfs
   stage: check_permissions
   script:
     - >
@@ -61,6 +62,7 @@ build:centos:
     OS_TYPE: "centos7"
   tags:
     - docker
+    - cvmfs
   <<: *build
 
 build:ubuntu:
@@ -69,6 +71,7 @@ build:ubuntu:
     OS_TYPE: "ubuntu"
   tags: 
     - docker
+    - cvmfs
   <<: *build 
   
 .run_sim_template: &run_sim
@@ -91,6 +94,7 @@ run_sim_bmn:centos:
     MACRO_NAME: "macro/run/run_sim_bmn.C"
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:centos
   <<: *run_sim
@@ -102,6 +106,7 @@ run_sim_bmn:ubuntu:
     OS_TYPE: "ubuntu"
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:ubuntu
   <<: *run_sim
@@ -113,6 +118,7 @@ run_sim_src:centos:
     MACRO_NAME: "macro/run/run_sim_src.C"
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:centos
   <<: *run_sim
@@ -124,6 +130,7 @@ run_sim_src:ubuntu:
     MACRO_NAME: "macro/run/run_sim_src.C"
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:ubuntu
   <<: *run_sim
@@ -148,6 +155,7 @@ run_reco_bmn:centos:
     MACRO_NAME: "macro/run/run_reco_bmn.C"
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:centos
     - run_sim_bmn:centos
@@ -160,6 +168,7 @@ run_reco_bmn:ubuntu:
     MACRO_NAME: "macro/run/run_reco_bmn.C"
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:ubuntu
     - run_sim_bmn:ubuntu
@@ -172,6 +181,7 @@ run_reco_src:centos:
     MACRO_NAME: "macro/run/run_reco_src.C"
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:centos
     - run_sim_src:centos
@@ -184,6 +194,7 @@ run_reco_src:ubuntu:
     MACRO_NAME: "macro/run/run_reco_src.C"
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:ubuntu
     - run_sim_src:ubuntu
@@ -205,6 +216,7 @@ run_digi_bmn:centos:
     MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("$$VMCWORKDIR/macro/run/testDigi.root", "$$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)'
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:centos
   <<: *run_digi
@@ -216,6 +228,7 @@ run_digi_bmn:ubuntu:
     MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("$$VMCWORKDIR/macro/run/testDigi.root", "$$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)'
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:ubuntu
   <<: *run_digi
@@ -227,6 +240,7 @@ run_digi_src:centos:
     MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_src.C("$$VMCWORKDIR/macro/run/testSRCDigi.root", "$$VMCWORKDIR/macro/run/srcdst_exp.root", 0, 100)'
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:centos
   <<: *run_digi
@@ -238,6 +252,7 @@ run_digi_src:ubuntu:
     MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_src.C("$$VMCWORKDIR/macro/run/testSRCDigi.root", "$$VMCWORKDIR/macro/run/srcdst_exp.root", 0, 100)'
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:ubuntu
   <<: *run_digi

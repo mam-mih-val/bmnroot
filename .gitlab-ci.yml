@@ -31,9 +31,10 @@ check_permissions:
     OS_TYPE: "centos7"
     PERMISSIONS_MESSAGE_FAUILURE: "Permissions check: ${RED}FAILED${NC}. You don't have permission to change some files, please contact your project maintainers."
     PERMISSIONS_MESSAGE_SUCCESS: "Permissions check: ${GREEN}PASSED${NC}."
+  before_script:
+    - echo "Skipping global before_script"
   tags:
     - docker
-    - cvmfs
   stage: check_permissions
   script:
     - >

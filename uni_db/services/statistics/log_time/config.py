@@ -1,0 +1,14 @@
+SIZE = [1, 60, 60, 24, 30, 12]
+UNITS = ['seconds', 'minutes', 'hours', 'days', 'months', 'years']
+START = 'Start date:'
+END = 'End date:'
+SUCCESS = 'Macro finished successfully!'
+START_REGEX = r'Start date: \w{2} \w{3} \d{1,2} \d{1,2}:\d{1,2}:\d{1,2} \w+ \d{4}'
+END_REGEX = r'End date: \w{2} \w{3} \d{1,2} \d{1,2}:\d{1,2}:\d{1,2} \w+ \d{4}'
+MONTH_ARR = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
+RUN_REGEX = r'run\d+'
+RUN_EXTENSION = '.root'
+DPI = 300
+FOLDERS_IGNORE = ['__pycache__', 'myenv', '.git']
+BINS = 10
+BINS_PER_EVENT = 10

@@ -18,6 +18,8 @@
 //#pragma link C++ class vector<structParseSchema>+;
 //#pragma link C++ struct structParseValue++;
 //#pragma link C++ class vector<structParseValue*>+;
+#pragma link C++ struct BeamSpillStructure++;
+#pragma link C++ class vector<BeamSpillStructure*>+;
 
 #pragma link C++ class UniDbRunPeriod+;
 #pragma link C++ class UniDbRun+;
@@ -25,6 +27,7 @@
 #pragma link C++ class UniDbDetector+;
 #pragma link C++ class UniDbParameter+;
 #pragma link C++ class UniDbDetectorParameter+;
+#pragma link C++ class UniDbDetectorParameterNew+;
 #pragma link C++ class UniDbSimulationFile+;
 
 #pragma link C++ class ElogDbPerson+;

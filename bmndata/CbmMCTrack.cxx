@@ -101,7 +101,7 @@ CbmMCTrack::~CbmMCTrack() { }
 void CbmMCTrack::Print(Int_t trackId) const {
   LOG(DEBUG) << "Track " << trackId << ", mother : " << fMotherId
          << ", Type " << fPdgCode << ", momentum (" << fPx << ", "
-         << fPy << ", " << fPz << ") GeV" << FairLogger::endl;
+         << fPy << ", " << fPz << ") GeV";
   LOG(DEBUG) << "       Ref " << GetNPoints(kREF)
          << ", MVD "  << GetNPoints(kMVD)
          << ", GEM "  << GetNPoints(kGEM)
@@ -109,7 +109,7 @@ void CbmMCTrack::Print(Int_t trackId) const {
          << ", DCH1 " << GetNPoints(kDCH)
          << ", TOF2 " << GetNPoints(kTOF)
          << ", ZDC "  << GetNPoints(kZDC)
-         << ", RECOIL "  << GetNPoints(kRECOIL) << FairLogger::endl;
+         << ", RECOIL "  << GetNPoints(kRECOIL);
 }
 // -------------------------------------------------------------------------
 
@@ -153,11 +153,13 @@ Int_t CbmMCTrack::GetNPoints(DetectorId detId) const
   else if ( detId == kBD  ) return ( (fNPoints & ( 1  << 24) ) >> 24);
   else if ( detId == kRECOIL ) return ((fNPoints & ( 63  << 25) ) >> 25);
   else if ( detId == kMWPC ) return 0;
+  else if ( detId == kARMTRIG) return 0;
   else if ( detId == kSILICON ) return 0;
+  else if ( detId == kCSC ) return 0;
   else if ( detId == kSSD ) return 0;
   else {
     LOG(ERROR) << "GetNPoints: Unknown detector ID "
-           << detId << FairLogger::endl;
+           << detId;
     return 0;
   }
 }
@@ -228,13 +230,18 @@ void CbmMCTrack::SetNPoints(Int_t iDet, Int_t nPoints) {
   }
 
   else if ( iDet == kMWPC) { }
+  
+  else if ( iDet == kARMTRIG) { }
 
   else if ( iDet == kSILICON) { }
 
+  else if ( iDet == kCSC) { }
+
   else if ( iDet == kSSD) { }
 
-  else LOG(ERROR) << "Unknown detector ID "
-          << iDet << FairLogger::endl;
+  else if ( iDet == kFD) { }
+
+  else LOG(ERROR) << "Unknown detector ID " << iDet;
 
 }
 // -------------------------------------------------------------------------

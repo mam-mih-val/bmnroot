@@ -1,6 +1,4 @@
-# Create a library called "libMpdGen" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libMpdGen"
 
 EXEC_PROGRAM( gcc ARGS "-dumpversion" OUTPUT_VARIABLE GCC_VERSION )
 STRING(REGEX REPLACE "^([0-9]+)\\.[0-9]+\\.[0-9]" "\\1" req_gcc_major_vers "${GCC_VERSION}")
@@ -46,6 +44,7 @@ MpdGetNumEvents.cxx
 MpdHistoGenerator.cxx
 Mpd3fdGenerator.cxx
 MpdVHLLEGenerator.cxx
+MpdDCMSMMGenerator.cxx
 )
 if(PLUTO_FOUND)
 set(SRCS ${SRCS} FairPlutoReactionGenerator.cxx MpdPlutoGenerator.cxx)
@@ -58,3 +57,5 @@ Set(DEPENDENCIES Base EG MathCore Physics RIO Core)
 
 GENERATE_LIBRARY()
 
+add_executable (show_event_count show_event_count.cxx)
+target_link_libraries(show_event_count MpdGen ${ROOT_LIBRARIES})

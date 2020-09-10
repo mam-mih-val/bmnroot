@@ -1,0 +1,154 @@
+<html>
+    <head>
+        <title> TOF700 </title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRootCore.js?2d"></script>
+        <script type="text/javascript" src="../scripts/BMTools.js"></script>
+        <script>
+            var mainCanPath = "/root.app/Objects/TOF700_1d/root.json";
+            var infoCanPath = "/root.app/Objects/infoCanvas/root.json";
+            var relList = null;
+            var periodList = null;
+            var setupList = null;
+            var refList = null;
+            function makeLists() {
+                var verPath = "/root.app/Objects/refList/root.json";
+                JSROOT.NewHttpRequest(verPath, 'text', function (obj) {
+                    relList = JSON.parse(obj);
+                    FillNameTableByList(relList, "SelectRel");
+//                    SetRelease();
+                }).send(null);
+                setTimeout(redrawCanvases, 3000);
+            }
+
+            function redrawCanvases() {
+                setTimeout(redrawCanvases, 3000);
+                JSROOT.NewHttpRequest(infoCanPath, 'object', function (obj) {
+                    JSROOT.redraw("infoC", obj);
+                }).send(null);
+                JSROOT.NewHttpRequest(mainCanPath, 'object', function (obj) {
+                    JSROOT.redraw("DetTable", obj);
+                }).send(null);
+            }
+
+            function SetRelease() {
+                var iRel = document.getElementById("SelectRel").value;
+                var cmd = "/root.app/Objects/SelectRelease/cmd.json";
+                cmd = cmd + "?" + "arg1=" + iRel;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", cmd, true);
+                xhr.send();
+                periodList = relList.arr[iRel];
+                FillNameTableByList(periodList, "SelectPeriod");
+            }
+
+            function SetPeriod() {
+                var periodId = document.getElementById("SelectPeriod").value;
+                var cmd = "/root.app/Objects/SelectPeriod/cmd.json";
+                cmd = cmd + "?" + "arg1=" + periodId;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", cmd, true);
+                xhr.send();
+                setupList = periodList.arr[periodId];
+                FillNameTableByList(setupList, "SelectSetup");
+            }
+
+            function SetSetup() {
+                var setupId = document.getElementById("SelectSetup").value;
+                var cmd = "/root.app/Objects/SelectSetup/cmd.json";
+                cmd = cmd + "?" + "arg1=" + setupId;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", cmd, true);
+                xhr.send();
+                refList = setupList.arr[setupId];
+                FillRefTableByList(refList, "SelectRun");
+                FillRefTableByList(refList, "SelectRef");
+            }
+
+            function SetRun() {
+                JSROOT.cleanup("DetTable");
+                var runName = document.getElementById("SelectRun").value;
+                var cmd = "/root.app/Objects/SelectRun/cmd.json";
+                cmd = cmd + "?" + "arg1=" + runName;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", cmd, true);
+                xhr.send();
+            }
+            function SetRef() {
+                JSROOT.cleanup("DetTable");
+                var runName = document.getElementById("SelectRef").value;
+                var cmd = "/root.app/Objects/SelectReference/cmd.json";
+                cmd = cmd + "?" + "arg1=" + runName;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", cmd, true);
+                xhr.send();
+            }
+        </script>
+    <body onload="makeLists()">
+        <ul>
+            <li><a href="../index.html"> <h3>Return to the main page of the system</h3></a></li>
+        </ul>
+	<table border="1">
+            <caption></caption>
+            <tr>
+                <th>Description:</th>
+                <th>List of histos drawn:</th>
+            </tr>
+            <tr>
+                <td align="center"> <div align="center"> </div></td>
+               <td><h3> - Distributions over amplitudes, planes, times and strips </h3><br>
+                    - ...
+                </td>
+            </tr>
+        </table>
+    <br>
+
+        <div align="center">
+            <div id="infoC" style="width: 90vw;height: 20vw"> </div>
+        </div>
+        <table border="1"> 
+            <tr>
+                <th> Select Release:</th>
+                <th> Select Period:</th>
+                <th> Select Setup:</th>
+                <th> Select Current Run:</th>
+                <th> Select Reference Run:</th>
+            </tr>
+            <tr> 
+                <td> 
+                    <div align="center">
+                        <select id="SelectRel" onchange="SetRelease()">
+                        </select>
+                    </div>
+                </td>
+                <td> 
+                    <div align="center">
+                        <select id="SelectPeriod" onchange="SetPeriod()">
+                        </select>
+                    </div>
+                </td>
+                <td> 
+                    <div align="center">
+                        <select id="SelectSetup" onchange="SetSetup()">
+                        </select>
+                    </div>
+                </td>
+                <td> 
+                    <div align="center">
+                        <select id="SelectRun" onchange="SetRun()">
+                        </select>
+                    </div>
+                </td>
+                <td>
+                    <div align="center">
+                        <select id="SelectRef" onchange="SetRef()">
+                        </select>
+                    </div>
+                </td>  
+            </tr>
+        </table>
+    <body onload="makeLists()">
+        <div id="DetTable" style="width: 100vw; height: 100vw;" > </div>
+    </body>
+</html>

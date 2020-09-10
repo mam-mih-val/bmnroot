@@ -40,7 +40,7 @@ FairParSet* BmnFieldContFact::createContainer(FairContainer* container) {
 
 
   const char* name = container->GetName();
-  LOG(INFO) << "create BmnFieldPar container " << name << FairLogger::endl;
+  LOG(INFO) << "create BmnFieldPar container " << name;
   FairParSet* set = NULL;
   if ( strcmp(name, "BmnFieldPar") == 0 ) 
     set = new BmnFieldPar( container->getConcatName().Data(),

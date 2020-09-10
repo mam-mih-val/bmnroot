@@ -12,12 +12,51 @@
  */
 
 #ifndef BMNTOF1CONTEINER_H
-#define BMNTOF1CONTEINER_H 1
+#define BMNTOF1CONTEINER_H 
 
 #include "TObject.h"
+#include "TNamed.h"
 #include <iostream>
+
+using namespace std;
 //------------------------------------------------------------------------------------------------------------------------
-class BmnTOF1Conteiner : public TObject {
+class BmnTOF1Conteiner : public TNamed {
+
+public:
+    BmnTOF1Conteiner();
+    BmnTOF1Conteiner(Short_t plane, Short_t strip, Float_t timeL, Float_t timeR, Float_t time, Float_t widthL, Float_t widthR, Float_t width, Float_t x, Float_t y, Float_t z, Float_t timeT0, Float_t widthT0);
+    virtual ~BmnTOF1Conteiner();
+
+    Short_t GetPlane()      const { return fPlane; }
+    Short_t GetStrip()      const { return fStrip; }
+    Float_t GetTimeL()     const { return fTimeL; }
+    Float_t GetTimeR()     const { return fTimeR; }
+    Float_t GetTime()       const { return fTime; }
+    Float_t GetWidthL()     const { return fWidthL; }
+    Float_t GetWidthR()     const { return fWidthR; }
+    Float_t GetWidth()      const { return fWidth; }
+    Float_t GetX()       const { return fX; }
+    Float_t GetY()       const { return fY; }
+    Float_t GetZ()       const { return fZ; }
+    Float_t GetTimeT0()       const { return fTimeT0; }
+    Float_t GetWidthT0()     const { return fWidthT0; }
+    
+    void SetParameters(Short_t plane, Short_t strip, Float_t timeL, Float_t timeR, Float_t time, Float_t widthL, Float_t widthR, Float_t width, Float_t x, Float_t y, Float_t z, Float_t timeT0, Float_t widthT0);
+    void SetPlane(Short_t v)      { fPlane = v; }
+    void SetStrip(Short_t v)      { fStrip = v; }
+    void SetTimeL(Float_t v)      { fTimeL = v; }
+    void SetTimeR(Float_t v)      { fTimeR = v; }
+    void SetTime(Float_t v)       { fTime = v; }
+    void SetWidthL(Float_t v)     { fWidthL = v; }
+    void SetWidthR(Float_t v)     { fWidthR = v; }
+    void SetWidth(Float_t v)      { fWidth = v; }
+    void SetX(Float_t v)          { fX = v; }
+    void SetY(Float_t v)          { fY = v; }
+    void SetZ(Float_t v)          { fZ = v; }
+    void SetTimeT0(Float_t v)     { fTimeT0 = v; }
+    void SetWidthT0(Float_t v)    { fWidthT0 = v; }
+    
+    void Clear();
     
 private: 
 
@@ -35,43 +74,7 @@ private:
     Float_t fTimeT0;
     Float_t fWidthT0;
 
-public:
-    BmnTOF1Conteiner();
-    BmnTOF1Conteiner(Short_t plane, Short_t strip, Float_t timeL, Float_t timeR, Float_t time, Float_t widthL, Float_t widthR, Float_t width, Float_t x, Float_t y, Float_t z, Float_t timeT0, Float_t widthT0);
-    virtual ~BmnTOF1Conteiner() {};
-
-    Short_t GetStrip()      const { return fStrip; }
-    Float_t GetTimeL()     const { return fTimeL; }
-    Float_t GetTimeR()     const { return fTimeR; }
-    Float_t GetTime()       const { return fTime; }
-    Float_t GetWidthL()     const { return fWidthL; }
-    Float_t GetWidthR()     const { return fWidthR; }
-    Float_t GetWidth()      const { return fWidth; }
-    Float_t GetX()       const { return fX; }
-    Float_t GetY()       const { return fY; }
-    Float_t GetZ()       const { return fZ; }
-    Float_t GetTimeT0()       const { return fTimeT0; }
-    Float_t GetWidthT0()     const { return fWidthT0; }
-    
-    void SetParameters(Short_t plane, Short_t strip, Float_t timeL, Float_t timeR, Float_t time, Float_t widthL, Float_t widthR, Float_t width, Float_t x, Float_t y, Float_t z, Float_t timeT0, Float_t widthT0);
-    void SetStrip(Short_t v)      { fStrip = v; }
-    void SetTimeL(Float_t v)      { fTimeL = v; }
-    void SetTimeR(Float_t v)      { fTimeR = v; }
-    void SetTime(Float_t v)       { fTime = v; }
-    void SetWidthL(Float_t v)     { fWidthL = v; }
-    void SetWidthR(Float_t v)     { fWidthR = v; }
-    void SetWidth(Float_t v)      { fWidth = v; }
-    void SetX(Float_t v)          { fX = v; }
-    void SetY(Float_t v)          { fY = v; }
-    void SetZ(Float_t v)          { fZ = v; }
-    void SetTimeT0(Float_t v)     { fTimeT0 = v; }
-    void SetWidthT0(Float_t v)    { fWidthT0 = v; }
-    
-    void Clear();
-
-    void	print(std::ostream& os = std::cout, const char* comment = nullptr)const;
-
-    ClassDef(BmnTOF1Conteiner, 0);
+    ClassDef(BmnTOF1Conteiner, 2);
 };
 
 

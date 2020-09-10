@@ -97,11 +97,11 @@ Int_t BmnSsdSensorDssd::FindHits(std::vector<BmnSsdCluster*>& clusters,
     }
     else
       LOG(FATAL) << GetName() << ": Illegal side qualifier "
-      << side << FairLogger::endl;
+      << side;
   }  // Loop over clusters in module
   LOG(DEBUG3) << GetName() << ": " << nClusters << " clusters (front "
       << frontClusters.size() << ", back " << backClusters.size()
-      << ") " << FairLogger::endl;
+      << ") ";
 
   // --- Loop over front and back side clusters
   for (Int_t iClusterF = 0; iClusterF < nClustersF; iClusterF++) {
@@ -117,7 +117,7 @@ Int_t BmnSsdSensorDssd::FindHits(std::vector<BmnSsdCluster*>& clusters,
       Int_t nOfHits = IntersectClusters(clusterF, clusterB);
       LOG(DEBUG4) << GetName() << ": Cluster front " << iClusterF
           << ", cluster back " << iClusterB
-          << ", intersections " << nOfHits << FairLogger::endl;
+          << ", intersections " << nOfHits;
       nHits += nOfHits;
 
     }  // back side clusters
@@ -126,7 +126,7 @@ Int_t BmnSsdSensorDssd::FindHits(std::vector<BmnSsdCluster*>& clusters,
 
   LOG(DEBUG3) << GetName() << ": Clusters " << nClusters << " ( "
       << nClustersF << " / " << nClustersB << " ), hits: "
-      << nHits << FairLogger::endl;
+      << nHits;
 
 
   return nHits;
@@ -172,7 +172,7 @@ void BmnSsdSensorDssd::GetClusterPosition(Double_t centre,
   LOG(DEBUG4) << GetName() << ": Cluster centre " << centre
       << ", sensor index " << GetIndex() << ", side "
       << side << ", cluster position " << xCluster
-      << FairLogger::endl;
+     ;
   return;
 }
 // -------------------------------------------------------------------------
@@ -202,7 +202,7 @@ Double_t BmnSsdSensorDssd::LorentzShift(Double_t z, Int_t chargeType,
   else if ( chargeType == 1 ) driftZ = fDz / 2. + z;  // holes
   else {
     LOG(ERROR) << GetName() << ": illegal charge type " << chargeType
-        << FairLogger::endl;
+       ;
     return 0.;
   }
 
@@ -227,7 +227,7 @@ Double_t BmnSsdSensorDssd::LorentzShift(Double_t z, Int_t chargeType,
   LOG(DEBUG4) << GetName() << ": Drift " << driftZ
       << " cm, mobility " << muHall
       << " cm**2/(Vs), field " << bY
-      << " T, shift " << shift << " cm" << FairLogger::endl;
+      << " T, shift " << shift << " cm";
   // The factor 1.e-4 is because bZ is in T = Vs/m**2, but muHall is in
   // cm**2/(Vs) and z in cm.
 
@@ -249,7 +249,7 @@ void BmnSsdSensorDssd::PrintChargeStatus() const {
   } //# front and back side
   LOG(INFO) << "          Total: front side "
       << (fStripCharge[0]).GetSum() << ", back side "
-      << (fStripCharge[1]).GetSum() << FairLogger::endl;
+      << (fStripCharge[1]).GetSum();
 }
 // -------------------------------------------------------------------------
 
@@ -261,14 +261,14 @@ Int_t BmnSsdSensorDssd::CalculateResponse(BmnSsdSensorPoint* point) {
   // --- Catch if parameters are not set
   if ( ! fIsSet ) {
     LOG(FATAL) << fName << ": sensor is not initialised!"
-        << FairLogger::endl;
+       ;
     return -1;
   }
 
   // --- Debug
-  LOG(DEBUG3) << ToString() << FairLogger::endl;
+  LOG(DEBUG3) << ToString();
   LOG(DEBUG3) << GetName() << ": Processing point " << point->ToString()
-                        << FairLogger::endl;
+                       ;
 
   // --- Number of created charge signals (coded front/back side)
   Int_t nSignals = 0;
@@ -284,12 +284,12 @@ Int_t BmnSsdSensorDssd::CalculateResponse(BmnSsdSensorPoint* point) {
   if ( BmnSsdSetup::Instance()->GetDigiParameters()->GetUseCrossTalk() ) {
     if ( FairLogger::GetLogger()->IsLogNeeded(DEBUG4) ) {
       LOG(DEBUG4) << GetName() << ": Status before cross talk"
-          << FairLogger::endl;
+         ;
       PrintChargeStatus();
     }
     Double_t ctcoeff =  GetConditions()->GetCrossTalk();
     LOG(DEBUG4) << GetName() << ": Cross-talk coefficient is "
-        << ctcoeff << FairLogger::endl;
+        << ctcoeff;
     CrossTalk(ctcoeff);
   }
 
@@ -368,7 +368,7 @@ void BmnSsdSensorDssd::ProduceCharge(BmnSsdSensorPoint* point) {
   Double_t chargePerStep = chargeTotal / nSteps;
   LOG(DEBUG3) << GetName() << ": Trajectory length " << trajLength
       << " cm, steps " << nSteps << ", step size " << stepSize * 1.e4
-      << " mu, charge per step " << chargePerStep << FairLogger::endl;
+      << " mu, charge per step " << chargePerStep;
 
   // Stopping power, needed for energy loss fluctuations
   Double_t dedx = 0.;
@@ -427,7 +427,7 @@ void BmnSsdSensorDssd::RegisterCharge(Int_t side, Int_t strip,
     LOG(ERROR) << GetName() << ": No module connected to sensor "
         << GetName() << ", side " << side << ", strip "
         << strip << ", time " << time << ", charge " << charge
-        << FairLogger::endl;
+       ;
     return;
   }
 
@@ -440,7 +440,7 @@ void BmnSsdSensorDssd::RegisterCharge(Int_t side, Int_t strip,
       << ", charge " << charge
       << " to channel " << channel
       << " of module " << GetModule()->GetName()
-      << FairLogger::endl;
+     ;
 
   // --- Get the MC link information
   Int_t index = -1;
@@ -473,7 +473,7 @@ Bool_t BmnSsdSensorDssd::SelfTest() {
               << " side " << side << " strip " << strip
               << " gives channel " << channel << " gives strip "
               << test.first << " side " << test.second
-              << FairLogger::endl;
+             ;
           return kFALSE;
         }
       } // strip loop

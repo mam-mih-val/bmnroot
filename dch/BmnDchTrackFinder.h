@@ -40,7 +40,7 @@ class BmnDchTrackFinder : public FairTask {
 public:
 
     BmnDchTrackFinder() {};
-    BmnDchTrackFinder(Bool_t);
+    BmnDchTrackFinder(Int_t, Int_t, Bool_t);
     virtual ~BmnDchTrackFinder();
     
     virtual InitStatus Init();
@@ -55,6 +55,8 @@ public:
     
    
 private:
+    Int_t fPeriod;
+    Int_t fRunId;
     Int_t N;
     Bool_t expData;
     UInt_t fEventNo; // event counter
@@ -113,6 +115,10 @@ private:
     Double_t*** u;
     Double_t*** y;
     Double_t*** x;
+    Double_t*** v_time;
+    Double_t*** u_time;
+    Double_t*** y_time;
+    Double_t*** x_time;
     Double_t*** v_Single;
     Double_t*** u_Single;
     Double_t*** y_Single;
@@ -128,6 +134,7 @@ private:
     Double_t*** params;
     Double_t*** params_sigmas;
     Double_t*** rh_segment;
+    Double_t*** rh_segment_time;
     Double_t*** rh_sigm_segment;
     
     Int_t* nSegments;
@@ -148,9 +155,10 @@ private:
     TList fhList;
 
     void CreateDchTrack();
-    void CreateDchTrack(Int_t, Double_t*, Double_t**, Int_t*, Double_t**, Double_t**);
+    void CreateDchTrack(Int_t, Double_t*, Double_t**, Int_t*, Double_t**,Double_t**, Double_t**);
     void SelectLongestAndBestSegments(Int_t, Int_t*, Double_t**, Double_t*);
     void FillSegmentParametersSigmas(Int_t, Double_t**, Double_t**, Double_t*, Double_t**);
+    void FillPlaneResiduals(Int_t , Int_t* , Double_t** , Double_t**, Double_t**, Double_t*);
     void CompareDaDb(Double_t, Double_t&);
     void CompareDaDb(Double_t, Double_t&, Double_t&);
     void PrepareArraysToProcessEvent();
@@ -159,17 +167,19 @@ private:
     Int_t BuildUVSegments(Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t,
         Double_t**, Double_t**, Double_t**, Double_t**,
         Double_t**, Double_t**, Double_t**, Double_t**,
+        Double_t**, Double_t**, Double_t**, Double_t**,
         Double_t**, Double_t**, Double_t**,
-        Double_t**, Double_t**, Double_t**);
+        Double_t**, Double_t**, Double_t**, Double_t**);
     Int_t BuildXYSegments(Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t,
         Double_t**, Double_t**, Double_t**, Double_t**,
         Double_t**, Double_t**, Double_t**, Double_t**,
+	Double_t**, Double_t**, Double_t**, Double_t**,
         Double_t**, Double_t**, Double_t**,
-        Double_t**, Double_t**, Double_t**);
+        Double_t**, Double_t**, Double_t**, Double_t**);
     Int_t Reconstruction(Int_t, TString, Int_t, Int_t, Int_t,
         Double_t*, Double_t*, Double_t*, Double_t*,
         Bool_t*, Bool_t*,
-        Double_t**, Double_t**);
+        Double_t**, Double_t**, Double_t**);
     Int_t ReconstructionSingle(Int_t, TString, TString, Int_t, Int_t,
         Double_t*, Double_t*, Bool_t*,
         Double_t**, Double_t**);

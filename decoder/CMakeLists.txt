@@ -1,16 +1,14 @@
-# Create a library called "libDecoder" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libDecoder"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/gem
- ${CMAKE_SOURCE_DIR}/silicon
- ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/uni_db
  ${CMAKE_SOURCE_DIR}/uni_db/db_classes
+ ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/math
+ ${CMAKE_SOURCE_DIR}/csc
+ ${CMAKE_SOURCE_DIR}/silicon
+ ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/decoder
 )
 
@@ -45,12 +43,13 @@ set(SRCS
  BmnSlewingTOF700.cxx
  BmnTrigRaw2Digit.cxx
  BmnCscRaw2Digit.cxx
+ BmnMscRaw2Digit.cxx
 )
 
 Set(HEADERS)
 
 Set(LINKDEF DecoderLinkDef.h)
 Set(LIBRARY_NAME Decoder)
-Set(DEPENDENCIES Core Base BmnData UniDb)
+Set(DEPENDENCIES CSC Gem Silicon BmnData UniDb Base Minuit Core)
 
 GENERATE_LIBRARY()

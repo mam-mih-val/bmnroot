@@ -68,12 +68,12 @@ BmnSsdSensor* BmnSsdSetup::AssignSensor(Int_t address,
     sensor->SetNode(node);
     sensor->Init();
     LOG(DEBUG1) << GetName() << ": Assigning " << sensor->ToString()
-        << "\n\t\t to node " << node->GetName() << FairLogger::endl;
+        << "\n\t\t to node " << node->GetName();
   }
   else {
     sensor = DefaultSensor(address, node); // Not found; create and add.
     LOG(DEBUG1) << GetName() << ": Assigning default " << sensor->ToString()
-        << "\n\t\t to node " << node->GetName() << FairLogger::endl;
+        << "\n\t\t to node " << node->GetName();
     fNofSensorsDefault++;
   }
 
@@ -151,19 +151,19 @@ Int_t BmnSsdSetup::CreateStations() {
     if ( fStations.find(iStation) == fStations.end() ) {
       LOG(ERROR) << GetName() << ": Number of stations is "
           << fStations.size() << ", but station " << iStation
-          << "is not present!" << FairLogger::endl;
+          << "is not present!";
       isOk = kFALSE;
     } //? station present?
     if ( fStations[iStation]->GetZ() <= zPrevious ) {
       LOG(ERROR) << GetName() << ": Disordered stations. Station "
           << iStation << " is at z = " << fStations[iStation]->GetZ()
           << "cm , previous is at z = " << zPrevious << " cm."
-          << FairLogger::endl;
+         ;
       isOk = kFALSE;
     } //? disordered in z
   } //# stations
   if ( ! isOk ) LOG(FATAL) << GetName() << ": Error in creation of stations."
-      << FairLogger::endl;
+     ;
 
   return fStations.size();
 }
@@ -224,19 +224,19 @@ BmnSsdElement* BmnSsdSetup::GetElement(Int_t address, Int_t level) {
 
 	// --- Check for initialisation
 	if ( ! fAddress ) LOG(FATAL) << fName << ": not initialised!"
-			                         << FairLogger::endl;
+			                        ;
 
 	// --- Catch non-SSD addresses
 	if ( BmnSsdAddress::GetSystemId(address) != kSSD ) {
 		LOG(WARNING) << fName << ": No SSD address " << address
-				     << FairLogger::endl;
+				    ;
 		return NULL;
 	}
 
 	// --- Catch illegal level numbers
 	if ( level < 0 || level >= kSsdNofLevels ) {
 		LOG(WARNING) << fName << ": Illegal level " << level
-				   << FairLogger::endl;
+				  ;
 		return NULL;
 	}
 
@@ -299,10 +299,10 @@ Bool_t BmnSsdSetup::Init(const char* /*geoFile*/, const char* parFile) {
 
   cout << endl;
   LOG(INFO) << "=========================================================="
-                << FairLogger::endl;
+               ;
   LOG(INFO) << "Initialising SSD Setup "
-            << FairLogger::endl;
-  LOG(INFO) << FairLogger::endl;
+           ;
+  LOG(INFO);
 
   // Read sensor parameters from file, if specified
   if ( parFile ) ReadSensorParameters(parFile);
@@ -320,15 +320,15 @@ Bool_t BmnSsdSetup::Init(const char* /*geoFile*/, const char* parFile) {
   }
 
   // --- Statistics
-  LOG(INFO) << fName << ": Elements in setup: " << FairLogger::endl;
+  LOG(INFO) << fName << ": Elements in setup: ";
   for (Int_t iLevel = 1; iLevel <= kSsdSensor; iLevel++) {
       TString name = GetLevelName(iLevel);
       name += "s";
       LOG(INFO) << "     " << setw(12) << name << setw(5) << right
-                  << GetNofElements(iLevel) << FairLogger::endl;
+                  << GetNofElements(iLevel);
   }
   LOG(INFO) << GetName() << ": " << fNofSensorsDefault
-            << " sensors created from default." << FairLogger::endl;
+            << " sensors created from default.";
 
   // --- Build the module map
   for (Int_t iUnit = 0; iUnit < GetNofDaughters(); iUnit++) {
@@ -342,8 +342,7 @@ Bool_t BmnSsdSetup::Init(const char* /*geoFile*/, const char* parFile) {
           Int_t address = modu->GetAddress();
           if ( fModules.find(address) != fModules.end() ) {
             LOG(FATAL) << GetName() << ": Duplicate module address "
-                << address << " for " << modu->GetName()
-                << FairLogger::endl;
+                << address << " for " << modu->GetName();
           }
           BmnSsdModule* module = dynamic_cast<BmnSsdModule*>(modu);
           fModules[address] = module;
@@ -356,11 +355,11 @@ Bool_t BmnSsdSetup::Init(const char* /*geoFile*/, const char* parFile) {
   // --- Create station objects
   Int_t nStations = CreateStations();
   LOG(INFO) << GetName() << ": Setup contains " << nStations
-      << " stations objects." << FairLogger::endl;
+      << " stations objects.";
   if ( FairLogger::GetLogger()->IsLogNeeded(DEBUG) ) {
     auto it = fStations.begin();
     while ( it != fStations.end() ) {
-      LOG(DEBUG) << "  " << it->second->ToString() << FairLogger::endl;
+      LOG(DEBUG) << "  " << it->second->ToString();
       it++;
     } //# stations
   } //? Debug
@@ -369,14 +368,14 @@ Bool_t BmnSsdSetup::Init(const char* /*geoFile*/, const char* parFile) {
   if ( GetNofSensors() != GetNofElements(kSsdSensor) )
     LOG(FATAL) << GetName() << ": inconsistent number of sensors! "
                    << GetNofElements(kSsdSensor) << " " << GetNofSensors()
-                   << FairLogger::endl;
+                  ;
   if ( fModules.size() != GetNofElements(kSsdModule) )
     LOG(FATAL) << GetName() << ": inconsistent number of modules! "
                    << GetNofElements(kSsdModule) << " "
-                   << fModules.size() << FairLogger::endl;
+                   << fModules.size();
 
   LOG(INFO) << "=========================================================="
-            << "\n" << FairLogger::endl;
+            << "\n";
   cout << endl;
 
   fIsInitialised = kTRUE;
@@ -398,7 +397,7 @@ BmnSsdSetup* BmnSsdSetup::Instance() {
 // -----   Print list of modules   -----------------------------------------
 void BmnSsdSetup::ListModules() const {
   for (auto it = fModules.begin(); it != fModules.end(); it++)
-    LOG(INFO) << it->second->ToString() << FairLogger::endl;
+    LOG(INFO) << it->second->ToString();
 }
 // -------------------------------------------------------------------------
 
@@ -428,7 +427,7 @@ Bool_t BmnSsdSetup::ReadGeometry(TGeoManager* geo) {
   // --- Catch non-existence of GeoManager
   assert (geo);
   LOG(INFO) << fName << ": Reading geometry from TGeoManager "
-            << geo->GetName() << FairLogger::endl;
+            << geo->GetName();
 
   // --- Get cave (top node)
   geo->CdTop();
@@ -444,13 +443,13 @@ Bool_t BmnSsdSetup::ReadGeometry(TGeoManager* geo) {
          (name.Contains("sts", TString::kIgnoreCase)) ) {  //for backward compatibility
       ssd = cave->GetDaughter(iNode);
       LOG(INFO) << fName << ": SSD top node is " << ssd->GetName()
-                << FairLogger::endl;
+               ;
       break;
     }
   }
   if ( ! ssd ) {
     LOG(ERROR) << fName << ": No top SSD node found in geometry!"
-               << FairLogger::endl;
+              ;
     return kFALSE;
   }
 
@@ -471,11 +470,11 @@ Bool_t BmnSsdSetup::ReadGeometry(TGeoManager* geo) {
   if ( hasUnit && (! hasStation) ) fIsOld = kFALSE;
   else if ( (! hasUnit) && hasStation) fIsOld = kTRUE;
   else if ( hasUnit && hasStation) LOG(FATAL) << GetName()
-      << ": geometry contains both units and stations!" << FairLogger::endl;
+      << ": geometry contains both units and stations!";
   else LOG(FATAL) << GetName() << ": geometry contains neither units "
-      << "nor stations!" << FairLogger::endl;
+      << "nor stations!";
   if ( fIsOld ) LOG(WARNING) << GetName() << ": using old geometry (with stations)"
-        << FairLogger::endl;
+       ;
 
   // --- Recursively initialise daughter elements
   InitDaughters();
@@ -490,7 +489,7 @@ Bool_t BmnSsdSetup::ReadGeometry(TGeoManager* geo) {
 Bool_t BmnSsdSetup::ReadGeometry(const char* fileName) {
 
   LOG(INFO) << fName << ": Reading geometry from file "
-      << fileName << FairLogger::endl;
+      << fileName;
 
   // Exit if a TGeoManager is already present
   assert ( ! gGeoManager );
@@ -499,7 +498,7 @@ Bool_t BmnSsdSetup::ReadGeometry(const char* fileName) {
   TFile geoFile(fileName);
   if ( ! geoFile.IsOpen() ) {
     LOG(FATAL) << GetName() << ": Could not open geometry file "
-        << fileName << FairLogger::endl;
+        << fileName;
     return kFALSE;
   }
 
@@ -522,7 +521,7 @@ Bool_t BmnSsdSetup::ReadGeometry(const char* fileName) {
     }    //? object class is TGeoVolumeAssembly
   }
   if ( ! topVolume) {
-    LOG(FATAL) << GetName() << ": No TOP volume in file!" << FairLogger::endl;
+    LOG(FATAL) << GetName() << ": No TOP volume in file!";
     return kFALSE;
   }
   ssdGeometry->SetTopVolume(topVolume);
@@ -540,13 +539,13 @@ Bool_t BmnSsdSetup::ReadGeometry(const char* fileName) {
       ssd = cave->GetDaughter(iNode);
       ssdGeometry->CdDown(iNode);
       LOG(INFO) << fName << ": SSD top node is " << ssd->GetName()
-                    << FairLogger::endl;
+                   ;
       break;
     }
   }
   if ( ! ssd ) {
     LOG(ERROR) << fName << ": No top SSD node found in geometry!"
-        << FairLogger::endl;
+       ;
     return kFALSE;
   }
 
@@ -557,13 +556,13 @@ Bool_t BmnSsdSetup::ReadGeometry(const char* fileName) {
 
   // --- Check for old geometry (with stations) or new geometry (with units)
   TString dName = fNode->GetNode()->GetDaughter(0)->GetName();
-  LOG(DEBUG) << "First node is " << dName << FairLogger::endl;
+  LOG(DEBUG) << "First node is " << dName;
   if ( dName.Contains("station", TString::kIgnoreCase) ) fIsOld = kTRUE;
   else if ( dName.Contains("unit", TString::kIgnoreCase) ) fIsOld = kFALSE;
   else LOG(FATAL) << GetName() << ": unknown geometry type; first level name is "
-      << dName << FairLogger::endl;
+      << dName;
   if ( fIsOld ) LOG(WARNING) << GetName() << ": using old geometry (with stations)"
-      << FairLogger::endl;
+     ;
 
   // --- Recursively initialise daughter elements
   InitDaughters();
@@ -594,7 +593,7 @@ Int_t BmnSsdSetup::ReadSensorParameters(const char* fileName) {
   // If still not open, throw an error
   if ( ! inFile.is_open() ) {
     LOG(FATAL) << GetName() << ": Cannot read file " << fileName
-        << " nor " << inputFile << FairLogger::endl;
+        << " nor " << inputFile;
     return -1;
   }
 
@@ -615,7 +614,7 @@ Int_t BmnSsdSetup::ReadSensorParameters(const char* fileName) {
     // Bail out if sensor is already known
     if ( fSensors.find(address) != fSensors.end() ) {
       LOG(ERROR) << GetName() << ": sensor " << sName
-          << " is already in the setup!" << FairLogger::endl;
+          << " is already in the setup!";
       continue;
     }
 
@@ -630,14 +629,14 @@ Int_t BmnSsdSetup::ReadSensorParameters(const char* fileName) {
       BmnSsdSensorDssdStereo* sensor
       = new BmnSsdSensorDssdStereo(dy, nStrips, pitch, stereoF, stereoB);
       sensor->SetAddress(address);
-      LOG(DEBUG) << "Created " << sensor->ToString() << FairLogger::endl;
+      LOG(DEBUG) << "Created " << sensor->ToString();
       fSensors[address] = sensor;
       nSensors++;
     } //? sensor type DssdStereo
 
     else {
       LOG(FATAL) << GetName() << ": Unknown sensor type " << sType
-          << " for sensor " << sName << FairLogger::endl;
+          << " for sensor " << sName;
     } //? Unknown sensor type
 
   } //# input lines
@@ -645,7 +644,7 @@ Int_t BmnSsdSetup::ReadSensorParameters(const char* fileName) {
   inFile.close();
   LOG(INFO) << GetName() << ": Read " << nSensors
             << (nSensors == 1 ? " sensor" : " sensors") << " from "
-            << inputFile << FairLogger::endl;
+            << inputFile;
   assert( nSensors = fSensors.size() );
 
   return nSensors;
@@ -712,7 +711,7 @@ Int_t BmnSsdSetup::SetModuleParameters(const char* fileName) {
   // If still not open, throw an error
   if ( ! inFile.is_open() ) {
     LOG(FATAL) << GetName() << ": Cannot read file " << fileName
-        << " nor " << inputFile << FairLogger::endl;
+        << " nor " << inputFile;
     return 0;
   }
 
@@ -740,7 +739,7 @@ Int_t BmnSsdSetup::SetModuleParameters(const char* fileName) {
     Int_t address = BmnSsdModule::GetAddressFromName(mName);
     if ( fModules.find(address) == fModules.end() ) {
       LOG(ERROR) << GetName() << ": Module " << mName
-          << " not found in the setup!" << FairLogger::endl;
+          << " not found in the setup!";
       continue;
     }
     BmnSsdModule* module = fModules.find(address)->second;
@@ -749,7 +748,7 @@ Int_t BmnSsdSetup::SetModuleParameters(const char* fileName) {
     // Check for double occurrences of sensors
     if ( module->IsSet() ) {
       LOG(ERROR) << GetName() << ": Parameters of module "
-          << module->GetName() << " are already set!" << FairLogger::endl;
+          << module->GetName() << " are already set!";
       continue;
     }
 
@@ -761,7 +760,7 @@ Int_t BmnSsdSetup::SetModuleParameters(const char* fileName) {
           << ": Missing or illegal parameters for module "
           << module->GetName() << "; " << dynRange << " " << threshold << " "
           << nAdc << " " << tResol << " " << tDead << " " << noise << " "
-          << zeroNoise << " " << fracDead << FairLogger::endl;
+          << zeroNoise << " " << fracDead;
       continue;
     }
 
@@ -769,7 +768,7 @@ Int_t BmnSsdSetup::SetModuleParameters(const char* fileName) {
     module->SetParameters(dynRange, threshold, nAdc, tResol, tDead, noise,
                           zeroNoise, fracDead);
     LOG(DEBUG1) << GetName() << ": Set " << module->ToString()
-        << FairLogger::endl;
+       ;
     nModules++;
 
   } //# input lines
@@ -777,13 +776,13 @@ Int_t BmnSsdSetup::SetModuleParameters(const char* fileName) {
   inFile.close();
   LOG(INFO) << GetName() << ": Read conditions of " << nModules
             << (nModules == 1 ? " module" : " modules") << " from "
-            << inputFile << FairLogger::endl;
+            << inputFile;
 
   // Check that all sensors have their conditions set
   if ( nModules!= fModules.size() ) {
     LOG(FATAL) << GetName() << ": " << fModules.size()
      << " modules in setup, but parameters for " << nModules
-     << " in parameter file!" << FairLogger::endl;
+     << " in parameter file!";
   }
 
   return nModules;
@@ -814,17 +813,17 @@ Int_t BmnSsdSetup::SetSensorConditions() {
 
   // --- Control output of parameters
   LOG(INFO) << GetName() << ": Set conditions for all sensors:"
-            << FairLogger::endl;
+           ;
   LOG(INFO) << "\t Full depletion voltage   " << vDep
-                     << " V"<< FairLogger::endl;
+                     << " V";
   LOG(INFO) << "\t Bias voltage             " << vBias
-                     << " V"<< FairLogger::endl;
+                     << " V";
   LOG(INFO) << "\t Temperature              " << temperature << " K"
-                     << FairLogger::endl;
+                    ;
   LOG(INFO) << "\t Coupling capacitance      " << cCoup
-                     << " pF" << FairLogger::endl;
+                     << " pF";
   LOG(INFO) << "\t Inter-strip capacitance   " << cIs
-                     << " pF" << FairLogger::endl;
+                     << " pF";
 
   // --- Set conditions for all sensors
   for ( auto it = fSensors.begin(); it != fSensors.end(); it++ ) {
@@ -904,7 +903,7 @@ Int_t BmnSsdSetup::SetSensorConditions(const char* fileName) {
   // If still not open, throw an error
   if ( ! inFile.is_open() ) {
     LOG(FATAL) << GetName() << ": Cannot read file " << fileName
-        << " nor " << inputFile << FairLogger::endl;
+        << " nor " << inputFile;
     return 0;
   }
 
@@ -928,7 +927,7 @@ Int_t BmnSsdSetup::SetSensorConditions(const char* fileName) {
     Int_t address = BmnSsdSensor::GetAddressFromName(sName);
     if ( fSensors.find(address) == fSensors.end() ) {
       LOG(ERROR) << GetName() << ": Sensor " << sName
-          << " not found in the setup!" << FairLogger::endl;
+          << " not found in the setup!";
       continue;
     }
     BmnSsdSensor* sensor = fSensors.find(address)->second;
@@ -937,7 +936,7 @@ Int_t BmnSsdSetup::SetSensorConditions(const char* fileName) {
     // Check for double occurrences of sensors
     if ( sensor->GetConditions() ) {
       LOG(ERROR) << GetName() << ": Conditions of sensor "
-          << sensor->GetName() << " are already set!" << FairLogger::endl;
+          << sensor->GetName() << " are already set!";
       continue;
     }
 
@@ -948,7 +947,7 @@ Int_t BmnSsdSetup::SetSensorConditions(const char* fileName) {
           << ": Missing or illegal condition parameters for sensor "
           << sensor->GetName() << "; " << vDep << " " << vBias << " "
           << temperature << " " << cCoupling << " " << cInterstrip
-          << FairLogger::endl;
+         ;
       continue;
     }
 
@@ -964,7 +963,7 @@ Int_t BmnSsdSetup::SetSensorConditions(const char* fileName) {
     sensor->SetConditions(vDep, vBias, temperature, cCoupling, cInterstrip,
                           field[0]/10., field[1]/10., field[2]/10.);
     LOG(DEBUG1) << GetName() << ": Conditions of sensor " << sensor->GetName()
-        << " " << sensor->GetConditions()->ToString() << FairLogger::endl;
+        << " " << sensor->GetConditions()->ToString();
     nSensors++;
 
   } //# input lines
@@ -972,13 +971,13 @@ Int_t BmnSsdSetup::SetSensorConditions(const char* fileName) {
   inFile.close();
   LOG(INFO) << GetName() << ": Read conditions of " << nSensors
             << (nSensors == 1 ? " sensor" : " sensors") << " from "
-            << inputFile << FairLogger::endl;
+            << inputFile;
 
   // Check that all sensors have their conditions set
   if ( nSensors != fSensors.size() ) {
     LOG(FATAL) << GetName() << ": " << fSensors.size()
      << " sensors in setup, but conditions for " << nSensors
-     << " in conditions file!" << FairLogger::endl;
+     << " in conditions file!";
   }
 
   return nSensors;

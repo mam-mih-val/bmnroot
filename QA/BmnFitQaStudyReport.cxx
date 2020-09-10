@@ -7,7 +7,7 @@
 #include "CbmReportElement.h"
 #include "CbmHistManager.h"
 #include "CbmDrawHist.h"
-#include "../std/utils/CbmLitUtils.h"
+#include "CbmLitUtils.h"
 #include "TH1.h"
 #include "TF1.h"
 #include "TCanvas.h"

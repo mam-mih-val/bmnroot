@@ -75,8 +75,7 @@ CbmStsDigi::CbmStsDigi(Int_t station, Int_t sector, Int_t side,
 
   // Check for ADC range
   if ( adc > GetMaxAdc() ) {
-    FairLogger::GetLogger()->Warning(MESSAGE_ORIGIN,
-        "ADC %i exceeds ADC range %i", adc, GetMaxAdc());
+    LOG(warn) << "ADC " << adc << " exceeds ADC range " << GetMaxAdc();
     return;
   }
 
@@ -114,8 +113,7 @@ void CbmStsDigi::SetAdc(Int_t adc) {
 
   // Check for ADC range
   if ( adc > GetMaxAdc() ) {
-    FairLogger::GetLogger()->Warning(MESSAGE_ORIGIN,
-        "ADC %i exceeds ADC range %i", adc, GetMaxAdc());
+    LOG(warn) << "ADC " << adc << " exceeds ADC range " << GetMaxAdc();
     return;
   }
 

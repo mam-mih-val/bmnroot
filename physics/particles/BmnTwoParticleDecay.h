@@ -88,6 +88,7 @@ private:
     Int_t fPDG1, fPDG2, fPDGDecay, fPdgParticle1, fPdgParticle2;
 
     vector <TString> fAnalType;
+    vector <double> fWeightsModel;
 
 public:
 
@@ -127,7 +128,8 @@ private:
 
     TVector2 ArmenterosPodol(FairTrackParam, FairTrackParam);
     Double_t FindV0ByVirtualPlanes(BmnGlobalTrack*, BmnGlobalTrack*, Double_t, Double_t range = 50.);
-
+    
+    	
     ClassDef(BmnTwoParticleDecay, 0)
 };
 

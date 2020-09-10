@@ -87,4 +87,12 @@ enum BmnSetup {
     kSRCSETUP = 1,
 };
 
+/**
+ * \enum Define ADC strip decoding algorithm
+ */
+enum BmnADCDecoMode {
+    kBMNADCMK = 0,
+    kBMNADCSM = 1,
+};
+
 #endif /* BMNENUMS_H_ */

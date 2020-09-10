@@ -177,8 +177,7 @@ void CbmStsIdealDigitize::Exec(Option_t* opt) {
     //AZ
     
     if ( !sensor ) 
-      gLogger->Fatal(MESSAGE_ORIGIN,"No sensor in DigiScheme with name: %s",curNode->GetName());
-    //      Fatal("Exec",Form("No sensor in DigiScheme with name: \"%s\"",curNode->GetName()));
+      LOG(fatal) << "No sensor in DigiScheme with name: " << curNode->GetName();
 
     Int_t stationNr = sensor->GetStationNr();
     Int_t  sectorNr = sensor->GetSectorNr();

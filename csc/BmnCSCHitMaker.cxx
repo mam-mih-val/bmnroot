@@ -101,6 +101,8 @@ InitStatus BmnCSCHitMaker::Init() {
     switch (fCurrentConfig) {
         case BmnCSCConfiguration::RunSpring2018:
             StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSpring2018.xml");
+            TransfSet = new BmnCSCTransform();
+            TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCRunSpring2018.xml");
             if (fVerbose > 1) cout << "   Current CSC Configuration : RunSpring2018" << "\n";
             break;
 
@@ -204,7 +206,6 @@ void BmnCSCHitMaker::ProcessDigits() {
 
         for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             module = station->GetModule(iModule);
-            Double_t z = module->GetZPositionRegistered();
 
             Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
 
@@ -215,6 +216,7 @@ void BmnCSCHitMaker::ProcessDigits() {
 
                 Double_t x = module->GetIntersectionPointX(iPoint);
                 Double_t y = module->GetIntersectionPointY(iPoint);
+                Double_t z = module->GetZPositionRegistered();
 
                 Double_t x_err = module->GetIntersectionPointXError(iPoint);
                 Double_t y_err = module->GetIntersectionPointYError(iPoint);
@@ -222,10 +224,10 @@ void BmnCSCHitMaker::ProcessDigits() {
 
                 //Transform hit coordinates from local coordinate system of GEM-planes to global
                 if(TransfSet) {
-                    Plane3D::Point loc_point = TransfSet->ApplyTransforms(Plane3D::Point(-x, y, z), iStation, iModule);
-                    x = -loc_point.X();
-                    y = loc_point.Y();
-                    z = loc_point.Z();
+                    Plane3D::Point glob_point = TransfSet->ApplyTransforms(Plane3D::Point(-x, y, z), iStation, iModule);
+                    x = -glob_point.X();
+                    y = glob_point.Y();
+                    z = glob_point.Z();
                 }
 
                 Int_t RefMCIndex = 0;
@@ -251,7 +253,7 @@ void BmnCSCHitMaker::ProcessDigits() {
                 //--------------------------------------------------------------
 
                 //Add hit ------------------------------------------------------
-                x *= -1; // invert to global X
+                x *= -1; // invert to global X //Temporary switched off
 
                 new ((*fBmnCSCHitsArray)[fBmnCSCHitsArray->GetEntriesFast()])
                         BmnCSCHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
@@ -293,7 +295,7 @@ void BmnCSCHitMaker::Finish() {
         TransfSet = nullptr;
     }
 
-    cout << "Work time of the CSC hit maker: " << workTime << endl;
+    if (fVerbose > 0) cout << "Work time of the CSC hit maker: " << workTime << endl;
 }
 
 ClassImp(BmnCSCHitMaker)

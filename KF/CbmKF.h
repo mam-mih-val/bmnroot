@@ -19,7 +19,7 @@
 #include "FairField.h"
 #include "FairTask.h"
 #include "CbmStsDigiScheme.h"
-#include "../bmnfield/BmnNewFieldMap.h" //GP
+#include "BmnNewFieldMap.h" //GP
 
 #include <iostream>
 #include <map>

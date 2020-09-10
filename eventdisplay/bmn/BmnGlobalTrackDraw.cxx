@@ -56,7 +56,7 @@ InitStatus BmnGlobalTrackDraw::Init()
     fTrackList = (TClonesArray*) fManager->GetObject(GetName());
     if (fTrackList == 0)
     {
-        LOG(ERROR)<<"BmnGlobalTrackDraw::Init()  branch GlobalTrack not found! Task will be deactivated"<<FairLogger::endl;
+        LOG(ERROR)<<"BmnGlobalTrackDraw::Init()  branch GlobalTrack not found! Task will be deactivated";
         SetActive(kFALSE);
         return kERROR;
     }
@@ -65,8 +65,8 @@ InitStatus BmnGlobalTrackDraw::Init()
     fGemTrackList = (TClonesArray*) fManager->GetObject("BmnGemTrack");
     fGemHitList = (TClonesArray*) fManager->GetObject("BmnGemStripHit");
 
-    fTof1HitList = (TClonesArray*) fManager->GetObject("BmnTof1Hit");
-    fTof2HitList = (TClonesArray*) fManager->GetObject("BmnTofHit");
+    fTof1HitList = (TClonesArray*) fManager->GetObject("BmnTof400Hit");
+    fTof2HitList = (TClonesArray*) fManager->GetObject("BmnTof700Hit");
     fDchHitList = (TClonesArray*) fManager->GetObject("BmnDchHit");
 
     fEventManager = MpdEventManager::Instance();
@@ -180,30 +180,30 @@ void BmnGlobalTrackDraw::Exec(Option_t* option)
 
 
         // add DCH hit
-        if (tr->GetDch1HitIndex() > -1)
-        {
-            FairHit* pHit = (FairHit*) fDchHitList->UncheckedAt(tr->GetDch1HitIndex());
+        // if (tr->GetDch1HitIndex() > -1)
+        // {
+        //     FairHit* pHit = (FairHit*) fDchHitList->UncheckedAt(tr->GetDch1HitIndex());
 
-            track->SetPoint(n, pHit->GetX(), pHit->GetY(), pHit->GetZ());
+        //     track->SetPoint(n, pHit->GetX(), pHit->GetY(), pHit->GetZ());
 
-            TEvePathMark* path = new TEvePathMark();
-            TEveVector pos = TEveVector(pHit->GetX(), pHit->GetY(), pHit->GetZ());
-            path->fV = pos;
-            path->fTime = pHit->GetTimeStamp();
-            if (n == 0)
-            {
-                TEveVector Mom = TEveVector(px, py, pz);
-                path->fP = Mom;
-            }
+        //     TEvePathMark* path = new TEvePathMark();
+        //     TEveVector pos = TEveVector(pHit->GetX(), pHit->GetY(), pHit->GetZ());
+        //     path->fV = pos;
+        //     path->fTime = pHit->GetTimeStamp();
+        //     if (n == 0)
+        //     {
+        //         TEveVector Mom = TEveVector(px, py, pz);
+        //         path->fP = Mom;
+        //     }
 
-            // add path marker for current EVE track
-            track->AddPathMark(*path);
+        //     // add path marker for current EVE track
+        //     track->AddPathMark(*path);
 
-            if (fVerbose > 3)
-                cout<<"Path marker added "<<path<<endl;
+        //     if (fVerbose > 3)
+        //         cout<<"Path marker added "<<path<<endl;
 
-            n++;
-        }
+        //     n++;
+        // }
 
         // add TOF2 hit
         if (tr->GetTof2HitIndex() > -1)

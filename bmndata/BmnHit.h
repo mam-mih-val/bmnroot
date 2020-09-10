@@ -11,6 +11,7 @@
 #include "FairHit.h"
 #include <TObject.h>
 #include "CbmDetectorList.h"
+#include "BmnMatch.h"
 
 using namespace std;
 
@@ -113,6 +114,14 @@ public:
         fCovXY = val;
     }
 
+    BmnMatch GetDigitNumberMatch() {
+        return fDigitNumberMatch;
+    }
+
+    void SetDigitNumberMatch(BmnMatch match) {
+        fDigitNumberMatch = match;
+    }
+
 private:
 
     /** Is hit used or not **/
@@ -133,6 +142,8 @@ private:
     Double_t fResY;
     
     Double_t fCovXY;          // Covariance of x and y coordinates
+
+    BmnMatch fDigitNumberMatch; //digit numbers used for the hit (as weighed center (one strip) of a cluster in each layer
 
     ClassDef(BmnHit, 1);
 

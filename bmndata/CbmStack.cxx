@@ -149,14 +149,14 @@ TParticle* CbmStack::PopPrimaryForTracking(Int_t iPrim)
 
   // Test for index
   if (iPrim < 0 || iPrim >= fNPrimaries) {
-    LOG(FATAL) << "Primary index out of range! " << iPrim << FairLogger::endl;
+    LOG(FATAL) << "Primary index out of range! " << iPrim;
   }
 
   // Return the iPrim-th TParticle from the fParticle array. This should be
   // a primary.
   TParticle* part = (TParticle*)fParticles->At(iPrim);
   if ( ! (part->GetMother(0) < 0) ) {
-    LOG(FATAL) << "Not a primary track! " << iPrim << FairLogger::endl;
+    LOG(FATAL) << "Not a primary track! " << iPrim;
   }
 
   return part;
@@ -169,7 +169,7 @@ TParticle* CbmStack::GetCurrentTrack() const
 {
   TParticle* currentPart = GetParticle(fCurrentTrack);
   if ( ! currentPart) {
-    LOG(WARNING) << "Current track not found in stack!" << FairLogger::endl;
+    LOG(WARNING) << "Current track not found in stack!";
   }
 
   return currentPart;
@@ -192,7 +192,7 @@ void CbmStack::AddParticle(TParticle* oldPart)
 // -----   Public method FillTrackArray   ----------------------------------
 void CbmStack::FillTrackArray()
 {
-  LOG(INFO) << "Filling MCTrack array..." << FairLogger::endl;
+  LOG(INFO) << "Filling MCTrack array...";
 
   // --> Reset index map and number of output tracks
   fIndexMap.clear();
@@ -207,7 +207,7 @@ void CbmStack::FillTrackArray()
     fStoreIter = fStoreMap.find(iPart);
     if (fStoreIter == fStoreMap.end() ) {
       LOG(FATAL) << "Particle " << iPart
-                 << " not found in storage map!" << FairLogger::endl;
+                 << " not found in storage map!";
     }
     Bool_t store = (*fStoreIter).second;
 
@@ -241,7 +241,7 @@ void CbmStack::FillTrackArray()
 // -----   Public method UpdateTrackIndex   --------------------------------
 void CbmStack::UpdateTrackIndex(TRefArray* detList)
 {
-  LOG(INFO) << "Updating track indizes..." << FairLogger::endl;
+  LOG(INFO) << "Updating track indizes...";
   Int_t nColl = 0;
 
   // First update mother ID in MCTracks
@@ -251,7 +251,7 @@ void CbmStack::UpdateTrackIndex(TRefArray* detList)
     fIndexIter = fIndexMap.find(iMotherOld);
     if (fIndexIter == fIndexMap.end()) {
       LOG(FATAL) << "Particle index " << iMotherOld
-                 << " not found in dex map! " << FairLogger::endl;
+                 << " not found in dex map! ";
     }
     track->SetMotherId( (*fIndexIter).second );
   }
@@ -278,7 +278,7 @@ void CbmStack::UpdateTrackIndex(TRefArray* detList)
         fIndexIter = fIndexMap.find(iTrack);
         if (fIndexIter == fIndexMap.end()) {
           LOG(FATAL) << "Particle index " << iTrack
-                     << " not found in index map! " << FairLogger::endl;
+                     << " not found in index map! ";
         }
         point->SetTrackID((*fIndexIter).second);
         point->SetLink(FairLink("MCTrack", (*fIndexIter).second));
@@ -288,7 +288,7 @@ void CbmStack::UpdateTrackIndex(TRefArray* detList)
   }     // List of active detectors
 
   delete detIter;
-  LOG(INFO) << "...stack and " << nColl << " collections updated." << FairLogger::endl;
+  LOG(INFO) << "...stack and " << nColl << " collections updated.";
 }
 // -------------------------------------------------------------------------
 
@@ -319,11 +319,11 @@ void CbmStack::Register()
 void CbmStack::Print(Int_t iVerbose) const
 {
   LOG(INFO) << "Number of primaries        = "
-            << fNPrimaries << FairLogger::endl;
+            << fNPrimaries;
   LOG(INFO) << "Total number of particles  = "
-            << fNParticles << FairLogger::endl;
+            << fNParticles;
   LOG(INFO) << "Number of tracks in output = "
-            << fNTracks << FairLogger::endl;
+            << fNTracks;
   for (Int_t iTrack=0; iTrack<fNTracks; iTrack++) {
     ((CbmMCTrack*) fTracks->At(iTrack))->Print(iTrack);
   }
@@ -370,7 +370,7 @@ TParticle* CbmStack::GetParticle(Int_t trackID) const
 {
   if (trackID < 0 || trackID >= fNParticles) {
     LOG(FATAL) << "Particle index " << trackID
-               << " out of range." << FairLogger::endl;
+               << " out of range.";
   }
 
   return (TParticle*)fParticles->At(trackID);

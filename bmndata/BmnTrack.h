@@ -37,6 +37,7 @@ public:
      ** and writes the hit indices into the member fHits
      **/
     void SortHits();
+    void DeleteHits() {fHitMap.clear(); fNhits=0;};
 
     /** Accessors  **/
 
@@ -131,7 +132,7 @@ private:
     FairTrackParam fParamLast;
 
     /** Quality flag **/
-    Int_t fFlag;
+    Int_t fFlag; // 13 for tracks not used in vertex finder
 
     /** Chi square and NDF of track fit **/
     Float_t fChi2;

@@ -55,13 +55,13 @@ Double_t ArmenPodolEllipseCut(Double_t alpha) {
 }
 
 void lambdaQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t useCutHistoLimits = kFALSE) {
-    gStyle->SetOptStat(0);
+    gStyle->SetOptStat(1);
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
     timer.Start();
 
-    TChain* out = new TChain("cbmsim");
+    TChain* out = new TChain("bmndata");
     out->Add(fileName.Data());
     cout << "#recorded entries = " << out->GetEntries() << endl;
     if (out->GetEntries() == 0) {
@@ -191,21 +191,19 @@ void lambdaQA(TString fileName = "tmp.root", Bool_t useCuts = false, Bool_t useC
 
         for (Int_t iPair = 0; iPair < particlePair->GetEntriesFast(); iPair++) {
             BmnParticlePair* pair = (BmnParticlePair*) particlePair->UncheckedAt(iPair);
-            Double_t invMass = pair->GetInvMass(_par);
+            Double_t invMass = pair->GetInvMass();
             Double_t mom1 = pair->GetMomPart1();
             Double_t mom2 = pair->GetMomPart2();
             Double_t eta1 = pair->GetEtaPart1();
             Double_t eta2 = pair->GetEtaPart2();
             Double_t dca1 = pair->GetDCA1();
             Double_t dca2 = pair->GetDCA2();
-            Double_t dca12X = pair->GetDCA12(_par);
-            Double_t dca12Y = pair->GetDCA12(_parY);
-            Double_t path = pair->GetPath(_par);
+            Double_t dca12X = pair->GetDCA12();
+            Double_t dca12Y = pair->GetDCA12();
+            Double_t path = pair->GetPath();
 
-            Double_t alpha = pair->GetAlpha(_par);
-            Double_t ptPodol = pair->GetPtPodol(_par);
-
-            Double_t V0XZ = pair->GetV0XZ();
+            Double_t alpha = pair->GetAlpha();
+            Double_t ptPodol = pair->GetPtPodol();
 
             // Cuts to be applied ...
             if (useCuts) {

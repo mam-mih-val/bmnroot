@@ -63,7 +63,7 @@ BmnLANDHitProducer::~BmnLANDHitProducer()
 //--------------------------------------------------------------------------------------------------------------------------------------
 InitStatus 		BmnLANDHitProducer::Init() 
 {
-	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "Begin [BmnLANDHitProducer::Init].");
+	LOG(info) << "Begin [BmnLANDHitProducer::Init].";
 
 	if(fOnlyPrimary) cout<<" Only primary particles are processed!!! \n"; // FIXME NOT used now ADDD
 
@@ -92,7 +92,7 @@ InitStatus 		BmnLANDHitProducer::Init()
 	}
 	
 
-	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "Initialization [BmnLANDHitProducer::Init] finished succesfully.");
+	LOG(info) << "Initialization [BmnLANDHitProducer::Init] finished succesfully.";
 
 	return kSUCCESS;
 }
@@ -162,7 +162,7 @@ void 		BmnLANDHitProducer::Exec(Option_t* opt) {
 
 void BmnLANDHitProducer::Finish() {
 	/*if (fDoTest) {
-		FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnLANDHitProducer::Finish] Update  %s file. ", fTestFlnm.Data());
+		LOG(info) << "[BmnLANDHitProducer::Finish] Update " << fTestFlnm.Data() << " file.";
 		TFile *ptr = gFile;
 		TFile file(fTestFlnm.Data(), "RECREATE");
 		fList.Write();

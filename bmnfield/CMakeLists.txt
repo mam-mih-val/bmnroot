@@ -1,4 +1,4 @@
-# Create a library called "libBmnField" which includes the source files given in the array
+# Create a library called "libBmnField"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
@@ -36,6 +36,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF FieldLinkDef.h)
 Set(LIBRARY_NAME BmnField)
-Set(DEPENDENCIES Core Base)
+Set(DEPENDENCIES Base Core)
 
 GENERATE_LIBRARY()

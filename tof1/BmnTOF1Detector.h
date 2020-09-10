@@ -20,11 +20,11 @@
 #include "BmnTof1Digit.h"
 #include "BmnEventHeader.h"
 #include "BmnTrigDigit.h"
-#include "BmnRunHeader.h"
 #include "BmnTOF1Point.h"
 #include "BmnTof1GeoUtils.h"
 #include "BmnTofHit.h"
 #include "BmnTOF1Conteiner.h"
+#include "TF1.h"
 #include "TH1I.h"
 #include "TH2I.h"
 #include "TFile.h"
@@ -53,6 +53,7 @@ class BmnTOF1Detector {
 private:
 
     static const Int_t fNStr = 48;
+    Int_t fVerbose;
     Double_t fStripLength, fSignalVelosity;
     TString fName;
     Int_t fNPlane;
@@ -66,11 +67,15 @@ private:
     Bool_t fFlagHit[fNStr], fKilled[fNStr];
     Double_t fCorrLR[fNStr], fCorrTimeShift[fNStr];
     Double_t fDigitL[fNStr], fDigitR[fNStr], fHit[fNStr];
-    TVector3 fCentrStrip[fNStr], fCrossPoint[fNStr], fVectorTemp;
+    Double_t fCommonTimeShift;
+    TVector3 fCentrStrip[fNStr], fStripAngle[fNStr], fCrossPoint[fNStr], fVectorTemp;
     BmnTrigDigit *fT0;
 
     TList *fHistListStat;
-    
+    TList *fHistListdt;
+
+    TH2S *hdT_vs_WidthDet[fNStr + 1], *hdT_vs_WidthT0[fNStr + 1];
+    TH1I * hdT[fNStr + 1];
     TH1I *hHitByCh, *hHitPerEv;
     TH2I *hHitLR, *hXY;
     TH1S *hDy_near, *hDtime_near, *hDWidth_near;
@@ -78,20 +83,19 @@ private:
     TH2S *hTempDtimeDy_near, *hTempDtimeDy_acros;
 
     TGraphErrors *gSlew[fNStr];
-    
-    TTree *fTree4Save;
-    TClonesArray *fArrayConteiner;
-            
+    TF1 *funT0[fNStr], *funRPC[fNStr];
+
     void FillHist();
     Double_t CalculateDt(Int_t Str);
     Bool_t GetCrossPoint(Int_t NStrip);
     void AddHit(Int_t Str, TClonesArray *TofHit);
+    void AddConteiner(Int_t Str, TClonesArray *TofHit);
 
 
 public:
     BmnTOF1Detector();
 
-    BmnTOF1Detector(Int_t NPlane, Int_t FillHistLevel, TTree *tree); // FillHistLevel=0-don"t fill, FillHistLevel=1-fill statistic, FillHistLevel>1-fill all
+    BmnTOF1Detector(Int_t NPlane, Int_t FillHistLevel, Int_t Verbose); // FillHistLevel=0-don"t fill, FillHistLevel=1-fill statistic, FillHistLevel>1-fill all
 
     virtual ~BmnTOF1Detector() {
     };
@@ -106,16 +110,21 @@ public:
     Bool_t SetCorrLR(Double_t *Mass);
     Bool_t SetCorrLR(TString NameFile);
     Bool_t SetCorrSlewing(TString NameFile);
-    Bool_t SetCorrTimeShift (TString NameFile); //FIXME
+    Bool_t SetCorrTimeShift(TString NameFile); 
     Bool_t SetGeoFile(TString NameFile);
     Bool_t SetGeo(BmnTof1GeoUtils *pGeoUtils);
     Bool_t GetXYZTime(Int_t Str, TVector3 *XYZ, Double_t *ToF);
+    Bool_t GetLRTime(Int_t Str, Double_t *LMinusRTime);
+    Bool_t GetXYZ4Strip(Int_t Str, TVector3 *XYZ);
     Double_t GetWidth(Int_t Str);
+    Double_t GetTime(Int_t Str);
     Bool_t SaveHistToFile(TString NameFile);
-    Bool_t SetTree (TTree *tree);
-    Int_t GetFillHistLevel () {return fFillHist;};
-    
-    ClassDef(BmnTOF1Detector, 3);
+
+    Int_t GetFillHistLevel() {
+        return fFillHist;
+    };
+
+    ClassDef(BmnTOF1Detector, 4);
 
 };
 

@@ -1,11 +1,9 @@
-# Create a library called "libMwpc" which includes the source files given in the array
+# Create a library called "libMwpc"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/mcstack
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/mwpc
 )
 
@@ -26,22 +24,23 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
- BmnMwpcHitProducer.cxx
- BmnMwpcHitFinder.cxx
- BmnMwpcGeometry.cxx
- BmnMwpcGeometrySRC.cxx
- BmnMwpcTrack.cxx
- BmnMwpcTrackFinder.cxx
- BmnMwpc.cxx
- BmnMwpcContFact.cxx
- BmnMwpcGeo.cxx
- BmnMwpcGeoPar.cxx
- BmnMwpcPoint.cxx
+BmnMwpcSegment.cxx
+BmnMwpcHitProducer.cxx
+BmnMwpcHitFinder.cxx
+BmnMwpcGeometry.cxx
+BmnMwpcGeometrySRC.cxx
+BmnMwpcTrack.cxx
+BmnMwpcTrackFinder.cxx
+BmnMwpc.cxx
+BmnMwpcContFact.cxx
+BmnMwpcGeo.cxx
+BmnMwpcGeoPar.cxx
+BmnMwpcPoint.cxx
 )
 
 Set(HEADERS)
-Set(LINKDEF LinkDef.h)
+Set(LINKDEF MwpcLinkDef.h)
 Set(LIBRARY_NAME Mwpc)
-Set(DEPENDENCIES Core Base BmnData)
+Set(DEPENDENCIES BmnData Base Core)
 
 GENERATE_LIBRARY()

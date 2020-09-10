@@ -1,12 +1,3 @@
-/*************************************************************************************
- *
- *         Class BmnBdGeoPar
- *         
- *  Adopted for BMN by:   Elena Litvinenko
- *  e-mail:   litvin@nf.jinr.ru
- *  Version:  10-02-2016   
- *
- ************************************************************************************/
 
 using namespace std;
 #include "BmnBdGeoPar.h"

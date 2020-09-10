@@ -37,7 +37,7 @@
 #include "BmnFieldMap.h"
 #include "BmnNewFieldMap.h"
 //#include "BmnSiliconHitMaker.h"
-#include "../mwpc/BmnMwpcHitFinder.h"
+#include "BmnMwpcHitFinder.h"
 #include "BmnGemStripConfiguration.h"
 #include "BmnGemStripHitMaker.h"
 #include "BmnTriggersCheck.h"

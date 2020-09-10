@@ -3,8 +3,7 @@
 // -----   Default constructor   -------------------------------------------
 
 BmnMwpcTrack::BmnMwpcTrack()
-: BmnTrack() {
-
+  : BmnTrack(){
 }
 
 // -----   Destructor   ----------------------------------------------------

@@ -60,44 +60,37 @@ UInt_t CbmStsAddress::GetAddress(Int_t station,
   // Catch overrunning of allowed ranges
   if ( station >= ( 1 << fgkBits[kStsStation] ) ) {
     LOG(ERROR) << "Station Id "  << station << " exceeds maximum ("
-               << ( 1 << fgkBits[kStsStation] ) - 1 << ")"
-               << FairLogger::endl;
+               << ( 1 << fgkBits[kStsStation] ) - 1 << ")";
     return 0;
   }
   if ( ladder >= ( 1 << fgkBits[kStsLadder]) ) {
     LOG(ERROR) << "Ladder Id "  << ladder << " exceeds maximum ("
-               << ( 1 << fgkBits[kStsLadder] ) - 1 << ")"
-               << FairLogger::endl;
+               << ( 1 << fgkBits[kStsLadder] ) - 1 << ")";
     return 0;
   }
   if ( halfladder >= ( 1 << fgkBits[kStsHalfLadder]) ) {
     LOG(ERROR) << "HalfLadder Id "  << halfladder << " exceeds maximum ("
-               << ( 1 << fgkBits[kStsHalfLadder] ) - 1 << ")"
-               << FairLogger::endl;
+               << ( 1 << fgkBits[kStsHalfLadder] ) - 1 << ")";
     return 0;
   }
   if ( module >= ( 1 << fgkBits[kStsModule]) ) {
     LOG(ERROR) << "Module Id "  << module << " exceeds maximum ("
-               << ( 1 << fgkBits[kStsModule] ) - 1 << ")"
-               << FairLogger::endl;
+               << ( 1 << fgkBits[kStsModule] ) - 1 << ")";
     return 0;
   }
   if ( sensor >= ( 1 << fgkBits[kStsSensor]) ) {
     LOG(ERROR) << "Sensor Id "  << sensor << " exceeds maximum ("
-               << ( 1 << fgkBits[kStsSensor] ) - 1 << ")"
-               << FairLogger::endl;
+               << ( 1 << fgkBits[kStsSensor] ) - 1 << ")";
     return 0;
   }
   if ( side >= ( 1 << fgkBits[kStsSide]) ) {
     LOG(ERROR) << "Side Id "  << side << " exceeds maximum ("
-               << ( 1 << fgkBits[kStsSide] ) - 1 << ")"
-               << FairLogger::endl;
+               << ( 1 << fgkBits[kStsSide] ) - 1 << ")";
     return 0;
   }
   if ( channel >= ( 1 << fgkBits[kStsChannel]) ) {
     LOG(ERROR) << "Channel Id "  << channel << " exceeds maximum ("
-               << ( 1 << fgkBits[kStsChannel] ) - 1 << ")"
-               << FairLogger::endl;
+               << ( 1 << fgkBits[kStsChannel] ) - 1 << ")";
     return 0;
   }
 
@@ -123,7 +116,7 @@ UInt_t CbmStsAddress::GetAddress(Int_t* elementId) {
     if ( elementId[level] >= ( 1 << fgkBits[level] ) ) {
       LOG(ERROR) << "Id " << elementId[level] << " for STS level " << level
                  << " exceeds maximum (" << (1 << fgkBits[level]) - 1
-                 << ")" << FairLogger::endl;
+                 << ")";
       return 0;
     }
     address = address | ( elementId[level] << fgkShift[level] );
@@ -137,13 +130,11 @@ UInt_t CbmStsAddress::GetAddress(Int_t* elementId) {
 
 // -----   Print info   ----------------------------------------------------
 void CbmStsAddress::Print() {
-  LOG(INFO) << "Number of STS levels is " << kStsNofLevels
-      << FairLogger::endl;
+  LOG(INFO) << "Number of STS levels is " << kStsNofLevels;
   for (Int_t level = 0; level < kStsNofLevels; level++)
     LOG(INFO) << "Level " << std::setw(2) << std::right << level
               << ": bits " << std::setw(2) << fgkBits[level]
-              << ", max. range " << std::setw(6) << fgkMask[level]
-              << FairLogger::endl;
+              << ", max. range " << std::setw(6) << fgkMask[level];
 }
 // -------------------------------------------------------------------------
 

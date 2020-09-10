@@ -29,7 +29,7 @@ class BmnTof1HitProducer : public BmnTof1HitProducerIdeal
    	Bool_t			fDoINL;
    	Bool_t			fDoSlewing;   	
         
-        Int_t                   NPeriod;
+        Int_t                   fPeriod, fRun;
    
 	// QA test histos
 	TEfficiency			*effTestEfficiencySingleHit, *effTestEfficiencyDoubleHit; //!		
@@ -45,11 +45,14 @@ class BmnTof1HitProducer : public BmnTof1HitProducerIdeal
         Int_t                           fNDetectors;
 	
 	const 	double		fSignalVelosity; // [ns/cm]
+        
+        TString NameFileLRcorrection, NameFileSlewingCorrection, NameFileTimeShiftCorrection;
+        Bool_t FlagFileLRcorrection, FlagFileSlewingCorrection, FlagFileTimeShiftCorrection;
 
-	// input- strip edge position & signal times; output- strip crosspoint; return false, if crosspoint outside strip 
-	bool			GetCrossPoint(const TVector3& p1, double time1, const TVector3& p2, double time2, TVector3& crossPoint);
-	bool                    GetCrossPoint(const LStrip1 *pStrip, double time1, double time2, TVector3& crossPoint);
-        Double_t                CalculateToF (BmnTof1Digit *d1, BmnTof1Digit *d2, BmnTrigDigit *t0);
+        BmnTrigDigit*           FingT0Digit();
+        Bool_t                  IsFile(TString NameFile);
+        Bool_t                  SetCorrFiles();
+        
 public:
 	BmnTof1HitProducer(const char *name = "TOF1 HitProducer", Bool_t useMCdata = true, Int_t verbose = 1, Bool_t DoTest = false);
 	virtual ~BmnTof1HitProducer();
@@ -76,12 +79,15 @@ public:
 		return buf;
 	}
         
-        void                    SetPeriod (Int_t p)
+        void                    SetPeriodRun (Int_t p, Int_t r)
         {
-                NPeriod = p;
+                fPeriod = p;
+                fRun = r;
         }
+        
+        
 	
-ClassDef(BmnTof1HitProducer, 2);
+ClassDef(BmnTof1HitProducer, 3);
 };
 
 #endif

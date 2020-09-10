@@ -264,6 +264,7 @@ string BmnClusteringQaReport::PrintNofObjects() const {
 //    }
 //    str += R()->TableEnd();
 //    return str;
+    return "NOT IMPLEMENTED!";
 }
 
 void BmnClusteringQaReport::Draw() {

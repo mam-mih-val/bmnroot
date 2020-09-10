@@ -9,9 +9,9 @@
 #ifndef BMNFILLDSTTASK_H
 #define BMNFILLDSTTASK_H
 
-#include "BmnRunHeader.h"
-#include "BmnEventHeader.h"
+#include "DstRunHeader.h"
 #include "DstEventHeader.h"
+#include "BmnEventHeader.h"
 
 #include "FairTask.h"
 #include "FairMCEventHeader.h"
@@ -20,9 +20,8 @@
 
 #include <map>
 
-class BmnFillDstTask : public FairTask
-{
-  public:
+class BmnFillDstTask : public FairTask {
+   public:
     /** Default constructor **/
     BmnFillDstTask();
 
@@ -41,13 +40,11 @@ class BmnFillDstTask : public FairTask
     /** Destructor **/
     ~BmnFillDstTask();
 
-
     /** Initiliazation of task at the beginning **/
     virtual InitStatus Init();
 
     /** ReInitiliazation of task when the runID/file changes **/
     virtual InitStatus ReInit();
-
 
     /** Executed for each event **/
     virtual void Exec(Option_t* opt);
@@ -59,18 +56,23 @@ class BmnFillDstTask : public FairTask
     virtual void Finish();
 
     /** Setting period-number information to fill RunHeader **/
-    void SetRunNumber(Int_t period_number, Int_t run_number) { fPeriodNumber = period_number; fRunNumber = run_number; }
+    void SetRunNumber(Int_t period_number, Int_t run_number) {
+        fPeriodNumber = period_number;
+        fRunNumber = run_number;
+    }
+    void DoZCalibration(Bool_t cal) {
+        fDoCalibration = cal;
+    }
 
     /** Fill map with weight-charge of possible particles **/
     void InitParticleInfo();
 
-    struct stParticleInfo
-    {
+    struct stParticleInfo {
         Int_t A;
         Int_t Z;
     };
 
-  private:
+   private:
     TString fInputEventHeaderName;
     TString fOutputEventHeaderName;
 
@@ -83,8 +85,9 @@ class BmnFillDstTask : public FairTask
     /** Output DstEventHeader prepared in FairRunAna **/
     DstEventHeader* fDstHead;
     /** Output BmnRunHeader **/
-    BmnRunHeader* fRunHead;
-
+    DstRunHeader* fRunHead;
+    /*For ADC, charge calculation*/
+    TClonesArray *fT0, *fBC1, *fBC2, *fBC3, *fBC4;
     /** event count to be processed for progress bar **/
     Long64_t fNEvents;
     /** current event being processed for progress bar **/
@@ -95,13 +98,20 @@ class BmnFillDstTask : public FairTask
     /** run number **/
     Int_t fRunNumber;
 
+    /** z calibration parameters: **/
+    Double_t fZCalib1;
+    Double_t fZCalib2;
+    Double_t fBC1Calib;
+    Double_t fBC2Calib;
+    Bool_t fDoCalibration;
+
     /** map with particle names and corresponding weight-charge pairs **/
-    map<TString,stParticleInfo> mapParticleInfo;
+    map<TString, stParticleInfo> mapParticleInfo;
 
     BmnFillDstTask(const BmnFillDstTask&);
     BmnFillDstTask operator=(const BmnFillDstTask&);
 
-    ClassDef(BmnFillDstTask,1);
+    ClassDef(BmnFillDstTask, 1);
 };
 
 #endif

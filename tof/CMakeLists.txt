@@ -1,11 +1,9 @@
-# Create a library called "libTOF" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libTOF"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/mcstack
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/decoder
  ${CMAKE_SOURCE_DIR}/tof
 )
 
@@ -39,6 +37,6 @@ BmnTofGeoUtils.cxx
 Set(HEADERS)
 Set(LINKDEF BmnTOFLinkDef.h)
 Set(LIBRARY_NAME TOF)
-Set(DEPENDENCIES BmnData Core Base)
+Set(DEPENDENCIES Decoder BmnData Base Core) 
 
 GENERATE_LIBRARY()

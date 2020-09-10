@@ -52,6 +52,7 @@
 #pragma link C++ class BmnMwpcHit+;
 #pragma link C++ class BmnTrackMatch+;
 
+#pragma link C++ class BmnStripDigit+;
 #pragma link C++ class BmnMwpcDigit+;
 #pragma link C++ class BmnTof1Digit+;
 #pragma link C++ class BmnTof2Digit+;
@@ -77,7 +78,6 @@
 
 #pragma link C++ class BmnEventHeader+;
 #pragma link C++ class map<UInt_t, Long64_t>+;
-#pragma link C++ class BmnRunHeader+;
 
 #pragma link C++ class BmnCounter+;
 
@@ -85,6 +85,7 @@
 #pragma link C++ class BmnIdentifiableTrack+;
 
 #pragma link C++ class BmnEventQuality+;
+#pragma link C++ class BmnZDCEventData+;
 
 #pragma link C++ class CbmVertex+;
 #pragma link C++ class CbmStsTrackFitter+;
@@ -101,6 +102,7 @@
 #pragma link C++ class BmnFunctionSet+;
 
 #pragma link C++ class BmnTrack+;
+#pragma link C++ class BmnGemDchTrack+;
 #pragma link C++ class BmnHit+;
 #pragma link C++ class BmnLink+;
 #pragma link C++ class BmnMatch+;
@@ -110,9 +112,14 @@
 #pragma link C++ class BmnCSCHit+;
 
 #pragma link C++ class BmnKalmanFilter+;
+#pragma link C++ class DigiRunHeader+;
 
 // #pragma link C++ class BmnVertex+;
 
 #pragma link C++ enum BmnSetup;
+
+#pragma link C++ enum BmnTrigStructPeriod7SetupBMN;
+#pragma link C++ enum BmnTrigStructPeriod7SetupSRC;
+#pragma link C++ enum BmnTrigStructPeriod6;
 
 #endif

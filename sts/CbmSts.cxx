@@ -30,6 +30,7 @@
 #include "TGeoVoxelFinder.h"
 #include "TGeoManager.h"
 #include "TRegexp.h"
+#include "TFile.h"
 
 #include <iostream>
 
@@ -45,26 +46,22 @@ CbmSts::CbmSts()
   fTrackID(0),
   fVolumeID(0),
   fDetectorId(0),
-  fPosIn(0.,0.,0.,0.),
-  fPosOut(0.,0.,0.,0.),
-  fMomIn(0.,0.,0.,0.),
-  fMomOut(0.,0.,0.,0.),
+  fPosIn(0.,0.,0.),
+  fPosOut(0.,0.,0.),
+  fMomIn(0.,0.,0.),
+  fMomOut(0.,0.,0.),
   fTime(0.),
   fLength(0.),
   fELoss(0.),
   fPosIndex(0),
-  fStsCollection(NULL),
-  kGeoSaved(kFALSE),
-  flGeoPar(new TList),
-  fVolumeMap(),
-  fVolumeMapIter()
+  fStsCollection(NULL)
 {
   ResetParameters();
   fStsCollection = new TClonesArray("CbmStsPoint");
   fPosIndex = 0;
-  kGeoSaved = kFALSE;
-  flGeoPar = new TList();
-  flGeoPar->SetName( GetName());
+  //kGeoSaved = kFALSE;
+  //flGeoPar = new TList();
+  //flGeoPar->SetName( GetName());
   fVerboseLevel = 1;
 }
 // -------------------------------------------------------------------------
@@ -77,26 +74,19 @@ CbmSts::CbmSts(const char* name, Bool_t active)
   fTrackID(0),
   fVolumeID(0),
   fDetectorId(0),
-  fPosIn(0.,0.,0.,0.),
-  fPosOut(0.,0.,0.,0.),
-  fMomIn(0.,0.,0.,0.),
-  fMomOut(0.,0.,0.,0.),
+  fPosIn(0.,0.,0.),
+  fPosOut(0.,0.,0.),
+  fMomIn(0.,0.,0.),
+  fMomOut(0.,0.,0.),
   fTime(0.),
   fLength(0.),
   fELoss(0.),
   fPosIndex(0),
-  fStsCollection(NULL),
-  kGeoSaved(kFALSE),
-  flGeoPar(new TList),
-  fVolumeMap(),
-  fVolumeMapIter()
+  fStsCollection(NULL)
 {
   ResetParameters();
   fStsCollection = new TClonesArray("CbmStsPoint");
   fPosIndex = 0;
-  kGeoSaved = kFALSE;
-  flGeoPar = new TList();
-  flGeoPar->SetName( GetName());
   fVerboseLevel = 1;
 }
 // -------------------------------------------------------------------------
@@ -105,8 +95,6 @@ CbmSts::CbmSts(const char* name, Bool_t active)
 
 // -----   Destructor   ----------------------------------------------------
 CbmSts::~CbmSts() {
-
-  if ( flGeoPar ) delete flGeoPar;
   if (fStsCollection) {
     fStsCollection->Delete();
     delete fStsCollection;
@@ -119,131 +107,94 @@ CbmSts::~CbmSts() {
 // -----   Public method ProcessHits  --------------------------------------
 Bool_t CbmSts::ProcessHits(FairVolume* vol) {
 
-    // Determine station and module numbers for the current hit ----------------
-    Int_t stationNum = -1; // current station number (default)
-    Int_t moduleNum = -1; // current module number (default)
-
-    TGeoVolume *currentVolume = gGeoManager->GetCurrentVolume();
-    TString currentVolumeName = currentVolume->GetName();
-
-    TRegexp expr = "^Sensor_module[0-9]+_station[0-9]+$";
-    if(currentVolumeName.Contains(expr)) {
-        TRegexp mod_expt = "module[0-9]+";
-        TRegexp stat_expt = "station[0-9]+";
-
-        moduleNum = TString(TString(currentVolumeName(mod_expt))(TRegexp("[0-9]+"))).Atoi();
-        stationNum = TString(TString(currentVolumeName(stat_expt))(TRegexp("[0-9]+"))).Atoi();
-    }
-
-    //cout << "stationNum = " << stationNum << "\n";
-    //cout << "moduleNum = " << moduleNum << "\n";
-    //cout << "\n";
-
-    // -------------------------------------------------------------------------
-
     // Set parameters at entrance of volume. Reset ELoss.
     if ( gMC->IsTrackEntering() ) {
-    fELoss  = 0.;
-    fTime   = gMC->TrackTime() * 1.0e09;
-    fLength = gMC->TrackLength();
-    gMC->TrackPosition(fPosIn);
-    gMC->TrackMomentum(fMomIn);
-  }
+        fELoss  = 0.;
+        fTime   = gMC->TrackTime() * 1.0e09;
+        fLength = gMC->TrackLength();
 
-  // Sum energy loss for all steps in the active volume
-  fELoss += gMC->Edep();
+        TLorentzVector PosIn;
+        gMC->TrackPosition(PosIn);
+        fPosIn.SetXYZ(PosIn.X(), PosIn.Y(), PosIn.Z());
 
-  // Set additional parameters at exit of active volume. Create CbmStsPoint.
-  if ( gMC->IsTrackExiting()    ||
-       gMC->IsTrackStop()       ||
-       gMC->IsTrackDisappeared()   ) {
-    fTrackID  = gMC->GetStack()->GetCurrentTrackNumber();
-    fDetectorId = vol->getMCid();
-    gMC->TrackPosition(fPosOut);
-    gMC->TrackMomentum(fMomOut);
-    if (fELoss == 0. ) return kFALSE;
-
-    if (gMC->IsTrackExiting()) {
-      const Double_t* oldpos;
-      const Double_t* olddirection;
-      Double_t newpos[3];
-      Double_t newdirection[3];
-      Double_t safety;
-
-      gGeoManager->FindNode(fPosOut.X(),fPosOut.Y(),fPosOut.Z());
-      oldpos = gGeoManager->GetCurrentPoint();
-      olddirection = gGeoManager->GetCurrentDirection();
-
-//       cout << "1st direction: " << olddirection[0] << "," << olddirection[1] << "," << olddirection[2] << endl;
-
-      for (Int_t i=0; i<3; i++){
-	newdirection[i] = -1*olddirection[i];
-      }
-
-      gGeoManager->SetCurrentDirection(newdirection);
-      TGeoNode *bla = gGeoManager->FindNextBoundary(2);
-      safety = gGeoManager->GetSafeDistance();
-
-
-      gGeoManager->SetCurrentDirection(-newdirection[0],-newdirection[1],-newdirection[2]);
-
-      for (Int_t i=0; i<3; i++){
-	newpos[i] = oldpos[i] - (3*safety*olddirection[i]);
-      }
-
-      /*if ( fPosIn.Z() < 30. && newpos[2] > 30.02 ) {
-	cerr << "2nd direction: " << olddirection[0] << "," << olddirection[1] << "," << olddirection[2]
-	     << " with safety = " << safety << endl;
-	cerr << "oldpos = " << oldpos[0] << "," << oldpos[1] << "," << oldpos[2] << endl;
-	cerr << "newpos = " << newpos[0] << "," << newpos[1] << "," << newpos[2] << endl;
-      }*/
-
-      fPosOut.SetX(newpos[0]);
-      fPosOut.SetY(newpos[1]);
-      fPosOut.SetZ(newpos[2]);
+        TLorentzVector MomIn;
+        gMC->TrackMomentum(MomIn);
+        fMomIn.SetXYZ(MomIn.X(), MomIn.Y(), MomIn.Z());
     }
 
-    AddHit(fTrackID, fDetectorId,
-	   TVector3(fPosIn.X(),   fPosIn.Y(),   fPosIn.Z()),
-	   TVector3(fPosOut.X(),  fPosOut.Y(),  fPosOut.Z()),
-	   TVector3(fMomIn.Px(),  fMomIn.Py(),  fMomIn.Pz()),
-	   TVector3(fMomOut.Px(), fMomOut.Py(), fMomOut.Pz()),
-	   fTime, fLength, fELoss, stationNum, moduleNum);
+    // Sum energy loss for all steps in the active volume
+    fELoss += gMC->Edep();
 
-    // Increment number of StsPoints for this track
-    CbmStack* stack = (CbmStack*) gMC->GetStack();
-    stack->AddPoint(kGEM);
+    // Set additional parameters at exit of active volume. Create CbmStsPoint.
+    if ( gMC->IsTrackExiting()    ||
+         gMC->IsTrackStop()       ||
+         gMC->IsTrackDisappeared()   ) {
 
-    ResetParameters();
+        fTrackID  = gMC->GetStack()->GetCurrentTrackNumber();
+        fDetectorId = vol->getMCid();
+
+        TLorentzVector PosOut;
+        gMC->TrackPosition(PosOut);
+        fPosOut.SetXYZ(PosOut.X(), PosOut.Y(), PosOut.Z());
+
+        TLorentzVector MomOut;
+        gMC->TrackMomentum(MomOut);
+        fMomOut.SetXYZ(MomOut.X(), MomOut.Y(), MomOut.Z());
+
+        if (fELoss == 0. ) return kFALSE;
+
+        //correction step to avoid the seg. violation error due to invalid memory access
+        TVector3 diff_pos = fPosIn - fPosOut;
+
+        if(diff_pos.Mag() < 0.001) return kFALSE; //ignore points produced by tracks with zero length inside the current sens. volume
+        if(fMomOut.Mag() == 0) return kFALSE; // ignore points produced by tracks with zero momentum inside the current sens. volume
+
+        TVector3 corr_step = fMomOut;
+        corr_step.SetMag(0.001); // 10 um
+        TVector3 pos = fPosOut;
+        fPosOut = pos - corr_step;
+        gGeoManager->FindNode(fPosOut[0],fPosOut[1],fPosOut[2]);
+
+        // Determine station and module numbers for the current hit ------------
+        Int_t stationNum = -1; // current station number (default)
+        Int_t moduleNum = -1; // current module number (default)
+
+        TGeoVolume *currentVolume = gGeoManager->GetCurrentVolume();
+        TString currentVolumeName = currentVolume->GetName();
+
+        TRegexp expr = "^Sensor_module[0-9]+_station[0-9]+$";
+        if(currentVolumeName.Contains(expr)) {
+            TRegexp mod_expr = "module[0-9]+";
+            TRegexp stat_expr = "station[0-9]+";
+
+            moduleNum = TString(TString(currentVolumeName(mod_expr))(TRegexp("[0-9]+"))).Atoi();
+            stationNum = TString(TString(currentVolumeName(stat_expr))(TRegexp("[0-9]+"))).Atoi();
+        }
+
+        //cout << "stationNum = " << stationNum << "\n";
+        //cout << "moduleNum = " << moduleNum << "\n";
+        //cout << "\n";
+
+        if(stationNum == -1 || moduleNum == -1) return kFALSE; //check if the current point has incorrect indices
+        //----------------------------------------------------------------------
+
+        AddHit(fTrackID, fDetectorId,
+               fPosIn, fPosOut,
+               fMomIn, fMomOut,
+               fTime, fLength, fELoss, stationNum, moduleNum);
+
+        // Increment number of StsPoints for this track
+        CbmStack* stack = (CbmStack*) gMC->GetStack();
+        stack->AddPoint(kGEM);
+
+        ResetParameters();
   }
-
 
   return kTRUE;
 }
-// ----------------------------------------------------------------------------
-//void CbmSts::SaveGeoParams(){
-//
-//  cout << " -I Save STS geo params " << endl;
-//
-//  TFolder *mf = (TFolder*) gDirectory->FindObjectAny("cbmroot");
-//  cout << " mf: " << mf << endl;
-//  TFolder *stsf = NULL;
-//  if (mf ) stsf = (TFolder*) mf->FindObjectAny(GetName());
-//  cout << " stsf: " << stsf << endl;
-//  if (stsf) stsf->Add( flGeoPar0 ) ;
- //  FairRootManager::Instance()->WriteFolder();
-//  mf->Write("cbmroot",TObject::kWriteDelete);
-//}
-
 
 // -----   Public method EndOfEvent   -----------------------------------------
 void CbmSts::BeginEvent() {
-
-//  if (! kGeoSaved ) {
-//      SaveGeoParams();
-//  cout << "-I STS geometry parameters saved " << endl;
-//  kGeoSaved = kTRUE;
-//  }
 
 }
 // -----   Public method EndOfEvent   -----------------------------------------
@@ -256,10 +207,6 @@ void CbmSts::EndOfEvent() {
   ResetParameters();
 }
 // ----------------------------------------------------------------------------
-
-
-
-
 
 
 // -----   Public method Register   -------------------------------------------
@@ -324,27 +271,19 @@ void CbmSts::ConstructGeometry()
 {
   TString fileName = GetGeometryFileName();
   if ( fileName.EndsWith(".root") ) {
-    gLogger->Info(MESSAGE_ORIGIN,
-		  "Constructing STS geometry from ROOT file %s",
-		  fileName.Data());
+    LOG(info) << "Constructing STS geometry from ROOT file " << fileName.Data();
     ConstructRootGeometry();
   }
   else if ( fileName.EndsWith(".geo") ) {
-    gLogger->Info(MESSAGE_ORIGIN,
-		  "Constructing STS geometry from ASCII file %s",
-		  fileName.Data());
+    LOG(info) << "Constructing STS geometry from ASCII file " << fileName.Data();
     ConstructAsciiGeometry();
   }
   else if ( fileName.EndsWith(".gdml") ) {
-    gLogger->Info(MESSAGE_ORIGIN,
-          "Constructing STS geometry from GDML file %s",
-          fileName.Data());
+    LOG(info) << "Constructing STS geometry from GDML file " << fileName.Data();
     ConstructGDMLGeometry();
   }
   else
-    gLogger->Fatal(MESSAGE_ORIGIN,
-           "Geometry format of STS file %s not supported",
-		   fileName.Data());
+    LOG(fatal) << "Geometry format of STS file " << fileName.Data() << " not supported";
 }
 // ----------------------------------------------------------------------------
 
@@ -393,7 +332,7 @@ void CbmSts::ConstructGDMLGeometry()
     TGeoVolume* v1 = parser.GDMLReadFile(GetGeometryFileName());
 
     if (v1 == 0)
-        fLogger->Fatal(MESSAGE_ORIGIN, "\033[5m\033[31mFairModule::ConstructGDMLGeometry(): could construct geometry from GDML File!!  \033[0m", GetGeometryFileName().Data());
+        LOG(fatal) << "\033[5m\033[31mFairModule::ConstructGDMLGeometry(): could construct geometry from GDML File!!  \033[0m" << GetGeometryFileName().Data();
 
     TGeoNode* n = v1->GetNode(0);
 
@@ -510,8 +449,6 @@ CbmStsPoint* CbmSts::AddHit(Int_t trackID, Int_t detID, TVector3 posIn,
   return hit;
 }
 // ----------------------------------------------------------------------------
-
-
 
 
 ClassImp(CbmSts)

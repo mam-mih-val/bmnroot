@@ -38,8 +38,7 @@ CbmStsAcceptance::CbmStsAcceptance()
 	// TODO: This is a sloppy way of preventing more than one instance.
 	// Should be a real single ton class.
 	if ( fNofInstances ) LOG(FATAL) << GetName()
-			<< ": Instance of this class is already present! Aborting..."
-			<< FairLogger::endl;
+			<< ": Instance of this class is already present! Aborting...";
 
 	fNofInstances++;
 }
@@ -91,16 +90,15 @@ void CbmStsAcceptance::Exec(Option_t* /*opt*/) {
 	} //# StsPoints
 
 	// Perform consistency check
-	if ( ! Test() ) LOG(FATAL) << GetName() << ": consistency check failed!"
-				<< FairLogger::endl;
+	if ( ! Test() ) LOG(FATAL) << GetName() << ": consistency check failed!";
 
 	fTimer.Stop();
-  LOG(DEBUG) << ToString() << FairLogger::endl;
+  LOG(DEBUG) << ToString();
   LOG(INFO) << "+ " << setw(20) << GetName() << ": Event " << setw(6)
               << right << fNofEvents << ", time " << fixed << setprecision(6)
               << fTimer.RealTime() << " s, STS points: " << nPoints
               << ", map size " << fCountMap.size()
-              << ", test OK" << FairLogger::endl;
+              << ", test OK";
 
   // Counters
   fNofEvents++;
@@ -115,16 +113,16 @@ void CbmStsAcceptance::Exec(Option_t* /*opt*/) {
 // -----   End-of-run action   ----------------------------------------------
 void CbmStsAcceptance::Finish() {
 	std::cout << std::endl;
-	LOG(INFO) << "=====================================" << FairLogger::endl;
-	LOG(INFO) << GetName() << ": Run summary" << FairLogger::endl;
-	LOG(INFO) << "Events processed    : " << fNofEvents << FairLogger::endl;
+	LOG(INFO) << "=====================================";
+	LOG(INFO) << GetName() << ": Run summary";
+	LOG(INFO) << "Events processed    : " << fNofEvents;
 	LOG(INFO) << "StsPoints / event   : " << setprecision(1)
             << fNofPointsTot / Double_t(fNofEvents)
-            << FairLogger::endl;
+           ;
 	LOG(INFO) << "Real time per event : " << setprecision(6)
 			      << fTimeTot / Double_t(fNofEvents)
-		        << " s" << FairLogger::endl;
-	LOG(INFO) << "=====================================" << FairLogger::endl;
+		        << " s";
+	LOG(INFO) << "=====================================";
 }
 // --------------------------------------------------------------------------
 
@@ -186,7 +184,7 @@ InitStatus CbmStsAcceptance::Init() {
   if ( ! fPoints ) {
   	LOG(ERROR) << GetName()
   			       << ": No StsPoint array. Task will be deactivated."
-  			       << FairLogger::endl;
+  			      ;
   	SetActive(kFALSE);
   	return kERROR;
   }
@@ -196,7 +194,7 @@ InitStatus CbmStsAcceptance::Init() {
   if ( ! fTracks ) {
   	LOG(ERROR) << GetName()
   			       << ": No MCTrack array. Task will be deactivated."
-  			       << FairLogger::endl;
+  			      ;
   	SetActive(kFALSE);
   	return kERROR;
   }
@@ -227,9 +225,8 @@ Bool_t CbmStsAcceptance::Test() {
 		if ( nPoints1 != nPoints2 && nPoints1 < 31) {
 			LOG(ERROR) << GetName() << ": Track " << trackId
 					<< " points from MCTrack " << nPoints1
-					<< ", points from StsAcceptance " << nPoints2
-					<< FairLogger::endl;
-			LOG(ERROR) << track->ToString() << FairLogger::endl;
+					<< ", points from StsAcceptance " << nPoints2;
+			LOG(ERROR) << track->ToString();
 			result = kFALSE;
 		}
 	} //# MCTracks

@@ -35,16 +35,12 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(tof1);
 
     FairDetector* dch = new BmnDch("DCH", kTRUE);
-    dch->SetGeometryFileName("DCH_RunWinter2016.root");
+    dch->SetGeometryFileName("DCH_RunSpring2018.root");
     fRun->AddModule(dch);
 
     FairDetector* tof2 = new BmnTOF("TOF", kTRUE);
     tof2->SetGeometryFileName("tof700_run6_with_support.root");
     fRun->AddModule(tof2);
-
-    FairDetector* emc = new BmnEcal("EMC", kTRUE);
-    emc->SetGeometryFileName("ecal_v1_0.geo");
-    fRun->AddModule(emc);
 
     BmnZdc* zdc = new BmnZdc("ZDC", kTRUE);
     zdc->SetGeometryFileName("zdc_52modules_64layers_v1.geo");

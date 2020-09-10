@@ -20,5 +20,6 @@
 #pragma link C++ class BmnCscRaw2Digit+;
 #pragma link C++ class BmnRawDataDecoder+;
 #pragma link C++ class BmnSlewingTOF700+;
+#pragma link C++ class BmnMscRaw2Digit+;
 
 #endif

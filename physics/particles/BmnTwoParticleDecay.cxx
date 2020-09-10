@@ -270,18 +270,23 @@ void BmnTwoParticleDecay::Analysis() {
 
             Double_t V0X = .5 * (proton_V0.GetX() + pion_V0.GetX());
             Double_t V0Y = .5 * (proton_V0.GetY() + pion_V0.GetY());
-            
-            Double_t xCutMin = fDetector->GetGemStation(0)->GetXMinStation();
-            Double_t xCutMax = fDetector->GetGemStation(0)->GetXMaxStation();
-            Double_t yCutMin = fDetector->GetGemStation(0)->GetYMinStation();
-            Double_t yCutMax = fDetector->GetGemStation(0)->GetYMaxStation();
-            
+
+            Double_t xCutMin = fDetector->GetStation(0)->GetXMinStation();
+            Double_t xCutMax = fDetector->GetStation(0)->GetXMaxStation();
+            Double_t yCutMin = fDetector->GetStation(0)->GetYMinStation();
+            Double_t yCutMax = fDetector->GetStation(0)->GetYMaxStation();
+
             if (V0X < xCutMin || V0X > xCutMax || V0Y < yCutMin || V0Y > yCutMax)
                 continue;
-                
+
             vector <Double_t> geomTopology = GeomTopology(proton_V0, pion_V0, proton_Vp, pion_Vp);
 
             BmnParticlePair partPair;
+            
+            // trying to get tof info from tracks ...
+            enum {tof400 = 1, tof700 = 2};
+            partPair.SetBeta400Pair(track1->GetBeta(tof400), track2->GetBeta(tof400));
+            partPair.SetBeta700Pair(track1->GetBeta(tof700), track2->GetBeta(tof700));
 
             partPair.SetV0Z(V0Z);
             partPair.SetV0X(V0X);
@@ -333,28 +338,28 @@ void BmnTwoParticleDecay::Analysis() {
             partPair.SetAlpha(armenPodol.X());
             partPair.SetPtPodol(armenPodol.Y());
             partPair.SetInvMass(TLorentzVector((lPos + lNeg)).Mag());
-            
+
             // Part to be used when estimating omega ... (dca0 needed), 0 means a primary particle to be decayed...
             partPair.SetTxPair(Tx1, Tx2);
             partPair.SetTyPair(Ty1, Ty2);
-            
+
             Double_t PzPart1 = Abs(p1) * A1;
             Double_t PzPart2 = Abs(p2) * A2;
-            
+
             Double_t PzPart0 = PzPart1 + PzPart2;
             Double_t PxPart0 = PzPart1 * Tx1 + PzPart2 * Tx2;
             Double_t PyPart0 = PzPart1 * Ty1 + PzPart2 * Ty2;
-            
+
             Double_t TxPart0 = PxPart0 / PzPart0;
             Double_t TyPart0 = PyPart0 / PzPart0;
-            
+
             Double_t xPart0 = TxPart0 * (Vp.Z() - V0.Z()) + V0.X();
             Double_t yPart0 = TyPart0 * (Vp.Z() - V0.Z()) + V0.Y();
-          
+
             Double_t dca0 = Sqrt(Sq(xPart0 - Vp.X()) + Sq(yPart0 - Vp.Y()));
-            
-            partPair.SetDCA0(dca0);          
-            
+
+            partPair.SetDCA0(dca0);
+
             // To be used for real exp. data
             if (fAnalType[0].Contains("dst") && !fAnalType[0].Contains("eve") && fAnalType[1].Contains("OFF"))
                 new((*fParticlePair)[fParticlePair->GetEntriesFast()]) BmnParticlePair(partPair);
@@ -469,12 +474,12 @@ void BmnTwoParticleDecay::Exec(Option_t * option) {
     fParticlePair_MC->Delete();
     fParticlePair_RECO->Delete();
     fParticlePair->Delete();
-    
+
     fEventCounter++;
 
     if (fEventCounter % 500 == 0)
         cout << "Event# " << fEventCounter << endl;
-    
+
     // In case of MC-data one has to extract coordinates of Vp known exactly ...
     if (fAnalType[0].Contains("eve") && !fAnalType[0].Contains("dst")) {
         for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
@@ -543,6 +548,8 @@ TVector2 BmnTwoParticleDecay::ArmenterosPodol(FairTrackParam prot, FairTrackPara
 Double_t BmnTwoParticleDecay::FindV0ByVirtualPlanes(BmnGlobalTrack* track1, BmnGlobalTrack* track2, Double_t z_0, Double_t range) {
     const Int_t nPlanes = 10; // FIXME
 
+    Bool_t isBadPair = kFALSE;
+
     while (range >= 0.1) {
         Double_t zMax = z_0 + range;
         Double_t zMin = z_0 - range;
@@ -556,23 +563,35 @@ Double_t BmnTwoParticleDecay::FindV0ByVirtualPlanes(BmnGlobalTrack* track1, BmnG
 
         for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
             zPlane[iPlane] = zMax - iPlane * zStep;
-            fKalman->TGeoTrackPropagate(&par1, zPlane[iPlane], 2212, NULL, NULL, kTRUE);
-            fKalman->TGeoTrackPropagate(&par2, zPlane[iPlane], 211, NULL, NULL, kTRUE);
+            fKalman->TGeoTrackPropagate(&par1, zPlane[iPlane], 2212, nullptr, nullptr, kTRUE);
+            fKalman->TGeoTrackPropagate(&par2, zPlane[iPlane], 211, nullptr, nullptr, kTRUE);
             Dist[iPlane] = Sqrt(Sq(par1.GetX() - par2.GetX()) + Sq(par1.GetY() - par2.GetY()));
         }
 
-        TGraph* vertex = new TGraph(nPlanes, zPlane, Dist);
-        vertex->Fit("pol2", "QF");
-        TF1 *fit_func = vertex->GetFunction("pol2");
-        Double_t b = fit_func->GetParameter(1);
+        TGraph V0(nPlanes, zPlane, Dist);
+        V0.Fit("pol2", "QF");
+        TF1 *fit_func = V0.GetFunction("pol2");
         Double_t a = fit_func->GetParameter(2);
 
-        z_0 = -b / (2 * a);
-        range /= 2;
+        if (a < 0.) {
+            isBadPair = kTRUE;
+            break;
+        }
 
-        delete vertex;
+        map <Double_t, Double_t> dist_zPlanes; // distance --> z-position
+
+        for (Int_t iPlane = 0; iPlane < nPlanes; iPlane++)
+            dist_zPlanes[Dist[iPlane]] = zPlane[iPlane];
+
+        z_0 = dist_zPlanes.begin()->second;
+
+        range /= 2;
     }
-    return z_0;
+
+    if (!isBadPair)
+        return z_0;
+    else
+        return DBL_MAX;
 }
 
 ClassImp(BmnTwoParticleDecay);

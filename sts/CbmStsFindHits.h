@@ -56,7 +56,7 @@ class CbmStsFindHits : public FairTask
 
 
   /** Constructor with task name **/
-  CbmStsFindHits(const char* name, Int_t iVerbose,Bool_t CheckTrigSi=false);
+  CbmStsFindHits(const char* name, Int_t iVerbose);
 
 
   /** Destructor **/
@@ -69,19 +69,7 @@ class CbmStsFindHits : public FairTask
   /** Virtual method Finish **/
   virtual void Finish();
 
-  Double_t fLor;
-  Bool_t MC=false;
-  /*
-  TH1D *h1p = new TH1D("h1p","", 62,0.14,0.17);
-  TH1D *h2p = new TH1D("h2p","", 60, 0.13,0.17);
-
-  TH1D *h3p = new TH1D("h3p","", 64, 0.14,0.18);
-
-  TH1D *h4p = new TH1D("h4p","", 50, 0.10,0.15);
-  TH1D *h5p = new TH1D("h5p","", 62, 0.13,0.18);
-
-  TH1D *h6p = new TH1D("h6p","", 52, 0.11,0.15);
-  TH1D *h7p = new TH1D("h7p","", 54, 0.12,0.16); */
+ 
  private:
 
   CbmGeoStsPar*     fGeoPar;      /** Geometry parameters **/
@@ -93,10 +81,7 @@ class CbmStsFindHits : public FairTask
   std::map<CbmStsSector*, std::set<Int_t> > fClusterMapF;  /** sector clusters (front) **/
   std::map<CbmStsSector*, std::set<Int_t> > fClusterMapB;  /** sector clusters (back)  **/
   TStopwatch fTimer;
-  BmnNewFieldMap* fMap;
-
-  Bool_t fCheckTrigSi;
-
+ 
   Int_t fNHits;
  
 

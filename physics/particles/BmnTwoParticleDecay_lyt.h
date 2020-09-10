@@ -40,11 +40,10 @@
 #include "BmnGemStripHit.h"
 #include "BmnKalmanFilter.h"
 #include "BmnParticlePair.h"
-#include <UniDbDetectorParameter.h>
 #include <UniDbRun.h>
 #include "BmnTrackMatch.h"
 #include "BmnRecLambda.h"
-#include "../../QA/BmnMCTrackCreator.h"
+#include "BmnMCTrackCreator.h"
 
 using namespace std;
 using namespace TMath;

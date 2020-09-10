@@ -21,6 +21,10 @@ void geometry(FairRunSim *fRun)
     magnet->SetGeometryFileName("magnet_modified.root");
     fRun->AddModule(magnet);
 
+    FairModule* magnetSP57 = new FairMagnet("MAGNET_SP57");
+    magnet->SetGeometryFileName("magnetSP57_1.root");
+    fRun->AddModule(magnetSP57);
+    
     // -----   Create detectors        -------------------------
     FairDetector* mwpc = new BmnMwpc("MWPC", kTRUE);
     mwpc->SetGeometryFileName("MWPC_RunWinter2016.root");
@@ -57,10 +61,6 @@ void geometry(FairRunSim *fRun)
     FairDetector* tof2 = new BmnTOF("TOF", kTRUE);
     tof2->SetGeometryFileName("tof700_run7_with_support.root");
     fRun->AddModule(tof2);
-
-    FairDetector* emc = new BmnEcal("EMC", kTRUE);
-    emc->SetGeometryFileName("ecal_v1_0.geo");
-    fRun->AddModule(emc);
 
     BmnZdc* zdc = new BmnZdc("ZDC", kTRUE);
     zdc->SetGeometryFileName("rootgeom_bmnzdc_104mods_v1_Zpos_8759mm_Xshift_313mm_Yshift_14mm.root");

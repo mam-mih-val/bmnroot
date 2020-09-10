@@ -14,6 +14,8 @@ protected:
     UInt_t fNsmpl;
     UShort_t* fValueU; //[fNsmpl]
     Short_t* fValueI; //[fNsmpl]
+    
+    Bool_t isEmbedded;
 
 public:
 
@@ -22,7 +24,7 @@ public:
 
     /** Constructor to use **/
     BmnADCDigit(UInt_t iSerial, UInt_t iChannel, UInt_t n, UShort_t *iValue);
-    BmnADCDigit(UInt_t iSerial, UInt_t iChannel, UInt_t n, Short_t *iValue);
+    BmnADCDigit(UInt_t iSerial, UInt_t iChannel, UInt_t n, Short_t *iValue, Bool_t flag = kFALSE);
 
     UInt_t GetSerial() const {
         return fSerial;
@@ -44,7 +46,7 @@ public:
         return (Short_t *) fValueI;
     }
 
-    void SetShortValue(Short_t *iValue) const {
+    void SetShortValue(Short_t *iValue) {
         for (Int_t i = 0; i < fNsmpl; ++i)
             fValueI[i] = iValue[i];
     }
@@ -52,6 +54,14 @@ public:
     void SetUShortValue(UShort_t *iValue) const {
         for (Int_t i = 0; i < fNsmpl; ++i)
             fValueU[i] = iValue[i];
+    }
+    
+    void SetAsEmbedded(Bool_t flag) {
+        isEmbedded = flag;
+    }
+    
+    Bool_t IsEmbedded() {
+        return isEmbedded;
     }
 
     /** Destructor **/

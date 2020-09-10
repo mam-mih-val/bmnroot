@@ -185,3 +185,4 @@ void BmnSRCTriggersCheck::Finish() {
 
 }
 
+ClassImp(BmnSRCTriggersCheck);

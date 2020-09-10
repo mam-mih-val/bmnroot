@@ -1,6 +1,4 @@
-# Create a library called "libPsd" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libPsd"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
@@ -37,6 +35,6 @@ CbmPsdReactionPlaneMaker.cxx
 Set(HEADERS)
 Set(LINKDEF PsdLinkDef.h)
 Set(LIBRARY_NAME Psd)
-Set(DEPENDENCIES Core Base BmnData)
+Set(DEPENDENCIES BmnData Base Core)
 
 GENERATE_LIBRARY()

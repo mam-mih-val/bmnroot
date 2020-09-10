@@ -17,7 +17,6 @@
 #include "CbmStsDigi.h"
 #include "CbmStsDigiPar.h"
 #include "CbmStsDigiScheme.h"
-#include "CbmStsDigiScheme.h" //GP
 #include "CbmStsClusterFinder.h"
 #include "CbmStsHit.h"
 #include "CbmStsSector.h"
@@ -25,8 +24,6 @@
 #include "TMath.h"
 
 #include <iomanip>
-
-#include <algorithm>    // std::sort
 
 using std::cout;
 using std::cerr;
@@ -42,16 +39,15 @@ using std::map;
 
 
 
-
 // -----   Default constructor   ------------------------------------------
-CbmStsClusterFinder::CbmStsClusterFinder()
-  : FairTask("STS Cluster Finder", 1),
+CbmStsClusterFinder::CbmStsClusterFinder() 
+  : FairTask("STS Cluster Finder", 1), 
   fGeoPar(NULL),
   fDigiPar(NULL),
   fDigis(NULL),
   fClustersCand(NULL),
   fClusters(NULL),
-  fDigiScheme(new CbmStsDigiScheme()), //GP
+  fDigiScheme(new CbmStsDigiScheme()),
   fNofDigis(0),
   fNofClustersCand(0),
   fNofClusters(0),
@@ -69,8 +65,8 @@ CbmStsClusterFinder::CbmStsClusterFinder()
 
 
 // -----   Standard constructor   ------------------------------------------
-CbmStsClusterFinder::CbmStsClusterFinder(Int_t iVerbose)
-  : FairTask("STSClusterFinder", iVerbose),
+CbmStsClusterFinder::CbmStsClusterFinder(Int_t iVerbose) 
+  : FairTask("STSClusterFinder", iVerbose), 
   fGeoPar(NULL),
   fDigiPar(NULL),
   fDigis(NULL),
@@ -94,8 +90,8 @@ CbmStsClusterFinder::CbmStsClusterFinder(Int_t iVerbose)
 
 
 // -----   Constructor with name   -----------------------------------------
-CbmStsClusterFinder::CbmStsClusterFinder(const char* name, Int_t iVerbose)
-  : FairTask(name, iVerbose),
+CbmStsClusterFinder::CbmStsClusterFinder(const char* name, Int_t iVerbose) 
+  : FairTask(name, iVerbose), 
   fGeoPar(NULL),
   fDigiPar(NULL),
   fDigis(NULL),
@@ -118,14 +114,13 @@ CbmStsClusterFinder::CbmStsClusterFinder(const char* name, Int_t iVerbose)
 
 
 
-
 // -----   Destructor   ----------------------------------------------------
 CbmStsClusterFinder::~CbmStsClusterFinder() {
-  if ( fClustersCand ) {
+  if ( fClustersCand ) { 
     fClustersCand->Delete();
     delete fClustersCand;
   }
-  if ( fClusters ) {
+  if ( fClusters ) { 
     fClusters->Delete();
     delete fClusters;
   }
@@ -136,7 +131,7 @@ CbmStsClusterFinder::~CbmStsClusterFinder() {
 
 // -----   Public method Exec   --------------------------------------------
 void CbmStsClusterFinder::Exec(Option_t* opt) {
-//fVerbose=15;
+
   fTimer.Start();
   Bool_t warn = kFALSE;
 
@@ -161,8 +156,6 @@ void CbmStsClusterFinder::Exec(Option_t* opt) {
   fClustersCand->Delete();
   //  cout << " after clear: " << fClusters->GetEntriesFast() << endl;
 
- //cout<<"GEM DIGITS: "<<fDigis->GetEntriesFast()<<endl;
- if(fDigis->GetEntriesFast()<2800 && fDigis->GetEntriesFast()>24){ 
   // Sort STS digis with respect to sectors
   SortDigis();
 
@@ -183,9 +176,9 @@ void CbmStsClusterFinder::Exec(Option_t* opt) {
       //      cout << "station " << iStation+1 << " sector " << iSector+1 << "  " << endl;
       set <Int_t> fSet, bSet;
       if ( fDigiMapF.find(sector) == fDigiMapF.end() ) {
-	cout << "-E- " << fName << "::Exec: sector "
-	     << sector->GetSectorNr() << " of station "
-	     << station->GetStationNr() << "not found in front map!"
+	cout << "-E- " << fName << "::Exec: sector " 
+	     << sector->GetSectorNr() << " of station " 
+	     << station->GetStationNr() << "not found in front map!" 
 	     << endl;
 	warn = kTRUE;
 	continue;
@@ -194,9 +187,9 @@ void CbmStsClusterFinder::Exec(Option_t* opt) {
       FindClusters(iStation+1,iSector+1,0, fSet);
       if ( sector->GetType() == 2 || sector->GetType() == 3 ) {
 	if ( fDigiMapB.find(sector) == fDigiMapB.end() ) {
-	  cout << "-E- " << fName << "::Exec: sector "
-	       << sector->GetSectorNr() << " of station "
-	       << station->GetStationNr() << "not found in back map!"
+	  cout << "-E- " << fName << "::Exec: sector " 
+	       << sector->GetSectorNr() << " of station " 
+	       << station->GetStationNr() << "not found in back map!" 
 	       << endl;
 	  warn = kTRUE;
 	  continue;
@@ -207,67 +200,55 @@ void CbmStsClusterFinder::Exec(Option_t* opt) {
       Int_t nDigisFInSector = fSet.size();
       Int_t nDigisBInSector = bSet.size();
       nDigisFInStation += nDigisFInSector;
-      nDigisBInStation += nDigisBInSector;
+      nDigisBInStation += nDigisBInSector;      
     }      // Sector loop
-
+    
     nDigisF += nDigisFInStation;
     nDigisB += nDigisBInStation;
-
+    
   }       // Station loop
 
   // analyze clusters...
   AnalyzeClusters();
 
-  fTimer.Stop();
+  fTimer.Stop();  
   if ( fVerbose ) {
     cout << endl;
     cout << "-I- " << fName << ":Event summary" << endl;
     cout << "    Active channels front side: " << nDigisF << endl;
     cout << "    Active channels back side : " << nDigisB << endl;
-    cout << "    Real time                 : " << fTimer.RealTime()
+    cout << "    Real time                 : " << fTimer.RealTime() 
 	 << endl;
-  }
-  /*
+  }/* //GP annoying info
   else {
     if ( warn ) cout << "- ";
     else        cout << "+ ";
-    cout << setw(15) << left << fName << ": " << setprecision(4) << setw(8)
-	 << fixed << right << fTimer.RealTime()
-	 << " s, " << fNofClustersCand
+    cout << setw(15) << left << fName << ": " << setprecision(4) << setw(8) 
+	 << fixed << right << fTimer.RealTime() 
+	 << " s, " << fNofClustersCand 
 	 << "("    << fNofClustersGood
-	 << "+"    << fNofClustersWP
+	 << "+"    << fNofClustersWP 
 	 << ") clusters, longest till now " << fLongestCluster << endl;
     //    cout << fDigis->GetEntriesFast() << " vs " << fClusters->GetEntriesFast() << endl;
   }
-*/
-
+  */
+	if(fUseLinks){
   //AZ - add links to clusters (digits)
   Int_t nClust = fClusters->GetEntriesFast();
   for (Int_t i = 0; i < nClust; ++i) {
     CbmStsCluster *clus = (CbmStsCluster*) fClusters->UncheckedAt(i);
 
     Int_t nDigis = clus->GetNDigis();
-  //  for (Int_t j = 0; j < nDigis; ++j) {
-  //    Int_t idigi = clus->GetDigi(j);
-  //    clus->AddLink(FairLink(kStsDigi, idigi));
-  //  }
-
-    //clus->SetWidth( nDigis );
+    for (Int_t j = 0; j < nDigis; ++j) {
+      Int_t idigi = clus->GetDigi(j);
+      clus->AddLink(FairLink(kStsDigi, idigi));
+    }
   }
 }
-
-
-
-
-
-
-
-
-
 }
 // -------------------------------------------------------------------------
 
-
+    
 
 
 // -----   Private method SetParContainers   -------------------------------
@@ -298,6 +279,9 @@ InitStatus CbmStsClusterFinder::Init() {
   // Get input array
   FairRootManager* ioman = FairRootManager::Instance();
   if ( ! ioman ) Fatal("Init", "No FairRootManager");
+
+  fUseLinks=ioman->GetUseFairLinks();
+
   fDigis = (TClonesArray*) ioman->GetObject("StsDigi");
 
   fClustersCand = new TClonesArray("CbmStsCluster", 30000);
@@ -318,10 +302,10 @@ InitStatus CbmStsClusterFinder::Init() {
   else if (fVerbose >  2) fDigiScheme->Print(kTRUE);
   cout << "-I- " << fName << "::Init: "
        << "STS digitisation scheme succesfully initialised" << endl;
-  cout << "    Stations: " << fDigiScheme->GetNStations()
-       << ", Sectors: " << fDigiScheme->GetNSectors() << ", Channels: "
+  cout << "    Stations: " << fDigiScheme->GetNStations() 
+       << ", Sectors: " << fDigiScheme->GetNSectors() << ", Channels: " 
        << fDigiScheme->GetNChannels() << endl;
-
+  
   fNofClustersCand   = 0;
   fNofClusters       = 0;
   fNofClustersGood   = 0;
@@ -356,10 +340,10 @@ InitStatus CbmStsClusterFinder::ReInit() {
   else if (fVerbose >  2) fDigiScheme->Print(kTRUE);
   cout << "-I- " << fName << "::Init: "
        << "STS digitisation scheme succesfully reinitialised" << endl;
-  cout << "    Stations: " << fDigiScheme->GetNStations()
-       << ", Sectors: " << fDigiScheme->GetNSectors() << ", Channels: "
+  cout << "    Stations: " << fDigiScheme->GetNStations() 
+       << ", Sectors: " << fDigiScheme->GetNSectors() << ", Channels: " 
        << fDigiScheme->GetNChannels() << endl;
-
+  
   fNofClustersCand   = 0;
   fNofClusters       = 0;
   fNofClustersGood   = 0;
@@ -434,51 +418,30 @@ void CbmStsClusterFinder::SortDigis() {
     stationNr = digi->GetStationNr();
     sectorNr  = digi->GetSectorNr();
     iSide     = digi->GetSide();
-//    cout<<" !!!!!!!!!!! "<<stationNr<<"  "<<sectorNr<<"  "<<iSide<<endl;
     sector = fDigiScheme->GetSector(stationNr, sectorNr);
-//cout<< "DBG !"<<endl;
+    
     if (iSide == 0 ) {
       if ( fDigiMapF.find(sector) == fDigiMapF.end() ) {
 	cerr << "-E- " << fName << "::SortDigits:: sector " << sectorNr
-	     << " of station " << stationNr
+	     << " of station " << stationNr 
 	     << " not found in digi scheme (F)!" << endl;
 	continue;
       }
-      fDigiMapF[sector].insert(iDigi);
+      fDigiMapF[sector].insert(iDigi);      
     }
     else if (iSide == 1 ) {
       if ( fDigiMapB.find(sector) == fDigiMapB.end() ) {
 	cerr << "-E- " << fName << "::SortDigits:: sector " << sectorNr
-	     << " of station " << stationNr
+	     << " of station " << stationNr 
 	     << " not found in digi scheme (B)!" << endl;
 	continue;
       }
-      fDigiMapB[sector].insert(iDigi);
+      fDigiMapB[sector].insert(iDigi);      
     }
   }
-
-//GP SORTS
-
-//for (mapIt=fDigiMapF.begin(); mapIt!=fDigiMapF.end(); mapIt++)
-//  cout<<"SOOORT: "<<(*mapIt).second.size()<<endl;
-
-
-//std::sort (myvector.begin(), myvector.begin()+4);
-//std::sort(fDigiMapF.begin(), fDigiMapF.end() );
-//std::sort(fDigiMapB.begin(), fDigiMapB.end() );
-
-//GP SORTS
-
-
-
-
 }
 // -------------------------------------------------------------------------
-//GP for sort
-bool pred(const std::pair< Int_t, set<Int_t>::iterator > &a, const std::pair< Int_t, set<Int_t>::iterator > &b)
-{
-    return a.first < b.first;
-}
+
 // -----   Private method RealisticResponse   ------------------------------
 Int_t CbmStsClusterFinder::FindClusters(Int_t stationNr, Int_t sectorNr, Int_t iSide, set<Int_t>& digiSet) {
 
@@ -501,71 +464,50 @@ Int_t CbmStsClusterFinder::FindClusters(Int_t stationNr, Int_t sectorNr, Int_t i
   Bool_t clusterHasPlateau = kFALSE;
   Int_t clusterBeginPos = 0;
   Int_t clusterWidth = 0;
-  Double_t digiSig_2=0;
-    Double_t digiSig_3=0;
   //cout << "====================================================================" << digiSet.size() << endl;
   //cout << "   cluster   " << flush;
   //  if ( fNofClusters != fNofClustersGood+fNofClustersWP ) cout << fNofClusters-(fNofClustersGood+fNofClustersWP) << " -> " <<  fNofClusters <<"!="<< fNofClustersGood<<"+"<<fNofClustersWP<<endl;
-//-----------------sort data with strip number---------------- GP
-std::vector<  pair<Int_t, set<Int_t>::iterator>  > sortDigi;
-
-for (it1=digiSet.begin(); it1!=digiSet.end(); it1++) {
-Int_t  pos  = ( (CbmStsDigi*) fDigis->At(*it1) )->GetChannelNr();
-//cout<<" pos CHAN: "<<pos<< " ST: "<<( (CbmStsDigi*) fDigis->At(*it1) )->GetStationNr()<<endl;
-sortDigi.push_back(make_pair(pos,it1));
-}
-sort(sortDigi.begin(),sortDigi.end(),pred);
-//-----------------sort data with strip number---------------- GP
-
-//for(auto it2=sortDigi.begin(); it2!=sortDigi.end(); it2++)
-//cout<<"SORT: "<< ( (CbmStsDigi*) fDigis->At( (*(*it2).second) ) )->GetChannelNr() << " ADC:  "<<( (CbmStsDigi*) fDigis->At( (*(*it2).second) ) )->GetAdc()<<endl;
-for(auto it1=sortDigi.begin(); it1!=sortDigi.end(); it1++){ //use sort data GP
-//  for (it1=digiSet.begin(); it1!=digiSet.end(); it1++) {
-    iDigi = (*(*it1).second); //(*it1); //GP
-    digi  = (CbmStsDigi*) fDigis->At(iDigi); // GP
+  for (it1=digiSet.begin(); it1!=digiSet.end(); it1++) {
+    iDigi = (*it1);
+    digi  = (CbmStsDigi*) fDigis->At(iDigi);
 
     digiPos = digi->GetChannelNr();
     digiSig = digi->GetAdc();
-//cout<<"!!!!!!!!!! FIND CLUST CHAN: "<<digiPos<<endl;
+
     if ( lastDigiPos == -1 ) {
       clusterCand = new ((*fClustersCand)[fNofClustersCand++]) CbmStsCluster(digiSig, stationNr,sectorNr,iSide);
-  //       cout << "first cluster        "  << digiPos << endl;
+       //   cout << "first cluster ADC        "  << digiSig << endl;
       clusterBeginPos = digiPos;
     }
 
-    if ( (digiPos == lastDigiPos+1) /*|| (digiPos == lastDigiPos+2 && lastDigiSig<100000) || (digiPos == lastDigiPos+3 && lastDigiSig<100000) */
-  /*|| (digiPos == lastDigiPos+2) || (digiPos == lastDigiPos+3) || (digiPos == lastDigiPos+4) || (digiPos == lastDigiPos+5)*/
-  ) {//|| (digiPos == lastDigiPos+2) || (digiPos == lastDigiPos+3)
-
-
+    if ( digiPos == lastDigiPos+1 ) {
 
       if ( digiSig == lastDigiSig ) {
 	clusterCand->SetMeanError(digiSig);
 	clusterHasPlateau = kTRUE;
       }
-//cout<<"SIG:  L, M, D "<< lastDigiSig<<" "<<clusterMaxSig<<" "<<digiSig<<endl;
+
       // if the signal is larger that last one and the previous one is smaller than maximum
-      if ( /*digiSig > lastDigiSig && lastDigiSig < clusterMaxSig &&  digiSig != clusterMaxSig*/ false  ) {
+      if (/* digiSig > lastDigiSig && lastDigiSig < clusterMaxSig &&  digiSig != clusterMaxSig*/ false) { //GP
 	clusterCand->SetMean(clusterMaxNr);
       //      cluster->SetMeanError(clusterMaxSig);
 	clusterCand = new ((*fClustersCand)[fNofClustersCand++]) CbmStsCluster(digiSig, stationNr,sectorNr,iSide);
 	clusterCand->AddDigi(lastDigiNr);
 	//	cout << "         +end cluster " << lastDigiPos << endl;
 
-//	cout << "+new cluster          " << digiPos << endl;
+	//	cout << "+new cluster          " << digiPos << endl;
 	clusterWidth = lastDigiPos - clusterBeginPos + 1;
-//  cout<<" LAST: "<<lastDigiPos<<" BIGIN: "<<clusterBeginPos<<endl;
-	if ( clusterWidth > fLongestCluster )
+	if ( clusterWidth > fLongestCluster ) 
 	  fLongestCluster = clusterWidth;
 	if ( clusterHasPlateau ) {
 	  fNofClustersWP++;
 	}
 	if ( !clusterHasMinimum && !clusterHasPlateau ) {
-	  fNofClustersGood++;
-	  if ( clusterWidth > fLongestGoodCluster )
+	  fNofClustersGood++; 
+	  if ( clusterWidth > fLongestGoodCluster ) 
 	    fLongestGoodCluster = clusterWidth;
 	}
-
+	
 	clusterHasPlateau = kFALSE;
 	clusterMaxPos = -1;
 	clusterMaxSig = -1.;
@@ -576,21 +518,20 @@ for(auto it1=sortDigi.begin(); it1!=sortDigi.end(); it1++){ //use sort data GP
       clusterCand->SetMean(clusterMaxNr);
       //      cluster->SetMeanError(clusterMaxSig);
       clusterCand = new ((*fClustersCand)[fNofClustersCand++]) CbmStsCluster(digiSig, stationNr,sectorNr,iSide);
-  //       cout << "          end cluster " << lastDigiPos << endl;
-    //      cout << "new cluster           " << digiPos << endl;
+      //    cout << "          end cluster " << lastDigiPos << endl;
+      //    cout << "new cluster           " << digiPos << endl;
       clusterWidth = lastDigiPos - clusterBeginPos + 1;
-    //    cout<<" LAST: "<<lastDigiPos<<" BIGIN: "<<clusterBeginPos<<endl;
-      if ( clusterWidth > fLongestCluster )
+      if ( clusterWidth > fLongestCluster ) 
 	fLongestCluster = clusterWidth;
       if ( clusterHasPlateau ) {
 	fNofClustersWP++;
       }
       if ( !clusterHasMinimum && !clusterHasPlateau ) {
-	fNofClustersGood++;
-	if ( clusterWidth > fLongestGoodCluster )
+	fNofClustersGood++; 
+	if ( clusterWidth > fLongestGoodCluster ) 
 	  fLongestGoodCluster = clusterWidth;
       }
-
+      
       clusterHasPlateau = kFALSE;
       clusterMaxPos = -1;
       clusterMaxSig = -1.;
@@ -601,74 +542,10 @@ for(auto it1=sortDigi.begin(); it1!=sortDigi.end(); it1++){ //use sort data GP
       clusterMaxPos = digiPos;
       clusterMaxSig = digiSig;
     }
-
+    
     clusterWidth = lastDigiPos - clusterBeginPos + 1;
     if ( clusterWidth < 90 ) {
-  //    cout<<" LAST: "<<lastDigiPos<<" BIGIN: "<<clusterBeginPos<< "CURR POS: "<<digiPos<<endl;
-//  if( (digiPos == lastDigiPos+1) ){
-      clusterCand->AddDigi(iDigi);
-//cout<<"add digi +1 "<<iDigi<<endl;
-//}
-
-      if(  /*(digiPos == lastDigiPos+2) && lastDigiSig<100000*/false ) {
-    Int_t nDigis = fDigis->GetEntriesFast();
-    Int_t newDigis=nDigis++;
-    Double_t newDigisig=(digi->GetAdc()+lastDigiSig)/2;
-    Int_t newPos= digi->GetChannelNr()-1;
-  //  cout<<" pos: "<<newPos<<" newDigis "<< newDigis<< " newDigisig "<<newDigisig<< " lds: "<<lastDigiSig<<" cadc: "<<digi->GetAdc()<<endl;
-    new ((*fDigis)[newDigis]) CbmStsDigi(digi->GetStationNr(), digi->GetSectorNr(), digi->GetSide(),
-                                        newPos, newDigisig,0); //GP
-//cout<<" size: "<<fDigis->GetEntriesFast()<<" elem: "<<( (CbmStsDigi*) fDigis->At(newDigis) )->GetChannelNr()<< " ADC: "<<newDigisig<<endl;
-
-          clusterCand->AddDigi(newDigis);
-        //  cout<<"add digi +2 "<<newDigis << "ADC: "<<newDigisig<<endl;
-
-        digiSig=newDigisig;
-      //  digiPos=newPos;
-        //iDigi=newDigis;
-      //  lastDigiPos=digiPos;
-      //  lastDigiNr=iDigi;
-      //  lastDigiSig=digiSig;
-} else {
-
-
-   if( /* (digiPos == lastDigiPos+3 && lastDigiSig<100000)*/ false ){
-    Int_t nDigis = fDigis->GetEntriesFast();
-    Int_t newDigis=nDigis++;
-    Double_t newDigisig=(digi->GetAdc()+lastDigiSig)/2;
-    Int_t newPos= digi->GetChannelNr()-1;
-  //  cout<<" pos: "<<newPos<<" newDigis "<< newDigis<< " newDigisig "<<newDigisig<< " lds: "<<lastDigiSig<<" cadc: "<<digi->GetAdc()<<endl;
-    new ((*fDigis)[newDigis]) CbmStsDigi(digi->GetStationNr(), digi->GetSectorNr(), digi->GetSide(),
-                                        newPos, newDigisig,0); //GP
-//cout<<" size: "<<fDigis->GetEntriesFast()<<" elem: "<<( (CbmStsDigi*) fDigis->At(newDigis) )->GetChannelNr()<< " ADC: "<<newDigisig<<endl;
-
-          clusterCand->AddDigi(newDigis);
-        //  cout<<"add digi +2 "<<newDigis << "ADC: "<<newDigisig<<endl;
-        
-           nDigis = fDigis->GetEntriesFast();
-     newDigis=nDigis++;
-     newDigisig=(digi->GetAdc()+lastDigiSig)/3;
-     newPos= digi->GetChannelNr()-2;
-  //  cout<<" pos: "<<newPos<<" newDigis "<< newDigis<< " newDigisig "<<newDigisig<< " lds: "<<lastDigiSig<<" cadc: "<<digi->GetAdc()<<endl;
-    new ((*fDigis)[newDigis]) CbmStsDigi(digi->GetStationNr(), digi->GetSectorNr(), digi->GetSide(),
-                                        newPos, newDigisig,0); //GP
-//cout<<" size: "<<fDigis->GetEntriesFast()<<" elem: "<<( (CbmStsDigi*) fDigis->At(newDigis) )->GetChannelNr()<< " ADC: "<<newDigisig<<endl;
-
-          clusterCand->AddDigi(newDigis);
-        //  cout<<"add digi +2 "<<newDigis << "ADC: "<<newDigisig<<endl;
-
-        digiSig=newDigisig;
-      //  digiPos=newPos;
-        //iDigi=newDigis;
-      //  lastDigiPos=digiPos;
-      //  lastDigiNr=iDigi;
-      //  lastDigiSig=digiSig;
-}
-
-
-}
-
-    }
+      clusterCand->AddDigi(iDigi);}
 //       clusterCand->AddIndex(iDigi,digiSig);}
     else {
       //      return 1;
@@ -678,18 +555,17 @@ for(auto it1=sortDigi.begin(); it1!=sortDigi.end(); it1++){ //use sort data GP
       clusterCand = new ((*fClustersCand)[fNofClustersCand++]) CbmStsCluster(digiSig, stationNr,sectorNr,iSide);
       clusterCand->AddDigi(iDigi);
       clusterWidth = lastDigiPos - clusterBeginPos + 1;
-    //    cout<<" LAST: "<<lastDigiPos<<" BIGIN: "<<clusterBeginPos<<endl;
-      if ( clusterWidth > fLongestCluster )
+      if ( clusterWidth > fLongestCluster ) 
 	fLongestCluster = clusterWidth;
       if ( clusterHasPlateau ) {
 	fNofClustersWP++;
       }
       if ( !clusterHasMinimum && !clusterHasPlateau ) {
-	fNofClustersGood++;
-	if ( clusterWidth > fLongestGoodCluster )
+	fNofClustersGood++; 
+	if ( clusterWidth > fLongestGoodCluster ) 
 	  fLongestGoodCluster = clusterWidth;
       }
-
+      
       clusterHasPlateau = kFALSE;
       clusterMaxPos = -1;
       clusterMaxSig = -1.;
@@ -705,19 +581,19 @@ for(auto it1=sortDigi.begin(); it1!=sortDigi.end(); it1++){ //use sort data GP
 
     //  cout << "         last cluster " << lastDigiPos << endl;
     clusterWidth = lastDigiPos - clusterBeginPos + 1;
-    if ( clusterWidth > fLongestCluster )
+    if ( clusterWidth > fLongestCluster ) 
       fLongestCluster = clusterWidth;
     if ( clusterHasPlateau ) {
       fNofClustersWP++;
     }
     if ( lastDigiPos && !clusterHasPlateau ) {
       fNofClustersGood++;
-      if ( clusterWidth > fLongestGoodCluster )
+      if ( clusterWidth > fLongestGoodCluster ) 
 	fLongestGoodCluster = clusterWidth;
     }
   }
   //  delete clusterCand;
-
+  
   return 1;
 
   map<Int_t , Int_t> channelSorted;
@@ -755,7 +631,6 @@ for(auto it1=sortDigi.begin(); it1!=sortDigi.end(); it1++){ //use sort data GP
 
     }*/
   //  cout << endl << "=============================================" << endl;
-sortDigi.clear();
 
 }
 // -------------------------------------------------------------------------
@@ -781,13 +656,12 @@ void CbmStsClusterFinder::AnalyzeCluster(Int_t iCluster) {
   digi = (CbmStsDigi*)fDigis->At(maxDigiNr);
   Int_t maxDigiPos = digi->GetChannelNr();
   maxDigiSig = digi->GetAdc();
-  Int_t STn=digi->GetStationNr();
-
-  //if (clusterCand->GetNDigis() > 5) {
+/* //GP
+  if (clusterCand->GetNDigis() > 5) {
     // AZ - split large clusters
-  //  SplitCluster(iCluster);
-  //  return;
-  //}
+    SplitCluster(iCluster);
+    return;
+  }*/
   //  cout << "Cluster " << iCluster+1 << " has " << cluster->GetNDigis() << " digis, max at " << maxDigiNr << endl;
   Double_t chanNr  = 0;
   Double_t chanADC = 0.;
@@ -796,26 +670,23 @@ void CbmStsClusterFinder::AnalyzeCluster(Int_t iCluster) {
   Double_t sumCh   = 0;
   Double_t error   = 0;
   Double_t sumWX2 = 0.0;
-  Double_t nWX=0,nW=0;
-
   for ( Int_t itemp = 0 ; itemp < clusterCand->GetNDigis() ; itemp++ ) {
     digi = (CbmStsDigi*)fDigis->At(clusterCand->GetDigi(itemp));
     chanNr  = (Double_t)digi->GetChannelNr()+0.5;
     chanADC = digi->GetAdc();
     sumW  +=        chanADC;
-    sumWX += chanNr *chanADC; //Ruf fix
+    sumWX += chanNr*chanADC;
     sumCh += chanNr;
     error += ( chanADC*chanADC );
     sumWX2 += chanADC * chanNr * chanNr; //AZ
     //    cout << chanADC << " + " << flush;
     //    cout << "channel " << digi->GetChannelNr() << " with signal = " << digi->GetADC() << " (" << sumWX << "/" << sumW << ") - plateau = " << plateau << endl;
-
   }
 
-  if (sumW>10){//sumW>120. && clusterCand->GetNDigis() >=4) {  // GP 50 ->10
+  if (sumW>10.) { //50 to 0
     Int_t imean = TMath::Nint (sumWX/sumW); //AZ
     for ( Int_t itemp = 0 ; itemp < clusterCand->GetNDigis() ; itemp++ ) {
-
+  
       digi = (CbmStsDigi*)fDigis->At(clusterCand->GetDigi(itemp));
       if (itemp==0) {
         cluster = new ((*fClusters)[fNofClusters++]) CbmStsCluster(digi->GetAdc(), digi->GetStationNr(), digi->GetSectorNr(), digi->GetSide());
@@ -828,29 +699,16 @@ void CbmStsClusterFinder::AnalyzeCluster(Int_t iCluster) {
         cluster->AddDigi(clusterCand->GetDigi(itemp));
         //if (digi->GetChannelNr() == imean) cluster->AddDigi(clusterCand->GetDigi(itemp));
       }
-
-  /*    if(clusterCand->GetNDigis()>2 && ( chanADC)>(sumW/clusterCand->GetNDigis() )) {
-        nW+=chanADC;
-        nWX+=chanNr *chanADC;
-
-      } else {
-        nW=sumW;
-        nWX=sumWX;
-      }
-      */
     }
-//    sumW=nW;
-//    sumWX=nWX;
     //  cout << " mean at = " << sumWX/sumW << endl;
     cluster->SetMean(sumWX/sumW);
     cluster->SetQtot(sumW); //AZ
     cluster->SetMeanError(  (1./(sumW)) * TMath::Sqrt(error)   );
     if ( sumW < maxDigiSig ) {
-      cout << " MAX DIGI = " << maxDigiSig<<" max digi pos: "<<maxDigiPos<< " STn: "<<STn << ", while SUMW = " << sumW << endl;
+      cout << " MAX DIGI = " << maxDigiSig << ", while SUMW = " << sumW << endl;
       for ( Int_t itemp = 0 ; itemp < clusterCand->GetNDigis() ; itemp++ ) {
         digi = (CbmStsDigi*)fDigis->At(clusterCand->GetDigi(itemp));
-        cout << "digi ADC = " << digi->GetAdc() << " at channel# " << digi->GetChannelNr() <<
-        " ST: "<< digi->GetStationNr()<<endl;
+        cout << "digi ADC = " << digi->GetAdc() << " at channel# " << digi->GetChannelNr() << endl;
       }
     }
     // AZ - correct coordinate for 2 adjacent clusters, i.e. the ones sharing 1 channel
@@ -906,10 +764,10 @@ void CbmStsClusterFinder::AnalyzeCluster(Int_t iCluster) {
 // -------------------------------------------------------------------------
 
 //AZ -----------------------------------------------------------------------
-void CbmStsClusterFinder::SplitCluster(Int_t iCluster)
+void CbmStsClusterFinder::SplitCluster(Int_t iCluster) 
 {
   // Split large cluster into subclusters
-
+  
   const Int_t nDigMax = 13;
   static Int_t first = 1, nSubs[nDigMax] = {0};
 
@@ -945,7 +803,7 @@ void CbmStsClusterFinder::SplitCluster(Int_t iCluster)
       }
       ++i0;
       ++itemp;
-      chanNr = digi->GetChannelNr()+0.5;
+      chanNr = digi->GetChannelNr();
       chanADC = digi->GetAdc();
       sumW += chanADC;
       sumWX += chanNr * chanADC;
@@ -954,19 +812,19 @@ void CbmStsClusterFinder::SplitCluster(Int_t iCluster)
 	// Subcluster
 	cluster->SetMean(sumWX/sumW);
 	cluster->SetQtot(sumW); //AZ
-	cluster->SetDefaultType(mult);
+	cluster->SetDefaultType(mult); 
 
 	// AZ - correct coordinate for 2 adjacent clusters, i.e. the ones sharing 1 channel or back to back
 	//if (0) {
 	if (fNofClusters > 1) {
 	  CbmStsCluster *clusPrev = (CbmStsCluster*) fClusters->UncheckedAt(fNofClusters-2);
 	  if (clusPrev->GetDetectorId() == cluster->GetDetectorId()) {
-
+	    
 	    Int_t nDigis = clusPrev->GetNDigis();
 	    CbmStsDigi *digPrev = (CbmStsDigi*) fDigis->UncheckedAt(clusPrev->GetDigi(nDigis-1));
-	    Int_t chan2 = digPrev->GetChannelNr()+0.5;
+	    Int_t chan2 = digPrev->GetChannelNr();
 	    CbmStsDigi *digThis = (CbmStsDigi*) fDigis->UncheckedAt(cluster->GetDigi(0));
-	    Int_t chan1 = digThis->GetChannelNr()+0.5;
+	    Int_t chan1 = digThis->GetChannelNr();
 	    if (TMath::Abs(chan2-chan1) < 1) {
 	      // Adjacent clusters
 	      Double_t adcPrev = digPrev->GetAdc();
@@ -992,8 +850,8 @@ void CbmStsClusterFinder::SplitCluster(Int_t iCluster)
 	  if (clusPrev->GetDetectorId() == cluster->GetDetectorId()) {
 	    Int_t nDigis = clusPrev->GetNDigis();
 	    CbmStsDigi *digPrev = (CbmStsDigi*) fDigis->UncheckedAt(clusPrev->GetDigi(nDigis-1));
-	    chan2 = digPrev->GetChannelNr()+0.5;
-	    if (TMath::Abs(chan2-((CbmStsDigi*)fDigis->UncheckedAt(cluster->GetDigi(0)))->GetChannelNr()+0.5) > 0) chan2 = -1;
+	    chan2 = digPrev->GetChannelNr();
+	    if (TMath::Abs(chan2-((CbmStsDigi*)fDigis->UncheckedAt(cluster->GetDigi(0)))->GetChannelNr()) > 0) chan2 = -1;
 	  }
 	  EvalErrors(clusPrev, chan2);
 	}
@@ -1033,7 +891,7 @@ void CbmStsClusterFinder::EvalErrors(CbmStsCluster *clus, Int_t chan2) {
       if (clus->GetDefaultType()) sigma = 0.0463; // split cluster - check that !
       else sigma = 0.0109; // fit
     }
-  }
+  } 
 
   else if (chan2 >= 0 || clus->GetLeft() >= 0) {
     // 1 neighbour
@@ -1102,35 +960,35 @@ void CbmStsClusterFinder::Finish() {
        << endl;
   cout << "===== " << fName << ": Run summary " << endl;
   cout << "===== " << endl;
-  cout << "===== Number of clusters              : "
-       << setw(8) << setprecision(2)
+  cout << "===== Number of clusters              : " 
+       << setw(8) << setprecision(2) 
        << fNofClustersCand << endl;
-  cout << "===== Number of good clusters         : "
-       << setw(8) << setprecision(2)
-       << fNofClustersGood << " ("
-       << setw(8) << setprecision(2)
+  cout << "===== Number of good clusters         : " 
+       << setw(8) << setprecision(2) 
+       << fNofClustersGood << " (" 
+       << setw(8) << setprecision(2) 
        << 100.*fNofClustersGood/fNofClustersCand << "%)" << endl;
-  cout << "===== Number of plateau clusters      : "
-       << setw(8) << setprecision(2)
-       << fNofClustersWP << " ("
-       << setw(8) << setprecision(2)
+  cout << "===== Number of plateau clusters      : " 
+       << setw(8) << setprecision(2) 
+       << fNofClustersWP << " (" 
+       << setw(8) << setprecision(2) 
        << 100.*fNofClustersWP/fNofClustersCand << "%)" << endl;
-  cout << "===== Number of minimum clusters      : "
-       << setw(8) << setprecision(2)
-       << fNofClustersWM << " ("
-       << setw(8) << setprecision(2)
+  cout << "===== Number of minimum clusters      : " 
+       << setw(8) << setprecision(2) 
+       << fNofClustersWM << " (" 
+       << setw(8) << setprecision(2) 
        << 100.*fNofClustersWM/fNofClustersCand << "%)" << endl;
   cout << "===== Longest cluster                 : "
-       << setw(8) << setprecision(2)
+       << setw(8) << setprecision(2) 
        << fLongestCluster << endl;
   cout << "===== Longest good cluster            : "
-       << setw(8) << setprecision(2)
+       << setw(8) << setprecision(2) 
        << fLongestGoodCluster << endl;
   cout << "============================================================"
        << endl;
 
-}
+}					       
 // -------------------------------------------------------------------------
-
+    
 
 ClassImp(CbmStsClusterFinder)

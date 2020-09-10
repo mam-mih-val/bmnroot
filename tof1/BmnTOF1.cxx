@@ -102,7 +102,7 @@ void BmnTOF1::EndOfEvent()
 //--------------------------------------------------------------------------------------------------------------------------------------
 void BmnTOF1::Register()
 {
-	FairRootManager::Instance()->Register("TOF1Point","TOF1", fTofCollection, kTRUE);
+    FairRootManager::Instance()->Register("TOF400Point","TOF1", fTofCollection, kTRUE);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -156,15 +156,15 @@ void BmnTOF1::ConstructGeometry()
     TString fileName = GetGeometryFileName();
     if (fileName.EndsWith(".root"))
     {
-        gLogger->Info(MESSAGE_ORIGIN, "Constructing TOF1 geometry from ROOT file %s", fileName.Data());
+        LOG(info) << "Constructing TOF1 geometry from ROOT file " << fileName.Data();
         ConstructRootGeometry();
     }
     else if (fileName.EndsWith(".geo"))
     {
-        gLogger->Info(MESSAGE_ORIGIN, "Constructing TOF1 geometry from ASCII file %s", fileName.Data());
+        LOG(info) << "Constructing TOF1 geometry from ASCII file " << fileName.Data();
         ConstructAsciiGeometry();
     }
-    else gLogger->Fatal(MESSAGE_ORIGIN, "Geometry format of TOF1 file %S not supported.", fileName.Data());
+    else LOG(fatal) << "Geometry format of TOF1 file " << fileName.Data() << " not supported.";
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------

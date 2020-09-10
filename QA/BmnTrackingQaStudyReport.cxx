@@ -8,7 +8,7 @@
 #include "BmnReportElement.h"
 #include "BmnHistManager.h"
 #include "BmnDrawHist.h"
-#include "../std/utils/BmnUtils.h"
+#include "BmnUtils.h"
 #include "TH1.h"
 #include "TCanvas.h"
 #include "TLine.h"

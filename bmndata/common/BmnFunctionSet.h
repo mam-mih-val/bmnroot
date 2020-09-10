@@ -8,7 +8,9 @@ class BmnFunctionSet
 {
  public:
     // check whether file exists
-    static bool CheckFileExist(TString fileName);
+    static bool CheckFileExist(TString& fileName);
+    // define whether simulation file
+    static bool isSimulationFile(TString fileName);
 
  private:
     BmnFunctionSet() {}

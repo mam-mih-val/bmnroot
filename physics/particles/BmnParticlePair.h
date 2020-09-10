@@ -79,6 +79,16 @@ public:
         fTyPart1 = val1;
         fTyPart2 = val2;
     }
+    
+    void SetBeta400Pair(Double_t val1, Double_t val2) {
+        fBeta400Part1 = val1;
+        fBeta400Part2 = val2;
+    }
+    
+    void SetBeta700Pair(Double_t val1, Double_t val2) {
+        fBeta700Part1 = val1;
+        fBeta700Part2 = val2;
+    }
 
     void SetMCTrackIdPart1(Int_t id);
     void SetMCTrackIdPart2(Int_t id);
@@ -184,6 +194,22 @@ public:
     Double_t GetPtPodol() {
         return fPtPodol;
     }
+    
+    Double_t GetBeta400Part1() {
+        return fBeta400Part1;
+    }
+    
+    Double_t GetBeta400Part2() {
+        return fBeta400Part2;
+    }
+    
+    Double_t GetBeta700Part1() {
+        return fBeta700Part1;
+    }
+    
+    Double_t GetBeta700Part2() {
+        return fBeta700Part2;
+    }
 
     TVector3 GetMCMomPart1();
     TVector3 GetMCMomPart2();
@@ -193,9 +219,21 @@ public:
 
     Int_t GetRecoTrackIdPart1(); // actually it is GEM track Id
     Int_t GetRecoTrackIdPart2(); // actually it is GEM track Id
+    
+    // Omega cut from M. Zavertyaev
+    Double_t Omega() {
+        return (fDCA12 * fDCA12) / (fDCA0 * fDCA0 + 4 * fDCA1 * fDCA2);
+    }
 
 private:
+	
     Double_t fInvMass; // Invariant mass of a considering pair
+    
+    Double_t fBeta400Part1;
+    Double_t fBeta400Part2;
+    
+    Double_t fBeta700Part1;
+    Double_t fBeta700Part2;
 
     Double_t fV0X;
     Double_t fV0Y;

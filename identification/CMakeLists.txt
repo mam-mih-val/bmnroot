@@ -1,19 +1,11 @@
-# Create a library called "libBmnIdentification" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "BmnPidSRC"
 
 Set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/bmnfield
- ${CMAKE_SOURCE_DIR}/gem
- ${CMAKE_SOURCE_DIR}/silicon
+ ${CMAKE_SOURCE_DIR}/bmndst
  ${CMAKE_SOURCE_DIR}/dch
- ${CMAKE_SOURCE_DIR}/mwpc
- ${CMAKE_SOURCE_DIR}/globaltracking
- ${CMAKE_SOURCE_DIR}/decoder
  ${CMAKE_SOURCE_DIR}/identification
 )
 
@@ -34,16 +26,18 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 Set(SRCS
-BmnTofIdentification.cxx
+BmnPidSRC.cxx
 )
 
 If (Boost_FOUND)
   set(DEFINITIONS BOOST_FOUND)
 EndIf (Boost_FOUND)
 
-Set(HEADERS)
+Set(HEADERS
+BmnPidSRC.h
+)
 Set(LINKDEF IdentLinkDef.h)
-Set(LIBRARY_NAME BmnIdentification)
-Set(DEPENDENCIES BmnData Base)
+Set(LIBRARY_NAME BmnPidSRC)
+Set(DEPENDENCIES BmnDst Dch BmnData Base)
 
 GENERATE_LIBRARY()

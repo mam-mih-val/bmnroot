@@ -137,8 +137,8 @@ void CbmStsDigitizeTb::DigitizePoint(const CbmStsPoint* point,
   else sensor = fDigiScheme->GetSensorByName(curNode->GetName());
   if ( ! sensor ) {
     LOG(DEBUG) << fName << ": node " << fDigiScheme->GetCurrentPath()
-                 << " not found in digi scheme!" << FairLogger::endl;
-    LOG(DEBUG2) << "\t" << "MCPoint information:" << FairLogger::endl;
+                 << " not found in digi scheme!";
+    LOG(DEBUG2) << "\t" << "MCPoint information:";
     point->Info();
     return;
   }
@@ -221,7 +221,7 @@ void CbmStsDigitizeTb::DigitizePoint(const CbmStsPoint* point,
               << xPoint << ", " << yPoint << ", "
               << zPoint << ") cm, t = " << setprecision(3)
               << point->GetTime() << " ns, digis: " << nFront << " front, "
-              << nBack << " back" << FairLogger::endl;
+              << nBack << " back";
 
 
 
@@ -238,7 +238,7 @@ InitStatus CbmStsDigitizeTb::Init() {
 
   // Check for presence of MCBuffer and DaqBuffer
   if ( ! ( CbmMCBuffer::Instance() && CbmDaqBuffer::Instance() ) ) {
-    gLogger->Fatal(MESSAGE_ORIGIN, "No MCBuffer or DaqBuffer present!");
+    LOG(fatal) << "No MCBuffer or DaqBuffer present!";
     return kFATAL;
   }
 
@@ -253,8 +253,7 @@ InitStatus CbmStsDigitizeTb::Init() {
 
   // Build digitisation scheme
   if ( ! fDigiScheme->Init(fGeoPar, fDigiPar) ) {
-    gLogger->Error(MESSAGE_ORIGIN,
-                   "Error in building STS digitisation scheme");
+    LOG(error) << "Error in building STS digitisation scheme";
     return kFATAL;
   }
 
@@ -317,7 +316,7 @@ void CbmStsDigitizeTb::Exec(Option_t* opt) {
             << nOut << "), " << nDigiAll << " digis";
   if ( nPoints ) LOG(INFO) << ", time " << setprecision(3) << tStart
                            << " ns to " << tStop << " ns";
-  LOG(INFO) << FairLogger::endl;
+  LOG(INFO);
   
 
   fNEvents     += 1.;
@@ -393,32 +392,32 @@ void CbmStsDigitizeTb::Reset() {
 void CbmStsDigitizeTb::Finish() {
   Exec(""); // Digitise the remaining points in the MCBuffer
   fNEvents -= 1; // Correct for extra call to Exec
-  LOG(INFO) << FairLogger::endl;
+  LOG(INFO);
   LOG(INFO) << "============================================================"
-       << FairLogger::endl;
-  LOG(INFO) << "===== " << fName << ": Run summary " << FairLogger::endl;
-  LOG(INFO) << "===== " << FairLogger::endl;
-  LOG(INFO) << "===== Events processed          : " << setw(8) << fNEvents << FairLogger::endl;
+      ;
+  LOG(INFO) << "===== " << fName << ": Run summary ";
+  LOG(INFO) << "===== ";
+  LOG(INFO) << "===== Events processed          : " << setw(8) << fNEvents;
   //LOG(INFO).setf(ios_base::fixed, ios_base::floatfield);
   LOG(INFO) << "===== Real time per event       : "
        << setw(8) << setprecision(4) 
-       << fTime / fNEvents << " s" << FairLogger::endl;
+       << fTime / fNEvents << " s";
   LOG(INFO) << "===== StsPoints per event       : "
        << setw(8) << setprecision(2) 
-       << fNPoints / fNEvents << FairLogger::endl;
+       << fNPoints / fNEvents;
   LOG(INFO) << "===== Outside hits per event    : "
        << setw(8) << setprecision(2) 
        << fNOutside / fNEvents << " = " 
        << setw(6) << setprecision(2) 
-       << fNOutside / fNPoints * 100. << " %" << FairLogger::endl;
+       << fNOutside / fNPoints * 100. << " %";
   LOG(INFO) << "===== Front digis per point     : "
        << setw(8) << setprecision(2) 
-       << fNDigisFront / (fNPoints-fNOutside) << FairLogger::endl;
+       << fNDigisFront / (fNPoints-fNOutside);
   LOG(INFO) << "===== Back digis per point      : "
        << setw(8) << setprecision(2) 
-       << fNDigisBack / (fNPoints-fNOutside) << FairLogger::endl;
+       << fNDigisBack / (fNPoints-fNOutside);
   LOG(INFO) << "============================================================"
-       << FairLogger::endl;
+      ;
 	
 }					       
 // -------------------------------------------------------------------------

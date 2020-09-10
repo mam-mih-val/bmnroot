@@ -1,0 +1,1183 @@
+// Author: Vasilisa Lenivenko (VBLHEP) <vasilisa@jinr.ru> 2019-07-18
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+// BmnUpstreamTracking                                                        //
+//                                                                            //
+// Implementation of an algorithm developed by                                //
+// V.Lenivenko and V.Paltchik                                                 //
+// to the BmnRoot software                                                    //
+//                                                                            //
+// The algorithm serves for searching for tracks                              //
+// in the Silicon detectors & MWPCs                                           //
+// of the configuration SRC of BM@N experiment                                //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+#include <Rtypes.h>
+#include <TMath.h>
+#include "TFile.h"
+#include "FairLogger.h"
+#include "BmnUpstreamTracking.h"
+#include <vector>
+
+static Double_t workTime = 0.0;
+TList fhList;
+
+//----------------------------------------------------------------------
+void BmnUpstreamTracking::Exec(Option_t* opt) {
+  if (!IsActive()) return;
+  fEventNo++;
+
+  clock_t tStart = clock();
+  PrepareArraysToProcessEvent();
+  if (fDebug) cout << "\n======================== Upstream track finder exec started  ===================\n" << endl;
+  if (fDebug) printf("Event number %d\n", fEventNo);
+  Int_t Track_counter = 0;
+  
+  //-----------------Read Silicon Tracks--------------------------------
+  ReadSiliconTracks(par_ab_SiTr,par_SiTr_z,NSiTracks);
+  //-----------------Read Silicon Hits----------------------------------
+  ReadSiliconHits(SiXYhits,NSiXYhits);
+  //-----------------Read MWPC segments---------------------------------
+  ReadMWPCSegments(par_ab_Ch,par_Seg_z,Nseg_Ch);
+  //-----------------Read MWPC tracks-----------------------------------
+  ReadMWPCTracks(par_ab_tr,par_ab_trz,NPCTracks);
+  //-----------------Matching-------------------------------------------
+  PCTracksSiTracksMatching(par_ab_SiTr,par_SiTr_z,NSiTracks,par_ab_tr,par_ab_trz,NPCTracks,vtmpSeg,OutVector);//Step1
+  PCSegmentsSiTracksMatching(par_ab_SiTr,par_SiTr_z,NSiTracks,par_ab_Ch,par_Seg_z,Nseg_Ch,vtmpSeg,OutVector); //Step2
+  //-----------------Adding hits----------------------------------------
+  GetAddSiHits(OutVector,SiXYhits,NSiXYhits);
+  GetHitsToPoints(OutVector,par_ab_tr,NPCTracks,par_ab_Ch,Nseg_Ch,Points,NumPoints);
+  //-----------------Fit------------------------------------------------
+  if (fDebug)
+  for (int ip =0; ip < NumPoints; ++ip){
+    for (int ist =0; ist < kPoints; ++ist){
+      Points[ip][ist][0] += X_shiftUp[ist];
+      Points[ip][ist][1] += Y_shiftUp[ist];
+      Points[ip][ist][2] -= Zcentr;
+      if (fDebug) cout<<"ip "<<ip<<" X["<<ist<<"] "<< Points[ip][ist][0]<<" Y "<<Points[ip][ist][1]<<" Z "<<Points[ip][ist][2]<<" sigx "<<Points[ip][ist][3]<<" sigy "<<Points[ip][ist][4]<<endl;
+      
+    }
+  }
+  
+  
+  CalculationOfChi2(Points, NumPoints, vecUpTracks);
+  if (fDebug) PrintAllTracks(vecUpTracks);
+  
+   if (fDebug){
+   if (NSiTracks > 0)    hNSi_NPC->Fill(NPCTracks[1]/NSiTracks);
+   if (NPCTracks[1] > 0) hNPC_NSi->Fill(NSiTracks/NPCTracks[1]);
+  }
+  
+  TrackRecording(vecUpTracks);
+  
+  if (fDebug) cout << endl;
+  if (fDebug) cout << "======================== Upstream track finder exec finished ===================" << endl;
+  clock_t tFinish = clock();
+  workTime += ((Double_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
+}
+//----------------------------------------------------------------------
+
+
+
+//-----------------------------ReadSiliconTracks------------------------
+void BmnUpstreamTracking::ReadSiliconTracks(Double_t** par_ab, Double_t*  par_z, Int_t & NTracks){
+  
+  for (Int_t iTrack = 0; iTrack < fSiTracks->GetEntriesFast(); iTrack++) {
+    BmnTrack* track = (BmnTrack*) fSiTracks ->At(iTrack);
+  
+    FairTrackParam* par = track->GetParamLast();
+    //FairTrackParam* par = track->GetParamFirst();
+    
+    if ( fDebug ) cout<<" SiTr "<<iTrack<<" SiTx "<<par->GetTx()<<" SiX "<<par->GetX()<<" SiTy "<<par->GetTy()<<" SiY "<<par->GetY()<<" SiZ "<<par->GetZ()<<" Nhits "<<track->GetNHits()<<endl;
+    
+    par_ab[0][NTracks]= par->GetTx();
+    par_ab[1][NTracks]= par->GetX();
+    par_ab[2][NTracks]= par->GetTy();
+    par_ab[3][NTracks]= par->GetY();
+    par_ab[4][NTracks]= track->GetNHits();
+    par_z[NTracks]    = par->GetZ();
+    /*
+    hAxSi->Fill(par_ab[0][NSiTracks]);
+    hxSi->Fill(par_ab[1][NSiTracks]);
+    hAySi->Fill(par_ab[2][NSiTracks]);
+    hySi->Fill(par_ab[3][NSiTracks]);
+    */
+    NTracks++;
+  }
+  
+}//ReadSiliconTracks
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+void BmnUpstreamTracking::ReadSiliconHits(Double_t*** hits, Int_t* NSihits){
+  //-------------Read Silicon Hits------------------------------------
+  if ( fDebug ) cout<<" Hits from Tracks "<<endl;
+  for (Int_t iSihit = 0; iSihit < fSilHits->GetEntriesFast(); iSihit++) {
+    BmnSiliconHit* hit = (BmnSiliconHit*) fSilHits ->At(iSihit);
+    
+    // if ( fDebug ) cout<<" iSihit "<<iSihit<<endl;
+    Int_t    st   = hit->GetStation();
+ 
+    if ( fDebug ) cout<<" st "<<st<<" hit: X "<<hit->GetX()<<" Y "<<hit->GetY()<<" Sigx "<<hit->GetDx()<<" Sigy "<<hit->GetDy()<<endl;
+    hits[st][NSihits[st]][0] = hit->GetX();
+    hits[st][NSihits[st]][1] = hit->GetY();
+    hits[st][NSihits[st]][2] = hit->GetZ();
+    hits[st][NSihits[st]][3] = hit->GetDx();
+    hits[st][NSihits[st]][4] = hit->GetDy();
+    hits[st][NSihits[st]][5] = hit->GetModule();
+    
+    NSihits[st]++;
+  }
+}//ReadSiliconHits
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+void BmnUpstreamTracking::ReadMWPCSegments(Double_t*** par_ab,  Double_t** par_z, Int_t*  Nseg){
+ for (Int_t iSeg = 0; iSeg < fMWPCSegments->GetEntries() ; ++iSeg) {
+    BmnTrack* segment = (BmnTrack*) fMWPCSegments ->At(iSeg) ;
+  
+    Int_t    ich = -1;
+    Double_t Z_mwpc = segment->GetParamFirst()->GetZ();
+    Double_t Chi2   = segment->GetChi2();
+    
+    if ( Z_mwpc >= -859. && Z_mwpc <= -857.) ich = 0;
+    if ( Z_mwpc >= -760. && Z_mwpc <= -758.) ich = 1;
+    if ( Z_mwpc >= -365. && Z_mwpc <= -363.) ich = 2;
+    if ( Z_mwpc >= -215. && Z_mwpc <= -213.) ich = 3;
+    
+    if ( ich < 0) continue;
+    
+    if ( fDebug ) cout<<" MWPCSeg: ich "<<ich<<" Tx "<<segment->GetParamFirst()->GetTx()<<" X "<<segment->GetParamFirst()->GetX()<<
+                                               " Ty "<<segment->GetParamFirst()->GetTy()<<" Y "<<segment->GetParamFirst()->GetY()<< 
+                                               " Z "<<Z_mwpc<<endl;
+    par_ab[ich][0][Nseg[ich]]= segment->GetParamFirst()->GetTx();
+    par_ab[ich][1][Nseg[ich]]= segment->GetParamFirst()->GetX();
+    par_ab[ich][2][Nseg[ich]]= segment->GetParamFirst()->GetTy();
+    par_ab[ich][3][Nseg[ich]]= segment->GetParamFirst()->GetY();
+    par_ab[ich][4][Nseg[ich]]= segment->GetNHits();
+    par_ab[ich][5][Nseg[ich]]= segment->GetParamFirst()->GetCovariance(0, 0);
+    par_ab[ich][6][Nseg[ich]]= segment->GetParamFirst()->GetCovariance(1, 1);
+    par_ab[ich][7][Nseg[ich]]= segment->GetParamFirst()->GetCovariance(2, 2);
+    par_ab[ich][8][Nseg[ich]]= segment->GetParamFirst()->GetCovariance(3, 3);
+    par_z[ich][Nseg[ich]] = segment->GetParamFirst()->GetZ();
+    
+    if ( ich > 1 ){
+      par_ab[ich][1][Nseg[ich]]+= -X_shift - X_shift_seg[ich];
+      par_ab[ich][3][Nseg[ich]]+= -Y_shift;
+    }
+    Nseg[ich]++;
+    
+  }
+}//ReadMWPCSegments
+//----------------------------------------------------------------------
+
+void BmnUpstreamTracking::ReadMWPCTracks(Double_t*** par_ab, Double_t** par_z, Int_t* NTracks){
+  for (Int_t iTr = 0; iTr < fMWPCTracks->GetEntriesFast() ; ++iTr) {
+    BmnTrack* track =  (BmnTrack*) fMWPCTracks->At(iTr) ;
+    
+    Int_t ip = -1;
+    Double_t Z = track->GetParamFirst()->GetZ();
+
+    if ( Z >= -809. && Z <= -807.) ip = 0;
+    if ( Z >= -290. && Z <= -288.) ip = 1;
+    if ( ip < 0) continue;
+    
+    if ( fDebug ) cout<<" MWPCTr: ip "<<iTr<<" Tx "<<track->GetParamFirst()->GetTx()<<" X "<<track->GetParamFirst()->GetX()<<
+                                             " Ty "<<track->GetParamFirst()->GetTy()<<" Y "<<track->GetParamFirst()->GetY()<<" Z "<<Z<<endl;
+    
+    par_ab[ip][0][NTracks[ip]] = track->GetParamFirst()->GetTx() ;
+    par_ab[ip][1][NTracks[ip]] = track->GetParamFirst()->GetX() ;
+    par_ab[ip][2][NTracks[ip]] = track->GetParamFirst()->GetTy() ; 
+    par_ab[ip][3][NTracks[ip]] = track->GetParamFirst()->GetY() ;
+    par_ab[ip][4][NTracks[ip]] = track->GetNHits();
+    par_ab[ip][5][NTracks[ip]] = track->GetParamFirst()->GetCovariance(0, 0);
+    par_ab[ip][6][NTracks[ip]] = track->GetParamFirst()->GetCovariance(1, 1);
+    par_ab[ip][7][NTracks[ip]] = track->GetParamFirst()->GetCovariance(2, 2);
+    par_ab[ip][8][NTracks[ip]] = track->GetParamFirst()->GetCovariance(3, 3);
+    par_z[ip][NTracks[ip]] = track->GetParamFirst()->GetZ();
+    
+    par_ab[1][1][NTracks[ip]]+= -X_shift;
+    par_ab[1][3][NTracks[ip]]+= -Y_shift;
+    /*
+    hAxPCtr->Fill(par_ab[1][0][NTracks[ip]]);
+    hxPCtr->Fill(par_ab[1][1][NTracks[ip]]);
+    hAyPCtr->Fill(par_ab[1][2][NTracks[ip]]);
+    hyPCtr->Fill(par_ab[1][3][NTracks[ip]]);
+    hbeam_profile_pair_[ip]->Fill(track->GetParamFirst()->GetX(),track->GetParamFirst()->GetY());
+    */
+    NTracks[ip]++;
+    
+  }//itr 
+  
+}//ReadMWPCTracks
+//----------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------
+void BmnUpstreamTracking::PCTracksSiTracksMatching(Double_t** par_Si, Double_t* par_Siz, Int_t & NTracksSi,
+Double_t*** par_PC, Double_t** par_PCz, Int_t* NTracksPC, vector<Smatch> & vec_m, vector<Smatch> & Out){
+  
+  Smatch tmpSeg;
+  vec_m.clear();
+  
+  for (Int_t  iSi=0; iSi < NTracksSi; ++iSi){
+    for (Int_t iPCtr = 0; iPCtr < NPCTracks[1]; ++iPCtr){
+      
+      Double_t dz = par_PCz[1][iPCtr] - par_Siz[iSi];
+    
+      Double_t dAx = par_Si[0][iSi]  - par_PC[1][0][iPCtr] ;
+      Double_t dAy = par_Si[2][iSi]  - par_PC[1][2][iPCtr] ;
+      Double_t dX  = (par_Si[0][iSi]* dz + par_Si[1][iSi]) - par_PC[1][1][iPCtr];
+      Double_t dY  = (par_Si[2][iSi]* dz + par_Si[3][iSi]) - par_PC[1][3][iPCtr];
+     /*
+      hdX_MWPCpair1_Sitr->Fill(dX);
+      hdAx_MWPCpair1_Sitr->Fill(dAx);
+      hdY_MWPCpair1_Sitr->Fill(dY);
+      hdAy_MWPCpair1_Sitr->Fill(dAy);
+     */
+      if (fDebug) cout<<" Si-P1: dAx("<<cutAx<<") "<<dAx<<" dAy("<<cutAy<<") "<<dAy<<" dX("<<cutX<<") "<<dX<<" dY("<<cutY<<") "<<dY<<endl;
+      if (fabs(dAx) < cutAx && fabs(dAy) < cutAy && fabs(dX) < cutX && fabs(dY) < cutY ){
+       
+        Double_t Chi2_match = dX*dX + 0.25*dY*dY; 
+
+        tmpSeg.Ind1   = iSi;
+        tmpSeg.Ind2   = iPCtr;
+        tmpSeg.Inds2  = -1;
+        tmpSeg.Inds3  = -1;
+        tmpSeg.Nhits1 = par_Si[4][iSi];
+        tmpSeg.Nhits2 = par_PC[1][4][iPCtr];
+        tmpSeg.Z1     = par_Siz[iSi];
+        tmpSeg.Z2     = par_PCz[1][iPCtr];
+        tmpSeg.distX  = dX;
+        tmpSeg.distY  = dY;
+        tmpSeg.Chi2m  = Chi2_match;
+       // if (fDebug) cout<<" iSi "<<iSi<<" iPCtr "<<iPCtr<<" dX "<<dx<<" dY "<<dy<<" Chi2_match "<<Chi2_match<<endl;
+
+        for(int ipar = 0; ipar < 4; ipar++){
+          tmpSeg.param1[ipar] = par_Si[ipar][iSi];
+          tmpSeg.param2[ipar] = par_PC[1][ipar][iPCtr];
+        }
+        vec_m.push_back(tmpSeg);
+        
+       /*
+       hdX_MWPCpair1_Sitr_cut->Fill(dX);
+       hdAx_MWPCpair1_Sitr_cut->Fill(dAx);
+       hdY_MWPCpair1_Sitr_cut->Fill(dY);
+       hdAy_MWPCpair1_Sitr_cut->Fill(dAy);
+       */
+      }//if
+    }//iPCtr
+  }//iSi
+  if (fDebug) cout<<" --End PCtracks: vtmpSeg.size "<<vtmpSeg.size()<<endl;
+  
+  if (vtmpSeg.size() > 0){
+    Int_t PCtrack = 1;
+    RecordingBest(PCtrack, vec_m, Out);
+  }
+  
+  if (fDebug) cout<<" OutVector.size() "<<Out.size()<<endl;
+  for (int iter = 0; iter < Out.size(); ++iter) {
+    if (fDebug) printf(" OutVector.at(%d): %8.4f | Si %d - PC %d Seg2 %d - Seg3 %d\n", iter, Out.at(iter).Chi2m, Out.at(iter).Ind1, Out.at(iter).Ind2, Out.at(iter).Inds2, Out.at(iter).Inds3 );
+  }
+}//PCTracksSiTracksMatching
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+void BmnUpstreamTracking::PCSegmentsSiTracksMatching(Double_t** par_Si, Double_t* par_Siz, Int_t & NTracksSi,
+Double_t*** par_PC, Double_t** par_PCz, Int_t* NSegPC, vector<Smatch> & vec_m, vector<Smatch> & Out){
+  
+  vec_m.clear();
+  if ( fDebug ) cout<<endl;
+  if ( fDebug ) cout<<" ----PC segments Ch2 ---"<<endl;
+
+  for (int iSi=0; iSi < NTracksSi; ++iSi){
+    for(int iseg2 = 0; iseg2 < NSegPC[2]; ++iseg2){
+      
+      Double_t dz2 = par_PCz[2][iseg2] - par_Siz[iSi];
+      Double_t X_extr2 = par_Si[0][iSi]* dz2 + par_Si[1][iSi];
+      Double_t Y_extr2 = par_Si[2][iSi]* dz2 + par_Si[3][iSi];
+      
+      Double_t dX = X_extr2 - par_PC[2][1][iseg2];
+      Double_t dY = Y_extr2 - par_PC[2][3][iseg2];
+
+      //hdX_MWPCSeg2_Sitr->Fill(dX);
+      //hdY_MWPCSeg2_Sitr->Fill(dY);
+      
+      if (fDebug) cout<<" Si-Seg2: dX("<<cutX<<") "<<dX<<" dY("<<cutY<<") "<<dY<<endl;
+      if (fabs(dX) < cutX && fabs(dY) < cutY ){
+        
+        Int_t iseg3 = -1;
+        RecordCandidateSeg(iSi, iseg2, iseg3, par_Si, par_PC, par_Siz, par_PCz, dX, dY, vec_m);
+        
+      }//if
+    }//iseg2
+  }//iSi
+  
+  if (fDebug) cout<<" --End PCiseg2 : vec_m.size "<<vec_m.size()<<endl;
+  
+  //-----------------------------------------------------------------
+  if ( fDebug ) cout<<endl;
+  if ( fDebug ) cout<<" -------PC segments Ch3 ---"<<endl;
+    
+  for (int iSi=0; iSi < NSiTracks; ++iSi){
+    for(int iseg3 = 0; iseg3 < NSegPC[3]; ++iseg3){
+      
+      Double_t dz3     = par_PCz[3][iseg3] - par_Siz[iSi];
+      Double_t X_extr3 = par_Si[0][iSi]* dz3 + par_Si[1][iSi];
+      Double_t Y_extr3 = par_Si[2][iSi]* dz3 + par_Si[3][iSi];
+      
+      Double_t dX = X_extr3 - par_PC[3][1][iseg3];
+      Double_t dY = Y_extr3 - par_PC[3][3][iseg3];
+      //hdX_MWPCSeg3_Sitr->Fill(dX);
+      //hdY_MWPCSeg3_Sitr->Fill(dY);
+      
+      if (fDebug) cout<<" Si-Seg3: dX("<<cutX<<") "<<dX<<" dY("<<cutY<<") "<<dY<<endl;
+      if (fabs(dX) < cutX && fabs(dY) < cutY ){
+        
+        Int_t iseg2 = -1;
+        RecordCandidateSeg(iSi, iseg2, iseg3, par_Si, par_PC, par_Siz, par_PCz, dX, dY, vec_m);
+       
+      }//if
+    }//iseg3
+  }//iSi
+
+  if (fDebug) cout<<" --End PCiseg3 : vec_m.size "<<vec_m.size()<<endl;
+
+  if (vec_m.size() > 0){
+    Int_t PCtrack = -1;
+    RecordingBest(PCtrack, vec_m, Out);
+  }
+  if (fDebug) cout<<" vec_m.size() "<<vec_m.size()<<" Out.size() "<<Out.size()<<endl;
+}//PCSegmentsSiTracksMatching
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+void BmnUpstreamTracking::RecordCandidateSeg(Int_t & iSi, Int_t & is2, Int_t & is3,
+Double_t ** par_Si, Double_t*** par_PC, 
+Double_t* par_Siz, Double_t** ZPC, 
+Double_t & dx, Double_t & dy, vector<Smatch>& vtmp){
+
+  if ( fDebug ) cout<<" RecordCandidateSeg: seg2 "<<is2<<" seg3 "<<is3<<endl;
+  Smatch tmpSeg;
+  Int_t iseg = is2;
+  Int_t ich  = 2;
+  if ( is2 < 0 ) { 
+    iseg = is3; 
+    ich = 3;
+  }
+  
+  Double_t Chi2_match = dx*dx + 0.25*dy*dy; 
+  
+  tmpSeg.Ind1  = iSi;
+  tmpSeg.Ind2  = -1;
+  tmpSeg.Inds2 = is2;
+  tmpSeg.Inds3 = is3;
+  tmpSeg.Z1    = par_Siz[iSi];
+  tmpSeg.Zs2   = ZPC[ich][iseg];
+  tmpSeg.distX = dx;
+  tmpSeg.distY = dy;
+  tmpSeg.Chi2m = Chi2_match;
+  if ( fDebug ) cout<<" iSi "<<iSi<<" iseg2 "<<is2<<" iseg3 "<<is3<<" dX "<<dx<<" dY "<<dy<<" Chi2_match "<<Chi2_match<<endl;
+
+  for(int ipar = 0; ipar < 4; ipar++) {
+    tmpSeg.param1[ipar]  = par_Si[ipar][iSi];
+    tmpSeg.params2[ipar] = par_PC[ich][ipar][iseg]; 
+  }
+  vtmp.push_back(tmpSeg);
+}
+//----------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------
+void BmnUpstreamTracking::RecordingBest(Int_t & iPCtrack, vector<Smatch> & vec, vector<Smatch> & OutVec){
+  if ( iPCtrack > -1 ){
+    if (fDebug) cout<<"--RecordingBest: tracks --"<<endl;
+    // vector sorting
+    sort(vec.begin(), vec.end(), compareSegments);
+
+    //first best
+    OutVec.push_back(vec.at(0));
+    if (fDebug) cout<<"--isMatch: Chi2 "<<vec.at(0).Chi2m<<endl;
+
+    //reject repeat index
+    Bool_t isMatch;
+    for (int iter = 0; iter < vec.size(); ++iter) {
+      if (fDebug) printf(" vtmpSeg.at(%d): %8.4f | %d - %d\n", iter, vec.at(iter).Chi2m, vec.at(iter).Ind1, vec.at(iter).Ind2 );
+      isMatch = 0;
+      for(int InIter = 0; InIter < OutVec.size(); ++InIter) {
+        if(vec.at(iter).Ind1 == OutVec.at(InIter).Ind1 || vec.at(iter).Ind2 == OutVec.at(InIter).Ind2) {
+          isMatch = 1;
+          continue;
+        }
+      }
+      //writing unique index
+      if (isMatch == 0) {
+        if (fDebug) cout<<"--isMatch: Chi2 "<<vec.at(iter).Chi2m<<endl;
+        OutVec.push_back(vec.at(iter));
+      }
+    }//iter
+    
+    if (fDebug) cout<<" Now OutVec.size "<<OutVec.size()<<endl;
+    vec.clear();
+  }else{//---segs--
+    if (fDebug) cout<<"--RecordingBest: segs --"<<endl;
+    // vector sorting
+    sort(vec.begin(), vec.end(), compareSegments);
+
+    //reject repeat index
+    Bool_t isMatch;
+    for (int iter = 0; iter < vec.size(); ++iter) {
+      if (fDebug) printf(" vec.at(%d): %8.4f | Si %d - Seg2 %d - Seg3 %d\n", iter, vec.at(iter).Chi2m, vec.at(iter).Ind1, vec.at(iter).Inds2, vec.at(iter).Inds3 );
+      isMatch = 0;
+      for(int InIter = 0; InIter < OutVec.size(); ++InIter) {
+        if ( vec.at(iter).Ind1 == OutVec.at(InIter).Ind1 && OutVec.at(InIter).Ind2 > -1 ) {
+          isMatch = 1;
+          continue;
+        }
+        if((vec.at(iter).Ind1 == OutVec.at(InIter).Ind1 && OutVec.at(InIter).Inds3 > -1) || (vec.at(iter).Ind1 == OutVec.at(InIter).Ind1 && vec.at(iter).Inds2 == OutVec.at(InIter).Inds2)  ){
+          isMatch = 1;
+          continue;
+        }
+        if((vec.at(iter).Ind1 == OutVec.at(InIter).Ind1 && OutVec.at(InIter).Inds2 > -1) || (vec.at(iter).Ind1 == OutVec.at(InIter).Ind1 && vec.at(iter).Inds3 == OutVec.at(InIter).Inds3)  ){
+          isMatch = 1;
+          continue;
+        }
+        if( (OutVec.at(InIter).Inds2 > -1 && vec.at(iter).Inds2 == OutVec.at(InIter).Inds2 ) || ( OutVec.at(InIter).Inds3 > -1 && vec.at(iter).Inds3 == OutVec.at(InIter).Inds3) ){
+          isMatch = 1;
+          continue;
+        }
+      }
+      //writing unique index
+      if (isMatch == 0) {
+        if (fDebug) cout<<"--isMatch: Chi2 "<<vec.at(iter).Chi2m<<" Inds2 "<<vec.at(iter).Inds2<<" Inds3 "<<vec.at(iter).Inds3<<endl;
+        OutVec.push_back(vec.at(iter));
+      }
+    }//iter
+    
+    if (fDebug) cout<<" Now OutVec.size "<<OutVec.size()<<endl;
+    vec.clear();
+  }
+  
+}//RecordingBest
+//----------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------
+void BmnUpstreamTracking::GetAddSiHits(vector<Smatch> & Out, Double_t*** hits, Int_t* Nh){
+Bool_t was_ind;
+Double_t tmp_array[kNumStSi][6];
+if (fDebug) cout<<" GetAddSiHits "<<endl;
+
+  for (int iter = 0; iter < Out.size(); ++iter) {
+   if (fDebug) printf(" Out.at(%d): %8.4f | Si %d - PC %d Seg2 %d - Seg3 %d\n", iter, Out.at(iter).Chi2m, Out.at(iter).Ind1, Out.at(iter).Ind2, Out.at(iter).Inds2, Out.at(iter).Inds3 );
+   
+    was_ind = 0;
+    for (int st=1; st < kNumStSi; ++st){ 
+      for (int i=0; i < 5; ++i){
+        tmp_array[st][i] = -999.;
+      }
+        for (int ihit=0; ihit < Nh[st]; ++ihit){
+          if ( Out.at(iter).Ind1 == ihit ){
+            was_ind = 1;
+            tmp_array[st][0] =  hits[st][ihit][0];
+            tmp_array[st][1] =  hits[st][ihit][1];
+            tmp_array[st][2] =  hits[st][ihit][2];
+            tmp_array[st][3] =  hits[st][ihit][3];
+            tmp_array[st][4] =  hits[st][ihit][4];
+            tmp_array[st][5] =  hits[st][ihit][5];
+          }
+        }
+    }//st
+    if (was_ind){
+      for(int st = 1; st < kNumStSi; ++st){
+        Out.at(iter).SiCoordX[st] = tmp_array[st][0];
+        Out.at(iter).SiCoordY[st] = tmp_array[st][1];
+        Out.at(iter).SiCoordZ[st] = tmp_array[st][2];
+        Out.at(iter).SiSigmaX[st] = tmp_array[st][3];
+        Out.at(iter).SiSigmaY[st] = tmp_array[st][4];
+        Out.at(iter).SiMod[st]    = tmp_array[st][5];
+        if (fDebug) cout<<" st "<<st<<" X "<<tmp_array[st][0]<<" Y "<<tmp_array[st][1]<<" Z "<<tmp_array[st][2]<<" mod "<<tmp_array[st][5]<<endl;
+      }
+    }
+  }//iter
+  
+}//GetAddSiHits
+//----------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------
+void BmnUpstreamTracking::GetHitsToPoints(vector<Smatch> & Out,Double_t*** ab_tr, Int_t* NPCTracks_, Double_t*** ab_Ch, 
+Int_t* Nseg_ch_, Double_t*** Points_, Int_t & NumPoints_){
+  
+  for(int iter = 0; iter < Out.size(); iter++) {
+      //--silicon points---
+      for (int ist=1; ist < kNumStSi; ++ist){
+        if (ist < 3){
+          Points_[iter][ist-1][0] = Out.at(iter).SiCoordX[ist];//x
+          Points_[iter][ist-1][1] = Out.at(iter).SiCoordY[ist];//y
+          Points_[iter][ist-1][2] = Out.at(iter).SiCoordZ[ist];//z
+          Points_[iter][ist-1][3] = Out.at(iter).SiSigmaX[ist];//sigx
+          Points_[iter][ist-1][4] = Out.at(iter).SiSigmaY[ist];//sigy
+        }else{
+          Points_[iter][ist][0] = Out.at(iter).SiCoordX[ist];//x
+          Points_[iter][ist][1] = Out.at(iter).SiCoordY[ist];//y
+          Points_[iter][ist][2] = Out.at(iter).SiCoordZ[ist];//z
+          Points_[iter][ist][3] = Out.at(iter).SiSigmaX[ist];//sigx
+          Points_[iter][ist][4] = Out.at(iter).SiSigmaY[ist];//sigy
+        }
+      }
+    for (int ipctr=0; ipctr < NPCTracks_[1]; ++ipctr){
+      // if was MWPC-track
+      if ( Out.at(iter).Ind2 == ipctr){
+        // x = kx*(dz) + bx  //Z_pair[kNumPairs] = {-808.816, -289.401}; //Z_Chamber[kNumChambers] = {-858., -761., -364., -214.};
+        Double_t deltaAx = ab_tr[1][7][ipctr];
+        Double_t deltaAy = ab_tr[1][8][ipctr];
+        
+        Points_[iter][2][0]  = Out.at(iter).param2[0]*(Z_Chamber[2]-Z_pair[1]) + Out.at(iter).param2[1];//x3
+        Points_[iter][4][0]  = Out.at(iter).param2[0]*(Z_Chamber[3]-Z_pair[1]) + Out.at(iter).param2[1];//x4
+        
+        Points_[iter][2][1]  = Out.at(iter).param2[2]*(Z_Chamber[2]-Z_pair[1]) + Out.at(iter).param2[3];//x3
+        Points_[iter][4][1]  = Out.at(iter).param2[2]*(Z_Chamber[3]-Z_pair[1]) + Out.at(iter).param2[3];//x4
+        //                     Ax*deltaX                           +  X*deltaAx                         + deltaX
+        Points_[iter][2][3]  = Out.at(iter).param2[0]*SigmXmwpc + Out.at(iter).param2[1]*deltaAx + SigmXmwpc;//sigx
+        Points_[iter][2][4]  = Out.at(iter).param2[2]*SigmYmwpc + Out.at(iter).param2[3]*deltaAy + SigmYmwpc;//sigy
+        Points_[iter][4][3]  = SigmXmwpc;//sigx// Points_[iter][3][3];
+        Points_[iter][4][4]  = SigmYmwpc;//sigy// Points_[iter][3][4];
+        
+        if ( fDebug ) cout<<" X3  "<<Points_[iter][3][0] <<" X4  "<<Points_[iter][4][0]  <<" sigX "<<Points_[iter][3][3]<<" sigXcov "<<ab_tr[1][5][ipctr]<<endl;
+      }
+    }//NPCTracks_[1]
+      //--if was segment--
+      for (int iseg2=0; iseg2 < Nseg_ch_[2]; ++iseg2){
+       if ( Out.at(iter).Inds2 == iseg2){
+          Points_[iter][2][0]  = ab_Ch[2][0][iseg2];//x
+          Points_[iter][2][1]  = ab_Ch[2][3][iseg2];//y
+          Points_[iter][2][3]  = SigmXmwpc;//sigx
+          Points_[iter][2][4]  = SigmYmwpc;//sigy
+        }
+      }//Nseg_ch_[2]
+      for (int iseg3=0; iseg3 < Nseg_ch_[3]; ++iseg3){
+       if ( Out.at(iter).Inds3 == iseg3){
+          Points_[iter][4][0]  = ab_Ch[3][0][iseg3];//x
+          Points_[iter][4][1]  = ab_Ch[3][3][iseg3];//y
+          Points_[iter][4][3]  = SigmXmwpc;//sigx
+          Points_[iter][4][4]  = SigmYmwpc;//sigy
+        }
+      }//Nseg_ch_[2]
+
+      Points_[iter][2][2]  = Z_Chamber[2];
+      Points_[iter][4][2]  = Z_Chamber[3];
+      NumPoints_ = iter+1;
+  }//Out.size()
+}
+//----------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------
+void BmnUpstreamTracking::CalculationOfChi2(Double_t*** Points_, Int_t & NumPoints_, vector<UpTracks> & vec ){
+  if (fDebug) cout<<" Check points before fit "<<endl;
+  Int_t Nhits_before;
+  for (int ip =0; ip < NumPoints_; ++ip){
+    Nhits_before = 0;
+    for (int ist =0; ist < kPoints; ++ist){
+      Points_[ip][ist][0] += X_shiftUp[ist];
+      Points_[ip][ist][1] += Y_shiftUp[ist];
+      Points_[ip][ist][2] -= Zcentr;
+      if (fDebug) cout<<"ip "<<ip<<" X["<<ist<<"] "<< Points_[ip][ist][0]<<" Y "<<Points_[ip][ist][1]<<" Z "<<Points_[ip][ist][2]<<" sigx "<<Points_[ip][ist][3]<<" sigy "<<Points_[ip][ist][4]<<endl;
+      if (Points_[ip][ist][0] > -900.) Nhits_before++; 
+      if (Points_[ip][ist][1] > -900.) Nhits_before++; 
+    }
+  }
+  if (fDebug) cout<<" Nhits_before "<<Nhits_before<<endl;
+  UpTracks tmptr;
+
+  for (Int_t i = 0; i < kPoints; ++i) {
+    for (Int_t j = 0; j < 5; ++j) {
+      Xforglfit[i][j] = -999.;
+    }
+  }
+  Double_t ChiSquare_ ;
+  for (Int_t itr = 0; itr < NumPoints_; ++itr) {
+    
+    if (Nhits_before < 6 ) continue;
+    
+    ChiSquare_         = 0.;
+    if(fDebug) cout<<endl;
+    if(fDebug) cout<<"--GlobalFit--"<<endl;
+    //setting global fit matrices to zero
+ 
+    for (Int_t i = 0; i < 4; ++i){    
+     for (Int_t j = 0; j < 4; ++j){      
+       Amatr[i][j] = 0.; }}  
+    for (Int_t i = 0; i < 4; ++i) { rhs[i] = 0; }
+    for (Int_t i = 0; i < 16; ++i) { AmatrArray[i] = 0; }
+    for (Int_t i = 0; i < 16; ++i) { AmatrInverted[i] = 0; }
+    
+    for (Int_t i = 0; i < kPoints; ++i) {
+      for (Int_t j = 0; j < kPoin_Par; ++j) {
+       Xforglfit[i][j] = Points_[itr][i][j];
+       //if ( fDebug && j == 0) cout<<" x ["<<i<<"]["<<j<<"] "<<Xforglfit[i][j]<<endl;
+      }
+      for (Int_t j = 0; j < kPoin_Par; ++j) {
+       // if ( fDebug && j == 1) cout<<" y ["<<i<<"]["<<j<<"] "<<Xforglfit[i][j]<<endl;
+      }
+    }
+    
+    GlobalFit(Xforglfit,Amatr, rhs);
+
+    //here we do smth with Amatr & rhs (solving)  
+    // Amatr is row-major  
+    for (Int_t row = 0; row < 4; ++row) {
+      for (Int_t col = 0; col < 4; ++col) {
+        AmatrArray[4*col + row] = Amatr[row][col];
+      }
+    }//AmatrArray is col-major
+
+    bool ifSuccess = InvertMatrix(AmatrArray, AmatrInverted);
+    
+    if (!ifSuccess) {cout<< "???? InvertMatrix is unsuccessfull ????"<<endl;   }  
+    if (!ifSuccess) {cout<< "???? InvertMatrix is unsuccessfull ????"<<endl; return;} 
+    //line_ = { ax, bx, ay, by}
+    Double_t line_[4] = {0.,0.,0.,0.};
+    for (Int_t coeff = 0; coeff < 4; ++coeff) {
+      for (Int_t iCol = 0; iCol < 4; ++iCol) {
+       // if ( fDebug ) cout<<" AmatrInverted["<<4*iCol + coeff<<"] "<<AmatrInverted[4*iCol + coeff]<<" rhs["<<iCol<<"] "<<rhs[iCol]<<endl;
+       line_[coeff] += AmatrInverted[4*iCol + coeff]*rhs[iCol]; 
+      }
+    }
+     
+     if ( fDebug ) cout<<" ax "<<line_[0]<<" bx "<<line_[1]<<" ay "<<line_[2]<<" by "<<line_[3]<<endl;
+     if ( fDebug ) cout<<endl;
+    
+    //---------------------------Chi2---------------------------------
+    Int_t nhits = 0;
+    for (Int_t ist = 0; ist < kPoints; ++ist) {
+      if (Xforglfit[ist][0] < -900. ) continue;//x
+      
+      Double_t hit = Xforglfit[ist][0] ;
+      Double_t fit = line_[0]*Xforglfit[ist][2] + line_[1];
+      nhits++;
+      
+      Double_t sigmaX_2 = Xforglfit[ist][3]*Xforglfit[ist][3];
+      ChiSquare_ += ((hit-fit)*(hit-fit))/(sigmaX_2);
+      if ( fDebug) cout<<" ist "<<ist<<" hitx  "<<hit<<" fit "<<fit<<" Z "<<Xforglfit[ist][2]<<" sigma "<<Xforglfit[ist][3]<<" ChiSquare_ "<<ChiSquare_<<endl;
+    }
+    for (Int_t ist = 0; ist < kPoints; ++ist) { 
+      if (Xforglfit[ist][1] < -900. ) continue;//y
+      
+      Double_t hit = Xforglfit[ist][1];
+      Double_t fit = line_[2]*Xforglfit[ist][2] + line_[3];
+      nhits++;
+      
+      Double_t sigmaY_2 = Xforglfit[ist][4]*Xforglfit[ist][4];
+      ChiSquare_ += ((hit-fit)*(hit-fit))/(sigmaY_2);
+      if ( fDebug) cout<<" ist "<<ist<<" hity "<<hit<<" fit "<<fit<<" Z "<<Xforglfit[ist][2]<<" sigma "<<Xforglfit[ist][4]<<" ChiSquare_ "<<ChiSquare_<<endl;
+    }//ist
+    
+    Double_t ChiSquareNdf = ChiSquare_/(nhits - 4);
+
+    if (ChiSquareNdf < kChi2_Max && nhits > 5){
+      
+      tmptr.Chi2 = ChiSquareNdf;
+      if ( fDebug) cout<<" ------"<<endl;
+      if ( fDebug) cout<<" Chi2 "<<tmptr.Chi2<<" nhits "<<nhits<<endl;
+      
+      for (Int_t iCol = 0; iCol < 4; ++iCol) {
+        tmptr.param[iCol] = line_[iCol];
+      }
+      if ( fDebug) cout<<" Ax "<<tmptr.param[0]<<" bx "<<tmptr.param[1]<<" Ay "<<tmptr.param[2]<<" by "<<tmptr.param[3]<<endl;
+      if ( fDebug) cout<<" X coor "<<endl;
+      for (Int_t ist = 0; ist < kPoints; ++ist) {
+        tmptr.CoordZ[ist] = Xforglfit[ist][2];
+        tmptr.CoordX[ist] = Xforglfit[ist][0];
+        if (tmptr.CoordX[ist]< -900. ) continue;
+        if ( fDebug) cout<<" ist "<<ist<<" hitx  "<<tmptr.CoordX[ist]<<endl;
+      }
+      if ( fDebug) cout<<" Y coor "<<endl;
+      for (Int_t ist = 0; ist < kPoints; ++ist) {
+        tmptr.CoordY[ist] = Xforglfit[ist][1];
+        if (tmptr.CoordY[ist]< -900. ) continue;
+        if ( fDebug) cout<<" ist "<<ist<<" hity  "<<tmptr.CoordY[ist]<<endl;
+      }
+      tmptr.Nhits = nhits;
+      vec.push_back(tmptr);
+    }
+  }//itr
+  
+}//calculationOfChi2
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+void BmnUpstreamTracking::PrintAllTracks(vector<UpTracks> & vecUp){
+  
+  cout<<" ------UpTrack: "<<vecUp.size()<<endl;
+  for (int itr =0; itr < vecUp.size(); ++itr){
+    cout<<" itr "<<itr<<" Chi2 "<<vecUp.at(itr).Chi2<<" Ax "<<vecUp.at(itr).param[0]<<" bx "<<vecUp.at(itr).param[1]<<" Ay "<<vecUp.at(itr).param[2]<<" by "<<vecUp.at(itr).param[3]<<endl;
+    cout<<" Nhits "<<vecUp.at(itr).Nhits<<endl;
+    cout<<"--X--"<<endl;
+    for (Int_t st = 0; st < kPoints; ++st) {
+      if ( vecUp.at(itr).CoordX[st] < -900.) continue;
+      Double_t Hit = vecUp.at(itr).CoordX[st]; 
+      Double_t Fit = vecUp.at(itr).param[0] * vecUp.at(itr).CoordZ[st] + vecUp.at(itr).param[1];
+      hResXst[st]->Fill(Hit - Fit);
+      cout<<" st "<<st<<" Xhit "<<Hit<<" Xfit "<< Fit<<" Z "<<vecUp.at(itr).CoordZ[st]<<endl;
+    }
+    cout<<"--Y--"<<endl;
+    for (Int_t st = 0; st < kPoints; ++st) {
+      if ( vecUp.at(itr).CoordY[st] < -900.) continue;
+      Double_t Hit = vecUp.at(itr).CoordY[st]; 
+      Double_t Fit = vecUp.at(itr).param[2] * vecUp.at(itr).CoordZ[st] + vecUp.at(itr).param[3];
+      hResYst[st]->Fill(Hit - Fit);
+      cout<<" st "<<st<<" Yhit "<<Hit<<" Yfit "<< Fit<<" Z "<<vecUp.at(itr).CoordZ[st]<<endl;
+    }
+    
+    hAx_fitUp->Fill(vecUp.at(itr).param[0]);
+    hAy_fitUp->Fill(vecUp.at(itr).param[2]);
+    hx_fitUp->Fill(vecUp.at(itr).param[1]);
+    hy_fitUp->Fill(vecUp.at(itr).param[3]);
+    hchi2_fitUp->Fill(vecUp.at(itr).Chi2);
+    hNhitsUp->Fill(vecUp.at(itr).Nhits);
+  }
+  cout<<"---"<<endl;
+}
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+void BmnUpstreamTracking::TrackRecording(vector<UpTracks> & vecUp){
+  
+
+  for (Int_t InIter = 0; InIter < vecUp.size(); ++InIter) {
+    /*
+    Double_t z0 = vecUp.at(InIter).CoordZ[1] + Zcentr;
+    Double_t x0 = vecUp.at(InIter).param[0] * vecUp.at(InIter).CoordZ[0] + vecUp.at(InIter).param[1]; //ax(z)+bx
+    Double_t y0 = vecUp.at(InIter).param[2] * vecUp.at(InIter).CoordZ[0] + vecUp.at(InIter).param[3]; //y
+    Double_t z4 = vecUp.at(InIter).CoordZ[4] + Zcentr;
+    Double_t x4 = vecUp.at(InIter).param[0] * vecUp.at(InIter).CoordZ[4] + vecUp.at(InIter).param[1]; //ax(z)+bx
+    Double_t y4 = vecUp.at(InIter).param[2] * vecUp.at(InIter).CoordZ[4] + vecUp.at(InIter).param[3]; //y
+    
+    FairTrackParam trackParamf;
+    trackParamf.SetPosition(TVector3(x0, y0, z0));
+    trackParamf.SetTx(vecUp.at(InIter).param[0]);
+    trackParamf.SetTy(vecUp.at(InIter).param[2]);
+
+    FairTrackParam trackParaml;
+    trackParaml.SetPosition(TVector3(x4, y4, z4));
+    trackParaml.SetTx(vecUp.at(InIter).param[0]);
+    trackParaml.SetTy(vecUp.at(InIter).param[2]);
+*/
+
+    FairTrackParam trackParaml;
+    trackParaml.SetPosition(TVector3(vecUp.at(InIter).param[1]+ Shift_toCenterOfMagnetX, vecUp.at(InIter).param[3]+ Shift_toCenterOfMagnetY,Zcentr));
+    trackParaml.SetTx(vecUp.at(InIter).param[0]+Shift_toCenterOfMagnetAX);
+    trackParaml.SetTy(vecUp.at(InIter).param[2]+Shift_toCenterOfMagnetAY);
+
+    BmnTrack *track = new ((*fBmnUpstreamTracksArray)[fBmnUpstreamTracksArray->GetEntriesFast()]) BmnTrack();
+    track->SetChi2(vecUp.at(InIter).Chi2);
+    track->SetNHits(vecUp.at(InIter).Nhits);
+    track->SetFlag(InIter);
+    //track->SetParamFirst(trackParamf);
+    track->SetParamLast(trackParaml);
+
+  }//InIter
+  
+}
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+bool BmnUpstreamTracking::InvertMatrix(Double_t *m, Double_t *invOut) {
+  Double_t inv[16], det;
+  int i;
+
+  inv[0] = m[5] * m[10] * m[15] -m[5] * m[11] * m[14] -m[9] * m[6] * m[15] +m[9] * m[7] * m[14] +m[13] * m[6] * m[11] -m[13] * m[7] * m[10];
+  inv[4] = -m[4] * m[10] * m[15] +m[4] * m[11] * m[14] +m[8] * m[6] * m[15] -m[8] * m[7] * m[14] -m[12] * m[6] * m[11] +m[12] * m[7] * m[10];
+  inv[8] = m[4] * m[9] * m[15] -m[4] * m[11] * m[13] -m[8] * m[5] * m[15] +m[8] * m[7] * m[13] +m[12] * m[5] * m[11] -m[12] * m[7] * m[9];
+  inv[12] = -m[4] * m[9] * m[14] +m[4] * m[10] * m[13] +m[8] * m[5] * m[14] -m[8] * m[6] * m[13] -m[12] * m[5] * m[10] +m[12] * m[6] * m[9];
+  inv[1] = -m[1] * m[10] * m[15] +m[1] * m[11] * m[14] +m[9] * m[2] * m[15] -m[9] * m[3] * m[14] -m[13] * m[2] * m[11] +m[13] * m[3] * m[10];
+  inv[5] = m[0] * m[10] * m[15] -m[0] * m[11] * m[14] -m[8] * m[2] * m[15] +m[8] * m[3] * m[14] +m[12] * m[2] * m[11] -m[12] * m[3] * m[10];
+  inv[9] = -m[0] * m[9] * m[15] +m[0] * m[11] * m[13] +m[8] * m[1] * m[15] -m[8] * m[3] * m[13] -m[12] * m[1] * m[11] +m[12] * m[3] * m[9];
+  inv[13] = m[0] * m[9] * m[14] -m[0] * m[10] * m[13] -m[8] * m[1] * m[14] +m[8] * m[2] * m[13] +m[12] * m[1] * m[10] -m[12] * m[2] * m[9];
+  inv[2] = m[1] * m[6] * m[15] -m[1] * m[7] * m[14] -m[5] * m[2] * m[15] + m[5] * m[3] * m[14] +m[13] * m[2] * m[7] -m[13] * m[3] * m[6];
+  inv[6] = -m[0] * m[6] * m[15] +m[0] * m[7] * m[14] +m[4] * m[2] * m[15] -m[4] * m[3] * m[14] -m[12] * m[2] * m[7] +m[12] * m[3] * m[6];
+  inv[10] = m[0] * m[5] * m[15] -m[0] * m[7] * m[13] -m[4] * m[1] * m[15] +m[4] * m[3] * m[13] + m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
+  inv[14] = -m[0] * m[5] * m[14] +m[0] * m[6] * m[13] +m[4] * m[1] * m[14] -m[4] * m[2] * m[13] -m[12] * m[1] * m[6] +m[12] * m[2] * m[5];
+  inv[3] = -m[1] * m[6] * m[11] +m[1] * m[7] * m[10] + m[5] * m[2] * m[11] -m[5] * m[3] * m[10] - m[9] * m[2] * m[7] +m[9] * m[3] * m[6];
+  inv[7] = m[0] * m[6] * m[11] -m[0] * m[7] * m[10] -m[4] * m[2] * m[11] +m[4] * m[3] * m[10] +m[8] * m[2] * m[7] -m[8] * m[3] * m[6];
+  inv[11] = -m[0] * m[5] * m[11] +m[0] * m[7] * m[9] +m[4] * m[1] * m[11] -m[4] * m[3] * m[9] -m[8] * m[1] * m[7] +m[8] * m[3] * m[5];
+  inv[15] = m[0] * m[5] * m[10] -m[0] * m[6] * m[9] -m[4] * m[1] * m[10] +m[4] * m[2] * m[9] +m[8] * m[1] * m[6] -m[8] * m[2] * m[5];
+  det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+
+  if (det == 0)
+      return false;
+  det = 1.0 / det;
+  for (i = 0; i < 16; i++)
+      invOut[i] = inv[i] * det;
+  return true;
+}
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+void BmnUpstreamTracking::GlobalFit(Double_t** XYZsigXY, Double_t** Amatr_, Double_t* rhs_){
+  
+    Double_t sigmaX_2 = 999.;
+    Double_t sigmaY_2 = 999.;
+    Double_t X = 999., Y = 999., Z =999.;
+    
+  for (Int_t iSt = 0; iSt < kPoints; ++iSt) { 
+
+    Z = XYZsigXY[iSt][2];
+
+    if (XYZsigXY[iSt][0] > -900.){
+      X = XYZsigXY[iSt][0];
+      sigmaX_2 = XYZsigXY[iSt][3]* XYZsigXY[iSt][3];
+      
+      Amatr_[0][0] += 2*Z*Z/sigmaX_2;
+      Amatr_[0][1] += 2*Z/sigmaX_2;
+      rhs_[0] += 2*Z*X/sigmaX_2;
+      
+      Amatr_[1][0] += 2*Z/sigmaX_2;
+      Amatr_[1][1] += 2/sigmaX_2;
+      rhs_[1] += 2*X/sigmaX_2;
+    }
+    
+    if (XYZsigXY[iSt][1] > -900.){
+      Y = XYZsigXY[iSt][1];
+      sigmaY_2 = XYZsigXY[iSt][4]* XYZsigXY[iSt][4];
+
+      Amatr_[2][2] += 2*Z*Z/sigmaY_2;
+      Amatr_[2][3] += 2*Z/sigmaY_2;
+      rhs_[2] += 2*Z*Y/sigmaY_2;
+      
+      Amatr_[3][2] += 2*Z/sigmaY_2;
+      Amatr_[3][3] += 2/sigmaY_2;
+      rhs_[3] += 2*Y/sigmaY_2;
+    }
+    
+    for (Int_t coeff = 0; coeff < 4; ++coeff) {	
+      for (Int_t iCol = 0; iCol < 4; ++iCol) {
+        //if ( fDebug ) cout << "GLOBALFIT: station = " << iSt << " " << "Amatr_[" << coeff << "][" << iCol << "] = " << Amatr_[coeff][iCol] << "\n";   
+      }
+       // if ( fDebug ) cout<<" rhs_["<<coeff<<"] "<< rhs_[coeff]<<endl;
+    } 
+  }
+
+}//GlobalFit
+//----------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------
+InitStatus BmnUpstreamTracking::Init() {
+ 
+  if (fVerbose) cout << "BmnUpstreamTracking::Init()" << endl;
+  FairRootManager* ioman = FairRootManager::Instance();
+
+  
+  fSiTracks = (TClonesArray*) ioman->GetObject(fInputBranchName1);
+  if (!fSiTracks)
+  {
+    cout<<"BmnUpstreamTracking::Init(): branch "<<fInputBranchName1<<" not found! Task will be deactivated"<<endl;
+    SetActive(kFALSE);
+    return kERROR;
+  }
+  fSilHits = (TClonesArray*) ioman->GetObject(fInputBranchHits);
+  if (!fSilHits)
+  {
+    cout<<"BmnUpstreamTracking::Init(): branch "<<fInputBranchHits<<" not found! Task will be deactivated"<<endl;
+    SetActive(kFALSE);
+    return kERROR;
+  }
+  
+  fMWPCTracks = (TClonesArray*) ioman->GetObject(fInputBranchName2);
+  if (!fMWPCTracks)
+  {
+    cout<<"BmnUpstreamTracking::Init(): branch "<<fInputBranchName2<<" not found! Task will be deactivated"<<endl;
+    SetActive(kFALSE);
+    return kERROR;
+  }
+  fMWPCSegments = (TClonesArray*) ioman->GetObject(fInputBranchName3);
+  if (!fMWPCSegments)
+  {
+    cout<<"BmnUpstreamTracking::Init(): branch "<<fInputBranchName3<<" not found! Task will be deactivated"<<endl;
+    SetActive(kFALSE);
+    return kERROR;
+  }
+  
+  // Create and register tracks arrays
+  fBmnUpstreamTracksArray = new TClonesArray(fOutputTracksBranchName);
+  ioman->Register("BmnUpstreamTrack", "UpstreamTrack", fBmnUpstreamTracksArray, kTRUE);
+ 
+  par_ab_Ch     = new Double_t**[kNumChambers];
+  par_ab_tr     = new Double_t**[kNumPairs];
+  SiXYhits      = new Double_t**[kNumStSi];
+  Points        = new Double_t**[kBig];
+  par_ab_SiTr   = new Double_t*[kNumPars];
+  par_ab_trz    = new Double_t*[kNumPairs];
+  par_Seg_z     = new Double_t*[kNumChambers];
+  Xforglfit     = new Double_t*[kPoints];
+  Amatr         = new Double_t*[4];
+  par_SiTr_z    = new Double_t[kBig];
+  X_shift_seg   = new Double_t[kNumChambers];
+  Z_pair        = new Double_t[kNumPairs];
+  Z_Chamber     = new Double_t[kNumChambers];
+  AmatrInverted = new Double_t[16];
+  rhs           = new Double_t[4];
+  AmatrArray    = new Double_t[16];
+  line          = new Double_t[4];
+  Nseg_Ch       = new Int_t[kNumChambers];
+  NPCTracks     = new Int_t[kNumPairs];
+  NSiXYhits     = new Int_t[kNumStSi];
+  X_shiftUp    = new Double_t[kPoints];
+  Y_shiftUp    = new Double_t[kPoints];
+  
+  for (Int_t i = 0; i < 4; i++) {
+    Amatr[i] = new Double_t[4];
+  }
+  
+  for (Int_t iPars = 0; iPars < kNumPars; iPars++) {
+    par_ab_SiTr[iPars] = new Double_t[kBig];
+  }
+  
+  for (Int_t iCh = 0; iCh < kNumChambers; iCh++) {
+    par_Seg_z[iCh] = new Double_t[kBig];
+    par_ab_Ch[iCh] = new Double_t*[kNumPars];
+    for (Int_t iPars = 0; iPars < kNumPars; iPars++) {
+      par_ab_Ch[iCh][iPars] = new Double_t[kBig];
+    }
+  }
+  for (Int_t ip = 0; ip < kNumPairs; ip++) {
+    par_ab_tr[ip] = new Double_t*[kNumPars];
+    par_ab_trz[ip]  = new Double_t[kBig];
+    for (Int_t iPars = 0; iPars < kNumPars; iPars++) {
+      par_ab_tr[ip][iPars] = new Double_t[kBig];
+    }
+  }
+  for (Int_t ist = 0; ist < kNumStSi; ist++) {
+    SiXYhits[ist] = new Double_t*[kBig];
+    for (Int_t ib = 0; ib < kBig; ib++) {
+      SiXYhits[ist][ib] = new Double_t[kNumPars];
+    }
+  }
+  for (Int_t ib = 0; ib < kBig; ib++) {
+    Points[ib] = new Double_t*[kPoints];
+    for (Int_t ip = 0; ip < kPoints; ip++) {
+      Points[ib][ip] = new Double_t[kPoin_Par];
+    }
+  }
+  for (Int_t ip = 0; ip < kPoints; ip++) {
+    Xforglfit[ip] = new Double_t[kPoin_Par]; 
+  }
+  
+  //--some hists--
+  if (fDebug) {
+    hNSi_NPC=  new TH1D("NSi_NPC","NSitracks / NPCtracks(pair1)", 5,0,5);
+    hNPC_NSi=  new TH1D("NPC_NSi","NPCtracks(pair1)/NSitracks ", 5,0,5);
+    fList.Add(hNSi_NPC);
+    fList.Add(hNPC_NSi);
+    hAx_fitUp   =  new TH1D("Ax_fitUp","Ax_fitUp;[rad]", 100, -0.05, 0.05);
+    hAy_fitUp   =  new TH1D("Ay_fitUp","Ay_fitUp;[rad]", 100, -0.05, 0.05);
+    hx_fitUp    =  new TH1D("x_fitUp","x_fitUp;[cm]",  100, -10, 10);
+    hy_fitUp    =  new TH1D("y_fitUp","y_fitUp;[cm]",  100, -10, 10);
+    hchi2_fitUp =  new TH1D("chi2_fitUp","Chi2",       100, 0, 100);
+    hNhitsUp    =  new TH1D("NhitsUp","Number of hits", 10, 0.5, 10.5);
+    fList.Add(hAx_fitUp);
+    fList.Add(hAy_fitUp);
+    fList.Add(hx_fitUp);
+    fList.Add(hy_fitUp);
+    fList.Add(hchi2_fitUp);
+    fList.Add(hNhitsUp);
+    
+    TH1D *h;
+    for (Int_t i = 0; i < kPoints; ++i) {
+      if (i == 2 || i == 4)  h = new TH1D(Form("ResXst%d", i), Form("ResXst%d", i), 100, -0.5, 0.5);
+      else h = new TH1D(Form("ResXst%d", i), Form("ResXst%d", i), 100, -0.03, 0.03);
+      fList.Add(h);
+      hResXst.push_back(h);
+    }
+    for (Int_t i = 0; i < kPoints; ++i) {
+      if (i == 2 )  h = new TH1D(Form("ResYst%d", i), Form("ResYst%d", i), 100, -0.4, 0.4);
+      else if(i == 4) h = new TH1D(Form("ResYst%d", i), Form("ResYst%d", i), 100, -0.2, 0.2);
+      else h = new TH1D(Form("ResYst%d", i), Form("ResYst%d", i), 100, -0.6, 0.6);
+      fList.Add(h); 
+      hResYst.push_back(h);
+    }
+    
+  }
+  
+  Z_pair[0]    = -808.816;
+  Z_pair[1]    = -289.401;
+  Z_Chamber[0] = -858.;
+  Z_Chamber[1] = -761.;
+  Z_Chamber[2] = -364.;
+  Z_Chamber[3] = -214.;
+  
+  //--Shift--
+  X_shift_seg[0] =  0.;
+  X_shift_seg[1] =  0.;
+  X_shift_seg[2] = -0.04;
+  X_shift_seg[3] = -0.05;
+  
+  //-- 5 detectors Shift---
+  X_shiftUp[0] = 0.;//
+  X_shiftUp[1] = 0.;
+  X_shiftUp[2] = 0.;
+  X_shiftUp[3] = 0.;
+  X_shiftUp[4] = 0.;//-0.015;
+  
+  Y_shiftUp[0] = 0.;//-0.005 + 0.02-0.005-0.008+0.03;
+  Y_shiftUp[1] = 0.;//+0.03;
+  Y_shiftUp[2] = 0.;//+0.006;
+  Y_shiftUp[3] = 0.;//+.1;
+  Y_shiftUp[4] = 0.;//+0.002;
+  
+  return kSUCCESS;
+}
+//----------------------------------------------------------------------
+
+
+//---------------------Initialisation-----------------------------------
+void BmnUpstreamTracking::PrepareArraysToProcessEvent() {
+  fBmnUpstreamTracksArray->Clear();
+  //fBmnUpstreamTracksArray->Delete();
+  OutVector.clear();
+  vecUpTracks.clear();
+  
+  NSiTracks = 0;
+  for (Int_t iPars = 0; iPars < kNumPars; iPars++) {
+    for (Int_t j = 0; j < kBig; j++) {
+     par_ab_SiTr[iPars][j] = -999.;
+     par_SiTr_z[j]     = -999.;
+    }
+  }
+  
+  for (Int_t iCh = 0; iCh < kNumChambers; iCh++) {
+    Nseg_Ch[iCh] = 0;
+    
+    for (Int_t iPars = 0; iPars < kNumPars; iPars++) {
+      for (Int_t j = 0; j < kBig; j++) {
+        par_ab_Ch[iCh][iPars][j] = -999.;
+        par_Seg_z[iCh][j] = -999.;
+      }
+    }
+  }
+  for (Int_t ip = 0; ip < kNumPairs; ip++) {
+    NPCTracks[ip] = 0;
+    for (Int_t iPars = 0; iPars < kNumPars; iPars++) {
+     for (Int_t j = 0; j < kBig; j++) {
+      par_ab_tr[ip][iPars][j] = -999.;
+      }
+    }
+  }
+  for (Int_t ist = 0; ist < kNumStSi; ist++) {
+    NSiXYhits[ist] = 0;
+    for (Int_t ib = 0; ib < kBig; ib++) {
+      for (Int_t iPars = 0; iPars < kNumPars; iPars++) {
+        SiXYhits[ist][ib][iPars] = -999.;
+      }
+    }
+  }
+  for (Int_t ib = 0; ib < kBig; ib++) {
+    for (Int_t ip = 0; ip < kPoints; ip++) {
+      for (Int_t i = 0; i < kPoin_Par; i++) {
+        Points[ib][ip][i] = -999.;
+      }
+    }
+  }
+
+}
+//----------------------------------------------------------------------
+
+
+
+//-------------------------constructor----------------------------------
+BmnUpstreamTracking::BmnUpstreamTracking(Int_t runNumber) {
+
+  fRunNumber = runNumber;
+  fInputBranchName1       = "BmnSiliconTrack";
+  fInputBranchName2       = "BmnMwpcTrack";
+  fInputBranchName3       = "BmnMwpcSegment";
+  fInputBranchHits        = "BmnSiliconHits";
+  fOutputTracksBranchName = "BmnTrack";
+  
+}
+//----------------------------------------------------------------------
+
+
+//-------------------Destructor-----------------------------------------
+BmnUpstreamTracking::~BmnUpstreamTracking() {
+  
+  for (Int_t iPars = 0; iPars < kNumPars; iPars++) {
+    delete[] par_ab_SiTr[iPars];
+  }
+  for (Int_t iCh = 0; iCh < kNumChambers; iCh++) {
+    delete[] par_ab_Ch[iCh];
+    delete[] par_Seg_z[iCh];
+    for (Int_t iPars = 0; iPars < kNumPars; iPars++) {
+      delete[] par_ab_Ch[iCh][iPars];
+    }
+  }
+  for (Int_t ip = 0; ip < kNumPairs; ip++) {
+    delete[] par_ab_tr[ip];
+    delete[] par_ab_trz[ip];
+    for (Int_t iPars = 0; iPars < kNumPars; iPars++) {
+      delete[] par_ab_tr[ip][iPars];
+    }
+  }
+  for (Int_t ist = 0; ist < kNumStSi; ist++) {
+    delete[] SiXYhits[ist];
+    for (Int_t ib = 0; ib < kBig; ib++) {
+      delete[] SiXYhits[ist][ib];
+    }
+  }
+  for (Int_t ib = 0; ib < kBig; ib++) {
+    delete[] Points[ib];
+    for (Int_t ip = 0; ip < kPoints; ip++) {
+      delete[] Points[ib][ip];
+    }
+  }
+  for (Int_t ip = 0; ip < kPoints; ip++) {
+    delete[] Xforglfit[ip];
+  }
+  for (Int_t i = 0; i < 4; i++) {
+    delete[] Amatr[i];
+  }
+  delete[] X_shiftUp;
+  delete[] AmatrInverted;
+  delete[] rhs;
+  delete[] AmatrArray;
+  delete[] Amatr;
+  delete[] line;
+  delete[] Xforglfit;
+  delete[] Points;
+  delete[] NSiXYhits;
+  delete[] SiXYhits;
+  delete[] par_ab_trz;
+  delete[] par_ab_tr;
+  delete[] par_ab_SiTr;
+  delete[] par_SiTr_z;
+  delete[] par_ab_Ch;
+  delete[] par_Seg_z;
+  delete[] Nseg_Ch;
+}
+//----------------------------------------------------------------------
+
+
+
+//----------------------------------------------------------------------
+void BmnUpstreamTracking::Finish() {
+
+  if (fDebug) {
+    
+   printf("BmnUpstreamTracking: write hists to file... ");
+   fOutputFileName = Form("UpstreamTracks_run%d.root", fRunNumber);
+   cout<< fOutputFileName <<endl;
+   TFile file(fOutputFileName, "RECREATE");
+   fList.Write();
+   file.Close();
+  }
+
+  cout << "Work time of the UpstreamTrack finder: " << workTime << " s" << endl;
+}
+//----------------------------------------------------------------------
+
+ClassImp(BmnUpstreamTracking)

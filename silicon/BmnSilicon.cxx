@@ -7,6 +7,8 @@
 #include "TParticlePDG.h"
 #include "TGDMLParse.h"
 #include "TGeoManager.h"
+#include "TRegexp.h"
+#include "TFile.h"
 
 #include "FairRootManager.h"
 #include "FairVolume.h"
@@ -46,8 +48,8 @@ BmnSilicon::~BmnSilicon() {
 
 //------------------------------------------------------------------------------
 
-Bool_t BmnSilicon::ProcessHits(FairVolume* vol)
-{
+Bool_t BmnSilicon::ProcessHits(FairVolume* vol) {
+
     // Set parameters at entrance of volume. Reset ELoss.
     if(gMC->IsTrackEntering()) {
 
@@ -67,7 +69,6 @@ Bool_t BmnSilicon::ProcessHits(FairVolume* vol)
         gMC->TrackMomentum(MomIn);
         fMomIn.SetXYZ(MomIn.X(), MomIn.Y(), MomIn.Z());
 
-
         TParticle* part = 0;
         part = gMC->GetStack()->GetCurrentTrack();
         if (part) {
@@ -77,7 +78,6 @@ Bool_t BmnSilicon::ProcessHits(FairVolume* vol)
         }
 
         fVolumeID = vol->getMCid();
-
         fTrackID = gMC->GetStack()->GetCurrentTrackNumber();
     }
 
@@ -95,11 +95,46 @@ Bool_t BmnSilicon::ProcessHits(FairVolume* vol)
         gMC->TrackMomentum(MomOut);
         fMomOut.SetXYZ(MomOut.X(), MomOut.Y(), MomOut.Z());
 
+        //correction step to avoid the seg. violation error due to invalid memory access
+        TVector3 diff_pos = fPosIn - fPosOut;
+
+        if(diff_pos.Mag() < 0.001) return kFALSE; //ignore points produced by tracks with zero length inside the current sens. volume
+        if(fMomOut.Mag() == 0) return kFALSE; // ignore points produced by tracks with zero momentum inside the current sens. volume
+
+        TVector3 corr_step = fMomOut;
+        corr_step.SetMag(0.001); // 10 um
+        TVector3 pos = fPosOut;
+	fPosOut = pos - corr_step;
+        gGeoManager->FindNode(fPosOut[0],fPosOut[1],fPosOut[2]);
+
+        if(gGeoManager->GetCurrentNode()->GetMotherVolume() == 0) return kFALSE; //check if the current node has its mother vol.
+
         BmnSiliconPoint *p = AddHit(fTrackID, fVolumeID,
                                     fPosIn, fPosOut,
                                     fMomIn, fMomOut,
                                     fTime, fLength, fELoss,
                                     fIsPrimary, fCharge, fPdgId);
+
+        // Determine station and module numbers for the current hit ------------
+        Int_t stationNum = -1; // current station number (default)
+        Int_t moduleNum = -1; // current module number (default)
+
+        TGeoVolume *motherVolume = gGeoManager->GetCurrentNode()->GetMotherVolume();
+        TString moduleVolumeName = motherVolume->GetName();
+
+        TRegexp expr = "^module[0-9]+_station[0-9]+$";
+        if(moduleVolumeName.Contains(expr)) {
+            TRegexp mod_expr = "module[0-9]+";
+            TRegexp stat_expr = "station[0-9]+";
+            moduleNum = TString(TString(moduleVolumeName(mod_expr))(TRegexp("[0-9]+"))).Atoi();
+            stationNum = TString(TString(moduleVolumeName(stat_expr))(TRegexp("[0-9]+"))).Atoi();
+        }
+        //cout << "stationNum = " << stationNum << "\n";
+        //cout << "moduleNum = " << moduleNum << "\n";
+        //cout << "\n";
+
+        p->SetStation(stationNum);
+        p->SetModule(moduleNum);
 
         ((CbmStack*)gMC->GetStack())->AddPoint(kSILICON);
     }
@@ -159,17 +194,17 @@ void BmnSilicon::ConstructGeometry() {
     TString fileName = GetGeometryFileName();
 
     if( fileName.EndsWith(".root") ) {
-        gLogger->Info(MESSAGE_ORIGIN, "Constructing Silicon geometry from ROOT file %s", fileName.Data());
+        LOG(info) << "Constructing Silicon geometry from ROOT file " << fileName.Data();
         ConstructRootGeometry();
     }
 
     else if ( fileName.EndsWith(".gdml") ) {
-        gLogger->Info(MESSAGE_ORIGIN, "Constructing Silicon geometry from GDML file %s", fileName.Data());
+        LOG(info) << "Constructing Silicon geometry from GDML file " << fileName.Data();
         ConstructGDMLGeometry();
     }
 
     else {
-        gLogger->Fatal(MESSAGE_ORIGIN, "Geometry format of Silicon file %s not supported.", fileName.Data());
+        LOG(fatal) << "Geometry format of Silicon file " << fileName.Data() << " not supported.";
     }
 }
 
@@ -198,7 +233,7 @@ void BmnSilicon::ConstructGDMLGeometry() {
          j--;
     } while (curId > 1);
 
-    //   LOG(DEBUG) << "====================================================================" << FairLogger::endl;
+    //   LOG(DEBUG) << "====================================================================";
     //   for (Int_t i=0; i<gGeoManager->GetListOfMedia()->GetEntries(); i++)
     //       gGeoManager->GetListOfMedia()->At(i)->Dump();
 
@@ -209,7 +244,7 @@ void BmnSilicon::ConstructGDMLGeometry() {
 
     for(Int_t k = maxInd+1; k < newMaxInd+1; k++) {
         TGeoMedium* medToDel = (TGeoMedium*)(gGeoManager->GetListOfMedia()->At(maxInd+1));
-        LOG(DEBUG) << "    removing media " << medToDel->GetName() << " with id " << medToDel->GetId() << " (k=" << k << ")" << FairLogger::endl;
+        LOG(DEBUG) << "    removing media " << medToDel->GetName() << " with id " << medToDel->GetId() << " (k=" << k << ")";
         gGeoManager->GetListOfMedia()->Remove(medToDel);
     }
     gGeoManager->SetAllIndex();
@@ -218,14 +253,14 @@ void BmnSilicon::ConstructGDMLGeometry() {
 }
 
 void BmnSilicon::ExpandNodeForGdml(TGeoNode* node) {
-    LOG(DEBUG) << "----------------------------------------- ExpandNodeForGdml for node " << node->GetName() << FairLogger::endl;
+    LOG(DEBUG) << "----------------------------------------- ExpandNodeForGdml for node " << node->GetName();
 
     TGeoVolume* curVol = node->GetVolume();
 
-    LOG(DEBUG) << "    volume: " << curVol->GetName() << FairLogger::endl;
+    LOG(DEBUG) << "    volume: " << curVol->GetName();
 
     if(curVol->IsAssembly()) {
-        LOG(DEBUG) << "    skipping volume-assembly" << FairLogger::endl;
+        LOG(DEBUG) << "    skipping volume-assembly";
     }
     else {
         TGeoMedium* curMed = curVol->GetMedium();
@@ -235,41 +270,41 @@ void BmnSilicon::ExpandNodeForGdml(TGeoNode* node) {
         TGeoMaterial* curMatInGeoManager = gGeoManager->GetMaterial(curMat->GetName());
 
         // Current medium and material assigned to the volume from GDML
-        LOG(DEBUG2) << "    curMed\t\t\t\t" << curMed << "\t" << curMed->GetName() << "\t" << curMed->GetId() << FairLogger::endl;
-        LOG(DEBUG2) << "    curMat\t\t\t\t" << curMat << "\t" << curMat->GetName() << "\t" << curMat->GetIndex() << FairLogger::endl;
+        LOG(DEBUG2) << "    curMed\t\t\t\t" << curMed << "\t" << curMed->GetName() << "\t" << curMed->GetId();
+        LOG(DEBUG2) << "    curMat\t\t\t\t" << curMat << "\t" << curMat->GetName() << "\t" << curMat->GetIndex();
 
         // Medium and material found in the gGeoManager - either the pre-loaded one or one from GDML
         LOG(DEBUG2) << "    curMedInGeoManager\t\t" << curMedInGeoManager
-                 << "\t" << curMedInGeoManager->GetName() << "\t" << curMedInGeoManager->GetId() << FairLogger::endl;
+                 << "\t" << curMedInGeoManager->GetName() << "\t" << curMedInGeoManager->GetId();
         LOG(DEBUG2) << "    curMatOfMedInGeoManager\t\t" << curMatOfMedInGeoManager
-                 << "\t" << curMatOfMedInGeoManager->GetName() << "\t" << curMatOfMedInGeoManager->GetIndex() << FairLogger::endl;
+                 << "\t" << curMatOfMedInGeoManager->GetName() << "\t" << curMatOfMedInGeoManager->GetIndex();
         LOG(DEBUG2) << "    curMatInGeoManager\t\t" << curMatInGeoManager
-                 << "\t" << curMatInGeoManager->GetName() << "\t" << curMatInGeoManager->GetIndex() << FairLogger::endl;
+                 << "\t" << curMatInGeoManager->GetName() << "\t" << curMatInGeoManager->GetIndex();
 
         TString matName = curMat->GetName();
         TString medName = curMed->GetName();
 
         if (curMed->GetId() != curMedInGeoManager->GetId()) {
             if(fFixedMedia.find(medName) == fFixedMedia.end()) {
-                LOG(DEBUG) << "    Medium needs to be fixed" << FairLogger::endl;
+                LOG(DEBUG) << "    Medium needs to be fixed";
                 fFixedMedia[medName] = curMedInGeoManager;
                 Int_t ind = curMat->GetIndex();
                 gGeoManager->RemoveMaterial(ind);
-                LOG(DEBUG) << "    removing material " << curMat->GetName() << " with index " << ind << FairLogger::endl;
+                LOG(DEBUG) << "    removing material " << curMat->GetName() << " with index " << ind;
                 for(Int_t i=ind; i<gGeoManager->GetListOfMaterials()->GetEntries(); i++) {
                     TGeoMaterial* m = (TGeoMaterial*)gGeoManager->GetListOfMaterials()->At(i);
                     m->SetIndex(m->GetIndex()-1);
                 }
 
-                LOG(DEBUG) << "    Medium fixed" << FairLogger::endl;
+                LOG(DEBUG) << "    Medium fixed";
             }
             else {
-                LOG(DEBUG) << "    Already fixed medium found in the list    " << FairLogger::endl;
+                LOG(DEBUG) << "    Already fixed medium found in the list    ";
             }
         }
         else {
             if(fFixedMedia.find(medName) == fFixedMedia.end()) {
-                LOG(DEBUG) << "    There is no correct medium in the memory yet" << FairLogger::endl;
+                LOG(DEBUG) << "    There is no correct medium in the memory yet";
 
                 FairGeoLoader* geoLoad = FairGeoLoader::Instance();
                 FairGeoInterface* geoFace = geoLoad->getGeoInterface();
@@ -278,17 +313,17 @@ void BmnSilicon::ExpandNodeForGdml(TGeoNode* node) {
 
                 FairGeoMedium* curMedInGeo = geoMediaBase->getMedium(medName);
                 if(curMedInGeo == 0) {
-                    LOG(FATAL) << "    Media not found in Geo file: " << medName << FairLogger::endl;
+                    LOG(FATAL) << "    Media not found in Geo file: " << medName;
                     //! This should not happen.
                     //! This means that somebody uses material in GDML that is not in the media.geo file.
                     //! Most probably this is the sign to the user to check materials' names in the CATIA model.
                 }
                 else {
-                    LOG(DEBUG) << "    Found media in Geo file" << medName << FairLogger::endl;
+                    LOG(DEBUG) << "    Found media in Geo file" << medName;
                     Int_t nmed = geobuild->createMedium(curMedInGeo);
                     fFixedMedia[medName] = (TGeoMedium*)gGeoManager->GetListOfMedia()->Last();
                     gGeoManager->RemoveMaterial(curMatOfMedInGeoManager->GetIndex());
-                    LOG(DEBUG) << "    removing material " << curMatOfMedInGeoManager->GetName() << " with index " << curMatOfMedInGeoManager->GetIndex() << FairLogger::endl;
+                    LOG(DEBUG) << "    removing material " << curMatOfMedInGeoManager->GetName() << " with index " << curMatOfMedInGeoManager->GetIndex();
                     for(Int_t i=curMatOfMedInGeoManager->GetIndex(); i<gGeoManager->GetListOfMaterials()->GetEntries(); i++) {
                         TGeoMaterial* m = (TGeoMaterial*)gGeoManager->GetListOfMaterials()->At(i);
                         m->SetIndex(m->GetIndex()-1);
@@ -296,15 +331,15 @@ void BmnSilicon::ExpandNodeForGdml(TGeoNode* node) {
                 }
 
                 if(curMedInGeo->getSensitivityFlag()) {
-                    LOG(DEBUG) << "    Adding sensitive  " << curVol->GetName() << FairLogger::endl;
+                    LOG(DEBUG) << "    Adding sensitive  " << curVol->GetName();
                     AddSensitiveVolume(curVol);
                 }
              }
             else {
-                LOG(DEBUG) << "    Already fixed medium found in the list" << FairLogger::endl;
-                LOG(DEBUG) << "!!! Sensitivity: " << fFixedMedia[medName]->GetParam(0) << FairLogger::endl;
+                LOG(DEBUG) << "    Already fixed medium found in the list";
+                LOG(DEBUG) << "!!! Sensitivity: " << fFixedMedia[medName]->GetParam(0);
                 if(fFixedMedia[medName]->GetParam(0) == 1) {
-                    LOG(DEBUG) << "    Adding sensitive  " << curVol->GetName() << FairLogger::endl;
+                    LOG(DEBUG) << "    Adding sensitive  " << curVol->GetName();
                     AddSensitiveVolume(curVol);
                 }
             }

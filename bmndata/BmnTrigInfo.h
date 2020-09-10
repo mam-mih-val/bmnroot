@@ -1,14 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   TrigInfo.h
- * Author: ilnur
- *
- * Created on 25 апреля 2018 г., 12:12
+/** 
+ * Class BmnTrigInfo
+ * Trigger counters of the current spill
+ * from U40VE card
+ * \author Ilnur Gabdrakhmanov
  */
 
 #ifndef TRIGINFO_H
@@ -20,7 +14,7 @@
 class BmnTrigInfo : public TNamed {
 public:
     BmnTrigInfo();
-    BmnTrigInfo(BmnTriggerType trig, UInt_t cand, UInt_t acc, UInt_t befo, UInt_t afte, UInt_t rjct);
+    BmnTrigInfo(UInt_t cand, UInt_t acc, UInt_t befo, UInt_t afte, UInt_t rjct, UInt_t all, UInt_t avail);
     BmnTrigInfo(BmnTrigInfo* orig);
     virtual ~BmnTrigInfo();
     
@@ -63,27 +57,33 @@ public:
     UInt_t GetTrigRjct() {
         return fTrigRjct;
     }
-    
-    void SetTrigType(BmnTriggerType type) {
-        fTrigType = type;
+
+    void SetTrigAll(UInt_t _v) {
+        fTrigAll = _v;
     }
 
-    /** Get the type of this event*/
-    BmnTriggerType GetTrigType() {
-        return fTrigType;
+    UInt_t GetTrigAll() {
+        return fTrigAll;
     }
-    
+
+    void SetTrigAvail(UInt_t _v) {
+        fTrigAvail = _v;
+    }
+
+    UInt_t GetTrigAvail() {
+        return fTrigAvail;
+    }
     
 private:
-    /** Trigger Type (beam = 6 or target = 1)**/
-    BmnTriggerType fTrigType;
-    UInt_t fTrigCand;
-    UInt_t fTrigAcce;
-    UInt_t fTrigBefo;
-    UInt_t fTrigAfte;
-    UInt_t fTrigRjct;
+    UInt_t fTrigCand = 0;
+    UInt_t fTrigAcce = 0;
+    UInt_t fTrigBefo = 0;
+    UInt_t fTrigAfte = 0;
+    UInt_t fTrigRjct = 0;
+    UInt_t fTrigAll = 0;
+    UInt_t fTrigAvail = 0;
 
-    ClassDef(BmnTrigInfo, 1)
+    ClassDef(BmnTrigInfo, 2)
 };
 
 #endif /* TRIGINFO_H */

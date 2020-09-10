@@ -49,6 +49,12 @@ public:
     Double_t GetCharge() { return fCharge; }
     Double_t GetPdgId() { return fPdgId; }
 
+    Int_t GetStation() { return fStation; }
+    Int_t GetModule() { return fModule; }
+
+    void SetStation(Int_t station_num) { fStation = station_num; }
+    void SetModule(Int_t module_num) { fModule = module_num; }
+
     // Output to screen
     virtual void Print(const Option_t* opt) const;
 
@@ -61,6 +67,8 @@ protected:
     Double_t fX_out,  fY_out,  fZ_out;
     Double_t fPx_out, fPy_out, fPz_out;
 
+    Int_t fStation;
+    Int_t fModule;
 
     ClassDef(BmnSiliconPoint,1)
 };

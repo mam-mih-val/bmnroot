@@ -59,17 +59,14 @@ void BmnSsdSensor::CreateHit(Double_t xLocal, Double_t yLocal, Double_t varX,
 
   // ---  Check clusters and output array
 	if ( ! fHits ) {
-		LOG(FATAL) << GetName() << ": Hit output array not set!"
-				       << FairLogger::endl;
+		LOG(FATAL) << GetName() << ": Hit output array not set!";
 		return;
 	}
 	if ( ! clusterF ) {
-		LOG(FATAL) << GetName() << ": Invalid pointer to front cluster!"
-				       << FairLogger::endl;
+		LOG(FATAL) << GetName() << ": Invalid pointer to front cluster!";
 	}
 	if ( ! clusterB ) {
-		LOG(FATAL) << GetName() << ": Invalid pointer to back cluster!"
-				       << FairLogger::endl;
+		LOG(FATAL) << GetName() << ": Invalid pointer to back cluster!";
 	}
 
 	// --- If a TGeoNode is attached, transform into global coordinate system
@@ -109,7 +106,7 @@ void BmnSsdSensor::CreateHit(Double_t xLocal, Double_t yLocal, Double_t varX,
 	if ( fEvent) fEvent->AddData(kSsdHit, index);
 
 	LOG(DEBUG2) << GetName() << ": Creating hit at (" << global[0] << ", "
-			        << global[1] << ", " << global[2] << ")" << FairLogger::endl;
+			        << global[1] << ", " << global[2] << ")";
 	return;
 }
 // -------------------------------------------------------------------------
@@ -125,7 +122,7 @@ Int_t BmnSsdSensor::FindHits(vector<BmnSsdCluster*>& clusters,
 	Int_t nHits = 0;
 	//Int_t nHits = fType->FindHits(clusters, this, dTime);
 	LOG(DEBUG2) << GetName() << ": Clusters " << clusters.size()
-			        << ", hits " << nHits << FairLogger::endl;
+			        << ", hits " << nHits;
 	return nHits;
 }
 // -------------------------------------------------------------------------
@@ -306,9 +303,8 @@ Int_t BmnSsdSensor::ProcessPoint(const BmnSsdPoint* point,
                                                     bField[2] / 10.,
                                                     point->GetPid());
   LOG(DEBUG2) << GetName() << ": Local point coordinates are (" << x1
-  		        << ", " << y1 << "), (" << x2 << ", " << y2 << ")"
-  		        << FairLogger::endl;
-  LOG(DEBUG2) << point->IsEntry() << " " << point->IsExit() << FairLogger::endl;
+  		        << ", " << y1 << "), (" << x2 << ", " << y2 << ")";
+  LOG(DEBUG2) << point->IsEntry() << " " << point->IsExit();
 
   // --- Call ProcessPoint method from sensor type
   Int_t result = CalculateResponse(sPoint);

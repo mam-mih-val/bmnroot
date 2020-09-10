@@ -1,8 +1,29 @@
 #ifndef BMNRAWDATADECODER_H
 #define BMNRAWDATADECODER_H 1
 
+#include <bitset>
+#include <stdio.h>
+#include <stdlib.h>
+#include <cstdlib>
+#include <cstdio>
+#include <list>
+#include <map>
+#include <deque>
+#include <iostream>
+#include <vector>
+#include <fstream>
+//#include <regex>
+
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
 #include "TString.h"
 #include "TSystem.h"
+#include "TFile.h"
+#include "TTimeStamp.h"
+#include "TTree.h"
+#include "TClonesArray.h"
+
 #include "BmnEnums.h"
 #include "BmnTTBDigit.h"
 #include "BmnTDCDigit.h"
@@ -12,14 +33,7 @@
 #include "BmnTQDCADCDigit.h"
 #include "BmnLANDDigit.h"
 #include "BmnSyncDigit.h"
-#include "TFile.h"
-#include "TTimeStamp.h"
-#include "TTree.h"
-#include "TClonesArray.h"
-#include <iostream>
-#include <vector>
-#include <fstream>
-//#include <regex>
+#include "DigiRunHeader.h"
 #include "BmnGemRaw2Digit.h"
 #include "BmnGemStripDigit.h"
 #include "BmnMwpcRaw2Digit.h"
@@ -33,29 +47,20 @@
 #include "BmnTrigRaw2Digit.h"
 #include "BmnCscRaw2Digit.h"
 #include "BmnEventHeader.h"
-#include "BmnRunHeader.h"
-#include "BmnEnums.h"
 #include "DigiArrays.h"
-#include <bitset>
-#include <stdio.h>
-#include <stdlib.h>
-#include <cstdlib>
-#include <cstdio>
-#include <list>
-#include <map>
-#include <deque>
+#include "BmnMSCDigit.h"
 #include <UniDbDetectorParameter.h>
 #include <UniDbRun.h>
 #include "UniDbTangoData.h"
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
+#include "BmnMscRaw2Digit.h"
 
 /***************** SET OF DAQ CONSTANTS *****************/
 const UInt_t kSYNC1 = 0x2A502A50;
-const UInt_t kSYNC2 = 0x4A624A62;
+const UInt_t kENDOFSPILL = 0x4A624A62;
 const UInt_t kRUNSTARTSYNC = 0x72617453;
 const UInt_t kRUNSTOPSYNC = 0x706F7453;
 const UInt_t kRUNNUMBERSYNC = 0x236E7552;
+const UInt_t kRUNINDEXSYNC = 0x78646E49;
 const size_t kWORDSIZE = sizeof (UInt_t);
 const Short_t kNBYTESINWORD = 4;
 
@@ -91,7 +96,9 @@ const UInt_t kU40VE_RC = 0x4C;
 
 //event type trigger
 const UInt_t kEVENTTYPESLOT = 12;
-const UInt_t kGEMTRIGTYPE = 3;
+const UInt_t kWORDTAI = 2;
+const UInt_t kWORDTRIG = 3;
+const UInt_t kWORDAUX = 4;
 const UInt_t kTRIGBEAM = 6;
 const UInt_t kTRIGMINBIAS = 1;
 
@@ -103,7 +110,7 @@ namespace pt = boost::property_tree;
 
 class BmnRawDataDecoder {
 public:
-    BmnRawDataDecoder(TString file = "", ULong_t nEvents = 0, ULong_t period = 4);
+    BmnRawDataDecoder(TString file = "", TString outfile = "", ULong_t nEvents = 0, ULong_t period = 7);
     virtual ~BmnRawDataDecoder();
 
     BmnStatus ConvertRawToRoot();
@@ -273,6 +280,10 @@ public:
         fECALCalibrationFileName = cal;
     }
 
+    void SetMSCMapping(TString map) {
+        fMSCMapFileName = map;
+    }
+
     void SetLANDMapping(TString map) {
         fLANDMapFileName = map;
     }
@@ -314,11 +325,27 @@ public:
     }
 
     void SetBmnSetup(BmnSetup v) {
-        this->fBmnSetup = v;
+        fBmnSetup = v;
     }
 
     BmnSetup GetBmnSetup() const {
         return fBmnSetup;
+    }
+
+    void SetAdcDecoMode(BmnADCDecoMode v) {
+        fAdcDecoMode = v;
+    }
+
+    BmnADCDecoMode GetAdcDecoMode() const {
+        return fAdcDecoMode;
+    }
+
+    void SetVerbose(Int_t v) {
+        fVerbose = v;
+    }
+
+    Int_t GetVerbose() const {
+        return fVerbose;
     }
 
     UInt_t GetBoundaryRun(UInt_t nSmpl) {
@@ -327,12 +354,22 @@ public:
         //so we have to use this crutch.
         return (nSmpl == 128) ? 1542 : 1992;
     }
+    
+    void SetRawRootFile(TString filename) {
+        fRootFileName = filename;
+    }
+    
+    void SetDigiRootFile(TString filename) {
+        fDigiFileName = filename;
+    }
 
 private:
 
     //9 bits correspond to detectors which we need to decode
     Bool_t fDetectorSetup[11];
     pt::ptree conf;
+    Bool_t isSpillStart;
+    UInt_t fSpillCntr;
 
 
     Int_t fTOF700ReferenceRun;
@@ -370,10 +407,12 @@ private:
     Long64_t fCurentPositionRawFile;
 
     TTree *fRawTree;
+    TTree *fRawTreeSpills;
     TTree *fDigiTree;
     TString fRootFileName;
     TString fRawFileName;
     TString fDigiFileName;
+    TString fDigiRunHdrName;
     TString fDchMapFileName;
     TString fMwpcMapFileName;
     TString fGemMapFileName;
@@ -385,6 +424,7 @@ private:
     TString fZDCCalibrationFileName;
     TString fECALMapFileName;
     TString fECALCalibrationFileName;
+    TString fMSCMapFileName;
     TString fLANDMapFileName;
     TString fLANDClockFileName;
     TString fLANDTCalFileName;
@@ -424,8 +464,8 @@ private:
     TClonesArray *tqdc_tdc;
     TClonesArray *tqdc_adc;
     TClonesArray *msc;
+    BmnMSCDigit *fMSCRunTotal;
     BmnEventHeader *eventHeaderDAQ;
-    TClonesArray *pedestalAdc;
 
     //Digi arrays
     TClonesArray *silicon;
@@ -458,9 +498,15 @@ private:
     BmnZDCRaw2Digit *fZDCMapper;
     BmnECALRaw2Digit *fECALMapper;
     BmnLANDRaw2Digit *fLANDMapper;
+    BmnMscRaw2Digit *fMSCMapper;
+    UInt_t nSpillEvents;    
+    BmnTrigInfo* trigInfoTemp;
+    BmnTrigInfo* trigInfoSum;
     BmnEventType fCurEventType;
     BmnEventType fPrevEventType;
     BmnSetup fBmnSetup;
+    BmnADCDecoMode fAdcDecoMode;
+    UInt_t fPedEvCntrBySpill;
     UInt_t fPedEvCntr;
     Int_t fEvForPedestals;
     Bool_t fPedEnough;
@@ -475,6 +521,7 @@ private:
     map<TTimeStamp, Int_t> leaps;
     TTimeStamp utc_valid;
     Int_t tai_utc_dif;
+    Int_t fVerbose;
 
     int refrun_tof700_slewing[60];
     int refchamber_tof700_slewing[60];
@@ -494,9 +541,7 @@ private:
     BmnStatus FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);
 
-    BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t &idx) {
-        return kBMNSUCCESS;
-    };
+    BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t &idx);
     BmnStatus FillTimeShiftsMap();
     BmnStatus FillTimeShiftsMapNoDB(UInt_t t0serial);
 

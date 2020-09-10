@@ -14,12 +14,17 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(magnet);
 
     // -----   Create detectors        -------------------------
+
+    FairDetector* fd = new BmnFD("FD", kTRUE);
+    fd->SetGeometryFileName("FD_v10.root");
+    fRun->AddModule(fd);
+
     FairDetector* mwpc = new BmnMwpc("MWPC", kTRUE);
-    mwpc->SetGeometryFileName("MWPC_RunWinter2016.root");
+    mwpc->SetGeometryFileName("MWPC_RunSpring2018.root");
     fRun->AddModule(mwpc);
 
     FairDetector* bd = new BmnBd("BD", kTRUE);
-    bd->SetGeometryFileName("bd_v1_run7.geo");
+    bd->SetGeometryFileName("geom_BD_det_v2.root");
     fRun->AddModule(bd);
 
     FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
@@ -35,22 +40,23 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(csc);
 
     FairDetector* tof1 = new BmnTOF1("TOF1", kTRUE);
-    tof1->SetGeometryFileName("TOF400_RUN7.root");
+    tof1->SetGeometryFileName("TOF400_RUN7_BMN_byKolesnicov_Aligned.root");
     fRun->AddModule(tof1);
 
     FairDetector* dch = new BmnDch("DCH", kTRUE);
-    dch->SetGeometryFileName("DCH_RunWinter2016.root");
+    dch->SetGeometryFileName("DCH_RunSpring2018.root");
     fRun->AddModule(dch);
 
     FairDetector* tof2 = new BmnTOF("TOF", kTRUE);
     tof2->SetGeometryFileName("tof700_run7_with_support.root");
     fRun->AddModule(tof2);
 
-    FairDetector* emc = new BmnEcal("EMC", kTRUE);
-    emc->SetGeometryFileName("ecal_v1_0.geo");
-    fRun->AddModule(emc);
+    FairDetector* ecal = new BmnEcal("ECAL", kTRUE);
+    ecal->SetGeometryFileName("ECAL_v3_run7_pos4.root");
+    fRun->AddModule(ecal);
 
     BmnZdc* zdc = new BmnZdc("ZDC", kTRUE);
-    zdc->SetGeometryFileName("rootgeom_bmnzdc_104mods_v1_Zpos_8759mm_Xshift_313mm_Yshift_14mm.root");
+    //zdc->SetBirk();
+    zdc->SetGeometryFileName("ZDC_RunSpring2018.root");
     fRun->AddModule(zdc);
 }

@@ -106,7 +106,7 @@ void BmnTOF::EndOfEvent()
 //--------------------------------------------------------------------------------------------------------------------------------------
 void BmnTOF::Register()
 {
-	FairRootManager::Instance()->Register("TOFPoint","TOF", fTofCollection, kTRUE);
+    FairRootManager::Instance()->Register("TOF700Point","TOF", fTofCollection, kTRUE);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -160,15 +160,15 @@ void BmnTOF::ConstructGeometry()
     TString fileName = GetGeometryFileName();
     if (fileName.EndsWith(".root"))
     {
-        gLogger->Info(MESSAGE_ORIGIN, "Constructing TOF geometry from ROOT file %s", fileName.Data());
+        LOG(info) << "Constructing TOF geometry from ROOT file " << fileName.Data();
         ConstructRootGeometry();
     }
     else if ( fileName.EndsWith(".geo") )
     {
-        gLogger->Info(MESSAGE_ORIGIN, "Constructing TOF geometry from ASCII file %s", fileName.Data());
+        LOG(info) << "Constructing TOF geometry from ASCII file " << fileName.Data();
         ConstructAsciiGeometry();
     }
-    else gLogger->Fatal(MESSAGE_ORIGIN, "Geometry format of TOF file %S not supported.", fileName.Data());
+    else LOG(fatal) << "Geometry format of TOF file " << fileName.Data() << " not supported.";
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------

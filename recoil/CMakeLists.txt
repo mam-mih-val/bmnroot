@@ -1,8 +1,7 @@
-# Create a library called "libRecoil" which includes the source files given in the array
+# Create a library called "libRecoil"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/mcstack
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/recoil
 )
@@ -34,6 +33,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF BmnRecoilLinkDef.h)
 Set(LIBRARY_NAME Recoil)
-Set(DEPENDENCIES Core Base)
+Set(DEPENDENCIES BmnData Base Core)
 
 GENERATE_LIBRARY()

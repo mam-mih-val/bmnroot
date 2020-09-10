@@ -29,10 +29,10 @@ void create_rootgeom_TOF700_support() {
 	sprintf(name,"Channel_%d_PosTOF2_trans", i+1);
 	ChannelPosTOF2_trans[i] = new TGeoTranslation(name, Support_TOF2_X_center[i], Support_TOF2_Y_center[i], Support_TOF2_Z_center[i]);
     }
-    AirPosTOF2_trans[0] = new TGeoTranslation("AirPos0", 0., +Support_TOF2_thickness*2., 0.);
-    AirPosTOF2_trans[1] = new TGeoTranslation("AirPos1", 0., -Support_TOF2_thickness*2., 0.);
-    AirPosTOF2_trans[2] = new TGeoTranslation("AirPos2", +Support_TOF2_thickness*2., 0., 0.);
-    AirPosTOF2_trans[3] = new TGeoTranslation("AirPos3", -Support_TOF2_thickness*2., 0., 0.);
+    AirPosTOF2_trans[0] = new TGeoTranslation("AirPos0", 0., +Support_TOF2_thickness, 0.);
+    AirPosTOF2_trans[1] = new TGeoTranslation("AirPos1", 0., -Support_TOF2_thickness, 0.);
+    AirPosTOF2_trans[2] = new TGeoTranslation("AirPos2", +Support_TOF2_thickness, 0., 0.);
+    AirPosTOF2_trans[3] = new TGeoTranslation("AirPos3", -Support_TOF2_thickness, 0., 0.);
    
     char nTOF2ChannelS[TOF2_MAX_UBEAMS][32];
     char nTOF2ChannelAirS[TOF2_MAX_UBEAMS][32];
@@ -142,9 +142,8 @@ void create_rootgeom_TOF700_support() {
     //Adding volumes to the TOP Volume
     for (int i = 0; i < TOF2_MAX_UBEAMS; i++)
     {
-	TOF2Top->AddNode(TOF2ChannelV[i], i+1, ChannelPosTOF2_trans[i]);
+      TOF2Top->AddNode(TOF2ChannelV[i], i+1, ChannelPosTOF2_trans[i]);
     }
- 
 }
 
 int readGeomSupport(char *geomfile)

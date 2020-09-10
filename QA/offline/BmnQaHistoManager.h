@@ -15,14 +15,16 @@ public:
     /** Destructor **/
     virtual ~BmnQaHistoManager();
 
-    // Setters
-   
     // Getters
-  
+    TString GetListOfHistos() {
+        return ToString();
+    }
+    
+    // Setters
 
 private:
-       
-   
+
+
     ClassDef(BmnQaHistoManager, 1);
 
 };

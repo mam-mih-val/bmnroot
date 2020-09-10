@@ -1,44 +1,25 @@
 #include "BmnCoordinateDetQa.h"
 
-BmnCoordinateDetQa::BmnCoordinateDetQa(TString det, UInt_t runId) :
-fHistoManager(new BmnQaHistoManager()) {
-    Bool_t isBMN = kFALSE;
-    Bool_t isSRC = kFALSE;
-
-    TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
-
-    if (runId > 3589) // FIXME!
-        isBMN = kTRUE;
-    else
-        isSRC = kTRUE;
-
-    // GEM  
-    if (det.Contains("GEM")) {
-        TString confGEM = isBMN ? "GemRunSpring2018.xml" : isSRC ? "GemRunSRCSpring2018.xml" : "";
-        TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
-        fDetGem = new BmnGemStripStationSet(gPathGemConfig + confGEM);
-
-        DistributionOfFiredStrips <BmnGemStripStationSet> ((void*) fDetGem, "GEM");
-    } 
+BmnCoordinateDetQa::BmnCoordinateDetQa(TString det, UInt_t id) :
+fHistoManager(new BmnQaHistoManager()),
+fSteering(new BmnOfflineQaSteering()),
+fDetGem(nullptr),
+fDetSilicon(nullptr),
+fDetCsc(nullptr) {
+    fSteering->SetGeometriesByRunId(id, fDetGem, fDetSilicon, fDetCsc);
     
-    else if (det.Contains("SILICON")) {
+    pair <Int_t, TString> periodSetup = fSteering->GetRunAndSetupByRunId(id);
+    TString prefix = TString::Format("RUN%d_SETUP_%s_", periodSetup.first, periodSetup.second.Data());
+
+    if (det.Contains("GEM") && fDetGem) {
+        // GEM 
+        DistributionOfFiredStrips <BmnGemStripStationSet> ((void*) fDetGem, prefix + det);
+        DistributionOfFiredStripsVsSignal <BmnGemStripStationSet> ((void*) fDetGem, prefix + det);
+    } else if (det.Contains("SILICON") && fDetSilicon) {
         // SILICON
-        TString confSIL = isBMN ? "SiliconRunSpring2018.xml" : isSRC ? "SiliconRunSRCSpring2018.xml" : "";
-        TString gPathSilConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
-        fDetSilicon = new BmnSiliconStationSet(gPathSilConfig + confSIL);
-        
-        DistributionOfFiredStrips <BmnSiliconStationSet> ((void*) fDetSilicon, "SILICON");       
-    } 
-    
-    else if (det.Contains("CSC")) {
+        DistributionOfFiredStrips <BmnSiliconStationSet> ((void*) fDetSilicon, prefix + det);
+    } else if (det.Contains("CSC") && fDetCsc) {
         // CSC
-        TString confCSC = "CSCRunSpring2018.xml";
-        TString gPathCscConfig = gPathConfig + "/parameters/csc/XMLConfigs/";
-        fDetCsc = new BmnCSCStationSet(gPathCscConfig + confCSC);
-        
-        DistributionOfFiredStrips <BmnCSCStationSet> ((void*) fDetCsc, "CSC");
-    } 
-    
-    else
-        throw;
+        DistributionOfFiredStrips <BmnCSCStationSet> ((void*) fDetCsc, prefix + det);
+    }
 }

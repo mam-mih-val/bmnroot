@@ -1,7 +1,5 @@
 #include "BmnTrigRaw2Digit.h"
 #include <climits>
-#include <root/RtypesCore.h>
-#include <root/TPRegexp.h>
 
 BmnTrigParameters::BmnTrigParameters() {
     for (UInt_t i = 0; i < CHANNEL_COUNT_MAX; i++) {
@@ -122,6 +120,8 @@ BmnStatus BmnTrigRaw2Digit::ReadChannelMap(TString mappingFile) {
     while (!fMapFile.eof()) {
         fMapFile >> name >> mod >> hex >> ser >> dec >> slot >> ch >> neg;
         if (!fMapFile.good()) break;
+        if (ch < 0)
+            continue;
         BmnTrigChannelData record;
         record.branchArrayPtr = NULL;
         record.name = name;
@@ -178,7 +178,7 @@ BmnStatus BmnTrigRaw2Digit::ReadINLFromFile(BmnTrigParameters* par) {
         UShort_t i_bin = 0;
         while (ss.tellg() != -1) {
             if (i_bin > TDC_BIN_COUNT) {
-                perror("INL File contains too many bins in channel.\n");
+                printf("INL File contains too many bins in channel.\n");
                 ff.close();
                 return kBMNERROR;
             }
@@ -283,6 +283,7 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
 BmnStatus BmnTrigRaw2Digit::ClearArrays() {
     for (TClonesArray *ar : trigArrays)
         ar->Clear("C");
+    return kBMNSUCCESS;
 }
 
 ClassImp(BmnTrigRaw2Digit)

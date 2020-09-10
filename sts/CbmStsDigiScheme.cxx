@@ -189,7 +189,7 @@ CbmStsSensor* CbmStsDigiScheme::GetSensorByName(TString sensorName)
     return p->second;
   }else{
     LOG(DEBUG) << "StsDigiScheme: sensor " << sensorName.Data()
-               << " not found " << FairLogger::endl;
+               << " not found ";
     return NULL;
   }
 }
@@ -236,7 +236,7 @@ Bool_t CbmStsDigiScheme::InitNew(CbmGeoStsPar* geoPar,
     TGeoNode* node = cave->GetDaughter(iNode);
     TString name = node->GetName();
     cout<<"NODE: "<<name<<endl;
-    if ( name.Contains("GEMS_0") ) {
+    if ( name.Contains("GEMS") ) {
       sts = node;
       gGeoManager->CdDown(iNode);
       break;

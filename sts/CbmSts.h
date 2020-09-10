@@ -150,18 +150,14 @@ class CbmSts : public FairDetector
     Int_t          fTrackID;           //!  track index
     Int_t          fVolumeID;          //!  volume id
     Int_t          fDetectorId;        // ! Unique detector ID
-    TLorentzVector fPosIn, fPosOut;    //!  position
-    TLorentzVector fMomIn, fMomOut;    //!  momentum
+    TVector3       fPosIn, fPosOut;    //!  position
+    TVector3       fMomIn, fMomOut;    //!  momentum
     Double32_t     fTime;              //!  time
     Double32_t     fLength;            //!  length
     Double32_t     fELoss;             //!  energy loss
 
     Int_t          fPosIndex;          //!
     TClonesArray*  fStsCollection;     //!  The hit collection
-    Bool_t         kGeoSaved;          //!
-    TList *flGeoPar; //!
-    map<Int_t, Int_t> fVolumeMap;       //! Map from MC volume ID to unique detector ID
-    map<Int_t, Int_t>::iterator fVolumeMapIter;  //! Map iterator
 
     /** Private method AddHit
      **
@@ -191,10 +187,10 @@ class CbmSts : public FairDetector
 
 inline void CbmSts::ResetParameters() {
   fTrackID = fVolumeID = 0;
-  fPosIn.SetXYZM(0.0, 0.0, 0.0, 0.0);
-  fPosOut.SetXYZM(0.0, 0.0, 0.0, 0.0);
-  fMomIn.SetXYZM(0.0, 0.0, 0.0, 0.0);
-  fMomOut.SetXYZM(0.0, 0.0, 0.0, 0.0);
+  fPosIn.SetXYZ(0.0, 0.0, 0.0);
+  fPosOut.SetXYZ(0.0, 0.0, 0.0);
+  fMomIn.SetXYZ(0.0, 0.0, 0.0);
+  fMomOut.SetXYZ(0.0, 0.0, 0.0);
   fTime = fLength = fELoss = 0;
   fPosIndex = 0;
 };

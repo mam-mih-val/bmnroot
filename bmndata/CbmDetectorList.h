@@ -22,7 +22,10 @@ enum DetectorId {kREF,  // Reference plane
          kBD,           // Barrel
          kECAL,         // ECAL
          kSILICON,      // Silicon
+         kCSC,          // CSC
+         kFD,           // FD
          kSSD,          // SSD (Strip Silicon Detector)
+         kARMTRIG,      // ARMTRIG(X1, Y1, X2, Y2 for SRC arms)
          kNOFDETS}; // Number of elements (e.g. for loops)
 
 

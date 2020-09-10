@@ -1,17 +1,16 @@
-# Create a library called "libGlobalTracking".
+# Create a library called "libGlobalTracking"
 
-Set(INCLUDE_DIRECTORIES
+set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
+ ${CMAKE_SOURCE_DIR}/uni_db
+ ${CMAKE_SOURCE_DIR}/uni_db/db_classes
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/bmnfield
- ${CMAKE_SOURCE_DIR}/silicon
- ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/dch
  ${CMAKE_SOURCE_DIR}/mwpc
- ${CMAKE_SOURCE_DIR}/uni_db
- ${CMAKE_SOURCE_DIR}/uni_db/db_classes
+ ${CMAKE_SOURCE_DIR}/silicon
+ ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/globaltracking
 )
 
@@ -23,7 +22,7 @@ Set(SYSTEM_INCLUDE_DIRECTORIES
 include_directories(${INCLUDE_DIRECTORIES})
 Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
-Set(LINK_DIRECTORIES
+set(LINK_DIRECTORIES
  ${ROOT_LIBRARY_DIR}
  ${FAIRROOT_LIBRARY_DIR}
 )
@@ -31,30 +30,25 @@ Set(LINK_DIRECTORIES
 link_directories(${LINK_DIRECTORIES})
 
 # List of source files
-Set(SRCS
+set(SRCS
  BmnDetectorSetup.cxx
  BmnGlobalTracking.cxx
- #BmnSRCTriggersCheck.cxx
+ BmnUpstreamTracking.cxx
+ #BmnSRCTriggersCheck.cxx - compilation failed
  BmnTriggersCheck.cxx
  BmnVertexFinder.cxx
-)
+ SrcVertexFinder.cxx
 
-Set(HEADERS
- BmnDetectorSetup.h
- BmnGlobalTracking.h
- #BmnSRCTriggersCheck.h - compilation failed
- BmnTriggersCheck.h
  BmnHitFinderRun1.h
- BmnVertexFinder.h
 )
 
 If (Boost_FOUND)
   set(DEFINITIONS BOOST_FOUND)
 EndIf (Boost_FOUND)
 
+Set(HEADERS)
 Set(LINKDEF GlobalTrackingLinkDef.h)
 Set(LIBRARY_NAME GlobalTracking)
-Set(DEPENDENCIES Gem KF Sts BmnData Base)
+Set(DEPENDENCIES Gem Silicon Mwpc Dch BmnData UniDb Base Core)
 
 GENERATE_LIBRARY()
-

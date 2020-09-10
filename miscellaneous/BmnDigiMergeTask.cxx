@@ -368,7 +368,8 @@ fMwpc(nullptr),
 fDch(nullptr),
 fTof400(nullptr),
 fTof700(nullptr),
-fEcal(nullptr) {
+fEcal(nullptr),
+evId_evNum(nullptr) {
     nDets = files.size();
 
     isRun6 = (nDets == 14) ? kTRUE : kFALSE;
@@ -381,6 +382,7 @@ fEcal(nullptr) {
     fBC1Digits = new TClonesArray("BmnTrigDigit");
     fBC2Digits = new TClonesArray("BmnTrigDigit");
     fVetoDigits = new TClonesArray("BmnTrigDigit");
+    fBdDigits = new TClonesArray("BmnTrigDigit");
     fZdcDigits = new TClonesArray("BmnZDCDigit");
     fGemDigits = new TClonesArray("BmnGemStripDigit");
     fSilDigits = new TClonesArray("BmnSiliconDigit");
@@ -397,7 +399,6 @@ fEcal(nullptr) {
 
     if (isRun7 && !isSrc) {
         fBC3Digits = new TClonesArray("BmnTrigDigit");
-        fBdDigits = new TClonesArray("BmnTrigDigit");
         fSiDigits = new TClonesArray("BmnTrigDigit");
         fCscDigits = new TClonesArray("BmnCSCDigit");
     }
@@ -619,6 +620,9 @@ void BmnDigiMergeTask::CreateOutputFile(TString out) {
     fVeto = new TClonesArray("BmnTrigDigit");
     fOutTree->Branch("VETO", &fVeto);
 
+    fBd = new TClonesArray("BmnTrigDigit");
+    fOutTree->Branch("BD", &fBd);
+
     fMwpc = new TClonesArray("BmnMwpcDigit");
     fDch = new TClonesArray("BmnDchDigit");
     fTof400 = new TClonesArray("BmnTof1Digit");
@@ -644,8 +648,6 @@ void BmnDigiMergeTask::CreateOutputFile(TString out) {
         fOutTree->Branch("BC3", &fBC3);
         fSi = new TClonesArray("BmnTrigDigit");
         fOutTree->Branch("Si", &fSi);
-        fBd = new TClonesArray("BmnTrigDigit");
-        fOutTree->Branch("BD", &fBd);
     }
 
     if (isSrc) {
@@ -703,6 +705,20 @@ void BmnDigiMergeTask::CreateOutputFile(TString out) {
         fOutTree->Branch("TQDC_BC3", &fBC3TQDC);
         fBC4TQDC = new TClonesArray("BmnTrigWaveDigit");
         fOutTree->Branch("TQDC_BC4", &fBC4TQDC);
+    }
+
+    TClonesArray * arrRun6[] = {fGem, fSil, fZdc, fT0, fBC1, fBC2, fVeto, fFd, fBd, fMwpc, fDch, fTof400, fTof700, fEcal};
+    TClonesArray * arrRun7[] = {fBC1, fBC2, fBC3, fVeto, fSi, fBd, fZdc, fGem, fSil, fMwpc, fDch, fTof400, fEcal, fCsc, fTof700};
+    TClonesArray * arrRun7Src[] = {fGem, fSil, fCsc, fBC1, fBC2, fBC3, fBC4, fBC1TQDC, fBC2TQDC, fBC3TQDC, fBC4TQDC,
+        fX1L, fX2L, fY1L, fY2L, fX1R, fX2R, fY1R, fY2R, fX1LTQDC, fX2LTQDC, fY1LTQDC, fY2LTQDC, fX1RTQDC, fX2RTQDC, fY1RTQDC, fY2RTQDC,
+        fVeto, fVetoTQDC, fTof700, fZdc, fMwpc, fDch, fTof400, fEcal};
+
+    fOutArrs = new TClonesArray*[nDets];
+    for (Int_t iDet = 0; iDet < nDets; iDet++) {
+        if (!isSrc)
+            fOutArrs[iDet] = isRun6 ? arrRun6[iDet] : arrRun7[iDet];
+        else
+            fOutArrs[iDet] = arrRun7Src[iDet];
     }
 }
 
@@ -933,6 +949,8 @@ void BmnDigiMergeTask::SplitToDetectorsRun6() {
         BmnEventHeader* header = (BmnEventHeader*) fHeader1->UncheckedAt(0);
         fHeaderOut->SetRunId(header->GetRunId());
         fHeaderOut->SetEventId(header->GetEventId());
+        // if (header->GetEventType() == 0) cout << header->GetEventType() << endl;
+        fHeaderOut->SetEventType(header->GetEventType());
 
         if (fGemDigits)
             FillDetDigi <BmnGemStripDigit> (fGemDigits, fGem);
@@ -1130,8 +1148,9 @@ void BmnDigiMergeTask::SplitToDetectorsRun7() {
 
                 Int_t mod = dig->GetModule();
                 Int_t layer = dig->GetStripLayer();
-
-                new((*fSil)[fSil->GetEntriesFast()]) BmnSiliconDigit(stat, mod, layer, strip, signal);
+                
+                BmnSiliconDigit* outDig = new((*fSil)[fSil->GetEntriesFast()]) BmnSiliconDigit(stat, mod, layer, strip, signal);
+                outDig->SetIsGoodDigit(dig->IsGoodDigit());
             }
 
         if (fMwpcDigits)
@@ -1200,159 +1219,36 @@ void BmnDigiMergeTask::SplitToDetectorsRun7() {
 
 void BmnDigiMergeTask::ProcessEvents() {
     vector <UInt_t> nums;
-
     for (Int_t iDet = 0; iDet < nDets; iDet++)
         nums.push_back(fInFiles[iDet]->GetEntries());
 
-    UInt_t maxEvNums = *max_element(nums.begin(), nums.end());
-    fNevsInSample = 10; // FIXME
-    const Int_t sampleFactor = Int_t(maxEvNums / fNevsInSample);
+    maxEvId = *max_element(nums.begin(), nums.end()) + 100;
 
-    TString detsRun6[] = {"GEM", "SILICON", "ZDC", "T0", "BC1", "BC2", "VETO", "FD", "BD", "MWPC", "DCH", "TOF400", "TOF700", "ECAL"};
-    TString detsRun7[] = {"BC1", "BC2", "BC3", "VC", "Si", "BD", "ZDC", "GEM", "SILICON", "MWPC", "DCH", "TOF400", "ECAL", "CSC", "TOF700"};
-    TString detsRun7Src[] = {"GEM", "SILICON", "CSC",
-        "BC1", "BC2", "BC3", "BC4",
-        "TQDC_BC1", "TQDC_BC2", "TQDC_BC3", "TQDC_BC4",
-        "X1L", "X2L", "Y1L", "Y2L", "X1R", "X2R", "Y1R", "Y2R",
-        "TQDC_X1L", "TQDC_X2L", "TQDC_Y1L", "TQDC_Y2L", "TQDC_X1R", "TQDC_X2R", "TQDC_Y1R", "TQDC_Y2R",
-        "VETO", "TQDC_VETO",
-        "TOF700", "ZDC",
-        "MWPC", "DCH", "TOF400", "ECAL"};
+    evId_evNum = new Long_t*[maxEvId];
+    for (UInt_t iEle = 0; iEle < maxEvId; iEle++)
+        evId_evNum[iEle] = new Long_t[nDets];
 
-    for (Int_t iSample = 0; iSample < sampleFactor; iSample++) {
-        Int_t start = iSample * fNevsInSample;
-        Int_t finish = (iSample + 1) * fNevsInSample;
+    for (Long_t iEvId = 0; iEvId < maxEvId; iEvId++)
+        for (Int_t iDet = 0; iDet < nDets; iDet++)
+            evId_evNum[iEvId][iDet] = -1;
 
-        fCont = new BmnDigiContainer();
-
-        Bool_t isEventHeaderMissedInSample = kFALSE;
-
-        for (UInt_t iEntry = start; iEntry < finish; iEntry++) {
-            if (iEntry % 1000 == 0)
-                cout << "Event# " << iEntry << endl;
-
-            // Get entry all in files
-            for (Int_t iDet = 0; iDet < nDets; iDet++)
-                fInFiles[iDet]->GetEntry(iEntry);
-
-            // All triggers
-            vector <BmnTrigDigit> bc1, bc2, bc3, bc4, vc, si, bd, t0, fd, x1l, x2l, y1l, y2l, x1r, x2r, y1r, y2r;
-            vector <BmnTrigWaveDigit> tqdc_bc1, tqdc_bc2, tqdc_bc3, tqdc_bc4, tqdc_vc, tqdc_x1l, tqdc_x2l, tqdc_y1l, tqdc_y2l, tqdc_x1r, tqdc_x2r, tqdc_y1r, tqdc_y2r;
-
-            // All detectors
-            vector <BmnZDCDigit> zdc;
-            vector <BmnGemStripDigit> gem;
-            vector <BmnCSCDigit> csc;
-            vector <BmnSiliconDigit> silicon;
-            vector <BmnMwpcDigit> mwpc;
-            vector <BmnDchDigit> dch;
-            vector <BmnTof1Digit> tof400;
-            vector <BmnTof2Digit> tof700;
-            vector <BmnECALDigit> ecal;
-            
-            for (Int_t iDet = 0; iDet < nDets; iDet++) {
-                if (fInArrs[iDet] && fInFiles[iDet]->GetEntries() != 0) {
-                    if (iDet == 0)
-                        PushDigiVectors <BmnTrigDigit, BmnGemStripDigit, BmnGemStripDigit> (iDet, bc1, gem, gem); // run7BM@N -> run6BM@N -> run7SRC
-                    else if (iDet == 1)
-                        PushDigiVectors <BmnTrigDigit, BmnSiliconDigit, BmnSiliconDigit> (iDet, bc2, silicon, silicon);
-                    else if (iDet == 2)
-                        PushDigiVectors <BmnTrigDigit, BmnZDCDigit, BmnCSCDigit> (iDet, bc3, zdc, csc);
-                    else if (iDet == 3)
-                        PushDigiVectors <BmnTrigDigit, BmnTrigDigit, BmnTrigDigit> (iDet, vc, t0, bc1);
-                    else if (iDet == 4)
-                        PushDigiVectors <BmnTrigDigit, BmnTrigDigit, BmnTrigDigit> (iDet, si, bc1, bc2);
-                    else if (iDet == 5)
-                        PushDigiVectors <BmnTrigDigit, BmnTrigDigit, BmnTrigDigit> (iDet, bd, bc2, bc3);
-                    else if (iDet == 6)
-                        PushDigiVectors <BmnZDCDigit, BmnTrigDigit, BmnTrigDigit> (iDet, zdc, vc, bc4);
-                    else if (iDet == 7)
-                        PushDigiVectors <BmnGemStripDigit, BmnTrigDigit, BmnTrigWaveDigit> (iDet, gem, fd, tqdc_bc1);
-                    else if (iDet == 8)
-                        PushDigiVectors <BmnSiliconDigit, BmnTrigDigit, BmnTrigWaveDigit> (iDet, silicon, bd, tqdc_bc2);
-                    else if (iDet == 9)
-                        PushDigiVectors <BmnMwpcDigit, BmnMwpcDigit, BmnTrigWaveDigit> (iDet, mwpc, mwpc, tqdc_bc3);
-                    else if (iDet == 10)
-                        PushDigiVectors <BmnDchDigit, BmnDchDigit, BmnTrigWaveDigit> (iDet, dch, dch, tqdc_bc4);
-                    else if (iDet == 11)
-                        PushDigiVectors <BmnTof1Digit, BmnTof1Digit, BmnTrigDigit> (iDet, tof400, tof400, x1l);
-                    else if (iDet == 12)
-                        PushDigiVectors <BmnECALDigit, BmnTof2Digit, BmnTrigDigit> (iDet, ecal, tof700, x2l);
-                    else if (iDet == 13)
-                        PushDigiVectors <BmnCSCDigit, BmnECALDigit, BmnTrigDigit> (iDet, csc, ecal, y1l);
-                    else if (iDet == 14)
-                        PushDigiVectors <BmnTof2Digit, BmnTrigDigit> (iDet, tof700, y2l);
-                    else if (iDet == 15)
-                        PushDigiVectors <BmnTrigDigit> (iDet, x1r);
-                    else if (iDet == 16)
-                        PushDigiVectors <BmnTrigDigit> (iDet, x2r);
-                    else if (iDet == 17)
-                        PushDigiVectors <BmnTrigDigit> (iDet, y1r);
-                    else if (iDet == 18)
-                        PushDigiVectors <BmnTrigDigit> (iDet, y2r);
-                    else if (iDet == 19)
-                        PushDigiVectors <BmnTrigWaveDigit> (iDet, tqdc_x1l);
-                    else if (iDet == 20)
-                        PushDigiVectors <BmnTrigWaveDigit> (iDet, tqdc_x2l);
-                    else if (iDet == 21)
-                        PushDigiVectors <BmnTrigWaveDigit> (iDet, tqdc_y1l);
-                    else if (iDet == 22)
-                        PushDigiVectors <BmnTrigWaveDigit> (iDet, tqdc_y2l);
-                    else if (iDet == 23)
-                        PushDigiVectors <BmnTrigWaveDigit> (iDet, tqdc_x1r);
-                    else if (iDet == 24)
-                        PushDigiVectors <BmnTrigWaveDigit> (iDet, tqdc_x2r);
-                    else if (iDet == 25)
-                        PushDigiVectors <BmnTrigWaveDigit> (iDet, tqdc_y1r);
-                    else if (iDet == 26)
-                        PushDigiVectors <BmnTrigWaveDigit> (iDet, tqdc_y2r);
-                    else if (iDet == 27)
-                        PushDigiVectors <BmnTrigDigit> (iDet, vc);
-                    else if (iDet == 28)
-                        PushDigiVectors <BmnTrigWaveDigit> (iDet, tqdc_vc);
-                    else if (iDet == 29)
-                        PushDigiVectors <BmnTof2Digit> (iDet, tof700);
-                    else if (iDet == 30)
-                        PushDigiVectors <BmnZDCDigit> (iDet, zdc);
-                    else if (iDet == 31)
-                        PushDigiVectors <BmnMwpcDigit> (iDet, mwpc);
-                    else if (iDet == 32)
-                        PushDigiVectors <BmnDchDigit> (iDet, dch);
-                    else if (iDet == 33)
-                        PushDigiVectors <BmnTof1Digit> (iDet, tof400);
-                    else if (iDet == 34)
-                        PushDigiVectors <BmnECALDigit> (iDet, ecal);
-                }
-            }
-
-            for (Int_t iDet = 0; iDet < nDets; iDet++) {
-                BmnEventHeader* header = fHeaders[iDet];
-                if (!fInArrs[iDet] || !header) {
-                    isEventHeaderMissedInSample = kTRUE;
-                    continue;
-                }
-                TString currDet = (isRun7 && !isSrc) ? detsRun7[iDet] : (isRun6 && !isSrc) ? detsRun6[iDet] : detsRun7Src[iDet];
-                fCont->SetEventHeadersPerEachDetector(currDet, header->GetEventId(), *header);
-                fCont->SetDigi(currDet, header->GetEventId(),
-                        bc1, bc2, bc3, bc4, vc, si, bd, t0, fd, x1l, x2l, y1l, y2l, x1r, x2r, y1r, y2r,
-                        tqdc_bc1, tqdc_bc2, tqdc_bc3, tqdc_bc4, tqdc_vc, tqdc_x1l, tqdc_x2l, tqdc_y1l, tqdc_y2l, tqdc_x1r, tqdc_x2r, tqdc_y1r, tqdc_y2r,
-                        zdc, gem, csc, silicon, mwpc, dch, tof400, tof700, ecal);
-            }
+    for (Int_t iDet = 0; iDet < nDets; iDet++) {
+        BmnEventHeader* header = fHeaders[iDet];
+        for (Int_t iEntry = 0; iEntry < fInFiles[iDet]->GetEntries(); iEntry++) {
+            fInFiles[iDet]->GetEntry(iEntry);
+            //cout << iDet << " " << header->GetEventId() << endl;
+            evId_evNum[header->GetEventId()][iDet] = iEntry;
         }
-        GlueEventsFromInputFiles(isEventHeaderMissedInSample, start, finish + 1);
-        delete fCont;
     }
+    GlueEventsFromInputFiles();
 }
 
-void BmnDigiMergeTask::GlueEventsFromInputFiles(Bool_t flag, UInt_t s, UInt_t f) {
-    map <pair <UInt_t, TString>, BmnEventHeader> headMap = fCont->GetEventHeaderMap();
-
-    TString detWithEventHeader = flag ? "GEM" : (isRun7) ? "BC1" : "ZDC";
-
-    for (UInt_t iEvId = s - Int_t(fNevsInSample / 2); iEvId < f + Int_t(fNevsInSample / 2); iEvId++) {
+void BmnDigiMergeTask::GlueEventsFromInputFiles() {
+    for (UInt_t iEvId = 0; iEvId < maxEvId; iEvId++) {
         fBC1->Delete();
         fBC2->Delete();
         fVeto->Delete();
+        fBd->Delete();
         fZdc->Delete();
         fGem->Delete();
         fSil->Delete();
@@ -1369,7 +1265,6 @@ void BmnDigiMergeTask::GlueEventsFromInputFiles(Bool_t flag, UInt_t s, UInt_t f)
 
         if (isRun7 && !isSrc) {
             fBC3->Delete();
-            fBd->Delete();
             fSi->Delete();
             fCsc->Delete();
         }
@@ -1405,193 +1300,20 @@ void BmnDigiMergeTask::GlueEventsFromInputFiles(Bool_t flag, UInt_t s, UInt_t f)
             fBC4TQDC->Delete();
         }
 
-        // Get EventHeader of the latest version
-        for (auto it : headMap) {
-            if (it.first.first != iEvId)
-                continue;
-
-            if (it.first.second.Contains(detWithEventHeader.Data())) {
-                BmnEventHeader head = it.second;
-                fHeaderOut->SetRunId(head.GetRunId());
-                fHeaderOut->SetEventId(it.first.first);
-            }
-        }
-
         for (Int_t iDet = 0; iDet < nDets; iDet++) {
-            if (iDet == 0)
-                FillDigisOverRuns <BmnTrigDigit, BmnGemStripDigit, BmnGemStripDigit>
-                    (iEvId, fCont->GetTrigDigi("BC1"), fCont->GetGemDigi(), fCont->GetGemDigi(), fBC1, fGem, fGem);
+            fHeaderOut->SetRunId(fHeaders[iDet]->GetRunId());
+            fHeaderOut->SetEventId(fHeaders[iDet]->GetEventId());
 
-            else if (iDet == 1)
-                FillDigisOverRuns <BmnTrigDigit, BmnSiliconDigit, BmnSiliconDigit>
-                    (iEvId, fCont->GetTrigDigi("BC2"), fCont->GetSiliconDigi(), fCont->GetSiliconDigi(), fBC2, fSil, fSil);
+            if (evId_evNum[iEvId][iDet] % 1000 == 0)
+                cout << "Det# " << iDet << " Event# " << evId_evNum[iEvId][iDet] << endl;
 
-            else if (iDet == 2)
-                FillDigisOverRuns <BmnTrigDigit, BmnZDCDigit, BmnCSCDigit>
-                    (iEvId, fCont->GetTrigDigi("BC3"), fCont->GetZdcDigi(), fCont->GetCscDigi(), fBC3, fZdc, fCsc);
-
-            else if (iDet == 3)
-                FillDigisOverRuns <BmnTrigDigit, BmnTrigDigit, BmnTrigDigit>
-                    (iEvId, fCont->GetTrigDigi("VETO"), fCont->GetTrigDigi("T0"), fCont->GetTrigDigi("BC1"), fVeto, fT0, fBC1);
-
-            else if (iDet == 4)
-                FillDigisOverRuns <BmnTrigDigit, BmnTrigDigit, BmnTrigDigit>
-                    (iEvId, fCont->GetTrigDigi("SI"), fCont->GetTrigDigi("BC1"), fCont->GetTrigDigi("BC2"), fSi, fBC1, fBC2);
-
-            else if (iDet == 5)
-                FillDigisOverRuns <BmnTrigDigit, BmnTrigDigit, BmnTrigDigit>
-                    (iEvId, fCont->GetTrigDigi("BD"), fCont->GetTrigDigi("BC2"), fCont->GetTrigDigi("BC3"), fBd, fBC2, fBC3);
-
-            else if (iDet == 6)
-                FillDigisOverRuns <BmnZDCDigit, BmnTrigDigit, BmnTrigDigit>
-                    (iEvId, fCont->GetZdcDigi(), fCont->GetTrigDigi("VETO"), fCont->GetTrigDigi("BC4"), fZdc, fVeto, fBC4);
-
-            else if (iDet == 7)
-                FillDigisOverRuns <BmnGemStripDigit, BmnTrigDigit, BmnTrigWaveDigit>
-                    (iEvId, fCont->GetGemDigi(), fCont->GetTrigDigi("FD"), fCont->GetTqdcTrigDigi("BC1"), fGem, fFd, fBC1TQDC);
-
-            else if (iDet == 8)
-                FillDigisOverRuns <BmnSiliconDigit, BmnTrigDigit, BmnTrigWaveDigit>
-                    (iEvId, fCont->GetSiliconDigi(), fCont->GetTrigDigi("BD"), fCont->GetTqdcTrigDigi("BC2"), fSil, fBd, fBC2TQDC);
-
-            else if (iDet == 9)
-                FillDigisOverRuns <BmnMwpcDigit, BmnMwpcDigit, BmnTrigWaveDigit>
-                    (iEvId, fCont->GetMwpcDigi(), fCont->GetMwpcDigi(), fCont->GetTqdcTrigDigi("BC3"), fMwpc, fMwpc, fBC3TQDC);
-
-            else if (iDet == 10)
-                FillDigisOverRuns <BmnDchDigit, BmnDchDigit, BmnTrigWaveDigit>
-                    (iEvId, fCont->GetDchDigi(), fCont->GetDchDigi(), fCont->GetTqdcTrigDigi("BC4"), fDch, fDch, fBC4TQDC);
-
-            else if (iDet == 11)
-                FillDigisOverRuns <BmnTof1Digit, BmnTof1Digit, BmnTrigDigit>
-                    (iEvId, fCont->GetTof400Digi(), fCont->GetTof400Digi(), fCont->GetTrigDigi("X1L"), fTof400, fTof400, fX1L);
-
-            else if (iDet == 12)
-                FillDigisOverRuns <BmnECALDigit, BmnTof2Digit, BmnTrigDigit>
-                    (iEvId, fCont->GetEcalDigi(), fCont->GetTof700Digi(), fCont->GetTrigDigi("X2L"), fEcal, fTof700, fX2L);
-
-            else if (iDet == 13)
-                FillDigisOverRuns <BmnCSCDigit, BmnECALDigit, BmnTrigDigit>
-                    (iEvId, fCont->GetCscDigi(), fCont->GetEcalDigi(), fCont->GetTrigDigi("Y1L"), fCsc, fEcal, fY1L);
-            else if (iDet == 14)
-                FillDigisOverRuns <BmnTof2Digit, BmnTrigDigit>
-                    (iEvId, fCont->GetTof700Digi(), fCont->GetTrigDigi("Y2L"), fTof700, fY2L);
-            else if (iDet == 15)
-                FillDetDigi <BmnTrigDigit>
-                    (iEvId, fCont->GetTrigDigi("X1R"), fX1R);
-            else if (iDet == 16)
-                FillDetDigi <BmnTrigDigit>
-                    (iEvId, fCont->GetTrigDigi("X2R"), fX2R);
-            else if (iDet == 17)
-                FillDetDigi <BmnTrigDigit>
-                    (iEvId, fCont->GetTrigDigi("Y1R"), fY1R);
-            else if (iDet == 18)
-                FillDetDigi <BmnTrigDigit>
-                    (iEvId, fCont->GetTrigDigi("Y2R"), fY2R);
-            else if (iDet == 19)
-                FillDetDigi <BmnTrigWaveDigit>
-                    (iEvId, fCont->GetTqdcTrigDigi("X1L"), fX1LTQDC);
-            else if (iDet == 20)
-                FillDetDigi <BmnTrigWaveDigit>
-                    (iEvId, fCont->GetTqdcTrigDigi("X2L"), fX2LTQDC);
-            else if (iDet == 21)
-                FillDetDigi <BmnTrigWaveDigit>
-                    (iEvId, fCont->GetTqdcTrigDigi("Y1L"), fY1LTQDC);
-            else if (iDet == 22)
-                FillDetDigi <BmnTrigWaveDigit>
-                    (iEvId, fCont->GetTqdcTrigDigi("Y2L"), fY2LTQDC);
-            else if (iDet == 23)
-                FillDetDigi <BmnTrigWaveDigit>
-                    (iEvId, fCont->GetTqdcTrigDigi("X1R"), fX1RTQDC);
-            else if (iDet == 24)
-                FillDetDigi <BmnTrigWaveDigit>
-                    (iEvId, fCont->GetTqdcTrigDigi("X2R"), fX2RTQDC);
-            else if (iDet == 25)
-                FillDetDigi <BmnTrigWaveDigit>
-                    (iEvId, fCont->GetTqdcTrigDigi("Y1R"), fY1RTQDC);
-            else if (iDet == 26)
-                FillDetDigi <BmnTrigWaveDigit>
-                    (iEvId, fCont->GetTqdcTrigDigi("Y2R"), fY2RTQDC);
-            else if (iDet == 27)
-                FillDetDigi <BmnTrigDigit>
-                    (iEvId, fCont->GetTrigDigi("VETO"), fVeto);
-            else if (iDet == 28)
-                FillDetDigi <BmnTrigWaveDigit>
-                    (iEvId, fCont->GetTqdcTrigDigi("VETO"), fVetoTQDC);
-            else if (iDet == 29)
-                FillDetDigi <BmnTof2Digit>
-                    (iEvId, fCont->GetTof700Digi(), fTof700);
-            else if (iDet == 30)
-                FillDetDigi <BmnZDCDigit>
-                    (iEvId, fCont->GetZdcDigi(), fZdc);
-            else if (iDet == 31)
-                FillDetDigi <BmnMwpcDigit>
-                    (iEvId, fCont->GetMwpcDigi(), fMwpc);
-            else if (iDet == 32)
-                FillDetDigi <BmnDchDigit>
-                    (iEvId, fCont->GetDchDigi(), fDch);
-            else if (iDet == 33)
-                FillDetDigi <BmnTof1Digit>
-                    (iEvId, fCont->GetTof400Digi(), fTof400);
-            else if (iDet == 34)
-                FillDetDigi <BmnECALDigit>
-                    (iEvId, fCont->GetEcalDigi(), fEcal);
+            fInFiles[iDet]->GetEntry(evId_evNum[iEvId][iDet]);          
+            
+            fOutArrs[iDet]->AbsorbObjects(fInArrs[iDet]);
         }
-
-        if (IsArraysEmpty())
-            continue;
 
         fOutTree->Fill();
     }
-}
-
-Bool_t BmnDigiMergeTask::IsArraysEmpty() {
-    if (fBC1->GetEntriesFast() == 0 &&
-            fBC2->GetEntriesFast() == 0 &&
-            fVeto->GetEntriesFast() == 0 &&
-            fZdc->GetEntriesFast() == 0 &&
-            fGem->GetEntriesFast() == 0 &&
-            fSil->GetEntriesFast() == 0 &&
-            fMwpc->GetEntriesFast() == 0 &&
-            fDch->GetEntriesFast() == 0 &&
-            fTof400->GetEntriesFast() == 0 &&
-            fTof700->GetEntriesFast() == 0 &&
-            fEcal->GetEntriesFast() == 0 &&
-
-            (isRun6 && !isSrc) ? (fT0->GetEntriesFast() == 0 && fFd->GetEntriesFast() == 0) :
-            (isRun7 && !isSrc) ? (fBC3->GetEntriesFast() == 0 && fBd->GetEntriesFast() == 0 && fSi->GetEntriesFast() == 0 && fCsc->GetEntriesFast() == 0) :
-
-            (fCsc->GetEntriesFast() == 0 &&
-            fBC3->GetEntriesFast() == 0 &&
-            fBC4->GetEntriesFast() == 0 &&
-
-            fVetoTQDC->GetEntriesFast() == 0 &&
-
-            fX1L->GetEntriesFast() == 0 &&
-            fX2L->GetEntriesFast() == 0 &&
-            fY1L->GetEntriesFast() == 0 &&
-            fY2L->GetEntriesFast() == 0 &&
-            fX1R->GetEntriesFast() == 0 &&
-            fX2R->GetEntriesFast() == 0 &&
-            fY1R->GetEntriesFast() == 0 &&
-            fY2R->GetEntriesFast() == 0 &&
-
-            fX1LTQDC->GetEntriesFast() == 0 &&
-            fX2LTQDC->GetEntriesFast() == 0 &&
-            fY1LTQDC->GetEntriesFast() == 0 &&
-            fY2LTQDC->GetEntriesFast() == 0 &&
-            fX1RTQDC->GetEntriesFast() == 0 &&
-            fX2RTQDC->GetEntriesFast() == 0 &&
-            fY1RTQDC->GetEntriesFast() == 0 &&
-            fY2RTQDC->GetEntriesFast() == 0 &&
-
-            fBC1TQDC->GetEntriesFast() == 0 &&
-            fBC2TQDC->GetEntriesFast() == 0 &&
-            fBC3TQDC->GetEntriesFast() == 0 &&
-            fBC4TQDC->GetEntriesFast() == 0))
-        return kTRUE;
-    else
-        return kFALSE;
 }
 
 void BmnDigiMergeTask::Run7(Int_t* statsGem, Int_t* statsSil, Int_t* statsGemPermut, Int_t* statsSilPermut) {

@@ -7,6 +7,7 @@
  *  e-mail:   litvin@nf.jinr.ru
  *  Version:  10-02-2016
  *  Last update:  10-02-2016 (EL)  
+ *  Updated:  09-08-2019 by Petr Alekseev <pnaleks@gmail.com>
  *
  ************************************************************************************/
 
@@ -194,9 +195,12 @@ Bool_t BmnEcal::ProcessHits(FairVolume* vol) {
 	       time, length, fELoss);
 #else
 
+    if (fELoss != 0.) {
       AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
 	     TVector3(tMom.Px(), tMom.Py(), tMom.Pz()),
 	     time, length, fELoss);
+    }
+
 #endif
 
       //// Int_t points = gMC->GetStack()->GetCurrentTrack()->GetMother(1);
@@ -288,6 +292,13 @@ void BmnEcal::CopyClones(TClonesArray* cl1, TClonesArray* cl2, Int_t offset ) {
 
  // -----   Public method ConstructGeometry   ----------------------------------
 void BmnEcal::ConstructGeometry() {
+
+  TString geoFileName = GetGeometryFileName();
+  if(geoFileName.EndsWith(".root")) {
+    LOG(info) << "Constructing ECAL geometry from ROOT file " << geoFileName.Data();
+    ConstructRootGeometry();
+  }
+    
  FairGeoLoader*    geoLoad = FairGeoLoader::Instance();
   FairGeoInterface* geoFace = geoLoad->getGeoInterface();
   BmnEcalGeo*      ecalGeo = new BmnEcalGeo();
@@ -325,6 +336,13 @@ void BmnEcal::ConstructGeometry() {
   ProcessNodes ( volList );
 }
   
+// -----   Public method CheckIfSensitive   -----------------------------------
+Bool_t BmnEcal::CheckIfSensitive(std::string name){
+    TString tsname = name;
+    if (tsname.Contains("laySci")) return kTRUE; //lay
+    
+    return kFALSE;
+}
  
 
 // -----   Private method AddHit   --------------------------------------------

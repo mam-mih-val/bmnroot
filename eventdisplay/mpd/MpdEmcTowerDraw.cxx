@@ -81,7 +81,7 @@ InitStatus MpdEmcTowerDraw::Init()
     fDigitList = (TClonesArray*) fManager->GetObject("EmcDigit");
     if (fDigitList == 0)
     {
-        LOG(ERROR)<<"MpdEmcTowerDraw::Init() branch EmcDigit not found! Task will be deactivated"<<FairLogger::endl;
+        LOG(ERROR)<<"MpdEmcTowerDraw::Init() branch EmcDigit not found! Task will be deactivated";
         SetActive(kFALSE);
         return kERROR;
     }

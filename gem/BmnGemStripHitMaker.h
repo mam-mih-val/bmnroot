@@ -13,8 +13,6 @@
 #include "FairTask.h"
 #include "FairMCPoint.h"
 
-#include <UniDbDetectorParameter.h>
-#include <UniDbRun.h>
 #include "FairField.h"
 #include "BmnGemStripDigit.h"
 #include "BmnGemStripHit.h"
@@ -50,6 +48,10 @@ public:
         fCurrentConfig = config;
     }
 
+    void SetSrcSetup(Bool_t f) {
+        fIsSrc = f;
+    }
+
 private:
 
     TString fInputPointsBranchName;
@@ -72,6 +74,7 @@ private:
 
     Bool_t fHitMatching;
     Bool_t fIsExp; // Specify type of input data (MC or real data)
+    Bool_t fIsSrc; // Specify type of setup (SRC or BM@N)
 
     BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;
 

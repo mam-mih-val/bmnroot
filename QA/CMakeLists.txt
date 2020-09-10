@@ -1,19 +1,23 @@
-# Create a library called "libBmnQa" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libBmnQa"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
+ ${CMAKE_SOURCE_DIR}/uni_db
+ ${CMAKE_SOURCE_DIR}/uni_db/db_classes
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/bmndst
+ ${CMAKE_SOURCE_DIR}/ssd/auxx/data
  ${CMAKE_SOURCE_DIR}/csc
+ ${CMAKE_SOURCE_DIR}/dch
  ${CMAKE_SOURCE_DIR}/silicon
- ${CMAKE_SOURCE_DIR}/ssd
- ${CMAKE_SOURCE_DIR}/ssd/aux/data
+ ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/sts
+ ${CMAKE_SOURCE_DIR}/steering
  ${CMAKE_SOURCE_DIR}/globaltracking
+ ${CMAKE_SOURCE_DIR}/physics/particles
+ ${CMAKE_SOURCE_DIR}/monitor
  ${CMAKE_SOURCE_DIR}/QA
  ${CMAKE_SOURCE_DIR}/QA/report
  ${CMAKE_SOURCE_DIR}/QA/offline
@@ -41,6 +45,7 @@ set(SRCS
  report/BmnHtmlReportElement.cxx
  report/BmnReport.cxx
  report/BmnDrawHist.cxx
+ report/BmnDrawOnline.cxx
  report/BmnHistManager.cxx
  report/BmnSimulationReport.cxx
  report/BmnReportElement.h
@@ -58,13 +63,14 @@ set(SRCS
  BmnMCPoint.h
  BmnMatchRecoToMC.cxx
 
-offline/BmnQaHistoManager.cxx
-offline/BmnQaOffline.cxx
-offline/BmnCoordinateDetQa.cxx
-offline/BmnTimeDetQa.cxx
-offline/BmnCalorimeterDetQa.cxx
-offline/BmnTrigDetQa.cxx
-offline/BmnDstQa.cxx
+ offline/BmnQaHistoManager.cxx
+ offline/BmnQaOffline.cxx
+ offline/BmnCoordinateDetQa.cxx
+ offline/BmnTimeDetQa.cxx
+ offline/BmnCalorimeterDetQa.cxx
+ offline/BmnTrigDetQa.cxx
+ offline/BmnDstQa.cxx
+ offline/BmnQaMonitor.cxx
 )
 
 EXEC_PROGRAM( ${ROOT_CONFIG_EXECUTABLE}
@@ -79,7 +85,7 @@ EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 Set(HEADERS)
 Set(LINKDEF BmnQALinkDef.h)
 Set(LIBRARY_NAME BmnQa)
-Set(DEPENDENCIES Core Base)
+Set(DEPENDENCIES BmnMonitor BmnParticles GlobalTracking BmnSteering BmnDst Sts Gem Silicon Dch CSC BmnSsd BmnData UniDb Base Core)
 
 If ( ${ROOT_HAS_GDML} STREQUAL yes )
  Set (DEPENDENCIES ${DEPENDENCIES} Gdml)

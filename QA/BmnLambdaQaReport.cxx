@@ -22,7 +22,7 @@
 #include "TPaveStats.h"
 #include "BmnLambdaQa.h"
 #include "BmnDrawHist.h"
-#include "../physics/particles/BmnParticlePairsInfo.h"
+#include "BmnParticlePairsInfo.h"
 #include <iostream>
 #include <vector>
 using namespace std;

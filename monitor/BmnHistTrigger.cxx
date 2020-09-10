@@ -27,7 +27,8 @@ BmnHistTrigger::BmnHistTrigger(TString title, TString path, Int_t periodID) : Bm
     histSiBSum = NULL;
     TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((fBmnSetup == kBMNSETUP) ? "" : "_SRC"));
     TString MapFileName = TString("Trig_map_Run") + PeriodSetupExt;
-    BmnTrigRaw2Digit *fTrigMapper = new BmnTrigRaw2Digit(MapFileName, "TRIG_INL.txt");
+//    TString("Trig_PlaceMap_Run") + PeriodSetupExt; 
+    BmnTrigRaw2Digit *fTrigMapper = new BmnTrigRaw2Digit("0.txt", MapFileName);
     TString name;
     fCols = TRIG_COLS;
     const Int_t rows4Summary = 2;
@@ -37,7 +38,7 @@ BmnHistTrigger::BmnHistTrigger(TString title, TString path, Int_t periodID) : Bm
         TString trName = map.name;
         re.Substitute(trName, "$1");
         //        printf("trname %s mod %d\n", map.name.Data(), map.module);
-        if (trName.Contains("BD") || trName.Contains("Si")) {
+        if (trName.Contains("BD") || trName.Contains("SI")) {
             Bool_t dupl = kFALSE;
             for (auto &tr : trigNames) {
                 if (!strcmp(tr.Data(), trName.Data())) {
@@ -53,8 +54,6 @@ BmnHistTrigger::BmnHistTrigger(TString title, TString path, Int_t periodID) : Bm
             TH1I* h = new TH1I(name, name, 300, 0, TRIG_TIME_WIN);
             hists.push_back(h);
         } else {
-            if (trName.Contains("ADC"))
-                continue;
             name = Form("%s_%d", trName.Data(), map.module);
             trigNames.push_back(name);
             name = fTitle + "_" + name + "_Time";

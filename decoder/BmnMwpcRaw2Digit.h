@@ -13,7 +13,6 @@
 #include <cstdlib>
 #include <bitset>
 #include <map>
-#include <UniDbDetectorParameter.h>
 
 #define N_WIRES_MWPC 96
 

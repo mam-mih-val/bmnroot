@@ -236,7 +236,7 @@ Bool_t FitWLSQ::Initial(Double_t *trk) {
     return kTRUE;
 }
 
-void FitWLSQ::CheckMatrix(Double_t *pdA, Double_t *pdB, char *sz) {
+void FitWLSQ::CheckMatrix(Double_t *pdA, Double_t *pdB, TString sz) {
     assert(pdA && pdB && NParams && sz);
 
     long l = cout.flags(ios::left);

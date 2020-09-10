@@ -1,9 +1,13 @@
+#include "../run/bmnloadlibs.C"
 //---------------------------
 
 #define TOF2_MAX_CHAMBERS 59
 #define TOF2_MAX_STRIPS_IN_CHAMBER 32
 
 TGeoManager* gGeoMan = NULL;
+TGeoVolume* TOF2Top = NULL;
+TGeoMedium* pMedAir = NULL;
+TGeoMedium* medAl = NULL;
 Double_t halfxwidth[TOF2_MAX_CHAMBERS];
 Double_t halfywidth[TOF2_MAX_CHAMBERS];
 Double_t xoffs, yoffs, zoffs;
@@ -25,7 +29,7 @@ Double_t ChamberThickness_TOF2    = 1.680;
 Double_t AlLayerThickness_TOF2    = 0.150;  
 Double_t GasLayerThickness_TOF2   = 0.264;  
 Double_t GlassLayerThickness_TOF2 = 0.860/2.;  
-Double_t G10LayerThickness_TOF2 = ChamberThickness_TOF2-AlLayerThickness_TOF2-GasLayerThickness_TOF2-2.*GlassLayerThickness_TOF2 + 0.01;  
+Double_t G10LayerThickness_TOF2 = ChamberThickness_TOF2-AlLayerThickness_TOF2-GasLayerThickness_TOF2-2.*GlassLayerThickness_TOF2;  
 Double_t XWidthOfModule_TOF2[2] = {0.};
 Double_t YWidthOfModule_TOF2[2] = {0.};
 Double_t XActWidthOfModule_TOF2[2] = {0.};
@@ -38,10 +42,15 @@ Double_t TOF2_X_center[TOF2_MAX_CHAMBERS] = {0.};
 Double_t TOF2_Y_center[TOF2_MAX_CHAMBERS] = {0.};
 Double_t TOF2_Z_center[TOF2_MAX_CHAMBERS] = {0.};
 
+int readGeom(char *geomfile);
+void create_rootgeom_TOF700_support();
+
 void create_rootgeom_TOF700_run7() {
     
     // Load the necessary FairRoot libraries 
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+#endif
     bmnloadlibs(); // load libraries
      
     // -------   Load media from media file   -----------------------------------
@@ -53,11 +62,11 @@ void create_rootgeom_TOF700_run7() {
     geoFace->readMedia();
     gGeoMan = gGeoManager;
     // -------   Geometry text file name (input)   ----------------------------------
-    TOF2_Nmodules = readGeom("TOF700_geometry_run7.txt");
+    TOF2_Nmodules = readGeom((char *)"TOF700_geometry_run7.txt");
     // -------   Geometry file name (output)   ----------------------------------
     TString geoDetectorName = "tof700";
     TString geoDetectorVersion = "run7";
-    geoFileName = geoPath + "/geometry/" + geoDetectorName + "_"+ geoDetectorVersion + ".root";
+    TString geoFileName = geoPath + "/geometry/" + geoDetectorName + "_"+ geoDetectorVersion + ".root";
     // --------------------------------------------------------------------------  
     // Modules Y centers
     Double_t dy = 0.;
@@ -67,7 +76,7 @@ void create_rootgeom_TOF700_run7() {
 	TOF2_X_center[i] = xcens[i][nstrips[i]-1];
 	TOF2_Y_center[i] = (ycens[i][nstrips[i]-1] + ycens[i][0])/2.;
 	TOF2_Z_center[i] = zchamb[i];
-	printf("Chamber %d  Z = %f\n", i+1, TOF2_Z_center[i]);
+	//printf("Chamber %d  Z = %f\n", i+1, TOF2_Z_center[i]);
 	XActWidthOfModule_TOF2[chtype[i]] = xmaxs[i][0] - xmins[i][0];
 	YActWidthOfModule_TOF2[chtype[i]] = ymaxs[i][nstrips[i]-1] - ymins[i][0] + dy;
 	XWidthOfModule_TOF2[chtype[i]] = xmaxs[i][0] - xmins[i][0] + 3.0;
@@ -87,10 +96,10 @@ void create_rootgeom_TOF700_run7() {
     }
     Double_t TOF2_X_min = xmin - XWidthOfModule_TOF2[1]/2.;
     Double_t TOF2_Y_min = ymin - YWidthOfModule_TOF2[1]/2.;
-    Double_t TOF2_Z_min = zmin - ZWidthOfModule_TOF2[1]/2.;
+    Double_t TOF2_Z_min = zmin - ZWidthOfModule_TOF2/2.;
     Double_t TOF2_X_max = xmax + XWidthOfModule_TOF2[1]/2.;
     Double_t TOF2_Y_max = ymax + YWidthOfModule_TOF2[1]/2.;
-    Double_t TOF2_Z_max = zmax + ZWidthOfModule_TOF2[1]/2.;
+    Double_t TOF2_Z_max = zmax + ZWidthOfModule_TOF2/2.;
     
     Double_t TOF2_XWidth = TMath::Abs(TOF2_X_max) > TMath::Abs(TOF2_X_min)? (2*TMath::Abs(TOF2_X_max)):(2*TMath::Abs(TOF2_X_min));
     Double_t TOF2_YWidth = TMath::Abs(TOF2_Y_max) > TMath::Abs(TOF2_Y_min)? (2*TMath::Abs(TOF2_Y_max)):(2*TMath::Abs(TOF2_Y_min));
@@ -107,7 +116,7 @@ void create_rootgeom_TOF700_run7() {
     FairGeoMedium* mAir = geoMedia->getMedium("air");
     if ( ! mAir ) Fatal("Main", "FairMedium air not found");
     geoBuild->createMedium(mAir);
-    TGeoMedium* pMedAir = gGeoMan->GetMedium("air");
+    pMedAir = gGeoMan->GetMedium("air");
     if ( ! pMedAir ) Fatal("Main", "Medium air not found");
   
     FairGeoMedium* mRPCglass = geoMedia->getMedium("RPCglass");
@@ -126,7 +135,7 @@ void create_rootgeom_TOF700_run7() {
     FairGeoMedium* matAl = geoMedia->getMedium("aluminium");
     if (!matAl) Fatal("Main", "FairMedium aluminium not found");
     geoBuild->createMedium(matAl);
-    TGeoMedium* medAl = gGeoMan->GetMedium("aluminium");
+    medAl = gGeoMan->GetMedium("aluminium");
     if (!medAl) Fatal("Main", "Medium aluminium not found");
 
     // G10
@@ -148,7 +157,7 @@ void create_rootgeom_TOF700_run7() {
     // --------------------------------------------------------------------------
 
     // Define TOP Geometry
-    TGeoVolume* TOF2Top = new TGeoVolumeAssembly(geoDetectorName);
+    TOF2Top = new TGeoVolumeAssembly(geoDetectorName);
     TOF2Top->SetMedium(pMedAir);
    
     //Transformations (translations, rotations and scales)
@@ -165,16 +174,16 @@ void create_rootgeom_TOF700_run7() {
     }
     Double_t GlassLayer1Pos = AlLayerThickness_TOF2 + GlassLayerThickness_TOF2/2. - ZWidthOfModule_TOF2/2.;
     sprintf(name,"GlassLayer1PosTOF2_trans");
-    GlassLayer1PosTOF2_trans = new TGeoTranslation(name, 0., 0., GlassLayer1Pos);
+    TGeoTranslation *GlassLayer1PosTOF2_trans = new TGeoTranslation(name, 0., 0., GlassLayer1Pos);
     Double_t GasLayerPos = AlLayerThickness_TOF2 + GlassLayerThickness_TOF2 + GasLayerThickness_TOF2/2.- ZWidthOfModule_TOF2/2.;
     sprintf(name,"GasLayerPosTOF2_trans");
-    GasLayerPosTOF2_trans = new TGeoTranslation(name, 0., 0., GasLayerPos);
+    TGeoTranslation *GasLayerPosTOF2_trans = new TGeoTranslation(name, 0., 0., GasLayerPos);
     Double_t GlassLayer2Pos = AlLayerThickness_TOF2 + GlassLayerThickness_TOF2 + GasLayerThickness_TOF2 + GlassLayerThickness_TOF2/2. - ZWidthOfModule_TOF2/2.;
     sprintf(name,"GlassLayer2PosTOF2_trans");
-    GlassLayer2PosTOF2_trans = new TGeoTranslation(name, 0., 0., GlassLayer2Pos);
+    TGeoTranslation *GlassLayer2PosTOF2_trans = new TGeoTranslation(name, 0., 0., GlassLayer2Pos);
     Double_t G10LayerPos = AlLayerThickness_TOF2 + GlassLayerThickness_TOF2 + GasLayerThickness_TOF2 + GlassLayerThickness_TOF2 + G10LayerThickness_TOF2/2. - ZWidthOfModule_TOF2/2.;
     sprintf(name,"G10LayerPosTOF2_trans");
-    G10LayerPosTOF2_trans = new TGeoTranslation(name, 0., 0., G10LayerPos);
+    TGeoTranslation *G10LayerPosTOF2_trans = new TGeoTranslation(name, 0., 0., G10LayerPos);
       
     //Solids (shapes)   
     //TGeoBBox *TOF2ContainerS = new TGeoBBox("TOF2ContainerS", TOF2_XWidth/2, TOF2_YWidth/2, TOF2_ZWidth/2);   
@@ -249,7 +258,7 @@ void create_rootgeom_TOF700_run7() {
 	TOF2Top->AddNode(TOF2ModuleV[chtype[i]], nm[0]+1, ModulePosTOF2_trans[i]);
 	nm[0]++;
     }
- 
+
     top->AddNode(TOF2Top, 0);
     top->SetVisContainers(kTRUE);
 

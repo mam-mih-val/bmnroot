@@ -15,7 +15,7 @@
 #include <vector>
 #include "report/BmnSimulationReport.h"
 #include "report/BmnHistManager.h"
-#include "../physics/particles/BmnParticlePairsInfo.h"
+#include "BmnParticlePairsInfo.h"
 
 using std::string;
 using std::vector;

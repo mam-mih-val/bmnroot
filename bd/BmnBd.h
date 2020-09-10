@@ -1,22 +1,15 @@
-/*************************************************************************************
- *
- *         Class BmnBd
- *         
- *  Adopted for BMN by:   Elena Litvinenko
- *  e-mail:   litvin@nf.jinr.ru
- *  Version:  10-02-2016   
- *
- ************************************************************************************/
 
 #ifndef BMNBD_H
 #define BMNBD_H
 
-
+#include "FairDetector.h"
 #include "TClonesArray.h"
 #include "TVector3.h"
 #include "TLorentzVector.h"
 #include "FairDetector.h"
 #include "BmnBdGeoPar.h"
+#include "TVirtualMC.h"
+#include "TParticle.h"
 
 using namespace std;
 
@@ -110,26 +103,41 @@ class BmnBd : public FairDetector
    **
    **/
   virtual void ConstructGeometry();
-
-  BmnBdPoint* AddHit(Int_t trackID, Int_t detID,  Int_t copyNo, 
-		      TVector3 pos, TVector3 mom,
-		      Double_t tof, Double_t length, Double_t eLoss);
+ 
+	virtual void ConstructAsciiGeometry();
+ 	virtual Bool_t CheckIfSensitive(std::string name);
+  
+	BmnBdPoint* AddHit(Int_t trackID, Int_t detID,  Int_t copyNo, 
+		      TVector3 posIn, TVector3 posOut,
+              TVector3 momIn, TVector3 momOut,
+		      Double_t tof, Double_t length, Double_t eLoss, 
+              Bool_t isPrimary, Double_t charge, Int_t pdgId, Double_t lightYield,
+			  Double_t timeIn, Double_t timeOut, Double_t lengthtrack);
 
  private:
   Int_t          fTrackID;           //!  track index
   Int_t          fVolumeID;          //!  volume id
-  Int_t          fEventID;           //!  event id
-  TLorentzVector fPos;               //!  position
-  TLorentzVector fMom;               //!  momentum
+  //Int_t          fEventID;           //!  event id
+    TVector3       fPosIn;             //!  position (in)
+    TVector3       fPosOut;            //!  position (out)
+    TVector3       fMomIn;             //!  momentum (in)
+    TVector3       fMomOut;
   Double32_t     fTime;              //!  time
   Double32_t     fLength;            //!  length
   Double32_t     fELoss;             //!  energy loss
   Int_t fPosIndex;      //! 
   Int_t volDetector;     //!  MC volume ID of MUO
-  
-  TClonesArray* fBdCollection;        //! Hit collection
-  
-  // reset all parameters   
+  Int_t	         fIsPrimary;         //!  is track primary?
+  Double_t       fCharge;	       //!  track charge
+  Int_t          fPdgId;             //!  pdg id of particle
+  Float_t        fLightYield;
+  TClonesArray*  fBdCollection;        //! Hit collection
+  Double32_t     fTimeIn;              //!  time
+  Double32_t     fTimeOut;              //!  time
+  Double32_t     fLengthtrack;            //!  length	
+          
+	
+	// reset all parameters   
   void ResetParameters();
 
   ClassDef(BmnBd,2)
@@ -141,11 +149,16 @@ class BmnBd : public FairDetector
 inline void BmnBd::ResetParameters() 
 {
 	fTrackID = fVolumeID = 0;
-	fPos.SetXYZM(0.0, 0.0, 0.0, 0.0);
-	fMom.SetXYZM(0.0, 0.0, 0.0, 0.0);
+	fPosIn.SetXYZ(0.0, 0.0, 0.0);
+    fPosOut.SetXYZ(0.0, 0.0, 0.0);
+    fMomIn.SetXYZ(0.0, 0.0, 0.0);
+    fMomOut.SetXYZ(0.0, 0.0, 0.0);
 	fTime = fLength = fELoss = 0;
+	fTimeIn = fTimeOut = 0;
+	fLengthtrack = 0;
 	fPosIndex = 0;
-};
+	fLightYield = 0;
+  };
 //------------------------------------------------------------------------------------------------------------------------
 
 #endif

@@ -49,8 +49,7 @@ void CbmStsModule::AddSensor(CbmStsSenzor* sensor) {
     if ( sensor->GetType() != fSensors[0]->GetType() ) {
       LOG(ERROR) << "Sensor type " << sensor->GetType()->GetTypeId()
                  << " incompatible with sensor type "
-                 << fSensors[0]->GetType()->GetTypeId()
-                 << FairLogger::endl;
+                 << fSensors[0]->GetType()->GetTypeId();
       return;
     }
   }

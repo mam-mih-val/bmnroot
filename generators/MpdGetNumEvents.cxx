@@ -45,7 +45,7 @@ int MpdLibZ::open(const char * mode)
 
 /* Returns 1 when EOF has previously been detected reading the given
    input stream, otherwise zero. */
-int MpdLibZ::eof() {return gzeof(file);}
+int MpdLibZ::eof() { return gzeof(file); }
 
 /* Flushes all pending output if necessary, closes the compressed file
    and deallocates all the (de)compression state. The return value is the zlib
@@ -61,38 +61,38 @@ int MpdLibZ::close()
 /* Writes the given null-terminated string to the compressed file, excluding
    the terminating null character.
    gzputs returns the number of characters written, or -1 in case of error. */
-int MpdLibZ::puts(char *s) {return gzputs(file, s);}
+int MpdLibZ::puts(char *s) { return gzputs(file, s); }
 
 /* Reads bytes from the compressed file until len-1 characters are read, or
    a newline character is read and transferred to buf, or an end-of-file
    condition is encountered.  The string is then terminated with a null
    character.
    gzgets returns buf, or Z_NULL in case of error. */
-char* MpdLibZ::gets(char* buf, int len){return gzgets(file, buf, len);}
+char* MpdLibZ::gets(char* buf, int len) { return gzgets(file, buf, len); }
 
 /* Reads the given number of uncompressed bytes from the compressed file.
    If the input file was not in gzip format, gzread copies the given number
    of bytes into the buffer.
    gzread returns the number of uncompressed bytes actually read (0 for
    end of file, -1 for error). */
-int MpdLibZ::read(voidp buf, unsigned len){return gzread(file, buf, len);}
+int MpdLibZ::read(voidp buf, unsigned len) { return gzread(file, buf, len); }
 
 /* Writes the given number of uncompressed bytes into the compressed file.
    gzwrite returns the number of uncompressed bytes actually written
    (0 in case of error). */
-int MpdLibZ::write(voidpc buf, unsigned len) {return gzwrite(file, buf, len);}
+int MpdLibZ::write(voidpc buf, unsigned len) { return gzwrite(file, buf, len); }
 
 /* Sets the starting position for the next gzread or gzwrite on the given
-   compressed file.  The offset represents a number of bytes in the
-   uncompressed data stream.  The whence parameter is defined as in lseek(2);
+   compressed file. The offset represents a number of bytes in the
+   uncompressed data stream. The whence parameter is defined as in lseek(2);
    the value SEEK_END is not supported.
 
-     If the file is opened for reading, this function is emulated but can be
-   extremely slow.  If the file is opened for writing, only forward seeks are
+   If the file is opened for reading, this function is emulated but can be
+   extremely slow. If the file is opened for writing, only forward seeks are
    supported; gzseek then compresses a sequence of zeroes up to the new
    starting position.
 
-     gzseek returns the resulting offset location as measured in bytes from
+   gzseek returns the resulting offset location as measured in bytes from
    the beginning of the uncompressed stream, or -1 in case of error, in
    particular if the file is opened for writing and the new starting position
    would be before the current position. */
@@ -105,6 +105,8 @@ off_t MpdLibZ::seek(off_t pos, int whence)
         case 1:
             return gzseek(file, pos, SEEK_SET);
     }
+
+    return -1;
 }
 
 /* Returns the starting position for the next gzread or gzwrite on the given
@@ -113,12 +115,68 @@ off_t MpdLibZ::seek(off_t pos, int whence)
    reading a gzip stream from the middle of a file using gzdopen().
 
    gztell(file) is equivalent to gzseek(file, 0L, SEEK_CUR) */
-off_t MpdLibZ::tell(){return gztell(file);}
+off_t MpdLibZ::tell() { return gztell(file); }
 
 ClassImp(MpdLibZ);
 
 
-bool MpdGetNumEvents::GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t& fQGSM_format_ID)
+Int_t MpdGetNumEvents::GetNumPHSDEvents(const char* fileName, int iVerbose)
+{
+    MpdLibZ *libz = new MpdLibZ(fileName);
+    int ret_code = libz->open("rb");
+    if (ret_code != 0)
+    {
+        if (iVerbose > 0) cout<<"Error while opening file: "<<fileName<<endl;
+        return ret_code;
+    }
+
+    char fbuffer[256];
+    Int_t fntr;
+    Float_t fb;
+    int num = 0;
+
+    while (!libz->eof())
+    {
+        libz->gets(fbuffer, 256);       // 1st line
+        if (libz->eof()) return -1;    // end of file reached
+
+        int res=sscanf(fbuffer, "%d %*d %*d %e", &fntr, &fb);
+        if (res != 2)
+        {
+            if (iVerbose > 0) printf("selftest error in header, scan %d of 2\n", res);
+            return -1;
+        }
+
+        libz->gets(fbuffer,256);       // 2nd line
+        if (libz->eof())
+        {
+            if (iVerbose > 0) printf("unexpected end of file\n");
+            return -1;
+        }
+
+        for(Int_t i = 1; i <= fntr; i++)
+        {
+            /* read track */
+            libz->gets(fbuffer,256);
+            if (libz->eof())
+            {
+                if (iVerbose > 0) printf("unexpected end of file\n");
+                return -1;
+            }// if
+        }// for
+
+        num++;
+    }// while (!libz->eof())
+
+    libz->close();
+    delete libz;
+
+    if (iVerbose > 1) cout<<"The total number of events in the PHSD file will be processed - "<<num<<endl;
+
+    return num;
+}
+
+bool MpdGetNumEvents::GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t& fQGSM_format_ID, int iVerbose)
 {
     libz->gets(ss, 250);
 
@@ -182,7 +240,7 @@ bool MpdGetNumEvents::GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t& fQGSM_f
 
     if (wrong_file)
     {
-        cout<<"Wrong file header! 1 "<<endl;
+        if (iVerbose > 0) cout<<"Wrong file header! 1 "<<endl;
         libz->close();
         return false;
     }
@@ -193,8 +251,8 @@ bool MpdGetNumEvents::GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t& fQGSM_f
         if (fQGSM_format_ID >= 2) return true;
         else
         {
-            cout<<"Wrong event header! 2 "<<endl;
-            printf("Format id:%d \n %s \n", fQGSM_format_ID, ss);
+            if (iVerbose > 0) cout<<"Wrong event header! 2 "<<endl;
+            if (iVerbose > 1) printf("Format id:%d \n %s \n", fQGSM_format_ID, ss);
             libz->close();
             return false;
         }//else
@@ -221,68 +279,22 @@ bool MpdGetNumEvents::GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t& fQGSM_f
     return true;
 }
 
-Int_t MpdGetNumEvents::GetNumPHSDEvents(const char* filename)
-{
-    MpdLibZ *libz = new MpdLibZ(filename);
-    libz->open("rb");
-
-    char fbuffer[256];
-    Int_t fntr;
-    Float_t fb;
-    int num = 0;
-
-    while (!libz->eof())
-    {
-        libz->gets(fbuffer, 256);       // 1st line
-        if (libz->eof()) return -1;    // end of file reached
-
-        int res=sscanf(fbuffer, "%d %*d %*d %e", &fntr, &fb);
-        if (res != 2)
-        {
-            printf("selftest error in header, scan %d of 2\n", res);
-            return -1;
-        }
-
-        libz->gets(fbuffer,256);       // 2nd line
-        if (libz->eof())
-        {
-            printf("unexpected end of file\n");
-            return -1;
-        }
-
-        for(Int_t i = 1; i <= fntr; i++)
-        {
-            /* read track */
-            libz->gets(fbuffer,256);
-            if (libz->eof())
-            {
-                printf("unexpected end of file\n");
-                return -1;
-            }// if
-        }// for
-
-        num++;
-    }// while (!libz->eof())
-
-    libz->close();
-    delete libz;
-
-    cout<<"The total number of events in the PHSD file will be processed - "<<num<<endl;
-
-    return num;
-}
-
-Int_t MpdGetNumEvents::GetNumQGSMEvents(const char* fileName)
+Int_t MpdGetNumEvents::GetNumQGSMEvents(const char* fileName, int iVerbose)
 {
     Int_t fQGSM_format_ID = 0;
     MpdLibZ* libz = new MpdLibZ(fileName);
-    libz->open("rb");
+    int ret_code = libz->open("rb");
+    if (ret_code != 0)
+    {
+        if (iVerbose > 0) cout<<"Error while opening file: "<<fileName<<endl;
+        return ret_code;
+    }
 
     char ss[252];
     TString sss = ss;
     Int_t eventId = 0, nTracks = 0, num = 0;
 
-    while (GetQGSMEventHeader(ss, libz, fQGSM_format_ID))
+    while (GetQGSMEventHeader(ss, libz, fQGSM_format_ID, iVerbose))
     {
         num++;
         sss = ss;
@@ -297,14 +309,19 @@ Int_t MpdGetNumEvents::GetNumQGSMEvents(const char* fileName)
     libz->close();
     delete libz;
 
-    cout<<"The total number of events in the QGSM file will be processed - "<<num<<endl;
+    if (iVerbose > 1) cout<<"The total number of events in the QGSM file will be processed - "<<num<<endl;
     return num;
 }
 
-Int_t MpdGetNumEvents::GetNumURQMDEvents(const char* fileName)
+Int_t MpdGetNumEvents::GetNumURQMDEvents(const char* fileName, int iVerbose)
 {
     MpdLibZ *libz = new MpdLibZ(fileName);
-    libz->open("rb");
+    int ret_code = libz->open("rb");
+    if (ret_code != 0)
+    {
+        if (iVerbose > 0) cout<<"Error while opening file: "<<fileName<<endl;
+        return ret_code;
+    }
 
     char read[200];
     int ntracks, num = 0;
@@ -317,7 +334,7 @@ Int_t MpdGetNumEvents::GetNumURQMDEvents(const char* fileName)
 
         if (read[0] != 'U')
         {
-            cout<<"Wrong event header"<<endl;
+            if (iVerbose > 0) cout<<"Wrong event header"<<endl;
             return -1;
         }
 
@@ -338,11 +355,42 @@ Int_t MpdGetNumEvents::GetNumURQMDEvents(const char* fileName)
     libz->close();
     delete libz;
 
-    cout<<"The total number of events in the UrQMD file will be processed - "<<num<<endl;
+    if (iVerbose > 1) cout<<"The total number of events in the UrQMD file will be processed - "<<num<<endl;
     return num;
 }
 
-Int_t MpdGetNumEvents::GetNumROOTEvents(const char* filename)
+Int_t MpdGetNumEvents::GetNumDCMSMMEvents(const char* fileName, int iVerbose)
+{
+    MpdLibZ *libz = new MpdLibZ(fileName);
+    libz->open("rb");
+
+    char r200[200];
+    for( Int_t i=0; i<3; i++) libz->gets(r200, 200);
+
+    char read[80];
+    int ntracks, num = 0;
+    Int_t evnr=0;
+    while (!libz->eof())
+    {
+      libz->gets(read, 80);
+      sscanf(read, "%d", &evnr);
+      if( evnr-num != 1) break; // otherwise it gives 1 more event after eof
+      for( Int_t ibeam=0; ibeam<3; ibeam++) {
+	libz->gets(read, 80);
+	sscanf(read, "%d", &ntracks);
+	for( Int_t i=0; i<ntracks; i++) libz->gets(read, 80);
+      }
+      num++;
+    }
+
+    libz->close();
+    delete libz;
+
+    if (iVerbose > 1) cout<<"The total number of events in the DCMSMM file will be processed - "<<num<<endl;
+    return num;
+}
+
+Int_t MpdGetNumEvents::GetNumROOTEvents(const char* filename, int iVerbose)
 {
     TChain* fileTree = new TChain(FairRootManager::GetTreeName());
     fileTree->Add(filename);
@@ -351,7 +399,7 @@ Int_t MpdGetNumEvents::GetNumROOTEvents(const char* filename)
 
     delete fileTree;
 
-    cout<<"The total number of events in the ROOT file will be processed - "<<num<<endl;
+    if (iVerbose > 1) cout<<"The total number of events in the ROOT file will be processed - "<<num<<endl;
     return num;
 }
 

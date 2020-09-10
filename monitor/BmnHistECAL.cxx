@@ -11,7 +11,7 @@
  * Created on March 17, 2017, 2:48 PM
  */
 
-#include <root/TGaxis.h>
+#include "TGaxis.h"
 
 #include "BmnHistECAL.h"
 

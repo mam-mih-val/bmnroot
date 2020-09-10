@@ -1,2 +1,73 @@
-run_sim_bmn:
-	g++ -g -O0 -o $@ run_sim_bmn.cxx -I`root-config --incdir` -I/opt/fairsoft_root6/install/include -I$(VMCWORKDIR)/base/event -I$(VMCWORKDIR)/base/field -I$(VMCWORKDIR)/base/sim -I$(VMCWORKDIR)/base/source -I$(VMCWORKDIR)/base/steer -I$(VMCWORKDIR)/geobase -I$(VMCWORKDIR)/parbase -I$(VMCWORKDIR)/bmnfield -I$(VMCWORKDIR)/generators -I$(VMCWORKDIR)/passive -I$(VMCWORKDIR)/trackbase -I$(VMCWORKDIR)/fairtools -I$(VMCWORKDIR)/alignment -I$(VMCWORKDIR)/bd -I$(VMCWORKDIR)/bmndata -I$(VMCWORKDIR)/cat -I$(VMCWORKDIR)/dch -I$(VMCWORKDIR)/ecal -I$(VMCWORKDIR)/gem -I$(VMCWORKDIR)/geane -I$(VMCWORKDIR)/globaltracking -I$(VMCWORKDIR)/sts -I$(VMCWORKDIR)/KF -I$(VMCWORKDIR)/mwpc -I$(VMCWORKDIR)/psd -I$(VMCWORKDIR)/recoil -I$(VMCWORKDIR)/silicon -I$(VMCWORKDIR)/tof -I$(VMCWORKDIR)/tof1 -I$(VMCWORKDIR)/zdc -I$(VMCWORKDIR)/land -I$(VMCWORKDIR)/eventdisplay -I$(VMCWORKDIR)/eventdisplay/bmn -I$(VMCWORKDIR)/eventdisplay/mpd -I$(VMCWORKDIR)/uni_db -I$(VMCWORKDIR)/uni_db/db_classes -L`root-config --libdir` -L"/usr/lib64" -L/opt/fairsoft_root6/install/lib -L$(VMCWORKDIR)/build/lib -lBmnAlignment -lUniDb -lCat -lKF -lLAND -lMwpc -lDch -lTOF1 -lGlobalTracking -lBmnData -lSilicon -lGem -lBd -lEcal -lZdc -lRecoil -lSts -lPsd -lTOF -lPassive -lGen -lBase -lFairTools -lBmnField -lTrkBase -lParBase -lGeoBase -lGeane -lXMLParser -lXMLIO -lEventDisplay -lEve -lSpectrum -lGenVector -lMinuit -lGeom -lGeomPainter -lVMC -lEG `root-config --glibs` -lpthread
+# Source files
+#SRCS=eventdisplay.cxx
+#SRCS=run_sim_bmn.cxx
+#SRCS=run_reco_bmn.cxx
+SRCS=$(wildcard *.cxx)
+
+# Compiler
+CC=g++
+
+OBJECTS=$(patsubst %.cxx, %, $(SRCS))
+
+ROOTCONFIG := root-config
+
+CFLAGS := $(shell $(ROOTCONFIG) --cflags)
+CFLAGS += -I$(VMCWORKDIR)/bmnfield
+CFLAGS += -I$(VMCWORKDIR)/generators
+CFLAGS += -I$(VMCWORKDIR)/passive
+CFLAGS += -I$(VMCWORKDIR)/alignment
+CFLAGS += -I$(VMCWORKDIR)/bd
+CFLAGS += -I$(VMCWORKDIR)/bmndata
+CFLAGS += -I$(VMCWORKDIR)/bmndata/cbm
+CFLAGS += -I$(VMCWORKDIR)/bmndata/common
+CFLAGS += -I$(VMCWORKDIR)/bmndata/math
+CFLAGS += -I$(VMCWORKDIR)/cat
+CFLAGS += -I$(VMCWORKDIR)/dch
+CFLAGS += -I$(VMCWORKDIR)/ecal
+CFLAGS += -I$(VMCWORKDIR)/gem
+CFLAGS += -I$(VMCWORKDIR)/KF
+CFLAGS += -I$(VMCWORKDIR)/sts
+CFLAGS += -I$(VMCWORKDIR)/mwpc
+CFLAGS += -I$(VMCWORKDIR)/psd
+CFLAGS += -I$(VMCWORKDIR)/recoil
+CFLAGS += -I$(VMCWORKDIR)/silicon
+CFLAGS += -I$(VMCWORKDIR)/tof
+CFLAGS += -I$(VMCWORKDIR)/tof1
+CFLAGS += -I$(VMCWORKDIR)/zdc
+CFLAGS += -I$(VMCWORKDIR)/land
+CFLAGS += -I$(VMCWORKDIR)/csc
+CFLAGS += -I$(VMCWORKDIR)/steering
+CFLAGS += -I$(VMCWORKDIR)/bmndst
+CFLAGS += -I$(VMCWORKDIR)/decoder
+CFLAGS += -I$(VMCWORKDIR)/globaltracking
+CFLAGS += -I$(VMCWORKDIR)/eventdisplay
+CFLAGS += -I$(VMCWORKDIR)/eventdisplay/bmn
+CFLAGS += -I$(VMCWORKDIR)/eventdisplay/mpd
+CFLAGS += -I$(VMCWORKDIR)/uni_db
+CFLAGS += -I$(VMCWORKDIR)/uni_db/db_classes
+CFLAGS += -I${FAIRROOTPATH}/include
+CFLAGS += -I$(SIMPATH)/include
+CFLAGS += -I$(ROOT_INCLUDE_PATH)
+CFLAGS += -I$(ROOT_INCLUDE_DIR)
+CFLAGS += --std=c++11 -g -O0
+
+LDFLAGS := $(shell $(ROOTCONFIG) --ldflags)
+LDFLAGS += -lEG $(shell $(ROOTCONFIG) --glibs)
+LDFLAGS += -L$(VMCWORKDIR)/build/lib
+LDFLAGS += -L$(ROOT_LIBRARY_DIR) -L$(FAIRROOTPATH)/lib #-L/usr/lib64
+LDFLAGS += -lGlobalTracking -lBmnAlignment -lEventDisplay -lDecoder -lBmnSteering -lBmnDst -lCSC -lLAND -lSilicon -lMwpc
+LDFLAGS += -lSts -lBd -lEcal -lZdc -lRecoil -lPsd -lTOF -lGem -lTOF1 -lDch
+LDFLAGS += -lCat -lKF -lBmnData -lBmnField -lMpdGen -lPassive -lGen -lUniDb
+LDFLAGS += -lBase -lGeoBase -lParBase -lTrkBase -lGeane -lEve -lFairTools
+LDFLAGS += -lXMLParser -lXMLIO -lSpectrum -lGenVector -lMinuit -lGeom
+LDFLAGS += -lGeomPainter -lVMC -lpthread
+
+
+all:	$(OBJECTS)
+
+$(OBJECTS): % : $(SRCS)
+	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
+
+clean:
+	rm -vf $(basename $(SRCS)) *.o
+

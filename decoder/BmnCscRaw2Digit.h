@@ -10,8 +10,6 @@
 #include "TMath.h"
 #include "BmnMath.h"
 #include "BmnAdcProcessor.h"
-#include <UniDbDetectorParameter.h>
-#include <UniDbDetector.h>
 #include "TH1F.h"
 
 #define N_CH_BUF 4096

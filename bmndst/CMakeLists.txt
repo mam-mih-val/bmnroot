@@ -1,4 +1,4 @@
-# Create a library called "libBmnDst" which includes the source files given in the array
+# Create a library called "libBmnDst"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
@@ -24,6 +24,7 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
+ DstRunHeader.cxx
  DstEventHeader.cxx
  BmnFillDstTask.cxx
 )
@@ -31,6 +32,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF BmnDstLinkDef.h)
 Set(LIBRARY_NAME BmnDst)
-Set(DEPENDENCIES Core Base BmnData)
+Set(DEPENDENCIES BmnData UniDb Base Core)
 
 GENERATE_LIBRARY()

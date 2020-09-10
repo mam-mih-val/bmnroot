@@ -15,6 +15,10 @@ fNofDim(1),
 fPhi(0.),
 fUsing(kFALSE) {
     fMeas[1] = fError[1] = 0.;
+    fDchLayerType = "";
+    fDchIdNumber = -1;
+    fWireNumber = -1;
+    fDistanceToWire = 0.0;
 }
 //------------------------------------------------------------------------------------------------------------------------
 
@@ -28,6 +32,10 @@ fNofDim(1),
 fPhi(0.),
 fUsing(kFALSE) {
     fMeas[1] = fError[1] = 0.;
+    fDchLayerType = "";
+    fDchIdNumber = -1;
+    fWireNumber = -1;
+    fDistanceToWire = 0.0;
 }
 //------------------------------------------------------------------------------------------------------------------------
 
@@ -38,6 +46,10 @@ fNofDim(1),
 fPhi(0.),
 fUsing(kFALSE) {
     fMeas[1] = fError[1] = 0.;
+    fDchLayerType = "";
+    fDchIdNumber = -1;
+    fWireNumber = -1;
+    fDistanceToWire = 0.0;
 }
 //------------------------------------------------------------------------------------------------------------------------
 
@@ -48,6 +60,10 @@ fNofDim(1),
 fPhi(0.),
 fUsing(kFALSE) {
     fMeas[1] = fError[1] = 0.;
+    fDchLayerType = "";
+    fDchIdNumber = -1;
+    fWireNumber = -1;
+    fDistanceToWire = 0.0;
 }
 //------------------------------------------------------------------------------------------------------------------------
 
@@ -63,14 +79,14 @@ void BmnDchHit::Print(const Option_t* opt) const {
     cout << "    Flag: " << fFlag << endl;
 }
 //------------------------------------------------------------------------------------------------------------------------
-
+/*
 void BmnDchHit::SetIndex(Int_t indx) {
     /// Add point index
 
     Int_t size = fIndex.GetSize();
     fIndex.Set(size + 1);
     fIndex[size] = indx;
-}
+}*/
 //------------------------------------------------------------------------------------------------------------------------
 
 Int_t BmnDchHit::Compare(const TObject* hit) const {

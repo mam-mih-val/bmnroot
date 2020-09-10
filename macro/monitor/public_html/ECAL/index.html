@@ -54,7 +54,7 @@ and open the template in the editor.
                 drawInfo();
             }
             function drawInfo() {
-                setTimeout(drawInfo, 10000);
+                setTimeout(drawInfo, 5000);
                 JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
                     var info = JSON.parse(obj);
                     if (info.arr.length > 0){
@@ -122,7 +122,7 @@ and open the template in the editor.
             <!--<iframe id="infoCan" ></iframe>-->             
         </div>
         <div align="center">
-            <div id="infoC" style="width: 20vw;"> </div>
+            <div id="infoC" style="width: 90vw;"> </div>
         </div>
         <button onclick="ResetHist()"> 
             <h1 style="color:red;">Reset</h1>

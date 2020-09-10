@@ -175,8 +175,7 @@ template <class T> class CbmMCPointBuffer
     LOG(DEBUG) << "\t" << fName << " Buffer: " << setw(8) << right
               << fBuffer.size() << " points ("
               << fixed << setprecision(3) << GetSize() << " MB) from "
-              << GetMinTime() << " ns to " << GetMaxTime() << " ns"
-              << FairLogger::endl;
+              << GetMinTime() << " ns to " << GetMaxTime() << " ns";
   };
 
 

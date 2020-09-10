@@ -5,7 +5,7 @@
  */
 #include "CbmLitFitQa.h"
 #include "CbmLitFitQaReport.h"
-#include "../mc/CbmLitMCTrackCreator.h"
+#include "CbmLitMCTrackCreator.h"
 #include "CbmHistManager.h"
 #include "CbmGlobalTrack.h"
 #include "CbmTrackMatchNew.h"

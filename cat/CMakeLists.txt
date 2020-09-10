@@ -1,21 +1,17 @@
-# Create a library called "libCat" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libCat"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
+ ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/sts
- ${CMAKE_SOURCE_DIR}/tof
  ${CMAKE_SOURCE_DIR}/KF
  ${CMAKE_SOURCE_DIR}/KF/KFQA
  ${CMAKE_SOURCE_DIR}/KF/Interface
  ${CMAKE_SOURCE_DIR}/KF/KFParticlesFinder
  ${CMAKE_SOURCE_DIR}/cat
  ${CMAKE_SOURCE_DIR}/cat/L1Algo
- ${CMAKE_SOURCE_DIR}/cat/OffLineInterface
- ${CMAKE_SOURCE_DIR}/cat/ParticleFinder
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -66,7 +62,7 @@ OffLineInterface/CbmL1StsTrackFinder.h
 CbmL1PartEfficiencies.h
 )
 
-ADD_DEFINITIONS(-Wall -Wabi -Wsign-promo  -Wno-pmf-conversions -Wctor-dtor-privacy -Wreorder -Wno-deprecated -Wstrict-null-sentinel -Wno-non-template-friend) 
+ADD_DEFINITIONS(-Wall -Wsign-promo -Wno-pmf-conversions -Wctor-dtor-privacy -Wreorder -Wno-deprecated -Wstrict-null-sentinel -Wno-non-template-friend)
 
 IF (SSE_FOUND)
   ADD_DEFINITIONS(-DHAVE_SSE)
@@ -81,6 +77,6 @@ ENDIF (SSE_FOUND)
 
 Set(LINKDEF CatLinkDef.h)
 Set(LIBRARY_NAME Cat)
-Set(DEPENDENCIES KF Sts BmnData Base)
+Set(DEPENDENCIES KF Sts BmnData BmnField Base Core)
 
 GENERATE_LIBRARY()

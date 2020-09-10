@@ -33,7 +33,6 @@
 #include "BmnTrigRaw2Digit.h"
 #include "BmnCscRaw2Digit.h"
 #include "BmnEventHeader.h"
-#include "BmnRunHeader.h"
 #include "BmnEnums.h"
 #include "DigiArrays.h"
 #include <bitset>
@@ -44,9 +43,6 @@
 #include <list>
 #include <map>
 #include <deque>
-#include <UniDbDetectorParameter.h>
-#include <UniDbRun.h>
-#include "UniDbTangoData.h"
 
 const UInt_t kRUNNUMBERSYNC1 = 0x236E7552;
 const size_t kWORDSIZE1 = sizeof (UInt_t);
@@ -205,14 +201,11 @@ private:
     TClonesArray *tqdc_adc;
     TClonesArray *msc;
     TClonesArray *eventHeaderDAQ;
-    BmnRunHeader *runHeaderDAQ;
     //    TClonesArray *runHeaderDAQ;
     TClonesArray *pedestalAdc;
 
     //header array
     TClonesArray *eventHeader;
-    BmnRunHeader *runHeader;
-    //    TClonesArray *runHeader;
 
     UInt_t data[10000000];
     ULong_t fMaxEvent;

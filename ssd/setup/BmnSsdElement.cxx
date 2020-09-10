@@ -158,8 +158,7 @@ void BmnSsdElement::InitDaughters() {
 
   // --- Catch physical node not being set
   if ( ! fNode ) {
-    LOG(ERROR) << fName << ": physical node is not set!"
-               << FairLogger::endl;
+    LOG(ERROR) << fName << ": physical node is not set!";
     return;
   }
 
@@ -207,8 +206,7 @@ void BmnSsdElement::Print(Option_t* opt) const {
   LOG(INFO) << setw(10) << right << fAddress << "  "
 		    << setw(12) << left << fName
 		    << "  type " << setw(22) << fTitle << "  path "
-		    << fNode->GetName() << "  " << fNode->GetTitle()
-		    << FairLogger::endl;
+		    << fNode->GetName() << "  " << fNode->GetTitle();
   if ( opt[0] == 'R' ) {
 	  for (Int_t iDaughter = 0; iDaughter < GetNofDaughters(); iDaughter++)
 		  GetDaughter(iDaughter)->Print("R");
@@ -228,7 +226,7 @@ void BmnSsdElement::SetLevel(Int_t level) {
     case kSsdModule:     fLevel = kSsdModule;     break;
     case kSsdSensor:     fLevel = kSsdSensor;     break;
     default: LOG(FATAL) << fName << ": Illegal element level "
-        << level << FairLogger::endl; break;
+        << level; break;
   }
 }
 // -------------------------------------------------------------------------

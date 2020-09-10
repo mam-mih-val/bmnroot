@@ -1,9 +1,11 @@
-# Create a library called "libBmnSteering" which includes the source files given in
-# the array.
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libBmnSteering"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
+ ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/csc
+ ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/steering
 )
 
@@ -24,12 +26,13 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
- BmnSteering.cxx
+BmnSteering.cxx
+BmnOfflineQaSteering.cxx
 )
 
 Set(HEADERS)
 Set(LINKDEF SteeringLinkDef.h)
 Set(LIBRARY_NAME BmnSteering)
-Set(DEPENDENCIES Core Base)
+Set(DEPENDENCIES CSC Silicon Base Core)
 
 GENERATE_LIBRARY()

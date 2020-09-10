@@ -8,8 +8,9 @@ BmnTOF1Detector::BmnTOF1Detector() {
 
 //----------------------------------------------------------------------------------------
 
-BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0, TTree *tree = NULL) {
+BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0, Int_t Verbose = 0) {
     Clear();
+    fVerbose = Verbose;
     memset(fKilled, 0, sizeof (fKilled));
     memset(fCorrLR, 0, sizeof (fCorrLR));
     memset(fCorrTimeShift, 0, sizeof (fCorrTimeShift));
@@ -20,26 +21,21 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0, TTree *tree =
     fNPlane = NPlane;
     fStripLength = 30; // cm
     fSignalVelosity = 0.06; // 0.06 ns/cm
-    fMaxDelta = (fStripLength + 2.0) * fSignalVelosity; // + 20 mm on the strip edge
+    fMaxDelta = (fStripLength * 0.5 + 2.0) * fSignalVelosity; // + 20 mm on the strip edge
+    fCommonTimeShift = 0;
 
-    for (Int_t i = 0; i < fNStr; i++)
+    for (Int_t i = 0; i < fNStr; i++) {
         gSlew[i] = NULL;
+        funT0[i] = NULL;
+        funRPC[i] = NULL;
+    }
 
     fName = Form("Plane_%d", NPlane);
     TString Name;
 
     if (fFillHist > 0) {
         fHistListStat = new TList();
-
-        if (tree != NULL) {
-            SetTree(tree);
-        } else {
-            fTree4Save = new TTree(Name.Data(), Name.Data());
-            cout << fTree4Save->GetName() << ";   " << fTree4Save ->GetTitle() << endl;
-            Name = Form("Plane_%d", fNPlane);
-            fArrayConteiner = new TClonesArray("BmnTOF1Conteiner");
-            fTree4Save->Branch(Name.Data(), &fArrayConteiner);
-        }
+        fHistListdt = new TList();
 
         Name.Clear();
         Name = Form("Hist_HitByCh_%s", fName.Data());
@@ -58,7 +54,7 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0, TTree *tree =
 
         Name.Clear();
         Name = Form("Hist_XY_%s", fName.Data());
-        hXY = new TH2I(Name, Name, 240, -150, 150, 120, -75, 75);
+        hXY = new TH2I(Name, Name, 400, -250, 250, 120, -75, 75);
         fHistListStat->Add(hXY);
 
         hDy_near = new TH1S(Form("hDy_near_%s", fName.Data()), Form("hDy_near_%s", fName.Data()), 400, -20, 20);
@@ -78,6 +74,19 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0, TTree *tree =
         fHistListStat->Add(hDWidth_acros);
         fHistListStat->Add(hTempDtimeDy_acros);
 
+        for (Int_t i = 0; i < fNStr + 1; i++) {
+            hdT_vs_WidthDet[i] = new TH2S(Form("dt_vs_WidthDet_str_%d_%s", i, fName.Data()), Form("dt_vs_WidthDet_str_%d_%s", i, fName.Data()), 1024, 0, 50, 1024, -12, 12);
+            fHistListdt->Add(hdT_vs_WidthDet[i]);
+        }
+        for (Int_t i = 0; i < fNStr + 1; i++) {
+            hdT_vs_WidthT0[i] = new TH2S(Form("dt_vs_WidthT0_str_%d_%s", i, fName.Data()), Form("dt_vs_WidthT0_str_%d_%s", i, fName.Data()), 1024, 0, 50, 1024, -12, 12);
+            fHistListdt->Add(hdT_vs_WidthT0[i]);
+        }
+        for (Int_t i = 0; i < fNStr + 1; i++) {
+            hdT[i] = new TH1I(Form("dt_str_%d_%s", i, fName.Data()), Form("dt_str_%d_%s", i, fName.Data()), 1024, -12, 12);
+            fHistListdt->Add(hdT[i]);
+        }
+
     } else {
 
         hHitByCh = NULL;
@@ -93,6 +102,12 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0, TTree *tree =
         hDtime_acros = NULL;
         hDWidth_acros = NULL;
         hTempDtimeDy_acros = NULL;
+
+        for (Int_t i = 0; i < fNStr + 1; i++) {
+            hdT_vs_WidthDet[i] = NULL;
+            hdT_vs_WidthT0[i] = NULL;
+            hdT[i] = NULL;
+        }
 
     }
 
@@ -127,16 +142,16 @@ void BmnTOF1Detector::Clear() {
 Bool_t BmnTOF1Detector::SetDigit(BmnTof1Digit * TofDigit) {
     fStrip = TofDigit->GetStrip();
     if (fStrip < 0 || fStrip > fNStr) return kFALSE;
-    //cout << " Plane = " << TofDigit->GetPlane() << "; Strip " << TofDigit->GetStrip() << "; Side " << TofDigit->GetSide() << "; Time " << TofDigit->GetTime() << "; Amp " << TofDigit->GetAmplitude() << endl;
+    if (fVerbose > 3) cout << " Plane = " << TofDigit->GetPlane() << "; Strip " << TofDigit->GetStrip() << "; Side " << TofDigit->GetSide() << "; Time " << TofDigit->GetTime() << "; Amp " << TofDigit->GetAmplitude() << endl;
     if (TofDigit->GetSide() == 0 && fFlagHit[fStrip] == kFALSE && fKilled[fStrip] == kFALSE) {
         fTimeLtemp[fStrip] = TofDigit->GetTime() - 2. * fCorrLR[fStrip];
-        //cout << "Setting Shift: strip # " << fStrip << " shift val " << CorrLR[fStrip] << " curr timeL " << TofDigit->GetTime() << " shifted timeL " << fTimeLtemp[fStrip] <<  "\n";
+        if (fVerbose > 3) cout << "Setting Shift: strip # " << fStrip << " shift val " << fCorrLR[fStrip] << "; shifted timeL " << fTimeLtemp[fStrip] << "\n";
         fWidthLtemp[fStrip] = TofDigit->GetAmplitude();
         fDigitL[fStrip]++;
     }
     if (TofDigit->GetSide() == 1 && fFlagHit[fStrip] == kFALSE && fKilled[fStrip] == kFALSE) {
         fTimeRtemp[fStrip] = TofDigit->GetTime();
-        //cout << "Setting Shift: strip # " << fStrip << " shift val " << CorrLR[fStrip] << " curr timeR " << TofDigit->GetTime() << " shifted timeR " << fTimeRtemp[fStrip] <<  "\n";
+        if (fVerbose > 3) cout << "Setting Shift: strip # " << fStrip << " shift val " << fCorrLR[fStrip] << "; shifted timeR " << fTimeRtemp[fStrip] << "\n";
         fWidthRtemp[fStrip] = TofDigit->GetAmplitude();
         fDigitR[fStrip]++;
     }
@@ -147,14 +162,14 @@ Bool_t BmnTOF1Detector::SetDigit(BmnTof1Digit * TofDigit) {
             //&& fFlagHit[fStrip] == kFALSE
             )
         if (fFlagHit[fStrip] == kFALSE) {
-            //cout << "Before set variable: " << fTimeL[fStrip] << " " << fTimeR[fStrip] << "\n";
+            if (fVerbose > 3) cout << "Before set variable: " << fTimeL[fStrip] << " " << fTimeR[fStrip] << "\n";
             fTimeL[fStrip] = fTimeLtemp[fStrip];
             fTimeR[fStrip] = fTimeRtemp[fStrip];
             fWidthL[fStrip] = fWidthLtemp[fStrip];
             fWidthR[fStrip] = fWidthRtemp[fStrip];
             fFlagHit[fStrip] = kTRUE;
             fHit[fStrip]++;
-            //cout << "After set variable: " << fTimeL[fStrip] << " " << fTimeR[fStrip] << "\n";
+            if (fVerbose > 3) cout << "After set variable: " << fTimeL[fStrip] << " " << fTimeR[fStrip] << "\n";
         } else
             fHit[fStrip]++;
 
@@ -182,19 +197,29 @@ Int_t BmnTOF1Detector::FindHits(BmnTrigDigit *T0) {
             fWidth[i] = (fWidthL[i] + fWidthR[i]);
             fTime[i] = (fTimeL[i] + fTimeR[i]) * 0.5;
             flag = GetCrossPoint(i);
+            if (fT0 == NULL) continue;
             if (fT0 != NULL) fTof[i] = CalculateDt(i);
-            if (i > 3 && fFillHist > 0) {
-                if (fFlagHit[i - 1] == kTRUE) {
-                    hDy_near->Fill(fCrossPoint[i].Y() - fCrossPoint[i - 1].Y());
-                    hDtime_near->Fill(fTof[i] - fTof[i - 1]);
-                    hTempDtimeDy_near->Fill(fTof[i] - fTof[i - 1], fCrossPoint[i].Y() - fCrossPoint[i - 1].Y());
-                    hDWidth_near->Fill(fWidth[i] - fWidth[i - 1]);
-                }
-                if (fFlagHit[i - 2] == kTRUE) {
-                    hDy_acros->Fill(fCrossPoint[i].Y() - fCrossPoint[i - 2].Y());
-                    hDtime_acros->Fill(fTof[i] - fTof[i - 2]);
-                    hTempDtimeDy_acros->Fill(fTof[i] - fTof[i - 2], fCrossPoint[i].Y() - fCrossPoint[i - 2].Y());
-                    hDWidth_acros->Fill(fWidth[i] - fWidth[i - 2]);
+            if (fFillHist > 0) {
+                hdT_vs_WidthDet[i] -> Fill(fWidth[i], fTof[i]);
+                hdT_vs_WidthDet[i] -> Fill(fT0->GetAmp(), fTof[i]);
+                hdT[i] -> Fill(fTof[i]);
+                hdT_vs_WidthDet[fNStr] -> Fill(fWidth[i], fTof[i]);
+                hdT_vs_WidthDet[fNStr] -> Fill(fT0->GetAmp(), fTof[i]);
+                hdT[fNStr] -> Fill(fTof[i]);
+                if (i > 3) {
+
+                    if (fFlagHit[i - 1] == kTRUE) {
+                        hDy_near->Fill(fCrossPoint[i].Y() - fCrossPoint[i - 1].Y());
+                        hDtime_near->Fill(fTof[i] - fTof[i - 1]);
+                        hTempDtimeDy_near->Fill(fTof[i] - fTof[i - 1], fCrossPoint[i].Y() - fCrossPoint[i - 1].Y());
+                        hDWidth_near->Fill(fWidth[i] - fWidth[i - 1]);
+                    }
+                    if (fFlagHit[i - 2] == kTRUE) {
+                        hDy_acros->Fill(fCrossPoint[i].Y() - fCrossPoint[i - 2].Y());
+                        hDtime_acros->Fill(fTof[i] - fTof[i - 2]);
+                        hTempDtimeDy_acros->Fill(fTof[i] - fTof[i - 2], fCrossPoint[i].Y() - fCrossPoint[i - 2].Y());
+                        hDWidth_acros->Fill(fWidth[i] - fWidth[i - 2]);
+                    }
                 }
             }
         }
@@ -220,27 +245,48 @@ Int_t BmnTOF1Detector::FindHits(BmnTrigDigit *T0, TClonesArray *TofHit) {
             fWidth[i] = fWidthL[i] + fWidthR[i];
             fTime[i] = (fTimeL[i] + fTimeR[i]) * 0.5;
             flag = GetCrossPoint(i);
+            if (fT0 == NULL) continue;
             if (fT0 != NULL) fTof[i] = CalculateDt(i);
-            if (fFillHist > 0 && i > 1) {
-                if (fFlagHit[i - 1] == kTRUE) {
-                    hDy_near->Fill(fCrossPoint[i].Y() - fCrossPoint[i - 1].Y());
-                    hDtime_near->Fill(fTof[i] - fTof[i - 1]);
-                    hDWidth_near->Fill(fWidth[i] - fWidth[i - 1]);
-                    hTempDtimeDy_near->Fill(fTof[i] - fTof[i - 1], fCrossPoint[i].Y() - fCrossPoint[i - 1].Y());
-                }
-                if (fFlagHit[i - 2] == kTRUE) {
-                    hDy_acros->Fill(fCrossPoint[i].Y() - fCrossPoint[i - 2].Y());
-                    hDtime_acros->Fill(fTof[i] - fTof[i - 2]);
-                    hDWidth_acros->Fill(fWidth[i] - fWidth[i - 2]);
-                    hTempDtimeDy_acros->Fill(fTof[i] - fTof[i - 2], fCrossPoint[i].Y() - fCrossPoint[i - 2].Y());
-                }
+            if (fVerbose > 2)
+                printf("Hit on Plane#%d  Strip#%d\n\tTime = %.3f; (X,Y,Z) = %.3f, %.3f, %.3f\n", fNPlane, i, fTof[i], fCrossPoint[i].X(), fCrossPoint[i].Y(), fCrossPoint[i].Z());
+            if (fFillHist > 0) {
+                hdT_vs_WidthDet[i] -> Fill(fWidth[i], fTof[i]);
+                hdT_vs_WidthT0[i] -> Fill(fT0->GetAmp(), fTof[i]);
+                hdT[i] -> Fill(fTof[i]);
+                hdT_vs_WidthDet[fNStr] -> Fill(fWidth[i], fTof[i]);
+                hdT_vs_WidthT0[fNStr] -> Fill(fT0->GetAmp(), fTof[i]);
+                hdT[fNStr] -> Fill(fTof[i]);
+                if (i > 2)
+                    if (fFlagHit[i - 1] == kTRUE) {
+                        hDy_near->Fill(fCrossPoint[i].Y() - fCrossPoint[i - 1].Y());
+                        hDtime_near->Fill(fTof[i] - fTof[i - 1]);
+                        hDWidth_near->Fill(fWidth[i] - fWidth[i - 1]);
+                        hTempDtimeDy_near->Fill(fTof[i] - fTof[i - 1], fCrossPoint[i].Y() - fCrossPoint[i - 1].Y());
+                    }
+                if (i > 3)
+                    if (fFlagHit[i - 2] == kTRUE) {
+                        hDy_acros->Fill(fCrossPoint[i].Y() - fCrossPoint[i - 2].Y());
+                        hDtime_acros->Fill(fTof[i] - fTof[i - 2]);
+                        hDWidth_acros->Fill(fWidth[i] - fWidth[i - 2]);
+                        hTempDtimeDy_acros->Fill(fTof[i] - fTof[i - 2], fCrossPoint[i].Y() - fCrossPoint[i - 2].Y());
+                    }
+
             }
-            AddHit(i, TofHit);
+            TString Name = TofHit->GetClass()->GetName();
+            if (Name == "BmnTofHit") {
+                //            cout << " Fill BmnTofHit" << endl;
+                AddHit(i, TofHit);
+            } else if (Name == "BmnTOF1Conteiner") {
+                //           cout << " Fill BmnTOF1Conteiner" << endl;
+                AddConteiner(i, TofHit);
+            }
         }
 
     if (fFillHist > 0)
         FillHist();
 
+    if (fVerbose > 2)
+        printf("Total number of hits on Plane#%d is %d\n\n", fNPlane, fHit_Per_Ev);
     return fHit_Per_Ev;
 }
 
@@ -258,48 +304,63 @@ void BmnTOF1Detector::AddHit(Int_t Str, TClonesArray *TofHit) {
     pHit->AddLink(FairLink(0x4, UID));
 }
 
+//------------------------------------------------------------------------------------------------------------------------
+
+void BmnTOF1Detector::AddConteiner(Int_t Str, TClonesArray *TofHit) {
+
+    new((*TofHit)[TofHit->GetEntriesFast()]) BmnTOF1Conteiner(fNPlane, Str, fTimeL[Str], fTimeR[Str], fTime[Str], fWidthL[Str], fWidthR[Str], fWidth[Str], fCrossPoint[Str].x(), fCrossPoint[Str].y(), fCrossPoint[Str].z(), fT0->GetTime(), fT0->GetAmp());
+
+}
+
 //----------------------------------------------------------------------------------------
 
 void BmnTOF1Detector::FillHist() {
-    fArrayConteiner->Delete();
     hHitPerEv->Fill(fHit_Per_Ev);
-    for (Int_t i = 0; i < fNStr; i++) 
+    for (Int_t i = 0; i < fNStr; i++)
         for (Int_t j = 0; j < fNStr; j++) {
             if (fWidthL[i] != 0 && fWidthR[j] != 0) {
                 hHitLR->Fill(i, j);
                 if (i == j) {
                     hHitByCh->Fill(i);
                     hXY->Fill(fCrossPoint[i].x(), fCrossPoint[i].y());
-                    if (fT0 != NULL && fArrayConteiner != NULL)
-                        new((*fArrayConteiner)[fArrayConteiner->GetEntriesFast()]) BmnTOF1Conteiner(fNPlane, i, fTimeL[i], fTimeR[i], fTime[i], fWidthL[i], fWidthR[i], fWidth[i], fCrossPoint[i].x(), fCrossPoint[i].y(), fCrossPoint[i].z(), fT0->GetTime(), fT0->GetAmp());
                 }
             }
         }
-    fTree4Save->Fill();
+
 }
 
 //----------------------------------------------------------------------------------------
 
 Double_t BmnTOF1Detector::CalculateDt(Int_t Str = 0) {
+
+
     Double_t dt = 0;
     Double_t T0Amp;
-    dt = fTime[Str] - fT0->GetTime() - 270.; // RUN7 SRC
-    //dt = fTime[Str] - fT0->GetTime();
-
+    dt = fTime[Str] - fT0->GetTime() + fCommonTimeShift;
+    if (fVerbose > 3) printf("Calculate dt\n     raw      dt = %.3f\n", dt);
     T0Amp = fT0->GetAmp();
+
     /*dt = dt - (1.947 - 0.5363 * T0Amp
             + 0.03428 * T0Amp * T0Amp
             - 0.0005853 * T0Amp * T0Amp * T0Amp);// RUN6 */
 
-    /* dt = dt - (-4.45271 + 0.270843 * T0Amp
-             + 0.0 * T0Amp * T0Amp
-             - 0.0 * T0Amp * T0Amp * T0Amp);// RUN7 SRC preliminarily*/
+    if (funT0[Str] != NULL) dt = dt - funT0[Str]->Eval(T0Amp);
+    if (fVerbose > 3) printf("After T0 corr dt = %.3f\t", dt);
 
-    /*dt = dt - (1.564 + 0.1065 * T0Amp
-             + 0.0 * T0Amp * T0Amp
-             - 0.0 * T0Amp * T0Amp * T0Amp);//RUN7 BM@N preliminarily*/
+    if (gSlew[Str] != NULL) {
+        dt = dt - gSlew[Str]->Eval(fWidth[Str]);
+        if (fVerbose > 3) printf("After RPC corr dt = %.3f\t", dt);
+    }
 
-    if (gSlew[Str] != NULL) dt = dt - gSlew[Str]->Eval(fWidth[Str]) + fCorrTimeShift[Str]; // CorrTimeShift is ToF for Gamma
+    if (funRPC[Str] != NULL) {
+        dt = dt - funRPC[Str]->Eval(fWidth[Str]);
+        if (fVerbose > 3) printf("After RPC corr dt = %.3f\t", dt);
+    }
+
+    dt = dt + fCorrTimeShift[Str]; // CorrTimeShift is ToF for Gamma
+    if (fVerbose > 3) printf("After Shift on Proton mass dt = %.3f\n", dt);
+
+
     //cout << dt << endl;
     return dt;
 }
@@ -310,6 +371,8 @@ TList* BmnTOF1Detector::GetList(Int_t n = 0) {
     if (fFillHist > 0) {
         if (n == 0) return fHistListStat;
     } else return NULL;
+
+    return NULL;
 }
 
 //----------------------------------------------------------------------------------------
@@ -357,7 +420,6 @@ Bool_t BmnTOF1Detector::SetCorrLR(TString NameFile) {
     }
     return kTRUE;
 }
-
 //----------------------------------------------------------------------------------------
 
 Bool_t BmnTOF1Detector::SetCorrSlewing(TString NameFile) {
@@ -370,8 +432,12 @@ Bool_t BmnTOF1Detector::SetCorrSlewing(TString NameFile) {
         f_corr->cd(dirname.Data());
         Dir = f_corr-> CurrentDirectory();
         for (Int_t i = 0; i < fNStr; i++) {
-            name = Form("Graph_TA_Plane%d_str%d", fNPlane, i);
+            name = Form("T0_TA_Plane%d_Str%d", fNPlane, i);
+            funT0[i] = (TF1*) Dir->Get(name.Data());
+            if (funT0[i] == NULL) printf("funT0[%d] is NULL\n", i);
+            name = Form("Rpc_TA_Plane%d_Str%d", fNPlane, i);
             gSlew[i] = (TGraphErrors*) Dir->Get(name.Data());
+            if (gSlew[i] == NULL) printf("gSlew[%d] is NULL\n", i);
         }
     } else {
         cout << "File " << NameFile.Data() << " for Slewing correction is not found" << endl;
@@ -391,13 +457,25 @@ Bool_t BmnTOF1Detector::SetCorrTimeShift(TString NameFile) {
     TString dir = Form("%s%s%s", getenv("VMCWORKDIR"), "/input/", NameFile.Data());
     f_corr.open(dir);
     f_corr.getline(line, 256);
+    //cout << line << endl;
+
     f_corr.getline(line, 256);
+    //cout << line << endl;
+    fCommonTimeShift = atof(line);
+    //cout << fCommonTimeShift << endl;
+
+    f_corr.getline(line, 256);
+    //cout << line << endl;
+
+    //char ccc = getchar();
+    //if (ccc == 'q') return kFALSE;
+
     if (f_corr.is_open() == kTRUE) {
         while (!f_corr.eof()) {
             f_corr >> Pl >> St >> Temp;
             if (Pl == fNPlane) {
                 fCorrTimeShift[St] = Temp;
-                //cout << Pl << " " << St << " " << CorrTimeShift[St] << "\n";
+                //cout << Pl << " " << St << " " << fCorrTimeShift[St] << "\n";
             }
         }
     } else {
@@ -405,6 +483,7 @@ Bool_t BmnTOF1Detector::SetCorrTimeShift(TString NameFile) {
         cout << "Check " << dir.Data() << " folder for file" << endl;
         return kFALSE;
     }
+    f_corr.close();
     return kTRUE;
 }
 
@@ -414,12 +493,19 @@ Bool_t BmnTOF1Detector::GetCrossPoint(Int_t NStrip = 0) {
 
     fVectorTemp.SetXYZ(0., 0., 0.);
     if (TMath::Abs((fTimeL[NStrip] - fTimeR[NStrip]) * 0.5) >= fMaxDelta)
-        return kFALSE; // estimated position out the strip edge.
+        return kFALSE; // estimated position is out of the strip edge.
     double dL = (fTimeL[NStrip] - fTimeR[NStrip]) * 0.5 / fSignalVelosity;
-    fVectorTemp(0) = 0;
-    fVectorTemp(1) = dL;
-    fVectorTemp(2) = 0; //TMP ALIGMENT CORRECTIONS
+
+    fVectorTemp(0) = dL * TMath::Cos(fStripAngle[NStrip].X());
+    fVectorTemp(1) = dL * TMath::Cos(fStripAngle[NStrip].Y());
+    fVectorTemp(2) = dL * TMath::Cos(fStripAngle[NStrip].Z());
+
+    //    fVectorTemp(0) = 0;
+    //    fVectorTemp(1) = dL;
+    //    fVectorTemp(2) = 0; 
+
     fCrossPoint[NStrip] = fCentrStrip[NStrip] + fVectorTemp;
+    //    cout << "Z = " << fCrossPoint[NStrip].Z() << endl;
     return kTRUE;
 }
 
@@ -448,12 +534,23 @@ Bool_t BmnTOF1Detector::SetGeoFile(TString NameFile) {
     BmnTof1GeoUtils *pGeoUtils = new BmnTof1GeoUtils();
     pGeoUtils->ParseTGeoManager(false, NULL, true);
 
+    TVector3 x(1, 0, 0);
+    TVector3 y(0, 1, 0);
+    TVector3 z(0, 0, 1);
+
     Int_t UID;
     for (Int_t i = 0; i < fNStr; i++) {
         UID = BmnTOF1Point::GetVolumeUID(0, fNPlane + 1, i + 1); // strip [0,47] -> [1, 48]
         const LStrip1 *pStrip = pGeoUtils->FindStrip(UID);
         fCentrStrip[i] = pStrip->center;
-        //cout << "Strip = " << i << "; Centr XYZ = " << fCentrStrip[i].x() << "  " << fCentrStrip[i].y() << "  " << fCentrStrip[i].z() << endl;
+        fVectorTemp = (pStrip->C + pStrip->D) * 0.5 - (pStrip->A + pStrip->B) * 0.5;
+        fStripAngle[i](0) = fVectorTemp.Angle(x);
+        fStripAngle[i](1) = fVectorTemp.Angle(y);
+        fStripAngle[i](2) = fVectorTemp.Angle(z);
+
+        //        Printf ("Plane%d, Strip%d\t A=%.3f\t B=%.3f\t C=%.3f\n", fNPlane, i, fStripAngle[i](0), fStripAngle[i](1), fStripAngle[i](2));
+
+        //        cout << "Strip = " << i << "; Centr XYZ = " << fCentrStrip[i].x() << "  " << fCentrStrip[i].y() << "  " << fCentrStrip[i].z() << endl;
         //        if (fNPlane >= 5) fCentrStrip[i].SetX(fCentrStrip[i].X() + 5.5); // for field run only
         //        else fCentrStrip[i].SetX(fCentrStrip[i].X() + 2.5);
     }
@@ -466,10 +563,20 @@ Bool_t BmnTOF1Detector::SetGeoFile(TString NameFile) {
 
 Bool_t BmnTOF1Detector::SetGeo(BmnTof1GeoUtils *pGeoUtils) {
     Int_t UID;
+    TVector3 x(1, 0, 0);
+    TVector3 y(0, 1, 0);
+    TVector3 z(0, 0, 1);
     for (Int_t i = 0; i < fNStr; i++) {
         UID = BmnTOF1Point::GetVolumeUID(0, fNPlane + 1, i + 1); // strip [0,47] -> [1, 48]
         const LStrip1 *pStrip = pGeoUtils->FindStrip(UID);
         fCentrStrip[i] = pStrip->center;
+        fVectorTemp = (pStrip->C + pStrip->D) * 0.5 - (pStrip->A + pStrip->B) * 0.5;
+        fStripAngle[i](0) = fVectorTemp.Angle(x);
+        fStripAngle[i](1) = fVectorTemp.Angle(y);
+        fStripAngle[i](2) = fVectorTemp.Angle(z);
+
+        //        Printf("Plane%d, Strip%d\t A=%.3f\t B=%.3f\t C=%.3f\n", fNPlane, i, fStripAngle[i](0), fStripAngle[i](1), fStripAngle[i](2));
+
         //        if (fNPlane >= 5) fCentrStrip[i].SetX(fCentrStrip[i].X()+5.5); // for field run only
         //        else fCentrStrip[i].SetX(fCentrStrip[i].X()+2.5);
     }
@@ -489,8 +596,34 @@ Bool_t BmnTOF1Detector::GetXYZTime(Int_t Str, TVector3 *XYZ, Double_t *ToF) {
 
 //----------------------------------------------------------------------------------------
 
+Bool_t BmnTOF1Detector::GetLRTime(Int_t Str, Double_t *LMinusRTime) {
+
+    if (fTof[Str] == 0) return kFALSE;
+    if (NULL == LMinusRTime) return kFALSE;
+    *LMinusRTime = (fTimeL[Str] - fTimeR[Str]) * 0.5;
+    return kTRUE;
+}
+
+
+//----------------------------------------------------------------------------------------
+
+Bool_t BmnTOF1Detector::GetXYZ4Strip(Int_t Str, TVector3 *XYZ) {
+
+    if (NULL == XYZ) return kFALSE;
+    XYZ->SetXYZ(fCentrStrip[Str].x(), fCentrStrip[Str].y(), fCentrStrip[Str].z());
+    return kTRUE;
+}
+
+//----------------------------------------------------------------------------------------
+
 Double_t BmnTOF1Detector::GetWidth(Int_t Str = 1) {
     return fWidth[Str];
+}
+
+//----------------------------------------------------------------------------------------
+
+Double_t BmnTOF1Detector::GetTime(Int_t Str = 1) {
+    return fTime[Str];
 }
 
 //----------------------------------------------------------------------------------------
@@ -498,31 +631,35 @@ Double_t BmnTOF1Detector::GetWidth(Int_t Str = 1) {
 Bool_t BmnTOF1Detector::SaveHistToFile(TString NameFile) {
 
     if (fFillHist > 0) {
-    /*    TFile *fileout = new TFile(NameFile.Data(), "UPDATE");
+        TFile *fileout = new TFile(NameFile.Data(), "UPDATE");
+        Int_t ResWrite;
 
         TDirectory *Dir;
         TString Name;
         Name = Form("Tof400_%s", fName.Data());
         Dir = fileout->mkdir(Name.Data());
         Dir->cd();
-        Dir->pwd();
+        //Dir->pwd();
 
         TDirectory * DirStat;
         DirStat = Dir->mkdir("Statistic");
         DirStat -> cd();
-        DirStat->pwd();
-        Int_t ResWrite = 0;
-        //ResWrite = fHistListStat->Write();
-        cout << "Res write = " << ResWrite;
+        //DirStat->pwd();
+        ResWrite = 0;
+        ResWrite = fHistListStat->Write();
+        //cout << "Res write = " << ResWrite << endl;
 
-        TDirectory * DirTree;
-        DirTree = Dir->mkdir("Data");
-        DirTree -> cd();
-        fTree4Save->Write();
+        TDirectory * DirdT;
+        DirdT = Dir->mkdir("dt");
+        DirdT -> cd();
+        //DirStat->pwd();
+        ResWrite = 0;
+        ResWrite = fHistListdt->Write();
+        //cout << "Res write = " << ResWrite << endl;
 
-        fileout->Close();*/
-        return kTRUE;//*/
-        
+        fileout->Close(); //*/
+        return kTRUE; //*/
+
     } else
         return kFALSE;
 
@@ -530,10 +667,3 @@ Bool_t BmnTOF1Detector::SaveHistToFile(TString NameFile) {
 
 //----------------------------------------------------------------------------------------
 
-Bool_t BmnTOF1Detector::SetTree(TTree *tree) {
-    fTree4Save = tree;
-    TString Name;
-    Name = Form("Plane_%d", fNPlane);
-    fArrayConteiner = new TClonesArray("BmnTOF1Conteiner");
-    fTree4Save->Branch(Name.Data(), &fArrayConteiner);
-}

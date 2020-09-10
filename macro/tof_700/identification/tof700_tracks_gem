@@ -1,2 +1,0 @@
-#!/bin/bash
-root -l tof700_tracks_gem_aclic.C\($1\)

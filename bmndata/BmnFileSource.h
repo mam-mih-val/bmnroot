@@ -28,6 +28,7 @@ public:
     BmnFileSource(TFile* f, const char* Title = "BmnRootFile", UInt_t identifier = 0);
     BmnFileSource(const TString* RootFileName, const char* Title = "BmnRootFile", UInt_t identifier = 0);
     BmnFileSource(const TString RootFileName, const char* Title = "BmnRootFile", UInt_t identifier = 0);
+    BmnFileSource(const TString RootFileName, int& period_number, int& run_number);
     virtual ~BmnFileSource();
     
     Bool_t Init();

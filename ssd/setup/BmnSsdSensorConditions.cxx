@@ -107,14 +107,14 @@ Double_t BmnSsdSensorConditions::GetHallParameter(Int_t index,
 		                                              Int_t chargeType) {
 	if ( index < 0 || index > 3 ) {
 		LOG(ERROR) << "SensorConditions: Invalid hall parameter index "
-				       << index << FairLogger::endl;
+				       << index;
 		return 0.;
 	}
 	if      ( chargeType == 0 ) return fHallMobilityParametersE[index];
 	else if ( chargeType == 1 ) return fHallMobilityParametersH[index];
 	else {
 		LOG(ERROR) << "SensorConditions: Invalid charge type "
-				       << chargeType << FairLogger::endl;
+				       << chargeType;
 	}
 
 	return 0.;
@@ -132,7 +132,7 @@ void BmnSsdSensorConditions::GetHallMobilityParametersInto(Double_t * hallMobili
    } else if (chargeType == 1) { // holes
        for (Int_t i = 0; i < 4; i++) hallMobilityParameters[i] = fHallMobilityParametersH[i];
 
-   } else LOG(ERROR) << GetName() << "Cannot get parameter for Hall mobility. Unknown type of charge carriers. Must be 0 or 1!" << FairLogger::endl;
+   } else LOG(ERROR) << GetName() << "Cannot get parameter for Hall mobility. Unknown type of charge carriers. Must be 0 or 1!";
 
 }
 // -------------------------------------------------------------------------
@@ -162,7 +162,7 @@ Double_t BmnSsdSensorConditions::HallMobility(Double_t eField,
 	}  //? holes
 	else {
 		LOG(ERROR) << "SensorConditions: illegal charge type "
-				       << chargeType << FairLogger::endl;
+				       << chargeType;
 		return 0.;
 	}
 

@@ -4,33 +4,32 @@
 
 Set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/bmnfield
- ${CMAKE_SOURCE_DIR}/gem
- ${CMAKE_SOURCE_DIR}/bmndata/cbm
- ${CMAKE_SOURCE_DIR}/mwpc
- ${CMAKE_SOURCE_DIR}/alignment
- ${CMAKE_SOURCE_DIR}/steering
- ${CMAKE_SOURCE_DIR}/cbm
- ${CMAKE_SOURCE_DIR}/silicon
- ${CMAKE_SOURCE_DIR}/dch
- ${CMAKE_SOURCE_DIR}/globaltracking
- ${CMAKE_SOURCE_DIR}/decoder
- ${CMAKE_SOURCE_DIR}/monitor
  ${CMAKE_SOURCE_DIR}/uni_db
  ${CMAKE_SOURCE_DIR}/uni_db/db_classes
+ ${CMAKE_SOURCE_DIR}/bmnfield
+ ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/math
+ ${CMAKE_SOURCE_DIR}/bmndata/cbm
+ ${CMAKE_SOURCE_DIR}/mwpc
+ ${CMAKE_SOURCE_DIR}/csc
+ ${CMAKE_SOURCE_DIR}/dch
+ ${CMAKE_SOURCE_DIR}/silicon
+ ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/alignment
+ ${CMAKE_SOURCE_DIR}/decoder
+ ${CMAKE_SOURCE_DIR}/globaltracking
+ ${CMAKE_SOURCE_DIR}/monitor
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
  ${ROOT_INCLUDE_DIR}
  ${XML2_INCLUDE_DIR}
  ${ZeroMQ_INCLUDE_DIR}
+ ${Boost_INCLUDE_DIRS}
 )
 
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 include_directories(${INCLUDE_DIRECTORIES})
-include_directories(${SYSTEM_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM  ${SYSTEM_INCLUDE_DIRECTORIES})
 
 Set(LINK_DIRECTORIES
  ${ROOT_LIBRARY_DIR}
@@ -68,6 +67,6 @@ EndIf (Boost_FOUND)
 Set(HEADERS)
 Set(LINKDEF MonitorLinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)
-Set(DEPENDENCIES Dch Sts BmnData Base Gem Silicon Decoder ${ZeroMQ_LIBRARY_SHARED} BmnField)
+Set(DEPENDENCIES GlobalTracking Decoder Alignment Gem Silicon CSC Dch Mwpc BmnData BmnField UniDb Base Core ${ZeroMQ_LIBRARY_SHARED})
 
 GENERATE_LIBRARY()

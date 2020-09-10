@@ -8,6 +8,7 @@
 #include <TGeoMatrix.h>
 #include <TH1D.h>
 #include <TH2D.h>
+#include "TFile.h"
 #include <TEfficiency.h>
 #include <TVector3.h>
 
@@ -21,6 +22,8 @@
 
 #include "BmnTofHitProducer.h"
 
+#define MAKE_CLUSTERS 1
+
 using namespace std;
 
 static Float_t workTime = 0.0;
@@ -28,13 +31,20 @@ static Float_t workTime = 0.0;
 ClassImp(BmnTofHitProducer)
 //--------------------------------------------------------------------------------------------------------------------------------------
 BmnTofHitProducer::BmnTofHitProducer(const char *name, const char *geomFile, Bool_t useMCdata, Int_t verbose, Bool_t test)
-:  BmnTofHitProducerIdeal(name, useMCdata, verbose, test), fTimeSigma(0.100), fErrX(0.5), fErrY(1./sqrt(12.)), pRandom(new TRandom2), h2TestStrips(nullptr) , h1TestDistance(nullptr), h2TestNeighborPair(nullptr),
+:  BmnTofHitProducerIdeal(name, useMCdata, verbose, test), fTimeSigma(0.100), fErrX(1.0), fErrY(1.0), pRandom(new TRandom2), h2TestStrips(nullptr) , h1TestDistance(nullptr), h2TestNeighborPair(nullptr),
 	fDoINL(true), fDoSlewing(true), fSignalVelosity(0.050)
 {
 	pGeoUtils = new BmnTofGeoUtils(useMCdata);
 	pGeoUtils->SetVerbosity(fVerbose);
 	fgeomFile = geomFile;
 	fMCTimeFile = NULL;
+	fProtonTimeCorrectionFile = NULL;
+	fMainStripSelection = 0; // 0 - minimal time, != 0 - maximal amplitude
+	fSelectXYCalibration = 2; // 0 - Petukhov, 1 - Panin, 2 - new Petukhov
+	fTimeMin = -2.f; // Minimal digit time, ns
+	fTimeMax = +15.f; // Maximal digit time, ns
+	fDiffTimeMaxSmall = 1.3f; // Maximal abs time difference, small chambers
+	fDiffTimeMaxBig = 4.0f; // Maximal abs time difference, big chambers
 	
     	if(fDoTest) 
     	{	
@@ -56,6 +66,10 @@ BmnTofHitProducer::BmnTofHitProducer(const char *name, const char *geomFile, Boo
 		h1TestMass = new TH1D("TOF700_TestMass", "Mass", 500, 0., 100.); 											fList.Add(h1TestMass);
 		h1TestMassLong = new TH1D("TOF700_TestMassLong", "Mass - long tracks", 500, 0., 100.); 									fList.Add(h1TestMassLong);
     	}
+	if (!useMCdata)
+	{
+	    fTOF2 = new BmnTof2Raw2DigitNew("TOF700_map_period_7.txt","bmn_run3332_raw.root");
+	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 BmnTofHitProducer::~BmnTofHitProducer() 
@@ -66,13 +80,13 @@ BmnTofHitProducer::~BmnTofHitProducer()
 //--------------------------------------------------------------------------------------------------------------------------------------
 InitStatus BmnTofHitProducer::Init() 
 {
-    	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "Begin [BmnTof700HitProducer::Init].");
+    	LOG(INFO) << "Begin [BmnTof700HitProducer::Init].";
     	
-    	if(fOnlyPrimary && fVerbose > 1) cout<<" Only primary particles are processed!!! \n"; // FIXME NOT used now ADDD
+    	if(fOnlyPrimary && fVerbose > 1) LOG(INFO)<<" Only primary particles are processed!!! ";
 
 	if(fUseMCData)
 	{
-    		aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOFPoint");
+            aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF700Point");
                 if (!aMcPoints)
                 {
                   cout<<"BmnTof700HitProducer::Init(): branch TOFPoint not found! Task will be deactivated"<<endl;
@@ -105,18 +119,82 @@ InitStatus BmnTofHitProducer::Init()
 		{
 		    readMCTimeFile(fMCTimeFile);
 		}
+// Proton hit based corrections
+		for (int c = 0; c < TOF2_MAX_CHAMBERS; c++)
+		{
+		    tofcalc[c] = 0.f;
+		    for (int s = 0; s < 32; s++)
+		    {
+			tofcals[c][s] = 0.f;
+		    }
+		}
+		if (fProtonTimeCorrectionFile == NULL)
+		{
+                    cout<<"BmnTof700HitProducer::Init(): Proton-based time corrections file not defined! Don't use corrections!"<<endl;
+		}
+		else
+		{
+		    TProfile2D *itcalibr = 0;
+		    TProfile   *itcalibrc = 0;
+		    float idchambers[59] = {27.1,28.1,3.1,1.1,29.1,4.1,33.1,30.1,5.1,19.3,31.1,6.1,2.1,32.1,15.2,16.2,17.2,
+		    18.2,19.2,20.2,7.1,115.2,113.1,117.1,35.1,9.1,37.1,11.1,39.1,13.1,34.1,8.1,36.1,10.1,38.1,12.1,21.2,
+		    23.2,25.2,22.2,24.2,26.2,107.2,108.2,109.2,110.2,111.2,112.2,114.1,116.2,118.1,14.1,40.1,119.2,120.2,
+		    121.2,122.2,123.2,124.2 };
+		    char fname[256];
+		    TString dir = getenv("VMCWORKDIR");
+		    sprintf(fname,"%s/input/%s",dir.Data(), fProtonTimeCorrectionFile);
+		    TFile *fc = new TFile(fname,"READ", "Proton mass based calibration of BmnTOF700");
+		    if (fc->IsZombie())
+		    {
+                	cout<<"BmnTof700HitProducer::Init(): Error open Proton-based time corrections file "<< fname <<endl;
+			return kERROR;
+		    }
+		    if (CVERS == 0)
+		    {
+		        itcalibr = (TProfile2D *)fc->Get("tcalibr");
+		        itcalibrc = (TProfile *)fc->Get("tcalibrc");
+		    }
+		    else
+		    {
+		        itcalibr = (TProfile2D *)fc->Get("tcalibr;1");
+		        itcalibrc = (TProfile *)fc->Get("tcalibrc;1");
+		    }
+		    for (int c=0; c<TOF2_MAX_CHAMBERS; c++) { tofcalc[c] = itcalibrc->GetBinContent(c+1); }
+		    if (LIST_CHAMBER_CORRECTIONS)
+		    {
+			printf("\n ******************* Time offsets for whole chamber **********************\n");
+			for (int c=0; c<TOF2_MAX_CHAMBERS; c++) { printf("%d %f\n",c,tofcalc[c]); }
+		    }
+		    if (STRIP_CORRECTIONS)
+		    {
+		        if (LIST_STRIP_CORRECTIONS) printf("\n ******************* Time offsets for each strip **************************\n");
+		        for (int c=0; c<TOF2_MAX_CHAMBERS; c++)
+		        {
+		    	if (LIST_STRIP_CORRECTIONS) printf("\n Chamber  %d %.1f\n",c,idchambers[c]);
+		    	int smax = 32;
+		    	if (idchambers[c] >= 100.f) smax = 16;
+		    	for (int s=0; s<smax; s++)
+		    	{
+		    	    tofcals[c][s] = itcalibr->GetBinContent(c+1,s+1);
+		    	    if (LIST_STRIP_CORRECTIONS) printf("   strip %d %f\n",s,tofcals[c][s]);
+		    	}
+		    	if (LIST_STRIP_CORRECTIONS) printf("\n *************************************************************************\n");
+		        }
+		    }
+		    fc->Close();
+		}
 	}
 	
     	// Create and register output array
     	aTofHits = new TClonesArray("BmnTofHit");
-    	FairRootManager::Instance()->Register("BmnTofHit", "TOF", aTofHits, kTRUE);
+        FairRootManager::Instance()->Register("BmnTof700Hit", "TOF", aTofHits, kTRUE);
 
 //	readGeom(geomFile);
-//	pGeoUtils->ParseTGeoManager(fUseMCData, h2TestStrips, true);
-	pGeoUtils->ParseStripsGeometry(fgeomFile);
+	pGeoUtils->ParseTGeoManager(fUseMCData, h2TestStrips, true);
+//	pGeoUtils->ParseStripsGeometry(fgeomFile);
 	pGeoUtils->FindNeighborStrips(h1TestDistance, h2TestNeighborPair, fDoTest);
 	
-    	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "Initialization [BmnTof700HitProducer::Init] finished succesfully.");
+    	LOG(INFO) << "Initialization [BmnTof700HitProducer::Init] finished succesfully.";
 
 	return kSUCCESS;
 }
@@ -164,6 +242,10 @@ void BmnTofHitProducer::Exec(Option_t* opt)
     if (!IsActive())
         return;
     
+    float idchambers[59] = { 27.1,28.1,3.1,1.1,29.1,4.1,33.1,30.1,5.1,19.3,31.1,6.1,2.1,32.1,15.2,16.2,17.2,
+    18.2,19.2,20.2,7.1,115.2,113.1,117.1,35.1,9.1,37.1,11.1,39.1,13.1,34.1,8.1,36.1,10.1,38.1,12.1,21.2,
+    23.2,25.2,22.2,24.2,26.2,107.2,108.2,109.2,110.2,111.2,112.2,114.1,116.2,118.1,14.1,40.1,119.2,120.2,
+    121.2,122.2,123.2,124.2 };
     clock_t tStart = clock();
     if (fVerbose > 1) cout << endl << "======================== TOF700 exec started ====================" << endl;
 	static const TVector3 XYZ_err(fErrX, fErrY, 0.); 
@@ -198,9 +280,11 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 			Double_t elcut = 0.; // 0.02e-3;
 			if (fDoTest) if (pPoint->GetEnergyLoss() > elcut) h1TestMass->Fill(mass);
 			if (fDoTest) if (pPoint->GetEnergyLoss() > elcut && length > 600.) h1TestMassLong->Fill(mass);
-			const LStrip *pStrip = pGeoUtils->FindStrip(UID, pos);
-//			const LStrip *pStrip = pGeoUtils->FindStrip(UID);
+//			const LStrip *pStrip = pGeoUtils->FindStrip(UID, pos);
+			const LStrip *pStrip = pGeoUtils->FindStrip(UID);
 			if (pStrip == NULL) continue;
+
+//			if (UID == ((19<<8)|32)) printf("Hit x %f y %f z %f, strip x %f y %f z %f\n", pos.X(), pos.Y(), pos.Z(), pStrip->center.X(), pStrip->center.Y(), pStrip->center.Z());
 		
 			XYZ_smeared.SetXYZ( pRandom->Gaus(pos.X(), fErrX), pStrip->center.Y(), pStrip->center.Z());
 
@@ -227,7 +311,8 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 		
 			if(fDoTest) effTestEfficiencySingleHit->Fill(passed, distance);
         	
-        		if((passed = DoubleHitExist(distance))) // check cross hit
+//        		if((passed = DoubleHitExist(distance))) // check cross hit
+			if(false) // check efficiency 
         		{
         			Int_t CrossUID = (side == LStrip::kUpper) ? pStrip->neighboring[LStrip::kUpper] : pStrip->neighboring[LStrip::kLower];
   			
@@ -253,29 +338,191 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 	else
 	{
 		TVector3 crosspoint;
-
-                for(Int_t digitIndex = 0, nTof2Digits = aExpDigits->GetEntriesFast(); digitIndex < nTof2Digits; digitIndex++ )  // cycle by TOF digits
-                {
+		Int_t tofWidths[TOF2_MAX_CHAMBERS][32] = {{0}};
+		Float_t tof[TOF2_MAX_CHAMBERS][32] = {{0.}};
+		Float_t lrdiff[TOF2_MAX_CHAMBERS][32] = {{0.}};
+		if (MAKE_CLUSTERS)
+		{
+            	    for(Int_t digitIndex = 0, nTof2Digits = aExpDigits->GetEntriesFast(); digitIndex < nTof2Digits; digitIndex++ )  // cycle by TOF digits
+            	    {
                             BmnTof2Digit *pDigit = (BmnTof2Digit*) aExpDigits->UncheckedAt(digitIndex);		
                             UID = ((pDigit->GetPlane() + 1)<<8) | (pDigit->GetStrip() + 1);
                             Int_t strip = pDigit->GetStrip();
                             Int_t chamber = pDigit->GetPlane();
+			    tofWidths[chamber][strip] = pDigit->GetAmplitude();
+			    tof[chamber][strip] = pDigit->GetTime();
+			    lrdiff[chamber][strip] = pDigit->GetDiff();
+            	    }
+		    int ncl0 = 0, ncl[TOF2_MAX_CHAMBERS] = {0};
+		    int clchamb[TOF2_MAX_CHAMBERS] = {0};
+		    int clstrip[TOF2_MAX_CHAMBERS] = {0};
+		    for (int i = 0; i<TOF2_MAX_CHAMBERS; i++)
+		    {
+			    if (fMCTimeFile && fMCTime[i] == 0.f) continue;
+			    Double_t DiffTimeMax = fDiffTimeMaxSmall;
+			    if (idchambers[i] >= 100.f) DiffTimeMax = fDiffTimeMaxBig;
+			    ncl[i] = 0;
+			    int clstart = -1, clwidth = -1, cstr = -1;
+			    float samps = 0., timemin = 1000000000., amplmax = 0.;
+			    int nstr = 32;
+			    if (idchambers[i] >= 100.f) nstr = 16;
+			    for (int j = 0; j<nstr; j++)
+			    {
+				if (tofWidths[i][j] > 0.)
+				{
+				    if (clstart < 0)
+				    {
+					clstart = j;
+					timemin = tof[i][j];
+					amplmax = tofWidths[i][j];
+					cstr = j;
+				    }
+				    else
+				    {
+					if (fMainStripSelection == 0 && tof[i][j] < timemin) {timemin = tof[i][j]; cstr = j; }
+					if (fMainStripSelection != 0 && tofWidths[i][j] > amplmax) {amplmax = tofWidths[i][j]; cstr = j; }
+				    }
+				    samps += tofWidths[i][j];
+				    if (j == (nstr-1))
+				    {
+					if (tof[i][cstr] > fTimeMin && tof[i][cstr] < fTimeMax && \
+					    TMath::Abs(lrdiff[i][cstr]) < DiffTimeMax)
+					{
+					    clchamb[ncl0] = i;
+					    clstrip[ncl0] = cstr;
+					    clwidth = (j+1-clstart);
+					    ncl0++;
+					    ncl[i]++;
+                        		    UID = ((i + 1)<<8) | (cstr + 1);
+                        		    Float_t xcl, ycl, zcl;
+					    if (fSelectXYCalibration == 0)
+                        			fTOF2->get_hit_xyz(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					    else if (fSelectXYCalibration == 1)
+                        			fTOF2->get_hit_xyzp(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					    else if (fSelectXYCalibration == 2)
+                        			fTOF2->get_hit_xyzng(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					    else if (fSelectXYCalibration == 3)
+                        			fTOF2->get_hit_xyznl(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					    else
+                        			fTOF2->get_hit_xyzng(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					    if (zcl != 0.)
+					    {
+                        			crosspoint.SetXYZ(xcl,ycl,zcl);
+						if (STRIP_CORRECTIONS)
+                    				    AddHit(UID, crosspoint, XYZ_err, -1, -1, tof[i][cstr]+fMCTime[i] + tofcals[i][cstr]);
+						else
+                    				    AddHit(UID, crosspoint, XYZ_err, -1, -1, tof[i][cstr]+fMCTime[i] + tofcalc[i]);
+                        			nSingleHits++;
+
+                        			if(fDoTest)
+                        			{
+                            			    h2TestXYSmeared2->Fill(crosspoint.X(), crosspoint.Y());
+                        			    Float_t xc, yc, zc;
+                        			    fTOF2->get_strip_xyz(i,cstr,&xc,&yc,&zc);
+                            			    h2TestRZ->Fill(xc, yc);
+                        			}
+                        		    }
+                        		}			
+					samps = 0.;
+					timemin = 1000000000.;
+					amplmax = 0.;
+				    }
+				}
+				else if (clstart >= 0)
+				{
+				    if (tof[i][cstr] > fTimeMin && tof[i][cstr] < fTimeMax && \
+					TMath::Abs(lrdiff[i][cstr]) < DiffTimeMax)
+				    {
+					clchamb[ncl0] = i;
+					clstrip[ncl0] = cstr;
+					clwidth = (j-clstart);
+					ncl0++;
+					ncl[i]++;
+                        		UID = ((i + 1)<<8) | (cstr + 1);
+                        		Float_t xcl, ycl, zcl;
+					if (fSelectXYCalibration == 0)
+                        		    fTOF2->get_hit_xyz(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					else if (fSelectXYCalibration == 1)
+                        		    fTOF2->get_hit_xyzp(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					else if (fSelectXYCalibration == 2)
+                        		    fTOF2->get_hit_xyzng(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					else if (fSelectXYCalibration == 3)
+                        		    fTOF2->get_hit_xyznl(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					else
+                        		    fTOF2->get_hit_xyzng(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					if (zcl != 0.)
+					{
+                        		    crosspoint.SetXYZ(xcl,ycl,zcl);
+					    if (STRIP_CORRECTIONS)
+                    				AddHit(UID, crosspoint, XYZ_err, -1, -1, tof[i][cstr]+fMCTime[i] + tofcals[i][cstr]);
+					    else
+                    				AddHit(UID, crosspoint, XYZ_err, -1, -1, tof[i][cstr]+fMCTime[i] + tofcalc[i]);
+                        		    nSingleHits++;
+
+                        		    if(fDoTest)
+                        		    {
+                            			h2TestXYSmeared2->Fill(crosspoint.X(), crosspoint.Y());
+                        			Float_t xc, yc, zc;
+                        			fTOF2->get_strip_xyz(i,cstr,&xc,&yc,&zc);
+                            			h2TestRZ->Fill(xc, yc);
+                        		    }
+                        		}			
+				    }
+				    samps = 0.;
+				    timemin = 1000000000.;
+				    amplmax = 0.;
+				    clstart = -1;
+				}
+			    }
+		    }
+		}
+		else
+		{
+            	    for(Int_t digitIndex = 0, nTof2Digits = aExpDigits->GetEntriesFast(); digitIndex < nTof2Digits; digitIndex++ )  // cycle by TOF digits
+            	    {
+                            BmnTof2Digit *pDigit = (BmnTof2Digit*) aExpDigits->UncheckedAt(digitIndex);		
+                            UID = ((pDigit->GetPlane() + 1)<<8) | (pDigit->GetStrip() + 1);
+                            Int_t strip = pDigit->GetStrip();
+                            Int_t chamber = pDigit->GetPlane();
+			    if (fMCTimeFile && fMCTime[chamber] == 0.f) continue;
 //			    if (chamber > 40 && strip > 15) continue;
 //			    printf("C %d s %d\n",pDigit->GetPlane(), pDigit->GetStrip());
 //			    pos.SetXYZ(xcens[chamber][strip],ycens[chamber][strip],zchamb[chamber]);
+			    Float_t dtime = pDigit->GetTime();
+			    Float_t dlrdiff = pDigit->GetDiff();
+			    if (dtime < fTimeMin || dtime > fTimeMax) continue;
+			    Double_t DiffTimeMax = fDiffTimeMaxSmall;
+			    if (idchambers[chamber] >= 100.f) DiffTimeMax = fDiffTimeMaxBig;
+			    if (TMath::Abs(dlrdiff) > DiffTimeMax) continue;
                             const LStrip *pStrip = pGeoUtils->FindStrip(UID);
-                            if (GetCrossPoint(pStrip, pDigit->GetDiff(), crosspoint)) // crosspoint inside strip edges
+                    	    Float_t xcl, ycl, zcl;
+			    if (fSelectXYCalibration == 0)
+                        	fTOF2->get_hit_xyz(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
+			    else if (fSelectXYCalibration == 1)
+                        	fTOF2->get_hit_xyzp(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
+			    else if (fSelectXYCalibration == 2)
+                        	fTOF2->get_hit_xyzng(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
+			    else if (fSelectXYCalibration == 3)
+                        	fTOF2->get_hit_xyznl(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
+			    else
+                        	fTOF2->get_hit_xyzng(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
+			    if (zcl != 0.)
 			    {
-                        	AddHit(UID, crosspoint, XYZ_err, -1, -1, pDigit->GetTime()+fMCTime[chamber]); 	
-                        	nSingleHits++;
+                    		crosspoint.SetXYZ(xcl,ycl,zcl);
+				if (STRIP_CORRECTIONS)
+                    		    AddHit(UID, crosspoint, XYZ_err, -1, -1, dtime+fMCTime[chamber] + tofcals[chamber][strip]);
+				else
+                    		    AddHit(UID, crosspoint, XYZ_err, -1, -1, dtime+fMCTime[chamber] + tofcalc[chamber]);
+                    		nSingleHits++;
 
-                        	if(fDoTest)
-                        	{
+                    		if(fDoTest)
+                    		{
                             	    h2TestXYSmeared2->Fill(crosspoint.X(), crosspoint.Y());
                             	    TVector3 stripCenter(pStrip->center);
                             	    h2TestRZ->Fill(stripCenter.X(), stripCenter.Y());
-                        	}			
-			    }
+                    		}
+                    	    }			
+            	    }
             	}
 	}
 	
@@ -295,7 +542,7 @@ void BmnTofHitProducer::Finish()
 {
   	if(fDoTest)
     	{
-      		FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTof700HitProducer::Finish] Update  %s file. ", fTestFlnm.Data());
+      		LOG(INFO) << "[BmnTof700HitProducer::Finish] Update " << fTestFlnm.Data() << " file.";
 		TFile *ptr = gFile;
 		TFile file(fTestFlnm.Data(), "RECREATE");
 		fList.Write(); 

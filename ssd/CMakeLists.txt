@@ -69,21 +69,21 @@ set(SRCS
     #BmnSsdTrackFitterIdeal.cxx
     #BmnSsdSimulationQa.cxx
 
-    aux/data/BmnSsdAddress.cxx
-    aux/data/BmnModuleList.cxx
-    aux/data/BmnAddress.cxx
-    aux/data/BmnSsdCluster.cxx
-    aux/data/BmnCluster.cxx
-    aux/data/BmnSsdDigi.cxx
-    aux/data/BmnDigi.cxx
-    aux/data/BmnEvent.cxx
-    aux/data/BmnVertex.cxx
-    aux/data/BmnSsdPoint.cxx
-    aux/data/BmnDigitize.cxx
-    aux/data/BmnDaqBuffer.cxx
-    aux/data/BmnSsdHit.cxx
-    aux/data/BmnPixelHit.cxx
-    aux/data/BmnBaseHit.cxx
+    auxx/data/BmnSsdAddress.cxx
+    auxx/data/BmnModuleList.cxx
+    auxx/data/BmnAddress.cxx
+    auxx/data/BmnSsdCluster.cxx
+    auxx/data/BmnCluster.cxx
+    auxx/data/BmnSsdDigi.cxx
+    auxx/data/BmnDigi.cxx
+    auxx/data/BmnEvent.cxx
+    auxx/data/BmnVertex.cxx
+    auxx/data/BmnSsdPoint.cxx
+    auxx/data/BmnDigitize.cxx
+    auxx/data/BmnDaqBuffer.cxx
+    auxx/data/BmnSsdHit.cxx
+    auxx/data/BmnPixelHit.cxx
+    auxx/data/BmnBaseHit.cxx
 
 )
 # -----  End of sources   ---------------------------------
@@ -94,15 +94,14 @@ set(SRCS
 set(INCLUDE_DIRECTORIES
     ${BASE_INCLUDE_DIRECTORIES}
     ${CMAKE_SOURCE_DIR}/bmndata
-    #${CMAKE_SOURCE_DIR}/bmndata/ssd
 
     ${CMAKE_SOURCE_DIR}/ssd
     ${CMAKE_SOURCE_DIR}/ssd/setup
     ${CMAKE_SOURCE_DIR}/ssd/mc
     ${CMAKE_SOURCE_DIR}/ssd/digitize
     ${CMAKE_SOURCE_DIR}/ssd/reco
-    ${CMAKE_SOURCE_DIR}/ssd/aux
-    ${CMAKE_SOURCE_DIR}/ssd/aux/data
+    ${CMAKE_SOURCE_DIR}/ssd/auxx
+    ${CMAKE_SOURCE_DIR}/ssd/auxx/data
 )
 
 set(SYSTEM_INCLUDE_DIRECTORIES
@@ -123,7 +122,7 @@ set(LINK_DIRECTORIES
 
 
 # -----   Specify library dependences   -------------------
-Set(DEPENDENCIES Base)
+Set(DEPENDENCIES BmnData Base Core)
 # ---------------------------------------------------------
 
 
@@ -133,7 +132,7 @@ set(LINKDEF ${LIBRARY_NAME}LinkDef.h)
 
 
 # -----  Let cmake do the job   ---------------------------
-include_directories( ${INCLUDE_DIRECTORIES})
+include_directories(${INCLUDE_DIRECTORIES})
 include_directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 link_directories( ${LINK_DIRECTORIES})
 GENERATE_LIBRARY()

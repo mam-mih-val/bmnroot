@@ -181,15 +181,17 @@ Bool_t IsParCorrect(const FairTrackParam* par, const Bool_t isField) {
     const Float_t maxSlopeY = 0.5;
     const Float_t maxX = 150.0;
     const Float_t maxY = 100.0;
-    const Float_t minSlope = 1e-10;
-    const Float_t maxQp = 1000.; // p = 10 MeV
+    //const Float_t minSlope = 1e-10;
+    const Float_t maxQp = 100.; // p = 10 MeV
+    const Float_t minQp = 0.01; // p = 100 GeV
 
-    if (abs(par->GetTx()) > maxSlopeX || abs(par->GetTy()) > maxSlopeY || abs(par->GetTx()) < minSlope || abs(par->GetTy()) < minSlope) return kFALSE;
+    if (abs(par->GetTx()) > maxSlopeX || abs(par->GetTy()) > maxSlopeY) return kFALSE;
     if (abs(par->GetX()) > maxX || abs(par->GetY()) > maxY) return kFALSE;
     if (IsNaN(par->GetX()) || IsNaN(par->GetY()) || IsNaN(par->GetTx()) || IsNaN(par->GetTy())) return kFALSE;
 
     if (isField) {
         if (abs(par->GetQp()) > maxQp) return kFALSE;
+        if (abs(par->GetQp()) < minQp) return kFALSE;
         if (IsNaN(par->GetQp())) return kFALSE;
     }
 
@@ -225,6 +227,8 @@ Float_t ChiSq(const TVector3* par, const BmnGemTrack* tr, const TClonesArray* ar
         }
         return Sqrt(sum);
     }
+
+    return -1;
 }
 
 Float_t NumericalRootFinder(TF1 f, Float_t left, Float_t right) {
@@ -1057,11 +1061,14 @@ Double_t Mu(vector <Double_t> qp, vector <Double_t> w) {
 //}
 
 void DrawBar(UInt_t iEv, UInt_t nEv) {
-    cout.flush();
+    if (nEv < 100)
+        return;
+    if ((iEv % (nEv / 100)) > 100.0/nEv)
+        return;
     Float_t progress = iEv * 1.0 / nEv;
     Int_t barWidth = 70;
-
-    Int_t pos = barWidth * progress;
+    Int_t pos = barWidth * progress;    
+    cout.flush();
     for (Int_t i = 0; i < barWidth; ++i) {
         if (i <= pos) printf(ANSI_COLOR_BLUE_BG " " ANSI_COLOR_RESET);
         else printf(ANSI_COLOR_YELLOW_BG " " ANSI_COLOR_RESET);
@@ -1076,7 +1083,7 @@ void DrawBar(Long64_t iEv, Long64_t nEv) {
     Float_t progress = iEv * 1.0 / nEv;
     Int_t barWidth = 70;
 
-    Int_t pos = barWidth * progress;
+    Int_t pos = barWidth * progress;    
     for (Int_t i = 0; i < barWidth; ++i) {
         if (i <= pos) printf(ANSI_COLOR_BLUE_BG " " ANSI_COLOR_RESET);
         else printf(ANSI_COLOR_YELLOW_BG " " ANSI_COLOR_RESET);

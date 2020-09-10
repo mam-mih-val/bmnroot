@@ -26,7 +26,7 @@
 
 // Slewing Time limits flags
 #define LIMITS_ROOT_FILE 1
-#define PRINT_TIME_LIMITS 1
+#define PRINT_TIME_LIMITS 0
 
 // Strip equalization before slewing
 #define PRELIMINARY_OFFSETS 1
@@ -349,14 +349,34 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, I
 
 // read Left-Right offsets
     for (int c=0; c<TOF2_MAX_CHAMBERS; c++)
+    {
+	yslope[c] = 1.;
+	yoffset[c] = 0.;
 	for (int i=0; i<TOF2_MAX_STRIPS_IN_CHAMBER; i++)
 	{
 		    lroffsets[c][i] = 0.;
 		    lrsign[c][i] = +1;
+		    xoffset[c][i] = 0.;
+		    xslope[c][i] = 0.;
 	}
+    }
     readLRoffsets((char *)"TOF700_left_right_offsets.txt");
-    // 19.5 cm/ns
-    fVelosity = 19.5f;
+    // 15 cm/ns
+    fVelosity = 7.5f;
+    readXYCalibration((char *)"TOF700_tdiff_to_x_final_2019071.txt",(char *)"Y_calibration.txt");
+    // Argon data calibration
+    for (int c=0; c<TOF2_MAX_CHAMBERS; c++)
+    {
+	for (int i=0; i<TOF2_MAX_STRIPS_IN_CHAMBER; i++)
+	{
+		    interxg[c][i] = 0.;
+		    slopexg[c][i] = 0.;
+		    interxl[c][i] = 0.;
+		    slopexl[c][i] = 0.;
+		    shifty[c][i] = 0.;
+	}
+    }
+    readXYCalibrationNew((char *)"bmn_run9687_digi_x_calibration.txt",(char *)"bmn_run9687_digi_y_calibration.txt");
 
     for(int ind=0;ind<n_rec;ind++){ 
      if (mapa[ind].pair == -1) continue; 
@@ -1129,7 +1149,14 @@ void BmnTof2Raw2DigitNew::readSlewingLimits()
     if (PRINT_TIME_LIMITS) printf("\t\tTOF2.SetWT0(%d,%d);\n", WT0min, WT0max);
     for (i=0; i<MaxPlane; i++)
     {
+      lmi = 0;
+      lma = 0;
       fscanf(finl,"\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", &j, &lmi, &lma);
+      if (lmi >= lma)
+      {
+        printf("\t\tWrong limits - TOF2.SetLeadMinMax(%d, %d,%d);\n", j, lmi, lma);
+	continue;
+      }
       if (PRINT_TIME_LIMITS) printf("\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", j, lmi, lma);
       SetLeadMinMax(j,lmi,lma);
     }   
@@ -1231,7 +1258,12 @@ void BmnTof2Raw2DigitNew::readSlewingLimits()
 //	    printf("pl %d binw %d min %d max %d\n",plane,ibx,LeadMinW[plane][ibx-1],LeadMaxW[plane][ibx-1]);
 	}
 	if (PRINT_TIME_LIMITS) printf("\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", plane+1, (int)ymin, (int)ymax);
-	SetLeadMinMax(plane+1,(int)ymin,(int)ymax);
+	if (ymin >= ymax)
+	{
+	    printf("\t\tWrong limits - TOF2.SetLeadMinMax(%d, %d,%d);\n", plane+1, (int)ymin, (int)ymax);
+	}
+	else
+	    SetLeadMinMax(plane+1,(int)ymin,(int)ymax);
 	delete htvsw_0;
 	delete htvsw_1;
 	delete htvsw_2;
@@ -1289,7 +1321,7 @@ void BmnTof2Raw2DigitNew::readSlewing(Bool_t update)
     }
     else
     {
-	LOG(FATAL)<<"Error open slewing file " << filnr << " - exit!" << FairLogger::endl;
+	LOG(FATAL)<<"Error open slewing file " << filnr << " - exit!";
 	return;
     }
   }
@@ -2767,7 +2799,7 @@ void BmnTof2Raw2DigitNew::Equalization0()
   if (!PRELIMINARY_OFFSETS) return;
   float tmeane_average[TOF2_MAX_CHAMBERS] = {0.};
   float tmeane[TOF2_MAX_CHANNEL] = {0.};
-  TH1D *proj = 0;
+  TH1D *proj = 0, *hmain = 0;
   TF1 *gr = 0;
   char namp[64], namf[64];
   int ncon = 0;
@@ -2794,6 +2826,15 @@ void BmnTof2Raw2DigitNew::Equalization0()
   int ip, is;
   int na = 0;
   tmeane_average[plane] = 0.;
+
+// Select working area around main time peak for current chamber
+  int im, y, bymin, bymax;
+  float ymin, ymax;
+  im = (hmain = (TvsS[plane]->ProjectionY("lims")))->GetMaximumBin();
+  y  = (int)(hmain->GetBinCenter(im));
+  ymin = y - 60;
+  ymax = y + 60;
+
   for (int ind=0; ind<n_rec; ind++)
   {
 	if (mapa[ind].pair < 0) continue;
@@ -2805,8 +2846,14 @@ void BmnTof2Raw2DigitNew::Equalization0()
 	proj = TvsS[ip]->ProjectionY(namp,is+1,is+1);
 	if (EQUAL_MAXIMA0)
 	{
-	    int mbin = proj->GetMaximumBin();
 	    int nbin = proj->GetNbinsX();
+// reset bins outside main peak area
+	    bymin  = (int)(proj->FindBin(ymin));
+	    bymax  = (int)(proj->FindBin(ymax));
+	    for (int ib = 1; ib <= nbin; ib++)
+		if (ib <= bymin || ib >= bymax) proj->SetBinContent(ib, 0);
+//
+	    int mbin = proj->GetMaximumBin();
 	    mpos = proj->GetBinCenter(mbin);
 	    ncon = proj->GetBinContent(mbin);
 	    //printf("Chamber %d strip %d max %d at %f\n", ip,is,ncon,mpos);
@@ -3624,13 +3671,41 @@ float BmnTof2Raw2DigitNew::get_hit_x0(int chamber, int strip, float diff)
 	return 0.;
 }
 
+float BmnTof2Raw2DigitNew::get_hit_xs0(int chamber, int strip, float diff)
+{
+    Int_t sign_src[TOF2_MAX_CHAMBERS] = {1,-1,-1,-1,1,-1,1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,1,1,1,1,1,1,1,1,1,-1,1,1,1,1};
+    float x = 0., dx = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fVelosity > 0.)
+    {
+	dx = (diff + lroffsets[chamber][strip]*HPTIMEBIN)*fVelosity;
+	x = xcens[chamber][strip] + sign_src[chamber]*lrsign[chamber][strip]*dx;
+	return x;
+    }
+    else
+	return 0.;
+}
+
 float BmnTof2Raw2DigitNew::get_hit_x(int chamber, int strip, float diff_corrected)
 {
     float x = 0., dx = 0.;
     if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fVelosity > 0.)
     {
-	dx = diff_corrected*fVelosity;
+	dx = -diff_corrected*fVelosity;
 	x = xcens[chamber][strip] + lrsign[chamber][strip]*dx;
+	return x;
+    }
+    else
+	return 0.;
+}
+
+float BmnTof2Raw2DigitNew::get_hit_xs(int chamber, int strip, float diff_corrected)
+{
+    Int_t sign_src[TOF2_MAX_CHAMBERS] = {1,-1,-1,-1,1,-1,1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,1,1,1,1,1,1,1,1,1,-1,1,1,1,1};
+    float x = 0., dx = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fVelosity > 0.)
+    {
+	dx = diff_corrected*fVelosity;
+	x = xcens[chamber][strip] + sign_src[chamber]*lrsign[chamber][strip]*dx;
 	return x;
     }
     else
@@ -3673,12 +3748,29 @@ void BmnTof2Raw2DigitNew::get_hit_xyz0(int chamber, int strip, float diff, float
 	return;
 }
 
+void BmnTof2Raw2DigitNew::get_hit_xyzs0(int chamber, int strip, float diff, float *x, float *y, float *z)
+{
+    Int_t sign_src[TOF2_MAX_CHAMBERS] = {1,-1,-1,-1,1,-1,1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,1,1,1,1,1,1,1,1,1,-1,1,1,1,1};
+    float xh = 0., dxh = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fVelosity > 0.)
+    {
+	dxh = (diff + lroffsets[chamber][strip]*HPTIMEBIN)*fVelosity;
+	xh = xcens[chamber][strip] + sign_src[chamber]*lrsign[chamber][strip]*dxh;
+	*x = xh;
+	*y = ycens[chamber][strip];
+	*z = zchamb[chamber];
+	return;
+    }
+    else
+	return;
+}
+
 void BmnTof2Raw2DigitNew::get_hit_xyz(int chamber, int strip, float diff_corrected, float *x, float *y, float *z)
 {
     float xh = 0., dxh = 0.;
     if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fVelosity > 0.)
     {
-	dxh = diff_corrected*fVelosity;
+	dxh = -diff_corrected*fVelosity;
 	xh = xcens[chamber][strip] + lrsign[chamber][strip]*dxh;
 	*x = xh;
 	*y = ycens[chamber][strip];
@@ -3687,6 +3779,228 @@ void BmnTof2Raw2DigitNew::get_hit_xyz(int chamber, int strip, float diff_correct
     }
     else
 	return;
+}
+
+void BmnTof2Raw2DigitNew::get_hit_xyzs(int chamber, int strip, float diff_corrected, float *x, float *y, float *z)
+{
+    Int_t sign_src[TOF2_MAX_CHAMBERS] = {1,-1,-1,-1,1,-1,1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,1,1,1,1,1,1,1,1,1,-1,1,1,1,1};
+    float xh = 0., dxh = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fVelosity > 0.)
+    {
+	dxh = diff_corrected*fVelosity;
+	xh = xcens[chamber][strip] + sign_src[chamber]*lrsign[chamber][strip]*dxh;
+	*x = xh;
+	*y = ycens[chamber][strip];
+	*z = zchamb[chamber];
+	return;
+    }
+    else
+	return;
+}
+
+int BmnTof2Raw2DigitNew::readXYCalibration(char *xcalibrationfile, char *ycalibrationfile)
+{
+	char fname[128];
+	FILE *fg = 0;
+	int i;
+	float xoff,xslop,yoff,yslop,yofferr,ysloperr;
+	
+// X calibration
+	if (strlen(xcalibrationfile) == 0)
+	{
+	    printf("TOF700 X calibration file name not defined!\n");
+	    return 0;
+	}
+	TString dir = getenv("VMCWORKDIR");
+	sprintf(fname,"%s/geometry/%s",dir.Data(),xcalibrationfile);
+	fg = fopen(fname,"r");
+	if (fg == NULL)
+	{
+	    printf("TOF700 X calibration file %s open error!\n", fname);
+	    return 0;
+	}
+	printf("Loading TOF700 X calibration from file %s\n", xcalibrationfile);
+	int ip, is, n = 0;
+	while(fscanf(fg, "%d %d %f %f\n", &ip, &is, &xoff, &xslop) == 4)
+	{
+	    if (ip>=MaxPlane)
+	    {
+		printf("X calibration: Chamber number %d >= %d, skip!\n", ip, MaxPlane);
+		continue;
+	    }
+	    if (is>=TOF2_MAX_STRIPS_IN_CHAMBER)
+	    {
+		printf("X calibration: Strip number %d >= %d, skip!\n", is, TOF2_MAX_STRIPS_IN_CHAMBER);
+		continue;
+	    }
+	    xoffset[ip][is] = xoff;
+	    xslope[ip][is] = xslop;
+	    n++;
+	}
+	fclose(fg);
+	printf("Read X calibration for %d strips.\n", n);
+// Y calibration
+	n = 0;
+	if (strlen(ycalibrationfile) == 0)
+	{
+	    printf("TOF700 Y calibration file name not defined!\n");
+	    return 0;
+	}
+	sprintf(fname,"%s/geometry/%s",dir.Data(),ycalibrationfile);
+	fg = fopen(fname,"r");
+	if (fg == NULL)
+	{
+	    printf("TOF700 Y calibration file %s open error!\n", fname);
+	    return 0;
+	}
+	printf("Loading TOF700 Y calibration from file %s\n", ycalibrationfile);
+	while(fscanf(fg, "%d %f %f %f %f\n", &ip, &yoff, &yofferr, &yslop, &ysloperr) == 5)
+	{
+	    if (ip>=MaxPlane)
+	    {
+		printf("Y calibration: Chamber number %d >= %d, skip!\n", ip, MaxPlane);
+		continue;
+	    }
+	    yoffset[ip] = yoff;
+	    yslope[ip] = yslop;
+	    n++;
+	}
+	fclose(fg);
+	printf("Read Y calibrations for %d chambers.\n", n);
+
+	return 1;
+}
+
+int BmnTof2Raw2DigitNew::readXYCalibrationNew(char *xcalibrationfile, char *ycalibrationfile)
+{
+	FILE *fcalx = 0;
+	FILE *fcaly = 0;
+	char fname_calibr[128];
+	TString dir = getenv("VMCWORKDIR");
+	sprintf(fname_calibr,"%s/geometry/%s",dir.Data(),xcalibrationfile);
+	fcalx = fopen(fname_calibr,"r");
+	if (fcalx == NULL)
+	{
+	    printf("File %s open error!\n", fname_calibr);
+	    return 0;
+	}
+	sprintf(fname_calibr,"%s/geometry/%s",dir.Data(),ycalibrationfile);
+	fcaly = fopen(fname_calibr,"r");
+	if (fcaly == NULL)
+	{
+	    printf("File %s open error!\n", fname_calibr);
+	    return 0;
+	}
+//
+	Int_t nx = 0, ny = 0, ip = 0, is = 0;
+	while(fscanf(fcalx, " l %d %d %f %f\n", &ip, &is, &interxl[ip][is], &slopexl[ip][is]) == 4) \
+	    { fscanf(fcalx, " g %d %d %f %f\n", &ip, &is, &interxg[ip][is], &slopexg[ip][is]); nx++; };
+	while (fscanf(fcaly, " %d %d %f\n", &ip, &is, &shifty[ip][is]) == 3) {ny++;};
+//
+	printf(" Read TOF700 X calibration parameters - %d strips\n",nx);
+	printf(" Read TOF700 Y calibration parameters - %d strips\n",ny);
+	if (fcalx) fclose(fcalx);
+	if (fcaly) fclose(fcaly);
+	return nx;
+}
+
+float BmnTof2Raw2DigitNew::get_hit_xp(int chamber, int strip, float diff)
+{
+    float x = 0., dx = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && xslope[chamber][strip] != 0.)
+    {
+	x = xoffset[chamber][strip] + xslope[chamber][strip]*(diff - lroffsets[chamber][strip]*HPTIMEBIN)/2.;
+	return x;
+    }
+    else
+	return 0.;
+}
+
+void BmnTof2Raw2DigitNew::get_hit_xyzp(int chamber, int strip, float diff, float *x, float *y, float *z)
+{
+    float xh = 0., yh = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && xslope[chamber][strip] != 0. && yslope[chamber] != 0.)
+    {
+	xh = xoffset[chamber][strip] + xslope[chamber][strip]*(diff - lroffsets[chamber][strip]*HPTIMEBIN)/2.;
+	yh = yoffset[chamber] + yslope[chamber]*ycens[chamber][strip];
+	*x = xh;
+	*y = yh;
+	*z = zchamb[chamber];
+	return;
+    }
+    else
+    {
+	*x = 0.;
+	*y = 0.;
+	*z = 0.;
+	return;
+    }
+}
+
+float BmnTof2Raw2DigitNew::get_hit_xng(int chamber, int strip, float diff)
+{
+    float x = 0., dx = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fabs(slopexg[chamber][strip]) > 7.5f)
+    {
+	x = interxg[chamber][strip] + slopexg[chamber][strip]*diff;
+	return x;
+    }
+    else
+	return 0.;
+}
+
+void BmnTof2Raw2DigitNew::get_hit_xyzng(int chamber, int strip, float diff, float *x, float *y, float *z)
+{
+    float xh = 0., yh = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fabs(slopexg[chamber][strip]) > 7.5f && shifty[chamber][strip] != 0.)
+    {
+	xh = interxg[chamber][strip] + slopexg[chamber][strip]*diff;
+	yh = shifty[chamber][strip] + ycens[chamber][strip];
+	*x = xh;
+	*y = yh;
+	*z = zchamb[chamber];
+	return;
+    }
+    else
+    {
+	*x = 0.;
+	*y = 0.;
+	*z = 0.;
+	return;
+    }
+}
+
+float BmnTof2Raw2DigitNew::get_hit_xnl(int chamber, int strip, float diff)
+{
+    float x = 0., dx = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fabs(slopexl[chamber][strip]) > 7.5f)
+    {
+	x = interxl[chamber][strip] + slopexl[chamber][strip]*diff + xcens[chamber][strip];
+	return x;
+    }
+    else
+	return 0.;
+}
+
+void BmnTof2Raw2DigitNew::get_hit_xyznl(int chamber, int strip, float diff, float *x, float *y, float *z)
+{
+    float xh = 0., yh = 0.;
+    if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fabs(slopexl[chamber][strip]) > 7.5f && shifty[chamber][strip] != 0.)
+    {
+	xh = interxl[chamber][strip] + slopexl[chamber][strip]*diff + xcens[chamber][strip];
+	yh = shifty[chamber][strip] + ycens[chamber][strip];
+	*x = xh;
+	*y = yh;
+	*z = zchamb[chamber];
+	return;
+    }
+    else
+    {
+	*x = 0.;
+	*y = 0.;
+	*z = 0.;
+	return;
+    }
 }
 
 int BmnTof2Raw2DigitNew::get_ch_tdc32vl(unsigned int tdc,unsigned int ch){

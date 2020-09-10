@@ -14,11 +14,18 @@
 #include "UniDbRun.h"
 #include "function_set.h"
 
+#include "ExtractZ2.cxx"
+
 #include "FairLogger.h"
 
 #include "TDirectory.h"
 #include "TFile.h"
 #include "TROOT.h"
+#include "TSystem.h"
+
+#include <fstream>
+#include <iostream>
+#include <cstring>
 
 using namespace std;
 
@@ -32,8 +39,13 @@ BmnFillDstTask::BmnFillDstTask() : FairTask("BmnFillDstTask"),
                                    fIEvent(0),
                                    fPeriodNumber(-1),
                                    fRunNumber(-1),
+                                   fZCalib1(1),
+                                   fZCalib2(0),
+                                   fBC1Calib(0),
+                                   fBC2Calib(0),
+                                   fDoCalibration(kFALSE),
                                    isSimulationInput(false) {
-    LOG(DEBUG) << "Defaul Constructor of BmnFillDstTask" << FairLogger::endl;
+    LOG(DEBUG) << "Defaul Constructor of BmnFillDstTask";
 }
 
 // ---- Constructor with the given event number to be processed -------
@@ -46,9 +58,14 @@ BmnFillDstTask::BmnFillDstTask(Long64_t nEvents) : FairTask("BmnFillDstTask"),
                                                    fIEvent(0),
                                                    fPeriodNumber(-1),
                                                    fRunNumber(-1),
+                                                   fZCalib1(1),
+                                                   fZCalib2(0),
+                                                   fBC1Calib(0),
+                                                   fBC2Calib(0),
+                                                   fDoCalibration(kFALSE),
                                                    isSimulationInput(false) {
-    fRunHead = new BmnRunHeader();
-    LOG(DEBUG) << "Constructor of BmnFillDstTask" << FairLogger::endl;
+    fRunHead = new DstRunHeader();
+    LOG(DEBUG) << "Constructor of BmnFillDstTask";
 }
 
 // Constructor with input Event Header Name and event number to be processed
@@ -61,9 +78,14 @@ BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, Long64_t nEvents
                                                                                     fIEvent(0),
                                                                                     fPeriodNumber(-1),
                                                                                     fRunNumber(-1),
+                                                                                    fZCalib1(1),
+                                                                                    fZCalib2(0),
+                                                                                    fBC1Calib(0),
+                                                                                    fBC2Calib(0),
+                                                                                    fDoCalibration(kFALSE),
                                                                                     isSimulationInput(false) {
-    fRunHead = new BmnRunHeader();
-    LOG(DEBUG) << "Constructor of BmnFillDstTask" << FairLogger::endl;
+    fRunHead = new DstRunHeader();
+    LOG(DEBUG) << "Constructor of BmnFillDstTask";
 }
 
 // Constructor with input and output Event Header Name, and event number to be processed
@@ -76,19 +98,24 @@ BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, TString output_e
                                                                                                                       fIEvent(0),
                                                                                                                       fPeriodNumber(-1),
                                                                                                                       fRunNumber(-1),
+                                                                                                                      fZCalib1(1),
+                                                                                                                      fZCalib2(0),
+                                                                                                                      fBC1Calib(0),
+                                                                                                                      fBC2Calib(0),
+                                                                                                                      fDoCalibration(kFALSE),
                                                                                                                       isSimulationInput(false) {
-    fRunHead = new BmnRunHeader();
-    LOG(DEBUG) << "Constructor of BmnFillDstTask" << FairLogger::endl;
+    fRunHead = new DstRunHeader();
+    LOG(DEBUG) << "Constructor of BmnFillDstTask";
 }
 
 // ---- Destructor ----------------------------------------------------
 BmnFillDstTask::~BmnFillDstTask() {
-    LOG(DEBUG) << "Destructor of BmnFillDstTask" << FairLogger::endl;
+    LOG(DEBUG) << "Destructor of BmnFillDstTask";
 }
 
 // ----  Initialisation  ----------------------------------------------
 void BmnFillDstTask::SetParContainers() {
-    LOG(DEBUG) << "SetParContainers of BmnFillDstTask" << FairLogger::endl;
+    LOG(DEBUG) << "SetParContainers of BmnFillDstTask";
     // Load all necessary parameter containers from the runtime data base
     /*
     FairRunAna* ana = FairRunAna::Instance();
@@ -101,13 +128,13 @@ void BmnFillDstTask::SetParContainers() {
 
 // ---- Init ----------------------------------------------------------
 InitStatus BmnFillDstTask::Init() {
-    LOG(DEBUG) << "Initilization of BmnFillDstTask" << FairLogger::endl;
+    LOG(DEBUG) << "Initilization of BmnFillDstTask";
 
     // Get a handle from the IO manager
     FairRootManager* ioman = FairRootManager::Instance();
     if (!ioman) {
-        LOG(ERROR) << "Init: FairRootManager is not instantiated!" << FairLogger::endl
-                   << "BmnFillDstTask will be inactive" << FairLogger::endl;
+        LOG(ERROR) << "Init: FairRootManager is not instantiated!\n"
+                   << "BmnFillDstTask will be inactive";
         return kERROR;
     }
 
@@ -117,8 +144,8 @@ InitStatus BmnFillDstTask::Init() {
         // if no input Event Header was found, searching for "MCEventHeader."
         fMCEventHead = (FairMCEventHeader*)ioman->GetObject("MCEventHeader.");
         if (!fMCEventHead) {
-            LOG(ERROR) << "No input Event Header (" << fInputEventHeaderName << " or MCEventHeader.) was found!" << FairLogger::endl
-                       << "BmnFillDstTask will be inactive!" << FairLogger::endl;
+            LOG(ERROR) << "No input Event Header (" << fInputEventHeaderName << " or MCEventHeader.) was found!\n"
+                       << "BmnFillDstTask will be inactive!";
             return kERROR;
         }
         isSimulationInput = true;
@@ -129,12 +156,64 @@ InitStatus BmnFillDstTask::Init() {
         } else
             fEventHead = (BmnEventHeader*)pObj;
     }
+    if (fDoCalibration) {
+        // Read in the z-calibration file
+        TString gPathWorkdir = gSystem->Getenv("VMCWORKDIR");
+        TString gPathFullBC = gPathWorkdir + "/input/BC12Corrections.txt";
+        ifstream fin(gPathFullBC.Data());
+        int runBC = 0;
+        int safeindex = 0;
+        while (runBC != fRunNumber && safeindex != 20000) {
+            fin >> runBC;
+            fin >> fBC1Calib;
+            fin >> fBC2Calib;
+            safeindex = safeindex + 1;
+        }
+        if (fVerbose > 0)
+            if (safeindex == 20000) cout << "run number not found in file " << gPathFullBC << endl;
 
+        TString gPathFull = gPathWorkdir + "/input/ZOutCorrections5.txt";
+
+        string line;
+        ifstream f(gPathFull.Data(), ios::in);
+        vector<Double_t> axisAttr;
+
+        while (!f.eof()) {
+            getline(f, line);
+
+            TString currString(line);
+            int run;
+            TString str_run(currString(0, 4));
+            run = str_run.Atoi();
+
+            if (run == fRunNumber) {
+                //	cout<<"++++++++++++FILLDSTTASK!!!!"<<endl;
+                cout << currString.Data() << endl;
+                TString ab(currString(5, currString.Length()));
+                TString a(ab(0, ab.First(" ")));
+                float a_float;
+                fZCalib1 = a.Atof();
+                TString c(ab(a.Length() + 1, ab.Length()));
+                //cout<<"c = "<<c.Data()<<endl;
+                TString b(c(0, c.First(" ")));
+                fZCalib2 = b.Atof();
+                //cout<<"ab = "<<ab.Data()<<", a = "<<fZCalib1<<", b = "<<fZCalib2<<endl;
+            }
+        }
+        //f.close();
+    }
+
+    //Get input branches
+    fT0 = (TClonesArray*)ioman->GetObject("BC2");
+    fBC1 = (TClonesArray*)ioman->GetObject("TQDC_BC1");
+    fBC2 = (TClonesArray*)ioman->GetObject("TQDC_BC2");
+    fBC3 = (TClonesArray*)ioman->GetObject("TQDC_BC3");
+    fBC4 = (TClonesArray*)ioman->GetObject("TQDC_BC4");
     // Get a pointer to the output DST Event Header
     fDstHead = (DstEventHeader*)ioman->GetObject(fOutputEventHeaderName);
     if (!fDstHead) {
-        LOG(ERROR) << "No Event Header(" << fOutputEventHeaderName << ") prepared for the output DST file!" << FairLogger::endl
-                   << "BmnFillDstTask will be inactive" << FairLogger::endl;
+        LOG(ERROR) << "No Event Header(" << fOutputEventHeaderName << ") prepared for the output DST file!\n"
+                   << "BmnFillDstTask will be inactive";
         return kERROR;
     }
 
@@ -148,7 +227,7 @@ InitStatus BmnFillDstTask::Init() {
     if (ioman->CheckMaxEventNo(fNEvents) < fNEvents)
         fNEvents = ioman->CheckMaxEventNo(fNEvents);
 
-    // FIll Run Header from the Database
+    // Fill Run Header from the Database
     if (fRunNumber > 0) {
         InitParticleInfo();
 
@@ -196,13 +275,13 @@ InitStatus BmnFillDstTask::Init() {
 
 // ---- ReInit  -------------------------------------------------------
 InitStatus BmnFillDstTask::ReInit() {
-    LOG(DEBUG) << "Re-initilization of BmnFillDstTask" << FairLogger::endl;
+    LOG(DEBUG) << "Re-initilization of BmnFillDstTask";
     return kSUCCESS;
 }
 
 // ---- Exec ----------------------------------------------------------
 void BmnFillDstTask::Exec(Option_t* /*option*/) {
-    LOG(DEBUG) << "Exec of BmnFillDstTask" << FairLogger::endl;
+    LOG(DEBUG) << "Exec of BmnFillDstTask";
 
     // fill output DST event header
     if (isSimulationInput) {
@@ -216,7 +295,88 @@ void BmnFillDstTask::Exec(Option_t* /*option*/) {
         fDstHead->SetEventId(fEventHead->GetEventId());
         fDstHead->SetEventTime(fEventHead->GetEventTime());
         fDstHead->SetEventTimeTS(fEventHead->GetEventTimeTS());
-        fDstHead->SetTriggerType(fEventHead->GetTrigType());
+    }
+
+    //calculate Z2in and Z2out:
+    Double_t Z2in = -100.0, Z2out = -100.0;
+    Double_t adcIn = -100.0, adcOut = -100.0;
+    Short_t Zin = -100;
+    Short_t Zout = -100;
+    if (fT0 && fBC1 && fBC2 && fBC3 && fBC4) {
+        BmnTrigDigit* digT0 = NULL;
+        Int_t t0Count = 0;
+        for (UInt_t i = 0; i < fT0->GetEntriesFast(); i++) {
+            digT0 = (BmnTrigDigit*)fT0->At(i);
+            if (digT0->GetMod() == 0) t0Count++;
+        }
+        if (t0Count == 1) {
+            Double_t t0Time = digT0->GetTime();
+
+            grabZ2(fBC1, fBC2, t0Time, Z2in, adcIn, fBC1Calib, fBC2Calib, Zin, true);
+            grabZ2(fBC3, fBC4, t0Time, Z2out, adcOut, 0, 0, Zout, false);
+            if (Z2out != -1000) {
+                Z2out = sqrt(Z2out);
+                Z2out = Z2out * fZCalib1 + fZCalib2;
+                Z2out = Z2out * Z2out;
+            }
+            //cout<<Z2out;
+        }
+        fDstHead->SetZ2in(Z2in);
+        fDstHead->SetZ2out(Z2out);
+        fDstHead->SetADCin(adcIn);
+        fDstHead->SetADCout(adcOut);
+        fDstHead->SetZin(Zin);
+    } else 
+        if (fT0 && fBC1 && fBC2) {
+            BmnTrigDigit* digT0 = NULL;
+            Int_t t0Count = 0;
+            for (UInt_t i = 0; i < fT0->GetEntriesFast(); i++) {
+                digT0 = (BmnTrigDigit*)fT0->At(i);
+                if (digT0->GetMod() == 0) t0Count++;
+    }
+            if (t0Count == 1) {
+                Double_t t0Time = digT0->GetTime();
+
+                grabZ2(fBC1, fBC2, t0Time, Z2in, adcIn, fBC1Calib, fBC2Calib, Zin, true);
+            }
+            fDstHead->SetZ2in(Z2in);
+//            fDstHead->SetZ2out(Z2out);
+            fDstHead->SetADCin(adcIn);
+//            fDstHead->SetADCout(adcOut);
+            fDstHead->SetZin(Zin);
+        }
+
+    Double_t Z1 = -100.0, Z2 = -100.0, Z3 = -100.0, Z4 = -100.0, ADC1 = -100.0, ADC2 = -100.0, ADC3 = -100.0, ADC4 = -100.0;
+    if (fT0) {
+        Int_t t0Count = 0;
+        BmnTrigDigit* digT0 = NULL;
+        Double_t t0Time = -100000;
+        for (UInt_t i = 0; i < fT0->GetEntriesFast(); i++) {
+            digT0 = (BmnTrigDigit*)fT0->At(i);
+            if (digT0->GetMod() == 0) {
+                t0Count++;
+                t0Time = digT0->GetTime();
+            }
+        }
+        if (t0Count == 1) {
+            if (fBC1 && fBC2) {
+                grabZ2OR(fBC1, fBC2, t0Time, Z1, Z2, ADC1, ADC2, true);
+            }
+            if (fBC3 && fBC4) {
+                grabZ2OR(fBC3, fBC4, t0Time, Z3, Z4, ADC3, ADC4, false);
+            }
+        }
+
+        //no calibration from single adc to charge yet
+        //fDstHead->SetZ1(Z1);
+        //fDstHead->SetZ2(Z2);
+        //fDstHead->SetZ3(Z3);
+        //fDstHead->SetZ4(Z4);
+
+        fDstHead->SetADC1(ADC1);
+        fDstHead->SetADC2(ADC2);
+        fDstHead->SetADC3(ADC3);
+        fDstHead->SetADC4(ADC4);
     }
 
     // printing progress bar in terminal
@@ -260,11 +420,11 @@ void BmnFillDstTask::Exec(Option_t* /*option*/) {
 
 // ---- Finish --------------------------------------------------------
 void BmnFillDstTask::Finish() {
-    LOG(DEBUG) << "Finish of BmnFillDstTask" << FairLogger::endl;
+    LOG(DEBUG) << "Finish of BmnFillDstTask";
 
     FairRootManager* ioman = FairRootManager::Instance();
     FairSink* fSink = ioman->GetSink();
-    fSink->WriteObject(fRunHead, "BmnRunHeader", TObject::kSingleKey);
+    fSink->WriteObject(fRunHead, "DstRunHeader", TObject::kSingleKey);
 
     if (fVerbose == 0) printf("\n");
 }

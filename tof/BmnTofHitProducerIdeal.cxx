@@ -5,6 +5,7 @@
 #include "TClonesArray.h"
 #include "TH1D.h"
 #include "TH2D.h"
+#include "TFile.h"
 
 #include "FairRootManager.h"
 #include "FairLogger.h"
@@ -34,13 +35,13 @@ BmnTofHitProducerIdeal::~BmnTofHitProducerIdeal()
 //------------------------------------------------------------------------------------------------------------------------
 InitStatus	BmnTofHitProducerIdeal::Init() 
 {
-	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTofHitProducerIdeal::Init] Begin initialization.");
+	LOG(info) << "[BmnTofHitProducerIdeal::Init] Begin initialization.";
 
 	FairRootManager *ioman = FairRootManager::Instance(); assert(ioman);
 
 	if(fUseMCData)
 	{
-    		aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOFPoint");
+            aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF700Point");
                 if (!aMcPoints)
                 {
                   cout<<"BmnTofHitProducerIdeal::Init(): branch TOFPoint not found! Task will be deactivated"<<endl;
@@ -68,9 +69,9 @@ InitStatus	BmnTofHitProducerIdeal::Init()
 	
         // Create and register output array
         aTofHits = new TClonesArray("BmnTofHit");
-        ioman->Register("TOFHit", "TOF", aTofHits, kTRUE);
+        ioman->Register("TOF700Hit", "TOF", aTofHits, kTRUE);
 
-        FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTofHitProducerIdeal::Init] Initialization finished succesfully.");
+        LOG(info) << "[BmnTofHitProducerIdeal::Init] Initialization finished succesfully.";
 
     return kSUCCESS;
 }
@@ -123,7 +124,7 @@ void 			BmnTofHitProducerIdeal::Finish()
 {
   	if(fDoTest)
     	{
-      		FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, " [BmnTofHitProducerIdeal::Finish] Update  %s file. ", fTestFlnm.Data());
+      		LOG(info) << " [BmnTofHitProducerIdeal::Finish] Update " << fTestFlnm.Data() << " file. ";
 		TFile *ptr = gFile;
 		TFile file(fTestFlnm.Data(), "RECREATE");
 		fList.Write(); 

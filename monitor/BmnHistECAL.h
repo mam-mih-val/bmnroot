@@ -15,7 +15,7 @@
 #include "THttpServer.h"
 
 #include "BmnHist.h"
-#include "../bmndata/BmnECALDigit.h"
+#include "BmnECALDigit.h"
 #define ECAL_ROWS    1
 #define ECAL_COLS    2
 

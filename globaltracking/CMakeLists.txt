@@ -12,6 +12,9 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/globaltracking
+ ${CMAKE_SOURCE_DIR}/KF
+ ${CMAKE_SOURCE_DIR}/sts
+ ${CMAKE_SOURCE_DIR}/bmndst
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -38,6 +41,7 @@ set(SRCS
  BmnTriggersCheck.cxx
  BmnVertexFinder.cxx
  SrcVertexFinder.cxx
+ BmnPVAnalyzer.cxx
 
  BmnHitFinderRun1.h
 )
@@ -49,6 +53,6 @@ EndIf (Boost_FOUND)
 Set(HEADERS)
 Set(LINKDEF GlobalTrackingLinkDef.h)
 Set(LIBRARY_NAME GlobalTracking)
-Set(DEPENDENCIES Gem Silicon Mwpc Dch BmnData UniDb Base Core)
+Set(DEPENDENCIES Gem Silicon Mwpc Dch BmnData UniDb Base Core KF Sts BmnDst)
 
 GENERATE_LIBRARY()

@@ -10,11 +10,12 @@ BmnPVAnalyzer::BmnPVAnalyzer(Int_t period, Bool_t isField) {
     fDstEventHeader = nullptr;
     fNTracks = 0;
     fRoughVertex3D = (fPeriodId == 7) ? TVector3(0.5, -4.6, -1.0) : (fPeriodId == 6) ? TVector3(0.0, -3.5, -21.9) : TVector3(0.0, 0.0, 0.0);
-    fCBMFrameShift3D = TVector3(0, 0, 0);
+    fCBMFrameShift3D = TVector3(0.5, -7.06, -1.63);
     fIsField = isField;
 #ifdef CBM_TRACKS
     fGlobalTracksBranchName = "StsTrack";
     fDstEHBranchName = "EventHeaderBmn";
+    fRoughVertex3D = TVector3(0.22, 2.46, 0.584); // 7 period
 #else
     fGlobalTracksBranchName = "BmnGlobalTrack";
     fDstEHBranchName = "DstEventHeader.";
@@ -43,21 +44,6 @@ InitStatus BmnPVAnalyzer::Init() {
     fDstEventHeader = (TClonesArray*) ioman->GetObject(fDstEHBranchName); //in
 #else
     fDstEventHeader = (DstEventHeader*) ioman->GetObject(fDstEHBranchName); //in
-
-    //    fGemHitsArray = (TClonesArray*) ioman->GetObject(fGemHitsBranchName); //in
-    //    if (!fGemHitsArray) {
-    //        cout << "BmnPVAnalyzer::Init(): branch " << fGemHitsBranchName << " not found! Task will be deactivated" << endl;
-    //        SetActive(kFALSE);
-    //        return kERROR;
-    //    }
-    //    fSilHitsArray = (TClonesArray*) ioman->GetObject(fSilHitsBranchName); //in
-    //    if (!fSilHitsArray) {
-    //        cout << "BmnPVAnalyzer::Init(): branch " << fSilHitsBranchName << " not found! Task will be deactivated" << endl;
-    //        SetActive(kFALSE);
-    //        return kERROR;
-    //    }
-    //    fCbmHitsArray = new TClonesArray(CbmStsHit::Class(), 1); //out
-    //    ioman->Register(fCbmHitsBranchName, "CbmStsHit", fCbmHitsArray, kTRUE);
 #endif
 
     if (!fDstEventHeader) {
@@ -901,7 +887,7 @@ void BmnPVAnalyzer::ProcessEvent() {
     //     if (iev != 142) continue;
     //     printf("%s%5i \n"," +++++++++++++++++++++++++++ New Event  ",iev);
 
-    if (iev % 5000 == 0) {
+    if ((iev % 5000 == 0) && (fVerbose > 0)) {
         curtime = time(NULL);
         loctime = localtime(&curtime);
 
@@ -987,8 +973,8 @@ void BmnPVAnalyzer::ProcessEvent() {
             continue;
         FairTrackParam * param = tr->GetParamFirst();
         param->SetX(param->GetX() + fCBMFrameShift3D.X());
-        param->SetX(param->GetY() + fCBMFrameShift3D.Y());
-        param->SetX(param->GetZ() + fCBMFrameShift3D.Z());
+        param->SetY(param->GetY() + fCBMFrameShift3D.Y());
+        param->SetZ(param->GetZ() + fCBMFrameShift3D.Z());
 #else
         CbmStsTrack *tr = new CbmStsTrack();
         BmnGlobalTrack *bgt = (BmnGlobalTrack *) fGlobalTracksArray->UncheckedAt(i);
@@ -1052,7 +1038,7 @@ void BmnPVAnalyzer::ProcessEvent() {
     //--------------------------------------
     //    if ((nTracks < 7) && (nTracks > 40)) continue;
     //    if ((nTracks < 5) && (nTracks > 10)) continue;
-//    if (nTracks > 12) return;
+    if (nTracks > 12) return;
     //--------------------------------------
     hh1[11]->Fill(nTracks);
     //--------------------------------------

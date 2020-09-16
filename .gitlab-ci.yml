@@ -263,6 +263,8 @@ run_digi_src:ubuntu:
   before_script:
     - echo "Skipping global before_script"
   script:
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add /dev/stdin > /dev/null
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
@@ -281,6 +283,7 @@ run_digi_src:ubuntu:
     - ssh $STRATUM_0 "sudo cvmfs_server transaction nica.jinr.ru"
     - rsync --filter='-p .cvmfscatalog' --filter='-p .cvmfsautocatalog' -a /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME $STRATUM_0:/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/
     - ssh $STRATUM_0 "sudo cvmfs_server publish nica.jinr.ru"
+    - ssh-agent -k
   only:
     - tags
     - dev

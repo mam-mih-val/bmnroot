@@ -34,7 +34,6 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
- BmnDetectorSetup.cxx
  BmnGlobalTracking.cxx
  BmnUpstreamTracking.cxx
  #BmnSRCTriggersCheck.cxx - compilation failed
@@ -42,8 +41,6 @@ set(SRCS
  BmnVertexFinder.cxx
  SrcVertexFinder.cxx
  BmnPVAnalyzer.cxx
-
- BmnHitFinderRun1.h
 )
 
 If (Boost_FOUND)

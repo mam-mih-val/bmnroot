@@ -178,9 +178,9 @@ TVector3 SpiralFit(BmnGemTrack* tr, const TClonesArray* arr) {
 
 Bool_t IsParCorrect(const FairTrackParam* par, const Bool_t isField) {
     const Float_t maxSlopeX = 5.;
-    const Float_t maxSlopeY = 0.5;
-    const Float_t maxX = 150.0;
-    const Float_t maxY = 100.0;
+    const Float_t maxSlopeY = 1.;
+    const Float_t maxX = 300.0;
+    const Float_t maxY = 200.0;
     //const Float_t minSlope = 1e-10;
     const Float_t maxQp = 100.; // p = 10 MeV
     const Float_t minQp = 0.01; // p = 100 GeV

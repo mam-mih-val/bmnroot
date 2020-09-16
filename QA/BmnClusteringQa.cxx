@@ -43,7 +43,6 @@ using namespace TMath;
 BmnClusteringQa::BmnClusteringQa() :
 fHM(NULL),
 fOutputDir("./"),
-//fDet(),
 fMCTracks(NULL),
 fGemPoints(NULL),
 fGemDigits(NULL),
@@ -84,7 +83,6 @@ InitStatus BmnClusteringQa::Init() {
     TString confGem = "GemRunSpring2018.xml";
     fGemDetector = new BmnGemStripStationSet(gPathGemConfig + confGem);
 
-    //fDet.DetermineSetup();
     ReadDataBranches();
 
     CreateHistograms();

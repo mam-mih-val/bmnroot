@@ -131,7 +131,7 @@ set(SRCS
  BmnLANDDigit.cxx
  BmnTrigUnion.h
 
-#BmnVertex.cxx
+ BmnVertex.cxx
 )
 
 Set(HEADERS)

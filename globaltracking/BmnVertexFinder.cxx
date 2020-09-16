@@ -13,8 +13,6 @@ BmnVertexFinder::BmnVertexFinder(Int_t period, Bool_t isField) {
     fPeriodId = period;
     fEventNo = 0;
     fGlobalTracksArray = NULL;
-    fNTracks = 0;
-    fRoughVertex3D = (fPeriodId == 7) ? TVector3(0.5, -4.6, -1.0) : (fPeriodId == 6) ? TVector3(0.0, -3.5, -21.9) : TVector3(0.0, 0.0, 0.0);
     fIsField = isField;
     fRobustRefit = kTRUE;
     fGlobalTracksBranchName = "BmnGlobalTrack";
@@ -40,7 +38,7 @@ InitStatus BmnVertexFinder::Init() {
         return kERROR;
     }
 
-    fVertexArray = new TClonesArray("CbmVertex", 1);  //out
+    fVertexArray = new TClonesArray("BmnVertex", 1);  //out
     ioman->Register(fVertexBranchName, "GEM", fVertexArray, kTRUE);
 
     if (fVerbose > 1) cout << "=========================== Vertex finder init finished ===================" << endl;
@@ -60,10 +58,8 @@ void BmnVertexFinder::Exec(Option_t* opt) {
 
     fVertexArray->Delete();
 
-    fNTracks = fGlobalTracksArray->GetEntriesFast();
-
-    FindPrimaryVertex();
-    FindSecondaryVertex();
+    new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) BmnVertex(FindPrimaryVertex(fGlobalTracksArray));
+    new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) BmnVertex(FindSecondaryVertex(fGlobalTracksArray));
 
     if (fVerbose > 1) cout << "\n======================== Vertex finder exec finished ======================" << endl;
 
@@ -71,7 +67,7 @@ void BmnVertexFinder::Exec(Option_t* opt) {
     fTime += sw.RealTime();
 }
 
-void BmnVertexFinder::FindPrimaryVertex() {
+BmnVertex BmnVertexFinder::FindPrimaryVertex(TClonesArray* tracks) {
     //cout << "Primary" << endl;
     const Double_t kRange = 50.0;
     const Double_t xVertMin = -0.5;
@@ -81,8 +77,8 @@ void BmnVertexFinder::FindPrimaryVertex() {
     Double_t roughVertexZ = -1.0;
     Int_t nPrim = 0;
 
-    for (Int_t iTr = 0; iTr < fGlobalTracksArray->GetEntriesFast(); ++iTr) {
-        BmnGlobalTrack* track = (BmnGlobalTrack*)fGlobalTracksArray->At(iTr);
+    for (Int_t iTr = 0; iTr < tracks->GetEntriesFast(); ++iTr) {
+        BmnGlobalTrack* track = (BmnGlobalTrack*)tracks->At(iTr);
         FairTrackParam par0 = *(track->GetParamFirst());
         if (fKalman->TGeoTrackPropagate(&par0, roughVertexZ, (par0.GetQp() > 0.) ? 2212 : -211, NULL, NULL, kTRUE) == kBMNERROR) {
             continue;
@@ -97,25 +93,23 @@ void BmnVertexFinder::FindPrimaryVertex() {
     }
 
     if (nPrim < 2) {
-        new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", -1000, -1000, -1000, -1, 0, -1, TMatrixFSym(3), fRoughVertex3D);
-        return;
+        return BmnVertex();
     }
 
-    Double_t vz = FindVZByVirtualPlanes(roughVertexZ, kRange, fGlobalTracksArray, 0);
+    Double_t vz = FindVZByVirtualPlanes(roughVertexZ, kRange, tracks, 0);
     if (Abs(vz - roughVertexZ) > kRange) {
-        for (Int_t iTr = 0; iTr < fGlobalTracksArray->GetEntriesFast(); ++iTr) {
-            BmnGlobalTrack* track = (BmnGlobalTrack*)fGlobalTracksArray->At(iTr);
+        for (Int_t iTr = 0; iTr < tracks->GetEntriesFast(); ++iTr) {
+            BmnGlobalTrack* track = (BmnGlobalTrack*)tracks->At(iTr);
             track->SetFlag(1);
         }
-        new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", -1000, -1000, -1000, -1, 0, -1, TMatrixFSym(3), fRoughVertex3D);
-        return;
+        return BmnVertex();
     }
 
     vector<Double_t> xHits;
     vector<Double_t> yHits;
     vector<Int_t> indexes;
-    for (Int_t iTr = 0; iTr < fGlobalTracksArray->GetEntriesFast(); ++iTr) {
-        BmnGlobalTrack* track = (BmnGlobalTrack*)fGlobalTracksArray->At(iTr);
+    for (Int_t iTr = 0; iTr < tracks->GetEntriesFast(); ++iTr) {
+        BmnGlobalTrack* track = (BmnGlobalTrack*)tracks->At(iTr);
         if (track->GetFlag() != 0) continue;
         FairTrackParam par0 = *(track->GetParamFirst());
         if (fKalman->TGeoTrackPropagate(&par0, vz, (par0.GetQp() > 0.) ? 2212 : -211, NULL, NULL, kTRUE) == kBMNERROR) {
@@ -131,38 +125,32 @@ void BmnVertexFinder::FindPrimaryVertex() {
 
     Double_t rRMS = CalcRms2D(xHits, yHits);
 
-    // Double_t VX = (Abs(vz - roughVertexZ) < kRange) ? vx : -1000.;
-    // Double_t VY = (Abs(vz - roughVertexZ) < kRange) ? vy : -1000.;
-    // Double_t VZ = (Abs(vz - roughVertexZ) < kRange) ? vz : -1000.;
-    //cout << vx << " " << vy << " " << vz << endl;
-
-    new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", vx, vy, vz, rRMS, 0, xHits.size(), TMatrixFSym(3), fRoughVertex3D);
+    return BmnVertex(vx, vy, vz, rRMS, 0, xHits.size(), TMatrixFSym(3), -1, vector<Int_t>());
 }
 
-void BmnVertexFinder::FindSecondaryVertex() {
+BmnVertex BmnVertexFinder::FindSecondaryVertex(TClonesArray* tracks) {
     //cout << "Sacondary" << endl;
-    Double_t roughVertexZ = -1.0;
+    Double_t roughVertexZ = (fPeriodId == 7) ? -1.0 : (fPeriodId == 6) ? -21.9 : 0.0;
     const Double_t kRange = 300.0;
 
     Int_t nSec = 0;
 
-    for (Int_t iTr = 0; iTr < fGlobalTracksArray->GetEntriesFast(); ++iTr) {
-        BmnGlobalTrack* track = (BmnGlobalTrack*)fGlobalTracksArray->At(iTr);
+    for (Int_t iTr = 0; iTr < tracks->GetEntriesFast(); ++iTr) {
+        BmnGlobalTrack* track = (BmnGlobalTrack*)tracks->At(iTr);
         if (track->GetFlag() == 1) nSec++;  //secondary track
     }
 
     if (nSec < 2) {
-        new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", -1000, -1000, -1000, -1, 0, -1, TMatrixFSym(3), fRoughVertex3D);
-        return;
+        return BmnVertex();
     }
 
-    Double_t vz = FindVZByVirtualPlanes(roughVertexZ, kRange, fGlobalTracksArray, 1);
+    Double_t vz = FindVZByVirtualPlanes(roughVertexZ, kRange, tracks, 1);
 
     vector<Double_t> xHits;
     vector<Double_t> yHits;
     vector<Int_t> indexes;
-    for (Int_t iTr = 0; iTr < fGlobalTracksArray->GetEntriesFast(); ++iTr) {
-        BmnGlobalTrack* track = (BmnGlobalTrack*)fGlobalTracksArray->At(iTr);
+    for (Int_t iTr = 0; iTr < tracks->GetEntriesFast(); ++iTr) {
+        BmnGlobalTrack* track = (BmnGlobalTrack*)tracks->At(iTr);
         if (track->GetFlag() != 1) continue;
         FairTrackParam par0 = *(track->GetParamFirst());
         if (fKalman->TGeoTrackPropagate(&par0, vz, (par0.GetQp() > 0.) ? 2212 : -211, NULL, NULL, kTRUE) == kBMNERROR) {
@@ -171,19 +159,14 @@ void BmnVertexFinder::FindSecondaryVertex() {
         xHits.push_back(par0.GetX());
         yHits.push_back(par0.GetY());
         indexes.push_back(iTr);
-    }   
+    }
 
     Double_t vx = Mean(xHits.begin(), xHits.end());
     Double_t vy = Mean(yHits.begin(), yHits.end());
 
     Double_t rRMS = CalcRms2D(xHits, yHits);
 
-    // Double_t VX = (Abs(vz - roughVertexZ) < kRange) ? vx : -1000.;
-    // Double_t VY = (Abs(vz - roughVertexZ) < kRange) ? vy : -1000.;
-    // Double_t VZ = (Abs(vz - roughVertexZ) < kRange) ? vz : -1000.;
-    //cout << vx << " " << vy << " " << vz << endl;
-
-    new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", vx, vy, vz, rRMS, 0, xHits.size(), TMatrixFSym(3), fRoughVertex3D);
+    return BmnVertex(vx, vy, vz, rRMS, 0, xHits.size(), TMatrixFSym(3), -1, vector<Int_t>());
 }
 
 Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range, TClonesArray* tracks, Int_t flag) {
@@ -248,7 +231,7 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range, TClon
         //         minZ = zPlane[iPlane];
         //     }
         // }
-        
+
         //Calculation minZ as minimum of parabola
         for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
             rRMS[iPlane] = CalcMeanDist(xHits[iPlane], yHits[iPlane]);
@@ -259,7 +242,7 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range, TClon
         Float_t a = ptr->Parameter(2);
         minZ = -b / (2 * a);
         delete vertex;
-        
+
         range /= 2;
 
         // for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane)
@@ -283,8 +266,6 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range, TClon
     }
     return minZ;
 }
-
-
 
 void BmnVertexFinder::Finish() {
     ofstream outFile;

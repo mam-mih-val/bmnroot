@@ -10,14 +10,11 @@
 
 #include <iterator>
 #include <map>
-#include <vector>
 
 #include "BmnEventHeader.h"
 #include "BmnMwpcGeometry.h"
 #include "BmnSiliconTrack.h"
-#include "FitWLSQ.h"
 #include "TFile.h"
-#include "TH1F.h"
 #include "omp.h"
 
 using namespace TMath;
@@ -165,10 +162,6 @@ InitStatus BmnGlobalTracking::Init() {
     FairRootManager *ioman = FairRootManager::Instance();
     if (!ioman)
         Fatal("Init", "FairRootManager is not instantiated");
-
-    fDet.DetermineSetup();
-    if (fVerbose > 1)
-        cout << fDet.ToString();
 
     fSilHits = (TClonesArray *)ioman->GetObject("BmnSiliconHit");
     fGemHits = (TClonesArray *)ioman->GetObject("BmnGemStripHit");

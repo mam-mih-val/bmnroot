@@ -271,6 +271,7 @@ run_digi_src:ubuntu:
     - chmod 644 ~/.ssh/known_hosts
     - sed -i "s/\/opt\/fairsoft\/install/\/cvmfs\/nica.jinr.ru\/$CI_ENVIRONMENT_NAME\/fairsoft\/jun19p1/g" SetEnv.sh
     - sed -i "s/\/opt\/fairroot\/install/\/cvmfs\/nica.jinr.ru\/$CI_ENVIRONMENT_NAME\/fairroot\/v18.2.0/g" SetEnv.sh
+    - rm -rf build
     - mkdir build
     - cd build
     - >

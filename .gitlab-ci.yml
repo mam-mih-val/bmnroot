@@ -263,6 +263,7 @@ run_digi_src:ubuntu:
   before_script:
     - echo "Skipping global before_script"
   script:
+    - scl enable python27 sclo-git212 devtoolset-6 bash
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add /dev/stdin > /dev/null
     - mkdir -p ~/.ssh

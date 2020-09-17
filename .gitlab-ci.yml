@@ -274,7 +274,7 @@ run_digi_src:ubuntu:
     - rm -rf build
     - mkdir build
     - cd build
-    - >
+    - |
       if [ $CI_ENVIRONMENT_NAME = "sl6" ]; then
         scl enable python27 sclo-git212 devtoolset-6 - << \EOF
         source ../SetEnv.sh

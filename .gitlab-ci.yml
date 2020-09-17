@@ -277,14 +277,14 @@ run_digi_src:ubuntu:
     - >
       if [ $CI_ENVIRONMENT_NAME = "sl6" ]; then
         scl enable python27 sclo-git212 devtoolset-6 - << \EOF
-        source ./SetEnv.sh
+        source ../SetEnv.sh
         echo "Installing in /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME"
         cmake -DCMAKE_INSTALL_PREFIX=/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME ..
         make -j 5
         make install
       EOF
       else
-        source ./SetEnv.sh
+        source ../SetEnv.sh
         echo "Installing in /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME"
         cmake -DCMAKE_INSTALL_PREFIX=/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME ..
         make -j 5

@@ -300,7 +300,7 @@ run_digi_src:ubuntu:
   allow_failure: false
   
 deploy:sl6:
-  image: git.jinr.ru:5005/nica/docker-images/bmn/fair
+  image: git.jinr.ru:5005/nica/docker-images/sl6/fair-bmn:latest
   environment:
     name: sl6
   tags:

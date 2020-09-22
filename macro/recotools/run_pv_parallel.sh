@@ -1,5 +1,5 @@
 #!/bin/bash
-#$ -N ReadDataR7Parallel
+#$ -N VertexFinder
 #$ -j y
 #$ -cwd
 # request Bourne again shell as shell for job
@@ -9,21 +9,21 @@
 #MACHINES_TO_RUN="ncx238*"
 #qsub -l 'hostname='${MACHINES_TO_RUN}'' -t 4649-4649 read_data_r7_vasilii.sh
 
-#if [ "${SGE_TASK_ID}" == "" ]; then RUN_ID=${1} ; else RUN_ID=${SGE_TASK_ID} ; qstat ; df -h ; fi
+if [ "${SGE_TASK_ID}" == "" ]; then RUN_ID=${1} ; else RUN_ID=${SGE_TASK_ID} ; qstat ; pwd; ls -h ; fi
 
-RUN_ID=${1}
+#RUN_ID=${1}
 PATH_TO_SCRIPTS="$(pwd)"
 PATH_TO_BMNROOT_FROM_GLEB="/nica/mpd19/plotnikov/run7_Ar_automation/cbmroot-extended/bmnroot-root6-sigemcsc/"
 PATH_TO_BMNROOT="/lhep/users/ilnur/bmnroot/"
 #PATH_TO_TRACKS="/nica/mpd21/plotnikov/run7_Ar_automation/backup/zp0_6_yp2_3_sigemcscextend/identification/"
 #PATH_TO_TRACKS="/home/ilnour/filesbmn/"
-PATH_TO_TRACKS="/eos/nica/bmn/users/batyuk/bmnDst_InnTracker+tof400+csc+tof700+dch/Ar/BT+BD1+FD2/Al/"
-#PATH_TO_TRACKS="/nica/mpd19/plotnikov/run7_Ar_automation/identification/"
+#PATH_TO_TRACKS="/eos/nica/bmn/users/batyuk/bmnDst_InnTracker+tof400+csc+tof700+dch/Ar/BT+BD1+FD2/Al/"
+PATH_TO_TRACKS="/nica/mpd19/plotnikov/run7_Ar_automation/identification/"
 PATH_TO_DIGIS="/eos/nica/bmn/exp/digi/run7/20.02.0/3590-4707_BMN_Argon/"
-DST_NAME="bmndst_${RUN_ID}.root"
+#DST_NAME="bmndst_${RUN_ID}.root"
 DST_OUT_NAME="bmn-pv-${RUN_ID}.root"
 DIGI_NAME="bmn_run${RUN_ID}_digi.root"
-#DST_NAME="${RUN_ID}.root"
+DST_NAME="${RUN_ID}.root"
 
 MACRO_NAME="run_pv_bmn.C"
 # Check if Si+GEM tracks are exists
@@ -39,10 +39,10 @@ if [ "$(echo $?)" == "2" ]; then echo "${PATH_TO_TRACKS}/${DST_NAME} is absent! 
   cd ${PATH_TO_SCRIPTS}
 
 current_date_time="`date +%Y%m%d%H%M%S.%N`";
-inner_path =  ReadDataR7Parallel${RUN_ID}${current_date_time}
+inner_path="ReadDataR7Parallel${RUN_ID}${current_date_time}"
   mkdir ${inner_path}
   cd ${inner_path}
-  ln -s ../${MACRO_NAME} .
+  ln -s ../../run/${MACRO_NAME} .
 #  ln -s ../rootlogon.C .
 #  ln -s ../SIGEMS_r7.root .
 #  ln -s ../sts_v1_BMN_GEM.digi.par .
@@ -57,4 +57,3 @@ inner_path =  ReadDataR7Parallel${RUN_ID}${current_date_time}
   cd ..
   rm -rf ${inner_path}
 #fi
-

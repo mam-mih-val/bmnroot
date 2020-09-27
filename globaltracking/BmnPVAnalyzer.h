@@ -40,7 +40,7 @@
 #define VTX_LEN 100
 
  /** Uncommenting this please also change treename in the config/rootmanager.dat */
-//#define CBM_TRACKS 1
+#define CBM_TRACKS 1
 
 #define NHITS_THR 4
 
@@ -52,7 +52,7 @@ public:
 
     BmnPVAnalyzer() {
     };
-    BmnPVAnalyzer(Int_t period, Bool_t isField);
+    BmnPVAnalyzer(Int_t period, Int_t run, Bool_t isField);
     virtual ~BmnPVAnalyzer();
 
     virtual InitStatus Init();
@@ -143,8 +143,10 @@ private:
     TString fGlobalTracksBranchName;
     TString fDstEHBranchName;
     TString fVertexBranchName;
+    TString fVertexAllBranchName;
 
-    Int_t fPeriodId; // event counter
+    Int_t fPeriodId;
+    Int_t fRunId;
     Int_t fNTracks; // number of reco tracks in event
 
     TClonesArray* fGlobalTracksArray;
@@ -160,6 +162,7 @@ private:
 //    TString fSilHitsBranchName;
 //    TString fCbmHitsBranchName;
 #endif
+    FairEventHeader* fFairEventHeader;// for single(non run_reco) use, @TODO remove
     
     
     TClonesArray* fVertexArray;

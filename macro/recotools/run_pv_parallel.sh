@@ -9,7 +9,7 @@
 #MACHINES_TO_RUN="ncx238*"
 #qsub -l 'hostname='${MACHINES_TO_RUN}'' -t 4649-4649 read_data_r7_vasilii.sh
 
-if [ "${SGE_TASK_ID}" == "" ]; then RUN_ID=${1} ; else RUN_ID=${SGE_TASK_ID} ; qstat ; pwd; ls -h ; fi
+if [ "${SGE_TASK_ID}" == "" ]; then RUN_ID=${1} ; else RUN_ID=${SGE_TASK_ID} ; qstat ; pwd; ls -alhF ; fi
 
 #RUN_ID=${1}
 PATH_TO_SCRIPTS="$(pwd)"
@@ -30,8 +30,8 @@ MACRO_NAME="run_pv_bmn.C"
 ls ${PATH_TO_TRACKS}/${DST_NAME}
 if [ "$(echo $?)" == "2" ]; then echo "${PATH_TO_TRACKS}/${DST_NAME} is absent! Exit" ; exit 1 ; fi 
 
-#ls ${PATH_TO_SCRIPTS}/my_hist_file_${RUN_ID}.root
-#if [ "$(echo $?)" == "2" ]; then
+ls ${PATH_TO_SCRIPTS}/bmn-pv-${RUN_ID}.root
+if [ "$(echo $?)" == "2" ]; then
   echo "Find primary vertex"
 
   cd ${PATH_TO_BMNROOT}/build
@@ -39,7 +39,8 @@ if [ "$(echo $?)" == "2" ]; then echo "${PATH_TO_TRACKS}/${DST_NAME} is absent! 
   cd ${PATH_TO_SCRIPTS}
 
 current_date_time="`date +%Y%m%d%H%M%S.%N`";
-inner_path="ReadDataR7Parallel${RUN_ID}${current_date_time}"
+inner_path="VF7Parallel.${RUN_ID}.${JOB_ID}.${current_date_time}"
+echo ${inner_path}
   mkdir ${inner_path}
   cd ${inner_path}
   ln -s ../../run/${MACRO_NAME} .
@@ -49,11 +50,11 @@ inner_path="ReadDataR7Parallel${RUN_ID}${current_date_time}"
   ln -s ${PATH_TO_TRACKS}/${DST_NAME} .
   ln -s ${PATH_TO_DIGIS}/${DIGI_NAME} .
   echo "macro started"
-  root -b -q ${MACRO_NAME}'("'${DIGI_NAME}','${DST_NAME}','${DST_OUT_NAME}',0,10000")'
+  root -b -q ${MACRO_NAME}'("'${DIGI_NAME}'","'${DST_NAME}'","'${DST_OUT_NAME}'",0,0)'
   echo "macro finished"
   mv my_hist_file*.root ../my_hist_file_${RUN_ID}.root
   mv ${DST_OUT_NAME} ../
 
   cd ..
   rm -rf ${inner_path}
-#fi
+fi

@@ -8,13 +8,13 @@
  */
 
 //Set Parameters of GEMS -------------------------------------------------------
-const Int_t NStations = 6;      //stations in the detector
+const Int_t NStations = 7;      //stations in the detector (6 active + 1 disabled)
 const Int_t NMaxModules = 2;    //max. number of modules in a station
 
 //(X-Y-Z)Positions of stations (sensitive volumes)
-const Double_t XStationPositions[NStations] = { +0.5390, +0.7025, +1.9925, +3.0860, +3.7980, +4.5815};
-const Double_t YStationPositions[NStations] = { +15.99873, +16.20573, +16.36073, +16.40473, +16.09373, +16.45473};
-const Double_t ZStationPositions[NStations] = { +39.702, +64.535, +112.649, +135.330, +160.6635, +183.668};
+const Double_t XStationPositions[NStations] = { +0.5390, +0.7025, +1.9925, +3.0860, +3.7980, +4.5815, +1.2/*disabled station*/};
+const Double_t YStationPositions[NStations] = { +15.99873, +16.20573, +16.36073, +16.40473, +16.09373, +16.45473, +16.0/*disabled station*/};
+const Double_t ZStationPositions[NStations] = { +39.702, +64.535, +112.649, +135.330, +160.6635, +183.668, +87.6/*disabled station*/};
 
 //(X-Y-Z)Shifts of modules in each station
 const Double_t XModuleShifts[NStations][NMaxModules] = {
@@ -23,7 +23,8 @@ const Double_t XModuleShifts[NStations][NMaxModules] = {
     {163.2*0.25, -163.2*0.25},
     {163.2*0.25, -163.2*0.25},
     {163.2*0.25, -163.2*0.25},
-    {163.2*0.25, -163.2*0.25}
+    {163.2*0.25, -163.2*0.25},
+    {163.2*0.25, -163.2*0.25} /*disabled station*/
 };
 const Double_t YModuleShifts[NStations][NMaxModules] = {
     {0.0, 0.0},
@@ -31,7 +32,8 @@ const Double_t YModuleShifts[NStations][NMaxModules] = {
     {0.0, 0.0},
     {0.0, 0.0},
     {0.0, 0.0},
-    {0.0, 0.0}
+    {0.0, 0.0},
+    {0.0, 0.0} /*disabled station*/
 };
 const Double_t ZModuleShifts[NStations][NMaxModules] = {
     {0.0, 0.0},
@@ -39,14 +41,15 @@ const Double_t ZModuleShifts[NStations][NMaxModules] = {
     {0.0, 0.0},
     {0.0, 0.0},
     {0.0, 0.0},
-    {0.0, 0.0}
+    {0.0, 0.0},
+    {0.0, 0.0} /*disabled station*/
 };
 
 //rotations of stations around y-axis by 180 deg.
-const Bool_t YStationRotations[NStations] = {false/*0*/, true/*1*/, true/*2*/, false/*3*/, true/*4*/, false/*5*/};
+const Bool_t YStationRotations[NStations] = {false/*0*/, true/*1*/, true/*2*/, false/*3*/, true/*4*/, false/*5*/, false/*disabled station*/};
 
 //rotations of stations around x-axis by 180 deg.
-const Bool_t XStationRotations[NStations] = {false/*0*/, false/*1*/, false/*2*/, false/*3*/, false/*4*/, false/*5*/};
+const Bool_t XStationRotations[NStations] = {false/*0*/, false/*1*/, false/*2*/, false/*3*/, false/*4*/, false/*5*/, false/*disabled station*/};
 
 //GEM plane sizes (66x41 type) -------------------------------------------------
 const Double_t XModuleSize_Station66x41 = 66.0;
@@ -225,7 +228,7 @@ void create_rootgeom_GEMS_RunSpring2018_detailed() {
     //for(Int_t istation = 0; istation < 1; ++istation) {
 
         Int_t stationNum = istation;
-        TGeoVolume *station = CreateStation(TString("station")+ TString::Itoa(stationNum, 10));
+        TGeoVolume *station = CreateStation(TString("station") + TString::Itoa(stationNum, 10));
 
         TGeoVolume *module0 = CreateModule_Station163x45(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0);
         TGeoVolume *module1 = CreateModule_Station163x45(TString("Sensor_module1_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0);
@@ -234,6 +237,12 @@ void create_rootgeom_GEMS_RunSpring2018_detailed() {
         TGeoVolume *layers1 = CreateLayersForModule_Station163x45(TString("layer1_")+station->GetName());
 
         TGeoVolume *frame = CreateFrameForHalfPlane_Station163x45(TString("frame_")+station->GetName());
+
+        if(istation == 6) {
+            station->SetName(TString("disabled_station") + TString::Itoa(stationNum, 10));
+            module0->SetName(TString("module0_")+station->GetName());
+            module1->SetName(TString("module1_")+station->GetName());
+        }
 
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
             if(XStationRotations[stationNum] == true) module0_transform->RotateX(180.0);

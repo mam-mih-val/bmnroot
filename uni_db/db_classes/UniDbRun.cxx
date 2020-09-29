@@ -1303,14 +1303,15 @@ int UniDbRun::ReadGeometryFile(int period_number, int run_number, char* geo_file
     return 0;
 }
 
-TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
+TObjArray* UniDbRun::Search(TObjArray& search_conditions)
 {
     TObjArray* arrayResult = NULL;
+    search_conditions.SetOwner(kTRUE);
 
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
     {
-        cout<<"Error: connection to DB was failed"<<endl;
+        cout<<"ERROR: connection to the Unified Database was failed"<<endl;
         return arrayResult;
     }
 
@@ -1342,7 +1343,7 @@ TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
             case columnFieldVoltage:    strCondition += "field_voltage "; break;
             case columnFileSize:        strCondition += "file_size "; break;
             default:
-                cout<<"Error: column in the search condition wasn't defined, condition is skipped"<<endl;
+                cout<<"ERROR: the column in the search condition was not defined, the condition is skipped"<<endl;
                 continue;
         }
 
@@ -1357,7 +1358,7 @@ TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
             case conditionLike:             strCondition += "like "; break;
             case conditionNull:             strCondition += "is null "; break;
             default:
-                cout<<"Error: comparison operator in the search condition wasn't defined, condition is skipped"<<endl;
+                cout<<"ERROR: the comparison operator in the search condition was not defined, the condition is skipped"<<endl;
                 continue;
         }
 
@@ -1370,7 +1371,7 @@ TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
             case 4: strCondition += Form("lower('%s')", curCondition->GetStringValue().Data()); break;
             case 5: strCondition += Form("'%s'", curCondition->GetDatimeValue().AsSQLString()); break;
             default:
-                cout<<"Error: value type in the search condition wasn't found, condition is skipped"<<endl;
+                cout<<"ERROR: the value type in the search condition was not found, the condition is skipped"<<endl;
                 continue;
         }
 
@@ -1392,7 +1393,7 @@ TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
     // get table record from DB
     if (!stmt->Process())
     {
-        cout<<"Error: getting runs from DB has been failed"<<endl;
+        cout<<"ERROR: getting runs from the Unified Database has been failed"<<endl;
         delete stmt;
         delete connUniDb;
 
@@ -1410,7 +1411,7 @@ TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
         UniDbConnection* connRun = UniDbConnection::Open(UNIFIED_DB);
         if (connRun == 0x00)
         {
-            cout<<"Error: connection to DB for single run was failed"<<endl;
+            cout<<"ERROR: the connection to the Unified Database for the selected run was failed"<<endl;
             return arrayResult;
         }
 
@@ -1461,7 +1462,7 @@ TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
     return arrayResult;
 }
 
-TObjArray* UniDbRun::Search(const UniDbSearchCondition& search_condition)
+TObjArray* UniDbRun::Search(UniDbSearchCondition& search_condition)
 {
     TObjArray search_conditions;
     search_conditions.Add((TObject*)&search_condition);

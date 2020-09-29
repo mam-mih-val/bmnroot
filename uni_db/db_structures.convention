@@ -2,7 +2,6 @@
 #define DB_STRUCTURES_H
 
 #include "UniDbParameterValue.h"
-
 #include <string>
 #include <cstring>
 #include <cstdint>
@@ -16,6 +15,16 @@ struct UniqueRunNumber
     int period_number;
     int run_number;
 };
+
+/** ENUMERATIONS **/
+// enumeration of table columns for Search Conditions (UniDbRun::Search, UniDbDetectorParameters::Search function). *Begin and *End show the column range
+enum enumColumns{columnPeriodNumber, columnRunNumber, columnFilePath, columnBeamParticle, columnTargetParticle, columnEnergy,   // UniDbRun
+                 columnStartDatetime, columnEndDateTime, columnEventCount, columnFieldVoltage, columnFileSize,                  // UniDbRun
+                 columnDetectorName, columnParameterName, columnStartPeriod, columnStartRun, columnEndPeriod, columnEndRun, columnDCSerial, columnChannel,  // UniDbDetectorParameter
+                 columnRecordDate, columnShiftLeader, columnType, columnTrigger, columnDaqStatus, columnSp41, columnSp57, columnVkm2, columnError};         // ElogDbRecord
+
+// enumeration of comparison operators for Search Conditions
+enum enumConditions{conditionLess, conditionLessOrEqual, conditionEqual, conditionNotEqual, conditionGreater, conditionGreaterOrEqual, conditionLike, conditionNull};
 
 // enumeration 'enumParameterType' is corresponding parameter_type member UniDbParameter
 // 0 - boolean, 1 - integer, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array, 7 - any binary array, 8 - unsigned int array
@@ -40,7 +49,7 @@ struct BoolValue : public UniDbParameterValue
 
     enumParameterTypeNew GetType() { return BoolTypeNew; }
     size_t GetSize() { return 1; }
-    void ReadValue(unsigned char* source)       { Read(source, value); }
+    void ReadValue(unsigned char* source) { Read(source, value); }
     void WriteValue(unsigned char* destination) { Write(destination, value); }
 };
 
@@ -50,7 +59,7 @@ struct IntValue : public UniDbParameterValue
 
     enumParameterTypeNew GetType() { return IntTypeNew; }
     size_t GetSize() { return 4; }
-    void ReadValue(unsigned char* source)       { Read(source, value); }
+    void ReadValue(unsigned char* source) { Read(source, value); }
     void WriteValue(unsigned char* destination) { Write(destination, value); }
 };
 
@@ -60,7 +69,7 @@ struct UIntValue : public UniDbParameterValue
 
     enumParameterTypeNew GetType() { return UIntTypeNew; }
     size_t GetSize() { return 4; }
-    void ReadValue(unsigned char* source)       { Read(source, value); }
+    void ReadValue(unsigned char* source) { Read(source, value); }
     void WriteValue(unsigned char* destination) { Write(destination, value); }
 };
 
@@ -70,7 +79,7 @@ struct DoubleValue : public UniDbParameterValue
 
     enumParameterTypeNew GetType() { return DoubleTypeNew; }
     size_t GetSize() { return 8; }
-    void ReadValue(unsigned char* source)       { Read(source, value); }
+    void ReadValue(unsigned char* source) { Read(source, value); }
     void WriteValue(unsigned char* destination) { Write(destination, value); }
 };
 
@@ -80,7 +89,7 @@ struct StringValue : public UniDbParameterValue
 
     enumParameterTypeNew GetType() { return StringTypeNew; }
     size_t GetSize() { return value.length()+1; }
-    void ReadValue(unsigned char* source)       { Read(source, value); }
+    void ReadValue(unsigned char* source) { Read(source, value); }
     void WriteValue(unsigned char* destination) { Write(destination, value); }
 };
 
@@ -91,7 +100,7 @@ struct BinaryValue : public UniDbParameterValue
 
     enumParameterTypeNew GetType() { return BinaryTypeNew; }
     size_t GetSize() { return size; }
-    void ReadValue(unsigned char* source)       { Read(source, value, size); }
+    void ReadValue(unsigned char* source) { Read(source, value, size); }
     void WriteValue(unsigned char* destination) { Write(destination, value, size); }
 };
 
@@ -102,7 +111,7 @@ struct IIValue : public UniDbParameterValue
 
     enumParameterTypeNew GetType() { return IITypeNew; }
     size_t GetSize() { return 8; }
-    void ReadValue(unsigned char* source)       { Read(source, value1);       Read(source, value2); }
+    void ReadValue(unsigned char* source) { Read(source, value1); Read(source, value2); }
     void WriteValue(unsigned char* destination) { Write(destination, value1); Write(destination, value2); }
 };
 
@@ -117,7 +126,7 @@ struct DchMapValue : public UniDbParameterValue
 
     enumParameterTypeNew GetType() { return DchMapTypeNew; }
     size_t GetSize() { return 24; }
-    void ReadValue(unsigned char* source)       { Read(source, plane);       Read(source, group);       Read(source, crate);       Read(source, slot);       Read(source, channel_low);       Read(source, channel_high); }
+    void ReadValue(unsigned char* source)       { Read(source, plane);       Read(source, group);       Read(source, crate);       Read(source, slot);       Read(source, channel_low);       Read(source, channel_high);       }
     void WriteValue(unsigned char* destination) { Write(destination, plane); Write(destination, group); Write(destination, crate); Write(destination, slot); Write(destination, channel_low); Write(destination, channel_high); }
 };
 
@@ -132,7 +141,7 @@ struct GemMapValue : public UniDbParameterValue
 
     enumParameterTypeNew GetType() { return GemMapTypeNew; }
     size_t GetSize() { return 24; }
-    void ReadValue(unsigned char* source)       { Read(source, serial);       Read(source, id);       Read(source, station);       Read(source, channel_low);       Read(source, channel_high);       Read(source, hotZone); }
+    void ReadValue(unsigned char* source)       { Read(source, serial);       Read(source, id);       Read(source, station);       Read(source, channel_low);       Read(source, channel_high);       Read(source, hotZone);       }
     void WriteValue(unsigned char* destination) { Write(destination, serial); Write(destination, id); Write(destination, station); Write(destination, channel_low); Write(destination, channel_high); Write(destination, hotZone); }
 };
 
@@ -145,7 +154,7 @@ struct GemPedestalValue : public UniDbParameterValue
 
     enumParameterTypeNew GetType() { return GemPedestalTypeNew; }
     size_t GetSize() { return 16; }
-    void ReadValue(unsigned char* source)       { Read(source, serial);       Read(source, channel);       Read(source, pedestal);       Read(source, noise); }
+    void ReadValue(unsigned char* source)       { Read(source, serial);       Read(source, channel);       Read(source, pedestal);       Read(source, noise);       }
     void WriteValue(unsigned char* destination) { Write(destination, serial); Write(destination, channel); Write(destination, pedestal); Write(destination, noise); }
 };
 
@@ -157,7 +166,7 @@ struct TriggerMapValue : public UniDbParameterValue
 
     enumParameterTypeNew GetType() { return TriggerMapTypeNew; }
     size_t GetSize() { return 12; }
-    void ReadValue(unsigned char* source)       { Read(source, serial);       Read(source, slot);       Read(source, channel); }
+    void ReadValue(unsigned char* source)       { Read(source, serial);       Read(source, slot);       Read(source, channel);       }
     void WriteValue(unsigned char* destination) { Write(destination, serial); Write(destination, slot); Write(destination, channel); }
 };
 
@@ -168,7 +177,7 @@ struct LorentzShiftValue : public UniDbParameterValue
 
     enumParameterTypeNew GetType() { return LorentzShiftTypeNew; }
     size_t GetSize() { return 28; }
-    void ReadValue(unsigned char* source)       { Read(source, number);       Read(source, ls, 3); }
+    void ReadValue(unsigned char* source)       { Read(source, number);       Read(source, ls, 3);       }
     void WriteValue(unsigned char* destination) { Write(destination, number); Write(destination, ls, 3); }
 };
 

@@ -61,7 +61,7 @@ UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameterNew
 	stmt->SetInt(3, start_run);
 	stmt->SetInt(4, end_period);
 	stmt->SetInt(5, end_run);
-	stmt->SetInt(6, value_key);
+    stmt->SetInt(6, value_key);
     stmt->SetBinary(7, parameter_value, size_parameter_value, 0x4000000);
 
 	// inserting new detector parameter new to the Database
@@ -313,7 +313,7 @@ int UniDbDetectorParameterNew::PrintAll()
 		cout<<", parameter_value: ";
 		unsigned char* tmp_parameter_value = NULL;
 		Long_t tmp_sz_parameter_value=0;
-        stmt->GetBinary(8, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
+                stmt->GetBinary(8, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
 		cout<<(void*)tmp_parameter_value<<", binary size: "<<tmp_sz_parameter_value;
 		cout<<"."<<endl;
 	}
@@ -621,89 +621,6 @@ void UniDbDetectorParameterNew::Print()
 /* END OF GENERATED CLASS PART (SHOULD NOT BE CHANGED MANUALLY) */
 
 
-// non-user function for writing parameter value (integer value key is optional, default, 0)
-UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterTypeNew enum_parameter_type, int value_key)
-{
-    if (((end_period < start_period) or ((end_period = start_period) and (end_run < start_run))) or ((start_period > end_period) or ((start_period = end_period) and (start_run > end_run))))
-    {
-        cout<<"ERROR: end run should be after or the same as start run"<<endl;
-        return 0x00;
-    }
-
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
-    if (connUniDb == 0x00)
-        return 0x00;
-
-    TSQLServer* uni_db = connUniDb->GetSQLServer();
-
-    int parameter_id = -1;
-    bool res_code = UniDbParameter::CheckAndGetParameterID(uni_db, parameter_name, enum_parameter_type, parameter_id);
-    if (!res_code)
-    {
-        delete connUniDb;
-        return 0x00;
-    }
-
-    TString sql = TString::Format(
-        "insert into detector_parameter(detector_name, parameter_id, start_period, start_run, end_period, end_run, value_key, parameter_value) "
-        "values ($1, $2, $3, $4, $5, $6, $7, $8)");
-    TSQLStatement* stmt = uni_db->Statement(sql);
-
-    stmt->NextIteration();
-    stmt->SetString(0, detector_name);
-    stmt->SetInt(1, parameter_id);
-    stmt->SetInt(2, start_period);
-    stmt->SetInt(3, start_run);
-    stmt->SetInt(4, end_period);
-    stmt->SetInt(5, end_run);
-    stmt->SetInt(6, value_key);
-    stmt->SetBinary(7, (void*)p_parameter_value, size_parameter_value);
-    //cout<<p_parameter_value<<" "<<p_parameter_value[0]<<" "<<size_parameter_value<<endl;
-
-    // inserting new record to DB
-    if (!stmt->Process())
-    {
-        cout<<"ERROR: inserting new parameter value to the Database has been failed"<<endl;
-        delete stmt;
-        delete connUniDb;
-        return 0x00;
-    }
-
-    delete stmt;
-
-    // getting last inserted node ID
-    int last_id = -1;
-    //TSQLStatement* stmt_last = uni_db->Statement("SELECT LAST_INSERT_ID()");  //MySQL
-    TSQLStatement* stmt_last = uni_db->Statement("SELECT currval(pg_get_serial_sequence('detector_parameter','value_id'))");
-
-    if (stmt_last->Process())
-    {
-        // store result of statement in buffer
-        stmt_last->StoreResult();
-
-        // if there is no last id then exit with error
-        if (!stmt_last->NextResultRow())
-        {
-            cout<<"ERROR: no last ID in the Database for the parameter value has been found!"<<endl;
-            delete stmt_last;
-            return 0x00;
-        }
-        else
-        {
-            last_id = stmt_last->GetInt(0);
-            delete stmt_last;
-        }
-    }
-    else
-    {
-        cout<<"ERROR: getting last ID for new parameter value has been failed!"<<endl;
-        delete stmt_last;
-        return 0x00;
-    }
-
-    return new UniDbDetectorParameterNew(connUniDb, last_id, detector_name, parameter_id, start_period, start_run, end_period, end_run, value_key, p_parameter_value, size_parameter_value);
-}
-
 // non-user function for getting parameter value as a binary (char) array
 unsigned char* UniDbDetectorParameterNew::GetUNC(enumParameterTypeNew enum_parameter_type)
 {
@@ -801,28 +718,152 @@ int UniDbDetectorParameterNew::SetUNC(unsigned char* p_parameter_value, Long_t s
     return 0;
 }
 
-// write detector parameter value (integer value key is optional, default, 0)
+// non-user function for writing parameter value (integer value key is optional, default, 0)
 UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                                        vector<UniDbParameterValue*> parameter_value, int value_key)
+                                                                              unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterTypeNew enum_parameter_type, int value_key)
+{
+    if (((end_period < start_period) or ((end_period = start_period) and (end_run < start_run))) or ((start_period > end_period) or ((start_period = end_period) and (start_run > end_run))))
+    {
+        cout<<"ERROR: end run should be after or the same as start run"<<endl;
+        return 0x00;
+    }
+
+    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    if (connUniDb == 0x00)
+        return 0x00;
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    int parameter_id = -1;
+    bool res_code = UniDbParameter::CheckAndGetParameterID(uni_db, parameter_name, enum_parameter_type, parameter_id);
+    if (!res_code)
+    {
+        delete connUniDb;
+        return 0x00;
+    }
+
+    TString sql = TString::Format(
+        "insert into detector_parameter(detector_name, parameter_id, start_period, start_run, end_period, end_run, value_key, parameter_value) "
+        "values ($1, $2, $3, $4, $5, $6, $7, $8)");
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    stmt->NextIteration();
+    stmt->SetString(0, detector_name);
+    stmt->SetInt(1, parameter_id);
+    stmt->SetInt(2, start_period);
+    stmt->SetInt(3, start_run);
+    stmt->SetInt(4, end_period);
+    stmt->SetInt(5, end_run);
+    stmt->SetInt(6, value_key);
+    stmt->SetBinary(7, (void*)p_parameter_value, size_parameter_value);
+    //cout<<p_parameter_value<<" "<<p_parameter_value[0]<<" "<<size_parameter_value<<endl;
+
+    // inserting new record to DB
+    if (!stmt->Process())
+    {
+        cout<<"ERROR: inserting new parameter value to the Database has been failed"<<endl;
+        delete stmt;
+        delete connUniDb;
+        return 0x00;
+    }
+
+    delete stmt;
+
+    // getting last inserted node ID
+    int last_id = -1;
+    //TSQLStatement* stmt_last = uni_db->Statement("SELECT LAST_INSERT_ID()");  //MySQL
+    TSQLStatement* stmt_last = uni_db->Statement("SELECT currval(pg_get_serial_sequence('detector_parameter','value_id'))");
+
+    if (stmt_last->Process())
+    {
+        // store result of statement in buffer
+        stmt_last->StoreResult();
+
+        // if there is no last id then exit with error
+        if (!stmt_last->NextResultRow())
+        {
+            cout<<"ERROR: no last ID in the Database for the parameter value has been found!"<<endl;
+            delete stmt_last;
+            return 0x00;
+        }
+        else
+        {
+            last_id = stmt_last->GetInt(0);
+            delete stmt_last;
+        }
+    }
+    else
+    {
+        cout<<"ERROR: getting last ID for new parameter value has been failed!"<<endl;
+        delete stmt_last;
+        return 0x00;
+    }
+
+    //unsigned char* tmp_parameter_value = new unsigned char[size_parameter_value];
+    //memcpy(tmp_parameter_value, p_parameter_value, size_parameter_value);
+    return new UniDbDetectorParameterNew(connUniDb, last_id, detector_name, parameter_id, start_period, start_run, end_period, end_run, value_key, p_parameter_value, size_parameter_value);
+}
+
+// write detector parameter value presented by an array (integer value key is optional, default, 0)
+UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                                              vector<UniDbParameterValue*> parameter_value, int value_key)
 {
     if (parameter_value.size() < 1)
     {
-        cout<<"ERROR: The count of parameter values should be greater zero"<<endl;
+        cout<<"ERROR: The length of the parameter array should be greater zero"<<endl;
         return NULL;
     }
     enumParameterTypeNew parameter_type = parameter_value[0]->GetType();
 
+    // calculate total size
     size_t size_parameter_value = 0;
     for (int i = 0; i < parameter_value.size(); i++)
-        size_parameter_value += parameter_value[i]->GetLength();
+    {
+        if (parameter_value[i]->GetType() != parameter_type)
+        {
+            cout<<"ERROR: The types of the parameters must be the same"<<endl;
+            return NULL;
+        }
+        size_parameter_value += parameter_value[i]->GetSize();
+    }
 
+    // write parameters of the vector to the buffer
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+    unsigned char* tmp_pointer = p_parameter_value;
     for (int i = 0; i < parameter_value.size(); i++)
-        parameter_value[i]->WriteValue(p_parameter_value);
+    {
+        parameter_value[i]->WriteValue(tmp_pointer);
+        tmp_pointer += parameter_value[i]->GetSize();
+    }
 
     UniDbDetectorParameterNew* pDetectorParameter =
             UniDbDetectorParameterNew::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
-                                                               (unsigned char*)p_parameter_value, size_parameter_value, parameter_type, value_key);
+                                                              (unsigned char*)p_parameter_value, size_parameter_value, parameter_type, value_key);
+    if (pDetectorParameter == 0x00)
+        delete [] p_parameter_value;
+
+    return pDetectorParameter;
+}
+
+// write detector parameter value presented by a single value (integer value key is optional, default, 0)
+UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                                              UniDbParameterValue* parameter_value, int value_key)
+{
+    if (parameter_value == NULL)
+    {
+        cout<<"ERROR: the parameter value must not be NULL"<<endl;
+        return NULL;
+    }
+    enumParameterTypeNew parameter_type = parameter_value->GetType();
+
+    // write the parameter to the buffer
+    size_t size_parameter_value = parameter_value->GetSize();
+    unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+    parameter_value->WriteValue(p_parameter_value);
+
+    UniDbDetectorParameterNew* pDetectorParameter =
+            UniDbDetectorParameterNew::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
+                                                               p_parameter_value, size_parameter_value, parameter_type, value_key);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
 
@@ -937,7 +978,7 @@ int UniDbDetectorParameterNew::DeleteDetectorParameter(TString detector_name, TS
     return 0;
 }
 
-// get value of detector parameter
+// get value of detector parameter presented by an array
 int UniDbDetectorParameterNew::GetParameterValue(vector<UniDbParameterValue*>& parameter_value)
 {
     unsigned char* p_parameter_value = GetUNC();
@@ -949,29 +990,73 @@ int UniDbDetectorParameterNew::GetParameterValue(vector<UniDbParameterValue*>& p
     {
         UniDbParameterValue* pParameterValue = CreateParameterValue(GetParameterType());
         pParameterValue->ReadValue(p_parameter_value);
-        full_size -= pParameterValue->GetLength();
+        full_size -= pParameterValue->GetSize();
+        p_parameter_value += pParameterValue->GetSize();
         parameter_value.push_back(pParameterValue);
     }
 
     return 0;
 }
 
-// set value to detector parameter
+// get value of detector parameter presented by a single value
+int UniDbDetectorParameterNew::GetParameterValue(UniDbParameterValue*& parameter_value)
+{
+    unsigned char* p_parameter_value = GetUNC();
+    if (p_parameter_value == NULL)
+        return -1;
+
+    parameter_value = CreateParameterValue(GetParameterType());
+    parameter_value->ReadValue(p_parameter_value);
+
+    return 0;
+}
+
+// set value to detector parameter presented by an array
 int UniDbDetectorParameterNew::SetParameterValue(vector<UniDbParameterValue*> parameter_value)
 {
     if (parameter_value.size() < 1)
     {
-        cout<<"ERROR: The count of parameter values should be greater zero"<<endl;
+        cout<<"ERROR: The length of the parameter array should be greater zero"<<endl;
         return -1;
     }
 
+    // calculate full size to create a 'char' buffer
     size_t size_parameter_value = 0;
     for (int i = 0; i < parameter_value.size(); i++)
-        size_parameter_value += parameter_value[i]->GetLength();
-
+        size_parameter_value += parameter_value[i]->GetSize();
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+
+    // write value by value to the 'char' buffer
+    unsigned char* tmp_pointer = p_parameter_value;
     for (int i = 0; i < parameter_value.size(); i++)
-        parameter_value[i]->WriteValue(p_parameter_value);
+    {
+        parameter_value[i]->WriteValue(tmp_pointer);
+        tmp_pointer += parameter_value[i]->GetSize();
+    }
+
+    int res_code = SetUNC(p_parameter_value, size_parameter_value);
+    if (res_code != 0)
+    {
+        delete [] p_parameter_value;
+        return res_code;
+    }
+
+    return 0;
+}
+
+// set value to detector parameter presented by a single value
+int UniDbDetectorParameterNew::SetParameterValue(UniDbParameterValue* parameter_value)
+{
+    if (parameter_value == NULL)
+    {
+        cout<<"ERROR: the parameter value must not be NULL"<<endl;
+        return -1;
+    }
+
+    // write value to the 'char' buffer
+    size_t size_parameter_value = parameter_value->GetSize();
+    unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+    parameter_value->WriteValue(p_parameter_value);
 
     int res_code = SetUNC(p_parameter_value, size_parameter_value);
     if (res_code != 0)
@@ -1078,14 +1163,15 @@ int UniDbDetectorParameterNew::ReadFile(const char* detector_name, const char* p
     return 0;
 }
 
-TObjArray* UniDbDetectorParameterNew::Search(const TObjArray& search_conditions)
+TObjArray* UniDbDetectorParameterNew::Search(TObjArray& search_conditions)
 {
     TObjArray* arrayResult = NULL;
+    search_conditions.SetOwner(kTRUE);
 
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
     {
-        cout<<"ERROR: connection to the database was failed"<<endl;
+        cout<<"ERROR: the connection to the Unified Database was failed"<<endl;
         return arrayResult;
     }
 
@@ -1112,7 +1198,7 @@ TObjArray* UniDbDetectorParameterNew::Search(const TObjArray& search_conditions)
             case columnEndPeriod:       strCondition += "end_period "; break;
             case columnEndRun:          strCondition += "end_run "; break;
             default:
-                cout<<"ERROR: column in the search condition was not defined, the condition is skipped"<<endl;
+                cout<<"ERROR: the column in the search condition was not defined, the condition is skipped"<<endl;
                 continue;
         }
 
@@ -1127,7 +1213,7 @@ TObjArray* UniDbDetectorParameterNew::Search(const TObjArray& search_conditions)
             case conditionLike:             strCondition += "like "; break;
             case conditionNull:             strCondition += "is null "; break;
             default:
-                cout<<"ERROR: comparison operator in the search condition was not defined, the condition is skipped"<<endl;
+                cout<<"ERROR: the comparison operator in the search condition was not defined, the condition is skipped"<<endl;
                 continue;
         }
 
@@ -1140,7 +1226,7 @@ TObjArray* UniDbDetectorParameterNew::Search(const TObjArray& search_conditions)
             case 4: strCondition += Form("lower('%s')", curCondition->GetStringValue().Data()); break;
             case 5: strCondition += Form("'%s'", curCondition->GetDatimeValue().AsSQLString()); break;
             default:
-                cout<<"ERROR: value type in the search condition was not found, the condition is skipped"<<endl;
+                cout<<"ERROR: the value type in the search condition was not found, the condition is skipped"<<endl;
                 continue;
         }
 
@@ -1160,7 +1246,7 @@ TObjArray* UniDbDetectorParameterNew::Search(const TObjArray& search_conditions)
     // get table record from DB
     if (!stmt->Process())
     {
-        cout<<"ERROR: getting runs from the Database has been failed"<<endl;
+        cout<<"ERROR: getting runs from the Unified Database has been failed"<<endl;
         delete stmt;
         delete connUniDb;
 
@@ -1178,7 +1264,7 @@ TObjArray* UniDbDetectorParameterNew::Search(const TObjArray& search_conditions)
         UniDbConnection* connPar = UniDbConnection::Open(UNIFIED_DB);
         if (connPar == 0x00)
         {
-            cout<<"ERROR: connection to the Database for single run was failed"<<endl;
+            cout<<"ERROR: the connection to the Unified Database for the selected run was failed"<<endl;
             return arrayResult;
         }
 
@@ -1213,7 +1299,7 @@ TObjArray* UniDbDetectorParameterNew::Search(const TObjArray& search_conditions)
     return arrayResult;
 }
 
-TObjArray* UniDbDetectorParameterNew::Search(const UniDbSearchCondition& search_condition)
+TObjArray* UniDbDetectorParameterNew::Search(UniDbSearchCondition& search_condition)
 {
     TObjArray search_conditions;
     search_conditions.Add((TObject*)&search_condition);

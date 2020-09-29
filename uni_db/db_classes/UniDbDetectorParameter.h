@@ -142,6 +142,8 @@ class UniDbDetectorParameter
 
     /// get parameter name of the current detector parameter
     TString GetParameterName();
+    /// get parameter type of the current parameter value
+    enumParameterType GetParameterType();
 
     /// get start period and run of the current detector parameter
     void GetStart(int& start_period, int& start_run);

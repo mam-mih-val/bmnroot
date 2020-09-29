@@ -1015,15 +1015,30 @@ TString UniDbDetectorParameter::GetParameterName()
     UniDbParameter* pCurParameter = UniDbParameter::GetParameter(i_parameter_id);
     if (pCurParameter == NULL)
     {
-        cout<<"Error: parameter with current ID wasn't found"<<endl;
-        return "ERROR!!!";
+        cout<<"ERROR: parameter with current ID was not found"<<endl;
+        return "";
     }
 
     TString par_name = pCurParameter->GetParameterName();
 
     delete pCurParameter;
-
     return par_name;
+}
+
+// get parameter type of the current detector parameter
+enumParameterType UniDbDetectorParameter::GetParameterType()
+{
+    UniDbParameter* pCurParameter = UniDbParameter::GetParameter(i_parameter_id);
+    if (pCurParameter == NULL)
+    {
+        cout<<"ERROR: parameter with current ID was not found"<<endl;
+        return ErrorType;
+    }
+
+    enumParameterType par_type = (enumParameterType) pCurParameter->GetParameterType();
+
+    delete pCurParameter;
+    return par_type;
 }
 
 // get start period and run of the current detector parameter

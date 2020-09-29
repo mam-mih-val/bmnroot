@@ -480,7 +480,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
             hFile<<" private:\n";
         }
 
-        hFile<<"\t/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */\n";
+        hFile<<"\t/* GENERATED PRIVATE MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */\n";
 
         hFile<<"\t/// connection to the database\n";
         hFile<<"\tUniDbConnection* connectionUniDb;\n\n";
@@ -521,7 +521,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
                 hFile<<(TString::Format(", %s %s", cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
         }// for join table
         hFile<<");\n";
-        hFile<<"\t/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */\n";
+        hFile<<"\t/* END OF PRIVATE GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */\n";
 
         if (isOnlyUpdate)
         {
@@ -545,7 +545,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
         else
             hFile<<"\n public:\n";
 
-        hFile<<"\t/* GENERATED PUBLIC MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */\n";
+        hFile<<"\t/* GENERATED PUBLIC MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */\n";
         hFile<<(TString::Format("\tvirtual ~%s(); // Destructor\n\n", strClassName.Data())).Data();
 
         hFile<<"\t// static class functions\n";
@@ -780,7 +780,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
         // PRINT VALUES -DECLARATION
         hFile<<(TString::Format("\n\t/// print information about current %s\n", strTableNameSpace.Data())).Data();
         hFile<<"\tvoid Print();\n";
-        hFile<<"\t/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */\n";
+        hFile<<"\t/* END OF PUBLIC GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */\n";
 
         if (isOnlyUpdate)
         {
@@ -2118,7 +2118,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
                 cxxFile<<(TString::Format("%s %s)\n{\n", temp_col->strVariableType.Data(), temp_col->strColumnName.Data())).Data();
             }
 
-            cxxFile<<"\tif (!connectionUniDb)\n\t{\n\t\tcout<<\"Connection object is null\"<<endl;\n\t\treturn -1;\n\t}\n\n";
+            cxxFile<<"\tif (!connectionUniDb)\n\t{\n\t\tcout<<\"CRITICAL ERROR: Connection object is null\"<<endl;\n\t\treturn -1;\n\t}\n\n";
 
             cxxFile<<"\tTSQLServer* uni_db = connectionUniDb->GetSQLServer();\n\n";
 

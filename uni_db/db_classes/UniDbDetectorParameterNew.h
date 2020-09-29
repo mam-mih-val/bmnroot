@@ -112,20 +112,12 @@ class UniDbDetectorParameterNew
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
-    // non-user function for writing parameter value (integer value key is optional, default, 0)
-    static UniDbDetectorParameterNew* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                           unsigned char* parameter_value, Long_t size_parameter_value, enumParameterTypeNew enum_parameter_type, int value_key = 0);
-
-    // non-user function for getting parameter value as a binary (char) array
-    unsigned char* GetUNC(enumParameterTypeNew enum_parameter_type = UndefinedType);
-
-    // non-user function for setting parameter value as a binary (char) array
-    int SetUNC(unsigned char* p_parameter_value, Long_t size_parameter_value);
-
-
-    /// write detector parameter value (integer value key is optional, default, 0)
+    /// write detector parameter value presented by an array (integer value key is optional, default, 0)
     UniDbDetectorParameterNew* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                    vector<UniDbParameterValue*> parameter_value, int value_key = 0);
+                                                       vector<UniDbParameterValue*> parameter_value, int value_key = 0);
+    /// write detector parameter value presented by a single value (integer value key is optional, default, 0)
+    UniDbDetectorParameterNew* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                       UniDbParameterValue* parameter_value, int value_key = 0);
 
     /// get detector parameter value (integer value key is optional, default, 0)
     static UniDbDetectorParameterNew* GetDetectorParameter(TString detector_name, TString parameter_name, int period_number, int run_number, int value_key = 0);
@@ -133,20 +125,24 @@ class UniDbDetectorParameterNew
     /// delete detector parameter value (integer value key is optional, default, 0)
     static int DeleteDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, int value_key = 0);
 
-    /// get value of detector parameter
+    /// get value of detector parameter presented by an array
     int GetParameterValue(vector<UniDbParameterValue*>& parameter_value);
-    /// set value to detector parameter
+    /// get value of detector parameter presented by a single value
+    int GetParameterValue(UniDbParameterValue*& parameter_value);
+    /// set value to detector parameter presented by an array
     int SetParameterValue(vector<UniDbParameterValue*> parameter_value);
+    /// set value to detector parameter presented by a single value
+    int SetParameterValue(UniDbParameterValue* parameter_value);
 
     /// write a whole file with parameter value (with given detector and parameter names) to the Database from start run to end one
     static int WriteFile(const char* detector_name, const char* parameter_name, int start_period, int start_run, int end_period, int end_run, const char* file_path);
     /// read a whole file with parameter value (with given detector and parameter names) from the Database for the selected run
     static int ReadFile(const char* detector_name, const char* parameter_name, int period_number, int run_number, const char* file_path);
 
-    /// get parameters' values corresponding to the specified single condition
-    static TObjArray* Search(const UniDbSearchCondition& search_condition);
-    /// get parameters' values corresponding to the specified (vector) conditions
-    static TObjArray* Search(const TObjArray& search_conditions);
+    /// get parameters' values corresponding to the specified single condition and set owner for search_condition to kTRUE
+    static TObjArray* Search(UniDbSearchCondition& search_condition);
+    /// get parameters' values corresponding to the specified (vector) conditions and set owner for search_condition to kTRUE
+    static TObjArray* Search(TObjArray& search_conditions);
 
     /// get parameter name of the current parameter value
     TString GetParameterName();
@@ -173,6 +169,17 @@ class UniDbDetectorParameterNew
     /// end_run - end run of validity range for the parameter values.
     /// Function returns row count added to the database.
     //static int ParseTxt(TString text_file, TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run);
+
+ protected:
+    // non-user function for getting parameter value as a binary (char) array
+    unsigned char* GetUNC(enumParameterTypeNew enum_parameter_type = UndefinedType);
+
+    // non-user function for setting parameter value as a binary (char) array
+    int SetUNC(unsigned char* p_parameter_value, Long_t size_parameter_value);
+
+    // non-user function for writing parameter value (integer value key is optional, default, 0)
+    static UniDbDetectorParameterNew* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                              unsigned char* parameter_value, Long_t size_parameter_value, enumParameterTypeNew enum_parameter_type, int value_key = 0);
 
     ClassDef(UniDbDetectorParameterNew,1);
 };

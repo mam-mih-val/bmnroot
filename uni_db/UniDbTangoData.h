@@ -6,7 +6,7 @@
 #ifndef UNIDBTANGODATA_H
 #define UNIDBTANGODATA_H 1
 
-#include "db_structures.h"
+#include "UniDbSearchCondition.h"
 
 #include "TDatime.h"
 #include "TObjArray.h"

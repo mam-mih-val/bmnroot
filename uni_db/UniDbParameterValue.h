@@ -14,6 +14,8 @@
 
 #include "db_settings.h"
 
+#include <boost/endian/conversion.hpp>
+
 #include <map>
 #include <string>
 #include <cstring>
@@ -24,7 +26,7 @@ enum enumParameterTypeNew : unsigned int;
 struct UniDbParameterValue
 {
     virtual enumParameterTypeNew GetType() = 0;
-    virtual size_t GetLength() = 0;
+    virtual size_t GetSize() = 0;
     virtual void ReadValue(unsigned char* source) = 0;
     virtual void WriteValue(unsigned char* destination) = 0;
 
@@ -43,10 +45,12 @@ struct UniDbParameterValue
     void Read(unsigned char*& source, int32_t& value)
     {
         memcpy(&value, source, 4);
+        boost::endian::little_to_native_inplace(value);
         source += 4;
     }
     void Write(unsigned char*& destination, int32_t& value)
     {
+        boost::endian::native_to_little_inplace(value);
         memcpy(destination, &value, 4);
         destination += 4;
     }
@@ -54,10 +58,12 @@ struct UniDbParameterValue
     void Read(unsigned char*& source, uint32_t& value)
     {
         memcpy(&value, source, 4);
+        boost::endian::little_to_native_inplace(value);
         source += 4;
     }
     void Write(unsigned char*& destination, uint32_t& value)
     {
+        boost::endian::native_to_little_inplace(value);
         memcpy(destination, &value, 4);
         destination += 4;
     }
@@ -84,21 +90,24 @@ struct UniDbParameterValue
         destination += value.length() + 1;
     }
 
-    void Read(unsigned char*& source, unsigned char* value, uint64_t& count)
+    void Read(unsigned char*& source, unsigned char* value, uint64_t& size)
     {
-        memcpy(&count, source, 8);
+        memcpy(&size, source, 8);
+        boost::endian::little_to_native_inplace(size);
         source += 8;
-        memcpy(value, source, count);
-        source += count;
+        memcpy(value, source, size);
+        source += size;
     }
-    void Write(unsigned char*& destination, unsigned char* value, uint64_t count)
+    void Write(unsigned char*& destination, unsigned char* value, uint64_t size)
     {
-        if (count > 0)
+        if (size > 0)
         {
-            memcpy(destination, &count, 8);
+            uint64_t size_little;
+            size_little = boost::endian::native_to_little(size);
+            memcpy(destination, &size_little, 8);
             destination += 8;
-            memcpy(destination, value, count);
-            destination += count;
+            memcpy(destination, value, size);
+            destination += size;
         }
         else cout<<"ERROR: The count of bytes for parameter value should be greater than zero. The parameter value was not written to the database!"<<endl;
     }

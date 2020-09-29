@@ -132,7 +132,6 @@ class UniDbRun
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
-	// static class functions (added by user request)
 	/// get numbers of runs existing in the Database for a selected range
     /// \param[in] start_period start period number for selected run numbers' range
     /// \param[in] start_run start run number for selected run numbers' range
@@ -145,6 +144,7 @@ class UniDbRun
     /// \param[out] run_numbers pairs (period number+run numbers) of the really existing runs for a selected range (from start to end)
 	/// \return size of 'run_numbers' array. if size < 0, return value corresponds to error number
     static int GetRunNumbers(UniqueRunNumber*& run_numbers);
+
 	/// set geometry binary data (geometry file's data) for runs from start_run_number to end_run_number
     static int SetRootGeometry(int start_period, int start_run, int end_period, int end_run, unsigned char* root_geometry, Long_t size_root_geometry);
 	/// get geometry binary data (geometry file's data) for selected run number
@@ -153,10 +153,12 @@ class UniDbRun
     static int WriteGeometryFile(int start_period, int start_run, int end_period, int end_run, const char* geo_file_path);
 	/// read geometry file for selected run number from the database
     static int ReadGeometryFile(int period_number, int run_number, char* geo_file_path);
-	/// get runs corresponding to the specified single condition
-	static TObjArray* Search(const UniDbSearchCondition& search_condition);
-	/// get runs corresponding to the specified (vector) conditions
-	static TObjArray* Search(const TObjArray& search_conditions);
+
+    /// get runs corresponding to the specified single condition and set owner for search_condition to kTRUE
+    static TObjArray* Search(UniDbSearchCondition& search_condition);
+    /// get runs corresponding to the specified (vector) conditions and set owner for search_condition to kTRUE
+    static TObjArray* Search(TObjArray& search_conditions);
+
     /// get number of the closest run below the given one
     static UniqueRunNumber* FindPreviousRun(int run_period, int run_number);
 

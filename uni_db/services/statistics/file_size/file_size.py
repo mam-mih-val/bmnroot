@@ -73,7 +73,7 @@ class SizeStatComputer:
 		for i, unit in enumerate(config.UNITS):
 			if mean / config.SIZE**i < config.SIZE:
 				break
-				arr = arr / (config.SIZE**i)
+		arr = arr / (config.SIZE**i)
 		return arr, unit
 
 

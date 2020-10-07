@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import subprocess
 
 from log_time.log_time import TimeStatComputer
 from file_size.file_size import SizeStatComputer
@@ -79,7 +80,7 @@ def plot_all_stats(size, time, config_dict, _dir, output, recursive):
         plt.savefig(output, dpi=computer.DPI)
         try:
             print("Trying to open graphics...")
-            os.system(f"eog {output}")
+            subprocess.getoutput(f"xdg-open {output}")
             print("   ...ok")
         except:
             print("   ...unsuccessful, please open it yourself.")

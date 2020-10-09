@@ -76,12 +76,14 @@ def plot_all_stats(size, time, config_dict, _dir, output, recursive):
     if output is None:
         plt.show()
     else:
-        print(f"Writing output to {output}")
+        print(f"\nWriting output to {output}")
         plt.savefig(output, dpi=computer.DPI)
         try:
             print("Trying to open graphics...")
             subprocess.getoutput(f"xdg-open {output}")
             print("   ...ok")
+        except KeyboardInterrupt:
+            print("   ...finishing after ^C")
         except:
             print("   ...unsuccessful, please open it yourself.")
 

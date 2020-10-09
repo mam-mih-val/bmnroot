@@ -5,7 +5,6 @@ import numpy as np
 import os
 import psycopg2
 import re
-import warnings
 
 import log_time.config as config
 
@@ -13,7 +12,7 @@ import log_time.config as config
 class TimeStatComputer:
     def __init__(self, config_dict):
 
-        self.EXTENSIONS = config_dict.get('extensions')
+        self.EXTENSIONS = config_dict.get('extensions_time')
         self.DB_USER = config_dict.get('db_user')
         self.DB_PASS = config_dict.get('db_pass')
         self.DB_NAME = config_dict.get('db_name')
@@ -39,8 +38,8 @@ class TimeStatComputer:
 
 
     def is_file_to_parse(self, root, file):
-        filepath = os.path.join(root, file)
-        correct_ext = any([(ext in file) for ext in self.EXTENSIONS])
+        # filepath = os.path.join(root, file)
+        correct_ext = any([file.endswith(ext) for ext in self.EXTENSIONS]) or ("*" in self.EXTENSIONS)
         correct_folder = all([elem not in os.path.join(root, file) for elem in self.FOLDERS_IGNORE])
         return correct_ext and correct_folder
 
@@ -54,22 +53,31 @@ class TimeStatComputer:
         else:
             files_to_walk = [next(os.walk(_dir))]
 
+        files_parsed = 0
         for root, dirs, files in files_to_walk:
             for file in files:
                 if self.is_file_to_parse(root, file):
+                    files_parsed += 1
+                    print("+", end="", flush=True)
                     time, is_successful, run_num = self.parse_time(os.path.join(root, file))
                     if time is not None:
                         if run_num is not None:
                             time_arr.append(time)
-                            time_per_events_arr.append(time / self.get_events_count(run_num))
+                            events_count = self.get_events_count(run_num)
+                            if events_count is None or events_count == 0:
+                                print(f"\nCan't get events count from the database - skipping file {file}")
+                            else:    
+                                time_per_events_arr.append(time / events_count)
                         elif is_successful == True:
-                            warnings.warn("Can not parse run number in successfully ended log file")
+                            print("\nCan not parse run number in successfully ended log file {file}")
                     elif is_successful == True:
-                        warnings.warn("Can not parse time in successfully ended log file")
+                        print("\nCan not parse time in successfully ended log file {file}")
                     if is_successful == False:
                         unsuccessful_arr.append(os.path.join(root, file))
         if time_arr == []:
             raise Exception("No data")
+
+        print(f"\n\nTotal files parsed: {files_parsed}")
         return np.array(time_arr), np.array(time_per_events_arr), unsuccessful_arr
 
 
@@ -87,7 +95,7 @@ class TimeStatComputer:
         else:
             print('Unsuccessfully ended runs:')
             for elem in unsuccessful_arr:
-                print(elem, '\n')
+                print(elem)
 
         return (arr, unit, title, arr_per_event, unit_per_event, title_per_event)
 
@@ -106,7 +114,7 @@ class TimeStatComputer:
 
 
     def convert_month(self, month):
-        res = config.MONTH_ARR.index(month) + 1
+        res = config.MONTH_ARR[month]
         return res
 
 
@@ -141,9 +149,11 @@ class TimeStatComputer:
                 if config.RUN_EXTENSION in line and run_num == None:
                     result = re.search(config.RUN_REGEX, line)
                     if result != None:
-                        run_num = int(result.group()[3:])
+                        run_num = int(result.group()[7:])
         if start == None or end == None:
             delta = None
         else:
             delta = (end - start).total_seconds()
+        # TODO add verbose output option
+        #print(f"Log file {log_file}, delta {delta}, is_successful {is_successful}, run_num {run_num}")
         return delta, is_successful, run_num

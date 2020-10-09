@@ -4,7 +4,6 @@ import numpy as np
 import os
 import psycopg2
 import re
-import warnings
 
 import file_size.config as config
 
@@ -12,7 +11,7 @@ import file_size.config as config
 class SizeStatComputer:
     def __init__(self, config_dict):
 
-        self.EXTENSIONS = config_dict.get('extensions')
+        self.EXTENSIONS = config_dict.get('extensions_size')
         self.DB_USER = config_dict.get('db_user')
         self.DB_PASS = config_dict.get('db_pass')
         self.DB_NAME = config_dict.get('db_name')
@@ -49,21 +48,26 @@ class SizeStatComputer:
         else:
             files_to_walk = [next(os.walk(_dir))]
 
+        files_parsed = 0
         for root, dirs, files in files_to_walk:
             for file in files:
                 if self.is_file_to_parse(root, file):
+                    files_parsed += 1
+                    print("+", end="", flush=True)
                     filesize_bytes = os.stat(os.path.join(root, file)).st_size
                     run_num = re.search(config.RUN_NUM_REGEX, file)
                     if run_num is None:
-                        warnings.warn(f'No run number found in filename for file {os.path.join(root, file)}')
+                        print(f'No run number found in filename for file {os.path.join(root, file)}')
                     else:
                         run_num = run_num.group()
                         run_count = self.get_events_count(run_num)
                         if run_count is None:
-                            warnings.warn(f'No run number found in database for file {os.path.join(root, file)}')
+                            print(f'No run number found in database for file {os.path.join(root, file)}')
                         else:
                             filesize_arr.append(filesize_bytes)
                             filesize_per_event.append(filesize_bytes / run_count)
+        print()
+        print(f"Totally parsed {files_parsed} files")
         if filesize_arr == []:
             raise Exception("No data")
         return np.array(filesize_arr), np.array(filesize_per_event)
@@ -71,7 +75,7 @@ class SizeStatComputer:
 
     def is_file_to_parse(self, root, file):
         # filepath = os.path.join(root, file)
-        correct_ext = any([ext in file for ext in self.EXTENSIONS])
+        correct_ext = any([file.endswith(ext) for ext in self.EXTENSIONS]) or ("*" in self.EXTENSIONS)
         correct_folder = all([elem not in os.path.join(root, file) for elem in self.FOLDERS_IGNORE])
         return correct_ext and correct_folder
 

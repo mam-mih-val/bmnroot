@@ -3,10 +3,13 @@ UNITS = ['seconds', 'minutes', 'hours', 'days', 'months', 'years']
 START = 'Start date:'
 END = 'End date:'
 SUCCESS = 'Macro finished successfully!'
-START_REGEX = r'Start date: \w{2} \w{3} \d{1,2} \d{1,2}:\d{1,2}:\d{1,2} \w+ \d{4}'
-END_REGEX = r'End date: \w{2} \w{3} \d{1,2} \d{1,2}:\d{1,2}:\d{1,2} \w+ \d{4}'
-MONTH_ARR = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
-RUN_REGEX = r'run\d+'
+START_REGEX = r'Start date: \w{2,3} \w{3}  \d{1,2} \d{1,2}:\d{1,2}:\d{1,2} \w+ \d{4}'
+END_REGEX = r'End date: \w{2,3} \w{3}  \d{1,2} \d{1,2}:\d{1,2}:\d{1,2} \w+ \d{4}'
+MONTH_ARR = {
+    'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
+    'янв': 1, 'фев': 2, 'мар': 3, 'апр': 4, 'май': 5, 'июн': 6, 'июл': 7, 'авг': 8, 'сен': 9, 'окт': 10, 'ноя': 11, 'дек': 12
+}
+RUN_REGEX = r'bmn_run\d+'
 RUN_EXTENSION = '.root'
 DPI = 300
 FOLDERS_IGNORE = ['__pycache__', 'myenv', '.git']

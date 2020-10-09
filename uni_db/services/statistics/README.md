@@ -24,8 +24,8 @@ optional arguments:
 Other parmeters are specified in JSON config file.
 
 required parameters:
-* `extensions_size` - data file extensions
-* `extensions_time` - log file extensions
+* `extensions_size` - data file extensions (use ["*"] to include all files)
+* `extensions_time` - log file extensions (use ["*"] to include all files)
 * `db_user`, `db_pass`, `db_name`, `db_host` - database credentials
 
 optional parameters:

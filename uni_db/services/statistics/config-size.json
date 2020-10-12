@@ -1,6 +1,5 @@
 {
-	"extensions_size": [".data", ".root"],
-	"extensions_time": ["*"],
+	"extensions": [".data", ".root"],
 	"db_user": "db_reader",
 	"db_pass": "reader_pass",
 	"db_name": "bmn_db",

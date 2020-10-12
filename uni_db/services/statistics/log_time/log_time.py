@@ -12,7 +12,7 @@ import log_time.config as config
 class TimeStatComputer:
     def __init__(self, config_dict):
 
-        self.EXTENSIONS = config_dict.get('extensions_time')
+        self.EXTENSIONS = config_dict.get('extensions')
         self.DB_USER = config_dict.get('db_user')
         self.DB_PASS = config_dict.get('db_pass')
         self.DB_NAME = config_dict.get('db_name')

@@ -3609,6 +3609,7 @@ int BmnTof2Raw2DigitNew::printGeom()
 //		printf("   Strip %d X %f Y %f\n", k+1, xcens[j][k],ycens[j][k]);
 //	}
     }
+    return 0;
 }
 
 int BmnTof2Raw2DigitNew::readLRoffsets(char *offsetsfile)

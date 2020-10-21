@@ -28,12 +28,14 @@ class SizeStatComputer:
         arr, unit = self.convert_units(arr)
         title = f'File size, {unit}. Mean = {np.mean(arr):.3f} {unit}.'
 
-        print(f"File statistics: min = {np.min(arr):.3f} {unit}, avg = {np.mean(arr):.3f} {unit}, max={np.max(arr):.3f} {unit}")
+        print()
+        print("Obtained characteristics:")
+        print(f"  File statistics: min = {np.min(arr):.3f} {unit}, avg = {np.mean(arr):.3f} {unit}, max={np.max(arr):.3f} {unit}")
 
         arr_per_event, unit_per_event = self.convert_units(arr_per_event)
         title_per_event = f'File size per event, {unit_per_event}. Mean = {np.mean(arr_per_event):.3f} {unit_per_event}.'
 
-        print(f"File statistics per event: min = {np.min(arr_per_event):.3f} {unit_per_event}, " +
+        print(f"  File statistics per event: min = {np.min(arr_per_event):.3f} {unit_per_event}, " +
             f"avg = {np.mean(arr_per_event):.3f} {unit_per_event}, max={np.max(arr_per_event):.3f} {unit_per_event}")
 
         return (arr, unit, title, arr_per_event, unit_per_event, title_per_event)

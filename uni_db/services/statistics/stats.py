@@ -1,6 +1,8 @@
 import argparse
 import json
 import warnings
+import os
+import sys
 
 from file_size.file_size import SizeStatComputer
 from log_time.log_time import TimeStatComputer
@@ -55,6 +57,14 @@ def main():
 
     _dir, size, time, config, output, recursive = \
         args.dir[0], args.size, args.time, args.config[0], args.output, args.recursive
+
+    if not os.path.isdir(_dir):
+        print(f"Error: Directory {_dir} not found!")
+        sys.exit(1)
+
+    if not os.path.isfile(config):
+        print(f"Error: Config file {config} not found!")
+        sys.exit(1)
 
     config_dict = json.load(open(config, 'r'))
 

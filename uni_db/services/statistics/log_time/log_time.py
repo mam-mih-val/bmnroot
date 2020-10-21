@@ -90,12 +90,19 @@ class TimeStatComputer:
         arr_per_event, unit_per_event = self.convert_units(arr_per_event)
         title_per_event = f'Time per event, {unit_per_event}. Mean = {np.mean(arr_per_event):.3f} {unit_per_event}.'
 
+        print()
+
         if len(unsuccessful_arr) == 0:
             print('All runs ended successfully.\n')
         else:
             print('Unsuccessfully ended runs:')
             for elem in unsuccessful_arr:
                 print(elem)
+
+        print()
+        print("Obtained characteristics:")
+        print(f"  Mean time = {np.mean(arr):.3f} {unit}.")
+        print(f"  Mean time per event = {np.mean(arr_per_event):.3f} {unit_per_event}.")
 
         return (arr, unit, title, arr_per_event, unit_per_event, title_per_event)
 

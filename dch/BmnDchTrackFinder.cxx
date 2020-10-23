@@ -20,7 +20,7 @@
 #include "FairLogger.h"
 #include "TH1F.h"
 #include "TH2F.h"
-#include "TFile.h"
+//#include "TFile.h"
 #include "TProfile.h"
 
 #include "BmnDchTrackFinder.h"
@@ -781,8 +781,18 @@ fPeriod(period), fRunId(number), expData(isExp) {
   fEventNo = 0;
   N = (fPeriod == 7 && fRunId > 3589) ? 100 : 15;  //needs to be adjusted according to hit multiplicity
   tracksDch = "BmnDchTrack";
-  InputDigitsBranchName = "DCH";
-  fTransferFunctionName = "transfer_func.txt";
+  if(expData){  
+    InputDigitsBranchName = "DCH";
+    fTransferFunctionName = "transfer_func.txt";
+    
+    prev_wire = -1;
+    prev_time = -1;
+  }else{
+    InputDigitsBranchName = "BmnDchHit";
+  }
+
+  layers_with = 0;
+  layers_with2 = 0;
 
   prev_wire = -1;
   prev_time = -1;
@@ -799,30 +809,42 @@ fPeriod(period), fRunId(number), expData(isExp) {
   dZ_dch = Z_dch2 - Z_dch1;
 
   // Some alignment corrections
+  if(fPeriod == 7 && fRunId > 3589){
+    //argon
+    x1_sh = 0;      //15.77;//10.5;
+    y1_sh = 0;      //-2.86;//2.47;
+    x2_sh = -5.9;   //-0.97;//4.33;
+    y2_sh = -6.14;  //7.67;//2.34;
+    
+    x1_slope_sh = 0.;      //-0.077;//-0.07;
+    y1_slope_sh = 0.;      //0.07;//0.062;
+    x2_slope_sh = -0.007;  //-0.07;//-0.077;
+    y2_slope_sh = -0.007;  //0.069;//0.077;
+  }else{
+    //src
+    x1_sh = 0;//10.3;//0;       //11.2;//-8.56;//run6 10.9;// 5.34;//5.14;//10.31; //
+    y1_sh = 0;//-3;//0;       //1.76;//5.76;//run6 -1.19;//0;//-1.03;
+    x2_sh = -5.99;;//-5.4;//4.7;//8.60; //9.-3.5;//0.0;//run6 5.56;//0;//7.95;// //
+    y2_sh = -.24;//-.47;//-3.3;//-12.40;  //1.8;//-7.1;//run6 -2.47;//-1.38;//-3.7;
+    
+    x1_slope_sh = 0;//-.070;//0;
+    y1_slope_sh = 0;//.060;//0;
+    x2_slope_sh = -.005;//-.034;//-.071;//0.;
+    y2_slope_sh = .005;//.014;//.061;//0.007;
+  }
+  
+  if(!expData){//no alignment shifts for MC data
 
-  //argon
-  x1_sh = 0;      //15.77;//10.5;
-  y1_sh = 0;      //-2.86;//2.47;
-  x2_sh = -5.9;   //-0.97;//4.33;
-  y2_sh = -6.14;  //7.67;//2.34;
+    x1_sh = 0.;      
+    y1_sh = 0.;     
+    x2_sh = 0.; 
+    y2_sh = 0.; 
 
-  x1_slope_sh = 0.;      //-0.077;//-0.07;
-  y1_slope_sh = 0.;      //0.07;//0.062;
-  x2_slope_sh = -0.007;  //-0.07;//-0.077;
-  y2_slope_sh = -0.007;  //0.069;//0.077;
-
-  //src
-  x1_sh = 0;//10.3;//0;       //11.2;//-8.56;//run6 10.9;// 5.34;//5.14;//10.31; //
-  y1_sh = 0;//-3;//0;       //1.76;//5.76;//run6 -1.19;//0;//-1.03;
-  x2_sh = -5.99;;//-5.4;//4.7;//8.60; //9.-3.5;//0.0;//run6 5.56;//0;//7.95;// //
-  y2_sh = -.24;//-.47;//-3.3;//-12.40;  //1.8;//-7.1;//run6 -2.47;//-1.38;//-3.7;
-
-  x1_slope_sh = 0;//-.070;//0;
-  y1_slope_sh = 0;//.060;//0;
-  x2_slope_sh = -.005;//-.034;//-.071;//0.;
-  y2_slope_sh = .005;//.014;//.061;//0.007;
-
-
+    x1_slope_sh = 0.;     
+    y1_slope_sh = 0.;    
+    x2_slope_sh = 0.;  
+    y2_slope_sh = 0.; 
+  }
   scale = 0.5;
 }
 
@@ -844,6 +866,8 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
     delete[] x_global[iChamber];
     delete[] y_global[iChamber];
     delete[] Chi2[iChamber];
+    delete[] SegMCId[iChamber];
+    delete[] SegMCIdCount[iChamber];
     delete[] pairs[iChamber];
     delete[] segment_size[iChamber];
     for (Int_t iDim = 0; iDim < N; iDim++) {
@@ -851,6 +875,10 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
       delete[] u[iChamber][iDim];
       delete[] y[iChamber][iDim];
       delete[] x[iChamber][iDim];
+      delete[] vId[iChamber][iDim];
+      delete[] uId[iChamber][iDim];
+      delete[] yId[iChamber][iDim];
+      delete[] xId[iChamber][iDim];
       delete[] v_time[iChamber][iDim];
       delete[] u_time[iChamber][iDim];
       delete[] y_time[iChamber][iDim];
@@ -863,6 +891,10 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
       delete[] u_Single[iChamber][iDim];
       delete[] y_Single[iChamber][iDim];
       delete[] x_Single[iChamber][iDim];
+      delete[] v_SingleId[iChamber][iDim];
+      delete[] u_SingleId[iChamber][iDim];
+      delete[] y_SingleId[iChamber][iDim];
+      delete[] x_SingleId[iChamber][iDim];
       delete[] Sigm_v_single[iChamber][iDim];
       delete[] Sigm_u_single[iChamber][iDim];
       delete[] Sigm_y_single[iChamber][iDim];
@@ -874,6 +906,7 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
     }
     for (Int_t iDim = 0; iDim < 8; iDim++) {
       delete[] rh_segment[iChamber][iDim];
+      delete[] rhId_segment[iChamber][iDim];
       delete[] rh_segment_time[iChamber][iDim];
       delete[] rh_sigm_segment[iChamber][iDim];
     }
@@ -881,6 +914,10 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
     delete[] u[iChamber];
     delete[] y[iChamber];
     delete[] x[iChamber];
+    delete[] vId[iChamber];
+    delete[] uId[iChamber];
+    delete[] yId[iChamber];
+    delete[] xId[iChamber];
     delete[] v_time[iChamber];
     delete[] u_time[iChamber];
     delete[] y_time[iChamber];
@@ -893,6 +930,10 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
     delete[] u_Single[iChamber];
     delete[] y_Single[iChamber];
     delete[] x_Single[iChamber];
+    delete[] v_SingleId[iChamber];
+    delete[] u_SingleId[iChamber];
+    delete[] y_SingleId[iChamber];
+    delete[] x_SingleId[iChamber];
     delete[] Sigm_v_single[iChamber];
     delete[] Sigm_u_single[iChamber];
     delete[] Sigm_y_single[iChamber];
@@ -900,6 +941,7 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
     delete[] params[iChamber];
     delete[] params_sigmas[iChamber];
     delete[] rh_segment[iChamber];
+    delete[] rhId_segment[iChamber];
     delete[] rh_segment_time[iChamber];
     delete[] rh_sigm_segment[iChamber];
     for (Int_t iWire = 0; iWire < nWires; iWire++)
@@ -910,6 +952,8 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
   delete[] y_global;
   delete[] Chi2;
   delete[] pairs;
+  delete[] SegMCId;
+  delete[] SegMCIdCount;
   delete[] segment_size;
   delete[] v;
   delete[] u;
@@ -927,6 +971,10 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
   delete[] u_Single;
   delete[] y_Single;
   delete[] x_Single;
+  delete[] v_SingleId;
+  delete[] u_SingleId;
+  delete[] y_SingleId;
+  delete[] x_SingleId;
   delete[] Sigm_v_single;
   delete[] Sigm_u_single;
   delete[] Sigm_y_single;
@@ -934,6 +982,7 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
   delete[] params;
   delete[] params_sigmas;
   delete[] rh_segment;
+  delete[] rhId_segment;
   delete[] rh_segment_time;
   delete[] rh_sigm_segment;
   delete[] singles;
@@ -952,139 +1001,261 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
   const Int_t nDim = 80;     //max number of fired wires per plane
   const Int_t nPlanes = 16;  // Total number of planes in both DCHs (0-7, 8-15)
   //    cout << "------------------------------------------------------------Event number: " << fEventNo << endl;
-  Double_t times[nPlanes][nDim];
+  Double_t driftLength[nPlanes][nDim];
+  // Double_t times[nPlanes][nDim];
   Double_t wires[nPlanes][nDim];
+  Int_t hitId[nPlanes][nDim];
+  Double_t xMC[nPlanes][nDim];
+  Double_t yMC[nPlanes][nDim];
+  Double_t zMC[nPlanes][nDim];
+  
   Int_t it[nPlanes];
   Bool_t used[nPlanes][nDim];
   for (Int_t iPlanes = 0; iPlanes < nPlanes; iPlanes++) {
     it[iPlanes] = 0;
     for (Int_t iDim = 0; iDim < nDim; iDim++) {
       used[iPlanes][iDim] = kFALSE;
-      times[iPlanes][iDim] = 0.;
+      // times[iPlanes][iDim] = 0.;
+      driftLength[iPlanes][iDim] = 0.;
+      hitId[iPlanes][iDim] = -999;
       wires[iPlanes][iDim] = 0.;
+      xMC[iPlanes][iDim] = 999.;
+      yMC[iPlanes][iDim] = 999.;
+      zMC[iPlanes][iDim] = 999.;
     }
   }
 
-  Bool_t goodEv = kTRUE;
-  Bool_t written = kFALSE;
-
-  for (Int_t iDig = 0; iDig < fBmnDchDigitsArray->GetEntriesFast(); ++iDig) {
-    BmnDchDigit* digit = (BmnDchDigit*)fBmnDchDigitsArray->UncheckedAt(iDig);
-    //skip identical events
-    if (!written) {
-      written = kTRUE;
-      if (digit->GetTime() == prev_time && digit->GetWireNumber() == prev_wire) {
-	goodEv = kFALSE;
-      } else {
-	prev_time = Int_t(digit->GetTime());
-	prev_wire = Int_t(digit->GetWireNumber());
-      }
-    }  //!written
-
-    if (!goodEv)
-      return;
-
-    // Order used: va1(0), vb1(1), ua1(2), ub1(3), ya1(4), yb1(5), xa1(6), xb1(7) ->
-    //             va2(8), vb2(9), ua2(10), ub2(11), ya2(12), yb2(13), xa2(14), xb2(15)
-    Short_t plane = digit->GetPlane();
-    Short_t wire = digit->GetWireNumber();
-    Double_t time = digit->GetTime();
-    Bool_t secondaries = kFALSE;
-    if (wire > 239) wire = wire - 128;  //recalculate last amplifier
-    if (plane == 4) {
-      if (wire > 143 && wire < 176) {
-	if (wire > 159 && wire < 176) {
-	  wire = wire - 16;
+  if (expData) {
+    Bool_t goodEv = kTRUE;
+    Bool_t written = kFALSE;
+    
+    for (Int_t iDig = 0; iDig < fBmnDchDigitsArray->GetEntriesFast(); ++iDig) {
+      BmnDchDigit* digit = (BmnDchDigit*)fBmnDchDigitsArray->UncheckedAt(iDig);
+      //skip identical events
+      if (!written) {
+	written = kTRUE;
+	if (digit->GetTime() == prev_time && digit->GetWireNumber() == prev_wire) {
+	  goodEv = kFALSE;
 	} else {
-	  wire = wire + 16;
+	  prev_time = Int_t(digit->GetTime());
+	  prev_wire = Int_t(digit->GetWireNumber());
+	}
+      }  //!written
+      
+      if (!goodEv)
+	return;
+
+      // Order used: va1(0), vb1(1), ua1(2), ub1(3), ya1(4), yb1(5), xa1(6), xb1(7) ->
+      //             va2(8), vb2(9), ua2(10), ub2(11), ya2(12), yb2(13), xa2(14), xb2(15)
+      Short_t plane = digit->GetPlane();
+      Short_t wire = digit->GetWireNumber();
+      Double_t time = digit->GetTime();
+      Bool_t secondaries = kFALSE;
+      if (wire > 239) wire = wire - 128;  //recalculate last amplifier
+      if (plane == 4) {
+	if (wire > 143 && wire < 176) {
+	  if (wire > 159 && wire < 176) {
+	    wire = wire - 16;
+	  } else {
+	    wire = wire + 16;
+	  }
 	}
       }
-    }
 
-    for (Int_t sec = 0; sec < it[plane] - 1; sec++)
-      if (wire == wires[plane][sec]) {
-	secondaries = kTRUE;
-	break;
+      for (Int_t sec = 0; sec < it[plane] - 1; sec++)
+	if (wire == wires[plane][sec]) {
+	  secondaries = kTRUE;
+	  break;
+	}
+
+      if (it[plane] == (nDim - 1) || secondaries)
+	continue;
+
+      wires[plane][it[plane]] = wire;
+      driftLength[plane][it[plane]] = time;
+      it[plane]++;
+      if (plane == 6) hSlot_1xa_time->Fill(time);
+      if (plane == 7) hSlot_1xb_time->Fill(time);
+      if (plane == 4) hYa_wireOccupancy->Fill(wire);
+      if (plane == 5) hYb_wireOccupancy->Fill(wire);
+    }//iDig
+  }//isExp
+  else{
+    
+    //read MC data
+    Double_t x1_MC1 = 999;
+    Double_t y1_MC1 = 999;
+    Double_t z1_MC1 = 999;
+    Double_t x1_MC2 = 999;
+    Double_t y1_MC2 = 999;
+    Double_t z1_MC2 = 999;
+
+    bool _MC1 = false;
+    bool _MC2 = false;
+    for (Int_t iMC = 0; iMC < fBmnHitsArray->GetEntriesFast(); ++iMC) {
+      BmnDchHit* hit = (BmnDchHit*)fBmnHitsArray->UncheckedAt(iMC);
+   
+      // Order used: vb1(0), va1(1), ub1(2), ua1(3), yb1(4), ya1(5), xb1(6), xa1(7) ->
+      //             vb2(8), va2(9), ub2(10), ua2(11), yb2(12), ya2(13), xb2(14), xa2(15)
+      Short_t plane = hit->GetLayerNumber();
+      Short_t wire = hit->GetWirePosition();
+      Double_t time = hit->GetDrift();
+      Double_t x_MC = hit->GetX();
+      Double_t y_MC = hit->GetY();
+      Double_t z_MC = hit->GetZ();
+
+      hitId[plane][it[plane]] = hit->GetHitId();
+      //      hitCharge[plane][it[plane]] = hit->GetPhi();
+      wires[plane][it[plane]] = wire;
+      driftLength[plane][it[plane]] = time;
+      xMC[plane][it[plane]] = x_MC;
+      yMC[plane][it[plane]] = y_MC;
+      zMC[plane][it[plane]] = z_MC;
+      //  cout<<" from array wire "<<wires[plane][it[plane]]<<" time "<<driftLength[plane][it[plane]]<<endl;
+      it[plane]++;
+      if (plane == 7) hSlot_1xa_time->Fill(time);
+      if (plane == 6) hSlot_1xb_time->Fill(time);
+      /*      if (plane == 1){
+      //	hVa_wireOccupancy->Fill(wire);
+      if(!_MC1){ 
+      x1_MC1 = x_MC;
+      y1_MC1 =y_MC; 
+      z1_MC1 =z_MC; 
+      _MC1 = true;
+      }
+      }
+      if (plane == 0) {
+      //	hVb_wireOccupancy->Fill(wire);
+      if(!_MC1){ 
+      x1_MC1 = x_MC;
+      y1_MC1 =y_MC; 
+      z1_MC1 =z_MC; 
+      _MC1 = true;
+      }
+      }
+      //  if (plane == 3) hUa_wireOccupancy->Fill(wire);
+      //  if (plane == 2) hUb_wireOccupancy->Fill(wire);
+      if (plane == 5) {
+      //	hYa_wireOccupancy->Fill(wire);
+
       }
 
-    if (it[plane] == (nDim - 1) || secondaries)
-      continue;
+      if (plane == 4) hYb_wireOccupancy->Fill(wire);
+      if (plane == 7) {
+      //	hXa_wireOccupancy->Fill(wire);
+      if(!_MC2){ 
+      x1_MC2 = x_MC;
+      y1_MC2 = y_MC; 
+      z1_MC2 = z_MC; 
+      _MC2 = true;
+      }
+      }
+      if (plane == 6) {
+      hXb_wireOccupancy->Fill(wire);
+      if(!_MC2){ 
+      x1_MC2 = x_MC;
+      y1_MC2 = y_MC; 
+      z1_MC2 = z_MC; 
+      _MC2 = true;
+      }
 
-    wires[plane][it[plane]] = wire;
-    times[plane][it[plane]] = time;
-    it[plane]++;
-    if (plane == 6) hSlot_1xa_time->Fill(time);
-    if (plane == 7) hSlot_1xb_time->Fill(time);
-    if (plane == 4) hYa_wireOccupancy->Fill(wire);
-    if (plane == 5) hYb_wireOccupancy->Fill(wire);
+      }
+      */
+      } //end MC read
+    // if(_MC1 && _MC2){
+    ///  hx1MC->Fill((x1_MC1+x1_MC2)/2);
+    //  hy1MC->Fill((y1_MC1+y1_MC2)/2);
+    //  haX1MC->Fill((x1_MC2-x1_MC1)/(z1_MC2-z1_MC1));
+    //  haY1MC->Fill((y1_MC2-y1_MC1)/(z1_MC2-z1_MC1));
+    //  }
+      
   }
+      
+      const Int_t nWires_ = 4;
+      const Int_t nLayers_ = 2;
+      TString wireNames[nWires_] = {"v", "u", "y", "x"};
+      TString layNames[nLayers_] = {"a", "b"};
+      Int_t cntr = 0;
 
+      for (Int_t iDch = 0; iDch < nChambers; iDch++) {
+	for (Int_t iWire = 0; iWire < nWires; iWire++) {
+	  Int_t start = 2 * iWire + (nPlanes / 2) * iDch;
+	  Int_t finish = start + 1;
+	  Double_t*** coord = (iWire == 0) ? v : (iWire == 1) ? u : (iWire == 2) ? y : x;
+	  Int_t*** coordId = (iWire == 0) ? vId : (iWire == 1) ? uId : (iWire == 2) ? yId : xId;
+	  Double_t*** sigma = (iWire == 0) ? sigm_v : (iWire == 1) ? sigm_u : (iWire == 2) ? sigm_y : sigm_x;
+	  Double_t*** coord_time = (iWire == 0) ? v_time : (iWire == 1) ? u_time : (iWire == 2) ? y_time : x_time;
+	  if (expData) {	   
+	    pairs[iDch][iWire] = Reconstruction(iDch + 1, wireNames[iWire], pairs[iDch][iWire], it[start], it[finish],
+						wires[start], wires[finish], driftLength[start], driftLength[finish], used[start], used[finish],
+						coord[iDch], sigma[iDch], coord_time[iDch]);
 
-  const Int_t nWires_ = 4;
-  const Int_t nLayers_ = 2;
-  TString wireNames[nWires_] = {"v", "u", "y", "x"};
-  TString layNames[nLayers_] = {"a", "b"};
-  Int_t cntr = 0;
+	    for (Int_t iLayer = 0; iLayer < nLayers; iLayer++) {
+	      Double_t*** single_coord = (iWire == 0) ? v_Single : (iWire == 1) ? u_Single : (iWire == 2) ? y_Single : x_Single;
+	      Double_t*** single_sigma = (iWire == 0) ? Sigm_v_single : (iWire == 1) ? Sigm_u_single : (iWire == 2) ? Sigm_y_single : Sigm_x_single;
+	      singles[iDch][iWire][iLayer] = ReconstructionSingle(iDch + 1, wireNames[iWire], layNames[iLayer],
+								  singles[iDch][iWire][iLayer], it[cntr], wires[cntr], driftLength[cntr], used[cntr], single_coord[iDch], single_sigma[iDch]);
+	      cntr++;
+	    }
+	  }else{   
+	    pairs[iDch][iWire] = ReconstructionMC(iDch + 1, wireNames[iWire], pairs[iDch][iWire], it[start], it[finish],
+						  wires[start], wires[finish], driftLength[start], driftLength[finish], hitId[start], hitId[finish], used[start], used[finish], coord[iDch], coordId[iDch], sigma[iDch], coord_time[iDch]);
+    
+	    for (Int_t iLayer = 0; iLayer < nLayers; iLayer++) {
+	      Double_t*** single_coord = (iWire == 0) ? v_Single : (iWire == 1) ? u_Single : (iWire == 2) ? y_Single : x_Single;
+	      Int_t*** single_coordId = (iWire == 0) ? v_SingleId : (iWire == 1) ? u_SingleId : (iWire == 2) ? y_SingleId : x_SingleId;
+	      Double_t*** single_sigma = (iWire == 0) ? Sigm_v_single : (iWire == 1) ? Sigm_u_single : (iWire == 2) ? Sigm_y_single : Sigm_x_single;
+	      singles[iDch][iWire][iLayer] = ReconstructionSingleMC(iDch + 1, wireNames[iWire], layNames[iLayer],
+								    singles[iDch][iWire][iLayer], it[cntr], wires[cntr], driftLength[cntr], hitId[cntr], used[cntr], single_coord[iDch], single_coordId[iDch], single_sigma[iDch]);
+	      cntr++;
+	    }
+	  }
+	}           
 
-  for (Int_t iDch = 0; iDch < nChambers; iDch++) {
-    for (Int_t iWire = 0; iWire < nWires; iWire++) {
-      Int_t start = 2 * iWire + (nPlanes / 2) * iDch;
-      Int_t finish = start + 1;
-      Double_t*** coord = (iWire == 0) ? v : (iWire == 1) ? u : (iWire == 2) ? y : x;
-      Double_t*** sigma = (iWire == 0) ? sigm_v : (iWire == 1) ? sigm_u : (iWire == 2) ? sigm_y : sigm_x;
-      Double_t*** coord_time = (iWire == 0) ? v_time : (iWire == 1) ? u_time : (iWire == 2) ? y_time : x_time;
-	   
-      pairs[iDch][iWire] = Reconstruction(iDch + 1, wireNames[iWire], pairs[iDch][iWire], it[start], it[finish],
-					  wires[start], wires[finish], times[start], times[finish], used[start], used[finish],
-					  coord[iDch], sigma[iDch], coord_time[iDch]);
+	nSegments[iDch] = BuildUVSegments(iDch + 1,
+					  pairs[iDch][1], pairs[iDch][0], pairs[iDch][3], pairs[iDch][2], singles[iDch][1][0], singles[iDch][1][1], singles[iDch][0][0], singles[iDch][0][1],
+					  x[iDch], y[iDch], u[iDch], v[iDch], xId[iDch], yId[iDch], uId[iDch], vId[iDch],x_time[iDch], y_time[iDch], u_time[iDch], v_time[iDch], sigm_x[iDch], sigm_y[iDch], sigm_u[iDch], sigm_v[iDch], rh_segment[iDch],rhId_segment[iDch],rh_segment_time[iDch], rh_sigm_segment[iDch],
+					  u_Single[iDch], v_Single[iDch],u_SingleId[iDch], v_SingleId[iDch], Sigm_u_single[iDch], Sigm_v_single[iDch]);
+	nSegments[iDch] = BuildXYSegments(iDch + 1,
+					  pairs[iDch][1], pairs[iDch][0], pairs[iDch][3], pairs[iDch][2], 
+					  singles[iDch][3][0], singles[iDch][3][1], singles[iDch][2][0], singles[iDch][2][1],
+					  x[iDch], y[iDch], u[iDch], v[iDch], 
+					  xId[iDch], yId[iDch], uId[iDch], vId[iDch], x_time[iDch], y_time[iDch], u_time[iDch], v_time[iDch],
+					  sigm_x[iDch], sigm_y[iDch], sigm_u[iDch], sigm_v[iDch], 
+					  rh_segment[iDch],rhId_segment[iDch],rh_segment_time[iDch], rh_sigm_segment[iDch],
+					  x_Single[iDch], y_Single[iDch], x_SingleId[iDch], y_SingleId[iDch], Sigm_x_single[iDch], Sigm_y_single[iDch]);
+   
+                               
+	has7DC[iDch] = FitDchSegments(iDch + 1, segment_size[iDch], rh_segment[iDch], rh_sigm_segment[iDch], params[iDch], Chi2[iDch], x_global[iDch], y_global[iDch]);  // Fit found segments
+	SelectLongestAndBestSegments(iDch + 1, segment_size[iDch], rh_segment[iDch], Chi2[iDch]);                                                                        // Save only longest and best chi2 segments
+	FillSegmentParametersSigmas(iDch + 1, rh_segment[iDch], rh_sigm_segment[iDch], Chi2[iDch], params_sigmas[iDch]);   
+	FindSegmentTrackMCId(iDch + 1, rhId_segment[iDch], Chi2[iDch], SegMCId[iDch], SegMCIdCount[iDch]);
 
-      for (Int_t iLayer = 0; iLayer < nLayers; iLayer++) {
-	Double_t*** single_coord = (iWire == 0) ? v_Single : (iWire == 1) ? u_Single : (iWire == 2) ? y_Single : x_Single;
-	Double_t*** single_sigma = (iWire == 0) ? Sigm_v_single : (iWire == 1) ? Sigm_u_single : (iWire == 2) ? Sigm_y_single : Sigm_x_single;
-	singles[iDch][iWire][iLayer] = ReconstructionSingle(iDch + 1, wireNames[iWire], layNames[iLayer],
-							    singles[iDch][iWire][iLayer], it[cntr], wires[cntr], times[cntr], used[cntr], single_coord[iDch], single_sigma[iDch]);
-	cntr++;
+	//count wire multiplicity per layer
+	if(iDch == 0){
+	  layers_with = 0;
+	  for(Int_t i = 0; i < 8; i++){
+	    if(it[i] > 0)layers_with++;
+	    if(it[i] == 0) hNoFiredWiresOnLayerDc1->Fill(i); 
+	  }
+	  hNLayWithFiredWiresDc1->Fill(layers_with);
+	}else{
+	  layers_with2 = 0;
+	  for(Int_t i = 8; i < 16; i++){
+	    if(it[i] > 0)layers_with2++;
+	    if(it[i] == 0) hNoFiredWiresOnLayerDc2->Fill(i-8); 
+	  }
+	  hNLayWithFiredWiresDc2->Fill(layers_with2);
+	}
+	//calculate segment parameters errors
+	CreateDchTrack(iDch + 1, Chi2[iDch], params[iDch], segment_size[iDch], rh_segment[iDch],rh_segment_time[iDch], params_sigmas[iDch], SegMCId[iDch], SegMCIdCount[iDch]);  	
+	// ! Fill segment parameters
+	// - Next function works if the local shifts are set to 0. 
+	// - Be careful - the refit brackes segment parameters. 
+	// - This function must be used only for residual calculation. Everything else becomes wrong!
+
+	FillPlaneResiduals(iDch + 1, segment_size[iDch], rh_segment[iDch], rh_sigm_segment[iDch], params[iDch], Chi2[iDch]);
       }
-    }       
-
-    nSegments[iDch] = BuildUVSegments(iDch + 1,
-				      pairs[iDch][1], pairs[iDch][0], pairs[iDch][3], pairs[iDch][2], singles[iDch][1][0], singles[iDch][1][1], singles[iDch][0][0], singles[iDch][0][1],
-				      x[iDch], y[iDch], u[iDch], v[iDch],x_time[iDch], y_time[iDch], u_time[iDch], v_time[iDch], sigm_x[iDch], sigm_y[iDch], sigm_u[iDch], sigm_v[iDch], rh_segment[iDch],rh_segment_time[iDch], rh_sigm_segment[iDch],
-				      u_Single[iDch], v_Single[iDch], Sigm_u_single[iDch], Sigm_v_single[iDch]);
-    nSegments[iDch] = BuildXYSegments(iDch + 1,
-				      pairs[iDch][1], pairs[iDch][0], pairs[iDch][3], pairs[iDch][2], singles[iDch][3][0], singles[iDch][3][1], singles[iDch][2][0], singles[iDch][2][1],
-				      x[iDch], y[iDch], u[iDch], v[iDch],x_time[iDch], y_time[iDch], u_time[iDch], v_time[iDch], sigm_x[iDch], sigm_y[iDch], sigm_u[iDch], sigm_v[iDch], rh_segment[iDch],rh_segment_time[iDch], rh_sigm_segment[iDch],
-				      x_Single[iDch], y_Single[iDch], Sigm_x_single[iDch], Sigm_y_single[iDch]);
-
-    has7DC[iDch] = FitDchSegments(iDch + 1, segment_size[iDch], rh_segment[iDch], rh_sigm_segment[iDch], params[iDch], Chi2[iDch], x_global[iDch], y_global[iDch]);  // Fit found segments
-    SelectLongestAndBestSegments(iDch + 1, segment_size[iDch], rh_segment[iDch], Chi2[iDch]);                                                                        // Save only longest and best chi2 segments
-    FillSegmentParametersSigmas(iDch + 1, rh_segment[iDch], rh_sigm_segment[iDch], Chi2[iDch], params_sigmas[iDch]);   
-    //calculate segment parameters errors
-    CreateDchTrack(iDch + 1, Chi2[iDch], params[iDch], segment_size[iDch], rh_segment[iDch],rh_segment_time[iDch], params_sigmas[iDch]);                                
-    //count wire multiplicity per layer
-    if(iDch == 0){
-      Int_t layers_with = 0;
-      for(Int_t i = 0; i < 8; i++){
-	if(it[i] > 0)layers_with++;
-	if(it[i] == 0) hNoFiredWiresOnLayerDc1->Fill(i); 
-      }
-      hNLayWithFiredWiresDc1->Fill(layers_with);
-    }else{
-      Int_t layers_with2 = 0;
-      for(Int_t i = 8; i < 16; i++){
-	if(it[i] > 0)layers_with2++;
-	if(it[i] == 0) hNoFiredWiresOnLayerDc2->Fill(i-8); 
-      }
-      hNLayWithFiredWiresDc2->Fill(layers_with2);
-    }
-
-    // ! Fill segment parameters
-    // - Next function works if the local shifts are set to 0. 
-    // - Be careful - the refit brackes segment parameters. 
-    // - This function must be used only for residual calculation. Everything else becomes wrong!
-
-    //	FillPlaneResiduals(iDch + 1, segment_size[iDch], rh_segment[iDch], rh_sigm_segment[iDch], params[iDch], Chi2[iDch]);
-  }
 
   // Try to match the reconstructed segments from the two chambers
   SegmentsToBeMatched();
@@ -1093,7 +1264,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
   if (fVerbose) cout << "======================== DCH track finder exec finished ===================" << endl;
   clock_t tFinish = clock();
   workTime += ((Double_t)(tFinish - tStart)) / CLOCKS_PER_SEC;
-}
+    }
 
 void BmnDchTrackFinder::SegmentsToBeMatched() {
   while (true) {
@@ -1198,12 +1369,14 @@ void BmnDchTrackFinder::SegmentsToBeMatched() {
 }
 
 Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
-                                         Int_t pairU, Int_t pairV, Int_t pairX, Int_t pairY, Int_t single_xa, Int_t single_xb, Int_t single_ya, Int_t single_yb,
+                                         Int_t pairU, Int_t pairV, Int_t pairX, Int_t pairY, 
+					 Int_t single_xa, Int_t single_xb, Int_t single_ya, Int_t single_yb,
                                          Double_t** x_ab, Double_t** y_ab, Double_t** u_ab, Double_t** v_ab,
+					 Int_t** x_abId, Int_t** y_abId, Int_t** u_abId, Int_t** v_abId,
 					 Double_t** x_ab_time, Double_t** y_ab_time, Double_t** u_ab_time, Double_t** v_ab_time,
                                          Double_t** sigm_x_ab, Double_t** sigm_y_ab, Double_t** sigm_u_ab, Double_t** sigm_v_ab,
-                                         Double_t** rh_seg,Double_t** rh_seg_time, Double_t** rh_sigm_seg,
-                                         Double_t** x_single, Double_t** y_single, Double_t** sigm_x_single, Double_t** sigm_y_single) {
+                                         Double_t** rh_seg, Int_t** rhId_seg, Double_t** rh_seg_time, Double_t** rh_sigm_seg,
+                                         Double_t** x_single, Double_t** y_single, Int_t** x_singleId, Int_t** y_singleId, Double_t** sigm_x_single, Double_t** sigm_y_single) {
   Double_t sqrt_2 = sqrt(2.);
   Double_t isqrt_2 = 1. / sqrt_2;
 
@@ -1212,10 +1385,11 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
   for (Int_t i = 0; i < pairU; i++) {
     if (nDC_segments > 25 * N - 1)
       break;
-    Double_t u_coord = (u_ab[0][i] + u_ab[1][i]) / 2;
-    Double_t u_slope = (u_ab[0][i] - u_ab[1][i]) / (z_loc[4] - z_loc[5]);
-    Double_t UX = u_coord + u_slope * 0.5 * (z_loc[1] + z_loc[0] - z_loc[5] - z_loc[4]);
-    Double_t UY = u_coord + u_slope * 0.5 * (z_loc[3] + z_loc[2] - z_loc[5] - z_loc[4]);
+   Double_t u_coord = (u_ab[0][i] + u_ab[1][i]) / 2;
+    Double_t u_slope = (u_ab[0][i] - u_ab[1][i]) / (z_loc[3] - z_loc[2]);
+    Double_t UX = u_coord + u_slope * 0.5 * (z_loc[6] + z_loc[7] - z_loc[2] - z_loc[3]);
+    Double_t UY = u_coord + u_slope * 0.5 * (z_loc[4] + z_loc[5] - z_loc[2] - z_loc[3]);
+
     for (Int_t j = 0; j < pairV; j++) {
       if (nDC_segments > 25 * N - 1)
 	break;
@@ -1251,6 +1425,12 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
 	  rh_seg[5][nDC_segments] = u_ab[1][i];
 	  rh_seg[6][nDC_segments] = v_ab[0][j];
 	  rh_seg[7][nDC_segments] = v_ab[1][j];
+	  rhId_seg[0][nDC_segments] = x_abId[0][k];
+	  rhId_seg[1][nDC_segments] = x_abId[1][k];
+	  rhId_seg[4][nDC_segments] = u_abId[0][i];
+	  rhId_seg[5][nDC_segments] = u_abId[1][i];
+	  rhId_seg[6][nDC_segments] = v_abId[0][j];
+	  rhId_seg[7][nDC_segments] = v_abId[1][j];
 	  rh_seg_time[0][nDC_segments] = x_ab_time[0][k];
 	  rh_seg_time[1][nDC_segments] = x_ab_time[1][k];
 	  rh_seg_time[4][nDC_segments] = u_ab_time[0][i];
@@ -1288,6 +1468,12 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
 	  rh_seg[5][nDC_segments] = u_ab[1][i];
 	  rh_seg[6][nDC_segments] = v_ab[0][j];
 	  rh_seg[7][nDC_segments] = v_ab[1][j];
+	  rhId_seg[2][nDC_segments] = y_abId[0][m];
+	  rhId_seg[3][nDC_segments] = y_abId[1][m];
+	  rhId_seg[4][nDC_segments] = u_abId[0][i];
+	  rhId_seg[5][nDC_segments] = u_abId[1][i];
+	  rhId_seg[6][nDC_segments] = v_abId[0][j];
+	  rhId_seg[7][nDC_segments] = v_abId[1][j];
 	  rh_seg_time[2][nDC_segments] = y_ab_time[0][m];
 	  rh_seg_time[3][nDC_segments] = y_ab_time[1][m];
 	  rh_seg_time[4][nDC_segments] = u_ab_time[0][i];
@@ -1310,6 +1496,7 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
 	      if (Abs(x_single[0][kk] - x_est) < min_a) {
 		min_a = Abs(x_single[0][kk] - x_est);
 		rh_seg[0][nDC_segments] = x_single[0][kk];
+		rhId_seg[0][nDC_segments] = x_singleId[0][kk];
 		rh_sigm_seg[0][nDC_segments] = sigm_x_single[0][kk];
 		foundX = kTRUE;
 	      }
@@ -1320,6 +1507,7 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
 	      if (Abs(x_single[1][kk] - x_est) < min_b) {
 		min_b = Abs(x_single[1][kk] - x_est);
 		rh_seg[1][nDC_segments] = x_single[1][kk];
+		rhId_seg[1][nDC_segments] = x_singleId[1][kk];
 		rh_sigm_seg[1][nDC_segments] = sigm_x_single[1][kk];
 		foundX = kTRUE;
 	      }
@@ -1337,6 +1525,7 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
 	    if (Abs(y_single[0][kk] - y_est) < min_a) {
 	      min_a = Abs(y_single[0][kk] - y_est);
 	      rh_seg[2][nDC_segments] = y_single[0][kk];
+	      rhId_seg[2][nDC_segments] = y_singleId[0][kk];
 	      rh_sigm_seg[2][nDC_segments] = sigm_y_single[0][kk];
 	      foundY = kTRUE;
 	    }
@@ -1347,6 +1536,7 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
 	    if (Abs(y_single[1][kk] - y_est) < min_b) {
 	      min_b = Abs(y_single[1][kk] - y_est);
 	      rh_seg[3][nDC_segments] = y_single[1][kk];
+	      rhId_seg[3][nDC_segments] = y_singleId[1][kk];
 	      rh_sigm_seg[3][nDC_segments] = sigm_y_single[1][kk];
 	      foundY = kTRUE;
 	    }
@@ -1361,10 +1551,11 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
 
 Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, Int_t pairX, Int_t pairY, Int_t single_ua, Int_t single_ub, Int_t single_va, Int_t single_vb,
                                          Double_t** x_ab, Double_t** y_ab, Double_t** u_ab, Double_t** v_ab,
+					 Int_t** x_abId, Int_t** y_abId, Int_t** u_abId, Int_t** v_abId,
 					 Double_t** x_ab_time, Double_t** y_ab_time, Double_t** u_ab_time, Double_t** v_ab_time,
 					 Double_t** sigm_x_ab, Double_t** sigm_y_ab, Double_t** sigm_u_ab, Double_t** sigm_v_ab,
-                                         Double_t** rh_seg,Double_t** rh_seg_time, Double_t** rh_sigm_seg,
-                                         Double_t** u_single, Double_t** v_single, Double_t** sigm_u_single, Double_t** sigm_v_single) {
+                                         Double_t** rh_seg, Int_t** rhId_seg,Double_t** rh_seg_time, Double_t** rh_sigm_seg,
+                                         Double_t** u_single, Double_t** v_single, Int_t** u_singleId, Int_t** v_singleId, Double_t** sigm_u_single, Double_t** sigm_v_single) {
   Double_t sqrt_2 = sqrt(2.);
   Double_t isqrt_2 = 1. / sqrt_2;
 
@@ -1408,6 +1599,12 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
 	rh_seg[3][nDC_segments] = y_ab[1][j];
 	rh_seg[4][nDC_segments] = u_ab[0][k];
 	rh_seg[5][nDC_segments] = u_ab[1][k];
+	rhId_seg[0][nDC_segments] = x_abId[0][i];
+	rhId_seg[1][nDC_segments] = x_abId[1][i];
+	rhId_seg[2][nDC_segments] = y_abId[0][j];
+	rhId_seg[3][nDC_segments] = y_abId[1][j];
+	rhId_seg[4][nDC_segments] = u_abId[0][k];
+	rhId_seg[5][nDC_segments] = u_abId[1][k];
 	rh_seg_time[0][nDC_segments] = x_ab_time[0][i];
 	rh_seg_time[1][nDC_segments] = x_ab_time[1][i];
 	rh_seg_time[2][nDC_segments] = y_ab_time[0][j];
@@ -1445,6 +1642,12 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
 	rh_seg[3][nDC_segments] = y_ab[1][j];
 	rh_seg[6][nDC_segments] = v_ab[0][m];
 	rh_seg[7][nDC_segments] = v_ab[1][m];
+	rhId_seg[0][nDC_segments] = x_abId[0][i];
+	rhId_seg[1][nDC_segments] = x_abId[1][i];
+	rhId_seg[2][nDC_segments] = y_abId[0][j];
+	rhId_seg[3][nDC_segments] = y_abId[1][j];
+	rhId_seg[6][nDC_segments] = v_abId[0][m];
+	rhId_seg[7][nDC_segments] = v_abId[1][m];
 	rh_seg_time[0][nDC_segments] = x_ab_time[0][i];
 	rh_seg_time[1][nDC_segments] = x_ab_time[1][i];
 	rh_seg_time[2][nDC_segments] = y_ab_time[0][j];
@@ -1467,6 +1670,7 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
 	    if (Abs(u_single[0][kk] - u_est) < min_a) {
 	      min_a = Abs(u_single[0][kk] - u_est);
 	      rh_seg[4][nDC_segments] = u_single[0][kk];
+	      rhId_seg[4][nDC_segments] = u_singleId[0][kk];
 	      rh_sigm_seg[4][nDC_segments] = sigm_u_single[0][kk];
 	      foundU = kTRUE;
 	    }
@@ -1477,6 +1681,7 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
 	    if (Abs(u_single[1][kk] - u_est) < min_b) {
 	      min_b = Abs(u_single[1][kk] - u_est);
 	      rh_seg[5][nDC_segments] = u_single[1][kk];
+	      rhId_seg[5][nDC_segments] = u_singleId[1][kk];
 	      rh_sigm_seg[5][nDC_segments] = sigm_u_single[1][kk];
 	      foundU = kTRUE;
 	    }
@@ -1497,6 +1702,7 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
 	  if (Abs(v_single[0][kk] - v_est) < min_a) {
 	    min_a = Abs(v_single[0][kk] - v_est);
 	    rh_seg[6][nDC_segments] = v_single[0][kk];
+	    rhId_seg[6][nDC_segments] = v_singleId[0][kk];
 	    rh_sigm_seg[6][nDC_segments] = sigm_v_single[0][kk];
 	    foundV = kTRUE;
 	  }
@@ -1507,6 +1713,7 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
 	  if (Abs(v_single[1][kk] - v_est) < min_b) {
 	    min_b = Abs(v_single[1][kk] - v_est);
 	    rh_seg[7][nDC_segments] = v_single[1][kk];
+	    rhId_seg[7][nDC_segments] = v_singleId[1][kk];
 	    rh_sigm_seg[7][nDC_segments] = sigm_v_single[1][kk];
 	    foundV = kTRUE;
 	  }
@@ -1596,8 +1803,10 @@ Bool_t BmnDchTrackFinder::FitDchSegments(Int_t dchID, Int_t* size_seg, Double_t*
       hYDC2_atZ0 ->Fill(par_ab[2][j]*(-Z_dch+249)+par_ab[3][j]);
     }
     //cut on x0 and y0 at back of the magnet
-    if((par_ab[2][j]*(-Z_dch+249)+par_ab[3][j]) < -50 || (par_ab[2][j]*(-Z_dch+249)+par_ab[3][j]) > 50 || (par_ab[0][j]*(-Z_dch+249)+par_ab[1][j]) < -85 || (par_ab[0][j]*(-Z_dch+249)+par_ab[1][j]) > 85){
-      chi2[j] = 999;
+    if(expData){
+      if((par_ab[2][j]*(-Z_dch+249)+par_ab[3][j]) < -50 || (par_ab[2][j]*(-Z_dch+249)+par_ab[3][j]) > 50 || (par_ab[0][j]*(-Z_dch+249)+par_ab[1][j]) < -85 || (par_ab[0][j]*(-Z_dch+249)+par_ab[1][j]) > 85){
+	chi2[j] = 999;
+      }
     }
     Int_t coeff = (dchID == 1) ? 1 : -1;
     x_glob[j] = coeff * par_ab[0][j] * dZ_dch_mid + par_ab[1][j];
@@ -1619,9 +1828,10 @@ void BmnDchTrackFinder::CompareDaDb(Double_t d, Double_t& ele1, Double_t& ele2) 
 
 void BmnDchTrackFinder::SelectLongestAndBestSegments(Int_t dchID, Int_t* size_seg, Double_t** rh_seg, Double_t* chi2) {
   Int_t nDC_segments = (dchID == 1) ? nSegments[0] : nSegments[1];
-   
   for (Int_t max_size = 8; max_size > 5; max_size--){
     for (Int_t it1 = 0; it1 < nDC_segments; it1++) {
+      //      cout<<" before select "<<dchID<<" seg id "<<it1<<" chi2 "<<chi2[it1]<<" size "<<size_seg[it1]<<endl;
+
       if (size_seg[it1] != max_size || chi2[it1] > 990.)
 	continue;
       for (Int_t it2 = 0; it2 < nDC_segments; it2++) {
@@ -1648,7 +1858,8 @@ void BmnDchTrackFinder::SelectLongestAndBestSegments(Int_t dchID, Int_t* size_se
       }//SECOND CYCLE           
     }//FIRST CYCLE
   }//SCAN SEG SIZE
-}
+}  
+  
 
 void BmnDchTrackFinder::FillPlaneResiduals(Int_t dchID, Int_t* size_seg, Double_t** rh_seg, Double_t** rh_sigm_seg, Double_t** par_ab, Double_t* chi2){
   Int_t nDC_segments = (dchID == 1) ? nSegments[0] : nSegments[1];
@@ -2049,6 +2260,45 @@ void BmnDchTrackFinder::FillPlaneResiduals(Int_t dchID, Int_t* size_seg, Double_
   }
 }
 
+void BmnDchTrackFinder::FindSegmentTrackMCId(Int_t dchID, Int_t** rhId_seg, Double_t* chi2, Int_t* SegMC_Id, Int_t* SegMC_IdCount) {
+  Int_t nDC_segments = (dchID == 1) ? nSegments[0] : nSegments[1];
+  for (Int_t it1 = 0; it1 < nDC_segments; it1++) {
+    if (chi2[it1] > 990.) continue;
+    //calculate segment param errors
+    
+    Int_t mcId = -999;  
+    int prev = -9;
+    int count = 0;
+    Int_t maxHits = 0;
+    Int_t bestId = -99;
+    // cout<<"seg id "<<it1;
+for (int i = 0; i < 8; i++) {
+ 
+  // cout<<" i "<<i<<" "<<rhId_seg[i][it1];
+ }//cout<<endl;
+    for (int i = 0; i < 8; i++) {
+      if (rhId_seg[i][it1] == -999 || rhId_seg[i][it1] == bestId) continue;
+      count = 1;
+      for (int j = i+1; j < 8; j++) {
+	if (rhId_seg[j][it1] == -999) continue;
+	if(rhId_seg[i][it1] == rhId_seg[j][it1])count++;
+      }
+      //cout<<" count "<<count<<endl;
+      if(count>maxHits){
+	maxHits = count;
+	bestId = rhId_seg[i][it1];
+      }
+      //cout<<" inside best "<<bestId<<" hits "<<maxHits<<endl;
+    }
+
+    //cout<<" result best "<<bestId<<" hits "<<maxHits<<endl;
+    
+    if(maxHits>3){ 
+      SegMC_Id[it1] = bestId;
+      SegMC_IdCount[it1] = maxHits;
+    }
+  }
+}
 
 void BmnDchTrackFinder::FillSegmentParametersSigmas(Int_t dchID, Double_t** rh_seg, Double_t** rh_sigm_seg, Double_t* chi2, Double_t** sigm_seg_par) {
   Int_t nDC_segments = (dchID == 1) ? nSegments[0] : nSegments[1];
@@ -2094,7 +2344,7 @@ void BmnDchTrackFinder::FillSegmentParametersSigmas(Int_t dchID, Double_t** rh_s
   }
 }
 
-void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Double_t* chi2Arr, Double_t** parArr, Int_t* sizeArr, Double_t** rh_seg, Double_t** rh_seg_time, Double_t** sigm_seg_par) {
+void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Double_t* chi2Arr, Double_t** parArr, Int_t* sizeArr, Double_t** rh_seg, Double_t** rh_seg_time, Double_t** sigm_seg_par, Int_t* SegMC_Id, Int_t* SegMC_IdCount) {
   Int_t nDC_segments = (dchID == 1) ? nSegments[0] : nSegments[1];
   Int_t good_dc_segs = 0;
   Int_t best_seg1 = -1;
@@ -2113,13 +2363,13 @@ void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Double_t* chi2Arr, Double_t*
     }
     FairTrackParam trackParam;
     Double_t z0 = (dchID == 1) ? Z_dch1 : Z_dch2;
-    Double_t x0 = parArr[1][iSegment];
+    Double_t x0 = -parArr[1][iSegment];
     Double_t y0 = parArr[3][iSegment];
     Double_t x_align = (dchID == 1) ? 0.0 : 0.0;//-10.89 : +4.93;
     Double_t y_align = (dchID == 1) ? 0.0 : 0.0;//-2.95 : +9.12;
     Double_t tx_align = (dchID == 1) ? 0.0 : 0.0;//+0.073 + 0.049 : +0.070 + 0.052;
     Double_t ty_align = (dchID == 1) ? 0.0 : 0.0;//+0.054 : +0.062 - 0.047;
-    trackParam.SetPosition(TVector3(-x0 + x_align, y0 + y_align, z0));
+    trackParam.SetPosition(TVector3(x0 + x_align, y0 + y_align, z0));
     trackParam.SetTx(-parArr[0][iSegment] + tx_align);
     trackParam.SetTy(parArr[2][iSegment] + ty_align);
     trackParam.SetCovariance(0, 0, sigm_seg_par[0][iSegment] * sigm_seg_par[0][iSegment]);  // bx^2
@@ -2133,6 +2383,8 @@ void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Double_t* chi2Arr, Double_t*
     }else{
       hChi2ndf_dc2->Fill(chi2Arr[iSegment]);
     }
+    track->SetTrackId(SegMC_Id[iSegment]);
+    track->SetLength(SegMC_IdCount[iSegment]);
     track->SetFlag(iSegment);
     track->SetNHits(sizeArr[iSegment]);
     track->SetParamFirst(trackParam);
@@ -2245,16 +2497,17 @@ void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Double_t* chi2Arr, Double_t*
     hAv2_loc->Fill(isqrt_2*(parArr[2][best_seg1]+parArr[0][best_seg1]));
   }
 
-  if (dchID == 1) {
+  if (dchID == 1 && layers_with >5) {
     Ntrack1->Fill(good_dc_segs);
-  } else {
+  } 
+  if(dchID == 2 && layers_with2 >5){
     Ntrack2->Fill(good_dc_segs);
   }
 }
 
 void BmnDchTrackFinder::CreateDchTrack() {
     
-  NGtracks->Fill(nSegmentsToBeMatched+1);
+   if(layers_with >5 && layers_with2 >5)  NGtracks->Fill(nSegmentsToBeMatched+1);
   for (Int_t iSeg = 0; iSeg < nSegmentsToBeMatched + 1; iSeg++) {
     FairTrackParam trackParam;
     Double_t z0 = Z_dch_mid;
@@ -2291,7 +2544,63 @@ void BmnDchTrackFinder::CreateDchTrack() {
     track->SetNHits(nhits[iSeg]);
     track->SetFlag(pairID[iSeg]);
     track->SetParamFirst(trackParam);
+
+    if(SegMCId[0][iseg1] != SegMCId[1][iseg2]){
+      if(SegMCIdCount[0][iseg1]!=SegMCIdCount[1][iseg2]){
+	if(SegMCIdCount[0][iseg1]>SegMCIdCount[1][iseg2]){
+	  track->SetTrackId(SegMCId[0][iseg1]);
+	  track->SetLength(SegMCIdCount[0][iseg1]);
+	  //cout<<"glop id "<<SegMCId[0][iseg1]<<endl;
+	  if(layers_with >5 && layers_with2 >5) {
+	    // if(SegMCId[0][iseg1]==0)NGtracks_beam->Fill(1);
+	    // if(SegMCId[0][iseg1]>0)NGtracks_bkg->Fill(1);
+          }
+	}
+	if(SegMCIdCount[0][iseg1]<SegMCIdCount[1][iseg2]){
+	  track->SetTrackId(SegMCId[1][iseg2]);
+	  track->SetLength(SegMCIdCount[1][iseg2]);
+	  //cout<<"glop id "<<SegMCId[1][iseg2]<<endl;
+	  if(layers_with >5 && layers_with2 >5) {
+	    //  if(SegMCId[1][iseg2]==0)NGtracks_beam->Fill(1);
+	    //  if(SegMCId[1][iseg2]>0)NGtracks_bkg->Fill(1);
+          }
+	}
+      }else{
+	if(Chi2[0][iseg1]<Chi2[1][iseg2]){
+	  track->SetTrackId(SegMCId[0][iseg1]);
+	  track->SetLength(SegMCIdCount[0][iseg1]);
+	  //cout<<"glop id "<<SegMCId[0][iseg1]<<endl;
+	  if(layers_with >5 && layers_with2 >5) {
+	    // if(SegMCId[0][iseg1]==0)NGtracks_beam->Fill(1);
+	    // if(SegMCId[0][iseg1]>0)NGtracks_bkg->Fill(1);
+	  }
+	}else{       //cout<<"glop id "<<SegMCId[1][iseg2]<<endl;
+	  
+	  track->SetTrackId(SegMCId[1][iseg2]);
+	  track->SetLength(SegMCIdCount[1][iseg2]);
+	  if(layers_with >5 && layers_with2 >5) {
+	    // if(SegMCId[1][iseg2]==0)NGtracks_beam->Fill(1);
+	    // if(SegMCId[1][iseg2]>0)NGtracks_bkg->Fill(1);
+	  }
+	}
+      }
+    }else{
+      if(layers_with >5 && layers_with2 >5) {
+	//	if(SegMCId[0][iseg1]==0)NGtracks_beam->Fill(1);
+	//	if(SegMCId[0][iseg1]>0)NGtracks_bkg->Fill(1);
+      }
+      //cout<<"glop id "<<SegMCId[0][iseg1]<<endl;
+      
+      track->SetTrackId(SegMCId[0][iseg1]);
+      track->SetLength(SegMCIdCount[0][iseg1]+SegMCIdCount[1][iseg2]);
+    }
   }
+}
+Double_t BmnDchTrackFinder::CalculateResidualMatch(Int_t dchID, Int_t i, Int_t j, Double_t*** rh_seg, Double_t*** par_ab) {
+  Double_t sqrt_2 = sqrt(2.);
+  Double_t isqrt_2 = 1 / sqrt_2;
+
+  return (i < 2) ? rh_seg[dchID][i][j] - z_loc[i] * par_ab[dchID][0][j] - par_ab[dchID][1][j] : (i >= 2 && i < 4) ? rh_seg[dchID][i][j] - z_loc[i] * par_ab[dchID][2][j] - par_ab[dchID][3][j] : (i >= 4 && i < 6) ? rh_seg[dchID][i][j] - isqrt_2 * z_loc[i] * (par_ab[dchID][2][j] - par_ab[dchID][0][j]) - isqrt_2 * (par_ab[dchID][3][j] - par_ab[dchID][1][j]) : rh_seg[dchID][i][j] - isqrt_2 * z_loc[i] * (par_ab[dchID][2][j] + par_ab[dchID][0][j]) - isqrt_2 * (par_ab[dchID][3][j] + par_ab[dchID][1][j]);
 }
 
 Double_t BmnDchTrackFinder::CalculateResidual(Int_t i, Int_t j, Double_t** rh_seg, Double_t** par_ab) {
@@ -2303,19 +2612,27 @@ Double_t BmnDchTrackFinder::CalculateResidual(Int_t i, Int_t j, Double_t** rh_se
 
 InitStatus BmnDchTrackFinder::Init() {
   if (!expData) {
-    cout << "BmnDchTrackFinder::Init(): simulation data is not supported! Task will be deactivated" << endl;
-    SetActive(kFALSE);
-    return kERROR;
+     cout << "BmnDchTrackFinder::Init(): simulation data is reconstructed " << endl;
+    SetActive(kTRUE);
   }
 
   if (fVerbose) cout << "BmnDchTrackFinder::Init()" << endl;
   FairRootManager* ioman = FairRootManager::Instance();
 
-  fBmnDchDigitsArray = (TClonesArray*)ioman->GetObject(InputDigitsBranchName);
-  if (!fBmnDchDigitsArray) {
-    cout << "BmnDchTrackFinder::Init(): branch " << InputDigitsBranchName << " not found! Task will be deactivated" << endl;
-    SetActive(kFALSE);
-    return kERROR;
+  if (expData) {
+    fBmnDchDigitsArray = (TClonesArray*)ioman->GetObject(InputDigitsBranchName);
+    if (!fBmnDchDigitsArray) {
+      cout << "BmnDchTrackFinder::Init(): branch " << InputDigitsBranchName << " not found! Task will be deactivated" << endl;
+      SetActive(kFALSE);
+      return kERROR;
+    }
+  }else{
+    fBmnHitsArray = (TClonesArray*)ioman->GetObject(InputDigitsBranchName);
+    if (!fBmnHitsArray) {
+      cout << "BmnDchTrackFinder::Init(): branch " << InputDigitsBranchName << " not found! Task will be deactivated" << endl;
+      SetActive(kFALSE);
+      return kERROR;
+    }
   }
 
   // Create and register track arrays
@@ -2323,26 +2640,28 @@ InitStatus BmnDchTrackFinder::Init() {
   fDchTracks = new TClonesArray(tracksDch.Data());
   ioman->Register(tracksDch.Data(), "DCH", fDchTracks, kTRUE);
 
-  ifstream fin;
-  TString dir = getenv("VMCWORKDIR");
-  dir += "/input/";
-  fin.open((TString(dir + fTransferFunctionName)).Data(), ios::in);
-  cout << "Transfer function for DCH: " << fTransferFunctionName << endl;
-  for (Int_t fi = 0; fi < 16; fi++) {
-    fin >> t_dc[0][fi] >> t_dc[1][fi] >> t_dc[2][fi] >> t_dc[3][fi] >>
-      pol_par_dc[0][0][fi] >> pol_par_dc[0][1][fi] >> pol_par_dc[0][2][fi] >> pol_par_dc[0][3][fi] >> pol_par_dc[0][4][fi] >>
-      pol_par_dc[1][0][fi] >> pol_par_dc[1][1][fi] >> pol_par_dc[1][2][fi] >> pol_par_dc[1][3][fi] >> pol_par_dc[1][4][fi] >>
-      pol_par_dc[2][0][fi] >> pol_par_dc[2][1][fi] >> pol_par_dc[2][2][fi] >> pol_par_dc[2][3][fi] >> pol_par_dc[2][4][fi] >>
-      scaling[fi];
-    if (fVerbose) {
-    cout<< t_dc[0][fi] << t_dc[1][fi] << t_dc[2][fi] << t_dc[3][fi] <<
-      pol_par_dc[0][0][fi] << pol_par_dc[0][1][fi] << pol_par_dc[0][2][fi] << pol_par_dc[0][3][fi] << pol_par_dc[0][4][fi] <<
-      pol_par_dc[1][0][fi] << pol_par_dc[1][1][fi] << pol_par_dc[1][2][fi] << pol_par_dc[1][3][fi] << pol_par_dc[1][4][fi] <<
-      pol_par_dc[2][0][fi] << pol_par_dc[2][1][fi] << pol_par_dc[2][2][fi] << pol_par_dc[2][3][fi] << pol_par_dc[2][4][fi] <<endl;
+  if (expData) {//transfer function read for experimental data
+    ifstream fin;
+    TString dir = getenv("VMCWORKDIR");
+    dir += "/input/";
+    fin.open((TString(dir + fTransferFunctionName)).Data(), ios::in);
+    cout << "Transfer function for DCH: " << fTransferFunctionName << endl;
+    for (Int_t fi = 0; fi < 16; fi++) {
+      fin >> t_dc[0][fi] >> t_dc[1][fi] >> t_dc[2][fi] >> t_dc[3][fi] >>
+	pol_par_dc[0][0][fi] >> pol_par_dc[0][1][fi] >> pol_par_dc[0][2][fi] >> pol_par_dc[0][3][fi] >> pol_par_dc[0][4][fi] >>
+	pol_par_dc[1][0][fi] >> pol_par_dc[1][1][fi] >> pol_par_dc[1][2][fi] >> pol_par_dc[1][3][fi] >> pol_par_dc[1][4][fi] >>
+	pol_par_dc[2][0][fi] >> pol_par_dc[2][1][fi] >> pol_par_dc[2][2][fi] >> pol_par_dc[2][3][fi] >> pol_par_dc[2][4][fi] >>
+	scaling[fi];
+      if (fVerbose) {
+	cout<< t_dc[0][fi] << t_dc[1][fi] << t_dc[2][fi] << t_dc[3][fi] <<
+	  pol_par_dc[0][0][fi] << pol_par_dc[0][1][fi] << pol_par_dc[0][2][fi] << pol_par_dc[0][3][fi] << pol_par_dc[0][4][fi] <<
+	  pol_par_dc[1][0][fi] << pol_par_dc[1][1][fi] << pol_par_dc[1][2][fi] << pol_par_dc[1][3][fi] << pol_par_dc[1][4][fi] <<
+	  pol_par_dc[2][0][fi] << pol_par_dc[2][1][fi] << pol_par_dc[2][2][fi] << pol_par_dc[2][3][fi] << pol_par_dc[2][4][fi] <<endl;
+      }
     }
+    fin.close();
   }
-  fin.close();
-   
+
   // z local xa->vb (cm)
   Double_t arr1[8] = {7.8, 6.6, 3.0, 1.8, -1.8, -3.0, -6.6, -7.8};
   for (Int_t iSize = 0; iSize < 8; iSize++)
@@ -2367,6 +2686,10 @@ InitStatus BmnDchTrackFinder::Init() {
   u = new Double_t**[nChambers];
   y = new Double_t**[nChambers];
   x = new Double_t**[nChambers];
+  vId = new Int_t**[nChambers];
+  uId = new Int_t**[nChambers];
+  yId = new Int_t**[nChambers];
+  xId = new Int_t**[nChambers];
   v_time = new Double_t**[nChambers];
   u_time = new Double_t**[nChambers];
   y_time = new Double_t**[nChambers];
@@ -2375,6 +2698,10 @@ InitStatus BmnDchTrackFinder::Init() {
   u_Single = new Double_t**[nChambers];
   y_Single = new Double_t**[nChambers];
   x_Single = new Double_t**[nChambers];
+  v_SingleId = new Int_t**[nChambers];
+  u_SingleId = new Int_t**[nChambers];
+  y_SingleId = new Int_t**[nChambers];
+  x_SingleId = new Int_t**[nChambers];
   sigm_v = new Double_t**[nChambers];
   sigm_u = new Double_t**[nChambers];
   sigm_y = new Double_t**[nChambers];
@@ -2385,11 +2712,14 @@ InitStatus BmnDchTrackFinder::Init() {
   Sigm_x_single = new Double_t**[nChambers];
   segment_size = new Int_t*[nChambers];
   Chi2 = new Double_t*[nChambers];
+  SegMCId = new Int_t*[nChambers];
+  SegMCIdCount = new Int_t*[nChambers];
   x_global = new Double_t*[nChambers];
   y_global = new Double_t*[nChambers];
   params = new Double_t**[nChambers];
   params_sigmas = new Double_t**[nChambers];
   rh_segment = new Double_t**[nChambers];
+  rhId_segment = new Int_t**[nChambers];
   rh_segment_time = new Double_t**[nChambers];
   rh_sigm_segment = new Double_t**[nChambers];
   for (Int_t iChamber = 0; iChamber < nChambers; iChamber++) {
@@ -2397,6 +2727,10 @@ InitStatus BmnDchTrackFinder::Init() {
     u[iChamber] = new Double_t*[N];
     y[iChamber] = new Double_t*[N];
     x[iChamber] = new Double_t*[N];
+    vId[iChamber] = new Int_t*[N];
+    uId[iChamber] = new Int_t*[N];
+    yId[iChamber] = new Int_t*[N];
+    xId[iChamber] = new Int_t*[N];
     v_time[iChamber] = new Double_t*[N];
     u_time[iChamber] = new Double_t*[N];
     y_time[iChamber] = new Double_t*[N];
@@ -2405,6 +2739,10 @@ InitStatus BmnDchTrackFinder::Init() {
     u_Single[iChamber] = new Double_t*[N];
     y_Single[iChamber] = new Double_t*[N];
     x_Single[iChamber] = new Double_t*[N];
+    v_SingleId[iChamber] = new Int_t*[N];
+    u_SingleId[iChamber] = new Int_t*[N];
+    y_SingleId[iChamber] = new Int_t*[N];
+    x_SingleId[iChamber] = new Int_t*[N];
     sigm_v[iChamber] = new Double_t*[N];
     sigm_u[iChamber] = new Double_t*[N];
     sigm_y[iChamber] = new Double_t*[N];
@@ -2415,11 +2753,14 @@ InitStatus BmnDchTrackFinder::Init() {
     Sigm_x_single[iChamber] = new Double_t*[N];
     segment_size[iChamber] = new Int_t[75 * N];
     Chi2[iChamber] = new Double_t[75 * N];
+    SegMCId[iChamber] = new Int_t[75 * N];
+    SegMCIdCount[iChamber] = new Int_t[75 * N];
     x_global[iChamber] = new Double_t[75 * N];
     y_global[iChamber] = new Double_t[75 * N];
     params[iChamber] = new Double_t*[4];
     params_sigmas[iChamber] = new Double_t*[4];
     rh_segment[iChamber] = new Double_t*[8];
+    rhId_segment[iChamber] = new Int_t*[8];
     rh_segment_time[iChamber] = new Double_t*[8];
     rh_sigm_segment[iChamber] = new Double_t*[8];
     for (Int_t iDim = 0; iDim < N; iDim++) {
@@ -2427,6 +2768,10 @@ InitStatus BmnDchTrackFinder::Init() {
       u[iChamber][iDim] = new Double_t[75 * N];
       y[iChamber][iDim] = new Double_t[75 * N];
       x[iChamber][iDim] = new Double_t[75 * N];
+      vId[iChamber][iDim] = new Int_t[75 * N];
+      uId[iChamber][iDim] = new Int_t[75 * N];
+      yId[iChamber][iDim] = new Int_t[75 * N];
+      xId[iChamber][iDim] = new Int_t[75 * N];
       v_time[iChamber][iDim] = new Double_t[75 * N];
       u_time[iChamber][iDim] = new Double_t[75 * N];
       y_time[iChamber][iDim] = new Double_t[75 * N];
@@ -2435,6 +2780,10 @@ InitStatus BmnDchTrackFinder::Init() {
       u_Single[iChamber][iDim] = new Double_t[20 * N];
       y_Single[iChamber][iDim] = new Double_t[20 * N];
       x_Single[iChamber][iDim] = new Double_t[20 * N];
+      v_SingleId[iChamber][iDim] = new Int_t[20 * N];
+      u_SingleId[iChamber][iDim] = new Int_t[20 * N];
+      y_SingleId[iChamber][iDim] = new Int_t[20 * N];
+      x_SingleId[iChamber][iDim] = new Int_t[20 * N];
       sigm_v[iChamber][iDim] = new Double_t[75 * N];
       sigm_u[iChamber][iDim] = new Double_t[75 * N];
       sigm_y[iChamber][iDim] = new Double_t[75 * N];
@@ -2450,6 +2799,7 @@ InitStatus BmnDchTrackFinder::Init() {
     }
     for (Int_t iDim = 0; iDim < 8; iDim++) {
       rh_segment[iChamber][iDim] = new Double_t[75 * N];
+      rhId_segment[iChamber][iDim] = new Int_t[75 * N];
       rh_segment_time[iChamber][iDim] = new Double_t[75 * N];
       rh_sigm_segment[iChamber][iDim] = new Double_t[75 * N];
     }
@@ -2490,6 +2840,8 @@ void BmnDchTrackFinder::PrepareArraysToProcessEvent() {
     for (Int_t iDim1 = 0; iDim1 < 75 * N; iDim1++) {
       segment_size[iChamber][iDim1] = 0;
       Chi2[iChamber][iDim1] = 50.;
+      SegMCId[iChamber][iDim1] = -999;
+      SegMCIdCount[iChamber][iDim1] = 0;
       x_global[iChamber][iDim1] = -999.;
       y_global[iChamber][iDim1] = -999.;
     }
@@ -2499,6 +2851,10 @@ void BmnDchTrackFinder::PrepareArraysToProcessEvent() {
 	u[iChamber][iDim1][iDim2] = -999.;
 	y[iChamber][iDim1][iDim2] = -999.;
 	x[iChamber][iDim1][iDim2] = -999.;
+	vId[iChamber][iDim1][iDim2] = -999;
+	uId[iChamber][iDim1][iDim2] = -999;
+	yId[iChamber][iDim1][iDim2] = -999;
+	xId[iChamber][iDim1][iDim2] = -999;
 	v_time[iChamber][iDim1][iDim2] = -999.;
 	u_time[iChamber][iDim1][iDim2] = -999.;
 	y_time[iChamber][iDim1][iDim2] = -999.;
@@ -2513,6 +2869,10 @@ void BmnDchTrackFinder::PrepareArraysToProcessEvent() {
 	u_Single[iChamber][iDim1][iDim3] = -999.;
 	y_Single[iChamber][iDim1][iDim3] = -999.;
 	x_Single[iChamber][iDim1][iDim3] = -999.;
+	v_SingleId[iChamber][iDim1][iDim3] = -999;
+	u_SingleId[iChamber][iDim1][iDim3] = -999;
+	y_SingleId[iChamber][iDim1][iDim3] = -999;
+	x_SingleId[iChamber][iDim1][iDim3] = -999;
 	Sigm_v_single[iChamber][iDim1][iDim3] = 1.;
 	Sigm_u_single[iChamber][iDim1][iDim3] = 1.;
 	Sigm_y_single[iChamber][iDim1][iDim3] = 1.;
@@ -2522,6 +2882,7 @@ void BmnDchTrackFinder::PrepareArraysToProcessEvent() {
     for (Int_t iDim1 = 0; iDim1 < 8; iDim1++)
       for (Int_t iDim2 = 0; iDim2 < 75 * N; iDim2++) {
 	rh_segment[iChamber][iDim1][iDim2] = -999.;
+	rhId_segment[iChamber][iDim1][iDim2] = -999;
 	rh_segment_time[iChamber][iDim1][iDim2] = -999.;
 	rh_sigm_segment[iChamber][iDim1][iDim2] = 1.;
       }
@@ -2544,7 +2905,7 @@ void BmnDchTrackFinder::Finish() {
   //added
   //===============================================================================================================
 
-if (fVerbose) {
+  //if (fVerbose) {
   TFile file(fhTestFlnm.Data(), "RECREATE");
    
   hEff1->Divide(hNomin1,hDenom1,1.,1.);
@@ -2552,7 +2913,7 @@ if (fVerbose) {
     
   fhList.Write();
   file.Close();
-}
+  //}
   //===============================================================================================================
 
   ///end
@@ -2771,6 +3132,189 @@ Int_t BmnDchTrackFinder::ReconstructionSingle(Int_t dchID, TString wire, TString
       _single[0 + arrIdx1][single+1] -= .966;  
     }
 
+    CompareDaDb(d, sigm_single[0 + arrIdx1][single], sigm_single[0 + arrIdx1][single + 1]);
+
+    single += 2;
+  }
+  return single;
+}
+
+Int_t BmnDchTrackFinder::ReconstructionMC(Int_t dchID, TString wire, Int_t pair, Int_t it_b, Int_t it_a,
+					  Double_t* wirenr_b, Double_t* wirenr_a, Double_t* time_b, Double_t* time_a,
+					  Int_t* hitId_b, Int_t* hitId_a, Bool_t* used_b, Bool_t* used_a,
+					  Double_t** _ab, Int_t** _abId, Double_t** sigm_ab, Double_t** ab_time) {
+  //cout<<"61"<<endl;
+  const Int_t arrIdxShift = (dchID == 2) ? 8 : 0;
+  const Int_t arrIdxStart = (wire == "x") ? 0 : (wire == "y") ? 2 : (wire == "u") ? 4 : 6;
+   
+  Double_t a_pm[2], b_pm[2];
+
+  for (Int_t i = 0; i < it_a; ++i)
+    for (Int_t j = 0; j < it_b; ++j) {
+      if (pair > 25 * N - 1)
+	break;
+      if ((wirenr_a[i] != wirenr_b[j] && wirenr_a[i] != wirenr_b[j] + 1))
+	continue;
+      
+      Double_t d_a = time_a[i];
+      Double_t d_b = time_b[j];
+      a_pm[0] = wirenr_a[i] - 119 + d_a;
+      a_pm[1] = wirenr_a[i] - 119 - d_a;
+      b_pm[0] = wirenr_b[j] - 118.5 + d_b;
+      b_pm[1] = wirenr_b[j] - 118.5 - d_b;
+	 	    
+      Double_t dmin2 = LDBL_MAX;
+      Double_t dmin1 = Abs(a_pm[0] - b_pm[0]);//set first pair as one of the minima
+      Double_t a_coord1 = a_pm[0];
+      Double_t b_coord1 = b_pm[0];
+      Double_t a_coord2 = LDBL_MAX;
+      Double_t b_coord2 = LDBL_MAX;
+      for (Int_t k = 0; k < 2; k++){
+	for (Int_t m = 0; m < 2; m++){
+	  if(k == 0 && m == 0)continue;
+	  if (Abs(a_pm[k] - b_pm[m]) < dmin1) {
+	    dmin2 = dmin1;
+	    dmin1 = Abs(a_pm[k] - b_pm[m]);
+	    a_coord2 = a_coord1;
+	    b_coord2 = b_coord1;
+	    a_coord1 = a_pm[k];
+	    b_coord1 = b_pm[m];
+		  
+	  }else if(Abs(a_pm[k] - b_pm[m]) < dmin2 && Abs(a_pm[k] - b_pm[m]) != dmin1){
+	    dmin2 = Abs(a_pm[k] - b_pm[m]);
+	    a_coord2 = a_pm[k];
+	    b_coord2 = b_pm[m];
+	  }
+	}
+      }
+	    
+      _ab[0][pair] = a_coord1;
+      _ab[1][pair] = b_coord1;
+      _ab[0][pair+1] = a_coord2;
+      _ab[1][pair+1] = b_coord2;
+
+      _abId[0][pair] = hitId_a[i];
+      _abId[1][pair] =  hitId_b[j];
+      _abId[0][pair+1] =  hitId_a[i];
+      _abId[1][pair+1] =  hitId_b[j];
+	    
+      ab_time[0][pair] = time_a[i];
+      ab_time[1][pair] = time_b[j];
+
+      if (arrIdxStart == 0) {
+	if (arrIdxShift == 0) hx1Da_Db->Fill(d_a + d_b - .5);
+	if (arrIdxShift == 8) hx2Da_Db->Fill(d_a + d_b - .5);
+	      
+      }
+      if (arrIdxStart == 4) {
+	if (arrIdxShift == 0) hu1Da_Db->Fill(d_a + d_b - .5);
+	if (arrIdxShift == 8) hu2Da_Db->Fill(d_a + d_b - .5);
+      }
+      if (arrIdxStart == 6) {
+	if (arrIdxShift == 0) hv1Da_Db->Fill(d_a + d_b - .5);
+	if (arrIdxShift == 8) hv2Da_Db->Fill(d_a + d_b - .5);
+      }
+	    
+      if (arrIdxStart == 2) {
+	if (arrIdxShift == 0) hy1Da_Db->Fill(d_a + d_b - .5);
+	if (arrIdxShift == 8) hy2Da_Db->Fill(d_a + d_b - .5);
+      }
+      /*
+      //add intrincic shifts for y and u
+      //dc1
+      if (arrIdxStart == 2 && arrIdxShift == 0) {
+	_ab[0][pair] -= .461; 
+	_ab[1][pair] -= .461;  
+      }
+      if (arrIdxStart == 4 && arrIdxShift == 0) {
+	_ab[0][pair] -= 1.056; 
+	_ab[1][pair] -= 1.056;  
+      }
+      //dc2
+      if (arrIdxStart == 2 && arrIdxShift == 8) {
+	_ab[0][pair] -= .346;
+	_ab[1][pair] -= .346;
+      }
+      if (arrIdxStart == 4 && arrIdxShift == 8) {
+	_ab[0][pair] -= .966;
+	_ab[1][pair] -= .966;
+      }
+      //dc1
+      if (arrIdxStart == 2 && arrIdxShift == 0) {
+	_ab[0][pair+1] -= .461; 
+	_ab[1][pair+1] -= .461;  
+      }
+      if (arrIdxStart == 4 && arrIdxShift == 0) {
+	_ab[0][pair+1] -= 1.056; 
+	_ab[1][pair+1] -= 1.056;  
+      }
+      //dc2
+      if (arrIdxStart == 2 && arrIdxShift == 8) {
+	_ab[0][pair+1] -= .346;
+	_ab[1][pair+1] -= .346;
+      }
+      if (arrIdxStart == 4 && arrIdxShift == 8) {
+	_ab[0][pair+1] -= .966;
+	_ab[1][pair+1] -= .966;
+      }
+      */
+      //end
+      // cout<<" dc "<<dchID<<" plane "<<wire<<" wire nr_a "<<wirenr_a[i]<<" d_a "<<d_a<<" first hit a "<<_ab[0][pair]<<" id "<<_abId[0][pair]<<" "<<endl;
+      //cout<<"              wire nr_b "<<wirenr_b[j]<<" d_b "<<d_b<<" first hit b "<<_ab[1][pair] <<" id "<<_abId[1][pair] <<endl;
+      CompareDaDb(d_a, sigm_ab[0][pair]);
+      CompareDaDb(d_b, sigm_ab[1][pair]);
+      CompareDaDb(d_a, sigm_ab[0][pair+1]);
+      CompareDaDb(d_b, sigm_ab[1][pair+1]);
+	    
+      pair += 2;
+
+      used_a[i] = kTRUE;
+      used_b[j] = kTRUE;
+    }
+  return pair;
+}
+
+Int_t BmnDchTrackFinder::ReconstructionSingleMC(Int_t dchID, TString wire, TString lay, Int_t single, Int_t it,
+						Double_t* wirenr, Double_t* time_, Int_t* hitId, Bool_t* used,
+						Double_t** _single, Int_t** _singleId, Double_t** sigm_single) {
+  const Int_t arrIdxStart = (wire == "x") ? 0 : (wire == "y") ? 2 : (wire == "u") ? 4 : 6;
+
+  const Int_t arrIdx1 = (lay == "a") ? 0 : 1;
+  const Int_t arrIdx2 = (dchID == 2) ? 8 : 0;
+  const Double_t coeff = (lay == "a") ? 119 : 118.5;
+
+  for (Int_t i = 0; i < it; ++i) {
+    if (used[i])
+      continue;
+
+    Double_t d = time_[i];
+    
+    _single[0 + arrIdx1][single] = wirenr[i] - coeff + d;
+    _single[0 + arrIdx1][single + 1] = wirenr[i] - coeff - d;
+    _singleId[0 + arrIdx1][single] =  hitId[i];
+    _singleId[0 + arrIdx1][single + 1] = hitId[i];
+
+    /*
+    //add shifts for y and u
+    //dc1
+    if (arrIdxStart == 2 && arrIdx2 == 0) {
+      _single[0 + arrIdx1][single] -= .461;
+      _single[0 + arrIdx1][single + 1] -= .461;
+    }
+    if (arrIdxStart == 4 && arrIdx2 == 0) {
+      _single[0 + arrIdx1][single] -= 1.056; 
+      _single[0 + arrIdx1][single+1] -= 1.056;  
+    }
+    //dc2
+    if (arrIdxStart == 2 && arrIdx2 == 8) {
+      _single[0 + arrIdx1][single] -= .346; 
+      _single[0 + arrIdx1][single+1] -= .346;  
+    }
+    if (arrIdxStart == 4 && arrIdx2 == 8) {
+      _single[0 + arrIdx1][single] -= .966;
+      _single[0 + arrIdx1][single+1] -= .966;  
+    }
+    */
     CompareDaDb(d, sigm_single[0 + arrIdx1][single], sigm_single[0 + arrIdx1][single + 1]);
 
     single += 2;

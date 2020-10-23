@@ -112,7 +112,7 @@ void BmnDchHitProducer::Exec(Option_t* opt) {
         //sigma error dependent on the distance to the nearest wire
         Double_t sigm_err = (wdist < 0.02) ? 0.08 : (wdist >= 0.02 && wdist < 0.1) ? 0.06 : (wdist >= 0.1 && wdist < 0.4) ? 0.015 : (wdist >= 0.4 && wdist < 0.41) ? 0.08 : 0.10;
 
-        Double_t dsmear = rand_gen.Gaus(0, sigm_err);
+        Double_t dev = rand_gen.Gaus(0, sigm_err);
         Double_t wdist_smeared = wdist+dev ;
         if(wdist_smeared > .5 ){//return the point if outside of the possible interval
           continue;

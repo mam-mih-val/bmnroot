@@ -126,8 +126,7 @@ void SrcInnerTrackingRun7::Exec(Option_t* opt) {
     fHitsArray->Delete();
 
     fEventNo++;
-
-    Int_t nHitsCut = fSteering->GetNHitsCutTotal();
+    Int_t nHitsCut = 200;  //fSteering->GetNHitsCutTotal();
 
     for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
         BmnGemStripHit hit = *((BmnGemStripHit*)fGemHitsArray->At(iHit));
@@ -712,7 +711,6 @@ BmnStatus SrcInnerTrackingRun7::CalculateTrackParams(BmnTrack* tr) {
     Double_t QP = fIsField ? CalcQp(tr, doSimple) : 0.0;
     tr->GetParamFirst()->SetQp(QP);
     tr->GetParamLast()->SetQp(QP);
-
     return kBMNSUCCESS;
 }
 

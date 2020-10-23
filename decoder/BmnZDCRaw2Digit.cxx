@@ -1238,7 +1238,7 @@ float BmnZDCRaw2Digit::wave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal, Floa
 
             int pedBegin = digiPar[0];
             int pedEnd = digiPar[1];
-            int gateBeg = digiPar[2];
+            int gateBegin = digiPar[2];
             int gateEnd = digiPar[3];
 
             int signalThresh = digiPar[4];
@@ -1250,7 +1250,7 @@ float BmnZDCRaw2Digit::wave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal, Floa
 
 
 	    if (ns > 0) {
-	      for (int m = 0; m <= gateEnd; m++) {
+	      for (int m = 0; m < ns; m++) {
 
                 float value = scaleSignal * (Short_t)s[m];
 
@@ -1259,7 +1259,7 @@ float BmnZDCRaw2Digit::wave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal, Floa
 		  if (m == pedEnd) pedest /= (pedEnd - pedBegin + 1);
 		  continue;
 		}
-	        else {
+	        else if (m >= gateBegin && m <= gateEnd) {
                   ampl = value - pedest;
                   integral += ampl;
                   if (ampl > ampl_max) {

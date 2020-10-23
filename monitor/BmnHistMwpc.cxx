@@ -12,7 +12,6 @@
  */
 
 #include "BmnHistMwpc.h"
-#include "BmnHitFinderRun1.h"
 #include "BmnRawDataDecoder.h"
 
 BmnHistMwpc::BmnHistMwpc(TString title, TString path) : BmnHist() {
@@ -147,25 +146,24 @@ void BmnHistMwpc::DrawBoth() {
 }
 
 void BmnHistMwpc::FillFromDigi(DigiArrays *fDigiArrays) {
-    TClonesArray * digits = fDigiArrays->mwpc;
-    if (!digits)
-        return;
-    MwpcHits->Clear();
-    ProcessMwpcDigits(digits, MwpcHits);
-    for (Int_t iDig = 0; iDig < digits->GetEntriesFast(); ++iDig) {
-        BmnMwpcDigit* dig = (BmnMwpcDigit*) digits->At(iDig);
-        Int_t station = dig->GetStation();
-        Int_t plane = dig->GetPlane();
-        h_wires[plane][station]->Fill(dig->GetWireNumber());
-        h_times[plane][station]->Fill(dig->GetTime());
-    }
-    for (Int_t iHit = 0; iHit < MwpcHits->GetEntriesFast(); ++iHit) {
-        BmnMwpcHit* hit = (BmnMwpcHit*) MwpcHits->At(iHit);
-        if (hit->GetMwpcId() == 0) h_MWPC0->Fill(hit->GetX(), hit->GetY());
-        if (hit->GetMwpcId() == 1) h_MWPC1->Fill(hit->GetX(), hit->GetY());
-        if (hit->GetMwpcId() == 2) h_MWPC2->Fill(hit->GetX(), hit->GetY());
-        if (hit->GetMwpcId() == 3) h_MWPC3->Fill(hit->GetX(), hit->GetY());
-    }
+    // TClonesArray * digits = fDigiArrays->mwpc;
+    // if (!digits)
+    //     return;
+    // MwpcHits->Clear();
+    // for (Int_t iDig = 0; iDig < digits->GetEntriesFast(); ++iDig) {
+    //     BmnMwpcDigit* dig = (BmnMwpcDigit*) digits->At(iDig);
+    //     Int_t station = dig->GetStation();
+    //     Int_t plane = dig->GetPlane();
+    //     h_wires[plane][station]->Fill(dig->GetWireNumber());
+    //     h_times[plane][station]->Fill(dig->GetTime());
+    // }
+    // for (Int_t iHit = 0; iHit < MwpcHits->GetEntriesFast(); ++iHit) {
+    //     BmnMwpcHit* hit = (BmnMwpcHit*) MwpcHits->At(iHit);
+    //     if (hit->GetMwpcId() == 0) h_MWPC0->Fill(hit->GetX(), hit->GetY());
+    //     if (hit->GetMwpcId() == 1) h_MWPC1->Fill(hit->GetX(), hit->GetY());
+    //     if (hit->GetMwpcId() == 2) h_MWPC2->Fill(hit->GetX(), hit->GetY());
+    //     if (hit->GetMwpcId() == 3) h_MWPC3->Fill(hit->GetX(), hit->GetY());
+    // }
 }
 
 BmnStatus BmnHistMwpc::SetRefRun(Int_t id) {

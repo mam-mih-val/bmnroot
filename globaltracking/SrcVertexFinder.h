@@ -12,7 +12,7 @@
 #include "BmnEnums.h"
 #include "FairRunAna.h"
 #include "FairField.h"
-#include "CbmVertex.h"
+#include "BmnVertex.h"
 #include "BmnKalmanFilter.h"
 #include <TStopwatch.h>
 
@@ -34,35 +34,30 @@ public:
         fIsField = f;
     }
 
-    void SetVertexApproximation(TVector3 vertex) {
-        fRoughVertex3D = vertex;
-    }
+    void FindVertexByVirtualPlanes(vector<BmnTrack> &lTracks, vector<BmnTrack> &rTracks);
+    Float_t FindVZByVirtualPlanes(Float_t z_0, Float_t range, vector<BmnTrack> tracks, Float_t& minDist);
+    void CreateArmCandidates(vector<BmnTrack>& lTracks, vector<BmnTrack>& rTracks);
 
-    void FindVertexByVirtualPlanes();
-    Float_t FindVZByVirtualPlanes(Float_t z_0, Float_t range);
+   private:
 
-private:
-
-    Double_t CalcRms2D(vector<Double_t> x, vector<Double_t> y);
     Double_t CalcMeanDist(vector<Double_t> x, vector<Double_t> y);
-
-    // Private Data Members ------------
-    TString fGlobalTracksBranchName;
-    TString fVertexBranchName;
 
     Int_t fEventNo; // event counter
     Int_t fPeriodId; // event counter
-    Int_t fNTracks; // number of reco tracks in event
 
+    //in branches
     TClonesArray* fGlobalTracksArray;
+    TClonesArray* fGemHitsArray;
+    TClonesArray* fTof400HitsArray;
+    //out branches
     TClonesArray* fVertexArray;
+    TClonesArray* fArmTracksArray;
 
     Double_t fTime;
 
     Bool_t fIsField;
     FairField* fField;
     BmnKalmanFilter* fKalman;
-    TVector3 fRoughVertex3D;
 
     ClassDef(SrcVertexFinder, 1);
 };

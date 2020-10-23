@@ -31,6 +31,8 @@ check_permissions:
     OS_TYPE: "centos7"
     PERMISSIONS_MESSAGE_FAUILURE: "Permissions check: ${RED}FAILED${NC}. You don't have permission to change some files, please contact your project maintainers."
     PERMISSIONS_MESSAGE_SUCCESS: "Permissions check: ${GREEN}PASSED${NC}."
+  before_script:
+    - echo "Skipping global before_script"
   tags:
     - docker
   stage: check_permissions
@@ -61,6 +63,7 @@ build:centos:
     OS_TYPE: "centos7"
   tags:
     - docker
+    - cvmfs
   <<: *build
 
 build:ubuntu:
@@ -69,6 +72,7 @@ build:ubuntu:
     OS_TYPE: "ubuntu"
   tags: 
     - docker
+    - cvmfs
   <<: *build 
   
 .run_sim_template: &run_sim
@@ -91,6 +95,7 @@ run_sim_bmn:centos:
     MACRO_NAME: "macro/run/run_sim_bmn.C"
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:centos
   <<: *run_sim
@@ -102,6 +107,7 @@ run_sim_bmn:ubuntu:
     OS_TYPE: "ubuntu"
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:ubuntu
   <<: *run_sim
@@ -113,6 +119,7 @@ run_sim_src:centos:
     MACRO_NAME: "macro/run/run_sim_src.C"
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:centos
   <<: *run_sim
@@ -124,6 +131,7 @@ run_sim_src:ubuntu:
     MACRO_NAME: "macro/run/run_sim_src.C"
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:ubuntu
   <<: *run_sim
@@ -148,6 +156,7 @@ run_reco_bmn:centos:
     MACRO_NAME: "macro/run/run_reco_bmn.C"
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:centos
     - run_sim_bmn:centos
@@ -160,6 +169,7 @@ run_reco_bmn:ubuntu:
     MACRO_NAME: "macro/run/run_reco_bmn.C"
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:ubuntu
     - run_sim_bmn:ubuntu
@@ -172,6 +182,7 @@ run_reco_src:centos:
     MACRO_NAME: "macro/run/run_reco_src.C"
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:centos
     - run_sim_src:centos
@@ -184,6 +195,7 @@ run_reco_src:ubuntu:
     MACRO_NAME: "macro/run/run_reco_src.C"
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:ubuntu
     - run_sim_src:ubuntu
@@ -205,6 +217,7 @@ run_digi_bmn:centos:
     MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("$$VMCWORKDIR/macro/run/testDigi.root", "$$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)'
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:centos
   <<: *run_digi
@@ -216,6 +229,7 @@ run_digi_bmn:ubuntu:
     MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("$$VMCWORKDIR/macro/run/testDigi.root", "$$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)'
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:ubuntu
   <<: *run_digi
@@ -227,6 +241,7 @@ run_digi_src:centos:
     MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_src.C("$$VMCWORKDIR/macro/run/testSRCDigi.root", "$$VMCWORKDIR/macro/run/srcdst_exp.root", 0, 100)'
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:centos
   <<: *run_digi
@@ -238,6 +253,7 @@ run_digi_src:ubuntu:
     MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_src.C("$$VMCWORKDIR/macro/run/testSRCDigi.root", "$$VMCWORKDIR/macro/run/srcdst_exp.root", 0, 100)'
   tags:
     - docker
+    - cvmfs
   dependencies:
     - build:ubuntu
   <<: *run_digi
@@ -247,26 +263,35 @@ run_digi_src:ubuntu:
   before_script:
     - echo "Skipping global before_script"
   script:
-    - IP=`ip -f inet addr show eth0 | grep -Po 'inet \K[\d.]+'`
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add /dev/stdin > /dev/null
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
-    - sed -i "s/\/opt\/fairsoft\/install/\/cvmfs\/nica.jinr.ru\/$CI_ENVIRONMENT_NAME\/fairsoft\/bmn/g" SetEnv.sh
-    - sed -i "s/\/opt\/fairroot\/install/\/cvmfs\/nica.jinr.ru\/$CI_ENVIRONMENT_NAME\/fairroot\/bmn/g" SetEnv.sh
-    - rm -rf /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME
-    - source ./SetEnv.sh
+    - sed -i "s/\/opt\/fairsoft\/install/\/cvmfs\/nica.jinr.ru\/$CI_ENVIRONMENT_NAME\/fairsoft\/jun19p1/g" SetEnv.sh
+    - sed -i "s/\/opt\/fairroot\/install/\/cvmfs\/nica.jinr.ru\/$CI_ENVIRONMENT_NAME\/fairroot\/v18.2.0/g" SetEnv.sh
     - rm -rf build
     - mkdir build
     - cd build
-    - echo "/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME"
-    - cmake -DCMAKE_INSTALL_PREFIX=/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME ..
-    - make -j 5
-    - make install
+    - |
+      if [ $CI_ENVIRONMENT_NAME = "sl6" ]; then
+        scl enable python27 sclo-git212 devtoolset-6 - << \EOF
+        source ../SetEnv.sh
+        echo "Installing in /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME"
+        cmake -DCMAKE_INSTALL_PREFIX=/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME ..
+        make -j 5
+        make install
+      EOF
+      else
+        source ../SetEnv.sh
+        echo "Installing in /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME"
+        cmake -DCMAKE_INSTALL_PREFIX=/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME ..
+        make -j 5
+        make install
+      fi;
     - ssh $STRATUM_0 "sudo cvmfs_server transaction nica.jinr.ru"
-    - ssh $STRATUM_0 "cvmfs_rsync -a $IP:/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/"
+    - rsync --filter='-p .cvmfscatalog' --filter='-p .cvmfsautocatalog' -a /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME $STRATUM_0:/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/
     - ssh $STRATUM_0 "sudo cvmfs_server publish nica.jinr.ru"
     - ssh-agent -k
   only:
@@ -275,17 +300,19 @@ run_digi_src:ubuntu:
   allow_failure: false
   
 deploy:sl6:
+  image: git.jinr.ru:5005/nica/docker-images/sl6/fair-bmn:latest
   environment:
     name: sl6
   tags:
-    - deploy
-    - sl6
+    - docker
+    - no-cvmfs
   <<: *deploy
   
 deploy:centos7:
+  image: git.jinr.ru:5005/nica/docker-images/centos7/fair:latest
   environment:
     name: centos7
   tags:
-    - deploy
-    - centos
+    - docker
+    - no-cvmfs
   <<: *deploy

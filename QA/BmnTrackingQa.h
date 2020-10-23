@@ -10,7 +10,6 @@
 #define BMNTRACKINGQA_H_
 
 #include "FairTask.h"
-#include "BmnDetectorSetup.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnSiliconStationSet.h"
 #include "BmnMCTrackCreator.h"

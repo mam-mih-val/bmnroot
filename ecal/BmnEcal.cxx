@@ -195,9 +195,12 @@ Bool_t BmnEcal::ProcessHits(FairVolume* vol) {
 	       time, length, fELoss);
 #else
 
+    if (fELoss != 0.) {
       AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
 	     TVector3(tMom.Px(), tMom.Py(), tMom.Pz()),
 	     time, length, fELoss);
+    }
+
 #endif
 
       //// Int_t points = gMC->GetStack()->GetCurrentTrack()->GetMother(1);

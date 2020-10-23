@@ -48,7 +48,7 @@ BmnGlobalTrack::~BmnGlobalTrack() {}
 void BmnGlobalTrack::SetBeta(Double_t b, Int_t tofID) {
     if (tofID == 1)
         fBeta400 = b;
-    else if (tofID = 2)
+    else if (tofID == 2)
         fBeta700 = b;
 }
 

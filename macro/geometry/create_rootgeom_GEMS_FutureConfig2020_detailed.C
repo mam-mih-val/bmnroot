@@ -111,6 +111,7 @@ TGeoMedium *pMedBrass = 0;
 TGeoMedium *pMedSteel = 0;
 TGeoMedium *pMedHoneyComb = 0;
 TGeoMedium *pMedPolyacetal = 0;
+TGeoMedium *pMedPolyamide = 0;
 
 class FairGeoMedia;
 class FairGeoBuilder;
@@ -175,11 +176,11 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
     if ( ! pMedEpoxideCompound  ) Fatal("Main", "Medium epoxideCompound not found");
 
     //glue
-    FairGeoMedium* mGlue = geoMedia->getMedium("pvac_glue");
-    if ( ! mGlue  ) Fatal("Main", "FairMedium pvac_glue not found");
+    FairGeoMedium* mGlue = geoMedia->getMedium("acrylic_glue");
+    if ( ! mGlue  ) Fatal("Main", "FairMedium acrylic_glue not found");
     geoBuild->createMedium(mGlue);
-    pMedGlue= gGeoManager->GetMedium("pvac_glue");
-    if ( ! pMedGlue  ) Fatal("Main", "Medium pvac_glue not found");
+    pMedGlue= gGeoManager->GetMedium("acrylic_glue");
+    if ( ! pMedGlue  ) Fatal("Main", "Medium acrylic_glue not found");
 
     //brass medium
     FairGeoMedium* mBrass = geoMedia->getMedium("brass");
@@ -208,6 +209,13 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
     geoBuild->createMedium(mPolyacetal);
     pMedPolyacetal = gGeoManager->GetMedium("polyacetal");
     if ( ! pMedPolyacetal  ) Fatal("Main", "Medium polyacetal not found");
+
+    //polyamide medium
+    FairGeoMedium* mPolyamide = geoMedia->getMedium("polyamide");
+    if ( ! mPolyamide  ) Fatal("Main", "FairMedium polyamide not found");
+    geoBuild->createMedium(mPolyamide);
+    pMedPolyamide = gGeoManager->GetMedium("polyamide");
+    if ( ! pMedPolyamide  ) Fatal("Main", "Medium polyamide not found");
 }
 
 void create_rootgeom_GEMS_FutureConfig2020_detailed() {
@@ -486,7 +494,7 @@ TGeoVolume *CreateLayersForModule_Station163x45(TString layer_name) {
     Double_t layerBack_YShift = -0.2; //cm
 
     //copper layer -------------------------------------------------------------
-    Double_t copperLayer_ZSize = 0.006; //cm;
+    Double_t copperLayer_ZSize = 0.00655; //cm;
     Double_t copperLayerHole_Radius = 6.0; //cm
 
     //layer shape
@@ -650,7 +658,7 @@ TGeoVolume *CreateLayersForModule_Station163x45(TString layer_name) {
     //--------------------------------------------------------------------------
 
     //epoxide layer ------------------------------------------------------------
-    Double_t epoxideLayer_ZSize = 0.1; //cm; half-thickness of all epoxide layers
+    Double_t epoxideLayer_ZSize = 0.105; //cm; half-thickness of all epoxide layers
     Double_t epoxideLayerHole_Radius = 6.0; //cm
 
     //layer shape
@@ -732,7 +740,8 @@ TGeoVolume *CreateLayersForModule_Station163x45(TString layer_name) {
     //--------------------------------------------------------------------------
 
     //honeycomb layer ----------------------------------------------------------
-    Double_t honeycombLayer_ZSize = 1.5-0.05; //cm; half-thickness of all honeycomb layers
+    //Double_t honeycombLayer_ZSize = 1.5-(0.05+0.00055+0.005+0.0125); //cm; half-thickness of all honeycomb layers
+    Double_t honeycombLayer_ZSize = 1.5-(0.06805); //cm; half-thickness of all honeycomb layers
     Double_t honeycombLayerHole_Radius = 6.0; //cm
 
     //layer shape
@@ -811,6 +820,88 @@ TGeoVolume *CreateLayersForModule_Station163x45(TString layer_name) {
 
     layers->AddNode(honeycombLayerFrontV, 0, honeycombLayerFront_transf[0]);
     layers->AddNode(honeycombLayerBackV, 0, honeycombLayerBack_transf[0]);
+    //--------------------------------------------------------------------------
+
+    //polyamide layer ----------------------------------------------------------
+    Double_t polyamideLayer_ZSize = 0.0125; //cm; half-thickness of all polyamide layers
+    Double_t polyamideLayerHole_Radius = 6.0; //cm
+
+    //layer shape
+    TGeoShape *polyamideLayerFrontBlankS = new TGeoBBox(TString("polyamideLayerFrontBlankS")+=TString("_") + layers->GetName(), layerFront_XSize*0.5, layerFront_YSize*0.5, polyamideLayer_ZSize*0.5);
+    TGeoShape *polyamideLayerBackBlankS = new TGeoBBox(TString("polyamideLayerBackBlankS")+=TString("_") + layers->GetName(), layerBack_XSize*0.5, layerBack_YSize*0.5, polyamideLayer_ZSize*0.5);
+
+    TGeoShape *polyamideLayerFrontHoleS = new TGeoTube(TString("polyamideLayerFrontHoleS")+=TString("_") + layers->GetName(), 0.0, polyamideLayerHole_Radius, polyamideLayer_ZSize*0.5 + 0.01);
+    TGeoShape *polyamideLayerBackHoleS = new TGeoTube(TString("polyamideLayerBackHoleS")+=TString("_") + layers->GetName(), 0.0, polyamideLayerHole_Radius, polyamideLayer_ZSize*0.5 + 0.01);
+
+    TGeoTranslation *polyamideLayerFrontHole_pos = new TGeoTranslation();
+        polyamideLayerFrontHole_pos->SetName("polyamideLayerFrontHole_pos");
+        polyamideLayerFrontHole_pos->SetDx(-XModuleSize_Station163x45*0.5 - layerFront_XShift);
+        polyamideLayerFrontHole_pos->SetDy(-YModuleSize_Station163x45*0.5 - layerFront_YShift);
+        polyamideLayerFrontHole_pos->SetDz(0.0);
+        polyamideLayerFrontHole_pos->RegisterYourself();
+
+    TGeoTranslation *polyamideLayerBackHole_pos = new TGeoTranslation();
+        polyamideLayerBackHole_pos->SetName("polyamideLayerBackHole_pos");
+        polyamideLayerBackHole_pos->SetDx(-XModuleSize_Station163x45*0.5 - layerBack_XShift);
+        polyamideLayerBackHole_pos->SetDy(-YModuleSize_Station163x45*0.5 - layerBack_YShift);
+        polyamideLayerBackHole_pos->SetDz(0.0);
+        polyamideLayerBackHole_pos->RegisterYourself();
+
+    TGeoCompositeShape *polyamideLayerFrontS = new TGeoCompositeShape();
+    polyamideLayerFrontS->SetName(TString("polyamideLayerFrontS")+=TString("_") + layers->GetName());
+    {
+        TString expression = "polyamideLayerFrontBlankS"; expression += TString("_") + layers->GetName();
+            expression += "-polyamideLayerFrontHoleS"; expression += TString("_") + layers->GetName();
+            expression += ":polyamideLayerFrontHole_pos";
+
+        polyamideLayerFrontS->MakeNode(expression);
+        polyamideLayerFrontS->ComputeBBox(); //need to compute a bounding box
+    }
+
+    TGeoCompositeShape *polyamideLayerBackS = new TGeoCompositeShape();
+    polyamideLayerBackS->SetName(TString("polyamideLayerBackS")+=TString("_") + layers->GetName());
+    {
+        TString expression = "polyamideLayerBackBlankS"; expression += TString("_") + layers->GetName();
+            expression += "-polyamideLayerBackHoleS"; expression += TString("_") + layers->GetName();
+            expression += ":polyamideLayerBackHole_pos";
+
+        polyamideLayerBackS->MakeNode(expression);
+        polyamideLayerBackS->ComputeBBox(); //need to compute a bounding box
+    }
+
+    TGeoVolume *polyamideLayerFrontV = new TGeoVolume(TString("polyamideLayerFrontV")+=TString("_") + layers->GetName(), polyamideLayerFrontS);
+    TGeoVolume *polyamideLayerBackV = new TGeoVolume(TString("polyamideLayerBackV")+=TString("_") + layers->GetName(), polyamideLayerBackS);
+
+    //volume medium
+    TGeoMedium *polyamideLayerV_medium = pMedPolyamide;
+    if(polyamideLayerV_medium) {
+        polyamideLayerFrontV->SetMedium(polyamideLayerV_medium);
+        polyamideLayerBackV->SetMedium(polyamideLayerV_medium);
+    }
+    else Fatal("Main", "Invalid medium for polyamideLayerV!");
+
+    //volume visual property (transparency)
+    polyamideLayerFrontV->SetLineColor(TColor::GetColor("#fefe22"));
+    polyamideLayerFrontV->SetTransparency(0);
+    polyamideLayerBackV->SetLineColor(TColor::GetColor("#fefe22"));
+    polyamideLayerBackV->SetTransparency(0);
+
+    TGeoCombiTrans *polyamideLayerFront_transf[1];
+
+    polyamideLayerFront_transf[0] = new TGeoCombiTrans();
+    polyamideLayerFront_transf[0]->SetDx(+layerFront_XShift);
+    polyamideLayerFront_transf[0]->SetDy(+layerFront_YShift);
+    polyamideLayerFront_transf[0]->SetDz(-ZGEMSize_Station163x45*0.5 + copperLayer_ZSize + glueLayer_ZSize + epoxideLayer_ZSize + honeycombLayer_ZSize + polyamideLayer_ZSize*0.5);
+
+    TGeoCombiTrans *polyamideLayerBack_transf[1];
+
+    polyamideLayerBack_transf[0] = new TGeoCombiTrans();
+    polyamideLayerBack_transf[0]->SetDx(+layerBack_XShift);
+    polyamideLayerBack_transf[0]->SetDy(+layerBack_YShift);
+    polyamideLayerBack_transf[0]->SetDz(+ZGEMSize_Station163x45*0.5 - copperLayer_ZSize*0.5 - glueLayer_ZSize - epoxideLayer_ZSize - honeycombLayer_ZSize - polyamideLayer_ZSize*0.5) ;
+
+    layers->AddNode(polyamideLayerFrontV, 0, polyamideLayerFront_transf[0]);
+    layers->AddNode(polyamideLayerBackV, 0, polyamideLayerBack_transf[0]);
     //--------------------------------------------------------------------------
 
     return layers;

@@ -114,7 +114,7 @@
 #pragma link C++ class BmnKalmanFilter+;
 #pragma link C++ class DigiRunHeader+;
 
-// #pragma link C++ class BmnVertex+;
+#pragma link C++ class BmnVertex+;
 
 #pragma link C++ enum BmnSetup;
 

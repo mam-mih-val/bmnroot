@@ -576,6 +576,8 @@ BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam *par, Double_t zOut
         par->SetX(xOut);
         par->SetY(yOut);
         par->SetZ(zOut);
+        if (length)
+            *length = Sqrt(Sq(xOut - x0) + Sq(yOut - y0) + Sq(zOut - z0));
     }
 
     if (!IsParCorrect(par, isField)) {

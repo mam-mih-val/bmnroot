@@ -8,13 +8,13 @@
  */
 
 //Set Parameters of GEMS -------------------------------------------------------
-const Int_t NStations = 6;      //stations in the detector
+const Int_t NStations = 7;      //stations in the detector (6 active + 1 disabled)
 const Int_t NMaxModules = 2;    //max. number of modules in a station
 
 //(X-Y-Z)Positions of stations (sensitive volumes)
-const Double_t XStationPositions[NStations] = { +0.5390, +0.7025, +1.9925, +3.0860, +3.7980, +4.5815};
-const Double_t YStationPositions[NStations] = { +15.99873, +16.20573, +16.36073, +16.40473, +16.09373, +16.45473};
-const Double_t ZStationPositions[NStations] = { +39.702, +64.535, +112.649, +135.330, +160.6635, +183.668};
+const Double_t XStationPositions[NStations] = { +0.5390, +0.7025, +1.9925, +3.0860, +3.7980, +4.5815, +1.2/*disabled station*/};
+const Double_t YStationPositions[NStations] = { +15.99873, +16.20573, +16.36073, +16.40473, +16.09373, +16.45473, +16.0/*disabled station*/};
+const Double_t ZStationPositions[NStations] = { +39.702, +64.535, +112.649, +135.330, +160.6635, +183.668, +87.6/*disabled station*/};
 
 //(X-Y-Z)Shifts of modules in each station
 const Double_t XModuleShifts[NStations][NMaxModules] = {
@@ -23,7 +23,8 @@ const Double_t XModuleShifts[NStations][NMaxModules] = {
     {163.2*0.25, -163.2*0.25},
     {163.2*0.25, -163.2*0.25},
     {163.2*0.25, -163.2*0.25},
-    {163.2*0.25, -163.2*0.25}
+    {163.2*0.25, -163.2*0.25},
+    {163.2*0.25, -163.2*0.25} /*disabled station*/
 };
 const Double_t YModuleShifts[NStations][NMaxModules] = {
     {0.0, 0.0},
@@ -31,7 +32,8 @@ const Double_t YModuleShifts[NStations][NMaxModules] = {
     {0.0, 0.0},
     {0.0, 0.0},
     {0.0, 0.0},
-    {0.0, 0.0}
+    {0.0, 0.0},
+    {0.0, 0.0} /*disabled station*/
 };
 const Double_t ZModuleShifts[NStations][NMaxModules] = {
     {0.0, 0.0},
@@ -39,14 +41,15 @@ const Double_t ZModuleShifts[NStations][NMaxModules] = {
     {0.0, 0.0},
     {0.0, 0.0},
     {0.0, 0.0},
-    {0.0, 0.0}
+    {0.0, 0.0},
+    {0.0, 0.0} /*disabled station*/
 };
 
 //rotations of stations around y-axis by 180 deg.
-const Bool_t YStationRotations[NStations] = {false/*0*/, true/*1*/, true/*2*/, false/*3*/, true/*4*/, false/*5*/};
+const Bool_t YStationRotations[NStations] = {false/*0*/, true/*1*/, true/*2*/, false/*3*/, true/*4*/, false/*5*/, false/*disabled station*/};
 
 //rotations of stations around x-axis by 180 deg.
-const Bool_t XStationRotations[NStations] = {false/*0*/, false/*1*/, false/*2*/, false/*3*/, false/*4*/, false/*5*/};
+const Bool_t XStationRotations[NStations] = {false/*0*/, false/*1*/, false/*2*/, false/*3*/, false/*4*/, false/*5*/, false/*disabled station*/};
 
 //GEM plane sizes (66x41 type) -------------------------------------------------
 const Double_t XModuleSize_Station66x41 = 66.0;
@@ -62,7 +65,7 @@ const Double_t dZFrame_Station66x41 = 2.3;
 const Double_t XModuleSize_Station163x45 = 163.2*0.5;
 const Double_t YModuleSize_Station163x45 = 45.0;
 const Double_t ZModuleSize_Station163x45 = 0.9; //sensitive volume
-const Double_t ZGEMSize_Station163x45 = 4.2; //common thickness of GEM (including sens. vol)
+const Double_t ZGEMSize_Station163x45 = 4.1; //common thickness of GEM (including sens. vol)
 
 const Double_t dXFrame_Station163x45 = 2.0;
 const Double_t dYFrame_Station163x45 = 2.0;
@@ -84,6 +87,7 @@ TGeoMedium *pMedGlue = 0;
 TGeoMedium *pMedBrass = 0;
 TGeoMedium *pMedSteel = 0;
 TGeoMedium *pMedHoneyComb = 0;
+TGeoMedium *pMedPolyamide = 0;
 
 class FairGeoMedia;
 class FairGeoBuilder;
@@ -148,11 +152,11 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
     if ( ! pMedEpoxideCompound  ) Fatal("Main", "Medium epoxideCompound not found");
 
     //glue
-    FairGeoMedium* mGlue = geoMedia->getMedium("pvac_glue");
-    if ( ! mGlue  ) Fatal("Main", "FairMedium pvac_glue not found");
+    FairGeoMedium* mGlue = geoMedia->getMedium("acrylic_glue");
+    if ( ! mGlue  ) Fatal("Main", "FairMedium acrylic_glue not found");
     geoBuild->createMedium(mGlue);
-    pMedGlue= gGeoManager->GetMedium("pvac_glue");
-    if ( ! pMedGlue  ) Fatal("Main", "Medium pvac_glue not found");
+    pMedGlue= gGeoManager->GetMedium("acrylic_glue");
+    if ( ! pMedGlue  ) Fatal("Main", "Medium acrylic_glue not found");
 
     //brass medium
     FairGeoMedium* mBrass = geoMedia->getMedium("brass");
@@ -174,6 +178,13 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
     geoBuild->createMedium(mHoneyComb);
     pMedHoneyComb = gGeoManager->GetMedium("AramidHoneyComb");
     if ( ! pMedHoneyComb  ) Fatal("Main", "Medium AramidHoneyComb not found");
+
+    //polyamide medium
+    FairGeoMedium* mPolyamide = geoMedia->getMedium("polyamide");
+    if ( ! mPolyamide  ) Fatal("Main", "FairMedium polyamide not found");
+    geoBuild->createMedium(mPolyamide);
+    pMedPolyamide = gGeoManager->GetMedium("polyamide");
+    if ( ! pMedPolyamide  ) Fatal("Main", "Medium polyamide not found");
 }
 
 void create_rootgeom_GEMS_RunSpring2018_detailed() {
@@ -217,7 +228,7 @@ void create_rootgeom_GEMS_RunSpring2018_detailed() {
     //for(Int_t istation = 0; istation < 1; ++istation) {
 
         Int_t stationNum = istation;
-        TGeoVolume *station = CreateStation(TString("station")+ TString::Itoa(stationNum, 10));
+        TGeoVolume *station = CreateStation(TString("station") + TString::Itoa(stationNum, 10));
 
         TGeoVolume *module0 = CreateModule_Station163x45(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0);
         TGeoVolume *module1 = CreateModule_Station163x45(TString("Sensor_module1_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0);
@@ -226,6 +237,12 @@ void create_rootgeom_GEMS_RunSpring2018_detailed() {
         TGeoVolume *layers1 = CreateLayersForModule_Station163x45(TString("layer1_")+station->GetName());
 
         TGeoVolume *frame = CreateFrameForHalfPlane_Station163x45(TString("frame_")+station->GetName());
+
+        if(istation == 6) {
+            station->SetName(TString("disabled_station") + TString::Itoa(stationNum, 10));
+            module0->SetName(TString("module0_")+station->GetName());
+            module1->SetName(TString("module1_")+station->GetName());
+        }
 
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
             if(XStationRotations[stationNum] == true) module0_transform->RotateX(180.0);
@@ -237,24 +254,20 @@ void create_rootgeom_GEMS_RunSpring2018_detailed() {
             module1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1], ZModuleShifts[stationNum][1]+ZModuleSize_Station163x45*0.5);
 
        TGeoCombiTrans *layers0_transform = new TGeoCombiTrans();
-            //layers0_transform->SetName(TString("layers0_transform_")+station->GetName());
             if(YStationRotations[stationNum] == true) layers0_transform->ReflectZ(true);
             if(XStationRotations[stationNum] == true) layers0_transform->RotateX(180.0);
             layers0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
 
         TGeoCombiTrans *layers1_transform = new TGeoCombiTrans();
-            //layers1_transform->SetName(TString("layers1_transform_")+station->GetName());
             if(YStationRotations[stationNum] == true) layers1_transform->ReflectZ(true);
             if(XStationRotations[stationNum] == true) layers1_transform->RotateX(180.0);
             layers1_transform->ReflectX(true);
             layers1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1], ZModuleShifts[stationNum][1]+ZModuleSize_Station163x45*0.5);
 
-
         TGeoCombiTrans *frame_transform = new TGeoCombiTrans();
         if(YStationRotations[stationNum] == true) frame_transform->RotateY(180.0);
         if(XStationRotations[stationNum] == true) frame_transform->RotateX(180.0);
         frame_transform->SetTranslation((XModuleShifts[stationNum][0] + XModuleShifts[stationNum][1]), YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
-
 
         TGeoCombiTrans *station_transform = new TGeoCombiTrans();
         station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
@@ -264,9 +277,6 @@ void create_rootgeom_GEMS_RunSpring2018_detailed() {
 
         station->AddNode(layers0, 0, new TGeoCombiTrans(*layers0_transform)); //layers
         station->AddNode(layers1, 1, new TGeoCombiTrans(*layers1_transform)); //layers
-
-        //station->AddNode(layers0, 0, layers0_transform); //layers
-        //station->AddNode(layers1, 1, layers1_transform); //layers
 
         station->AddNode(frame, 0, frame_transform);
 
@@ -415,7 +425,7 @@ TGeoVolume *CreateLayersForModule_Station163x45(TString layer_name) {
     Double_t layerBack_YShift = -0.2; //cm
 
     //copper layer -------------------------------------------------------------
-    Double_t copperLayer_ZSize = 0.006; //cm;
+    Double_t copperLayer_ZSize = 0.00655; //cm;
     Double_t copperLayerHole_Radius = 6.0; //cm
 
     //layer shape
@@ -579,7 +589,7 @@ TGeoVolume *CreateLayersForModule_Station163x45(TString layer_name) {
     //--------------------------------------------------------------------------
 
     //epoxide layer ------------------------------------------------------------
-    Double_t epoxideLayer_ZSize = 0.1; //cm; half-thickness of all epoxide layers
+    Double_t epoxideLayer_ZSize = 0.105; //cm; half-thickness of all epoxide layers
     Double_t epoxideLayerHole_Radius = 6.0; //cm
 
     //layer shape
@@ -661,7 +671,7 @@ TGeoVolume *CreateLayersForModule_Station163x45(TString layer_name) {
     //--------------------------------------------------------------------------
 
     //honeycomb layer ----------------------------------------------------------
-    Double_t honeycombLayer_ZSize = 1.5; //cm; half-thickness of all honeycomb layers
+    Double_t honeycombLayer_ZSize = 1.5-(0.06805); //cm; half-thickness of all honeycomb layers
     Double_t honeycombLayerHole_Radius = 6.0; //cm
 
     //layer shape
@@ -740,6 +750,88 @@ TGeoVolume *CreateLayersForModule_Station163x45(TString layer_name) {
 
     layers->AddNode(honeycombLayerFrontV, 0, honeycombLayerFront_transf[0]);
     layers->AddNode(honeycombLayerBackV, 0, honeycombLayerBack_transf[0]);
+    //--------------------------------------------------------------------------
+
+     //polyamide layer ----------------------------------------------------------
+    Double_t polyamideLayer_ZSize = 0.0125; //cm; half-thickness of all polyamide layers
+    Double_t polyamideLayerHole_Radius = 6.0; //cm
+
+    //layer shape
+    TGeoShape *polyamideLayerFrontBlankS = new TGeoBBox(TString("polyamideLayerFrontBlankS")+=TString("_") + layers->GetName(), layerFront_XSize*0.5, layerFront_YSize*0.5, polyamideLayer_ZSize*0.5);
+    TGeoShape *polyamideLayerBackBlankS = new TGeoBBox(TString("polyamideLayerBackBlankS")+=TString("_") + layers->GetName(), layerBack_XSize*0.5, layerBack_YSize*0.5, polyamideLayer_ZSize*0.5);
+
+    TGeoShape *polyamideLayerFrontHoleS = new TGeoTube(TString("polyamideLayerFrontHoleS")+=TString("_") + layers->GetName(), 0.0, polyamideLayerHole_Radius, polyamideLayer_ZSize*0.5 + 0.01);
+    TGeoShape *polyamideLayerBackHoleS = new TGeoTube(TString("polyamideLayerBackHoleS")+=TString("_") + layers->GetName(), 0.0, polyamideLayerHole_Radius, polyamideLayer_ZSize*0.5 + 0.01);
+
+    TGeoTranslation *polyamideLayerFrontHole_pos = new TGeoTranslation();
+        polyamideLayerFrontHole_pos->SetName("polyamideLayerFrontHole_pos");
+        polyamideLayerFrontHole_pos->SetDx(-XModuleSize_Station163x45*0.5 - layerFront_XShift);
+        polyamideLayerFrontHole_pos->SetDy(-YModuleSize_Station163x45*0.5 - layerFront_YShift);
+        polyamideLayerFrontHole_pos->SetDz(0.0);
+        polyamideLayerFrontHole_pos->RegisterYourself();
+
+    TGeoTranslation *polyamideLayerBackHole_pos = new TGeoTranslation();
+        polyamideLayerBackHole_pos->SetName("polyamideLayerBackHole_pos");
+        polyamideLayerBackHole_pos->SetDx(-XModuleSize_Station163x45*0.5 - layerBack_XShift);
+        polyamideLayerBackHole_pos->SetDy(-YModuleSize_Station163x45*0.5 - layerBack_YShift);
+        polyamideLayerBackHole_pos->SetDz(0.0);
+        polyamideLayerBackHole_pos->RegisterYourself();
+
+    TGeoCompositeShape *polyamideLayerFrontS = new TGeoCompositeShape();
+    polyamideLayerFrontS->SetName(TString("polyamideLayerFrontS")+=TString("_") + layers->GetName());
+    {
+        TString expression = "polyamideLayerFrontBlankS"; expression += TString("_") + layers->GetName();
+            expression += "-polyamideLayerFrontHoleS"; expression += TString("_") + layers->GetName();
+            expression += ":polyamideLayerFrontHole_pos";
+
+        polyamideLayerFrontS->MakeNode(expression);
+        polyamideLayerFrontS->ComputeBBox(); //need to compute a bounding box
+    }
+
+    TGeoCompositeShape *polyamideLayerBackS = new TGeoCompositeShape();
+    polyamideLayerBackS->SetName(TString("polyamideLayerBackS")+=TString("_") + layers->GetName());
+    {
+        TString expression = "polyamideLayerBackBlankS"; expression += TString("_") + layers->GetName();
+            expression += "-polyamideLayerBackHoleS"; expression += TString("_") + layers->GetName();
+            expression += ":polyamideLayerBackHole_pos";
+
+        polyamideLayerBackS->MakeNode(expression);
+        polyamideLayerBackS->ComputeBBox(); //need to compute a bounding box
+    }
+
+    TGeoVolume *polyamideLayerFrontV = new TGeoVolume(TString("polyamideLayerFrontV")+=TString("_") + layers->GetName(), polyamideLayerFrontS);
+    TGeoVolume *polyamideLayerBackV = new TGeoVolume(TString("polyamideLayerBackV")+=TString("_") + layers->GetName(), polyamideLayerBackS);
+
+    //volume medium
+    TGeoMedium *polyamideLayerV_medium = pMedPolyamide;
+    if(polyamideLayerV_medium) {
+        polyamideLayerFrontV->SetMedium(polyamideLayerV_medium);
+        polyamideLayerBackV->SetMedium(polyamideLayerV_medium);
+    }
+    else Fatal("Main", "Invalid medium for polyamideLayerV!");
+
+    //volume visual property (transparency)
+    polyamideLayerFrontV->SetLineColor(TColor::GetColor("#fefe22"));
+    polyamideLayerFrontV->SetTransparency(0);
+    polyamideLayerBackV->SetLineColor(TColor::GetColor("#fefe22"));
+    polyamideLayerBackV->SetTransparency(0);
+
+    TGeoCombiTrans *polyamideLayerFront_transf[1];
+
+    polyamideLayerFront_transf[0] = new TGeoCombiTrans();
+    polyamideLayerFront_transf[0]->SetDx(+layerFront_XShift);
+    polyamideLayerFront_transf[0]->SetDy(+layerFront_YShift);
+    polyamideLayerFront_transf[0]->SetDz(-ZGEMSize_Station163x45*0.5 + copperLayer_ZSize + glueLayer_ZSize + epoxideLayer_ZSize + honeycombLayer_ZSize + polyamideLayer_ZSize*0.5);
+
+    TGeoCombiTrans *polyamideLayerBack_transf[1];
+
+    polyamideLayerBack_transf[0] = new TGeoCombiTrans();
+    polyamideLayerBack_transf[0]->SetDx(+layerBack_XShift);
+    polyamideLayerBack_transf[0]->SetDy(+layerBack_YShift);
+    polyamideLayerBack_transf[0]->SetDz(+ZGEMSize_Station163x45*0.5 - copperLayer_ZSize*0.5 - glueLayer_ZSize - epoxideLayer_ZSize - honeycombLayer_ZSize - polyamideLayer_ZSize*0.5) ;
+
+    layers->AddNode(polyamideLayerFrontV, 0, polyamideLayerFront_transf[0]);
+    layers->AddNode(polyamideLayerBackV, 0, polyamideLayerBack_transf[0]);
     //--------------------------------------------------------------------------
 
     return layers;

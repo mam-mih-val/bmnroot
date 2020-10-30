@@ -17,6 +17,7 @@
 #include <boost/endian/conversion.hpp>
 
 #include <map>
+#include <vector>
 #include <string>
 #include <cstring>
 #include <iostream>
@@ -102,8 +103,7 @@ struct UniDbParameterValue
     {
         if (size > 0)
         {
-            uint64_t size_little;
-            size_little = boost::endian::native_to_little(size);
+            uint64_t size_little = boost::endian::native_to_little(size);
             memcpy(destination, &size_little, 8);
             destination += 8;
             memcpy(destination, value, size);
@@ -121,6 +121,29 @@ struct UniDbParameterValue
     {
         memcpy(destination, value, count*8);
         destination += count*8;
+    }
+
+    void Read(unsigned char*& source, vector<double>& value)
+    {
+        uint64_t size;
+        memcpy(&size, source, 8);
+        boost::endian::little_to_native_inplace(size);
+        source += 8;
+        value.assign((double*)source, (double*)(source + size));
+        source += size;
+    }
+    void Write(unsigned char*& destination, vector<double>& value)
+    {
+        uint64_t size = value.size() * 8;
+        if (size > 0)
+        {
+            uint64_t size_little = boost::endian::native_to_little(size);
+            memcpy(destination, &size_little, 8);
+            destination += 8;
+            memcpy(destination, value.data(), size);
+            destination += size;
+        }
+        else cout<<"ERROR: The vector size should be greater than zero. The parameter value was not written to the database!"<<endl;
     }
 };
 

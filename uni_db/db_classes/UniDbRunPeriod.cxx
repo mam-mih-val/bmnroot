@@ -375,7 +375,7 @@ int UniDbRunPeriod::GetRunNumbers(int period_number, UniqueRunNumber*& run_numbe
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
     {
-        cout<<"Error: connection to DB was failed"<<endl;
+        cout<<"ERROR: connection to the databaes was failed"<<endl;
         return -1;
     }
 
@@ -391,7 +391,7 @@ int UniDbRunPeriod::GetRunNumbers(int period_number, UniqueRunNumber*& run_numbe
     // get table record from DB
     if (!stmt->Process())
     {
-        cout<<"Error: getting run numbers from DB has been failed"<<endl;
+        cout<<"ERROR: getting run numbers from the database has been failed"<<endl;
         delete stmt;
         delete connUniDb;
         return -2;

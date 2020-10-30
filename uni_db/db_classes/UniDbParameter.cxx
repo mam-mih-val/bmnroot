@@ -478,7 +478,7 @@ bool UniDbParameter::CheckAndGetParameterID(TSQLServer* uni_db, TString paramete
     // get table record from DB
     if (!stmt->Process())
     {
-        cout<<"Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
+        cout<<"ERROR: getting a record with the parameter from 'parameter_' table has been failed"<<endl;
         delete stmt;
         return false;
     }
@@ -488,7 +488,7 @@ bool UniDbParameter::CheckAndGetParameterID(TSQLServer* uni_db, TString paramete
     // extract row with parameter
     if (!stmt->NextResultRow())
     {
-        cout<<"Error: the parameter with name '"<<parameter_name<<"' wasn't found"<<endl;
+        cout<<"ERROR: the parameter with name '"<<parameter_name<<"' was not found"<<endl;
         delete stmt;
         return false;
     }
@@ -500,7 +500,7 @@ bool UniDbParameter::CheckAndGetParameterID(TSQLServer* uni_db, TString paramete
 
     if (parameter_type != enum_parameter_type)
     {
-        cout<<"Error: the parameter with name '"<<parameter_name<<"' isn't the same type"<<endl;
+        cout<<"ERROR: the parameter with name '"<<parameter_name<<"' has not the same type"<<endl;
         return false;
     }
 
@@ -519,7 +519,7 @@ bool UniDbParameter::CheckAndGetParameterID(TSQLServer* uni_db, TString paramete
     // get table record from DB
     if (!stmt->Process())
     {
-        cout<<"Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
+        cout<<"ERROR: getting a record with the parameter from 'parameter_' table has been failed"<<endl;
         delete stmt;
         return false;
     }
@@ -529,7 +529,7 @@ bool UniDbParameter::CheckAndGetParameterID(TSQLServer* uni_db, TString paramete
     // extract row with parameter
     if (!stmt->NextResultRow())
     {
-        cout<<"Error: the parameter with name '"<<parameter_name<<"' wasn't found"<<endl;
+        cout<<"ERROR: the parameter with name '"<<parameter_name<<"' was not found"<<endl;
         delete stmt;
         return false;
     }
@@ -541,7 +541,7 @@ bool UniDbParameter::CheckAndGetParameterID(TSQLServer* uni_db, TString paramete
 
     if (parameter_type != enum_parameter_type)
     {
-        cout<<"Error: the parameter with name '"<<parameter_name<<"' isn't the same type"<<endl;
+        cout<<"ERROR: the parameter with name '"<<parameter_name<<"' has not the same type"<<endl;
         return false;
     }
 

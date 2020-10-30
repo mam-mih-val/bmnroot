@@ -1038,7 +1038,7 @@ int UniDbRun::GetRunNumbers(int start_period, int start_run, int end_period, int
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
     {
-        cout<<"Error: connection to DB was failed"<<endl;
+        cout<<"ERROR: connection to the database was failed"<<endl;
         return -1;
     }
 
@@ -1054,7 +1054,7 @@ int UniDbRun::GetRunNumbers(int start_period, int start_run, int end_period, int
     // get table record from DB
     if (!stmt->Process())
     {
-        cout<<"Error: getting run numbers from DB has been failed"<<endl;
+        cout<<"ERROR: getting run numbers from the database has been failed"<<endl;
         delete stmt;
         delete connUniDb;
         return -2;
@@ -1091,7 +1091,7 @@ int UniDbRun::GetRunNumbers(UniqueRunNumber*& run_numbers)
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
     {
-        cout<<"Error: connection to DB was failed"<<endl;
+        cout<<"ERROR: connection to the database was failed"<<endl;
         return -1;
     }
 
@@ -1106,7 +1106,7 @@ int UniDbRun::GetRunNumbers(UniqueRunNumber*& run_numbers)
     // get table record from DB
     if (!stmt->Process())
     {
-        cout<<"Error: getting run numbers from DB has been failed"<<endl;
+        cout<<"ERROR: getting run numbers from the database has been failed"<<endl;
         delete stmt;
         delete connUniDb;
         return -2;
@@ -1141,14 +1141,14 @@ int UniDbRun::SetRootGeometry(int start_period, int start_run, int end_period, i
 {
     if (((end_period < start_period) or ((end_period = start_period) and (end_run < start_run))) or ((start_period > end_period) or ((start_period = end_period) and (start_run > end_run))))
     {
-        cout<<"Error: end run should be after or the same as start run"<<endl;
+        cout<<"ERROR: end run should be after or the same as start run"<<endl;
         return -1;
     }
 
     UniDbRunGeometry* pGeometry = UniDbRunGeometry::CreateRunGeometry(root_geometry, size_root_geometry);
     if (pGeometry == NULL)
     {
-        cout<<"Error: creating of geometry was failed"<<endl;
+        cout<<"ERROR: creating of the geometry was failed"<<endl;
         return -2;
     }
 
@@ -1167,7 +1167,7 @@ int UniDbRun::SetRootGeometry(int start_period, int start_run, int end_period, i
         UniDbRun* pCurRun = UniDbRun::GetRun(pUniqueRuns[i].period_number, pUniqueRuns[i].run_number);
         if (pCurRun == NULL)
         {
-            cout<<"Error: getting of run "<<pUniqueRuns[i].period_number<<":"<<pUniqueRuns[i].run_number<<" (period:number) was failed"<<endl;
+            cout<<"ERROR: getting of run "<<pUniqueRuns[i].period_number<<":"<<pUniqueRuns[i].run_number<<" (period:number) was failed"<<endl;
             continue;
         }
 
@@ -1186,13 +1186,13 @@ int UniDbRun::GetRootGeometry(int period_number, int run_number, unsigned char*&
     UniDbRun* pCurRun = UniDbRun::GetRun(period_number, run_number);
     if (pCurRun == NULL)
     {
-        cout<<"Error: getting of run "<<period_number<<":"<<run_number<<" (period:number) was failed"<<endl;
+        cout<<"ERROR: getting of run "<<period_number<<":"<<run_number<<" (period:number) was failed"<<endl;
         return -1;
     }
 
     if (pCurRun->GetGeometryId() == NULL)
     {
-        cout<<"Error: no geometry exists for run "<<period_number<<":"<<run_number<<" (period:number)"<<endl;
+        cout<<"ERROR: no geometry exists for run "<<period_number<<":"<<run_number<<" (period:number)"<<endl;
         return -2;
     }
 
@@ -1202,7 +1202,7 @@ int UniDbRun::GetRootGeometry(int period_number, int run_number, unsigned char*&
     UniDbRunGeometry* pGeometry = UniDbRunGeometry::GetRunGeometry(geometry_id);
     if (pGeometry == NULL)
     {
-        cout<<"Error: getting of geometry was failed"<<endl;
+        cout<<"ERROR: getting of the geometry was failed"<<endl;
         return -3;
     }
 
@@ -1222,7 +1222,7 @@ int UniDbRun::WriteGeometryFile(int start_period, int start_run, int end_period,
     FILE* root_file = fopen(strGeoFilePath.Data(), "rb");
     if (root_file == NULL)
     {
-        cout<<"Error: opening root file: "<<strGeoFilePath<<" was failed"<<endl;
+        cout<<"ERROR: opening root file: "<<strGeoFilePath<<" was failed"<<endl;
         return -1;
     }
 
@@ -1231,7 +1231,7 @@ int UniDbRun::WriteGeometryFile(int start_period, int start_run, int end_period,
     rewind(root_file);
     if (file_size <= 0)
     {
-        cout<<"Error: getting file size: "<<strGeoFilePath<<" was failed"<<endl;
+        cout<<"ERROR: getting file size: "<<strGeoFilePath<<" was failed"<<endl;
         fclose(root_file);
         return -2;
     }
@@ -1239,7 +1239,7 @@ int UniDbRun::WriteGeometryFile(int start_period, int start_run, int end_period,
     unsigned char* buffer = new unsigned char[file_size];
     if (buffer == NULL)
     {
-        cout<<"Error: getting memory from heap was failed"<<endl;
+        cout<<"ERROR: getting memory from heap was failed"<<endl;
         fclose(root_file);
         return -3;
     }
@@ -1247,7 +1247,7 @@ int UniDbRun::WriteGeometryFile(int start_period, int start_run, int end_period,
     size_t bytes_read = fread(buffer, 1, file_size, root_file);
     if (bytes_read != file_size)
     {
-        cout<<"Error: reading file: "<<strGeoFilePath<<", got "<<bytes_read<<" bytes of "<<file_size<<endl;
+        cout<<"ERROR: reading file: "<<strGeoFilePath<<", got "<<bytes_read<<" bytes of "<<file_size<<endl;
         delete [] buffer;
         fclose(root_file);
         return -4;
@@ -1282,14 +1282,14 @@ int UniDbRun::ReadGeometryFile(int period_number, int run_number, char* geo_file
     FILE* root_file = fopen(geo_file_path, "wb");
     if (root_file == NULL)
     {
-        cout<<"Error: creating root file: "<<geo_file_path<<endl;
+        cout<<"ERROR: creating root file: "<<geo_file_path<<endl;
         return -2;
     }
 
     size_t bytes_write = fwrite(buffer, 1, file_size, root_file);
     if (bytes_write != file_size)
     {
-        cout<<"Error: writing file: "<<geo_file_path<<", put "<<bytes_write<<" bytes of "<<file_size<<endl;
+        cout<<"ERROR: writing file: "<<geo_file_path<<", put "<<bytes_write<<" bytes of "<<file_size<<endl;
         delete [] buffer;
         fclose(root_file);
         return -3;

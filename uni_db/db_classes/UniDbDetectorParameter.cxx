@@ -767,7 +767,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(TString det
     // get table record from DB
     if (!stmt->Process())
     {
-        cout<<"Error: getting record from DB has been failed"<<endl;
+        cout<<"ERROR: getting record from the database has been failed"<<endl;
         delete stmt;
         delete connUniDb;
         return 0x00;
@@ -779,7 +779,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(TString det
     // extract row
     if (!stmt->NextResultRow())
     {
-        cout<<"Error: table record wasn't found"<<endl;
+        cout<<"ERROR: table record was not found"<<endl;
         delete stmt;
         delete connUniDb;
         return 0x00;
@@ -830,7 +830,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(TString det
     // get table record from DB
     if (!stmt->Process())
     {
-        cout<<"Error: getting record from DB has been failed"<<endl;
+        cout<<"ERROR: getting record from the database has been failed"<<endl;
         delete stmt;
         delete connUniDb;
         return 0x00;
@@ -842,7 +842,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(TString det
     // extract row
     if (!stmt->NextResultRow())
     {
-        cout<<"Error: table record wasn't found"<<endl;
+        cout<<"ERROR: table record was not found"<<endl;
         delete stmt;
         delete connUniDb;
         return 0x00;
@@ -898,7 +898,7 @@ int UniDbDetectorParameter::DeleteDetectorParameter(TString detector_name, TStri
     // delete table record from DB
     if (!stmt->Process())
     {
-        cout<<"Error: deleting record from DB has been failed"<<endl;
+        cout<<"ERROR: deleting record from the database has been failed"<<endl;
 
         delete stmt;
         delete connUniDb;
@@ -944,7 +944,7 @@ int UniDbDetectorParameter::DeleteDetectorParameter(TString detector_name, TStri
     // delete table record from DB
     if (!stmt->Process())
     {
-        cout<<"Error: deleting record from DB has been failed"<<endl;
+        cout<<"ERROR: deleting record from the database has been failed"<<endl;
 
         delete stmt;
         delete connUniDb;
@@ -984,7 +984,7 @@ int UniDbDetectorParameter::GetChannelCount(TString detector_name, TString param
     // get table record from DB
     if (!stmt->Process())
     {
-        cout<<"Error: getting channel count fror detector parameter has been failed"<<endl;
+        cout<<"ERROR: getting channel count from the detector parameter has been failed"<<endl;
         delete stmt;
         delete connUniDb;
         return 0x00;
@@ -996,7 +996,7 @@ int UniDbDetectorParameter::GetChannelCount(TString detector_name, TString param
     // extract row
     if (!stmt->NextResultRow())
     {
-        cout<<"Error: table record wasn't found"<<endl;
+        cout<<"ERROR: table record was not found"<<endl;
         delete stmt;
         delete connUniDb;
         return 0x00;
@@ -1084,7 +1084,7 @@ int UniDbDetectorParameter::SetStart(int start_period, int start_run)
     // write new value to database
     if (!stmt->Process())
     {
-        cout<<"Error: updating the record has been failed"<<endl;
+        cout<<"ERROR: updating the record has been failed"<<endl;
 
         delete stmt;
         return -2;
@@ -1122,7 +1122,7 @@ int UniDbDetectorParameter::SetEnd(int end_period, int end_run)
     // write new value to database
     if (!stmt->Process())
     {
-        cout<<"Error: updating the record has been failed"<<endl;
+        cout<<"ERROR: updating the record has been failed"<<endl;
 
         delete stmt;
         return -2;
@@ -1143,7 +1143,7 @@ int UniDbDetectorParameter::WriteRootFile(int start_period, int start_run, int e
     FILE* root_file = fopen(strRootFilePath.Data(), "rb");
     if (root_file == NULL)
     {
-        cout<<"Error: opening root file: "<<strRootFilePath<<" was failed"<<endl;
+        cout<<"ERROR: opening root file: "<<strRootFilePath<<" was failed"<<endl;
         return -1;
     }
 
@@ -1152,7 +1152,7 @@ int UniDbDetectorParameter::WriteRootFile(int start_period, int start_run, int e
     rewind(root_file);
     if (file_size <= 0)
     {
-        cout<<"Error: getting file size: "<<strRootFilePath<<" was failed"<<endl;
+        cout<<"ERROR: getting file size: "<<strRootFilePath<<" was failed"<<endl;
         fclose(root_file);
         return -2;
     }
@@ -1160,7 +1160,7 @@ int UniDbDetectorParameter::WriteRootFile(int start_period, int start_run, int e
     unsigned char* buffer = new unsigned char[file_size];
     if (buffer == NULL)
     {
-        cout<<"Error: getting memory from heap was failed"<<endl;
+        cout<<"ERROR: getting memory from heap was failed"<<endl;
         fclose(root_file);
         return -3;
     }
@@ -1168,7 +1168,7 @@ int UniDbDetectorParameter::WriteRootFile(int start_period, int start_run, int e
     size_t bytes_read = fread(buffer, 1, file_size, root_file);
     if (bytes_read != file_size)
     {
-        cout<<"Error: reading file: "<<strRootFilePath<<", got "<<bytes_read<<" bytes of "<<file_size<<endl;
+        cout<<"ERROR: reading file: "<<strRootFilePath<<", got "<<bytes_read<<" bytes of "<<file_size<<endl;
         delete [] buffer;
         fclose(root_file);
         return -4;
@@ -1203,7 +1203,7 @@ int UniDbDetectorParameter::ReadRootFile(int period_number, int run_number, cons
     FILE* root_file = fopen(root_file_path, "wb");
     if (root_file == NULL)
     {
-        cout<<"Error: creating root file: "<<root_file_path<<endl;
+        cout<<"ERROR: creating root file: "<<root_file_path<<endl;
         delete pParameterValue;
         return -2;
     }
@@ -1213,7 +1213,7 @@ int UniDbDetectorParameter::ReadRootFile(int period_number, int run_number, cons
     delete pParameterValue;
     if (bytes_write != file_size)
     {
-        cout<<"Error: writing file: "<<root_file_path<<", put "<<bytes_write<<" bytes of "<<file_size<<endl;
+        cout<<"ERROR: writing file: "<<root_file_path<<", put "<<bytes_write<<" bytes of "<<file_size<<endl;
         delete [] buffer;
         fclose(root_file);
         return -3;
@@ -1232,7 +1232,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 {
     if (((end_period < start_period) or ((end_period = start_period) and (end_run < start_run))) or ((start_period > end_period) or ((start_period = end_period) and (start_run > end_run))))
     {
-        cout<<"Error: end run should be after or the same as start run"<<endl;
+        cout<<"ERROR: end run should be after or the same as start run"<<endl;
         return 0x00;
     }
 
@@ -1268,7 +1268,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
     // inserting new record to DB
     if (!stmt->Process())
     {
-        cout<<"Error: inserting new parameter value to DB has been failed"<<endl;
+        cout<<"ERROR: inserting the new parameter value to the database has been failed"<<endl;
         delete stmt;
         delete connUniDb;
         return 0x00;
@@ -1289,7 +1289,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
         // if there is no last id then exit with error
         if (!stmt_last->NextResultRow())
         {
-            cout<<"Error: no last ID in DB for new parameter value!"<<endl;
+            cout<<"ERROR: no last ID in the database for the new parameter value!"<<endl;
             delete stmt_last;
             return 0x00;
         }
@@ -1301,7 +1301,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
     }
     else
     {
-        cout<<"Error: getting last ID for new parameter value has been failed!"<<endl;
+        cout<<"ERROR: getting last ID for the new parameter value has been failed!"<<endl;
         delete stmt_last;
         return 0x00;
     }
@@ -1315,7 +1315,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 {
     if (((end_period < start_period) or ((end_period = start_period) and (end_run < start_run))) or ((start_period > end_period) or ((start_period = end_period) and (start_run > end_run))))
     {
-        cout<<"Error: end run should be after or the same as start run"<<endl;
+        cout<<"ERROR: end run should be after or the same as start run"<<endl;
         return 0x00;
     }
 
@@ -1352,7 +1352,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
     // inserting new record to DB
     if (!stmt->Process())
     {
-        cout<<"Error: inserting new parameter value to DB has been failed"<<endl;
+        cout<<"ERROR: inserting the new parameter value to the database has been failed"<<endl;
         delete stmt;
         delete connUniDb;
         return 0x00;
@@ -1373,7 +1373,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
         // if there is no last id then exit with error
         if (!stmt_last->NextResultRow())
         {
-            cout<<"Error: no last ID in DB for new parameter value!"<<endl;
+            cout<<"ERROR: no last ID in the database for the new parameter value!"<<endl;
             delete stmt_last;
             return 0x00;
         }
@@ -1385,7 +1385,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
     }
     else
     {
-        cout<<"Error: getting last ID for new parameter value has been failed!"<<endl;
+        cout<<"ERROR: getting last ID for the new parameter value has been failed!"<<endl;
         delete stmt_last;
         return 0x00;
     }
@@ -1400,7 +1400,7 @@ unsigned char* UniDbDetectorParameter::GetUNC(enumParameterType enum_parameter_t
     {
         if (!connectionUniDb)
         {
-            cout<<"Critical Error: Connection object is null"<<endl;
+            cout<<"CRITICAL ERROR: Connection object is null"<<endl;
             return NULL;
         }
 
@@ -1416,7 +1416,7 @@ unsigned char* UniDbDetectorParameter::GetUNC(enumParameterType enum_parameter_t
         // get table record from DB
         if (!stmt->Process())
         {
-            cout<<"Critical Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
+            cout<<"CRITICAL ERROR: getting a record with the parameter from 'parameter_' table has been failed"<<endl;
             delete stmt;
             return NULL;
         }
@@ -1426,7 +1426,7 @@ unsigned char* UniDbDetectorParameter::GetUNC(enumParameterType enum_parameter_t
         // extract row with parameter
         if (!stmt->NextResultRow())
         {
-            cout<<"Critical Error: the parameter with id '"<<i_parameter_id<<"' wasn't found"<<endl;
+            cout<<"CRITICAL ERROR: the parameter with id '"<<i_parameter_id<<"' was not found"<<endl;
             delete stmt;
             return NULL;
         }
@@ -1437,7 +1437,7 @@ unsigned char* UniDbDetectorParameter::GetUNC(enumParameterType enum_parameter_t
 
         if (parameter_type != enum_parameter_type)
         {
-            cout<<"Critical Error: the parameter with name '"<<parameter_name<<"' isn't corresponding the given type"<<endl;
+            cout<<"CRITICAL ERROR: the parameter with name '"<<parameter_name<<"' is not corresponding the given type"<<endl;
             return NULL;
         }
     }
@@ -1482,7 +1482,7 @@ int UniDbDetectorParameter::SetUNC(unsigned char* p_parameter_value, Long_t size
     // write new value to database
     if (!stmt->Process())
     {
-        cout<<"Error: updating the detector parameter has been failed"<<endl;
+        cout<<"ERROR: updating the detector parameter has been failed"<<endl;
         delete stmt;
         return -2;
     }
@@ -2348,7 +2348,7 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
     {
-        cout<<"Error: connection to DB was failed"<<endl;
+        cout<<"ERROR: connection to the database was failed"<<endl;
         return arrayResult;
     }
 
@@ -2377,7 +2377,7 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
             case columnDCSerial:        strCondition += "dc_serial "; break;
             case columnChannel:         strCondition += "channel "; break;
             default:
-                cout<<"Error: column in the search condition wasn't defined, condition is skipped"<<endl;
+                cout<<"ERROR: column in the search condition was not defined, condition is skipped"<<endl;
                 continue;
         }
 
@@ -2392,7 +2392,7 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
             case conditionLike:             strCondition += "like "; break;
             case conditionNull:             strCondition += "is null "; break;
             default:
-                cout<<"Error: comparison operator in the search condition wasn't defined, condition is skipped"<<endl;
+                cout<<"ERROR: comparison operator in the search condition was not defined, condition is skipped"<<endl;
                 continue;
         }
 
@@ -2405,7 +2405,7 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
             case 4: strCondition += Form("lower('%s')", curCondition->GetStringValue().Data()); break;
             case 5: strCondition += Form("'%s'", curCondition->GetDatimeValue().AsSQLString()); break;
             default:
-                cout<<"Error: value type in the search condition wasn't found, condition is skipped"<<endl;
+                cout<<"ERROR: value type in the search condition was not found, condition is skipped"<<endl;
                 continue;
         }
 
@@ -2419,13 +2419,14 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
 
         sql += strCondition;
     }
+    sql += " order by detector_name, p.parameter_id, start_period, start_run";
 
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     // get table record from DB
     if (!stmt->Process())
     {
-        cout<<"Error: getting runs from DB has been failed"<<endl;
+        cout<<"ERROR: getting runs from the Database has been failed"<<endl;
         delete stmt;
         delete connUniDb;
 
@@ -2443,7 +2444,7 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
         UniDbConnection* connPar = UniDbConnection::Open(UNIFIED_DB);
         if (connPar == 0x00)
         {
-            cout<<"Error: connection to DB for single run was failed"<<endl;
+            cout<<"ERROR: connection to the Database for adding a new run was failed"<<endl;
             return arrayResult;
         }
 
@@ -2500,7 +2501,7 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
     txtFile.open(text_file, ios::in);
     if (!txtFile.is_open())
     {
-        cout<<"Error: opening TXT file '"<<text_file<<"' was failed"<<endl;
+        cout<<"ERROR: opening TXT file '"<<text_file<<"' was failed"<<endl;
         return -1;
     }
 
@@ -2533,7 +2534,7 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
         // get table record from DB
         if (!stmt->Process())
         {
-            cout<<"Error: getting record with detector from 'detector_' table has been failed"<<endl;
+            cout<<"ERROR: getting a record with the detector from 'detector_' table has been failed"<<endl;
             delete stmt;
             return -4;
         }
@@ -2542,7 +2543,7 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
         // check detector with the given name is exist
         if (!stmt->NextResultRow())
         {
-            cout<<"Error: the detector with name '"<<detector_name<<"' wasn't found"<<endl;
+            cout<<"ERROR: the detector with name '"<<detector_name<<"' was not found"<<endl;
             delete stmt;
             return -5;
         }
@@ -2561,7 +2562,7 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
         // get table record from DB
         if (!stmt->Process())
         {
-            cout<<"Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
+            cout<<"ERROR: getting record with parameter from 'parameter_' table has been failed"<<endl;
             delete stmt;
             return -6;
         }
@@ -2571,7 +2572,7 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
         // extract row with parameter
         if (!stmt->NextResultRow())
         {
-            cout<<"Error: the parameter with name '"<<parameter_name<<"' wasn't found"<<endl;
+            cout<<"ERROR: the parameter with name '"<<parameter_name<<"' was not found"<<endl;
             delete stmt;
             return -7;
         }
@@ -2650,7 +2651,7 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
                     {
                         if (!item->GetString().IsDigit())
                         {
-                            cout<<"Error: the parameter value is not integer: '"<<item<<"'"<<endl;
+                            cout<<"ERROR: the parameter value is not integer: '"<<item<<"'"<<endl;
                             continue;
                         }
                     }
@@ -3021,7 +3022,7 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
                 }
             default:
                 {
-                    cout<<"Error: the type of parameter ("<<parameter_name<<") is not supported for parsing (txt) now"<<endl;
+                    cout<<"ERROR: the type of the parameter ("<<parameter_name<<") is not supported for parsing (txt) now"<<endl;
                     continue;
                 }
         }// switch (parameter_type)

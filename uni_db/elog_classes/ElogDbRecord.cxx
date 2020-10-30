@@ -1206,7 +1206,7 @@ TObjArray* ElogDbRecord::GetRecords(int period_number, int run_number)
     UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
     if (connUniDb == 0x00)
     {
-        cout<<"Error: connection to Elog DB was failed"<<endl;
+        cout<<"ERROR: connection to the eLog Database was failed"<<endl;
         return arrayResult;
     }
 
@@ -1222,7 +1222,7 @@ TObjArray* ElogDbRecord::GetRecords(int period_number, int run_number)
     // get record from the database
     if (!stmt->Process())
     {
-        cout<<"Error: getting record from the database has been failed"<<endl;
+        cout<<"ERROR: getting record from the database has been failed"<<endl;
 
         delete stmt;
         delete connUniDb;
@@ -1241,7 +1241,7 @@ TObjArray* ElogDbRecord::GetRecords(int period_number, int run_number)
         UniDbConnection* connRecord = UniDbConnection::Open(ELOG_DB);
         if (connRecord == 0x00)
         {
-            cout<<"Error: connection to DB for single record was failed"<<endl;
+            cout<<"ERROR: connection to the eLog database for a record was failed"<<endl;
             return arrayResult;
         }
 
@@ -1323,7 +1323,7 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
     UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
     if (connUniDb == 0x00)
     {
-        cout<<"Error: connection to DB was failed"<<endl;
+        cout<<"ERROR: connection to the eLog Database was failed"<<endl;
         return arrayResult;
     }
 
@@ -1359,7 +1359,7 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
             case columnEnergy:          strCondition += "energy "; break;
             case columnTargetParticle:  strCondition += "lower(target) "; break;
             default:
-                cout<<"Error: column in the search condition wasn't defined, condition is skipped"<<endl;
+                cout<<"ERROR: column in the search condition was not defined, condition is skipped"<<endl;
                 continue;
         }
 
@@ -1374,7 +1374,7 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
             case conditionLike:             strCondition += "like "; break;
             case conditionNull:             strCondition += "is null "; break;
             default:
-                cout<<"Error: comparison operator in the search condition wasn't defined, condition is skipped"<<endl;
+                cout<<"ERROR: comparison operator in the search condition was not defined, condition is skipped"<<endl;
                 continue;
         }
 
@@ -1387,7 +1387,7 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
             case 4: strCondition += Form("lower('%s')", curCondition->GetStringValue().Data()); break;
             case 5: strCondition += Form("'%s'", curCondition->GetDatimeValue().AsSQLString()); break;
             default:
-                cout<<"Error: value type in the search condition wasn't found, condition is skipped"<<endl;
+                cout<<"ERROR: value type in the search condition was not found, condition is skipped"<<endl;
                 continue;
         }
 
@@ -1409,7 +1409,7 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
     // get table record from DB
     if (!stmt->Process())
     {
-        cout<<"Error: getting ELOG records from DB has been failed"<<endl;
+        cout<<"ERROR: getting eLog records from the database has been failed"<<endl;
         delete stmt;
         delete connUniDb;
 
@@ -1427,7 +1427,7 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
         UniDbConnection* connRun = UniDbConnection::Open(ELOG_DB);
         if (connRun == 0x00)
         {
-            cout<<"Error: connection to DB for single record was failed"<<endl;
+            cout<<"ERROR: connection to the eLog database for a record was failed"<<endl;
             return arrayResult;
         }
 

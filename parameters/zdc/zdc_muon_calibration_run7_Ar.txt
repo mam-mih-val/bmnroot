@@ -1,5 +1,5 @@
 DigiParameters: pedBegin pedEnd gateBegin gateEnd signalThresh signalType (0 - max, 1 - integral)
-0    4    5    30    4    1
+0    4    5    29    4    1
 Channel Calibration     Error
 1    15.61    0.0
 2    15.42    0.0

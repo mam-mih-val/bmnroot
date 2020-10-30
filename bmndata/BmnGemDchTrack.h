@@ -16,7 +16,7 @@ private:
   CbmStsTrack fGemTrack; // GEM+CSC track
   BmnTrack fDchTrack;     // DCH track
   Double_t fLength;
-  Int_t fEventId, fEventHits, fFlag;
+  Int_t fEventId, fEventHits, fFlag, fGemHits, fSiHits, fCSCHits;
   Double_t fDx, fDy, fDtx, fDty, fDdx, fDdy, fDdtx, fDdty, fChi2;
   Double_t fXpv, fYpv, fZpv;
 
@@ -33,6 +33,9 @@ public:
   Double_t GetLength()   const { return fLength; }
   Int_t GetEventId() const { return fEventId; }
   Int_t GetEventHits() const { return fEventHits; }
+  Int_t GetGemHits() const { return fGemHits; }
+  Int_t GetSiHits() const { return fSiHits; }
+  Int_t GetCSCHits() const { return fCSCHits; }
   Double_t GetDx() const { return fDx; }
   Double_t GetDy() const { return fDy; }
   Double_t GetDtx() const { return fDtx; }
@@ -57,6 +60,9 @@ public:
   void SetLength(Double_t length)        {fLength = length;}
   void SetEventId(Int_t eventId) {fEventId = eventId;}  
   void SetEventHits(Int_t eventHits) {fEventHits = eventHits;}
+  void SetGemHits(Int_t gemHits) {fGemHits = gemHits;}
+  void SetSiHits(Int_t siHits) {fSiHits = siHits;}
+  void SetCSCHits(Int_t cscHits) {fCSCHits = cscHits;}
   void SetDx(Double_t dx) {fDx = dx;}
   void SetDy(Double_t dy) {fDy = dy;}
   void SetDtx(Double_t dtx) {fDtx = dtx;}

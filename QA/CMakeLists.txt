@@ -85,7 +85,7 @@ EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 Set(HEADERS)
 Set(LINKDEF BmnQALinkDef.h)
 Set(LIBRARY_NAME BmnQa)
-Set(DEPENDENCIES BmnMonitor BmnParticles GlobalTracking BmnSteering BmnDst Sts Gem Silicon Dch CSC BmnSsd BmnData UniDb Base Core)
+Set(DEPENDENCIES BmnMonitor BmnParticles GlobalTracking BmnSteering BmnDst Sts Gem Silicon Dch CSC BmnData UniDb Base Core)
 
 If ( ${ROOT_HAS_GDML} STREQUAL yes )
  Set (DEPENDENCIES ${DEPENDENCIES} Gdml)

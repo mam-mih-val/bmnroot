@@ -12,7 +12,6 @@
  */
 
 #include "BmnHistDch.h"
-#include "BmnHitFinderRun1.h"
 #include "BmnRawDataDecoder.h"
 
 

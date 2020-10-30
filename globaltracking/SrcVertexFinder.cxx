@@ -13,12 +13,12 @@ SrcVertexFinder::SrcVertexFinder(Int_t period, Bool_t isField) {
     fPeriodId = period;
     fEventNo = 0;
     fGlobalTracksArray = NULL;
-    fNTracks = 0;
+    fGemHitsArray = NULL;
+    fTof400HitsArray = NULL;
+    fVertexArray = NULL;
+    fArmTracksArray = NULL;
     fTime = 0.0;
-    fRoughVertex3D = (fPeriodId == 7) ? TVector3(0.0, -4.6, -647.0) : TVector3(0.0, 0.0, 0.0);
     fIsField = isField;
-    fGlobalTracksBranchName = "BmnGlobalTrack";
-    fVertexBranchName = "BmnVertex";
     fKalman = new BmnKalmanFilter();
 }
 
@@ -33,16 +33,29 @@ InitStatus SrcVertexFinder::Init() {
     if (NULL == ioman)
         Fatal("Init", "FairRootManager is not instantiated");
 
-    fGlobalTracksArray =
-        (TClonesArray *)ioman->GetObject(fGlobalTracksBranchName);  // in
+    fGlobalTracksArray = (TClonesArray *)ioman->GetObject("BmnGlobalTrack");  // in
     if (!fGlobalTracksArray) {
-        cout << "SrcVertexFinder::Init(): branch " << fGlobalTracksBranchName << " not found! Task will be deactivated" << endl;
+        cout << "SrcVertexFinder::Init(): branch BmnGlobalTrack not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
+    fGemHitsArray = (TClonesArray *)ioman->GetObject("BmnGemStripHit");  // in
+    if (!fGemHitsArray) {
+        cout << "SrcVertexFinder::Init(): branch BmnGemStripHit not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
+    fTof400HitsArray = (TClonesArray *)ioman->GetObject("BmnTof400Hit");  // in
+    if (!fTof400HitsArray) {
+        cout << "SrcVertexFinder::Init(): branch BmnTof400Hit not found! Task will be deactivated" << endl;
         SetActive(kFALSE);
         return kERROR;
     }
 
-    fVertexArray = new TClonesArray("CbmVertex", 1);  // out
-    ioman->Register(fVertexBranchName, "VERTEX", fVertexArray, kTRUE);
+    fVertexArray = new TClonesArray("BmnVertex", 1);  // out
+    ioman->Register("SrcVertex", "VERTEX", fVertexArray, kTRUE);
+    fArmTracksArray = new TClonesArray("BmnTrack", 1);  // out
+    ioman->Register("SrcArmTrack", "ARM", fArmTracksArray, kTRUE);
 
     if (fVerbose > 1) cout << "=========================== Vertex finder init finished ===================" << endl;
 
@@ -56,18 +69,20 @@ void SrcVertexFinder::Exec(Option_t *opt) {
     if (!IsActive())
         return;
 
-    if (fVerbose > 1)
+    if (fVerbose > 1) {
         cout << "======================== Vertex finder exec started  ======================" << endl;
-    if (fVerbose > 1)
         cout << "Event number: " << fEventNo++ << endl;
+    }
 
     fVertexArray->Delete();
+    fArmTracksArray->Delete();
 
-    fNTracks = fGlobalTracksArray->GetEntriesFast();
+    vector<BmnTrack> lTracks;
+    vector<BmnTrack> rTracks;
+    CreateArmCandidates(lTracks, rTracks);
 
     Int_t nTrWithUpstream = 0;
-    for (Int_t iTrack = 0; iTrack < fGlobalTracksArray->GetEntriesFast();
-         iTrack++) {
+    for (Int_t iTrack = 0; iTrack < fGlobalTracksArray->GetEntriesFast(); iTrack++) {
         BmnGlobalTrack *track = (BmnGlobalTrack *)fGlobalTracksArray->UncheckedAt(iTrack);
         if (track->GetUpstreamTrackIndex() == -1)
             track->SetFlag(13);
@@ -75,14 +90,18 @@ void SrcVertexFinder::Exec(Option_t *opt) {
             nTrWithUpstream++;
     }
 
-    if (nTrWithUpstream > 1) {
-        FindVertexByVirtualPlanes();
-        CbmVertex *vert = (CbmVertex *)fVertexArray->At(0);
-        if (fVerbose > 0) cout << "SrcVertexFinder: (" << vert->GetX() << ", " << vert->GetY() << ", " << vert->GetZ() << ")" << endl;
-    } else {
-        new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", -1000., -1000., -1000., 0.0, 0, -1, TMatrixFSym(3), fRoughVertex3D);
+    if (lTracks.size() > 100 || rTracks.size() > 100 || nTrWithUpstream > 10) {  //Check this condition!
+        new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) BmnVertex();
         if (fVerbose > 0) cout << "SrcVertexFinder: Vertex NOT found" << endl;
+    } else {
+        FindVertexByVirtualPlanes(lTracks, rTracks);
+        if (fVerbose > 0) {
+            BmnVertex *vert = (BmnVertex *)fVertexArray->At(0);
+            vert->Print();
+        }
     }
+    lTracks.clear();
+    rTracks.clear();
 
     if (fVerbose > 1)
         cout << "\n======================== Vertex finder exec finished ======================" << endl;
@@ -91,136 +110,115 @@ void SrcVertexFinder::Exec(Option_t *opt) {
     fTime += sw.RealTime();
 }
 
-Float_t SrcVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
-    const Int_t nPlanes = 5;
-    Float_t minZ = z_0;
-
-    while (range >= 0.01) {
-        Float_t zMax = minZ + range;
-        Float_t zMin = minZ - range;
-        Float_t zStep = (zMax - zMin) / (nPlanes - 1);
-
-        vector<Double_t> xHits[nPlanes];
-        vector<Double_t> yHits[nPlanes];
-        Float_t zPlane[nPlanes];
-        Float_t rRMS[nPlanes] = {0};
-
-        for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
-            zPlane[iPlane] = zMax - iPlane * zStep;
+void SrcVertexFinder::FindVertexByVirtualPlanes(vector<BmnTrack> &lTracks, vector<BmnTrack> &rTracks) {
+    Float_t minDist = DBL_MAX;  //minimal distance beetween tracks in point of vertex
+    Float_t minVZ = DBL_MAX;    // VZ for tracks with minimal distance
+    vector<BmnTrack> trackCombination;
+    vector<BmnTrack> bestCombination;
+    Int_t type = -1;
+    if (lTracks.size() > 0 && rTracks.size() > 0) {
+        for (auto lTr : lTracks) {
+            for (auto rTr : rTracks) {
+                for (Int_t iGl = 0; iGl < fGlobalTracksArray->GetEntriesFast(); ++iGl) {
+                    BmnGlobalTrack gl = *((BmnGlobalTrack *)fGlobalTracksArray->At(iGl));
+                    if (gl.GetUpstreamTrackIndex() != -1)
+                        trackCombination.push_back(*((BmnTrack *)fGlobalTracksArray->At(iGl)));
+                }
+                trackCombination.push_back(lTr);
+                trackCombination.push_back(rTr);
+                Float_t dist;
+                Float_t vz = FindVZByVirtualPlanes(-647, 100, trackCombination, dist);
+                if (vz < -999) {
+                    trackCombination.clear();
+                    continue;
+                }
+                if (dist < minDist) {
+                    minDist = dist;
+                    minVZ = vz;
+                    bestCombination = trackCombination;
+                    type = (bestCombination.size() > 2) ? 10 : 11;
+                }
+                trackCombination.clear();
+            }
         }
-
-        for (Int_t iTr = 0; iTr < fNTracks; ++iTr) {
-            BmnGlobalTrack *track = (BmnGlobalTrack *)fGlobalTracksArray->At(iTr);
-            if (track->GetFlag() == 13)
+    } else if (lTracks.size() == 0 && rTracks.size() > 0) {
+        for (auto rTr : rTracks) {
+            for (Int_t iGl = 0; iGl < fGlobalTracksArray->GetEntriesFast(); ++iGl) {
+                BmnGlobalTrack gl = *((BmnGlobalTrack *)fGlobalTracksArray->At(iGl));
+                if (gl.GetUpstreamTrackIndex() != -1)
+                    trackCombination.push_back(*((BmnTrack *)fGlobalTracksArray->At(iGl)));
+            }
+            trackCombination.push_back(rTr);
+            Float_t dist;
+            Float_t vz = FindVZByVirtualPlanes(-647, 100, trackCombination, dist);
+            if (vz < -999) {
+                trackCombination.clear();
                 continue;
-            FairTrackParam par0 = *(track->GetParamFirst());
-            for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
-                fKalman->TGeoTrackPropagate(&par0, zPlane[iPlane], (par0.GetQp() > 0.) ? 2212 : -211, NULL, NULL, fIsField);
-                xHits[iPlane].push_back(par0.GetX());
-                yHits[iPlane].push_back(par0.GetY());
             }
-        }
-
-        Double_t minRMS = DBL_MAX;
-        // Int_t minZ = -1000;
-
-        for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
-            rRMS[iPlane] = CalcMeanDist(xHits[iPlane], yHits[iPlane]);
-            // rRMS[iPlane] = CalcRms2D(xHits[iPlane], yHits[iPlane]);
-            if (rRMS[iPlane] < minRMS) {
-                minRMS = rRMS[iPlane];
-                minZ = zPlane[iPlane];
+            if (dist < minDist) {
+                minDist = dist;
+                minVZ = vz;
+                bestCombination = trackCombination;
+                type = 13;
             }
+            trackCombination.clear();
         }
-        range /= 2;
-
-        // for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane)
-        //     //rRMS[iPlane] = CalcRms2D(xHits[iPlane], yHits[iPlane]);
-        // rRMS[iPlane] = CalcMeanDist(xHits[iPlane], yHits[iPlane]);
-
-        //TCanvas* c = new TCanvas("c1", "c1", 1200, 800);
-        //c->Divide(1, 1);
-        ////c->cd(1);
-        //TGraph* vertex = new TGraph(nPlanes, zPlane, rRMS);
-        // TFitResultPtr ptr = vertex->Fit("pol2", "QFS");
-        // //        TF1 *fit_func = vertex->GetFunction("pol2");
-        // Float_t b = ptr->Parameter(1);
-        // Float_t a = ptr->Parameter(2);
-        // minZ = -b / (2 * a);
-        //         vertex->Draw("AP*");
-        //c->SaveAs("tmp.pdf");
-        // getchar();
-   //     delete vertex;
+    } else if (lTracks.size() > 0 && rTracks.size() == 0) {
+        for (auto lTr : lTracks) {
+            for (Int_t iGl = 0; iGl < fGlobalTracksArray->GetEntriesFast(); ++iGl) {
+                BmnGlobalTrack gl = *((BmnGlobalTrack *)fGlobalTracksArray->At(iGl));
+                if (gl.GetUpstreamTrackIndex() != -1)
+                    trackCombination.push_back(*((BmnTrack *)fGlobalTracksArray->At(iGl)));
+            }
+            trackCombination.push_back(lTr);
+            Float_t dist;
+            Float_t vz = FindVZByVirtualPlanes(-647, 100, trackCombination, dist);
+            if (vz < -999) {
+                trackCombination.clear();
+                continue;
+            }
+            if (dist < minDist) {
+                minDist = dist;
+                minVZ = vz;
+                bestCombination = trackCombination;
+                type = 12;
+            }
+            trackCombination.clear();
+        }
     }
-    return minZ;
-}
-
-void SrcVertexFinder::FindVertexByVirtualPlanes() {
-    Bool_t doAgain = kFALSE;
-    const Double_t kRmsCut = 5.0;  // cm
-    Double_t rRMS = 0.0;
-    Double_t vx = 0.0;
-    Double_t vy = 0.0;
-    Double_t vz = 0.0;
-    Int_t nOk = 0;
-    Int_t iter = 0;
-
-    Double_t range = 500.0;
-
-    do {
-        // cout << "\n ITER: " << iter << endl;
-        doAgain = kFALSE;
-        vz = FindVZByVirtualPlanes(fRoughVertex3D.Z(), range);
+    if (minDist > 10.0) {
+        new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) BmnVertex();
+    } else {
         vector<Double_t> xHits;
         vector<Double_t> yHits;
-        vector<Int_t> indexes;
-        rRMS = 0.0;
-
-        for (Int_t iTr = 0; iTr < fNTracks; ++iTr) {
-            BmnGlobalTrack *track = (BmnGlobalTrack *)fGlobalTracksArray->At(iTr);
-            if (track->GetFlag() == 13)
+        for (Int_t iTr = 0; iTr < bestCombination.size(); ++iTr) {
+            BmnTrack track = bestCombination[iTr];
+            FairTrackParam par0 = *(track.GetParamLast());
+            Double_t len = 0.0;
+            if (fKalman->TGeoTrackPropagate(&par0, minVZ, 2212, NULL, &len, kFALSE) == kBMNERROR) {
                 continue;
-            FairTrackParam par0 = *(track->GetParamFirst());
-            fKalman->TGeoTrackPropagate(&par0, vz, (par0.GetQp() > 0.) ? 2212 : -211, NULL, NULL, fIsField);
+            }
             xHits.push_back(par0.GetX());
             yHits.push_back(par0.GetY());
-            indexes.push_back(iTr);
+            if (track.GetParamFirst()->GetZ() < -400) {
+                track.SetLength(len);
+                track.SetNHits(2);
+                new ((*fArmTracksArray)[fArmTracksArray->GetEntriesFast()]) BmnTrack(track);
+            }
+        }
+        Double_t vz = minVZ;
+        Double_t vx = Mean(xHits.begin(), xHits.end());
+        Double_t vy = Mean(yHits.begin(), yHits.end());
+
+        vector<Int_t> idx;
+        for (Int_t iGl = 0; iGl < fGlobalTracksArray->GetEntriesFast(); ++iGl) {
+            BmnGlobalTrack gl = *((BmnGlobalTrack *)fGlobalTracksArray->At(iGl));
+            if (gl.GetUpstreamTrackIndex() != -1)
+                idx.push_back(iGl);
         }
 
-        vx = Mean(xHits.begin(), xHits.end());
-        vy = Mean(yHits.begin(), yHits.end());
-        rRMS = CalcRms2D(xHits, yHits);
-        nOk = indexes.size();
-        // cout << "V(X, Y, Z) = (" << vx << ", " << vy << ", " << vz << ")" <<
-        // endl; cout << "nTracks = " << nOk << endl; cout << "rRMS = " << rRMS <<
-        // endl;
-
-        if (nOk > 2)
-            if (rRMS > kRmsCut) {
-                Double_t rMax = 0;
-                Int_t idxMax = -1;
-                for (Int_t iHit = 0; iHit < xHits.size(); ++iHit) {
-                    Double_t rHit = Sqrt(Sq(xHits[iHit]) + Sq(yHits[iHit]));
-                    if (rHit > rMax) {
-                        rMax = rHit;
-                        idxMax = indexes[iHit];
-                    }
-                }
-
-                if (idxMax != -1) {
-                    BmnGlobalTrack *track =
-                        (BmnGlobalTrack *)fGlobalTracksArray->At(idxMax);
-                    track->SetFlag(13);
-                    doAgain = kTRUE;
-                }
-            }
-        iter++;
-    } while (doAgain);
-
-    if (nOk < 2)
-        new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", -1000., -1000., -1000., 0.0, 0, -1, TMatrixFSym(3), fRoughVertex3D);
-    else
-        new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", vx, vy, vz, rRMS, 0, nOk, TMatrixFSym(3), fRoughVertex3D);
+        new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) BmnVertex(vx, vy, vz, minDist, 0, xHits.size(), TMatrixFSym(3), type, idx);
+    }
 }
 
 void SrcVertexFinder::Finish() {
@@ -229,25 +227,6 @@ void SrcVertexFinder::Finish() {
     outFile << "Vertex Finder Time: " << fTime;
     if (fVerbose == 0)
         cout << "Work time of the GEM vertex finder: " << fTime << endl;
-}
-
-Double_t SrcVertexFinder::CalcRms2D(vector<Double_t> x, vector<Double_t> y) {
-    Double_t xMean = 0.0;
-    Double_t yMean = 0.0;
-    Double_t rms = 0.0;
-    for (Int_t iHit = 0; iHit < x.size(); ++iHit) {
-        xMean += x.at(iHit);
-        yMean += y.at(iHit);
-    }
-    xMean /= x.size();
-    yMean /= y.size();
-
-    for (Int_t iHit = 0; iHit < x.size(); ++iHit) {
-        rms += (Sq(x.at(iHit) - xMean) + Sq(y.at(iHit) - yMean));
-    }
-
-    rms /= x.size();
-    return Sqrt(rms);
 }
 
 Double_t SrcVertexFinder::CalcMeanDist(vector<Double_t> x, vector<Double_t> y) {
@@ -260,6 +239,141 @@ Double_t SrcVertexFinder::CalcMeanDist(vector<Double_t> x, vector<Double_t> y) {
         }
     }
     return sumDist / nPairs;  // calc. ave. dist value
+}
+
+Float_t SrcVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range, vector<BmnTrack> tracks, Float_t &minDist) {
+    const Int_t nPlanes = 3;
+    Float_t minZ = z_0;
+
+    while (range >= 0.01) {
+        Float_t zMax = minZ + range;
+        Float_t zMin = minZ - range;
+        Float_t zStep = (zMax - zMin) / (nPlanes - 1);
+
+        vector<Double_t> xHits[nPlanes];
+        vector<Double_t> yHits[nPlanes];
+        Float_t zPlane[nPlanes];
+        Float_t rRMS[nPlanes] = {0};
+
+        for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane)
+            zPlane[iPlane] = zMax - iPlane * zStep;
+
+        Int_t nOkTr = 0;
+
+        for (Int_t iTr = 0; iTr < tracks.size(); ++iTr) {
+            BmnTrack track = tracks[iTr];
+            FairTrackParam par0 = *(track.GetParamFirst());
+            Double_t xTr[nPlanes];
+            Double_t yTr[nPlanes];
+            Bool_t trOk = kTRUE;
+            for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
+                if (fKalman->TGeoTrackPropagate(&par0, zPlane[iPlane], 2212, NULL, NULL, kFALSE) == kBMNERROR) {
+                    trOk = kFALSE;
+                    break;
+                }
+
+                //cout << " " << par0.GetX() << " " << par0.GetY() << " " << par0.GetZ() << endl;
+                xTr[iPlane] = par0.GetX();
+                yTr[iPlane] = par0.GetY();
+                //xHits[iPlane].push_back(par0.GetX());
+                //yHits[iPlane].push_back(par0.GetY());
+            }
+
+            if (trOk) {
+                nOkTr++;
+                for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
+                    xHits[iPlane].push_back(xTr[iPlane]);
+                    yHits[iPlane].push_back(yTr[iPlane]);
+                }
+            }
+        }
+
+        if (nOkTr < 2) {
+            minDist = DBL_MAX;
+            return -1000.0;
+        }
+
+        //Calculation minZ as minimum of parabola
+        for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
+            rRMS[iPlane] = CalcMeanDist(xHits[iPlane], yHits[iPlane]);
+        }
+        TGraph *vertex = new TGraph(nPlanes, zPlane, rRMS);
+        TFitResultPtr ptr = vertex->Fit("pol2", "QFS");
+        Float_t c = ptr->Parameter(0);
+        Float_t b = ptr->Parameter(1);
+        Float_t a = ptr->Parameter(2);
+        minZ = -b / (2 * a);
+        minDist = a * minZ * minZ + b * minZ + c;
+        delete vertex;
+
+        range /= 2;
+    }
+    return minZ;
+}
+
+void SrcVertexFinder::CreateArmCandidates(vector<BmnTrack> &lTracks, vector<BmnTrack> &rTracks) {
+    vector<Int_t> lTofHitIdx;
+    vector<Int_t> rTofHitIdx;
+    for (Int_t iTof = 0; iTof < fTof400HitsArray->GetEntriesFast(); ++iTof) {
+        BmnHit *tHit = (BmnHit *)fTof400HitsArray->At(iTof);
+        if (tHit->GetX() > 0)
+            lTofHitIdx.push_back(iTof);
+        else
+            rTofHitIdx.push_back(iTof);
+    }
+    //Maybe we don't need next condition? Check it!
+    //if (lTofHitIdx.size() == 0 || rTofHitIdx.size() == 0) return;  //one track must be on the left arm, another on the right
+
+    vector<Int_t> lGemHitIdx;
+    vector<Int_t> rGemHitIdx;
+    for (Int_t iGem = 0; iGem < fGemHitsArray->GetEntriesFast(); ++iGem) {
+        BmnHit *gHit = (BmnHit *)fGemHitsArray->At(iGem);
+        if (gHit->GetStation() > 3) continue;
+        if (gHit->GetX() > 0)
+            lGemHitIdx.push_back(iGem);
+        else
+            rGemHitIdx.push_back(iGem);
+    }
+    //Maybe we don't need next condition? Check it!
+    //if (lGemHitIdx.size() == 0 || rGemHitIdx.size() == 0) return;  //one track must be on the left arm, another on the right
+
+    BmnHit tHit, gHit;
+    for (auto gIdx : lGemHitIdx) {
+        for (auto tIdx : lTofHitIdx) {
+            tHit = *((BmnHit *)fTof400HitsArray->At(tIdx));
+            gHit = *((BmnHit *)fGemHitsArray->At(gIdx));
+            BmnTrack lTr;
+            lTr.GetParamFirst()->SetX(gHit.GetX());
+            lTr.GetParamFirst()->SetY(gHit.GetY());
+            lTr.GetParamFirst()->SetZ(gHit.GetZ());
+            lTr.GetParamFirst()->SetTx((tHit.GetX() - gHit.GetX()) / (tHit.GetZ() - gHit.GetZ()));
+            lTr.GetParamFirst()->SetTy((tHit.GetY() - gHit.GetY()) / (tHit.GetZ() - gHit.GetZ()));
+            lTr.GetParamLast()->SetX(tHit.GetX());
+            lTr.GetParamLast()->SetY(tHit.GetY());
+            lTr.GetParamLast()->SetZ(tHit.GetZ());
+            lTr.GetParamLast()->SetTx((tHit.GetX() - gHit.GetX()) / (tHit.GetZ() - gHit.GetZ()));
+            lTr.GetParamLast()->SetTy((tHit.GetY() - gHit.GetY()) / (tHit.GetZ() - gHit.GetZ()));
+            lTracks.push_back(lTr);
+        }
+    }
+    for (auto gIdx : rGemHitIdx) {
+        for (auto tIdx : rTofHitIdx) {
+            tHit = *((BmnHit *)fTof400HitsArray->At(tIdx));
+            gHit = *((BmnHit *)fGemHitsArray->At(gIdx));
+            BmnTrack rTr;
+            rTr.GetParamFirst()->SetX(gHit.GetX());
+            rTr.GetParamFirst()->SetY(gHit.GetY());
+            rTr.GetParamFirst()->SetZ(gHit.GetZ());
+            rTr.GetParamFirst()->SetTx((tHit.GetX() - gHit.GetX()) / (tHit.GetZ() - gHit.GetZ()));
+            rTr.GetParamFirst()->SetTy((tHit.GetY() - gHit.GetY()) / (tHit.GetZ() - gHit.GetZ()));
+            rTr.GetParamLast()->SetX(tHit.GetX());
+            rTr.GetParamLast()->SetY(tHit.GetY());
+            rTr.GetParamLast()->SetZ(tHit.GetZ());
+            rTr.GetParamLast()->SetTx((tHit.GetX() - gHit.GetX()) / (tHit.GetZ() - gHit.GetZ()));
+            rTr.GetParamLast()->SetTy((tHit.GetY() - gHit.GetY()) / (tHit.GetZ() - gHit.GetZ()));
+            rTracks.push_back(rTr);
+        }
+    }
 }
 
 ClassImp(SrcVertexFinder);

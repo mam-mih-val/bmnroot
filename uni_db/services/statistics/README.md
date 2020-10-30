@@ -1,13 +1,13 @@
-# BM@N Dashboard
+# BM@N Statistics
 
-Данный скрипт нужно запускать, используя python 3.6+, с помощью команды `python stats.py` с различными аргументами:
+Original version from: https://github.com/loooj58/BMAN
+
+This script must be run with python 3.6+, providing arguments in the command line:
 
 ```
-usage: stats.py [-h] [--dir [dir]] [--size] [--time]
+python3 stats.py [-h] [--dir [dir]] [--size] [--time]
                 [--config [CONFIG]] [--output [OUTPUT]]
 
-Script for size and time statistics. For more info see
-https://github.com/loooj58/BMAN
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -21,22 +21,28 @@ optional arguments:
                         Path to output file, default is ./output.png
 ```
 
-Другие параметры запуска задаются в конфиг-файле в формате json:
+Other parmeters are specified in JSON config file.
 
-обязательные:
-* `extensions_size` - расширения файлов с данными
-* `extensions_time` - расширения файлов с логами
-* `db_user`, `db_pass`, `db_name`, `db_host` - креденшиалы базы данных
+required parameters:
+* `extensions` - data or log file extensions (use ["*"] to include all files)
+* `db_user`, `db_pass`, `db_name`, `db_host` - database credentials
 
-опциональные:
-* `dpi` - dpi для сохранения/показа картинки
-* `folders_ignore` - папки, которые не нужно рассматирвать при обработке
+optional parameters:
+* `dpi` - dpi for the generated diagram
+* `folders_ignore` - directories that must be ignored while processing
 
+### Installation of the required libraries
 
-Установка необходимых библиотек происходит с помощью `pip install requirements.txt` или другим любым известным Вам способом.
+Can be done with `pip install -r requirements.txt`.
 
-Сейчас сохраняется картинка с отмеченным линией средним и тайтлом, где написаны единицы измерения и среднее. Список некорректно завершившихся задач записывается выводится в консоль.
+### Example running from virtual environment
 
-Примеры выполнения я специально добавила в репозиторий, чтобы можно было посмотреть результат, не скачивая и не запуская.
+```
+git clone -b dev --recursive https://git.jinr.ru/nica/bmnroot.git
+cd bmnroot/uni_db/services/statistics/
+python3.6 -m venv MYENV
+source MYENV/bin/activate
+pip install -r requirements.txt
 
-Если будут предложения, открывайте issue тут или пишите на почту (loooj58@gmail.com), в youtrack (https://npm.mipt.ru/youtrack/issue/NICA-27), в телеграм (ta_nyan).
+(MYENV) [user@host statistics]$ python3 stats.py --size --dir /eos/nica/bmn/exp/raw/run7/ --config config.json --recursive
+```

@@ -9,11 +9,11 @@
 #define BMNCLUSTERINGQA_H_
 
 #include "FairTask.h"
-#include "BmnDetectorSetup.h"
 #include <string>
 #include <vector>
 #include "BmnGemStripStationSet.h"
 #include "BmnSiliconStationSet.h"
+#include "CbmDetectorList.h"
 using std::string;
 using std::vector;
 using std::map;
@@ -173,7 +173,6 @@ private:
 
     BmnHistManager* fHM; // Histogram manager
     string fOutputDir; // Output directory for results
-    BmnDetectorSetup fDet; // For detector setup determination
 
     // Pointers to data arrays
     TClonesArray* fMCTracks;

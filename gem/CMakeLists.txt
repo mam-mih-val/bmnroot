@@ -3,9 +3,7 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/silicon
- ${CMAKE_SOURCE_DIR}/steering
  ${CMAKE_SOURCE_DIR}/alignment
  ${CMAKE_SOURCE_DIR}/gem
 )
@@ -33,10 +31,6 @@ set(SRCS
   BmnGemGas.cxx
   BmnManageQA.cxx
   BmnGemDigitizerQAHistograms.cxx
-  BmnCellAutoTracking.cxx
-  BmnInnerTrackingRun7.cxx
-  SrcInnerTrackingRun7.cxx
-  BmnCellDuet.cxx
   BmnGemStripLayer.cxx
   BmnGemStripModule.cxx
   BmnGemStripStation.cxx
@@ -50,9 +44,7 @@ set(SRCS
   BmnGemStripDigit.cxx
   BmnGemStripDigitizer.cxx
   BmnGemStripHitMaker.cxx
-#  BmnKalmanFilter.cxx
   BmnGemStripMedium.cxx
-  #BmnMaterialEffects.cxx
   BmnGemStripTransform.cxx
 
   BmnGemStripConfiguration.h
@@ -88,6 +80,6 @@ endif()
 Set(HEADERS)
 set(LINKDEF GemLinkDef.h)
 Set(LIBRARY_NAME Gem)
-Set(DEPENDENCIES BmnSteering Silicon BmnData GenVector Base XMLParser Core)
+Set(DEPENDENCIES Silicon BmnData GenVector Base XMLParser Core)
 
 GENERATE_LIBRARY()

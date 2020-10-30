@@ -282,6 +282,14 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ====================================================================== //
     BmnVertexFinder* gemVF = new BmnVertexFinder(run_period, isField);
     fRunAna->AddTask(gemVF);
+    
+//    // ====================================================================== //
+//    // ===          Alternative Primary vertex finding                    === //
+//    // ====================================================================== //
+//        CbmKF* kalman = new CbmKF("q", iVerbose);
+//        fRunAna->AddTask(kalman);\
+//    BmnPVAnalyzer* pv = new BmnPVAnalyzer(run_period, isField);
+//    fRunAna->AddTask(pv);
 
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)
     BmnFillDstTask* dst_task = new BmnFillDstTask(nEvents);

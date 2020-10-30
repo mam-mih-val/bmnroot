@@ -1,64 +1,116 @@
 /*
- * Baranov D.
- * 03.07.2018
- * Use this macro to create detailed ROOT geometry for
- * the RunSpring2018 configuration (BM@N RUN-7)
- * with passive volumes (frames, al. cable supports, ...)
+ * Use this macro to create detailed
+ * ROOT geometry for the RunSRCSpring2018 configuration
+ * (BM@N RUN-7:SRC) with passive volumes (frames, al. cable supports, ...)
  *
+ * Created: 29.09.2020
+ * Author: Baranov D.
  */
 
+#include "TGeoVolume.h"
+
+
 //Set Parameters of GEMS -------------------------------------------------------
-const Int_t NStations = 7;      //stations in the detector (6 active + 1 disabled)
+const Int_t NStations = 10;      //stations in the detector
 const Int_t NMaxModules = 2;    //max. number of modules in a station
 
 //(X-Y-Z)Positions of stations (sensitive volumes)
-const Double_t XStationPositions[NStations] = { +0.5390, +0.7025, +1.9925, +3.0860, +3.7980, +4.5815, +1.2/*disabled station*/};
-const Double_t YStationPositions[NStations] = { +15.99873, +16.20573, +16.36073, +16.40473, +16.09373, +16.45473, +16.0/*disabled station*/};
-const Double_t ZStationPositions[NStations] = { +39.702, +64.535, +112.649, +135.330, +160.6635, +183.668, +87.6/*disabled station*/};
+//const Double_t XStationPositions[NStations] = { 0.0 /*0*/, 0.0 /*1*/, 0.0 /*2*/, 0.0 /*3*/, 0.0 /*4*/, 0.0 /*5*/, 0.0 /*6*/, 0.0 /*7*/, 0.0 /*8*/, 0.0 /*9*/ };
+//const Double_t YStationPositions[NStations] = { 0.0 /*0*/, 0.0 /*1*/, 0.0 /*2*/, 0.0 /*3*/, 0.0 /*4*/, 0.0 /*5*/, 0.0 /*6*/, 0.0 /*7*/, 0.0 /*8*/, 0.0 /*9*/ };
+//const Double_t ZStationPositions[NStations] = { 0.0 /*0*/, 0.0 /*1*/, 0.0 /*2*/, 0.0 /*3*/, 0.0 /*4*/, 0.0 /*5*/, 0.0 /*6*/, 0.0 /*7*/, 0.0 /*8*/, 0.0 /*9*/ };
 
-//(X-Y-Z)Shifts of modules in each station
+//(X-Y-Z)Positions of stations (sensitive volumes) -----------------------------
+const Double_t XStationPositions[NStations] = {
+    +117.22007, //station 0 (left side: upper GEM M4)
+    +117.27807, //station 1 (left side: lower GEM M3)
+    -117.51723, //station 2 (right side: upper GEM M1)
+    -115.31016, //station 3 (right side: lower GEM M2)
+    +1.0055, //station 4 (GEM M10)
+    +1.4715, //station 5 (GEM M7)
+    +2.1145, //station 6 (GEM M5)
+    +2.9225, //station 7 (GEM M6)
+    +3.6775, //station 8 (GEM M8)
+    +4.5025  //station 9 (GEM M9)
+};
+const Double_t YStationPositions[NStations] = {
+    +16.86775, //station 0 (left side: upper GEM M4)
+    -25.90225, //station 1 (left side: lower GEM M3)
+    +16.86775, //station 2 (right side: upper GEM M1)
+    -25.76025, //station 3 (right side: lower GEM M2)
+    +7.97675, //station 4 (GEM M10)
+    +7.96375, //station 5 (GEM M7)
+    +7.64975, //station 6 (GEM M5)
+    +7.74575, //station 7 (GEM M6)
+    +8.02675, //station 8 (GEM M8)
+    +7.95175  //station 9 (GEM M9)
+};
+const Double_t ZStationPositions[NStations] = {
+    -444.97179, //station 0 (left side: upper GEM M4)
+    -447.46132, //station 1 (left side: lower GEM M3)
+    -444.99841, //station 2 (right side: upper GEM M1)
+    -446.18716, //station 3 (right side: lower GEM M2)
+    +64.754, //station 4 (GEM M10)
+    +87.854, //station 5 (GEM M7)
+    +112.967, //station 6 (GEM M5)
+    +135.988, //station 7 (GEM M6)
+    +160.845, //station 8 (GEM M8)
+    +183.712  //station 9 (GEM M9)
+};
+//------------------------------------------------------------------------------
+
+//(X-Y-Z)Shifts of modules in each station -------------------------------------
 const Double_t XModuleShifts[NStations][NMaxModules] = {
-    {163.2*0.25, -163.2*0.25},
-    {163.2*0.25, -163.2*0.25},
-    {163.2*0.25, -163.2*0.25},
-    {163.2*0.25, -163.2*0.25},
-    {163.2*0.25, -163.2*0.25},
-    {163.2*0.25, -163.2*0.25},
-    {163.2*0.25, -163.2*0.25} /*disabled station*/
+    { 0.0 }, //station 0 (left side: upper GEM M4)
+    { 0.0 }, //station 1 (left side: lower GEM M3)
+    { 0.0 }, //station 2 (right side: upper GEM M1)
+    { 0.0 }, //station 3 (right side: lower GEM M2)
+    { 163.2*0.25, -163.2*0.25 }, //station 4 (GEM M10)
+    { 163.2*0.25, -163.2*0.25 }, //station 5 (GEM M7)
+    { 163.2*0.25, -163.2*0.25 }, //station 6 (GEM M5)
+    { 163.2*0.25, -163.2*0.25 }, //station 7 (GEM M6)
+    { 163.2*0.25, -163.2*0.25 }, //station 8 (GEM M8)
+    { 163.2*0.25, -163.2*0.25 }  //station 9 (GEM M9)
 };
 const Double_t YModuleShifts[NStations][NMaxModules] = {
-    {0.0, 0.0},
-    {0.0, 0.0},
-    {0.0, 0.0},
-    {0.0, 0.0},
-    {0.0, 0.0},
-    {0.0, 0.0},
-    {0.0, 0.0} /*disabled station*/
+    { 0.0 }, //station 0 (left side: upper GEM M4)
+    { 0.0 }, //station 1 (left side: lower GEM M3)
+    { 0.0 }, //station 2 (right side: upper GEM M1)
+    { 0.0 }, //station 3 (right side: lower GEM M2)
+    { 0.0, 0.0 }, //station 4 (GEM M10)
+    { 0.0, 0.0 }, //station 5 (GEM M7)
+    { 0.0, 0.0 }, //station 6 (GEM M5)
+    { 0.0, 0.0 }, //station 7 (GEM M6)
+    { 0.0, 0.0 }, //station 8 (GEM M8)
+    { 0.0, 0.0 }  //station 9 (GEM M9)
 };
 const Double_t ZModuleShifts[NStations][NMaxModules] = {
-    {0.0, 0.0},
-    {0.0, 0.0},
-    {0.0, 0.0},
-    {0.0, 0.0},
-    {0.0, 0.0},
-    {0.0, 0.0},
-    {0.0, 0.0} /*disabled station*/
+    { 0.0 }, //station 0 (left side: upper GEM M4)
+    { 0.0 }, //station 1 (left side: lower GEM M3)
+    { 0.0 }, //station 2 (right side: upper GEM M1)
+    { 0.0 }, //station 3 (right side: lower GEM M2)
+    { 0.0, 0.0 }, //station 4 (GEM M10)
+    { 0.0, 0.0 }, //station 5 (GEM M7)
+    { 0.0, 0.0 }, //station 6 (GEM M5)
+    { 0.0, 0.0 }, //station 7 (GEM M6)
+    { 0.0, 0.0 }, //station 8 (GEM M8)
+    { 0.0, 0.0 }  //station 9 (GEM M9)
 };
 
 //rotations of stations around y-axis by 180 deg.
-const Bool_t YStationRotations[NStations] = {false/*0*/, true/*1*/, true/*2*/, false/*3*/, true/*4*/, false/*5*/, false/*disabled station*/};
+const Bool_t YStationRotations[NStations] = {false/*0*/, false/*1*/, false/*2*/, false/*3*/, true/*4*/, false/*5*/, true/*6*/, false/*7*/, true/*8*/, false/*9*/};
 
 //rotations of stations around x-axis by 180 deg.
-const Bool_t XStationRotations[NStations] = {false/*0*/, false/*1*/, false/*2*/, false/*3*/, false/*4*/, false/*5*/, false/*disabled station*/};
+const Bool_t XStationRotations[NStations] = {false/*0*/, false/*1*/, false/*2*/, false/*3*/, false/*4*/, false/*5*/, false/*6*/, false/*7*/, false/*8*/, false/*9*/};
+//------------------------------------------------------------------------------
 
 //GEM plane sizes (66x41 type) -------------------------------------------------
 const Double_t XModuleSize_Station66x41 = 66.0;
 const Double_t YModuleSize_Station66x41 = 41.0;
 const Double_t ZModuleSize_Station66x41 = 0.9;
 
-const Double_t dXFrame_Station66x41 = 5.0;
-const Double_t dYFrame_Station66x41 = 3.75;
-const Double_t dZFrame_Station66x41 = 2.3;
+const Double_t dXFrame_Station66x41 = 2.0;
+const Double_t dYFrame_Station66x41 = 2.0;
+const Double_t dZFrame_Station66x41 = 2.1; //was 2.3 cm - thickness
 //------------------------------------------------------------------------------
 
 //GEM plane sizes (163x45 type) ------------------------------------------------
@@ -91,6 +143,7 @@ TGeoMedium *pMedPolyamide = 0;
 
 class FairGeoMedia;
 class FairGeoBuilder;
+
 
 TGeoVolume *CreateStation(TString station_name);
 TGeoVolume *CreateModule_Station66x41(TString module_name, Double_t xsize, Double_t ysize, Double_t zsize);
@@ -187,14 +240,14 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
     if ( ! pMedPolyamide  ) Fatal("Main", "Medium polyamide not found");
 }
 
-void create_rootgeom_GEMS_RunSpring2018_detailed() {
+void create_rootgeom_GEMS_RunSRCSpring2018_detailed() {
 
     // ----  set working directory  --------------------------------------------
     TString gPath = gSystem->Getenv("VMCWORKDIR");
 
     // -------   Geometry file name (output)   ----------------------------------
     const TString geoDetectorName = "GEMS";
-    const TString geoDetectorVersion = "RunSpring2018_detailed";
+    const TString geoDetectorVersion = "RunSRCSpring2018_detailed";
     const TString geoFileName = gPath + "/geometry/" + geoDetectorName + "_"+ geoDetectorVersion + ".root";
 
     // ----  global geometry parameters  ---------------------------------------
@@ -224,63 +277,181 @@ void create_rootgeom_GEMS_RunSpring2018_detailed() {
     TGeoVolume* GEMS = new TGeoVolumeAssembly(geoDetectorName);
     GEMS->SetMedium(pMedAir);
 
-    for(Int_t istation = 0; istation < NStations; ++istation) {
-    //for(Int_t istation = 0; istation < 1; ++istation) {
+    //TGeoVolume *target = gGeoMan->MakeSphere("target", 0, 0, 5.0);
+    //GEMS->AddNode(target, 0, new TGeoTranslation(0.0, 0.0, -647.476));
 
-        Int_t stationNum = istation;
-        TGeoVolume *station = CreateStation(TString("station") + TString::Itoa(stationNum, 10));
+    //station 0 (small 66x41 GEM: left side: upper station)
+    if(1) {
+        Int_t stationNum = 0; //station number
 
-        TGeoVolume *module0 = CreateModule_Station163x45(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0);
-        TGeoVolume *module1 = CreateModule_Station163x45(TString("Sensor_module1_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0);
-
-        TGeoVolume *layers0 = CreateLayersForModule_Station163x45(TString("layer0_")+station->GetName());
-        TGeoVolume *layers1 = CreateLayersForModule_Station163x45(TString("layer1_")+station->GetName());
-
-        TGeoVolume *frame = CreateFrameForHalfPlane_Station163x45(TString("frame_")+station->GetName());
-
-        if(istation == 6) {
-            station->SetName(TString("disabled_station") + TString::Itoa(stationNum, 10));
-            module0->SetName(TString("module0_")+station->GetName());
-            module1->SetName(TString("module1_")+station->GetName());
-        }
+        TGeoVolume *station = CreateStation(TString("station")+ TString::Itoa(stationNum, 10));
+        TGeoVolume *module0 = CreateModule_Station66x41(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station66x41, YModuleSize_Station66x41, ZModuleSize_Station66x41);
+        TGeoVolume *frame0 = CreateFrameForModule_Station66x41(TString("frame0_")+station->GetName(), dXFrame_Station66x41, dYFrame_Station66x41, dZFrame_Station66x41);
 
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
-            if(XStationRotations[stationNum] == true) module0_transform->RotateX(180.0);
             module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
-
-        TGeoCombiTrans *module1_transform = new TGeoCombiTrans();
-        if(XStationRotations[stationNum] == true) module1_transform->RotateX(180.0);
-            module1_transform->ReflectX(true);
-            module1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1], ZModuleShifts[stationNum][1]+ZModuleSize_Station163x45*0.5);
-
-       TGeoCombiTrans *layers0_transform = new TGeoCombiTrans();
-            if(YStationRotations[stationNum] == true) layers0_transform->ReflectZ(true);
-            if(XStationRotations[stationNum] == true) layers0_transform->RotateX(180.0);
-            layers0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
-
-        TGeoCombiTrans *layers1_transform = new TGeoCombiTrans();
-            if(YStationRotations[stationNum] == true) layers1_transform->ReflectZ(true);
-            if(XStationRotations[stationNum] == true) layers1_transform->RotateX(180.0);
-            layers1_transform->ReflectX(true);
-            layers1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1], ZModuleShifts[stationNum][1]+ZModuleSize_Station163x45*0.5);
-
-        TGeoCombiTrans *frame_transform = new TGeoCombiTrans();
-        if(YStationRotations[stationNum] == true) frame_transform->RotateY(180.0);
-        if(XStationRotations[stationNum] == true) frame_transform->RotateX(180.0);
-        frame_transform->SetTranslation((XModuleShifts[stationNum][0] + XModuleShifts[stationNum][1]), YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
+            module0_transform->RotateY(+30.5843); //deg
 
         TGeoCombiTrans *station_transform = new TGeoCombiTrans();
         station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
 
         station->AddNode(module0, 0, new TGeoCombiTrans(*module0_transform)); //module
-        station->AddNode(module1, 1, new TGeoCombiTrans(*module1_transform)); //module
-
-        station->AddNode(layers0, 0, new TGeoCombiTrans(*layers0_transform)); //layers
-        station->AddNode(layers1, 1, new TGeoCombiTrans(*layers1_transform)); //layers
-
-        station->AddNode(frame, 0, frame_transform);
+        station->AddNode(frame0, 0, new TGeoCombiTrans(*module0_transform)); //frame
 
         GEMS->AddNode(station, 0, station_transform);
+    }
+
+    //station 1 (small 66x41 GEM: left side: lower station)
+    if(1) {
+        Int_t stationNum = 1; //station number
+
+        TGeoVolume *station = CreateStation(TString("station")+ TString::Itoa(stationNum, 10));
+        TGeoVolume *module0 = CreateModule_Station66x41(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station66x41, YModuleSize_Station66x41, ZModuleSize_Station66x41);
+        TGeoVolume *frame0 = CreateFrameForModule_Station66x41(TString("frame0_")+station->GetName(), dXFrame_Station66x41, dYFrame_Station66x41, dZFrame_Station66x41);
+
+        TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
+            module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
+            module0_transform->RotateY(+30.5843); //deg
+
+        TGeoCombiTrans *station_transform = new TGeoCombiTrans();
+        station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
+
+        station->AddNode(module0, 0, new TGeoCombiTrans(*module0_transform)); //module
+        station->AddNode(frame0, 0, new TGeoCombiTrans(*module0_transform)); //frame
+
+        GEMS->AddNode(station, 0, station_transform);
+    }
+
+    //station 2 (small 66x41 GEM: right side: upper station)
+    if(1) {
+        Int_t stationNum = 2; //station number
+
+        TGeoVolume *station = CreateStation(TString("station")+ TString::Itoa(stationNum, 10));
+        TGeoVolume *module0 = CreateModule_Station66x41(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station66x41, YModuleSize_Station66x41, ZModuleSize_Station66x41);
+        TGeoVolume *frame0 = CreateFrameForModule_Station66x41(TString("frame0_")+station->GetName(), dXFrame_Station66x41, dYFrame_Station66x41, dZFrame_Station66x41);
+
+        TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
+            module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
+            module0_transform->RotateY(-30.6845); //deg
+
+        TGeoCombiTrans *station_transform = new TGeoCombiTrans();
+        station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
+
+        station->AddNode(module0, 0, new TGeoCombiTrans(*module0_transform)); //module
+        station->AddNode(frame0, 0, new TGeoCombiTrans(*module0_transform)); //frame
+
+        GEMS->AddNode(station, 0, station_transform);
+    }
+
+    //station 3 (small 66x41 GEM: right side: lower station)
+    if(1) {
+        Int_t stationNum = 3; //station number
+
+        TGeoVolume *station = CreateStation(TString("station")+ TString::Itoa(stationNum, 10));
+        TGeoVolume *module0 = CreateModule_Station66x41(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station66x41, YModuleSize_Station66x41, ZModuleSize_Station66x41);
+        TGeoVolume *frame0 = CreateFrameForModule_Station66x41(TString("frame0_")+station->GetName(), dXFrame_Station66x41, dYFrame_Station66x41, dZFrame_Station66x41);
+
+        TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
+            module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
+            module0_transform->RotateY(-30.6845); //deg
+
+        TGeoCombiTrans *station_transform = new TGeoCombiTrans();
+        station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
+
+        station->AddNode(module0, 0, new TGeoCombiTrans(*module0_transform)); //module
+        station->AddNode(frame0, 0, new TGeoCombiTrans(*module0_transform)); //frame
+
+        GEMS->AddNode(station, 0, station_transform);
+    }
+
+    //stations 4-9 (each is a big 163x45 GEM consisting of two modules)
+    if(1) {
+        /*for(Int_t istation = 4; istation < 10; ++istation) {
+
+            Int_t stationNum = istation; //station number
+
+            TGeoVolume *station = CreateStation(TString("station")+ TString::Itoa(stationNum, 10));
+            TGeoVolume *module0 = CreateModule_Station163x45(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0+1.75);
+            TGeoVolume *module1 = CreateModule_Station163x45(TString("Sensor_module1_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0+1.75);
+            TGeoVolume *frame0 = CreateFrameForModule_Station163x45(TString("frame0_")+station->GetName(), dXFrame_Station163x45, dYFrame_Station163x45, dZFrame_Station163x45, 4.0+1.75);
+            TGeoVolume *frame1 = CreateFrameForModule_Station163x45(TString("frame1_")+station->GetName(), dXFrame_Station163x45, dYFrame_Station163x45, dZFrame_Station163x45, 4.0+1.75);
+
+            TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
+                module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
+
+            TGeoCombiTrans *module1_transform = new TGeoCombiTrans();
+                module1_transform->ReflectX(true);
+                module1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1], ZModuleShifts[stationNum][1]+ZModuleSize_Station163x45*0.5);
+
+            TGeoCombiTrans *station_transform = new TGeoCombiTrans();
+            station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
+
+            station->AddNode(module0, 0, new TGeoCombiTrans(*module0_transform)); //module
+            station->AddNode(module1, 0, new TGeoCombiTrans(*module1_transform)); //module
+
+            station->AddNode(frame0, 0, new TGeoCombiTrans(*module0_transform)); //frame
+            station->AddNode(frame1, 0, new TGeoCombiTrans(*module1_transform)); //frame
+
+            GEMS->AddNode(station, 0, station_transform);
+        }*/
+
+        for(Int_t istation = 4; istation < 10; ++istation) {
+
+            Int_t stationNum = istation;
+            TGeoVolume *station = CreateStation(TString("station") + TString::Itoa(stationNum, 10));
+
+            TGeoVolume *module0 = CreateModule_Station163x45(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0);
+            TGeoVolume *module1 = CreateModule_Station163x45(TString("Sensor_module1_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0);
+
+            TGeoVolume *layers0 = CreateLayersForModule_Station163x45(TString("layer0_")+station->GetName());
+            TGeoVolume *layers1 = CreateLayersForModule_Station163x45(TString("layer1_")+station->GetName());
+
+            TGeoVolume *frame = CreateFrameForHalfPlane_Station163x45(TString("frame_")+station->GetName());
+
+            if(istation == 6) {
+                station->SetName(TString("disabled_station") + TString::Itoa(stationNum, 10));
+                module0->SetName(TString("module0_")+station->GetName());
+                module1->SetName(TString("module1_")+station->GetName());
+            }
+
+            TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
+                if(XStationRotations[stationNum] == true) module0_transform->RotateX(180.0);
+                module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
+
+            TGeoCombiTrans *module1_transform = new TGeoCombiTrans();
+            if(XStationRotations[stationNum] == true) module1_transform->RotateX(180.0);
+                module1_transform->ReflectX(true);
+                module1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1], ZModuleShifts[stationNum][1]+ZModuleSize_Station163x45*0.5);
+
+           TGeoCombiTrans *layers0_transform = new TGeoCombiTrans();
+                if(YStationRotations[stationNum] == true) layers0_transform->ReflectZ(true);
+                if(XStationRotations[stationNum] == true) layers0_transform->RotateX(180.0);
+                layers0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
+
+            TGeoCombiTrans *layers1_transform = new TGeoCombiTrans();
+                if(YStationRotations[stationNum] == true) layers1_transform->ReflectZ(true);
+                if(XStationRotations[stationNum] == true) layers1_transform->RotateX(180.0);
+                layers1_transform->ReflectX(true);
+                layers1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1], ZModuleShifts[stationNum][1]+ZModuleSize_Station163x45*0.5);
+
+            TGeoCombiTrans *frame_transform = new TGeoCombiTrans();
+            if(YStationRotations[stationNum] == true) frame_transform->RotateY(180.0);
+            if(XStationRotations[stationNum] == true) frame_transform->RotateX(180.0);
+            frame_transform->SetTranslation((XModuleShifts[stationNum][0] + XModuleShifts[stationNum][1]), YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
+
+            TGeoCombiTrans *station_transform = new TGeoCombiTrans();
+            station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
+
+            station->AddNode(module0, 0, new TGeoCombiTrans(*module0_transform)); //module
+            station->AddNode(module1, 1, new TGeoCombiTrans(*module1_transform)); //module
+
+            station->AddNode(layers0, 0, new TGeoCombiTrans(*layers0_transform)); //layers
+            station->AddNode(layers1, 1, new TGeoCombiTrans(*layers1_transform)); //layers
+
+            station->AddNode(frame, 0, frame_transform);
+
+            GEMS->AddNode(station, 0, station_transform);
+        }
     }
 
     top->AddNode(GEMS, 0);

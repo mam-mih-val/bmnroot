@@ -6,13 +6,12 @@
 #include "TString.h"
 #include "BmnGemTrack.h"
 #include "BmnGlobalTrack.h"
-#include "BmnGemStripHit.h"
 #include "TMath.h"
 #include "TVector3.h"
 #include "BmnEnums.h"
 #include "FairRunAna.h"
 #include "FairField.h"
-#include "CbmVertex.h"
+#include "BmnVertex.h"
 #include "BmnKalmanFilter.h"
 #include <TStopwatch.h>
 
@@ -34,12 +33,8 @@ public:
         fIsField = f;
     }
 
-    void SetVertexApproximation(TVector3 vertex) {
-        fRoughVertex3D = vertex;
-    }
-
-    void FindPrimaryVertex();
-    void FindSecondaryVertex();
+    BmnVertex FindPrimaryVertex(TClonesArray* tracks);
+    BmnVertex FindSecondaryVertex(TClonesArray* tracks);
     Float_t FindVZByVirtualPlanes(Float_t z_0, Float_t range, TClonesArray* tracks, Int_t flag);
 
    private:
@@ -53,7 +48,6 @@ public:
 
     Int_t fEventNo; // event counter
     Int_t fPeriodId; // event counter
-    Int_t fNTracks; // number of reco tracks in event
 
     TClonesArray* fGlobalTracksArray;
     TClonesArray* fVertexArray;
@@ -64,7 +58,6 @@ public:
     Bool_t fRobustRefit;
     FairField* fField;
     BmnKalmanFilter* fKalman;
-    TVector3 fRoughVertex3D;
 
     ClassDef(BmnVertexFinder, 1);
 };

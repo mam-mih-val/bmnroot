@@ -14,7 +14,6 @@
 #include <vector>
 #include "BmnDchHit.h"
 #include "BmnDchTrack.h"
-#include "BmnDetectorSetup.h"
 #include "BmnGemTrack.h"
 #include "BmnGlobalTrack.h"
 #include "BmnHit.h"
@@ -26,7 +25,7 @@
 #include "CbmMCTrack.h"
 #include "CbmStsHit.h"
 #include "CbmTofPoint.h"
-#include "CbmVertex.h"
+#include "BmnVertex.h"
 #include "FairMCPoint.h"
 #include "FairRootManager.h"
 #include "FairRunAna.h"
@@ -191,15 +190,13 @@ class BmnGlobalTracking : public FairTask {
     Bool_t fIsExp;
     Bool_t fDoAlign;
 
-    BmnDetectorSetup fDet;  // Detector presence information
-
     Int_t fEventNo;  // event counter
     Int_t fRunId;
 
     Int_t fPDG;         // PDG hypothesis
     Float_t fChiSqCut;  // Chi square cut for hit to be attached to track.
 
-    CbmVertex *fVertex;  // vertex information
+    BmnVertex *fVertex;  // vertex information
 
     BmnKalmanFilter *fKalman;
     Double_t fTime;

@@ -6,7 +6,9 @@
 
 #pragma link C++ class BmnTwoParticleDecay++;
 #pragma link C++ class BmnParticlePair++;
+#pragma link C++ class BmnParticlePairCut++;
 #pragma link C++ class BmnParticlePairsInfo++;
+#pragma link C++ class BmnMassSpectrumAnal++;
 
 #endif
 

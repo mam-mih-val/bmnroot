@@ -82,9 +82,9 @@ vector <Double_t> BmnTwoParticleDecay::GeomTopology(FairTrackParam proton_V0, Fa
         Z = fMcVertex.Z();
     }// bmndst.root -->
     else {
-        X = (!fIsUseRealVertex) ? fEventVertex->GetRoughX() : fEventVertex->GetX();
-        Y = (!fIsUseRealVertex) ? fEventVertex->GetRoughY() : fEventVertex->GetY();
-        Z = (!fIsUseRealVertex) ? fEventVertex->GetRoughZ() : fEventVertex->GetZ();
+        X = fEventVertex->GetX();
+        Y = fEventVertex->GetY();
+        Z = fEventVertex->GetZ();
     }
     TVector3 Vp(X, Y, Z);
     // Secondary proton at V0
@@ -247,7 +247,7 @@ void BmnTwoParticleDecay::Analysis() {
                 continue;
 
             // Go to primary vertex Vp
-            Double_t Vpz = isMC ? fMcVertex.Z() : fIsUseRealVertex ? fEventVertex->GetZ() : fEventVertex->GetRoughZ();
+            Double_t Vpz = isMC ? fMcVertex.Z() : fEventVertex->GetZ();
             FairTrackParam proton_Vp = KalmanTrackPropagation(track1, fPdgParticle1, Vpz);
             FairTrackParam pion_Vp = KalmanTrackPropagation(track2, fPdgParticle2, Vpz);
 
@@ -282,9 +282,12 @@ void BmnTwoParticleDecay::Analysis() {
             vector <Double_t> geomTopology = GeomTopology(proton_V0, pion_V0, proton_Vp, pion_Vp);
 
             BmnParticlePair partPair;
-            
+
             // trying to get tof info from tracks ...
-            enum {tof400 = 1, tof700 = 2};
+
+            enum {
+                tof400 = 1, tof700 = 2
+            };
             partPair.SetBeta400Pair(track1->GetBeta(tof400), track2->GetBeta(tof400));
             partPair.SetBeta700Pair(track1->GetBeta(tof700), track2->GetBeta(tof700));
 
@@ -298,9 +301,9 @@ void BmnTwoParticleDecay::Analysis() {
 
             TVector3 V0(V0X, V0Y, V0Z);
             TVector3 Vp;
-            Vp.SetX(isMC ? fMcVertex.X() : fIsUseRealVertex ? fEventVertex->GetX() : fEventVertex->GetRoughX());
-            Vp.SetY(isMC ? fMcVertex.Y() : fIsUseRealVertex ? fEventVertex->GetY() : fEventVertex->GetRoughY());
-            Vp.SetZ(isMC ? fMcVertex.Z() : fIsUseRealVertex ? fEventVertex->GetZ() : fEventVertex->GetRoughZ());
+            Vp.SetX(isMC ? fMcVertex.X() : fEventVertex->GetX());
+            Vp.SetY(isMC ? fMcVertex.Y() : fEventVertex->GetY());
+            Vp.SetZ(isMC ? fMcVertex.Z() : fEventVertex->GetZ());
             // TVector3 Vp(fEventVertex->GetX(), fEventVertex->GetY(), fEventVertex->GetZ());
             Double_t path = TVector3(V0 - Vp).Mag();
 
@@ -308,7 +311,41 @@ void BmnTwoParticleDecay::Analysis() {
 
             partPair.SetMomPair(_p1, _p2);
             partPair.SetEtaPair(_eta1, _eta2);
-            partPair.SetNHitsPair(track1->GetNHits(), track2->GetNHits());
+
+            // partPair.SetNHitsPair(track1->GetNHits(), track2->GetNHits());
+
+            // Getting gem part of glob. track ...
+            Int_t gemIdx1 = track1->GetGemTrackIndex();
+            BmnTrack* gemTrack1 = (BmnTrack*) fGemTracks->UncheckedAt(gemIdx1);
+            Int_t nHitsGem1 = gemTrack1->GetNHits();
+
+            Int_t gemIdx2 = track2->GetGemTrackIndex();
+            BmnTrack* gemTrack2 = (BmnTrack*) fGemTracks->UncheckedAt(gemIdx2);
+            Int_t nHitsGem2 = gemTrack2->GetNHits();
+
+            // Getting sil. part of glob. track ...
+            Int_t nHitsSil1 = 0;
+            Int_t silIdx1 = track1->GetSilTrackIndex();
+            if (silIdx1 != -1) {
+                BmnTrack* silTrack1 = (BmnTrack*) fSiliconTracks->UncheckedAt(silIdx1);
+                nHitsSil1 = silTrack1->GetNHits();
+            }
+
+            Int_t nHitsSil2 = 0;
+            Int_t silIdx2 = track2->GetSilTrackIndex();
+            if (silIdx2 != -1) {
+                BmnTrack* silTrack2 = (BmnTrack*) fSiliconTracks->UncheckedAt(silIdx2);
+                nHitsSil2 = silTrack2->GetNHits();
+            }
+
+            vector <Int_t> particle1{nHitsSil1, nHitsGem1};
+            vector <Int_t> particle2{nHitsSil2, nHitsGem2};
+
+            partPair.SetNHitsPair(particle1, particle2);
+            
+            // Skipping tracks having more than three silicon hits ...
+            if (partPair.GetNHitsPart1("SILICON") > 3 || partPair.GetNHitsPart2("SILICON") > 3) // FIXME
+                continue;
 
             // Track params. are redefined
             Double_t Tx1, Ty1, Tx2, Ty2, p1, p2;
@@ -416,7 +453,12 @@ InitStatus BmnTwoParticleDecay::Init() {
 
     fGemPoints = (TClonesArray*) ioman->GetObject(fBranchGemPoints.Data());
     fSilPoints = (TClonesArray*) ioman->GetObject(fBranchSilPoints.Data());
+
     fGlobalTracks = (TClonesArray*) ioman->GetObject(fBranchGlobalTracks.Data());
+    fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTrack");
+    fSiliconTracks = (TClonesArray*) ioman->GetObject("BmnSiliconTrack");
+    fSilHits = (TClonesArray*) ioman->GetObject("BmnSiliconHit");
+
     fMCTracks = (TClonesArray*) ioman->GetObject(fBranchMCTracks.Data());
     fGlobalMatches = (TClonesArray*) ioman->GetObject(fBranchGlobalMatch.Data());
     fVertex = (TClonesArray*) ioman->GetObject(fBranchVertex.Data());
@@ -491,13 +533,13 @@ void BmnTwoParticleDecay::Exec(Option_t * option) {
         }
     }// Real data ..
     else {
-        fEventVertex = (CbmVertex*) fVertex->UncheckedAt(0);
+        fEventVertex = (BmnVertex*) fVertex->UncheckedAt(0);
 
         if (fEventVertex->GetNTracks() < 2) // Num of tracks to be used for Vp reconstruction
             return;
 
-        TVector3 roughVert(fEventVertex->GetRoughX(), fEventVertex->GetRoughY(), fEventVertex->GetRoughZ());
         TVector3 realVert(fEventVertex->GetX(), fEventVertex->GetY(), fEventVertex->GetZ());
+        TVector3 roughVert(0., 0., 0.);
 
         const Double_t vertexCut = 100.; // Difference between reconstructed Vp and its approximate position
 

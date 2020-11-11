@@ -67,8 +67,8 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     setup[1] = 1; // MWPC
     setup[2] = 1; // SILICON
     setup[3] = 1; // GEM
-    setup[4] = 0; // TOF-400
-    setup[5] = 0; // TOF-700
+    setup[4] = 1; // TOF-400
+    setup[5] = 1; // TOF-700
     setup[6] = 1; // DCH
     setup[7] = 1; // ZDC
     setup[8] = 1; // ECAL
@@ -77,11 +77,19 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetBmnSetup(fBmnSetup);
     TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((fBmnSetup == kBMNSETUP) ? "" : "_SRC"));
+//    rawDataDecoder->SetAdcDecoMode(period < 6 ? kBMNADCSM : kBMNADCMK);
+    rawDataDecoder->SetAdcDecoMode(kBMNADCSM);
     rawDataDecoder->SetTof400Mapping(TString("TOF400_PlaceMap_RUN") + PeriodSetupExt, TString("TOF400_StripMap_RUN") + PeriodSetupExt);
-    rawDataDecoder->SetTof700Mapping(TString("TOF700_map_period_") + PeriodSetupExt);
+    rawDataDecoder->SetTOF700ReferenceRun(-1);
+    rawDataDecoder->SetTof700Geom(TString("TOF700_geometry_run") + PeriodSetupExt);
+    if (rawDataDecoder->GetRunId() >= 4278 && rawDataDecoder->GetPeriodId() == 7)
+        rawDataDecoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d_from_run_4278.txt", fPeriodID));
+    else
+        rawDataDecoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d.txt", fPeriodID));
     rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
-    rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
-    rawDataDecoder->SetECALMapping("ECAL_map_period_7.txt");
+//    rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
+    rawDataDecoder->SetECALMapping(TString("ECAL_map_period_") + PeriodSetupExt);
+    rawDataDecoder->SetECALCalibration("");
     rawDataDecoder->SetLANDMapping("land_mapping_jinr_triplex.txt");
     rawDataDecoder->SetLANDPedestal("r0030_land_clock.hh");
     rawDataDecoder->SetLANDTCal("r0030_land_tcal.hh");
@@ -92,7 +100,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     rawDataDecoder->SetSiliconMapping(TString("SILICON_map_run") + PeriodSetupExt);
     rawDataDecoder->SetGemMapping(TString("GEM_map_run") + PeriodSetupExt);
     rawDataDecoder->SetCSCMapping(TString("CSC_map_period") + PeriodSetupExt);
-    rawDataDecoder->SetMwpcMapping(TString("MWPC_map_period") + PeriodSetupExt);
+    rawDataDecoder->SetMwpcMapping(TString("MWPC_map_period") + ((fPeriodID == 6 && rawDataDecoder->GetRunId() < 1397) ? 5 : PeriodSetupExt));
     rawDataDecoder->SetMSCMapping(TString("MSC_map_Run") + PeriodSetupExt);
     rawDataDecoder->InitMaps();
     if (_curFile.Length() > 0)

@@ -217,6 +217,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ===                       Tracking (InnerTracker)                  === //
     // ====================================================================== //
     BmnInnerTrackingRun7* innerTF = new BmnInnerTrackingRun7(run_number, isField, isTarget);
+    innerTF->SetFiltration(isExp); //we use filtration for experimental data only now
     fRunAna->AddTask(innerTF);
 
 #endif

@@ -217,6 +217,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ===                       Tracking (InnerTracker)                  === //
     // ====================================================================== //
     BmnInnerTrackingRun7* innerTF = new BmnInnerTrackingRun7(run_number, isField, isTarget);
+    innerTF->SetFiltration(isExp); //we use filtration for experimental data only now
     fRunAna->AddTask(innerTF);
 
 #endif
@@ -288,7 +289,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
 //    // ====================================================================== //
 //        CbmKF* kalman = new CbmKF("q", iVerbose);
 //        fRunAna->AddTask(kalman);\
-//    BmnPVAnalyzer* pv = new BmnPVAnalyzer(run_period, isField);
+//    BmnPVAnalyzer* pv = new BmnPVAnalyzer(run_period, run_number, isField);
 //    fRunAna->AddTask(pv);
 
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)

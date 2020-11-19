@@ -58,6 +58,9 @@ void BmnEcalDigitizer::Exec(Option_t* opt) {
                 if (energyLoss > 0) {
                     Float_t pointTime = p->GetTime();
                     if (fMaxPointTime > 0 && pointTime > fMaxPointTime) continue;
+                    if (fFiberSOL > 0.) {
+                        pointTime += (fFiberLength - fLayerThickness * (p->GetCopy()+1))/fFiberSOL; 
+                    }
                     fCells[ch].SetAmp(fCells[ch].GetAmp() + energyLoss);
                     fCells[ch].SetStartTime(fCells[ch].GetStartTime() + pointTime * energyLoss);
                 }
@@ -191,7 +194,7 @@ void BmnEcalDigitizer::LoadGeometry() {
             ecal2->LocalToMaster(ecalCoords,labCoords);
             fCells[ch].SetChannel(ch);
             fCells[ch].SetX(ecalCoords[0]);
-            fCells[ch].SetX(ecalCoords[1]);
+            fCells[ch].SetY(ecalCoords[1]);
             fCells[ch].SetLabCoords(labCoords[0],labCoords[1],labCoords[2]);
         }
     }

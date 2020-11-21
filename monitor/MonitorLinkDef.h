@@ -5,13 +5,14 @@
 #pragma link off all functions;
 #pragma link C++ nestedclasses;
 
-#pragma link C++ class BmnRunInfo++;
 #pragma link C++ class BmnDataReceiver++;
 #pragma link C++ class BmnMonitor++;
 #pragma link C++ class BmnOnlineDecoder++;
 #pragma link C++ class BmnOnlineReco++;
 #pragma link C++ class BmnHist++;
 #pragma link C++ class PadInfo++;
+#pragma link C++ class BmnPadBranch++;
+#pragma link C++ class BmnPadGenerator++;
 #pragma link C++ class BmnHistGem++;
 #pragma link C++ class BmnHistCsc++;
 #pragma link C++ class BmnHistSilicon++;

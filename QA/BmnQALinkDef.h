@@ -4,6 +4,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
+#pragma link C++ class BmnRunInfo++;
 #pragma link C++ class BmnTrackingQa+;
 #pragma link C++ class BmnClusteringQa+;
 #pragma link C++ class BmnLambdaQa+;

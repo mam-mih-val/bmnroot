@@ -33,7 +33,7 @@
 #include "BmnDecoSource.h"
 
 #include "FairRunAna.h"
-#include "BmnRunInfo.h"
+#include <BmnRunInfo.h>
 #include "BmnFieldMap.h"
 #include "BmnNewFieldMap.h"
 //#include "BmnSiliconHitMaker.h"

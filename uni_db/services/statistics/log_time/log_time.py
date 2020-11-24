@@ -48,6 +48,7 @@ class TimeStatComputer:
         time_arr = []
         time_per_events_arr = []
         unsuccessful_arr = []
+        unsuccessful_arr_files = []
         if recursive:
             files_to_walk = os.walk(_dir)
         else:
@@ -59,7 +60,7 @@ class TimeStatComputer:
                 if self.is_file_to_parse(root, file):
                     files_parsed += 1
                     print("+", end="", flush=True)
-                    time, is_successful, run_num = self.parse_time(os.path.join(root, file))
+                    time, is_successful, run_num, file_processing = self.parse_time(os.path.join(root, file))
                     if time is not None:
                         if run_num is not None:
                             time_arr.append(time)
@@ -74,15 +75,16 @@ class TimeStatComputer:
                         print("\nCan not parse time in successfully ended log file {file}")
                     if is_successful == False:
                         unsuccessful_arr.append(os.path.join(root, file))
+                        unsuccessful_arr_files.append(file_processing)
         if time_arr == []:
             raise Exception("No data")
 
         print(f"\n\nTotal files parsed: {files_parsed}")
-        return np.array(time_arr), np.array(time_per_events_arr), unsuccessful_arr
+        return np.array(time_arr), np.array(time_per_events_arr), unsuccessful_arr, unsuccessful_arr_files
 
 
     def compute(self, _dir, recursive):
-        arr, arr_per_event, unsuccessful_arr = self.parse_dir(_dir, recursive)
+        arr, arr_per_event, unsuccessful_arr, unsuccessful_arr_files = self.parse_dir(_dir, recursive)
 
         arr, unit = self.convert_units(arr)
         title = f'Time, {unit}. Mean = {np.mean(arr):.3f} {unit}.'
@@ -93,11 +95,22 @@ class TimeStatComputer:
         print()
 
         if len(unsuccessful_arr) == 0:
-            print('All runs ended successfully.\n')
+            print("All runs ended successfully.\n")
         else:
-            print('Unsuccessfully ended runs:')
+            print("Unsuccessfully ended runs:")
             for elem in unsuccessful_arr:
                 print(elem)
+            print()
+            print("Unsuccessful processing detected for files:")
+            for elem in unsuccessful_arr_files:
+                print(elem)
+            
+            if config.UNSUCCESSFUL_LOG_FILE is not None:
+                print()
+                print(f"Writing the same list to {config.UNSUCCESSFUL_LOG_FILE}...")    
+                with open(config.UNSUCCESSFUL_LOG_FILE, "wt") as f:
+                    for elem in unsuccessful_arr_files:
+                        f.write(elem + "\n")
 
         print()
         print("Obtained characteristics:")
@@ -141,6 +154,7 @@ class TimeStatComputer:
         start = None
         end = None
         run_num = None
+        file_processing = None
         with open(log_file, 'r') as f:
             for line in f:
                 if config.START in line:
@@ -157,10 +171,17 @@ class TimeStatComputer:
                     result = re.search(config.RUN_REGEX, line)
                     if result != None:
                         run_num = int(result.group()[7:])
+                if file_processing == None:
+                    if line.startswith(config.PROCESSING_LINE_START):
+                        result = re.search(config.PROCESSING_REGEX, line)
+                        if result != None:
+                            if len(result.groups()) > 0:
+                                file_processing = result.groups()[0]
+                            # print("file_processing = ", file_processing)
         if start == None or end == None:
             delta = None
         else:
             delta = (end - start).total_seconds()
         # TODO add verbose output option
         #print(f"Log file {log_file}, delta {delta}, is_successful {is_successful}, run_num {run_num}")
-        return delta, is_successful, run_num
+        return delta, is_successful, run_num, file_processing

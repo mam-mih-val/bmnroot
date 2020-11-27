@@ -21,35 +21,13 @@
 #include "BmnEventHeader.h"
 #include "DigiArrays.h"
 
+#include <PadInfo.h>
+#include <BmnPadBranch.h>
+
 #define PAD_WIDTH   256
 #define PAD_HEIGHT  192
 
 using namespace std;
-
-//template <class HH>
-class PadInfo : public TObject {
-public:
-    PadInfo() {
-        current = NULL;
-        ref = NULL;
-        ref2 = NULL;
-    }
-
-    ~PadInfo() {
-        if (current) delete current;
-        if (ref) delete ref;
-        current = NULL;
-        ref = NULL;
-        ref2 = NULL;
-    }
-    TH1* current;
-    TH1* ref;
-    TH1* ref2;
-    TString opt;
-private:
-    ClassDef(PadInfo, 1)
-};
-ClassImp(PadInfo)
 
 /** 
  * Base class for histogram sets
@@ -68,7 +46,9 @@ public:
 //    virtual BmnStatus LoadRefRun(TString FileName) = 0;
 //    template <class HH>
     static void DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads);
+    static void DrawPad(TVirtualPad *pad, PadInfo *info);
     static BmnStatus LoadRefRun(Int_t refID, TString FullName, TString fTitle, vector<PadInfo*> canPads, vector<TString> Names);
+    static BmnStatus DrawPadTree(BmnPadBranch* br);
 
     void SetRefRunName(TString v) {
         this->refRunName = v;

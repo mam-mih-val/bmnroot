@@ -15,35 +15,40 @@ BmnHist::~BmnHist() {
 //template <class HH>
 
 void BmnHist::DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
-    Double_t maxy;
-    Double_t k = 1;
     for (Int_t iPad = 0; iPad < canGemStripPads->size(); iPad++) {
         TVirtualPad *pad = canGemStrip->cd(iPad + 1);
-        pad->Clear();
         PadInfo* info = canGemStripPads->at(iPad);
-        if (!info) continue;
-        if (info->current) {
-            maxy = info->current->GetMaximum();//GetBinContent(info->current->GetMaximumBin());
-            info->current->Draw(info->opt.Data());
-            if (info->ref != NULL) {
-                k = (info->ref->Integral() > 0) ?
-                        info->current->Integral() /
-                        (Double_t) info->ref->Integral() : 1;
-                if (k == 0) k = 1;
-                if (info->ref->Integral() > 0)
-                    info->ref->DrawNormalized("same hist", info->current->Integral());
-                k = k * info->ref->GetMaximum();//GetBinContent(info->ref->GetMaximumBin());
-                if (maxy < k)
-                    maxy = k;
-            }
-//            info->current->GetYaxis()->SetRange(0, maxy * 1.4);
-            info->current->SetMaximum(maxy * 1.2);
-        }
-        pad->Update();
-        pad->Modified();
+        DrawPad(pad, info);
     }
     canGemStrip->Update();
     canGemStrip->Modified();
+}
+
+void BmnHist::DrawPad(TVirtualPad *pad, PadInfo *info) {
+    if ((!pad) || (!info)) return;
+    pad->Clear();
+    Double_t maxy;
+    Double_t k = 1;
+    if (info->current) {
+//        maxy = info->current->GetMaximum(); //
+        maxy = info->current->GetBinContent(info->current->GetMaximumBin());
+        info->current->Draw(info->opt.Data());
+        if (info->ref != NULL) {
+            k = (info->ref->Integral() > 0) ?
+                    info->current->Integral() /
+                    (Double_t) info->ref->Integral() : 1;
+            if (k == 0) k = 1;
+            if (info->ref->Integral() > 0)
+                info->ref->DrawNormalized("same hist", info->current->Integral());
+            k = k * info->ref->GetMaximum(); //GetBinContent(info->ref->GetMaximumBin());
+            if (maxy < k)
+                maxy = k;
+        }
+        //            info->current->GetYaxis()->SetRange(0, maxy * 1.4);
+        info->current->SetMaximum(maxy * 1.2);
+    }
+    pad->Update();
+    pad->Modified();
 }
 
 BmnStatus BmnHist::LoadRefRun(Int_t refID, TString FullName, TString fTitle, vector<PadInfo*> canPads, vector<TString> Names) {
@@ -77,6 +82,20 @@ BmnStatus BmnHist::LoadRefRun(Int_t refID, TString FullName, TString fTitle, vec
     }
     delete refFile;
     refFile = NULL;
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnHist::DrawPadTree(BmnPadBranch* br) {
+    if (!br)
+        return kBMNERROR;
+    if (PadInfo * info = br->GetPadInfo()) {
+        TVirtualPad* pad = info->padPtr;
+        DrawPad(pad, info);
+    } else {
+        for (auto b : br->GetBranchesRef()) {
+            DrawPadTree(b);
+        }
+    }
     return kBMNSUCCESS;
 }
 

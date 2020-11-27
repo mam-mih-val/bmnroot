@@ -405,6 +405,10 @@ void BmnTofHitProducer::Exec(Option_t* opt)
                         			fTOF2->get_hit_xyznl(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
 					    else
                         			fTOF2->get_hit_xyzng(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					    if (zcl == 0.)
+					    {
+                        			fTOF2->get_hit_xyz(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					    }
 					    if (zcl != 0.)
 					    {
                         			crosspoint.SetXYZ(xcl,ycl,zcl);
@@ -439,7 +443,7 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 					ncl0++;
 					ncl[i]++;
                         		UID = ((i + 1)<<8) | (cstr + 1);
-                        		Float_t xcl, ycl, zcl;
+                        		Float_t xcl = 0., ycl = 0., zcl = 0.;
 					if (fSelectXYCalibration == 0)
                         		    fTOF2->get_hit_xyz(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
 					else if (fSelectXYCalibration == 1)
@@ -450,6 +454,10 @@ void BmnTofHitProducer::Exec(Option_t* opt)
                         		    fTOF2->get_hit_xyznl(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
 					else
                         		    fTOF2->get_hit_xyzng(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					if (zcl == 0.)
+					{
+                        		    fTOF2->get_hit_xyz(i,cstr,lrdiff[i][cstr],&xcl,&ycl,&zcl);
+					}
 					if (zcl != 0.)
 					{
                         		    crosspoint.SetXYZ(xcl,ycl,zcl);
@@ -495,7 +503,7 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 			    if (idchambers[chamber] >= 100.f) DiffTimeMax = fDiffTimeMaxBig;
 			    if (TMath::Abs(dlrdiff) > DiffTimeMax) continue;
                             const LStrip *pStrip = pGeoUtils->FindStrip(UID);
-                    	    Float_t xcl, ycl, zcl;
+                    	    Float_t xcl = 0., ycl = 0., zcl = 0.;
 			    if (fSelectXYCalibration == 0)
                         	fTOF2->get_hit_xyz(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
 			    else if (fSelectXYCalibration == 1)
@@ -506,6 +514,10 @@ void BmnTofHitProducer::Exec(Option_t* opt)
                         	fTOF2->get_hit_xyznl(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
 			    else
                         	fTOF2->get_hit_xyzng(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
+			    if (zcl == 0.)
+			    {
+                        	fTOF2->get_hit_xyz(chamber,strip,dlrdiff,&xcl,&ycl,&zcl);
+			    }
 			    if (zcl != 0.)
 			    {
                     		crosspoint.SetXYZ(xcl,ycl,zcl);

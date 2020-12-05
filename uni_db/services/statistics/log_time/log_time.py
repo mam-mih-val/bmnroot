@@ -8,6 +8,8 @@ import re
 
 import log_time.config as config
 
+from exceptions import NoDataException
+
 
 class TimeStatComputer:
     def __init__(self, config_dict):
@@ -63,58 +65,60 @@ class TimeStatComputer:
                     time, is_successful, run_num, file_processing = self.parse_time(os.path.join(root, file))
                     if time is not None:
                         if run_num is not None:
-                            time_arr.append(time)
-                            events_count = self.get_events_count(run_num)
-                            if events_count is None or events_count == 0:
-                                print(f"\nCan't get events count from the database - skipping file {file}")
-                            else:    
-                                time_per_events_arr.append(time / events_count)
+                            if is_successful == True:
+                                time_arr.append(time)
+                                events_count = self.get_events_count(run_num)
+                                if events_count is None or events_count == 0:
+                                    print(f"\nCan't get events count from the database - skipping file {os.path.join(root, file)}")
+                                else:    
+                                    time_per_events_arr.append(time / events_count)
+                            else:
+                                print(f"\n File has time and run number, but not ended successfully - skipping {os.path.join(root, file)}")
                         elif is_successful == True:
-                            print("\nCan not parse run number in successfully ended log file {file}")
+                            print(f"\nCan not parse run number in successfully ended log file {os.path.join(root, file)}")
                     elif is_successful == True:
-                        print("\nCan not parse time in successfully ended log file {file}")
+                        print(f"\nCan not parse time in successfully ended log file {os.path.join(root, file)}")
                     if is_successful == False:
                         unsuccessful_arr.append(os.path.join(root, file))
-                        unsuccessful_arr_files.append(file_processing)
+                        if file_processing != None:
+                            unsuccessful_arr_files.append(file_processing)
+                        else:
+                            print(f"\nUnsuccessfully processed file name was not defined in {os.path.join(root, file)}.")
         if time_arr == []:
-            raise Exception("No data")
+            raise NoDataException
 
         print(f"\n\nTotal files parsed: {files_parsed}")
-        return np.array(time_arr), np.array(time_per_events_arr), unsuccessful_arr, unsuccessful_arr_files
+        return np.array(time_arr), np.array(time_per_events_arr), unsuccessful_arr, unsuccessful_arr_files, files_parsed
 
 
     def compute(self, _dir, recursive):
-        arr, arr_per_event, unsuccessful_arr, unsuccessful_arr_files = self.parse_dir(_dir, recursive)
-
+        arr, arr_per_event, unsuccessful_arr, unsuccessful_arr_files, files_parsed = self.parse_dir(_dir, recursive)
         arr, unit = self.convert_units(arr)
-        title = f'Time, {unit}. Mean = {np.mean(arr):.3f} {unit}.'
+        title = f"Time, {unit}. Mean = {np.mean(arr):.3f} {unit}, overall {len(arr)} files."
 
         arr_per_event, unit_per_event = self.convert_units(arr_per_event)
-        title_per_event = f'Time per event, {unit_per_event}. Mean = {np.mean(arr_per_event):.3f} {unit_per_event}.'
+        title_per_event = f"Time per event, {unit_per_event}. Mean = {np.mean(arr_per_event):.3f} {unit_per_event}, " \
+                f"overall {len(arr_per_event)} files."
 
         print()
-
         if len(unsuccessful_arr) == 0:
             print("All runs ended successfully.\n")
         else:
             print("Unsuccessfully ended runs:")
             for elem in unsuccessful_arr:
                 print(elem)
-            print()
-            print("Unsuccessful processing detected for files:")
-            for elem in unsuccessful_arr_files:
-                print(elem)
-            
             if config.UNSUCCESSFUL_LOG_FILE is not None:
                 print()
-                print(f"Writing the same list to {config.UNSUCCESSFUL_LOG_FILE}...")    
                 with open(config.UNSUCCESSFUL_LOG_FILE, "wt") as f:
                     for elem in unsuccessful_arr_files:
                         f.write(elem + "\n")
+                print(f"Unsuccessfully processed files list ({len(unsuccessful_arr_files)}/{files_parsed}, {(100*len(unsuccessful_arr_files)/files_parsed):.1f}%) "\
+                    f" was saved to {config.UNSUCCESSFUL_LOG_FILE}")
 
         print()
         print("Obtained characteristics:")
         print(f"  Mean time = {np.mean(arr):.3f} {unit}.")
+        print(f"  Summary time = {np.sum(arr):.3f} {unit}.")
         print(f"  Mean time per event = {np.mean(arr_per_event):.3f} {unit_per_event}.")
 
         return (arr, unit, title, arr_per_event, unit_per_event, title_per_event)
@@ -184,4 +188,5 @@ class TimeStatComputer:
             delta = (end - start).total_seconds()
         # TODO add verbose output option
         #print(f"Log file {log_file}, delta {delta}, is_successful {is_successful}, run_num {run_num}")
+
         return delta, is_successful, run_num, file_processing

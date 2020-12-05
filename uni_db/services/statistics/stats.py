@@ -1,17 +1,19 @@
+import sys
+if sys.version_info[0] < 3:
+    print("Must be using Python 3, exiting!")
+    sys.exit(1)
+
 import argparse
 import json
 import warnings
 import os
-import sys
 
 from file_size.file_size import SizeStatComputer
 from log_time.log_time import TimeStatComputer
 from utils import plot_all_stats
 
-
 def main():
     print("Statistics calculation script started.")
-
     parser = argparse.ArgumentParser(
         description='Script for size and time statistics.\
         For more info see https://github.com/loooj58/BMAN'
@@ -59,11 +61,11 @@ def main():
         args.dir[0], args.size, args.time, args.config[0], args.output, args.recursive
 
     if not os.path.isdir(_dir):
-        print(f"Error: Directory {_dir} not found!")
+        print("Error: Directory {} not found!".format(_dir))
         sys.exit(1)
 
     if not os.path.isfile(config):
-        print(f"Error: Config file {config} not found!")
+        print("Error: Config file {} not found!".format(config))
         sys.exit(1)
 
     config_dict = json.load(open(config, 'r'))

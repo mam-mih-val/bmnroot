@@ -3614,7 +3614,7 @@ int BmnTof2Raw2DigitNew::printGeom()
 
 int BmnTof2Raw2DigitNew::readLRoffsets(char *offsetsfile)
 {
-	char fname[128];
+	const char *fname;
 	FILE *fg = 0;
 	int i;
 	if (strlen(offsetsfile) == 0)
@@ -3622,8 +3622,8 @@ int BmnTof2Raw2DigitNew::readLRoffsets(char *offsetsfile)
 	    printf("TOF700 Left-Right offsets file name not defined!\n");
 	    return 0;
 	}
-	TString dir = getenv("VMCWORKDIR");
-	sprintf(fname,"%s/geometry/%s",dir.Data(),offsetsfile);
+	TString dir = TString::Format("%s/geometry/%s", getenv("VMCWORKDIR"), offsetsfile);
+	fname = dir.Data();
 	fg = fopen(fname,"r");
 	if (fg == NULL)
 	{
@@ -3801,7 +3801,7 @@ void BmnTof2Raw2DigitNew::get_hit_xyzs(int chamber, int strip, float diff_correc
 
 int BmnTof2Raw2DigitNew::readXYCalibration(char *xcalibrationfile, char *ycalibrationfile)
 {
-	char fname[128];
+	const char *fname;
 	FILE *fg = 0;
 	int i;
 	float xoff,xslop,yoff,yslop,yofferr,ysloperr;
@@ -3812,8 +3812,8 @@ int BmnTof2Raw2DigitNew::readXYCalibration(char *xcalibrationfile, char *ycalibr
 	    printf("TOF700 X calibration file name not defined!\n");
 	    return 0;
 	}
-	TString dir = getenv("VMCWORKDIR");
-	sprintf(fname,"%s/geometry/%s",dir.Data(),xcalibrationfile);
+	TString dir = TString::Format("%s/geometry/%s", getenv("VMCWORKDIR"), xcalibrationfile);
+	fname = dir.Data();
 	fg = fopen(fname,"r");
 	if (fg == NULL)
 	{
@@ -3847,7 +3847,8 @@ int BmnTof2Raw2DigitNew::readXYCalibration(char *xcalibrationfile, char *ycalibr
 	    printf("TOF700 Y calibration file name not defined!\n");
 	    return 0;
 	}
-	sprintf(fname,"%s/geometry/%s",dir.Data(),ycalibrationfile);
+	dir = TString::Format("%s/geometry/%s", getenv("VMCWORKDIR"), ycalibrationfile);
+	fname = dir.Data();
 	fg = fopen(fname,"r");
 	if (fg == NULL)
 	{

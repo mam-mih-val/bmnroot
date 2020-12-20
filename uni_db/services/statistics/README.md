@@ -30,6 +30,8 @@ required parameters:
 optional parameters:
 * `dpi` - dpi for the generated diagram
 * `folders_ignore` - directories that must be ignored while processing
+* `file_size_limit` - constrain min/max size of files to be processed (for example, `50kb:500gb`)
+* `event_size_limit` - constrain min/max file size per event (for example, `1kb:1mb`)
 
 ### Installation of the required libraries
 

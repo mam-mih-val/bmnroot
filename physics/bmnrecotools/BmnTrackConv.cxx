@@ -371,12 +371,12 @@ Int_t BmnTrackConv::GemModCbm2Bmn(Int_t iSt, Int_t iModCbm) {
                 case 1:
                 case 4:
                 case 6:
-                    iModBmn = (iModCbm < 2) ? 1 : 0;
+                    iModBmn = (4 - iModCbm) / 2 ;
                     break;
                 case 2:
                 case 3:
                 case 5:
-                    iModBmn = (iModCbm > 2) ? 1 : 0;
+                    iModBmn = (iModCbm - 1) / 2;
                     break;
                 default:
                     break;

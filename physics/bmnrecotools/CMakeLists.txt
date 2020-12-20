@@ -38,11 +38,12 @@ set(SRCS
  MpdLAQGSMGeneratorExt.cxx
  BmnEmbedding.cxx
  BmnRescale.cxx
+ BmnTrackConv.cxx
 )
 
 Set(HEADERS)
 Set(LINKDEF RecoToolsLinkDef.h)
 Set(LIBRARY_NAME RecoTools)
-Set(DEPENDENCIES BmnDst Gen Silicon CSC BmnData MpdGen BmnField Base Core)
+Set(DEPENDENCIES BmnDst Gem Silicon CSC BmnData MpdGen BmnField Base Core)
 
 GENERATE_LIBRARY()

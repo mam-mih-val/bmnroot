@@ -10,6 +10,8 @@ Set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
+ ${CMAKE_SOURCE_DIR}/QA
+ ${CMAKE_SOURCE_DIR}/QA/report
  ${CMAKE_SOURCE_DIR}/mwpc
  ${CMAKE_SOURCE_DIR}/csc
  ${CMAKE_SOURCE_DIR}/dch
@@ -40,7 +42,6 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 Set(SRCS
-BmnRunInfo.cxx
 BmnMonitor.cxx
 BmnDataReceiver.cxx
 BmnOnlineDecoder.cxx
@@ -58,6 +59,9 @@ BmnHistToF.cxx
 BmnHistToF700.cxx
 BmnHistSrc.cxx
 BmnHistLAND.cxx
+PadInfo.cxx
+BmnPadBranch.cxx
+BmnPadGenerator.cxx
 )
 
 If (Boost_FOUND)
@@ -67,6 +71,6 @@ EndIf (Boost_FOUND)
 Set(HEADERS)
 Set(LINKDEF MonitorLinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)
-Set(DEPENDENCIES GlobalTracking Decoder Alignment Gem Silicon CSC Dch Mwpc BmnData BmnField UniDb Base Core ${ZeroMQ_LIBRARY_SHARED})
+Set(DEPENDENCIES GlobalTracking Decoder Alignment Gem Silicon CSC Dch Mwpc BmnData BmnField UniDb Base Core ${ZeroMQ_LIBRARY_SHARED} BmnQa)
 
 GENERATE_LIBRARY()

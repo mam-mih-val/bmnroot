@@ -75,6 +75,20 @@ public:
     void SetPeakTimeDelay(Float_t ns) {
         fPeakTimeDelay = ns;
     }
+    
+    /// 
+    /// Allows to take into account slowing of light propagation inside of 
+    /// WLS fibers
+    ///
+    /// \param sol - light propagation speed in cm/ns, 0 - don't apply
+    /// \param length - length of the WLS fiber (52 cm)
+    /// \param moduleLayerThickness - thikness of the layer in the module (0.195 cm)
+    ///
+    void SetFiber(Float_t sol, Float_t length = 52., Float_t moduleLayerThickness = .195) {
+        fFiberSOL = sol;
+        fFiberLength = length;
+        fLayerThickness = moduleLayerThickness;
+    }
 
 private:
     
@@ -85,6 +99,10 @@ private:
     Float_t fThreshold = 10.;
     Float_t fMaxPointTime = 1000.;
     Float_t fPeakTimeDelay = 5.;
+    
+    Float_t fFiberSOL = 0.; // cm/ns (not used if zero)
+    Float_t fFiberLength = 52.; //cm
+    Float_t fLayerThickness = 0.195; //cm
     
     BmnECALDigit fCells[1024];
     const Int_t fCellsSize = sizeof(fCells)/sizeof(BmnECALDigit);

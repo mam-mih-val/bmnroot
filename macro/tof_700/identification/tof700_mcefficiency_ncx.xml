@@ -1,0 +1,4 @@
+<job name="tof700_mcefficiency" batch="sge">
+ <command line="root -l -q -b $VMCWORKDIR/macro/tof_700/identification/BmnMCEfficiencyTOF700.C"/>
+ <run mode="global" config="~/bmnroot/build/config.sh"/>
+</job>

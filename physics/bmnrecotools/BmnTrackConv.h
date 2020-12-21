@@ -12,6 +12,7 @@
 #include <CbmStsHit.h>
 #include <CbmStsDigi.h>
 #include <CbmStsCluster.h>
+#include <CbmVertex.h>
 
 #include <BmnEnums.h>
 #include <BmnEventHeader.h>
@@ -67,7 +68,6 @@ protected:
     
     TString fDstTreeName;
     TString fDstFileName;
-    TString fPVertexName;
     
     TString fCBMEvHeaderName;
     TString fCBMoldBMNEvHeaderName;
@@ -75,6 +75,7 @@ protected:
     TString fCBMHitsName;
     TString fCBMClustersName;
     TString fCBMDigisName;
+    TString fCBMVertexName;
     
     TString fBMNEvHeaderName;
     TString fBMNGlobalTracksName;
@@ -90,8 +91,10 @@ protected:
     TString fBMNTof700HitsName;
     TString fBMNDchHitsName;
     TString fBMNMwpcHitsName;
+    TString fBMNVertexName;
     
     FairEventHeader* fCBMEvHeader = nullptr;
+    CbmVertex* fCBMVertex = nullptr;
     TClonesArray* fCBMoldBMNEvHeader = nullptr;
     TClonesArray* fCBMGlobalTracks = nullptr;
     TClonesArray* fCBMHits = nullptr;
@@ -99,6 +102,7 @@ protected:
     TClonesArray* fCBMDigis = nullptr;
     
     DstEventHeader* fBMNEvHeader = nullptr;
+    TClonesArray* fBMNVertex = nullptr;
     TClonesArray* fBMNGlobalTracks = nullptr;
     TClonesArray* fBMNGemTracks = nullptr;
     TClonesArray* fBMNSilTracks = nullptr;

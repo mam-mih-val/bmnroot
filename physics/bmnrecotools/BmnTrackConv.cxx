@@ -5,7 +5,6 @@ BmnTrackConv::BmnTrackConv(Int_t run_period, Int_t run_number, BmnSetup setup) {
     fPeriodId = run_period;
     fRunId = run_number;
     fDstTreeName = "BMN_DIGIT";
-    fPVertexName = "BmnVertex";
 
     fCBMEvHeaderName = "EventHeader.";
     fCBMoldBMNEvHeaderName = "EventHeaderBmn";
@@ -13,6 +12,7 @@ BmnTrackConv::BmnTrackConv(Int_t run_period, Int_t run_number, BmnSetup setup) {
     fCBMHitsName = "StsHit";
     fCBMClustersName = "StsCluster";
     fCBMDigisName = "StsDigi";
+    fCBMVertexName = "PrimaryVertex.";
 
     fBMNEvHeaderName = "DstEventHeader.";
     fBMNGlobalTracksName = "BmnGlobalTrack";
@@ -23,6 +23,7 @@ BmnTrackConv::BmnTrackConv(Int_t run_period, Int_t run_number, BmnSetup setup) {
     fBMNGemHitsName = "BmnGemStripHit";
     fBMNSilHitsName = "BmnSiliconHit";
     fBMNCscHitsName = "BmnCSCHit";
+    fBMNVertexName = "BmnVertex";
     fBMNTof400HitsName = "";
     fBMNTof700HitsName = "";
     fBMNDchHitsName = "";
@@ -99,6 +100,7 @@ InitStatus BmnTrackConv::Init() {
     FairRootManager* ioman = FairRootManager::Instance();
     if (NULL == ioman) Fatal("Init", "FairRootManager is not instantiated");
     fCBMEvHeader = static_cast<FairEventHeader*> (ioman->GetObject(fCBMEvHeaderName));
+    fCBMVertex = static_cast<CbmVertex*> (ioman->GetObject(fCBMVertexName));
     fCBMoldBMNEvHeader = static_cast<TClonesArray*> (ioman->GetObject(fCBMoldBMNEvHeaderName));
     fCBMGlobalTracks = static_cast<TClonesArray*> (ioman->GetObject(fCBMGlobalTracksName));
     fCBMHits = static_cast<TClonesArray*> (ioman->GetObject(fCBMHitsName));
@@ -107,6 +109,8 @@ InitStatus BmnTrackConv::Init() {
 
     fBMNEvHeader = new DstEventHeader(); //out
     ioman->Register(fBMNEvHeaderName, "", fBMNEvHeader, kTRUE); // last arg: save to file
+    fBMNVertex = new TClonesArray(CbmVertex::Class());
+    ioman->Register(fBMNVertexName, "", fBMNVertex, kTRUE);
     fBMNGlobalTracks = new TClonesArray(BmnGlobalTrack::Class());
     ioman->Register(fBMNGlobalTracksName, "", fBMNGlobalTracks, kTRUE);
     fBMNGemTracks = new TClonesArray(BmnTrack::Class());
@@ -148,12 +152,30 @@ void BmnTrackConv::Exec(Option_t *option) {
     fBMNSilHits->Delete();
     fBMNGemHits->Delete();
     fBMNCscHits->Delete();
+    fBMNVertex->Delete();
 
     fMapHit.resize(fCBMHits->GetEntriesFast(), 0);
     // copy event id
     BmnEventHeader * eh = static_cast<BmnEventHeader*> (fCBMoldBMNEvHeader->At(0));
     fBMNEvHeader->SetEventId(eh->GetEventId());
-//                    printf("iev %d nhits %d\n", eh->GetEventId(), fMapHit.size());
+    fBMNEvHeader->SetEventTime(eh->GetEventTime());
+    fBMNEvHeader->SetEventTimeTS(eh->GetEventTimeTS());
+    fBMNEvHeader->SetRunId(eh->GetRunId());
+    //                    printf("iev %d nhits %d\n", eh->GetEventId(), fMapHit.size());
+    // copy vertex
+    CbmVertex* vtxCBM = static_cast<CbmVertex*> (fCBMVertex);
+    CbmVertex * vtx = new((*fBMNVertex)[fBMNVertex->GetEntriesFast()])CbmVertex();
+    TMatrixFSym cov(3);
+    vtxCBM->CovMatrix(cov);
+    vtx->SetVertex(
+            vtxCBM->GetX(),
+            vtxCBM->GetY(),
+            vtxCBM->GetZ(),
+            vtxCBM->GetChi2(),
+            vtxCBM->GetNDF(),
+            vtxCBM->GetNTracks(),
+            cov);
+
     // copy hits
     for (Int_t iHit = 0; iHit < fCBMHits->GetEntriesFast(); iHit++) {
         CbmStsHit* cbmHit = static_cast<CbmStsHit*> (fCBMHits->UncheckedAt(iHit));
@@ -163,8 +185,8 @@ void BmnTrackConv::Exec(Option_t *option) {
         CbmStsCluster *clusterB = static_cast<CbmStsCluster*> (fCBMClusters->UncheckedAt(fClusterIndexBack));
         Int_t iSt = cbmHit->GetStationNr();
         Int_t iMod = cbmHit->GetSectorNr();
-//            if ((iSt > 9) || (iSt == 0))
-//                printf("\t\tist %d imod %d\n", iSt, iMod);
+        //            if ((iSt > 9) || (iSt == 0))
+        //                printf("\t\tist %d imod %d\n", iSt, iMod);
         if (iSt > fSilStationSet->GetNStations()) { // behind silicon
             iSt -= fSilStationSet->GetNStations();
             if (iSt > fGemStationSet->GetNStations()) { // behind GEM
@@ -232,7 +254,7 @@ void BmnTrackConv::Exec(Option_t *option) {
     }
     // recreate track structure
     for (Int_t iTrack = 0; iTrack < fCBMGlobalTracks->GetEntriesFast(); iTrack++) {
-//                    printf("iTrack %d\n", iTrack);
+        //                    printf("iTrack %d\n", iTrack);
         CbmStsTrack* cbmTrack = static_cast<CbmStsTrack*> (fCBMGlobalTracks->UncheckedAt(iTrack));
         BmnTrack silTr;
         BmnTrack gemTr;
@@ -247,7 +269,7 @@ void BmnTrackConv::Exec(Option_t *option) {
 
 
         for (Int_t iHit = 0; iHit < cbmTrack->GetNStsHits(); iHit++) {
-                        Int_t iHitArr = cbmTrack->GetStsHitIndex(iHit);
+            Int_t iHitArr = cbmTrack->GetStsHitIndex(iHit);
             CbmStsHit* cbmHit = static_cast<CbmStsHit*> (fCBMHits->UncheckedAt(iHitArr));
             //            cbmHit->GetRefIndex();
             //            cbmHit->GetSignalDiv();
@@ -259,8 +281,8 @@ void BmnTrackConv::Exec(Option_t *option) {
             //            CbmStsDigi* cbmDigi = static_cast<CbmStsDigi*>(fCBMHits->UncheckedAt(clusterF->(iDig)));
             Int_t iSt = cbmHit->GetStationNr();
             Int_t iMod = cbmHit->GetSectorNr();
-//            if ((iSt > 9) || (iSt == 0))
-//                printf("\t\tist %d imod %d\n", iSt, iMod);
+            //            if ((iSt > 9) || (iSt == 0))
+            //                printf("\t\tist %d imod %d\n", iSt, iMod);
             if (iSt > fSilStationSet->GetNStations()) { // behind silicon
                 iSt -= fSilStationSet->GetNStations();
                 if (iSt > fGemStationSet->GetNStations()) { // behind GEM
@@ -371,7 +393,7 @@ Int_t BmnTrackConv::GemModCbm2Bmn(Int_t iSt, Int_t iModCbm) {
                 case 1:
                 case 4:
                 case 6:
-                    iModBmn = (4 - iModCbm) / 2 ;
+                    iModBmn = (4 - iModCbm) / 2;
                     break;
                 case 2:
                 case 3:

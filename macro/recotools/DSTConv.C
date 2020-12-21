@@ -1,4 +1,3 @@
-R__ADD_INCLUDE_PATH($VMCWORKDIR)
 
 void DSTConv(
         TString inFile = "~/filesbmn/4649-cbm-full.root",
@@ -22,7 +21,7 @@ void DSTConv(
     fRunAna->SetOutputFile(outFile.Data());
     fRunAna->SetGenerateRunInfo(kFALSE);
     
-    BmnTrackConv * conv = new BmnTrackConv(periodId, runId);
+    BmnTrackConv * conv = new BmnTrackConv(periodId, runId, kBMNSETUP);
     fRunAna->AddTask(conv);
     
     

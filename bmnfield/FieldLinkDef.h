@@ -17,5 +17,8 @@
 #pragma link C++ class BmnFieldPar+;
 #pragma link C++ class BmnFieldCreator+;
 #pragma link C++ class BmnSP41FieldMapCreator+;
+#pragma link C++ class smoothedValues+;
+#pragma link C++ class extrapolationConditions+;
+#pragma link C++ class fitParMonitor+;
 
 #endif

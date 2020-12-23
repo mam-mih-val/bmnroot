@@ -6,12 +6,13 @@
 #include <TPaletteAxis.h>
 #include <TList.h>
 
-// TString in - specify a full path (like $VMCWORKDIR/input/XXX) to a field map to be used in this analysis
+using namespace TMath;
 
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "macro/run/bmnloadlibs.C"
+        
  void testField(TString in = "") {
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     gStyle->SetOptStat(0);
-    bmnloadlibs(); // load BmnRoot libraries
 
     BmnFieldMap* magField = new BmnNewFieldMap(in);
     magField->SetScale(1.);

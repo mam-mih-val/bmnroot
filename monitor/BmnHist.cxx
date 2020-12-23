@@ -30,16 +30,15 @@ void BmnHist::DrawPad(TVirtualPad *pad, PadInfo *info) {
     Double_t maxy;
     Double_t k = 1;
     if (info->current) {
-//        maxy = info->current->GetMaximum(); //
+        //        maxy = info->current->GetMaximum(); //
         maxy = info->current->GetBinContent(info->current->GetMaximumBin());
         info->current->Draw(info->opt.Data());
         if (info->ref != NULL) {
             k = (info->ref->Integral() > 0) ?
-                    info->current->Integral() /
-                    (Double_t) info->ref->Integral() : 1;
-            if (k == 0) k = 1;
+                    info->current->Integral() / info->ref->Integral() : 1.0;
             if (info->ref->Integral() > 0)
                 info->ref->DrawNormalized("same hist", info->current->Integral());
+            if (k == 0) k = 1;
             k = k * info->ref->GetMaximum(); //GetBinContent(info->ref->GetMaximumBin());
             if (maxy < k)
                 maxy = k;
@@ -66,16 +65,16 @@ BmnStatus BmnHist::LoadRefRun(Int_t refID, TString FullName, TString fTitle, vec
             continue;
         delete canPads[iPad]->ref;
         canPads[iPad]->ref = NULL;
-        TH1F* tempH = NULL;
-        tempH = (TH1F*) refFile->Get(refName + fTitle + "_hists/" + refName + name);
+        TH1* tempH = NULL;
+        tempH = static_cast<TH1*> (refFile->Get(refName + fTitle + "_hists/" + refName + name));
         if (tempH == NULL) {
-            tempH = (TH1F*) refFile->Get(fTitle + "_hists/" + name);
+            tempH = static_cast<TH1*> (refFile->Get(fTitle + "_hists/" + name));
         }
         if (tempH == NULL) {
             printf("Cannot load %s !\n", name.Data());
             continue;
         }
-        canPads[iPad]->ref = (TH1F*) (tempH->Clone(refName + name));
+        canPads[iPad]->ref = static_cast<TH1*> (tempH->Clone(refName + name));
         canPads[iPad]->ref->SetLineColor(kRed);
         canPads[iPad]->ref->SetDirectory(0);
         printf("Loaded %s \n", canPads[iPad]->ref->GetName());
@@ -92,7 +91,7 @@ BmnStatus BmnHist::DrawPadTree(BmnPadBranch* br) {
         TVirtualPad* pad = info->padPtr;
         DrawPad(pad, info);
     } else {
-        for (auto b : br->GetBranchesRef()) {
+        for (auto &b : br->GetBranchesRef()) {
             DrawPadTree(b);
         }
     }

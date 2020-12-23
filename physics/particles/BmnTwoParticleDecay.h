@@ -34,7 +34,7 @@
 #include "CbmMCTrack.h"
 #include "CbmStsPoint.h"
 #include "BmnSiliconPoint.h"
-#include "CbmVertex.h"
+#include "BmnVertex.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripStationSet_RunWinter2016.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"
@@ -57,13 +57,18 @@ private:
 
     TClonesArray* fGemPoints;
     TClonesArray* fSilPoints;
+    TClonesArray* fSilHits;
+       
     TClonesArray* fGlobalTracks;
+    TClonesArray* fGemTracks;
+    TClonesArray* fSiliconTracks;
+    
     TClonesArray* fMCTracks;
     TClonesArray* fGlobalMatches;
     TClonesArray* fVertex;
 
     TVector3 fMcVertex;
-    CbmVertex* fEventVertex;
+    BmnVertex* fEventVertex;
 
     TString fBranchGemPoints;
     TString fBranchSilPoints;

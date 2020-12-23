@@ -114,7 +114,7 @@ void run_sim_src(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/s
 
     // -----   Create magnetic field   ----------------------------------------
     Double_t fieldScale = 1800. / 900.;
-    BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
+    BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v5_ascii_Extrap.root");
     magField->SetScale(fieldScale);
     fRun->SetField(magField);
 

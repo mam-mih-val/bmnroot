@@ -35,8 +35,6 @@ set(SRCS
  BmnMilleContainer.cxx 
  BmnGlobalAlignment.cxx
  BmnGemAlignCorrections.cxx
- BmnDchAlignCorrections.cxx
- BmnMwpcAlignCorrections.cxx
  BmnSiliconAlignCorrections.cxx
  BmnMille.cxx
  BmnAlignCorrections.cxx

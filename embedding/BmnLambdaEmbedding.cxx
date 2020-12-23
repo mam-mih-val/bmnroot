@@ -281,53 +281,6 @@ void BmnLambdaEmbedding::Embedding() {
                 iVertex++;
             }
         }
-
-
-
-
-
-
-        //        if (fStoreToProcess != -1) {
-        //            BmnLambdaStore* lambda = (BmnLambdaStore*) fWrittenStores[fStoreToProcess];
-        //            Double_t eta = lambda->GetEta();
-        //            Double_t phi = lambda->GetPhi();
-        //            Double_t p = lambda->GetP();
-        //
-        //            Int_t iVertex = 0;
-        //
-        //            for (auto it : EventIdsVpMap) {
-        //                // Get reconstructed primary vertex ...
-        //                TVector3 Vp = it.second;
-        //
-        //                SimulateLambdaPassing(p, TVector2(eta, phi), Vp, fStoreToProcess, iVertex);
-        //
-        //                iVertex++;
-        //            }
-        //
-        //            lambda->SetUsing(kTRUE);
-        //        }
-        //        else {
-        //#pragma omp parallel for
-        //            for (Int_t iLambda = 0; iLambda < fNstores; iLambda++) {
-        //                BmnLambdaStore* lambda = (BmnLambdaStore*) fWrittenStores[iLambda];
-        //                Double_t eta = lambda->GetEta();
-        //                Double_t phi = lambda->GetPhi();
-        //                Double_t p = lambda->GetP();
-        //
-        //                Int_t iVertex = 0;
-        //
-        //                for (auto it : EventIdsVpMap) {
-        //                    // Get reconstructed primary vertex ...
-        //                    TVector3 Vp = it.second;
-        //
-        //                    SimulateLambdaPassing(p, TVector2(eta, phi), Vp, iLambda, iVertex);
-        //
-        //                    iVertex++;
-        //                }
-        //
-        //                lambda->SetUsing(kTRUE);
-        //            }
-        //        }
     }
 
     // 5. Find at least one lambda to be reconstructed for a given Vp

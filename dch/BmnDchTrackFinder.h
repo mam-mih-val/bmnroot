@@ -30,7 +30,6 @@
 
 #include "BmnDchDigit.h"
 #include "BmnDchHit.h"
-#include "BmnDchHitProducer.h"
 #include "BmnDchTrack.h"
 #include "BmnMath.h"
 
@@ -59,8 +58,6 @@ private:
     Int_t fPeriod;
     Int_t fRunId;
     Int_t N;
-    Int_t layers_with ;
-    Int_t layers_with2;
     Bool_t expData;
     UInt_t fEventNo; // event counter
     
@@ -69,12 +66,8 @@ private:
     TString segmentsDch;
 
     TString fTransferFunctionName;
-    /** Input array **/
+    
     TClonesArray* fBmnDchDigitsArray;
-    TClonesArray* fBmnHitsArray;
- 
-    /** Output arrays **/
-    TClonesArray* fDchHits; 
     TClonesArray* fDchTracks;    
     TClonesArray* fDchSegments;    
 
@@ -117,18 +110,11 @@ private:
     Double_t** x_global;
     Double_t** y_global;
     Double_t** Chi2;
-
-    Int_t** SegMCId;
-    Int_t** SegMCIdCount; 
-    
+        
     Double_t*** v;
     Double_t*** u;
     Double_t*** y;
     Double_t*** x;
-    Int_t*** vId;
-    Int_t*** uId;
-    Int_t*** yId;
-    Int_t*** xId;
     Double_t*** v_time;
     Double_t*** u_time;
     Double_t*** y_time;
@@ -137,10 +123,6 @@ private:
     Double_t*** u_Single;
     Double_t*** y_Single;
     Double_t*** x_Single;
-    Int_t*** v_SingleId;
-    Int_t*** u_SingleId;
-    Int_t*** y_SingleId;
-    Int_t*** x_SingleId;
     Double_t*** sigm_v;
     Double_t*** sigm_u;
     Double_t*** sigm_y;
@@ -151,7 +133,6 @@ private:
     Double_t*** Sigm_x_single;
     Double_t*** params;
     Double_t*** params_sigmas;
-    Int_t*** rhId_segment;
     Double_t*** rh_segment;
     Double_t*** rh_segment_time;
     Double_t*** rh_sigm_segment;
@@ -174,45 +155,34 @@ private:
     TList fhList;
 
     void CreateDchTrack();
-   void CreateDchTrack(Int_t, Double_t*, Double_t**, Int_t*, Double_t**,Double_t**, Double_t**, Int_t*, Int_t*);
+    void CreateDchTrack(Int_t, Double_t*, Double_t**, Int_t*, Double_t**,Double_t**, Double_t**);
     void SelectLongestAndBestSegments(Int_t, Int_t*, Double_t**, Double_t*);
     void FillSegmentParametersSigmas(Int_t, Double_t**, Double_t**, Double_t*, Double_t**);
     void FillPlaneResiduals(Int_t , Int_t* , Double_t** , Double_t**, Double_t**, Double_t*);
-    void FindSegmentTrackMCId(Int_t , Int_t**, Double_t*, Int_t*, Int_t*);
     void CompareDaDb(Double_t, Double_t&);
     void CompareDaDb(Double_t, Double_t&, Double_t&);
     void PrepareArraysToProcessEvent();
     Bool_t FitDchSegments(Int_t, Int_t*, Double_t**, Double_t**, Double_t**, Double_t*, Double_t*, Double_t*);
     Double_t CalculateResidual(Int_t, Int_t, Double_t**, Double_t**);
-    Double_t CalculateResidualMatch(Int_t, Int_t, Int_t, Double_t***, Double_t***);
     Int_t BuildUVSegments(Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t,
-			  Double_t**, Double_t**, Double_t**, Double_t**,
-			  Int_t**, Int_t**, Int_t**, Int_t**,
-			  Double_t**, Double_t**, Double_t**, Double_t**,
-			  Double_t**, Double_t**, Double_t**, Double_t**,
-			  Double_t**,  Int_t**, Double_t**, Double_t**,
-			  Double_t**, Double_t**, Int_t**, Int_t**, Double_t**, Double_t**);
+        Double_t**, Double_t**, Double_t**, Double_t**,
+        Double_t**, Double_t**, Double_t**, Double_t**,
+        Double_t**, Double_t**, Double_t**, Double_t**,
+        Double_t**, Double_t**, Double_t**,
+        Double_t**, Double_t**, Double_t**, Double_t**);
     Int_t BuildXYSegments(Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t,
-			  Double_t**, Double_t**, Double_t**, Double_t**,
-			  Int_t**, Int_t**, Int_t**, Int_t**,
-			  Double_t**, Double_t**, Double_t**, Double_t**,
-			  Double_t**, Double_t**, Double_t**, Double_t**,
-			  Double_t**, Int_t**, Double_t**, Double_t**,
-			  Double_t**, Double_t**, Int_t**, Int_t**, Double_t**, Double_t**);
+        Double_t**, Double_t**, Double_t**, Double_t**,
+        Double_t**, Double_t**, Double_t**, Double_t**,
+	Double_t**, Double_t**, Double_t**, Double_t**,
+        Double_t**, Double_t**, Double_t**,
+        Double_t**, Double_t**, Double_t**, Double_t**);
     Int_t Reconstruction(Int_t, TString, Int_t, Int_t, Int_t,
-			 Double_t*, Double_t*, Double_t*, Double_t*,
-			 Bool_t*, Bool_t*,
-			 Double_t**, Double_t**, Double_t**);
+        Double_t*, Double_t*, Double_t*, Double_t*,
+        Bool_t*, Bool_t*,
+        Double_t**, Double_t**, Double_t**);
     Int_t ReconstructionSingle(Int_t, TString, TString, Int_t, Int_t,
-			       Double_t*, Double_t*, Bool_t*,
-			       Double_t**, Double_t**);
-    Int_t ReconstructionMC(Int_t, TString, Int_t, Int_t, Int_t,
-			   Double_t*, Double_t*, Double_t*, Double_t*, Int_t*, Int_t*,
-			   Bool_t*, Bool_t*,
-			   Double_t**, Int_t**, Double_t**, Double_t**);
-    Int_t ReconstructionSingleMC(Int_t, TString, TString, Int_t, Int_t,
-				 Double_t*, Double_t*, Int_t*, Bool_t*,
-				 Double_t**, Int_t**, Double_t**);
+        Double_t*, Double_t*, Bool_t*,
+        Double_t**, Double_t**);
     void SegmentsToBeMatched();
          
     ClassDef(BmnDchTrackFinder, 1)

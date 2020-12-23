@@ -376,7 +376,7 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
         Refit(glTrack);
         //cout << glTrack->GetP() << endl;
         if (fIsSRC) UpdateMomentum(glTrack);
-        //CalcdQdn(glTrack);
+        CalcdQdn(glTrack);
 
         // NDF = (N counts in ZX plane + N counts in ZY plane) - 2 parameters of Line in ZY plane - 3 parameters of Circle in ZX plane
         // Check it!!!
@@ -585,6 +585,10 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack *tr, Int_t num) {
     FairTrackParam par(*(tr->GetParamLast()));
     Double_t zTarget = (fVertex) ? fVertex->GetZ() : (fIsSRC) ? -647.5 : -2.3;  // z of target by default
     fKalman->TGeoTrackPropagate(&par, minHit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+    Double_t chi = 0;
+    fKalman->Update(&par, minHit, chi);
+    tr->SetChi2(tr->GetChi2() + chi);
+    tr->SetParamLast(par);
     fKalman->TGeoTrackPropagate(&par, zTarget, fPDG, nullptr, &len, fIsField);
     if (num == 1)
         tr->SetTof1HitIndex(minIdx);
@@ -596,7 +600,6 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack *tr, Int_t num) {
     minHit->SetLength(len);  // length from target to Tof hit
     tr->SetNHits(tr->GetNHits() + 1);
     tr->SetLength(len);
-    tr->SetParamLast(minParPredLast);
     return kBMNSUCCESS;
 }
 
@@ -824,6 +827,18 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack *tr) {
         fKalman->Update(&parFirst, hit, chi);
     }
 
+    if (tr->GetTof1HitIndex() != -1) {
+        BmnHit *hit = (BmnHit *)fTof1Hits->At(tr->GetTof1HitIndex());
+        fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+        fKalman->Update(&parFirst, hit, chi);
+    }
+
+    if (tr->GetTof2HitIndex() != -1) {
+        BmnHit *hit = (BmnHit *)fTof2Hits->At(tr->GetTof2HitIndex());
+        fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+        fKalman->Update(&parFirst, hit, chi);
+    }
+
     if (tr->GetDchTrackIndex() != -1) {
         BmnHit *hit = (BmnHit *)fDchHits->At(tr->GetDchTrackIndex());
         fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
@@ -837,6 +852,20 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack *tr) {
     FairTrackParam parLast = *(tr->GetParamLast());
 
     // =============Refitting to the vertex =================
+
+    if (tr->GetTof2HitIndex() != -1) {
+        BmnHit *hit = (BmnHit *)fTof2Hits->At(tr->GetTof2HitIndex());
+        fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+        fKalman->Update(&parFirst, hit, chi);
+        totChi2 += chi;
+    }
+
+    if (tr->GetTof1HitIndex() != -1) {
+        BmnHit *hit = (BmnHit *)fTof1Hits->At(tr->GetTof1HitIndex());
+        fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+        fKalman->Update(&parFirst, hit, chi);
+        totChi2 += chi;
+    }
 
     if (tr->GetCscHitIndex() != -1) {
         BmnHit *hit = (BmnHit *)fCscHits->At(tr->GetCscHitIndex());

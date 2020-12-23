@@ -83,7 +83,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
         } else
             fieldScale = (*field_voltage) / map_current;
 
-        BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
+        BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v5_ascii_Extrap.root");
         magField->SetScale(fieldScale);
         magField->Init();
         fRunAna->SetField(magField);

@@ -7,6 +7,8 @@ import re
 
 import file_size.config as config
 
+from exceptions import NoDataException
+
 
 class SizeStatComputer:
     def __init__(self, config_dict):
@@ -76,41 +78,63 @@ class SizeStatComputer:
         else:
             files_to_walk = [next(os.walk(_dir))]
 
-        files_parsed = 0
+        files_parsed_successful = 0
+        files_parsed_overall = 0
+        unsuccessful_list = []
         for root, dirs, files in files_to_walk:
             for file in files:
                 if self.is_file_to_parse(root, file):
-                    filesize_bytes = os.stat(os.path.join(root, file)).st_size
+                    files_parsed_overall += 1
+                    file_path = os.path.join(root, file)
+                    filesize_bytes = os.stat(file_path).st_size
                     if self.FILE_SIZE_LIMIT_LOW is not None and self.FILE_SIZE_LIMIT_HIGH is not None:
                         if filesize_bytes < self.FILE_SIZE_LIMIT_LOW or filesize_bytes > self.FILE_SIZE_LIMIT_HIGH:
                             filesize_conv, filesize_units = self.convert_units_scalar(filesize_bytes)
-                            print(f"\nFile {os.path.join(root, file)} is {filesize_conv:.1f} {filesize_units} "\
+                            print(f"\nFile {file_path} is {filesize_conv:.1f} {filesize_units} "\
                                     f"which does not meet file size limit - skipping.")
+                            unsuccessful_list.append(file_path)
                             continue
                     run_num = re.search(config.RUN_NUM_REGEX, file)
                     if run_num is None:
-                        print(f"\nNo run number found in filename for file {os.path.join(root, file)}")
+                        print(f"\nNo run number found in filename for file {file_path}")
+                        unsuccessful_list.append(file_path)
                         continue
                     run_num = run_num.group()
                     run_count = self.get_events_count(run_num)
                     if run_count is None:
-                        print(f"\nNo run number {run_num} found in database for file {os.path.join(root, file)}")
+                        print(f"\nNo run number {run_num} found in database for file {file_path}")
+                        unsuccessful_list.append(file_path)
                         continue
                     filesize_bytes_per_event = filesize_bytes / run_count
                     if self.EVENT_SIZE_LIMIT_LOW is not None and self.EVENT_SIZE_LIMIT_HIGH is not None:
                         if filesize_bytes_per_event < self.EVENT_SIZE_LIMIT_LOW or filesize_bytes_per_event > self.EVENT_SIZE_LIMIT_HIGH:
                             eventsize_conv, eventsize_units = self.convert_units_scalar(filesize_bytes_per_event)
-                            print(f"\nFile {os.path.join(root, file)} has {eventsize_conv:.1f} {eventsize_units} per event "\
+                            print(f"\nFile {file_path} has {eventsize_conv:.1f} {eventsize_units} per event "\
                                     f"which does not meet event size limit - skipping.")
+                            unsuccessful_list.append(file_path)
                             continue
-                    files_parsed += 1
+                    files_parsed_successful += 1
                     print("+", end="", flush=True)
                     filesize_arr.append(filesize_bytes)
                     filesize_per_event.append(filesize_bytes_per_event)
         print()
-        print(f"Totally parsed {files_parsed} files")
+        print(f"Total files parsed: {files_parsed_successful}")
         if filesize_arr == []:
-            raise Exception("No data")
+            raise NoDataException
+        unsuccessful_list.sort()
+        if len(unsuccessful_list) == 0:
+            print("\nAll files processed successfully.\n")
+        else:
+            print("\nUnsuccessfully processed files:")
+            for elem in unsuccessful_list:
+                print(elem)
+            if config.UNSUCCESSFUL_LOG_FILE is not None:
+                print()
+                with open(config.UNSUCCESSFUL_LOG_FILE, "wt") as f:
+                    for elem in unsuccessful_list:
+                        f.write(elem + "\n")
+                print(f"Unsuccessfully processed files list ({len(unsuccessful_list)}/{files_parsed_overall}, {(100*len(unsuccessful_list)/files_parsed_overall):.1f}%)"\
+                    f" was saved to {config.UNSUCCESSFUL_LOG_FILE}")
         return np.array(filesize_arr), np.array(filesize_per_event)
 
 

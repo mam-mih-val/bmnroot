@@ -25,19 +25,40 @@ class TimeStatComputer:
         self.FOLDERS_IGNORE.extend(config_dict.get('folders_ignore', config.FOLDERS_IGNORE))
 
 
+    # ### Old implementation ###
+    # def get_events_count(self, run_num):
+    #     conn = psycopg2.connect(dbname=self.DB_NAME, user=self.DB_USER, 
+    #                             password=self.DB_PASS, host=self.DB_HOST)
+    #     cursor = conn.cursor()
+    #     cursor.execute(f'SELECT event_count FROM run_ WHERE run_number = {run_num}')
+    #     count = cursor.fetchone()
+    #     if count is None:
+    #         return None
+    #     count = count[0]
+    #     cursor.close()
+    #     conn.close()
+    #     return count
+
     def get_events_count(self, run_num):
+        """ Returns events_count from DB (or None) and a warning flag (if there where multiple runs with same num) """
         conn = psycopg2.connect(dbname=self.DB_NAME, user=self.DB_USER, 
                                 password=self.DB_PASS, host=self.DB_HOST)
         cursor = conn.cursor()
-        cursor.execute(f'SELECT event_count FROM run_ WHERE run_number = {run_num}')
-        count = cursor.fetchone()
-        if count is None:
-            return None
-        count = count[0]
+        cursor.execute(f"SELECT period_number, event_count FROM run_ WHERE run_number = {run_num}")
+        resp = cursor.fetchall()
         cursor.close()
         conn.close()
-        return count
-
+        # print(resp)
+        if resp is None:
+            return (None, False) 
+        if len(resp) == 1:
+            count = resp[0][1]
+            return (count, False)
+        else:
+            # Look for maximum period number with given run_num
+            count = max(resp, key = lambda tup: tup[0])[1]
+            return (count, True)
+        
 
     def is_file_to_parse(self, root, file):
         # filepath = os.path.join(root, file)
@@ -60,17 +81,26 @@ class TimeStatComputer:
         for root, dirs, files in files_to_walk:
             for file in files:
                 if self.is_file_to_parse(root, file):
+                    try:
+                        time, is_successful, run_num, file_processing = self.parse_time(os.path.join(root, file))
+                    except PermissionError:
+                        print(f"Permission denied - skipping file {os.path.join(root, file)}")
+                        continue
+                    except Exception as ex:
+                        print(f"Error {ex} while processing - skipping file {os.path.join(root, file)}")
+                        continue
                     files_parsed += 1
                     print("+", end="", flush=True)
-                    time, is_successful, run_num, file_processing = self.parse_time(os.path.join(root, file))
                     if time is not None:
                         if run_num is not None:
                             if is_successful == True:
                                 time_arr.append(time)
-                                events_count = self.get_events_count(run_num)
+                                events_count, warn_flag = self.get_events_count(run_num)
                                 if events_count is None or events_count == 0:
                                     print(f"\nCan't get events count from the database - skipping file {os.path.join(root, file)}")
-                                else:    
+                                else:
+                                    if warn_flag:
+                                        print(f"Warning: more than one run records: the latest period number is selected for {os.path.join(root, file)}")
                                     time_per_events_arr.append(time / events_count)
                             else:
                                 print(f"\n File has time and run number, but not ended successfully - skipping {os.path.join(root, file)}")
@@ -110,9 +140,9 @@ class TimeStatComputer:
             if config.UNSUCCESSFUL_LOG_FILE is not None:
                 print()
                 with open(config.UNSUCCESSFUL_LOG_FILE, "wt") as f:
-                    for elem in unsuccessful_arr_files:
+                    for elem in sorted(unsuccessful_arr_files):
                         f.write(elem + "\n")
-                print(f"Unsuccessfully processed files list ({len(unsuccessful_arr_files)}/{files_parsed}, {(100*len(unsuccessful_arr_files)/files_parsed):.1f}%) "\
+                print(f"Unsuccessfully processed files list ({len(unsuccessful_arr_files)}/{files_parsed}, {(100*len(unsuccessful_arr_files)/files_parsed):.1f}%)"\
                     f" was saved to {config.UNSUCCESSFUL_LOG_FILE}")
 
         print()

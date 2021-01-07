@@ -17,10 +17,12 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/steering
  ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/physics/particles
- ${CMAKE_SOURCE_DIR}/monitor
+# ${CMAKE_SOURCE_DIR}/monitor
  ${CMAKE_SOURCE_DIR}/QA
  ${CMAKE_SOURCE_DIR}/QA/report
  ${CMAKE_SOURCE_DIR}/QA/offline
+ ${CMAKE_SOURCE_DIR}/uni_db/elog_classes
+ ${CMAKE_SOURCE_DIR}/bmnfield
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -40,6 +42,7 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
+ report/BmnRunInfo.cxx
  report/BmnSimulationReport.cxx
  report/BmnStudyReport.cxx
  report/BmnHtmlReportElement.cxx
@@ -71,6 +74,8 @@ set(SRCS
  offline/BmnTrigDetQa.cxx
  offline/BmnDstQa.cxx
  offline/BmnQaMonitor.cxx
+ offline/BmnTrackingQaOffline.cxx
+ offline/BmnTrackingQaOfflineDraw.cxx
 )
 
 EXEC_PROGRAM( ${ROOT_CONFIG_EXECUTABLE}
@@ -85,7 +90,7 @@ EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 Set(HEADERS)
 Set(LINKDEF BmnQALinkDef.h)
 Set(LIBRARY_NAME BmnQa)
-Set(DEPENDENCIES BmnMonitor BmnParticles GlobalTracking BmnSteering BmnDst Sts Gem Silicon Dch CSC BmnData UniDb Base Core)
+Set(DEPENDENCIES BmnParticles GlobalTracking BmnSteering BmnDst Sts Gem Silicon Dch CSC BmnData UniDb Base Core)
 
 If ( ${ROOT_HAS_GDML} STREQUAL yes )
  Set (DEPENDENCIES ${DEPENDENCIES} Gdml)

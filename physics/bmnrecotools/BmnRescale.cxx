@@ -136,12 +136,12 @@ BmnStatus BmnRescale::LoadClusterDistributionsFromFile(
     }
     //    for (Int_t i = 0; i < fNArs; i++)
     //        CreateClusterDistributions(chain, ars[i], clusterVecs[i]);
-    //    CreateClusterDistributions<
-    //            BmnGemStripHit,
-    //            BmnGemStripStationSet,
-    //            BmnGemStripStation,
-    //            BmnGemStripModule,
-    //            BmnGemStripLayer>(chain, ars[0], fGemStationSet, clusterVecs[0]);
+    CreateClusterDistributions<
+            BmnGemStripHit,
+            BmnGemStripStationSet,
+            BmnGemStripStation,
+            BmnGemStripModule,
+            BmnGemStripLayer>(chain, hitArr[0], fGemStationSet, clusterVecs[0]);
     CreateClusterDistributions<
             BmnSiliconHit,
             BmnSiliconStationSet,

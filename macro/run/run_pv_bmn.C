@@ -139,8 +139,8 @@ void run_pv_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ===          Alternative Primary vertex finding                    === //
     // ====================================================================== //
     CbmKF* kalman = new CbmKF("q", iVerbose);
-    fRunAna->AddTask(kalman);\
-    BmnPVAnalyzer* pv = new BmnPVAnalyzer(run_period, isField);
+    fRunAna->AddTask(kalman);
+    BmnPVAnalyzer* pv = new BmnPVAnalyzer(run_period, run_number, isField);
     fRunAna->AddTask(pv);
 
 

@@ -16,37 +16,34 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+
+#include <TSystem.h>
 #include <TMath.h>
-#include <TCanvas.h>
 #include <TNamed.h>
 #include <TClonesArray.h>
 #include <TFitResult.h>
 #include <TFitResultPtr.h>
 #include <TGeoManager.h>
 #include <TString.h>
+
 #include "FairTask.h"
 #include "FairRootManager.h"
 #include "FairEventHeader.h"
-#include  "BmnGlobalTrack.h"
-#include  "BmnMwpcTrack.h"
-#include  "BmnMwpcGeometry.h"
-#include  "BmnGemTrack.h"
-#include  "BmnMwpcHit.h"
-#include  "BmnDchHit.h"
+
+#include <BmnGlobalTrack.h>
 #include  "BmnGemStripHit.h"
 #include  "BmnSiliconHit.h"
-#include  "BmnDchTrack.h"
 #include  "BmnMille.h"
 #include  "BmnMilleContainer.h"
-#include  "BmnMwpcAlignCorrections.h"
 #include  "BmnGemAlignCorrections.h"
-#include  "BmnDchAlignCorrections.h"
 #include  "BmnSiliconAlignCorrections.h"
+
 #include <BmnSiliconStationSet.h>
 #include <BmnGemStripStationSet.h>
+
 #include <UniDbDetectorParameter.h>
 #include <UniDbRun.h>
-#include <BmnKalmanFilter.h>
+
 #include <BmnFieldMap.h>
 #include <BmnNewFieldMap.h>
 #include <FairField.h>
@@ -59,7 +56,7 @@ public:
 
     BmnGlobalAlignment() {
     };
-    BmnGlobalAlignment(Int_t nEvents, TString, Int_t period = 7, TString misAlignFile = "misAlignment.root", Bool_t doTest = kFALSE);
+    BmnGlobalAlignment(Int_t, TString, Int_t, Int_t, TString misAlignFile = "misAlignment.root", Bool_t doTest = kFALSE);
     virtual ~BmnGlobalAlignment();
 
     virtual InitStatus Init();
@@ -228,6 +225,68 @@ public:
                     fixedSiElements[iStat][iMod] = kTRUE;
     }
 
+    void SetSiConfigSRC(Bool_t st0_0, Bool_t st0_1, Bool_t st0_2, Bool_t st0_3,
+            Bool_t st1_0, Bool_t st1_1,
+            Bool_t st2_0, Bool_t st2_1, Bool_t st2_2, Bool_t st2_3, Bool_t st2_4, Bool_t st2_5, Bool_t st2_6, Bool_t st2_7) {
+        SetSiFixedRun7(st0_0, st0_1, st0_2, st0_3, st1_0, st1_1, st2_0, st2_1, st2_2, st2_3, st2_4, st2_5, st2_6, st2_7);
+    }
+
+    void SetGemConfigSRC(Bool_t st0_0, Bool_t st1_0, Bool_t st2_0, Bool_t st3_0,
+            Bool_t st4_0, Bool_t st4_1,
+            Bool_t st5_0, Bool_t st5_1,
+            Bool_t st6_0, Bool_t st6_1,
+            Bool_t st7_0, Bool_t st7_1,
+            Bool_t st8_0, Bool_t st8_1,
+            Bool_t st9_0, Bool_t st9_1) {
+
+        cout << "GEM" << endl;
+        const Int_t nModulMax = 2; // FIXME         
+        Bool_t** gem = new Bool_t*[fDetectorGEM->GetNStations()];
+        for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+            gem[iStat] = new Bool_t[nModulMax];
+
+        // Stat #0
+        gem[0][0] = st0_0;
+
+        // Stat #1
+        gem[1][0] = st1_0;
+
+        // Stat #2
+        gem[2][0] = st2_0;
+
+        // Stat #3
+        gem[3][0] = st3_0;
+
+        // Stat #4
+        gem[4][0] = st4_0;
+        gem[4][1] = st4_1;
+
+        // Stat #5
+        gem[5][0] = st5_0;
+        gem[5][1] = st5_1;
+
+        // Stat #6
+        gem[6][0] = st6_0;
+        gem[6][1] = st6_1;
+
+        // Stat #7
+        gem[7][0] = st7_0;
+        gem[7][1] = st7_1;
+
+        // Stat #8
+        gem[8][0] = st8_0;
+        gem[8][1] = st8_1;
+
+        // Stat #9
+        gem[9][0] = st9_0;
+        gem[9][1] = st9_1;
+
+        for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+            for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++)
+                if (gem[iStat][iMod])
+                    fixedGemElements[iStat][iMod] = kTRUE;
+    }
+
     void SetExclusionRangeTx(Double_t min, Double_t max) {
         fIsExcludedTx = kTRUE;
         fTxLeft = min;
@@ -255,51 +314,123 @@ private:
     BmnMilleContainer* FillMilleContainer(BmnGlobalTrack*, BmnHit*);
 
     inline Int_t GemStatModLabel(Int_t st, Int_t mod) {
-        return 3 * (2 * st + mod + 1);
+        // return 3 * (2 * st + mod + 1);    // FIXME!!!
+        return gemStatModLabel.find(pair <Int_t, Int_t> (st, mod))->second;
     }
 
     inline Int_t SiliconStatModLabel(Int_t st, Int_t mod) {
-        Int_t coeff[3] = {0, 6, 3};
-        return GemStatModLabel(st, mod) + coeff[st] * st;
+        // Int_t coeff[3] = {0, 6, 3}; FIXME!!
+        // return GemStatModLabel(st, mod) + coeff[st] * st;
+        return silStatModLabel.find(pair <Int_t, Int_t> (st, mod))->second;
     }
 
     inline vector <Int_t> GetSiliconStatMod(Int_t label) {
+        while (label % 3 != 0)
+            label++;
+
         vector <Int_t> out;
+        for (auto it : silStatModLabel) {
+            if (it.second != label)
+                continue;
+            out.push_back(it.first.first);
+            out.push_back(it.first.second);
+            break;
+        }
+        return out;
+    }
 
-        Int_t modGemCounter = 0;
-        const Int_t nParams = 3;
+    inline vector <Int_t> GetGemStatMod(Int_t label) {
+        while (label % 3 != 0)
+            label++;
 
+        vector <Int_t> out;
+        for (auto it : gemStatModLabel) {
+            if (it.second != label)
+                continue;
+            out.push_back(it.first.first);
+            out.push_back(it.first.second);
+            break;
+        }
+        return out;
+    }
+
+    void FillMaps() {
+        // Choose appropriate configuration (BM@N or SRC)
+        Bool_t isSRC = (fRunId < 3589) ? kTRUE : kFALSE; 
+        
+        Int_t srcGEM[10][2] = {
+            {3, -1},
+            {6, -1},
+            {9, -1},
+            {12, -1},
+            {15, 18},
+            {21, 24},
+            {27, 30},
+            {33, 36},
+            {39, 42},
+            {45, 48}
+        };
+
+        Int_t bmnGEM[6][2] = {
+            {3, 6},
+            {9, 12},
+            {15, 18},
+            {21, 24},
+            {27, 30},
+            {33, 36}
+        };
+
+        const Int_t nGemStats = isSRC ? 10 : 6;       
+        const Int_t nGemMods = 2;
+
+        Int_t** gem = new Int_t*[nGemStats];
+        for (Int_t iStat = 0; iStat < nGemStats; iStat++) {
+            gem[iStat] = new Int_t[nGemMods];
+            for (Int_t iMod = 0; iMod < nGemMods; iMod++)
+                gem[iStat][iMod] = isSRC ? srcGEM[iStat][iMod] : bmnGEM[iStat][iMod];
+        }
+        
         for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
             for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++)
-                modGemCounter++;     
+                gemStatModLabel[pair <Int_t, Int_t> (iStat, iMod)] = gem[iStat][iMod];
 
-        if (label < nParams * modGemCounter + 1) {
-            out.push_back(-1);
-            out.push_back(-1);
-            return out;
-        }
+        const Int_t nSilStats = 3; // FIXME!!
+        const Int_t nSilMods = 8;
 
-        // FIXME, non elegant assignment:)
-        Int_t stat = -1;
-        Int_t mod = (label - nParams * modGemCounter - 1) / nParams;
-
-        if (mod <= 3) {
-            stat = 0;
+        Int_t bmnSIL[nSilStats][nSilMods] = {
+            {39, 42, 45, 48, -1, -1, -1, -1},
+            {51, 54, -1, -1, -1, -1, -1, -1},
+            {57, 60, 63, 66, 69, 72, 75, 78}
+        };
+        
+        Int_t srcSIL[nSilStats][nSilMods] = {
+            {51, 54, 57, 60, -1, -1, -1, -1},
+            {63, 66, -1, -1, -1, -1, -1, -1},
+            {69, 72, 75, 78, 81, 84, 87, 90}
+        };
+        
+        Int_t** sil = new Int_t*[nSilStats];
+        for (Int_t iStat = 0; iStat < nSilStats; iStat++) {
+            sil[iStat] = new Int_t[nSilMods];
+            for (Int_t iMod = 0; iMod < nSilMods; iMod++)
+                sil[iStat][iMod] = isSRC ? srcSIL[iStat][iMod] : bmnSIL[iStat][iMod];
         }
         
-        else if (mod <= 5) {
-            stat = 1;
-            mod -= 4;
-        }
-        
-        else {
-            stat = 2;
-            mod -= 6;
-        }    
-        out.push_back(stat);
-        out.push_back(mod);
-                
-        return out;
+        for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++)
+            for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++)
+                silStatModLabel[pair <Int_t, Int_t> (iStat, iMod)] = sil[iStat][iMod];
+
+        //        if (!fDebug)
+        //            return;
+
+        cout << "GEM" << endl;
+        cout << gemStatModLabel.size() << endl;
+        for (auto it : gemStatModLabel)
+            cout << it.first.first << ", " << it.first.second << " --> " << it.second << endl;
+
+        cout << "SILICON" << endl;
+        for (auto it : silStatModLabel)
+            cout << it.first.first << ", " << it.first.second << " --> " << it.second << endl;
     }
 
     void _Mille(Double_t*, Double_t*, BmnMille*, Int_t);
@@ -309,6 +440,8 @@ private:
     Int_t fNTracks;
     map <Int_t, pair <vector <BmnMilleContainer*>, vector < BmnMilleContainer*>>> fCONTAINER;
     map <Int_t, pair <vector <BmnMilleContainer*>, vector < BmnMilleContainer*>>>::iterator fITERATOR;
+    map <pair <Int_t, Int_t>, Int_t> gemStatModLabel;
+    map <pair <Int_t, Int_t>, Int_t> silStatModLabel;
     Bool_t fIsField;
     Int_t fRunPeriod;
     Int_t fRunId;
@@ -387,9 +520,6 @@ private:
 
     Bool_t fDebug;
     Int_t* Labels; //array containing a fixed param. number for each detector. 
-
-    FairField* fField;
-    BmnFieldMap* fMagField;
 
     // Use constraints or not
     Bool_t fUseConstraints;

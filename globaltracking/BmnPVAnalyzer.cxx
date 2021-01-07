@@ -4,10 +4,12 @@
 using namespace std;
 using namespace TMath;
 
-BmnPVAnalyzer::BmnPVAnalyzer(Int_t period, Bool_t isField) {
+BmnPVAnalyzer::BmnPVAnalyzer(Int_t period, Int_t run, Bool_t isField) {
     fPeriodId = period;
+    fRunId = run;
     fGlobalTracksArray = nullptr;
     fDstEventHeader = nullptr;
+    fFairEventHeader = nullptr;    
     fNTracks = 0;
     fRoughVertex3D = (fPeriodId == 7) ? TVector3(0.5, -4.6, -1.0) : (fPeriodId == 6) ? TVector3(0.0, -3.5, -21.9) : TVector3(0.0, 0.0, 0.0);
     fCBMFrameShift3D = TVector3(0.5, -7.06, -1.63);
@@ -21,6 +23,7 @@ BmnPVAnalyzer::BmnPVAnalyzer(Int_t period, Bool_t isField) {
     fDstEHBranchName = "DstEventHeader.";
 #endif
     fVertexBranchName = "BmnVertex2";
+    fVertexAllBranchName = "BmnVertex2All";
 
 }
 
@@ -54,18 +57,10 @@ InitStatus BmnPVAnalyzer::Init() {
     fVertexArray = new TClonesArray(CbmVertex::Class()); //out
     ioman->Register(fVertexBranchName, "GEM", fVertexArray, kTRUE);
     fVertexArrayAll = new TClonesArray(CbmVertex::Class()); //out
-    ioman->Register("BmnVertex2All", "GEM", fVertexArrayAll, kTRUE);
+    ioman->Register(fVertexAllBranchName, "GEM", fVertexArrayAll, kTRUE);
 
+    fFairEventHeader = (FairEventHeader*) ioman->GetObject("EventHeader."); //in
 
-    //    txyz = new TTree("data", "");
-    //    txyz->Branch("evNo", &evNo, "evNo/I");
-    //    txyz->Branch("pv[4]", &pv, "pv[4]/F");
-    //    txyz->Branch("FirstPar[6]", &FirstPar, "FirstPar[6]/F");
-    //    txyz->Branch("LastPar[6]", &LastPar, "LastPar[6]/F");
-    //    parFileList = new TList();
-    //    TObjString stsDigiFile = "/data1/pokat/soft_run6/sts_v18BMN_gem.digi.par";
-    //    parFileList->Add(&stsDigiFile);
-    //    GetBmnGeom("/data1/pokat/soft_run6/SIGEMS_v1.root"); //"GEMS_RunWinter2016_old.root"); //SIGEMS_v1
     ApplyAlignment();
     //    FairTask *pKF = new CbmKF();
     //    fRun->AddTask(pKF);
@@ -855,6 +850,9 @@ void BmnPVAnalyzer::ProcessEvent() {
     iev++;
     fVertexArray->Delete();
     fVertexArrayAll->Delete();
+    
+    if (fFairEventHeader)
+        fFairEventHeader->SetRunId(fRunId);
 
     fNTracks = fGlobalTracksArray->GetEntriesFast();
 
@@ -926,7 +924,7 @@ void BmnPVAnalyzer::ProcessEvent() {
     Int_t eventId = fDstEventHeader->GetEventId();
 #endif
     hh1[10]->Fill(nTracks);
-    if (fVerbose > 0) cout << iev << "  evId " << eventId << "  ntracks:  " << nTracks << flush << endl;
+    if (fVerbose > 1) cout << iev << "  evId " << eventId << "  ntracks:  " << nTracks << flush << endl;
 
     //Primary Vertex position
 

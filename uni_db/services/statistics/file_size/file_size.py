@@ -7,6 +7,8 @@ import re
 
 import file_size.config as config
 
+from exceptions import NoDataException
+
 
 class SizeStatComputer:
     def __init__(self, config_dict):
@@ -21,19 +23,45 @@ class SizeStatComputer:
         self.FOLDERS_IGNORE = config.FOLDERS_IGNORE
         self.FOLDERS_IGNORE.extend(config_dict.get('folders_ignore', config.FOLDERS_IGNORE))
 
+        self.FILE_SIZE_LIMIT_LOW, self.FILE_SIZE_LIMIT_HIGH = self.extract_size_limits(config_dict.get('file_size_limit'))
+        self.EVENT_SIZE_LIMIT_LOW, self.EVENT_SIZE_LIMIT_HIGH = self.extract_size_limits(config_dict.get('event_size_limit'))
+        
+
+    def extract_size_limits(self, limit_str):
+        if limit_str is None or limit_str == "":
+            return None, None
+        units = {"": 1, "B": 1, "KB": 1024, "MB": 1024*1024, "GB": 1024*1024*1024, "TB": 1024*1024*1024*1024}
+        try:
+            res = re.search("(\d+)(\w*)\s*:\s*(\d+)(\w*)", limit_str.strip())
+            gr = res.groups()
+            if len(gr) != 4:
+                raise Exception("Wrong string specifying file size limits")
+            limit_min = int(gr[0])
+            units_min = gr[1].upper()
+            limit_max = int(gr[2])
+            units_max = gr[3].upper()
+            if units_min not in units or units_max not in units:
+                raise Exception("Wrong string specifying file size limits")
+            return limit_min * units[units_min], limit_max * units[units_max]
+        except:
+            print(f"\n\nWarning: Could not extract size limits from {limit_str}")
+            return None, None        
+
 
     def compute(self, _dir, recursive):
         arr, arr_per_event = self.parse_dir(_dir, recursive)
 
         arr, unit = self.convert_units(arr)
-        title = f'File size, {unit}. Mean = {np.mean(arr):.3f} {unit}.'
+        title = f"File size, {unit}. Mean = {np.mean(arr):.3f} {unit}. Overall {len(arr)} files."
 
         print()
         print("Obtained characteristics:")
-        print(f"  File statistics: min = {np.min(arr):.3f} {unit}, avg = {np.mean(arr):.3f} {unit}, max={np.max(arr):.3f} {unit}")
+        print(f"  File statistics: min = {np.min(arr):.3f} {unit}, avg = {np.mean(arr):.3f} {unit}, " \
+                f"max={np.max(arr):.3f} {unit}, summary={np.sum(arr):.3f} {unit}")
 
         arr_per_event, unit_per_event = self.convert_units(arr_per_event)
-        title_per_event = f'File size per event, {unit_per_event}. Mean = {np.mean(arr_per_event):.3f} {unit_per_event}.'
+        title_per_event = f"File size per event, {unit_per_event}. Mean = {np.mean(arr_per_event):.3f} {unit_per_event}. " \
+                f"Overall {len(arr_per_event)} files."
 
         print(f"  File statistics per event: min = {np.min(arr_per_event):.3f} {unit_per_event}, " +
             f"avg = {np.mean(arr_per_event):.3f} {unit_per_event}, max={np.max(arr_per_event):.3f} {unit_per_event}")
@@ -50,28 +78,63 @@ class SizeStatComputer:
         else:
             files_to_walk = [next(os.walk(_dir))]
 
-        files_parsed = 0
+        files_parsed_successful = 0
+        files_parsed_overall = 0
+        unsuccessful_list = []
         for root, dirs, files in files_to_walk:
             for file in files:
                 if self.is_file_to_parse(root, file):
-                    files_parsed += 1
-                    print("+", end="", flush=True)
-                    filesize_bytes = os.stat(os.path.join(root, file)).st_size
+                    files_parsed_overall += 1
+                    file_path = os.path.join(root, file)
+                    filesize_bytes = os.stat(file_path).st_size
+                    if self.FILE_SIZE_LIMIT_LOW is not None and self.FILE_SIZE_LIMIT_HIGH is not None:
+                        if filesize_bytes < self.FILE_SIZE_LIMIT_LOW or filesize_bytes > self.FILE_SIZE_LIMIT_HIGH:
+                            filesize_conv, filesize_units = self.convert_units_scalar(filesize_bytes)
+                            print(f"\nFile {file_path} is {filesize_conv:.1f} {filesize_units} "\
+                                    f"which does not meet file size limit - skipping.")
+                            unsuccessful_list.append(file_path)
+                            continue
                     run_num = re.search(config.RUN_NUM_REGEX, file)
                     if run_num is None:
-                        print(f'No run number found in filename for file {os.path.join(root, file)}')
-                    else:
-                        run_num = run_num.group()
-                        run_count = self.get_events_count(run_num)
-                        if run_count is None:
-                            print(f'No run number found in database for file {os.path.join(root, file)}')
-                        else:
-                            filesize_arr.append(filesize_bytes)
-                            filesize_per_event.append(filesize_bytes / run_count)
+                        print(f"\nNo run number found in filename for file {file_path}")
+                        unsuccessful_list.append(file_path)
+                        continue
+                    run_num = run_num.group()
+                    run_count = self.get_events_count(run_num)
+                    if run_count is None:
+                        print(f"\nNo run number {run_num} found in database for file {file_path}")
+                        unsuccessful_list.append(file_path)
+                        continue
+                    filesize_bytes_per_event = filesize_bytes / run_count
+                    if self.EVENT_SIZE_LIMIT_LOW is not None and self.EVENT_SIZE_LIMIT_HIGH is not None:
+                        if filesize_bytes_per_event < self.EVENT_SIZE_LIMIT_LOW or filesize_bytes_per_event > self.EVENT_SIZE_LIMIT_HIGH:
+                            eventsize_conv, eventsize_units = self.convert_units_scalar(filesize_bytes_per_event)
+                            print(f"\nFile {file_path} has {eventsize_conv:.1f} {eventsize_units} per event "\
+                                    f"which does not meet event size limit - skipping.")
+                            unsuccessful_list.append(file_path)
+                            continue
+                    files_parsed_successful += 1
+                    print("+", end="", flush=True)
+                    filesize_arr.append(filesize_bytes)
+                    filesize_per_event.append(filesize_bytes_per_event)
         print()
-        print(f"Totally parsed {files_parsed} files")
+        print(f"Total files parsed: {files_parsed_successful}")
         if filesize_arr == []:
-            raise Exception("No data")
+            raise NoDataException
+        unsuccessful_list.sort()
+        if len(unsuccessful_list) == 0:
+            print("\nAll files processed successfully.\n")
+        else:
+            print("\nUnsuccessfully processed files:")
+            for elem in unsuccessful_list:
+                print(elem)
+            if config.UNSUCCESSFUL_LOG_FILE is not None:
+                print()
+                with open(config.UNSUCCESSFUL_LOG_FILE, "wt") as f:
+                    for elem in unsuccessful_list:
+                        f.write(elem + "\n")
+                print(f"Unsuccessfully processed files list ({len(unsuccessful_list)}/{files_parsed_overall}, {(100*len(unsuccessful_list)/files_parsed_overall):.1f}%)"\
+                    f" was saved to {config.UNSUCCESSFUL_LOG_FILE}")
         return np.array(filesize_arr), np.array(filesize_per_event)
 
 
@@ -89,6 +152,14 @@ class SizeStatComputer:
                 break
         arr = arr / (config.SIZE**i)
         return arr, unit
+
+
+    def convert_units_scalar(self, num):
+        for i, unit in enumerate(config.UNITS):
+            if num / config.SIZE**i < config.SIZE:
+                break
+        res = num / (config.SIZE**i)
+        return res, unit
 
 
     def get_events_count(self, run_num):

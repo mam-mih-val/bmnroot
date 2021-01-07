@@ -140,7 +140,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     fRun->SetIsMT(false);
 
     // -----   Create magnetic field   ----------------------------------------
-    BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
+    BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v5_ascii_Extrap.root");
     Double_t fieldScale = 1200. / 900.;
     magField->SetScale(fieldScale);
     fRun->SetField(magField);

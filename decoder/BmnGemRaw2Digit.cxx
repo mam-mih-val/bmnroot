@@ -1022,6 +1022,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
             fSigProf[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()]->Fill(dig->GetStripNumber());
         } else {
             BmnGemStripDigit * resDig = new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
+//            printf("st %d  mod %d lay %d strip %d\n",dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber() );
             if (fNoisyChannels[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()][dig->GetStripNumber()])
                 resDig->SetIsGoodDigit(kFALSE);
             else

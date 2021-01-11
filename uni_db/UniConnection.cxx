@@ -1,19 +1,19 @@
 // -------------------------------------------------------------------------
-// -----                      UniDbConnection source file              -----
+// -----                       UniConnection source file               -----
 // -----                  Created 28/01/13 by K. Gertsenberger         -----
 // -------------------------------------------------------------------------
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 
-mapSQLServer* UniDbConnection::mapConnection = 0x00;
+mapSQLServer* UniConnection::mapConnection = 0x00;
 
 // -----   Constructor with connection   ----------------------
-UniDbConnection::UniDbConnection(TSQLServer* pSQLServer)
+UniConnection::UniConnection(TSQLServer* pSQLServer)
 {
     server_db = pSQLServer;
 }
 
 // -------------------------------------------------------------------
-UniDbConnection* UniDbConnection::Open(UniConnectionType connection_type)
+UniConnection* UniConnection::Open(UniConnectionType connection_type)
 {
     TString conString = "";
     switch (connection_type)
@@ -34,12 +34,12 @@ UniDbConnection* UniDbConnection::Open(UniConnectionType connection_type)
             }
     }
 
-    if (UniDbConnection::mapConnection == NULL)
-        UniDbConnection::mapConnection = new mapSQLServer();
+    if (UniConnection::mapConnection == NULL)
+        UniConnection::mapConnection = new mapSQLServer();
 
     TSQLServer* pSQLServer = 0x00;
-    itSQLServer it = UniDbConnection::mapConnection->find(conString.Data());
-    if (it != UniDbConnection::mapConnection->end())
+    itSQLServer it = UniConnection::mapConnection->find(conString.Data());
+    if (it != UniConnection::mapConnection->end())
     {
         pSQLServer = it->second;
     }
@@ -64,14 +64,14 @@ UniDbConnection* UniDbConnection::Open(UniConnectionType connection_type)
         }
         //cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;
 
-        UniDbConnection::mapConnection->insert(pairSQLServer(conString.Data(), pSQLServer));
+        UniConnection::mapConnection->insert(pairSQLServer(conString.Data(), pSQLServer));
     }
 
-    return new UniDbConnection(pSQLServer);
+    return new UniConnection(pSQLServer);
 }
 
 // -------------------------------------------------------------------
-UniDbConnection* UniDbConnection::Open(enumDBMS database_type, const char* strDBHost, const char* strDBName, const char* strUID, const char* strPassword)
+UniConnection* UniConnection::Open(enumDBMS database_type, const char* strDBHost, const char* strDBName, const char* strUID, const char* strPassword)
 {
     char* db_type;
     switch (database_type)
@@ -90,12 +90,12 @@ UniDbConnection* UniDbConnection::Open(enumDBMS database_type, const char* strDB
     }
     TString conString = TString::Format("%s://%s/%s", db_type, strDBHost, strDBName);
 
-    if (UniDbConnection::mapConnection == NULL)
-        UniDbConnection::mapConnection = new mapSQLServer();
+    if (UniConnection::mapConnection == NULL)
+        UniConnection::mapConnection = new mapSQLServer();
 
     TSQLServer* pSQLServer = 0x00;
-    itSQLServer it = UniDbConnection::mapConnection->find(conString.Data());
-    if (it != UniDbConnection::mapConnection->end())
+    itSQLServer it = UniConnection::mapConnection->find(conString.Data());
+    if (it != UniConnection::mapConnection->end())
     {
         pSQLServer = it->second;
     }
@@ -109,18 +109,18 @@ UniDbConnection* UniDbConnection::Open(enumDBMS database_type, const char* strDB
         }
         //cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;
 
-        UniDbConnection::mapConnection->insert(pairSQLServer(conString.Data(), pSQLServer));
+        UniConnection::mapConnection->insert(pairSQLServer(conString.Data(), pSQLServer));
     }
 
-    return new UniDbConnection(pSQLServer);
+    return new UniConnection(pSQLServer);
 }
 
 // -------------------------------------------------------------------
-UniDbConnection::~UniDbConnection()
+UniConnection::~UniConnection()
 {
     //if (uni_db)
     //    delete uni_db;
 }
 
 // -------------------------------------------------------------------
-ClassImp(UniDbConnection);
+ClassImp(UniConnection);

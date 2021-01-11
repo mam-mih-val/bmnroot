@@ -1,16 +1,16 @@
 // -------------------------------------------------------------------------
-// -----                     UniDbParameterValue header file           -----
+// -----                          UniValue header file                 -----
 // -----                  Created 03/05/17 by K. Gertsenberger         -----
 // -------------------------------------------------------------------------
 
-/** UniDbParameterValue.h
+/** UniValue.h
  *@author K.Gertsenberger <gertsen@jinr.ru>
  **
- ** abstract base pure virtual structure for parameter storing
+ ** abstract base pure virtual structure for value storing
  **/
 
-#ifndef UNIDBPARAMETERVALUE_H
-#define UNIDBPARAMETERVALUE_H 1
+#ifndef UNIVALUE_H
+#define UNIVALUE_H 1
 
 #include "db_settings.h"
 
@@ -23,11 +23,11 @@
 #include <iostream>
 using namespace std;
 
-enum enumParameterTypeNew : unsigned int;
-struct UniDbParameterValue
+enum enumValueType : unsigned int;
+struct UniValue
 {
-    virtual enumParameterTypeNew GetType() = 0;
-    virtual size_t GetSize() = 0;
+    virtual enumValueType GetType() = 0;
+    virtual size_t GetStorageSize() = 0;
     virtual void ReadValue(unsigned char* source) = 0;
     virtual void WriteValue(unsigned char* destination) = 0;
 
@@ -109,7 +109,7 @@ struct UniDbParameterValue
             memcpy(destination, value, size);
             destination += size;
         }
-        else cout<<"ERROR: The count of bytes for parameter value should be greater than zero. The parameter value was not written to the database!"<<endl;
+        else cout<<"ERROR: count of bytes for the value should be greater than zero. The value was not written to the database!"<<endl;
     }
 
     void Read(unsigned char*& source, double* value, const uint64_t count)
@@ -143,7 +143,7 @@ struct UniDbParameterValue
             memcpy(destination, value.data(), size);
             destination += size;
         }
-        else cout<<"ERROR: The vector size should be greater than zero. The parameter value was not written to the database!"<<endl;
+        else cout<<"ERROR: vector size of the value should be greater than zero. The value was not written to the database!"<<endl;
     }
 };
 

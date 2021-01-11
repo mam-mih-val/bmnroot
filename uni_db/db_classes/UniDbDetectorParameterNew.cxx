@@ -16,7 +16,7 @@
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbDetectorParameterNew::UniDbDetectorParameterNew(UniDbConnection* connUniDb, int value_id, TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, int value_key, unsigned char* parameter_value, Long_t size_parameter_value)
+UniDbDetectorParameterNew::UniDbDetectorParameterNew(UniConnection* connUniDb, int value_id, TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, int value_key, unsigned char* parameter_value, Long_t size_parameter_value)
 {
 	connectionUniDb = connUniDb;
 
@@ -44,7 +44,7 @@ UniDbDetectorParameterNew::~UniDbDetectorParameterNew()
 // -----   Creating new detector parameter new in the database  ---------------------------
 UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameterNew(TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, int value_key, unsigned char* parameter_value, Long_t size_parameter_value)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -132,7 +132,7 @@ UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameterNew
 // -----  Get detector parameter new from the database  ---------------------------
 UniDbDetectorParameterNew* UniDbDetectorParameterNew::GetDetectorParameterNew(int value_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -195,7 +195,7 @@ UniDbDetectorParameterNew* UniDbDetectorParameterNew::GetDetectorParameterNew(in
 // -----  Check detector parameter new exists in the database  ---------------------------
 bool UniDbDetectorParameterNew::CheckDetectorParameterNewExists(int value_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -236,7 +236,7 @@ bool UniDbDetectorParameterNew::CheckDetectorParameterNewExists(int value_id)
 // -----  Delete detector parameter new from the database  ---------------------------
 int UniDbDetectorParameterNew::DeleteDetectorParameterNew(int value_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -267,7 +267,7 @@ int UniDbDetectorParameterNew::DeleteDetectorParameterNew(int value_id)
 // -----  Print all 'detector parameter news'  ---------------------------------
 int UniDbDetectorParameterNew::PrintAll()
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -622,7 +622,7 @@ void UniDbDetectorParameterNew::Print()
 
 
 // non-user function for getting parameter value as a binary (char) array
-unsigned char* UniDbDetectorParameterNew::GetUNC(enumParameterTypeNew enum_parameter_type)
+unsigned char* UniDbDetectorParameterNew::GetUNC(enumValueType enum_parameter_type)
 {
     if (enum_parameter_type > -1)
     {
@@ -686,7 +686,7 @@ int UniDbDetectorParameterNew::SetUNC(unsigned char* p_parameter_value, Long_t s
     TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-        "update detector_parameter "
+        "update detector_parameter_new "
         "set parameter_value = $1 "
         "where detector_name = $2 and parameter_id = $3 and start_period = $4 and start_run = $5 and end_period = $6 and end_run = $7 and value_key = $8");
 
@@ -720,15 +720,15 @@ int UniDbDetectorParameterNew::SetUNC(unsigned char* p_parameter_value, Long_t s
 
 // non-user function for writing parameter value (integer value key is optional, default, 0)
 UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                                              unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterTypeNew enum_parameter_type, int value_key)
+                                                                              unsigned char* p_parameter_value, Long_t size_parameter_value, enumValueType enum_parameter_type, int value_key)
 {
-    if (((end_period < start_period) or ((end_period = start_period) and (end_run < start_run))) or ((start_period > end_period) or ((start_period = end_period) and (start_run > end_run))))
+    if (((end_period < start_period) or ((end_period == start_period) and (end_run < start_run))) or ((start_period > end_period) or ((start_period == end_period) and (start_run > end_run))))
     {
         cout<<"ERROR: end run should be after or the same as start run"<<endl;
         return 0x00;
     }
 
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
         return 0x00;
 
@@ -743,10 +743,11 @@ UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameter(TS
     }
 
     TString sql = TString::Format(
-        "insert into detector_parameter(detector_name, parameter_id, start_period, start_run, end_period, end_run, value_key, parameter_value) "
+        "insert into detector_parameter_new(detector_name, parameter_id, start_period, start_run, end_period, end_run, value_key, parameter_value) "
         "values ($1, $2, $3, $4, $5, $6, $7, $8)");
     TSQLStatement* stmt = uni_db->Statement(sql);
 
+    //cout<<"DEBUG: detector_name = "<<detector_name<<". parameter_id = "<<parameter_id<<". start_period = "<<start_period<<". start_run = "<<start_run<<". end_period = "<<end_period<<". end_run = "<<end_run<<". value_key = "<<value_key<<". p_parameter_value[0] = "<<p_parameter_value[0]<<". size_parameter_value = "<<size_parameter_value<<endl;
     stmt->NextIteration();
     stmt->SetString(0, detector_name);
     stmt->SetInt(1, parameter_id);
@@ -756,12 +757,11 @@ UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameter(TS
     stmt->SetInt(5, end_run);
     stmt->SetInt(6, value_key);
     stmt->SetBinary(7, (void*)p_parameter_value, size_parameter_value);
-    //cout<<p_parameter_value<<" "<<p_parameter_value[0]<<" "<<size_parameter_value<<endl;
 
     // inserting new record to DB
     if (!stmt->Process())
     {
-        cout<<"ERROR: inserting new parameter value to the Database has been failed"<<endl;
+        cout<<"ERROR: inserting new parameter value to the database has been failed"<<endl;
         delete stmt;
         delete connUniDb;
         return 0x00;
@@ -772,7 +772,7 @@ UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameter(TS
     // getting last inserted node ID
     int last_id = -1;
     //TSQLStatement* stmt_last = uni_db->Statement("SELECT LAST_INSERT_ID()");  //MySQL
-    TSQLStatement* stmt_last = uni_db->Statement("SELECT currval(pg_get_serial_sequence('detector_parameter','value_id'))");
+    TSQLStatement* stmt_last = uni_db->Statement("SELECT currval(pg_get_serial_sequence('detector_parameter_new','value_id'))");
 
     if (stmt_last->Process())
     {
@@ -806,14 +806,14 @@ UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameter(TS
 
 // write detector parameter value presented by an array (integer value key is optional, default, 0)
 UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                                              vector<UniDbParameterValue*> parameter_value, int value_key)
+                                                                              vector<UniValue*> parameter_value, int value_key)
 {
     if (parameter_value.size() < 1)
     {
         cout<<"ERROR: The length of the parameter array should be greater zero"<<endl;
         return NULL;
     }
-    enumParameterTypeNew parameter_type = parameter_value[0]->GetType();
+    enumValueType parameter_type = parameter_value[0]->GetType();
 
     // calculate total size
     size_t size_parameter_value = 0;
@@ -821,10 +821,10 @@ UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameter(TS
     {
         if (parameter_value[i]->GetType() != parameter_type)
         {
-            cout<<"ERROR: The types of the parameters must be the same"<<endl;
+            cout<<"ERROR: the type of the parameters in the array must be the same"<<endl;
             return NULL;
         }
-        size_parameter_value += parameter_value[i]->GetSize();
+        size_parameter_value += parameter_value[i]->GetStorageSize();
     }
 
     // write parameters of the vector to the buffer
@@ -833,12 +833,12 @@ UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameter(TS
     for (int i = 0; i < parameter_value.size(); i++)
     {
         parameter_value[i]->WriteValue(tmp_pointer);
-        tmp_pointer += parameter_value[i]->GetSize();
+        tmp_pointer += parameter_value[i]->GetStorageSize();
     }
 
     UniDbDetectorParameterNew* pDetectorParameter =
             UniDbDetectorParameterNew::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
-                                                              (unsigned char*)p_parameter_value, size_parameter_value, parameter_type, value_key);
+                                                              p_parameter_value, size_parameter_value, parameter_type, value_key);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
 
@@ -847,17 +847,17 @@ UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameter(TS
 
 // write detector parameter value presented by a single value (integer value key is optional, default, 0)
 UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                                              UniDbParameterValue* parameter_value, int value_key)
+                                                                              UniValue* parameter_value, int value_key)
 {
     if (parameter_value == NULL)
     {
         cout<<"ERROR: the parameter value must not be NULL"<<endl;
         return NULL;
     }
-    enumParameterTypeNew parameter_type = parameter_value->GetType();
+    enumValueType parameter_type = parameter_value->GetType();
 
     // write the parameter to the buffer
-    size_t size_parameter_value = parameter_value->GetSize();
+    size_t size_parameter_value = parameter_value->GetStorageSize();
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     parameter_value->WriteValue(p_parameter_value);
 
@@ -873,7 +873,7 @@ UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameter(TS
 // get detector parameter value (integer value key is optional, default, 0)
 UniDbDetectorParameterNew* UniDbDetectorParameterNew::GetDetectorParameter(TString detector_name, TString parameter_name, int period_number, int run_number, int value_key)
 {
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
         return 0x00;
 
@@ -881,7 +881,7 @@ UniDbDetectorParameterNew* UniDbDetectorParameterNew::GetDetectorParameter(TStri
 
     TString sql = TString::Format(
         "select value_id, detector_name, p.parameter_id, start_period, start_run, end_period, end_run, parameter_value "
-        "from detector_parameter dp join parameter_ p on dp.parameter_id = p.parameter_id "
+        "from detector_parameter_new dp join parameter_ p on dp.parameter_id = p.parameter_id "
         "where lower(detector_name) = lower('%s') and lower(parameter_name) = lower('%s') and "
         "(not (((%d < start_period) or ((%d = start_period) and (%d < start_run))) or ((%d > end_period) or ((%d = end_period) and (%d > end_run))))) and "
         "value_key = %d",
@@ -936,13 +936,13 @@ UniDbDetectorParameterNew* UniDbDetectorParameterNew::GetDetectorParameter(TStri
 // delete detector parameter value (integer value key is optional, default, 0)
 int UniDbDetectorParameterNew::DeleteDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, int value_key)
 {
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00) return 0x00;
 
     TSQLServer* uni_db = connUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-        "delete from detector_parameter "
+        "delete from detector_parameter_new "
         "where lower(detector_name) = lower($1) and parameter_id IN (select parameter_id from parameter_ where lower(parameter_name) = lower($2)) and start_period = $3 and start_run = $4 and end_period = $5 and end_run = $6 and value_key = $7");
     TSQLStatement* stmt = uni_db->Statement(sql);
 
@@ -979,7 +979,7 @@ int UniDbDetectorParameterNew::DeleteDetectorParameter(TString detector_name, TS
 }
 
 // get value of detector parameter presented by an array
-int UniDbDetectorParameterNew::GetParameterValue(vector<UniDbParameterValue*>& parameter_value)
+int UniDbDetectorParameterNew::GetParameterValue(vector<UniValue*>& parameter_value)
 {
     unsigned char* p_parameter_value = GetUNC();
     if (p_parameter_value == NULL)
@@ -988,10 +988,10 @@ int UniDbDetectorParameterNew::GetParameterValue(vector<UniDbParameterValue*>& p
     Long_t full_size = sz_parameter_value;
     while (full_size > 0)
     {
-        UniDbParameterValue* pParameterValue = CreateParameterValue(GetParameterType());
+        UniValue* pParameterValue = CreateParameterValue(GetParameterType());
         pParameterValue->ReadValue(p_parameter_value);
-        full_size -= pParameterValue->GetSize();
-        p_parameter_value += pParameterValue->GetSize();
+        full_size -= pParameterValue->GetStorageSize();
+        p_parameter_value += pParameterValue->GetStorageSize();
         parameter_value.push_back(pParameterValue);
     }
 
@@ -999,7 +999,7 @@ int UniDbDetectorParameterNew::GetParameterValue(vector<UniDbParameterValue*>& p
 }
 
 // get value of detector parameter presented by a single value
-int UniDbDetectorParameterNew::GetParameterValue(UniDbParameterValue*& parameter_value)
+int UniDbDetectorParameterNew::GetParameterValue(UniValue*& parameter_value)
 {
     unsigned char* p_parameter_value = GetUNC();
     if (p_parameter_value == NULL)
@@ -1012,7 +1012,7 @@ int UniDbDetectorParameterNew::GetParameterValue(UniDbParameterValue*& parameter
 }
 
 // set value to detector parameter presented by an array
-int UniDbDetectorParameterNew::SetParameterValue(vector<UniDbParameterValue*> parameter_value)
+int UniDbDetectorParameterNew::SetParameterValue(vector<UniValue*> parameter_value)
 {
     if (parameter_value.size() < 1)
     {
@@ -1023,7 +1023,7 @@ int UniDbDetectorParameterNew::SetParameterValue(vector<UniDbParameterValue*> pa
     // calculate full size to create a 'char' buffer
     size_t size_parameter_value = 0;
     for (int i = 0; i < parameter_value.size(); i++)
-        size_parameter_value += parameter_value[i]->GetSize();
+        size_parameter_value += parameter_value[i]->GetStorageSize();
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
 
     // write value by value to the 'char' buffer
@@ -1031,7 +1031,7 @@ int UniDbDetectorParameterNew::SetParameterValue(vector<UniDbParameterValue*> pa
     for (int i = 0; i < parameter_value.size(); i++)
     {
         parameter_value[i]->WriteValue(tmp_pointer);
-        tmp_pointer += parameter_value[i]->GetSize();
+        tmp_pointer += parameter_value[i]->GetStorageSize();
     }
 
     int res_code = SetUNC(p_parameter_value, size_parameter_value);
@@ -1045,7 +1045,7 @@ int UniDbDetectorParameterNew::SetParameterValue(vector<UniDbParameterValue*> pa
 }
 
 // set value to detector parameter presented by a single value
-int UniDbDetectorParameterNew::SetParameterValue(UniDbParameterValue* parameter_value)
+int UniDbDetectorParameterNew::SetParameterValue(UniValue* parameter_value)
 {
     if (parameter_value == NULL)
     {
@@ -1054,7 +1054,7 @@ int UniDbDetectorParameterNew::SetParameterValue(UniDbParameterValue* parameter_
     }
 
     // write value to the 'char' buffer
-    size_t size_parameter_value = parameter_value->GetSize();
+    size_t size_parameter_value = parameter_value->GetStorageSize();
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     parameter_value->WriteValue(p_parameter_value);
 
@@ -1168,7 +1168,7 @@ TObjArray* UniDbDetectorParameterNew::Search(TObjArray& search_conditions)
     TObjArray* arrayResult = NULL;
     search_conditions.SetOwner(kTRUE);
 
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
     {
         cout<<"ERROR: the connection to the Unified Database was failed"<<endl;
@@ -1179,7 +1179,7 @@ TObjArray* UniDbDetectorParameterNew::Search(TObjArray& search_conditions)
 
     TString sql = TString::Format(
                 "select value_id, detector_name, p.parameter_id, start_period, start_run, end_period, end_run, value_key, parameter_value "
-                "from detector_parameter dp join parameter_ p on dp.parameter_id = p.parameter_id");
+                "from detector_parameter_new dp join parameter_ p on dp.parameter_id = p.parameter_id");
 
     TString strCondition;
     bool isFirst = true;
@@ -1261,7 +1261,7 @@ TObjArray* UniDbDetectorParameterNew::Search(TObjArray& search_conditions)
     arrayResult->SetOwner(kTRUE);
     while (stmt->NextResultRow())
     {
-        UniDbConnection* connPar = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connPar = UniConnection::Open(UNIFIED_DB);
         if (connPar == 0x00)
         {
             cout<<"ERROR: the connection to the Unified Database for the selected run was failed"<<endl;
@@ -1324,7 +1324,7 @@ TString UniDbDetectorParameterNew::GetParameterName()
 }
 
 // get parameter type of the current detector parameter
-enumParameterTypeNew UniDbDetectorParameterNew::GetParameterType()
+enumValueType UniDbDetectorParameterNew::GetParameterType()
 {
     UniDbParameter* pCurParameter = UniDbParameter::GetParameter(i_parameter_id);
     if (pCurParameter == NULL)
@@ -1333,7 +1333,7 @@ enumParameterTypeNew UniDbDetectorParameterNew::GetParameterType()
         return UndefinedType;
     }
 
-    enumParameterTypeNew par_type = (enumParameterTypeNew) pCurParameter->GetParameterType();
+    enumValueType par_type = (enumValueType) pCurParameter->GetParameterType();
 
     delete pCurParameter;
     return par_type;
@@ -1369,7 +1369,7 @@ int UniDbDetectorParameterNew::SetStart(int start_period, int start_run)
     TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-        "update detector_parameter "
+        "update detector_parameter_new "
         "set start_period = $1, start_run = $2"
         "where value_id = $3");
     TSQLStatement* stmt = uni_db->Statement(sql);
@@ -1407,7 +1407,7 @@ int UniDbDetectorParameterNew::SetEnd(int end_period, int end_run)
     TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-        "update detector_parameter "
+        "update detector_parameter_new "
         "set end_period = $1, end_run = $2"
         "where value_id = $3");
     TSQLStatement* stmt = uni_db->Statement(sql);
@@ -1446,7 +1446,7 @@ int UniDbDetectorParameterNew::ParseTxt(TString text_file, TString detector_name
     }
 
     // open connection to database
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
         return -3;
 

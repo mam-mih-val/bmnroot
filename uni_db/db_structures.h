@@ -1,7 +1,7 @@
 #ifndef DB_STRUCTURES_H
 #define DB_STRUCTURES_H
 
-#include "UniDbParameterValue.h"
+#include "UniValue.h"
 
 #include <string>
 #include <cstring>
@@ -23,92 +23,92 @@ struct UniqueRunNumber
 enum enumParameterType{BoolType, IntType, DoubleType, StringType, IIArrayType, IntArrayType, DoubleArrayType, BinaryArrayType, UIntArrayType,   // base types
                        DchMapArrayType, GemMapArrayType, GemPedestalArrayType, TriggerMapArrayType, LorentzShiftArrayType, ErrorType = 999};    // detector-dependent types
 
-// enumeration 'enumParameterType' is corresponding to 'parameter_type' member of the UniDbParameter class, types:
+// enumeration 'enumValueType' is corresponding to 'parameter_type' member of the UniDbParameter class, types:
 // 0 - boolean, 1 - integer, 2 - unsigned integer, 3 - double, 4 - string, 5 - binary, 6 - int+int,
-// 7 - DCH mapping, 8 - GEM mapping, 9 - GEM pedestal mapping, 10 - trigger mapping, 13 - Lorentz shift,
-// 14 - mapping with bool value (serial+channel+bool), 15 - mapping with int, 16 - maaping with double vector
-enum enumParameterTypeNew : unsigned int
+// 7 - DCH mapping, 8 - GEM mapping, 9 - GEM pedestal mapping, 10 - trigger mapping, 11 - Lorentz shift,
+// 12 - mapping with bool value (serial+channel+bool), 13 - mapping with int, 14 - maaping with double vector
+enum enumValueType : unsigned int
 {
-    BoolTypeNew, IntTypeNew, UIntTypeNew, DoubleTypeNew, StringTypeNew, BinaryTypeNew, IITypeNew,                   // base types
+    BoolTypeNew = 0, IntTypeNew, UIntTypeNew, DoubleTypeNew, StringTypeNew, BinaryTypeNew, IITypeNew,               // base types
     DchMapTypeNew, GemMapTypeNew, GemPedestalTypeNew, TriggerMapTypeNew, LorentzShiftTypeNew,                       // detector-dependent types
     MapBoolTypeNew, MapIntTypeNew, MapDVectorTypeNew, UndefinedType = 999                                           // detector-dependent types
 };
 
 
-/** STRUCTURES for parameter storing corresponding enumParameterType list **/
-struct BoolValue : public UniDbParameterValue
+/** STRUCTURES for parameter storing corresponding enumValueType list **/
+struct BoolValue : public UniValue
 {
     uint8_t value;
 
-    enumParameterTypeNew GetType() { return BoolTypeNew; }
-    size_t GetSize() { return 1; }
+    enumValueType GetType() { return BoolTypeNew; }
+    size_t GetStorageSize() { return 1; }
     void ReadValue(unsigned char* source)       { Read(source, value); }
     void WriteValue(unsigned char* destination) { Write(destination, value); }
 };
 
-struct IntValue : public UniDbParameterValue
+struct IntValue : public UniValue
 {
     int32_t value;
 
-    enumParameterTypeNew GetType() { return IntTypeNew; }
-    size_t GetSize() { return 4; }
+    enumValueType GetType() { return IntTypeNew; }
+    size_t GetStorageSize() { return 4; }
     void ReadValue(unsigned char* source)       { Read(source, value); }
     void WriteValue(unsigned char* destination) { Write(destination, value); }
 };
 
-struct UIntValue : public UniDbParameterValue
+struct UIntValue : public UniValue
 {
     uint32_t value;
 
-    enumParameterTypeNew GetType() { return UIntTypeNew; }
-    size_t GetSize() { return 4; }
+    enumValueType GetType() { return UIntTypeNew; }
+    size_t GetStorageSize() { return 4; }
     void ReadValue(unsigned char* source)       { Read(source, value); }
     void WriteValue(unsigned char* destination) { Write(destination, value); }
 };
 
-struct DoubleValue : public UniDbParameterValue
+struct DoubleValue : public UniValue
 {
     double value;
 
-    enumParameterTypeNew GetType() { return DoubleTypeNew; }
-    size_t GetSize() { return 8; }
+    enumValueType GetType() { return DoubleTypeNew; }
+    size_t GetStorageSize() { return 8; }
     void ReadValue(unsigned char* source)       { Read(source, value); }
     void WriteValue(unsigned char* destination) { Write(destination, value); }
 };
 
-struct StringValue : public UniDbParameterValue
+struct StringValue : public UniValue
 {
     string value;
 
-    enumParameterTypeNew GetType() { return StringTypeNew; }
-    size_t GetSize() { return value.length()+1; }
+    enumValueType GetType() { return StringTypeNew; }
+    size_t GetStorageSize() { return value.length()+1; }
     void ReadValue(unsigned char* source)       { Read(source, value); }
     void WriteValue(unsigned char* destination) { Write(destination, value); }
 };
 
-struct BinaryValue : public UniDbParameterValue
+struct BinaryValue : public UniValue
 {
     uint64_t size;
     unsigned char* value;
 
-    enumParameterTypeNew GetType() { return BinaryTypeNew; }
-    size_t GetSize() { return size; }
+    enumValueType GetType() { return BinaryTypeNew; }
+    size_t GetStorageSize() { return size + 8; }
     void ReadValue(unsigned char* source)       { Read(source, value, size); }
     void WriteValue(unsigned char* destination) { Write(destination, value, size); }
 };
 
-struct IIValue : public UniDbParameterValue
+struct IIValue : public UniValue
 {
     int32_t value1;
     int32_t value2;
 
-    enumParameterTypeNew GetType() { return IITypeNew; }
-    size_t GetSize() { return 8; }
+    enumValueType GetType() { return IITypeNew; }
+    size_t GetStorageSize() { return 8; }
     void ReadValue(unsigned char* source)       { Read(source, value1);       Read(source, value2); }
     void WriteValue(unsigned char* destination) { Write(destination, value1); Write(destination, value2); }
 };
 
-struct DchMapValue : public UniDbParameterValue
+struct DchMapValue : public UniValue
 {
     int32_t plane;
     int32_t group;
@@ -117,13 +117,13 @@ struct DchMapValue : public UniDbParameterValue
     int32_t channel_low;
     int32_t channel_high;
 
-    enumParameterTypeNew GetType() { return DchMapTypeNew; }
-    size_t GetSize() { return 24; }
+    enumValueType GetType() { return DchMapTypeNew; }
+    size_t GetStorageSize() { return 24; }
     void ReadValue(unsigned char* source)       { Read(source, plane);       Read(source, group);       Read(source, crate);       Read(source, slot);       Read(source, channel_low);       Read(source, channel_high); }
     void WriteValue(unsigned char* destination) { Write(destination, plane); Write(destination, group); Write(destination, crate); Write(destination, slot); Write(destination, channel_low); Write(destination, channel_high); }
 };
 
-struct GemMapValue : public UniDbParameterValue
+struct GemMapValue : public UniValue
 {
     uint32_t serial;
     int32_t id;
@@ -132,88 +132,88 @@ struct GemMapValue : public UniDbParameterValue
     int32_t channel_high;
     int32_t hotZone;
 
-    enumParameterTypeNew GetType() { return GemMapTypeNew; }
-    size_t GetSize() { return 24; }
+    enumValueType GetType() { return GemMapTypeNew; }
+    size_t GetStorageSize() { return 24; }
     void ReadValue(unsigned char* source)       { Read(source, serial);       Read(source, id);       Read(source, station);       Read(source, channel_low);       Read(source, channel_high);       Read(source, hotZone); }
     void WriteValue(unsigned char* destination) { Write(destination, serial); Write(destination, id); Write(destination, station); Write(destination, channel_low); Write(destination, channel_high); Write(destination, hotZone); }
 };
 
-struct GemPedestalValue : public UniDbParameterValue
+struct GemPedestalValue : public UniValue
 {
     uint32_t serial;
     int32_t channel;
     int32_t pedestal;
     int32_t noise;
 
-    enumParameterTypeNew GetType() { return GemPedestalTypeNew; }
-    size_t GetSize() { return 16; }
+    enumValueType GetType() { return GemPedestalTypeNew; }
+    size_t GetStorageSize() { return 16; }
     void ReadValue(unsigned char* source)       { Read(source, serial);       Read(source, channel);       Read(source, pedestal);       Read(source, noise); }
     void WriteValue(unsigned char* destination) { Write(destination, serial); Write(destination, channel); Write(destination, pedestal); Write(destination, noise); }
 };
 
-struct TriggerMapValue : public UniDbParameterValue
+struct TriggerMapValue : public UniValue
 {
     uint32_t serial;
     uint32_t slot;
     int32_t channel;
 
-    enumParameterTypeNew GetType() { return TriggerMapTypeNew; }
-    size_t GetSize() { return 12; }
+    enumValueType GetType() { return TriggerMapTypeNew; }
+    size_t GetStorageSize() { return 12; }
     void ReadValue(unsigned char* source)       { Read(source, serial);       Read(source, slot);       Read(source, channel); }
     void WriteValue(unsigned char* destination) { Write(destination, serial); Write(destination, slot); Write(destination, channel); }
 };
 
-struct MapBoolValue : public UniDbParameterValue
+struct MapBoolValue : public UniValue
 {
     uint32_t serial;
     int32_t channel;
     uint8_t value;
 
-    enumParameterTypeNew GetType() { return MapBoolTypeNew; }
-    size_t GetSize() { return 9; }
+    enumValueType GetType() { return MapBoolTypeNew; }
+    size_t GetStorageSize() { return 9; }
     void ReadValue(unsigned char* source)       { Read(source, serial);       Read(source, channel);       Read(source, value); }
     void WriteValue(unsigned char* destination) { Write(destination, serial); Write(destination, channel); Write(destination, value); }
 };
 
-struct MapIntValue : public UniDbParameterValue
+struct MapIntValue : public UniValue
 {
     uint32_t serial;
     int32_t channel;
     int32_t value;
 
-    enumParameterTypeNew GetType() { return MapIntTypeNew; }
-    size_t GetSize() { return 12; }
+    enumValueType GetType() { return MapIntTypeNew; }
+    size_t GetStorageSize() { return 12; }
     void ReadValue(unsigned char* source)       { Read(source, serial);       Read(source, channel);       Read(source, value); }
     void WriteValue(unsigned char* destination) { Write(destination, serial); Write(destination, channel); Write(destination, value); }
 };
 
-struct MapDVectorValue : public UniDbParameterValue
+struct MapDVectorValue : public UniValue
 {
     uint32_t serial;
     int32_t channel;
     vector<double> value;
 
-    enumParameterTypeNew GetType() { return MapDVectorTypeNew; }
-    size_t GetSize() { return value.size()*8 + 8; }
+    enumValueType GetType() { return MapDVectorTypeNew; }
+    size_t GetStorageSize() { return value.size()*8 + 8; }
     void ReadValue(unsigned char* source)       { Read(source, serial);       Read(source, channel);       Read(source, value); }
     void WriteValue(unsigned char* destination) { Write(destination, serial); Write(destination, channel); Write(destination, value); }
 };
 
-struct LorentzShiftValue : public UniDbParameterValue
+struct LorentzShiftValue : public UniValue
 {
     int32_t number;
     double ls[3];
 
-    enumParameterTypeNew GetType() { return LorentzShiftTypeNew; }
-    size_t GetSize() { return 28; }
+    enumValueType GetType() { return LorentzShiftTypeNew; }
+    size_t GetStorageSize() { return 28; }
     void ReadValue(unsigned char* source)       { Read(source, number);       Read(source, ls, 3); }
     void WriteValue(unsigned char* destination) { Write(destination, number); Write(destination, ls, 3); }
 };
 
 #ifndef CREATE_PARAMETER_VALUE_H
 #define CREATE_PARAMETER_VALUE_H
-// global function for creating paramenter value according the given type name (parameter_type)
-inline UniDbParameterValue* CreateParameterValue(enumParameterTypeNew parameter_type)
+// global function for creating value according to a given type name (parameter_type)
+inline UniValue* CreateParameterValue(enumValueType parameter_type)
 {
     switch (parameter_type)
     {
@@ -235,7 +235,7 @@ inline UniDbParameterValue* CreateParameterValue(enumParameterTypeNew parameter_
         default: break;
     }
 
-    cout<<"ERROR: The given parameter type is not supported!"<<endl;
+    cout<<"ERROR: The given value type is not supported!"<<endl;
     return NULL;
 }
 #endif

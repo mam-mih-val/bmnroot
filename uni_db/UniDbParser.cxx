@@ -460,7 +460,7 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
     cur_schema_node = cur_schema_node->children;
 
     // open connection to database
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
     {
         xmlFreeDoc(docXML);
@@ -644,7 +644,7 @@ int UniDbParser::ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate)
     cur_schema_node = cur_schema_node->children;
 
     // open connection to database
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
         return -3;
     TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -771,7 +771,7 @@ int UniDbParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
     cur_schema_node = cur_schema_node->children;
 
     // open connection to database
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
         return -3;
 
@@ -913,7 +913,7 @@ int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sc
     cur_schema_node = cur_schema_node->children;
 
     // open connection to database
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
         return -3;
 
@@ -1443,7 +1443,7 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
         return -1;
     }
 
-    UniDbConnection* connUni = UniDbConnection::Open(ELOG_DB);
+    UniConnection* connUni = UniConnection::Open(ELOG_DB);
     if (connUni == 0x00) return -1;
     TSQLServer* elog_server = connUni->GetSQLServer();
     if (elog_server == 0x00)

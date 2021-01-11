@@ -104,7 +104,7 @@ UniDbGenerateClasses::~UniDbGenerateClasses()
 // -----  generate C++ classess - wrappers for DB tables  -------------------------------
 int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TString class_prefix, bool isOnlyUpdate)
 {
-    UniDbConnection* connectionUniDb = UniDbConnection::Open(connection_type);
+    UniConnection* connectionUniDb = UniConnection::Open(connection_type);
     if (connectionUniDb == 0x00)
     {
         cout<<"ERROR: connection to the database can't be established"<<endl;
@@ -473,7 +473,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
             hFile<<"#include \"TString.h\"\n";
             hFile<<"#include \"TDatime.h\"\n";
             hFile<<"#include \"TTimeStamp.h\"\n";
-            hFile<<"\n#include \"UniDbConnection.h\"\n\n";
+            hFile<<"\n#include \"UniConnection.h\"\n\n";
 
             hFile<<(TString::Format("class %s\n", strClassName.Data())).Data();
             hFile<<"{\n";
@@ -483,7 +483,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
         hFile<<"\t/* GENERATED PRIVATE MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */\n";
 
         hFile<<"\t/// connection to the database\n";
-        hFile<<"\tUniDbConnection* connectionUniDb;\n\n";
+        hFile<<"\tUniConnection* connectionUniDb;\n\n";
 
         // adding member variables corresponding table columns
         for(vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
@@ -506,7 +506,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
 
         // CONSTRUCTOR - DECLARATION
         hFile<<"\n\t//Constructor\n";
-        hFile<<(TString::Format("\t%s(UniDbConnection* connUniDb", strClassName.Data())).Data();
+        hFile<<(TString::Format("\t%s(UniConnection* connUniDb", strClassName.Data())).Data();
         for(vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
         {
             structColumnInfo* cur_col= *it;
@@ -870,7 +870,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
 
         // CONSTRUCTOR - IMPLEMENTATION
         cxxFile<<"// -----   Constructor with database connection   -----------------------\n";
-        cxxFile<<(TString::Format("%s::%s(UniDbConnection* connUniDb", strClassName.Data(), strClassName.Data())).Data();
+        cxxFile<<(TString::Format("%s::%s(UniConnection* connUniDb", strClassName.Data(), strClassName.Data())).Data();
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
         {
             structColumnInfo* cur_col= *it;
@@ -966,7 +966,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
             }
         }// for join table
         cxxFile<<")\n{\n";
-        cxxFile<<(TString::Format("\tUniDbConnection* connUniDb = UniDbConnection::Open(%s);\n", UniDbConnection::DbToString(connection_type))).Data();
+        cxxFile<<(TString::Format("\tUniConnection* connUniDb = UniConnection::Open(%s);\n", UniConnection::DbToString(connection_type))).Data();
         cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
 
         cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
@@ -1243,7 +1243,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
         }
         cxxFile<<")\n{\n";
 
-        cxxFile<<(TString::Format("\tUniDbConnection* connUniDb = UniDbConnection::Open(%s);\n", UniDbConnection::DbToString(connection_type))).Data();
+        cxxFile<<(TString::Format("\tUniConnection* connUniDb = UniConnection::Open(%s);\n", UniConnection::DbToString(connection_type))).Data();
         cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
 
         cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
@@ -1467,7 +1467,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
                 cxxFile<<(TString::Format("%s* %s::Get%s(%s %s)\n{\n" ,
                                           strClassName.Data(), strClassName.Data(), strShortTableName.Data(), cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
 
-                cxxFile<<(TString::Format("\tUniDbConnection* connUniDb = UniDbConnection::Open(%s);\n", UniDbConnection::DbToString(connection_type))).Data();
+                cxxFile<<(TString::Format("\tUniConnection* connUniDb = UniConnection::Open(%s);\n", UniConnection::DbToString(connection_type))).Data();
                 cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
 
                 cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
@@ -1660,7 +1660,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
         }
         cxxFile<<")\n{\n";
 
-        cxxFile<<(TString::Format("\tUniDbConnection* connUniDb = UniDbConnection::Open(%s);\n", UniDbConnection::DbToString(connection_type))).Data();
+        cxxFile<<(TString::Format("\tUniConnection* connUniDb = UniConnection::Open(%s);\n", UniConnection::DbToString(connection_type))).Data();
         cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
 
         cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
@@ -1740,7 +1740,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
                 cxxFile<<(TString::Format("bool %s::Check%sExists(%s %s)\n{\n" ,
                                           strClassName.Data(), strShortTableName.Data(), cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
 
-                cxxFile<<(TString::Format("\tUniDbConnection* connUniDb = UniDbConnection::Open(%s);\n", UniDbConnection::DbToString(connection_type))).Data();
+                cxxFile<<(TString::Format("\tUniConnection* connUniDb = UniConnection::Open(%s);\n", UniConnection::DbToString(connection_type))).Data();
                 cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
 
                 cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
@@ -1804,7 +1804,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
         }
         cxxFile<<")\n{\n";
 
-        cxxFile<<(TString::Format("\tUniDbConnection* connUniDb = UniDbConnection::Open(%s);\n", UniDbConnection::DbToString(connection_type))).Data();
+        cxxFile<<(TString::Format("\tUniConnection* connUniDb = UniConnection::Open(%s);\n", UniConnection::DbToString(connection_type))).Data();
         cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
 
         cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
@@ -1876,7 +1876,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
                 cxxFile<<(TString::Format("int %s::Delete%s(%s %s)\n{\n" ,
                                           strClassName.Data(), strShortTableName.Data(), cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
 
-                cxxFile<<(TString::Format("\tUniDbConnection* connUniDb = UniDbConnection::Open(%s);\n", UniDbConnection::DbToString(connection_type))).Data();
+                cxxFile<<(TString::Format("\tUniConnection* connUniDb = UniConnection::Open(%s);\n", UniConnection::DbToString(connection_type))).Data();
                 cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
 
                 cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
@@ -1918,7 +1918,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
         cxxFile<<(TString::Format("// -----  Print all '%ss'  ---------------------------------\n", strTableNameSpace.Data())).Data();
         cxxFile<<(TString::Format("int %s::PrintAll()\n{\n", strClassName.Data())).Data();
 
-        cxxFile<<(TString::Format("\tUniDbConnection* connUniDb = UniDbConnection::Open(%s);\n", UniDbConnection::DbToString(connection_type))).Data();
+        cxxFile<<(TString::Format("\tUniConnection* connUniDb = UniConnection::Open(%s);\n", UniConnection::DbToString(connection_type))).Data();
         cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
 
         cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";

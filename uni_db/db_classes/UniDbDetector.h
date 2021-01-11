@@ -13,14 +13,14 @@
 #include "TString.h"
 #include "TDatime.h"
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 
 class UniDbDetector
 {
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-	UniDbConnection* connectionUniDb;
+        UniConnection* connectionUniDb;
 
 	/// detector name
 	TString str_detector_name;
@@ -28,7 +28,7 @@ class UniDbDetector
 	TString* str_description;
 
 	//Constructor
-	UniDbDetector(UniDbConnection* connUniDb, TString detector_name, TString* description);
+        UniDbDetector(UniConnection* connUniDb, TString detector_name, TString* description);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:

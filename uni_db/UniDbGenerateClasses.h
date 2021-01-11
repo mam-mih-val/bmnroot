@@ -12,7 +12,7 @@
 #ifndef UNIDBGENERATECLASSES_H
 #define UNIDBGENERATECLASSES_H 1
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 
 #include "TString.h"
 #include "TObjArray.h"

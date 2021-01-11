@@ -14,7 +14,7 @@
 #include "TDatime.h"
 #include "TObjArray.h"
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 #include "UniDbSearchCondition.h"
 #include "UniDbParameter.h"
 
@@ -31,7 +31,7 @@ class UniDbDetectorParameter
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-	UniDbConnection* connectionUniDb;
+        UniConnection* connectionUniDb;
 
 	/// value id
 	int i_value_id;
@@ -57,7 +57,7 @@ class UniDbDetectorParameter
 	Long_t sz_parameter_value;
 
 	//Constructor
-	UniDbDetectorParameter(UniDbConnection* connUniDb, int value_id, TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, unsigned int* dc_serial, int* channel, unsigned char* parameter_value, Long_t size_parameter_value);
+        UniDbDetectorParameter(UniConnection* connUniDb, int value_id, TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, unsigned int* dc_serial, int* channel, unsigned char* parameter_value, Long_t size_parameter_value);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
 	// for templates

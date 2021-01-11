@@ -4,13 +4,13 @@ void test_db()
     timer.Start();
     gDebug = 0;
 
-    UniDbConnection* connectionUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connectionUniDb = UniConnection::Open(UNIFIED_DB);
     if (connectionUniDb == 0x00)
         return;
 
     TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
-    cout<<"DB: "<<uni_db->GetDB()<<". Type: "<<uni_db->GetDBMS()<<"."<<endl;
+    cout<<"Host: "<<uni_db->GetHost()<<". DB: "<<uni_db->GetDB()<<". Type: "<<uni_db->GetDBMS()<<"."<<endl;
 
     int iParameterID = 1;
     TSQLStatement* stmt = uni_db->Statement(TString::Format(

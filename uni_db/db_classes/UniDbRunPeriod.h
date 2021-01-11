@@ -13,7 +13,7 @@
 #include "TString.h"
 #include "TDatime.h"
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 #include "db_structures.h"
 
 class UniDbRunPeriod
@@ -21,7 +21,7 @@ class UniDbRunPeriod
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-	UniDbConnection* connectionUniDb;
+        UniConnection* connectionUniDb;
 
 	/// period number
 	int i_period_number;
@@ -31,7 +31,7 @@ class UniDbRunPeriod
 	TDatime* ts_end_datetime;
 
 	//Constructor
-	UniDbRunPeriod(UniDbConnection* connUniDb, int period_number, TDatime start_datetime, TDatime* end_datetime);
+        UniDbRunPeriod(UniConnection* connUniDb, int period_number, TDatime start_datetime, TDatime* end_datetime);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:

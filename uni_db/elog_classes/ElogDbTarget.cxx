@@ -13,7 +13,7 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-ElogDbTarget::ElogDbTarget(UniDbConnection* connUniDb, TString target)
+ElogDbTarget::ElogDbTarget(UniConnection* connUniDb, TString target)
 {
 	connectionUniDb = connUniDb;
 
@@ -30,7 +30,7 @@ ElogDbTarget::~ElogDbTarget()
 // -----   Creating new target in the database  ---------------------------
 ElogDbTarget* ElogDbTarget::CreateTarget(TString target)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -63,7 +63,7 @@ ElogDbTarget* ElogDbTarget::CreateTarget(TString target)
 // -----  Get target from the database  ---------------------------
 ElogDbTarget* ElogDbTarget::GetTarget(TString target)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -108,7 +108,7 @@ ElogDbTarget* ElogDbTarget::GetTarget(TString target)
 // -----  Check target exists in the database  ---------------------------
 bool ElogDbTarget::CheckTargetExists(TString target)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -149,7 +149,7 @@ bool ElogDbTarget::CheckTargetExists(TString target)
 // -----  Delete target from the database  ---------------------------
 int ElogDbTarget::DeleteTarget(TString target)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -180,7 +180,7 @@ int ElogDbTarget::DeleteTarget(TString target)
 // -----  Print all 'targets'  ---------------------------------
 int ElogDbTarget::PrintAll()
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();

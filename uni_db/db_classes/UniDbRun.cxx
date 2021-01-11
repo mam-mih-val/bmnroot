@@ -15,7 +15,7 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbRun::UniDbRun(UniDbConnection* connUniDb, int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, double* file_size, int* geometry_id)
+UniDbRun::UniDbRun(UniConnection* connUniDb, int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, double* file_size, int* geometry_id)
 {
 	connectionUniDb = connUniDb;
 
@@ -57,7 +57,7 @@ UniDbRun::~UniDbRun()
 // -----   Creating new run in the database  ---------------------------
 UniDbRun* UniDbRun::CreateRun(int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, double* file_size, int* geometry_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -158,7 +158,7 @@ UniDbRun* UniDbRun::CreateRun(int period_number, int run_number, TString file_pa
 // -----  Get run from the database  ---------------------------
 UniDbRun* UniDbRun::GetRun(int period_number, int run_number)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -239,7 +239,7 @@ UniDbRun* UniDbRun::GetRun(int period_number, int run_number)
 // -----  Get run from the database by unique key  --------------
 UniDbRun* UniDbRun::GetRun(TString file_path)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -320,7 +320,7 @@ UniDbRun* UniDbRun::GetRun(TString file_path)
 // -----  Check run exists in the database  ---------------------------
 bool UniDbRun::CheckRunExists(int period_number, int run_number)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -361,7 +361,7 @@ bool UniDbRun::CheckRunExists(int period_number, int run_number)
 // -----  Check run exists in the database by unique key  --------------
 bool UniDbRun::CheckRunExists(TString file_path)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -402,7 +402,7 @@ bool UniDbRun::CheckRunExists(TString file_path)
 // -----  Delete run from the database  ---------------------------
 int UniDbRun::DeleteRun(int period_number, int run_number)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -434,7 +434,7 @@ int UniDbRun::DeleteRun(int period_number, int run_number)
 // -----  Delete run from the database by unique key  --------------
 int UniDbRun::DeleteRun(TString file_path)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -465,7 +465,7 @@ int UniDbRun::DeleteRun(TString file_path)
 // -----  Print all 'runs'  ---------------------------------
 int UniDbRun::PrintAll()
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -1035,7 +1035,7 @@ void UniDbRun::Print()
 // get numbers of runs existing in the Database for a selected range
 int UniDbRun::GetRunNumbers(int start_period, int start_run, int end_period, int end_run, UniqueRunNumber*& run_numbers)
 {
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
     {
         cout<<"ERROR: connection to the database was failed"<<endl;
@@ -1088,7 +1088,7 @@ int UniDbRun::GetRunNumbers(int start_period, int start_run, int end_period, int
 // get numbers of existing runs in the Database
 int UniDbRun::GetRunNumbers(UniqueRunNumber*& run_numbers)
 {
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
     {
         cout<<"ERROR: connection to the database was failed"<<endl;
@@ -1139,7 +1139,7 @@ int UniDbRun::GetRunNumbers(UniqueRunNumber*& run_numbers)
 
 int UniDbRun::SetRootGeometry(int start_period, int start_run, int end_period, int end_run, unsigned char* root_geometry, Long_t size_root_geometry)
 {
-    if (((end_period < start_period) or ((end_period = start_period) and (end_run < start_run))) or ((start_period > end_period) or ((start_period = end_period) and (start_run > end_run))))
+    if (((end_period < start_period) or ((end_period == start_period) and (end_run < start_run))) or ((start_period > end_period) or ((start_period == end_period) and (start_run > end_run))))
     {
         cout<<"ERROR: end run should be after or the same as start run"<<endl;
         return -1;
@@ -1308,7 +1308,7 @@ TObjArray* UniDbRun::Search(TObjArray& search_conditions)
     TObjArray* arrayResult = NULL;
     search_conditions.SetOwner(kTRUE);
 
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
     {
         cout<<"ERROR: connection to the Unified Database was failed"<<endl;
@@ -1408,7 +1408,7 @@ TObjArray* UniDbRun::Search(TObjArray& search_conditions)
     arrayResult->SetOwner(kTRUE);
     while (stmt->NextResultRow())
     {
-        UniDbConnection* connRun = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connRun = UniConnection::Open(UNIFIED_DB);
         if (connRun == 0x00)
         {
             cout<<"ERROR: the connection to the Unified Database for the selected run was failed"<<endl;
@@ -1473,7 +1473,7 @@ TObjArray* UniDbRun::Search(UniDbSearchCondition& search_condition)
 // get number of the closest run below the given one
 UniqueRunNumber* UniDbRun::FindPreviousRun(int run_period, int run_number)
 {
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
     {
         cout<<"ERROR: connection to the Database was failed"<<endl;

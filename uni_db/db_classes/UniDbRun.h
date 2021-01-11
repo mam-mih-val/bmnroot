@@ -14,7 +14,7 @@
 #include "TDatime.h"
 #include "TObjArray.h"
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 #include "UniDbSearchCondition.h"
 #include "db_structures.h"
 
@@ -23,7 +23,7 @@ class UniDbRun
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-	UniDbConnection* connectionUniDb;
+        UniConnection* connectionUniDb;
 
 	/// period number
 	int i_period_number;
@@ -51,7 +51,7 @@ class UniDbRun
 	int* i_geometry_id;
 
 	//Constructor
-	UniDbRun(UniDbConnection* connUniDb, int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, double* file_size, int* geometry_id);
+        UniDbRun(UniConnection* connUniDb, int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, double* file_size, int* geometry_id);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:

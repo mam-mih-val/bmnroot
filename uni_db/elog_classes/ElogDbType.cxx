@@ -13,7 +13,7 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-ElogDbType::ElogDbType(UniDbConnection* connUniDb, int type_id, TString type_text)
+ElogDbType::ElogDbType(UniConnection* connUniDb, int type_id, TString type_text)
 {
 	connectionUniDb = connUniDb;
 
@@ -31,7 +31,7 @@ ElogDbType::~ElogDbType()
 // -----   Creating new type in the database  ---------------------------
 ElogDbType* ElogDbType::CreateType(TString type_text)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -96,7 +96,7 @@ ElogDbType* ElogDbType::CreateType(TString type_text)
 // -----  Get type from the database  ---------------------------
 ElogDbType* ElogDbType::GetType(int type_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -143,7 +143,7 @@ ElogDbType* ElogDbType::GetType(int type_id)
 // -----  Get type from the database by unique key  --------------
 ElogDbType* ElogDbType::GetType(TString type_text)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -190,7 +190,7 @@ ElogDbType* ElogDbType::GetType(TString type_text)
 // -----  Check type exists in the database  ---------------------------
 bool ElogDbType::CheckTypeExists(int type_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -231,7 +231,7 @@ bool ElogDbType::CheckTypeExists(int type_id)
 // -----  Check type exists in the database by unique key  --------------
 bool ElogDbType::CheckTypeExists(TString type_text)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -272,7 +272,7 @@ bool ElogDbType::CheckTypeExists(TString type_text)
 // -----  Delete type from the database  ---------------------------
 int ElogDbType::DeleteType(int type_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -303,7 +303,7 @@ int ElogDbType::DeleteType(int type_id)
 // -----  Delete type from the database by unique key  --------------
 int ElogDbType::DeleteType(TString type_text)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -334,7 +334,7 @@ int ElogDbType::DeleteType(TString type_text)
 // -----  Print all 'types'  ---------------------------------
 int ElogDbType::PrintAll()
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();

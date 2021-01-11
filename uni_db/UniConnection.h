@@ -1,16 +1,16 @@
 // -------------------------------------------------------------------------
-// -----                      UniDbConnection header file              -----
+// -----                       UniConnection header file               -----
 // -----                  Created 28/01/13 by K. Gertsenberger         -----
 // -------------------------------------------------------------------------
 
-/** UniDbConnection.h
+/** UniConnection.h
  *@author K.Gertsenberger <gertsen@jinr.ru>
  **
- ** Class for connection to BM@N and MPD databases
+ ** Class for connection to the experiment databases: Unified Database, e-Log Database, Tango Database
  **/
 
-#ifndef UNIDBCONNECTION_H
-#define UNIDBCONNECTION_H 1
+#ifndef UNICONNECTION_H
+#define UNICONNECTION_H 1
 
 #include <TSQLServer.h>
 #include "db_settings.h"
@@ -27,21 +27,21 @@ typedef map<string, TSQLServer*> mapSQLServer;
 typedef pair<string, TSQLServer*> pairSQLServer;
 typedef map<string, TSQLServer*>::iterator itSQLServer;
 
-class UniDbConnection
+class UniConnection
 {
  private:
     TSQLServer* server_db;
 
-    UniDbConnection(TSQLServer* pSQLServer);
+    UniConnection(TSQLServer* pSQLServer);
 
  protected:
     static mapSQLServer* mapConnection;
 
  public:
-    virtual ~UniDbConnection(); // Destructor
+    virtual ~UniConnection(); // Destructor
 
-    static UniDbConnection* Open(UniConnectionType connection_type);
-    static UniDbConnection* Open(enumDBMS database_type, const char* strDBHost, const char* strDBName, const char* strUID, const char* strPassword);
+    static UniConnection* Open(UniConnectionType connection_type);
+    static UniConnection* Open(enumDBMS database_type, const char* strDBHost, const char* strDBName, const char* strUID, const char* strPassword);
 
     TSQLServer* GetSQLServer() {return server_db;}
 
@@ -56,7 +56,7 @@ class UniDbConnection
         }
     }
 
- ClassDef(UniDbConnection,1)
+ ClassDef(UniConnection,1)
 };
 
 #endif

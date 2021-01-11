@@ -13,7 +13,7 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbDetector::UniDbDetector(UniDbConnection* connUniDb, TString detector_name, TString* description)
+UniDbDetector::UniDbDetector(UniConnection* connUniDb, TString detector_name, TString* description)
 {
 	connectionUniDb = connUniDb;
 
@@ -33,7 +33,7 @@ UniDbDetector::~UniDbDetector()
 // -----   Creating new detector in the database  ---------------------------
 UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* description)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -74,7 +74,7 @@ UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* des
 // -----  Get detector from the database  ---------------------------
 UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -123,7 +123,7 @@ UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 // -----  Check detector exists in the database  ---------------------------
 bool UniDbDetector::CheckDetectorExists(TString detector_name)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -164,7 +164,7 @@ bool UniDbDetector::CheckDetectorExists(TString detector_name)
 // -----  Delete detector from the database  ---------------------------
 int UniDbDetector::DeleteDetector(TString detector_name)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -195,7 +195,7 @@ int UniDbDetector::DeleteDetector(TString detector_name)
 // -----  Print all 'detectors'  ---------------------------------
 int UniDbDetector::PrintAll()
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();

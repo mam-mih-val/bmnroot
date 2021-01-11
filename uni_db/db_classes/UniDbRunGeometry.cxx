@@ -13,7 +13,7 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbRunGeometry::UniDbRunGeometry(UniDbConnection* connUniDb, int geometry_id, unsigned char* root_geometry, Long_t size_root_geometry)
+UniDbRunGeometry::UniDbRunGeometry(UniConnection* connUniDb, int geometry_id, unsigned char* root_geometry, Long_t size_root_geometry)
 {
 	connectionUniDb = connUniDb;
 
@@ -34,7 +34,7 @@ UniDbRunGeometry::~UniDbRunGeometry()
 // -----   Creating new run geometry in the database  ---------------------------
 UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(unsigned char* root_geometry, Long_t size_root_geometry)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -101,7 +101,7 @@ UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(unsigned char* root_geomet
 // -----  Get run geometry from the database  ---------------------------
 UniDbRunGeometry* UniDbRunGeometry::GetRunGeometry(int geometry_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -150,7 +150,7 @@ UniDbRunGeometry* UniDbRunGeometry::GetRunGeometry(int geometry_id)
 // -----  Check run geometry exists in the database  ---------------------------
 bool UniDbRunGeometry::CheckRunGeometryExists(int geometry_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -191,7 +191,7 @@ bool UniDbRunGeometry::CheckRunGeometryExists(int geometry_id)
 // -----  Delete run geometry from the database  ---------------------------
 int UniDbRunGeometry::DeleteRunGeometry(int geometry_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -222,7 +222,7 @@ int UniDbRunGeometry::DeleteRunGeometry(int geometry_id)
 // -----  Print all 'run geometrys'  ---------------------------------
 int UniDbRunGeometry::PrintAll()
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();

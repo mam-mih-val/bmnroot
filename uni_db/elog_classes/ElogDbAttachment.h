@@ -13,14 +13,14 @@
 #include "TString.h"
 #include "TDatime.h"
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 
 class ElogDbAttachment
 {
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-	UniDbConnection* connectionUniDb;
+        UniConnection* connectionUniDb;
 
 	/// record id
 	int i_record_id;
@@ -30,7 +30,7 @@ class ElogDbAttachment
 	TString str_file_path;
 
 	//Constructor
-	ElogDbAttachment(UniDbConnection* connUniDb, int record_id, int attachment_number, TString file_path);
+        ElogDbAttachment(UniConnection* connUniDb, int record_id, int attachment_number, TString file_path);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:

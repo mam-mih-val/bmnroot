@@ -6,7 +6,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class UniDbConnection+;
+#pragma link C++ class UniConnection+;
 #pragma link C++ class UniDbGeoConverter+;
 #pragma link C++ class UniDbGenerateClasses+;
 #pragma link C++ class TangoTimeParameter+;

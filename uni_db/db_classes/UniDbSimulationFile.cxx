@@ -13,7 +13,7 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbSimulationFile::UniDbSimulationFile(UniDbConnection* connUniDb, int file_id, TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, double* file_size)
+UniDbSimulationFile::UniDbSimulationFile(UniConnection* connUniDb, int file_id, TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, double* file_size)
 {
 	connectionUniDb = connUniDb;
 
@@ -49,7 +49,7 @@ UniDbSimulationFile::~UniDbSimulationFile()
 // -----   Creating new simulation file in the database  ---------------------------
 UniDbSimulationFile* UniDbSimulationFile::CreateSimulationFile(TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, double* file_size)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -163,7 +163,7 @@ UniDbSimulationFile* UniDbSimulationFile::CreateSimulationFile(TString file_path
 // -----  Get simulation file from the database  ---------------------------
 UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(int file_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -236,7 +236,7 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(int file_id)
 // -----  Get simulation file from the database by unique key  --------------
 UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(TString file_path)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -309,7 +309,7 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(TString file_path)
 // -----  Check simulation file exists in the database  ---------------------------
 bool UniDbSimulationFile::CheckSimulationFileExists(int file_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -350,7 +350,7 @@ bool UniDbSimulationFile::CheckSimulationFileExists(int file_id)
 // -----  Check simulation file exists in the database by unique key  --------------
 bool UniDbSimulationFile::CheckSimulationFileExists(TString file_path)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -391,7 +391,7 @@ bool UniDbSimulationFile::CheckSimulationFileExists(TString file_path)
 // -----  Delete simulation file from the database  ---------------------------
 int UniDbSimulationFile::DeleteSimulationFile(int file_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -422,7 +422,7 @@ int UniDbSimulationFile::DeleteSimulationFile(int file_id)
 // -----  Delete simulation file from the database by unique key  --------------
 int UniDbSimulationFile::DeleteSimulationFile(TString file_path)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -453,7 +453,7 @@ int UniDbSimulationFile::DeleteSimulationFile(TString file_path)
 // -----  Print all 'simulation files'  ---------------------------------
 int UniDbSimulationFile::PrintAll()
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();

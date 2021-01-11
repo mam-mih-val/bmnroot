@@ -13,20 +13,20 @@
 #include "TString.h"
 #include "TDatime.h"
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 
 class ElogDbBeam
 {
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-	UniDbConnection* connectionUniDb;
+        UniConnection* connectionUniDb;
 
 	/// beam
 	TString str_beam;
 
 	//Constructor
-	ElogDbBeam(UniDbConnection* connUniDb, TString beam);
+        ElogDbBeam(UniConnection* connUniDb, TString beam);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:

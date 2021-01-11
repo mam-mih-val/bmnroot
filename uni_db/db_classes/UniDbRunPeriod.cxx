@@ -13,7 +13,7 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbRunPeriod::UniDbRunPeriod(UniDbConnection* connUniDb, int period_number, TDatime start_datetime, TDatime* end_datetime)
+UniDbRunPeriod::UniDbRunPeriod(UniConnection* connUniDb, int period_number, TDatime start_datetime, TDatime* end_datetime)
 {
 	connectionUniDb = connUniDb;
 
@@ -34,7 +34,7 @@ UniDbRunPeriod::~UniDbRunPeriod()
 // -----   Creating new run period in the database  ---------------------------
 UniDbRunPeriod* UniDbRunPeriod::CreateRunPeriod(int period_number, TDatime start_datetime, TDatime* end_datetime)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -78,7 +78,7 @@ UniDbRunPeriod* UniDbRunPeriod::CreateRunPeriod(int period_number, TDatime start
 // -----  Get run period from the database  ---------------------------
 UniDbRunPeriod* UniDbRunPeriod::GetRunPeriod(int period_number)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -129,7 +129,7 @@ UniDbRunPeriod* UniDbRunPeriod::GetRunPeriod(int period_number)
 // -----  Check run period exists in the database  ---------------------------
 bool UniDbRunPeriod::CheckRunPeriodExists(int period_number)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -170,7 +170,7 @@ bool UniDbRunPeriod::CheckRunPeriodExists(int period_number)
 // -----  Delete run period from the database  ---------------------------
 int UniDbRunPeriod::DeleteRunPeriod(int period_number)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -201,7 +201,7 @@ int UniDbRunPeriod::DeleteRunPeriod(int period_number)
 // -----  Print all 'run periods'  ---------------------------------
 int UniDbRunPeriod::PrintAll()
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -372,7 +372,7 @@ void UniDbRunPeriod::Print()
 // get numbers of runs existing in the Database for a selected period
 int UniDbRunPeriod::GetRunNumbers(int period_number, UniqueRunNumber*& run_numbers)
 {
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
     {
         cout<<"ERROR: connection to the databaes was failed"<<endl;

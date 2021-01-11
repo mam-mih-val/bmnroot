@@ -26,7 +26,7 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
- UniDbConnection.cxx
+ UniConnection.cxx
  UniDbGeoConverter.cxx
  UniDbGenerateClasses.cxx
  UniDbTangoData.cxx

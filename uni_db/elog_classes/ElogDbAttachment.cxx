@@ -13,7 +13,7 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-ElogDbAttachment::ElogDbAttachment(UniDbConnection* connUniDb, int record_id, int attachment_number, TString file_path)
+ElogDbAttachment::ElogDbAttachment(UniConnection* connUniDb, int record_id, int attachment_number, TString file_path)
 {
 	connectionUniDb = connUniDb;
 
@@ -32,7 +32,7 @@ ElogDbAttachment::~ElogDbAttachment()
 // -----   Creating new attachment in the database  ---------------------------
 ElogDbAttachment* ElogDbAttachment::CreateAttachment(int record_id, int attachment_number, TString file_path)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -71,7 +71,7 @@ ElogDbAttachment* ElogDbAttachment::CreateAttachment(int record_id, int attachme
 // -----  Get attachment from the database  ---------------------------
 ElogDbAttachment* ElogDbAttachment::GetAttachment(int record_id, int attachment_number)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -120,7 +120,7 @@ ElogDbAttachment* ElogDbAttachment::GetAttachment(int record_id, int attachment_
 // -----  Get attachment from the database by unique key  --------------
 ElogDbAttachment* ElogDbAttachment::GetAttachment(TString file_path)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -169,7 +169,7 @@ ElogDbAttachment* ElogDbAttachment::GetAttachment(TString file_path)
 // -----  Check attachment exists in the database  ---------------------------
 bool ElogDbAttachment::CheckAttachmentExists(int record_id, int attachment_number)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -210,7 +210,7 @@ bool ElogDbAttachment::CheckAttachmentExists(int record_id, int attachment_numbe
 // -----  Check attachment exists in the database by unique key  --------------
 bool ElogDbAttachment::CheckAttachmentExists(TString file_path)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -251,7 +251,7 @@ bool ElogDbAttachment::CheckAttachmentExists(TString file_path)
 // -----  Delete attachment from the database  ---------------------------
 int ElogDbAttachment::DeleteAttachment(int record_id, int attachment_number)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -283,7 +283,7 @@ int ElogDbAttachment::DeleteAttachment(int record_id, int attachment_number)
 // -----  Delete attachment from the database by unique key  --------------
 int ElogDbAttachment::DeleteAttachment(TString file_path)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -314,7 +314,7 @@ int ElogDbAttachment::DeleteAttachment(TString file_path)
 // -----  Print all 'attachments'  ---------------------------------
 int ElogDbAttachment::PrintAll()
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();

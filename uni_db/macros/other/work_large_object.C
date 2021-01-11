@@ -4,7 +4,7 @@ void work_large_object()
     timer.Start();
     gDebug = 0;
 
-    UniDbConnection* connectionUniDb = UniDbConnection::Open(0);
+    UniConnection* connectionUniDb = UniConnection::Open(0);
     if (connectionUniDb == 0x00)
     {
         cout<<"ERROR: connection to the database can not be established"<<endl;
@@ -34,7 +34,7 @@ void work_large_object()
     delete connectionUniDb;
 
     // print all values
-    connectionUniDb = UniDbConnection::Open(0);
+    connectionUniDb = UniConnection::Open(0);
     if (connectionUniDb == 0x00)
     {
         cout<<"ERROR: connection to the database can't be established"<<endl;

@@ -49,7 +49,7 @@ class TimeStatComputer:
         cursor.close()
         conn.close()
         # print(resp)
-        if resp is None:
+        if resp is None or len(resp) == 0:
             return (None, False) 
         if len(resp) == 1:
             count = resp[0][1]

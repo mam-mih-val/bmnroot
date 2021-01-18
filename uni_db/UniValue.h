@@ -91,11 +91,12 @@ struct UniValue
         destination += value.length() + 1;
     }
 
-    void Read(unsigned char*& source, unsigned char* value, uint64_t& size)
+    void Read(unsigned char*& source, unsigned char*& value, uint64_t& size)
     {
         memcpy(&size, source, 8);
         boost::endian::little_to_native_inplace(size);
         source += 8;
+        value = new unsigned char[size];
         memcpy(value, source, size);
         source += size;
     }

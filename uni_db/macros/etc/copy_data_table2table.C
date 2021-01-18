@@ -15,13 +15,14 @@ int copy_data_table2table()
     TStopwatch timer;
     timer.Start();
 
+    cout<<"Forming conditions..."<<endl;
     // find all parameters in the source table, except having dc_serial
     TObjArray arrayConditions;
     UniDbSearchCondition* searchCondition = new UniDbSearchCondition(columnDCSerial, conditionNull);
     arrayConditions.Add((TObject*)searchCondition);
 
+    cout<<"Getting original array for general parameters..."<<endl;
     TObjArray* pParameterArray = UniDbDetectorParameter::Search(arrayConditions);
-
     // clean memory for the conditions after the search
     arrayConditions.Delete();
 
@@ -32,7 +33,7 @@ int copy_data_table2table()
         UniDbDetectorParameter* pParameter = (UniDbDetectorParameter*) pParameterArray->At(i);
         vector<UniValue*> parameter_value;
 
-        printProgress(((double)i)/pParameterArray->GetEntriesFast());
+        printProgress(((double)i)/(pParameterArray->GetEntriesFast()-1));
         //cout<<"Current parameter: "<<pParameter->GetParameterName()<<endl;
 
         switch (pParameter->GetParameterType())
@@ -68,11 +69,11 @@ int copy_data_table2table()
             }
             case IIArrayType:
             {
-                IIValue* pNewParameter = new IIValue;
                 IIStructure* ii_value = NULL; int element_count;
                 pParameter->GetIIArray(ii_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
+                    IIValue* pNewParameter = new IIValue;
                     pNewParameter->value1 = ii_value[j].int_1;
                     pNewParameter->value2 = ii_value[j].int_2;
                     parameter_value.push_back(pNewParameter);
@@ -81,11 +82,11 @@ int copy_data_table2table()
             }
             case IntArrayType:
             {
-                IntValue* pNewParameter = new IntValue;
                 int* i_value = NULL; int element_count;
                 pParameter->GetIntArray(i_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
+                    IntValue* pNewParameter = new IntValue;
                     pNewParameter->value = i_value[j];
                     parameter_value.push_back(pNewParameter);
                 }
@@ -93,11 +94,11 @@ int copy_data_table2table()
             }
             case DoubleArrayType:
             {
-                DoubleValue* pNewParameter = new DoubleValue;
                 double* d_value = NULL; int element_count;
                 pParameter->GetDoubleArray(d_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
+                    DoubleValue* pNewParameter = new DoubleValue;
                     pNewParameter->value = d_value[j];
                     parameter_value.push_back(pNewParameter);
                 }
@@ -119,11 +120,11 @@ int copy_data_table2table()
             }
             case UIntArrayType:
             {
-                UIntValue* pNewParameter = new UIntValue;
                 unsigned int* ui_value = NULL; int element_count;
                 pParameter->GetUIntArray(ui_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
+                    UIntValue* pNewParameter = new UIntValue;
                     pNewParameter->value = ui_value[j];
                     parameter_value.push_back(pNewParameter);
                 }
@@ -131,11 +132,11 @@ int copy_data_table2table()
             }
             case DchMapArrayType:
             {
-                DchMapValue* pNewParameter = new DchMapValue;
                 DchMapStructure* dch_value = NULL; int element_count;
                 pParameter->GetDchMapArray(dch_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
+                    DchMapValue* pNewParameter = new DchMapValue;
                     pNewParameter->plane = dch_value[j].plane;
                     pNewParameter->group = dch_value[j].group;
                     pNewParameter->crate = dch_value[j].crate;
@@ -148,11 +149,11 @@ int copy_data_table2table()
             }
             case GemMapArrayType:
             {
-                GemMapValue* pNewParameter = new GemMapValue;
                 GemMapStructure* gem_value = NULL; int element_count;
                 pParameter->GetGemMapArray(gem_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
+                    GemMapValue* pNewParameter = new GemMapValue;
                     pNewParameter->serial = gem_value[j].serial;
                     pNewParameter->id = gem_value[j].id;
                     pNewParameter->station = gem_value[j].station;
@@ -165,11 +166,11 @@ int copy_data_table2table()
             }
             case GemPedestalArrayType:
             {
-                GemPedestalValue* pNewParameter = new GemPedestalValue;
                 GemPedestalStructure* gem_ped_value = NULL; int element_count;
                 pParameter->GetGemPedestalArray(gem_ped_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
+                    GemPedestalValue* pNewParameter = new GemPedestalValue;
                     pNewParameter->serial = gem_ped_value[j].serial;
                     pNewParameter->channel = gem_ped_value[j].channel;
                     pNewParameter->pedestal = gem_ped_value[j].pedestal;
@@ -180,11 +181,11 @@ int copy_data_table2table()
             }
             case TriggerMapArrayType:
             {
-                TriggerMapValue* pNewParameter = new TriggerMapValue;
                 TriggerMapStructure* trigger_value = NULL; int element_count;
                 pParameter->GetTriggerMapArray(trigger_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
+                    TriggerMapValue* pNewParameter = new TriggerMapValue;
                     pNewParameter->serial = trigger_value[j].serial;
                     pNewParameter->slot = trigger_value[j].slot;
                     pNewParameter->channel = trigger_value[j].channel;
@@ -194,11 +195,11 @@ int copy_data_table2table()
             }
             case LorentzShiftArrayType:
             {
-                LorentzShiftValue* pNewParameter = new LorentzShiftValue;
                 LorentzShiftStructure* lorentz_value = NULL; int element_count;
                 pParameter->GetLorentzShiftArray(lorentz_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
+                    LorentzShiftValue* pNewParameter = new LorentzShiftValue;
                     pNewParameter->number = lorentz_value[j].number;
                     pNewParameter->ls[0] = lorentz_value[j].ls[0];
                     pNewParameter->ls[1] = lorentz_value[j].ls[1];
@@ -240,8 +241,6 @@ int copy_data_table2table()
     // side = bool (serial + channel) -> MapBoolValue
     MoveParameter(TString("side"), BoolType, MapBoolTypeNew);
 
-    //delete connectionUniDb;
-
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
@@ -253,35 +252,42 @@ int copy_data_table2table()
 
 void MoveParameter(TString parameter_name, enumParameterType parameter_type, enumValueType parameter_type_new)
 {
+    cout<<endl<<"Forming conditions for a special parameter: "<<parameter_name<<"..."<<endl;
     TObjArray arrayConditions;
     UniDbSearchCondition* searchCondition = new UniDbSearchCondition(columnParameterName, conditionEqual, parameter_name);
     arrayConditions.Add((TObject*)searchCondition);
 
+    cout<<"Getting original array for parameter: "<<parameter_name<<"..."<<endl;
     TObjArray* pParameterArray = UniDbDetectorParameter::Search(arrayConditions);
     arrayConditions.Delete();
 
-    int start_period = -1, start_run = -1;
+    int start_period = -1, start_run = -1, end_period = -1, end_run = -1;
     UniDbDetectorParameter* pParameter;
     vector<UniValue*> parameter_value;
     cout<<"Reading/writing '"<<parameter_name<<"' parameter: "<<pParameterArray->GetEntriesFast()<<endl;
     for (int i = 0; i < pParameterArray->GetEntriesFast(); i++)
     {
-        printProgress(((double)i)/pParameterArray->GetEntriesFast());
-
         pParameter = (UniDbDetectorParameter*) pParameterArray->At(i);
+
+        printProgress(((double)i)/(pParameterArray->GetEntriesFast()-1));
+        //cout<<"Current parameter: "<<pParameter->GetParameterName()<<". Parameter type = "<<pParameter->GetParameterType()<<
+        //      ". Start period = "<<pParameter->GetStartPeriod()<<". Start run = "<<pParameter->GetStartRun()<<endl;
 
         if ((start_period == -1) && (start_run == -1))
         {
             start_period = pParameter->GetStartPeriod(); start_run = pParameter->GetStartRun();
+            end_period = pParameter->GetEndPeriod(); end_run = pParameter->GetEndRun();
         }
 
         if ((start_period != pParameter->GetStartPeriod()) || (start_run != pParameter->GetStartRun()))
         {
+            //cout<<"Write new parameter: "<<pParameter->GetParameterName()<<", start_period = "<<start_period<<", start_run = "<<start_run<<endl;
             UniDbDetectorParameterNew* pParameterNew = UniDbDetectorParameterNew::CreateDetectorParameter(
-                        pParameter->GetDetectorName(), pParameter->GetParameterName(), pParameter->GetStartPeriod(), pParameter->GetStartRun(),
-                        pParameter->GetEndPeriod(), pParameter->GetEndRun(), parameter_value);
+                        pParameter->GetDetectorName(), pParameter->GetParameterName(), start_period, start_run,
+                        end_period, end_run, parameter_value);
             delete pParameterNew;
             start_period = pParameter->GetStartPeriod(); start_run = pParameter->GetStartRun();
+            end_period = pParameter->GetEndPeriod(); end_run = pParameter->GetEndRun();
             parameter_value.clear();
         }
 
@@ -371,9 +377,10 @@ void MoveParameter(TString parameter_name, enumParameterType parameter_type, enu
 
     if ((start_period != -1) || (start_run != -1))
     {
+        //cout<<"Write new parameter: "<<pParameter->GetParameterName()<<", start_period = "<<start_period<<", start_run = "<<start_run<<endl;
         UniDbDetectorParameterNew* pParameterNew = UniDbDetectorParameterNew::CreateDetectorParameter(
-                    pParameter->GetDetectorName(), pParameter->GetParameterName(), pParameter->GetStartPeriod(), pParameter->GetStartRun(),
-                    pParameter->GetEndPeriod(), pParameter->GetEndRun(), parameter_value);
+                    pParameter->GetDetectorName(), pParameter->GetParameterName(), start_period, start_run,
+                    end_period, end_run, parameter_value);
         delete pParameterNew;
     }
 }

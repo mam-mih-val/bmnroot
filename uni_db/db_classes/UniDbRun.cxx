@@ -1357,6 +1357,7 @@ TObjArray* UniDbRun::Search(TObjArray& search_conditions)
             case conditionGreaterOrEqual:   strCondition += ">= "; break;
             case conditionLike:             strCondition += "like "; break;
             case conditionNull:             strCondition += "is null "; break;
+            case conditionNotNull:          strCondition += "is not null "; break;
             default:
                 cout<<"ERROR: the comparison operator in the search condition was not defined, the condition is skipped"<<endl;
                 continue;
@@ -1364,7 +1365,9 @@ TObjArray* UniDbRun::Search(TObjArray& search_conditions)
 
         switch (curCondition->GetValueType())
         {
-            case 0: if (curCondition->GetCondition() != conditionNull) continue; break;
+            case 0:
+                if ((curCondition->GetCondition() != conditionNull) && (curCondition->GetCondition() != conditionNotNull)) continue;
+                break;
             case 1: strCondition += Form("%d", curCondition->GetIntValue()); break;
             case 2: strCondition += Form("%u", curCondition->GetUIntValue()); break;
             case 3: strCondition += Form("%f", curCondition->GetDoubleValue()); break;

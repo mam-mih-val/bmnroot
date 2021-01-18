@@ -39,6 +39,14 @@ create table run_geometry
  root_geometry bytea not null
 );
 
+-- NEW GEOMETRY PART
+-- drop table run_geometry_new
+create table run_geometry_new
+(
+ geometry_id serial primary key,
+ root_geometry bytea not null
+);
+
 -- RUN INFO
 create table run_
 (
@@ -88,7 +96,8 @@ create table parameter_
 (
  parameter_id serial primary key,
  parameter_name varchar(20) not null unique,
- parameter_type int not null
+ parameter_type int not null,
+ is_array boolean not null default (false)
 );
 
 -- PARAMETERS' VALUES

@@ -384,10 +384,10 @@ class UniDbDetectorParameter
     /// set Lorents Shift Array for parameter
     int SetLorentzShiftArray(LorentzShiftStructure* parameter_value, int element_count);
 
-	/// get parameters' values corresponding to the specified single condition
-	static TObjArray* Search(const UniDbSearchCondition& search_condition);
-	/// get parameters' values corresponding to the specified (vector) conditions
-	static TObjArray* Search(const TObjArray& search_conditions);
+    /// get parameters' values corresponding to the specified single condition
+    static TObjArray* Search(const UniDbSearchCondition& search_condition);
+    /// get parameters' values corresponding to the specified (vector) conditions
+    static TObjArray* Search(const TObjArray& search_conditions);
 
     /// parse detector parameter's values and write them to the database:
     /// txtFile - path to the text file with parameter values separated by spaces or tabs, e.g.: "value1 value2..."

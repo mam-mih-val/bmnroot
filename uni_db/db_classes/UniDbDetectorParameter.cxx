@@ -1814,7 +1814,7 @@ int UniDbDetectorParameter::GetDoubleArray(double*& parameter_value, int& elemen
 {
     unsigned char* p_parameter_value = GetUNC(DoubleArrayType);
     if (p_parameter_value == NULL)
-        return - 1;
+        return -1;
 
     element_count = sz_parameter_value / sizeof(double);
     parameter_value = new double[element_count];
@@ -2391,6 +2391,7 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
             case conditionGreaterOrEqual:   strCondition += ">= "; break;
             case conditionLike:             strCondition += "like "; break;
             case conditionNull:             strCondition += "is null "; break;
+            case conditionNotNull:          strCondition += "is not null "; break;
             default:
                 cout<<"ERROR: comparison operator in the search condition was not defined, condition is skipped"<<endl;
                 continue;
@@ -2398,7 +2399,9 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
 
         switch (curCondition->GetValueType())
         {
-            case 0: if (curCondition->GetCondition() != conditionNull) continue; break;
+            case 0:
+                if ((curCondition->GetCondition() != conditionNull) && (curCondition->GetCondition() != conditionNotNull)) continue;
+                break;
             case 1: strCondition += Form("%d", curCondition->GetIntValue()); break;
             case 2: strCondition += Form("%u", curCondition->GetUIntValue()); break;
             case 3: strCondition += Form("%f", curCondition->GetDoubleValue()); break;

@@ -1333,7 +1333,7 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
                 "select record_id, record_date, shift_leader_id, r.type_id, period_number, run_number, r.trigger_id, daq_status, sp_41, sp_57, vkm2, field_comment, beam, energy, target, target_width, record_comment "
                 "from record_ r left join person_ p on r.shift_leader_id = p.person_id "
                 "left join type_ t on r.type_id = t.type_id "
-                "left join trigger_ tr on r.trigger_id = tr.trigger_id ");
+                "left join trigger_ tr on r.trigger_id = tr.trigger_id");
 
     TString strCondition;
     bool isFirst = true;
@@ -1373,6 +1373,7 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
             case conditionGreaterOrEqual:   strCondition += ">= "; break;
             case conditionLike:             strCondition += "like "; break;
             case conditionNull:             strCondition += "is null "; break;
+            case conditionNotNull:          strCondition += "is not null "; break;
             default:
                 cout<<"ERROR: comparison operator in the search condition was not defined, condition is skipped"<<endl;
                 continue;
@@ -1380,7 +1381,9 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
 
         switch (curCondition->GetValueType())
         {
-            case 0: if (curCondition->GetCondition() != conditionNull) continue; break;
+            case 0:
+                if ((curCondition->GetCondition() != conditionNull) && (curCondition->GetCondition() != conditionNotNull)) continue;
+                break;
             case 1: strCondition += Form("%d", curCondition->GetIntValue()); break;
             case 2: strCondition += Form("%u", curCondition->GetUIntValue()); break;
             case 3: strCondition += Form("%f", curCondition->GetDoubleValue()); break;

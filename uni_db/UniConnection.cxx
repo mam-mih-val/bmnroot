@@ -40,9 +40,7 @@ UniConnection* UniConnection::Open(UniConnectionType connection_type)
     TSQLServer* pSQLServer = 0x00;
     itSQLServer it = UniConnection::mapConnection->find(conString.Data());
     if (it != UniConnection::mapConnection->end())
-    {
         pSQLServer = it->second;
-    }
     else
     {
         switch (connection_type)

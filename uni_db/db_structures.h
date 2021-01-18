@@ -26,7 +26,7 @@ enum enumParameterType{BoolType, IntType, DoubleType, StringType, IIArrayType, I
 // enumeration 'enumValueType' is corresponding to 'parameter_type' member of the UniDbParameter class, types:
 // 0 - boolean, 1 - integer, 2 - unsigned integer, 3 - double, 4 - string, 5 - binary, 6 - int+int,
 // 7 - DCH mapping, 8 - GEM mapping, 9 - GEM pedestal mapping, 10 - trigger mapping, 11 - Lorentz shift,
-// 12 - mapping with bool value (serial+channel+bool), 13 - mapping with int, 14 - maaping with double vector
+// 12 - mapping with bool value (serial+channel+bool), 13 - mapping with int, 14 - mapping with double vector
 enum enumValueType : unsigned int
 {
     BoolTypeNew = 0, IntTypeNew, UIntTypeNew, DoubleTypeNew, StringTypeNew, BinaryTypeNew, IITypeNew,               // base types
@@ -191,10 +191,10 @@ struct MapDVectorValue : public UniValue
 {
     uint32_t serial;
     int32_t channel;
-    vector<double> value;
+    vector<double> value;   // vector is stored with the size
 
     enumValueType GetType() { return MapDVectorTypeNew; }
-    size_t GetStorageSize() { return value.size()*8 + 8; }
+    size_t GetStorageSize() { return value.size()*8 + 16; } // (value.size()*8+8) + 8
     void ReadValue(unsigned char* source)       { Read(source, serial);       Read(source, channel);       Read(source, value); }
     void WriteValue(unsigned char* destination) { Write(destination, serial); Write(destination, channel); Write(destination, value); }
 };

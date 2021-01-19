@@ -2922,7 +2922,7 @@ void BmnDchTrackFinder::Finish() {
   //added
   //===============================================================================================================
 
-  //if (fVerbose) {
+  if (fVerbose) {
   TFile file(fhTestFlnm.Data(), "RECREATE");
    
   hEff1->Divide(hNomin1,hDenom1,1.,1.);
@@ -2930,7 +2930,7 @@ void BmnDchTrackFinder::Finish() {
     
   fhList.Write();
   file.Close();
-  //}
+  }
   //===============================================================================================================
 
   ///end

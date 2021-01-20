@@ -281,14 +281,14 @@ void MoveParameter(TString parameter_name, enumParameterType parameter_type, enu
 
         if ((start_period != pParameter->GetStartPeriod()) || (start_run != pParameter->GetStartRun()))
         {
-            //cout<<"Write new parameter: "<<pParameter->GetParameterName()<<", start_period = "<<start_period<<", start_run = "<<start_run<<endl;
+            //cout<<"Write new parameter: "<<pParameter->GetParameterName()<<", start_period = "<<start_period<<", start_run = "<<start_run<<", value size = "<<parameter_value.size()<<endl;
             UniDbDetectorParameterNew* pParameterNew = UniDbDetectorParameterNew::CreateDetectorParameter(
                         pParameter->GetDetectorName(), pParameter->GetParameterName(), start_period, start_run,
                         end_period, end_run, parameter_value);
             delete pParameterNew;
             start_period = pParameter->GetStartPeriod(); start_run = pParameter->GetStartRun();
             end_period = pParameter->GetEndPeriod(); end_run = pParameter->GetEndRun();
-            parameter_value.clear();
+            parameter_value.clear();    
         }
 
         switch (parameter_type)
@@ -351,6 +351,7 @@ void MoveParameter(TString parameter_name, enumParameterType parameter_type, enu
                     case MapDVectorTypeNew:
                     {
                         MapDVectorValue* pNewParameter = new MapDVectorValue;
+                        //cout<<"serial = "<<*(pParameter->GetDcSerial())<<", channel = "<<*(pParameter->GetChannel())<<endl;
                         pNewParameter->serial = *(pParameter->GetDcSerial());
                         pNewParameter->channel = *(pParameter->GetChannel());
                         for (int j = 0; j < element_count; j++)
@@ -359,25 +360,19 @@ void MoveParameter(TString parameter_name, enumParameterType parameter_type, enu
 
                         break;
                     }
-                    default:
-                    {
-                        cout<<"ERROR: the new parameter type was not defined for DoubleArrayType"<<endl;
-                    }
+                    default: cout<<"ERROR: the new parameter type was not defined for DoubleArrayType"<<endl;
                 }//switch (parameter_type_new)
 
                 break;
             }
-            default:
-            {
-                cout<<"ERROR: the old parameter type was not defined for the special case"<<endl;
-            }
+            default: cout<<"ERROR: the old parameter type was not defined for the special case"<<endl;
         }//switch (parameter_type)
     }//for (int i = 0; i < pParameterArray->GetEntriesFast(); i++)
     cout<<endl;
 
-    if ((start_period != -1) || (start_run != -1))
+    if ((start_period != -1) && (start_run != -1))
     {
-        //cout<<"Write new parameter: "<<pParameter->GetParameterName()<<", start_period = "<<start_period<<", start_run = "<<start_run<<endl;
+        //cout<<"Final writing new parameter: "<<pParameter->GetParameterName()<<", start_period = "<<start_period<<", start_run = "<<start_run<<", value size = "<<parameter_value.size()<<endl;
         UniDbDetectorParameterNew* pParameterNew = UniDbDetectorParameterNew::CreateDetectorParameter(
                     pParameter->GetDetectorName(), pParameter->GetParameterName(), start_period, start_run,
                     end_period, end_run, parameter_value);

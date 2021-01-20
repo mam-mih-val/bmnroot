@@ -14,29 +14,15 @@ int compare_db()
     TStopwatch timer;
     timer.Start();
 
-    /*
-    UniConnection* conOldUniDb = UniConnection::Open(PgSQL, "vm221-53.jinr.ru", UNI_DB_NAME, UNI_DB_USERNAME, UNI_DB_PASSWORD);
-    if (conOldUniDb == 0x00)
-    {
-        cout<<"ERROR: connection to the old database cannot be established"<<endl;
-        return -1;
-    }
-    TSQLServer* old_db = conOldUniDb->GetSQLServer();
-
-    UniConnection* conNewUniDb = UniConnection::Open(PgSQL, "nc13.jinr.ru", UNI_DB_NAME, UNI_DB_USERNAME, UNI_DB_PASSWORD);
-    if (conNewUniDb == 0x00)
-    {
-        cout<<"ERROR: connection to the new database cannot be established"<<endl;
-        return -2;
-    }
-    TSQLServer* new_db = conNewUniDb->GetSQLServer();
-    */
-
     // find all parameters in the old table of the old database
     cout<<"Forming conditions to compare all parameters..."<<endl;
     TObjArray arrayConditions;
-    UniDbSearchCondition* searchCondition = new UniDbSearchCondition(columnDCSerial, conditionNotNull); //(columnStartPeriod, conditionGreater, 0); (columnParameterName, conditionEqual, (TString)"GEM_pedestal");
-    arrayConditions.Add((TObject*)searchCondition);
+    //UniDbSearchCondition* searchConditionPeriod = new UniDbSearchCondition(columnStartPeriod, conditionGreater, 0);
+    //arrayConditions.Add((TObject*)searchConditionPeriod);
+    UniDbSearchCondition* searchConditionSerial = new UniDbSearchCondition(columnDCSerial, conditionNotNull);
+    arrayConditions.Add((TObject*)searchConditionSerial);
+    //UniDbSearchCondition* searchConditionName = new UniDbSearchCondition(columnParameterName, conditionEqual, (TString)"inl");
+    //arrayConditions.Add((TObject*)searchConditionName);
 
     cout<<"Getting original array for parameters..."<<endl;
     TObjArray* pParameterArray = UniDbDetectorParameter::Search(arrayConditions);
@@ -283,19 +269,18 @@ int compare_db()
                     for (int j = 0; j < parameter_value.size(); j++)
                     {
                         MapDVectorValue* pMapValue = (MapDVectorValue*) parameter_value[j];
-                        cout<<"old array size = "<<element_count<<"; new array size = "<<pMapValue->value.size()<<endl;
+                        //cout<<"old array size = "<<element_count<<"; new array size = "<<pMapValue->value.size()<<endl;
                         if (pMapValue->value.size() != element_count)
                             continue;
 
-                        cout<<"old serial = "<<*(pParameter->GetDcSerial())<<"; new serial = "<<pMapValue->serial
-                            <<". old channel = "<<*(pParameter->GetChannel())<<"; new channel = "<<pMapValue->channel<<endl;
+                        //cout<<"old serial = "<<*(pParameter->GetDcSerial())<<"; new serial = "<<pMapValue->serial<<". old channel = "<<*(pParameter->GetChannel())<<"; new channel = "<<pMapValue->channel<<endl;
                         if ((pMapValue->serial != *(pParameter->GetDcSerial())) || (pMapValue->channel != *(pParameter->GetChannel())))
                             continue;
 
                         bool is_found = true;
                         for (int k = 0; k < element_count; k++)
                         {
-                            cout<<"current old value = "<<d_value[k]<<"; current new value = "<<(pMapValue->value)[k]<<endl;
+                            //cout<<"current old value = "<<d_value[k]<<"; current new value = "<<(pMapValue->value)[k]<<endl;
                             //if (fabs((pMapValue->value)[k] - d_value[k]) > FLT_EPSILON)
                             if ((pMapValue->value)[k] != d_value[k])
                             {
@@ -538,7 +523,11 @@ int compare_db()
         }
 
         //cout<<"DetectorName = "<<pParameter->GetDetectorName()<<". ParameterName = "<<pParameter->GetParameterName()<<". StartPeriod = "<<pParameter->GetStartPeriod()<<". StartRun = "<<pParameter->GetStartRun()<<". EndPeriod = "<<pParameter->GetEndPeriod()<<". GetEndRun() = "<<pParameter->GetEndRun()<<". parameter_value size = "<<parameter_value.size()<<endl;
+        // clean memory for destination array
+        for (int j = 0; j < parameter_value.size(); j++)
+            delete parameter_value[j];
         parameter_value.clear();
+        delete pNewParameter;
     }
     cout<<endl;
 

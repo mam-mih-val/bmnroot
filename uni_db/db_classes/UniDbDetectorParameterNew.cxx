@@ -44,7 +44,7 @@ UniDbDetectorParameterNew::~UniDbDetectorParameterNew()
 // -----   Creating new detector parameter new in the database  ---------------------------
 UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameterNew(TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, int value_key, unsigned char* parameter_value, Long_t size_parameter_value)
 {
-        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -62,7 +62,7 @@ UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameterNew
 	stmt->SetInt(4, end_period);
 	stmt->SetInt(5, end_run);
     stmt->SetInt(6, value_key);
-    stmt->SetBinary(7, parameter_value, size_parameter_value, 0x4000000);
+    stmt->SetBinary(7, parameter_value, size_parameter_value, 0x40000000);
 
 	// inserting new detector parameter new to the Database
 	if (!stmt->Process())
@@ -132,7 +132,7 @@ UniDbDetectorParameterNew* UniDbDetectorParameterNew::CreateDetectorParameterNew
 // -----  Get detector parameter new from the database  ---------------------------
 UniDbDetectorParameterNew* UniDbDetectorParameterNew::GetDetectorParameterNew(int value_id)
 {
-        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -195,7 +195,7 @@ UniDbDetectorParameterNew* UniDbDetectorParameterNew::GetDetectorParameterNew(in
 // -----  Check detector parameter new exists in the database  ---------------------------
 bool UniDbDetectorParameterNew::CheckDetectorParameterNewExists(int value_id)
 {
-        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -236,7 +236,7 @@ bool UniDbDetectorParameterNew::CheckDetectorParameterNewExists(int value_id)
 // -----  Delete detector parameter new from the database  ---------------------------
 int UniDbDetectorParameterNew::DeleteDetectorParameterNew(int value_id)
 {
-        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -267,7 +267,7 @@ int UniDbDetectorParameterNew::DeleteDetectorParameterNew(int value_id)
 // -----  Print all 'detector parameter news'  ---------------------------------
 int UniDbDetectorParameterNew::PrintAll()
 {
-        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -588,7 +588,7 @@ int UniDbDetectorParameterNew::SetParameterValue(unsigned char* parameter_value,
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-    stmt->SetBinary(0, parameter_value, size_parameter_value, 0x4000000);
+    stmt->SetBinary(0, parameter_value, size_parameter_value, 0x40000000);
 	stmt->SetInt(1, i_value_id);
 
     // write new value to the database
@@ -988,6 +988,7 @@ int UniDbDetectorParameterNew::GetParameterValue(vector<UniValue*>& parameter_va
     Long_t full_size = sz_parameter_value;
     while (full_size > 0)
     {
+        //cout<<"full_size = "<<full_size<<". GetParameterType() = "<<GetParameterType()<<endl;
         UniValue* pParameterValue = CreateParameterValue(GetParameterType());
         pParameterValue->ReadValue(p_parameter_value);
         full_size -= pParameterValue->GetStorageSize();
@@ -1212,6 +1213,7 @@ TObjArray* UniDbDetectorParameterNew::Search(TObjArray& search_conditions)
             case conditionGreaterOrEqual:   strCondition += ">= "; break;
             case conditionLike:             strCondition += "like "; break;
             case conditionNull:             strCondition += "is null "; break;
+            case conditionNotNull:          strCondition += "is not null "; break;
             default:
                 cout<<"ERROR: the comparison operator in the search condition was not defined, the condition is skipped"<<endl;
                 continue;
@@ -1219,7 +1221,9 @@ TObjArray* UniDbDetectorParameterNew::Search(TObjArray& search_conditions)
 
         switch (curCondition->GetValueType())
         {
-            case 0: if (curCondition->GetCondition() != conditionNull) continue; break;
+            case 0:
+                if ((curCondition->GetCondition() != conditionNull) && (curCondition->GetCondition() != conditionNotNull)) continue;
+                break;
             case 1: strCondition += Form("%d", curCondition->GetIntValue()); break;
             case 2: strCondition += Form("%u", curCondition->GetUIntValue()); break;
             case 3: strCondition += Form("%f", curCondition->GetDoubleValue()); break;

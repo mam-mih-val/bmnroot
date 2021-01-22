@@ -17,10 +17,10 @@ int compare_db()
     // find all parameters in the old table of the old database
     cout<<"Forming conditions to compare all parameters..."<<endl;
     TObjArray arrayConditions;
-    //UniDbSearchCondition* searchConditionPeriod = new UniDbSearchCondition(columnStartPeriod, conditionGreater, 0);
-    //arrayConditions.Add((TObject*)searchConditionPeriod);
-    UniDbSearchCondition* searchConditionSerial = new UniDbSearchCondition(columnDCSerial, conditionNotNull);
-    arrayConditions.Add((TObject*)searchConditionSerial);
+    UniDbSearchCondition* searchConditionPeriod = new UniDbSearchCondition(columnStartPeriod, conditionGreater, 0);
+    arrayConditions.Add((TObject*)searchConditionPeriod);
+    //UniDbSearchCondition* searchConditionSerial = new UniDbSearchCondition(columnDCSerial, conditionNull);
+    //arrayConditions.Add((TObject*)searchConditionSerial);
     //UniDbSearchCondition* searchConditionName = new UniDbSearchCondition(columnParameterName, conditionEqual, (TString)"inl");
     //arrayConditions.Add((TObject*)searchConditionName);
 
@@ -533,6 +533,71 @@ int compare_db()
 
     // clean memory after work
     delete pParameterArray;
+
+    timer.Stop();
+    Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
+    printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
+
+    cout<<"Macro was successfull"<<endl;
+
+    return 0;
+}
+
+int compare_geometry()
+{
+    TStopwatch timer;
+    timer.Start();
+
+    // find all run geometries in the old table of the old database
+    cout<<"Getting original array for run geometries..."<<endl;
+    TObjArray* pGeometryArray = UniDbRunGeometry::GetAll();
+    if (pGeometryArray == NULL)
+    {
+        cout<<"ERROR: getting run geometries was failed"<<endl;
+        return -1;
+    }
+
+    // read all run geometries and find them in the new table of the new database
+    cout<<"Reading and searching for corresponding run geometries: "<<pGeometryArray->GetEntriesFast()<<endl;
+    for (int i = 0; i < pGeometryArray->GetEntriesFast(); i++)
+    {
+        UniDbRunGeometry* pGeometry = (UniDbRunGeometry*) pGeometryArray->At(i);
+
+        //printProgress(((double)i)/(pGeometryArray->GetEntriesFast()-1));
+        cout<<"Current run geometry: "<<pGeometry->GetGeometryId()<<endl;
+
+        UniDbRunGeometryNew* pGeometryNew = UniDbRunGeometryNew::GetRunGeometry(pGeometry->GetGeometryId());
+        if (pGeometryNew == NULL)
+        {
+            cout<<"ERROR: returning new run geometry was failed, where pGeometry->GetGeometryId() = "<<pGeometry->GetGeometryId()<<endl;
+            return -2;
+        }
+
+        cout<<"Geometry size: "<<pGeometry->GetRootGeometrySize()<<endl;
+        if (pGeometry->GetRootGeometrySize() != pGeometryNew->GetRootGeometrySize())
+        {
+            cout<<"ERROR: new run geometry must have "<<pGeometry->GetRootGeometrySize()<<" size, but it has "<<pGeometryNew->GetRootGeometrySize()<<endl;
+            return -3;
+        }
+
+        unsigned char* pRootGeometry = pGeometry->GetRootGeometry();
+        unsigned char* pRootGeometryNew = pGeometryNew->GetRootGeometry();
+        for (int j = 0; j < pGeometry->GetRootGeometrySize(); j++)
+        {
+            cout<<pRootGeometry[j];
+            if (pRootGeometry[j] != pRootGeometryNew[j])
+            {
+                cout<<"ERROR: new run geometry must be equal to the old value for geometry id = "<<pGeometry->GetGeometryId()<<endl;
+                return -4;
+            }
+        }
+        cout<<endl<<endl;
+
+        delete pGeometryNew;
+    }
+
+    // clean memory after work
+    delete pGeometryArray;
 
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();

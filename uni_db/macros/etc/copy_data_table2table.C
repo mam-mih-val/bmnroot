@@ -379,3 +379,43 @@ void MoveParameter(TString parameter_name, enumParameterType parameter_type, enu
         delete pParameterNew;
     }
 }
+
+int copy_geometry_table2table()
+{
+    TStopwatch timer;
+    timer.Start();
+
+    cout<<"Getting original array for run geometries..."<<endl;
+    TObjArray* pGeometryArray = UniDbRunGeometry::GetAll();
+    if (pGeometryArray == NULL)
+    {
+        cout<<"ERROR: getting run geometries was failed"<<endl;
+        return -1;
+    }
+
+    // read all run geometries and write to the new table
+    cout<<"Reading/writing run geometries: "<<pGeometryArray->GetEntriesFast()<<endl;
+    for (int i = 0; i < pGeometryArray->GetEntriesFast(); i++)
+    {
+        UniDbRunGeometry* pGeometry = (UniDbRunGeometry*) pGeometryArray->At(i);
+
+        printProgress(((double)i)/(pGeometryArray->GetEntriesFast()-1));
+        //cout<<"Current run geometry: "<<pGeometry->GetGeometryId()<<endl;
+
+        UniDbRunGeometryNew* pGeometryNew =
+                UniDbRunGeometryNew::CreateRunGeometry(pGeometry->GetGeometryId(), pGeometry->GetRootGeometry(), pGeometry->GetRootGeometrySize());
+        delete pGeometryNew;
+    }
+    cout<<endl;
+
+    // clean memory after work
+    delete pGeometryArray;
+
+    timer.Stop();
+    Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
+    printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
+
+    cout<<"Macro was successfull"<<endl;
+
+    return 0;
+}

@@ -390,9 +390,11 @@ Int_t MpdGetNumEvents::GetNumDCMSMMEvents(const char* fileName, int iVerbose)
     return num;
 }
 
-Int_t MpdGetNumEvents::GetNumROOTEvents(const char* filename, int iVerbose)
+Int_t MpdGetNumEvents::GetNumROOTEvents(const char* filename, const char* treename, int iVerbose)
 {
-    TChain* fileTree = new TChain(FairRootManager::GetTreeName());
+    TChain* fileTree;
+    if ((treename == NULL) || (treename[0] == '\0')) fileTree = new TChain(FairRootManager::GetTreeName());
+    else fileTree = new TChain(treename);
     fileTree->Add(filename);
 
     Int_t num = fileTree->GetEntries();

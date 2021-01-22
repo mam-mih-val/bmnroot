@@ -22,6 +22,7 @@
 #pragma link C++ class UniDbRunPeriod+;
 #pragma link C++ class UniDbRun+;
 #pragma link C++ class UniDbRunGeometry+;
+#pragma link C++ class UniDbRunGeometryNew+;
 #pragma link C++ class UniDbDetector+;
 #pragma link C++ class UniDbParameter+;
 #pragma link C++ class UniDbDetectorParameter+;

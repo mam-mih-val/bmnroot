@@ -1318,8 +1318,8 @@ TObjArray* UniDbRun::Search(TObjArray& search_conditions)
     TSQLServer* uni_db = connUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-                "select run_number, period_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_voltage, file_size, geometry_id "
-                "from run_");
+        "select run_number, period_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_voltage, file_size, geometry_id "
+        "from run_");
 
     TString strCondition;
     bool isFirst = true;

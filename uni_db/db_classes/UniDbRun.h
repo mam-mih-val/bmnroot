@@ -162,7 +162,7 @@ class UniDbRun
     /// get number of the closest run below the given one
     static UniqueRunNumber* FindPreviousRun(int run_period, int run_number);
 
-	ClassDef(UniDbRun,1);
+ ClassDef(UniDbRun,1);
 };
 
 #endif

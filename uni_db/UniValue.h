@@ -26,6 +26,7 @@ using namespace std;
 enum enumValueType : unsigned int;
 struct UniValue
 {
+    virtual ~UniValue(){} // Destructor
     virtual enumValueType GetType() = 0;
     virtual size_t GetStorageSize() = 0;
     virtual void ReadValue(unsigned char* source) = 0;

@@ -361,9 +361,9 @@ private:
     
     TString fMapFileName;
 
-    vector<GemMapStructure> fMap;
+    vector<GemMapValue*> fMap;
 
-    void ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, TClonesArray *gem, Bool_t doFill);
+    void ProcessDigit(BmnADCDigit* adcDig, GemMapValue* gemM, TClonesArray *gem, Bool_t doFill);
     void ProcessDigitMK(BmnADCDigit* adcDig, TClonesArray *gem, Bool_t doFill);
     void PostprocessDigitMK(TClonesArray *gem, TClonesArray *csc);
     BmnStatus ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod);

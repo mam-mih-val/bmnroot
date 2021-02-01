@@ -1,4 +1,4 @@
-TString get_trigger(int period_number, int run_number)
+TString get_trigger(int period_number = 7, int run_number = 4608)
 {
     TString strTrigger = "";
     TObjArray* pRecords = ElogDbRecord::GetRecords(period_number, run_number);
@@ -7,7 +7,6 @@ TString get_trigger(int period_number, int run_number)
     ElogDbRecord* curRecord;
     while (curRecord == (ElogDbRecord*)next())
     {
-        cout<<"HERE!"<<endl;
         if (curRecord->GetTriggerId() != NULL)
             strTrigger = ElogDbTrigger::GetTrigger(*(curRecord->GetTriggerId()))->GetTriggerInfo();
     }

@@ -1,24 +1,21 @@
 // macro for getting parameter value (if parameter exist - you could check existing parameters by 'UniDbParameter::PrintAll()' function)
 void get_parameter_value_complex()
 {
-    gSystem->Load("libUniDb");
-
     bool return_error = false;
 
     // get noise parameter values presented by IIStructure: Int+Int (slot:channel)
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("DCH1", "noise", 1, 133);
     if (pDetectorParameter != NULL)
     {
-        IIStructure* pValues;
-        int element_count = 0;
-        pDetectorParameter->GetIIArray(pValues, element_count);
+        vector<UniValue*> pValues;
+        pDetectorParameter->GetValue(pValues);
 
         // YOUR CODE (e.g print values)
-        for (int i = 0; i < element_count; i++)
-            cout<<"Slot:Channel "<<pValues[i].int_1<<":"<<pValues[i].int_2<<endl;
+        for (int i = 0; i < pValues.size(); i++)
+            cout<<"Slot:Channel "<<((IIValue*)pValues[i])->value1<<":"<<((IIValue*)pValues[i])->value2<<endl;
 
         // clean memory after work
-        delete pValues;
+        for (int i = 0; i < pValues.size(); i++) delete pValues[i];
         if (pDetectorParameter)
             delete pDetectorParameter;
     }

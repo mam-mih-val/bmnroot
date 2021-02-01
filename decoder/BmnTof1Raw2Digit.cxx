@@ -93,24 +93,29 @@ Bool_t BmnTof1Raw2Digit::setRun(int nPeriod, int nRun) {
                 return kFALSE;
 	} else {
 		//Get the placement map
-		int elem_count = 0;
-		unsigned int* elem_array;
-		pLoadedPlacement->GetUIntArray(elem_array, elem_count);
+        vector<UniValue*> elem_array;
+        pLoadedPlacement->GetValue(elem_array);
 		
-		for(int i = 0; i < elem_count; i+=3) {
-			plmap_insert(elem_array[i], elem_array[i+1], elem_array[i+2]);
-			TDCMap.insert(Tof1TDCMapElem(elem_array[i+2], BmnTof1TDCParameters()));
+        for(int i = 0; i < elem_array.size(); i+=3) {
+            plmap_insert(((UIntValue*)elem_array[i])->value, ((UIntValue*)elem_array[i+1])->value, ((UIntValue*)elem_array[i+2])->value);
+            TDCMap.insert(Tof1TDCMapElem(((UIntValue*)elem_array[i+2])->value, BmnTof1TDCParameters()));
 		}
 		
 		//Print the result
-		cout << '\r' << std::setw(40) << ' ' << '\r' << "Loaded " << (elem_count/3) << " TDCs" << endl;
+        cout << '\r' << std::setw(40) << ' ' << '\r' << "Loaded " << (elem_array.size()/3) << " TDCs" << endl;
 		//Free the memory
-		delete[] elem_array; delete pLoadedPlacement;
+        if (!elem_array.empty()) for (int i = 0; i < elem_array.size(); i++) delete elem_array[i];
+        delete pLoadedPlacement;
 	}
 	
 	//Load the mapping from the DB for all TDCs. Loop over all the TDCs in the placement map
 	cout << "Loading strip map..." << endl;
 	
+    /* SHOULD BE REWRITTEN according to the new Database. Is it one parameter instead 4? (KG)
+     * NEW FUNCTIONS: UniDbDetectorParameter::GetDetectorParameter("TOF1", "inl", nPeriod, nRun); // vector<UniValue*> contains "MapDVectorType"
+     * UniDbDetectorParameter::GetDetectorParameter("TOF1", "plane", nPeriod, nRun); // vector<UniValue*> contains "MapIntType"
+     * UniDbDetectorParameter::GetDetectorParameter("TOF1", "strip", nPeriod, nRun); // vector<UniValue*> contains "MapIntType"
+     * UniDbDetectorParameter::GetDetectorParameter("TOF1", "side", nPeriod, nRun); // vector<UniValue*> contains "MapBoolType"
 	Tof1PlMapIter it;
 	it = PlacementMap.begin();
 	while(it!=PlacementMap.end()) {
@@ -142,8 +147,7 @@ Bool_t BmnTof1Raw2Digit::setRun(int nPeriod, int nRun) {
 		UniDbDetectorParameter* curRow;
 		
 		TIter res_it = elemArray->begin(); int nRow = 0;
-		
-		while(res_it!=elemArray->end()) {
+        while(res_it!=elemArray->end()) {
 			cout << '\r' << std::setw(40) << ' ' << "\rParsing row " << nRow << "..." << std::flush;
 			
 			curRow = (UniDbDetectorParameter*)(*res_it);
@@ -187,15 +191,14 @@ Bool_t BmnTof1Raw2Digit::setRun(int nPeriod, int nRun) {
 			++res_it; ++nRow;
 		}
 		cout << endl;
-		conditions.SetOwner(kTRUE);
-                conditions.Delete();
-                elemArray->SetOwner(kTRUE);
+        conditions.Delete();
 		//Again, UniDbDetectorParameter::Search actually creates a new TObjArray
-		elemArray->Delete(); //Delete this row as soon as returned TObjArray will be set as owner in UniDbDetectorParameter::Search()
+        elemArray->Delete();
 		delete elemArray;
-                elemArray = NULL;
+        elemArray = NULL;
 		++it;
 	}
+    */
 	cout << "Loading Tof400 mapping from the DB complete." << endl;
         return kTRUE;
 }

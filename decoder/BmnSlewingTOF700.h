@@ -217,7 +217,7 @@ private:
     BmnEventType fCurEventType;
     BmnEventType fPrevEventType;
     BmnSetup fBmnSetup;
-    TriggerMapStructure* fT0Map;
+    TriggerMapValue* fT0Map;
     deque<UInt_t> *fDataQueue;
 
     //Map to store pairs <Crate serial> - <crate time - T0 time>

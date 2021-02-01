@@ -510,8 +510,8 @@ private:
     UInt_t fPedEvCntr;
     Int_t fEvForPedestals;
     Bool_t fPedEnough;
-    GemMapStructure* fGemMap;
-    TriggerMapStructure* fT0Map;
+    GemMapValue* fGemMap;
+    TriggerMapValue* fT0Map;
     deque<UInt_t> *fDataQueue;
 
     //Map to store pairs <Crate serial> - <crate time - T0 time>

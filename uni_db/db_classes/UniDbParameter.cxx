@@ -100,7 +100,7 @@ UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int para
 // -----  Get parameter from the database  ---------------------------
 UniDbParameter* UniDbParameter::GetParameter(int parameter_id)
 {
-        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -149,7 +149,7 @@ UniDbParameter* UniDbParameter::GetParameter(int parameter_id)
 // -----  Get parameter from the database by unique key  --------------
 UniDbParameter* UniDbParameter::GetParameter(TString parameter_name)
 {
-        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -198,7 +198,7 @@ UniDbParameter* UniDbParameter::GetParameter(TString parameter_name)
 // -----  Check parameter exists in the database  ---------------------------
 bool UniDbParameter::CheckParameterExists(int parameter_id)
 {
-        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -239,7 +239,7 @@ bool UniDbParameter::CheckParameterExists(int parameter_id)
 // -----  Check parameter exists in the database by unique key  --------------
 bool UniDbParameter::CheckParameterExists(TString parameter_name)
 {
-        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -311,7 +311,7 @@ int UniDbParameter::DeleteParameter(int parameter_id)
 // -----  Delete parameter from the database by unique key  --------------
 int UniDbParameter::DeleteParameter(TString parameter_name)
 {
-        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -342,7 +342,7 @@ int UniDbParameter::DeleteParameter(TString parameter_name)
 // -----  Print all 'parameters'  ---------------------------------
 int UniDbParameter::PrintAll()
 {
-        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -466,47 +466,6 @@ void UniDbParameter::Print()
 }
 /* END OF GENERATED CLASS PART (SHOULD NOT BE CHANGED MANUALLY) */
 
-bool UniDbParameter::CheckAndGetParameterID(TSQLServer* uni_db, TString parameter_name, enumParameterType enum_parameter_type, int& parameter_id)
-{
-    // get parameter object from 'parameter_' table
-    TString sql = TString::Format(
-        "select parameter_id, parameter_name, parameter_type "
-        "from parameter_ "
-        "where lower(parameter_name) = lower('%s')", parameter_name.Data());
-    TSQLStatement* stmt = uni_db->Statement(sql);
-
-    // get table record from DB
-    if (!stmt->Process())
-    {
-        cout<<"ERROR: getting a record with the parameter from 'parameter_' table has been failed"<<endl;
-        delete stmt;
-        return false;
-    }
-
-    stmt->StoreResult();
-
-    // extract row with parameter
-    if (!stmt->NextResultRow())
-    {
-        cout<<"ERROR: the parameter with name '"<<parameter_name<<"' was not found"<<endl;
-        delete stmt;
-        return false;
-    }
-
-    parameter_id = stmt->GetInt(0);
-    int parameter_type = stmt->GetInt(2);
-
-    delete stmt;
-
-    if (parameter_type != enum_parameter_type)
-    {
-        cout<<"ERROR: '"<<parameter_name<<"' parameter has not the same type (type = "<<parameter_type<<", but "<<enum_parameter_type<<" used)"<<endl;
-        return false;
-    }
-
-    return true;
-}
-
 bool UniDbParameter::CheckAndGetParameterID(TSQLServer* uni_db, TString parameter_name, enumValueType enum_parameter_type, int& parameter_id)
 {
     // get parameter object from 'parameter_' table
@@ -538,20 +497,6 @@ bool UniDbParameter::CheckAndGetParameterID(TSQLServer* uni_db, TString paramete
     int parameter_type = stmt->GetInt(2);
 
     delete stmt;
-
-    if (parameter_type == 12) enum_parameter_type = (enumValueType) 12; //10 new, array
-    if (parameter_type == 7) enum_parameter_type = (enumValueType) 7; //5 new, array
-    if (parameter_type == 4) enum_parameter_type = (enumValueType) 4; //6 new, array
-    if (parameter_type == 9) enum_parameter_type = (enumValueType) 9; //7 new, array
-    if (parameter_type == 10) enum_parameter_type = (enumValueType) 10; //8 new, array
-    if (parameter_type == 5) enum_parameter_type = (enumValueType) 5; //1 new, array
-    if (parameter_type == 11) enum_parameter_type = (enumValueType) 11; //9 new, array
-    if (parameter_type == 13) enum_parameter_type = (enumValueType) 13; //11 new, array
-    if (parameter_type == 6) enum_parameter_type = (enumValueType) 6; //14 new, array
-    if (parameter_type == 8) enum_parameter_type = (enumValueType) 8; //2 new, array
-    if (enum_parameter_type == 14) parameter_type = 14; //6 old, array (inl)
-    if (enum_parameter_type == 13) parameter_type = 13; //1 old, array (plane, strip)
-    if (enum_parameter_type == 12) parameter_type = 12; //0 old, array (side)
 
     if (parameter_type != enum_parameter_type)
     {

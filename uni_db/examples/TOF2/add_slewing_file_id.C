@@ -97,7 +97,8 @@ void add_slewing_file_id(TString strFileList, int file_id, int period_number = 7
     cout<<"Writing file ID ("<<file_id<<") to the Database... ";
     for (vector<RunPair>::iterator it = vecRunPairs.begin(); it != vecRunPairs.end(); it++)
     {
-        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("TOF2", "slewing_file_id", period_number, (*it).iStartRun, period_number, (*it).iEndRun, file_id);
+        IntValue iValue; iValue.value = file_id;
+        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("TOF2", "slewing_file_id", period_number, (*it).iStartRun, period_number, (*it).iEndRun, &iValue);
         if (pDetectorParameter == NULL)
         {
             cout<<"Macro finished with errors"<<endl;

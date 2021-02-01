@@ -965,7 +965,7 @@ int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sc
         }
 
         // parse slots and channels
-        vector<IIStructure> arr;
+        vector<UniValue*> arr;
         for (int i = 0; i < row_count; i++)
         {
             getline(txtFile, cur_line);
@@ -993,9 +993,9 @@ int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sc
                                 continue;
                         }
 
-                        IIStructure st;
-                        st.int_1 = slot_number;
-                        st.int_2 = channel_number;
+                        IIValue* st = new IIValue;
+                        st->value1 = slot_number;
+                        st->value2 = channel_number;
                         arr.push_back(st);
                     }
                     else
@@ -1006,9 +1006,9 @@ int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sc
                         int num_second = atoi(strSecond.c_str());
                         for (int j = num_first; j <= num_second; j++)
                         {
-                            IIStructure st;
-                            st.int_1 = slot_number;
-                            st.int_2 = j;
+                            IIValue* st = new IIValue;
+                            st->value1 = slot_number;
+                            st->value2 = j;
                             arr.push_back(st);
                         }
                     }
@@ -1030,29 +1030,23 @@ int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sc
             }
         }
 
-        // copy vector to dynamic array
-        int size_arr = arr.size();
-        //cout<<"Size array: "<<size_arr<<endl;
-        IIStructure* pValues = new IIStructure[size_arr];
-        for (int i = 0; i < size_arr; i++)
-            pValues[i] = arr[i];
-
         /*
         // print array
         cout<<"Slot:Channel"<<endl;
-        for (int i = 0; i < size_arr; i++)
+        for (int i = 0; i < arr.size(); i++)
         {
-            cout<<pValues[i].int_1<<":"<<pValues[i].int_2<<endl;
+            IIValue* pValue = (IIValue*)arr[i];
+            cout<<pValues->value1<<":"<<pValues->value2<<endl;
         }
         cout<<endl;
         */
 
-        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "noise", period_number, run_number, period_number, run_number, pValues, size_arr); //(detector_name, parameter_name, start_run, end_run, parameter_value, size_parameter_value)
+        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "noise", period_number, run_number, period_number, run_number, arr); //(detector_name, parameter_name, start_run, end_run, parameter_value)
         if (pDetectorParameter == NULL)
             continue;
 
         // clean memory after work
-        delete [] pValues;
+        for (int i = 0; i < arr.size(); i++) delete arr[i];
         if (pDetectorParameter)
             delete pDetectorParameter;
     }

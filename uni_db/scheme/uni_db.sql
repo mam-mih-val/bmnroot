@@ -5,9 +5,8 @@
 -- SET search_path TO "$user",new_schema;
 -- SET search_path TO "$user",public;
 
--- Unified experiment database
+-- Unified Database
 -- createdb bmn_db;
--- createlang -d bmn_db plpgsql;
 -- SET bytea_output = 'escape';
 
 -- MS SQL Server convertion
@@ -33,15 +32,8 @@ create table run_period
 );
 
 -- GEOMETRY PART
+-- drop table run_geometry
 create table run_geometry
-(
- geometry_id serial primary key,
- root_geometry bytea not null
-);
-
--- NEW GEOMETRY PART
--- drop table run_geometry_new
-create table run_geometry_new
 (
  geometry_id serial primary key,
  root_geometry bytea not null
@@ -89,8 +81,9 @@ create table detector_
 );
 
 -- COMPONENT PARAMETERS
--- parameter_type: 0 - bool, 1 - int, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array, 7 - binary array, 8 - unsigned int array,
---                 9 - DCH mapping array, 10 - GEM mapping array, 11 - GEM pedestal map, 12 - Trigger mapping array
+-- parameter_type: 0 - boolean, 1 - integer, 2 - unsigned integer, 3 - double, 4 - string, 5 - binary, 6 - int+int,
+--                 7 - DCH mapping, 8 - GEM mapping, 9 - GEM pedestal mapping, 10 - trigger mapping, 11 - Lorentz shift,
+--                 12 - mapping with bool value (serial+channel+bool), 13 - mapping with int, 14 - mapping with double vector
 -- drop table parameter_
 create table parameter_
 (
@@ -103,24 +96,6 @@ create table parameter_
 -- PARAMETERS' VALUES
 -- drop table detector_parameter
 create table detector_parameter
-(
- value_id serial primary key,
- detector_name varchar(10) not null references detector_(detector_name),
- parameter_id int not null references parameter_(parameter_id),
- start_period int not null,
- start_run int not null,
- end_period int not null,
- end_run int not null,
- dc_serial uint null,
- channel int null,
- parameter_value bytea not null,
- foreign key (start_period, start_run) references run_(period_number, run_number),
- foreign key (end_period, end_run) references run_(period_number, run_number)
-);
-
--- NEW PARAMETER VALUES
--- drop table detector_parameter
-create table detector_parameter_new
 (
  value_id serial primary key,
  detector_name varchar(10) not null references detector_(detector_name),

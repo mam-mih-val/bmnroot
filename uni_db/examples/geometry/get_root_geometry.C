@@ -1,12 +1,6 @@
-#include "../../gconfig/basiclibs.C"
-#include <stdio.h>
-
 // macro for downloading ROOT file with detector geometry from database
 void get_root_geometry(int period_number, int run_number, const char* root_file_path)
 {
-    basiclibs();
-    gSystem->Load("libUniDb");
-
     // FIX 3rd parameter const char*
     int res_code = UniDbRun::ReadGeometryFile(period_number, run_number, (char*)root_file_path); //(int period_number, int run_number, char* geo_file_path)
     if (res_code != 0)

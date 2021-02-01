@@ -113,7 +113,7 @@ void add_Tof1_mapping(string placement_map_filename = "TOF400_PlaceMap_RUN6.txt"
     if (anwser == 'y' || anwser == 'Y')
     {
         unsigned char* pt = reinterpret_cast<unsigned char*> (map1);
-        UniDbDetectorParameter* t = UniDbDetectorParameter::CreateDetectorParameter("TOF1", "placementmap", sP, sR, eP, eR, pt, map1Size * sizeof (unsigned int), UIntArrayType);
+        UniDbDetectorParameter* t = UniDbDetectorParameter::CreateDetectorParameter("TOF1", "placementmap", sP, sR, eP, eR, pt, map1Size * sizeof (unsigned int), UIntType);
         if (t == NULL)
         {
             cout << "Cannot upload the placement map" << endl;

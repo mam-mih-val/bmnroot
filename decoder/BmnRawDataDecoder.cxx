@@ -1373,7 +1373,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
             BmnTrigChannelData tm = fTrigMapper->GetT0Map();
             printf("T0 serial 0x%X got from trig mapping\n", tm.serial);
             if (tm.serial > 0) {
-                fT0Map = new TriggerMapStructure();
+                fT0Map = new TriggerMapValue();
                 fT0Map->channel = tm.channel;
                 fT0Map->serial = tm.serial;
                 fT0Map->slot = tm.slot;
@@ -1418,7 +1418,8 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         if (fTOF700ReferenceRun <= 0) {
             UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("TOF2", "slewing_file_id", fPeriodId, fRunId); //(detector_name, parameter_name, period_number, run_number)
             if (pDetectorParameter != NULL) {
-                fTOF700ReferenceRun = pDetectorParameter->GetInt();
+                IntValue* pReferenceRun = (IntValue*) pDetectorParameter->GetParameterValue();
+                fTOF700ReferenceRun = pReferenceRun->value;
                 delete pDetectorParameter;
             } else {
                 printf("Not found slewing run ID for run %d in DB\n", fRunId);

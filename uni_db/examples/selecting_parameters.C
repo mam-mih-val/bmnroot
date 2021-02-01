@@ -1,11 +1,6 @@
-#include "../../gconfig/basiclibs.C"
-
 // macro for run selection by specified conditions
 void selecting_parameters()
 {
-    basiclibs();
-    gSystem->Load("libUniDb"); 
-
     TObjArray conditions;
     conditions.Add((TObject*) (new UniDbSearchCondition(columnStartPeriod, conditionLessOrEqual, 4)));
     conditions.Add((TObject*) (new UniDbSearchCondition(columnStartRun, conditionLessOrEqual, 83)));
@@ -16,17 +11,14 @@ void selecting_parameters()
     TObjArray* pValuesArray = UniDbDetectorParameter::Search(conditions);
 
     // clean memory for conditions after search
-    conditions.SetOwner(kTRUE);
     conditions.Delete();
 
     cout<<"The number of parameter values is "<<pValuesArray->GetEntries()<<endl;
 
     TIter res_it(pValuesArray);
     UniDbDetectorParameter* curRow;
-    while (curRow = (UniDbDetectorParameter*) res_it())
-    {
+    while ((curRow = (UniDbDetectorParameter*)res_it()) != NULL)
         curRow->Print();
-    }
 
     // clean memory after work - deleting the array of parameter values
     delete pValuesArray;

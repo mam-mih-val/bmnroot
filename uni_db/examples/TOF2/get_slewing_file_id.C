@@ -8,7 +8,7 @@ void get_slewing_file_id(int period_number, int run_number)
         return;
     }
 
-    int file_id = pDetectorParameter->GetInt();
+    int file_id = ((IntValue*)pDetectorParameter->GetValue())->value;
     cout<<"File ID for "<<period_number<<":"<<run_number<<": "<<file_id<<endl;
 
     // clean memory after work

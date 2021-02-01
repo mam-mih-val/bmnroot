@@ -20,7 +20,7 @@ void move_field_2_run(int period)
             cout<<"No field voltage was found for run ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<")"<<endl;
             continue;
         }
-        double field_voltage = pDetectorParameter->GetDouble();
+        double field_voltage = ((DoubleValue*)pDetectorParameter->GetValue())->value;
         delete pDetectorParameter;
 
         // get run
@@ -60,7 +60,7 @@ void convert_current_2_voltage(int period)
             cout<<"No field current was found for run ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<")"<<endl;
             continue;
         }
-        int field_current = pDetectorParameter->GetInt();
+        int field_current = ((IntValue*)pDetectorParameter->GetValue())->value;
         delete pDetectorParameter;
 
         // convert current to voltage approximately

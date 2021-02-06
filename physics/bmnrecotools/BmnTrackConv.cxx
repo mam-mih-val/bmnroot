@@ -29,8 +29,6 @@ BmnTrackConv::BmnTrackConv(Int_t run_period, Int_t run_number, BmnSetup setup) {
     fBMNDchHitsName = "";
     fBMNMwpcHitsName = "";
 
-    fCBMEvHeader = nullptr;
-    fBMNEvHeader = nullptr;
     iEv = -1;
 
     TString xmlConfFileNameGEM;
@@ -87,12 +85,6 @@ BmnTrackConv::~BmnTrackConv() {
 
 }
 
-/**
- * 
- * fdigiB
- * fdigiF  cluster indices
- * @return 
- */
 InitStatus BmnTrackConv::Init() {
     if (fVerbose > 0)
         printf("Primary Vertex Extractor init\n");
@@ -109,7 +101,7 @@ InitStatus BmnTrackConv::Init() {
 
     fBMNEvHeader = new DstEventHeader(); //out
     ioman->Register(fBMNEvHeaderName, "", fBMNEvHeader, kTRUE); // last arg: save to file
-    fBMNVertex = new TClonesArray(CbmVertex::Class());
+    fBMNVertex = new TClonesArray(BmnVertex::Class());
     ioman->Register(fBMNVertexName, "", fBMNVertex, kTRUE);
     fBMNGlobalTracks = new TClonesArray(BmnGlobalTrack::Class());
     ioman->Register(fBMNGlobalTracksName, "", fBMNGlobalTracks, kTRUE);
@@ -161,20 +153,20 @@ void BmnTrackConv::Exec(Option_t *option) {
     fBMNEvHeader->SetEventTime(eh->GetEventTime());
     fBMNEvHeader->SetEventTimeTS(eh->GetEventTimeTS());
     fBMNEvHeader->SetRunId(eh->GetRunId());
-    //                    printf("iev %d nhits %d\n", eh->GetEventId(), fMapHit.size());
     // copy vertex
     CbmVertex* vtxCBM = static_cast<CbmVertex*> (fCBMVertex);
-    CbmVertex * vtx = new((*fBMNVertex)[fBMNVertex->GetEntriesFast()])CbmVertex();
     TMatrixFSym cov(3);
     vtxCBM->CovMatrix(cov);
-    vtx->SetVertex(
+    BmnVertex * vtx = new((*fBMNVertex)[fBMNVertex->GetEntriesFast()])BmnVertex(
             vtxCBM->GetX(),
             vtxCBM->GetY(),
             vtxCBM->GetZ(),
             vtxCBM->GetChi2(),
             vtxCBM->GetNDF(),
             vtxCBM->GetNTracks(),
-            cov);
+            cov,
+            -1,
+            vtxCBM->GetTrackInds());
 
     // copy hits
     for (Int_t iHit = 0; iHit < fCBMHits->GetEntriesFast(); iHit++) {

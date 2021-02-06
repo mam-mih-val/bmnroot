@@ -15,6 +15,7 @@
 #include <CbmVertex.h>
 
 #include <BmnEnums.h>
+#include <BmnVertex.h>
 #include <BmnEventHeader.h>
 #include <DstEventHeader.h>
 #include <BmnGlobalTrack.h>

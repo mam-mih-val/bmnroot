@@ -8,8 +8,8 @@ void HistGenTest(
 #endif
     bmnloadlibs();
     gSystem->Load("libBmnMonitor");
-    BmnPadGenerator *g = new BmnPadGenerator()  ;
-    g->LoadPTFrom(FileName.Data());
+    BmnPadGenerator *g = new BmnPadGenerator();
+    g->LoadPTFrom(FileName);
     BmnPadBranch * br = g->GetPadBranch();
     TCanvas* can = new TCanvas("canHits", "", 1920, 1080);
     g->PadTree2Canvas(br, can);
@@ -19,5 +19,4 @@ void HistGenTest(
     can->Modified();
     can->SaveAs("/home/ilnur/filesbmn/autocan.png");
     delete g;
-    printf("finish\n");
 }

@@ -722,6 +722,15 @@ int UniDbDetectorParameter::SetUNC(unsigned char* p_parameter_value, Long_t size
 UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                               unsigned char* p_parameter_value, Long_t size_parameter_value, enumValueType enum_parameter_type, int value_key)
 {
+    // check if postgresql bug with SetBinary has been patched
+    TString patch_check("$SIMPATH/pgsql_patched");
+    gSystem->ExpandPathName(patch_check);
+    if (gSystem->AccessPathName(patch_check))
+    {
+        cout<<"ERROR: TPgSQLStatement (CERN ROOT) was not patched to write binary data into the Unified Database"<<endl;
+        return 0x00;
+    }
+
     if (((end_period < start_period) or ((end_period == start_period) and (end_run < start_run))) or ((start_period > end_period) or ((start_period == end_period) and (start_run > end_run))))
     {
         cout<<"ERROR: end run should be after or the same as start run"<<endl;

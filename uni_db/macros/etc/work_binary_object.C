@@ -1,4 +1,4 @@
-void work_large_object()
+void work_binary_object()
 {
     TStopwatch timer;
     timer.Start();
@@ -18,22 +18,29 @@ void work_large_object()
     TSQLStatement* stmt = uni_db->Statement("insert into test(d) "
                                             "values ($1)");
 
-    int d = 8332;
-    cout<<"Input: "<<d<<endl;
+    string file_name("input.txt");
+    FILE* input_file = fopen(file_name.c_str(), "rb");
+    if (input_file == NULL) return;
+    fseek(input_file, 0L, SEEK_END);
+    size_t file_size = ftell(input_file);
+    unsigned char* in_array = new unsigned char[file_size];
+    fseek(input_file, 0L, SEEK_SET);
+    int bytes_read = fread(in_array, sizeof(unsigned char), file_size, input_file);
+    if (bytes_read != file_size) return;
+    fclose(input_file);
+
     stmt->NextIteration();
-    stmt->SetBinary(0, &d, sizeof(int));
-    string ds = "fgh'\\123";
-    cout<<"Input: "<<ds<<endl;
-    stmt->NextIteration();
-    stmt->SetBinary(0, (char*)ds.c_str(), sizeof(char)*9);
+    stmt->SetBinary(0, in_array, file_size);
     
 	if (!stmt->Process())
     {
         cout<<"ERROR: inserting new record to DB has been failed"<<endl;
+        delete [] in_array;
         delete stmt;
         delete connectionUniDb;
 		return -11;
     }
+    delete [] in_array;
 	delete stmt;
     delete connectionUniDb;
 
@@ -65,18 +72,11 @@ void work_large_object()
         void* mem = 0;
         Long_t size_mem = 0;
         stmt->GetBinary(0, mem, size_mem);
-        if (size_mem == 4)
-        {
-            int* val = new int;
-            memcpy(val, mem, size_mem);
-            cout<<"Binary size: "<<size_mem<<". Value: "<<*val<<endl;
-        }
-        else
-        {
-            char* val = new char[size_mem];
-            memcpy(val, mem, size_mem);
-            cout<<"Binary size: "<<size_mem<<". Value: "<<string(val)<<endl;
-        }
+
+        string file_name_out("output.txt");
+        FILE* output_file = fopen(file_name_out.c_str(), "wb");
+        int bytes_written = fwrite(mem, sizeof(unsigned char), size_mem, output_file);
+        fclose(output_file);
     }
 
     delete stmt;

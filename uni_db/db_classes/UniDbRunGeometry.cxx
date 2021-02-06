@@ -5,6 +5,7 @@
 
 #include "TSQLServer.h"
 #include "TSQLStatement.h"
+#include "TSystem.h"
 
 #include "UniDbRunGeometry.h"
 
@@ -34,6 +35,14 @@ UniDbRunGeometry::~UniDbRunGeometry()
 // -----   Creating new run geometry in the database  ---------------------------
 UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(unsigned char* root_geometry, Long_t size_root_geometry)
 {
+    TString patch_check("$SIMPATH/pgsql_patched");
+    gSystem->ExpandPathName(patch_check);
+    if (gSystem->AccessPathName(patch_check))
+    {
+        cout<<"ERROR: TPgSQLStatement (CERN ROOT) was not patched to write binary data into the Unified Database"<<endl;
+        return 0x00;
+    }
+
     UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
@@ -101,6 +110,14 @@ UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(unsigned char* root_geomet
 // -----   Creating new run geometry in the database  ---------------------------
 UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(int geometry_id, unsigned char* root_geometry, Long_t size_root_geometry)
 {
+    TString patch_check("$SIMPATH/pgsql_patched");
+    gSystem->ExpandPathName(patch_check);
+    if (gSystem->AccessPathName(patch_check))
+    {
+        cout<<"ERROR: TPgSQLStatement (CERN ROOT) was not patched to write binary data into the Unified Database"<<endl;
+        return 0x00;
+    }
+
     UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00) return 0x00;
 

@@ -46,13 +46,13 @@ const Double_t XModuleShifts[NStations][NMaxModules] = {
     {163.2*0.25, -163.2*0.25, 163.2*0.25, -163.2*0.25}  //st. 6
 };
 const Double_t YModuleShifts[NStations][NMaxModules] = {
-    {+22.5, +22.5, -22.5, -22.5},  //st. 0
-    {+22.5, +22.5, -22.5, -22.5},  //st. 1
-    {+22.5, +22.5, -22.5, -22.5},  //st. 2
-    {+22.5, +22.5, -22.5, -22.5},  //st. 3
-    {+22.5, +22.5, -22.5, -22.5},  //st. 4
-    {+22.5, +22.5, -22.5, -22.5},  //st. 5
-    {+22.5, +22.5, -22.5, -22.5}   //st. 6
+    {+22.5, +22.5, -19.5, -19.5},  //st. 0
+    {+22.5, +22.5, -19.5, -19.5},  //st. 1
+    {+22.5, +22.5, -19.5, -19.5},  //st. 2
+    {+22.5, +22.5, -19.5, -19.5},  //st. 3
+    {+22.5, +22.5, -19.5, -19.5},  //st. 4
+    {+22.5, +22.5, -19.5, -19.5},  //st. 5
+    {+22.5, +22.5, -19.5, -19.5}   //st. 6
 };
 const Double_t ZModuleShifts[NStations][NMaxModules] = {
     {+4.1, +4.1, 0.0, 0.0}, //st. 0
@@ -109,17 +109,31 @@ const Double_t Gap_SecondTransfer_Thickness = 0.2; //cm
 const Double_t Gap_Induction_Thickness = 0.15; //cm
 
 
-const Double_t StripPitch = 0.08; //cm
-//const Double_t StripStereoAngle = 15.0; //deg. (plus - clockwise, minus - anticlockwise)
+//upper half-plane (type UHP with sizes of 163.2 x 45.0 cm) --------------------
+const Double_t StripPitch_UHP = 0.08; //cm
 
-const Double_t XMainZoneLayerSize =  81.6; //cm
-const Double_t YMainZoneLayerSize = 45.0; //cm
+const Double_t XMainZoneLayerSize_UHP =  81.6; //cm
+const Double_t YMainZoneLayerSize_UHP = 45.0; //cm
 
-const Double_t XHotZoneLayerSize_StraightStrips = 40.0; //cm
-const Double_t YHotZoneLayerSize_StraightStrips  = 15.0; //cm
+const Double_t XHotZoneLayerSize_StraightStrips_UHP = 40.0; //cm
+const Double_t YHotZoneLayerSize_StraightStrips_UHP  = 15.0; //cm
 
-const Double_t XHotZoneLayerSize_InclinedStrips[2] = {37.99, 42.01}; // [0] - min, [1] - max
-const Double_t YHotZoneLayerSize_InclinedStrips = 15.0;
+const Double_t XHotZoneLayerSize_InclinedStrips_UHP[2] = {37.99, 42.01}; // [0] - min, [1] - max
+const Double_t YHotZoneLayerSize_InclinedStrips_UHP = 15.0; //deg. (plus - clockwise, minus - anticlockwise)
+//------------------------------------------------------------------------------
+
+//lower half-plane (type LHP with sizes of 163.2 x 39.0 cm) --------------------
+const Double_t StripPitch_LHP = 0.08; //cm
+
+const Double_t XMainZoneLayerSize_LHP =  81.6; //cm
+const Double_t YMainZoneLayerSize_LHP = 39.0; //cm
+
+const Double_t XHotZoneLayerSize_StraightStrips_LHP = 40.0; //cm
+const Double_t YHotZoneLayerSize_StraightStrips_LHP  = 15.0; //cm
+
+const Double_t XHotZoneLayerSize_InclinedStrips_LHP[2] = {37.99, 42.01}; // [0] - min, [1] - max
+const Double_t YHotZoneLayerSize_InclinedStrips_LHP = 15.0; //deg. (plus - clockwise, minus - anticlockwise)
+//------------------------------------------------------------------------------
 
 const Int_t NLayersInModule = 4;
 
@@ -134,79 +148,155 @@ StripNumberingDirection StripDirection[2] = { LeftToRight, RightToLeft };
 
 Double_t HoleRadius = 4.0;
 
-//dead zones
-Double_t XDeadZone_Rect[4] = {
-    0.0 - XMainZoneLayerSize*0.5 + XHotZoneLayerSize_StraightStrips,
-    0.0 - XMainZoneLayerSize*0.5 + XHotZoneLayerSize_StraightStrips,
-    0.0 - XMainZoneLayerSize*0.5,
-    0.0 - XMainZoneLayerSize*0.5
+//dead zones (upper half-plane) ------------------------------------------------
+Double_t XDeadZone_Rect_UHP[4] = {
+    0.0 - XMainZoneLayerSize_UHP*0.5 + XHotZoneLayerSize_StraightStrips_UHP,
+    0.0 - XMainZoneLayerSize_UHP*0.5 + XHotZoneLayerSize_StraightStrips_UHP,
+    0.0 - XMainZoneLayerSize_UHP*0.5,
+    0.0 - XMainZoneLayerSize_UHP*0.5
 };
-Double_t YDeadZone_Rect[4] = {
-    0.0 - YMainZoneLayerSize*0.5,
-    0.0 - YMainZoneLayerSize*0.5 + YHotZoneLayerSize_StraightStrips,
-    0.0 - YMainZoneLayerSize*0.5 + YHotZoneLayerSize_StraightStrips,
-    0.0 - YMainZoneLayerSize*0.5
-};
-
-Double_t XDeadZone_TrapLeft[4] = {
-    0.0 - XMainZoneLayerSize*0.5 + XHotZoneLayerSize_InclinedStrips[1],
-    0.0 - XMainZoneLayerSize*0.5 + XHotZoneLayerSize_InclinedStrips[0],
-    0.0 - XMainZoneLayerSize*0.5,
-    0.0 - XMainZoneLayerSize*0.5
-};
-Double_t YDeadZone_TrapLeft[4] = {
-    0.0 - YMainZoneLayerSize*0.5,
-    0.0 - YMainZoneLayerSize*0.5 + YHotZoneLayerSize_InclinedStrips,
-    0.0 - YMainZoneLayerSize*0.5 + YHotZoneLayerSize_InclinedStrips,
-    0.0 - YMainZoneLayerSize*0.5
+Double_t YDeadZone_Rect_UHP[4] = {
+    0.0 - YMainZoneLayerSize_UHP*0.5,
+    0.0 - YMainZoneLayerSize_UHP*0.5 + YHotZoneLayerSize_StraightStrips_UHP,
+    0.0 - YMainZoneLayerSize_UHP*0.5 + YHotZoneLayerSize_StraightStrips_UHP,
+    0.0 - YMainZoneLayerSize_UHP*0.5
 };
 
-Double_t XDeadZone_TrapRight[4] = {
-    0.0 - XMainZoneLayerSize*0.5 + XHotZoneLayerSize_InclinedStrips[0],
-    0.0 - XMainZoneLayerSize*0.5 + XHotZoneLayerSize_InclinedStrips[1],
-    0.0 - XMainZoneLayerSize*0.5,
-    0.0 - XMainZoneLayerSize*0.5
+Double_t XDeadZone_TrapLeft_UHP[4] = {
+    0.0 - XMainZoneLayerSize_UHP*0.5 + XHotZoneLayerSize_InclinedStrips_UHP[1],
+    0.0 - XMainZoneLayerSize_UHP*0.5 + XHotZoneLayerSize_InclinedStrips_UHP[0],
+    0.0 - XMainZoneLayerSize_UHP*0.5,
+    0.0 - XMainZoneLayerSize_UHP*0.5
 };
-Double_t YDeadZone_TrapRight[4] = {
-    0.0 - YMainZoneLayerSize*0.5,
-    0.0 - YMainZoneLayerSize*0.5 + YHotZoneLayerSize_InclinedStrips,
-    0.0 - YMainZoneLayerSize*0.5 + YHotZoneLayerSize_InclinedStrips,
-    0.0 - YMainZoneLayerSize*0.5
-};
-
-Double_t XDeadZone_TrianLeft[3] = {
-    0.0 - XMainZoneLayerSize*0.5 + XHotZoneLayerSize_InclinedStrips[1],
-    0.0 - XMainZoneLayerSize*0.5 + XHotZoneLayerSize_InclinedStrips[1],
-    0.0 - XMainZoneLayerSize*0.5 + XHotZoneLayerSize_InclinedStrips[0]
-};
-Double_t YDeadZone_TrianLeft[3] = {
-    0.0 - YMainZoneLayerSize*0.5,
-    0.0 - YMainZoneLayerSize*0.5 + YHotZoneLayerSize_InclinedStrips,
-    0.0 - YMainZoneLayerSize*0.5 + YHotZoneLayerSize_InclinedStrips
+Double_t YDeadZone_TrapLeft_UHP[4] = {
+    0.0 - YMainZoneLayerSize_UHP*0.5,
+    0.0 - YMainZoneLayerSize_UHP*0.5 + YHotZoneLayerSize_InclinedStrips_UHP,
+    0.0 - YMainZoneLayerSize_UHP*0.5 + YHotZoneLayerSize_InclinedStrips_UHP,
+    0.0 - YMainZoneLayerSize_UHP*0.5
 };
 
-Double_t XDeadZone_TrianRight[3] = {
-    0.0 - XMainZoneLayerSize*0.5 + XHotZoneLayerSize_InclinedStrips[1],
-    0.0 - XMainZoneLayerSize*0.5 + XHotZoneLayerSize_InclinedStrips[1],
-    0.0 - XMainZoneLayerSize*0.5 + XHotZoneLayerSize_InclinedStrips[0]
+Double_t XDeadZone_TrapRight_UHP[4] = {
+    0.0 - XMainZoneLayerSize_UHP*0.5 + XHotZoneLayerSize_InclinedStrips_UHP[0],
+    0.0 - XMainZoneLayerSize_UHP*0.5 + XHotZoneLayerSize_InclinedStrips_UHP[1],
+    0.0 - XMainZoneLayerSize_UHP*0.5,
+    0.0 - XMainZoneLayerSize_UHP*0.5
 };
-Double_t YDeadZone_TrianRight[3] = {
-    0.0 - YMainZoneLayerSize*0.5,
-    0.0 - YMainZoneLayerSize*0.5 + YHotZoneLayerSize_InclinedStrips,
-    0.0 - YMainZoneLayerSize*0.5
+Double_t YDeadZone_TrapRight_UHP[4] = {
+    0.0 - YMainZoneLayerSize_UHP*0.5,
+    0.0 - YMainZoneLayerSize_UHP*0.5 + YHotZoneLayerSize_InclinedStrips_UHP,
+    0.0 - YMainZoneLayerSize_UHP*0.5 + YHotZoneLayerSize_InclinedStrips_UHP,
+    0.0 - YMainZoneLayerSize_UHP*0.5
 };
 
-Double_t XDeadZone_Hole[4] = {
-    0.0 - XMainZoneLayerSize*0.5 + HoleRadius,
-    0.0 - XMainZoneLayerSize*0.5 + HoleRadius,
-    0.0 - XMainZoneLayerSize*0.5,
-    0.0 - XMainZoneLayerSize*0.5
+Double_t XDeadZone_TrianLeft_UHP[3] = {
+    0.0 - XMainZoneLayerSize_UHP*0.5 + XHotZoneLayerSize_InclinedStrips_UHP[1],
+    0.0 - XMainZoneLayerSize_UHP*0.5 + XHotZoneLayerSize_InclinedStrips_UHP[1],
+    0.0 - XMainZoneLayerSize_UHP*0.5 + XHotZoneLayerSize_InclinedStrips_UHP[0]
 };
-Double_t YDeadZone_Hole[4] = {
-    0.0 - YMainZoneLayerSize*0.5,
-    0.0 - YMainZoneLayerSize*0.5 + HoleRadius,
-    0.0 - YMainZoneLayerSize*0.5 + HoleRadius,
-    0.0 - YMainZoneLayerSize*0.5
+Double_t YDeadZone_TrianLeft_UHP[3] = {
+    0.0 - YMainZoneLayerSize_UHP*0.5,
+    0.0 - YMainZoneLayerSize_UHP*0.5 + YHotZoneLayerSize_InclinedStrips_UHP,
+    0.0 - YMainZoneLayerSize_UHP*0.5 + YHotZoneLayerSize_InclinedStrips_UHP
+};
+
+Double_t XDeadZone_TrianRight_UHP[3] = {
+    0.0 - XMainZoneLayerSize_UHP*0.5 + XHotZoneLayerSize_InclinedStrips_UHP[1],
+    0.0 - XMainZoneLayerSize_UHP*0.5 + XHotZoneLayerSize_InclinedStrips_UHP[1],
+    0.0 - XMainZoneLayerSize_UHP*0.5 + XHotZoneLayerSize_InclinedStrips_UHP[0]
+};
+Double_t YDeadZone_TrianRight_UHP[3] = {
+    0.0 - YMainZoneLayerSize_UHP*0.5,
+    0.0 - YMainZoneLayerSize_UHP*0.5 + YHotZoneLayerSize_InclinedStrips_UHP,
+    0.0 - YMainZoneLayerSize_UHP*0.5
+};
+
+Double_t XDeadZone_Hole_UHP[4] = {
+    0.0 - XMainZoneLayerSize_UHP*0.5 + HoleRadius,
+    0.0 - XMainZoneLayerSize_UHP*0.5 + HoleRadius,
+    0.0 - XMainZoneLayerSize_UHP*0.5,
+    0.0 - XMainZoneLayerSize_UHP*0.5
+};
+Double_t YDeadZone_Hole_UHP[4] = {
+    0.0 - YMainZoneLayerSize_UHP*0.5,
+    0.0 - YMainZoneLayerSize_UHP*0.5 + HoleRadius,
+    0.0 - YMainZoneLayerSize_UHP*0.5 + HoleRadius,
+    0.0 - YMainZoneLayerSize_UHP*0.5
+};
+//------------------------------------------------------------------------------
+
+//dead zones (lower half-plane) ------------------------------------------------
+Double_t XDeadZone_Rect_LHP[4] = {
+    0.0 - XMainZoneLayerSize_LHP*0.5 + XHotZoneLayerSize_StraightStrips_LHP,
+    0.0 - XMainZoneLayerSize_LHP*0.5 + XHotZoneLayerSize_StraightStrips_LHP,
+    0.0 - XMainZoneLayerSize_LHP*0.5,
+    0.0 - XMainZoneLayerSize_LHP*0.5
+};
+Double_t YDeadZone_Rect_LHP[4] = {
+    0.0 - YMainZoneLayerSize_LHP*0.5,
+    0.0 - YMainZoneLayerSize_LHP*0.5 + YHotZoneLayerSize_StraightStrips_LHP,
+    0.0 - YMainZoneLayerSize_LHP*0.5 + YHotZoneLayerSize_StraightStrips_LHP,
+    0.0 - YMainZoneLayerSize_LHP*0.5
+};
+
+Double_t XDeadZone_TrapLeft_LHP[4] = {
+    0.0 - XMainZoneLayerSize_LHP*0.5 + XHotZoneLayerSize_InclinedStrips_LHP[1],
+    0.0 - XMainZoneLayerSize_LHP*0.5 + XHotZoneLayerSize_InclinedStrips_LHP[0],
+    0.0 - XMainZoneLayerSize_LHP*0.5,
+    0.0 - XMainZoneLayerSize_LHP*0.5
+};
+Double_t YDeadZone_TrapLeft_LHP[4] = {
+    0.0 - YMainZoneLayerSize_LHP*0.5,
+    0.0 - YMainZoneLayerSize_LHP*0.5 + YHotZoneLayerSize_InclinedStrips_LHP,
+    0.0 - YMainZoneLayerSize_LHP*0.5 + YHotZoneLayerSize_InclinedStrips_LHP,
+    0.0 - YMainZoneLayerSize_LHP*0.5
+};
+
+Double_t XDeadZone_TrapRight_LHP[4] = {
+    0.0 - XMainZoneLayerSize_LHP*0.5 + XHotZoneLayerSize_InclinedStrips_LHP[0],
+    0.0 - XMainZoneLayerSize_LHP*0.5 + XHotZoneLayerSize_InclinedStrips_LHP[1],
+    0.0 - XMainZoneLayerSize_LHP*0.5,
+    0.0 - XMainZoneLayerSize_LHP*0.5
+};
+Double_t YDeadZone_TrapRight_LHP[4] = {
+    0.0 - YMainZoneLayerSize_LHP*0.5,
+    0.0 - YMainZoneLayerSize_LHP*0.5 + YHotZoneLayerSize_InclinedStrips_LHP,
+    0.0 - YMainZoneLayerSize_LHP*0.5 + YHotZoneLayerSize_InclinedStrips_LHP,
+    0.0 - YMainZoneLayerSize_LHP*0.5
+};
+
+Double_t XDeadZone_TrianLeft_LHP[3] = {
+    0.0 - XMainZoneLayerSize_LHP*0.5 + XHotZoneLayerSize_InclinedStrips_LHP[1],
+    0.0 - XMainZoneLayerSize_LHP*0.5 + XHotZoneLayerSize_InclinedStrips_LHP[1],
+    0.0 - XMainZoneLayerSize_LHP*0.5 + XHotZoneLayerSize_InclinedStrips_LHP[0]
+};
+Double_t YDeadZone_TrianLeft_LHP[3] = {
+    0.0 - YMainZoneLayerSize_LHP*0.5,
+    0.0 - YMainZoneLayerSize_LHP*0.5 + YHotZoneLayerSize_InclinedStrips_LHP,
+    0.0 - YMainZoneLayerSize_LHP*0.5 + YHotZoneLayerSize_InclinedStrips_LHP
+};
+
+Double_t XDeadZone_TrianRight_LHP[3] = {
+    0.0 - XMainZoneLayerSize_LHP*0.5 + XHotZoneLayerSize_InclinedStrips_LHP[1],
+    0.0 - XMainZoneLayerSize_LHP*0.5 + XHotZoneLayerSize_InclinedStrips_LHP[1],
+    0.0 - XMainZoneLayerSize_LHP*0.5 + XHotZoneLayerSize_InclinedStrips_LHP[0]
+};
+Double_t YDeadZone_TrianRight_LHP[3] = {
+    0.0 - YMainZoneLayerSize_LHP*0.5,
+    0.0 - YMainZoneLayerSize_LHP*0.5 + YHotZoneLayerSize_InclinedStrips_LHP,
+    0.0 - YMainZoneLayerSize_LHP*0.5
+};
+
+Double_t XDeadZone_Hole_LHP[4] = {
+    0.0 - XMainZoneLayerSize_LHP*0.5 + HoleRadius,
+    0.0 - XMainZoneLayerSize_LHP*0.5 + HoleRadius,
+    0.0 - XMainZoneLayerSize_LHP*0.5,
+    0.0 - XMainZoneLayerSize_LHP*0.5
+};
+Double_t YDeadZone_Hole_LHP[4] = {
+    0.0 - YMainZoneLayerSize_LHP*0.5,
+    0.0 - YMainZoneLayerSize_LHP*0.5 + HoleRadius,
+    0.0 - YMainZoneLayerSize_LHP*0.5 + HoleRadius,
+    0.0 - YMainZoneLayerSize_LHP*0.5
 };
 
 //------------------------------------------------------------------------------
@@ -228,7 +318,7 @@ void GemConfigCalculate_FutureConfig2020() {
 
     TString ConfigName = "GemFutureConfig2020";
     TString AuthorName = "Baranov D.";
-    TString DateCreated = "27.02.2020";
+    TString DateCreated = "18.01.2021";
 
     //PrintInfo();
     CalculateParameters(ConfigName, AuthorName, DateCreated);
@@ -249,6 +339,7 @@ void CalculateParameters(TString config_name, TString author, TString date) {
     cout << "  File path: " << FileName << "\n";
     cout << "\n";
 
+    //WARNING(!!!): the file will be written in the current directory
     ofstream FileOut(FileName.Data(), ios::out);
 
     FileOut << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -320,7 +411,8 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                 }
 
                 FileOut << " stripAngle=\"" << layer_angle << "\"";
-                FileOut << " pitch=\"" << StripPitch << "\"";
+                if( imodule == 0 || imodule == 1 ) FileOut << " pitch=\"" << StripPitch_UHP << "\"";
+                if( imodule == 2 || imodule == 3 ) FileOut << " pitch=\"" << StripPitch_LHP << "\"";
 
                 //define 'xorig' and 'yorig' coordinates (left bottom point), 'xsize' and 'ysize'
                 Double_t xorig = 0.0; //default
@@ -329,70 +421,78 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                 Double_t ysize = 0.0; //default
 
                 if(ZoneTypeOfLayers[ilayer] == 0) {  //main zone
-                    xorig = 0.0 + XMainZoneLayerSize*0.5;
-                    yorig = 0.0 - YMainZoneLayerSize*0.5;
-                    xsize = XMainZoneLayerSize;
-                    ysize = YMainZoneLayerSize;
+                    if( imodule == 0 || imodule == 1 ) {
+                        xorig = 0.0 + XMainZoneLayerSize_UHP*0.5;
+                        yorig = 0.0 - YMainZoneLayerSize_UHP*0.5;
+                        xsize = XMainZoneLayerSize_UHP;
+                        ysize = YMainZoneLayerSize_UHP;
+                    }
+                    if( imodule == 2 || imodule == 3 ) {
+                        xorig = 0.0 + XMainZoneLayerSize_LHP*0.5;
+                        yorig = 0.0 - YMainZoneLayerSize_LHP*0.5;
+                        xsize = XMainZoneLayerSize_LHP;
+                        ysize = YMainZoneLayerSize_LHP;
+                    }
                 }
                 else {  //hot zone
                     switch(imodule) {
                         case 0:
                             if(TString(StripTypeOfLayes[ilayer]) == TString("lower")) {
-                                xorig = 0.0 - XMainZoneLayerSize*0.5 + XHotZoneLayerSize_StraightStrips;
-                                yorig = 0.0 - YMainZoneLayerSize*0.5;
-                                xsize = XHotZoneLayerSize_StraightStrips;
-                                ysize = YHotZoneLayerSize_StraightStrips;
+                                xorig = 0.0 - XMainZoneLayerSize_UHP*0.5 + XHotZoneLayerSize_StraightStrips_UHP;
+                                yorig = 0.0 - YMainZoneLayerSize_UHP*0.5;
+                                xsize = XHotZoneLayerSize_StraightStrips_UHP;
+                                ysize = YHotZoneLayerSize_StraightStrips_UHP;
                             }
                             else {
-                                xorig = 0.0 - XMainZoneLayerSize*0.5 + XHotZoneLayerSize_InclinedStrips[1];
-                                yorig = 0.0 - YMainZoneLayerSize*0.5;
-                                xsize = XHotZoneLayerSize_InclinedStrips[1];
-                                ysize = YHotZoneLayerSize_InclinedStrips;
+                                xorig = 0.0 - XMainZoneLayerSize_UHP*0.5 + XHotZoneLayerSize_InclinedStrips_UHP[1];
+                                yorig = 0.0 - YMainZoneLayerSize_UHP*0.5;
+                                xsize = XHotZoneLayerSize_InclinedStrips_UHP[1];
+                                ysize = YHotZoneLayerSize_InclinedStrips_UHP;
                             }
                             break;
 
                         case 1:
                             if(TString(StripTypeOfLayes[ilayer]) == TString("lower")) {
-                                xorig = 0.0 + XMainZoneLayerSize*0.5;
-                                yorig = 0.0 - YMainZoneLayerSize*0.5;
-                                xsize = XHotZoneLayerSize_StraightStrips;
-                                ysize = YHotZoneLayerSize_StraightStrips;
+                                xorig = 0.0 + XMainZoneLayerSize_UHP*0.5;
+                                yorig = 0.0 - YMainZoneLayerSize_UHP*0.5;
+                                xsize = XHotZoneLayerSize_StraightStrips_UHP;
+                                ysize = YHotZoneLayerSize_StraightStrips_UHP;
                             }
                             else {
-                                xorig = 0.0 + XMainZoneLayerSize*0.5;
-                                yorig = 0.0 - YMainZoneLayerSize*0.5;
-                                xsize = XHotZoneLayerSize_InclinedStrips[1];
-                                ysize = YHotZoneLayerSize_InclinedStrips;
+                                xorig = 0.0 + XMainZoneLayerSize_UHP*0.5;
+                                yorig = 0.0 - YMainZoneLayerSize_UHP*0.5;
+                                xsize = XHotZoneLayerSize_InclinedStrips_UHP[1];
+                                ysize = YHotZoneLayerSize_InclinedStrips_UHP;
                             }
                             break;
 
                         case 2:
                             if(TString(StripTypeOfLayes[ilayer]) == TString("lower")) {
-                                xorig = 0.0 - XMainZoneLayerSize*0.5 + XHotZoneLayerSize_StraightStrips;
-                                yorig = 0.0 + YMainZoneLayerSize*0.5 - YHotZoneLayerSize_StraightStrips;
-                                xsize = XHotZoneLayerSize_StraightStrips;
-                                ysize = YHotZoneLayerSize_StraightStrips;
+                                xorig = 0.0 - XMainZoneLayerSize_LHP*0.5 + XHotZoneLayerSize_StraightStrips_LHP;
+                                yorig = 0.0 + YMainZoneLayerSize_LHP*0.5 - YHotZoneLayerSize_StraightStrips_LHP;
+                                xsize = XHotZoneLayerSize_StraightStrips_LHP;
+                                ysize = YHotZoneLayerSize_StraightStrips_LHP;
                             }
                             else {
-                                xorig = 0.0 - XMainZoneLayerSize*0.5 + XHotZoneLayerSize_InclinedStrips[1];
-                                yorig = 0.0 + YMainZoneLayerSize*0.5 - YHotZoneLayerSize_StraightStrips;
-                                xsize = XHotZoneLayerSize_InclinedStrips[1];
-                                ysize = YHotZoneLayerSize_InclinedStrips;
+                                xorig = 0.0 - XMainZoneLayerSize_LHP*0.5 + XHotZoneLayerSize_InclinedStrips_LHP[1];
+                                yorig = 0.0 + YMainZoneLayerSize_LHP*0.5 - YHotZoneLayerSize_StraightStrips_LHP;
+                                xsize = XHotZoneLayerSize_InclinedStrips_LHP[1];
+                                ysize = YHotZoneLayerSize_InclinedStrips_LHP;
                             }
                             break;
 
                         case 3:
                             if(TString(StripTypeOfLayes[ilayer]) == TString("lower")) {
-                                xorig = 0.0 + XMainZoneLayerSize*0.5;
-                                yorig = 0.0 + YMainZoneLayerSize*0.5 - YHotZoneLayerSize_StraightStrips;
-                                xsize = XHotZoneLayerSize_StraightStrips;
-                                ysize = YHotZoneLayerSize_StraightStrips;
+                                xorig = 0.0 + XMainZoneLayerSize_LHP*0.5;
+                                yorig = 0.0 + YMainZoneLayerSize_LHP*0.5 - YHotZoneLayerSize_StraightStrips_LHP;
+                                xsize = XHotZoneLayerSize_StraightStrips_LHP;
+                                ysize = YHotZoneLayerSize_StraightStrips_LHP;
                             }
                             else {
-                                xorig = 0.0 + XMainZoneLayerSize*0.5;
-                                yorig = 0.0 + YMainZoneLayerSize*0.5 - YHotZoneLayerSize_StraightStrips;
-                                xsize = XHotZoneLayerSize_InclinedStrips[1];
-                                ysize = YHotZoneLayerSize_InclinedStrips;
+                                xorig = 0.0 + XMainZoneLayerSize_LHP*0.5;
+                                yorig = 0.0 + YMainZoneLayerSize_LHP*0.5 - YHotZoneLayerSize_StraightStrips_LHP;
+                                xsize = XHotZoneLayerSize_InclinedStrips_LHP[1];
+                                ysize = YHotZoneLayerSize_InclinedStrips_LHP;
                             }
                             break;
                     }
@@ -518,8 +618,8 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                                 FileOut << "\t\t\t\t<DeadZone>\n";
                                 for(Int_t ipoint = 0; ipoint < 4; ++ipoint) {
                                     FileOut << "\t\t\t\t\t<DeadPoint";
-                                    FileOut << " x=\"" << XDeadZone_Rect[ipoint] << "\"";
-                                    FileOut << " y=\"" << YDeadZone_Rect[ipoint] << "\"";
+                                    FileOut << " x=\"" << XDeadZone_Rect_UHP[ipoint] << "\"";
+                                    FileOut << " y=\"" << YDeadZone_Rect_UHP[ipoint] << "\"";
                                     FileOut << "/>\n";
                                 }
                                 FileOut << "\t\t\t\t</DeadZone>\n";
@@ -529,12 +629,12 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                                 for(Int_t ipoint = 0; ipoint < 4; ++ipoint) {
                                     FileOut << "\t\t\t\t\t<DeadPoint";
                                     if (YStationRotations[istation] == false) {
-                                        FileOut << " x=\"" << XDeadZone_TrapLeft[ipoint] << "\"";
-                                        FileOut << " y=\"" << YDeadZone_TrapLeft[ipoint] << "\"";
+                                        FileOut << " x=\"" << XDeadZone_TrapLeft_UHP[ipoint] << "\"";
+                                        FileOut << " y=\"" << YDeadZone_TrapLeft_UHP[ipoint] << "\"";
                                     }
                                     else {
-                                        FileOut << " x=\"" << XDeadZone_TrapRight[ipoint] << "\"";
-                                        FileOut << " y=\"" << YDeadZone_TrapRight[ipoint] << "\"";
+                                        FileOut << " x=\"" << XDeadZone_TrapRight_UHP[ipoint] << "\"";
+                                        FileOut << " y=\"" << YDeadZone_TrapRight_UHP[ipoint] << "\"";
                                     }
                                     FileOut << "/>\n";
                                 }
@@ -546,8 +646,8 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                             FileOut << " <!-- hole -->\n";
                             for(Int_t ipoint = 0; ipoint < 4; ++ipoint) {
                                 FileOut << "\t\t\t\t\t<DeadPoint";
-                                FileOut << " x=\"" << XDeadZone_Hole[ipoint] << "\"";
-                                FileOut << " y=\"" << YDeadZone_Hole[ipoint] << "\"";
+                                FileOut << " x=\"" << XDeadZone_Hole_UHP[ipoint] << "\"";
+                                FileOut << " y=\"" << YDeadZone_Hole_UHP[ipoint] << "\"";
                                 FileOut << "/>\n";
                             }
                             FileOut << "\t\t\t\t</DeadZone>\n";
@@ -558,12 +658,12 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                                 for(Int_t ipoint = 0; ipoint < 3; ++ipoint) {
                                     FileOut << "\t\t\t\t\t<DeadPoint";
                                     if (YStationRotations[istation] == false) {
-                                        FileOut << " x=\"" << XDeadZone_TrianLeft[ipoint] << "\"";
-                                        FileOut << " y=\"" << YDeadZone_TrianLeft[ipoint] << "\"";
+                                        FileOut << " x=\"" << XDeadZone_TrianLeft_UHP[ipoint] << "\"";
+                                        FileOut << " y=\"" << YDeadZone_TrianLeft_UHP[ipoint] << "\"";
                                     }
                                     else {
-                                        FileOut << " x=\"" << XDeadZone_TrianRight[ipoint] << "\"";
-                                        FileOut << " y=\"" << YDeadZone_TrianRight[ipoint] << "\"";
+                                        FileOut << " x=\"" << XDeadZone_TrianRight_UHP[ipoint] << "\"";
+                                        FileOut << " y=\"" << YDeadZone_TrianRight_UHP[ipoint] << "\"";
                                     }
                                     FileOut << "/>\n";
                                 }
@@ -579,8 +679,8 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                                 FileOut << "\t\t\t\t<DeadZone>\n";
                                 for(Int_t ipoint = 0; ipoint < 4; ++ipoint) {
                                     FileOut << "\t\t\t\t\t<DeadPoint";
-                                    FileOut << " x=\"" << XDeadZone_Rect[ipoint]*(-1) << "\"";
-                                    FileOut << " y=\"" << YDeadZone_Rect[ipoint] << "\"";
+                                    FileOut << " x=\"" << XDeadZone_Rect_UHP[ipoint]*(-1) << "\"";
+                                    FileOut << " y=\"" << YDeadZone_Rect_UHP[ipoint] << "\"";
                                     FileOut << "/>\n";
                                 }
                                 FileOut << "\t\t\t\t</DeadZone>\n";
@@ -590,12 +690,12 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                                 for(Int_t ipoint = 0; ipoint < 4; ++ipoint) {
                                     FileOut << "\t\t\t\t\t<DeadPoint";
                                     if (YStationRotations[istation] == false) {
-                                        FileOut << " x=\"" << XDeadZone_TrapRight[ipoint]*(-1) << "\"";
-                                        FileOut << " y=\"" << YDeadZone_TrapRight[ipoint] << "\"";
+                                        FileOut << " x=\"" << XDeadZone_TrapRight_UHP[ipoint]*(-1) << "\"";
+                                        FileOut << " y=\"" << YDeadZone_TrapRight_UHP[ipoint] << "\"";
                                     }
                                     else {
-                                        FileOut << " x=\"" << XDeadZone_TrapLeft[ipoint]*(-1) << "\"";
-                                        FileOut << " y=\"" << YDeadZone_TrapLeft[ipoint] << "\"";
+                                        FileOut << " x=\"" << XDeadZone_TrapLeft_UHP[ipoint]*(-1) << "\"";
+                                        FileOut << " y=\"" << YDeadZone_TrapLeft_UHP[ipoint] << "\"";
                                     }
                                     FileOut << "/>\n";
                                 }
@@ -607,8 +707,8 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                             FileOut << " <!-- hole -->\n";
                             for(Int_t ipoint = 0; ipoint < 4; ++ipoint) {
                                 FileOut << "\t\t\t\t\t<DeadPoint";
-                                FileOut << " x=\"" << XDeadZone_Hole[ipoint]*(-1) << "\"";
-                                FileOut << " y=\"" << YDeadZone_Hole[ipoint] << "\"";
+                                FileOut << " x=\"" << XDeadZone_Hole_UHP[ipoint]*(-1) << "\"";
+                                FileOut << " y=\"" << YDeadZone_Hole_UHP[ipoint] << "\"";
                                 FileOut << "/>\n";
                             }
                             FileOut << "\t\t\t\t</DeadZone>\n";
@@ -619,12 +719,12 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                                 for(Int_t ipoint = 0; ipoint < 3; ++ipoint) {
                                     FileOut << "\t\t\t\t\t<DeadPoint";
                                     if (YStationRotations[istation] == false) {
-                                        FileOut << " x=\"" << XDeadZone_TrianRight[ipoint]*(-1) << "\"";
-                                        FileOut << " y=\"" << YDeadZone_TrianRight[ipoint] << "\"";
+                                        FileOut << " x=\"" << XDeadZone_TrianRight_UHP[ipoint]*(-1) << "\"";
+                                        FileOut << " y=\"" << YDeadZone_TrianRight_UHP[ipoint] << "\"";
                                     }
                                     else {
-                                        FileOut << " x=\"" << XDeadZone_TrianLeft[ipoint]*(-1) << "\"";
-                                        FileOut << " y=\"" << YDeadZone_TrianLeft[ipoint] << "\"";
+                                        FileOut << " x=\"" << XDeadZone_TrianLeft_UHP[ipoint]*(-1) << "\"";
+                                        FileOut << " y=\"" << YDeadZone_TrianLeft_UHP[ipoint] << "\"";
                                     }
                                     FileOut << "/>\n";
                                 }
@@ -640,8 +740,8 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                                 FileOut << "\t\t\t\t<DeadZone>\n";
                                 for(Int_t ipoint = 0; ipoint < 4; ++ipoint) {
                                     FileOut << "\t\t\t\t\t<DeadPoint";
-                                    FileOut << " x=\"" << XDeadZone_Rect[ipoint] << "\"";
-                                    FileOut << " y=\"" << YDeadZone_Rect[ipoint]*(-1) << "\"";
+                                    FileOut << " x=\"" << XDeadZone_Rect_LHP[ipoint] << "\"";
+                                    FileOut << " y=\"" << YDeadZone_Rect_LHP[ipoint]*(-1) << "\"";
                                     FileOut << "/>\n";
                                 }
                                 FileOut << "\t\t\t\t</DeadZone>\n";
@@ -651,12 +751,12 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                                 for(Int_t ipoint = 0; ipoint < 4; ++ipoint) {
                                     FileOut << "\t\t\t\t\t<DeadPoint";
                                     if (YStationRotations[istation] == false) {
-                                        FileOut << " x=\"" << XDeadZone_TrapLeft[ipoint] << "\"";
-                                        FileOut << " y=\"" << YDeadZone_TrapLeft[ipoint]*(-1) << "\"";
+                                        FileOut << " x=\"" << XDeadZone_TrapLeft_LHP[ipoint] << "\"";
+                                        FileOut << " y=\"" << YDeadZone_TrapLeft_LHP[ipoint]*(-1) << "\"";
                                     }
                                     else {
-                                        FileOut << " x=\"" << XDeadZone_TrapRight[ipoint] << "\"";
-                                        FileOut << " y=\"" << YDeadZone_TrapRight[ipoint]*(-1) << "\"";
+                                        FileOut << " x=\"" << XDeadZone_TrapRight_LHP[ipoint] << "\"";
+                                        FileOut << " y=\"" << YDeadZone_TrapRight_LHP[ipoint]*(-1) << "\"";
                                     }
                                     FileOut << "/>\n";
                                 }
@@ -668,8 +768,8 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                             FileOut << " <!-- hole -->\n";
                             for(Int_t ipoint = 0; ipoint < 4; ++ipoint) {
                                 FileOut << "\t\t\t\t\t<DeadPoint";
-                                FileOut << " x=\"" << XDeadZone_Hole[ipoint] << "\"";
-                                FileOut << " y=\"" << YDeadZone_Hole[ipoint]*(-1) << "\"";
+                                FileOut << " x=\"" << XDeadZone_Hole_LHP[ipoint] << "\"";
+                                FileOut << " y=\"" << YDeadZone_Hole_LHP[ipoint]*(-1) << "\"";
                                 FileOut << "/>\n";
                             }
                             FileOut << "\t\t\t\t</DeadZone>\n";
@@ -680,12 +780,12 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                                 for(Int_t ipoint = 0; ipoint < 3; ++ipoint) {
                                     FileOut << "\t\t\t\t\t<DeadPoint";
                                     if (YStationRotations[istation] == false) {
-                                        FileOut << " x=\"" << XDeadZone_TrianLeft[ipoint] << "\"";
-                                        FileOut << " y=\"" << YDeadZone_TrianLeft[ipoint]*(-1) << "\"";
+                                        FileOut << " x=\"" << XDeadZone_TrianLeft_LHP[ipoint] << "\"";
+                                        FileOut << " y=\"" << YDeadZone_TrianLeft_LHP[ipoint]*(-1) << "\"";
                                     }
                                     else {
-                                        FileOut << " x=\"" << XDeadZone_TrianRight[ipoint] << "\"";
-                                        FileOut << " y=\"" << YDeadZone_TrianRight[ipoint]*(-1) << "\"";
+                                        FileOut << " x=\"" << XDeadZone_TrianRight_LHP[ipoint] << "\"";
+                                        FileOut << " y=\"" << YDeadZone_TrianRight_LHP[ipoint]*(-1) << "\"";
                                     }
                                     FileOut << "/>\n";
                                 }
@@ -701,8 +801,8 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                                 FileOut << "\t\t\t\t<DeadZone>\n";
                                 for(Int_t ipoint = 0; ipoint < 4; ++ipoint) {
                                     FileOut << "\t\t\t\t\t<DeadPoint";
-                                    FileOut << " x=\"" << XDeadZone_Rect[ipoint]*(-1) << "\"";
-                                    FileOut << " y=\"" << YDeadZone_Rect[ipoint]*(-1) << "\"";
+                                    FileOut << " x=\"" << XDeadZone_Rect_LHP[ipoint]*(-1) << "\"";
+                                    FileOut << " y=\"" << YDeadZone_Rect_LHP[ipoint]*(-1) << "\"";
                                     FileOut << "/>\n";
                                 }
                                 FileOut << "\t\t\t\t</DeadZone>\n";
@@ -712,12 +812,12 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                                 for(Int_t ipoint = 0; ipoint < 4; ++ipoint) {
                                     FileOut << "\t\t\t\t\t<DeadPoint";
                                     if (YStationRotations[istation] == false) {
-                                        FileOut << " x=\"" << XDeadZone_TrapRight[ipoint]*(-1) << "\"";
-                                        FileOut << " y=\"" << YDeadZone_TrapRight[ipoint]*(-1) << "\"";
+                                        FileOut << " x=\"" << XDeadZone_TrapRight_LHP[ipoint]*(-1) << "\"";
+                                        FileOut << " y=\"" << YDeadZone_TrapRight_LHP[ipoint]*(-1) << "\"";
                                     }
                                     else {
-                                        FileOut << " x=\"" << XDeadZone_TrapLeft[ipoint]*(-1) << "\"";
-                                        FileOut << " y=\"" << YDeadZone_TrapLeft[ipoint]*(-1) << "\"";
+                                        FileOut << " x=\"" << XDeadZone_TrapLeft_LHP[ipoint]*(-1) << "\"";
+                                        FileOut << " y=\"" << YDeadZone_TrapLeft_LHP[ipoint]*(-1) << "\"";
                                     }
                                     FileOut << "/>\n";
                                 }
@@ -729,8 +829,8 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                             FileOut << " <!-- hole -->\n";
                             for(Int_t ipoint = 0; ipoint < 4; ++ipoint) {
                                 FileOut << "\t\t\t\t\t<DeadPoint";
-                                FileOut << " x=\"" << XDeadZone_Hole[ipoint]*(-1) << "\"";
-                                FileOut << " y=\"" << YDeadZone_Hole[ipoint]*(-1) << "\"";
+                                FileOut << " x=\"" << XDeadZone_Hole_LHP[ipoint]*(-1) << "\"";
+                                FileOut << " y=\"" << YDeadZone_Hole_LHP[ipoint]*(-1) << "\"";
                                 FileOut << "/>\n";
                             }
                             FileOut << "\t\t\t\t</DeadZone>\n";
@@ -741,12 +841,12 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                                 for(Int_t ipoint = 0; ipoint < 3; ++ipoint) {
                                     FileOut << "\t\t\t\t\t<DeadPoint";
                                     if (YStationRotations[istation] == false) {
-                                        FileOut << " x=\"" << XDeadZone_TrianRight[ipoint]*(-1) << "\"";
-                                        FileOut << " y=\"" << YDeadZone_TrianRight[ipoint]*(-1) << "\"";
+                                        FileOut << " x=\"" << XDeadZone_TrianRight_LHP[ipoint]*(-1) << "\"";
+                                        FileOut << " y=\"" << YDeadZone_TrianRight_LHP[ipoint]*(-1) << "\"";
                                     }
                                     else {
-                                        FileOut << " x=\"" << XDeadZone_TrianLeft[ipoint]*(-1) << "\"";
-                                        FileOut << " y=\"" << YDeadZone_TrianLeft[ipoint]*(-1) << "\"";
+                                        FileOut << " x=\"" << XDeadZone_TrianLeft_LHP[ipoint]*(-1) << "\"";
+                                        FileOut << " y=\"" << YDeadZone_TrianLeft_LHP[ipoint]*(-1) << "\"";
                                     }
                                     FileOut << "/>\n";
                                 }

@@ -17,7 +17,9 @@ void DSTConv(
 
    
     FairRunAna* fRunAna = new FairRunAna();
-    fRunAna->SetInputFile(inFile.Data());
+//    fRunAna->SetInputFile(inFile.Data());
+    FairSource* src = new BmnFileSource(inFile);
+    fRunAna->SetSource(src);
     fRunAna->SetOutputFile(outFile.Data());
     fRunAna->SetGenerateRunInfo(kFALSE);
     

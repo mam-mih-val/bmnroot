@@ -72,6 +72,7 @@ class CbmVertex : public TNamed
   void CovMatrix(TMatrixFSym& covMat) const;
   Double_t GetCovariance(Int_t i, Int_t j) const;
   std::vector<Int_t>& GetTrackInds() { return fTrackInds; } //AZ 
+  void SetTrackInds(std::vector<Int_t> inds) { fTrackInds = inds; } 
 
   /** Set the member variables
    *@param x         x coordinate [cm]

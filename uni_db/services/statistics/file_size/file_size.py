@@ -4,6 +4,7 @@ import numpy as np
 import os
 import psycopg2
 import re
+import uproot
 
 import file_size.config as config
 
@@ -25,6 +26,8 @@ class SizeStatComputer:
 
         self.FILE_SIZE_LIMIT_LOW, self.FILE_SIZE_LIMIT_HIGH = self.extract_size_limits(config_dict.get('file_size_limit'))
         self.EVENT_SIZE_LIMIT_LOW, self.EVENT_SIZE_LIMIT_HIGH = self.extract_size_limits(config_dict.get('event_size_limit'))
+
+        self.SOURCE = (config_dict.get('source') or "exp").lower()  # exp or sim
         
 
     def extract_size_limits(self, limit_str):
@@ -100,11 +103,25 @@ class SizeStatComputer:
                         unsuccessful_list.append(file_path)
                         continue
                     run_num = run_num.group()
-                    run_count = self.get_events_count(run_num)
+                    
+                    
+                    if self.SOURCE == "exp":
+                        run_count = self.get_events_count_by_run(run_num)
+                    else:  # "sim"
+                        run_count = self.get_events_count_sim(file_path)
+                        # print(f"Got {run_count} events in simulation file {file_path}")
+                                        
                     if run_count is None:
                         print(f"\nNo run number {run_num} found in database for file {file_path}")
                         unsuccessful_list.append(file_path)
                         continue
+                    
+                    # uproot_count = self.uproot_event_count(file_path)
+                    # print(f"File: {file}  Uproot events: {uproot_count}  DB events: {run_count}")
+                    # if uproot_count != run_count:
+                    #     print("WARNING EVENT COUNTS NOT EQUAL!!!")
+
+                    
                     filesize_bytes_per_event = filesize_bytes / run_count
                     if self.EVENT_SIZE_LIMIT_LOW is not None and self.EVENT_SIZE_LIMIT_HIGH is not None:
                         if filesize_bytes_per_event < self.EVENT_SIZE_LIMIT_LOW or filesize_bytes_per_event > self.EVENT_SIZE_LIMIT_HIGH:
@@ -162,7 +179,7 @@ class SizeStatComputer:
         return res, unit
 
 
-    def get_events_count(self, run_num):
+    def get_events_count_by_run(self, run_num):
         conn = psycopg2.connect(dbname=self.DB_NAME, user=self.DB_USER, 
                                 password=self.DB_PASS, host=self.DB_HOST)
         cursor = conn.cursor()
@@ -174,3 +191,26 @@ class SizeStatComputer:
         cursor.close()
         conn.close()
         return count
+
+
+    def get_events_count_sim(self, file_path):
+        conn = psycopg2.connect(dbname=self.DB_NAME, user=self.DB_USER, 
+                                password=self.DB_PASS, host=self.DB_HOST)
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT event_count FROM simulation_file WHERE file_path='{file_path}'")
+        count = cursor.fetchone()
+        if count is None:
+            return None
+        count = count[0]
+        cursor.close()
+        conn.close()
+        return count
+
+
+    def uproot_event_count(self, file_path):
+        r = uproot.open(file_path)
+        bmndata = list(filter(lambda x: x.startswith("bmndata;"), r.keys()))
+        if len(bmndata) != 2:
+            return None
+        second_num = sorted(list(map(lambda s: int(s[8:]), bmndata)))[1]
+        return r['bmndata;' + str(second_num)].member('fEntries') - 1

@@ -15,8 +15,8 @@ from utils import plot_all_stats
 def main():
     print("Statistics calculation script started.")
     parser = argparse.ArgumentParser(
-        description='Script for size and time statistics.\
-        For more info see https://github.com/loooj58/BMAN'
+        description='Script for file size and time statistics.\
+        For more info see README.md file'
     )
     parser.add_argument(
         '--dir', '-d',
@@ -28,7 +28,7 @@ def main():
     parser.add_argument(
         '--size', '-s',
         action='store_true',
-        help='Compute size statistics'
+        help='Compute file size statistics'
     )
     parser.add_argument(
         '--time', '-t',
@@ -44,7 +44,7 @@ def main():
         '--config', '-c',
         nargs=1,
         type=str,
-        help='Path to config file, default is ./config.txt',
+        help='Path to JSON config file',
         required=True
     )
     parser.add_argument(

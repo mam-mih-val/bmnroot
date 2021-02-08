@@ -146,6 +146,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
         gemHM->SetCurrentConfig(BmnGemStripConfiguration::RunSRCSpring2018); //set explicitly
     gemHM->SetHitMatching(kTRUE);
     gemHM->SetSrcSetup(kTRUE);
+    gemHM->SetFieldScale(fieldScale);
     fRunAna->AddTask(gemHM);
 
     // ====================================================================== //

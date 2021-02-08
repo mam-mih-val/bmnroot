@@ -24,6 +24,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
     fOutputHitMatchesBranchName = "BmnGemStripHitMatch";
 
     fField = NULL;
+    fFieldScale = 0.0;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
     StationSet = nullptr;
@@ -46,6 +47,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
     fBmnEvQualityBranchName = "BmnEventQuality";
 
     fField = NULL;
+    fFieldScale = 0.0;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
     StationSet = nullptr;
@@ -251,33 +253,36 @@ void BmnGemStripHitMaker::ProcessDigits() {
     // Double_t alignX[nSt] = {0.0, 0.0, 0.0, 0.0, +0.163, -0.060, -0.036, -0.037, +0.006, +0.071};
     // Double_t alignY[nSt] = {0.0, 0.0, 0.0, 0.0, -0.008, -0.082, +0.072, +0.009, +0.030, -0.082};
     const Int_t nFields = 6;
+    Double_t dX_ls_fieldScale2[nSt] = {0.0, 0.0, 0.0, 0.0, -0.033, +0.183, -0.231, +0.167, -0.252, +0.156};
+    Double_t dY_ls_fieldScale2[nSt] = {0.0, 0.0, 0.0, 0.0, +0.000, -0.027, +0.067, +0.035, -0.001, +0.023};
 
-    Double_t dX_ls[nSt][nFields] = {
-        {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-        {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-        {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-        {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-        {0.0, -0.05, -0.04, -0.02, -0.033, -0.04},
-        {0.0, +0.14, +0.21, +0.30, +0.183, +0.45},
-        {0.0, -0.08, -0.11, -0.10, -0.231, -0.11},
-        {0.0, +0.10, +0.13, +0.20, +0.167, +0.31},
-        {0.0, -0.13, -0.19, -0.22, -0.252, -0.30},
-        {0.0, +0.03, +0.02, +0.03, +0.156, +0.04}};
+    // Double_t dX_ls[nSt][nFields] = {
+    //     {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    //     {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    //     {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    //     {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    //     {0.0, -0.05, -0.04, -0.02, -0.033, -0.04},
+    //     {0.0, +0.14, +0.21, +0.30, +0.183, +0.45},
+    //     {0.0, -0.08, -0.11, -0.10, -0.231, -0.11},
+    //     {0.0, +0.10, +0.13, +0.20, +0.167, +0.31},
+    //     {0.0, -0.13, -0.19, -0.22, -0.252, -0.30},
+    //     {0.0, +0.03, +0.02, +0.03, +0.156, +0.04}};
 
-    Double_t dY_ls[nSt][nFields] = {
-        {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-        {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-        {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-        {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-        {0.0, +0.00, -0.00, -0.00, +0.000, -0.01},
-        {0.0, +0.01, +0.02, +0.06, -0.027, +0.04},
-        {0.0, -0.02, -0.01, +0.03, +0.067, -0.02},
-        {0.0, -0.00, +0.02, +0.07, +0.035, +0.01},
-        {0.0, -0.02, -0.00, +0.03, -0.001, -0.07},
-        {0.0, +0.05, +0.10, +0.17, +0.023, +0.09}};
+    // Double_t dY_ls[nSt][nFields] = {
+    //     {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    //     {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    //     {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    //     {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    //     {0.0, +0.00, -0.00, -0.00, +0.000, -0.01},
+    //     {0.0, +0.01, +0.02, +0.06, -0.027, +0.04},
+    //     {0.0, -0.02, -0.01, +0.03, +0.067, -0.02},
+    //     {0.0, -0.00, +0.02, +0.07, +0.035, +0.01},
+    //     {0.0, -0.02, -0.00, +0.03, -0.001, -0.07},
+    //     {0.0, +0.05, +0.10, +0.17, +0.023, +0.09}};
 
-    Int_t fieldFactors[nFields] = {0, 900, 1200, 1500, 1800, 2100};
-    Int_t iField = 4;
+    // Int_t fieldFactors[nFields] = {0, 900, 1200, 1500, 1800, 2100};
+    // Int_t fieldScales[nFields] = {0, 1.0, 4.0/3, 5.0/3, 2.0, 7.0/3};
+    // Int_t iField = 4;
 
     for (Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
         BmnGemStripStation *station = StationSet->GetGemStation(iStation);
@@ -343,9 +348,9 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                     if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
                         Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
-                        Double_t lsX = fIsSrc ? dX_ls[iStation][iField] : (fAlign->GetLorentzCorrs(Abs(fField->GetBy(x, y, z)), iStation) * sign);
+                        Double_t lsX = fIsSrc ? dX_ls_fieldScale2[iStation] / 2.0 * fFieldScale : (fAlign->GetLorentzCorrs(Abs(fField->GetBy(x, y, z)), iStation) * sign);
                         x += lsX;
-                        Double_t lsY = fIsSrc ? dY_ls[iStation][iField] : (fAlign->GetLorentzCorrs(Abs(fField->GetBx(x, y, z)), iStation) * sign);
+                        Double_t lsY = fIsSrc ? dY_ls_fieldScale2[iStation] / 2.0 * fFieldScale : (fAlign->GetLorentzCorrs(Abs(fField->GetBx(x, y, z)), iStation) * sign);
                         y += lsY;
                     }
 

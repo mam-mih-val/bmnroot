@@ -269,7 +269,9 @@ bool MpdGetNumEvents::GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t& fQGSM_f
             libz->gets(tmp, 250);
             break;
         case 2:
-        case 3:{
+        case 3:
+        case 4:
+        {
             libz->gets(ss, 250);
             libz->gets(ss, 250);
             break;

@@ -83,7 +83,7 @@ struct StringValue : public UniValue
 struct BinaryValue : public UniValue
 {
     uint64_t size;
-    unsigned char* value;
+    unsigned char* value;   // char array is stored with the size variable (+8)
 
     enumValueType GetType() { return BinaryType; }
     size_t GetStorageSize() { return size + 8; }
@@ -185,7 +185,7 @@ struct MapDVectorValue : public UniValue
 {
     uint32_t serial;
     int32_t channel;
-    vector<double> value;   // vector is stored with the size
+    vector<double> value;   // vector is stored with the size (+8)
 
     enumValueType GetType() { return MapDVectorType; }
     size_t GetStorageSize() { return value.size()*8 + 16; } // (value.size()*8+8) + 8

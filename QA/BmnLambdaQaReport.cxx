@@ -57,48 +57,48 @@ void BmnLambdaQaReport::PrintEventInfo() {
     Out() << "<h1> <font color='00FF00'>Both of its decay products have at least </font><font color='FF0000'> 4 </font><font color='00FF00'> gem or silicon hits </font></h1>" << endl;
 
     if (fUseMCFile) {
-        Out() << setprecision(8) << "<h1> Number of lambda:\n" << HM()->H1("numberOfLambdas_LambdaQa")->GetEntries() << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1> Number of reconstructable lambda:\n" << HM()->H1("numberOfReconstructableLambdas_LambdaQa")->GetEntries() << "</h1>" << endl;
+        Out() << "<h1> Number of lambda:\n" << HM()->H1("numberOfLambdas_LambdaQa")->GetEntries() << "</h1>" << endl;
+        Out() << "<h1> Number of reconstructable lambda:\n" << HM()->H1("numberOfReconstructableLambdas_LambdaQa")->GetEntries() << "</h1>" << endl;
         Double_t lRecEff = HM()->H1("numberOfReconstructableLambdas_LambdaQa")->GetEntries() / HM()->H1("numberOfLambdas_LambdaQa")->GetEntries();
         Out() << setprecision(2) << fixed << "<h1> Geometrical efficiency:\n" << lRecEff * 100 << "%" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1> Number of particle pairs reconstructed by MC tracks:\n" << HM()->H1("numberOfMCReconstructedParticlePairsQA")->GetEntries() << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1> Number of particle pairs reconstructed by MC tracks being lambda:\n" << HM()->H1("numberOfMCReconstructedLambdasQA")->GetEntries() << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1> Number of particle pairs reconstructed by MC tracks:\n" << HM()->H1("numberOfMCReconstructedParticlePairsQA")->GetEntries() << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1> Number of particle pairs reconstructed by MC tracks being lambda:\n" << HM()->H1("numberOfMCReconstructedLambdasQA")->GetEntries() << "</h1>" << endl;
         Out() << setprecision(2) << fixed << "<h1> Percentage of particle pairs reconstructed by MC tracks being lambda:\n" << HM()->H1("numberOfMCReconstructedLambdasQA")->GetEntries() / HM()->H1("numberOfMCReconstructedParticlePairsQA")->GetEntries()*100 << "% </h1>" << endl;
 
         Out() << "<h1> <font color='6f00ff'> Kinematic cuts for MC are: </font></h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getMomPart1Min() << " < P_1 < " << fParticlePairsInfo->getMomPart1Max() << " (GeV/c)" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getMomPart2Min() << " < P_2 < " << fParticlePairsInfo->getMomPart2Max() << " (GeV/c)" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getEtaPart1Min() << " < Eta_1 < " << fParticlePairsInfo->getEtaPart1Max() << "" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getEtaPart2Min() << " < Eta_2 < " << fParticlePairsInfo->getEtaPart2Max() << "" << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1>" << fParticlePairsInfo->getMomPart1Min() << " < P_1 < " << fParticlePairsInfo->getMomPart1Max() << " (GeV/c)" << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1>" << fParticlePairsInfo->getMomPart2Min() << " < P_2 < " << fParticlePairsInfo->getMomPart2Max() << " (GeV/c)" << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1>" << fParticlePairsInfo->getEtaPart1Min() << " < Eta_1 < " << fParticlePairsInfo->getEtaPart1Max() << "" << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1>" << fParticlePairsInfo->getEtaPart2Min() << " < Eta_2 < " << fParticlePairsInfo->getEtaPart2Max() << "" << "</h1>" << endl;
         Out() << "<h1> <font color='6f00ff'> Geometrical cuts for MC are: </font></h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getDCAPart1Min() << " < DCA1 < " << fParticlePairsInfo->getDCAPart1Max() << " cm" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getDCAPart2Min() << " < DCA2 < " << fParticlePairsInfo->getDCAPart2Max() << " cm" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getDCA12Min() << " < DCA_12 < " << fParticlePairsInfo->getDCA12Max() << " cm" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getPathMin() << " < PATH < " << fParticlePairsInfo->getPathMax() << " cm" << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1>" << fParticlePairsInfo->getDCAPart1Min() << " < DCA1 < " << fParticlePairsInfo->getDCAPart1Max() << " cm" << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1>" << fParticlePairsInfo->getDCAPart2Min() << " < DCA2 < " << fParticlePairsInfo->getDCAPart2Max() << " cm" << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1>" << fParticlePairsInfo->getDCA12Min() << " < DCA_12 < " << fParticlePairsInfo->getDCA12Max() << " cm" << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1>" << fParticlePairsInfo->getPathMin() << " < PATH < " << fParticlePairsInfo->getPathMax() << " cm" << "</h1>" << endl;
     }
 
     if (fUseRecoFile) {
-        Out() << setprecision(8) << "<h1> Number of reconstructed particle pairs:\n" << HM()->H1("numberOfReconstructedParticlePairsQA")->GetEntries() << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1> Number of reconstructed particle pairs:\n" << HM()->H1("numberOfReconstructedParticlePairsQA")->GetEntries() << "</h1>" << endl;
         Out() << "<h1> <font color='90ff00'> Kinematic cuts for reco are: </font></h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getMomPart1Min() << " < P_1 < " << fParticlePairsInfo->getMomPart1Max() << " (GeV/c)" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getMomPart2Min() << " < P_2 < " << fParticlePairsInfo->getMomPart2Max() << " (GeV/c)" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getEtaPart1Min() << " < Eta_1 < " << fParticlePairsInfo->getEtaPart1Max() << "" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getEtaPart2Min() << " < Eta_2 < " << fParticlePairsInfo->getEtaPart2Max() << "" << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1>" << fParticlePairsInfo->getMomPart1Min() << " < P_1 < " << fParticlePairsInfo->getMomPart1Max() << " (GeV/c)" << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1>" << fParticlePairsInfo->getMomPart2Min() << " < P_2 < " << fParticlePairsInfo->getMomPart2Max() << " (GeV/c)" << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1>" << fParticlePairsInfo->getEtaPart1Min() << " < Eta_1 < " << fParticlePairsInfo->getEtaPart1Max() << "" << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1>" << fParticlePairsInfo->getEtaPart2Min() << " < Eta_2 < " << fParticlePairsInfo->getEtaPart2Max() << "" << "</h1>" << endl;
         Out() << "<h1> <font color='90ff00'> Geometrical cuts for reco are: </font></h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getDCAPart1Min() << " < DCA1 < " << fParticlePairsInfo->getDCAPart1Max() << " cm" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getDCAPart2Min() << " < DCA2 < " << fParticlePairsInfo->getDCAPart2Max() << " cm" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getDCA12Min() << " < DCA_12 < " << fParticlePairsInfo->getDCA12Max() << " cm" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1>" << fParticlePairsInfo->getPathMin() << " < PATH < " << fParticlePairsInfo->getPathMax() << " cm" << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1>" << fParticlePairsInfo->getDCAPart1Min() << " < DCA1 < " << fParticlePairsInfo->getDCAPart1Max() << " cm" << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1>" << fParticlePairsInfo->getDCAPart2Min() << " < DCA2 < " << fParticlePairsInfo->getDCAPart2Max() << " cm" << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1>" << fParticlePairsInfo->getDCA12Min() << " < DCA_12 < " << fParticlePairsInfo->getDCA12Max() << " cm" << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1>" << fParticlePairsInfo->getPathMin() << " < PATH < " << fParticlePairsInfo->getPathMax() << " cm" << "</h1>" << endl;
     }
 
     if (fUseRecoFile && fUseMCFile) {
         Double_t lRecEff = HM()->H1("numberOfReconstructableLambdas_LambdaQa")->GetEntries() / HM()->H1("numberOfLambdas_LambdaQa")->GetEntries();
         Double_t lRecEffR = HM()->H1("numberOfReconstructedParticlePairWithMatchedLambdaQA")->GetEntries() / HM()->H1("numberOfReconstructableLambdas_LambdaQa")->GetEntries();
-        Out() << setprecision(8) << "<h1> Number of reconstructed particle pairs with primary particle having MC matched lambda:\n" << HM()->H1("numberOfReconstructedParticlePairWithMatchedLambdaQA")->GetEntries() << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1> Number of reconstructed particle pairs with primary particle having MC matched lambda:\n" << HM()->H1("numberOfReconstructedParticlePairWithMatchedLambdaQA")->GetEntries() << "</h1>" << endl;
         Out() << setprecision(2) << fixed << "<h1> Reconstruction algorithms efficiency:\n" << lRecEffR * 100 << "%" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1> Number of reconstructed fake lambdas:\n" << HM()->H1("numberOfReconstructedParticlePairsQA")->GetEntries() - HM()->H1("numberOfReconstructedParticlePairWithMatchedLambdaQA")->GetEntries() << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1> Number of reconstructed fake lambdas:\n" << HM()->H1("numberOfReconstructedParticlePairsQA")->GetEntries() - HM()->H1("numberOfReconstructedParticlePairWithMatchedLambdaQA")->GetEntries() << "</h1>" << endl;
         Out() << setprecision(2) << fixed << "<h1> Total reconstruction efficiency:\n" << lRecEff * lRecEffR * 100 << "%" << "</h1>" << endl;
-        Out() << setprecision(8) << "<h1> Number of not reconstructed lambdas:\n" << HM()->H1("numberOfLambdas_LambdaQa")->GetEntries() - HM()->H1("numberOfReconstructedParticlePairWithMatchedLambdaQA")->GetEntries() << "</h1>" << endl;
+        Out() << setprecision(2) << "<h1> Number of not reconstructed lambdas:\n" << HM()->H1("numberOfLambdas_LambdaQa")->GetEntries() - HM()->H1("numberOfReconstructedParticlePairWithMatchedLambdaQA")->GetEntries() << "</h1>" << endl;
     }
 }
 
@@ -300,26 +300,38 @@ void BmnLambdaQaReport::DrawGeomEfficiencyHistograms(const string& canvasName) {
 
     canvas->cd(2);
     HM()->H1(etaEff)->Divide(HM()->H1("simNReconstructableLambda_eta_sim"), HM()->H1("simNLambda_eta_sim"), 100., 1., "B");
+    HM()->H1(etaEff)->SetMaximum(100.0);
+    HM()->H1(etaEff)->SetMinimum(0.0);
     DrawH1(HM()->H1(etaEff.Data()), kLinear, kLinear, drawPointsOpt.Data(), kGreen + 2);
 
     canvas->cd(3);
     HM()->H1(thetaEff)->Divide(HM()->H1("simNReconstructableLambda_theta_sim"), HM()->H1("simNLambda_theta_sim"), 100., 1., "B");
+    HM()->H1(thetaEff)->SetMaximum(100.0);
+    HM()->H1(thetaEff)->SetMinimum(0.0);
     DrawH1(HM()->H1(thetaEff.Data()), kLinear, kLinear, drawPointsOpt.Data(), kGreen + 2);
 
     canvas->cd(4);
     HM()->H1(thetaREff)->Divide(HM()->H1("simNReconstructableLambda_theta_r_sim"), HM()->H1("simNLambda_theta_r_sim"), 100., 1., "B");
+    HM()->H1(thetaREff)->SetMaximum(100.0);
+    HM()->H1(thetaREff)->SetMinimum(0.0);
     DrawH1(HM()->H1(thetaREff.Data()), kLinear, kLinear, drawPointsOpt.Data(), kGreen + 2);
 
     canvas->cd(5);
     HM()->H1(momXEff)->Divide(HM()->H1("simNReconstructableLambda_P_x_sim"), HM()->H1("simNLambda_P_x_sim"), 100., 1., "B");
+    HM()->H1(momXEff)->SetMaximum(100.0);
+    HM()->H1(momXEff)->SetMinimum(0.0);
     DrawH1(HM()->H1(momXEff.Data()), kLinear, kLinear, drawPointsOpt.Data(), kGreen + 2);
 
     canvas->cd(6);
     HM()->H1(momYEff)->Divide(HM()->H1("simNReconstructableLambda_P_y_sim"), HM()->H1("simNLambda_P_y_sim"), 100., 1., "B");
+    HM()->H1(momYEff)->SetMaximum(100.0);
+    HM()->H1(momYEff)->SetMinimum(0.0);
     DrawH1(HM()->H1(momYEff.Data()), kLinear, kLinear, drawPointsOpt.Data(), kGreen + 2);
 
     canvas->cd(7);
     HM()->H1(momZEff)->Divide(HM()->H1("simNReconstructableLambda_P_z_sim"), HM()->H1("simNLambda_P_z_sim"), 100., 1., "B");
+    HM()->H1(momZEff)->SetMaximum(100.0);
+    HM()->H1(momZEff)->SetMinimum(0.0);
     DrawH1(HM()->H1(momZEff.Data()), kLinear, kLinear, drawPointsOpt.Data(), kGreen + 2);
 }
 

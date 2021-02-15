@@ -42,29 +42,29 @@ fOutputDir("./"),
 fMCTracks(NULL),
 fNOfBins(50),
 fLambdaPRangeMin(0.),
-fLambdaPRangeMax(5.),
+fLambdaPRangeMax(4.),
 fLambdaEtaRangeMin(0.),
 fLambdaEtaRangeMax(5.),
 fLambdaThetaRangeMin(0.),
-fLambdaThetaRangeMax(30.),
+fLambdaThetaRangeMax(45.),
 fLambdaThetaRRangeMin(0.),
-fLambdaThetaRRangeMax(5.),
+fLambdaThetaRRangeMax(2.5),
 fProtonsPRangeMin(0.),
-fProtonsPRangeMax(10.),
+fProtonsPRangeMax(4.),
 fProtonsEtaRangeMin(0.),
-fProtonsEtaRangeMax(10.),
+fProtonsEtaRangeMax(5.),
 fProtonsThetaRangeMin(0.),
-fProtonsThetaRangeMax(50.),
+fProtonsThetaRangeMax(45.),
 fProtonsThetaRRangeMin(0.),
-fProtonsThetaRRangeMax(10.),
+fProtonsThetaRRangeMax(2.5),
 fMesonsPRangeMin(0.),
-fMesonsPRangeMax(5.),
+fMesonsPRangeMax(2.),
 fMesonsEtaRangeMin(0.),
-fMesonsEtaRangeMax(5.),
+fMesonsEtaRangeMax(4.),
 fMesonsThetaRangeMin(0.),
-fMesonsThetaRangeMax(50.),
+fMesonsThetaRangeMax(45.),
 fMesonsThetaRRangeMin(0.),
-fMesonsThetaRRangeMax(10.),
+fMesonsThetaRRangeMax(2.5),
 fInvMassMin(1.07),
 fInvMassMax(1.22),
 fUseMCFile(kFALSE),
@@ -622,9 +622,9 @@ void BmnLambdaQa::CreateNumberOfReconstructableLambdaHistograms() {
     CreateH1("simNReconstructableLambda_eta_sim", "#eta_{sim}", "number of reconstructable #Lambda^{0}", fNOfBins, fLambdaEtaRangeMin, fLambdaEtaRangeMax);
     CreateH1("simNReconstructableLambda_theta_sim", "#theta_{sim}, degrees", "number of reconstructable #Lambda^{0}", fNOfBins, fLambdaThetaRangeMin, fLambdaThetaRangeMax);
     CreateH1("simNReconstructableLambda_theta_r_sim", "Y^{r}_{sim}", "number of reconstructable #Lambda^{0}", fNOfBins, fLambdaThetaRRangeMin, fLambdaThetaRRangeMax);
-    CreateH1("simNReconstructableLambda_P_x_sim", "P^{x}_{sim}, GeV/c", "number of reconstructable #Lambda^{0}", fNOfBins, -10, 10);
-    CreateH1("simNReconstructableLambda_P_y_sim", "P^{y}_{sim}, GeV/c", "number of reconstructable #Lambda^{0}", fNOfBins, -10, 10);
-    CreateH1("simNReconstructableLambda_P_z_sim", "P^{z}_{sim}, GeV/c", "number of reconstructable #Lambda^{0}", fNOfBins, -10, 10);
+    CreateH1("simNReconstructableLambda_P_x_sim", "P^{x}_{sim}, GeV/c", "number of reconstructable #Lambda^{0}", fNOfBins, -2, 2);
+    CreateH1("simNReconstructableLambda_P_y_sim", "P^{y}_{sim}, GeV/c", "number of reconstructable #Lambda^{0}", fNOfBins, -2, 2);
+    CreateH1("simNReconstructableLambda_P_z_sim", "P^{z}_{sim}, GeV/c", "number of reconstructable #Lambda^{0}", fNOfBins, -1, 4);
 }
 
 void BmnLambdaQa::CreateNumberOfLambdaHistograms() {
@@ -632,9 +632,9 @@ void BmnLambdaQa::CreateNumberOfLambdaHistograms() {
     CreateH1("simNLambda_eta_sim", "#eta_{sim}", "number of #Lambda^{0}", fNOfBins, fLambdaEtaRangeMin, fLambdaEtaRangeMax);
     CreateH1("simNLambda_theta_sim", "#theta_{sim}, degrees", "number of #Lambda^{0}", fNOfBins, fLambdaThetaRangeMin, fLambdaThetaRangeMax);
     CreateH1("simNLambda_theta_r_sim", "Y^{r}_{sim}", "number of #Lambda^{0}", fNOfBins, fLambdaThetaRRangeMin, fLambdaThetaRRangeMax);
-    CreateH1("simNLambda_P_x_sim", "P^{x}_{sim}, GeV/c", "number of #Lambda^{0}", fNOfBins, -10, 10);
-    CreateH1("simNLambda_P_y_sim", "P^{y}_{sim}, GeV/c", "number of #Lambda^{0}", fNOfBins, -10, 10);
-    CreateH1("simNLambda_P_z_sim", "P^{z}_{sim}, GeV/c", "number of #Lambda^{0}", fNOfBins, -10, 10);
+    CreateH1("simNLambda_P_x_sim", "P^{x}_{sim}, GeV/c", "number of #Lambda^{0}", fNOfBins, -2, 2);
+    CreateH1("simNLambda_P_y_sim", "P^{y}_{sim}, GeV/c", "number of #Lambda^{0}", fNOfBins, -2, 2);
+    CreateH1("simNLambda_P_z_sim", "P^{z}_{sim}, GeV/c", "number of #Lambda^{0}", fNOfBins, -1, 4);
 }
 
 void BmnLambdaQa::CreateLambdaRecEfficiencyHistograms() {
@@ -642,14 +642,14 @@ void BmnLambdaQa::CreateLambdaRecEfficiencyHistograms() {
     CreateH1("simLambdaRecEff_eta_sim", "#eta_{sim}", "geometrical efficiency, % efficiency, %", fNOfBins, fLambdaEtaRangeMin, fLambdaEtaRangeMax);
     CreateH1("simLambdaRecEff_theta_sim", "#theta_{sim}, degrees", "geometrical efficiency, %", fNOfBins, fLambdaThetaRangeMin, fLambdaThetaRangeMax);
     CreateH1("simLambdaRecEff_theta_r_sim", "Y^{r}_{sim}", "geometrical efficiency, %", fNOfBins, fLambdaThetaRRangeMin, fLambdaThetaRRangeMax);
-    CreateH1("simLambdaRecEff_P_x_sim", "P^{x}_{sim}, GeV/c", "geometrical efficiency, %", fNOfBins, -10, 10);
-    CreateH1("simLambdaRecEff_P_y_sim", "P^{y}_{sim}, GeV/c", "geometrical efficiency, %", fNOfBins, -10, 10);
-    CreateH1("simLambdaRecEff_P_z_sim", "P^{z}_{sim}, GeV/c", "geometrical efficiency, %", fNOfBins, -10, 10);
+    CreateH1("simLambdaRecEff_P_x_sim", "P^{x}_{sim}, GeV/c", "geometrical efficiency, %", fNOfBins, -2, 2);
+    CreateH1("simLambdaRecEff_P_y_sim", "P^{y}_{sim}, GeV/c", "geometrical efficiency, %", fNOfBins, -2, 2);
+    CreateH1("simLambdaRecEff_P_z_sim", "P^{z}_{sim}, GeV/c", "geometrical efficiency, %", fNOfBins, -1, 4);
 }
 
 void BmnLambdaQa::CreateTwoDimensionalRecEfficiencyHistograms() {
-    CreateH2("simNLambda_eta_P_sim", "P_{sim}, GeV/c", "#eta_{sim}", "number of #Lambda^{0}", fNOfBins, fLambdaPRangeMin, fLambdaPRangeMax, fNOfBins, fLambdaEtaRangeMin, fLambdaEtaRangeMax);
     CreateH2("simNReconstructableLambda_eta_P_sim", "P_{sim}, GeV/c", "#eta_{sim}", "number of #Lambda^{0}", fNOfBins, fLambdaPRangeMin, fLambdaPRangeMax, fNOfBins, fLambdaEtaRangeMin, fLambdaEtaRangeMax);
+    CreateH2("simNLambda_eta_P_sim", "P_{sim}, GeV/c", "#eta_{sim}", "number of #Lambda^{0}", fNOfBins, fLambdaPRangeMin, fLambdaPRangeMax, fNOfBins, fLambdaEtaRangeMin, fLambdaEtaRangeMax);
     CreateH2("simEffRecLambda_eta_P_sim", "P_{sim}, GeV/c", "#eta_{sim}", "geometrical efficiency, %", fNOfBins, fLambdaPRangeMin, fLambdaPRangeMax, fNOfBins, fLambdaEtaRangeMin, fLambdaEtaRangeMax);
 }
 

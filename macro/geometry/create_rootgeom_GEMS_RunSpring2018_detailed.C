@@ -582,7 +582,7 @@ TGeoVolume *CreateLayersForModule_Station163x45(TString layer_name) {
     glueLayerBack_transf[0] = new TGeoCombiTrans();
     glueLayerBack_transf[0]->SetDx(+layerBack_XShift);
     glueLayerBack_transf[0]->SetDy(+layerBack_YShift);
-    glueLayerBack_transf[0]->SetDz(+ZGEMSize_Station163x45*0.5 - copperLayer_ZSize*0.5 - glueLayer_ZSize*0.5) ;
+    glueLayerBack_transf[0]->SetDz(+ZGEMSize_Station163x45*0.5 - copperLayer_ZSize - glueLayer_ZSize*0.5) ;
 
     layers->AddNode(glueLayerFrontV, 0, glueLayerFront_transf[0]);
     layers->AddNode(glueLayerBackV, 0, glueLayerBack_transf[0]);
@@ -664,7 +664,7 @@ TGeoVolume *CreateLayersForModule_Station163x45(TString layer_name) {
     epoxideLayerBack_transf[0] = new TGeoCombiTrans();
     epoxideLayerBack_transf[0]->SetDx(+layerBack_XShift);
     epoxideLayerBack_transf[0]->SetDy(+layerBack_YShift);
-    epoxideLayerBack_transf[0]->SetDz(+ZGEMSize_Station163x45*0.5 - copperLayer_ZSize*0.5 - glueLayer_ZSize - epoxideLayer_ZSize*0.5) ;
+    epoxideLayerBack_transf[0]->SetDz(+ZGEMSize_Station163x45*0.5 - copperLayer_ZSize - glueLayer_ZSize - epoxideLayer_ZSize*0.5) ;
 
     layers->AddNode(epoxideLayerFrontV, 0, epoxideLayerFront_transf[0]);
     layers->AddNode(epoxideLayerBackV, 0, epoxideLayerBack_transf[0]);
@@ -746,7 +746,7 @@ TGeoVolume *CreateLayersForModule_Station163x45(TString layer_name) {
     honeycombLayerBack_transf[0] = new TGeoCombiTrans();
     honeycombLayerBack_transf[0]->SetDx(+layerBack_XShift);
     honeycombLayerBack_transf[0]->SetDy(+layerBack_YShift);
-    honeycombLayerBack_transf[0]->SetDz(+ZGEMSize_Station163x45*0.5 - copperLayer_ZSize*0.5 - glueLayer_ZSize - epoxideLayer_ZSize - honeycombLayer_ZSize*0.5) ;
+    honeycombLayerBack_transf[0]->SetDz(+ZGEMSize_Station163x45*0.5 - copperLayer_ZSize - glueLayer_ZSize - epoxideLayer_ZSize - honeycombLayer_ZSize*0.5) ;
 
     layers->AddNode(honeycombLayerFrontV, 0, honeycombLayerFront_transf[0]);
     layers->AddNode(honeycombLayerBackV, 0, honeycombLayerBack_transf[0]);
@@ -828,7 +828,7 @@ TGeoVolume *CreateLayersForModule_Station163x45(TString layer_name) {
     polyamideLayerBack_transf[0] = new TGeoCombiTrans();
     polyamideLayerBack_transf[0]->SetDx(+layerBack_XShift);
     polyamideLayerBack_transf[0]->SetDy(+layerBack_YShift);
-    polyamideLayerBack_transf[0]->SetDz(+ZGEMSize_Station163x45*0.5 - copperLayer_ZSize*0.5 - glueLayer_ZSize - epoxideLayer_ZSize - honeycombLayer_ZSize - polyamideLayer_ZSize*0.5) ;
+    polyamideLayerBack_transf[0]->SetDz(+ZGEMSize_Station163x45*0.5 - copperLayer_ZSize - glueLayer_ZSize - epoxideLayer_ZSize - honeycombLayer_ZSize - polyamideLayer_ZSize*0.5) ;
 
     layers->AddNode(polyamideLayerFrontV, 0, polyamideLayerFront_transf[0]);
     layers->AddNode(polyamideLayerBackV, 0, polyamideLayerBack_transf[0]);

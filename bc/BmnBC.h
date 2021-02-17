@@ -1,22 +1,22 @@
 /*************************************************************************************
  *
- *         Class BmnArmTrig
+ *         Class BmnBC
  *         
- *  Adopted for BMN by:   Elena Litvinenko
- *  e-mail:   litvin@nf.jinr.ru
- *  Version:  10-02-2016   
+ *  Adopted for BMN by:  Nikita Lashmanov,  Andrey Dryuk
+ *  e-mail:  nikita10630@mail.ru,  andredryuk@gmail.com
+ *  Version:  20.12.2020  
  *
  ************************************************************************************/
 
-#ifndef BMNARMTRIG_H
-#define BMNARMTRIG_H
+#ifndef BMNBC_H
+#define BMNBC_H
 
 #include "FairDetector.h"
 #include "TClonesArray.h"
 #include "TVector3.h"
 #include "TLorentzVector.h"
 #include "FairDetector.h"
-//#include "BmnArmTrigGeoPar.h"
+#include "BmnBCGeoPar.h"
 #include "TVirtualMC.h"
 #include "TParticle.h"
 
@@ -24,27 +24,27 @@ using namespace std;
 
 
 class TClonesArray;
-class BmnArmTrigPoint;
+class BmnBCPoint;
 class FairVolume;
 
-class BmnArmTrig : public FairDetector
+class BmnBC : public FairDetector
 {
 
  public:
 
   /** Default constructor **/
-  BmnArmTrig();
+  BmnBC();
 
 
   /** Standard constructor.
    *@param name    detetcor name
    *@param active  sensitivity flag
    **/
-  BmnArmTrig(const char* name, Bool_t active);
+  BmnBC(const char* name, Bool_t active);
 
 
   /** Destructor **/
-  virtual ~BmnArmTrig();
+  virtual ~BmnBC();
 
 
   /** Virtual method Initialize
@@ -56,7 +56,7 @@ class BmnArmTrig : public FairDetector
   /** Virtual method ProcessHits
    **
    ** Defines the action to be taken when a step is inside the
-   ** active volume. Creates BmnArmTrigPoints and adds 
+   ** active volume. Creates BmnBdPoints and BmnBdMirrorPoints and adds 
    ** them to the collections.
    *@param vol  Pointer to the active volume
    **/
@@ -116,11 +116,11 @@ class BmnArmTrig : public FairDetector
 	virtual void ConstructAsciiGeometry();
  	virtual Bool_t CheckIfSensitive(std::string name);
   
-	BmnArmTrigPoint* AddHit(Int_t trackID, Int_t detID,  Int_t copyNo, 
+	BmnBCPoint* AddHit(Int_t trackID, Int_t detID,  Int_t copyNo, 
 		      TVector3 posIn, TVector3 posOut,
               TVector3 momIn, TVector3 momOut,
-		      Double_t tof, Double_t length, Double_t eLoss, 
-              Bool_t isPrimary, Double_t charge, Int_t pdgId,
+		      Double_t tof, Double_t length, Double_t eLoss, Int_t fStat,
+              Bool_t isPrimary, Double_t charge, Int_t pdgId, Double_t lightYield,
 			  Double_t timeIn, Double_t timeOut, Double_t lengthtrack);
 
  private:
@@ -139,8 +139,9 @@ class BmnArmTrig : public FairDetector
   Int_t	         fIsPrimary;         //!  is track primary?
   Double_t       fCharge;	       //!  track charge
   Int_t          fPdgId;             //!  pdg id of particle
+  Int_t          fStation; 
   Float_t        fLightYield;
-  TClonesArray*  fArmTrigCollection;        //! Hit collection
+  TClonesArray*  fBCCollection;        //! Hit collection
   Double32_t     fTimeIn;              //!  time
   Double32_t     fTimeOut;              //!  time
   Double32_t     fLengthtrack;            //!  length	
@@ -149,13 +150,13 @@ class BmnArmTrig : public FairDetector
 	// reset all parameters   
   void ResetParameters();
 
-  ClassDef(BmnArmTrig,2)
+  ClassDef(BmnBC,2)
 
 }; 
 
 
 //------------------------------------------------------------------------------------------------------------------------
-inline void BmnArmTrig::ResetParameters() 
+inline void BmnBC::ResetParameters() 
 {
 	fTrackID = fVolumeID = 0;
 	fPosIn.SetXYZ(0.0, 0.0, 0.0);

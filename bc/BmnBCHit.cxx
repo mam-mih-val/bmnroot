@@ -1,0 +1,27 @@
+#include "BmnBCHit.h"
+
+BmnBCHit::BmnBCHit(){
+}
+
+
+BmnBCHit::BmnBCHit(Double_t ELoss1, Double_t ELoss2,Double_t ELoss3,Double_t ELoss4, Int_t Hits){
+    NHits = Hits;
+    fELoss1 = ELoss1;
+    fELoss2 = ELoss2;
+    fELoss3 = ELoss3;
+    fELoss4 = ELoss4;
+    const double a_out = 0.349425;//-0.138267;
+    const double b_out = 1098.37;//1183.78;
+    const double c_out = -591.855;//139.747;
+    Double_t x = TMath::Sqrt(ELoss3*ELoss4);
+    if (x!=0){
+        ZOut = TMath::Sqrt(a_out + b_out * x + c_out * x * x);
+    }else{
+        ZOut = -1;
+    }
+}
+
+BmnBCHit::~BmnBCHit() {
+}
+
+ClassImp(BmnBCHit)

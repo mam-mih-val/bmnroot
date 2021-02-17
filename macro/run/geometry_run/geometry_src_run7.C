@@ -55,4 +55,8 @@ void geometry(FairRunSim *fRun)
     arm->SetGeometryFileName("SRCArmTriggers_Spring2018.root");
     fRun->AddModule(arm);
 
+    FairDetector* bc = new BmnBC("BC", kTRUE);
+    bc->SetGeometryFileName("BC_RunSRCSpring2018.root");
+    fRun->AddModule(bc);
+
 }

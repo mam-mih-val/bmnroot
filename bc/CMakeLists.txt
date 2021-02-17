@@ -1,9 +1,12 @@
-# Create a library called "libArmTrig"
+# Create a library called "libBC" which includes the source files given in
+# the array .
+# The extension is already found.  Any number of sources could be listed here.
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
+ ${CMAKE_SOURCE_DIR}/mcstack
  ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/armTriggers
+ ${CMAKE_SOURCE_DIR}/bc
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -23,18 +26,18 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnArmTrig.cxx 
-BmnArmTrigPoint.cxx
-BmnArmTrigHit.cxx
-BmnArmTrigHitProducer.cxx
-#BmnArmTrigContFact.cxx  
-#BmnArmTrigGeo.cxx 
-#BmnArmTrigGeoPar.cxx
+BmnBC.cxx 
+BmnBCPoint.cxx  
+BmnBCContFact.cxx  
+BmnBCGeo.cxx 
+BmnBCGeoPar.cxx
+BmnBCHit.cxx
+BmnBCHitProducer.cxx
 )
 
 Set(HEADERS)
-Set(LINKDEF BmnArmTrigLinkDef.h)
-Set(LIBRARY_NAME ArmTrig)
-Set(DEPENDENCIES BmnData Base Core)
+Set(LINKDEF BmnBCLinkDef.h)
+Set(LIBRARY_NAME BC)
+Set(DEPENDENCIES Core Base)
 
 GENERATE_LIBRARY()

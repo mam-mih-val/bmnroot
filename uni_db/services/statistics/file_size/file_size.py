@@ -103,8 +103,7 @@ class SizeStatComputer:
                         unsuccessful_list.append(file_path)
                         continue
                     run_num = run_num.group()
-                    
-                    
+                                        
                     if self.SOURCE == "exp":
                         run_count = self.get_events_count_by_run(run_num)
                     else:  # "sim"
@@ -116,11 +115,13 @@ class SizeStatComputer:
                         unsuccessful_list.append(file_path)
                         continue
                     
-                    # uproot_count = self.uproot_event_count(file_path)
-                    # print(f"File: {file}  Uproot events: {uproot_count}  DB events: {run_count}")
-                    # if uproot_count != run_count:
-                    #     print("WARNING EVENT COUNTS NOT EQUAL!!!")
-
+                    if self.SOURCE == "exp":
+                        uproot_count = self.uproot_event_count(file_path)
+                        # if None, file is probably not a root file at all
+                        if uproot_count != None and uproot_count != run_count:
+                            print(f"\nFile {file_path} has {uproot_count} events but DB reports {run_count} events - skipping.")
+                            unsuccessful_list.append(file_path)
+                            continue
                     
                     filesize_bytes_per_event = filesize_bytes / run_count
                     if self.EVENT_SIZE_LIMIT_LOW is not None and self.EVENT_SIZE_LIMIT_HIGH is not None:
@@ -151,7 +152,7 @@ class SizeStatComputer:
                     for elem in unsuccessful_list:
                         f.write(elem + "\n")
                 print(f"Unsuccessfully processed files list ({len(unsuccessful_list)}/{files_parsed_overall}, {(100*len(unsuccessful_list)/files_parsed_overall):.1f}%)"\
-                    f" was saved to {config.UNSUCCESSFUL_LOG_FILE}")
+                    f" was saved to {config.UNSUCCESSFUL_LOG_FILE}\n")
         return np.array(filesize_arr), np.array(filesize_per_event)
 
 
@@ -208,9 +209,12 @@ class SizeStatComputer:
 
 
     def uproot_event_count(self, file_path):
-        r = uproot.open(file_path)
-        bmndata = list(filter(lambda x: x.startswith("bmndata;"), r.keys()))
-        if len(bmndata) != 2:
+        try:
+            r = uproot.open(file_path)
+        except ValueError:
             return None
-        second_num = sorted(list(map(lambda s: int(s[8:]), bmndata)))[1]
+        bmndata = list(filter(lambda x: x.startswith("bmndata;"), r.keys()))
+        if len(bmndata) not in [1, 2]:
+            return None
+        second_num = sorted(list(map(lambda s: int(s[8:]), bmndata)))[-1]
         return r['bmndata;' + str(second_num)].member('fEntries') - 1

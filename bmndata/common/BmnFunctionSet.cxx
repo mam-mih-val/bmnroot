@@ -20,6 +20,17 @@ bool BmnFunctionSet::CheckFileExist(TString& fileName)
     return true;
 }
 
+// check whether directory exists
+bool BmnFunctionSet::CheckDirectoryExist(TString& fileName)
+{
+    gSystem->ExpandPathName(fileName);
+    TString dirName(gSystem->DirName(fileName.Data()));
+    if (gSystem->AccessPathName(dirName.Data()) == true)
+        return false;
+
+    return true;
+}
+
 bool BmnFunctionSet::isSimulationFile(TString fileName)
 {
     gSystem->ExpandPathName(fileName);

@@ -9,6 +9,8 @@ class BmnFunctionSet
  public:
     // check whether file exists
     static bool CheckFileExist(TString& fileName);
+    // check whether directory exists
+    static bool CheckDirectoryExist(TString& fileName);
     // define whether simulation file
     static bool isSimulationFile(TString fileName);
 

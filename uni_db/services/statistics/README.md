@@ -62,9 +62,9 @@ See also the `examples` sub-directory.
 ```
 git clone -b dev --recursive https://git.jinr.ru/nica/bmnroot.git
 cd bmnroot/uni_db/services/statistics/
-python3.6 -m venv MYENV
-source MYENV/bin/activate
+python3.6 -m venv myenv
+source myenv/bin/activate
 pip install -r requirements.txt
 
-(MYENV) [user@host statistics]$ python3 stats.py --size --dir /eos/nica/bmn/exp/raw/run7/ --config config.json --recursive
+(myenv) [user@host statistics]$ python3 stats.py --size --dir /eos/nica/bmn/exp/raw/run7/ --config config-size.json --recursive
 ```

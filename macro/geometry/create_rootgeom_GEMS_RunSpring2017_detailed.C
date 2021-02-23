@@ -51,10 +51,10 @@ const Double_t ZModuleShifts[NStations][NMaxModules] = {
 };
 
 //rotations of stations around y-axis by 180 deg.
-const Bool_t YStationRotations[NStations] = {false/*0*/, false/*1*/, false/*2*/, false/*3*/, false/*4*/, true/*5*/};
+const Bool_t YStationRotations[NStations] = {false/*0*/, false/*1*/, false/*2*/, true/*3*/, false/*4*/, true/*5*/};
 
 //rotations of stations around x-axis by 180 deg.
-const Bool_t XStationRotations[NStations] = {false/*0*/, false/*1*/, false/*2*/, false/*3*/, false/*4*/, false/*5*/};
+const Bool_t XStationRotations[NStations] = {false/*0*/, true/*1*/, false/*2*/, true/*3*/, false/*4*/, false/*5*/};
 
 //GEM plane sizes (66x41 type) -------------------------------------------------
 const Double_t XModuleSize_Station66x41 = 66.0;
@@ -104,6 +104,7 @@ TGeoVolume *CreateStation(TString station_name);
 TGeoVolume *CreateModule_Station66x41(TString module_name, Double_t xsize, Double_t ysize, Double_t zsize);
 TGeoVolume *CreateLayersForModule_Station66x41(TString layer_name);
 TGeoVolume *CreateFrameForModule_Station66x41(TString frame_name, Double_t dx, Double_t dy, Double_t dz);
+TGeoVolume *CreateBasicFrameForModule_Station66x41(TString frame_name);
 
 TGeoVolume *CreateModule_Station163x45(TString module_name, Double_t xsize, Double_t ysize, Double_t zsize, Double_t hole_radius);
 TGeoVolume *CreateLayersForModule_Station163x45(TString layer_name);
@@ -250,7 +251,7 @@ void create_rootgeom_GEMS_RunSpring2017_detailed() {
             TGeoVolume *station = CreateStation(TString("station")+ TString::Itoa(stationNum, 10));
             TGeoVolume *module0 = CreateModule_Station66x41(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station66x41, YModuleSize_Station66x41, ZModuleSize_Station66x41);
             TGeoVolume *layers0 = CreateLayersForModule_Station66x41(TString("layer0_")+station->GetName());
-            //TGeoVolume *frame0 = CreateFrameForModule_Station66x41(TString("frame0_")+station->GetName(), dXFrame_Station66x41, dYFrame_Station66x41, dZFrame_Station66x41);
+            TGeoVolume *frame0 = CreateBasicFrameForModule_Station66x41(TString("frame0_")+station->GetName());
 
             TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
                 module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station66x41*0.5);
@@ -260,12 +261,17 @@ void create_rootgeom_GEMS_RunSpring2017_detailed() {
                 if(XStationRotations[stationNum] == true) layers0_transform->RotateX(180.0);
                 layers0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station66x41*0.5);
 
+            TGeoCombiTrans *frame0_transform = new TGeoCombiTrans();
+                if(YStationRotations[stationNum] == true) frame0_transform->RotateY(180.0);
+                if(XStationRotations[stationNum] == true) frame0_transform->RotateX(180.0);
+                frame0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station66x41*0.5);
+
             TGeoCombiTrans *station_transform = new TGeoCombiTrans();
                 station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
 
             station->AddNode(module0, 0, new TGeoCombiTrans(*module0_transform)); //module
             station->AddNode(layers0, 0, new TGeoCombiTrans(*layers0_transform)); //layers
-            //station->AddNode(frame0, 0, new TGeoCombiTrans(*module0_transform)); //frame
+            station->AddNode(frame0, 0, new TGeoCombiTrans(*frame0_transform)); //frame
 
             GEMS->AddNode(station, 0, station_transform);
         }
@@ -283,8 +289,8 @@ void create_rootgeom_GEMS_RunSpring2017_detailed() {
         TGeoVolume *layers0 = CreateLayersForModule_Station66x41(TString("layer0_")+station->GetName());
         TGeoVolume *layers1 = CreateLayersForModule_Station66x41(TString("layer1_")+station->GetName());
 
-        //TGeoVolume *frame0 = CreateFrameForModule_Station66x41(TString("frame0_")+station->GetName(), dXFrame_Station66x41, dYFrame_Station66x41, dZFrame_Station66x41+0.2);
-        //TGeoVolume *frame1 = CreateFrameForModule_Station66x41(TString("frame1_")+station->GetName(), dXFrame_Station66x41, dYFrame_Station66x41, dZFrame_Station66x41);
+        TGeoVolume *frame0 = CreateBasicFrameForModule_Station66x41(TString("frame0_")+station->GetName());
+        TGeoVolume *frame1 = CreateBasicFrameForModule_Station66x41(TString("frame1_")+station->GetName());
 
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
             module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+(ZModuleSize_Station66x41+0.2)*0.5); //extended module
@@ -303,6 +309,16 @@ void create_rootgeom_GEMS_RunSpring2017_detailed() {
             layers1_transform->ReflectX(true);
             layers1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1], ZModuleShifts[stationNum][1]+ZModuleSize_Station163x45*0.5);
 
+        TGeoCombiTrans *frame0_transform = new TGeoCombiTrans();
+                if(YStationRotations[stationNum] == true) frame0_transform->RotateY(180.0);
+                if(XStationRotations[stationNum] == true) frame0_transform->RotateX(180.0);
+                frame0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station66x41*0.5);
+
+        TGeoCombiTrans *frame1_transform = new TGeoCombiTrans();
+                //if(YStationRotations[stationNum] == true) frame1_transform->RotateY(180.0);
+                if(XStationRotations[stationNum] == true) frame1_transform->RotateX(180.0);
+                frame1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1], ZModuleShifts[stationNum][1]+ZModuleSize_Station66x41*0.5);
+
         TGeoCombiTrans *station_transform = new TGeoCombiTrans();
             station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
 
@@ -310,9 +326,8 @@ void create_rootgeom_GEMS_RunSpring2017_detailed() {
         station->AddNode(module1, 0, new TGeoCombiTrans(*module1_transform)); //module
         station->AddNode(layers0, 0, new TGeoCombiTrans(*layers0_transform)); //layers
         station->AddNode(layers1, 0, new TGeoCombiTrans(*layers1_transform)); //layers
-
-        //station->AddNode(frame0, 0, new TGeoCombiTrans(*module0_transform)); //frame
-        //station->AddNode(frame1, 0, new TGeoCombiTrans(*module1_transform)); //frame
+        station->AddNode(frame0, 0, new TGeoCombiTrans(*frame0_transform)); //frame
+        station->AddNode(frame1, 0, new TGeoCombiTrans(*frame1_transform)); //frame
 
         GEMS->AddNode(station, 0, station_transform);
     }
@@ -332,9 +347,6 @@ void create_rootgeom_GEMS_RunSpring2017_detailed() {
             TGeoVolume *layers1 = CreateLayersForModule_Station163x45(TString("layer1_")+station->GetName());
 
             TGeoVolume *frame_upper = CreateFrameForHalfPlane_Station163x45(TString("frame_upper_")+station->GetName());
-
-            //TGeoVolume *frame0 = CreateFrameForModule_Station163x45(TString("frame0_")+station->GetName(), dXFrame_Station163x45, dYFrame_Station163x45, dZFrame_Station163x45, 4.0+1.75);
-            //TGeoVolume *frame1 = CreateFrameForModule_Station163x45(TString("frame1_")+station->GetName(), dXFrame_Station163x45, dYFrame_Station163x45, dZFrame_Station163x45, 4.0+1.75);
 
             TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
                 module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
@@ -466,6 +478,202 @@ TGeoVolume *CreateFrameForModule_Station66x41(TString frame_name, Double_t dx, D
 
     return composite_frameV;
 }
+
+TGeoVolume *CreateBasicFrameForModule_Station66x41(TString frame_name) {
+
+    //frame volumes
+    TGeoVolume *frames = new TGeoVolumeAssembly(frame_name);
+    frames->SetMedium(pMedAir);
+
+    //back epoxide frame -------------------------------------------------------
+    Double_t backEpoxideFramePart_XSize = 75.1; //cm
+    Double_t backEpoxideFramePart_YSize = 48.5; //cm
+    Double_t backEpoxideFramePart_ZSize = 0.7; //cm
+
+    //layer shape
+    TGeoShape *backEpoxideFramePartS = new TGeoBBox(TString("backEpoxideFramePartS")+=TString("_") + frames->GetName(), backEpoxideFramePart_XSize*0.5, backEpoxideFramePart_YSize*0.5, backEpoxideFramePart_ZSize*0.5);
+    TGeoShape *backEpoxideActiveAreaS = new TGeoBBox(TString("backEpoxideActiveAreaS")+=TString("_") + frames->GetName(), XModuleSize_Station66x41*0.5, YModuleSize_Station66x41*0.5, ZModuleSize_Station66x41*0.5);
+
+    TGeoTranslation *backEpoxideFramePart_pos = new TGeoTranslation();
+        backEpoxideFramePart_pos->SetName("backEpoxideFramePart_pos");
+        backEpoxideFramePart_pos->SetDx(-2.75/*shift*/);
+        backEpoxideFramePart_pos->SetDy(+2.05/*shift*/);
+        backEpoxideFramePart_pos->SetDz(0.0);
+        backEpoxideFramePart_pos->RegisterYourself();
+
+    TGeoCompositeShape *backEpoxideFrameS = new TGeoCompositeShape();
+    backEpoxideFrameS->SetName(TString("backEpoxideFrameS")+=TString("_") + frames->GetName());
+    {
+        TString expression = "backEpoxideFramePartS"; expression += TString("_") + frames->GetName();
+            expression += ":backEpoxideFramePart_pos";
+            expression += "-backEpoxideActiveAreaS"; expression += TString("_") + frames->GetName();
+
+        backEpoxideFrameS->MakeNode(expression);
+        backEpoxideFrameS->ComputeBBox(); //need to compute a bounding box
+    }
+
+    TGeoVolume *backEpoxideFrameV = new TGeoVolume(TString("backEpoxideFrameV")+=TString("_") + frames->GetName(), backEpoxideFrameS);
+
+    //volume medium
+    TGeoMedium *backEpoxideFrameV_medium = pMedEpoxideCompound;
+    if(backEpoxideFrameV_medium) {
+        backEpoxideFrameV->SetMedium(backEpoxideFrameV_medium);
+    }
+    else Fatal("Main", "Invalid medium for backEpoxideFrameV!");
+
+    //volume visual property (transparency)
+    backEpoxideFrameV->SetLineColor(TColor::GetColor("#ccccff"));
+    backEpoxideFrameV->SetTransparency(0);
+
+    TGeoCombiTrans *backEpoxideFrame_transf[1];
+
+    backEpoxideFrame_transf[0] = new TGeoCombiTrans();
+    backEpoxideFrame_transf[0]->SetDx(0.0);
+    backEpoxideFrame_transf[0]->SetDy(0.0);
+    backEpoxideFrame_transf[0]->SetDz(+(ZModuleSize_Station66x41-backEpoxideFramePart_ZSize)*0.5 + backEpoxideFramePart_ZSize);
+
+    frames->AddNode(backEpoxideFrameV, 0, backEpoxideFrame_transf[0]);
+    //--------------------------------------------------------------------------
+
+    //middle epoxide frame -----------------------------------------------------
+    Double_t middleEpoxideFrameBigPart_XSize = 69.3; //cm
+    Double_t middleEpoxideFrameBigPart_YSize = 44.7; //cm
+    Double_t middleEpoxideFrameBigPart_ZSize = 0.9; //cm
+
+    Double_t middleEpoxideFrameSmallPart_XSize = 3.4; //cm
+    Double_t middleEpoxideFrameSmallPart_YSize = 16.8; //cm
+    Double_t middleEpoxideFrameSmallPart_ZSize = 0.9; //cm
+
+    Double_t middleEpoxideFrameHoleArea_XSize = 66.5; //cm
+    Double_t middleEpoxideFrameHoleArea_YSize = 41.9; //cm
+    Double_t middleEpoxideFrameHoleArea_ZSize = 0.9+0.1; //cm
+
+    //layer shape
+    TGeoShape *middleEpoxideFrameBigPartS = new TGeoBBox(TString("middleEpoxideFrameBigPartS")+=TString("_") + frames->GetName(), middleEpoxideFrameBigPart_XSize*0.5, middleEpoxideFrameBigPart_YSize*0.5, middleEpoxideFrameBigPart_ZSize*0.5);
+    TGeoShape *middleEpoxideFrameSmallPartS = new TGeoBBox(TString("middleEpoxideFrameSmallPartS")+=TString("_") + frames->GetName(), middleEpoxideFrameSmallPart_XSize*0.5, middleEpoxideFrameSmallPart_YSize*0.5, middleEpoxideFrameSmallPart_ZSize*0.5);
+    TGeoShape *middleEpoxideHoleAreaS = new TGeoBBox(TString("middleEpoxideHoleAreaS")+=TString("_") + frames->GetName(), middleEpoxideFrameHoleArea_XSize*0.5, middleEpoxideFrameHoleArea_YSize*0.5, middleEpoxideFrameHoleArea_ZSize*0.5);
+
+    TGeoTranslation *middleEpoxideFrameBigPart_pos = new TGeoTranslation();
+        middleEpoxideFrameBigPart_pos->SetName("middleEpoxideFrameBigPart_pos");
+        middleEpoxideFrameBigPart_pos->SetDx(0.0/*shift*/);
+        middleEpoxideFrameBigPart_pos->SetDy(+0.15/*shift*/);
+        middleEpoxideFrameBigPart_pos->SetDz(0.0);
+        middleEpoxideFrameBigPart_pos->RegisterYourself();
+
+    TGeoTranslation *middleEpoxideFrameSmallPart_pos = new TGeoTranslation();
+        middleEpoxideFrameSmallPart_pos->SetName("middleEpoxideFrameSmallPart_pos");
+        middleEpoxideFrameSmallPart_pos->SetDx(-(middleEpoxideFrameBigPart_XSize*0.5 + middleEpoxideFrameSmallPart_XSize*0.5));
+        middleEpoxideFrameSmallPart_pos->SetDy(middleEpoxideFrameBigPart_YSize*0.5 - middleEpoxideFrameSmallPart_YSize*0.5 + 0.15/*shift*/);
+        middleEpoxideFrameSmallPart_pos->SetDz(0.0);
+        middleEpoxideFrameSmallPart_pos->RegisterYourself();
+
+    TGeoCompositeShape *middleEpoxideFrameS = new TGeoCompositeShape();
+    middleEpoxideFrameS->SetName(TString("middleEpoxideFrameS")+=TString("_") + frames->GetName());
+    {
+        TString expression = "middleEpoxideFrameBigPartS"; expression += TString("_") + frames->GetName();
+            expression += ":middleEpoxideFrameBigPart_pos";
+            expression += "-middleEpoxideHoleAreaS"; expression += TString("_") + frames->GetName();
+            expression += "+middleEpoxideFrameSmallPartS"; expression += TString("_") + frames->GetName();
+            expression += ":middleEpoxideFrameSmallPart_pos";
+
+        middleEpoxideFrameS->MakeNode(expression);
+        middleEpoxideFrameS->ComputeBBox(); //need to compute a bounding box
+    }
+
+    TGeoVolume *middleEpoxideFrameV = new TGeoVolume(TString("middleEpoxideFrameV")+=TString("_") + frames->GetName(), middleEpoxideFrameS);
+
+    //volume medium
+    TGeoMedium *middleEpoxideFrameV_medium = pMedEpoxideCompound;
+    if(middleEpoxideFrameV_medium) {
+        middleEpoxideFrameV->SetMedium(middleEpoxideFrameV_medium);
+    }
+    else Fatal("Main", "Invalid medium for middleEpoxideFrameV!");
+
+    //volume visual property (transparency)
+    middleEpoxideFrameV->SetLineColor(TColor::GetColor("#ccccff"));
+    middleEpoxideFrameV->SetTransparency(0);
+
+    TGeoCombiTrans *middleEpoxideFrame_transf[1];
+
+    middleEpoxideFrame_transf[0] = new TGeoCombiTrans();
+    middleEpoxideFrame_transf[0]->SetDx(0.0);
+    middleEpoxideFrame_transf[0]->SetDy(0.0);
+    middleEpoxideFrame_transf[0]->SetDz(0.0);
+
+    frames->AddNode(middleEpoxideFrameV, 0, middleEpoxideFrame_transf[0]);
+    //--------------------------------------------------------------------------
+
+    //front epoxide frame -----------------------------------------------------
+    Double_t frontEpoxideFrameBigPart_XSize = 69.5; //cm
+    Double_t frontEpoxideFrameBigPart_YSize = 44.7; //cm
+    Double_t frontEpoxideFrameBigPart_ZSize = 0.7; //cm
+
+    Double_t frontEpoxideFrameSmallPart_XSize = 3.2; //cm
+    Double_t frontEpoxideFrameSmallPart_YSize = 16.8; //cm
+    Double_t frontEpoxideFrameSmallPart_ZSize = 0.7; //cm
+
+    Double_t frontEpoxideFrameHoleArea_XSize = 66.0; //cm
+    Double_t frontEpoxideFrameHoleArea_YSize = 41.1; //cm
+    Double_t frontEpoxideFrameHoleArea_ZSize = 0.9+0.1; //cm
+
+    //layer shape
+    TGeoShape *frontEpoxideFrameBigPartS = new TGeoBBox(TString("frontEpoxideFrameBigPartS")+=TString("_") + frames->GetName(), frontEpoxideFrameBigPart_XSize*0.5, frontEpoxideFrameBigPart_YSize*0.5, frontEpoxideFrameBigPart_ZSize*0.5);
+    TGeoShape *frontEpoxideFrameSmallPartS = new TGeoBBox(TString("frontEpoxideFrameSmallPartS")+=TString("_") + frames->GetName(), frontEpoxideFrameSmallPart_XSize*0.5, frontEpoxideFrameSmallPart_YSize*0.5, frontEpoxideFrameSmallPart_ZSize*0.5);
+    TGeoShape *frontEpoxideHoleAreaS = new TGeoBBox(TString("frontEpoxideHoleAreaS")+=TString("_") + frames->GetName(), frontEpoxideFrameHoleArea_XSize*0.5, frontEpoxideFrameHoleArea_YSize*0.5, frontEpoxideFrameHoleArea_ZSize*0.5);
+
+    TGeoTranslation *frontEpoxideFrameBigPart_pos = new TGeoTranslation();
+        frontEpoxideFrameBigPart_pos->SetName("frontEpoxideFrameBigPart_pos");
+        frontEpoxideFrameBigPart_pos->SetDx(0.0/*shift*/);
+        frontEpoxideFrameBigPart_pos->SetDy(+0.15/*shift*/);
+        frontEpoxideFrameBigPart_pos->SetDz(0.0);
+        frontEpoxideFrameBigPart_pos->RegisterYourself();
+
+    TGeoTranslation *frontEpoxideFrameSmallPart_pos = new TGeoTranslation();
+        frontEpoxideFrameSmallPart_pos->SetName("frontEpoxideFrameSmallPart_pos");
+        frontEpoxideFrameSmallPart_pos->SetDx(-(frontEpoxideFrameBigPart_XSize*0.5 + frontEpoxideFrameSmallPart_XSize*0.5));
+        frontEpoxideFrameSmallPart_pos->SetDy(frontEpoxideFrameBigPart_YSize*0.5 - frontEpoxideFrameSmallPart_YSize*0.5 + 0.15/*shift*/);
+        frontEpoxideFrameSmallPart_pos->SetDz(0.0);
+        frontEpoxideFrameSmallPart_pos->RegisterYourself();
+
+    TGeoCompositeShape *frontEpoxideFrameS = new TGeoCompositeShape();
+    frontEpoxideFrameS->SetName(TString("frontEpoxideFrameS")+=TString("_") + frames->GetName());
+    {
+        TString expression = "frontEpoxideFrameBigPartS"; expression += TString("_") + frames->GetName();
+            expression += ":frontEpoxideFrameBigPart_pos";
+            expression += "-frontEpoxideHoleAreaS"; expression += TString("_") + frames->GetName();
+            expression += "+frontEpoxideFrameSmallPartS"; expression += TString("_") + frames->GetName();
+            expression += ":frontEpoxideFrameSmallPart_pos";
+
+        frontEpoxideFrameS->MakeNode(expression);
+        frontEpoxideFrameS->ComputeBBox(); //need to compute a bounding box
+    }
+
+    TGeoVolume *frontEpoxideFrameV = new TGeoVolume(TString("frontEpoxideFrameV")+=TString("_") + frames->GetName(), frontEpoxideFrameS);
+
+    //volume medium
+    TGeoMedium *frontEpoxideFrameV_medium = pMedEpoxideCompound;
+    if(frontEpoxideFrameV_medium) {
+        frontEpoxideFrameV->SetMedium(frontEpoxideFrameV_medium);
+    }
+    else Fatal("Main", "Invalid medium for frontEpoxideFrameV!");
+
+    //volume visual property (transparency)
+    frontEpoxideFrameV->SetLineColor(TColor::GetColor("#ccccff"));
+    frontEpoxideFrameV->SetTransparency(0);
+
+    TGeoCombiTrans *frontEpoxideFrame_transf[1];
+
+    frontEpoxideFrame_transf[0] = new TGeoCombiTrans();
+    frontEpoxideFrame_transf[0]->SetDx(0.0);
+    frontEpoxideFrame_transf[0]->SetDy(0.0);
+    frontEpoxideFrame_transf[0]->SetDz(-(ZModuleSize_Station66x41-frontEpoxideFrameBigPart_ZSize)*0.5 - frontEpoxideFrameBigPart_ZSize);
+
+    frames->AddNode(frontEpoxideFrameV, 0, frontEpoxideFrame_transf[0]);
+    //--------------------------------------------------------------------------
+
+    return frames;
+}
+
 
 TGeoVolume *CreateLayersForModule_Station66x41(TString layer_name) {
 

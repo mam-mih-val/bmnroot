@@ -50,7 +50,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     {
     // ------- UrQMD Generator
     case URQMD:{
-        if (!BmnFunctionSet::CheckFileExist(inFile)) return;
+        if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
 
         MpdUrqmdGenerator* urqmdGen = new MpdUrqmdGenerator(inFile);
         //urqmdGen->SetEventPlane(0., 360.);
@@ -91,7 +91,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
 
     // ------- HSD/PHSD Generator
     case HSD:{
-        if (!BmnFunctionSet::CheckFileExist(inFile)) return;
+        if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
 
         MpdPHSDGenerator* hsdGen = new MpdPHSDGenerator(inFile.Data());
         //hsdGen->SetPsiRP(0.); // set fixed Reaction Plane angle instead of random
@@ -108,7 +108,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     case QGSM:
     case DCMQGSM:{
 
-        if (!BmnFunctionSet::CheckFileExist(inFile)) return;
+        if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
 
         MpdLAQGSMGenerator* guGen = new MpdLAQGSMGenerator(inFile.Data(), kFALSE);
         primGen->AddGenerator(guGen);
@@ -121,7 +121,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     }
     case DCMSMM:{
 
-        if (!BmnFunctionSet::CheckFileExist(inFile)) return;
+        if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
 
         MpdDCMSMMGenerator* smmGen = new MpdDCMSMMGenerator(inFile.Data());
         primGen->AddGenerator(smmGen);
@@ -133,12 +133,11 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
         break;
     }
 
-    default: { cout<<"ERROR: Generator name was not pre-defined: "<<generatorName<<endl; return; }
+    default: { cout<<"ERROR: Generator name was not pre-defined: "<<generatorName<<endl; exit(-3); }
     }// end of switch (generatorName)
 
     // if directory for the output file does not exist, then create
-    if (!BmnFunctionSet::CheckDirectoryExist(outFile))
-        if (gSystem->mkdir(outFile.Data(), kTRUE) != 0) return;
+    if (BmnFunctionSet::CreateDirectoryTree(outFile, 1) < 0) exit(-2);
     fRun->SetSink(new FairRootFileSink(outFile.Data()));
     fRun->SetIsMT(false);
 

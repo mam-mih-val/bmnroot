@@ -7,6 +7,7 @@
  * GEM configuration: FutureConfig2020 (7 stations)
  *
  * Created: 12.05.2020
+ * 02.03.2021 (Updated): radius of hole in active zone (4.0 -> 6.0 cm)
  * Author: Baranov D.
  */
 
@@ -146,7 +147,7 @@ const Double_t StripStereoAngleInModules[NLayersInModule] = {+15.0, +15.0, -15.0
 enum StripNumberingDirection {LeftToRight, RightToLeft};
 StripNumberingDirection StripDirection[2] = { LeftToRight, RightToLeft };
 
-Double_t HoleRadius = 4.0;
+Double_t HoleRadius = 4.0+2.0;
 
 //dead zones (upper half-plane) ------------------------------------------------
 Double_t XDeadZone_Rect_UHP[4] = {
@@ -369,7 +370,7 @@ void CalculateParameters(TString config_name, TString author, TString date) {
         FileOut << " xPosition=\"" << XStationPositions[istation] << "\"";
         FileOut << " yPosition=\"" << YStationPositions[istation] << "\"";
         FileOut << " zPosition=\"" << ZStationPositions[istation] << "\"";
-        FileOut << " beamHole=\"" << "4.0" << "\"";
+        FileOut << " beamHole=\"" << HoleRadius << "\"";
         FileOut << ">\n";
         FileOut << "\n";
 

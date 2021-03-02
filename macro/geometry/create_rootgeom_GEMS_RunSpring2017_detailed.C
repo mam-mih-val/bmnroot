@@ -1,9 +1,9 @@
 /*
  * Baranov D.
  * 09.02.2021 (created)
+ * 02.03.2021 (Updated): radius of hole in active zone (4.0 -> 6.0 cm)
  * Use this macro to create ROOT geometry for the RunSpring2017 (RUN-6) GEM configuration
  * with passive volumes (frames, al. cable supports, ...)
- *
  */
 
 //---------------------------
@@ -340,8 +340,8 @@ void create_rootgeom_GEMS_RunSpring2017_detailed() {
 
             TGeoVolume *station = CreateStation(TString("station")+ TString::Itoa(stationNum, 10));
 
-            TGeoVolume *module0 = CreateModule_Station163x45(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0+1.75);
-            TGeoVolume *module1 = CreateModule_Station163x45(TString("Sensor_module1_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0+1.75);
+            TGeoVolume *module0 = CreateModule_Station163x45(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0+2.0);
+            TGeoVolume *module1 = CreateModule_Station163x45(TString("Sensor_module1_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0+2.0);
 
             TGeoVolume *layers0 = CreateLayersForModule_Station163x45(TString("layer0_")+station->GetName());
             TGeoVolume *layers1 = CreateLayersForModule_Station163x45(TString("layer1_")+station->GetName());

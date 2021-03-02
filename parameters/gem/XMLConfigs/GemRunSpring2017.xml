@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
+    02.03.2021 (Updated): radius of hole in active zone (4.0 -> 6.0 cm)
+
     A right-handed coordinates are used.
     If you look at the GEMs from the target:
         x-axis is directed to the left,
@@ -162,17 +164,17 @@
             </Layer>
             <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="40.0" yorig="-22.5" xsize="40.0" ysize="15.0" stripDirection="LeftToRight" lborder="LeftBottom" rborder="RightBottom">
                 <DeadZone> <!-- hole -->
-                    <DeadPoint x="4.0" y="-22.5" />
-                    <DeadPoint x="4.0" y="-18.5" />
-                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="6.0" y="-22.5" />
+                    <DeadPoint x="6.0" y="-16.5" />
+                    <DeadPoint x="0.0" y="-16.5" />
                     <DeadPoint x="0.0" y="-22.5" />
                 </DeadZone>
             </Layer>
             <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="42.01" yorig="-22.5" xsize="42.01" ysize="15.0" stripDirection="LeftToRight" lborder="LeftBottom" rborder="RightBottom">
                 <DeadZone> <!-- hole -->
-                    <DeadPoint x="4.0" y="-22.5" />
-                    <DeadPoint x="4.0" y="-18.5" />
-                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="6.0" y="-22.5" />
+                    <DeadPoint x="6.0" y="-16.5" />
+                    <DeadPoint x="0.0" y="-16.5" />
                     <DeadPoint x="0.0" y="-22.5" />
                 </DeadZone>
                 <DeadZone> <!-- triangle -->
@@ -204,17 +206,17 @@
             <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="40.0" ysize="15.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightTop">
                 <DeadZone> <!-- hole -->
                     <DeadPoint x="0.0" y="-22.5" />
-                    <DeadPoint x="0.0" y="-18.5" />
-                    <DeadPoint x="-4.0" y="-18.5" />
-                    <DeadPoint x="-4.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-16.5" />
+                    <DeadPoint x="-6.0" y="-16.5" />
+                    <DeadPoint x="-6.0" y="-22.5" />
                 </DeadZone>
             </Layer>
             <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="42.01" ysize="15.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightTop">
                 <DeadZone> <!-- hole -->
                     <DeadPoint x="0.0" y="-22.5" />
-                    <DeadPoint x="0.0" y="-18.5" />
-                    <DeadPoint x="-4.0" y="-18.5" />
-                    <DeadPoint x="-4.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-16.5" />
+                    <DeadPoint x="-6.0" y="-16.5" />
+                    <DeadPoint x="-6.0" y="-22.5" />
                 </DeadZone>
                 <DeadZone> <!-- triangle -->
                     <DeadPoint x="-37.99" y="-22.5" />
@@ -249,17 +251,17 @@
             </Layer>
             <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="40.0" yorig="-22.5" xsize="40.0" ysize="15.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightTop">
                 <DeadZone> <!-- hole -->
-                    <DeadPoint x="4.0" y="-22.5" />
-                    <DeadPoint x="4.0" y="-18.5" />
-                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="6.0" y="-22.5" />
+                    <DeadPoint x="6.0" y="-16.5" />
+                    <DeadPoint x="0.0" y="-16.5" />
                     <DeadPoint x="0.0" y="-22.5" />
                 </DeadZone>
             </Layer>
             <Layer zoneNumber="1" type="upper" stripAngle="-15.0" pitch="0.08" xorig="42.01" yorig="-22.5" xsize="42.01" ysize="15.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightTop">
                 <DeadZone> <!-- hole -->
-                    <DeadPoint x="4.0" y="-22.5" />
-                    <DeadPoint x="4.0" y="-18.5" />
-                    <DeadPoint x="0.0" y="-18.5" />
+                    <DeadPoint x="6.0" y="-22.5" />
+                    <DeadPoint x="6.0" y="-16.5" />
+                    <DeadPoint x="0.0" y="-16.5" />
                     <DeadPoint x="0.0" y="-22.5" />
                 </DeadZone>
                 <DeadZone> <!-- triangle -->
@@ -291,17 +293,17 @@
             <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="40.0" ysize="15.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightBottom">
                 <DeadZone> <!-- hole -->
                     <DeadPoint x="0.0" y="-22.5" />
-                    <DeadPoint x="0.0" y="-18.5" />
-                    <DeadPoint x="-4.0" y="-18.5" />
-                    <DeadPoint x="-4.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-16.5" />
+                    <DeadPoint x="-6.0" y="-16.5" />
+                    <DeadPoint x="-6.0" y="-22.5" />
                 </DeadZone>
             </Layer>
             <Layer zoneNumber="1" type="upper" stripAngle="-15.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="42.01" ysize="15.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightBottom">
                 <DeadZone> <!-- hole -->
                     <DeadPoint x="0.0" y="-22.5" />
-                    <DeadPoint x="0.0" y="-18.5" />
-                    <DeadPoint x="-4.0" y="-18.5" />
-                    <DeadPoint x="-4.0" y="-22.5" />
+                    <DeadPoint x="0.0" y="-16.5" />
+                    <DeadPoint x="-6.0" y="-16.5" />
+                    <DeadPoint x="-6.0" y="-22.5" />
                 </DeadZone>
                 <DeadZone> <!-- triangle -->
                     <DeadPoint x="-42.01" y="-22.5" />

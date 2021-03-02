@@ -13,7 +13,7 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-ElogDbBeam::ElogDbBeam(UniDbConnection* connUniDb, TString beam)
+ElogDbBeam::ElogDbBeam(UniConnection* connUniDb, TString beam)
 {
 	connectionUniDb = connUniDb;
 
@@ -30,7 +30,7 @@ ElogDbBeam::~ElogDbBeam()
 // -----   Creating new beam in the database  ---------------------------
 ElogDbBeam* ElogDbBeam::CreateBeam(TString beam)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -63,7 +63,7 @@ ElogDbBeam* ElogDbBeam::CreateBeam(TString beam)
 // -----  Get beam from the database  ---------------------------
 ElogDbBeam* ElogDbBeam::GetBeam(TString beam)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -108,7 +108,7 @@ ElogDbBeam* ElogDbBeam::GetBeam(TString beam)
 // -----  Check beam exists in the database  ---------------------------
 bool ElogDbBeam::CheckBeamExists(TString beam)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -149,7 +149,7 @@ bool ElogDbBeam::CheckBeamExists(TString beam)
 // -----  Delete beam from the database  ---------------------------
 int ElogDbBeam::DeleteBeam(TString beam)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -180,7 +180,7 @@ int ElogDbBeam::DeleteBeam(TString beam)
 // -----  Print all 'beams'  ---------------------------------
 int ElogDbBeam::PrintAll()
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();

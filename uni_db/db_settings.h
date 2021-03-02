@@ -4,7 +4,7 @@
 const char* const UNI_DB_USERNAME = "db_reader";        // set your priviledge user if required (don't forget to recompile after changing)
 const char* const UNI_DB_PASSWORD = "reader_pass";      // set your priviledge user if required (don't forget to recompile after changing)
 const char* const UNI_DB_NAME = "bmn_db";               // option for DB adninistrator only
-const char* const UNI_DB_HOST = "vm221-53.jinr.ru";     // option for DB adninistrator only
+const char* const UNI_DB_HOST = "nc13.jinr.ru";         // option for DB adninistrator only
 
 const char* const TANGO_DB_USERNAME = "tango";          // option for DB adninistrator only
 const char* const TANGO_DB_PASSWORD = "tangompd";       // option for DB adninistrator only

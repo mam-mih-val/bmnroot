@@ -11,9 +11,9 @@
 #include <iostream>
 using namespace std;
 
-/* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+/* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbDetector::UniDbDetector(UniDbConnection* connUniDb, TString detector_name, TString* description)
+UniDbDetector::UniDbDetector(UniConnection* connUniDb, TString detector_name, TString* description)
 {
 	connectionUniDb = connUniDb;
 
@@ -33,7 +33,7 @@ UniDbDetector::~UniDbDetector()
 // -----   Creating new detector in the database  ---------------------------
 UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* description)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -53,7 +53,7 @@ UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* des
 	// inserting new detector to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new detector to the Database has been failed"<<endl;
+		cout<<"ERROR: inserting new detector to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -74,7 +74,7 @@ UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* des
 // -----  Get detector from the database  ---------------------------
 UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -88,7 +88,7 @@ UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 	// get detector from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting detector from the database has been failed"<<endl;
+		cout<<"ERROR: getting detector from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -101,7 +101,7 @@ UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: detector wasn't found in the database"<<endl;
+		cout<<"ERROR: detector was not found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -123,7 +123,7 @@ UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 // -----  Check detector exists in the database  ---------------------------
 bool UniDbDetector::CheckDetectorExists(TString detector_name)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -137,7 +137,7 @@ bool UniDbDetector::CheckDetectorExists(TString detector_name)
 	// get detector from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting detector from the database has been failed"<<endl;
+		cout<<"ERROR: getting detector from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -164,7 +164,7 @@ bool UniDbDetector::CheckDetectorExists(TString detector_name)
 // -----  Delete detector from the database  ---------------------------
 int UniDbDetector::DeleteDetector(TString detector_name)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -180,7 +180,7 @@ int UniDbDetector::DeleteDetector(TString detector_name)
 	// delete detector from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting detector from the dataBase has been failed"<<endl;
+		cout<<"ERROR: deleting detector from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -195,7 +195,7 @@ int UniDbDetector::DeleteDetector(TString detector_name)
 // -----  Print all 'detectors'  ---------------------------------
 int UniDbDetector::PrintAll()
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -208,7 +208,7 @@ int UniDbDetector::PrintAll()
 	// get all 'detectors' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all 'detectors' from the dataBase has been failed"<<endl;
+		cout<<"ERROR: getting all 'detectors' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -262,7 +262,7 @@ int UniDbDetector::SetDetectorName(TString detector_name)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about detector has been failed"<<endl;
+		cout<<"ERROR: updating information about detector has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -300,7 +300,7 @@ int UniDbDetector::SetDescription(TString* description)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about detector has been failed"<<endl;
+		cout<<"ERROR: updating information about detector has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -324,7 +324,7 @@ void UniDbDetector::Print()
 
 	return;
 }
-/* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
+/* END OF GENERATED CLASS PART (SHOULD NOT BE CHANGED MANUALLY) */
 
 // -------------------------------------------------------------------
 ClassImp(UniDbDetector);

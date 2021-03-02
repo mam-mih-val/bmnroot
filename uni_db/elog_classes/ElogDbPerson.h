@@ -13,14 +13,14 @@
 #include "TString.h"
 #include "TDatime.h"
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 
 class ElogDbPerson
 {
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-	UniDbConnection* connectionUniDb;
+        UniConnection* connectionUniDb;
 
 	/// person id
 	int i_person_id;
@@ -30,7 +30,7 @@ class ElogDbPerson
 	int i_is_active;
 
 	//Constructor
-	ElogDbPerson(UniDbConnection* connUniDb, int person_id, TString person_name, int is_active);
+        ElogDbPerson(UniConnection* connUniDb, int person_id, TString person_name, int is_active);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:

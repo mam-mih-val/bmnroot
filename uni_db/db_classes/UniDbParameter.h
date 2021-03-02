@@ -13,7 +13,7 @@
 #include "TString.h"
 #include "TDatime.h"
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 #include "db_structures.h"
 
 #include <iostream>
@@ -24,7 +24,7 @@ class UniDbParameter
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-	UniDbConnection* connectionUniDb;
+        UniConnection* connectionUniDb;
 
 	/// parameter id
 	int i_parameter_id;
@@ -34,7 +34,7 @@ class UniDbParameter
 	int i_parameter_type;
 
 	//Constructor
-	UniDbParameter(UniDbConnection* connUniDb, int parameter_id, TString parameter_name, int parameter_type);
+        UniDbParameter(UniConnection* connUniDb, int parameter_id, TString parameter_name, int parameter_type);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
@@ -72,13 +72,13 @@ class UniDbParameter
 	int SetParameterName(TString parameter_name);
 	/// set parameter type of the current parameter
 	int SetParameterType(int parameter_type);
+
 	/// print information about current parameter
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
-    // enumeration 'enumParameterType' is corresponding parameter_type member UniDbParameter, you can see it in db_structures
-    // enum enumParameterType{BoolType, IntType, DoubleType, StringType, IIArrayType, IntArrayType, DoubleArrayType, BinaryArrayType, ErrorType}
-    static bool CheckAndGetParameterID(TSQLServer* uni_db, TString parameter_name, enumParameterType enum_parameter_type, int& parameter_id);
+    // enumeration 'enumValueType' is corresponding parameter_type member UniDbParameter, you can see it in db_structures
+    static bool CheckAndGetParameterID(TSQLServer* uni_db, TString parameter_name, enumValueType enum_parameter_type, int& parameter_id);
 
  ClassDef(UniDbParameter,1);
 };

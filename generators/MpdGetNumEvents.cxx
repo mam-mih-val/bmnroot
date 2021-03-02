@@ -101,9 +101,11 @@ off_t MpdLibZ::seek(off_t pos, int whence)
     switch (whence)
     {
         case 0:
-            return gzseek(file, pos, SEEK_CUR);
-        case 1:
             return gzseek(file, pos, SEEK_SET);
+        case 1:
+            return gzseek(file, pos, SEEK_CUR);
+        case 2:
+            return gzseek(file, pos, SEEK_END);
     }
 
     return -1;
@@ -210,7 +212,7 @@ bool MpdGetNumEvents::GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t& fQGSM_f
                     if (strlen(ss) > 90)
                         fQGSM_format_ID = 3;
 
-                    libz->seek(file_pos, 0);
+                    libz->seek(file_pos, SEEK_SET);
                 }
             }
 
@@ -267,7 +269,9 @@ bool MpdGetNumEvents::GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t& fQGSM_f
             libz->gets(tmp, 250);
             break;
         case 2:
-        case 3:{
+        case 3:
+        case 4:
+        {
             libz->gets(ss, 250);
             libz->gets(ss, 250);
             break;
@@ -390,9 +394,11 @@ Int_t MpdGetNumEvents::GetNumDCMSMMEvents(const char* fileName, int iVerbose)
     return num;
 }
 
-Int_t MpdGetNumEvents::GetNumROOTEvents(const char* filename, int iVerbose)
+Int_t MpdGetNumEvents::GetNumROOTEvents(const char* filename, const char* treename, int iVerbose)
 {
-    TChain* fileTree = new TChain(FairRootManager::GetTreeName());
+    TChain* fileTree;
+    if ((treename == NULL) || (treename[0] == '\0')) fileTree = new TChain(FairRootManager::GetTreeName());
+    else fileTree = new TChain(treename);
     fileTree->Add(filename);
 
     Int_t num = fileTree->GetEntries();

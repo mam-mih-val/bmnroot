@@ -395,7 +395,7 @@ int main(int argc, char** argv)
     TSQLServer* pSQLServer = TSQLServer::Connect(strConnection, UNI_DB_USERNAME, UNI_DB_PASSWORD);
     if (pSQLServer == 0x00)
     {
-        cout<<"Connection to database wasn't established"<<endl;
+        cout<<"Connection to the database was not established"<<endl;
         return 0x00;
     }
 
@@ -548,12 +548,12 @@ int main(int argc, char** argv)
         if (!strptime(strMaxTime.c_str(), "%Y-%m-%d %H:%M:%S", &tm))
         {
             isMaxTime = false;
-            cout<<"Error: "<<strMaxTime<<" is not correct datetime. DateTime format should be yyyy-mm-dd 24hh:mm:ss."<<endl;
+            cout<<"ERROR: "<<strMaxTime<<" is not correct datetime. DateTime format should be yyyy-mm-dd 24hh:mm:ss."<<endl;
         }
         if (!strptime(strTime.c_str(), "%Y-%m-%d %H:%M:%S", &tm))
         {
             isMinTime = false;
-            cout<<"Error: "<<strTime<<" is not correct datetime. DateTime format should be yyyy-mm-dd 24hh:mm:ss."<<endl;
+            cout<<"ERROR: "<<strTime<<" is not correct datetime. DateTime format should be yyyy-mm-dd 24hh:mm:ss."<<endl;
             if (!isMaxTime) isTime = false;
         }
 

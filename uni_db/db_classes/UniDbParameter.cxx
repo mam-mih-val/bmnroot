@@ -11,9 +11,9 @@
 #include <iostream>
 using namespace std;
 
-/* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+/* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbParameter::UniDbParameter(UniDbConnection* connUniDb, int parameter_id, TString parameter_name, int parameter_type)
+UniDbParameter::UniDbParameter(UniConnection* connUniDb, int parameter_id, TString parameter_name, int parameter_type)
 {
 	connectionUniDb = connUniDb;
 
@@ -32,7 +32,7 @@ UniDbParameter::~UniDbParameter()
 // -----   Creating new parameter in the database  ---------------------------
 UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int parameter_type)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -49,7 +49,7 @@ UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int para
 	// inserting new parameter to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new parameter to the Database has been failed"<<endl;
+		cout<<"ERROR: inserting new parameter to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -70,7 +70,7 @@ UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int para
 		// if there is no last id then exit with error
 		if (!stmt_last->NextResultRow())
 		{
-			cout<<"Error: no last ID in DB!"<<endl;
+			cout<<"ERROR: no last ID in DB!"<<endl;
 			delete stmt_last;
 			return 0x00;
 		}
@@ -82,7 +82,7 @@ UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int para
 	}
 	else
 	{
-		cout<<"Error: getting last ID has been failed!"<<endl;
+		cout<<"ERROR: getting last ID has been failed!"<<endl;
 		delete stmt_last;
 		return 0x00;
 	}
@@ -100,7 +100,7 @@ UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int para
 // -----  Get parameter from the database  ---------------------------
 UniDbParameter* UniDbParameter::GetParameter(int parameter_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -114,7 +114,7 @@ UniDbParameter* UniDbParameter::GetParameter(int parameter_id)
 	// get parameter from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting parameter from the database has been failed"<<endl;
+		cout<<"ERROR: getting parameter from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -127,7 +127,7 @@ UniDbParameter* UniDbParameter::GetParameter(int parameter_id)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: parameter wasn't found in the database"<<endl;
+		cout<<"ERROR: parameter was not found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -149,7 +149,7 @@ UniDbParameter* UniDbParameter::GetParameter(int parameter_id)
 // -----  Get parameter from the database by unique key  --------------
 UniDbParameter* UniDbParameter::GetParameter(TString parameter_name)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -163,7 +163,7 @@ UniDbParameter* UniDbParameter::GetParameter(TString parameter_name)
 	// get parameter from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting parameter from the database has been failed"<<endl;
+		cout<<"ERROR: getting parameter from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -176,7 +176,7 @@ UniDbParameter* UniDbParameter::GetParameter(TString parameter_name)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: parameter wasn't found in the database"<<endl;
+		cout<<"ERROR: parameter was not found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -198,7 +198,7 @@ UniDbParameter* UniDbParameter::GetParameter(TString parameter_name)
 // -----  Check parameter exists in the database  ---------------------------
 bool UniDbParameter::CheckParameterExists(int parameter_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -212,7 +212,7 @@ bool UniDbParameter::CheckParameterExists(int parameter_id)
 	// get parameter from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting parameter from the database has been failed"<<endl;
+		cout<<"ERROR: getting parameter from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -239,7 +239,7 @@ bool UniDbParameter::CheckParameterExists(int parameter_id)
 // -----  Check parameter exists in the database by unique key  --------------
 bool UniDbParameter::CheckParameterExists(TString parameter_name)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -253,7 +253,7 @@ bool UniDbParameter::CheckParameterExists(TString parameter_name)
 	// get parameter from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting parameter from the database has been failed"<<endl;
+		cout<<"ERROR: getting parameter from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -280,7 +280,7 @@ bool UniDbParameter::CheckParameterExists(TString parameter_name)
 // -----  Delete parameter from the database  ---------------------------
 int UniDbParameter::DeleteParameter(int parameter_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -296,7 +296,7 @@ int UniDbParameter::DeleteParameter(int parameter_id)
 	// delete parameter from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting parameter from the dataBase has been failed"<<endl;
+		cout<<"ERROR: deleting parameter from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -311,7 +311,7 @@ int UniDbParameter::DeleteParameter(int parameter_id)
 // -----  Delete parameter from the database by unique key  --------------
 int UniDbParameter::DeleteParameter(TString parameter_name)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -327,7 +327,7 @@ int UniDbParameter::DeleteParameter(TString parameter_name)
 	// delete parameter from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting parameter from the DataBase has been failed"<<endl;
+		cout<<"ERROR: deleting parameter from the DataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -342,7 +342,7 @@ int UniDbParameter::DeleteParameter(TString parameter_name)
 // -----  Print all 'parameters'  ---------------------------------
 int UniDbParameter::PrintAll()
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -355,7 +355,7 @@ int UniDbParameter::PrintAll()
 	// get all 'parameters' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all 'parameters' from the dataBase has been failed"<<endl;
+		cout<<"ERROR: getting all 'parameters' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -409,7 +409,7 @@ int UniDbParameter::SetParameterName(TString parameter_name)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -444,7 +444,7 @@ int UniDbParameter::SetParameterType(int parameter_type)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -464,9 +464,9 @@ void UniDbParameter::Print()
 
 	return;
 }
-/* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
+/* END OF GENERATED CLASS PART (SHOULD NOT BE CHANGED MANUALLY) */
 
-bool UniDbParameter::CheckAndGetParameterID(TSQLServer* uni_db, TString parameter_name, enumParameterType enum_parameter_type, int& parameter_id)
+bool UniDbParameter::CheckAndGetParameterID(TSQLServer* uni_db, TString parameter_name, enumValueType enum_parameter_type, int& parameter_id)
 {
     // get parameter object from 'parameter_' table
     TString sql = TString::Format(
@@ -478,7 +478,7 @@ bool UniDbParameter::CheckAndGetParameterID(TSQLServer* uni_db, TString paramete
     // get table record from DB
     if (!stmt->Process())
     {
-        cout<<"Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
+        cout<<"ERROR: getting a record with the parameter from 'parameter_' table has been failed"<<endl;
         delete stmt;
         return false;
     }
@@ -488,7 +488,7 @@ bool UniDbParameter::CheckAndGetParameterID(TSQLServer* uni_db, TString paramete
     // extract row with parameter
     if (!stmt->NextResultRow())
     {
-        cout<<"Error: the parameter with name '"<<parameter_name<<"' wasn't found"<<endl;
+        cout<<"ERROR: the parameter with name '"<<parameter_name<<"' was not found"<<endl;
         delete stmt;
         return false;
     }
@@ -500,7 +500,7 @@ bool UniDbParameter::CheckAndGetParameterID(TSQLServer* uni_db, TString paramete
 
     if (parameter_type != enum_parameter_type)
     {
-        cout<<"Error: the parameter with name '"<<parameter_name<<"' isn't the same type"<<endl;
+        cout<<"ERROR: '"<<parameter_name<<"' parameter has not the same type (type = "<<parameter_type<<", but "<<enum_parameter_type<<" used)"<<endl;
         return false;
     }
 

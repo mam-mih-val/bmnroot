@@ -1,5 +1,5 @@
 #include "UniDbTangoData.h"
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 
 #include <TSQLServer.h>
 #include <TSQLStatement.h>
@@ -71,7 +71,7 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
     }
 
     // TANGO database connection
-    UniDbConnection* connUniDb = UniDbConnection::Open(TANGO_DB);
+    UniConnection* connUniDb = UniConnection::Open(TANGO_DB);
     if (connUniDb == 0x00) return NULL;
     TSQLServer* db = connUniDb->GetSQLServer();
     if (db == NULL) return NULL;

@@ -13,7 +13,7 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-ElogDbRecord::ElogDbRecord(UniDbConnection* connUniDb, int record_id, TDatime record_date, int* shift_leader_id, int type_id, int* period_number, int* run_number, int* trigger_id, TString* daq_status, int* sp_41, int* sp_57, int* vkm2, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment)
+ElogDbRecord::ElogDbRecord(UniConnection* connUniDb, int record_id, TDatime record_date, int* shift_leader_id, int type_id, int* period_number, int* run_number, int* trigger_id, TString* daq_status, int* sp_41, int* sp_57, int* vkm2, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment)
 {
 	connectionUniDb = connUniDb;
 
@@ -74,7 +74,7 @@ ElogDbRecord::~ElogDbRecord()
 // -----   Creating new record in the database  ---------------------------
 ElogDbRecord* ElogDbRecord::CreateRecord(TDatime record_date, int* shift_leader_id, int type_id, int* period_number, int* run_number, int* trigger_id, TString* daq_status, int* sp_41, int* sp_57, int* vkm2, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -254,7 +254,7 @@ ElogDbRecord* ElogDbRecord::CreateRecord(TDatime record_date, int* shift_leader_
 // -----  Get record from the database  ---------------------------
 ElogDbRecord* ElogDbRecord::GetRecord(int record_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -359,7 +359,7 @@ ElogDbRecord* ElogDbRecord::GetRecord(int record_id)
 // -----  Check record exists in the database  ---------------------------
 bool ElogDbRecord::CheckRecordExists(int record_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -400,7 +400,7 @@ bool ElogDbRecord::CheckRecordExists(int record_id)
 // -----  Delete record from the database  ---------------------------
 int ElogDbRecord::DeleteRecord(int record_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -431,7 +431,7 @@ int ElogDbRecord::DeleteRecord(int record_id)
 // -----  Print all 'records'  ---------------------------------
 int ElogDbRecord::PrintAll()
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -1203,10 +1203,10 @@ TObjArray* ElogDbRecord::GetRecords(int period_number, int run_number)
 {
     TObjArray* arrayResult = NULL;
 
-    UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+    UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
     if (connUniDb == 0x00)
     {
-        cout<<"Error: connection to Elog DB was failed"<<endl;
+        cout<<"ERROR: connection to the eLog Database was failed"<<endl;
         return arrayResult;
     }
 
@@ -1222,7 +1222,7 @@ TObjArray* ElogDbRecord::GetRecords(int period_number, int run_number)
     // get record from the database
     if (!stmt->Process())
     {
-        cout<<"Error: getting record from the database has been failed"<<endl;
+        cout<<"ERROR: getting record from the database has been failed"<<endl;
 
         delete stmt;
         delete connUniDb;
@@ -1238,10 +1238,10 @@ TObjArray* ElogDbRecord::GetRecords(int period_number, int run_number)
     arrayResult->SetOwner(kTRUE);
     while (stmt->NextResultRow())
     {
-        UniDbConnection* connRecord = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connRecord = UniConnection::Open(ELOG_DB);
         if (connRecord == 0x00)
         {
-            cout<<"Error: connection to DB for single record was failed"<<endl;
+            cout<<"ERROR: connection to the eLog database for a record was failed"<<endl;
             return arrayResult;
         }
 
@@ -1320,10 +1320,10 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
 {
     TObjArray* arrayResult = NULL;
 
-    UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+    UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
     if (connUniDb == 0x00)
     {
-        cout<<"Error: connection to DB was failed"<<endl;
+        cout<<"ERROR: connection to the eLog Database was failed"<<endl;
         return arrayResult;
     }
 
@@ -1333,7 +1333,7 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
                 "select record_id, record_date, shift_leader_id, r.type_id, period_number, run_number, r.trigger_id, daq_status, sp_41, sp_57, vkm2, field_comment, beam, energy, target, target_width, record_comment "
                 "from record_ r left join person_ p on r.shift_leader_id = p.person_id "
                 "left join type_ t on r.type_id = t.type_id "
-                "left join trigger_ tr on r.trigger_id = tr.trigger_id ");
+                "left join trigger_ tr on r.trigger_id = tr.trigger_id");
 
     TString strCondition;
     bool isFirst = true;
@@ -1359,7 +1359,7 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
             case columnEnergy:          strCondition += "energy "; break;
             case columnTargetParticle:  strCondition += "lower(target) "; break;
             default:
-                cout<<"Error: column in the search condition wasn't defined, condition is skipped"<<endl;
+                cout<<"ERROR: column in the search condition was not defined, condition is skipped"<<endl;
                 continue;
         }
 
@@ -1373,21 +1373,24 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
             case conditionGreaterOrEqual:   strCondition += ">= "; break;
             case conditionLike:             strCondition += "like "; break;
             case conditionNull:             strCondition += "is null "; break;
+            case conditionNotNull:          strCondition += "is not null "; break;
             default:
-                cout<<"Error: comparison operator in the search condition wasn't defined, condition is skipped"<<endl;
+                cout<<"ERROR: comparison operator in the search condition was not defined, condition is skipped"<<endl;
                 continue;
         }
 
         switch (curCondition->GetValueType())
         {
-            case 0: if (curCondition->GetCondition() != conditionNull) continue; break;
+            case 0:
+                if ((curCondition->GetCondition() != conditionNull) && (curCondition->GetCondition() != conditionNotNull)) continue;
+                break;
             case 1: strCondition += Form("%d", curCondition->GetIntValue()); break;
             case 2: strCondition += Form("%u", curCondition->GetUIntValue()); break;
             case 3: strCondition += Form("%f", curCondition->GetDoubleValue()); break;
             case 4: strCondition += Form("lower('%s')", curCondition->GetStringValue().Data()); break;
             case 5: strCondition += Form("'%s'", curCondition->GetDatimeValue().AsSQLString()); break;
             default:
-                cout<<"Error: value type in the search condition wasn't found, condition is skipped"<<endl;
+                cout<<"ERROR: value type in the search condition was not found, condition is skipped"<<endl;
                 continue;
         }
 
@@ -1409,7 +1412,7 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
     // get table record from DB
     if (!stmt->Process())
     {
-        cout<<"Error: getting ELOG records from DB has been failed"<<endl;
+        cout<<"ERROR: getting eLog records from the database has been failed"<<endl;
         delete stmt;
         delete connUniDb;
 
@@ -1424,10 +1427,10 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
     arrayResult->SetOwner(kTRUE);
     while (stmt->NextResultRow())
     {
-        UniDbConnection* connRun = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connRun = UniConnection::Open(ELOG_DB);
         if (connRun == 0x00)
         {
-            cout<<"Error: connection to DB for single record was failed"<<endl;
+            cout<<"ERROR: connection to the eLog database for a record was failed"<<endl;
             return arrayResult;
         }
 

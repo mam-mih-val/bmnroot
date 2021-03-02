@@ -29,7 +29,7 @@
 #include "CbmMCTrack.h"
 #include "CbmStsTrack.h"
 #include "CbmTofHit.h"
-#include "CbmVertex.h"
+#include "BmnVertex.h"
 #include "FairMCEventHeader.h"
 #include "FairMCPoint.h"
 #include "FairRunAna.h"
@@ -75,7 +75,7 @@ BmnTrackingQa::BmnTrackingQa(Short_t ch, TString name, TString gemConf, TString 
                                                                                            fMCTracks(nullptr),
                                                                                            fSilHits(nullptr),
                                                                                            fPrimes(kFALSE),
-                                                                                           fNHitsCut(2000),
+                                                                                           fNHitsCut(1000),
                                                                                            fNStations(0),
                                                                                            fGlobalTracks(nullptr),
                                                                                            fGemTracks(nullptr),
@@ -407,7 +407,7 @@ void BmnTrackingQa::ProcessGlobal() {
     nBadRecoInEvent = 0;
     nAllRecoInEvent = 0;
 
-    CbmVertex* vrt = (fVertex == nullptr) ? nullptr : (CbmVertex*)fVertex->At(0);
+    BmnVertex* vrt = (fVertex == nullptr) ? nullptr : (BmnVertex*)fVertex->At(0);
 
     if (vrt != nullptr) {
         fHM->H1("VertResX")->Fill(vrt->GetX() - 0.5);
@@ -467,9 +467,11 @@ void BmnTrackingQa::ProcessGlobal() {
             continue;
 
         vector<Int_t>::iterator it = find(refs.begin(), refs.end(), globMCId);
-        if (it != refs.end())
+        Float_t splitCorr = 0.0;
+        if (it != refs.end()) {
             splits.push_back(globMCId);
-        else
+            splitCorr = -1.0;
+        } else
             refs.push_back(globMCId);
 
         Int_t Nsil = (glTrack->GetSilTrackIndex() != -1) ? ((BmnTrack*)fSilTracks->At(glTrack->GetSilTrackIndex()))->GetNHits() : 0;
@@ -529,13 +531,13 @@ void BmnTrackingQa::ProcessGlobal() {
             nGoodRecoTracks++;
             nWellRecoInEvent++;
             //            goodTracks++;
-            fHM->H1("Well_vs_P_wide")->Fill(P_sim);
-            fHM->H1("Well_vs_P")->Fill(P_sim);
-            fHM->H1("Well_vs_Nh")->Fill(N_rec);
-            fHM->H1("Well_vs_Eta")->Fill(Eta_sim);
-            fHM->H1("Well_vs_Theta")->Fill(Theta_sim);
+            fHM->H1("Well_vs_P_wide")->Fill(P_sim, 1 + splitCorr);
+            fHM->H1("Well_vs_P")->Fill(P_sim, 1 + splitCorr);
+            fHM->H1("Well_vs_Nh")->Fill(N_rec, 1 + splitCorr);
+            fHM->H1("Well_vs_Eta")->Fill(Eta_sim, 1 + splitCorr);
+            fHM->H1("Well_vs_Theta")->Fill(Theta_sim, 1 + splitCorr);
 
-            fHM->H1("Nh_rec_Nh_sim")->Fill(CalcNumberOfMcPointInTrack(mcTrack), N_rec);
+            fHM->H2("Nh_rec_Nh_sim")->Fill(CalcNumberOfMcPointInTrack(mcTrack), N_rec, 1 + splitCorr);
 
             Float_t chi2 = glTrack->GetChi2() / glTrack->GetNDF();
             fHM->H2("momRes_2D")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
@@ -672,11 +674,13 @@ void BmnTrackingQa::ProcessGlobal() {
         fHM->H1("Split_vs_Eta")->Fill(eta);
         fHM->H1("Split_vs_Theta")->Fill(theta);
         fHM->H1("Split_vs_Nh")->Fill(nPointsPerTrack);
-        fHM->H1("Well_vs_P")->Fill(P, -1);          //remove splitted tracks from efficiency
-        fHM->H1("Well_vs_Eta")->Fill(eta, -1);      //remove splitted tracks from efficiency
-        fHM->H1("Well_vs_Theta")->Fill(theta, -1);  //remove splitted tracks from efficiency
-        fHM->H1("Well_vs_P_wide")->Fill(P, -1);     //remove splitted tracks from efficiency
-        fHM->H2("Eff_vs_EtaP")->Fill(eta, P, -1);
+        // fHM->H1("Well_vs_P")->Fill(P, -1);          //remove splitted tracks from efficiency
+        // fHM->H1("Well_vs_Eta")->Fill(eta, -1);      //remove splitted tracks from efficiency
+        // fHM->H1("Well_vs_Theta")->Fill(theta, -1);  //remove splitted tracks from efficiency
+        // fHM->H1("Well_vs_P_wide")->Fill(P, -1);     //remove splitted tracks from efficiency
+        // fHM->H1("Well_vs_Nh")->Fill(N_rec, -1);     //remove splitted tracks from efficiency
+        // fHM->H1("Nh_rec_Nh_sim")->Fill(CalcNumberOfMcPointInTrack(mcTrack), N_rec, -1);
+        // fHM->H2("Eff_vs_EtaP")->Fill(eta, P, -1);
         fHM->H2("Clones_vs_EtaP")->Fill(eta, P);
     }
 

@@ -52,6 +52,10 @@ public:
         fIsSrc = f;
     }
 
+    void SetFieldScale(Double_t fs) {
+        fFieldScale = fs;
+    }
+
 private:
 
     TString fInputPointsBranchName;
@@ -83,6 +87,7 @@ private:
     BmnGemStripTransform *TransfSet; //Transformations for each module of the detector
 
     FairField* fField;
+    Double_t fFieldScale;
 
     TString fBmnEvQualityBranchName;
     TClonesArray* fBmnEvQuality;

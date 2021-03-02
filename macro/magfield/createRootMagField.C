@@ -24,7 +24,7 @@ typedef struct {
 
 vector <Double_t> Field_remaking(Double_t* B);
 
-void createRootMagField(TString in = "testMap_200x200.dat", TString out = "field_sp41v5_ascii_Extrap.root") {
+void createRootMagField(TString in = "", TString out = "") {
     bmnloadlibs(); // load BmnRoot libraries
 
     BmnFieldMap* magField = new BmnNewFieldMap(in.Data());

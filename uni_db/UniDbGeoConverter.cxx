@@ -126,7 +126,7 @@ int UniDbGeoConverter::RecursiveNodeChanging(TSQLServer* uni_db, TGeoNode* node,
                     // process inserting medium component
                     if (!stmt_insert->Process())
                     {
-                        cout<<"Error: insertion of medium component has been failed!"<<endl;
+                        cout<<"ERROR: inserting medium component has been failed"<<endl;
 
                         delete stmt_insert;
                         return -22;
@@ -145,7 +145,7 @@ int UniDbGeoConverter::RecursiveNodeChanging(TSQLServer* uni_db, TGeoNode* node,
         }// end: process media selection
         else
         {
-            cout<<"Error: selection from geometry_media has been failed!"<<endl;
+            cout<<"ERROR: selecting geometry_media has been failed"<<endl;
 
             delete stmt_select;
             return -10;
@@ -244,7 +244,7 @@ int UniDbGeoConverter::RecursiveNodeChanging(TSQLServer* uni_db, TGeoNode* node,
                         // exit with error
                         case 0:
                         {
-                            cout<<"Error: no corresponding component in DB: "<<curVolume->GetName()<<endl;
+                            cout<<"ERROR: there is no such component in the database: "<<curVolume->GetName()<<endl;
 
                             delete stmt_select;
                             return -2;
@@ -288,7 +288,7 @@ int UniDbGeoConverter::RecursiveNodeChanging(TSQLServer* uni_db, TGeoNode* node,
             }
             else
             {
-                cout<<"Error: selection from component has been failed!"<<endl;
+                cout<<"ERROR: selecting of the component has been failed"<<endl;
 
                 delete stmt_select;
                 return -11;
@@ -301,7 +301,7 @@ int UniDbGeoConverter::RecursiveNodeChanging(TSQLServer* uni_db, TGeoNode* node,
             // process inserting geometry node
             if (!stmt_insert->Process())
             {
-                cout<<"Error: insertion of main geometry node has been failed!"<<endl;
+                cout<<"ERROR: inserting main geometry node has been failed"<<endl;
 
                 delete stmt_insert;
                 return -24;
@@ -318,7 +318,7 @@ int UniDbGeoConverter::RecursiveNodeChanging(TSQLServer* uni_db, TGeoNode* node,
             // process inserting geometry node
             if (!stmt_insert->Process())
             {
-                cout<<"Error: insertion of child geometry node has been failed!"<<endl;
+                cout<<"ERROR: inserting child geometry node has been failed"<<endl;
 
                 delete stmt_insert;
                 return -25;
@@ -339,7 +339,7 @@ int UniDbGeoConverter::RecursiveNodeChanging(TSQLServer* uni_db, TGeoNode* node,
             // if there is no last id then exit with error
             if (!stmt_last->NextResultRow())
             {
-                cout<<"Error: no last ID in DB!"<<endl;
+                cout<<"ERROR: there is no last ID in the database"<<endl;
 
                 delete stmt_last;
                 return -3;
@@ -353,7 +353,7 @@ int UniDbGeoConverter::RecursiveNodeChanging(TSQLServer* uni_db, TGeoNode* node,
         }
         else
         {
-            cout<<"Error: getting last ID has been failed!"<<endl;
+            cout<<"ERROR: getting the last ID has been failed!"<<endl;
 
             delete stmt_last;
             return -4;
@@ -953,7 +953,7 @@ int UniDbGeoConverter::RecursiveNodeChanging(TSQLServer* uni_db, TGeoNode* node,
         // process inserting geometry parameters
         if (!stmt_insert->Process())
         {
-            cout<<"Error: insertion of geometry parameters has been failed!"<<endl;
+            cout<<"ERROR: inserting geometry parameters has been failed!"<<endl;
 
             delete stmt_insert;
             return -26;
@@ -974,14 +974,14 @@ int UniDbGeoConverter::WriteRootGeoToDB(TString geo_file_path)
 {
     if (geo_file_path == "")
     {
-        cout<<"Error: geometry file path can't be empty!"<<endl;
+        cout<<"ERROR: geometry file path cannot be empty!"<<endl;
         return -1;
     }
 
-    UniDbConnection* connectionUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connectionUniDb = UniConnection::Open(UNIFIED_DB);
     if (connectionUniDb == 0x00)
     {
-        cout<<"Error: connection to the database can't be established"<<endl;
+        cout<<"ERROR: connection to the database cannot be established"<<endl;
         return -2;
     }
 
@@ -991,7 +991,7 @@ int UniDbGeoConverter::WriteRootGeoToDB(TString geo_file_path)
     TFile* geoFile = new TFile(geo_file_path, "READ");
     if (!geoFile->IsOpen())
     {
-        cout<<"Error: could not open file!"<<endl;
+        cout<<"ERROR: geometry file has not be opened"<<endl;
         return -3;
     }
 
@@ -1007,7 +1007,7 @@ int UniDbGeoConverter::WriteRootGeoToDB(TString geo_file_path)
     }
     else
     {
-        cout<<"Error: TGeoManager isn not top element in given file "<<geo_file_path<<endl;
+        cout<<"ERROR: TGeoManager is not top element in the given file: "<<geo_file_path<<endl;
         return -4;
     }
 

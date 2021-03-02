@@ -13,7 +13,7 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-ElogDbTrigger::ElogDbTrigger(UniDbConnection* connUniDb, int trigger_id, TString trigger_info)
+ElogDbTrigger::ElogDbTrigger(UniConnection* connUniDb, int trigger_id, TString trigger_info)
 {
 	connectionUniDb = connUniDb;
 
@@ -31,7 +31,7 @@ ElogDbTrigger::~ElogDbTrigger()
 // -----   Creating new trigger in the database  ---------------------------
 ElogDbTrigger* ElogDbTrigger::CreateTrigger(TString trigger_info)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -96,7 +96,7 @@ ElogDbTrigger* ElogDbTrigger::CreateTrigger(TString trigger_info)
 // -----  Get trigger from the database  ---------------------------
 ElogDbTrigger* ElogDbTrigger::GetTrigger(int trigger_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -143,7 +143,7 @@ ElogDbTrigger* ElogDbTrigger::GetTrigger(int trigger_id)
 // -----  Get trigger from the database by unique key  --------------
 ElogDbTrigger* ElogDbTrigger::GetTrigger(TString trigger_info)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -190,7 +190,7 @@ ElogDbTrigger* ElogDbTrigger::GetTrigger(TString trigger_info)
 // -----  Check trigger exists in the database  ---------------------------
 bool ElogDbTrigger::CheckTriggerExists(int trigger_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -231,7 +231,7 @@ bool ElogDbTrigger::CheckTriggerExists(int trigger_id)
 // -----  Check trigger exists in the database by unique key  --------------
 bool ElogDbTrigger::CheckTriggerExists(TString trigger_info)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -272,7 +272,7 @@ bool ElogDbTrigger::CheckTriggerExists(TString trigger_info)
 // -----  Delete trigger from the database  ---------------------------
 int ElogDbTrigger::DeleteTrigger(int trigger_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -303,7 +303,7 @@ int ElogDbTrigger::DeleteTrigger(int trigger_id)
 // -----  Delete trigger from the database by unique key  --------------
 int ElogDbTrigger::DeleteTrigger(TString trigger_info)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -334,7 +334,7 @@ int ElogDbTrigger::DeleteTrigger(TString trigger_info)
 // -----  Print all 'triggers'  ---------------------------------
 int ElogDbTrigger::PrintAll()
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();

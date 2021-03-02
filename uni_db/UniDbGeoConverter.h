@@ -16,7 +16,7 @@
 #include "TGeoNode.h"
 #include "TSQLServer.h"
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 
 enum dbShapeName{dbGeoBox, dbGeoPgon, dbGeoPcon, dbGeoTube, dbGeoTubeSeg, dbGeoSphere, dbGeoTorus, dbGeoCone, dbGeoConeSeg,
                  dbGeoTrd1, dbGeoTrd2, dbGeoTrap, dbGeoComb, dbGeoPara, dbGeoArb8, dbGeoEltu, dbGeoXtru, dbGeoShapeAssembly};

@@ -12,8 +12,11 @@
 #ifndef BMNPARTICLEPAIR_H
 #define BMNPARTICLEPAIR_H 1
 
+#include <vector>
 #include <TNamed.h>
 #include <TVector3.h>
+
+using namespace std;
 
 class BmnParticlePair : public TNamed {
 public:
@@ -39,7 +42,7 @@ public:
     void SetDCA0(Double_t val) {
         fDCA0 = val;
     }
-    
+
     void SetDCA1(Double_t val) {
         fDCA1 = val;
     }
@@ -69,22 +72,22 @@ public:
         fEtaPart1 = val1;
         fEtaPart2 = val2;
     }
-    
+
     void SetTxPair(Double_t val1, Double_t val2) {
         fTxPart1 = val1;
         fTxPart2 = val2;
     }
-    
+
     void SetTyPair(Double_t val1, Double_t val2) {
         fTyPart1 = val1;
         fTyPart2 = val2;
     }
-    
+
     void SetBeta400Pair(Double_t val1, Double_t val2) {
         fBeta400Part1 = val1;
         fBeta400Part2 = val2;
     }
-    
+
     void SetBeta700Pair(Double_t val1, Double_t val2) {
         fBeta700Part1 = val1;
         fBeta700Part2 = val2;
@@ -98,17 +101,48 @@ public:
     void SetMCMomPart1(Double_t px, Double_t py, Double_t pz);
     void SetMCMomPart2(Double_t px, Double_t py, Double_t pz);
 
-    void SetNHitsPair(Int_t nHits1, Int_t nHits2) {
-        fNHitsPart1 = nHits1;
-        fNHitsPart2 = nHits2;
+    void SetNHitsPair(vector <Int_t> part1, vector <Int_t> part2) {
+        fNHitsSilPart1 = part1[0]; // SILICON
+        fNHitsGemPart1 = part1[1]; // GEM
+
+        fNHitsSilPart2 = part2[0]; // SILICON
+        fNHitsGemPart2 = part2[1]; // GEM
+    }
+    
+    void SetNHitsPair(Int_t nHitsPart1, Int_t nHitsPart2) {        
+        fNHitsGemPart1 = nHitsPart1;
+        // fNHitsSilPart1 = 0;
+        
+        fNHitsGemPart2 = nHitsPart2;
+        // fNHitsSilPart2 = 0;
+    }
+    
+    Int_t GetNHitsPart1(TString det = "") {
+        if (det.IsNull())
+            return fNHitsSilPart1 + fNHitsGemPart1; // nHits per glob. track
+
+        else if (det.Contains("GEM"))
+            return fNHitsGemPart1;
+        
+        else if (det.Contains("SILICON"))
+            return fNHitsSilPart1;
+        
+        else
+            return 0;
     }
 
-    Int_t GetNHitsPart1() {
-        return fNHitsPart1;
-    }
+    Int_t GetNHitsPart2(TString det = "") {
+        if (det.IsNull())
+            return fNHitsSilPart2 + fNHitsGemPart2; // nHits per glob. track
 
-    Int_t GetNHitsPart2() {
-        return fNHitsPart2;
+        else if (det.Contains("GEM"))
+            return fNHitsGemPart2;
+        
+        else if (det.Contains("SILICON"))
+            return fNHitsSilPart2;
+        
+        else
+            return 0;
     }
 
     Double_t GetInvMass() {
@@ -130,7 +164,7 @@ public:
     Double_t GetDCA2() {
         return fDCA2;
     }
-    
+
     Double_t GetDCA0() {
         return fDCA0;
     }
@@ -194,19 +228,19 @@ public:
     Double_t GetPtPodol() {
         return fPtPodol;
     }
-    
+
     Double_t GetBeta400Part1() {
         return fBeta400Part1;
     }
-    
+
     Double_t GetBeta400Part2() {
         return fBeta400Part2;
     }
-    
+
     Double_t GetBeta700Part1() {
         return fBeta700Part1;
     }
-    
+
     Double_t GetBeta700Part2() {
         return fBeta700Part2;
     }
@@ -219,19 +253,20 @@ public:
 
     Int_t GetRecoTrackIdPart1(); // actually it is GEM track Id
     Int_t GetRecoTrackIdPart2(); // actually it is GEM track Id
-    
+
     // Omega cut from M. Zavertyaev
+
     Double_t Omega() {
         return (fDCA12 * fDCA12) / (fDCA0 * fDCA0 + 4 * fDCA1 * fDCA2);
     }
 
 private:
-	
+
     Double_t fInvMass; // Invariant mass of a considering pair
-    
+
     Double_t fBeta400Part1;
     Double_t fBeta400Part2;
-    
+
     Double_t fBeta700Part1;
     Double_t fBeta700Part2;
 
@@ -253,8 +288,11 @@ private:
     Double_t fEtaPart1;
     Double_t fEtaPart2;
 
-    Int_t fNHitsPart1;
-    Int_t fNHitsPart2;
+    Int_t fNHitsSilPart1;
+    Int_t fNHitsGemPart1;
+
+    Int_t fNHitsSilPart2;
+    Int_t fNHitsGemPart2;
 
     Double_t fTxPart1;
     Double_t fTxPart2;

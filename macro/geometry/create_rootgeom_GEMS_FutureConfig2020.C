@@ -1,6 +1,7 @@
 /*
  * Baranov D.
- * 25.02.2020
+ * 25.02.2020 (created)
+ * 18.01.2021 (updated)
  * Use this macro to create ROOT geometry for the FutureConfig2020 GEM configuration
  *
  */
@@ -26,13 +27,13 @@ const Double_t XModuleShifts[NStations][NMaxModules] = {
     {163.2*0.25, -163.2*0.25, 163.2*0.25, -163.2*0.25}  //st. 6
 };
 const Double_t YModuleShifts[NStations][NMaxModules] = {
-    {+22.5, +22.5, -22.5, -22.5},  //st. 0
-    {+22.5, +22.5, -22.5, -22.5},  //st. 1
-    {+22.5, +22.5, -22.5, -22.5},  //st. 2
-    {+22.5, +22.5, -22.5, -22.5},  //st. 3
-    {+22.5, +22.5, -22.5, -22.5},  //st. 4
-    {+22.5, +22.5, -22.5, -22.5},  //st. 5
-    {+22.5, +22.5, -22.5, -22.5}   //st. 6
+    {+22.5, +22.5, -19.5, -19.5},  //st. 0
+    {+22.5, +22.5, -19.5, -19.5},  //st. 1
+    {+22.5, +22.5, -19.5, -19.5},  //st. 2
+    {+22.5, +22.5, -19.5, -19.5},  //st. 3
+    {+22.5, +22.5, -19.5, -19.5},  //st. 4
+    {+22.5, +22.5, -19.5, -19.5},  //st. 5
+    {+22.5, +22.5, -19.5, -19.5}   //st. 6
 };
 const Double_t ZModuleShifts[NStations][NMaxModules] = {
     {+4.1, +4.1, 0.0, 0.0}, //st. 0
@@ -64,6 +65,15 @@ const Double_t dYFrame_Station163x45 = 2.0;
 const Double_t dZFrame_Station163x45 = 4.1;
 //------------------------------------------------------------------------------
 
+//GEM plane sizes (163x39 type) ------------------------------------------------
+const Double_t XModuleSize_Station163x39 = 163.2*0.5; //81.6
+const Double_t YModuleSize_Station163x39 = 39.0;
+const Double_t ZModuleSize_Station163x39 = 0.9; //sensitive volume
+const Double_t ZGEMSize_Station163x39 = 4.1; //common thickness of GEM (including sens. vol)
+
+const Double_t dXFrame_Station163x39 = 2.0;
+const Double_t dYFrame_Station163x39 = 2.0;
+const Double_t dZFrame_Station163x39 = 4.1;
 //------------------------------------------------------------------------------
 
 //GeoManager
@@ -80,10 +90,16 @@ class FairGeoMedia;
 class FairGeoBuilder;
 
 TGeoVolume *CreateStation(TString station_name);
+
 TGeoVolume *CreateModule_Station66x41(TString module_name, Double_t xsize, Double_t ysize, Double_t zsize);
 TGeoVolume *CreateFrameForModule_Station66x41(TString frame_name, Double_t dx, Double_t dy, Double_t dz);
+
 TGeoVolume *CreateModule_Station163x45(TString module_name, Double_t xsize, Double_t ysize, Double_t zsize, Double_t hole_radius);
 TGeoVolume *CreateFrameForModule_Station163x45(TString frame_name, Double_t dx, Double_t dy, Double_t dz, Double_t hole_radius);
+
+TGeoVolume *CreateModule_Station163x39(TString module_name, Double_t xsize, Double_t ysize, Double_t zsize, Double_t hole_radius);
+TGeoVolume *CreateFrameForModule_Station163x39(TString frame_name, Double_t dx, Double_t dy, Double_t dz, Double_t hole_radius);
+
 
 void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
 
@@ -165,10 +181,10 @@ void create_rootgeom_GEMS_FutureConfig2020() {
         TGeoVolume *frame1 = CreateFrameForModule_Station163x45(TString("frame1_")+station->GetName(), dXFrame_Station163x45, dYFrame_Station163x45, dZFrame_Station163x45, 4.0+1.75);
 
         //lower part
-        TGeoVolume *module2 = CreateModule_Station163x45(TString("Sensor_module2_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0+1.75);
-        TGeoVolume *module3 = CreateModule_Station163x45(TString("Sensor_module3_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0+1.75);
-        TGeoVolume *frame2 = CreateFrameForModule_Station163x45(TString("frame2_")+station->GetName(), dXFrame_Station163x45, dYFrame_Station163x45, dZFrame_Station163x45, 4.0+1.75);
-        TGeoVolume *frame3 = CreateFrameForModule_Station163x45(TString("frame3_")+station->GetName(), dXFrame_Station163x45, dYFrame_Station163x45, dZFrame_Station163x45, 4.0+1.75);
+        TGeoVolume *module2 = CreateModule_Station163x39(TString("Sensor_module2_")+station->GetName(), XModuleSize_Station163x39, YModuleSize_Station163x39, ZModuleSize_Station163x39, 4.0+1.75);
+        TGeoVolume *module3 = CreateModule_Station163x39(TString("Sensor_module3_")+station->GetName(), XModuleSize_Station163x39, YModuleSize_Station163x39, ZModuleSize_Station163x39, 4.0+1.75);
+        TGeoVolume *frame2 = CreateFrameForModule_Station163x39(TString("frame2_")+station->GetName(), dXFrame_Station163x39, dYFrame_Station163x39, dZFrame_Station163x39, 4.0+1.75);
+        TGeoVolume *frame3 = CreateFrameForModule_Station163x39(TString("frame3_")+station->GetName(), dXFrame_Station163x39, dYFrame_Station163x39, dZFrame_Station163x39, 4.0+1.75);
 
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
             module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
@@ -298,12 +314,13 @@ TGeoVolume *CreateFrameForModule_Station66x41(TString frame_name, Double_t dx, D
 
 TGeoVolume *CreateModule_Station163x45(TString module_name, Double_t xsize, Double_t ysize, Double_t zsize, Double_t hole_radius) {
 
-    //module shapes
-    TGeoShape *module_partS = new TGeoBBox("module_partS", xsize*0.5, ysize*0.5, zsize*0.5);
-    TGeoShape *holeS = new TGeoTube("holeS", 0.0, hole_radius, zsize*0.5+0.01);
-
     gRandom->SetSeed(0);
-    Int_t uniqueId = gRandom->Integer(10000);
+    Int_t uniqueId = gRandom->Integer(100000);
+
+    //module shapes
+    TGeoShape *module_partS = new TGeoBBox(TString("module_partS")+TString::Itoa(uniqueId,10), xsize*0.5, ysize*0.5, zsize*0.5);
+    TGeoShape *holeS = new TGeoTube(TString("holeS")+TString::Itoa(uniqueId,10), 0.0, hole_radius, zsize*0.5+0.01);
+
     TGeoTranslation *hole_module_trans = new TGeoTranslation(TString("hole_module_trans_")+TString::Itoa(uniqueId,10), -xsize*0.5, -ysize*0.5, 0.0);
 
     hole_module_trans->RegisterYourself();
@@ -324,6 +341,7 @@ TGeoVolume *CreateModule_Station163x45(TString module_name, Double_t xsize, Doub
 
     return moduleV;
 }
+//------------------------------------------------------------------------------
 
 TGeoVolume *CreateFrameForModule_Station163x45(TString frame_name, Double_t dx, Double_t dy, Double_t dz, Double_t hole_radius) {
 
@@ -372,3 +390,59 @@ TGeoVolume *CreateFrameForModule_Station163x45(TString frame_name, Double_t dx, 
 
     return composite_frameV;
 }
+//------------------------------------------------------------------------------
+
+TGeoVolume *CreateModule_Station163x39(TString module_name, Double_t xsize, Double_t ysize, Double_t zsize, Double_t hole_radius) {
+
+    return CreateModule_Station163x45(module_name, xsize, ysize, zsize, hole_radius);
+}
+//------------------------------------------------------------------------------
+
+TGeoVolume *CreateFrameForModule_Station163x39(TString frame_name, Double_t dx, Double_t dy, Double_t dz, Double_t hole_radius) {
+
+    //frame shapes
+    TGeoShape *vertical_frameS = new TGeoBBox(TString("vertical_frameS")+=TString("_") + frame_name, dx*0.5, YModuleSize_Station163x39*0.5+dy, dz*0.5);
+    TGeoShape *horizontal_upper_frameS = new TGeoBBox(TString("horizontal_upper_frameS")+=TString("_") + frame_name, XModuleSize_Station163x39*0.5, dy*0.5, dz*0.5);
+    TGeoShape *horizontal_bottom_frameS = new TGeoBBox(TString("horizontal_upper_frameS")+=TString("_") + frame_name, XModuleSize_Station163x39*0.5-hole_radius*0.5, dy*0.5, dz*0.5);
+
+    //frame volumes
+    TGeoVolume *composite_frameV = new TGeoVolumeAssembly(frame_name);
+    TGeoVolume *vertical_frameV = new TGeoVolume(frame_name+"_vertical_frameV", vertical_frameS);
+    TGeoVolume *horizontal_upper_frameV = new TGeoVolume(frame_name+"_horizontal_upper_frameV", horizontal_upper_frameS);
+    TGeoVolume *horizontal_bottom_frameV = new TGeoVolume(frame_name+"_horizontal_bottom_frameV", horizontal_bottom_frameS);
+
+    //media
+    TGeoMedium *frame_medium = pMedCarbon; //set medium
+    if(pMedCarbon) {
+        vertical_frameV->SetMedium(frame_medium);
+        horizontal_upper_frameV->SetMedium(frame_medium);
+        horizontal_bottom_frameV->SetMedium(frame_medium);
+    }
+    else Fatal("Main", "Invalid medium for frames!");
+    if(pMedAir) {
+        composite_frameV->SetMedium(pMedAir);
+    }
+    else Fatal("Main", "Invalid medium for frames!");
+
+    //visual parameters
+    vertical_frameV->SetLineColor(TColor::GetColor("#9999ff"));
+    horizontal_upper_frameV->SetLineColor(TColor::GetColor("#9999ff"));
+    horizontal_bottom_frameV->SetLineColor(TColor::GetColor("#9999ff"));
+
+    //frame part positions in the frame
+    TGeoCombiTrans *left_vertical_frame_position = new TGeoCombiTrans();
+    left_vertical_frame_position->SetTranslation(XModuleSize_Station163x39*0.5+dXFrame_Station163x39*0.5, 0.0, 0.0);
+
+    TGeoCombiTrans *upper_horizontal_frame_position = new TGeoCombiTrans();
+    upper_horizontal_frame_position->SetTranslation(0.0, YModuleSize_Station163x39*0.5+dYFrame_Station163x39*0.5, 0.0);
+
+    TGeoCombiTrans *bottom_horizontal_frame_position = new TGeoCombiTrans();
+    bottom_horizontal_frame_position->SetTranslation(hole_radius*0.5, -YModuleSize_Station163x39*0.5-dYFrame_Station163x39*0.5, 0.0);
+
+    composite_frameV->AddNode(vertical_frameV, 0, left_vertical_frame_position);
+    composite_frameV->AddNode(horizontal_upper_frameV, 0, upper_horizontal_frame_position);
+    composite_frameV->AddNode(horizontal_bottom_frameV, 0, bottom_horizontal_frame_position);
+
+    return composite_frameV;
+}
+//------------------------------------------------------------------------------

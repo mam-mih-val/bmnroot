@@ -189,7 +189,7 @@ BmnStatus BmnSlewingTOF700::SlewingTOF700Init() {
         BmnTrigChannelData tm = fTrigMapper->GetT0Map();
         printf("T0 serial 0x%X got from trig mapping\n", tm.serial);
         if (tm.serial > 0) {
-            fT0Map = new TriggerMapStructure();
+            fT0Map = new TriggerMapValue();
             fT0Map->channel = tm.channel;
             fT0Map->serial = tm.serial;
             fT0Map->slot = tm.slot;

@@ -33,6 +33,8 @@ set(SRCS
  BmnTwoParticleDecay.cxx
  BmnParticlePair.cxx
  BmnParticlePairsInfo.cxx
+ BmnParticlePairCut.cxx
+ BmnMassSpectrumAnal.cxx
 )
 
 Set(HEADERS)

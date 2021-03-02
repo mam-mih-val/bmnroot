@@ -23,7 +23,7 @@
 #ifndef UNIDBPARSER_H
 #define UNIDBPARSER_H 1
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 
 #include "TString.h"
 #include "TDatime.h"

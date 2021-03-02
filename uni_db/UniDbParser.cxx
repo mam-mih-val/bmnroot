@@ -428,7 +428,7 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
     xmlDocPtr docXML = xmlReadFile(xmlName, NULL, 0);
     if (!docXML)
     {
-        cout<<"Error: reading XML file '"<<xmlName<<"' was failed"<<endl;
+        cout<<"ERROR: reading XML file '"<<xmlName<<"' was failed"<<endl;
         return -1;
     }
 
@@ -436,7 +436,7 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
     xmlDocPtr docSchema = xmlReadFile(schemaPath, NULL, 0);
     if (!docSchema)
     {
-        cout<<"Error: reading schema file '"<<schemaPath<<"' was failed"<<endl;
+        cout<<"ERROR: reading schema file '"<<schemaPath<<"' was failed"<<endl;
         xmlFreeDoc(docXML);
         return - 2;
     }
@@ -445,14 +445,14 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
     xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
     if (!cur_schema_node)
     {
-        cout<<"Error: schema of XML parsing is empty"<<endl;
+        cout<<"ERROR: schema of XML parsing is empty"<<endl;
         xmlFreeDoc(docXML);
         xmlFreeDoc(docSchema);
         return -4;
     }
     if (strcmp((char*)cur_schema_node->name, "unidbparser_schema") != 0)
     {
-        cout<<"Error: it is not UniDbParser schema"<<endl;
+        cout<<"ERROR: it is not UniDbParser schema"<<endl;
         xmlFreeDoc(docXML);
         xmlFreeDoc(docSchema);
         return -5;
@@ -460,7 +460,7 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
     cur_schema_node = cur_schema_node->children;
 
     // open connection to database
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
     {
         xmlFreeDoc(docXML);
@@ -489,7 +489,7 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
             cur_xml_node = findNodeByName(cur_xml_node, strSearchName.c_str());
             if (cur_xml_node == NULL)
             {
-                cout<<"Error: end of the XML document was reached while parsing (search for)"<<endl;
+                cout<<"ERROR: end of the XML document was reached while parsing (search for)"<<endl;
                 delete connUniDb;
                 xmlFreeDoc(docXML);
                 xmlFreeDoc(docSchema);
@@ -516,7 +516,7 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
 
                         if (cur_xml_node == NULL)
                         {
-                            cout<<"Error: end of the XML document was reached while parsing (move - down)"<<endl;
+                            cout<<"ERROR: end of the XML document was reached while parsing (move - down)"<<endl;
                             xmlFree(value);
                             delete connUniDb;
                             xmlFreeDoc(docXML);
@@ -546,7 +546,7 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
             // prepare SQL query for TXT cycle
             if (column_count == 0)
             {
-                cout<<"Error: no columns were chosen for insert or update"<<endl;
+                cout<<"ERROR: no columns were chosen for insert or update"<<endl;
                 delete connUniDb;
                 xmlFreeDoc(docXML);
                 xmlFreeDoc(docSchema);
@@ -616,7 +616,7 @@ int UniDbParser::ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate)
     csvFile.open(csvName, ios::in);
     if (!csvFile.is_open())
     {
-        cout<<"Error: reading CSV file '"<<csvName<<"' was failed"<<endl;
+        cout<<"ERROR: reading CSV file '"<<csvName<<"' was failed"<<endl;
         return -1;
     }
 
@@ -624,27 +624,27 @@ int UniDbParser::ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate)
     xmlDocPtr docSchema = xmlReadFile(schemaPath, NULL, 0);
     if (!docSchema)
     {
-        cout<<"Error: reading schema file '"<<schemaPath<<"' was failed"<<endl;
+        cout<<"ERROR: reading schema file '"<<schemaPath<<"' was failed"<<endl;
         return - 2;
     }
 
     xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
     if (!cur_schema_node)
     {
-        cout<<"Error: schema of XML parsing is empty"<<endl;
+        cout<<"ERROR: schema of XML parsing is empty"<<endl;
         xmlFreeDoc(docSchema);
         return -4;
     }
     if (strcmp((char*)cur_schema_node->name, "unidbparser_schema") != 0)
     {
-        cout<<"Error: it is not UniDbParser schema"<<endl;
+        cout<<"ERROR: it is not UniDbParser schema"<<endl;
         xmlFreeDoc(docSchema);
         return -5;
     }
     cur_schema_node = cur_schema_node->children;
 
     // open connection to database
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
         return -3;
     TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -771,7 +771,7 @@ int UniDbParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
     cur_schema_node = cur_schema_node->children;
 
     // open connection to database
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
         return -3;
 
@@ -885,7 +885,7 @@ int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sc
     txtFile.open(txtName, ios::in);
     if (!txtFile.is_open())
     {
-        cout<<"Error: reading TXT file '"<<txtName<<"' was failed"<<endl;
+        cout<<"ERROR: reading TXT file '"<<txtName<<"' was failed"<<endl;
         return -1;
     }
 
@@ -893,27 +893,27 @@ int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sc
     xmlDocPtr docSchema = xmlReadFile(schemaPath, NULL, 0);
     if (!docSchema)
     {
-        cout<<"Error: reading schema file '"<<schemaPath<<"' was failed"<<endl;
+        cout<<"ERROR: reading schema file '"<<schemaPath<<"' was failed"<<endl;
         return - 2;
     }
 
     xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
     if (!cur_schema_node)
     {
-        cout<<"Error: schema of XML parsing is empty"<<endl;
+        cout<<"ERROR: schema of XML parsing is empty"<<endl;
         xmlFreeDoc(docSchema);
         return -4;
     }
     if (strcmp((char*)cur_schema_node->name, "unidbparser_schema") != 0)
     {
-        cout<<"Error: it is not UniDbParser schema"<<endl;
+        cout<<"ERROR: it is not a UniDbParser schema"<<endl;
         xmlFreeDoc(docSchema);
         return -5;
     }
     cur_schema_node = cur_schema_node->children;
 
     // open connection to database
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
         return -3;
 
@@ -965,7 +965,7 @@ int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sc
         }
 
         // parse slots and channels
-        vector<IIStructure> arr;
+        vector<UniValue*> arr;
         for (int i = 0; i < row_count; i++)
         {
             getline(txtFile, cur_line);
@@ -993,9 +993,9 @@ int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sc
                                 continue;
                         }
 
-                        IIStructure st;
-                        st.int_1 = slot_number;
-                        st.int_2 = channel_number;
+                        IIValue* st = new IIValue;
+                        st->value1 = slot_number;
+                        st->value2 = channel_number;
                         arr.push_back(st);
                     }
                     else
@@ -1006,9 +1006,9 @@ int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sc
                         int num_second = atoi(strSecond.c_str());
                         for (int j = num_first; j <= num_second; j++)
                         {
-                            IIStructure st;
-                            st.int_1 = slot_number;
-                            st.int_2 = j;
+                            IIValue* st = new IIValue;
+                            st->value1 = slot_number;
+                            st->value2 = j;
                             arr.push_back(st);
                         }
                     }
@@ -1024,35 +1024,29 @@ int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sc
             reduce_line = trim(cur_line, " \t\r");
             if (reduce_line != "")
             {
-                cout<<"Critical Error: file format isn't correct, current line:"<<reduce_line<<endl;
+                cout<<"CRITICAL ERROR: file format is not correct, current line:"<<reduce_line<<endl;
                 txtFile.close();
                 return -4;
             }
         }
 
-        // copy vector to dynamic array
-        int size_arr = arr.size();
-        //cout<<"Size array: "<<size_arr<<endl;
-        IIStructure* pValues = new IIStructure[size_arr];
-        for (int i = 0; i < size_arr; i++)
-            pValues[i] = arr[i];
-
         /*
         // print array
         cout<<"Slot:Channel"<<endl;
-        for (int i = 0; i < size_arr; i++)
+        for (int i = 0; i < arr.size(); i++)
         {
-            cout<<pValues[i].int_1<<":"<<pValues[i].int_2<<endl;
+            IIValue* pValue = (IIValue*)arr[i];
+            cout<<pValues->value1<<":"<<pValues->value2<<endl;
         }
         cout<<endl;
         */
 
-        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "noise", period_number, run_number, period_number, run_number, pValues, size_arr); //(detector_name, parameter_name, start_run, end_run, parameter_value, size_parameter_value)
+        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "noise", period_number, run_number, period_number, run_number, arr); //(detector_name, parameter_name, start_run, end_run, parameter_value)
         if (pDetectorParameter == NULL)
             continue;
 
         // clean memory after work
-        delete [] pValues;
+        for (int i = 0; i < arr.size(); i++) delete arr[i];
         if (pDetectorParameter)
             delete pDetectorParameter;
     }
@@ -1068,7 +1062,7 @@ int UniDbParser::ParseDb2Db()
     TSQLServer* source_db = TSQLServer::Connect("pgsql://vm221-53.jinr.ru/bmn_elog", "login", "password");
     if (source_db == 0x00)
     {
-        cout<<"ERROR: source database connection wasn't established"<<endl;
+        cout<<"ERROR: source database connection was not established"<<endl;
         return -1;
     }
 
@@ -1081,7 +1075,7 @@ int UniDbParser::ParseDb2Db()
     // get record from the database
     if (!stmt_source->Process())
     {
-        cout<<"Error: getting records from the database has been failed"<<endl;
+        cout<<"ERROR: getting records from the database has been failed"<<endl;
 
         delete stmt_source;
         delete source_db;
@@ -1095,7 +1089,7 @@ int UniDbParser::ParseDb2Db()
     TSQLServer* dest_db = TSQLServer::Connect("pgsql://vm221-53.jinr.ru/bmn_elog", "login", "password");
     if (dest_db == 0x00)
     {
-        cout<<"ERROR: destination database connection wasn't established"<<endl;
+        cout<<"ERROR: destination database connection was not established"<<endl;
         return -3;
     }
 
@@ -1139,7 +1133,7 @@ int UniDbParser::ParseDb2Db()
             // write new value to the database
             if (!stmt_dest->Process())
             {
-                cout<<"Error: updating information has been failed"<<endl;
+                cout<<"ERROR: updating information has been failed"<<endl;
 
                 delete stmt_dest;
                 continue;
@@ -1177,7 +1171,7 @@ int UniDbParser::ParseDb2Db()
             // write new value to the database
             if (!stmt_dest->Process())
             {
-                cout<<"Error: updating information has been failed"<<endl;
+                cout<<"ERROR: updating information has been failed"<<endl;
 
                 delete stmt_dest;
                 continue;
@@ -1439,16 +1433,16 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
     csvFile.open(csvName, ios::in);
     if (!csvFile.is_open())
     {
-        cout<<"Error: reading CSV file '"<<csvName<<"' was failed"<<endl;
+        cout<<"ERROR: reading CSV file '"<<csvName<<"' was failed"<<endl;
         return -1;
     }
 
-    UniDbConnection* connUni = UniDbConnection::Open(ELOG_DB);
+    UniConnection* connUni = UniConnection::Open(ELOG_DB);
     if (connUni == 0x00) return -1;
     TSQLServer* elog_server = connUni->GetSQLServer();
     if (elog_server == 0x00)
     {
-        cout<<"ERROR: ELOG connection wasn't established"<<endl;
+        cout<<"ERROR: ELOG connection was not established"<<endl;
         return -2;
     }
     //cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;
@@ -1579,7 +1573,7 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
             // extract row
             if (!stmt->NextResultRow())
             {
-                cout<<"ERROR: author wasn't found in the database: "<<author<<endl;
+                cout<<"ERROR: author was not found in the database: "<<author<<endl;
                 delete stmt;
                 continue;
             }
@@ -1623,7 +1617,7 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
         // extract row
         if (!stmt->NextResultRow())
         {
-            cout<<"ERROR: type wasn't found in the database: "<<record_type<<endl;
+            cout<<"ERROR: type was not found in the database: "<<record_type<<endl;
             delete stmt;
             continue;
         }
@@ -1703,7 +1697,7 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
             // extract row
             if (!stmt->NextResultRow())
             {
-                cout<<"ERROR: shift leader wasn't found in the database: "<<shift_leader<<endl;
+                cout<<"ERROR: shift leader was not found in the database: "<<shift_leader<<endl;
                 delete stmt;
                 continue;
             }
@@ -1738,7 +1732,7 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
             // extract row
             if (!stmt->NextResultRow())
             {
-                cout<<"ERROR: trigger wasn't found in the database: "<<trigger_info<<endl;
+                cout<<"ERROR: trigger was not found in the database: "<<trigger_info<<endl;
                 delete stmt;
                 continue;
             }
@@ -2116,7 +2110,7 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
         // inserting new ELog record to the ELog Database
         if (!stmt->Process())
         {
-                cout<<"Error: inserting new Elog record to the ELog Database has been failed"<<endl;
+                cout<<"ERROR: inserting a new Elog record to the ELog Database has been failed"<<endl;
                 delete stmt;
                 return -3;
         }

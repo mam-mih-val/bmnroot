@@ -1,0 +1,54 @@
+This document describes definition convention for structures to be serialized as detector parameter values to the Unified Database.
+
+All possible structures, which can be used to save a parameter value to the Unified Database, are presented in the "db_structures.h" file. The file contains 'enumValueType' that lists the structure types, which can be used to store values of the parameters, such as BoolType, IntType, DoubleType, StringType, BinaryType, GemPedestalType, MapBoolType, etc. The types provides not only storing the relevant value, but also an array of the values. The structures themselves, which correspond the value types, are given below in the "db_structures.h" file and contains data members being stored in the database.
+If it turns out that the file does not contain a required value type to store a new parameter, then it can be defined in accordance with the convention. It is very important that such cases are really rare, and if you are not sure of your actions, then it is better to contact the developers of the interface.
+
+The necessary steps to define a new value type to store in the Unified Database:
+1. First of all, it is required to specify a new name for the value type. It must be clear, short and end with "Type" as it has been done for other value types in 'enumValueType'. Add the new name to 'enumValueType' right before the "UndefinedType" value.
+2. Create a new structure for storing the parameter value, which corresponds the value type added in the first step. The structure must be called the same as the value type, except replacing "Type" (at the end) with "Value". The new structure must be inherited (public) from "UniValue" structure.
+3. In the body of the structure, it is first necessary to define data members of the structure, which will be stored in the database. The definition of each data member must start on a new line. The type of the data members must explicitly define the size of the variable.
+The following types are supported at present:
+a) uint8_t; b) int32_t; c) uint32_t; d) double;
+e) string;
+f) unsigned char* (+ uint64_t size); 
+g) double* value  (+ uint64_t count);
+h) vector<double>.
+4. After defining the data members the following function must be implemented:
+a) "enumValueType GetType()", which returns the new value type (1st step).
+b) "size_t GetStorageSize()", which returns a total number of bytes for all the data members to allocate space in the database.
+VERY IMPORTANT:
+the number of bytes for a [string] = the length of the string + 1 ('\0');
+the number of bytes for a [unsigned char*] = the size of the char array + 8 ('size' variable);
+the number of bytes for a [vector] = the size of all the elements of the vector + 8 (element count).
+c) "void ReadValue(unsigned char* source)", which contains Read functions for all the data members.
+d) "void WriteValue(unsigned char* destination)", which contains Write functions for all the data members necessarily in the same sequence as in the ReadValue function.
+5. Add the new type to the "inline UniValue* CreateParameterValue(enumValueType parameter_type)" function in the following way: add a new case to the "switch (parameter_type)" right before "default: break;" statement. The case corrsponds to the new type and return the name of the new value structure.
+
+An example of adding a new value type called "HelloWorldType":
+enum enumValueType : unsigned int
+{
+    BoolType = 0, IntType, ..., HelloWorldType, UndefinedType = 999
+};
+...
+struct HelloWorldValue : public UniValue
+{
+    data_type1 value1;
+    data_type2 value2;
+
+    enumValueType GetType() { return HelloWorldType; }
+    size_t GetStorageSize() { return sizeof(data_type1) + sizeof(data_type2); }
+    void ReadValue(unsigned char* source)       { Read(source, value1); Read(source, value2); }
+    void WriteValue(unsigned char* destination) { Write(destination, value1); Write(destination, value2); }
+};
+...
+inline UniValue* CreateParameterValue(enumValueType parameter_type)
+{
+    switch (parameter_type)
+    {
+        case BoolType: return new BoolValue;
+        ...
+        case HelloWorldType: return new HelloWorldValue;
+        default: break;
+    }
+    ...
+}

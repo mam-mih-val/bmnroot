@@ -6,19 +6,17 @@ BmnDchRaw2Digit::BmnDchRaw2Digit(Int_t period, Int_t run) {
 }
 
 BmnStatus BmnDchRaw2Digit::ReadMapFromDB(Int_t period, Int_t run) {
-    fEntriesInMap1 = 0;
-    fEntriesInMap2 = 0;
-    fMap1 = NULL;
-    fMap2 = NULL;
+    if (!fMap1.empty()) { for (int i = 0; i < fMap1.size(); i++) delete fMap1[i]; fMap1.clear(); }
+    if (!fMap2.empty()) { for (int i = 0; i < fMap2.size(); i++) delete fMap2[i]; fMap2.clear(); }
 
     cout << "Loading the DCH Map from DB: Period " << period << ", Run " << run << "..." << endl;
 
     UniDbDetectorParameter* pDetectorParameter1 = UniDbDetectorParameter::GetDetectorParameter("DCH1", "DCH_mapping", period, run);
     if (pDetectorParameter1 != NULL)
-        pDetectorParameter1->GetDchMapArray(fMap1, fEntriesInMap1);
+        pDetectorParameter1->GetValue(fMap1);
     UniDbDetectorParameter* pDetectorParameter2 = UniDbDetectorParameter::GetDetectorParameter("DCH2", "DCH_mapping", period, run);
     if (pDetectorParameter2 != NULL)
-        pDetectorParameter2->GetDchMapArray(fMap2, fEntriesInMap2);
+        pDetectorParameter2->GetValue(fMap2);
     delete pDetectorParameter1;
     delete pDetectorParameter2;
 
@@ -26,12 +24,6 @@ BmnStatus BmnDchRaw2Digit::ReadMapFromDB(Int_t period, Int_t run) {
 }
 
 BmnStatus BmnDchRaw2Digit::ReadMapFromFile(Int_t period) {
-
-    fEntriesInMap1 = 120;
-    fEntriesInMap2 = 72; //72 for period 6, 120 for period 7
-
-    fMap1 = new DchMapStructure[fEntriesInMap1];
-    fMap2 = new DchMapStructure[fEntriesInMap2];
     //    TString fileName = Form("DCH_map_Run%d.txt", period);
     TString fileName = Form("DCH_map_Run%d.txt", period);
     TString path = TString(getenv("VMCWORKDIR")) + "/input/" + fileName;
@@ -67,8 +59,6 @@ BmnStatus BmnDchRaw2Digit::ReadMapFromFile(Int_t period) {
         cout << "Error opening map-file (" << path << ")!" << endl;
     inFile >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
     inFile >> dummy;
-    Int_t i1 = 0;
-    Int_t i2 = 0;
     while (!inFile.eof()) {
         inFile >> name >> group >> std::hex >> ser >> std::dec >> slot >> ch_l >> ch_h;
         if (!inFile.good()) break;
@@ -78,21 +68,23 @@ BmnStatus BmnDchRaw2Digit::ReadMapFromFile(Int_t period) {
                         //printf("%s\t%d\t%d\t0x%x\t%d\t%d\t%d\n", name.Data(), planeId, group, ser, slot, ch_l, ch_h);
 
             if (planeId / 8 == 0) {
-                fMap1[i1].plane = planeId;
-                fMap1[i1].group = group;
-                fMap1[i1].crate = ser;
-                fMap1[i1].slot = slot;
-                fMap1[i1].channel_low = ch_l;
-                fMap1[i1].channel_high = ch_h;
-                i1++;
+                DchMapValue* pCurValue = new DchMapValue;
+                pCurValue->plane = planeId;
+                pCurValue->group = group;
+                pCurValue->crate = ser;
+                pCurValue->slot = slot;
+                pCurValue->channel_low = ch_l;
+                pCurValue->channel_high = ch_h;
+                fMap1.push_back(pCurValue);
             } else {
-                fMap2[i2].plane = planeId;
-                fMap2[i2].group = group;
-                fMap2[i2].crate = ser;
-                fMap2[i2].slot = slot;
-                fMap2[i2].channel_low = ch_l;
-                fMap2[i2].channel_high = ch_h;
-                i2++;
+                DchMapValue* pCurValue = new DchMapValue;
+                pCurValue->plane = planeId;
+                pCurValue->group = group;
+                pCurValue->crate = ser;
+                pCurValue->slot = slot;
+                pCurValue->channel_low = ch_l;
+                pCurValue->channel_high = ch_h;
+                fMap2.push_back(pCurValue);
             }
         }
     }
@@ -125,15 +117,15 @@ Int_t BmnDchRaw2Digit::GetChTDC64v(UInt_t tdc, UInt_t ch) {
 };
 
 BmnStatus BmnDchRaw2Digit::FindInMap(BmnTDCDigit* dig, TClonesArray* arr, Long64_t ts, Double_t t0, Int_t dchId) {
-    DchMapStructure* mapArr = (dchId == 1) ? fMap1 : fMap2;
-    Int_t nEntriesInMap = (dchId == 1) ? fEntriesInMap1 : fEntriesInMap2;
+    vector<UniValue*> mapArr = (dchId == 1) ? fMap1 : fMap2;
+    Int_t nEntriesInMap = mapArr.size();
     for (Int_t iMap = 0; iMap < nEntriesInMap; ++iMap) {
-        DchMapStructure map = mapArr[iMap];
-        if (dig->GetSerial() != map.crate || dig->GetSlot() != map.slot) continue;
+        DchMapValue* map = (DchMapValue*) mapArr[iMap];
+        if (dig->GetSerial() != map->crate || dig->GetSlot() != map->slot) continue;
         UInt_t ch = GetChTDC64v(dig->GetHptdcId(), dig->GetChannel());
-        if (ch > map.channel_high || ch < map.channel_low) continue;
+        if (ch > map->channel_high || ch < map->channel_low) continue;
         Double_t tm = dig->GetValue() / 10.0 - t0 + ts; //divide by 10 for conversion (100 ps -> ns)
-        new((*arr)[arr->GetEntriesFast()]) BmnDchDigit(map.plane, map.group * 16 + ch - map.channel_low, tm, 0);
+        new((*arr)[arr->GetEntriesFast()]) BmnDchDigit(map->plane, map->group * 16 + ch - map->channel_low, tm, 0);
         return kBMNSUCCESS;
     }
     return kBMNERROR;

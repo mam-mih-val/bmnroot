@@ -2,7 +2,7 @@
 void create_new_parameter()
 {
     // add 'voltage' parameter, for example (double value)
-    UniDbParameter* pParameter = UniDbParameter::CreateParameter("BD_global_mapping", TriggerMapArrayType); //(TString parameter_name, int parameter_type)
+    UniDbParameter* pParameter = UniDbParameter::CreateParameter("BD_global_mapping", TriggerMapType); //(TString parameter_name, int parameter_type)
     if (pParameter == NULL)
     {
         cout << "\nMacro finished with errors" << endl;

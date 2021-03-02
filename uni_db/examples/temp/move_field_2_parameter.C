@@ -1,4 +1,4 @@
-// macro for moving magnetic field current from table RUN_ to parameter values
+// macro for moving magnetic field voltage from table RUN_ to parameter values
 class UniqueRunNumber;
 void move_field_2_parameter(int period)
 {
@@ -8,7 +8,7 @@ void move_field_2_parameter(int period)
         return;
 
     const char* detector_name = "magnet";
-    const char* parameter_name = "field_current";
+    const char* parameter_name = "field_voltage";
 
     for (int i = 0; i < run_count; i++)
     {
@@ -20,8 +20,8 @@ void move_field_2_parameter(int period)
             continue;
         }
 
-        int* field_current = pRun->GetFieldCurrent();
-        if (field_current == NULL)
+        double* field_voltage = pRun->GetFieldVoltage();
+        if (field_voltage == NULL)
         {
             cout<<"No field current in the database for this run ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             delete pRun;
@@ -58,8 +58,9 @@ void move_field_2_parameter(int period)
         }
 
         // writing magnetic field current as parameter to the Unified Database
+        DoubleValue dValue; dValue.value = *field_voltage;
         UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,
-                                                     run_numbers[i].period_number, run_numbers[i].run_number, run_numbers[i].period_number, run_numbers[i].run_number, *field_current);
+                                                     run_numbers[i].period_number, run_numbers[i].run_number, run_numbers[i].period_number, run_numbers[i].run_number, &dValue);
         if (pDetectorParameter == NULL)
         {
             cout << "\nMacro finished with errors" << endl;
@@ -94,7 +95,7 @@ void print_parameter(int period)
             continue;
         }
 
-        cout<<"Field current for run "<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<" "<<pDetectorParameter->GetInt()<<endl;
+        cout<<"Field current for run "<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<" "<<((DoubleValue*)pDetectorParameter->GetValue())->value<<endl;
         delete pDetectorParameter;
     }
 

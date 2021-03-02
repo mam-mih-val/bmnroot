@@ -13,14 +13,14 @@
 #include "TString.h"
 #include "TDatime.h"
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 
 class ElogDbTrigger
 {
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-	UniDbConnection* connectionUniDb;
+        UniConnection* connectionUniDb;
 
 	/// trigger id
 	int i_trigger_id;
@@ -28,7 +28,7 @@ class ElogDbTrigger
 	TString str_trigger_info;
 
 	//Constructor
-	ElogDbTrigger(UniDbConnection* connUniDb, int trigger_id, TString trigger_info);
+        ElogDbTrigger(UniConnection* connUniDb, int trigger_id, TString trigger_info);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:

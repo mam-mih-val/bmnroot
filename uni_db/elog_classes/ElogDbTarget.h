@@ -13,20 +13,20 @@
 #include "TString.h"
 #include "TDatime.h"
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 
 class ElogDbTarget
 {
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-	UniDbConnection* connectionUniDb;
+        UniConnection* connectionUniDb;
 
 	/// target
 	TString str_target;
 
 	//Constructor
-	ElogDbTarget(UniDbConnection* connUniDb, TString target);
+        ElogDbTarget(UniConnection* connUniDb, TString target);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:

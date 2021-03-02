@@ -2,7 +2,8 @@
 void add_parameter_value()
 {
     // set 'on' parameter value (boolean value)
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "on", 1, 77, 1, 77, true);
+    BoolValue bValue; bValue.value = true;
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "on", 1, 77, 1, 77, &bValue);
     if (pDetectorParameter == NULL)
     {
         cout << "\nMacro finished with errors" << endl;

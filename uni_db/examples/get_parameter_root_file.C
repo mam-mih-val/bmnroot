@@ -1,13 +1,7 @@
-#include "../../gconfig/basiclibs.C"
-
 // macro for getting parameter storing as ROOT file (e.g. detector alignment, lorentz shift) from the database
 void get_parameter_root_file(char* root_file_path, int period_number, int run_number)
 {
-    basiclibs();
-    gSystem->Load("libUniDb");
-
-    // res_code = UniDbDetectorParameter::ReadRootFile(period_number, run_number, "BM@N", "lorentz_shift", root_file_path);
-    int res_code = UniDbDetectorParameter::ReadRootFile(period_number, run_number, "BM@N", "alignment", root_file_path);
+    int res_code = UniDbDetectorParameter::ReadFile("BM@N", "alignment", period_number, run_number, root_file_path);
     if (res_code != 0)
     {
         cout << "\nMacro finished with errors" << endl;

@@ -21,10 +21,8 @@
 Int_t BmnGlobalAlignment::fCurrentEvent = 0;
 
 void BmnGlobalAlignment::Finish() {
-    if (fIsField) {
-        delete fMagField;
+
     }
-}
 
 BmnGlobalAlignment::~BmnGlobalAlignment() {
     for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
@@ -42,7 +40,7 @@ BmnGlobalAlignment::~BmnGlobalAlignment() {
     }
 }
 
-BmnGlobalAlignment::BmnGlobalAlignment(Int_t nEvents, TString inFileName, Int_t period, TString misAlignFile, Bool_t doTest) :
+BmnGlobalAlignment::BmnGlobalAlignment(Int_t nEvents, TString inFileName, Int_t period, Int_t run, TString misAlignFile, Bool_t doTest) :
 nDetectors(2),
 fGemHits(nullptr),
 fSilTracks(nullptr),
@@ -62,7 +60,7 @@ fIsExcludedTy(kFALSE),
 fMinHitsAccepted(3),
 fChi2MaxPerNDF(LDBL_MAX),
 fUseRealHitErrors(kFALSE),
-fNumOfIterations(50000),
+fNumOfIterations(500000),
 fAccuracy(1e-3),
 fPreSigma(1.),
 fUseRegularization(kFALSE),
@@ -72,13 +70,12 @@ fNGL(0),
 fNLC(4),
 fOutlierdownweighting(0),
 fDwfractioncut(0.0),
-fDebug(kFALSE),
+fDebug(true),
 fIsField(kFALSE),
-fMagField(nullptr),
-fField(nullptr),
 Labels(nullptr),
 fUseConstraints(kTRUE),
 fRunPeriod(period),
+fRunId(run),
 fIsDoTest(doTest),
 fMisAlignFile(misAlignFile),
 fBmnGemMisalign(nullptr) {
@@ -100,18 +97,18 @@ fBmnGemMisalign(nullptr) {
     fBranchFairEventHeader = "EventHeader.";
 
     CreateDetectorGeometries();
+    FillMaps();
 }
 
 InitStatus BmnGlobalAlignment::Init() {
     cout << " BmnGlobalAlignment::Init() " << endl;
     cout << "Use detectors: GEM - " << fDetectorSet[0] << " SILICON - " << fDetectorSet[1] << endl;
 
-    TChain* chain = new TChain("cbmsim");
+    TChain* chain = new TChain("bmndata");
     chain->Add(fRecoFileName.Data());
     FairEventHeader* evHeader = NULL;
     chain->SetBranchAddress(fBranchFairEventHeader.Data(), &evHeader);
     chain->GetEntry(0);
-    fRunId = 4648; //(evHeader->GetRunId() > 10000) ? 4629 : evHeader->GetRunId();
     delete chain;
 
     Double_t fieldVolt = 0.;
@@ -152,7 +149,7 @@ InitStatus BmnGlobalAlignment::Init() {
     TGeoManager::Import(geoFileName);
 
     if (fIsDoTest) {
-        TChain* ch = new TChain("cbmsim");
+        TChain* ch = new TChain("bmndata");
         ch->Add(fMisAlignFile.Data());
         ch->SetBranchAddress(fBranchGemAlignCorr.Data(), &fBmnGemMisalign);
         ch->GetEntry(0);
@@ -202,16 +199,16 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
         vector <BmnMilleContainer*> SILICON;
 
         for (Int_t iDet = 0; iDet < nDetectors; iDet++) {
-            if (!fDetectorSet[iDet] || idx[iDet] == -1 || fIsField) {
-                delete idx;
+            if (!fDetectorSet[iDet] || idx[iDet] == -1 || fIsField) //{
+                // delete [] idx;
                 continue;
-            }
+            //}
             MilleNoFieldRuns(globTrack, idx[iDet], iDet, GEM, SILICON);
         }
 
         fCONTAINER[fNTracks] = pair <vector <BmnMilleContainer*>, vector < BmnMilleContainer*>> (SILICON, GEM);
         fNTracks++;
-        delete idx;
+        delete [] idx;
     }
 
     if (fNEvents == fCurrentEvent) {
@@ -253,7 +250,7 @@ BmnMilleContainer* BmnGlobalAlignment::FillMilleContainer(BmnGlobalTrack* glTrac
     mille->SetGlobDers(globDerX, globDerY);
 
     mille->SetMeasures(hit->GetX(), hit->GetY());
-    mille->SetDMeasures(fUseRealHitErrors ? hit->GetDx() : 1., fUseRealHitErrors ? hit->GetDy() : 1.);
+    mille->SetDMeasures(fUseRealHitErrors ? 2. * hit->GetDx() : 1., fUseRealHitErrors ? hit->GetDy() : 1.);
 
     return mille;
 }
@@ -313,14 +310,9 @@ void BmnGlobalAlignment::_Mille(Double_t* DerLc, Double_t* DerGl, BmnMille* Mill
                 DerLc[2] = locDers[2];
                 DerLc[3] = locDers[3];
 
-                Int_t shift = 0;
-                if (dets[iDet].Contains("SILICON"))
-                    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
-                        shift += 3 * fDetectorGEM->GetGemStation(iStat)->GetNModules();
-
                 Int_t idx = dets[iDet].Contains("GEM") ? GemStatModLabel(_cont->GetStation(), _cont->GetModule()) :
                         SiliconStatModLabel(_cont->GetStation(), _cont->GetModule());
-                Int_t idxUp = shift + idx - 1; // Upper label value
+                Int_t idxUp = idx - 1; // Upper label value
                 Int_t idxMed = idxUp - 1;
                 Int_t idxLow = idxMed - 1;
 
@@ -350,7 +342,7 @@ void BmnGlobalAlignment::_Mille(Double_t* DerLc, Double_t* DerGl, BmnMille* Mill
             }
         }
     }
-    delete dets;
+    delete [] dets;
 }
 
 const Int_t BmnGlobalAlignment::MakeBinFile() {
@@ -390,31 +382,31 @@ const Int_t BmnGlobalAlignment::MakeBinFile() {
 }
 
 void BmnGlobalAlignment::MakeSteerFile() {
-    Double_t shiftX = 0., shiftY = 0., shiftZ = 0.;
-    Double_t*** misAlign = new Double_t**[fDetectorGEM->GetNStations()];
-    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++) {
-        misAlign[iStat] = new Double_t*[fDetectorGEM->GetGemStation(iStat)->GetNModules()];
-        for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++) {
-            misAlign[iStat][iMod] = new Double_t[3];
-            for (Int_t iPar = 0; iPar < 3; iPar++)
-                misAlign[iStat][iMod][iPar] = 0.;
-        }
-    }
+    //    Double_t shiftX = 0., shiftY = 0., shiftZ = 0.;
+    //    Double_t*** misAlign = new Double_t**[fDetectorGEM->GetNStations()];
+    //    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++) {
+    //        misAlign[iStat] = new Double_t*[fDetectorGEM->GetGemStation(iStat)->GetNModules()];
+    //        for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++) {
+    //            misAlign[iStat][iMod] = new Double_t[3];
+    //            for (Int_t iPar = 0; iPar < 3; iPar++)
+    //                misAlign[iStat][iMod][iPar] = 0.;
+    //        }
+    //    }
 
-    if (fIsDoTest && fBmnGemMisalign) {
-        for (Int_t iCorr = 0; iCorr < fBmnGemMisalign->GetEntriesFast(); iCorr++) {
-            BmnGemAlignCorrections* align = (BmnGemAlignCorrections*) fBmnGemMisalign->UncheckedAt(iCorr);
-            Int_t iStat = align->GetStation();
-            Int_t iMod = align->GetModule();
-            TVector3 corrsXYZ = align->GetCorrections();
-            misAlign[iStat][iMod][0] = corrsXYZ.X();
-            shiftX += misAlign[iStat][iMod][0];
-            misAlign[iStat][iMod][1] = corrsXYZ.Y();
-            shiftY += misAlign[iStat][iMod][1];
-            misAlign[iStat][iMod][2] = corrsXYZ.Z();
-            shiftZ += misAlign[iStat][iMod][2];
-        }
-    }
+    //    if (fIsDoTest && fBmnGemMisalign) {
+    //        for (Int_t iCorr = 0; iCorr < fBmnGemMisalign->GetEntriesFast(); iCorr++) {
+    //            BmnGemAlignCorrections* align = (BmnGemAlignCorrections*) fBmnGemMisalign->UncheckedAt(iCorr);
+    //            Int_t iStat = align->GetStation();
+    //            Int_t iMod = align->GetModule();
+    //            TVector3 corrsXYZ = align->GetCorrections();
+    //            misAlign[iStat][iMod][0] = corrsXYZ.X();
+    //            shiftX += misAlign[iStat][iMod][0];
+    //            misAlign[iStat][iMod][1] = corrsXYZ.Y();
+    //            shiftY += misAlign[iStat][iMod][1];
+    //            misAlign[iStat][iMod][2] = corrsXYZ.Z();
+    //            shiftZ += misAlign[iStat][iMod][2];
+    //        }
+    //    }
 
     FILE* steer = fopen("steer.txt", "w");
     TString alignType = "alignment.bin";
@@ -467,48 +459,71 @@ void BmnGlobalAlignment::MakeSteerFile() {
         }
     }
 
-    if (!fUseConstraints)
+    if (!fUseConstraints) {
+        fclose(steer);
         return;
-
-    // Calculate center-of-gravity along Z-axis (GEM + SI)
-    vector <Double_t> z_GEM;
-    vector <Double_t> z_SI;
-
-    vector <Double_t> z_GEM_SI;
-
-    if (fDetectorSet[0])
-        for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
-            for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++) {
-                z_GEM.push_back(fDetectorGEM->GetGemStation(iStat)->GetModule(iMod)->GetZPositionRegistered() + (fIsDoTest ? misAlign[iStat][iMod][2] : 0.));
-            }
-
-    if (!fIsDoTest && fDetectorSet[1]) {
-        for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++)
-            for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++)
-                z_SI.push_back(fDetectorSI->GetSiliconStation(iStat)->GetModule(iMod)->GetZPositionRegistered());
     }
 
-    z_GEM_SI.reserve(z_GEM.size() + z_SI.size());
-    z_GEM_SI.insert(z_GEM_SI.end(), z_GEM.begin(), z_GEM.end());
-    z_GEM_SI.insert(z_GEM_SI.end(), z_SI.begin(), z_SI.end());
+    // Calculate center-of-gravity along Z-axis (GEM and SI)
+    map <pair <Int_t, Int_t>, Double_t> z_GEM;
+    map <pair <Int_t, Int_t>, Double_t> z_SI;
+
+    if (fDetectorSet[0]) {
+        for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+            for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++)
+                if (!fixedGemElements[iStat][iMod])
+                    z_GEM[pair <Int_t, Int_t> (iStat, iMod)] = fDetectorGEM->GetGemStation(iStat)->GetModule(iMod)->GetZPositionRegistered();
+            }
+
+    if (fDetectorSet[1]) {
+        for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++)
+            for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++)
+                if (!fixedSiElements[iStat][iMod])
+                    z_SI[pair <Int_t, Int_t> (iStat, iMod)] = fDetectorSI->GetSiliconStation(iStat)->GetModule(iMod)->GetZPositionRegistered();
+    }
 
     Double_t zSum = 0.;
-    for (Int_t iSize = 0; iSize < z_GEM_SI.size(); iSize++)
-        zSum += z_GEM_SI[iSize];
+    for (auto it : z_GEM)
+        zSum += it.second;
 
-    Double_t zC = zSum / z_GEM_SI.size();
+    for (auto it : z_SI)
+        zSum += it.second;
 
-    // Calculate dZ = Zpos - Zc (GEM + SI)
-    vector <Double_t> deltaZ;
+    Double_t zC = zSum / (z_GEM.size() + z_SI.size());
+    cout << zC << " " << z_GEM.size() + z_SI.size() << endl;
 
-    for (Int_t iSize = 0; iSize < z_GEM_SI.size(); iSize++)
-        deltaZ.push_back(z_GEM_SI[iSize] - zC);
+    // Calculate dZ = Zpos - Zc (GEM and SI)
+    map <pair <Int_t, Int_t>, Double_t> dZ_GEM;
+    map <pair <Int_t, Int_t>, Double_t> dZ_SI;
 
-    map <Int_t, Double_t> deltas;
+    for (auto it : z_GEM)
+        dZ_GEM[it.first] = it.second - zC;
 
-    for (Int_t iSize = 0; iSize < z_GEM_SI.size() * nParams; iSize++) {
-        Double_t shift = (Labels[iSize] % nParams == 0) ? zC : 0.;
-        deltas[Labels[iSize]] = deltaZ[iSize / nParams] + shift;
+    for (auto it : z_SI)
+        dZ_SI[it.first] = it.second - zC;
+
+    map <Int_t, Double_t> deltas; // Label --> Correct dZ
+
+    for (auto it : dZ_GEM) {
+        Int_t stat = it.first.first;
+        Int_t mod = it.first.second;
+        Int_t labZ = GemStatModLabel(stat, mod);
+        Int_t labY = labZ - 1;
+        Int_t labX = labY - 1;
+        deltas[labX] = it.second;
+        deltas[labY] = it.second;
+        deltas[labZ] = it.second + zC;
+    }
+
+    for (auto it : dZ_SI) {
+        Int_t stat = it.first.first;
+        Int_t mod = it.first.second;
+        Int_t labZ = SiliconStatModLabel(stat, mod);
+        Int_t labY = labZ - 1;
+        Int_t labX = labY - 1;
+        deltas[labX] = it.second;
+        deltas[labY] = it.second;
+        deltas[labZ] = it.second + zC;
     }
 
     if (!fDetectorSet[0] && !fDetectorSet[1])
@@ -521,9 +536,12 @@ void BmnGlobalAlignment::MakeSteerFile() {
     for (Int_t iRemain = 0; iRemain < nParams; iRemain++) {
         fprintf(steer, "constraint 0.0\n");
         if (fDetectorSet[0])
-            for (Int_t iPar = 0; iPar < parCounterGem * nParams; iPar++)
-                if (Labels[iPar] % nParams == iRemain)
+            for (Int_t iPar = 0; iPar < parCounterGem * nParams; iPar++) {
+                Int_t stat = GetGemStatMod(Labels[iPar])[0];
+                Int_t mod = GetGemStatMod(Labels[iPar])[1];
+                if (Labels[iPar] % nParams == iRemain && !fixedGemElements[stat][mod])
                     fprintf(steer, "%d %G\n", Labels[iPar], 1.);
+            }
 
         if (fDetectorSet[1])
             for (Int_t iPar = parCounterGem * nParams; iPar < fNGL; iPar++) {
@@ -541,10 +559,11 @@ void BmnGlobalAlignment::MakeSteerFile() {
         fprintf(steer, "constraint 0.0\n");
         for (auto it : deltas) {
             if (it.first <= parCounterGem * nParams) {
-                if (it.first % nParams == iRemain)
+                Int_t stat = GetGemStatMod(it.first)[0];
+                Int_t mod = GetGemStatMod(it.first)[1];
+                if (it.first % nParams == iRemain && !fixedGemElements[stat][mod])
                     fprintf(steer, "%d %G\n", it.first, it.second);
-            }
-            else {
+            } else {
                 Int_t stat = GetSiliconStatMod(it.first)[0];
                 Int_t mod = GetSiliconStatMod(it.first)[1];
                 if (it.first % nParams == iRemain && !fixedSiElements[stat][mod])
@@ -587,8 +606,6 @@ void BmnGlobalAlignment::ReadPedeOutput(ifstream& resFile) {
     for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++) {
         for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++) {
             ExtractCorrValues(resFile, corrs);
-            cout << iStat << " " << iMod << " " << corrs[0] << " " << corrs[1] << " " << corrs[2] << endl;
-            cout << fSiAlignCorr->GetEntriesFast() << endl;
             BmnSiliconAlignCorrections* siCorrs = new((*fSiAlignCorr)[fSiAlignCorr->GetEntriesFast()]) BmnSiliconAlignCorrections();
             siCorrs->SetStation(iStat);
             siCorrs->SetModule(iMod);
@@ -626,9 +643,11 @@ void BmnGlobalAlignment::ExtractCorrValues(ifstream& resFile, Double_t* corrs) {
 void BmnGlobalAlignment::CreateDetectorGeometries() {
     fDetectorSet = new Bool_t[nDetectors]();
 
+    // Choose appropriate configuration (BM@N or SRC)
+    Bool_t isSRC = (fRunId < 3589) ? kTRUE : kFALSE; // FIXME
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
-    TString confSi = (fRunPeriod == 7) ? "SiliconRunSpring2018.xml" : (fRunPeriod == 6) ? "SiliconRunSpring2017.xml" : "";
-    TString confGem = (fRunPeriod == 7) ? "GemRunSpring2018.xml" : (fRunPeriod == 6) ? "GemRunSpring2017.xml" : "";
+    TString confSi = "SiliconRun" + TString(isSRC ? "SRC" : "") + "Spring2018.xml";
+    TString confGem = "GemRun" + TString(isSRC ? "SRC" : "") + "Spring2018.xml";
 
     /// SI
     TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";

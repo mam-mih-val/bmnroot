@@ -9,13 +9,14 @@ void get_parameter_value()
         return;
     }
 
-    bool is_on = pDetectorParameter->GetBool();
-    if (is_on)
+    BoolValue* is_on = (BoolValue*) pDetectorParameter->GetValue();
+    if (is_on->value)
         cout<<"Detector DCH1 was turned on in run n.77"<<endl;
     else
         cout<<"Detector DCH1 was turned off in run n.77"<<endl;
 
     // clean memory after work
+    delete is_on;
     delete pDetectorParameter;
 
     cout << "\nMacro finished successfully" << endl;

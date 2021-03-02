@@ -5,16 +5,18 @@ void get_lorShift(Int_t runPeriod = 6, Int_t runNumber = 1217) {
     if (pDetectorParameter == NULL)
         return_error = true;
 
-    LorentzShiftStructure* shifts;
-    int element_count = 0;
-    pDetectorParameter->GetLorentzShiftArray(shifts, element_count);
+    vector<UniValue*> shifts;
+    pDetectorParameter->GetValue(shifts);
 
-    for (int i = 0; i < element_count; i++) {
-        cout << "Stat. number: " << shifts[i].number << endl;
+    for (int i = 0; i < shifts.size(); i++) {
+        LorentzShiftValue* pValue = (LorentzShiftValue*) shifts[i];
+        cout << "Stat. number: " << pValue->number << endl;
         for (int j = 0; j < 3; j++)
-            cout << shifts[i].ls[j] << endl;
+            cout << pValue->ls[j] << endl;
     }
     
+    // clean memory
+    for (int i = 0; i < shifts.size(); i++) delete shifts[i];
     if (pDetectorParameter)
         delete pDetectorParameter;
 

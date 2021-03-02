@@ -14,7 +14,7 @@
 #include "TDatime.h"
 #include "TObjArray.h"
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 #include "UniDbSearchCondition.h"
 #include "db_structures.h"
 
@@ -23,7 +23,7 @@ class UniDbRun
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-	UniDbConnection* connectionUniDb;
+        UniConnection* connectionUniDb;
 
 	/// period number
 	int i_period_number;
@@ -38,9 +38,9 @@ class UniDbRun
 	/// energy
 	double* d_energy;
 	/// start datetime
-	TDatime dt_start_datetime;
+	TDatime ts_start_datetime;
 	/// end datetime
-	TDatime* dt_end_datetime;
+	TDatime* ts_end_datetime;
 	/// event count
 	int* i_event_count;
 	/// field voltage
@@ -51,7 +51,7 @@ class UniDbRun
 	int* i_geometry_id;
 
 	//Constructor
-	UniDbRun(UniDbConnection* connUniDb, int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, double* file_size, int* geometry_id);
+        UniDbRun(UniConnection* connUniDb, int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, double* file_size, int* geometry_id);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
@@ -90,9 +90,9 @@ class UniDbRun
 	/// get energy of the current run
 	double* GetEnergy() {if (d_energy == NULL) return NULL; else return new double(*d_energy);}
 	/// get start datetime of the current run
-	TDatime GetStartDatetime() {return dt_start_datetime;}
+	TDatime GetStartDatetime() {return ts_start_datetime;}
 	/// get end datetime of the current run
-	TDatime* GetEndDatetime() {if (dt_end_datetime == NULL) return NULL; else return new TDatime(*dt_end_datetime);}
+	TDatime* GetEndDatetime() {if (ts_end_datetime == NULL) return NULL; else return new TDatime(*ts_end_datetime);}
 	/// get event count of the current run
 	int* GetEventCount() {if (i_event_count == NULL) return NULL; else return new int(*i_event_count);}
 	/// get field voltage of the current run
@@ -127,11 +127,11 @@ class UniDbRun
 	int SetFileSize(double* file_size);
 	/// set geometry id of the current run
 	int SetGeometryId(int* geometry_id);
+
 	/// print information about current run
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
-	// static class functions (added by user request)
 	/// get numbers of runs existing in the Database for a selected range
     /// \param[in] start_period start period number for selected run numbers' range
     /// \param[in] start_run start run number for selected run numbers' range
@@ -144,6 +144,7 @@ class UniDbRun
     /// \param[out] run_numbers pairs (period number+run numbers) of the really existing runs for a selected range (from start to end)
 	/// \return size of 'run_numbers' array. if size < 0, return value corresponds to error number
     static int GetRunNumbers(UniqueRunNumber*& run_numbers);
+
 	/// set geometry binary data (geometry file's data) for runs from start_run_number to end_run_number
     static int SetRootGeometry(int start_period, int start_run, int end_period, int end_run, unsigned char* root_geometry, Long_t size_root_geometry);
 	/// get geometry binary data (geometry file's data) for selected run number
@@ -152,14 +153,16 @@ class UniDbRun
     static int WriteGeometryFile(int start_period, int start_run, int end_period, int end_run, const char* geo_file_path);
 	/// read geometry file for selected run number from the database
     static int ReadGeometryFile(int period_number, int run_number, char* geo_file_path);
-	/// get runs corresponding to the specified single condition
-	static TObjArray* Search(const UniDbSearchCondition& search_condition);
-	/// get runs corresponding to the specified (vector) conditions
-	static TObjArray* Search(const TObjArray& search_conditions);
+
+    /// get runs corresponding to the specified single condition and set owner for search_condition to kTRUE
+    static TObjArray* Search(UniDbSearchCondition& search_condition);
+    /// get runs corresponding to the specified (vector) conditions and set owner for search_condition to kTRUE
+    static TObjArray* Search(TObjArray& search_conditions);
+
     /// get number of the closest run below the given one
     static UniqueRunNumber* FindPreviousRun(int run_period, int run_number);
 
-	ClassDef(UniDbRun,1);
+ ClassDef(UniDbRun,1);
 };
 
 #endif

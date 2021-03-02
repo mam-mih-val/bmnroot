@@ -13,7 +13,7 @@
 #include "TString.h"
 #include "TDatime.h"
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 #include "db_structures.h"
 
 class UniDbRunPeriod
@@ -21,17 +21,17 @@ class UniDbRunPeriod
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-	UniDbConnection* connectionUniDb;
+        UniConnection* connectionUniDb;
 
 	/// period number
 	int i_period_number;
 	/// start datetime
-	TDatime dt_start_datetime;
+	TDatime ts_start_datetime;
 	/// end datetime
-	TDatime* dt_end_datetime;
+	TDatime* ts_end_datetime;
 
 	//Constructor
-	UniDbRunPeriod(UniDbConnection* connUniDb, int period_number, TDatime start_datetime, TDatime* end_datetime);
+        UniDbRunPeriod(UniConnection* connUniDb, int period_number, TDatime start_datetime, TDatime* end_datetime);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
@@ -54,9 +54,9 @@ class UniDbRunPeriod
 	/// get period number of the current run period
 	int GetPeriodNumber() {return i_period_number;}
 	/// get start datetime of the current run period
-	TDatime GetStartDatetime() {return dt_start_datetime;}
+	TDatime GetStartDatetime() {return ts_start_datetime;}
 	/// get end datetime of the current run period
-	TDatime* GetEndDatetime() {if (dt_end_datetime == NULL) return NULL; else return new TDatime(*dt_end_datetime);}
+	TDatime* GetEndDatetime() {if (ts_end_datetime == NULL) return NULL; else return new TDatime(*ts_end_datetime);}
 
 	// Setters
 	/// set period number of the current run period
@@ -65,6 +65,7 @@ class UniDbRunPeriod
 	int SetStartDatetime(TDatime start_datetime);
 	/// set end datetime of the current run period
 	int SetEndDatetime(TDatime* end_datetime);
+
 	/// print information about current run period
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */

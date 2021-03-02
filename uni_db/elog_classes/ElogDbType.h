@@ -13,14 +13,14 @@
 #include "TString.h"
 #include "TDatime.h"
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 
 class ElogDbType
 {
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-	UniDbConnection* connectionUniDb;
+        UniConnection* connectionUniDb;
 
 	/// type id
 	int i_type_id;
@@ -28,7 +28,7 @@ class ElogDbType
 	TString str_type_text;
 
 	//Constructor
-	ElogDbType(UniDbConnection* connUniDb, int type_id, TString type_text);
+        ElogDbType(UniConnection* connUniDb, int type_id, TString type_text);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:

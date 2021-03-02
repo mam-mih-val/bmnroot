@@ -57,13 +57,13 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
     while (!inFile.eof()) {
         inFile >> std::hex >> ser >> std::dec >> ch_lo >> ch_hi >> id >> station >> hot;
         if (!inFile.good()) break;
-        GemMapStructure record;
-        record.channel_high = ch_hi;
-        record.serial = ser;
-        record.channel_low = ch_lo;
-        record.station = station;
-        record.hotZone = hot;
-        record.id = id;
+        GemMapValue* record = new GemMapValue;
+        record->channel_high = ch_hi;
+        record->serial = ser;
+        record->channel_low = ch_lo;
+        record->station = station;
+        record->hotZone = hot;
+        record->id = id;
         fMap.push_back(record);
     }
     fEntriesInGlobMap = fMap.size();
@@ -120,13 +120,16 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
 BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod) {
     Int_t size = 0;
     UniDbDetectorParameter* par = UniDbDetectorParameter::GetDetectorParameter("GEM", parName, GetPeriod(), GetRun());
-    IIStructure* iiArr;
-    if (par != NULL) par->GetIIArray(iiArr, size);
+    vector<UniValue*> iiArr;
+    if (par != NULL) par->GetValue(iiArr);
     delete par;
     for (Int_t i = 0; i < size; ++i)
-        m[iiArr[i].int_2] = BmnGemMap(iiArr[i].int_1, lay, mod);
-    delete[] iiArr;
+    {
+        IIValue* pValue = (IIValue*) iiArr[i];
+        m[pValue->value2] = BmnGemMap(pValue->value1, lay, mod);
+    }
 
+    if (!iiArr.empty()) for (int i = 0; i < iiArr.size(); i++) delete iiArr[i];
     return kBMNSUCCESS;
 }
 
@@ -137,7 +140,7 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
     if (fBigL1) delete[] fBigL1;
     if (fBigR0) delete[] fBigR0;
     if (fBigR1) delete[] fBigR1;
-    //    if (fMap) delete[] fMap;
+    if (!fMap.empty()) for (int i = 0; i < fMap.size(); i++) delete fMap[i];
 
     const Int_t kNStations = 10;
 
@@ -277,9 +280,9 @@ BmnStatus BmnGemRaw2Digit::FillProfiles(TClonesArray *adc) {
         BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
         UInt_t ch = adcDig->GetChannel() * adcDig->GetNSamples();
         for (Int_t iMap = 0; iMap < fEntriesInGlobMap; ++iMap) {
-            GemMapStructure gemM = fMap[iMap];
-            if (adcDig->GetSerial() == gemM.serial && ch <= gemM.channel_high && ch >= gemM.channel_low) {
-                ProcessDigit(adcDig, &gemM, NULL, kTRUE);
+            GemMapValue* gemM = fMap[iMap];
+            if (adcDig->GetSerial() == gemM->serial && ch <= gemM->channel_high && ch >= gemM->channel_low) {
+                ProcessDigit(adcDig, gemM, NULL, kTRUE);
                 break;
             }
         }
@@ -341,9 +344,9 @@ BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * gem) {
         BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
         UInt_t ch = adcDig->GetChannel() * adcDig->GetNSamples();
         for (Int_t iMap = 0; iMap < fEntriesInGlobMap; ++iMap) {
-            GemMapStructure gemM = fMap[iMap];
-            if (adcDig->GetSerial() == gemM.serial && ch <= gemM.channel_high && ch >= gemM.channel_low) {
-                ProcessDigit(adcDig, &gemM, gem, kFALSE);
+            GemMapValue* gemM = fMap[iMap];
+            if (adcDig->GetSerial() == gemM->serial && ch <= gemM->channel_high && ch >= gemM->channel_low) {
+                ProcessDigit(adcDig, gemM, gem, kFALSE);
                 break;
             }
         }
@@ -937,7 +940,7 @@ void BmnGemRaw2Digit::PostprocessDigitMK(TClonesArray * gem, TClonesArray * csc)
     } // niter
 }
 
-void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, TClonesArray * gem, Bool_t doFill) {
+void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapValue* gemM, TClonesArray * gem, Bool_t doFill) {
     const UInt_t nSmpl = adcDig->GetNSamples();
     UInt_t ch = adcDig->GetChannel();
     UInt_t ser = adcDig->GetSerial();

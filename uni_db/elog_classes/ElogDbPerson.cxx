@@ -13,7 +13,7 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-ElogDbPerson::ElogDbPerson(UniDbConnection* connUniDb, int person_id, TString person_name, int is_active)
+ElogDbPerson::ElogDbPerson(UniConnection* connUniDb, int person_id, TString person_name, int is_active)
 {
 	connectionUniDb = connUniDb;
 
@@ -32,7 +32,7 @@ ElogDbPerson::~ElogDbPerson()
 // -----   Creating new person in the database  ---------------------------
 ElogDbPerson* ElogDbPerson::CreatePerson(TString person_name, int is_active)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -100,7 +100,7 @@ ElogDbPerson* ElogDbPerson::CreatePerson(TString person_name, int is_active)
 // -----  Get person from the database  ---------------------------
 ElogDbPerson* ElogDbPerson::GetPerson(int person_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -149,7 +149,7 @@ ElogDbPerson* ElogDbPerson::GetPerson(int person_id)
 // -----  Get person from the database by unique key  --------------
 ElogDbPerson* ElogDbPerson::GetPerson(TString person_name)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -198,7 +198,7 @@ ElogDbPerson* ElogDbPerson::GetPerson(TString person_name)
 // -----  Check person exists in the database  ---------------------------
 bool ElogDbPerson::CheckPersonExists(int person_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -239,7 +239,7 @@ bool ElogDbPerson::CheckPersonExists(int person_id)
 // -----  Check person exists in the database by unique key  --------------
 bool ElogDbPerson::CheckPersonExists(TString person_name)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -280,7 +280,7 @@ bool ElogDbPerson::CheckPersonExists(TString person_name)
 // -----  Delete person from the database  ---------------------------
 int ElogDbPerson::DeletePerson(int person_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -311,7 +311,7 @@ int ElogDbPerson::DeletePerson(int person_id)
 // -----  Delete person from the database by unique key  --------------
 int ElogDbPerson::DeletePerson(TString person_name)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -342,7 +342,7 @@ int ElogDbPerson::DeletePerson(TString person_name)
 // -----  Print all 'persons'  ---------------------------------
 int ElogDbPerson::PrintAll()
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();

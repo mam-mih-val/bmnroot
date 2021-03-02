@@ -1,0 +1,9 @@
+{
+	"extensions": [".data"],
+	"db_user": "db_reader",
+	"db_pass": "reader_pass",
+	"db_name": "bmn_db",
+	"db_host": "vm221-53.jinr.ru",
+	"file_size_limit": "100mb:300gb",
+	"event_size_limit": "10kb:500kb"
+}

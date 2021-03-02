@@ -23,7 +23,7 @@ BmnInnTrackerAlign::BmnInnTrackerAlign(Int_t period, Int_t run, TString fileName
     if (fileName.Contains("default")) {
         gRandom->SetSeed(0);
         fFilename = Form("alignment_innTracker_%d.root", UInt_t(gRandom->Integer(UINT32_MAX)));
-        UniDbDetectorParameter::ReadRootFile(period, run, "BM@N", "alignment", (Char_t*) fFilename.Data());
+        UniDbDetectorParameter::ReadFile("BM@N", "alignment", period, run, (Char_t*) fFilename.Data());
     } else
         fFilename = fileName;
 
@@ -57,15 +57,14 @@ BmnInnTrackerAlign::BmnInnTrackerAlign(Int_t period, Int_t run, TString fileName
     const Int_t nStat = fDetectorGEM->GetNStations();
     fLorCorrs = new Double_t*[nStat];
     UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", period, run);
-    LorentzShiftStructure* shifts;
-    Int_t element_count = 0;
+    vector<UniValue*> shifts;
     if (coeffLorCorrs)
-        coeffLorCorrs->GetLorentzShiftArray(shifts, element_count);
+        coeffLorCorrs->GetValue(shifts); //
     for (Int_t iEle = 0; iEle < nStat; iEle++) {
         const Int_t nParams = 3; // Parabolic approximation is used
         fLorCorrs[iEle] = new Double_t[nParams];
         for (Int_t iParam = 0; iParam < nParams; iParam++)
-            fLorCorrs[iEle][iParam] = (coeffLorCorrs) ? shifts[iEle].ls[iParam] : 0.;
+            fLorCorrs[iEle][iParam] = (coeffLorCorrs) ? ((LorentzShiftValue*)shifts[iEle])->ls[iParam] : 0.;
     }
 }
 

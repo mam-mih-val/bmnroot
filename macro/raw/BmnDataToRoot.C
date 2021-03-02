@@ -32,7 +32,7 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     setup[9]  = 1; // LAND
     setup[10] = 1; // CSC
     decoder->SetDetectorSetup(setup);
-    decoder->SetAdcDecoMode(kBMNADCMK);
+    decoder->SetAdcDecoMode(period < 6 ? kBMNADCSM : kBMNADCMK);
 
     TString PeriodSetupExt = Form("%d%s.txt", period, ((stp == kBMNSETUP) ? "" : "_SRC"));
     decoder->SetTrigPlaceMapping(TString("Trig_PlaceMap_Run") + PeriodSetupExt);

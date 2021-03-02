@@ -151,7 +151,7 @@ int main(int argc, char** argv)
     TSQLServer* pSQLServer = TSQLServer::Connect(strConnection, UNI_DB_USERNAME, UNI_DB_PASSWORD);
     if (pSQLServer == 0x00)
     {
-        cout<<"Connection to database wasn't established"<<endl;
+        cout<<"Connection to the database was not established"<<endl;
         return 0x00;
     }
 

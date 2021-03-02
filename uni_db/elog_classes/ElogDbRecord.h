@@ -14,7 +14,7 @@
 #include "TDatime.h"
 #include "TObjArray.h"
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 #include "UniDbSearchCondition.h"
 
 class ElogDbRecord
@@ -22,7 +22,7 @@ class ElogDbRecord
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-	UniDbConnection* connectionUniDb;
+        UniConnection* connectionUniDb;
 
 	/// record id
 	int i_record_id;
@@ -60,7 +60,7 @@ class ElogDbRecord
 	TString* str_record_comment;
 
 	//Constructor
-	ElogDbRecord(UniDbConnection* connUniDb, int record_id, TDatime record_date, int* shift_leader_id, int type_id, int* period_number, int* run_number, int* trigger_id, TString* daq_status, int* sp_41, int* sp_57, int* vkm2, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment);
+        ElogDbRecord(UniConnection* connUniDb, int record_id, TDatime record_date, int* shift_leader_id, int type_id, int* period_number, int* run_number, int* trigger_id, TString* daq_status, int* sp_41, int* sp_57, int* vkm2, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:

@@ -1,26 +1,27 @@
 // ----------------------------------------------------------------------
-//                    UniDbRunGeometry header file 
+//                    UniDbRunGeometry header file
 //                      Generated 05-11-2015 
 // ----------------------------------------------------------------------
 
-/** db_classes/UniDbRunGeometry.h 
+/** db_classes/UniDbRunGeometry.h
  ** Class for the table: run_geometry 
  **/ 
 
-#ifndef UNIDBRUNGEOMETRY_H 
-#define UNIDBRUNGEOMETRY_H 1 
+#ifndef UNIDBRUNGEOMETRY_H
+#define UNIDBRUNGEOMETRY_H 1
 
 #include "TString.h"
 #include "TDatime.h"
+#include "TObjArray.h"
 
-#include "UniDbConnection.h"
+#include "UniConnection.h"
 
 class UniDbRunGeometry
 {
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-	UniDbConnection* connectionUniDb;
+    UniConnection* connectionUniDb;
 
 	/// geometry id
 	int i_geometry_id;
@@ -30,23 +31,26 @@ class UniDbRunGeometry
 	Long_t sz_root_geometry;
 
 	//Constructor
-	UniDbRunGeometry(UniDbConnection* connUniDb, int geometry_id, unsigned char* root_geometry, Long_t size_root_geometry);
+    UniDbRunGeometry(UniConnection* connUniDb, int geometry_id, unsigned char* root_geometry, Long_t size_root_geometry);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
 	/* GENERATED PUBLIC MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
-	virtual ~UniDbRunGeometry(); // Destructor
+    virtual ~UniDbRunGeometry(); // Destructor
 
 	// static class functions
 	/// add new run geometry to the database
-	static UniDbRunGeometry* CreateRunGeometry(unsigned char* root_geometry, Long_t size_root_geometry);
+    static UniDbRunGeometry* CreateRunGeometry(unsigned char* root_geometry, Long_t size_root_geometry);
+    static UniDbRunGeometry* CreateRunGeometry(int geometry_id, unsigned char* root_geometry, Long_t size_root_geometry);
 	/// get run geometry from the database
-	static UniDbRunGeometry* GetRunGeometry(int geometry_id);
+    static UniDbRunGeometry* GetRunGeometry(int geometry_id);
 	/// check run geometry exists in the database
 	static bool CheckRunGeometryExists(int geometry_id);
 	/// delete run geometry from the database
 	static int DeleteRunGeometry(int geometry_id);
-	/// print all run geometrys
+    /// get all run geometries
+    static TObjArray* GetAll();
+    /// print all run geometries
 	static int PrintAll();
 
 	// Getters
@@ -60,6 +64,7 @@ class UniDbRunGeometry
 	// Setters
 	/// set root geometry of the current run geometry
 	int SetRootGeometry(unsigned char* root_geometry, Long_t size_root_geometry);
+
 	/// print information about current run geometry
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */

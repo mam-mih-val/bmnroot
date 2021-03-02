@@ -43,8 +43,12 @@ def plot_all_stats(size, time, config_dict, _dir, output, recursive):
     elif size:
         print("Calculating file size statistics...")
         computer = SizeStatComputer(config_dict)
-        arr, unit, title, arr_per_event, unit_per_event, title_per_event \
-            = computer.compute(_dir, recursive)
+        try:
+            arr, unit, title, arr_per_event, unit_per_event, title_per_event \
+                = computer.compute(_dir, recursive)
+        except NoDataException:
+            print("\nNo data to display - returning!")
+            return        
 
         fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(20, 10))
 
@@ -63,8 +67,7 @@ def plot_all_stats(size, time, config_dict, _dir, output, recursive):
             arr, unit, title, arr_per_event, unit_per_event, title_per_event \
                  = computer.compute(_dir, recursive)
         except NoDataException:
-            print()
-            print("No data to display - returning!")
+            print("\nNo data to display - returning!")
             return
 
         fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(20, 10))

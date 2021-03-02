@@ -128,9 +128,11 @@ assert(gGeoManager);
 			assert(IsUniqueUID);	   			   	
 			
     		} // strips
+			delete it2;
     	} // detectors	
 
     	LOG(info) << "[BmnTof1HitProducer::ParseTGeoManager] detectors = " << nDetectors << ", strips= " << nStrips << ". ";
+        delete it1;
         return nDetectors;
 }
 //------------------------------------------------------------------------------------------------------------------------

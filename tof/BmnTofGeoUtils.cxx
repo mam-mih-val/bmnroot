@@ -96,7 +96,8 @@ void BmnTofGeoUtils::ParseTGeoManager(bool useMCinput, TH2D* h1, bool forced)
     		if(!gasName.Contains("Gas")) continue;
 //		printf("\nGas name %s\n", gasName.Data());
 		TString PATHG = PATH1 + "/" + gasName;
-		TIterator *it3 = detectorNodeGas->GetNodes()->MakeIterator();
+		TObjArray *nodes  = detectorNodeGas->GetNodes();
+		TIterator *it3 = nodes->MakeIterator();
       		while( (stripNode = (TGeoNode*) it3->Next()) )		// strips
 		{
 			stripName = stripNode->GetName();
@@ -143,10 +144,13 @@ void BmnTofGeoUtils::ParseTGeoManager(bool useMCinput, TH2D* h1, bool forced)
 			assert(IsUniqueUID);	   			   	
 			
     		} // strips
+			delete it3;
     		} // gas
+			delete it2;
     	} // detectors	
 
     	LOG(INFO) << "[BmnTofHitProducer::ParseTGeoManager] detectors= "<<nDetectors<<" strips= "<<nStrips<<". ";
+		delete it1;
 }
 //------------------------------------------------------------------------------------------------------------------------	
 void BmnTofGeoUtils::ParseStripsGeometry(const char *geomFile)

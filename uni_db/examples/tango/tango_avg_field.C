@@ -43,12 +43,13 @@ double tango_avg_field(int period = 6, int run = 1886)
         return -4;
     }
     double average_field = vec_average[0];
+    size_t data_count = tango_data->GetEntriesFast();
     delete tango_data;
 
     double average_current = average_field * 900 / 55.87;
     double average_coeff = average_field / 55.87;
     cout<<"Average magnetic field from TangoDB for run "<<period<<"-"<<run<<": "<<average_field<<" mV. Calculated current: "
-        <<average_current<<" A. Ratio: "<<average_coeff<<endl<<"Macro finished successfully"<<endl;
+        <<average_current<<" A. Ratio: "<<average_coeff<<". Number of counts: "<<data_count<<endl<<"Macro finished successfully"<<endl;
 
     return average_coeff;
 }
@@ -105,9 +106,11 @@ void tango_avg_field_write_db(int period = 7)
         }
 
         double average_field = vec_average[0];
+        size_t data_count = tango_data->GetEntriesFast();
         delete tango_data;
 
-        cout<<"Average magnetic field for run "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<": "<<average_field<<" mV"<<endl;
+        cout<<"Average magnetic field for run "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<": "<<average_field
+            <<" mV ("<<data_count<<" counts)."<<endl;
 
         // write average magnetic field to run_ in DB
         pRun->SetFieldVoltage(&average_field);
@@ -185,7 +188,8 @@ int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end 
     return 0;
 }
 
-// additional function to compare magnetic field value (current, A) from ELog database and average magnetic field (voltage, mV) from the Tango database
+// additional function to compare magnetic field value (current, A) from ELog database and
+// average magnetic field (voltage, mV) from the Tango database
 void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
 {
     UniqueRunNumber* run_numbers;
@@ -266,6 +270,7 @@ void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
             continue;
         }
         double average_field = vec_average[0];
+        size_t data_count = tango_data->GetEntriesFast();
         delete tango_data;
 
         // compare ELog magnet field and average field from Tango database
@@ -278,7 +283,7 @@ void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
         }
 
         cout<<"Run "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<endl;
-        cout<<"Average Tango magnetic field: "<<average_field<<" mV"<<endl;
+        cout<<"Average Tango magnetic field: "<<average_field<<" mV ("<<data_count<<" counts)."<<endl;
         cout<<"ELOG magnetic field: "<<elog_voltage<<" mV ("<<(*pField)<<" A)"<<endl;
         if (fabs(average_field - elog_voltage) > 5)
             cout<<"ERROR: ELOG and Tango magnetic fields differ by more than 5 mV!"<<endl;

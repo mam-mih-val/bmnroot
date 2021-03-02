@@ -1,8 +1,10 @@
 # Source files
 #SRCS=eventdisplay.cxx
+#SRCS=run_sim_src.cxx
 #SRCS=run_sim_bmn.cxx
-#SRCS=run_reco_bmn.cxx
-SRCS=$(wildcard *.cxx)
+#SRCS=reco_bmn.cxx
+SRCS=reco_src.cxx
+#SRCS=$(wildcard *.cxx)
 
 # Compiler
 CC=g++
@@ -16,15 +18,19 @@ CFLAGS += -I$(VMCWORKDIR)/bmnfield
 CFLAGS += -I$(VMCWORKDIR)/generators
 CFLAGS += -I$(VMCWORKDIR)/passive
 CFLAGS += -I$(VMCWORKDIR)/alignment
+CFLAGS += -I$(VMCWORKDIR)/armTriggers
 CFLAGS += -I$(VMCWORKDIR)/bd
 CFLAGS += -I$(VMCWORKDIR)/bmndata
 CFLAGS += -I$(VMCWORKDIR)/bmndata/cbm
 CFLAGS += -I$(VMCWORKDIR)/bmndata/common
 CFLAGS += -I$(VMCWORKDIR)/bmndata/math
 CFLAGS += -I$(VMCWORKDIR)/cat
+CFLAGS += -I$(VMCWORKDIR)/csc
 CFLAGS += -I$(VMCWORKDIR)/dch
 CFLAGS += -I$(VMCWORKDIR)/ecal
 CFLAGS += -I$(VMCWORKDIR)/gem
+CFLAGS += -I$(VMCWORKDIR)/gconfig
+CFLAGS += -I$(VMCWORKDIR)/identification
 CFLAGS += -I$(VMCWORKDIR)/KF
 CFLAGS += -I$(VMCWORKDIR)/sts
 CFLAGS += -I$(VMCWORKDIR)/mwpc
@@ -32,11 +38,13 @@ CFLAGS += -I$(VMCWORKDIR)/psd
 CFLAGS += -I$(VMCWORKDIR)/recoil
 CFLAGS += -I$(VMCWORKDIR)/silicon
 CFLAGS += -I$(VMCWORKDIR)/tof
+CFLAGS += -I$(VMCWORKDIR)/tracking
 CFLAGS += -I$(VMCWORKDIR)/tof1
 CFLAGS += -I$(VMCWORKDIR)/zdc
 CFLAGS += -I$(VMCWORKDIR)/land
 CFLAGS += -I$(VMCWORKDIR)/csc
 CFLAGS += -I$(VMCWORKDIR)/steering
+CFLAGS += -I$(VMCWORKDIR)/ssd/mc
 CFLAGS += -I$(VMCWORKDIR)/bmndst
 CFLAGS += -I$(VMCWORKDIR)/decoder
 CFLAGS += -I$(VMCWORKDIR)/globaltracking
@@ -45,6 +53,7 @@ CFLAGS += -I$(VMCWORKDIR)/eventdisplay/bmn
 CFLAGS += -I$(VMCWORKDIR)/eventdisplay/mpd
 CFLAGS += -I$(VMCWORKDIR)/uni_db
 CFLAGS += -I$(VMCWORKDIR)/uni_db/db_classes
+CFLAGS += -I$(VMCWORKDIR)/zdc
 CFLAGS += -I${FAIRROOTPATH}/include
 CFLAGS += -I$(SIMPATH)/include
 CFLAGS += -I$(ROOT_INCLUDE_PATH)
@@ -60,7 +69,7 @@ LDFLAGS += -lSts -lBd -lEcal -lZdc -lRecoil -lPsd -lTOF -lGem -lTOF1 -lDch
 LDFLAGS += -lCat -lKF -lBmnData -lBmnField -lMpdGen -lPassive -lGen -lUniDb
 LDFLAGS += -lBase -lGeoBase -lParBase -lTrkBase -lGeane -lEve -lFairTools
 LDFLAGS += -lXMLParser -lXMLIO -lSpectrum -lGenVector -lMinuit -lGeom
-LDFLAGS += -lGeomPainter -lVMC -lpthread
+LDFLAGS += -lGeomPainter -lVMC -lpthread 
 
 
 all:	$(OBJECTS)

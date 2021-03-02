@@ -2,6 +2,7 @@
  * Baranov D.
  * 14.08.2020 (created)
  * 18.01.2021 (updated)
+ * 02.03.2021 (updated): radius of hole in active zone (4.0 -> 6.0 cm)
  * Use this macro to create ROOT geometry for the FutureConfig2020 GEM configuration
  * with passive volumes (frames, al. cable supports, ...)
  *
@@ -278,8 +279,8 @@ void create_rootgeom_GEMS_FutureConfig2020_detailed() {
         TGeoVolume *station = CreateStation(TString("station")+ TString::Itoa(stationNum, 10));
 
         //upper part
-        TGeoVolume *module0 = CreateModule_Station163x45(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0+1.75);
-        TGeoVolume *module1 = CreateModule_Station163x45(TString("Sensor_module1_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0+1.75);
+        TGeoVolume *module0 = CreateModule_Station163x45(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0+2.0);
+        TGeoVolume *module1 = CreateModule_Station163x45(TString("Sensor_module1_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0+2.0);
 
         TGeoVolume *layers0 = CreateLayersForModule_Station163x45(TString("layer0_")+station->GetName());
         TGeoVolume *layers1 = CreateLayersForModule_Station163x45(TString("layer1_")+station->GetName());
@@ -287,8 +288,8 @@ void create_rootgeom_GEMS_FutureConfig2020_detailed() {
         TGeoVolume *frame_upper = CreateFrameForHalfPlane_Station163x45(TString("frame_upper_")+station->GetName());
 
         //lower part
-        TGeoVolume *module2 = CreateModule_Station163x39(TString("Sensor_module2_")+station->GetName(), XModuleSize_Station163x39, YModuleSize_Station163x39, ZModuleSize_Station163x39, 4.0+1.75);
-        TGeoVolume *module3 = CreateModule_Station163x39(TString("Sensor_module3_")+station->GetName(), XModuleSize_Station163x39, YModuleSize_Station163x39, ZModuleSize_Station163x39, 4.0+1.75);
+        TGeoVolume *module2 = CreateModule_Station163x39(TString("Sensor_module2_")+station->GetName(), XModuleSize_Station163x39, YModuleSize_Station163x39, ZModuleSize_Station163x39, 4.0+2.0);
+        TGeoVolume *module3 = CreateModule_Station163x39(TString("Sensor_module3_")+station->GetName(), XModuleSize_Station163x39, YModuleSize_Station163x39, ZModuleSize_Station163x39, 4.0+2.0);
 
         TGeoVolume *layers2 = CreateLayersForModule_Station163x39(TString("layer3_")+station->GetName());
         TGeoVolume *layers3 = CreateLayersForModule_Station163x39(TString("layer4_")+station->GetName());

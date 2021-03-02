@@ -4,6 +4,7 @@
  * (BM@N RUN-7:SRC) with passive volumes (frames, al. cable supports, ...)
  *
  * Created: 29.09.2020
+ * 02.03.2021 (Updated): radius of hole in active zone (4.0 -> 6.0 cm)
  * Author: Baranov D.
  */
 
@@ -400,8 +401,8 @@ void create_rootgeom_GEMS_RunSRCSpring2018_detailed() {
             Int_t stationNum = istation;
             TGeoVolume *station = CreateStation(TString("station") + TString::Itoa(stationNum, 10));
 
-            TGeoVolume *module0 = CreateModule_Station163x45(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0);
-            TGeoVolume *module1 = CreateModule_Station163x45(TString("Sensor_module1_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0);
+            TGeoVolume *module0 = CreateModule_Station163x45(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0+2.0);
+            TGeoVolume *module1 = CreateModule_Station163x45(TString("Sensor_module1_")+station->GetName(), XModuleSize_Station163x45, YModuleSize_Station163x45, ZModuleSize_Station163x45, 4.0+2.0);
 
             TGeoVolume *layers0 = CreateLayersForModule_Station163x45(TString("layer0_")+station->GetName());
             TGeoVolume *layers1 = CreateLayersForModule_Station163x45(TString("layer1_")+station->GetName());

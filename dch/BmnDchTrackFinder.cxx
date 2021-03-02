@@ -2561,11 +2561,7 @@ void BmnDchTrackFinder::Finish() {
   //added
   //===============================================================================================================
 
-<<<<<<< HEAD
-  if (fVerbose) {
-=======
 if (fVerbose) {
->>>>>>> origin/dev
   TFile file(fhTestFlnm.Data(), "RECREATE");
    
   hEff1->Divide(hNomin1,hDenom1,1.,1.);
@@ -2573,11 +2569,7 @@ if (fVerbose) {
     
   fhList.Write();
   file.Close();
-<<<<<<< HEAD
-  }
-=======
 }
->>>>>>> origin/dev
   //===============================================================================================================
 
   ///end

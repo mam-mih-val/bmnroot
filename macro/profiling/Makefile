@@ -2,9 +2,9 @@
 #SRCS=eventdisplay.cxx
 #SRCS=run_sim_src.cxx
 #SRCS=run_sim_bmn.cxx
-#SRCS=reco_bmn.cxx
-SRCS=reco_src.cxx
-#SRCS=$(wildcard *.cxx)
+#SRCS=run_reco_bmn.cxx
+#SRCS=run_reco_src.cxx
+SRCS=$(wildcard *.cxx)
 
 # Compiler
 CC=g++

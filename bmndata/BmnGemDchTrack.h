@@ -19,7 +19,7 @@ private:
   Int_t fEventId, fEventHits, fFlag, fGemHits, fSiHits, fCSCHits;
   Double_t fDx, fDy, fDtx, fDty, fDdx, fDdy, fDdtx, fDdty, fChi2;
   Double_t fXpv, fYpv, fZpv;
-
+  Double_t fTrackAngDch, fTrackAngPV, fIntMagFieldTr, fIntMagFieldDch, fTrackAng360, fXSigma, fYSigma ;
 public:
   //constructor
   BmnGemDchTrack();
@@ -48,6 +48,13 @@ public:
   Double_t GetXpv() const { return fXpv; }
   Double_t GetYpv() const { return fYpv; }
   Double_t GetZpv() const { return fZpv; }
+  Double_t GetTrackAngDch() const { return fTrackAngDch; }
+  Double_t GetTrackAngPV() const { return fTrackAngPV; }
+  Double_t GetIntMagFieldTr() const { return fIntMagFieldTr; }
+  Double_t GetIntMagFieldDch() const { return fIntMagFieldDch; }
+  Double_t GetXSigma() const { return fXSigma; }
+  Double_t GetYSigma() const { return fYSigma; }
+
   Int_t GetFlag() const {
         return fFlag;
     }
@@ -75,9 +82,15 @@ public:
   void SetXpv(Double_t xpv) {fXpv = xpv;}
   void SetYpv(Double_t ypv) {fYpv = ypv;}
   void SetZpv(Double_t zpv) {fZpv = zpv;}
+  void SetTrackAngDch(Double_t trackAngDch) {fTrackAngDch = trackAngDch;}
+  void SetTrackAngPV(Double_t trackAngPV) {fTrackAngPV = trackAngPV;}
+  void SetIntMagFieldTr(Double_t intMagFieldTr) {fIntMagFieldTr = intMagFieldTr;}
+  void SetIntMagFieldDch(Double_t intMagFieldDch) {fIntMagFieldDch = intMagFieldDch;}
   void SetFlag(Int_t flag) {
         fFlag = flag;
     }
+  void SetXSigma(Double_t xSigma) {fXSigma = xSigma;}
+  void SetYSigma(Double_t ySigma) {fYSigma = ySigma;}
 
 
   ClassDef(BmnGemDchTrack, 1);

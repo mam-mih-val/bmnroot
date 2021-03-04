@@ -27,29 +27,30 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/bmnsim.root"
     bool isTarget = false, isField = true;
     FairSource* fFileSource = NULL;
 
+    TString strSimRunInfo(sim_run_info), strRecoFile(reco_file);
     // FOR SIMULATION : set source of events to display and addtiional parameters
     if (data_source == 0)
     {
         // check file existence with MC data and detector geometry
-        if (!BmnFunctionSet::CheckFileExist(sim_run_info))
+        if (!BmnFunctionSet::CheckFileExist(strSimRunInfo))
         {
             cout<<endl<<"ERROR: Simulation file with detector geometry wasn't found!"<<endl;
             return;
         }
 
-        fFileSource = new FairFileSource(sim_run_info);
+        fFileSource = new FairFileSource(strSimRunInfo);
 
         // set parameter file with MC data and detector geometry
         FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();
         FairParRootFileIo* parIo1 = new FairParRootFileIo();
-        parIo1->open(sim_run_info);
+        parIo1->open(strSimRunInfo.Data());
         rtdb->setFirstInput(parIo1);
         rtdb->setOutput(parIo1);
         rtdb->saveOutput();
 
         // add file with reconstructed data as a friend
-        if (BmnFunctionSet::CheckFileExist(reco_file))
-            ((FairFileSource*)fFileSource)->AddFriend(reco_file);
+        if (BmnFunctionSet::CheckFileExist(strRecoFile))
+            ((FairFileSource*)fFileSource)->AddFriend(strRecoFile);
         else
             cout<<endl<<"Warning: File with reconstructed data wasn't found!"<<endl;
     }
@@ -57,14 +58,13 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/bmnsim.root"
     // FROM RECONSTRUCTED ROOT FILE (data_source == 1), FROM DIRECTORY WITH RAW .DATA FILES (data_source == 2)
     else
     {
-        TString strRunInfo(sim_run_info);
-        Ssiz_t indDash = strRunInfo.First('-');
-        if ((indDash > 0) && (strRunInfo.BeginsWith("run")))
+        Ssiz_t indDash = strSimRunInfo.First('-');
+        if ((indDash > 0) && (strSimRunInfo.BeginsWith("run")))
         {
             // get run period
-            run_period = TString(strRunInfo(3, indDash - 3)).Atoi();
+            run_period = TString(strSimRunInfo(3, indDash - 3)).Atoi();
             // get run number
-            run_number = TString(strRunInfo(indDash+1, strRunInfo.Length() - indDash-1)).Atoi();
+            run_number = TString(strSimRunInfo(indDash+1, strSimRunInfo.Length() - indDash-1)).Atoi();
 
             // get geometry for run
             TString root_file_path = "current_geo_file.root";
@@ -134,11 +134,11 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/bmnsim.root"
             return;
         }
 
-        if (!BmnFunctionSet::CheckFileExist(reco_file)) return;
+        if (!BmnFunctionSet::CheckFileExist(strRecoFile)) return;
 
         // set source as raw data file
         if (data_source == 1)
-            fFileSource = new BmnFileSource(reco_file);
+            fFileSource = new BmnFileSource(strRecoFile);
         // set source as TDAQ Event Monitor
         if (data_source == 2)
         {

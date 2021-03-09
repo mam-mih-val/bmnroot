@@ -211,18 +211,22 @@ Double_t YDeadZone_TrianRight_UHP[3] = {
     0.0 - YMainZoneLayerSize_UHP*0.5
 };
 
-Double_t XDeadZone_Hole_UHP[4] = {
+const UInt_t NPoints_DeadZone_Hole_UHP = 5;
+Double_t XDeadZone_Hole_UHP[NPoints_DeadZone_Hole_UHP] = {
     0.0 - XMainZoneLayerSize_UHP*0.5 + HoleRadius,
-    0.0 - XMainZoneLayerSize_UHP*0.5 + HoleRadius,
+    0.0 - XMainZoneLayerSize_UHP*0.5 + HoleRadius*TMath::Cos(30.0*TMath::DegToRad()),
+    0.0 - XMainZoneLayerSize_UHP*0.5 + HoleRadius*TMath::Cos(60.0*TMath::DegToRad()),
     0.0 - XMainZoneLayerSize_UHP*0.5,
     0.0 - XMainZoneLayerSize_UHP*0.5
 };
-Double_t YDeadZone_Hole_UHP[4] = {
+Double_t YDeadZone_Hole_UHP[NPoints_DeadZone_Hole_UHP] = {
     0.0 - YMainZoneLayerSize_UHP*0.5,
-    0.0 - YMainZoneLayerSize_UHP*0.5 + HoleRadius,
+    0.0 - YMainZoneLayerSize_UHP*0.5 + TMath::Sqrt(HoleRadius*HoleRadius - (HoleRadius*TMath::Cos(30.0*TMath::DegToRad()))*(HoleRadius*TMath::Cos(30.0*TMath::DegToRad()))),
+    0.0 - YMainZoneLayerSize_UHP*0.5 + TMath::Sqrt(HoleRadius*HoleRadius - (HoleRadius*TMath::Cos(60.0*TMath::DegToRad()))*(HoleRadius*TMath::Cos(60.0*TMath::DegToRad()))),
     0.0 - YMainZoneLayerSize_UHP*0.5 + HoleRadius,
     0.0 - YMainZoneLayerSize_UHP*0.5
 };
+
 //------------------------------------------------------------------------------
 
 //dead zones (lower half-plane) ------------------------------------------------
@@ -287,18 +291,22 @@ Double_t YDeadZone_TrianRight_LHP[3] = {
     0.0 - YMainZoneLayerSize_LHP*0.5
 };
 
-Double_t XDeadZone_Hole_LHP[4] = {
+const UInt_t NPoints_DeadZone_Hole_LHP = 5;
+Double_t XDeadZone_Hole_LHP[NPoints_DeadZone_Hole_LHP] = {
     0.0 - XMainZoneLayerSize_LHP*0.5 + HoleRadius,
-    0.0 - XMainZoneLayerSize_LHP*0.5 + HoleRadius,
+    0.0 - XMainZoneLayerSize_LHP*0.5 + HoleRadius*TMath::Cos(30.0*TMath::DegToRad()),
+    0.0 - XMainZoneLayerSize_LHP*0.5 + HoleRadius*TMath::Cos(60.0*TMath::DegToRad()),
     0.0 - XMainZoneLayerSize_LHP*0.5,
     0.0 - XMainZoneLayerSize_LHP*0.5
 };
-Double_t YDeadZone_Hole_LHP[4] = {
+Double_t YDeadZone_Hole_LHP[NPoints_DeadZone_Hole_LHP] = {
     0.0 - YMainZoneLayerSize_LHP*0.5,
-    0.0 - YMainZoneLayerSize_LHP*0.5 + HoleRadius,
+    0.0 - YMainZoneLayerSize_LHP*0.5 + TMath::Sqrt(HoleRadius*HoleRadius - (HoleRadius*TMath::Cos(30.0*TMath::DegToRad()))*(HoleRadius*TMath::Cos(30.0*TMath::DegToRad()))),
+    0.0 - YMainZoneLayerSize_LHP*0.5 + TMath::Sqrt(HoleRadius*HoleRadius - (HoleRadius*TMath::Cos(60.0*TMath::DegToRad()))*(HoleRadius*TMath::Cos(60.0*TMath::DegToRad()))),
     0.0 - YMainZoneLayerSize_LHP*0.5 + HoleRadius,
     0.0 - YMainZoneLayerSize_LHP*0.5
 };
+
 
 //------------------------------------------------------------------------------
 
@@ -337,6 +345,8 @@ void CalculateParameters(TString config_name, TString author, TString date) {
     cout << "  Configuration name: " << config_name << "\n";
     cout << "  Author: " << author << "\n";
     cout << "  Date created: " << date << "\n";
+    cout << "  02.03.2021 (Updated): radius of hole in active zone (4.0 -> 6.0 cm)\n";
+    cout << "  09.03.2021 (Updated): the form of a 'hole' dead zone changed (square -> 12 sided polygon) \n";
     cout << "  File path: " << FileName << "\n";
     cout << "\n";
 
@@ -349,7 +359,9 @@ void CalculateParameters(TString config_name, TString author, TString date) {
     FileOut << "<!--\
         \r\tConfig: " << config_name <<  "\
         \r\tAuthor: " << author <<  "\
-        \r\tDate: " << date <<  "\n\
+        \r\tDate: " << date <<  "\
+        \r\t02.03.2021 (Updated): radius of hole in active zone (4.0 -> 6.0 cm)\
+        \r\t09.03.2021 (Updated): the form of a 'hole' dead zone changed (square -> 12 sided polygon)\n\
         \r\tA right-handed coordinates are used.\
         \r\tIf you look at the GEMs from the target:\
         \r\t\tx-axis is directed to the left,\
@@ -645,7 +657,7 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                         else { //hot zone
                             FileOut << "\t\t\t\t<DeadZone>"; //hole
                             FileOut << " <!-- hole -->\n";
-                            for(Int_t ipoint = 0; ipoint < 4; ++ipoint) {
+                            for(Int_t ipoint = 0; ipoint < NPoints_DeadZone_Hole_UHP; ++ipoint) {
                                 FileOut << "\t\t\t\t\t<DeadPoint";
                                 FileOut << " x=\"" << XDeadZone_Hole_UHP[ipoint] << "\"";
                                 FileOut << " y=\"" << YDeadZone_Hole_UHP[ipoint] << "\"";
@@ -706,7 +718,7 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                         else { //hot zone
                             FileOut << "\t\t\t\t<DeadZone>"; //hole
                             FileOut << " <!-- hole -->\n";
-                            for(Int_t ipoint = 0; ipoint < 4; ++ipoint) {
+                            for(Int_t ipoint = 0; ipoint < NPoints_DeadZone_Hole_UHP; ++ipoint) {
                                 FileOut << "\t\t\t\t\t<DeadPoint";
                                 FileOut << " x=\"" << XDeadZone_Hole_UHP[ipoint]*(-1) << "\"";
                                 FileOut << " y=\"" << YDeadZone_Hole_UHP[ipoint] << "\"";
@@ -767,7 +779,7 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                         else { //hot zone
                             FileOut << "\t\t\t\t<DeadZone>"; //hole
                             FileOut << " <!-- hole -->\n";
-                            for(Int_t ipoint = 0; ipoint < 4; ++ipoint) {
+                            for(Int_t ipoint = 0; ipoint < NPoints_DeadZone_Hole_LHP; ++ipoint) {
                                 FileOut << "\t\t\t\t\t<DeadPoint";
                                 FileOut << " x=\"" << XDeadZone_Hole_LHP[ipoint] << "\"";
                                 FileOut << " y=\"" << YDeadZone_Hole_LHP[ipoint]*(-1) << "\"";
@@ -828,7 +840,7 @@ void CalculateParameters(TString config_name, TString author, TString date) {
                         else { //hot zone
                             FileOut << "\t\t\t\t<DeadZone>"; //hole
                             FileOut << " <!-- hole -->\n";
-                            for(Int_t ipoint = 0; ipoint < 4; ++ipoint) {
+                            for(Int_t ipoint = 0; ipoint < NPoints_DeadZone_Hole_LHP; ++ipoint) {
                                 FileOut << "\t\t\t\t\t<DeadPoint";
                                 FileOut << " x=\"" << XDeadZone_Hole_LHP[ipoint]*(-1) << "\"";
                                 FileOut << " y=\"" << YDeadZone_Hole_LHP[ipoint]*(-1) << "\"";

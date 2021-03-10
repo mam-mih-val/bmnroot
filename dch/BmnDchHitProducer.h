@@ -11,6 +11,7 @@
 
 #include "TClonesArray.h"
 #include "FairTask.h"
+#include "TRandom.h"
 
 using namespace std;
 

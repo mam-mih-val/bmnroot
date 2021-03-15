@@ -2326,10 +2326,10 @@ void BmnDchTrackFinder::FillSegmentParametersSigmas(Int_t dchID, Double_t** rh_s
     }
     Double_t Xdelta = XSum * XSumZZ - XSumZ * XSumZ;
     Double_t Ydelta = YSum * YSumZZ - YSumZ * YSumZ;
-    sigm_seg_par[0][it1] = sqrt(XSum / Xdelta);
-    sigm_seg_par[1][it1] = sqrt(XSumZZ / Xdelta);
-    sigm_seg_par[2][it1] = sqrt(YSum / Ydelta);
-    sigm_seg_par[3][it1] = sqrt(YSumZZ / Ydelta);
+    sigm_seg_par[0][it1] = sqrt(XSum / Xdelta);//ax
+    sigm_seg_par[1][it1] = sqrt(XSumZZ / Xdelta);//bx
+    sigm_seg_par[2][it1] = sqrt(YSum / Ydelta);//ay
+    sigm_seg_par[3][it1] = sqrt(YSumZZ / Ydelta);//by
   }
 }
 
@@ -2362,10 +2362,10 @@ void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Double_t* chi2Arr, Double_t*
     trackParam.SetPosition(TVector3(-x0 + x_align, y0 + y_align, z0));
     trackParam.SetTx(-parArr[0][iSegment] + tx_align);
     trackParam.SetTy(parArr[2][iSegment] + ty_align);
-    trackParam.SetCovariance(0, 0, sigm_seg_par[0][iSegment] * sigm_seg_par[0][iSegment]);  // bx^2
-    trackParam.SetCovariance(1, 1, sigm_seg_par[1][iSegment] * sigm_seg_par[1][iSegment]);  // ax^2
-    trackParam.SetCovariance(2, 2, sigm_seg_par[2][iSegment] * sigm_seg_par[2][iSegment]);  // by^2
-    trackParam.SetCovariance(3, 3, sigm_seg_par[3][iSegment] * sigm_seg_par[3][iSegment]);  // ay^2
+    trackParam.SetCovariance(0, 0, sigm_seg_par[1][iSegment] * sigm_seg_par[1][iSegment]);  // bx^2
+    trackParam.SetCovariance(1, 1, sigm_seg_par[3][iSegment] * sigm_seg_par[3][iSegment]);  // by^2
+    trackParam.SetCovariance(2, 2, sigm_seg_par[0][iSegment] * sigm_seg_par[0][iSegment]);  // tx^2
+    trackParam.SetCovariance(3, 3, sigm_seg_par[2][iSegment] * sigm_seg_par[2][iSegment]);  // ty^2
     BmnDchTrack* track = new ((*fDchTracks)[fDchTracks->GetEntriesFast()]) BmnDchTrack();
     track->SetChi2(chi2Arr[iSegment]);
     if (dchID == 1) {
@@ -2509,17 +2509,17 @@ void BmnDchTrackFinder::CreateDchTrack() {
     hP->Fill(0.3*2.84/(atan(aX[iSeg])));
     Int_t iseg1 = int((pairID[iSeg] - 1000) / 1000);
     Int_t iseg2 = (pairID[iSeg] % 1000) - 1;
-    Double_t sigma2_dx = ((params_sigmas[1][0][iseg2] * params_sigmas[1][0][iseg2]) +
-			  (params_sigmas[0][0][iseg1] * params_sigmas[0][0][iseg1])) *
+    Double_t sigma2_dx = ((params_sigmas[1][1][iseg2] * params_sigmas[1][1][iseg2]) +
+			  (params_sigmas[0][1][iseg1] * params_sigmas[0][1][iseg1])) *
       99.75 * 99.75 +
-      ((params_sigmas[0][1][iseg1]) * (params_sigmas[0][1][iseg1])) +
-      ((params_sigmas[1][1][iseg2]) * (params_sigmas[1][1][iseg2]));
+      ((params_sigmas[0][0][iseg1]) * (params_sigmas[0][0][iseg1])) +
+      ((params_sigmas[1][0][iseg2]) * (params_sigmas[1][0][iseg2]));
 
-    Double_t sigma2_dy = ((params_sigmas[1][2][iseg2] * params_sigmas[1][2][iseg2]) +
-			  (params_sigmas[0][2][iseg1] * params_sigmas[0][2][iseg1])) *
+    Double_t sigma2_dy = ((params_sigmas[1][3][iseg2] * params_sigmas[1][3][iseg2]) +
+			  (params_sigmas[0][3][iseg1] * params_sigmas[0][3][iseg1])) *
       99.75 * 99.75 +
-      ((params_sigmas[0][3][iseg1]) * (params_sigmas[0][3][iseg1])) +
-      ((params_sigmas[1][3][iseg2]) * (params_sigmas[1][3][iseg2]));
+      ((params_sigmas[0][2][iseg1]) * (params_sigmas[0][2][iseg1])) +
+      ((params_sigmas[1][2][iseg2]) * (params_sigmas[1][2][iseg2]));
 
     Double_t sigma2_dax = 9. * ((params_sigmas[1][0][iseg2] * params_sigmas[1][0][iseg2]) +
 				(params_sigmas[0][0][iseg1] * params_sigmas[0][0][iseg1]));
@@ -2527,8 +2527,8 @@ void BmnDchTrackFinder::CreateDchTrack() {
     Double_t sigma2_day = 9. * ((params_sigmas[1][2][iseg2] * params_sigmas[1][2][iseg2]) +
 				(params_sigmas[0][2][iseg1] * params_sigmas[0][2][iseg1]));
     trackParam.SetCovariance(0, 0, sigma2_dx);
-    trackParam.SetCovariance(1, 1, sigma2_dax);
-    trackParam.SetCovariance(2, 2, sigma2_dy);
+    trackParam.SetCovariance(1, 1, sigma2_dy);
+    trackParam.SetCovariance(2, 2, sigma2_dax);
     trackParam.SetCovariance(3, 3, sigma2_day);
     BmnDchTrack* track = new ((*fDchTracks)[fDchTracks->GetEntriesFast()]) BmnDchTrack();
     track->SetChi2(Chi2_match[iSeg]);

@@ -86,6 +86,7 @@ TGeoMedium *pMedCarbon = 0;
 TGeoMedium *pMedFiberGlass = 0;
 TGeoMedium *pMedCopper = 0;
 TGeoMedium *pMedArCO27030 = 0;
+TGeoMedium *pMedArC4H10_80_20 = 0;
 
 class FairGeoMedia;
 class FairGeoBuilder;
@@ -131,6 +132,13 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
     geoBuild->createMedium(mArCO27030);
     pMedArCO27030= gGeoManager->GetMedium("arco27030");
     if ( ! pMedArCO27030  ) Fatal("Main", "Medium arco27030 not found");
+
+    //ArC4H10_80_20 medium
+    FairGeoMedium* mArC4H10_80_20 = geoMedia->getMedium("ArC4H10_80_20");
+    if ( ! mArC4H10_80_20  ) Fatal("Main", "FairMedium ArC4H10_80_20 not found");
+    geoBuild->createMedium(mArC4H10_80_20);
+    pMedArC4H10_80_20 = gGeoManager->GetMedium("ArC4H10_80_20");
+    if ( ! pMedArC4H10_80_20  ) Fatal("Main", "Medium ArC4H10_80_20 not found");
 }
 
 void create_rootgeom_GEMS_FutureConfig2020() {
@@ -255,7 +263,7 @@ TGeoVolume *CreateModule_Station66x41(TString module_name, Double_t xsize, Doubl
     TGeoVolume *moduleV = new TGeoVolume(module_name, moduleS);
 
     //medium
-    if(pMedArCO27030) moduleV->SetMedium(pMedArCO27030);
+    if(pMedArC4H10_80_20) moduleV->SetMedium(pMedArC4H10_80_20);
     else Fatal("Main", "Invalid medium for sensitive modules!");
 
     //visual parameters
@@ -333,7 +341,7 @@ TGeoVolume *CreateModule_Station163x45(TString module_name, Double_t xsize, Doub
     TGeoVolume *moduleV = new TGeoVolume(module_name, moduleS);
 
     //medium
-    if(pMedArCO27030) moduleV->SetMedium(pMedArCO27030);
+    if(pMedArC4H10_80_20) moduleV->SetMedium(pMedArC4H10_80_20);
     else Fatal("Main", "Invalid medium for sensitive modules!");
 
     //visual parameters

@@ -23,7 +23,7 @@ public:
 
     // Constructors/Destructors ---------
     SrcVertexFinder() {};
-    SrcVertexFinder(Int_t period, Bool_t isField);
+    SrcVertexFinder(Int_t period, Bool_t isField, Bool_t isExp);
     virtual ~SrcVertexFinder();
 
     virtual InitStatus Init();
@@ -56,6 +56,7 @@ public:
     Double_t fTime;
 
     Bool_t fIsField;
+    Bool_t fisExp;
     FairField* fField;
     BmnKalmanFilter* fKalman;
 

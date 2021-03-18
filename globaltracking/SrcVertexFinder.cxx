@@ -9,7 +9,7 @@
 using namespace std;
 using namespace TMath;
 
-SrcVertexFinder::SrcVertexFinder(Int_t period, Bool_t isField) {
+SrcVertexFinder::SrcVertexFinder(Int_t period, Bool_t isField, Bool_t isExp) {
     fPeriodId = period;
     fEventNo = 0;
     fGlobalTracksArray = NULL;
@@ -19,6 +19,7 @@ SrcVertexFinder::SrcVertexFinder(Int_t period, Bool_t isField) {
     fArmTracksArray = NULL;
     fTime = 0.0;
     fIsField = isField;
+    fisExp = isExp;
     fKalman = new BmnKalmanFilter();
 }
 
@@ -359,21 +360,45 @@ void SrcVertexFinder::CreateArmCandidates(vector<BmnTrack> &lTracks, vector<BmnT
     //if (lGemHitIdx.size() == 0 || rGemHitIdx.size() == 0) return;  //one track must be on the left arm, another on the right
 
     BmnHit tHit, gHit;
+
+    //Coeficients for arms alignment
+    Double_t dxall, dyall;
+    Double_t dy_tl, dy_tr;
+    Double_t gx,gy,gz,  tx,ty,tz;
+    if(fisExp){
+        dxall = -2.113;
+        dyall = 2.504;
+        dy_tl = -1.72;
+        dy_tr = 1.3;
+    }else{
+        dxall = 0;
+        dyall = 0;
+        dy_tl = 0;
+        dy_tr = 0;
+    }
+    
     for (auto gIdx : lGemHitIdx) {
         for (auto tIdx : lTofHitIdx) {
             tHit = *((BmnHit *)fTof400HitsArray->At(tIdx));
             gHit = *((BmnHit *)fGemHitsArray->At(gIdx));
             BmnTrack lTr;
-            lTr.GetParamFirst()->SetX(gHit.GetX());
-            lTr.GetParamFirst()->SetY(gHit.GetY());
-            lTr.GetParamFirst()->SetZ(gHit.GetZ());
-            lTr.GetParamFirst()->SetTx((tHit.GetX() - gHit.GetX()) / (tHit.GetZ() - gHit.GetZ()));
-            lTr.GetParamFirst()->SetTy((tHit.GetY() - gHit.GetY()) / (tHit.GetZ() - gHit.GetZ()));
-            lTr.GetParamLast()->SetX(tHit.GetX());
-            lTr.GetParamLast()->SetY(tHit.GetY());
-            lTr.GetParamLast()->SetZ(tHit.GetZ());
-            lTr.GetParamLast()->SetTx((tHit.GetX() - gHit.GetX()) / (tHit.GetZ() - gHit.GetZ()));
-            lTr.GetParamLast()->SetTy((tHit.GetY() - gHit.GetY()) / (tHit.GetZ() - gHit.GetZ()));
+            gx = gHit.GetX()+dxall;
+            gy = gHit.GetY()+dyall;
+            gz = gHit.GetZ();
+            tx = tHit.GetX()+dxall;
+            ty = tHit.GetY()+dyall+dy_tl;
+            tz = tHit.GetZ();
+
+            lTr.GetParamFirst()->SetX(gx);
+            lTr.GetParamFirst()->SetY(gy);
+            lTr.GetParamFirst()->SetZ(gz);
+            lTr.GetParamFirst()->SetTx((tx - gx) / (tz - gz));
+            lTr.GetParamFirst()->SetTy((ty - gy) / (tz - gz));
+            lTr.GetParamLast()->SetX(tx);
+            lTr.GetParamLast()->SetY(ty);
+            lTr.GetParamLast()->SetZ(tz);
+            lTr.GetParamLast()->SetTx((tx - gx) / (tz - gz));
+            lTr.GetParamLast()->SetTy((ty - gy) / (tz - gz));
             lTracks.push_back(lTr);
         }
     }
@@ -382,16 +407,23 @@ void SrcVertexFinder::CreateArmCandidates(vector<BmnTrack> &lTracks, vector<BmnT
             tHit = *((BmnHit *)fTof400HitsArray->At(tIdx));
             gHit = *((BmnHit *)fGemHitsArray->At(gIdx));
             BmnTrack rTr;
-            rTr.GetParamFirst()->SetX(gHit.GetX());
-            rTr.GetParamFirst()->SetY(gHit.GetY());
-            rTr.GetParamFirst()->SetZ(gHit.GetZ());
-            rTr.GetParamFirst()->SetTx((tHit.GetX() - gHit.GetX()) / (tHit.GetZ() - gHit.GetZ()));
-            rTr.GetParamFirst()->SetTy((tHit.GetY() - gHit.GetY()) / (tHit.GetZ() - gHit.GetZ()));
-            rTr.GetParamLast()->SetX(tHit.GetX());
-            rTr.GetParamLast()->SetY(tHit.GetY());
-            rTr.GetParamLast()->SetZ(tHit.GetZ());
-            rTr.GetParamLast()->SetTx((tHit.GetX() - gHit.GetX()) / (tHit.GetZ() - gHit.GetZ()));
-            rTr.GetParamLast()->SetTy((tHit.GetY() - gHit.GetY()) / (tHit.GetZ() - gHit.GetZ()));
+            gx = gHit.GetX()+dxall;
+            gy = gHit.GetY()+dyall;
+            gz = gHit.GetZ();
+            tx = tHit.GetX()+dxall;
+            ty = tHit.GetY()+dyall+dy_tr;
+            tz = tHit.GetZ();
+
+            rTr.GetParamFirst()->SetX(gx);
+            rTr.GetParamFirst()->SetY(gy);
+            rTr.GetParamFirst()->SetZ(gz);
+            rTr.GetParamFirst()->SetTx((tx - gx) / (tz - gz));
+            rTr.GetParamFirst()->SetTy((ty - gy) / (tz - gz));
+            rTr.GetParamLast()->SetX(tx);
+            rTr.GetParamLast()->SetY(ty);
+            rTr.GetParamLast()->SetZ(tz);
+            rTr.GetParamLast()->SetTx((tx - gx) / (tz - gz));
+            rTr.GetParamLast()->SetTy((ty - gy) / (tz - gz));
             rTracks.push_back(rTr);
         }
     }

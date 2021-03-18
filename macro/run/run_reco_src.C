@@ -241,7 +241,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // ====================================================================== //
     // ===                      Primary vertex finding                    === //
     // ====================================================================== //
-    SrcVertexFinder* VF = new SrcVertexFinder(run_period, isField);
+    SrcVertexFinder* VF = new SrcVertexFinder(run_period, isField, isExp);
     fRunAna->AddTask(VF);
 
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)

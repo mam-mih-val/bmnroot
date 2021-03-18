@@ -178,6 +178,22 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     tof2HP->SetDiffTimeMaxSmall(1.3f); // Abs maximal difference for small chambers
     tof2HP->SetDiffTimeMaxBig(3.5f); // Abs maximal difference for big chambers
     fRunAna->AddTask(tof2HP);
+    
+    // ====================================================================== //
+    // ===                         ArmTrig hit finder                     === //
+    // ====================================================================== //
+    if(!isExp){
+        BmnArmTrigHitProducer *armTrigHitProducer = new BmnArmTrigHitProducer();
+        fRunAna->AddTask(armTrigHitProducer);
+    }
+
+    // ====================================================================== //
+    // ===                        BC hit finder                     === //
+    // ====================================================================== //
+    if(!isExp){
+        BmnBCHitProducer *bcHitProducer = new BmnBCHitProducer();
+        fRunAna->AddTask(bcHitProducer);
+    }
 
     // ====================================================================== //
     // ===                           LAND hit finder                      === //

@@ -369,20 +369,37 @@ Int_t MpdGetNumEvents::GetNumDCMSMMEvents(const char* fileName, int iVerbose)
     libz->open("rb");
 
     char r200[200];
-    for( Int_t i=0; i<3; i++) libz->gets(r200, 200);
+    Int_t header_size = 1;
+    for (Int_t i = 0; i < header_size; i++)
+    {
+        libz->gets(r200, 200);
+        if (i == 0)
+        {
+            string str0(r200);
+            if (str0.find("Results of DCM-SMM") != string::npos)    // new version
+                header_size = 20;
+            else if (str0.find("Results of QGSM") != string::npos)  // old version
+                header_size = 3;
+            else
+            {
+                if (iVerbose > 0) cout << "Wrong input file format" << endl;
+                return -1;
+            }
+        }
+    }
 
-    char read[80];
+    char read[128];
     int ntracks, num = 0;
     Int_t evnr=0;
     while (!libz->eof())
     {
-      libz->gets(read, 80);
+      libz->gets(read, 128);
       sscanf(read, "%d", &evnr);
       if( evnr-num != 1) break; // otherwise it gives 1 more event after eof
       for( Int_t ibeam=0; ibeam<3; ibeam++) {
-	libz->gets(read, 80);
-	sscanf(read, "%d", &ntracks);
-	for( Int_t i=0; i<ntracks; i++) libz->gets(read, 80);
+      	libz->gets(read, 128);
+      	sscanf(read, "%d", &ntracks);
+        for (Int_t i = 0; i < ntracks; i++) libz->gets(read, 128);
       }
       num++;
     }

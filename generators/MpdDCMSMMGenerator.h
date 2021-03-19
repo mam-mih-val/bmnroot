@@ -27,29 +27,22 @@
 class MpdDCMSMMGenerator : public FairGenerator
 {
   public:
-
     /** Default constructor without arguments should not be used. **/
     MpdDCMSMMGenerator();
-
-
     /** Standard constructor. **/
     MpdDCMSMMGenerator(const char* fileName);
-
     /** Destructor. **/
     ~MpdDCMSMMGenerator();
 
     Bool_t ReadEvent(FairPrimaryGenerator* primGen);
-
     Bool_t SkipEvents(Int_t count);
 
-    Int_t FindPDGCodeParticipant( Int_t A, Int_t S, Int_t Z, Float_t mass, Double_t &massFactor);
-    
+    Int_t FindPDGCodeParticipant( Int_t A, Int_t S, Int_t Z, Float_t mass, Double_t &massFactor);    
     Int_t FindPDGCodeSpectator( Int_t N, Int_t Z, Int_t &dN);
     
     Int_t RegisterIons( void);
 
   private:
-
 #ifdef GZIP_SUPPORT
     #ifndef __CINT__
     gzFile fInputFile;                    //!  Input file
@@ -70,14 +63,13 @@ class MpdDCMSMMGenerator : public FairGenerator
     Int_t fN1[fZMax+1], fN2[fZMax+1]; // region of barion number for given Z for registered ions
     static const Int_t fBMax=208; // maximal baryon charge of ions in MC
     Int_t fZ1[fBMax+1], fZ2[fBMax+1]; // region of Z for given B for registered ions
+    
+    Int_t fInputFileVersion; // 0 - old version, 1 - current version
 
     MpdDCMSMMGenerator(const MpdDCMSMMGenerator&);
     MpdDCMSMMGenerator& operator=(const MpdDCMSMMGenerator&);
 
-    ClassDef(MpdDCMSMMGenerator,0);
-
+    ClassDef(MpdDCMSMMGenerator,1);
 };
 
 #endif
-
-

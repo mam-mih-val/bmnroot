@@ -20,24 +20,23 @@ using namespace std;
 using namespace TMath;
 
 // -----   Default constructor   ------------------------------------------
-
 MpdDCMSMMGenerator::MpdDCMSMMGenerator()
 : FairGenerator(),
-fInputFile(NULL),
-fFileName(NULL){
-}
-
+  fInputFile(NULL),
+  fFileName(NULL),
+  fInputFileVersion(1)
+{}
 // ------------------------------------------------------------------------
 
 // -----   Standard constructor   -----------------------------------------
-
 MpdDCMSMMGenerator::MpdDCMSMMGenerator(const char* fileName)
 : FairGenerator(),
-fInputFile(NULL),
-fFileName(fileName),
-fSpectatorsON(kTRUE),
-fBoostType("FixedFixedInverted")
-//fBoostType("None")
+  fInputFile(NULL),
+  fFileName(fileName),
+  fInputFileVersion(1),
+  fSpectatorsON(kTRUE),
+  fBoostType("FixedFixedInverted")
+  //fBoostType("None")
 {
     cout << "-I MpdDCMSMMGenerator: Opening input file " << fFileName << endl;
 #ifdef GZIP_SUPPORT
@@ -53,60 +52,74 @@ fBoostType("FixedFixedInverted")
     char read[200];
     Int_t A1,Z1,A2,Z2;
     Double_t T0,sqS;
-    for( Int_t i=0; i<3; i++) { 
+    Int_t header_size = 1; // old and current formats have different header size
+    
+    for (Int_t i = 0; i < header_size; i++){
 #ifdef GZIP_SUPPORT
-      char* ch= gzgets( fInputFile, read, 200);
+        char* ch = gzgets(fInputFile, read, 200);
 #else
-      char* ch= fgets(read, 200, fInputFile);
+        char* ch = fgets(read, 200, fInputFile);
 #endif
-      cout<<"-I MpdDCMSMMGenerator:"<<read;
-      if( i==0) {
-	string str0(read);
-	A1= stoi( str0.substr( str0.find("A1=")+3, 3));
-	Z1= stoi( str0.substr( str0.find("Z1=")+3, 3));
-	A2= stoi( str0.substr( str0.find("A2=")+3, 3));
-	Z2= stoi( str0.substr( str0.find("Z2=")+3, 3));
-	//Int_t A1= 0;
-      } else if( i==1) {
-	string str0(read); // hypcoa-b1.f line 711: ss=sqrt(1.88*(T0+1.88)) => mp=0.940
-	T0= stof( str0.substr( str0.find("T0=")+3, 8));
-	sqS= stof( str0.substr( str0.find("sqrt(s)=")+8, 8));
+        cout<<"-I MpdDCMSMMGenerator:"<<read;
+        if (i == 0){
+            string str0(read);
+	        
+            if (str0.find("Results of DCM-SMM") != string::npos) {    //new version
+                fInputFileVersion = 1;
+                header_size = 20;
+	        }
+            else if (str0.find("Results of QGSM") != string::npos) {  // old version
+                fInputFileVersion = 0;
+                header_size = 3;
+	        }
+	        else {
+		        Fatal("MpdDCMSMMGenerator", "Wrong input file format.");
+                exit(1);
+	        }
+	
+            A1 = stoi( str0.substr( str0.find("A1=")+3, 3));
+            Z1 = stoi( str0.substr( str0.find("Z1=")+3, 3));
+            A2 = stoi( str0.substr( str0.find("A2=")+3, 3));
+            Z2 = stoi( str0.substr( str0.find("Z2=")+3, 3));
+            //Int_t A1= 0;
+        } 
+        else if (i == 1) {
+	        string str0(read); // hypcoa-b1.f line 711: ss=sqrt(1.88*(T0+1.88)) => mp=0.940
+            T0 = stof( str0.substr( str0.find("T0=")+3, 8));
+            sqS = stof( str0.substr( str0.find("sqrt(s)=")+8, 8));
 
-	Double_t mp=0.940; // to obtain equivalence of read "sqrt(s)=" and calculated below mCMS
-	Double_t e=T0+mp;
-	Double_t p= pow( e*e-mp*mp, 0.5);
-	Double_t mCMS= pow( 2.*mp*(e+mp), 0.5); cout<<"mCMS="<<mCMS<<endl;
+            Double_t mp = 0.940; // to obtain equivalence of read "sqrt(s)=" and calculated below mCMS
+            Double_t e = T0+mp;
+            Double_t p = pow( e*e-mp*mp, 0.5);
+            Double_t mCMS = pow( 2.*mp*(e+mp), 0.5); cout<<"mCMS="<<mCMS<<endl;
 
-	fUseLorentzBoost = kTRUE;
-	if( fBoostType == "None") {
-	  fUseLorentzBoost = kFALSE;
-	}
-	else if( fBoostType == "CmsFixed" ) { // from CMS to target ( 2-nd particle) rest system
-	  fBoostGamma= (e+mp)/mCMS;
-	  fBoostBeta= pow(  1.-1./(fBoostGamma*fBoostGamma), 0.5);
-	}
-	else if( fBoostType == "CmsFixedInverted" ) { // from CMS to beam ( 1-st particle) rest system
-	  fBoostGamma= -(e+mp)/mCMS;
-	  fBoostBeta= -pow(  1.-1./(fBoostGamma*fBoostGamma), 0.5);
-	}
-	else if( fBoostType == "FixedFixedInverted" ) { // from target rest system to beam RS
-	  fBoostGamma= -e/mp;
-	  fBoostBeta= -p/e;
-	}
-      }
+	        if (fInputFileVersion == 0) {
+		        fUseLorentzBoost = kTRUE;
+                if (fBoostType == "None")
+                    fUseLorentzBoost = kFALSE;
+                else if (fBoostType == "CmsFixed") { // from CMS to target (2-nd particle) rest system
+                    fBoostGamma = (e+mp)/mCMS;
+                    fBoostBeta = pow(1.-1./(fBoostGamma*fBoostGamma), 0.5);
+		        }
+                else if (fBoostType == "CmsFixedInverted") { // from CMS to beam ( 1-st particle) rest system
+                    fBoostGamma = -(e+mp)/mCMS;
+                    fBoostBeta = -pow(1.-1./(fBoostGamma*fBoostGamma), 0.5);
+		        }
+                else if (fBoostType == "FixedFixedInverted") { // from target rest system to beam RS
+                    fBoostGamma = -e/mp;
+                    fBoostBeta = -p/e;
+		        }
+	        }
+        }
     }
     cout<<"-I MpdDCMSMMGenerator: A1="<<A1<<" Z1="<<Z1<<" A2="<<A2<<" Z2="<<Z2<<" T0="<<T0<<" sqS="<<sqS<<endl;
 
-    if( fSpectatorsON) {
-      Int_t n= RegisterIons();
-    }
+    if (fSpectatorsON) Int_t n = RegisterIons();
 }
 // ------------------------------------------------------------------------
 
 
-
 // -----   Destructor   ---------------------------------------------------
-
 MpdDCMSMMGenerator::~MpdDCMSMMGenerator() {
     if (fInputFile) {
 #ifdef GZIP_SUPPORT
@@ -121,11 +134,8 @@ MpdDCMSMMGenerator::~MpdDCMSMMGenerator() {
 // ------------------------------------------------------------------------
 
 
-
 // -----   Public method ReadEvent   --------------------------------------
-
 Bool_t MpdDCMSMMGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
-
     // ---> Check for input file
     // cout<<"MpdDCMSMMGenerator::ReadEvent -------------------------"<<endl;
     if (!fInputFile) {
@@ -140,34 +150,38 @@ Bool_t MpdDCMSMMGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
         return kFALSE;
     }
     
-    char read[80];
+    char read[128]; // pnaleks: It was 80, but the line length of 98 chars has been seen
 #ifdef GZIP_SUPPORT
-    char* ch= gzgets( fInputFile, read, 80);
+    char* ch = gzgets(fInputFile, read, 128);
 #else
-    char* ch= fgets(read, 80, fInputFile);
+    char* ch = fgets(read, 128, fInputFile);
 #endif
-    Int_t evnr=0; Float_t b, bimpX, bimpY;
-    sscanf(read, "%d %f %f %f", &evnr, &b, &bimpX, &bimpY);
+    Int_t evnr = 0; Float_t b, bimpX, bimpY;
+    Int_t npp = 0; // pnaleks: number of produced particles after cascade and light clusters after coalescence stages (for fInputFileVersion == 1)
+    
+    if (fInputFileVersion == 0) //old version
+        sscanf(read, "%d %f %f %f", &evnr, &b, &bimpX, &bimpY);
+    else                        //new version
+        sscanf(read, "%d %d %f %f %f", &evnr, &npp, &b, &bimpX, &bimpY);
 
 #ifdef GZIP_SUPPORT
-    if( gzeof(fInputFile) ) {
+    if ( gzeof(fInputFile) ) {
 #else
-    if( feof(fInputFile) ) {
+    if ( feof(fInputFile) ) {
 #endif
-      cout << "-I MpdDCMSMMGenerator : End of input file reached." << endl;
-      const Bool_t ZeroSizeEvents=kFALSE;
-      if(  ZeroSizeEvents) {
-	return kTRUE; // gives zero multiplicity events after EOF
-      }
-      else { // gives geant crash after EOF and one empty event in .root file
+        cout << "-I MpdDCMSMMGenerator : End of input file reached." << endl;
+        const Bool_t ZeroSizeEvents = kFALSE;
+        if (ZeroSizeEvents)
+            return kTRUE; // gives zero multiplicity events after EOF
+        else { // gives geant crash after EOF and one empty event in .root file
 #ifdef GZIP_SUPPORT
-	gzclose(fInputFile);
+	        gzclose(fInputFile);
 #else
-	fclose(fInputFile);
+	        fclose(fInputFile);
 #endif
-	fInputFile = NULL;
-	return kFALSE;
-      }
+	        fInputFile = NULL;
+	        return kFALSE;
+        }
     }
     
     Float_t phi = atan2( bimpY, bimpX);
@@ -184,62 +198,98 @@ Bool_t MpdDCMSMMGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
     TDatabasePDG* dbPDG = TDatabasePDG::Instance();
 
     Float_t px,py,pz;
-    for( Int_t ibeam=0; ibeam<3; ibeam++) { // spectators pz+, spectators pz-, participants.
-      Int_t np=0;
+    for (Int_t ibeam = 0; ibeam < 3; ibeam++) { // spectators pz+, spectators pz-, participants.
+        Int_t np = 0;
 #ifdef GZIP_SUPPORT
-      ch= gzgets( fInputFile, read, 80);
+        ch = gzgets(fInputFile, read, 128);
 #else
-      ch= fgets(read, 80, fInputFile);
+        ch = fgets(read, 128, fInputFile);
 #endif
-      sscanf(read, "%d", &np); //cout<<np<<" "<<endl;
+        sscanf(read, "%d", &np); //cout<<np<<" "<<endl;
+        // Information for fInputFileVersion == 1:
+        // pnaleks: In this line is also an additional information for ibeam < 2, 
+        // which is ignored because next lines contains this datta by fragments
       
-      for( Int_t i=0; i<np; i++) {
+        for (Int_t i = 0; i < np; i++) {
 #ifdef GZIP_SUPPORT
-	ch= gzgets( fInputFile, read, 80);
+            ch = gzgets(fInputFile, read, 128);
 #else
-	ch= fgets(read, 80, fInputFile);
+            ch = fgets(read, 128, fInputFile);
 #endif	
-	Int_t iN, iQ, iS=0;
-	Float_t xxx=0.,mass;
-	if( ibeam < 2) sscanf(read, "%d %d %f %f %f %f", &iN, &iQ, &xxx, &px,&py,&pz);
-	else sscanf(read, "%d %d %d %f %f %f %f", &iN, &iQ, &iS, &px,&py,&pz, &mass);
+            Int_t iN, iQ, iS = 0;
+            Float_t xxx = 0., mass;
+            Int_t pdgID_in = 0, iL;
+            Float_t pLabZ, pALabZ = 0;
+	        if (fInputFileVersion == 0) {
+                if (ibeam < 2) sscanf(read, "%d %d %f %f %f %f", &iN, &iQ, &xxx, &px,&py,&pz);
+                else sscanf(read, "%d %d %d %f %f %f %f", &iN, &iQ, &iS, &px,&py,&pz, &mass);
+	        }
+	        else { // fInputFileVersion == 1
+		        Float_t var10, var11;
+                Int_t res = sscanf(read, "%d%d%d%d%d%f%f%f%f%f%f", &iQ, &iL, &iS, &iN, &pdgID_in, &px, &py, &pz, &pLabZ, &var10, &var11);
+                switch (res) {
+                    case 10:
+                        mass = var10;
+                        break;
+                    case 11:
+                        pALabZ = var10;
+                        mass = var11;
+                        break;
+                    default:
+                        Fatal(__func__, ": data format mismatch, event %d\n", evnr);
+                }
+	        }
 
-	Int_t pdgID=0;
-	if( ibeam==2) { // participants
-	  Double_t massFactor=1.;
-	  pdgID= FindPDGCodeParticipant( iN, iS, iQ, mass, massFactor);
-	  if( massFactor != 1.) { px*=massFactor; py*=massFactor; pz*=massFactor; }
-	  //if( pdgID>1000030000) cout<<pdgID<<" "<<iN<<" "<<iS<<" "<<iQ<<" "<<mass<<endl;
-	} else { // spectators
-	  if( fSpectatorsON) {
-	    Int_t dN=-999; // difference of number of nucleons iN-NTab between DCM-DCMSMM and registered ions
-	    pdgID= FindPDGCodeSpectator( iN, iQ, dN);
-	  }
-	}
+	        // Int_t pdgID=0;
+	        Int_t pdgID = pdgID_in;
+	        if (fInputFileVersion == 0) {
+                if (ibeam == 2) { // participants
+                    Double_t massFactor = 1.;
+                    pdgID = FindPDGCodeParticipant(iN, iS, iQ, mass, massFactor);
+                    if (massFactor != 1.) { px*=massFactor; py*=massFactor; pz*=massFactor; }
+                    //if (pdgID > 1000030000) cout<<pdgID<<" "<<iN<<" "<<iS<<" "<<iQ<<" "<<mass<<endl;
+                }
+                else { // spectators
+                    if (fSpectatorsON) {
+                        Int_t dN = -999; // difference of number of nucleons iN-NTab between DCM-DCMSMM and registered ions
+                        pdgID = FindPDGCodeSpectator(iN, iQ, dN);
+                    }
+		        }
+	        }
 
-	if( pdgID) {
-	  if( fUseLorentzBoost) {
-	    TParticlePDG* particle= dbPDG->GetParticle(pdgID);
-	    Double_t m= particle->Mass();
-	    Double_t e= pow( px*px+ py*py+ pz*pz+ m*m, 0.5 );
-	    Double_t pzF = fBoostGamma * ( pz + fBoostBeta * e);
-	    Double_t eF= pow( px*px+ py*py+ pzF*pzF+ m*m, 0.5 );
-	    //cout<<fBoostGamma<<" "<<fBoostBeta<<" "<<pdgID<<" "<<m<<" "<<pz<<" "<<pzF<<" "<<eF-m<<endl;
-	    pz=pzF;
-	  }
-	  // Int_t Geant3ID= dbPDG->ConvertPdgToGeant3(pdgID);
-	  if( fabs(pz)>50.) cout<<"pz="<<pz<<" N="<<iN<<" Q="<<iQ<<" pdg="<<pdgID<<"\n";
-	  primGen->AddTrack( pdgID, px, py, pz, 0., 0., 0.);
-	}
-	else {
-	  if( ibeam==2 || (ibeam==2&&fSpectatorsON))
-	    cout<<"-I MpdDCMSMMGenerator : unknown particle N="<<iN<<" Q="<<iQ<<endl;
-	}
-      }
+	        TParticlePDG* particle = pdgID ? dbPDG->GetParticle(pdgID) : 0;
+            if (particle) {
+		        if (fInputFileVersion == 0) { 
+                    if (fUseLorentzBoost) {
+			            // TParticlePDG* particle= dbPDG->GetParticle(pdgID);
+                        Double_t m = particle->Mass();
+                        Double_t e = pow( px*px+ py*py+ pz*pz+ m*m, 0.5 );
+			            Double_t pzF = fBoostGamma * ( pz + fBoostBeta * e);
+                        Double_t eF = pow( px*px+ py*py+ pzF*pzF+ m*m, 0.5 );
+			            //cout<<fBoostGamma<<" "<<fBoostBeta<<" "<<pdgID<<" "<<m<<" "<<pz<<" "<<pzF<<" "<<eF-m<<endl;
+                        pz = pzF;
+		          }
+	            }
+                else // fInputFileVersion == 1
+	          	    pz = pLabZ;
+	            
+	            // Int_t Geant3ID= dbPDG->ConvertPdgToGeant3(pdgID);
+                if (fabs(pz)>50.) cout<<"pz="<<pz<<" N="<<iN<<" Q="<<iQ<<" pdg="<<pdgID<<"\n";
+                primGen->AddTrack(pdgID, px, py, pz, 0., 0., 0.);
+	        }
+	        else {
+	            // if( ibeam==2 || (ibeam==2&&fSpectatorsON))
+	            if (fInputFileVersion == 1 || ibeam==2 || fSpectatorsON) {
+	                // cout<<"-I MpdDCMSMMGenerator : unknown particle N="<<iN<<" Q="<<iQ<<endl;
+	                cout<<"-I MpdDCMSMMGenerator : unknown particle N="<<iN<<" Q="<<iQ;
+	                if (fInputFileVersion == 1) cout << " PDG_in="<< pdgID_in << " ibeam=" << ibeam << endl;
+	                else cout << endl;
+	            }
+            }
+        }
     }
     return kTRUE;
-}
-    
+}   
 // ------------------------------------------------------------------------
     
 Bool_t MpdDCMSMMGenerator::SkipEvents(Int_t count) {
@@ -250,38 +300,38 @@ Bool_t MpdDCMSMMGenerator::SkipEvents(Int_t count) {
       cout << "-E MpdDCMSMMGenerator: Input file not open! " << endl;
       return kFALSE;
     }
-    char read[80];
+    char read[128];
 #ifdef GZIP_SUPPORT
-    char* ch= gzgets( fInputFile, read, 80);
+    char* ch = gzgets(fInputFile, read, 128);
 #else
-    char* ch= fgets(read, 80, fInputFile);
+    char* ch = fgets(read, 128, fInputFile);
 #endif
-    Int_t evnr=0; Float_t b, bimpX, bimpY;
-    sscanf(read, "%d %f %f %f", &evnr, &b, &bimpX, &bimpY);
-    for( Int_t ibeam=0; ibeam<3; ibeam++) {
-      Int_t np=0;
+    // Int_t evnr=0; Float_t b, bimpX, bimpY;
+    // sscanf(read, "%d %f %f %f", &evnr, &b, &bimpX, &bimpY);
+    for (Int_t ibeam = 0; ibeam < 3; ibeam++) {
+      Int_t np = 0;
 #ifdef GZIP_SUPPORT
-      ch= gzgets( fInputFile, read, 80);
+      ch = gzgets(fInputFile, read, 128);
 #else
-      ch= fgets(read, 80, fInputFile);
+      ch = fgets(read, 128, fInputFile);
 #endif
       sscanf(read, "%d", &np);
-      for( Int_t i=0; i<np; i++) {
+      for (Int_t i = 0; i < np; i++) {
 #ifdef GZIP_SUPPORT
-	ch= gzgets( fInputFile, read, 80);
+        ch = gzgets(fInputFile, read, 128);
 #else
-	ch= fgets(read, 80, fInputFile);
+        ch = fgets(read, 128, fInputFile);
 #endif
-	Int_t iN, iQ, iS=0;
-	Float_t xxx=0., mass, px,py,pz;
-	if( ibeam < 2) sscanf(read, "%d %d %f %f %f %f", &iN, &iQ, &xxx, &px,&py,&pz); //cout<<np<<" "<<endl;
-	else sscanf(read, "%d %d %d %f %f %f %f", &iN, &iQ, &iS, &px,&py,&pz, &mass);
+        // Int_t iN, iQ, iS=0;
+        // Float_t xxx=0., mass, px,py,pz;
+        // if( ibeam < 2) sscanf(read, "%d %d %f %f %f %f", &iN, &iQ, &xxx, &px,&py,&pz); //cout<<np<<" "<<endl;
+        // else sscanf(read, "%d %d %d %f %f %f %f", &iN, &iQ, &iS, &px,&py,&pz, &mass);
       }
     }
   }
+
   return kTRUE;
 }
-
 // ------------------------------------------------------------------------
 
  
@@ -436,10 +486,9 @@ Int_t MpdDCMSMMGenerator::FindPDGCodeParticipant( Int_t A, Int_t S, Int_t Z, Flo
   //k= 1000030060;
   return k;
 }
-
 // ------------------------------------------------------------------------
 
- 
+
 Int_t MpdDCMSMMGenerator::FindPDGCodeSpectator( Int_t N, Int_t Z, Int_t &dN) {
   Int_t k=0;
   dN=0;
@@ -461,7 +510,6 @@ Int_t MpdDCMSMMGenerator::FindPDGCodeSpectator( Int_t N, Int_t Z, Int_t &dN) {
   }
   return k;
 }
-
 // ------------------------------------------------------------------------
 
 
@@ -644,4 +692,5 @@ Int_t MpdDCMSMMGenerator::RegisterIons( void) {
   for( int i=2; i<=fBMax; i++) cout <<i<<": "<<fZ1[i]<<"-"<<fZ2[i]<<"  "; cout <<"\n";
   return NSI;
 }
+
 ClassImp(MpdDCMSMMGenerator);

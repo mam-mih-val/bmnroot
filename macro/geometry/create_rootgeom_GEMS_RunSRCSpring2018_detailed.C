@@ -5,6 +5,7 @@
  *
  * Created: 29.09.2020
  * 02.03.2021 (Updated): radius of hole in active zone (4.0 -> 6.0 cm)
+ * 22.03.2021 (Updated): material layers and frames for inclined small GEMs added
  * Author: Baranov D.
  */
 
@@ -98,16 +99,17 @@ const Double_t ZModuleShifts[NStations][NMaxModules] = {
 };
 
 //rotations of stations around y-axis by 180 deg.
-const Bool_t YStationRotations[NStations] = {false/*0*/, false/*1*/, false/*2*/, false/*3*/, true/*4*/, false/*5*/, true/*6*/, false/*7*/, true/*8*/, false/*9*/};
+const Bool_t YStationRotations[NStations] = {false/*0*/, true/*1*/, true/*2*/, false/*3*/, true/*4*/, false/*5*/, true/*6*/, false/*7*/, true/*8*/, false/*9*/};
 
 //rotations of stations around x-axis by 180 deg.
-const Bool_t XStationRotations[NStations] = {false/*0*/, false/*1*/, false/*2*/, false/*3*/, false/*4*/, false/*5*/, false/*6*/, false/*7*/, false/*8*/, false/*9*/};
+const Bool_t XStationRotations[NStations] = {false/*0*/, true/*1*/, true/*2*/, true/*3*/, false/*4*/, false/*5*/, false/*6*/, false/*7*/, false/*8*/, false/*9*/};
 //------------------------------------------------------------------------------
 
 //GEM plane sizes (66x41 type) -------------------------------------------------
 const Double_t XModuleSize_Station66x41 = 66.0;
 const Double_t YModuleSize_Station66x41 = 41.0;
 const Double_t ZModuleSize_Station66x41 = 0.9;
+const Double_t ZGEMSize_Station66x41 = 2.3; //common thickness of GEM (including sens. vol)
 
 const Double_t dXFrame_Station66x41 = 2.0;
 const Double_t dYFrame_Station66x41 = 2.0;
@@ -147,8 +149,12 @@ class FairGeoBuilder;
 
 
 TGeoVolume *CreateStation(TString station_name);
+
 TGeoVolume *CreateModule_Station66x41(TString module_name, Double_t xsize, Double_t ysize, Double_t zsize);
+TGeoVolume *CreateLayersForModule_Station66x41(TString layer_name);
 TGeoVolume *CreateFrameForModule_Station66x41(TString frame_name, Double_t dx, Double_t dy, Double_t dz);
+TGeoVolume *CreateBasicFrameForModule_Station66x41(TString frame_name);
+
 TGeoVolume *CreateModule_Station163x45(TString module_name, Double_t xsize, Double_t ysize, Double_t zsize, Double_t hole_radius);
 TGeoVolume *CreateLayersForModule_Station163x45(TString layer_name);
 TGeoVolume *CreateFrameForModule_Station163x45(TString frame_name, Double_t dx, Double_t dy, Double_t dz, Double_t hole_radius);
@@ -287,17 +293,31 @@ void create_rootgeom_GEMS_RunSRCSpring2018_detailed() {
 
         TGeoVolume *station = CreateStation(TString("station")+ TString::Itoa(stationNum, 10));
         TGeoVolume *module0 = CreateModule_Station66x41(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station66x41, YModuleSize_Station66x41, ZModuleSize_Station66x41);
-        TGeoVolume *frame0 = CreateFrameForModule_Station66x41(TString("frame0_")+station->GetName(), dXFrame_Station66x41, dYFrame_Station66x41, dZFrame_Station66x41);
+        TGeoVolume *layers0 = CreateLayersForModule_Station66x41(TString("layer0_")+station->GetName());
+        TGeoVolume *frame0 = CreateBasicFrameForModule_Station66x41(TString("frame0_")+station->GetName());
 
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
             module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
             module0_transform->RotateY(+30.5843); //deg
 
+        TGeoCombiTrans *layers0_transform = new TGeoCombiTrans();
+            if(YStationRotations[stationNum] == true) layers0_transform->ReflectZ(true);
+            if(XStationRotations[stationNum] == true) layers0_transform->RotateX(180.0);
+            layers0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station66x41*0.5);
+            layers0_transform->RotateY(+30.5843); //deg
+
+        TGeoCombiTrans *frame0_transform = new TGeoCombiTrans();
+            if(YStationRotations[stationNum] == true) frame0_transform->RotateY(180.0);
+            if(XStationRotations[stationNum] == true) frame0_transform->RotateX(180.0);
+            frame0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station66x41*0.5 + 0.16);
+            frame0_transform->RotateY(+30.5843); //deg
+
         TGeoCombiTrans *station_transform = new TGeoCombiTrans();
         station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
 
         station->AddNode(module0, 0, new TGeoCombiTrans(*module0_transform)); //module
-        station->AddNode(frame0, 0, new TGeoCombiTrans(*module0_transform)); //frame
+        station->AddNode(layers0, 0, new TGeoCombiTrans(*layers0_transform)); //layers
+        station->AddNode(frame0, 0, new TGeoCombiTrans(*frame0_transform)); //frame
 
         GEMS->AddNode(station, 0, station_transform);
     }
@@ -308,17 +328,31 @@ void create_rootgeom_GEMS_RunSRCSpring2018_detailed() {
 
         TGeoVolume *station = CreateStation(TString("station")+ TString::Itoa(stationNum, 10));
         TGeoVolume *module0 = CreateModule_Station66x41(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station66x41, YModuleSize_Station66x41, ZModuleSize_Station66x41);
-        TGeoVolume *frame0 = CreateFrameForModule_Station66x41(TString("frame0_")+station->GetName(), dXFrame_Station66x41, dYFrame_Station66x41, dZFrame_Station66x41);
+        TGeoVolume *layers0 = CreateLayersForModule_Station66x41(TString("layer0_")+station->GetName());
+        TGeoVolume *frame0 = CreateBasicFrameForModule_Station66x41(TString("frame0_")+station->GetName());
 
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
             module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
             module0_transform->RotateY(+30.5843); //deg
 
+        TGeoCombiTrans *layers0_transform = new TGeoCombiTrans();
+            if(YStationRotations[stationNum] == true) layers0_transform->ReflectZ(true);
+            if(XStationRotations[stationNum] == true) layers0_transform->RotateX(180.0);
+            layers0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station66x41*0.5);
+            layers0_transform->RotateY(+30.5843); //deg
+
+        TGeoCombiTrans *frame0_transform = new TGeoCombiTrans();
+            if(YStationRotations[stationNum] == true) frame0_transform->RotateY(180.0);
+            if(XStationRotations[stationNum] == true) frame0_transform->RotateX(180.0);
+            frame0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station66x41*0.5 - 0.16);
+            frame0_transform->RotateY(+30.5843); //deg
+
         TGeoCombiTrans *station_transform = new TGeoCombiTrans();
         station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
 
         station->AddNode(module0, 0, new TGeoCombiTrans(*module0_transform)); //module
-        station->AddNode(frame0, 0, new TGeoCombiTrans(*module0_transform)); //frame
+        station->AddNode(layers0, 0, new TGeoCombiTrans(*layers0_transform)); //layers
+        station->AddNode(frame0, 0, new TGeoCombiTrans(*frame0_transform)); //frame
 
         GEMS->AddNode(station, 0, station_transform);
     }
@@ -329,17 +363,31 @@ void create_rootgeom_GEMS_RunSRCSpring2018_detailed() {
 
         TGeoVolume *station = CreateStation(TString("station")+ TString::Itoa(stationNum, 10));
         TGeoVolume *module0 = CreateModule_Station66x41(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station66x41, YModuleSize_Station66x41, ZModuleSize_Station66x41);
-        TGeoVolume *frame0 = CreateFrameForModule_Station66x41(TString("frame0_")+station->GetName(), dXFrame_Station66x41, dYFrame_Station66x41, dZFrame_Station66x41);
+        TGeoVolume *layers0 = CreateLayersForModule_Station66x41(TString("layer0_")+station->GetName());
+        TGeoVolume *frame0 = CreateBasicFrameForModule_Station66x41(TString("frame0_")+station->GetName());
 
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
             module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
             module0_transform->RotateY(-30.6845); //deg
 
+        TGeoCombiTrans *layers0_transform = new TGeoCombiTrans();
+            if(YStationRotations[stationNum] == true) layers0_transform->ReflectZ(true);
+            if(XStationRotations[stationNum] == true) layers0_transform->RotateX(180.0);
+            layers0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station66x41*0.5);
+            layers0_transform->RotateY(-30.6845); //deg
+
+        TGeoCombiTrans *frame0_transform = new TGeoCombiTrans();
+            if(YStationRotations[stationNum] == true) frame0_transform->RotateY(180.0);
+            if(XStationRotations[stationNum] == true) frame0_transform->RotateX(180.0);
+            frame0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station66x41*0.5 + 0.16);
+            frame0_transform->RotateY(-30.6845); //deg
+
         TGeoCombiTrans *station_transform = new TGeoCombiTrans();
         station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
 
         station->AddNode(module0, 0, new TGeoCombiTrans(*module0_transform)); //module
-        station->AddNode(frame0, 0, new TGeoCombiTrans(*module0_transform)); //frame
+        station->AddNode(layers0, 0, new TGeoCombiTrans(*layers0_transform)); //layers
+        station->AddNode(frame0, 0, new TGeoCombiTrans(*frame0_transform)); //frame
 
         GEMS->AddNode(station, 0, station_transform);
     }
@@ -350,17 +398,31 @@ void create_rootgeom_GEMS_RunSRCSpring2018_detailed() {
 
         TGeoVolume *station = CreateStation(TString("station")+ TString::Itoa(stationNum, 10));
         TGeoVolume *module0 = CreateModule_Station66x41(TString("Sensor_module0_")+station->GetName(), XModuleSize_Station66x41, YModuleSize_Station66x41, ZModuleSize_Station66x41);
-        TGeoVolume *frame0 = CreateFrameForModule_Station66x41(TString("frame0_")+station->GetName(), dXFrame_Station66x41, dYFrame_Station66x41, dZFrame_Station66x41);
+        TGeoVolume *layers0 = CreateLayersForModule_Station66x41(TString("layer0_")+station->GetName());
+        TGeoVolume *frame0 = CreateBasicFrameForModule_Station66x41(TString("frame0_")+station->GetName());
 
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
             module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
             module0_transform->RotateY(-30.6845); //deg
 
+        TGeoCombiTrans *layers0_transform = new TGeoCombiTrans();
+            if(YStationRotations[stationNum] == true) layers0_transform->ReflectZ(true);
+            if(XStationRotations[stationNum] == true) layers0_transform->RotateX(180.0);
+            layers0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station66x41*0.5);
+            layers0_transform->RotateY(-30.6845); //deg
+
+        TGeoCombiTrans *frame0_transform = new TGeoCombiTrans();
+            if(YStationRotations[stationNum] == true) frame0_transform->RotateY(180.0);
+            if(XStationRotations[stationNum] == true) frame0_transform->RotateX(180.0);
+            frame0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station66x41*0.5 - 0.16) ;
+            frame0_transform->RotateY(-30.6845); //deg
+
         TGeoCombiTrans *station_transform = new TGeoCombiTrans();
         station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
 
         station->AddNode(module0, 0, new TGeoCombiTrans(*module0_transform)); //module
-        station->AddNode(frame0, 0, new TGeoCombiTrans(*module0_transform)); //frame
+        station->AddNode(layers0, 0, new TGeoCombiTrans(*layers0_transform)); //layers
+        station->AddNode(frame0, 0, new TGeoCombiTrans(*frame0_transform)); //frame
 
         GEMS->AddNode(station, 0, station_transform);
     }
@@ -499,6 +561,246 @@ TGeoVolume *CreateModule_Station66x41(TString module_name, Double_t xsize, Doubl
     return moduleV;
 }
 
+TGeoVolume *CreateLayersForModule_Station66x41(TString layer_name) {
+
+    //frame volumes
+    TGeoVolume *layers = new TGeoVolumeAssembly(layer_name);
+    layers->SetMedium(pMedAir);
+
+    //Common parameters for all layers
+    Double_t layerFront_XSize = 66.0; //cm
+    Double_t layerFront_YSize = 41.0; //cm
+    Double_t layerFront_XShift = 0.0; //cm
+    Double_t layerFront_YShift = 0.0; //cm
+
+    Double_t layerBack_XSize = 66.0; //cm
+    Double_t layerBack_YSize = 41.0; //cm
+    Double_t layerBack_XShift = 0.0; //cm
+    Double_t layerBack_YShift = 0.0; //cm
+    Double_t layerBack_ZShift = 0.0; //cm
+
+    if (layer_name == "layer0_station3") layerBack_ZShift = +0.2; //z-shift for an extended module
+
+    //copper layer -------------------------------------------------------------
+    Double_t copperLayer_ZSize = 0.00655; //cm;
+    Double_t copperLayerHole_Radius = 6.0; //cm
+
+    //layer shape
+    TGeoShape *copperLayerFrontS = new TGeoBBox(TString("copperLayerFrontBlankS")+=TString("_") + layers->GetName(), layerFront_XSize*0.5, layerFront_YSize*0.5, copperLayer_ZSize*0.5);
+    TGeoShape *copperLayerBackS = new TGeoBBox(TString("copperLayerBackBlankS")+=TString("_") + layers->GetName(), layerBack_XSize*0.5, layerBack_YSize*0.5, copperLayer_ZSize*0.5);
+
+    TGeoVolume *copperLayerFrontV = new TGeoVolume(TString("copperLayerFrontV")+=TString("_") + layers->GetName(), copperLayerFrontS);
+    TGeoVolume *copperLayerBackV = new TGeoVolume(TString("copperLayerBackV")+=TString("_") + layers->GetName(), copperLayerBackS);
+
+    //volume medium
+    TGeoMedium *copperLayerV_medium = pMedCopper;
+    if(copperLayerV_medium) {
+        copperLayerFrontV->SetMedium(copperLayerV_medium);
+        copperLayerBackV->SetMedium(copperLayerV_medium);
+    }
+    else Fatal("Main", "Invalid medium for copperLayerV!");
+
+    //volume visual property (transparency)
+    copperLayerFrontV->SetLineColor(TColor::GetColor("#ff7538"));
+    copperLayerFrontV->SetTransparency(0);
+    copperLayerBackV->SetLineColor(TColor::GetColor("#ff7538"));
+    copperLayerBackV->SetTransparency(0);
+
+    TGeoCombiTrans *copperLayerFront_transf[2];
+
+    copperLayerFront_transf[0] = new TGeoCombiTrans();
+    copperLayerFront_transf[0]->SetDx(+layerFront_XShift);
+    copperLayerFront_transf[0]->SetDy(+layerFront_YShift);
+    copperLayerFront_transf[0]->SetDz(-ZGEMSize_Station66x41*0.5 + copperLayer_ZSize*0.5);
+
+    TGeoCombiTrans *copperLayerBack_transf[1];
+
+    copperLayerBack_transf[0] = new TGeoCombiTrans();
+    copperLayerBack_transf[0]->SetDx(+layerBack_XShift);
+    copperLayerBack_transf[0]->SetDy(+layerBack_YShift);
+    copperLayerBack_transf[0]->SetDz(+ZGEMSize_Station66x41*0.5 - copperLayer_ZSize*0.5 + layerBack_ZShift) ;
+
+    layers->AddNode(copperLayerFrontV, 0, copperLayerFront_transf[0]);
+    layers->AddNode(copperLayerBackV, 0, copperLayerBack_transf[0]);
+    //--------------------------------------------------------------------------
+
+    //glue layer ---------------------------------------------------------------
+    Double_t glueLayer_ZSize = 0.01; //cm; half-thickness of all glue layers
+    Double_t glueLayerHole_Radius = 6.0; //cm
+
+    //layer shape
+    TGeoShape *glueLayerFrontS = new TGeoBBox(TString("glueLayerFrontBlankS")+=TString("_") + layers->GetName(), layerFront_XSize*0.5, layerFront_YSize*0.5, glueLayer_ZSize*0.5);
+    TGeoShape *glueLayerBackS = new TGeoBBox(TString("glueLayerBackBlankS")+=TString("_") + layers->GetName(), layerBack_XSize*0.5, layerBack_YSize*0.5, glueLayer_ZSize*0.5);
+
+    TGeoVolume *glueLayerFrontV = new TGeoVolume(TString("glueLayerFrontV")+=TString("_") + layers->GetName(), glueLayerFrontS);
+    TGeoVolume *glueLayerBackV = new TGeoVolume(TString("glueLayerBackV")+=TString("_") + layers->GetName(), glueLayerBackS);
+
+    //volume medium
+    TGeoMedium *glueLayerV_medium = pMedGlue;
+    if(glueLayerV_medium) {
+        glueLayerFrontV->SetMedium(glueLayerV_medium);
+        glueLayerBackV->SetMedium(glueLayerV_medium);
+    }
+    else Fatal("Main", "Invalid medium for glueLayerV!");
+
+    //volume visual property (transparency)
+    glueLayerFrontV->SetLineColor(TColor::GetColor("#1919ff"));
+    glueLayerFrontV->SetTransparency(0);
+    glueLayerBackV->SetLineColor(TColor::GetColor("#1919ff"));
+    glueLayerBackV->SetTransparency(0);
+
+    TGeoCombiTrans *glueLayerFront_transf[1];
+
+    glueLayerFront_transf[0] = new TGeoCombiTrans();
+    glueLayerFront_transf[0]->SetDx(+layerFront_XShift);
+    glueLayerFront_transf[0]->SetDy(+layerFront_YShift);
+    glueLayerFront_transf[0]->SetDz(-ZGEMSize_Station66x41*0.5 + copperLayer_ZSize + glueLayer_ZSize*0.5);
+
+    TGeoCombiTrans *glueLayerBack_transf[1];
+
+    glueLayerBack_transf[0] = new TGeoCombiTrans();
+    glueLayerBack_transf[0]->SetDx(+layerBack_XShift);
+    glueLayerBack_transf[0]->SetDy(+layerBack_YShift);
+    glueLayerBack_transf[0]->SetDz(+ZGEMSize_Station66x41*0.5 - copperLayer_ZSize - glueLayer_ZSize*0.5 + layerBack_ZShift) ;
+
+    layers->AddNode(glueLayerFrontV, 0, glueLayerFront_transf[0]);
+    layers->AddNode(glueLayerBackV, 0, glueLayerBack_transf[0]);
+    //--------------------------------------------------------------------------
+
+    //epoxide layer ------------------------------------------------------------
+    Double_t epoxideLayer_ZSize = 0.105; //cm; half-thickness of all epoxide layers
+    Double_t epoxideLayerHole_Radius = 6.0; //cm
+
+    //layer shape
+    TGeoShape *epoxideLayerFrontS = new TGeoBBox(TString("epoxideLayerFrontBlankS")+=TString("_") + layers->GetName(), layerFront_XSize*0.5, layerFront_YSize*0.5, epoxideLayer_ZSize*0.5);
+    TGeoShape *epoxideLayerBackS = new TGeoBBox(TString("epoxideLayerBackBlankS")+=TString("_") + layers->GetName(), layerBack_XSize*0.5, layerBack_YSize*0.5, epoxideLayer_ZSize*0.5);
+
+    TGeoVolume *epoxideLayerFrontV = new TGeoVolume(TString("epoxideLayerFrontV")+=TString("_") + layers->GetName(), epoxideLayerFrontS);
+    TGeoVolume *epoxideLayerBackV = new TGeoVolume(TString("epoxideLayerBackV")+=TString("_") + layers->GetName(), epoxideLayerBackS);
+
+    //volume medium
+    TGeoMedium *epoxideLayerV_medium = pMedEpoxideCompound;
+    if(epoxideLayerV_medium) {
+        epoxideLayerFrontV->SetMedium(epoxideLayerV_medium);
+        epoxideLayerBackV->SetMedium(epoxideLayerV_medium);
+    }
+    else Fatal("Main", "Invalid medium for epoxideLayerV!");
+
+    //volume visual property (transparency)
+    epoxideLayerFrontV->SetLineColor(TColor::GetColor("#aa33ff"));
+    epoxideLayerFrontV->SetTransparency(0);
+    epoxideLayerBackV->SetLineColor(TColor::GetColor("#aa33ff"));
+    epoxideLayerBackV->SetTransparency(0);
+
+    TGeoCombiTrans *epoxideLayerFront_transf[1];
+
+    epoxideLayerFront_transf[0] = new TGeoCombiTrans();
+    epoxideLayerFront_transf[0]->SetDx(+layerFront_XShift);
+    epoxideLayerFront_transf[0]->SetDy(+layerFront_YShift);
+    epoxideLayerFront_transf[0]->SetDz(-ZGEMSize_Station66x41*0.5 + copperLayer_ZSize + glueLayer_ZSize + epoxideLayer_ZSize*0.5);
+
+    TGeoCombiTrans *epoxideLayerBack_transf[1];
+
+    epoxideLayerBack_transf[0] = new TGeoCombiTrans();
+    epoxideLayerBack_transf[0]->SetDx(+layerBack_XShift);
+    epoxideLayerBack_transf[0]->SetDy(+layerBack_YShift);
+    epoxideLayerBack_transf[0]->SetDz(+ZGEMSize_Station66x41*0.5 - copperLayer_ZSize - glueLayer_ZSize - epoxideLayer_ZSize*0.5 + layerBack_ZShift) ;
+
+    layers->AddNode(epoxideLayerFrontV, 0, epoxideLayerFront_transf[0]);
+    layers->AddNode(epoxideLayerBackV, 0, epoxideLayerBack_transf[0]);
+    //--------------------------------------------------------------------------
+
+    //honeycomb layer ----------------------------------------------------------
+    //Double_t honeycombLayer_ZSize = 1.5-(0.05+0.00055+0.005+0.0125); //cm; half-thickness of all honeycomb layers
+    //Double_t honeycombLayer_ZSize = 1.5-(0.06805); //cm; half-thickness of all honeycomb layers
+    Double_t honeycombLayer_ZSize = 0.56; //cm; half-thickness of all honeycomb layers
+    Double_t honeycombLayerHole_Radius = 6.0; //cm
+
+    //layer shape
+    TGeoShape *honeycombLayerFrontS = new TGeoBBox(TString("honeycombLayerFrontBlankS")+=TString("_") + layers->GetName(), layerFront_XSize*0.5, layerFront_YSize*0.5, honeycombLayer_ZSize*0.5);
+    TGeoShape *honeycombLayerBackS = new TGeoBBox(TString("honeycombLayerBackBlankS")+=TString("_") + layers->GetName(), layerBack_XSize*0.5, layerBack_YSize*0.5, honeycombLayer_ZSize*0.5);
+
+    TGeoVolume *honeycombLayerFrontV = new TGeoVolume(TString("honeycombLayerFrontV")+=TString("_") + layers->GetName(), honeycombLayerFrontS);
+    TGeoVolume *honeycombLayerBackV = new TGeoVolume(TString("honeycombLayerBackV")+=TString("_") + layers->GetName(), honeycombLayerBackS);
+
+    //volume medium
+    TGeoMedium *honeycombLayerV_medium = pMedHoneyComb;
+    if(honeycombLayerV_medium) {
+        honeycombLayerFrontV->SetMedium(honeycombLayerV_medium);
+        honeycombLayerBackV->SetMedium(honeycombLayerV_medium);
+    }
+    else Fatal("Main", "Invalid medium for honeycombLayerV!");
+
+    //volume visual property (transparency)
+    honeycombLayerFrontV->SetLineColor(TColor::GetColor("#ffdf84"));
+    honeycombLayerFrontV->SetTransparency(0);
+    honeycombLayerBackV->SetLineColor(TColor::GetColor("#ffdf84"));
+    honeycombLayerBackV->SetTransparency(0);
+
+    TGeoCombiTrans *honeycombLayerFront_transf[1];
+
+    honeycombLayerFront_transf[0] = new TGeoCombiTrans();
+    honeycombLayerFront_transf[0]->SetDx(+layerFront_XShift);
+    honeycombLayerFront_transf[0]->SetDy(+layerFront_YShift);
+    honeycombLayerFront_transf[0]->SetDz(-ZGEMSize_Station66x41*0.5 + copperLayer_ZSize + glueLayer_ZSize + epoxideLayer_ZSize + honeycombLayer_ZSize*0.5);
+
+    TGeoCombiTrans *honeycombLayerBack_transf[1];
+
+    honeycombLayerBack_transf[0] = new TGeoCombiTrans();
+    honeycombLayerBack_transf[0]->SetDx(+layerBack_XShift);
+    honeycombLayerBack_transf[0]->SetDy(+layerBack_YShift);
+    honeycombLayerBack_transf[0]->SetDz(+ZGEMSize_Station66x41*0.5 - copperLayer_ZSize - glueLayer_ZSize - epoxideLayer_ZSize - honeycombLayer_ZSize*0.5 + layerBack_ZShift) ;
+
+    layers->AddNode(honeycombLayerFrontV, 0, honeycombLayerFront_transf[0]);
+    layers->AddNode(honeycombLayerBackV, 0, honeycombLayerBack_transf[0]);
+    //--------------------------------------------------------------------------
+
+    //polyamide layer ----------------------------------------------------------
+    Double_t polyamideLayer_ZSize = 0.0125; //cm; half-thickness of all polyamide layers
+    Double_t polyamideLayerHole_Radius = 6.0; //cm
+
+    //layer shape
+    TGeoShape *polyamideLayerFrontS = new TGeoBBox(TString("polyamideLayerFrontBlankS")+=TString("_") + layers->GetName(), layerFront_XSize*0.5, layerFront_YSize*0.5, polyamideLayer_ZSize*0.5);
+    TGeoShape *polyamideLayerBackS = new TGeoBBox(TString("polyamideLayerBackBlankS")+=TString("_") + layers->GetName(), layerBack_XSize*0.5, layerBack_YSize*0.5, polyamideLayer_ZSize*0.5);
+
+    TGeoVolume *polyamideLayerFrontV = new TGeoVolume(TString("polyamideLayerFrontV")+=TString("_") + layers->GetName(), polyamideLayerFrontS);
+    TGeoVolume *polyamideLayerBackV = new TGeoVolume(TString("polyamideLayerBackV")+=TString("_") + layers->GetName(), polyamideLayerBackS);
+
+    //volume medium
+    TGeoMedium *polyamideLayerV_medium = pMedPolyamide;
+    if(polyamideLayerV_medium) {
+        polyamideLayerFrontV->SetMedium(polyamideLayerV_medium);
+        polyamideLayerBackV->SetMedium(polyamideLayerV_medium);
+    }
+    else Fatal("Main", "Invalid medium for polyamideLayerV!");
+
+    //volume visual property (transparency)
+    polyamideLayerFrontV->SetLineColor(TColor::GetColor("#fefe22"));
+    polyamideLayerFrontV->SetTransparency(0);
+    polyamideLayerBackV->SetLineColor(TColor::GetColor("#fefe22"));
+    polyamideLayerBackV->SetTransparency(0);
+
+    TGeoCombiTrans *polyamideLayerFront_transf[1];
+
+    polyamideLayerFront_transf[0] = new TGeoCombiTrans();
+    polyamideLayerFront_transf[0]->SetDx(+layerFront_XShift);
+    polyamideLayerFront_transf[0]->SetDy(+layerFront_YShift);
+    polyamideLayerFront_transf[0]->SetDz(-ZGEMSize_Station66x41*0.5 + copperLayer_ZSize + glueLayer_ZSize + epoxideLayer_ZSize + honeycombLayer_ZSize + polyamideLayer_ZSize*0.5);
+
+    TGeoCombiTrans *polyamideLayerBack_transf[1];
+
+    polyamideLayerBack_transf[0] = new TGeoCombiTrans();
+    polyamideLayerBack_transf[0]->SetDx(+layerBack_XShift);
+    polyamideLayerBack_transf[0]->SetDy(+layerBack_YShift);
+    polyamideLayerBack_transf[0]->SetDz(+ZGEMSize_Station66x41*0.5 - copperLayer_ZSize - glueLayer_ZSize - epoxideLayer_ZSize - honeycombLayer_ZSize - polyamideLayer_ZSize*0.5 + layerBack_ZShift) ;
+
+    layers->AddNode(polyamideLayerFrontV, 0, polyamideLayerFront_transf[0]);
+    layers->AddNode(polyamideLayerBackV, 0, polyamideLayerBack_transf[0]);
+    //--------------------------------------------------------------------------
+
+    return layers;
+}
+
 TGeoVolume *CreateFrameForModule_Station66x41(TString frame_name, Double_t dx, Double_t dy, Double_t dz) {
 
     //frame shapes
@@ -545,6 +847,201 @@ TGeoVolume *CreateFrameForModule_Station66x41(TString frame_name, Double_t dx, D
     composite_frameV->AddNode(horizontal_frameV, 1, lower_horizontal_frame_position);
 
     return composite_frameV;
+}
+
+TGeoVolume *CreateBasicFrameForModule_Station66x41(TString frame_name) {
+
+    //frame volumes
+    TGeoVolume *frames = new TGeoVolumeAssembly(frame_name);
+    frames->SetMedium(pMedAir);
+
+    //back epoxide frame -------------------------------------------------------
+    Double_t backEpoxideFramePart_XSize = 75.1; //cm
+    Double_t backEpoxideFramePart_YSize = 48.5; //cm
+    Double_t backEpoxideFramePart_ZSize = 0.7; //cm
+
+    //layer shape
+    TGeoShape *backEpoxideFramePartS = new TGeoBBox(TString("backEpoxideFramePartS")+=TString("_") + frames->GetName(), backEpoxideFramePart_XSize*0.5, backEpoxideFramePart_YSize*0.5, backEpoxideFramePart_ZSize*0.5);
+    TGeoShape *backEpoxideActiveAreaS = new TGeoBBox(TString("backEpoxideActiveAreaS")+=TString("_") + frames->GetName(), XModuleSize_Station66x41*0.5, YModuleSize_Station66x41*0.5, ZModuleSize_Station66x41*0.5);
+
+    TGeoTranslation *backEpoxideFramePart_pos = new TGeoTranslation();
+        backEpoxideFramePart_pos->SetName("backEpoxideFramePart_pos");
+        backEpoxideFramePart_pos->SetDx(-2.75/*shift*/);
+        backEpoxideFramePart_pos->SetDy(+2.05/*shift*/);
+        backEpoxideFramePart_pos->SetDz(0.0);
+        backEpoxideFramePart_pos->RegisterYourself();
+
+    TGeoCompositeShape *backEpoxideFrameS = new TGeoCompositeShape();
+    backEpoxideFrameS->SetName(TString("backEpoxideFrameS")+=TString("_") + frames->GetName());
+    {
+        TString expression = "backEpoxideFramePartS"; expression += TString("_") + frames->GetName();
+            expression += ":backEpoxideFramePart_pos";
+            expression += "-backEpoxideActiveAreaS"; expression += TString("_") + frames->GetName();
+
+        backEpoxideFrameS->MakeNode(expression);
+        backEpoxideFrameS->ComputeBBox(); //need to compute a bounding box
+    }
+
+    TGeoVolume *backEpoxideFrameV = new TGeoVolume(TString("backEpoxideFrameV")+=TString("_") + frames->GetName(), backEpoxideFrameS);
+
+    //volume medium
+    TGeoMedium *backEpoxideFrameV_medium = pMedEpoxideCompound;
+    if(backEpoxideFrameV_medium) {
+        backEpoxideFrameV->SetMedium(backEpoxideFrameV_medium);
+    }
+    else Fatal("Main", "Invalid medium for backEpoxideFrameV!");
+
+    //volume visual property (transparency)
+    backEpoxideFrameV->SetLineColor(TColor::GetColor("#ccccff"));
+    backEpoxideFrameV->SetTransparency(0);
+
+    TGeoCombiTrans *backEpoxideFrame_transf[1];
+
+    backEpoxideFrame_transf[0] = new TGeoCombiTrans();
+    backEpoxideFrame_transf[0]->SetDx(0.0);
+    backEpoxideFrame_transf[0]->SetDy(0.0);
+    backEpoxideFrame_transf[0]->SetDz(+(ZModuleSize_Station66x41-backEpoxideFramePart_ZSize)*0.5 + backEpoxideFramePart_ZSize);
+
+    frames->AddNode(backEpoxideFrameV, 0, backEpoxideFrame_transf[0]);
+    //--------------------------------------------------------------------------
+
+    //middle epoxide frame -----------------------------------------------------
+    Double_t middleEpoxideFrameBigPart_XSize = 69.3; //cm
+    Double_t middleEpoxideFrameBigPart_YSize = 44.7; //cm
+    Double_t middleEpoxideFrameBigPart_ZSize = 0.9; //cm
+
+    Double_t middleEpoxideFrameSmallPart_XSize = 3.4; //cm
+    Double_t middleEpoxideFrameSmallPart_YSize = 16.8; //cm
+    Double_t middleEpoxideFrameSmallPart_ZSize = 0.9; //cm
+
+    Double_t middleEpoxideFrameHoleArea_XSize = 66.5; //cm
+    Double_t middleEpoxideFrameHoleArea_YSize = 41.9; //cm
+    Double_t middleEpoxideFrameHoleArea_ZSize = 0.9+0.1; //cm
+
+    //layer shape
+    TGeoShape *middleEpoxideFrameBigPartS = new TGeoBBox(TString("middleEpoxideFrameBigPartS")+=TString("_") + frames->GetName(), middleEpoxideFrameBigPart_XSize*0.5, middleEpoxideFrameBigPart_YSize*0.5, middleEpoxideFrameBigPart_ZSize*0.5);
+    TGeoShape *middleEpoxideFrameSmallPartS = new TGeoBBox(TString("middleEpoxideFrameSmallPartS")+=TString("_") + frames->GetName(), middleEpoxideFrameSmallPart_XSize*0.5, middleEpoxideFrameSmallPart_YSize*0.5, middleEpoxideFrameSmallPart_ZSize*0.5);
+    TGeoShape *middleEpoxideHoleAreaS = new TGeoBBox(TString("middleEpoxideHoleAreaS")+=TString("_") + frames->GetName(), middleEpoxideFrameHoleArea_XSize*0.5, middleEpoxideFrameHoleArea_YSize*0.5, middleEpoxideFrameHoleArea_ZSize*0.5);
+
+    TGeoTranslation *middleEpoxideFrameBigPart_pos = new TGeoTranslation();
+        middleEpoxideFrameBigPart_pos->SetName("middleEpoxideFrameBigPart_pos");
+        middleEpoxideFrameBigPart_pos->SetDx(0.0/*shift*/);
+        middleEpoxideFrameBigPart_pos->SetDy(+0.15/*shift*/);
+        middleEpoxideFrameBigPart_pos->SetDz(0.0);
+        middleEpoxideFrameBigPart_pos->RegisterYourself();
+
+    TGeoTranslation *middleEpoxideFrameSmallPart_pos = new TGeoTranslation();
+        middleEpoxideFrameSmallPart_pos->SetName("middleEpoxideFrameSmallPart_pos");
+        middleEpoxideFrameSmallPart_pos->SetDx(-(middleEpoxideFrameBigPart_XSize*0.5 + middleEpoxideFrameSmallPart_XSize*0.5));
+        middleEpoxideFrameSmallPart_pos->SetDy(middleEpoxideFrameBigPart_YSize*0.5 - middleEpoxideFrameSmallPart_YSize*0.5 + 0.15/*shift*/);
+        middleEpoxideFrameSmallPart_pos->SetDz(0.0);
+        middleEpoxideFrameSmallPart_pos->RegisterYourself();
+
+    TGeoCompositeShape *middleEpoxideFrameS = new TGeoCompositeShape();
+    middleEpoxideFrameS->SetName(TString("middleEpoxideFrameS")+=TString("_") + frames->GetName());
+    {
+        TString expression = "middleEpoxideFrameBigPartS"; expression += TString("_") + frames->GetName();
+            expression += ":middleEpoxideFrameBigPart_pos";
+            expression += "-middleEpoxideHoleAreaS"; expression += TString("_") + frames->GetName();
+            expression += "+middleEpoxideFrameSmallPartS"; expression += TString("_") + frames->GetName();
+            expression += ":middleEpoxideFrameSmallPart_pos";
+
+        middleEpoxideFrameS->MakeNode(expression);
+        middleEpoxideFrameS->ComputeBBox(); //need to compute a bounding box
+    }
+
+    TGeoVolume *middleEpoxideFrameV = new TGeoVolume(TString("middleEpoxideFrameV")+=TString("_") + frames->GetName(), middleEpoxideFrameS);
+
+    //volume medium
+    TGeoMedium *middleEpoxideFrameV_medium = pMedEpoxideCompound;
+    if(middleEpoxideFrameV_medium) {
+        middleEpoxideFrameV->SetMedium(middleEpoxideFrameV_medium);
+    }
+    else Fatal("Main", "Invalid medium for middleEpoxideFrameV!");
+
+    //volume visual property (transparency)
+    middleEpoxideFrameV->SetLineColor(TColor::GetColor("#ccccff"));
+    middleEpoxideFrameV->SetTransparency(0);
+
+    TGeoCombiTrans *middleEpoxideFrame_transf[1];
+
+    middleEpoxideFrame_transf[0] = new TGeoCombiTrans();
+    middleEpoxideFrame_transf[0]->SetDx(0.0);
+    middleEpoxideFrame_transf[0]->SetDy(0.0);
+    middleEpoxideFrame_transf[0]->SetDz(0.0);
+
+    frames->AddNode(middleEpoxideFrameV, 0, middleEpoxideFrame_transf[0]);
+    //--------------------------------------------------------------------------
+
+    //front epoxide frame -----------------------------------------------------
+    Double_t frontEpoxideFrameBigPart_XSize = 69.5; //cm
+    Double_t frontEpoxideFrameBigPart_YSize = 44.7; //cm
+    Double_t frontEpoxideFrameBigPart_ZSize = 0.7; //cm
+
+    Double_t frontEpoxideFrameSmallPart_XSize = 3.2; //cm
+    Double_t frontEpoxideFrameSmallPart_YSize = 16.8; //cm
+    Double_t frontEpoxideFrameSmallPart_ZSize = 0.7; //cm
+
+    Double_t frontEpoxideFrameHoleArea_XSize = 66.0; //cm
+    Double_t frontEpoxideFrameHoleArea_YSize = 41.1; //cm
+    Double_t frontEpoxideFrameHoleArea_ZSize = 0.9+0.1; //cm
+
+    //layer shape
+    TGeoShape *frontEpoxideFrameBigPartS = new TGeoBBox(TString("frontEpoxideFrameBigPartS")+=TString("_") + frames->GetName(), frontEpoxideFrameBigPart_XSize*0.5, frontEpoxideFrameBigPart_YSize*0.5, frontEpoxideFrameBigPart_ZSize*0.5);
+    TGeoShape *frontEpoxideFrameSmallPartS = new TGeoBBox(TString("frontEpoxideFrameSmallPartS")+=TString("_") + frames->GetName(), frontEpoxideFrameSmallPart_XSize*0.5, frontEpoxideFrameSmallPart_YSize*0.5, frontEpoxideFrameSmallPart_ZSize*0.5);
+    TGeoShape *frontEpoxideHoleAreaS = new TGeoBBox(TString("frontEpoxideHoleAreaS")+=TString("_") + frames->GetName(), frontEpoxideFrameHoleArea_XSize*0.5, frontEpoxideFrameHoleArea_YSize*0.5, frontEpoxideFrameHoleArea_ZSize*0.5);
+
+    TGeoTranslation *frontEpoxideFrameBigPart_pos = new TGeoTranslation();
+        frontEpoxideFrameBigPart_pos->SetName("frontEpoxideFrameBigPart_pos");
+        frontEpoxideFrameBigPart_pos->SetDx(0.0/*shift*/);
+        frontEpoxideFrameBigPart_pos->SetDy(+0.15/*shift*/);
+        frontEpoxideFrameBigPart_pos->SetDz(0.0);
+        frontEpoxideFrameBigPart_pos->RegisterYourself();
+
+    TGeoTranslation *frontEpoxideFrameSmallPart_pos = new TGeoTranslation();
+        frontEpoxideFrameSmallPart_pos->SetName("frontEpoxideFrameSmallPart_pos");
+        frontEpoxideFrameSmallPart_pos->SetDx(-(frontEpoxideFrameBigPart_XSize*0.5 + frontEpoxideFrameSmallPart_XSize*0.5));
+        frontEpoxideFrameSmallPart_pos->SetDy(frontEpoxideFrameBigPart_YSize*0.5 - frontEpoxideFrameSmallPart_YSize*0.5 + 0.15/*shift*/);
+        frontEpoxideFrameSmallPart_pos->SetDz(0.0);
+        frontEpoxideFrameSmallPart_pos->RegisterYourself();
+
+    TGeoCompositeShape *frontEpoxideFrameS = new TGeoCompositeShape();
+    frontEpoxideFrameS->SetName(TString("frontEpoxideFrameS")+=TString("_") + frames->GetName());
+    {
+        TString expression = "frontEpoxideFrameBigPartS"; expression += TString("_") + frames->GetName();
+            expression += ":frontEpoxideFrameBigPart_pos";
+            expression += "-frontEpoxideHoleAreaS"; expression += TString("_") + frames->GetName();
+            expression += "+frontEpoxideFrameSmallPartS"; expression += TString("_") + frames->GetName();
+            expression += ":frontEpoxideFrameSmallPart_pos";
+
+        frontEpoxideFrameS->MakeNode(expression);
+        frontEpoxideFrameS->ComputeBBox(); //need to compute a bounding box
+    }
+
+    TGeoVolume *frontEpoxideFrameV = new TGeoVolume(TString("frontEpoxideFrameV")+=TString("_") + frames->GetName(), frontEpoxideFrameS);
+
+    //volume medium
+    TGeoMedium *frontEpoxideFrameV_medium = pMedEpoxideCompound;
+    if(frontEpoxideFrameV_medium) {
+        frontEpoxideFrameV->SetMedium(frontEpoxideFrameV_medium);
+    }
+    else Fatal("Main", "Invalid medium for frontEpoxideFrameV!");
+
+    //volume visual property (transparency)
+    frontEpoxideFrameV->SetLineColor(TColor::GetColor("#ccccff"));
+    frontEpoxideFrameV->SetTransparency(0);
+
+    TGeoCombiTrans *frontEpoxideFrame_transf[1];
+
+    frontEpoxideFrame_transf[0] = new TGeoCombiTrans();
+    frontEpoxideFrame_transf[0]->SetDx(0.0);
+    frontEpoxideFrame_transf[0]->SetDy(0.0);
+    frontEpoxideFrame_transf[0]->SetDz(-(ZModuleSize_Station66x41-frontEpoxideFrameBigPart_ZSize)*0.5 - frontEpoxideFrameBigPart_ZSize);
+
+    frames->AddNode(frontEpoxideFrameV, 0, frontEpoxideFrame_transf[0]);
+    //--------------------------------------------------------------------------
+
+    return frames;
 }
 
 TGeoVolume *CreateModule_Station163x45(TString module_name, Double_t xsize, Double_t ysize, Double_t zsize, Double_t hole_radius) {

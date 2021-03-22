@@ -23,9 +23,9 @@ using namespace std;
 class UniDbDetectorParameter
 {
  private:
-	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+	/* GENERATED PRIVATE MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 	/// connection to the database
-        UniConnection* connectionUniDb;
+	UniConnection* connectionUniDb;
 
 	/// value id
 	int i_value_id;
@@ -46,71 +46,71 @@ class UniDbDetectorParameter
 	/// parameter value
 	unsigned char* blob_parameter_value;
 	/// size of parameter value
-    Long_t sz_parameter_value;
+	Long_t sz_parameter_value;
 
 	//Constructor
-        UniDbDetectorParameter(UniConnection* connUniDb, int value_id, TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, int value_key, unsigned char* parameter_value, Long_t size_parameter_value);
-	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
+	UniDbDetectorParameter(UniConnection* connUniDb, int value_id, TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, int value_key, unsigned char* parameter_value, Long_t size_parameter_value);
+	/* END OF PRIVATE GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
  public:
-	/* GENERATED PUBLIC MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
-    virtual ~UniDbDetectorParameter(); // Destructor
+	/* GENERATED PUBLIC MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
+	virtual ~UniDbDetectorParameter(); // Destructor
 
 	// static class functions
-    /// add new detector parameter to the database
-    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, int value_key, unsigned char* parameter_value, Long_t size_parameter_value);
-    /// get detector parameter from the database
-    static UniDbDetectorParameter* GetDetectorParameter(int value_id);
-    /// check detector parameter exists in the database
-    static bool CheckDetectorParameterExists(int value_id);
-    /// delete detector parameter from the database
-    static int DeleteDetectorParameter(int value_id);
-    /// print all detector parameter
+	/// add new detector parameter to the database
+	static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, int value_key, unsigned char* parameter_value, Long_t size_parameter_value);
+	/// get detector parameter from the database
+	static UniDbDetectorParameter* GetDetectorParameter(int value_id);
+	/// check detector parameter exists in the database
+	static bool CheckDetectorParameterExists(int value_id);
+	/// delete detector parameter from the database
+	static int DeleteDetectorParameter(int value_id);
+	/// print all detector parameters
 	static int PrintAll();
 
 	// Getters
-    /// get value id of the current detector parameter
+	/// get value id of the current detector parameter
 	int GetValueId() {return i_value_id;}
-    /// get detector name of the current detector parameter
+	/// get detector name of the current detector parameter
 	TString GetDetectorName() {return str_detector_name;}
-    /// get parameter id of the current detector parameter
+	/// get parameter id of the current detector parameter
 	int GetParameterId() {return i_parameter_id;}
-    /// get start period of the current detector parameter
+	/// get start period of the current detector parameter
 	int GetStartPeriod() {return i_start_period;}
-    /// get start run of the current detector parameter
+	/// get start run of the current detector parameter
 	int GetStartRun() {return i_start_run;}
-    /// get end period of the current detector parameter
+	/// get end period of the current detector parameter
 	int GetEndPeriod() {return i_end_period;}
-    /// get end run of the current detector parameter
+	/// get end run of the current detector parameter
 	int GetEndRun() {return i_end_run;}
-    /// get value key of the current detector parameter
+	/// get value key of the current detector parameter
 	int GetValueKey() {return i_value_key;}
-    /// get parameter value of the current detector parameter
+	/// get parameter value of the current detector parameter
 	unsigned char* GetParameterValue() {unsigned char* tmp_parameter_value = new unsigned char[sz_parameter_value]; memcpy(tmp_parameter_value, blob_parameter_value, sz_parameter_value); return tmp_parameter_value;}
-    /// get size of parameter value of the current detector parameter
+	/// get size of parameter value of the current detector parameter
 	Long_t GetParameterValueSize() {return sz_parameter_value;}
 
 	// Setters
-    /// set detector name of the current detector parameter
+	/// set detector name of the current detector parameter
 	int SetDetectorName(TString detector_name);
-    /// set parameter id of the current detector parameter
+	/// set parameter id of the current detector parameter
 	int SetParameterId(int parameter_id);
-    /// set start period of the current detector parameter
+	/// set start period of the current detector parameter
 	int SetStartPeriod(int start_period);
-    /// set start run of the current detector parameter
+	/// set start run of the current detector parameter
 	int SetStartRun(int start_run);
-    /// set end period of the current detector parameter
+	/// set end period of the current detector parameter
 	int SetEndPeriod(int end_period);
-    /// set end run of the current detector parameter
+	/// set end run of the current detector parameter
 	int SetEndRun(int end_run);
-    /// set value key of the current detector parameter
+	/// set value key of the current detector parameter
 	int SetValueKey(int value_key);
-    /// set parameter value of the current detector parameter
+	/// set parameter value of the current detector parameter
 	int SetParameterValue(unsigned char* parameter_value, Long_t size_parameter_value);
 
-    /// print information about current detector parameter
+	/// print information about current detector parameter
 	void Print();
-	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
+	/* END OF PUBLIC GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
     /// write detector parameter value presented by an array (integer value key is optional, default, 0)
     static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,

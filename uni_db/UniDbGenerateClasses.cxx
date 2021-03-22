@@ -165,7 +165,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
         else if (curDBMS == PgSQL)
         {
             sql = TString::Format("SELECT DISTINCT a.attnum as ordinal_position, a.attname as column_name, format_type(a.atttypid, a.atttypmod) as data_type, "
-                                  "a.attnotnull as is_nullable, def.adsrc as is_default, coalesce(i.indisprimary, false) as is_primary, coalesce(i.indisunique, false) as is_unique, atttypmod as type_parameter "
+                                  "a.attnotnull as is_nullable, pg_get_expr(def.adbin, def.adrelid) as is_default, coalesce(i.indisprimary, false) as is_primary, coalesce(i.indisunique, false) as is_unique, atttypmod as type_parameter "
                                   "FROM pg_attribute a JOIN pg_class pgc ON pgc.oid = a.attrelid "
                                   "LEFT JOIN pg_index i ON (pgc.oid = i.indrelid AND a.attnum = ANY(i.indkey)) "
                                   "LEFT JOIN pg_description com on (pgc.oid = com.objoid AND a.attnum = com.objsubid) "
@@ -211,6 +211,15 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
             TSQLColumnInfo* pColumnInfo = pTableInfo->FindColumn(strColumnName);
             switch (pColumnInfo->GetSQLType())
             {
+                case TSQLServer::kSQL_CHAR:
+                {
+                    sColumnInfo->strVariableType = "TString";
+                    sColumnInfo->strStatementType = "String";
+                    sColumnInfo->strPrintfType = "s";
+                    sColumnInfo->strVariableName = "chr_"+strColumnNameWO;
+
+                    break;
+                }
                 case TSQLServer::kSQL_VARCHAR:
                 {
                     sColumnInfo->strVariableType = "TString";
@@ -232,10 +241,20 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
                     }
                     else
                     {
-                        sColumnInfo->strVariableType = "int";
-                        sColumnInfo->strStatementType = "Int";
-                        sColumnInfo->strPrintfType = "d";
-                        sColumnInfo->strVariableName = "i_"+strColumnNameWO;
+                        if (strDataType.BeginsWith("bool"))
+                        {
+                            sColumnInfo->strVariableType = "bool";
+                            sColumnInfo->strStatementType = "Int";
+                            sColumnInfo->strPrintfType = "d";
+                            sColumnInfo->strVariableName = "b_"+strColumnNameWO;
+                        }
+                        else
+                        {
+                            sColumnInfo->strVariableType = "int";
+                            sColumnInfo->strStatementType = "Int";
+                            sColumnInfo->strPrintfType = "d";
+                            sColumnInfo->strVariableName = "i_"+strColumnNameWO;
+                        }
                     }
 
                     break;
@@ -261,7 +280,7 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
                 case TSQLServer::kSQL_BINARY:
                 {
                     sColumnInfo->strVariableType = "unsigned char";
-                    sColumnInfo->strStatementType = "LargeObject";
+                    sColumnInfo->strStatementType = "Binary";   //LargeObject (old OID version)
                     sColumnInfo->strPrintfType = "p";
                     sColumnInfo->strVariableName = "blob_"+strColumnNameWO;
                     sColumnInfo->isBinary = true;
@@ -315,8 +334,18 @@ int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TSt
                         }
                         else
                         {
-                            cout<<"ERROR: no corresponding column type: "<<row->GetField(2)<<". SQLType: "<<pColumnInfo->GetSQLType()<<endl;
-                            return -4;
+                            if (strDataType.BeginsWith("character"))
+                            {
+                                sColumnInfo->strVariableType = "TString";
+                                sColumnInfo->strStatementType = "String";
+                                sColumnInfo->strPrintfType = "s";
+                                sColumnInfo->strVariableName = "chr_"+strColumnNameWO;
+                            }
+                            else
+                            {
+                                cout<<"ERROR: no corresponding column type: "<<row->GetField(2)<<". SQLType: "<<pColumnInfo->GetSQLType()<<endl;
+                                return -4;
+                            }
                         }
                     }
                 }

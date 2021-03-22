@@ -44,13 +44,13 @@ UniDbDetectorParameter::~UniDbDetectorParameter()
 // -----   Creating new detector parameter in the database  ---------------------------
 UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, int value_key, unsigned char* parameter_value, Long_t size_parameter_value)
 {
-    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-        "insert into detector_parameter(detector_name, parameter_id, start_period, start_run, end_period, end_run, value_key, parameter_value) "
+		"insert into detector_parameter(detector_name, parameter_id, start_period, start_run, end_period, end_run, value_key, parameter_value) "
 		"values ($1, $2, $3, $4, $5, $6, $7, $8)");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
@@ -61,13 +61,13 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 	stmt->SetInt(3, start_run);
 	stmt->SetInt(4, end_period);
 	stmt->SetInt(5, end_run);
-    stmt->SetInt(6, value_key);
-    stmt->SetBinary(7, parameter_value, size_parameter_value, 0x40000000);
+	stmt->SetInt(6, value_key);
+	stmt->SetBinary(7, parameter_value, size_parameter_value, 0x4000000);
 
-    // inserting new detector parameter to the Database
+	// inserting new detector parameter to the Database
 	if (!stmt->Process())
 	{
-        cout<<"ERROR: inserting new detector parameter to the Database has been failed"<<endl;
+		cout<<"ERROR: inserting new detector parameter to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -77,7 +77,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 
 	// getting last inserted ID
 	int value_id;
-    TSQLStatement* stmt_last = uni_db->Statement("SELECT currval(pg_get_serial_sequence('detector_parameter','value_id'))");
+	TSQLStatement* stmt_last = uni_db->Statement("SELECT currval(pg_get_serial_sequence('detector_parameter','value_id'))");
 
 	// process getting last id
 	if (stmt_last->Process())
@@ -126,27 +126,27 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 	tmp_parameter_value = new unsigned char[tmp_sz_parameter_value];
 	memcpy(tmp_parameter_value, parameter_value, tmp_sz_parameter_value);
 
-    return new UniDbDetectorParameter(connUniDb, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_period, tmp_start_run, tmp_end_period, tmp_end_run, tmp_value_key, tmp_parameter_value, tmp_sz_parameter_value);
+	return new UniDbDetectorParameter(connUniDb, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_period, tmp_start_run, tmp_end_period, tmp_end_run, tmp_value_key, tmp_parameter_value, tmp_sz_parameter_value);
 }
 
 // -----  Get detector parameter from the database  ---------------------------
 UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(int value_id)
 {
-    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select value_id, detector_name, parameter_id, start_period, start_run, end_period, end_run, value_key, parameter_value "
-        "from detector_parameter "
+		"from detector_parameter "
 		"where value_id = %d", value_id);
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-    // get detector parameter from the database
+	// get detector parameter from the database
 	if (!stmt->Process())
 	{
-        cout<<"ERROR: getting detector parameter from the database has been failed"<<endl;
+		cout<<"ERROR: getting detector parameter from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -159,7 +159,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(int value_i
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-        cout<<"ERROR: detector parameter was not found in the database"<<endl;
+		cout<<"ERROR: detector parameter was not found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -185,31 +185,31 @@ UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(int value_i
 	unsigned char* tmp_parameter_value;
 	tmp_parameter_value = NULL;
 	Long_t tmp_sz_parameter_value = 0;
-    stmt->GetBinary(8, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
+	stmt->GetBinary(8, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
 
 	delete stmt;
 
-    return new UniDbDetectorParameter(connUniDb, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_period, tmp_start_run, tmp_end_period, tmp_end_run, tmp_value_key, tmp_parameter_value, tmp_sz_parameter_value);
+	return new UniDbDetectorParameter(connUniDb, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_period, tmp_start_run, tmp_end_period, tmp_end_run, tmp_value_key, tmp_parameter_value, tmp_sz_parameter_value);
 }
 
 // -----  Check detector parameter exists in the database  ---------------------------
 bool UniDbDetectorParameter::CheckDetectorParameterExists(int value_id)
 {
-    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
-        "from detector_parameter "
+		"from detector_parameter "
 		"where value_id = %d", value_id);
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-    // get detector parameter from the database
+	// get detector parameter from the database
 	if (!stmt->Process())
 	{
-        cout<<"ERROR: getting detector parameter from the database has been failed"<<endl;
+		cout<<"ERROR: getting detector parameter from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -236,23 +236,23 @@ bool UniDbDetectorParameter::CheckDetectorParameterExists(int value_id)
 // -----  Delete detector parameter from the database  ---------------------------
 int UniDbDetectorParameter::DeleteDetectorParameter(int value_id)
 {
-    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-        "delete from detector_parameter "
+		"delete from detector_parameter "
 		"where value_id = $1");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, value_id);
 
-    // delete detector parameter from the dataBase
+	// delete detector parameter from the dataBase
 	if (!stmt->Process())
 	{
-        cout<<"ERROR: deleting detector parameter from the dataBase has been failed"<<endl;
+		cout<<"ERROR: deleting detector parameter from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -267,20 +267,20 @@ int UniDbDetectorParameter::DeleteDetectorParameter(int value_id)
 // -----  Print all 'detector parameters'  ---------------------------------
 int UniDbDetectorParameter::PrintAll()
 {
-    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select value_id, detector_name, parameter_id, start_period, start_run, end_period, end_run, value_key, parameter_value "
-        "from detector_parameter");
+		"from detector_parameter");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-    // get all 'detector parameters' from the database
+	// get all 'detector parameters' from the database
 	if (!stmt->Process())
 	{
-        cout<<"ERROR: getting all 'detector parameters' from the dataBase has been failed"<<endl;
+		cout<<"ERROR: getting all 'detector parameters' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -291,7 +291,7 @@ int UniDbDetectorParameter::PrintAll()
 	stmt->StoreResult();
 
 	// print rows
-    cout<<"Table 'detector_parameter':"<<endl;
+	cout<<"Table 'detector_parameter':"<<endl;
 	while (stmt->NextResultRow())
 	{
 		cout<<"value_id: ";
@@ -313,7 +313,7 @@ int UniDbDetectorParameter::PrintAll()
 		cout<<", parameter_value: ";
 		unsigned char* tmp_parameter_value = NULL;
 		Long_t tmp_sz_parameter_value=0;
-                stmt->GetBinary(8, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
+		stmt->GetBinary(8, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
 		cout<<(void*)tmp_parameter_value<<", binary size: "<<tmp_sz_parameter_value;
 		cout<<"."<<endl;
 	}
@@ -330,14 +330,14 @@ int UniDbDetectorParameter::SetDetectorName(TString detector_name)
 {
 	if (!connectionUniDb)
 	{
-		cout<<"Connection object is null"<<endl;
+		cout<<"CRITICAL ERROR: Connection object is null"<<endl;
 		return -1;
 	}
 
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-        "update detector_parameter "
+		"update detector_parameter "
 		"set detector_name = $1 "
 		"where value_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -349,7 +349,7 @@ int UniDbDetectorParameter::SetDetectorName(TString detector_name)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-        cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -365,14 +365,14 @@ int UniDbDetectorParameter::SetParameterId(int parameter_id)
 {
 	if (!connectionUniDb)
 	{
-		cout<<"Connection object is null"<<endl;
+		cout<<"CRITICAL ERROR: Connection object is null"<<endl;
 		return -1;
 	}
 
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-        "update detector_parameter "
+		"update detector_parameter "
 		"set parameter_id = $1 "
 		"where value_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -384,7 +384,7 @@ int UniDbDetectorParameter::SetParameterId(int parameter_id)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-        cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -400,14 +400,14 @@ int UniDbDetectorParameter::SetStartPeriod(int start_period)
 {
 	if (!connectionUniDb)
 	{
-		cout<<"Connection object is null"<<endl;
+		cout<<"CRITICAL ERROR: Connection object is null"<<endl;
 		return -1;
 	}
 
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-        "update detector_parameter "
+		"update detector_parameter "
 		"set start_period = $1 "
 		"where value_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -419,7 +419,7 @@ int UniDbDetectorParameter::SetStartPeriod(int start_period)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-        cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -435,14 +435,14 @@ int UniDbDetectorParameter::SetStartRun(int start_run)
 {
 	if (!connectionUniDb)
 	{
-		cout<<"Connection object is null"<<endl;
+		cout<<"CRITICAL ERROR: Connection object is null"<<endl;
 		return -1;
 	}
 
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-        "update detector_parameter "
+		"update detector_parameter "
 		"set start_run = $1 "
 		"where value_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -454,7 +454,7 @@ int UniDbDetectorParameter::SetStartRun(int start_run)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-        cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -470,14 +470,14 @@ int UniDbDetectorParameter::SetEndPeriod(int end_period)
 {
 	if (!connectionUniDb)
 	{
-		cout<<"Connection object is null"<<endl;
+		cout<<"CRITICAL ERROR: Connection object is null"<<endl;
 		return -1;
 	}
 
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-        "update detector_parameter "
+		"update detector_parameter "
 		"set end_period = $1 "
 		"where value_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -489,7 +489,7 @@ int UniDbDetectorParameter::SetEndPeriod(int end_period)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-        cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -505,14 +505,14 @@ int UniDbDetectorParameter::SetEndRun(int end_run)
 {
 	if (!connectionUniDb)
 	{
-		cout<<"Connection object is null"<<endl;
+		cout<<"CRITICAL ERROR: Connection object is null"<<endl;
 		return -1;
 	}
 
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-        "update detector_parameter "
+		"update detector_parameter "
 		"set end_run = $1 "
 		"where value_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -524,7 +524,7 @@ int UniDbDetectorParameter::SetEndRun(int end_run)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-        cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -540,14 +540,14 @@ int UniDbDetectorParameter::SetValueKey(int value_key)
 {
 	if (!connectionUniDb)
 	{
-		cout<<"Connection object is null"<<endl;
+		cout<<"CRITICAL ERROR: Connection object is null"<<endl;
 		return -1;
 	}
 
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-        "update detector_parameter "
+		"update detector_parameter "
 		"set value_key = $1 "
 		"where value_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -559,7 +559,7 @@ int UniDbDetectorParameter::SetValueKey(int value_key)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-        cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -575,26 +575,26 @@ int UniDbDetectorParameter::SetParameterValue(unsigned char* parameter_value, Lo
 {
 	if (!connectionUniDb)
 	{
-		cout<<"Connection object is null"<<endl;
+		cout<<"CRITICAL ERROR: Connection object is null"<<endl;
 		return -1;
 	}
 
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-        "update detector_parameter "
+		"update detector_parameter "
 		"set parameter_value = $1 "
 		"where value_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-    stmt->SetBinary(0, parameter_value, size_parameter_value, 0x40000000);
+	stmt->SetBinary(0, parameter_value, size_parameter_value, 0x4000000);
 	stmt->SetInt(1, i_value_id);
 
-    // write new value to the database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-        cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
+		cout<<"ERROR: updating information about detector parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -613,7 +613,7 @@ int UniDbDetectorParameter::SetParameterValue(unsigned char* parameter_value, Lo
 // -----  Print current detector parameter  ---------------------------------------
 void UniDbDetectorParameter::Print()
 {
-    cout<<"Table 'detector_parameter'";
+	cout<<"Table 'detector_parameter'";
 	cout<<". value_id: "<<i_value_id<<". detector_name: "<<str_detector_name<<". parameter_id: "<<i_parameter_id<<". start_period: "<<i_start_period<<". start_run: "<<i_start_run<<". end_period: "<<i_end_period<<". end_run: "<<i_end_run<<". value_key: "<<i_value_key<<". parameter_value: "<<(void*)blob_parameter_value<<", binary size: "<<sz_parameter_value<<endl;
 
 	return;

@@ -18,9 +18,9 @@
 class UniDbSimulationFile
 {
  private:
-	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+	/* GENERATED PRIVATE MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 	/// connection to the database
-        UniConnection* connectionUniDb;
+	UniConnection* connectionUniDb;
 
 	/// file id
 	int i_file_id;
@@ -41,19 +41,19 @@ class UniDbSimulationFile
 	/// file desc
 	TString* str_file_desc;
 	/// file size
-	double* d_file_size;
+	int* i_file_size;
 
 	//Constructor
-        UniDbSimulationFile(UniConnection* connUniDb, int file_id, TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, double* file_size);
-	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
+	UniDbSimulationFile(UniConnection* connUniDb, int file_id, TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, int* file_size);
+	/* END OF PRIVATE GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
  public:
-	/* GENERATED PUBLIC MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+	/* GENERATED PUBLIC MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 	virtual ~UniDbSimulationFile(); // Destructor
 
 	// static class functions
 	/// add new simulation file to the database
-	static UniDbSimulationFile* CreateSimulationFile(TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, double* file_size);
+	static UniDbSimulationFile* CreateSimulationFile(TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, int* file_size);
 	/// get simulation file from the database
 	static UniDbSimulationFile* GetSimulationFile(int file_id);
 	/// get simulation file from the database
@@ -89,7 +89,7 @@ class UniDbSimulationFile
 	/// get file desc of the current simulation file
 	TString* GetFileDesc() {if (str_file_desc == NULL) return NULL; else return new TString(*str_file_desc);}
 	/// get file size of the current simulation file
-	double* GetFileSize() {if (d_file_size == NULL) return NULL; else return new double(*d_file_size);}
+	int* GetFileSize() {if (i_file_size == NULL) return NULL; else return new int(*i_file_size);}
 
 	// Setters
 	/// set file path of the current simulation file
@@ -109,11 +109,11 @@ class UniDbSimulationFile
 	/// set file desc of the current simulation file
 	int SetFileDesc(TString* file_desc);
 	/// set file size of the current simulation file
-	int SetFileSize(double* file_size);
+	int SetFileSize(int* file_size);
 
 	/// print information about current simulation file
 	void Print();
-	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
+	/* END OF PUBLIC GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
  ClassDef(UniDbSimulationFile,1);
 };

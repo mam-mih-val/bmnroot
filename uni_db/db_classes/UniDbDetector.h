@@ -18,9 +18,9 @@
 class UniDbDetector
 {
  private:
-	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+	/* GENERATED PRIVATE MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 	/// connection to the database
-        UniConnection* connectionUniDb;
+	UniConnection* connectionUniDb;
 
 	/// detector name
 	TString str_detector_name;
@@ -28,11 +28,11 @@ class UniDbDetector
 	TString* str_description;
 
 	//Constructor
-        UniDbDetector(UniConnection* connUniDb, TString detector_name, TString* description);
-	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
+	UniDbDetector(UniConnection* connUniDb, TString detector_name, TString* description);
+	/* END OF PRIVATE GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
  public:
-	/* GENERATED PUBLIC MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+	/* GENERATED PUBLIC MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 	virtual ~UniDbDetector(); // Destructor
 
 	// static class functions
@@ -61,7 +61,7 @@ class UniDbDetector
 
 	/// print information about current detector
 	void Print();
-	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
+	/* END OF PUBLIC GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
  ClassDef(UniDbDetector,1);
 };

@@ -19,9 +19,9 @@
 class UniDbRunGeometry
 {
  private:
-	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+	/* GENERATED PRIVATE MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 	/// connection to the database
-    UniConnection* connectionUniDb;
+	UniConnection* connectionUniDb;
 
 	/// geometry id
 	int i_geometry_id;
@@ -31,25 +31,22 @@ class UniDbRunGeometry
 	Long_t sz_root_geometry;
 
 	//Constructor
-    UniDbRunGeometry(UniConnection* connUniDb, int geometry_id, unsigned char* root_geometry, Long_t size_root_geometry);
-	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
+	UniDbRunGeometry(UniConnection* connUniDb, int geometry_id, unsigned char* root_geometry, Long_t size_root_geometry);
+	/* END OF PRIVATE GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
  public:
-	/* GENERATED PUBLIC MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
-    virtual ~UniDbRunGeometry(); // Destructor
+	/* GENERATED PUBLIC MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
+	virtual ~UniDbRunGeometry(); // Destructor
 
 	// static class functions
 	/// add new run geometry to the database
-    static UniDbRunGeometry* CreateRunGeometry(unsigned char* root_geometry, Long_t size_root_geometry);
-    static UniDbRunGeometry* CreateRunGeometry(int geometry_id, unsigned char* root_geometry, Long_t size_root_geometry);
+	static UniDbRunGeometry* CreateRunGeometry(unsigned char* root_geometry, Long_t size_root_geometry);
 	/// get run geometry from the database
-    static UniDbRunGeometry* GetRunGeometry(int geometry_id);
+	static UniDbRunGeometry* GetRunGeometry(int geometry_id);
 	/// check run geometry exists in the database
 	static bool CheckRunGeometryExists(int geometry_id);
 	/// delete run geometry from the database
 	static int DeleteRunGeometry(int geometry_id);
-    /// get all run geometries
-    static TObjArray* GetAll();
     /// print all run geometries
 	static int PrintAll();
 
@@ -67,7 +64,11 @@ class UniDbRunGeometry
 
 	/// print information about current run geometry
 	void Print();
-	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
+	/* END OF PUBLIC GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
+
+    static UniDbRunGeometry* CreateRunGeometry(int geometry_id, unsigned char* root_geometry, Long_t size_root_geometry);
+    /// get all run geometries
+    static TObjArray* GetAll();
 
  ClassDef(UniDbRunGeometry,1);
 };

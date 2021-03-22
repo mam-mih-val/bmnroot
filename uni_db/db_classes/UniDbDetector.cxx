@@ -33,7 +33,7 @@ UniDbDetector::~UniDbDetector()
 // -----   Creating new detector in the database  ---------------------------
 UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* description)
 {
-        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -74,7 +74,7 @@ UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* des
 // -----  Get detector from the database  ---------------------------
 UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 {
-        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -123,7 +123,7 @@ UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 // -----  Check detector exists in the database  ---------------------------
 bool UniDbDetector::CheckDetectorExists(TString detector_name)
 {
-        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -164,7 +164,7 @@ bool UniDbDetector::CheckDetectorExists(TString detector_name)
 // -----  Delete detector from the database  ---------------------------
 int UniDbDetector::DeleteDetector(TString detector_name)
 {
-        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -195,7 +195,7 @@ int UniDbDetector::DeleteDetector(TString detector_name)
 // -----  Print all 'detectors'  ---------------------------------
 int UniDbDetector::PrintAll()
 {
-        UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
@@ -243,7 +243,7 @@ int UniDbDetector::SetDetectorName(TString detector_name)
 {
 	if (!connectionUniDb)
 	{
-		cout<<"Connection object is null"<<endl;
+		cout<<"CRITICAL ERROR: Connection object is null"<<endl;
 		return -1;
 	}
 
@@ -278,7 +278,7 @@ int UniDbDetector::SetDescription(TString* description)
 {
 	if (!connectionUniDb)
 	{
-		cout<<"Connection object is null"<<endl;
+		cout<<"CRITICAL ERROR: Connection object is null"<<endl;
 		return -1;
 	}
 

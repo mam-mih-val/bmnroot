@@ -21,9 +21,9 @@
 class UniDbRun
 {
  private:
-	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+	/* GENERATED PRIVATE MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 	/// connection to the database
-        UniConnection* connectionUniDb;
+	UniConnection* connectionUniDb;
 
 	/// period number
 	int i_period_number;
@@ -46,21 +46,23 @@ class UniDbRun
 	/// field voltage
 	double* d_field_voltage;
 	/// file size
-	double* d_file_size;
+	int* i_file_size;
 	/// geometry id
 	int* i_geometry_id;
+	/// file md5
+	TString* chr_file_md5;
 
 	//Constructor
-        UniDbRun(UniConnection* connUniDb, int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, double* file_size, int* geometry_id);
-	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
+	UniDbRun(UniConnection* connUniDb, int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, int* file_size, int* geometry_id, TString* file_md5);
+	/* END OF PRIVATE GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
  public:
-	/* GENERATED PUBLIC MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+	/* GENERATED PUBLIC MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 	virtual ~UniDbRun(); // Destructor
 
 	// static class functions
 	/// add new run to the database
-	static UniDbRun* CreateRun(int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, double* file_size, int* geometry_id);
+	static UniDbRun* CreateRun(int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, int* file_size, int* geometry_id, TString* file_md5);
 	/// get run from the database
 	static UniDbRun* GetRun(int period_number, int run_number);
 	/// get run from the database
@@ -98,9 +100,11 @@ class UniDbRun
 	/// get field voltage of the current run
 	double* GetFieldVoltage() {if (d_field_voltage == NULL) return NULL; else return new double(*d_field_voltage);}
 	/// get file size of the current run
-	double* GetFileSize() {if (d_file_size == NULL) return NULL; else return new double(*d_file_size);}
+	int* GetFileSize() {if (i_file_size == NULL) return NULL; else return new int(*i_file_size);}
 	/// get geometry id of the current run
 	int* GetGeometryId() {if (i_geometry_id == NULL) return NULL; else return new int(*i_geometry_id);}
+	/// get file md5 of the current run
+	TString* GetFileMd5() {if (chr_file_md5 == NULL) return NULL; else return new TString(*chr_file_md5);}
 
 	// Setters
 	/// set period number of the current run
@@ -124,13 +128,15 @@ class UniDbRun
 	/// set field voltage of the current run
 	int SetFieldVoltage(double* field_voltage);
 	/// set file size of the current run
-	int SetFileSize(double* file_size);
+	int SetFileSize(int* file_size);
 	/// set geometry id of the current run
 	int SetGeometryId(int* geometry_id);
+	/// set file md5 of the current run
+	int SetFileMd5(TString* file_md5);
 
 	/// print information about current run
 	void Print();
-	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
+	/* END OF PUBLIC GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
 	/// get numbers of runs existing in the Database for a selected range
     /// \param[in] start_period start period number for selected run numbers' range

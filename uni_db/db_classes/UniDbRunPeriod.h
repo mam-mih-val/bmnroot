@@ -19,9 +19,9 @@
 class UniDbRunPeriod
 {
  private:
-	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+	/* GENERATED PRIVATE MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 	/// connection to the database
-        UniConnection* connectionUniDb;
+	UniConnection* connectionUniDb;
 
 	/// period number
 	int i_period_number;
@@ -31,11 +31,11 @@ class UniDbRunPeriod
 	TDatime* ts_end_datetime;
 
 	//Constructor
-        UniDbRunPeriod(UniConnection* connUniDb, int period_number, TDatime start_datetime, TDatime* end_datetime);
-	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
+	UniDbRunPeriod(UniConnection* connUniDb, int period_number, TDatime start_datetime, TDatime* end_datetime);
+	/* END OF PRIVATE GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
  public:
-	/* GENERATED PUBLIC MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+	/* GENERATED PUBLIC MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 	virtual ~UniDbRunPeriod(); // Destructor
 
 	// static class functions
@@ -68,7 +68,7 @@ class UniDbRunPeriod
 
 	/// print information about current run period
 	void Print();
-	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
+	/* END OF PUBLIC GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
     /// get numbers of runs existing in the Database for a selected period
     /// \param[in] start_period start period number for selected run numbers' range

@@ -157,7 +157,7 @@ void BmnTrackingQaOfflineDraw::PrepareHistos() {
                         }
 
                         h4[iBeam][iTarget][iTrigger][iHisto] = new TH2F(Form(" Beam %d Target %d Trigger %d Histo %d", iBeam, iTarget, iTrigger, iHisto),
-                                Form("Target: %s [%]", fTargets[iTarget].Data()), sizeX, 0., sizeX, sizeY, 0., sizeY);
+                                Form("Target: %s [%%]", fTargets[iTarget].Data()), sizeX, 0., sizeX, sizeY, 0., sizeY);
 
                         TAxis* xAxis = h4[iBeam][iTarget][iTrigger][iHisto]->GetXaxis();
                         TAxis* yAxis = h4[iBeam][iTarget][iTrigger][iHisto]->GetYaxis();

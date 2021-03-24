@@ -15,7 +15,7 @@ BmnECALRaw2Digit::BmnECALRaw2Digit(ULong_t runId) {
     const char * dir = getenv("VMCWORKDIR");
     
     if (runId < 1170) {
-        Error(__func__,"No ECAL in run %u\n", runId);
+        Error(__func__,"No ECAL in run %lu\n", runId);
         return;
     }
     
@@ -46,7 +46,7 @@ BmnECALRaw2Digit::BmnECALRaw2Digit(ULong_t runId) {
         LoadCalibration(cal.Data());
         LoadGeometry(geo.Data());
     } else {
-        Error(__func__,"Unable to determine ECAL position for runId %u\n",runId);
+        Error(__func__,"Unable to determine ECAL position for runId %lu\n",runId);
     }
 }
 

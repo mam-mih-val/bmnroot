@@ -246,9 +246,9 @@ private:
                             vEx[iStation][iModule][iLayer]->func);
                     colGEM.push_back(r);
                     printf("st %d mod %d l %d  func %08X  of MC %08X  Ex %08X  \n",
-                            iStation, iModule, iLayer, (void*) r,
-                            (void*) vMC[iStation][iModule][iLayer]->func,
-                            (void*) vEx[iStation][iModule][iLayer]->func);
+                            iStation, iModule, iLayer, (UInt_t)(size_t) r,
+                            (UInt_t)(size_t) vMC[iStation][iModule][iLayer]->func,
+                            (UInt_t)(size_t) vEx[iStation][iModule][iLayer]->func);
                 }
                 rowGEM.push_back(colGEM);
             }

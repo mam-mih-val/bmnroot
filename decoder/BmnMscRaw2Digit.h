@@ -23,8 +23,8 @@ struct MscMap {
     UInt_t serial;
     UShort_t slot;
 
-    UShort_t BT; ///< BeamTrigger
-    UShort_t BTnBusy; ///< BeamTrigger & not Busy
+    UShort_t BT; ///< BeamTrigger index
+    UShort_t BTnBusy; ///< (BeamTrigger & not Busy) index
     UShort_t L0;
     UShort_t TriggerProtection;
 };

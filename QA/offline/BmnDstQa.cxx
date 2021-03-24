@@ -73,11 +73,11 @@ void BmnDstQa::HitsDistributions() {
     // Common distributions of X, Y and Z-coordinates ...
     for (Int_t iDet = 0; iDet < nDets; iDet++) {
         fHistoManager->Create1 <TH1F> (Form("%sDST_1d, %s, Distribution of X", prefix.Data(), detNames[iDet].Data()),
-                Form("Distribution of X", detNames[iDet].Data()), 100, 0., 0.);
+                Form("%s, Distribution of X", detNames[iDet].Data()), 100, 0., 0.);
         fHistoManager->Create1 <TH1F> (Form("%sDST_1d, %s, Distribution of Y", prefix.Data(), detNames[iDet].Data()),
-                Form("Distribution of Y", detNames[iDet].Data()), 100, 0., 0.);
+                Form("%s, Distribution of Y", detNames[iDet].Data()), 100, 0., 0.);
         fHistoManager->Create1 <TH1F> (Form("%sDST_1d, %s, Distribution of Z", prefix.Data(), detNames[iDet].Data()),
-                Form("Distribution of Z", detNames[iDet].Data()), 100, 0., 0.);
+                Form("%s, Distribution of Z", detNames[iDet].Data()), 100, 0., 0.);
     }
 
     // Common distributions of X and Y-errors ...  

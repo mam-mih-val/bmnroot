@@ -720,7 +720,7 @@ void BmnTof2Raw2DigitNew::BookSlewing()
 
     TString dir = getenv("VMCWORKDIR");
     TString path = dir + "/parameters/tof2_slewing/";
-    char filnr[128];
+    char filnr[512];
     sprintf(filnr, "%s%s", path.Data(), filname_base);
     strcat(filnr, ".slewing.root");
     fSlewing = new TFile(filnr,"RECREATE");
@@ -971,7 +971,7 @@ void BmnTof2Raw2DigitNew::ReBook(int i)
 void BmnTof2Raw2DigitNew::WritePreparationHists()
 {
     TFile *f = NULL;
-    char filn[128];
+    char filn[512];
 
 //    TH1F *hW = new TH1F("Wlimits","Width limits",4,0,4);
 //    hW->Fill(0.f,(double)Wcut);
@@ -1002,7 +1002,7 @@ void BmnTof2Raw2DigitNew::WritePreparationHists()
 void BmnTof2Raw2DigitNew::WritePreparationHists0()
 {
     TFile *f = NULL;
-    char filn[128];
+    char filn[512];
 
 //    TH1F *hW = new TH1F("Wlimits","Width limits",4,0,4);
 //    hW->Fill(0.f,(double)Wcut);
@@ -1081,7 +1081,7 @@ void BmnTof2Raw2DigitNew::writeSlewingLimits()
   float ymin, ymax; // xmin, xmax;
   TString dir = getenv("VMCWORKDIR");
   TString path = dir + "/parameters/tof2_slewing/";
-  char filn[128];
+  char filn[512];
   sprintf(filn, "%s%s_slewing_limits.txt", path.Data(), filname_base);
   fout = fopen(filn,"w");
 
@@ -1125,7 +1125,7 @@ void BmnTof2Raw2DigitNew::readSlewingLimits()
 {
   TString dir = getenv("VMCWORKDIR");
   TString path = dir + "/parameters/tof2_slewing/";
-  char filn[128], name[128], nname[128];
+  char filn[512], name[256], nname[256];
   int i, im, y;
   float ymin, ymax, xmin, xmax;
   int j, lmi, lma, wc, wm, wt0mi, wt0ma;
@@ -1305,7 +1305,7 @@ void BmnTof2Raw2DigitNew::readSlewing(Bool_t update)
   TString dir = getenv("VMCWORKDIR");
   TString path = dir + "/parameters/tof2_slewing/";
   
-  char filnr[128], name[128];
+  char filnr[512], name[256];
   sprintf(filnr, "%s%s", path.Data(), filname_base);
   strcat(filnr, ".slewing.root");
   if (update) fSlewing = new TFile(filnr,"UPDATE");
@@ -2613,7 +2613,7 @@ void BmnTof2Raw2DigitNew::Equalization()
   FILE *fdeb = 0;
   TString dir = getenv("VMCWORKDIR");
   TString path = dir + "/parameters/tof2_slewing/";
-  char filn[128];
+  char filn[512];
   sprintf(filn, "%s%s", path.Data(), filname_base);
   strcat(filn, ".equalization.log");
   fout = fopen(filn,"w");
@@ -2808,7 +2808,7 @@ void BmnTof2Raw2DigitNew::Equalization0()
   FILE *fdeb = 0;
   TString dir = getenv("VMCWORKDIR");
   TString path = dir + "/parameters/tof2_slewing/";
-  char filn[128];
+  char filn[512];
   sprintf(filn, "%s%s", path.Data(), filname_base);
   strcat(filn, ".equalization0.log");
   fout = fopen(filn,"w");
@@ -3250,7 +3250,7 @@ void BmnTof2Raw2DigitNew::drawprep()
   float ymin, ymax, xmin, xmax;
   TString dir = getenv("VMCWORKDIR");
   TString path = dir + "/parameters/tof2_slewing/";
-  char filn[128];
+  char filn[512];
   sprintf(filn, "%s%s_slewing_limits.txt", path.Data(), filname_base);
 //  fout = fopen(filn,"w");
 

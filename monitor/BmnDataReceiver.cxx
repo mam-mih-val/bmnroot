@@ -347,7 +347,7 @@ Int_t BmnDataReceiver::RecvData() {
             else
                 return -1;
         } else {
-            printf("ID size =  %d\n Id:%x\n", conID_size, conID);
+            printf("ID size =  %d\n Id:%s\n", conID_size, conID);
         }
         zmq_msg_t msg;
         zmq_msg_init(&msg);

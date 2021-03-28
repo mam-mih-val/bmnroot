@@ -1151,6 +1151,7 @@ int UniDbDetectorParameter::ReadFile(const char* detector_name, const char* para
     if (cur_file == NULL)
     {
         cout<<"ERROR: creating file: "<<file_path<<" has been failed!"<<endl;
+        delete pValue;
         delete pDetectorParameter;
         return -2;
     }
@@ -1159,6 +1160,7 @@ int UniDbDetectorParameter::ReadFile(const char* detector_name, const char* para
     if (buffer == NULL)
     {
         cout<<"ERROR: getting binary parameter array"<<endl;
+        delete pValue;
         delete pDetectorParameter;
         fclose(cur_file);
         return -3;
@@ -1171,10 +1173,13 @@ int UniDbDetectorParameter::ReadFile(const char* detector_name, const char* para
     {
         cout<<"ERROR: writing file: "<<file_path<<", put "<<bytes_write<<" bytes of "<<parameter_size<<endl;
         fclose(cur_file);
+        delete pValue;
         return -4;
     }
 
     fclose(cur_file);
+    delete buffer;
+    delete pValue;
 
     return 0;
 }

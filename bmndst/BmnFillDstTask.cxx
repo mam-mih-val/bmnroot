@@ -238,13 +238,16 @@ InitStatus BmnFillDstTask::Init() {
             TTimeStamp tsStartTime(start_date.GetYear(), start_date.GetMonth(), start_date.GetDay(),
                                    start_date.GetHour(), start_date.GetMinute(), start_date.GetSecond());
             fRunHead->SetStartTime(tsStartTime);
-            if (pCurrentRun->GetEndDatetime() != NULL) {
+            TDatime* end_date  = pCurrentRun->GetEndDatetime();
+            if (end_date  != NULL) {
+                
                 //TTimeStamp tsEndTime((time_t) pCurrentRun->GetEndDatetime()->Convert(), 0);
-                TDatime* end_date = pCurrentRun->GetEndDatetime();
+                
                 TTimeStamp tsEndTime(end_date->GetYear(), end_date->GetMonth(), end_date->GetDay(),
                                      end_date->GetHour(), end_date->GetMinute(), end_date->GetSecond());
                 fRunHead->SetFinishTime(tsEndTime);
             }
+            delete end_date;
             TString beam = pCurrentRun->GetBeamParticle();
             beam.ToLower();
             map<TString, stParticleInfo>::iterator it = mapParticleInfo.find(beam);
@@ -253,8 +256,11 @@ InitStatus BmnFillDstTask::Init() {
                 fRunHead->SetBeamZ(it->second.Z);
             }
             double* energy = pCurrentRun->GetEnergy();
-            if (energy != NULL)
+            if (energy != NULL){
                 fRunHead->SetBeamEnergy(*energy);
+                delete energy;
+            }
+                
             TString* target = pCurrentRun->GetTargetParticle();
             if (target != NULL) {
                 target->ToLower();
@@ -263,11 +269,15 @@ InitStatus BmnFillDstTask::Init() {
                     fRunHead->SetTargetA(it->second.A);
                     fRunHead->SetTargetZ(it->second.Z);
                 }
+                delete target;
             }
             Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
-            if (field_voltage != NULL)
+            if (field_voltage != NULL){
                 fRunHead->SetMagneticField(*field_voltage);
+                delete field_voltage;
+            }
         }  // if (pCurrentRun != 0)
+        delete pCurrentRun;
     }      // FIll Run Header from the Database
 
     return kSUCCESS;

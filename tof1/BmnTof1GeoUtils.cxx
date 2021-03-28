@@ -123,7 +123,7 @@ assert(gGeoManager);
 					
 			stripData.InitCenterPerp();
    			
-// stripData.Dump("\n strip:");		
+// stripData.Dump("\n strip:");
 			bool IsUniqueUID = mStrips.insert(make_pair(volumeUID, stripData)).second;
 			assert(IsUniqueUID);	   			   	
 			
@@ -133,6 +133,8 @@ assert(gGeoManager);
 
     	LOG(info) << "[BmnTof1HitProducer::ParseTGeoManager] detectors = " << nDetectors << ", strips= " << nStrips << ". ";
         delete it1;
+		delete [] X0Y0Z0;
+		delete [] local;
         return nDetectors;
 }
 //------------------------------------------------------------------------------------------------------------------------

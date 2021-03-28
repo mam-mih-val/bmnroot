@@ -151,6 +151,8 @@ void BmnTofGeoUtils::ParseTGeoManager(bool useMCinput, TH2D* h1, bool forced)
 
     	LOG(INFO) << "[BmnTofHitProducer::ParseTGeoManager] detectors= "<<nDetectors<<" strips= "<<nStrips<<". ";
 		delete it1;
+		delete [] X0Y0Z0;
+		delete [] local;
 }
 //------------------------------------------------------------------------------------------------------------------------	
 void BmnTofGeoUtils::ParseStripsGeometry(const char *geomFile)

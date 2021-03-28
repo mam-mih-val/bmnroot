@@ -66,6 +66,11 @@ BmnInnTrackerAlign::BmnInnTrackerAlign(Int_t period, Int_t run, TString fileName
         for (Int_t iParam = 0; iParam < nParams; iParam++)
             fLorCorrs[iEle][iParam] = (coeffLorCorrs) ? ((LorentzShiftValue*)shifts[iEle])->ls[iParam] : 0.;
     }
+    
+    for(auto shift:shifts)
+        delete shift;
+    delete coeffLorCorrs;
+    
 }
 
 void BmnInnTrackerAlign::Print() {
@@ -95,6 +100,25 @@ void BmnInnTrackerAlign::Print() {
 }
 
 BmnInnTrackerAlign::~BmnInnTrackerAlign() {
+    
+    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++){
+        for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++) {
+            delete[] fCorrsGem[iStat][iMod];
+        }
+        delete[] fCorrsGem[iStat];
+        delete[] fLorCorrs[iStat];
+    }
+    delete[] fCorrsGem;
+    delete[] fLorCorrs;
+
+    for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++){
+        for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++) {
+            delete[] fCorrsSil[iStat][iMod];
+        }
+        delete[] fCorrsSil[iStat];
+    }
+    delete[] fCorrsSil;
+
     delete fDetectorGEM;
     delete fDetectorSI;
 }
@@ -129,8 +153,10 @@ Double_t*** BmnInnTrackerAlign::GetGemCorrs(TFile* file) {
             corr[iStat][iMod][0] = align->GetCorrections().X();
             corr[iStat][iMod][1] = align->GetCorrections().Y();
             corr[iStat][iMod][2] = align->GetCorrections().Z();
+            align->Delete();
         }
     }
+    t->Delete();
     return corr;
 }
 
@@ -164,8 +190,10 @@ Double_t*** BmnInnTrackerAlign::GetSiliconCorrs(TFile* file) {
             corr[iStat][iMod][0] = align->GetCorrections().X();
             corr[iStat][iMod][1] = align->GetCorrections().Y();
             corr[iStat][iMod][2] = align->GetCorrections().Z();
+            align->Delete();
         }
     }
+    t->Delete();
     return corr;
 }
 

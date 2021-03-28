@@ -517,6 +517,10 @@ void BmnFieldMap::ReadRootFile(const char* fileName) {
             } // z-Loop
         } // y-Loop
     } // x-Loop
+    t->Delete();
+    tree->Delete();
+    delete type;
+    delete read_Field;
     delete file;
 }
 

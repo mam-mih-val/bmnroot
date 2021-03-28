@@ -1256,15 +1256,14 @@ int UniDbRun::GetRootGeometry(int period_number, int run_number, unsigned char*&
         return -1;
     }
 
-    if (pCurRun->GetGeometryId() == NULL)
+	int *geometry_ID = pCurRun->GetGeometryId();
+    if (geometry_ID == NULL)
     {
         cout<<"ERROR: no geometry exists for run "<<period_number<<":"<<run_number<<" (period:number)"<<endl;
         return -2;
     }
 
-    int geometry_id = pCurRun->GetGeometryId()[0];
-    delete pCurRun;
-
+    int geometry_id = geometry_ID[0];
     UniDbRunGeometry* pGeometry = UniDbRunGeometry::GetRunGeometry(geometry_id);
     if (pGeometry == NULL)
     {
@@ -1275,7 +1274,8 @@ int UniDbRun::GetRootGeometry(int period_number, int run_number, unsigned char*&
     size_root_geometry = pGeometry->GetRootGeometrySize();
     root_geometry = new unsigned char[size_root_geometry];
     memcpy(root_geometry, pGeometry->GetRootGeometry(), size_root_geometry);
-
+	delete geometry_ID;
+	delete pCurRun;
     delete pGeometry;
 
     return 0;

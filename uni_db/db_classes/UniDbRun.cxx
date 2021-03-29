@@ -1098,6 +1098,7 @@ void UniDbRun::Print()
 }
 /* END OF GENERATED CLASS PART (SHOULD NOT BE CHANGED MANUALLY) */
 
+
 // get numbers of runs existing in the Database for a selected range
 int UniDbRun::GetRunNumbers(int start_period, int start_run, int end_period, int end_run, UniqueRunNumber*& run_numbers)
 {

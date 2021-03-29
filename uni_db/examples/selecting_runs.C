@@ -11,7 +11,6 @@ void selecting_runs()
     TObjArray* pRunArray = UniDbRun::Search(arrayConditions);
 
     // clean memory for conditions after search
-    arrayConditions.SetOwner(kTRUE);
     arrayConditions.Delete();
 
     // print run numbers and file path with raw data

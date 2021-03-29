@@ -42,7 +42,7 @@ create table run_
 -- field_current int null check (field_current >= 0),
  field_voltage float null,
  file_size float null check (file_size > 0),
- file_md5 char(16) null,
+ file_md5 char(32) null,
  geometry_id int null references run_geometry(geometry_id) on update cascade,
  primary key (period_number, run_number)
 );
@@ -59,7 +59,8 @@ create table simulation_file
  centrality varchar(10) not null,
  event_count int null check (event_count >= 0),
  file_desc varchar(30) null,
- file_size float null check (file_size > 0)
+ file_size float null check (file_size > 0),
+ file_md5 char(32) null
 );
 
 -- DETECTORS AND OTHER COMPONENTS

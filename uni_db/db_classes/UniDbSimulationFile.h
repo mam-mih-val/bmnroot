@@ -14,6 +14,7 @@
 #include "TDatime.h"
 
 #include "UniConnection.h"
+#include "UniDbSearchCondition.h"
 
 class UniDbSimulationFile
 {
@@ -42,9 +43,11 @@ class UniDbSimulationFile
 	TString* str_file_desc;
 	/// file size
 	int* i_file_size;
+	/// file md5
+	TString* chr_file_md5;
 
 	//Constructor
-	UniDbSimulationFile(UniConnection* connUniDb, int file_id, TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, int* file_size);
+	UniDbSimulationFile(UniConnection* connUniDb, int file_id, TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, int* file_size, TString* file_md5);
 	/* END OF PRIVATE GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
  public:
@@ -53,7 +56,7 @@ class UniDbSimulationFile
 
 	// static class functions
 	/// add new simulation file to the database
-	static UniDbSimulationFile* CreateSimulationFile(TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, int* file_size);
+	static UniDbSimulationFile* CreateSimulationFile(TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, int* file_size, TString* file_md5);
 	/// get simulation file from the database
 	static UniDbSimulationFile* GetSimulationFile(int file_id);
 	/// get simulation file from the database
@@ -90,6 +93,8 @@ class UniDbSimulationFile
 	TString* GetFileDesc() {if (str_file_desc == NULL) return NULL; else return new TString(*str_file_desc);}
 	/// get file size of the current simulation file
 	int* GetFileSize() {if (i_file_size == NULL) return NULL; else return new int(*i_file_size);}
+	/// get file md5 of the current simulation file
+	TString* GetFileMd5() {if (chr_file_md5 == NULL) return NULL; else return new TString(*chr_file_md5);}
 
 	// Setters
 	/// set file path of the current simulation file
@@ -110,10 +115,20 @@ class UniDbSimulationFile
 	int SetFileDesc(TString* file_desc);
 	/// set file size of the current simulation file
 	int SetFileSize(int* file_size);
+	/// set file md5 of the current simulation file
+	int SetFileMd5(TString* file_md5);
 
 	/// print information about current simulation file
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
+
+    /// get array of all UniDbSimulationFile-s from the database
+    static TObjArray* GetSimulationFiles();
+
+    /// get simulation files corresponding to the specified single condition and set owner for search_condition to kTRUE
+    static TObjArray* Search(UniDbSearchCondition& search_condition);
+    /// get simulation files corresponding to the specified (vector) conditions and set owner for search_condition to kTRUE
+    static TObjArray* Search(TObjArray& search_conditions);
 
  ClassDef(UniDbSimulationFile,1);
 };

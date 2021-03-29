@@ -211,7 +211,8 @@ void BmnInnerTrackingRun7::Exec(Option_t* opt) {
         BmnHit innerHit = *hit;
         innerHit.SetIndex(iHit);
         innerHit.SetDetId(kSILICON);
-        innerHit.SetDxyz(0.5, 0.5, 0.5);
+        //innerHit.SetDxyz(0.5, 0.5, 0.5);
+        innerHit.SetDxyz(hit->GetDx(), hit->GetDy(), hit->GetDz());
         new ((*fHitsArray)[fHitsArray->GetEntriesFast()]) BmnHit(innerHit);
     }
     for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
@@ -229,7 +230,8 @@ void BmnInnerTrackingRun7::Exec(Option_t* opt) {
         innerHit.SetStation(iSt);  //shift for correct station numbering
         innerHit.SetIndex(iHit);
         innerHit.SetDetId(kGEM);
-        innerHit.SetDxyz(0.5, 0.5, 0.5);
+        //innerHit.SetDxyz(0.5, 0.5, 0.5);
+        innerHit.SetDxyz(hit->GetDx(), hit->GetDy(), hit->GetDz());
         new ((*fHitsArray)[fHitsArray->GetEntriesFast()]) BmnHit(innerHit);
     }
 
@@ -322,7 +324,7 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_4of4_OnLastGEMStations() {
             for (iY = 0; iY < nyRanges; ++iY)
                 if (y8 > yRangeMin[iY] && y8 < yRangeMax[iY]) break;
             Double_t rmsX = 2.0 * xRMS[8][iX];
-            Double_t rmsY = 2.0 * yRMS[8][iY];
+            Double_t rmsY = 3.0 * yRMS[8][iY];//2.0 * yRMS[8][iY];
 
             if (Abs(dxEx - dxTh) > rmsX || Abs(dyEx - dyTh) > rmsY) continue;
             for (BmnHit* hit6 : sortedHits[6]) {
@@ -340,7 +342,7 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_4of4_OnLastGEMStations() {
                 for (iY = 0; iY < nyRanges; ++iY)
                     if (y7 > yRangeMin[iY] && y7 < yRangeMax[iY]) break;
                 Double_t rmsX = 2.0 * xRMS[7][iX];
-                Double_t rmsY = 2.0 * yRMS[7][iY];
+                Double_t rmsY = 3.0 * yRMS[7][iY];//2.0 * yRMS[7][iY];
 
                 if (Abs(dxEx - dxTh) > rmsX || Abs(dyEx - dyTh) > rmsY) continue;
                 for (BmnHit* hit5 : sortedHits[5]) {
@@ -358,7 +360,7 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_4of4_OnLastGEMStations() {
                     for (iY = 0; iY < nyRanges; ++iY)
                         if (y6 > yRangeMin[iY] && y6 < yRangeMax[iY]) break;
                     Double_t rmsX = 2.0 * xRMS[6][iX];
-                    Double_t rmsY = 2.0 * yRMS[6][iY];
+                    Double_t rmsY = 3.0 * yRMS[6][iY];//2.0 * yRMS[6][iY];
 
                     if (Abs(dxEx - dxTh) > rmsX || Abs(dyEx - dyTh) > rmsY) continue;
                     BmnTrack cand;
@@ -456,7 +458,7 @@ BmnStatus BmnInnerTrackingRun7::FindCandidateByThreeStations(Short_t st0,
             for (iY = 0; iY < nyRanges; ++iY)
                 if (y2 > yRangeMin[iY] && y2 < yRangeMax[iY]) break;
             Double_t rmsX = 2.0 * xRMS[st2][iX];
-            Double_t rmsY = 2.0 * yRMS[st2][iY];
+            Double_t rmsY = 3.0 * yRMS[st2][iY];//2.0 * yRMS[st2][iY];
 
             if (Abs(dxEx - dxTh) > rmsX || Abs(dyEx - dyTh) > rmsY) continue;
             for (BmnHit* hit0 : sortedHits[st0]) {
@@ -472,7 +474,7 @@ BmnStatus BmnInnerTrackingRun7::FindCandidateByThreeStations(Short_t st0,
                 for (iY = 0; iY < nyRanges; ++iY)
                     if (y1 > yRangeMin[iY] && y1 < yRangeMax[iY]) break;
                 Double_t rmsX = 2.0 * xRMS[st1][iX];
-                Double_t rmsY = 2.0 * yRMS[st1][iY];
+                Double_t rmsY = 3.0 * yRMS[st1][iY];//2.0 * yRMS[st1][iY];
 
                 if (Abs(dxEx - dxTh) > rmsX || Abs(dyEx - dyTh) > rmsY) continue;
                 BmnTrack cand;
@@ -902,7 +904,7 @@ BmnStatus BmnInnerTrackingRun7::SortTracks(vector<BmnTrack>& inTracks, vector<Bm
     const Int_t n = fNStations - fNHitsCut + 1;  //6 for geometry 2018 (4, 5, 6, 7, 8, 9)
     multimap<Float_t, Int_t> sortedMap[n];       // array of map<Chi2,trIdx>. Each element of array corresponds fixed number of hits on track (4, 5, 6)
     for (Int_t iTr = 0; iTr < inTracks.size(); ++iTr) {
-        if (inTracks.at(iTr).GetNHits() < fNHitsCut) continue;
+        if (inTracks.at(iTr).GetNHits() < fNHitsCut || inTracks.at(iTr).GetNHits() > fNStations) continue;
         if (inTracks.at(iTr).GetChi2() / inTracks.at(iTr).GetNDF() > fChiSquareCut) continue;
         sortedMap[inTracks.at(iTr).GetNHits() - fNHitsCut].insert(pair<Float_t, Int_t>(inTracks.at(iTr).GetChi2() / inTracks.at(iTr).GetNDF(), iTr));
     }

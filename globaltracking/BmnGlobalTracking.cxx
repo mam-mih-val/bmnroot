@@ -562,7 +562,7 @@ BmnStatus BmnGlobalTracking::MatchingUpstream(BmnGlobalTrack *glTr) {
     //In BM@N we use silicon and GEM hits as a whole
     if (!fUpstreamTracks) return kBMNERROR;
     //
-    Double_t sigma = 1.0;
+    Double_t sigma = 2.0;
     Double_t xCut = 3 * sigma;
     Double_t yCut = 3 * sigma;
 
@@ -731,7 +731,7 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack *tr) {
     //================Refitting to the end of the global track===========================
     if (tr->GetSilTrackIndex() != -1) {
         BmnTrack *silTrack = (BmnTrack *)fSiliconTracks->At(tr->GetSilTrackIndex());
-        for (Int_t hitIdx = silTrack->GetNHits() - 1; hitIdx >= 0; hitIdx--) {
+        for (Int_t hitIdx = 0; hitIdx < silTrack->GetNHits(); hitIdx++) {
             BmnSiliconHit *hit = (BmnSiliconHit *)fSilHits->At(silTrack->GetHitIndex(hitIdx));
             fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
             fKalman->Update(&parFirst, hit, chi);

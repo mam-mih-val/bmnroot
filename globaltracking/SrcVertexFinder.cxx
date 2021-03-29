@@ -197,6 +197,7 @@ void SrcVertexFinder::FindVertexByVirtualPlanes(vector<BmnTrack> &lTracks, vecto
                 continue;
             }
             track->SetLength(len);
+            track->SetB(len / track->GetB() / (TMath::C() * 1e-7)); //for arm tracks B contains beta. It is stupid, but simple way to store it...
             xHits.push_back(par0.GetX());
             yHits.push_back(par0.GetY());
         }
@@ -399,6 +400,7 @@ void SrcVertexFinder::CreateArmCandidates(vector<BmnTrack> &lTracks, vector<BmnT
             lTr.GetParamLast()->SetZ(tz);
             lTr.GetParamLast()->SetTx((tx - gx) / (tz - gz));
             lTr.GetParamLast()->SetTy((ty - gy) / (tz - gz));
+            lTr.SetB(tHit.GetTimeStamp()); //temporary
             lTracks.push_back(lTr);
         }
     }
@@ -424,6 +426,7 @@ void SrcVertexFinder::CreateArmCandidates(vector<BmnTrack> &lTracks, vector<BmnT
             rTr.GetParamLast()->SetZ(tz);
             rTr.GetParamLast()->SetTx((tx - gx) / (tz - gz));
             rTr.GetParamLast()->SetTy((ty - gy) / (tz - gz));
+            rTr.SetB(tHit.GetTimeStamp()); //temporary
             rTracks.push_back(rTr);
         }
     }

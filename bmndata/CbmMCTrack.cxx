@@ -158,6 +158,8 @@ Int_t CbmMCTrack::GetNPoints(DetectorId detId) const
   else if ( detId == kSILICON ) return 0;
   else if ( detId == kCSC ) return 0;
   else if ( detId == kSSD ) return 0;
+  else if ( detId == kSCWALL ) return 0;
+  else if ( detId == kHODO ) return 0;
   else {
     LOG(ERROR) << "GetNPoints: Unknown detector ID "
            << detId;
@@ -243,6 +245,10 @@ void CbmMCTrack::SetNPoints(Int_t iDet, Int_t nPoints) {
   else if ( iDet == kSSD) { }
 
   else if ( iDet == kFD) { }
+
+  else if ( iDet == kSCWALL) { }
+
+  else if ( iDet == kHODO) { }
 
   else LOG(ERROR) << "Unknown detector ID " << iDet;
 

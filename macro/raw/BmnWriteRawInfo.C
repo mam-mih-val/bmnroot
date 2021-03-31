@@ -168,7 +168,13 @@ void BmnWriteRawInfo(TString input_file, TString output_file = "", UInt_t period
             {
                 TDatime startDate(Int_t(startTime.GetDate(kFALSE)), Int_t(startTime.GetTime(kFALSE)));
                 TDatime endDate(Int_t(endTime.GetDate(kFALSE)), Int_t(endTime.GetTime(kFALSE)));
-                UniDbRun* pRun = UniDbRun::CreateRun(decoder->GetPeriodId(), decoder->GetRunId(), input_file, "", NULL, NULL, startDate, &endDate, &event_count, NULL, &file_size, NULL);
+                TString* strMD5 = NULL;
+                TMD5* pMD5 = TMD5::FileChecksum(input_file.Data());
+                if (pMD5) strMD5 = pMD5->AsString();
+                else cout<<"WARNING: a problem occured while file checksum calculation: "<<input_file<<endl;
+                UniDbRun* pRun = UniDbRun::CreateRun(decoder->GetPeriodId(), decoder->GetRunId(), input_file, "", NULL, NULL, startDate, &endDate, &event_count, NULL, &file_size, NULL, strMD5);
+                if (pMD5) delete pMD5;
+                if (strMD5) delete strMD5;
 
                 bool isErrors = false;
                 if (pRun == NULL)

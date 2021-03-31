@@ -194,9 +194,12 @@ InitStatus BmnGlobalTracking::Init() {
     if (!fDchTracks)
         cout << "BmnGlobalTracking::Init(): branch BmnDchTrack not found!" << endl;
 
-    //Artificial hits
-    fDchHits = new TClonesArray("BmnHit", 100);  //out
-    ioman->Register("BmnDchHit", "DCH", fDchHits, kTRUE);
+    if (fIsExp) {                                    //In case of exp data we create artificial hits
+        fDchHits = new TClonesArray("BmnHit", 100);  //out
+        ioman->Register("BmnDchHit", "DCH", fDchHits, kTRUE);
+    } else {  //In case of MC data we get hits from indput tree
+        fDchHits = (TClonesArray *)ioman->GetObject("BmnDchHit");
+    }
     fUpsHits = new TClonesArray("BmnHit", 100);  //out
     ioman->Register("BmnUpstreamHit", "UPSTREAM", fUpsHits, kTRUE);
 
@@ -223,8 +226,10 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
     fEventNo++;
 
     if (!fInnerTracks) return;
-    fDchHits->Delete();
-    fUpsHits->Delete();
+    if (fIsExp) {
+        fDchHits->Delete();
+        fUpsHits->Delete();
+    }
 
     //Alignment. FIXME: move to DB
     if (fDchTracks) {
@@ -245,14 +250,15 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
                     parDch->SetX(parDch->GetX() + dchXCorr);
                     parDch->SetY(parDch->GetY() + dchYCorr);
                 }
+
+                BmnHit dchHit;
+                Int_t st = (zDCH < 550) ? 0 : (zDCH > 650) ? 1 : 7;
+                dchHit.SetStation(st);
+                dchHit.SetXYZ(parDch->GetX(), parDch->GetY(), zDCH);
+                dchHit.SetDxyz(0.02, 0.02, 0.0);
+                dchHit.SetIndex(trIdx);  //index of dch track instead of index of hit. In order to have fast link hit->track
+                new ((*fDchHits)[fDchHits->GetEntriesFast()]) BmnHit(dchHit);
             }
-            BmnHit dchHit;
-            Int_t st = (zDCH < 550) ? 0 : (zDCH > 650) ? 1 : 7;
-            dchHit.SetStation(st);
-            dchHit.SetXYZ(parDch->GetX(), parDch->GetY(), zDCH);
-            dchHit.SetDxyz(0.02, 0.02, 0.0);
-            dchHit.SetIndex(trIdx);  //index of dch track instead of index of hit. In order to have fast link hit->track
-            new ((*fDchHits)[fDchHits->GetEntriesFast()]) BmnHit(dchHit);
         }
     }
     if (fCscHits) {
@@ -283,7 +289,7 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
         }
     }
 
-    if (fUpstreamTracks) //in SRC setup only
+    if (fUpstreamTracks)  //in SRC setup only
         for (Int_t trIdx = 0; trIdx < fUpstreamTracks->GetEntriesFast(); ++trIdx) {
             BmnTrack *upTr = (BmnTrack *)fUpstreamTracks->At(trIdx);
             FairTrackParam *parUp = upTr->GetParamLast();

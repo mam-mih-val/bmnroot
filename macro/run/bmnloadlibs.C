@@ -31,6 +31,8 @@ void bmnloadlibs()
   gSystem->Load("libCSC");
   gSystem->Load("libArmTrig");
   gSystem->Load("libBC");
+  gSystem->Load("libScWall");
+  gSystem->Load("libHodo");
 
   gSystem->Load("libTOF1");
   gSystem->Load("libDch");

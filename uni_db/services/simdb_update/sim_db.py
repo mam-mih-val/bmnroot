@@ -7,6 +7,7 @@ import psycopg2
 import re
 import subprocess
 import logging
+import hashlib
 
 simulation_directory = "/eos/nica/bmn/sim/gen"
 VMCWORKDIR = "$HOME/bmnroot"
@@ -169,7 +170,7 @@ def recurse_path(dir_path, generator_type_dir, conn, existing_files, exist_valid
                 logging.debug('centrality: {0}'.format(centrality))
                 token_num += 1
 
-            # get event count via BmnRoot executable file    
+            # get event count via BmnRoot executable file
             popen = subprocess.Popen(". {0}/build/config.sh > /dev/null; show_event_count {1} \"{2}\"".format(VMCWORKDIR, generator_type_file, filepath), stdout=subprocess.PIPE, shell=True)
             popen.wait()
             event_count = popen.stdout.read()
@@ -184,14 +185,19 @@ def recurse_path(dir_path, generator_type_dir, conn, existing_files, exist_valid
                     logging.error("Event count is zero or less: {0}".format(filepath))
                     event_count = None
                     continue 
-                else: logging.debug('event count: {0}'.format(event_count))            
+                else: logging.debug('event count: {0}'.format(event_count))
+            
+            # get file MD5 checksum
+            a_file = open(filepath, "rb")
+            file_content = a_file.read()
+            file_md5 = hashlib.md5(file_content).hexdigest()
 
-            logging.info("\nINSERT INTO simulation_file(file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_size) \
-            \nVALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7})".format(filepath, generator_type_file, beam, target, energy, centrality, event_count, file_size))
+            logging.info("\nINSERT INTO simulation_file(file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_size, file_md5) \
+            \nVALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8})".format(filepath, generator_type_file, beam, target, energy, centrality, event_count, file_size, file_md5))
             # insert new file into the Database
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO simulation_file(file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_size) \
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (filepath, generator_type_file, beam, target, energy, centrality, event_count, file_size))
+            cursor.execute("INSERT INTO simulation_file(file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_size, file_md5) \
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", (filepath, generator_type_file, beam, target, energy, centrality, event_count, file_size, file_md5))
             conn.commit()
             cursor.close()
         

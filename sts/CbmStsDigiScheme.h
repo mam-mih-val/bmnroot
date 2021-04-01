@@ -91,8 +91,8 @@ class CbmStsDigiScheme : public TObject
   std::map<TString, Int_t>          fDetIdByName;
   std::map<TString, CbmStsSensor*> fSensorByName;
 
-  CbmStsDigiScheme(const CbmStsDigiScheme&);
-  CbmStsDigiScheme operator=(const CbmStsDigiScheme&);
+  CbmStsDigiScheme(const CbmStsDigiScheme&) = delete;
+  CbmStsDigiScheme operator=(const CbmStsDigiScheme&) = delete;
 
 
   /** Old init method (up to v11b) **/

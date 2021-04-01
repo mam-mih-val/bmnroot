@@ -54,8 +54,8 @@ class CbmPsdHitProducer : public FairTask
   /** Output array of CbmPsdDigits **/
   TClonesArray* fDigiArray; 
 
-  CbmPsdHitProducer(const CbmPsdHitProducer&);
-  CbmPsdHitProducer operator=(const CbmPsdHitProducer&);
+  CbmPsdHitProducer(const CbmPsdHitProducer&) = delete;
+  CbmPsdHitProducer operator=(const CbmPsdHitProducer&) = delete;
 
   void Reset();
   Float_t       fXi[104];  //X coordinate of center of module
@@ -64,7 +64,6 @@ class CbmPsdHitProducer : public FairTask
  
 
   ClassDef(CbmPsdHitProducer,2);
-
 };
 
 #endif

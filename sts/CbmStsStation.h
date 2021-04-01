@@ -103,13 +103,10 @@ class CbmStsStation : public TNamed
  
  private:
 
-  CbmStsStation(const CbmStsStation&);
-  CbmStsStation operator=(const CbmStsStation&);
+  CbmStsStation(const CbmStsStation&) = delete;
+  CbmStsStation operator=(const CbmStsStation&) = delete;
 
   ClassDef(CbmStsStation,1);
-
 };
-
-
 
 #endif

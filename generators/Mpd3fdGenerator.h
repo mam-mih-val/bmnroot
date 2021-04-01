@@ -57,11 +57,10 @@ private:
     Int_t fEventNumber; //!
 
 
-    Mpd3fdGenerator(const Mpd3fdGenerator&);
-    Mpd3fdGenerator& operator=(const Mpd3fdGenerator&);
+    Mpd3fdGenerator(const Mpd3fdGenerator&) = delete;
+    Mpd3fdGenerator& operator=(const Mpd3fdGenerator&) = delete;
 
     ClassDef(Mpd3fdGenerator, 1);
-
 };
 
 #endif	/* MPD3FDGENERATOR_H */

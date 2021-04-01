@@ -110,8 +110,8 @@ private:
     BmnHistManager* fHM; // Histogram manager
     Bool_t fPrimes;
 
-    BmnSimulationReport(const BmnSimulationReport&);
-    BmnSimulationReport& operator=(const BmnSimulationReport&);
+    BmnSimulationReport(const BmnSimulationReport&) = delete;
+    BmnSimulationReport& operator=(const BmnSimulationReport&) = delete;
 
     ClassDef(BmnSimulationReport, 1)
 };

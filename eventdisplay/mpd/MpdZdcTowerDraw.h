@@ -76,8 +76,8 @@ class MpdZdcTowerDraw : public FairTask
     
     Double_t fZdcMinEnergyThreshold;// min energy threshold
     
-    MpdZdcTowerDraw(const MpdZdcTowerDraw&);
-    MpdZdcTowerDraw& operator=(const MpdZdcTowerDraw&);
+    MpdZdcTowerDraw(const MpdZdcTowerDraw&) = delete;
+    MpdZdcTowerDraw& operator=(const MpdZdcTowerDraw&) = delete;
 
     ClassDef(MpdZdcTowerDraw,1);
 };

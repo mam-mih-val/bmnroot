@@ -114,12 +114,11 @@ class CbmStsFindHits : public FairTask
   //Bool_t ChargeCorrelation(CbmStsCluster *clusterF, CbmStsCluster *clusterB);
   Double_t ChargeCorrelation(CbmStsCluster *clusterF, CbmStsCluster *clusterB);
 
-  CbmStsFindHits(const CbmStsFindHits&);
-  CbmStsFindHits operator=(const CbmStsFindHits&);
+  CbmStsFindHits(const CbmStsFindHits&) = delete;
+  CbmStsFindHits operator=(const CbmStsFindHits&) = delete;
 
 
   ClassDef(CbmStsFindHits,1);
-
 };
 
 #endif

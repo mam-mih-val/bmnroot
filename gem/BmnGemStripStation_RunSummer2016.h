@@ -53,8 +53,8 @@ public:
     virtual ~BmnGemStripStation_RunSummer2016();
 
 private:
-    BmnGemStripStation_RunSummer2016(const BmnGemStripStation&);
-    BmnGemStripStation_RunSummer2016& operator=(const BmnGemStripStation&);
+    BmnGemStripStation_RunSummer2016(const BmnGemStripStation&) = delete;
+    BmnGemStripStation_RunSummer2016& operator=(const BmnGemStripStation&) = delete;
 
     void BuildModules_One10x10Plane();
     void BuildModules_One66x41Plane();

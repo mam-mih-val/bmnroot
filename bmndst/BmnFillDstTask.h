@@ -108,8 +108,8 @@ class BmnFillDstTask : public FairTask {
     /** map with particle names and corresponding weight-charge pairs **/
     map<TString, stParticleInfo> mapParticleInfo;
 
-    BmnFillDstTask(const BmnFillDstTask&);
-    BmnFillDstTask operator=(const BmnFillDstTask&);
+    BmnFillDstTask(const BmnFillDstTask&) = delete;
+    BmnFillDstTask operator=(const BmnFillDstTask&) = delete;
 
     ClassDef(BmnFillDstTask, 1);
 };

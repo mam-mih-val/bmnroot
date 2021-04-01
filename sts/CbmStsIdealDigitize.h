@@ -96,14 +96,11 @@ class CbmStsIdealDigitize : public FairTask
   /** Reset eventwise counters **/
   void Reset();
 
-  CbmStsIdealDigitize(const CbmStsIdealDigitize&);
-  CbmStsIdealDigitize operator=(const CbmStsIdealDigitize&);
+  CbmStsIdealDigitize(const CbmStsIdealDigitize&) = delete;
+  CbmStsIdealDigitize operator=(const CbmStsIdealDigitize&) = delete;
 
 
   ClassDef(CbmStsIdealDigitize,1);
-
 };
 
 #endif
-
-

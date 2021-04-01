@@ -98,8 +98,8 @@ private:
 
    void FitHistograms();
 
-   CbmLitTofQa(const CbmLitTofQa&);
-   CbmLitTofQa& operator=(const CbmLitTofQa&);
+   CbmLitTofQa(const CbmLitTofQa&) = delete;
+   CbmLitTofQa& operator=(const CbmLitTofQa&) = delete;
 
    Bool_t fIsFixedBounds; // if true than fixed bounds are used for histograms
 

@@ -128,8 +128,8 @@ private:
 
 //private:
 
-   BmnReport(const BmnReport&);
-   BmnReport& operator=(const BmnReport&);
+   BmnReport(const BmnReport&) = delete;
+   BmnReport& operator=(const BmnReport&) = delete;
 
    ClassDef(BmnReport, 1)
 };

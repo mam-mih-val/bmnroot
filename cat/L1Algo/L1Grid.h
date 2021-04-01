@@ -78,8 +78,8 @@ class L1Grid {
 
   THitI* fFirstHitInBin;
 
-  L1Grid(const L1Grid&);
-  L1Grid& operator=(const L1Grid&);
+  L1Grid(const L1Grid&) = delete;
+  L1Grid& operator=(const L1Grid&) = delete;
 };
 
 inline unsigned int L1Grid::GetBinBounded( const float &Y, const float &Z ) const

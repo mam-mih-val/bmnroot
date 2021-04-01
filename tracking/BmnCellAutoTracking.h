@@ -131,7 +131,7 @@ private:
 
     Bool_t isSRC;
     
-    Int_t kCellsCut;
+    size_t kCellsCut;
     
     ClassDef(BmnCellAutoTracking, 1);
 };

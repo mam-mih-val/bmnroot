@@ -189,11 +189,11 @@ class BmnSsdMC : public FairDetector
 
 
     /** Copy constructor: usage prevented **/
-    BmnSsdMC(const BmnSsdMC&);
+    BmnSsdMC(const BmnSsdMC&) = delete;
 
 
     /** Assignment operator: usage prevented **/
-    BmnSsdMC operator=(const BmnSsdMC&);
+    BmnSsdMC operator=(const BmnSsdMC&) = delete;
 
 
     ClassDef(BmnSsdMC,1);

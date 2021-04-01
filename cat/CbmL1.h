@@ -88,8 +88,8 @@ class CbmL1HitStore{
 class CbmL1 : public FairTask 
 {
   private:
-    CbmL1(const CbmL1&);
-    CbmL1 operator=(const CbmL1&);
+    CbmL1(const CbmL1&) = delete;
+    CbmL1 operator=(const CbmL1&) = delete;
   public:
 
    L1Algo *algo; // for access to L1 Algorithm from L1::Instance

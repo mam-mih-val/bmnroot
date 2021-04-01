@@ -44,7 +44,7 @@ private:
     Float_t * fModuleScale = 0;
     Float_t * fModuleThreshold = 0;
 
-    //ClassDef(BmnZdcAnalyzer,1);
+    ClassDef(BmnZdcAnalyzer,1);
 };
 
 #endif /* BMNZDCANALYZER_H */

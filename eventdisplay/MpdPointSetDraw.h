@@ -66,8 +66,8 @@ class MpdPointSetDraw : public FairTask
     Style_t fStyle;                     //!
 
   private:
-    MpdPointSetDraw(const MpdPointSetDraw&);
-    MpdPointSetDraw& operator=(const MpdPointSetDraw&);
+    MpdPointSetDraw(const MpdPointSetDraw&) = delete;
+    MpdPointSetDraw& operator=(const MpdPointSetDraw&) = delete;
 
     ClassDef(MpdPointSetDraw,1);
 };

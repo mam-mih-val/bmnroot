@@ -92,8 +92,8 @@ class CbmStsDigiPar : public FairParSet
 
   map<Int_t, Int_t> fStationMap;  //! Map from station ID to index
 
-  CbmStsDigiPar(const CbmStsDigiPar&);
-  CbmStsDigiPar operator=(const CbmStsDigiPar&);
+  CbmStsDigiPar(const CbmStsDigiPar&) = delete;
+  CbmStsDigiPar operator=(const CbmStsDigiPar&) = delete;
 
   ClassDef(CbmStsDigiPar,1);
 };

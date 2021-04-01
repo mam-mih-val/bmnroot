@@ -26,8 +26,8 @@ void* RunOnlineDisplay(void* ptr);
 
 class MpdEventManagerEditor : public TGedFrame
 {
-    MpdEventManagerEditor(const MpdEventManagerEditor&);              // Not implemented
-    MpdEventManagerEditor& operator=(const MpdEventManagerEditor&);   // Not implemented
+    MpdEventManagerEditor(const MpdEventManagerEditor&) = delete;
+    MpdEventManagerEditor& operator=(const MpdEventManagerEditor&) = delete;
 
   protected:
     TObject* fObject;

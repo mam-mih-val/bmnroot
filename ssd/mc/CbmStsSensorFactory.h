@@ -62,13 +62,13 @@ class CbmStsSensorFactory : public TNamed {
 		/** Copy constructor
 		 ** Not implemented to avoid being executed
 		 **/
-    CbmStsSensorFactory(const CbmStsSensorFactory&);
+    CbmStsSensorFactory(const CbmStsSensorFactory&) = delete;
 
 
     /** Assignment operator
 		 ** Not implemented to avoid being executed
 		 **/
-    CbmStsSensorFactory operator=(const CbmStsSensorFactory&);
+    CbmStsSensorFactory operator=(const CbmStsSensorFactory&) = delete;
 
 
     /** Pointer to singleton instance **/

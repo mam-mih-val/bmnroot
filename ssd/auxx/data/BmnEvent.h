@@ -186,8 +186,8 @@ class BmnEvent: public TObject {
 		/** Arrays of indices to data types **/
 		std::map<DataType, std::vector<UInt_t>> fIndexMap;
 
-        BmnEvent(const BmnEvent&);
-        BmnEvent& operator=(const BmnEvent&);
+        BmnEvent(const BmnEvent&) = delete;
+        BmnEvent& operator=(const BmnEvent&) = delete;
 
 
 		ClassDef(BmnEvent, 2);

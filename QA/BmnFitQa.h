@@ -155,8 +155,8 @@ private:
 
    CbmLitDetectorSetup fDet; // For detector setup determination
 
-   CbmLitFitQa(const CbmLitFitQa&);
-   CbmLitFitQa& operator=(const CbmLitFitQa&);
+   CbmLitFitQa(const CbmLitFitQa&) = delete;
+   CbmLitFitQa& operator=(const CbmLitFitQa&) = delete;
    
    ClassDef(CbmLitFitQa, 1)
 };

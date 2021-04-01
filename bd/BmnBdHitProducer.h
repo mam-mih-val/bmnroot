@@ -48,8 +48,8 @@ class BmnBdHitProducer : public FairTask
 
   std::map<Int_t,BmnBdHit> fHitMap;
 
-  BmnBdHitProducer(const BmnBdHitProducer&);
-  BmnBdHitProducer& operator=(const BmnBdHitProducer&);
+  BmnBdHitProducer(const BmnBdHitProducer&) = delete;
+  BmnBdHitProducer& operator=(const BmnBdHitProducer&) = delete;
 
   ClassDef(BmnBdHitProducer,0);
 

@@ -109,8 +109,8 @@ BmnNewFieldMap* fMagneticField;
   CbmKFMaterial *ReadPassive( FairGeoNode *node);
 
  private:
-  CbmKF(const CbmKF&);
-  void operator=(const CbmKF&);
+  CbmKF(const CbmKF&) = delete;
+  void operator=(const CbmKF&) = delete;
  public: 
   
   ClassDef( CbmKF, 1 );

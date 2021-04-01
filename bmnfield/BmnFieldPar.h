@@ -116,12 +116,10 @@ class BmnFieldPar : public FairParGenericSet
   Int_t fTypeOfParent;
 
 
-  BmnFieldPar(const BmnFieldPar&);
-  BmnFieldPar& operator=(const BmnFieldPar&);
+  BmnFieldPar(const BmnFieldPar&) = delete;
+  BmnFieldPar& operator=(const BmnFieldPar&) = delete;
 
   ClassDef(BmnFieldPar,1);
-
 };
-
 
 #endif

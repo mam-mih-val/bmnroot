@@ -117,8 +117,8 @@ public:
     //--------------------------------------------------------------------------
 
 private:
-    //BmnCSCLayer(const BmnCSCLayer&);
-    //BmnCSCLayer& operator=(const BmnCSCLayer&);
+    //BmnCSCLayer(const BmnCSCLayer&) = delete;
+    //BmnCSCLayer& operator=(const BmnCSCLayer&) = delete;
 
 private:
     Bool_t Verbosity;

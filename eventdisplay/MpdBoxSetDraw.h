@@ -93,8 +93,8 @@ class MpdBoxSetDraw : public FairTask
     Bool_t isRedraw;
 
   private:
-    MpdBoxSetDraw(const MpdBoxSetDraw&);
-    MpdBoxSetDraw& operator=(const MpdBoxSetDraw&);
+    MpdBoxSetDraw(const MpdBoxSetDraw&) = delete;
+    MpdBoxSetDraw& operator=(const MpdBoxSetDraw&) = delete;
     BinaryFunctor* fStartFunctor;
     BinaryFunctor* fStopFunctor;
 

@@ -120,11 +120,10 @@ class CbmStsClusterFinder : public FairTask
 //  void FindClusters(Int_t stationNr, Int_t sectorNr, Int_t iSide, set<Int_t>& digiSet);
   Int_t FindClusters(Int_t stationNr, Int_t sectorNr, Int_t iSide, set<Int_t>& digiSet);
 
-  CbmStsClusterFinder(const CbmStsClusterFinder&);
-  CbmStsClusterFinder operator=(const CbmStsClusterFinder&);
+  CbmStsClusterFinder(const CbmStsClusterFinder&) = delete;
+  CbmStsClusterFinder operator=(const CbmStsClusterFinder&) = delete;
 
   ClassDef(CbmStsClusterFinder,1);
-
 };
 
 #endif

@@ -88,8 +88,8 @@ public:
    virtual std::string ToString() const;
 
 private:
-   BmnCluster(const BmnCluster&);
-   BmnCluster& operator=(const BmnCluster&);
+   BmnCluster(const BmnCluster&) = delete;
+   BmnCluster& operator=(const BmnCluster&) = delete;
 
 	std::vector<Int_t> fDigis; ///< Array of digi indices
 	Int_t fAddress; ///< Unique detector ID

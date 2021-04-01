@@ -168,11 +168,11 @@ class CbmMCBuffer
 
 
   /**  Copy constructor. Defined private to prevent usage. **/
-  CbmMCBuffer(const CbmMCBuffer&);
+  CbmMCBuffer(const CbmMCBuffer&) = delete;
 
 
   /**  Assignment operator. Defined private to prevent usage. **/
-  CbmMCBuffer& operator=(const CbmMCBuffer&);
+  CbmMCBuffer& operator=(const CbmMCBuffer&) = delete;
 };
 
 #endif

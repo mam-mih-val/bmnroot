@@ -54,8 +54,8 @@ class CbmStsDigitizeQa : public FairTask
 	std::ofstream fOutFile;
 	std::vector < std::vector <std::vector <std::vector < std::vector <Int_t>>>>> fnOfDigisChip;
 
-	CbmStsDigitizeQa(const CbmStsDigitizeQa&);
-	CbmStsDigitizeQa& operator=(const CbmStsDigitizeQa&);
+    CbmStsDigitizeQa(const CbmStsDigitizeQa&) = delete;
+    CbmStsDigitizeQa& operator=(const CbmStsDigitizeQa&) = delete;
 
 	ClassDef(CbmStsDigitizeQa, 1);
 };

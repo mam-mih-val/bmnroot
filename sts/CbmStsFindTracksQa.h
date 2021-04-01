@@ -165,11 +165,10 @@ class CbmStsFindTracksQa : public FairTask
   /** Timer **/
   TStopwatch fTimer;
 
-  CbmStsFindTracksQa(const CbmStsFindTracksQa&);
-  CbmStsFindTracksQa operator=(const CbmStsFindTracksQa&);
+  CbmStsFindTracksQa(const CbmStsFindTracksQa&) = delete;
+  CbmStsFindTracksQa operator=(const CbmStsFindTracksQa&) = delete;
 
   ClassDef(CbmStsFindTracksQa,1);
-
 };
 
 

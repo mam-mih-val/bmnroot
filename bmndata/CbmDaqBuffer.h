@@ -131,14 +131,11 @@ class CbmDaqBuffer
 
 
     /**  Copy constructor. Defined private to prevent usage. **/
-    CbmDaqBuffer(const CbmDaqBuffer&);
+    CbmDaqBuffer(const CbmDaqBuffer&) = delete;
 
 
     /**  Assignment operator. Defined private to prevent usage. **/
-    CbmDaqBuffer& operator=(const CbmDaqBuffer&);
-
-
-
+    CbmDaqBuffer& operator=(const CbmDaqBuffer&) = delete;
 };
 
 #endif /* CBMDAQBUFFER_H */

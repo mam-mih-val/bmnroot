@@ -22,8 +22,8 @@ public:
   void putParams(FairParamList*);
   Bool_t getParams(FairParamList*);
 
-  CbmParTest(const CbmParTest&);
-  CbmParTest operator=(const CbmParTest&);
+  CbmParTest(const CbmParTest&) = delete;
+  CbmParTest operator=(const CbmParTest&) = delete;
 
   ClassDef(CbmParTest,1)
 };

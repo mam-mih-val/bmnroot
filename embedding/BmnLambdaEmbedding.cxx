@@ -1273,7 +1273,7 @@ void BmnLambdaEmbedding::SimulateLambdaPassing(Double_t P, TVector2 pos, TVector
     TString gPathFull = gPathConfig + "/macro/embedding/" + macroName;
 
     TString argList = TString::Format("(%d, %G, %G, %G, %G, %G, %G, %G, \"%s\")", nEvents, fFieldScale, P, pos.X(), pos.Y(), Vp.X(), Vp.Y(), Vp.Z(), outFile.Data());
-    TString exeCommand = TString::Format("root -b -q '" + gPathFull + argList + "'");
+    TString exeCommand = TString::Format("root -b -q '%s%s'", gPathFull.Data(), argList.Data());
 
     gSystem->Exec(exeCommand.Data());
 }

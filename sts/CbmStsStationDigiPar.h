@@ -62,11 +62,10 @@ class CbmStsStationDigiPar : public TObject
   Double_t   fRotation;      //  Rotation angle in global c.s. [rad]
   TObjArray* fSectors;       //  Array of sector parameters
 
-  CbmStsStationDigiPar(const CbmStsStationDigiPar&);
-  CbmStsStationDigiPar operator=(const CbmStsStationDigiPar&);
+  CbmStsStationDigiPar(const CbmStsStationDigiPar&) = delete;
+  CbmStsStationDigiPar operator=(const CbmStsStationDigiPar&) = delete;
 
   ClassDef(CbmStsStationDigiPar,1);
-
 };
 
 

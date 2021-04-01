@@ -133,8 +133,8 @@ public:
 
   ClassDef(CbmStsFitPerformanceTask,1);
  private:
-  CbmStsFitPerformanceTask(const CbmStsFitPerformanceTask&);
-  void operator=(const CbmStsFitPerformanceTask&);
+  CbmStsFitPerformanceTask(const CbmStsFitPerformanceTask&) = delete;
+  void operator=(const CbmStsFitPerformanceTask&) = delete;
 };
 
 #endif

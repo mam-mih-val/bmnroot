@@ -88,12 +88,11 @@ class CbmStsFitTracks : public FairTask
   Double_t fTime;                // Total real time used
   Double_t fNTracks;             // Number of fitted tracks
 
-  CbmStsFitTracks(const CbmStsFitTracks&);
-  CbmStsFitTracks operator=(const CbmStsFitTracks&);
+  CbmStsFitTracks(const CbmStsFitTracks&) = delete;
+  CbmStsFitTracks operator=(const CbmStsFitTracks&) = delete;
 
 
   ClassDef(CbmStsFitTracks,1);
-
 };
 
 #endif

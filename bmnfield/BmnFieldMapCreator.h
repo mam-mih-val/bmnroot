@@ -97,11 +97,10 @@ class BmnFieldMapCreator
   TList    fFieldList;      // List of input fields;
   Bool_t   fInit;           // Flag whether map is initialised
 
-  BmnFieldMapCreator(const BmnFieldMapCreator&);
-  BmnFieldMapCreator& operator=(const BmnFieldMapCreator&);
+  BmnFieldMapCreator(const BmnFieldMapCreator&) = delete;
+  BmnFieldMapCreator& operator=(const BmnFieldMapCreator&) = delete;
 
   ClassDef(BmnFieldMapCreator,1);
-
 };
 
 #endif

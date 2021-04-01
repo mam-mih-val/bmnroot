@@ -52,8 +52,8 @@ protected:
     Style_t fStyle; //!
 
   private:
-    FairMCModuleDraw(const FairMCModuleDraw&);
-    FairMCModuleDraw& operator=(const FairMCModuleDraw&);
+    FairMCModuleDraw(const FairMCModuleDraw&) = delete;
+    FairMCModuleDraw& operator=(const FairMCModuleDraw&) = delete;
 
     ClassDef(FairMCModuleDraw,1);
 };

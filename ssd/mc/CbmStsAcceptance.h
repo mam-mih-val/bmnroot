@@ -134,8 +134,8 @@ class CbmStsAcceptance : public FairTask {
 		Bool_t Test();
 
 
-                CbmStsAcceptance(const CbmStsAcceptance&);
-                CbmStsAcceptance& operator=(const CbmStsAcceptance&);
+        CbmStsAcceptance(const CbmStsAcceptance&) = delete;
+        CbmStsAcceptance& operator=(const CbmStsAcceptance&) = delete;
                 
 		ClassDef(CbmStsAcceptance,1);
 };

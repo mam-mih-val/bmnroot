@@ -76,11 +76,10 @@ class CbmFindPrimaryVertex : public FairTask
   CbmVertex*              fPrimVert;
 
 
-  CbmFindPrimaryVertex(const CbmFindPrimaryVertex&);
-  CbmFindPrimaryVertex& operator=(const CbmFindPrimaryVertex&);
+  CbmFindPrimaryVertex(const CbmFindPrimaryVertex&) = delete;
+  CbmFindPrimaryVertex& operator=(const CbmFindPrimaryVertex&) = delete;
 
   ClassDef(CbmFindPrimaryVertex,1);
-
 };
 
 #endif

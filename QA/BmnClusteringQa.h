@@ -203,8 +203,8 @@ private:
 
     Bool_t fPrimes; //calculate efficiency only for primaries or for all particles
 
-    BmnClusteringQa(const BmnClusteringQa&);
-    BmnClusteringQa& operator=(const BmnClusteringQa&);
+    BmnClusteringQa(const BmnClusteringQa&) = delete;
+    BmnClusteringQa& operator=(const BmnClusteringQa&) = delete;
 
     ClassDef(BmnClusteringQa, 1);
 };

@@ -236,8 +236,8 @@ class CbmStack : public FairGenericStack
   /** Mark tracks for output using selection criteria  **/
   void SelectTracks();
 
-  CbmStack(const CbmStack&);
-  CbmStack& operator=(const CbmStack&);
+  CbmStack(const CbmStack&) = delete;
+  CbmStack& operator=(const CbmStack&) = delete;
 
   ClassDef(CbmStack,2)      
 };

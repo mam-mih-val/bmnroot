@@ -101,8 +101,7 @@ InitStatus SrcInnerTrackingRun7::Init() {
     TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/GemRunSRCSpring2018.xml";
     fGemDetector = new BmnGemStripStationSet(gPathGemConfig);
 
-    Int_t fNStations = fGemDetector->GetNStations() - 4;  // first four stations are in arms
-
+    //Int_t fNStations = fGemDetector->GetNStations() - 4;  // first four stations are in arms
     fHitXCutMin = new Double_t[fNStations];
     fHitXCutMax = new Double_t[fNStations];
     fHitYCutMin = new Double_t[fNStations];

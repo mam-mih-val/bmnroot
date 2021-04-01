@@ -134,8 +134,8 @@ class MpdEmcTowerDraw : public FairTask
     
     MpdEmcGeoPar* fGeoPar; // pointer to emc geo parameters
     
-    MpdEmcTowerDraw(const MpdEmcTowerDraw&);
-    MpdEmcTowerDraw& operator=(const MpdEmcTowerDraw&);
+    MpdEmcTowerDraw(const MpdEmcTowerDraw&) = delete;
+    MpdEmcTowerDraw& operator=(const MpdEmcTowerDraw&) = delete;
 
     ClassDef(MpdEmcTowerDraw,1);
 };

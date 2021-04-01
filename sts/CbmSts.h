@@ -177,11 +177,10 @@ class CbmSts : public FairDetector
      ** Resets the private members for the track parameters
      **/
     void ResetParameters();
-    CbmSts(const CbmSts&);
-    CbmSts operator=(const CbmSts&);
+    CbmSts(const CbmSts&) = delete;
+    CbmSts operator=(const CbmSts&) = delete;
 
     ClassDef(CbmSts,1);
-
 };
 
 

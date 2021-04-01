@@ -28,4 +28,4 @@ void BmnZdcAnalyzer::Exec(Option_t* opt) {
     fBmnZDCEventData->Set(fArrayOfZdcDigits, fModuleScale, fModuleThreshold);
 }
 
-//ClassImp(BmnZdcAnalyzer)
+ClassImp(BmnZdcAnalyzer)

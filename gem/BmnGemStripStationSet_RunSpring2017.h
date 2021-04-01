@@ -15,8 +15,8 @@ public:
     virtual ~BmnGemStripStationSet_RunSpring2017();
 
 private:
-    BmnGemStripStationSet_RunSpring2017(const BmnGemStripStationSet&);
-    BmnGemStripStationSet_RunSpring2017& operator=(const BmnGemStripStationSet&);
+    BmnGemStripStationSet_RunSpring2017(const BmnGemStripStationSet&) = delete;
+    BmnGemStripStationSet_RunSpring2017& operator=(const BmnGemStripStationSet&) = delete;
 
     void DefineBeamHoleRadiuses();
     void BuildStations();

@@ -10,7 +10,7 @@
 
 inline void L1AddMaterial( L1TrackPar &T, fvec radThick, fvec qp0, fvec w = 1, fvec mass2 = 0.1395679f*0.1395679f )
 {
-  cnst ZERO = 0.0f, ONE = 1.;
+  cnst /*ZERO = 0.0f,*/ ONE = 1.;
 
   fvec tx = T.tx;
   fvec ty = T.ty;
@@ -35,7 +35,7 @@ inline void L1AddMaterial( L1TrackPar &T, fvec radThick, fvec qp0, fvec w = 1, f
 
 inline void L1AddMaterial( L1TrackPar &T, L1MaterialInfo &info, fvec qp0, fvec w = 1, fvec mass2 = 0.1395679f*0.1395679f )
 {
-  cnst ZERO = 0.0f, ONE = 1.f;
+  cnst /*ZERO = 0.0f,*/ ONE = 1.f;
 
   fvec tx = T.tx;
   fvec ty = T.ty;
@@ -58,7 +58,7 @@ inline void L1AddMaterial( L1TrackPar &T, L1MaterialInfo &info, fvec qp0, fvec w
 
 inline void L1AddHalfMaterial( L1TrackPar &T, L1MaterialInfo &info, fvec qp0 )
 {
-  cnst ZERO = 0.0f, ONE = 1.;
+  cnst /*ZERO = 0.0f,*/ ONE = 1.;
   cnst mass2 = 0.1395679f*0.1395679f;
 
   fvec tx = T.tx;
@@ -83,7 +83,7 @@ inline void L1AddHalfMaterial( L1TrackPar &T, L1MaterialInfo &info, fvec qp0 )
 
 inline void L1AddPipeMaterial( L1TrackPar &T, fvec qp0, fvec w = 1, fvec mass2 = 0.1395679f*0.1395679f )
 {
-  cnst ZERO = 0.0f, ONE = 1.f;
+  cnst /*ZERO = 0.0f,*/ ONE = 1.f;
 
 //  static const fscal RadThick=0.0009f;//0.5/18.76;
 //  static const fscal logRadThick=log(RadThick);

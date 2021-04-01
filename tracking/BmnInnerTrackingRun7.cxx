@@ -330,37 +330,37 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_4of4_OnLastGEMStations() {
             for (BmnHit* hit6 : sortedHits[6]) {
                 Double_t x7 = hit7->GetX();
                 Double_t y7 = hit7->GetY();
-                Double_t dxEx = x7 - hit6->GetX();
-                Double_t dxTh = x7 * X7[1] + X7[0];
-                Double_t dyEx = y7 - hit6->GetY();
-                Double_t dyTh = y7 * Y7[1] + Y7[0];
+                dxEx = x7 - hit6->GetX();
+                dxTh = x7 * X7[1] + X7[0];
+                dyEx = y7 - hit6->GetY();
+                dyTh = y7 * Y7[1] + Y7[0];
 
-                Int_t iX = 0;
+                iX = 0;
                 for (iX = 0; iX < nxRanges; ++iX)
                     if (x7 > xRangeMin[iX] && x7 < xRangeMax[iX]) break;
-                Int_t iY = 0;
+                iY = 0;
                 for (iY = 0; iY < nyRanges; ++iY)
                     if (y7 > yRangeMin[iY] && y7 < yRangeMax[iY]) break;
-                Double_t rmsX = 2.0 * xRMS[7][iX];
-                Double_t rmsY = 3.0 * yRMS[7][iY];//2.0 * yRMS[7][iY];
+                rmsX = 2.0 * xRMS[7][iX];
+                rmsY = 3.0 * yRMS[7][iY];//2.0 * yRMS[7][iY];
 
                 if (Abs(dxEx - dxTh) > rmsX || Abs(dyEx - dyTh) > rmsY) continue;
                 for (BmnHit* hit5 : sortedHits[5]) {
                     Double_t x6 = hit6->GetX();
                     Double_t y6 = hit6->GetY();
-                    Double_t dxEx = x6 - hit5->GetX();
-                    Double_t dxTh = x6 * X6[1] + X6[0];
-                    Double_t dyEx = y6 - hit5->GetY();
-                    Double_t dyTh = y6 * Y6[1] + Y6[0];
+                    dxEx = x6 - hit5->GetX();
+                    dxTh = x6 * X6[1] + X6[0];
+                    dyEx = y6 - hit5->GetY();
+                    dyTh = y6 * Y6[1] + Y6[0];
 
-                    Int_t iX = 0;
+                    iX = 0;
                     for (iX = 0; iX < nxRanges; ++iX)
                         if (x6 > xRangeMin[iX] && x6 < xRangeMax[iX]) break;
-                    Int_t iY = 0;
+                    iY = 0;
                     for (iY = 0; iY < nyRanges; ++iY)
                         if (y6 > yRangeMin[iY] && y6 < yRangeMax[iY]) break;
-                    Double_t rmsX = 2.0 * xRMS[6][iX];
-                    Double_t rmsY = 3.0 * yRMS[6][iY];//2.0 * yRMS[6][iY];
+                    rmsX = 2.0 * xRMS[6][iX];
+                    rmsY = 3.0 * yRMS[6][iY];//2.0 * yRMS[6][iY];
 
                     if (Abs(dxEx - dxTh) > rmsX || Abs(dyEx - dyTh) > rmsY) continue;
                     BmnTrack cand;
@@ -407,6 +407,8 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_4of4_OnLastGEMStations() {
         TrackUpdateByLine(candidates);
     SortTracks(candidates, sortedCandidates);
     TrackSelection(sortedCandidates);
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnInnerTrackingRun7::FindCandidateByThreeStations(Short_t st0,
@@ -462,19 +464,19 @@ BmnStatus BmnInnerTrackingRun7::FindCandidateByThreeStations(Short_t st0,
 
             if (Abs(dxEx - dxTh) > rmsX || Abs(dyEx - dyTh) > rmsY) continue;
             for (BmnHit* hit0 : sortedHits[st0]) {
-                Double_t dxEx = Abs(x1 - hit0->GetX());
-                Double_t dxTh = Abs(x1 * xMap[st1][1] + xMap[st1][0]);
-                Double_t dyEx = Abs(y1 - hit0->GetY());
-                Double_t dyTh = Abs(y1 * yMap[st1][1] + yMap[st1][0]);
+                dxEx = Abs(x1 - hit0->GetX());
+                dxTh = Abs(x1 * xMap[st1][1] + xMap[st1][0]);
+                dyEx = Abs(y1 - hit0->GetY());
+                dyTh = Abs(y1 * yMap[st1][1] + yMap[st1][0]);
 
-                Int_t iX = 0;
+                iX = 0;
                 for (iX = 0; iX < nxRanges; ++iX)
                     if (x1 > xRangeMin[iX] && x1 < xRangeMax[iX]) break;
-                Int_t iY = 0;
+                iY = 0;
                 for (iY = 0; iY < nyRanges; ++iY)
                     if (y1 > yRangeMin[iY] && y1 < yRangeMax[iY]) break;
-                Double_t rmsX = 2.0 * xRMS[st1][iX];
-                Double_t rmsY = 3.0 * yRMS[st1][iY];//2.0 * yRMS[st1][iY];
+                rmsX = 2.0 * xRMS[st1][iX];
+                rmsY = 3.0 * yRMS[st1][iY];//2.0 * yRMS[st1][iY];
 
                 if (Abs(dxEx - dxTh) > rmsX || Abs(dyEx - dyTh) > rmsY) continue;
                 BmnTrack cand;
@@ -670,8 +672,8 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_2of2_OnFirstGEMStationsDownstream() {
 
                 candidates.push_back(cand);
             } else {
-                Double_t minDist = DBL_MAX;
-                BmnHit* minHit = nullptr;
+                minDist = DBL_MAX;
+                minHit = nullptr;
                 for (BmnHit* hit : sortedHits[6]) {
                     Double_t d = Abs(hit->GetY() - (a * hit->GetZ() + b));
                     if (d < minDist && d < fDistCut) {
@@ -699,8 +701,8 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_2of2_OnFirstGEMStationsDownstream() {
 
                     candidates.push_back(cand);
                 } else {
-                    Double_t minDist = DBL_MAX;
-                    BmnHit* minHit = nullptr;
+                    minDist = DBL_MAX;
+                    minHit = nullptr;
                     for (BmnHit* hit : sortedHits[7]) {
                         Double_t d = Abs(hit->GetY() - (a * hit->GetZ() + b));
                         if (d < minDist && d < fDistCut) {
@@ -727,8 +729,8 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_2of2_OnFirstGEMStationsDownstream() {
 
                         candidates.push_back(cand);
                     } else {
-                        Double_t minDist = DBL_MAX;
-                        BmnHit* minHit = nullptr;
+                        minDist = DBL_MAX;
+                        minHit = nullptr;
                         for (BmnHit* hit : sortedHits[8]) {
                             Double_t d = Abs(hit->GetY() - (a * hit->GetZ() + b));
                             if (d < minDist && d < fDistCut) {
@@ -752,8 +754,8 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_2of2_OnFirstGEMStationsDownstream() {
 
                             candidates.push_back(cand);
                         } else {
-                            Double_t minDist = DBL_MAX;
-                            BmnHit* minHit = nullptr;
+                            minDist = DBL_MAX;
+                            minHit = nullptr;
                             for (BmnHit* hit : sortedHits[2]) {
                                 Double_t d = Abs(hit->GetY() - (a * hit->GetZ() + b));
                                 if (d < minDist && d < fDistCut) {
@@ -776,8 +778,8 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_2of2_OnFirstGEMStationsDownstream() {
 
                                 candidates.push_back(cand);
                             } else {
-                                Double_t minDist = DBL_MAX;
-                                BmnHit* minHit = nullptr;
+                                minDist = DBL_MAX;
+                                minHit = nullptr;
                                 for (BmnHit* hit : sortedHits[1]) {
                                     Double_t d = Abs(hit->GetY() - (a * hit->GetZ() + b));
                                     if (d < minDist && d < fDistCut) {

@@ -174,7 +174,7 @@ void CbmKFParticle::Construct( vector<CbmKFTrackInterface*> &vDaughters,
       Double_t VertexGuess[3];
 
       Double_t fTDaughter[(int) vDaughters.size()][6];
-      Double_t fCDaughter[(int) vDaughters.size()][15];
+      //Double_t fCDaughter[(int) vDaughters.size()][15];
 
       vector<CbmKFTrack*> TrV;
 
@@ -189,11 +189,11 @@ void CbmKFParticle::Construct( vector<CbmKFTrackInterface*> &vDaughters,
         fTDaughter[nvect][4] = Tr->GetTrack()[4];
         fTDaughter[nvect][5] = Tr->GetTrack()[5];
         
-        fCDaughter[nvect][0] = Tr->GetCovMatrix()[0];
-        fCDaughter[nvect][2] = Tr->GetCovMatrix()[2];
-        fCDaughter[nvect][5] = Tr->GetCovMatrix()[5];
-        fCDaughter[nvect][9] = Tr->GetCovMatrix()[9];
-        fCDaughter[nvect][14] = Tr->GetCovMatrix()[14];
+        //fCDaughter[nvect][0] = Tr->GetCovMatrix()[0];
+        //fCDaughter[nvect][2] = Tr->GetCovMatrix()[2];
+        //fCDaughter[nvect][5] = Tr->GetCovMatrix()[5];
+        //fCDaughter[nvect][9] = Tr->GetCovMatrix()[9];
+        //fCDaughter[nvect][14] = Tr->GetCovMatrix()[14];
         
         delete Tr;
         nvect++;
@@ -208,9 +208,9 @@ void CbmKFParticle::Construct( vector<CbmKFTrackInterface*> &vDaughters,
       VertexGuess[1] = Tr->GetTrack()[1];
       VertexGuess[2] = Tr->GetTrack()[5];
 
-      Double_t dr0[2];
-      dr0[0] = sqrt(Tr->GetCovMatrix()[0]);
-      dr0[1] = sqrt(Tr->GetCovMatrix()[2]);
+      //Double_t dr0[2];
+      //dr0[0] = sqrt(Tr->GetCovMatrix()[0]);
+      //dr0[1] = sqrt(Tr->GetCovMatrix()[2]);
       delete Tr;
       r0[0] = VertexGuess[0];
       r0[1] = VertexGuess[1];
@@ -513,7 +513,7 @@ void CbmKFParticle::ConstructFromKFParticle( vector<CbmKFParticle*> &vDaughters,
       Double_t VertexGuess[3];
 
       Double_t fTDaughter[(int) vDaughters.size()][6];
-      Double_t fCDaughter[(int) vDaughters.size()][15];
+      //Double_t fCDaughter[(int) vDaughters.size()][15];
 
       vector<CbmKFTrack*> TrV;
 
@@ -532,11 +532,11 @@ void CbmKFParticle::ConstructFromKFParticle( vector<CbmKFParticle*> &vDaughters,
         fTDaughter[nvect][4] = Tr->GetTrack()[4];
         fTDaughter[nvect][5] = Tr->GetTrack()[5];
         
-        fCDaughter[nvect][0] = Tr->GetCovMatrix()[0];
-        fCDaughter[nvect][2] = Tr->GetCovMatrix()[2];
-        fCDaughter[nvect][5] = Tr->GetCovMatrix()[5];
-        fCDaughter[nvect][9] = Tr->GetCovMatrix()[9];
-        fCDaughter[nvect][14] = Tr->GetCovMatrix()[14];
+        //fCDaughter[nvect][0] = Tr->GetCovMatrix()[0];
+        //fCDaughter[nvect][2] = Tr->GetCovMatrix()[2];
+        //fCDaughter[nvect][5] = Tr->GetCovMatrix()[5];
+        //fCDaughter[nvect][9] = Tr->GetCovMatrix()[9];
+        //fCDaughter[nvect][14] = Tr->GetCovMatrix()[14];
         
         delete Tr;
         delete TrInt;

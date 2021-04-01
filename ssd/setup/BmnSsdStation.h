@@ -164,11 +164,11 @@ class BmnSsdStation : public TNamed {
 
 
     // --- Prevent usage of copy constructor and assignment operator
-    BmnSsdStation(const BmnSsdStation&);
-    BmnSsdStation& operator=(const BmnSsdStation&);
+    BmnSsdStation(const BmnSsdStation&) = delete;
+    BmnSsdStation& operator=(const BmnSsdStation&) = delete;
 
 
-		ClassDef(BmnSsdStation, 1);
+    ClassDef(BmnSsdStation, 1);
 };
 
 #endif /* BMNSSDSTATION_H */

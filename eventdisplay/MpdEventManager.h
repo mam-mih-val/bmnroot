@@ -160,8 +160,8 @@ class MpdEventManager : public TEveEventManager
     // skeleton Singleton Instance
     static MpdEventManager* fgRinstance; //!
 
-    MpdEventManager(const MpdEventManager&);
-    MpdEventManager& operator=(const MpdEventManager&);
+    MpdEventManager(const MpdEventManager&) = delete;
+    MpdEventManager& operator=(const MpdEventManager&) = delete;
 
     // VIEWERS for RPhi and RPhoZ projections, 3D view in multi-viewer, RPhi and RPhoZ projections in multi-viewer
     TEveViewer *fRPhiView, *fRhoZView, *fMulti3DView, *fMultiRPhiView, *fMultiRhoZView;

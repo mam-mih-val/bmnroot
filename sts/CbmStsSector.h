@@ -163,15 +163,11 @@ class CbmStsSector : public TNamed
    ** index of the MCPoint **/
   std::map<std::pair<Int_t,Int_t>, Int_t > fTrueHits;      //!
 
-  CbmStsSector(const CbmStsSector&);
-  CbmStsSector operator=(const CbmStsSector&);
+  CbmStsSector(const CbmStsSector&) = delete;
+  CbmStsSector operator=(const CbmStsSector&) = delete;
 
 
   ClassDef(CbmStsSector,1);
-
 };
-
-
-
 
 #endif

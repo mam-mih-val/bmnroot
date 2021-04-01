@@ -57,8 +57,8 @@ private:
         fBranch = (flag) ? "treefin" : "treeini";
     }
 
-    MpdVHLLEGenerator(const MpdVHLLEGenerator&);
-    MpdVHLLEGenerator& operator=(const MpdVHLLEGenerator&);
+    MpdVHLLEGenerator(const MpdVHLLEGenerator&) = delete;
+    MpdVHLLEGenerator& operator=(const MpdVHLLEGenerator&) = delete;
 
     ClassDef(MpdVHLLEGenerator, 1);
 };

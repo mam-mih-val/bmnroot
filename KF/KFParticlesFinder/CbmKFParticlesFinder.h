@@ -70,9 +70,8 @@ class CbmKFParticlesFinder: public FairTask
 
   //CbmRichElectronIdAnn *fElIdAnn;
 
-  CbmKFParticlesFinder(const CbmKFParticlesFinder&);
-  CbmKFParticlesFinder& operator=(const CbmKFParticlesFinder&);
-
+  CbmKFParticlesFinder(const CbmKFParticlesFinder&) = delete;
+  CbmKFParticlesFinder& operator=(const CbmKFParticlesFinder&) = delete;
 };
 
 #endif

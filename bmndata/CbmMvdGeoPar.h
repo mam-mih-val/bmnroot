@@ -56,8 +56,8 @@ class CbmMvdGeoPar : public FairParGenericSet {
   TObjArray* fGeoSensNodes; // List of FairGeoNodes for sensitive volumes
   TObjArray* fGeoPassNodes; // List of FairGeoNodes for passive volumes
 
-  CbmMvdGeoPar(const CbmMvdGeoPar&);
-  CbmMvdGeoPar& operator=(const CbmMvdGeoPar&);
+  CbmMvdGeoPar(const CbmMvdGeoPar&) = delete;
+  CbmMvdGeoPar& operator=(const CbmMvdGeoPar&) = delete;
 
   ClassDef(CbmMvdGeoPar,1);
 

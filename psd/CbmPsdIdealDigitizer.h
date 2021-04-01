@@ -52,13 +52,12 @@ class CbmPsdIdealDigitizer : public FairTask
   /** Output array of CbmPsdDigits **/
   TClonesArray* fDigiArray; 
 
-  CbmPsdIdealDigitizer(const CbmPsdIdealDigitizer&);
-  CbmPsdIdealDigitizer operator=(const CbmPsdIdealDigitizer&);
+  CbmPsdIdealDigitizer(const CbmPsdIdealDigitizer&) = delete;
+  CbmPsdIdealDigitizer operator=(const CbmPsdIdealDigitizer&) = delete;
   /** Reset eventwise counters **/
   void Reset();
 
   ClassDef(CbmPsdIdealDigitizer,1);
-
 };
 
 #endif

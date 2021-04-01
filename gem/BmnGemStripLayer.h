@@ -123,8 +123,8 @@ public:
     //--------------------------------------------------------------------------
 
 private:
-    //BmnGemStripLayer(const BmnGemStripLayer&);
-    //BmnGemStripLayer& operator=(const BmnGemStripLayer&);
+    //BmnGemStripLayer(const BmnGemStripLayer&) = delete;
+    //BmnGemStripLayer& operator=(const BmnGemStripLayer&) = delete;
 
 private:
     Bool_t Verbosity;

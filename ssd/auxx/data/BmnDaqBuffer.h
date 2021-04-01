@@ -134,14 +134,11 @@ class BmnDaqBuffer
 
 
     /**  Copy constructor. Defined private to prevent usage. **/
-    BmnDaqBuffer(const BmnDaqBuffer&);
+    BmnDaqBuffer(const BmnDaqBuffer&) = delete;
 
 
     /**  Assignment operator. Defined private to prevent usage. **/
-    BmnDaqBuffer& operator=(const BmnDaqBuffer&);
-
-
-
+    BmnDaqBuffer& operator=(const BmnDaqBuffer&) = delete;
 };
 
 #endif /* BMNDAQBUFFER_H */

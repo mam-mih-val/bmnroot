@@ -34,7 +34,7 @@ class BmnTdaqSource : public FairOnlineSource
     *@param verbosity       verbosity-level: 0 - print nothing (default), 1 - print event number and event size? 2 - print event number, event size and event data
     **/
     BmnTdaqSource(TString partition_name, TString sampling_type, TString sampling_names, Int_t verbose = 0);
-    BmnTdaqSource(const BmnTdaqSource& source);
+    BmnTdaqSource(const BmnTdaqSource& source) = delete;
     /** Destructor **/
     virtual ~BmnTdaqSource();
 
@@ -92,7 +92,7 @@ class BmnTdaqSource : public FairOnlineSource
     // array for T0 to transfer it to the next tasks
     TClonesArray* fT0Digits;        //!
 
-    BmnTdaqSource& operator=(const BmnTdaqSource&);
+    BmnTdaqSource& operator=(const BmnTdaqSource&) = delete;
     
     ClassDef(BmnTdaqSource, 0)
 };

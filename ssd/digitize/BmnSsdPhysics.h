@@ -151,10 +151,10 @@ class BmnSsdPhysics : public TObject {
 		BmnSsdPhysics();
 
 		/** Copy constructor (not implemented to avoid being executed) **/
-    BmnSsdPhysics(const BmnSsdPhysics&);
+    BmnSsdPhysics(const BmnSsdPhysics&) = delete;
 
     /** Assignment operator (not implemented to avoid being executed) **/
-    BmnSsdPhysics operator=(const BmnSsdPhysics&);
+    BmnSsdPhysics operator=(const BmnSsdPhysics&) = delete;
 
     /** Pointer to singleton instance **/
 		static BmnSsdPhysics* fgInstance;

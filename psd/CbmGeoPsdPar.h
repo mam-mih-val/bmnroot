@@ -23,9 +23,8 @@ public:
   TObjArray             *GetGeoPassiveNodes(){return fGeoPassNodes;}
 
  private:
-
-  CbmGeoPsdPar(const CbmGeoPsdPar&);
-  CbmGeoPsdPar& operator=(const CbmGeoPsdPar&);
+  CbmGeoPsdPar(const CbmGeoPsdPar&) = delete;
+  CbmGeoPsdPar& operator=(const CbmGeoPsdPar&) = delete;
 
   ClassDef(CbmGeoPsdPar,1)
 };

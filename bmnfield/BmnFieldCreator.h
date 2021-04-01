@@ -27,8 +27,7 @@ class BmnFieldCreator : public FairFieldFactory
   BmnFieldPar* fFieldPar;
   
  private:
-  BmnFieldCreator(const BmnFieldCreator&);
-  BmnFieldCreator& operator=(const BmnFieldCreator&);
-
+  BmnFieldCreator(const BmnFieldCreator&) = delete;
+  BmnFieldCreator& operator=(const BmnFieldCreator&) = delete;
 };
 #endif //CBMFIELDCREATOR_H

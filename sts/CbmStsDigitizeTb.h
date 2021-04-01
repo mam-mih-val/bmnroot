@@ -142,11 +142,10 @@ class CbmStsDigitizeTb : public FairTask
   /** Reset eventwise counters **/
   void Reset();
 
-  CbmStsDigitizeTb(const CbmStsDigitizeTb&);
-  CbmStsDigitizeTb operator=(const CbmStsDigitizeTb&);
+  CbmStsDigitizeTb(const CbmStsDigitizeTb&) = delete;
+  CbmStsDigitizeTb operator=(const CbmStsDigitizeTb&) = delete;
 
   ClassDef(CbmStsDigitizeTb,1);
-
 };
 
 #endif

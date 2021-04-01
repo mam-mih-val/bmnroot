@@ -196,9 +196,8 @@ template <class T> class CbmMCPointBuffer
   typename multiset<T, IsBefore<T> >::iterator fBufferIt;
 
 
-  CbmMCPointBuffer<T>(const CbmMCPointBuffer<T>&);  
-  CbmMCPointBuffer<T>& operator=(const CbmMCPointBuffer<T>&);  
-
+  CbmMCPointBuffer<T>(const CbmMCPointBuffer<T>&) = delete;
+  CbmMCPointBuffer<T>& operator=(const CbmMCPointBuffer<T>&) = delete;
 };
 
 

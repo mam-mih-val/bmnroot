@@ -220,8 +220,8 @@ private:
     
     Short_t fChargeCut; //(-1, 0, +1) do QA for negative, all or positive particles
 
-    BmnTrackingQa(const BmnTrackingQa&);
-    BmnTrackingQa& operator=(const BmnTrackingQa&);
+    BmnTrackingQa(const BmnTrackingQa&) = delete;
+    BmnTrackingQa& operator=(const BmnTrackingQa&) = delete;
 
     ClassDef(BmnTrackingQa, 1);
 };

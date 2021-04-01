@@ -60,8 +60,8 @@ class MpdMCTracks : public FairTask
     Double_t PEnergy;
 
   private:
-    MpdMCTracks(const MpdMCTracks&);
-    MpdMCTracks& operator=(const MpdMCTracks&);
+    MpdMCTracks(const MpdMCTracks&) = delete;
+    MpdMCTracks& operator=(const MpdMCTracks&) = delete;
 
     ClassDef(MpdMCTracks,1);
 };

@@ -17,8 +17,8 @@ public:
 private:
     BmnGemStripMedium();  //this constructor is not available for explicitly calling
     ~BmnGemStripMedium();
-    BmnGemStripMedium(BmnGemStripMedium const&);
-    BmnGemStripMedium& operator= (BmnGemStripMedium const&);
+    BmnGemStripMedium(BmnGemStripMedium const&) = delete;
+    BmnGemStripMedium& operator= (BmnGemStripMedium const&) = delete;
 
 public:
     Bool_t SetCurrentConfiguration(BmnGemStripMediumConfiguration::MEDIUM medium);

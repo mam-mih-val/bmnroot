@@ -141,8 +141,8 @@ private:
     void DefineModuleBorders(); //calculate min-max coordinates of the module from layers` parameters
 
 private:
-    BmnSiliconModule(const BmnSiliconModule&);
-    BmnSiliconModule& operator=(const BmnSiliconModule&);
+    BmnSiliconModule(const BmnSiliconModule&) = delete;
+    BmnSiliconModule& operator=(const BmnSiliconModule&) = delete;
 
 private:
     Bool_t Verbosity;

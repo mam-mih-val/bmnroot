@@ -79,11 +79,10 @@ class CbmStsTrackFinder : public TNamed
 
  private:
 
-  CbmStsTrackFinder(const CbmStsTrackFinder&);
-  CbmStsTrackFinder& operator=(const CbmStsTrackFinder&);
+  CbmStsTrackFinder(const CbmStsTrackFinder&) = delete;
+  CbmStsTrackFinder& operator=(const CbmStsTrackFinder&) = delete;
 
   ClassDef(CbmStsTrackFinder,1);
-
 };
 
 #endif

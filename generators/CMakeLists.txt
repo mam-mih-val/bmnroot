@@ -51,7 +51,11 @@ set(SRCS ${SRCS} FairPlutoReactionGenerator.cxx MpdPlutoGenerator.cxx)
 EndIf(PLUTO_FOUND)
 
 Set(HEADERS)
-Set(LINKDEF GenLinkDef.h)
+if(PLUTO_FOUND)
+ Set(LINKDEF GenLinkDefPluto.h)
+else(PLUTO_FOUND)
+ Set(LINKDEF GenLinkDef.h)
+EndIf(PLUTO_FOUND)
 Set(LIBRARY_NAME MpdGen)
 Set(DEPENDENCIES Base EG MathCore Physics RIO Core)
 

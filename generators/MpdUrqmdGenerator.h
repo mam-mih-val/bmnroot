@@ -92,8 +92,8 @@ class MpdUrqmdGenerator : public FairGenerator
         conversion map. Is called from the constructor. **/
     void ReadConversionTable();
 
-    MpdUrqmdGenerator(const MpdUrqmdGenerator&);
-    MpdUrqmdGenerator& operator=(const MpdUrqmdGenerator&);
+    MpdUrqmdGenerator(const MpdUrqmdGenerator&) = delete;
+    MpdUrqmdGenerator& operator=(const MpdUrqmdGenerator&) = delete;
 
     ClassDef(MpdUrqmdGenerator,1);
 

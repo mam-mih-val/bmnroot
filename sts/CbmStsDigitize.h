@@ -174,8 +174,8 @@ class CbmStsDigitize : public FairTask
   /** AZ Check if particle goes thru the spacer (dead space) **/
   Bool_t CrossSpacer(const TGeoNode *node, const CbmStsPoint *point);
 
-  CbmStsDigitize(const CbmStsDigitize&);
-  CbmStsDigitize operator=(const CbmStsDigitize&);
+  CbmStsDigitize(const CbmStsDigitize&) = delete;
+  CbmStsDigitize operator=(const CbmStsDigitize&) = delete;
 
   ClassDef(CbmStsDigitize,1);
 

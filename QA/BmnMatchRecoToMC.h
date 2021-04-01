@@ -71,8 +71,8 @@ private:
     TClonesArray* fGlobalTracks;
     TClonesArray* fGlobalTrackMatches;
 
-    BmnMatchRecoToMC(const BmnMatchRecoToMC&);
-    BmnMatchRecoToMC& operator=(const BmnMatchRecoToMC&);
+    BmnMatchRecoToMC(const BmnMatchRecoToMC&) = delete;
+    BmnMatchRecoToMC& operator=(const BmnMatchRecoToMC&) = delete;
 
     void CalculateTrackQuality(BmnGemTrack* locTr, BmnTrackMatch* trMatch, const TClonesArray* hitMatches, const TClonesArray* points, Int_t &trueCntr, Int_t &falseCntr);
 

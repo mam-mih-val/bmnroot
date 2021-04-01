@@ -124,8 +124,8 @@ private:
     /**Initialization flag, true if initialized*/
     Bool_t IsInitialized;
     
-    BmnFileSource(const BmnFileSource&);
-    BmnFileSource operator=(const BmnFileSource&);
+    BmnFileSource(const BmnFileSource&) = delete;
+    BmnFileSource operator=(const BmnFileSource&) = delete;
 
     /**Event Header*/
     FairEventHeader* fEvtHeader; //!

@@ -9,8 +9,8 @@
 
 class MpdMCTracksEditor : public TGedFrame
 {
-    MpdMCTracksEditor(const MpdMCTracksEditor&);            // Not implemented
-    MpdMCTracksEditor& operator=(const MpdMCTracksEditor&); // Not implemented
+    MpdMCTracksEditor(const MpdMCTracksEditor&) = delete;
+    MpdMCTracksEditor& operator=(const MpdMCTracksEditor&) = delete;
 
   protected:
     TObject* fObject;

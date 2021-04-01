@@ -380,24 +380,21 @@ Bool_t BmnZdc::CheckIfSensitive(std::string name) {
 
 // -----   Private method AddHit   --------------------------------------------
 BmnZdcPoint* BmnZdc::AddHit(Int_t trackID, Int_t module_groupID, Int_t copyNo, Int_t copyNoMother,
-			    TVector3 pos, TVector3 mom, Double_t time,
-			    Double_t length, Double_t eLoss) {
+                TVector3 pos, TVector3 mom, Double_t time, Double_t length, Double_t eLoss)
+{
+    BmnZdcPoint* pZDCPoint = GetHit(copyNo,copyNoMother);
+    if (!pZDCPoint)
+    {
+        TClonesArray& clref = *fZdcCollection;
+        Int_t size = clref.GetEntriesFast();
+        return new(clref[size]) BmnZdcPoint(trackID, module_groupID, copyNo, copyNoMother,pos, mom, time, length, eLoss);
+    }
+    else
+        pZDCPoint->AddVSC(trackID, module_groupID, copyNo, copyNoMother,pos, mom, time, length, eLoss);
 
-  if (!GetHit(copyNo,copyNoMother)) {
-    TClonesArray& clref = *fZdcCollection;
-    Int_t size = clref.GetEntriesFast();
-    return new(clref[size]) BmnZdcPoint(trackID, module_groupID, copyNo, copyNoMother,pos, mom,
-				        time, length, eLoss);
-  }
-
-  else {
-    GetHit(copyNo,copyNoMother)->AddVSC(trackID, module_groupID, copyNo, copyNoMother,pos, mom,
-                                        time, length, eLoss);
-  }
-
+    return pZDCPoint;
 }
-
-// ----
+//-----------------------------------------------------------------------------
 
 
 ClassImp(BmnZdc)

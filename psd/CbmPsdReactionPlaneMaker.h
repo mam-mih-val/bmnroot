@@ -56,13 +56,12 @@ class CbmPsdReactionPlaneMaker : public FairTask
   /** Output object CbmPsdEventData **/
   CbmPsdEventData* fCbmPsdEvent;
 
-  CbmPsdReactionPlaneMaker(const CbmPsdReactionPlaneMaker&);
-  CbmPsdReactionPlaneMaker operator=(const CbmPsdReactionPlaneMaker&);
+  CbmPsdReactionPlaneMaker(const CbmPsdReactionPlaneMaker&) = delete;
+  CbmPsdReactionPlaneMaker operator=(const CbmPsdReactionPlaneMaker&) = delete;
 
   void Reset();
 
   ClassDef(CbmPsdReactionPlaneMaker,1);
-
 };
 
 #endif

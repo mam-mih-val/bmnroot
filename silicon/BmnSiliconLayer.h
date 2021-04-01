@@ -127,8 +127,8 @@ public:
     //--------------------------------------------------------------------------
 
 private:
-    //BmnSiliconLayer(const BmnSiliconLayer&);
-    //BmnSiliconLayer& operator=(const BmnSiliconLayer&);
+    //BmnSiliconLayer(const BmnSiliconLayer&) = delete;
+    //BmnSiliconLayer& operator=(const BmnSiliconLayer&) = delete;
 
 private:
     Bool_t Verbosity;

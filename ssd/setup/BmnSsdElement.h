@@ -144,7 +144,6 @@ private:
 
 
     ClassDef(BmnSsdElement, 2);
-
 };
 
 #endif /* BMNSSDELEMENT_H */

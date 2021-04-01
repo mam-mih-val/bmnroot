@@ -47,7 +47,7 @@ CbmBaseHit& CbmBaseHit::operator=(const CbmBaseHit& rhs)
     fAddress = rhs.fAddress;
 
     if (NULL != rhs.fLinks) {
-      std::auto_ptr<FairMultiLinkedData> tmp(new FairMultiLinkedData(*rhs.fLinks));
+      std::unique_ptr<FairMultiLinkedData> tmp(new FairMultiLinkedData(*rhs.fLinks));
       delete fLinks;
       fLinks = tmp.release();
     } else {

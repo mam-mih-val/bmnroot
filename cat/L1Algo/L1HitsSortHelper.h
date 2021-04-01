@@ -35,8 +35,8 @@ class L1HitsSortHelper{
   THitI *fStsHitsUnusedStartIndex, *fStsHitsUnusedStopIndex;
   int fNStations;
 
-  L1HitsSortHelper(const L1HitsSortHelper&);
-  L1HitsSortHelper& operator=(const L1HitsSortHelper&);
+  L1HitsSortHelper(const L1HitsSortHelper&) = delete;
+  L1HitsSortHelper& operator=(const L1HitsSortHelper&) = delete;
 };
     
 #endif

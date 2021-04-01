@@ -57,8 +57,8 @@ class MpdWebScreenshots : public FairTask
   private:
     // Default constructor
     MpdWebScreenshots();
-    MpdWebScreenshots(const MpdWebScreenshots&);
-    MpdWebScreenshots& operator=(const MpdWebScreenshots&);
+    MpdWebScreenshots(const MpdWebScreenshots&) = delete;
+    MpdWebScreenshots& operator=(const MpdWebScreenshots&) = delete;
 
     static int daemonize();
     static int sendString(const char* message, int socket);

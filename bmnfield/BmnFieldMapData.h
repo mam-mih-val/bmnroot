@@ -90,11 +90,10 @@ public:
   TArrayF* fBy;
   TArrayF* fBz;
 
-  BmnFieldMapData(const BmnFieldMapData&);
-  BmnFieldMapData& operator=(const BmnFieldMapData&);
+  BmnFieldMapData(const BmnFieldMapData&) = delete;
+  BmnFieldMapData& operator=(const BmnFieldMapData&) = delete;
 
   ClassDef(BmnFieldMapData,1) 
-
 };
 
 

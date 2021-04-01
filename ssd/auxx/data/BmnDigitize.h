@@ -108,7 +108,6 @@ class BmnDigitize : public FairTask
 
   private:
 
-
     /** @brief Copy constructor forbidden **/
     BmnDigitize(const BmnDigitize&) = delete;
 

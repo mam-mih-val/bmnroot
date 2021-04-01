@@ -156,8 +156,8 @@ class CbmKFParticlesFinderQA :public FairTask
   ClassDef(CbmKFParticlesFinderQA,1);
 
  private:
-  CbmKFParticlesFinderQA(const CbmKFParticlesFinderQA&);
-  void operator=(const CbmKFParticlesFinderQA&);
+  CbmKFParticlesFinderQA(const CbmKFParticlesFinderQA&) = delete;
+  void operator=(const CbmKFParticlesFinderQA&) = delete;
 };
 
 #endif // _CbmKFParticlesFinderQA_h_

@@ -39,8 +39,8 @@ class CbmStsMCQa : public FairTask
 	CbmStsSetup * fSetup;
 	Int_t fNofStation;
 
-	CbmStsMCQa(const CbmStsMCQa&);
-	CbmStsMCQa& operator=(const CbmStsMCQa&);
+    CbmStsMCQa(const CbmStsMCQa&) = delete;
+    CbmStsMCQa& operator=(const CbmStsMCQa&) = delete;
 
 	ClassDef(CbmStsMCQa, 1);
 };

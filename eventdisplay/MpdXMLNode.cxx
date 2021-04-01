@@ -28,7 +28,7 @@ MpdXMLNode::MpdXMLNode(const MpdXMLNode& other):
 	}
 }
 
-MpdXMLNode& MpdXMLNode::operator =(const MpdXMLNode& other) {
+MpdXMLNode& MpdXMLNode::operator=(const MpdXMLNode& other) {
 	if(&other == this)
 	   return *this;
 	SetName(other.GetName());

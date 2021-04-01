@@ -24,8 +24,8 @@ class CbmStsDigitizeQaReport : public CbmSimulationReport
 	void Draw2dHistograms();
 	void ScaleHistograms();
 
-	CbmStsDigitizeQaReport(const CbmStsDigitizeQaReport&);
-	CbmStsDigitizeQaReport& operator=(const CbmStsDigitizeQaReport&);
+    CbmStsDigitizeQaReport(const CbmStsDigitizeQaReport&) = delete;
+    CbmStsDigitizeQaReport& operator=(const CbmStsDigitizeQaReport&) = delete;
 
 	ClassDef(CbmStsDigitizeQaReport, 1)
 };

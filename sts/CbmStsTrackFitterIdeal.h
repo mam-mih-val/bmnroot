@@ -51,8 +51,8 @@ private:
 
   TDatabasePDG* dbPDG;
 
-  CbmStsTrackFitterIdeal(const CbmStsTrackFitterIdeal&);
-  CbmStsTrackFitterIdeal operator=(const CbmStsTrackFitterIdeal&);
+  CbmStsTrackFitterIdeal(const CbmStsTrackFitterIdeal&) = delete;
+  CbmStsTrackFitterIdeal operator=(const CbmStsTrackFitterIdeal&) = delete;
 
   ClassDef(CbmStsTrackFitterIdeal,1);
 };

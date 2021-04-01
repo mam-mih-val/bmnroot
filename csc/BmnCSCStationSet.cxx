@@ -187,8 +187,8 @@ Bool_t BmnCSCStationSet::CreateConfigurationFromXMLFile(TString xml_config_file)
     Int_t currentStationNum = 0;
     while(node) {
         if( strcmp(node->GetNodeName(), "Station") == 0 ) {
-            Bool_t parse_status = ParseStation(node, currentStationNum);
-            if(!parse_status) return false;
+            Bool_t b_parse_status = ParseStation(node, currentStationNum);
+            if(!b_parse_status) return false;
             currentStationNum++;
         }
         node = node->GetNextNode();

@@ -665,7 +665,7 @@ void CbmL1::Reconstruct()
   int start_hit = 0;
   int itrack=0;
   for(vector<L1Track>::iterator it = algo->vTracks.begin(); it!=algo->vTracks.end(); it++){
-    Int_t hh=0;
+    //Int_t hh=0;
     CbmL1Track t;
     for( int i=0; i<6; i++) t.T[i] = it->TFirst[i];
     for( int i=0; i<15; i++) t.C[i] = it->CFirst[i];

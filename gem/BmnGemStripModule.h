@@ -137,8 +137,8 @@ private:
     void DefineModuleBorders(); //calculate min-max coordinates of the module from layers` parameters
 
 private:
-    BmnGemStripModule(const BmnGemStripModule&);
-    BmnGemStripModule& operator=(const BmnGemStripModule&);
+    BmnGemStripModule(const BmnGemStripModule&) = delete;
+    BmnGemStripModule& operator=(const BmnGemStripModule&) = delete;
 
 private:
     Bool_t Verbosity;

@@ -228,11 +228,10 @@ protected:
 
 private:
 
-    BmnFieldMap(const BmnFieldMap&);
-    BmnFieldMap& operator=(const BmnFieldMap&);
+    BmnFieldMap(const BmnFieldMap&) = delete;
+    BmnFieldMap& operator=(const BmnFieldMap&) = delete;
 
     ClassDef(BmnFieldMap, 1)
-
 };
 
 

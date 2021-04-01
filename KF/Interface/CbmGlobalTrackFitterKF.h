@@ -33,8 +33,8 @@ public:
     ClassDef(CbmGlobalTrackFitterKF, 1);
 
  private:
-  CbmGlobalTrackFitterKF(const CbmGlobalTrackFitterKF&);
-  void operator=(const CbmGlobalTrackFitterKF&);
+  CbmGlobalTrackFitterKF(const CbmGlobalTrackFitterKF&) = delete;
+  void operator=(const CbmGlobalTrackFitterKF&) = delete;
 };
 
 

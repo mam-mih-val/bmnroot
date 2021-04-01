@@ -70,8 +70,8 @@ class MpdGlobalTrackDraw : public FairTask
     Float_t fCutProbability;
 
   private:
-    MpdGlobalTrackDraw(const MpdGlobalTrackDraw&);
-    MpdGlobalTrackDraw& operator=(const MpdGlobalTrackDraw&);
+    MpdGlobalTrackDraw(const MpdGlobalTrackDraw&) = delete;
+    MpdGlobalTrackDraw& operator=(const MpdGlobalTrackDraw&) = delete;
 
     ClassDef(MpdGlobalTrackDraw,1);
 };

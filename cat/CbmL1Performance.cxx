@@ -717,8 +717,8 @@ void CbmL1::PartHistoPerformance()
   static TH1F *hPartParam[NParticles][nHistoPartParam]; // mass, decay length, c*tau, chi/ndf, prob ...
   static TH1F *hPartParamBG[NParticles][nHistoPartParam];
   static TH1F *hPartParamSignal[NParticles][nHistoPartParam];
-  static const int nHistoPartParamQA = 3;
-  static TH1F *hPartParamQA[NParticles][nHistoPartParamQA*2]; // residuals and pulls of these parameters
+  //static const int nHistoPartParamQA = 3;
+  //static TH1F *hPartParamQA[NParticles][nHistoPartParamQA*2]; // residuals and pulls of these parameters
 
   static const int nHistosPV = 6;
   static TH1F *hPVFitQa[nHistosPV];
@@ -808,14 +808,14 @@ void CbmL1::PartHistoPerformance()
               gDirectory->mkdir("QA");
               gDirectory->cd("QA");
               {
-                int nBinsQA = 50;
+                /*int nBinsQA = 50;
                 float xMaxQA[nHistoPartParamQA] = {0.01,0.001,0.001};
                 for( int iH=0; iH<nHistoPartParamQA; iH++ ){
                   hPartParamQA[iPart][iH] = 
                     new TH1F((res+parName[iH]).Data(), (res+parName[iH]).Data(), nBinsQA, -xMaxQA[iH],xMaxQA[iH]);
                   hPartParamQA[iPart][iH+nHistoPartParamQA] = 
                     new TH1F((pull+parName[iH]).Data(), (pull+parName[iH]).Data(), nBinsQA, -6,6);
-                }
+                }*/
               }
               gDirectory->cd(".."); // particle directory / Parameters / Signal
 
@@ -1045,12 +1045,12 @@ void CbmL1::PartHistoPerformance()
       break;
     }
   }
-  float dRPVr[3] = {PF->GetPV()->GetRefX()-mcPVx[0],
-                    PF->GetPV()->GetRefY()-mcPVx[1],
-                    PF->GetPV()->GetRefZ()-mcPVx[2]};
-  float dRPVp[3] = {dRPVr[0]/sqrt(PF->GetPV()->GetCovMatrix()[0]),
-                    dRPVr[1]/sqrt(PF->GetPV()->GetCovMatrix()[2]),
-                    dRPVr[2]/sqrt(PF->GetPV()->GetCovMatrix()[5])};
+  float dRPVr[3] = {(float)(PF->GetPV()->GetRefX()-mcPVx[0]),
+                    (float)(PF->GetPV()->GetRefY()-mcPVx[1]),
+                    (float)(PF->GetPV()->GetRefZ()-mcPVx[2])};
+  float dRPVp[3] = {(float)(dRPVr[0]/sqrt(PF->GetPV()->GetCovMatrix()[0])),
+                    (float)(dRPVr[1]/sqrt(PF->GetPV()->GetCovMatrix()[2])),
+                    (float)(dRPVr[2]/sqrt(PF->GetPV()->GetCovMatrix()[5]))};
   for(unsigned int iHPV=0; iHPV<3; ++iHPV)
     hPVFitQa[iHPV]->Fill(dRPVr[iHPV]);
   for(unsigned int iHPV=3; iHPV<6; ++iHPV)
@@ -1089,9 +1089,9 @@ void CbmL1::HistoPerformance() // TODO: check if works correctly. Change vHitRef
 
   static TH1F *h_notfound_mom, *h_notfound_nhits, *h_notfound_station, *h_notfound_r, *h_notfound_tx, *h_notfound_ty;
   
-  static TH1F *h_mcp, *h_nmchits, *h_chi2, *h_prob, *MC_vx, *MC_vy, *MC_vz, *VtxChiPrim, *VtxChiSec;
+  static TH1F *h_mcp, *h_nmchits/*, *h_chi2, *h_prob, *MC_vx, *MC_vy, *MC_vz, *VtxChiPrim, *VtxChiSec*/;
 
-  static TH2F *P_vs_P ;
+  //static TH2F *P_vs_P ;
 
   static TH2F *h2_vertex, *h2_prim_vertex, *h2_sec_vertex;
   //static TH3F *h3_vertex, *h3_prim_vertex, *h3_sec_vertex;
@@ -1225,17 +1225,17 @@ void CbmL1::HistoPerformance() // TODO: check if works correctly. Change vHitRef
     h_notfound_tx = new TH1F("h_notfound_tx", "tx of not found track at the first hit", 50, -5.0, 5.0);
     h_notfound_ty = new TH1F("h_notfound_ty", "ty of not found track at the first hit", 50, -1.0, 1.0);
 
-    h_chi2 = new TH1F("chi2", "Chi^2", 100, 0.0, 10.);
-    h_prob = new TH1F("prob", "Prob", 100, 0.0, 1.01);
-    VtxChiPrim = new TH1F("vtxChiPrim", "Chi to primary vtx for primary tracks", 100, 0.0, 10.);
-    VtxChiSec = new TH1F("vtxChiSec", "Chi to primary vtx for secondary tracks", 100, 0.0, 10.);
+    //h_chi2 = new TH1F("chi2", "Chi^2", 100, 0.0, 10.);
+    //h_prob = new TH1F("prob", "Prob", 100, 0.0, 1.01);
+    //VtxChiPrim = new TH1F("vtxChiPrim", "Chi to primary vtx for primary tracks", 100, 0.0, 10.);
+    //VtxChiSec = new TH1F("vtxChiSec", "Chi to primary vtx for secondary tracks", 100, 0.0, 10.);
     h_mcp = new TH1F("h_mcp", "MC P ", 500, 0.0, 5.0);
-    MC_vx = new TH1F("MC_vx", "MC Vertex X", 100, -.05, .05);
-    MC_vy = new TH1F("MC_vy", "MC Vertex Y", 100, -.05, .05);
-    MC_vz = new TH1F("MC_vz", "MC Vertex Z", 100, -.05, .05);
+    //MC_vx = new TH1F("MC_vx", "MC Vertex X", 100, -.05, .05);
+    //MC_vy = new TH1F("MC_vy", "MC Vertex Y", 100, -.05, .05);
+    //MC_vz = new TH1F("MC_vz", "MC Vertex Z", 100, -.05, .05);
     h_nmchits = new TH1F("h_nmchits", "N STS hits on MC track", 50, 0.0, 10.0);
  
-    P_vs_P = new TH2F("P_vs_P", "Resolution P/Q vs P", 20, 0., 20.,100, -.05, .05);
+    //P_vs_P = new TH2F("P_vs_P", "Resolution P/Q vs P", 20, 0., 20.,100, -.05, .05);
       
     h2_vertex = new TH2F("h2_vertex", "2D vertex distribution", 105, -5., 100., 100, -50., 50.);
     h2_prim_vertex = new TH2F("h2_primvertex", "2D primary vertex distribution", 105, -5., 100., 100, -50., 50.);
@@ -1533,7 +1533,7 @@ void CbmL1::HistoPerformance() // TODO: check if works correctly. Change vHitRef
     }
 
           // killed tracks. At least one hit of they belong to some recoTrack
-    bool killed = 0;
+    //bool killed = 0;
     if(!reco){
       h_notfound_nhits->Fill(nmchits);
       h_notfound_station->Fill(ph.iStation);
@@ -1555,7 +1555,7 @@ void CbmL1::HistoPerformance() // TODO: check if works correctly. Change vHitRef
 //        h_notfound_ty->Fill((ph22.y-ph21.y)/(z22-z21));
 //      }
 
-      if( mtra.IsDisturbed() ) killed = 1;
+      //if( mtra.IsDisturbed() ) killed = 1;
     }
 
 

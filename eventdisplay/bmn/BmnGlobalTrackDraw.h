@@ -69,8 +69,8 @@ class BmnGlobalTrackDraw : public FairTask
     Double_t PEnergy;
 
   private:
-    BmnGlobalTrackDraw(const BmnGlobalTrackDraw&);
-    BmnGlobalTrackDraw& operator=(const BmnGlobalTrackDraw&);
+    BmnGlobalTrackDraw(const BmnGlobalTrackDraw&) = delete;
+    BmnGlobalTrackDraw& operator=(const BmnGlobalTrackDraw&) = delete;
 
     ClassDef(BmnGlobalTrackDraw,1);
 };

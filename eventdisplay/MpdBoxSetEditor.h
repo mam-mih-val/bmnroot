@@ -56,8 +56,8 @@ class MpdBoxSetEditor : public TGedFrame
     MpdBoxSet* fM;
 
   private:
-    MpdBoxSetEditor(const MpdBoxSetEditor&);
-    MpdBoxSetEditor& operator=(const MpdBoxSetEditor&);
+    MpdBoxSetEditor(const MpdBoxSetEditor&) = delete;
+    MpdBoxSetEditor& operator=(const MpdBoxSetEditor&) = delete;
 
     ClassDef(MpdBoxSetEditor,2);
 };

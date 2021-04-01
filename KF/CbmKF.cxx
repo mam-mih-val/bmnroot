@@ -228,7 +228,7 @@ InitStatus CbmKF::Init()
     if( fVerbose ) cout<<"KALMAN FILTER : === READ STT DETECTORS ==="<<endl;
 
     TObjArray *Nodes = sttPar->GetGeoSensitiveNodes();
-    double zold = 0;
+    //double zold = 0;
     int ista = 0; //-1;
     for (Int_t i = 0; i < Nodes->GetEntries(); ++i) {
       FairGeoNode *node = dynamic_cast<FairGeoNode*> (Nodes->At(i));
@@ -263,7 +263,7 @@ InitStatus CbmKF::Init()
 	if( fVerbose ) cout<<" Stt detector "<<name<<": "<<wall.Info()<<", station "<<ista<<endl;
       
 	//if( jsta==ista ) continue; // same station	
-	zold = wall.ZReference;
+    //zold = wall.ZReference;
 	//SttStationIDMap.insert(pair<Int_t,Int_t>(ista+1, ista));
 	SttStationIDMap.insert(pair<Int_t,Int_t>(wall.ID, ista));
 	ista++;
@@ -706,7 +706,7 @@ else fMethod=2;
 
   //AZ
   Double_t zmax = 0.0;
-  BmnNewFieldMap *field;
+  BmnNewFieldMap *field = NULL;
   if (fMagneticField) {
     field = (BmnNewFieldMap*) fMagneticField; // GP
     zmax = field->GetZmax() + field->GetPositionZ();

@@ -38,8 +38,8 @@ class MpdBoxSet : public TEveBoxSet
   private:
     MpdBoxSetDraw* fDraw;
 
-    MpdBoxSet(const MpdBoxSet&);
-    MpdBoxSet operator=(const MpdBoxSet&);
+    MpdBoxSet(const MpdBoxSet&) = delete;
+    MpdBoxSet operator=(const MpdBoxSet&) = delete;
 
     ClassDef(MpdBoxSet,1);
 };

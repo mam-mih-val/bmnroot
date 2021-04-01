@@ -115,8 +115,8 @@ private:
    // Output directory for images
    string fOutputDir;
 
-   CbmLitFieldQa(const CbmLitFieldQa&);
-   CbmLitFieldQa& operator=(const CbmLitFieldQa&);
+   CbmLitFieldQa(const CbmLitFieldQa&) = delete;
+   CbmLitFieldQa& operator=(const CbmLitFieldQa&) = delete;
    
    ClassDef(CbmLitFieldQa, 1);
 };

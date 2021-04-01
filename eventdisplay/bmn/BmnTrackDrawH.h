@@ -64,8 +64,8 @@ class BmnTrackDrawH : public FairTask
     TString fHitsBranchName;
     
   private:
-    BmnTrackDrawH(const BmnTrackDrawH&);
-    BmnTrackDrawH& operator=(const BmnTrackDrawH&);
+    BmnTrackDrawH(const BmnTrackDrawH&) = delete;
+    BmnTrackDrawH& operator=(const BmnTrackDrawH&) = delete;
 
     ClassDef(BmnTrackDrawH,1);
 };

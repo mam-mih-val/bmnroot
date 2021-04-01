@@ -111,8 +111,8 @@ private:
     void DefineModuleBorders(); //calculate min-max coordinates of the module from layers` parameters
 
 private:
-    BmnCSCModule(const BmnCSCModule&);
-    BmnCSCModule& operator=(const BmnCSCModule&);
+    BmnCSCModule(const BmnCSCModule&) = delete;
+    BmnCSCModule& operator=(const BmnCSCModule&) = delete;
 
 private:
     Bool_t Verbosity;

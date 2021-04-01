@@ -487,8 +487,8 @@ class L1Algo{
 #endif
 
 private:
-  L1Algo(const L1Algo&);
-  void operator=(const L1Algo&);
+  L1Algo(const L1Algo&) = delete;
+  void operator=(const L1Algo&) = delete;
 } _fvecalignment;
 
 #endif

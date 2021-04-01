@@ -146,8 +146,8 @@ private:
 
     CbmLitDetectorSetup fDet; // Detector setup
 
-    CbmLitRadLengthQa(const CbmLitRadLengthQa&);
-    CbmLitRadLengthQa& operator=(const CbmLitRadLengthQa&);
+    CbmLitRadLengthQa(const CbmLitRadLengthQa&) = delete;
+    CbmLitRadLengthQa& operator=(const CbmLitRadLengthQa&) = delete;
     
     ClassDef(CbmLitRadLengthQa, 1);
 };

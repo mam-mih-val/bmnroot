@@ -370,15 +370,11 @@ class BmnSsdDigitize : public BmnDigitize
 
 
   /** Prevent usage of copy constructor and assignment operator **/
-  BmnSsdDigitize(const BmnSsdDigitize&);
-  BmnSsdDigitize operator=(const BmnSsdDigitize&);
-
+  BmnSsdDigitize(const BmnSsdDigitize&) = delete;
+  BmnSsdDigitize operator=(const BmnSsdDigitize&) = delete;
 
 
   ClassDef(BmnSsdDigitize, 4);
-
 };
 
 #endif
-
-

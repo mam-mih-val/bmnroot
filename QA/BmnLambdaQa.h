@@ -137,8 +137,8 @@ private:
     void CreateReconstructedParticlePairsWOCutsHistograms();
     void CreateTwoDimensionalReconstructedParticlePairsWOCutsHistograms();
 
-    /*BmnLambdaQa(const BmnLambdaQa&);
-    BmnLambdaQa& operator=(const BmnLambdaQa&);*/
+    /*BmnLambdaQa(const BmnLambdaQa&) = delete;
+    BmnLambdaQa& operator=(const BmnLambdaQa&) = delete;*/
 
     Int_t fNLambdas;
     Int_t fNReconstructable;

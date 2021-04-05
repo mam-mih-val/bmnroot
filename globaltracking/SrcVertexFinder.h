@@ -1,28 +1,28 @@
 #ifndef SRCVERTEXFINDER_H
 #define SRCVERTEXFINDER_H
 
-#include "FairTask.h"
-#include "TClonesArray.h"
-#include "TString.h"
+#include <TStopwatch.h>
+
+#include "BmnEnums.h"
+#include "BmnGemStripHit.h"
 #include "BmnGemTrack.h"
 #include "BmnGlobalTrack.h"
-#include "BmnGemStripHit.h"
-#include "TMath.h"
-#include "TVector3.h"
-#include "BmnEnums.h"
-#include "FairRunAna.h"
-#include "FairField.h"
-#include "BmnVertex.h"
 #include "BmnKalmanFilter.h"
-#include <TStopwatch.h>
+#include "BmnVertex.h"
+#include "FairField.h"
+#include "FairRunAna.h"
+#include "FairTask.h"
+#include "TClonesArray.h"
+#include "TMath.h"
+#include "TString.h"
+#include "TVector3.h"
 
 using namespace std;
 
 class SrcVertexFinder : public FairTask {
-public:
-
+   public:
     // Constructors/Destructors ---------
-    SrcVertexFinder() {};
+    SrcVertexFinder(){};
     SrcVertexFinder(Int_t period, Bool_t isField, Bool_t isExp);
     virtual ~SrcVertexFinder();
 
@@ -34,21 +34,22 @@ public:
         fIsField = f;
     }
 
-    void FindVertexByVirtualPlanes(vector<BmnTrack> &lTracks, vector<BmnTrack> &rTracks);
+    void FindVertexAnalitically(vector<BmnTrack>& lTracks, vector<BmnTrack>& rTracks);
+    void FindVertexByVirtualPlanes(vector<BmnTrack>& lTracks, vector<BmnTrack>& rTracks);
     Float_t FindVZByVirtualPlanes(Float_t z_0, Float_t range, vector<BmnTrack> tracks, Float_t& minDist);
     void CreateArmCandidates(vector<BmnTrack>& lTracks, vector<BmnTrack>& rTracks);
 
    private:
-
     Double_t CalcMeanDist(vector<Double_t> x, vector<Double_t> y);
 
-    Int_t fEventNo; // event counter
-    Int_t fPeriodId; // event counter
+    Int_t fEventNo;   // event counter
+    Int_t fPeriodId;  // event counter
 
     //in branches
     TClonesArray* fGlobalTracksArray;
     TClonesArray* fGemHitsArray;
     TClonesArray* fTof400HitsArray;
+    TClonesArray* fMwpcTracksArray;
     //out branches
     TClonesArray* fVertexArray;
     TClonesArray* fArmTracksArray;
@@ -62,6 +63,5 @@ public:
 
     ClassDef(SrcVertexFinder, 1);
 };
-
 
 #endif /* SRCVERTEXFINDER_H */

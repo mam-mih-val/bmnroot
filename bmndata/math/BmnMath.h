@@ -73,4 +73,7 @@ vector <Double_t> W(vector <Double_t>, Double_t);
 Double_t Sigma(vector <Double_t>, vector <Double_t>);
 Double_t Mu(vector <Double_t>, vector <Double_t>);
 
+Double_t GetVZByTwoStraightTracks(BmnTrack* tr0, BmnTrack* tr1, Double_t& dist);
+Double_t GetVzByVectorStraightTracks(vector<BmnTrack> tr, Double_t& dist);
+
 #endif /*BMNMATH_H_*/

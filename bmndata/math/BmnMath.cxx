@@ -1,90 +1,90 @@
 #include "BmnMath.h"
 
-#include "FairTrackParam.h"
-#include "TClonesArray.h"
-#include "CbmHit.h"
-#include "BmnHit.h"
-#include "CbmStripHit.h"
-#include "CbmPixelHit.h"
-#include "CbmGlobalTrack.h"
-#include "BmnGemStripHit.h"
-#include "TMath.h"
-#include "TGraph.h"
-#include "TF1.h"
-#include "TArc.h"
-#include "TLine.h"
-#include "TCanvas.h"
-#include "TH2F.h"
-#include "Math/WrappedTF1.h"
-#include "Math/BrentRootFinder.h"
-#include <iostream>
 #include <cmath>
+#include <iostream>
+
+#include "BmnGemStripHit.h"
+#include "BmnHit.h"
+#include "CbmGlobalTrack.h"
+#include "CbmHit.h"
+#include "CbmPixelHit.h"
+#include "CbmStripHit.h"
+#include "FairTrackParam.h"
+#include "Math/BrentRootFinder.h"
+#include "Math/WrappedTF1.h"
+#include "TArc.h"
+#include "TCanvas.h"
+#include "TClonesArray.h"
+#include "TF1.h"
 #include "TFitResult.h"
+#include "TGraph.h"
+#include "TH2F.h"
+#include "TLine.h"
+#include "TMath.h"
 
 using namespace TMath;
 
 namespace lit {
 
-    Float_t ChiSq(const FairTrackParam* par, const CbmHit* hit) {
-        Float_t chisq = 0.; //FIXME
-        //   if (hit->GetType() == kLITSTRIPHIT) {
-        //      chisq = ChiSq(par, (CbmStripHit*)hit);
-        //   } else if (hit->GetType() == kLITPIXELHIT) {
-        //      chisq = ChiSq(par, (CbmPixelHit*) hit);
-        //   }
-        return chisq;
-    }
-
-    Float_t ChiSq(//FIXME
-            const FairTrackParam* par,
-            const CbmStripHit* hit) {
-        //   Float_t duu = hit->GetDu() * hit->GetDu();
-        //   Float_t phiCos = 0;//hit->GetCosPhi();                                       //FIXME
-        //   Float_t phiSin = 1;//hit->GetSinPhi();                                       //FIXME
-        //   Float_t phiCosSq = phiCos * phiCos;
-        //   Float_t phiSinSq = phiSin * phiSin;
-        //   Float_t phi2SinCos = 2 * phiCos * phiSin;
-        //   Float_t C0 = par->GetCovariance(0);
-        //   Float_t C1 = par->GetCovariance(1);
-        //   Float_t C5 = par->GetCovariance(5);
-        //
-        //   Float_t ru = hit->GetU() - par->GetX() * phiCos - par->GetY() * phiSin;
-        //
-        //   return (ru * ru) / (duu - phiCosSq*C0 - phi2SinCos*C1 - phiSinSq*C5);
-        return 0;
-    }
-
-    Float_t ChiSq(const FairTrackParam* par, const BmnGemStripHit* hit) {
-        Float_t dxx = hit->GetDx() * hit->GetDx();
-        Float_t dxy = 0.0; //hit->GetDxy();
-        Float_t dyy = hit->GetDy() * hit->GetDy();
-        Float_t xmx = hit->GetX() - par->GetX();
-        Float_t ymy = hit->GetY() - par->GetY();
-        Float_t C0 = par->GetCovariance(0, 0);
-        Float_t C1 = par->GetCovariance(0, 1);
-        Float_t C5 = par->GetCovariance(1, 1);
-
-        Float_t norm = dxx * dyy - dxx * C5 - dyy * C0 + C0 * C5 - dxy * dxy + 2 * dxy * C1 - C1 * C1;
-        if (norm == 0.) {
-            norm = 1e-10;
-        }
-        return ((xmx * (dyy - C5) - ymy * (dxy - C1)) * xmx + (-xmx * (dxy - C1) + ymy * (dxx - C0)) * ymy) / norm;
-    }
-
-    Int_t NDF(const BmnGemTrack* track) {
-        Int_t ndf = 0;
-        for (Int_t i = 0; i < track->GetNHits(); i++)
-            ndf += 2;
-        ndf -= 5;
-        return ndf;
-    }
-
+Float_t ChiSq(const FairTrackParam* par, const CbmHit* hit) {
+    Float_t chisq = 0.;  //FIXME
+    //   if (hit->GetType() == kLITSTRIPHIT) {
+    //      chisq = ChiSq(par, (CbmStripHit*)hit);
+    //   } else if (hit->GetType() == kLITPIXELHIT) {
+    //      chisq = ChiSq(par, (CbmPixelHit*) hit);
+    //   }
+    return chisq;
 }
 
-TVector3 SpiralFitByTwoPoints(const BmnGemTrack* tr, const TClonesArray* arr) {
+Float_t ChiSq(  //FIXME
+    const FairTrackParam* par,
+    const CbmStripHit* hit) {
+    //   Float_t duu = hit->GetDu() * hit->GetDu();
+    //   Float_t phiCos = 0;//hit->GetCosPhi();                                       //FIXME
+    //   Float_t phiSin = 1;//hit->GetSinPhi();                                       //FIXME
+    //   Float_t phiCosSq = phiCos * phiCos;
+    //   Float_t phiSinSq = phiSin * phiSin;
+    //   Float_t phi2SinCos = 2 * phiCos * phiSin;
+    //   Float_t C0 = par->GetCovariance(0);
+    //   Float_t C1 = par->GetCovariance(1);
+    //   Float_t C5 = par->GetCovariance(5);
+    //
+    //   Float_t ru = hit->GetU() - par->GetX() * phiCos - par->GetY() * phiSin;
+    //
+    //   return (ru * ru) / (duu - phiCosSq*C0 - phi2SinCos*C1 - phiSinSq*C5);
+    return 0;
+}
 
-    BmnGemStripHit* hit0 = (BmnGemStripHit*) arr->At(tr->GetHitIndex(0));
-    BmnGemStripHit* hit1 = (BmnGemStripHit*) arr->At(tr->GetHitIndex(1));
+Float_t ChiSq(const FairTrackParam* par, const BmnGemStripHit* hit) {
+    Float_t dxx = hit->GetDx() * hit->GetDx();
+    Float_t dxy = 0.0;  //hit->GetDxy();
+    Float_t dyy = hit->GetDy() * hit->GetDy();
+    Float_t xmx = hit->GetX() - par->GetX();
+    Float_t ymy = hit->GetY() - par->GetY();
+    Float_t C0 = par->GetCovariance(0, 0);
+    Float_t C1 = par->GetCovariance(0, 1);
+    Float_t C5 = par->GetCovariance(1, 1);
+
+    Float_t norm = dxx * dyy - dxx * C5 - dyy * C0 + C0 * C5 - dxy * dxy + 2 * dxy * C1 - C1 * C1;
+    if (norm == 0.) {
+        norm = 1e-10;
+    }
+    return ((xmx * (dyy - C5) - ymy * (dxy - C1)) * xmx + (-xmx * (dxy - C1) + ymy * (dxx - C0)) * ymy) / norm;
+}
+
+Int_t NDF(const BmnGemTrack* track) {
+    Int_t ndf = 0;
+    for (Int_t i = 0; i < track->GetNHits(); i++)
+        ndf += 2;
+    ndf -= 5;
+    return ndf;
+}
+
+}  // namespace lit
+
+TVector3 SpiralFitByTwoPoints(const BmnGemTrack* tr, const TClonesArray* arr) {
+    BmnGemStripHit* hit0 = (BmnGemStripHit*)arr->At(tr->GetHitIndex(0));
+    BmnGemStripHit* hit1 = (BmnGemStripHit*)arr->At(tr->GetHitIndex(1));
     Float_t x0 = hit0->GetX();
     Float_t x1 = hit1->GetX();
     Float_t z0 = hit0->GetZ();
@@ -99,13 +99,12 @@ TVector3 SpiralFitByTwoPoints(const BmnGemTrack* tr, const TClonesArray* arr) {
     Float_t tmp2 = (a + b * theta0) * (a + b * theta0);
     Float_t k = (tmp2 + 2 * b * b) / Sqrt(Power((tmp2 + b * b), 3));
     return TVector3(a, b, 1 / k);
-
 }
 
 TLorentzVector SpiralParabolicFit(BmnGemTrack* tr, const TClonesArray* arr) {
-    BmnGemStripHit* hit0 = (BmnGemStripHit*) arr->At(tr->GetHitIndex(0));
-    BmnGemStripHit* hit1 = (BmnGemStripHit*) arr->At(tr->GetHitIndex(1));
-    BmnGemStripHit* hit2 = (BmnGemStripHit*) arr->At(tr->GetHitIndex(2));
+    BmnGemStripHit* hit0 = (BmnGemStripHit*)arr->At(tr->GetHitIndex(0));
+    BmnGemStripHit* hit1 = (BmnGemStripHit*)arr->At(tr->GetHitIndex(1));
+    BmnGemStripHit* hit2 = (BmnGemStripHit*)arr->At(tr->GetHitIndex(2));
     Float_t x0 = hit0->GetX();
     Float_t x1 = hit1->GetX();
     Float_t x2 = hit2->GetX();
@@ -129,18 +128,16 @@ TLorentzVector SpiralParabolicFit(BmnGemTrack* tr, const TClonesArray* arr) {
     Float_t b = dr21 / dt21 - a * (t2 + t1);
     Float_t c = r0 - a * t0 * t0 - b * t0;
 
-    Float_t r = r0; //a * t0 * t0 + b * t0 + c;
+    Float_t r = r0;  //a * t0 * t0 + b * t0 + c;
     Float_t dr = 2 * a * t0 + b;
     Float_t ddr = 2 * a;
 
     Float_t k = Abs(r * r + 2 * dr * dr - r * ddr) / Sqrt(Power((r * r + dr * dr), 3));
     return TLorentzVector(a, b, c, 1.0 / k);
-
 }
 
 TVector3 SpiralFit(BmnGemTrack* tr, const TClonesArray* arr) {
-
-    BmnGemStripHit* hit0 = (BmnGemStripHit*) arr->At(tr->GetHitIndex(0));
+    BmnGemStripHit* hit0 = (BmnGemStripHit*)arr->At(tr->GetHitIndex(0));
     Float_t xv = hit0->GetX();
     Float_t zv = hit0->GetZ();
     Float_t Thetav = ATan2(xv, zv) * RadToDeg();
@@ -151,7 +148,7 @@ TVector3 SpiralFit(BmnGemTrack* tr, const TClonesArray* arr) {
     Float_t sumTheta2 = 0.0;
     Float_t sumR = 0.0;
     for (Int_t i = 0; i < kN; ++i) {
-        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(tr->GetHitIndex(i));
+        BmnGemStripHit* hit = (BmnGemStripHit*)arr->At(tr->GetHitIndex(i));
         if (hit == NULL) continue;
         Float_t x = hit->GetX();
         Float_t z = hit->GetZ();
@@ -167,8 +164,8 @@ TVector3 SpiralFit(BmnGemTrack* tr, const TClonesArray* arr) {
     Float_t a = (sumR - b * sumTheta) / kN;
 
     //calculate curvature at first point
-    Float_t z0 = ((BmnGemStripHit*) arr->At(tr->GetHitIndex(0)))->GetZ();
-    Float_t x0 = ((BmnGemStripHit*) arr->At(tr->GetHitIndex(0)))->GetX();
+    Float_t z0 = ((BmnGemStripHit*)arr->At(tr->GetHitIndex(0)))->GetZ();
+    Float_t x0 = ((BmnGemStripHit*)arr->At(tr->GetHitIndex(0)))->GetX();
     Float_t theta0 = ATan2(x0, z0);
     Float_t tmp2 = (a + b * theta0) * (a + b * theta0);
     Float_t k = (tmp2 + 2 * b * b) / Sqrt(Power((tmp2 + b * b), 3));
@@ -182,8 +179,8 @@ Bool_t IsParCorrect(const FairTrackParam* par, const Bool_t isField) {
     const Float_t maxX = 300.0;
     const Float_t maxY = 200.0;
     //const Float_t minSlope = 1e-10;
-    const Float_t maxQp = 100.; // p = 10 MeV
-    const Float_t minQp = 0.01; // p = 100 GeV
+    const Float_t maxQp = 100.;  // p = 10 MeV
+    const Float_t minQp = 0.01;  // p = 100 GeV
 
     if (abs(par->GetTx()) > maxSlopeX || abs(par->GetTy()) > maxSlopeY) return kFALSE;
     if (abs(par->GetX()) > maxX || abs(par->GetY()) > maxY) return kFALSE;
@@ -204,7 +201,7 @@ Float_t ChiSq(const TVector3* par, const BmnGemTrack* tr, const TClonesArray* ar
         Float_t b = par->Y();
         Float_t sum = 0.0;
         for (Int_t i = 0; i < tr->GetNHits(); ++i) {
-            BmnHit* hit = (BmnHit*) arr->At(tr->GetHitIndex(i));
+            BmnHit* hit = (BmnHit*)arr->At(tr->GetHitIndex(i));
             Float_t x = hit->GetX();
             Float_t z = hit->GetZ();
             Float_t r_hit = Sqrt(x * x + z * z);
@@ -219,7 +216,7 @@ Float_t ChiSq(const TVector3* par, const BmnGemTrack* tr, const TClonesArray* ar
         Float_t R = par->Z();
         Float_t sum = 0.0;
         for (Int_t i = 0; i < tr->GetNHits(); ++i) {
-            BmnHit* hit = (BmnHit*) arr->At(tr->GetHitIndex(i));
+            BmnHit* hit = (BmnHit*)arr->At(tr->GetHitIndex(i));
             Float_t x = hit->GetX();
             Float_t z = hit->GetZ();
             Float_t x_fit = Xc + Sqrt(R * R - (z - Zc) * (z - Zc));
@@ -232,7 +229,6 @@ Float_t ChiSq(const TVector3* par, const BmnGemTrack* tr, const TClonesArray* ar
 }
 
 Float_t NumericalRootFinder(TF1 f, Float_t left, Float_t right) {
-
     // Create the wrapper for function
     ROOT::Math::WrappedTF1 wf1(f);
 
@@ -249,18 +245,17 @@ Float_t NumericalRootFinder(TF1 f, Float_t left, Float_t right) {
 }
 
 TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type) {
-
     //Weighted Least Square Method//
-    Float_t Xi = 0.0, Yi = 0.0; // coordinates of current track point
-    Float_t a = 0.0, b = 0.0; // parameters of line: y = a * x + b
+    Float_t Xi = 0.0, Yi = 0.0;  // coordinates of current track point
+    Float_t a = 0.0, b = 0.0;    // parameters of line: y = a * x + b
 
-    Float_t Si = 0.0; // sigma
-    Float_t Wi = 0.0; // weight = 1 / sigma^2
-    Float_t SumW = 0.0; // sum of weights
-    Float_t SumWX = 0.0; // sum of (weight * x)
-    Float_t SumWY = 0.0; // sum of (weight * y)
-    Float_t SumWXY = 0.0; // sum of (weight * x * y)
-    Float_t SumWX2 = 0.0; // sum of (weight * x * x)
+    Float_t Si = 0.0;      // sigma
+    Float_t Wi = 0.0;      // weight = 1 / sigma^2
+    Float_t SumW = 0.0;    // sum of weights
+    Float_t SumWX = 0.0;   // sum of (weight * x)
+    Float_t SumWY = 0.0;   // sum of (weight * y)
+    Float_t SumWXY = 0.0;  // sum of (weight * x * y)
+    Float_t SumWX2 = 0.0;  // sum of (weight * x * x)
 
     //  TH2F* h_Hits = new TH2F("h_Hits", "h_Hits", 400, 0.0, 250.0, 400, -10.0, 10.0);
     //  TH2F* h_HitsAll = new TH2F("h_HitsAll", "h_HitsAll", 400, 0.0, 250.0, 400, -10.0, 10.0);
@@ -273,7 +268,7 @@ TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type) {
     //    }
 
     for (Int_t i = 0; i < nHits; ++i) {
-        BmnHit* hit = (BmnHit*) arr->At(track->GetHitIndex(i));
+        BmnHit* hit = (BmnHit*)arr->At(track->GetHitIndex(i));
         if (type.Contains("XY")) {
             Xi = hit->GetX();
             Yi = hit->GetY();
@@ -329,7 +324,7 @@ TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type) {
     Float_t chi2 = 0.0;
 
     for (Int_t i = 0; i < nHits; ++i) {
-        BmnHit* hit = (BmnHit*) arr->At(track->GetHitIndex(i));
+        BmnHit* hit = (BmnHit*)arr->At(track->GetHitIndex(i));
         if (type.Contains("XY")) {
             Xi = hit->GetX();
             Yi = hit->GetY();
@@ -352,7 +347,6 @@ TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type) {
 }
 
 TVector3 LineFitBy3Hits(const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2) {
-
     //Weighted Least Square Method//
 
     // sigma
@@ -372,11 +366,11 @@ TVector3 LineFitBy3Hits(const BmnGemStripHit* h0, const BmnGemStripHit* h1, cons
     Double_t Y1 = h1->GetY();
     Double_t Y2 = h2->GetY();
 
-    Double_t SumW = W0 + W1 + W2; // sum of weights
-    Double_t SumWX = W0 * X0 + W1 * X1 + W2 * X2; // sum of (weight * x)
-    Double_t SumWY = W0 * Y0 + W1 * Y1 + W2 * Y2; // sum of (weight * y)
-    Double_t SumWXY = W0 * X0 * Y0 + W1 * X1 * Y1 + W2 * X2 * Y2; // sum of (weight * x * y)
-    Double_t SumWX2 = W0 * X0 * X0 + W1 * X1 * X1 + W2 * X2 * X2; // sum of (weight * x * x)
+    Double_t SumW = W0 + W1 + W2;                                  // sum of weights
+    Double_t SumWX = W0 * X0 + W1 * X1 + W2 * X2;                  // sum of (weight * x)
+    Double_t SumWY = W0 * Y0 + W1 * Y1 + W2 * Y2;                  // sum of (weight * y)
+    Double_t SumWXY = W0 * X0 * Y0 + W1 * X1 * Y1 + W2 * X2 * Y2;  // sum of (weight * x * y)
+    Double_t SumWX2 = W0 * X0 * X0 + W1 * X1 * X1 + W2 * X2 * X2;  // sum of (weight * x * x)
 
     // parameters of line: y = a * x + b
     Double_t a = (SumW * SumWXY - SumWX * SumWY) / (SumW * SumWX2 - SumWX * SumWX);
@@ -388,22 +382,21 @@ TVector3 LineFitBy3Hits(const BmnGemStripHit* h0, const BmnGemStripHit* h1, cons
 }
 
 void LineFit(Double_t& par1, Double_t& par2, BmnTrack* track, TClonesArray* arr, Int_t type, Int_t idSkip) {
-
     //Weighted Least Square Method//
-    Float_t Xi = 0.0, Yi = 0.0; // coordinates of current track point
-    Float_t a = 0.0, b = 0.0; // parameters of line: y = a * x + b
+    Float_t Xi = 0.0, Yi = 0.0;  // coordinates of current track point
+    Float_t a = 0.0, b = 0.0;    // parameters of line: y = a * x + b
 
-    Float_t Si = 0.0; // sigma
-    Float_t Wi = 0.0; // weight = 1 / sigma^2
-    Float_t SumW = 0.0; // sum of weights
-    Float_t SumWX = 0.0; // sum of (weight * x)
-    Float_t SumWY = 0.0; // sum of (weight * y)
-    Float_t SumWXY = 0.0; // sum of (weight * x * y)
-    Float_t SumWX2 = 0.0; // sum of (weight * x * x)
+    Float_t Si = 0.0;      // sigma
+    Float_t Wi = 0.0;      // weight = 1 / sigma^2
+    Float_t SumW = 0.0;    // sum of weights
+    Float_t SumWX = 0.0;   // sum of (weight * x)
+    Float_t SumWY = 0.0;   // sum of (weight * y)
+    Float_t SumWXY = 0.0;  // sum of (weight * x * y)
+    Float_t SumWX2 = 0.0;  // sum of (weight * x * x)
 
     const Float_t nHits = track->GetNHits();
     for (Int_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
+        BmnGemStripHit* hit = (BmnGemStripHit*)arr->At(track->GetHitIndex(i));
 
         if (i == idSkip)
             continue;
@@ -432,7 +425,7 @@ void LineFit(Double_t& par1, Double_t& par2, BmnTrack* track, TClonesArray* arr,
     Float_t chi2 = 0.0;
 
     for (Int_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
+        BmnGemStripHit* hit = (BmnGemStripHit*)arr->At(track->GetHitIndex(i));
 
         if (i == idSkip)
             continue;
@@ -454,16 +447,15 @@ void LineFit(Double_t& par1, Double_t& par2, BmnTrack* track, TClonesArray* arr,
     par2 = b;
 }
 
-TVector3 CircleFit(BmnTrack* track, const TClonesArray* arr, Double_t &chi2) {
-
+TVector3 CircleFit(BmnTrack* track, const TClonesArray* arr, Double_t& chi2) {
     //Weighted Least Square Method//
-    Double_t Xi = 0.0, Yi = 0.0, Zi = 0.0; // coordinates of current track point
+    Double_t Xi = 0.0, Yi = 0.0, Zi = 0.0;  // coordinates of current track point
     Double_t Xc = 0.0, Zc = 0.0, R = 0.0;
     chi2 = 0.0;
 
-    Double_t Wi = 0.0; // weight = 1 / sigma^2
+    Double_t Wi = 0.0;  // weight = 1 / sigma^2
 
-    Double_t Sx = 0.0; // sum of weights
+    Double_t Sx = 0.0;  // sum of weights
     Double_t Sxx = 0.0;
     Double_t Syy = 0.0;
     Double_t Sxy = 0.0;
@@ -476,7 +468,7 @@ TVector3 CircleFit(BmnTrack* track, const TClonesArray* arr, Double_t &chi2) {
 
     const Float_t nHits = track->GetNHits();
     for (Int_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
+        BmnGemStripHit* hit = (BmnGemStripHit*)arr->At(track->GetHitIndex(i));
         //Use Z and X coordinates of hits to fit in ZX plane
         Yi = hit->GetZ();
         Xi = hit->GetX();
@@ -505,13 +497,13 @@ TVector3 CircleFit(BmnTrack* track, const TClonesArray* arr, Double_t &chi2) {
     //        BmnGemStripHit* hitF = (BmnGemStripHit*) arr->At(track->GetHitIndex(0));
     //        BmnGemStripHit* hitL = (BmnGemStripHit*) arr->At(track->GetHitIndex(nHits - 1));
 
-    //    
+    //
     //        TArc* arc = new TArc(Zc, Xc, R, ATan2((hitF->GetX() - Xc), (hitF->GetZ() - Zc)) * RadToDeg(), ATan2((hitL->GetX() - Xc), (hitL->GetZ() - Zc)) * RadToDeg());
     //        arc->SetFillStyle(0);
     //        arc->SetLineWidth(2);
     //        arc->SetLineColor(kBlue);
     //        arc->SetNoEdges(1);
-    //        
+    //
     //        TCanvas* c_New = new TCanvas("c", "c", 1000, 500);
     //        c_New->cd();
     //        h_Hits->SetMarkerStyle(20);
@@ -526,7 +518,7 @@ TVector3 CircleFit(BmnTrack* track, const TClonesArray* arr, Double_t &chi2) {
     //        delete arc;
 
     for (Int_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
+        BmnGemStripHit* hit = (BmnGemStripHit*)arr->At(track->GetHitIndex(i));
         chi2 += Sq((R - Sqrt(Sq(hit->GetX() - Xc) + Sq(hit->GetZ() - Zc))) / hit->GetDx());
     }
 
@@ -534,14 +526,13 @@ TVector3 CircleFit(BmnTrack* track, const TClonesArray* arr, Double_t &chi2) {
 }
 
 TVector3 CircleFit(vector<BmnHit*> hits, Int_t idSkip) {
-
     //Weighted Least Square Method//
-    Double_t Xi = 0.0, Yi = 0.0, Zi = 0.0; // coordinates of current track point
+    Double_t Xi = 0.0, Yi = 0.0, Zi = 0.0;  // coordinates of current track point
     Double_t Xc = 0.0, Zc = 0.0, R = 0.0;
 
-    Double_t Wi = 0.0; // weight = 1 / sigma^2
+    Double_t Wi = 0.0;  // weight = 1 / sigma^2
 
-    Double_t Sx = 0.0; // sum of weights
+    Double_t Sx = 0.0;  // sum of weights
     Double_t Sxx = 0.0;
     Double_t Syy = 0.0;
     Double_t Sxy = 0.0;
@@ -587,8 +578,8 @@ TVector3 CircleFit(vector<BmnHit*> hits, Int_t idSkip) {
 Double_t CalcTx(const BmnHit* h0, const BmnHit* h1, const BmnHit* h2) {
     //function calculates Tx in point h0, so for TX_last use reverse order: CalcTx(h2, h1, h0)
     TVector3 CircParZX = CircleBy3Hit(h0, h1, h2);
-    Double_t Xc = CircParZX.Y(); // x-coordinate of fit-circle center
-    Double_t Zc = CircParZX.X(); // z-coordinate of fit-circle center
+    Double_t Xc = CircParZX.Y();  // x-coordinate of fit-circle center
+    Double_t Zc = CircParZX.X();  // z-coordinate of fit-circle center
 
     return (-1.0 * (h0->GetZ() - Zc) / (h0->GetX() - Xc));
 }
@@ -602,7 +593,6 @@ Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2) {
 }
 
 Float_t NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22) {
-
     Double_t Dy = 0.0;
     Double_t xnew = 0.0;
     Double_t ynew = 0.0;
@@ -633,9 +623,9 @@ Float_t NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22) {
 TVector3 CircleBy3Hit(BmnTrack* track, const TClonesArray* arr) {
     const Float_t nHits = track->GetNHits();
     if (nHits < 3) return TVector3(0.0, 0.0, 0.0);
-    BmnGemStripHit* hit0 = (BmnGemStripHit*) arr->At(track->GetHitIndex(0));
-    BmnGemStripHit* hit1 = (BmnGemStripHit*) arr->At(track->GetHitIndex(1));
-    BmnGemStripHit* hit2 = (BmnGemStripHit*) arr->At(track->GetHitIndex(2));
+    BmnGemStripHit* hit0 = (BmnGemStripHit*)arr->At(track->GetHitIndex(0));
+    BmnGemStripHit* hit1 = (BmnGemStripHit*)arr->At(track->GetHitIndex(1));
+    BmnGemStripHit* hit2 = (BmnGemStripHit*)arr->At(track->GetHitIndex(2));
 
     Float_t x1 = hit0->GetX();
     Float_t z1 = hit0->GetZ();
@@ -660,15 +650,14 @@ TVector3 CircleBy3Hit(BmnTrack* track, const TClonesArray* arr) {
     Float_t R = Sqrt(A * A + B * B - 4 * C) / 2;
 
     return TVector3(Zc, Xc, R);
-
 }
 
 TVector3 Pol2By3Hit(BmnTrack* track, const TClonesArray* arr) {
     const Int_t nHits = track->GetNHits();
     if (nHits < 3) return TVector3(0.0, 0.0, 0.0);
-    BmnGemStripHit* hit0 = (BmnGemStripHit*) arr->At(track->GetHitIndex(0));
-    BmnGemStripHit* hit1 = (BmnGemStripHit*) arr->At(track->GetHitIndex(1));
-    BmnGemStripHit* hit2 = (BmnGemStripHit*) arr->At(track->GetHitIndex(2));
+    BmnGemStripHit* hit0 = (BmnGemStripHit*)arr->At(track->GetHitIndex(0));
+    BmnGemStripHit* hit1 = (BmnGemStripHit*)arr->At(track->GetHitIndex(1));
+    BmnGemStripHit* hit2 = (BmnGemStripHit*)arr->At(track->GetHitIndex(2));
 
     Float_t x0 = hit0->GetX();
     Float_t z0 = hit0->GetZ();
@@ -686,7 +675,6 @@ TVector3 Pol2By3Hit(BmnTrack* track, const TClonesArray* arr) {
     Float_t C = x0 - B * z0 - A * z0_2;
 
     return TVector3(A, B, C);
-
 }
 
 void DrawHits(BmnGemTrack* track, const TClonesArray* arr) {
@@ -694,8 +682,8 @@ void DrawHits(BmnGemTrack* track, const TClonesArray* arr) {
     Float_t z[nHits];
     Float_t x[nHits];
     for (Int_t i = 0; i < nHits; ++i) {
-        z[i] = ((BmnGemStripHit*) arr->At(track->GetHitIndex(i)))->GetZ();
-        x[i] = ((BmnGemStripHit*) arr->At(track->GetHitIndex(i)))->GetX();
+        z[i] = ((BmnGemStripHit*)arr->At(track->GetHitIndex(i)))->GetZ();
+        x[i] = ((BmnGemStripHit*)arr->At(track->GetHitIndex(i)))->GetX();
     }
     TCanvas* c = new TCanvas("c", "c", 1000, 1000);
     TGraph* gr = new TGraph(nHits, z, x);
@@ -736,13 +724,11 @@ TVector3 CircleBy3Hit(const BmnHit* h0, const BmnHit* h1, const BmnHit* h2) {
     Float_t A = -(dx21_2 + dz21_2 + B * dz21) / dx21;
     Float_t C = -x0_2 - z0_2 - A * x0 - B * z0;
 
-
     Float_t Xc = -A / 2;
     Float_t Zc = -B / 2;
     Float_t R = Sqrt(A * A + B * B - 4 * C) / 2;
 
     return TVector3(Zc, Xc, R);
-
 }
 // Пусть пока этот крокодил поживет здесь:)
 
@@ -753,9 +739,8 @@ void fit_seg(Double_t* z_loc, Double_t* rh_seg, Double_t* rh_sigm_seg, Double_t*
         {0, 0, 0, 0},
         {0, 0, 0, 0},
         {0, 0, 0, 0},
-        {0, 0, 0, 0}
-    }; //coef matrix
-    Float_t f[4] = {0}; //free coef 
+        {0, 0, 0, 0}};   //coef matrix
+    Float_t f[4] = {0};  //free coef
     //      Float_t sigm_sq[8] = {1,1,1,1,1,1,1,1};
     Int_t h[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -768,71 +753,64 @@ void fit_seg(Double_t* z_loc, Double_t* rh_seg, Double_t* rh_sigm_seg, Double_t*
         if (i == skip_first || i == skip_second || Abs(rh_seg[i] + 999.) < FLT_EPSILON) {
             h[i] = 0;
         }
-    }//i
+    }  //i
 
     A[0][0] = 2 * z_loc[0] * z_loc[0] * h[0] / rh_sigm_seg[0] + z_loc[4] * z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * z_loc[6] * h[6] / rh_sigm_seg[6] +
-            2 * z_loc[1] * z_loc[1] * h[1] / rh_sigm_seg[1] + z_loc[5] * z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * z_loc[7] * h[7] / rh_sigm_seg[7]; //aX_a
+              2 * z_loc[1] * z_loc[1] * h[1] / rh_sigm_seg[1] + z_loc[5] * z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * z_loc[7] * h[7] / rh_sigm_seg[7];  //aX_a
 
     A[0][1] = 2 * z_loc[0] * h[0] / rh_sigm_seg[0] + z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * h[6] / rh_sigm_seg[6] +
-            2 * z_loc[1] * h[1] / rh_sigm_seg[1] + z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * h[7] / rh_sigm_seg[7]; //bX_a
+              2 * z_loc[1] * h[1] / rh_sigm_seg[1] + z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * h[7] / rh_sigm_seg[7];  //bX_a
 
     A[0][2] = z_loc[6] * z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * z_loc[4] * h[4] / rh_sigm_seg[4] +
-            z_loc[7] * z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * z_loc[5] * h[5] / rh_sigm_seg[5]; //aY
+              z_loc[7] * z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * z_loc[5] * h[5] / rh_sigm_seg[5];  //aY
 
-    A[0][3] = z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * h[5] / rh_sigm_seg[5]; //bY_a
+    A[0][3] = z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * h[5] / rh_sigm_seg[5];  //bY_a
 
     //dChi2/d_b_x
 
-    A[1][0] = 2 * z_loc[0] * h[0] / rh_sigm_seg[0] + z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * h[6] / rh_sigm_seg[6]
-            + 2 * z_loc[1] * h[1] / rh_sigm_seg[1] + z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * h[7] / rh_sigm_seg[7];
+    A[1][0] = 2 * z_loc[0] * h[0] / rh_sigm_seg[0] + z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * h[6] / rh_sigm_seg[6] + 2 * z_loc[1] * h[1] / rh_sigm_seg[1] + z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * h[7] / rh_sigm_seg[7];
 
-    A[1][1] = 2 * h[0] / rh_sigm_seg[0] + 1 * h[4] / rh_sigm_seg[4] + 1 * h[6] / rh_sigm_seg[6]
-            + 2 * h[1] / rh_sigm_seg[1] + 1 * h[5] / rh_sigm_seg[5] + 1 * h[7] / rh_sigm_seg[7]; //bX_a
+    A[1][1] = 2 * h[0] / rh_sigm_seg[0] + 1 * h[4] / rh_sigm_seg[4] + 1 * h[6] / rh_sigm_seg[6] + 2 * h[1] / rh_sigm_seg[1] + 1 * h[5] / rh_sigm_seg[5] + 1 * h[7] / rh_sigm_seg[7];  //bX_a
 
-    A[1][2] = z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * h[5] / rh_sigm_seg[5]; //aY_a
+    A[1][2] = z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * h[5] / rh_sigm_seg[5];  //aY_a
 
-    A[1][3] = 1 * h[7] / rh_sigm_seg[7] - 1 * h[5] / rh_sigm_seg[5] + 1 * h[6] / rh_sigm_seg[6] - 1 * h[4] / rh_sigm_seg[4]; //bY_a
+    A[1][3] = 1 * h[7] / rh_sigm_seg[7] - 1 * h[5] / rh_sigm_seg[5] + 1 * h[6] / rh_sigm_seg[6] - 1 * h[4] / rh_sigm_seg[4];  //bY_a
 
     //dChi2/da_y
 
-    A[2][0] = z_loc[6] * z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * z_loc[5] * h[5] / rh_sigm_seg[5]; //aX_a
+    A[2][0] = z_loc[6] * z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * z_loc[5] * h[5] / rh_sigm_seg[5];  //aX_a
 
-    A[2][1] = z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * h[5] / rh_sigm_seg[5]; //bX_a
+    A[2][1] = z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * h[5] / rh_sigm_seg[5];  //bX_a
 
-    A[2][2] = 2 * z_loc[2] * z_loc[2] * h[2] / rh_sigm_seg[2] + z_loc[4] * z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * z_loc[6] * h[6] / rh_sigm_seg[6]
-            + 2 * z_loc[3] * z_loc[3] * h[3] / rh_sigm_seg[3] + z_loc[5] * z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * z_loc[7] * h[7] / rh_sigm_seg[7]; //aY_a
+    A[2][2] = 2 * z_loc[2] * z_loc[2] * h[2] / rh_sigm_seg[2] + z_loc[4] * z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * z_loc[6] * h[6] / rh_sigm_seg[6] + 2 * z_loc[3] * z_loc[3] * h[3] / rh_sigm_seg[3] + z_loc[5] * z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * z_loc[7] * h[7] / rh_sigm_seg[7];  //aY_a
 
-    A[2][3] = 2 * z_loc[2] * h[2] / rh_sigm_seg[2] + z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * h[6] / rh_sigm_seg[6]
-            + 2 * z_loc[3] * h[3] / rh_sigm_seg[3] + z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * h[7] / rh_sigm_seg[7];
+    A[2][3] = 2 * z_loc[2] * h[2] / rh_sigm_seg[2] + z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * h[6] / rh_sigm_seg[6] + 2 * z_loc[3] * h[3] / rh_sigm_seg[3] + z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * h[7] / rh_sigm_seg[7];
 
     ////dChi2/db_y
 
-    A[3][0] = z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * h[5] / rh_sigm_seg[5]; //aX_a
+    A[3][0] = z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * h[5] / rh_sigm_seg[5];  //aX_a
 
-    A[3][1] = 1 * h[6] / rh_sigm_seg[6] - 1 * h[4] / rh_sigm_seg[4] + 1 * h[7] / rh_sigm_seg[7] - 1 * h[5] / rh_sigm_seg[5]; //bX_a
+    A[3][1] = 1 * h[6] / rh_sigm_seg[6] - 1 * h[4] / rh_sigm_seg[4] + 1 * h[7] / rh_sigm_seg[7] - 1 * h[5] / rh_sigm_seg[5];  //bX_a
 
-    A[3][2] = 2 * z_loc[2] * h[2] / rh_sigm_seg[2] + z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * h[6] / rh_sigm_seg[6]
-            + 2 * z_loc[3] * h[3] / rh_sigm_seg[3] + z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * h[7] / rh_sigm_seg[7]; //aY_a
+    A[3][2] = 2 * z_loc[2] * h[2] / rh_sigm_seg[2] + z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * h[6] / rh_sigm_seg[6] + 2 * z_loc[3] * h[3] / rh_sigm_seg[3] + z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * h[7] / rh_sigm_seg[7];  //aY_a
 
-    A[3][3] = 2 * h[2] / rh_sigm_seg[2] + 1 * h[4] / rh_sigm_seg[4] + 1 * h[6] / rh_sigm_seg[6]
-            + 2 * h[3] / rh_sigm_seg[3] + 1 * h[5] / rh_sigm_seg[5] + 1 * h[7] / rh_sigm_seg[7]; //bY_a
-
+    A[3][3] = 2 * h[2] / rh_sigm_seg[2] + 1 * h[4] / rh_sigm_seg[4] + 1 * h[6] / rh_sigm_seg[6] + 2 * h[3] / rh_sigm_seg[3] + 1 * h[5] / rh_sigm_seg[5] + 1 * h[7] / rh_sigm_seg[7];  //bY_a
 
     //free coef
 
     //dChi2/da_x
 
     f[0] = 2 * z_loc[0] * rh_seg[0] * h[0] / rh_sigm_seg[0] + sqrt_2 * z_loc[6] * rh_seg[6] * h[6] / rh_sigm_seg[6] - sqrt_2 * z_loc[4] * rh_seg[4] * h[4] / rh_sigm_seg[4] +
-            2 * z_loc[1] * rh_seg[1] * h[1] / rh_sigm_seg[1] + sqrt_2 * z_loc[7] * rh_seg[7] * h[7] / rh_sigm_seg[7] - sqrt_2 * z_loc[5] * rh_seg[5] * h[5] / rh_sigm_seg[5]; //j = nr of seg
+           2 * z_loc[1] * rh_seg[1] * h[1] / rh_sigm_seg[1] + sqrt_2 * z_loc[7] * rh_seg[7] * h[7] / rh_sigm_seg[7] - sqrt_2 * z_loc[5] * rh_seg[5] * h[5] / rh_sigm_seg[5];  //j = nr of seg
     //dChi2/db_x
     f[1] = 2 * rh_seg[0] * h[0] / rh_sigm_seg[0] + sqrt_2 * rh_seg[6] * h[6] / rh_sigm_seg[6] - sqrt_2 * rh_seg[4] * h[4] / rh_sigm_seg[4] +
-            2 * rh_seg[1] * h[1] / rh_sigm_seg[1] + sqrt_2 * rh_seg[7] * h[7] / rh_sigm_seg[7] - sqrt_2 * rh_seg[5] * h[5] / rh_sigm_seg[5]; //j = nr of seg
+           2 * rh_seg[1] * h[1] / rh_sigm_seg[1] + sqrt_2 * rh_seg[7] * h[7] / rh_sigm_seg[7] - sqrt_2 * rh_seg[5] * h[5] / rh_sigm_seg[5];  //j = nr of seg
     //dChi2/da_y
     f[2] = 2 * z_loc[2] * rh_seg[2] * h[2] / rh_sigm_seg[2] + sqrt_2 * z_loc[6] * rh_seg[6] * h[6] / rh_sigm_seg[6] + sqrt_2 * z_loc[4] * rh_seg[4] * h[4] / rh_sigm_seg[4] +
-            2 * z_loc[3] * rh_seg[3] * h[3] / rh_sigm_seg[3] + sqrt_2 * z_loc[7] * rh_seg[7] * h[7] / rh_sigm_seg[7] + sqrt_2 * z_loc[5] * rh_seg[5] * h[5] / rh_sigm_seg[5]; //j = nr of seg
+           2 * z_loc[3] * rh_seg[3] * h[3] / rh_sigm_seg[3] + sqrt_2 * z_loc[7] * rh_seg[7] * h[7] / rh_sigm_seg[7] + sqrt_2 * z_loc[5] * rh_seg[5] * h[5] / rh_sigm_seg[5];  //j = nr of seg
     ////dChi2/db_y
     f[3] = 2 * rh_seg[2] * h[2] / rh_sigm_seg[2] + sqrt_2 * rh_seg[6] * h[6] / rh_sigm_seg[6] + sqrt_2 * rh_seg[4] * h[4] / rh_sigm_seg[4] +
-            2 * rh_seg[3] * h[3] / rh_sigm_seg[3] + sqrt_2 * rh_seg[7] * h[7] / rh_sigm_seg[7] + sqrt_2 * rh_seg[5] * h[5] / rh_sigm_seg[5]; //j = nr of seg
+           2 * rh_seg[3] * h[3] / rh_sigm_seg[3] + sqrt_2 * rh_seg[7] * h[7] / rh_sigm_seg[7] + sqrt_2 * rh_seg[5] * h[5] / rh_sigm_seg[5];  //j = nr of seg
 
     //inverse the matrix
 
@@ -843,12 +821,16 @@ void fit_seg(Double_t* z_loc, Double_t* rh_seg, Double_t* rh_sigm_seg, Double_t*
     Double_t b[4][4];
     Double_t A0[4][4];
 
-    for (i1 = 0; i1 < 4; i1++) for (j1 = 0; j1 < 4; j1++) A0[i1][j1] = A[i1][j1];
+    for (i1 = 0; i1 < 4; i1++)
+        for (j1 = 0; j1 < 4; j1++) A0[i1][j1] = A[i1][j1];
 
     // Set b to I
-    for (i1 = 0; i1 < 4; i1++) for (j1 = 0; j1 < 4; j1++)
-            if (i1 == j1) b[i1][j1] = 1.0;
-            else b[i1][j1] = 0.0;
+    for (i1 = 0; i1 < 4; i1++)
+        for (j1 = 0; j1 < 4; j1++)
+            if (i1 == j1)
+                b[i1][j1] = 1.0;
+            else
+                b[i1][j1] = 0.0;
 
     for (i1 = 0; i1 < 4; i1++) {
         for (j1 = i1 + 1; j1 < 4; j1++)
@@ -861,7 +843,7 @@ void fit_seg(Double_t* z_loc, Double_t* rh_seg, Double_t* rh_sigm_seg, Double_t*
                 for (l1 = 0; l1 < 4; l1++) b[j1][l1] = temp[l1];
             }
         factor = A[i1][i1];
-        for (j1 = 4 - 1; j1>-1; j1--) {
+        for (j1 = 4 - 1; j1 > -1; j1--) {
             b[i1][j1] /= factor;
             A[i1][j1] /= factor;
         }
@@ -874,7 +856,7 @@ void fit_seg(Double_t* z_loc, Double_t* rh_seg, Double_t* rh_sigm_seg, Double_t*
         }
     }
     for (i1 = 3; i1 > 0; i1--) {
-        for (j1 = i1 - 1; j1>-1; j1--) {
+        for (j1 = i1 - 1; j1 > -1; j1--) {
             factor = -A[j1][i1];
             for (k1 = 0; k1 < 4; k1++) {
                 A[j1][k1] += A[i1][k1] * factor;
@@ -889,10 +871,10 @@ void fit_seg(Double_t* z_loc, Double_t* rh_seg, Double_t* rh_sigm_seg, Double_t*
         {0, 0, 0, 0},
         {0, 0, 0, 0},
         {0, 0, 0, 0},
-        {0, 0, 0, 0}
-    };
+        {0, 0, 0, 0}};
 
-    for (i1 = 0; i1 < 4; ++i1) for (j1 = 0; j1 < 4; ++j1) {
+    for (i1 = 0; i1 < 4; ++i1)
+        for (j1 = 0; j1 < 4; ++j1) {
             sum = 0;
 
             for (k1 = 0; k1 < 4; ++k1)
@@ -908,13 +890,13 @@ void fit_seg(Double_t* z_loc, Double_t* rh_seg, Double_t* rh_sigm_seg, Double_t*
     }
 }
 
-void Pol2Fit(BmnGemTrack* track, const TClonesArray* arr, Double_t &A, Double_t &B, Double_t &C, Int_t idSkip) {
+void Pol2Fit(BmnGemTrack* track, const TClonesArray* arr, Double_t& A, Double_t& B, Double_t& C, Int_t idSkip) {
     const Float_t nHits = track->GetNHits();
     TGraph* gr = new TGraph(nHits - 1);
     Int_t iPoint = 0;
     for (Int_t i = 0; i < nHits; ++i) {
         if (i == idSkip) continue;
-        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
+        BmnGemStripHit* hit = (BmnGemStripHit*)arr->At(track->GetHitIndex(i));
         gr->SetPoint(iPoint++, hit->GetZ(), hit->GetX());
     }
     TFitResultPtr ptr = gr->Fit("pol2", "SQ");
@@ -942,18 +924,17 @@ TVector3 Pol2Fit(vector<BmnHit*> hits, Int_t idSkip) {
 }
 
 TVector2 LineFit(vector<BmnHit*> hits, Int_t idSkip, TString type) {
-
     //Weighted Least Square Method//
-    Float_t Xi = 0.0, Yi = 0.0; // coordinates of current track point
-    Float_t a = 0.0, b = 0.0; // parameters of line: y = a * x + b
+    Float_t Xi = 0.0, Yi = 0.0;  // coordinates of current track point
+    Float_t a = 0.0, b = 0.0;    // parameters of line: y = a * x + b
 
-    Float_t Si = 0.0; // sigma
-    Float_t Wi = 0.0; // weight = 1 / sigma^2
-    Float_t SumW = 0.0; // sum of weights
-    Float_t SumWX = 0.0; // sum of (weight * x)
-    Float_t SumWY = 0.0; // sum of (weight * y)
-    Float_t SumWXY = 0.0; // sum of (weight * x * y)
-    Float_t SumWX2 = 0.0; // sum of (weight * x * x)
+    Float_t Si = 0.0;      // sigma
+    Float_t Wi = 0.0;      // weight = 1 / sigma^2
+    Float_t SumW = 0.0;    // sum of weights
+    Float_t SumWX = 0.0;   // sum of (weight * x)
+    Float_t SumWY = 0.0;   // sum of (weight * y)
+    Float_t SumWXY = 0.0;  // sum of (weight * x * y)
+    Float_t SumWX2 = 0.0;  // sum of (weight * x * x)
 
     const Int_t nHits = hits.size();
 
@@ -965,13 +946,11 @@ TVector2 LineFit(vector<BmnHit*> hits, Int_t idSkip, TString type) {
             Xi = hit->GetX();
             Yi = hit->GetY();
             Si = hit->GetDy();
-        }
-        else if (type.Contains("ZX")) {
+        } else if (type.Contains("ZX")) {
             Xi = hit->GetZ();
             Yi = hit->GetX();
             Si = hit->GetDx();
-        }
-        else if (type.Contains("ZY")) {
+        } else if (type.Contains("ZY")) {
             Xi = hit->GetZ();
             Yi = hit->GetY();
             Si = hit->GetDy();
@@ -993,16 +972,16 @@ TVector2 LineFit(vector<BmnHit*> hits, Int_t idSkip, TString type) {
     return TVector2(a, b);
 }
 
-vector <Double_t> dist(vector <Double_t> qp, Double_t mu) {
-    vector <Double_t> res;
+vector<Double_t> dist(vector<Double_t> qp, Double_t mu) {
+    vector<Double_t> res;
     for (Int_t iEle = 0; iEle < qp.size(); iEle++)
         res.push_back(Abs(qp[iEle] - mu));
 
     return res;
 }
 
-vector <Double_t> W(vector <Double_t> dist, Double_t sig) {
-    vector <Double_t> res;
+vector<Double_t> W(vector<Double_t> dist, Double_t sig) {
+    vector<Double_t> res;
     const Int_t C = 10;
     for (Int_t iEle = 0; iEle < dist.size(); iEle++) {
         Double_t w = (dist[iEle] > C * sig) ? 0. : Power(1 - Power(dist[iEle] / C / sig, 2), 2);
@@ -1012,7 +991,7 @@ vector <Double_t> W(vector <Double_t> dist, Double_t sig) {
     return res;
 }
 
-Double_t Sigma(vector <Double_t> dist, vector <Double_t> w) {
+Double_t Sigma(vector<Double_t> dist, vector<Double_t> w) {
     if (dist.size() != w.size())
         throw;
 
@@ -1027,7 +1006,7 @@ Double_t Sigma(vector <Double_t> dist, vector <Double_t> w) {
     return Sqrt(WiDi2Sum / WiSum);
 }
 
-Double_t Mu(vector <Double_t> qp, vector <Double_t> w) {
+Double_t Mu(vector<Double_t> qp, vector<Double_t> w) {
     if (qp.size() != w.size())
         throw;
 
@@ -1063,15 +1042,17 @@ Double_t Mu(vector <Double_t> qp, vector <Double_t> w) {
 void DrawBar(UInt_t iEv, UInt_t nEv) {
     if (nEv < 100)
         return;
-    if ((iEv % (nEv / 100)) > 100.0/nEv)
+    if ((iEv % (nEv / 100)) > 100.0 / nEv)
         return;
     Float_t progress = iEv * 1.0 / nEv;
     Int_t barWidth = 70;
-    Int_t pos = barWidth * progress;    
+    Int_t pos = barWidth * progress;
     cout.flush();
     for (Int_t i = 0; i < barWidth; ++i) {
-        if (i <= pos) printf(ANSI_COLOR_BLUE_BG " " ANSI_COLOR_RESET);
-        else printf(ANSI_COLOR_YELLOW_BG " " ANSI_COLOR_RESET);
+        if (i <= pos)
+            printf(ANSI_COLOR_BLUE_BG " " ANSI_COLOR_RESET);
+        else
+            printf(ANSI_COLOR_YELLOW_BG " " ANSI_COLOR_RESET);
     }
 
     printf(ANSI_COLOR_RED "[%d%%]\r" ANSI_COLOR_RESET, Int_t(progress * 100.0 + 0.5));
@@ -1083,12 +1064,80 @@ void DrawBar(Long64_t iEv, Long64_t nEv) {
     Float_t progress = iEv * 1.0 / nEv;
     Int_t barWidth = 70;
 
-    Int_t pos = barWidth * progress;    
+    Int_t pos = barWidth * progress;
     for (Int_t i = 0; i < barWidth; ++i) {
-        if (i <= pos) printf(ANSI_COLOR_BLUE_BG " " ANSI_COLOR_RESET);
-        else printf(ANSI_COLOR_YELLOW_BG " " ANSI_COLOR_RESET);
+        if (i <= pos)
+            printf(ANSI_COLOR_BLUE_BG " " ANSI_COLOR_RESET);
+        else
+            printf(ANSI_COLOR_YELLOW_BG " " ANSI_COLOR_RESET);
     }
 
     printf(ANSI_COLOR_RED "[%d%%]\r" ANSI_COLOR_RESET, Int_t(progress * 100.0 + 0.5));
     cout.flush();
+}
+
+Double_t GetVZByTwoStraightTracks(BmnTrack* tr0, BmnTrack* tr1, Double_t& dist) {
+    //method returns z coordinate of two tracks crossing point in case of absent magnetic field
+    //dist is filling by distance between this two tracks
+    FairTrackParam* p0 = tr0->GetParamFirst();
+    FairTrackParam* p1 = tr1->GetParamFirst();
+    Double_t axl = p0->GetTx();
+    Double_t ayl = p0->GetTy();
+    Double_t axr = p1->GetTx();
+    Double_t ayr = p1->GetTy();
+    Double_t bxl = p0->GetX() - axl * p0->GetZ();
+    Double_t byl = p0->GetY() - ayl * p0->GetZ();
+    Double_t bxr = p1->GetX() - axr * p1->GetZ();
+    Double_t byr = p1->GetY() - ayr * p1->GetZ();
+    Double_t vz = -((bxl - bxr) * (axl - axr) + (byl - byr) * (ayl - ayr)) / ((axl - axr) * (axl - axr) + (ayl - ayr) * (ayl - ayr));
+    dist = Sqrt(Sq(axl * vz + bxl - axr * vz - bxr) + Sq(ayl * vz + byl - ayr * vz - byr));
+    return vz;
+}
+
+Double_t GetVzByVectorStraightTracks(vector<BmnTrack> tr, Double_t& dist) {
+    if (tr.size() < 2) {
+        dist = 1000;
+        return 1000;
+    }
+    Double_t A = 0;
+    Double_t B = 0;
+    for (Int_t i = 0; i < tr.size() - 1; ++i) {
+        FairTrackParam* pi = tr[i].GetParamFirst();
+        Double_t axi = pi->GetTx();
+        Double_t ayi = pi->GetTy();
+        Double_t bxi = pi->GetX() - axi * pi->GetZ();
+        Double_t byi = pi->GetY() - ayi * pi->GetZ();
+        for (Int_t j = i + 1; j < tr.size(); ++j) {
+            FairTrackParam* pj = tr[j].GetParamFirst();
+            Double_t axj = pj->GetTx();
+            Double_t ayj = pj->GetTy();
+            Double_t bxj = pj->GetX() - axj * pj->GetZ();
+            Double_t byj = pj->GetY() - ayj * pj->GetZ();
+            A += (Sq(axi - axj) + Sq(ayi - ayj));
+            B += ((bxi - bxj) * (axi - axj) + (byi - byj) * (ayi - ayj));
+        }
+    }
+    Double_t vz = -B / A;
+
+    Double_t SumDist = 0;
+    Int_t cntr = 0;
+    for (Int_t i = 0; i < tr.size() - 1; ++i) {
+        FairTrackParam* pi = tr[i].GetParamFirst();
+        Double_t axi = pi->GetTx();
+        Double_t ayi = pi->GetTy();
+        Double_t bxi = pi->GetX() - axi * pi->GetZ();
+        Double_t byi = pi->GetY() - ayi * pi->GetZ();
+        for (Int_t j = i + 1; j < tr.size(); ++j) {
+            FairTrackParam* pj = tr[j].GetParamFirst();
+            Double_t axj = pj->GetTx();
+            Double_t ayj = pj->GetTy();
+            Double_t bxj = pj->GetX() - axj * pj->GetZ();
+            Double_t byj = pj->GetY() - ayj * pj->GetZ();
+            SumDist += Sqrt(Sq(axi * vz + bxi - axj * vz - bxj) + Sq(ayi * vz + byi - ayj * vz - byj));
+            cntr++;
+        }
+    }
+    dist = SumDist / cntr;
+
+    return vz;
 }

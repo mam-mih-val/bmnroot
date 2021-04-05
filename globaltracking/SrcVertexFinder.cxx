@@ -12,11 +12,12 @@ using namespace TMath;
 SrcVertexFinder::SrcVertexFinder(Int_t period, Bool_t isField, Bool_t isExp) {
     fPeriodId = period;
     fEventNo = 0;
-    fGlobalTracksArray = NULL;
-    fGemHitsArray = NULL;
-    fTof400HitsArray = NULL;
-    fVertexArray = NULL;
-    fArmTracksArray = NULL;
+    fGlobalTracksArray = nullptr;
+    fGemHitsArray = nullptr;
+    fMwpcTracksArray = nullptr;
+    fTof400HitsArray = nullptr;
+    fVertexArray = nullptr;
+    fArmTracksArray = nullptr;
     fTime = 0.0;
     fIsField = isField;
     fisExp = isExp;
@@ -31,7 +32,7 @@ InitStatus SrcVertexFinder::Init() {
 
     // Get ROOT Manager
     FairRootManager *ioman = FairRootManager::Instance();
-    if (NULL == ioman)
+    if (nullptr == ioman)
         Fatal("Init", "FairRootManager is not instantiated");
 
     fGlobalTracksArray = (TClonesArray *)ioman->GetObject("BmnGlobalTrack");  // in
@@ -49,6 +50,12 @@ InitStatus SrcVertexFinder::Init() {
     fTof400HitsArray = (TClonesArray *)ioman->GetObject("BmnTof400Hit");  // in
     if (!fTof400HitsArray) {
         cout << "SrcVertexFinder::Init(): branch BmnTof400Hit not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
+    fMwpcTracksArray = (TClonesArray *)ioman->GetObject("BmnMwpcTrack");  // in
+    if (!fMwpcTracksArray) {
+        cout << "SrcVertexFinder::Init(): branch BmnMwpcTrack not found! Task will be deactivated" << endl;
         SetActive(kFALSE);
         return kERROR;
     }
@@ -95,7 +102,8 @@ void SrcVertexFinder::Exec(Option_t *opt) {
         new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) BmnVertex();
         if (fVerbose > 0) cout << "SrcVertexFinder: Vertex NOT found" << endl;
     } else {
-        FindVertexByVirtualPlanes(lTracks, rTracks);
+        //FindVertexByVirtualPlanes(lTracks, rTracks);
+        FindVertexAnalitically(lTracks, rTracks);
         if (fVerbose > 0) {
             BmnVertex *vert = (BmnVertex *)fVertexArray->At(0);
             vert->Print();
@@ -109,6 +117,146 @@ void SrcVertexFinder::Exec(Option_t *opt) {
 
     sw.Stop();
     fTime += sw.RealTime();
+}
+
+void SrcVertexFinder::FindVertexAnalitically(vector<BmnTrack> &lTracks, vector<BmnTrack> &rTracks) {
+    Double_t minVZ = 1000;
+    Double_t vy = 1000;
+    Double_t vx = 1000;
+    Double_t minDist = 1000;
+    vector<BmnTrack> trackCombination;
+    vector<BmnTrack> bestCombination;
+    if (lTracks.size() != 0 && rTracks.size() != 0) {
+        minDist = 1000;
+        minVZ = 1000;
+        for (auto lTr : lTracks) {
+            for (auto rTr : rTracks) {
+                trackCombination.push_back(lTr);
+                trackCombination.push_back(rTr);
+                Double_t dist;
+                Double_t vz = GetVzByVectorStraightTracks(trackCombination, dist);
+                if (dist < minDist) {
+                    minDist = dist;
+                    minVZ = vz;
+                    bestCombination = trackCombination;
+                }
+            }
+        }
+    } else if (lTracks.size() != 0 && rTracks.size() == 0) {
+        for (auto lTr : lTracks) {
+            for (Int_t iGl = 0; iGl < fGlobalTracksArray->GetEntriesFast(); ++iGl) {
+                BmnGlobalTrack *gl = (BmnGlobalTrack *)fGlobalTracksArray->At(iGl);
+                if (gl->GetUpstreamTrackIndex() == -1) continue;
+                trackCombination.push_back(*((BmnTrack *)fGlobalTracksArray->At(iGl)));
+            }
+            for (Int_t iM = 0; iM < fMwpcTracksArray->GetEntriesFast(); ++iM) {
+                BmnTrack *mTr = (BmnTrack *)fMwpcTracksArray->At(iM);
+                if (mTr->GetParamFirst()->GetZ() < -700) trackCombination.push_back(*mTr);
+            }
+            trackCombination.push_back(lTr);
+            Double_t dist;
+            Double_t vz = GetVzByVectorStraightTracks(trackCombination, dist);
+            if (dist < minDist) {
+                minDist = dist;
+                minVZ = vz;
+                bestCombination = trackCombination;
+            }
+            trackCombination.clear();
+        }
+    } else if (rTracks.size() != 0 && lTracks.size() == 0) {
+        for (auto rTr : rTracks) {
+            for (Int_t iGl = 0; iGl < fGlobalTracksArray->GetEntriesFast(); ++iGl) {
+                BmnGlobalTrack *gl = (BmnGlobalTrack *)fGlobalTracksArray->At(iGl);
+                if (gl->GetUpstreamTrackIndex() == -1) continue;
+                trackCombination.push_back(*((BmnTrack *)fGlobalTracksArray->At(iGl)));
+            }
+            for (Int_t iM = 0; iM < fMwpcTracksArray->GetEntriesFast(); ++iM) {
+                BmnTrack *mTr = (BmnTrack *)fMwpcTracksArray->At(iM);
+                if (mTr->GetParamFirst()->GetZ() < -700) trackCombination.push_back(*mTr);
+            }
+            trackCombination.push_back(rTr);
+            Double_t dist;
+            Double_t vz = GetVzByVectorStraightTracks(trackCombination, dist);
+            if (dist < minDist) {
+                minDist = dist;
+                minVZ = vz;
+                bestCombination = trackCombination;
+            }
+            trackCombination.clear();
+        }
+    } else if (rTracks.size() == 0 && lTracks.size() == 0) {
+        for (Int_t iGl = 0; iGl < fGlobalTracksArray->GetEntriesFast(); ++iGl) {
+            BmnGlobalTrack *gl = (BmnGlobalTrack *)fGlobalTracksArray->At(iGl);
+            if (gl->GetUpstreamTrackIndex() == -1) continue;
+            trackCombination.push_back(*((BmnTrack *)fGlobalTracksArray->At(iGl)));
+        }
+        for (Int_t iM = 0; iM < fMwpcTracksArray->GetEntriesFast(); ++iM) {
+            BmnTrack *mTr = (BmnTrack *)fMwpcTracksArray->At(iM);
+            if (mTr->GetParamFirst()->GetZ() < -700) trackCombination.push_back(*mTr);
+        }
+        Double_t dist;
+        Double_t vz = GetVzByVectorStraightTracks(trackCombination, dist);
+        if (dist < minDist) {
+            minDist = dist;
+            minVZ = vz;
+            bestCombination = trackCombination;
+        }
+        trackCombination.clear();
+    } else
+        new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) BmnVertex();
+
+    if (minDist > 10.0) {
+        new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) BmnVertex();
+    } else {
+        for (Int_t iM = 0; iM < fMwpcTracksArray->GetEntriesFast(); ++iM) {
+            BmnTrack *mTr = (BmnTrack *)fMwpcTracksArray->At(iM);
+            if (mTr->GetParamFirst()->GetZ() > -700) continue;  //we need incoming beam
+            Double_t ax = mTr->GetParamFirst()->GetTx();
+            Double_t ay = mTr->GetParamFirst()->GetTy();
+            Double_t x = mTr->GetParamFirst()->GetX();
+            Double_t y = mTr->GetParamFirst()->GetY();
+            Double_t z = mTr->GetParamFirst()->GetZ();
+            Double_t bx = x - ax * z;
+            Double_t by = y - ay * z;
+            vx = ax * minVZ + bx;
+            vy = ay * minVZ + by;
+        }
+
+        Bool_t isLeft = kFALSE;
+        Bool_t isRight = kFALSE;
+        Bool_t isFragm = kFALSE;
+        Bool_t isBeam = kFALSE;
+        for (Int_t iTr = 0; iTr < bestCombination.size(); ++iTr) {
+            BmnTrack track = bestCombination[iTr];
+            if (track.GetFlag() == 13) continue;
+            if (track.GetParamFirst()->GetZ() > -700 && track.GetParamFirst()->GetZ() < -400 && track.GetParamFirst()->GetX() < 0) {  //right arm track
+                track.SetNHits(2);
+                new ((*fArmTracksArray)[fArmTracksArray->GetEntriesFast()]) BmnTrack(track);
+                isRight = kTRUE;
+            }
+            if (track.GetParamFirst()->GetZ() > -700 && track.GetParamFirst()->GetZ() < -400 && track.GetParamFirst()->GetX() > 0) {  //left arm track
+                track.SetNHits(2);
+                new ((*fArmTracksArray)[fArmTracksArray->GetEntriesFast()]) BmnTrack(track);
+                isLeft = kTRUE;
+            }
+            if (track.GetParamFirst()->GetZ() > -400) {  //fragment track
+                isFragm = kTRUE;
+            }
+            if (track.GetParamFirst()->GetZ() < -700) {  //fragment track
+                isBeam = kTRUE;
+            }
+        }
+
+        Int_t type = (isRight && isLeft) ? 10 : (isLeft && isFragm && isBeam) ? 11 : (isRight && isFragm && isBeam) ? 12 : (isBeam && isFragm) ? 13 : -1;
+
+        vector<Int_t> idx;
+        for (Int_t iGl = 0; iGl < fGlobalTracksArray->GetEntriesFast(); ++iGl) {
+            BmnTrack gl = *((BmnTrack *)fGlobalTracksArray->At(iGl));
+            if (gl.GetFlag() != 13) idx.push_back(iGl);
+        }
+
+        new ((*fVertexArray)[fVertexArray->GetEntriesFast()]) BmnVertex(vx, vy, minVZ, minDist, 0, bestCombination.size(), TMatrixFSym(3), type, idx);
+    }
 }
 
 void SrcVertexFinder::FindVertexByVirtualPlanes(vector<BmnTrack> &lTracks, vector<BmnTrack> &rTracks) {
@@ -192,12 +340,12 @@ void SrcVertexFinder::FindVertexByVirtualPlanes(vector<BmnTrack> &lTracks, vecto
             BmnTrack *track = &bestCombination[iTr];
             FairTrackParam par0 = (track->GetParamFirst()->GetZ() < -400) ? (*(track->GetParamLast())) : (*(track->GetParamFirst()));
             Double_t len = track->GetLength();
-            if (fKalman->TGeoTrackPropagate(&par0, minVZ, 2212, NULL, &len, kFALSE) == kBMNERROR) {
+            if (fKalman->TGeoTrackPropagate(&par0, minVZ, 2212, nullptr, &len, kFALSE) == kBMNERROR) {
                 track->SetFlag(13);
                 continue;
             }
             track->SetLength(len);
-            track->SetB(len / track->GetB() / (TMath::C() * 1e-7)); //for arm tracks B contains beta. It is stupid, but simple way to store it...
+            track->SetB(len / track->GetB() / (TMath::C() * 1e-7));  //for arm tracks B contains beta. It is stupid, but simple way to store it...
             xHits.push_back(par0.GetX());
             yHits.push_back(par0.GetY());
         }
@@ -222,7 +370,7 @@ void SrcVertexFinder::FindVertexByVirtualPlanes(vector<BmnTrack> &lTracks, vecto
                 new ((*fArmTracksArray)[fArmTracksArray->GetEntriesFast()]) BmnTrack(track);
                 isLeft = kTRUE;
             }
-            if (track.GetParamFirst()->GetZ() > -400) { //fragment track
+            if (track.GetParamFirst()->GetZ() > -400) {  //fragment track
 
                 isFragm = kTRUE;
             }
@@ -290,7 +438,7 @@ Float_t SrcVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range, vecto
             Double_t yTr[nPlanes];
             Bool_t trOk = kTRUE;
             for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
-                if (fKalman->TGeoTrackPropagate(&par0, zPlane[iPlane], 2212, NULL, NULL, kFALSE) == kBMNERROR) {
+                if (fKalman->TGeoTrackPropagate(&par0, zPlane[iPlane], 2212, nullptr, nullptr, kFALSE) == kBMNERROR) {
                     trOk = kFALSE;
                     break;
                 }
@@ -365,29 +513,29 @@ void SrcVertexFinder::CreateArmCandidates(vector<BmnTrack> &lTracks, vector<BmnT
     //Coeficients for arms alignment
     Double_t dxall, dyall;
     Double_t dy_tl, dy_tr;
-    Double_t gx,gy,gz,  tx,ty,tz;
-    if(fisExp){
+    Double_t gx, gy, gz, tx, ty, tz;
+    if (fisExp) {
         dxall = -2.113;
         dyall = 2.504;
         dy_tl = -1.72;
         dy_tr = 1.3;
-    }else{
+    } else {
         dxall = 0;
         dyall = 0;
         dy_tl = 0;
         dy_tr = 0;
     }
-    
+
     for (auto gIdx : lGemHitIdx) {
         for (auto tIdx : lTofHitIdx) {
             tHit = *((BmnHit *)fTof400HitsArray->At(tIdx));
             gHit = *((BmnHit *)fGemHitsArray->At(gIdx));
             BmnTrack lTr;
-            gx = gHit.GetX()+dxall;
-            gy = gHit.GetY()+dyall;
+            gx = gHit.GetX() + dxall;
+            gy = gHit.GetY() + dyall;
             gz = gHit.GetZ();
-            tx = tHit.GetX()+dxall;
-            ty = tHit.GetY()+dyall+dy_tl;
+            tx = tHit.GetX() + dxall;
+            ty = tHit.GetY() + dyall + dy_tl;
             tz = tHit.GetZ();
 
             lTr.GetParamFirst()->SetX(gx);
@@ -400,7 +548,7 @@ void SrcVertexFinder::CreateArmCandidates(vector<BmnTrack> &lTracks, vector<BmnT
             lTr.GetParamLast()->SetZ(tz);
             lTr.GetParamLast()->SetTx((tx - gx) / (tz - gz));
             lTr.GetParamLast()->SetTy((ty - gy) / (tz - gz));
-            lTr.SetB(tHit.GetTimeStamp()); //temporary
+            lTr.SetB(tHit.GetTimeStamp());  //temporary
             lTracks.push_back(lTr);
         }
     }
@@ -409,11 +557,11 @@ void SrcVertexFinder::CreateArmCandidates(vector<BmnTrack> &lTracks, vector<BmnT
             tHit = *((BmnHit *)fTof400HitsArray->At(tIdx));
             gHit = *((BmnHit *)fGemHitsArray->At(gIdx));
             BmnTrack rTr;
-            gx = gHit.GetX()+dxall;
-            gy = gHit.GetY()+dyall;
+            gx = gHit.GetX() + dxall;
+            gy = gHit.GetY() + dyall;
             gz = gHit.GetZ();
-            tx = tHit.GetX()+dxall;
-            ty = tHit.GetY()+dyall+dy_tr;
+            tx = tHit.GetX() + dxall;
+            ty = tHit.GetY() + dyall + dy_tr;
             tz = tHit.GetZ();
 
             rTr.GetParamFirst()->SetX(gx);
@@ -426,7 +574,7 @@ void SrcVertexFinder::CreateArmCandidates(vector<BmnTrack> &lTracks, vector<BmnT
             rTr.GetParamLast()->SetZ(tz);
             rTr.GetParamLast()->SetTx((tx - gx) / (tz - gz));
             rTr.GetParamLast()->SetTy((ty - gy) / (tz - gz));
-            rTr.SetB(tHit.GetTimeStamp()); //temporary
+            rTr.SetB(tHit.GetTimeStamp());  //temporary
             rTracks.push_back(rTr);
         }
     }

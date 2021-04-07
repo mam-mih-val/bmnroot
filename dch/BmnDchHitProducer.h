@@ -49,7 +49,6 @@ private:
     TClonesArray* fBmnHitsArray;
 
     //DCH parameters
-    UInt_t fNActivePlanes; //number of active wire planes in DHC
     TString *fPlaneTypes;
     
     TRandom rand_gen;

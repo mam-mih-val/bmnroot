@@ -20,6 +20,7 @@ TH1F* hMCtr_ion_dc2 = new TH1F("hMCHits_ion_dc2", "ion MC hits in DCH2 ", 9, 0, 
 TH1F* hMCtr_ionID_dc1 = new TH1F("hMCHits_ionID_dc1", "ion MC hits ID in DCH1 ", 10000, 0, 10000);
 TH1F* hMCtr_ionID_dc2 = new TH1F("hMCHits_ionID_dc2", "ion MC hits ID in DCH2 ", 10000, 0, 10000);
 
+const UInt_t fNActivePlanes = 8; //number of active wire planes in DHC
 BmnDchHitProducer::BmnDchHitProducer() {
   fInputBranchName = "DCHPoint";
   fOutputHitsBranchName = "BmnDchHit";
@@ -30,8 +31,7 @@ BmnDchHitProducer::BmnDchHitProducer() {
   fhList2.Add(hMCtr_ionID_dc1);
   fhList2.Add(hMCtr_ionID_dc2);
   
-  fNActivePlanes = 8;
-  fPlaneTypes = new TString[fNActivePlanes]{"vb", "va", "ub", "ua" ,"yb", "ya", "xb", "xa"};   
+  fPlaneTypes = new TString[fNActivePlanes]{"vb", "va", "ub", "ua" ,"yb", "ya", "xb", "xa"};
 }
 
 BmnDchHitProducer::~BmnDchHitProducer() {

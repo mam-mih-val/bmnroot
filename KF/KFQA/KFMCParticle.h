@@ -41,8 +41,8 @@ class KFMCParticle: public TObject
   bool IsReconstructable() const {return fIsReconstructable;}
   void SetAsReconstructable() { fIsReconstructable = 1;}
   
-  void CalculateIsReconstructable(unsigned int NDaughters = 2){}
-  void CalculateIsRecRec(unsigned int NDaughters = 2){}
+  void CalculateIsReconstructable(unsigned int n_daughters = 2){}
+  void CalculateIsRecRec(unsigned int n_daughters = 2){}
   
  private: //data
   std::vector<int> fDaughterIds;

@@ -12,15 +12,15 @@ public:
         ;
     }
 
-    void SetCuts(Double_t dca0, Double_t dca12, Double_t dca1, Double_t dca2) {
-        fDCA0 = dca0;
-        fDCA12 = dca12;
-        fDCA1 = dca1;
-        fDCA2 = dca2;
+    void SetCuts(Double_t dca_0, Double_t dca_12, Double_t dca_1, Double_t dca_2) {
+        fDCA0 = dca_0;
+        fDCA12 = dca_12;
+        fDCA1 = dca_1;
+        fDCA2 = dca_2;
     }
 
-    void SetCuts(Int_t part, Int_t det, Int_t nHits) {
-        fNhits[part][det] = nHits;
+    void SetCuts(Int_t part, Int_t det, Int_t n_hits) {
+        fNhits[part][det] = n_hits;
     }
 
     Double_t dca0() {

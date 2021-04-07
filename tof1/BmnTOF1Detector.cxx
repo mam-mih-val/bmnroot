@@ -8,7 +8,7 @@ BmnTOF1Detector::BmnTOF1Detector() {
 
 //----------------------------------------------------------------------------------------
 
-BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0, Int_t Verbose = 0) {
+BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t fill_hist = 0, Int_t Verbose = 0) {
     Clear();
     fVerbose = Verbose;
     memset(fKilled, 0, sizeof (fKilled));
@@ -17,7 +17,7 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0, Int_t Verbose
     fNEvents = 0;
     //KillStrip(0);
     //KillStrip(47);
-    fFillHist = FillHist;
+    fFillHist = fill_hist;
     fNPlane = NPlane;
     fStripLength = 30; // cm
     fSignalVelosity = 0.06; // 0.06 ns/cm

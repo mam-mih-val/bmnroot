@@ -148,7 +148,6 @@ private:
     Int_t fCurrentRun;
 
     Int_t nReleases;
-    Int_t nRuns;
     Int_t* runs;
     Int_t nSetups;
     TString* setups;

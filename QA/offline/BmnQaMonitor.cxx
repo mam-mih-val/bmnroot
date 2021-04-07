@@ -1,5 +1,7 @@
 #include "BmnQaMonitor.h"
 
+const Int_t nRuns = 2; // 6, 7
+
 BmnQaMonitor::BmnQaMonitor(TString dir) :
 fServer(nullptr),
 gem(nullptr),
@@ -22,9 +24,8 @@ fRefRunInfo(nullptr),
 runs(nullptr),
 setups(nullptr) {
     nReleases = fSteering->GetNReleases();
-    nRuns = 2; // 6, 7
-    nSetups = 2; // BM@N, SRC
 
+    nSetups = 2; // BM@N, SRC
     runs = new Int_t[nRuns]{6, 7};
     setups = new TString[nRuns]{"BM@N", "SRC"};
 

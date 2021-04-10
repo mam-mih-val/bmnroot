@@ -18,6 +18,9 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     TStopwatch timer;
     timer.Start();
 
+    // check input file exists
+    if (!BmnFunctionSet::CheckFileExist(inputFileName, 1)) exit(-1);
+
     // -----   Reconstruction run   --------------------------------------------
     FairRunAna* fRunAna = new FairRunAna();
     fRunAna->SetEventHeader(new DstEventHeader());
@@ -33,28 +36,27 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // DO NOT change it manually!
     Int_t run_period = 7, run_number = -2;
     Double_t fieldScale = 0.;
-    if (isExp)
+    if (!isExp) // for simulation files
+        fFileSource = new FairFileSource(inputFileName);
+    else        // for experimental files
     {
-        if (!BmnFunctionSet::CheckFileExist(inputFileName)) {
-            cout << "ERROR: digi file " + inputFileName + " does not exist!" << endl;
-            exit(-1);
-        }
         // set source as raw root data file (without additional directories)
         fFileSource = new BmnFileSource(inputFileName, run_period, run_number);
 
         // get geometry for run
-        TString geoFileName = "full_geometry.root";
+        gRandom->SetSeed(0);
+        TString geoFileName = Form("current_geo_file_%d.root", UInt_t(gRandom->Integer(UINT32_MAX)));
         Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
         if (res_code != 0) {
             cout << "ERROR: could not read geometry file from the database" << endl;
-            exit(-2);
+            exit(-3);
         }
 
         // get gGeoManager from ROOT file (if required)
         TFile* geoFile = new TFile(geoFileName, "READ");
         if (!geoFile->IsOpen()) {
             cout << "ERROR: could not open ROOT file with geometry: " + geoFileName << endl;
-            exit(-3);
+            exit(-4);
         }
         TList* keyList = geoFile->GetListOfKeys();
         TIter next(keyList);
@@ -64,17 +66,17 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
             key->ReadObj();
         else {
             cout << "ERROR: TGeoManager is not top element in geometry file " + geoFileName << endl;
-            exit(-4);
+            exit(-5);
         }
 
         // set magnet field with factor corresponding to the given run
         UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
         if (pCurrentRun == 0)
-            exit(-5);
+            exit(-6);
         Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
         if (field_voltage == NULL) {
             cout << "ERROR: no field voltage was found for run " << run_period << ":" << run_number << endl;
-            exit(-6);
+            exit(-7);
         }
         Double_t map_current = 55.87;
         if (*field_voltage < 10) {
@@ -106,12 +108,12 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
         cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
         cout << "||\t\t\t\t\t\t\t||" << endl;
         cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
+        remove(geoFileName.Data());
     }
-    else { // for simulation files
-        if (!BmnFunctionSet::CheckFileExist(inputFileName)) return;
-        fFileSource = new FairFileSource(inputFileName);
-    }
+
     fRunAna->SetSource(fFileSource);
+    // if directory for the output file does not exist, then create
+    if (BmnFunctionSet::CreateDirectoryTree(srcdstFileName, 1) < 0) exit(-2);
     fRunAna->SetSink(new FairRootFileSink(srcdstFileName));
     fRunAna->SetGenerateRunInfo(false);
 

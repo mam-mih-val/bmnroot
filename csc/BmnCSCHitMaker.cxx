@@ -113,6 +113,13 @@ InitStatus BmnCSCHitMaker::Init() {
             if (fVerbose > 1) cout << "   Current CSC Configuration : RunSRCSpring2018" << "\n";
             break;
 
+        case BmnCSCConfiguration::FutureConfig2020:
+            StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCFutureConfig2020.xml");
+            TransfSet = new BmnCSCTransform();
+            TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCFutureConfig2020.xml");
+            if (fVerbose > 1) cout << "   Current CSC Configuration : FutureConfig2020" << "\n";
+            break;
+
         default:
             StationSet = nullptr;
     }

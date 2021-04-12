@@ -1,0 +1,654 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    CSC geometry: FutureConfig2020
+    Author: Baranov D.
+    Date: 12.04.2021
+
+    A right-handed coordinates are used.
+    If you look at the CSC from the target:
+        x-axis is directed to the left,
+        y-axis - to the top,
+        z-axis - to the CSC.
+-->
+
+<StationSet>
+
+<!-- Station 0 -->
+    <Station xPosition="110.0" yPosition="0.0" zPosition="410.0">
+
+        <!-- module 0 -->
+        <Module xShift="0.0" yShift="27.1875" zShift="1.25" thickness="0.76">
+
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-14.1125" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="27.1875" rxborder="-56.5" ryborder="-14.1125">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+26.0625" />
+                    <DeadPoint x="+56.5" y="+27.1875" />
+                    <DeadPoint x="-56.5" y="+27.1875" />
+                    <DeadPoint x="-56.5" y="+26.0625" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-14.1125" />
+                    <DeadPoint x="+56.5" y="+26.0625" />
+                    <DeadPoint x="+56.0" y="+26.0625" />
+                    <DeadPoint x="+56.0" y="-14.1125" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="-14.1125" />
+                    <DeadPoint x="-56.0" y="+26.0625" />
+                    <DeadPoint x="-56.5" y="+26.0625" />
+                    <DeadPoint x="-56.5" y="-14.1125" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="0" type="upper" stripAngle="+15.1084" pitch="0.24135" xorig="+56.5" yorig="-14.1125" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="28.383" rxborder="-56.5" ryborder="-14.1125">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+26.0625" />
+                    <DeadPoint x="+56.5" y="+27.1875" />
+                    <DeadPoint x="-56.5" y="+27.1875" />
+                    <DeadPoint x="-56.5" y="+26.0625" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-14.1125" />
+                    <DeadPoint x="+56.5" y="+26.0625" />
+                    <DeadPoint x="+56.0" y="+26.0625" />
+                    <DeadPoint x="+56.0" y="-14.1125" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="-14.1125" />
+                    <DeadPoint x="-56.0" y="+26.0625" />
+                    <DeadPoint x="-56.5" y="+26.0625" />
+                    <DeadPoint x="-56.5" y="-14.1125" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-27.1775" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="-14.1325" rxborder="-56.5" ryborder="-27.1775">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-27.1775" />
+                    <DeadPoint x="+56.5" y="-14.1325" />
+                    <DeadPoint x="+56.0" y="-14.1325" />
+                    <DeadPoint x="+56.0" y="-27.1775" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="-27.1775" />
+                    <DeadPoint x="-56.0" y="-14.1325" />
+                    <DeadPoint x="-56.5" y="-14.1325" />
+                    <DeadPoint x="-56.5" y="-27.1775" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="1" type="upper" stripAngle="+15.1084" pitch="0.24135" xorig="+56.5" yorig="-27.1775" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="-14.21285" rxborder="-56.5" ryborder="-27.1775">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-27.1775" />
+                    <DeadPoint x="+56.5" y="-14.1325" />
+                    <DeadPoint x="+56.0" y="-14.1325" />
+                    <DeadPoint x="+56.0" y="-27.1775" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="-27.1775" />
+                    <DeadPoint x="-56.0" y="-14.1325" />
+                    <DeadPoint x="-56.5" y="-14.1325" />
+                    <DeadPoint x="-56.5" y="-27.1775" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+        <!-- module 1 -->
+        <Module xShift="0.0" yShift="-27.1875" zShift="1.25" thickness="0.76">
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-110.1895" yTranslation="+24.97175" zTranslation="-413.2" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="180.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+110.1895" yTranslation="-24.97175" zTranslation="+413.2" />
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="+14.1325" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+27.1975" rxborder="-56.5" ryborder="+14.1325">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+27.1775" />
+                    <DeadPoint x="+56.5" y="+14.1325" />
+                    <DeadPoint x="+56.0" y="+14.1325" />
+                    <DeadPoint x="+56.0" y="+27.1775" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="+27.1775" />
+                    <DeadPoint x="-56.0" y="+14.1325" />
+                    <DeadPoint x="-56.5" y="+14.1325" />
+                    <DeadPoint x="-56.5" y="+27.1775" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="0" type="upper" stripAngle="+15.1084" pitch="0.24135" xorig="+56.5" yorig="+14.1325" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+27.1975" rxborder="-56.5" ryborder="+14.21285">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+27.1775" />
+                    <DeadPoint x="+56.5" y="+14.1325" />
+                    <DeadPoint x="+56.0" y="+14.1325" />
+                    <DeadPoint x="+56.0" y="+27.1775" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="+27.1775" />
+                    <DeadPoint x="-56.0" y="+14.1325" />
+                    <DeadPoint x="-56.5" y="+14.1325" />
+                    <DeadPoint x="-56.5" y="+27.1775" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-27.1875" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+14.2129" rxborder="-56.5" ryborder="-27.1875">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-26.0625" />
+                    <DeadPoint x="+56.5" y="-27.1875" />
+                    <DeadPoint x="-56.5" y="-27.1875" />
+                    <DeadPoint x="-56.5" y="-26.0625" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+14.1125" />
+                    <DeadPoint x="+56.5" y="-26.0625" />
+                    <DeadPoint x="+56.0" y="-26.0625" />
+                    <DeadPoint x="+56.0" y="+14.1125" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="+14.1125" />
+                    <DeadPoint x="-56.0" y="-26.0625" />
+                    <DeadPoint x="-56.5" y="-26.0625" />
+                    <DeadPoint x="-56.5" y="+14.1125" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="1" type="upper" stripAngle="+15.1084" pitch="0.24135" xorig="+56.5" yorig="-27.1875" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+14.2129" rxborder="-56.5" ryborder="-28.383">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-26.0625" />
+                    <DeadPoint x="+56.5" y="-27.1875" />
+                    <DeadPoint x="-56.5" y="-27.1875" />
+                    <DeadPoint x="-56.5" y="-26.0625" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+14.1125" />
+                    <DeadPoint x="+56.5" y="-26.0625" />
+                    <DeadPoint x="+56.0" y="-26.0625" />
+                    <DeadPoint x="+56.0" y="+14.1125" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="+14.1125" />
+                    <DeadPoint x="-56.0" y="-26.0625" />
+                    <DeadPoint x="-56.5" y="-26.0625" />
+                    <DeadPoint x="-56.5" y="+14.1125" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+    </Station>
+
+<!-- Station 1 -->
+    <Station xPosition="-110.0" yPosition="0.0" zPosition="410.0">
+
+        <!-- module 0 -->
+        <Module xShift="0.0" yShift="27.1875" zShift="1.25" thickness="0.76">
+
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-14.1125" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="27.1875" rxborder="-56.5" ryborder="-14.1125">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+26.0625" />
+                    <DeadPoint x="+56.5" y="+27.1875" />
+                    <DeadPoint x="-56.5" y="+27.1875" />
+                    <DeadPoint x="-56.5" y="+26.0625" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-14.1125" />
+                    <DeadPoint x="+56.5" y="+26.0625" />
+                    <DeadPoint x="+56.0" y="+26.0625" />
+                    <DeadPoint x="+56.0" y="-14.1125" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="-14.1125" />
+                    <DeadPoint x="-56.0" y="+26.0625" />
+                    <DeadPoint x="-56.5" y="+26.0625" />
+                    <DeadPoint x="-56.5" y="-14.1125" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="0" type="upper" stripAngle="+15.1084" pitch="0.24135" xorig="+56.5" yorig="-14.1125" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="28.383" rxborder="-56.5" ryborder="-14.1125">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+26.0625" />
+                    <DeadPoint x="+56.5" y="+27.1875" />
+                    <DeadPoint x="-56.5" y="+27.1875" />
+                    <DeadPoint x="-56.5" y="+26.0625" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-14.1125" />
+                    <DeadPoint x="+56.5" y="+26.0625" />
+                    <DeadPoint x="+56.0" y="+26.0625" />
+                    <DeadPoint x="+56.0" y="-14.1125" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="-14.1125" />
+                    <DeadPoint x="-56.0" y="+26.0625" />
+                    <DeadPoint x="-56.5" y="+26.0625" />
+                    <DeadPoint x="-56.5" y="-14.1125" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-27.1775" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="-14.1325" rxborder="-56.5" ryborder="-27.1775">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-27.1775" />
+                    <DeadPoint x="+56.5" y="-14.1325" />
+                    <DeadPoint x="+56.0" y="-14.1325" />
+                    <DeadPoint x="+56.0" y="-27.1775" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="-27.1775" />
+                    <DeadPoint x="-56.0" y="-14.1325" />
+                    <DeadPoint x="-56.5" y="-14.1325" />
+                    <DeadPoint x="-56.5" y="-27.1775" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="1" type="upper" stripAngle="+15.1084" pitch="0.24135" xorig="+56.5" yorig="-27.1775" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="-14.21285" rxborder="-56.5" ryborder="-27.1775">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-27.1775" />
+                    <DeadPoint x="+56.5" y="-14.1325" />
+                    <DeadPoint x="+56.0" y="-14.1325" />
+                    <DeadPoint x="+56.0" y="-27.1775" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="-27.1775" />
+                    <DeadPoint x="-56.0" y="-14.1325" />
+                    <DeadPoint x="-56.5" y="-14.1325" />
+                    <DeadPoint x="-56.5" y="-27.1775" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+        <!-- module 1 -->
+        <Module xShift="0.0" yShift="-27.1875" zShift="1.25" thickness="0.76">
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-110.1895" yTranslation="+24.97175" zTranslation="-413.2" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="180.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+110.1895" yTranslation="-24.97175" zTranslation="+413.2" />
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="+14.1325" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+27.1975" rxborder="-56.5" ryborder="+14.1325">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+27.1775" />
+                    <DeadPoint x="+56.5" y="+14.1325" />
+                    <DeadPoint x="+56.0" y="+14.1325" />
+                    <DeadPoint x="+56.0" y="+27.1775" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="+27.1775" />
+                    <DeadPoint x="-56.0" y="+14.1325" />
+                    <DeadPoint x="-56.5" y="+14.1325" />
+                    <DeadPoint x="-56.5" y="+27.1775" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="0" type="upper" stripAngle="+15.1084" pitch="0.24135" xorig="+56.5" yorig="+14.1325" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+27.1975" rxborder="-56.5" ryborder="+14.21285">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+27.1775" />
+                    <DeadPoint x="+56.5" y="+14.1325" />
+                    <DeadPoint x="+56.0" y="+14.1325" />
+                    <DeadPoint x="+56.0" y="+27.1775" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="+27.1775" />
+                    <DeadPoint x="-56.0" y="+14.1325" />
+                    <DeadPoint x="-56.5" y="+14.1325" />
+                    <DeadPoint x="-56.5" y="+27.1775" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-27.1875" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+14.2129" rxborder="-56.5" ryborder="-27.1875">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-26.0625" />
+                    <DeadPoint x="+56.5" y="-27.1875" />
+                    <DeadPoint x="-56.5" y="-27.1875" />
+                    <DeadPoint x="-56.5" y="-26.0625" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+14.1125" />
+                    <DeadPoint x="+56.5" y="-26.0625" />
+                    <DeadPoint x="+56.0" y="-26.0625" />
+                    <DeadPoint x="+56.0" y="+14.1125" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="+14.1125" />
+                    <DeadPoint x="-56.0" y="-26.0625" />
+                    <DeadPoint x="-56.5" y="-26.0625" />
+                    <DeadPoint x="-56.5" y="+14.1125" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="1" type="upper" stripAngle="+15.1084" pitch="0.24135" xorig="+56.5" yorig="-27.1875" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+14.2129" rxborder="-56.5" ryborder="-28.383">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-26.0625" />
+                    <DeadPoint x="+56.5" y="-27.1875" />
+                    <DeadPoint x="-56.5" y="-27.1875" />
+                    <DeadPoint x="-56.5" y="-26.0625" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+14.1125" />
+                    <DeadPoint x="+56.5" y="-26.0625" />
+                    <DeadPoint x="+56.0" y="-26.0625" />
+                    <DeadPoint x="+56.0" y="+14.1125" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="+14.1125" />
+                    <DeadPoint x="-56.0" y="-26.0625" />
+                    <DeadPoint x="-56.5" y="-26.0625" />
+                    <DeadPoint x="-56.5" y="+14.1125" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+    </Station>
+
+<!-- Station 2 -->
+    <Station xPosition="130.0" yPosition="0.0" zPosition="470.0">
+
+        <!-- module 0 -->
+        <Module xShift="0.0" yShift="27.1875" zShift="1.25" thickness="0.76">
+
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-14.1125" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="27.1875" rxborder="-56.5" ryborder="-14.1125">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+26.0625" />
+                    <DeadPoint x="+56.5" y="+27.1875" />
+                    <DeadPoint x="-56.5" y="+27.1875" />
+                    <DeadPoint x="-56.5" y="+26.0625" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-14.1125" />
+                    <DeadPoint x="+56.5" y="+26.0625" />
+                    <DeadPoint x="+56.0" y="+26.0625" />
+                    <DeadPoint x="+56.0" y="-14.1125" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="-14.1125" />
+                    <DeadPoint x="-56.0" y="+26.0625" />
+                    <DeadPoint x="-56.5" y="+26.0625" />
+                    <DeadPoint x="-56.5" y="-14.1125" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="0" type="upper" stripAngle="+15.1084" pitch="0.24135" xorig="+56.5" yorig="-14.1125" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="28.383" rxborder="-56.5" ryborder="-14.1125">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+26.0625" />
+                    <DeadPoint x="+56.5" y="+27.1875" />
+                    <DeadPoint x="-56.5" y="+27.1875" />
+                    <DeadPoint x="-56.5" y="+26.0625" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-14.1125" />
+                    <DeadPoint x="+56.5" y="+26.0625" />
+                    <DeadPoint x="+56.0" y="+26.0625" />
+                    <DeadPoint x="+56.0" y="-14.1125" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="-14.1125" />
+                    <DeadPoint x="-56.0" y="+26.0625" />
+                    <DeadPoint x="-56.5" y="+26.0625" />
+                    <DeadPoint x="-56.5" y="-14.1125" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-27.1775" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="-14.1325" rxborder="-56.5" ryborder="-27.1775">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-27.1775" />
+                    <DeadPoint x="+56.5" y="-14.1325" />
+                    <DeadPoint x="+56.0" y="-14.1325" />
+                    <DeadPoint x="+56.0" y="-27.1775" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="-27.1775" />
+                    <DeadPoint x="-56.0" y="-14.1325" />
+                    <DeadPoint x="-56.5" y="-14.1325" />
+                    <DeadPoint x="-56.5" y="-27.1775" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="1" type="upper" stripAngle="+15.1084" pitch="0.24135" xorig="+56.5" yorig="-27.1775" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="-14.21285" rxborder="-56.5" ryborder="-27.1775">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-27.1775" />
+                    <DeadPoint x="+56.5" y="-14.1325" />
+                    <DeadPoint x="+56.0" y="-14.1325" />
+                    <DeadPoint x="+56.0" y="-27.1775" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="-27.1775" />
+                    <DeadPoint x="-56.0" y="-14.1325" />
+                    <DeadPoint x="-56.5" y="-14.1325" />
+                    <DeadPoint x="-56.5" y="-27.1775" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+        <!-- module 1 -->
+        <Module xShift="0.0" yShift="-27.1875" zShift="1.25" thickness="0.76">
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-110.1895" yTranslation="+24.97175" zTranslation="-413.2" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="180.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+110.1895" yTranslation="-24.97175" zTranslation="+413.2" />
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="+14.1325" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+27.1975" rxborder="-56.5" ryborder="+14.1325">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+27.1775" />
+                    <DeadPoint x="+56.5" y="+14.1325" />
+                    <DeadPoint x="+56.0" y="+14.1325" />
+                    <DeadPoint x="+56.0" y="+27.1775" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="+27.1775" />
+                    <DeadPoint x="-56.0" y="+14.1325" />
+                    <DeadPoint x="-56.5" y="+14.1325" />
+                    <DeadPoint x="-56.5" y="+27.1775" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="0" type="upper" stripAngle="+15.1084" pitch="0.24135" xorig="+56.5" yorig="+14.1325" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+27.1975" rxborder="-56.5" ryborder="+14.21285">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+27.1775" />
+                    <DeadPoint x="+56.5" y="+14.1325" />
+                    <DeadPoint x="+56.0" y="+14.1325" />
+                    <DeadPoint x="+56.0" y="+27.1775" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="+27.1775" />
+                    <DeadPoint x="-56.0" y="+14.1325" />
+                    <DeadPoint x="-56.5" y="+14.1325" />
+                    <DeadPoint x="-56.5" y="+27.1775" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-27.1875" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+14.2129" rxborder="-56.5" ryborder="-27.1875">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-26.0625" />
+                    <DeadPoint x="+56.5" y="-27.1875" />
+                    <DeadPoint x="-56.5" y="-27.1875" />
+                    <DeadPoint x="-56.5" y="-26.0625" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+14.1125" />
+                    <DeadPoint x="+56.5" y="-26.0625" />
+                    <DeadPoint x="+56.0" y="-26.0625" />
+                    <DeadPoint x="+56.0" y="+14.1125" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="+14.1125" />
+                    <DeadPoint x="-56.0" y="-26.0625" />
+                    <DeadPoint x="-56.5" y="-26.0625" />
+                    <DeadPoint x="-56.5" y="+14.1125" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="1" type="upper" stripAngle="+15.1084" pitch="0.24135" xorig="+56.5" yorig="-27.1875" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+14.2129" rxborder="-56.5" ryborder="-28.383">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-26.0625" />
+                    <DeadPoint x="+56.5" y="-27.1875" />
+                    <DeadPoint x="-56.5" y="-27.1875" />
+                    <DeadPoint x="-56.5" y="-26.0625" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+14.1125" />
+                    <DeadPoint x="+56.5" y="-26.0625" />
+                    <DeadPoint x="+56.0" y="-26.0625" />
+                    <DeadPoint x="+56.0" y="+14.1125" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="+14.1125" />
+                    <DeadPoint x="-56.0" y="-26.0625" />
+                    <DeadPoint x="-56.5" y="-26.0625" />
+                    <DeadPoint x="-56.5" y="+14.1125" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+    </Station>
+
+<!-- Station 3 -->
+    <Station xPosition="-130.0" yPosition="0.0" zPosition="470.0">
+
+        <!-- module 0 -->
+        <Module xShift="0.0" yShift="27.1875" zShift="1.25" thickness="0.76">
+
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-14.1125" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="27.1875" rxborder="-56.5" ryborder="-14.1125">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+26.0625" />
+                    <DeadPoint x="+56.5" y="+27.1875" />
+                    <DeadPoint x="-56.5" y="+27.1875" />
+                    <DeadPoint x="-56.5" y="+26.0625" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-14.1125" />
+                    <DeadPoint x="+56.5" y="+26.0625" />
+                    <DeadPoint x="+56.0" y="+26.0625" />
+                    <DeadPoint x="+56.0" y="-14.1125" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="-14.1125" />
+                    <DeadPoint x="-56.0" y="+26.0625" />
+                    <DeadPoint x="-56.5" y="+26.0625" />
+                    <DeadPoint x="-56.5" y="-14.1125" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="0" type="upper" stripAngle="+15.1084" pitch="0.24135" xorig="+56.5" yorig="-14.1125" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="28.383" rxborder="-56.5" ryborder="-14.1125">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+26.0625" />
+                    <DeadPoint x="+56.5" y="+27.1875" />
+                    <DeadPoint x="-56.5" y="+27.1875" />
+                    <DeadPoint x="-56.5" y="+26.0625" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-14.1125" />
+                    <DeadPoint x="+56.5" y="+26.0625" />
+                    <DeadPoint x="+56.0" y="+26.0625" />
+                    <DeadPoint x="+56.0" y="-14.1125" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="-14.1125" />
+                    <DeadPoint x="-56.0" y="+26.0625" />
+                    <DeadPoint x="-56.5" y="+26.0625" />
+                    <DeadPoint x="-56.5" y="-14.1125" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-27.1775" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="-14.1325" rxborder="-56.5" ryborder="-27.1775">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-27.1775" />
+                    <DeadPoint x="+56.5" y="-14.1325" />
+                    <DeadPoint x="+56.0" y="-14.1325" />
+                    <DeadPoint x="+56.0" y="-27.1775" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="-27.1775" />
+                    <DeadPoint x="-56.0" y="-14.1325" />
+                    <DeadPoint x="-56.5" y="-14.1325" />
+                    <DeadPoint x="-56.5" y="-27.1775" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="1" type="upper" stripAngle="+15.1084" pitch="0.24135" xorig="+56.5" yorig="-27.1775" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="-14.21285" rxborder="-56.5" ryborder="-27.1775">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-27.1775" />
+                    <DeadPoint x="+56.5" y="-14.1325" />
+                    <DeadPoint x="+56.0" y="-14.1325" />
+                    <DeadPoint x="+56.0" y="-27.1775" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="-27.1775" />
+                    <DeadPoint x="-56.0" y="-14.1325" />
+                    <DeadPoint x="-56.5" y="-14.1325" />
+                    <DeadPoint x="-56.5" y="-27.1775" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+        <!-- module 1 -->
+        <Module xShift="0.0" yShift="-27.1875" zShift="1.25" thickness="0.76">
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-110.1895" yTranslation="+24.97175" zTranslation="-413.2" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="180.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+110.1895" yTranslation="-24.97175" zTranslation="+413.2" />
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="+14.1325" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+27.1975" rxborder="-56.5" ryborder="+14.1325">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+27.1775" />
+                    <DeadPoint x="+56.5" y="+14.1325" />
+                    <DeadPoint x="+56.0" y="+14.1325" />
+                    <DeadPoint x="+56.0" y="+27.1775" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="+27.1775" />
+                    <DeadPoint x="-56.0" y="+14.1325" />
+                    <DeadPoint x="-56.5" y="+14.1325" />
+                    <DeadPoint x="-56.5" y="+27.1775" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="0" type="upper" stripAngle="+15.1084" pitch="0.24135" xorig="+56.5" yorig="+14.1325" xsize="113.0" ysize="13.045" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+27.1975" rxborder="-56.5" ryborder="+14.21285">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+27.1775" />
+                    <DeadPoint x="+56.5" y="+14.1325" />
+                    <DeadPoint x="+56.0" y="+14.1325" />
+                    <DeadPoint x="+56.0" y="+27.1775" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="+27.1775" />
+                    <DeadPoint x="-56.0" y="+14.1325" />
+                    <DeadPoint x="-56.5" y="+14.1325" />
+                    <DeadPoint x="-56.5" y="+27.1775" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-27.1875" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+14.2129" rxborder="-56.5" ryborder="-27.1875">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-26.0625" />
+                    <DeadPoint x="+56.5" y="-27.1875" />
+                    <DeadPoint x="-56.5" y="-27.1875" />
+                    <DeadPoint x="-56.5" y="-26.0625" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+14.1125" />
+                    <DeadPoint x="+56.5" y="-26.0625" />
+                    <DeadPoint x="+56.0" y="-26.0625" />
+                    <DeadPoint x="+56.0" y="+14.1125" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="+14.1125" />
+                    <DeadPoint x="-56.0" y="-26.0625" />
+                    <DeadPoint x="-56.5" y="-26.0625" />
+                    <DeadPoint x="-56.5" y="+14.1125" />
+                </DeadZone>
+            </Layer>
+
+            <Layer zoneNumber="1" type="upper" stripAngle="+15.1084" pitch="0.24135" xorig="+56.5" yorig="-27.1875" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="+14.2129" rxborder="-56.5" ryborder="-28.383">
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="-26.0625" />
+                    <DeadPoint x="+56.5" y="-27.1875" />
+                    <DeadPoint x="-56.5" y="-27.1875" />
+                    <DeadPoint x="-56.5" y="-26.0625" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="+56.5" y="+14.1125" />
+                    <DeadPoint x="+56.5" y="-26.0625" />
+                    <DeadPoint x="+56.0" y="-26.0625" />
+                    <DeadPoint x="+56.0" y="+14.1125" />
+                </DeadZone>
+                <DeadZone>
+                    <DeadPoint x="-56.0" y="+14.1125" />
+                    <DeadPoint x="-56.0" y="-26.0625" />
+                    <DeadPoint x="-56.5" y="-26.0625" />
+                    <DeadPoint x="-56.5" y="+14.1125" />
+                </DeadZone>
+            </Layer>
+        </Module>
+
+    </Station>
+
+</StationSet>
+
+

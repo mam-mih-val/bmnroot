@@ -8,6 +8,8 @@ const Float_t d = 15.;  /// Distance between GEM-stations
 const Float_t delta = 6.; /// for station number calculation
 
 BmnMwpcHit::BmnMwpcHit() : BmnHit() {
+fWireNumber = -1;
+
 
 }
 

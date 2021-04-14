@@ -36,6 +36,7 @@
 #include "BmnSiliconHit.h"
 #include "BmnSiliconTrackFinder.h"
 #include "BmnMwpcTrack.h"
+#include "BmnMwpcHit.h"
 #include "BmnMwpcSegment.h"
 
 class TH1D;
@@ -83,8 +84,10 @@ using namespace TMath;
 class BmnUpstreamTracking : public FairTask {
   
 public:
+
+  BmnUpstreamTracking() {};
+  BmnUpstreamTracking(Bool_t, Int_t);
   
-  BmnUpstreamTracking(Int_t);
   virtual ~BmnUpstreamTracking();
   virtual InitStatus Init();
   virtual void Exec(Option_t* opt);
@@ -93,6 +96,29 @@ public:
   static bool compareSegments(const Smatch &a, const Smatch &b) {
    return a.Chi2m < b.Chi2m;
   }
+  
+  struct MC_points{
+    Int_t  Id  = -1;
+    Int_t  Np_P   = 0;
+    Int_t  Np_Si  = 0;
+    Int_t  Np_ch2 = 0;
+    Int_t  Np_ch3 = 0;
+    Int_t  Np = 0;
+    
+    Bool_t xWas2=0;
+    Bool_t uWas2=0;
+    Bool_t vWas2=0;
+    Bool_t xWas3=0;
+    Bool_t uWas3=0;
+    Bool_t vWas3=0;
+    Bool_t wo3st=0;
+    Bool_t np_3si=0;
+    
+    Double_t param[4]= {999., 999., 999., 999.};
+    Double_t x_si[4] = {-999., -999.,-999.,-999.};
+    Double_t y_si[4] = {-999., -999.,-999.,-999.};
+    Double_t z_si[4] = {-999., -999.,-999.,-999.};
+  };
 
 private:
 
@@ -109,6 +135,12 @@ private:
   TString fInputBranchName2;
   TString fInputBranchName3;
   TString fInputBranchHits;
+  //--mc--
+  TClonesArray* fSiTracksSim;
+  TString fInputBranchNameSimTrue;
+  TClonesArray* fBmnHitsArray;
+  TString fInputBranchName;
+  
   /** Output array of Silicon Hits **/
   TClonesArray* fBmnUpstreamTracksArray;
   TString fOutputTracksBranchName;
@@ -138,16 +170,23 @@ private:
   Int_t*      NSiXYhits;
   Int_t       NSiTracks;
   Int_t       NumPoints;
+  Double_t    Shift_toCenterOfMagnetX;//  = 0.039;
+  Double_t    Shift_toCenterOfMagnetY;//  = 0.13;
+  Double_t    Shift_toCenterOfMagnetAX;// = 0.;
+  Double_t    Shift_toCenterOfMagnetAY;// = 0.0019;
+  Double_t    X_shift;
+  Double_t    Y_shift;
   
-  vector<Smatch> vtmpSeg;
-  vector<Smatch> OutVector;
-  vector<UpTracks> vecUpTracks;
+  vector<Smatch>    vtmpSeg;
+  vector<Smatch>    OutVector;
+  vector<UpTracks>  vecUpTracks;
+  vector<MC_points> vec_points;
   
   //--------
   void PrepareArraysToProcessEvent();
-  void ReadSiliconTracks(Double_t**, Double_t*, Int_t &);
+  void ReadSiliconTracks(Double_t**, Double_t*, Int_t &, vector<MC_points> &);
   void ReadSiliconHits(Double_t***, Int_t*);
-  void ReadMWPCSegments(Double_t***, Double_t**, Int_t*);
+  void ReadMWPCSegments(Double_t***, Double_t**, Int_t*, vector<MC_points> &);
   void ReadMWPCTracks(Double_t***, Double_t**, Int_t*);
   void PCTracksSiTracksMatching(Double_t**, Double_t*, Int_t &, Double_t***, Double_t**, Int_t*, vector<Smatch> &,vector<Smatch> &);
   void PCSegmentsSiTracksMatching(Double_t**, Double_t*, Int_t &,Double_t***, Double_t**, Int_t*, vector<Smatch> &, vector<Smatch> &);
@@ -160,36 +199,41 @@ private:
   void CalculationOfChi2(Double_t***, Int_t &, vector<UpTracks> &);
   void PrintAllTracks(vector<UpTracks> & );
   void TrackRecording(vector<UpTracks> & );
+  void MCefficiencyCalculation(vector<MC_points> &, vector<UpTracks> &);
   
   //--------
   const Int_t kBig         = 200;
-  const Int_t kNumPars     = 10;//parameters
-  const Int_t kNumPairs    = 2; 
-  const Int_t kNumChambers = 4; 
-  const Int_t kNumStSi     = 4;
   const Int_t kPoints      = 5;//kNumDets
   const Int_t kPoin_Par    = 5;//parameters
-  const Double_t dw        = 0.25; // [cm]
-  const Double_t SigmXmwpc = dw / 6.;//dw / sq12;
-  const Double_t SigmYmwpc = dw / 3.;
-  const Double_t kZ_target = -645.191;//cm
-  const Double_t kZSi_cent = -392.5;
+  const Int_t kNumPars     = 10;//parameters
+  const Int_t kNumPairs    = 2;//number of MWPC pairs 
+  const Int_t kNumChambers = 4;//number of MWPC stat
+  const Int_t kNumStSi     = 4;//number of Si stat
+  const Int_t kMaxMC       = 100;
+  const Int_t fNstations   = 4;
+  const Int_t kNPlanes     = 6;
   const Double_t kChi2_Max = 50.;
-  const Double_t X_shift   = 0.02;
-  const Double_t Y_shift   = 0.3;
+  const Double_t dw        = 0.25; // [cm]//MWPC wire step
+  const Double_t SigmXmwpc = sqrt(2)*dw / 6.;//dw/6.;//dw / sq12;
+  const Double_t SigmYmwpc = sqrt(2)*dw / 3.;//dw/3.
+  //matching consts 
   const Double_t cutAx     = 0.02;//0.012;
   const Double_t cutAy     = 0.02;//0.015;
   const Double_t cutX      = 1.5;//cm
   const Double_t cutY      = 2.0;//cm
+  //important Z
   const Double_t Zcentr    = -350.;//cm
-  
-  const Double_t Shift_toCenterOfMagnetX  = 0.039;
-  const Double_t Shift_toCenterOfMagnetY  = 0.13;
-  const Double_t Shift_toCenterOfMagnetAX = 0.;
-  const Double_t Shift_toCenterOfMagnetAY = 0.0019;
-  
-  //--------
-  TH1D  *hNSi_NPC, *hNPC_NSi, *hAx_fitUp,*hAy_fitUp,* hx_fitUp,* hy_fitUp,* hchi2_fitUp,* hNhitsUp;
+  const Double_t kZ_target = -645.191;//cm
+  const Double_t kZSi_cent = -392.5;
+
+  //some hists
+  TH1D *hAx_fitUp,*hAy_fitUp,* hx_fitUp,* hy_fitUp,* hchi2_fitUp,* hNhitsUp, 
+    *hdAx_tr_mc_comb, *hdX_tr_mc_comb, *hdAy_tr_mc_comb, *hdY_tr_mc_comb,
+    *hdAx_uptr_mc, *hdX_uptr_mc, *hdAy_uptr_mc, *hdY_uptr_mc,
+    *hDen_mcuptr, *hNum_mcuptr, *hEff_mcuptr,
+    *hAx_upmc, *hAy_upmc, *hX_upmc, *hY_upmc,
+    *hNtr_reco, *hNtr_mc;
+  TH2D  *hNtr_mc_vs_reco;
   vector<TH1D*> hResXst, hResYst;
 
   ClassDef(BmnUpstreamTracking, 1)

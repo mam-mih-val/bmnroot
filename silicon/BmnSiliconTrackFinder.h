@@ -68,7 +68,7 @@ class BmnSiliconTrackFinder : public FairTask {
   
 public:
   
-  BmnSiliconTrackFinder(Bool_t, Bool_t, Int_t);
+  BmnSiliconTrackFinder(Bool_t, Int_t, Int_t);
   virtual ~BmnSiliconTrackFinder();
   
   virtual InitStatus Init();
@@ -80,13 +80,24 @@ public:
   static bool compareSegments(const tracksX &a, const tracksX &b){
    return a.Chi2 < b.Chi2;
   }
+  
+  struct MC_points{
+    Int_t    Id  = -1;
+    Int_t    Np = -1;
+    Double_t x[4] = {-999., -999.,-999.,-999.};
+    Double_t y[4] = {-999., -999.,-999.,-999.};
+    Double_t z[4] = {-999., -999.,-999.,-999.};
+    Bool_t   wo3st = 0;
+    
+    Double_t param[4] = {999., 999., 999., 999.};
+  };
 
 private:
 
   Bool_t fDebug   = 0;
   UInt_t fEventNo = 0; // event counter
   Int_t fRunNumber;
-  Bool_t fTarget;
+  Int_t fRunPeriod;
   Int_t N;
   Bool_t expData;
   TList fList;
@@ -98,7 +109,12 @@ private:
   TClonesArray* fBmnSiliconHitsXArray;
   TClonesArray* fBmnSiliconHitsXpArray;
   TClonesArray* fBmnSiliconHitsXYArray;
+  TClonesArray* fBmnHitsArray;
+  TClonesArray* fBmnHitsArray2;
   TString fOutputFileName;
+  TString fInputBranchName;
+  TString fInputBranchName2;
+  
   
   //--
   Double_t  ChiSquare;
@@ -121,6 +137,8 @@ private:
   Int_t    **Nleftoversp;
   Int_t    **NleftoverX;
   Int_t    **NleftoverXp;
+  Double_t   kX_target;
+  Double_t   kY_target;
   Double_t **Amatr;
   Double_t **shiftX;
   Double_t **shiftY;
@@ -169,18 +187,23 @@ private:
   
   vector<tracksX> vec_tracks;
   vector<tracksX> CleanTr;
+  vector<MC_points> vec_points;
   
   TH1D *hNpoint, *hChiSquareNdf, *hNtracks, *hAxglob, *hBxglob, *hAyglob,*hByglob, *hY_st_1,*hY_st_2,*hY_st_3, *hdY_st_1,*hdY_st_2,*hdY_st_3, 
       *hX_st_1,*hX_st_2,*hX_st_3, *hdX_st_1,*hdX_st_2,*hdX_st_3,
       *N_eff,* D_eff,* E_eff, *hdX_st1_st2, *hdX_st2_st3, *hdX_st1_st3,*hdY_st1_st2, *hdY_st2_st3, *hdY_st1_st3,*hdXst1_0_st2_0,*hdXst1_0_st2_1,*hdXst1_1_st2_0,*hdXst1_1_st2_1,
       *hdXst1_2_st2_0,*hdXst1_2_st2_1,*hdXst1_3_st2_0,*hdXst1_3_st2_1,*hdXst2_0_st3_1,*hdXst2_0_st3_2,*hdXst2_1_st3_1,*hdXst2_1_st3_2,*hdYst1_0_st2_0,
       *hdYst1_0_st2_1,*hdYst1_1_st2_0,*hdYst1_1_st2_1,*hdYst1_2_st2_0,*hdYst1_2_st2_1,*hdYst1_3_st2_0,*hdYst1_3_st2_1,*hdYst2_0_st3_1,*hdYst2_0_st3_2,
-      *hdYst2_1_st3_1,*hdYst2_1_st3_2,*hX13_X2_m0,*hX13_X2_m1, *hXp13_Xp2_m0,*hXp13_Xp2_m1, *hY13_Y2_m0,*hY13_Y2_m1, *hY1m0_Y23, *hY1m1_Y23, *hY1m2_Y23, *hY1m3_Y23;
+      *hdYst2_1_st3_1,*hdYst2_1_st3_2,*hX13_X2_m0,*hX13_X2_m1, *hXp13_Xp2_m0,*hXp13_Xp2_m1, *hY13_Y2_m0,*hY13_Y2_m1, *hY1m0_Y23, *hY1m1_Y23, *hY1m2_Y23, *hY1m3_Y23,
+      *hAx_first_tr, *hAx_more_first_tr, *hdAx_MC_tr, *hdAy_MC_tr,*hdX_MC_tr, *hdY_MC_tr,
+      *hdAx_MC_tr_comb, *hdAy_MC_tr_comb, *hdX_MC_tr_comb, *hdY_MC_tr_comb,
+      *hDen_mctrSi, *hNum_mctrSi,*hEff_mctrSi;
   TH2D *hvertexXY, * hvertex_aver_XY,* hprofile_beam_z1,* hprofile_beam_z2,* hprofile_beam_z3, *hdYvsYst_1,*hdYvsYst_2,*hdYvsYst_3,
       *hdXvsXst_1,*hdXvsXst_2,*hdXvsXst_3,
      *hdYvsYst1_mod0, *hdYvsYst1_mod1,*hdYvsYst1_mod2,*hdYvsYst1_mod3,*hdYvsYst2_mod0,*hdYvsYst2_mod1,*hdYvsYst3_mod1,*hdYvsYst3_mod2,
      *hdXvsXst1_0,*hdXvsXst1_1,*hdXvsXst1_2,*hdXvsXst1_3,*hdXvsXst2_0,*hdXvsXst2_1,*hdXvsXst3_1,*hdXvsXst3_2;
-     
+  
+  void StripsReading(Double_t ***, Double_t ***);
   void PrepareArraysToProcessEvent();
   void Case1(Int_t **, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, vector<tracksX>&,
             Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***);
@@ -202,7 +225,7 @@ private:
                     Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***);
   void CoordinateCalculation(Int_t **, Int_t **, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Int_t **,
                              Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***,
-                             Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***);
+                             Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, vector<MC_points>&);
   void calculationOfChi2(Double_t **, Double_t **, Double_t **, Double_t **,  Int_t *,  Int_t *, Double_t & , Double_t *);
   void CoordinateAlignment( Int_t **,  Double_t ***, Double_t ***, Double_t ***, Int_t **, Int_t **, Double_t ***, Double_t ***);
   void RecordingTracksAfterSpatialPoints(vector<tracksX> & , vector<tracksX> & );
@@ -212,9 +235,18 @@ private:
                   Int_t **,  vector<tracksX> & ,Int_t **, Int_t **,Int_t **, Double_t ***, Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***);
   void PrintAllTracks(vector<tracksX> & );
   void CountSpatialPoints(Int_t **, Int_t *);
+  void MCefficiencyCalculation(vector<MC_points>&, vector<tracksX>&);
+  void WriteSiliconHits(Int_t **, Int_t **, Int_t **,
+                        Double_t ***, Double_t ***, Double_t ***, Double_t ***, 
+                        Double_t ***, Double_t ***, Double_t ***, Double_t ***, 
+                        Double_t ***, Double_t ***, Double_t ***, Double_t ***,
+                        Double_t ***, Double_t ***, Double_t ***, Double_t ***,
+                        Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***);
+  void WriteSiliconTracks(vector<tracksX>&);
+  
   Double_t GetXYspatial_station1_2(Int_t &, Int_t &, Double_t & , Double_t &);
   Double_t FindClusterCenter(Double_t*, Int_t , Double_t &);
-  Bool_t   SkipEvent(Int_t **NclustX_, Int_t **NclustXp_, Double_t ***XCoord_, Double_t ***XpCoord_);
+  Bool_t   SkipEvent(Int_t **, Int_t **, Double_t ***, Double_t ***);
   Int_t    Angle(Int_t &, Int_t &);
   
   
@@ -236,35 +268,36 @@ private:
   const Double_t Z0_SRC_target      = -645.191;
   const Double_t Zcentr             = -392.524; // Zc = Zi/3
   const Double_t half_module        = 6.0705; 
-  const Double_t half_target_region = 2.5;
   const Double_t shift_after_zigzag = 0.01;//cm 
   const Double_t Xv_av              = 0.4;
   const Double_t Yv_av              = 0.4;
   const Double_t half_roadX1_X2     = 0.11;
   const Double_t half_roadXp1_Xp2   = 0.11;
   const Double_t half_roadX1_X3     = 0.7;
-  const Double_t half_roadX1_Xp1    = 0.3;
-  const Double_t half_roadX2_Xp2    = 0.3;
-  const Double_t half_roadX3_Xp3    = 0.5;
+  const Double_t half_roadX1_Xp1    = 0.5;//mc//0.3;
+  const Double_t half_roadX2_Xp2    = 0.5;//mc//0.3;
+  const Double_t half_roadX3_Xp3    = 0.55;
   const Double_t half_roadY1_Y2     = 0.45;
   const Double_t half_roadXp1_Xp2_diff_sign = 0.3;
-  const Double_t half_target_regionX = 2.5;
-  const Double_t half_target_regionY = 3.5;
+        Double_t half_target_regionX;
+        Double_t half_target_regionY;
   const Double_t half_roadX1_Xp2     = .5;
-  const Double_t Shift_toCenterOfMagnetX  =  0.54;
-  const Double_t Shift_toCenterOfMagnetY  = -3.43;
-  const Double_t Shift_toCenterOfMagnetAX =  0.;
-  const Double_t Shift_toCenterOfMagnetAY =  0.0024;
+  const Int_t kMaxMC = 100;
+  
+  Double_t Shift_toCenterOfMagnetX  ;
+  Double_t Shift_toCenterOfMagnetY  ;
+  Double_t Shift_toCenterOfMagnetAX ;
+  Double_t Shift_toCenterOfMagnetAY ;
 
   //cut for cluster charge
-  const Double_t Cut_AmplX       = 120.;
-  const Double_t Cut_AmplXp      = 120.;
-  const Double_t Cut_overflow    = 1800.;
+  Double_t Cut_AmplX;
+  Double_t Cut_AmplXp;
+  Double_t Cut_overflow;
   //cut for strip charge
-  const Double_t Cut_AmplStripX  = 120.;
-  const Double_t Cut_AmplStripXp = 120.;
-  const Double_t Chi2_Globcut    = 80.;//20.;
-  const Int_t    N_min_points    = 4;
+  Double_t Cut_AmplStripX;
+  Double_t Cut_AmplStripXp;
+  Double_t Chi2_Globcut;
+  Int_t    N_min_points;
 
   ClassDef(BmnSiliconTrackFinder, 1)
 };

@@ -43,47 +43,72 @@ bool compareSegments(const segments &a, const segments &b) {
 }
 
 BmnMwpcHitFinder::BmnMwpcHitFinder(Bool_t isExp, Int_t runPeriod, Int_t runNumber) :
-  fEventNo(0),
+   fEventNo(0),
   expData(isExp) {
-  fRunPeriod    = runPeriod;
-  fRunNumber    = runNumber;
-  fInputBranchName = "MWPC";
-  fBmnEventHeaderBranchName = "EventHeader";
+    
+  if(expData){ 
+    fRunPeriod    = runPeriod;
+    fRunNumber    = runNumber;
+    fInputBranchName = "MWPC";
+    fBmnEventHeaderBranchName = "EventHeader";
+    
+    if(fRunPeriod == 6 || (fRunPeriod == 7 && fRunNumber > 3588) ) { //bmn
+    kNumPairs     = 1;
+    kCh_max       = 2;
+    } else if(fRunPeriod == 7 && fRunNumber <= 3588) { //src
+      kNumPairs   = 2;
+      kCh_max     = 4;
+    }
+  }else{
+    fInputBranchName = "BmnMwpcHit";
+    kNumPairs    = 2;
+    kCh_max      = 4;
+    fRunPeriod   = 7;
+    fRunNumber   = 0001;
+  }
   fOutputBranchName = "BmnMwpcSegment";
   nInputDigits   = 3;
   nTimeSamples   = 3;
-  kBig       = 100;
-  kCh_min      = 0;
-  if(fRunPeriod == 6 || (fRunPeriod == 7 && fRunNumber > 3588) ) { //bmn
-    kNumPairs    = 1;
-    kCh_max     = 2;
-  } else if(fRunPeriod == 7 && fRunNumber <= 3588) { //src
-    kNumPairs    = 2;
-    kCh_max     = 4;
-  }
-  fBmnEvQualityBranchName = "BmnEventQuality";
+  kBig           = 100;
+  kCh_min        = 0;
+  //fBmnEvQualityBranchName = "BmnEventQuality";
 }
+
 BmnMwpcHitFinder::~BmnMwpcHitFinder() {
 }
 
 InitStatus BmnMwpcHitFinder::Init() {
-  if (!expData) return kERROR;
-  if (fDebug) cout << " BmnMwpcHitFinder::Init() " << endl;
-
-
-  FairRootManager* ioman = FairRootManager::Instance();
-  fBmnMwpcDigitArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
-  if (!fBmnMwpcDigitArray) {
-    cout<<"BmnMwpcHitFinder::Init(): branch "<<fInputBranchName<<" not found! Task will be deactivated"<<endl;
-    SetActive(kFALSE);
-    return kERROR;
+ if (!expData) {
+     if (fDebug) cout << "BmnMwpcHitFinder::Init(): simulation data is reconstructed " << endl;
+    SetActive(kTRUE);
+  }else{
+    if (fDebug) cout << " BmnMwpcHitFinder::Init() " << endl;
   }
 
-  fBmnMwpcEventHeader = (TClonesArray*) ioman->GetObject(fBmnEventHeaderBranchName);
+  FairRootManager* ioman = FairRootManager::Instance();
+  
+  if (expData) {
+    cout<<" expData "<<endl;
+    fBmnMwpcDigitArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
+    if (!fBmnMwpcDigitArray) {
+      cout<<"BmnMwpcHitFinder::Init(): branch "<<fInputBranchName<<" not found! Task will be deactivated"<<endl;
+      SetActive(kFALSE);
+      return kERROR;
+    }
+  }else{
+    cout<<" !expData "<<endl;
+    fBmnHitsArray = (TClonesArray*)ioman->GetObject(fInputBranchName);
+    cout << "fBmnHitsArray = " << fInputBranchName << "\n";
+    if (!fBmnHitsArray) {
+      cout << "BmnMwpcHitFinder::Init(): branch " << fInputBranchName << " not found! Task will be deactivated" << endl;
+      SetActive(kFALSE);
+      return kERROR;
+    }
+  }
 
-  fBmnMwpcSegmentsArray = new TClonesArray(fOutputBranchName);
+  fBmnMwpcSegmentsArray = new TClonesArray(fOutputBranchName);//fBmnMwpcSegmentsArray = new TClonesArray(fOutputBranchName.Data());
   ioman->Register(fOutputBranchName.Data(), "MWPC", fBmnMwpcSegmentsArray, kTRUE);
-
+  
   //fMwpcGeo = new BmnMwpcGeometrySRC(fRunPeriod, fRunNumber);
   fMwpcGeometrySRC = new BmnMwpcGeometrySRC(fRunPeriod, fRunNumber);
   kNChambers = fMwpcGeometrySRC -> GetNChambers();
@@ -192,10 +217,6 @@ InitStatus BmnMwpcHitFinder::Init() {
   }
   if (fDebug) {
     
-    hNclust_ch0_pl1 = new TH1D("Nclust_ch0_pl1","Number of clusters(chamber0,plane1); Number of cluster;Events", 15, 0.,15.); 
-    fList.Add(hNclust_ch0_pl1);
-    hNclust_ch3_pl1 = new TH1D("Nclust_ch3_pl1","Number of clusters(chamber3,plane1); Number of cluster;Events", 15, 0.,15.); 
-    fList.Add(hNclust_ch3_pl1);
     for (int i=0; i < kNChambers*kNPlanes; ++i) {
       TH1D *h;
       h = new TH1D(Form("Time%d", i), Form("Time%d", i), 500, 0., 500.);
@@ -286,6 +307,7 @@ InitStatus BmnMwpcHitFinder::Init() {
     par_ab_Ch[i]     = new Double_t*[4];
     XVU[i]           = new Float_t[kNPlanes];
     XVU_cl[i]        = new Float_t[kNPlanes];
+    counter_pl       = new Int_t[kNPlanes];
     ind_best_Ch[i]   = new Int_t[kmaxSeg];
     best_Ch_gl[i]    = new Int_t[kmaxSeg];
     Chi2_ndf_Ch[i]   = new Double_t[kBig];
@@ -434,148 +456,53 @@ InitStatus BmnMwpcHitFinder::Init() {
 
 void BmnMwpcHitFinder::Exec(Option_t* opt) {
   if (!IsActive()) return;
-  if ( fBmnEvQuality) {
-    BmnEventQuality* evQual = (BmnEventQuality*) fBmnEvQuality->UncheckedAt(0);
-    if (!evQual->GetIsGoodEvent())
-      return;
-  }
-
   clock_t tStart = clock();
   PrepareArraysToProcessEvent();
-
   if (fDebug) cout << "\n======================== MWPC hit finder exec started =====================\n" << endl;
   if (fDebug) printf("Event number: %d\n", fEventNo++);
 
-  Short_t st, wire, pn, pl;
-  UInt_t ts;
-
-  Int_t Fired_layer[kNChambers][kNPlanes];
-  for (Int_t ist = 0; ist < kNChambers; ist++) {
-    for (Int_t iplane = 0; iplane < kNPlanes; iplane++) {
-      Fired_layer[ist][iplane] =0;
-    }
-  }
-
-  // ----------   Digi-file reading-----------------------------------
-  for (Int_t iDigit = 0; iDigit < fBmnMwpcDigitArray -> GetEntries(); iDigit++) {
-    BmnMwpcDigit* digit = (BmnMwpcDigit*) fBmnMwpcDigitArray ->At (iDigit);
-
-    st = digit   -> GetStation();
-    wire = digit -> GetWireNumber();
-    pl = digit   -> GetPlane();
-    ts = digit   -> GetTime(); //ns
-
-    if (fRunPeriod == 7 && fRunNumber > 3588) {
-      if(st>1) st = st - 2;
-    }
-
-    Fired_layer[st][pl] = 1;
-    Int_t ind = st*kNPlanes + pl;
-    if (fDebug) hTime.at(ind) -> Fill(ts);
-    if (fDebug) hOccupancy.at(ind) -> Fill(wire);
-    if ( ts < 80 || ts > 280 ) continue;
-
-    pn = kPln[st][pl];// made for the canonical sequence / x- v- u+ x+ v+ u-/
-
-    // Loop over repeated wires
-    Bool_t repeat_wire = 0;
-    if (iw_Ch[st][pn] > 0) {
-      for (Int_t ix = 0; ix < iw_Ch[st][pn]; ix++) {
-        if (wire == wire_Ch[st][ ix ][pn] ) {
-          repeat_wire = 1;
-          break;
-        }
-      }//ix
-    }
-    if (repeat_wire) continue;
-    if (iw_Ch[st][pn] >= 80) continue;
-
-    DigitsArray[st][pn][wire] = ts;
-    iw_Ch[st][pn]++;
-  }// iDigit
-  //--------------------------------------------------------------------
-
+  // ----------   Digi-file reading-------------------------------------
+  ReadWires(DigitsArray, iw_Ch, vec_points);
 
   //--------- Big chambers cycle -> looking for track-segments ---------
   for (Int_t iChamber = 0; iChamber < kNChambers; iChamber++) {
     Int_t counter = 0;
-    Int_t counter_pl[kNPlanes];
 
     for (Int_t iplane = 0; iplane < kNPlanes; iplane++) {
-      Nlay_w_wires[iChamber] += Fired_layer[iChamber][iplane];
-      counter_pl[iplane] = 0;
       counter += iw_Ch[iChamber][iplane];
-      counter_pl[iplane] += iw_Ch[iChamber][iplane];
-      if (fDebug) hfiredWire_Ch.at(iChamber)->Fill(counter_pl[iplane]);
     }//iplane
+    if (counter < kMinHits || counter > kChMaxAllWires ) continue; //too many or too few wires per Chamber
+    
+    if (fDebug) cout<<"-- Clustering --"<<endl;
+    Clustering(iChamber, ClusterSize, DigitsArray, Coord_wire, Coord_xuv, Nclust, counter_pl); // Cluster production function
 
-    if (fDebug) hNFired_layers_Ch[iChamber]->Fill(Nlay_w_wires[iChamber]);
-    if (counter < kMinHits || counter > kChMaxAllWires ) continue;
-
-    Clustering(iChamber, ClusterSize, DigitsArray, Coord_wire, Coord_xuv, Nclust); // Cluster production function
-
+    if (fDebug) cout<<"-- SegmentFinder --"<<endl;
     for(Int_t iCase= 1; iCase < 9; iCase ++) {
       SegmentFinder(iChamber, Nclust, Coord_xuv, ClusterSize, Nseg_Ch, XVU_coord, Cluster_coord, Nhits_Ch, kMinHits, iCase, kBig); // Combinatorial segment selection
     }
-    if (fDebug) cout<<" after SegmentFinder: Nseg_["<<iChamber<<"]= "<<Nseg_Ch[iChamber]<<endl;
+    if (fDebug) cout<<"-- after SegmentFinder: Nseg_["<<iChamber<<"]= "<<Nseg_Ch[iChamber]<<endl;
 
     ProcessSegments(iChamber, Nseg_Ch, XVU_coord, Cluster_coord, Nhits_Ch, kZ_loc, kMinHits, sigma,
-            kChi2_Max,Nhits_seg ,Chi2_ndf_seg, Coor_seg, Cluster_seg, par_ab_seg, Nbest_seg, Nlay_w_wires,sigma2_seg); // Segment fitting & finding the best track-candidate
+      kChi2_Max,Nhits_seg ,Chi2_ndf_seg, Coor_seg, Cluster_seg, par_ab_seg, Nbest_seg, Nlay_w_wires,sigma2_seg); // Segment fitting & finding the best track-candidate
 
-    if (fDebug) cout<<"after ProcessSegments: Nbest["<<iChamber<<"] "<<Nbest_seg[iChamber]<<endl;
+    if (fDebug) cout<<"--after ProcessSegments: Nbest["<<iChamber<<"] "<<Nbest_seg[iChamber]<<endl;
     if (fDebug && Nbest_seg[iChamber] > 0) hNbest_Ch.at(iChamber) -> Fill(Nbest_seg[iChamber]);
 
     if (fDebug) {
       for(Int_t iseg= 0; iseg < Nbest_seg[iChamber]; iseg ++) {
-        cout<<" iseg "<<iseg<<" Nhits_Ch "<<Nhits_seg[iChamber][iseg]<<" Chi2 "<<Chi2_ndf_seg[iChamber][iseg]<<endl;
+        cout<<" iseg "<<iseg<<" Nhits_Ch "<<Nhits_seg[iChamber][iseg]<<" Chi2 "<<Chi2_ndf_seg[iChamber][iseg]<<" Ax "<< par_ab_seg[iChamber][0][iseg]<<" bx "<< par_ab_seg[iChamber][1][iseg]<<" by "<< par_ab_seg[iChamber][3][iseg]<<endl;
         hChisq_ndf_Ch.at(iChamber) ->Fill(Chi2_ndf_seg[iChamber][iseg]);
-        if ( Nhits_seg[iChamber][iseg] > 0 )hNp_best_Ch.at(iChamber)->Fill(Nhits_seg[iChamber][iseg]);
+        if ( Nhits_seg[iChamber][iseg] > 0 ) hNp_best_Ch.at(iChamber)->Fill(Nhits_seg[iChamber][iseg]);
       }
     }
 
     SegmentParamAlignment(iChamber, Nbest_seg, par_ab_seg, shift); // Alignment
-  }
-  //--------------------------------------------------------------------
-
-
-  //----------------------Segments storing------------------------------
-  vector<Double_t>vtmpCoor;
-  vector<Double_t>vtmpClust;
-  for (Int_t iChamber = 0; iChamber < kNChambers; iChamber++) {
-    for (Int_t ise = 0; ise < Nbest_seg[iChamber]; ise++) {
-      if (Nhits_seg[iChamber][ise] > 3) {
-        
-        //cout<<" Chi2_ndf_seg "<<Chi2_ndf_seg[iChamber][ise]<<" Nhits_seg["<<iChamber<<"]["<<ise<<"] "<<Nhits_seg[iChamber][ise]<<endl;
-        BmnMwpcSegment *pSeg = new ((*fBmnMwpcSegmentsArray)[fBmnMwpcSegmentsArray->GetEntriesFast()]) BmnMwpcSegment();
-        pSeg->SetChi2(Chi2_ndf_seg[iChamber][ise]);
-        pSeg->SetNHits(Nhits_seg[iChamber][ise]);
-        pSeg->SetFlag(ise);
-
-        vtmpCoor.clear();
-        vtmpClust.clear();
-
-        for(Int_t i1 = 0 ; i1 < 6; i1++) {
-          vtmpCoor.push_back(Coor_seg[iChamber][i1][ise]);
-          vtmpClust.push_back(Cluster_seg[iChamber][i1][ise]);
-        }
-        pSeg -> SetClust(vtmpClust);
-        pSeg -> SetCoord(vtmpCoor);
-        
-        FairTrackParam pSegParams;
-        pSegParams.SetPosition(TVector3(par_ab_seg[iChamber][1][ise], par_ab_seg[iChamber][3][ise],ChZ[iChamber]));
-        pSegParams.SetTx(par_ab_seg[iChamber][0][ise]);
-        pSegParams.SetTy(par_ab_seg[iChamber][2][ise]);
-        for(Int_t i1 = 0 ; i1 < 4; i1++) {
-          for(Int_t j1 = 0; j1 < 4; j1++) {
-            //cout<<" sigma2_seg["<<iChamber<<"]["<<ise<<"]["<<i1<<"]["<<j1<<"] "<<sigma2_seg[iChamber][ise][i1][j1]<<endl;
-            pSegParams.SetCovariance(i1, j1, sigma2_seg[iChamber][ise][i1][j1]);
-          }
-        } 
-        pSeg->SetParamFirst(pSegParams);
-      }//if
-    }//ise
-  }//[iChamber]
-  //--------------------------------------------------------------------
+  }//iChamber
+  
+  //--efficiency calculation for MC--
+  if(!expData) MCefficiencyCalculation(vec_points,par_ab_seg,Nbest_seg);
+  
+  SegmentsStoring(Nbest_seg, par_ab_seg,Chi2_ndf_seg, Nhits_seg, Coor_seg, Cluster_seg, sigma2_seg);
 
   clock_t tFinish = clock();
   workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
@@ -583,8 +510,457 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
 }
 
 
+
+void BmnMwpcHitFinder::SegmentsStoring(Int_t *Nbest, Double_t ***par_ab,Double_t **Chi2_ndf, Int_t **Nhits, Double_t ***Coor, Double_t ***Cluster, Double_t ****sigma2){
+  if (fDebug) cout<<"--SegmentsStoring--"<<endl;
+  vector<Double_t>vtmpCoor;
+  vector<Double_t>vtmpClust;
+  for (Int_t iChamber = 0; iChamber < kNChambers; iChamber++) {
+    for (Int_t ise = 0; ise < Nbest[iChamber]; ise++) {
+      if (Nhits[iChamber][ise] > 3) {
+        
+        BmnMwpcSegment *pSeg = new ((*fBmnMwpcSegmentsArray)[fBmnMwpcSegmentsArray->GetEntriesFast()]) BmnMwpcSegment();
+        pSeg->SetChi2(Chi2_ndf[iChamber][ise]);
+        pSeg->SetNHits(Nhits[iChamber][ise]);
+        pSeg->SetFlag(ise);
+
+        vtmpCoor.clear();
+        vtmpClust.clear();
+
+        for(Int_t i1 = 0 ; i1 < 6; i1++) {
+          vtmpCoor.push_back(Coor[iChamber][i1][ise]);
+          vtmpClust.push_back(Cluster[iChamber][i1][ise]);
+        }
+        pSeg -> SetClust(vtmpClust);
+        pSeg -> SetCoord(vtmpCoor);
+        
+        FairTrackParam pSegParams;
+        pSegParams.SetPosition(TVector3(par_ab[iChamber][1][ise], par_ab[iChamber][3][ise],ChZ[iChamber]));
+        pSegParams.SetTx(par_ab[iChamber][0][ise]);
+        pSegParams.SetTy(par_ab[iChamber][2][ise]);
+        for(Int_t i1 = 0 ; i1 < 4; i1++) {
+          for(Int_t j1 = 0; j1 < 4; j1++) {
+            //cout<<" sigma2_seg["<<iChamber<<"]["<<ise<<"]["<<i1<<"]["<<j1<<"] "<<sigma2_seg[iChamber][ise][i1][j1]<<endl;
+            pSegParams.SetCovariance(i1, j1, sigma2[iChamber][ise][i1][j1]);
+          }
+        } 
+        pSeg->SetParamFirst(pSegParams);
+      }//if
+    }//ise
+  }//[iChamber]
+  //--------------------------------------------------------------------
+}
+
+
+
+void BmnMwpcHitFinder::MCefficiencyCalculation(vector<MC_points>& vec, Double_t ***par_ab_seg_, Int_t *Nbest_seg_){
+  if(!expData){
+    
+    if (fDebug) cout<<" ---MC tracks association--"<<endl;
+    //                           ax, bx,    ay, by
+    Double_t delta2[4]       = {-99.,-999.,-99.,-999.}; 
+    Double_t delta3[4]       = {-99.,-999.,-99.,-999.}; 
+    
+    //                   ax,   bx,   ay,   by
+    Double_t sig[4] = {0.04, 0.08, 0.05, 0.08};
+    
+    Double_t dmatch = 0.;
+    Double_t dmc_match[kNChambers][kMaxMC];
+    Int_t    mc_tr_assoc[kNChambers][kMaxMC];
+    
+    for (Int_t i = 0; i < kNChambers; i++) {
+      for (Int_t j = 0; j < kMaxMC; j++) {
+        dmc_match[i][j]   = 1000.;
+        mc_tr_assoc[i][j] = -1;
+      }
+    }
+    Double_t dax = -999.;
+    Double_t day = -999.;
+    Double_t dx  = -999.;
+    Double_t dy  = -999.;
+    
+    for (Int_t itr = 0; itr < vec.size(); itr++) {//mc_tr
+      
+      if (fDebug) cout<<" Np2 "<<vec.at(itr).Np2<<" Np3 "<<vec.at(itr).Np3<<endl;
+      
+      if (fDebug) hNp_MCtrue_ch2 -> Fill(vec.at(itr).Np2);
+      if (fDebug) hNp_MCtrue_ch3 -> Fill(vec.at(itr).Np3);
+        //---MC Eff ---
+        //---Den
+        if (vec.at(itr).Np2 >= 4 && vec.at(itr).xWas2 && vec.at(itr).uWas2 && vec.at(itr).vWas2){
+         if (fDebug) hDen_mc->Fill(0);
+         if (fDebug) cout<<" Den_mcPC2 "<<endl;
+        }
+       // if (fDebug) cout<<" xWas3 "<<vec.at(itr).xWas3<<" uWas3 "<<vec.at(itr).uWas3<<" vWas3 "<<vec.at(itr).vWas3<<endl;
+        if (vec.at(itr).Np3 >= 4 && vec.at(itr).xWas3 && vec.at(itr).uWas3 && vec.at(itr).vWas3){
+         if (fDebug) hDen_mc->Fill(1);
+         if (fDebug) cout<<" Den_mcPC3 "<<endl;
+        }
+      for (Int_t iChamber = 2; iChamber < kNChambers; iChamber++) {
+
+        if (iChamber == 2){
+          for(Int_t iseg= 0; iseg < Nbest_seg_[iChamber]; iseg ++) {
+            delta2[0] = vec.at(itr).param2[0] - par_ab_seg_[iChamber][0][iseg];
+            delta2[1] = vec.at(itr).param2[1] - par_ab_seg_[iChamber][1][iseg];
+            delta2[2] = vec.at(itr).param2[2] - par_ab_seg_[iChamber][2][iseg];
+            delta2[3] = vec.at(itr).param2[3] - par_ab_seg_[iChamber][3][iseg];
+           
+            if (fDebug){
+              //combinatorics
+              if (delta2[0] > -90.)  hdAx_mc_SegCh.at(iChamber)->Fill(delta2[0]); 
+              if (delta2[1] > -900.) hdX_mc_SegCh.at(iChamber) ->Fill(delta2[1]);
+              if (delta2[2] > -90.)  hdAy_mc_SegCh.at(iChamber)->Fill(delta2[2]);
+              if (delta2[3] > -900.) hdY_mc_SegCh.at(iChamber) ->Fill(delta2[3]);
+            }
+          
+            dmatch = 0.;
+            dmatch = (delta2[0]*delta2[0])/(sig[0]*sig[0])+ 
+                        (delta2[1]*delta2[1])/(sig[1]*sig[1])+
+                        (delta2[2]*delta2[2])/(sig[2]*sig[2])+
+                        (delta2[3]*delta2[3])/(sig[3]*sig[3]);
+                         
+            if ( dmc_match[iChamber][itr] > dmatch){
+                dmc_match[iChamber][itr]   = dmatch;
+                mc_tr_assoc[iChamber][itr] = iseg;
+                dax = delta2[0];
+                dx  = delta2[1];
+                day = delta2[2];
+                dy  = delta2[3];
+            }
+          }
+          if (fDebug){cout<<" itr "<<itr<<" Np2 "<<vec.at(itr).Np2<<" mc_Id "<<vec.at(itr).Id<<
+           " bx_mc "<<vec.at(itr).param2[1]<<" iseg_ind "<<mc_tr_assoc[iChamber][itr]<<" bx "<< par_ab_seg_[iChamber][1][mc_tr_assoc[iChamber][itr]] 
+           <<" dmc_match "<<dmc_match[iChamber][itr]<<endl;
+            if (mc_tr_assoc[iChamber][itr] > -1){
+              if (dax > -900.) hdAx_mc_Seg_deltaCh.at(iChamber)->Fill(dax);
+              if (dx > -900.)  hdX_mc_Seg_deltaCh.at(iChamber) ->Fill(dx);
+              if (day > -900.) hdAy_mc_Seg_deltaCh.at(iChamber)->Fill(day);
+              if (dy > -900.)  hdY_mc_Seg_deltaCh.at(iChamber) ->Fill(dy);
+            }
+          }
+        }//iChamber == 2
+        
+        if (iChamber == 3){
+          for(Int_t iseg= 0; iseg < Nbest_seg_[iChamber]; iseg ++) {
+            delta3[0] = vec.at(itr).param3[0] - par_ab_seg_[iChamber][0][iseg];
+            delta3[1] = vec.at(itr).param3[1] - par_ab_seg_[iChamber][1][iseg];
+            delta3[2] = vec.at(itr).param3[2] - par_ab_seg_[iChamber][2][iseg];
+            delta3[3] = vec.at(itr).param3[3] - par_ab_seg_[iChamber][3][iseg];
+           
+            if (fDebug){
+              //combinatorics
+              if (delta3[0] > -90.)  hdAx_mc_SegCh.at(iChamber)->Fill(delta3[0]); 
+              if (delta3[1] > -900.) hdX_mc_SegCh.at(iChamber) ->Fill(delta3[1]);
+              if (delta3[2] > -90.)  hdAy_mc_SegCh.at(iChamber)->Fill(delta3[2]);
+              if (delta3[3] > -900.) hdY_mc_SegCh.at(iChamber) ->Fill(delta3[3]);
+            }
+          
+          dmatch = 0.;
+          dmatch = (delta3[0]*delta3[0])/(sig[0]*sig[0])+ 
+                      (delta3[1]*delta3[1])/(sig[1]*sig[1])+
+                      (delta3[2]*delta3[2])/(sig[2]*sig[2])+
+                      (delta3[3]*delta3[3])/(sig[3]*sig[3]);
+                       
+          if ( dmc_match[iChamber][itr] > dmatch){
+              dmc_match[iChamber][itr]   = dmatch;
+              mc_tr_assoc[iChamber][itr] = iseg;
+              dax = delta3[0];
+              dx  = delta3[1];
+              day = delta3[2];
+              dy  = delta3[3];
+          }
+        }
+        
+        if (fDebug){ cout<<" itr "<<itr<<" Np3 "<<vec.at(itr).Np3<<" mc_Id "<<vec.at(itr).Id<<
+         " bx_mc "<<vec.at(itr).param3[1]<<" iseg_ind "<<mc_tr_assoc[iChamber][itr]<<" bx "<< par_ab_seg_[iChamber][1][mc_tr_assoc[iChamber][itr]]<<
+         " dmc_match "<<dmc_match[iChamber][itr]<<endl;
+        
+          if (mc_tr_assoc[iChamber][itr] > -1){
+            
+            if (dax > -900.) hdAx_mc_Seg_deltaCh.at(iChamber)->Fill(dax);
+            if (dx > -900.)  hdX_mc_Seg_deltaCh.at(iChamber) ->Fill(dx);
+            if (day > -900.) hdAy_mc_Seg_deltaCh.at(iChamber)->Fill(day);
+            if (dy > -900.)  hdY_mc_Seg_deltaCh.at(iChamber) ->Fill(dy);
+            
+          }
+        }
+        }//iChamber == 3
+      }//iChamber
+        
+    }//vec_points.size
+    
+    if (fDebug) cout<<"reject poorly chosen association segments "<<endl;
+    
+    for (Int_t iChamber = 2; iChamber < kNChambers; iChamber++) {
+      for (Int_t itr = 0; itr < vec.size(); itr++) {//mc_tr
+        if (mc_tr_assoc[iChamber][itr] == -1) continue;
+         
+        for (Int_t itr2 = 0; itr2 < vec.size(); itr2++) {//mc_tr
+          if (itr2 == itr) continue;
+          if (mc_tr_assoc[iChamber][itr2] == -1) continue;
+          
+          if (mc_tr_assoc[iChamber][itr] ==  mc_tr_assoc[iChamber][itr2]){
+            if (dmc_match[iChamber][itr2] > dmc_match[iChamber][itr] ) mc_tr_assoc[iChamber][itr2] = -1;
+            else {
+              mc_tr_assoc[iChamber][itr] = -1;
+              break;
+            }
+          }
+        }//itr2
+        //---MC Eff ---
+        //---Num
+        if (fDebug) cout<<" mc_Id "<<vec.at(itr).Id<<" assoc "<<mc_tr_assoc[iChamber][itr]<<" iChamber "<<iChamber<<endl;
+        if (fDebug && mc_tr_assoc[iChamber][itr] > -1){
+          if(fDebug && iChamber == 2 && vec.at(itr).Np2 >= 4 && 
+            vec.at(itr).xWas2 && vec.at(itr).uWas2 && vec.at(itr).vWas2 ){
+            hNum_mc->Fill(0);
+            if (fDebug) cout<<" Num_mcPC2 "<<endl;
+          }
+          if(fDebug && iChamber == 3 && vec.at(itr).Np3 >= 4 &&  
+            vec.at(itr).xWas3 && vec.at(itr).uWas3 && vec.at(itr).vWas3 ){
+            hNum_mc->Fill(1);
+            if (fDebug) cout<<" Num_mcPC3 "<<endl;
+          }
+        }
+      }//itr
+    }//iChamber
+    
+    
+  }//if(!expData)
+}
+
+
+
+void BmnMwpcHitFinder::ReadWires(Double_t ***DigitsArray_, Int_t **iw_Ch_, vector<MC_points> & vec){
+  if (fDebug) cout<<"--ReadWires--"<<endl;
+  
+  Int_t  Fired_layer_[kNChambers][kNPlanes];
+  int Npl_MC2[kMaxMC]; int Npl_MC3[kMaxMC];
+  Short_t st, wire, pn, pl;
+  UInt_t ts;
+  
+  for (Int_t iChamber = 0; iChamber < kNChambers; iChamber++) {
+    for (Int_t ipll = 0; ipll < kNPlanes; ipll++) {
+      Fired_layer_[iChamber][ipll] =0;
+    }
+  }
+  
+  if(!expData){
+    
+    Int_t mcTracksArray[kMaxMC];
+    Double_t X2mc[kMaxMC][kNPlanes];
+    Double_t Y2mc[kMaxMC][kNPlanes];
+    Double_t Z2mc[kMaxMC][kNPlanes];
+    Double_t X3mc[kMaxMC][kNPlanes];
+    Double_t Y3mc[kMaxMC][kNPlanes];
+    Double_t Z3mc[kMaxMC][kNPlanes];
+    for (Int_t  Id= 0; Id < kMaxMC; Id++) { 
+      Npl_MC2[Id] = 0;
+      Npl_MC3[Id] = 0;
+      mcTracksArray[Id] = -1;
+       for (Int_t  i = 0; i < kNPlanes; i++) { 
+          X2mc[Id][i] = -999.;
+          Y2mc[Id][i] = -999.;
+          Z2mc[Id][i] = -999.;
+          X3mc[Id][i] = -999.;
+          Y3mc[Id][i] = -999.;
+          Z3mc[Id][i] = -999.;
+        }
+    }
+
+    int tr_before  = -1;
+    int Nmc_tracks = -1;
+    
+    for (Int_t iMC = 0; iMC < fBmnHitsArray->GetEntriesFast(); ++iMC) {
+      BmnMwpcHit* hit = (BmnMwpcHit*)fBmnHitsArray->UncheckedAt(iMC);
+      
+      Int_t    st_MC      = hit->GetMwpcId();
+      Int_t    trackId_MC = hit->GetHitId();
+      Int_t    pl_MC      = hit->GetPlaneId();
+      Short_t  wire_MC    = hit->GetWireNumber();
+      Double_t time_MC    = hit->GetWireTime();
+      
+      if (fDebug)cout<<" st_MC "<<st_MC<<" trackId_MC "<<trackId_MC<<" pl_MC "<<pl_MC<<" X "<<hit->GetX()<<" wire_MC "<<wire_MC<<endl;
+      
+      if (tr_before != trackId_MC) {
+        Nmc_tracks++;
+        mcTracksArray[Nmc_tracks] = hit->GetHitId();
+      }
+      tr_before = trackId_MC;
+      
+      if (st_MC == 2){
+        X2mc[Nmc_tracks][pl_MC] = hit->GetX();
+        Y2mc[Nmc_tracks][pl_MC] = hit->GetY();
+        Z2mc[Nmc_tracks][pl_MC] = hit->GetZ();
+        Npl_MC2[Nmc_tracks]++;       
+      }
+      if (st_MC == 3){
+        X3mc[Nmc_tracks][pl_MC] = hit->GetX();
+        Y3mc[Nmc_tracks][pl_MC] = hit->GetY();
+        Z3mc[Nmc_tracks][pl_MC] = hit->GetZ();
+        Npl_MC3[Nmc_tracks]++;
+      }
+      //if (fDebug)cout<<" X2["<<Nmc_tracks<<"]["<<pl_MC<<"] "<<X2mc[Nmc_tracks][pl_MC]<<" Npl_MC2 "<< Npl_MC2[Nmc_tracks]<<" X3["<<Nmc_tracks<<"]["<<pl_MC<<"] "<<X3mc[Nmc_tracks][pl_MC]<<" Npl_MC3 "<< Npl_MC3[Nmc_tracks]<<endl;
+      
+      pn = pl_MC;
+      DigitsArray_[st_MC][pn][wire_MC] = time_MC;
+      Fired_layer_[st_MC][pn] = 1;
+      iw_Ch_[st_MC][pn]++;
+    }//iMC
+    Nmc_tracks++;
+    
+    MC_points tmpTr;
+    if (fDebug)cout<<" Nmc_tracks "<<Nmc_tracks<<endl;
+    for (Int_t  id = 0; id < Nmc_tracks; id++) { 
+       if (fDebug)cout<<" id "<<id<<" Id_mc "<< mcTracksArray[id]<<" Npl2 "<<Npl_MC2[id]<<" Npl3 "<<Npl_MC3[id]<<endl;
+        for (Int_t i= 0; i < 6; i++) { 
+          if (fDebug && X2mc[id][i] > -900.)cout<<" ipl "<<i<<" X2 "<<X2mc[id][i]<<endl;
+          tmpTr.x2[i]  = X2mc[id][i];
+          tmpTr.y2[i]  = Y2mc[id][i];
+          tmpTr.z2[i]  = Z2mc[id][i];
+        }
+        for (Int_t i= 0; i < 6; i++) { 
+          if (fDebug && X3mc[id][i] > -900.)cout<<" ipl "<<i<<" X3 "<<X3mc[id][i]<<endl;
+          tmpTr.x3[i]  = X3mc[id][i];
+          tmpTr.y3[i]  = Y3mc[id][i];
+          tmpTr.z3[i]  = Z3mc[id][i];
+        }
+        if (fDebug)cout<<endl;
+        tmpTr.Id  = mcTracksArray[id];
+        tmpTr.Np2 = Npl_MC2[id];
+        tmpTr.Np3 = Npl_MC3[id];
+        
+        if (Npl_MC2[id] >= 4 || Npl_MC3[id] >= 4 ) vec.push_back(tmpTr);
+    }//Nmc_tracks
+    
+    if (fDebug)cout<<" MC vec_points.size() "<<vec.size()<<endl;
+    if (fDebug) hNtrMC->Fill(vec.size());
+    
+    Double_t x_target_ch2, y_target_ch2, x_target_ch3, y_target_ch3;
+    
+    for (Int_t itr = 0; itr < vec.size(); itr++) {
+      
+      if (vec.at(itr).x2[0] > -900. || vec.at(itr).x2[3] > -900.) vec.at(itr).xWas2 = 1;
+      if (vec.at(itr).x2[1] > -900. || vec.at(itr).x2[4] > -900.) vec.at(itr).vWas2 = 1;
+      if (vec.at(itr).x2[2] > -900. || vec.at(itr).x2[5] > -900.) vec.at(itr).uWas2 = 1;
+      
+      if (vec.at(itr).x3[0] > -900. || vec.at(itr).x3[3] > -900.) vec.at(itr).xWas3 = 1;
+      if (vec.at(itr).x3[1] > -900. || vec.at(itr).x3[4] > -900.) vec.at(itr).vWas3 = 1;
+      if (vec.at(itr).x3[2] > -900. || vec.at(itr).x3[5] > -900.) vec.at(itr).uWas3 = 1;
+      
+      int i2 = 5;
+      if (vec.at(itr).x2[i2] < -900.) i2 =4;
+      if (vec.at(itr).x2[i2] < -900.) i2 =3;
+      int i20 = 0;
+      if (vec.at(itr).x2[i20] < -900.) i20 =1;
+      if (vec.at(itr).x2[i20] < -900.) i20 =2;
+      
+      vec.at(itr).param2[0]  = (vec.at(itr).x2[i20] - vec.at(itr).x2[i2])/ (vec.at(itr).z2[i20] - vec.at(itr).z2[i2]); 
+      vec.at(itr).param2[1]  = (vec.at(itr).x2[i20] + vec.at(itr).x2[i2])*0.5;
+      vec.at(itr).param2[2]  = (vec.at(itr).y2[i20] - vec.at(itr).y2[i2])/ (vec.at(itr).z2[i20] - vec.at(itr).z2[i2]); 
+      vec.at(itr).param2[3]  = (vec.at(itr).y2[i20] + vec.at(itr).y2[i2])*0.5;
+      x_target_ch2  = vec.at(itr).param2[0]*( Z0_SRC - ChZ[2]) + vec.at(itr).param2[1] ;
+      y_target_ch2  = vec.at(itr).param2[2]*( Z0_SRC - ChZ[2]) + vec.at(itr).param2[3];
+      
+      int i3 = 5;
+      if (vec.at(itr).x3[i3] < -900.) i3 =4;
+      if (vec.at(itr).x3[i3] < -900.) i3 =3;
+      int i30 = 0;
+      if (vec.at(itr).x3[i30] < -900.) i30 =1;
+      if (vec.at(itr).x3[i30] < -900.) i30 =2;
+      
+      vec.at(itr).param3[0]  = (vec.at(itr).x3[i30] - vec.at(itr).x3[i3])/ (vec.at(itr).z3[i30] - vec.at(itr).z3[i3]); 
+      vec.at(itr).param3[1]  = (vec.at(itr).x3[i30] + vec.at(itr).x3[i3])*0.5;
+      vec.at(itr).param3[2]  = (vec.at(itr).y3[i30] - vec.at(itr).y3[i3])/ (vec.at(itr).z3[i30] - vec.at(itr).z3[i3]); 
+      vec.at(itr).param3[3]  = (vec.at(itr).y3[i30] + vec.at(itr).y3[i3])*0.5;
+      x_target_ch3  = vec.at(itr).param3[0]*( Z0_SRC - ChZ[3]) + vec.at(itr).param3[1] ;
+      y_target_ch3  = vec.at(itr).param3[2]*( Z0_SRC - ChZ[3]) + vec.at(itr).param3[3];
+      
+      vec.at(itr).xt = (x_target_ch2 + x_target_ch3)/2;
+      vec.at(itr).yt = (y_target_ch2 + y_target_ch3)/2;
+      
+      if (fDebug) cout<<" itr "<<itr<<" Id_mc "<<vec.at(itr).Id<<" 2:Ax "<<vec.at(itr).param2[0]<<" bx "<<vec.at(itr).param2[1]<<" Ay "<<vec.at(itr).param2[2]<<" by "<<vec.at(itr).param2[3]<<" x_target "<<x_target_ch2<<" y_target "<<y_target_ch2<<" Np2 "<<vec.at(itr).Np2<<endl;
+      if (fDebug) cout<<" itr "<<itr<<" Id_mc "<<vec.at(itr).Id<<" 3:Ax "<<vec.at(itr).param3[0]<<" bx "<<vec.at(itr).param3[1]<<" Ay "<<vec.at(itr).param3[2]<<" by "<<vec.at(itr).param3[3]<<" x_target "<<x_target_ch3<<" y_target "<<y_target_ch3<<" Np3 "<<vec.at(itr).Np3<<endl;
+      if (fDebug) cout<<" xt "<<vec.at(itr).xt<<" yt "<<vec.at(itr).yt<<endl;
+      
+      if (fDebug) {
+        hAx_mc_ch.at(2)->Fill(vec.at(itr).param2[0]);
+        hBx_mc_ch.at(2)->Fill(vec.at(itr).param2[1]);
+        hAy_mc_ch.at(2)->Fill(vec.at(itr).param2[2]);
+        hBy_mc_ch.at(2)->Fill(vec.at(itr).param2[3]);
+        
+        hAx_mc_ch.at(3)->Fill(vec.at(itr).param3[0]);
+        hBx_mc_ch.at(3)->Fill(vec.at(itr).param3[1]);
+        hAy_mc_ch.at(3)->Fill(vec.at(itr).param3[2]);
+        hBy_mc_ch.at(3)->Fill(vec.at(itr).param3[3]);
+        
+        hYvsX_mc_ch2->Fill(vec.at(itr).param2[1],vec.at(itr).param2[3]);
+        hYvsX_mc_ch3->Fill(vec.at(itr).param3[1],vec.at(itr).param3[3]);
+        
+      }
+      
+    }//vec_points
+    if (fDebug) cout<<endl;
+    
+  }else{
+    for (Int_t iDigit = 0; iDigit < fBmnMwpcDigitArray -> GetEntries(); iDigit++) {
+      BmnMwpcDigit* digit = (BmnMwpcDigit*) fBmnMwpcDigitArray ->At (iDigit);
+
+      st   = digit -> GetStation();
+      wire = digit -> GetWireNumber();
+      pl   = digit -> GetPlane();
+      ts   = digit -> GetTime(); //ns
+
+      if (fRunPeriod == 7 && fRunNumber > 3588) {
+        if(st>1) st = st - 2;
+      }
+
+      Fired_layer_[st][pl] = 1;
+      Int_t ind = st*kNPlanes + pl;
+      if (fDebug) hTime.at(ind) -> Fill(ts);
+      if (fDebug) hOccupancy.at(ind) -> Fill(wire);
+      if ( ts < 80 || ts > 280 ) continue;
+
+      pn = kPln[st][pl];// made for the canonical sequence / x- v- u+ x+ v+ u-/
+
+      // Loop over repeated wires
+      Bool_t repeat_wire = 0;
+      if (iw_Ch_[st][pn] > 0) {
+        for (Int_t ix = 0; ix < iw_Ch[st][pn]; ix++) {
+          if (wire == wire_Ch[st][ix][pn] ) {
+            repeat_wire = 1;
+            break;
+          }
+        }//ix
+      }
+      wire_Ch[st][iw_Ch_[st][pn]][pn] = wire;
+      
+      if (repeat_wire) continue;
+      if (iw_Ch_[st][pn] >= 80) continue;
+
+      DigitsArray_[st][pn][wire] = ts;
+      iw_Ch_[st][pn]++;
+    }// iDigit
+  }//else
+  counter_pl[kNPlanes];
+  for (Int_t iChamber = 0; iChamber < kNChambers; iChamber++) {
+    for (Int_t iplane = 0; iplane < kNPlanes; iplane++) {
+      Nlay_w_wires[iChamber] += Fired_layer_[iChamber][iplane];
+      counter_pl[iplane] = 0;
+      counter_pl[iplane] += iw_Ch_[iChamber][iplane];
+      if (fDebug) hfiredWire_Ch.at(iChamber)->Fill(counter_pl[iplane]);
+    }//iplane
+    if (fDebug) hNFired_layers_Ch[iChamber]->Fill(Nlay_w_wires[iChamber]);
+  }
+  
+}
+//--------------------------------------------------------------------
+
+
 //------------------ Cluster production function------------------------
-void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t*** DigitsArray_, Double_t*** Coord_wire_, Double_t*** Coord_xuv_, Int_t **Nclust_) {
+void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t*** DigitsArray_, Double_t*** Coord_wire_, 
+Double_t*** Coord_xuv_, Int_t **Nclust_, Int_t *counter_pl_) {
+ 
   Int_t Nfirst[kCh_max][kNPlanes], Nlast[kCh_max][kNPlanes];
   Int_t Min_time_wires, fast_wire ;
   Int_t N_wires[kCh_max][kNPlanes];
@@ -593,11 +969,10 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
   Double_t Coord_fast[kNChambers][kNPlanes][kBig];
   Double_t Cut_time_wire = 16.;//ns
   Double_t Num_layers_out_beam = 0;
-  Int_t Fired_layer[kNChambers][kNPlanes];
   
   
   for (Int_t ipll = 0; ipll < kNPlanes; ipll++) {
-    Fired_layer[chNum][ipll] =0;
+    //Fired_layer[chNum][ipll] =0;
     for (Int_t iwire = 0; iwire < kNWires; iwire++) {
       //if ( DigitsArray_[chNum][ipll][iwire] > 0 ) Fired_layer[chNum][ipll] = 1;
     }
@@ -710,14 +1085,14 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
       for (Int_t iwire = 0; iwire < kNWires; iwire++) {
         
         if((ipll == 0 || ipll == 3) && (iwire < 33 || iwire > 63) ){
-          if ( DigitsArray_[chNum][ipll][iwire] > 0 ) Fired_layer[chNum][ipll] = 1;
+         // if ( DigitsArray_[chNum][ipll][iwire] > 0 ) Fired_layer[chNum][ipll] = 1;
         }
         
         if((ipll == 1 || ipll == 2) && (iwire < 12 || iwire > 42) ){
-          if ( DigitsArray_[chNum][ipll][iwire] > 0 ) Fired_layer[chNum][ipll] = 1;
+         // if ( DigitsArray_[chNum][ipll][iwire] > 0 ) Fired_layer[chNum][ipll] = 1;
         }
         if((ipll == 4 || ipll == 5) && (iwire < 50 || iwire > 80) ){
-          if ( DigitsArray_[chNum][ipll][iwire] > 0 ) Fired_layer[chNum][ipll] = 1;
+          //if ( DigitsArray_[chNum][ipll][iwire] > 0 ) Fired_layer[chNum][ipll] = 1;
         }
         
         if ( fDebug && DigitsArray_[chNum][ipll][iwire] > 0 ){
@@ -828,14 +1203,12 @@ void BmnMwpcHitFinder::Clustering(Int_t chNum, Int_t*** ClusterSize_, Double_t**
         }
 
       }//iwire
-      Num_layers_out_beam += Fired_layer[chNum][ipll];
+      //Num_layers_out_beam += Fired_layer[chNum][ipll];
     }// ipll
     
-    if (fDebug) hNum_layers_out_beam_Ch.at(chNum)->Fill( Num_layers_out_beam);
+   // if (fDebug) hNum_layers_out_beam_Ch.at(chNum)->Fill( Num_layers_out_beam);
  //}//else chamber 23
   
-  if (fDebug && chNum == 0) hNclust_ch0_pl1->Fill(Nclust_[0][1]);
-  if (fDebug && Nclust_[3][1] > 0 && chNum == 3) hNclust_ch3_pl1->Fill(Nclust_[3][1]);
 
 }//Clustering
 //----------------------------------------------------------------------
@@ -1291,7 +1664,7 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
 
     }//--iseg--------------
 
-    Double_t Z0_SRC = -647.476;
+
     Double_t x_target,y_target;
 
     for (Int_t iseg = 0; iseg < Nsegm[chNum]; iseg++) {
@@ -1457,7 +1830,6 @@ void BmnMwpcHitFinder::SegmentParamAlignment(Int_t chNum, Int_t *Nbest, Double_t
     par_ab[chNum][3][iBest] += shiftt[chNum][3];
     if (fDebug ) cout<<" ax "<<par_ab[chNum][0][iBest]<<" bx "<<par_ab[chNum][1][iBest]<<" ay "<<par_ab[chNum][2][iBest] <<" by "<<par_ab[chNum][3][iBest]<<endl;
 
-    Double_t Z0_SRC = -647.476;
     Double_t x_target  = par_ab[chNum][0][iBest]*( Z0_SRC - ChZ[chNum]) + par_ab[chNum][1][iBest];
     Double_t y_target  = par_ab[chNum][2][iBest]*( Z0_SRC - ChZ[chNum]) + par_ab[chNum][3][iBest];
     //if (fDebug ) cout<<" chNum "<<chNum<<" Z "<<ChZ[chNum]<<" iBest "<<iBest<<" x_target "<< x_target<<" y_target "<< y_target<<endl;
@@ -1471,6 +1843,7 @@ void BmnMwpcHitFinder::SegmentParamAlignment(Int_t chNum, Int_t *Nbest, Double_t
 //------ Arrays Initialization -----------------------------------------
 void BmnMwpcHitFinder::PrepareArraysToProcessEvent() {
   fBmnMwpcSegmentsArray->Clear();
+  vec_points.clear();
 
   for(Int_t iCh = 0; iCh < kNChambers; iCh++) {
     Nseg_Ch[iCh] = 0;
@@ -1663,6 +2036,9 @@ void BmnMwpcHitFinder::InverseMatrix(Double_t** AA, Double_t** bb) {
 void BmnMwpcHitFinder::Finish() {
 
   if (fDebug) {
+	  
+	hEff_mc->Divide(hNum_mc,hDen_mc,1,1);
+	  
     printf("MWPC hit finder: write hists to file... ");
     fOutputFileName = Form("hMWPChits_p%d_run%d.root", fRunPeriod, fRunNumber);
     cout<< fOutputFileName <<endl;

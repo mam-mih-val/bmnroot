@@ -69,19 +69,33 @@ public:
     void SetHitId(Int_t idx) {
         fID = idx;
     }
+    
+    Int_t GetWireNumber() { return fWireNumber; }
+    Int_t GetDetectorID() const { return  fDetectorID; } //
+    Int_t GetWireTime() { return  fWireTime; } //
+    Int_t GetPlaneId() { return  fPlaneId; } //
+    void SetWireNumber(Int_t wire_num) { fWireNumber = wire_num; }
+    void SetWireTime(Int_t time_wire) { fWireTime = time_wire; }
+    void SetPlaneId(Int_t plane_id) { fPlaneId = plane_id; }
 
     /** Destructor **/
     virtual ~BmnMwpcHit();
 
 private:
 
-    Int_t fID; // identifier of hit in hits array
-    Bool_t fUsing;
-    Int_t fXaddr;
-    Int_t fYaddr;
+    Int_t   fID; // identifier of hit in hits array
+    Bool_t  fUsing;
+    Int_t   fXaddr;
+    Int_t   fYaddr;
     ULong_t fAddr;
     Short_t fMwpcId; // 1, 2, 3
-
+    
+protected:
+    Int_t fWireNumber;  // Nearest wire to a MC-track
+    Int_t fDetectorID;  // Detector ID
+    Int_t fWireTime;
+    Int_t fPlaneId;
+    
     ClassDef(BmnMwpcHit, 1);
 
 };

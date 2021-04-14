@@ -83,7 +83,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
         } else
             fieldScale = (*field_voltage) / map_current;
 
-        BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v5_ascii_Extrap.root");
+        BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
         magField->SetScale(fieldScale);
         magField->Init();
         fRunAna->SetField(magField);
@@ -127,8 +127,12 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
-     BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp, run_period, run_number);
-     fRunAna->AddTask(mwpcHM);
+    if(!isExp) {
+      BmnMwpcHitProducer *mwpcHP = new BmnMwpcHitProducer();
+      fRunAna->AddTask(mwpcHP);
+    }
+    BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp, run_period, run_number);
+    fRunAna->AddTask(mwpcHM);
 
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
@@ -146,7 +150,6 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
         gemHM->SetCurrentConfig(BmnGemStripConfiguration::RunSRCSpring2018); //set explicitly
     gemHM->SetHitMatching(kTRUE);
     gemHM->SetSrcSetup(kTRUE);
-    gemHM->SetFieldScale(fieldScale);
     fRunAna->AddTask(gemHM);
 
     // ====================================================================== //
@@ -178,22 +181,6 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     tof2HP->SetDiffTimeMaxSmall(1.3f); // Abs maximal difference for small chambers
     tof2HP->SetDiffTimeMaxBig(3.5f); // Abs maximal difference for big chambers
     fRunAna->AddTask(tof2HP);
-    
-    // ====================================================================== //
-    // ===                         ArmTrig hit finder                     === //
-    // ====================================================================== //
-    if(!isExp){
-        BmnArmTrigHitProducer *armTrigHitProducer = new BmnArmTrigHitProducer();
-        fRunAna->AddTask(armTrigHitProducer);
-    }
-
-    // ====================================================================== //
-    // ===                        BC hit finder                     === //
-    // ====================================================================== //
-    if(!isExp){
-        BmnBCHitProducer *bcHitProducer = new BmnBCHitProducer();
-        fRunAna->AddTask(bcHitProducer);
-    }
 
     // ====================================================================== //
     // ===                           LAND hit finder                      === //
@@ -210,22 +197,28 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // ====================================================================== //
     // ===                          Tracking (Silicon)                    === //
     // ====================================================================== //
-     BmnSiliconTrackFinder* siTF = new BmnSiliconTrackFinder(isExp, isTarget, run_number);
-     fRunAna->AddTask(siTF);
+    if(!isExp) {
+      BmnSiliconHitProducerSRC *siHP = new BmnSiliconHitProducerSRC();
+      fRunAna->AddTask(siHP);
+    }
+    BmnSiliconTrackFinder* siTF = new BmnSiliconTrackFinder(isExp, run_period, run_number);
+    fRunAna->AddTask(siTF);
 
      // ====================================================================== //
      // ===                        Tracking (Upstream magnet)              === //
      // ====================================================================== //
-     BmnUpstreamTracking* upTF = new BmnUpstreamTracking(run_number);
-     fRunAna->AddTask(upTF);
+    BmnUpstreamTracking* upTF = new BmnUpstreamTracking(isExp, run_number);
+    fRunAna->AddTask(upTF);
 
     // ====================================================================== //
     // ===                   Tracking (GEM in magnet)                     === //
     // ====================================================================== //
-    SrcInnerTrackingRun7* innerTF = new SrcInnerTrackingRun7(run_number, isField, isTarget);
-    fRunAna->AddTask(innerTF);
 
-    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(run_period, run_number, isExp);
+    BmnCellAutoTracking* tf = new BmnCellAutoTracking(run_period, run_number, isField, isTarget);
+    tf->SetDetectorPresence(kSILICON, kFALSE); //we have separated task for silicon tracking in SRC
+    fRunAna->AddTask(tf);
+
+    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
     dchTF->SetTransferFunction("transfer_func2932.txt");
     fRunAna->AddTask(dchTF);
 
@@ -235,19 +228,12 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
 
     BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, kFALSE);
     glTF->SetSrcSetup(kTRUE);
-    glTF->SetRunNumber(run_number);
+    //glTF->SetDoAlign(1);
     fRunAna->AddTask(glTF);
-
-    // ====================================================================== //
-    // ===                      Primary vertex finding                    === //
-    // ====================================================================== //
-    SrcVertexFinder* VF = new SrcVertexFinder(run_period, isField, isExp);
-    fRunAna->AddTask(VF);
 
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)
     BmnFillDstTask* dst_task = new BmnFillDstTask(nEvents);
     dst_task->SetRunNumber(run_period, run_number);
-    dst_task->DoZCalibration(kTRUE);
     fRunAna->AddTask(dst_task);
 
     BmnPidSRC* pid = new BmnPidSRC();

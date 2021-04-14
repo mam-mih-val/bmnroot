@@ -65,7 +65,8 @@ fDebug(kFALSE) {
       fX[0] = 0.271;                                                                                                                                       
       fY[0] = 6.038;                                                                                                                                             fZright[0] = fGlobalZdiff + 287.858 -.4;                                                                                                                   fZleft[0] = fZright[2] - fChamberWidth;                                                                                                                                                                                                                                                                               fX[1] = 0.234;                                                                                                                                             fY[1] = 6.140;                                                                                                                                             fZright[1] = fGlobalZdiff + 437.568 +1.1;                                                                                                                  fZleft[1] = fZright[3] - fChamberWidth;
 
-    }else if(periodNum == 7 && runNum <= 3588){//shift//cm
+    }else if(periodNum == 7 && runNum > 001 && runNum <= 3588 ){//shift//cm
+      
       fX[0] = -0.24  + 0.516;
       fY[0] = -3.342 + 0.44 -4.5;
       fZright[0] = fGlobalZdiff - 206.042;
@@ -85,6 +86,29 @@ fDebug(kFALSE) {
       fY[3] = 6.140 + 0.1 -4.5;
       fZright[3] = fGlobalZdiff + 437.568;
       fZleft[3] = fZright[3] - fChamberWidth;
+      
+      }else if(periodNum == 7 && runNum == 0001){//shift//cm//mc
+      
+      fX[0] = -0.24  + 0.5;
+      fY[0] = -3.342 - 4.5;
+      fZright[0] = fGlobalZdiff - 206.042;
+      fZleft[0] = fZright[0] - fChamberWidth;
+      
+      fX[1] = -0.109 + 0.5;
+      fY[1] = -3.601 - 4.5;
+      fZright[1] = fGlobalZdiff - 107.363;
+      fZleft[1] = fZright[1] - fChamberWidth;
+      
+      fX[2] = 0.271 + 0.5;
+      fY[2] = 6.038 - 4.5;
+      fZright[2] = fGlobalZdiff + 287.858;
+      fZleft[2] = fZright[2] - fChamberWidth;
+      
+      fX[3] = 0.234 + 0.5;
+      fY[3] = 6.140 - 4.5;
+      fZright[3] = fGlobalZdiff + 437.568;
+      fZleft[3] = fZright[3] - fChamberWidth;
+
     }else if(periodNum == 7 && runNum > 3588){
 
       fX[0] = 0.271;//+ 1.09;
@@ -121,7 +145,7 @@ fDebug(kFALSE) {
       c[1].SetXYZ(0.00, 17.038, -107.552);
       d[1].SetXYZ(0.00, -24.220, -107.174);
     }
-    else if(periodNum == 7 && runNum <= 3588){
+    else if(periodNum == 7 && runNum <= 3588 || runNum == 001){
       a[0].SetXYZ(-23.431, 6.064, 287.816);
       b[0].SetXYZ(23.961, 5.995, 287.9);
       c[0].SetXYZ(0.285, 26.583, 287.688);
@@ -163,18 +187,18 @@ fDebug(kFALSE) {
 
     if(periodNum == 7 && runNum <= 3588){
       for(Int_t ichh = 0; ichh < 3; ichh++){
-	for(int ii = 0; ii < fNPlanes; ii++){
-	  
-	  if ( ichh < 2){
-	    fZPlanePos[ichh][ii] = -0.5 + ii;
-	    if(ii == 4) { fZPlanePos[ichh][ii] = -2.5;}
-	    if(ii == 5) { fZPlanePos[ichh][ii] = -1.5;}
-	  }
-	  if( ichh == 2){
-	    fZPlanePos[ichh][ii] = -1.5 + ii;
-	    if(ii == 5) { fZPlanePos[ichh][ii] = -2.5;}
-	  }
-	}
+        for(int ii = 0; ii < fNPlanes; ii++){
+          
+          if ( ichh < 2){
+            fZPlanePos[ichh][ii] = -0.5 + ii;
+            if(ii == 4) { fZPlanePos[ichh][ii] = -2.5;}
+            if(ii == 5) { fZPlanePos[ichh][ii] = -1.5;}
+          }
+          if( ichh == 2){
+            fZPlanePos[ichh][ii] = -1.5 + ii;
+            if(ii == 5) { fZPlanePos[ichh][ii] = -2.5;}
+          }
+        }
       }
       fZPlanePos[3][0] = -1.5;
       fZPlanePos[3][1] = -2.5;
@@ -196,20 +220,20 @@ fDebug(kFALSE) {
     }
 
     // Check built geometry
-    if (fDebug)
-        for (Int_t iChamber = 0; iChamber < fNChambers; iChamber++) {
-            cout << "MWPC" << iChamber + 1 << endl;
-            cout << "Zleft = " << fZleft[iChamber] << " Zright = " << fZright[iChamber] << endl;
-	    cout << "OXprime : x = "<< endl;
-            fOXprime[iChamber].Print() ;
-	      cout <<", y = "<< endl;
-	    fOYprime[iChamber].Print();
-	      cout<<", z = "<< endl;
-	      fOZprime[iChamber].Print();
-            for (Int_t iPlane = 0; iPlane < fNPlanes; iPlane++)
-                cout << "zPlanePos " << iPlane + 1 << " " << fZPlanePos[iChamber][iPlane] << endl;
-            cout << endl;
-        }
+  if (fDebug)
+      for (Int_t iChamber = 0; iChamber < fNChambers; iChamber++) {
+          cout << "MWPC" << iChamber + 1 << endl;
+          cout << "Zleft = " << fZleft[iChamber] << " Zright = " << fZright[iChamber] << endl;
+    cout << "OXprime : x = "<< endl;
+          fOXprime[iChamber].Print() ;
+      cout <<", y = "<< endl;
+    fOYprime[iChamber].Print();
+      cout<<", z = "<< endl;
+      fOZprime[iChamber].Print();
+          for (Int_t iPlane = 0; iPlane < fNPlanes; iPlane++)
+              cout << "zPlanePos " << iPlane + 1 << " " << fZPlanePos[iChamber][iPlane] << endl;
+          cout << endl;
+      }
 }
 
 TVector3 BmnMwpcGeometrySRC::GetChamberCenter(Int_t chamber) {
@@ -220,8 +244,6 @@ TVector3 BmnMwpcGeometrySRC::GetAxisPrime(Int_t chamber, Int_t axis){
   if(axis == 0)  return fOXprime[chamber];
   if(axis == 1)  return fOYprime[chamber];
   if(axis == 2)  return fOZprime[chamber];
-
-  return TVector3();
 }
 
 Double_t BmnMwpcGeometrySRC::GetTx(Int_t chamber){
@@ -231,6 +253,7 @@ Double_t BmnMwpcGeometrySRC::GetTx(Int_t chamber){
   shiftX[1] = -.048;
   shiftX[2] = -.033;
   shiftX[3] = -.035;
+
   return TMath::Tan(fOXprime[chamber].Angle(ox)) + shiftX[chamber];
 }
 
@@ -241,6 +264,7 @@ Double_t BmnMwpcGeometrySRC::GetTy(Int_t chamber){
   shiftY[1] =  .008;
   shiftY[2] = -.009;
   shiftY[3] = -.014;
+
   return TMath::Tan(fOYprime[chamber].Angle(oy)) + shiftY[chamber];
 }
 

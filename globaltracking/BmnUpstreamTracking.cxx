@@ -485,8 +485,8 @@ void BmnUpstreamTracking::ReadMWPCTracks(Double_t*** par_ab, Double_t** par_z, I
     if ( Z >= -290. && Z <= -288.) ip = 1;
     if ( ip < 0) continue;
     
-    if ( fDebug ) cout<<" MWPCTr: ip "<<iTr<<" Tx "<<track->GetParamFirst()->GetTx()<<" X "<<track->GetParamFirst()->GetX()<<
-                                             " Ty "<<track->GetParamFirst()->GetTy()<<" Y "<<track->GetParamFirst()->GetY()<<" Z "<<Z<<endl;
+   // if ( fDebug ) cout<<" MWPCTr: ip "<<iTr<<" Tx "<<track->GetParamFirst()->GetTx()<<" X "<<track->GetParamFirst()->GetX()<<
+                                           //  " Ty "<<track->GetParamFirst()->GetTy()<<" Y "<<track->GetParamFirst()->GetY()<<" Z "<<Z<<endl;
     
     par_ab[ip][0][NTracks[ip]] = track->GetParamFirst()->GetTx() ;
     par_ab[ip][1][NTracks[ip]] = track->GetParamFirst()->GetX() ;

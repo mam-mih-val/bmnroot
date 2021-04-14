@@ -320,9 +320,9 @@ void BmnUpstreamTracking::ReadMWPCSegments(Double_t*** par_ab,  Double_t** par_z
     
     if ( ich < 0) continue;
     
-    if ( fDebug ) cout<<" MWPCSeg: ich "<<ich<<" Tx "<<segment->GetParamFirst()->GetTx()<<" X "<<segment->GetParamFirst()->GetX()<<
-                                               " Ty "<<segment->GetParamFirst()->GetTy()<<" Y "<<segment->GetParamFirst()->GetY()<< 
-                                               " Z "<<Z_mwpc<<" Nhits "<<segment->GetNHits()<<endl;
+   // if ( fDebug ) cout<<" MWPCSeg: ich "<<ich<<" Tx "<<segment->GetParamFirst()->GetTx()<<" X "<<segment->GetParamFirst()->GetX()<<
+                                            //   " Ty "<<segment->GetParamFirst()->GetTy()<<" Y "<<segment->GetParamFirst()->GetY()<< 
+                                            //   " Z "<<Z_mwpc<<" Nhits "<<segment->GetNHits()<<endl;
     par_ab[ich][0][Nseg[ich]]= segment->GetParamFirst()->GetTx();
     par_ab[ich][1][Nseg[ich]]= segment->GetParamFirst()->GetX();
     par_ab[ich][2][Nseg[ich]]= segment->GetParamFirst()->GetTy();

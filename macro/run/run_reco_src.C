@@ -18,6 +18,9 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     TStopwatch timer;
     timer.Start();
 
+    // check input file exists
+    if (!BmnFunctionSet::CheckFileExist(inputFileName, 1)) exit(-1);
+
     // -----   Reconstruction run   --------------------------------------------
     FairRunAna* fRunAna = new FairRunAna();
     fRunAna->SetEventHeader(new DstEventHeader());
@@ -33,28 +36,27 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // DO NOT change it manually!
     Int_t run_period = 7, run_number = -2;
     Double_t fieldScale = 0.;
-    if (isExp)
+    if (!isExp) // for simulation files
+        fFileSource = new FairFileSource(inputFileName);
+    else        // for experimental files
     {
-        if (!BmnFunctionSet::CheckFileExist(inputFileName)) {
-            cout << "ERROR: digi file " + inputFileName + " does not exist!" << endl;
-            exit(-1);
-        }
         // set source as raw root data file (without additional directories)
         fFileSource = new BmnFileSource(inputFileName, run_period, run_number);
 
         // get geometry for run
-        TString geoFileName = "full_geometry.root";
+        gRandom->SetSeed(0);
+        TString geoFileName = Form("current_geo_file_%d.root", UInt_t(gRandom->Integer(UINT32_MAX)));
         Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
         if (res_code != 0) {
             cout << "ERROR: could not read geometry file from the database" << endl;
-            exit(-2);
+            exit(-3);
         }
 
         // get gGeoManager from ROOT file (if required)
         TFile* geoFile = new TFile(geoFileName, "READ");
         if (!geoFile->IsOpen()) {
             cout << "ERROR: could not open ROOT file with geometry: " + geoFileName << endl;
-            exit(-3);
+            exit(-4);
         }
         TList* keyList = geoFile->GetListOfKeys();
         TIter next(keyList);
@@ -64,17 +66,17 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
             key->ReadObj();
         else {
             cout << "ERROR: TGeoManager is not top element in geometry file " + geoFileName << endl;
-            exit(-4);
+            exit(-5);
         }
 
         // set magnet field with factor corresponding to the given run
         UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
         if (pCurrentRun == 0)
-            exit(-5);
+            exit(-6);
         Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
         if (field_voltage == NULL) {
             cout << "ERROR: no field voltage was found for run " << run_period << ":" << run_number << endl;
-            exit(-6);
+            exit(-7);
         }
         Double_t map_current = 55.87;
         if (*field_voltage < 10) {
@@ -83,7 +85,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
         } else
             fieldScale = (*field_voltage) / map_current;
 
-        BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
+        BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v5_ascii_Extrap.root");
         magField->SetScale(fieldScale);
         magField->Init();
         fRunAna->SetField(magField);
@@ -106,12 +108,12 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
         cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
         cout << "||\t\t\t\t\t\t\t||" << endl;
         cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
+        remove(geoFileName.Data());
     }
-    else { // for simulation files
-        if (!BmnFunctionSet::CheckFileExist(inputFileName)) return;
-        fFileSource = new FairFileSource(inputFileName);
-    }
+
     fRunAna->SetSource(fFileSource);
+    // if directory for the output file does not exist, then create
+    if (BmnFunctionSet::CreateDirectoryTree(srcdstFileName, 1) < 0) exit(-2);
     fRunAna->SetSink(new FairRootFileSink(srcdstFileName));
     fRunAna->SetGenerateRunInfo(false);
 
@@ -150,6 +152,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
         gemHM->SetCurrentConfig(BmnGemStripConfiguration::RunSRCSpring2018); //set explicitly
     gemHM->SetHitMatching(kTRUE);
     gemHM->SetSrcSetup(kTRUE);
+    gemHM->SetFieldScale(fieldScale);
     fRunAna->AddTask(gemHM);
 
     // ====================================================================== //
@@ -181,6 +184,22 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     tof2HP->SetDiffTimeMaxSmall(1.3f); // Abs maximal difference for small chambers
     tof2HP->SetDiffTimeMaxBig(3.5f); // Abs maximal difference for big chambers
     fRunAna->AddTask(tof2HP);
+    
+    // ====================================================================== //
+    // ===                         ArmTrig hit finder                     === //
+    // ====================================================================== //
+    if(!isExp){
+        BmnArmTrigHitProducer *armTrigHitProducer = new BmnArmTrigHitProducer();
+        fRunAna->AddTask(armTrigHitProducer);
+    }
+
+    // ====================================================================== //
+    // ===                        BC hit finder                     === //
+    // ====================================================================== //
+    if(!isExp){
+        BmnBCHitProducer *bcHitProducer = new BmnBCHitProducer();
+        fRunAna->AddTask(bcHitProducer);
+    }
 
     // ====================================================================== //
     // ===                           LAND hit finder                      === //
@@ -197,28 +216,26 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // ====================================================================== //
     // ===                          Tracking (Silicon)                    === //
     // ====================================================================== //
-    if(!isExp) {
+     if(!isExp) {
       BmnSiliconHitProducerSRC *siHP = new BmnSiliconHitProducerSRC();
       fRunAna->AddTask(siHP);
-    }
-    BmnSiliconTrackFinder* siTF = new BmnSiliconTrackFinder(isExp, run_period, run_number);
-    fRunAna->AddTask(siTF);
+     }
+     BmnSiliconTrackFinder* siTF = new BmnSiliconTrackFinder(isExp, run_period, run_number);
+     fRunAna->AddTask(siTF);
 
      // ====================================================================== //
      // ===                        Tracking (Upstream magnet)              === //
      // ====================================================================== //
-    BmnUpstreamTracking* upTF = new BmnUpstreamTracking(isExp, run_number);
-    fRunAna->AddTask(upTF);
+     BmnUpstreamTracking* upTF = new BmnUpstreamTracking(isExp, run_number);
+     fRunAna->AddTask(upTF);
 
     // ====================================================================== //
     // ===                   Tracking (GEM in magnet)                     === //
     // ====================================================================== //
+    SrcInnerTrackingRun7* innerTF = new SrcInnerTrackingRun7(run_number, isField, isTarget);
+    fRunAna->AddTask(innerTF);
 
-    BmnCellAutoTracking* tf = new BmnCellAutoTracking(run_period, run_number, isField, isTarget);
-    tf->SetDetectorPresence(kSILICON, kFALSE); //we have separated task for silicon tracking in SRC
-    fRunAna->AddTask(tf);
-
-    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
+    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(run_period, run_number, isExp);
     dchTF->SetTransferFunction("transfer_func2932.txt");
     fRunAna->AddTask(dchTF);
 
@@ -228,12 +245,19 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
 
     BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, kFALSE);
     glTF->SetSrcSetup(kTRUE);
-    //glTF->SetDoAlign(1);
+    glTF->SetRunNumber(run_number);
     fRunAna->AddTask(glTF);
+
+    // ====================================================================== //
+    // ===                      Primary vertex finding                    === //
+    // ====================================================================== //
+    SrcVertexFinder* VF = new SrcVertexFinder(run_period, isField, isExp);
+    fRunAna->AddTask(VF);
 
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)
     BmnFillDstTask* dst_task = new BmnFillDstTask(nEvents);
     dst_task->SetRunNumber(run_period, run_number);
+    dst_task->DoZCalibration(kTRUE);
     fRunAna->AddTask(dst_task);
 
     BmnPidSRC* pid = new BmnPidSRC();

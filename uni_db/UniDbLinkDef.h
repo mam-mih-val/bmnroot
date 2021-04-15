@@ -41,6 +41,7 @@
 #pragma link C++ enum enumConditions;
 #pragma link C++ enum enumParameterType;
 #pragma link C++ enum UniConnectionType;
+#pragma link C++ enum enumValueType;
 
 // the database structures
 #pragma link C++ struct UniqueRunNumber++;

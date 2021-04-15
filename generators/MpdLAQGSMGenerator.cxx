@@ -115,8 +115,8 @@ void MpdLAQGSMGenerator::Init(const char *light_particles_filename) {
     TString fname, dd;
     if (!light_particles_filename) {
         dd = getenv("VMCWORKDIR");
-        if (gSystem->OpenDirectory(dd + "/mpdgenerators"))
-            dd += "/mpdgenerators";
+        if (gSystem->OpenDirectory(dd + "/parameters"))
+            dd += "/parameters";
         else {
             if (gSystem->OpenDirectory(dd + "/generators"))
                 dd += "/generators";

@@ -41,7 +41,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         fFileSource = new FairFileSource(inputFileName);
     else        // for experimental files
     {
-        // set source as raw root data file
+        // set source as raw root data file (without additional directories)
         fFileSource = new BmnFileSource(inputFileName, run_period, run_number);
 
         // get geometry for run

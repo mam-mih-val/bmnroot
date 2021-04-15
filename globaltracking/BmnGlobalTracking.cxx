@@ -291,6 +291,7 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
 
     if (fUpstreamTracks)  //in SRC setup only
         for (Int_t trIdx = 0; trIdx < fUpstreamTracks->GetEntriesFast(); ++trIdx) {
+          cout<<" trIdx "<<trIdx<<endl;
             BmnTrack *upTr = (BmnTrack *)fUpstreamTracks->At(trIdx);
             FairTrackParam *parUp = upTr->GetParamLast();
             if (fIsExp) {
@@ -567,6 +568,7 @@ BmnStatus BmnGlobalTracking::MatchingUpstream(BmnGlobalTrack *glTr) {
     //we need this function only for SRC
     //In BM@N we use silicon and GEM hits as a whole
     if (!fUpstreamTracks) return kBMNERROR;
+    if (fUpstreamTracks->GetEntriesFast() == 0) return kBMNERROR;
     //
     Double_t sigma = 2.0;
     Double_t xCut = 3 * sigma;

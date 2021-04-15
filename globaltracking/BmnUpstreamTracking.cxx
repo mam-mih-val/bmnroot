@@ -59,7 +59,7 @@ void BmnUpstreamTracking::Exec(Option_t* opt) {
   if (!expData) MCefficiencyCalculation(vec_points, vecUpTracks);
   
   if (fDebug) cout<<"----TrackRecording--------------------------------"<<endl;
-  TrackRecording(vecUpTracks);
+  if (vecUpTracks.size() > 0) TrackRecording(vecUpTracks);
   
   if (fDebug) cout << endl;
   if (fDebug) cout << "======================== Upstream track finder exec finished ===================" << endl;
@@ -89,7 +89,7 @@ void BmnUpstreamTracking::MCefficiencyCalculation(vector<MC_points> &points, vec
     Double_t dx  = -999.;
     Double_t dy  = -999.;
     
-    if (fDebug) cout<<" MC "<<points.size()<<" UpTracks "<<vecUpTracks.size()<<endl;
+    if (fDebug) cout<<" MC "<<points.size()<<" UpTracks "<<vecUp.size()<<endl;
     
     for (Int_t itr = 0; itr < points.size(); itr++) {//mc_tr
       
@@ -99,16 +99,16 @@ void BmnUpstreamTracking::MCefficiencyCalculation(vector<MC_points> &points, vec
       if (fDebug && points.at(itr).Np >=10 && points.at(itr).xWas3 && points.at(itr).uWas3 && points.at(itr).vWas3 &&
         points.at(itr).xWas2 && points.at(itr).uWas2 && points.at(itr).vWas2 && points.at(itr).wo3st == 0 
         && points.at(itr).np_3si == 0){
-        hDen_mcuptr->Fill(0);
+        //hDen_mcuptr->Fill(0);
        // if (fDebug) hNtr_mc  ->Fill(points.size());
         cout<<"UpDen"<<endl;
       }
       
-      for(Int_t iup= 0; iup < vecUpTracks.size(); iup ++) {//reco
-        delta2[0] = points.at(itr).param[0] - vecUpTracks.at(iup).param[0];
-        delta2[1] = points.at(itr).param[1] - vecUpTracks.at(iup).param[1];
-        delta2[2] = points.at(itr).param[2] - vecUpTracks.at(iup).param[2];
-        delta2[3] = points.at(itr).param[3] - vecUpTracks.at(iup).param[3];
+      for(Int_t iup= 0; iup < vecUp.size(); iup ++) {//reco
+        delta2[0] = points.at(itr).param[0] - vecUp.at(iup).param[0];
+        delta2[1] = points.at(itr).param[1] - vecUp.at(iup).param[1];
+        delta2[2] = points.at(itr).param[2] - vecUp.at(iup).param[2];
+        delta2[3] = points.at(itr).param[3] - vecUp.at(iup).param[3];
         
         dmatch = 0.;
         dmatch = (delta2[0]*delta2[0])/(sig[0]*sig[0])+ 
@@ -122,7 +122,7 @@ void BmnUpstreamTracking::MCefficiencyCalculation(vector<MC_points> &points, vec
         //if (fDebug && delta2[2] > -900.)  hdAy_tr_mc_comb->Fill(delta2[2]);
         //if (fDebug && delta2[3] > -900.)  hdY_tr_mc_comb ->Fill(delta2[3]);
                  
-       if (fDebug) cout<<" ax_mc "<<points.at(itr).param[0]<<" ax_up "<<vecUpTracks.at(iup).param[0]<<" dmc_match "<< dmc_match[itr] << " "<<dmatch<<endl;//" delta2[0] "<<delta2[0]<<" delta2[1] "<<delta2[1]<<" delta2[2] "<<delta2[2]<<" delta2[3] "<<delta2[3]<<endl;
+       if (fDebug) cout<<" ax_mc "<<points.at(itr).param[0]<<" ax_up "<<vecUp.at(iup).param[0]<<" dmc_match "<< dmc_match[itr] << " "<<dmatch<<endl;//" delta2[0] "<<delta2[0]<<" delta2[1] "<<delta2[1]<<" delta2[2] "<<delta2[2]<<" delta2[3] "<<delta2[3]<<endl;
                          
         if ( dmc_match[itr] > dmatch){
           dmc_match[itr]    = dmatch;
@@ -132,10 +132,10 @@ void BmnUpstreamTracking::MCefficiencyCalculation(vector<MC_points> &points, vec
           day = delta2[2];
           dy  = delta2[3];
         }
-      }//vecUpTracks.size()
+      }//vecUp.size()
       if (fDebug){
          // cout<<" itr "<<itr<<" mc_Id "<<points.at(itr).Id<<
-         //  " ax_mc "<<points.at(itr).paramSi[0]<<" reco_ind "<<mc_tr_assoc[itr]<<" ax "<< vecUpTracks.at(mc_tr_assoc[itr]).param[0] <<
+         //  " ax_mc "<<points.at(itr).paramSi[0]<<" reco_ind "<<mc_tr_assoc[itr]<<" ax "<< vecUp.at(mc_tr_assoc[itr]).param[0] <<
          //  " dmc_match "<<dmc_match[itr]<<endl;
         if (mc_tr_assoc[itr] > -1){
           cout<<" mc itr "<<itr<<" rec "<<mc_tr_assoc[itr]<<endl;
@@ -171,9 +171,9 @@ void BmnUpstreamTracking::MCefficiencyCalculation(vector<MC_points> &points, vec
         points.at(itr).xWas2 && points.at(itr).uWas2 && points.at(itr).vWas2 && points.at(itr).wo3st == 0
         && points.at(itr).np_3si == 0){
        // hNum_mcuptr->Fill(0);
-       // if (fDebug) hNtr_reco->Fill(vecUpTracks.size());
+       // if (fDebug) hNtr_reco->Fill(vecUp.size());
         
-       // if (fDebug) hNtr_mc_vs_reco ->Fill(vecUpTracks.size(),points.size());
+       // if (fDebug) hNtr_mc_vs_reco ->Fill(vecUp.size(),points.size());
         cout<<"UpNum"<<endl;
       }
     }//itr
@@ -305,8 +305,9 @@ void BmnUpstreamTracking::ReadSiliconHits(Double_t*** hits, Int_t* NSihits){
 
 //----------------------------------------------------------------------
 void BmnUpstreamTracking::ReadMWPCSegments(Double_t*** par_ab,  Double_t** par_z, Int_t*  Nseg,  vector<MC_points> & vec){
-   if ( fDebug ) cout<<" ReadMWPCSegments "<<endl;
- for (Int_t iSeg = 0; iSeg < fMWPCSegments->GetEntries() ; ++iSeg) {
+  
+  if ( fDebug ) cout<<" ReadMWPCSegments "<<endl;
+  for (Int_t iSeg = 0; iSeg < fMWPCSegments->GetEntries() ; ++iSeg) {
     BmnTrack* segment = (BmnTrack*) fMWPCSegments ->At(iSeg) ;
   
     Int_t    ich = -1;
@@ -345,7 +346,7 @@ void BmnUpstreamTracking::ReadMWPCSegments(Double_t*** par_ab,  Double_t** par_z
   if (!expData){
     if (fDebug)cout<<"----MC: MWPCSegments"<<endl;
   
-    Int_t mcTracksArray[kMaxMC];
+    Int_t    mcTracksArray[kMaxMC];
     Double_t X2mc[kMaxMC][kNPlanes];
     Double_t Y2mc[kMaxMC][kNPlanes];
     Double_t Z2mc[kMaxMC][kNPlanes];
@@ -411,9 +412,10 @@ void BmnUpstreamTracking::ReadMWPCSegments(Double_t*** par_ab,  Double_t** par_z
       if (fDebug)cout<<" Nmc_tracks "<<Nmc_tracks<<" MC vec_points.size() "<<vec.size()<<endl;
       MC_points tmpTr;
       bool mc_new = 0;
+      
       for (Int_t  id = 0; id < Nmc_tracks; id++) { 
         if (fDebug)cout<<" id "<<id<<" Id_mc "<< mcTracksArray[id]<<" Npl2 "<<Npl_MC2[id]<<" Npl3 "<<Npl_MC3[id]<<endl;
-         
+        if (vec.size() < 1 ) continue;
         for (Int_t  itr = 0; itr < vec.size(); itr++) {
           
           if (Npl_MC2[id] >= 4 || Npl_MC3[id] >= 4){
@@ -1047,9 +1049,11 @@ void BmnUpstreamTracking::PrintAllTracks(vector<UpTracks> & vecUp){
 
 //----------------------------------------------------------------------
 void BmnUpstreamTracking::TrackRecording(vector<UpTracks> & vecUp){
+  if (fDebug) cout<<" TrackRecording "<<vecUp.size()<<endl;
   
 
   for (Int_t InIter = 0; InIter < vecUp.size(); ++InIter) {
+    if (vecUp.at(InIter).Nhits < 6) continue;
     /*
     Double_t z0 = vecUp.at(InIter).CoordZ[1] + Zcentr;
     Double_t x0 = vecUp.at(InIter).param[0] * vecUp.at(InIter).CoordZ[0] + vecUp.at(InIter).param[1]; //ax(z)+bx
@@ -1490,7 +1494,7 @@ void BmnUpstreamTracking::Finish() {
 
   if (fDebug) {
   
-   hEff_mcuptr->Divide(hNum_mcuptr,hDen_mcuptr,1,1);
+   //hEff_mcuptr->Divide(hNum_mcuptr,hDen_mcuptr,1,1);
    printf("BmnUpstreamTracking: write hists to file... ");
    fOutputFileName = Form("UpstreamTracks_run%d.root", fRunNumber);
    cout<< fOutputFileName <<endl;

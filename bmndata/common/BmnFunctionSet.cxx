@@ -14,12 +14,12 @@ int BmnFunctionSet::CheckFileExist(TString& fileName, int iVerbose, EAccessMode 
     gSystem->ExpandPathName(fileName);
     if (gSystem->AccessPathName(fileName.Data(), kFileExists) == true)
     {
-        if (iVerbose) cout<<"No specified file: "<<fileName;
+        if (iVerbose) cout<<"No specified file: "<<fileName<<endl;
         return 0;
     }
     if ((mode != kFileExists) && (gSystem->AccessPathName(fileName.Data(), mode) == true))
     {
-        if (iVerbose) cout<<"No required permissions to access the file: "<<fileName;
+        if (iVerbose) cout<<"No required permissions to access the file: "<<fileName<<endl;
         return -1;
     }
 
@@ -33,12 +33,12 @@ int BmnFunctionSet::CheckDirectoryExist(TString& fileName, int iVerbose, EAccess
     TString dirName(gSystem->DirName(fileName.Data()));
     if (gSystem->AccessPathName(dirName.Data(), kFileExists) == true)
     {
-        if (iVerbose) cout<<"No specified directory: "<<dirName;
+        if (iVerbose) cout<<"No specified directory: "<<dirName<<endl;
         return 0;
     }
     if ((mode != kFileExists) && (gSystem->AccessPathName(dirName.Data(), mode) == true))
     {
-        if (iVerbose) cout<<"No required permissions to access the directory: "<<dirName;
+        if (iVerbose) cout<<"No required permissions to access the directory: "<<dirName<<endl;
         return -1;
     }
 
@@ -75,14 +75,14 @@ bool BmnFunctionSet::isSimulationFile(TString fileName)
     gSystem->ExpandPathName(fileName);
     if (gSystem->AccessPathName(fileName.Data()) == true)
     {
-        cout<<"ERROR: no specified file: "<<fileName;
+        cout<<"ERROR: no specified file: "<<fileName<<endl;
         return false;
     }
 
     TFile* fRootFile = new TFile(fileName.Data());
     if (fRootFile->IsZombie())
     {
-        cout<<"ERROR: opening the input file";
+        cout<<"ERROR: opening the input file"<<endl;
         return false;
     }
 

@@ -1418,7 +1418,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         if (fTOF700ReferenceRun <= 0) {
             UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("TOF2", "slewing_file_id", fPeriodId, fRunId); //(detector_name, parameter_name, period_number, run_number)
             if (pDetectorParameter != NULL) {
-                IntValue* pReferenceRun = (IntValue*) pDetectorParameter->GetParameterValue();
+                IntValue* pReferenceRun = (IntValue*) pDetectorParameter->GetValue();
                 fTOF700ReferenceRun = pReferenceRun->value;
                 delete pDetectorParameter;
             } else {

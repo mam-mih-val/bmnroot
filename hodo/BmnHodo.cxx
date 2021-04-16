@@ -29,43 +29,210 @@
 
 // -----   Default constructor   -------------------------------------------
 BmnHodo::BmnHodo() {
-    fHodoCollection = new TClonesArray("BmnHodoPoint");
-    fVerboseLevel = 1;
+  fHodoCollection = new TClonesArray("BmnHodoPoint");
+  volDetector = 0;
+  fEventID=-1; 
+  fHodoStickSensVolId=0;
 }
-// -------------------------------------------------------------------------
 
 // -----   Standard constructor   ------------------------------------------
 BmnHodo::BmnHodo(const char* name, Bool_t active)
-    : FairDetector(name, active) {
-    fHodoCollection = new TClonesArray("BmnHodoPoint");
-    fVerboseLevel = 1;
+  : FairDetector(name, active) {
+  fHodoCollection = new TClonesArray("BmnHodoPoint");
+  volDetector = 0;
+  fEventID=-1; 
+  fHodoStickSensVolId=0;
+  fVerboseLevel = 1;
 }
-// -------------------------------------------------------------------------
 
 // -----   Destructor   ----------------------------------------------------
 BmnHodo::~BmnHodo() {
-    if (fHodoCollection) {
-        fHodoCollection->Delete();
-        delete fHodoCollection;
-    }
+  if (fHodoCollection) {
+    fHodoCollection->Delete();
+    delete fHodoCollection;
+  }
 }
-// -------------------------------------------------------------------------
 
 // -----   Public method Intialize   ---------------------------------------
 void BmnHodo::Initialize() {
-    // Init function
+  // Init function
+  
+  FairDetector::Initialize();
+  FairRun* sim = FairRun::Instance();
+  FairRuntimeDb* rtdb = sim->GetRuntimeDb();
 
-    FairDetector::Initialize();
-    FairRun* sim = FairRun::Instance();
-    FairRuntimeDb* rtdb = sim->GetRuntimeDb();
+  fHodoStickSensVolId = gMC->VolId("hodo_stick_sens");
+}
+
+// -------------------------------------------------------------------------
+BmnHodoPoint* BmnHodo::GetHit(Int_t i) const
+{
+// Returns the hit for the specified layer.
+// ---
+
+  return (BmnHodoPoint*)fHodoCollection->At(i);
+}
+
+//_____________________________________________________________________________
+BmnHodoPoint* BmnHodo::GetHit(Int_t sticksens, Int_t stick) const
+{
+// Returns the hit for the specified vsc and module.
+// ---
+
+  BmnHodoPoint *hit;
+  Int_t nofHits = fHodoCollection->GetEntriesFast();
+  for (Int_t i=0; i<nofHits; i++) {
+    hit =  GetHit(i);
+    if(hit->GetCopy() == sticksens && hit->GetCopyMother() == stick)
+      return hit;
+  }
+
+  return 0;
 }
 
 // -----   Public method ProcessHits  --------------------------------------
 Bool_t BmnHodo::ProcessHits(FairVolume* vol) {
     /** This method is called from the MC stepping */
 
-    Int_t ivol = vol->getMCid();
+  Int_t copyNoStickSens;
+  Int_t copyNoSTICKSENSCom, copyNoSTICKCom;
 
+  Int_t      ivol;
+  TLorentzVector tPos1, tMom1;
+  TLorentzVector tPos, tMom;
+
+  Int_t sticksens, stick;
+  
+  Double_t time=0;
+  Double_t length =0;
+  
+  TParticle* part;
+  Double_t charge;
+  
+  Double_t  QCF=1; //quenching for Birk
+  Double_t  BirkConst = 12.6; //0.126 mm/MeV for polystyrene 
+  //0.126 *(0.1/0.001) = 12.6 cm/GeV
+  //(0.126 mm/MeV - from Wikipedia, 0.07943mm/MeV Ñ in Geant4)
+
+  if (gMC->CurrentVolID(copyNoStickSens) != fHodoStickSensVolId)
+    {
+      return kFALSE;
+    }
+
+  ivol    = vol->getMCid();
+
+  if (gMC->CurrentVolID(copyNoStickSens) == fHodoStickSensVolId)
+ {
+    gMC->CurrentVolOffID(0, sticksens);
+    gMC->CurrentVolOffID(1, stick);
+    copyNoSTICKSENSCom = sticksens; copyNoSTICKCom = stick;  
+  }
+	 
+  //cout <<"2_1_0 " << ivol <<" " <<gMC->CurrentVolOffName(2) << " " <<gMC->CurrentVolOffName(1) << " " << gMC->CurrentVolOffName(0) <<std::endl;
+
+  if (gMC->IsTrackEntering()) {
+
+    ResetParameters();
+
+    fELoss = 0.;
+    time    = 0.;
+    length  = 0.;
+
+    TLorentzVector PosIn;
+    gMC->TrackPosition(PosIn);
+    fPos.SetXYZ(PosIn.X(), PosIn.Y(), PosIn.Z());
+    
+    TLorentzVector MomIn;
+    gMC->TrackMomentum(MomIn);
+    fMom.SetXYZ(MomIn.Px(), MomIn.Py(), MomIn.Pz());
+    
+    fTime = gMC->TrackTime() * 1.0e09;
+    fLength = gMC->TrackLength();
+  }//if (gMC->IsTrackEntering())
+
+  if ( gMC->IsTrackInside()) {
+
+    gMC->TrackPosition(tPos);
+    gMC->TrackMomentum(tMom);
+    length += gMC->TrackStep();    
+
+    //fELoss +=gMC->Edep();
+//Birk corrections
+    if(gMC->TrackStep()>0) QCF = 1.+(BirkConst/gMC->TrackStep())*gMC->Edep();
+    else QCF = 1;
+    fELoss +=(gMC->Edep())/QCF;
+
+    time   += gMC->TrackTime() * 1.0e09;//nsec
+    
+    if ( gMC->IsTrackStop() || gMC->IsTrackDisappeared() ) {
+      
+      part    = gMC->GetStack()->GetCurrentTrack();
+      charge = part->GetPDG()->Charge() / 3. ;
+      
+// Create BmnZdcPoint
+      fTrackID = gMC->GetStack()->GetCurrentTrackNumber();
+      //time    = gMC->TrackTime() * 1.0e09;
+      //length  = gMC->TrackLength();
+      //gMC->TrackPosition(tPos);
+      //gMC->TrackMomentum(tMom);
+      //gMC->CurrentVolOffID(2, module);
+      //gMC->CurrentVolOffID(1, slice);
+      
+      if(fELoss>0) {
+	if(copyNoSTICKSENSCom==sticksens && copyNoSTICKCom==stick) {
+	  if ( !GetHit(sticksens,stick) ) {
+	    AddHit(fTrackID, ivol, sticksens, stick, TVector3(tPos.X(), tPos.Y(), tPos.Z()),TVector3(tMom.Px(), tMom.Py(), tMom.Pz()),time, length, fELoss);
+	  }
+	  else {
+	    GetHit(sticksens,stick)->AddSTICK(fTrackID, ivol, sticksens, stick, TVector3(tPos.X(), tPos.Y(), tPos.Z()),TVector3(tMom.Px(), tMom.Py(), tMom.Pz()),time, length, fELoss);
+	  }
+	}//if(copyNoSLICECom==slice && copyNoCELLCom==cell) 	  
+	
+      }//if(fELoss>0)
+    }//if ( gMC->IsTrackStop() || gMC->IsTrackDisappeared() )
+  }//if ( gMC->IsTrackInside())
+
+  if ( gMC->IsTrackExiting()) {
+
+    part  = gMC->GetStack()->GetCurrentTrack();
+
+// Create BmnZdcPoint
+    fTrackID = gMC->GetStack()->GetCurrentTrackNumber();
+    time    += gMC->TrackTime() * 1.0e09;
+    length  += gMC->TrackLength();
+    
+    //fELoss +=gMC->Edep();
+//Birk corrections
+    if(gMC->TrackStep()>0) QCF = 1.+(BirkConst/gMC->TrackStep())*gMC->Edep();
+    else QCF = 1;
+    fELoss +=(gMC->Edep())/QCF;
+    
+    gMC->TrackPosition(tPos);
+    gMC->TrackMomentum(tMom);
+    
+    if(fELoss>0) {
+      if(copyNoSTICKSENSCom==sticksens && copyNoSTICKCom==stick) {
+	if ( !GetHit(sticksens,stick) ) {
+	  AddHit(fTrackID, ivol, sticksens, stick, TVector3(tPos.X(), tPos.Y(), tPos.Z()),TVector3(tMom.Px(), tMom.Py(), tMom.Pz()),time, length, fELoss);
+	}
+	else {
+	  GetHit(sticksens,stick)->AddSTICK(fTrackID, ivol, sticksens, stick, TVector3(tPos.X(), tPos.Y(), tPos.Z()),TVector3(tMom.Px(), tMom.Py(), tMom.Pz()),time, length, fELoss);
+	}
+      }//if(copyNoSLICECom==slice && copyNoCELLCom==cell)	  
+      
+    }//if(fELoss>0)
+  }//if ( gMC->IsTrackExiting()) {
+  
+  Int_t points = gMC->GetStack()->GetCurrentTrack()->GetMother(1);  
+  points = ( points & ( ~ (1<<30) ) ) | (1 << 30);
+  
+  gMC->GetStack()->GetCurrentTrack()->SetMother(1,points);
+  
+  ((CbmStack*)gMC->GetStack())->AddPoint(kSCWALL);
+  
+  
+    /*//S.Merts
+    Int_t ivol = vol->getMCid();
     if (gMC->IsTrackEntering()) {
         ResetParameters();
 
@@ -94,64 +261,63 @@ Bool_t BmnHodo::ProcessHits(FairVolume* vol) {
 
         ((CbmStack*)gMC->GetStack())->AddPoint(kHODO);
     }
-
-    return kTRUE;
+*/
+  return kTRUE;
 }
 
 // -----   Public method EndOfEvent   -----------------------------------------
 void BmnHodo::EndOfEvent() {
-    if (fVerboseLevel) Print();
-    Reset();
+  if (fVerboseLevel) Print();
+  Reset();
 }
 
 // -----   Public method Register   -------------------------------------------
 void BmnHodo::Register() {
-    FairRootManager::Instance()->Register("HodoPoint", "Hodo", fHodoCollection, kTRUE);
+  FairRootManager::Instance()->Register("HodoPoint", "Hodo", fHodoCollection, kTRUE);
 }
 
 // -----   Public method GetCollection   --------------------------------------
 TClonesArray* BmnHodo::GetCollection(Int_t iColl) const {
-    if (iColl == 0) return fHodoCollection;
-    return NULL;
+  if (iColl == 0) return fHodoCollection;
+  return NULL;
 }
 
 // -----   Public method Print   ----------------------------------------------
 void BmnHodo::Print() const {
-    Int_t nHits = fHodoCollection->GetEntriesFast();
-    cout << "-I- BmnHodo: " << nHits << " points registered in this event." << endl;
-
-    if (fVerboseLevel > 1)
-        for (Int_t i = 0; i < nHits; i++) (*fHodoCollection)[i]->Print();
+  Int_t nHits = fHodoCollection->GetEntriesFast();
+  cout << "-I- BmnHodo: " << nHits << " points registered in this event." << endl;
+  
+  if (fVerboseLevel > 1)
+    for (Int_t i = 0; i < nHits; i++) (*fHodoCollection)[i]->Print();
 }
 
 // -----   Public method Reset   ----------------------------------------------
 void BmnHodo::Reset() {
-    fHodoCollection->Delete();
+  fHodoCollection->Delete();
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void BmnHodo::ConstructGeometry() {
-    TString fileName = GetGeometryFileName();
-    if (fileName.EndsWith(".root")) {
-        LOG(info) << "Constructing Hodo geometry from ROOT file " << fileName.Data();
-        ConstructRootGeometry();
-    } else
-        LOG(fatal) << "Geometry format of Hodo file " << fileName.Data() << " not supported.";
+  TString fileName = GetGeometryFileName();
+  if (fileName.EndsWith(".root")) {
+    LOG(info) << "Constructing Hodo geometry from ROOT file " << fileName.Data();
+    ConstructRootGeometry();
+  } else
+    LOG(fatal) << "Geometry format of Hodo file " << fileName.Data() << " not supported.";
 }
 
+//-----------------------------------------------------------------------------
 Bool_t BmnHodo::CheckIfSensitive(std::string name) {
-    TString tsname = name;
-    if (tsname.Contains("sens")) return kTRUE;
-    return kFALSE;
+  TString tsname = name;
+  if (tsname.Contains("sens")) return kTRUE;
+  return kFALSE;
 }
-
-//-------------------------------------------------------------------------
 
 // -----   Private method AddHit   --------------------------------------------
-BmnHodoPoint* BmnHodo::AddHit(Int_t trackID, Int_t detID, TVector3 pos, TVector3 mom, Double_t time, Double_t length, Double_t eLoss) {
+BmnHodoPoint* BmnHodo::AddHit(Int_t trackID, Int_t detID, Int_t copyNo, Int_t copyNoMother, TVector3 pos, TVector3 mom, Double_t time, Double_t length, Double_t eLoss) {
     TClonesArray& clref = *fHodoCollection;
     Int_t size = clref.GetEntriesFast();
-    return new (clref[size]) BmnHodoPoint(trackID, detID, pos, mom, time, length, eLoss);
+    return new (clref[size]) BmnHodoPoint(trackID, detID, copyNo, copyNoMother, pos, mom, time, length, eLoss);
 }
 
 FairModule* BmnHodo::CloneModule() const { return new BmnHodo(*this); }

@@ -1,0 +1,39 @@
+Up to now we have one directory bmnroot/zdc for 3 calorimeters:
+
+ ZDC - old calo without hole, 104 modules 
+ FHCal - new calo with hole, 54 modules
+ neutron ZDC (nZDC) - new calo without hole, 36 modules
+
+To work with new calorimeters FHCal/nZDC:
+
+cd bmnroot/zdc
+
+After bmnroot installation in derectory bmnroot/zdc one has files 
+BmnZdc.h, BmnZdc.cxx, BmnZdcPoint.h, BmnZdcPoint.cxx 
+for working with old ZDC
+
+To work with new FHCal/nZDC:
+
+cp BmnZdcPoint_FHCal.h BmnZdcPoint.h
+cp BmnZdcPoint_FHCal.cxx BmnZdcPoint.cxx
+cp BmnZdc_FHCal.h BmnZdc.h
+cp BmnZdc_FHCal.cxx BmnZdc.cxx
+
+cd ../build
+
+make
+
+==============================
+
+Files with FHCal geometry:
+bmnroot/macro/geometry/create_rootgeom_zdc_oldnames_CBM_20mods_NICA_34mods_54mods_hole_v1.C
+bmnroot/geometry/zdc_oldnames_CBM_20mods_NICA_34mods_54mods_hole_Zpos_878.1cm_Xshift_49.50cm_Yshift_0.0cm_rotationY_0.0deg_v1.root
+
+Files with nZDC geometry:
+bmnroot/macro/geometry/create_rootgeom_zdc_oldnames_NICA_36mods_no_hole_v1.C
+bmnroot/geometry/zdc_oldnames_NICA_36mods_no_hole_Zpos_878.0cm_Xshift_-20.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root
+
+In file 
+bmnroot/macro/geometry/README_geom_FHCal_Hodo_ScWall_ZDC_36mods
+
+one can find the examples how to create geometry .root files from .C files

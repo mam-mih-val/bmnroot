@@ -42,35 +42,33 @@ class FairGeoMedia;
 class FairGeoBuilder;
 
 void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
-    //vacuum medium
-    FairGeoMedium* mVacuum = geoMedia->getMedium("vacuum");
-    if ( ! mVacuum ) Fatal("Main", "FairMedium vacuum not found");
-    geoBuild->createMedium(mVacuum);
-    pMedVacuum = gGeoManager->GetMedium("vacuum");
-    if ( ! pMedVacuum ) Fatal("Main", "Medium vacuum not found");
+//vacuum medium
+  FairGeoMedium* mVacuum = geoMedia->getMedium("vacuum");
+  if ( ! mVacuum ) Fatal("Main", "FairMedium vacuum not found");
+  geoBuild->createMedium(mVacuum);
+  pMedVacuum = gGeoManager->GetMedium("vacuum");
+  if ( ! pMedVacuum ) Fatal("Main", "Medium vacuum not found");
 
-    //air medium
-    FairGeoMedium* mAir = geoMedia->getMedium("air");
-    if ( ! mAir ) Fatal("Main", "FairMedium air not found");
-    geoBuild->createMedium(mAir);
-    pMedAir = gGeoManager->GetMedium("air");
-    if ( ! pMedAir ) Fatal("Main", "Medium air not found");
+//air medium
+  FairGeoMedium* mAir = geoMedia->getMedium("air");
+  if ( ! mAir ) Fatal("Main", "FairMedium air not found");
+  geoBuild->createMedium(mAir);
+  pMedAir = gGeoManager->GetMedium("air");
+  if ( ! pMedAir ) Fatal("Main", "Medium air not found");
     
-    // medium polystyrene (Scint.)
-    FairGeoMedium* mPolystyrene = geoMedia->getMedium("polystyrene");
-    if ( ! mPolystyrene ) Fatal("Main", "FairMedium polystyrene not found");
-    geoBuild->createMedium(mPolystyrene);
-    pMedScint = gGeoManager->GetMedium("polystyrene");
-    if ( ! pMedScint ) Fatal("Main", "Medium polystyrene not found");
+// medium polystyrene (Scint.)
+  FairGeoMedium* mPolystyrene = geoMedia->getMedium("polystyrene");
+  if ( ! mPolystyrene ) Fatal("Main", "FairMedium polystyrene not found");
+  geoBuild->createMedium(mPolystyrene);
+  pMedScint = gGeoManager->GetMedium("polystyrene");
+  if ( ! pMedScint ) Fatal("Main", "Medium polystyrene not found");
 
 }//DefineRequiredMedia
 
 void FillStick(TGeoVolume* hodoStickV);
 
-
 void create_rootgeom_Hodo_oldnames_v1(Double_t Hodo_Xpos=0,Double_t Hodo_Ypos=0,Double_t Hodo_Zpos=900,Double_t rotY=0) {
-// Load necessary libraries
-  //gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+
   bmnloadlibs(); // load libraries
 
 // ----  set working directory  --------------------------------------------
@@ -117,8 +115,6 @@ void create_rootgeom_Hodo_oldnames_v1(Double_t Hodo_Xpos=0,Double_t Hodo_Ypos=0,
 
   TString geoFileName = gPath + "/geometry/" + geoDetectorName + "_" + "Zpos_" + sZshift_1 + "." + sZshift_2 + "cm" + "_" + "Xshift_" + sXshift_1 + "." + sXshift_2 + "cm" + "_" + "Yshift_" + sYshift_1 + "." + sYshift_2 + "cm" + "_" + "rotationY_"  + sRotY_1  +  "." + sRotY_2 + "deg_" + geoDetectorVersion + ".root";
 
-// -------------------------------------------------------------------
-
 // ----  global geometry parameters  ---------------------------------
   FairGeoLoader*    geoLoad = new FairGeoLoader("TGeo","FairGeoLoader");
   FairGeoInterface* geoFace = geoLoad->getGeoInterface();
@@ -132,7 +128,6 @@ void create_rootgeom_Hodo_oldnames_v1(Double_t Hodo_Xpos=0,Double_t Hodo_Ypos=0,
   geoMedia->list();
   geoMedia->print();
   DefineRequiredMedia(geoMedia, geoBuild);
-// --------------------------------------------------------------------
 
 // --------------   Create geometry and global top volume  ------------
   gGeoManager = (TGeoManager*)gROOT->FindObject("FAIRGeom");
@@ -141,7 +136,6 @@ void create_rootgeom_Hodo_oldnames_v1(Double_t Hodo_Xpos=0,Double_t Hodo_Ypos=0,
   top->SetMedium(pMedAir);
   gGeoManager->SetTopVolume(top);
   //gGeoMan->SetTopVisible(1);
-// --------------------------------------------------------------------
 
 // Define Hodo Geometry
   TString Hodo_common_name = "Hodo_common";
@@ -227,5 +221,5 @@ void FillStick(TGeoVolume *mother_volume) {
   
   mother_volume->AddNode(hodoSensitiveStickV,1,new TGeoTranslation(0,0,0));
 
-}//FillCell_small
+}//FillStick()
 

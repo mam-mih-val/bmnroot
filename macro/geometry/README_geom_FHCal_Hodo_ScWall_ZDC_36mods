@@ -1,0 +1,21 @@
+root -l "create_rootgeom_old_zdc_oldnames_104mods_no_hole_noTyvec_v1.C(42.2,1.4,875.9)"
+
+root -l "create_rootgeom_wall_oldnames_vacuum_600cm.C(0.,0.,878.1)"
+
+root -l "create_rootgeom_wall_oldnames_vacuum_600cm.C(50.92,0.,1007.95,2.83)"
+
+root -l "create_rootgeom_wall_oldnames_vacuum_600cm.C(57.37,0.,1007.87,3.47)"
+
+root -l "create_rootgeom_zdc_oldnames_CBM_20mods_NICA_34mods_54mods_hole_v1.C(47.66,0.,878.1,2.9)"
+
+root -l "create_rootgeom_zdc_oldnames_mCBM_9mods_20x20cm_no_hole.C(160,0,0,0,5)"
+
+//===================================
+root -l "create_rootgeom_zdc_oldnames_CBM_20mods_NICA_34mods_54mods_hole_v1.C(49.5,0.,878.1,0)"
+
+root -l "create_rootgeom_Hodo_oldnames_v1.C(47.5,0,877,0)"
+
+root -l "create_rootgeom_ScWall_oldnames_no_hole_v1.C(70,0,878,0)"
+
+root -l "create_rootgeom_zdc_oldnames_NICA_36mods_no_hole_v1.C.C(-20,0,878,0)"
+

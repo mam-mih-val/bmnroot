@@ -197,10 +197,11 @@ void create_rootgeom_ScWall_oldnames_no_hole_v1(Double_t ScWall_Xpos=0,Double_t 
     
 //If Hodo is in use cells 17,18 and 27,28 should be excluded
 //Fill ScWall with small cells (1-40)
-  Float_t xCur = ScWall_X_size_small + ScWall_full_cell_X_size_small;
+  //Float_t xCur = ScWall_X_size_small + ScWall_full_cell_X_size_small;
+  Float_t xCur = ScWall_X_size_small - ScWall_full_cell_X_size_small;
   Float_t yCur = ScWall_Y_size_small + ScWall_full_cell_Y_size_small;
   Float_t zCur = 0;
-  Float_t xCur1=0;
+  //Float_t xCur1=0;
   
   Int_t iMod=-1, modNb=-1;
   
@@ -208,17 +209,18 @@ void create_rootgeom_ScWall_oldnames_no_hole_v1(Double_t ScWall_Xpos=0,Double_t 
     yCur=yCur - 2.*ScWall_full_cell_Y_size_small;
     for(Int_t ix=0; ix<ScWall_NColumns_small; ix++) {
       xCur=xCur - 2.*ScWall_full_cell_X_size_small;
-      xCur1 = xCur + 2.*ScWall_full_cell_X_size_small;
+      //xCur1 = xCur + 2.*ScWall_full_cell_X_size_small;
+      //xCur1 = xCur;
       
-      TGeoTranslation *scwallCellV_position_small = new TGeoTranslation(xCur1,yCur, zCur);
+      TGeoTranslation *scwallCellV_position_small = new TGeoTranslation(xCur,yCur, zCur);
       iMod=iy*ScWall_NColumns_small + ix;
       modNb = iMod+1;
 
       ScWallV->AddNode(scwallCellV_small,modNb,scwallCellV_position_small);
-      cout <<"ScWall small modNb,xxxx,yyyy " <<modNb <<" " <<xCur1 <<" " <<yCur <<endl;
+      cout <<"ScWall small modNb,xxxx,yyyy " <<modNb <<" " <<xCur <<" " <<yCur <<endl;
       
       if(ix==ScWall_NColumns_small-1) {
-	xCur=ScWall_X_size_small + ScWall_full_cell_X_size_small;
+	xCur=ScWall_X_size_small - ScWall_full_cell_X_size_small;
       }
     }//for(Int_t ix==0; ix<7; ix++)
   }//for(Int_t iy==0; iy<7; iy++)

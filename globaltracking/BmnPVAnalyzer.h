@@ -12,7 +12,7 @@
 #include "BmnGemTrack.h"
 #include "BmnGlobalTrack.h"
 #include "BmnGemStripHit.h"
-#include "../bmndst/DstEventHeader.h"
+#include "DstEventHeader.h"
 #include "BmnEventHeader.h"
 #include "TMath.h"
 #include "TVector3.h"
@@ -25,8 +25,8 @@
 #include <CbmStsHit.h>
 #include <CbmStsTrack.h>
 #include "CbmVertex.h"
-#include "../KF/Interface/CbmKFTrack.h"
-#include "../KF/Interface/CbmStsKFTrackFitter.h"
+#include "CbmKFTrack.h"
+#include "CbmStsKFTrackFitter.h"
 #include "BmnKalmanFilter.h"
 #include <TStopwatch.h>
 #include <TGeoNode.h>

@@ -291,7 +291,7 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
 
     if (fUpstreamTracks)  //in SRC setup only
         for (Int_t trIdx = 0; trIdx < fUpstreamTracks->GetEntriesFast(); ++trIdx) {
-          cout<<" trIdx "<<trIdx<<endl;
+          
             BmnTrack *upTr = (BmnTrack *)fUpstreamTracks->At(trIdx);
             FairTrackParam *parUp = upTr->GetParamLast();
             if (fIsExp) {
@@ -623,11 +623,15 @@ BmnStatus BmnGlobalTracking::MatchingUpstream(BmnGlobalTrack *glTr) {
     glTr->SetChi2(glTr->GetChi2() + chi);
     glTr->SetUpstreamTrackIndex(minHit->GetIndex());
     BmnTrack *matchedUps = (BmnTrack *)fUpstreamTracks->At(minHit->GetIndex());
+    if (matchedUps!=nullptr){
     glTr->SetNHits(glTr->GetNHits() + matchedUps->GetNHits());
     glTr->SetLength(len);
     glTr->SetParamFirst(par);
     minHit->SetUsing(kTRUE);
     return kBMNSUCCESS;
+    }else{
+        return kBMNERROR;
+    }
 }
 
 BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack *tr, Int_t num) {
@@ -850,6 +854,7 @@ BmnStatus BmnGlobalTracking::UpdateMomentum(BmnGlobalTrack *tr) {
     }
     if (tr->GetUpstreamTrackIndex() != -1) {
         BmnTrack *upTrack = (BmnTrack *)fUpstreamTracks->At(tr->GetUpstreamTrackIndex());
+        if(upTrack!=nullptr)
         Alpha_in = ATan(upTrack->GetParamLast()->GetTx());
     }
     Double_t momInt = 0.3 * Bdl / (Sin(Alpha_out) - Sin(Alpha_in));

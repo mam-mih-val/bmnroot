@@ -139,6 +139,10 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
+    if(!isExp) {
+      BmnMwpcHitProducer *mwpcHP = new BmnMwpcHitProducer();
+      fRunAna->AddTask(mwpcHP);
+    }
     BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp, run_period, run_number);
     fRunAna->AddTask(mwpcHM);
 
@@ -246,6 +250,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ====================================================================== //
     BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp, run_period, run_number);
     fRunAna->AddTask(mwpcTF);
+
 
     // ====================================================================== //
     // ===                          Tracking (DCH)                        === //

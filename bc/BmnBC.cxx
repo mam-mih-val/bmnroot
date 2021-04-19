@@ -172,40 +172,41 @@ static Double_t de_dx;
         else if(PosOut.Z()>-730 && PosOut.Z()< -472 ){fStation = 3;}
         else{
           fStation = 4;
-          Double_t y =  PosOut.Y();
-            if(y<-2){
-              Double_t a = 0;
-              Double_t b = 0;
-              if(ch == 1){
-                a = (frac6_2[0]*fELoss-fELoss)/(24);
-                b = -a*(-2);
-                fELoss = fELoss+b*y+a*y*y;
-              }else if(ch == 2){
-                a = (frac6_2[1]*fELoss-fELoss)/(24);
-                b = -a*(-2);
-                fELoss = fELoss+b*y+a*y*y;
-              }else if(ch == 3){
-                a = (frac6_2[2]*fELoss-fELoss)/(24);
-                b = -a*(-2);
-                fELoss = fELoss+b*y+a*y*y;
-              }else if(ch == 4){
-                a = (frac6_2[3]*fELoss-fELoss)/(24);
-                b = -a*(-2);
-                fELoss = fELoss+b*y+a*y*y;
-              }else if(ch == 5){
-                a = (frac6_2[4]*fELoss-fELoss)/(24);
-                b = -a*(-2);
-                fELoss = fELoss+b*y+a*y*y;
-              }else if(ch == 6){
-                a = (frac6_2[5]*fELoss-fELoss)/(24);
-                b = -a*(-2);
-                fELoss = fELoss+b*y+a*y*y;
-              }else if(ch == 7){
-                a = (frac6_2[6]*fELoss-fELoss)/(24);
-                b = -a*(-2);
-                fELoss = fELoss+b*y+a*y*y;
-              }
-            }
+          // for future corrections in Eloss 
+          //Double_t y =  PosOut.Y();
+          //  if(y<-2){
+          //    Double_t a = 0;
+          //    Double_t b = 0;
+          //    if(ch == 1){
+          //      a = (frac6_2[0]*fELoss-fELoss)/(24);
+          //      b = -a*(-2);
+          //      fELoss = fELoss+b*y+a*y*y;
+          //    }else if(ch == 2){
+          //      a = (frac6_2[1]*fELoss-fELoss)/(24);
+          //      b = -a*(-2);
+          //      fELoss = fELoss+b*y+a*y*y;
+          //    }else if(ch == 3){
+          //      a = (frac6_2[2]*fELoss-fELoss)/(24);
+          //      b = -a*(-2);
+          //      fELoss = fELoss+b*y+a*y*y;
+          //    }else if(ch == 4){
+          //      a = (frac6_2[3]*fELoss-fELoss)/(24);
+          //      b = -a*(-2);
+          //      fELoss = fELoss+b*y+a*y*y;
+          //    }else if(ch == 5){
+          //      a = (frac6_2[4]*fELoss-fELoss)/(24);
+          //      b = -a*(-2);
+          //      fELoss = fELoss+b*y+a*y*y;
+          //    }else if(ch == 6){
+          //      a = (frac6_2[5]*fELoss-fELoss)/(24);
+          //      b = -a*(-2);
+          //      fELoss = fELoss+b*y+a*y*y;
+          //    }else if(ch == 7){
+          //      a = (frac6_2[6]*fELoss-fELoss)/(24);
+          //      b = -a*(-2);
+          //      fELoss = fELoss+b*y+a*y*y;
+          //    }
+          //  }
           }
           //delete part1;
 

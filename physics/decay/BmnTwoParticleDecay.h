@@ -35,18 +35,97 @@
 #include "CbmStsPoint.h"
 #include "BmnSiliconPoint.h"
 #include "BmnVertex.h"
+#include "CbmVertex.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripStationSet_RunWinter2016.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"
 #include "BmnGemStripHit.h"
 #include "BmnKalmanFilter.h"
-#include "BmnParticlePair.h"
+#include <BmnParticlePair.h>
 #include <UniDbDetectorParameter.h>
 #include <UniDbRun.h>
 #include "BmnTrackMatch.h"
+#include <DstEventHeader.h>
+#include <BmnEventHeader.h>
 
 using namespace std;
 using namespace TMath;
+
+// Extenion of "standard" dst event header by info to be used in dec. particle anal ... 
+
+class DstEventHeaderExtended : public DstEventHeader {
+private:
+    /** Event Header branch name **/
+    TString fHeaderName; //!
+
+    Int_t fRecoTracks; // track multiplicity
+    Int_t fBD; // number of BD-counts per event
+    Int_t fFD; // number of FD-counts per event
+
+    TVector3 fVp; // reconstructed prim. vertex
+
+public:
+
+    DstEventHeaderExtended() {
+        fHeaderName = "DstEventHeaderExtended.";
+
+        fBD = 0;
+        fFD = 0;
+        fRecoTracks = 0;
+
+        fVp.SetXYZ(-1., -1., -1.);
+    }
+
+    DstEventHeaderExtended(UInt_t run_id, UInt_t event_id) {
+        fBD = 0;
+        fFD = 0;
+        fRecoTracks = 0;
+
+        fVp.SetXYZ(-1., -1., -1.);
+    }
+
+    // Getters ...
+
+    Int_t bd() {
+        return fBD;
+    }
+
+    Int_t fd() {
+        return fFD;
+    }
+
+    Int_t nTracks() {
+        return fRecoTracks;
+    }
+
+    TVector3 Vp() {
+        return fVp;
+    }
+
+    // Setters ...
+
+    void SetBd(Int_t n) {
+        fBD = n;
+    }
+
+    void SetFd(Int_t n) {
+        fFD = n;
+    }
+    
+    void SetVp(Double_t x, Double_t y, Double_t z) {
+        fVp.SetXYZ(x, y, z);   
+    }
+    
+     void SetNTracks(Int_t n) {
+        fRecoTracks = n;   
+    }
+
+    virtual ~DstEventHeaderExtended() {
+        ;
+    }
+
+    ClassDef(DstEventHeaderExtended, 1)
+};
 
 class BmnTwoParticleDecay : public FairTask {
 private:
@@ -58,11 +137,11 @@ private:
     TClonesArray* fGemPoints;
     TClonesArray* fSilPoints;
     TClonesArray* fSilHits;
-       
+
     TClonesArray* fGlobalTracks;
     TClonesArray* fGemTracks;
     TClonesArray* fSiliconTracks;
-    
+
     TClonesArray* fMCTracks;
     TClonesArray* fGlobalMatches;
     TClonesArray* fVertex;
@@ -80,12 +159,10 @@ private:
     BmnGemStripStationSet* fDetector; // Detector geometry
     BmnGemStripConfiguration::GEM_CONFIG fGeometry;
 
-    Bool_t fIsUseRealVertex;
-
     FairField* fField;
     BmnFieldMap* fMagField;
     BmnKalmanFilter* fKalman;
-     
+
     TClonesArray* fParticlePair;
     TClonesArray* fParticlePair_MC;
     TClonesArray* fParticlePair_RECO;
@@ -94,6 +171,19 @@ private:
 
     vector <TString> fAnalType;
     vector <double> fWeightsModel;
+
+    Bool_t fIsCbmDst;
+    TString fGeomFile;
+    TString fDigiDir;
+    TString fEoSNode;
+    
+    // Dst event header ...
+    DstEventHeader* fDstHeader;
+    
+    // Adding PhysInfo ...
+    DstEventHeaderExtended* fPhysInfo;
+    
+    map <UInt_t, pair <Int_t, Int_t>> fTrigCountMap; // evId --> (bd, fd)
 
 public:
 
@@ -106,15 +196,23 @@ public:
     virtual InitStatus Init();
     virtual void Finish();
 
-    void SetUseRealVertex(Bool_t flag) {
-        fIsUseRealVertex = flag;
-    }
-
     void SetParticlePDG(Int_t pdg1, Int_t pdg2) {
         fPDG1 = pdg1;
         fPDG2 = pdg2;
     }
+
+    void SetGeometryFile(TString file) {
+        fGeomFile = file;
+    }
     
+    void SetDigiDir(TString dir) {
+        fDigiDir = dir;
+    }
+    
+    void SetEoSNode(TString node) {
+        fEoSNode = node;
+    }
+
 private:
     void Analysis();
     BmnStatus FindFirstPointOnMCTrack(Int_t, BmnGlobalTrack*, Int_t);
@@ -133,8 +231,7 @@ private:
 
     TVector2 ArmenterosPodol(FairTrackParam, FairTrackParam);
     Double_t FindV0ByVirtualPlanes(BmnGlobalTrack*, BmnGlobalTrack*, Double_t, Double_t range = 50.);
-    
-    	
+
     ClassDef(BmnTwoParticleDecay, 0)
 };
 

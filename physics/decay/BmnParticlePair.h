@@ -9,14 +9,14 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef BMNPARTICLEPAIR_H
-#define BMNPARTICLEPAIR_H 1
-
 #include <vector>
 #include <TNamed.h>
 #include <TVector3.h>
 
 using namespace std;
+
+#ifndef BMNPARTICLEPAIR_H
+#define BMNPARTICLEPAIR_H 1
 
 class BmnParticlePair : public TNamed {
 public:

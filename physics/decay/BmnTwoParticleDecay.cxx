@@ -7,7 +7,7 @@
 //                                                                            //
 //  A supplementary class for two-body decay reconstruction                   //
 //                                                                            //
-//////////  //////////////////////////////////////////////////////////////////////
+//////////  ////////////////////////////////////////////////////////////////////
 #include <TCanvas.h>
 #include <TGeoManager.h>
 #include <Fit/FitResult.h>
@@ -15,6 +15,8 @@
 #include "BmnParticlePairsInfo.h"
 
 BmnTwoParticleDecay::BmnTwoParticleDecay(BmnGemStripConfiguration::GEM_CONFIG config, Int_t runId) :
+fDstHeader(nullptr),
+fPhysInfo(nullptr),
 // Particles set by default:
 fPDG1(2212), // proton
 fPDG2(-211), // pion
@@ -28,8 +30,9 @@ fParticlePair_MC(nullptr),
 fParticlePair_RECO(nullptr),
 fParticlePair(nullptr),
 fVertex(nullptr),
-fIsUseRealVertex(kFALSE),
-fGlobalMatches(nullptr) {
+fGlobalMatches(nullptr),
+fIsCbmDst(kFALSE),
+fGeomFile(""), fDigiDir(""), fEoSNode("root://ncm.jinr.ru/") {
     fMcVertex.SetXYZ(0., 0., 0.);
     fRunId = runId;
 
@@ -121,7 +124,7 @@ vector <Double_t> BmnTwoParticleDecay::GeomTopology(FairTrackParam proton_V0, Fa
 
 FairTrackParam BmnTwoParticleDecay::KalmanTrackPropagation(BmnGlobalTrack* track, Int_t pdg, Double_t Z) {
     FairTrackParam parPredict = *(track->GetParamFirst());
-    fKalman->TGeoTrackPropagate(&parPredict, Z, pdg, NULL, NULL, kTRUE);
+    fKalman->TGeoTrackPropagate(&parPredict, Z, pdg, nullptr, nullptr, kTRUE);
     // track->SetParamFirst(parPredict);
     return parPredict;
 }
@@ -218,6 +221,9 @@ void BmnTwoParticleDecay::Analysis() {
         } else
             track1 = (BmnGlobalTrack*) arr->UncheckedAt(iTrack);
 
+        if (fIsCbmDst && track1->GetNHits() < 4)
+            continue;
+
         Double_t _p1, _eta1;
         if (!CheckTrack(track1, fPdgParticle1, _p1, _eta1))
             continue;
@@ -241,6 +247,9 @@ void BmnTwoParticleDecay::Analysis() {
                     continue;
             } else
                 track2 = (BmnGlobalTrack*) arr->UncheckedAt(jTrack);
+
+            if (fIsCbmDst && track2->GetNHits() < 4)
+                continue;
 
             Double_t _p2, _eta2;
             if (!CheckTrack(track2, fPdgParticle2, _p2, _eta2))
@@ -342,7 +351,7 @@ void BmnTwoParticleDecay::Analysis() {
             vector <Int_t> particle2{nHitsSil2, nHitsGem2};
 
             partPair.SetNHitsPair(particle1, particle2);
-            
+
             // Skipping tracks having more than three silicon hits ...
             if (partPair.GetNHitsPart1("SILICON") > 3 || partPair.GetNHitsPart2("SILICON") > 3) // FIXME
                 continue;
@@ -426,14 +435,29 @@ void BmnTwoParticleDecay::Analysis() {
 
 InitStatus BmnTwoParticleDecay::Init() {
     cout << "\nBmnTwoParticleDecay::Init()" << endl;
-    // Read current geometry from database
-    Char_t* geoFileName = (Char_t*) "current_geo_file.root";
-    Int_t res_code = UniDbRun::ReadGeometryFile(fRunPeriod, fRunId, geoFileName);
-    if (res_code != 0) {
-        cout << "Geometry file can't be read from the database" << endl;
-        exit(-1);
+
+    FairRootManager* ioman = FairRootManager::Instance();
+    TString inFile = (TString) ioman->GetInFile()->GetName();
+
+    if (inFile.Contains("cbm"))
+        fIsCbmDst = kTRUE;
+
+    if (fIsCbmDst) {
+
+        if (fGeomFile.IsNull())
+            Fatal("BmnTwoParticleDecay::Init()", "No geometry file passed!!!");
+        else
+            TGeoManager::Import(fGeomFile.Data());
+    } else {
+        // Read current geometry from database
+        Char_t* geoFileName = (Char_t*) "current_geo_file.root";
+        Int_t res_code = UniDbRun::ReadGeometryFile(fRunPeriod, fRunId, geoFileName);
+        if (res_code != 0) {
+            cout << "Geometry file can't be read from the database" << endl;
+            exit(-1);
+        }
+        TGeoManager::Import(geoFileName);
     }
-    TGeoManager::Import(geoFileName);
 
     // Get run info..
     UniDbRun* runInfo = UniDbRun::GetRun(fRunPeriod, fRunId);
@@ -442,14 +466,14 @@ InitStatus BmnTwoParticleDecay::Init() {
         throw;
     }
 
-    FairRootManager* ioman = FairRootManager::Instance();
-
     fBranchGemPoints = "StsPoint";
     fBranchSilPoints = "SiliconPoint";
     fBranchGlobalTracks = "BmnGlobalTrack";
     fBranchMCTracks = "MCTrack";
     fBranchGlobalMatch = "BmnGlobalTrackMatch";
     fBranchVertex = "BmnVertex";
+
+    fDstHeader = (DstEventHeader*) ioman->GetObject("DstEventHeader.");
 
     fGemPoints = (TClonesArray*) ioman->GetObject(fBranchGemPoints.Data());
     fSilPoints = (TClonesArray*) ioman->GetObject(fBranchSilPoints.Data());
@@ -488,6 +512,10 @@ InitStatus BmnTwoParticleDecay::Init() {
     fParticlePair = new TClonesArray(className);
     ioman->Register("ParticlePair", "Lambda", fParticlePair, isWriteBranch);
 
+    // Adding extended event header to output ....
+    fPhysInfo = new DstEventHeaderExtended();
+    ioman->Register("DstEventHeaderExtended.", "Lambda", fPhysInfo, isWriteBranch);
+
     fPDG = TDatabasePDG::Instance();
 
     fMagField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
@@ -507,6 +535,38 @@ InitStatus BmnTwoParticleDecay::Init() {
     fPDGDecay = (fPDG1 == 2212 && fPDG2 == -211) ? 3122 :
             (fPDG1 == 211 && fPDG2 == -211) ? 310 : -1;
 
+    // Let's look whether a digi file exists to be connected to anal ...
+    if (!fDigiDir.IsNull()) {
+        
+        Bool_t isEoS = (fDigiDir.Contains("/eos")) ? kTRUE : kFALSE;
+        
+        TString f = (isEoS ? fEoSNode : "") + fDigiDir + TString::Format("bmn_run%d_digi.root", fRunId);
+        
+        cout << f<< endl;
+ 
+        TChain* ch = new TChain("bmndata");
+        ch->Add(f.Data());
+
+        BmnEventHeader* eHeader = nullptr;
+        TClonesArray* trigFD = nullptr;
+        TClonesArray* trigBD = nullptr;
+
+        ch->SetBranchAddress("BmnEventHeader.", &eHeader);
+        ch->SetBranchAddress("BD", &trigBD);
+        ch->SetBranchAddress("SI", &trigFD);
+
+        for (Int_t iEvent = 0; iEvent < ch->GetEntries(); iEvent++) {
+            ch->GetEntry(iEvent);
+            
+            if (iEvent % 10000 == 0)
+                cout << "digiFile#, processing event: " << iEvent << endl;
+
+            fTrigCountMap[eHeader->GetEventId()] = make_pair(trigBD->GetEntriesFast(), trigFD->GetEntriesFast());
+        }
+        
+        delete ch;
+    }
+
     return kSUCCESS;
 }
 
@@ -516,7 +576,17 @@ void BmnTwoParticleDecay::Exec(Option_t * option) {
     fParticlePair_MC->Delete();
     fParticlePair_RECO->Delete();
     fParticlePair->Delete();
+    
+    UInt_t id = fDstHeader->GetEventId();
+    fPhysInfo->SetEventId(id);
+    fPhysInfo->SetRunId(fDstHeader->GetRunId());
 
+    if (!fDigiDir.IsNull()) {                
+        pair <Int_t, Int_t> trigPair = fTrigCountMap.find(id)->second;
+        fPhysInfo->SetBd(trigPair.first);
+        fPhysInfo->SetFd(trigPair.second);    
+    }
+    
     fEventCounter++;
 
     if (fEventCounter % 500 == 0)
@@ -534,10 +604,12 @@ void BmnTwoParticleDecay::Exec(Option_t * option) {
     }// Real data ..
     else {
         fEventVertex = (BmnVertex*) fVertex->UncheckedAt(0);
+        fPhysInfo->SetVp(fEventVertex->GetX(), fEventVertex->GetY(), fEventVertex->GetZ());        
+        fPhysInfo->SetNTracks(fEventVertex->GetNTracks());
 
         if (fEventVertex->GetNTracks() < 2) // Num of tracks to be used for Vp reconstruction
             return;
-
+        
         TVector3 realVert(fEventVertex->GetX(), fEventVertex->GetY(), fEventVertex->GetZ());
         TVector3 roughVert(0., 0., 0.);
 
@@ -605,10 +677,19 @@ Double_t BmnTwoParticleDecay::FindV0ByVirtualPlanes(BmnGlobalTrack* track1, BmnG
 
         for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
             zPlane[iPlane] = zMax - iPlane * zStep;
-            fKalman->TGeoTrackPropagate(&par1, zPlane[iPlane], 2212, nullptr, nullptr, kTRUE);
-            fKalman->TGeoTrackPropagate(&par2, zPlane[iPlane], 211, nullptr, nullptr, kTRUE);
+            BmnStatus stat1 = fKalman->TGeoTrackPropagate(&par1, zPlane[iPlane], fPdgParticle1, nullptr, nullptr, kTRUE);
+            BmnStatus stat2 = fKalman->TGeoTrackPropagate(&par2, zPlane[iPlane], fPdgParticle2, nullptr, nullptr, kTRUE);
+
+            if (stat1 == kBMNERROR || stat2 == kBMNERROR) {
+                isBadPair = kTRUE;
+                break;
+            }
+
             Dist[iPlane] = Sqrt(Sq(par1.GetX() - par2.GetX()) + Sq(par1.GetY() - par2.GetY()));
         }
+
+        if (isBadPair)
+            return DBL_MAX;
 
         TGraph V0(nPlanes, zPlane, Dist);
         V0.Fit("pol2", "QF");

@@ -18,9 +18,7 @@
 #include "report/BmnSimulationReport.h"
 #include "CbmMCTrack.h"
 #include "BmnParticlePair.h"
-#include "BmnRecLambda.h"
 #include "BmnSiliconPoint.h"
-#include "BmnSsdPoint.h"
 
 #include <boost/assign/list_of.hpp>
 #include <fstream>

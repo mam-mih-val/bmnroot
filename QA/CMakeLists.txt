@@ -16,7 +16,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/sts
  ${CMAKE_SOURCE_DIR}/steering
  ${CMAKE_SOURCE_DIR}/globaltracking
- ${CMAKE_SOURCE_DIR}/physics/particles
+ ${CMAKE_SOURCE_DIR}/physics/decay
 # ${CMAKE_SOURCE_DIR}/monitor
  ${CMAKE_SOURCE_DIR}/QA
  ${CMAKE_SOURCE_DIR}/QA/report
@@ -90,7 +90,7 @@ EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 Set(HEADERS)
 Set(LINKDEF BmnQALinkDef.h)
 Set(LIBRARY_NAME BmnQa)
-Set(DEPENDENCIES BmnParticles GlobalTracking BmnSteering BmnDst Sts Gem Silicon Dch CSC BmnData UniDb Base Core)
+Set(DEPENDENCIES BmnPhysics GlobalTracking BmnSteering BmnDst Sts Gem Silicon Dch CSC BmnData UniDb Base Core)
 
 If ( ${ROOT_HAS_GDML} STREQUAL yes )
  Set (DEPENDENCIES ${DEPENDENCIES} Gdml)

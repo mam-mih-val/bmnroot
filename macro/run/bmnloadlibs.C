@@ -27,7 +27,7 @@ void bmnloadlibs()
   gSystem->Load("libBmnSteering");
   gSystem->Load("libGem");
   gSystem->Load("libSilicon");
-  gSystem->Load("libBmnSsd");
+  //gSystem->Load("libBmnSsd");
   gSystem->Load("libCSC");
   gSystem->Load("libArmTrig");
   gSystem->Load("libBC");
@@ -47,7 +47,7 @@ void bmnloadlibs()
   gSystem->Load("libBmnAlignment");
   gSystem->Load("libGlobalTracking");
   gSystem->Load("libzmq");
-  gSystem->Load("libBmnParticles");
   gSystem->Load("libDecoder");
   gSystem->Load("libBmnMisc");
+  gSystem->Load("libBmnPhysics");
 }

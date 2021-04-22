@@ -39,6 +39,9 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
     fIsExp = isExp;
     fIsSrc = kFALSE;
 
+    fSignalLow = 0.;
+    fSignalUp = DBL_MAX;
+
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
 
     fOutputHitsBranchName = "BmnGemStripHit";
@@ -216,6 +219,10 @@ void BmnGemStripHitMaker::ProcessDigits() {
         digit = (BmnGemStripDigit*) fBmnGemStripDigitsArray->At(idigit);
         if (!digit->IsGoodDigit())
             continue;
+        
+        if (digit->GetStripSignal() < fSignalLow || digit->GetStripSignal() > fSignalUp)
+            continue;
+        
         station = StationSet->GetGemStation(digit->GetStation());
         module = station->GetModule(digit->GetModule());
 

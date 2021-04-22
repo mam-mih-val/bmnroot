@@ -56,6 +56,11 @@ public:
         fFieldScale = fs;
     }
 
+    void SetSignalWindow(Double_t min, Double_t max) {
+        fSignalLow = min;
+        fSignalUp = max;
+    }
+
 private:
 
     TString fInputPointsBranchName;
@@ -93,6 +98,9 @@ private:
     TClonesArray* fBmnEvQuality;
 
     BmnInnTrackerAlign* fAlign;
+
+   Double_t fSignalLow; 
+   Double_t fSignalUp; 
 
     ClassDef(BmnGemStripHitMaker, 1);
 };

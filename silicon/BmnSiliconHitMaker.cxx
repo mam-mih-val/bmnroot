@@ -37,6 +37,9 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
     fCurrentConfig = BmnSiliconConfiguration::None;
     StationSet = NULL;
 
+    fSignalLow = 0.;
+    fSignalUp = DBL_MAX;
+
     switch(run_period) {
         case 6: //BM@N RUN-6
             fCurrentConfig = BmnSiliconConfiguration::RunSpring2017;
@@ -167,6 +170,10 @@ void BmnSiliconHitMaker::ProcessDigits() {
         digit = (BmnSiliconDigit*) fBmnSiliconDigitsArray->At(idigit);
         if (!digit->IsGoodDigit())
             continue;
+        
+        if (digit->GetStripSignal() < fSignalLow || digit->GetStripSignal() > fSignalUp)
+            continue;
+        
         station = StationSet->GetSiliconStation(digit->GetStation());
         module = station->GetModule(digit->GetModule());
         if (!module)

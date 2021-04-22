@@ -675,21 +675,21 @@ void BmnMassSpectrumAnal::fitSpectrum(TH1F* h, Double_t& mean, Double_t& sigma, 
     for (Int_t iBin = 1; iBin < h->GetNbinsX() + 1; iBin++)
         h->SetBinError(iBin, binErrorsAll[iBin]);
 
-    TF1* fitSpectrum = new TF1("f", fitFunction, xmin, xmax, 10);
-    fitSpectrum->SetLineColor(kMagenta);
-    fitSpectrum->SetNpx(500);
-    fitSpectrum->SetParameter(0, backRes->Parameter(0));
-    fitSpectrum->SetParameter(1, backRes->Parameter(1));
-    fitSpectrum->SetParameter(2, backRes->Parameter(2));
-    fitSpectrum->SetParameter(3, backRes->Parameter(3));
-    fitSpectrum->SetParameter(4, backRes->Parameter(4));
-    fitSpectrum->SetParameter(5, backRes->Parameter(5));
-    fitSpectrum->SetParameter(6, backRes->Parameter(6));
-    fitSpectrum->SetParameter(7, sigRes->Parameter(0));
-    fitSpectrum->SetParameter(8, sigRes->Parameter(1));
-    fitSpectrum->SetParameter(9, sigRes->Parameter(2));
+    TF1* fSpectrum = new TF1("f", fitFunction, xmin, xmax, 10);
+    fSpectrum->SetLineColor(kMagenta);
+    fSpectrum->SetNpx(500);
+    fSpectrum->SetParameter(0, backRes->Parameter(0));
+    fSpectrum->SetParameter(1, backRes->Parameter(1));
+    fSpectrum->SetParameter(2, backRes->Parameter(2));
+    fSpectrum->SetParameter(3, backRes->Parameter(3));
+    fSpectrum->SetParameter(4, backRes->Parameter(4));
+    fSpectrum->SetParameter(5, backRes->Parameter(5));
+    fSpectrum->SetParameter(6, backRes->Parameter(6));
+    fSpectrum->SetParameter(7, sigRes->Parameter(0));
+    fSpectrum->SetParameter(8, sigRes->Parameter(1));
+    fSpectrum->SetParameter(9, sigRes->Parameter(2));
 
-    TFitResultPtr res = h->Fit(fitSpectrum, "SQR+", "", xmin, xmax);
+    TFitResultPtr res = h->Fit(fSpectrum, "SQR+", "", xmin, xmax);
 
     if (!res.Get())
         return;
@@ -698,7 +698,7 @@ void BmnMassSpectrumAnal::fitSpectrum(TH1F* h, Double_t& mean, Double_t& sigma, 
     sigma = TMath::Abs(res->Parameter(9));
 
     // Calculating T and B by fit ...   
-    T.first = fitSpectrum->Integral(mean - 3 * sigma, mean + 3 * sigma) / h->GetBinWidth(1);
+    T.first = fSpectrum->Integral(mean - 3 * sigma, mean + 3 * sigma) / h->GetBinWidth(1);
     B.first = fitBackground->Integral(mean - 3 * sigma, mean + 3 * sigma) / h->GetBinWidth(1);
 
     // Calculating T and B by histogram ... 

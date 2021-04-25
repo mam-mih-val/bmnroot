@@ -320,6 +320,4 @@ BmnHodoPoint* BmnHodo::AddHit(Int_t trackID, Int_t detID, Int_t copyNo, Int_t co
     return new (clref[size]) BmnHodoPoint(trackID, detID, copyNo, copyNoMother, pos, mom, time, length, eLoss);
 }
 
-FairModule* BmnHodo::CloneModule() const { return new BmnHodo(*this); }
-
 ClassImp(BmnHodo)

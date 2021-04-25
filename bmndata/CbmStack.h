@@ -186,6 +186,8 @@ class CbmStack : public FairGenericStack
   TParticle* GetParticle(Int_t trackId) const;
   TClonesArray* GetListOfParticles() { return fParticles; }
 
+  /**mms**/
+  virtual FairGenericStack* CloneStack() const { return new CbmStack(); }
 
  private:
 

@@ -1,6 +1,8 @@
 #ifndef BMNCSC_H
 #define BMNCSC_H
 
+#include "BmnCSCPoint.h"
+
 #include "FairDetector.h"
 #include "TVector3.h"
 #include "TLorentzVector.h"
@@ -9,10 +11,7 @@
 
 #include <map>
 
-class BmnCSCPoint;
-class FairVolume;
 
-//------------------------------------------------------------------------------------------------------------------------
 class BmnCSC : public FairDetector {
 
 public:
@@ -77,8 +76,8 @@ private:
     Double32_t     fTime;              //!  time
     Double32_t     fLength;            //!  length
     Double32_t     fELoss;             //!  energy loss
-    Int_t	   fIsPrimary;         //!  is track primary?
-    Double_t       fCharge;	       //!  track charge
+    Int_t          fIsPrimary;         //!  is track primary?
+    Double_t       fCharge;            //!  track charge
     Int_t          fPdgId;             //!  pdg id of particle
 
     Int_t fPosIndex;                   //!
@@ -97,6 +96,8 @@ private:
 
     // Resets the private members for the track parameters
     void ResetParameters();
+    BmnCSC(const BmnCSC&) = delete;
+    BmnCSC operator=(const BmnCSC&) = delete;
 
     ClassDef(BmnCSC,1)
 };
@@ -115,4 +116,3 @@ inline void BmnCSC::ResetParameters() {
 //------------------------------------------------------------------------------
 
 #endif /* BMNCSC_H */
-

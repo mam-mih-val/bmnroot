@@ -48,20 +48,26 @@ class BmnGlobalTrackDraw : public FairTask
 
   protected:
     // global tracks collection
-    TClonesArray*  fTrackList;      //!
+    TClonesArray*  fTrackList;          //!
+    // Silicon tracks collection
+    TClonesArray* fSiliconTrackList;    //!
+    // Silicon hits collection
+    TClonesArray* fSiliconHitList;      //!
     // GEM tracks collection
-    TClonesArray*  fGemTrackList;   //!
+    TClonesArray*  fGemTrackList;       //!
     // GEM hits collection
-    TClonesArray*  fGemHitList;     //!
+    TClonesArray*  fGemHitList;         //!
     // TOF1 hits collection
-    TClonesArray*  fTof1HitList;     //!
+    TClonesArray*  fTof1HitList;        //!
     // TOF2 hits collection
-    TClonesArray*  fTof2HitList;     //!
+    TClonesArray*  fTof2HitList;        //!
+    // DCH tracks collection
+    TClonesArray*  fDchTrackList;       //!
     // DCH hits collection
-    TClonesArray*  fDchHitList;     //!
+    TClonesArray*  fDchHitList;         //!
     // EVE track propagator
     TEveTrackPropagator* fTrPr;
-    MpdEventManager* fEventManager;    //!
+    MpdEventManager* fEventManager;     //!
     TObjArray* fEveTrList;
     TEveTrackList* fTrList;             //!
 

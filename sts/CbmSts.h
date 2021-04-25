@@ -14,22 +14,17 @@
 #ifndef CBMSTS_H
 #define CBMSTS_H
 
-#include <map>
+#include "CbmStsPoint.h"
+
 #include "FairDetector.h"
 
 #include "TLorentzVector.h"
 
-class TClonesArray;
-class CbmStsPoint;
-class FairVolume;
-
-using namespace std;
-
+#include <map>
 
 
 class CbmSts : public FairDetector
 {
-
  public:
 
   /** Default constructor **/
@@ -121,12 +116,10 @@ class CbmSts : public FairDetector
 
 
 
-  /** Construct the geometry from an ASCII geometry file.
-   **/
+  /** Construct the geometry from an ASCII geometry file **/
   virtual void ConstructAsciiGeometry();
 
-  /** Construct the geometry from a GDML geometry file.
-   **/
+  /** Construct the geometry from a GDML geometry file **/
   virtual void ConstructGDMLGeometry();
 
 
@@ -144,9 +137,7 @@ class CbmSts : public FairDetector
 
   private:
 
-
-    /** Track information to be stored until the track leaves the
-	active volume. **/
+    /** Track information to be stored until the track leaves the active volume. **/
     Int_t          fTrackID;           //!  track index
     Int_t          fVolumeID;          //!  volume id
     Int_t          fDetectorId;        // ! Unique detector ID
@@ -164,13 +155,12 @@ class CbmSts : public FairDetector
      ** Adds a StsPoint to the HitCollection
      **/
     CbmStsPoint* AddHit(Int_t trackID, Int_t detID, TVector3 posIn,
-			TVector3 pos_out, TVector3 momIn,
-			TVector3 momOut, Double_t time,
-			Double_t length, Double_t eLoss,
+                        TVector3 pos_out, TVector3 momIn,
+                        TVector3 momOut, Double_t time,
+                        Double_t length, Double_t eLoss,
                         Int_t stationNum, Int_t moduleNum);
 
     //Int_t GetCurrentDetectorId();
-
 
     /** Private method ResetParameters
      **

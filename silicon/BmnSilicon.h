@@ -1,6 +1,8 @@
 #ifndef BMNSILICON_H
 #define BMNSILICON_H
 
+#include "BmnSiliconPoint.h"
+
 #include "FairDetector.h"
 #include "TVector3.h"
 #include "TGeoMedium.h"
@@ -9,13 +11,10 @@
 
 #include <map>
 
-class BmnSiliconPoint;
-class FairVolume;
 
-//------------------------------------------------------------------------------------------------------------------------
 class BmnSilicon : public FairDetector {
 
-public:
+  public:
 
     // *@param name    detector name
     // *@param active  sensitivity flag
@@ -65,7 +64,7 @@ public:
     // @value         kTRUE if volume is sensitive, else kFALSE
     virtual Bool_t CheckIfSensitive(std::string name);
 
-private:
+  private:
 
     // Track information to be stored until the track leaves the active volume.
     Int_t          fTrackID;           //!  track index
@@ -77,8 +76,8 @@ private:
     Double32_t     fTime;              //!  time
     Double32_t     fLength;            //!  length
     Double32_t     fELoss;             //!  energy loss
-    Int_t	   fIsPrimary;         //!  is track primary?
-    Double_t       fCharge;	       //!  track charge
+    Int_t          fIsPrimary;         //!  is track primary?
+    Double_t       fCharge;            //!  track charge
     Int_t          fPdgId;             //!  pdg id of particle
 
     Int_t fPosIndex;                   //!
@@ -96,6 +95,8 @@ private:
 
     // Resets the private members for the track parameters
     void ResetParameters();
+    BmnSilicon(const BmnSilicon&) = delete;
+    BmnSilicon operator=(const BmnSilicon&) = delete;
 
     ClassDef(BmnSilicon,1)
 };
@@ -114,4 +115,3 @@ inline void BmnSilicon::ResetParameters() {
 //------------------------------------------------------------------------------
 
 #endif /* BMNSILICON_H */
-

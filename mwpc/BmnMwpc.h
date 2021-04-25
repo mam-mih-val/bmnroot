@@ -8,10 +8,10 @@
  ** registeres MCPoints.
 **/
 
-
-
 #ifndef BMNMWPC_H
 #define BMNMWPC_H
+
+#include "BmnMwpcPoint.h"
 
 #include "TClonesArray.h"
 #include "TLorentzVector.h"
@@ -20,16 +20,11 @@
 #include "TGeoMedium.h"
 #include "TString.h"
 #include <map>
-using namespace std;
 
-class BmnMwpcPoint;
-class FairVolume;
 
-//------------------------------------------------------------------------------------------------------------------------
 class BmnMwpc : public FairDetector
 {
-
-public:
+  public:
 
    	// *@param name    detector name
    	// *@param active  sensitivity flag
@@ -84,7 +79,7 @@ public:
    	static Int_t GetProj(Int_t uid){ return ((uid-1) & 6)>>1; }; //lsp [0-3] == [x,y,u,v] 
  	static Int_t GetGasGap(Int_t uid){ return ((uid-1) & 0x0001); }; //lsp [0-1] == [inner,outer] 
   
-private:
+  private:
 
 	// Track information to be stored until the track leaves the active volume.
   	Int_t          fTrackID;           //!  track index
@@ -120,10 +115,10 @@ private:
  
 	// Resets the private members for the track parameters
   	void ResetParameters();
-
+    BmnMwpc(const BmnMwpc&) = delete;
+    BmnMwpc operator=(const BmnMwpc&) = delete;
 
   ClassDef(BmnMwpc,1) 
-
 };
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -142,4 +137,5 @@ inline void BmnMwpc::ResetParameters()
 
 }
 //------------------------------------------------------------------------------------------------------------------------
+
 #endif

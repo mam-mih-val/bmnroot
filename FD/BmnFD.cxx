@@ -1,33 +1,27 @@
 #include <iostream>
 
-#include "TClonesArray.h"
 #include "TGeoMCGeometry.h"
 #include "TGeoManager.h"
-#include "TLorentzVector.h"
-#include "TParticle.h"
-#include "TVirtualMC.h"
 #include "TGeoArb8.h"
+#include "TObjArray.h"
+#include "TParticlePDG.h"
 
 #include "FairGeoInterface.h"
 #include "FairGeoLoader.h"
 #include "FairGeoNode.h"
-#include "BmnFDGeo.h"
 #include "FairGeoRootBuilder.h"
-#include "CbmStack.h"
-#include "BmnFD.h"
-#include "BmnFDPoint.h"
-
-#include "TVector3.h" 
 #include "FairMCPoint.h"
 #include "FairRootManager.h"
 #include "FairVolume.h"
 // add on for debug
 //#include "FairGeoG3Builder.h"
 #include "FairRuntimeDb.h"
-#include "TObjArray.h"
 #include "FairRun.h"
 
-#include "TParticlePDG.h"
+#include "BmnFDGeo.h"
+#include "BmnFD.h"
+#include "CbmStack.h"
+
 
 // -----   Default constructor   -------------------------------------------
 BmnFD::BmnFD() {
@@ -364,7 +358,6 @@ void 			BmnFD::ConstructAsciiGeometry()
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------
-
 Bool_t 			BmnFD::CheckIfSensitive(std::string name)
 {
   TString tsname = name;

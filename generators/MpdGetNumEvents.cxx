@@ -390,13 +390,18 @@ Int_t MpdGetNumEvents::GetNumDCMSMMEvents(const char* fileName, int iVerbose)
 
     char read[128];
     int ntracks, num = 0;
-    Int_t evnr=0;
+    Int_t evnr = 0, last_evnr = 0;
     while (!libz->eof())
     {
-      libz->gets(read, 128);
+      char* gets_res = libz->gets(read, 128);
+      if (gets_res == Z_NULL) break; // EOF reached
       sscanf(read, "%d", &evnr);
-      if( evnr-num != 1) break; // otherwise it gives 1 more event after eof
-      for( Int_t ibeam=0; ibeam<3; ibeam++) {
+      // if an event is skipped, print it
+      if (evnr - last_evnr != 1) cout<< "ERROR: the sequence of events was interrupted " << last_evnr << "-" << evnr << endl;
+      //if (evnr-num != 1) break; // otherwise it gives 1 more event after eof
+      last_evnr = evnr;
+      for (Int_t ibeam = 0; ibeam < 3; ibeam++)
+      {
       	libz->gets(read, 128);
       	sscanf(read, "%d", &ntracks);
         for (Int_t i = 0; i < ntracks; i++) libz->gets(read, 128);

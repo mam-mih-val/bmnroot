@@ -189,24 +189,32 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         // draw MC Points
         //MpdMCPointDraw* RecoilPoint = new MpdMCPointDraw("RecoilPoint", mcPointColor, pointMarker);
         //fMan->AddTask(RecoilPoint);
+        MpdMCPointDraw* FDPoint = new MpdMCPointDraw("FDPoint", mcPointColor, pointMarker);
+        fMan->AddTask(FDPoint);
         MpdMCPointDraw* MWPCPoint = new MpdMCPointDraw("MWPCPoint", mcPointColor, pointMarker);
         fMan->AddTask(MWPCPoint);
+        MpdMCPointDraw* BdPoint = new MpdMCPointDraw("BdPoint", mcPointColor, pointMarker);
+        fMan->AddTask(BdPoint);
+        MpdMCPointDraw* SiliconPoint = new MpdMCPointDraw("SiliconPoint", mcPointColor, pointMarker);
+        fMan->AddTask(SiliconPoint);
+        MpdMCPointDraw* StsPoint = new MpdMCPointDraw("StsPoint", mcPointColor, pointMarker); // GEM
+        fMan->AddTask(StsPoint);
+        MpdMCPointDraw* SCSPoint = new MpdMCPointDraw("CSCPoint", mcPointColor, pointMarker);
+        fMan->AddTask(SCSPoint);
         MpdMCPointDraw* TOF1Point = new MpdMCPointDraw("TOF400Point", mcPointColor, pointMarker);
         fMan->AddTask(TOF1Point);
         MpdMCPointDraw* DCHPoint = new MpdMCPointDraw("DCHPoint", mcPointColor, pointMarker);
         fMan->AddTask(DCHPoint);
         MpdMCPointDraw* TofPoint = new MpdMCPointDraw("TOF700Point", mcPointColor, pointMarker);
         fMan->AddTask(TofPoint);
+        MpdMCPointDraw* EcalPoint = new MpdMCPointDraw("EcalPoint", mcPointColor, pointMarker);
+        fMan->AddTask(EcalPoint);
+        MpdMCPointDraw* ZdcPoint = new MpdMCPointDraw("ZdcPoint", mcPointColor, pointMarker);
+        fMan->AddTask(ZdcPoint);
         FairMCModuleDraw* PsdPoint = new FairMCModuleDraw("PsdPoint", mcPointColor, pointMarker);
         fMan->AddTask(PsdPoint);
-        MpdMCPointDraw* StsPoint = new MpdMCPointDraw("StsPoint", mcPointColor, pointMarker);
-        fMan->AddTask(StsPoint);
-        MpdMCPointDraw* SiliconPoint = new MpdMCPointDraw("SiliconPoint", mcPointColor, pointMarker);
-        fMan->AddTask(SiliconPoint);
         MpdMCPointDraw* SSDPoint = new MpdMCPointDraw("SsdPoint", mcPointColor, pointMarker);
         fMan->AddTask(SSDPoint);
-        MpdMCPointDraw* SCSPoint = new MpdMCPointDraw("CSCPoint", mcPointColor, pointMarker);
-        fMan->AddTask(SCSPoint);
 
         // draw MC Geometry Tracks
         MpdMCTracks* GeoTrack = new MpdMCTracks("GeoTracks");
@@ -228,6 +236,8 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         fMan->AddTask(BmnSiliconHit);
         MpdHitPointSetDraw* BmnCSCHit = new MpdHitPointSetDraw("BmnCSCHit", recoPointColor, pointMarker);
         fMan->AddTask(BmnCSCHit);
+        MpdHitPointSetDraw* BmnUpstreamHit = new MpdHitPointSetDraw("BmnUpstreamHit", recoPointColor, pointMarker);
+        fMan->AddTask(BmnUpstreamHit);
 
         // draw Reconstructed Global Tracks
         BmnGlobalTrackDraw* BmnGlobalTrack = new BmnGlobalTrackDraw("BmnGlobalTrack");

@@ -12,6 +12,7 @@
 #ifndef BMNECAL_H
 #define BMNECAL_H
 
+#include "BmnEcalPoint.h"
 
 #include "TClonesArray.h"
 #include "TVector3.h"
@@ -19,16 +20,9 @@
 #include "FairDetector.h"
 #include "BmnEcalGeoPar.h"
 
-using namespace std;
-
-
-class TClonesArray;
-class BmnEcalPoint;
-class FairVolume;
 
 class BmnEcal : public FairDetector
 {
-
  public:
 
   /** Default constructor **/
@@ -127,16 +121,17 @@ class BmnEcal : public FairDetector
   Double32_t     fTime;              //!  time
   Double32_t     fLength;            //!  length
   Double32_t     fELoss;             //!  energy loss
-  Int_t fPosIndex;      //! 
-  Int_t volDetector;     //!  MC volume ID of MUO
+  Int_t          fPosIndex;          //!
+  Int_t          volDetector;        //!  MC volume ID of MUO
   
-  TClonesArray* fEcalCollection;        //! Hit collection
+  TClonesArray* fEcalCollection;     //! Hit collection
   
   // reset all parameters   
   void ResetParameters();
+  BmnEcal(const BmnEcal&) = delete;
+  BmnEcal operator=(const BmnEcal&) = delete;
 
   ClassDef(BmnEcal,2)
-
 }; 
 
 

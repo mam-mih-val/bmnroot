@@ -11,6 +11,7 @@
 #ifndef BMNRECOIL_H
 #define BMNRECOIL_H
 
+#include "BmnRecoilPoint.h"
 
 #include "TClonesArray.h"
 #include "TVector3.h"
@@ -18,16 +19,9 @@
 #include "FairDetector.h"
 #include "BmnRecoilGeoPar.h"
 
-using namespace std;
-
-
-class TClonesArray;
-class BmnRecoilPoint;
-class FairVolume;
 
 class BmnRecoil : public FairDetector
 {
-
  public:
 
   /** Default constructor **/
@@ -131,9 +125,10 @@ class BmnRecoil : public FairDetector
   
   // reset all parameters   
   void ResetParameters();
+  BmnRecoil(const BmnRecoil&) = delete;
+  BmnRecoil operator=(const BmnRecoil&) = delete;
 
   ClassDef(BmnRecoil,2)
-
 }; 
 
 

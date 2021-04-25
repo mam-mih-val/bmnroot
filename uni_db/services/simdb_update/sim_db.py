@@ -191,6 +191,11 @@ def recurse_path(dir_path, generator_type_dir, conn, existing_files, exist_valid
             a_file = open(filepath, "rb")
             file_content = a_file.read()
             file_md5 = hashlib.md5(file_content).hexdigest()
+            
+            # replace 'eos' by 'eos/eos.jinr.ru' to form file_path_micc
+            #filepath_micc = filepath
+            #filepath_micc.replace("eos", "eos/eos.jinr.ru", 1)
+            
 
             logging.info("\nINSERT INTO simulation_file(file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_size, file_md5) \
             \nVALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8})".format(filepath, generator_type_file, beam, target, energy, centrality, event_count, file_size, file_md5))

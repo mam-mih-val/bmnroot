@@ -9,11 +9,10 @@
  ** registers MCPoints.
  **/
 
-
-
 #ifndef BMNDCH_H
 #define BMNDCH_H
 
+#include "BmnDchPoint.h"
 
 #include "TClonesArray.h"
 #include "TLorentzVector.h"
@@ -22,16 +21,11 @@
 #include "TGeoMedium.h"
 #include "TString.h"
 #include <map>
-using namespace std;
 
-class BmnDchPoint;
-class FairVolume;
 
-//------------------------------------------------------------------------------------------------------------------------
 class BmnDch : public FairDetector
 {
-
-public:
+  public:
 
    	// *@param name    detector name
    	// *@param active  sensitivity flag
@@ -97,20 +91,20 @@ private:
   	Double32_t     fTime;              //!  time
   	Double32_t     fLength;            //!  length
   	Double32_t     fELoss;             //!  energy loss
-  	Int_t	       fIsPrimary; 	   //! is track primary?	
-  	Double_t       fCharge;		   //! track charge
-  	Double_t       fRadius;		   //! hit radius
+    Int_t	       fIsPrimary;         //! is track primary?
+    Double_t       fCharge;            //! track charge
+    Double_t       fRadius;            //! hit radius
   	Int_t          fPdgId;             //! pdg id of particle
   	Int_t          fwheel;
-  	TVector3 fPosIn;             //!  entry position in global frame                                                                    
-  	TVector3 fPosOut;            //!  exit position in global frame 
+    TVector3       fPosIn;             //!  entry position in global frame
+    TVector3       fPosOut;            //!  exit position in global frame
 	                                                                    
-    TVector3 fPosInTmp;             //!  entry position in global frame
-	Int_t    fTrackIDTmp;           //!  track index
-	Int_t fwheelTmp;
+    TVector3       fPosInTmp;          //!  entry position in global frame
+    Int_t          fTrackIDTmp;        //!  track index
+    Int_t          fwheelTmp;
 
-	Int_t fPosIndex;                   //!
-  	TClonesArray* fPointCollection;      //! Hit collection
+    Int_t fPosIndex;                   //!
+    TClonesArray* fPointCollection;    //! Hit collection
 
 	int DistAndPoints(TVector3 p3, TVector3 p4, TVector3& pa, TVector3& pb);
         TVector3 GlobalToLocal(TVector3& global);
@@ -121,11 +115,11 @@ private:
   	Double_t length, Double_t eLoss, Int_t isPrimary, Double_t charge, Int_t fPdgId, TVector3 trackPos); 
  
 	// Resets the private members for the track parameters
-  	void ResetParameters();
-
+    void ResetParameters();
+    BmnDch(const BmnDch&) = delete;
+    BmnDch operator=(const BmnDch&) = delete;
 
   ClassDef(BmnDch,1) 
-
 };
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -144,4 +138,5 @@ inline void BmnDch::ResetParameters()
 
 };
 //------------------------------------------------------------------------------------------------------------------------
+
 #endif

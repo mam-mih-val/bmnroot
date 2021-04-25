@@ -10,23 +10,18 @@
  ** registeres MCPoints.
  **/
 
-
-
 #ifndef CBMPSD_H
 #define CBMPSD_H
+
+#include "CbmPsdPoint.h"
 
 #include "FairDetector.h"
 
 #include "TLorentzVector.h"
 
-class CbmPsdPoint; 
-class FairVolume;
-class TClonesArray;
-
 
 class CbmPsd : public FairDetector 
 {
-
  public:
 
   /** Default constructor **/
@@ -114,7 +109,7 @@ class CbmPsd : public FairDetector
    **/
   void SetDebug(Option_t *debug) {fDebug = debug;}
 
-protected:
+ protected:
   /** Protected method AddHit
    **
    ** Adds a CbmPsdPoint to the HitCollection
@@ -126,7 +121,6 @@ protected:
 
 
  private:
-
   /** Track information to be stored until the track leaves the
       active volume. **/
   Int_t          fTrackID;           //!  track index
@@ -147,10 +141,10 @@ protected:
    ** Resets the private members for the track parameters
    **/
   void ResetParameters();
-
+  CbmPsd(const CbmPsd&) = delete;
+  CbmPsd operator=(const CbmPsd&) = delete;
 
   ClassDef(CbmPsd,1)
-
 };
 
 
@@ -161,6 +155,5 @@ inline void CbmPsd::ResetParameters() {
   fTime = fLength = fELoss = 0;
   fPosIndex = 0;
 };
-
 
 #endif

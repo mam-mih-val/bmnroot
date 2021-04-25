@@ -15,7 +15,6 @@
 #include "FairGeoRootBuilder.h"
 #include "CbmStack.h"
 #include "BmnBd.h"
-#include "BmnBdPoint.h"
 
 #include "TVector3.h" 
 #include "FairMCPoint.h"
@@ -381,7 +380,6 @@ void 			BmnBd::ConstructAsciiGeometry()
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------
-
 Bool_t 			BmnBd::CheckIfSensitive(std::string name)
 {
   TString tsname = name;
@@ -400,6 +398,7 @@ BmnBdPoint* BmnBd::AddHit( Int_t trackID, Int_t detID, Int_t copyNo, TVector3 po
   	Int_t size = clref.GetEntriesFast();
   	return new(clref[size]) BmnBdPoint(trackID, detID, copyNo, posIn, posOut, momIn, momOut, time, length, eLoss, isPrimary, 
 										charge, pdgId, lightYield, timeIn, timeOut, lengthtrack);
- }
+}
+
 
 ClassImp(BmnBd)

@@ -11,23 +11,16 @@
 #ifndef BMNZDC_H
 #define BMNZDC_H
 
-
 #include "TClonesArray.h"
 #include "TVector3.h"
 #include "TLorentzVector.h"
 #include "FairDetector.h"
 #include "BmnZdcGeoPar.h"
+#include "BmnZdcPoint.h"
 
-using namespace std;
-
-
-class TClonesArray;
-class BmnZdcPoint;
-class FairVolume;
 
 class BmnZdc : public FairDetector
 {
-
  public:
 
   /** Default constructor **/
@@ -106,9 +99,7 @@ class BmnZdc : public FairDetector
 			  Int_t offset);
 
 
-  /** Virtual method Construct geometry
-   **
-   **/
+  /** Virtual method Construct geometry **/
   virtual void ConstructGeometry();
 
   virtual Bool_t CheckIfSensitive(std::string name);
@@ -136,21 +127,20 @@ class BmnZdc : public FairDetector
   Double32_t     fTime;              //!  time
   Double32_t     fLength;            //!  length
   Double32_t     fELoss;             //!  energy loss
-  Int_t fPosIndex;      //! 
-  Int_t volDetector;     //!  MC volume ID of MUO
+  Int_t          fPosIndex;          //!
+  Int_t          volDetector;        //!  MC volume ID of MUO
   
-  ///
   /// Birks' constant
-  ///
   Double_t fBirksConstant = 7.943;
   
   TClonesArray* fZdcCollection;        //! Hit collection
   
   // reset all parameters   
   void ResetParameters();
+  BmnZdc(const BmnZdc&) = delete;
+  BmnZdc operator=(const BmnZdc&) = delete;
 
   ClassDef(BmnZdc,4)
-
 }; 
 
 

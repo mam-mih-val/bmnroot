@@ -47,6 +47,8 @@ class BmnTOF1 : public FairDetector
   
     // reset all parameters
     void ResetParameters();
+    BmnTOF1(const BmnTOF1&) = delete;
+    BmnTOF1 operator=(const BmnTOF1&) = delete;
 
  ClassDef(BmnTOF1, 3)
 };

@@ -126,7 +126,7 @@ Bool_t BmnScWall::ProcessHits(FairVolume* vol) {
   Double_t  QCF=1; //quenching for Birk
   Double_t  BirkConst = 12.6; //0.126 mm/MeV for polystyrene 
   //0.126 *(0.1/0.001) = 12.6 cm/GeV
-  //(0.126 mm/MeV - from Wikipedia, 0.07943mm/MeV Ñ”– in Geant4)
+  //(0.126 mm/MeV - from Wikipedia, 0.07943mm/MeV in Geant4)
 
   if (gMC->CurrentVolID(copyNoCellSmallCut) != fCellSmallCutVolId &&
       gMC->CurrentVolID(copyNoCellSmallTrap) != fCellSmallTrapVolId &&
@@ -322,7 +322,5 @@ BmnScWallPoint* BmnScWall::AddHit(Int_t trackID, Int_t detID, Int_t copyNo, Int_
   Int_t size = clref.GetEntriesFast();
   return new (clref[size]) BmnScWallPoint(trackID, detID, copyNo, copyNoMother, pos, mom, time, length, eLoss);
 }
-
-FairModule* BmnScWall::CloneModule() const { return new BmnScWall(*this); }
 
 ClassImp(BmnScWall)

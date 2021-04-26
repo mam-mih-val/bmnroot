@@ -66,8 +66,6 @@ class BmnScWall : public FairDetector
     virtual void PostTrack() { ; }
     virtual void PreTrack() { ; }
 
-    virtual FairModule* CloneModule() const;
-
     /** Virtual method Register
      **
      ** Registers the hit collection in the ROOT manager.

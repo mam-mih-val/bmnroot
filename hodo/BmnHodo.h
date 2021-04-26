@@ -67,8 +67,6 @@ class BmnHodo : public FairDetector
     virtual void BeginPrimary() { ; }
     virtual void PostTrack() { ; }
     virtual void PreTrack() { ; }
-  
-    virtual FairModule* CloneModule() const;
 
     /** Virtual method Register
      **

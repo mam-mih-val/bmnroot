@@ -11,11 +11,18 @@ root -l "create_rootgeom_zdc_oldnames_CBM_20mods_NICA_34mods_54mods_hole_v1.C(47
 root -l "create_rootgeom_zdc_oldnames_mCBM_9mods_20x20cm_no_hole.C(160,0,0,0,5)"
 
 //===================================
+//FHCal
 root -l "create_rootgeom_zdc_oldnames_CBM_20mods_NICA_34mods_54mods_hole_v1.C(49.5,0.,878.1,0)"
 
-root -l "create_rootgeom_Hodo_oldnames_v1.C(47.5,0,877,0)"
+//Hodo before FHCal hole
+root -l "create_rootgeom_Hodo_oldnames_v1.C(49.5,0,877,0)"
 
+//ScWall
 root -l "create_rootgeom_ScWall_oldnames_no_hole_v1.C(70,0,878,0)"
 
+//Hodo before ScWall hole
+root -l "create_rootgeom_Hodo_oldnames_v1.C(47.5,0,877,0)"
+
+//neutron ZDC (nZDC)
 root -l "create_rootgeom_zdc_oldnames_NICA_36mods_no_hole_v1.C.C(-20,0,878,0)"
 

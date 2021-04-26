@@ -239,12 +239,17 @@ void create_rootgeom_ScWall_oldnames_no_hole_v1(Double_t ScWall_Xpos=0,Double_t 
       TGeoTranslation *scwallCellV_position_large = new TGeoTranslation(xCur,yCur, zCur);
       iMod=iy*ScWall_NColumns_large + ix;
       
-      if(iMod<60) modNb=iMod+1+40;  
-      if(iMod>=60 && iMod<=64) continue;
-      if(iMod>64) modNb=iMod-5+1+40;
+      //if(iMod<60) modNb=iMod+1+40;  
+      //if(iMod>=60 && iMod<=64) continue;
+      //if(iMod>64) modNb=iMod-5+1+40;
+      if(iMod<61) modNb=iMod+1+40;  
+      if(iMod>=61 && iMod<=65) continue;
+      if(iMod>65) modNb=iMod-5+1+40;
       
-      if(iMod>=78 && iMod<=82) continue;
-      if(iMod>82) modNb=iMod-10+1+40;
+      //if(iMod>=78 && iMod<=82) continue;
+      //if(iMod>82) modNb=iMod-10+1+40;     
+      if(iMod>=79 && iMod<=83) continue;
+      if(iMod>83) modNb=iMod-10+1+40;
       
       ScWallV->AddNode(scwallCellV_large,modNb,scwallCellV_position_large);
       cout <<"ScWall modNb,xxxx,yyyy " <<modNb <<" " <<xCur <<" " <<yCur <<endl;

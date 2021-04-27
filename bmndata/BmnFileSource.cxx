@@ -227,7 +227,7 @@ BmnFileSource::BmnFileSource(const TString RootFileName, int& period_number, int
             }
         }
     }
-
+    delete run_header;
     LOG(DEBUG)<<"BmnFileSource created------------";
 }
 

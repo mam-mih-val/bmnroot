@@ -20,6 +20,7 @@ CFLAGS += -I$(VMCWORKDIR)/passive
 CFLAGS += -I$(VMCWORKDIR)/alignment
 CFLAGS += -I$(VMCWORKDIR)/armTriggers
 CFLAGS += -I$(VMCWORKDIR)/bd
+CFLAGS += -I$(VMCWORKDIR)/bc
 CFLAGS += -I$(VMCWORKDIR)/bmndata
 CFLAGS += -I$(VMCWORKDIR)/bmndata/cbm
 CFLAGS += -I$(VMCWORKDIR)/bmndata/common
@@ -44,7 +45,7 @@ CFLAGS += -I$(VMCWORKDIR)/zdc
 CFLAGS += -I$(VMCWORKDIR)/land
 CFLAGS += -I$(VMCWORKDIR)/csc
 CFLAGS += -I$(VMCWORKDIR)/steering
-CFLAGS += -I$(VMCWORKDIR)/ssd/mc
+#CFLAGS += -I$(VMCWORKDIR)/ssd/mc
 CFLAGS += -I$(VMCWORKDIR)/bmndst
 CFLAGS += -I$(VMCWORKDIR)/decoder
 CFLAGS += -I$(VMCWORKDIR)/globaltracking
@@ -69,8 +70,7 @@ LDFLAGS += -lSts -lBd -lEcal -lZdc -lRecoil -lPsd -lTOF -lGem -lTOF1 -lDch
 LDFLAGS += -lCat -lKF -lBmnData -lBmnField -lMpdGen -lPassive -lGen -lUniDb
 LDFLAGS += -lBase -lGeoBase -lParBase -lTrkBase -lGeane -lEve -lFairTools
 LDFLAGS += -lXMLParser -lXMLIO -lSpectrum -lGenVector -lMinuit -lGeom
-LDFLAGS += -lGeomPainter -lVMC -lpthread 
-
+LDFLAGS += -lGeomPainter -lVMC -lpthread -lTracking -lBC -lArmTrig
 
 all:	$(OBJECTS)
 

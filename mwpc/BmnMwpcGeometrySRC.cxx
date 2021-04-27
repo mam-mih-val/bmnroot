@@ -269,5 +269,15 @@ Double_t BmnMwpcGeometrySRC::GetTy(Int_t chamber){
 }
 
 BmnMwpcGeometrySRC::~BmnMwpcGeometrySRC() {
+  delete[] fX;
+  delete[] fY;
+  delete[] fZleft;
+  delete[] fZright;
+  delete[] fAngleX;
+  delete[] fAngleY;
+  for(Int_t i=0; i<fNChambers; i++){
+    delete[] fZPlanePos[i];
+  }
+  delete[] fZPlanePos;
 
 }

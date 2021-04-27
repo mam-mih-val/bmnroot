@@ -50,7 +50,7 @@ private:
 
     //DCH parameters
     TString *fPlaneTypes;
-    
+    TList fhList2;
     TRandom rand_gen;
 
     ClassDef(BmnDchHitProducer, 1);

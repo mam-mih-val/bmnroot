@@ -88,7 +88,6 @@ InitStatus BmnMwpcHitFinder::Init() {
   FairRootManager* ioman = FairRootManager::Instance();
   
   if (expData) {
-    cout<<" expData "<<endl;
     fBmnMwpcDigitArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
     if (!fBmnMwpcDigitArray) {
       cout<<"BmnMwpcHitFinder::Init(): branch "<<fInputBranchName<<" not found! Task will be deactivated"<<endl;
@@ -96,7 +95,6 @@ InitStatus BmnMwpcHitFinder::Init() {
       return kERROR;
     }
   }else{
-    cout<<" !expData "<<endl;
     fBmnHitsArray = (TClonesArray*)ioman->GetObject(fInputBranchName);
     cout << "fBmnHitsArray = " << fInputBranchName << "\n";
     if (!fBmnHitsArray) {
@@ -243,6 +241,8 @@ InitStatus BmnMwpcHitFinder::Init() {
   // Matrices
   matrA = new Double_t*[4];
   matrb = new Double_t*[4];
+  Amatr = new Double_t*[4];
+  bmatr = new Double_t*[4];
   // Arrays
   Nlay_w_wires  = new Int_t[kNChambers];
   kPln          = new Int_t*[kNChambers];
@@ -420,6 +420,8 @@ InitStatus BmnMwpcHitFinder::Init() {
       par_ab_seg[i][ii] = new Double_t[kBig];
       matrA[ii]    = new Double_t[4];
       matrb[ii]    = new Double_t[4];
+      Amatr[ii] = new Double_t[4];
+      bmatr[ii] = new Double_t[4];
     }//4
   }//kChamber
   for(Int_t i = 0; i < kNChambers; ++i) {
@@ -1541,12 +1543,6 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
       }
       if (fDebug) cout<<endl;
       
-      Amatr = new Double_t*[4];
-      bmatr = new Double_t*[4];
-      for(Int_t ii=0; ii<4; ii++) {
-        Amatr[ii] = new Double_t[4];
-        bmatr[ii] = new Double_t[4];
-      }
       for(Int_t im=0; im<4; im++) {
         for(Int_t ii=0; ii<4; ii++) {
           Amatr[im][ii] = 0.;
@@ -1842,7 +1838,7 @@ void BmnMwpcHitFinder::SegmentParamAlignment(Int_t chNum, Int_t *Nbest, Double_t
 
 //------ Arrays Initialization -----------------------------------------
 void BmnMwpcHitFinder::PrepareArraysToProcessEvent() {
-  fBmnMwpcSegmentsArray->Clear();
+  fBmnMwpcSegmentsArray->Delete();
   vec_points.clear();
 
   for(Int_t iCh = 0; iCh < kNChambers; iCh++) {

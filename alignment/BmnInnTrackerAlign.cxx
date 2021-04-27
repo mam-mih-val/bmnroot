@@ -121,6 +121,8 @@ BmnInnTrackerAlign::~BmnInnTrackerAlign() {
 
     delete fDetectorGEM;
     delete fDetectorSI;
+    delete fBranchGemCorrs;
+    delete fBranchSilCorrs;
 }
 
 Double_t*** BmnInnTrackerAlign::GetGemCorrs(TFile* file) {
@@ -141,7 +143,7 @@ Double_t*** BmnInnTrackerAlign::GetGemCorrs(TFile* file) {
     }
 
     TTree* t = (TTree*) file->Get("cbmsim");
-    TClonesArray* corrs = NULL;
+    TClonesArray* corrs = nullptr;
     t->SetBranchAddress(fBranchGemCorrs.Data(), &corrs);
 
     for (Int_t iEntry = 0; iEntry < t->GetEntries(); iEntry++) {
@@ -153,9 +155,9 @@ Double_t*** BmnInnTrackerAlign::GetGemCorrs(TFile* file) {
             corr[iStat][iMod][0] = align->GetCorrections().X();
             corr[iStat][iMod][1] = align->GetCorrections().Y();
             corr[iStat][iMod][2] = align->GetCorrections().Z();
-            align->Delete();
         }
     }
+    delete corrs;
     t->Delete();
     return corr;
 }
@@ -178,7 +180,7 @@ Double_t*** BmnInnTrackerAlign::GetSiliconCorrs(TFile* file) {
     }
 
     TTree* t = (TTree*) file->Get("cbmsim");
-    TClonesArray* corrs = NULL;
+    TClonesArray* corrs = nullptr;
     t->SetBranchAddress(fBranchSilCorrs.Data(), &corrs);
 
     for (Int_t iEntry = 0; iEntry < t->GetEntries(); iEntry++) {
@@ -190,9 +192,9 @@ Double_t*** BmnInnTrackerAlign::GetSiliconCorrs(TFile* file) {
             corr[iStat][iMod][0] = align->GetCorrections().X();
             corr[iStat][iMod][1] = align->GetCorrections().Y();
             corr[iStat][iMod][2] = align->GetCorrections().Z();
-            align->Delete();
         }
     }
+    delete corrs;
     t->Delete();
     return corr;
 }

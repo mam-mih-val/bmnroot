@@ -3744,7 +3744,7 @@ InitStatus BmnSiliconTrackFinder::Init() {
   FairRootManager* ioman = FairRootManager::Instance();
   
   if (expData) {
-    cout<<" expData "<<endl;
+    if (fVerbose) cout<<" expData "<<endl;
     fBmnSiDigitsArray = (TClonesArray*) ioman->GetObject("SILICON");
     if (!fBmnSiDigitsArray) {
       cout<<"fBmnSiDigitsArray::Init(): branch "<<" not found! Task will be deactivated"<<endl;
@@ -3752,16 +3752,16 @@ InitStatus BmnSiliconTrackFinder::Init() {
       return kERROR;
     }
   }else{
-    cout<<" !expData BmnSiliconTrackFinder::Init()" << endl;
+    if (fVerbose) cout<<" !expData BmnSiliconTrackFinder::Init()" << endl;
     fBmnHitsArray = (TClonesArray*)ioman->GetObject(fInputBranchName);
-    cout << "fInputBranchName = " << fInputBranchName << "\n";
+    if (fVerbose) cout << "fInputBranchName = " << fInputBranchName << "\n";
     if (!fBmnHitsArray) {
       cout << "BmnSiliconTrackFinder::Init(): branch " <<fInputBranchName<< " not found! Task will be deactivated" << endl;
       SetActive(kFALSE);
       return kERROR;
     }
     fBmnHitsArray2 = (TClonesArray*)ioman->GetObject(fInputBranchName2);
-    cout << "fInputBranchName2 = " << fInputBranchName2 << "\n";
+    if (fVerbose) cout << "fInputBranchName2 = " << fInputBranchName2 << "\n";
     if (!fBmnHitsArray2) {
       cout << "BmnSiliconTrackFinder::Init(): branch " <<fInputBranchName2<< " not found! Task will be deactivated" << endl;
       SetActive(kFALSE);

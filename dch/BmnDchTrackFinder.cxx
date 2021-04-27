@@ -94,22 +94,22 @@ TH1F *hXDC1_atZ0;
 TH1F *hYDC1_atZ0;
 TH1F *hXDC2_atZ0;
 TH1F *hYDC2_atZ0;
-TH1F *hSlot_1xa_time8p = new TH1F("hSlot_1xa_time8p", "time8ps_for_plane_DC1_xa", 2000,0,2000);
-TH1F *hSlot_1xb_time8p = new TH1F("hSlot_1xb_time8p", "time8ps_for_plane_DC1_xb", 2000,0,2000);
-TH1F *hSlot_1ya_time8p = new TH1F("hSlot_1ya_time8p", "time8ps_for_plane_DC1_ya", 2000,0,2000);
-TH1F *hSlot_1yb_time8p = new TH1F("hSlot_1yb_time8p", "time8ps_for_plane_DC1_yb", 2000,0,2000);
-TH1F *hSlot_1ua_time8p = new TH1F("hSlot_1ua_time8p", "time8ps_for_plane_DC1_ua", 2000,0,2000);
-TH1F *hSlot_1ub_time8p = new TH1F("hSlot_1ub_time8p", "time8ps_for_plane_DC1_ub", 2000,0,2000);
-TH1F *hSlot_1va_time8p = new TH1F("hSlot_1va_time8p", "time8ps_for_plane_DC1_va", 2000,0,2000);
-TH1F *hSlot_1vb_time8p = new TH1F("hSlot_1vb_time8p", "time8ps_for_plane_DC1_vb", 2000,0,2000);
-TH1F *hSlot_2xa_time8p = new TH1F("hSlot_2xa_time8p", "time8ps_for_plane_DC2_xa", 2000,0,2000);
-TH1F *hSlot_2xb_time8p = new TH1F("hSlot_2xb_time8p", "time8ps_for_plane_DC2_xb", 2000,0,2000);
-TH1F *hSlot_2ya_time8p = new TH1F("hSlot_2ya_time8p", "time8ps_for_plane_DC2_ya", 2000,0,2000);
-TH1F *hSlot_2yb_time8p = new TH1F("hSlot_2yb_time8p", "time8ps_for_plane_DC2_yb", 2000,0,2000);
-TH1F *hSlot_2ua_time8p = new TH1F("hSlot_2ua_time8p", "time8ps_for_plane_DC2_ua", 2000,0,2000);
-TH1F *hSlot_2ub_time8p = new TH1F("hSlot_2ub_time8p", "time8ps_for_plane_DC2_ub", 2000,0,2000);
-TH1F *hSlot_2va_time8p = new TH1F("hSlot_2va_time8p", "time8ps_for_plane_DC2_va", 2000,0,2000);
-TH1F *hSlot_2vb_time8p = new TH1F("hSlot_2vb_time8p", "time8ps_for_plane_DC2_vb", 2000,0,2000);
+TH1F *hSlot_1xa_time8p;
+TH1F *hSlot_1xb_time8p;
+TH1F *hSlot_1ya_time8p;
+TH1F *hSlot_1yb_time8p;
+TH1F *hSlot_1ua_time8p;
+TH1F *hSlot_1ub_time8p;
+TH1F *hSlot_1va_time8p;
+TH1F *hSlot_1vb_time8p;
+TH1F *hSlot_2xa_time8p;
+TH1F *hSlot_2xb_time8p;
+TH1F *hSlot_2ya_time8p;
+TH1F *hSlot_2yb_time8p;
+TH1F *hSlot_2ua_time8p;
+TH1F *hSlot_2ub_time8p;
+TH1F *hSlot_2va_time8p;
+TH1F *hSlot_2vb_time8p;
 
 
 TH1F *hResidx1a;
@@ -317,6 +317,23 @@ fPeriod(period), fRunId(number), expData(isExp) {
   hYDC1_atZ0 = new TH1F("hYDC1_atZ0"," YDC1 extrapol Z = 0", 200,-100,100);
   hXDC2_atZ0 = new TH1F("hXDC2_atZ0"," XDC2 extrapol Z = 0", 200,-100,100);
   hYDC2_atZ0 = new TH1F("hYDC2_atZ0"," YDC2 extrapol Z = 0", 200,-100,100);
+
+  hSlot_1xa_time8p = new TH1F("hSlot_1xa_time8p", "time8ps_for_plane_DC1_xa", 2000,0,2000);
+  hSlot_1xb_time8p = new TH1F("hSlot_1xb_time8p", "time8ps_for_plane_DC1_xb", 2000,0,2000);
+  hSlot_1ya_time8p = new TH1F("hSlot_1ya_time8p", "time8ps_for_plane_DC1_ya", 2000,0,2000);
+  hSlot_1yb_time8p = new TH1F("hSlot_1yb_time8p", "time8ps_for_plane_DC1_yb", 2000,0,2000);
+  hSlot_1ua_time8p = new TH1F("hSlot_1ua_time8p", "time8ps_for_plane_DC1_ua", 2000,0,2000);
+  hSlot_1ub_time8p = new TH1F("hSlot_1ub_time8p", "time8ps_for_plane_DC1_ub", 2000,0,2000);
+  hSlot_1va_time8p = new TH1F("hSlot_1va_time8p", "time8ps_for_plane_DC1_va", 2000,0,2000);
+  hSlot_1vb_time8p = new TH1F("hSlot_1vb_time8p", "time8ps_for_plane_DC1_vb", 2000,0,2000);
+  hSlot_2xa_time8p = new TH1F("hSlot_2xa_time8p", "time8ps_for_plane_DC2_xa", 2000,0,2000);
+  hSlot_2xb_time8p = new TH1F("hSlot_2xb_time8p", "time8ps_for_plane_DC2_xb", 2000,0,2000);
+  hSlot_2ya_time8p = new TH1F("hSlot_2ya_time8p", "time8ps_for_plane_DC2_ya", 2000,0,2000);
+  hSlot_2yb_time8p = new TH1F("hSlot_2yb_time8p", "time8ps_for_plane_DC2_yb", 2000,0,2000);
+  hSlot_2ua_time8p = new TH1F("hSlot_2ua_time8p", "time8ps_for_plane_DC2_ua", 2000,0,2000);
+  hSlot_2ub_time8p = new TH1F("hSlot_2ub_time8p", "time8ps_for_plane_DC2_ub", 2000,0,2000);
+  hSlot_2va_time8p = new TH1F("hSlot_2va_time8p", "time8ps_for_plane_DC2_va", 2000,0,2000);
+  hSlot_2vb_time8p = new TH1F("hSlot_2vb_time8p", "time8ps_for_plane_DC2_vb", 2000,0,2000);
 
   hResidx1a= new TH1F("hResidx1a","dc1 xa_mes - xa_from_fit",500,-0.1,0.1);
   hResidu1a= new TH1F("hResidu1a","dc1 ua_mes - ua_from_fit",500,-0.1,0.1);
@@ -2892,15 +2909,15 @@ void BmnDchTrackFinder::Finish() {
   //added
   //===============================================================================================================
 
-  //if (fVerbose) {
-  TFile file(fhTestFlnm.Data(), "RECREATE");
-   
-  hEff1->Divide(hNomin1,hDenom1,1.,1.);
-  hEff2->Divide(hNomin2,hDenom2,1.,1.);
-    
-  fhList.Write();
-  file.Close();
-  //}
+  if (fVerbose) {
+    TFile file(fhTestFlnm.Data(), "RECREATE");
+     
+    hEff1->Divide(hNomin1,hDenom1,1.,1.);
+    hEff2->Divide(hNomin2,hDenom2,1.,1.);
+      
+    fhList.Write();
+    file.Close();
+  }
   //===============================================================================================================
 
   ///end

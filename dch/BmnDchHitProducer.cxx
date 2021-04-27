@@ -14,11 +14,11 @@
 using std::cout;
 
 TString fhTestFlnm2;
-TList fhList2;
-TH1F* hMCtr_ion_dc1 = new TH1F("hMCHits_ion_dc1", "ion MC hits in DCH1 ", 9, 0, 9);
-TH1F* hMCtr_ion_dc2 = new TH1F("hMCHits_ion_dc2", "ion MC hits in DCH2 ", 9, 0, 9);
-TH1F* hMCtr_ionID_dc1 = new TH1F("hMCHits_ionID_dc1", "ion MC hits ID in DCH1 ", 10000, 0, 10000);
-TH1F* hMCtr_ionID_dc2 = new TH1F("hMCHits_ionID_dc2", "ion MC hits ID in DCH2 ", 10000, 0, 10000);
+//TList fhList2;
+TH1F* hMCtr_ion_dc1 ;
+TH1F* hMCtr_ion_dc2 ;
+TH1F* hMCtr_ionID_dc1;
+TH1F* hMCtr_ionID_dc2;
 
 const UInt_t fNActivePlanes = 8; //number of active wire planes in DHC
 BmnDchHitProducer::BmnDchHitProducer() {
@@ -26,6 +26,11 @@ BmnDchHitProducer::BmnDchHitProducer() {
   fOutputHitsBranchName = "BmnDchHit";
   fhTestFlnm2 = "test.BmnDCH_MC.root";
   // fhList2.Add(hSmearing);
+
+  hMCtr_ion_dc1 = new TH1F("hMCHits_ion_dc1", "ion MC hits in DCH1 ", 9, 0, 9);
+  hMCtr_ion_dc2 = new TH1F("hMCHits_ion_dc2", "ion MC hits in DCH2 ", 9, 0, 9);
+  hMCtr_ionID_dc1 = new TH1F("hMCHits_ionID_dc1", "ion MC hits ID in DCH1 ", 10000, 0, 10000);
+  hMCtr_ionID_dc2 = new TH1F("hMCHits_ionID_dc2", "ion MC hits ID in DCH2 ", 10000, 0, 10000);
   fhList2.Add(hMCtr_ion_dc1);
   fhList2.Add(hMCtr_ion_dc2);
   fhList2.Add(hMCtr_ionID_dc1);
@@ -261,11 +266,13 @@ void BmnDchHitProducer::Exec(Option_t* opt) {
 }
 
 void BmnDchHitProducer::Finish() {
+  
+  if (fVerbose){
+    TFile file(fhTestFlnm2.Data(), "RECREATE");
+    fhList2.Write();
+    file.Close();
 
-  TFile file(fhTestFlnm2.Data(), "RECREATE");
-
-  fhList2.Write();
-  file.Close();
+  }
 }
 
 ClassImp(BmnDchHitProducer)

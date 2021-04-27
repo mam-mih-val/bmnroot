@@ -1178,7 +1178,7 @@ int UniDbDetectorParameter::ReadFile(const char* detector_name, const char* para
     }
 
     fclose(cur_file);
-    delete buffer;
+    delete[] buffer;
     delete pValue;
 
     return 0;

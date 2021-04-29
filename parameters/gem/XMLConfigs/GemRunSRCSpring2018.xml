@@ -15,7 +15,7 @@
 <StationSet>
 
    <!-- Station 3 (GEM M2) -->
-    <Station xPosition="-115.31016" yPosition="-25.76025" zPosition="-446.18716" beamHole="0.0">
+    <Station xPosition="-115.31016" yPosition="-25.76025" zPosition="-446.26916" beamHole="0.0">
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
@@ -46,7 +46,7 @@
 
 
     <!-- Station 0 (GEM M4) -->
-    <Station xPosition="+117.22007" yPosition="+16.86775" zPosition="-444.97179" beamHole="0.0">
+    <Station xPosition="+117.22007" yPosition="+16.86775" zPosition="-444.86679" beamHole="0.0">
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
@@ -76,7 +76,7 @@
     </Station>
 
     <!-- Station 1 (GEM M3) -->
-    <Station xPosition="+117.27807" yPosition="-25.90225" zPosition="-447.46132" beamHole="0.0">
+    <Station xPosition="+117.27807" yPosition="-25.90225" zPosition="-447.56632" beamHole="0.0">
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
@@ -106,7 +106,7 @@
     </Station>
 
     <!-- Station 2 (GEM M1) -->
-    <Station xPosition="-117.51723" yPosition="+16.86775" zPosition="-444.99841" beamHole="0.0">
+    <Station xPosition="-117.51723" yPosition="+16.86775" zPosition="-444.91641" beamHole="0.0">
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">

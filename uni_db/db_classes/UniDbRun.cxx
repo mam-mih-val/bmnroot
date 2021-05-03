@@ -1273,13 +1273,10 @@ int UniDbRun::GetRootGeometry(int period_number, int run_number, unsigned char*&
     }
 
     size_root_geometry = pGeometry->GetRootGeometrySize();
-    root_geometry = new unsigned char[size_root_geometry];
-	unsigned char* rootGeom = pGeometry->GetRootGeometry();
-    memcpy(root_geometry, rootGeom, size_root_geometry);
+    root_geometry = pGeometry->GetRootGeometry();
 	delete geometry_ID;
 	delete pCurRun;
     delete pGeometry;
-	delete[] rootGeom;
 
     return 0;
 }

@@ -326,7 +326,12 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
         //Downstream
         if (!fIsSRC) MatchingCSC(glTrack);
         if (!fIsSRC) MatchingTOF(glTrack, 1);
-        MatchingDCH(glTrack, 7);
+        if (fIsExp) 
+            MatchingDCH(glTrack, 7);
+        else {
+            MatchingDCH(glTrack, 0);
+            MatchingDCH(glTrack, 1);
+        }
         //MatchingDCH(glTrack, 0);
         MatchingTOF(glTrack, 2);
         //MatchingDCH(glTrack, 1);
@@ -660,7 +665,8 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack *tr, Int_t num) {
     for (Int_t iHit = 0; iHit < fDchHits->GetEntriesFast(); ++iHit) {
         BmnHit *hit = (BmnHit *)fDchHits->At(iHit);
         if (!hit) continue;
-        if (!fDoAlign && hit->IsUsed()) continue;
+        if (!fDoAlign && hit->IsUsed()) continue; //???
+        if (!fIsExp) hit->SetStation((hit->GetZ() < 600) ? 0 : 1);
         if (hit->GetStation() != num) continue;
         FairTrackParam par(*(tr->GetParamLast()));
         fPDG = (par.GetQp() > 0.) ? 2212 : -211;
@@ -720,16 +726,26 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack *tr, Int_t num) {
     Double_t chi = 0;
     fKalman->Update(&par, minHit, chi);
     tr->SetChi2(tr->GetChi2() + chi);
-    if (num == 0)
-        tr->SetDch1TrackIndex(minHit->GetIndex());
-    else if (num == 1)
-        tr->SetDch2TrackIndex(minHit->GetIndex());
-    else if (num == 7)
-        tr->SetDchTrackIndex(minHit->GetIndex());
-    BmnTrack *matchedDch = (BmnTrack *)fDchTracks->At(minHit->GetIndex());
+    if (fIsExp) {
+        if (num == 0)
+            tr->SetDch1TrackIndex(minHit->GetIndex());
+        else if (num == 1)
+            tr->SetDch2TrackIndex(minHit->GetIndex());
+        else if (num == 7)
+            tr->SetDchTrackIndex(minHit->GetIndex());
+        BmnTrack* matchedDch = (BmnTrack*)fDchTracks->At(minHit->GetIndex());
+        tr->SetNHits(tr->GetNHits() + matchedDch->GetNHits());
+        //tr->SetLength(len); //FIXME! NOT CORRECT
+    } else {
+        if (num == 0)
+            tr->SetDch1TrackIndex(minHit->GetRefIndex());
+        else if (num == 1)
+            tr->SetDch2TrackIndex(minHit->GetRefIndex());
+        else if (num == 7)
+            tr->SetDchTrackIndex(minHit->GetRefIndex());
+        tr->SetNHits(tr->GetNHits() + 1);
+    }
     minHit->SetUsing(kTRUE);
-    tr->SetNHits(tr->GetNHits() + matchedDch->GetNHits());
-    //tr->SetLength(len); //FIXME! NOT CORRECT
     tr->SetParamLast(par);
     return kBMNSUCCESS;
 }

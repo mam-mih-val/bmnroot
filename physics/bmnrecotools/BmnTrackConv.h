@@ -7,12 +7,15 @@
 #include <TFile.h>
 
 #include <FairTask.h>
+#include <FairMCEventHeader.h>
 
 #include <CbmStsTrack.h>
 #include <CbmStsHit.h>
 #include <CbmStsDigi.h>
 #include <CbmStsCluster.h>
 #include <CbmVertex.h>
+#include <CbmStsPoint.h>
+#include <CbmMCTrack.h>
 
 #include <BmnEnums.h>
 #include <BmnVertex.h>
@@ -25,6 +28,10 @@
 #include "BmnGemStripStationSet.h"
 #include "BmnSiliconStationSet.h"
 #include "BmnCSCStationSet.h"
+#include "BmnSiliconPoint.h"
+#include "BmnCSCPoint.h"
+#include "BmnBdPoint.h"
+#include "BmnTOF1Point.h"
 
 //#include "BmnRecoTools.h"
 
@@ -44,6 +51,8 @@ public:
     void Finish();
     void FinishEvent();
     
+    void ProcessDST();    
+    void ProcessEVE();    
     
 protected:
 //    Int_t CalcClusterSize(CbmStsCluster * cluster, TClonesArray* digiAr);
@@ -70,15 +79,24 @@ protected:
     TString fDstTreeName;
     TString fDstFileName;
     
+    TString fCBMMCEvHeaderName;
     TString fCBMEvHeaderName;
     TString fCBMoldBMNEvHeaderName;
     TString fCBMGlobalTracksName;
+    TString fCBMGlobalTracksCSCName;
     TString fCBMHitsName;
     TString fCBMClustersName;
-    TString fCBMDigisName;
+//    TString fCBMDigisName;
     TString fCBMVertexName;
     
+    TString fCBMPointsName;
+    TString fCBMCSCPointsName;
+    TString fCBMBDPointsName;
+    TString fTof400PointsName;
+    
+    TString fBMNMCEvHeaderName;
     TString fBMNEvHeaderName;
+    TString fBMNMCGlobalTracksName;
     TString fBMNGlobalTracksName;
     TString fBMNGemTracksName;
     TString fBMNSilTracksName;
@@ -93,15 +111,26 @@ protected:
     TString fBMNDchHitsName;
     TString fBMNMwpcHitsName;
     TString fBMNVertexName;
+    TString fBMNGemPointsName;
+    TString fBMNSilPointsName;
+    TString fBMNCSCPointsName;
+    TString fBMNBDPointsName;
+    TString fBMNTof400PointsName;
     
+    FairMCEventHeader* fCBMMCEvHeader = nullptr;
     FairEventHeader* fCBMEvHeader = nullptr;
     CbmVertex* fCBMVertex = nullptr;
     TClonesArray* fCBMoldBMNEvHeader = nullptr;
     TClonesArray* fCBMGlobalTracks = nullptr;
     TClonesArray* fCBMHits = nullptr;
     TClonesArray* fCBMClusters = nullptr;
-    TClonesArray* fCBMDigis = nullptr;
+//    TClonesArray* fCBMDigis = nullptr;
+    TClonesArray* fCBMPoints = nullptr;
+    TClonesArray* fCBMCSCPoints = nullptr;
+    TClonesArray* fCBMBDPoints = nullptr;
+    TClonesArray* fCBMTof400Points = nullptr;
     
+    FairMCEventHeader* fBMNMCEvHeader = nullptr;
     DstEventHeader* fBMNEvHeader = nullptr;
     TClonesArray* fBMNVertex = nullptr;
     TClonesArray* fBMNGlobalTracks = nullptr;
@@ -120,6 +149,12 @@ protected:
     
     TClonesArray* fBMNMwpcSegment = nullptr;
     
+    TClonesArray* fBMNGemPoints = nullptr;
+    TClonesArray* fBMNSilPoints = nullptr;
+    TClonesArray* fBMNCSCPoints = nullptr;
+    TClonesArray* fBMNBDPoints = nullptr;
+    TClonesArray* fBMNTof400Points = nullptr;
+    
     BmnGemStripStationSet* fGemStationSet = nullptr;
     BmnSiliconStationSet* fSilStationSet = nullptr;
     BmnCSCStationSet* fCscStationSet = nullptr;
@@ -132,7 +167,9 @@ protected:
     Int_t fPeriodId;
     Int_t fRunId;
     
-
+    Bool_t isMCDST = kFALSE; // reconstructed MC
+    Bool_t isMCEVE = kFALSE; // generated MC
+    
     ClassDef(BmnTrackConv, 1);
 };
 

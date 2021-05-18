@@ -4,6 +4,8 @@ set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/generators
+ ${CMAKE_SOURCE_DIR}/bd
+ ${CMAKE_SOURCE_DIR}/tof1
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
@@ -44,6 +46,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF RecoToolsLinkDef.h)
 Set(LIBRARY_NAME RecoTools)
-Set(DEPENDENCIES BmnDst Gem Silicon CSC BmnData MpdGen BmnField Base Core)
+Set(DEPENDENCIES BmnDst Gem Silicon CSC BmnData MpdGen BmnField Base Core Bd TOF1)
 
 GENERATE_LIBRARY()

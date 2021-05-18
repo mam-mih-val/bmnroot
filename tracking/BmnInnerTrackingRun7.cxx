@@ -211,8 +211,8 @@ void BmnInnerTrackingRun7::Exec(Option_t* opt) {
         BmnHit innerHit = *hit;
         innerHit.SetIndex(iHit);
         innerHit.SetDetId(kSILICON);
-        //innerHit.SetDxyz(0.5, 0.5, 0.5);
-        innerHit.SetDxyz(hit->GetDx(), hit->GetDy(), hit->GetDz());
+        innerHit.SetDxyz(0.5, 0.5, 0.5);
+        //innerHit.SetDxyz(hit->GetDx(), hit->GetDy(), hit->GetDz());
         new ((*fHitsArray)[fHitsArray->GetEntriesFast()]) BmnHit(innerHit);
     }
     for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
@@ -230,8 +230,8 @@ void BmnInnerTrackingRun7::Exec(Option_t* opt) {
         innerHit.SetStation(iSt);  //shift for correct station numbering
         innerHit.SetIndex(iHit);
         innerHit.SetDetId(kGEM);
-        //innerHit.SetDxyz(0.5, 0.5, 0.5);
-        innerHit.SetDxyz(hit->GetDx(), hit->GetDy(), hit->GetDz());
+        innerHit.SetDxyz(0.5, 0.5, 0.5);
+        //innerHit.SetDxyz(hit->GetDx(), hit->GetDy(), hit->GetDz());
         new ((*fHitsArray)[fHitsArray->GetEntriesFast()]) BmnHit(innerHit);
     }
 

@@ -335,15 +335,15 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
         destEH->SetEventType(baseEH->GetEventType());
         destEH->SetPeriodId(baseEH->GetPeriodId());
         destEH->SetRunId(baseEH->GetRunId());
-        BmnTrigUnion s = destEH->GetTrigState();
-        BmnTrigStructPeriod7SetupBMN bs;
-        bs.BC1 = true;
-        bs.BC2 = true;
-        bs.VETO = true;
-        bs.ThrBD = 2;
-        bs.ThrSI = 3;
-        s.Period7BMN = bs;
-        destEH->SetTrigState(s);
+//        BmnTrigUnion s = destEH->GetTrigState();
+//        BmnTrigStructPeriod7SetupBMN bs;
+//        bs.BC1 = true;
+//        bs.BC2 = true;
+//        bs.VETO = true;
+//        bs.ThrBD = 2;
+//        bs.ThrSI = 3;
+//        s.Period7BMN = bs;
+//        destEH->SetTrigState(s);
         //        EHBranch->Fill();
         fDestTree->Fill();
     }

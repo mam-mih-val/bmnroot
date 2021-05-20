@@ -12,6 +12,7 @@ BmnTrackConv::BmnTrackConv(Int_t run_period, Int_t run_number, BmnSetup setup) {
     fCBMGlobalTracksName = "StsTrack";
     fCBMGlobalTracksCSCName = "StsTrackCSC";
     fCBMHitsName = "StsHit";
+    fCBMToF400HitsName = "BmnTof400Hit";
     fCBMClustersName = "StsCluster";
     //    fCBMDigisName = "StsDigi";
     fCBMVertexName = "PrimaryVertex.";
@@ -32,9 +33,9 @@ BmnTrackConv::BmnTrackConv(Int_t run_period, Int_t run_number, BmnSetup setup) {
     fBMNSilHitsName = "BmnSiliconHit";
     fBMNCscHitsName = "BmnCSCHit";
     fBMNVertexName = "BmnVertex";
-    fBMNTof400HitsName = "";
-    fBMNTof700HitsName = "";
-    fBMNDchHitsName = "";
+    fBMNTof400HitsName = "BmnTof400Hit";
+    fBMNTof700HitsName = "BmnTof700Hit";
+    fBMNDchHitsName = "BmnDchHit";
     fBMNMwpcHitsName = "";
     fBMNGemPointsName = "StsPoint";
     fBMNSilPointsName = "SiliconPoint";
@@ -108,7 +109,7 @@ InitStatus BmnTrackConv::Init() {
         fprintf(stderr, "FairRootManager is not instantiated!");
         return kFATAL;
     }
-    fCBMMCEvHeader = static_cast<FairMCEventHeader*> (ioman->GetObject(fCBMEvHeaderName));
+    fCBMMCEvHeader = static_cast<FairMCEventHeader*> (ioman->GetObject(fCBMMCEvHeaderName));
     if (fCBMMCEvHeader) {
         isMCEVE = kTRUE;
         printf("This is MC generated file\n");
@@ -145,16 +146,15 @@ InitStatus BmnTrackConv::Init() {
         fCBMoldBMNEvHeader = static_cast<TClonesArray*> (ioman->GetObject(fCBMoldBMNEvHeaderName));
         if (!fCBMoldBMNEvHeader)
             isMCDST = kTRUE;
-        printf("This is%s MC DST\n", (isMCDST ? "" : " not"));
+        printf("This is %s DST\n", (isMCDST ? "MC" : "exp"));
         fCBMGlobalTracks = static_cast<TClonesArray*> (ioman->GetObject(fCBMGlobalTracksCSCName));
         if (!fCBMGlobalTracks) {
             printf("%s tracks not found, we will use common branch %s\n", fCBMGlobalTracksCSCName.Data(), fCBMGlobalTracksName.Data());
             fCBMGlobalTracks = static_cast<TClonesArray*> (ioman->GetObject(fCBMGlobalTracksName));
         }
         fCBMHits = static_cast<TClonesArray*> (ioman->GetObject(fCBMHitsName));
+        fCBMToF400Hits = static_cast<TClonesArray*> (ioman->GetObject(fCBMToF400HitsName));
         fCBMClusters = static_cast<TClonesArray*> (ioman->GetObject(fCBMClustersName));
-        //        fCBMDigis = static_cast<TClonesArray*> (ioman->GetObject(fCBMDigisName));
-        //        printf("CBM_digi_ptr = 0x%08X\n", fCBMDigis);
 
         fBMNEvHeader = new DstEventHeader(); //out
         ioman->Register(fBMNEvHeaderName, "", fBMNEvHeader, kTRUE); // last arg: save to file
@@ -180,8 +180,10 @@ InitStatus BmnTrackConv::Init() {
         ioman->Register(fBMNSilHitsName, "", fBMNSilHits, kTRUE);
         fBMNCscHits = new TClonesArray(BmnCSCHit::Class());
         ioman->Register(fBMNCscHitsName, "", fBMNCscHits, kTRUE);
-        //    fBMNTof400Hits = new TClonesArray(BmnTofHit::Class());
-        //   ioman->Register(fBMNTof400HitsName, "", fBMNTof400Hits, kTRUE);
+        if (fCBMToF400Hits) {
+            fBMNTof400Hits = new TClonesArray(BmnTofHit::Class());
+            ioman->Register(fBMNTof400HitsName, "", fBMNTof400Hits, kTRUE);
+        }
         //    fBMNTof700Hits = new TClonesArray(BmnTofHit::Class());
         //   ioman->Register(fBMNTof700HitsName, "", fBMNTof700Hits, kTRUE);
         //    fBMNDchHits = new TClonesArray(BmnHit::Class());
@@ -213,19 +215,19 @@ void BmnTrackConv::ProcessEVE() {
     fCBMMCEvHeader->GetVertex(vertex);
     fBMNMCEvHeader->SetVertex(vertex);
     fBMNMCEvHeader->SetTime(fCBMMCEvHeader->GetT());
-    fBMNMCEvHeader->SetB(fCBMMCEvHeader->GetEventID());
+    fBMNMCEvHeader->SetB(fCBMMCEvHeader->GetB());
     fBMNMCEvHeader->SetNPrim(fCBMMCEvHeader->GetNPrim());
     fBMNMCEvHeader->SetRotX(fCBMMCEvHeader->GetRotX());
     fBMNMCEvHeader->SetRotY(fCBMMCEvHeader->GetRotY());
     fBMNMCEvHeader->SetRotZ(fCBMMCEvHeader->GetRotZ());
     // copy tracks&points
-//    printf("absorbing %s  --> %s\n", fCBMGlobalTracks->GetClass()->GetName(), fBMNGlobalTracks->GetClass()->GetName());
+    //    printf("absorbing %s  --> %s\n", fCBMGlobalTracks->GetClass()->GetName(), fBMNGlobalTracks->GetClass()->GetName());
     fBMNGlobalTracks->AbsorbObjects(fCBMGlobalTracks);
-//    printf("absorbing %s  --> %s\n", fCBMCSCPoints->GetClass()->GetName(), fBMNCSCPoints->GetClass()->GetName());
+    //    printf("absorbing %s  --> %s\n", fCBMCSCPoints->GetClass()->GetName(), fBMNCSCPoints->GetClass()->GetName());
     fBMNCSCPoints->AbsorbObjects(fCBMCSCPoints);
-//    printf("absorbing %s  --> %s\n", fCBMBDPoints->GetClass()->GetName(), fBMNBDPoints->GetClass()->GetName());
+    //    printf("absorbing %s  --> %s\n", fCBMBDPoints->GetClass()->GetName(), fBMNBDPoints->GetClass()->GetName());
     fBMNBDPoints->AbsorbObjects(fCBMBDPoints);
-//    printf("absorbing %s  --> %s\n", fCBMTof400Points->GetClass()->GetName(), fBMNTof400Points->GetClass()->GetName());
+    //    printf("absorbing %s  --> %s\n", fCBMTof400Points->GetClass()->GetName(), fBMNTof400Points->GetClass()->GetName());
     fBMNTof400Points->AbsorbObjects(fCBMTof400Points);
     // separate array to Gem and Sil
     for (Int_t i = 0; i < fCBMPoints->GetEntriesFast(); i++) {
@@ -279,6 +281,8 @@ void BmnTrackConv::ProcessDST() {
     fBMNGemHits->Delete();
     fBMNCscHits->Delete();
     fBMNVertex->Delete();
+    if (fBMNTof400Hits)
+        fBMNTof400Hits->Delete();
 
     fMapHit.resize(fCBMHits->GetEntriesFast(), 0);
     // copy event id
@@ -434,6 +438,15 @@ void BmnTrackConv::ProcessDST() {
             new ((*fBMNGemTracks)[fBMNGemTracks->GetEntriesFast()]) BmnTrack(gemTr);
             gTrack->SetGemTrackIndex(fBMNGemTracks->GetEntriesFast() - 1);
         }
+
+        if (fBMNTof400Hits) {
+            //            for (Int_t iHit = 0; iHit < fCBMToF400Hits->GetEntriesFast(); iHit++) {
+            //                BmnTofHit* hit = static_cast<BmnTofHit*> (fCBMToF400Hits->UncheckedAt(iHit));
+            //                //            Int_t iGTrack = hit->Get
+            //            }
+            fBMNTof400Hits->AbsorbObjects(fCBMToF400Hits);
+        }
+
         gTrack->SortHits();
         //        if (cscTr.GetNHits()){ // will work someday
         //            new ((*fBMNSilTracks)[fBMNSilTracks->GetEntriesFast()]) BmnTrack(cscTr);

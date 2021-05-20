@@ -4,7 +4,8 @@ void DSTConv(
 //        TString inFile = "~/filesbmn/4649_ren.root",
         TString outFile = "$VMCWORKDIR/macro/run/dst-bmn-4649.root",
         Int_t nStartEvent = 0,
-        Int_t nEvents = 00) {
+        Int_t nEvents = 00,
+        TString inFileToF400 = "") {
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
@@ -17,9 +18,11 @@ void DSTConv(
 
    
     FairRunAna* fRunAna = new FairRunAna();
-//    fRunAna->SetInputFile(inFile.Data());
-    FairSource* src = new BmnFileSource(inFile);
-    fRunAna->SetSource(src);
+//    FairSource* src = new BmnFileSource(inFile);
+//    fRunAna->SetSource(src);
+    fRunAna->SetInputFile(inFile);
+    if (inFileToF400.Length() > 0)
+        fRunAna->AddFriend(inFileToF400);
     fRunAna->SetOutputFile(outFile.Data());
     fRunAna->SetGenerateRunInfo(kFALSE);
     

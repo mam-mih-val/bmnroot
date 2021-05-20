@@ -2,6 +2,7 @@
 #define BMNTRACKCONV_H
 
 #include <limits.h>
+#include <pthread.h>
 
 #include <TClonesArray.h>
 #include <TFile.h>
@@ -25,6 +26,7 @@
 #include <BmnSiliconHit.h>
 #include <BmnGemStripHit.h>
 #include <BmnCSCHit.h>
+#include <BmnTofHit.h>
 #include "BmnGemStripStationSet.h"
 #include "BmnSiliconStationSet.h"
 #include "BmnCSCStationSet.h"
@@ -85,6 +87,7 @@ protected:
     TString fCBMGlobalTracksName;
     TString fCBMGlobalTracksCSCName;
     TString fCBMHitsName;
+    TString fCBMToF400HitsName;
     TString fCBMClustersName;
 //    TString fCBMDigisName;
     TString fCBMVertexName;
@@ -123,6 +126,7 @@ protected:
     TClonesArray* fCBMoldBMNEvHeader = nullptr;
     TClonesArray* fCBMGlobalTracks = nullptr;
     TClonesArray* fCBMHits = nullptr;
+    TClonesArray* fCBMToF400Hits = nullptr;
     TClonesArray* fCBMClusters = nullptr;
 //    TClonesArray* fCBMDigis = nullptr;
     TClonesArray* fCBMPoints = nullptr;

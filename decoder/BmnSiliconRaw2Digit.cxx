@@ -756,7 +756,12 @@ void BmnSiliconRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped,
         for (Int_t ich = 0; ich < maxChan; ich++) noisech[det][ich] = 0;
     }
 
-    pedname = TString(getenv("VMCWORKDIR")) + TString("/input/") + "RSiPed_";
+    TString tempDir = TString(getenv("VMCWORKDIR")) + TString("/input/");
+    if (BmnFunctionSet::CheckDirectoryExist(tempDir, 1, kWritePermission) < 1)
+        tempDir = TString(gSystem->GetWorkingDirectory().c_str()) + "/";
+    printf("Temp directory: %s\n", tempDir.Data());
+    
+    pedname = tempDir + "RSiPed_";
     pedname += run;
     pedname += ".dat";
     if (pedestals) {
@@ -790,8 +795,8 @@ void BmnSiliconRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped,
     }
 
     //        FILE *Rnoisefile;
-    rnoisename = TString(getenv("VMCWORKDIR")) + TString("/input/") + "RSiNoise_";
-    if (ithr == 1) rnoisename = TString(getenv("VMCWORKDIR")) + TString("/input/") + "RSiNoise2_";
+    rnoisename = tempDir + "RSiNoise_";
+    if (ithr == 1) rnoisename = tempDir + "RSiNoise2_";
     rnoisename += run;
     rnoisename += ".dat";
     if (read) {
@@ -826,12 +831,12 @@ void BmnSiliconRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped,
     }
 
     //    FILE *Wnoisefile;
-    wnoisename = TString(getenv("VMCWORKDIR")) + TString("/input/") + "WSiNoise2_"; // WSiNoise_
+    wnoisename = tempDir + "WSiNoise2_"; // WSiNoise_
     wnoisename += run;
     wnoisename += ".dat";
 
     //    FILE *Wpedfile;
-    wpedname = TString(getenv("VMCWORKDIR")) + TString("/input/") + "SiPed_"; // SiPed_
+    wpedname = tempDir + "SiPed_"; // SiPed_
     wpedname += run;
     wpedname += ".dat";
     if (!read) {
@@ -1185,32 +1190,34 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         //            hsig->Fill(dig.GetStripSignal());
         //        }
     }
+    Double_t*** vPed = GetPedestals();
+    Double_t*** vPedRMS = GetPedestalsRMS();
 
-    Double_t signals[nSmpl];
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) signals[iSmpl] = 0.0;
+    Double_t signals[nSmpl] = {0.0};
+    Double_t cmode[nSmpl] = {0.0};
     Int_t nOk = 0;
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStripSignal() == 0 ||
                 fNoisyChannels[candDig[iSmpl].GetStation()][candDig[iSmpl].GetModule()][candDig[iSmpl].GetStripLayer()][candDig[iSmpl].GetStripNumber()] == kTRUE) continue;
         signals[iSmpl] = (candDig[iSmpl]).GetStripSignal();
-        nOk++;
+//        cmode[nOk] = vPed[iSer][ch][iSmpl];
+//        nOk++;
     }
-    Double_t CMS = CalcCMS(signals, nOk);
+//    Double_t CMS = CalcCMS(signals, nOk);
+//    Double_t pedCMS = CalcCMS(cmode, nOk);
     Double_t SCMS = CalcSCMS(signals, nSmpl, iSer, ch);
     //    if (SCMS > -80)
     //        return;
 
-    Double_t*** vPed = GetPedestals();
-    Double_t*** vPedRMS = GetPedestalsRMS();
 
-    nOk = 0;
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) signals[iSmpl] = 0.0;
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-        if (fNoisyChannels[candDig[iSmpl].GetStation()][candDig[iSmpl].GetModule()][candDig[iSmpl].GetStripLayer()][candDig[iSmpl].GetStripNumber()] == kTRUE) continue;
-        signals[iSmpl] = vPed[iSer][ch][iSmpl];
-        nOk++;
-    }
-    Double_t pedCMS = CalcCMS(signals, ch);
+//    nOk = 0;
+//    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) signals[iSmpl] = 0.0;
+//    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+//        if (fNoisyChannels[candDig[iSmpl].GetStation()][candDig[iSmpl].GetModule()][candDig[iSmpl].GetStripLayer()][candDig[iSmpl].GetStripNumber()] == kTRUE) continue;
+//        signals[iSmpl] = vPed[iSer][ch][iSmpl];
+//        nOk++;
+//    }
+//    Double_t pedCMS = CalcCMS(signals, ch);
 
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
@@ -1221,7 +1228,7 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         Double_t ped = vPed[iSer][ch][iSmpl];
         //        Double_t sig = Abs(dig->GetStripSignal() - CMS - ped);
         Double_t sig = Abs(dig->GetStripSignal() - SCMS - ped);
-        //        Double_t sig = Abs(dig->GetStripSignal() - CMS + pedCMS - ped);
+//                Double_t sig = Abs(dig->GetStripSignal() - CMS + pedCMS - ped);
         //        if (dig->GetStation() == 0 && dig->GetModule() == 0 && dig->GetStripLayer() == 0) {
         //            //            hcorrp->Fill(dig->GetStripNumber(), dig->GetStripSignal() - ped);
         //            //            hcorr->Fill(dig->GetStripNumber(), sig);
@@ -1233,7 +1240,7 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         //            hscms1full->Fill(SCMS);
         //        }
         //                printf("(dig->GetStripSignal() = %f    SCMS %f CMS %f ped %f\n", dig->GetStripSignal(), SCMS, CMS, ped);
-        Double_t threshold = Max(120.0, 3.5 * vPedRMS[iSer][ch][iSmpl]); //50;//120;//160;
+        Double_t threshold = Max(180.0, 3.5 * vPedRMS[iSer][ch][iSmpl]); //50;//120;//160;
 
         //        if (dig->GetStation() == 0 && dig->GetModule() == 0 && dig->GetStripLayer() == 0) {
         //            if (dig->GetStripSignal() - ped > threshold)
@@ -1247,6 +1254,7 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         //            hfilter->Fill(dig->GetStripNumber(), sig);
         //        }
         if (doFill) {
+//            if (Abs(- CMS + pedCMS) < cmodcut)
             if (Abs(SCMS) < cmodcut)
                 fSigProf[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()]->Fill(dig->GetStripNumber());
         } else {

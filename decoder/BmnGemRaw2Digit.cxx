@@ -1403,8 +1403,11 @@ void BmnGemRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped, Int
             }
         }
     }
+    TString tempDir = TString(getenv("VMCWORKDIR")) + TString("/input/");
+    if (BmnFunctionSet::CheckDirectoryExist(tempDir, 1, kWritePermission) < 1)
+        tempDir = TString(gSystem->GetWorkingDirectory().c_str()) + "/";
 
-    pedname = TString(getenv("VMCWORKDIR")) + TString("/input/") + "RPed_";
+    pedname = tempDir + "RPed_";
     pedname += run;
     pedname += ".dat";
     if (pedestals) {
@@ -1437,7 +1440,7 @@ void BmnGemRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped, Int
         }
     }
 
-    rnoisename = TString(getenv("VMCWORKDIR")) + TString("/input/") + "RNoise_";
+    rnoisename = tempDir + "RNoise_";
     rnoisename += run;
     if (ithr == 0 && test != 1) rnoisename += "thr15.dat";
     else if (ithr == 1 && test != 1) rnoisename += "thr18.dat";
@@ -1464,12 +1467,12 @@ void BmnGemRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped, Int
             }
         }
     }
-    wnoisename = TString(getenv("VMCWORKDIR")) + TString("/input/") + "WNoise_";
+    wnoisename = tempDir + "WNoise_";
     wnoisename += run;
     wnoisename += ".dat";
     //    wnoisename = rnoisename;
 
-    wpedname = TString(getenv("VMCWORKDIR")) + TString("/input/") + "Ped_";
+    wpedname = tempDir + "Ped_";
     wpedname += run;
     wpedname += ".dat";
     //    wpedname = pedname;

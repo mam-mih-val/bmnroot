@@ -59,10 +59,17 @@ Set(CheckSrcDir "${FAIRROOTPATH}/share/fairbase/cmake/checks")
 find_package(FairRoot REQUIRED)
 
 # Load some basic macros which are needed later on
+include(BmnMacros)
 include(FairMacros)
 include(WriteConfigFile)
 include(CTest)
 include(CheckCompiler)
+
+# Extract the FairRoot version from fairroot-config. The version info is of the form Major.Minor.Patch and is stored in the variable FairRoot_VERSION and FairSoft_VERSION
+FairRootVersion()
+FairSoftVersion()
+Message(STATUS "FairRoot Version - ${FairRoot_VERSION}")
+Message(STATUS "FairSoft Version - ${FairSoft_VERSION}")
 
 # Set the build type: None, Debug, Release, RelWithDebInfo, MinSizeRel, OMP
 # OMP - the quickest multithreading BmnRoot version for a multicore machine

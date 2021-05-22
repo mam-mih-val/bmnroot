@@ -21,3 +21,5 @@ link_directories(${LINK_DIRECTORIES})
 
 add_executable(track_arms track_arms.cpp SRCEvent.cpp)
 target_link_libraries(track_arms BmnData ${ROOT_LIBRARIES} Minuit Spectrum GenVector MathMore)
+
+INSTALL(PROGRAMS ${EXECUTABLE_OUTPUT_PATH}/track_arms DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)

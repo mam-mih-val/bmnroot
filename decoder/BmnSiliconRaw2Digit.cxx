@@ -1193,9 +1193,13 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
     Double_t*** vPed = GetPedestals();
     Double_t*** vPedRMS = GetPedestalsRMS();
 
-    Double_t signals[nSmpl] = {0.0};
-    Double_t cmode[nSmpl] = {0.0};
+    Double_t signals[nSmpl];
+    Double_t cmode[nSmpl];
     Int_t nOk = 0;
+    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+        signals[nSmpl] = 0.0;
+        cmode[nSmpl] = 0.0;
+    }
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStripSignal() == 0 ||
                 fNoisyChannels[candDig[iSmpl].GetStation()][candDig[iSmpl].GetModule()][candDig[iSmpl].GetStripLayer()][candDig[iSmpl].GetStripNumber()] == kTRUE) continue;

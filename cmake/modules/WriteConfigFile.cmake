@@ -205,12 +205,12 @@ config.sh script to bypass this security issue.\"")
 
   Set(USE_VGM 1)
 
-  SET(PYTHONPATH ${CMAKE_SOURCE_DIR}/python ${SIMPATH}/lib ${SIMPATH}/lib/root ${SIMPATH}/lib/Geant4 ${SIMPATH}/lib/g4py ${PYTHONPATH})
+  SET(PYTHONPATH ${CMAKE_SOURCE_DIR}/python ${SIMPATH}/lib ${SIMPATH}/lib/root ${SIMPATH}/lib/Geant4 ${SIMPATH}/lib/g4py ${PYTHONPATH} "$PYTHONPATH")
   UNIQUE(PYTHONPATH "${PYTHONPATH}")
   CONVERT_LIST_TO_STRING(${PYTHONPATH})
   SET(MY_PYTHONPATH ${output})
 
-  SET (PATH ${_BINDIR}/bin ${ROOTSYS}/bin ${PATH})
+  SET(PATH ${_BINDIR}/bin ${ROOTSYS}/bin ${PATH})
   UNIQUE(PATH "${PATH}")
   CONVERT_LIST_TO_STRING(${PATH})
   Set(MY_PATH ${output})

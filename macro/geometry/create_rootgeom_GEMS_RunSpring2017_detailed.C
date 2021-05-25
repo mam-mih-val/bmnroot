@@ -949,7 +949,7 @@ TGeoVolume *CreateDetailedFrameForModule_Station66x41(TString frame_name) {
     //small epoxide inner layer ------------------------------------------------
     Double_t smallEpoxideInnerLayer_XSize = 65.6; //cm
     Double_t smallEpoxideInnerLayer_YSize = 41.6; //cm
-    Double_t smallEpoxideInnerLayer_ZSize = 0.05; //cm
+    Double_t smallEpoxideInnerLayer_ZSize = 0.05 + 0.01*0.5; //cm
 
     TGeoShape *smallEpoxideInnerLayerS = new TGeoBBox(TString("smallEpoxideInnerLayerS")+=TString("_") + frames->GetName(), smallEpoxideInnerLayer_XSize*0.5, smallEpoxideInnerLayer_YSize*0.5, smallEpoxideInnerLayer_ZSize*0.5);
 
@@ -1223,7 +1223,7 @@ TGeoVolume *CreateDetailedFrameForModule_Station66x41(TString frame_name) {
     //big epoxide inner layer ------------------------------------------------
     Double_t bigEpoxideInnerLayer_XSize = 65.95; //cm
     Double_t bigEpoxideInnerLayer_YSize = 40.85; //cm
-    Double_t bigEpoxideInnerLayer_ZSize = 0.05; //cm
+    Double_t bigEpoxideInnerLayer_ZSize = 0.05 + 0.01*0.5; //cm
 
     TGeoShape *bigEpoxideInnerLayerS = new TGeoBBox(TString("bigEpoxideInnerLayerS")+=TString("_") + frames->GetName(), bigEpoxideInnerLayer_XSize*0.5, bigEpoxideInnerLayer_YSize*0.5, bigEpoxideInnerLayer_ZSize*0.5);
 

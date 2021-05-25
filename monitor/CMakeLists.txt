@@ -1,6 +1,4 @@
-# Create a library called "libBmnMonitor" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libBmnMonitor"
 
 Set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
@@ -10,6 +8,7 @@ Set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
+ ${CMAKE_SOURCE_DIR}/bmndata/common
  ${CMAKE_SOURCE_DIR}/QA
  ${CMAKE_SOURCE_DIR}/QA/report
  ${CMAKE_SOURCE_DIR}/mwpc

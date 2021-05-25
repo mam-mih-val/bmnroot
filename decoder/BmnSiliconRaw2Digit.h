@@ -17,7 +17,7 @@
 #include "BmnAdcProcessor.h"
 #include <TSystem.h>
 #include <BmnEventHeader.h>
-#include <common/BmnFunctionSet.h>
+#include <BmnFunctionSet.h>
 
 using namespace std;
 using namespace TMath;

@@ -8,6 +8,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/math
+ ${CMAKE_SOURCE_DIR}/bmndata/common
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/gem
@@ -68,6 +69,6 @@ run7/BmnTriggerEfficiencyRun7.cxx
 Set(HEADERS)
 Set(LINKDEF LinkDef.h)
 Set(LIBRARY_NAME BmnPhysics)
-Set(DEPENDENCIES Gem Silicon CSC BmnData BmnField UniDb BmnDst Base Core)
+Set(DEPENDENCIES BmnDst Decoder Gem Silicon CSC BmnData BmnField UniDb Base Core)
 
 GENERATE_LIBRARY()

@@ -20,8 +20,8 @@ const Int_t NModulesInStations[NStations] = {10, 14, 18};
 
 const Double_t XStationPositions[NStations] = { 0.0, 0.0, 0.0 };
 const Double_t YStationPositions[NStations] = { 0.0, 0.0, 0.0 };
-const Double_t ZStationPositions[NStations] = { +12.37, +12.37+8.64, +12.37+8.64+8.64 };
-
+//const Double_t ZStationPositions[NStations] = { +12.37, +12.37+8.64, +12.37+8.64+8.64 };
+const Double_t ZStationPositions[NStations] = { +15.7, +15.7+8.64, +15.7+8.64+8.64 };
 
 /*
  * where

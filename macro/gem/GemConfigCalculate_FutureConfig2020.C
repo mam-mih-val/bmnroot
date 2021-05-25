@@ -8,6 +8,8 @@
  *
  * Created: 12.05.2020
  * 02.03.2021 (Updated): radius of hole in active zone (4.0 -> 6.0 cm)
+ * 09.03.2021 (Updated): the form of a 'hole' dead zone changed (square -> 12 sided polygon)
+ * 25.05.2021 (Updated): Z-distance from the target to the first sens. vol. has been increased
  * Author: Baranov D.
  */
 
@@ -34,7 +36,8 @@ const Int_t NModulesInStations[NStations] = {4, 4, 4, 4, 4, 4, 4};
 //(X-Y-Z)Positions of stations (sensitive volumes)
 const Double_t XStationPositions[NStations] = { +0.0/*0*/, +0.804/*1*/, +1.568/*2*/, +2.372/*3*/, +3.88/*4*/, +5.442/*5*/, +6.964/*6*/}; //rough x-shifts
 const Double_t YStationPositions[NStations] = { 0.0/*0*/, 0.0/*1*/, 0.0/*2*/, 0.0/*3*/, 0.0/*4*/, 0.0/*5*/, 0.0/*6*/};
-const Double_t ZStationPositions[NStations] = { +50.52/*0*/, +81.72/*1*/, +112.92/*2*/, +144.12/*3*/, +175.32/*4*/, +206.52/*5*/, 237.72/*6*/};
+//const Double_t ZStationPositions[NStations] = { +50.52/*0*/, +81.72/*1*/, +112.92/*2*/, +144.12/*3*/, +175.32/*4*/, +206.52/*5*/, 237.72/*6*/};
+const Double_t ZStationPositions[NStations] = { +58.2/*0*/, +89.4/*1*/, +120.6/*2*/, +151.8/*3*/, +183.0/*4*/, +214.2/*5*/, 245.4/*6*/};
 
 //(X-Y-Z)Shifts of modules in each station
 const Double_t XModuleShifts[NStations][NMaxModules] = {
@@ -347,6 +350,7 @@ void CalculateParameters(TString config_name, TString author, TString date) {
     cout << "  Date created: " << date << "\n";
     cout << "  02.03.2021 (Updated): radius of hole in active zone (4.0 -> 6.0 cm)\n";
     cout << "  09.03.2021 (Updated): the form of a 'hole' dead zone changed (square -> 12 sided polygon) \n";
+    cout << "  25.05.2021 (Updated): Z-distance from the target to the first sens. vol. has been increased \n";
     cout << "  File path: " << FileName << "\n";
     cout << "\n";
 
@@ -361,7 +365,8 @@ void CalculateParameters(TString config_name, TString author, TString date) {
         \r\tAuthor: " << author <<  "\
         \r\tDate: " << date <<  "\
         \r\t02.03.2021 (Updated): radius of hole in active zone (4.0 -> 6.0 cm)\
-        \r\t09.03.2021 (Updated): the form of a 'hole' dead zone changed (square -> 12 sided polygon)\n\
+        \r\t09.03.2021 (Updated): the form of a 'hole' dead zone changed (square -> 12 sided polygon)\
+        \r\t25.05.2021 (Updated): Z-distance from the target to the first sens. vol. has been increased\n\
         \r\tA right-handed coordinates are used.\
         \r\tIf you look at the GEMs from the target:\
         \r\t\tx-axis is directed to the left,\

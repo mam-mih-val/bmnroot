@@ -7,6 +7,7 @@
  * SILICON configuration: FutureConfig2020 (3 SI-stations (10-14-18 mods))
  *
  * Created: 29.01.2020
+ * Updated: 25.05.2021 (Z-distance from the target to the first plane has been increased)
  * Author: D. Baranov
  */
 
@@ -138,7 +139,8 @@ const Int_t NModulesInStations[NStations] = {10, 14, 18};
 //(X-Y-Z)Positions of stations (sensitive volumes)
 const Double_t XStationPositions[NStations] = { 0.0, 0.0, 0.0 };
 const Double_t YStationPositions[NStations] = { 0.0, 0.0, 0.0 };
-const Double_t ZStationPositions[NStations] = { +12.37, +12.37+8.64, +12.37+8.64+8.64 };
+//const Double_t ZStationPositions[NStations] = { +12.37, +12.37+8.64, +12.37+8.64+8.64 };
+const Double_t ZStationPositions[NStations] = { +15.7, +15.7+8.64, +15.7+8.64+8.64 };
 
 //(X-Y-Z)Shifts of modules in each station
 const Double_t XModuleShifts[NStations][NMaxModules] = {

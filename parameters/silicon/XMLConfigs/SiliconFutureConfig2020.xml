@@ -1,7 +1,7 @@
 <StationSet>
 
 <!-- Station 0 -->
-	<Station xPosition="0" yPosition="0" zPosition="12.37" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
+	<Station xPosition="0" yPosition="0" zPosition="15.7" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
 
 		<!-- module 0 -->
 		<Module xShift="0" yShift="0" zShift="5.67">
@@ -86,7 +86,7 @@
 	</Station>
 
 <!-- Station 1 -->
-	<Station xPosition="0" yPosition="0" zPosition="21.01" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
+	<Station xPosition="0" yPosition="0" zPosition="24.34" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
 
 		<!-- module 0 -->
 		<Module xShift="0" yShift="0" zShift="4.45">
@@ -203,7 +203,7 @@
 	</Station>
 
 <!-- Station 2 -->
-	<Station xPosition="0" yPosition="0" zPosition="29.65" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
+	<Station xPosition="0" yPosition="0" zPosition="32.98" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
 
 		<!-- module 0 -->
 		<Module xShift="0" yShift="0" zShift="5.67">

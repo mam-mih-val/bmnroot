@@ -21,7 +21,7 @@
 #include <TSystem.h>
 #include <BmnEventHeader.h>
 #include "BmnCSCDigit.h"
-#include <common/BmnFunctionSet.h>
+#include <BmnFunctionSet.h>
 
 #define N_CH_IN_CRATE 2048 //number of channels in one crate (64ch x 32smpl))
 #define N_CH_IN_SMALL_GEM 512 //number of channels in small GEM stations (sum of all redout channels)

@@ -6,6 +6,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/uni_db/db_classes
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/math
+ ${CMAKE_SOURCE_DIR}/bmndata/common
  ${CMAKE_SOURCE_DIR}/csc
  ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/gem

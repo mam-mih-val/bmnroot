@@ -1,10 +1,10 @@
 {
   "PING": {
     "db_server": {
-      "IP": "vm221-53.jinr.ru"
+      "IP": "nc13.jinr.ru"
     },
     "db_interface": {
-      "IP": "se51-98.jinr.ru"
+      "IP": "nc9.jinr.ru"
     },
     "elog_server": {
       "IP": "nc13.jinr.ru"
@@ -15,7 +15,7 @@
   },
   "DATABASE": {
     "uni_db": {
-      "SERVER": "vm221-53.jinr.ru",
+      "SERVER": "nc13.jinr.ru",
       "DBMS": "PGSQL",
       "PORT": 5432,
       "DBNAME": "bmn_db",

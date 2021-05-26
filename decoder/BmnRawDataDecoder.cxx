@@ -1227,7 +1227,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             //                UniDbRun::CreateRun(fPeriodId, runId, TString::Format("/nica/data4mpd1/dataBMN/bmndata2/run6/raw/mpd_run_Glob_%d.data", runId), "", NULL, NULL, fRunStartTime, &fRunEndTime, &nEv, NULL, &fSize, NULL);
 
             //check for trip information
-            //            UniDbTangoData db_tango;
+            //            TangoData db_tango;
             //            enumConditions condition = conditionEqual;
             //            bool condition_value = 1;
             //            int map_channel[] = {1, 3, 0, 5, 2, 6, 4};

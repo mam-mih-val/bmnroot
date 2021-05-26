@@ -6,8 +6,8 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmnfield
- ${CMAKE_SOURCE_DIR}/uni_db
- ${CMAKE_SOURCE_DIR}/uni_db/db_classes
+ ${CMAKE_SOURCE_DIR}/database/unicom
+ ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/mwpc
  ${CMAKE_SOURCE_DIR}/dch
  ${CMAKE_SOURCE_DIR}/silicon

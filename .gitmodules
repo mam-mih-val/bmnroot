@@ -1,3 +1,6 @@
-[submodule "macro/nica_scheduler"]
-	path = macro/nica_scheduler
+[submodule "services/nica_scheduler"]
+	path = services/nica_scheduler
 	url = https://git.jinr.ru/nica_modules/mpd_scheduler.git
+[submodule "database/geo_db"]
+	path = database/geo_db
+	url = https://git.jinr.ru/nica_db/geo_db.git

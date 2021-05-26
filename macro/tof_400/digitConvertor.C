@@ -30,7 +30,7 @@
 
 
 // BMN includes
-#include "UniDbSearchCondition.h"
+#include "UniSearchCondition.h"
 #include "UniDbDetectorParameter.h"
 #include "UniDbRun.h"
 
@@ -261,13 +261,13 @@ assert(nullptr != aTofTDCdigit);
 void	LoadTofDBParameters()
 {
 	TObjArray arrayConditions;
-        UniDbSearchCondition* searchCondition = new UniDbSearchCondition(columnDetectorName, conditionEqual, TString("TOF1"));
+        UniSearchCondition* searchCondition = new UniSearchCondition(columnDetectorName, conditionEqual, TString("TOF1"));
         arrayConditions.Add((TObject*)searchCondition);
 
     	TObjArray* pParameterValueArray = UniDbDetectorParameter::Search(arrayConditions);
 
     	// clean memory for conditions after search
-    	for (int i = 0; i < arrayConditions.GetEntriesFast(); i++) delete (UniDbSearchCondition*) arrayConditions[i];
+        for (int i = 0; i < arrayConditions.GetEntriesFast(); i++) delete (UniSearchCondition*) arrayConditions[i];
 	arrayConditions.Clear();
 
 	size_t Nloaded = 0;

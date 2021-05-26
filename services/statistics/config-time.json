@@ -1,0 +1,7 @@
+{
+	"extensions": ["*"],
+	"db_user": "db_reader",
+	"db_pass": "reader_pass",
+	"db_name": "bmn_db",
+    "db_host": "nc13.jinr.ru"
+}

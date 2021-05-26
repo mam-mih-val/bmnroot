@@ -51,7 +51,7 @@
 #include "BmnMSCDigit.h"
 #include <UniDbDetectorParameter.h>
 #include <UniDbRun.h>
-#include "UniDbTangoData.h"
+#include "TangoData.h"
 #include "BmnMscRaw2Digit.h"
 
 /***************** SET OF DAQ CONSTANTS *****************/

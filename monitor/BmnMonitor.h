@@ -29,7 +29,7 @@
 #include <BmnDchDigit.h>
 #include <BmnRawDataDecoder.h>
 #include <BmnEventHeader.h>
-#include <elog_classes/ElogDbRecord.h>
+#include <ElogDbRecord.h>
 // BmnRoot Monitor
 #include <BmnRunInfo.h>
 #include "BmnDataReceiver.h"

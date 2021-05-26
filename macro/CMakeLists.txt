@@ -2,7 +2,6 @@ add_subdirectory(run)
 add_subdirectory(srcAnalysis)
 
 INSTALL(DIRECTORY ./ DESTINATION ${CMAKE_INSTALL_PREFIX}/macro
-	PATTERN "./nica_scheduler" EXCLUDE
 	PATTERN "./profiling" EXCLUDE
 	PATTERN "./CMakeLists.txt" EXCLUDE
 )

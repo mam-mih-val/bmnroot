@@ -23,8 +23,8 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR/sts)
 R__ADD_INCLUDE_PATH($VMCWORKDIR/base/source)
 R__ADD_INCLUDE_PATH($VMCWORKDIR/bmnfield)
 R__ADD_INCLUDE_PATH($VMCWORKDIR/cat)
-R__ADD_INCLUDE_PATH($VMCWORKDIR/uni_db)
-R__ADD_INCLUDE_PATH($VMCWORKDIR/uni_db/db_classes)
+R__ADD_INCLUDE_PATH($VMCWORKDIR/database/unicom)
+R__ADD_INCLUDE_PATH($VMCWORKDIR/database/uni_db)
 
 
 //R__ADD_LIBRARY_PATH($VMCWORKDIR/build/lib)
@@ -76,8 +76,8 @@ void rootlogon(){
    includePath += "-I"+VMCWORKIDR+"/bmndata ";
    includePath += "-I"+VMCWORKIDR+"/bmndata/cbm ";
    includePath += "-I"+VMCWORKIDR+"/base/source ";
-   //includePath += "-I${VMCWORKDIR}/uni_db/db_classes ";
-   //includePath += "-I${VMCWORKDIR}/uni_db ";
+   //includePath += "-I${VMCWORKDIR}/database/uni_db ";
+   //includePath += "-I${VMCWORKDIR}/database/unicom ";
    includePath += "-I"+VMCWORKIDR+"/bmnfield ";
    includePath += "-I"+VMCWORKIDR+"/cat ";
    includePath += "-I"+VMCWORKIDR+"/KF ";

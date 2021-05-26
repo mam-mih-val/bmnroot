@@ -191,7 +191,7 @@ ENDIF(HAS_CXX11_SHAREDPOINTER)
 # Recurse into the given subdirectories. This does not actually
 # cause another cmake executable to run. The same process will walk through
 # the project's entire directory structure.
-add_subdirectory (uni_db)
+add_subdirectory (database)
 add_subdirectory (passive)
 add_subdirectory (bmnfield)
 add_subdirectory (generators)
@@ -233,8 +233,8 @@ add_subdirectory (QA)
 add_subdirectory (eventdisplay)
 add_subdirectory (macro)
 
-if(EXISTS "${CMAKE_SOURCE_DIR}/macro/nica_scheduler/CMakeLists.txt")
- add_subdirectory (macro/nica_scheduler)
+if(EXISTS "${CMAKE_SOURCE_DIR}/services/nica_scheduler/CMakeLists.txt")
+ add_subdirectory (services/nica_scheduler)
 endif()
 
 Option(BUILD_DOXYGEN "Build Doxygen" OFF)

@@ -126,12 +126,12 @@ Bool_t BmnTof1Raw2Digit::setRun(int nPeriod, int nRun) {
 		//StartPeriod <= nPeriod <= EndPeriod, StartRun <= nRun <= EndRun, Detector name == "TOF1" and TDC Serial == it->second
 
 		TObjArray conditions;
-		conditions.Add((TObject* ) new UniDbSearchCondition(columnStartPeriod, conditionLessOrEqual, PeriodIndex));
-		conditions.Add((TObject* ) new UniDbSearchCondition(columnStartRun, conditionLessOrEqual, RunIndex));
-		conditions.Add((TObject* ) new UniDbSearchCondition(columnEndPeriod, conditionGreaterOrEqual, PeriodIndex));
-		conditions.Add((TObject* ) new UniDbSearchCondition(columnEndRun, conditionGreaterOrEqual, RunIndex));
-		conditions.Add((TObject* ) new UniDbSearchCondition(columnDetectorName, conditionEqual, TString("TOF1")));
-		conditions.Add((TObject* ) new UniDbSearchCondition(columnDCSerial, conditionEqual, it->second));
+        conditions.Add((TObject* ) new UniSearchCondition(columnStartPeriod, conditionLessOrEqual, PeriodIndex));
+        conditions.Add((TObject* ) new UniSearchCondition(columnStartRun, conditionLessOrEqual, RunIndex));
+        conditions.Add((TObject* ) new UniSearchCondition(columnEndPeriod, conditionGreaterOrEqual, PeriodIndex));
+        conditions.Add((TObject* ) new UniSearchCondition(columnEndRun, conditionGreaterOrEqual, RunIndex));
+        conditions.Add((TObject* ) new UniSearchCondition(columnDetectorName, conditionEqual, TString("TOF1")));
+        conditions.Add((TObject* ) new UniSearchCondition(columnDCSerial, conditionEqual, it->second));
 	
 		//The search itself
 		cout << '\r' << std::setw(40) << ' ' << "\rSearching ";

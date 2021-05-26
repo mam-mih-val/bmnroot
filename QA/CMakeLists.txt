@@ -2,8 +2,9 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/uni_db
- ${CMAKE_SOURCE_DIR}/uni_db/db_classes
+ ${CMAKE_SOURCE_DIR}/database/unicom
+ ${CMAKE_SOURCE_DIR}/database/uni_db
+ ${CMAKE_SOURCE_DIR}/database/elog_db
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmndata/math
@@ -21,7 +22,6 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/QA
  ${CMAKE_SOURCE_DIR}/QA/report
  ${CMAKE_SOURCE_DIR}/QA/offline
- ${CMAKE_SOURCE_DIR}/uni_db/elog_classes
  ${CMAKE_SOURCE_DIR}/bmnfield
 )
 

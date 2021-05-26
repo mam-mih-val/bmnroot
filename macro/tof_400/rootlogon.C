@@ -33,8 +33,8 @@
   includePath        += "-I${VMCWORKDIR}/mpddata ";
   includePath        += "-I${VMCWORKDIR}/mpdbase ";
   includePath        += "-I${VMCWORKDIR}/cpc ";
-  includePath        += "-I${VMCWORKDIR}/uni_db "; 
-  includePath        += "-I${VMCWORKDIR}/uni_db/db_classes";   
+  includePath        += "-I${VMCWORKDIR}/database/unicom ";
+  includePath        += "-I${VMCWORKDIR}/database/uni_db";
   
   /*
   includePath        += "-I${ALICE_ROOT}/RAW ";

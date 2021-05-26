@@ -1,11 +1,15 @@
 #include "BmnTrackConv.h"
 
-BmnTrackConv::BmnTrackConv(Int_t run_period, Int_t run_number, BmnSetup setup) {
+BmnTrackConv::BmnTrackConv(Int_t run_period, Int_t run_number, BmnSetup setup,
+        TString inFileAdd,
+        vector<TString> branchesToClone) {
     fSetup = setup;
     fPeriodId = run_period;
     fRunId = run_number;
     fDstTreeName = "BMN_DIGIT";
-
+    fDstTreeNameNew = "bmndata";
+    fDstFileName = inFileAdd;
+    fBrNames = branchesToClone;
     fCBMMCEvHeaderName = "MCEventHeader.";
     fCBMEvHeaderName = "EventHeader.";
     fCBMoldBMNEvHeaderName = "EventHeaderBmn";
@@ -23,6 +27,7 @@ BmnTrackConv::BmnTrackConv(Int_t run_period, Int_t run_number, BmnSetup setup) {
 
     fBMNMCEvHeaderName = "MCEventHeader.";
     fBMNEvHeaderName = "DstEventHeader.";
+    fBMNZDCName = "ZDCEventData.";
     fBMNMCGlobalTracksName = "MCTrack";
     fBMNGlobalTracksName = "BmnGlobalTrack";
     fBMNGemTracksName = "BmnGemTrack";
@@ -35,7 +40,7 @@ BmnTrackConv::BmnTrackConv(Int_t run_period, Int_t run_number, BmnSetup setup) {
     fBMNVertexName = "BmnVertex";
     fBMNTof400HitsName = "BmnTof400Hit";
     fBMNTof700HitsName = "BmnTof700Hit";
-    fBMNDchHitsName = "BmnDchHit";
+    fBMNDchTracksName = "BmnDchTrack";
     fBMNMwpcHitsName = "";
     fBMNGemPointsName = "StsPoint";
     fBMNSilPointsName = "SiliconPoint";
@@ -44,6 +49,8 @@ BmnTrackConv::BmnTrackConv(Int_t run_period, Int_t run_number, BmnSetup setup) {
     fBMNTof400PointsName = "TOF400Point";
 
     iEv = -1;
+    iEvFile = -1;
+    fVerbose = 1;
 
     TString xmlConfFileNameGEM;
     TString xmlConfFileNameSil;
@@ -102,7 +109,6 @@ BmnTrackConv::~BmnTrackConv() {
 InitStatus BmnTrackConv::Init() {
     if (fVerbose > 0)
         printf("CBM-->BM@N DST converter init\n");
-    iEv++;
 
     FairRootManager* ioman = FairRootManager::Instance();
     if (!ioman) {
@@ -153,7 +159,6 @@ InitStatus BmnTrackConv::Init() {
             fCBMGlobalTracks = static_cast<TClonesArray*> (ioman->GetObject(fCBMGlobalTracksName));
         }
         fCBMHits = static_cast<TClonesArray*> (ioman->GetObject(fCBMHitsName));
-        fCBMToF400Hits = static_cast<TClonesArray*> (ioman->GetObject(fCBMToF400HitsName));
         fCBMClusters = static_cast<TClonesArray*> (ioman->GetObject(fCBMClustersName));
 
         fBMNEvHeader = new DstEventHeader(); //out
@@ -180,17 +185,52 @@ InitStatus BmnTrackConv::Init() {
         ioman->Register(fBMNSilHitsName, "", fBMNSilHits, kTRUE);
         fBMNCscHits = new TClonesArray(BmnCSCHit::Class());
         ioman->Register(fBMNCscHitsName, "", fBMNCscHits, kTRUE);
-        if (fCBMToF400Hits) {
-            fBMNTof400Hits = new TClonesArray(BmnTofHit::Class());
-            ioman->Register(fBMNTof400HitsName, "", fBMNTof400Hits, kTRUE);
+        //        if (fCBMToF400Hits) {
+        //            fBMNTof400Hits = new TClonesArray(BmnTofHit::Class());
+        //            ioman->Register(fBMNTof400HitsName, "", fBMNTof400Hits, kTRUE);
+        //        }
+
+        if (fDstFileName.Length()) {
+            fDstFile = new TFile(fDstFileName, "READ");
+            if (fDstFile->IsOpen() == kFALSE) {
+                printf("\n!!!!\ncannot open file %s !\n", fDstFileName.Data());
+                return kFATAL;
+            }
+            fDstTree = (TTree *) fDstFile->Get(fDstTreeNameNew.Data());
+            if (fDstTree->SetBranchAddress(fBMNEvHeaderName.Data(), &fBMNEvHeaderIn) < 0)
+                return kFATAL;
+
+            fDstTree->SetBranchAddress(fBMNZDCName.Data(), &fBMNZDCIn);
+            if (fBMNZDCIn) {
+                fBMNZDC = new BmnZDCEventDataExt(); //out
+                ioman->Register(fBMNZDCName, "", fBMNZDC, kTRUE);
+            }
+
+            for (TString &brName : fBrNames) {
+                TClonesArray * arIn = nullptr;
+                fDstTree->SetBranchAddress(brName.Data(), &arIn);
+                if (!arIn)
+                    continue;
+                TClass * cl = arIn->GetClass();
+                fInArrays.push_back(arIn);
+                TClonesArray *arOut = new TClonesArray(cl);
+                ioman->Register(brName, "", arOut, kTRUE); // last arg: save to file
+                fOutArrays.push_back(arOut);
+            }
+
+            //            fDstTree->SetBranchAddress(fBMNTof400HitsName.Data(), &fBMNTof400HitsIn);
+            //            fDstTree->SetBranchAddress(fBMNTof700HitsName.Data(), &fBMNTof700HitsIn);
+            //            fDstTree->SetBranchAddress(fBMNDchTracksName.Data(), &fBMNDchTracksIn);
+            //            fBMNTof400Hits = new TClonesArray(BmnTofHit::Class());
+            //            ioman->Register(fBMNTof400HitsName, "", fBMNTof400Hits, kTRUE);
+            //            fBMNTof700Hits = new TClonesArray(BmnTofHit::Class());
+            //            ioman->Register(fBMNTof700HitsName, "", fBMNTof700Hits, kTRUE);
+            //            fBMNDchTracks = new TClonesArray(BmnDchTrack::Class());
+            //            ioman->Register(fBMNDchTracksName, "", fBMNDchTracks, kTRUE);
         }
-        //    fBMNTof700Hits = new TClonesArray(BmnTofHit::Class());
-        //   ioman->Register(fBMNTof700HitsName, "", fBMNTof700Hits, kTRUE);
-        //    fBMNDchHits = new TClonesArray(BmnHit::Class());
-        //   ioman->Register(fBMNDchHitsName, "", fBMNDchHits, kTRUE);
-        //    fBMNMwpcSegment = new TClonesArray(BmnMwpcSegment::Class());
-        //   ioman->Register(fBMNMwpcHitsName, "", fBMNMwpcSegment, kTRUE);
     }
+    //    fEvHeaderShow = new DstEventHeader(); //out
+    //    ioman->Register(fEvHeaderName, "", fEvHeaderShow, kTRUE); // last arg: save to file
     return kSUCCESS;
 }
 
@@ -221,13 +261,9 @@ void BmnTrackConv::ProcessEVE() {
     fBMNMCEvHeader->SetRotY(fCBMMCEvHeader->GetRotY());
     fBMNMCEvHeader->SetRotZ(fCBMMCEvHeader->GetRotZ());
     // copy tracks&points
-    //    printf("absorbing %s  --> %s\n", fCBMGlobalTracks->GetClass()->GetName(), fBMNGlobalTracks->GetClass()->GetName());
     fBMNGlobalTracks->AbsorbObjects(fCBMGlobalTracks);
-    //    printf("absorbing %s  --> %s\n", fCBMCSCPoints->GetClass()->GetName(), fBMNCSCPoints->GetClass()->GetName());
     fBMNCSCPoints->AbsorbObjects(fCBMCSCPoints);
-    //    printf("absorbing %s  --> %s\n", fCBMBDPoints->GetClass()->GetName(), fBMNBDPoints->GetClass()->GetName());
     fBMNBDPoints->AbsorbObjects(fCBMBDPoints);
-    //    printf("absorbing %s  --> %s\n", fCBMTof400Points->GetClass()->GetName(), fBMNTof400Points->GetClass()->GetName());
     fBMNTof400Points->AbsorbObjects(fCBMTof400Points);
     // separate array to Gem and Sil
     for (Int_t i = 0; i < fCBMPoints->GetEntriesFast(); i++) {
@@ -281,13 +317,13 @@ void BmnTrackConv::ProcessDST() {
     fBMNGemHits->Delete();
     fBMNCscHits->Delete();
     fBMNVertex->Delete();
-    if (fBMNTof400Hits)
-        fBMNTof400Hits->Delete();
+    for (TClonesArray *ar : fOutArrays)
+        ar->Delete();
 
     fMapHit.resize(fCBMHits->GetEntriesFast(), 0);
     // copy event id
     if (isMCDST) {
-        fBMNEvHeader->SetEventId(iEv);
+        fBMNEvHeader->SetEventId(++iEv);
         fBMNEvHeader->SetEventTime(fCBMEvHeader->GetEventTime());
         fBMNEvHeader->SetRunId(fCBMEvHeader->GetRunId());
     } else {
@@ -299,6 +335,11 @@ void BmnTrackConv::ProcessDST() {
     }
     // copy vertex
     CbmVertex* vtxCBM = static_cast<CbmVertex*> (fCBMVertex);
+    //    if ((vtxCBM->GetNTracks() < CutPVMinTracks) || Abs(vtxCBM->GetZ()) > Abs(CutValidZ)){        
+    //        fRunSimInst->SetSaveEvent(kFALSE);
+    //        return;
+    //    }
+
     TMatrixFSym cov(3);
     vtxCBM->CovMatrix(cov);
     BmnVertex * vtx = new((*fBMNVertex)[fBMNVertex->GetEntriesFast()])BmnVertex(
@@ -426,7 +467,6 @@ void BmnTrackConv::ProcessDST() {
 
             }
         }
-
         silTr.SortHits();
         gemTr.SortHits();
         cscTr.SortHits();
@@ -438,25 +478,60 @@ void BmnTrackConv::ProcessDST() {
             new ((*fBMNGemTracks)[fBMNGemTracks->GetEntriesFast()]) BmnTrack(gemTr);
             gTrack->SetGemTrackIndex(fBMNGemTracks->GetEntriesFast() - 1);
         }
-
-        if (fBMNTof400Hits) {
-            //            for (Int_t iHit = 0; iHit < fCBMToF400Hits->GetEntriesFast(); iHit++) {
-            //                BmnTofHit* hit = static_cast<BmnTofHit*> (fCBMToF400Hits->UncheckedAt(iHit));
-            //                //            Int_t iGTrack = hit->Get
-            //            }
-            fBMNTof400Hits->AbsorbObjects(fCBMToF400Hits);
-        }
-
         gTrack->SortHits();
-        //        if (cscTr.GetNHits()){ // will work someday
-        //            new ((*fBMNSilTracks)[fBMNSilTracks->GetEntriesFast()]) BmnTrack(cscTr);
-        //            gTrack->SetSilTrackIndex(fBMNSilTracks->GetEntriesFast() - 1);
-        //        }
+    }
 
+    if (fDstFile) {
+        while (iEvFile < 100000000) {
+            fDstTree->GetEntry(++iEvFile);
+            if ((fVerbose > 0) && (iEvFile % 5000 == 0))
+                printf("iev %8lld\n", iEvFile);
+            //            printf("iExpEvent %lld\v", iEvFile);
+            //            printf("main evId = %06u EHs[%06lld]->GetEventId() = %06u \n",
+            //                    fBMNEvHeader->GetEventId(), iEvFile, fBMNEvHeaderIn->GetEventId());
+            if (fBMNEvHeader->GetEventId() == fBMNEvHeaderIn->GetEventId()) {
+                if (fBMNZDC) {
+                    fBMNZDC->SetAsymmetry(fBMNZDCIn->GetAsymmetry());
+                    fBMNZDC->SetMoment(fBMNZDCIn->GetMoment());
+                    fBMNZDC->SetX(fBMNZDCIn->GetX());
+                    fBMNZDC->SetY(fBMNZDCIn->GetY());
+                    fBMNZDC->SetEnergy(fBMNZDCIn->GetEnergy());
+                    fBMNZDC->SetEnergy(fBMNZDCIn->GetEnergy('c'), 'c');
+                    fBMNZDC->SetEnergy(fBMNZDCIn->GetEnergy('n'), 'n');
+                    fBMNZDC->SetEnergy(fBMNZDCIn->GetEnergy('p'), 'p');
+                    fBMNZDC->SetNHits(fBMNZDCIn->GetNHits());
+                    fBMNZDC->SetNHits(fBMNZDCIn->GetNHits('c'), 'c');
+                    fBMNZDC->SetNHits(fBMNZDCIn->GetNHits('n'), 'n');
+                    fBMNZDC->SetNHits(fBMNZDCIn->GetNHits('p'), 'p');
+                }
+                for (Int_t iAr = 0; iAr < fOutArrays.size(); iAr++) {
+                    fOutArrays[iAr]->AbsorbObjects(fInArrays[iAr]);
+                }
+                //                fBMNTof400Hits->AbsorbObjects(fBMNTof400HitsIn);
+                //                fBMNTof700Hits->AbsorbObjects(fBMNTof700HitsIn);
+                //                fBMNDchTracks->AbsorbObjects(fBMNDchTracksIn);
+                break;
+            }
+            if (fBMNEvHeader->GetEventId() < fBMNEvHeaderIn->GetEventId()) {
+                if (fVerbose > 0)
+                    printf("\n ToF tree %u event lost!\n", fBMNEvHeader->GetEventId());
+                break;
+            }
+        }
     }
 }
 
 void BmnTrackConv::Finish() {
+    for (Int_t iAr = 0; iAr < fOutArrays.size(); iAr++) {
+        delete fOutArrays[iAr];
+        delete fInArrays[iAr];
+    }
+    delete fBMNEvHeaderIn;
+    if (fBMNZDCIn) delete fBMNZDCIn;
+    if (fDstFile) {
+        fDstFile->Close();
+        delete fDstFile;
+    }
 }
 
 void BmnTrackConv::FinishEvent() {
@@ -501,19 +576,5 @@ Int_t BmnTrackConv::CscModCbm2Bmn(Int_t iSt, Int_t iModCbm) {
     }
     return iModBmn;
 }
-
-//Int_t BmnTrackConv::CalcClusterSize(CbmStsCluster* cluster, TClonesArray* digiAr){
-//for (Int_t iDigi = 0; iDigi < cluster->GetNDigis(); iDigi++) {
-//    Int_t digiIndex = cluster->GetDigi(iDigi);
-//    CbmStsDigi *digi = static_cast<CbmStsDigi*>(digiAr->UncheckedAt(digiIndex));
-//    Int_t chNr = digi->GetChannelNr();
-//    //Int_t station = digi->GetStationNr();
-//    //Int_t sector = digi->GetSectorNr();
-//    //Int_t side = digi->GetSide();
-//    //Int_t adc = digi->GetAdc();
-//}
-//    
-//}
-
 
 ClassImp(BmnTrackConv)

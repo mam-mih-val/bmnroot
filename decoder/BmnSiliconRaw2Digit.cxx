@@ -1197,8 +1197,8 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
     Double_t cmode[nSmpl];
     Int_t nOk = 0;
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-        signals[nSmpl] = 0.0;
-        cmode[nSmpl] = 0.0;
+        signals[iSmpl] = 0.0;
+        cmode[iSmpl] = 0.0;
     }
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStripSignal() == 0 ||

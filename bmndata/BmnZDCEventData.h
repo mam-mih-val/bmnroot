@@ -56,7 +56,7 @@ public:
     Float_t GetMoment() { return fMoment; }
     
     virtual void Print(Option_t *option="") const;
-private:
+protected:
     Float_t fE;    // Full energy, GeV
     Float_t fEc;   // Central part energy (small modules, A/Z ~ 0.5), GeV
     Float_t fEp;   // Protons side (12 large modules), GeV

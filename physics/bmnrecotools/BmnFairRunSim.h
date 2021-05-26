@@ -11,6 +11,7 @@
 
 #define CutExistentVertex  -100.0
 #define CutValidZ  -3.0
+#define CutPVMinTracks  2
 
 class BmnFairRunSim : public FairRunSim {
 public:

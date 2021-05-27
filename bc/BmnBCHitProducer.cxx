@@ -42,17 +42,23 @@ void  BmnBCHitProducer::Exec(Option_t* opt) {
     Double_t ELoss3 = 0;
     Double_t ELoss4 = 0;
     Int_t NumberofHits = 0;
+    vector <Int_t> chargesBC3;
+    vector <Int_t> chargesBC4;
     
     for (UInt_t ipoint = 0; ipoint < fBmnBCPointsArray->GetEntriesFast(); ipoint++) {
         BCPoint = (BmnBCPoint*) fBmnBCPointsArray->At(ipoint);
         if(BCPoint->GetStation() == 1){ ELoss1 += BCPoint->GetEnergyLoss(); }
         else if (BCPoint->GetStation() == 2) { ELoss2 += BCPoint->GetEnergyLoss();}
-        else if (BCPoint->GetStation() == 3) { ELoss3 += BCPoint->GetEnergyLoss();}
-        else if (BCPoint->GetStation() == 4) { ELoss4 += BCPoint->GetEnergyLoss();}
+        else if (BCPoint->GetStation() == 3) { 
+            ELoss3 += BCPoint->GetEnergyLoss();
+            chargesBC3.push_back(BCPoint->GetCharge());
+        }else if (BCPoint->GetStation() == 4) {
+            ELoss4 += BCPoint->GetEnergyLoss(); 
+            chargesBC4.push_back(BCPoint->GetCharge());}
         NumberofHits++;
     }
     new ((*fBmnBCHitsArray)[fBmnBCHitsArray->GetEntriesFast()])
-            BmnBCHit(ELoss1,ELoss2,ELoss3,ELoss4, NumberofHits);
+            BmnBCHit(ELoss1,ELoss2,ELoss3,ELoss4, NumberofHits,chargesBC3, chargesBC4);
     //vector <Double_t> ELoss = {ELoss1, ELoss2, ELoss3, ELoss4};
     
  

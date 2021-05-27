@@ -1,4 +1,5 @@
 #include "BmnArmTrigHitProducer.h"
+#include "BmnArmTrigPoint.h"
 #include "FairRootManager.h"
 #include "TSystem.h"
 
@@ -42,12 +43,13 @@ InitStatus  BmnArmTrigHitProducer::Init() {
 void  BmnArmTrigHitProducer::Exec(Option_t* opt) {
     clock_t tStart = clock();
     fBmnArmTrigHitsArray->Delete();
-    FairMCPoint* ArmTrigPoint;
+    BmnArmTrigPoint* ArmTrigPoint;
     for (UInt_t ipoint = 0; ipoint < fBmnArmTrigPointsArray->GetEntriesFast(); ipoint++) {
-        ArmTrigPoint = (FairMCPoint*) fBmnArmTrigPointsArray->At(ipoint);
+        ArmTrigPoint = (BmnArmTrigPoint*) fBmnArmTrigPointsArray->At(ipoint);
                       
         new ((*fBmnArmTrigHitsArray)[fBmnArmTrigHitsArray->GetEntriesFast()])
-            BmnArmTrigHit(ArmTrigPoint->GetDetectorID(), TVector3(ArmTrigPoint->GetX(), ArmTrigPoint->GetY(), ArmTrigPoint->GetZ()), TVector3(0,0,0), -1 );
+            BmnArmTrigHit(ArmTrigPoint->GetDetectorID(), TVector3(ArmTrigPoint->GetX(), ArmTrigPoint->GetY(), ArmTrigPoint->GetZ()), TVector3(0,0,0), -1, 
+            ArmTrigPoint->GetPdgId() );
     }
 
 

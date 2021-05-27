@@ -228,8 +228,8 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
     if (!fInnerTracks) return;
     if (fIsExp) {
         fDchHits->Delete();
-        fUpsHits->Delete();
     }
+    fUpsHits->Delete();
 
     //Alignment. FIXME: move to DB
     if (fDchTracks) {

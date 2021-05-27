@@ -7,8 +7,15 @@ using namespace std;
 class BmnBCHit : public TObject{
 public:
     BmnBCHit();
-    BmnBCHit(Double_t ELoss1, Double_t ELoss2, Double_t ELoss3, Double_t ELoss4, Int_t Hits); 
+    BmnBCHit(Double_t ELoss1, Double_t ELoss2, Double_t ELoss3, Double_t ELoss4, Int_t Hits, vector <Int_t> chargesBC3, vector <Int_t> chargesBC4); 
     //BmnBCHit(Int_t detID, TVector3 pos, TVector3 dpos, Int_t index);
+
+    vector<Int_t > GetChargesFromBC3() {
+        return chargesInBC3;
+    }
+    vector<Int_t > GetChargesFromBC4() {
+        return chargesInBC4;
+    }
 
     void SetCharge(Double_t ZOutTotal) {
         ZOut = ZOutTotal;
@@ -40,7 +47,8 @@ public:
     virtual ~BmnBCHit();
 
 private:
-
+    vector <Int_t> chargesInBC4;
+    vector <Int_t> chargesInBC3;
     Double_t fELoss1;
     Double_t fELoss2;
     Double_t fELoss3;

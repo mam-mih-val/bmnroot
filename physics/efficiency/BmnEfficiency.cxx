@@ -170,7 +170,7 @@ BmnEfficiency::BmnEfficiency(FairRunAna* fAna, TString dstFile, Int_t nEvents) {
 
     fMagField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
 
-    if (runId < 10000) {
+    if (runId && runId < 10000) {
         UniDbRun* runInfo = UniDbRun::GetRun(7, runId);
 
         if (!runInfo)
@@ -178,8 +178,8 @@ BmnEfficiency::BmnEfficiency(FairRunAna* fAna, TString dstFile, Int_t nEvents) {
 
         fMagField->SetScale(*runInfo->GetFieldVoltage() / 55.87);
     }
-    else
-        fMagField->SetScale(1200. / 900.);
+    else 
+        fMagField->SetScale(1251.9 / 900.);
 
     fMagField->Init();
 

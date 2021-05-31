@@ -1,75 +1,5 @@
 #include "BmnTriggerEfficiencyRun7.h"
 
-void BmnTriggerEfficiencyRun7::GetInfoFromDstConnected(TString dst) {
-    fEventIdnVpTracks.clear();
-
-    if (fDstDir.IsNull())
-        return;
-    else {
-        Int_t run = -1;
-        // Getting run number from passed file ...
-        TChain* out = new TChain("bmndata");
-        out->Add(dst.Data());
-
-        if (!out->GetFile()) {
-            delete out;
-            return;
-        }
-
-        DstEventHeaderExtended* eHeaderExt = nullptr;
-        out->SetBranchAddress("DstEventHeaderExtended.", &eHeaderExt);
-
-        out->GetEntry();
-        run = eHeaderExt->GetRunId();
-        delete out;
-
-        Bool_t isEoS = (fDstDir.Contains("/eos")) ? kTRUE : kFALSE;
-
-        TString f = (isEoS ? fEoSNode : "") + fDstDir + TString::Format("dst-cbm2bmn-%d.root", run);
-
-        cout << dst << " --- " << f << endl;
-
-        TChain* ch = new TChain("bmndata");
-        ch->Add(f.Data());
-
-        DstEventHeader* header = nullptr;
-        TClonesArray* vertices = nullptr;
-        TClonesArray* tracks = nullptr;
-
-        ch->SetBranchAddress("DstEventHeader.", &header);
-        ch->SetBranchAddress("BmnVertex", &vertices);
-        ch->SetBranchAddress("BmnGlobalTrack", &tracks);
-
-        // for (Int_t iEvent = 0; iEvent < 1000; iEvent++) {
-        for (Int_t iEvent = 0; iEvent < ch->GetEntries(); iEvent++) {
-            ch->GetEntry(iEvent);
-
-            if (iEvent % 10000 == 0)
-                cout << "dstFile#, processing event: " << iEvent << endl;
-
-            // Doing checks for event selection ...
-
-            BmnVertex* Vp = (BmnVertex*) vertices->UncheckedAt(0);
-            Int_t nTracksInVertex = Vp->GetNTracks();
-
-            // Number of tracks in vertex hasto great than one ...
-            if (nTracksInVertex <= 1)
-                continue;
-
-            // -6. < VpZ < +6. [cm]
-            Double_t z = Vp->GetZ();
-            const Double_t zCor = 6.;
-
-            if (TMath::Abs(z) > zCor)
-                continue;
-
-            fEventIdnVpTracks[header->GetEventId()] = nTracksInVertex;
-        }
-
-        delete ch;
-    }
-}
-
 void BmnTriggerEfficiencyRun7::triggerEfficiency() {
 
     if (!fSpectraFile.IsNull()) {
@@ -124,20 +54,20 @@ void BmnTriggerEfficiencyRun7::triggerEfficiency() {
 
             // Clear multiplicity map from set values before ...
             fMultMap.clear();
-            
+
             // Setting number of multiplicity bins (possibly, could change before by user)
             nMultBins = out->GetEntriesFast();
-            
+
             vector <Double_t> triggEffs;
             vector <Double_t> triggEffErrs;
-            
+
             for (Int_t iEntry = 0; iEntry < out->GetEntriesFast(); iEntry++) {
                 TriggerEfficiency* eff = (TriggerEfficiency*) out->UncheckedAt(iEntry);
-                
+
                 fMultMap[iEntry] = make_pair(eff->multilplicity().first, eff->multilplicity().second);
                 triggEffs.push_back(eff->efficiency());
                 triggEffErrs.push_back(eff->efficiencyError());
-                
+
                 // cout << eff->trigger() << " " << eff->multilplicity().first << " " << eff->multilplicity().second << " " << eff->efficiency() << " " << eff->efficiencyError() << endl;
             }
 
@@ -273,7 +203,6 @@ void BmnTriggerEfficiencyRun7::triggerEfficiency() {
             // Calculating total error ...
             errsRelTot.push_back(TMath::Sqrt(errTotRelNom * errTotRelNom + errTotRelDenom * errTotRelDenom));
             // cout << "errTot = " << TMath::Sqrt(errTotRelNom * errTotRelNom + errTotRelDenom * errTotRelDenom) << endl;
-
         }
 
         TCanvas* c = new TCanvas("c", "c", 1200, 600);
@@ -411,7 +340,7 @@ void BmnTriggerEfficiencyRun7::triggerEfficiency() {
             Fatal("BmnTriggerEfficiencyRun7::triggerEfficiency", "Trigger condition not supported!!!");
 
         for (auto dst : createFilelist(triggsSet)) {
-            GetInfoFromDstConnected(dst);
+            // GetInfoFromDstConnected(dst);
 
             // Getting denom. histos (base) ...
             isAddTriggerCondition = kFALSE;
@@ -523,16 +452,15 @@ void BmnTriggerEfficiencyRun7::ReadFile(TString f, BmnParticlePairCut* cut0) {
     for (Int_t iEv = 0; iEv < out->GetEntries(); iEv++) {
         out->GetEntry(iEv);
 
-        Int_t nVpTracks = 0;
+        Int_t nVpTracks = eHeaderExt->nTracks();
+        Double_t z = eHeaderExt->Vp().Z();
 
-        // Event check whether being skipped ...
-        auto it = fEventIdnVpTracks.find(eHeaderExt->GetEventId());
+        // -6. < VpZ < +6. [cm]        
+        const Double_t zCor = 6.;
 
-        if (it == fEventIdnVpTracks.end())
+        if (TMath::Abs(z) > zCor || nVpTracks < 2)
             continue;
-        else
-            nVpTracks = it->second;
-
+        
         // Getting trigger conditions and track multiplicity ...
         if ((fTrigger.Contains("BT+FD3") || fTrigger.Contains("BT+FD2")) && isAddTriggerCondition) {
             // Nominator ...

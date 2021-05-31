@@ -94,6 +94,10 @@ public:
     void SetFinishRun(Int_t finish) {
         fFinishRun = finish;
     }
+    
+    vector <TString> GetFileList() {
+        return fInFiles;
+    }
 
 private:
     void DoOptimization();

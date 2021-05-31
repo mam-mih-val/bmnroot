@@ -70,6 +70,6 @@ run7/BmnTriggerEfficiencyRun7.cxx
 Set(HEADERS)
 Set(LINKDEF LinkDef.h)
 Set(LIBRARY_NAME BmnPhysics)
-Set(DEPENDENCIES BmnDst Decoder Gem Silicon CSC BmnData BmnField UniDb Base Core)
+Set(DEPENDENCIES BmnDst Decoder Gem Silicon CSC BmnData BmnField UniDb ElogDb)
 
 GENERATE_LIBRARY()

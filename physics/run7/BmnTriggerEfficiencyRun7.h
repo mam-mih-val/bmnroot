@@ -17,7 +17,7 @@ public:
     }
 
     BmnTriggerEfficiencyRun7(TString dir) : BmnLambdaAnalRun7(dir),
-    fDstDir(""), fEoSNode("root://ncm.jinr.ru/"), fSpectraFile(""),
+    fEoSNode("root://ncm.jinr.ru/"), fSpectraFile(""),
     nMultBins(18),
     nBdCounts(1000),
     nFdCounts(1000), isAddTriggerCondition(kFALSE) {
@@ -44,10 +44,6 @@ public:
         fTrigger = trigg;
     }
 
-    void SetDstDir(TString dir) {
-        fDstDir = dir;
-    }
-
     void SetMultiplicityMap(vector <pair <Int_t, Int_t>> bins) {
         fMultMap.clear();
 
@@ -72,7 +68,6 @@ public:
     void triggerEfficiency();
 
 private:
-    TString fDstDir;
     TString fEoSNode;
 
     TString fTrigger;
@@ -90,7 +85,6 @@ private:
     Int_t nMultBins;
 
     map <Int_t, pair <Int_t, Int_t>> fMultMap;
-    map <UInt_t, Int_t> fEventIdnVpTracks;
 
     // Spectrum histos ...
     TH1F*** hSpectra; // [triggCond][multCondition]
@@ -137,9 +131,7 @@ private:
 
         h->GetYaxis()->SetRangeUser(0., 1.1 * h->GetMaximum());
     }
-
-    void GetInfoFromDstConnected(TString);
-
+    
     ClassDef(BmnTriggerEfficiencyRun7, 0)
 };
 

@@ -109,7 +109,6 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fVerbose = 0;
     isSpillStart = kFALSE;
     fSpillCntr = 0;
-    fMSCRunTotal = nullptr;
     fMSCMapper = nullptr;
     InitUTCShift();
     fNECALSerials = 0;
@@ -175,32 +174,12 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
             }
         }
     }
-    //    printf(ANSI_COLOR_BLUE "\n\tTotal:\n" ANSI_COLOR_RESET);
-    //    UInt_t *cntrArr = fMSCRunTotal->GetValue();
-    //    printf(ANSI_COLOR_BLUE "MSC16:" ANSI_COLOR_RESET"\tBC1  %6u,        BC2  %6u,      BC3  %4u, BeamTrigger %6u,    L0 %6u, TrigProtection %6u, BT&Busy %6u\n",
-    //            cntrArr[0],
-    //            cntrArr[2],
-    //            cntrArr[4],
-    //            cntrArr[6],
-    //            cntrArr[8],
-    //            cntrArr[10],
-    //            cntrArr[12]
-    //            ); // BM@N
-    //
-    //    printf(ANSI_COLOR_BLUE "U40VE:" ANSI_COLOR_RESET"\tcand %6u,       acc   %6u,   before  %4u,      after  %6u,  rjct %6u,  all %6u,  avail %6u\n",
-    //            trigInfoSum->GetTrigCand(),
-    //            trigInfoSum->GetTrigAccepted(),
-    //            trigInfoSum->GetTrigBefo(),
-    //            trigInfoSum->GetTrigAfter(),
-    //            trigInfoSum->GetTrigRjct(),
-    //            trigInfoSum->GetTrigAll(),
-    //            trigInfoSum->GetTrigAvail());
     fRunEndTime = TTimeStamp(time_t(fTime_s), fTime_ns);
     Int_t shift = GetUTCShift(fRunEndTime);
     if (shift != tai_utc_dif)
         fprintf(stderr, ANSI_COLOR_RED "Critical Warning! Leap second added during the %i run!\n\n" ANSI_COLOR_RESET, fRunId);
     //    fRunEndTime = TTimeStamp(time_t(fTime_s - shift), fTime_ns);
-    fRawTree->Fill();
+//    fRawTree->Fill();
 
     fCurentPositionRawFile = ftello64(fRawFileIn);
     printf("Read %d events; %lld bytes (%.3f Mb)\n\n", fNevents, fCurentPositionRawFile, fCurentPositionRawFile / 1024. / 1024.);
@@ -220,7 +199,6 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     delete tqdc_tdc;
     delete tqdc_adc;
     delete msc;
-    if (fMSCRunTotal) delete fMSCRunTotal;
     if (eventHeaderDAQ) delete eventHeaderDAQ;
 
     return kBMNSUCCESS;
@@ -288,9 +266,6 @@ BmnStatus BmnRawDataDecoder::InitConverter() {
     fRawTreeSpills = new TTree("BMN_RAW_SPILLS", "BMN_RAW_SPILLS");
     msc = new TClonesArray(BmnMSCDigit::Class());
     fRawTreeSpills->Branch("MSC", &msc);
-    //
-    //    fMSCRunTotal = new BmnMSCDigit();
-    //    trigInfoSum = new BmnTrigInfo();
     return kBMNSUCCESS;
 }
 
@@ -475,10 +450,10 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                 break;
             }
             case kFVME:
-                {
-                    BmnTrigInfo* trigInfo = eventHeaderDAQ->GetTrigInfo();
-                    Process_FVME(&d[idx], payload, serial, evType, trigInfo);
-                }
+            {
+                BmnTrigInfo* trigInfo = eventHeaderDAQ->GetTrigInfo();
+                Process_FVME(&d[idx], payload, serial, evType, trigInfo);
+            }
                 break;
             case kHRB:
                 Process_HRB(&d[idx], payload, serial);
@@ -498,7 +473,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     eventHeaderDAQ->SetTripWord(kFALSE);
     //eventHeaderDAQ->SetTrigInfo(trigInfo);
     eventHeaderDAQ->SetTimeShift(fTimeShifts);
-//    eventHeaderDAQ->SetStartSignalInfo(fT0Time, fT0Width);
+    //    eventHeaderDAQ->SetStartSignalInfo(fT0Time, fT0Width);
     eventHeaderDAQ->SetSpillStart(isSpillStart);
 
     return kBMNSUCCESS;
@@ -791,7 +766,7 @@ BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t s
         if (fPeriodId > 4 && type == kWORDTRIG && slot == kEVENTTYPESLOT) {
             evType = ((d[idx] & BIT(3)) >> 3) ? kBMNPEDESTAL : kBMNPAYLOAD;
             UInt_t trigSrc = ((d[idx] >> 16) & (BIT(8) - 1));
-//            printf("EvId %6u trig source %u  evType %d\n", fEventId, trigSrc, evType);
+            //            printf("EvId %6u trig source %u  evType %d\n", fEventId, trigSrc, evType);
             //            if (!( ((d[idx]>>10) & 0x1) ^ (fPeriodId >= 7 && fBmnSetup == kBMNSETUP)))
             //                printf("Ev not Good!\n");
             //            printf("evGood %d\n", (d[idx] & BIT(10)));
@@ -811,14 +786,15 @@ BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t s
             //            printf("%d type = %u %08X\n", j, type, type);
             //            }
             idx += 4;
-//                                    printf("cand %04u, acc %04u, bef %04u, after %04u, rjct %04u, all %04u, avail %04u\n",
-//                                            trigInfo->GetTrigCand(),
-//                                            trigInfo->GetTrigAccepted(),
-//                                            trigInfo->GetTrigBefo(),
-//                                            trigInfo->GetTrigAfter(),
-//                                            trigInfo->GetTrigRjct(),
-//                                            trigInfo->GetTrigAll(),
-//                                            trigInfo->GetTrigAvail());
+//            printf("EvId %6u cand %7u, acc %5u, bef %5u, after %5u, rjct %7u, all %8u, avail %8u\n",
+//                    fEventId,
+//                    trigInfo->GetTrigCand(),
+//                    trigInfo->GetTrigAccepted(),
+//                    trigInfo->GetTrigBefo(),
+//                    trigInfo->GetTrigAfter(),
+//                    trigInfo->GetTrigRjct(),
+//                    trigInfo->GetTrigAll(),
+//                    trigInfo->GetTrigAvail());
             countersDone = kTRUE;
             //            if (trigInfoTemp)
             //                delete trigInfoTemp;
@@ -953,22 +929,21 @@ BmnStatus BmnRawDataDecoder::FillMSC(UInt_t* d, UInt_t serial, UInt_t slot, UInt
     BmnMSCDigit *dig = new((*msc)[msc->GetEntriesFast()]) BmnMSCDigit(serial, slot, fEventId);
     UInt_t *cntrArrCur = dig->GetValue();
 //    printf("MSC type %u serial %08X  eventID = %6u\n", type, serial, fEventId);
-//        printf("\n%u events \n", nSpillEvents);
+//    printf("\t%u events \n", nSpillEvents);
     while (type < 6) {
         if (type < 5) {
             UInt_t cnt3 = (d[idx] >> 21) & (BIT(8) - 1);
             UInt_t cnt2 = (d[idx] >> 14) & (BIT(8) - 1);
             UInt_t cnt1 = (d[idx] >> 7) & (BIT(8) - 1);
             UInt_t cnt0 = d[idx] & (BIT(8) - 1);
-//                        printf("type = %u  %06u  %06u  %06u  %06u  \n", type, cnt3, cnt2, cnt1, cnt0);
+//            printf("type = %u  %06u  %06u  %06u  %06u  \n", type, cnt3, cnt2, cnt1, cnt0);
         } else
             if (type == 5) {
             UInt_t cnt = d[idx] & (BIT(28) - 1);
             if (iCnt >= nCnt)
                 continue;
             cntrArrCur[iCnt++] = cnt;
-//            printf("\ttype = %u  arr[%2u] = %8u\n", type, iCnt-1, cntrArrCur[iCnt-1]);
-//            printf(" %4u \n", cntrArrCur[iCnt-1]);
+//            printf("\ttype = %u  arr[%2u] = %8u\n", type, iCnt - 1, cntrArrCur[iCnt - 1]);
         }
         type = (d[++idx] >> 28) & (BIT(5) - 1);
     }
@@ -1041,7 +1016,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             curEventType = headDAQ->GetEventType();
             fEventId = headDAQ->GetEventId();
             if (fVerbose == 1) {
-                if (iEv % 5000 == 0) cout << "Digitization event #" << fEventId << "/" << fNevents << ";" << endl;
+                if (iEv % 5000 == 0) cout << "Digitization events " << iEv << "/" << fNevents << ";" << endl;
             } else if (fVerbose == 0)
                 DrawBar(iEv, fNevents);
             FillTimeShiftsMap();
@@ -1261,7 +1236,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             }
         }
         if (fVerbose == 1) {
-            if (iEv % 5000 == 0) cout << "Digitization event #" << fEventId << "/" << fNevents << "; Spill #" << fSpillCntr << endl;
+//            if (iEv % 5000 == 0) cout << "Digitization event #" << fEventId << "/" << fNevents << "; Spill #" << fSpillCntr << endl;
         } else if (fVerbose == 0)
             DrawBar(iEv, fNevents);
 
@@ -1282,20 +1257,19 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         eventHeader->SetTimeShift(fTimeShifts);
         eventHeader->SetStartSignalInfo(fT0Time, fT0Width);
         eventHeader->SetSpillStart(headDAQ->GetSpillStart());
-//        BmnTrigUnion s;
-//        BmnTrigStructPeriod7SetupBMN bs;
-//        bs.BC1 = true;
-//        bs.BC2 = true;
-//        bs.VETO = true;
-//        bs.ThrBD = 2;
-//        bs.ThrSI = 3;
-//        s.Period7BMN = bs;
-//        eventHeader->SetTrigState(s);
-//        BmnTrigUnion ws = eventHeader->GetTrigState();
-//        printf("ThrBD set to %u\n", ws.Period7BMN.ThrBD);
-        if (curEventType == kBMNPEDESTAL)
-            fPedEvCntrBySpill++;
+        //        BmnTrigUnion s;
+        //        BmnTrigStructPeriod7SetupBMN bs;
+        //        bs.BC1 = true;
+        //        bs.BC2 = true;
+        //        bs.VETO = true;
+        //        bs.ThrBD = 2;
+        //        bs.ThrSI = 3;
+        //        s.Period7BMN = bs;
+        //        eventHeader->SetTrigState(s);
+        //        BmnTrigUnion ws = eventHeader->GetTrigState();
+        //        printf("ThrBD set to %u\n", ws.Period7BMN.ThrBD);
         if (curEventType == kBMNPEDESTAL) {
+            fPedEvCntrBySpill++;
             if (GetAdcDecoMode() == kBMNADCSM) {
                 if (fPedEvCntr == fEvForPedestals - 1) continue;
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
@@ -1324,7 +1298,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
             if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
         }
-        if (fMSCMapper) fMSCMapper->SumEvent(msc, eventHeader->GetTrigInfo(), fEventId, fPedEvCntrBySpill);
+        if (fMSCMapper) fMSCMapper->SumEvent(msc, eventHeader, fEventId, fPedEvCntrBySpill);
 
         fDigiTree->Fill();
         prevEventType = curEventType;
@@ -1365,6 +1339,10 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
 
     eventHeader = new BmnEventHeader();
     fDigiTree->Branch("BmnEventHeader.", &eventHeader);
+    
+    fDigiTreeSpills = new TTree("spill", "spill");
+    
+    
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
     if (fDetectorSetup[0]) {
@@ -1944,7 +1922,7 @@ BmnStatus BmnRawDataDecoder::InitUTCShift() {
     leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(2012, 7, 1, 0, 0, 34), 35));
     leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(2015, 7, 1, 0, 0, 35), 36));
     leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(2017, 1, 1, 0, 0, 36), 37));
-    utc_valid = TTimeStamp(2019, 6, 28, 0, 0, 36);
+    utc_valid = TTimeStamp(2021, 1, 1, 0, 0, 1);
     return kBMNSUCCESS;
 }
 

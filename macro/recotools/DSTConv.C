@@ -41,7 +41,20 @@ void FilterPV(TString BaseName, TString TempBaseName) {
     return;
 }
 
- void DSTConv(
+void GetRinId(TString RootFileName, Int_t& period_number, Int_t& run_number) {
+    TFile * fRootFile = new TFile(RootFileName.Data());
+    if (fRootFile->IsZombie()) {
+        LOG(FATAL) << "Error opening the Input file";
+        return;
+    }
+    DstRunHeader* run_header = (DstRunHeader*) fRootFile->Get("DstRunHeader"); // read DigiRunHeader if present
+    if (run_header) {
+        period_number = run_header->GetPeriodNumber();
+        run_number = run_header->GetRunNumber();
+    }
+}
+
+void DSTConv(
         TString inFile = "~/filesbmn/4649-cbm-full.root",
         TString outFile = "$VMCWORKDIR/macro/run/dst-bmn-4649.root",
         Int_t nStartEvent = 0,
@@ -50,7 +63,8 @@ void FilterPV(TString BaseName, TString TempBaseName) {
         vector<TString> branchesToClone = {
     "BmnTof400Hit", "BmnTof700Hit",
     "BmnDchTrack", "BmnDchHit",
-    "BmnUpstreamHit", "BmnMwpcSegment", "BmnMwpcTrack"}) {
+    "BmnUpstreamHit", "BmnMwpcSegment", "BmnMwpcTrack"
+}) {
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
@@ -61,6 +75,10 @@ void FilterPV(TString BaseName, TString TempBaseName) {
     if (nEvents == 0)
         nEvents = MpdGetNumEvents::GetNumROOTEvents((char*) inFile.Data()) - nStartEvent;
 
+    //    if (!UniDbRun::GetRun(fPeriodId, runId)) {
+    //        printf("Run not found in ELOG. Exit.\n");
+    //        return;
+    //    }
 
     FairRunAna* fRunAna = new FairRunAna();
     //    BmnFairRunSim* fRunAna = new BmnFairRunSim();
@@ -84,7 +102,7 @@ void FilterPV(TString BaseName, TString TempBaseName) {
     fRunAna->Init();
     fRunAna->Run(nStartEvent, nStartEvent + nEvents);
     delete fRunAna;
-    
+
     TString outFileTemp = outFile + ".pv.root";
     FilterPV(outFile, outFileTemp);
     //    std::remove(outFile);

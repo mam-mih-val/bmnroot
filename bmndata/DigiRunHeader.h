@@ -14,9 +14,12 @@ private:
     UInt_t fRunId;
     TTimeStamp fRunStartTime;
     TTimeStamp fRunEndTime;
-    UInt_t fBeamTrigger;
-    UInt_t fBTnBusy;
-    UInt_t fBTAccepted;
+    ULong64_t fBeamTrigger;
+    ULong64_t fBTnBusy;
+    Double_t fBTAccepted; ///< BT&notBusy normalized according to Acc/(Acc + BP + AP)
+    ULong64_t fAccepted;
+    ULong64_t fBP;
+    ULong64_t fAP;
 
 
 public:
@@ -36,15 +39,18 @@ public:
 
 
     /** Get the period ID for this run */
-    UInt_t GetPeriodId() { return fPeriodId; }
+    ULong64_t GetPeriodId() { return fPeriodId; }
     /** Get the run ID */
-    UInt_t GetRunId() { return fRunId; }
+    ULong64_t GetRunId() { return fRunId; }
     /** Get the BeamTrigger counter */
-    UInt_t GetBT() { return fBeamTrigger; }
+    ULong64_t GetBT() { return fBeamTrigger; }
     /** Get the BT and not Busy  */
-    UInt_t GetBTnBusy() { return fBTnBusy; }
+    ULong64_t GetBTnBusy() { return fBTnBusy; }
     /** Get the (BT and not Busy) by live time  */
-    UInt_t GetBTAccepted() { return fBTAccepted; }
+    Double_t GetBTAccepted() { return fBTAccepted; }
+    /** Get the Accepted by live time  */
+    ULong64_t GetAccepted() { return fAccepted; }
+
 
     TTimeStamp GetRunStartTime() { return fRunStartTime; }
     TTimeStamp GetRunEndTime() { return fRunEndTime; }
@@ -73,17 +79,21 @@ public:
     /** Set the Beam Trigger counter
      * \param[in] cntr : Beam Trigger counter
      */
-    void SetBT(UInt_t cntr) { fBeamTrigger = cntr; }
+    void SetBT(ULong64_t cntr) { fBeamTrigger = cntr; }
     /** Set the BT and Busy counter
      * \param[in] cntr : BT and Busy
      */
-    void SetBTnBusy(UInt_t cntr) { fBTnBusy = cntr; }
+    void SetBTnBusy(ULong64_t cntr) { fBTnBusy = cntr; }
     /** Set the (BT and not Busy) by live time
      * \param[in] cntr : BT Accepted
      */
-    void SetBTAccepted(UInt_t cntr) { fBTAccepted = cntr; }
+    void SetBTAccepted(Double_t cntr) { fBTAccepted = cntr; }
+    /** Set the Accepted counter
+     * \param[in] cntr : Accepted counter
+     */
+    void SetAccepted(ULong64_t cntr) { fAccepted = cntr; }
 
-    ClassDef(DigiRunHeader, 1)
+    ClassDef(DigiRunHeader, 2)
 };
 
 #endif /* BMNDIGIRUNHEADER_H */

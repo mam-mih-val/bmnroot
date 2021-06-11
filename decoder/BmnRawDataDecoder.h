@@ -409,6 +409,7 @@ private:
     TTree *fRawTree;
     TTree *fRawTreeSpills;
     TTree *fDigiTree;
+    TTree *fDigiTreeSpills;
     TString fRootFileName;
     TString fRawFileName;
     TString fDigiFileName;
@@ -464,7 +465,6 @@ private:
     TClonesArray *tqdc_tdc;
     TClonesArray *tqdc_adc;
     TClonesArray *msc;
-    BmnMSCDigit *fMSCRunTotal;
     BmnEventHeader *eventHeaderDAQ;
 
     //Digi arrays

@@ -524,10 +524,10 @@ void BmnTrackConv::ProcessDST() {
 void BmnTrackConv::Finish() {
     for (Int_t iAr = 0; iAr < fOutArrays.size(); iAr++) {
         delete fOutArrays[iAr];
-        delete fInArrays[iAr];
+//        delete fInArrays[iAr];
     }
-    delete fBMNEvHeaderIn;
-    if (fBMNZDCIn) delete fBMNZDCIn;
+//    delete fBMNEvHeaderIn;
+//    if (fBMNZDCIn) delete fBMNZDCIn;
     if (fDstFile) {
         fDstFile->Close();
         delete fDstFile;

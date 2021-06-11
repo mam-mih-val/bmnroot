@@ -1,4 +1,5 @@
 #include "BmnMscRaw2Digit.h"
+#include "BmnEventHeader.h"
 
 BmnMscRaw2Digit::BmnMscRaw2Digit(TString MapFile, TTree *spillTree) {
     SetSpillTree(spillTree);
@@ -16,12 +17,12 @@ BmnStatus BmnMscRaw2Digit::ReadChannelMap(TString mappingFile) {
     TString dummy;
     TString name;
     UInt_t ser;
-    UShort_t slot, bt, btnbusy, l0, tp;
+    UShort_t slot, bt, btnbusy, l0, tp, bc1, bc2, bc3;
 
-    fMapFile >> dummy >> dummy >> dummy >> dummy; // >> dummy >> dummy;
+    fMapFile >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
     fMapFile >> dummy;
     while (!fMapFile.eof()) {
-        fMapFile >> hex >> ser >> dec >> slot >> bt >> btnbusy; // >> l0 >> tp;
+        fMapFile >> hex >> ser >> dec >> slot >> bt >> btnbusy >> l0 >> tp >> bc1 >> bc2 >> bc3;
         if (!fMapFile.good()) break;
         MscMap record;
         record.serial = ser;
@@ -30,6 +31,9 @@ BmnStatus BmnMscRaw2Digit::ReadChannelMap(TString mappingFile) {
         record.BTnBusy = btnbusy;
         record.L0 = l0;
         record.TriggerProtection = tp;
+        record.BC1 = bc1;
+        record.BC2 = bc2;
+        record.BC3 = bc3;
         fMap.push_back(record);
     }
     fMapFile.close();
@@ -48,15 +52,15 @@ void BmnMscRaw2Digit::FillRunHeader(DigiRunHeader *rh) {
     }
 }
 
-BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnTrigInfo *ti, UInt_t iEv, UInt_t &nPedEvBySpill) {
+BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, UInt_t iEv, UInt_t &nPedEvBySpill) {
     //    printf("iEv %u  iSpill %u msc->GetEntriesFast() %d\n", iEv, iSpill, msc->GetEntriesFast());
+    BmnTrigInfo *ti = hdr->GetTrigInfo();
     for (Int_t iAdc = 0; iAdc < msc->GetEntriesFast(); ++iAdc) {
         BmnMSCDigit* dig = (BmnMSCDigit*) msc->At(iAdc);
-        //                printf("dig->GetLastEventId() %u \n", dig->GetLastEventId());
         if (dig->GetLastEventId() > iEv)
             break;
         if (dig->GetLastEventId() < iEv) {
-            //            fprintf(stderr, "Spill %u last event lost!\n", iSpill);
+            fprintf(stderr, "Spill %u last event lost!\n", iSpill);
             fRawTreeSpills->GetEntry(++iSpill);
             nPedEvBySpill = 0;
             return kBMNERROR;
@@ -74,13 +78,38 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnTrigInfo *ti, UInt_t i
                         ti->GetTrigAfter();
                 if (den > 0)
                     fBTAccepted += arr[mRec.BTnBusy] * AcceptedReal / (Double_t) den;
-                //                printf("iEv %u  iSpill %u  BT %u BTnB %u  BTAcc %f\n", iEv, iSpill, fBT, fBTnBusy, fBTAccepted);
-                fRawTreeSpills->GetEntry(++iSpill);
+                printf("iEv %7u  iSpill %4u   last EvId %7u\n", iEv, iSpill, dig->GetLastEventId());
+                hdr->GetEventTimeTS().Print();
+                printf(ANSI_COLOR_BLUE " MSC16:" ANSI_COLOR_RESET"\tBC1  %7u,        BC2  %7u,      BC3  %4u, BeamTrigger %7u,   L0 %7u, TrigProtection %7u, BT&Busy %7u\n",
+                        arr[0],
+                        arr[2],
+                        arr[4],
+                        arr[6],
+                        arr[8],
+                        arr[10],
+                        arr[12]
+                        ); // BM@N
+                printf(ANSI_COLOR_BLUE " U40VE:" ANSI_COLOR_RESET"\t cand %7u,       acc  %7u,   before  %4u,      after  %6u,  rjct %6u,  all %7u,  avail %7u\n\n",
+                        ti->GetTrigCand(),
+                        ti->GetTrigAccepted(),
+                        ti->GetTrigBefo(),
+                        ti->GetTrigAfter(),
+                        ti->GetTrigRjct(),
+                        ti->GetTrigAll(),
+                        ti->GetTrigAvail());
+                ++iSpill;
+                Int_t r = fRawTreeSpills->GetEntry(iSpill);
+                //                printf("Get entry %u returned %d\n", iSpill, r);
+                if (r <= 0) {
+                    fprintf(stderr, "Spill %u read error!\n", iSpill);
+                    return kBMNERROR;
+                }
+                printf("spill %u start:\n", iSpill);
+                hdr->GetEventTimeTS().Print();
                 nPedEvBySpill = 0;
                 break;
             }
         }
-
     }
     return kBMNSUCCESS;
 }

@@ -11,7 +11,9 @@
 #include <TString.h>
 #include <TTree.h>
 
+#include "BmnEventHeader.h"
 #include "BmnEnums.h"
+#include "BmnMath.h"
 #include "BmnMSCDigit.h"
 #include "BmnTrigInfo.h"
 #include "DigiRunHeader.h"
@@ -27,6 +29,9 @@ struct MscMap {
     UShort_t BTnBusy; ///< (BeamTrigger & not Busy) index
     UShort_t L0;
     UShort_t TriggerProtection;
+    UShort_t BC1;
+    UShort_t BC2;
+    UShort_t BC3;
 };
 
 class BmnMscRaw2Digit {
@@ -49,7 +54,7 @@ public:
 
     void FillRunHeader(DigiRunHeader *rh);
 
-    BmnStatus SumEvent(TClonesArray *msc, BmnTrigInfo *ti, UInt_t iEv, UInt_t &nPedEvBySpill);
+    BmnStatus SumEvent(TClonesArray *msc, BmnEventHeader *hdr, UInt_t iEv, UInt_t &nPedEvBySpill);
 
     TTree *GetSpillTree() {
         return fRawTreeSpills;
@@ -71,7 +76,11 @@ private:
 
     UInt_t fBT = 0u;
     UInt_t fBTnBusy = 0u;
+    UInt_t fAccepted = 0u;
     Double_t fBTAccepted = 0.0;
+    UInt_t fBC1 = 0.0;
+    UInt_t fBC2 = 0.0;
+    UInt_t fBC3 = 0.0;
 
     ClassDef(BmnMscRaw2Digit, 1);
 };

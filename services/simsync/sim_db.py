@@ -31,7 +31,9 @@ name_to_particle = {
     "kr": "Kr",
     "au": "Au",
     "c" : "C",
-    "p" : "p"
+    "p" : "p",
+    "ag": "Ag",
+    "xe": "Xe"
 }
 
 exclude_extensions = {
@@ -135,7 +137,7 @@ def recurse_path(dir_path, generator_type_dir, conn, existing_files, exist_valid
             # parse beam and target
             beam_target = ""
             while not beam_target:
-                beam_target = re.search(r"(?P<beam>(d|ar|kr|au|c|p).*?)(?P<target>(cu|al|pb|sn|au|c|p).*?)", file_tokens[token_num].lower())
+                beam_target = re.search(r"(?P<beam>(d|ar|kr|au|c|p|ag|xe).*?)(?P<target>(cu|al|pb|sn|au|c|p|ag).*?)", file_tokens[token_num].lower())
                 token_num += 1
                 if token_num == len(file_tokens):
                     break

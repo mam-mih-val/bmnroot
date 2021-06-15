@@ -1,8 +1,8 @@
 #include "BmnMscRaw2Digit.h"
-#include "BmnEventHeader.h"
 
-BmnMscRaw2Digit::BmnMscRaw2Digit(TString MapFile, TTree *spillTree) {
-    SetSpillTree(spillTree);
+BmnMscRaw2Digit::BmnMscRaw2Digit(TString MapFile, TTree *spillTree, TTree *digiSpillTree) {
+    SetRawSpillTree(spillTree);
+    SetDigSpillTree(digiSpillTree);
     ReadChannelMap(MapFile);
 }
 
@@ -52,19 +52,22 @@ void BmnMscRaw2Digit::FillRunHeader(DigiRunHeader *rh) {
     }
 }
 
-BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, UInt_t iEv, UInt_t &nPedEvBySpill) {
+BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnSpillHeader *sh, UInt_t &nPedEvBySpill) {
     //    printf("iEv %u  iSpill %u msc->GetEntriesFast() %d\n", iEv, iSpill, msc->GetEntriesFast());
+    sh->Clear();
     BmnTrigInfo *ti = hdr->GetTrigInfo();
+    UInt_t iEv = hdr->GetEventId();
     for (Int_t iAdc = 0; iAdc < msc->GetEntriesFast(); ++iAdc) {
         BmnMSCDigit* dig = (BmnMSCDigit*) msc->At(iAdc);
         if (dig->GetLastEventId() > iEv)
             break;
         if (dig->GetLastEventId() < iEv) {
             fprintf(stderr, "Spill %u last event lost!\n", iSpill);
-            fRawTreeSpills->GetEntry(++iSpill);
+            fRawSpillTree->GetEntry(++iSpill);
             nPedEvBySpill = 0;
             return kBMNERROR;
         }
+
         UInt_t *arr = dig->GetValue();
         UInt_t serial = dig->GetSerial();
         for (auto &mRec : fMap) {
@@ -78,34 +81,52 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, UInt
                         ti->GetTrigAfter();
                 if (den > 0)
                     fBTAccepted += arr[mRec.BTnBusy] * AcceptedReal / (Double_t) den;
-                printf("iEv %7u  iSpill %4u   last EvId %7u\n", iEv, iSpill, dig->GetLastEventId());
-                hdr->GetEventTimeTS().Print();
-                printf(ANSI_COLOR_BLUE " MSC16:" ANSI_COLOR_RESET"\tBC1  %7u,        BC2  %7u,      BC3  %4u, BeamTrigger %7u,   L0 %7u, TrigProtection %7u, BT&Busy %7u\n",
-                        arr[0],
-                        arr[2],
-                        arr[4],
-                        arr[6],
-                        arr[8],
-                        arr[10],
-                        arr[12]
-                        ); // BM@N
-                printf(ANSI_COLOR_BLUE " U40VE:" ANSI_COLOR_RESET"\t cand %7u,       acc  %7u,   before  %4u,      after  %6u,  rjct %6u,  all %7u,  avail %7u\n\n",
-                        ti->GetTrigCand(),
-                        ti->GetTrigAccepted(),
-                        ti->GetTrigBefo(),
-                        ti->GetTrigAfter(),
-                        ti->GetTrigRjct(),
-                        ti->GetTrigAll(),
-                        ti->GetTrigAvail());
+                if (fDigSpillTree) {
+                    sh->SetBC1(arr[mRec.BC1]);
+                    sh->SetBC2(arr[mRec.BC2]);
+                    sh->SetBC3(arr[mRec.BC3]);
+                    sh->SetBT(arr[mRec.BT]);
+                    sh->SetBTnBusy(arr[mRec.BTnBusy]);
+                    sh->SetL0(arr[mRec.L0]);
+                    sh->SetProt(arr[mRec.TriggerProtection]);
+                    sh->SetAccepted(AcceptedReal);
+                    sh->SetAfter(ti->GetTrigAfter());
+                    sh->SetBefo(ti->GetTrigBefo());
+                    sh->SetCand(ti->GetTrigCand());
+                    sh->SetAll(ti->GetTrigAll());
+                    sh->SetAvail(ti->GetTrigAvail());
+                    sh->SetRjct(ti->GetTrigRjct());
+                    sh->SetLastEventId(iEv);
+                    sh->SetPeriodId(hdr->GetPeriodId());
+                    fDigSpillTree->Fill();
+                }
+
+//                printf("iEv %7u  iSpill %4u   last EvId %7u\n", iEv, iSpill, dig->GetLastEventId());
+//                hdr->GetEventTimeTS().Print();
+//                printf(ANSI_COLOR_BLUE " MSC16:" ANSI_COLOR_RESET"\tBC1  %7u,    BC2  %7u,   BC3  %4u, BeamTrigger %7u,   L0 %7u, TrigProtection %7u, BT&Busy %7u\n",
+//                        arr[0],
+//                        arr[2],
+//                        arr[4],
+//                        arr[6],
+//                        arr[8],
+//                        arr[10],
+//                        arr[12]
+//                        ); // BM@N
+//                printf(ANSI_COLOR_BLUE " U40VE:" ANSI_COLOR_RESET"\t cand %7u,   acc  %7u,   before  %4u,    after  %6u,  rjct %6u,  all %7u,  avail %7u\n\n",
+//                        ti->GetTrigCand(),
+//                        ti->GetTrigAccepted(),
+//                        ti->GetTrigBefo(),
+//                        ti->GetTrigAfter(),
+//                        ti->GetTrigRjct(),
+//                        ti->GetTrigAll(),
+//                        ti->GetTrigAvail());
                 ++iSpill;
-                Int_t r = fRawTreeSpills->GetEntry(iSpill);
+                Int_t r = fRawSpillTree->GetEntry(iSpill);
                 //                printf("Get entry %u returned %d\n", iSpill, r);
                 if (r <= 0) {
-                    fprintf(stderr, "Spill %u read error!\n", iSpill);
-                    return kBMNERROR;
+//                    fprintf(stderr, "Spill %u read error!\n", iSpill);
+                    return kBMNFINISH;
                 }
-                printf("spill %u start:\n", iSpill);
-                hdr->GetEventTimeTS().Print();
                 nPedEvBySpill = 0;
                 break;
             }

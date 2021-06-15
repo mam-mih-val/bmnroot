@@ -91,6 +91,7 @@ set(SRCS
  BmnGlobalTrack.cxx
  BmnIdentifiableTrack.cxx
  BmnEventHeader.cxx
+ BmnSpillHeader.cxx
  DigiRunHeader.cxx
  BmnEventQuality.cxx
  BmnFileSource.cxx

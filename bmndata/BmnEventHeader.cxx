@@ -70,7 +70,7 @@ void BmnEventHeader::Clear() {
         delete fTrigInfo;
         fTrigInfo = new BmnTrigInfo();
     }
-    memset(&fTrigUnion, 0, sizeof (BmnTrigUnion));
+    fTrigUnion = 0;
 }
 
 

@@ -21,6 +21,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
         SetAdcDecoMode(kBMNADCMK);
     eventHeaderDAQ = NULL;
     eventHeader = NULL;
+    spillHeader = NULL;
     fTime_ns = 0;
     fTime_s = 0;
     fT0Time = 0.0;
@@ -1298,7 +1299,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
             if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
         }
-        if (fMSCMapper) fMSCMapper->SumEvent(msc, eventHeader, fEventId, fPedEvCntrBySpill);
+        if (fMSCMapper) fMSCMapper->SumEvent(msc, eventHeader, spillHeader, fPedEvCntrBySpill);
 
         fDigiTree->Fill();
         prevEventType = curEventType;
@@ -1321,6 +1322,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     printf(ANSI_COLOR_RED "================================================\n" ANSI_COLOR_RESET);
 
     fDigiTree->Write();
+    fDigiTreeSpills->Write();
     DisposeDecoder();
     fDigiFileOut->Write();
     fDigiFileOut->Close();
@@ -1336,11 +1338,12 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fDigiTree = new TTree(
             conf.get<string>("Decoder.DigiTreeName").c_str(),
             conf.get<string>("Decoder.DigiTreeTitle").c_str());
-
     eventHeader = new BmnEventHeader();
     fDigiTree->Branch("BmnEventHeader.", &eventHeader);
     
     fDigiTreeSpills = new TTree("spill", "spill");
+    spillHeader = new BmnSpillHeader();
+    fDigiTreeSpills->Branch("BmnSpillHeader.", &spillHeader);
     
     
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
@@ -1453,7 +1456,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
             fCscMapper = new BmnCscRaw2Digit(fPeriodId, fRunId, fCscSerials);
     }
     if (fRawTreeSpills)
-        fMSCMapper = new BmnMscRaw2Digit(fMSCMapFileName, fRawTreeSpills);
+        fMSCMapper = new BmnMscRaw2Digit(fMSCMapFileName, fRawTreeSpills, fDigiTreeSpills);
 
     fPedEvCntr = 0; // counter for pedestal events between two recalculations
     fPedEvCntrBySpill = 0; // counter for pedestal events between two spills
@@ -1611,6 +1614,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (land) delete land;
 
     delete eventHeader;
+    delete spillHeader;
     if (eventHeaderDAQ) delete eventHeaderDAQ;
     if (fRawTree) fRawTree->Delete();
     return kBMNSUCCESS;

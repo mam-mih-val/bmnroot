@@ -481,6 +481,7 @@ private:
 
     //header array
     BmnEventHeader *eventHeader;
+    BmnSpillHeader *spillHeader;
 
     UInt_t data[10000000];
     ULong_t fMaxEvent;

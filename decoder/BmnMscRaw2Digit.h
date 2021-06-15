@@ -12,6 +12,7 @@
 #include <TTree.h>
 
 #include "BmnEventHeader.h"
+#include "BmnSpillHeader.h"
 #include "BmnEnums.h"
 #include "BmnMath.h"
 #include "BmnMSCDigit.h"
@@ -38,7 +39,7 @@ class BmnMscRaw2Digit {
     const UInt_t nCnt = 16;
 
 public:
-    BmnMscRaw2Digit(TString mappingFile, TTree *spillTree = nullptr);
+    BmnMscRaw2Digit(TString mappingFile, TTree *spillTree = nullptr, TTree *digiSpillTree = nullptr);
 
     BmnMscRaw2Digit() {
     }
@@ -54,16 +55,22 @@ public:
 
     void FillRunHeader(DigiRunHeader *rh);
 
-    BmnStatus SumEvent(TClonesArray *msc, BmnEventHeader *hdr, UInt_t iEv, UInt_t &nPedEvBySpill);
+    BmnStatus SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnSpillHeader *sh, UInt_t &nPedEvBySpill);
 
-    TTree *GetSpillTree() {
-        return fRawTreeSpills;
+    TTree *GetRawSpillTree() {
+        return fRawSpillTree;
+    }
+    TTree *GetDigSpillTree() {
+        return fDigSpillTree;
     }
 
-    void SetSpillTree(TTree *tree) {
-        fRawTreeSpills = tree;
-        if (fRawTreeSpills)
-            fRawTreeSpills->GetEntry(iSpill);
+    void SetRawSpillTree(TTree *tree) {
+        fRawSpillTree = tree;
+        if (fRawSpillTree)
+            fRawSpillTree->GetEntry(iSpill);
+    }
+    void SetDigSpillTree(TTree *tree) {
+        fDigSpillTree = tree;
     }
 
 private:
@@ -71,7 +78,8 @@ private:
     ifstream fMapFile;
     TString fMapFileName;
     
-    TTree *fRawTreeSpills = nullptr;
+    TTree *fRawSpillTree = nullptr;
+    TTree *fDigSpillTree = nullptr;
     UInt_t iSpill = 0u;
 
     UInt_t fBT = 0u;

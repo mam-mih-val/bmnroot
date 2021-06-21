@@ -1,4 +1,4 @@
 
-    Serial    Slot   BeamTrigger   BTnBusy  L0  TrigProtection  BC1  BC2  BC3
-==============================================================================
-0x076D3892     10          6         12      8        10          0    2    4 
+    Serial    Slot   BeamTrigger   BTnBusy  L0  TrigProtection  BC1  BC2  BC3  BC1H  BC1BP  BC1xBC2  BC1nBusy  IntTrig  SRCTrig  TrignBusy
+===========================================================================================================================================
+0x076D3892     10          6         12      8        10          0    2    4    0      0       0        0         0        0         0   

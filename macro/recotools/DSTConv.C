@@ -1,8 +1,7 @@
 
-const Double_t CutValidZPV = 3.0;
 const Int_t CutMinNTracksPV = 2;
 
-void FilterPV(TString BaseName, TString TempBaseName) {
+void FilterPV_CBM(TString BaseName, TString TempBaseName, Double_t minZ = -5.45, Double_t maxZ = 6.55) {
     printf("\nCloning selected exp events:");
     TFile *BaseHits = new TFile(BaseName, "READ");
     if (BaseHits->IsOpen() == false) {
@@ -27,7 +26,7 @@ void FilterPV(TString BaseName, TString TempBaseName) {
         //        DrawBar(iEv, NBaseEvents);
         TreeBase->GetEntry(iEv);
         BmnVertex *vtx = static_cast<BmnVertex*> (vertex->UncheckedAt(0));
-        if ((Abs(vtx->GetZ()) > CutValidZPV) || (vtx->GetNTracks() < CutMinNTracksPV))
+        if ((vtx->GetZ() < minZ) || (vtx->GetZ() > maxZ) || (vtx->GetNTracks() < CutMinNTracksPV))
             continue;
         DestTree->Fill();
     }
@@ -39,19 +38,6 @@ void FilterPV(TString BaseName, TString TempBaseName) {
     BaseHits->Close();
     printf("\nCloning finished!\n");
     return;
-}
-
-void GetRinId(TString RootFileName, Int_t& period_number, Int_t& run_number) {
-    TFile * fRootFile = new TFile(RootFileName.Data());
-    if (fRootFile->IsZombie()) {
-        LOG(FATAL) << "Error opening the Input file";
-        return;
-    }
-    DstRunHeader* run_header = (DstRunHeader*) fRootFile->Get("DstRunHeader"); // read DigiRunHeader if present
-    if (run_header) {
-        period_number = run_header->GetPeriodNumber();
-        run_number = run_header->GetRunNumber();
-    }
 }
 
 void DSTConv(
@@ -82,8 +68,8 @@ void DSTConv(
 
     FairRunAna* fRunAna = new FairRunAna();
     //    BmnFairRunSim* fRunAna = new BmnFairRunSim();
-    //    FairSource* src = new BmnFileSource(inFile);
-    //    fRunAna->SetSource(src);
+    FairSource* src = new BmnFileSource(inFile);
+    fRunAna->SetSource(src);
     //    TString inFileTemp = inFile + ".tmp.root";
 
 

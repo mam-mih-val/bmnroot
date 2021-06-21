@@ -18,6 +18,8 @@ private:
     ULong64_t fBTnBusy;
     Double_t fBTAccepted; ///< BT&notBusy normalized according to Acc/(Acc + BP + AP)
     ULong64_t fAccepted;
+    ULong64_t fProtection;
+    ULong64_t fL0;
     ULong64_t fBP;
     ULong64_t fAP;
 
@@ -50,6 +52,10 @@ public:
     Double_t GetBTAccepted() { return fBTAccepted; }
     /** Get the Accepted by live time  */
     ULong64_t GetAccepted() { return fAccepted; }
+    /** Get the Trigger Protection  */
+    ULong64_t GetProtection() { return fProtection; }
+    /** Get the L0  */
+    ULong64_t GetL0() { return fL0; }
 
 
     TTimeStamp GetRunStartTime() { return fRunStartTime; }
@@ -92,6 +98,14 @@ public:
      * \param[in] cntr : Accepted counter
      */
     void SetAccepted(ULong64_t cntr) { fAccepted = cntr; }
+    /** Set the Trigger Protection counter
+     * \param[in] cntr : Trigger Protection counter
+     */
+    void SetProtection(ULong64_t cntr) { fProtection = cntr; }
+    /** Set the L0 counter
+     * \param[in] cntr : L0 counter
+     */
+    void SetL0(ULong64_t cntr) { fL0 = cntr; }
 
     ClassDef(DigiRunHeader, 2)
 };

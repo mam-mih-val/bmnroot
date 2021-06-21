@@ -33,6 +33,13 @@ private:
     UInt_t fRj;
     UInt_t fAll;
     UInt_t fAvail;
+    UInt_t fBC1H;///< BC1 (high threshold)
+    UInt_t fBC1BP;///< BC1 (before protection)
+    UInt_t fBC1xBC2;
+    UInt_t fBC1nBusy;
+    UInt_t fIntTrig;
+    UInt_t fSRCTrig;
+    UInt_t fTrignBusy;///< Trigger * !Busy
 
 public:
     /** Default constructor */
@@ -168,7 +175,63 @@ public:
     UInt_t GetBC3() {
         return fBC3;
     }
+    // SRC trig counters
+    void SetBC1H(UInt_t _v) {
+        fBC1H = _v;
+    }
 
+    UInt_t GetBC1H() {
+        return fBC1H;
+    }
+
+    void SetBC1BP(UInt_t _v) {
+        fBC1BP = _v;
+    }
+
+    UInt_t GetBC1BP() {
+        return fBC1BP;
+    }
+
+    void SetBC1xBC2(UInt_t _v) {
+        fBC1xBC2 = _v;
+    }
+
+    UInt_t GetBC1xBC2() {
+        return fBC1xBC2;
+    }
+
+    void SetBC1nBusy(UInt_t _v) {
+        fBC1nBusy = _v;
+    }
+
+    UInt_t GetBC1nBusy() {
+        return fBC1nBusy;
+    }
+
+    void SetIntTrig(UInt_t _v) {
+        fIntTrig = _v;
+    }
+
+    UInt_t GetIntTrig() {
+        return fIntTrig;
+    }
+
+    void SetSRCTrig(UInt_t _v) {
+        fSRCTrig = _v;
+    }
+
+    UInt_t GetSRCTrig() {
+        return fSRCTrig;
+    }
+
+    void SetTrignBusy(UInt_t _v) {
+        fTrignBusy = _v;
+    }
+
+    UInt_t GetTrignBusy() {
+        return fTrignBusy;
+    }
+    
     /** Set the last event ID for the spill
      * @param evid : unique event id
      */

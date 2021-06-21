@@ -27,12 +27,20 @@ struct MscMap {
     UShort_t slot;
 
     UShort_t BT; ///< BeamTrigger index
-    UShort_t BTnBusy; ///< (BeamTrigger & not Busy) index
+    UShort_t BTnBusy; ///< (BeamTrigger & !Busy)
     UShort_t L0;
     UShort_t TriggerProtection;
     UShort_t BC1;
     UShort_t BC2;
     UShort_t BC3;
+    UShort_t BC1H;///< BC1 (high threshold)
+    UShort_t BC1BP;///< BC1 (before protection)
+    UShort_t BC1xBC2;
+    UShort_t BC1nBusy;
+    UShort_t IntTrig;
+    UShort_t SRCTrig;
+    UShort_t TrignBusy;///< Trigger * !Busy
+    
 };
 
 class BmnMscRaw2Digit {
@@ -82,13 +90,15 @@ private:
     TTree *fDigSpillTree = nullptr;
     UInt_t iSpill = 0u;
 
-    UInt_t fBT = 0u;
-    UInt_t fBTnBusy = 0u;
-    UInt_t fAccepted = 0u;
+    ULong64_t fBT = 0u;
+    ULong64_t fBTnBusy = 0u;
+    ULong64_t fAccepted = 0u;
+    ULong64_t fProtection = 0u;
+    ULong64_t fL0 = 0u;
     Double_t fBTAccepted = 0.0;
-    UInt_t fBC1 = 0.0;
-    UInt_t fBC2 = 0.0;
-    UInt_t fBC3 = 0.0;
+    ULong64_t fBC1 = 0u;
+    ULong64_t fBC2 = 0u;
+    ULong64_t fBC3 = 0u;
 
     ClassDef(BmnMscRaw2Digit, 1);
 };

@@ -1,3 +1,6 @@
+#ifndef BMNTRIGUNION_H
+#define BMNTRIGUNION_H
+
 /**
  * Struct BmnTrigStructPeriod7SetupBMN
  * Struct for trigger logic state
@@ -14,12 +17,6 @@
  * By default all fields are zero/false.
  * Each zero field means independence on this trigger.
  */
-
-#ifndef BMNTRIGUNION_H
-#define BMNTRIGUNION_H
-
-#include <RtypesCore.h>
-
 struct __attribute__ ((packed)) BmnTrigStructPeriod7SetupBMN
 {
     bool BC1:1;
@@ -61,7 +58,7 @@ struct __attribute__ ((packed)) BmnTrigStructPeriod6
     UShort_t ThrBD:5;
     UShort_t :15; // not used
 };
-
+/** union containing trigger state depending on current experimental setup */
 union BmnTrigUnion {
     BmnTrigStructPeriod7SetupBMN Period7BMN;
     BmnTrigStructPeriod7SetupSRC Period7SRC;
@@ -69,6 +66,7 @@ union BmnTrigUnion {
     UInt_t storage; 
     BmnTrigUnion(){memset(this, 0, sizeof(BmnTrigUnion));}
     BmnTrigUnion(const BmnTrigUnion &v){this->storage = v.storage;}
+    Bool_t isSpecial(){  return (storage & (1<<11)) > 0; }
 };
 
 #endif /* BMNTRIGUNION_H */

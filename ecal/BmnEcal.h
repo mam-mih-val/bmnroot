@@ -108,6 +108,13 @@ class BmnEcal : public FairDetector
 
   virtual Bool_t CheckIfSensitive(std::string name);
   
+  /** SetToFile
+   **
+   ** Allows to disable writing the brunch into the output tree
+   *@param toFile if kFALSE, branch will NOT be saved to the tree
+   **/
+  void SetToFile(Bool_t toFile) { fToFile = toFile; }
+  
   BmnEcalPoint* AddHit(Int_t trackID, Int_t detID,  Int_t copyNo, Int_t copyNoMother,
 		      TVector3 pos, TVector3 mom,
 		      Double_t tof, Double_t length, Double_t eLoss);
@@ -115,35 +122,20 @@ class BmnEcal : public FairDetector
  private:
   Int_t          fTrackID;           //!  track index
   Int_t          fVolumeID;          //!  volume id
-  Int_t          fEventID;           //!  event id
   TLorentzVector fPos;               //!  position
   TLorentzVector fMom;               //!  momentum
   Double32_t     fTime;              //!  time
   Double32_t     fLength;            //!  length
   Double32_t     fELoss;             //!  energy loss
-  Int_t          fPosIndex;          //!
-  Int_t          volDetector;        //!  MC volume ID of MUO
-  
+    
   TClonesArray* fEcalCollection;     //! Hit collection
+
+  Bool_t fToFile = kTRUE;	//! if kFALSE, branch will NOT be saved to the tree
   
-  // reset all parameters   
-  void ResetParameters();
   BmnEcal(const BmnEcal&) = delete;
   BmnEcal operator=(const BmnEcal&) = delete;
 
-  ClassDef(BmnEcal,2)
+  ClassDef(BmnEcal,3)
 }; 
-
-
-//------------------------------------------------------------------------------------------------------------------------
-inline void BmnEcal::ResetParameters() 
-{
-	fTrackID = fVolumeID = 0;
-	fPos.SetXYZM(0.0, 0.0, 0.0, 0.0);
-	fMom.SetXYZM(0.0, 0.0, 0.0, 0.0);
-	fTime = fLength = fELoss = 0;
-	fPosIndex = 0;
-};
-//------------------------------------------------------------------------------------------------------------------------
 
 #endif

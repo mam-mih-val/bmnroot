@@ -7,7 +7,7 @@
  *  e-mail:   litvin@nf.jinr.ru
  *  Version:  10-02-2016
  *  Last update:  10-02-2016 (EL)  
- *  Updated:  09-08-2019 by Petr Alekseev <pnaleks@gmail.com>
+ *  Updated:  23-06-2021 by Petr Alekseev <pnaleks@gmail.com>
  *
  ************************************************************************************/
 
@@ -32,8 +32,6 @@
 
 #include "FairRootManager.h"
 #include "FairVolume.h"
-// add on for debug
-//#include "FairGeoG3Builder.h"
 #include "FairRuntimeDb.h"
 #include "TObjArray.h"
 #include "FairRun.h"
@@ -42,31 +40,18 @@
 
 // -----   Default constructor   -------------------------------------------
 BmnEcal::BmnEcal() {
-  fEcalCollection        = new TClonesArray("BmnEcalPoint");
-  volDetector = 0;
-  fPosIndex   = 0; 
-  // fpreflag = 0;  
-  //fpostflag = 0;
-  fEventID=-1; 
-  fVerboseLevel = 1;
-
+	fEcalCollection = new TClonesArray("BmnEcalPoint");
+	fVerboseLevel = 1;
 }
 // -------------------------------------------------------------------------
 
 // -----   Standard constructor   ------------------------------------------
 BmnEcal::BmnEcal(const char* name, Bool_t active)
   : FairDetector(name, active) {
-    fEcalCollection        = new TClonesArray("BmnEcalPoint");
-    fPosIndex   = 0;
-    volDetector = 0;
-    //fpreflag = 0;  
-    //fpostflag = 0;
-    fEventID=-1;
-    fVerboseLevel = 1;
+	fEcalCollection = new TClonesArray("BmnEcalPoint");
+	fVerboseLevel = 1;
 }
 // -------------------------------------------------------------------------
-
-
 
 // -----   Destructor   ----------------------------------------------------
 BmnEcal::~BmnEcal() {
@@ -74,11 +59,8 @@ BmnEcal::~BmnEcal() {
     fEcalCollection->Delete();
     delete fEcalCollection;
   }
-  
 }
 // -------------------------------------------------------------------------
-
-
 
 // -----   Public method Intialize   ---------------------------------------
 void BmnEcal::Initialize() {
@@ -89,143 +71,61 @@ void BmnEcal::Initialize() {
   FairRuntimeDb* rtdb=sim->GetRuntimeDb();
 }
 // -------------------------------------------------------------------------
+
 void BmnEcal::BeginEvent(){
   // Begin of the event
   
 }
 
-
-
 // -----   Public method ProcessHits  --------------------------------------
 Bool_t BmnEcal::ProcessHits(FairVolume* vol) {
 
-  // if (TMath::Abs(gMC->TrackCharge()) <= 0) return kFALSE;
-
-  Int_t      ivol    = vol->getMCid();
-  TLorentzVector tPos1, tMom1;
-  TLorentzVector tPos, tMom;
-
-  //#define EDEBUG
+//#define EDEBUG
 #ifdef EDEBUG
-  static Int_t lEDEBUGcounter=0;
-  if (lEDEBUGcounter<1)
-    std::cout << "EDEBUG-- BmnEcal::ProcessHits: entered" << gMC->CurrentVolPath() << endl;
+	static Int_t lEDEBUGcounter=0;
+	if (lEDEBUGcounter<1)
+		std::cout << "EDEBUG-- BmnEcal::ProcessHits: entered" << gMC->CurrentVolPath() << endl;
 #endif
-
-    if (gMC->IsTrackEntering()) {
-
-      ResetParameters();
-      fELoss = 0.;
-#ifdef EDEBUG
-      gMC->TrackPosition(tPos1);
-      gMC->TrackMomentum(tMom1);
-#endif
+//#undef EDEBUG
+	
+	if (gMC->IsTrackEntering()) {
+		fELoss = 0.;
+		fTime = gMC->TrackTime() * 1.0e09;
+		fLength = gMC->TrackLength();
+		gMC->TrackPosition(fPos);
+		gMC->TrackMomentum(fMom);
     }
 
-    Double_t eLoss   = gMC->Edep();
-    if (eLoss != 0.) 
-      fELoss += eLoss;
+    fELoss += gMC->Edep();
 
-    if ( gMC->IsTrackExiting()    ||
-	 gMC->IsTrackStop()       ||
-	 gMC->IsTrackDisappeared()   ) {
-
-// #ifndef EDEBUG
-//       if (fELoss == 0. ) return kFALSE;
-// #else
-//       if ((fELoss == 0. ) && 
-// 	  (!((gMC->GetStack()->GetCurrentTrack()->GetPdgCode()==2112)&&(gMC->GetStack()->GetCurrentTrack()->GetMother(0)==-1)))
-// ) return kFALSE;
-// #endif
-
-      TParticle* part    = gMC->GetStack()->GetCurrentTrack();
-      Double_t charge = part->GetPDG()->Charge() / 3. ;
-
-      // Create BmnEcalPoint
-      fTrackID = gMC->GetStack()->GetCurrentTrackNumber();
-      Double_t time    = gMC->TrackTime() * 1.0e09;
-      Double_t length  = gMC->TrackLength();
-      gMC->TrackPosition(tPos);
-      gMC->TrackMomentum(tMom);
-
-      Int_t copyNo;
-      Int_t ivol1 = gMC->CurrentVolID(copyNo);
-      //      ivol1 = vol->getVolumeId();
-      Int_t iCell ;
-      gMC->CurrentVolOffID(1, iCell); 
- 	
-
-#ifdef EDEBUG
-      static Bool_t already=0;
-      if (lEDEBUGcounter<100) {
-	std::cout << "EDEBUG-- BmnEcal::ProcessHits: TrackID:" << fTrackID << 
-	  //	  " ELoss: " << fELoss << 
-	  //	  "   particle: " << (part->GetName()) << 
-	  "   " << gMC->CurrentVolPath() << " " << tPos.Z() << 
-	  //          "   " << (gMC->GetStack()->GetCurrentTrack()->GetMother(1)) << 
-	   	  "   "  << ivol << "=="<< gMC->CurrentVolID(copyNo) << ","<< copyNo <<
-	   	  "   "  << gMC->CurrentVolOffID(1,iCell) << " " << iCell << 
-	  " " <<  gMC->CurrentVolOffName(1) << " " << gMC->CurrentVolOffName(0) <<
-	  //	  "   " << vol->getRealName() << "  " << gMC->CurrentVolPath() <<
-	  //	  "   ivol,iCell,copyNo= " << ivol << ","<< iCell << ","<< copyNo << 
-	  //	  "   " << vol->getRealName() << "  "<< gMC->CurrentVolName() << "  "<< gMC->CurrentVolPath() <<
-	  //	  "   "  << ivol << ","<< vol->getVolumeId() << " : "<< gMC->CurrentVolID(copyNo) << ","<< copyNo <<
-	  //          "  "<< gMC->CurrentVolOffName(2) << "  "<< gMC->CurrentVolOffName(3) <<
-	  std::endl;
-	lEDEBUGcounter++;
-      } 
-      if ((iCell==2)&&(lEDEBUGcounter>=100)&&(!already)) {
-	already=1;
-	lEDEBUGcounter=0;
-      }
-//       if ((part->GetPdgCode())==321) {
-// 	std::cout << "EDEBUG-- BmnEcal::ProcessHits(..)  K+:  " << fTrackID << "   " << (  gMC->IsTrackExiting()) << "  " <<
-// 	  (gMC->IsTrackStop()) << "  " << (gMC->IsTrackDisappeared()) << "   " << fELoss << "  " << time << std::endl;
-//       }
-//#endif
-
-//       if(copyNo==1)
-// 	AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos1.X(), tPos1.Y(), tPos1.Z()),
-// 	       TVector3(tMom1.Px(), tMom1.Py(), tMom1.Pz()),
-// 	       time, length, fELoss);
-//       else 
-
-	AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
-	       TVector3(tMom.Px(), tMom.Py(), tMom.Pz()),
-	       time, length, fELoss);
-#else
-
-    if (fELoss != 0.) {
-      AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
-	     TVector3(tMom.Px(), tMom.Py(), tMom.Pz()),
-	     time, length, fELoss);
-    }
-
-#endif
-
-      //// Int_t points = gMC->GetStack()->GetCurrentTrack()->GetMother(1);
-//       Int_t nEcalPoints = (points & (1<<30)) >> 30;
-//       nEcalPoints ++;
-//       if (nEcalPoints > 1) nEcalPoints = 1;
-//      points = ( points & ( ~ (1<<30) ) ) | (nEcalPoints << 30);
-
-      //// points = ( points & ( ~ (1<<30) ) ) | (1 << 30);
-      //// gMC->GetStack()->GetCurrentTrack()->SetMother(1,points);
-
-      ((CbmStack*)gMC->GetStack())->AddPoint(kECAL);
-
-    }
-   
-//     Int_t copyNo;  
-//     gMC->CurrentVolID(copyNo);
-//     TString nam = gMC->GetMC()->GetName();
-    //    cout<<"name "<<gMC->GetMC()->GetName()<<endl;
-    //    ResetParameters();
+    if (gMC->IsTrackExiting() || gMC->IsTrackStop() || gMC->IsTrackDisappeared()) {
+		
+		if (fELoss == 0. ) return kFALSE;
+		
+		fTrackID = gMC->GetStack()->GetCurrentTrackNumber();
+		fVolumeID = vol->getMCid();
+		
+		// Using data of the exiting track instead of the entering (why?)
+		fTime = gMC->TrackTime() * 1.0e09;
+		fLength = gMC->TrackLength();
+		gMC->TrackPosition(fPos);
+		gMC->TrackMomentum(fMom);
+		
+		Int_t copyNo;
+		gMC->CurrentVolID(copyNo);
+		Int_t copyNoMother;
+		gMC->CurrentVolOffID(1, copyNoMother); 
+		
+		AddHit(fTrackID, fVolumeID, copyNo, copyNoMother,
+				TVector3(fPos.X(), fPos.Y(), fPos.Z()),
+				TVector3(fMom.Px(), fMom.Py(), fMom.Pz()),
+				fTime, fLength, fELoss);
+				
+		((CbmStack*)gMC->GetStack())->AddPoint(kECAL);
+	}
   
     return kTRUE;
   
-    //  }
-#undef EDEBUG
 }
 
 // ----------------------------------------------------------------------------
@@ -239,7 +139,7 @@ void BmnEcal::EndOfEvent() {
 
 // -----   Public method Register   -------------------------------------------
 void BmnEcal::Register() {
-  FairRootManager::Instance()->Register("EcalPoint","Ecal", fEcalCollection, kTRUE);
+  FairRootManager::Instance()->Register("EcalPoint","Ecal", fEcalCollection, fToFile);
 }
 
 
@@ -266,9 +166,7 @@ void BmnEcal::Print() const {
 
 // -----   Public method Reset   ----------------------------------------------
 void BmnEcal::Reset() {
-   fEcalCollection->Delete();
- 
-  fPosIndex = 0;
+   fEcalCollection->Clear();
 }
 
 
@@ -283,8 +181,7 @@ void BmnEcal::CopyClones(TClonesArray* cl1, TClonesArray* cl2, Int_t offset ) {
     oldpoint = (BmnEcalPoint*) cl1->At(i);
     Int_t index = oldpoint->GetTrackID() + offset;
     oldpoint->SetTrackID(index);
-    new (clref[fPosIndex]) BmnEcalPoint(*oldpoint);
-    fPosIndex++;
+    new (clref[cl2->GetEntriesFast()]) BmnEcalPoint(*oldpoint);
   }
   cout << " -I- BmnEcal: " << cl2->GetEntriesFast() << " merged entries."
        << endl;
@@ -297,6 +194,7 @@ void BmnEcal::ConstructGeometry() {
   if(geoFileName.EndsWith(".root")) {
     LOG(info) << "Constructing ECAL geometry from ROOT file " << geoFileName.Data();
     ConstructRootGeometry();
+	return;
   }
     
  FairGeoLoader*    geoLoad = FairGeoLoader::Instance();

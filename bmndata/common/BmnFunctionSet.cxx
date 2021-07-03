@@ -91,8 +91,6 @@ bool BmnFunctionSet::isSimulationFile(TString fileName)
     if (list) isSim = true;
 
     fRootFile->Close();
-    delete fRootFile;
-    delete list;
 
     return isSim;
 }

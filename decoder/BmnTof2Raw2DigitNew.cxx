@@ -3674,7 +3674,7 @@ float BmnTof2Raw2DigitNew::get_hit_x0(int chamber, int strip, float diff)
 
 float BmnTof2Raw2DigitNew::get_hit_xs0(int chamber, int strip, float diff)
 {
-    Int_t sign_src[TOF2_MAX_CHAMBERS] = {1,-1,-1,-1,1,-1,1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,1,1,1,1,1,1,1,1,1,-1,1,1,1,1};
+    Int_t sign_src[TOF2_MAX_CHAMBERS] = {1,-1,-1,-1,1,-1,1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,1,1,1,1,1,1,1,1,1,-1,1,1,1};
     float x = 0., dx = 0.;
     if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fVelosity > 0.)
     {
@@ -3701,7 +3701,7 @@ float BmnTof2Raw2DigitNew::get_hit_x(int chamber, int strip, float diff_correcte
 
 float BmnTof2Raw2DigitNew::get_hit_xs(int chamber, int strip, float diff_corrected)
 {
-    Int_t sign_src[TOF2_MAX_CHAMBERS] = {1,-1,-1,-1,1,-1,1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,1,1,1,1,1,1,1,1,1,-1,1,1,1,1};
+    Int_t sign_src[TOF2_MAX_CHAMBERS] = {1,-1,-1,-1,1,-1,1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,1,1,1,1,1,1,1,1,1,-1,1,1,1};
     float x = 0., dx = 0.;
     if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fVelosity > 0.)
     {
@@ -3751,7 +3751,7 @@ void BmnTof2Raw2DigitNew::get_hit_xyz0(int chamber, int strip, float diff, float
 
 void BmnTof2Raw2DigitNew::get_hit_xyzs0(int chamber, int strip, float diff, float *x, float *y, float *z)
 {
-    Int_t sign_src[TOF2_MAX_CHAMBERS] = {1,-1,-1,-1,1,-1,1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,1,1,1,1,1,1,1,1,1,-1,1,1,1,1};
+    Int_t sign_src[TOF2_MAX_CHAMBERS] = {1,-1,-1,-1,1,-1,1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,1,1,1,1,1,1,1,1,1,-1,1,1,1};
     float xh = 0., dxh = 0.;
     if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fVelosity > 0.)
     {
@@ -3784,7 +3784,7 @@ void BmnTof2Raw2DigitNew::get_hit_xyz(int chamber, int strip, float diff_correct
 
 void BmnTof2Raw2DigitNew::get_hit_xyzs(int chamber, int strip, float diff_corrected, float *x, float *y, float *z)
 {
-    Int_t sign_src[TOF2_MAX_CHAMBERS] = {1,-1,-1,-1,1,-1,1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,1,1,1,1,1,1,1,1,1,-1,1,1,1,1};
+    Int_t sign_src[TOF2_MAX_CHAMBERS] = {1,-1,-1,-1,1,-1,1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,1,1,1,1,1,1,1,1,1,-1,1,1,1};
     float xh = 0., dxh = 0.;
     if (chamber < MaxPlane && strip < TOF2_MAX_STRIPS_IN_CHAMBER && fVelosity > 0.)
     {

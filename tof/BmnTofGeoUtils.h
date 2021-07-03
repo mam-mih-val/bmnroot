@@ -5,7 +5,7 @@
 #include <TVector3.h>
 #include <TList.h>
 
-#define TOF2_MAX_CHAMBERS 60
+#define TOF2_MAX_CHAMBERS 59
 #define TOF2_MAX_STRIPS_IN_CHAMBER 32
 
 //------------------------------------------------------------------------------------------------------------------------

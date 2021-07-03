@@ -14,7 +14,7 @@
 #include "BmnTrigDigit.h"
 #include "BmnTof2Raw2DigitNew.h"
 
-#define TOF2_MAX_CHAMBERS 60
+#define TOF2_MAX_CHAMBERS 59
 #define TOF2_MAX_STRIPS_IN_CHAMBER 32
 
 #define STRIP_CORRECTIONS 1

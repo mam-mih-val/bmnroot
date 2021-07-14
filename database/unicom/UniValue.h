@@ -125,6 +125,50 @@ struct UniValue
         destination += count*8;
     }
 
+    void Read(unsigned char*& source, double*** value, uint8_t& size1, uint8_t& size2, uint8_t& size3)
+    {
+        memcpy(&size1, source, 1);
+        boost::endian::little_to_native_inplace(size1);
+        source += 1;
+        memcpy(&size2, source, 1);
+        boost::endian::little_to_native_inplace(size2);
+        source += 1;
+        memcpy(&size3, source, 1);
+        boost::endian::little_to_native_inplace(size3);
+        source += 1;
+
+        value = new double**[size1];
+        for (int i = 0; i < size1; i++)
+        {
+            value[i] = new double*[size2];
+            for (int j = 0; j < size2; j++)
+                value[i][j] = new double[size3];
+        }
+        uint32_t full_size = size1*size2*size3*8;
+        memcpy(value, source, full_size);
+        source += full_size;
+    }
+    void Write(unsigned char*& destination, double*** value, uint8_t size1, uint8_t size2, uint8_t size3)
+    {
+        uint32_t full_size = size1*size2*size3*8;
+        if (full_size > 0)
+        {
+            uint8_t size1_little = boost::endian::native_to_little(size1);
+            memcpy(destination, &size1_little, 1);
+            destination += 1;
+            uint8_t size2_little = boost::endian::native_to_little(size2);
+            memcpy(destination, &size2_little, 1);
+            destination += 1;
+            uint8_t size3_little = boost::endian::native_to_little(size3);
+            memcpy(destination, &size3_little, 1);
+            destination += 1;
+
+            memcpy(destination, value, full_size);
+            destination += full_size;
+        }
+        else cout<<"ERROR: count of bytes for the value should be greater than zero. The value was not written to the database!"<<endl;
+    }
+
     void Read(unsigned char*& source, vector<double>& value)
     {
         uint64_t size;

@@ -92,9 +92,9 @@ public:
 
 private:
     
-    void LoadGeometry();
+    int LoadGeometry();
     
-    const char * fEcalGeometryFileName = 0;
+    const char * fEcalGeometryFileName = nullptr;
     Float_t fDepthShift = 0.;
     Float_t fThreshold = 10.;
     Float_t fMaxPointTime = 1000.;
@@ -114,4 +114,3 @@ private:
 };
 
 #endif /* BMNECALDIGITIZER_H */
-

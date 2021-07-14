@@ -29,14 +29,20 @@ InitStatus BmnEcalDigitizer::Init() {
     fArrayOfEcalDigits = new TClonesArray("BmnECALDigit");
     ioman->Register("ECAL", "Ecal", fArrayOfEcalDigits, kTRUE);
     
-    LoadGeometry();
+    if (LoadGeometry() != 0)
+    {
+        SetActive(kFALSE);
+        return kERROR;
+    }
     
     Info(__func__,"ECAL digitizer ready");
     return kSUCCESS;
     
 }
 
-void BmnEcalDigitizer::Exec(Option_t* opt) {
+void BmnEcalDigitizer::Exec(Option_t* opt)
+{
+    if (!IsActive()) return;
     
     // Initialize
     fArrayOfEcalDigits->Delete();
@@ -114,11 +120,10 @@ void BmnEcalDigitizer::Print(Option_t *option) const {
     
 }
 
-void BmnEcalDigitizer::LoadGeometry() {
-
-    Bool_t loadFromFile = fEcalGeometryFileName != 0;
-    TGeoNode * ecal1 = 0;
-    TGeoNode * ecal2 = 0;
+int BmnEcalDigitizer::LoadGeometry()
+{
+    Bool_t loadFromFile = fEcalGeometryFileName != nullptr;
+    TGeoNode *ecal1 = 0, *ecal2 = 0;
     if (gGeoManager) {
         TGeoVolume * ecal = gGeoManager->FindVolumeFast("ecal");
         if (ecal) {
@@ -136,19 +141,22 @@ void BmnEcalDigitizer::LoadGeometry() {
 
         if (!top) {
             Fatal(__func__, "Volume TOP not found in %s\n", fEcalGeometryFileName);
+            return -1;
         }
         
         TGeoNode * ecal = top->GetNode(0);
     
         if (!ecal /*|| ecal->GetNdaughters() < 2*/) {
             Fatal(__func__, "Unexpected geometry structure %s\n",fEcalGeometryFileName);
+            return -1;
         }        
         ecal1 = ecal->GetDaughter(0);
         ecal2 = ecal->GetDaughter(1);
     }
     
     if (ecal1 == 0 && ecal2 == 0) {
-        Fatal(__func__, "ECAL geometry not found");
+        Info(__func__, "BmnEcalDigitizer was set in inactive state, because ECAL geometry was not found");
+        return -1;
     }
     
     for (Int_t i = 0; i < fCellsSize; i++) {
@@ -165,11 +173,13 @@ void BmnEcalDigitizer::LoadGeometry() {
         Int_t n = ecal1->GetNdaughters();
         if (n > 504) {
             Fatal(__func__,"Expected ecal node 1 with 504 daughters or less in %s\n",fEcalGeometryFileName);
+            return -1;
         }
         for (Int_t i = 0; i < n; i++) {
             Int_t ch = ecal1->GetDaughter(i)->GetNumber();
             if (ch < 1 || ch > 504) {
                 Fatal(__func__,"Unexpected chan %d at ecal node 1 in %s\n",ch,fEcalGeometryFileName);
+                return -1;
             }
             ecal1->GetDaughter(i)->LocalToMaster(coords, ecalCoords);
             ecal1->LocalToMaster(ecalCoords,labCoords);
@@ -184,11 +194,13 @@ void BmnEcalDigitizer::LoadGeometry() {
         Int_t n = ecal2->GetNdaughters();
         if (n > 504) {
             Fatal(__func__,"Expected ecal node 2 with 504 daughters or less in %s\n",fEcalGeometryFileName);
+            return -1;
         }
         for (Int_t i = 0; i < n; i++) {
             Int_t ch = ecal2->GetDaughter(i)->GetNumber();
             if (ch < 505 || ch > 1008) {
                 Fatal(__func__,"Unexpected chan=%d at ecal node 2 in %s\n",ch,fEcalGeometryFileName);
+                return -1;
             }
             ecal2->GetDaughter(i)->LocalToMaster(coords, ecalCoords);
             ecal2->LocalToMaster(ecalCoords,labCoords);
@@ -199,6 +211,7 @@ void BmnEcalDigitizer::LoadGeometry() {
         }
     }
 
+    return 0;
 }
 
 ClassImp(BmnEcalDigitizer)

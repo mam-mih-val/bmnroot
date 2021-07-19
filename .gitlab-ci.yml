@@ -64,6 +64,7 @@ build:centos:
   tags:
     - docker
     - cvmfs
+  needs: ["check_permissions"]
   <<: *build
 
 build:ubuntu:
@@ -73,6 +74,7 @@ build:ubuntu:
   tags: 
     - docker
     - cvmfs
+  needs: ["check_permissions"]
   <<: *build 
   
 .run_sim_template: &run_sim
@@ -96,6 +98,7 @@ run_sim_bmn:centos:
   tags:
     - docker
     - cvmfs
+  needs: ["build:centos"]
   dependencies:
     - build:centos
   <<: *run_sim
@@ -108,6 +111,7 @@ run_sim_bmn:ubuntu:
   tags:
     - docker
     - cvmfs
+  needs: ["build:ubuntu"]
   dependencies:
     - build:ubuntu
   <<: *run_sim
@@ -120,6 +124,7 @@ run_sim_src:centos:
   tags:
     - docker
     - cvmfs
+  needs: ["build:centos"]
   dependencies:
     - build:centos
   <<: *run_sim
@@ -132,6 +137,7 @@ run_sim_src:ubuntu:
   tags:
     - docker
     - cvmfs
+  needs: ["build:ubuntu"]
   dependencies:
     - build:ubuntu
   <<: *run_sim
@@ -157,6 +163,9 @@ run_reco_bmn:centos:
   tags:
     - docker
     - cvmfs
+  needs: 
+    - build:centos
+    - run_sim_bmn:centos
   dependencies:
     - build:centos
     - run_sim_bmn:centos
@@ -170,6 +179,9 @@ run_reco_bmn:ubuntu:
   tags:
     - docker
     - cvmfs
+  needs:
+    - build:ubuntu
+    - run_sim_bmn:ubuntu
   dependencies:
     - build:ubuntu
     - run_sim_bmn:ubuntu
@@ -183,6 +195,9 @@ run_reco_src:centos:
   tags:
     - docker
     - cvmfs
+  needs:
+    - build:centos
+    - run_sim_src:centos
   dependencies:
     - build:centos
     - run_sim_src:centos
@@ -196,6 +211,9 @@ run_reco_src:ubuntu:
   tags:
     - docker
     - cvmfs
+  needs:
+    - build:ubuntu 
+    - run_sim_src:ubuntu
   dependencies:
     - build:ubuntu
     - run_sim_src:ubuntu
@@ -218,6 +236,9 @@ run_digi_bmn:centos:
   tags:
     - docker
     - cvmfs
+  needs: 
+    - build:centos
+    - run_reco_bmn:centos
   dependencies:
     - build:centos
   <<: *run_digi
@@ -230,6 +251,9 @@ run_digi_bmn:ubuntu:
   tags:
     - docker
     - cvmfs
+  needs: 
+    - build:ubuntu
+    - run_reco_bmn:ubuntu
   dependencies:
     - build:ubuntu
   <<: *run_digi
@@ -242,6 +266,9 @@ run_digi_src:centos:
   tags:
     - docker
     - cvmfs
+  needs: 
+    - build:centos
+    - run_reco_src:centos
   dependencies:
     - build:centos
   <<: *run_digi
@@ -254,6 +281,9 @@ run_digi_src:ubuntu:
   tags:
     - docker
     - cvmfs
+  needs: 
+    - build:ubuntu
+    - run_reco_src:ubuntu
   dependencies:
     - build:ubuntu
   <<: *run_digi

@@ -32,13 +32,13 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
     TransfSet = nullptr;
 }
 
-BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp)
+BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, Bool_t isSrc)
 : fHitMatching(kTRUE) {
 
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
     fIsExp = isExp;
-    fIsSrc = kFALSE;
+    fIsSrc = isSrc;
 
     fSignalLow = 0.;
     fSignalUp = DBL_MAX;
@@ -65,10 +65,14 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
             fCurrentConfig = BmnGemStripConfiguration::RunSpring2017;
             break;
         case 7: //BM@N RUN-7 (and SRC)
-            fCurrentConfig = BmnGemStripConfiguration::RunSpring2018;
-            if(run_number >= 2041 && run_number <= 3588) {
+            if(fIsSrc) {
                 fCurrentConfig = BmnGemStripConfiguration::RunSRCSpring2018;
+            } else {
+                fCurrentConfig = BmnGemStripConfiguration::RunSpring2018;
             }
+            break;
+        case 8: //BM@N RUN-8
+            fCurrentConfig = BmnGemStripConfiguration::FutureConfig2020;
             break;
     }
     
@@ -116,51 +120,55 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
             StationSet = NULL;
     }
     
-    const Int_t nStat = StationSet->GetNStations();
-    UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", run_period, run_number);
-    vector<UniValue*> shifts;
-    if (coeffLorCorrs)
-        coeffLorCorrs->GetValue(shifts);
-    
-    fLorCor = new Double_t* [nStat];
-    for (Int_t iStat = 0; iStat < nStat; iStat++) {
-        const Int_t nParams = 3;
-        fLorCor[iStat] = new Double_t[nParams];
-        for (Int_t iPar = 0; iPar < nParams; iPar++) {
-            fLorCor[iStat][iPar] = (coeffLorCorrs) ? ((LorentzShiftValue*)shifts[iStat])->ls[iPar] : 0.0;
-        }
-    }    
-    
-    UniDbDetectorParameter* coeffAlignCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "alignment_shift", run_period, run_number);
-    vector<UniValue*> algnShifts;
-    if (coeffAlignCorrs)
-        coeffAlignCorrs->GetValue(algnShifts);
-    fAlignCor = new Double_t **[nStat];
-    for (Int_t iStat = 0; iStat < nStat; iStat++) {
-        const Int_t nParams = 3;
-        Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
-        fAlignCor[iStat] = new Double_t * [nModul];
-        for (Int_t iMod = 0; iMod < nModul; iMod++) {
-            fAlignCor[iStat][iMod] = new Double_t[nParams];
+    if (fIsExp) {
+        const Int_t nStat = StationSet->GetNStations();
+        UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", run_period, run_number);
+        vector<UniValue*> shifts;
+        if (coeffLorCorrs)
+            coeffLorCorrs->GetValue(shifts);
+
+        fLorCor = new Double_t * [nStat];
+        for (Int_t iStat = 0; iStat < nStat; iStat++) {
+            const Int_t nParams = 3;
+            fLorCor[iStat] = new Double_t[nParams];
             for (Int_t iPar = 0; iPar < nParams; iPar++) {
-                //cout << iStat << " " << iMod << ": " << ((AlignmentValue*)algnShifts[iStat * nModul + iMod])->value[iPar] << endl;
-                fAlignCor[iStat][iMod][iPar] = (coeffAlignCorrs) ? ((AlignmentValue*)algnShifts[iStat * nModul + iMod])->value[iPar] : 0.0;
+                fLorCor[iStat][iPar] = (coeffLorCorrs) ? ((LorentzShiftValue*)shifts[iStat])->ls[iPar] : 0.0;
+            }
+        }
+
+
+        UniDbDetectorParameter* coeffAlignCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "alignment_shift", run_period, run_number);
+        vector<UniValue*> algnShifts;
+        if (coeffAlignCorrs)
+            coeffAlignCorrs->GetValue(algnShifts);
+        fAlignCor = new Double_t * *[nStat];
+        for (Int_t iStat = 0; iStat < nStat; iStat++) {
+            const Int_t nParams = 3;
+            Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
+            fAlignCor[iStat] = new Double_t * [nModul];
+            for (Int_t iMod = 0; iMod < nModul; iMod++) {
+                fAlignCor[iStat][iMod] = new Double_t[nParams];
+                for (Int_t iPar = 0; iPar < nParams; iPar++) {
+                    //cout << iStat << " " << iMod << ": " << ((AlignmentValue*)algnShifts[iStat * nModul + iMod])->value[iPar] << endl;
+                    fAlignCor[iStat][iMod][iPar] = (coeffAlignCorrs) ? ((AlignmentValue*)algnShifts[iStat * nModul + iMod])->value[iPar] : 0.0;
+                }
             }
         }
     }
-    
 }
 
 BmnGemStripHitMaker::~BmnGemStripHitMaker() {
-    for (Int_t iStat = 0; iStat < StationSet->GetNStations(); iStat++){
-        for (Int_t iMod = 0; iMod < StationSet->GetGemStation(iStat)->GetNModules(); iMod++) {
-            delete[] fAlignCor[iStat][iMod];
+    if (fIsExp) {
+        for (Int_t iStat = 0; iStat < StationSet->GetNStations(); iStat++) {
+            for (Int_t iMod = 0; iMod < StationSet->GetGemStation(iStat)->GetNModules(); iMod++) {
+                delete[] fAlignCor[iStat][iMod];
+            }
+            delete[] fAlignCor[iStat];
+            delete[] fLorCor[iStat];
         }
-        delete[] fAlignCor[iStat];
-        delete[] fLorCor[iStat];
+        delete[] fAlignCor;
+        delete[] fLorCor;
     }
-    delete[] fAlignCor;
-    delete[] fLorCor;
 
     delete StationSet;
 }
@@ -205,8 +213,6 @@ InitStatus BmnGemStripHitMaker::Init() {
     //--------------------------------------------------------------------------
     
     fBmnEvQuality = (TClonesArray*) ioman->GetObject(fBmnEvQualityBranchName);
-    // if (fIsExp && fVerbose > 1)
-    //     fAlign->Print();
 
     if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Init() finished ==============" << endl;
 

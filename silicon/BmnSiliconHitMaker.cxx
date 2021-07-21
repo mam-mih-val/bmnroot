@@ -22,10 +22,11 @@ BmnSiliconHitMaker::BmnSiliconHitMaker()
     StationSet = NULL;
 }
 
-BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp)
+BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, Bool_t isSrc)
 : fHitMatching(kTRUE) {
 
     fIsExp = isExp;
+    fIsSrc = isSrc;
     fInputPointsBranchName = "SiliconPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnSiliconDigit" : "SILICON";
     fInputDigitMatchesBranchName = "BmnSiliconDigitMatch";
@@ -45,13 +46,17 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
         case 6: //BM@N RUN-6
             fCurrentConfig = BmnSiliconConfiguration::RunSpring2017;
             break;
-        case 7: //BM@N RUN-7
-            fCurrentConfig = BmnSiliconConfiguration::RunSpring2018;
+        case 7: //BM@N RUN-7 (and SRC)
+            if(fIsSrc) {
+                fCurrentConfig = BmnSiliconConfiguration::RunSRCSpring2018;
+            } else {
+                fCurrentConfig = BmnSiliconConfiguration::RunSpring2018;
+            }
+            break;
+        case 8: //BM@N RUN-8
+            fCurrentConfig = BmnSiliconConfiguration::FutureConfig2020;
             break;
     }
-
-    // if (isExp)
-    //     fAlign = new BmnInnTrackerAlign(run_period, run_number, alignFile);
     
     TString gPathSiliconConfig = gSystem->Getenv("VMCWORKDIR");
     gPathSiliconConfig += "/parameters/silicon/XMLConfigs/";
@@ -83,37 +88,49 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
             StationSet = NULL;
     }
     
-    const Int_t nStat = StationSet->GetNStations();
-    UniDbDetectorParameter* coeffAlignCorrs = UniDbDetectorParameter::GetDetectorParameter("Silicon", "alignment_shift", run_period, run_number);
-    vector<UniValue*> algnShifts;
-    if (coeffAlignCorrs)
-        coeffAlignCorrs->GetValue(algnShifts);
-    fAlignCor = new Double_t **[nStat];
-    for (Int_t iStat = 0; iStat < nStat; iStat++) {
-        const Int_t nParams = 3;
-        Int_t nModul = StationSet->GetSiliconStation(iStat)->GetNModules();
-        fAlignCor[iStat] = new Double_t *[nModul];
-        for (Int_t iMod = 0; iMod < nModul; iMod++) {
-            fAlignCor[iStat][iMod] = new Double_t[nParams];
-            for (Int_t iPar = 0; iPar < nParams; iPar++) {
-                fAlignCor[iStat][iMod][iPar] = 0.0;
+    if (fIsExp) {
+        const Int_t nStat = StationSet->GetNStations();
+        UniDbDetectorParameter* coeffAlignCorrs = UniDbDetectorParameter::GetDetectorParameter("Silicon", "alignment_shift", run_period, run_number);
+        vector<UniValue*> algnShifts;
+        if (coeffAlignCorrs)
+            coeffAlignCorrs->GetValue(algnShifts);
+        fAlignCor = new Double_t * *[nStat];
+        for (Int_t iStat = 0; iStat < nStat; iStat++) {
+            const Int_t nParams = 3;
+            Int_t nModul = StationSet->GetSiliconStation(iStat)->GetNModules();
+            fAlignCor[iStat] = new Double_t * [nModul];
+            for (Int_t iMod = 0; iMod < nModul; iMod++) {
+                fAlignCor[iStat][iMod] = new Double_t[nParams];
+                for (Int_t iPar = 0; iPar < nParams; iPar++) {
+                    fAlignCor[iStat][iMod][iPar] = 0.0;
+                }
             }
         }
-    }
-    
-    for (Int_t i = 0; i < algnShifts.size(); ++i) {
-        // cout << ((AlignmentValue*)algnShifts[i])->value[0] << endl;
-        // cout << ((AlignmentValue*)algnShifts[i])->value[1] << endl;
-        // cout << ((AlignmentValue*)algnShifts[i])->value[2] << endl;
-        Int_t st = ((AlignmentValue*)algnShifts[i])->station;
-        Int_t mod = ((AlignmentValue*)algnShifts[i])->module;
-        fAlignCor[st][mod][0] = ((AlignmentValue*)algnShifts[i])->value[0];
-        fAlignCor[st][mod][1] = ((AlignmentValue*)algnShifts[i])->value[1];
-        fAlignCor[st][mod][2] = ((AlignmentValue*)algnShifts[i])->value[2];
+
+        for (Int_t i = 0; i < algnShifts.size(); ++i) {
+            // cout << ((AlignmentValue*)algnShifts[i])->value[0] << endl;
+            // cout << ((AlignmentValue*)algnShifts[i])->value[1] << endl;
+            // cout << ((AlignmentValue*)algnShifts[i])->value[2] << endl;
+            Int_t st = ((AlignmentValue*)algnShifts[i])->station;
+            Int_t mod = ((AlignmentValue*)algnShifts[i])->module;
+            fAlignCor[st][mod][0] = ((AlignmentValue*)algnShifts[i])->value[0];
+            fAlignCor[st][mod][1] = ((AlignmentValue*)algnShifts[i])->value[1];
+            fAlignCor[st][mod][2] = ((AlignmentValue*)algnShifts[i])->value[2];
+        }
     }
 }
 
 BmnSiliconHitMaker::~BmnSiliconHitMaker() {
+    
+    if (fIsExp) {
+        for (Int_t iStat = 0; iStat < StationSet->GetNStations(); iStat++) {
+            for (Int_t iMod = 0; iMod < StationSet->GetSiliconStation(iStat)->GetNModules(); iMod++)
+                delete[] fAlignCor[iStat][iMod];
+            delete[] fAlignCor[iStat];
+        }
+        delete[] fAlignCor;
+    }
+    delete StationSet;
 }
 
 InitStatus BmnSiliconHitMaker::Init() {

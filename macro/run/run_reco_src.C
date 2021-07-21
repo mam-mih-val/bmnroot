@@ -139,19 +139,14 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
-    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
-    if (!isExp)
-        siliconHM->SetCurrentConfig(BmnSiliconConfiguration::RunSRCSpring2018); //set explicitly
+    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp, kTRUE);
     fRunAna->AddTask(siliconHM);
     
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
-    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
-    if (!isExp)
-        gemHM->SetCurrentConfig(BmnGemStripConfiguration::RunSRCSpring2018); //set explicitly
+    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp, kTRUE);
     gemHM->SetHitMatching(kTRUE);
-    gemHM->SetSrcSetup(kTRUE);
     gemHM->SetFieldScale(fieldScale);
     fRunAna->AddTask(gemHM);
 

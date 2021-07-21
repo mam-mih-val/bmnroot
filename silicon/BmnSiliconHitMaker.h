@@ -23,7 +23,7 @@ class BmnSiliconHitMaker : public FairTask {
 public:
 
     BmnSiliconHitMaker();
-    BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp);
+    BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, Bool_t isSrc = kFALSE);
 
     virtual ~BmnSiliconHitMaker();
 
@@ -75,6 +75,7 @@ private:
     BmnSiliconStationSet *StationSet; //Entire Silicon detector  
 
     Bool_t fIsExp;
+    Bool_t fIsSrc;
     TString fBmnEvQualityBranchName;
     TClonesArray* fBmnEvQuality;
     

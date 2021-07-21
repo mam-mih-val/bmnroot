@@ -27,7 +27,7 @@ class BmnGemStripHitMaker : public FairTask {
 public:
 
     BmnGemStripHitMaker();
-    BmnGemStripHitMaker(Int_t, Int_t, Bool_t);
+    BmnGemStripHitMaker(Int_t per, Int_t run, Bool_t isExp, Bool_t isSrc = kFALSE);
 
     virtual ~BmnGemStripHitMaker();
 

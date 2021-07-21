@@ -1,6 +1,4 @@
-# Create a library called "libBC" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libBC"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
@@ -38,6 +36,6 @@ BmnBCHitProducer.cxx
 Set(HEADERS)
 Set(LINKDEF BmnBCLinkDef.h)
 Set(LIBRARY_NAME BC)
-Set(DEPENDENCIES Core Base)
+Set(DEPENDENCIES BmnData Core Base)
 
 GENERATE_LIBRARY()

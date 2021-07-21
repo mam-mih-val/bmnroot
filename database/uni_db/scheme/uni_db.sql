@@ -135,6 +135,7 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS fixed_geometry_id ON run_;
 CREATE TRIGGER fixed_geometry_id
 BEFORE INSERT ON run_ FOR EACH ROW EXECUTE PROCEDURE set_geometry_id();
 
@@ -145,24 +146,25 @@ DECLARE
   objID integer; valueID integer;
 BEGIN
     IF EXISTS(SELECT 1 FROM detector_parameter dp WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and NEW.value_key = dp.value_key and (not (
-    ((NEW.end_period < dp.start_period) or ((NEW.end_period = dp.start_period) and (NEW.end_run < dp.start_run))) or 
+    ((NEW.end_period < dp.start_period) or ((NEW.end_period = dp.start_period) and (NEW.end_run < dp.start_run))) or
     ((NEW.start_period > dp.end_period) or ((NEW.start_period = dp.end_period) and (NEW.start_run > dp.end_run))))))
     THEN
       SELECT value_id INTO valueID
       FROM detector_parameter dp
-      WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and 
+      WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and
         (NEW.start_period = dp.start_period) and (NEW.end_period = dp.end_period) and (NEW.start_run = dp.start_run) and (NEW.end_run = dp.end_run);
-    
+
       IF NOT FOUND THEN
         RAISE EXCEPTION 'The period of new detector parameter overlaps with existing value (id: %)', valueID;
       ELSE
         EXECUTE 'DELETE FROM detector_parameter WHERE value_id = $1' USING valueID;
-      END IF;  
+      END IF;
     END IF;
-  
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS check_par_period ON detector_parameter;
 CREATE TRIGGER check_par_period
 BEFORE INSERT ON detector_parameter FOR EACH ROW EXECUTE PROCEDURE check_valid_period();
 

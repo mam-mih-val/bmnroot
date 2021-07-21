@@ -11,6 +11,7 @@
 #include "db_structures.h"
 #include "TSystem.h"
 #include "UniDbDetectorParameter.h"
+#include "UniDbRunPeriod.h"
 
 #include <fstream>
 
@@ -815,7 +816,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 
 // write detector parameter value presented by an array (integer value key is optional, default, 0)
 UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                                              vector<UniValue*> parameter_value, int value_key)
+                                                                        vector<UniValue*> parameter_value, int value_key)
 {
     if (parameter_value.size() < 1)
     {
@@ -845,6 +846,19 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
         tmp_pointer += parameter_value[i]->GetStorageSize();
     }
 
+    if (start_run < 1)
+    {
+        int first_run = UniDbRunPeriod::GetFirstRunNumber(start_period);
+        if (first_run >= 0) start_run = first_run;
+    }
+    if (end_period < 1)
+        end_period = start_period;
+    if (end_run < 1)
+    {
+        int last_run = UniDbRunPeriod::GetLastRunNumber(end_period);
+        if (last_run >= 0) end_run = last_run;
+    }
+
     UniDbDetectorParameter* pDetectorParameter =
             UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
                                                               p_parameter_value, size_parameter_value, parameter_type, value_key);
@@ -856,7 +870,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 
 // write detector parameter value presented by a single value (integer value key is optional, default, 0)
 UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                                              UniValue* parameter_value, int value_key)
+                                                                        UniValue* parameter_value, int value_key)
 {
     if (parameter_value == NULL)
     {
@@ -870,9 +884,22 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     parameter_value->WriteValue(p_parameter_value);
 
+    if (start_run < 1)
+    {
+        int first_run = UniDbRunPeriod::GetFirstRunNumber(start_period);
+        if (first_run >= 0) start_run = first_run;
+    }
+    if (end_period < 1)
+        end_period = start_period;
+    if (end_run < 1)
+    {
+        int last_run = UniDbRunPeriod::GetLastRunNumber(end_period);
+        if (last_run >= 0) end_run = last_run;
+    }
+
     UniDbDetectorParameter* pDetectorParameter =
             UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
-                                                               p_parameter_value, size_parameter_value, parameter_type, value_key);
+                                                            p_parameter_value, size_parameter_value, parameter_type, value_key);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
 

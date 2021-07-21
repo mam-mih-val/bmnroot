@@ -4,20 +4,17 @@
 // ----- class to visualize reconstructed GlobalTracks in EventDisplay -----
 // -------------------------------------------------------------------------
 
-
 #ifndef BmnGlobalTrackDraw_H
 #define BmnGlobalTrackDraw_H
 
-#include "FairTask.h"
 #include "MpdEventManager.h"
-
+#include "FairTask.h"
 #include "TEveTrackPropagator.h"
 #include "TEveTrack.h"
 #include "TClonesArray.h"
 #include "TObjArray.h"
 #include "TString.h"
 #include "TParticle.h"
-
 
 class BmnGlobalTrackDraw : public FairTask
 {
@@ -49,14 +46,21 @@ class BmnGlobalTrackDraw : public FairTask
   protected:
     // global tracks collection
     TClonesArray*  fTrackList;          //!
-    // Silicon tracks collection
-    TClonesArray* fSiliconTrackList;    //!
+
+    // Upstream hits collection
+    TClonesArray* fUpstreamHitList;     //!
+    // Upstream tracks collection
+    TClonesArray* fUpstreamTrackList;   //!
     // Silicon hits collection
     TClonesArray* fSiliconHitList;      //!
-    // GEM tracks collection
-    TClonesArray*  fGemTrackList;       //!
+    // Silicon tracks collection
+    TClonesArray* fSiliconTrackList;    //!
     // GEM hits collection
     TClonesArray*  fGemHitList;         //!
+    // GEM tracks collection
+    TClonesArray*  fGemTrackList;       //!
+    // CSC hits collection
+    TClonesArray*  fCscHitList;         //!
     // TOF1 hits collection
     TClonesArray*  fTof1HitList;        //!
     // TOF2 hits collection
@@ -65,6 +69,7 @@ class BmnGlobalTrackDraw : public FairTask
     TClonesArray*  fDchTrackList;       //!
     // DCH hits collection
     TClonesArray*  fDchHitList;         //!
+
     // EVE track propagator
     TEveTrackPropagator* fTrPr;
     MpdEventManager* fEventManager;     //!
@@ -77,6 +82,9 @@ class BmnGlobalTrackDraw : public FairTask
   private:
     BmnGlobalTrackDraw(const BmnGlobalTrackDraw&) = delete;
     BmnGlobalTrackDraw& operator=(const BmnGlobalTrackDraw&) = delete;
+
+    // an order of detectors for the given configuration
+    vector<Int_t> vOrderOfDetectors;     //!
 
     ClassDef(BmnGlobalTrackDraw,1);
 };

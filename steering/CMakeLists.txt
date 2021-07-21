@@ -33,6 +33,6 @@ BmnOfflineQaSteering.cxx
 Set(HEADERS)
 Set(LINKDEF SteeringLinkDef.h)
 Set(LIBRARY_NAME BmnSteering)
-Set(DEPENDENCIES CSC Silicon Base Core)
+Set(DEPENDENCIES Gem CSC Silicon Base Core)
 
 GENERATE_LIBRARY()

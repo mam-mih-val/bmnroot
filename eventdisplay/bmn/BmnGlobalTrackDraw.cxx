@@ -7,16 +7,31 @@
 #include "BmnGlobalTrackDraw.h"
 #include "BmnGlobalTrack.h"
 #include "BmnGemTrack.h"
+#include "BmnDchTrack.h"
+#include "BmnSiliconTrack.h"
+#include "BmnTrack.h"
 #include "MpdEventManagerEditor.h"
 #include "FairLogger.h"
-
 #include "TEveManager.h"
 #include "TEvePathMark.h"
 #include "TEveVector.h"
 #include "TDatabasePDG.h"
+#include "TGeoManager.h"
 
 #include <iostream>
 using namespace std;
+
+enum Detectors //KG MWPC?
+{
+    SILICON,
+    GEMS,
+    CSC,
+    TOF1,
+    TOF2,
+    DCH,
+    DCH1,
+    DCH2
+};
 
 // default constructor
 BmnGlobalTrackDraw::BmnGlobalTrackDraw()
@@ -49,52 +64,112 @@ BmnGlobalTrackDraw::BmnGlobalTrackDraw(const char* name, Int_t iVerbose)
 // initialization of the track drawing task
 InitStatus BmnGlobalTrackDraw::Init()
 {
-    if (fVerbose > 0) cout<<"BmnGlobalTrackDraw::Init()"<<endl;
+    if (fVerbose > 0) cout << "BmnGlobalTrackDraw::Init()" << endl;
 
     FairRootManager* fManager = FairRootManager::Instance();
 
     fTrackList = (TClonesArray*) fManager->GetObject(GetName());
     if (fTrackList == 0)
     {
-        LOG(ERROR)<<"BmnGlobalTrackDraw::Init()  branch GlobalTrack not found! Task will be deactivated";
+        LOG(ERROR) << "BmnGlobalTrackDraw::Init()  branch GlobalTrack not found! Task will be deactivated";
         SetActive(kFALSE);
         return kERROR;
     }
-    if (fVerbose > 1) cout<<"BmnGlobalTrackDraw::Init() get track list "<<fTrackList<<endl;
+    if (fVerbose > 1) cout << "BmnGlobalTrackDraw::Init() get track list " << fTrackList << endl;
 
-    fGemTrackList = (TClonesArray*) fManager->GetObject("BmnGemTrack");
+    fUpstreamHitList = (TClonesArray*) fManager->GetObject("BmnUpstreamHit");
+    fUpstreamTrackList = (TClonesArray*) fManager->GetObject("BmnUpstreamTrack");
+
+    fSiliconHitList = (TClonesArray*) fManager->GetObject("BmnSiliconHit");
+    fSiliconTrackList = (TClonesArray*) fManager->GetObject("BmnSiliconTrack");
+
     fGemHitList = (TClonesArray*) fManager->GetObject("BmnGemStripHit");
+    fGemTrackList = (TClonesArray*) fManager->GetObject("BmnGemTrack");
+
+    fCscHitList = (TClonesArray*) fManager->GetObject("BmnCSCHit");
 
     fTof1HitList = (TClonesArray*) fManager->GetObject("BmnTof400Hit");
     fTof2HitList = (TClonesArray*) fManager->GetObject("BmnTof700Hit");
+
     fDchHitList = (TClonesArray*) fManager->GetObject("BmnDchHit");
+    fDchTrackList = (TClonesArray*) fManager->GetObject("BmnDchTrack");
 
     fEventManager = MpdEventManager::Instance();
-    if (fVerbose > 1) cout<<"BmnGlobalTrackDraw::Init() get instance of MpdEventManager "<<endl;
+    if (fVerbose > -10) cout << "BmnGlobalTrackDraw::Init() get instance of MpdEventManager " << endl;
 
     MinEnergyLimit = fEventManager->GetEvtMinEnergy();
     MaxEnergyLimit = fEventManager->GetEvtMaxEnergy();
     PEnergy = 0;
 
+    // get an order of the detectors
+    //             ↓-Z    ↓-ID
+    vector<tuple<Int_t, Int_t>> order_of_detectors;
+    // get array of nodes
+    TObjArray* nodes = gGeoManager->GetMasterVolume()->GetNodes();
+    for (Int_t i = 0; i < nodes->GetEntries(); i++)
+    {
+        TGeoNodeMatrix* el = (TGeoNodeMatrix*) nodes->UncheckedAt(i);
+
+        // transform detector name to lowercase
+        TString detectorName(el->GetName());
+        detectorName = detectorName(0, detectorName.Length() - 2);
+        detectorName.ToLower();
+        //cout<<"detectorName = "<<detectorName<<endl;
+
+        if (el->GetNdaughters() == 0) continue;
+        // get the Z coordinate of the node
+        Int_t z_1, z_2;
+        z_1 = z_2 = (Int_t) *(el->GetDaughter(0)->GetMatrix()->GetTranslation() + 2);
+        for (Int_t j = 1; j < el->GetNdaughters(); j++)
+        {
+            Int_t z = (Int_t) *(el->GetDaughter(j)->GetMatrix()->GetTranslation() + 2);
+            if (z_1 > z) z_1 = z;
+            if (z_2 < z) z_2 = z;
+        }
+
+        if (detectorName == "silicon")
+            order_of_detectors.push_back(make_tuple((z_2 + z_1) / 2, SILICON));
+        else if (detectorName == "gems")
+            order_of_detectors.push_back(make_tuple((z_2 + z_1) / 2, GEMS));
+        else if (detectorName == "csc")
+            order_of_detectors.push_back(make_tuple((z_2 + z_1) / 2, CSC));
+        else if (detectorName == "tof400")
+            order_of_detectors.push_back(make_tuple((z_2 + z_1) / 2, TOF1));
+        else if (detectorName == "tof700")
+            order_of_detectors.push_back(make_tuple((z_2 + z_1) / 2, TOF2));
+        else if (detectorName == "dch")
+        {
+            if (z_2 - z_1 > 200)
+            {
+                order_of_detectors.push_back(make_tuple(z_1, DCH1));
+                order_of_detectors.push_back(make_tuple(z_2, DCH2));
+            }
+            else order_of_detectors.push_back(make_tuple((z_2 + z_1) / 2, DCH));
+        }
+    }
+
+    // sort by Z coordinate
+    sort(order_of_detectors.begin(), order_of_detectors.end());
+
+    for (const auto& i : order_of_detectors)
+        vOrderOfDetectors.push_back(get<1>(i));
+
     return kSUCCESS;
 }
-// -------------------------------------------------------------------------
+
 void BmnGlobalTrackDraw::Exec(Option_t* option)
 {
-    if (!IsActive())
-        return;
+    if (!IsActive()) return;
 
-    if (fVerbose > 1) cout<<" BmnGlobalTrackDraw::Exec "<<endl;
+    if (fVerbose > 1) cout << " BmnGlobalTrackDraw::Exec " << endl;
 
     Reset();
 
-    BmnGlobalTrack* tr;
-    //cout<<"fTrackList->GetEntriesFast(): "<<fTrackList->GetEntriesFast()<<". fTrackList->GetEntries(): "<<fTrackList->GetEntries()<<endl;
     for (Int_t i = 0; i < fTrackList->GetEntriesFast(); i++)
     {
-        if (fVerbose > 1) cout<<"BmnGlobalTrackDraw::Exec "<<i<<endl;
+        if (fVerbose > 1) cout << "BmnGlobalTrackDraw::Exec " << i << endl;
 
-        tr = (BmnGlobalTrack*) fTrackList->At(i);
+        BmnGlobalTrack* tr = (BmnGlobalTrack*) fTrackList->At(i);
         const FairTrackParam* pParamFirst = tr->GetParamFirst();
 
         // define whether track is primary
@@ -124,16 +199,10 @@ void BmnGlobalTrackDraw::Exec(Option_t* option)
         track->SetLineColor(fEventManager->Color(particlePDG));
         track->SetLineWidth(2);
 
-        // get GEM track for global track
-        BmnGemTrack* pGemTrack = (BmnGemTrack*) fGemTrackList->UncheckedAt(tr->GetGemTrackIndex());
-        Int_t Np = pGemTrack->GetNHits();
-
-        // cycle: add hits (points) to EVE path for this track
-        Int_t n;
-        for (n = 0; n < Np; n++)
+        Int_t n = 0;
+        auto addHitForSingleStation = [=](FairHit* pHit) mutable -> void
         {
-            FairHit* pHit = (FairHit*) fGemHitList->UncheckedAt(pGemTrack->GetHitIndex(n));
-
+            // add hit (point) to EVE path for this track
             track->SetPoint(n, pHit->GetX(), pHit->GetY(), pHit->GetZ());
 
             TEvePathMark* path = new TEvePathMark();
@@ -149,93 +218,104 @@ void BmnGlobalTrackDraw::Exec(Option_t* option)
             // add path marker for current EVE track
             track->AddPathMark(*path);
 
-            if (fVerbose > 2) cout<<"Path marker added "<<path<<endl;
+            if (fVerbose > 3) cout << "Path marker added " << path << endl;
+            n++;
+        };
+
+        auto addHitsForMultiStations = [=](TClonesArray* fHitList, BmnTrack* pDetectorTrack, Int_t nHits) mutable -> void
+        {
+            // cycle: add hits (points) to EVE path for this track
+            for (Int_t k = 0; k < nHits; k++)
+            {
+                FairHit* pHit = (FairHit*) fHitList->UncheckedAt(pDetectorTrack->GetHitIndex(k));
+                addHitForSingleStation(pHit);
+            }
+        };
+
+        // get upstream track for global track
+        if (tr->GetUpstreamTrackIndex() > -1) //KG почему закомментировано
+        {
+            // BmnTrack* pUpstreamTrack = (BmnTrack*) fUpstreamTrackList->UncheckedAt(tr->GetUpstreamTrackIndex());
+            // addHitsForMultiStations(fUpstreamTrackList, pUpstreamTrack, pUpstreamTrack->GetNHits());
         }
 
-        // add TOF1 hit
-        if (tr->GetTof1HitIndex() > -1)
+        for (const auto& id : vOrderOfDetectors)
         {
-            FairHit* pHit = (FairHit*) fTof1HitList->UncheckedAt(tr->GetTof1HitIndex());
-
-            track->SetPoint(n, pHit->GetX(), pHit->GetY(), pHit->GetZ());
-
-            TEvePathMark* path = new TEvePathMark();
-            TEveVector pos = TEveVector(pHit->GetX(), pHit->GetY(), pHit->GetZ());
-            path->fV = pos;
-            path->fTime = pHit->GetTimeStamp();
-            if (n == 0)
+            switch (id)
             {
-                TEveVector Mom = TEveVector(px, py, pz);
-                path->fP = Mom;
+                // get Silicon track for global track
+                case SILICON:
+                    if (tr->GetSilTrackIndex() > -1)
+                    {
+                        BmnSiliconTrack* pSiliconTrack = (BmnSiliconTrack*) fSiliconTrackList->UncheckedAt(tr->GetSilTrackIndex());
+                        addHitsForMultiStations(fSiliconHitList, pSiliconTrack, pSiliconTrack->GetNHits());
+                    }
+                    break;
+                // get GEM track for global track
+                case GEMS:
+                    if (tr->GetGemTrackIndex() > -1)
+                    {
+                        BmnGemTrack* pGemTrack = (BmnGemTrack*) fGemTrackList->UncheckedAt(tr->GetGemTrackIndex());
+                        addHitsForMultiStations(fGemHitList, pGemTrack, pGemTrack->GetNHits());
+                    }
+                    break;
+                // add CSC hit
+                case CSC:
+                    if (tr->GetCscHitIndex() > -1)
+                    {
+                        FairHit* pHit = (FairHit*) fCscHitList->UncheckedAt(tr->GetCscHitIndex());
+                        addHitForSingleStation(pHit);
+                    }
+                    break;
+                // add TOF1 hit
+                case TOF1:
+                    if (tr->GetTof1HitIndex() > -1)
+                    {
+                        FairHit* pHit = (FairHit*) fTof1HitList->UncheckedAt(tr->GetTof1HitIndex());
+                        addHitForSingleStation(pHit);
+                    }
+                    break;
+                // add TOF2 hit
+                case TOF2:
+                    if (tr->GetTof2HitIndex() > -1)
+                    {
+                        FairHit* pHit = (FairHit*) fTof2HitList->UncheckedAt(tr->GetTof2HitIndex());
+                        addHitForSingleStation(pHit);
+                    }
+                    break;
+                // add DCH hit
+                case DCH: //KG почему закомментировано?
+                    if (tr->GetDch1TrackIndex() > -1)
+                    {
+                        // BmnDchTrack* pDchTrack = (BmnDchTrack*) fDchTrackList->UncheckedAt(tr->GetDchTrackIndex());
+                        // addHitsForMultiStations(fDchTrackList, pDchTrack, pDchTrack->GetNHits());
+                    }
+                    break;
+                // add DCH1 hit
+                case DCH1://KG почему закомментировано?
+                    if (tr->GetDch1TrackIndex() > -1)
+                    {
+                        // BmnDchTrack* pDchTrack = (BmnDchTrack*) fDchTrackList->UncheckedAt(tr->GetDch1TrackIndex());
+                        // addHitsForMultiStations(fDchTrackList, pDchTrack, pDchTrack->GetNHits());
+                    }
+                    break;
+                // add DCH2 hit
+                case DCH2://KG почему закомментировано?
+                    if (tr->GetDch1TrackIndex() > -1) {
+                        // BmnDchTrack* pDchTrack = (BmnDchTrack*) fDchTrackList->UncheckedAt(tr->GetDch2TrackIndex());
+                        // addHitsForMultiStations(fDchTrackList, pDchTrack, pDchTrack->GetNHits());
+                    }
+                    break;
+                default:
+                    cout << "[ WARNING ] Unknown detector ID" << endl;
+                    break;
             }
-
-            // add path marker for current EVE track
-            track->AddPathMark(*path);
-
-            if (fVerbose > 3)
-                cout<<"Path marker added "<<path<<endl;
-
-            n++;
-        }
-
-
-        // add DCH hit
-        // if (tr->GetDch1HitIndex() > -1)
-        // {
-        //     FairHit* pHit = (FairHit*) fDchHitList->UncheckedAt(tr->GetDch1HitIndex());
-
-        //     track->SetPoint(n, pHit->GetX(), pHit->GetY(), pHit->GetZ());
-
-        //     TEvePathMark* path = new TEvePathMark();
-        //     TEveVector pos = TEveVector(pHit->GetX(), pHit->GetY(), pHit->GetZ());
-        //     path->fV = pos;
-        //     path->fTime = pHit->GetTimeStamp();
-        //     if (n == 0)
-        //     {
-        //         TEveVector Mom = TEveVector(px, py, pz);
-        //         path->fP = Mom;
-        //     }
-
-        //     // add path marker for current EVE track
-        //     track->AddPathMark(*path);
-
-        //     if (fVerbose > 3)
-        //         cout<<"Path marker added "<<path<<endl;
-
-        //     n++;
-        // }
-
-        // add TOF2 hit
-        if (tr->GetTof2HitIndex() > -1)
-        {
-            FairHit* pHit = (FairHit*) fTof2HitList->UncheckedAt(tr->GetTof2HitIndex());
-
-            track->SetPoint(n, pHit->GetX(), pHit->GetY(), pHit->GetZ());
-
-            TEvePathMark* path = new TEvePathMark();
-            TEveVector pos = TEveVector(pHit->GetX(), pHit->GetY(), pHit->GetZ());
-            path->fV = pos;
-            path->fTime = pHit->GetTimeStamp();
-            if (n == 0)
-            {
-                TEveVector Mom = TEveVector(px, py, pz);
-                path->fP = Mom;
-            }
-
-            // add path marker for current EVE track
-            track->AddPathMark(*path);
-
-            if (fVerbose > 3)
-                cout<<"Path marker added "<<path<<endl;
-
-            n++;
         }
 
         // add track to EVE track list
         fTrList->AddElement(track);
 
-        if (fVerbose > 3)
-            cout<<"track added "<<track->GetName()<<endl;
+        if (fVerbose > 3) cout << "Track added " << track->GetName() << endl;
     }
 
     // redraw EVE scenes

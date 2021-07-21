@@ -375,23 +375,23 @@ int UniDbRunPeriod::GetRunNumbers(int period_number, UniqueRunNumber*& run_numbe
     UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
     {
-        cout<<"ERROR: connection to the databaes was failed"<<endl;
+        cout<<"ERROR: connection to the database was failed"<<endl;
         return -1;
     }
 
     TSQLServer* uni_db = connUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-        "select period_number, run_number "
+        "select run_number "
         "from run_ "
         "where period_number = %d "
-        "order by period_number, run_number", period_number);
+        "order by run_number", period_number);
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     // get table record from DB
     if (!stmt->Process())
     {
-        cout<<"ERROR: getting run numbers from the database has been failed"<<endl;
+        cout<<"ERROR: getting run numbers from the database failed"<<endl;
         delete stmt;
         delete connUniDb;
         return -2;
@@ -400,26 +400,102 @@ int UniDbRunPeriod::GetRunNumbers(int period_number, UniqueRunNumber*& run_numbe
     // store result of statement in buffer
     stmt->StoreResult();
 
-    vector<int> vecPeriods;
     vector<int> vecRuns;
     while (stmt->NextResultRow())
-    {
-        vecPeriods.push_back(stmt->GetInt(0));
-        vecRuns.push_back(stmt->GetInt(1));
-    }
+        vecRuns.push_back(stmt->GetInt(0));
 
     delete stmt;
     delete connUniDb;
 
-    int run_count = vecPeriods.size();
+    int run_count = vecRuns.size();
     run_numbers = new UniqueRunNumber[run_count];
     for (int i = 0; i < run_count; i++)
     {
-        run_numbers[i].period_number = vecPeriods[i];
+        run_numbers[i].period_number = period_number;
         run_numbers[i].run_number = vecRuns[i];
     }
 
     return run_count;
+}
+
+// get first run number for a selected period
+int UniDbRunPeriod::GetFirstRunNumber(int period_number)
+{
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+    if (connUniDb == 0x00)
+    {
+        cout<<"ERROR: connection to the database was failed"<<endl;
+        return -1;
+    }
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+        "select min(run_number) "
+        "from run_ "
+        "where period_number = %d ", period_number);
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    // get table record from DB
+    if (!stmt->Process())
+    {
+        cout<<"ERROR: getting run numbers from the database failed"<<endl;
+        delete stmt;
+        delete connUniDb;
+        return -2;
+    }
+
+    // store result of statement in buffer
+    stmt->StoreResult();
+
+    int min_number = -3; // -3: no runs in the period
+    if (stmt->NextResultRow())
+        min_number = stmt->GetInt(0);
+
+    delete stmt;
+    delete connUniDb;
+
+    return min_number;
+}
+
+// get last run number for a selected period
+int UniDbRunPeriod::GetLastRunNumber(int period_number)
+{
+    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
+    if (connUniDb == 0x00)
+    {
+        cout<<"ERROR: connection to the database was failed"<<endl;
+        return -1;
+    }
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+        "select max(run_number) "
+        "from run_ "
+        "where period_number = %d ", period_number);
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    // get table record from DB
+    if (!stmt->Process())
+    {
+        cout<<"ERROR: getting run numbers from the database failed"<<endl;
+        delete stmt;
+        delete connUniDb;
+        return -2;
+    }
+
+    // store result of statement in buffer
+    stmt->StoreResult();
+
+    int max_number = -3; // -3: no runs in the period
+    if (stmt->NextResultRow())
+        max_number = stmt->GetInt(0);
+
+    delete stmt;
+    delete connUniDb;
+
+    return max_number;
 }
 
 // -------------------------------------------------------------------

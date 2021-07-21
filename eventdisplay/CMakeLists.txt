@@ -41,8 +41,9 @@ if (BMNROOT)
     ${INCLUDE_DIRECTORIES}
     ${CMAKE_SOURCE_DIR}/bmndata
     ${CMAKE_SOURCE_DIR}/globaltracking
-    ${CMAKE_SOURCE_DIR}/gem
     ${CMAKE_SOURCE_DIR}/silicon
+    ${CMAKE_SOURCE_DIR}/gem
+    ${CMAKE_SOURCE_DIR}/dch
   )
   Set(SRCS
     ${SRCS}
@@ -124,10 +125,10 @@ else (TDAQ_FOUND)
   Set(DEPENDENCIES Base XMLParser Eve Geom EG Physics Ged Gui Graf3d Tree Core xml2)
 endif (TDAQ_FOUND)
 if (BMNROOT)
- Set(DEPENDENCIES BmnData Geane ${DEPENDENCIES})
+ Set(DEPENDENCIES GlobalTracking Gem Silicon Dch BmnData Geane ${DEPENDENCIES})
 endif (BMNROOT)
 if (MPDROOT)
- Set(DEPENDENCIES Emc Geane ${DEPENDENCIES})
+ Set(DEPENDENCIES LHETrack Kalman MpdDst Zdc Emc tpc Geane ${DEPENDENCIES})
 endif (MPDROOT)
 
 Set(LIBRARY_NAME EventDisplay)

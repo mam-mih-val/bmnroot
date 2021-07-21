@@ -16,7 +16,6 @@
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripConfiguration.h"
 #include "BmnGemStripTransform.h"
-#include "BmnInnTrackerAlign.h"
 
 using namespace std;
 
@@ -75,7 +74,6 @@ private:
     Bool_t fStripMatching;
     Bool_t fUseRealEffects;
     
-    BmnInnTrackerAlign* fAlign;
     FairField* fField;
 
     BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;

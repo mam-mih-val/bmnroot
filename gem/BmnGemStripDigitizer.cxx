@@ -23,13 +23,10 @@ BmnGemStripDigitizer::BmnGemStripDigitizer()
     fCurrentConfig = BmnGemStripConfiguration::None;
     StationSet = nullptr;
     TransfSet = nullptr;
-    fAlign = nullptr;
     fField = nullptr;
 }
 
 BmnGemStripDigitizer::~BmnGemStripDigitizer() {
-    if (fAlign)
-        delete fAlign;
 }
 
 InitStatus BmnGemStripDigitizer::Init() {
@@ -106,12 +103,7 @@ InitStatus BmnGemStripDigitizer::Init() {
             StationSet = nullptr;
     }
     if (fUseRealEffects) {
-        Int_t periodID = 7;
-        Int_t runID = 4649;
-        fAlign = new BmnInnTrackerAlign(periodID, runID, "default");
-        if (fVerbose)
-            fAlign->Print();
-        fField = FairRunSim::Instance()->GetField();
+        ;
     }
 
     //--------------------------------------------------------------------------
@@ -197,13 +189,7 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
             }
         }
         if (fUseRealEffects) {
-            //BmnGemStripModule *module = station->GetModule(mc_module_num);
-            Double_t deltaX = fAlign->GetGemCorrs()[mc_station_num][mc_module_num][0];
-            Double_t deltaY = fAlign->GetGemCorrs()[mc_station_num][mc_module_num][1];
-            Double_t deltaZ = fAlign->GetGemCorrs()[mc_station_num][mc_module_num][2];
-            x += deltaX;
-            y -= deltaY;
-            //z -= deltaZ;
+            ;
         }
 
         StationSet->AddPointToDetector(x, y, z, px, py, pz, dEloss, refId);

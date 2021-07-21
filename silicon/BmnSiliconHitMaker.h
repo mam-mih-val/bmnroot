@@ -12,16 +12,18 @@
 #include "BmnSiliconStation.h"
 #include "BmnSiliconModule.h"
 #include "BmnSiliconLayer.h"
-#include "BmnInnTrackerAlign.h"
 #include <BmnEventQuality.h>
 
 #include "BmnSiliconConfiguration.h"
+
+using namespace std;
+using namespace TMath;
 
 class BmnSiliconHitMaker : public FairTask {
 public:
 
     BmnSiliconHitMaker();
-    BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, TString alignFile = "default");
+    BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp);
 
     virtual ~BmnSiliconHitMaker();
 
@@ -76,7 +78,7 @@ private:
     TString fBmnEvQualityBranchName;
     TClonesArray* fBmnEvQuality;
     
-    BmnInnTrackerAlign* fAlign;
+    Double_t*** fAlignCor;
 
     Double_t fSignalLow; 
     Double_t fSignalUp;

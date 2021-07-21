@@ -3,8 +3,8 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/gem
- ${CMAKE_SOURCE_DIR}/alignment
+ ${CMAKE_SOURCE_DIR}/database/unicom
+ ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/silicon
 )
 
@@ -44,6 +44,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF SiliconLinkDef.h)
 Set(LIBRARY_NAME Silicon)
-Set(DEPENDENCIES BmnData Base XMLParser Core)
+Set(DEPENDENCIES BmnData UniDb Base XMLParser Core)
 
 GENERATE_LIBRARY()

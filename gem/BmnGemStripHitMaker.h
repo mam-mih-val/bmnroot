@@ -19,7 +19,6 @@
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripConfiguration.h"
 #include "BmnGemStripTransform.h"
-#include "BmnInnTrackerAlign.h"
 #include <BmnEventQuality.h>
 
 using namespace std;
@@ -28,7 +27,7 @@ class BmnGemStripHitMaker : public FairTask {
 public:
 
     BmnGemStripHitMaker();
-    BmnGemStripHitMaker(Int_t, Int_t, Bool_t, TString alignFile = "default");
+    BmnGemStripHitMaker(Int_t, Int_t, Bool_t);
 
     virtual ~BmnGemStripHitMaker();
 
@@ -87,20 +86,21 @@ private:
 
     BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;
 
-    BmnGemStripStationSet *StationSet; //Entire GEM detector
+    BmnGemStripStationSet* StationSet; //Entire GEM detector
 
-    BmnGemStripTransform *TransfSet; //Transformations for each module of the detector
+    BmnGemStripTransform* TransfSet; //Transformations for each module of the detector
 
     FairField* fField;
     Double_t fFieldScale;
 
     TString fBmnEvQualityBranchName;
     TClonesArray* fBmnEvQuality;
+    
+    Double_t*** fAlignCor;
+    Double_t** fLorCor;
 
-    BmnInnTrackerAlign* fAlign;
-
-   Double_t fSignalLow; 
-   Double_t fSignalUp; 
+    Double_t fSignalLow;
+    Double_t fSignalUp;
 
     ClassDef(BmnGemStripHitMaker, 1);
 };

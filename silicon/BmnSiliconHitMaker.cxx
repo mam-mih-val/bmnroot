@@ -4,6 +4,7 @@
 
 #include "TClonesArray.h"
 #include "TSystem.h"
+#include "UniDbDetectorParameter.h"
 
 static Float_t workTime = 0.0;
 
@@ -21,7 +22,7 @@ BmnSiliconHitMaker::BmnSiliconHitMaker()
     StationSet = NULL;
 }
 
-BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, TString alignFile)
+BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp)
 : fHitMatching(kTRUE) {
 
     fIsExp = isExp;
@@ -49,13 +50,70 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
             break;
     }
 
-    if (isExp)
-        fAlign = new BmnInnTrackerAlign(run_period, run_number, alignFile);
+    // if (isExp)
+    //     fAlign = new BmnInnTrackerAlign(run_period, run_number, alignFile);
+    
+    TString gPathSiliconConfig = gSystem->Getenv("VMCWORKDIR");
+    gPathSiliconConfig += "/parameters/silicon/XMLConfigs/";
+
+    //Create SILICON detector --------------------------------------------------
+    switch (fCurrentConfig) {
+
+        case BmnSiliconConfiguration::RunSpring2017:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2017.xml");
+            if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSpring2017" << "\n";
+            break;
+
+        case BmnSiliconConfiguration::RunSpring2018:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2018.xml");
+            if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSpring2018" << "\n";
+            break;
+
+        case BmnSiliconConfiguration::RunSRCSpring2018:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSRCSpring2018.xml");
+            if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSRCSpring2018" << "\n";
+            break;
+
+        case BmnSiliconConfiguration::FutureConfig2020:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconFutureConfig2020.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : FutureConfig2020" << "\n";
+            break;
+
+        default:
+            StationSet = NULL;
+    }
+    
+    const Int_t nStat = StationSet->GetNStations();
+    UniDbDetectorParameter* coeffAlignCorrs = UniDbDetectorParameter::GetDetectorParameter("Silicon", "alignment_shift", run_period, run_number);
+    vector<UniValue*> algnShifts;
+    if (coeffAlignCorrs)
+        coeffAlignCorrs->GetValue(algnShifts);
+    fAlignCor = new Double_t **[nStat];
+    for (Int_t iStat = 0; iStat < nStat; iStat++) {
+        const Int_t nParams = 3;
+        Int_t nModul = StationSet->GetSiliconStation(iStat)->GetNModules();
+        fAlignCor[iStat] = new Double_t *[nModul];
+        for (Int_t iMod = 0; iMod < nModul; iMod++) {
+            fAlignCor[iStat][iMod] = new Double_t[nParams];
+            for (Int_t iPar = 0; iPar < nParams; iPar++) {
+                fAlignCor[iStat][iMod][iPar] = 0.0;
+            }
+        }
+    }
+    
+    for (Int_t i = 0; i < algnShifts.size(); ++i) {
+        // cout << ((AlignmentValue*)algnShifts[i])->value[0] << endl;
+        // cout << ((AlignmentValue*)algnShifts[i])->value[1] << endl;
+        // cout << ((AlignmentValue*)algnShifts[i])->value[2] << endl;
+        Int_t st = ((AlignmentValue*)algnShifts[i])->station;
+        Int_t mod = ((AlignmentValue*)algnShifts[i])->module;
+        fAlignCor[st][mod][0] = ((AlignmentValue*)algnShifts[i])->value[0];
+        fAlignCor[st][mod][1] = ((AlignmentValue*)algnShifts[i])->value[1];
+        fAlignCor[st][mod][2] = ((AlignmentValue*)algnShifts[i])->value[2];
+    }
 }
 
 BmnSiliconHitMaker::~BmnSiliconHitMaker() {
-    if (fIsExp)
-        delete fAlign;
 }
 
 InitStatus BmnSiliconHitMaker::Init() {
@@ -85,36 +143,6 @@ InitStatus BmnSiliconHitMaker::Init() {
         ioman->Register(fOutputHitMatchesBranchName, "SILICON", fBmnSiliconHitMatchesArray, kTRUE);
     } else {
         fBmnSiliconHitMatchesArray = 0;
-    }
-
-    TString gPathSiliconConfig = gSystem->Getenv("VMCWORKDIR");
-    gPathSiliconConfig += "/parameters/silicon/XMLConfigs/";
-
-    //Create SILICON detector --------------------------------------------------
-    switch (fCurrentConfig) {
-
-        case BmnSiliconConfiguration::RunSpring2017:
-            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2017.xml");
-            if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSpring2017" << "\n";
-            break;
-
-        case BmnSiliconConfiguration::RunSpring2018:
-            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2018.xml");
-            if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSpring2018" << "\n";
-            break;
-
-        case BmnSiliconConfiguration::RunSRCSpring2018:
-            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSRCSpring2018.xml");
-            if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSRCSpring2018" << "\n";
-            break;
-
-        case BmnSiliconConfiguration::FutureConfig2020:
-            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconFutureConfig2020.xml");
-            if (fVerbose) cout << "   Current SILICON Configuration : FutureConfig2020" << "\n";
-            break;
-
-        default:
-            StationSet = NULL;
     }
 
     //--------------------------------------------------------------------------
@@ -227,7 +255,7 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 Double_t x = module->GetIntersectionPointX(iPoint);
                 Double_t y = module->GetIntersectionPointY(iPoint);
                 Double_t z = module->GetZPositionRegistered();
-                z += fIsExp ? fAlign->GetSiliconCorrs()[iStation][iModule][2] : 0.; //alignment shift
+                z += fIsExp ? fAlignCor[iStation][iModule][2] : 0.; //alignment shift
 
                 Double_t x_err = module->GetIntersectionPointXError(iPoint);
                 Double_t y_err = module->GetIntersectionPointYError(iPoint);
@@ -257,8 +285,8 @@ void BmnSiliconHitMaker::ProcessDigits() {
 
                 //Add hit ------------------------------------------------------
                 x *= -1; // invert to global X
-                Double_t deltaX = fIsExp ? fAlign->GetSiliconCorrs()[iStation][iModule][0] : 0.;
-                Double_t deltaY = fIsExp ? fAlign->GetSiliconCorrs()[iStation][iModule][1] : 0.;
+                Double_t deltaX = fIsExp ? fAlignCor[iStation][iModule][0] : 0.;
+                Double_t deltaY = fIsExp ? fAlignCor[iStation][iModule][1] : 0.;
 
                 x += deltaX;
                 y += deltaY;

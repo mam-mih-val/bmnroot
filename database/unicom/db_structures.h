@@ -204,7 +204,7 @@ struct LorentzShiftValue : public UniValue
     void WriteValue(unsigned char* destination) { Write(destination, number); Write(destination, ls, 3); }
 };
 
-/*struct AlignmentValue : public UniValue
+struct AlignmentValue : public UniValue
 {
     uint8_t station;
     uint8_t module;
@@ -214,9 +214,9 @@ struct LorentzShiftValue : public UniValue
     size_t GetStorageSize() { return 26; }
     void ReadValue(unsigned char* source)       { Read(source, station); Read(source, module); Read(source, value, 3); }
     void WriteValue(unsigned char* destination) { Write(destination, station); Write(destination, module); Write(destination, value, 3); }
-};*/
+};
 
-struct AlignmentValue : public UniValue
+/*struct AlignmentValue : public UniValue
 {
     uint8_t n_stations;
     uint8_t n_modules;
@@ -227,7 +227,7 @@ struct AlignmentValue : public UniValue
     size_t GetStorageSize() { return n_stations*n_modules*n_space*8+3; }
     void ReadValue(unsigned char* source)       { Read(source, value, n_stations, n_modules, n_space); }
     void WriteValue(unsigned char* destination) { Write(destination, value, n_stations, n_modules, n_space); }
-};
+};*/
 
 #ifndef CREATE_PARAMETER_VALUE_H
 #define CREATE_PARAMETER_VALUE_H

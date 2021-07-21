@@ -10,6 +10,7 @@
 #include "BmnGemStripStationSet_RunSpring2017.h"
 #include "BmnEventHeader.h"
 #include "FairRunAna.h"
+#include "UniDbDetectorParameter.h"
 
 static Float_t workTime = 0.0;
 
@@ -31,7 +32,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
     TransfSet = nullptr;
 }
 
-BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, TString alignFile)
+BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp)
 : fHitMatching(kTRUE) {
 
     fInputPointsBranchName = "StsPoint";
@@ -70,52 +71,10 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
             }
             break;
     }
-
-    if (fIsExp)
-        fAlign = new BmnInnTrackerAlign(run_period, run_number, alignFile);
-}
-
-BmnGemStripHitMaker::~BmnGemStripHitMaker() {
-    if (fIsExp)
-        delete fAlign;
-}
-
-InitStatus BmnGemStripHitMaker::Init() {
-
-    if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Init() started ===============" << endl;
-
-    //if GEM configuration is not set -> return a fatal error
-    if (!fCurrentConfig) Fatal("BmnGemStripHitMaker::Init()", " !!! Current GEM config is not set !!! ");
-
-    FairRootManager* ioman = FairRootManager::Instance();
-
-    fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
-    if (!fBmnGemStripDigitsArray) {
-        cout << "BmnGemStripHitMaker::Init(): branch " << fInputDigitsBranchName << " not found! Task will be deactivated" << endl;
-        SetActive(kFALSE);
-        return kERROR;
-    }
-
-    fBmnGemStripDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
-
-    if (fVerbose > 1) {
-        if (fBmnGemStripDigitMatchesArray) cout << "  Strip matching information exists!\n";
-        else cout << "  Strip matching information doesn`t exist!\n";
-    }
-
-    fBmnGemStripHitsArray = new TClonesArray(fOutputHitsBranchName);
-    ioman->Register(fOutputHitsBranchName, "GEM", fBmnGemStripHitsArray, kTRUE);
-
-    if (fHitMatching && fBmnGemStripDigitMatchesArray) {
-        fBmnGemStripHitMatchesArray = new TClonesArray("BmnMatch");
-        ioman->Register(fOutputHitMatchesBranchName, "GEM", fBmnGemStripHitMatchesArray, kTRUE);
-    } else {
-        fBmnGemStripHitMatchesArray = 0;
-    }
-
+    
     TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
     gPathGemConfig += "/parameters/gem/XMLConfigs/";
-
+    
     //Create GEM detector ------------------------------------------------------
     switch (fCurrentConfig) {
         case BmnGemStripConfiguration::RunSummer2016:
@@ -156,16 +115,98 @@ InitStatus BmnGemStripHitMaker::Init() {
         default:
             StationSet = NULL;
     }
+    
+    const Int_t nStat = StationSet->GetNStations();
+    UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", run_period, run_number);
+    vector<UniValue*> shifts;
+    if (coeffLorCorrs)
+        coeffLorCorrs->GetValue(shifts);
+    
+    fLorCor = new Double_t* [nStat];
+    for (Int_t iStat = 0; iStat < nStat; iStat++) {
+        const Int_t nParams = 3;
+        fLorCor[iStat] = new Double_t[nParams];
+        for (Int_t iPar = 0; iPar < nParams; iPar++) {
+            fLorCor[iStat][iPar] = (coeffLorCorrs) ? ((LorentzShiftValue*)shifts[iStat])->ls[iPar] : 0.0;
+        }
+    }    
+    
+    UniDbDetectorParameter* coeffAlignCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "alignment_shift", run_period, run_number);
+    vector<UniValue*> algnShifts;
+    if (coeffAlignCorrs)
+        coeffAlignCorrs->GetValue(algnShifts);
+    fAlignCor = new Double_t **[nStat];
+    for (Int_t iStat = 0; iStat < nStat; iStat++) {
+        const Int_t nParams = 3;
+        Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
+        fAlignCor[iStat] = new Double_t * [nModul];
+        for (Int_t iMod = 0; iMod < nModul; iMod++) {
+            fAlignCor[iStat][iMod] = new Double_t[nParams];
+            for (Int_t iPar = 0; iPar < nParams; iPar++) {
+                //cout << iStat << " " << iMod << ": " << ((AlignmentValue*)algnShifts[iStat * nModul + iMod])->value[iPar] << endl;
+                fAlignCor[iStat][iMod][iPar] = (coeffAlignCorrs) ? ((AlignmentValue*)algnShifts[iStat * nModul + iMod])->value[iPar] : 0.0;
+            }
+        }
+    }
+    
+}
+
+BmnGemStripHitMaker::~BmnGemStripHitMaker() {
+    for (Int_t iStat = 0; iStat < StationSet->GetNStations(); iStat++){
+        for (Int_t iMod = 0; iMod < StationSet->GetGemStation(iStat)->GetNModules(); iMod++) {
+            delete[] fAlignCor[iStat][iMod];
+        }
+        delete[] fAlignCor[iStat];
+        delete[] fLorCor[iStat];
+    }
+    delete[] fAlignCor;
+    delete[] fLorCor;
+
+    delete StationSet;
+}
+
+InitStatus BmnGemStripHitMaker::Init() {
+
+    if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Init() started ===============" << endl;
+
+    //if GEM configuration is not set -> return a fatal error
+    if (!fCurrentConfig) Fatal("BmnGemStripHitMaker::Init()", " !!! Current GEM config is not set !!! ");
+
+    FairRootManager* ioman = FairRootManager::Instance();
+
+    fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
+    if (!fBmnGemStripDigitsArray) {
+        cout << "BmnGemStripHitMaker::Init(): branch " << fInputDigitsBranchName << " not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
+
+    fBmnGemStripDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
+
+    if (fVerbose > 1) {
+        if (fBmnGemStripDigitMatchesArray) cout << "  Strip matching information exists!\n";
+        else cout << "  Strip matching information doesn`t exist!\n";
+    }
+
+    fBmnGemStripHitsArray = new TClonesArray(fOutputHitsBranchName);
+    ioman->Register(fOutputHitsBranchName, "GEM", fBmnGemStripHitsArray, kTRUE);
+
+    if (fHitMatching && fBmnGemStripDigitMatchesArray) {
+        fBmnGemStripHitMatchesArray = new TClonesArray("BmnMatch");
+        ioman->Register(fOutputHitMatchesBranchName, "GEM", fBmnGemStripHitMatchesArray, kTRUE);
+    } else {
+        fBmnGemStripHitMatchesArray = 0;
+    }
 
     fField = FairRunAna::Instance()->GetField();
     if (!fField)
         Fatal("Init", "No Magnetic Field found");
 
     //--------------------------------------------------------------------------
-
+    
     fBmnEvQuality = (TClonesArray*) ioman->GetObject(fBmnEvQualityBranchName);
-    if (fIsExp && fVerbose > 1)
-        fAlign->Print();
+    // if (fIsExp && fVerbose > 1)
+    //     fAlign->Print();
 
     if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Init() finished ==============" << endl;
 
@@ -307,7 +348,8 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 Double_t x = module->GetIntersectionPointX(iPoint);
                 Double_t y = module->GetIntersectionPointY(iPoint);
                 Double_t z = module->GetZPositionRegistered();
-                z += fIsExp ? fAlign->GetGemCorrs()[iStation][iModule][2] : 0.; //alignment implementation
+                if (fIsExp && !fIsSrc)
+                    z += fAlignCor[iStation][iModule][2]; //alignment implementation
 
                 Double_t x_err = module->GetIntersectionPointXError(iPoint);
                 Double_t y_err = module->GetIntersectionPointYError(iPoint);
@@ -347,17 +389,21 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 x *= -1; // invert to global X
 
                 if (fIsExp) {
-                    Double_t deltaX = fIsSrc ? alignX[iStation] : fAlign->GetGemCorrs()[iStation][iModule][0];
-                    Double_t deltaY = fIsSrc ? alignY[iStation] : fAlign->GetGemCorrs()[iStation][iModule][1];
+                    Double_t deltaX = fIsSrc ? alignX[iStation] : fAlignCor[iStation][iModule][0];
+                    Double_t deltaY = fIsSrc ? alignY[iStation] : fAlignCor[iStation][iModule][1];
 
                     x += deltaX;
                     y += deltaY;
 
                     if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
+                        Double_t Bx = Abs(fField->GetBx(x, y, z));
+                        Double_t By = Abs(fField->GetBy(x, y, z));
+                        Double_t yCor = fLorCor[iStation][0] + fLorCor[iStation][1] * Bx + fLorCor[iStation][2] * Bx * Bx;
+                        Double_t xCor = fLorCor[iStation][0] + fLorCor[iStation][1] * By + fLorCor[iStation][2] * By * By;
                         Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
-                        Double_t lsX = fIsSrc ? dX_ls_fieldScale2[iStation] / 2.0 * fFieldScale : (fAlign->GetLorentzCorrs(Abs(fField->GetBy(x, y, z)), iStation) * sign);
+                        Double_t lsX = fIsSrc ? dX_ls_fieldScale2[iStation] / 2.0 * fFieldScale : xCor * sign;
                         x += lsX;
-                        Double_t lsY = fIsSrc ? dY_ls_fieldScale2[iStation] / 2.0 * fFieldScale : (fAlign->GetLorentzCorrs(Abs(fField->GetBx(x, y, z)), iStation) * sign);
+                        Double_t lsY = fIsSrc ? dY_ls_fieldScale2[iStation] / 2.0 * fFieldScale : yCor * sign;
                         y += lsY;
                     }
 

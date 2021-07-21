@@ -20,13 +20,10 @@ BmnSiliconDigitizer::BmnSiliconDigitizer()
 
     fCurrentConfig = BmnSiliconConfiguration::None;
     StationSet = NULL;
-    fAlign = nullptr;
     fField = nullptr;
 }
 
 BmnSiliconDigitizer::~BmnSiliconDigitizer() {
-    if (fAlign)
-        delete fAlign;
 }
 
 InitStatus BmnSiliconDigitizer::Init() {
@@ -83,9 +80,6 @@ InitStatus BmnSiliconDigitizer::Init() {
     if (fUseRealEffects) {
         Int_t periodID = 7;
         Int_t runID = 4649;
-        fAlign = new BmnInnTrackerAlign(periodID, runID, "default");
-        if (fVerbose)
-            fAlign->Print();
         fField = FairRunSim::Instance()->GetField();
     }
 
@@ -153,16 +147,9 @@ void BmnSiliconDigitizer::ProcessMCPoints() {
         //Int_t mc_module_num = ((BmnSiliconPoint*) SiliconPoint)->GetModule();
 
         if (fUseRealEffects) {
-            Int_t iSt = StationSet->GetPointStationOwnership(z);
-            Int_t iMod = StationSet->GetStation(iSt)->GetPointModuleOwnership(x, y, z);
-
-            Double_t deltaX = fAlign->GetSiliconCorrs()[iSt][iMod][0];
-            Double_t deltaY = fAlign->GetSiliconCorrs()[iSt][iMod][1];
-            Double_t deltaZ = fAlign->GetSiliconCorrs()[iSt][iMod][2];
-
-            x += deltaX;
-            y -= deltaY;
-            //z -= deltaZ;
+            ;
+            // Int_t iSt = StationSet->GetPointStationOwnership(z);
+            // Int_t iMod = StationSet->GetStation(iSt)->GetPointModuleOwnership(x, y, z);
         }
 
         StationSet->AddPointToDetector(x, y, z, px, py, pz, dEloss, refId);
@@ -212,8 +199,6 @@ void BmnSiliconDigitizer::ProcessMCPoints() {
             }
         }
     }
-
-
 
     StationSet->Reset();
 }

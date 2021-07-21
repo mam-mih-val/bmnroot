@@ -3,8 +3,8 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/silicon
- ${CMAKE_SOURCE_DIR}/alignment
+ ${CMAKE_SOURCE_DIR}/database/unicom
+ ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/gem
 )
 
@@ -80,6 +80,6 @@ endif()
 Set(HEADERS)
 set(LINKDEF GemLinkDef.h)
 Set(LIBRARY_NAME Gem)
-Set(DEPENDENCIES Silicon BmnData GenVector Base XMLParser Core)
+Set(DEPENDENCIES BmnData GenVector UniDb Base XMLParser Core)
 
 GENERATE_LIBRARY()

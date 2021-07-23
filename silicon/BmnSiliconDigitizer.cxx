@@ -71,8 +71,14 @@ InitStatus BmnSiliconDigitizer::Init() {
 
         case BmnSiliconConfiguration::FutureConfig2020:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconFutureConfig2020.xml");
-            if (fVerbose) cout << "   Current SILICON Configuration : FutureConfig2020" << "\n";
+            if (fVerbose) cout << "   Current SILICON Configuration : FutureConfig2020 (3 si-stations)" << "\n";
             break;
+
+        case BmnSiliconConfiguration::FutureConfig2021:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconFutureConfig2021.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : FutureConfig2021 (4 si-stations)" << "\n";
+            break;
+
 
         default:
             StationSet = NULL;

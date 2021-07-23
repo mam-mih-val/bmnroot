@@ -57,7 +57,7 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
             fCurrentConfig = BmnSiliconConfiguration::FutureConfig2020;
             break;
     }
-    
+
     TString gPathSiliconConfig = gSystem->Getenv("VMCWORKDIR");
     gPathSiliconConfig += "/parameters/silicon/XMLConfigs/";
 
@@ -81,13 +81,18 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
 
         case BmnSiliconConfiguration::FutureConfig2020:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconFutureConfig2020.xml");
-            if (fVerbose) cout << "   Current SILICON Configuration : FutureConfig2020" << "\n";
+            if (fVerbose) cout << "   Current SILICON Configuration : FutureConfig2020 (3 si-stations)" << "\n";
+            break;
+
+        case BmnSiliconConfiguration::FutureConfig2021:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconFutureConfig2021.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : FutureConfig2021 (4 si-stations)" << "\n";
             break;
 
         default:
             StationSet = NULL;
     }
-    
+
     if (fIsExp) {
         const Int_t nStat = StationSet->GetNStations();
         UniDbDetectorParameter* coeffAlignCorrs = UniDbDetectorParameter::GetDetectorParameter("Silicon", "alignment_shift", run_period, run_number);
@@ -121,7 +126,7 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
 }
 
 BmnSiliconHitMaker::~BmnSiliconHitMaker() {
-    
+
     if (fIsExp) {
         for (Int_t iStat = 0; iStat < StationSet->GetNStations(); iStat++) {
             for (Int_t iMod = 0; iMod < StationSet->GetSiliconStation(iStat)->GetNModules(); iMod++)
@@ -215,10 +220,10 @@ void BmnSiliconHitMaker::ProcessDigits() {
         digit = (BmnSiliconDigit*) fBmnSiliconDigitsArray->At(idigit);
         if (!digit->IsGoodDigit())
             continue;
-        
+
         if (digit->GetStripSignal() < fSignalLow || digit->GetStripSignal() > fSignalUp)
             continue;
-        
+
         station = StationSet->GetSiliconStation(digit->GetStation());
         module = station->GetModule(digit->GetModule());
         if (!module)

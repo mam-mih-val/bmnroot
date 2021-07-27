@@ -8,8 +8,10 @@
 #include "TRandom.h"
 #include "TKey.h"
 #include "TApplication.h"
+#include "TDatabasePDG.h"
+#include "TVirtualMC.h"
 
-// Fair includes
+// FairRoot includes
 #include "FairRunSim.h"
 #include "FairRuntimeDb.h"
 #include "FairParRootFileIo.h"
@@ -25,24 +27,24 @@
 #include "FairIonGenerator.h"
 #include "FairRootFileSink.h"
 
-// BM@N includes
+// BmnRoot includes
 #include "UniDbRun.h"
 #include "BmnFieldMap.h"
 #include "BmnFieldConst.h"
 #include "BmnNewFieldMap.h"
-//#include "CbmPsdv1.h"
 #include "BmnTOF.h"
-//#include "CbmSts.h"
+#include "BmnFD.h"
+#include "CbmSts.h"
 #include "BmnTOF1.h"
 #include "BmnDch.h"
 #include "BmnMwpc.h"
 #include "BmnBd.h"
 #include "BmnEcal.h"
-//#include "BmnSilicon.h"
+#include "BmnSilicon.h"
 #include "MpdUrqmdGenerator.h"
-//#include "BmnSiliconDigitizer.h"
-//#include "BmnGemStripDigitizer.h"
-//#include "BmnGemStripMedium.h"
+#include "BmnSiliconDigitizer.h"
+#include "BmnGemStripDigitizer.h"
+#include "BmnGemStripMedium.h"
 #include "BmnFieldPar.h"
 #include "BmnZdc.h"
 #include "BmnCSC.h"
@@ -56,44 +58,20 @@
 #include "BmnZdcDigitizer.h"
 #include "BmnEcalDigitizer.h"
 #include "BmnInnTrackerAlign.h"
+#include "CbmStack.h"
 
+// GEANT3 includes
+#include "TGeant3.h"
+#include "TGeant3TGeo.h"
+#include "../../gconfig/g3Config.C"
+#include "../../gconfig/SetCuts.C"
 
+// C++ includes
 #include <iostream>
 using namespace std;
 #endif
 
-TString find_path_to_URQMD_files ()
-{
-  TString hostname = gSystem->HostName();
-  TString path_to_URQMD_files;
-
-  if ((hostname=="nc2")||(hostname=="nc3")||
-      (hostname=="nc2.jinr.ru")||(hostname=="nc3.jinr.ru") ||
-      (hostname=="nc8.jinr.ru")||(hostname=="nc9.jinr.ru")) {   //  nc2, nc3
-    path_to_URQMD_files="/nica/mpd1/data4mpd/UrQMD/1.3/";
-  }
-  else {
-    if ((hostname=="lxmpd-ui.jinr.ru")||(hostname=="lxmpd-ui"))    // linux farm
-      path_to_URQMD_files = "/opt/exp_soft/mpd/urqmd/";
-    else {
-      if ( (hostname=="mpd")||(hostname=="mpd.jinr.ru")
-           ||(hostname=="nc11.jinr.ru")||(hostname=="nc12.jinr.ru")||(hostname=="nc13.jinr.ru")||(hostname=="se63-36.jinr.ru")
-       ||(hostname=="se63-37.jinr.ru")||(hostname=="se63-40.jinr.ru")||(hostname=="se51-99.jinr.ru") )
-    path_to_URQMD_files = "/opt/data/";                        // mpd, nc11
-      else{
-    if (hostname == "seashore")
-          path_to_URQMD_files = "/data/mpd/";
-    else {
-      if ((hostname=="kanske")||(hostname=="kanske.itep.ru"))     // Moscow
-        path_to_URQMD_files ="/scratch2/kmikhail/data4mpd/UrQMD/1.3/";
-      else
-            path_to_URQMD_files = gSystem->Getenv("HOME") + TString("/");
-    }
-      }
-    }
-  }
-  return  path_to_URQMD_files;
-}
+void geant3_setup() { Config(); SetCuts(); }
 
 #define GEANT3  // Choose: GEANT3 GEANT4
 // enumeration of generator names corresponding input files
@@ -112,81 +90,79 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     gDebug = 0;
 
     // -----   Create simulation run   ----------------------------------------
-    FairRunSim *fRun = new FairRunSim();
+    FairRunSim* fRun = new FairRunSim();
+    fRun->SetSimSetup(geant3_setup);
 
     // Choose the Geant Navigation System
+#ifdef GEANT3
     fRun->SetName("TGeant3");
-    // fRun->SetName("TGeant4");
-    // fRun->SetGeoModel("G3Native");
+#else
+    fRun->SetName("TGeant4");
+#endif
 
-    // Set Material file Name
     fRun->SetMaterials("media.geo");
 
     // -----   Create passive volumes   -------------------------
-        FairModule* cave = new FairCave("CAVE");
+    FairModule* cave = new FairCave("CAVE");
     cave->SetGeometryFileName("cave.geo");
     fRun->AddModule(cave);
-
-    //FairModule* pipe = new FairPipe("PIPE");
-    //pipe->SetGeometryFileName("pipe_Be_kompozit_gap75cm_3.geo");
-    //fRun->AddModule(pipe);
-
-    //FairModule* target = new FairTarget("Target");
-    //target->SetGeometryFileName("target_au_250mu.geo");
-    //fRun->AddModule(target);
 
     FairModule* magnet = new FairMagnet("MAGNET");
     magnet->SetGeometryFileName("magnet_modified.root");
     fRun->AddModule(magnet);
 
-    FairModule* magnetSP57 = new FairMagnet("MAGNET_SP57");
-    magnet->SetGeometryFileName("magnetSP57_1.root");
-    fRun->AddModule(magnetSP57);
-    
     // -----   Create detectors        -------------------------
+
+    FairDetector* fd = new BmnFD("FD", kTRUE);
+    fd->SetGeometryFileName("FD_v10.root");
+    fRun->AddModule(fd);
+
     FairDetector* mwpc = new BmnMwpc("MWPC", kTRUE);
-    mwpc->SetGeometryFileName("MWPC_RunWinter2016.root");
+    mwpc->SetGeometryFileName("MWPC_RunSpring2018.root");
     fRun->AddModule(mwpc);
 
     FairDetector* bd = new BmnBd("BD", kTRUE);
-    bd->SetGeometryFileName("bd_v1_run7.geo");
+    bd->SetGeometryFileName("geom_BD_det_v2.root");
     fRun->AddModule(bd);
 
-    //FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
-    //silicon->SetGeometryFileName("Silicon_RunSpring2018.root");
-    //fRun->AddModule(silicon);
+    FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
+    silicon->SetGeometryFileName("Silicon_RunSpring2018.root");
+    fRun->AddModule(silicon);
 
-    //FairDetector* gems = new CbmSts("STS", kTRUE);
-    //gems->SetGeometryFileName("GEMS_RunSpring2018.root");
-    //fRun->AddModule(gems);
+    FairDetector* gems = new CbmSts("STS", kTRUE);
+    gems->SetGeometryFileName("GEMS_RunSpring2018.root");
+    fRun->AddModule(gems);
 
     FairDetector* csc = new BmnCSC("CSC", kTRUE);
     csc->SetGeometryFileName("CSC_RunSpring2018.root");
     fRun->AddModule(csc);
 
     FairDetector* tof1 = new BmnTOF1("TOF1", kTRUE);
-    tof1->SetGeometryFileName("TOF400_RUN7.root");
+    tof1->SetGeometryFileName("TOF400_RUN7_BMN_byKolesnicov_Aligned.root");
     fRun->AddModule(tof1);
 
     FairDetector* dch = new BmnDch("DCH", kTRUE);
-    dch->SetGeometryFileName("DCH_RunWinter2016.root");
+    dch->SetGeometryFileName("DCH_RunSpring2018.root");
     fRun->AddModule(dch);
 
     FairDetector* tof2 = new BmnTOF("TOF", kTRUE);
     tof2->SetGeometryFileName("tof700_run7_with_support.root");
     fRun->AddModule(tof2);
 
-    BmnZdc* zdc = new BmnZdc("ZDC", kTRUE);
-    zdc->SetGeometryFileName("rootgeom_bmnzdc_104mods_v1_Zpos_8759mm_Xshift_313mm_Yshift_14mm.root");
-    fRun->AddModule(zdc);
+    FairDetector* ecal = new BmnEcal("ECAL", kTRUE);
+    ecal->SetGeometryFileName("ECAL_v3_run7_pos4.root");
+    fRun->AddModule(ecal);
 
+    BmnZdc* zdc = new BmnZdc("ZDC", kTRUE);
+    //zdc->SetBirk();
+    zdc->SetGeometryFileName("ZDC_RunSpring2018.root");
+    fRun->AddModule(zdc);
     // Use the experiment specific MC Event header instead of the default one
     // This one stores additional information about the reaction plane
     //MpdMCEventHeader* mcHeader = new MpdMCEventHeader();
     //fRun->SetMCEventHeader(mcHeader);
 
     // Create and Set Event Generator
-    //-------------------------------
     FairPrimaryGenerator* primGen = new FairPrimaryGenerator();
     fRun->SetGenerator(primGen);
 
@@ -197,7 +173,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     primGen->SmearVertexZ(kFALSE);
     primGen->SmearVertexXY(kFALSE);
 
-switch (generatorName)
+    switch (generatorName)
     {
     // ------- UrQMD Generator
     case URQMD:{
@@ -287,8 +263,8 @@ switch (generatorName)
     default: { cout<<"ERROR: Generator name was not pre-defined: "<<generatorName<<endl; exit(-3); }
     }// end of switch (generatorName)
 
-
-if (BmnFunctionSet::CreateDirectoryTree(outFile, 1) < 0) exit(-2);
+    // if directory for the output file does not exist, then create
+    if (BmnFunctionSet::CreateDirectoryTree(outFile, 1) < 0) exit(-2);
     fRun->SetSink(new FairRootFileSink(outFile.Data()));
     fRun->SetIsMT(false);
 
@@ -302,23 +278,23 @@ if (BmnFunctionSet::CreateDirectoryTree(outFile, 1) < 0) exit(-2);
     fRun->SetRadLenRegister(kFALSE); // radiation length manager
 
     // SI-Digitizer
-    //BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2018;
-    //BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
-    //siliconDigit->SetCurrentConfig(si_config);
-    //siliconDigit->SetOnlyPrimary(kFALSE);
-    //siliconDigit->SetUseRealEffects(useRealEffects);
-    //fRun->AddTask(siliconDigit);
+    BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2018;
+    BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
+    siliconDigit->SetCurrentConfig(si_config);
+    siliconDigit->SetOnlyPrimary(kFALSE);
+    siliconDigit->SetUseRealEffects(useRealEffects);
+    fRun->AddTask(siliconDigit);
 
     // GEM-Digitizer
-    //BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2018;
-    //if (useRealEffects)
-    //    BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_6T);
-    //BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
-    //gemDigit->SetCurrentConfig(gem_config);
-    //gemDigit->SetOnlyPrimary(kFALSE);
-    //gemDigit->SetStripMatching(kTRUE);
-    //gemDigit->SetUseRealEffects(useRealEffects);
-    //fRun->AddTask(gemDigit);
+    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2018;
+    if (useRealEffects)
+        BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_6T);
+    BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
+    gemDigit->SetCurrentConfig(gem_config);
+    gemDigit->SetOnlyPrimary(kFALSE);
+    gemDigit->SetStripMatching(kTRUE);
+    gemDigit->SetUseRealEffects(useRealEffects);
+    fRun->AddTask(gemDigit);
 
     // CSC-Digitizer
     BmnCSCConfiguration::CSC_CONFIG csc_config = BmnCSCConfiguration::RunSpring2018;
@@ -375,10 +351,10 @@ if (BmnFunctionSet::CreateDirectoryTree(outFile, 1) < 0) exit(-2);
 
     //fRun->CreateGeometryFile("full_geometry.root");  // save the full setup geometry to the additional file
 
-//if ((generatorName == QGSM) || (generatorName == DCMQGSM)){
-//    TString Pdg_table_name = TString::Format("%s%s%c%s", gSystem->BaseName(inFile.Data()), ".g", (fRun->GetName())[6], ".pdg_table.dat");
-//    (TDatabasePDG::Instance())->WritePDGTable(Pdg_table_name.Data());
-//}
+if ((generatorName == QGSM) || (generatorName == DCMQGSM)){
+    TString Pdg_table_name = TString::Format("%s%s%c%s", gSystem->BaseName(inFile.Data()), ".g", (fRun->GetName())[6], ".pdg_table.dat");
+    (TDatabasePDG::Instance())->WritePDGTable(Pdg_table_name.Data());
+}
 
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();

@@ -1,9 +1,12 @@
 # Source files
 #SRCS=eventdisplay.cxx
+
 #SRCS=run_sim_src.cxx
 #SRCS=run_sim_bmn.cxx
+
 #SRCS=run_reco_bmn.cxx
 #SRCS=run_reco_src.cxx
+
 SRCS=$(wildcard *.cxx)
 
 # Compiler
@@ -63,11 +66,13 @@ CFLAGS += -I${FAIRROOTPATH}/include
 CFLAGS += -I$(SIMPATH)/include
 CFLAGS += -I$(ROOT_INCLUDE_PATH)
 CFLAGS += -I$(ROOT_INCLUDE_DIR)
+CFLAGS += -I$(GEANT3_INCLUDE_DIR)
 CFLAGS += --std=c++11 -g -O0
 
 LDFLAGS := $(shell $(ROOTCONFIG) --ldflags)
 LDFLAGS += -lEG $(shell $(ROOTCONFIG) --glibs)
 LDFLAGS += -L$(VMCWORKDIR)/build/lib
+LDFLAGS += -L$(GEANT3_LIBRARY_DIR)
 LDFLAGS += -L$(ROOT_LIBRARY_DIR) -L$(FAIRROOTPATH)/lib #-L/usr/lib64
 LDFLAGS += -lGlobalTracking -lBmnAlignment -lEventDisplay -lDecoder -lBmnSteering -lBmnDst -lCSC -lLAND -lSilicon -lMwpc
 LDFLAGS += -lSts -lBd -lEcal -lZdc -lRecoil -lPsd -lTOF -lGem -lTOF1 -lDch -lBmnPidSRC
@@ -75,7 +80,7 @@ LDFLAGS += -lCat -lKF -lBmnData -lBmnField -lMpdGen -lPassive -lGen -lUniDb
 LDFLAGS += -lBase -lGeoBase -lParBase -lTrkBase -lGeane -lEve -lFairTools
 LDFLAGS += -lXMLParser -lXMLIO -lSpectrum -lGenVector -lMinuit -lGeom
 LDFLAGS += -lGeomPainter -lVMC -lpthread -lTracking -lBC -lArmTrig -lFD
-LDFLAGS += -lHodo -lBmnQa -lScWall
+LDFLAGS += -lHodo -lBmnQa -lScWall -lgeant321 -lPythia6
 
 all:	$(OBJECTS)
 

@@ -10,7 +10,7 @@
 #
 #  GEANT3_FOUND - system has GEANT3
 #  GEANT3_INCLUDE_DIR - the GEANT3 include directory
-#  GEANT_LIBRARIES - The libraries needed to use GEANT3
+#  GEANT3_LIBRARIES - The libraries needed to use GEANT3
 #  GEANT_DEFINITIONS - Compiler switches required for using GEANT3
 #  GEANT3_SYSTEM_DIR - Base directory of the GEANT3 installation, needed for GCALOR
 

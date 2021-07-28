@@ -12,7 +12,6 @@
 #pragma link C++ class CbmStsDigiScheme+;
 #pragma link C++ class CbmStsIdealDigitize+;
 #pragma link C++ class CbmStsDigitize+;
-//#pragma link C++ class CbmStsDigitizeTb;
 #pragma link C++ class CbmStsIdealFindHits+;
 #pragma link C++ class CbmStsClusterFinder+;
 #pragma link C++ class CbmStsFindHits+;

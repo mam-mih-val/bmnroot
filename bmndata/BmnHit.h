@@ -10,7 +10,7 @@
 
 #include "FairHit.h"
 #include <TObject.h>
-#include "CbmDetectorList.h"
+#include "BmnDetectorList.h"
 #include "BmnMatch.h"
 
 using namespace std;

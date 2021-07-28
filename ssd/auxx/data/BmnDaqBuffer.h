@@ -11,7 +11,6 @@
 #include <string>
 #include <vector>
 
-#include "CbmDetectorList.h" //#include "CbmDefs.h"
 #include "BmnDigi.h"
 
 /** @class BmnDaqBuffer

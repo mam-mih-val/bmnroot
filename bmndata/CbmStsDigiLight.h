@@ -20,12 +20,9 @@
  ** The time is relative to the event time. 
  **/
 
-
 #ifndef CBMSTSDIGILIGHT_H
 #define CBMSTSDIGILIGHT_H 1
 
-
-#include "CbmDetectorList.h"
 #include "CbmDigi.h"
 #include "CbmStsDetectorId.h"
 
@@ -33,7 +30,6 @@
 
 class CbmStsDigiLight : public CbmDigi, public CbmStsDetectorId
 {
-
  public:
 
   /**   Default constructor   **/

@@ -18,7 +18,6 @@ void bmnloadlibs()
   gSystem->Load("libMpdGen");
 
   gSystem->Load("libTOF");
-  gSystem->Load("libPsd");
   gSystem->Load("libSts");
   gSystem->Load("libRecoil");
   gSystem->Load("libZdc");

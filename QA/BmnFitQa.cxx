@@ -156,9 +156,9 @@ void CbmLitFitQa::ProcessStsTrack(
    if (nofMvdHits > 0) { // first track parameters in MVD
       const CbmMvdHit* firstHit = static_cast<const CbmMvdHit*>(fMvdHits->At(track->GetMvdHitIndex(0)));
       Int_t firstStation = firstHit->GetStationNr() - 1; // to start with 0
-      if (mcTrack.GetNofPointsAtStation(kMVD, firstStation) > 0) {
-         const CbmLitMCPoint& firstPoint = mcTrack.GetPointAtStation(kMVD, firstStation, 0);
-         FillResidualsAndPulls(firstParam, &firstPoint, "htf_Sts_FirstParam_", nofMvdHits + nofStsHits, kMVD);
+      if (mcTrack.GetNofPointsAtStation(kSSD, firstStation) > 0) {
+         const CbmLitMCPoint& firstPoint = mcTrack.GetPointAtStation(kSSD, firstStation, 0);
+         FillResidualsAndPulls(firstParam, &firstPoint, "htf_Sts_FirstParam_", nofMvdHits + nofStsHits, kSSD);
       }
    } else { // first track parameters in STS
       const CbmStsHit* firstHit = static_cast<const CbmStsHit*>(fStsHits->At(track->GetHitIndex(0)));
@@ -279,7 +279,7 @@ void CbmLitFitQa::FillResidualsAndPulls(
 {
    // Residuals
    Double_t resX = 0., resY = 0., resTx = 0., resTy = 0., resQp = 0.;
-   if (detId == kMVD) { // Use MC average for MVD
+   if (detId == kSSD) { // Use MC average for MVD
       resX = par->GetX() - mcPoint->GetX();
       resY = par->GetY() - mcPoint->GetY();
       resTx = par->GetTx() - mcPoint->GetTx();

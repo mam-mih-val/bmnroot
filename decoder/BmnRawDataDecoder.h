@@ -91,7 +91,7 @@ const UInt_t kADC64VE_XGE = 0xD9;
 const UInt_t kADC64WR = 0xCA;
 const UInt_t kHRB = 0xC2;
 const UInt_t kFVME = 0xD1;
-const UInt_t kLAND = 0xDA;
+const UInt_t kLANDDAQ = 0xDA;
 const UInt_t kU40VE_RC = 0x4C;
 
 //event type trigger

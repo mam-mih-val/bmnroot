@@ -103,7 +103,6 @@ void CbmMCTrack::Print(Int_t trackId) const {
          << ", Type " << fPdgCode << ", momentum (" << fPx << ", "
          << fPy << ", " << fPz << ") GeV";
   LOG(DEBUG) << "       Ref " << GetNPoints(kREF)
-         << ", MVD "  << GetNPoints(kMVD)
          << ", GEM "  << GetNPoints(kGEM)
          << ", TOF1 " << GetNPoints(kTOF1)
          << ", DCH1 " << GetNPoints(kDCH)
@@ -143,7 +142,7 @@ Double_t CbmMCTrack::GetRapidity() const
 Int_t CbmMCTrack::GetNPoints(DetectorId detId) const
 {
   if      ( detId == kREF  ) return (  fNPoints &   1);
-  else if ( detId == kMVD  ) return ( (fNPoints & (  7  <<  1) ) >>  1);
+  //else if ( detId == kMVD  ) return ( (fNPoints & (  7  <<  1) ) >>  1);
   else if ( detId == kGEM  ) return ( (fNPoints & ( 15  <<  4) ) >>  4);
   else if ( detId == kTOF1 ) return ( (fNPoints & (  1  <<  8) ) >>  8);
   else if ( detId == kDCH ) return ( (fNPoints & ( 15  <<  9) ) >>  9);
@@ -178,11 +177,11 @@ void CbmMCTrack::SetNPoints(Int_t iDet, Int_t nPoints) {
     fNPoints = ( fNPoints & ( ~ 1 ) )  |  nPoints;
   }
 
-  else if ( iDet == kMVD ) {
+  /*else if ( iDet == kMVD ) {
     if      ( nPoints < 0 ) nPoints = 0;
     else if ( nPoints > 7 ) nPoints = 7;
     fNPoints = ( fNPoints & ( ~ (  7 <<  1 ) ) )  |  ( nPoints <<  1 );
-  }
+  }*/
 
   else if ( iDet == kGEM ) {
     if      ( nPoints <  0 ) nPoints =  0;

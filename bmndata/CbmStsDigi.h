@@ -18,12 +18,9 @@
  ** The time is relative to the event time. 
  **/
 
-
 #ifndef CBMSTSDIGI_H
 #define CBMSTSDIGI_H 1
 
-
-#include "CbmDetectorList.h"
 #include "CbmStsDetectorId.h"
 #include "FairMultiLinkedData.h"
 

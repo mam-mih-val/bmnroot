@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------
 #include "FairMCModuleDraw.h"
 #include "FairRootManager.h"
-#include "CbmPsdPoint.h"
+#include "BmnZdcPoint.h"
 #include "CbmMCTrack.h"
 #include "FairLogger.h"
 
@@ -22,8 +22,7 @@ FairMCModuleDraw::FairMCModuleDraw()
     fEventManager(NULL),
     fColor(0),
     fStyle(0)
-{
-}
+{}
 
 // -----   Standard constructor   ------------------------------------------
 FairMCModuleDraw::FairMCModuleDraw(const char* name, Color_t color ,Style_t mstyle,Int_t iVerbose)
@@ -72,7 +71,7 @@ void FairMCModuleDraw::Exec(Option_t* option)
   Int_t npoints = fPointList->GetEntriesFast();
   for (int i = 0; i < npoints; i++)
   {
-      CbmPsdPoint* p = (CbmPsdPoint*) fPointList->At(i);
+      BmnZdcPoint* p = (BmnZdcPoint*) fPointList->At(i);
 
       CbmMCTrack* pMCTrack = (CbmMCTrack*) fMCTracks->At(p->GetTrackID());
       if (!pMCTrack)
@@ -85,7 +84,7 @@ void FairMCModuleDraw::Exec(Option_t* option)
       Double32_t start_z = pMCTrack->GetStartZ();
       //cout<<"StartZ: "<<start_z<<cout<<endl;
       if (start_z < 1000.0)
-          pZDCModuleNumber[p->GetModuleID()] = true;
+          pZDCModuleNumber[p->GetCopyMother()] = true;
   }
 }
 

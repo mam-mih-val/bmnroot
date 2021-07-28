@@ -8,7 +8,6 @@
 #include "CbmStsPoint.h"
 #include "CbmGeoStsPar.h"
 
-#include "CbmDetectorList.h"
 #include "CbmStsDetectorId.h"
 #include "FairGeoInterface.h"
 #include "FairGeoLoader.h"

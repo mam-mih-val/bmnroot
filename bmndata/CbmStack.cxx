@@ -402,7 +402,7 @@ void CbmStack::SelectTracks()
     if(eKin < 0.0) { eKin=0.0; }
     // --> Calculate number of points
     Int_t nPoints = 0;
-    for (Int_t iDet = kMVD; iDet < kNOFDETS; iDet++)
+    for (Int_t iDet = kLAND; iDet < kNOFDETS; iDet++)
     {
       pair<Int_t, Int_t> a(i, iDet);
       if ( fPointsMap.find(a) != fPointsMap.end() ) {

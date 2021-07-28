@@ -10,7 +10,6 @@
 
 #include "FairTask.h"
 #include "CbmStsKFTrackFitter.h"
-#include "CbmDetectorList.h"
 #include "cbm/base/CbmLitDetectorSetup.h"
 #include <string>
 

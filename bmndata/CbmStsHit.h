@@ -16,22 +16,18 @@
  ** In case of pixel sensor backside channel is -1
  **/
 
-
-
 #ifndef CBMSTSSHIT_H
 #define CBMSTSSHIT_H 1
 
 #include "CbmHit.h"
+#include "BmnDetectorList.h"
 
-#include "CbmDetectorList.h"
+#include "TVector3.h"
 
-class TVector3;
 
 class CbmStsHit : public CbmHit
 {
-
  public:
-
   /** Default constructor (not for use) **/
   CbmStsHit();
 

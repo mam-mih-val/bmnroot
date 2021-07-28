@@ -5,8 +5,6 @@
 
 #include "BmnSsdPoint.h"
 
-#include "CbmDetectorList.h" //#include "CbmDefs.h"
-
 #include "FairLogger.h"
 
 #include <sstream>

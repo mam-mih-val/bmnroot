@@ -8,17 +8,22 @@
 #ifndef BMNCLUSTERINGQA_H_
 #define BMNCLUSTERINGQA_H_
 
-#include "FairTask.h"
-#include <string>
-#include <vector>
+#include "BmnDetectorList.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnSiliconStationSet.h"
-#include "CbmDetectorList.h"
+#include "BmnHistManager.h"
+
+#include "FairTask.h"
+
+#include "TClonesArray.h"
+
+#include <string>
+#include <vector>
+
 using std::string;
 using std::vector;
 using std::map;
-class BmnHistManager;
-class TClonesArray;
+
 
 class BmnClusteringQa : public FairTask {
 public:

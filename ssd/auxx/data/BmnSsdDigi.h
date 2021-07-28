@@ -5,11 +5,9 @@
  ** @version 6
  **/
 
-
 #ifndef BMNSSDDIGI_H
 #define BMNSSDDIGI_H 1
 
-#include "CbmDetectorList.h" //#include "CbmDefs.h"
 #include "BmnDigi.h"
 
 #ifndef __CINT__
@@ -27,7 +25,6 @@
  **/
 class BmnSsdDigi : public BmnDigi
 {
-
  public:
 
   /** Default constructor **/

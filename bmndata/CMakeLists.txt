@@ -44,10 +44,8 @@ set(SRCS
 
  common/BmnFunctionSet.cxx
 
- CbmDetectorList.cxx
- CbmMCBuffer.cxx
+ BmnDetectorList.cxx
  CbmMCPointBuffer.h
- CbmDaqBuffer.cxx
  CbmMCTrack.cxx
  CbmStack.cxx
  CbmDigi.cxx
@@ -74,10 +72,6 @@ set(SRCS
  CbmTofHit.cxx
  CbmTofTrack.cxx
  CbmEcalPoint.cxx
- CbmPsdPoint.cxx
- CbmPsdDigi.cxx
- CbmPsdHit.cxx
- CbmPsdEventData.cxx
  CbmGeoSttPar.cxx
 
  BmnEnums.h

@@ -39,9 +39,7 @@ void geometry(FairRunSim *fRun)
     tof2->SetGeometryFileName("tof2_v1.root");
     fRun->AddModule(tof2);
 
-    CbmPsdv1* zdc = new CbmPsdv1("PSD", kTRUE);
-    zdc->SetXshift(45.);
-    zdc->SetZposition(1000.);
-    zdc->SetHole(1); // 0 for no hole
+    BmnZdc* zdc = new BmnZdc("ZDC", kTRUE);
+    zdc->SetGeometryFileName("zdc_52modules_64layers_v1.geo");
     fRun->AddModule(zdc);
 }

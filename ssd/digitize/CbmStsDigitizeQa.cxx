@@ -8,7 +8,6 @@
 #include "CbmStsElement.h"
 #include "CbmStsSetup.h"
 #include "CbmMCDataManager.h"
-#include "CbmMCBuffer.h"
 #include "CbmSimulationReport.h"
 #include "CbmStsDigitizeQaReport.h"
 #include "CbmStsDigitizeParameters.h"

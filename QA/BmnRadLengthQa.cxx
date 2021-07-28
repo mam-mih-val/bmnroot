@@ -117,7 +117,7 @@ void CbmLitRadLengthQa::CreateHistograms()
    Int_t nofDetNames = detNames.size();
    for (Int_t iDet = 0; iDet < nofDetNames; iDet++) {
       string detName = detNames[iDet];
-      Bool_t createHistograms = detName == "Total" || (detName == "Mvd" && fDet.GetDet(kMVD)) || (detName == "Sts" && fDet.GetDet(kSTS))
+      Bool_t createHistograms = detName == "Total" || (detName == "Mvd" && fDet.GetDet(kSSD)) || (detName == "Sts" && fDet.GetDet(kSTS))
              || (detName == "Rich" && fDet.GetDet(kRICH)) || (detName == "Trd" && fDet.GetDet(kTRD))
              || (detName == "Much" && fDet.GetDet(kMUCH)) || (detName == "Tof" && fDet.GetDet(kTOF));
       if (!createHistograms) continue; // Create histograms only for the detectors wich are in the setup

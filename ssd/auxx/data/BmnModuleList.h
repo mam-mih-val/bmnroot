@@ -4,19 +4,14 @@
  ** @date 07.12.2018
  **/
 
-
 #ifndef BMNMODULELIST_H
 #define BMNMODULELIST_H 1
-
 
 #include <map>
 
 #include "Rtypes.h"
 #include "TString.h"
 #include "BmnAddress.h"
-#include "CbmDetectorList.h" //#include "BmnDefs.h"
-
-
 
 
 /** @class BmnModuleList
@@ -29,7 +24,6 @@
  **/
 class BmnModuleList
 {
-
   public:
 
     /**  Constructor   **/

@@ -3,8 +3,6 @@
  ** @date 17.05.2013
  **/
 
-
-#include "CbmDetectorList.h"
 #include "setup/CbmStsAddress.h"
 
 

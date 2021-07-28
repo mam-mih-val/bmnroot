@@ -25,7 +25,6 @@
 #include "BmnGlobalTrackDraw.h"
 #include "UniDbRun.h"
 #include "BmnFileSource.h"
-#include "CbmPsdPoint.h"
 #include "BmnNewFieldMap.h"
 
 #include <iostream>
@@ -232,8 +231,8 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         fMan->AddTask(DCHPoint);
         MpdMCPointDraw* TofPoint = new MpdMCPointDraw("TOF700Point", mcPointColor, pointMarker);
         fMan->AddTask(TofPoint);
-        FairMCModuleDraw* PsdPoint = new FairMCModuleDraw("PsdPoint", mcPointColor, pointMarker);
-        fMan->AddTask(PsdPoint);
+        FairMCModuleDraw* ZdcPoint = new FairMCModuleDraw("ZdcPoint", mcPointColor, pointMarker);
+        fMan->AddTask(ZdcPoint);
         MpdMCPointDraw* StsPoint = new MpdMCPointDraw("StsPoint", mcPointColor, pointMarker);
         fMan->AddTask(StsPoint);
         MpdMCPointDraw* SiliconPoint = new MpdMCPointDraw("SiliconPoint", mcPointColor, pointMarker);

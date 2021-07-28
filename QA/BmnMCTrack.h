@@ -7,8 +7,9 @@
 #ifndef BMNMCTRACK_H_
 #define BMNMCTRACK_H_
 
+#include "BmnDetectorList.h"
 #include "BmnMCPoint.h"
-#include "CbmDetectorList.h"
+
 #include <cassert>
 #include <map>
 #include <vector>
@@ -30,20 +31,17 @@ public:
     */
    BmnMCTrack() {
       // Initialize all maps
-      fPoints[kMVD];
       fPoints[kSILICON];
       fPoints[kSSD];
       fPoints[kGEM];
       fPoints[kTOF1];
       fPoints[kDCH];
       fPoints[kTOF];
-//      fStationPoints[kMVD];
 //      fStationPoints[kGEM];
 //      fStationPoints[kTOF1];
 //      fStationPoints[kDCH1];
 //      fStationPoints[kDCH2];
 //      fStationPoints[kTOF];
-//      fStationIds[kMVD];
 //      fStationIds[kGEM];
 //      fStationIds[kTOF1];
 //      fStationIds[kDCH1];
@@ -221,7 +219,6 @@ public:
    virtual string ToString() const {
       stringstream ss;
       ss << "MCTrack: ";
-      ss << PointsToString(kMVD, "MVD") << "|";
       ss << PointsToString(kGEM, "STS") << "|";
       ss << PointsToString(kTOF1, "TOF1") << "|";
       ss << PointsToString(kDCH, "DCH1") << "|";

@@ -22,15 +22,11 @@
 #ifndef CBMSTSDETECTORID_H
 #define CBMSTSDETECTORID_H 1
 
-
-
-#include "CbmDetectorList.h"
+#include "BmnDetectorList.h"
 
 class CbmStsDetectorId
 {
-
  public:
-
   /**    Constructor (empty)   **/
   CbmStsDetectorId() { }
 

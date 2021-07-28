@@ -14,23 +14,20 @@
  ** Redesign 13/06/07 by V. Friese
  **/
 
-
 #ifndef CBMMCTRACK_H
 #define CBMMCTRACK_H 1
 
-
-#include "CbmDetectorList.h"
+#include "BmnDetectorList.h"
 
 #include "TObject.h"
 #include "TMath.h"
 #include "TVector3.h"
+#include "TParticle.h"
 #include "TLorentzVector.h"
 
-class TParticle;
 
 class CbmMCTrack : public TObject
 {
-
  public:
 
   /**  Default constructor  **/

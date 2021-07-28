@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 #include <TObject.h>
-#include "CbmDetectorList.h" //#include "CbmDefs.h"
+#include "BmnDetectorList.h" //#include "CbmDefs.h"
 #include "BmnMatch.h"
 #include "BmnVertex.h"
 
@@ -47,7 +47,7 @@ class BmnEvent: public TObject {
 
 
 		/** Add a data object to the index map
-		 ** @param DataType  Type of data (for values see CbmDetectorList.h)
+         ** @param DataType  Type of data (for values see BmnDetectorList.h)
 		 ** @param Index     Index of the data object in its TClonesArray
 		 */
 		void AddData(DataType type, UInt_t index);
@@ -60,7 +60,7 @@ class BmnEvent: public TObject {
 
 
 		/** Get the index of a data object in its TClonesArray
-		 ** @param DataType  Type of data (for values see CbmDetectorList.h)
+         ** @param DataType  Type of data (for values see BmnDetectorList.h)
 		 ** @param iData     Running number of data object in event
 		 ** @value Index of data object in its TClonesArray
 		 **/
@@ -78,7 +78,7 @@ class BmnEvent: public TObject {
 
 
 		/** Get number of data objects of a given type in this event
-		 ** @param DataType  Type of data (for values see CbmDetectorList.h)
+         ** @param DataType  Type of data (for values see BmnDetectorList.h)
 		 ** @value Number of objects of type DataType in the event.
 		 ** -1 is data type is not registered.
 		 **/

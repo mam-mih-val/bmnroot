@@ -44,6 +44,7 @@ if (BMNROOT)
     ${CMAKE_SOURCE_DIR}/silicon
     ${CMAKE_SOURCE_DIR}/gem
     ${CMAKE_SOURCE_DIR}/dch
+    ${CMAKE_SOURCE_DIR}/zdc
   )
   Set(SRCS
     ${SRCS}

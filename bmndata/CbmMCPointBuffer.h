@@ -16,13 +16,7 @@
 #include "FairLogger.h"
 #include "FairMCPoint.h"
 
-#include "CbmDetectorList.h"
-
-
-
-
 using namespace std;
-
 
 
 /** @class IsBefore
@@ -39,8 +33,6 @@ template <class Point> class IsBefore {
     return ( point1.GetTime() < point2.GetTime() ); 
   }
 };
-
-
 
 
 /** @class CbmMCPointBuffer

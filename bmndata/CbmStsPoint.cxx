@@ -4,8 +4,7 @@
 // -------------------------------------------------------------------------
 
 #include "CbmStsPoint.h"
-
-#include "CbmDetectorList.h"
+#include "BmnDetectorList.h"
 
 #include <iostream>
 

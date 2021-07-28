@@ -24,16 +24,13 @@
  ** is accessible via GetMcPointIndex(). 
  **/
 
-
 #ifndef CBMSTSCLUSTER_H
 #define CBMSTSCLUSTER_H 1
 
 #include "FairMultiLinkedData.h"
-#include "CbmDetectorList.h"
 
 class CbmStsCluster : public FairMultiLinkedData
 {
-
  public:
 
   /** Default constructor **/

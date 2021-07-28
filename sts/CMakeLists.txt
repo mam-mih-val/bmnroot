@@ -43,8 +43,7 @@ CbmStsContFact.cxx
 CbmStsDigiPar.cxx 
 CbmStsDigiScheme.cxx 
 CbmStsIdealDigitize.cxx 
-CbmStsDigitize.cxx 
-#CbmStsDigitizeTb.cxx 
+CbmStsDigitize.cxx
 CbmStsIdealFindHits.cxx 
 CbmStsClusterFinder.cxx 
 CbmStsFindHits.cxx 

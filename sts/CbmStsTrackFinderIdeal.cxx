@@ -9,7 +9,6 @@
 #include "CbmStsTrack.h"
 
 // CBM includes
-#include "CbmDetectorList.h"
 #include "FairMCPoint.h"
 #include "CbmMCTrack.h"
 #include "FairRootManager.h"

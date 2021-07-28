@@ -26,22 +26,18 @@
  ** By default, the minimal number of points is 1 and the energy cut is 0.
  **/
 
-
 #ifndef CBMSTACK_H
 #define CBMSTACK_H
 
-
-#include "CbmDetectorList.h"
+#include "BmnDetectorList.h"
 #include "FairGenericStack.h"
-
+#include "TClonesArray.h"
 #include <map>
 #include <stack>
 
-class TClonesArray;
 
 class CbmStack : public FairGenericStack
 {
-
  public:
 
   /** Default constructor

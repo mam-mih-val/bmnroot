@@ -6,7 +6,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class CbmDetectorList+;
+#pragma link C++ class BmnDetectorList+;
 #pragma link C++ class CbmBaseHit+;
 #pragma link C++ class CbmHit+;
 #pragma link C++ class CbmPixelHit+;
@@ -16,13 +16,11 @@
 #pragma link C++ class BmnDchHitOriginal+;
 #pragma link C++ class BmnGlobalTrack+;
 
-#pragma link C++ class CbmMCBuffer+;
 #pragma link C++ class CbmMvdPoint+;
 #pragma link C++ class CbmMvdDetectorId+;
 #pragma link C++ class CbmTofHit+;
 #pragma link C++ class CbmTofPoint+;
 #pragma link C++ class CbmEcalPoint+;
-#pragma link C++ class CbmDaqBuffer+;
 #pragma link C++ class CbmDigi+;
 #pragma link C++ class CbmStsDigiLight+;
 
@@ -42,10 +40,6 @@
 #pragma link C++ class CbmMvdHit+;
 #pragma link C++ class CbmMvdHitMatch+;
 #pragma link C++ class CbmGlobalTrack+;
-#pragma link C++ class CbmPsdPoint+;
-#pragma link C++ class CbmPsdHit+;
-#pragma link C++ class CbmPsdDigi+;
-#pragma link C++ class CbmPsdEventData+;
 #pragma link C++ class CbmMvdGeoPar+;
 #pragma link C++ class CbmGeoSttPar+;
 

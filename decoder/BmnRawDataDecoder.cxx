@@ -459,7 +459,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             case kHRB:
                 Process_HRB(&d[idx], payload, serial);
                 break;
-            case kLAND:
+            case kLANDDAQ:
                 Process_Tacquila(&d[idx], payload);
                 break;
         }

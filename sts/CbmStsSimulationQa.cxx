@@ -10,7 +10,6 @@
 //#include "CbmStsTrackMatch.h"
 #include "CbmGeoStsPar.h"
 
-#include "CbmDetectorList.h"
 #include "FairGeoNode.h"
 #include "FairGeoPassivePar.h"
 #include "FairGeoTransform.h"

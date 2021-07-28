@@ -23,7 +23,6 @@ map<Int_t, TString> CbmModuleList::DefineModules() {
   data[kTrd]      = "trd";
   data[kTof]      = "tof";
   data[kEcal]     = "ecal";
-  data[kPsd]      = "psd";
   data[kDummyDet] = "dummy";
   data[kMagnet]   = "magnet";
   data[kTarget]   = "target";

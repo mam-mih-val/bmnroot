@@ -23,7 +23,8 @@ void g3libs()
      gSystem->Load("libdummies.so");
                    // libdummies.so needed from geant3_+vmc version 0.5
 
-  gSystem->Load("libPythia6.so");
+  if (gSystem->Load("libPythia6.so") < 0) //Old FairSoft
+    gSystem->Load("libpythia6.so");
   gSystem->Load("libEGPythia6.so");
   gSystem->Load("libgeant321.so");
 

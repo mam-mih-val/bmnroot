@@ -141,117 +141,113 @@ Double_t CbmMCTrack::GetRapidity() const
 // -----   Public method GetNPoints   --------------------------------------
 Int_t CbmMCTrack::GetNPoints(DetectorId detId) const
 {
-  if      ( detId == kREF  ) return (  fNPoints &   1);
-  //else if ( detId == kMVD  ) return ( (fNPoints & (  7  <<  1) ) >>  1);
-  else if ( detId == kGEM  ) return ( (fNPoints & ( 15  <<  4) ) >>  4);
-  else if ( detId == kTOF1 ) return ( (fNPoints & (  1  <<  8) ) >>  8);
-  else if ( detId == kDCH ) return ( (fNPoints & ( 15  <<  9) ) >>  9);
-  else if ( detId == kTOF  ) return ( (fNPoints & (  1  << 17) ) >> 17);
-  else if ( detId == kZDC  ) return ( (fNPoints & ( 15  << 18) ) >> 18);
-  else if ( detId == kECAL  ) return ( (fNPoints & ( 3  << 22) ) >> 22);
-  else if ( detId == kBD  ) return ( (fNPoints & ( 1  << 24) ) >> 24);
-  else if ( detId == kRECOIL ) return ((fNPoints & ( 63  << 25) ) >> 25);
-  else if ( detId == kMWPC ) return 0;
-  else if ( detId == kARMTRIG) return 0;
-  else if ( detId == kBC) return 0;
-  else if ( detId == kSILICON ) return 0;
-  else if ( detId == kCSC ) return 0;
-  else if ( detId == kSSD ) return 0;
-  else if ( detId == kSCWALL ) return 0;
-  else if ( detId == kHODO ) return 0;
-  else {
-    LOG(ERROR) << "GetNPoints: Unknown detector ID "
-           << detId;
-    return 0;
-  }
+    if      ( detId == kREF  ) return (  fNPoints &   1);
+    else if ( detId == kLAND  ) return ( (fNPoints & (  7  <<  1) ) >>  1);
+    else if ( detId == kGEM  ) return ( (fNPoints & ( 15  <<  4) ) >>  4);
+    else if ( detId == kTOF1 ) return ( (fNPoints & (  1  <<  8) ) >>  8);
+    else if ( detId == kDCH ) return ( (fNPoints & ( 15  <<  9) ) >>  9);
+    else if ( detId == kTOF  ) return ( (fNPoints & (  1  << 17) ) >> 17);
+    else if ( detId == kZDC  ) return ( (fNPoints & ( 15  << 18) ) >> 18);
+    else if ( detId == kRECOIL ) return ((fNPoints & ( 63  << 25) ) >> 25);
+    else if ( detId == kECAL  ) return ( (fNPoints & ( 3  << 22) ) >> 22);
+    else if ( detId == kBD  ) return ( (fNPoints & ( 1  << 24) ) >> 24);
+    else if ( detId == kMWPC ) return 0;
+    else if ( detId == kSILICON ) return 0;
+    else if ( detId == kCSC ) return 0;
+    else if ( detId == kFD ) return 0;
+    else if ( detId == kSSD ) return 0;
+    else if ( detId == kARMTRIG) return 0;
+    else if ( detId == kBC) return 0;
+    else if ( detId == kSCWALL ) return 0;
+    else if ( detId == kHODO ) return 0;
+    else {
+        LOG(ERROR) << "GetNPoints: Unknown detector ID " << detId;
+        return 0;
+    }
 }
-// -------------------------------------------------------------------------
-
 
 // -----   Public method SetNPoints   --------------------------------------
-void CbmMCTrack::SetNPoints(Int_t iDet, Int_t nPoints) {
+void CbmMCTrack::SetNPoints(Int_t iDet, Int_t nPoints)
+{
+    if ( iDet == kREF ) {
+        if      ( nPoints < 0 ) nPoints = 0;
+        else if ( nPoints > 1 ) nPoints = 1;
+        fNPoints = ( fNPoints & ( ~ 1 ) )  |  nPoints;
+    }
 
-  if ( iDet == kREF ) {
-    if      ( nPoints < 0 ) nPoints = 0;
-    else if ( nPoints > 1 ) nPoints = 1;
-    fNPoints = ( fNPoints & ( ~ 1 ) )  |  nPoints;
-  }
+    else if ( iDet == kLAND ) {
+        if      ( nPoints < 0 ) nPoints = 0;
+        else if ( nPoints > 7 ) nPoints = 7;
+        fNPoints = ( fNPoints & ( ~ (  7 <<  1 ) ) )  |  ( nPoints <<  1 );
+    }
 
-  /*else if ( iDet == kMVD ) {
-    if      ( nPoints < 0 ) nPoints = 0;
-    else if ( nPoints > 7 ) nPoints = 7;
-    fNPoints = ( fNPoints & ( ~ (  7 <<  1 ) ) )  |  ( nPoints <<  1 );
-  }*/
+    else if ( iDet == kGEM ) {
+        if      ( nPoints <  0 ) nPoints =  0;
+        else if ( nPoints > 15 ) nPoints = 15;
+        fNPoints = ( fNPoints & ( ~ ( 15 <<  4 ) ) )  |  ( nPoints <<  4 );
+    }
 
-  else if ( iDet == kGEM ) {
-    if      ( nPoints <  0 ) nPoints =  0;
-    else if ( nPoints > 15 ) nPoints = 15;
-    fNPoints = ( fNPoints & ( ~ ( 15 <<  4 ) ) )  |  ( nPoints <<  4 );
-  }
+    else if ( iDet == kTOF1 ) {
+        if      ( nPoints < 0 ) nPoints = 0;
+        else if ( nPoints > 1 ) nPoints = 1;
+        fNPoints = ( fNPoints & ( ~ (  1 <<  8 ) ) )  |  ( nPoints <<  8 );
+    }
 
-  else if ( iDet == kTOF1 ) {
-    if      ( nPoints < 0 ) nPoints = 0;
-    else if ( nPoints > 1 ) nPoints = 1;
-    fNPoints = ( fNPoints & ( ~ (  1 <<  8 ) ) )  |  ( nPoints <<  8 );
-  }
+    else if ( iDet == kDCH ) {
+        if      ( nPoints <  0 ) nPoints =  0;
+        else if ( nPoints > 15 ) nPoints = 15;
+        fNPoints = ( fNPoints & ( ~ ( 15 <<  9 ) ) )  |  ( nPoints <<  9 );
+    }
 
-  else if ( iDet == kDCH ) {
-    if      ( nPoints <  0 ) nPoints =  0;
-    else if ( nPoints > 15 ) nPoints = 15;
-    fNPoints = ( fNPoints & ( ~ ( 15 <<  9 ) ) )  |  ( nPoints <<  9 );
-  }
+    else if ( iDet == kTOF ) {
+        if      ( nPoints <  0 ) nPoints =  0;
+        else if ( nPoints >  1 ) nPoints =  1;
+        fNPoints = ( fNPoints & ( ~ (  1 << 17 ) ) )  |  ( nPoints << 17 );
+    }
 
-  else if ( iDet == kTOF ) {
-    if      ( nPoints <  0 ) nPoints =  0;
-    else if ( nPoints >  1 ) nPoints =  1;
-    fNPoints = ( fNPoints & ( ~ (  1 << 17 ) ) )  |  ( nPoints << 17 );
-  }
+    else if ( iDet == kZDC ) {
+        if      ( nPoints <  0 ) nPoints = 0;
+        else if ( nPoints > 15) nPoints = 15;
+        fNPoints = ( fNPoints & ( ~ (15 << 18 ) ) )  |  ( nPoints << 18 );
+    }
 
-  else if ( iDet == kZDC ) {
-    if      ( nPoints <  0 ) nPoints = 0;
-    else if ( nPoints > 15) nPoints = 15;
-    fNPoints = ( fNPoints & ( ~ (15 << 18 ) ) )  |  ( nPoints << 18 );
-  }
+    else if ( iDet == kECAL ) {
+        if      ( nPoints <  0 ) nPoints = 0;
+        else if ( nPoints > 3) nPoints = 3;
+        fNPoints = ( fNPoints & ( ~ (3 << 22 ) ) )  |  ( nPoints << 22 );
+    }
 
-  else if ( iDet == kECAL ) {
-    if      ( nPoints <  0 ) nPoints = 0;
-    else if ( nPoints > 3) nPoints = 3;
-    fNPoints = ( fNPoints & ( ~ (3 << 22 ) ) )  |  ( nPoints << 22 );
-  }
+    else if ( iDet == kBD ) {
+        if      ( nPoints <  0 ) nPoints = 0;
+        else if ( nPoints > 1) nPoints = 1;
+        fNPoints = ( fNPoints & ( ~ (1 << 24 ) ) )  |  ( nPoints << 24 );
+    }
 
-  else if ( iDet == kBD ) {
-    if      ( nPoints <  0 ) nPoints = 0;
-    else if ( nPoints > 1) nPoints = 1;
-    fNPoints = ( fNPoints & ( ~ (1 << 24 ) ) )  |  ( nPoints << 24 );
-  }
+    else if ( iDet == kRECOIL) {
+        if      ( nPoints < 0  ) nPoints = 0;
+        else if ( nPoints > 63 ) nPoints = 63;
+        fNPoints = ( fNPoints & ( ~ ( 63 << 25 ) ) )  |  ( nPoints << 25 );
+    }
 
-  else if ( iDet == kRECOIL) {
-    if      ( nPoints < 0  ) nPoints = 0;
-    else if ( nPoints > 63 ) nPoints = 63;
-    fNPoints = ( fNPoints & ( ~ ( 63 << 25 ) ) )  |  ( nPoints << 25 );
-  }
+    else if ( iDet == kMWPC) { }
 
-  else if ( iDet == kMWPC) { }
+    else if ( iDet == kSILICON) { }
+
+    else if ( iDet == kCSC) { }
+
+    else if ( iDet == kFD) { }
+
+    else if ( iDet == kSSD) { }
   
-  else if ( iDet == kARMTRIG) { }
+    else if ( iDet == kARMTRIG) { }
 
-  else if ( iDet == kBC) { }
+    else if ( iDet == kBC) { }
 
-  else if ( iDet == kSILICON) { }
+    else if ( iDet == kSCWALL) { }
 
-  else if ( iDet == kCSC) { }
+    else if ( iDet == kHODO) { }
 
-  else if ( iDet == kSSD) { }
-
-  else if ( iDet == kFD) { }
-
-  else if ( iDet == kSCWALL) { }
-
-  else if ( iDet == kHODO) { }
-
-  else LOG(ERROR) << "Unknown detector ID " << iDet;
-
+    else LOG(ERROR) << "Unknown detector ID " << iDet;
 }
-// -------------------------------------------------------------------------
 
 ClassImp(CbmMCTrack)

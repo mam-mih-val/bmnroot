@@ -162,14 +162,14 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // ====================================================================== //
     // ===                         TOF400 hit finder                      === //
     // ====================================================================== //
-    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
+    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kFALSE);
     tof1HP->SetPeriodRun(run_period, run_number);
     fRunAna->AddTask(tof1HP);
 
     // ====================================================================== //
     // ===                         TOF700 hit finder                      === //
     // ====================================================================== //
-    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7_panin.txt", !isExp, iVerbose, kTRUE);
+    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run7_panin.txt", !isExp, iVerbose, kFALSE);
     tof2HP->SetTimeResolution(0.115);
     tof2HP->SetMCTimeFile("TOF700_MC_src_qgsm_time_run7.txt");
     tof2HP->SetMainStripSelection(1); // 0 - minimal time, 1 - maximal amplitude

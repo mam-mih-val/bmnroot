@@ -180,7 +180,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     if (shift != tai_utc_dif)
         fprintf(stderr, ANSI_COLOR_RED "Critical Warning! Leap second added during the %i run!\n\n" ANSI_COLOR_RESET, fRunId);
     //    fRunEndTime = TTimeStamp(time_t(fTime_s - shift), fTime_ns);
-//    fRawTree->Fill();
+    //    fRawTree->Fill();
 
     fCurentPositionRawFile = ftello64(fRawFileIn);
     printf("Read %d events; %lld bytes (%.3f Mb)\n\n", fNevents, fCurentPositionRawFile, fCurentPositionRawFile / 1024. / 1024.);
@@ -787,15 +787,15 @@ BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t s
             //            printf("%d type = %u %08X\n", j, type, type);
             //            }
             idx += 4;
-//            printf("EvId %6u cand %7u, acc %5u, bef %5u, after %5u, rjct %7u, all %8u, avail %8u\n",
-//                    fEventId,
-//                    trigInfo->GetTrigCand(),
-//                    trigInfo->GetTrigAccepted(),
-//                    trigInfo->GetTrigBefo(),
-//                    trigInfo->GetTrigAfter(),
-//                    trigInfo->GetTrigRjct(),
-//                    trigInfo->GetTrigAll(),
-//                    trigInfo->GetTrigAvail());
+            //            printf("EvId %6u cand %7u, acc %5u, bef %5u, after %5u, rjct %7u, all %8u, avail %8u\n",
+            //                    fEventId,
+            //                    trigInfo->GetTrigCand(),
+            //                    trigInfo->GetTrigAccepted(),
+            //                    trigInfo->GetTrigBefo(),
+            //                    trigInfo->GetTrigAfter(),
+            //                    trigInfo->GetTrigRjct(),
+            //                    trigInfo->GetTrigAll(),
+            //                    trigInfo->GetTrigAvail());
             countersDone = kTRUE;
             //            if (trigInfoTemp)
             //                delete trigInfoTemp;
@@ -803,6 +803,7 @@ BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t s
         }
         idx++; //go to the next DATA-word
         type = d[idx] >> 28;
+        //                    printf("\t            type %u slot %u idx %u\n", type, slot, idx);
     }
 
     return kBMNSUCCESS;
@@ -929,22 +930,22 @@ BmnStatus BmnRawDataDecoder::FillMSC(UInt_t* d, UInt_t serial, UInt_t slot, UInt
     UInt_t iCnt = 0;
     BmnMSCDigit *dig = new((*msc)[msc->GetEntriesFast()]) BmnMSCDigit(serial, slot, fEventId);
     UInt_t *cntrArrCur = dig->GetValue();
-//    printf("MSC type %u serial %08X  eventID = %6u\n", type, serial, fEventId);
-//    printf("\t%u events \n", nSpillEvents);
+    //    printf("MSC type %u serial %08X  eventID = %6u\n", type, serial, fEventId);
+    //    printf("\t%u events \n", nSpillEvents);
     while (type < 6) {
         if (type < 5) {
             UInt_t cnt3 = (d[idx] >> 21) & (BIT(8) - 1);
             UInt_t cnt2 = (d[idx] >> 14) & (BIT(8) - 1);
             UInt_t cnt1 = (d[idx] >> 7) & (BIT(8) - 1);
             UInt_t cnt0 = d[idx] & (BIT(8) - 1);
-//            printf("type = %u  %06u  %06u  %06u  %06u  \n", type, cnt3, cnt2, cnt1, cnt0);
+            //            printf("type = %u  %06u  %06u  %06u  %06u  \n", type, cnt3, cnt2, cnt1, cnt0);
         } else
             if (type == 5) {
             UInt_t cnt = d[idx] & (BIT(28) - 1);
             if (iCnt >= nCnt)
                 continue;
             cntrArrCur[iCnt++] = cnt;
-//            printf("\ttype = %u  arr[%2u] = %8u\n", type, iCnt - 1, cntrArrCur[iCnt - 1]);
+            //            printf("\ttype = %u  arr[%2u] = %8u\n", type, iCnt - 1, cntrArrCur[iCnt - 1]);
         }
         type = (d[++idx] >> 28) & (BIT(5) - 1);
     }
@@ -1083,6 +1084,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                     if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsAugmented();
                     if (fCscMapper)fCscMapper->RecalculatePedestalsAugmented();
                     fPedEvCntr = 0;
+//                    if (fSiliconMapper) {
+//                        fSiliconMapper->DrawDebugHists("sil-ped-cms.pdf");
+//                        fSiliconMapper->ClearDebugHists();
+//                    }
                 }
             }
             if (fVerbose == 1) {
@@ -1209,11 +1214,11 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             //            int map_channel[] = {1, 3, 0, 5, 2, 6, 4};
             //            TString date_start = fRunStartTime.AsSQLString(); // 1252 run
             //            TString date_end = fRunEndTime.AsSQLString();
-            //
+//            
             //            UInt_t runLength = fRunEndTime.Convert() - fRunStartTime.Convert(); //in seconds
             //            Double_t timeStep = runLength * 1.0 / fNevents; //time for one event
             //            //printf("Run duration = %d sec.\t TimeStep = %f sec./event\n", runLength, timeStep);
-            //
+//            
             //            TObjArray* tango_data_gem = db_tango.SearchTangoIntervals((char*) "gem", (char*) "trip", (char*) date_start.Data(), (char*) date_end.Data(), condition, condition_value, map_channel);
             //            if (tango_data_gem) {
             //                for (Int_t i = 0; i < tango_data_gem->GetEntriesFast(); ++i) {
@@ -1223,7 +1228,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             //                            TangoTimeInterval* ti = (TangoTimeInterval*) currGemTripInfo->At(j);
             //                            startTripEvent.push_back(UInt_t((ti->start_time.Convert() - fRunStartTime.Convert()) / timeStep));
             //                            endTripEvent.push_back(UInt_t((ti->end_time.Convert() - fRunStartTime.Convert()) / timeStep));
-            //                        }
+//                        }
             //                }
             //            }
         }
@@ -1237,7 +1242,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             }
         }
         if (fVerbose == 1) {
-//            if (iEv % 5000 == 0) cout << "Digitization event #" << fEventId << "/" << fNevents << "; Spill #" << fSpillCntr << endl;
+            //            if (iEv % 5000 == 0) cout << "Digitization event #" << fEventId << "/" << fNevents << "; Spill #" << fSpillCntr << endl;
         } else if (fVerbose == 0)
             DrawBar(iEv, fNevents);
 
@@ -1304,6 +1309,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         fDigiTree->Fill();
         prevEventType = curEventType;
     }
+//                    if (fSiliconMapper) {
+//                        fSiliconMapper->DrawDebugHists("sil-sig-cms.pdf");
+//                        fSiliconMapper->ClearDebugHists();
+//                    }
 
     if (fTof700Mapper) {
         fTof700Mapper->WriteSlewingResults();
@@ -1340,12 +1349,12 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
             conf.get<string>("Decoder.DigiTreeTitle").c_str());
     eventHeader = new BmnEventHeader();
     fDigiTree->Branch("BmnEventHeader.", &eventHeader);
-    
+
     fDigiTreeSpills = new TTree("spill", "spill");
     spillHeader = new BmnSpillHeader();
     fDigiTreeSpills->Branch("BmnSpillHeader.", &spillHeader);
-    
-    
+
+
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
     if (fDetectorSetup[0]) {
@@ -1456,7 +1465,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
             fCscMapper = new BmnCscRaw2Digit(fPeriodId, fRunId, fCscSerials);
     }
     if (fRawTreeSpills)
-        fMSCMapper = new BmnMscRaw2Digit(fMSCMapFileName, fRawTreeSpills, fDigiTreeSpills);
+        fMSCMapper = new BmnMscRaw2Digit(fPeriodId, fRunId, fMSCMapFileName, fRawTreeSpills, fDigiTreeSpills);
 
     fPedEvCntr = 0; // counter for pedestal events between two recalculations
     fPedEvCntrBySpill = 0; // counter for pedestal events between two spills

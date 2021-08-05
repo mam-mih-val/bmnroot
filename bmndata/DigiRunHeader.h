@@ -16,7 +16,7 @@ private:
     TTimeStamp fRunEndTime;
     ULong64_t fBeamTrigger;
     ULong64_t fBTnBusy;
-    Double_t fBTAccepted; ///< BT&notBusy normalized according to Acc/(Acc + BP + AP)
+    Double_t fBTAccepted; ///< BT&notBusy normalized according to Acc/(Acc + BP + AP) | for SRC => sum [BT * (DAQ_Busy -peds)/ (DAQ_TRigger - peds)]
     ULong64_t fAccepted;
     ULong64_t fProtection;
     ULong64_t fL0;

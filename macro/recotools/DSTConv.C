@@ -1,7 +1,8 @@
 
 const Int_t CutMinNTracksPV = 2;
 
-void FilterPV_CBM(TString BaseName, TString TempBaseName, Double_t minZ = -5.45, Double_t maxZ = 6.55) {
+//void FilterPV_CBM(TString BaseName, TString TempBaseName, Double_t minZ = -5.45, Double_t maxZ = 6.55) {
+void FilterPV(TString BaseName, TString TempBaseName, Double_t minZ = -7.15, Double_t maxZ = 4.85) {
     printf("\nCloning selected exp events:");
     TFile *BaseHits = new TFile(BaseName, "READ");
     if (BaseHits->IsOpen() == false) {

@@ -1,9 +1,19 @@
 #include "BmnMscRaw2Digit.h"
 
-BmnMscRaw2Digit::BmnMscRaw2Digit(TString MapFile, TTree *spillTree, TTree *digiSpillTree) {
+BmnMscRaw2Digit::BmnMscRaw2Digit(Int_t period, Int_t run, TString MapFile, TTree *spillTree, TTree *digiSpillTree) {
+    fBmnSetup = MapFile.Contains("SRC") ? kSRCSETUP : kBMNSETUP;
+    fPeriodId = period;
+    fRunId = run;
     SetRawSpillTree(spillTree);
     SetDigSpillTree(digiSpillTree);
     ReadChannelMap(MapFile);
+    ParseTxtSpillLog(
+            fBmnSetup == kSRCSETUP ?
+            "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/SRC_Data.txt" :
+            "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/summary_corr_v2.txt",
+            fBmnSetup == kSRCSETUP ?
+            "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/spill_run7_src_full.xslt" :
+            "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/spill_run7_bmn_full.xslt");
 }
 
 BmnStatus BmnMscRaw2Digit::ReadChannelMap(TString mappingFile) {
@@ -56,6 +66,92 @@ BmnStatus BmnMscRaw2Digit::ReadChannelMap(TString mappingFile) {
     return kBMNSUCCESS;
 }
 
+BmnStatus BmnMscRaw2Digit::ParseTxtSpillLog(TString LogName, TString SchemeName) {
+    TString beam = "";
+    TString target = "";
+    Int_t log_shift_bmn = 6;
+    Int_t log_shift_src = -3;
+    fLogShift = fBmnSetup == kBMNSETUP ? log_shift_bmn : log_shift_src;
+    UniParser parser;
+    vector<structParseValue*> parse_values;
+    vector<structParseSchema> vecElements;
+    int res_code = parser.ParseTxt2Struct(LogName, SchemeName, parse_values, vecElements, fVerbose);
+    if (res_code != 0) {
+        cout << endl << "Error: parser error (" << res_code << ")" << endl;
+        return kBMNERROR;
+    }
+
+    if (parse_values.size() < 1) {
+        cout << endl << "Error: there are no lines to parse" << endl;
+        return kBMNERROR;
+    }
+
+    TObjArray* pRunArray = NULL;
+    // select only with a given condition, e.g. target particle
+    TObjArray arrayConditions;
+    arrayConditions.SetOwner(kTRUE);
+
+    UniSearchCondition* searchCondition = new UniSearchCondition(columnPeriodNumber, conditionEqual, fPeriodId);
+    arrayConditions.Add((TObject*) searchCondition);
+    if (target != "") {
+        searchCondition = new UniSearchCondition(columnTargetParticle, conditionEqual, target); // one can choose any condition: beam, energy...
+        arrayConditions.Add((TObject*) searchCondition);
+    }
+    if (beam != "") {
+        searchCondition = new UniSearchCondition(columnBeamParticle, conditionEqual, beam);
+        arrayConditions.Add((TObject*) searchCondition);
+    }
+
+    int sum_size = parse_values[0]->arrValues.size();
+
+    for (int ind = 0; ind < parse_values.size(); ind++) {
+        structParseValue* st = parse_values.at(ind);
+        vector<Int_t> vals;
+        for (Int_t iValue = 0; iValue < sum_size; iValue++)
+            vals.push_back(boost::any_cast<Int_t>(st->arrValues[iValue]));
+//        printf("spill end was %s\n", st->dtSpillEnd.AsSQLString());
+        st->dtSpillEnd.Set(st->dtSpillEnd.Convert() - fLogShift);
+//        printf("spill end now %s\n\n", st->dtSpillEnd.AsSQLString());
+        spill_map.insert(pair<TDatime, vector < Int_t >> (st->dtSpillEnd, vals));
+    }
+
+    vector<Long64_t> total_columns;
+    for (int i_total = 0; i_total < sum_size; i_total++)
+        total_columns.push_back(0);
+    // get run time
+    UniDbRun* pRun = UniDbRun::GetRun(fPeriodId, fRunId);
+    if (pRun == NULL) {
+        cout << endl << "Error: no experimental run was found " << fPeriodId << " : " << fRunId << endl;
+        return kBMNERROR;
+    }
+    dtStart = pRun->GetStartDatetime();
+    TDatime* dateEnd = pRun->GetEndDatetime();
+    if (dateEnd == NULL) {
+        cout << "Error: no end datetime in the database for this run" << endl;
+        delete pRun;
+        return kBMNERROR;
+    }
+    dtEnd = *dateEnd;
+    delete pRun;
+    fSpillMapIter = spill_map.lower_bound(dtStart);
+    // check for presence in ELOG
+    TObjArray* recs = ElogDbRecord::GetRecords(fPeriodId, fRunId);
+    if (recs == NULL) {
+        fprintf(stderr, "ELOG Error!\n");
+        return kBMNERROR;
+    } else
+        if (recs->GetEntries() == 0) {
+        fprintf(stderr, "Run %d not found in ELOG!\n", fRunId);
+        //        return NULL;
+        return kBMNERROR;
+    }
+    printf("Run %d  %s", fRunId, dtStart.AsSQLString());
+    printf(" - %s\n", dtEnd.AsSQLString());
+
+    return kBMNSUCCESS;
+
+}
+
 void BmnMscRaw2Digit::FillRunHeader(DigiRunHeader *rh) {
     if (rh) {
         rh->SetBT(fBT);
@@ -70,16 +166,17 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
     sh->Clear();
     BmnTrigInfo *ti = hdr->GetTrigInfo();
     UInt_t iEv = hdr->GetEventId();
-//    printf("iEv %u  iSpill %u\n", iEv, iSpill);
+    //    printf("iEv %u  iSpill %u\n", iEv, iSpill);
     for (Int_t iAdc = 0; iAdc < msc->GetEntriesFast(); ++iAdc) {
         BmnMSCDigit* dig = (BmnMSCDigit*) msc->At(iAdc);
-//        printf("dig->GetLastEventId() %u  serial %08X\n", dig->GetLastEventId(), dig->GetSerial());
+        //        printf("dig->GetLastEventId() %u  serial %08X\n", dig->GetLastEventId(), dig->GetSerial());
         if (dig->GetLastEventId() > iEv)
             break;
         if (dig->GetLastEventId() < iEv) {
             //            fprintf(stderr, "Spill %u last event %u lost! Curent evId %u \n",
             //                    iSpill, dig->GetLastEventId(), iEv);
             fRawSpillTree->GetEntry(++iSpill);
+            ++fSpillMapIter;
             nPedEvBySpill = 0;
             return kBMNERROR;
         }
@@ -93,12 +190,25 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
                 fProtection += arr[mRec.TriggerProtection];
                 fL0 += arr[mRec.L0];
                 UInt_t AcceptedReal = ti->GetTrigAccepted() - nPedEvBySpill;
-                UInt_t den =
-                        AcceptedReal +
-                        ti->GetTrigBefo() +
-                        ti->GetTrigAfter();
-                if (den > 0)
-                    fBTAccepted += arr[mRec.BTnBusy] * AcceptedReal / (Double_t) den;
+                if (fBmnSetup == kSRCSETUP) {
+                    printf(" spill  %s\n", fSpillMapIter->first.AsSQLString());
+                    vector<Int_t> v = fSpillMapIter->second;
+                    /** flux ~= sum [BT * (DAQ_Busy -peds)/ (DAQ_TRigger - peds)]*/
+                    Double_t BT = v[15];
+                    Double_t DAQ_Busy = v[21];
+                    Double_t DAQ_Trigger = v[22];
+                    if (DAQ_Trigger - nPedEvBySpill != 0)
+                        fBTAccepted += BT * (DAQ_Busy - nPedEvBySpill) / (DAQ_Trigger - nPedEvBySpill);
+                    printf("BT %f DAQ_Busy %f  DAQ_Trigger %f  flux %f\n", 
+                            BT, DAQ_Busy, DAQ_Trigger, fBTAccepted);
+                } else { // BM@N setup
+                    UInt_t den =
+                            AcceptedReal +
+                            ti->GetTrigBefo() +
+                            ti->GetTrigAfter();
+                    if (den > 0)
+                        fBTAccepted += arr[mRec.BTnBusy] * AcceptedReal / (Double_t) den;
+                }
                 fAccepted += AcceptedReal;
                 if (fDigSpillTree) {
                     // BM@N MSC16
@@ -125,9 +235,10 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
                     sh->SetAll(ti->GetTrigAll());
                     sh->SetAvail(ti->GetTrigAvail());
                     sh->SetRjct(ti->GetTrigRjct());
-                    
+
                     sh->SetLastEventId(iEv);
                     sh->SetPeriodId(hdr->GetPeriodId());
+                    sh->SetEventTimeTS(hdr->GetEventTimeTS());
                     fDigSpillTree->Fill();
                 }
 
@@ -161,8 +272,9 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
                         ti->GetTrigAll(),
                         ti->GetTrigAvail());
                 ++iSpill;
+                ++fSpillMapIter;
                 Int_t r = fRawSpillTree->GetEntry(iSpill);
-//                printf("Get entry %u returned %d\n", iSpill, r);
+                //                printf("Get entry %u returned %d\n", iSpill, r);
                 if (r <= 0) {
                     //                    fprintf(stderr, "Spill %u read error!\n", iSpill);
                     return kBMNFINISH;

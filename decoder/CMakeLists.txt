@@ -4,6 +4,7 @@ set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/uni_db
+ ${CMAKE_SOURCE_DIR}/database/elog_db
  ${CMAKE_SOURCE_DIR}/database/tango
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/math
@@ -52,6 +53,6 @@ Set(HEADERS)
 
 Set(LINKDEF DecoderLinkDef.h)
 Set(LIBRARY_NAME Decoder)
-Set(DEPENDENCIES CSC Gem Silicon BmnData UniDb Base Minuit Core)
+Set(DEPENDENCIES CSC Gem Silicon BmnData UniDb ElogDb Base Minuit Core)
 
 GENERATE_LIBRARY()

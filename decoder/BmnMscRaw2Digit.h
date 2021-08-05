@@ -18,6 +18,11 @@
 #include "BmnMSCDigit.h"
 #include "BmnTrigInfo.h"
 #include "DigiRunHeader.h"
+//#include  "db_structures.h"
+#include  "ElogDbRecord.h"
+#include  "UniDbRun.h"
+#include  "UniParser.h"
+#include  "UniSearchCondition.h"
 
 using namespace std;
 using namespace TMath;
@@ -33,21 +38,21 @@ struct MscMap {
     UShort_t BC1;
     UShort_t BC2;
     UShort_t BC3;
-    UShort_t BC1H;///< BC1 (high threshold)
-    UShort_t BC1BP;///< BC1 (before protection)
+    UShort_t BC1H; ///< BC1 (high threshold)
+    UShort_t BC1BP; ///< BC1 (before protection)
     UShort_t BC1xBC2;
     UShort_t BC1nBusy;
     UShort_t IntTrig;
     UShort_t SRCTrig;
-    UShort_t TrignBusy;///< Trigger * !Busy
-    
+    UShort_t TrignBusy; ///< Trigger * !Busy
+
 };
 
 class BmnMscRaw2Digit {
     const UInt_t nCnt = 16;
 
 public:
-    BmnMscRaw2Digit(TString mappingFile, TTree *spillTree = nullptr, TTree *digiSpillTree = nullptr);
+    BmnMscRaw2Digit(Int_t period, Int_t run, TString mappingFile, TTree *spillTree = nullptr, TTree *digiSpillTree = nullptr);
 
     BmnMscRaw2Digit() {
     }
@@ -65,9 +70,12 @@ public:
 
     BmnStatus SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnSpillHeader *sh, UInt_t &nPedEvBySpill);
 
+    BmnStatus ParseTxtSpillLog(TString LogName, TString SchemeName);
+
     TTree *GetRawSpillTree() {
         return fRawSpillTree;
     }
+
     TTree *GetDigSpillTree() {
         return fDigSpillTree;
     }
@@ -77,15 +85,28 @@ public:
         if (fRawSpillTree)
             fRawSpillTree->GetEntry(iSpill);
     }
+
     void SetDigSpillTree(TTree *tree) {
         fDigSpillTree = tree;
     }
 
 private:
+    BmnSetup fBmnSetup;
+    UInt_t fPeriodId;
+    UInt_t fRunId;
+    map<TDatime, vector < Int_t>> spill_map;
+    map<TDatime, vector < Int_t>>::iterator fSpillMapIter;
+    TDatime dtStart;
+    TDatime dtEnd;
+    Int_t fLogShift;
+    
+    Int_t fVerbose = 0;
+
+
     vector<MscMap> fMap;
     ifstream fMapFile;
     TString fMapFileName;
-    
+
     TTree *fRawSpillTree = nullptr;
     TTree *fDigSpillTree = nullptr;
     UInt_t iSpill = 0u;

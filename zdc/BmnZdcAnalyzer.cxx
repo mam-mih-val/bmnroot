@@ -6,6 +6,7 @@
  */
 
 #include "BmnZdcAnalyzer.h"
+#include "FairLogger.h"
 
 BmnZdcAnalyzer::BmnZdcAnalyzer() {
 }
@@ -16,7 +17,14 @@ BmnZdcAnalyzer::~BmnZdcAnalyzer() {
 InitStatus BmnZdcAnalyzer::Init() {
 
     FairRootManager* ioman = FairRootManager::Instance();
-    fArrayOfZdcDigits = (TClonesArray*) ioman->GetObject("ZDC");
+    fArrayOfZdcDigits = (TClonesArray*) ioman->GetObject("ZdcDigi");
+    if(fArrayOfZdcDigits == nullptr)
+    {
+        LOG(ERROR)<<"BmnZdcAnalyzer::Init() branch 'ZdcDigi' not found! Task will be deactivated";
+        SetActive(kFALSE);
+        return kERROR;
+    }
+
     fBmnZDCEventData = new BmnZDCEventData();
     ioman->Register("ZDCEventData.", "Zdc", fBmnZDCEventData, kTRUE);
     
@@ -25,6 +33,9 @@ InitStatus BmnZdcAnalyzer::Init() {
 }
 
 void BmnZdcAnalyzer::Exec(Option_t* opt) {
+    if (!IsActive())
+        return;
+
     fBmnZDCEventData->Set(fArrayOfZdcDigits, fModuleScale, fModuleThreshold);
 }
 

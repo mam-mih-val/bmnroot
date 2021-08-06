@@ -47,6 +47,7 @@ InitStatus FairMCModuleDraw::Init()
   {
     LOG(ERROR)<<"FairMCModuleDraw::Init() branch "<< GetName()<<" not found! Task will be deactivated";
     SetActive(kFALSE);
+    return kERROR;
   }
   if (fVerbose > 2) cout<<"FairMCModuleDraw::Init() get point list"<<fPointList<<endl;
 

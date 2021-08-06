@@ -5,11 +5,12 @@
  * Created on 29.05.2020, 18:00
  */
 
-#include <FairRun.h>
-#include <FairRunSim.h>
-
 #include "BmnZdcDigitizer.h"
 #include "BmnZdcPoint.h"
+
+#include <FairRun.h>
+#include <FairRunSim.h>
+#include "FairLogger.h"
 
 BmnZdcDigitizer::BmnZdcDigitizer() {
 }
@@ -21,6 +22,13 @@ InitStatus BmnZdcDigitizer::Init() {
 
     FairRootManager* ioman = FairRootManager::Instance();
     fArrayOfZdcPoints = (TClonesArray*) ioman->GetObject("ZdcPoint");
+    if(fArrayOfZdcPoints == nullptr)
+    {
+        LOG(ERROR)<<"BmnZdcDigitizer::Init() branch 'ZdcPoint' not found! Task will be deactivated";
+        SetActive(kFALSE);
+        return kERROR;
+    }
+
     fArrayOfZdcDigits = new TClonesArray("BmnZdcDigi");
     ioman->Register("ZdcDigi", "Zdc", fArrayOfZdcDigits, kTRUE);
     
@@ -31,6 +39,8 @@ InitStatus BmnZdcDigitizer::Init() {
 }
 
 void BmnZdcDigitizer::Exec(Option_t* opt) {
+    if (!IsActive())
+      return
 
     // Initialize
     fArrayOfZdcDigits->Delete();

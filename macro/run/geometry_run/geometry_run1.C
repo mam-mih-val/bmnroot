@@ -33,10 +33,6 @@ void geometry(FairRunSim *fRun)
     FairDetector* sts = new CbmSts("STS", kTRUE);
     sts->SetGeometryFileName("GEMS_v2.root");
    // fRun->AddModule(sts);
-
-    FairDetector* recoil = new BmnRecoil("RECOIL", kTRUE);
-    recoil->SetGeometryFileName("recoil_modules_70x12_v1.geo");
-    //fRun->AddModule(recoil);
     
     FairDetector* tof1 = new BmnTOF1("TOF1", kTRUE);
 //    tof1->SetGeometryFileName("tof1_v1.root");

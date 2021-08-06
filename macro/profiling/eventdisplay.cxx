@@ -7,31 +7,30 @@
 #include "TPRegexp.h"
 #include "TKey.h"
 
-// Fair includes
+// FairRoot includes
 #include "FairRunAna.h"
 #include "FairSource.h"
 #include "FairRuntimeDb.h"
 #include "FairParRootFileIo.h"
-#include "MpdEventManager.h"
-#include "MpdMCPointDraw.h"
-#include "MpdHitPointSetDraw.h"
-#include "MpdMCTracks.h"
 #include "FairFileSource.h"
-#include "FairMCModuleDraw.h"
+#include "FairRootFileSink.h"
 
 // BM@N includes
+#include "BmnFunctionSet.h"
 #include "BmnFieldMap.h"
 #include "BmnTrackDrawH.h"
 #include "BmnGlobalTrackDraw.h"
 #include "UniDbRun.h"
 #include "BmnFileSource.h"
 #include "BmnNewFieldMap.h"
+#include "MpdEventManager.h"
+#include "MpdMCPointDraw.h"
+#include "MpdHitPointSetDraw.h"
+#include "MpdMCTracks.h"
 
 #include <iostream>
 using namespace std;
 #endif
-
-#include "../run/bmnloadlibs.C"
 
 void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_number, bool isField, bool isTarget);
 
@@ -48,6 +47,7 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
 //      sim_run_info - run number in 'runN-NN' format, e.g. "run6-1" to obtain BM@N geometry from the Unified Database
 //      reco_file - path to the directory with raw '*.data' files, e.g. "/tdaq/data/" (last slash is required)
 // is_online: false (default) - use Offline Mode (manual switching of events); true - use Online Mode (continious view events)
+
 //void eventdisplay(char* sim_run_info = "run6-1220", char* reco_file = "$VMCWORKDIR/macro/run/bmn_run1220.root", int data_source = 1, bool is_online = false)
 //void eventdisplay(char* sim_run_info = "run6-1220", char* reco_file = "/tdaq/data/", int data_source = 2, bool is_online = true)
 void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/bmnsim.root", const char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 0, bool is_online = false)
@@ -61,29 +61,30 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/bmnsim.root"
     bool isTarget = false, isField = true;
     FairSource* fFileSource = NULL;
 
+    TString strSimRunInfo(sim_run_info), strRecoFile(reco_file);
     // FOR SIMULATION : set source of events to display and addtiional parameters
     if (data_source == 0)
     {
         // check file existence with MC data and detector geometry
-        if (!CheckFileExist(sim_run_info))
+        if (!BmnFunctionSet::CheckFileExist(strSimRunInfo))
         {
             cout<<endl<<"ERROR: Simulation file with detector geometry wasn't found!"<<endl;
             return;
         }
 
-        fFileSource = new FairFileSource(sim_run_info);
+        fFileSource = new FairFileSource(strSimRunInfo);
 
         // set parameter file with MC data and detector geometry
         FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();
         FairParRootFileIo* parIo1 = new FairParRootFileIo();
-        parIo1->open(sim_run_info);
+        parIo1->open(strSimRunInfo.Data());
         rtdb->setFirstInput(parIo1);
         rtdb->setOutput(parIo1);
         rtdb->saveOutput();
 
         // add file with reconstructed data as a friend
-        if (CheckFileExist(reco_file))
-            ((FairFileSource*)fFileSource)->AddFriend(reco_file);
+        if (BmnFunctionSet::CheckFileExist(strRecoFile))
+            ((FairFileSource*)fFileSource)->AddFriend(strRecoFile);
         else
             cout<<endl<<"Warning: File with reconstructed data wasn't found!"<<endl;
     }
@@ -91,14 +92,13 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/bmnsim.root"
     // FROM RECONSTRUCTED ROOT FILE (data_source == 1), FROM DIRECTORY WITH RAW .DATA FILES (data_source == 2)
     else
     {
-        TString strRunInfo(sim_run_info);
-        Ssiz_t indDash = strRunInfo.First('-');
-        if ((indDash > 0) && (strRunInfo.BeginsWith("run")))
+        Ssiz_t indDash = strSimRunInfo.First('-');
+        if ((indDash > 0) && (strSimRunInfo.BeginsWith("run")))
         {
             // get run period
-            run_period = TString(strRunInfo(3, indDash - 3)).Atoi();
+            run_period = TString(strSimRunInfo(3, indDash - 3)).Atoi();
             // get run number
-            run_number = TString(strRunInfo(indDash+1, strRunInfo.Length() - indDash-1)).Atoi();
+            run_number = TString(strSimRunInfo(indDash+1, strSimRunInfo.Length() - indDash-1)).Atoi();
 
             // get geometry for run
             TString root_file_path = "current_geo_file.root";
@@ -168,15 +168,15 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/bmnsim.root"
             return;
         }
 
-        if (!CheckFileExist(reco_file)) return;
+        if (!BmnFunctionSet::CheckFileExist(strRecoFile)) return;
 
         // set source as raw data file
         if (data_source == 1)
-            fFileSource = new BmnFileSource(reco_file);
+            fFileSource = new BmnFileSource(strRecoFile);
         // set source as TDAQ Event Monitor
         if (data_source == 2)
         {
-            // load TDAQ
+            // load TDAQ libraries
             gSystem->Load("libemon");
             gSystem->Load("libemon-dal");
             gSystem->Load("libcmdline");
@@ -198,7 +198,7 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/bmnsim.root"
     fMan->iDataSource = data_source;
 
     // set output file
-    fRunAna->SetOutputFile("ed_out.root");
+    fRunAna->SetSink(new FairRootFileSink("ed_out.root"));
 
     // set tasks to draw
     SetTasks(fMan, data_source, run_period, run_number, isField, isTarget);
@@ -221,31 +221,49 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
     if (data_source == 0)
     {
         // draw MC Points
-        //MpdMCPointDraw* RecoilPoint = new MpdMCPointDraw("RecoilPoint", mcPointColor, pointMarker);
-        //fMan->AddTask(RecoilPoint);
+        MpdMCPointDraw* ArmTrigPoint = new MpdMCPointDraw("ArmTrigPoint", mcPointColor, pointMarker);
+        fMan->AddTask(ArmTrigPoint);
+        MpdMCPointDraw* BCPoint = new MpdMCPointDraw("BCPoint", mcPointColor, pointMarker);
+        fMan->AddTask(BCPoint);
+        MpdMCPointDraw* FDPoint = new MpdMCPointDraw("FDPoint", mcPointColor, pointMarker);
+        fMan->AddTask(FDPoint);
         MpdMCPointDraw* MWPCPoint = new MpdMCPointDraw("MWPCPoint", mcPointColor, pointMarker);
         fMan->AddTask(MWPCPoint);
+        MpdMCPointDraw* BdPoint = new MpdMCPointDraw("BdPoint", mcPointColor, pointMarker);
+        fMan->AddTask(BdPoint);
+        MpdMCPointDraw* SiliconPoint = new MpdMCPointDraw("SiliconPoint", mcPointColor, pointMarker);
+        fMan->AddTask(SiliconPoint);
+        MpdMCPointDraw* StsPoint = new MpdMCPointDraw("StsPoint", mcPointColor, pointMarker); // GEM
+        fMan->AddTask(StsPoint);
+        MpdMCPointDraw* CSCPoint = new MpdMCPointDraw("CSCPoint", mcPointColor, pointMarker);
+        fMan->AddTask(CSCPoint);
         MpdMCPointDraw* TOF1Point = new MpdMCPointDraw("TOF400Point", mcPointColor, pointMarker);
         fMan->AddTask(TOF1Point);
         MpdMCPointDraw* DCHPoint = new MpdMCPointDraw("DCHPoint", mcPointColor, pointMarker);
         fMan->AddTask(DCHPoint);
         MpdMCPointDraw* TofPoint = new MpdMCPointDraw("TOF700Point", mcPointColor, pointMarker);
         fMan->AddTask(TofPoint);
-        FairMCModuleDraw* ZdcPoint = new FairMCModuleDraw("ZdcPoint", mcPointColor, pointMarker);
+        MpdMCPointDraw* EcalPoint = new MpdMCPointDraw("EcalPoint", mcPointColor, pointMarker);
+        fMan->AddTask(EcalPoint);
+        MpdMCPointDraw* ZdcPoint = new MpdMCPointDraw("ZdcPoint", mcPointColor, pointMarker);
         fMan->AddTask(ZdcPoint);
-        MpdMCPointDraw* StsPoint = new MpdMCPointDraw("StsPoint", mcPointColor, pointMarker);
-        fMan->AddTask(StsPoint);
-        MpdMCPointDraw* SiliconPoint = new MpdMCPointDraw("SiliconPoint", mcPointColor, pointMarker);
-        fMan->AddTask(SiliconPoint);
+        MpdMCPointDraw* SSDPoint = new MpdMCPointDraw("SsdPoint", mcPointColor, pointMarker);
+        fMan->AddTask(SSDPoint);
 
         // draw MC Geometry Tracks
         MpdMCTracks* GeoTrack = new MpdMCTracks("GeoTracks");
         fMan->AddTask(GeoTrack);
         // OR draw MC tracks by Geane - not implemented yet
-        //MpdMCStack* MCTrack = new MpdMCStack("MCTrack");
+        //MpdMCStack* MC      Track = new MpdMCStack("MCTrack");
         //fMan->AddTask(MCTrack);
 
         // draw Reconstructed Detector Hits
+        MpdHitPointSetDraw* BmnMwpcHit = new MpdHitPointSetDraw("BmnMwpcHit", expPointColor, pointMarker);
+        fMan->AddTask(BmnMwpcHit);
+        MpdHitPointSetDraw* BmnArmTrigHit = new MpdHitPointSetDraw("BmnArmTrigHit", recoPointColor, pointMarker);
+        fMan->AddTask(BmnArmTrigHit);
+        MpdHitPointSetDraw* BmnBCHit = new MpdHitPointSetDraw("BmnBCHit", recoPointColor, pointMarker);
+        fMan->AddTask(BmnBCHit);
         MpdHitPointSetDraw* BmnGemHit = new MpdHitPointSetDraw("BmnGemStripHit", recoPointColor, pointMarker); // new MpdHitDraw("BmnGemStripHit", 1); //in box view
         fMan->AddTask(BmnGemHit);
         MpdHitPointSetDraw* BmnTof1Hit = new MpdHitPointSetDraw("BmnTof400Hit", recoPointColor, pointMarker);
@@ -256,6 +274,10 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         fMan->AddTask(BmnTof2Hit);
         MpdHitPointSetDraw* BmnSiliconHit = new MpdHitPointSetDraw("BmnSiliconHit", recoPointColor, pointMarker);
         fMan->AddTask(BmnSiliconHit);
+        MpdHitPointSetDraw* BmnCSCHit = new MpdHitPointSetDraw("BmnCSCHit", recoPointColor, pointMarker);
+        fMan->AddTask(BmnCSCHit);
+        MpdHitPointSetDraw* BmnUpstreamHit = new MpdHitPointSetDraw("BmnUpstreamHit", recoPointColor, pointMarker);
+        fMan->AddTask(BmnUpstreamHit);
 
         // draw Reconstructed Global Tracks
         BmnGlobalTrackDraw* BmnGlobalTrack = new BmnGlobalTrackDraw("BmnGlobalTrack");
@@ -264,9 +286,9 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         // save EventDisplay Screenshot
         //MpdWebScreenshots* WebScreenshots = new MpdWebScreenshots("WebScreenshots", "/var/www/html/events"); // for WEB-page
         //MpdWebScreenshots* WebScreenshots = new MpdWebScreenshots("WebScreenshots","screenshots"); // folder to save the screenshots
-        //WebScreenshots->SetFormatFiles(0); // 0 -.png, 1 -.jpg, 2 -.jpg and .png
-        //WebScreenshots->SetMultiFiles(0); //0 - the same file (event.png), 1 - multiple files (event_nnn.png)
-        //WebScreenshots->SetPort(8016); // 8016 by default
+        //WebScreenshots->SetFormatFiles(0);    // 0 -.png, 1 -.jpg, 2 -.jpg and .png
+        //WebScreenshots->SetMultiFiles(0);     // 0 - the same file (event.png), 1 - multiple files (event_nnn.png)
+        //WebScreenshots->SetPort(8016);        // 8016 by default
         //fMan->AddTask(WebScreenshots);
 
         return;
@@ -276,33 +298,39 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
     if (data_source == 1)
     {
         // draw MWPC Hits
-        MpdHitPointSetDraw* MwpcHit = new MpdHitPointSetDraw("BmnMwpcHit", expPointColor, pointMarker);
-        fMan->AddTask(MwpcHit);
+        MpdHitPointSetDraw* BmnMwpcHit = new MpdHitPointSetDraw("BmnMwpcHit", expPointColor, pointMarker);
+        fMan->AddTask(BmnMwpcHit);
         // draw Silicon Hits
-        MpdHitPointSetDraw* SiliconHit = new MpdHitPointSetDraw("BmnSiliconHit", expPointColor, pointMarker);
-        fMan->AddTask(SiliconHit);
+        MpdHitPointSetDraw* BmnSiliconHit = new MpdHitPointSetDraw("BmnSiliconHit", expPointColor, pointMarker);
+        fMan->AddTask(BmnSiliconHit);
         // draw GEM Hits
-        MpdHitPointSetDraw* GemHit = new MpdHitPointSetDraw("BmnGemStripHit", expPointColor, pointMarker);
-        fMan->AddTask(GemHit);
+        MpdHitPointSetDraw* BmnGemHit = new MpdHitPointSetDraw("BmnGemStripHit", expPointColor, pointMarker);
+        fMan->AddTask(BmnGemHit);
         // draw DCH Hits
-        MpdHitPointSetDraw* DchHit = new MpdHitPointSetDraw("BmnDchHit", expPointColor, pointMarker);
-        fMan->AddTask(DchHit);
+        MpdHitPointSetDraw* BmnDchHit = new MpdHitPointSetDraw("BmnDchHit", expPointColor, pointMarker);
+        fMan->AddTask(BmnDchHit);
         // draw TOF1 Hits
-        MpdHitPointSetDraw* Tof1Hit = new MpdHitPointSetDraw("BmnTof400Hit", expPointColor, pointMarker);
-        fMan->AddTask(Tof1Hit);
+        MpdHitPointSetDraw* BmnTof1Hit = new MpdHitPointSetDraw("BmnTof400Hit", expPointColor, pointMarker);
+        fMan->AddTask(BmnTof1Hit);
         // draw TOF2 Hits
-        MpdHitPointSetDraw* Tof2Hit = new MpdHitPointSetDraw("BmnTof700Hit", expPointColor, pointMarker);
-        fMan->AddTask(Tof2Hit);
+        MpdHitPointSetDraw* BmnTof2Hit = new MpdHitPointSetDraw("BmnTof700Hit", expPointColor, pointMarker);
+        fMan->AddTask(BmnTof2Hit);
+        // draw CSC Hits
+        MpdHitPointSetDraw* BmnCSCHit = new MpdHitPointSetDraw("BmnCSCHit", expPointColor, pointMarker);
+        fMan->AddTask(BmnCSCHit);
+        // draw Upstream Hits
+        MpdHitPointSetDraw* BmnUpstreamHit = new MpdHitPointSetDraw("BmnUpstreamHit", expPointColor, pointMarker);
+        fMan->AddTask(BmnUpstreamHit);
 
         // draw MWPC Tracks
-        BmnTrackDrawH* MwpcTrack = new BmnTrackDrawH("BmnMwpcTrack", "BmnMwpcHit");
-        fMan->AddTask(MwpcTrack);
+        BmnTrackDrawH* BmnMwpcTrack = new BmnTrackDrawH("BmnMwpcTrack", "BmnMwpcHit");
+        fMan->AddTask(BmnMwpcTrack);
         // draw GEM Tracks
-        BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemTrack", "BmnGemStripHit");
-        fMan->AddTask(GemTrack);
+        BmnTrackDrawH* BmnGemTrack = new BmnTrackDrawH("BmnGemTrack", "BmnGemStripHit");
+        fMan->AddTask(BmnGemTrack);
         // draw DCH Tracks
-        //BmnTrackDrawH* DchTrack = new BmnTrackDrawH("BmnDchTrack", "BmnDchHit");
-        //fMan->AddTask(DchTrack);
+        // BmnTrackDrawH* DchTrack = new BmnTrackDrawH("BmnDchTrack", "BmnDchHit");
+        // fMan->AddTask(DchTrack);
 
         // draw Reconstructed Global Tracks
         BmnGlobalTrackDraw* BmnGlobalTrack = new BmnGlobalTrackDraw("BmnGlobalTrack");
@@ -312,6 +340,8 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         //fMan->AddTask(Geane);
         //CbmTrackDraw* MwpcTrack = new CbmTrackDraw("MwpcMatchedTracks");
         //fMan->AddTask(MwpcTrack);
+
+        return;
     }
 /*
     // FOR EXPERIMENTAL DATA FROM DIRECTORY WITH .DATA FILES
@@ -340,7 +370,7 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         fMan->AddTask(gemTF);
 
         // TOF-400 hit finder
-        BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF400", false, 0, kTRUE);
+        BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", false, 0, kTRUE);
         fMan->AddTask(tof1HP);
 
         // draw GEM hits
@@ -357,6 +387,8 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemTrack", "BmnGemStripHit");
         GemTrack->SetVerbose(1);
         fMan->AddTask(GemTrack);
+
+        return;
     }*/
 }
 

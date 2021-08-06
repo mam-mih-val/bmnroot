@@ -1,10 +1,8 @@
 #ifndef BMNBD_H
 #define BMNBD_H
 
-#include "FairDetector.h"
-
-#include "BmnBdGeoPar.h"
 #include "BmnBdPoint.h"
+#include "FairDetector.h"
 
 
 class BmnBd : public FairDetector
@@ -116,7 +114,7 @@ class BmnBd : public FairDetector
     BmnBd(const BmnBd&) = delete;
     BmnBd operator=(const BmnBd&) = delete;
 
-  ClassDef(BmnBd,2)
+  ClassDef(BmnBd, 2)
 }; 
 
 

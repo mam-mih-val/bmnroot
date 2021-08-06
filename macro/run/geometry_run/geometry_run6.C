@@ -19,7 +19,7 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(mwpc);
 
     FairDetector* bd = new BmnBd("BD", kTRUE);
-    bd->SetGeometryFileName("bd_v1_run6.geo");
+    bd->SetGeometryFileName("geom_BD_det_run6.root");
     fRun->AddModule(bd);
 
     FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);

@@ -187,8 +187,6 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
     if (data_source == 0)
     {
         // draw MC Points
-        //MpdMCPointDraw* RecoilPoint = new MpdMCPointDraw("RecoilPoint", mcPointColor, pointMarker);
-        //fMan->AddTask(RecoilPoint);
         MpdMCPointDraw* ArmTrigPoint = new MpdMCPointDraw("ArmTrigPoint", mcPointColor, pointMarker);
         fMan->AddTask(ArmTrigPoint);
         MpdMCPointDraw* BCPoint = new MpdMCPointDraw("BCPoint", mcPointColor, pointMarker);

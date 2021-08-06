@@ -21,8 +21,8 @@ InitStatus BmnZdcDigitizer::Init() {
 
     FairRootManager* ioman = FairRootManager::Instance();
     fArrayOfZdcPoints = (TClonesArray*) ioman->GetObject("ZdcPoint");
-    fArrayOfZdcDigits = new TClonesArray("BmnZDCDigit");
-    ioman->Register("ZDC", "Zdc", fArrayOfZdcDigits, kTRUE);
+    fArrayOfZdcDigits = new TClonesArray("BmnZdcDigi");
+    ioman->Register("ZdcDigi", "Zdc", fArrayOfZdcDigits, kTRUE);
     
     LoadMap("ZDC_map_period_5.txt");
     

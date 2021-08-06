@@ -1,20 +1,50 @@
-// macro for printing TANGO data for GEM high voltage
-void tango_gem_trip()
+// macro for printing TANGO data for GEM stations tripped in runs
+
+// map: Tango channel -> GEMs Z-order
+int map_channel_run5[] = {1, 3, 0, 5, 2, 6, 4, 7};
+
+void tango_gem_trip(int period, int run)
 {
     TangoData db_tango;
 
+    // get run time
+    UniDbRun* pRun = UniDbRun::GetRun(period, run);
+    if (pRun == NULL)
+    {
+        cout<<"Macro finished with errors: no experimental run was found for period = "<<period<<", run = "<<run<<endl;
+        exit(-2);
+    }
+
+    TString strDateStart = pRun->GetStartDatetime().AsSQLString();
+    TDatime* dateEnd = pRun->GetEndDatetime();
+    if (dateEnd == NULL)
+    {
+        cout<<"Macro finished with errors: no end datetime in the database for period = "<<period<<", run = "<<run<<endl;
+        delete pRun;
+        exit(-3);
+    }
+    TString strDateEnd = dateEnd->AsSQLString();
+    delete pRun;
+
     const char* detector_name = "gem";
     const char* parameter_name = "trip";
-    const char* date_start = "2017-03-09 02:25:55"; // 1252 run
-    const char* date_end = "2017-03-09 03:01:35";
+    int* map_channel = nullptr;
+    switch (period)
+    {
+        case 6:
+            map_channel = map_channel_run5;
+            break;
+        default:
+            cout<<"Macro finished with errors: no channel map was found for the period "<<period<<endl;
+            exit(-4);
+    }
+
     enumConditions condition = conditionEqual;
     bool condition_value = 1;
-    // map: channel -> Z-order
-    int map_channel[] = {1, 3, 0, 5, 2, 6, 4, 7};
 
     // TObjArray stores array of TObjArray* (for all channels) with TangoTimeInterval*: time intervals satisfying the condition (uni_db/TangoData.h)
-    // ((TObjArray*)tango_data->At(0))->At(2) -> TangoTimeInterval*: third time interval satisfying the condition for 1 channel
-    TObjArray* tango_data = db_tango.SearchTangoIntervals(detector_name, parameter_name, date_start, date_end, condition, condition_value, map_channel);
+    // ((TObjArray*)tango_data->At(0))->At(2) -> TangoTimeInterval*: third time interval satisfying the condition for the first channel 0
+    TObjArray* tango_data = db_tango.SearchTangoIntervals(detector_name, parameter_name, strDateStart.Data(), strDateEnd.Data(), condition, condition_value, map_channel);
     if (tango_data == NULL)
     {
         cout<<"Macro finished with errors"<<endl;
@@ -22,10 +52,20 @@ void tango_gem_trip()
     }
 
     // console output
-    cout<<"Information about "<<parameter_name<<" for "<<detector_name<<" (from "<<date_start<<" to "<<date_end<<"):"<<endl;
-    db_tango.PrintTangoIntervalConsole(tango_data, "GEM");
+    cout<<"Information on "<<parameter_name<<" parameter for "<<detector_name<<" (period = "<<period<<", run = "<<run<<"):"<<endl;
+    db_tango.PrintTangoIntervalConsole(tango_data, "GEM Z-order");
 
     delete tango_data;
+}
+
+void tango_gem_trip(int period)
+{
+    UniqueRunNumber* run_numbers;
+    int run_count = UniDbRunPeriod::GetRunNumbers(period, run_numbers);
+    if (run_count <= 0) return;
+
+    for (int i = 0; i < run_count; i++)
+        tango_gem_trip(run_numbers[i].period_number, run_numbers[i].run_number);
 
     cout<<"Macro finished successfully"<<endl;
 }

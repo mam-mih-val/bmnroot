@@ -8,20 +8,19 @@ void BmnDetectorList::GetSystemName(DetectorId det, TString& name)
     switch (det)
     {
         case kREF:  name = "ref";  break;
-        case kLAND: name = "land"; break;
+        case kBD:  name = "bd";  break;
         case kGEM:  name = "gem";  break;
         case kTOF1: name = "tof1"; break;
         case kDCH: name = "dch"; break;
         case kTOF:  name = "tof";  break;
         case kZDC:  name = "zdc";  break;
-        case kRECOIL:  name = "recoil";  break;
-        case kMWPC:  name = "mwpc";  break;
-        case kBD:  name = "bd";  break;
-        case kECAL:  name = "ecal";  break;
-        case kSILICON: name = "silicon"; break;
-        case kCSC: name = "csc"; break;
-        case kFD:  name = "fd";  break;
         case kSSD:  name = "ssd";  break;
+        case kMWPC:  name = "mwpc";  break;
+        case kECAL:  name = "ecal";  break;
+        case kCSC: name = "csc"; break;
+        case kSILICON: name = "silicon"; break;
+        case kLAND: name = "land"; break;
+        case kFD:  name = "fd";  break;
         case kARMTRIG: name = "armtrig"; break;
         case kBC: name = "bc"; break;
         case kSCWALL: name = "scwall"; break;
@@ -43,20 +42,19 @@ void BmnDetectorList::GetSystemNameCaps(DetectorId det, TString& name)
     switch (det)
     {
         case kREF:  name = "REF";  break;
-        case kLAND: name = "LAND"; break;
+        case kBD:  name = "BD";  break;
         case kGEM:  name = "GEM";  break;
         case kTOF1: name = "TOF1";  break;
         case kDCH: name = "DCH";  break;
         case kTOF:  name = "TOF";  break;
         case kZDC:  name = "ZDC";  break;
-        case kRECOIL:  name = "RECOIL";  break;
-        case kMWPC:  name = "MWPC";  break;
-        case kBD:  name = "BD";  break;
-        case kECAL:  name = "ECAL";  break;
-        case kSILICON: name = "SILICON"; break;
-        case kCSC: name = "CSC"; break;
-        case kFD:  name = "FD";  break;
         case kSSD:  name = "SSD";  break;
+        case kMWPC:  name = "MWPC";  break;
+        case kECAL:  name = "ECAL";  break;
+        case kCSC: name = "CSC"; break;
+        case kSILICON: name = "SILICON"; break;
+        case kLAND: name = "LAND"; break;
+        case kFD:  name = "FD";  break;
         case kARMTRIG: name = "ARMTRIG"; break;
         case kBC: name = "BC"; break;
         case kSCWALL: name = "SCWALL"; break;

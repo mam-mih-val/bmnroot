@@ -1,5 +1,5 @@
 #bin/bash
-. ~/bmnroot/build/config.sh
+#. ~/bmnroot/build/config.sh
 
 valgrind \
 --leak-check=full \
@@ -7,5 +7,4 @@ valgrind \
 --track-origins=yes \
 --log-file=val_sim.log \
 --suppressions=valgrind.supp \
-root.exe -l -b -q $VMCWORKDIR/macro/run/run_sim_bmn.C
-
+./run_sim_bmn #root.exe -l -b -q $VMCWORKDIR/macro/run/run_sim_bmn.C

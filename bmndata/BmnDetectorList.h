@@ -9,42 +9,41 @@
 
 /**  BM@N DetectorID enumerator  **/
 enum DetectorId {kREF,  // Reference plane
-         kLAND,         // Large-Area Neutron Detector
+         kBD,           // Barrel Detector
          kGEM,          // GEMs detector
          kTOF1,         // Front Time-of-Flight Detector
          kDCH,          // Drift Chambers
          kTOF,          // Rear Time-of-Flight Detector
          kZDC,          // Zero Degree Calorimeter
-         kRECOIL,       // Recoil
-         kMWPC,         // MWPC
-         kBD,           // Barrel Detector
-         kECAL,         // Electromagnetic Calorimeter
-         kSILICON,      // Silicon Detectors
-         kCSC,          // CSC
-         kFD,           // FD
          kSSD,          // SSD (Strip Silicon Detector)
+         kMWPC,         // MWPC
+         kECAL,         // Electromagnetic Calorimeter
+         kCSC,          // Cathode Strip Chambers
+         kSILICON,      // Silicon Detectors
+         kLAND,         // Large-Area Neutron Detector
+         kFD,           // FD
          kARMTRIG,      // ARMTRIG(X1, Y1, X2, Y2 for SRC arms)
          kBC,           // Beam Counter triggers
          kSCWALL,       // SCintillator WALL
          kHODO,         // HODOscope
-         kNOFDETS};     // Number of elements (e.g. for loops)
+         kNOFDETS       // Number of elements (e.g. for loops)
+};
 
 
 /**   Data type enumerator  **/
 enum DataType {kMCTrack,
-               kLandPoint, kLandDigi, kLandHit,                       // LAND
                kGemPoint, kGemDigi, kGemCluster, kGemHit, kGemTrack,  // GEM
                kTof1Point, kTof1Digi, kTof1Hit, kTof1Track,           // TOF1
                kDchPoint, kDchDigi, kDchHit, kDchTrack,               // DCH
                kTofPoint, kTofDigi, kTofHit, kTofTrack,               // TOF
                kZdcPoint, kZdcDigi,                                   // ZDC
-               kEcalPoint, kEcalDigi,                                 // ECAL
-               kStsPoint, kStsDigi, kStsCluster, kStsHit, kStsTrack,  // STS
-               kCscPoint, kCscDigi, kCscHit, kCscTrack,               // CSC
                kSsdPoint, kSsdDigi, kSsdCluster, kSsdHit, kSsdTrack,  // SSD
+               kEcalPoint, kEcalDigi,                                 // ECAL
+               kCscPoint, kCscDigi, kCscHit, kCscTrack,               // CSC
+               kStsPoint, kStsDigi, kStsCluster, kStsHit, kStsTrack,  // STS
+               kLandPoint, kLandDigi, kLandHit,                       // LAND
                kGlobalTrack                                           // Global
 };
-
 
 
 /** @class BmnDetectorList

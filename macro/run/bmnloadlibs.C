@@ -19,7 +19,6 @@ void bmnloadlibs()
 
   gSystem->Load("libTOF");
   gSystem->Load("libSts");
-  gSystem->Load("libRecoil");
   gSystem->Load("libZdc");
   gSystem->Load("libEcal");
   gSystem->Load("libBd");

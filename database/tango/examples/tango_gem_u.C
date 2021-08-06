@@ -38,7 +38,7 @@ void tango_gem_u(int period, int run)
     UniDbRun* pRun = UniDbRun::GetRun(period, run);
     if (pRun == NULL)
     {
-        cout<<"Macro finished with errors: no experimental run was found for given numbers"<<endl;
+        cout<<"Macro finished with errors: no experimental run was found for period = "<<period<<", run = "<<run<<endl;
         exit(-2);
     }
 
@@ -46,7 +46,7 @@ void tango_gem_u(int period, int run)
     TDatime* dateEnd = pRun->GetEndDatetime();
     if (dateEnd == NULL)
     {
-        cout<<"Macro finished with errors: no end datetime in the database for this run"<<endl;
+        cout<<"Macro finished with errors: no end datetime in the database for period = "<<period<<", run = "<<run<<endl;
         delete pRun;
         exit(-3);
     }

@@ -64,7 +64,7 @@ InitStatus MpdZdcTowerDraw::Init()
     FairRootManager* fManager = FairRootManager::Instance();
     if (fVerbose > 1) cout<<"MpdZdcTowerDraw::Init() get instance of FairRootManager: "<<fManager<<endl;
 
-    fDigitList = (TClonesArray*) fManager->GetObject("ZdcDigi");
+    fDigitList = (TClonesArray*) fManager->GetObject("ZdcDigit");
     if (fDigitList == 0)
     {
         LOG(ERROR)<<"MpdZdcTowerDraw::Init() branch ZdcDigit not found! Task will be deactivated";

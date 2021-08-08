@@ -7,8 +7,6 @@
 #SRCS=run_reco_bmn.cxx
 #SRCS=run_reco_src.cxx
 
-SRCS=$(wildcard *.cxx)
-
 # Compiler
 CC=g++
 

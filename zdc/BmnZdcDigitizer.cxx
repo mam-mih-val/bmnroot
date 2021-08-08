@@ -13,6 +13,8 @@
 #include "FairLogger.h"
 
 BmnZdcDigitizer::BmnZdcDigitizer() {
+    fArrayOfZdcPoints = nullptr;
+    fArrayOfZdcDigits = nullptr;
 }
 
 BmnZdcDigitizer::~BmnZdcDigitizer() {
@@ -22,15 +24,15 @@ InitStatus BmnZdcDigitizer::Init() {
 
     FairRootManager* ioman = FairRootManager::Instance();
     fArrayOfZdcPoints = (TClonesArray*) ioman->GetObject("ZdcPoint");
-    if(fArrayOfZdcPoints == nullptr)
+    if (fArrayOfZdcPoints == nullptr)
     {
         LOG(ERROR)<<"BmnZdcDigitizer::Init() branch 'ZdcPoint' not found! Task will be deactivated";
         SetActive(kFALSE);
         return kERROR;
     }
 
-    fArrayOfZdcDigits = new TClonesArray("BmnZdcDigi");
-    ioman->Register("ZdcDigi", "Zdc", fArrayOfZdcDigits, kTRUE);
+    fArrayOfZdcDigits = new TClonesArray("BmnZDCDigit");
+    ioman->Register("ZdcDigit", "Zdc", fArrayOfZdcDigits, kTRUE);
     
     LoadMap("ZDC_map_period_5.txt");
     

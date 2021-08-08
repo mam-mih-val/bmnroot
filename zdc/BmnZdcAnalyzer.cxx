@@ -17,7 +17,7 @@ BmnZdcAnalyzer::~BmnZdcAnalyzer() {
 InitStatus BmnZdcAnalyzer::Init() {
 
     FairRootManager* ioman = FairRootManager::Instance();
-    fArrayOfZdcDigits = (TClonesArray*) ioman->GetObject("ZdcDigi");
+    fArrayOfZdcDigits = (TClonesArray*) ioman->GetObject("ZdcDigit");
     if(fArrayOfZdcDigits == nullptr)
     {
         LOG(ERROR)<<"BmnZdcAnalyzer::Init() branch 'ZdcDigi' not found! Task will be deactivated";

@@ -2,6 +2,8 @@
 
 // map: Tango channel -> GEMs Z-order
 int map_channel_run5[] = {1, 3, 0, 5, 2, 6, 4, 7};
+int map_channel_run6_b1529[] = {1, 3, 0, 5, 2, 6, 4};
+int map_channel_run6_a1529[] = {1, 3, 0, 5, 6, 4, 2};
 
 void tango_gem_trip(int period, int run)
 {
@@ -31,9 +33,15 @@ void tango_gem_trip(int period, int run)
     int* map_channel = nullptr;
     switch (period)
     {
-        case 6:
+        case 5:
             map_channel = map_channel_run5;
             break;
+        case 6:
+        {
+            if (run < 1529) map_channel = map_channel_run6_b1529;
+            else map_channel = map_channel_run6_a1529;
+            break;
+        }
         default:
             cout<<"Macro finished with errors: no channel map was found for the period "<<period<<endl;
             exit(-4);

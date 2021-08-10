@@ -123,7 +123,7 @@ BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int
     vector<UniValue*> iiArr;
     if (par != NULL) par->GetValue(iiArr);
     delete par;
-    for (Int_t i = 0; i < size; ++i)
+    for (Int_t i = 0; i < iiArr.size(); ++i)
     {
         IIValue* pValue = (IIValue*) iiArr[i];
         m[pValue->value2] = BmnGemMap(pValue->value1, lay, mod);

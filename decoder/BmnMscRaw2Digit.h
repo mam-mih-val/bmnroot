@@ -95,7 +95,7 @@ private:
     UInt_t fPeriodId;
     UInt_t fRunId;
     map<TDatime, vector < Int_t>> spill_map;
-    map<TDatime, vector < Int_t>>::iterator fSpillMapIter;
+        UInt_t iSpillMap = 0u;
     TDatime dtStart;
     TDatime dtEnd;
     Int_t fLogShift;

@@ -73,6 +73,8 @@ BmnStatus BmnMscRaw2Digit::ParseTxtSpillLog(TString LogName, TString SchemeName)
     Int_t log_shift_bmn = 6;
     Int_t log_shift_src = -3;
     fLogShift = fBmnSetup == kBMNSETUP ? log_shift_bmn : log_shift_src;
+    
+    map<TDatime, vector < Int_t>> temp_spill_map;
     UniParser parser;
     vector<structParseValue*> parse_values;
     vector<structParseSchema> vecElements;
@@ -111,7 +113,7 @@ BmnStatus BmnMscRaw2Digit::ParseTxtSpillLog(TString LogName, TString SchemeName)
         for (Int_t iValue = 0; iValue < sum_size; iValue++)
             vals.push_back(boost::any_cast<Int_t>(st->arrValues[iValue]));
         st->dtSpillEnd.Set(st->dtSpillEnd.Convert() - fLogShift);
-        spill_map.insert(pair<TDatime, vector < Int_t >> (st->dtSpillEnd, vals));
+        temp_spill_map.insert(pair<TDatime, vector < Int_t >> (st->dtSpillEnd, vals));
     }
 
     vector<Long64_t> total_columns;
@@ -132,7 +134,7 @@ BmnStatus BmnMscRaw2Digit::ParseTxtSpillLog(TString LogName, TString SchemeName)
     }
     dtEnd = *dateEnd;
     delete pRun;
-    fSpillMapIter = spill_map.lower_bound(dtStart);
+    //    fSpillMapIter = spill_map.lower_bound(dtStart);
     // check for presence in ELOG
     TObjArray* recs = ElogDbRecord::GetRecords(fPeriodId, fRunId);
     if (recs == NULL) {
@@ -141,11 +143,11 @@ BmnStatus BmnMscRaw2Digit::ParseTxtSpillLog(TString LogName, TString SchemeName)
     } else
         if (recs->GetEntries() == 0) {
         fprintf(stderr, "Run %d not found in ELOG!\n", fRunId);
-        //        return NULL;
         return kBMNERROR;
     }
     printf("Run %d  %s", fRunId, dtStart.AsSQLString());
     printf(" - %s\n", dtEnd.AsSQLString());
+    spill_map.insert(temp_spill_map.lower_bound(dtStart), temp_spill_map.upper_bound(dtEnd));
 
     return kBMNSUCCESS;
 
@@ -165,17 +167,15 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
     sh->Clear();
     BmnTrigInfo *ti = hdr->GetTrigInfo();
     UInt_t iEv = hdr->GetEventId();
-    //    printf("iEv %u  iSpill %u\n", iEv, iSpill);
     for (Int_t iAdc = 0; iAdc < msc->GetEntriesFast(); ++iAdc) {
         BmnMSCDigit* dig = (BmnMSCDigit*) msc->At(iAdc);
-        //        printf("dig->GetLastEventId() %u  serial %08X\n", dig->GetLastEventId(), dig->GetSerial());
         if (dig->GetLastEventId() > iEv)
             break;
         if (dig->GetLastEventId() < iEv) {
             //            fprintf(stderr, "Spill %u last event %u lost! Curent evId %u \n",
             //                    iSpill, dig->GetLastEventId(), iEv);
             fRawSpillTree->GetEntry(++iSpill);
-            ++fSpillMapIter;
+            ++iSpillMap;
             nPedEvBySpill = 0;
             return kBMNERROR;
         }
@@ -191,9 +191,11 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
                 UInt_t AcceptedReal = ti->GetTrigAccepted() - nPedEvBySpill;
                 if (fBmnSetup == kSRCSETUP) {
                     if (fPeriodId == 7) {
+                        map<TDatime, vector < Int_t>>::iterator SpillMapIter = spill_map.begin();
+                        advance(SpillMapIter, iSpillMap);
                         if (fVerbose)
-                            printf(" spill  %s\n", fSpillMapIter->first.AsSQLString());
-                        vector<Int_t> v = fSpillMapIter->second;
+                            printf(" spill  %s\n", SpillMapIter->first.AsSQLString());
+                        vector<Int_t> v = SpillMapIter->second;
                         /** flux ~= sum [BT * (DAQ_Busy -peds)/ (DAQ_TRigger - peds)]*/
                         Double_t BT = v[15];
                         Double_t DAQ_Busy = v[21];
@@ -277,7 +279,7 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
                             ti->GetTrigAvail());
                 }
                 ++iSpill;
-                ++fSpillMapIter;
+                ++iSpillMap;
                 Int_t r = fRawSpillTree->GetEntry(iSpill);
                 //                printf("Get entry %u returned %d\n", iSpill, r);
                 if (r <= 0) {

@@ -92,10 +92,11 @@ class TangoData
     //	date_end - end time of searching time intervals, the same format (e.g. "2015-03-13 24:00:00")
     //  condition - condition of time interval sampling, default: conditionEqual (the possible list in 'uni_db/db_structures.h')
     //  value - boolean value for the condition with which the comparison is performed, default: true
-    //  mapChannel - array of integer values (map) to change the order of result TObjArray-s in the common result array, if, for example, channels go in a different sequence; NULL - if not used
+    //  mapChannel - vector of integer values (map) to change the order of result TObjArray-s in the common result array, if, for example, channels go in a different sequence; NULL - if not used
     // Returns common TObjArray with TObjArray objects containing TangoTimeInterval (i.e. conditionally TObjArray<TObjArray<TangoTimeInterval*>>),
     // if no intervals found - returns the common TObjArray with zero TObjArray elements; in case of errors - returns NULL
-    TObjArray* SearchTangoIntervals(const char* detector_name, const char* parameter_name, const char* date_start, const char* date_end,  enumConditions condition = conditionEqual, bool value = true, int* mapChannel = NULL);
+    TObjArray* SearchTangoIntervals(const char* detector_name, const char* parameter_name, const char* date_start, const char* date_end,
+                                    enumConditions condition = conditionEqual, bool value = true, vector<int>* mapChannel = nullptr);
 
     // Function PrintTangoDataConsole displays hardware data obtained from Tango, e.g. ZDC voltage in time interval, in console
     // Parameter: tango_data - TObjArray with TangoTimeParameter objects obtained from 'GetTangoParameter' function
@@ -113,7 +114,8 @@ class TangoData
     // Parameters:
     //  tango_intervals - TObjArray with TObjArray objects containing TangoTimeInterval objects obtained from 'SearchTangoIntervals' function
     //  channel_name - name of the dimension to display on the screen, default: Channel
-    void PrintTangoIntervalConsole(TObjArray* tango_intervals, TString channel_name = "Channel");
+    //  isShowOnlyExists - if true, print only intervals which satisfy the condition (skip empty intervals)
+    void PrintTangoIntervalConsole(TObjArray* tango_intervals, TString channel_name = "Channel", bool isShowOnlyExists = false);
 
     // return average value for Tango data array (result vector with size greater than 1 is used in case of many channels)
     vector<double> GetAverageTangoData(TObjArray* tango_data);

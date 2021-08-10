@@ -242,10 +242,11 @@ TObjArray* TangoData::GetTangoParameter(const char* detector_name, const char* p
 //	date_end - end time of searching time intervals, the same format (e.g. "2015-03-13 24:00:00")
 //      condition - condition of time interval sampling, default: conditionEqual (the possible list in 'uni_db/db_structures.h')
 //      value - boolean value for the condition with which the comparison is performed, default: true
-//      mapChannel - array of integer values (map) to change the order of result TObjArray-s in the common result array, if, for example, channels go in a different sequence; NULL - if not used
+//      mapChannel - vector of integer values (map) to change the order of result TObjArray-s in the common result array, if, for example, channels go in a different sequence; NULL - if not used
 // Returns common TObjArray with TObjArray objects containing TangoTimeInterval (i.e. conditionally TObjArray<TObjArray<TangoTimeInterval*>>),
 // if no intervals found - returns the common TObjArray with zero TObjArray elements; in case of errors - returns NULL
-TObjArray* TangoData::SearchTangoIntervals(const char* detector_name, const char* parameter_name, const char* date_start, const char* date_end, enumConditions condition, bool value, int* mapChannel)
+TObjArray* TangoData::SearchTangoIntervals(const char* detector_name, const char* parameter_name, const char* date_start, const char* date_end,
+                                           enumConditions condition, bool value, vector<int>* mapChannel)
 {
     // get Tango parameter values for the given time period
     TObjArray* tango_data = GetTangoParameter(detector_name, parameter_name, date_start, date_end);
@@ -328,9 +329,21 @@ TObjArray* TangoData::SearchTangoIntervals(const char* detector_name, const char
                     }
                     TDatime endInterval((((TangoTimeParameter*)tango_data->At(i))->parameter_time.Convert() + ((TangoTimeParameter*)tango_data->At(i-1))->parameter_time.Convert()) / 2);
 
+                    // create TangoTimeInterval for the satisfied condition
                     TangoTimeInterval* pTimeInterval = new TangoTimeInterval(startInterval, endInterval);
                     int real_channel = j;
-                    if (mapChannel) real_channel = mapChannel[j];
+                    if (mapChannel)
+                        if (mapChannel->size() > j)
+                        {
+                            real_channel = mapChannel->at(j);
+                            if (pTimeIntervals->GetEntriesFast() <= real_channel)
+                            {
+                                cout<<"CRITICAL WARNING: Tango array size is less than the corrected channel: "<<real_channel<<endl;
+                                continue;
+                            }
+                        }
+                        else cout<<"CRITICAL WARNING: map channel size is less than the current channel: "<<j<<endl;
+                    //cout<<"j = "<<j<<", real_channel = "<<real_channel<<", mapChannel->size() = "<<mapChannel->size()<<", pTimeIntervals->GetEntriesFast() = "<<pTimeIntervals->GetEntriesFast()<<endl;
                     ((TObjArray*)pTimeIntervals->At(real_channel))->Add(pTimeInterval);
                 }
             }
@@ -356,7 +369,18 @@ TObjArray* TangoData::SearchTangoIntervals(const char* detector_name, const char
 
             TangoTimeInterval* pTimeInterval = new TangoTimeInterval(startInterval, endInterval);
             int real_channel = j;
-            if (mapChannel) real_channel = mapChannel[j];
+            if (mapChannel)
+                if (mapChannel->size() > j)
+                {
+                    real_channel = mapChannel->at(j);
+                    if (pTimeIntervals->GetEntriesFast() <= real_channel)
+                    {
+                        cout<<"CRITICAL WARNING: Tango array size is less than the corrected channel: "<<real_channel<<endl;
+                        continue;
+                    }
+                }
+                else cout<<"CRITICAL WARNING: map channel size is less than the current channel: "<<j<<endl;
+            //cout<<"j = "<<j<<", real_channel = "<<real_channel<<", mapChannel->size() = "<<mapChannel->size()<<", pTimeIntervals->GetEntriesFast() = "<<pTimeIntervals->GetEntriesFast()<<endl;
             ((TObjArray*)pTimeIntervals->At(real_channel))->Add(pTimeInterval);
         }
     }//write the last period if neccessary
@@ -520,12 +544,20 @@ void TangoData::PrintTangoDataMultiGraph(TObjArray* tango_data, const char* y_ax
 // Parameters:
 //  tango_intervals - TObjArray with TObjArray objects containing TangoTimeInterval objects obtained from 'SearchTangoIntervals' function
 //  channel_name - name of the dimension to display on the screen, default: Channel
-void TangoData::PrintTangoIntervalConsole(TObjArray* tango_intervals, TString channel_name)
+//  isShowOnlyExists - if true, print only intervals which satisfy the condition (skip empty intervals)
+void TangoData::PrintTangoIntervalConsole(TObjArray* tango_intervals, TString channel_name, bool isShowOnlyExists)
 {
     for (int i = 0; i < tango_intervals->GetEntriesFast(); i++)
     {
-        cout<<channel_name.Data()<<" "<<i<<":"<<endl;
         TObjArray* pChannel = (TObjArray*) tango_intervals->At(i);
+        if (pChannel->GetEntriesFast() == 0)
+        {
+            if (!isShowOnlyExists)
+                cout<<channel_name.Data()<<" "<<i<<":"<<endl<<"   No intervals correspond to the specified conditions"<<endl;
+            continue;
+        }
+        else
+            cout<<channel_name.Data()<<" "<<i<<":"<<endl;
         for (int j = 0; j < pChannel->GetEntriesFast(); j++)
         {
             TangoTimeInterval* pInterval = (TangoTimeInterval*) pChannel->At(j);
@@ -533,7 +565,6 @@ void TangoData::PrintTangoIntervalConsole(TObjArray* tango_intervals, TString ch
             cout<<" - ";
             cout<<pInterval->end_time.AsSQLString();
         }
-        if (pChannel->GetEntriesFast() == 0) cout<<"   No intervals correspond to the specified conditions";
         cout<<endl;
     }
 

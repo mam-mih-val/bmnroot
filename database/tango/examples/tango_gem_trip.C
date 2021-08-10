@@ -1,11 +1,11 @@
 // macro for printing TANGO data for GEM stations tripped in runs
 
-// map: Tango channel -> GEMs Z-order
-int map_channel_run5[] = {1, 3, 0, 5, 2, 6, 4, 7};
-int map_channel_run6_b1529[] = {1, 3, 0, 5, 2, 6, 4};
-int map_channel_run6_a1529[] = {1, 3, 0, 5, 6, 4, 2};
+// map: № Tango channel -> GEMs Z-order (starts from 0)
+vector<int> map_channel_run5 {1, 3, 0, 5, 2, 6, 4, 7};
+vector<int> map_channel_run6_b1529 {1, 3, 0, 5, 2, 6, 4};
+vector<int> map_channel_run6_a1529 {1, 3, 0, 5, 6, 4, 2};
 
-void tango_gem_trip(int period, int run)
+void tango_gem_trip(int period, int run, bool isShowOnlyTrip = false)
 {
     TangoData db_tango;
 
@@ -30,16 +30,16 @@ void tango_gem_trip(int period, int run)
 
     const char* detector_name = "gem";
     const char* parameter_name = "trip";
-    int* map_channel = nullptr;
+    vector<int>* map_channel = nullptr;
     switch (period)
     {
         case 5:
-            map_channel = map_channel_run5;
+            map_channel = &map_channel_run5;
             break;
         case 6:
         {
-            if (run < 1529) map_channel = map_channel_run6_b1529;
-            else map_channel = map_channel_run6_a1529;
+            if (run < 1529) map_channel = &map_channel_run6_b1529;
+            else map_channel = &map_channel_run6_a1529;
             break;
         }
         default:
@@ -52,7 +52,8 @@ void tango_gem_trip(int period, int run)
 
     // TObjArray stores array of TObjArray* (for all channels) with TangoTimeInterval*: time intervals satisfying the condition (uni_db/TangoData.h)
     // ((TObjArray*)tango_data->At(0))->At(2) -> TangoTimeInterval*: third time interval satisfying the condition for the first channel 0
-    TObjArray* tango_data = db_tango.SearchTangoIntervals(detector_name, parameter_name, strDateStart.Data(), strDateEnd.Data(), condition, condition_value, map_channel);
+    TObjArray* tango_data = db_tango.SearchTangoIntervals(detector_name, parameter_name, strDateStart.Data(), strDateEnd.Data(),
+                                                          condition, condition_value, map_channel);
     if (tango_data == NULL)
     {
         cout<<"Macro finished with errors"<<endl;
@@ -61,19 +62,20 @@ void tango_gem_trip(int period, int run)
 
     // console output
     cout<<"Information on "<<parameter_name<<" parameter for "<<detector_name<<" (period = "<<period<<", run = "<<run<<"):"<<endl;
-    db_tango.PrintTangoIntervalConsole(tango_data, "GEM Z-order");
+    db_tango.PrintTangoIntervalConsole(tango_data, "GEM Z-order", isShowOnlyTrip);
+    cout<<endl;
 
     delete tango_data;
 }
 
-void tango_gem_trip(int period)
+void tango_gem_trip(int period, bool isShowOnlyTrip = false)
 {
     UniqueRunNumber* run_numbers;
     int run_count = UniDbRunPeriod::GetRunNumbers(period, run_numbers);
     if (run_count <= 0) return;
 
     for (int i = 0; i < run_count; i++)
-        tango_gem_trip(run_numbers[i].period_number, run_numbers[i].run_number);
+        tango_gem_trip(run_numbers[i].period_number, run_numbers[i].run_number, isShowOnlyTrip);
 
     cout<<"Macro finished successfully"<<endl;
 }

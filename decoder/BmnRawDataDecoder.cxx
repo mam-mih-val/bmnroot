@@ -1084,10 +1084,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                     if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsAugmented();
                     if (fCscMapper)fCscMapper->RecalculatePedestalsAugmented();
                     fPedEvCntr = 0;
-//                    if (fSiliconMapper) {
-//                        fSiliconMapper->DrawDebugHists("sil-ped-cms.pdf");
-//                        fSiliconMapper->ClearDebugHists();
-//                    }
+                    //                    if (fSiliconMapper) {
+                    //                        fSiliconMapper->DrawDebugHists("sil-ped-cms.pdf");
+                    //                        fSiliconMapper->ClearDebugHists();
+                    //                    }
                 }
             }
             if (fVerbose == 1) {
@@ -1208,29 +1208,48 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             //                UniDbRun::CreateRun(fPeriodId, runId, TString::Format("/nica/data4mpd1/dataBMN/bmndata2/run6/raw/mpd_run_Glob_%d.data", runId), "", NULL, NULL, fRunStartTime, &fRunEndTime, &nEv, NULL, &fSize, NULL);
 
             //check for trip information
-            //            TangoData db_tango;
-            //            enumConditions condition = conditionEqual;
-            //            bool condition_value = 1;
-            //            int map_channel[] = {1, 3, 0, 5, 2, 6, 4};
-            //            TString date_start = fRunStartTime.AsSQLString(); // 1252 run
-            //            TString date_end = fRunEndTime.AsSQLString();
-//            
-            //            UInt_t runLength = fRunEndTime.Convert() - fRunStartTime.Convert(); //in seconds
-            //            Double_t timeStep = runLength * 1.0 / fNevents; //time for one event
-            //            //printf("Run duration = %d sec.\t TimeStep = %f sec./event\n", runLength, timeStep);
-//            
-            //            TObjArray* tango_data_gem = db_tango.SearchTangoIntervals((char*) "gem", (char*) "trip", (char*) date_start.Data(), (char*) date_end.Data(), condition, condition_value, map_channel);
-            //            if (tango_data_gem) {
-            //                for (Int_t i = 0; i < tango_data_gem->GetEntriesFast(); ++i) {
-            //                    TObjArray* currGemTripInfo = (TObjArray*) tango_data_gem->At(i);
-            //                    if (currGemTripInfo->GetEntriesFast() != 0)
-            //                        for (Int_t j = 0; j < currGemTripInfo->GetEntriesFast(); ++j) {
-            //                            TangoTimeInterval* ti = (TangoTimeInterval*) currGemTripInfo->At(j);
-            //                            startTripEvent.push_back(UInt_t((ti->start_time.Convert() - fRunStartTime.Convert()) / timeStep));
-            //                            endTripEvent.push_back(UInt_t((ti->end_time.Convert() - fRunStartTime.Convert()) / timeStep));
-//                        }
-            //                }
-            //            }
+            TangoData db_tango;
+            enumConditions condition = conditionEqual;
+            bool condition_value = 1;
+            vector<int> map_channel_run5{1, 3, 0, 5, 2, 6, 4, 7};
+            vector<int> map_channel_run6_b1529{1, 3, 0, 5, 2, 6, 4};
+            vector<int> map_channel_run6_a1529{1, 3, 0, 5, 6, 4, 2};
+            vector<int>* map_channel = nullptr;
+            switch (fPeriodId) {
+                case 5:
+                    map_channel = &map_channel_run5;
+                    break;
+                case 6:
+                    if (fRunId < 1569)
+                        map_channel = &map_channel_run6_b1529;
+                    else
+                        map_channel = &map_channel_run6_a1529;
+                    break;
+                default:
+                    printf("Warning: unknown GEM Tango channel map for the run!");
+                    break;
+
+            }
+            TString date_start = fRunStartTime.AsString("s"); // 1252 run
+            TString date_end = fRunEndTime.AsString("s");
+
+            UInt_t runLength = fRunEndTime.AsDouble() - fRunStartTime.AsDouble(); //in seconds.nanoseconds
+            Double_t timeStep = runLength * 1.0 / fNevents; //time for one event
+            //printf("Run duration = %d sec.\t TimeStep = %f sec./event\n", runLength, timeStep);
+
+            TObjArray* tango_data_gem = db_tango.SearchTangoIntervals(
+                    (char*) "gem", (char*) "trip", (char*) date_start.Data(), (char*) date_end.Data(), condition, condition_value, map_channel);
+            if (tango_data_gem) {
+                for (Int_t i = 0; i < tango_data_gem->GetEntriesFast(); ++i) {
+                    TObjArray* currGemTripInfo = (TObjArray*) tango_data_gem->At(i);
+                    if (currGemTripInfo->GetEntriesFast() != 0)
+                        for (Int_t j = 0; j < currGemTripInfo->GetEntriesFast(); ++j) {
+                            TangoTimeInterval* ti = (TangoTimeInterval*) currGemTripInfo->At(j);
+                            startTripEvent.push_back(UInt_t((ti->start_time.Convert() - fRunStartTime.AsDouble()) / timeStep));
+                            endTripEvent.push_back(UInt_t((ti->end_time.Convert() - fRunStartTime.AsDouble()) / timeStep));
+                        }
+                }
+            }
         }
 
         fSpillCntr += headDAQ->GetSpillStart() ? 1 : 0;
@@ -1309,10 +1328,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         fDigiTree->Fill();
         prevEventType = curEventType;
     }
-//                    if (fSiliconMapper) {
-//                        fSiliconMapper->DrawDebugHists("sil-sig-cms.pdf");
-//                        fSiliconMapper->ClearDebugHists();
-//                    }
+    //                    if (fSiliconMapper) {
+    //                        fSiliconMapper->DrawDebugHists("sil-sig-cms.pdf");
+    //                        fSiliconMapper->ClearDebugHists();
+    //                    }
 
     if (fTof700Mapper) {
         fTof700Mapper->WriteSlewingResults();

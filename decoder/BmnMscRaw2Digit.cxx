@@ -7,7 +7,8 @@ BmnMscRaw2Digit::BmnMscRaw2Digit(Int_t period, Int_t run, TString MapFile, TTree
     SetRawSpillTree(spillTree);
     SetDigSpillTree(digiSpillTree);
     ReadChannelMap(MapFile);
-    ParseTxtSpillLog(
+    if (fBmnSetup == kSRCSETUP) // @TODO extend for BM@N
+        ParseTxtSpillLog(
             fBmnSetup == kSRCSETUP ?
             "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/SRC_Data.txt" :
             "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/summary_corr_v2.txt",
@@ -109,9 +110,7 @@ BmnStatus BmnMscRaw2Digit::ParseTxtSpillLog(TString LogName, TString SchemeName)
         vector<Int_t> vals;
         for (Int_t iValue = 0; iValue < sum_size; iValue++)
             vals.push_back(boost::any_cast<Int_t>(st->arrValues[iValue]));
-//        printf("spill end was %s\n", st->dtSpillEnd.AsSQLString());
         st->dtSpillEnd.Set(st->dtSpillEnd.Convert() - fLogShift);
-//        printf("spill end now %s\n\n", st->dtSpillEnd.AsSQLString());
         spill_map.insert(pair<TDatime, vector < Int_t >> (st->dtSpillEnd, vals));
     }
 
@@ -191,16 +190,20 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
                 fL0 += arr[mRec.L0];
                 UInt_t AcceptedReal = ti->GetTrigAccepted() - nPedEvBySpill;
                 if (fBmnSetup == kSRCSETUP) {
-                    printf(" spill  %s\n", fSpillMapIter->first.AsSQLString());
-                    vector<Int_t> v = fSpillMapIter->second;
-                    /** flux ~= sum [BT * (DAQ_Busy -peds)/ (DAQ_TRigger - peds)]*/
-                    Double_t BT = v[15];
-                    Double_t DAQ_Busy = v[21];
-                    Double_t DAQ_Trigger = v[22];
-                    if (DAQ_Trigger - nPedEvBySpill != 0)
-                        fBTAccepted += BT * (DAQ_Busy - nPedEvBySpill) / (DAQ_Trigger - nPedEvBySpill);
-                    printf("BT %f DAQ_Busy %f  DAQ_Trigger %f  flux %f\n", 
-                            BT, DAQ_Busy, DAQ_Trigger, fBTAccepted);
+                    if (fPeriodId == 7) {
+                        if (fVerbose)
+                            printf(" spill  %s\n", fSpillMapIter->first.AsSQLString());
+                        vector<Int_t> v = fSpillMapIter->second;
+                        /** flux ~= sum [BT * (DAQ_Busy -peds)/ (DAQ_TRigger - peds)]*/
+                        Double_t BT = v[15];
+                        Double_t DAQ_Busy = v[21];
+                        Double_t DAQ_Trigger = v[22];
+                        if (DAQ_Trigger - nPedEvBySpill != 0)
+                            fBTAccepted += BT * (DAQ_Busy - nPedEvBySpill) / (DAQ_Trigger - nPedEvBySpill);
+                        if (fVerbose)
+                            printf("BT %f DAQ_Busy %f  DAQ_Trigger %f  flux %f\n",
+                                BT, DAQ_Busy, DAQ_Trigger, fBTAccepted);
+                    }
                 } else { // BM@N setup
                     UInt_t den =
                             AcceptedReal +
@@ -242,35 +245,37 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
                     fDigSpillTree->Fill();
                 }
 
-                printf("iSpill %4u   last EvId %7u  pedestals %d\n",
-                        iSpill, dig->GetLastEventId(), nPedEvBySpill);
-                hdr->GetEventTimeTS().Print();
-                printf(ANSI_COLOR_BLUE " MSC16:" ANSI_COLOR_RESET"\t"
-                        "BC1  %7u,    BC2 %7u,   BC3   %4u, BeamTrigger %7u,      L0 %7u, TrigProtection %7u, BT&Busy %7u\n"
-                        "\tBC1H %7u,  BC1BP %7u, BC1xBC2 %4u,   BC1nBusy  %7u, IntTrig %7u,      SRCTrig %7u, TrignBusy %7u\n",
-                        arr[mRec.BC1],
-                        arr[mRec.BC2],
-                        arr[mRec.BC3],
-                        arr[mRec.BT],
-                        arr[mRec.L0],
-                        arr[mRec.TriggerProtection],
-                        arr[mRec.BTnBusy],
-                        arr[mRec.BC1H],
-                        arr[mRec.BC1BP],
-                        arr[mRec.BC1xBC2],
-                        arr[mRec.BC1nBusy],
-                        arr[mRec.IntTrig],
-                        arr[mRec.SRCTrig],
-                        arr[mRec.TrignBusy]
-                        ); // BM@N
-                printf(ANSI_COLOR_BLUE " U40VE:" ANSI_COLOR_RESET"\tcand %7u,   acc  %7u,   before  %4u,    after  %6u,  rjct %6u,  all %7u,  avail %7u\n\n",
-                        ti->GetTrigCand(),
-                        ti->GetTrigAccepted(),
-                        ti->GetTrigBefo(),
-                        ti->GetTrigAfter(),
-                        ti->GetTrigRjct(),
-                        ti->GetTrigAll(),
-                        ti->GetTrigAvail());
+                if (fVerbose) {
+                    printf("iSpill %4u   last EvId %7u  pedestals %d\n",
+                            iSpill, dig->GetLastEventId(), nPedEvBySpill);
+                    hdr->GetEventTimeTS().Print();
+                    printf(ANSI_COLOR_BLUE " MSC16:" ANSI_COLOR_RESET"\t"
+                            "BC1  %7u,    BC2 %7u,   BC3   %4u, BeamTrigger %7u,      L0 %7u, TrigProtection %7u, BT&Busy %7u\n"
+                            "\tBC1H %7u,  BC1BP %7u, BC1xBC2 %4u,   BC1nBusy  %7u, IntTrig %7u,      SRCTrig %7u, TrignBusy %7u\n",
+                            arr[mRec.BC1],
+                            arr[mRec.BC2],
+                            arr[mRec.BC3],
+                            arr[mRec.BT],
+                            arr[mRec.L0],
+                            arr[mRec.TriggerProtection],
+                            arr[mRec.BTnBusy],
+                            arr[mRec.BC1H],
+                            arr[mRec.BC1BP],
+                            arr[mRec.BC1xBC2],
+                            arr[mRec.BC1nBusy],
+                            arr[mRec.IntTrig],
+                            arr[mRec.SRCTrig],
+                            arr[mRec.TrignBusy]
+                            ); // BM@N
+                    printf(ANSI_COLOR_BLUE " U40VE:" ANSI_COLOR_RESET"\tcand %7u,   acc  %7u,   before  %4u,    after  %6u,  rjct %6u,  all %7u,  avail %7u\n\n",
+                            ti->GetTrigCand(),
+                            ti->GetTrigAccepted(),
+                            ti->GetTrigBefo(),
+                            ti->GetTrigAfter(),
+                            ti->GetTrigRjct(),
+                            ti->GetTrigAll(),
+                            ti->GetTrigAvail());
+                }
                 ++iSpill;
                 ++fSpillMapIter;
                 Int_t r = fRawSpillTree->GetEntry(iSpill);

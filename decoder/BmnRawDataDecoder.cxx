@@ -1226,7 +1226,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                         map_channel = &map_channel_run6_a1529;
                     break;
                 default:
-                    printf("Warning: unknown GEM Tango channel map for the run!");
+                    printf("Warning: unknown GEM Tango channel map for the run!\n");
                     break;
 
             }
@@ -1236,18 +1236,19 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             UInt_t runLength = fRunEndTime.AsDouble() - fRunStartTime.AsDouble(); //in seconds.nanoseconds
             Double_t timeStep = runLength * 1.0 / fNevents; //time for one event
             //printf("Run duration = %d sec.\t TimeStep = %f sec./event\n", runLength, timeStep);
-
-            TObjArray* tango_data_gem = db_tango.SearchTangoIntervals(
-                    (char*) "gem", (char*) "trip", (char*) date_start.Data(), (char*) date_end.Data(), condition, condition_value, map_channel);
-            if (tango_data_gem) {
-                for (Int_t i = 0; i < tango_data_gem->GetEntriesFast(); ++i) {
-                    TObjArray* currGemTripInfo = (TObjArray*) tango_data_gem->At(i);
-                    if (currGemTripInfo->GetEntriesFast() != 0)
-                        for (Int_t j = 0; j < currGemTripInfo->GetEntriesFast(); ++j) {
-                            TangoTimeInterval* ti = (TangoTimeInterval*) currGemTripInfo->At(j);
-                            startTripEvent.push_back(UInt_t((ti->start_time.Convert() - fRunStartTime.AsDouble()) / timeStep));
-                            endTripEvent.push_back(UInt_t((ti->end_time.Convert() - fRunStartTime.AsDouble()) / timeStep));
-                        }
+            if (map_channel) {
+                TObjArray* tango_data_gem = db_tango.SearchTangoIntervals(
+                        (char*) "gem", (char*) "trip", (char*) date_start.Data(), (char*) date_end.Data(), condition, condition_value, map_channel);
+                if (tango_data_gem) {
+                    for (Int_t i = 0; i < tango_data_gem->GetEntriesFast(); ++i) {
+                        TObjArray* currGemTripInfo = (TObjArray*) tango_data_gem->At(i);
+                        if (currGemTripInfo->GetEntriesFast() != 0)
+                            for (Int_t j = 0; j < currGemTripInfo->GetEntriesFast(); ++j) {
+                                TangoTimeInterval* ti = (TangoTimeInterval*) currGemTripInfo->At(j);
+                                startTripEvent.push_back(UInt_t((ti->start_time.Convert() - fRunStartTime.AsDouble()) / timeStep));
+                                endTripEvent.push_back(UInt_t((ti->end_time.Convert() - fRunStartTime.AsDouble()) / timeStep));
+                            }
+                    }
                 }
             }
         }

@@ -45,10 +45,10 @@ const Double_t YStationPositions[NStations] = {
     +7.95175  //station 9 (GEM M9)
 };
 const Double_t ZStationPositions[NStations] = {
-    -444.97179, //station 0 (left side: upper GEM M4)
-    -447.46132, //station 1 (left side: lower GEM M3)
-    -444.99841, //station 2 (right side: upper GEM M1)
-    -446.18716, //station 3 (right side: lower GEM M2)
+    -444.86679, //station 0 (left side: upper GEM M4)
+    -447.56632, //station 1 (left side: lower GEM M3)
+    -444.91641, //station 2 (right side: upper GEM M1)
+    -446.26916, //station 3 (right side: lower GEM M2)
     +64.754, //station 4 (GEM M10)
     +87.854, //station 5 (GEM M7)
     +112.967, //station 6 (GEM M5)
@@ -216,7 +216,7 @@ void create_rootgeom_GEMS_RunSRCSpring2018() {
         TGeoVolume *frame0 = CreateFrameForModule_Station66x41(TString("frame0_")+station->GetName(), dXFrame_Station66x41, dYFrame_Station66x41, dZFrame_Station66x41);
 
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
-            module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
+            module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station66x41*0.5);
             module0_transform->RotateY(+30.5843); //deg
 
         TGeoCombiTrans *station_transform = new TGeoCombiTrans();
@@ -237,7 +237,7 @@ void create_rootgeom_GEMS_RunSRCSpring2018() {
         TGeoVolume *frame0 = CreateFrameForModule_Station66x41(TString("frame0_")+station->GetName(), dXFrame_Station66x41, dYFrame_Station66x41, dZFrame_Station66x41);
 
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
-            module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
+            module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station66x41*0.5);
             module0_transform->RotateY(+30.5843); //deg
 
         TGeoCombiTrans *station_transform = new TGeoCombiTrans();
@@ -258,7 +258,7 @@ void create_rootgeom_GEMS_RunSRCSpring2018() {
         TGeoVolume *frame0 = CreateFrameForModule_Station66x41(TString("frame0_")+station->GetName(), dXFrame_Station66x41, dYFrame_Station66x41, dZFrame_Station66x41);
 
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
-            module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
+            module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station66x41*0.5);
             module0_transform->RotateY(-30.6845); //deg
 
         TGeoCombiTrans *station_transform = new TGeoCombiTrans();
@@ -279,7 +279,7 @@ void create_rootgeom_GEMS_RunSRCSpring2018() {
         TGeoVolume *frame0 = CreateFrameForModule_Station66x41(TString("frame0_")+station->GetName(), dXFrame_Station66x41, dYFrame_Station66x41, dZFrame_Station66x41);
 
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
-            module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station163x45*0.5);
+            module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+ZModuleSize_Station66x41*0.5);
             module0_transform->RotateY(-30.6845); //deg
 
         TGeoCombiTrans *station_transform = new TGeoCombiTrans();

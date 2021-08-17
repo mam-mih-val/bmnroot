@@ -14,45 +14,14 @@
 
 <StationSet>
 
-   <!-- Station 3 (GEM M2) -->
-    <Station xPosition="-115.31016" yPosition="-25.76025" zPosition="-446.26916" beamHole="0.0">
-
-        <!-- module 0 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+115.31016" yTranslation="+25.76025" zTranslation="+446.18716" />
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="-30.6845" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-115.31016" yTranslation="-25.76025" zTranslation="-446.18716" />
-            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightBottom">
-                <DeadZone>
-                    <DeadPoint x="-18.0" y="10.5" />
-                    <DeadPoint x="-18.0" y="20.5" />
-                    <DeadPoint x="-33.0" y="20.5" />
-                    <DeadPoint x="-33.0" y="10.5" />
-                </DeadZone>
-            </Layer>
-            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightBottom">
-                <DeadZone>
-                    <DeadPoint x="-18.0" y="10.5" />
-                    <DeadPoint x="-18.0" y="20.5" />
-                    <DeadPoint x="-33.0" y="20.5" />
-                    <DeadPoint x="-33.0" y="10.5" />
-                </DeadZone>
-            </Layer>
-            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="-18.0" yorig="10.5" xsize="15.0" ysize="10.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="-18.0" yorig="10.5" xsize="15.0" ysize="10.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightBottom"></Layer>
-        </Module>
-
-    </Station>
-
-
     <!-- Station 0 (GEM M4) -->
     <Station xPosition="+117.22007" yPosition="+16.86775" zPosition="-444.86679" beamHole="0.0">
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-117.22007" yTranslation="-16.86775" zTranslation="+444.97179" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-117.22007" yTranslation="-16.86775" zTranslation="+444.86679" />
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="+30.5843" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+117.22007" yTranslation="+16.86775" zTranslation="-444.97179" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+117.22007" yTranslation="+16.86775" zTranslation="-444.86679" />
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
                 <DeadZone>
                     <DeadPoint x="33.0" y="-20.5" />
@@ -80,9 +49,9 @@
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-117.27807" yTranslation="+25.90225" zTranslation="+447.46132" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-117.27807" yTranslation="+25.90225" zTranslation="+447.56632" />
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="+30.5843" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+117.27807" yTranslation="-25.90225" zTranslation="-447.46132" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+117.27807" yTranslation="-25.90225" zTranslation="-447.56632" />
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightBottom">
                 <DeadZone>
                     <DeadPoint x="-18.0" y="10.5" />
@@ -105,14 +74,14 @@
 
     </Station>
 
-    <!-- Station 2 (GEM M1) -->
+     <!-- Station 2 (GEM M1) -->
     <Station xPosition="-117.51723" yPosition="+16.86775" zPosition="-444.91641" beamHole="0.0">
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+117.51723" yTranslation="-16.86775" zTranslation="+444.99841" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+117.51723" yTranslation="-16.86775" zTranslation="+444.91641" />
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="-30.6845" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-117.51723" yTranslation="+16.86775" zTranslation="-444.99841" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-117.51723" yTranslation="+16.86775" zTranslation="-444.91641" />
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
                 <DeadZone>
                     <DeadPoint x="33.0" y="-20.5" />
@@ -135,6 +104,35 @@
 
     </Station>
 
+   <!-- Station 3 (GEM M2) -->
+    <Station xPosition="-115.31016" yPosition="-25.76025" zPosition="-446.26916" beamHole="0.0">
+
+        <!-- module 0 -->
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+115.31016" yTranslation="+25.76025" zTranslation="+446.26916" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="-30.6845" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-115.31016" yTranslation="-25.76025" zTranslation="-446.26916" />
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightBottom">
+                <DeadZone>
+                    <DeadPoint x="-18.0" y="10.5" />
+                    <DeadPoint x="-18.0" y="20.5" />
+                    <DeadPoint x="-33.0" y="20.5" />
+                    <DeadPoint x="-33.0" y="10.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightBottom">
+                <DeadZone>
+                    <DeadPoint x="-18.0" y="10.5" />
+                    <DeadPoint x="-18.0" y="20.5" />
+                    <DeadPoint x="-33.0" y="20.5" />
+                    <DeadPoint x="-33.0" y="10.5" />
+                </DeadZone>
+            </Layer>
+            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="-18.0" yorig="10.5" xsize="15.0" ysize="10.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightBottom"></Layer>
+            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="-18.0" yorig="10.5" xsize="15.0" ysize="10.0" stripDirection="RightToLeft" lborder="LeftTop" rborder="RightBottom"></Layer>
+        </Module>
+
+    </Station>
 
     <!-- Station 4 (GEM M10) -->
     <Station xPosition="+1.0055" yPosition="+7.97675" zPosition="+64.754" beamHole="4.0">

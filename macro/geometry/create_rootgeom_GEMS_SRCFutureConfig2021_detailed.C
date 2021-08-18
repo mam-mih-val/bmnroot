@@ -21,7 +21,7 @@ const Double_t XStationPositions[NStations] = {
 };
 const Double_t YStationPositions[NStations] = {
     +0.0 - 4.623, //station 0 (left-arm GEM)
-    +0.0 + 4.623  //station 1 (right-arm GEM)
+    +0.0 - 4.623  //station 1 (right-arm GEM)
 };
 const Double_t ZStationPositions[NStations] = {
     +112.0 - 647.48 + 0.7/*dist. from backside to sens.*/ , //station 0 (left-arm GEM)

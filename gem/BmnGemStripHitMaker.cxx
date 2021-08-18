@@ -75,10 +75,10 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
             fCurrentConfig = BmnGemStripConfiguration::FutureConfig2020;
             break;
     }
-    
+fCurrentConfig = BmnGemStripConfiguration::RunSRCSpring2018;
     TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
     gPathGemConfig += "/parameters/gem/XMLConfigs/";
-    
+
     //Create GEM detector ------------------------------------------------------
     switch (fCurrentConfig) {
         case BmnGemStripConfiguration::RunSummer2016:
@@ -116,10 +116,17 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
             if (fVerbose) cout << "   Current GEM Configuration : GemFutureConfig2020" << "\n";
             break;
 
+        case BmnGemStripConfiguration::SRCFutureConfig2021:
+            StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemSRCFutureConfig2021.xml");
+            TransfSet = new BmnGemStripTransform();
+            TransfSet->LoadFromXMLFile(gPathGemConfig + "GemSRCFutureConfig2021.xml");
+            if (fVerbose) cout << "   Current GEM Configuration : SRCFutureConfig2021" << "\n";
+            break;
+
         default:
             StationSet = NULL;
     }
-    
+
     if (fIsExp) {
         const Int_t nStat = StationSet->GetNStations();
         UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", run_period, run_number);
@@ -211,7 +218,7 @@ InitStatus BmnGemStripHitMaker::Init() {
         Fatal("Init", "No Magnetic Field found");
 
     //--------------------------------------------------------------------------
-    
+
     fBmnEvQuality = (TClonesArray*) ioman->GetObject(fBmnEvQualityBranchName);
 
     if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Init() finished ==============" << endl;
@@ -266,10 +273,10 @@ void BmnGemStripHitMaker::ProcessDigits() {
         digit = (BmnGemStripDigit*) fBmnGemStripDigitsArray->At(idigit);
         if (!digit->IsGoodDigit())
             continue;
-        
+
         if (digit->GetStripSignal() < fSignalLow || digit->GetStripSignal() > fSignalUp)
             continue;
-        
+
         station = StationSet->GetGemStation(digit->GetStation());
         module = station->GetModule(digit->GetModule());
 

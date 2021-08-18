@@ -75,7 +75,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
             fCurrentConfig = BmnGemStripConfiguration::FutureConfig2020;
             break;
     }
-fCurrentConfig = BmnGemStripConfiguration::RunSRCSpring2018;
+    
     TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
     gPathGemConfig += "/parameters/gem/XMLConfigs/";
 

@@ -14,18 +14,18 @@
 const Int_t NStations = 2;      //stations in the detector
 const Int_t NMaxModules = 1;    //max. number of modules in a station
 
-//(X-Y-Z)Positions of stations (sensitive volumes) -----------------------------
+//(X-Y-Z)Positions of stations (distance from the origin to the side (not sens.) which is nearest to the target)
 const Double_t XStationPositions[NStations] = {
-    +57.684 + 0.5055, //station 0 (left-arm GEM)
-    -57.684 + 0.5055  //station 1 (right-arm GEM)
+    +57.684 + 0.5055 /* +58.1895 */, //station 0 (left-arm GEM)
+    -57.684 + 0.5055 /* -57.1785 */ //station 1 (right-arm GEM)
 };
 const Double_t YStationPositions[NStations] = {
     +0.0 - 4.623, //station 0 (left-arm GEM)
     +0.0 - 4.623  //station 1 (right-arm GEM)
 };
 const Double_t ZStationPositions[NStations] = {
-    +112.0 - 647.48 + 0.7/*dist. from backside to sens.*/ , //station 0 (left-arm GEM)
-    +112.0 - 647.48 + 0.7/*dist. from backside to sens.*/  //station 1 (right-arm GEM)
+    +112.0 - 647.48 /* -535.48 */, //station 0 (left-arm GEM)
+    +112.0 - 647.48 /* -535.48 */  //station 1 (right-arm GEM)
 };
 //------------------------------------------------------------------------------
 
@@ -39,8 +39,8 @@ const Double_t YModuleShifts[NStations][NMaxModules] = {
     { 0.0 }  //station 1 (right-arm GEM)
 };
 const Double_t ZModuleShifts[NStations][NMaxModules] = {
-    { 0.0 }, //station 0 (left-arm GEM)
-    { 0.0 }  //station 1 (right-arm GEM)
+    { +0.7 /*distance from the side to the sensor*/ }, //station 0 (left-arm GEM)
+    { +0.7 /*distance from the side to the sensor*/ }  //station 1 (right-arm GEM)
 };
 
 //rotations of stations around y-axis by 180 deg.

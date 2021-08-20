@@ -120,6 +120,13 @@ InitStatus BmnCSCHitMaker::Init() {
             if (fVerbose > 1) cout << "   Current CSC Configuration : FutureConfig2020" << "\n";
             break;
 
+        case BmnCSCConfiguration::SRCFutureConfig2021:
+            StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCSRCFutureConfig2021.xml");
+            TransfSet = new BmnCSCTransform();
+            TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCSRCFutureConfig2021.xml");
+            if (fVerbose) cout << "   Current CSC Configuration : SRCFutureConfig2021" << "\n";
+            break;
+
         default:
             StationSet = nullptr;
     }
@@ -275,6 +282,10 @@ void BmnCSCHitMaker::ProcessDigits() {
                 hit->SetStripPositionInUpperLayer(module->GetIntersectionPoint_UpperLayerSripPosition(iPoint)); //strip position (upper layer ///or\\\)
                 hit->SetStripTotalSignalInLowerLayer(sigL);
                 hit->SetStripTotalSignalInUpperLayer(sigU);
+
+                cout << "  glob(x:y:z) = ( " << x << " : " << y << " : " << z << "\n";
+                cout << "  hit(x:y:z) = ( " << hit->GetX() << " : " << hit->GetY() << " : " << hit->GetZ() << "\n";
+                cout << "\n";
                 //--------------------------------------------------------------
 
                 //hit matching -------------------------------------------------

@@ -76,6 +76,13 @@ InitStatus BmnCSCDigitizer::Init() {
             if (fVerbose) cout << "   Current CSC Configuration : FutureConfig2020" << "\n";
             break;
 
+        case BmnCSCConfiguration::SRCFutureConfig2021:
+            StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCSRCFutureConfig2021.xml");
+            TransfSet = new BmnCSCTransform();
+            TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCSRCFutureConfig2021.xml");
+            if (fVerbose) cout << "   Current CSC Configuration : SRCFutureConfig2021" << "\n";
+            break;
+
         default:
             StationSet = nullptr;
     }

@@ -26,8 +26,8 @@ const Double_t YStationPositions[NStations] = {
     +0.0 - 4.623  //station 1 (right arm)
 };
 const Double_t ZStationPositions[NStations] = {
-    +182.89 - 647.48 /* −464.59 */, //station 0 (left arm)
-    +182.89 - 647.48 /* −464.59 */ //station 1 (right arm)
+    +182.89 - 647.48 /* -464.59 */, //station 0 (left arm)
+    +182.89 - 647.48 /* -464.59 */ //station 1 (right arm)
 };
 //------------------------------------------------------------------------------
 
@@ -276,7 +276,7 @@ TGeoVolume *CreateModule(TString module_name) {
 
     //volumes
     TGeoVolume *moduleV = new TGeoVolume(TString("moduleV")+=TString("_") + module_name, moduleS);
-    TGeoVolume *sensV = new TGeoVolume(TString("sensV")+=TString("_") + module_name, sensS);
+    TGeoVolume *sensV = new TGeoVolume(TString("SensorV")+=TString("_") + module_name, sensS); 
 
     //medium
     if(pMedArgonIsobutane7525) {

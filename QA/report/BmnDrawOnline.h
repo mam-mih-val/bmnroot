@@ -13,6 +13,7 @@
 #include "TH2.h"
 #include "TPad.h"
 #include "TLegend.h"
+#include "TEfficiency.h"
 
 
 
@@ -26,12 +27,12 @@ public:
      * \brief Constructor.
     */
 	 
-	BmnDrawOnline();
+	BmnDrawOnline(TString param, TString storageName = "canvStorage");
 	
 	/**
      * \brief Constructor.
     */
-	BmnDrawOnline(TFile*);
+	BmnDrawOnline(TFile*, Int_t port = 8080);
 	
 	/**
      * \brief Destructor.
@@ -67,6 +68,12 @@ public:
 			Float_t markerSize = BmnDrawingOptions::MarkerSize(),
 			Int_t markerStyle = BmnDrawingOptions::MarkerStyle(0),
 			Int_t fillColor = -1);
+
+	void DrawH1(
+			TCanvas* canvas,
+			TEfficiency* hist);
+
+
 
 	/**
 	 * \fn DrawH2
@@ -119,7 +126,7 @@ public:
 	 * \fn InitServer
 	 * \brief Create server on localhost
 	 */
-	void InitServer();
+	void InitServer(Int_t);
 	
 	
 	
@@ -138,9 +145,6 @@ public:
 
 	 */
 	void RegisterCanvases(TFile*);
-
-
-
 	
 
 private:
@@ -155,6 +159,5 @@ private:
 	
 	ClassDef(BmnDrawOnline, 1)
 };
-
 
 #endif

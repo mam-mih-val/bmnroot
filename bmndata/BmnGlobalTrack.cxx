@@ -59,4 +59,70 @@ Double_t BmnGlobalTrack::GetMass2(Int_t tofID) {
     return TMath::Sq(this->GetP()) * (1 / beta / beta - 1);
 }
 
+Int_t BmnGlobalTrack::GetMaxWeightInd(Int_t tofID){
+    Double_t maxWeight = 0;
+    Int_t maxWeightInd = 0;
+
+    if ((tofID == 1) || (tofID == 2))
+        for(auto it = fPidWeights.begin(); it != fPidWeights.end(); ++it){
+            if (maxWeight < (it->second)[tofID - 1]){
+                maxWeight = (it->second)[tofID - 1];
+                maxWeightInd = Int_t(it - fPidWeights.begin());
+            }
+        }
+    else
+         maxWeightInd = -1;
+    return maxWeightInd;
+}
+
+Int_t BmnGlobalTrack::GetMostPossiblePDG(Int_t tofID){
+    return fPidWeights[this->GetMaxWeightInd(tofID)].first;
+}
+
+Double_t BmnGlobalTrack::GetMaxWeight(Int_t tofID){
+    if ((tofID == 1) || (tofID == 2))
+        return fPidWeights[this->GetMaxWeightInd(tofID)].second[tofID-1];
+    else
+        return -1;
+}
+
+Double_t BmnGlobalTrack::GetSumWeight(Int_t tofID){
+    Double_t sum = 0;
+    Int_t i = 0;
+    if ((tofID == 1) || (tofID == 2))
+        for (auto it = fPidWeights.begin(); it != fPidWeights.end(); ++it)
+            sum += it->second[tofID-1];
+    else return -1;
+    return sum;
+}
+
+Double_t BmnGlobalTrack::GetPidWeightByPDG(Int_t pdgCode, Int_t tofID){
+    for (auto it = fPidWeights.begin(); it != fPidWeights.end(); ++it)
+        if (it->first == pdgCode)
+            return it->second[tofID-1];
+    return -1;
+}
+
+
+void BmnGlobalTrack::NormalizeWeights(){
+    Int_t i;
+    Double_t sum400, sum700;
+    sum400 = GetSumWeight(1);
+    sum700 = GetSumWeight(2);
+    for (auto it = fPidWeights.begin(); it != fPidWeights.end(); ++it){
+        it->second[0] = it->second[0]/sum400;
+        it->second[1] = it->second[1]/sum700;
+    }
+}
+
+void BmnGlobalTrack::PrintWeights(Int_t tofID){
+    for(auto it = fPidWeights.begin(); it != fPidWeights.end(); ++it){
+        cout << it->second[tofID-1] << endl;
+    }
+}
+
+void BmnGlobalTrack::ResizePidVectors(Int_t size){
+    fPidWeights.resize(size);
+}
+
 ClassImp(BmnGlobalTrack)

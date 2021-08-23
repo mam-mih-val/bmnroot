@@ -261,31 +261,33 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
             }
         }
     }
-    if (fCscHits) {
-        Double_t cscXCorr = (fIsSRC) ? -15.08 : +0.87;
-        Double_t cscYCorr = (fIsSRC) ? -5.83 : -0.12;
-        for (Int_t hitIdx = 0; hitIdx < fCscHits->GetEntriesFast(); ++hitIdx) {
-            BmnHit *hit = (BmnHit *)fCscHits->At(hitIdx);
-            hit->SetX(hit->GetX() + cscXCorr);
-            hit->SetY(hit->GetY() + cscYCorr);
+    if(fIsExp){
+        if (fCscHits) {
+            Double_t cscXCorr = (fIsSRC) ? -15.08 : +0.87;
+            Double_t cscYCorr = (fIsSRC) ? -5.83 : -0.12;
+            for (Int_t hitIdx = 0; hitIdx < fCscHits->GetEntriesFast(); ++hitIdx) {
+                BmnHit *hit = (BmnHit *)fCscHits->At(hitIdx);
+                hit->SetX(hit->GetX() + cscXCorr);
+                hit->SetY(hit->GetY() + cscYCorr);
+            }
         }
-    }
-    if (fTof1Hits) {
-        Double_t tof400XCorr = (fIsSRC) ? +0.00 : -2.03;
-        Double_t tof400YCorr = (fIsSRC) ? +0.00 : +0.60;
-        for (Int_t hitIdx = 0; hitIdx < fTof1Hits->GetEntriesFast(); ++hitIdx) {
-            BmnHit *hit = (BmnHit *)fTof1Hits->At(hitIdx);
-            hit->SetX(hit->GetX() + tof400XCorr);
-            hit->SetY(hit->GetY() + tof400YCorr);
+        if (fTof1Hits) {
+            Double_t tof400XCorr = (fIsSRC) ? +0.00 : -2.03;
+            Double_t tof400YCorr = (fIsSRC) ? +0.00 : +0.60;
+            for (Int_t hitIdx = 0; hitIdx < fTof1Hits->GetEntriesFast(); ++hitIdx) {
+                BmnHit *hit = (BmnHit *)fTof1Hits->At(hitIdx);
+                hit->SetX(hit->GetX() + tof400XCorr);
+                hit->SetY(hit->GetY() + tof400YCorr);
+            }
         }
-    }
-    if (fTof2Hits) {
-        Double_t tof700XCorr = (fIsSRC) ? +1.26 : +2.00;
-        Double_t tof700YCorr = (fIsSRC) ? -9.95 : -5.74;
-        for (Int_t hitIdx = 0; hitIdx < fTof2Hits->GetEntriesFast(); ++hitIdx) {
-            BmnHit *hit = (BmnHit *)fTof2Hits->At(hitIdx);
-            hit->SetX(hit->GetX() + tof700XCorr);
-            hit->SetY(hit->GetY() + tof700YCorr);
+        if (fTof2Hits) {
+            Double_t tof700XCorr = (fIsSRC) ? +1.26 : +2.00;
+            Double_t tof700YCorr = (fIsSRC) ? -9.95 : -5.74;
+            for (Int_t hitIdx = 0; hitIdx < fTof2Hits->GetEntriesFast(); ++hitIdx) {
+                BmnHit *hit = (BmnHit *)fTof2Hits->At(hitIdx);
+                hit->SetX(hit->GetX() + tof700XCorr);
+                hit->SetY(hit->GetY() + tof700YCorr);
+            }
         }
     }
 
@@ -307,7 +309,7 @@ void BmnGlobalTracking::Exec(Option_t *opt) {
             new ((*fUpsHits)[fUpsHits->GetEntriesFast()]) BmnHit(upsHit);
         }
 
-    for (Int_t i = 0; i < fInnerTracks->GetEntriesFast(); ++i) {
+    for (Int_t i = 0; i < fInnerTracks->GetEntriesFast(); ++i){
         BmnGlobalTrack *glTrack = (BmnGlobalTrack *)fInnerTracks->At(i);
         //if (glTrack->GetNHits() < 5) continue;
 

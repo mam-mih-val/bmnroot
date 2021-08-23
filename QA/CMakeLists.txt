@@ -53,6 +53,9 @@ set(SRCS
  report/BmnSimulationReport.cxx
  report/BmnReportElement.h
 
+
+ BmnPidQa.cxx
+ BmnPidQaReport.cxx
  BmnTrackingQa.cxx
  BmnLambdaQa.cxx
  BmnClusteringQa.cxx

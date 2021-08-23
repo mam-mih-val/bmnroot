@@ -24,7 +24,6 @@
 #include "report/BmnDrawOnline.h"
 #include "report/BmnHistManager.h"
 #include "report/BmnReportElement.h"
-//extern BmnDrawOnline* drawHist;
 
 const Float_t pMax = 5.0;
 
@@ -88,7 +87,7 @@ string BmnTrackingQaReport::PrintEventInfo() {
 
 void BmnTrackingQaReport::Draw() {
     gStyle->SetPalette(77);
-	drawHist = new BmnDrawOnline();
+	drawHist = new BmnDrawOnline("RECREATE");
     DrawEventsInfo(fPrefix + "Distribution of impact parameter and multiplicity");
     SetDefaultDrawStyle();
 

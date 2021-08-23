@@ -16,21 +16,26 @@
 #include <sstream>
 #include <cassert>
 
+
 using std::stringstream;
 
-BmnDrawOnline::BmnDrawOnline(){
-	canvStorage = new TFile("canvStorage.root","RECREATE");
+
+BmnDrawOnline::BmnDrawOnline(TString param, TString storageName){
+	//For param use:
+	//RECREATE	Create a new file, if the file already exists it will be overwritten.
+	//UPDATE	Open an existing file for writing. If no file exists, it is created.
+	//canvStorage = TFile::Open("canvStorage.root",param);
+	canvStorage = new TFile(storageName + ".root", param);
 }
 
-BmnDrawOnline::BmnDrawOnline(TFile* file):	fServer(nullptr){
-	InitServer();
+BmnDrawOnline::BmnDrawOnline(TFile* file, Int_t  port):	fServer(nullptr){
+	InitServer(port);
 	RegisterCanvases(file);
 }								
 
 BmnDrawOnline::~BmnDrawOnline() {
     if (fServer) delete fServer;
 }
-
 
 
 void BmnDrawOnline::DrawH1(
@@ -187,12 +192,32 @@ void BmnDrawOnline::DrawH1(
     
 }
 
+void BmnDrawOnline::DrawH1(
+        TCanvas* canvas,
+        TEfficiency* hist) {
+        
+	gPad->SetTopMargin(0.20);
+    gPad->SetLeftMargin(0.17);
+    gPad->SetBottomMargin(0.15);
+    gPad->SetTicks(1, 1);
+       
+    if (canvName != canvas->GetName()) {
+        canvName = canvas->GetName();
+		canvVect.push_back(canvas);
+		maxHeight += canvas->GetWh();
+    }
+        
+    hist->Draw();
+    gPad->SetGrid(true, true);
+       
+}
 
 
 
-void BmnDrawOnline::InitServer(){
+
+void BmnDrawOnline::InitServer(Int_t port){
 	
-    const Char_t* httpStr = Form("http:%d;cors;noglobal", 8080);
+    const Char_t* httpStr = Form("http:%d;cors;noglobal", port);
 
     // Start http-server ...
     fServer = new THttpServer(httpStr);
@@ -236,20 +261,21 @@ void BmnDrawOnline::DrawMainCanvas(TString nameOfCanv){
 		title[i]->Draw();
 		
 	}
-	
 	mainCanvas -> Write();
 	maxHeight = 0;
 	canvName = "null";
 	vector<TCanvas*>().swap(canvVect);
-
-
 }
-						 
+				
+
 void BmnDrawOnline:: RegisterCanvases(TFile* file){
-	TString namesOfCanv[2] = {"det1", "det2"};
-	for (Int_t i = 0; i < 2; ++i) {
+	TString namesOfCanv[] = {"det1", "det2", "pid", "He3", "pi+", "e-", "proton", "K+", "D", "T", "He4"};
+	Int_t size = sizeof(namesOfCanv)/sizeof(namesOfCanv[0]);
+	for (Int_t i = 0; i < size; ++i) {
         TCanvas* canv = (TCanvas *)file->Get(namesOfCanv[i]);
+		if (!canv) continue;
 		fServer -> Register("/Objects", canv);
+        
     }
 }
 

@@ -6,6 +6,7 @@
 #pragma link C++ nestedclasses;
 
 #pragma link C++ class BmnPidSRC++;
+#pragma link C++ class BmnPid++;
 
 #endif
 

@@ -310,6 +310,23 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     rtdb->setOutput(parIo1);
     rtdb->saveOutput();
     // -------------------------------------------------------------------------
+
+    TDatabasePDG* db = TDatabasePDG::Instance();
+    TParticlePDG* e = db->GetParticle(11);
+    TParticlePDG* pi = db->GetParticle(211);
+    TParticlePDG* K = db->GetParticle(321);
+    TParticlePDG* p = db->GetParticle(2212);
+
+    TParticlePDG* D = new TParticlePDG("D","D",1.876123928, true, 0, 3, "Core", 1000010020, 1000010020, 1000010020);
+    TParticlePDG* T = new TParticlePDG("T","T",2.809432115, true, 0, 3, "Core", 1000010030, 1000010030, 1000010030);
+    TParticlePDG* He3 = new TParticlePDG("He3","He3",2.809413523, true, 0, 6, "Core", 1000020030, 1000020030, 1000020030);
+    TParticlePDG* He4 = new TParticlePDG("He4","He4",3.728401326, true, 0, 6, "Core", 1000020040, 1000020040, 1000020040);
+       
+    vector<TParticlePDG*> particles{e, pi, K, p, D, T, He3, He4};
+    BmnPid* pid_analyser = new BmnPid(particles, 1);
+    fRunAna->AddTask(pid_analyser);
+
+
     // -----   Initialize and run   --------------------------------------------
     fRunAna->GetMainTask()->SetVerbose(iVerbose);
     fRunAna->Init();

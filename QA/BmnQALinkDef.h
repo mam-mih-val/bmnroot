@@ -27,6 +27,9 @@
 #pragma link C++ class BmnHistManager+;
 #pragma link C++ class BmnMatchRecoToMC+;
 
+#pragma link C++ class BmnPidQa+;
+#pragma link C++ class BmnPidQaReport+;
+
 // QA offline
 #pragma link C++ class BmnQaHistoManager++;
 #pragma link C++ class BmnQaOffline++;

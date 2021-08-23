@@ -42,6 +42,14 @@ class BmnGlobalTrack : public BmnTrack {
     Double_t GetAoverZ() { return (Double_t)fA / fZ; }
     Int_t GetPDG() { return fPDG; }
 
+    Double_t GetPDGIndexInPidWeights(Int_t index) const { return fPidWeights[index].first; }
+    Double_t GetPidWeights(Int_t index, Int_t tofID) const { return fPidWeights[index].second[tofID-1]; }
+    Double_t GetPidWeightByPDG(Int_t pdgCode, Int_t tofID);
+    Int_t GetMaxWeightInd(Int_t tofID);
+    Double_t GetMaxWeight(Int_t tofID);
+    Double_t GetSumWeight(Int_t tofID);
+    Int_t GetMostPossiblePDG(Int_t tofID);    
+
     Bool_t IsPrimary() const { return fIsPrimary; }
 
     /** Modifiers **/
@@ -66,6 +74,13 @@ class BmnGlobalTrack : public BmnTrack {
     void SetdQdNUpper(Double_t q) { fdQdNUpper = q; }
 
     void SetPrimaryMark(Bool_t p) { fIsPrimary = p; }
+
+    void AddPDGMatch(Int_t i, Int_t pdgCode) { fPidWeights[i].first = pdgCode; }
+    void SetPidWeight(Int_t tofID, Int_t index, Double_t weight) { fPidWeights[index].second[tofID-1] = weight; }
+    void NormalizeWeights();
+    void PrintWeights(Int_t tofID);
+    void ResizePidVectors(Int_t size);
+
 
     /** Output to screen **/
     //void Print() const;
@@ -94,9 +109,15 @@ class BmnGlobalTrack : public BmnTrack {
     Int_t fZ;
     Int_t fPDG;
 
+    // Int_t in pair - PDG code of particle sort
+    // array[0] - weight for TOF400
+    // array[1] - weight for TOF700
+    vector<pair<Int_t,array<Double_t,2>>> fPidWeights = vector<pair<Int_t,array<Double_t,2>>>(50);
+   
+
     Bool_t fIsPrimary;  // decision after vertex finder task
 
-    ClassDef(BmnGlobalTrack, 1);
+    ClassDef(BmnGlobalTrack, 2);
 };
 
 #endif

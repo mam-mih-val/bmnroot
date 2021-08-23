@@ -11,7 +11,6 @@
 #include "report/BmnDrawOnline.h"
 #include <string>
 #include <vector>
-extern BmnDrawOnline* drawHist;
 using std::string;
 using std::vector;
 class TH1;

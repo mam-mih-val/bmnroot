@@ -27,6 +27,7 @@ link_directories(${LINK_DIRECTORIES})
 # List of source files
 Set(SRCS
 BmnPidSRC.cxx
+BmnPid.cxx
 )
 
 If (Boost_FOUND)
@@ -35,6 +36,7 @@ EndIf (Boost_FOUND)
 
 Set(HEADERS
 BmnPidSRC.h
+BmnPid.h
 )
 Set(LINKDEF IdentLinkDef.h)
 Set(LIBRARY_NAME BmnPidSRC)

@@ -1,8 +1,8 @@
 /**
- * \file BmnTrackingQaReport.h
+ * \file BmnPidQaReport.h
  * \brief Create report for tracking QA.
  * \author Andrey Lebedev <andrey.lebedev@gsi.de>
- * \date 2011
+ * \date 2021
  */
 #ifndef BMNPIDQAREPORT_H_
 #define BMNPIDQAREPORT_H_
@@ -34,7 +34,7 @@ public:
     /**
      * \brief Constructor with parameters.
      */
-    BmnPidQaReport(TString name,  TString storageName, vector<TParticlePDG*> particles, unordered_map<Double_t, std::pair<string, vector<Int_t>>> massTable);
+    BmnPidQaReport(TString name,  TString storageName, unordered_map<Double_t, string> massTable);
 
     /**
      * \brief Destructor.
@@ -42,11 +42,8 @@ public:
     virtual ~BmnPidQaReport();
 
 protected:
-    /**
-     * \brief Inherited from BmnSimulationReport.
-     */
-    virtual void Create();
 
+virtual void Create();
     /**
      * \brief Inherited from BmnSimulationReport.
      */
@@ -58,30 +55,15 @@ protected:
     void DrawTwoH2(const TString canvasName, const TString name1, const TString name2);
     void DrawThreeH2(const TString canvasName, const TString name1, const TString name2, const TString name3);
     void DrawOneH2(const TString canvasName, const TString name1);
-    void DrawOneBanana(const TString canvasName, const TString name1,
-                        const vector<TGraph*>& graphs, const vector<string>& graphLabels);
-    void DrawTwoBananas(const TString canvasName, const TString name1, const TString name2, 
-                        const vector<TGraph*>& graphs, const vector<string>& graphLabels);
+    void DrawTwoBananas(const TString canvasName, const TString name1, const TString name2);
     void DrawThreeH1(const TString canvasName, const TString name1, const TString name2, const TString name3);
 
     void DrawEffCont(const TString canvasName, TEfficiency*, TEfficiency*);
 
-    void DrawEventsInfo(const TString canvasName);
-
-    void PrepareBananaGraphs();
-
-    string PrintEventInfo();
-
     vector<string> fGlobalTrackVariants;
-
-
-    vector<TParticlePDG*> fParticles;
-    vector<TGraph*> fGraphs;
-    vector<string> fGraphLabels;
-
-
-    //{Mass: [Particle name: (pdgCode1, pdgCode2, ...)], ...}
-    unordered_map<Double_t, std::pair<string, vector<Int_t> > > fMassTable; 
+  
+    //{Mass: Particle name}
+    unordered_map<Double_t, string> fMassTable; 
 
     TString fPrefix;
     TString fStorageName;

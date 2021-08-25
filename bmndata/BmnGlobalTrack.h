@@ -10,7 +10,19 @@
 
 #include "BmnTrack.h"
 
-class BmnGlobalTrack : public BmnTrack {
+enum PidParticles{
+    PidProton,
+    PidPion,
+    PidKaon,
+    PidElectron,
+    PidDeuteron,
+    PidTriton,
+    PidHelium3,
+    PidHelium4,
+    EndPidEnum
+};
+
+class BmnGlobalTrack : public BmnTrack{
    public:
     /** Default constructor **/
     BmnGlobalTrack();
@@ -42,15 +54,14 @@ class BmnGlobalTrack : public BmnTrack {
     Double_t GetAoverZ() { return (Double_t)fA / fZ; }
     Int_t GetPDG() { return fPDG; }
 
-    Double_t GetPDGIndexInPidWeights(Int_t index) const { return fPidWeights[index].first; }
-    Double_t GetPidWeights(Int_t index, Int_t tofID) const { return fPidWeights[index].second[tofID-1]; }
-    Double_t GetPidWeightByPDG(Int_t pdgCode, Int_t tofID);
-    Int_t GetMaxWeightInd(Int_t tofID);
-    Double_t GetMaxWeight(Int_t tofID);
-    Double_t GetSumWeight(Int_t tofID);
-    Int_t GetMostPossiblePDG(Int_t tofID);    
+    vector<Double_t> GetPidWeightsTof400() {return fPidTof400;}
+    vector<Double_t> GetPidWeightsTof700() {return fPidTof700;}
 
-    Bool_t IsPrimary() const { return fIsPrimary; }
+    PidParticles GetParticleTof400();
+    PidParticles GetParticleTof700();
+    PidParticles GetParticle();
+
+    Bool_t IsPrimary() const { return fIsPrimary;}
 
     /** Modifiers **/
     void SetGemTrackIndex(Int_t iGem) { fGemTrack = iGem; }
@@ -75,17 +86,14 @@ class BmnGlobalTrack : public BmnTrack {
 
     void SetPrimaryMark(Bool_t p) { fIsPrimary = p; }
 
-    void AddPDGMatch(Int_t i, Int_t pdgCode) { fPidWeights[i].first = pdgCode; }
-    void SetPidWeight(Int_t tofID, Int_t index, Double_t weight) { fPidWeights[index].second[tofID-1] = weight; }
-    void NormalizeWeights();
-    void PrintWeights(Int_t tofID);
-    void ResizePidVectors(Int_t size);
-
+    void SetPidWeightsTof400(vector<Double_t> weights) {fPidTof400 = weights;}
+    void SetPidWeightsTof700(vector<Double_t> weights) {fPidTof700 = weights;}
 
     /** Output to screen **/
     //void Print() const;
 
    private:
+  
     /** Indices of local parts of global track **/
     Int_t fGemTrack;
     Int_t fSsdTrack;
@@ -108,12 +116,11 @@ class BmnGlobalTrack : public BmnTrack {
     Int_t fA;
     Int_t fZ;
     Int_t fPDG;
-
-    // Int_t in pair - PDG code of particle sort
-    // array[0] - weight for TOF400
-    // array[1] - weight for TOF700
-    vector<pair<Int_t,array<Double_t,2>>> fPidWeights = vector<pair<Int_t,array<Double_t,2>>>(50);
    
+    // fPidTof400 - weight for particle species TOF400
+    // fPidTof700 - weight for particle species TOF700
+    vector<Double_t> fPidTof400;
+    vector<Double_t> fPidTof700;
 
     Bool_t fIsPrimary;  // decision after vertex finder task
 

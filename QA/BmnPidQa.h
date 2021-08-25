@@ -14,6 +14,8 @@
 #include "TParticlePDG.h"
 #include <unordered_map>
 #include "BmnMCTrackCreator.h"
+#include "BmnGlobalTrack.h"
+
 
 
 class BmnHistManager;
@@ -37,7 +39,7 @@ public:
     /**
      * \brief Constructor.
      */
-    BmnPidQa(TString name, vector<TParticlePDG*> particles, TString storageName = "canvStorage");
+    BmnPidQa(TString name, TString storageName = "canvStorage");
 
     /**
      * \brief Destructor.
@@ -59,12 +61,8 @@ public:
      */
     virtual void Finish();
 
-    /** Setters **/
-    void SetQuota(Double_t quota) {
-        fQuota = quota;
-    }
-
-    TParticlePDG* GetParticleExtend(Int_t pdgCode, TDatabasePDG* db);
+   
+    TParticlePDG* GetParticleExtend(Int_t pdgCode);
 
     void SetOutputDir(const std::string& dir) {
         fOutputDir = dir;
@@ -86,6 +84,8 @@ public:
      
   
 private:
+    Int_t EnumToPdg(PidParticles part);
+
     /**
      * \brief Read data branches from input data files.
      */
@@ -127,8 +127,7 @@ private:
     BmnHistManager* fHM; // Histogram manager
     string fOutputDir; // Output directory for results
    
-    Double_t fQuota; 
-   
+      
     Bool_t fPrimes; //calculate efficiency only for primaries or for all particles
 
   
@@ -157,19 +156,19 @@ private:
     Double_t fNHitsRangeMax; // Maximum hits for tracks for efficiency calculation [GeV/c]
     Int_t fNHitsRangeBins; // Number of bins for rigidity-momentum histogram
 
-   
-    // container with analizable particles
+    TDatabasePDG* db = nullptr;
+
     vector<TParticlePDG*> fParticles;
     // mass table for particles
-    unordered_map<Double_t, std::pair<string, vector<Int_t> > > fMassTable; // {Mass: [Particle name: (pdgCode1, pdgCode2, ...)], ...}
+    unordered_map<Double_t, string> fMassTable; // {Mass: Particle name}
     
 	string GetParticleName(Double_t mass);
 
     void MassTablePrint();
     // key - Particle name
-    // value[0] - counter of true identifications
-    // value[1] - counter of false identifications
-    // value[2] - counter for true total number of particle of one sort 
+    // value[0] -counter for true total number of particle of one sort 
+    // value[1] - counter of true identifications
+    // value[2] - counter of false identifications  
     // value[3] - counter for undivided number of particle of one sort 
     unordered_map<string, vector<Int_t> > fPidStatistics400, fPidStatistics700; 
     void PidStatisticsPrint400();

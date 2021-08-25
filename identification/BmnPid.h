@@ -3,6 +3,7 @@
 
 #include "FairTask.h"
 #include "TClonesArray.h"
+#include "TDatabasePDG.h"
 #include "TParticlePDG.h"
 #include "TString.h"
 #include "BmnGlobalTrack.h"
@@ -11,13 +12,14 @@
 #include "FairRunAna.h"
 #include "vector"
 
+
 using namespace std;
 
 class BmnPid : public FairTask {
 public:
 
     // Constructors/Destructors ---------
-    BmnPid(vector<TParticlePDG*> particles, Int_t power);
+    BmnPid(Int_t power = 1);
 
     virtual ~BmnPid();
 
@@ -27,14 +29,23 @@ public:
 
     void SetWeights();
 
+    
+
 
 private:
-
     // Private Methods -------------
+
+    Int_t EnumToPdg(PidParticles part);
+    
+    void NormalizeWeights(vector<Double_t>& vec);
+    Double_t GetSum(const vector<Double_t>& vec);
+    
+    
     Double_t EvalSimpleWeight(Double_t p, Double_t beta, Double_t mass, Int_t power);
     
     // Private Data Members ------------
     TString fGlobalTracksBranchName; 
+    TDatabasePDG* db = nullptr;
 
     Int_t fModelPower; // number of using identification model
                        // 1 - first order distance model
@@ -45,7 +56,7 @@ private:
     Int_t fEventNo; // event counter
     
     TClonesArray* fGlobalTracksArray;
-    vector<TParticlePDG*> fParticles; // additional array
+   
 
     ClassDef(BmnPid, 1);
 };

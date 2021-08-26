@@ -26,8 +26,8 @@ const Double_t YStationPositions[NStations] = {
     +0.0 - 4.623  //station 1 (right arm)
 };
 const Double_t ZStationPositions[NStations] = {
-    +182.89 - 647.48 /* -464.59 */, //station 0 (left arm)
-    +182.89 - 647.48 /* -464.59 */ //station 1 (right arm)
+    +182.89 - 576.2 /* -393.31 */, //station 0 (left arm)
+    +182.89 - 576.2 /* -393.31 */  //station 1 (right arm)
 };
 //------------------------------------------------------------------------------
 
@@ -68,7 +68,7 @@ TGeoMedium *pMedFiberGlass = 0;
 TGeoMedium *pMedCopper = 0;
 TGeoMedium *pMedArCO27030 = 0;
 TGeoMedium *pMedArgonIsobutane7525 = 0;
-TGeoMedium *pMedRohacell = 0;
+TGeoMedium *pMedHoneyComb = 0;
 
 class FairGeoMedia;
 class FairGeoBuilder;
@@ -114,12 +114,12 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
     pMedArgonIsobutane7525= gGeoManager->GetMedium("ArgonIsobutane7525");
     if ( ! pMedArgonIsobutane7525  ) Fatal("Main", "Medium ArgonIsobutane7525 not found");
 
-    //Rohacell medium
-    FairGeoMedium* mRohacell = geoMedia->getMedium("rohacellhf71");
-    if ( ! mRohacell  ) Fatal("Main", "FairMedium rohacellhf71 not found");
-    geoBuild->createMedium(mRohacell);
-    pMedRohacell= gGeoManager->GetMedium("rohacellhf71");
-    if ( ! pMedRohacell  ) Fatal("Main", "Medium rohacellhf71 not found");
+    //HoneyComb medium
+    FairGeoMedium* mHoneyComb = geoMedia->getMedium("AramidHoneyComb");
+    if ( ! mHoneyComb  ) Fatal("Main", "FairMedium AramidHoneyComb not found");
+    geoBuild->createMedium(mHoneyComb);
+    pMedHoneyComb= gGeoManager->GetMedium("AramidHoneyComb");
+    if ( ! pMedHoneyComb  ) Fatal("Main", "Medium AramidHoneyComb not found");
 }
 
 void create_rootgeom_CSC_SRCFutureConfig2021() {
@@ -276,7 +276,7 @@ TGeoVolume *CreateModule(TString module_name) {
 
     //volumes
     TGeoVolume *moduleV = new TGeoVolume(TString("moduleV")+=TString("_") + module_name, moduleS);
-    TGeoVolume *sensV = new TGeoVolume(TString("SensorV")+=TString("_") + module_name, sensS); 
+    TGeoVolume *sensV = new TGeoVolume(TString("SensorV")+=TString("_") + module_name, sensS);
 
     //medium
     if(pMedArgonIsobutane7525) {
@@ -397,7 +397,7 @@ TGeoVolume *CreateFrameForModule(TString frame_name) {
     }
     else Fatal("Main", "Invalid medium for fiberGlassPanelV!");
 
-    TGeoMedium *honeyCombPanelV_medium = pMedRohacell;
+    TGeoMedium *honeyCombPanelV_medium = pMedHoneyComb;
     if(honeyCombPanelV_medium) {
         honeyCombPanelV->SetMedium(honeyCombPanelV_medium);
     }

@@ -15,13 +15,13 @@
 <StationSet>
 
 <!-- Station 0 -->
-    <Station xPosition="+110.3955" yPosition="-4.623" zPosition="-464.59">
+    <Station xPosition="+110.3955" yPosition="-4.623" zPosition="-393.31">
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="27.1875" zShift="1.25" thickness="0.76">
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-110.3955" yTranslation="+4.623" zTranslation="+464.59" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-110.3955" yTranslation="+4.623" zTranslation="+393.31" />
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="+31.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+110.3955" yTranslation="-4.623" zTranslation="-464.59" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+110.3955" yTranslation="-4.623" zTranslation="-393.31" />
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-14.1125" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="27.1875" rxborder="-56.5" ryborder="-14.1125">
                 <DeadZone>
                     <DeadPoint x="+56.5" y="+26.0625" />
@@ -97,11 +97,11 @@
 
         <!-- module 1 -->
         <Module xShift="0.0" yShift="-27.1875" zShift="1.25" thickness="0.76">
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-110.3955" yTranslation="+4.623" zTranslation="+464.59" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-110.3955" yTranslation="+4.623" zTranslation="+393.31" />
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="+54.375" zTranslation="0.0" /> <!--go to the upper module position-->
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="+180.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" /> <!--rotate to get the lower module of a station-->
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="+31.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+110.3955" yTranslation="-4.623" zTranslation="-464.59" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+110.3955" yTranslation="-4.623" zTranslation="-393.31" />
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-14.1125" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="27.1875" rxborder="-56.5" ryborder="-14.1125">
                 <DeadZone>
                     <DeadPoint x="+56.5" y="+26.0625" />
@@ -178,13 +178,13 @@
     </Station>
 
     <!-- Station 1 -->
-    <Station xPosition="-109.3845" yPosition="-4.623" zPosition="-464.59">
+    <Station xPosition="-109.3845" yPosition="-4.623" zPosition="-393.31">
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="27.1875" zShift="1.25" thickness="0.76">
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+109.3845" yTranslation="+4.623" zTranslation="+464.59" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+109.3845" yTranslation="+4.623" zTranslation="+393.31" />
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="-31.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-109.3845" yTranslation="-4.623" zTranslation="-464.59" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-109.3845" yTranslation="-4.623" zTranslation="-393.31" />
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-14.1125" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="27.1875" rxborder="-56.5" ryborder="-14.1125">
                 <DeadZone>
                     <DeadPoint x="+56.5" y="+26.0625" />
@@ -260,11 +260,11 @@
 
         <!-- module 1 -->
         <Module xShift="0.0" yShift="-27.1875" zShift="1.25" thickness="0.76">
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+109.3845" yTranslation="+4.623" zTranslation="+464.59" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+109.3845" yTranslation="+4.623" zTranslation="+393.31" />
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="+54.375" zTranslation="0.0" /> <!--go to the upper module position-->
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="+180.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" /> <!--rotate to get the lower module of a station-->
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="-31.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-109.3845" yTranslation="-4.623" zTranslation="-464.59" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-109.3845" yTranslation="-4.623" zTranslation="-393.31" />
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.25" xorig="+56.5" yorig="-14.1125" xsize="113.0" ysize="41.3" stripDirection="LeftToRight" lxborder="+56.5" lyborder="27.1875" rxborder="-56.5" ryborder="-14.1125">
                 <DeadZone>
                     <DeadPoint x="+56.5" y="+26.0625" />

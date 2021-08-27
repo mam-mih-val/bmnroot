@@ -15,17 +15,17 @@
 <StationSet>
 
    <!-- Station 0 (left arm) -->
-    <Station xPosition="+58.1895" yPosition="-4.623" zPosition="-551.477" beamHole="0.0">
+    <Station xPosition="+58.1895" yPosition="-4.623" zPosition="-480.197" beamHole="0.0">
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="0.0" zShift="+0.7" driftDirection="backward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-58.1895" yTranslation="+4.623" zTranslation="+551.477" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-58.1895" yTranslation="+4.623" zTranslation="+480.197" />
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="-1.15" /> <!--+0.7+0.45-->
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="-90.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="+180.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="+1.15" /> <!--+0.7+0.45-->
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="+31.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+58.1895" yTranslation="-4.623" zTranslation="-551.477" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+58.1895" yTranslation="-4.623" zTranslation="-480.197" />
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
                 <DeadZone>
                     <DeadPoint x="33.0" y="-20.5" />
@@ -49,16 +49,16 @@
     </Station>
 
     <!-- Station 1 (right arm) -->
-    <Station xPosition="-57.1785" yPosition="-4.623" zPosition="-551.477" beamHole="0.0">
+    <Station xPosition="-57.1785" yPosition="-4.623" zPosition="-480.197" beamHole="0.0">
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="0.0" zShift="+0.7" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+57.1785" yTranslation="+4.623" zTranslation="+551.477" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="+57.1785" yTranslation="+4.623" zTranslation="+480.197" />
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="-1.15" /> <!--+0.7+0.45-->
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="-90.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="+1.15" /> <!--+0.7+0.45-->
             <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="-31.0" zRotationDeg="0.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />
-            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-57.1785" yTranslation="-4.623" zTranslation="-551.477" />
+            <Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="0.0" xTranslation="-57.1785" yTranslation="-4.623" zTranslation="-480.197" />
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
                 <DeadZone>
                     <DeadPoint x="33.0" y="-20.5" />

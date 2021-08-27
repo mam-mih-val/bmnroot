@@ -86,10 +86,11 @@ class CbmStsMatchTracks : public FairTask
   Double_t fNAllHits;       /** Total number of hits **/
   Double_t fNTrueHits;      /** Number pf correctly assigned hits **/
   
-  CbmStsMatchTracks(const CbmStsMatchTracks&) = delete;
-  CbmStsMatchTracks operator=(const CbmStsMatchTracks&) = delete;
+  CbmStsMatchTracks(const CbmStsMatchTracks&);
+  CbmStsMatchTracks operator=(const CbmStsMatchTracks&);
 
   ClassDef(CbmStsMatchTracks,1);
+
 };
 
 #endif

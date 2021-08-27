@@ -16,13 +16,12 @@
 // #define DO_NOT_SELECT_TRIPLETS
 // #define TRACKS_FROM_TRIPLETS_ITERATION kAllPrimIter
 
-#define LAST_ITERATION kAllSecJumpIter//kextra//kAllPrimEIter//kAllSecJumpIter //kAllSecIter GP kAllSecJumpIter
+#define LAST_ITERATION kAllSecIter
 #define FIND_GAPED_TRACKS // use triplets with gaps
 #define USE_RL_TABLE
-//#define EXTEND_TRACKS
-//#ifndef TRACKS_FROM_TRIPLETS
-//#define EXTEND_TRACKS
-//#endif
+#ifndef TRACKS_FROM_TRIPLETS
+#define EXTEND_TRACKS
+#endif
 #define MERGE_CLONES
 
 
@@ -80,10 +79,10 @@ class L1Algo{
     FIRSTCASTATION(0),
 
     TRACK_CHI2_CUT(10.),
-    TRIPLET_CHI2_CUT(5.), //GP
+    TRIPLET_CHI2_CUT(5.),
     DOUBLET_CHI2_CUT(5.),
     
-    MaxDZ(4.0), //GP
+    MaxDZ(0),
     Pick_gather(0),
     PickNeighbour(0), // (PickNeighbour < dp/dp_error)  =>  triplets are neighbours
     MaxInvMom(0),     // max considered q/p for tracks
@@ -94,7 +93,7 @@ class L1Algo{
     vtxFieldRegion(),// really doesn't used
     vtxFieldValue(), // field at teh vertex position.
     vTriplets(), // container for triplets got in finding
-    fTrackingLevel(0), fGhostSuppression(1), // really doesn't used //GP fGhostSuppression
+    fTrackingLevel(0), fGhostSuppression(0), // really doesn't used
     fMomentumCutOff(0)// really doesn't used
   {}
        
@@ -366,7 +365,7 @@ class L1Algo{
   
 #ifdef TBB
   enum { 
-    nthreads = 6, // number of threads
+    nthreads = 3, // number of threads
     nblocks = 1 // number of stations on one thread
   };   
 
@@ -386,32 +385,18 @@ class L1Algo{
   int FIRSTCASTATION;  //first station used in CA
 
     // fNFindIterations - set number of interation for trackfinding
-    // itetation of finding: //GP
+    // itetation of finding:
 #ifdef FIND_GAPED_TRACKS
-  enum {
-  kFastPrimIter, // primary fast tracks
+  enum { kFastPrimIter, // primary fast tracks
          kAllPrimIter,      // primary all tracks
-
+         kAllPrimJumpIter,  // primary tracks with jumped triplets
          kAllSecIter,       // secondary all tracks
-
-        
-         
-        
-         /* kExtraIter1,
-          kExtraIter2,
-          kExtraIter3,
-          kExtraIter4,
-          kExtraIter5,
-       */
-                   kAllPrimEIter,      // primary all electron tracks
-                    kFastPrimJumpIter, // primary fast tracks with jumped triplets
-                             kAllPrimJumpIter,  // primary tracks with jumped triplets
-                                 kextra,    // secondary tracks with jumped triplets
-                                 kextraA,
-                                 kAllSecJumpIter,
+         kAllPrimEIter,      // primary all electron tracks
          kAllSecEIter,      // secondary all electron tracks
-         kFastPrimIter2
          
+         kFastPrimJumpIter, // primary fast tracks with jumped triplets
+         kFastPrimIter2,
+         kAllSecJumpIter    // secondary tracks with jumped triplets
   };
 #ifdef TRACKS_FROM_TRIPLETS
   enum { fNFindIterations = TRACKS_FROM_TRIPLETS_ITERATION+1 }; // TODO investigate kAllPrimJumpIter & kAllSecJumpIter
@@ -419,7 +404,7 @@ class L1Algo{
   enum { fNFindIterations = LAST_ITERATION+1 }; // TODO investigate kAllPrimJumpIter & kAllSecJumpIter
 #endif
 #else
-  enum { fNFindIterations = 3 }; //GP 3 to 5
+  enum { fNFindIterations = 3 };
   enum { kFastPrimIter = 0, // primary fast tracks
          kAllPrimIter,      // primary all tracks
          kAllSecIter,       // secondary all tracks
@@ -487,8 +472,8 @@ class L1Algo{
 #endif
 
 private:
-  L1Algo(const L1Algo&) = delete;
-  void operator=(const L1Algo&) = delete;
+  L1Algo(const L1Algo&);
+  void operator=(const L1Algo&);
 } _fvecalignment;
 
 #endif

@@ -60,6 +60,7 @@ CbmKF::CbmKF(const char *name, Int_t iVerbose ):
   fMaterialID2IndexMap()
 {
   if( !fInstance ) fInstance = this;
+  StsDigi = CbmStsDigiScheme::Instance(); //AZ
 }
 
 CbmKF::~CbmKF(){
@@ -84,7 +85,8 @@ void CbmKF::SetParContainers()
 
 InitStatus CbmKF::ReInit()
 {
-  StsDigi.Clear();
+  //AZ StsDigi.Clear();
+  StsDigi->Clear();
   return Init();
 }
 
@@ -114,7 +116,8 @@ InitStatus CbmKF::Init()
   {
     CbmGeoStsPar* StsPar = reinterpret_cast<CbmGeoStsPar*>(RunDB->findContainer("CbmGeoStsPar"));
     CbmStsDigiPar *digiPar = reinterpret_cast<CbmStsDigiPar*>(RunDB->findContainer("CbmStsDigiPar"));
-    StsDigi.Init(StsPar, digiPar);
+    //AZ StsDigi.Init(StsPar, digiPar);
+    StsDigi->Init(StsPar, digiPar);
   }
 
   if( fVerbose ) cout<<"KALMAN FILTER : === INIT MAGNETIC FIELD ==="<<endl;
@@ -174,11 +177,13 @@ InitStatus CbmKF::Init()
     
     if( fVerbose ) cout<<"KALMAN FILTER : === READ STS MATERIAL ==="<<endl;
 
-    int NStations = StsDigi.GetNStations();
+    //AZ int NStations = StsDigi.GetNStations();
+    int NStations = StsDigi->GetNStations();
 
     for ( Int_t ist = 0; ist<NStations; ist++ )
       {
-	CbmStsStation *st = StsDigi.GetStation(ist);
+	//AZ CbmStsStation *st = StsDigi.GetStation(ist);
+	CbmStsStation *st = StsDigi->GetStation(ist);
 	if ( !st ) continue;
 
 	CbmKFTube tube;
@@ -228,7 +233,7 @@ InitStatus CbmKF::Init()
     if( fVerbose ) cout<<"KALMAN FILTER : === READ STT DETECTORS ==="<<endl;
 
     TObjArray *Nodes = sttPar->GetGeoSensitiveNodes();
-    //double zold = 0;
+    double zold = 0;
     int ista = 0; //-1;
     for (Int_t i = 0; i < Nodes->GetEntries(); ++i) {
       FairGeoNode *node = dynamic_cast<FairGeoNode*> (Nodes->At(i));
@@ -263,7 +268,7 @@ InitStatus CbmKF::Init()
 	if( fVerbose ) cout<<" Stt detector "<<name<<": "<<wall.Info()<<", station "<<ista<<endl;
       
 	//if( jsta==ista ) continue; // same station	
-    //zold = wall.ZReference;
+	zold = wall.ZReference;
 	//SttStationIDMap.insert(pair<Int_t,Int_t>(ista+1, ista));
 	SttStationIDMap.insert(pair<Int_t,Int_t>(wall.ID, ista));
 	ista++;
@@ -706,7 +711,7 @@ else fMethod=2;
 
   //AZ
   Double_t zmax = 0.0;
-  BmnNewFieldMap *field = NULL;
+  BmnNewFieldMap *field;
   if (fMagneticField) {
     field = (BmnNewFieldMap*) fMagneticField; // GP
     zmax = field->GetZmax() + field->GetPositionZ();

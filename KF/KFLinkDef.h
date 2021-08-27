@@ -30,6 +30,9 @@
 //#pragma link C++ class  CbmGlobalTrackFitterKF+;
 #pragma link C++ class  CbmKFParticle+;
 
+#pragma link C++ class  BmnKFStsHit+;
+#pragma link C++ class  BmnStsKFTrackFitter+;
+
 //KFParticle
 //#pragma link C++ class  KFParticleBase+;
 //#pragma link C++ class  KFParticle+;

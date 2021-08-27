@@ -72,11 +72,12 @@ class CbmStsSectorDigiPar : public TObject
   Int_t      fSectorNr;
   TObjArray* fSensors;       //  Array of sensor parameters
 
-  CbmStsSectorDigiPar(const CbmStsSectorDigiPar&) = delete;
-  CbmStsSectorDigiPar operator=(const CbmStsSectorDigiPar&) = delete;
+  CbmStsSectorDigiPar(const CbmStsSectorDigiPar&);
+  CbmStsSectorDigiPar operator=(const CbmStsSectorDigiPar&);
 
   ClassDef(CbmStsSectorDigiPar,1);
 
 };
+
 
 #endif

@@ -117,11 +117,12 @@ class CbmStsElement : public TNamed
 
 
     // --- Prevent usage of copy constructor and assignment operator
-    CbmStsElement(const CbmStsElement&) = delete;
-    CbmStsElement& operator=(const CbmStsElement&) = delete;
+    CbmStsElement(const CbmStsElement&);
+    CbmStsElement& operator=(const CbmStsElement&);
 
 
     ClassDef(CbmStsElement,1);
+
 };
 
 #endif /* CBMSTSELEMENT_H */

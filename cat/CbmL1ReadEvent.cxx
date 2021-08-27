@@ -190,6 +190,7 @@ void CbmL1::ReadEvent()
     int negF=0;
     for (int j=0; j < nEnt; j++ ){
       CbmStsHit *sh = L1_DYNAMIC_CAST<CbmStsHit*>( listStsHits->At(j) );
+      if (sh->GetUniqueID()) continue; // AZ - skip used hits
       TmpHit th;
       {
         CbmStsHit *mh = L1_DYNAMIC_CAST<CbmStsHit*>( listStsHits->At(j) );
@@ -221,21 +222,12 @@ void CbmL1::ReadEvent()
 	//cout << th.iStation << " " << st.frontInfo.cos_phi[0] << " " << st.frontInfo.sin_phi[0] << endl; //AZ
 	//cout << th.x << " " << th.y << " " << th.u_front << " " << th.u_back << endl;
 	double s2 = st.frontInfo.sigma2[0]; //AZ
-	/*
-  //cout << st.frontInfo.sigma2 << " " << s2 << " " << sqrt(s2) << " " << 0.04/sqrt(12.) << endl;
-	//th.du_front = sqrt(s2); //AZ - pitch error - for test
-	th.du_front = err.X(); //AZ - cluster error
+	//cout << st.frontInfo.sigma2 << " " << s2 << " " << sqrt(s2) << " " << 0.04/sqrt(12.) << endl;
+	th.du_front = sqrt(s2); //AZ - pitch error - for test
+	//AZ th.du_front = err.X(); //AZ - cluster error
 	s2 = st.backInfo.sigma2[0]; //AZ
-	//th.du_back = sqrt(s2); //AZ - pitch error - for test
-	th.du_back = err.Y(); //AZ - cluster error
- */
- th.du_front = sqrt(s2); //AZ - pitch error - for test
-       //AZ th.du_front = err.X(); //AZ - cluster error
-       s2 = st.backInfo.sigma2[0]; //AZ
-       th.du_back = sqrt(s2); //AZ - pitch error - for test
-       //AZ th.du_back = err.Y(); //AZ - cluster error
- 
- 
+	th.du_back = sqrt(s2); //AZ - pitch error - for test
+	//AZ th.du_back = err.Y(); //AZ - cluster error
       }
       th.iMC=-1;
 

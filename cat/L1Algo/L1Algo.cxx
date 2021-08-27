@@ -109,7 +109,7 @@ void L1Algo::Init( const fscal geo[] )
   fGhostSuppression = static_cast<int>( geo[ind++] );
 
   {
-    //fvec By0 = vStations[NStations-1].fieldSlice.cy[0];
+    fvec By0 = vStations[NStations-1].fieldSlice.cy[0];
     fvec z0  = vStations[NStations-1].z;
     fvec sy = 0., Sy = 0.;
     for( int i=NStations-1; i>=0; i-- ){

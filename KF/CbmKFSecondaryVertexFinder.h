@@ -51,7 +51,7 @@ class CbmKFSecondaryVertexFinder:public TObject {
   ClassDef( CbmKFSecondaryVertexFinder, 1 );
 
  private:
-  CbmKFSecondaryVertexFinder(const CbmKFSecondaryVertexFinder&)  = delete;
-  void operator=(const CbmKFSecondaryVertexFinder&) = delete;
+  CbmKFSecondaryVertexFinder(const CbmKFSecondaryVertexFinder&);
+  void operator=(const CbmKFSecondaryVertexFinder&);
 };
 #endif /* !CBMKFSECONDARYVERTEXFINDER_H */

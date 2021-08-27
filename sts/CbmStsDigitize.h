@@ -23,23 +23,18 @@
 #include <set>
 #include "TStopwatch.h"
 #include "FairTask.h"
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <sstream> 
-#include <TVector3.h>
-
-#include "TRandom.h"
 
 using std::set;
 using std::map;
 using std::pair;
-using namespace std;
 
 class TClonesArray;
-class CbmGeostsPar;
+class CbmGeoStsPar;
 class CbmStsDigiPar;
+class CbmStsDigiScheme;
+class CbmStsSensor;
 class CbmStsStation;
+class CbmMatch;
 
 class CbmStsPoint;
 
@@ -69,8 +64,6 @@ class CbmStsDigitize : public FairTask
   /** Execution **/
   virtual void Exec(Option_t* opt);
 
-  /**Spacer **/
-  
   /** Virtual method Finish **/
   virtual void Finish();
 
@@ -79,6 +72,8 @@ class CbmStsDigitize : public FairTask
   void FindFiredStrips(CbmStsPoint* pnt,Int_t& nofStr,Int_t*& strips,Double_t*& signals,Int_t side);
   void ProduceHitResponseSi(CbmStsSensor* sensor); //AZ
   void ProduceHitResponse(CbmStsSensor* sensor);
+  void ProduceHitResponseAZ(CbmStsSensor* sensor); //AZ
+  //void ProduceHitResponseFast(CbmStsSensor* sensor); //AZ
 
   void SetFrontThreshold (Double_t  frontThr=0.)      {fFThreshold    =  frontThr;}
   void SetBackThreshold  (Double_t  backThr=0.)       {fBThreshold    =  backThr;}
@@ -92,15 +87,13 @@ class CbmStsDigitize : public FairTask
   
   void SetStripDeadTime  (Double_t  StripDeadTime=0.) {fStripDeadTime =  StripDeadTime;}
   void SetLoss2Signal (Double_t coef) { fEnergyLossToSignal = coef; } //AZ
+  void ApplyAlignment(); //AZ
   Int_t GetNofModules(TGeoNode* station); //AZ
-
-  Double_t GetNumberOfClusters(Double_t beta, Double_t gamma, Double_t p0, Double_t p1);
-
+  void CreateDigi(Int_t address, UShort_t channel, Long64_t time,
+		  UShort_t adc, const CbmMatch& match) {;} //AZ
+  Int_t GetELossModel() const { return 2; } //AZ
+  
  private:
- //global declaration with reserve alloc.,
- //+push to emplace give a 10-15% up-speed.
-      std::vector<std::vector<Double_t>> collision_points; 
-      std::vector<Double_t> collPoint; 
 
   CbmGeoStsPar*     fGeoPar;       /** Geometry parameter container **/
   CbmStsDigiPar*    fDigiPar;      /** Digitisation parameter container **/
@@ -113,6 +106,7 @@ class CbmStsDigitize : public FairTask
   // statistics
   Int_t             fNDigis;
   Int_t             fNMulti;
+
   Double_t          fNEvents;
   Double_t          fNPoints;     
   Double_t          fNDigisFront;
@@ -134,7 +128,6 @@ class CbmStsDigitize : public FairTask
 
   Double_t  fStripDeadTime;
   
-  TString   fGeoFile;
   Int_t     fFNofBits;
   Int_t     fBNofBits;
   Double_t  fFNofElPerAdc;
@@ -150,6 +143,7 @@ class CbmStsDigitize : public FairTask
   map<Int_t, set<Int_t> > fBChannelPointsMap;
  
   map<CbmStsSensor*, set<Int_t> > fPointMap;  /** sensor points **/
+  FairTask *fastDig; //AZ
   Float_t occupancy [20][1000][20] ;
 
   /** Make sensorwise set for points **/
@@ -173,9 +167,10 @@ class CbmStsDigitize : public FairTask
 
   /** AZ Check if particle goes thru the spacer (dead space) **/
   Bool_t CrossSpacer(const TGeoNode *node, const CbmStsPoint *point);
+  Double_t GetNumberOfClusters(Double_t beta, Double_t gamma, Double_t charge, Double_t p0, Double_t p1); //AZ
 
-  CbmStsDigitize(const CbmStsDigitize&) = delete;
-  CbmStsDigitize operator=(const CbmStsDigitize&) = delete;
+  CbmStsDigitize(const CbmStsDigitize&);
+  CbmStsDigitize operator=(const CbmStsDigitize&);
 
   ClassDef(CbmStsDigitize,1);
 

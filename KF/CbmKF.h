@@ -19,7 +19,7 @@
 #include "FairField.h"
 #include "FairTask.h"
 #include "CbmStsDigiScheme.h"
-#include "BmnNewFieldMap.h" //GP
+#include "../bmnfield/BmnNewFieldMap.h" //GP
 
 #include <iostream>
 #include <map>
@@ -84,10 +84,12 @@ class CbmKF :public FairTask {
 
   void SetMethod(Int_t fm){ fMethod=fm; }
 
-  CbmStsDigiScheme StsDigi;
+  //AZ CbmStsDigiScheme StsDigi;
+  CbmStsDigiScheme *StsDigi;
 
   int GetNMvdStations() const { return CbmKF::Instance()->vMvdMaterial.size(); }
-  int GetNStsStations() const { return const_cast<CbmStsDigiScheme*>(&StsDigi)->GetNStations();}
+  //AZ int GetNStsStations() const { return const_cast<CbmStsDigiScheme*>(&StsDigi)->GetNStations();}
+  int GetNStsStations() const { return CbmStsDigiScheme::Instance()->GetNStations(); }
 
  private:
   
@@ -109,8 +111,8 @@ BmnNewFieldMap* fMagneticField;
   CbmKFMaterial *ReadPassive( FairGeoNode *node);
 
  private:
-  CbmKF(const CbmKF&) = delete;
-  void operator=(const CbmKF&) = delete;
+  CbmKF(const CbmKF&);
+  void operator=(const CbmKF&);
  public: 
   
   ClassDef( CbmKF, 1 );

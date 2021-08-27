@@ -126,11 +126,13 @@ class CbmStsSimulationQa : public FairTask
   TCanvas* fOnlineCanvas;
   TPad*    fOnlinePad[10];
 
-  CbmStsSimulationQa(const CbmStsSimulationQa&) = delete;
-  CbmStsSimulationQa operator=(const CbmStsSimulationQa&) = delete;
+  CbmStsSimulationQa(const CbmStsSimulationQa&);
+  CbmStsSimulationQa operator=(const CbmStsSimulationQa&);
 
   ClassDef(CbmStsSimulationQa,1);
+
 };
+
 
 #endif
 				 

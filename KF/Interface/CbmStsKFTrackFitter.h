@@ -79,8 +79,8 @@ class CbmStsKFTrackFitter : public CbmStsTrackFitter{
    Bool_t bkg=false;
   ClassDef( CbmStsKFTrackFitter, 2 );
  private:
-  CbmStsKFTrackFitter(const CbmStsKFTrackFitter&) = delete;
-  void operator=(const CbmStsKFTrackFitter&) = delete;
+  CbmStsKFTrackFitter(const CbmStsKFTrackFitter&);
+  void operator=(const CbmStsKFTrackFitter&);
 };
 
 #endif

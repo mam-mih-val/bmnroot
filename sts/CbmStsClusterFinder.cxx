@@ -47,7 +47,7 @@ CbmStsClusterFinder::CbmStsClusterFinder()
   fDigis(NULL),
   fClustersCand(NULL),
   fClusters(NULL),
-  fDigiScheme(new CbmStsDigiScheme()),
+  fDigiScheme(CbmStsDigiScheme::Instance()),
   fNofDigis(0),
   fNofClustersCand(0),
   fNofClusters(0),
@@ -72,7 +72,7 @@ CbmStsClusterFinder::CbmStsClusterFinder(Int_t iVerbose)
   fDigis(NULL),
   fClustersCand(NULL),
   fClusters(NULL),
-  fDigiScheme(new CbmStsDigiScheme()),
+  fDigiScheme(CbmStsDigiScheme::Instance()),
   fNofDigis(0),
   fNofClustersCand(0),
   fNofClusters(0),
@@ -97,7 +97,7 @@ CbmStsClusterFinder::CbmStsClusterFinder(const char* name, Int_t iVerbose)
   fDigis(NULL),
   fClustersCand(NULL),
   fClusters(NULL),
-  fDigiScheme(new CbmStsDigiScheme()),
+  fDigiScheme(CbmStsDigiScheme::Instance()),
   fNofDigis(0),
   fNofClustersCand(0),
   fNofClusters(0),
@@ -219,7 +219,7 @@ void CbmStsClusterFinder::Exec(Option_t* opt) {
     cout << "    Active channels back side : " << nDigisB << endl;
     cout << "    Real time                 : " << fTimer.RealTime() 
 	 << endl;
-  }/* //GP annoying info
+  }
   else {
     if ( warn ) cout << "- ";
     else        cout << "+ ";
@@ -231,8 +231,8 @@ void CbmStsClusterFinder::Exec(Option_t* opt) {
 	 << ") clusters, longest till now " << fLongestCluster << endl;
     //    cout << fDigis->GetEntriesFast() << " vs " << fClusters->GetEntriesFast() << endl;
   }
-  */
-	if(fUseLinks){
+  
+	
   //AZ - add links to clusters (digits)
   Int_t nClust = fClusters->GetEntriesFast();
   for (Int_t i = 0; i < nClust; ++i) {
@@ -244,7 +244,7 @@ void CbmStsClusterFinder::Exec(Option_t* opt) {
       clus->AddLink(FairLink(kStsDigi, idigi));
     }
   }
-}
+
 }
 // -------------------------------------------------------------------------
 
@@ -279,9 +279,6 @@ InitStatus CbmStsClusterFinder::Init() {
   // Get input array
   FairRootManager* ioman = FairRootManager::Instance();
   if ( ! ioman ) Fatal("Init", "No FairRootManager");
-
-  fUseLinks=ioman->GetUseFairLinks();
-
   fDigis = (TClonesArray*) ioman->GetObject("StsDigi");
 
   fClustersCand = new TClonesArray("CbmStsCluster", 30000);
@@ -488,7 +485,7 @@ Int_t CbmStsClusterFinder::FindClusters(Int_t stationNr, Int_t sectorNr, Int_t i
       }
 
       // if the signal is larger that last one and the previous one is smaller than maximum
-      if (/* digiSig > lastDigiSig && lastDigiSig < clusterMaxSig &&  digiSig != clusterMaxSig*/ false) { //GP
+      if ( digiSig > lastDigiSig && lastDigiSig < clusterMaxSig &&  digiSig != clusterMaxSig) {
 	clusterCand->SetMean(clusterMaxNr);
       //      cluster->SetMeanError(clusterMaxSig);
 	clusterCand = new ((*fClustersCand)[fNofClustersCand++]) CbmStsCluster(digiSig, stationNr,sectorNr,iSide);
@@ -656,12 +653,12 @@ void CbmStsClusterFinder::AnalyzeCluster(Int_t iCluster) {
   digi = (CbmStsDigi*)fDigis->At(maxDigiNr);
   Int_t maxDigiPos = digi->GetChannelNr();
   maxDigiSig = digi->GetAdc();
-/* //GP
+
   if (clusterCand->GetNDigis() > 5) {
     // AZ - split large clusters
-    SplitCluster(iCluster);
-    return;
-  }*/
+    //SplitCluster(iCluster);
+    //return;
+  }
   //  cout << "Cluster " << iCluster+1 << " has " << cluster->GetNDigis() << " digis, max at " << maxDigiNr << endl;
   Double_t chanNr  = 0;
   Double_t chanADC = 0.;
@@ -672,7 +669,7 @@ void CbmStsClusterFinder::AnalyzeCluster(Int_t iCluster) {
   Double_t sumWX2 = 0.0;
   for ( Int_t itemp = 0 ; itemp < clusterCand->GetNDigis() ; itemp++ ) {
     digi = (CbmStsDigi*)fDigis->At(clusterCand->GetDigi(itemp));
-    chanNr  = (Double_t)digi->GetChannelNr()+0.5;
+    chanNr  = (Double_t)digi->GetChannelNr();
     chanADC = digi->GetAdc();
     sumW  +=        chanADC;
     sumWX += chanNr*chanADC;
@@ -683,7 +680,7 @@ void CbmStsClusterFinder::AnalyzeCluster(Int_t iCluster) {
     //    cout << "channel " << digi->GetChannelNr() << " with signal = " << digi->GetADC() << " (" << sumWX << "/" << sumW << ") - plateau = " << plateau << endl;
   }
 
-  if (sumW>10.) { //50 to 0
+  if (sumW>50.) {
     Int_t imean = TMath::Nint (sumWX/sumW); //AZ
     for ( Int_t itemp = 0 ; itemp < clusterCand->GetNDigis() ; itemp++ ) {
   
@@ -719,8 +716,8 @@ void CbmStsClusterFinder::AnalyzeCluster(Int_t iCluster) {
 
 	Int_t nDigis = clusPrev->GetNDigis();
 	CbmStsDigi *digPrev = (CbmStsDigi*) fDigis->UncheckedAt(clusPrev->GetDigi(nDigis-1));
-	Int_t chan2 = digPrev->GetChannelNr()+0.5;
-	if (chan2 == ((CbmStsDigi*)fDigis->UncheckedAt(cluster->GetDigi(0)))->GetChannelNr()+0.5) {
+	Int_t chan2 = digPrev->GetChannelNr();
+	if (chan2 == ((CbmStsDigi*)fDigis->UncheckedAt(cluster->GetDigi(0)))->GetChannelNr()) {
 
 	  Double_t adcPrev = digPrev->GetAdc();
 	  Double_t qPrev = clusPrev->GetQtot();
@@ -744,8 +741,8 @@ void CbmStsClusterFinder::AnalyzeCluster(Int_t iCluster) {
       if (clusPrev->GetDetectorId() == cluster->GetDetectorId()) {
 	Int_t nDigis = clusPrev->GetNDigis();
 	CbmStsDigi *digPrev = (CbmStsDigi*) fDigis->UncheckedAt(clusPrev->GetDigi(nDigis-1));
-	chan2 = digPrev->GetChannelNr()+0.5;
-	if (chan2 != ((CbmStsDigi*)fDigis->UncheckedAt(cluster->GetDigi(0)))->GetChannelNr()+0.5) chan2 = -1;
+	chan2 = digPrev->GetChannelNr();
+	if (chan2 != ((CbmStsDigi*)fDigis->UncheckedAt(cluster->GetDigi(0)))->GetChannelNr()) chan2 = -1;
       }
       EvalErrors(clusPrev, chan2);
     }
@@ -992,3 +989,16 @@ void CbmStsClusterFinder::Finish() {
     
 
 ClassImp(CbmStsClusterFinder)
+
+
+	
+	
+	
+  
+		      
+
+
+
+
+
+ 

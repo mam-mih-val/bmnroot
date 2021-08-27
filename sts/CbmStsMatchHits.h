@@ -116,10 +116,11 @@ class CbmStsMatchHits : public FairTask
   map<Double_t, Int_t> fCandMap;            //!
   map<Double_t, Int_t>::iterator fIter;     //!
 
-  CbmStsMatchHits(const CbmStsMatchHits&) = delete;
-  CbmStsMatchHits operator=(const CbmStsMatchHits&) = delete;
+  CbmStsMatchHits(const CbmStsMatchHits&);
+  CbmStsMatchHits operator=(const CbmStsMatchHits&);
 
   ClassDef(CbmStsMatchHits,1);
+
 };
 
 #endif

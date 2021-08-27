@@ -112,13 +112,14 @@ void CbmFindPrimaryVertex::Exec(Option_t* opt) {
   if (iFind) cout << "-W- CbmFindPrimaryVertex::Exec: "
 		  << "Vertex finder returned " << iFind << endl;
 
-  // Print vertex
-  cout << endl;
-  cout << "-------------------------------------------------------" << endl;
-  cout << "-I-             Primary Vertex Finder               -I-" << endl;
-  fPrimVert->Print();
-  cout << "-------------------------------------------------------" << endl;
-
+  if (fVerbose > 0) {
+    // Print vertex
+    cout << endl;
+    cout << "-------------------------------------------------------" << endl;
+    cout << "-I-             Primary Vertex Finder               -I-" << endl;
+    fPrimVert->Print();
+    cout << "-------------------------------------------------------" << endl;
+  }
 }
 // -------------------------------------------------------------------------
 

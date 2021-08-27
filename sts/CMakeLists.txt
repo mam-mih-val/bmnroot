@@ -1,4 +1,6 @@
-# Create a library called "libSts"
+# Create a library called "libSts" which includes the source files given in
+# the array .
+# The extension is already found.  Any number of sources could be listed here.
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
@@ -42,16 +44,17 @@ CbmSts.cxx
 CbmStsContFact.cxx 
 CbmStsDigiPar.cxx 
 CbmStsDigiScheme.cxx 
-CbmStsIdealDigitize.cxx 
-CbmStsDigitize.cxx
-CbmStsIdealFindHits.cxx 
+#CbmStsIdealDigitize.cxx 
+CbmStsDigitize.cxx 
+#CbmStsDigitizeTb.cxx 
+#CbmStsIdealFindHits.cxx 
 CbmStsClusterFinder.cxx 
 CbmStsFindHits.cxx 
 CbmStsFindTracks.cxx 
 CbmStsFindTracksQa.cxx 
 CbmStsFitTracks.cxx 
-CbmStsHitProducerIdeal.cxx 
-CbmStsIdealMatchHits.cxx 
+#CbmStsHitProducerIdeal.cxx 
+#CbmStsIdealMatchHits.cxx 
 CbmStsMatchHits.cxx 
 CbmStsMatchTracks.cxx 
 CbmStsParAsciiFileIo.cxx 
@@ -69,6 +72,8 @@ CbmStsSimulationQa.cxx
 CbmStsFindHitsQa.cxx
 CbmStsReconstructionQa.cxx
 CbmBmnStsDigitize.cxx 
+BmnGemFastDigitize.cxx 
+BmnToCbmHitConverter.cxx
 )
 
 #AZ - debug

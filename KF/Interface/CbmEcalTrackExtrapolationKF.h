@@ -63,8 +63,8 @@ private:
   ClassDef(CbmEcalTrackExtrapolationKF,1);
 
  private:
-  CbmEcalTrackExtrapolationKF(const CbmEcalTrackExtrapolationKF&) = delete;
-  void operator=(const CbmEcalTrackExtrapolationKF&) = delete;
+  CbmEcalTrackExtrapolationKF(const CbmEcalTrackExtrapolationKF&);
+  void operator=(const CbmEcalTrackExtrapolationKF&);
 };
 
 #endif

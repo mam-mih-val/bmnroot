@@ -1,11 +1,11 @@
 /*
  *====================================================================
  *
- *  CBM Level 1 Reconstruction
- *
+ *  CBM Level 1 Reconstruction 
+ *  
  *  Authors: I.Kisel,  S.Gorbunov
  *
- *  e-mail : ikisel@kip.uni-heidelberg.de
+ *  e-mail : ikisel@kip.uni-heidelberg.de 
  *
  *====================================================================
  *
@@ -38,7 +38,6 @@
 #include "TMatrixD.h"
 #include "TROOT.h"
 #include "TRandom3.h"
-#include "TFile.h"
 
 #include <fstream>
 #include <iomanip>
@@ -68,7 +67,7 @@ fSTAPDataMode(0),
 fSTAPDataDir(""),
 
 fTrackingLevel(2),  // really doesn't used
-fMomentumCutOff(0.01),  // really doesn't used //GP
+fMomentumCutOff(0.1),  // really doesn't used
 fGhostSuppression(1),  // really doesn't used
 fUseMVD(0),  // really doesn't used
 
@@ -99,12 +98,13 @@ histodir(0),
 {
   if( !fInstance ) fInstance = this;
   PF = new CbmL1ParticlesFinder();
+  StsDigi = CbmStsDigiScheme::Instance(); //AZ
 }
 
 CbmL1::CbmL1(const char *name, Int_t iVerbose, Int_t _fPerformance, int fSTAPDataMode_, TString fSTAPDataDir_, int findParticleMode_):FairTask(name,iVerbose),
 algo(0), // for access to L1 Algorithm from L1::Instance
 PF(0),
-
+                                                                                                                                      
 vRTracks(), // reconstructed tracks
 vHitStore(),
 NStation(0), NMvdStations(0), NStsStations(0), // number of detector stations (all\sts\mvd)
@@ -144,6 +144,7 @@ histodir(0),
 {
   if( !fInstance ) fInstance = this;
   PF = new CbmL1ParticlesFinder();
+  StsDigi = CbmStsDigiScheme::Instance(); //AZ
 }
 
 CbmL1::~CbmL1()
@@ -164,7 +165,8 @@ void CbmL1::SetParContainers()
 
 InitStatus CbmL1::ReInit()
 {
-  StsDigi.Clear();
+  //AZ StsDigi.Clear();
+  StsDigi->Clear();
   SetParContainers();
   return Init();
 }
@@ -177,7 +179,7 @@ InitStatus CbmL1::Init()
     char W[20] = " [1;37;44m"; // white bold
     char o[20] = " [0m\n";       // color off
     Y[0] = y[0] = W[0] = o[0] = 0x1B;    // escape character
-
+    
     cout<<endl<<endl;
     cout<<"  "<<W<<"                                                                 "<<o;
     cout<<"  "<<W<<"  ===////======================================================  "<<o;
@@ -212,7 +214,8 @@ InitStatus CbmL1::Init()
   {
     CbmGeoStsPar* StsPar = L1_DYNAMIC_CAST<CbmGeoStsPar*>( RunDB->findContainer("CbmGeoStsPar") );
     CbmStsDigiPar *digiPar = L1_DYNAMIC_CAST<CbmStsDigiPar*>( RunDB->findContainer("CbmStsDigiPar") );
-    StsDigi.Init(StsPar, digiPar);
+    //AZ StsDigi.Init(StsPar, digiPar);
+    StsDigi->Init(StsPar, digiPar);
   }
   {
     fUseMVD = 1;
@@ -264,21 +267,18 @@ InitStatus CbmL1::Init()
 
   int ind = 0;
   for( int i=0; i<3; i++ ){
-  Double_t ztarg;
-  if(i==0) ztarg=0.66;//-21.9;
-  if(i==1) ztarg=5;
-  if(i==2) ztarg=10;
-    Double_t point[3] = { 0,0,ztarg};//2.5*i};
+    Double_t point[3] = { 0,0,2.5*i};
     Double_t B[3] = {0,0,0};
     if( CbmKF::Instance()->GetMagneticField() ) CbmKF::Instance()->GetMagneticField()->GetFieldValue( point, B );
-    geo[ind++] =ztarg;//2.5*i;
+    geo[ind++] = 2.5*i;
     geo[ind++] = B[0];
     geo[ind++] = B[1];
     geo[ind++] = B[2];
   }
-
+      
   NMvdStations = ( fUseMVD ) ? CbmKF::Instance()->vMvdMaterial.size() : 0;
-  NStsStations = StsDigi.GetNStations();
+  //AZ NStsStations = StsDigi.GetNStations();
+  NStsStations = StsDigi->GetNStations();
   NStation = NMvdStations + NStsStations;
   geo[ind++] = NStation;
   geo[ind++] = NMvdStations;
@@ -294,7 +294,7 @@ InitStatus CbmL1::Init()
 //     double dy = 1.;
 //     if( dx > Xmax/N/2 ) dx = Xmax/N/4.;
 //     if( dy > Ymax/N/2 ) dy = Ymax/N/4.;
-//
+// 
 //     TMatrixD A(N,N);
 //     TVectorD b0(N), b1(N), b2(N);
 //     for( int i=0; i<N; i++){
@@ -318,7 +318,7 @@ InitStatus CbmL1::Init()
 //         for( int j=0; j<i; j++ ) m(l+j) = x*m(k+j);
 //         m(l+i) = y*m(k+i-1);
 //       }
-//
+//         
 //       TVectorD mt = m;
 //       for( int i=0; i<N; i++){
 //         for( int j=0; j<N;j++) A(i,j)+=w*m(i)*m(j);
@@ -330,18 +330,18 @@ InitStatus CbmL1::Init()
 //     double det;
 //     A.Invert(&det);
 //     TVectorD c0 = A*b0, c1 = A*b1, c2 = A*b2;
-//
+//     
 //     targetFieldSlice = new L1FieldSlice;
 //     for(int i=0; i<N; i++){
 //       targetFieldSlice->cx[i] = c0(i);
 //       targetFieldSlice->cy[i] = c1(i);
 //       targetFieldSlice->cz[i] = c2(i);
 //     }
-//
+// 
 //   } // target field
 
-
-
+  
+  
   for ( Int_t ist = 0; ist<NStation; ist++ )
   {
     double C[3][N];
@@ -363,14 +363,15 @@ InitStatus CbmL1::Init()
       z = t.z;
       Xmax = Ymax = t.R;
     }else{
-      CbmStsStation *st = StsDigi.GetStation(ist - NMvdStations);
-
+      //AZ CbmStsStation *st = StsDigi.GetStation(ist - NMvdStations);
+      CbmStsStation *st = StsDigi->GetStation(ist - NMvdStations);
+  
       geo[ind++] = st->GetZ();
       geo[ind++] = st->GetD();
       geo[ind++] = st->GetRmin();
       geo[ind++] = st->GetRmax();
       geo[ind++] = st->GetRadLength();
-
+  
       CbmStsSector* sector = st->GetSector(0);
       fscal f_phi, f_sigma, b_phi, b_sigma; // angle and sigma front/back  side
       f_phi = sector->GetRotation();
@@ -384,37 +385,12 @@ InitStatus CbmL1::Init()
         f_phi +=sector->GetStereoF();
         b_phi +=sector->GetStereoB();
         f_sigma = sector->GetDx() / TMath::Sqrt(12);
-        
-        // AZ - use "real" errors
-        if (f_sigma < 0.01) f_sigma = 0.01; //Si
-        else f_sigma = 0.035; //GEMs
-        //AZ
+	// AZ - use "real" errors 
+	if (f_sigma < 0.01) f_sigma = 0.01; //Si
+	else f_sigma = 0.015; //GEMs
+	//AZ 
         b_sigma  = f_sigma;
       }
-
-       Int_t stationNr= StsDigi.GetStation(ist)->GetStationNr();
-    /*if(stationNr==1 ) f_sigma=0.01; //100 micron fo si
-         else if(stationNr==5) f_sigma=0.08; // 800 for bad station
-        else f_sigma=0.05; //500 micron for good station
-        */
-
-        //if(stationNr==1 ||  stationNr==6 ) f_sigma=0.1; //100 micron fo si
-    //else  f_sigma=0.08; // 800 
-/*
-Double_t vX=0, vY=0;
-   if(stationNr<4) {vX=0.012; vY=vX*20; }
-  else {vX=0.035; vY=vX*3; }
-
-       f_sigma=vX;
-      b_sigma  = vY;
-
-
-      if(stationNr<4){f_phi=0; b_phi=(2.5*3.14)/180;}
-      if(stationNr==4 || stationNr==7 || stationNr==9) {f_phi=3.14; b_phi=(15*3.14)/180;}
-      if(stationNr==5 || stationNr==6 || stationNr==8) {f_phi=0; b_phi=(-15*3.14)/180;}
-*/
-      cout<<stationNr <<" f_phi: "<< f_phi*180/3.14<< " b_phi: "<<b_phi*180/3.14<<endl;
-      
       //AZ f_sigma *= cos(f_phi);  // TODO: think about this
       //AZ b_sigma *= cos(b_phi);
       geo[ind++] = f_phi;
@@ -438,6 +414,7 @@ Double_t vX=0, vY=0;
         }
       }
 //      cout << "Station  "<<  ist << ",  Xmax  " << Xmax<<",  Ymax" << Ymax<<endl;
+      cout << " AZ - station " << ist << " " << f_phi*TMath::RadToDeg() << " " << b_phi*TMath::RadToDeg() << " " << Xmax << " " << Ymax << endl;
     }
 
     double dx = 1.; // step for the field approximation
@@ -471,7 +448,7 @@ Double_t vX=0, vY=0;
         for( int j=0; j<i; j++ ) m(l+j) = x*m(k+j);
         m(l+i) = y*m(k+i-1);
       }
-
+      
       TVectorD mt = m;
       for( int i=0; i<N; i++){
         for( int j=0; j<N;j++) A(i,j)+=w*m(i)*m(j);
@@ -509,11 +486,11 @@ Double_t vX=0, vY=0;
       if (ind2 != ind)  cout << "-E- CbmL1: Read geometry from file " << fSTAPDataDir + "geo_algo.txt was NOT successful." << endl;
     };
   }
-
+  
   algo->Init(geo);
 
 
-
+  
   algo->fRadThick.resize(algo->NStations);
     // MVD does not use map
   for( int iSta = 0; iSta < algo->NMvdStations;iSta++ ) {
@@ -532,18 +509,18 @@ Double_t vX=0, vY=0;
     for( int j = 0, iSta = algo->NMvdStations; iSta < algo->NStations; iSta++, j++ ) {
       TString name = "Radiation Thickness [%]";
       name += ", Station";
-      name += j+1;
-
+      name += j+1; 
+    
       TProfile2D* hStaRadLen = (TProfile2D*) rlFile->Get(name);
       if ( !hStaRadLen ) {
         cout << "L1: incorrect " << fMatBudgetFileName << " file. No " << name << endl; exit(1);
       }
-
+      
       const int NBins = hStaRadLen->GetNbinsX(); // should be same in Y
       const float RMax = hStaRadLen->GetXaxis()->GetXmax(); // should be same as min
       algo->fRadThick[iSta].SetBins(NBins,RMax); // TODO
       algo->fRadThick[iSta].table.resize(NBins);
-
+    
       for( int iB = 0; iB < NBins; iB++ ) {
         algo->fRadThick[iSta].table[iB].resize(NBins);
         for( int iB2 = 0; iB2 < NBins; iB2++ ) {
@@ -568,9 +545,9 @@ Double_t vX=0, vY=0;
       algo->fRadThick[iSta].table[0][0] = algo->vStations[iSta].materialInfo.RadThick[0];
     }
   }
+  
 
-
-
+  
   return kSUCCESS;
 }
 
@@ -586,7 +563,7 @@ void CbmL1::Reconstruct()
 
     // repack data
   ReadEvent();
-
+  
   { // save data for standalone
     if(fSTAPDataMode%2 == 1){ // 1,3
       WriteSTAPAlgoData();
@@ -598,50 +575,50 @@ void CbmL1::Reconstruct()
     };
   }
 
-  if(0){  // correct hits on MC // dbg
-    TRandom3 random;
-    vector< int > sF, sB, zP;
-    sF.clear();
-    sB.clear();
-    zP.clear();
-    for( unsigned int iH = 0; iH < algo->vStsHits.size(); ++iH ) {
-        // for( unsigned int iH = algo->vStsHits.size() - 1; iH >= 0; --iH ) {
-      if (vStsHits[iH].mcPointIds.size() == 0) continue;
-      L1StsHit &h = algo->vStsHits[iH];
-      const CbmL1MCPoint &mcp = vMCPoints[vStsHits[iH].mcPointIds[0]];
-      const int ista = algo->vSFlag[h.f]/4;
-      const L1Station &sta = algo->vStations[ista];
-      if ( std::find( sF.begin(), sF.end(), h.f ) != sF.end() ) { // separate strips
-        algo->vSFlag.push_back(algo->vSFlag[h.f]);
-        h.f = algo->vStsStrips.size();
-        algo->vStsStrips.push_back(L1Strip());
-      }
-      sF.push_back(h.f);
-      if ( std::find( sB.begin(), sB.end(), h.b ) != sB.end() ) {
-        algo->vSFlagB.push_back(algo->vSFlagB[h.b]);
-        h.b = algo->vStsStripsB.size();
-        algo->vStsStripsB.push_back(L1Strip());
-      }
-      sB.push_back(h.b);
-      if ( std::find( zP.begin(), zP.end(), h.iz ) != zP.end() ) { // TODO why do we need it??gives prob=0
-        h.iz = algo->vStsZPos.size();
-        algo->vStsZPos.push_back(0);
-      }
-      zP.push_back(h.iz);
+  if(0){  // correct hits on MC // dbg 
+    TRandom3 random; 
+    vector< int > sF, sB, zP; 
+    sF.clear(); 
+    sB.clear(); 
+    zP.clear(); 
+    for( unsigned int iH = 0; iH < algo->vStsHits.size(); ++iH ) { 
+        // for( unsigned int iH = algo->vStsHits.size() - 1; iH >= 0; --iH ) {  
+      if (vStsHits[iH].mcPointIds.size() == 0) continue; 
+      L1StsHit &h = algo->vStsHits[iH]; 
+      const CbmL1MCPoint &mcp = vMCPoints[vStsHits[iH].mcPointIds[0]]; 
+      const int ista = algo->vSFlag[h.f]/4; 
+      const L1Station &sta = algo->vStations[ista]; 
+      if ( std::find( sF.begin(), sF.end(), h.f ) != sF.end() ) { // separate strips 
+        algo->vSFlag.push_back(algo->vSFlag[h.f]); 
+        h.f = algo->vStsStrips.size(); 
+        algo->vStsStrips.push_back(L1Strip()); 
+      } 
+      sF.push_back(h.f); 
+      if ( std::find( sB.begin(), sB.end(), h.b ) != sB.end() ) { 
+        algo->vSFlagB.push_back(algo->vSFlagB[h.b]); 
+        h.b = algo->vStsStripsB.size(); 
+        algo->vStsStripsB.push_back(L1Strip()); 
+      } 
+      sB.push_back(h.b); 
+      if ( std::find( zP.begin(), zP.end(), h.iz ) != zP.end() ) { // TODO why do we need it??gives prob=0 
+        h.iz = algo->vStsZPos.size(); 
+        algo->vStsZPos.push_back(0); 
+      } 
+      zP.push_back(h.iz); 
+ 	       
+      const fscal idet = 1/(sta.xInfo.sin_phi*sta.yInfo.sin_phi - sta.xInfo.cos_phi*sta.yInfo.cos_phi)[0]; 
+#if 1 // GAUSS 
+      algo->vStsStrips[h.f]  = idet * ( + sta.yInfo.sin_phi[0]*mcp.x - sta.xInfo.cos_phi[0]*mcp.y ) + random.Gaus(0,sqrt(sta.frontInfo.sigma2)[0]); 
+      algo->vStsStripsB[h.b] = idet * ( - sta.yInfo.cos_phi[0]*mcp.x + sta.xInfo.sin_phi[0]*mcp.y ) + random.Gaus(0,sqrt(sta.backInfo.sigma2)[0]); 
+#else // UNIFORM 
+      algo->vStsStrips[h.f]  = idet * ( + sta.yInfo.sin_phi[0]*mcp.x - sta.xInfo.cos_phi[0]*mcp.y ) + random.Uniform(-sqrt(sta.frontInfo.sigma2)[0]*3.5, sqrt(sta.frontInfo.sigma2)[0]*3.5); 
+      algo->vStsStripsB[h.b] = idet * ( - sta.yInfo.cos_phi[0]*mcp.x + sta.xInfo.sin_phi[0]*mcp.y ) + random.Uniform(-sqrt(sta.backInfo.sigma2)[0]*3.5, sqrt(sta.backInfo.sigma2)[0]*3.5); 
+#endif   
+      algo->vStsZPos[h.iz] = mcp.z; 
+    } 
+  } 
 
-      const fscal idet = 1/(sta.xInfo.sin_phi*sta.yInfo.sin_phi - sta.xInfo.cos_phi*sta.yInfo.cos_phi)[0];
-#if 1 // GAUSS
-      algo->vStsStrips[h.f]  = idet * ( + sta.yInfo.sin_phi[0]*mcp.x - sta.xInfo.cos_phi[0]*mcp.y ) + random.Gaus(0,sqrt(sta.frontInfo.sigma2)[0]);
-      algo->vStsStripsB[h.b] = idet * ( - sta.yInfo.cos_phi[0]*mcp.x + sta.xInfo.sin_phi[0]*mcp.y ) + random.Gaus(0,sqrt(sta.backInfo.sigma2)[0]);
-#else // UNIFORM
-      algo->vStsStrips[h.f]  = idet * ( + sta.yInfo.sin_phi[0]*mcp.x - sta.xInfo.cos_phi[0]*mcp.y ) + random.Uniform(-sqrt(sta.frontInfo.sigma2)[0]*3.5, sqrt(sta.frontInfo.sigma2)[0]*3.5);
-      algo->vStsStripsB[h.b] = idet * ( - sta.yInfo.cos_phi[0]*mcp.x + sta.xInfo.sin_phi[0]*mcp.y ) + random.Uniform(-sqrt(sta.backInfo.sigma2)[0]*3.5, sqrt(sta.backInfo.sigma2)[0]*3.5);
-#endif
-      algo->vStsZPos[h.iz] = mcp.z;
-    }
-  }
-
-
+  
       // input performance
   if (fPerformance){
     InputPerformance();
@@ -652,20 +629,15 @@ void CbmL1::Reconstruct()
   if( fVerbose>1 ) cout<<"L1 Track finder..."<<endl;
   algo->CATrackFinder();
 //  IdealTrackFinder();
-//cout<<" @*@@$@&%%&@%%% CA FIND TRACKS: "<<algo->vTracks.size()<<endl;
   if( fVerbose>1 ) cout<<"L1 Track finder ok"<<endl;
   algo->L1KFTrackFitter( fExtrapolateToTheEndOfSTS );
-  //algo->KFTrackFitter_simple();
+//  algo->KFTrackFitter_simple();
   if( fVerbose>1 ) cout<<"L1 Track fitter  ok"<<endl;
   
-  //cout<<" @*@@$@&%%&@%%% L1 FITTER TRACKS: "<<algo->vTracks.size()<<endl;
-
     // save recontstructed tracks
   vRTracks.clear();
   int start_hit = 0;
-  int itrack=0;
   for(vector<L1Track>::iterator it = algo->vTracks.begin(); it!=algo->vTracks.end(); it++){
-    //Int_t hh=0;
     CbmL1Track t;
     for( int i=0; i<6; i++) t.T[i] = it->TFirst[i];
     for( int i=0; i<15; i++) t.C[i] = it->CFirst[i];
@@ -674,22 +646,14 @@ void CbmL1::Reconstruct()
     t.chi2 = it->chi2;
     t.NDF = it->NDF;
     //t.T[4] = it->Momentum;
-
     for( int i=0; i<it->NHits; i++ ){
       t.StsHits.push_back( algo->vRecoHits[start_hit++]);
-
     }
     t.mass = 0.1395679; // pion mass
     t.is_electron = 0;
 
     t.SetId(vRTracks.size());
-    itrack++;
-    t.SetTrkID(itrack);
-    //cout<<"!!!####"<<itrack<<endl;
     vRTracks.push_back(t);
-
-//for(Int_t j=0; j<vRTracks[hh].StsHits.size(); j++)
-  //    std::cout<<" ALGO HITS: "<<vRTracks[hh].StsHits[j]<<std::endl;
   }
 
   //Find Primary vertex, Ks, Lambdas,...
@@ -706,7 +670,7 @@ void CbmL1::Reconstruct()
     PF->FindParticles(vRTracks);
     vRParticles = PF->GetParticles();
   }
-
+  
   if (fPerformance){
     EfficienciesPerformance();
     HistoPerformance();
@@ -794,11 +758,11 @@ void CbmL1::IdealTrackFinder()
       algoTr.NHits++;
     }
     algoTr.Momentum = MC.p;
-
+          
     algo->vTracks.push_back(algoTr);
 
   }
-
+  
 }; // void CbmL1::IdealTrackFinder()
 
 
@@ -824,16 +788,16 @@ void CbmL1::WriteSTAPAlgoData()  // must be called after ReadEvent
     // write algo data in file
   static int vNEvent = 1;
   fstream fadata;
-
+  
   TString fadata_name = fSTAPDataDir + "data_algo.txt";
 //    if ( vNEvent <= maxNEvent ) {
   if ( 1 ) {
-
+ 
     if (vNEvent == 1)
       fadata.open(fadata_name,fstream::out);  // begin new file
     else
       fadata.open(fadata_name,fstream::out | fstream::app);
-
+        
     fadata << "Event:" << " ";
     fadata << vNEvent << endl;
       // write vStsStrips
@@ -894,18 +858,18 @@ void CbmL1::WriteSTAPAlgoData()  // must be called after ReadEvent
       else fadata  << 0 << endl;
     };
 
-
+    
     fadata.close();
   }
   cout << "-I- CbmL1: CATrackFinder data for event number " << vNEvent << " have been written in file " << fadata_name << endl;
   vNEvent++;
-} // void CbmL1::WriteSTAPAlgoData()
+} // void CbmL1::WriteSTAPAlgoData() 
 
 void CbmL1::WriteSTAPPerfData()  // must be called after ReadEvent
 {
   fstream fpdata;
   fpdata << setprecision(8);
-
+  
   static int vNEvent = 1;
 
   TString fpdata_name = fSTAPDataDir + "data_perfo.txt";
@@ -917,7 +881,7 @@ void CbmL1::WriteSTAPPerfData()  // must be called after ReadEvent
       fpdata.open(fpdata_name,fstream::out);  // begin new file
     else
       fpdata.open(fpdata_name,fstream::out | fstream::app);
-
+  
     fpdata << "Event: " ;
     fpdata << vNEvent << endl;
       // write vMCPoints
@@ -936,11 +900,11 @@ void CbmL1::WriteSTAPPerfData()  // must be called after ReadEvent
       fpdata << vMCPoints[i].pxOut << " ";
       fpdata << vMCPoints[i].pyOut << " ";
       fpdata << vMCPoints[i].pzOut << " " << endl;
-
+      
       fpdata << vMCPoints[i].p << "  ";
       fpdata << vMCPoints[i].q << " ";
       fpdata << vMCPoints[i].mass << "   ";
-
+      
       fpdata << vMCPoints[i].pdg << " ";
       fpdata << vMCPoints[i].ID << " ";
       fpdata << vMCPoints[i].mother_ID << " ";
@@ -954,7 +918,7 @@ void CbmL1::WriteSTAPPerfData()  // must be called after ReadEvent
       fpdata << endl;
     };
     if (fVerbose >= 4) cout << "vMCPoints[" << n << "]" << " have been written." << endl;
-
+    
           // write vMCTracks  . without Points
     n = vMCTracks.size();  // number of elements
     fpdata << n << endl;
@@ -968,11 +932,11 @@ void CbmL1::WriteSTAPPerfData()  // must be called after ReadEvent
       fpdata << vMCTracks[i].p << "  ";
       fpdata << vMCTracks[i].q << " ";
       fpdata << vMCTracks[i].mass << "   ";
-
+      
       fpdata << vMCTracks[i].pdg << " ";
       fpdata << vMCTracks[i].ID << " ";
       fpdata << vMCTracks[i].mother_ID << endl;
-
+      
       int nhits = vMCTracks[i].StsHits.size();
       fpdata  << "   " << nhits << endl << "   ";
       for (int k = 0; k < nhits; k++){
@@ -986,17 +950,17 @@ void CbmL1::WriteSTAPPerfData()  // must be called after ReadEvent
         fpdata << vMCTracks[i].Points[k] << " ";
       };
       fpdata << endl;
-
+      
       fpdata << vMCTracks[i].nMCContStations << " ";
       fpdata << vMCTracks[i].nHitContStations << " ";
       fpdata << vMCTracks[i].maxNStaMC << " ";
       fpdata << vMCTracks[i].maxNSensorMC << " ";
       fpdata << vMCTracks[i].maxNStaHits << " ";
       fpdata << vMCTracks[i].nStations << endl;
-
+      
     };
     if (fVerbose >= 4) cout << "vMCTracks[" << n << "]" << " have been written." << endl;
-
+    
         // write vHitMCRef
     n = vHitMCRef.size();  // number of elements
     fpdata << n << endl;
@@ -1004,14 +968,14 @@ void CbmL1::WriteSTAPPerfData()  // must be called after ReadEvent
       fpdata << vHitMCRef[i] << endl;
     };
     if (fVerbose >= 4) cout << "vHitMCRef[" << n << "]" << " have been written." << endl;
-
+    
       // write vHitStore
     n = vHitStore.size();  // number of elements
     fpdata << n << endl;
     for (int i = 0; i < n; i++){
       fpdata << vHitStore[i].ExtIndex << "  ";
       fpdata << vHitStore[i].iStation << "  ";
-
+      
       fpdata << vHitStore[i].x << " ";
       fpdata << vHitStore[i].y << endl;
     };
@@ -1032,7 +996,7 @@ void CbmL1::WriteSTAPPerfData()  // must be called after ReadEvent
       fpdata << endl;
     };
     if (fVerbose >= 4) cout << "vStsHits[" << n << "]" << " have been written." << endl;
-
+    
     fpdata.close();
   }
   cout << "-I- CbmL1: Data for performance of event number " << vNEvent << " have been written in file " << fpdata_name << endl;
@@ -1078,21 +1042,21 @@ void CbmL1::ReadSTAPAlgoData()
     if ( nEvent == 1 ){
       fadata.open(fadata_name,fstream::in);
     };
-
+    
     algo->vStsHits.clear();
     algo->vStsStrips.clear();
     algo->vStsStripsB.clear();
     algo->vStsZPos.clear();
     algo->vSFlag.clear();
     algo->vSFlagB.clear();
-
+    
       // check correct position in file
     char s[] = "Event:  ";
     int nEv;
     fadata >> s;
     fadata >> nEv;
     if (nEv != nEvent)  cout << "-E- CbmL1: Can't read event number " << nEvent << " from file " << fadata_name << endl;
-
+    
     int n;  // number of elements
       // read algo->vStsStrips
     fadata >> n;
@@ -1162,7 +1126,7 @@ void CbmL1::ReadSTAPAlgoData()
     };
 
     cout << "-I- CbmL1: CATrackFinder data for event " << nEvent << " has been read from file " << fadata_name << " successfully." << endl;
-//    if (nEvent == maxNEvent) fadata.close();
+//    if (nEvent == maxNEvent) fadata.close();  
   }
   nEvent++;
 } // void CbmL1::ReadSTAPAlgoData()
@@ -1196,25 +1160,25 @@ void CbmL1::ReadSTAPPerfData()
     fpdata >> n;
     for (int i = 0; i < n; i++){
       CbmL1MCPoint element;
-
+      
       fpdata >> element.xIn;
       fpdata >> element.yIn;
       fpdata >> element.zIn;
       fpdata >> element.pxIn;
       fpdata >> element.pyIn;
       fpdata >> element.pzIn;
-
+            
       fpdata >> element.xOut;
       fpdata >> element.yOut;
       fpdata >> element.zOut;
       fpdata >> element.pxOut;
       fpdata >> element.pyOut;
       fpdata >> element.pzOut;
-
+      
       fpdata >> element.p;
       fpdata >> element.q;
       fpdata >> element.mass;
-
+      
       fpdata >> element.pdg;
       fpdata >> element.ID;
       fpdata >> element.mother_ID;
@@ -1227,7 +1191,7 @@ void CbmL1::ReadSTAPPerfData()
         fpdata >> helement;
         element.hitIds.push_back(helement);
       };
-
+      
       vMCPoints.push_back(element);
     };
     if (fVerbose >= 4) cout << "vMCPoints[" << n << "]" << " have been read." << endl;
@@ -1276,7 +1240,7 @@ void CbmL1::ReadSTAPPerfData()
       vMCTracks.push_back(element);
     };
     if (fVerbose >= 4) cout << "vMCTracks[" << n << "]" << " have been read." << endl;
-
+    
         // vHitMCRef
     fpdata >> n;
     for (int i = 0; i < n; i++){
@@ -1298,7 +1262,7 @@ void CbmL1::ReadSTAPPerfData()
       vHitStore.push_back(element);
     };
     if (fVerbose >= 4) cout << "vHitStore[" << n << "]" << " have been read." << endl;
-
+    
           // vStsHits
     fpdata >> n;
     for (int i = 0; i < n; i++){
@@ -1316,9 +1280,9 @@ void CbmL1::ReadSTAPPerfData()
       vStsHits.push_back(element);
     };
     if (fVerbose >= 4) cout << "vStsHits[" << n << "]" << " have been read." << endl;
+    
 
-
-
+    
 //    if (nEvent == maxNEvent) { // file open on begin of all work class and close at end
 //       fpdata.close();
 //       cout << " -I- Performance: data read from file " << "data_perfo.txt" << " successfully"<< endl;
@@ -1337,7 +1301,6 @@ void CbmL1::WriteSIMDKFData()
   if(first)
   {
     FairField *dMF = CbmKF::Instance()->GetMagneticField();
-   //BmnNewFieldMap* dMF = CbmKF::Instance()->GetMagneticField();
 
     fstream FileGeo;
     FileGeo.open( "geo.dat", ios::out );
@@ -1376,7 +1339,8 @@ void CbmL1::WriteSIMDKFData()
         z = t.z;
         Xmax = Ymax = t.R;
       }else{
-        CbmStsStation *st = StsDigi.GetStation(ist - NMvdStations);
+        //AZ CbmStsStation *st = StsDigi.GetStation(ist - NMvdStations);
+        CbmStsStation *st = StsDigi->GetStation(ist - NMvdStations);
         CbmStsSector* sector = st->GetSector(0);
         f_phi = sector->GetRotation();
         b_phi = sector->GetRotation();
@@ -1391,8 +1355,8 @@ void CbmL1::WriteSIMDKFData()
           f_sigma = sector->GetDx() / TMath::Sqrt(12);
           b_sigma  = f_sigma;
         }
-        f_sigma *= cos(f_phi);  // TODO: think about this
-        b_sigma *= cos(b_phi);
+        //AZ f_sigma *= cos(f_phi);  // TODO: think about this
+        //AZ b_sigma *= cos(b_phi);
         z = st->GetZ();
 
         Xmax=-100; Ymax=-100;
@@ -1442,7 +1406,7 @@ void CbmL1::WriteSIMDKFData()
           for( int j=0; j<i; j++ ) m(l+j) = x*m(k+j);
           m(l+i) = y*m(k+i-1);
         }
-
+      
         TVectorD mt = m;
         for( int i=0; i<N; i++){
           for( int j=0; j<N;j++) A(i,j)+=w*m(i)*m(j);
@@ -1483,14 +1447,15 @@ void CbmL1::WriteSIMDKFData()
       }
       else if(ist<(NStsStations+NMvdStations))
       {
-        CbmStsStation *st = StsDigi.GetStation(ist - NMvdStations);
+        //AZ CbmStsStation *st = StsDigi.GetStation(ist - NMvdStations);
+        CbmStsStation *st = StsDigi->GetStation(ist - NMvdStations);
         FileGeo<<st->GetZ()<<" ";
         FileGeo<<st->GetD()<<" ";
         FileGeo<<st->GetRadLength()<<" ";
       }
-      FileGeo<<f_sigma<<" ";
-      FileGeo<<b_sigma<<" ";
-      FileGeo<<f_phi<<" ";
+      FileGeo<<f_sigma<<" "; 
+      FileGeo<<b_sigma<<" "; 
+      FileGeo<<f_phi<<" "; 
       FileGeo<<b_phi<<endl;
       FileGeo<<"    "<<N<<endl;
       FileGeo<<"       ";
@@ -1582,13 +1547,13 @@ void CbmL1::WriteSIMDKFData()
     for(int iPoint=0; iPoint < NMCPoints; iPoint++)
     {
       CbmL1MCPoint &MCPoint = vMCPoints[ MCTrack->Points[iPoint] ];
-      McTracksIn << "     " << MCPoint.iStation <<" "<<
+      McTracksIn << "     " << MCPoint.iStation <<" "<< 
                                MCPoint.xIn <<" "<<MCPoint.yIn<<" "<<MCPoint.zIn<<" "<<
                                MCPoint.pxIn <<" "<<MCPoint.pyIn<<" "<<MCPoint.pzIn<<endl;
-      McTracksOut << "     " << MCPoint.iStation <<" "<<
+      McTracksOut << "     " << MCPoint.iStation <<" "<< 
                                MCPoint.xOut <<" "<<MCPoint.yOut<<" "<<MCPoint.zOut<<" "<<
                                MCPoint.pxOut <<" "<<MCPoint.pyOut<<" "<<MCPoint.pzOut<<endl;
-      McTracksCentr << "     " << MCPoint.iStation <<" "<<
+      McTracksCentr << "     " << MCPoint.iStation <<" "<< 
                                MCPoint.x <<" "<<MCPoint.y<<" "<<MCPoint.z<<" "<<
                                MCPoint.px <<" "<<MCPoint.py<<" "<<MCPoint.pz<<endl;
     }

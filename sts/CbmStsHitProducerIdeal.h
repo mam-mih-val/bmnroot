@@ -54,10 +54,11 @@ class CbmStsHitProducerIdeal : public FairTask
   /** Output array of CbmStsHits **/
   TClonesArray* fHitArray;  
 
-  CbmStsHitProducerIdeal(const CbmStsHitProducerIdeal&) = delete;
-  CbmStsHitProducerIdeal& operator=(const CbmStsHitProducerIdeal&) = delete;
+  CbmStsHitProducerIdeal(const CbmStsHitProducerIdeal&);
+  CbmStsHitProducerIdeal& operator=(const CbmStsHitProducerIdeal&);
 
   ClassDef(CbmStsHitProducerIdeal,1);
+
 };
 
 #endif

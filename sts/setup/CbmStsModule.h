@@ -93,10 +93,11 @@ class CbmStsModule : public CbmStsElement
     map<Int_t, pair<Double_t, Double_t> > fBuffer;
 
 
-    CbmStsModule(const CbmStsModule&) = delete;
-    CbmStsModule& operator=(const CbmStsModule&) = delete;
+    CbmStsModule(const CbmStsModule&);
+    CbmStsModule& operator=(const CbmStsModule&);
     
     ClassDef(CbmStsModule,1);
+
 };
 
 #endif /* CBMSTSMODULE_H */

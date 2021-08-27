@@ -44,7 +44,8 @@ CbmStsFindTracks::CbmStsFindTracks()
   fNEventsFailed(0),
   fTime(0.),
   fNTracks(0.),
-  fDigiScheme(new CbmStsDigiScheme()),
+    //AZ fDigiScheme(new CbmStsDigiScheme()),
+  fDigiScheme(CbmStsDigiScheme::Instance()),
   fFinder(new CbmStsTrackFinderIdeal(1)),
   fTimer()
 {
@@ -70,7 +71,8 @@ CbmStsFindTracks::CbmStsFindTracks(Int_t iVerbose,
   fNEventsFailed(0),
   fTime(0.),
   fNTracks(0.),
-  fDigiScheme(new CbmStsDigiScheme()),
+    //AZ fDigiScheme(new CbmStsDigiScheme()),
+  fDigiScheme(CbmStsDigiScheme::Instance()),
   fFinder(NULL),
   fTimer()
 {
@@ -83,7 +85,7 @@ CbmStsFindTracks::CbmStsFindTracks(Int_t iVerbose,
 
 // -----   Destructor   ----------------------------------------------------
 CbmStsFindTracks::~CbmStsFindTracks() {
-  if ( fDigiScheme ) delete fDigiScheme;
+  //AZ if ( fDigiScheme ) delete fDigiScheme;
   fTracks->Delete();
   if ( fFinder) delete fFinder;
 }

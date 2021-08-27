@@ -6,6 +6,8 @@
 // -------------------------------------------------------------------------
 
 #include "CbmStsFindHits.h"
+#include "BmnGemStripHit.h"
+#include "BmnSiliconHit.h"
 
 #include "CbmGeoStsPar.h"
 #include "CbmStsCluster.h"
@@ -48,9 +50,10 @@ CbmStsFindHits::CbmStsFindHits()
   fClusters(NULL),
   fHits(NULL),
   fNHits(0),
-  fDigiScheme(new CbmStsDigiScheme()),
+  //fDigiScheme(new CbmStsDigiScheme()),
   fClusterMapF(),
   fClusterMapB(),
+  fRunId(8),
   fTimer()
 {}
 // -------------------------------------------------------------------------
@@ -65,9 +68,10 @@ CbmStsFindHits::CbmStsFindHits(Int_t iVerbose)
   fClusters(NULL),
   fHits(NULL),
   fNHits(0),
-  fDigiScheme(new CbmStsDigiScheme()),
+  //fDigiScheme(new CbmStsDigiScheme()),
   fClusterMapF(),
   fClusterMapB(),
+  fRunId(8),
   fTimer()
 {}
 // -------------------------------------------------------------------------
@@ -82,9 +86,10 @@ CbmStsFindHits::CbmStsFindHits(const char* name, Int_t iVerbose)
   fClusters(NULL),
   fHits(NULL),
   fNHits(0),
-  fDigiScheme(new CbmStsDigiScheme()),
+  //fDigiScheme(new CbmStsDigiScheme()),
   fClusterMapF(),
   fClusterMapB(),
+  fRunId(8),
   fTimer()
 {}
 // -------------------------------------------------------------------------
@@ -107,101 +112,152 @@ void CbmStsFindHits::Exec(Option_t* opt) {
 
   fTimer.Start();
   Bool_t warn = kFALSE;
-
   // Check for digi scheme
-  if ( ! fDigiScheme ) {
-    cerr << "-E- " << fName << "::Exec: No digi scheme!" << endl;
-    return;
-  }
+  // if ( ! fDigiScheme ) {
+  //   cerr << "-E- " << fName << "::Exec: No digi scheme!" << endl;
+  //   return;
+  // }
 
   // Clear output array
   //  fHits->Clear();
   fHits->Delete();
 
-  // Sort STS digis with respect to sectors
-  SortClusters();
-
-  // Find hits in sectors
-  Int_t nClustersF = 0;
-  Int_t nClustersB = 0;
-  Int_t nHits   = 0;
-  Int_t nStations = fDigiScheme->GetNStations();
-  CbmStsStation* station = NULL;
-  for (Int_t iStation=0; iStation<nStations; iStation++) {
-    station = fDigiScheme->GetStation(iStation);
-
-    Int_t nClustersFInStation = 0;
-    Int_t nClustersBInStation = 0;
-    Int_t nHitsInStation   = 0;
-    Int_t nSectors = station->GetNSectors();
-    for (Int_t iSector=0; iSector<nSectors; iSector++) {
-      CbmStsSector* sector = station->GetSector(iSector);
-      set <Int_t> fSet, bSet;
-      if ( fClusterMapF.find(sector) == fClusterMapF.end() ) {
-	cout << "-E- " << fName << "::Exec: sector " 
-	     << sector->GetSectorNr() << " of station " 
-	     << station->GetStationNr() << "not found in front map!" 
-	     << endl;
-	warn = kTRUE;
-	continue;
-      }
-      fSet = fClusterMapF[sector];
-      if ( sector->GetType() == 2 || sector->GetType() == 3 ) {
-	if ( fClusterMapB.find(sector) == fClusterMapB.end() ) {
-	  cout << "-E- " << fName << "::Exec: sector " 
-	       << sector->GetSectorNr() << " of station " 
-	       << station->GetStationNr() << "not found in back map!" 
-	       << endl;
-	  warn = kTRUE;
-	  continue;
-	}
-      }
-      bSet = fClusterMapB[sector];
-      Int_t nClustersFInSector = fSet.size();
-      Int_t nClustersBInSector = bSet.size();
-      Int_t nHitsInSector   = FindHits(station, sector, fSet, bSet);
-      if ( fVerbose > 2 ) 
-	cout << "Sector " << sector->GetSectorNr() 
-	     << ", Clusters front " << nClustersFInSector 
-	     << ", Clusters Back " << nClustersBInSector
-	     << ", Hits " << nHitsInSector << endl;
-      nHitsInStation   += nHitsInSector;
-      nClustersFInStation += nClustersFInSector;
-      nClustersBInStation += nClustersBInSector;      
-    }      // Sector loop
-
-    if ( fVerbose > 1 ) cout << "Total for station " 
-			     << station->GetStationNr() << ": Clusters front "
-			     << nClustersFInStation << ", clusters back "
-			     << nClustersBInStation << ", hits "
-			     << nHitsInStation << endl;
-    nClustersB += nClustersBInStation;
-    nClustersF += nClustersFInStation;
-    nHits   += nHitsInStation;
+  
+  for (Int_t iHit = 0; iHit < fBmnGemHits->GetEntriesFast(); ++iHit) {
+    BmnGemStripHit* bmnHit = (BmnGemStripHit*)fBmnGemHits->At(iHit);
+    TVector3 pos;
+    bmnHit->Position(pos);
+    TVector3 dpos;
+    bmnHit->PositionError(dpos);
     
-  }       // Station loop
+    Int_t stat = bmnHit->GetStation();
+    Int_t mod = bmnHit->GetModule();
 
-  fTimer.Stop();  
-  if ( fVerbose  ) {
-    cout << endl;
-    //AZ cout << "-I- " << fName << ":Event summary" << endl;
-    cout << "-I- " << fName << ":Event " << FairRunAna::Instance()->GetEventHeader()->GetMCEntryNumber() << " summary" << endl;
-    cout << "    Clusters front side       : " << nClustersF << endl;
-    cout << "    Clusters back side        : " << nClustersB << endl;
-    cout << "    Hits created              : " << nHits   << endl;
-    cout << "    Real time                 : " << fTimer.RealTime() 
-	 << endl;
+    const Int_t nLayers = StationSetGem->GetStation(stat)->GetModule(mod)->GetNStripLayers();
+    Bool_t isHitInside[nLayers];
+
+    Int_t lay = 0;
+    for (lay = 0; lay < nLayers; lay++) {
+        BmnGemStripLayer layer = StationSetGem->GetStation(stat)->GetModule(mod)->GetStripLayer(lay);
+        if (layer.IsPointInsideStripLayer(-bmnHit->GetX(), bmnHit->GetY())) break;
+    }
+    
+    Int_t sect = -1;//(bmnHit->GetModule() == 0) ? 1 : 3;
+    
+    if (mod == 0) {
+      if (lay < 2) sect = 1;
+      else sect = 2;
+    } else if (mod == 1) {
+      if (lay < 2) sect = 3;
+      else sect = 4;
+    } else if (mod == 2) {
+      if (lay < 2) sect = 5;
+      else sect = 6;
+    } else if (mod == 3) {
+      if (lay < 2) sect = 7;
+      else sect = 8;
+    }
+    
+    Int_t sens = 1;
+    Int_t detId = 2 << 24 | (stat + 1 + 3) << 16 | sect << 4 | sens << 1;
+    new ((*fHits)[fHits->GetEntriesFast()]) CbmStsHit(detId, pos, dpos, 0.0, 0, 0);
   }
-  else {
-    if ( warn ) cout << "- ";
-    else        cout << "+ ";
-    cout << setw(15) << left << fName << ": " << setprecision(4) << setw(8) 
-	 << fixed << right << fTimer.RealTime() 
-	 << " s, clusters " << nClustersF << " / " << nClustersB << ", hits: " 
-	 << nHits << endl;
+  for (Int_t iHit = 0; iHit < fBmnSiliconHits->GetEntriesFast(); ++iHit) {
+    BmnSiliconHit* bmnHit = (BmnSiliconHit*)fBmnSiliconHits->At(iHit);
+    TVector3 pos;
+    bmnHit->Position(pos);
+    TVector3 dpos;
+    bmnHit->PositionError(dpos);
+    Int_t sens = 1;
+    Int_t detId = 2 << 24 | (bmnHit->GetStation() + 1) << 16 | (bmnHit->GetModule() + 1) << 4 | sens << 1;
+    //new ((*fHits)[fHits->GetEntriesFast()]) CbmStsHit(sensorDetId, pos, dpos, wXY, iClusF, iClusB, (Int_t)chanF, (Int_t)chanB, statLayer);
+    new ((*fHits)[fHits->GetEntriesFast()]) CbmStsHit(detId, pos, dpos, 0.0, 0, 0);
   }
 
-  fNHits += nHits;
+  // // Sort STS digis with respect to sectors
+  // SortClusters();
+
+  // // Find hits in sectors
+  // Int_t nClustersF = 0;
+  // Int_t nClustersB = 0;
+  // Int_t nHits   = 0;
+  // Int_t nStations = fDigiScheme->GetNStations();
+  // CbmStsStation* station = NULL;
+  // for (Int_t iStation=0; iStation<nStations; iStation++) {
+  //   station = fDigiScheme->GetStation(iStation);
+
+  //   Int_t nClustersFInStation = 0;
+  //   Int_t nClustersBInStation = 0;
+  //   Int_t nHitsInStation   = 0;
+  //   Int_t nSectors = station->GetNSectors();
+  //   for (Int_t iSector=0; iSector<nSectors; iSector++) {
+  //     CbmStsSector* sector = station->GetSector(iSector);
+  //     set <Int_t> fSet, bSet;
+  //     if ( fClusterMapF.find(sector) == fClusterMapF.end() ) {
+	// cout << "-E- " << fName << "::Exec: sector " 
+	//      << sector->GetSectorNr() << " of station " 
+	//      << station->GetStationNr() << "not found in front map!" 
+	//      << endl;
+	// warn = kTRUE;
+	// continue;
+  //     }
+  //     fSet = fClusterMapF[sector];
+  //     if ( sector->GetType() == 2 || sector->GetType() == 3 ) {
+	// if ( fClusterMapB.find(sector) == fClusterMapB.end() ) {
+	//   cout << "-E- " << fName << "::Exec: sector " 
+	//        << sector->GetSectorNr() << " of station " 
+	//        << station->GetStationNr() << "not found in back map!" 
+	//        << endl;
+	//   warn = kTRUE;
+	//   continue;
+	// }
+  //     }
+  //     bSet = fClusterMapB[sector];
+  //     Int_t nClustersFInSector = fSet.size();
+  //     Int_t nClustersBInSector = bSet.size();
+  //     Int_t nHitsInSector   = FindHits(station, sector, fSet, bSet);
+  //     if ( fVerbose > 2 ) 
+	// cout << "Sector " << sector->GetSectorNr() 
+	//      << ", Clusters front " << nClustersFInSector 
+	//      << ", Clusters Back " << nClustersBInSector
+	//      << ", Hits " << nHitsInSector << endl;
+  //     nHitsInStation   += nHitsInSector;
+  //     nClustersFInStation += nClustersFInSector;
+  //     nClustersBInStation += nClustersBInSector;      
+  //   }      // Sector loop
+
+  //   if ( fVerbose > 1 ) cout << "Total for station " 
+	// 		     << station->GetStationNr() << ": Clusters front "
+	// 		     << nClustersFInStation << ", clusters back "
+	// 		     << nClustersBInStation << ", hits "
+	// 		     << nHitsInStation << endl;
+  //   nClustersB += nClustersBInStation;
+  //   nClustersF += nClustersFInStation;
+  //   nHits   += nHitsInStation;
+    
+  // }       // Station loop
+
+  // fTimer.Stop();  
+  // if ( fVerbose  ) {
+  //   cout << endl;
+  //   //AZ cout << "-I- " << fName << ":Event summary" << endl;
+  //   cout << "-I- " << fName << ":Event " << FairRunAna::Instance()->GetEventHeader()->GetMCEntryNumber() << " summary" << endl;
+  //   cout << "    Clusters front side       : " << nClustersF << endl;
+  //   cout << "    Clusters back side        : " << nClustersB << endl;
+  //   cout << "    Hits created              : " << nHits   << endl;
+  //   cout << "    Real time                 : " << fTimer.RealTime() 
+	//  << endl;
+  // }
+  // else {
+  //   if ( warn ) cout << "- ";
+  //   else        cout << "+ ";
+  //   cout << setw(15) << left << fName << ": " << setprecision(4) << setw(8) 
+	//  << fixed << right << fTimer.RealTime() 
+	//  << " s, clusters " << nClustersF << " / " << nClustersB << ", hits: " 
+	//  << nHits << endl;
+  // }
+
+  //fNHits += nHits;
 }
 // -------------------------------------------------------------------------
 
@@ -237,27 +293,69 @@ InitStatus CbmStsFindHits::Init() {
   FairRootManager* ioman = FairRootManager::Instance();
   if ( ! ioman ) Fatal("Init", "No FairRootManager");
   fClusters = (TClonesArray*) ioman->GetObject("StsCluster");
+  fBmnGemHits = (TClonesArray*) ioman->GetObject("BmnGemStripHit");
+  fBmnSiliconHits = (TClonesArray*) ioman->GetObject("BmnSiliconHit");
 
   // Register output array
   fHits = new TClonesArray("CbmStsHit", 1000);
   ioman->Register("StsHit", "Hit in STS", fHits, kTRUE);
 
   // Build digitisation scheme
-  Bool_t success = fDigiScheme->Init(fGeoPar, fDigiPar);
-  if ( ! success ) return kERROR;
+  // Bool_t success = fDigiScheme->Init(fGeoPar, fDigiPar);
+  // if ( ! success ) return kERROR;
 
-  // Create sectorwise cluster sets
-  MakeSets();
+  // // Create sectorwise cluster sets
+  // MakeSets();
 
-  // Control output
+  // // Control output
 
-  if      (fVerbose == 1 || fVerbose == 2) fDigiScheme->Print(kFALSE);
-  else if (fVerbose >  2) fDigiScheme->Print(kTRUE);
-  cout << "-I- " << fName << "::Init: "
-       << "STS digitisation scheme succesfully initialised" << endl;
-  cout << "    Stations: " << fDigiScheme->GetNStations() 
-       << ", Sectors: " << fDigiScheme->GetNSectors() << ", Channels: " 
-       << fDigiScheme->GetNChannels() << endl;
+  // if      (fVerbose == 1 || fVerbose == 2) fDigiScheme->Print(kFALSE);
+  // else if (fVerbose >  2) fDigiScheme->Print(kTRUE);
+  // cout << "-I- " << fName << "::Init: "
+  //      << "STS digitisation scheme succesfully initialised" << endl;
+  // cout << "    Stations: " << fDigiScheme->GetNStations() 
+  //      << ", Sectors: " << fDigiScheme->GetNSectors() << ", Channels: " 
+  //      << fDigiScheme->GetNChannels() << endl;
+  
+  
+    //SM  
+    TString gPathGemConfigGem = gSystem->Getenv("VMCWORKDIR");
+    gPathGemConfigGem += "/parameters/gem/XMLConfigs/";
+    cout << "fRunId = " << fRunId << endl;
+    //Create GEM detector ------------------------------------------------------
+    switch (fRunId) {      
+        case 7:
+            StationSetGem = new BmnGemStripStationSet(gPathGemConfigGem + "GemRunSpring2018.xml");
+            break;
+        case 8:
+            StationSetGem = new BmnGemStripStationSet(gPathGemConfigGem + "GemFutureConfig2020.xml");
+            break;
+
+        default:
+            StationSetGem = NULL;
+    }
+    TString gPathSiliconConfigSi = gSystem->Getenv("VMCWORKDIR");
+    gPathSiliconConfigSi += "/parameters/silicon/XMLConfigs/";
+
+    //Create SILICON detector --------------------------------------------------
+    switch (fRunId) {
+
+        case 7:
+            StationSetSi = new BmnSiliconStationSet(gPathSiliconConfigSi + "SiliconRunSpring2018.xml");
+            break;
+/*
+        case 8:
+            StationSetSi = new BmnSiliconStationSet(gPathSiliconConfigSi + "SiliconFutureConfig2020.xml");
+            break;
+*/
+        case 8:
+            //StationSetSi = new BmnSiliconStationSet(gPathSiliconConfigSi + "SiliconFutureConfig2020.xml");
+            StationSetSi = new BmnSiliconStationSet(gPathSiliconConfigSi + "SiliconFutureConfig2021.xml");
+            break;
+
+        default:
+            StationSetSi = NULL;
+    }
   
   return kSUCCESS;
 }

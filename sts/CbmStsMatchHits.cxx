@@ -73,7 +73,8 @@ CbmStsMatchHits::CbmStsMatchHits()
   fCandMap(),
   fIter()
 {
-fDigiScheme  = new CbmStsDigiScheme();
+  //AZ fDigiScheme  = new CbmStsDigiScheme();
+  fDigiScheme  = CbmStsDigiScheme::Instance();
 }
 // -------------------------------------------------------------------------
 
@@ -104,7 +105,8 @@ CbmStsMatchHits::CbmStsMatchHits(Int_t iVerbose)
   fCandMap(),
   fIter()
 {
-fDigiScheme  = new CbmStsDigiScheme();
+  //AZ fDigiScheme  = new CbmStsDigiScheme();
+  fDigiScheme  = CbmStsDigiScheme::Instance();
 }
 // -------------------------------------------------------------------------
 
@@ -135,7 +137,8 @@ CbmStsMatchHits::CbmStsMatchHits(const char* name, Int_t iVerbose)
   fCandMap(),
   fIter()
 {
-fDigiScheme  = new CbmStsDigiScheme();
+  //AZ fDigiScheme  = new CbmStsDigiScheme();
+  fDigiScheme  = CbmStsDigiScheme::Instance();
 }
 // -------------------------------------------------------------------------
 
@@ -146,7 +149,7 @@ CbmStsMatchHits::~CbmStsMatchHits() {
   if ( fPassGeo )    delete fPassGeo;
   if ( fGeoPar )     delete fGeoPar;
   if ( fDigiPar )    delete fDigiPar;
-  if ( fDigiScheme ) delete fDigiScheme;
+  //AZ if ( fDigiScheme ) delete fDigiScheme;
 }
 // -------------------------------------------------------------------------
 
@@ -455,9 +458,16 @@ void CbmStsMatchHits::ExecReal(Option_t* opt) {
     TString curPath = fDigiScheme->GetCurrentPath();
     sensor = fDigiScheme->GetSensorByName(curPath);
     if ( !sensor ) {
-      std::cerr << "-E- " << fName << "::ExecReal:: sensor " << curNode->GetName()
-		<< " not found in digi scheme!" << endl;
-      continue;
+      //AZ - 160920: Check one level above (for double-sensor modules)
+      gGeoManager->CdUp();
+      curPath = fDigiScheme->GetCurrentPath();
+      sensor = fDigiScheme->GetSensorByName(curPath);
+      //
+      if (!sensor) {
+	std::cerr << "-E- " << fName << "::ExecReal:: sensor " << curNode->GetName()
+		  << " not found in digi scheme!" << endl;
+	continue;
+      }
     }
     Int_t stationNr = sensor->GetStationNr() - 1;
     //}

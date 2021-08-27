@@ -5,6 +5,7 @@
 // -----                  Created 31/08/06  by V. Friese               -----
 // -------------------------------------------------------------------------
 
+
 /** CbmStsDigiScheme
  **@author Volker Friese <v.friese@gsi.de>
  **@since 31.08.06
@@ -21,7 +22,11 @@
 #include "TObjArray.h"
 #include "TObject.h"
 
+#include <iostream>
 #include <map>
+
+#include "BmnGemStripStationSet.h"
+#include "BmnSiliconStationSet.h"
 
 class CbmGeoStsPar;
 class CbmStsDigiPar;
@@ -37,15 +42,12 @@ class CbmStsDigiScheme : public TObject
 
  public:
 
-  /** Constructor **/
-  CbmStsDigiScheme();
-
-
   /** Destructor **/
   virtual ~CbmStsDigiScheme();
 
 
   /** Initialisation **/
+  Bool_t Init();
   Bool_t Init(CbmGeoStsPar* geoPar, CbmStsDigiPar* digiPar);
 
 
@@ -79,8 +81,12 @@ class CbmStsDigiScheme : public TObject
   /** Screen output  **/
   void Print(Bool_t kLong = kFALSE);
 
+  //AZ
+  static CbmStsDigiScheme* Instance();
+
  private:
 
+  static CbmStsDigiScheme* fgInstance; //AZ - Static instance of this class
   TObjArray* fStations;       /** Array of CbmStsStation **/
   Int_t fNSectors;            /** Total number of sectors **/
   Int_t fNSensors;            /** Total number of sensors **/
@@ -91,18 +97,25 @@ class CbmStsDigiScheme : public TObject
   std::map<TString, Int_t>          fDetIdByName;
   std::map<TString, CbmStsSensor*> fSensorByName;
 
-  CbmStsDigiScheme(const CbmStsDigiScheme&) = delete;
-  CbmStsDigiScheme operator=(const CbmStsDigiScheme&) = delete;
+  /** Constructor **/
+  CbmStsDigiScheme();
 
 
-  /** Old init method (up to v11b) **/
-  Bool_t InitOld(CbmGeoStsPar* geoPar, CbmStsDigiPar* digiPar);
+  CbmStsDigiScheme(const CbmStsDigiScheme&);
+  CbmStsDigiScheme operator=(const CbmStsDigiScheme&);
 
 
   /** New init method (from V12a on) **/
   Bool_t InitNew(CbmGeoStsPar* geoPar, CbmStsDigiPar* digiPar);
 
-  CbmStsSector* SetSensor(Int_t moduleNr, Int_t statNr, CbmStsStation* station,CbmStsStationDigiPar* stationPar); //GP
+  CbmStsSector* SetSensor(Int_t moduleNr, Int_t statNr, CbmStsStation* station,
+			  CbmStsStationDigiPar* stationPar); //GP
+  Int_t SetSensorsCbm(Int_t moduleNr, Int_t statNr, CbmStsStation* station,
+		      CbmStsStationDigiPar* stationPar); //AZ
+  
+
+  BmnGemStripStationSet *GemStationSet; //Entire GEM detector
+  BmnSiliconStationSet *SilStationSet;  //Entire SILICON detector
 
   ClassDef(CbmStsDigiScheme,2);
 };

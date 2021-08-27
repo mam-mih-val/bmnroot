@@ -88,7 +88,8 @@ CbmStsFindHitsQa::CbmStsFindHitsQa()
   fOnlineAnalysis(kFALSE),
   recoCanvas()
 {  
-  fDigiScheme = new CbmStsDigiScheme();
+  //AZ fDigiScheme = new CbmStsDigiScheme();
+  fDigiScheme = CbmStsDigiScheme::Instance();
 }
 // -------------------------------------------------------------------------
 
@@ -129,7 +130,8 @@ CbmStsFindHitsQa::CbmStsFindHitsQa(Bool_t visualizeBool, Int_t iVerbose)
   fNofRecoPointsMomSum(),
   recoCanvas()
 {  
-  fDigiScheme = new CbmStsDigiScheme();
+  //AZ fDigiScheme = new CbmStsDigiScheme();
+  fDigiScheme = CbmStsDigiScheme::Instance();
 }
 // -------------------------------------------------------------------------
 
@@ -167,7 +169,8 @@ CbmStsFindHitsQa::CbmStsFindHitsQa(Int_t iVerbose)
   fNofRecoPointsMomSum(),
   recoCanvas()
 {  
-  fDigiScheme = new CbmStsDigiScheme();
+  //AZ fDigiScheme = new CbmStsDigiScheme();
+  fDigiScheme = CbmStsDigiScheme::Instance();
 }
 // -------------------------------------------------------------------------
 
@@ -208,7 +211,8 @@ CbmStsFindHitsQa::CbmStsFindHitsQa(const char* name, Int_t iVerbose)
   fOnlineAnalysis(kFALSE),
   recoCanvas()
 {
-  fDigiScheme = new CbmStsDigiScheme();
+  //AZ fDigiScheme = new CbmStsDigiScheme();
+  fDigiScheme = CbmStsDigiScheme::Instance();
 }
 // -------------------------------------------------------------------------
 

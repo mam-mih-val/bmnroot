@@ -134,8 +134,8 @@ class CbmKFTrackFitQA :public FairTask
 
   ClassDef(CbmKFTrackFitQA,1);
  private:
-  CbmKFTrackFitQA(const CbmKFTrackFitQA&) = delete;
-  void operator=(const CbmKFTrackFitQA&) = delete;
+  CbmKFTrackFitQA(const CbmKFTrackFitQA&);
+  void operator=(const CbmKFTrackFitQA&);
 };
 
 #endif // _CbmKFTrackFitQA_h_

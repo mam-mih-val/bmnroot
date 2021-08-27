@@ -29,6 +29,11 @@
 #include <map>
 #include <set>
 
+//SM
+#include "../gem/BmnGemStripConfiguration.h"
+#include "../gem/BmnGemStripStationSet.h"
+#include "../silicon/BmnSiliconConfiguration.h"
+#include "../silicon/BmnSiliconStationSet.h"
 
 class TClonesArray;
 class CbmGeoStsPar;
@@ -77,6 +82,8 @@ class CbmStsFindHits : public FairTask
   CbmStsDigiScheme* fDigiScheme;  /** Digitisation scheme **/ // FIX GP
   TClonesArray*     fClusters;    /** Input array of CbmStsCluster **/
   TClonesArray*     fDigis;    /**AZ - Input array of CbmStsDigis **/
+  TClonesArray*     fBmnGemHits;      /**SM - Input array of BMN GEM hits**/
+  TClonesArray*     fBmnSiliconHits;  /**SM - Input array of BMN Silicon hits**/
   TClonesArray*     fHits;        /** Output array of CbmStsHit **/
   std::map<CbmStsSector*, std::set<Int_t> > fClusterMapF;  /** sector clusters (front) **/
   std::map<CbmStsSector*, std::set<Int_t> > fClusterMapB;  /** sector clusters (back)  **/
@@ -116,7 +123,11 @@ class CbmStsFindHits : public FairTask
 
   CbmStsFindHits(const CbmStsFindHits&) = delete;
   CbmStsFindHits operator=(const CbmStsFindHits&) = delete;
-
+  
+  //SM 
+  UInt_t fRunId;
+  BmnGemStripStationSet* StationSetGem;
+  BmnSiliconStationSet *StationSetSi;
 
   ClassDef(CbmStsFindHits,1);
 };

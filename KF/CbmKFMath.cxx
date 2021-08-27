@@ -142,63 +142,53 @@ void CbmKFMath::four_dim_inv( Double_t a[4][4] )
 
 void CbmKFMath::five_dim_inv(Double_t a[5][5])
 {
-    /**** Gaussian algorithm for 5x5 matrix inversion ****/
-    Int_t i,j,k,l;
-    Double_t factor, temp[5], b[5][5];
+  /**** Gaussian algorithm for 5x5 matrix inversion ****/
+  Int_t i,j,k,l;
+  Double_t factor;
+  Double_t temp[5];
+  Double_t b[5][5];
   
-    // Set b to I
-    for (i = 0; i < 5; i++)
-        for (j = 0; j < 5; j++)
-            if (i == j) b[i][j] = 1.0;
-            else b[i][j] = 0.0;
+  // Set b to I
+  for(i=0;i<5;i++) for(j=0;j<5;j++)
+    if(i==j) b[i][j]=1.0; else b[i][j]=0.0;
   
-    for (i = 0; i < 5; i++)
-    {
-        for (j = i+1; j < 5; j++)
-            if (fabs(a[i][i])<fabs(a[j][i]))
-            {
-                for (l = 0; l < 5; l++) temp[l] = a[i][l];
-                for (l = 0; l < 5; l++) a[i][l] = a[j][l];
-                for (l = 0; l < 5; l++) a[j][l] = temp[l];
-                for (l = 0; l < 5; l++) temp[l] = b[i][l];
-                for (l = 0; l < 5; l++) b[i][l] = b[j][l];
-                for (l = 0; l < 5; l++) b[j][l] = temp[l];
-            }
-        factor = a[i][i];
-        // cout<<"Highest element "<<a[i][i]<<endl;
-        for (j = 5-1; j > -1; j--)
-        {
-            b[i][j] /= factor;
-            a[i][j] /= factor;
-        }
-        for(j = i+1; j < 5; j++)
-        {
-            factor = -a[j][i];
-            for (k = 0; k < 5; k++)
-            {
-                a[j][k] += a[i][k]*factor;
-                b[j][k] += b[i][k]*factor;
-            }
-        }
-     }
-     for (i = 4; i > 0; i--)
-     {
-        for (j = i-1; j > -1; j--)
-        {
-            factor = -a[j][i];
-            for (k = 0; k < 5; k++)
-            {
-                a[j][k] += a[i][k]*factor;
-                b[j][k] += b[i][k]*factor;
-            }
-        }
+    for(i=0;i<5;i++){
+      for(j=i+1;j<5;j++)
+	if (fabs(a[i][i])<fabs(a[j][i])){
+	  for(l=0;l<5;l++) temp[l]=a[i][l];
+	  for(l=0;l<5;l++) a[i][l]=a[j][l];
+	  for(l=0;l<5;l++) a[j][l]=temp[l];
+	  for(l=0;l<5;l++) temp[l]=b[i][l];
+	  for(l=0;l<5;l++) b[i][l]=b[j][l];
+	  for(l=0;l<5;l++) b[j][l]=temp[l];
+	}
+      factor=a[i][i];
+      // cout<<"Highest element "<<a[i][i]<<endl;
+      for(j=5-1;j>-1;j--){
+	  b[i][j]/=factor; 
+	  a[i][j]/=factor;
+      }
+      for(j=i+1;j<5;j++) {
+	factor=-a[j][i];
+	for(k=0;k<5;k++){
+	  a[j][k]+=a[i][k]*factor;
+	  b[j][k]+=b[i][k]*factor;
+	}
+      }
+    } 
+    for(i=4;i>0;i--){
+      for(j=i-1;j>-1;j--){
+	factor=-a[j][i];
+	for(k=0;k<5;k++){
+	  a[j][k]+=a[i][k]*factor;
+	  b[j][k]+=b[i][k]*factor;
+	}
+      }
     }
-
+    
     // copy b to a and return
-    for (i = 0; i < 5; i++)
-        for (j = 0; j < 5; j++)
-            a[i][j] = b[i][j];
-}
+    for(i=0;i<5;i++) for(j=0;j<5;j++) a[i][j]=b[i][j];
+  }      
 
 Bool_t CbmKFMath::invS( Double_t A[], Int_t N )
 {

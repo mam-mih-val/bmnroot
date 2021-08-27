@@ -60,7 +60,7 @@
 #include "TProfile.h"
 #include "TProfile2D.h"
 
-#include "BmnNewFieldMap.h" //GP
+#include "../bmnfield/BmnNewFieldMap.h" //GP
 
 #include <iostream>
 #include <fstream>
@@ -88,8 +88,8 @@ class CbmL1HitStore{
 class CbmL1 : public FairTask 
 {
   private:
-    CbmL1(const CbmL1&) = delete;
-    CbmL1 operator=(const CbmL1&) = delete;
+    CbmL1(const CbmL1&);
+    CbmL1 operator=(const CbmL1&);
   public:
 
    L1Algo *algo; // for access to L1 Algorithm from L1::Instance
@@ -181,7 +181,8 @@ class CbmL1 : public FairTask
    Bool_t fUseMVD;  // really doesn't used
 //   Double_t fDetectorEfficiency;  // really doesn't used
 
-   CbmStsDigiScheme StsDigi;
+   //AZ CbmStsDigiScheme StsDigi;
+   CbmStsDigiScheme *StsDigi;
    CbmL1Vtx PrimVtx;
 //    L1FieldSlice *targetFieldSlice  _fvecalignment;
 

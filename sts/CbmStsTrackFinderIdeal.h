@@ -64,10 +64,11 @@ class CbmStsTrackFinderIdeal : public CbmStsTrackFinder
   TClonesArray* fMCTrackArray;
   TClonesArray* fMCPointArray;
 
-  CbmStsTrackFinderIdeal(const CbmStsTrackFinderIdeal&) = delete;
-  CbmStsTrackFinderIdeal operator=(const CbmStsTrackFinderIdeal&) = delete;
+  CbmStsTrackFinderIdeal(const CbmStsTrackFinderIdeal&);
+  CbmStsTrackFinderIdeal operator=(const CbmStsTrackFinderIdeal&);
 
   ClassDef(CbmStsTrackFinderIdeal,1);
+
 };
 
 

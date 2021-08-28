@@ -42,11 +42,10 @@ InitStatus BmnZdcDigitizer::Init() {
 
 void BmnZdcDigitizer::Exec(Option_t* opt) {
     if (!IsActive())
-      return
+      return;
 
-    // Initialize
+    // Reset arrays
     fArrayOfZdcDigits->Delete();
-
     for (Int_t i = 0; i < 106; i++) {
         fModules[i].SetAmp(0.);
     }

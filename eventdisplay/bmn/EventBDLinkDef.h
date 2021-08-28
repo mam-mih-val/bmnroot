@@ -26,6 +26,7 @@
 #pragma link C++ class BmnTrackDrawH;
 #pragma link C++ class BmnTrackDrawP;
 #pragma link C++ class BmnGlobalTrackDraw;
+#pragma link C++ class BmnZDCTowerDraw
 
 // TDAQ
 #pragma link C++ class BmnEventPull+;

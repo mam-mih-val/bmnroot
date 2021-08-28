@@ -8,15 +8,15 @@
 # - Try to find GEANT4VMC
 # Once done this will define
 #
-#  GEANT4VMC_FOUND - system has GEANT3
-#  GEANT4VMC_INCLUDE_DIR - the GEANT3 include directory
-#  GEANT4VMC_LIBRARIES - The libraries needed to use GEANT3
-#  GEANT4VMC_DEFINITIONS - Compiler switches required for using GEANT3
+#  GEANT4VMC_FOUND - system has GEANT4
+#  GEANT4VMC_INCLUDE_DIR - the GEANT4 include directory
+#  GEANT4VMC_LIBRARY_DIR - the GEANT4 library directory
+#  GEANT4VMC_DEFINITIONS - Compiler switches required for using GEANT4
 #
 
 if (GEANT4VMC_INCLUDE_DIR AND GEANT4VMC_LIBRARY_DIR)
   SET (GEANT4VMC_INCLUDE_DIR GEANT4VMC_INCLUDE_DIR-NOTFOUND)
-  SET (GEANT4VMC_LIB_DIR GEANT4VMC_LIB_DIR-NOTFOUND)
+  SET (GEANT4VMC_LIBRARY_DIR GEANT4VMC_LIBRARY_DIR-NOTFOUND)
   SET (GEANT4VMC_PLISTS_LIB_DIR GEANT4VMC_PLISTS_LIB_DIR-NOTFOUND)
 endif (GEANT4VMC_INCLUDE_DIR AND GEANT4VMC_LIBRARY_DIR)
 
@@ -29,27 +29,6 @@ FIND_PATH(GEANT4VMC_INCLUDE_DIR NAMES TG4G3Units.h PATHS
   ${GEANT4_VMC_ROOT}/include/geant4vmc
    NO_DEFAULT_PATH
 )
-
-#set(GEANT4VMC_INCLUDE_DIR
-#${SIMPATH}/transport/geant4_vmc/source/global/include 
-#${SIMPATH}/transport/geant4_vmc/source/geometry/include 
-#${SIMPATH}/transport/geant4_vmc/source/digits+hits/include 
-#${SIMPATH}/transport/geant4_vmc/source/physics/include 
-#${SIMPATH}/transport/geant4_vmc/source/event/include 
-#${SIMPATH}/transport/geant4_vmc/source/run/include 
-#${SIMPATH}/transport/geant4_vmc/source/interfaces/include 
-#${SIMPATH}/transport/geant4_vmc/source/visualization/include 
-#${SIMPATH}/transport/geant4_vmc/include 
-#${SIMPATH}/transport/geant4_vmc/include/geant4vmc 
-#${SIMPATH}/transport/geant4_vmc/include/g4root 
-#${SIMPATH}/transport/vgm/packages/BaseVGM/include 
-#${SIMPATH}/transport/vgm/packages/ClhepVGM/include 
-#${SIMPATH}/transport/vgm/packages/Geant4GM/include 
-#${SIMPATH}/transport/vgm/packages/RootGM/include 
-#${SIMPATH}/transport/vgm/packages/VGM/include 
-#${SIMPATH}/transport/vgm/packages/XmlVGM/include
-#)
-
 
 FIND_PATH(GEANT4VMC_MACRO_DIR NAMES g4libs.C PATHS
   ${SIMPATH}/transport/macro

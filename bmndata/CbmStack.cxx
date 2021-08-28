@@ -305,8 +305,8 @@ void CbmStack::Reset()
     while (!fStack.empty()) {
         fStack.pop();
     }
-    fParticles->Clear();
-    fTracks->Clear();
+    fParticles->Delete();
+    fTracks->Delete();
     fPointsMap.clear();
 }
 

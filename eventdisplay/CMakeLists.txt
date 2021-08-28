@@ -51,6 +51,7 @@ if (BMNROOT)
     bmn/BmnTrackDrawH.cxx
     bmn/BmnTrackDrawP.cxx
     bmn/BmnGlobalTrackDraw.cxx
+    bmn/BmnZDCTowerDraw.cxx
     bmn/FairMCModuleDraw.cxx
   )
 endif (BMNROOT)

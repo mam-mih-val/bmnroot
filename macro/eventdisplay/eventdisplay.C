@@ -211,8 +211,8 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         fMan->AddTask(TofPoint);
         MpdMCPointDraw* EcalPoint = new MpdMCPointDraw("EcalPoint", mcPointColor, pointMarker);
         fMan->AddTask(EcalPoint);
-        MpdMCPointDraw* ZdcPoint = new MpdMCPointDraw("ZdcPoint", mcPointColor, pointMarker);
-        fMan->AddTask(ZdcPoint);
+        //MpdMCPointDraw* ZDCPoint = new MpdMCPointDraw("ZdcPoint", mcPointColor, pointMarker);
+        //fMan->AddTask(ZDCPoint);
         MpdMCPointDraw* SSDPoint = new MpdMCPointDraw("SsdPoint", mcPointColor, pointMarker);
         fMan->AddTask(SSDPoint);
 
@@ -222,6 +222,9 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         // OR draw MC tracks by Geane - not implemented yet
         //MpdMCStack* MC      Track = new MpdMCStack("MCTrack");
         //fMan->AddTask(MCTrack);
+
+        BmnZDCTowerDraw* BmnZDCTower = new BmnZDCTowerDraw("ZdcDigit", 0, kFALSE, 5);
+        fMan->AddTask(BmnZDCTower);
 
         // draw Reconstructed Detector Hits
         MpdHitPointSetDraw* BmnMwpcHit = new MpdHitPointSetDraw("BmnMwpcHit", expPointColor, pointMarker);

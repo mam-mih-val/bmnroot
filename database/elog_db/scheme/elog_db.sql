@@ -36,7 +36,7 @@ create table trigger_
 create table record_
 (
  record_id serial primary key,
- record_date timestamp(0) not null default now(),
+ record_date timestamp(0) not null default now()::timestamp,
  shift_leader_id int null references person_(person_id),
  type_id int not null references type_(type_id),
  period_number int null,

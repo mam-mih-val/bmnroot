@@ -27,21 +27,17 @@ public:
     virtual void Exec(Option_t* opt);
     virtual void Finish();
 
-    void SetWeights();
-
-    
-
+    void SetVector();   
 
 private:
     // Private Methods -------------
 
     Int_t EnumToPdg(PidParticles part);
     
-    void NormalizeWeights(vector<Double_t>& vec);
-    Double_t GetSum(const vector<Double_t>& vec);
+    void NormalizeVector(vector<Double_t>& vec);
+    Double_t GetSum(const vector<Double_t>& vec);   
     
-    
-    Double_t EvalSimpleWeight(Double_t p, Double_t beta, Double_t mass, Int_t power);
+    Double_t EstimateProbability(Double_t p, Double_t beta, Double_t mass, Int_t power);
     
     // Private Data Members ------------
     TString fGlobalTracksBranchName; 
@@ -55,8 +51,7 @@ private:
                             
     Int_t fEventNo; // event counter
     
-    TClonesArray* fGlobalTracksArray;
-   
+    TClonesArray* fGlobalTracksArray;   
 
     ClassDef(BmnPid, 1);
 };

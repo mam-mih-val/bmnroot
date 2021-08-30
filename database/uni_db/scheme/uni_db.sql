@@ -96,6 +96,7 @@ create table detector_parameter
  end_run int not null,
  value_key int not null,
  parameter_value bytea not null,
+ expiry_date timestamp null,
  foreign key (start_period, start_run) references run_(period_number, run_number),
  foreign key (end_period, end_run) references run_(period_number, run_number)
 );
@@ -140,24 +141,26 @@ CREATE TRIGGER fixed_geometry_id
 BEFORE INSERT ON run_ FOR EACH ROW EXECUTE PROCEDURE set_geometry_id();
 
 
--- trigger to check correctness of the valid period for detector parameter and delete row if exist
+-- trigger to check correctness of the valid period for a new detector parameter and set row as expired if exist
 CREATE OR REPLACE FUNCTION check_valid_period() RETURNS TRIGGER AS $$
 DECLARE
   objID integer; valueID integer;
 BEGIN
-    IF EXISTS(SELECT 1 FROM detector_parameter dp WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and NEW.value_key = dp.value_key and (not (
+    IF EXISTS(SELECT 1 FROM detector_parameter dp WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and 
+      NEW.value_key = dp.value_key and dp.expiry_date is null and (not (
     ((NEW.end_period < dp.start_period) or ((NEW.end_period = dp.start_period) and (NEW.end_run < dp.start_run))) or
     ((NEW.start_period > dp.end_period) or ((NEW.start_period = dp.end_period) and (NEW.start_run > dp.end_run))))))
     THEN
       SELECT value_id INTO valueID
       FROM detector_parameter dp
-      WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and
-        (NEW.start_period = dp.start_period) and (NEW.end_period = dp.end_period) and (NEW.start_run = dp.start_run) and (NEW.end_run = dp.end_run);
+      WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and dp.expiry_date is NULL and
+            NEW.start_period = dp.start_period and NEW.end_period = dp.end_period and NEW.start_run = dp.start_run and NEW.end_run = dp.end_run and
+            NEW.value_key = dp.value_key;
 
       IF NOT FOUND THEN
         RAISE EXCEPTION 'The period of new detector parameter overlaps with existing value (id: %)', valueID;
       ELSE
-        EXECUTE 'DELETE FROM detector_parameter WHERE value_id = $1' USING valueID;
+        EXECUTE 'UPDATE detector_parameter SET expiry_date = now()::timestamp WHERE value_id = $1' USING valueID;
       END IF;
     END IF;
 

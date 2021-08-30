@@ -54,8 +54,8 @@ class BmnGlobalTrack : public BmnTrack{
     Double_t GetAoverZ() { return (Double_t)fA / fZ; }
     Int_t GetPDG() { return fPDG; }
 
-    vector<Double_t> GetPidWeightsTof400() {return fPidTof400;}
-    vector<Double_t> GetPidWeightsTof700() {return fPidTof700;}
+    vector<Double_t> GetPidVectorTof400() {return fPidTof400;}
+    vector<Double_t> GetPidVectorTof700() {return fPidTof700;}
 
     PidParticles GetParticleTof400();
     PidParticles GetParticleTof700();
@@ -86,8 +86,8 @@ class BmnGlobalTrack : public BmnTrack{
 
     void SetPrimaryMark(Bool_t p) { fIsPrimary = p; }
 
-    void SetPidWeightsTof400(vector<Double_t> weights) {fPidTof400 = weights;}
-    void SetPidWeightsTof700(vector<Double_t> weights) {fPidTof700 = weights;}
+    void SetPidVectorTof400(vector<Double_t> v) {fPidTof400 = v;}
+    void SetPidVectorTof700(vector<Double_t> v) {fPidTof700 = v;}
 
     /** Output to screen **/
     //void Print() const;
@@ -117,14 +117,14 @@ class BmnGlobalTrack : public BmnTrack{
     Int_t fZ;
     Int_t fPDG;
    
-    // fPidTof400 - weight for particle species TOF400
-    // fPidTof700 - weight for particle species TOF700
+    // fPidTof400 - probability for particle species TOF400
+    // fPidTof700 - probability for particle species TOF700
     vector<Double_t> fPidTof400;
     vector<Double_t> fPidTof700;
 
     Bool_t fIsPrimary;  // decision after vertex finder task
 
-    ClassDef(BmnGlobalTrack, 2);
+    ClassDef(BmnGlobalTrack, 3);
 };
 
 #endif

@@ -12,7 +12,6 @@ BmnPid::BmnPid(Int_t power) {
     fGlobalTracksArray = NULL;
     fGlobalTracksBranchName = "BmnGlobalTrack";
     fModelPower = power;
-
     
     db = TDatabasePDG::Instance();  
 
@@ -21,8 +20,7 @@ BmnPid::BmnPid(Int_t power) {
     db->AddParticle("D","D",1.876123928, true, 0, 3, "Core", 1000010020, 1000010020, 1000010020);
     db->AddParticle("T","T",2.809432115, true, 0, 3, "Core", 1000010030, 1000010030, 1000010030);
     db->AddParticle("He3","He3",2.809413523, true, 0, 6, "Core", 1000020030, 1000020030, 1000020030);
-    db->AddParticle("He4","He4",3.728401326, true, 0, 6, "Core", 1000020040, 1000020040, 1000020040);
-       
+    db->AddParticle("He4","He4",3.728401326, true, 0, 6, "Core", 1000020040, 1000020040, 1000020040);       
 }
 
 BmnPid::~BmnPid() {
@@ -55,19 +53,18 @@ void BmnPid::Exec(Option_t* opt) {
     if (fVerbose > 1) cout << "======================== PID exec started  ======================" << endl;
     if (fVerbose > 1) cout << "Event number: " << fEventNo++ << endl;
 
-    SetWeights();
+    SetVector();
     if (fVerbose > 1) cout << "\n======================== PID exec finished ======================" << endl;
 }
 
-void BmnPid::SetWeights(){
+void BmnPid::SetVector(){
     Int_t size = fGlobalTracksArray->GetEntriesFast();
     Double_t rigidity, beta400, beta700, mass, charge, p;
 
-
     for (Int_t iTrack = 0; iTrack < size; ++iTrack){
         BmnGlobalTrack* track = (BmnGlobalTrack*) fGlobalTracksArray->UncheckedAt(iTrack); // get iTrack'th track
-        vector<Double_t> weightsTof400;
-        vector<Double_t> weightsTof700;        
+        vector<Double_t> vectorTof400;
+        vector<Double_t> vectorTof700;        
 
         for(PidParticles iSort=(PidParticles)0; iSort!=EndPidEnum; iSort=(PidParticles)(iSort+1)){
             Int_t pdg = EnumToPdg(iSort);
@@ -78,21 +75,20 @@ void BmnPid::SetWeights(){
             mass = iParticle->Mass();
             charge = iParticle->Charge()/3;
             p = rigidity*charge;
-            if (beta400 > -999) weightsTof400.push_back(EvalSimpleWeight(p, beta400, mass, fModelPower));
-            if (beta700 > -999) weightsTof700.push_back(EvalSimpleWeight(p, beta700, mass, fModelPower));   
+            if (beta400 > -999) vectorTof400.push_back(EstimateProbability(p, beta400, mass, fModelPower));
+            if (beta700 > -999) vectorTof700.push_back(EstimateProbability(p, beta700, mass, fModelPower));   
         }
-        NormalizeWeights(weightsTof400);
-        NormalizeWeights(weightsTof700);
+        NormalizeVector(vectorTof400);
+        NormalizeVector(vectorTof700);
 
-        track->SetPidWeightsTof400(weightsTof400);
-        track->SetPidWeightsTof700(weightsTof700);
+        track->SetPidVectorTof400(vectorTof400);
+        track->SetPidVectorTof700(vectorTof700);
     }
 }
 
-Double_t BmnPid::EvalSimpleWeight(Double_t p, Double_t beta, Double_t mass, Int_t power){
+Double_t BmnPid::EstimateProbability(Double_t p, Double_t beta, Double_t mass, Int_t power){
     return 1/pow(abs(beta - abs((p/sqrt(p*p + mass*mass)))), power);
 }
-
 
 Int_t BmnPid::EnumToPdg(PidParticles part){
     switch(part)
@@ -119,7 +115,7 @@ Int_t BmnPid::EnumToPdg(PidParticles part){
     }
 }
 
-void BmnPid::NormalizeWeights(vector<Double_t>& vec){
+void BmnPid::NormalizeVector(vector<Double_t>& vec){
     Double_t sum = GetSum(vec);
     for(auto iter = vec.begin(); iter != vec.end(); iter++)  *iter=*iter/sum;
 }

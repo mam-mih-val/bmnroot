@@ -125,6 +125,19 @@ struct UniValue
         destination += count*8;
     }
 
+    template <size_t rows, size_t cols>
+    void Read(unsigned char*& source, double (&value)[rows][cols])
+    {
+        memcpy(value, source, rows*cols*8);
+        source += rows*cols*8;
+    }
+    template <size_t rows, size_t cols>
+    void Write(unsigned char*& destination, double (&value)[rows][cols])
+    {
+        memcpy(destination, value, rows*cols*8);
+        destination += rows*cols*8;
+    }
+
     void Read(unsigned char*& source, double*** value, uint8_t& size1, uint8_t& size2, uint8_t& size3)
     {
         memcpy(&size1, source, 1);

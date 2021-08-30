@@ -20,12 +20,13 @@ struct UniqueRunNumber
 // enumeration 'enumValueType' is corresponding to 'parameter_type' member of the UniDbParameter class, types:
 // 0 - boolean, 1 - integer, 2 - unsigned integer, 3 - double, 4 - string, 5 - binary, 6 - int+int,
 // 7 - DCH mapping, 8 - GEM mapping, 9 - GEM pedestal mapping, 10 - trigger mapping, 11 - Lorentz shift,
-// 12 - mapping with bool value (serial+channel+bool), 13 - mapping with int, 14 - mapping with double vector
+// 12 - mapping with bool value (serial+channel+bool), 13 - mapping with int, 14 - mapping with double vector, 15 - alignment type, 16 - TDC INL values
 enum enumValueType : unsigned int
 {
     BoolType = 0, IntType, UIntType, DoubleType, StringType, BinaryType, IIType,        // base types
     DchMapType, GemMapType, GemPedestalType, TriggerMapType, LorentzShiftType,          // detector-dependent types
-    MapBoolType, MapIntType, MapDVectorType, AlignmentType, UndefinedType = 999         // detector-dependent types
+    MapBoolType, MapIntType, MapDVectorType, AlignmentType, TdcInlType,                 // detector-dependent types
+    UndefinedType = 999
 };
 
 
@@ -214,6 +215,17 @@ struct AlignmentValue : public UniValue
     size_t GetStorageSize() { return 26; }
     void ReadValue(unsigned char* source)       { Read(source, station); Read(source, module); Read(source, value, 3); }
     void WriteValue(unsigned char* destination) { Write(destination, station); Write(destination, module); Write(destination, value, 3); }
+};
+
+struct TdcInlValue : public UniValue
+{
+    uint32_t serial;
+    double inl[72][1024];
+
+    enumValueType GetType() { return TdcInlType; }
+    size_t GetStorageSize() { return 589828; }
+    void ReadValue(unsigned char* source)       { Read(source, serial);       Read(source, inl); }
+    void WriteValue(unsigned char* destination) { Write(destination, serial); Write(destination, inl); }
 };
 
 /*struct AlignmentValue : public UniValue

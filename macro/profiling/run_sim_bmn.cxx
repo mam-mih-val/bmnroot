@@ -60,10 +60,15 @@
 #include "BmnInnTrackerAlign.h"
 #include "CbmStack.h"
 
-// GEANT3 includes
-#include "TGeant3.h"
-#include "TGeant3TGeo.h"
-#include "../../gconfig/g3Config.C"
+// GEANT3 and 4 includes
+#include "TGeant4.h"
+#include "TG4RunConfiguration.h"
+#include "TPythia6Decayer.h"
+//#include "TGeant3.h"
+//#include "TGeant3TGeo.h"
+
+#include "../../gconfig/g4Config.C"
+//#include "../../gconfig/g3Config.C"
 #include "../../gconfig/SetCuts.C"
 
 // C++ includes
@@ -72,8 +77,9 @@ using namespace std;
 #endif
 
 void geant3_setup() { Config(); SetCuts(); }
+void geant4_setup() { Config(); }
 
-#define GEANT3  // Choose: GEANT3 GEANT4
+#define GEANT4  // Choose: GEANT3 GEANT4
 // enumeration of generator names corresponding input files
 enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM};
 // inFile - input file with generator data, if needed
@@ -91,13 +97,14 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
 
     // -----   Create simulation run   ----------------------------------------
     FairRunSim* fRun = new FairRunSim();
-    fRun->SetSimSetup(geant3_setup);
 
     // Choose the Geant Navigation System
-#ifdef GEANT3
-    fRun->SetName("TGeant3");
-#else
+#ifdef GEANT4
+    fRun->SetSimSetup(geant4_setup);
     fRun->SetName("TGeant4");
+#else
+    fRun->SetSimSetup(geant3_setup);
+    fRun->SetName("TGeant3");
 #endif
 
     fRun->SetMaterials("media.geo");
@@ -359,7 +366,7 @@ if ((generatorName == QGSM) || (generatorName == DCMQGSM)){
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
-    cout << "Macro finished successfully." << endl; // marker of successfully execution for software testing systems
+    cout << "Macro finished successfully" << endl; // marker of successfully execution for software testing systems
 }
 
 int main(int argc, char** arg)

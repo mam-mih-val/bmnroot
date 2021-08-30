@@ -63,12 +63,14 @@ CFLAGS += -I$(SIMPATH)/include
 CFLAGS += -I$(ROOT_INCLUDE_PATH)
 CFLAGS += -I$(ROOT_INCLUDE_DIR)
 CFLAGS += -I$(GEANT3_INCLUDE_DIR)
+CFLAGS += -I$(subst :, -I,$(GEANT4_INCLUDE_DIR))
+CFLAGS += -I$(GEANT4VMC_INCLUDE_DIR)
 CFLAGS += --std=c++11 -g -O0
 
 LDFLAGS := $(shell $(ROOTCONFIG) --ldflags)
 LDFLAGS += -lEG $(shell $(ROOTCONFIG) --glibs)
 LDFLAGS += -L$(VMCWORKDIR)/build/lib
-LDFLAGS += -L$(GEANT3_LIBRARY_DIR)
+LDFLAGS += -L$(GEANT3_LIBRARY_DIR) -L$(GEANT4_LIB_DIR) -L$(GEANT4VMC_LIBRARY_DIR)
 LDFLAGS += -L$(ROOT_LIBRARY_DIR) -L$(FAIRROOTPATH)/lib #-L/usr/lib64
 LDFLAGS += -lGlobalTracking -lBmnAlignment -lEventDisplay -lDecoder -lBmnSteering -lBmnDst -lCSC -lLAND -lSilicon -lMwpc
 LDFLAGS += -lSts -lBd -lEcal -lZdc -lTOF -lGem -lTOF1 -lDch -lBmnPidSRC
@@ -76,7 +78,7 @@ LDFLAGS += -lCat -lKF -lBmnData -lBmnField -lMpdGen -lPassive -lGen -lUniDb
 LDFLAGS += -lBase -lGeoBase -lParBase -lTrkBase -lGeane -lEve -lFairTools
 LDFLAGS += -lXMLParser -lXMLIO -lSpectrum -lGenVector -lMinuit -lGeom
 LDFLAGS += -lGeomPainter -lVMC -lpthread -lTracking -lBC -lArmTrig -lFD
-LDFLAGS += -lHodo -lBmnQa -lScWall -lgeant321 -lPythia6
+LDFLAGS += -lHodo -lBmnQa -lScWall -lgeant321 -lgeant4vmc -lG4clhep -lPythia6 -lEGPythia6
 
 all:	$(OBJECTS)
 

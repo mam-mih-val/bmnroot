@@ -283,9 +283,11 @@ void BmnCSCHitMaker::ProcessDigits() {
                 hit->SetStripTotalSignalInLowerLayer(sigL);
                 hit->SetStripTotalSignalInUpperLayer(sigU);
 
-                cout << "  glob(x:y:z) = ( " << x << " : " << y << " : " << z << "\n";
-                cout << "  hit(x:y:z) = ( " << hit->GetX() << " : " << hit->GetY() << " : " << hit->GetZ() << "\n";
-                cout << "\n";
+                if (fVerbose) {
+                    cout << "  glob(x:y:z) = ( " << x << " : " << y << " : " << z << "\n";
+                    cout << "  hit(x:y:z) = ( " << hit->GetX() << " : " << hit->GetY() << " : " << hit->GetZ() << "\n";
+                    cout << "\n";
+                }
                 //--------------------------------------------------------------
 
                 //hit matching -------------------------------------------------

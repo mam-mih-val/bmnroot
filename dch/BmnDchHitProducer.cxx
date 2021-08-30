@@ -71,6 +71,8 @@ void BmnDchHitProducer::Exec(Option_t* opt) {
     Error("BmnDchHitProducer::Exec()", " !!! Unknown branch name !!! ");
     return;
   }
+  
+  if (fVerbose) cout << "======================== DCH hit finder exec started ====================" << endl;
     
   for (Int_t iPoint = 0; iPoint < fBmnPointsArray->GetEntriesFast(); iPoint++) {
 
@@ -263,6 +265,8 @@ void BmnDchHitProducer::Exec(Option_t* opt) {
       hit->SetHitId(track_id);
     }
   }
+  
+  if (fVerbose) cout << "======================== DCH hit finder exec finished ===================" << endl;
 }
 
 void BmnDchHitProducer::Finish() {

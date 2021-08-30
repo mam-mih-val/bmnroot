@@ -39,6 +39,9 @@
 #include "TH2F.h"
 #include "TMath.h"
 #include <TStopwatch.h>
+#include "CbmKFTrack.h"
+#include "CbmStsTrack.h"
+
 
 class TClonesArray;
 
@@ -120,6 +123,9 @@ class BmnGlobalTracking : public FairTask {
     TClonesArray *fEvHead;
 
     TClonesArray *fMCTracks;
+    
+    TClonesArray* fCbmStsTracks;
+    TClonesArray* fGlobalTracks;
 
     TH1F *fhXTof1GemResid;
     TH1F *fhYTof1GemResid;
@@ -202,6 +208,7 @@ class BmnGlobalTracking : public FairTask {
     Double_t fTime;
 
     BmnStatus MatchingTOF(BmnGlobalTrack *tr, Int_t num);
+    BmnStatus MatchingTOF(CbmStsTrack *tr, BmnGlobalTrack *glTr, Int_t num);
     BmnStatus MatchingDCH(BmnGlobalTrack *tr, Int_t num);
     BmnStatus MatchingMWPC(BmnGlobalTrack *tr);
     BmnStatus MatchingUpstream(BmnGlobalTrack *tr);

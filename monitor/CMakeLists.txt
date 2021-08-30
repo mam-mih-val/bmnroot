@@ -20,6 +20,8 @@ Set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/alignment
  ${CMAKE_SOURCE_DIR}/decoder
+ ${CMAKE_SOURCE_DIR}/KF
+ ${CMAKE_SOURCE_DIR}/KF/Interface
  ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/monitor
 )
@@ -72,6 +74,6 @@ EndIf (Boost_FOUND)
 Set(HEADERS)
 Set(LINKDEF MonitorLinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)
-Set(DEPENDENCIES GlobalTracking Decoder Alignment Gem Silicon CSC Dch Mwpc BmnData BmnField UniDb Base Core ${ZeroMQ_LIBRARY_SHARED} BmnQa)
+Set(DEPENDENCIES GlobalTracking Decoder KF Alignment Gem Silicon CSC Dch Mwpc BmnData BmnField UniDb Base Core ${ZeroMQ_LIBRARY_SHARED} BmnQa)
 
 GENERATE_LIBRARY()

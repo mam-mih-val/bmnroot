@@ -218,6 +218,9 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
                 for (Int_t iStrip = 0; iStrip < layer.GetNStrips(); ++iStrip) {
                     Double_t signal = layer.GetStripSignal(iStrip);
                     if (signal > 0.0) {
+                        signal = signal /  (120./7.8); // el to ADC
+                        if (signal <= 12) continue;
+                        if (signal >= 2048) signal = 2047;
                         new ((*fBmnGemStripDigitsArray)[fBmnGemStripDigitsArray->GetEntriesFast()])
                                 BmnGemStripDigit(iStation, iModule, iLayer, iStrip, signal);
 

@@ -58,6 +58,7 @@ fDchHits(nullptr),
 fUpsHits(nullptr),
 fMCTracks(nullptr),
 fEvHead(nullptr),
+fUpstreamTracks(nullptr),
 fPDG(2212),
 fTime(0.0),
 fChiSqCut(100.),
@@ -306,7 +307,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
             }
         }
 
-        if (fUpstreamTracks)  //in SRC setup only
+        if (fIsSRC && fUpstreamTracks)
             for (Int_t trIdx = 0; trIdx < fUpstreamTracks->GetEntriesFast(); ++trIdx) {
 
                 BmnTrack* upTr = (BmnTrack*)fUpstreamTracks->At(trIdx);
@@ -715,7 +716,6 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num) {
 BmnStatus BmnGlobalTracking::MatchingUpstream(BmnGlobalTrack* glTr) {
     //we need this function only for SRC
     //In BM@N we use silicon and GEM hits as a whole
-    if (!fUpstreamTracks) return kBMNERROR;
     if (fUpstreamTracks->GetEntriesFast() == 0) return kBMNERROR;
     //
     Double_t sigma = 2.0;

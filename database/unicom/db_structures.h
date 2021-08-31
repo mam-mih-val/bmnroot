@@ -264,6 +264,7 @@ inline UniValue* CreateParameterValue(enumValueType parameter_type)
         case MapIntType: return new MapIntValue;
         case MapDVectorType: return new MapDVectorValue;
         case AlignmentType: return new AlignmentValue;
+        case TdcInlType: return new TdcInlValue;
         default: break;
     }
 

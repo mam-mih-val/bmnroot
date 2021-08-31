@@ -15,7 +15,7 @@
 static Float_t workTime = 0.0;
 
 BmnGemStripHitMaker::BmnGemStripHitMaker()
-: fHitMatching(kTRUE) {
+    : fHitMatching(kTRUE) {
 
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = "BmnGemStripDigit";
@@ -33,7 +33,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
 }
 
 BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, Bool_t isSrc)
-: fHitMatching(kTRUE) {
+    : fHitMatching(kTRUE) {
 
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
@@ -260,7 +260,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
     FairMCPoint* MCPoint;
     BmnGemStripDigit* digit;
-    BmnMatch *strip_match; // MC-information for a strip
+    BmnMatch* strip_match; // MC-information for a strip
 
     BmnGemStripStation* station;
     BmnGemStripModule* module;
@@ -307,49 +307,11 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
     Int_t clear_matched_points_cnt = 0; // points with the only one match-index
 
-    //for SRC only!!! //Temporary! FIXME: move into DB
-    const Int_t nSt = 10;
-    Double_t alignX[nSt] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    Double_t alignY[nSt] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    // Double_t alignX[nSt] = {0.0, 0.0, 0.0, 0.0, +0.163, -0.060, -0.036, -0.037, +0.006, +0.071};
-    // Double_t alignY[nSt] = {0.0, 0.0, 0.0, 0.0, -0.008, -0.082, +0.072, +0.009, +0.030, -0.082};
-    const Int_t nFields = 6;
-    Double_t dX_ls_fieldScale2[nSt] = {0.0, 0.0, 0.0, 0.0, -0.033, +0.183, -0.231, +0.167, -0.252, +0.156};
-    Double_t dY_ls_fieldScale2[nSt] = {0.0, 0.0, 0.0, 0.0, +0.000, -0.027, +0.067, +0.035, -0.001, +0.023};
-
-    // Double_t dX_ls[nSt][nFields] = {
-    //     {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-    //     {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-    //     {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-    //     {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-    //     {0.0, -0.05, -0.04, -0.02, -0.033, -0.04},
-    //     {0.0, +0.14, +0.21, +0.30, +0.183, +0.45},
-    //     {0.0, -0.08, -0.11, -0.10, -0.231, -0.11},
-    //     {0.0, +0.10, +0.13, +0.20, +0.167, +0.31},
-    //     {0.0, -0.13, -0.19, -0.22, -0.252, -0.30},
-    //     {0.0, +0.03, +0.02, +0.03, +0.156, +0.04}};
-
-    // Double_t dY_ls[nSt][nFields] = {
-    //     {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-    //     {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-    //     {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-    //     {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-    //     {0.0, +0.00, -0.00, -0.00, +0.000, -0.01},
-    //     {0.0, +0.01, +0.02, +0.06, -0.027, +0.04},
-    //     {0.0, -0.02, -0.01, +0.03, +0.067, -0.02},
-    //     {0.0, -0.00, +0.02, +0.07, +0.035, +0.01},
-    //     {0.0, -0.02, -0.00, +0.03, -0.001, -0.07},
-    //     {0.0, +0.05, +0.10, +0.17, +0.023, +0.09}};
-
-    // Int_t fieldFactors[nFields] = {0, 900, 1200, 1500, 1800, 2100};
-    // Int_t fieldScales[nFields] = {0, 1.0, 4.0/3, 5.0/3, 2.0, 7.0/3};
-    // Int_t iField = 4;
-
     for (Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
-        BmnGemStripStation *station = StationSet->GetGemStation(iStation);
+        BmnGemStripStation* station = StationSet->GetGemStation(iStation);
 
         for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
-            BmnGemStripModule *module = station->GetModule(iModule);
+            BmnGemStripModule* module = station->GetModule(iModule);
             Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
 
             for (Int_t iPoint = 0; iPoint < NIntersectionPointsInModule; ++iPoint) {
@@ -368,8 +330,8 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 Double_t y_err = module->GetIntersectionPointYError(iPoint);
                 Double_t z_err = 0.0;
 
-                 //Transform hit coordinates from local coordinate system of GEM-planes to global
-                if(TransfSet) {
+                //Transform hit coordinates from local coordinate system of GEM-planes to global
+                if (TransfSet) {
                     Plane3D::Point glob_point = TransfSet->ApplyTransforms(Plane3D::Point(-x, y, z), iStation, iModule);
                     x = -glob_point.X();
                     y = glob_point.Y();
@@ -402,28 +364,24 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 x *= -1; // invert to global X
 
                 if (fIsExp) {
-                    Double_t deltaX = fIsSrc ? alignX[iStation] : fAlignCor[iStation][iModule][0];
-                    Double_t deltaY = fIsSrc ? alignY[iStation] : fAlignCor[iStation][iModule][1];
-
-                    x += deltaX;
-                    y += deltaY;
+                    x += fAlignCor[iStation][iModule][0];
+                    y += fAlignCor[iStation][iModule][1];
 
                     if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
-                        Double_t Bx = Abs(fField->GetBx(x, y, z));
-                        Double_t By = Abs(fField->GetBy(x, y, z));
-                        Double_t yCor = fLorCor[iStation][0] + fLorCor[iStation][1] * Bx + fLorCor[iStation][2] * Bx * Bx;
-                        Double_t xCor = fLorCor[iStation][0] + fLorCor[iStation][1] * By + fLorCor[iStation][2] * By * By;
-                        Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
-                        Double_t lsX = fIsSrc ? dX_ls_fieldScale2[iStation] / 2.0 * fFieldScale : xCor * sign;
-                        x += lsX;
-                        Double_t lsY = fIsSrc ? dY_ls_fieldScale2[iStation] / 2.0 * fFieldScale : yCor * sign;
-                        y += lsY;
+                        if (!fIsSrc) { //For SRC lorentz corrections included into fAlignCor
+                            Double_t Bx = Abs(fField->GetBx(x, y, z));
+                            Double_t By = Abs(fField->GetBy(x, y, z));
+                            Double_t yCor = fLorCor[iStation][0] + fLorCor[iStation][1] * Bx + fLorCor[iStation][2] * Bx * Bx;
+                            Double_t xCor = fLorCor[iStation][0] + fLorCor[iStation][1] * By + fLorCor[iStation][2] * By * By;
+                            Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
+                            x += xCor * sign;
+                            y += yCor * sign;
+                        }
                     }
-
                 }
 
                 new ((*fBmnGemStripHitsArray)[fBmnGemStripHitsArray->GetEntriesFast()])
-                        BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
+                    BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
 
                 BmnGemStripHit* hit = (BmnGemStripHit*) fBmnGemStripHitsArray->At(fBmnGemStripHitsArray->GetEntriesFast() - 1);
                 hit->SetStation(iStation);
@@ -441,7 +399,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 //hit MC-matching ----------------------------------------------
                 if (fHitMatching && fBmnGemStripHitMatchesArray) {
                     new ((*fBmnGemStripHitMatchesArray)[fBmnGemStripHitMatchesArray->GetEntriesFast()])
-                            BmnMatch(module->GetIntersectionPointMatch(iPoint));
+                        BmnMatch(module->GetIntersectionPointMatch(iPoint));
                 }
                 //--------------------------------------------------------------
             }
@@ -458,7 +416,7 @@ void BmnGemStripHitMaker::Finish() {
         StationSet = nullptr;
     }
 
-    if(TransfSet) {
+    if (TransfSet) {
         delete TransfSet;
         TransfSet = nullptr;
     }

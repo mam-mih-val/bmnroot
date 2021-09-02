@@ -2,7 +2,7 @@
  * @file BmnZDCTowerDraw.cxx
  * @author 
  * @brief BmnZDCTowerDraw source file 
- * @version 0.1
+ * @version 1.0
  * @date 2021-08-13
  * 
  * @copyright 
@@ -26,26 +26,20 @@ using namespace std;
 BmnZDCTowerDraw::BmnZDCTowerDraw()
   : FairTask("BmnZDCTowerDraw", 0),
     fZDCMinEnergyThreshold(0),
-    fShadow(kFALSE),
     fEventManager(NULL),
     fDigitList(NULL),
     fEneArr(NULL),
     fResetRequiredFlag(kFALSE),
-    fq(NULL)
-{
-}
+    fq(NULL) {}
 
-BmnZDCTowerDraw::BmnZDCTowerDraw(const char* name, Float_t zdcMinEnergyThreshold, Bool_t shadow, Int_t iVerbose)
+BmnZDCTowerDraw::BmnZDCTowerDraw(const char* name, Float_t zdcMinEnergyThreshold, Int_t iVerbose)
   : FairTask(name, iVerbose),
     fZDCMinEnergyThreshold(zdcMinEnergyThreshold),
-    fShadow(shadow),
     fEventManager(NULL),
     fDigitList(NULL),
     fEneArr(NULL),
     fResetRequiredFlag(kFALSE),
-    fq(NULL)
-{
-}
+    fq(NULL) {}
 
 InitStatus BmnZDCTowerDraw::Init()
 {
@@ -67,13 +61,14 @@ InitStatus BmnZDCTowerDraw::Init()
     }
     if (fVerbose > 1) cout << "BmnZdcTowerDraw::Init() get digit list " << fDigitList << endl;
 
+    // -------------------------------------------------------
     fNumModules = 104;
     fModuleZLen = 52.5;
+    // -------------------------------------------------------
 
     fEneArr = new Float_t[fNumModules+1];
     for (Int_t i = 0; i < fNumModules+1; i++)
         fEneArr[i] = 0;
-
     fMaxE = 0;
 
     fq = 0;
@@ -86,7 +81,7 @@ void BmnZDCTowerDraw::Exec(Option_t* option)
     if (!IsActive()) return;
     Reset();
 
-    if (fVerbose > 1) cout << "-----[ BmnZDCTowerDraw::Exec() ]-----" << endl;
+    if (fVerbose > 1) cout << "-----[ BmnZDCTowerDraw::Exec() ]-----------------------------------" << endl;
 
     fMaxE = 0;
     for (Int_t i = 0; i < fNumModules+1; i++)
@@ -95,8 +90,7 @@ void BmnZDCTowerDraw::Exec(Option_t* option)
     if (fEventManager->fgShowRecoPointsIsShow)
     {
         Int_t nDigits = fDigitList->GetEntriesFast();
-        //if (fVerbose > 2)
-            cout << "BmnZdcTowerDraw::Exec() Number of ZDC digits = " << nDigits << endl;
+        if (fVerbose > 2) cout << "BmnZdcTowerDraw::Exec() Number of ZDC digits = " << nDigits << endl;
 
         for (int i = 0; i < nDigits; i++)
         {
@@ -161,6 +155,11 @@ void BmnZDCTowerDraw::DrawTowers()
 
     for (Int_t iModule = 0; iModule < zdcNode->GetVolume()->GetNdaughters(); iModule++)
     {
+        /**
+         * * the internal structure of modules does not allow changing
+         * * their shape (all modules have the same TGeoVolume), 
+         * * so we delete and create a new TGeoVolume with a unique shape for each module
+         */
         TGeoNode* moduleNode = (TGeoNode*) zdcArr->UncheckedAt(iModule);
         TGeoVolume* moduleVolumeCopy = (TGeoVolume*) moduleNode->GetVolume()->Clone();
         
@@ -192,9 +191,7 @@ void BmnZDCTowerDraw::Reset()
     }
 }
 
-void BmnZDCTowerDraw::Finish()
-{
-}
+void BmnZDCTowerDraw::Finish() {}
 
 BmnZDCTowerDraw::~BmnZDCTowerDraw()
 {

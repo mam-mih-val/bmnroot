@@ -1,20 +1,17 @@
-//------------------------------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------
 // -----                      BmnDchPoint source file                  -----
 // -------------------------------------------------------------------------
 
-
 #include <iostream>
 #include "BmnDchPoint.h"
-
 
 //------------------------------------------------------------------------------------------------------------------------
 BmnDchPoint::BmnDchPoint() : FairMCPoint() { }
 //------------------------------------------------------------------------------------------------------------------------
 BmnDchPoint::BmnDchPoint(Int_t trackID, Int_t detID, TVector3 pos, Double_t radius, TVector3 mom, Double_t tof,
-			Double_t length, Double_t eLoss, Int_t isPrimary, Double_t charge, Int_t pdgId, TVector3 trackPos)
-                        : FairMCPoint(trackID, detID, pos, mom, tof, length, eLoss),
-			fIsPrimary(isPrimary), fCharge(charge), fRadius(radius), fPdgId(pdgId)
+                         Double_t length, Double_t eLoss, Int_t isPrimary, Double_t charge, Int_t pdgId, TVector3 trackPos)
+    : FairMCPoint(trackID, detID, pos, mom, tof, length, eLoss),
+                  fIsPrimary(isPrimary), fCharge(charge), fRadius(radius), fPdgId(pdgId)
 {
     fTX = trackPos.X();
     fTY = trackPos.Y();
@@ -42,4 +39,5 @@ void BmnDchPoint::Print(const Option_t* opt) const
        		<< " cm,  Energy loss " << fELoss*1.0e06 << " keV" << endl;
 }
 //------------------------------------------------------------------------------------------------------------------------
+
 ClassImp(BmnDchPoint)

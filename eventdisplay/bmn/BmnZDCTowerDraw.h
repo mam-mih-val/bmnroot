@@ -2,7 +2,7 @@
  * @file BmnZDCTowerDraw.h
  * @author 
  * @brief BmnZDCTowerDraw header file
- * @version 0.1
+ * @version 1.0
  * @date 2021-08-13
  * 
  * @copyright 
@@ -24,13 +24,13 @@ public:
     BmnZDCTowerDraw();
 
     /**
-     * @brief Construct a new Bmn Zdc Tower Draw object
+     * @brief Construct a new BmnZDCTowerDraw object
      * 
-     * @param name Name of the task
+     * @param name Name of task
      * @param zdcMinEnergyThreshold Minimum energy threshold
-     * @param shadow 
+     * @param iVerbose Verbosity level
      */
-    BmnZDCTowerDraw(const char* name, Float_t zdcMinEnergyThreshold = 0, Bool_t shadow = kFALSE,  Int_t iVerbose = 0);
+    BmnZDCTowerDraw(const char* name, Float_t zdcMinEnergyThreshold = 0, Int_t iVerbose = 0);
 
     /** Destructor */
     virtual ~BmnZDCTowerDraw();
@@ -40,25 +40,23 @@ public:
     virtual void Finish();
     void Reset();
 
-
 protected:
-    MpdEventManager* fEventManager;
-    TClonesArray* fDigitList;
-    TEvePointSet* fq;
+    MpdEventManager* fEventManager; //!
+    TClonesArray* fDigitList;       //!
+    TEvePointSet* fq;               //!
 
     void DrawTowers();
 
 private:
     Float_t fZDCMinEnergyThreshold; // Minimum energy threshold
-    Bool_t fShadow;
 
-    Float_t* fEneArr; //!
-    Float_t fMaxE;
+    Float_t* fEneArr;               //! array of energies in each module of ZDC, GeV
+    Float_t fMaxE;                  // maximum energy loss in the current event
 
-    UInt_t fNumModules; // number of modules in one ZDC detector
-    Double_t fModuleZLen; // z lenght of ZDC module, cm
+    UInt_t fNumModules;             // number of modules in one ZDC detector
+    Double_t fModuleZLen;           // z lenght of ZDC module, cm
 
-    Bool_t fResetRequiredFlag;
+    Bool_t fResetRequiredFlag;      // flag true is module sizes are adjusted
 
     BmnZDCTowerDraw(const BmnZDCTowerDraw&) = delete;
     BmnZDCTowerDraw& operator=(const BmnZDCTowerDraw&) = delete;

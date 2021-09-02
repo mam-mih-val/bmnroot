@@ -863,10 +863,11 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
     }
 
     if (tr->GetDchTrackIndex() != -1) {
-        BmnHit* hit = (BmnHit*)fDchHits->At(tr->GetDchTrackIndex());
-        fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
-        fKalman->Update(&parFirst, hit, chi);
-        totChi2 += chi;
+        BmnTrack* dchTrack = (BmnTrack*)fDchTracks->At(tr->GetDchTrackIndex());
+        FairTrackParam dchPar(*(dchTrack->GetParamFirst()));   
+        fKalman->TGeoTrackPropagate(&parFirst, dchPar.GetZ(), fPDG, nullptr, nullptr, fIsField);
+        UpdateTrackParam(&parFirst, &dchPar, chi);
+        totChi2 += chi;        
     }
 
     if (!IsParCorrect(&parFirst, fIsField)) tr->SetFlag(-1);

@@ -1141,3 +1141,97 @@ Double_t GetVzByVectorStraightTracks(vector<BmnTrack> tr, Double_t& dist) {
 
     return vz;
 }
+
+
+void UpdateTrackParam(FairTrackParam* initPar, const FairTrackParam* detPar, Double_t& chiSq) {
+
+    //		pardet(5) - det track parameters
+    //		covdet(5) - det track parameters covariation matrix
+    //		parinit(5) - init track parameters
+    //		covinit(5) - init track parameters covariation matrix
+    //		parinitdet(5) - init+det track parameters
+    //		covinitdet(5) - init+det track parameters covariation matrix
+    //		detPar - det track param
+    //		initTr - Global track param
+
+    TMatrixDSym covdet(5), icovdet(5);
+    covdet *= 0.;
+    for (int ir = 0; ir < 5; ir++) covdet(ir, ir) = detPar->GetCovariance(ir, ir);
+    covdet(4, 4) = 10000.;
+
+    icovdet = covdet;
+    icovdet.Invert();
+
+    TMatrixDSym covinit(5), icovinit(5);
+    covinit *= 0.;
+    for (int ir = 0; ir < 5; ir++) for (int ic = 0; ic < 5; ic++) covinit(ir, ic) = initPar->GetCovariance(ir, ic);
+    icovinit = covinit;
+    icovinit.Invert();
+
+    TMatrixDSym covinitdet(5), icovinitdet(5);
+    icovinitdet *= 0.;
+    icovinitdet += icovinit;
+    icovinitdet += icovdet;
+    covinitdet = icovinitdet;
+    covinitdet.Invert();
+
+    TVectorD suminitdet(5), parinitdet(5);
+    TVectorD parinit(5), pardet(5);
+    pardet(0) = detPar->GetX();
+    pardet(1) = detPar->GetY();
+    pardet(2) = detPar->GetTx();
+    pardet(3) = detPar->GetTy();
+    pardet(4) = 1.;
+    parinit(0) = initPar->GetX();
+    parinit(1) = initPar->GetY();
+    parinit(2) = initPar->GetTx();
+    parinit(3) = initPar->GetTy();
+    parinit(4) = initPar->GetQp();
+    suminitdet *= 0.;
+    suminitdet += icovinit * parinit;
+    suminitdet += icovdet * pardet;
+    parinitdet = covinitdet * suminitdet;
+
+    //Set Updated parameters
+
+    initPar->SetX(parinitdet(0));
+    initPar->SetY(parinitdet(1));
+    initPar->SetTx(parinitdet(2));
+    initPar->SetTy(parinitdet(3));
+    initPar->SetQp(parinitdet(4));
+    initPar->SetCovMatrix(covinitdet);
+
+    //Calculate chiSq 
+
+    TMatrixD dP2(5, 1);
+
+    dP2(0, 0) = parinitdet(0) - pardet(0);
+    dP2(1, 0) = parinitdet(1) - pardet(1);
+    dP2(2, 0) = parinitdet(2) - pardet(2);
+    dP2(3, 0) = parinitdet(3) - pardet(3);
+    dP2(4, 0) = parinitdet(4) - pardet(4);
+
+    TMatrixD dP2_T(1, 5);
+
+    dP2_T.Transpose(dP2);
+
+    //-----------------------
+
+    TMatrixD dP1(5, 1);
+
+    dP1(0, 0) = parinitdet(0) - parinit(0);
+    dP1(1, 0) = parinitdet(1) - parinit(1);
+    dP1(2, 0) = parinitdet(2) - parinit(2);
+    dP1(3, 0) = parinitdet(3) - parinit(3);
+    dP1(4, 0) = parinitdet(4) - parinit(4);
+
+    TMatrixD dP1_T(1, 5);
+
+    dP1_T.Transpose(dP1);
+
+    TMatrixD chi(1, 1);
+    chi = dP2_T * icovdet * dP2 + dP1_T * icovinit * dP1;
+    //chi = dP2_T*icovdet*dP2 + dP1_T*icovinitdet*dP1;  
+
+    chiSq = chi(0, 0);
+}

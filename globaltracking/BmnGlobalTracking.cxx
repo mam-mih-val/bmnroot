@@ -10,6 +10,7 @@
 
 #include <iterator>
 #include <map>
+#include "TVectorD.h"
 
 #include "BmnEventHeader.h"
 #include "BmnMwpcGeometry.h"
@@ -247,16 +248,17 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
     if (fUpsHits) fUpsHits->Delete();
 
     //Alignment. FIXME: move to DB
-    if (fDchTracks) {
-        Double_t dchTxCorr = (fIsSRC) ? +0.001 : +0.006;
-        Double_t dchTyCorr = (fIsSRC) ? -0.001 : -0.0003;
-        Double_t dchXCorr = (fIsSRC) ? -8.52 : -6.97;
-        Double_t dchYCorr = (fIsSRC) ? -3.01 : -2.92;
-        for (Int_t trIdx = 0; trIdx < fDchTracks->GetEntriesFast(); ++trIdx) {
-            BmnTrack* dchTr = (BmnTrack*)fDchTracks->At(trIdx);
-            FairTrackParam* parDch = dchTr->GetParamFirst();
-            Double_t zDCH = parDch->GetZ();
-            if (fIsExp) {
+
+    if (fIsExp) {
+        if (fDchTracks) {
+            Double_t dchTxCorr = (fIsSRC) ? +0.001 : +0.006;
+            Double_t dchTyCorr = (fIsSRC) ? -0.001 : -0.0003;
+            Double_t dchXCorr = (fIsSRC) ? -8.52 : -6.97;
+            Double_t dchYCorr = (fIsSRC) ? -3.01 : -2.92;
+            for (Int_t trIdx = 0; trIdx < fDchTracks->GetEntriesFast(); ++trIdx) {
+                BmnTrack* dchTr = (BmnTrack*)fDchTracks->At(trIdx);
+                FairTrackParam* parDch = dchTr->GetParamFirst();
+                Double_t zDCH = parDch->GetZ();
                 if (zDCH < 550) {         //dch1
                 }
                 else if (zDCH > 650) {  //dch2
@@ -267,18 +269,8 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
                     parDch->SetX(parDch->GetX() + dchXCorr);
                     parDch->SetY(parDch->GetY() + dchYCorr);
                 }
-
-                BmnHit dchHit;
-                Int_t st = (zDCH < 550) ? 0 : (zDCH > 650) ? 1 : 7;
-                dchHit.SetStation(st);
-                dchHit.SetXYZ(parDch->GetX(), parDch->GetY(), zDCH);
-                dchHit.SetDxyz(0.02, 0.02, 0.0);
-                dchHit.SetIndex(trIdx);  //index of dch track instead of index of hit. In order to have fast link hit->track
-                new ((*fDchHits)[fDchHits->GetEntriesFast()]) BmnHit(dchHit);
             }
         }
-    }
-    if (fIsExp) {
         if (fCscHits) {
             Double_t cscXCorr = (fIsSRC) ? -15.08 : +0.87;
             Double_t cscYCorr = (fIsSRC) ? -5.83 : -0.12;
@@ -364,15 +356,8 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
             //Downstream
             if (!fIsSRC) MatchingCSC(glTrack);
             if (!fIsSRC) MatchingTOF(glTrack, 1);
-            if (fIsExp)
-                MatchingDCH(glTrack, 7);
-            else {
-                MatchingDCH(glTrack, 0);
-                MatchingDCH(glTrack, 1);
-            }
-            //MatchingDCH(glTrack, 0);
+            MatchingDCH(glTrack);
             MatchingTOF(glTrack, 2);
-            //MatchingDCH(glTrack, 1);
 
             //Upstream
             if (fIsSRC) MatchingUpstream(glTrack);
@@ -783,117 +768,56 @@ BmnStatus BmnGlobalTracking::MatchingUpstream(BmnGlobalTrack* glTr) {
     }
 }
 
-BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack* tr, Int_t num) {
-    /**
- * num = 0 for dch1
- * num = 1 for dch2
- * num = 7 for global dch
- **/
+BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack* tr) {
 
     if (!fDchTracks) return kBMNERROR;
+    fPDG = (tr->GetP() > 0.) ? 2212 : -211;
 
     Double_t minDX = DBL_MAX;
     Double_t minDY = DBL_MAX;
-    BmnHit* minHit = nullptr;
+    BmnTrack* minTrack = nullptr;
+    Int_t minTrackId = -1;
 
     //residuals after peak fitting of all-to-all histograms
-    Double_t sigmaXdch1gemResid = 1.0;   //2.16;
-    Double_t sigmaYdch1gemResid = 1.0;   //0.75;
-    Double_t sigmaXdch2gemResid = 1.0;   //0.90;
-    Double_t sigmaYdch2gemResid = 1.0;   //0.53;
-    Double_t sigmaXdchGgemResid = 5.54;  //8.18;
-    Double_t sigmaYdchGgemResid = 2.33;
-    Double_t xCut = (num == 0) ? 3 * sigmaXdch1gemResid : (num == 1) ? 3 * sigmaXdch2gemResid : 3 * sigmaXdchGgemResid;
-    Double_t yCut = (num == 0) ? 3 * sigmaYdch1gemResid : (num == 1) ? 3 * sigmaYdch2gemResid : 3 * sigmaYdchGgemResid;
+    Double_t sigmaXdchGgemResid = (fIsExp) ? 5.54 : 1;
+    Double_t sigmaYdchGgemResid = (fIsExp) ? 2.33 : 1;
+    Double_t xCut = 3 * sigmaXdchGgemResid;
+    Double_t yCut = 3 * sigmaYdchGgemResid;
 
-    for (Int_t iHit = 0; iHit < fDchHits->GetEntriesFast(); ++iHit) {
-        BmnHit* hit = (BmnHit*)fDchHits->At(iHit);
-        if (!hit) continue;
-        if (!fDoAlign && hit->IsUsed()) continue; //???
-        if (!fIsExp) hit->SetStation((hit->GetZ() < 600) ? 0 : 1);
-        if (hit->GetStation() != num) continue;
-        FairTrackParam par(*(tr->GetParamLast()));
-        fPDG = (par.GetQp() > 0.) ? 2212 : -211;
-        if (fKalman->TGeoTrackPropagate(&par, hit->GetZ(), fPDG, nullptr, nullptr, fIsField) == kBMNERROR)
+    for (Int_t iTr = 0; iTr < fDchTracks->GetEntriesFast(); ++iTr) {
+        BmnTrack* dchTr = (BmnTrack*)fDchTracks->At(iTr);
+        if (!dchTr) continue;
+        if (dchTr->GetNHits() < 10) continue; //use only global DCH tracks
+        FairTrackParam glPar(*(tr->GetParamLast()));
+        FairTrackParam dchPar(*(dchTr->GetParamFirst()));
+        if (fKalman->TGeoTrackPropagate(&glPar, dchPar.GetZ(), fPDG, nullptr, nullptr, fIsField) == kBMNERROR)
             continue;
         //Double_t dist = Sqrt(Sq(par.GetX() - hit->GetX()) + Sq(par.GetY() - hit->GetY()));
-        Double_t dX = par.GetX() - hit->GetX();
-        Double_t dY = par.GetY() - hit->GetY();
-        if (fDoAlign) {
-            BmnTrack* dchTr = (BmnTrack*)fDchTracks->At(hit->GetIndex());
-            if (!dchTr) continue;
-            FairTrackParam dchPar(*(dchTr->GetParamFirst()));
-            if (num == 0) {
-                fhXDch1GemResid->Fill(dX);
-                fhYDch1GemResid->Fill(dY);
-                fhTxDch1GemResid->Fill(par.GetTx() - dchPar.GetTx());
-                fhTyDch1GemResid->Fill(par.GetTy() - dchPar.GetTy());
-                fhXdXDch1GemResid->Fill(par.GetX(), dX);
-                fhYdYDch1GemResid->Fill(par.GetY(), dY);
-                fhTxdXDch1GemResid->Fill(par.GetTx(), dX);
-                fhTydYDch1GemResid->Fill(par.GetTy(), dY);
-            }
-            else if (num == 1) {
-                fhXDch2GemResid->Fill(dX);
-                fhYDch2GemResid->Fill(dY);
-                fhTxDch2GemResid->Fill(par.GetTx() - dchPar.GetTx());
-                fhTyDch2GemResid->Fill(par.GetTy() - dchPar.GetTy());
-                fhXdXDch2GemResid->Fill(par.GetX(), dX);
-                fhYdYDch2GemResid->Fill(par.GetY(), dY);
-                fhTxdXDch2GemResid->Fill(par.GetTx(), dX);
-                fhTydYDch2GemResid->Fill(par.GetTy(), dY);
-            }
-            else if (num == 7) {
-                if (Abs(dY) < 3) fhXDchGGemResid->Fill(dX);
-                if (Abs(dX) < 5) fhYDchGGemResid->Fill(dY);
-                if (Abs(dY) < 3) fhTxDchGGemResid->Fill(par.GetTx() - dchPar.GetTx());
-                if (Abs(dX) < 5) fhTyDchGGemResid->Fill(par.GetTy() - dchPar.GetTy());
-                fhXdXDchGGemResid->Fill(par.GetX(), dX);
-                fhYdYDchGGemResid->Fill(par.GetY(), dY);
-                fhTxdXDchGGemResid->Fill(par.GetTx(), dX);
-                fhTydYDchGGemResid->Fill(par.GetTy(), dY);
-            }
-        }
+        Double_t dX = glPar.GetX() - dchPar.GetX();
+        Double_t dY = glPar.GetY() - dchPar.GetY();
         if (Abs(dX) < xCut && Abs(dY) < yCut && Abs(dX) < minDX && Abs(dY) < minDY) {
-            minHit = hit;
+            minTrack = dchTr;
+            minTrackId = iTr;
             minDX = dX;
             minDY = dY;
         }
     }
 
-    if (minHit == nullptr)
+    if (minTrack == nullptr)
         return kBMNERROR;
-
-    FairTrackParam par(*(tr->GetParamLast()));
-    fPDG = (par.GetQp() > 0.) ? 2212 : -211;
+    
+    FairTrackParam glPar(*(tr->GetParamLast()));
+    FairTrackParam dchPar(*(minTrack->GetParamFirst()));
     Double_t len = tr->GetLength();
-    fKalman->TGeoTrackPropagate(&par, minHit->GetZ(), fPDG, nullptr, &len, fIsField);
-    minHit->SetResXY(minDX, minDY);
+    fKalman->TGeoTrackPropagate(&glPar, dchPar.GetZ(), fPDG, nullptr, &len, fIsField);
     Double_t chi = 0;
-    fKalman->Update(&par, minHit, chi);
+    UpdateTrackParam(&glPar, &dchPar, chi);
     tr->SetChi2(tr->GetChi2() + chi);
-    if (fIsExp) {
-        if (num == 0)
-            tr->SetDch1TrackIndex(minHit->GetIndex());
-        else if (num == 1)
-            tr->SetDch2TrackIndex(minHit->GetIndex());
-        else if (num == 7)
-            tr->SetDchTrackIndex(minHit->GetIndex());
-        BmnTrack* matchedDch = (BmnTrack*)fDchTracks->At(minHit->GetIndex());
-        tr->SetNHits(tr->GetNHits() + matchedDch->GetNHits());
-        //tr->SetLength(len); //FIXME! NOT CORRECT
-    }
-    else {
-        if (num == 0)
-            tr->SetDch1TrackIndex(minHit->GetRefIndex());
-        else if (num == 1)
-            tr->SetDch2TrackIndex(minHit->GetRefIndex());
-        else if (num == 7)
-            tr->SetDchTrackIndex(minHit->GetRefIndex());
-        tr->SetNHits(tr->GetNHits() + 1);
-    }
-    minHit->SetUsing(kTRUE);
-    tr->SetParamLast(par);
+
+    tr->SetDchTrackIndex(minTrackId);
+    tr->SetNHits(tr->GetNHits() + minTrack->GetNHits());
+    //tr->SetLength(len); //FIXME! NOT CORRECT
+    tr->SetParamLast(glPar);
     return kBMNSUCCESS;
 }
 

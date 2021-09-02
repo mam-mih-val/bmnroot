@@ -209,7 +209,7 @@ class BmnGlobalTracking : public FairTask {
 
     BmnStatus MatchingTOF(BmnGlobalTrack *tr, Int_t num);
     BmnStatus MatchingTOF(CbmStsTrack *tr, BmnGlobalTrack *glTr, Int_t num);
-    BmnStatus MatchingDCH(BmnGlobalTrack *tr, Int_t num);
+    BmnStatus MatchingDCH(BmnGlobalTrack *tr);
     BmnStatus MatchingMWPC(BmnGlobalTrack *tr);
     BmnStatus MatchingUpstream(BmnGlobalTrack *tr);
     BmnStatus MatchingCSC(BmnGlobalTrack *tr);

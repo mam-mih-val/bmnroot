@@ -6,6 +6,7 @@
 #include "BmnGemTrack.h"
 #include "BmnGemStripHit.h"
 #include "TLorentzVector.h"
+#include "TVectorD.h"
 #include "TF1.h"
 
 class CbmHit;
@@ -75,5 +76,7 @@ Double_t Mu(vector <Double_t>, vector <Double_t>);
 
 Double_t GetVZByTwoStraightTracks(BmnTrack* tr0, BmnTrack* tr1, Double_t& dist);
 Double_t GetVzByVectorStraightTracks(vector<BmnTrack> tr, Double_t& dist);
+
+void UpdateTrackParam(FairTrackParam* initPar, const FairTrackParam* detPar, Double_t& chiSq);
 
 #endif /*BMNMATH_H_*/

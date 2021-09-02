@@ -1,265 +1,272 @@
-//------------------------------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------
 // -----                       BmnDch source file                      -----
 // -------------------------------------------------------------------------
 
-#include <iostream>
+#include "BmnDch.h"
+#include "BmnDchGeoPar.h"
+#include "BmnDchGeo.h"
+#include "CbmStack.h"
 
-#include "TClonesArray.h"
-#include "TLorentzVector.h"
+#include "FairRun.h"
+#include "FairRuntimeDb.h"
+#include "FairVolume.h"
+#include "FairRootManager.h"
+#include "FairGeoInterface.h"
+#include "FairGeoLoader.h"
+#include "FairGeoBuilder.h"
+#include "FairGeoNode.h"
+#include "FairGeoMedia.h"
+
 #include "TParticle.h"
+#include "TParticlePDG.h"
 #include "TVirtualMC.h"
 #include "TGeoManager.h"
 #include "TGeoMatrix.h"
-
-//#include "FairDetectorList.h"
-#include "FairGeoInterface.h"
-#include "FairGeoLoader.h"
-#include "FairGeoNode.h"
-#include "FairGeoRootBuilder.h"
-#include "BmnDchGeo.h"
-#include "FairRootManager.h"
-#include "BmnDch.h"
-#include "BmnDchPoint.h"
-#include "FairRuntimeDb.h"
-#include "BmnDchGeoPar.h"
 #include "TObjArray.h"
-#include "FairRun.h"
-#include "FairVolume.h"
 #include "TMath.h"
 #include "TFile.h"
-#include "CbmStack.h"
-
-#include "TParticlePDG.h"
 #include "TGDMLParse.h"
-#include "FairGeoMedia.h"
+
+#include <iostream>
 
 //------------------------------------------------------------------------------------------------------------------------
 BmnDch::BmnDch()
  : FairDetector("DCH", kTRUE)
 {
-	fPointCollection = new TClonesArray("BmnDchPoint");
-	fPosIndex = 0;
-	fVerboseLevel = 1;
-	ResetParameters();
+    fPointCollection = new TClonesArray("BmnDchPoint");
+    fPosIndex = 0;
+    fVerboseLevel = 1;
+    ResetParameters();
 }
+
 //------------------------------------------------------------------------------------------------------------------------
 BmnDch::BmnDch(const char* name, Bool_t active)
  : FairDetector(name, active)
 {
-	fPointCollection = new TClonesArray("BmnDchPoint");
-	fPosIndex = 0;
+    fPointCollection = new TClonesArray("BmnDchPoint");
+    fPosIndex = 0;
     fVerboseLevel = 1;
-	ResetParameters();
+    ResetParameters();
 }
+
 //------------------------------------------------------------------------------------------------------------------------
 BmnDch::~BmnDch()
 {
-	if(fPointCollection){fPointCollection->Delete(); delete fPointCollection; }
+    if(fPointCollection){ fPointCollection->Delete(); delete fPointCollection; }
 }
+
 //------------------------------------------------------------------------------------------------------------------------
-int BmnDch::DistAndPoints(TVector3 p3, TVector3 p4, TVector3& pa, TVector3& pb) {
+int BmnDch::DistAndPoints(TVector3 p3, TVector3 p4, TVector3& pa, TVector3& pb)
+{
     pa=(p3+p4)*0.5;
     pb=pa;
-
     //pa=p3; //del
     //pb=pa; //del
     return 0;
 }
+
 //------------------------------------------------------------------------------------------------------------------------
-TVector3 BmnDch::GlobalToLocal(TVector3& global) {
+TVector3 BmnDch::GlobalToLocal(TVector3& global)
+{
     Double_t globPos[3];
     Double_t localPos[3];
     global.GetXYZ(globPos);
     gMC->Gmtod(globPos, localPos, 1);
+
     return TVector3(localPos);
 }
+
 //------------------------------------------------------------------------------------------------------------------------
-TVector3 BmnDch::LocalToGlobal(TVector3& local) {
+TVector3 BmnDch::LocalToGlobal(TVector3& local)
+{
     Double_t globPos[3];
     Double_t localPos[3];
     local.GetXYZ(localPos);
     gMC->Gdtom(localPos, globPos, 1);
+
     return TVector3(globPos);
 }
+
 //----------------------------------------------------------------------------------------------------------------------
-Bool_t  BmnDch::ProcessHits(FairVolume* vol)
+Bool_t BmnDch::ProcessHits(FairVolume* vol)
 {
-    // Determine plane number for the current hit ------------------------------
-    Int_t planeNum = -1; // current plane number (default)
+    //TGeoVolume *currentVolume = gGeoManager->GetCurrentVolume();
+    //TString currentVolumeName = currentVolume->GetName();
 
-    TGeoVolume *currentVolume = gGeoManager->GetCurrentVolume();
-    TString currentVolumeName = currentVolume->GetName();
+    // Set parameters at entrance of volume. Reset ELoss.
+    if (gMC->IsTrackEntering())
+    {
+        ResetParameters();
 
-    planeNum = gGeoManager->GetCurrentNode()->GetNumber();
+        fELoss  = 0.;
+        fTime   = gMC->TrackTime() * 1.0e09;
+        fLength = gMC->TrackLength();
+        fIsPrimary = 0;
+        fCharge = -1;
+        fPdgId = 0;
 
-  // Set parameters at entrance of volume. Reset ELoss.
-  if (gMC->IsTrackEntering()) {
+        TLorentzVector PosIn;
+        gMC->TrackPosition(PosIn);
+        fPosIn.SetXYZ(PosIn.X(), PosIn.Y(), PosIn.Z());
+        gMC->TrackMomentum(fMom);
 
-    ResetParameters();
-    fELoss  = 0.;
-    fTime   = gMC->TrackTime() * 1.0e09;
-    fLength = gMC->TrackLength();
-    fIsPrimary = 0;
-    fCharge = -1;
-    fPdgId = 0;
+        TParticle* part = gMC->GetStack()->GetCurrentTrack();
+        if (part)
+        {
+            fIsPrimary = (Int_t) part->IsPrimary();
+            fCharge = (Int_t) part->GetPDG()->Charge();
+            fPdgId = (Int_t) part->GetPdgCode();
+        }
 
-    TLorentzVector PosIn;
-    gMC->TrackPosition(PosIn);
-    fPosIn.SetXYZ(PosIn.X(), PosIn.Y(), PosIn.Z());
-    gMC->TrackMomentum(fMom);
-    TParticle* part = 0;
-    part = gMC->GetStack()->GetCurrentTrack();
-    if (part) {
-      fIsPrimary = (Int_t)part->IsPrimary();
-      fCharge = (Int_t)part->GetPDG()->Charge();
-      fPdgId = (Int_t)part->GetPdgCode();
+        fVolumeID = vol->getMCid();
+        fPlaneNumber = gGeoManager->GetCurrentNode()->GetNumber();
+        fTrackID = gMC->GetStack()->GetCurrentTrackNumber();
     }
 
-    fVolumeID = vol->getMCid();
+    // Sum energy loss for all steps in the active volume
+    fELoss += gMC->Edep();
 
-    fTrackID = gMC->GetStack()->GetCurrentTrackNumber();
-  }
+    // Create BmnDchPoint at EXIT of active volume;
+    if ((gMC->IsTrackExiting() || gMC->IsTrackStop() || gMC->IsTrackDisappeared()) && fELoss >= 0)
+    {
+        TLorentzVector PosOut;
+        gMC->TrackPosition(PosOut);
+        fPosOut.SetXYZ(PosOut.X(), PosOut.Y(), PosOut.Z());
 
-  // Sum energy loss for all steps in the active volume
-  fELoss += gMC->Edep();
+        // Line defined in local coordinates
+        TVector3 p1(0, 0, 0); // 10 - arbitrary number...
+        TVector3 p2(10,0, 0);
 
-  // Create BmnDchPoint at EXIT of active volume;
-  if ((gMC->IsTrackExiting() || gMC->IsTrackStop() || gMC->IsTrackDisappeared()) && fELoss >= 0) {
-    TLorentzVector PosOut;
-    gMC->TrackPosition(PosOut);
-    fPosOut.SetXYZ(PosOut.X(), PosOut.Y(), PosOut.Z());
+        // Conversion to global coordinates
+        p1 = LocalToGlobal(p1);
+        p2 = LocalToGlobal(p2);
+        Double_t phi = TMath::ATan2 (p2.Y()-p1.Y(),p2.X()-p1.X());
 
-    // Line defined in local coordinates
-    TVector3 p1(0, 0, 0); // 10 - arbitrary number...
-    TVector3 p2(10,0, 0);
+        // "will-be-filled-out-soon" Points of closest approach
+        TVector3 trackPosition(0,0,0); // trackPosition => point on track, fPos => point on straw
 
-    // Conversion to global coordinates
-    p1 = LocalToGlobal(p1);
-    p2 = LocalToGlobal(p2);
-    Double_t phi = TMath::ATan2 (p2.Y()-p1.Y(),p2.X()-p1.X());
+        // calculate points of closest approach between track and straw
+        //int result =
+        DistAndPoints(fPosIn, fPosOut, fPos, trackPosition);
 
-    // "will-be-filled-out-soon" Points of closest approach
-    TVector3 trackPosition(0,0,0); // trackPosition => point on track, fPos => point on straw
+        BmnDchPoint *p = AddHit(fTrackID, fVolumeID, fPos, fPos.Perp(),
+                                TVector3(fMom.Px(), fMom.Py(), fMom.Pz()),
+                                fTime, (fLength+gMC->TrackLength())/2, fELoss,
+                                fIsPrimary, fCharge, fPdgId, trackPosition);
+        p->SetPhi(phi); //AZ
+        p->SetPlaneNumber(fPlaneNumber);
 
-    // calculate points of closest approach between track and straw
-    //int result =
-    DistAndPoints(fPosIn, fPosOut, fPos, trackPosition);
+        ((CbmStack*)gMC->GetStack())->AddPoint(kDCH);
+    }
 
-    BmnDchPoint *p = AddHit(fTrackID, fVolumeID, fPos, fPos.Perp(),
-                TVector3(fMom.Px(), fMom.Py(), fMom.Pz()),
-                fTime, (fLength+gMC->TrackLength())/2, fELoss,
-                fIsPrimary, fCharge, fPdgId, trackPosition);
-
-    p->SetPhi(phi); //AZ
-    p->SetPlaneNumber(planeNum);
-
-    ((CbmStack*)gMC->GetStack())->AddPoint(kDCH);
-  }
-
-  return kTRUE;
+    return kTRUE;
 }
+
 //------------------------------------------------------------------------------------------------------------------------
 void BmnDch::EndOfEvent()
 {
-	if(fVerboseLevel) Print();
-  	fPointCollection->Clear();
+    if (fVerboseLevel) Print();
+    fPointCollection->Delete();
   	fPosIndex = 0;
 }
+
 //------------------------------------------------------------------------------------------------------------------------
-void BmnDch::Register(){ FairRootManager::Instance()->Register("DCHPoint", "DCH", fPointCollection, kTRUE); }
+void BmnDch::Register() { FairRootManager::Instance()->Register("DCHPoint", "DCH", fPointCollection, kTRUE); }
+
 //------------------------------------------------------------------------------------------------------------------------
 TClonesArray* BmnDch::GetCollection(Int_t iColl) const
 {
-	if(iColl == 0) 	return fPointCollection;
-
-return NULL;
+    if(iColl == 0) 	return fPointCollection;
+    return NULL;
 }
+
 //------------------------------------------------------------------------------------------------------------------------
 void BmnDch::Print() const
 {
-	Int_t nHits = fPointCollection->GetEntriesFast();
-	cout << "-I- BmnDch: " << nHits << " points registered in this event." << endl;
+    Int_t nHits = fPointCollection->GetEntriesFast();
+    cout << "-I- BmnDch: " << nHits << " points registered in this event." << endl;
 
-	if(fVerboseLevel > 1)
-    		for(Int_t i=0; i<nHits; i++) (*fPointCollection)[i]->Print();
+    if (fVerboseLevel > 1)
+        for (Int_t i = 0; i < nHits; i++) (*fPointCollection)[i]->Print();
 }
+
 //------------------------------------------------------------------------------------------------------------------------
-void BmnDch::Reset(){ fPointCollection->Clear(); ResetParameters(); }
+void BmnDch::Reset() { fPointCollection->Delete(); ResetParameters(); }
+
 //------------------------------------------------------------------------------------------------------------------------
 void BmnDch::CopyClones(TClonesArray* cl1, TClonesArray* cl2, Int_t offset)
 {
-	Int_t nEntries = cl1->GetEntriesFast();
-	cout << "-I- BmnDch: " << nEntries << " entries to add." << endl;
-	TClonesArray& clref = *cl2;
-	BmnDchPoint* oldpoint = NULL;
+    Int_t nEntries = cl1->GetEntriesFast();
+    cout << "-I- BmnDch: " << nEntries << " entries to add." << endl;
+    TClonesArray& clref = *cl2;
+    BmnDchPoint* oldpoint = NULL;
 
-	for(Int_t i=0; i<nEntries; i++)
-	{
-		oldpoint = (BmnDchPoint*) cl1->At(i);
-		Int_t index = oldpoint->GetTrackID() + offset;
-		oldpoint->SetTrackID(index);
-		new (clref[fPosIndex]) BmnDchPoint(*oldpoint);
-		fPosIndex++;
-	}
+    for(Int_t i=0; i<nEntries; i++)
+    {
+        oldpoint = (BmnDchPoint*) cl1->At(i);
+        Int_t index = oldpoint->GetTrackID() + offset;
+        oldpoint->SetTrackID(index);
+        new (clref[fPosIndex]) BmnDchPoint(*oldpoint);
+        fPosIndex++;
+    }
 
-	cout << "-I- BmnDch: " << cl2->GetEntriesFast() << " merged entries."  << endl;
+    cout << "-I- BmnDch: " << cl2->GetEntriesFast() << " merged entries."  << endl;
 }
+
 //------------------------------------------------------------------------------------------------------------------------
 void BmnDch::ConstructGeometry()
 {
-  TString fileName = GetGeometryFileName();
+    TString fileName = GetGeometryFileName();
 
-  if ( fileName.EndsWith(".root") ) {
-    LOG(info) << "Constructing DCH geometry from ROOT file " << fileName.Data();
-    ConstructRootGeometry();
-  } else if ( fileName.EndsWith(".geo") ) {
-    LOG(info) << "Constructing DCH geometry from ASCII file " << fileName.Data();
-    ConstructAsciiGeometry();
-  } else if ( fileName.EndsWith(".gdml") ) {
-    LOG(info) << "Constructing DCH geometry from GDML file " << fileName.Data();
-    ConstructGDMLGeometry();
-  } else {
-    LOG(fatal) << "Geometry format of DCH file " << fileName.Data() << " not supported.";
-  }
+    if ( fileName.EndsWith(".root") ) {
+        LOG(info) << "Constructing DCH geometry from ROOT file " << fileName.Data();
+        ConstructRootGeometry();
+    } else if ( fileName.EndsWith(".geo") ) {
+        LOG(info) << "Constructing DCH geometry from ASCII file " << fileName.Data();
+        ConstructAsciiGeometry();
+    } else if ( fileName.EndsWith(".gdml") ) {
+        LOG(info) << "Constructing DCH geometry from GDML file " << fileName.Data();
+        ConstructGDMLGeometry();
+    } else {
+        LOG(fatal) << "Geometry format of DCH file " << fileName.Data() << " not supported.";
+    }
 }
 
 // -----   ConstructAsciiGeometry   -------------------------------------------
-void BmnDch::ConstructAsciiGeometry() {
+void BmnDch::ConstructAsciiGeometry()
+{
+    FairGeoLoader*    geoLoad = FairGeoLoader::Instance();
+    FairGeoInterface* geoFace = geoLoad->getGeoInterface();
+    BmnDchGeo*       DCHGeo   = new BmnDchGeo();
+    DCHGeo->setGeomFile(GetGeometryFileName());
+    geoFace->addGeoModule(DCHGeo);
 
-  FairGeoLoader*    geoLoad = FairGeoLoader::Instance();
-  FairGeoInterface* geoFace = geoLoad->getGeoInterface();
-  BmnDchGeo*       DCHGeo  = new BmnDchGeo();
-  DCHGeo->setGeomFile(GetGeometryFileName());
-  geoFace->addGeoModule(DCHGeo);
+    Bool_t rc = geoFace->readSet(DCHGeo);
+    if (rc) DCHGeo->create(geoLoad->getGeoBuilder());
+    TList* volList = DCHGeo->getListOfVolumes();
+    // store geo parameter
+    FairRun *fRun = FairRun::Instance();
+    FairRuntimeDb *rtdb= FairRun::Instance()->GetRuntimeDb();
+    BmnDchGeoPar* par=(BmnDchGeoPar*)(rtdb->getContainer("BmnDchGeoPar"));
+    TObjArray *fSensNodes = par->GetGeoSensitiveNodes();
+    TObjArray *fPassNodes = par->GetGeoPassiveNodes();
 
-  Bool_t rc = geoFace->readSet(DCHGeo);
-  if (rc) DCHGeo->create(geoLoad->getGeoBuilder());
-  TList* volList = DCHGeo->getListOfVolumes();
-  // store geo parameter
-  FairRun *fRun = FairRun::Instance();
-  FairRuntimeDb *rtdb= FairRun::Instance()->GetRuntimeDb();
-  BmnDchGeoPar* par=(BmnDchGeoPar*)(rtdb->getContainer("BmnDchGeoPar"));
-  TObjArray *fSensNodes = par->GetGeoSensitiveNodes();
-  TObjArray *fPassNodes = par->GetGeoPassiveNodes();
+    TListIter iter(volList);
+    FairGeoNode* node   = NULL;
+    FairGeoVolume *aVol=NULL;
 
-  TListIter iter(volList);
-  FairGeoNode* node   = NULL;
-  FairGeoVolume *aVol=NULL;
-
-  while( (node = (FairGeoNode*)iter.Next()) ) {
-      aVol = dynamic_cast<FairGeoVolume*> ( node );
-       if ( node->isSensitive()  ) {
+    while( (node = (FairGeoNode*)iter.Next()) ){
+        aVol = dynamic_cast<FairGeoVolume*> ( node );
+        if ( node->isSensitive()  ) {
            fSensNodes->AddLast( aVol );
-       }else{
+        }else{
            fPassNodes->AddLast( aVol );
-       }
-  }
-  par->setChanged();
-  par->setInputVersion(fRun->GetRunId(),1);
-  ProcessNodes( volList );
+        }
+    }
+    par->setChanged();
+    par->setInputVersion(fRun->GetRunId(),1);
+    ProcessNodes( volList );
 }
-// ----------------------------------------------------------------------------
 
 /*
 // -----   ConstructGDMLGeometry   -------------------------------------------
@@ -362,195 +369,188 @@ void BmnDch::ConstructGDMLGeometry()
 // -----   ConstructGDMLGeometry   -------------------------------------------
 void BmnDch::ConstructGDMLGeometry()
 {
-   TFile *old = gFile;
-   TGDMLParse parser;
-   TGeoVolume* gdmlTop;
+    TFile *old = gFile;
+    TGDMLParse parser;
+    TGeoVolume* gdmlTop;
 
-   // Before importing GDML
-   Int_t maxInd = gGeoManager->GetListOfMedia()->GetEntries() - 1;
+    // Before importing GDML
+    Int_t maxInd = gGeoManager->GetListOfMedia()->GetEntries() - 1;
 
-   gdmlTop = parser.GDMLReadFile(GetGeometryFileName());
+    gdmlTop = parser.GDMLReadFile(GetGeometryFileName());
 
-   // Cheating - reassigning media indices after GDML import (need to fix this in TGDMLParse class!!!)
-   //   for (Int_t i=0; i<gGeoManager->GetListOfMedia()->GetEntries(); i++)
-   //      gGeoManager->GetListOfMedia()->At(i)->Dump();
-   // After importing GDML
-   Int_t j = gGeoManager->GetListOfMedia()->GetEntries() - 1;
-   Int_t curId;
-   TGeoMedium* m;
-   do {
-      m = (TGeoMedium*)gGeoManager->GetListOfMedia()->At(j);
-      curId = m->GetId();
-      m->SetId(curId+maxInd);
-      j--;
-   } while (curId > 1);
+    // Cheating - reassigning media indices after GDML import (need to fix this in TGDMLParse class!!!)
+    //   for (Int_t i=0; i<gGeoManager->GetListOfMedia()->GetEntries(); i++)
+    //      gGeoManager->GetListOfMedia()->At(i)->Dump();
+    // After importing GDML
+    Int_t j = gGeoManager->GetListOfMedia()->GetEntries() - 1;
+    Int_t curId;
+    TGeoMedium* m;
+    do {
+        m = (TGeoMedium*)gGeoManager->GetListOfMedia()->At(j);
+        curId = m->GetId();
+        m->SetId(curId+maxInd);
+        j--;
+    } while (curId > 1);
 
-   Int_t newMaxInd = gGeoManager->GetListOfMedia()->GetEntries() - 1;
+    Int_t newMaxInd = gGeoManager->GetListOfMedia()->GetEntries() - 1;
 
-   gGeoManager->GetTopVolume()->AddNode(gdmlTop, 1, 0);
-   ExpandNodeForGdml(gGeoManager->GetTopVolume()->GetNode(gGeoManager->GetTopVolume()->GetNdaughters()-1));
+    gGeoManager->GetTopVolume()->AddNode(gdmlTop, 1, 0);
+    ExpandNodeForGdml(gGeoManager->GetTopVolume()->GetNode(gGeoManager->GetTopVolume()->GetNdaughters()-1));
 
-   for (Int_t k = maxInd+1; k < newMaxInd+1; k++) {
-      TGeoMedium* medToDel = (TGeoMedium*)(gGeoManager->GetListOfMedia()->At(maxInd+1));
-      LOG(DEBUG) << "    removing media " << medToDel->GetName() << " with id " << medToDel->GetId() << " (k=" << k << ")";
-      gGeoManager->GetListOfMedia()->Remove(medToDel);
-   }
-   gGeoManager->SetAllIndex();
+    for (Int_t k = maxInd+1; k < newMaxInd+1; k++) {
+        TGeoMedium* medToDel = (TGeoMedium*)(gGeoManager->GetListOfMedia()->At(maxInd+1));
+        LOG(DEBUG) << "    removing media " << medToDel->GetName() << " with id " << medToDel->GetId() << " (k=" << k << ")";
+        gGeoManager->GetListOfMedia()->Remove(medToDel);
+    }
+    gGeoManager->SetAllIndex();
 
-   gFile = old;
+    gFile = old;
 }
 
 void BmnDch::ExpandNodeForGdml(TGeoNode* node)
 {
-   LOG(DEBUG) << "----------------------------------------- ExpandNodeForGdml for node " << node->GetName();
+    LOG(DEBUG) << "----------------------------------------- ExpandNodeForGdml for node " << node->GetName();
 
-   TGeoVolume* curVol = node->GetVolume();
+    TGeoVolume* curVol = node->GetVolume();
+    LOG(DEBUG) << "    volume: " << curVol->GetName();
 
-   LOG(DEBUG) << "    volume: " << curVol->GetName();
+    if (curVol->IsAssembly())
+        LOG(DEBUG) << "    skipping volume-assembly";
+    else
+    {
+        TGeoMedium* curMed = curVol->GetMedium();
+        TGeoMaterial* curMat = curVol->GetMaterial();
+        TGeoMedium* curMedInGeoManager = gGeoManager->GetMedium(curMed->GetName());
+        TGeoMaterial* curMatOfMedInGeoManager = curMedInGeoManager->GetMaterial();
+        TGeoMaterial* curMatInGeoManager = gGeoManager->GetMaterial(curMat->GetName());
 
-   if (curVol->IsAssembly()) {
-      LOG(DEBUG) << "    skipping volume-assembly";
-   }
-   else
-   {
-      TGeoMedium* curMed = curVol->GetMedium();
-      TGeoMaterial* curMat = curVol->GetMaterial();
-      TGeoMedium* curMedInGeoManager = gGeoManager->GetMedium(curMed->GetName());
-      TGeoMaterial* curMatOfMedInGeoManager = curMedInGeoManager->GetMaterial();
-      TGeoMaterial* curMatInGeoManager = gGeoManager->GetMaterial(curMat->GetName());
+        // Current medium and material assigned to the volume from GDML
+        LOG(DEBUG2) << "    curMed\t\t\t\t" << curMed << "\t" << curMed->GetName() << "\t" << curMed->GetId();
+        LOG(DEBUG2) << "    curMat\t\t\t\t" << curMat << "\t" << curMat->GetName() << "\t" << curMat->GetIndex();
 
-      // Current medium and material assigned to the volume from GDML
-      LOG(DEBUG2) << "    curMed\t\t\t\t" << curMed << "\t" << curMed->GetName() << "\t" << curMed->GetId();
-      LOG(DEBUG2) << "    curMat\t\t\t\t" << curMat << "\t" << curMat->GetName() << "\t" << curMat->GetIndex();
+        // Medium and material found in the gGeoManager - either the pre-loaded one or one from GDML
+        LOG(DEBUG2) << "    curMedInGeoManager\t\t" << curMedInGeoManager
+                    << "\t" << curMedInGeoManager->GetName() << "\t" << curMedInGeoManager->GetId();
+        LOG(DEBUG2) << "    curMatOfMedInGeoManager\t\t" << curMatOfMedInGeoManager
+                    << "\t" << curMatOfMedInGeoManager->GetName() << "\t" << curMatOfMedInGeoManager->GetIndex();
+        LOG(DEBUG2) << "    curMatInGeoManager\t\t" << curMatInGeoManager
+                    << "\t" << curMatInGeoManager->GetName() << "\t" << curMatInGeoManager->GetIndex();
 
-      // Medium and material found in the gGeoManager - either the pre-loaded one or one from GDML
-      LOG(DEBUG2) << "    curMedInGeoManager\t\t" << curMedInGeoManager
-               << "\t" << curMedInGeoManager->GetName() << "\t" << curMedInGeoManager->GetId();
-      LOG(DEBUG2) << "    curMatOfMedInGeoManager\t\t" << curMatOfMedInGeoManager
-               << "\t" << curMatOfMedInGeoManager->GetName() << "\t" << curMatOfMedInGeoManager->GetIndex();
-      LOG(DEBUG2) << "    curMatInGeoManager\t\t" << curMatInGeoManager
-               << "\t" << curMatInGeoManager->GetName() << "\t" << curMatInGeoManager->GetIndex();
+        TString matName = curMat->GetName();
+        TString medName = curMed->GetName();
 
-      TString matName = curMat->GetName();
-      TString medName = curMed->GetName();
+        if (curMed->GetId() != curMedInGeoManager->GetId()) {
+            if (fFixedMedia.find(medName) == fFixedMedia.end()) {
+                LOG(DEBUG) << "    Medium needs to be fixed";
+                fFixedMedia[medName] = curMedInGeoManager;
+                Int_t ind = curMat->GetIndex();
+                gGeoManager->RemoveMaterial(ind);
+                LOG(DEBUG) << "    removing material " << curMat->GetName()
+                           << " with index " << ind;
+                for (Int_t i=ind; i<gGeoManager->GetListOfMaterials()->GetEntries(); i++) {
+                    TGeoMaterial* m = (TGeoMaterial*)gGeoManager->GetListOfMaterials()->At(i);
+                    m->SetIndex(m->GetIndex()-1);
+                }
 
-      if (curMed->GetId() != curMedInGeoManager->GetId()) {
-         if (fFixedMedia.find(medName) == fFixedMedia.end()) {
-            LOG(DEBUG) << "    Medium needs to be fixed";
-            fFixedMedia[medName] = curMedInGeoManager;
-            Int_t ind = curMat->GetIndex();
-            gGeoManager->RemoveMaterial(ind);
-            LOG(DEBUG) << "    removing material " << curMat->GetName()
-               << " with index " << ind;
-            for (Int_t i=ind; i<gGeoManager->GetListOfMaterials()->GetEntries(); i++) {
-               TGeoMaterial* m = (TGeoMaterial*)gGeoManager->GetListOfMaterials()->At(i);
-               m->SetIndex(m->GetIndex()-1);
-            }
-
-            LOG(DEBUG) << "    Medium fixed";
-         }
-         else
-         {
-            LOG(DEBUG) << "    Already fixed medium found in the list    ";
-         }
-      }
-      else
-      {
-         if (fFixedMedia.find(medName) == fFixedMedia.end()) {
-            LOG(DEBUG) << "    There is no correct medium in the memory yet";
-
-            FairGeoLoader* geoLoad = FairGeoLoader::Instance();
-            FairGeoInterface* geoFace = geoLoad->getGeoInterface();
-            FairGeoMedia* geoMediaBase =  geoFace->getMedia();
-            FairGeoBuilder* geobuild = geoLoad->getGeoBuilder();
-
-            FairGeoMedium* curMedInGeo = geoMediaBase->getMedium(medName);
-            if (curMedInGeo == 0)
-            {
-               LOG(FATAL) << "    Media not found in Geo file: " << medName;
-               //! This should not happen.
-               //! This means that somebody uses material in GDML that is not in the media.geo file.
-               //! Most probably this is the sign to the user to check materials' names in the CATIA model.
+                LOG(DEBUG) << "    Medium fixed";
             }
             else
             {
-               LOG(DEBUG) << "    Found media in Geo file" << medName;
-               Int_t nmed = geobuild->createMedium(curMedInGeo);
-               fFixedMedia[medName] = (TGeoMedium*)gGeoManager->GetListOfMedia()->Last();
-               gGeoManager->RemoveMaterial(curMatOfMedInGeoManager->GetIndex());
-               LOG(DEBUG) << "    removing material " << curMatOfMedInGeoManager->GetName()
-                  << " with index " << curMatOfMedInGeoManager->GetIndex();
-               for (Int_t i=curMatOfMedInGeoManager->GetIndex(); i<gGeoManager->GetListOfMaterials()->GetEntries(); i++) {
-                  TGeoMaterial* m = (TGeoMaterial*)gGeoManager->GetListOfMaterials()->At(i);
-                  m->SetIndex(m->GetIndex()-1);
-               }
+                LOG(DEBUG) << "    Already fixed medium found in the list    ";
             }
+        }
+        else
+        {
+            if (fFixedMedia.find(medName) == fFixedMedia.end()) {
+                LOG(DEBUG) << "    There is no correct medium in the memory yet";
 
-            if (curMedInGeo->getSensitivityFlag()) {
-               LOG(DEBUG) << "    Adding sensitive  " << curVol->GetName();
-               AddSensitiveVolume(curVol);
-            }
-         }
-         else
-         {
-            LOG(DEBUG) << "    Already fixed medium found in the list";
-            LOG(DEBUG) << "!!! Sensitivity: " << fFixedMedia[medName]->GetParam(0);
-            if (fFixedMedia[medName]->GetParam(0) == 1) {
-               LOG(DEBUG) << "    Adding sensitive  " << curVol->GetName();
-               AddSensitiveVolume(curVol);
-            }
-         }
-      }
+                FairGeoLoader* geoLoad = FairGeoLoader::Instance();
+                FairGeoInterface* geoFace = geoLoad->getGeoInterface();
+                FairGeoMedia* geoMediaBase =  geoFace->getMedia();
+                FairGeoBuilder* geobuild = geoLoad->getGeoBuilder();
 
-      curVol->SetMedium(fFixedMedia[medName]);
-      gGeoManager->SetAllIndex();
+                FairGeoMedium* curMedInGeo = geoMediaBase->getMedium(medName);
+                if (curMedInGeo == 0)
+                {
+                    LOG(FATAL) << "    Media not found in Geo file: " << medName;
+                    //! This should not happen.
+                    //! This means that somebody uses material in GDML that is not in the media.geo file.
+                    //! Most probably this is the sign to the user to check materials' names in the CATIA model.
+                }
+                else
+                {
+                    LOG(DEBUG) << "    Found media in Geo file" << medName;
+                    Int_t nmed = geobuild->createMedium(curMedInGeo);
+                    fFixedMedia[medName] = (TGeoMedium*)gGeoManager->GetListOfMedia()->Last();
+                    gGeoManager->RemoveMaterial(curMatOfMedInGeoManager->GetIndex());
+                    LOG(DEBUG) << "    removing material " << curMatOfMedInGeoManager->GetName()
+                               << " with index " << curMatOfMedInGeoManager->GetIndex();
+                    for (Int_t i=curMatOfMedInGeoManager->GetIndex(); i<gGeoManager->GetListOfMaterials()->GetEntries(); i++) {
+                        TGeoMaterial* m = (TGeoMaterial*)gGeoManager->GetListOfMaterials()->At(i);
+                        m->SetIndex(m->GetIndex()-1);
+                    }
+                }
+
+                if (curMedInGeo->getSensitivityFlag()) {
+                    LOG(DEBUG) << "    Adding sensitive  " << curVol->GetName();
+                    AddSensitiveVolume(curVol);
+                }
+            }
+            else
+            {
+                LOG(DEBUG) << "    Already fixed medium found in the list";
+                LOG(DEBUG) << "!!! Sensitivity: " << fFixedMedia[medName]->GetParam(0);
+                if (fFixedMedia[medName]->GetParam(0) == 1) {
+                    LOG(DEBUG) << "    Adding sensitive  " << curVol->GetName();
+                    AddSensitiveVolume(curVol);
+                }
+            }
+        }
+
+        curVol->SetMedium(fFixedMedia[medName]);
+        gGeoManager->SetAllIndex();
 
 //      gGeoManager->GetListOfMaterials()->Print();
 //      gGeoManager->GetListOfMedia()->Print();
+    }
 
-   }
-
-   //! Recursevly go down the tree of nodes
-   if (curVol->GetNdaughters() != 0)
-   {
-      TObjArray* NodeChildList = curVol->GetNodes();
-      TGeoNode* curNodeChild;
-      for (Int_t j=0; j<NodeChildList->GetEntriesFast(); j++)
-      {
-         curNodeChild = (TGeoNode*)NodeChildList->At(j);
-         ExpandNodeForGdml(curNodeChild);
-      }
-   }
+    //! Recursevly go down the tree of nodes
+    if (curVol->GetNdaughters() != 0)
+    {
+        TObjArray* NodeChildList = curVol->GetNodes();
+        TGeoNode* curNodeChild;
+        for (Int_t j=0; j<NodeChildList->GetEntriesFast(); j++)
+        {
+            curNodeChild = (TGeoNode*)NodeChildList->At(j);
+            ExpandNodeForGdml(curNodeChild);
+        }
+    }
 }
 
 //Check if Sensitive-----------------------------------------------------------
 Bool_t BmnDch::CheckIfSensitive(std::string name)
 {
-  TString tsname = name;
-  if (tsname.Contains("Active")) {
-    return kTRUE;
-  }
-  return kFALSE;
+    TString tsname = name;
+    if (tsname.Contains("Active"))
+        return kTRUE;
 
+    return kFALSE;
 
 //  if(0 == TString(name).CompareTo("DCHDetV")) {
 //    return kTRUE;
 //  }
 //  return kFALSE;
-
 }
-//---------------------------------------------------------
 
 //------------------------------------------------------------------------------------------------------------------------
 BmnDchPoint* BmnDch::AddHit(Int_t trackID, Int_t detID, TVector3 pos, Double_t radius,
-			    TVector3 mom, Double_t time, Double_t length,
-			    Double_t eLoss, Int_t isPrimary, Double_t charge, Int_t pdgId, TVector3 trackPos)
+                            TVector3 mom, Double_t time, Double_t length,
+                            Double_t eLoss, Int_t isPrimary, Double_t charge, Int_t pdgId, TVector3 trackPos)
 {
-	TClonesArray& clref = *fPointCollection;
-	Int_t size = clref.GetEntriesFast();
+    TClonesArray& clref = *fPointCollection;
+    Int_t size = clref.GetEntriesFast();
     //std::cout << "ELoss: " << eLoss << "\n";
     return new(clref[size]) BmnDchPoint(trackID, detID, pos, radius, mom, time, length, eLoss, isPrimary, charge, pdgId, trackPos);
 }
-//------------------------------------------------------------------------------------------------------------------------
 
 ClassImp(BmnDch)

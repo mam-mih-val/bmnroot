@@ -320,9 +320,32 @@ run_digi_src:ubuntu:
         make -j 5
         make install
       fi;
-    - ssh $STRATUM_0 "sudo cvmfs_server transaction nica.jinr.ru"
-    - rsync --filter='-p .cvmfscatalog' --filter='-p .cvmfsautocatalog' -a --delete /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME $STRATUM_0:/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/
-    - ssh $STRATUM_0 "sudo cvmfs_server publish nica.jinr.ru"
+    - |
+      retries=5
+      cooldown=15
+
+      ready=0
+      for i in `seq 1 $retries`; do
+        echo -n "Checking if repository is in transaction... "
+        if ssh $STRATUM_0 "cvmfs_server list | grep -E 'nica.*in transaction' 1>/dev/null" ; then
+          [ $i -le $retries ] && echo "${RED}YES${NC}, retry $i/$retries in ${cooldown}s"
+        else
+          echo '${GREEN}OK{NC}, ready to start new transaction'
+          ready=1
+          break
+        fi
+        sleep $cooldown
+      done
+
+      if [ $ready -eq 1 ]; then
+        echo "Starting transaction"
+        ssh $STRATUM_0 "sudo cvmfs_server transaction nica.jinr.ru"
+        rsync --filter='-p .cvmfscatalog' --filter='-p .cvmfsautocatalog' -a --delete /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME $STRATUM_0:/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/
+        ssh $STRATUM_0 "sudo cvmfs_server publish nica.jinr.ru"
+      else
+        echo "Failed to start new transaction"
+        exit 1
+      fi
     - ssh-agent -k
   only:
     - tags

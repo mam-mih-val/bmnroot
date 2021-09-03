@@ -2,10 +2,7 @@
  * @file BmnZDCTowerDraw.h
  * @author 
  * @brief BmnZDCTowerDraw header file
- * @version 1.0
  * @date 2021-08-13
- * 
- * @copyright 
  * 
  */
 
@@ -55,6 +52,7 @@ private:
 
     UInt_t fNumModules;             // number of modules in one ZDC detector
     Double_t fModuleZLen;           // z lenght of ZDC module, cm
+    string fGeoPath;                //! path to ZDC geometry
 
     Bool_t fResetRequiredFlag;      // flag true is module sizes are adjusted
 

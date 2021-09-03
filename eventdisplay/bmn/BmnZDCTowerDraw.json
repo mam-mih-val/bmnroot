@@ -1,0 +1,10 @@
+{
+    "ZDC": {
+        "numberOfModules": 104,
+        "pathToGeometry": "/cave_1/ZDC_common_0/zdc01_1"
+    },
+
+    "ECAL": {
+
+    }
+}

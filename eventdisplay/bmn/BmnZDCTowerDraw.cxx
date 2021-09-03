@@ -2,10 +2,7 @@
  * @file BmnZDCTowerDraw.cxx
  * @author 
  * @brief BmnZDCTowerDraw source file 
- * @version 1.0
  * @date 2021-08-13
- * 
- * @copyright 
  * 
  */
 
@@ -20,8 +17,14 @@
 #include "TEveViewer.h"
 #include "TGeoBBox.h"
 
+#include "json.hpp"
+
 #include <iostream>
+
 using namespace std;
+using json = nlohmann::json;
+
+const string caloDataFile = gSystem->ExpandPathName("$VMCWORKDIR/eventdisplay/bmn/BmnZDCTowerDraw.json"); // file containing the characteristics of the calorimeter
 
 BmnZDCTowerDraw::BmnZDCTowerDraw()
   : FairTask("BmnZDCTowerDraw", 0),
@@ -30,7 +33,8 @@ BmnZDCTowerDraw::BmnZDCTowerDraw()
     fDigitList(NULL),
     fEneArr(NULL),
     fResetRequiredFlag(kFALSE),
-    fq(NULL) {}
+    fq(NULL)
+{}
 
 BmnZDCTowerDraw::BmnZDCTowerDraw(const char* name, Float_t zdcMinEnergyThreshold, Int_t iVerbose)
   : FairTask(name, iVerbose),
@@ -39,32 +43,62 @@ BmnZDCTowerDraw::BmnZDCTowerDraw(const char* name, Float_t zdcMinEnergyThreshold
     fDigitList(NULL),
     fEneArr(NULL),
     fResetRequiredFlag(kFALSE),
-    fq(NULL) {}
+    fq(NULL)
+{}
 
 InitStatus BmnZDCTowerDraw::Init()
 {
-    if (fVerbose > 0) cout << "BmnZdcTowerDraw::Init()" << endl;
+    if (fVerbose > 0) cout << "BmnZDCTowerDraw::Init()" << endl;
 
     fEventManager = MpdEventManager::Instance();
-    if (fVerbose > 1) cout << "BmnZdcTowerDraw::Init() get instance of EventManager: " << fEventManager << endl;
+    if (fVerbose > 1) cout << "BmnZDCTowerDraw::Init() get instance of EventManager: " << fEventManager << endl;
 
     fEventManager->fgRedrawRecoPointsReqired = kTRUE;
 
     FairRootManager* fManager = FairRootManager::Instance();
-    if (fVerbose > 1) cout << "BmnZdcTowerDraw::Init() get instance of FairRootManager: " << fManager << endl;
+    if (fVerbose > 1) cout << "BmnZDCTowerDraw::Init() get instance of FairRootManager: " << fManager << endl;
 
     fDigitList = (TClonesArray*) fManager->GetObject(GetName());
     if (fDigitList == 0)
     {
-        LOG(ERROR) << "BmnZdcTowerDraw::Init() branch " << GetName() << " not found! Task will be deactivated";
+        LOG(ERROR) << "BmnZDCTowerDraw::Init() branch " << GetName() << " not found! Task will be deactivated!";
         SetActive(kFALSE);
+        return kERROR;
     }
-    if (fVerbose > 1) cout << "BmnZdcTowerDraw::Init() get digit list " << fDigitList << endl;
+    if (fVerbose > 1) cout << "BmnZDCTowerDraw::Init() get digit list " << fDigitList << endl;
 
-    // -------------------------------------------------------
-    fNumModules = 104;
-    fModuleZLen = 52.5;
-    // -------------------------------------------------------
+    ifstream file(caloDataFile);
+    if (!file)
+    {
+        LOG(ERROR) << "BmnZDCTowerDraw::Init() file " << caloDataFile << " not found! Task will be deactivated!";
+        SetActive(kFALSE);
+        file.close();
+        return kERROR;
+    }
+    
+    json caloSpecData;
+    file >> caloSpecData;
+    file.close();
+    try
+    {
+        fNumModules = caloSpecData["ZDC"]["numberOfModules"];
+        fGeoPath = caloSpecData["ZDC"]["pathToGeometry"];
+    }
+    catch(const json::type_error& e)
+    {
+        LOG(ERROR) << "BmnZDCTowerDraw::Init() file " << caloDataFile << " doesn't contain the required data! Task will be deactivated!";
+        SetActive(kFALSE);
+        return kERROR;
+    }
+
+    if (gGeoManager->cd(fGeoPath.c_str()) == false)
+    {
+        LOG(ERROR) << "BmnZDCTowerDraw::Init(): Path to geometry '" << fGeoPath << "' not found" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
+
+    fModuleZLen = ((TGeoBBox*) gGeoManager->GetCurrentNode()->GetVolume()->GetNode(0)->GetVolume()->GetShape())->GetDZ();
 
     fEneArr = new Float_t[fNumModules+1];
     for (Int_t i = 0; i < fNumModules+1; i++)
@@ -90,7 +124,7 @@ void BmnZDCTowerDraw::Exec(Option_t* option)
     if (fEventManager->fgShowRecoPointsIsShow)
     {
         Int_t nDigits = fDigitList->GetEntriesFast();
-        if (fVerbose > 2) cout << "BmnZdcTowerDraw::Exec() Number of ZDC digits = " << nDigits << endl;
+        if (fVerbose > 2) cout << "BmnZDCTowerDraw::Exec() Number of ZDC digits = " << nDigits << endl;
 
         for (int i = 0; i < nDigits; i++)
         {
@@ -101,7 +135,7 @@ void BmnZDCTowerDraw::Exec(Option_t* option)
 
             Float_t energy = dgt->GetAmp() * 1e-3; // MeV to GeV
 
-            if (fVerbose > 3) cout << "BmnZdcTowerDraw::Exec() Channel = " << channel << ", Energy = " << energy << " GeV" << endl;
+            if (fVerbose > 3) cout << "BmnZDCTowerDraw::Exec() Channel = " << channel << ", Energy = " << energy << " GeV" << endl;
 
             fEneArr[channel] = energy;
         }
@@ -109,7 +143,7 @@ void BmnZDCTowerDraw::Exec(Option_t* option)
         for (Int_t i = 1; i < fNumModules+1; i++)
             if (fEneArr[i] > fMaxE) fMaxE = fEneArr[i];
 
-        if (fVerbose > 2) cout << "BmnZdcTowerDraw::Exec() Max energy = " << fMaxE << " GeV" << endl;
+        if (fVerbose > 2) cout << "BmnZDCTowerDraw::Exec() Max energy = " << fMaxE << " GeV" << endl;
 
         DrawTowers();
     }
@@ -142,12 +176,7 @@ void BmnZDCTowerDraw::DrawTowers()
     gGeoManager->cd("/cave_1");
     TGeoNode* caveNode = gGeoManager->GetCurrentNode();
 
-    TString zdc_path = "/cave_1/ZDC_common_0/zdc01_1";
-    if (gGeoManager->cd(zdc_path) == false)
-    {
-        LOG(ERROR) << "BmnZdcTowerDraw::DrawTowers(): Path '" << zdc_path << "' not found" << endl;
-        return;
-    }
+    gGeoManager->cd(fGeoPath.c_str());
 
     TGeoNode* zdcNode = gGeoManager->GetCurrentNode();
     TGeoVolume* zdcVolumeClone = zdcNode->GetVolume()->CloneVolume();
@@ -156,10 +185,11 @@ void BmnZDCTowerDraw::DrawTowers()
     for (Int_t iModule = 0; iModule < zdcNode->GetVolume()->GetNdaughters(); iModule++)
     {
         /**
-         * * the internal structure of modules does not allow changing
-         * * their shape (all modules have the same TGeoVolume), 
-         * * so we delete and create a new TGeoVolume with a unique shape for each module
+         * the internal structure of modules does not allow changing
+         * their shape (all modules have the same TGeoVolume), 
+         * so we delete and create a new TGeoVolume with a unique shape for each module
          */
+
         TGeoNode* moduleNode = (TGeoNode*) zdcArr->UncheckedAt(iModule);
         TGeoVolume* moduleVolumeCopy = (TGeoVolume*) moduleNode->GetVolume()->Clone();
         

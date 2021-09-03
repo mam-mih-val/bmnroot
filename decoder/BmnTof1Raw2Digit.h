@@ -5,7 +5,6 @@
 #include "TClonesArray.h"
 #include "BmnTDCDigit.h"
 #include "BmnTof1Digit.h"
-#include "BmnMath.h"
 #include <iostream>
 #include "Riostream.h"
 #include <cstdlib>
@@ -51,10 +50,10 @@ struct BmnTof1TDCParameters {
 class BmnTof1Raw2Digit {
 	public:		
 		BmnTof1Raw2Digit(); //BmnTof1Raw2Digit main constructor
-		BmnTof1Raw2Digit(Int_t nPeriod, Int_t nRun, Int_t verbose); //Calls setRun(...)
+		BmnTof1Raw2Digit(int nPeriod, int nRun); //Calls setRun(...)
 		~BmnTof1Raw2Digit(); //Destructor
 		
-		Bool_t setRun(Int_t nPerion, Int_t nRun); //Load mapping and INL from the DB for run #nRun in period #nPeriod
+		Bool_t setRun(int nPerion, int nRun); //Load mapping and INL from the DB for run #nRun in period #nPeriod
 		void setMapFromFile(TString placementMapFile, TString mapFile); //Load mapping from two files
 		void saveMapToFile(std::string placementMapFile, std::string mapFile); //Save the mapping to two files
 		
@@ -62,7 +61,6 @@ class BmnTof1Raw2Digit {
 		void saveINLToFile(std::string INLFile, unsigned int TDCSerial); //Save INL for TDCSerial to an INI file
 		
 		void print(){} //Prints some info
-                void setVerbose(Int_t verbose) {fVerbose = verbose;}
 		
 		void FillEvent(TClonesArray *data, map<UInt_t, Long64_t> *mapTS,TClonesArray *tof1digit); //
 		
@@ -71,9 +69,9 @@ class BmnTof1Raw2Digit {
 	private:
 		ClassDef(BmnTof1Raw2Digit, 1);
 		void init(); //BmnTof1Raw2Digit init function (called in BmnTof1Raw2Digit constructors)
-		Int_t RunIndex, PeriodIndex, fVerbose; //To store the RunIndex and PeriodIndex and print level
+		int RunIndex, PeriodIndex; //To store the RunIndex and PeriodIndex
 		std::map<std::pair<UInt_t, UChar_t>, UInt_t> PlacementMap;	//Stores the placement map
-		std::map<UInt_t, BmnTof1TDCParameters> TDCMap;			//Stores the TDC mapping (TDC's channel -> plane/strip/side) and INL
+		std::map<UInt_t, BmnTof1TDCParameters> TDCMap;			//Stores the loaded main mapping
 		void plmap_insert(UInt_t Serial, UChar_t Slot, UInt_t TDCSerial); //See .cxx code
 		
 		//std::map provides a way to find TDC by Serial and Slot really fast (O(logN))

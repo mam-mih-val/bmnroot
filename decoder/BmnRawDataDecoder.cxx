@@ -1922,7 +1922,6 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         tof400 = new TClonesArray("BmnTof1Digit");
         fDigiTree->Branch("TOF400", &tof400);
         fTof400Mapper = new BmnTof1Raw2Digit();
-        fTof400Mapper->setVerbose(fVerbose);
         Bool_t FlagTemp = fTof400Mapper->setRun(fPeriodId, fRunId);
         if (FlagTemp == kFALSE) {
             if (fTof400PlaceMapFileName.Sizeof() > 1 && fTof400StripMapFileName.Sizeof() > 1) {

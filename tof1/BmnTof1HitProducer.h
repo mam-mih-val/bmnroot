@@ -52,6 +52,7 @@ class BmnTof1HitProducer : public BmnTof1HitProducerIdeal
         BmnTrigDigit*           FingT0Digit();
         Bool_t                  IsFile(TString NameFile);
         Bool_t                  SetCorrFiles();
+        Bool_t                  OutOfRange(Int_t iPlane);
         
 public:
 	BmnTof1HitProducer(const char *name = "TOF1 HitProducer", Bool_t useMCdata = true, Int_t verbose = 1, Bool_t DoTest = false);

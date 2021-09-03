@@ -1,12 +1,17 @@
 //#define ScaleBorderInfo
 
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "database/uni_db/examples/trigger/ir/GemRun6VetoSpills.C"
+
 // print summary information about beam spill for a given run in a period (or for a whole period)
 // if 'run' parameter is zero or absent then all runs in the period will be shown
 void run_beam_info(int period = 7, int run = 0, TString target = "",
+                   TString txtfile_path= "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run6/summary.txt",
+                   TString scheme_path = "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run6/spill_run6.xslt")
                    //TString txtfile_path= "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/summary_corr_v2.txt",
                    //TString scheme_path = "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/spill_run7_bmn.xslt")
-                   TString txtfile_path= "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/SRC_Data.txt",
-                   TString scheme_path = "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/spill_run7_src_full.xslt")
+                   //TString txtfile_path= "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/SRC_Data.txt",
+                   //TString scheme_path = "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/spill_run7_src_full.xslt")
 {
     // get spill info
     UniParser parser;
@@ -99,6 +104,11 @@ void run_beam_info(int period = 7, int run = 0, TString target = "",
         TDatime dtEnd = *dateEnd;
         delete pRun;
 
+        // get veto spills to skip
+        int current_spill = -1;
+        vector<int> veto_spills;
+        if (period == 6) veto_spills = GemRun6VetoSpills(run);
+
         vector<Long64_t> sum_columns;
         for (int i_sum = 0; i_sum < sum_size; i_sum++)
             sum_columns.push_back(0);
@@ -111,18 +121,28 @@ void run_beam_info(int period = 7, int run = 0, TString target = "",
             //cout<<"dtStart = "<<dtStart.AsSQLString()<<" : dtEnd = "<<dtEnd.AsSQLString()<<". st->dtSpillEnd = "<<st->dtSpillEnd.AsSQLString()<<endl;
             if (st->dtSpillEnd >= dtEnd)
             {
+                current_spill++;
                 if (isFound)
                 {
                     stPrevious = parse_values.at(ind - 1);
+
+                    // check for veto spills
+                    if(find(veto_spills.begin(), veto_spills.end(), current_spill) != veto_spills.end())
+                    {
+                        //cout<<"SKIPPED: "<<current_spill<<endl;
+                        break;
+                    }
 
                     #ifdef ScaleBorderInfo
                     // scale values
                     int sec1 = st->dtSpillEnd.Convert() - stPrevious->dtSpillEnd.Convert();
                     int sec2 = dtEnd.Convert() - stPrevious->dtSpillEnd.Convert();
                     double sec_ratio = sec2 / sec1;
+                    // increase sum for columns
                     for (int i_sum = 0; i_sum < sum_size; i_sum++)
                         sum_columns[i_sum] += TMath::Nint(boost::any_cast<int>(st->arrValues[i_sum]) * sec_ratio); // fix (Int_t)
                     #else
+                    // increase sum for columns
                     for (int i_sum = 0; i_sum < sum_size; i_sum++)
                         sum_columns[i_sum] += boost::any_cast<int>(st->arrValues[i_sum]); // fix (Int_t)
                     #endif
@@ -132,6 +152,7 @@ void run_beam_info(int period = 7, int run = 0, TString target = "",
 
             if (st->dtSpillEnd > dtStart)
             {
+                current_spill++;
                 if (ind > 0)
                 {
                     stPrevious = parse_values.at(ind - 1);
@@ -140,17 +161,33 @@ void run_beam_info(int period = 7, int run = 0, TString target = "",
                     {
                         isFound = true;
 
+                        // check for veto spills
+                        if(find(veto_spills.begin(), veto_spills.end(), current_spill) != veto_spills.end())
+                        {
+                            //cout<<"SKIPPED: "<<current_spill<<endl;
+                            continue;
+                        }
+
                         #ifdef ScaleBorderInfo
                         // scale values
                         int sec1 = st->dtSpillEnd.Convert() - stPrevious->dtSpillEnd.Convert();
                         int sec2 = st->dtSpillEnd.Convert() - dtStart.Convert();
                         double sec_ratio = sec2 / sec1;
+                        // increase sum for columns
                         for (int i_sum = 0; i_sum < sum_size; i_sum++)
                             sum_columns[i_sum] += TMath::Nint(boost::any_cast<int>(st->arrValues[i_sum]) * sec_ratio); // fix (Int_t)
                         #endif
                     }
                 }
 
+                // check for veto spills
+                if(find(veto_spills.begin(), veto_spills.end(), current_spill) != veto_spills.end())
+                {
+                    //cout<<"SKIPPED: "<<current_spill<<endl;
+                    continue;
+                }
+
+                // increase sum for columns
                 for (int i_sum = 0; i_sum < sum_size; i_sum++)
                     sum_columns[i_sum] += boost::any_cast<int>(st->arrValues[i_sum]); // fix (Int_t)
             }//if (st->dtSpillEnd > dtStart)

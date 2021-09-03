@@ -1,4 +1,4 @@
-<unidbparser_schema>
+<uniparser>
 
 <cycle skip="32" delimiter=" ">
  <element action="write" column_name="datetime" type="datetime"/>
@@ -24,4 +24,4 @@
  <element action="skip"/>
 </cycle>
 
-</unidbparser_schema>
+</uniparser>

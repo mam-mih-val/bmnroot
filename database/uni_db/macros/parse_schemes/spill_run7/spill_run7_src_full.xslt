@@ -1,4 +1,4 @@
-<UniParser_schema>
+<uniparser>
 
 <!-- SRC data block, 36 of 32-bit words 2018.02.18 -->
 <cycle skip="32" delimiter=" ">
@@ -40,4 +40,4 @@
  <element action="write" column_name="CtExtStart" type="int"/>
 </cycle>
 
-</UniParser_schema>
+</uniparser>

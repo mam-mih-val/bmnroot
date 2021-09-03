@@ -450,9 +450,9 @@ int UniParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
         xmlFreeDoc(docSchema);
         return -4;
     }
-    if (strcmp((char*)cur_schema_node->name, "UniParser_schema") != 0)
+    if (strcmp((char*)cur_schema_node->name, "uniparser") != 0)
     {
-        cout<<"ERROR: it is not UniParser schema"<<endl;
+        cout<<"ERROR: it is not 'uniparser' scheme: "<<(char*)cur_schema_node->name<<endl;
         xmlFreeDoc(docXML);
         xmlFreeDoc(docSchema);
         return -5;
@@ -635,9 +635,9 @@ int UniParser::ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate)
         xmlFreeDoc(docSchema);
         return -4;
     }
-    if (strcmp((char*)cur_schema_node->name, "UniParser_schema") != 0)
+    if (strcmp((char*)cur_schema_node->name, "uniparser") != 0)
     {
-        cout<<"ERROR: it is not UniParser schema"<<endl;
+        cout<<"ERROR: it is not 'uniparser' scheme: "<<(char*)cur_schema_node->name<<endl;
         xmlFreeDoc(docSchema);
         return -5;
     }
@@ -762,9 +762,9 @@ int UniParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
         xmlFreeDoc(docSchema);
         return -4;
     }
-    if (strcmp((char*)cur_schema_node->name, "UniParser_schema") != 0)
+    if (strcmp((char*)cur_schema_node->name, "uniparser") != 0)
     {
-        cout<<"ERROR: it is not UniParser schema"<<endl;
+        cout<<"ERROR: it is not 'uniparser' scheme: "<<(char*)cur_schema_node->name<<endl;
         xmlFreeDoc(docSchema);
         return -5;
     }
@@ -1217,9 +1217,9 @@ int UniParser::ParseTxt2Struct(TString txtName, TString schemaPath, vector<struc
         xmlFreeDoc(docSchema);
         return -3;
     }
-    if (strcmp((char*)cur_schema_node->name, "UniParser_schema") != 0)
+    if (strcmp((char*)cur_schema_node->name, "uniparser") != 0)
     {
-        if (iVerbose > 0) cout<<"ERROR: it is not UniParser schema"<<endl;
+        if (iVerbose > 0) cout<<"ERROR: it is not 'uniparser' scheme: "<<(char*)cur_schema_node->name<<endl;
         xmlFreeDoc(docSchema);
         return -4;
     }

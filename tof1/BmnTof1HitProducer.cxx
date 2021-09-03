@@ -69,7 +69,7 @@ fDoINL(true), fDoSlewing(true), fSignalVelosity(0.060) {
 
 BmnTof1HitProducer::~BmnTof1HitProducer() {
 
-    for (Int_t i = 0; i < fNDetectors; i++) {
+    for (Int_t i = 0; i<fNDetectors; i++){
         delete pDetector[i];
     }
     delete[] pDetector;
@@ -123,13 +123,7 @@ InitStatus BmnTof1HitProducer::Init() {
     FairRootManager::Instance()->Register("BmnTof400Hit", "TOF1", aTofHits, kTRUE);
 
     //Parsing geometry
-    fNDetectors = -1;
     fNDetectors = pGeoUtils->ParseTGeoManager(fUseMCData, h2TestStrips, true);
-    if (fNDetectors <= 0) {
-        cout << "BmnTof1HitProducer::Init(): No TOF400 detectors in geometry file for the current run! Task will be deactivated" << endl;
-        SetActive(kFALSE);
-        return kERROR;
-    }
     if (fVerbose) cout << "BmnTof1HitProducer::Init(): number of TOF400 Detectors from geometry file = " << fNDetectors << endl;
     pGeoUtils->FindNeighborStrips(h1TestDistance, h2TestNeighborPair, fDoTest);
 
@@ -308,8 +302,7 @@ void BmnTof1HitProducer::Exec(Option_t* opt) {
         for (Int_t iDig = 0; iDig < aExpDigits->GetEntriesFast(); ++iDig) {
             BmnTof1Digit* digTof = (BmnTof1Digit*) aExpDigits->At(iDig);
             //cout << "SETTING PLANE " << digTof->GetPlane() << "\n";
-            if (!OutOfRange(digTof->GetPlane()))
-                pDetector[digTof->GetPlane()]->SetDigit(digTof);
+            pDetector[digTof->GetPlane()]->SetDigit(digTof);
         }
 
         for (Int_t i = 0; i < fNDetectors; i++)
@@ -400,14 +393,14 @@ Bool_t BmnTof1HitProducer::SetCorrFiles() {
 
         //SRC
         if (fRun >= 2013 && fRun <= 3588) {
-
+            
             //for first time will be used correction from BM@N
-            NameFileLRcorrection = Form("TOF400_LRCorr_RUN%i_BMN.dat", fPeriod);
+            NameFileLRcorrection = Form("TOF400_LRCorr_RUN%i_BMN.dat", fPeriod); 
             NameFileSlewingCorrection = Form("TOF400_SlewingCorr_RUN%i_BMN.root", fPeriod);
-
+            
             //NameFileLRcorrection = Form("TOF400_LRCorr_RUN%i_SRC.dat", fPeriod);
             //NameFileSlewingCorrection = Form("TOF400_SlewingCorr_RUN%i_SRC.root", fPeriod);
-
+            
             NameFileTimeShiftCorrection = Form("TOF400_TimeShiftCorr_RUN%i_SRC.dat", fPeriod);
 
             FlagFileLRcorrection = true;
@@ -478,12 +471,5 @@ Bool_t BmnTof1HitProducer::SetCorrFiles() {
         return kTRUE;
 
     // return "false" in case the run is outside physical runs or correction files are not found.
-    return kFALSE;
-}
-//--------------------------------------------------------------------------------------------------------------------------------------
-
-Bool_t BmnTof1HitProducer::OutOfRange(Int_t iPlane = -1) {
-    if (iPlane < 0 || iPlane >= fNDetectors)
-        return kTRUE;
     return kFALSE;
 }

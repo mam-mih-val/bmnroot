@@ -1156,7 +1156,10 @@ void UpdateTrackParam(FairTrackParam* initPar, const FairTrackParam* detPar, Dou
 
     TMatrixDSym covdet(5), icovdet(5);
     covdet *= 0.;
-    for (int ir = 0; ir < 5; ir++) covdet(ir, ir) = detPar->GetCovariance(ir, ir);
+    for (int ir = 0; ir < 5; ir++) {
+        covdet(ir, ir) = detPar->GetCovariance(ir, ir);
+        if (detPar->GetCovariance(ir, ir) == 0) covdet(ir, ir) = 0.00001;
+    }
     covdet(4, 4) = 10000.;
 
     icovdet = covdet;

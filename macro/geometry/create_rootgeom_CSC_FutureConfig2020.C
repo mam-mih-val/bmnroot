@@ -71,7 +71,6 @@ class FairGeoBuilder;
 
 TGeoVolume *CreateStation(TString station_name);
 TGeoVolume *CreateModule(TString module_name);
-TGeoVolume *CreateFrameForModule(TString frame_name);
 
 void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
 
@@ -164,9 +163,6 @@ void create_rootgeom_CSC_FutureConfig2020() {
         TGeoVolume *module0 = CreateModule(TString("module0_")+station->GetName());
         TGeoVolume *module1 = CreateModule(TString("module1_")+station->GetName());
 
-        TGeoVolume *frame0 = CreateFrameForModule(TString("frame0_")+station->GetName());
-        TGeoVolume *frame1 = CreateFrameForModule(TString("frame1_")+station->GetName());
-
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
             module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+0.5*ZGasSize);
 
@@ -174,21 +170,11 @@ void create_rootgeom_CSC_FutureConfig2020() {
             module1_transform->RotateZ(180);
             module1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1], ZModuleShifts[stationNum][1]+0.5*ZGasSize);
 
-        TGeoCombiTrans *frame0_transform = new TGeoCombiTrans();
-            frame0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+0.5*ZGasSize);
-
-        TGeoCombiTrans *frame1_transform = new TGeoCombiTrans();
-            frame1_transform->RotateZ(180);
-            frame1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1], ZModuleShifts[stationNum][1]+0.5*ZGasSize);
-
         TGeoCombiTrans *station_transform = new TGeoCombiTrans();
         station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
 
         station->AddNode(module0, 0, new TGeoCombiTrans(*module0_transform));
         station->AddNode(module1, 0, new TGeoCombiTrans(*module1_transform));
-
-        station->AddNode(frame0, 0, new TGeoCombiTrans(*frame0_transform));
-        station->AddNode(frame1, 0, new TGeoCombiTrans(*frame1_transform));
 
         CSC->AddNode(station, 0, station_transform);
     }
@@ -251,155 +237,3 @@ TGeoVolume *CreateModule(TString module_name) {
     return moduleV;
 }
 //------------------------------------------------------------------------------
-
-TGeoVolume *CreateFrameForModule(TString frame_name) {
-
-    //frame
-    TGeoVolume *frameA = new TGeoVolumeAssembly(frame_name);
-    frameA->SetMedium(pMedAir);
-
-    //vertical frames ----------------------------------------------------------
-    Double_t verticalFrame_XSize = 4.5; //cm
-    Double_t verticalFrame_YSize = YGasSize; //cm
-    Double_t verticalFrame_ZSize = 3.25; //cm
-
-    TGeoShape *verticalFrameS = new TGeoBBox(TString("verticalFrameS")+=TString("_") + frameA->GetName(), verticalFrame_XSize*0.5, verticalFrame_YSize*0.5, verticalFrame_ZSize*0.5);
-
-    TGeoVolume *verticalFrameV = new TGeoVolume(TString("verticalFrameV")+=TString("_") + frameA->GetName(), verticalFrameS);
-
-    //volume medium
-    TGeoMedium *verticalFrameV_medium = pMedFiberGlass;
-    if(verticalFrameV_medium) {
-        verticalFrameV->SetMedium(verticalFrameV_medium);
-    }
-    else Fatal("Main", "Invalid medium for verticalFrameV!");
-
-    //volume visual property (transparency)
-    verticalFrameV->SetLineColor(TColor::GetColor("#9999ff"));
-    verticalFrameV->SetTransparency(0);
-
-    TGeoCombiTrans *verticalFrameV_transf[2];
-
-    verticalFrameV_transf[0] = new TGeoCombiTrans();
-    verticalFrameV_transf[0]->SetDx(+(XGasSize*0.5 + verticalFrame_XSize*0.5));
-    verticalFrameV_transf[0]->SetDy(0.0);
-    verticalFrameV_transf[0]->SetDz(0.0);
-
-    verticalFrameV_transf[1] = new TGeoCombiTrans();
-    verticalFrameV_transf[1]->SetDx(-(XGasSize*0.5 + verticalFrame_XSize*0.5));
-    verticalFrameV_transf[1]->SetDy(0.0);
-    verticalFrameV_transf[1]->SetDz(0.0);
-
-    frameA->AddNode(verticalFrameV, 0, verticalFrameV_transf[0]);
-    frameA->AddNode(verticalFrameV, 1, verticalFrameV_transf[1]);
-    //--------------------------------------------------------------------------
-
-    //horizontal frame ---------------------------------------------------------
-    Double_t horizontalFrame_XSize = XGasSize + verticalFrame_XSize*2; //cm
-    Double_t horizontalFrame_YSize = 4.5; //cm
-    Double_t horizontalFrame_ZSize = 3.25; //cm
-
-    TGeoShape *horizontalFrameS = new TGeoBBox(TString("horizontalFrameS")+=TString("_") + frameA->GetName(), horizontalFrame_XSize*0.5, horizontalFrame_YSize*0.5, horizontalFrame_ZSize*0.5);
-
-    TGeoVolume *horizontalFrameV = new TGeoVolume(TString("horizontalFrameV")+=TString("_") + frameA->GetName(), horizontalFrameS);
-
-    //volume medium
-    TGeoMedium *horizontalFrameV_medium = pMedFiberGlass;
-    if(horizontalFrameV_medium) {
-        horizontalFrameV->SetMedium(horizontalFrameV_medium);
-    }
-    else Fatal("Main", "Invalid medium for horizontalFrameV!");
-
-    //volume visual property (transparency)
-    horizontalFrameV->SetLineColor(TColor::GetColor("#9999ff"));
-    horizontalFrameV->SetTransparency(0);
-
-    TGeoCombiTrans *horizontalFrameV_transf[1];
-
-    horizontalFrameV_transf[0] = new TGeoCombiTrans();
-    horizontalFrameV_transf[0]->SetDx(0.0);
-    horizontalFrameV_transf[0]->SetDy(+(YGasSize*0.5 + horizontalFrame_YSize*0.5));
-    horizontalFrameV_transf[0]->SetDz(0.0);
-
-    frameA->AddNode(horizontalFrameV, 0, horizontalFrameV_transf[0]);
-    //--------------------------------------------------------------------------
-
-    //panels -------------------------------------------------------------------
-    Double_t fiberGlassPanel_XSize = XGasSize; //cm
-    Double_t fiberGlassPanel_YSize = YGasSize; //cm
-    Double_t fiberGlassPanel_ZSize = 0.1; //cm
-
-    Double_t honeyCombPanel_XSize = XGasSize; //cm
-    Double_t honeyCombPanel_YSize = YGasSize; //cm
-    Double_t honeyCombPanel_ZSize = 1.05; //cm
-
-    TGeoShape *fiberGlassPanelS = new TGeoBBox(TString("fiberGlassPanelS")+=TString("_") + frameA->GetName(), fiberGlassPanel_XSize*0.5, fiberGlassPanel_YSize*0.5, fiberGlassPanel_ZSize*0.5);
-    TGeoShape *honeyCombPanelS = new TGeoBBox(TString("honeyCombPanelS")+=TString("_") + frameA->GetName(), honeyCombPanel_XSize*0.5, honeyCombPanel_YSize*0.5, honeyCombPanel_ZSize*0.5);
-
-    TGeoVolume *fiberGlassPanelV = new TGeoVolume(TString("fiberGlassPanelV")+=TString("_") + frameA->GetName(), fiberGlassPanelS);
-    TGeoVolume *honeyCombPanelV = new TGeoVolume(TString("honeyCombPanelV")+=TString("_") + frameA->GetName(), honeyCombPanelS);
-
-    //volume medium
-    TGeoMedium *fiberGlassPanelV_medium = pMedFiberGlass;
-    if(fiberGlassPanelV_medium) {
-        fiberGlassPanelV->SetMedium(fiberGlassPanelV_medium);
-    }
-    else Fatal("Main", "Invalid medium for fiberGlassPanelV!");
-
-    TGeoMedium *honeyCombPanelV_medium = pMedRohacell;
-    if(honeyCombPanelV_medium) {
-        honeyCombPanelV->SetMedium(honeyCombPanelV_medium);
-    }
-    else Fatal("Main", "Invalid medium for honeyCombPanelV!");
-
-    //volume visual property (transparency)
-    fiberGlassPanelV->SetLineColor(TColor::GetColor("#ff9933"));
-    fiberGlassPanelV->SetTransparency(0);
-    honeyCombPanelV->SetLineColor(TColor::GetColor("#ffff00"));
-    honeyCombPanelV->SetTransparency(0);
-
-    TGeoCombiTrans *fiberGlassPanelV_transf[4];
-
-    fiberGlassPanelV_transf[0] = new TGeoCombiTrans();
-    fiberGlassPanelV_transf[0]->SetDx(0.0);
-    fiberGlassPanelV_transf[0]->SetDy(0.0);
-    fiberGlassPanelV_transf[0]->SetDz(-(ZGasSize*0.5 + fiberGlassPanel_ZSize*0.5));
-
-    fiberGlassPanelV_transf[1] = new TGeoCombiTrans();
-    fiberGlassPanelV_transf[1]->SetDx(0.0);
-    fiberGlassPanelV_transf[1]->SetDy(0.0);
-    fiberGlassPanelV_transf[1]->SetDz(+(ZGasSize*0.5 + fiberGlassPanel_ZSize*0.5));
-
-    fiberGlassPanelV_transf[2] = new TGeoCombiTrans();
-    fiberGlassPanelV_transf[2]->SetDx(0.0);
-    fiberGlassPanelV_transf[2]->SetDy(0.0);
-    fiberGlassPanelV_transf[2]->SetDz(-(ZGasSize*0.5 + fiberGlassPanel_ZSize + honeyCombPanel_ZSize + fiberGlassPanel_ZSize*0.5));
-
-    fiberGlassPanelV_transf[3] = new TGeoCombiTrans();
-    fiberGlassPanelV_transf[3]->SetDx(0.0);
-    fiberGlassPanelV_transf[3]->SetDy(0.0);
-    fiberGlassPanelV_transf[3]->SetDz(+(ZGasSize*0.5 + fiberGlassPanel_ZSize + honeyCombPanel_ZSize + fiberGlassPanel_ZSize*0.5));
-
-    TGeoCombiTrans *honeyCombPanelV_transf[4];
-
-    honeyCombPanelV_transf[0] = new TGeoCombiTrans();
-    honeyCombPanelV_transf[0]->SetDx(0.0);
-    honeyCombPanelV_transf[0]->SetDy(0.0);
-    honeyCombPanelV_transf[0]->SetDz(-(ZGasSize*0.5 + fiberGlassPanel_ZSize + honeyCombPanel_ZSize*0.5));
-
-    honeyCombPanelV_transf[1] = new TGeoCombiTrans();
-    honeyCombPanelV_transf[1]->SetDx(0.0);
-    honeyCombPanelV_transf[1]->SetDy(0.0);
-    honeyCombPanelV_transf[1]->SetDz(+(ZGasSize*0.5 + fiberGlassPanel_ZSize + honeyCombPanel_ZSize*0.5));
-
-    frameA->AddNode(fiberGlassPanelV, 0, fiberGlassPanelV_transf[0]);
-    frameA->AddNode(fiberGlassPanelV, 1, fiberGlassPanelV_transf[1]);
-    frameA->AddNode(fiberGlassPanelV, 2, fiberGlassPanelV_transf[2]);
-    frameA->AddNode(fiberGlassPanelV, 3, fiberGlassPanelV_transf[3]);
-
-    frameA->AddNode(honeyCombPanelV, 0, honeyCombPanelV_transf[0]);
-    frameA->AddNode(honeyCombPanelV, 1, honeyCombPanelV_transf[1]);
-    //--------------------------------------------------------------------------
-
-    return frameA;
-}

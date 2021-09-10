@@ -1,12 +1,15 @@
 /*
- * Use this macro to create
- * ROOT geometry for the SRC SRC in the future configuration
- * including passive volumes (frames, al. cable supports, ...)
+ *
+ * Use this macro to create DETAILED ROOT geometry of CSC (Cathode
+ * Strip Chamber) detector for the future (RUN-8) configuration
  *
  * Author: Baranov D.
- * Created: 19.08.2021
+ * Created: 24.08.2021
  * Updated: 10.09.2021 (Added: spacer elements in a sensor zone, supporting wires,
  *                      technical holes)
+ *
+ * WARNING: all units are in cm!!!
+ *
  */
 
 #include "TString.h"
@@ -14,41 +17,37 @@
 #include "TGeoMatrix.h"
 
 //Set Parameters of CSC --------------------------------------------------------
-const Int_t NStations = 2;      //stations in the detector
+const Int_t NStations = 4;      //stations in the detector
 const Int_t NMaxModules = 2;    //max. number of modules in a station
 
-//(X-Y-Z)Positions of stations (distances from the origin to the center of the outboard side (not sens.) which is nearest to the target)
-const Double_t XStationPositions[NStations] = {
-    +109.89 + 0.5055 /* +110.3955 */, //station 0 (left arm)
-    -109.89 + 0.5055 /* -109.3845 */  //station 1 (right arm)
-};
-const Double_t YStationPositions[NStations] = {
-    +0.0 - 4.623, //station 0 (left arm)
-    +0.0 - 4.623  //station 1 (right arm)
-};
-const Double_t ZStationPositions[NStations] = {
-    +182.89 - 576.2 /* -393.31 */, //station 0 (left arm)
-    +182.89 - 576.2 /* -393.31 */  //station 1 (right arm)
-};
-//------------------------------------------------------------------------------
+//(X-Y-Z)Positions of stations
+const Double_t XStationPositions[NStations] = { 110.0/*0*/, -110.0/*1*/, 130.0/*2*/, -130.0/*3*/}; //geometry center
+const Double_t YStationPositions[NStations] = { 0.0/*0*/, 0.0/*1*/, 0.0/*2*/, 0.0/*3*/}; //geometry center
+const Double_t ZStationPositions[NStations] = { 410.0/*0*/, 410.0/*1*/, 470.0/*2*/, 470.0/*3*/}; //outer side nearest to the target
 
 //(X-Y-Z)Shifts of modules in each station
-const Double_t XModuleShifts[NStations][NMaxModules] = {
+const Double_t XModuleShifts[NStations][NMaxModules] = { //centers of gas volume
     {0.0, 0.0}, //station 0
     {0.0, 0.0}, //station 1
+    {0.0, 0.0}, //station 2
+    {0.0, 0.0}  //station 3
 };
-const Double_t YModuleShifts[NStations][NMaxModules] = {
+const Double_t YModuleShifts[NStations][NMaxModules] = { //centers of gas volume
     {27.1875, -27.1875}, //station 0
     {27.1875, -27.1875}, //station 1
+    {27.1875, -27.1875}, //station 2
+    {27.1875, -27.1875}  //station 3
 };
-const Double_t ZModuleShifts[NStations][NMaxModules] = {
+const Double_t ZModuleShifts[NStations][NMaxModules] = { //distances from st.side to mod.side
     {1.25, 1.25}, //station 0
-    {1.25, 1.25}, //station 1
+    {1.25, 1.25}, //station 0
+    {1.25, 1.25}, //station 0
+    {1.25, 1.25}  //station 0
 };
 
 //Sizes of elements (cm) -------------------------------------------------------
 
-//Gas volume sizes (module: half of station) (AS MODULE SIZES)
+//Gas volume sizes (module: half of station)
 const Double_t XGasSize = 113.0;
 const Double_t YGasSize = 54.375;
 const Double_t ZGasSize = 0.76;
@@ -147,14 +146,14 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
     if ( ! pMedTeflon  ) Fatal("Main", "Medium teflon not found");
 }
 
-void create_rootgeom_CSC_SRCFutureConfig2021() {
+void create_rootgeom_CSC_FutureConfig2020_detailed() {
 
     // ----  set working directory  --------------------------------------------
     TString gPath = gSystem->Getenv("VMCWORKDIR");
 
     // -------   Geometry file name (output)   ----------------------------------
     const TString geoDetectorName = "CSC";
-    const TString geoDetectorVersion = "SRCFutureConfig2021";
+    const TString geoDetectorVersion = "FutureConfig2020_detailed";
     const TString geoFileName = gPath + "/geometry/" + geoDetectorName + "_"+ geoDetectorVersion + ".root";
 
     // ----  global geometry parameters  ---------------------------------------
@@ -184,9 +183,10 @@ void create_rootgeom_CSC_SRCFutureConfig2021() {
     TGeoVolume* CSC = new TGeoVolumeAssembly(geoDetectorName);
     CSC->SetMedium(pMedAir);
 
-    //station 0 (consisting of two modules)
-    if(1) {
-        Int_t stationNum = 0; //station number
+    for(Int_t istation = 0; istation < NStations; ++istation) {
+    //for(Int_t istation = 0; istation < 1; ++istation) {
+
+        Int_t stationNum = istation; //station number
 
         TGeoVolume *station = CreateStation(TString("station")+TString::Itoa(stationNum, 10));
 
@@ -198,21 +198,17 @@ void create_rootgeom_CSC_SRCFutureConfig2021() {
 
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
             module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+0.5*ZGasSize);
-            module0_transform->RotateY(+31.0); //deg
 
         TGeoCombiTrans *module1_transform = new TGeoCombiTrans();
             module1_transform->RotateZ(180);
             module1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1], ZModuleShifts[stationNum][1]+0.5*ZGasSize);
-            module1_transform->RotateY(+31.0); //deg
 
         TGeoCombiTrans *frame0_transform = new TGeoCombiTrans();
             frame0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+0.5*ZGasSize);
-            frame0_transform->RotateY(+31.0); //deg
 
         TGeoCombiTrans *frame1_transform = new TGeoCombiTrans();
             frame1_transform->RotateZ(180);
             frame1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1], ZModuleShifts[stationNum][1]+0.5*ZGasSize);
-            frame1_transform->RotateY(+31.0); //deg
 
         TGeoCombiTrans *station_transform = new TGeoCombiTrans();
         station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
@@ -225,49 +221,6 @@ void create_rootgeom_CSC_SRCFutureConfig2021() {
 
         CSC->AddNode(station, 0, station_transform);
     }
-
-    //station 1 (consisting of two modules)
-    if(1) {
-        Int_t stationNum = 1; //station number
-
-        TGeoVolume *station = CreateStation(TString("station")+TString::Itoa(stationNum, 10));
-
-        TGeoVolume *module0 = CreateModule(TString("module0_")+station->GetName());
-        TGeoVolume *module1 = CreateModule(TString("module1_")+station->GetName());
-
-        TGeoVolume *frame0 = CreateFrameForModule(TString("frame0_")+station->GetName());
-        TGeoVolume *frame1 = CreateFrameForModule(TString("frame1_")+station->GetName());
-
-        TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
-            module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+0.5*ZGasSize);
-            module0_transform->RotateY(-31.0); //deg
-
-        TGeoCombiTrans *module1_transform = new TGeoCombiTrans();
-            module1_transform->RotateZ(180);
-            module1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1], ZModuleShifts[stationNum][1]+0.5*ZGasSize);
-            module1_transform->RotateY(-31.0); //deg
-
-        TGeoCombiTrans *frame0_transform = new TGeoCombiTrans();
-            frame0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0]+0.5*ZGasSize);
-            frame0_transform->RotateY(-31.0); //deg
-
-        TGeoCombiTrans *frame1_transform = new TGeoCombiTrans();
-            frame1_transform->RotateZ(180);
-            frame1_transform->SetTranslation(XModuleShifts[stationNum][1], YModuleShifts[stationNum][1], ZModuleShifts[stationNum][1]+0.5*ZGasSize);
-            frame1_transform->RotateY(-31.0); //deg
-
-        TGeoCombiTrans *station_transform = new TGeoCombiTrans();
-        station_transform->SetTranslation(XStationPositions[stationNum], YStationPositions[stationNum], ZStationPositions[stationNum]);
-
-        station->AddNode(module0, 0, new TGeoCombiTrans(*module0_transform));
-        station->AddNode(module1, 0, new TGeoCombiTrans(*module1_transform));
-
-        station->AddNode(frame0, 0, new TGeoCombiTrans(*frame0_transform));
-        station->AddNode(frame1, 0, new TGeoCombiTrans(*frame1_transform));
-
-        CSC->AddNode(station, 0, station_transform);
-    }
-
 
     top->AddNode(CSC, 0);
     top->SetVisContainers(kTRUE);
@@ -295,7 +248,7 @@ TGeoVolume *CreateStation(TString station_name) {
 
 TGeoVolume *CreateModule(TString module_name) {
 
-     //shapes
+    //shapes
     TGeoShape *moduleS = new TGeoBBox(TString("moduleS")+=TString("_") + module_name, XGasSize*0.5, YGasSize*0.5, ZGasSize*0.5);
     TGeoShape *sensS = new TGeoBBox(TString("sensS")+=TString("_") + module_name, XSensSize*0.5, YSensSize*0.5, ZSensSize*0.5);
 

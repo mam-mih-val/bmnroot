@@ -223,8 +223,10 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         //MpdMCStack* MC      Track = new MpdMCStack("MCTrack");
         //fMan->AddTask(MCTrack);
 
-        BmnZDCTowerDraw* BmnZDCTower = new BmnZDCTowerDraw("ZdcDigit", 0, 5);
+        BmnCaloTowerDraw* BmnZDCTower = new BmnCaloTowerDraw("ZdcDigit", 0);
         fMan->AddTask(BmnZDCTower);
+        BmnCaloTowerDraw* BmnECALTower = new BmnCaloTowerDraw("EcalDigit", 1);
+        fMan->AddTask(BmnECALTower);
 
         // draw Reconstructed Detector Hits
         MpdHitPointSetDraw* BmnMwpcHit = new MpdHitPointSetDraw("BmnMwpcHit", expPointColor, pointMarker);

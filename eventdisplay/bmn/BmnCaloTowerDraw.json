@@ -3,8 +3,9 @@
         "numberOfModules": 104,
         "pathToGeometry": "/cave_1/ZDC_common_0/zdc01_1"
     },
-
+    
     "ECAL": {
-
+        "numberOfModules": 504,
+        "pathToGeometry": "/cave_1/ecal_0/ecal1_0"
     }
 }

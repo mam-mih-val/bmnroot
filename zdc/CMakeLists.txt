@@ -36,6 +36,7 @@ BmnZdcDigiProducer.cxx
 BmnZdcBScanner.cxx
 BmnZdcDigitizer.cxx
 BmnZdcAnalyzer.cxx
+BmnFHCalDigitizer.cxx
 )
 
 Set(HEADERS)

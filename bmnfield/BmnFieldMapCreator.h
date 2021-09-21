@@ -3,8 +3,6 @@
 // -----                Created 15/01/08       by V. Friese            -----
 // -------------------------------------------------------------------------
 
-
-
 /** BmnFieldMapCreator.h
  **@author V.Friese <v.friese@gsi.de>
  **@since 15.01.2008
@@ -14,21 +12,16 @@
  ** of type BmnField.
  **/
 
-
 #ifndef CBMFIELDMAPCREATOR_H
 #define CBMFIELDMAPCREATOR_H 1
 
+#include "FairField.h"
+#include "TArrayF.h"
 #include "TList.h"
-
-class TArrayF;
-class FairField;
-
 
 
 class BmnFieldMapCreator 
 {
-
-
  public:
 
   /** Default constructor **/

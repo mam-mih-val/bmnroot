@@ -2,25 +2,13 @@
 // -----                    BmnFieldMap header file                    -------- ----
 // -----                   Created 03/02/2015  by P. Batyuk            -------------
 // ----- Modified 28/07/2016  by A. Zelenov   (Summer student practice - 2017)------
-// -----                        JINR, batyuk@jinr.ru                   -------------
+// -----                      JINR, batyuk@jinr.ru                     -------------
 // ---------------------------------------------------------------------------------
 
 #include "BmnFieldMap.h"
-#include "FairRun.h"
-#include "FairRuntimeDb.h"
-#include "BmnFieldMapCreator.h"
-#include "BmnFieldMapData.h"
-#include "BmnFieldPar.h"
-#include "TArrayF.h"
 #include "TFile.h"
 #include "TMath.h"
 #include "TTree.h"
-#include "FairRunSim.h"
-#include <iomanip>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
 
 BmnFieldMap::BmnFieldMap()
 : FairField(),

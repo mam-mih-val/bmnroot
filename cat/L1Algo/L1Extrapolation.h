@@ -23,7 +23,7 @@ inline void L1Extrapolate
   //  
   
   cnst ZERO = 0.0, ONE = 1.;
-  cnst c_light = 0.000299792458, c_light_i = 1./c_light;
+  cnst c_light = 0.000299792458;//, c_light_i = 1./c_light;
 
   cnst  
     c1 = 1., c2 = 2., c3 = 3., c4 = 4., c6 = 6., c9 = 9., c15 = 15., c18 = 18., c45 = 45.,
@@ -314,7 +314,7 @@ inline void L1Extrapolate0
   cnst c_light = 0.000299792458;
 
   cnst  
-    c1 = 1., c2 = 2., c3 = 3., c4 = 4., c6 = 6., c9 = 9., c15 = 15., c18 = 18., c45 = 45.,
+    c1 = 1., /*c2 = 2., c3 = 3., c4 = 4., c6 = 6., c9 = 9., c15 = 15., c18 = 18., c45 = 45.,*/
     c2i = 1./2., c3i = 1./3., c6i = 1./6., c12i = 1./12.;
 
   const fvec qp = T.qp;
@@ -461,12 +461,12 @@ inline void L1ExtrapolateJXY // is not used currently
   //  Part of the analytic extrapolation formula with error (c_light*B*dz)^4/4!
   //  
   
-  cnst ZERO = 0.0, ONE = 1.;
-  cnst c_light = 0.000299792458, c_light_i = 1./c_light;
+  //cnst ZERO = 0.0, ONE = 1.;
+  cnst c_light = 0.000299792458;//, c_light_i = 1./c_light;
 
   cnst  
     c1 = 1., c2 = 2., c3 = 3., c4 = 4., c6 = 6., c9 = 9., c15 = 15., c18 = 18., c45 = 45.,
-    c2i = 1./2., c3i = 1./3., c6i = 1./6., c12i = 1./12.;
+    c2i = 1./2., /*c3i = 1./3.,*/ c6i = 1./6., c12i = 1./12.;
 
   fvec dz2 = dz*dz;
   fvec dz3 = dz2*dz;

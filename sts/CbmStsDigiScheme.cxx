@@ -91,6 +91,8 @@ Bool_t CbmStsDigiScheme::Init()
   CbmStsDigiPar *digiPar = (CbmStsDigiPar*) rtdb->getContainer("CbmStsDigiPar");
 
   Init(geoPar, digiPar);
+
+  return kTRUE;
 }
 // -------------------------------------------------------------------------
 
@@ -220,7 +222,7 @@ CbmStsSensor* CbmStsDigiScheme::GetSensorByName(TString sensorName)
     return p->second;
   }else{
     LOG(DEBUG) << "StsDigiScheme: sensor " << sensorName.Data()
-               << " not found " << FairLogger::endl;
+               << " not found ";
     return NULL;
   }
 }

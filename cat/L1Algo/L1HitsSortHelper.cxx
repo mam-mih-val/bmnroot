@@ -14,7 +14,7 @@ L1HitsSortHelper::L1HitsSortHelper( vector<L1StsHit> &hits, vector<L1HitPoint> &
   const int NHits = hits.size();
   fD.resize( NHits );
   for ( int iS = 0; iS < fNStations; ++iS )
-    for( int i = fStsHitsUnusedStartIndex[iS]; i < fStsHitsUnusedStopIndex[iS]; i++ )
+    for( THitI i = fStsHitsUnusedStartIndex[iS]; i < fStsHitsUnusedStopIndex[iS]; i++ )
   {
     fD[i].h = &(hits[i]);
     fD[i].p = &(points[i]);

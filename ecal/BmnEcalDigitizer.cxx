@@ -27,7 +27,7 @@ InitStatus BmnEcalDigitizer::Init() {
     FairRootManager* ioman = FairRootManager::Instance();
     fArrayOfEcalPoints = (TClonesArray*) ioman->GetObject("EcalPoint");
     fArrayOfEcalDigits = new TClonesArray("BmnECALDigit");
-    ioman->Register("ECAL", "Ecal", fArrayOfEcalDigits, kTRUE);
+    ioman->Register("EcalDigit", "Ecal", fArrayOfEcalDigits, kTRUE);
     
     if (LoadGeometry() != 0)
     {

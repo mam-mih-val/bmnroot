@@ -51,6 +51,7 @@
 #pragma link C++ class BmnTof1Digit+;
 #pragma link C++ class BmnTof2Digit+;
 #pragma link C++ class BmnTrigDigit+;
+#pragma link C++ class BmnCaloDigit+;
 #pragma link C++ class BmnDchDigit+;
 #pragma link C++ class BmnZDCDigit+;
 #pragma link C++ class BmnECALDigit+;

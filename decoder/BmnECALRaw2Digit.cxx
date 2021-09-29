@@ -1,3 +1,4 @@
+#include "BmnECALRaw2Digit.h"
 #include <TError.h>
 #include <TF1.h>
 #include <TMinuit.h>
@@ -7,7 +8,7 @@
 #include "TText.h"
 #include "TCanvas.h"
 #include "TRandom.h"
-#include "BmnECALRaw2Digit.h"
+#include <fstream>
 
 #define SHIFT 0
 

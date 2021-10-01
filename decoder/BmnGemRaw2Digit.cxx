@@ -123,8 +123,7 @@ BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int
     vector<UniValue*> iiArr;
     if (par != NULL) par->GetValue(iiArr);
     delete par;
-    for (Int_t i = 0; i < iiArr.size(); ++i)
-    {
+    for (Int_t i = 0; i < iiArr.size(); ++i) {
         IIValue* pValue = (IIValue*) iiArr[i];
         m[pValue->value2] = BmnGemMap(pValue->value1, lay, mod);
     }
@@ -269,24 +268,27 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
     }
     if (!read) {
         Int_t retn = system(Form("mv %s %s", wnoisename.Data(), rnoisename.Data()));
-//        printf("mv     noise ret %d\n", retn);
+        //        printf("mv     noise ret %d\n", retn);
         Int_t retp = system(Form("mv %s %s", wpedname.Data(), pedname.Data()));
-//        printf("mv  pedestal ret %d\n", retp);
+        //        printf("mv  pedestal ret %d\n", retp);
     }
 }
 
 BmnStatus BmnGemRaw2Digit::FillProfiles(TClonesArray *adc) {
-    for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
-        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
-        UInt_t ch = adcDig->GetChannel() * adcDig->GetNSamples();
-        for (Int_t iMap = 0; iMap < fEntriesInGlobMap; ++iMap) {
-            GemMapValue* gemM = fMap[iMap];
-            if (adcDig->GetSerial() == gemM->serial && ch <= gemM->channel_high && ch >= gemM->channel_low) {
-                ProcessDigit(adcDig, gemM, NULL, kTRUE);
-                break;
-            }
-        }
-    }
+//    for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
+//        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
+//        UInt_t ch = adcDig->GetChannel() * adcDig->GetNSamples();
+//        for (Int_t iMap = 0; iMap < fEntriesInGlobMap; ++iMap) {
+//            GemMapValue* gemM = fMap[iMap];
+//            if (adcDig->GetSerial() == gemM->serial && ch <= gemM->channel_high && ch >= gemM->channel_low) {
+//                ProcessDigit(adcDig, gemM, NULL, kTRUE);
+//                break;
+//            }
+//        }
+//    }
+    PrecalcEventMods(adc);
+    CalcEventMods();
+    ProcessAdc(nullptr, kTRUE);
 
     return kBMNSUCCESS;
 }
@@ -307,6 +309,8 @@ BmnStatus BmnGemRaw2Digit::FillNoisyChannels() {
                     Double_t mean = 0.0;
                     for (Int_t iStrip = 1; iStrip < kNStripsInBunch; ++iStrip) {
                         Int_t strip = iStrip + iBunch * kNStripsInBunch;
+                        if (fNoisyChannels[iSt][iMod][iLay][strip] == kTRUE)
+                            continue;
                         Double_t curr = prof->GetBinContent(strip + 1);
                         Double_t prev = prof->GetBinContent(strip);
                         meanDiff += Abs(prev - curr);
@@ -316,6 +320,8 @@ BmnStatus BmnGemRaw2Digit::FillNoisyChannels() {
                     mean /= kNStripsInBunch;
                     for (Int_t iStrip = 1; iStrip < kNStripsInBunch; ++iStrip) {
                         Int_t strip = iStrip + iBunch * kNStripsInBunch;
+                        if (fNoisyChannels[iSt][iMod][iLay][strip] == kTRUE)
+                            continue;
                         Double_t curr = prof->GetBinContent(strip + 1);
                         Double_t prev = prof->GetBinContent(strip);
                         //                        if (kNThresh * meanDiff < curr - prev)
@@ -324,33 +330,83 @@ BmnStatus BmnGemRaw2Digit::FillNoisyChannels() {
                     }
                 }
             }
-    //    for (Int_t iCr = 0; iCr < GetNSerials(); ++iCr)
-    //        for (Int_t iCh = 0; iCh < GetNChannels(); ++iCh)
-    //            for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl)
-    //                for (auto &it : fMap)
-    //                    if (GetSerials()[iCr] == it.serial && iCh >= it.channel_low && iCh <= it.channel_high) {
-    //                        if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) {
-    //                            UInt_t iStrip = (iCh - it.channel_low) * GetNSamples() + 1 + iSmpl;
-    //                            fNoisyChannels[it.station][it.module][it.layer][iStrip] = kTRUE;
-    //                        }
-    //                    }
+    for (Int_t iCr = 0; iCr < GetNSerials(); ++iCr)
+        for (Int_t iCh = 0; iCh < GetNChannels(); ++iCh)
+            for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl)
+                for (auto &it : fMap)
+                    if (GetSerials()[iCr] == it->serial && iCh >= it->channel_low && iCh <= it->channel_high) {
+                        Int_t station = -1;
+                        Int_t strip = -1;
+                        Int_t lay = -1;
+                        Int_t mod = -1;
+                        MapStrip(it, iCh, iSmpl, station, mod, lay, strip);
+
+                        if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE)
+                            fNoisyChannels[station][mod][lay][strip] = kTRUE;
+                        if (fNoisyChannels[station][mod][lay][strip] == kTRUE)
+                            GetNoisyChipChannels()[iCr][iCh][iSmpl] = kTRUE;
+                    }
 
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * gem) {
-    fEventId++;
-    for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
-        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
-        UInt_t ch = adcDig->GetChannel() * adcDig->GetNSamples();
-        for (Int_t iMap = 0; iMap < fEntriesInGlobMap; ++iMap) {
-            GemMapValue* gemM = fMap[iMap];
-            if (adcDig->GetSerial() == gemM->serial && ch <= gemM->channel_high && ch >= gemM->channel_low) {
-                ProcessDigit(adcDig, gemM, gem, kFALSE);
-                break;
-            }
+void BmnGemRaw2Digit::ProcessAdc(TClonesArray *gem, Bool_t doFill) {
+    //    cmodcut = 100;
+    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+        //            printf("iCr %d  serial %08X\n", iCr, GetSerials()[iCr]);
+        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+            for (auto &it : fMap)
+                if (GetSerials()[iCr] == it->serial && iCh >= it->channel_low && iCh <= it->channel_high) {
+                    for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
+                        if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) continue;
+
+                        Int_t station = -1;
+                        Int_t strip = -1;
+                        Int_t layer = -1;
+                        Int_t module = -1;
+                        MapStrip(it, iCh, iSmpl, station, module, layer, strip);
+
+                        Double_t sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl] + fCMode[iCr][iCh] - fSMode[iCr][iCh];
+                        Double_t Asig = TMath::Abs(sig);
+                        Double_t thr = Max(20.0, 3.5 * GetPedestalsRMS()[iCr][iCh][iSmpl]);
+                        //                                                printf("signal   thr %6f  prms %6f\n", thr, GetPedestalsRMS()[iCr][iCh][iSmpl]);
+                        if (Asig > thr) {//[station][module][layer][strip] == kFALSE)) {
+                            if (doFill) {
+                                //                                if (Abs(fCMode[iCr][iCh] - fSMode[iCr][iCh]) < cmodcut)
+                                fSigProf[station][module][layer]->Fill(strip);
+                            } else {
+                                BmnGemStripDigit * resDig =
+                                        new((*gem)[gem->GetEntriesFast()])
+                                        BmnGemStripDigit(station, module, layer, strip, sig);
+                                //                                if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE)//((Abs(fCMode[iCr][iCh] - fSMode[iCr][iCh]) > cmodcut))
+                                //                                    resDig->SetIsGoodDigit(kFALSE);
+                                //                                else
+                                resDig->SetIsGoodDigit(kTRUE);
+                            }
+                        }
+                    }
+                    break;
+                }
         }
     }
+}
+
+BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * gem) {
+    fEventId++;
+    //    for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
+    //        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
+    //        UInt_t ch = adcDig->GetChannel() * adcDig->GetNSamples();
+    //        for (Int_t iMap = 0; iMap < fEntriesInGlobMap; ++iMap) {
+    //            GemMapValue* gemM = fMap[iMap];
+    //            if (adcDig->GetSerial() == gemM->serial && ch <= gemM->channel_high && ch >= gemM->channel_low) {
+    //                ProcessDigit(adcDig, gemM, gem, kFALSE);
+    //                break;
+    //            }
+    //        }
+    //    }
+    PrecalcEventMods(adc);
+    CalcEventMods();
+    ProcessAdc(gem, kFALSE);
 
     return kBMNSUCCESS;
 }
@@ -940,6 +996,35 @@ void BmnGemRaw2Digit::PostprocessDigitMK(TClonesArray * gem, TClonesArray * csc)
     } // niter
 }
 
+void BmnGemRaw2Digit::MapStrip(GemMapValue* gemM, UInt_t ch, Int_t iSmpl, Int_t &station, Int_t &mod, Int_t &lay, Int_t &strip) {
+    Int_t ch2048 = ch * GetNSamples() + iSmpl;
+    UInt_t realChannel = ch2048;
+    BmnGemMap* fBigMap = NULL;
+    if (gemM->id < 10) {
+        if ((gemM->channel_high - gemM->channel_low) < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
+        fBigMap = fMid;
+    } else {
+        if (gemM->hotZone % 2 == 0) { //hot zone
+            if (gemM->channel_low == 0)
+                realChannel += 1024;
+            if (gemM->id % 10 == 0)
+                fBigMap = fBigL0;
+            else
+                fBigMap = fBigR0;
+        } else { //big zone
+            if (gemM->id % 10 == 0)
+                fBigMap = fBigL1;
+            else
+                fBigMap = fBigR1;
+            if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
+        }
+    }
+    station = gemM->station;
+    lay = fBigMap[realChannel].lay;
+    mod = gemM->hotZone >> 1;
+    strip = fBigMap[realChannel].strip;
+}
+
 void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapValue* gemM, TClonesArray * gem, Bool_t doFill) {
     const UInt_t nSmpl = adcDig->GetNSamples();
     UInt_t ch = adcDig->GetChannel();
@@ -954,39 +1039,15 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapValue* gemM, TClon
     BmnGemStripDigit candDig[nSmpl];
 
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+        Int_t station = -1;
         Int_t strip = -1;
         Int_t lay = -1;
         Int_t mod = -1;
-        Int_t ch2048 = ch * nSmpl + iSmpl;
-        UInt_t realChannel = ch2048;
-        BmnGemMap* fBigMap = NULL;
-
-        if (gemM->id < 10) {
-            if ((gemM->channel_high - gemM->channel_low) < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
-            fBigMap = fMid;
-        } else {
-            if (gemM->hotZone % 2 == 0) { //hot zone
-                if (gemM->channel_low == 0)
-                    realChannel += 1024;
-                if (gemM->id % 10 == 0)
-                    fBigMap = fBigL0;
-                else
-                    fBigMap = fBigR0;
-            } else { //big zone
-                if (gemM->id % 10 == 0)
-                    fBigMap = fBigL1;
-                else
-                    fBigMap = fBigR1;
-                if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
-            }
-        }
-        lay = fBigMap[realChannel].lay;
-        mod = gemM->hotZone >> 1;
-        strip = fBigMap[realChannel].strip;
+        MapStrip(gemM, ch, iSmpl, station, mod, lay, strip);
 
         if (strip > 0) {
             BmnGemStripDigit dig;
-            dig.SetStation(gemM->station);
+            dig.SetStation(station);
             dig.SetModule(mod);
             dig.SetStripLayer(lay);
             dig.SetStripNumber(strip);
@@ -1016,7 +1077,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapValue* gemM, TClon
         Double_t ped = vPed[iSer][ch][iSmpl];
         //        Double_t sig = Abs(dig->GetStripSignal() - CMS - ped);
         Double_t sig = Abs(dig->GetStripSignal() - SCMS - ped);
-        Float_t threshold = Max(35.0, 3.5 * vPedRMS[iSer][ch][iSmpl]); //15 + 4 * vPedRMS[iSer][ch][iSmpl]; //20;
+        Float_t threshold = Max(20.0, 3.5 * vPedRMS[iSer][ch][iSmpl]); //15 + 4 * vPedRMS[iSer][ch][iSmpl]; //20;
         //        if (vPedRMS[iSer][ch][iSmpl] != 0)
         //            printf(" iSer %d, ch %d, iSmpl %d, vPedRMS %f\n", iSer, ch ,iSmpl, vPedRMS[iSer][ch][iSmpl]);
         //    printf("ProcessDigit candDig[iSmpl]).GetStation() = %i sig = %f threshold = %f\n", candDig[iSmpl].GetStation(), sig, threshold);
@@ -1025,7 +1086,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapValue* gemM, TClon
             fSigProf[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()]->Fill(dig->GetStripNumber());
         } else {
             BmnGemStripDigit * resDig = new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
-//            printf("st %d  mod %d lay %d strip %d\n",dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber() );
+            //            printf("st %d  mod %d lay %d strip %d\n",dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber() );
             if (fNoisyChannels[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()][dig->GetStripNumber()])
                 resDig->SetIsGoodDigit(kFALSE);
             else

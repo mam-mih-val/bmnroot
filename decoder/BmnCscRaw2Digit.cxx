@@ -132,19 +132,33 @@ BmnStatus BmnCscRaw2Digit::ReadMapLocalFile() {
 
 BmnStatus BmnCscRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * csc) {
     fEventId++;
+//    for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
+//        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
+//        ProcessDigit(adcDig, FindMapEntry(adcDig), csc, kFALSE);
+//    }
+    PrecalcEventMods(adc);
+    CalcEventMods();
     for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
         BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
         ProcessDigit(adcDig, FindMapEntry(adcDig), csc, kFALSE);
     }
+//    ProcessAdc(csc, kFALSE);
 
     return kBMNSUCCESS;
 }
 
 BmnStatus BmnCscRaw2Digit::FillProfiles(TClonesArray *adc) {
+//    for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
+//        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
+//        ProcessDigit(adcDig, FindMapEntry(adcDig), NULL, kTRUE);
+//    }
+    PrecalcEventMods(adc);
+    CalcEventMods();
     for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
         BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
         ProcessDigit(adcDig, FindMapEntry(adcDig), NULL, kTRUE);
     }
+//    ProcessAdc(nullptr, kTRUE);
 
     return kBMNSUCCESS;
 }
@@ -208,18 +222,58 @@ BmnStatus BmnCscRaw2Digit::FillNoisyChannels() {
 
 Int_t BmnCscRaw2Digit::LayerPrediction(Int_t module, Int_t x) {
     Int_t layer = -1;
-    bool finded = false;
+    bool found = false;
     for (Int_t j = 0; j < channelMap[module].size(); j++){
         layer = j;
         auto result = std::find(channelMap[module][j].begin(), channelMap[module][j].end(), x);
         if(result != std::end(channelMap[module][j])){
-            finded = true;
+            found = true;
             break;
         }
     }
-    if(finded) return layer;
+    if(found) return layer;
     else return -1;
 }
+
+//void BmnCscRaw2Digit::ProcessAdc(TClonesArray *csc, Bool_t doFill) {
+//    //    cmodcut = 100;
+//    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+//        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+//            for (auto &it : fMap)
+//                if (GetSerials()[iCr] == it->serial && iCh >= it->channel_low && iCh <= it->channel_high) {
+//                    for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
+//                        if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) continue;
+//
+//                        Int_t station = -1;
+//                        Int_t strip = -1;
+//                        Int_t layer = -1;
+//                        Int_t module = -1;
+//                        MapStrip(it, iCh, iSmpl, station, module, layer, strip);
+//
+//                        Double_t sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl] + fCMode[iCr][iCh] - fSMode[iCr][iCh];
+//                        Double_t Asig = TMath::Abs(sig);
+//                        Double_t thr = Max(50.0, 3.5 * GetPedestalsRMS()[iCr][iCh][iSmpl]);
+//                        //                                                printf("signal   thr %6f  prms %6f\n", thr, GetPedestalsRMS()[iCr][iCh][iSmpl]);
+//                        if (Asig > thr) {//[station][module][layer][strip] == kFALSE)) {
+//                            if (doFill) {
+//                                //                                if (Abs(fCMode[iCr][iCh] - fSMode[iCr][iCh]) < cmodcut)
+//                                fSigProf[station][module][layer]->Fill(strip);
+//                            } else {
+//                                BmnCSCDigit * resDig =
+//                                        new((*csc)[csc->GetEntriesFast()])
+//                                        BmnCSCDigit(station, module, layer, strip, sig);
+//                                //                                if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE)//((Abs(fCMode[iCr][iCh] - fSMode[iCr][iCh]) > cmodcut))
+//                                //                                    resDig->SetIsGoodDigit(kFALSE);
+//                                //                                else
+//                                resDig->SetIsGoodDigit(kTRUE);
+//                            }
+//                        }
+//                    }
+//                    break;
+//                }
+//        }
+//    }
+//}
 
 void BmnCscRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TClonesArray * csc, Bool_t doFill) {
     if (!adcDig || !cscM) return;
@@ -270,7 +324,7 @@ void BmnCscRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TCl
         if ((candDig[iSmpl]).GetStation() == -1) continue;
         BmnCSCDigit * dig = &candDig[iSmpl];
         Double_t ped = vPed[iSer][ch][iSmpl];
-        Double_t sig = Abs(dig->GetStripSignal() - SCMS - ped);
+        Double_t sig = Abs(dig->GetStripSignal()/* - SCMS*/ - ped + fCMode[iSer][ch] - fSMode[iSer][ch]);
         //cout << "strip " << iSer << " CMS " << ch << " ped " << iSmpl << endl;
         Float_t threshold = Max(50.0, 4 * vPedRMS[iSer][ch][iSmpl]);//50 + 4 * vPedRMS[iSer][ch][iSmpl]; //20;
         //if(threshold != 0) cout << threshold << endl;

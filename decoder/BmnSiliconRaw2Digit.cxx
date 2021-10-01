@@ -1,3 +1,5 @@
+#include <TStyle.h>
+
 #include "BmnSiliconRaw2Digit.h"
 #include "BmnEventHeader.h"
 
@@ -34,8 +36,8 @@ BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t>
                     histName.Form("SIL_%d_%d_%d", iSt, iMod, iLay);
                     fSigProf[iSt][iMod][iLay] = new TH1F(histName, histName, kNStrips, 0, kNStrips);
                     fSigProf[iSt][iMod][iLay]->SetDirectory(0);
-                    fNoisyChannels[iSt][iMod][iLay] = new Bool_t[kNStrips];
-                    for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip)
+                    fNoisyChannels[iSt][iMod][iLay] = new Bool_t[kNStrips + 1];
+                    for (Int_t iStrip = 0; iStrip <= kNStrips; ++iStrip)
                         fNoisyChannels[iSt][iMod][iLay][iStrip] = kFALSE;
                 }
             }
@@ -760,7 +762,7 @@ void BmnSiliconRaw2Digit::InitAdcProcessorMK(Int_t run, Int_t iread, Int_t iped,
     if (BmnFunctionSet::CheckDirectoryExist(tempDir, 1, kWritePermission) < 1)
         tempDir = TString(gSystem->GetWorkingDirectory().c_str()) + "/";
     printf("Temp directory: %s\n", tempDir.Data());
-    
+
     pedname = tempDir + "RSiPed_";
     pedname += run;
     pedname += ".dat";
@@ -992,6 +994,15 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
         Int_t retp = system(Form("mv %s %s", wpedname.Data(), pedname.Data()));
         //        printf("mv pedestal ret %d\n", retp);
     }
+    for (Int_t iCr = 0; iCr < nadc; ++iCr) {
+        delete hPedSi[iCr];
+        delete hSModeSi[iCr];
+        delete hCModeSi[iCr];
+    }
+    for (Int_t iCr = 0; iCr < nadc; ++iCr)
+        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+            delete hPedLineSi[iCr][iCh];
+        }
 }
 
 BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
@@ -1033,16 +1044,29 @@ BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
 BmnStatus BmnSiliconRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *silicon) {
     //    printf("Event %i\n", fEventId);
     fEventId++;
-    for (auto it : fMap)
-        for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
-            BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
-            if (adcDig->GetSerial() == it.serial && (adcDig->GetChannel() >= it.channel_low && adcDig->GetChannel() <= it.channel_high)) {
-                //                if (adcDig->GetSerial() == 0x4E993A5 && adcDig->GetChannel() == 9)
-                //    printf("ser %08X ch %u\n", adcDig->GetSerial(), adcDig->GetChannel());  
-                ProcessDigit(adcDig, &it, silicon, kFALSE);
-            }
-        }
-
+    //    for (auto &it : fMap)
+    //        for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
+    //            BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
+    //            if (adcDig->GetSerial() == it.serial && (adcDig->GetChannel() >= it.channel_low && adcDig->GetChannel() <= it.channel_high)) {
+    //                //            printf("iCr %d  serial %08X\n", iCr, adcDig->GetSerial());
+    //                //                if (adcDig->GetSerial() == 0x4E993A5 && adcDig->GetChannel() == 9)
+    //                //    printf("ser %08X ch %u\n", adcDig->GetSerial(), adcDig->GetChannel());  
+    //                ProcessDigit(adcDig, &it, silicon, kFALSE);
+    //            }
+    //        }
+    PrecalcEventMods(adc);
+    CalcEventMods();
+    ProcessAdc(silicon, kFALSE);
+    //    for (auto &it : fMap)
+    //        for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
+    //            BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
+    //            if (adcDig->GetSerial() == it.serial && (adcDig->GetChannel() >= it.channel_low && adcDig->GetChannel() <= it.channel_high)) {
+    //                //            printf("iCr %d  serial %08X\n", iCr, adcDig->GetSerial());
+    //                //                if (adcDig->GetSerial() == 0x4E993A5 && adcDig->GetChannel() == 9)
+    //                //    printf("ser %08X ch %u\n", adcDig->GetSerial(), adcDig->GetChannel());  
+    //                ProcessDigit(adcDig, &it, silicon, kFALSE);
+    //            }
+    //        }
     return kBMNSUCCESS;
 }
 
@@ -1070,13 +1094,16 @@ BmnStatus BmnSiliconRaw2Digit::FillEventMK(TClonesArray *adc, TClonesArray *sili
 }
 
 BmnStatus BmnSiliconRaw2Digit::FillProfiles(TClonesArray *adc) {
-    for (auto it : fMap)
-        for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
-            BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
-            if (adcDig->GetSerial() == it.serial && (adcDig->GetChannel() >= it.channel_low && adcDig->GetChannel() <= it.channel_high)) {
-                ProcessDigit(adcDig, &it, NULL, kTRUE);
-            }
-        }
+    //    for (auto it : fMap)
+    //        for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
+    //            BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
+    //            if (adcDig->GetSerial() == it.serial && (adcDig->GetChannel() >= it.channel_low && adcDig->GetChannel() <= it.channel_high)) {
+    //                ProcessDigit(adcDig, &it, NULL, kTRUE);
+    //            }
+    //        }
+    PrecalcEventMods(adc);
+    CalcEventMods();
+    ProcessAdc(nullptr, kTRUE);
 
     return kBMNSUCCESS;
 }
@@ -1086,32 +1113,96 @@ BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
     const Int_t kNModules = 8;
     const Int_t kNLayers = 2;
     const Int_t kNStrips = 640;
-    const Int_t kNStripsInBunch = 32;
+    const Int_t kNStripsInBunch = 128;
     const Int_t kNBunches = kNStrips / kNStripsInBunch;
-    const Int_t kNThresh = 3;
-
+    Int_t kNThresh = 3;
+    // repeat noisy channels in the physical terms (station/module/layer)
+    for (Int_t iCr = 0; iCr < GetNSerials(); ++iCr)
+        for (Int_t iCh = 0; iCh < GetNChannels(); ++iCh)
+            for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl)
+                for (auto &it : fMap)
+                    if (GetSerials()[iCr] == it.serial && iCh >= it.channel_low && iCh <= it.channel_high) {
+                        if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) {
+                            UInt_t iStrip = (iCh - it.channel_low) * GetNSamples() + iSmpl;
+                            //                            printf("noise on iSt %d iMod %d iLay %d strip %d  was    %d\n",
+                            //                                    it.station, it.module, it.layer, iStrip, fNoisyChannels[it.station][it.module][it.layer][iStrip]);
+                            fNoisyChannels[it.station][it.module][it.layer][iStrip] = kTRUE;
+                            //                            printf("noise on iSt %d iMod %d iLay %d strip %d  set to %d\n",
+                            //                                    it.station, it.module, it.layer, iStrip, fNoisyChannels[it.station][it.module][it.layer][iStrip]);
+                        }
+                    }
+    // mark noisy
     for (Int_t iSt = 0; iSt < kNStations; ++iSt)
         for (UInt_t iMod = 0; iMod < kNModules; ++iMod)
             for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
                 TH1F* prof = fSigProf[iSt][iMod][iLay];
+                //                    Double_t meanDiff = 0.0;
+                //                    Double_t mean = 0.0;
+                //                    for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip) {
+                //                        Int_t strip = iStrip;// + iBunch * kNStripsInBunch;
+                //                        Double_t curr = prof->GetBinContent(strip);
+                //                        Double_t next = prof->GetBinContent(strip + 1);
+                //                        meanDiff += Abs(next - curr);
+                //                        mean += curr;
+                //                    }
+                //                    meanDiff /= kNStrips;//InBunch;
+                //                    mean /= kNStrips;//InBunch;
+                //                    for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip) {
+                //                        Int_t strip = iStrip;// + iBunch * kNStripsInBunch;
+                //                        Double_t curr = prof->GetBinContent(strip);
+                //                        Double_t next = prof->GetBinContent(strip + 1);
+                //                        // if (kNThresh * meanDiff < next - curr) {
+                //                        if (kNThresh * mean < curr) {
+                //                            fNoisyChannels[iSt][iMod][iLay][strip] = kTRUE;
+                //                            for (auto &it : fMap)
+                //                                if (it.station == iSt && it.module == iMod && it.layer == iLay) {
+                //                                    UInt_t iCr = 0;
+                //                                    for (iCr = 0; iCr < GetSerials().size(); iCr++) {
+                //                                        if (GetSerials()[iCr] == it.serial)
+                //                                            break;
+                //                                    }
+                //                                    UInt_t iCh = it.channel_low + strip / GetNSamples();
+                //                                    UInt_t iSmpl = strip % GetNSamples();
+                //                                    GetNoisyChipChannels()[iCr][iCh][iSmpl] = kTRUE;
+                //                                                                        printf("noise on iCr %d, iCh %i, iSmpl %i\n", iCr, iCh, iSmpl);
+                //                                }
+                //                        }
+                //                    }
                 for (Int_t iBunch = 0; iBunch < kNBunches; ++iBunch) {
                     Double_t meanDiff = 0.0;
                     Double_t mean = 0.0;
-                    for (Int_t iStrip = 0; iStrip < kNStripsInBunch - 1; ++iStrip) {
+                    for (Int_t iStrip = 0; iStrip < kNStripsInBunch; ++iStrip) {
                         Int_t strip = iStrip + iBunch * kNStripsInBunch;
-                        Double_t curr = prof->GetBinContent(strip);
-                        Double_t next = prof->GetBinContent(strip + 1);
+                        if (fNoisyChannels[iSt][iMod][iLay][strip] == kTRUE) continue;
+                        Double_t curr = prof->GetBinContent(strip + 1);
+                        Double_t next = prof->GetBinContent(strip);
                         meanDiff += Abs(next - curr);
                         mean += curr;
                     }
                     meanDiff /= kNStripsInBunch;
                     mean /= kNStripsInBunch;
-                    for (Int_t iStrip = 0; iStrip < kNStripsInBunch - 1; ++iStrip) {
+                    for (Int_t iStrip = 0; iStrip < kNStripsInBunch; ++iStrip) {
                         Int_t strip = iStrip + iBunch * kNStripsInBunch;
-                        Double_t curr = prof->GetBinContent(strip);
-                        Double_t next = prof->GetBinContent(strip + 1);
-                        // if (kNThresh * meanDiff < next - curr) {
-                        if (kNThresh * mean < Abs(curr - mean)) {
+                        //                            printf("profile noise on iSt %d iMod %d iLay %d strip %d  was    %d\n",
+                        //                                    iSt, iMod, iLay, strip, fNoisyChannels[iSt][iMod][iLay][strip]);
+                        if (fNoisyChannels[iSt][iMod][iLay][strip] == kTRUE) continue;
+                        Double_t curr = prof->GetBinContent(strip + 1);
+                        Double_t next = prof->GetBinContent(strip);
+                        //                        if (kNThresh * meanDiff < next - curr)
+                        if (mean > 1000)
+                            kNThresh = 3;
+                        else {
+                            if (mean > 100)
+                                kNThresh = 4;
+                            else {
+                                if (mean > 10)
+                                    kNThresh = 5;
+                            }
+                        }
+                        kNThresh = 3;
+//                        printf("  iSt %d iMod %d iLay %d strip %d (cur - mean) = %4.2f  mean %4.2f %s\n",
+//                                iSt, iMod, iLay, strip, (curr - mean), mean, ((kNThresh * Abs(mean) < Abs(curr - mean)) ? " Noise!" : ""));
+                        if ((kNThresh * Abs(mean) < Abs(curr - mean))/* || (kNThresh * meanDiff < -next + curr)*/) {
                             fNoisyChannels[iSt][iMod][iLay][strip] = kTRUE;
                             for (auto &it : fMap)
                                 if (it.station == iSt && it.module == iMod && it.layer == iLay) {
@@ -1120,47 +1211,92 @@ BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
                                         if (GetSerials()[iCr] == it.serial)
                                             break;
                                     }
-                                    UInt_t iCh = it.channel_low + strip / GetNSamples();
-                                    UInt_t iSmpl = strip % GetNSamples();
+                                    UInt_t iCh = it.channel_low + (strip) / GetNSamples();
+                                    UInt_t iSmpl = (strip) % GetNSamples();
+                                    //                                    printf("profile noise on iSt %d iMod %d iLay %d strip %d    iCr %d, iCh %i, iSmpl %i  was   %d\n",
+                                    //                                            iSt, iMod, iLay, strip, iCr, iCh, iSmpl, fNoisyChipChannels[iCr][iCh][iSmpl]);
                                     GetNoisyChipChannels()[iCr][iCh][iSmpl] = kTRUE;
-                                    //                                    printf("noise on iCr %d, iCh %i, iSmpl %i\n", iCr, iCh, iSmpl);
+                                    //                                    printf("profile noise on iSt %d iMod %d iLay %d strip %d    iCr %d, iCh %i, iSmpl %i  set to %d\n",
+                                    //                                            iSt, iMod, iLay, strip, iCr, iCh, iSmpl, fNoisyChipChannels[iCr][iCh][iSmpl]);
                                 }
                         }
                     }
                 }
             }
-    //    for (Int_t iSt = 0; iSt < kNStations; ++iSt)
-    //        for (UInt_t iMod = 0; iMod < kNModules; ++iMod)
-    //            for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
-    //                for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip) {
-    //                    if (fNoisyChannels[iSt][iMod][iLay][iStrip] == kTRUE) {
-    //                        for (auto &it : fMap)
-    //                            if (it.station == iSt && it.module == iMod && it.layer == iLay) {
-    //                                UInt_t iCr = 0;
-    //                                for (iCr = 0; iCr < GetSerials().size(); iCr++) {
-    //                                    if (GetSerials()[iCr] == it.serial)
-    //                                        break;
-    //                                }
-    //                                UInt_t iCh = it.channel_low + iStrip / GetNSamples();
-    //                                UInt_t iSmpl = iStrip % GetNSamples();
-    //                                GetNoisyChipChannels()[iCr][iCh][iSmpl] = kTRUE;
-    //                                //                                printf("noise on iCr %d, iCh %i, iSmpl %i\n", iCr, iCh, iSmpl);
-    //                            }
-    //                    }
-    //                }
-    //            }
-    for (Int_t iCr = 0; iCr < GetNSerials(); ++iCr)
-        for (Int_t iCh = 0; iCh < GetNChannels(); ++iCh)
-            for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl)
-                for (auto &it : fMap)
-                    if (GetSerials()[iCr] == it.serial && iCh >= it.channel_low && iCh <= it.channel_high) {
-                        if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) {
-                            UInt_t iStrip = (iCh - it.channel_low) * GetNSamples() + 1 + iSmpl;
-                            fNoisyChannels[it.station][it.module][it.layer][iStrip] = kTRUE;
-                        }
+    // repeat noisy channels back into the electronics terms
+    for (Int_t iSt = 0; iSt < kNStations; ++iSt)
+        for (UInt_t iMod = 0; iMod < kNModules; ++iMod)
+            for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
+                for (Int_t iStrip = 1; iStrip < kNStrips; ++iStrip) {
+                    if (fNoisyChannels[iSt][iMod][iLay][iStrip] == kTRUE) {
+                        for (auto &it : fMap)
+                            if (it.station == iSt && it.module == iMod && it.layer == iLay) {
+                                UInt_t iCr = 0;
+                                for (iCr = 0; iCr < GetSerials().size(); iCr++) {
+                                    if (GetSerials()[iCr] == it.serial)
+                                        break;
+                                }
+                                UInt_t iCh = it.channel_low + iStrip / GetNSamples();
+                                UInt_t iSmpl = iStrip % GetNSamples();
+                                GetNoisyChipChannels()[iCr][iCh][iSmpl] = kTRUE;
+                                //                                printf("noise on iCr %d, iCh %i, iSmpl %i\n", iCr, iCh, iSmpl);
+                            }
                     }
+                }
+            }
 
     return kBMNSUCCESS;
+}
+
+void BmnSiliconRaw2Digit::ProcessAdc(TClonesArray *silicon, Bool_t doFill) {
+    cmodcut = 100;
+    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+        //            printf("iCr %d  serial %08X\n", iCr, GetSerials()[iCr]);
+        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+            for (auto &it : fMap)
+                if (GetSerials()[iCr] == it.serial && iCh >= it.channel_low && iCh <= it.channel_high) {
+                    Short_t station = it.station;
+                    Short_t module = it.module;
+                    Short_t layer = it.layer;
+                    for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
+                        if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) continue;
+                        Short_t strip = (iCh - it.channel_low) * GetNSamples() + iSmpl;
+                        //                        if (
+                        //                                (!doFill) &&
+                        //                                (
+                        //                                ((station == 2)&&(module == 7)&&(layer == 0)&&(strip == 4)) ||
+                        //                                ((station == 0)&&(module == 2)&&(layer == 1)&&(strip == 600)) ||
+                        //                                ((station == 0)&&(module == 2)&&(layer == 1)&&(strip == 601)) ||
+                        //                                ((station == 0)&&(module == 2)&&(layer == 1)&&(strip == 602)) ||
+                        //                                ((station == 0)&&(module == 2)&&(layer == 1)&&(strip == 606))
+                        //                                )) {
+                        //
+                        //                            printf("  iSt %d iMod %d iLay %d strip %d  WTF!!!\n",
+                        //                                    station, module, layer, strip);
+                        //                        }
+                        Double_t sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl] + fCMode[iCr][iCh] - fSMode[iCr][iCh];
+                        Double_t Asig = TMath::Abs(sig);
+                        Double_t thr = Max(180.0, 3.5 * GetPedestalsRMS()[iCr][iCh][iSmpl]);
+                        //                                                printf("signal   thr %6f  prms %6f\n", thr, GetPedestalsRMS()[iCr][iCh][iSmpl]);
+                        if (Asig > thr) {//[station][module][layer][strip] == kFALSE)) {
+                            if (doFill) {
+                                if (Abs(fCMode[iCr][iCh] - fSMode[iCr][iCh]) < cmodcut)
+                                    fSigProf[station][module][layer]->Fill(strip);
+                            } else {
+                                BmnSiliconDigit * resDig =
+                                        new((*silicon)[silicon->GetEntriesFast()])
+                                        BmnSiliconDigit(station, module, layer, strip, sig);
+                                if ((Abs(fCMode[iCr][iCh] - fSMode[iCr][iCh]) > cmodcut))
+                                    resDig->SetIsGoodDigit(kFALSE);
+                                else
+                                    resDig->SetIsGoodDigit(kTRUE);
+                            }
+                        }
+                    }
+                    break;
+                }
+        }
+    }
 }
 
 void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* silM, TClonesArray *silicon, Bool_t doFill) {
@@ -1168,11 +1304,16 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
     UInt_t ch = adcDig->GetChannel();
     UInt_t ser = adcDig->GetSerial();
 
-    Int_t iSer = -1;
-    for (iSer = 0; iSer < GetSerials().size(); ++iSer)
-        if (ser == GetSerials()[iSer]) break;
-    if (iSer == GetSerials().size())
-        return; // serial not found
+    auto serIter = fSerMap.find(ser);
+    if (serIter == fSerMap.end()) {
+        printf("Serial %08X not found in the map\n", ser);
+        return;
+    }
+    Int_t iSer = serIter->second;
+    //    for (iSer = 0; iSer < GetSerials().size(); ++iSer)
+    //        if (ser == GetSerials()[iSer]) break;
+    //    if (iSer == GetSerials().size())
+    //        return; // serial not found
 
     BmnSiliconDigit candDig[nSmpl];
 
@@ -1204,24 +1345,24 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         if ((candDig[iSmpl]).GetStripSignal() == 0 ||
                 fNoisyChannels[candDig[iSmpl].GetStation()][candDig[iSmpl].GetModule()][candDig[iSmpl].GetStripLayer()][candDig[iSmpl].GetStripNumber()] == kTRUE) continue;
         signals[iSmpl] = (candDig[iSmpl]).GetStripSignal();
-//        cmode[nOk] = vPed[iSer][ch][iSmpl];
-//        nOk++;
+        //        cmode[nOk] = vPed[iSer][ch][iSmpl];
+        //        nOk++;
     }
-//    Double_t CMS = CalcCMS(signals, nOk);
-//    Double_t pedCMS = CalcCMS(cmode, nOk);
+    //    Double_t CMS = CalcCMS(signals, nOk);
+    //    Double_t pedCMS = CalcCMS(cmode, nOk);
     Double_t SCMS = CalcSCMS(signals, nSmpl, iSer, ch);
     //    if (SCMS > -80)
     //        return;
 
 
-//    nOk = 0;
-//    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) signals[iSmpl] = 0.0;
-//    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-//        if (fNoisyChannels[candDig[iSmpl].GetStation()][candDig[iSmpl].GetModule()][candDig[iSmpl].GetStripLayer()][candDig[iSmpl].GetStripNumber()] == kTRUE) continue;
-//        signals[iSmpl] = vPed[iSer][ch][iSmpl];
-//        nOk++;
-//    }
-//    Double_t pedCMS = CalcCMS(signals, ch);
+    //    nOk = 0;
+    //    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) signals[iSmpl] = 0.0;
+    //    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+    //        if (fNoisyChannels[candDig[iSmpl].GetStation()][candDig[iSmpl].GetModule()][candDig[iSmpl].GetStripLayer()][candDig[iSmpl].GetStripNumber()] == kTRUE) continue;
+    //        signals[iSmpl] = vPed[iSer][ch][iSmpl];
+    //        nOk++;
+    //    }
+    //    Double_t pedCMS = CalcCMS(signals, ch);
 
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
@@ -1231,8 +1372,9 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         BmnSiliconDigit * dig = &candDig[iSmpl];
         Double_t ped = vPed[iSer][ch][iSmpl];
         //        Double_t sig = Abs(dig->GetStripSignal() - CMS - ped);
-        Double_t sig = Abs(dig->GetStripSignal() - SCMS - ped);
-//                Double_t sig = Abs(dig->GetStripSignal() - CMS + pedCMS - ped);
+        //        Double_t sig = Abs(dig->GetStripSignal() - SCMS - ped);
+        Double_t sig = (GetRun() > GetBoundaryRun(ADC128_N_SAMPLES)) ? ((Double_t) ((adcDig->GetShortValue())[iSmpl] / 16)) : ((Double_t) ((adcDig->GetUShortValue())[iSmpl] / 16))
+                - ped + fCMode[iSer][ch] - fSMode[iSer][ch];
         //        if (dig->GetStation() == 0 && dig->GetModule() == 0 && dig->GetStripLayer() == 0) {
         //            //            hcorrp->Fill(dig->GetStripNumber(), dig->GetStripSignal() - ped);
         //            //            hcorr->Fill(dig->GetStripNumber(), sig);
@@ -1258,7 +1400,7 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         //            hfilter->Fill(dig->GetStripNumber(), sig);
         //        }
         if (doFill) {
-//            if (Abs(- CMS + pedCMS) < cmodcut)
+            //            if (Abs(- CMS + pedCMS) < cmodcut)
             if (Abs(SCMS) < cmodcut)
                 fSigProf[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()]->Fill(dig->GetStripNumber());
         } else {
@@ -1273,8 +1415,53 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
 }
 
 BmnStatus BmnSiliconRaw2Digit::LoadPedestalsMK(TTree* t_in, TClonesArray* adc128, BmnEventHeader* evhead, Int_t npedev) {
+    const Int_t MaxSig = 2300;
+    const Int_t RngSig = 150;
+    for (Int_t iCr = 0; iCr < nadc; ++iCr) {
+        vector<TH1*> hv;
+        vector<TH1*> hcm;
+        vector<TH1*> hsm;
+        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+            //                        printf("Creating  icr %2d ich %2d %s\n", iCr, iCh, Form("%08X:%02d pedestal line MK", fSerials[iCr], iCh));
+            TString hname = TString(Form("%08X:%02d pedestals MK", fSerials[iCr], iCh));
+            TH1* h = new TH2F(hname, hname,
+                    500, 0, 500,
+                    fNSamples, 0, fNSamples);
+            h->GetXaxis()->SetTitle("Event #");
+            h->GetYaxis()->SetTitle("Sample(channel) #");
+            h->SetDirectory(0);
+            hv.push_back(h);
+        }
+        hPedLineSi.push_back(hv);
+    }
+    for (Int_t iCr = 0; iCr < nadc; ++iCr) {
+        TString hname = TString(Form("%08X pedestals MK", fSerials[iCr]));
+        TH1* h = new TH2F(hname, hname, maxAdc, 0, maxAdc, MaxSig, -RngSig, RngSig);
+        h->GetXaxis()->SetTitle("Channel #");
+        h->GetYaxis()->SetTitle("Signal");
+        h->SetDirectory(0);
+        hPedSi.push_back(h);
+
+        hname = TString(Form("%08X cmods MK", fSerials[iCr]));
+        TH1* hc = new TH2F(hname, hname, maxAdc, 0, maxAdc, MaxSig, -RngSig, RngSig);
+        hc->GetXaxis()->SetTitle("Channel #");
+        hc->GetYaxis()->SetTitle("Signal");
+        hc->SetDirectory(0);
+        hCModeSi.push_back(hc);
+
+        hname = TString(Form("%08X smods MK", fSerials[iCr]));
+        TH1* hs = new TH2F(hname, hname, maxAdc, 0, maxAdc, MaxSig, -RngSig, RngSig);
+        hs->GetXaxis()->SetTitle("Channel #");
+        hs->GetYaxis()->SetTitle("Signal");
+        hs->SetDirectory(0);
+        hSModeSi.push_back(hs);
+    }
+
+
     for (Int_t iEv = 0; iEv < npedev; iEv++) {
         t_in->GetEntry(iEv);
+        if (iEv % 10000 == 0)
+            printf("%7d event checked\n", iEv);
 
         BmnEventHeader* evtype = (BmnEventHeader*) evhead;
 
@@ -1309,6 +1496,10 @@ BmnStatus BmnSiliconRaw2Digit::LoadPedestalsMK(TTree* t_in, TClonesArray* adc128
                         Int_t ich = ichadc[iadc][ic];
                         if (ich >= 0 && det >= 0 && det < ndet) {
                             Int_t mChan = nchdet[det];
+                            //                            if ((ichan == 5) && (chan == 18) && (iadc == 0)){
+                            //                                printf("iev %7d iadc %3d chan %3d ichan %3d  v %4f\n", iEv, iadc, chan, ichan, Adc);
+                            static_cast<TH2*> (hPedLineSi[iadc][chan])->Fill(npevents, ichan, Adc);
+                            //                            }
 
                             if (ich < mChan && noisech[det][ich] == 0) {
                                 Ped1ch[det][ich] += Adc;
@@ -1491,6 +1682,11 @@ BmnStatus BmnSiliconRaw2Digit::LoadPedestalsMK(TTree* t_in, TClonesArray* adc128
 
                                     Double_t Ped = Pedch[det][ich];
                                     if (pedestals) Ped = Pedchr[det][ich];
+                                    if (iter == niterped - 1) {
+                                        hCModeSi[iadc]->Fill(ic, cmode);
+                                        hSModeSi[iadc]->Fill(ic, smode);
+                                        hPedSi[iadc]->Fill(ic, Ped);
+                                    }
 
                                     Double_t Sig = Asample[det][ich] - Ped + cmode - smode;
                                     Double_t Asig = TMath::Abs(Sig);
@@ -2044,6 +2240,219 @@ void BmnSiliconRaw2Digit::PostprocessDigitMK(TClonesArray *silicon) {
         } // iter=niter-1
 
     } // niter
+}
+
+void BmnSiliconRaw2Digit::DrawDebugHistsMK(TString docName) {
+    const UInt_t PAD_WIDTH_SIL = 1920; //8192;
+    const UInt_t PAD_HEIGHT_SIL = 1080;
+    gStyle->SetOptStat(0);
+    //    TColor::InvertPalette();
+    gStyle->SetPalette(kDeepSea);
+    TCanvas *c = new TCanvas("can cms", "can", PAD_WIDTH_SIL, 2 * PAD_HEIGHT_SIL);
+    c->Divide(1, 3);
+    c->Print(docName + "[");
+    for (int iCr = 0; iCr < Max(nadc, fNSerials); iCr++) {
+        c->Clear("D");
+        c->cd(1);
+        hPedSi[iCr]->Draw("box");
+        c->cd(2);
+        hCModeSi[iCr]->Draw("colz");
+        c->cd(3);
+        hSModeSi[iCr]->Draw("colz");
+        c->Print(docName);
+    }
+    //    c->Print(docName + "]");
+    delete c;
+    c = new TCanvas("can pedestals", "can", PAD_WIDTH_SIL, PAD_HEIGHT_SIL);
+    //    c->Print(docName + "[");
+    c->Clear("D");
+    //    c->Divide(1, 2);
+    for (int iCr = 0; iCr < Max(nadc, fNSerials); iCr++)
+        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+            c->Clear("D");
+            c->cd(1);
+            hPedLineSi[iCr][iCh]->Draw("colz");
+            c->Print(docName);
+            //            c->SaveAs(Form("%s.png", hPedLine[iCr][iCh]->GetName()));
+        }
+    c->Print(docName + "]");
+    delete c;
+}
+
+void BmnSiliconRaw2Digit::RecalculatePedestalsByMap() {
+    const UShort_t nSmpl = fNSamples;
+    for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
+        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+            //            memset(fNvalsADC[iCr][iCh], 0, sizeof (UInt_t) * fNSamples);
+            for (Int_t iSmpl = 0; iSmpl < fNSamples; ++iSmpl) {
+                fPedVal[iCr][iCh][iSmpl] = 0.0;
+                fPedValTemp[iCr][iCh][iSmpl] = 0.0;
+                fPedRms[iCr][iCh][iSmpl] = 0.0;
+                fNvalsADC[iCr][iCh][iSmpl] = 0;
+                //                fNoisyChipChannels[iCr][iCh][iSmpl] = kFALSE;
+            }
+        }
+    for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
+        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
+            for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+                Int_t nOk = 0;
+                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+                    if (fPedDat[iCr][iEv][iCh][iSmpl] == 0.0 || fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE) continue;
+                    Bool_t foundInMap = kFALSE;
+                    for (auto & channelMapEl : fMap) {
+                        if ((fAdcSerials[iCr] == channelMapEl.serial) && (iCh >= channelMapEl.channel_low) && (iCh <= channelMapEl.channel_high)) {
+                            foundInMap = kTRUE;
+                        }
+                    }
+                    if (!foundInMap)
+                        continue;
+                    fPedVal[iCr][iCh][iSmpl] += fPedDat[iCr][iEv][iCh][iSmpl]; // / N_EV_FOR_PEDESTALS);
+                    fNvalsADC[iCr][iCh][iSmpl]++;
+                }
+            }
+    }
+    for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
+        for (Int_t iCh = 0; iCh < fNChannels; ++iCh)
+            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
+                if (fNvalsADC[iCr][iCh][iSmpl])
+                    fPedVal[iCr][iCh][iSmpl] /= fNvalsADC[iCr][iCh][iSmpl];
+    // iteratively calculate pedestals and CMSs
+    Double_t rmsthr = 200.0;
+    Double_t rmsthrf = 200.0;
+    Int_t nIters = 4;
+    for (Int_t iter = 0; iter < nIters; iter++) {
+        Double_t thr = thrMax - thrDif * iter; //(2 + (nIters - iter)/2.0) * sumRms; //thrMax - thrDif * iter;
+        rmsthr = 0.0;
+        rmsthrf = 0.0;
+        UInt_t nFiltered = 0;
+        // clear
+        for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+            memset(fSumRmsV[iCr], 0.0, sizeof (Double_t) * fNChannels);
+            for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+                memset(fNvalsCMod[iCr][iCh], 0, sizeof (UInt_t) * fNSamples);
+                memset(fNvalsADC[iCr][iCh], 0, sizeof (UInt_t) * fNSamples);
+                memset(fPedValTemp[iCr][iCh], 0.0, sizeof (Double_t) * fNSamples);
+                memset(fPedCMod[iCr][iCh], 0.0, sizeof (Double_t) * fNSamples);
+                memset(fPedCMod2[iCr][iCh], 0.0, sizeof (Double_t) * fNSamples);
+            }
+        }
+        for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS - 1; ++iEv) {
+            // clear
+            for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+                memset(fNvals[iCr], 0, sizeof (UInt_t) * fNChannels);
+                memset(fCMode[iCr], 0.0, sizeof (Double_t) * fNChannels);
+                memset(fSMode[iCr], 0.0, sizeof (Double_t) * fNChannels);
+            }
+            // Pedestals pre filtering
+            for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
+                for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+                    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+                        //                        if (iCr == 3 && iCh == 8) {
+                        //                            printf("iter %i iEv %i fpedDat %f noise %i\n", iter, iEv, fPedDat[iCr][iEv][iCh][iSmpl], fNoisyChipChannels[iCr][iCh][iSmpl]);
+                        //                        }
+                        if (fPedDat[iCr][iEv][iCh][iSmpl] == 0 || fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE) continue;
+                        Double_t Asig = TMath::Abs(fPedDat[iCr][iEv][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl]);
+                        if (Asig < thr) {
+                            fSMode[iCr][iCh] += fPedDat[iCr][iEv][iCh][iSmpl]; // CMS from current event
+                            fCMode[iCr][iCh] += fPedVal[iCr][iCh][iSmpl]; // CMS over all pedestals
+                            //                        fPedValTemp[iCr][iCh][iSmpl] += fPedDat[iCr][iEv][iCh][iSmpl]; // CMS from current event
+                            //                        fNvalsADC[iCr][iCh][iSmpl]++;
+                            fNvals[iCr][iCh]++;
+
+                        }
+                    }
+                }
+            // normalize
+            for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
+                for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+                    if (fNvals[iCr][iCh]) {
+                        fSMode[iCr][iCh] /= fNvals[iCr][iCh];
+                        fCMode[iCr][iCh] /= fNvals[iCr][iCh];
+                        hSMode[iCr][iCh]->SetBinContent(iEv, fSMode[iCr][iCh]);
+                        hCMode[iCr][iCh]->SetBinContent(iEv, fCMode[iCr][iCh]);
+                    } else {
+                        fSMode[iCr][iCh] = 0;
+                        fCMode[iCr][iCh] = 0;
+                    }
+                }
+            // Pedestals filtering
+            for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
+                for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+                    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+                        Double_t Adc = fPedDat[iCr][iEv][iCh][iSmpl];
+                        if ((Adc == 0) || (fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE)) continue;
+                        Double_t sig = fPedDat[iCr][iEv][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl] + fCMode[iCr][iCh] - fSMode[iCr][iCh];
+                        Double_t Asig = TMath::Abs(sig);
+                        if (Asig < thr) {
+                            fPedValTemp[iCr][iCh][iSmpl] += fPedDat[iCr][iEv][iCh][iSmpl];
+                            fNvalsADC[iCr][iCh][iSmpl]++;
+
+
+                            Adc = fPedDat[iCr][iEv][iCh][iSmpl] - fSMode[iCr][iCh];
+                            fPedCMod[iCr][iCh][iSmpl] += Adc;
+                            fPedCMod2[iCr][iCh][iSmpl] += Adc*Adc;
+                            fNvalsCMod[iCr][iCh][iSmpl]++;
+                            nFiltered++;
+
+                        }
+                    }
+                }
+        } // event loop
+
+        Double_t sumRms = 0.0;
+        Int_t nrms = 0;
+
+        //hists fill
+        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
+            for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+                Int_t nvrms = 0;
+                fSumRmsV[iCr][iCh] = 0.0;
+                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+                    if (fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE) continue;
+                    if (fNvalsCMod[iCr][iCh][iSmpl]) {
+                        fPedCMod[iCr][iCh][iSmpl] /= fNvalsCMod[iCr][iCh][iSmpl];
+                        fPedCMod2[iCr][iCh][iSmpl] =
+                                Sqrt(Abs(fPedCMod2[iCr][iCh][iSmpl] / fNvalsCMod[iCr][iCh][iSmpl] - Sq(fPedCMod[iCr][iCh][iSmpl])));
+                        sumRms += fPedCMod2[iCr][iCh][iSmpl];
+                        fSumRmsV[iCr][iCh] += fPedCMod2[iCr][iCh][iSmpl];
+                        nrms++;
+                        nvrms++;
+                    }
+                    if (fNvalsADC[iCr][iCh][iSmpl])
+                        fPedVal[iCr][iCh][iSmpl] = fPedValTemp[iCr][iCh][iSmpl] / fNvalsADC[iCr][iCh][iSmpl];
+                    else
+                        fPedVal[iCr][iCh][iSmpl] = 0.0;
+                    fNvalsADC[iCr][iCh][iSmpl] = 0;
+                    //                    fCMode[iCr][iCh] += fPedVal[iCr][iCh][iSmpl]; // CMS over all pedestals
+                }
+                if (nvrms)
+                    fSumRmsV[iCr][iCh] /= nvrms;
+            }
+        if (nrms > 0) sumRms /= nrms;
+
+        // noise ch detection
+        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
+            for (Int_t iCh = 0; iCh < fNChannels; ++iCh)
+                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+                    if (fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE) continue;
+                    //                    printf("icr %2d ich %2d  fpedcmod2 %4f sumRms %4f\n", iCr, iCh, fPedCMod2[iCr][iCh][iSmpl], sumRms);
+
+                    if (fPedCMod2[iCr][iCh][iSmpl] > 3.5 * sumRms) {
+                        //                    if (fPedCMod2[iCr][iCh][iSmpl] > 3.5 * fSumRmsV[iCr][iCh]) {
+                        fNoisyChipChannels[iCr][iCh][iSmpl] = kTRUE;
+                        printf("new noisy ch on  cr %i ch %i smpl %i\n", iCr, iCh, iSmpl);
+                    }
+                }
+    } // iter loop
+    ofstream pedFile(Form("%s/input/%s_pedestals_%d.txt", getenv("VMCWORKDIR"), fDetName.Data(), fRun));
+    pedFile << "Serial\tCh_id\tPed\tRMS" << endl;
+    pedFile << "============================================" << endl;
+    for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
+        for (Int_t iCh = 0; iCh < fNChannels; ++iCh)
+            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
+                pedFile << hex << fAdcSerials[iCr] << dec << "\t" << iCh * nSmpl + iSmpl << "\t" << fPedVal[iCr][iCh][iSmpl] << "\t" << fPedRms[iCr][iCh][iSmpl] << endl;
+    pedFile.close();
+    return;
 }
 
 ClassImp(BmnSiliconRaw2Digit)

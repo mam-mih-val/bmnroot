@@ -112,7 +112,7 @@ private:
     Int_t ndetgem = 14;
     static const Int_t ncsc = 2;
     Int_t nev = -1;
-    
+
     Int_t nbigL = 5;
     Int_t nbigR = 6;
     // only for period 6
@@ -141,7 +141,7 @@ private:
 
     vector<UInt_t> fSerials;
     vector<UInt_t> rSerials;
-    
+
     vector<Int_t> nx0det;
     vector<Int_t> ny0det;
     vector<Int_t> nx1det;
@@ -170,7 +170,7 @@ private:
 
     vector< vector<Float_t> > Pedchr;
     vector< vector<Float_t> > Pedchr2;
-    
+
     Int_t x0big[nx0big] = {};
     Int_t x1big[nx1big] = {};
 
@@ -197,7 +197,7 @@ private:
     vector< vector<Float_t> > Ampy0;
     vector< vector<Float_t> > Ampx1;
     vector< vector<Float_t> > Ampy1;
-    
+
     Int_t x1csc[ncscver] = {};
     Int_t x2csc[ncscver] = {};
     Int_t x3csc[ncscver] = {};
@@ -207,7 +207,7 @@ private:
     Int_t y2csc[ncscin] = {};
     Int_t y3csc[ncscin] = {};
     Int_t y4csc[ncscout] = {};
-    
+
     char ss[10] = {0};
     char sped[20] = {0};
     FILE *Rnoisefile = nullptr;
@@ -230,7 +230,7 @@ private:
     Int_t chsma[nallsma] = {-1};
     Int_t xsmall[nsmall];
     Int_t ysmall[nsmall];
-    
+
     Int_t nchip = 32;
     Int_t nchmin = 8;
     Float_t thresh = 35;
@@ -245,10 +245,10 @@ private:
     Float_t thrped = 35;
     Float_t thrpedcsc = 80;
     vector<TH1I *> hNhits;
-    
+
     vector<Int_t> Nclustx;
     vector<Int_t> Nclusty;
-// (\w+) (\w+)\[(\w+)\]\[(\w+)\].+;
+    // (\w+) (\w+)\[(\w+)\]\[(\w+)\].+;
     // $2.resize($3, vector<$1>($4, 0));
     // vector< vector<$1> > $2;
     vector< vector<Int_t> > nchan;
@@ -293,7 +293,7 @@ private:
     Int_t nradc = 0;
     Int_t npevents = 0;
     Int_t test = 0;
-    
+
     TH1I* hAdc;
     TH1I * hChan[18];
     TH1F * hAmp[18];
@@ -356,15 +356,16 @@ private:
     BmnGemMap* fBigL1;
     BmnGemMap* fBigR0;
     BmnGemMap* fBigR1;
-        
+
     TH1F**** fSigProf;
     Bool_t**** fNoisyChannels;
-    
+
     TString fMapFileName;
 
     vector<GemMapValue*> fMap;
-
+    void MapStrip(GemMapValue* gemM, UInt_t ch, Int_t iSmpl, Int_t &station, Int_t &mod, Int_t &lay, Int_t &strip);
     void ProcessDigit(BmnADCDigit* adcDig, GemMapValue* gemM, TClonesArray *gem, Bool_t doFill);
+    void ProcessAdc(TClonesArray *silicon, Bool_t doFill);
     void ProcessDigitMK(BmnADCDigit* adcDig, TClonesArray *gem, Bool_t doFill);
     void PostprocessDigitMK(TClonesArray *gem, TClonesArray *csc);
     BmnStatus ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod);

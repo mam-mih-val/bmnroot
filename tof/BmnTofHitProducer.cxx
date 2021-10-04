@@ -266,6 +266,7 @@ void BmnTofHitProducer::Exec(Option_t* opt)
   
 			trackID = pPoint->GetTrackID();	
 			UID	= pPoint->GetDetectorID();
+			if (UID == 1) continue; //TMP!!!
 			Double_t time = pRandom->Gaus(pPoint->GetTime(), fTimeSigma); // time rsolution in ps		
 			Double_t length = pRandom->Gaus(pPoint->GetLength(), 1.); // 1 cm		
 			pPoint->Position(pos);

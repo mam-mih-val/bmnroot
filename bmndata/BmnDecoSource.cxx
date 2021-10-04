@@ -4,17 +4,25 @@
 BmnDecoSource::BmnDecoSource(TString addr) {
     _addrString = Form("tcp://%s:%d", addr.Data(), 5555);
     iEventNumber = 0;
-    fEventHeader = NULL;
+    //    fEventHeader = NULL;
     fGemDigits = NULL;
+    fSilDigits = NULL;
+    fCscDigits = NULL;
     fT0Digits = NULL;
-    fTof1Digits = NULL;
+    fTof400Digits = NULL;
+    fTof700Digits = NULL;
     fDigiArrays = NULL;
+    fRunId = 0;
+    fPeriodId = 7;
+    fFirstEvent = kTRUE;
+    fT0BranchName = (fPeriodId < 7) ? "T0" : "BC2";
 }
 
 BmnDecoSource::~BmnDecoSource() {
 }
 
 Bool_t BmnDecoSource::Init() {
+    printf("BmnDecoSource::Init()\n");
     _ctx = zmq_ctx_new();
     _decoSocket = zmq_socket(_ctx, ZMQ_SUB);
     if (zmq_setsockopt(_decoSocket, ZMQ_SUBSCRIBE, NULL, 0) == -1) {
@@ -34,32 +42,50 @@ Bool_t BmnDecoSource::Init() {
     //    _tBuf->SetReadMode();
 
     FairRootManager* ioman = FairRootManager::Instance();
-    fEventHeader = new BmnEventHeader();
-    ioman->Register("EventHeader", "Event", fEventHeader, kFALSE);
+    //    fEventHeader = new DstRunHeader();
+    //    ioman->Register("DstRunHeader", "Event", fEventHeader, kFALSE);
 
-    fGemDigits = new TClonesArray("BmnGemStripDigit");
+    fGemDigits = new TClonesArray("BmnGemStripDigit"); //::Class());
     ioman->RegisterInputObject("GEM", fGemDigits);
 
-    //    fT0Digits = new TClonesArray("BmnTrigDigit");
-    //    ioman->Register("T0", "T0DIR", fT0Digits, kFALSE);
 
-    fTof1Digits = new TClonesArray("BmnTof1Digit");
-    ioman->Register("TOF400", "TOFDIR", fTof1Digits, kFALSE);
+    fSilDigits = new TClonesArray("BmnSiliconDigit"); //::Class());
+    ioman->RegisterInputObject("SILICON", fSilDigits);
+
+    fCscDigits = new TClonesArray("BmnCSCDigit"); //::Class());
+    ioman->RegisterInputObject("CSC", fCscDigits);
+
+    fT0Digits = new TClonesArray("BmnTrigDigit");
+    ioman->RegisterInputObject(fT0BranchName.c_str(), fT0Digits);
+
+    fTof400Digits = new TClonesArray("BmnTof1Digit"); //::Class());
+    ioman->RegisterInputObject("TOF400", fTof400Digits);
+
+    fTof700Digits = new TClonesArray("BmnTof2Digit"); //::Class());
+    ioman->RegisterInputObject("TOF700", fTof700Digits);
     return kTRUE;
 }
 
 void BmnDecoSource::Close() {
-    if (fEventHeader) {
-        fEventHeader->Delete();
-        delete fEventHeader;
-    }
+    //    if (fEventHeader) {
+    //        fEventHeader->Delete();
+    //        delete fEventHeader;
+    //    }
     if (fGemDigits) {
         fGemDigits->Delete();
         delete fGemDigits;
     }
-    if (fTof1Digits) {
-        fTof1Digits->Delete();
-        delete fTof1Digits;
+    if (fSilDigits) {
+        fSilDigits->Delete();
+        delete fSilDigits;
+    }
+    if (fTof400Digits) {
+        fTof400Digits->Delete();
+        delete fTof400Digits;
+    }
+    if (fTof700Digits) {
+        fTof700Digits->Delete();
+        delete fTof700Digits;
     }
     if (fT0Digits) {
         fT0Digits->Delete();
@@ -91,7 +117,7 @@ Int_t BmnDecoSource::ReadEvent(UInt_t i) {
         //            return;
         //        }
     } else {
-//        printf("Received frame_size = %d\n", frame_size);
+        //        printf("Received frame_size = %d\n", frame_size);
         if (fDigiArrays) {
             fDigiArrays->Clear();
             delete fDigiArrays;
@@ -104,32 +130,57 @@ Int_t BmnDecoSource::ReadEvent(UInt_t i) {
         //    if (fInChain->GetEntry(i))
         //        return 0;
         BmnEventHeader* head = fDigiArrays->header;
-        //        cout<<"Current Run Id: "<<head->GetRunId()<<endl;
-        //        cout<<"Count of BmnEventHeader: "<<fDigiArrays->header->GetEntriesFast()<<endl;
+        Int_t prevRunId = fRunId;
+        fRunId = head->GetRunId();
+
+        if (prevRunId != head->GetRunId()) {
+                printf("New Run Id: %5d\n", fRunId);
+            if (prevRunId != 0)
+                return 1;
+            else
+                printf("Start Run Id: %5d\n", fRunId);
+        }
+        //        cout << "EventID: " << fDigiArrays->header->GetEventId() << endl;
+        //        cout << "Accepted: " << fDigiArrays->header->GetTrigInfo()->GetTrigAccepted() << endl;
         //        cout << "Count of GEM digits: " << fDigiArrays->gem->GetEntriesFast() << endl;
-        //        cout << "Count of TOF digits: " << fDigiArrays->tof400->GetEntriesFast() << endl;
+        //        cout << "Count of Sil digits: " << fDigiArrays->silicon->GetEntriesFast() << endl;
+        //        cout << "Count of TOF400 digits: " << fDigiArrays->tof400->GetEntriesFast() << endl;
+        //        cout << "Count of TOF700 digits: " << fDigiArrays->tof700->GetEntriesFast() << endl;
 
         // move result TClonesArray to registered TClonesArray
-//        fEventHeader->Clear();
-//        fGemDigits->Clear();
-//        //        fT0Digits->Delete();
-//        fTof1Digits->Clear();
-        fEventHeader->Delete();
+        //        fEventHeader->Clear();
+        //        fGemDigits->Clear();
+        fT0Digits->Delete();
+        //        fTof1Digits->Clear();
+        //        fEventHeader->Clear();
         fGemDigits->Delete();
-        fTof1Digits->Delete();
-//        fEventHeader = fDigiArrays->header;
-        fEventHeader->SetRunId(fDigiArrays->header->GetRunId());
-        fEventHeader->SetEventId(fDigiArrays->header->GetEventId());
-        fEventHeader->SetEventTimeTS(fDigiArrays->header->GetEventTimeTS());
-        fEventHeader->SetEventTime(fDigiArrays->header->GetEventTime());
-        fEventHeader->SetEventType(fDigiArrays->header->GetEventType());
-        fEventHeader->SetTripWord(kFALSE);
-        fEventHeader->SetTrigInfo(fDigiArrays->header->GetTrigInfo());
-        fEventHeader->SetTimeShift(fDigiArrays->header->GetTimeShift());        
-        fEventHeader->SetStartSignalInfo(fDigiArrays->header->GetStartSignalTime(), fDigiArrays->header->GetStartSignalWidth());
+        fSilDigits->Delete();
+        fTof400Digits->Delete();
+        fTof700Digits->Delete();
+        ////        fEventHeader = fDigiArrays->header;
+        //        fEventHeader->SetRunId(fDigiArrays->header->GetRunId());
+        //        fEventHeader->SetEventId(fDigiArrays->header->GetEventId());
+        //        fEventHeader->SetEventTimeTS(fDigiArrays->header->GetEventTimeTS());
+        //        fEventHeader->SetEventTime(fDigiArrays->header->GetEventTime());
+        //        fEventHeader->SetEventType(fDigiArrays->header->GetEventType());
+        //        fEventHeader->SetTripWord(kFALSE);
+        //        fEventHeader->SetTrigInfo(fDigiArrays->header->GetTrigInfo());
+        //        fEventHeader->SetTimeShift(fDigiArrays->header->GetTimeShift());        
+        //        fEventHeader->SetStartSignalInfo(fDigiArrays->header->GetStartSignalTime(), fDigiArrays->header->GetStartSignalWidth());
+        if(fFirstEvent && fDigiArrays->trigAr){
+            for (Int_t iTrig =0; iTrig < fDigiArrays->trigAr->size(); iTrig++){
+                TClonesArray  *ar = (*fDigiArrays->trigAr)[iTrig];
+                if(strcmp(ar->GetName(), "BC2") == 0)
+                    iT0BranchIndex = iTrig;
+            }
+        }
+        
         fGemDigits->AbsorbObjects(fDigiArrays->gem);
-        //        fT0Digits->AbsorbObjects(fDigiArrays->t0);
-        fTof1Digits->AbsorbObjects(fDigiArrays->tof400);
+        fSilDigits->AbsorbObjects(fDigiArrays->silicon);
+        fCscDigits->AbsorbObjects(fDigiArrays->csc);
+        fT0Digits->AbsorbObjects((*fDigiArrays->trigAr)[iT0BranchIndex]);
+        fTof400Digits->AbsorbObjects(fDigiArrays->tof400);
+        fTof700Digits->AbsorbObjects(fDigiArrays->tof700);
         _tBuf->DetachBuffer();
         zmq_msg_close(&_msg);
     }
@@ -139,14 +190,14 @@ Int_t BmnDecoSource::ReadEvent(UInt_t i) {
 
 void BmnDecoSource::FillEventHeader(FairEventHeader* feh) {
 
-//    printf("fDigiArrays->header->GetEntriesFast() = %d\n", fEventHeader->GetEntriesFast());
-    if (fEventHeader) {
-        feh->SetRunId(fEventHeader->GetRunId());
-//        printf("feh run id = %d\n", feh->GetRunId());
-        //        feh->SetMCEntryNumber(fEvtHeader->GetMCEntryNumber());
-    }
-
-    feh->SetInputFileId(0);
+    ////    printf("fDigiArrays->header->GetEntriesFast() = %d\n", fEventHeader->GetEntriesFast());
+    //    if (fEventHeader) {
+    //        feh->SetRunId(fEventHeader->GetRunId());
+    //        printf("feh run id = %d\n", feh->GetRunId());
+    //        //        feh->SetMCEntryNumber(fEvtHeader->GetMCEntryNumber());
+    //    }
+    //
+    ////    feh->SetInputFileId(0);
 
     return;
 }

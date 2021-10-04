@@ -1007,8 +1007,13 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         if (fSiliconMapper) fSiliconMapper->InitAdcProcessorMK(fRunId, 0, 0, 0, 0);
         if (fGemMapper) fGemMapper->InitAdcProcessorMK(fRunId, 0, 0, 0, 0);
         printf("\n[INFO]" ANSI_COLOR_BLUE " Processing pedestals\n" ANSI_COLOR_RESET);
-        if (fSiliconMapper) fSiliconMapper->LoadPedestalsMK(fRawTree, adc128, eventHeaderDAQ, Min(fNevents, (UInt_t) 100000));
-        if (fGemMapper) fGemMapper->LoadPedestalsMK(fRawTree, adc32, eventHeaderDAQ, Min(fNevents, (UInt_t) 100000));
+        if (fSiliconMapper) fSiliconMapper->LoadPedestalsMK(fRawTree, adc128, eventHeaderDAQ, Min(fNevents, (UInt_t) 300000));
+        //        if (fSiliconMapper){
+        //            fSiliconMapper->DrawDebugHistsMK("sil-sig-cms-MK.pdf");
+        ////            fSiliconMapper->DrawDebugHists("sil-sig-cms-SM.pdf");
+        ////            return kBMNSUCCESS;
+        //        }
+        if (fGemMapper) fGemMapper->LoadPedestalsMK(fRawTree, adc32, eventHeaderDAQ, Min(fNevents, (UInt_t) 300000));
         printf("[INFO]" ANSI_COLOR_BLUE " First payload loop\n" ANSI_COLOR_RESET);
         for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
             ClearArrays();
@@ -1056,12 +1061,17 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             printf(" Not enough pedestal events (%d instead of %d)\n", fPedEvCntr, fEvForPedestals);
         }
         if (fGemMapper) fGemMapper->RecalculatePedestalsAugmented();
-        if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsAugmented();
+        if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsByMap();
         if (fCscMapper)fCscMapper->RecalculatePedestalsAugmented();
+//        if (fSiliconMapper) {
+//            fSiliconMapper->DrawDebugHistsMK("sil-ped-cms-SM.pdf");
+//            fSiliconMapper->DrawDebugHists("sil-ped-cms-SM-ev.pdf");
+//            fSiliconMapper->ClearDebugHists();
+//        }
         fPedEvCntr = 0;
         printf("\n[INFO]" ANSI_COLOR_BLUE " Clear noisy channels:\n" ANSI_COLOR_RESET);
         printf("\tFilling signal profiles for station-module-layer histograms\n");
-        UInt_t nEvForNoiseCorrection = 10000;
+        UInt_t nEvForNoiseCorrection = 100000;
         printf("\tNumber of requested events is ");
         printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, nEvForNoiseCorrection);
         printf("\tActual number of events is ");
@@ -1081,20 +1091,17 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                     printf("\n[INFO]");
                     printf(ANSI_COLOR_BLUE " ADC pedestals recalculation\n" ANSI_COLOR_RESET);
                     if (fGemMapper) fGemMapper->RecalculatePedestalsAugmented();
-                    if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsAugmented();
+                    if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsByMap();
                     if (fCscMapper)fCscMapper->RecalculatePedestalsAugmented();
                     fPedEvCntr = 0;
-                    //                    if (fSiliconMapper) {
-                    //                        fSiliconMapper->DrawDebugHists("sil-ped-cms.pdf");
-                    //                        fSiliconMapper->ClearDebugHists();
-                    //                    }
                 }
             }
             if (fVerbose == 1) {
-                if (iEv % 1000 == 0 && iEv > 0) cout << "Profile event #" << iEv << "/" << n << ";" << endl;
+                if (iEv % 5000 == 0 && iEv > 0) cout << "Profile event #" << iEv << "/" << n << ";" << endl;
             } else if (fVerbose == 0)
                 DrawBar(iEv, n);
             if (fGemMapper) fGemMapper->FillProfiles(adc32);
+            //            printf("ev %6d\n", iEv);
             if (fSiliconMapper) fSiliconMapper->FillProfiles(adc128);
             if (fCscMapper) fCscMapper->FillProfiles(adc32);
             prevEventType = curEventType;
@@ -1115,14 +1122,14 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             delete fSiliconMapper;
             fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId, fSiliconSerials, fBmnSetup, GetAdcDecoMode());
             fSiliconMapper->InitAdcProcessorMK(fRunId, 1, 0, 0, 0);
-            fSiliconMapper->LoadPedestalsMK(fRawTree, adc128, eventHeaderDAQ, Min(fNevents, (UInt_t) 100000));
+            fSiliconMapper->LoadPedestalsMK(fRawTree, adc128, eventHeaderDAQ, Min(fNevents, (UInt_t) 300000));
             //            fSiliconMapper->RecalculatePedestalsMK(fPedEvCntr);
         }
         if (fGemMapper) {
             delete fGemMapper;
             fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId, fGemSerials, fGemMapFileName, fBmnSetup, GetAdcDecoMode());
             fGemMapper->InitAdcProcessorMK(fRunId, 1, 0, 0, 0);
-            fGemMapper->LoadPedestalsMK(fRawTree, adc32, eventHeaderDAQ, Min(fNevents, (UInt_t) 100000));
+            fGemMapper->LoadPedestalsMK(fRawTree, adc32, eventHeaderDAQ, Min(fNevents, (UInt_t) 300000));
             //            fGemMapper->RecalculatePedestalsMK(fPedEvCntr);
         }
     } else
@@ -1152,8 +1159,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             printf(ANSI_COLOR_RED "\n[WARNING]" ANSI_COLOR_RESET);
             printf(" Not enough pedestal events (%d instead of %d)\n", fPedEvCntr, fEvForPedestals);
         }
+        printf("\n[INFO]");
+        printf(ANSI_COLOR_BLUE " Calculating pedestals\n" ANSI_COLOR_RESET);
         if (fGemMapper) fGemMapper->RecalculatePedestalsAugmented();
-        if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsAugmented();
+        if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsByMap();
         if (fCscMapper) fCscMapper->RecalculatePedestalsAugmented();
         fPedEvCntr = 0;
 
@@ -1262,7 +1271,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             }
         }
         if (fVerbose == 1) {
-            //            if (iEv % 5000 == 0) cout << "Digitization event #" << fEventId << "/" << fNevents << "; Spill #" << fSpillCntr << endl;
+            if (iEv % 5000 == 0) cout << "Digitization: " << iEv << "/" << fNevents << " processed; Spill #" << fSpillCntr << endl;
         } else if (fVerbose == 0)
             DrawBar(iEv, fNevents);
 
@@ -1303,8 +1312,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             }
         } else { // payload
             if (prevEventType == kBMNPEDESTAL && fPedEvCntr == fEvForPedestals - 1) {
+                printf("\n[INFO]");
+                printf(ANSI_COLOR_BLUE " Recalculating pedestals\n" ANSI_COLOR_RESET);
                 if (fGemMapper) fGemMapper->RecalculatePedestalsAugmented();
-                if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsAugmented();
+                if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsByMap();
                 if (fCscMapper)fCscMapper->RecalculatePedestalsAugmented();
                 fPedEvCntr = 0;
             }
@@ -1329,10 +1340,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         fDigiTree->Fill();
         prevEventType = curEventType;
     }
-    //                    if (fSiliconMapper) {
-    //                        fSiliconMapper->DrawDebugHists("sil-sig-cms.pdf");
-    //                        fSiliconMapper->ClearDebugHists();
-    //                    }
+    //                        if (fSiliconMapper) {
+    //                            fSiliconMapper->DrawDebugHistsMK("sil-sig-cms.pdf");
+    ////                            fSiliconMapper->ClearDebugHists();
+    //                        }
 
     if (fTof700Mapper) {
         fTof700Mapper->WriteSlewingResults();
@@ -1535,9 +1546,11 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     } else { // payload
         if (fPrevEventType == kBMNPEDESTAL) {
             if (fPedEvCntr >= fEvForPedestals - 1) {
-                if (fGemMapper)fGemMapper->RecalculatePedestals();
-                if (fSiliconMapper)fSiliconMapper->RecalculatePedestals();
-                if (fCscMapper)fCscMapper->RecalculatePedestals();
+                printf("\n[INFO]");
+                printf(ANSI_COLOR_BLUE " Recalculating pedestals\n" ANSI_COLOR_RESET);
+                if (fGemMapper)fGemMapper->RecalculatePedestalsAugmented();
+                if (fSiliconMapper)fSiliconMapper->RecalculatePedestalsAugmented();
+                if (fCscMapper)fCscMapper->RecalculatePedestalsAugmented();
                 fPedEvCntr = 0;
                 fPedEnough = kTRUE;
             }
@@ -1698,11 +1711,17 @@ BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray
     }
     if (fSiliconMapper) {
         Double_t**** pedData = fSiliconMapper->GetPedData();
+        vector<BmnSiliconMapping> & channelMap = fSiliconMapper->GetMap();
+        map<UInt_t, Int_t>& serialMap = fSiliconMapper->GetSerialMap();
         for (UInt_t iAdc = 0; iAdc < adcSil->GetEntriesFast(); ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adcSil->At(iAdc);
-
-            for (Int_t iSer = 0; iSer < fNSiliconSerials; ++iSer) {
-                if (adcDig->GetSerial() != fSiliconSerials[iSer]) continue;
+            UInt_t iCh = adcDig->GetChannel();
+            UInt_t ser = adcDig->GetSerial();
+            //            for (Int_t iSer = 0; iSer < fNSiliconSerials; ++iSer) {
+            for (auto & channelMapEl : channelMap) {
+                //                if (adcDig->GetSerial() != fSiliconSerials[iSer]) continue;
+                if ((ser != channelMapEl.serial) || (iCh < channelMapEl.channel_low) || (iCh > channelMapEl.channel_high)) continue;
+                Int_t iSer = serialMap[ser];
                 //                printf("SIL ser = 0x%08x, iSer = %02d, ev= %05d, ch = %d\n", adcDig->GetSerial(), iSer, ev, adcDig->GetChannel());
                 for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl) {
                     if (fRunId > GetBoundaryRun(ADC128_N_SAMPLES))

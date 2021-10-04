@@ -42,7 +42,6 @@ set(SRCS
  BmnTriggersCheck.cxx
  BmnVertexFinder.cxx
  SrcVertexFinder.cxx
- BmnPVAnalyzer.cxx
 )
 
 If (Boost_FOUND)

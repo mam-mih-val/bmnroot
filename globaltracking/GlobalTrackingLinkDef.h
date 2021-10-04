@@ -9,6 +9,5 @@
 #pragma link C++ class BmnTriggersCheck+;
 #pragma link C++ class BmnVertexFinder+;
 #pragma link C++ class SrcVertexFinder+;
-#pragma link C++ class BmnPVAnalyzer+;
 
 #endif

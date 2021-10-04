@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /* 
  * File:   DigiArrays.h
  * Author: ilnur
@@ -34,8 +28,13 @@ public:
         mwpc = NULL;
         silicon = NULL;
         header = NULL;
+        
         trigAr = NULL;
         trigSrcAr = NULL;
+        
+        gemHits = NULL;
+        silHits = NULL;
+        pv = NULL;
     };
 
     ~DigiArrays() {
@@ -85,6 +84,18 @@ public:
             land->Delete();
             delete land;
         }
+        if (gemHits) {
+            gemHits->Delete();
+            delete gemHits;
+        }
+        if (silHits) {
+            silHits->Delete();
+            delete silHits;
+        }
+        if (pv) {
+            pv->Delete();
+            delete pv;
+        }
         if (trigAr) {
             for (TClonesArray *ar : (*trigAr))
                 if (ar) {
@@ -114,6 +125,11 @@ public:
     TClonesArray *mwpc;
     std::vector<TClonesArray*> *trigAr;
     std::vector<TClonesArray*> *trigSrcAr;
+    
+    TClonesArray *gemHits;
+    TClonesArray *silHits;
+    TClonesArray *pv;
+        
     BmnEventHeader *header; //->
 private:
     ClassDef(DigiArrays, 1)

@@ -2,6 +2,9 @@
 #define BMNDECOSOURCE_H
 
 #include <iostream>
+#include <string>
+#include <cstring>
+#include <vector>
 #include <zmq.h>
 // ROOT
 #include "TString.h"
@@ -15,6 +18,12 @@
 #include "BmnEnums.h"
 #include "DigiArrays.h"
 #include "BmnEventHeader.h"
+//#include "BmnTof1Digit.h"
+//#include "BmnTof2Digit.h"
+//#include "BmnGemStripDigit.h"
+//#include "BmnSiliconDigit.h"
+
+using namespace std;
 
 class BmnDecoSource : public FairOnlineSource {
 public:
@@ -40,11 +49,21 @@ private:
     TChain* fInChain;
     /**Input Tree */
     TTree* fInTree;
+    
+    Bool_t fFirstEvent;
+    string fT0BranchName;
+    
+    Int_t fRunId;
+    Int_t fPeriodId;
 
     Int_t iEventNumber;
-    BmnEventHeader* fEventHeader;
+    Int_t iT0BranchIndex;
+//    DstRunHeader* fEventHeader;
     TClonesArray* fGemDigits;
-    TClonesArray* fTof1Digits;
+    TClonesArray* fSilDigits;
+    TClonesArray* fCscDigits;
+    TClonesArray* fTof400Digits;
+    TClonesArray* fTof700Digits;
     TClonesArray* fT0Digits;
     ClassDef(BmnDecoSource, 1);
 };

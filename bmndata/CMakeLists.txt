@@ -120,6 +120,7 @@ set(SRCS
  BmnTof1Digit.cxx
  BmnTof2Digit.cxx
  BmnTofHit.cxx
+ BmnCaloDigit.cxx
  BmnECALDigit.cxx
  BmnZDCDigit.cxx
  BmnZDCEventData.cxx

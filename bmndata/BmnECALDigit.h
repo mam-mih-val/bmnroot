@@ -1,19 +1,12 @@
 #ifndef BMNECALDIGIT1_H
 #define	BMNECALDIGIT1_H
 
-#include <map>
-#include <iostream>
-#include <fstream>
-
-#include <TError.h>
+#include "BmnCaloDigit.h"
 #include <TGeoNode.h>
 
-#include "TNamed.h"
-#include "TArrayS.h"
 
-using namespace std;
-
-class BmnECALMapElement {
+class BmnECALMapElement
+{
     ULong_t fAdcId = 0;
     UShort_t fAdcChan = 0;
     Int_t fChan = -1;
@@ -21,7 +14,7 @@ class BmnECALMapElement {
     Double_t fLabX, fLabY, fLabZ;
     Double_t fCoeff = 1.;
     
-public:
+  public:
     BmnECALMapElement() {};
     virtual ~BmnECALMapElement() {}
     
@@ -48,14 +41,15 @@ public:
     Double_t * LabCoords() {return &fLabX;}
 };
 
-class BmnECALDigit : public TNamed
+
+class BmnECALDigit : public BmnCaloDigit
 {
   public:
     /** Default constructor **/
     BmnECALDigit();
 
     /** Main constructor **/
-    BmnECALDigit(Float_t x,Float_t y,Short_t ch,Float_t amp);
+    BmnECALDigit(Float_t x, Float_t y, UChar_t ch, Float_t amp);
     
     BmnECALDigit(BmnECALMapElement * e);
 
@@ -63,11 +57,7 @@ class BmnECALDigit : public TNamed
     
     void SetIX(UChar_t ix)        {}
     void SetIY(UChar_t iy)        {}
-    void SetX(Float_t x)        { fX = x;        }
-    void SetY(Float_t y)        { fY = y;        }
     void SetSize(UChar_t size)  {}
-    void SetChannel(Short_t ch) { fChannel = ch; }
-    void SetAmp(Float_t amp) { fAmp = amp; }
     void SetPeakAmp(Float_t amp) { fPeakAmp = amp; }
     void SetPeakTime(Float_t ns) { fPeakTime = ns; }
     void SetStartTime(Float_t ns) { fStartTime = ns; }
@@ -75,11 +65,7 @@ class BmnECALDigit : public TNamed
 
     UChar_t GetIX()         const  { return (Short_t) (fX / 40.);}
     UChar_t GetIY()         const  { return (Short_t) (fY / 40.);;}
-    Float_t GetX()        const  { return fX;}
-    Float_t GetY()        const  { return fY;}
     UChar_t GetSize()      const  { return 1;}
-    Short_t GetChannel()   const  { return fChannel;}
-    Float_t GetAmp()  const  { return fAmp;}
     Float_t GetPeakAmp() const { return fPeakAmp; }
     Float_t GetPeakTime() const { return fPeakTime; }
     Float_t GetStartTime() const { return fStartTime; }
@@ -88,17 +74,13 @@ class BmnECALDigit : public TNamed
     /** Destructor **/
     virtual ~BmnECALDigit() {}
 
-private:
-    Short_t  fChannel;
-    Float_t  fX;
-    Float_t  fY;
-    Float_t  fAmp;
+  private:
     Float_t  fPeakAmp;
     Float_t  fPeakTime;
     Float_t  fStartTime;
     Float_t  fLabX, fLabY, fLabZ;
 
-    ClassDef(BmnECALDigit, 2);
+    ClassDef(BmnECALDigit, 3);
 };
 
 #endif	/* BMNECALDIGIT1_H */

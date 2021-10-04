@@ -7,6 +7,7 @@ Set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/database/elog_db
  ${CMAKE_SOURCE_DIR}/database/tango
  ${CMAKE_SOURCE_DIR}/bmnfield
+ ${CMAKE_SOURCE_DIR}/bmndst
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
@@ -18,12 +19,16 @@ Set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/dch
  ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/tof
+ ${CMAKE_SOURCE_DIR}/tof1
  ${CMAKE_SOURCE_DIR}/alignment
  ${CMAKE_SOURCE_DIR}/decoder
  ${CMAKE_SOURCE_DIR}/KF
  ${CMAKE_SOURCE_DIR}/KF/Interface
  ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/monitor
+ ${CMAKE_SOURCE_DIR}/steering
+ ${CMAKE_SOURCE_DIR}/tracking
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -74,6 +79,6 @@ EndIf (Boost_FOUND)
 Set(HEADERS)
 Set(LINKDEF MonitorLinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)
-Set(DEPENDENCIES GlobalTracking Decoder KF Alignment Gem Silicon CSC Dch Mwpc BmnData BmnField UniDb Base Core ${ZeroMQ_LIBRARY_SHARED} BmnQa)
+Set(DEPENDENCIES GlobalTracking Decoder TOF TOF1 Alignment Gem Silicon CSC Dch Mwpc BmnData BmnField BmnDst Tracking UniDb Base Core ${ZeroMQ_LIBRARY_SHARED} BmnQa)
 
 GENERATE_LIBRARY()

@@ -371,6 +371,8 @@ deploy:centos7:
   <<: *deploy
 
 build_docker:
+  before_script:
+    - echo "Skipping global before_script"
   image: alpine:latest
   stage: deploy
   script:

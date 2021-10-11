@@ -153,10 +153,10 @@ InitStatus BmnTrackConv::Init() {
         if (!fCBMoldBMNEvHeader)
             isMCDST = kTRUE;
         printf("This is %s DST\n", (isMCDST ? "MC" : "exp"));
-        fCBMGlobalTracks = static_cast<TClonesArray*> (ioman->GetObject(fCBMGlobalTracksCSCName));
+        fCBMGlobalTracks = static_cast<TClonesArray*> (ioman->GetObject(fCBMGlobalTracksName));
         if (!fCBMGlobalTracks) {
             printf("%s tracks not found, we will use common branch %s\n", fCBMGlobalTracksCSCName.Data(), fCBMGlobalTracksName.Data());
-            fCBMGlobalTracks = static_cast<TClonesArray*> (ioman->GetObject(fCBMGlobalTracksName));
+            fCBMGlobalTracks = static_cast<TClonesArray*> (ioman->GetObject(fCBMGlobalTracksCSCName)); 
         }
         fCBMHits = static_cast<TClonesArray*> (ioman->GetObject(fCBMHitsName));
         fCBMClusters = static_cast<TClonesArray*> (ioman->GetObject(fCBMClustersName));

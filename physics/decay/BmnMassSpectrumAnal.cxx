@@ -5,7 +5,7 @@
 
 BmnMassSpectrumAnal::BmnMassSpectrumAnal() :
 fPeriod(7), fStartRun(3589), fFinishRun(4710), fBeam("Ar"),
-xLow(1.07), xUp(1.22), fNFiles(0) {
+xLow(1.07), xUp(1.22), fNFiles(0), fSignal(0.), fBackground(0.), fSignalBinMin(18), fSignalBinMax(26) {
 
 }
 
@@ -29,7 +29,7 @@ fPeriod(7), fStartRun(3589), fFinishRun(4710), fBeam("Ar") {
 
         TString fname = file->GetName();
 
-        if (!file->IsDirectory() && fname.EndsWith(".root") && (fname.Contains("lambda") || fname.Contains("kaon") || fname.Contains("dst")))
+        if (!file->IsDirectory() && fname.EndsWith(".root"))
             fInFiles.push_back(dir + (TString) file->GetName());
     }
 }
@@ -415,7 +415,7 @@ Double_t BmnMassSpectrumAnal::ImproveCutValue(vector <TString> selectedFiles, Bm
     return it1->second;
 }
 
-void BmnMassSpectrumAnal::ReadFile(TString f, BmnParticlePairCut* cut0, TClonesArray* triggEffInfo) {
+void BmnMassSpectrumAnal::ReadFile(TString f, BmnParticlePairCut* cut0, TClonesArray* triggEffInfo, Double_t pathMin, Double_t pathMax) {
     TChain* out = new TChain("bmndata");
     out->Add(f.Data());
 
@@ -446,7 +446,7 @@ void BmnMassSpectrumAnal::ReadFile(TString f, BmnParticlePairCut* cut0, TClonesA
 
         Int_t nVpTracks = header->nTracks();
         Double_t Z = header->Vp().Z();
-        
+
         if (nVpTracks < 2 || TMath::Abs(Z) > 6.)
             continue;
 
@@ -469,8 +469,6 @@ void BmnMassSpectrumAnal::ReadFile(TString f, BmnParticlePairCut* cut0, TClonesA
                 }
             }
         }
-
-        // cout << iEv << " ---> " << trigger << " " << nVpTracks << " " << epsilon << endl; getchar();
 
         for (Int_t iPair = 0; iPair < particlePair->GetEntriesFast(); iPair++) {
             BmnParticlePair* pair = (BmnParticlePair*) particlePair->UncheckedAt(iPair);
@@ -533,8 +531,16 @@ void BmnMassSpectrumAnal::ReadFile(TString f, BmnParticlePairCut* cut0, TClonesA
                 if (DCA0 > dca0 || DCA12 > dca12) // <=
                     continue;
 
-                if (DCA1 < dca1 || DCA2 < dca2 || PATH < path) // >= 
+                if (DCA1 < dca1 || DCA2 < dca2) // >= 
                     continue;
+
+                if (!fPathBins.size()) {
+                    if (PATH < path) // >=
+                        continue;
+                } else {
+                    if (PATH < pathMin || PATH > pathMax)
+                        continue;
+                }
 
                 if (protonNGemHits <= nPos || pionNGemHits <= nNeg) // >
                     continue;
@@ -556,7 +562,7 @@ void BmnMassSpectrumAnal::ReadFile(TString f, BmnParticlePairCut* cut0, TClonesA
                     vector <Double_t> kinVec1{protonMom, protonTx, protonTy};
                     if (!isVectorOk(kinVec1))
                         continue;
-                    
+
                     vector <Double_t> kinVec2{pionMom, pionTx, pionTy};
                     if (!isVectorOk(kinVec2))
                         continue;
@@ -566,12 +572,12 @@ void BmnMassSpectrumAnal::ReadFile(TString f, BmnParticlePairCut* cut0, TClonesA
 
                     Int_t binPt = FinBin(fPtBinMap, pt);
                     if (binPt != -1)
-                         hSpectraPt[binPt]->Fill(pair->GetInvMass(), 1. / epsilon);
-                        
+                        hSpectraPt[binPt]->Fill(pair->GetInvMass(), 1. / epsilon);
+
                     Int_t binY = FinBin(fYBinMap, y);
                     if (binY != -1)
-                        hSpectraY[binY]->Fill(pair->GetInvMass(), 1. / epsilon);  
-                    
+                        hSpectraY[binY]->Fill(pair->GetInvMass(), 1. / epsilon);
+
                     // cout << epsilon << endl;
                 }
 
@@ -609,7 +615,7 @@ TFitResultPtr BmnMassSpectrumAnal::fitSpectrum(TH1F* h) {
     fitBackground->SetLineColor(kBlue);
     fitBackground->SetLineStyle(kDashed);
     TFitResultPtr backRes = h->Fit(fitBackground, "SQR+", "", xmin, xmax);
-    
+
     // Restoring all bin errors ...
     for (Int_t iBin = 1; iBin < h->GetNbinsX() + 1; iBin++)
         h->SetBinError(iBin, binErrorsAll[iBin]);

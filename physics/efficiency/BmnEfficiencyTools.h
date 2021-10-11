@@ -1,5 +1,7 @@
 #include <iostream>
 #include <TNamed.h>
+#include <TH2.h>
+#include <TH1.h>
 
 #include <BmnDataTriggerInfo.h>
 #include <UniDbDetectorParameter.h>
@@ -8,6 +10,7 @@
 
 #include <FairRunAna.h>
 #include <TGraph.h>
+#include <TEfficiency.h>
 
 #ifndef BMNEFFTOOLS_H
 #define BMNEFFTOOLS_H 1
@@ -18,6 +21,7 @@ class BmnEfficiencyTools : public TNamed {
 public:
 
     BmnEfficiencyTools();
+    BmnEfficiencyTools(FairRunAna*);
     BmnEfficiencyTools(TString); // For MC use ...
 
     void SetTargets(vector <TString> targs) {
@@ -32,15 +36,38 @@ public:
         fBeams = beams;
     }
 
+    // Setting manual file list if needed ...
+
+    void SetFilelist(vector <Int_t> list) {
+        fManualList = list;
+    }
+
     void SetDstPath(TString path) {
         fDataPath = path;
     }
 
-    //--------
-
-    void doNormalization(Bool_t flag) {
-        isDoNormalization = flag;
+    void SetGeometryFile(TString file) {
+        fGeomFile = file;
     }
+
+    void isL1Input(Bool_t flag) {
+        isL1 = flag;
+    }
+
+    // Setting Y-ranges ...
+    void SetGemYRanges(map <Int_t, vector <pair <Double_t, Double_t>>> rMap) {
+        fYRangesGem = rMap;
+    }
+    
+    void SetSiliconYRanges(map <Int_t, vector <pair <Double_t, Double_t>>> rMap) {
+        fYRangesSilicon = rMap;
+    }
+   
+    void SetOutputFile(TString f) {
+        fOutFile = f;
+    }
+   
+    //-------
 
     virtual ~BmnEfficiencyTools() {
         if (fInnTracker)
@@ -64,17 +91,28 @@ private:
     vector <TString> fTargets;
     vector <TString> fTriggers;
 
+    vector <Int_t> fManualList;
+
     BmnDataTriggerInfo* fRunTrigInfo;
 
     TString fDataPath;
     TString fDstName;
+    TString fGeomFile;
+    
+    TString fOutFile;
 
-    Bool_t isDoNormalization;
     Bool_t isMc;
-    
-    
-private: 
-    void DoNormalization(TH1F*);
+    Bool_t isL1;
+
+    TClonesArray* effGem;
+    TClonesArray* effSilicon;
+
+    // Y-ranges (GEM, SILICON)
+    map <Int_t, vector <pair <Double_t, Double_t>>> fYRangesGem;
+    map <Int_t, vector <pair <Double_t, Double_t>>> fYRangesSilicon;
+
+public:
+    void DoNormalization(TH1D*);
 
     ClassDef(BmnEfficiencyTools, 1)
 };

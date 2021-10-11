@@ -266,7 +266,7 @@ public:
     }
 
     EffStore2D(TString det, Int_t stat,
-            map <Int_t, vector <pair <Double_t, Double_t>>> pairs, map <Int_t, vector <pair <Double_t, Double_t>>>* pairsX = nullptr) :
+            map <Int_t, vector <pair <Double_t, Double_t>>> pairs) :
     EffStore(det, stat),
     hEffGem(nullptr), hEffGem1d(nullptr), hEffSil(nullptr), hEffSil1d(nullptr) {
 

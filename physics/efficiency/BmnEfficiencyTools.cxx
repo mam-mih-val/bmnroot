@@ -2,39 +2,46 @@
 #include "BmnDataTriggerInfo.h"
 #include "BmnEfficiency.h"
 
+BmnEfficiencyTools::BmnEfficiencyTools(FairRunAna* fRunAna) :
+fPeriod(7) {
+    fRunAna->Print();
+}
+
 BmnEfficiencyTools::BmnEfficiencyTools(TString dst) :
+fOutFile(""),
 fPeriod(7),
 fInnTracker(nullptr),
+effGem(nullptr),
+effSilicon(nullptr),
 fAna(nullptr),
-fRunTrigInfo(nullptr), 
-fDstName(dst),
-isDoNormalization(kTRUE), isMc(kTRUE) {
+fRunTrigInfo(nullptr),
+fDstName(dst), isMc(kTRUE), isL1(kFALSE), fGeomFile("") {
 
     // Inner tracker config ...
     fInnTracker = new BmnInnerTrackerGeometryDraw();
 
     fAna = new FairRunAna();
-
-    Char_t* geoFileName = Form("current_geo_file.root");
-    Int_t res_code = UniDbRun::ReadGeometryFile(fPeriod, 4649, geoFileName);
-    if (res_code != 0) {
-        cout << "Geometry file can't be read from the database" << endl;
-        exit(-1);
-    }
-
-    TGeoManager::Import(geoFileName);
 }
 
 BmnEfficiencyTools::BmnEfficiencyTools() :
+fOutFile(""),
 fInnTracker(nullptr),
+effGem(nullptr),
+effSilicon(nullptr),
 fAna(nullptr),
 fRunTrigInfo(nullptr),
 fPeriod(7),
 startRun(3589),
 finishRun(5186),
-fDataPath(""), fDstName(""), isDoNormalization(kTRUE), isMc(kFALSE) {
+fDataPath(""), fDstName(""), fGeomFile(""), isMc(kFALSE), isL1(kFALSE) {
+
+    // Setting zero content vectors for beams, targets and triggers ...
+    // To be checked when processing a file list created manually ...
+    fBeams.resize(0);
     fTargets.resize(0);
     fTriggers.resize(0);
+
+    fManualList.resize(0);
 
     // Initializing trigg. info ...
     fRunTrigInfo = new BmnDataTriggerInfo();
@@ -43,25 +50,22 @@ fDataPath(""), fDstName(""), isDoNormalization(kTRUE), isMc(kFALSE) {
     fInnTracker = new BmnInnerTrackerGeometryDraw();
 
     fAna = new FairRunAna();
-
-    Char_t* geoFileName = Form("current_geo_file.root");
-    Int_t res_code = UniDbRun::ReadGeometryFile(fPeriod, 4649, geoFileName);
-    if (res_code != 0) {
-        cout << "Geometry file can't be read from the database" << endl;
-        exit(-1);
-    }
-    //cout << "1" << endl;
-    TGeoManager::Import(geoFileName);
-    //cout << "2" << endl;
 }
 
 void BmnEfficiencyTools::Process() {
+
+    // Setting inn. tracker geometry ...
+    if (fGeomFile.IsNull())
+        Fatal("BmnEfficiencyTools::Process()", "No geometry file passed!!!");
+    else
+        TGeoManager::Import(fGeomFile.Data());
+
     // Creating a list of dst files corresponding to the criteria established ...
 
     vector <Int_t> selectedRuns;
     vector <TString> selectedDst;
 
-    if (!isMc) {
+    if (!isMc && !fManualList.size()) {
         // Loop over all dst files recorded ...
         for (Int_t iDst = startRun; iDst < finishRun; iDst++) {
 
@@ -91,119 +95,108 @@ void BmnEfficiencyTools::Process() {
         }
 
         for (auto run : selectedRuns) {
-            TString dstFile = fDataPath + "/" + TString::Format("bmndst_%d.root", run);
-            // cout << dstFile << endl;
+            TString dstFile = fDataPath + "/" + ((!isL1) ? TString::Format("bmndst_%d.root", run) : (TString::Format("dst-cbm2bmn-%d.root", run)));
             selectedDst.push_back(dstFile);
         }
-    }
-    else 
+    } else if (!isMc && fManualList.size())
+        for (auto it : fManualList)
+            selectedDst.push_back(fDataPath + "/" + TString::Format("dst-cbm2bmn-%d.root", it));
+    else
         selectedDst.push_back(fDstName);
 
     const Int_t nStatsGem = fInnTracker->GetGemGeometry()->GetNStations();
     const Int_t nStatsSil = fInnTracker->GetSiliconGeometry()->GetNStations();
 
-    const Int_t nModsGem = fInnTracker->GetGemGeometry()->GetStation(0)->GetNModules();
-    const Int_t nModsSil = fInnTracker->GetSiliconGeometry()->GetStation(2)->GetNModules();
+    // Preparing containers to store 2d-efficiency ...
+    effGem = new TClonesArray("EffStore2D");
+    for (Int_t iStat = 0; iStat < nStatsGem; iStat++)
+        new ((*effGem)[effGem->GetEntriesFast()]) EffStore2D("GEM", iStat, fYRangesGem);
 
-    const Int_t nZones = 2; // hot or big in GEM
-    TH1F * gEffs[nStatsGem][nModsGem][nZones]; // GEM: stat, module, zone
-    TH1F * sEffs[nStatsSil][nModsSil]; // SILICON: stat, module
+    effSilicon = new TClonesArray("EffStore2D");
+    for (Int_t iStat = 0; iStat < nStatsSil; iStat++)
+        new ((*effSilicon)[effSilicon->GetEntriesFast()]) EffStore2D("SILICON", iStat, fYRangesSilicon);
 
-    for (Int_t iGemStat = 0; iGemStat < nStatsGem; iGemStat++)
-        for (Int_t iGemMod = 0; iGemMod < nModsGem; iGemMod++)
-            for (Int_t iGemZone = 0; iGemZone < nZones; iGemZone++)
-                gEffs[iGemStat][iGemMod][iGemZone] = new TH1F(Form("Detector# GEM, Station# %d, Module# %d, Zone# %d", iGemStat, iGemMod, iGemZone),
-                    Form("Detector# GEM, Station# %d, Module# %d, Zone# %d", iGemStat, iGemMod, iGemZone), 1100, 0., 1.1);
-
-    for (Int_t iSilStat = 0; iSilStat < nStatsSil; iSilStat++)
-        for (Int_t iSilMod = 0; iSilMod < nModsSil; iSilMod++)
-            sEffs[iSilStat][iSilMod] = new TH1F(Form("Detector# SILICON, Station# %d, Module# %d", iSilStat, iSilMod),
-                Form("Detector# SILICON, Station# %d, Module# %d", iSilStat, iSilMod), 1100, 0., 1.1);
-
-    // Trying to start eff. calculations for the Central Tracker elements ...
-    TH1F* tmp = new TH1F("errDist", "errDist", 200, 0., 100.);
-
-    for (TString dst : selectedDst) {
-        BmnEfficiency* eff = new BmnEfficiency(fAna, fInnTracker, dst);
-
-        UInt_t nEffEvs = 0;
-        eff->Efficiency(nEffEvs, tmp);
-
-        if (nEffEvs == 0) {
-            delete eff;
-            continue;
-        }
-
-        TClonesArray* silicons = eff->GetSiliconEfficiency();
-        TClonesArray* gems = eff->GetGemEfficiency();
-
-        for (Int_t iEff = 0; iEff < silicons->GetEntriesFast(); iEff++) {
-            EffStore* epsilon = (EffStore*) silicons->UncheckedAt(iEff);
-
-            Int_t stat = epsilon->Station();
-            Int_t mod = epsilon->Module();
-
-            // cout << " SILICON# " << stat << " " << mod << " --> " << epsilon->Efficiency() << endl;
-            sEffs[stat][mod]->Fill(epsilon->Efficiency(), nEffEvs);
-        }
-
-        for (Int_t iEff = 0; iEff < gems->GetEntriesFast(); iEff++) {
-            EffStore* epsilon = (EffStore*) gems->UncheckedAt(iEff);
-
-            Int_t stat = epsilon->Station();
-            Int_t mod = epsilon->Module();
-            TString zone = epsilon->Zone();
-
-            // cout << " GEM# " << stat << " " << mod << " " << zone << " --> " << epsilon->Efficiency() << endl;
-            gEffs[stat][mod][((zone == "hot") ? 0 : 1)]->Fill(epsilon->Efficiency(), nEffEvs);
-        }
-
-        // cout << "nEff# " << nEffEvs << endl;
+    for (auto it = selectedDst.begin(); it != selectedDst.end(); it++) {
+        BmnEfficiency* eff = new BmnEfficiency(fAna, fInnTracker, *it);
+        eff->Efficiency(effGem, effSilicon, fYRangesGem, fYRangesSilicon);
         delete eff;
     }
 
-    if (isDoNormalization) {
-        for (Int_t iSilStat = 0; iSilStat < nStatsSil; iSilStat++)
-            for (Int_t iSilMod = 0; iSilMod < nModsSil; iSilMod++)
-                DoNormalization(sEffs[iSilStat][iSilMod]);
+    TFile* fOut = nullptr;
 
-        for (Int_t iGemStat = 0; iGemStat < nStatsGem; iGemStat++)
-            for (Int_t iGemMod = 0; iGemMod < nModsGem; iGemMod++)
-                for (Int_t iGemZone = 0; iGemZone < nZones; iGemZone++)
-                    DoNormalization(gEffs[iGemStat][iGemMod][iGemZone]);
+    if (fOutFile.IsNull())
+        fOut = new TFile("outFile.root", "recreate");
+    else
+        fOut = new TFile(Form("%s", fOutFile.Data()), "recreate");
+
+    // GEM ...
+    const Int_t nQp = 2;
+
+    for (Int_t iEff = 0; iEff < effGem->GetEntriesFast(); iEff++) {
+        EffStore2D* epsilon = (EffStore2D*) effGem->UncheckedAt(iEff);
+
+        Int_t stat = epsilon->Station();
+
+        for (Int_t iGemStat = 0; iGemStat < nStatsGem; iGemStat++) {
+            if (iGemStat != stat)
+                continue;
+
+            for (Int_t iQp = 0; iQp < nQp; iQp++) {
+                epsilon->efficiency(iQp)->Write();
+
+                for (Int_t iRange = 0; iRange < fYRangesGem.find(iGemStat)->second.size(); iRange++)
+                    epsilon->efficiency4range(iRange, iQp)->Write();
+            }
+        }
     }
 
-    TFile* fOut = new TFile("outFile.root", "recreate");
+    // SILICON ...
+    for (Int_t iEff = 0; iEff < effSilicon->GetEntriesFast(); iEff++) {
+        EffStore2D* epsilon = (EffStore2D*) effSilicon->UncheckedAt(iEff);
 
-    // Saving results to histos ..
-    for (Int_t iSilStat = 0; iSilStat < nStatsSil; iSilStat++)
-        for (Int_t iSilMod = 0; iSilMod < nModsSil; iSilMod++)
-            sEffs[iSilStat][iSilMod]->Write();
+        Int_t stat = epsilon->Station();
 
-    for (Int_t iGemStat = 0; iGemStat < nStatsGem; iGemStat++)
-        for (Int_t iGemMod = 0; iGemMod < nModsGem; iGemMod++)
-            for (Int_t iGemZone = 0; iGemZone < nZones; iGemZone++)
-                gEffs[iGemStat][iGemMod][iGemZone]->Write();
+        for (Int_t iSilStat = 0; iSilStat < nStatsSil; iSilStat++) {
 
-    tmp->Write();
+            if (iSilStat != stat)
+                continue;
+
+            for (Int_t iQp = 0; iQp < nQp; iQp++) {
+                epsilon->efficiency(iQp, "", "SILICON")->Write();
+                TH2F* hPassed = (TH2F*) epsilon->efficiency(iQp, "xP", "SILICON")->GetPassedHistogram();
+                if (!iSilStat) {
+                    epsilon->efficiency(iQp, "xP", "SILICON")->Write();
+                    hPassed->Write("#varepsilon (x, P)");
+                }
+
+                TString tmp = !iQp ? ">" : "<";
+                if (!iSilStat) {
+                    TH1D* hMomPassed = hPassed->ProjectionY(Form("Momentum (passed), Q_{p} %s 0", tmp.Data()), 1, hPassed->GetNbinsX());
+                    DoNormalization(hMomPassed);
+                    hMomPassed->Write();
+                }
+
+                for (Int_t iRange = 0; iRange < fYRangesSilicon.find(iSilStat)->second.size(); iRange++)
+                    epsilon->efficiency4range(iRange, iQp, "SILICON")->Write();
+            }
+        }
+    }
+
     delete fOut;
 }
 
-void BmnEfficiencyTools::DoNormalization(TH1F* h) {
+void BmnEfficiencyTools::DoNormalization(TH1D* h) {
     if (h->GetEntries() == 0)
         return;
 
-    // Collecting all bin contents ...
+    // Collecting all bin contents ...     
     Double_t contentAll = 0.;
-
     for (Int_t iBin = 1; iBin < h->GetNbinsX() + 1; iBin++)
         contentAll += h->GetBinContent(iBin);
-
-    // Normalizing histo ...
+    // Normalizing histo ...   
     for (Int_t iBin = 1; iBin < h->GetNbinsX() + 1; iBin++) {
         h->SetBinContent(iBin, h->GetBinContent(iBin) / contentAll);
         h->SetBinError(iBin, 0.);
     }
-
     h->GetYaxis()->SetRangeUser(0., 1.1 * h->GetMaximum());
 }

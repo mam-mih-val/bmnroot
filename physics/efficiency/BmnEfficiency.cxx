@@ -5,8 +5,6 @@ isGoodDst(kFALSE),
 fNEvents(nEvents),
 gem(nullptr),
 silicon(nullptr),
-effGem(nullptr),
-effSilicon(nullptr),
 fHeader(nullptr),
 fInnerHits(nullptr),
 fGemHits(nullptr),
@@ -47,19 +45,19 @@ fNHits(6), fNHitsSilicon(2), fNHitsGem(4) {
     dstChain->GetEntry();
 
     UInt_t runId = fHeader->GetRunId();
+    cout << "runId = " << runId << endl;
 
     fMagField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
 
-    if (runId < 10000) {
+    if (runId && runId < 10000) {
         UniDbRun* runInfo = UniDbRun::GetRun(7, runId);
 
         if (!runInfo)
             return;
 
         fMagField->SetScale(*runInfo->GetFieldVoltage() / 55.87);
-    }
-    else
-        fMagField->SetScale(1200. / 900.);
+    } else
+        fMagField->SetScale(1251.9 / 900.); // FIXME!!!
 
     fMagField->Init();
 
@@ -68,54 +66,111 @@ fNHits(6), fNHitsSilicon(2), fNHitsGem(4) {
 
     fKalman = new BmnKalmanFilter();
 
+    // Calculating boarders and stat (mod) positions to be sure whether we are in acceptance ...
     gem = fInnTracker->GetGemGeometry();
     silicon = fInnTracker->GetSiliconGeometry();
 
-    // Creating eff. stores for all elements of the Central Tracker ...
-    const Int_t nZones = 2;
-    TString zones[nZones] = {"hot", "big"};
+    TClonesArray* GEM = new TClonesArray("InnerTrackerParams");
+    TClonesArray* SILICON = new TClonesArray("InnerTrackerParams");
 
-    // GEM ...
-    effGem = new TClonesArray("EffStore");
+    for (Int_t iEvent = 0; iEvent < 2000; iEvent++) {
+        dstChain->GetEntry(iEvent);
 
-    for (Int_t iStat = 0; iStat < gem->GetNStations(); iStat++) {
+        // Loop over GEM hits ...
+        for (Int_t iHit = 0; iHit < fGemHits->GetEntriesFast(); iHit++) {
+            BmnHit* hit = (BmnHit*) fGemHits->UncheckedAt(iHit);
 
-        fStatZ[iStat + silicon->GetNStations()] = gem->GetStation(iStat)->GetZPosition();
-        Double_t xMax = -gem->GetStation(iStat)->GetXMinStation();
-        Double_t xMin = -gem->GetStation(iStat)->GetXMaxStation();
-        Double_t yMin = gem->GetStation(iStat)->GetYMinStation();
-        Double_t yMax = gem->GetStation(iStat)->GetYMaxStation();
-
-        vector <Double_t> borders{xMin, xMax, yMin, yMax};
-        fStatAcceptance[iStat + silicon->GetNStations()] = borders;
-
-        for (Int_t iMod = 0; iMod < gem->GetStation(iStat)->GetNModules(); iMod++)
-            for (Int_t iZone = 0; iZone < nZones; iZone++)
-                new ((*effGem)[effGem->GetEntriesFast()]) EffStore("GEM", iStat, iMod, zones[iZone]);
-    }
-
-    // SILICON ...
-    effSilicon = new TClonesArray("EffStore");
-
-    for (Int_t iStat = 0; iStat < silicon->GetNStations(); iStat++) {
-        Double_t delta = 0.;
-        Int_t nMods = silicon->GetStation(iStat)->GetNModules();
-        Double_t z = silicon->GetStation(iStat)->GetZPosition();
-
-        for (Int_t iMod = 0; iMod < nMods; iMod++) {
-            delta += (silicon->GetStation(iStat)->GetModule(iMod)->GetZPositionRegistered() - z);
-            new ((*effSilicon)[effSilicon->GetEntriesFast()]) EffStore("SILICON", iStat, iMod);
+            new ((*GEM)[GEM->GetEntriesFast()])
+                    InnerTrackerParams((Int_t) hit->GetStation(), hit->GetModule(), hit->GetX(), hit->GetY(), hit->GetZ());
         }
 
-        fStatZ[iStat] = z + (delta / nMods);
-        Double_t xMax = -silicon->GetStation(iStat)->GetXMinStation();
-        Double_t xMin = -silicon->GetStation(iStat)->GetXMaxStation();
-        Double_t yMin = silicon->GetStation(iStat)->GetYMinStation();
-        Double_t yMax = silicon->GetStation(iStat)->GetYMaxStation();
+        // Loop over SILICON hits ...
+        for (Int_t iHit = 0; iHit < fSiliconHits->GetEntriesFast(); iHit++) {
+            BmnHit* hit = (BmnHit*) fSiliconHits->UncheckedAt(iHit);
 
-        vector <Double_t> borders{xMin, xMax, yMin, yMax};
-        fStatAcceptance[iStat] = borders;
+            new ((*SILICON)[SILICON->GetEntriesFast()])
+                    InnerTrackerParams((Int_t) hit->GetStation(), hit->GetModule(), hit->GetX(), hit->GetY(), hit->GetZ());
+        }
     }
+
+    FillAcceptanceMaps(GEM);
+    FillAcceptanceMaps(GEM, SILICON);
+
+    delete GEM;
+    delete SILICON;
+}
+
+void BmnEfficiency::FillAcceptanceMaps(TClonesArray* GEMs, TClonesArray* SILs) {
+    Int_t nStats = 0;
+    Int_t nMods = 0;
+
+    if (!SILs) {
+        nStats = gem->GetNStations();
+        nMods = gem->GetStation(0)->GetNModules();
+    } else {
+        nStats = silicon->GetNStations();
+        nMods = silicon->GetStation(2)->GetNModules();
+    }
+
+    set <Double_t>*** x = new set <Double_t>**[nStats];
+    set <Double_t>*** y = new set <Double_t>**[nStats];
+    set <Double_t>*** z = new set <Double_t>**[nStats];
+
+    for (Int_t iStat = 0; iStat < nStats; iStat++) {
+        x[iStat] = new set <Double_t>*[nMods];
+        y[iStat] = new set <Double_t>*[nMods];
+        z[iStat] = new set <Double_t>*[nMods];
+
+        for (Int_t iMod = 0; iMod < nMods; iMod++) {
+            x[iStat][iMod] = new set <Double_t>();
+            y[iStat][iMod] = new set <Double_t>();
+            z[iStat][iMod] = new set <Double_t>();
+        }
+    }
+
+    TClonesArray* arr = (!SILs) ? GEMs : SILs;
+
+    for (Int_t iStat = 0; iStat < nStats; iStat++)
+        for (Int_t iMod = 0; iMod < nMods; iMod++)
+            for (Int_t iEle = 0; iEle < arr->GetEntriesFast(); iEle++) {
+                InnerTrackerParams* g = (InnerTrackerParams*) arr->UncheckedAt(iEle);
+                if (g->station() == iStat && g->module() == iMod) {
+                    x[iStat][iMod]->insert(g->xyz().X());
+                    y[iStat][iMod]->insert(g->xyz().Y());
+                    z[iStat][iMod]->insert(g->xyz().Z());
+                }
+            }
+
+    Int_t shift = (!SILs) ? silicon->GetNStations() : 0;
+
+    for (Int_t iStat = 0; iStat < nStats; iStat++)
+        for (Int_t iMod = 0; iMod < nMods; iMod++) {
+
+            Double_t minX = *min_element(x[iStat][iMod]->begin(), x[iStat][iMod]->end());
+            Double_t maxX = *max_element(x[iStat][iMod]->begin(), x[iStat][iMod]->end());
+
+            Double_t minY = *min_element(y[iStat][iMod]->begin(), y[iStat][iMod]->end());
+            Double_t maxY = *max_element(y[iStat][iMod]->begin(), y[iStat][iMod]->end());
+
+            vector <Double_t> borders{minX, maxX, minY, maxY};
+
+            if (z[iStat][iMod]->size()) {
+                fStatZ[make_pair(iStat + shift, iMod)] = *z[iStat][iMod]->begin();
+                fStatAcceptance[make_pair(iStat + shift, iMod)] = borders;
+            }
+        }
+
+    // Deleting allocated memory ...
+    for (Int_t iStat = 0; iStat < nStats; iStat++)
+        for (Int_t iMod = 0; iMod < nMods; iMod++) {
+            delete x[iStat][iMod];
+            delete y[iStat][iMod];
+            delete z[iStat][iMod];
+        }
+
+    delete [] x;
+    delete [] y;
+    delete [] z;
 }
 
 BmnEfficiency::BmnEfficiency(FairRunAna* fAna, TString dstFile, Int_t nEvents) {
@@ -123,8 +178,6 @@ BmnEfficiency::BmnEfficiency(FairRunAna* fAna, TString dstFile, Int_t nEvents) {
     fNEvents = nEvents;
     gem = nullptr;
     silicon = nullptr;
-    effGem = nullptr;
-    effSilicon = nullptr;
     fHeader = nullptr;
     fInnerHits = nullptr;
     fGemHits = nullptr;
@@ -177,9 +230,8 @@ BmnEfficiency::BmnEfficiency(FairRunAna* fAna, TString dstFile, Int_t nEvents) {
             return;
 
         fMagField->SetScale(*runInfo->GetFieldVoltage() / 55.87);
-    }
-    else 
-        fMagField->SetScale(1251.9 / 900.);
+    } else
+        fMagField->SetScale(1251.9 / 900.); // FIXME !!!
 
     fMagField->Init();
 
@@ -189,39 +241,53 @@ BmnEfficiency::BmnEfficiency(FairRunAna* fAna, TString dstFile, Int_t nEvents) {
     fKalman = new BmnKalmanFilter();
 }
 
-void BmnEfficiency::Efficiency(UInt_t& nEffEvs, TH1F* h) {
+void BmnEfficiency::Efficiency(TClonesArray* effGem,      
+        TClonesArray* effSilicon,
+        map <Int_t, vector <pair <Double_t, Double_t>>> gYr,
+        map <Int_t, vector <pair <Double_t, Double_t>>> sYr) {
+
     if (!isGoodDst)
         return;
 
-    // Some char. numbers to be used below ...
-    Int_t nHitsMax = gem->GetNStations() + silicon->GetNStations();
-    Double_t zBegin = silicon->GetStation(0)->GetZPosition() - 5.; // first SILICON - 5 cm
-    Double_t zEnd = gem->GetStation(5)->GetZPosition() + 5.; // last GEM + 5 cm
+    auto silFirst = fStatZ.begin();
+    auto gemLast = fStatZ.rbegin();
 
-    Double_t borderSilGem = .5 * (gem->GetStation(0)->GetZPosition() + silicon->GetStation(2)->GetZPosition());
+    Int_t nHitsMax = gem->GetNStations() + silicon->GetNStations();
+    Double_t zBegin = silFirst->second - 5.; // first SILICON - 5 cm
+    Double_t zEnd = gemLast->second + 5.; // last GEM + 5 cm
+
+    Int_t nModsSilicon = 0;
+    for (Int_t iStat = 0; iStat < silicon->GetNStations(); iStat++)
+        for (Int_t iMod = 0; iMod < silicon->GetStation(iStat)->GetNModules(); iMod++)
+            nModsSilicon++;
+
+    auto gemFirst = next(fStatZ.begin(), nModsSilicon);
+    auto silLast = next(fStatZ.begin(), nModsSilicon - 1);
+
+    Double_t borderSilGem = .5 * (gemFirst->second + silLast->second);
 
     gStyle->SetOptStat(0);
-    TH1F* hDistVp = new TH1F("dist. at Vp", "dist. at Vp; distXY at VpZ [cm]", 100, 0., 5.);
 
     for (Int_t iEvent = 0; iEvent < ((fNEvents == 0) ? dstChain->GetEntries() : fNEvents); iEvent++) {
         dstChain->GetEntry(iEvent);
 
-        if (iEvent % 1000 == 0)
+        if (iEvent % 100000 == 0)
             cout << "Event# " << iEvent << endl;
 
-        //        CbmVertex* Vp = (CbmVertex*) fVertices->UncheckedAt(0);
         BmnVertex* Vp = (BmnVertex*) fVertices->UncheckedAt(0);
+        if (Vp->GetNTracks() < 3) // FIXME !!!
+            continue;
 
         // Whether we skip it or not ...
-        if (TMath::Abs(Vp->GetZ()) < 3.)
-            nEffEvs++;
-        else
+        if (TMath::Abs(Vp->GetZ()) > 6.) // FIXME !!!
             continue;
 
         // Loop over glob. tracks ...
         for (Int_t iTrack = 0; iTrack < fGlobTracks->GetEntriesFast(); iTrack++) {
             BmnGlobalTrack* track = (BmnGlobalTrack*) fGlobTracks->UncheckedAt(iTrack);
-            Bool_t isTrackGood = kTRUE;
+
+            if (TMath::Abs(track->GetP()) < .5 || TMath::Abs(track->GetP()) > 5.) /// FIXME !!!
+                continue;
 
             vector <BmnHit*> hits;
 
@@ -233,11 +299,13 @@ void BmnEfficiency::Efficiency(UInt_t& nEffEvs, TH1F* h) {
                     hits.push_back((BmnHit*) fSiliconHits->UncheckedAt(silTrack->GetHitIndex(iHit)));
             }
 
-            // Loop over gem hits ...
-            BmnTrack* gemTrack = (BmnTrack*) fGemTracks->UncheckedAt(track->GetGemTrackIndex());
+            // Loop over gem hits ... 
+            if (track->GetGemTrackIndex() != -1) {
+                BmnTrack* gemTrack = (BmnTrack*) fGemTracks->UncheckedAt(track->GetGemTrackIndex());
 
-            for (Int_t iHit = 0; iHit < gemTrack->GetNHits(); iHit++)
-                hits.push_back((BmnHit*) fGemHits->UncheckedAt(gemTrack->GetHitIndex(iHit)));
+                for (Int_t iHit = 0; iHit < gemTrack->GetNHits(); iHit++)
+                    hits.push_back((BmnHit*) fGemHits->UncheckedAt(gemTrack->GetHitIndex(iHit)));
+            }
 
             Int_t nHits = 0;
 
@@ -251,7 +319,7 @@ void BmnEfficiency::Efficiency(UInt_t& nEffEvs, TH1F* h) {
             if (nHits < fNHits)
                 continue;
 
-            // Also, a track should satisfy the condition: SilHits >= 2 && GemHits >= 5
+            // Also, a track should satisfy the condition: SilHits >= 2 && GemHits >= 4
             Int_t nHitsPerSilicon = 0;
             Int_t nHitsPerGem = 0;
 
@@ -292,36 +360,11 @@ void BmnEfficiency::Efficiency(UInt_t& nEffEvs, TH1F* h) {
             Double_t xPredictedAtVp = par.GetX();
             Double_t yPredictedAtVp = par.GetY();
 
-            const Double_t distCut = 0.3;
+            const Double_t distCut = 2.; // FIXME!!!
             Double_t distXY = TMath::Sqrt((xPredictedAtVp - x) * (xPredictedAtVp - x) + (yPredictedAtVp - y) * (yPredictedAtVp - y));
-
-            hDistVp->Fill(distXY);
 
             if (distXY > distCut)
                 continue;
-
-            // 2. Let us check that the zone of GEM plane is defined correctly ...
-            for (BmnHit* hit : hits) {
-                TString det = GetDetector(hit);
-                TString zone = "";
-
-                if (det.Contains("GEM")) {
-                    zone = GetGemZone(hit);
-
-                    // Zone should not be undefined, so if yes then skipping such tracks ...
-                    if (zone.IsNull())
-                        isTrackGood = kFALSE;
-                }
-
-                if (!isTrackGood)
-                    break;
-            }
-
-            if (!isTrackGood)
-                continue;
-
-            // FairTrackParam* first = track->GetParamFirst();
-            // FairTrackParam* last = track->GetParamLast();
 
             FairTrackParam parPredicted = *track->GetParamFirst();
             pair <FairTrackParam, FairTrackParam> trackParams = make_pair(parPredicted, *track->GetParamLast());
@@ -340,103 +383,40 @@ void BmnEfficiency::Efficiency(UInt_t& nEffEvs, TH1F* h) {
                 hitsPerStation[stat + shift] = kTRUE;
             }
 
-            for (BmnHit* hit : hits) {
-                TString det = GetDetector(hit);
-                Int_t stat = hit->GetStation();
-                Int_t mod = hit->GetModule();
-                TString zone = GetGemZone(hit);
+            inputForEfficiency input;
+            // Setting  for GEM ...
+            input.hits = hits;
 
-                Bool_t isContainerFound = kFALSE;
+            vector <Bool_t> v;
+            v.assign(hitsPerStation, hitsPerStation + nHitsMax);
+            input.usedStats = v;
 
-                for (Int_t iCont = 0; iCont < effGem->GetEntriesFast(); iCont++) {
-                    EffStore* effCont = (EffStore*) effGem->UncheckedAt(iCont);
+            input.sfIndices.first = silicon->GetNStations();
+            input.sfIndices.second = nHitsMax;
 
-                    if (effCont->Detector() != det || effCont->Station() != stat || effCont->Module() != mod || effCont->Zone() != zone)
-                        continue;
+            input.flParams = trackParams;
+            input.eContainers = effGem;
 
-                    // 4a. Processing four-hit tracks in GEM ...
-                    if (nHitsPerGem == 4) {
-                        // Nominator and denominator are always increased by zero
-                        // for existing hits per track!
+            input.gPairMap = gYr;
+            input.sPairMap = sYr;
 
-                        // Let's check what is missing for GEM ...
-                        for (Int_t iHit = silicon->GetNStations(); iHit < nHitsMax; iHit++) {
+            fillEfficiency(std::move(input));
 
-                            if (hitsPerStation[iHit])
-                                continue;
+            inputForEfficiency input1;
+            input1 = std::move(input); // Right now input becomes not fully valid since is in unspecified state !!! ...
 
-                            BmnHit* hit0 = virtualHitIfInAcceptance(iHit, hits, trackParams);
-                            if (hit0)
-                                effCont->IncreaseDenominatorByUnity();
-                        }
-                    }
-                        // 4b. Processing six-hit tracks in GEM ... 
-                    else if (nHitsPerGem == gem->GetNStations()) {
-                        // GEM is always considered to be efficient ...
-                        effCont->IncreaseNominatorByUnity();
-                        effCont->IncreaseDenominatorByUnity();
-                    }
-                        // 4c. Other tracks (five-hit) in GEM ...
-                    else {
-                        for (Int_t iHit = silicon->GetNStations(); iHit < nHitsMax; iHit++) {
-                            if (hitsPerStation[iHit]) {
-                                effCont->IncreaseNominatorByUnity();
-                                effCont->IncreaseDenominatorByUnity();
-                            } else {
-                                BmnHit* hit0 = virtualHitIfInAcceptance(iHit, hits, trackParams);
-                                if (hit0)
-                                    effCont->IncreaseDenominatorByUnity();
-                            }
-                        }
-                    }
+            input1.det = "SILICON";
+            input1.sfIndices.first = 0;
+            input1.sfIndices.second = silicon->GetNStations();
+            input1.eContainers = effSilicon;
 
-                    isContainerFound = kTRUE;
-
-                    break;
-                }
-                //
-                if (!isContainerFound)
-                    for (Int_t iCont = 0; iCont < effSilicon->GetEntriesFast(); iCont++) {
-
-                        EffStore* effCont = (EffStore*) effSilicon->UncheckedAt(iCont);
-                        // cout << effCont->Efficiency() << endl;
-
-                        if (effCont->Detector() != det || effCont->Station() != stat || effCont->Module() != mod || effCont->Zone() != zone)
-                            continue;
-
-                        if (nHitsPerSilicon == 2) {
-                            // Nominator and denominator are always increased by zero
-                            // for existing hits per track!
-
-                            // Let's check what is missing for GEM ...
-                            for (Int_t iHit = 0; iHit < silicon->GetNStations(); iHit++) {
-
-                                if (hitsPerStation[iHit])
-                                    continue;
-
-                                BmnHit* hit0 = virtualHitIfInAcceptance(iHit, hits, trackParams);
-                                if (hit0)
-                                    effCont->IncreaseDenominatorByUnity();
-                            }
-                        } else {
-                            // SILICON is always considered to be efficient ...
-                            effCont->IncreaseNominatorByUnity();
-                            effCont->IncreaseDenominatorByUnity();
-                        }
-                        break;
-                    }
-            }
-        }
+            fillEfficiency(std::move(input1));
+        }        
     }
-    delete hDistVp;
 }
 
-//delete hDistVp;
-//}
-
-BmnHit* BmnEfficiency::virtualHitIfInAcceptance(Int_t iHit, vector <BmnHit*> hits, pair <FairTrackParam, FairTrackParam> params) {
-    BmnHit* hit0 = nullptr;
-
+Bool_t BmnEfficiency::isVirtualHitInAcceptance(Int_t iHit, vector <BmnHit*> hits, pair <FairTrackParam, FairTrackParam> params, pair <Double_t, Double_t>& xyPred) {
+    // Averaged Z by all modules for station ... ???
     Double_t Z = FindZ(iHit);
 
     vector <BmnHit*> hitsBeforeCurrentZ;
@@ -461,106 +441,136 @@ BmnHit* BmnEfficiency::virtualHitIfInAcceptance(Int_t iHit, vector <BmnHit*> hit
 
     BmnStatus status = fKalman->TGeoTrackPropagate(&(params.first), Z, params.second.GetQp() > 0. ? 2212 : -211, nullptr, nullptr, kTRUE);
     if (status == kBMNERROR)
-        return hit0;
+        return kFALSE;
 
-    if (isInAcceptance(iHit, params.first.GetX(), params.first.GetY())) {
+    Int_t mod0 = -1;
+    Double_t xPred = params.first.GetX();
+    Double_t yPred = params.first.GetY();
 
-        // Creating a hyp. missing hit ...
-        hit0 = new BmnHit();
-        hit0->SetXYZ(params.first.GetX(), params.first.GetY(), Z);
+    xyPred.first = xPred;
+    xyPred.second = yPred;
 
-        //delete missingHit;
-        return hit0;
-    }
-    return hit0;
-}
+    for (auto it : fStatAcceptance) {
+        Int_t stat = it.first.first;
+        Int_t mod = it.first.second;
 
-Int_t BmnEfficiency::GetSiliconStatModule(BmnHit* hit) {
-    Int_t stat = hit->GetStation();
-    Double_t x = hit->GetX();
-    Double_t y = hit->GetY();
-    // cout << x << " and " << y << endl;
+        Double_t xMin = it.second[0];
+        Double_t xMax = it.second[1];
+        Double_t yMin = it.second[2];
+        Double_t yMax = it.second[3];
 
-    Int_t nMods = silicon->GetStation(stat)->GetNModules();
-
-    Int_t module = -1;
-
-    for (Int_t iMod = 0; iMod < nMods; iMod++) {
-        BmnSiliconModule* mod = silicon->GetStation(stat)->GetModule(iMod);
-
-        Double_t xMax = -mod->GetXMinModule();
-        Double_t xMin = -mod->GetXMaxModule();
-        Double_t yMin = mod->GetYMinModule();
-        Double_t yMax = mod->GetYMaxModule();
-
-        // cout << xMin << " " << xMax << " " << yMin << " " << yMax << endl;
-
-        if (x > xMin && x < xMax && y > yMin && y < yMax) {
-            module = iMod;
+        if (xPred > xMin && xPred < xMax && yPred > yMin && yPred < yMax && (stat == iHit)) {
+            mod0 = mod;
             break;
         }
     }
 
-    // If we did not get a module due to a case when the Kalman propagation to an averaged Z-position is not so precise to get its correct number ...
-    if (module == -1) {
-
-        map <Double_t, Int_t> distMod;
-
-        Double_t z = hit->GetZ();
-
-        for (Int_t iMod = 0; iMod < nMods; iMod++) {
-            BmnSiliconModule* mod = silicon->GetStation(stat)->GetModule(iMod);
-
-            Double_t xMax = -mod->GetXMinModule();
-            Double_t xMin = -mod->GetXMaxModule();
-            Double_t yMin = mod->GetYMinModule();
-            Double_t yMax = mod->GetYMaxModule();
-
-            Double_t xMid = .5 * (xMin + xMax);
-            Double_t yMid = .5 * (yMin + yMax);
-            Double_t zReg = mod->GetZPositionRegistered();
-
-            Double_t dist = TMath::Sqrt((x - xMid) * (x - xMid) + (y - yMid) * (y - yMid) + (z - zReg) * (z - zReg));
-            distMod[dist] = iMod;
-        }
-
-        for (auto it : distMod) {
-            // cout << it.first << " ... " << it.second << endl;
-            module = it.second;
-            break;
-        }
-    }
-
-    return module;
+    return (mod0 > -1) ? kTRUE : kFALSE;
 }
 
-Int_t BmnEfficiency::GetGemStatModule(BmnHit* hit) {
-    Int_t stat = hit->GetStation();
-    Double_t x = hit->GetX();
-    Double_t y = hit->GetY();
+void BmnEfficiency::fillEfficiency(inputForEfficiency&& input) {
+    const Int_t hitCut = (input.det.Contains("GEM") ? input.nGemCut : input.nSilCut);
+    const Int_t shift = (input.det.Contains("GEM") ? -silicon->GetNStations() : 0);
 
-    Int_t nMods = gem->GetStation(stat)->GetNModules();
+    // Getting nHits per detector ...
+    Int_t nHitsPerDetector = 0;
 
-    Int_t module = -1;
+    auto itBegin = input.usedStats.begin();
+    auto itEnd = input.usedStats.end();
+    auto itMiddle = next(input.usedStats.begin(), silicon->GetNStations());
 
-    for (Int_t iMod = 0; iMod < nMods; iMod++) {
-        BmnGemStripModule* mod = gem->GetStation(stat)->GetModule(iMod);
+    if (input.det.Contains("SILICON"))
+        for (auto it = itBegin; it < itMiddle; it++) {
+            if (*it)
+                nHitsPerDetector++;
+        } else
+        for (auto it = itMiddle; it != itEnd; it++) {
+            if (*it)
+                nHitsPerDetector++;
+        }
 
-        Double_t xMax = -mod->GetXMinModule();
-        Double_t xMin = -mod->GetXMaxModule();
-        Double_t yMin = mod->GetYMinModule();
-        Double_t yMax = mod->GetYMaxModule();
+    if (!nHitsPerDetector)
+        return;
 
-        if (x > xMin && x < xMax && y > yMin && y < yMax) {
-            module = iMod;
-            break;
+    for (Int_t iHit = input.sfIndices.first; iHit < input.sfIndices.second; iHit++) {
+        // Skipping tracks with four hits having a hit in considering station ...
+        if (nHitsPerDetector == hitCut && input.usedStats.at(iHit))
+            continue;
+
+        if (input.usedStats.at(iHit) && nHitsPerDetector != hitCut) {
+            // Trying to get required hit ...
+            BmnHit* hit0 = nullptr;
+
+            Int_t stat = -1;
+            for (BmnHit* hit : input.hits) {
+                if (!GetDetector(hit).Contains(input.det.Data()))
+                    continue;
+                stat = hit->GetStation();
+
+                if (stat == (iHit + shift)) {
+                    hit0 = hit;
+                    break;
+                }
+            }
+
+            if (hit0) {
+                Int_t eCont = -1;
+                for (Int_t iCont = 0; iCont < input.eContainers->GetEntriesFast(); iCont++) {
+                    EffStore2D* effCont = (EffStore2D*) input.eContainers->UncheckedAt(iCont);
+
+                    if (effCont->Detector() == input.det && effCont->Station() == (iHit + shift)) {
+                        eCont = iCont;
+                        break;
+                    }
+                }
+
+                if (eCont > -1) {
+                    EffStore2D* eff = (EffStore2D*) input.eContainers->UncheckedAt(eCont);
+                    eff->efficiency(((input.flParams.second.GetQp() > 0.) ? 0 : 1), "", input.det)->Fill(kTRUE, hit0->GetX(), hit0->GetY());
+
+                    if (input.det.Contains("SILICON"))
+                        eff->efficiency(((input.flParams.second.GetQp() > 0.) ? 0 : 1), "xP", input.det)->Fill(kTRUE, hit0->GetX(),
+                            TMath::Abs(1. / input.flParams.first.GetQp()));
+
+                    Int_t yBin = FindBin(hit0->GetY(), stat, ((input.det.Contains("GEM")) ? input.gPairMap : input.sPairMap));
+                    if (yBin != -1)
+                        eff->efficiency4range(yBin, ((input.flParams.second.GetQp() > 0.) ? 0 : 1), input.det)->Fill(kTRUE, hit0->GetX());
+                }
+            }
+        } else {
+            pair <Double_t, Double_t> xyPred;
+
+            if (isVirtualHitInAcceptance(iHit, input.hits, input.flParams, xyPred)) {
+                Int_t yBin = FindBin(xyPred.second, iHit + shift, ((input.det.Contains("GEM")) ? input.gPairMap : input.sPairMap));
+                if (yBin == -1)
+                    continue;
+
+                Int_t eCont = -1;
+                for (Int_t iCont = 0; iCont < input.eContainers->GetEntriesFast(); iCont++) {
+                    EffStore2D* effCont = (EffStore2D*) input.eContainers->UncheckedAt(iCont);
+
+                    if (effCont->Detector() == input.det && effCont->Station() == (iHit + shift)) {
+                        eCont = iCont;
+                        break;
+                    }
+                }
+
+                if (eCont > -1) {
+                    EffStore2D* eff = (EffStore2D*) input.eContainers->UncheckedAt(eCont);
+                    eff->efficiency(((input.flParams.second.GetQp() > 0.) ? 0 : 1), "", input.det)->Fill(kFALSE, xyPred.first, xyPred.second);
+
+                    if (input.det.Contains("SILICON"))
+                        eff->efficiency(((input.flParams.second.GetQp() > 0.) ? 0 : 1), "xP", input.det)->Fill(kFALSE, xyPred.first,
+                            TMath::Abs(1. / input.flParams.first.GetQp()));
+
+                    eff->efficiency4range(yBin, ((input.flParams.second.GetQp() > 0.) ? 0 : 1), input.det)->Fill(kFALSE, xyPred.first);
+                }
+            }
         }
     }
-
-    return module;
 }
 
-TString BmnEfficiency::GetGemZone(BmnHit* hit) {
+TString BmnEfficiency::GetGemZone(BmnHit * hit) {
     TString zone = "";
 
     if (hit->GetZ() < gem->GetStation(0)->GetZPosition() - 5.)
@@ -586,20 +596,4 @@ TString BmnEfficiency::GetGemZone(BmnHit* hit) {
         zone = "hot";
 
     return zone;
-}
-
-Bool_t BmnEfficiency::isInAcceptance(Int_t stat, Double_t x, Double_t y) {
-
-    vector <Double_t> borders = fStatAcceptance.find(stat)->second;
-    Bool_t flag = kFALSE;
-
-    Double_t xMin = borders[0];
-    Double_t xMax = borders[1];
-    Double_t yMin = borders[2];
-    Double_t yMax = borders[3];
-
-    if (x > xMin && x < xMax && y > yMin && y < yMax)
-        flag = kTRUE;
-
-    return flag;
 }

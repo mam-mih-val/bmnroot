@@ -47,7 +47,7 @@ class CbmVertex : public TNamed
    **/
   CbmVertex(const char* name, const char* title, 
 	    Double_t x, Double_t y, Double_t z, Double_t chi2,
-	    Int_t ndf, Int_t nTracks, const TMatrixFSym& covMat, TVector3 roughVertex);
+	    Int_t ndf, Int_t nTracks, const TMatrixFSym& covMat);
 
 
   /** Destructor **/
@@ -62,17 +62,17 @@ class CbmVertex : public TNamed
   Double_t GetX()    const { return fX;       };  // x position [cm]
   Double_t GetY()    const { return fY;       };  // y position [cm]
   Double_t GetZ()    const { return fZ;       };  // z posiiton [cm]
-  Double_t GetRoughX()    const { return fRoughX;};  // x position [cm]
-  Double_t GetRoughY()    const { return fRoughY;};  // y position [cm]
-  Double_t GetRoughZ()    const { return fRoughZ;};  // z posiiton [cm]
   Double_t GetChi2() const { return fChi2;    };  // chi2
   Int_t GetNDF()     const { return fNDF;     };  // nof degrees of freedom
   Int_t GetNTracks() const { return fNTracks; };  // nof tracks used
   void Position(TVector3& pos) const { pos.SetXYZ(fX,fY,fZ); };
   void CovMatrix(TMatrixFSym& covMat) const;
   Double_t GetCovariance(Int_t i, Int_t j) const;
-  std::vector<Int_t>& GetTrackInds() { return fTrackInds; } //AZ 
-  void SetTrackInds(std::vector<Int_t> inds) { fTrackInds = inds; } 
+  std::vector<Int_t> trkID;
+  
+  std::vector<Int_t> GetTrackInds() {
+      return trkID;
+  }
 
   /** Set the member variables
    *@param x         x coordinate [cm]
@@ -86,14 +86,17 @@ class CbmVertex : public TNamed
   void SetVertex(Double_t x, Double_t y, Double_t z, Double_t chi2,
 		 Int_t ndf, Int_t nTracks, const TMatrixFSym& covMat);
 
+void SetVertexXYZ(Double_t x, Double_t y, Double_t z){
+  fX=x;
+  fY=y;
+  fZ=z;
+};
 
   /** Reset the member variables **/
   void Reset();
 		    
 
  private:
-  /* Position of rough vertex*/
-  Double32_t fRoughX, fRoughY, fRoughZ;  
 
   /** Position coordinates  [cm] **/
   Double32_t fX, fY, fZ;
@@ -111,10 +114,9 @@ class CbmVertex : public TNamed
    ** sequence is a[0,0], a[0,1], a[0,2], a[1,1], a[1,2], a[2,2]
    **/
   Double32_t fCovMatrix[6];
-  std::vector<Int_t> fTrackInds; //AZ
 
-  //AZ  ClassDef(CbmVertex,1);
-  ClassDef(CbmVertex,2);
+
+  ClassDef(CbmVertex,1);
 
 };
 

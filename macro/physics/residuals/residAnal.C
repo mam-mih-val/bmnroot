@@ -10,7 +10,7 @@ using namespace std;
 using namespace TMath;
 
 void residAnal(TString dataPath = "", TString mcPath = "") {
-    BmnDataAnalRun7* dAnal = new BmnDataAnalRun7(dataPath, );
+    BmnDataAnalRun7* dAnal = new BmnDataAnalRun7(dataPath);
     
     dAnal->SetMcData(mcPath); // if necessary
     dAnal->SetGeometryFile(""); // path to geometry 

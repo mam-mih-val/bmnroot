@@ -26,6 +26,7 @@ void LambdaAnal(UInt_t nEvents = 1e6,
     fRunAna->SetOutputFile(output);
 
     BmnTwoParticleDecay* lambda = new BmnTwoParticleDecay(BmnGemStripConfiguration::RunSpring2018, runId);
+    lambda->SetGeometryFile("");
 
     fRunAna->AddTask(lambda);
 

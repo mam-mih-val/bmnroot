@@ -421,6 +421,15 @@ void BmnFieldMap::ReadAsciiFile(const char* fileName) {
     } // x-Loop
 
     cout << "   " << index + 1 << " read" << endl;
+  
+    fXmin += fPosX;
+    fXmax += fPosX;
+    
+    fYmin += fPosY;
+    fYmax += fPosY;
+    
+    fZmin += fPosZ;
+    fZmax += fPosZ;
 
     mapFile.close();
 }

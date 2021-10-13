@@ -20,5 +20,10 @@
 #pragma link C++ class smoothedValues+;
 #pragma link C++ class extrapolationConditions+;
 #pragma link C++ class fitParMonitor+;
+#pragma link C++ class BmnRegion+;
+#pragma link C++ class BmnConstPar;
+#pragma link C++ class BmnMapPar;
+#pragma link C++ class BmnMultiFieldPar;
+#pragma link C++ class BmnMultiField+;
 
 #endif

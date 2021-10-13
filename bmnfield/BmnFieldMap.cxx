@@ -465,18 +465,18 @@ void BmnFieldMap::ReadRootFile(const char* fileName) {
     }
 
     fNx = X.N;
-    fXmin = X.min;
-    fXmax = X.max;
+    fXmin = X.min + fPosX;
+    fXmax = X.max + fPosX;
     fXstep = X.step;
 
     fNy = Y.N;
-    fYmin = Y.min;
-    fYmax = Y.max;
+    fYmin = Y.min + fPosY;
+    fYmax = Y.max + fPosY;
     fYstep = Y.step;
 
     fNz = Z.N;
-    fZmin = Z.min;
-    fZmax = Z.max;
+    fZmin = Z.min + fPosZ;
+    fZmax = Z.max + fPosZ;
     fZstep = Z.step;
 
     fBx = new TArrayF(fNx * fNy * fNz);

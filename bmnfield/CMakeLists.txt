@@ -31,6 +31,11 @@ set(SRCS
  BmnFieldPar.cxx
  BmnFieldCreator.cxx
  BmnSP41FieldMapCreator.cxx
+ BmnRegion.cxx
+ BmnConstPar.cxx
+ BmnMapPar.cxx
+ BmnMultiFieldPar.cxx
+ BmnMultiField.cxx
 )
 
 Set(HEADERS)

@@ -30,4 +30,5 @@ class BmnFieldCreator : public FairFieldFactory
   BmnFieldCreator(const BmnFieldCreator&) = delete;
   BmnFieldCreator& operator=(const BmnFieldCreator&) = delete;
 };
+
 #endif //CBMFIELDCREATOR_H

@@ -176,15 +176,16 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     cscDigit->SetCurrentConfig(csc_config);
     fRun->AddTask(cscDigit);
     
-    // ZDC-Digitizer
-    BmnZdcDigitizer * zdcDigit = new BmnZdcDigitizer();
-    zdcDigit->SetScale(39e3);
-    zdcDigit->SetThreshold(500.);
+    // FHCal-Digitizer
+    BmnFHCalDigitizer * zdcDigit = new BmnFHCalDigitizer();
+    zdcDigit->SetScale(28.2e3);
+    zdcDigit->SetThreshold(0.);
     fRun->AddTask(zdcDigit);
     
     // ECAL-Digitizer
-    BmnEcalDigitizer * ecalDigit = new BmnEcalDigitizer();
-    fRun->AddTask(ecalDigit);
+    //FIXME some problems with channels
+    //BmnEcalDigitizer * ecalDigit = new BmnEcalDigitizer();
+    //fRun->AddTask(ecalDigit);
 
     fRun->Init();
     magField->Print();

@@ -1,7 +1,7 @@
-# Create a library called "libFD"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
+ ${CMAKE_SOURCE_DIR}/mcstack
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/FD
 )
@@ -33,6 +33,6 @@ BmnFDGeoPar.cxx
 Set(HEADERS)
 Set(LINKDEF BmnFDLinkDef.h)
 Set(LIBRARY_NAME FD)
-Set(DEPENDENCIES BmnData Base Core)
+Set(DEPENDENCIES Core Base)
 
 GENERATE_LIBRARY()

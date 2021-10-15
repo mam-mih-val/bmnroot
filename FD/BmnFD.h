@@ -1,137 +1,147 @@
-/*************************************************************************************
- *
- *         Class BmnFD
- *         
- *  Adopted for BMN by:   Elena Litvinenko
- *  e-mail:   litvin@nf.jinr.ru
- *  Version:  10-02-2016   
- *
- ************************************************************************************/
 
 #ifndef BMNFD_H
 #define BMNFD_H
 
-#include "BmnFDGeoPar.h"
-#include "BmnFDPoint.h"
-
 #include "FairDetector.h"
-
 #include "TClonesArray.h"
 #include "TVector3.h"
 #include "TLorentzVector.h"
+#include "FairDetector.h"
+#include "BmnFDGeoPar.h"
 #include "TVirtualMC.h"
 #include "TParticle.h"
 
+using namespace std;
+
+
+class TClonesArray;
+class BmnFDPoint;
+class FairVolume;
+
 class BmnFD : public FairDetector
 {
-  public:
-    /** Default constructor **/
-    BmnFD();
 
-    /** Standard constructor.
-     *@param name    detetcor name
-     *@param active  sensitivity flag
-    **/
-    BmnFD(const char* name, Bool_t active);
+ public:
 
-    /** Destructor **/
-    virtual ~BmnFD();
+  /** Default constructor **/
+  BmnFD();
 
 
-    /** Virtual method Initialize
-     ** Initialises detector. Stores volume IDs for MUO detector and mirror.
-    **/
-    virtual void Initialize();
-
-    /** Virtual method ProcessHits
-     **
-     ** Defines the action to be taken when a step is inside the
-     ** active volume. Creates BmnBdPoints and BmnBdMirrorPoints and adds
-     ** them to the collections.
-     *@param vol  Pointer to the active volume
-    **/
-    virtual Bool_t ProcessHits(FairVolume* vol = 0);
-
-    /** Virtual method EndOfEvent
-     **
-     ** If verbosity level is set, print hit collection at the
-     ** end of the event and resets it afterwards.
-    **/
-    virtual void EndOfEvent();
-
-    virtual void BeginEvent();
-
-    /** Virtual method Register
-     **
-     ** Registers the hit collection in the ROOT manager.
-    **/
-    virtual void Register();
-
-    /** Accessor to the hit collection **/
-    virtual TClonesArray* GetCollection(Int_t iColl) const;
-
-    /** Virtual method Print
-     **
-     ** Screen output of hit collection.
-    **/
-    virtual void Print() const;
-
-    /** Virtual method Reset
-     **
-     ** Clears the hit collection
-    **/
-    virtual void Reset();
+  /** Standard constructor.
+   *@param name    detetcor name
+   *@param active  sensitivity flag
+   **/
+  BmnFD(const char* name, Bool_t active);
 
 
-    /** Virtual method CopyClones
-     **
-     ** Copies the hit collection with a given track index offset
-     *@param cl1     Origin
-     *@param cl2     Target
-     *@param offset  Index offset
-    **/
-    virtual void CopyClones(TClonesArray* cl1, TClonesArray* cl2, Int_t offset);
+  /** Destructor **/
+  virtual ~BmnFD();
 
-    /** Virtual method Construct geometry **/
-    virtual void ConstructGeometry();
-    virtual void ConstructAsciiGeometry();
-    virtual Bool_t CheckIfSensitive(std::string name);
 
-    BmnFDPoint* AddHit(Int_t trackID, Int_t detID,  Int_t copyNo,
-                       TVector3 posIn, TVector3 posOut,
-                       TVector3 momIn, TVector3 momOut,
-                       Double_t tof, Double_t length, Double_t eLoss,
-                       Bool_t isPrimary, Double_t charge, Int_t pdgId,
-                       Double_t timeIn, Double_t timeOut, Double_t lengthtrack);
+  /** Virtual method Initialize
+   ** Initialises detector. Stores volume IDs for MUO detector and mirror.
+   **/
+  virtual void Initialize();
 
-  private:
-    Int_t           fTrackID;           //!  track index
-    Int_t           fVolumeID;          //!  volume id
-    //Int_t         fEventID;           //!  event id
-    TVector3        fPosIn;             //!  position (in)
-    TVector3        fPosOut;            //!  position (out)
-    TVector3        fMomIn;             //!  momentum (in)
-    TVector3        fMomOut;
-    Double32_t      fTime;              //!  time
-    Double32_t      fLength;            //!  length
-    Double32_t      fELoss;             //!  energy loss
-    Int_t           fPosIndex;          //!
-    Int_t           volDetector;        //!  MC volume ID of MUO
-    Int_t	        fIsPrimary;         //!  is track primary?
-    Double_t        fCharge;            //!  track charge
-    Int_t           fPdgId;             //!  pdg id of particle
-    Float_t         fLightYield;
-    TClonesArray*   fFDCollection;      //! Hit collection
-    Double32_t      fTimeIn;            //!  time
-    Double32_t      fTimeOut;           //!  time
-    Double32_t      fLengthtrack;       //!  length
+
+  /** Virtual method ProcessHits
+   **
+   ** Defines the action to be taken when a step is inside the
+   ** active volume. Creates BmnBdPoints and BmnBdMirrorPoints and adds 
+   ** them to the collections.
+   *@param vol  Pointer to the active volume
+   **/
+  virtual Bool_t ProcessHits(FairVolume* vol = 0);
+
+
+  /** Virtual method EndOfEvent
+   **
+   ** If verbosity level is set, print hit collection at the
+   ** end of the event and resets it afterwards.
+   **/
+  virtual void EndOfEvent();
+
+
+  virtual void BeginEvent();
+  /** Virtual method Register
+   **
+   ** Registers the hit collection in the ROOT manager.
+   **/
+  virtual void Register();
+
+
+  /** Accessor to the hit collection **/
+  virtual TClonesArray* GetCollection(Int_t iColl) const;
+
+
+  /** Virtual method Print
+   **
+   ** Screen output of hit collection.
+   **/
+  virtual void Print() const;    
+
+
+  /** Virtual method Reset
+   **
+   ** Clears the hit collection
+   **/
+  virtual void Reset();
+
+
+  /** Virtual method CopyClones
+   **
+   ** Copies the hit collection with a given track index offset
+   *@param cl1     Origin
+   *@param cl2     Target
+   *@param offset  Index offset
+   **/
+  virtual void CopyClones(TClonesArray* cl1, TClonesArray* cl2,
+			  Int_t offset);
+
+
+  /** Virtual method Construct geometry
+   **
+   **/
+  virtual void ConstructGeometry();
+ 
+	virtual void ConstructAsciiGeometry();
+ 	virtual Bool_t CheckIfSensitive(std::string name);
+  
+	BmnFDPoint* AddHit(Int_t trackID, Int_t detID,  Int_t copyNo, 
+		      TVector3 posIn, TVector3 posOut,
+              TVector3 momIn, TVector3 momOut,
+		      Double_t tof, Double_t length, Double_t eLoss, 
+              Bool_t isPrimary, Double_t charge, Int_t pdgId, Double_t lightYield,
+			  Double_t timeIn, Double_t timeOut, Double_t lengthtrack);
+
+ private:
+  Int_t          fTrackID;           //!  track index
+  Int_t          fVolumeID;          //!  volume id
+  //Int_t          fEventID;           //!  event id
+    TVector3       fPosIn;             //!  position (in)
+    TVector3       fPosOut;            //!  position (out)
+    TVector3       fMomIn;             //!  momentum (in)
+    TVector3       fMomOut;
+  Double32_t     fTime;              //!  time
+  Double32_t     fLength;            //!  length
+  Double32_t     fELoss;             //!  energy loss
+  Int_t fPosIndex;      //! 
+  Int_t volDetector;     //!  MC volume ID of MUO
+  Int_t	         fIsPrimary;         //!  is track primary?
+  Double_t       fCharge;	       //!  track charge
+  Int_t          fPdgId;             //!  pdg id of particle
+  Float_t        fLightYield;
+  TClonesArray*  fFDCollection;        //! Hit collection
+  Double32_t     fTimeIn;              //!  time
+  Double32_t     fTimeOut;              //!  time
+  Double32_t     fLengthtrack;            //!  length	
           
-    // reset all parameters
-    void ResetParameters();
-    BmnFD(const BmnFD&) = delete;
-    BmnFD operator=(const BmnFD&) = delete;
+	
+	// reset all parameters   
+  void ResetParameters();
 
   ClassDef(BmnFD,2)
+
 }; 
 
 
@@ -148,7 +158,7 @@ inline void BmnFD::ResetParameters()
 	fLengthtrack = 0;
 	fPosIndex = 0;
 	fLightYield = 0;
-};
+  };
 //------------------------------------------------------------------------------------------------------------------------
 
 #endif

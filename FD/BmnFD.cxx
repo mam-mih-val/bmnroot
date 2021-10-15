@@ -1,27 +1,33 @@
 #include <iostream>
 
+#include "TClonesArray.h"
 #include "TGeoMCGeometry.h"
 #include "TGeoManager.h"
+#include "TLorentzVector.h"
+#include "TParticle.h"
+#include "TVirtualMC.h"
 #include "TGeoArb8.h"
-#include "TObjArray.h"
-#include "TParticlePDG.h"
 
 #include "FairGeoInterface.h"
 #include "FairGeoLoader.h"
 #include "FairGeoNode.h"
+#include "BmnFDGeo.h"
 #include "FairGeoRootBuilder.h"
+#include "CbmStack.h"
+#include "BmnFD.h"
+#include "BmnFDPoint.h"
+
+#include "TVector3.h" 
 #include "FairMCPoint.h"
 #include "FairRootManager.h"
 #include "FairVolume.h"
 // add on for debug
 //#include "FairGeoG3Builder.h"
 #include "FairRuntimeDb.h"
+#include "TObjArray.h"
 #include "FairRun.h"
 
-#include "BmnFDGeo.h"
-#include "BmnFD.h"
-#include "CbmStack.h"
-
+#include "TParticlePDG.h"
 
 // -----   Default constructor   -------------------------------------------
 BmnFD::BmnFD() {
@@ -103,7 +109,7 @@ static Double_t de_dx;
 #ifdef EDEBUG
   static Int_t lEDEBUGcounter=0;
   if (lEDEBUGcounter<1)
-    std::cout << "EDEBUG-- BmnFD::ProcessHits: entered" << gMC->CurrentVolPath() << endl;
+    std::cout << "EDEBUG-- BmnBd1::ProcessHits: entered" << gMC->CurrentVolPath() << endl;
 #endif
 
 	if(gMC->IsTrackEntering()){
@@ -114,7 +120,7 @@ static Double_t de_dx;
         fIsPrimary = 0;
         fCharge = -1;
         fPdgId = 0;
-	    
+	    lightYield = 0.;
 	    lengthtrack = 0.;
 	   		
         TLorentzVector PosIn;
@@ -126,8 +132,7 @@ static Double_t de_dx;
         fMomIn.SetXYZ(MomIn.Px(), MomIn.Py(), MomIn.Pz());
 	    	
 	    timeIn = gMC->TrackTime() * 1.0e09;
-		
-		
+			
 		
 #ifdef EDEBUG
       //gMC->TrackPosition(tPos1);
@@ -145,7 +150,23 @@ static Double_t de_dx;
 	
 	}
 		
+	if (gMC->TrackCharge() != 0) { 
+    	Double_t BirkC1Mod = 0;
+         			
+		if (TMath::Abs(gMC->TrackCharge())>=2)
+       				
+			BirkC1Mod = BirkC1 * 7.2/12.6;
+     		else
+       		BirkC1Mod = BirkC1;
+    		if (gMC->TrackStep() > 0){
+            	
+			Double_t dedxcm = gMC -> Edep() * 1000./gMC -> TrackStep(); //[MeV/cm]
+           	Double_t curLightYield = gMC -> Edep() * 1000./(1. + BirkC1Mod * dedxcm + BirkC2 * dedxcm * dedxcm); 
+               curLightYield /= 1000.; //[GeV]
+               lightYield += curLightYield;
+	        }
 	 
+		}		 
 			
 	Double_t eLoss   = gMC->Edep();
     if (eLoss > 0) 
@@ -167,24 +188,6 @@ static Double_t de_dx;
         fMomOut.SetXYZ(MomOut.Px(), MomOut.Py(), MomOut.Pz());
         
 		timeOut  = gMC->TrackTime() * 1.0e09;
-/*				
-		TArrayI processesID;
-			
-		ofstream fout("process_SID.txt", ios::app);
-		
-		//if (gMC->TrackPid() == 11 && gMC->Etot()  <= 0.00006){
-		
-		gMC->StepProcesses(processesID);
-		fout << gMC->TrackPid() << " " << gMC->Edep() << " " ;
-		for (Int_t i = 0; i<processesID.GetSize(); i++){
-        
-			fout << TMCProcessName[processesID[i]]  << " ";
-				}
-		fout << endl;
-		
-		//fout<<" "<<gMC->TrackPid() <<" " <<gMC->Edep()<<" "<< TMCProcessName[processesID[i]]<<endl;
-		fout.close();
-*/		
 
 		#ifndef EDEBUG
      
@@ -225,12 +228,12 @@ static Double_t de_dx;
 
 		AddHit(fTrackID, ivol, copyNo,  fPosIn, fPosOut,
                                 fMomIn, fMomOut,
-	       time, length, fELoss, fIsPrimary, fCharge, fPdgId, timeIn, timeOut, lengthtrack);
+	       time, length, fELoss, fIsPrimary, fCharge, fPdgId, lightYield, timeIn, timeOut, lengthtrack);
 #else
 		
 		AddHit(fTrackID, ivol, copyNo,  fPosIn, fPosOut,
                                 fMomIn, fMomOut,
-	       time, length, fELoss, fIsPrimary, fCharge, fPdgId, timeIn, timeOut, lengthtrack);
+	       time, length, fELoss, fIsPrimary, fCharge, fPdgId, lightYield, timeIn, timeOut, lengthtrack);
 #endif
 
 ////      Int_t points = gMC->GetStack()->GetCurrentTrack()->GetMother(1);
@@ -358,6 +361,7 @@ void 			BmnFD::ConstructAsciiGeometry()
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------
+
 Bool_t 			BmnFD::CheckIfSensitive(std::string name)
 {
   TString tsname = name;
@@ -370,12 +374,12 @@ return kFALSE;
 // -----   Private method AddHit   --------------------------------------------
 BmnFDPoint* BmnFD::AddHit( Int_t trackID, Int_t detID, Int_t copyNo, TVector3 posIn, TVector3 posOut,
                 TVector3 momIn, TVector3 momOut, Double_t time, Double_t length, Double_t eLoss, Bool_t isPrimary, 
-				Double_t charge, Int_t pdgId, Double_t timeIn, Double_t timeOut, Double_t lengthtrack) {
+				Double_t charge, Int_t pdgId, Double_t lightYield, Double_t timeIn, Double_t timeOut, Double_t lengthtrack) {
   
 	TClonesArray& clref = *fFDCollection;
   	Int_t size = clref.GetEntriesFast();
   	return new(clref[size]) BmnFDPoint(trackID, detID, copyNo, posIn, posOut, momIn, momOut, time, length, eLoss, isPrimary, 
-										charge, pdgId, timeIn, timeOut, lengthtrack);
+										charge, pdgId, lightYield, timeIn, timeOut, lengthtrack);
  }
 
 ClassImp(BmnFD)

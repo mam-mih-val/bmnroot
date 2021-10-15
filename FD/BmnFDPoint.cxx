@@ -1,5 +1,3 @@
-
-
 #include <iostream>
 #include "BmnFDPoint.h"
 #include "FairMCPoint.h"
@@ -30,7 +28,7 @@ BmnFDPoint::BmnFDPoint(Int_t trackID, Int_t detID, Int_t copyNo,
 						 TVector3 posIn, TVector3 posOut,
                          TVector3 momIn, TVector3 momOut,
 						 Double_t tof, Double_t length,
-			 Double_t eLoss,  Int_t isPrimary, Double_t charge, Int_t pdgId, 
+			 Double_t eLoss,  Int_t isPrimary, Double_t charge, Int_t pdgId, Double_t lightYield, 
 			 Double_t timeIn, Double_t timeOut, Double_t lengthtrack)
   //UInt_t EventId,
 	: FairMCPoint(trackID, detID, posIn, momIn, tof, length, eLoss),
@@ -49,7 +47,8 @@ BmnFDPoint::BmnFDPoint(Int_t trackID, Int_t detID, Int_t copyNo,
   {
    
 	nCopy = copyNo;
-
+    	
+	fLightYield = lightYield;
 	fTimeIn = timeIn;
 	fTimeOut = timeOut;
     fLengthtrack = lengthtrack;   

@@ -19,13 +19,17 @@ void geometry(FairRunSim *fRun)
     
     // -----   Create detectors        -------------------------
 
-    FairDetector* fd = new BmnFD("FD", kTRUE);
-    fd->SetGeometryFileName("Sid_new_v2.root");
-    fRun->AddModule(fd);
+    FairDetector* simd = new BmnSiMD("SiMD", kTRUE);
+    simd->SetGeometryFileName("SiMD_run8_v1.root");
+    fRun->AddModule(simd);
 
     FairDetector* bd = new BmnBd("BD", kTRUE);
-    bd->SetGeometryFileName("geom_BD_det_v2.root");
+    bd->SetGeometryFileName("BD_run8_v1.root");
     fRun->AddModule(bd);
+
+    FairDetector* fd = new BmnFD("FD", kTRUE);
+    fd->SetGeometryFileName("FD_run8_v1.root");
+    fRun->AddModule(fd);
 
     FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
     silicon->SetGeometryFileName("Silicon_FutureConfig2020_detailed.root");

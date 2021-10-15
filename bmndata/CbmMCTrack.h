@@ -112,6 +112,7 @@ class CbmMCTrack : public TObject
      **  BC:          Bit 51      (1 bit,  max. value   1)
      **  SCWALL:      Bit 52      (1 bit,  max. value   1)
      **  HODO:        Bit 53      (1 bit,  max. value   1)
+     **  SiMD:        Bit 54      (1 bit,  max. value   1)
      **  The respective point numbers can be accessed and modified with the inline functions.
      **/
     Long64_t fNPoints;

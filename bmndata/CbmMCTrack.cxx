@@ -113,7 +113,8 @@ void CbmMCTrack::Print(Int_t trackId) const
                << ", ARMs "  << GetNPoints(kARMTRIG)
                << ", BC "    << GetNPoints(kBC)
                << ", SCWALL "<< GetNPoints(kSCWALL)
-               << ", HODO "  << GetNPoints(kHODO);
+               << ", HODO "  << GetNPoints(kHODO)
+               << ", SiMD "  << GetNPoints(kSiMD);
 }
 
 
@@ -161,6 +162,7 @@ Long64_t CbmMCTrack::GetNPoints(DetectorId detId) const
     else if ( detId == kBC )   return ( (fNPoints & ((Long64_t)  1 << 51) ) >> 51);
     else if ( detId == kSCWALL )  return ( (fNPoints & ((Long64_t)  1 << 52) ) >> 52);
     else if ( detId == kHODO ) return ( (fNPoints & ((Long64_t)  1 << 53) ) >> 53);
+    else if ( detId == kSiMD ) return ( (fNPoints & ((Long64_t)  1 << 54) ) >> 54);
     else {
         LOG(ERROR) << "GetNPoints: Unknown detector ID " << detId;
         return 0;
@@ -276,6 +278,12 @@ void CbmMCTrack::SetNPoints(Int_t iDet, Long64_t nPoints)
         if      ( nPoints <  0 ) nPoints =  0;
         else if ( nPoints >  1 ) nPoints =  1;
         fNPoints = ( fNPoints & ( ~ ((Long64_t)  1 << 53 ) ) )  |  ( nPoints << 53 );
+    }
+
+    else if ( iDet == kSiMD) {
+        if      ( nPoints <  0 ) nPoints =  0;
+        else if ( nPoints >  1 ) nPoints =  1;
+        fNPoints = ( fNPoints & ( ~ ((Long64_t)  1 << 54 ) ) )  |  ( nPoints << 54 );
     }
 
     else LOG(ERROR) << "Unknown detector ID " << iDet;

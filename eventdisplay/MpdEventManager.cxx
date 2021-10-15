@@ -18,18 +18,18 @@
 #include <TGLLightSet.h>
 #include <TEveBrowser.h>
 
-// XML
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-#include <libxml/xmlschemastypes.h>
+#include "json.hpp"
 
 #include <unistd.h>
 #include <cerrno>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 
 MpdEventManager* MpdEventManager::fgRinstance = 0;
 MpdEventManager* MpdEventManager::Instance() { return fgRinstance; }
+
+using json = nlohmann::json;
 
 // convert string with hexadecimal presentation without "0x" to integer
 int hex_string_to_int(string hex_string)
@@ -262,125 +262,60 @@ Int_t MpdEventManager::StringToColor(TString color)
 
 void MpdEventManager::InitColorStructure()
 {
-    // check and load colors from my XML file
-    TString coloring_xml_path = "$VMCWORKDIR/config/eventdisplay.xml";
-    TString coloring_xsd_path = "$VMCWORKDIR/config/eventdisplay.xsd";
-    gSystem->ExpandPathName(coloring_xml_path);
-    gSystem->ExpandPathName(coloring_xsd_path);
+    ifstream file(gSystem->ExpandPathName("$VMCWORKDIR/config/eventdisplay.json"));
+    if (file.is_open())
+    {
+        json data;
+        file >> data;
+        file.close();
 
-    // check XML scheme
-    if (ValidateXml(coloring_xml_path.Data(), coloring_xsd_path.Data()) == true)
-    {   
-        xmlDoc* doc = xmlReadFile(coloring_xml_path.Data(), NULL, 0);
-        
-        /* Get the root element node */
-        xmlNode* root_element = NULL;
-        root_element = xmlDocGetRootElement(doc);
-        xmlAttr* root_element_attributes = root_element->properties;
-        xmlChar* value = xmlNodeListGetString(root_element->doc, root_element_attributes->children, 1);
-
-        xmlNodePtr cur_node = root_element;
-        if (strcmp((char*)value, "default") == 0)
-        {
-            cout<<"using default coloring"<<endl;
-            gVisualizationColoring = defaultColoring;
-        }
-        else
+        try
         {
             structSelectedColoring* selected_coloring;
             structLevelColoring* level_coloring;
-            if (strcmp((char*)value, "detector") == 0)
+
+            string type = data["coloring"]["type"];
+
+            if (type == "detectors")
+            {
                 gVisualizationColoring = selectedColoring;
+
+                string cmap = data["coloring"][type]["cmap"];
+
+                for (auto &detector : data["coloring"][type][cmap])
+                {
+                    selected_coloring = new structSelectedColoring(((string) detector["name"]).c_str(),
+                                                                   ((string) detector["color"]).c_str(),
+                                                                   detector["transparency"],
+                                                                   detector["isRecursiveColoring"]);
+                    vecSelectedColoring.push_back(selected_coloring);
+                }
+            }
             else
+            {
                 gVisualizationColoring = levelColoring;
 
-            cur_node = root_element->children;
-            while (cur_node)
-            {
-                if ((strcmp((char*)cur_node->name, "text") != 0) //skipping elements with no attributes
-                   && (cur_node->type != XML_COMMENT_NODE))
+                for (auto &level : data["coloring"][type])
                 {
-                    // set colors for particle tracks
-                    if (strcmp((char*)cur_node->name, "particle") == 0)
-                    {
-                        xmlAttr* attribute = cur_node->properties;
-                        TString strPDG = "", strColor = "";
-                        while (attribute)
-                        {
-                            xmlChar* attr_value = xmlNodeListGetString(root_element->doc, attribute->children, 1);
-                            if (strcmp((char*)attribute->name,"pdg") == 0)
-                                strPDG = (char*) attr_value;
-                            if (strcmp((char*)attribute->name,"color") == 0)
-                                strColor = (char*) attr_value;
-
-                            attribute = attribute->next;
-                            xmlFree(attr_value);
-                        }// while (attribute)
-                        xmlFree(attribute);
-
-                        if ((strPDG != "") && (strColor != ""))
-                            fPDGToColor[strPDG.Atoi()] = StringToColor(strColor);
-                        cur_node = cur_node->next;
-                        continue;
-                    }
-
-                    if (gVisualizationColoring == selectedColoring)
-                        selected_coloring = new structSelectedColoring();
-                    else
-                        level_coloring = new structLevelColoring();
-
-                    xmlAttr* attribute = cur_node->properties;
-                    while (attribute)
-                    {
-                        xmlChar* attr_value = xmlNodeListGetString(root_element->doc, attribute->children, 1);
-                        if (gVisualizationColoring == selectedColoring)
-                        {
-                            if (strcmp((char*)attribute->name,"name") == 0)
-                                selected_coloring->detector_name = (char*) attr_value;
-                            if (strcmp((char*)attribute->name,"color") == 0)
-                                selected_coloring->detector_color = (char*) attr_value;
-                            if (strcmp((char*)attribute->name,"isRecursiveColoring") == 0)
-                                selected_coloring->isRecursiveColoring = (strcmp((char*)attr_value,"true") == 0);
-                            if (strcmp((char*)attribute->name,"transparency") == 0)
-                                selected_coloring->detector_transparency =  atoi((char*)attr_value);
-                        }
-                        else
-                        {
-                            if (strcmp((char*)attribute->name,"color") == 0)
-                                level_coloring->fill_color = (char*) attr_value;
-                            if (strcmp((char*)attribute->name,"isFillLine") == 0)
-                                level_coloring->isFillLine = (strcmp((char*)attr_value,"true") == 0);
-                            if (strcmp((char*)attribute->name,"visibility") == 0)
-                                level_coloring->visibility = (strcmp((char*)attr_value,"true") == 0);
-                            if (strcmp((char*)attribute->name,"transparency") == 0)
-                                level_coloring->transparency = atoi((char*)attr_value);
-                        }                    
-                        attribute = attribute->next;
-                        xmlFree(attr_value);
-                    }// while (attribute)
-                    xmlFree(attribute);
-
-                    // add color parameters to array
-                    if (gVisualizationColoring == selectedColoring)
-                        vecSelectedColoring.push_back(selected_coloring);
-                    else
-                        vecLevelColoring.push_back(level_coloring);
-                }// if ((strcmp((char*)cur_node->name, "text") != 0) && (cur_node->type != XML_COMMENT_NODE))
-                cur_node = cur_node->next;
-            }// while (cur_node)
+                    level_coloring = new structLevelColoring((string) level["color"],
+                                                             level["isFillLine"],
+                                                             level["transparency"],
+                                                             level["isRecursiveColoring"]);
+                    vecLevelColoring.push_back(level_coloring);
+                }
+            }
         }
-            
-        xmlFree(cur_node);
-        xmlFree(value);
-        xmlFreeDoc(doc);
+        catch(const json::type_error& e)
+        {
+            cout << "Using default ROOT coloring!" << endl;
+            gVisualizationColoring = defaultColoring;
+        }
     }
     else
     {
-        cout<<"Using default ROOT coloring"<<endl;
+        cout << "Using default ROOT coloring!" << endl;
         gVisualizationColoring = defaultColoring;
     }
-    
-    return;
 }
 
 //______________________________________________________________________________
@@ -694,52 +629,6 @@ void MpdEventManager::LevelChangeNodeProperty(TGeoNode* node, int level)
                 LevelChangeNodeProperty(child, ++level);
         }//if (level < arr_size)
     }
-}
-
-// validate XML file with geometry colors
-// returns true if successful or false if XML validation failed
-bool MpdEventManager::ValidateXml(const char* XMLFileName, const char* XSDFileName)
-{
-    bool ok = false;
-
-    xmlSchemaParserCtxtPtr ctxt = xmlSchemaNewParserCtxt(XSDFileName);
-    xmlSchemaSetParserErrors(ctxt, (xmlSchemaValidityErrorFunc) fprintf, (xmlSchemaValidityWarningFunc) fprintf, stderr);
-
-    xmlSchemaPtr schema = NULL;
-    schema = xmlSchemaParse(ctxt);
-    xmlSchemaFreeParserCtxt(ctxt);
-    //xmlSchemaDump(stdout, schema);    //to print schema dump
-
-    xmlDoc* doc = NULL;
-    doc = xmlReadFile(XMLFileName, NULL, 0);
-    if (doc == NULL)
-        cout<<"Error: could not parse file"<<XMLFileName<<endl;
-    else
-    {
-        xmlSchemaValidCtxtPtr cvalid = xmlSchemaNewValidCtxt(schema);
-        xmlSchemaSetValidErrors(cvalid, (xmlSchemaValidityErrorFunc) fprintf, (xmlSchemaValidityWarningFunc) fprintf, stderr);
-        int ret = xmlSchemaValidateDoc(cvalid, doc);
-        if (ret == 0)
-        {
-            //cout<<XMLFileName<<" is validated"<<endl;
-            ok = true;
-        }
-        else if (ret > 0)
-        {
-            cout<<XMLFileName<<" failed to validate"<<endl;
-        }
-        else
-        {
-            cout<<XMLFileName<<" validation generated an internal error"<<endl;
-        }
-        xmlSchemaFreeValidCtxt(cvalid);
-    }
-
-    if (schema != NULL)
-        xmlSchemaFree(schema);
-    xmlSchemaCleanupTypes();
-
-    return ok;
 }
 
 void MpdEventManager::Open()

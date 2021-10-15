@@ -28,7 +28,7 @@ public:
      * @param caloMinEnergyThreshold Minimum energy threshold
      * @param iVerbose Verbosity level
      */
-    BmnCaloTowerDraw(const char* name, Int_t caloType, Float_t caloMinEnergyThreshold = 0, Int_t iVerbose = 0);
+    BmnCaloTowerDraw(const char *name, Int_t caloType, Float_t caloMinEnergyThreshold = 0, Int_t iVerbose = 0);
 
     /** Destructor */
     virtual ~BmnCaloTowerDraw();
@@ -39,17 +39,17 @@ public:
     void Reset();
 
 protected:
-    MpdEventManager* fEventManager;     //!
-    TClonesArray* fDigitList;           //!
-    TEvePointSet* fq;                   //!
+    MpdEventManager *fEventManager;     //!
+    TClonesArray *fDigitList;           //!
+    TEvePointSet *fq;                   //!
 
     void DrawTowers();
 
 private:
+    TString fCaloName;                  //!
     Float_t fCaloMinEnergyThreshold;    // Minimum energy threshold
-    const char* fCaloType;              //!
 
-    Float_t* fEneArr;                   //! array of energies in each module of calorimeter, GeV
+    Float_t *fEneArr;                   //! array of energies in each module of calorimeter, GeV
     Float_t fMaxE;                      // maximum energy loss in the current event
 
     UInt_t fNumModules;                 // number of modules in one calorimeter detector

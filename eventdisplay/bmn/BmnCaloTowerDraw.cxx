@@ -7,8 +7,8 @@
  */
 
 #include "BmnCaloTowerDraw.h"
-#include "BmnZDCDigit.h"
-#include "BmnECALDigit.h"
+#include "BmnCaloDigit.h"
+#include "BmnDetectorList.h"
 
 #include "MpdEventManagerEditor.h"
 #include "FairLogger.h"
@@ -22,16 +22,15 @@
 
 #include <iostream>
 
-using namespace std;
 using json = nlohmann::json;
 
 // file containing the characteristics of calorimeters
-const char* caloDataFile = gSystem->ExpandPathName("$VMCWORKDIR/eventdisplay/bmn/BmnCaloTowerDraw.json");
+const char* caloDataFile = gSystem->ExpandPathName("$VMCWORKDIR/config/eventdisplay.json");
 
 BmnCaloTowerDraw::BmnCaloTowerDraw()
   : FairTask("BmnCaloTowerDraw", 0),
     fCaloMinEnergyThreshold(0),
-    fCaloType(NULL),
+    fCaloName("unknown"),
     fEventManager(NULL),
     fDigitList(NULL),
     fEneArr(NULL),
@@ -43,47 +42,29 @@ BmnCaloTowerDraw::BmnCaloTowerDraw()
 BmnCaloTowerDraw::BmnCaloTowerDraw(const char* name, Int_t caloType, Float_t caloMinEnergyThreshold, Int_t iVerbose)
   : FairTask(name, iVerbose),
     fCaloMinEnergyThreshold(caloMinEnergyThreshold),
-    fCaloType(caloType == 0 ? "ZDC" : (caloType == 1 ? "ECAL" : NULL)),
     fEventManager(NULL),
     fDigitList(NULL),
     fEneArr(NULL),
     fResetRequiredFlag(kFALSE),
     fInitDrawFlag(kTRUE),
     fq(NULL)
-{}
+{ BmnDetectorList::GetSystemNameCaps(caloType, fCaloName); }
 
 InitStatus BmnCaloTowerDraw::Init()
 {
-    if (fCaloType == NULL)
+    if (fVerbose > 0) cout << "BmnCaloTowerDraw::Init() | Type: " << fCaloName << " | " << endl;
+    //----------------------------------------
+    if (fCaloName == "unknown")
     {
         LOG(ERROR) << "BmnCaloTowerDraw::Init() calorimeter type not defined! Task will be deactivated!";
         SetActive(kFALSE);
         return kERROR;
     }
-
-    if (fVerbose > 0) cout << "BmnCaloTowerDraw::Init() | Type: " << fCaloType << " | " << endl;
-
-    fEventManager = MpdEventManager::Instance();
-    if (fVerbose > 1) cout << "BmnCaloTowerDraw::Init() | Type: " << fCaloType << " | get instance of EventManager: " << fEventManager << endl;
-
-    fEventManager->fgRedrawRecoPointsReqired = kTRUE;
-
-    FairRootManager* fManager = FairRootManager::Instance();
-    if (fVerbose > 1) cout << "BmnCaloTowerDraw::Init() | Type: " << fCaloType << " | get instance of FairRootManager: " << fManager << endl;
-
-    fDigitList = (TClonesArray*) fManager->GetObject(GetName());
-    if (fDigitList == 0)
-    {
-        LOG(ERROR) << "BmnCaloTowerDraw::Init() | Type: " << fCaloType << " | branch " << GetName() << " not found! Task will be deactivated!";
-        SetActive(kFALSE);
-        return kERROR;
-    }
-    if (fVerbose > 1) cout << "BmnCaloTowerDraw::Init() | Type: " << fCaloType << " | get digit list " << fDigitList << endl;
-
+    //----------------------------------------
     ifstream file(caloDataFile);
-    if (!file)
+    if (!file.is_open())
     {
-        LOG(ERROR) << "BmnCaloTowerDraw::Init() | Type: " << fCaloType << " | file " << caloDataFile << " not found! Task will be deactivated!";
+        LOG(ERROR) << "BmnCaloTowerDraw::Init() | Type: " << fCaloName << " | file " << caloDataFile << " not found! Task will be deactivated!";
         SetActive(kFALSE);
         file.close();
         return kERROR;
@@ -94,27 +75,43 @@ InitStatus BmnCaloTowerDraw::Init()
     file.close();
     try
     {
-        fNumModules = caloData[fCaloType]["numberOfModules"];
-        fGeoPath = caloData[fCaloType]["pathToGeometry"];
+        fNumModules = caloData["calorimeters"][fCaloName.Data()]["numberOfModules"];
+        fGeoPath = caloData["calorimeters"][fCaloName.Data()]["pathToGeometry"];
     }
     catch(const json::type_error& e)
     {
-        LOG(ERROR) << "BmnCaloTowerDraw::Init() | Type: " << fCaloType << " | file " << caloDataFile << " doesn't contain the required data! Task will be deactivated!";
+        LOG(ERROR) << "BmnCaloTowerDraw::Init() | Type: " << fCaloName << " | file " << caloDataFile << " doesn't contain the required data or the calorimeter type is incorrectly set! Task will be deactivated!";
         SetActive(kFALSE);
         return kERROR;
     }
+    //----------------------------------------
+    fEventManager = MpdEventManager::Instance();
+    if (fVerbose > 1) cout << "BmnCaloTowerDraw::Init() | Type: " << fCaloName << " | get instance of EventManager: " << fEventManager << endl;
+
+    fEventManager->fgRedrawRecoPointsReqired = kTRUE;
+
+    FairRootManager *fManager = FairRootManager::Instance();
+    if (fVerbose > 1) cout << "BmnCaloTowerDraw::Init() | Type: " << fCaloName << " | get instance of FairRootManager: " << fManager << endl;
+
+    fDigitList = (TClonesArray *) fManager->GetObject(GetName());
+    if (fDigitList == 0)
+    {
+        LOG(ERROR) << "BmnCaloTowerDraw::Init() | Type: " << fCaloName << " | branch " << GetName() << " not found! Task will be deactivated!";
+        SetActive(kFALSE);
+        return kERROR;
+    }
+    if (fVerbose > 1) cout << "BmnCaloTowerDraw::Init() | Type: " << fCaloName << " | get digit list " << fDigitList << endl;
 
     if (gGeoManager->cd(fGeoPath.c_str()) == false)
     {
-        LOG(ERROR) << "BmnCaloTowerDraw::Init() | Type: " << fCaloType << " | Path to geometry '" << fGeoPath << "' not found" << endl;
+        LOG(ERROR) << "BmnCaloTowerDraw::Init() | Type: " << fCaloName << " | Path to geometry '" << fGeoPath << "' not found" << endl;
         SetActive(kFALSE);
         return kERROR;
     }
-
-    fModuleZLen = ((TGeoBBox*) gGeoManager->GetCurrentNode()->GetVolume()->GetNode(0)->GetVolume()->GetShape())->GetDZ();
+    //----------------------------------------
+    fModuleZLen = ((TGeoBBox *) gGeoManager->GetCurrentNode()->GetVolume()->GetNode(0)->GetVolume()->GetShape())->GetDZ();
 
     fEneArr = new Float_t[fNumModules+1];
-
     fMaxE = 1;
     for (Int_t i = 0; i < fNumModules+1; i++)
         fEneArr[i] = 1;
@@ -132,7 +129,7 @@ void BmnCaloTowerDraw::Exec(Option_t* option)
     if (!IsActive()) return;
     Reset();
 
-    if (fVerbose > 1) cout << "-----[ BmnCaloTowerDraw::Exec() | Type: " << fCaloType << " | ]-----------------------------------" << endl;
+    if (fVerbose > 1) cout << "-----[ BmnCaloTowerDraw::Exec() | Type: " << fCaloName << " | ]-----------------------------------" << endl;
 
     fMaxE = 0;
     for (Int_t i = 0; i < fNumModules+1; i++)
@@ -141,29 +138,17 @@ void BmnCaloTowerDraw::Exec(Option_t* option)
     if (fEventManager->fgShowRecoPointsIsShow)
     {
         Int_t nDigits = fDigitList->GetEntriesFast();
-        if (fVerbose > 2) cout << "BmnCaloTowerDraw::Exec() | Type: " << fCaloType << " | Number of Calo digits = " << nDigits << endl;
+        if (fVerbose > 2) cout << "BmnCaloTowerDraw::Exec() | Type: " << fCaloName << " | Number of Calo digits = " << nDigits << endl;
 
         for (int i = 0; i < nDigits; i++)
         {
-            Int_t channel;
-            Float_t energy;
+            BmnCaloDigit *dgt = (BmnCaloDigit *) fDigitList->At(i);
 
-            if (fCaloType[0] == 'Z')
-            {
-                BmnZDCDigit* dgt = (BmnZDCDigit*) fDigitList->At(i);
-                channel = dgt->GetChannel();
-                if (channel < 1 || channel > fNumModules) continue;
-                energy = dgt->GetAmp() * 1e-3; // MeV to GeV
-            }
-            else
-            {
-                BmnECALDigit* dgt = (BmnECALDigit*) fDigitList->At(i);
-                channel = dgt->GetChannel();
-                if (channel < 1 || channel > fNumModules) continue;
-                energy = dgt->GetAmp() * 1e-3; // MeV to GeV
-            }
+            Int_t channel = dgt->GetChannel();
+            if (channel < 1 || channel > fNumModules) continue;
+            Float_t energy = dgt->GetAmp() * 1e-3; // MeV to GeV
 
-            if (fVerbose > 3) cout << "BmnCaloTowerDraw::Exec() | Type: " << fCaloType << " | Channel = " << channel << ", Energy = " << energy << " GeV" << endl;
+            if (fVerbose > 3) cout << "BmnCaloTowerDraw::Exec() | Type: " << fCaloName << " | Channel = " << channel << ", Energy = " << energy << " GeV" << endl;
 
             fEneArr[channel] = energy;
         }
@@ -171,7 +156,7 @@ void BmnCaloTowerDraw::Exec(Option_t* option)
         for (Int_t i = 1; i < fNumModules+1; i++)
             if (fEneArr[i] > fMaxE) fMaxE = fEneArr[i];
 
-        if (fVerbose > 2) cout << "BmnCaloTowerDraw::Exec() | Type: " << fCaloType << " | Max energy = " << fMaxE << " GeV" << endl;
+        if (fVerbose > 2) cout << "BmnCaloTowerDraw::Exec() | Type: " << fCaloName << " | Max energy = " << fMaxE << " GeV" << endl;
 
         DrawTowers();
     }
@@ -189,7 +174,7 @@ void BmnCaloTowerDraw::Exec(Option_t* option)
         }
     }
 
-    TEvePointSet* q = new TEvePointSet(GetName(), fDigitList->GetEntriesFast(), TEvePointSelectorConsumer::kTVT_XYZ);
+    TEvePointSet *q = new TEvePointSet(GetName(), fDigitList->GetEntriesFast(), TEvePointSelectorConsumer::kTVT_XYZ);
     q->SetOwnIds(kTRUE);
     
     fEventManager->AddEventElement(q, RecoPointList);
@@ -202,17 +187,17 @@ void BmnCaloTowerDraw::Exec(Option_t* option)
 void BmnCaloTowerDraw::DrawTowers()
 {
     gGeoManager->cd("/cave_1");
-    TGeoNode* caveNode = gGeoManager->GetCurrentNode();
+    TGeoNode *caveNode = gGeoManager->GetCurrentNode();
 
     gGeoManager->cd(fGeoPath.c_str());
 
-    TGeoNode* caloNode = gGeoManager->GetCurrentNode();
-    TObjArray* caloArr = caloNode->GetVolume()->GetNodes();
+    TGeoNode *caloNode = gGeoManager->GetCurrentNode();
+    TObjArray *caloArr = caloNode->GetVolume()->GetNodes();
 
     for (Int_t iModule = 0; iModule < caloArr->GetEntriesFast(); iModule++)
     {
-        TGeoNode* moduleNode = (TGeoNode*) caloArr->UncheckedAt(iModule);
-        TGeoVolume* moduleVolumeCopy;
+        TGeoNode *moduleNode = (TGeoNode *) caloArr->UncheckedAt(iModule);
+        TGeoVolume *moduleVolumeCopy;
 
         /**
          * the internal structure of modules does not allow changing their shape 
@@ -220,17 +205,17 @@ void BmnCaloTowerDraw::DrawTowers()
          * delete and create a new TGeoVolume for each module.
          */
         if (fInitDrawFlag)
-            moduleVolumeCopy = (TGeoVolume*) moduleNode->GetVolume()->Clone();
+            moduleVolumeCopy = (TGeoVolume *) moduleNode->GetVolume()->Clone();
         else
-            moduleVolumeCopy = (TGeoVolume*) moduleNode->GetVolume();
+            moduleVolumeCopy = (TGeoVolume *) moduleNode->GetVolume();
         
-        TGeoBBox* box = (TGeoBBox*) moduleVolumeCopy->GetShape();
-        TGeoMatrix* mat = moduleNode->GetMatrix();
+        TGeoBBox *box = (TGeoBBox *) moduleVolumeCopy->GetShape();
+        TGeoMatrix *mat = moduleNode->GetMatrix();
 
         if (fEneArr[iModule+1] != 0)
         {
             box->SetBoxDimensions(box->GetDX(), box->GetDY(), fModuleZLen * fEneArr[iModule+1] / fMaxE);
-            ((TGeoTranslation*) mat)->SetDz(fModuleZLen * fEneArr[iModule+1] / fMaxE - fModuleZLen);
+            ((TGeoTranslation *) mat)->SetDz(fModuleZLen * fEneArr[iModule+1] / fMaxE - fModuleZLen);
 
             moduleNode->SetVisibility(kTRUE);
         }

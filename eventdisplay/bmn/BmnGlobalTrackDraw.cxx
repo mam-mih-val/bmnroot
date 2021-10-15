@@ -261,9 +261,14 @@ void BmnGlobalTrackDraw::Exec(Option_t* option)
                     break;
                 // add CSC hit
                 case CSC:
-                    if (tr->GetCscHitIndex() > -1)
+                    if (tr->GetCscHitIndex(0) > -1)
                     {
-                        FairHit* pHit = (FairHit*) fCscHitList->UncheckedAt(tr->GetCscHitIndex());
+                        FairHit* pHit = (FairHit*) fCscHitList->UncheckedAt(tr->GetCscHitIndex(0));
+                        addHitForSingleStation(pHit);
+                    }
+                    if (tr->GetCscHitIndex(1) > -1)
+                    {
+                        FairHit* pHit = (FairHit*) fCscHitList->UncheckedAt(tr->GetCscHitIndex(1));
                         addHitForSingleStation(pHit);
                     }
                     break;

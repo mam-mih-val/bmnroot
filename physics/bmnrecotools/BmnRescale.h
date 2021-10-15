@@ -296,12 +296,12 @@ private:
                 vector<Int_t> vrange; // range of hit indices
                 vrange.resize(
                         isCSC ? 1 : subTrack->GetNHits(),
-                        isCSC ? track->GetCscHitIndex() : 0);
+                        isCSC ? track->GetCscHitIndex(0) : 0);
                 if (!isCSC)
                     for (Int_t i = 0; i < vrange.size(); i++)
                         vrange[i] = subTrack->GetHitIndex(i);
                 else
-                    if (track->GetCscHitIndex() == -1)
+                    if (track->GetCscHitIndex(0) == -1)
                     continue;
                 for (Int_t iHit : vrange) {
                     ClHit *hit = static_cast<ClHit*> (gemHits->UncheckedAt(iHit));
@@ -379,12 +379,12 @@ private:
                 vector<Int_t> vrange; // range of hit indices
                 vrange.resize(
                         isCSC ? 1 : subTrack->GetNHits(),
-                        isCSC ? track->GetCscHitIndex() : 0);
+                        isCSC ? track->GetCscHitIndex(0) : 0);
                 if (!isCSC)
                     for (Int_t i = 0; i < vrange.size(); i++)
                         vrange[i] = subTrack->GetHitIndex(i);
                 else
-                    if (track->GetCscHitIndex() == -1)
+                    if (track->GetCscHitIndex(0) == -1)
                     continue;
                 for (Int_t iHit : vrange) {
                     ClHit *hit = static_cast<ClHit*> (gemHits->UncheckedAt(iHit));

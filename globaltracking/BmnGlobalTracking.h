@@ -213,6 +213,7 @@ class BmnGlobalTracking : public FairTask {
     BmnStatus MatchingMWPC(BmnGlobalTrack *tr);
     BmnStatus MatchingUpstream(BmnGlobalTrack *tr);
     BmnStatus MatchingCSC(BmnGlobalTrack *tr);
+    BmnStatus MatchingCSC(CbmStsTrack* tr, BmnGlobalTrack* glTr, vector<Int_t> stations);
 
     Int_t FindNearestHit(BmnGlobalTrack *tr, TClonesArray *hits, Float_t distCut);
 

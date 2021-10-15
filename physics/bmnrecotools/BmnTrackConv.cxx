@@ -453,7 +453,7 @@ void BmnTrackConv::ProcessDST() {
                     iSt -= fGemStationSet->GetNStations();
                     BmnHit* hit = static_cast<BmnHit*> (fBMNCscHits->UncheckedAt(fMapHit[iHitArr]));
                     gTrack->AddHit(fMapHit[iHitArr], hit);
-                    gTrack->SetCscHitIndex(fMapHit[iHitArr]);
+                    gTrack->AddCscHitIndex(0, fMapHit[iHitArr]);
 
                 } else {
                     BmnHit* hit = static_cast<BmnHit*> (fBMNGemHits->UncheckedAt(fMapHit[iHitArr]));

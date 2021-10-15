@@ -20,138 +20,131 @@
 #include "L1Algo/L1Branch.h"
 #include "L1Algo/L1Field.h"
 
-#include "FairRunAna.h"
-#include "FairRuntimeDb.h"
+#include "CbmKF.h"
+#include "CbmMvdHit.h"
 #include "CbmGeoStsPar.h"
+#include "CbmStsHit.h"
 #include "CbmStsStation.h"
 #include "CbmStsSector.h"
 #include "CbmStsSensor.h" // for field approx.
-#include "CbmStsDigiPar.h" // for dynamic_cast
-#include "CbmStsDigiScheme.h"
+#include "CbmStsDigiPar.h"
 #include "CbmStsFindTracks.h"
-#include "CbmKF.h"
 
-#include "CbmL1ParticlesFinder.h"
+#include "FairRunAna.h"
+#include "FairRootManager.h"
+#include "FairRuntimeDb.h"
 
-#include "TVector3.h"
 #include "TVectorD.h"
 #include "TMatrixD.h"
 #include "TROOT.h"
 #include "TRandom3.h"
+#include "TProfile2D.h"
 
 #include <fstream>
-#include <iomanip>
 #include <iostream>
-#include <vector>
 
-using std::cout;
-using std::endl;
-using std::ios;
-using std::vector;
-
-ClassImp(CbmL1)
-
+using namespace std;
 
 static L1Algo algo_static _fvecalignment;
 
 CbmL1 *CbmL1::fInstance = 0;
 
-CbmL1::CbmL1():
-    algo(0), // for access to L1 Algorithm from L1::Instance
+CbmL1::CbmL1()
+  : algo(0), // for access to L1 Algorithm from L1::Instance
     PF(0),
-vRTracks(), // reconstructed tracks
-vHitStore(),
-NStation(0), NMvdStations(0), NStsStations(0), // number of detector stations (all\sts\mvd)
-fPerformance(0),
-fSTAPDataMode(0),
-fSTAPDataDir(""),
+    vRTracks(), // reconstructed tracks
+    vHitStore(),
+    NStation(0), NMvdStations(0), NStsStations(0), // number of detector stations (all\sts\mvd)
+    fPerformance(0),
+    fSTAPDataMode(0),
+    fSTAPDataDir(""),
 
-fTrackingLevel(2),  // really doesn't used
-fMomentumCutOff(0.1),  // really doesn't used
-fGhostSuppression(1),  // really doesn't used
-fUseMVD(0),  // really doesn't used
+    fTrackingLevel(2),  // really doesn't used
+    fMomentumCutOff(0.1),  // really doesn't used
+    fGhostSuppression(1),  // really doesn't used
+    fUseMVD(0),  // really doesn't used
 
-StsDigi(),
-PrimVtx(),
+    StsDigi(),
+    PrimVtx(),
 
-listMCTracks (0),
-listStsPts(0),
-listStsDigi(0),
-listStsClusters(0),
-listStsHits(0),
+    listMCTracks (0),
+    listStsPts(0),
+    listStsDigi(0),
+    listStsClusters(0),
+    listStsHits(0),
 
-listMvdPts(0),
-listMvdHits(0),
-listMvdHitMatches(0),
-vStsHits(),
-vMCPoints(),
-vMCTracks(),
-vHitMCRef(),
-vRParticles(),
-vMCParticles(),
-MCtoRParticleId(),
-RtoMCParticleId(),
-histodir(0),
+    listMvdPts(0),
+    listMvdHits(0),
+    listMvdHitMatches(0),
+    vStsHits(),
+    vMCPoints(),
+    vMCTracks(),
+    vHitMCRef(),
+    vRParticles(),
+    vMCParticles(),
+    MCtoRParticleId(),
+    RtoMCParticleId(),
+    histodir(0),
     fFindParticlesMode(),
-  fMatBudgetFileName(""),
-  fExtrapolateToTheEndOfSTS(false)
+    fMatBudgetFileName(""),
+    fExtrapolateToTheEndOfSTS(false)
 {
-  if( !fInstance ) fInstance = this;
-  PF = new CbmL1ParticlesFinder();
-  StsDigi = CbmStsDigiScheme::Instance(); //AZ
+    if( !fInstance ) fInstance = this;
+    PF = new CbmL1ParticlesFinder();
+    StsDigi = CbmStsDigiScheme::Instance(); //AZ
 }
 
-CbmL1::CbmL1(const char *name, Int_t iVerbose, Int_t _fPerformance, int fSTAPDataMode_, TString fSTAPDataDir_, int findParticleMode_):FairTask(name,iVerbose),
-algo(0), // for access to L1 Algorithm from L1::Instance
-PF(0),
-                                                                                                                                      
-vRTracks(), // reconstructed tracks
-vHitStore(),
-NStation(0), NMvdStations(0), NStsStations(0), // number of detector stations (all\sts\mvd)
-fPerformance(_fPerformance),
-fSTAPDataMode(fSTAPDataMode_),
-fSTAPDataDir(fSTAPDataDir_),
+CbmL1::CbmL1(const char *name, Int_t iVerbose, Int_t _fPerformance, int fSTAPDataMode_, TString fSTAPDataDir_, int findParticleMode_)
+  : FairTask(name,iVerbose),
+    algo(0), // for access to L1 Algorithm from L1::Instance
+    PF(0),
 
-fTrackingLevel(2),  // really doesn't used
-fMomentumCutOff(0.1),  // really doesn't used
-fGhostSuppression(1),  // really doesn't used
-fUseMVD(0),  // really doesn't used
+    vRTracks(), // reconstructed tracks
+    vHitStore(),
+    NStation(0), NMvdStations(0), NStsStations(0), // number of detector stations (all\sts\mvd)
+    fPerformance(_fPerformance),
+    fSTAPDataMode(fSTAPDataMode_),
+    fSTAPDataDir(fSTAPDataDir_),
 
-StsDigi(),
-PrimVtx(),
+    fTrackingLevel(2),  // really doesn't used
+    fMomentumCutOff(0.1),  // really doesn't used
+    fGhostSuppression(1),  // really doesn't used
+    fUseMVD(0),  // really doesn't used
 
-listMCTracks (0),
-listStsPts(0),
-listStsDigi(0),
-listStsClusters(0),
-listStsHits(0),
+    StsDigi(),
+    PrimVtx(),
 
-listMvdPts(0),
-listMvdHits(0),
-listMvdHitMatches(0),
-vStsHits(),
-vMCPoints(),
-vMCTracks(),
-vHitMCRef(),
-vRParticles(),
-vMCParticles(),
-MCtoRParticleId(),
-RtoMCParticleId(),
-histodir(0),
+    listMCTracks (0),
+    listStsPts(0),
+    listStsDigi(0),
+    listStsClusters(0),
+    listStsHits(0),
+
+    listMvdPts(0),
+    listMvdHits(0),
+    listMvdHitMatches(0),
+    vStsHits(),
+    vMCPoints(),
+    vMCTracks(),
+    vHitMCRef(),
+    vRParticles(),
+    vMCParticles(),
+    MCtoRParticleId(),
+    RtoMCParticleId(),
+    histodir(0),
     fFindParticlesMode(findParticleMode_),
-  fMatBudgetFileName(""),
-  fExtrapolateToTheEndOfSTS(false)
+    fMatBudgetFileName(""),
+    fExtrapolateToTheEndOfSTS(false)
 {
-  if( !fInstance ) fInstance = this;
-  PF = new CbmL1ParticlesFinder();
-  StsDigi = CbmStsDigiScheme::Instance(); //AZ
+    if( !fInstance ) fInstance = this;
+    PF = new CbmL1ParticlesFinder();
+    StsDigi = CbmStsDigiScheme::Instance(); //AZ
 }
 
 CbmL1::~CbmL1()
 {
   if( fInstance==this ) fInstance = 0;
 }
-
 
 
 void CbmL1::SetParContainers()
@@ -1564,3 +1557,5 @@ void CbmL1::WriteSIMDKFData()
     TrNumber++;
   }
 }
+
+ClassImp(CbmL1)

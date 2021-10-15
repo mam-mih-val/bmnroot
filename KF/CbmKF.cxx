@@ -1,38 +1,23 @@
 #include "CbmKF.h"
-
 #include "CbmKFFieldMath.h"
-#include "CbmKFMath.h"
 #include "CbmKFHit.h"
+#include "CbmStsStation.h"
+#include "CbmMvdGeoPar.h"
+#include "CbmGeoStsPar.h"
+#include "CbmGeoSttPar.h" //AZ
+#include "BmnFieldPar.h"
+#include "BmnTOFGeoPar.h" //YP
 
 #include "FairGeoNode.h"
 #include "FairRunAna.h"
 #include "FairBaseParSet.h"
-#include "FairField.h"
-#include "BmnFieldMap.h" //AZ
-#include "BmnFieldPar.h"
-#include "CbmMvdGeoPar.h"
-#include "CbmGeoStsPar.h"
-#include "CbmGeoSttPar.h" //AZ
-//#include "CbmGeoTofPar.h"
-#include "BmnTOFGeoPar.h" //YP
 #include "FairGeoPassivePar.h"
-#include "CbmStsStation.h"
 #include "FairRuntimeDb.h"
 
 #include <iostream>
-#include <list>
-#include <vector>
-#include <map>
 #include <cmath>
 
-using std::cout;
-using std::endl;
-using std::pair;
-using std::vector;
-using std::map;
-using std::fabs;
-
-ClassImp(CbmKF)
+using namespace std;
 
 CbmKF *CbmKF::fInstance = 0;
 
@@ -812,3 +797,5 @@ Int_t CbmKF::PassMaterialBetween( CbmKFTrackInterface &track, Double_t &QP0, Int
 Int_t CbmKF::PassMaterialBetween( CbmKFTrackInterface &track, Double_t &QP0, CbmKFHit *fst, CbmKFHit *lst ){
   return PassMaterialBetween( track, QP0, fst->MaterialIndex, lst->MaterialIndex);
 }
+
+ClassImp(CbmKF)

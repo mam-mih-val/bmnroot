@@ -1,22 +1,18 @@
-# Create a library called "libKF" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libKF"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/passive
+ ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
- ${CMAKE_SOURCE_DIR}/bmnfield
- ${CMAKE_SOURCE_DIR}/tof
- ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/silicon
+ ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/tof
  ${CMAKE_SOURCE_DIR}/sts
  ${CMAKE_SOURCE_DIR}/cat
  ${CMAKE_SOURCE_DIR}/KF
  ${CMAKE_SOURCE_DIR}/KF/Interface
- ${CMAKE_SOURCE_DIR}/KF/KFQA
- ${CMAKE_SOURCE_DIR}/KF/KFParticle
  ${CMAKE_SOURCE_DIR}/KF/KFParticlesFinder
 )
 
@@ -135,6 +131,6 @@ ENDIF (SSE_FOUND)
 
 Set(LINKDEF KFLinkDef.h)
 Set(LIBRARY_NAME KF)
-Set(DEPENDENCIES Sts Core Base BmnData)
+Set(DEPENDENCIES Sts TOF Gem Silicon BmnData BmnField Passive Base Core)
 
 GENERATE_LIBRARY()

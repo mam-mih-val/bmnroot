@@ -30,10 +30,10 @@
 #include <set>
 
 //SM
-#include "../gem/BmnGemStripConfiguration.h"
-#include "../gem/BmnGemStripStationSet.h"
-#include "../silicon/BmnSiliconConfiguration.h"
-#include "../silicon/BmnSiliconStationSet.h"
+#include "BmnGemStripConfiguration.h"
+#include "BmnGemStripStationSet.h"
+#include "BmnSiliconConfiguration.h"
+#include "BmnSiliconStationSet.h"
 
 class TClonesArray;
 class CbmGeoStsPar;

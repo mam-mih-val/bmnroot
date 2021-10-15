@@ -19,6 +19,7 @@
 
 #include "FairHit.h"
 #include "CbmStsHit.h"
+#include "CbmMvdHit.h"
 #include "FairMCPoint.h"
 #include "FairRootManager.h"
 #include "CbmStsTrack.h"

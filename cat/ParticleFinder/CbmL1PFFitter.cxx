@@ -17,6 +17,8 @@
 
 #include "CbmL1.h"
 #include "TClonesArray.h"
+#include "CbmMvdHit.h"
+#include "CbmStsHit.h"
 #include "CbmStsTrack.h"
 
 //L1Algo tools

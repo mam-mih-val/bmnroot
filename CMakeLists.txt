@@ -230,10 +230,7 @@ add_subdirectory (monitor)
 add_subdirectory (QA)
 add_subdirectory (eventdisplay)
 add_subdirectory (macro)
-
-if(EXISTS "${CMAKE_SOURCE_DIR}/services/nica_scheduler/CMakeLists.txt")
- add_subdirectory (services/nica_scheduler)
-endif()
+add_subdirectory (services)
 
 Option(BUILD_DOXYGEN "Build Doxygen" OFF)
 if(BUILD_DOXYGEN)

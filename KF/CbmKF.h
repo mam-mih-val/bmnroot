@@ -1,4 +1,3 @@
-
 /** The CbmKF Kalman Filter algorithm
  *
  * @author  S.Gorbunov
@@ -15,21 +14,18 @@
 #define CBMKF_H
 
 #include "CbmKFMaterial.h"
+#include "CbmStsDigiScheme.h"
+#include "CbmKFTrackInterface.h"
+#include "BmnNewFieldMap.h"
 
 #include "FairField.h"
 #include "FairTask.h"
-#include "CbmStsDigiScheme.h"
-#include "../bmnfield/BmnNewFieldMap.h" //GP
+#include "FairGeoNode.h"
 
-#include <iostream>
 #include <map>
 #include <vector>
 
-class CbmKFTrackInterface;
-class CbmKFVertexInterface;
-class FairGeoNode;
-
-class CbmKF :public FairTask {
+class CbmKF : public FairTask {
 
  public:
 

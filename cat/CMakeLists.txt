@@ -1,15 +1,13 @@
-# Create a library called "libCat" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libCat"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
+ ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
- ${CMAKE_SOURCE_DIR}/sts
  ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/gem
- ${CMAKE_SOURCE_DIR}/tof
+ ${CMAKE_SOURCE_DIR}/sts
  ${CMAKE_SOURCE_DIR}/KF
  ${CMAKE_SOURCE_DIR}/KF/KFQA
  ${CMAKE_SOURCE_DIR}/KF/Interface
@@ -83,6 +81,6 @@ ENDIF (SSE_FOUND)
 
 Set(LINKDEF CatLinkDef.h)
 Set(LIBRARY_NAME Cat)
-Set(DEPENDENCIES KF Sts BmnData Base)
+Set(DEPENDENCIES KF Sts Gem Silicon BmnData BmnField Base Core)
 
 GENERATE_LIBRARY()

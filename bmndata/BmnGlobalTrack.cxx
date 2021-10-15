@@ -32,7 +32,7 @@ BmnGlobalTrack::BmnGlobalTrack()
     fIsPrimary(kTRUE) {
 
     fCscHit.resize(4);
-    for (auto idx : fCscHit)
+    for (auto &idx : fCscHit)
         idx = -1;
 }
 // -------------------------------------------------------------------------

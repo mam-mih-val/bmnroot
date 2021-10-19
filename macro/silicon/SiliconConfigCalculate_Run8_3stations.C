@@ -4,10 +4,11 @@
  * into the XML-file needed for simulation and reconstruction procedures.
  * The obtained XML-file should be moved into the 'parameters/silicon/XMLConfigs' directory
  *
- * SILICON configuration: FutureConfig2020 (3 SI-stations (10-14-18 mods))
+ * SILICON configuration: Run8_3stations (3 SI-stations (10-14-18 mods))
  *
  * Created: 29.01.2020
  * Updated: 25.05.2021 (Z-distance from the target to the first plane has been increased)
+ * Updated: 19.10.2021 (configuration renamed)
  * Author: D. Baranov
  */
 
@@ -191,7 +192,7 @@ void CalculateParameters(TString xml_file_name);
 //------------------------------------------------------------------------------
 
 
-void SiliconConfigCalculate_FutureConfig2020() {
+void SiliconConfigCalculate_Run8_3stations() {
 
     // ----  Load libraries   --------------------------------------------------
 #if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
@@ -201,7 +202,7 @@ void SiliconConfigCalculate_FutureConfig2020() {
     // -------------------------------------------------------------------------
 
     PrintInfo();
-    CalculateParameters("SiliconFutureConfig2020.xml");
+    CalculateParameters("SiliconRun8_3stations.xml");
 
     cout << "It's the end" << "\n";
     //gApplication->Terminate();

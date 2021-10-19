@@ -6,10 +6,10 @@
  * !!! IMPORTANT !!!
  * The obtained XML-file SHOULD BE MOVED into the 'parameters/silicon/XMLConfigs' directory
  *
- * SILICON configuration: FutureConfig2021 (4 SI-stations (10-14-18-22 mods))
+ * SILICON configuration: Run8_4stations (4 SI-stations (10-14-18-22 mods))
  *
  * Created: 21.07.2021
- * Updated:
+ * Updated: 19.10.2021 (configuration renamed)
  * Author: D. Baranov
  */
 
@@ -418,7 +418,7 @@ void CalculateParameters(TString xml_file_name);
 //------------------------------------------------------------------------------
 
 
-void SiliconConfigCalculate_FutureConfig2021() {
+void SiliconConfigCalculate_Run8_4stations() {
 
     // ----  Load libraries   --------------------------------------------------
 #if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
@@ -428,7 +428,7 @@ void SiliconConfigCalculate_FutureConfig2021() {
     // -------------------------------------------------------------------------
 
     PrintInfo();
-    CalculateParameters("SiliconFutureConfig2021.xml");
+    CalculateParameters("SiliconRun8_4stations.xml");
 
     cout << "It's the end" << "\n";
     //gApplication->Terminate();

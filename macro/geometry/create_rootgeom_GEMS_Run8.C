@@ -142,14 +142,14 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
     if ( ! pMedArC4H10_80_20  ) Fatal("Main", "Medium ArC4H10_80_20 not found");
 }
 
-void create_rootgeom_GEMS_FutureConfig2020() {
+void create_rootgeom_GEMS_Run8() {
 
     // ----  set working directory  --------------------------------------------
     TString gPath = gSystem->Getenv("VMCWORKDIR");
 
     // -------   Geometry file name (output)   ---------------------------------
     const TString geoDetectorName = "GEMS";
-    const TString geoDetectorVersion = "FutureConfig2020";
+    const TString geoDetectorVersion = "Run8";
     const TString geoFileName = gPath + "/geometry/" + geoDetectorName + "_"+ geoDetectorVersion + ".root";
 
     // ----  global geometry parameters  ---------------------------------------

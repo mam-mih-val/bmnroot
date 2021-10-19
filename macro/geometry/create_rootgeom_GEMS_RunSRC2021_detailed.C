@@ -193,14 +193,14 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
     if ( ! pMedPolyamide  ) Fatal("Main", "Medium polyamide not found");
 }
 
-void create_rootgeom_GEMS_SRCFutureConfig2021_detailed() {
+void create_rootgeom_GEMS_RunSRC2021_detailed() {
 
     // ----  set working directory  --------------------------------------------
     TString gPath = gSystem->Getenv("VMCWORKDIR");
 
     // -------   Geometry file name (output)   ----------------------------------
     const TString geoDetectorName = "GEMS";
-    const TString geoDetectorVersion = "SRCFutureConfig2021_detailed";
+    const TString geoDetectorVersion = "RunSRC2021_detailed";
     const TString geoFileName = gPath + "/geometry/" + geoDetectorName + "_"+ geoDetectorVersion + ".root";
 
     // ----  global geometry parameters  ---------------------------------------

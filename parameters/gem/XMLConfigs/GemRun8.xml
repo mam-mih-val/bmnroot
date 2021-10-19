@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--        	Config: GemFutureConfig2020        	Author: Baranov D.        	Date: 18.01.2021        	02.03.2021 (Updated): radius of hole in active zone (4.0 -> 6.0 cm)        	09.03.2021 (Updated): the form of a 'hole' dead zone changed (square -> 12 sided polygon)        	25.05.2021 (Updated): Z-distance from the target to the first sens. vol. has been increased
-        	A right-handed coordinates are used.        	If you look at the GEMs from the target:        		x-axis is directed to the left,        		y-axis - to the top,        		z-axis - to the GEMs.        -->
+<!--
+	Config: Run8
+	Author: Baranov D.
+	Date: 18.01.2021
+	02.03.2021 (Updated): radius of hole in active zone (4.0 -> 6.0 cm)
+	09.03.2021 (Updated): the form of a 'hole' dead zone changed (square -> 12 sided polygon)
+	25.05.2021 (Updated): Z-distance from the target to the first sens. vol. has been increased
+
+	A right-handed coordinates are used.
+	If you look at the GEMs from the target:
+		x-axis is directed to the left,
+		y-axis - to the top,
+		z-axis - to the GEMs.
+-->
 
 <StationSet>
 

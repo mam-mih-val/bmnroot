@@ -244,14 +244,14 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
     if ( ! pMedPolyamide  ) Fatal("Main", "Medium polyamide not found");
 }
 
-void create_rootgeom_GEMS_FutureConfig2020_detailed() {
+void create_rootgeom_GEMS_Run8_detailed() {
 
     // ----  set working directory  --------------------------------------------
     TString gPath = gSystem->Getenv("VMCWORKDIR");
 
     // -------   Geometry file name (output)   ---------------------------------
     const TString geoDetectorName = "GEMS";
-    const TString geoDetectorVersion = "FutureConfig2020_detailed";
+    const TString geoDetectorVersion = "Run8_detailed";
     const TString geoFileName = gPath + "/geometry/" + geoDetectorName + "_"+ geoDetectorVersion + ".root";
 
     // ----  global geometry parameters  ---------------------------------------

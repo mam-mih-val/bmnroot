@@ -4,7 +4,7 @@
  * into the XML-file needed for simulation and reconstruction procedures.
  * The obtained XML-file should be moved into the 'parameters/gem/XMLConfigs' directory
  *
- * GEM configuration: FutureConfig2020 (7 stations)
+ * GEM configuration: Run8 (7 stations)
  *
  * Created: 12.05.2020
  * 02.03.2021 (Updated): radius of hole in active zone (4.0 -> 6.0 cm)
@@ -319,7 +319,7 @@ void CalculateParameters(TString config_name, TString author, TString date);
 //------------------------------------------------------------------------------
 
 
-void GemConfigCalculate_FutureConfig2020() {
+void GemConfigCalculate_Run8() {
 
     // ----  Load libraries   --------------------------------------------------
 #if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
@@ -328,7 +328,7 @@ void GemConfigCalculate_FutureConfig2020() {
     bmnloadlibs(); // load BmnRoot libraries
     // -------------------------------------------------------------------------
 
-    TString ConfigName = "GemFutureConfig2020";
+    TString ConfigName = "GemRun8";
     TString AuthorName = "Baranov D.";
     TString DateCreated = "18.01.2021";
 

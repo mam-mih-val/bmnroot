@@ -1,7 +1,7 @@
 /*
  * Baranov D.
  * 15.06.2020
- * Use this macro to create ROOT geometry for the future config. of SILICON
+ * Use this macro to create ROOT geometry for the RUN-8 config. of SILICON
  * detector with PASSIVE FRAMES!!!
  *
  * WARNING: all units is in cm!!!
@@ -301,14 +301,14 @@ void PrintInformationAboutStations() {
 }
 
 //create geometry of silicon detector with passive frames
-void create_rootgeom_Silicon_FutureConfig2020_detailed() {
+void create_rootgeom_Silicon_Run8_3stations_detailed() {
 
     // ----  set working directory  --------------------------------------------
     TString gPath = gSystem->Getenv("VMCWORKDIR");
 
     // -------   Geometry file name (output)   ----------------------------------
     const TString geoDetectorName = "Silicon";
-    const TString geoDetectorVersion = "FutureConfig2020_detailed";
+    const TString geoDetectorVersion = "Run8_3stations_detailed";
     const TString geoFileName = gPath + "/geometry/" + geoDetectorName + "_"+ geoDetectorVersion + ".root";
 
     // ----  global geometry parameters  ---------------------------------------

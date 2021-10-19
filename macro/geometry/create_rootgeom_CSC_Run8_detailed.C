@@ -1,7 +1,7 @@
 /*
  *
  * Use this macro to create DETAILED ROOT geometry of CSC (Cathode
- * Strip Chamber) detector for the future (RUN-8) configuration
+ * Strip Chamber) detector for the RUN-8 configuration
  *
  * Author: Baranov D.
  * Created: 24.08.2021
@@ -146,14 +146,14 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
     if ( ! pMedTeflon  ) Fatal("Main", "Medium teflon not found");
 }
 
-void create_rootgeom_CSC_FutureConfig2020_detailed() {
+void create_rootgeom_CSC_Run8_detailed() {
 
     // ----  set working directory  --------------------------------------------
     TString gPath = gSystem->Getenv("VMCWORKDIR");
 
     // -------   Geometry file name (output)   ----------------------------------
     const TString geoDetectorName = "CSC";
-    const TString geoDetectorVersion = "FutureConfig2020_detailed";
+    const TString geoDetectorVersion = "Run8_detailed";
     const TString geoFileName = gPath + "/geometry/" + geoDetectorName + "_"+ geoDetectorVersion + ".root";
 
     // ----  global geometry parameters  ---------------------------------------

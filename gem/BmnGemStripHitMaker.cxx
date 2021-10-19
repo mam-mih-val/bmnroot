@@ -72,10 +72,10 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
             }
             break;
         case 8: //BM@N RUN-8
-            fCurrentConfig = BmnGemStripConfiguration::FutureConfig2020;
+            fCurrentConfig = BmnGemStripConfiguration::Run8;
             break;
     }
-    
+
     TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
     gPathGemConfig += "/parameters/gem/XMLConfigs/";
 
@@ -109,18 +109,18 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
             if (fVerbose > 1) cout << "   Current GEM Configuration : GemRunSRCSpring2018" << "\n";
             break;
 
-        case BmnGemStripConfiguration::FutureConfig2020:
-            StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemFutureConfig2020.xml");
+        case BmnGemStripConfiguration::Run8:
+            StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRun8.xml");
             TransfSet = new BmnGemStripTransform();
-            TransfSet->LoadFromXMLFile(gPathGemConfig + "GemFutureConfig2020.xml");
-            if (fVerbose) cout << "   Current GEM Configuration : GemFutureConfig2020" << "\n";
+            TransfSet->LoadFromXMLFile(gPathGemConfig + "GemRun8.xml");
+            if (fVerbose) cout << "   Current GEM Configuration : Run8" << "\n";
             break;
 
-        case BmnGemStripConfiguration::SRCFutureConfig2021:
-            StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemSRCFutureConfig2021.xml");
+        case BmnGemStripConfiguration::RunSRC2021:
+            StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSRC2021.xml");
             TransfSet = new BmnGemStripTransform();
-            TransfSet->LoadFromXMLFile(gPathGemConfig + "GemSRCFutureConfig2021.xml");
-            if (fVerbose) cout << "   Current GEM Configuration : SRCFutureConfig2021" << "\n";
+            TransfSet->LoadFromXMLFile(gPathGemConfig + "GemRunSRC2021.xml");
+            if (fVerbose) cout << "   Current GEM Configuration : RunSRC2021" << "\n";
             break;
 
         default:

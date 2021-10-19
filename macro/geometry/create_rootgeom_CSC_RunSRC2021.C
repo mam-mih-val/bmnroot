@@ -1,6 +1,6 @@
 /*
  * Use this macro to create
- * ROOT geometry for the SRC SRC in the future configuration
+ * ROOT geometry for the SRC SRC in the configuration 2021
  * including passive volumes (frames, al. cable supports, ...)
  *
  * Author: Baranov D.
@@ -147,14 +147,14 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
     if ( ! pMedTeflon  ) Fatal("Main", "Medium teflon not found");
 }
 
-void create_rootgeom_CSC_SRCFutureConfig2021() {
+void create_rootgeom_CSC_RunSRC2021() {
 
     // ----  set working directory  --------------------------------------------
     TString gPath = gSystem->Getenv("VMCWORKDIR");
 
     // -------   Geometry file name (output)   ----------------------------------
     const TString geoDetectorName = "CSC";
-    const TString geoDetectorVersion = "SRCFutureConfig2021";
+    const TString geoDetectorVersion = "RunSRC2021";
     const TString geoFileName = gPath + "/geometry/" + geoDetectorName + "_"+ geoDetectorVersion + ".root";
 
     // ----  global geometry parameters  ---------------------------------------

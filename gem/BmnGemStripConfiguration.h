@@ -10,8 +10,8 @@ namespace BmnGemStripConfiguration {
         RunSpring2017,    // 6 stations - (geometry file: GEMS_RunSpring2017.root)
         RunSpring2018,    // 6 stations - (geometry file: GEMS_RunSpring2018.root) (BM@N RUN-7)
         RunSRCSpring2018, // 10 stations - (geometry file: GEMS_RunSRCSpring2018.root) (BM@N RUN-7: SRC)
-        FutureConfig2020, // 7 stations  - (geometry file: GEMS_FutureConfig2020.root)
-        SRCFutureConfig2021, // 2 stations  - (geometry file: GEMS_SRCFutureConfig2021_detailed.root)
+        Run8,             // 7 stations  - (geometry file: GEMS_Run8.root)
+        RunSRC2021,       // 2 stations  - (geometry file: GEMS_RunSRC2021_detailed.root)
         RunSpring2018_misAlign // Only test purpose!!!
     };
 }

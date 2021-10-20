@@ -18,7 +18,7 @@ TGeoManager* gGeoMan = NULL;
 
 const Double_t FD_Xpos = 38.0;
 const Double_t FD_Ypos = 0.0;
-const Double_t FD_Zpos = 900.0; //cm
+const Double_t FD_Zpos = 800.0; //cm
 
 // const Double_t Qu_Xpos = 38.0;
 // const Double_t Qu_Ypos = 0.0;

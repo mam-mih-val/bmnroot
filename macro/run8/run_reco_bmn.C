@@ -7,9 +7,9 @@
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #define L1 // Choose Tracking: L1 or CellAuto
 
-void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim_noTarget.root",
-        TString bmndstFileName = "$VMCWORKDIR/macro/run8/bmndst_noTarget.root",
-        Int_t nStartEvent = 0, Int_t nEvents = 1000)
+void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
+        TString bmndstFileName = "$VMCWORKDIR/macro/run8/bmndst.root",
+        Int_t nStartEvent = 0, Int_t nEvents = 100)
 {
     gDebug = 0; // Debug option
     // Verbosity level (0 = quiet (progress bar), 1 = event-level, 2 = track-level, 3 = full debug)
@@ -153,11 +153,11 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim_noTarge
     // ====================================================================== //
     // ===                          CSC hit finder                        === //
     // ====================================================================== //
-    // BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
-    // if (!isExp)
-    //     cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSpring2018); //set explicitly
-    // cscHM->SetHitMatching(kTRUE);
-    // fRunAna->AddTask(cscHM);
+    BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
+    if (!isExp)
+        cscHM->SetCurrentConfig(BmnCSCConfiguration::Run8); //set explicitly
+    cscHM->SetHitMatching(kTRUE);
+    fRunAna->AddTask(cscHM);
     
     // ====================================================================== //
     // ===                          TOF1 hit finder                       === //

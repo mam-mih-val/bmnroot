@@ -32,15 +32,15 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(fd);
 
     FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
-    silicon->SetGeometryFileName("Silicon_FutureConfig2020_detailed.root");
+    silicon->SetGeometryFileName("Silicon_Run8_4stations_detailed.root");
     fRun->AddModule(silicon);
 
     FairDetector* gems = new CbmSts("GEM", kTRUE);
-    gems->SetGeometryFileName("GEMS_FutureConfig2020_detailed.root");
+    gems->SetGeometryFileName("GEMS_Run8_detailed.root");
     fRun->AddModule(gems);
 
     FairDetector* csc = new BmnCSC("CSC", kTRUE);
-    csc->SetGeometryFileName("CSC_FutureConfig2020.root");
+    csc->SetGeometryFileName("CSC_Run8_detailed.root");
     fRun->AddModule(csc);
 
     FairDetector* tof1 = new BmnTOF1("TOF1", kTRUE);
@@ -60,15 +60,15 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(ecal);
 
     FairDetector* scwall = new BmnScWall("SCWALL", kTRUE);
-    scwall->SetGeometryFileName("ScWall_oldnames_no_hole_Zpos_878.0cm_Xshift_0.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
+    scwall->SetGeometryFileName("ScWall_with_hole_XeCsI_3.9GeV_field_Extrap_scale_1200_900_Zpos_880.0cm_Xshift_58.50cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
     fRun->AddModule(scwall);
 
     FairDetector* hodo = new BmnHodo("HODO", kTRUE);
-    hodo->SetGeometryFileName("Hodo_oldnames_Zpos_877.0cm_Xshift_47.50cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
+    hodo->SetGeometryFileName("Hodo_XeCsI_3.9GeV_field_Extrap_scale_1200_900_Zpos_895.0cm_Xshift_36.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
     fRun->AddModule(hodo);
 
-    BmnZdc* zdc = new BmnZdc("ZDC", kTRUE);
+    BmnZdc* fhcal = new BmnZdc("FHCal", kTRUE);
     //zdc->SetBirk();
-    zdc->SetGeometryFileName("zdc_oldnames_NICA_36mods_no_hole_Zpos_878.0cm_Xshift_-20.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
-    fRun->AddModule(zdc);
+    fhcal->SetGeometryFileName("FHCal_54mods_hole_XeCsI_3.9GeV_field_Extrap_scale_1200_900_Zpos_900.0cm_Xshift_36.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
+    fRun->AddModule(fhcal);
 }

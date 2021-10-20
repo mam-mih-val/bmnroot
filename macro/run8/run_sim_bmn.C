@@ -155,14 +155,14 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
 
     // -----   Digitizers: converting MC points to detector digits   -----------
     // SI-Digitizer
-    BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::FutureConfig2020;
+    BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::Run8_3stations;
     BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
     siliconDigit->SetCurrentConfig(si_config);
     siliconDigit->SetUseRealEffects(useRealEffects);
     fRun->AddTask(siliconDigit);
 
     // GEM-Digitizer
-    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::FutureConfig2020;
+    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::Run8;
     if (useRealEffects)
         BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_6T);
     BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
@@ -171,7 +171,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     fRun->AddTask(gemDigit);
 
     // CSC-Digitizer
-    BmnCSCConfiguration::CSC_CONFIG csc_config = BmnCSCConfiguration::FutureConfig2020;
+    BmnCSCConfiguration::CSC_CONFIG csc_config = BmnCSCConfiguration::Run8;
     BmnCSCDigitizer* cscDigit = new BmnCSCDigitizer();
     cscDigit->SetCurrentConfig(csc_config);
     fRun->AddTask(cscDigit);
@@ -183,9 +183,9 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     fRun->AddTask(zdcDigit);
     
     // ECAL-Digitizer
-    //FIXME some problems with channels
-    //BmnEcalDigitizer * ecalDigit = new BmnEcalDigitizer();
-    //fRun->AddTask(ecalDigit);
+    // FIXME some problems with channels
+    // BmnEcalDigitizer * ecalDigit = new BmnEcalDigitizer();
+    // fRun->AddTask(ecalDigit);
 
     fRun->Init();
     magField->Print();

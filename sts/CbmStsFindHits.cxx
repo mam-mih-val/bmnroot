@@ -328,7 +328,7 @@ InitStatus CbmStsFindHits::Init() {
             StationSetGem = new BmnGemStripStationSet(gPathGemConfigGem + "GemRunSpring2018.xml");
             break;
         case 8:
-            StationSetGem = new BmnGemStripStationSet(gPathGemConfigGem + "GemFutureConfig2020.xml");
+            StationSetGem = new BmnGemStripStationSet(gPathGemConfigGem + "GemRun8.xml");
             break;
 
         default:

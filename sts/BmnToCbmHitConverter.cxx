@@ -113,8 +113,8 @@ InitStatus BmnToCbmHitConverter::Init() {
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
 
     //Create GEM detector ------------------------------------------------------
-    GemStationSet = new BmnGemStripStationSet(gPathConfig + "/parameters/gem/XMLConfigs/GemFutureConfig2020.xml");
-    SilStationSet = new BmnSiliconStationSet(gPathConfig + "/parameters/silicon/XMLConfigs/SiliconFutureConfig2020.xml");
+    GemStationSet = new BmnGemStripStationSet(gPathConfig + "/parameters/gem/XMLConfigs/GemRun8.xml");
+    SilStationSet = new BmnSiliconStationSet(gPathConfig + "/parameters/silicon/XMLConfigs/SiliconRun8_3stations.xml");
 
     return kSUCCESS;
 }

@@ -537,21 +537,22 @@ InitStatus BmnMwpcHitFinder::Init() {
       if (i < 2 ) Beam_wires_min[i][ii] = 0;
     }
   }
-  
+  if(fRunPeriod == 7 && fRunNumber <= 3588) { //src
   //beam area //run7
-  Beam_wires_min[2][0] = 42; Beam_wires_max[2][0] = 58;//x-
-  Beam_wires_min[2][1] = 21; Beam_wires_max[2][1] = 34;//v-
-  Beam_wires_min[2][2] = 21; Beam_wires_max[2][2] = 37;//u+
-  Beam_wires_min[2][3] = 41; Beam_wires_max[2][3] = 57;//x+
-  Beam_wires_min[2][4] = 58; Beam_wires_max[2][4] = 73;//v+
-  Beam_wires_min[2][5] = 58; Beam_wires_max[2][5] = 72;//u-
-  
-  Beam_wires_min[2][0] = 40; Beam_wires_max[2][0] = 62;
-  Beam_wires_min[2][1] = 15; Beam_wires_max[2][1] = 35;
-  Beam_wires_min[2][2] = 19; Beam_wires_max[2][2] = 38;
-  Beam_wires_min[2][3] = 40; Beam_wires_max[2][3] = 60;
-  Beam_wires_min[2][4] = 56; Beam_wires_max[2][4] = 77;
-  Beam_wires_min[2][5] = 58; Beam_wires_max[2][5] = 81;
+    Beam_wires_min[2][0] = 42; Beam_wires_max[2][0] = 58;//x-
+    Beam_wires_min[2][1] = 21; Beam_wires_max[2][1] = 34;//v-
+    Beam_wires_min[2][2] = 21; Beam_wires_max[2][2] = 37;//u+
+    Beam_wires_min[2][3] = 41; Beam_wires_max[2][3] = 57;//x+
+    Beam_wires_min[2][4] = 58; Beam_wires_max[2][4] = 73;//v+
+    Beam_wires_min[2][5] = 58; Beam_wires_max[2][5] = 72;//u-
+    
+    Beam_wires_min[2][0] = 40; Beam_wires_max[2][0] = 62;
+    Beam_wires_min[2][1] = 15; Beam_wires_max[2][1] = 35;
+    Beam_wires_min[2][2] = 19; Beam_wires_max[2][2] = 38;
+    Beam_wires_min[2][3] = 40; Beam_wires_max[2][3] = 60;
+    Beam_wires_min[2][4] = 56; Beam_wires_max[2][4] = 77;
+    Beam_wires_min[2][5] = 58; Beam_wires_max[2][5] = 81;
+  }
 
   //fBmnEvQuality = (TClonesArray*) ioman->GetObject(fBmnEvQualityBranchName);
   cout<<" end init "<<endl;

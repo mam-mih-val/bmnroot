@@ -17,6 +17,7 @@ BmnSiliconHit::BmnSiliconHit(Int_t detID, TVector3 pos, TVector3 dpos, Int_t ind
     fUpperLayerClusterSize = 0;
     fLowerLayerStripPos = -1.0;
     fUpperLayerStripPos = -1.0;
+    fPdg = -1;
 }
 
 BmnSiliconHit::~BmnSiliconHit() {

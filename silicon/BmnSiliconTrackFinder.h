@@ -59,6 +59,7 @@ struct tracksX {
   Double_t ClSizeXp[4]  = {-999., -999., -999., -999.};
   Double_t SumQX[4]     = {-999., -999., -999., -999.};
   Double_t SumQXp[4]    = {-999., -999., -999., -999.};
+  Int_t    Pdg          = -1;
 };
 
 using namespace std;
@@ -82,8 +83,9 @@ public:
   }
   
   struct MC_points{
-    Int_t    Id  = -1;
-    Int_t    Np = -1;
+    Int_t    Id  = -1;//mcId
+    Int_t    Np  = -1;
+    Int_t    Pdg = -999;
     Double_t x[4] = {-999., -999.,-999.,-999.};
     Double_t y[4] = {-999., -999.,-999.,-999.};
     Double_t z[4] = {-999., -999.,-999.,-999.};
@@ -93,7 +95,6 @@ public:
   };
 
 private:
-
   Bool_t fDebug   = 0;
   UInt_t fEventNo = 0; // event counter
   Int_t fRunNumber;
@@ -114,7 +115,6 @@ private:
   TString fOutputFileName;
   TString fInputBranchName;
   TString fInputBranchName2;
-  
   
   //--
   Double_t  ChiSquare;
@@ -169,6 +169,7 @@ private:
   Double_t ***XspCoord;
   Double_t ***XpspCoord;
   Double_t ***YspCoord;
+  Int_t    ***Sp_pdg;
   Double_t ***SigmaX;
   Double_t ***SigmaXp;
   Double_t ***SigmspX;
@@ -190,18 +191,22 @@ private:
   vector<MC_points> vec_points;
   
   TH1D *hNpoint, *hChiSquareNdf, *hNtracks, *hAxglob, *hBxglob, *hAyglob,*hByglob, *hY_st_1,*hY_st_2,*hY_st_3, *hdY_st_1,*hdY_st_2,*hdY_st_3, 
-      *hX_st_1,*hX_st_2,*hX_st_3, *hdX_st_1,*hdX_st_2,*hdX_st_3,
+      *hX_st_1,*hX_st_2,*hX_st_3, *hdX_st_1,*hdX_st_2,*hdX_st_3, *hdXp_st_1,*hdXp_st_2,*hdXp_st_3,
       *N_eff,* D_eff,* E_eff, *hdX_st1_st2, *hdX_st2_st3, *hdX_st1_st3,*hdY_st1_st2, *hdY_st2_st3, *hdY_st1_st3,*hdXst1_0_st2_0,*hdXst1_0_st2_1,*hdXst1_1_st2_0,*hdXst1_1_st2_1,
       *hdXst1_2_st2_0,*hdXst1_2_st2_1,*hdXst1_3_st2_0,*hdXst1_3_st2_1,*hdXst2_0_st3_1,*hdXst2_0_st3_2,*hdXst2_1_st3_1,*hdXst2_1_st3_2,*hdYst1_0_st2_0,
       *hdYst1_0_st2_1,*hdYst1_1_st2_0,*hdYst1_1_st2_1,*hdYst1_2_st2_0,*hdYst1_2_st2_1,*hdYst1_3_st2_0,*hdYst1_3_st2_1,*hdYst2_0_st3_1,*hdYst2_0_st3_2,
       *hdYst2_1_st3_1,*hdYst2_1_st3_2,*hX13_X2_m0,*hX13_X2_m1, *hXp13_Xp2_m0,*hXp13_Xp2_m1, *hY13_Y2_m0,*hY13_Y2_m1, *hY1m0_Y23, *hY1m1_Y23, *hY1m2_Y23, *hY1m3_Y23,
       *hAx_first_tr, *hAx_more_first_tr, *hdAx_MC_tr, *hdAy_MC_tr,*hdX_MC_tr, *hdY_MC_tr,
+      *hAxsi_mctrue,*hAysi_mctrue,*hBxsi_mctrue,*hBysi_mctrue,
       *hdAx_MC_tr_comb, *hdAy_MC_tr_comb, *hdX_MC_tr_comb, *hdY_MC_tr_comb,
-      *hDen_mctrSi, *hNum_mctrSi,*hEff_mctrSi;
+      *hDen_mctrSi, *hNum_mctrSi,*hEff_mctrSi, *hNtrsi_mc, *hNtrsi_reco,
+      *hDen_mcreaction, *hNum_mcreaction,*hEff_mcreaction,
+      *hdXp3_mod1, *hdXp3_mod2, *hdXXp3_mod1, *hdXXp3_mod2, *hXXp12CheckLeftover, *hXXp12CheckLeftover03;
   TH2D *hvertexXY, * hvertex_aver_XY,* hprofile_beam_z1,* hprofile_beam_z2,* hprofile_beam_z3, *hdYvsYst_1,*hdYvsYst_2,*hdYvsYst_3,
       *hdXvsXst_1,*hdXvsXst_2,*hdXvsXst_3,
-     *hdYvsYst1_mod0, *hdYvsYst1_mod1,*hdYvsYst1_mod2,*hdYvsYst1_mod3,*hdYvsYst2_mod0,*hdYvsYst2_mod1,*hdYvsYst3_mod1,*hdYvsYst3_mod2,
-     *hdXvsXst1_0,*hdXvsXst1_1,*hdXvsXst1_2,*hdXvsXst1_3,*hdXvsXst2_0,*hdXvsXst2_1,*hdXvsXst3_1,*hdXvsXst3_2;
+      *hdYvsYst1_mod0, *hdYvsYst1_mod1,*hdYvsYst1_mod2,*hdYvsYst1_mod3,*hdYvsYst2_mod0,*hdYvsYst2_mod1,*hdYvsYst3_mod1,*hdYvsYst3_mod2,
+      *hdXvsXst1_0,*hdXvsXst1_1,*hdXvsXst1_2,*hdXvsXst1_3,*hdXvsXst2_0,*hdXvsXst2_1,*hdXvsXst3_1,*hdXvsXst3_2,
+      *hSi_st3mc, *hSi_st2mc, * hSi_st1mc, *hNtrsi_mc_vs_reco;
   
   void StripsReading(Double_t ***, Double_t ***);
   void PrepareArraysToProcessEvent();
@@ -225,7 +230,7 @@ private:
                     Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***);
   void CoordinateCalculation(Int_t **, Int_t **, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Int_t **,
                              Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***,
-                             Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, vector<MC_points>&);
+                             Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, vector<MC_points>&, Int_t ***);
   void calculationOfChi2(Double_t **, Double_t **, Double_t **, Double_t **,  Int_t *,  Int_t *, Double_t & , Double_t *);
   void CoordinateAlignment( Int_t **,  Double_t ***, Double_t ***, Double_t ***, Int_t **, Int_t **, Double_t ***, Double_t ***);
   void RecordingTracksAfterSpatialPoints(vector<tracksX> & , vector<tracksX> & );
@@ -233,6 +238,7 @@ private:
   void RecordingTracks_case3(vector<tracksX> & , vector<tracksX> & );
   void CheckPoints(Int_t **, Int_t **, Double_t ***, Double_t ***, Double_t ***, Double_t ***,Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, 
                   Int_t **,  vector<tracksX> & ,Int_t **, Int_t **,Int_t **, Double_t ***, Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***);
+  void CheckLeftover(Int_t **, Int_t **,Int_t **, Double_t ***, Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***);
   void PrintAllTracks(vector<tracksX> & );
   void CountSpatialPoints(Int_t **, Int_t *);
   void MCefficiencyCalculation(vector<MC_points>&, vector<tracksX>&);
@@ -241,7 +247,7 @@ private:
                         Double_t ***, Double_t ***, Double_t ***, Double_t ***, 
                         Double_t ***, Double_t ***, Double_t ***, Double_t ***,
                         Double_t ***, Double_t ***, Double_t ***, Double_t ***,
-                        Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***);
+                        Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Int_t ***);
   void WriteSiliconTracks(vector<tracksX>&);
   
   Double_t GetXYspatial_station1_2(Int_t &, Int_t &, Double_t & , Double_t &);
@@ -283,6 +289,8 @@ private:
         Double_t half_target_regionY;
   const Double_t half_roadX1_Xp2     = .5;
   const Int_t kMaxMC = 100;
+  const Int_t PDG_Li7 = 1000030070;//Li7
+  const Int_t PDG_He4 = 1000020040;//He4
   
   Double_t Shift_toCenterOfMagnetX  ;
   Double_t Shift_toCenterOfMagnetY  ;

@@ -45,6 +45,10 @@ public:
     void SetStripTotalSignalInUpperLayer(Double_t sig) {
         fUpperLayerStripTotalSignal = sig;
     }
+    
+    void SetPdg(Int_t cPdg) {
+        fPdg = cPdg;
+    }
 
     // void SetDigitNumberMatch(BmnMatch match) {
     //     fDigitNumberMatch = match;
@@ -82,6 +86,10 @@ public:
     Double_t GetStripPositionInUpperLayer() {
         return fUpperLayerStripPos;
     }
+    
+    Int_t GetPdg() {
+        return fPdg;
+    }
 
     // BmnMatch GetDigitNumberMatch() {
     //     return fDigitNumberMatch;
@@ -92,10 +100,12 @@ private:
     Double_t fELoss;
     Int_t fLowerLayerClusterSize; //number of strips in the lower layer (|||) for the hit
     Int_t fUpperLayerClusterSize; //number of strips in the upper layer (\\\ or ///) for the hit
+    Int_t fPdg;
     Double_t fLowerLayerStripPos; //strip position in the lower layer (|||)
     Double_t fUpperLayerStripPos; //strip position in the upper layer (\\\ or ///)
     Double_t fLowerLayerStripTotalSignal;
     Double_t fUpperLayerStripTotalSignal;
+    
     //BmnMatch fDigitNumberMatch; //digit numbers used for the hit (as weighed center (one strip) of a cluster in each layer
 
     ClassDef(BmnSiliconHit, 1);

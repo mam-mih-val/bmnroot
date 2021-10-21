@@ -15,6 +15,8 @@
 #include "TRandom.h"
 #include "TClonesArray.h"
 #include "CbmTofHit.h"
+#include "TH1D.h"
+#include "TH2D.h"
 
 using namespace std;
 
@@ -52,6 +54,8 @@ private:
     TString fInputMCBranchName;
     TString fInputDigiBranchName;
     TString fOutputHitsBranchName;
+    TList fList;
+    
 
     /** Input array of MWPC Points **/
     TClonesArray* fBmnMwpcPointsArray;
@@ -73,6 +77,15 @@ private:
     Int_t fMwpcNum;
     ClassDef(BmnMwpcHitProducer, 1);
     TRandom rand_gen;
+    
+    TH2D *hY_vsX2,*hY_vsX3, *hY_vsX_pl0, *hY_vsX_pl1 ,*hY_vsX_pl2, *hY_vsX_star2, *hY_vsX_star3;
+    
+    const Int_t PDG_B11 = 1000050110;//B11
+    const Int_t PDG_Li7 = 1000030070;//Li7
+    const Int_t PDG_He4 = 1000020040;//He4
+    const Int_t PDG_Li8 = 1000030080;//Li8
+    const Int_t PDG_Be9 = 1000040090;//Be9
+    const Int_t PDG_H2  = 1000010020;//H2
 };
 
 #endif

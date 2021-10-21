@@ -88,12 +88,12 @@ void BmnMwpcTrackFinder::Exec(Option_t* opt) {
 
   //--------Track-Segment  matching between chambers--------------------
   if ( Nbest_Ch[0] > 0 && Nbest_Ch[1] > 0) {
-    if (fDebug) cout<<" N0= "<<Nbest_Ch[0]<<" N1= "<<Nbest_Ch[1]<<endl;
+    if (fDebug) cout<<"Reco: N0= "<<Nbest_Ch[0]<<" N1= "<<Nbest_Ch[1]<<endl;
     SegmentMatching( 0, Nbest_Ch, par_ab_Ch, kZmid, ind_best_Ch, Nbest_pair, Chi2_match_pair, XVU_Ch, Nhits_Ch, Nhits_match);
   }
 
   if (kNChambers > 2 && Nbest_Ch[2] > 0 && Nbest_Ch[3] > 0) {
-    if (fDebug) cout<<" N2= "<<Nbest_Ch[2]<<" N3= "<<Nbest_Ch[3]<<endl;
+    if (fDebug) cout<<"Reco: N2= "<<Nbest_Ch[2]<<" N3= "<<Nbest_Ch[3]<<endl;
     SegmentMatchingAfterTarget(2, Nbest_Ch, par_ab_Ch, kZmid, ind_best_Ch, Nbest_pair, Chi2_match_pair, XVU_Ch, Nhits_Ch, Nhits_match);
   }
   
@@ -128,7 +128,7 @@ void BmnMwpcTrackFinder::Exec(Option_t* opt) {
     SegmentFit(First_Chamber+2, z_gl, sigm2, Nbest_pair, ind_best_Ch, par_ab_pair, Chi2_ndf_pair, XVU_Ch, Clust_Ch, ind_best_pair, Nhits_Ch, Nhits_pair,sigma2_pair);
   }
   //--------------------------------------------------------------------
-
+  if(!expData) MCefficiencyCalculation(vec_points, Nbest_pair, par_ab_pair);
   //------------------Segment Parameters Alignment----------------------
   for (Int_t iPair = 0; iPair < kNumPairs; iPair++) {
     if ( Nbest_pair[iPair] > 0 ) SegmentParamAlignment(iPair, Nbest_pair, par_ab_pair, shift_pair);
@@ -136,10 +136,8 @@ void BmnMwpcTrackFinder::Exec(Option_t* opt) {
   //--------------------------------------------------------------------
 
   //--------------------MWPC pairs matching ----------------------------
-    //if ( Nbest_pair[0] > 0 && Nbest_pair[1] > 0 ) PairMatching(Nbest_pair, par_ab_pair, kZ_midle_pair);
+   // if ( Nbest_pair[0] > 0 && Nbest_pair[1] > 0 ) PairMatching(Nbest_pair, par_ab_pair, kZ_midle_pair);
   //--------------------------------------------------------------------
-  
-  if(!expData) MCefficiencyCalculation(vec_points, Nbest_pair, par_ab_pair);
   
   TracksStoring(Nbest_pair, par_ab_pair, Chi2_ndf_pair, Nhits_pair, sigma2_pair);
 
@@ -155,8 +153,10 @@ void BmnMwpcTrackFinder::TracksStoring(Int_t *Nbest, Double_t ***par_ab, Double_
   Float_t X_par_to_target, Y_par_to_target;
   for (Int_t iPair = 0; iPair < kNumPairs; iPair++) {
     if ( Nbest[iPair] > 0) {
-
+      if (fDebug)cout<<" Nbest["<<iPair<<"] "<<Nbest[iPair]<<endl;
       for (Int_t itr = 0; itr < Nbest[iPair]; itr++) {
+        if (fDebug)cout<<" pair "<<itr<<" Chi2_ndf_pair "<<Chi2_ndf[iPair][itr]<<endl;
+        
         if (Chi2_ndf[iPair][itr] > 1000.) continue;
         
         if (fDebug){
@@ -169,6 +169,8 @@ void BmnMwpcTrackFinder::TracksStoring(Int_t *Nbest, Double_t ***par_ab, Double_
           hpar_Bx_pair.at(iPair)   -> Fill( par_ab[iPair][1][itr]);
           hpar_Ay_pair.at(iPair)   -> Fill(TMath::RadToDeg()* par_ab[iPair][2][itr]);
           hpar_By_pair.at(iPair)   -> Fill(par_ab[iPair][3][itr]);
+          hYvsX_pair.at(iPair)     -> Fill( par_ab[iPair][1][itr],par_ab[iPair][3][itr]);
+          
           hpar_theta_pair.at(iPair)-> Fill(TMath::RadToDeg()*theta);
           hpar_phi_pair.at(iPair)  -> Fill(TMath::RadToDeg()*phi);
           hX_in_target_pair.at(iPair)   -> Fill(X_par_to_target);
@@ -222,18 +224,23 @@ void BmnMwpcTrackFinder::MCefficiencyCalculation(vector<MC_points>& vec, Int_t *
     Double_t day = -999.;
     Double_t dx  = -999.;
     Double_t dy  = -999.;
-     
+    Int_t Ngood_mc_tracks = 0;
+    Int_t Ngood_reco_tracks = 0;
+
     for (Int_t itr = 0; itr < vec.size(); itr++) {//mc_tr
       
         //---MC Eff ---
         //---Den
-        if (fDebug && vec.at(itr).Np >=8 && vec.at(itr).xWas3 && vec.at(itr).uWas3 && vec.at(itr).vWas3 &&
-          vec.at(itr).xWas2 && vec.at(itr).uWas2 && vec.at(itr).vWas2){
+        if (fDebug && vec.at(itr).Np >= 8 ){//min 4 + 4
+          //if ( vec.at(itr).xWas3 && vec.at(itr).uWas3 && vec.at(itr).vWas3 &&
+          //vec.at(itr).xWas2 && vec.at(itr).uWas2 && vec.at(itr).vWas2) 
+          hDen_mctr->Fill(1);
           hDen_mctr->Fill(0);
           cout<<" PCDen "<<endl;
+          Ngood_mc_tracks++;
         }
         
-          for(Int_t iseg= 0; iseg < Nbest[1]; iseg ++) {
+          for(Int_t iseg= 0; iseg < Nbest[1]; iseg ++) {//reco-tr
             delta2[0] = vec.at(itr).param[0] - par_ab[1][0][iseg];
             delta2[1] = vec.at(itr).param[1] - par_ab[1][1][iseg];
             delta2[2] = vec.at(itr).param[2] - par_ab[1][2][iseg];
@@ -255,7 +262,6 @@ void BmnMwpcTrackFinder::MCefficiencyCalculation(vector<MC_points>& vec, Int_t *
             }
           }//Nbest_pair[1]
           if (fDebug){
-            
             if (mc_tr_assoc[itr] > -1){
               cout<<" itr "<<itr<<" Np "<<vec.at(itr).Np<<" mc_Id "<<vec.at(itr).Id<<
                // " ax_mc "<<vec.at(itr).param[0]<<" reco_ind "<<mc_tr_assoc[itr]<<" ax "<< par_ab[1][0][mc_tr_assoc[itr]] <<
@@ -288,15 +294,21 @@ void BmnMwpcTrackFinder::MCefficiencyCalculation(vector<MC_points>& vec, Int_t *
       //---MC Eff ---
       //---Num
       if (fDebug) cout<<" mc_Id "<<vec.at(itr).Id<<" assoc "<<mc_tr_assoc[itr]<<endl;
-      if (fDebug && mc_tr_assoc[itr] > -1 && vec.at(itr).Np >=8 && vec.at(itr).xWas3 && vec.at(itr).uWas3 && vec.at(itr).vWas3 &&
-          vec.at(itr).xWas2 && vec.at(itr).uWas2 && vec.at(itr).vWas2){
-         {hNum_mctr->Fill(0);
-         cout<<" PCDen "<<endl;}
-       }
+      if (fDebug && mc_tr_assoc[itr] > -1 && vec.at(itr).Np >=8 ){
+        if ( vec.at(itr).xWas3 && vec.at(itr).uWas3 && vec.at(itr).vWas3 &&
+        vec.at(itr).xWas2 && vec.at(itr).uWas2 && vec.at(itr).vWas2) 
+        hNum_mctr->Fill(1);
+        hNum_mctr->Fill(0);
+        cout<<" PCNum "<<endl;
+        Ngood_reco_tracks++;
+      }
     }//itr
-      
-  
-  
+    if (fDebug){
+      hNtrpc_mc ->Fill(Ngood_mc_tracks);
+      hNtrpc_reco->Fill(Ngood_reco_tracks);
+      hNtrpc_mc_vs_reco ->Fill(Ngood_reco_tracks,Ngood_mc_tracks);
+      cout<<"PCp: Ngood_mc_tracks "<<Ngood_mc_tracks<<" Ngood_reco_tracks "<<Ngood_reco_tracks<<endl;
+    }
 }
 
 void BmnMwpcTrackFinder::ReadSegments(Double_t ***par_ab, Int_t **Nhits, Double_t **Chi2_ndf, Int_t *Nbest, Double_t ***XVU, Double_t ***Clust, vector<MC_points>&vec){
@@ -380,7 +392,9 @@ void BmnMwpcTrackFinder::ReadSegments(Double_t ***par_ab, Int_t **Nhits, Double_
           }
           if (fDebug)cout<<endl;
           tmpTr.Id = mcTracksArray[id];
-          tmpTr.Np = Npl_MC2[id] + Npl_MC3[id];
+          tmpTr.Np2 = Npl_MC2[id];
+          tmpTr.Np3 = Npl_MC3[id];
+          tmpTr.Np  = Npl_MC2[id] + Npl_MC3[id];
           
           if (Npl_MC2[id] >= 4 || Npl_MC3[id] >= 4 ) vec.push_back(tmpTr);
       }
@@ -391,37 +405,43 @@ void BmnMwpcTrackFinder::ReadSegments(Double_t ***par_ab, Int_t **Nhits, Double_
     
     for (Int_t itr = 0; itr < vec.size(); itr++) {
       //ch2
-      int i2 = 5;
-      if (vec.at(itr).x2[i2] < -900.) i2 =4;
-      if (vec.at(itr).x2[i2] < -900.) i2 =3;
+      int i2 = -1;
+      if (vec.at(itr).x2[5] > -900.)   i2 =5;
+      if (i2 < 0 && vec.at(itr).x2[4] > -900.)  i2 =4;
+      if (i2 < 0 && vec.at(itr).x2[3] > -900.)  i2 =3;
       int i20 = 0;
       if (vec.at(itr).x2[i20] < -900.) i20 =1;
       if (vec.at(itr).x2[i20] < -900.) i20 =2;
-      
-      vec.at(itr).param2[0]  = (vec.at(itr).x2[i20] - vec.at(itr).x2[i2])/ (vec.at(itr).z2[i20] - vec.at(itr).z2[i2]); 
-      vec.at(itr).param2[1]  = (vec.at(itr).x2[i20] + vec.at(itr).x2[i2])*0.5;
-      vec.at(itr).param2[2]  = (vec.at(itr).y2[i20] - vec.at(itr).y2[i2])/ (vec.at(itr).z2[i20] - vec.at(itr).z2[i2]); 
-      vec.at(itr).param2[3]  = (vec.at(itr).y2[i20] + vec.at(itr).y2[i2])*0.5;
+      if (i2 > -1 && vec.at(itr).Np2 > 3){
+        vec.at(itr).param2[0]  = (vec.at(itr).x2[i20] - vec.at(itr).x2[i2])/ (vec.at(itr).z2[i20] - vec.at(itr).z2[i2]); 
+        vec.at(itr).param2[1]  = (vec.at(itr).x2[i20] + vec.at(itr).x2[i2])*0.5;
+        vec.at(itr).param2[2]  = (vec.at(itr).y2[i20] - vec.at(itr).y2[i2])/ (vec.at(itr).z2[i20] - vec.at(itr).z2[i2]); 
+        vec.at(itr).param2[3]  = (vec.at(itr).y2[i20] + vec.at(itr).y2[i2])*0.5;
+      }
       //ch3
-      int i3 = 5;
-      if (vec.at(itr).x3[i3] < -900.) i3 =4;
-      if (vec.at(itr).x3[i3] < -900.) i3 =3;
+      int i3 = -1;
+      if (vec.at(itr).x3[5] > -900.)   i3 =5;
+      if (i3 < 0 && vec.at(itr).x3[4] > -900.)  i3 =4;
+      if (i3 < 0 && vec.at(itr).x3[3] > -900.)  i3 =3;
       int i30 = 0;
       if (vec.at(itr).x3[i30] < -900.) i30 =1;
       if (vec.at(itr).x3[i30] < -900.) i30 =2;
       
-      vec.at(itr).param3[0]  = (vec.at(itr).x3[i30] - vec.at(itr).x3[i3])/ (vec.at(itr).z3[i30] - vec.at(itr).z3[i3]); 
-      vec.at(itr).param3[1]  = (vec.at(itr).x3[i30] + vec.at(itr).x3[i3])*0.5;
-      vec.at(itr).param3[2]  = (vec.at(itr).y3[i30] - vec.at(itr).y3[i3])/ (vec.at(itr).z3[i30] - vec.at(itr).z3[i3]); 
-      vec.at(itr).param3[3]  = (vec.at(itr).y3[i30] + vec.at(itr).y3[i3])*0.5;
-      
+      if (i3 > -1 && vec.at(itr).Np3 > 3){
+        vec.at(itr).param3[0]  = (vec.at(itr).x3[i30] - vec.at(itr).x3[i3])/ (vec.at(itr).z3[i30] - vec.at(itr).z3[i3]); 
+        vec.at(itr).param3[1]  = (vec.at(itr).x3[i30] + vec.at(itr).x3[i3])*0.5;
+        vec.at(itr).param3[2]  = (vec.at(itr).y3[i30] - vec.at(itr).y3[i3])/ (vec.at(itr).z3[i30] - vec.at(itr).z3[i3]); 
+        vec.at(itr).param3[3]  = (vec.at(itr).y3[i30] + vec.at(itr).y3[i3])*0.5;
+      }
       //pair
-      vec.at(itr).param[0]  = (vec.at(itr).x2[i20] - vec.at(itr).x3[i3])/ 
-                              (vec.at(itr).z2[i20] - vec.at(itr).z3[i3]); 
-      vec.at(itr).param[1]  = (vec.at(itr).x2[i20] + vec.at(itr).x3[i3])*0.5;
-      vec.at(itr).param[2]  = (vec.at(itr).y2[i20] - vec.at(itr).y3[i3])/ 
-                              (vec.at(itr).z2[i20] - vec.at(itr).z3[i3]); 
-      vec.at(itr).param[3]  = (vec.at(itr).y2[i20] + vec.at(itr).y3[i3])*0.5;
+      if (i2 > -1 && vec.at(itr).Np2 > 3 && i3 > -1 && vec.at(itr).Np3 > 3){
+        vec.at(itr).param[0]  = (vec.at(itr).x2[i20] - vec.at(itr).x3[i3])/ 
+                                (vec.at(itr).z2[i20] - vec.at(itr).z3[i3]); 
+        vec.at(itr).param[1]  = (vec.at(itr).x2[i20] + vec.at(itr).x3[i3])*0.5;
+        vec.at(itr).param[2]  = (vec.at(itr).y2[i20] - vec.at(itr).y3[i3])/ 
+                                (vec.at(itr).z2[i20] - vec.at(itr).z3[i3]); 
+        vec.at(itr).param[3]  = (vec.at(itr).y2[i20] + vec.at(itr).y3[i3])*0.5;
+      }
       //triplet check
       if (vec.at(itr).x2[0] > -900. || vec.at(itr).x2[3] > -900.) vec.at(itr).xWas2 = 1;
       if (vec.at(itr).x2[1] > -900. || vec.at(itr).x2[4] > -900.) vec.at(itr).vWas2 = 1;
@@ -431,7 +451,7 @@ void BmnMwpcTrackFinder::ReadSegments(Double_t ***par_ab, Int_t **Nhits, Double_
       if (vec.at(itr).x3[1] > -900. || vec.at(itr).x3[4] > -900.) vec.at(itr).vWas3 = 1;
       if (vec.at(itr).x3[2] > -900. || vec.at(itr).x3[5] > -900.) vec.at(itr).uWas3 = 1;
       
-      if (fDebug) hYvsX_mc_pair->Fill(vec.at(itr).param[1],vec.at(itr).param[3]);
+      if (fDebug && vec.at(itr).Np > 7) hYvsX_mc_pair->Fill(vec.at(itr).param[1],vec.at(itr).param[3]);
 
 
     }
@@ -564,7 +584,8 @@ Int_t **best_Ch, Int_t *Nbest_pair_, Double_t **Chi2_match_, Double_t ***XVU_Ch_
         }
         //if (fDebug)cout<<" Pairr "<<Pairr<<" bst1 "<<bst1<<" Nhits "<<Nhits_[first_Ch][bst1]<<" bst2 "<<bst2<<" Nhits "<<Nhits_[Secon_Ch][bst2]<<" Chi2_m "<<Chi2_m<<endl;
 
-        if (Chi2_m < min_Chi2m && Nvariat < Nvariations && fabs(dx_loc) < 1.5 && fabs(dy_loc) < 1.5) {
+        if (Chi2_m < min_Chi2m && Nvariat < Nvariations && fabs(dx_loc) < 1.5 && fabs(dy_loc) < 1.5) {//09.2019
+       
           tmpSeg.Chi2m = Chi2_m;
           tmpSeg.Ind1  = bst1;
           tmpSeg.Ind2  = bst2;
@@ -642,8 +663,6 @@ Int_t **best_Ch, Int_t *Nbest_pair_, Double_t **Chi2_match_, Double_t ***XVU_Ch_
 void BmnMwpcTrackFinder::SegmentMatchingAfterTarget( Int_t first_Ch, Int_t *Nbest, Double_t ***par_ab, Float_t *Zmid, Int_t **best_Ch, Int_t *Nbest_pair_, Double_t **Chi2_match_, Double_t ***XVU_Ch_, Int_t **Nhits_, Int_t **Nhits_m) {
   if (fDebug) cout<<" SegmentMatching AfterTarget"<<endl;
   Float_t max_Chi2m = 100;
-  Float_t min_distX = 10;
-  Float_t min_distY = 10;
   Float_t dAx = 0;
   Float_t dAy = 0;
   Double_t dx_loc = 10;
@@ -668,6 +687,7 @@ void BmnMwpcTrackFinder::SegmentMatchingAfterTarget( Int_t first_Ch, Int_t *Nbes
   Int_t Secon_Ch = first_Ch+1;
 
   if (Nbest_Ch[first_Ch] > 0 && Nbest_Ch[Secon_Ch] > 0) {
+    if (fDebug) hDen->Fill(0);
     // if (fDebug)cout<<" Nbest[ "<<first_Ch<<"] = "<<Nbest_Ch[first_Ch]<<endl;
     // if (fDebug)cout<<" Nbest[ "<<Secon_Ch<<"] = "<<Nbest_Ch[Secon_Ch]<<endl;
 
@@ -686,19 +706,15 @@ void BmnMwpcTrackFinder::SegmentMatchingAfterTarget( Int_t first_Ch, Int_t *Nbes
         
         dx_loc  = par_ab[first_Ch][1][bst1] - par_ab[Secon_Ch][1][bst2];
         dy_loc  = par_ab[first_Ch][3][bst1] - par_ab[Secon_Ch][3][bst2];
-        
-        dAx = par_ab[first_Ch][0][bst1] - par_ab[Secon_Ch][0][bst2];
-        dAy = par_ab[first_Ch][2][bst1] - par_ab[Secon_Ch][2][bst2];
-        min_distX = x1mid - x2mid; //min
-        min_distY = y1mid - y2mid; //min
+        dAx     = par_ab[first_Ch][0][bst1] - par_ab[Secon_Ch][0][bst2];
+        dAy     = par_ab[first_Ch][2][bst1] - par_ab[Secon_Ch][2][bst2];
 
-       
-        Double_t Ax_23 = (par_ab[Secon_Ch][1][bst2] - par_ab[first_Ch][1][bst1])/ (kZmid[Secon_Ch] - kZmid[first_Ch]);
+        Double_t Ax_23     = (par_ab[Secon_Ch][1][bst2] - par_ab[first_Ch][1][bst1])/ (kZmid[Secon_Ch] - kZmid[first_Ch]);
+        Double_t Ay_23     = (par_ab[Secon_Ch][3][bst2] - par_ab[first_Ch][3][bst1])/ (kZmid[Secon_Ch] - kZmid[first_Ch]);
         Double_t x_target  = Ax_23*( Z0_SRC - ZCh[2]) + par_ab[first_Ch][1][bst1];
-        Double_t Ay_23 = (par_ab[Secon_Ch][3][bst2] - par_ab[first_Ch][3][bst1])/ (kZmid[Secon_Ch] - kZmid[first_Ch]);
         Double_t y_target  = Ay_23*( Z0_SRC - ZCh[2]) + par_ab[first_Ch][3][bst1];
 
-        //if (fDebug) cout<<" dx "<<min_distX<<" dy "<<min_distY<<" x_target "<< x_target<<" y_target "<< y_target<<endl;
+        //if (fDebug) cout<<" x_target "<< x_target<<" y_target "<< y_target<<endl;
         //if (fDebug)	cout<<" Pairr "<<Pairr<<" sigma ax "<<sigma_delta[Pairr][0]<<" ay "<<sigma_delta[Pairr][2]<<" sigma x "<<sigma_delta[Pairr][1]<<" y "<<sigma_delta[Pairr][3]<<endl;
 
         Float_t Chi2_m = ( dx_loc*dx_loc/(sigma_delta[Pairr][1]*sigma_delta[Pairr][1]) + dy_loc*dy_loc/(sigma_delta[Pairr][3]*sigma_delta[Pairr][3]) );
@@ -710,8 +726,10 @@ void BmnMwpcTrackFinder::SegmentMatchingAfterTarget( Int_t first_Ch, Int_t *Nbes
           hdAy_pair.at(Pairr)->Fill(dAy);
         }
         //if (fDebug)cout<<" Pairr "<<Pairr<<" bst1 "<<bst1<<" Nhits "<<Nhits_[first_Ch][bst1]<<" bst2 "<<bst2<<" Nhits "<<Nhits_[Secon_Ch][bst2]<<" Chi2_m "<<Chi2_m<<endl;
-
-        if (Chi2_m < max_Chi2m && Nvariat < Nvariations && fabs(x_target) < ktarget_region && fabs(y_target) < ktarget_regionY) {
+        
+        if (fDebug)cout<<" x_target "<<x_target<<" fabs(x_target - kX_target) "<<fabs(x_target - kX_target)<<" fabs(y_target - kX_target) "<<fabs(y_target - kX_target)<<endl;
+        if (fDebug) cout<<" bst1 "<<bst1<<" bst2 "<<bst2<<" Chi2_m "<<Chi2_m<<endl;
+        if (Chi2_m < max_Chi2m && Nvariat < Nvariations && fabs(x_target - kX_target) < ktarget_region && fabs(y_target - kY_target) < ktarget_regionY) {
 
           tmpSeg.Chi2m  = Chi2_m;
           tmpSeg.Ind1   = bst1;
@@ -770,7 +788,6 @@ void BmnMwpcTrackFinder::SegmentMatchingAfterTarget( Int_t first_Ch, Int_t *Nbes
     if (fDebug) cout<<" OutVector.at(0).Chi2m "<<OutVector.at(0).Chi2m<<" vtmpSeg.at(0).Chi2m "<<vtmpSeg.at(0).Chi2m<<endl;
     if (fDebug && vtmpSeg.size() > 1 ) hChi2best_Chi2fake_after_target-> Fill(OutVector.at(0).Chi2m, vtmpSeg.at(1).Chi2m);
 
-  
     for(int iter = 0; iter < OutVector.size(); ++iter) {
       if (fDebug) printf("OutVector.at(%d): %8.4f | %d - %d\n", iter, OutVector.at(iter).Chi2m, OutVector.at(iter).Ind1, OutVector.at(iter).Ind2);
       if (Nbest_pair_[Pairr] < kmaxPairs) {
@@ -800,12 +817,16 @@ void BmnMwpcTrackFinder::SegmentMatchingAfterTarget( Int_t first_Ch, Int_t *Nbes
         Nbest_pair_[Pairr]++;
       }// < kmaxPairs){
     }//iter
+    
     if (fDebug) {
       for (Int_t ii = 0; ii < Nbest_pair_[Pairr]; ii++) {
         FillEfficiency( first_Ch, XVU_Ch, Nhits_m, kMinHits, best_Ch[first_Ch][ii], Min_distX[ii], Min_distY[ii]);
         FillEfficiency( Secon_Ch, XVU_Ch, Nhits_m, kMinHits, best_Ch[Secon_Ch][ii], Min_distX[ii], Min_distY[ii]);
       }
     }
+    if (fDebug) cout<<"--Matching efficiency--"<<endl;
+    if (fDebug) cout<<" Nbest_pair_["<<Pairr<<"] "<<Nbest_pair_[Pairr]<<endl;
+    if (fDebug && Nbest_pair_[Pairr] > 0 ) hNum->Fill(0);
     
   }//if (Nbest_Ch[first_Ch] > 0 && Nbest_Ch[Secon_Ch] > 0)
 }// SegmentMatching
@@ -825,16 +846,16 @@ void BmnMwpcTrackFinder::PairMatching( Int_t *Nbest_p, Double_t ***par_ab_p, Flo
   for (Int_t pair0 = 0; pair0 < Nbest_p[0]; pair0++) {
 
     //pair 0                 zloc0 -z_i
-    Double_t x1 = par_ab_p[0][0][pair0] *( kZ_target - kZ_midle_pair_[0] ) + par_ab_p[0][1][pair0] ;
-    Double_t y1 = par_ab_p[0][2][pair0] *( kZ_target - kZ_midle_pair_[0] ) + par_ab_p[0][3][pair0] ;
-    // if (fDebug) cout<<" pair "<<0<<" pair0 "<<pair0<<" ax "<<par_ab_p[0][0][pair0]<<" bx "<< par_ab_p[0][1][pair0]<<" ay "<<par_ab_p[0][2][pair0]<<" by "<<par_ab_p[0][3][pair0]<<" kZ_target "<<kZ_target<<" kZ_midle_pair "<<kZ_midle_pair_[0]<<endl;
+    Double_t x1 = par_ab_p[0][0][pair0] *( Z0_SRC - kZ_midle_pair_[0] ) + par_ab_p[0][1][pair0] ;
+    Double_t y1 = par_ab_p[0][2][pair0] *( Z0_SRC - kZ_midle_pair_[0] ) + par_ab_p[0][3][pair0] ;
+    // if (fDebug) cout<<" pair "<<0<<" pair0 "<<pair0<<" ax "<<par_ab_p[0][0][pair0]<<" bx "<< par_ab_p[0][1][pair0]<<" ay "<<par_ab_p[0][2][pair0]<<" by "<<par_ab_p[0][3][pair0]<<" Z0_SRC "<<Z0_SRC<<" kZ_midle_pair "<<kZ_midle_pair_[0]<<endl;
 
     for (Int_t pair1 = 0; pair1 < Nbest_p[1]; pair1++) {
 
       //pair 1
-      Double_t x2 = par_ab_p[1][0][pair1] *( kZ_target - kZ_midle_pair_[1] ) + par_ab_p[1][1][pair1] ;
-      Double_t y2 = par_ab_p[1][2][pair1] *( kZ_target - kZ_midle_pair_[1] ) + par_ab_p[1][3][pair1] ;
-      // if (fDebug) cout<<" pair "<<1<<" pair1 "<<pair1<<" ax "<<par_ab_p[1][0][pair1]<<" bx "<< par_ab_p[1][1][pair1]<<" ay "<<par_ab_p[1][2][pair1]<<" by "<<par_ab_p[1][3][pair1]<<" kZ_target "<<kZ_target<<" kZ_midle_pair "<<kZ_midle_pair_[1]<<endl;
+      Double_t x2 = par_ab_p[1][0][pair1] *( Z0_SRC - kZ_midle_pair_[1] ) + par_ab_p[1][1][pair1] ;
+      Double_t y2 = par_ab_p[1][2][pair1] *( Z0_SRC - kZ_midle_pair_[1] ) + par_ab_p[1][3][pair1] ;
+      // if (fDebug) cout<<" pair "<<1<<" pair1 "<<pair1<<" ax "<<par_ab_p[1][0][pair1]<<" bx "<< par_ab_p[1][1][pair1]<<" ay "<<par_ab_p[1][2][pair1]<<" by "<<par_ab_p[1][3][pair1]<<" Z0_SRC "<<Z0_SRC<<" kZ_midle_pair "<<kZ_midle_pair_[1]<<endl;
       Float_t dAx12 = par_ab_p[0][0][pair0] - par_ab_p[1][0][pair1];
       Float_t dAy12 = par_ab_p[0][2][pair0] - par_ab_p[1][2][pair1];
       Float_t dX = x1 - x2;
@@ -892,7 +913,7 @@ void BmnMwpcTrackFinder::PairMatching( Int_t *Nbest_p, Double_t ***par_ab_p, Flo
 void BmnMwpcTrackFinder::SegmentFit(Int_t First_Ch, Float_t **z_gl_, Float_t *sig, Int_t *Nbest_pair_, Int_t ** ind_best_Ch_, Double_t ***par_ab_pair_, Double_t **Chi2_ndf_pair_, Double_t ***XVU_Ch_, Double_t ***Clust_Ch_, Int_t **ind_best_pair_,Int_t **Nhits_Ch_, Int_t **Nhits_pair_, Double_t ****sigma2_p) {
   int chiEl = 0;
   if (First_Ch == 2) chiEl = 1;
-  if (Nbest_pair_[chiEl] >= 10) {
+  if (Nbest_pair_[chiEl] >= kmaxPairs) {
     printf("!!! ERROR: Nbest_pair_[%d] > 10\n", chiEl);
     return;
   }
@@ -933,6 +954,14 @@ void BmnMwpcTrackFinder::SegmentFit(Int_t First_Ch, Float_t **z_gl_, Float_t *si
       }//if coord was
     }//i6
 
+    Amatr = new Double_t*[4];
+    bmatr = new Double_t*[4];
+
+    for(Int_t ii=0; ii<4; ii++) {
+      Amatr[ii] = new Double_t[4];
+      bmatr[ii] = new Double_t[4];
+    }
+
     for(Int_t im=0; im<4; im++) {
       for(Int_t ii=0; ii<4; ii++) {
         Amatr[im][ii] = 0.;
@@ -949,7 +978,7 @@ void BmnMwpcTrackFinder::SegmentFit(Int_t First_Ch, Float_t **z_gl_, Float_t *si
     FillFreeCoefVector(sec, matrF, XVU_Ch, best2, z_gl_ , sigm2_2, h2);
 
     if (fDebug) {
-      for(Int_t i = 0; i < 6; i++) {
+      for(Int_t i = 0; i < kNPlanes; i++) {
          cout<<" h1 "<<h1[i]<<" XVU_Ch1 "<<XVU_Ch_[fir][i][best1]<<" sigm2 "<< sigm2_1[i]<<endl;
         //<<" z "<<z_gl_[fir][i]<<endl;
       }
@@ -987,13 +1016,12 @@ void BmnMwpcTrackFinder::SegmentFit(Int_t First_Ch, Float_t **z_gl_, Float_t *si
       par_ab_pair_[Pair1][i1][bst] = 0;
       for(Int_t j1 = 0; j1 < 4; j1++) {
         par_ab_pair_[Pair1][i1][bst] += bmatr[i1][j1]*matrF[j1];
-         if (fDebug)cout<<"bmatr["<<i1<<"]["<<j1<<"] "<<bmatr[i1][j1]<<endl;
+         //if (fDebug)cout<<"bmatr["<<i1<<"]["<<j1<<"] "<<bmatr[i1][j1]<<endl;
       }
     } // i1
 
-  
-    Double_t Xtarget = - par_ab_pair_[Pair1][0][bst]*( -Z0_SRC - 284.763 ) + par_ab_pair_[Pair1][1][bst] + shift_pair[Pair1][1];
-    Double_t Ytarget = - par_ab_pair_[Pair1][2][bst]*( -Z0_SRC - 284.763 ) + par_ab_pair_[Pair1][3][bst] + shift_pair[Pair1][3];
+    Double_t Xtarget = par_ab_pair_[Pair1][0][bst]*( Z0_SRC - kZ_midle_pair[Pair1] ) + par_ab_pair_[Pair1][1][bst];//? + shift_pair[Pair1][1];
+    Double_t Ytarget = par_ab_pair_[Pair1][2][bst]*( Z0_SRC - kZ_midle_pair[Pair1] ) + par_ab_pair_[Pair1][3][bst];//? + shift_pair[Pair1][3];
 
     if (fDebug) {
       cout<<endl;
@@ -1005,34 +1033,34 @@ void BmnMwpcTrackFinder::SegmentFit(Int_t First_Ch, Float_t **z_gl_, Float_t *si
     Float_t dx_[kNPlanes];
     Chi2_ndf_pair_[Pair1][bst] = 0;
 
-    for(Int_t i1 = 0 ; i1 < 6; i1++) {
+    for(Int_t i1 = 0 ; i1 < kNPlanes; i1++) {
       dx_[i1] = 0.;
 
-      if ( XVU_Ch_[fir][i1][best1] > -999.) {
+      if ( XVU_Ch_[fir][i1][best1] > -900.) {
         if(i1==0 || i1==3) dx_[i1]=XVU_Ch_[fir][i1][best1]-par_ab_pair_[Pair1][0][bst]*z_gl_[fir][i1]-par_ab_pair_[Pair1][1][bst];
         if(i1==2 || i1==5) dx_[i1]=XVU_Ch_[fir][i1][best1]-0.5*(par_ab_pair_[Pair1][0][bst]+sq3*par_ab_pair_[Pair1][2][bst])*z_gl_[fir][i1]-0.5*(par_ab_pair_[Pair1][1][bst]+sq3*par_ab_pair_[Pair1][3][bst]);
         if(i1==1 || i1==4) dx_[i1]=XVU_Ch_[fir][i1][best1]-0.5*(par_ab_pair_[Pair1][0][bst]-sq3*par_ab_pair_[Pair1][2][bst])*z_gl_[fir][i1]-0.5*(par_ab_pair_[Pair1][1][bst]-sq3*par_ab_pair_[Pair1][3][bst]);
         Chi2_ndf_pair_[Pair1][bst]= Chi2_ndf_pair_[Pair1][bst]+dx_[i1]*dx_[i1]/(sigm2_1[i1]);
-        // cout<<"best1 "<<best1 <<" i1 "<<i1<<" dx_ "<<dx_[i1]<<" XVU_Ch1 "<<XVU_Ch_[fir][i1][best1]<<" Chi2_ndf_Ch1_2 "<<Chi2_ndf_pair_[Pair1][bst]<<" z_gl1 "<<z_gl_[fir][i1]<<endl;
+        if ( fDebug) cout<<"best1 "<<best1 <<" i1 "<<i1<<" dx_ "<<dx_[i1]<<" XVU_Ch1 "<<XVU_Ch_[fir][i1][best1]<<" Chi2_ndf_Ch1_2 "<<Chi2_ndf_pair_[Pair1][bst]<<" z_gl1 "<<z_gl_[fir][i1]<<endl;
 
       }// if( Wires_Ch1[i1][best2]>-1){
     }
 
-    for(Int_t i2 = 0 ; i2 < 6; i2++) {
+    for(Int_t i2 = 0 ; i2 < kNPlanes; i2++) {
 
-      if ( XVU_Ch_[sec][i2][best1] > -999.) { // if(Wires_Ch2_[i2][best2]>-1){
+      if ( XVU_Ch_[sec][i2][best2] > -900.) { // if(Wires_Ch2_[i2][best2]>-1){
         if(i2==0 || i2==3) dx_[i2]=XVU_Ch_[sec][i2][best2]-par_ab_pair_[Pair1][0][bst]*z_gl_[sec][i2]-par_ab_pair_[Pair1][1][bst];
         if(i2==2 || i2==5) dx_[i2]=XVU_Ch_[sec][i2][best2]-0.5*(par_ab_pair_[Pair1][0][bst]+sq3*par_ab_pair_[Pair1][2][bst])*z_gl_[sec][i2]-0.5*(par_ab_pair_[Pair1][1][bst]+sq3*par_ab_pair_[Pair1][3][bst]);
         if(i2==1 || i2==4) dx_[i2]=XVU_Ch_[sec][i2][best2]-0.5*(par_ab_pair_[Pair1][0][bst]-sq3*par_ab_pair_[Pair1][2][bst])*z_gl_[sec][i2]-0.5*(par_ab_pair_[Pair1][1][bst]-sq3*par_ab_pair_[Pair1][3][bst]);
         Chi2_ndf_pair_[Pair1][bst]= Chi2_ndf_pair_[Pair1][bst]+dx_[i2]*dx_[i2]/(sigm2_2[i2]);
-        //cout<<"best2 "<<best2 <<" i2 "<<i2<<" dx_ "<<dx_[i2]<<" XVU_Ch2 "<<XVU_Ch_[sec][i2][best2]<<" Chi2_ndf_Ch1_2 "<<Chi2_ndf_pair_[Pair1][bst]<<" z_gl2 "<<z_gl_[sec][i2]<<endl;
+        if ( fDebug) cout<<"best2 "<<best2 <<" i2 "<<i2<<" dx_ "<<dx_[i2]<<" XVU_Ch2 "<<XVU_Ch_[sec][i2][best2]<<" Chi2_ndf_Ch1_2 "<<Chi2_ndf_pair_[Pair1][bst]<<" z_gl2 "<<z_gl_[sec][i2]<<endl;
       }// if( Wires_Ch2[i2][best2]>-1){
     }
 
     if (Nhits_Ch_[fir][best1]+Nhits_Ch_[sec][best2]> 4)
       Chi2_ndf_pair_[Pair1][bst]= Chi2_ndf_pair_[Pair1][bst]/(Nhits_Ch_[fir][best1]+Nhits_Ch_[sec][best2]-4);
     if (fDebug) hChi2_ndf_pair.at(Pair1)->Fill(Chi2_ndf_pair_[Pair1][bst]);
-    //if ( fDebug) cout<<" in fun Chi2_ndf_pair["<<Pair1<<"]["<<bst<<"] "<< Chi2_ndf_pair_[Pair1][bst]<<endl;
+    if ( fDebug) cout<<" in fun Chi2_ndf_pair["<<Pair1<<"]["<<bst<<"] "<< Chi2_ndf_pair_[Pair1][bst]<<endl;
 
     ind_best_pair_[Pair1][bst]= bst;
     Nhits_pair_[Pair1][bst] = Nhits_Ch_[fir][best1]+Nhits_Ch_[sec][best2];
@@ -1158,7 +1186,7 @@ void BmnMwpcTrackFinder::FillEfficiency(Int_t ChN, Double_t ***XVU_Ch_, Int_t **
     for(int i1 = 0 ; i1 < 6; i1++) {
       //if (fDebug) cout<<" XVU_Ch_["<<ChN<<"]["<<i1<<"]["<< ind_best<<"] = "<<XVU_Ch_[ChN][i1][ ind_best]<<endl;
       if( XVU_Ch_[ChN][i1][ ind_best ] > -999. && Nhits_Ch[ChN][ ind_best ] == MinHits) continue;//segIdx[ChN][j]
-        if (fDebug) Denom_Ch.at(ChN)->Fill(i1);
+        if (fDebug)Denom_Ch.at(ChN)->Fill(i1);
       if(XVU_Ch_[ChN][i1][ ind_best ] > -999.) {
         if (fDebug)Nomin_Ch.at(ChN)->Fill(i1);
       }
@@ -1170,10 +1198,11 @@ void BmnMwpcTrackFinder::FillEfficiency(Int_t ChN, Double_t ***XVU_Ch_, Int_t **
 
 //----------------------------------------------------------------------
 InitStatus BmnMwpcTrackFinder::Init() {
-	
+  
   FairRootManager* ioman = FairRootManager::Instance();
   
   if (!expData) {
+    if (fDebug) cout<<" !expData "<<endl;
     fBmnHitsArray = (TClonesArray*)ioman->GetObject(fInputBranchNameHit);
     if(fVerbose) cout << "fBmnHitsArray = " << fInputBranchNameHit << "\n";
     if (!fBmnHitsArray) {
@@ -1184,6 +1213,8 @@ InitStatus BmnMwpcTrackFinder::Init() {
   }else{
     if (fDebug) cout << " BmnMwpcTrackFinder::Init() " << endl;
   }
+  
+  
 
   fBmnMwpcSegmentsArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
   if (!fBmnMwpcSegmentsArray)
@@ -1203,7 +1234,7 @@ InitStatus BmnMwpcTrackFinder::Init() {
 
   kMinHits  = 4;
   kChi2_Max = 20.;
-  kmaxPairs = 10;//10;//5;
+  kmaxPairs = 15;//10;//5;
 
   dw = fMwpcGeo->GetWireStep();//0.25; // [cm] // wires step
   dw_half   = 0.5*dw;
@@ -1212,11 +1243,16 @@ InitStatus BmnMwpcTrackFinder::Init() {
   sq12      = sqrt(12.);
   sigma     = dw/sq12;
   kMiddlePl = 47.25;
-  kZ_target = -645.191;//-648.4;//cm
   kZ_DC     = 488.81;
-  ktarget_region  = 4.;
-  ktarget_regionY = 4.*sq2;
+  ktarget_region  = 10.;// 04.05.21 VVP // 4.;
+  ktarget_regionY = 10.;// 4.*sq2;
   //cout<<" kZ_target "<<kZ_target<<" kNumPairs "<<kNumPairs<<endl;
+  kX_target = 0;
+  kY_target = 0;
+  if (fRunPeriod == 7){
+    kX_target = 0.5;
+    kY_target =-4.5;
+  }
 
   ChCent          = new TVector3[kNChambers];
   ZCh             = new Float_t[kNChambers];
@@ -1245,38 +1281,19 @@ InitStatus BmnMwpcTrackFinder::Init() {
   Nbest_Ch        = new Int_t[kNChambers];
   ind_best_Ch     = new Int_t*[kNChambers];
   sigma_delta     = new Float_t*[kNumPairs];
-
-  Amatr = new Double_t*[4];
-  bmatr = new Double_t*[4];
   
 
   for(Int_t i = 0; i < kNChambers; i++) {
     if (fDebug){
       TH1D *h;
-      h = new TH1D(Form("par_Ax_Ch%d",i), Form("par_Ax_Ch%d",i), 100, -.4, .4);
-      fList.Add(h);
-      hpar_Ax_Ch.push_back(h);
-      h = new TH1D(Form("par_Bx_Ch%d",i), Form("par_Bx_Ch%d",i), 100, -10., 10.0);
-      fList.Add(h);
-      hpar_Bx_Ch.push_back(h);
-      h = new TH1D(Form("par_Ay_Ch%d",i), Form("par_Ay_Ch%d",i), 100, -.4, .4);
-      fList.Add(h);
-      hpar_Ay_Ch.push_back(h);
-      h = new TH1D(Form("par_By_Ch%d",i), Form("par_By_Ch%d",i), 100, -10., 10.0);
-      fList.Add(h);
-      hpar_By_Ch.push_back(h);
-      h = new TH1D(Form("Chi2_ndf_Ch%d",i), Form("Chi2_ndf_Ch%d",i), 100, 0., 20.0);
-      fList.Add(h);
-      hChi2_ndf_Ch.push_back(h);
-      h = new TH1D(Form("Nomin_Ch%d",i), Form("Nomin_Ch%d",i), 6, 0., 6.);
-      fList.Add(h);
-      Nomin_Ch.push_back(h);
-      h = new TH1D(Form("Denom_Ch%d",i), Form("Denom_Ch%d",i), 6, 0., 6.);
-      fList.Add(h);
-      Denom_Ch.push_back(h);
-      h = new TH1D(Form("Efficiency_Ch%d",i), Form("Efficiency_Ch%d",i), 6, 0., 6.);
-      fList.Add(h);
-      Eff_Ch.push_back(h);
+      h = new TH1D(Form("par_Ax_Ch%d",i), Form("par_Ax_Ch%d",i), 100, -.4, .4);     fList.Add(h);hpar_Ax_Ch.push_back(h);
+      h = new TH1D(Form("par_Bx_Ch%d",i), Form("par_Bx_Ch%d",i), 100, -10., 10.0);  fList.Add(h);hpar_Bx_Ch.push_back(h);
+      h = new TH1D(Form("par_Ay_Ch%d",i), Form("par_Ay_Ch%d",i), 100, -.4, .4);     fList.Add(h);hpar_Ay_Ch.push_back(h);
+      h = new TH1D(Form("par_By_Ch%d",i), Form("par_By_Ch%d",i), 100, -10., 10.0);  fList.Add(h);hpar_By_Ch.push_back(h);
+      h = new TH1D(Form("Chi2_ndf_Ch%d",i), Form("Chi2_ndf_Ch%d",i), 100, 0., 20.0);fList.Add(h);hChi2_ndf_Ch.push_back(h);
+      h = new TH1D(Form("Nomin_Ch%d",i), Form("Nomin_Ch%d",i), 6, 0., 6.);          fList.Add(h);Nomin_Ch.push_back(h);
+      h = new TH1D(Form("Denom_Ch%d",i), Form("Denom_Ch%d",i), 6, 0., 6.);          fList.Add(h);Denom_Ch.push_back(h);
+      h = new TH1D(Form("Efficiency_Ch%d",i), Form("Efficiency_Ch%d",i), 6, 0., 6.);fList.Add(h);Eff_Ch.push_back(h);
     }
 
     shift[i]       = new Float_t[4];
@@ -1312,64 +1329,31 @@ InitStatus BmnMwpcTrackFinder::Init() {
   for (int i=0; i < kNumPairs; ++i) {
     if (fDebug){
       TH1D *h;
-      h = new TH1D(Form("Chi2_match_pair%d",i), Form("Chi2_match_pair%d",i), 100, 0., 100.0);
-      fList.Add(h);
-      hChi2_match_pair.push_back(h);
-      h = new TH1D(Form("par_Ax_pair%d",i), Form("slopeX pair%d; [degrees]; Events",i), 100, -2.3, 2.3);
-      fList.Add(h);
-      hpar_Ax_pair.push_back(h);
-      h = new TH1D(Form("par_Bx_pair%d",i), Form("posX pair%d; [cm]; Events",i), 100, -10., 10.0);
-      fList.Add(h);
-      hpar_Bx_pair.push_back(h);
-      h = new TH1D(Form("par_Ay_pair%d",i), Form("slopeY pair%d; [degrees]; Events",i), 100, -2.3, 2.3);
-      fList.Add(h);
-      hpar_Ay_pair.push_back(h);
-      h = new TH1D(Form("par_By_pair%d",i), Form("posY pair%d; [cm]; Events",i), 100, -10., 10.0);
-      fList.Add(h);
-      hpar_By_pair.push_back(h);
-      h = new TH1D(Form("Chi2_ndf_pair%d",i), Form("Chi2_ndf_pair%d",i), 30, 0., 30.0);
-      fList.Add(h);
-      hChi2_ndf_pair.push_back(h);
-      h = new TH1D(Form("Nbest_pair%d", i), Form("Nbest_pair%d; Ntracks; Events", i), 5, 0., 5.);
-      fList.Add(h);
-      hNbest_pair.push_back(h);
-      h = new TH1D(Form("theta_pair%d",i),Form("theta_pair%d; [degrees]; Events",i), 160, 0., 8.);
-      fList.Add(h);
-      hpar_theta_pair.push_back(h);
-      h = new TH1D(Form("phi_pair%d",i), Form("phi_pair%d;  [degrees]; Events",i), 380, -190., 190.);
-      fList.Add(h);
-      hpar_phi_pair.push_back(h);
+      h = new TH1D(Form("Chi2_match_pair%d",i), Form("Chi2_match_pair%d",i), 100, 0., 100.0);fList.Add(h);hChi2_match_pair.push_back(h);
+      h = new TH1D(Form("par_Ax_pair%d",i), Form("slopeX pair%d; [degrees]; Events",i), 100, -2.3, 2.3);fList.Add(h);hpar_Ax_pair.push_back(h);
+      h = new TH1D(Form("par_Bx_pair%d",i), Form("posX pair%d; [cm]; Events",i), 100, -10., 10.0);fList.Add(h);hpar_Bx_pair.push_back(h);
+      h = new TH1D(Form("par_Ay_pair%d",i), Form("slopeY pair%d; [degrees]; Events",i), 100, -2.3, 2.3);fList.Add(h);hpar_Ay_pair.push_back(h);
+      h = new TH1D(Form("par_By_pair%d",i), Form("posY pair%d; [cm]; Events",i), 100, -10., 10.0);fList.Add(h);hpar_By_pair.push_back(h);
+      
+      h = new TH1D(Form("Chi2_ndf_pair%d",i), Form("Chi2_ndf_pair%d",i), 30, 0., 30.0);fList.Add(h);hChi2_ndf_pair.push_back(h);
+      h = new TH1D(Form("Nbest_pair%d", i), Form("Nbest_pair%d; Ntracks; Events", i), 5, 0., 5.);fList.Add(h);hNbest_pair.push_back(h);
+      h = new TH1D(Form("theta_pair%d",i),Form("theta_pair%d; [degrees]; Events",i), 160, 0., 8.);fList.Add(h);hpar_theta_pair.push_back(h);
+      h = new TH1D(Form("phi_pair%d",i), Form("phi_pair%d;  [degrees]; Events",i), 380, -190., 190.);fList.Add(h);hpar_phi_pair.push_back(h);
 
-      h = new TH1D(Form("dX_pair%d",i), Form("dX_pair%d; cm; Events",i), 100, -30.,30.);
-      fList.Add(h);
-      hdX_pair.push_back(h);
-      h = new TH1D(Form("dY_pair%d",i), Form("dY_pair%d; cm; Events",i), 100, -30.,30.);
-      fList.Add(h);
-      hdY_pair.push_back(h);
-      h = new TH1D(Form("dAx_pair%d",i),Form("dAx_pair%d; rad;Events",i), 100, -.5,.5);
-      fList.Add(h);
-      hdAx_pair.push_back(h);
-      h = new TH1D(Form("dAy_pair%d",i),Form("dAy_pair%d; rad;Events",i), 100, -.5,.5);
-      fList.Add(h);
-      hdAy_pair.push_back(h);
+      h = new TH1D(Form("dX_pair%d",i), Form("dX_pair%d; cm; Events",i), 100, -5.,5.);fList.Add(h);hdX_pair.push_back(h);
+      h = new TH1D(Form("dY_pair%d",i), Form("dY_pair%d; cm; Events",i), 100, -5.,5.);fList.Add(h);hdY_pair.push_back(h);
+      h = new TH1D(Form("dAx_pair%d",i),Form("dAx_pair%d; rad;Events",i), 100, -.5,.5);fList.Add(h);hdAx_pair.push_back(h);
+      h = new TH1D(Form("dAy_pair%d",i),Form("dAy_pair%d; rad;Events",i), 100, -.5,.5);fList.Add(h);hdAy_pair.push_back(h);
 
-      h = new TH1D(Form("X_in_target_pair%d",i), Form(" posX_pair%d in target;[cm]; Events ",i), 100, -10.,10.);
-      fList.Add(h);
-      hX_in_target_pair.push_back(h);
-      h = new TH1D(Form("Y_in_target_pair%d",i), Form(" posY_pair%d in target;[cm]; Events ",i), 100, -10.,10.);
-      fList.Add(h);
-      hY_in_target_pair.push_back(h);
+      h = new TH1D(Form("X_in_target_pair%d",i), Form(" posX_pair%d in target;[cm]; Events ",i), 100, -10.,10.);fList.Add(h);hX_in_target_pair.push_back(h);
+      h = new TH1D(Form("Y_in_target_pair%d",i), Form(" posY_pair%d in target;[cm]; Events ",i), 100, -10.,10.);fList.Add(h);hY_in_target_pair.push_back(h);
 
       TH2D *h1;
-      h1 = new TH2D(Form("Y_X_in_target_pair%d",i), Form("posY vs posX pair%d in target; X[cm]; Y[cm]",i), 100, -6.,6., 100, -6., 6.);
-      fList.Add(h1);
-      hY_X_in_target_pair.push_back(h1);
-      h1 = new TH2D(Form("Ax_bx_in_target_pair%d",i), Form("slopeX vs posX in target pair%d; posX[cm]; slopeX",i), 100, -10.,10., 100, -2.3, 2.3);
-      fList.Add(h1);
-      hAx_bx_in_target_pair.push_back(h1);
-      h1 = new TH2D(Form("Ay_by_in_target_pair%d",i), Form("slopeY vs posY in target pair%d; posY[cm]; slopeY",i), 100, -10.,10., 100, -2.3, 2.3);
-      fList.Add(h1);
-      hAy_by_in_target_pair.push_back(h1);
+      h1 = new TH2D(Form("YvsX_pair%d",i), Form("YvsX_pair%d; X[cm]; Y[cm]",i),  100, -25, 25, 100, -21, 21);fList.Add(h1);hYvsX_pair.push_back(h1);
+      
+      h1 = new TH2D(Form("Y_X_in_target_pair%d",i), Form("posY vs posX pair%d in target; X[cm]; Y[cm]",i), 100, -6.,6., 100, -6., 6.);fList.Add(h1);hY_X_in_target_pair.push_back(h1);
+      h1 = new TH2D(Form("Ax_bx_in_target_pair%d",i), Form("slopeX vs posX in target pair%d; posX[cm]; slopeX",i), 100, -10.,10., 100, -2.3, 2.3);fList.Add(h1);hAx_bx_in_target_pair.push_back(h1);
+      h1 = new TH2D(Form("Ay_by_in_target_pair%d",i), Form("slopeY vs posY in target pair%d; posY[cm]; slopeY",i), 100, -10.,10., 100, -2.3, 2.3);fList.Add(h1);hAy_by_in_target_pair.push_back(h1);
     }//if (fDebug)
     Chi2_match_pair[i] = new Double_t[kmaxPairs];
     Chi2_ndf_pair[i]   = new Double_t[kmaxPairs];
@@ -1395,56 +1379,55 @@ InitStatus BmnMwpcTrackFinder::Init() {
   }
 
   if (fDebug){
-    hAx_bx_in_target= new TH2D("Ax_bx_in_target", "slopeX vs posX in target; posX[cm]; slopeX", 100, -10.,10., 100, -2.3, 2.3);
-    fList.Add(hAx_bx_in_target);
-    hAy_by_in_target= new TH2D("Ay_by_in_target", "slopeY vs posY in target; posY[cm]; slopeY", 100, -10.,10., 100, -2.3, 2.3);
-    fList.Add(hAy_by_in_target);
-    hY_X_in_target = new TH2D("Y_X_in_target", "posY vs posX (pair0) in target; X[cm]; Y[cm]", 100, -10.,10., 100, -10., 10.);
-    fList.Add(hY_X_in_target);
+    hAx_bx_in_target= new TH2D("Ax_bx_in_target", "slopeX vs posX in target; posX[cm]; slopeX", 100, -10.,10., 100, -2.3, 2.3);fList.Add(hAx_bx_in_target);
+    hAy_by_in_target= new TH2D("Ay_by_in_target", "slopeY vs posY in target; posY[cm]; slopeY", 100, -10.,10., 100, -2.3, 2.3);fList.Add(hAy_by_in_target);
+    hY_X_in_target = new TH2D("Y_X_in_target", "posY vs posX (pair0) in target; X[cm]; Y[cm]", 100, -10.,10., 100, -10., 10.);fList.Add(hY_X_in_target);
 
-    htheta_p1vsp0 =  new TH2D("theta_p1vsp0", "theta pair1 vs pair0", 160, 0., 3., 160, 0., 3.);
-    fList.Add(htheta_p1vsp0);
+    htheta_p1vsp0 =  new TH2D("theta_p1vsp0", "theta pair1 vs pair0", 160, 0., 3., 160, 0., 3.);fList.Add(htheta_p1vsp0);
+    hdX_pair01_vs_x1 = new TH2D("dX_pair01_vs_x1","dX(pair0- pair1)_vs_Xpair1;Xpair1[cm];dX(pair0- pair1)[cm]",100, -10.,10., 100, -10., 10.);fList.Add(hdX_pair01_vs_x1);
+    hdY_pair01_vs_y1 = new TH2D("dY_pair01_vs_y1","dY(pair0- pair1)_vs_Ypair1;Ypair1[cm];dY(pair0- pair1)[cm]",100, -10.,10., 100, -10., 10.);fList.Add(hdY_pair01_vs_y1);
+    hdX_pair01_inZpair1= new TH1D("dX_pair01_inZpair1","dX(pair0- pair1) inZpair1;X[cm]; ", 100, -10.,10.);fList.Add(hdX_pair01_inZpair1);
+    hdY_pair01_inZpair1= new TH1D("dY_pair01_inZpair1","dY(pair0- pair1) inZpair1;Y[cm]; ", 100, -10.,10.);fList.Add(hdY_pair01_inZpair1);
 
-    hdX_pair01_vs_x1 = new TH2D("dX_pair01_vs_x1","dX(pair0- pair1)_vs_Xpair1;Xpair1[cm];dX(pair0- pair1)[cm]",100, -10.,10., 100, -10., 10.);
-    fList.Add(hdX_pair01_vs_x1);
-    hdY_pair01_vs_y1 = new TH2D("dY_pair01_vs_y1","dY(pair0- pair1)_vs_Ypair1;Ypair1[cm];dY(pair0- pair1)[cm]",100, -10.,10., 100, -10., 10.);
-    fList.Add(hdY_pair01_vs_y1);
+    hdX_target =    new TH1D("dX_target", " PosX(pair0-pair1) in target;[cm]; Events ", 200, -10.,10.);fList.Add(hdX_target);
+    hdY_target =    new TH1D("dY_target", " PosY(pair0-pair1) in target;[cm]; Events ", 200, -10.,10.);fList.Add(hdY_target);
+    hdAx_target =   new TH1D("dAx_target", "SlopeX(pair0-pair1); rad; Events ", 100,  -.05, .05);fList.Add( hdAx_target);
+    hdAy_target =   new TH1D("dAy_target", "SlopeY(pair0-pair1); rad; Events ", 100,  -.05, .05);fList.Add( hdAy_target);
+    hChi2_m_target =  new TH1D("Chi2_m_target", "Chi2_m in target;; Events ", 100,0.,100.);fList.Add(hChi2_m_target);
 
-    hdX_pair01_inZpair1= new TH1D("dX_pair01_inZpair1","dX(pair0- pair1) inZpair1;X[cm]; ", 100, -10.,10.);
-    fList.Add(hdX_pair01_inZpair1);
-    hdY_pair01_inZpair1= new TH1D("dY_pair01_inZpair1","dY(pair0- pair1) inZpair1;Y[cm]; ", 100, -10.,10.);
-    fList.Add(hdY_pair01_inZpair1);
+    hChi2best_Chi2fake_before_target = new TH2D("Chi2best_Chi2fake_before_target","Chi2best_Chi2fake_before_target; Chi2_best; Chi2_second", 20, 0., 20., 20, 0., 20.);fList.Add(hChi2best_Chi2fake_before_target);
+    hChi2best_Chi2fake_after_target = new TH2D("Chi2best_Chi2fake_after_target","Chi2best_Chi2fake_after_target; Chi2_best; Chi2_second", 100, 0., 100., 100, 0., 100.);fList.Add(hChi2best_Chi2fake_after_target);
 
-    hdX_target =    new TH1D("dX_target", " PosX(pair0-pair1) in target;[cm]; Events ", 200, -10.,10.);
-    fList.Add(hdX_target);
-    hdY_target =    new TH1D("dY_target", " PosY(pair0-pair1) in target;[cm]; Events ", 200, -10.,10.);
-    fList.Add(hdY_target);
-    hdAx_target =   new TH1D("dAx_target", "SlopeX(pair0-pair1); rad; Events ", 100,  -.05, .05);
-    fList.Add( hdAx_target);
-    hdAy_target =   new TH1D("dAy_target", "SlopeY(pair0-pair1); rad; Events ", 100,  -.05, .05);
-    fList.Add( hdAy_target);
-    hChi2_m_target =  new TH1D("Chi2_m_target", "Chi2_m in target;; Events ", 100,0.,100.);
-    fList.Add(hChi2_m_target);
+    hdX_pair_1  =  new TH1D("dX_pair_1","dX_pair_1", 200, -20.,20.); fList.Add(hdX_pair_1);
+    hdY_pair_1  =  new TH1D("dY_pair_1","dY_pair_1", 200, -20.,20.); fList.Add(hdY_pair_1);
+    hdAx_pair_1 =  new TH1D("dAx_pair_1","dAx_pair_1",100,  -.3, .3);fList.Add(  hdAx_pair_1);
+    hdAy_pair_1 =  new TH1D("dAy_pair_1","dAy_pair_1",100,  -.3, .3);fList.Add(  hdAy_pair_1);
+    hChi2m_pair_1= new TH1D("Chi2m_pair_1","Chi2_xy_pair_1", 100, 0, 50);fList.Add(hChi2m_pair_1);
+    hXv_pair_1  =  new TH1D("Xv_pair_1","Xv_pair_1",200, -10.,10.);fList.Add(hXv_pair_1);
+    hYv_pair_1  =  new TH1D("Yv_pair_1","Yv_pair_1",200, -10.,10.);fList.Add(hYv_pair_1);
+    
+    hDen  =  new TH1D("hDen","hDen",1, 0, 1);fList.Add(hDen);
+    hNum  =  new TH1D("hNum","hNum",1, 0, 1);fList.Add(hNum);
+    hEff  =  new TH1D("hEff","hEff",1, 0, 1);fList.Add(hEff);
+    
+    hYvsX_mc_pair = new TH2D("hYvsX_mc_pair","YvsX_mc_pair" , 100, -25, 25, 100, -21, 21); fList.Add(hYvsX_mc_pair);
+    
+    hdAx_tr_mc =  new TH1D("hdAx_tr_mc","dAx_tr_mc",200, -0.005, 0.005);fList.Add(hdAx_tr_mc);
+    hdX_tr_mc  =  new TH1D("hdX_tr_mc","dX_tr_mc",200, -0.2, 0.2);  fList.Add(hdX_tr_mc);
+    hdAy_tr_mc =  new TH1D("hdAy_tr_mc","dAy_tr_mc",200, -0.005, 0.005);fList.Add(hdAy_tr_mc);
+    hdY_tr_mc  =  new TH1D("hdY_tr_mc","dY_tr_mc",200, -0.2, 0.2);  fList.Add(hdY_tr_mc);
+    
+    hDen_mctr = new TH1D("hDen_mctr", "Den_mctr", 2, 0, 2);fList.Add(hDen_mctr);
+    hNum_mctr = new TH1D("hNum_mctr", "Num_mctr", 2, 0, 2);fList.Add(hNum_mctr);
+    hEff_mctr = new TH1D("hEff_mctr", "Eff_mctr", 2, 0, 2);fList.Add(hEff_mctr);
+    hEff_mctr->GetXaxis()->SetBinLabel(1,"2+3 coord");
+    hEff_mctr->GetXaxis()->SetBinLabel(2,"only 3coord");
+    
+    hNtrpc_reco       =  new TH1D("Ntrpc_reco",";N of pair1 tr reco", 10, 0,10); fList.Add(hNtrpc_reco);
+    hNtrpc_mc         =  new TH1D("Ntrpc_mc",";N of tr pair1 mc", 10, 0,10);     fList.Add(hNtrpc_mc);
+    hNtrpc_mc_vs_reco =  new TH2D("Ntrpc_mc_vs_reco","Ntr_mc_vs_reco; Nreco;Nmctrue", 10, 0,10, 10, 0,10);fList.Add(hNtrpc_mc_vs_reco);
 
-    hChi2best_Chi2fake_before_target = new TH2D("Chi2best_Chi2fake_before_target","Chi2best_Chi2fake_before_target; Chi2_best; Chi2_second", 20, 0., 20., 20, 0., 20.);
-    fList.Add(hChi2best_Chi2fake_before_target);
-    hChi2best_Chi2fake_after_target = new TH2D("Chi2best_Chi2fake_after_target","Chi2best_Chi2fake_after_target; Chi2_best; Chi2_second", 100, 0., 100., 100, 0., 100.);
-    fList.Add(hChi2best_Chi2fake_after_target);
-
-    hdX_pair_1=  new TH1D("dX_pair_1","dX_pair_1", 200, -20.,20.);
-    fList.Add(hdX_pair_1);
-    hdY_pair_1 =  new TH1D("dY_pair_1","dY_pair_1", 200, -20.,20.);
-    fList.Add(hdY_pair_1);
-    hdAx_pair_1=  new TH1D("dAx_pair_1","dAx_pair_1",100,  -.3, .3);
-    fList.Add(  hdAx_pair_1);
-    hdAy_pair_1=  new TH1D("dAy_pair_1","dAy_pair_1",100,  -.3, .3);
-    fList.Add(  hdAy_pair_1);
-    hChi2m_pair_1  =  new TH1D("Chi2m_pair_1","Chi2_xy_pair_1", 100, 0, 50);
-    fList.Add(hChi2m_pair_1);
-    hXv_pair_1  =  new TH1D("Xv_pair_1","Xv_pair_1",200, -10.,10.);
-    fList.Add(hXv_pair_1);
-    hYv_pair_1  =  new TH1D("Yv_pair_1","Yv_pair_1",200, -10.,10.);
-    fList.Add(hYv_pair_1);
+    
   }//if (fDebug)
   Int_t i1 = 0;
   for(Int_t i = 0; i < kNumPairs; i++) {
@@ -1464,9 +1447,9 @@ InitStatus BmnMwpcTrackFinder::Init() {
       sigma_delta[0][3] = 1.3;//2*.35;
       // pair 1
       sigma_delta[1][0] = 6 *.1;// sigm_dax //VP
-      sigma_delta[1][1] = 1.;//6.;//4.08;//2*.35;//4.08;// sigm_dx
+      sigma_delta[1][1] = 1.;//1.;//6.;//4.08;//2*.35;//4.08;// sigm_dx
       sigma_delta[1][2] = 6 *.15;// sigm_day
-      sigma_delta[1][3] = 1.;//2*7.;//shift +10cm?  4.30;// 2*.35;//4.30;// sigm_dy
+      sigma_delta[1][3] = 1.5;//1.//2*7.;//shift +10cm?  4.30;// 2*.35;//4.30;// sigm_dy
     }
     kZ_midle_pair[i] = ZCh[i1] + kZmid[i1+1];
 
@@ -1489,14 +1472,14 @@ InitStatus BmnMwpcTrackFinder::Init() {
       shift_pair[i][2] +=  0.;//Ay
       shift_pair[i][3] +=  0.;//By
     }
-    if (i == 1){
+    if (i == 1 && expData){
       shift_pair[i][0] +=  0.;//Ax
       shift_pair[i][1] +=  -0.05;//Bx
       shift_pair[i][2] +=  0.0009;//Ay
       shift_pair[i][3] +=  0.7;//By
     }
 
-    if (fDebug) cout<<" i "<<i<<" kZ_midle_pair[i] "<<kZ_midle_pair[i]<<" i1 "<<i1<<" i1+1 "<<i1+1<<" -( ZCh[i1]- ZCh[i1+1] )= "<<-( ZCh[i1]- ZCh[i1+1] )<<endl;
+    //if (fDebug) cout<<" i "<<i<<" kZ_midle_pair[i] "<<kZ_midle_pair[i]<<" i1 "<<i1<<" i1+1 "<<i1+1<<" -( ZCh[i1]- ZCh[i1+1] )= "<<-( ZCh[i1]- ZCh[i1+1] )<<endl;
   }
 
   for(Int_t ichh = 0; ichh < kNChambers; ichh++) {
@@ -1544,7 +1527,7 @@ InitStatus BmnMwpcTrackFinder::Init() {
 
       z_gl[ichh][ii] = kZmid[ichh] + kZ_loc[ichh][ii];
 
-      // if (fDebug) cout<<" ich "<<ichh<<" ii "<<ii<<" kZ_loc "<<kZ_loc[ichh][ii]<<" z_gl "<<z_gl[ichh][ii]<<endl;
+      //if (fDebug) cout<<" ich "<<ichh<<" ii "<<ii<<" kZ_loc "<<kZ_loc[ichh][ii]<<" z_gl "<<z_gl[ichh][ii]<<endl;
     }
   }//ich
 
@@ -1563,11 +1546,6 @@ InitStatus BmnMwpcTrackFinder::Init() {
     for(Int_t i4=0; i4<4; i4++) {
       par_ab_pair[ip][i4] = new Double_t[kmaxPairs];
     }
-  }
-
-  for(Int_t ii=0; ii<4; ii++) {
-      Amatr[ii] = new Double_t[4];
-      bmatr[ii] = new Double_t[4];
   }
 
   return kSUCCESS;
@@ -1653,8 +1631,11 @@ void BmnMwpcTrackFinder::Finish() {
 
     for(Int_t iCh = 0; iCh < kNChambers; iCh++) {
       Eff_Ch.at(iCh)->Sumw2();
-      Eff_Ch.at(iCh)->Divide(Nomin_Ch.at(iCh),Denom_Ch.at(iCh),100,1);
+      Eff_Ch.at(iCh)->Divide(Nomin_Ch.at(iCh),Denom_Ch.at(iCh),1,1);
     }
+    
+    hEff->Divide(hNum,hDen,1,1);
+    hEff_mctr->Divide(hNum_mctr,hDen_mctr,1,1);
     fList.Write();
     file.Close();
   }

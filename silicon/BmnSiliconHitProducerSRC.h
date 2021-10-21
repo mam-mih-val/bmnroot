@@ -38,10 +38,11 @@ public:
     /** Virtual method Finish **/
     virtual void Finish();
 
+
 private:
     UInt_t  fEventNo; // event counter
     Bool_t  fDebug = 0;
-    TList fList;
+    TList   fList;
     TString fInputBranchName;
     TString fTracksBranchName;
     TString fOutputHitsBranchName;
@@ -62,6 +63,14 @@ private:
     ClassDef(BmnSiliconHitProducerSRC, 1);
     TRandom rand_gen;
     TH1D *hdX, *hdXp;
+    
+    const Int_t PDG_B11 = 1000050110;//B11
+    const Int_t PDG_Li7 = 1000030070;//Li7
+    const Int_t PDG_He4 = 1000020040;//He4
+    const Int_t PDG_Li8 = 1000030080;//Li8
+    const Int_t PDG_Be9 = 1000040090;//Be9
+    const Int_t PDG_H2  = 1000010020;//H2
+    
 
 };
 

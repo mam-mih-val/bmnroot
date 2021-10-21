@@ -74,9 +74,11 @@ public:
     Int_t GetDetectorID() const { return  fDetectorID; } //
     Int_t GetWireTime() { return  fWireTime; } //
     Int_t GetPlaneId() { return  fPlaneId; } //
+    Int_t GetPdgId() { return  fPdgId; } //
     void SetWireNumber(Int_t wire_num) { fWireNumber = wire_num; }
     void SetWireTime(Int_t time_wire) { fWireTime = time_wire; }
     void SetPlaneId(Int_t plane_id) { fPlaneId = plane_id; }
+    void SetPdgId(Int_t pdg_id) { fPdgId = pdg_id; }
 
     /** Destructor **/
     virtual ~BmnMwpcHit();
@@ -95,6 +97,7 @@ protected:
     Int_t fDetectorID;  // Detector ID
     Int_t fWireTime;
     Int_t fPlaneId;
+    Int_t fPdgId;
     
     ClassDef(BmnMwpcHit, 1);
 

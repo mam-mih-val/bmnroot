@@ -64,6 +64,8 @@ class BmnMwpcTrackFinder : public FairTask {
       Double_t param[4]  = {999., 999., 999., 999.};
       Double_t param2[4] = {999., 999., 999., 999.};
       Double_t param3[4] = {999., 999., 999., 999.};
+      Int_t  Np2 = 0;
+      Int_t  Np3 = 0;
       Int_t  Np  = 0;
       Int_t  Id  = -1;
     };
@@ -93,13 +95,13 @@ class BmnMwpcTrackFinder : public FairTask {
     Nomin_Ch, Denom_Ch, Eff_Ch, hX_in_target_pair, hY_in_target_pair, hdX_pair, hdY_pair, hdAx_pair, hdAy_pair, 
     hoccupancyXp, hoccupancyUp, hoccupancyVp,hoccupancyXm, hoccupancyUm, hoccupancyVm, hNbest_pair, hChi2_ndf_pair;
 
-    vector<TH2D*> hAx_bx_in_target_pair, hAy_by_in_target_pair, hY_X_in_target_pair ;
+    vector<TH2D*> hAx_bx_in_target_pair, hAy_by_in_target_pair, hY_X_in_target_pair, hYvsX_pair ;
     TH1D *hdX_target, *hdY_target, *hX_in_target, *hY_in_target, *hdAx_target, *hdAy_target, *hChi2_m_target, *hdX_pair01_inZpair1, *hdY_pair01_inZpair1,
          *hdX_pair_1,*hdY_pair_1,*hdAx_pair_1,*hdAy_pair_1,*hChi2m_pair_1,*hXv_pair_1  ,*hYv_pair_1,
          *hDen, *hNum, *hEff,
          *hDen_mctr, *hNum_mctr, *hEff_mctr,
-         *hdAx_tr_mc, *hdX_tr_mc, *hdAy_tr_mc, *hdY_tr_mc ;
-         
+         *hdAx_tr_mc, *hdX_tr_mc, *hdAy_tr_mc, *hdY_tr_mc, *hNtrpc_reco, *hNtrpc_mc;
+    TH2D *hNtrpc_mc_vs_reco;
     TH2D *hAx_bx_in_target, *hAy_by_in_target, *hY_X_in_target, *hdX_pair01_vs_x1, *hdY_pair01_vs_y1, *htheta_p1vsp0, *hChi2best_Chi2fake_after_target, *hChi2best_Chi2fake_before_target, *hYvsX_mc_pair;
 
     Short_t kNChambers;

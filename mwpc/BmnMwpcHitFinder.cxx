@@ -953,7 +953,7 @@ void BmnMwpcHitFinder::ReadWires(Double_t ***DigitsArray_, Int_t **iw_Ch_, vecto
         mcTracksArray[Nmc_tracks] = hit->GetHitId();
       }
       tr_before = trackId_MC;
-      pn = kPln[st][pl_MC];// made for the canonical sequence / x- v- u+ x+ v+ u-/
+      pn = kPln[st_MC][pl_MC];// made for the canonical sequence / x- v- u+ x+ v+ u-/
      // if (fDebug)cout<<" pn "<<pn<<" pl_MC "<<pl_MC<<endl;
       
       if (st_MC == 2){
@@ -1005,7 +1005,7 @@ void BmnMwpcHitFinder::ReadWires(Double_t ***DigitsArray_, Int_t **iw_Ch_, vecto
         if (Npl_MC2[id] >= 4 || Npl_MC3[id] >= 4 ) vec.push_back(tmpTr);
     }//Nmc_tracks
     
-    if (fDebug)cout<<" MC vec_points.size() "<<vec.size()<<endl;
+    if (fDebug) cout<<" MC vec_points.size() "<<vec.size()<<endl;
     if (fDebug) hNtrMC->Fill(vec.size());
     
     Double_t x_target_ch2, y_target_ch2, x_target_ch3, y_target_ch3;
@@ -1140,8 +1140,8 @@ void BmnMwpcHitFinder::ReadWires(Double_t ***DigitsArray_, Int_t **iw_Ch_, vecto
     }//iplane
     if (fDebug) {
       hNFired_layers_Ch[iChamber]->Fill(Nlay_w_wires[iChamber]);
-      if (iChamber < 2 && Nlay_w_wires[iChamber] < kMinHits) hHalfDeadCh->Fill(iChamber);
-      if (iChamber >= 2 && Nlay_w_wires[0] > kMinHits && Nlay_w_wires[1] > kMinHits && 
+      if (fDebug && iChamber < 2 && Nlay_w_wires[iChamber] < kMinHits) hHalfDeadCh->Fill(iChamber);
+      if (fDebug && iChamber >= 2 && Nlay_w_wires[0] > kMinHits && Nlay_w_wires[1] > kMinHits && 
          Nlay_w_wires[iChamber] < kMinHits) hHalfDeadCh->Fill(iChamber);
     }
   }//ch

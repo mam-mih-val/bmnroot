@@ -19,6 +19,7 @@ enum DetectorId {kREF,  // Reference plane
          kMWPC,         // MWPC
          kECAL,         // Electromagnetic Calorimeter
          kCSC,          // Cathode Strip Chambers
+         kLargeCSC,     // Cathode Strip Chambers
          kSILICON,      // Silicon Detectors
          kLAND,         // Large-Area Neutron Detector
          kFD,           // FD
@@ -40,7 +41,7 @@ enum DataType {kMCTrack,
                kZdcPoint, kZdcDigi,                                   // ZDC
                kSsdPoint, kSsdDigi, kSsdCluster, kSsdHit, kSsdTrack,  // SSD
                kEcalPoint, kEcalDigi,                                 // ECAL
-               kCscPoint, kCscDigi, kCscHit, kCscTrack,               // CSC
+               kCscPoint, kCscDigi, kCscHit, kLargeCscHit, kCscTrack, // CSC
                kStsPoint, kStsDigi, kStsCluster, kStsHit, kStsTrack,  // STS
                kLandPoint, kLandDigi, kLandHit,                       // LAND
                kGlobalTrack                                           // Global

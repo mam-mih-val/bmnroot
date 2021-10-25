@@ -244,6 +244,8 @@ TVector3 BmnMwpcGeometrySRC::GetAxisPrime(Int_t chamber, Int_t axis){
   if(axis == 0)  return fOXprime[chamber];
   if(axis == 1)  return fOYprime[chamber];
   if(axis == 2)  return fOZprime[chamber];
+
+  return TVector3();
 }
 
 Double_t BmnMwpcGeometrySRC::GetTx(Int_t chamber){

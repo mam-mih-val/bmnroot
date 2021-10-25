@@ -8,7 +8,7 @@ BmnCaloDigit::BmnCaloDigit()
     fAmp(0)
 {}
 
-BmnCaloDigit::BmnCaloDigit(Float_t x, Float_t y, UChar_t ch, Float_t amp)
+BmnCaloDigit::BmnCaloDigit(Float_t x, Float_t y, UShort_t ch, Float_t amp)
   : TNamed(),
     fX(x),
     fY(y),

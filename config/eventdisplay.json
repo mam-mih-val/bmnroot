@@ -13,15 +13,19 @@
     
     "coloring": {
         "_comment": [
-            "You can set color name in 'color='color_name'",
+            "You can set color name in <'color': 'color_name'>",
             "1. From predefined set and with '+' or '-' operation, e.g.:",
             "kWhite, kBlack, kGgray,",
             "kBlue, kAzure (темно-синий), kCyan (морской волны), kTeal (бирюзовый),",
             "kGreen, kSpring (светло-зеленый), kGreen+2 (темно-зеленый), kSpring+2 (темно-зеленый), kKhaki",
             "kYellow, kOrange (желтый с оттенком), kOrange+2 (оранжевый кор.), kOrange+1 (светло-оранжевый кор.), kOrange+7 (выделенно-оранжевый)",
             "kRed, kViolet, kMagenta (бардовый), kMagenta-6 (светло-бардовый), kPink (темно-розовый).",
-            "2. Set RGB triple as decimal or hex number: 'color=RGB(r,g,b)' or 'color=RGB(#rgb_hex)'",
+            "2. Set RGB triple as decimal or hex number: <'color': 'RGB(r,g,b)'> or <'color': 'RGB(#rgb_hex)'>",
             "3. Write color number in ROOT palette"
+        ],
+
+        "particles": [
+
         ],
 
         "type": "detectors",
@@ -118,14 +122,26 @@
                     "isRecursiveColoring": true
                 },
                 {
+                    "name": "SID",
+                    "color": "RGB(6,84,108)",
+                    "transparency": 0,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "BD",
+                    "color": "RGB(6,84,77)",
+                    "transparency": 0,
+                    "isRecursiveColoring": true
+                },
+                {
                     "name": "Silicon",
-                    "color": "RGB(55,155,158)",
+                    "color": "RGB(55,135,158)",
                     "transparency": 0,
                     "isRecursiveColoring": true
                 },
                 {
                     "name": "GEMS",
-                    "color": "RGB(4,135,63)",
+                    "color": "RGB(13,211,44)",
                     "transparency": 15,
                     "isRecursiveColoring": true
                 },
@@ -143,7 +159,7 @@
                 },
                 {
                     "name": "DCH",
-                    "color": "RGB(223,149,68)",
+                    "color": "RGB(247,127,0)",
                     "transparency": 30,
                     "isRecursiveColoring": true
                 },
@@ -156,13 +172,13 @@
                 {
                     "name": "ecal",
                     "color": "RGB(107,157,215)",
-                    "transparency": 0,
+                    "transparency": 10,
                     "isRecursiveColoring": true
                 },
                 {
                     "name": "ZDC_common",
                     "color": "RGB(13,116,187)",
-                    "transparency": 0,
+                    "transparency": 10,
                     "isRecursiveColoring": true
                 },
                 {

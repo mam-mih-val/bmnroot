@@ -576,7 +576,6 @@ TString BmnOnlineDecoder::WatchNext(Int_t inotifDir, Int_t cycleWait) {
                     }
                 }
                 i += sizeof (struct inotify_event) +event->len;
-                delete event;
             }
             if (cycleWait > 0)
                 usleep(cycleWait);

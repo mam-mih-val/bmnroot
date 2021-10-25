@@ -267,12 +267,14 @@ void MpdEventManager::InitColorStructure()
     {
         json data;
         file >> data;
-        file.close();
 
         try
         {
-            structSelectedColoring* selected_coloring;
-            structLevelColoring* level_coloring;
+            for (auto &particle : data["coloring"]["particles"])
+                fPDGToColor[(int) particle["pdg"]] = StringToColor((string) particle["color"]);
+
+            structSelectedColoring *selected_coloring;
+            structLevelColoring *level_coloring;
 
             string type = data["coloring"]["type"];
 
@@ -284,10 +286,10 @@ void MpdEventManager::InitColorStructure()
 
                 for (auto &detector : data["coloring"][type][cmap])
                 {
-                    selected_coloring = new structSelectedColoring(((string) detector["name"]).c_str(),
-                                                                   ((string) detector["color"]).c_str(),
-                                                                   detector["transparency"],
-                                                                   detector["isRecursiveColoring"]);
+                    selected_coloring = new structSelectedColoring(((string) detector["name"]),
+                                                                   ((string) detector["color"]),
+                                                                   detector.value("transparency", 0),
+                                                                   detector.value("isRecursiveColoring", kTRUE));
                     vecSelectedColoring.push_back(selected_coloring);
                 }
             }
@@ -299,13 +301,13 @@ void MpdEventManager::InitColorStructure()
                 {
                     level_coloring = new structLevelColoring((string) level["color"],
                                                              level["isFillLine"],
-                                                             level["transparency"],
-                                                             level["isRecursiveColoring"]);
+                                                             level.value("visibility", kFALSE),
+                                                             level.value("transparency", 0));
                     vecLevelColoring.push_back(level_coloring);
                 }
             }
         }
-        catch(const json::type_error& e)
+        catch(const json::type_error &e)
         {
             cout << "Using default ROOT coloring!" << endl;
             gVisualizationColoring = defaultColoring;
@@ -316,6 +318,7 @@ void MpdEventManager::InitColorStructure()
         cout << "Using default ROOT coloring!" << endl;
         gVisualizationColoring = defaultColoring;
     }
+    file.close();
 }
 
 //______________________________________________________________________________

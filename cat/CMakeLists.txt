@@ -66,7 +66,7 @@ OffLineInterface/CbmL1StsTrackFinder.h
 CbmL1PartEfficiencies.h
 )
 
-ADD_DEFINITIONS(-Wall -Wabi -Wsign-promo  -Wno-pmf-conversions -Wctor-dtor-privacy -Wreorder -Wno-deprecated -Wstrict-null-sentinel -Wno-non-template-friend) 
+ADD_DEFINITIONS(-Wall -Wsign-promo  -Wno-pmf-conversions -Wctor-dtor-privacy -Wreorder -Wno-deprecated -Wstrict-null-sentinel -Wno-non-template-friend)
 
 IF (SSE_FOUND)
   ADD_DEFINITIONS(-DHAVE_SSE)

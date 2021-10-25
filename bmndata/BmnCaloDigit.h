@@ -18,26 +18,26 @@ class BmnCaloDigit : public TNamed
     BmnCaloDigit();
 
     /** Main constructor **/
-    BmnCaloDigit(Float_t x, Float_t y, UChar_t ch, Float_t amp);
+    BmnCaloDigit(Float_t x, Float_t y, UShort_t ch, Float_t amp);
 
     /** Destructor **/
     virtual ~BmnCaloDigit() {}
 
-    void SetX(Float_t x)        { fX = x; }
-    void SetY(Float_t y)        { fY = y; }
-    void SetChannel(UChar_t ch) { fChannel = ch; }
-    void SetAmp(Float_t amp)    { fAmp = amp; }
+    void SetX(Float_t x)         { fX = x; }
+    void SetY(Float_t y)         { fY = y; }
+    void SetChannel(UShort_t ch) { fChannel = ch; }
+    void SetAmp(Float_t amp)     { fAmp = amp; }
 
-    Float_t GetX() const       { return fX; }
-    Float_t GetY() const       { return fY; }
-    UChar_t GetChannel() const { return fChannel; }
-    Float_t GetAmp() const     { return fAmp; }
+    Float_t GetX() const        { return fX; }
+    Float_t GetY() const        { return fY; }
+    UShort_t GetChannel() const { return fChannel; }
+    Float_t GetAmp() const      { return fAmp; }
 
   protected:
-    Float_t  fX;
-    Float_t  fY;
-    UChar_t  fChannel;
-    Float_t  fAmp;
+    Float_t   fX;
+    Float_t   fY;
+    UShort_t  fChannel;
+    Float_t   fAmp;
 
   ClassDef(BmnCaloDigit, 1);
 };

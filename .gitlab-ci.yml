@@ -362,7 +362,7 @@ deploy:sl6:
   <<: *deploy
   
 deploy:centos7:
-  image: git.jinr.ru:5005/nica/docker-images/centos7/fair:latest
+  image: git.jinr.ru:5005/nica/docker-images/centos7/fair:jun19p1_v18.2.0
   environment:
     name: centos7
   tags:

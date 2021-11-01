@@ -248,7 +248,7 @@ private:
     *hDen_mcuptr, *hNum_mcuptr, *hEff_mcuptr,
     *hAx_upmc, *hAy_upmc, *hX_upmc, *hY_upmc,
     *hNtr_reco, *hNtr_mc, *hNrecoTrif2mc, *hAngle_reco, *hAngle_recoifNmc2, *hAngle_recoifNmc2Cases;
-  TH2D  *hNtr_mc_vs_reco, *hy_vs_x_Up, *hY_vs_Xmctrue, *hvertexXYUp;
+  TH2D  *hNtr_mc_vs_reco, *hy_vs_x_Up, *hY_vs_Xmctrue, *hvertexXYUp, *hTyTx_Up;
   vector<TH1D*> hResXst, hResYst;
 
   ClassDef(BmnUpstreamTracking, 1)

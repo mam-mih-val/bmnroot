@@ -320,6 +320,12 @@ InitStatus BmnMwpcHitFinder::Init() {
   matrb = new Double_t*[4];
   Amatr = new Double_t*[4];
   bmatr = new Double_t*[4];
+  
+  for(Int_t ii=0; ii<4; ii++) {
+    Amatr[ii] = new Double_t[4];
+    bmatr[ii] = new Double_t[4];
+  }
+  
   // Arrays
   Nlay_w_wires  = new Int_t[kNChambers];
   kPln          = new Int_t*[kNChambers];
@@ -2160,10 +2166,7 @@ void BmnMwpcHitFinder::ProcessSegments( Int_t chNum, Int_t *Nsegm, Double_t ***X
       if (fDebug) cout<<endl;
       
       
-      for(Int_t ii=0; ii<4; ii++) {
-        Amatr[ii] = new Double_t[4];
-        bmatr[ii] = new Double_t[4];
-      }
+      
       for(Int_t im=0; im<4; im++) {
         for(Int_t ii=0; ii<4; ii++) {
           Amatr[im][ii] = 0.;

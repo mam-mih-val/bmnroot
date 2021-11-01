@@ -1169,7 +1169,7 @@ void BmnUpstreamTracking::PrintAllTracks(vector<UpTracks> & vecUp){
     hy_vs_x_Up->Fill(vecUp.at(itr).param[1],vecUp.at(itr).param[3]);
     hchi2_fitUp->Fill(vecUp.at(itr).Chi2);
     hNhitsUp->Fill(vecUp.at(itr).Nhits);
-    
+    hTyTx_Up->Fill(vecUp.at(itr).param[0],vecUp.at(itr).param[2]);
     
   }
   cout<<"---"<<endl;
@@ -1426,6 +1426,7 @@ InitStatus BmnUpstreamTracking::Init() {
     hy_fitUp    =  new TH1D("y_fitUp","y_fitUp;[cm]",  200, -15, 5);fList.Add(hy_fitUp);
     hy_vs_x_Up  =  new TH2D("y_vs_x_Up",";X[cm];Y[cm]",  200, -10, 10, 200, -15, 5);fList.Add(hy_vs_x_Up);
     hvertexXYUp =  new TH2D("vertexXYUp","vertexUp;X[cm];Y[cm]",  200, -10, 10, 200, -10, 10);fList.Add(hvertexXYUp);
+    hTyTx_Up= new TH2D("hTyTx_Up","hTyTx_Up", 100, -0.04, 0.04, 100, -0.04, 0.04);fList.Add(hTyTx_Up);
     
     hchi2_fitUp =  new TH1D("chi2_fitUp","Chi2",       100, 0, 100);fList.Add(hchi2_fitUp);
     hNhitsUp    =  new TH1D("NhitsUp","Number of hits", 10, 0.5, 10.5);fList.Add(hNhitsUp);

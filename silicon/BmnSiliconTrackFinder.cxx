@@ -581,7 +581,6 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
       for (Int_t istr = 0; istr < fNstrips; istr++){
         
         if ( fDebug && DigitsArrayX_[istat][imod][istr] > 0.) cout<<" DigitsArrayX_["<<istat<<"]["<<imod<<"]["<<istr<<"] "<<DigitsArrayX_[istat][imod][istr]<<endl;
-        if ( DigitsArrayX_[istat][imod][istr] > 0.) DigitsArrayX_[istat][imod][istr] = DigitsArrayX_[istat][imod][istr] - Cut_AmplX;
         
         // looking for start and end of cluster
         if (NfirstX < 0 && DigitsArrayX_[istat][imod][istr] == 0.) continue;
@@ -668,7 +667,7 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
       for (Int_t istr = 0; istr < fNstrips; istr++) {
 
        if ( fDebug && DigitsArrayXp_[istat][imod][istr] > 0.) cout<<" DigitsArrayXp_["<<istat<<"]["<<imod<<"]["<<istr<<"] "<<DigitsArrayXp_[istat][imod][istr]<<endl;
-       if ( DigitsArrayXp_[istat][imod][istr] > 0.) DigitsArrayXp_[istat][imod][istr] = DigitsArrayXp_[istat][imod][istr] - Cut_AmplXp;
+       
        // looking for start and end of cluster
        if (NfirstXp < 0 && DigitsArrayXp_[istat][imod][istr] == 0.)      continue;
        if (NfirstXp < 0 && DigitsArrayXp_[istat][imod][istr] > 0.)       NfirstXp = istr;
@@ -1988,6 +1987,8 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
     hBxglob->Fill(CleanTr_.at(InIter).param[1]);
     hAyglob->Fill(CleanTr_.at(InIter).param[2]);
     hByglob->Fill(CleanTr_.at(InIter).param[3]);
+    
+    
     //if (CleanTr_.at(InIter).param[3] < -4.) cout<<" !!!!! -4. "<<endl;
     hChiSquareNdf->Fill(CleanTr_.at(InIter).Chi2);
     if (InIter == 0) hAx_first_tr->Fill(CleanTr_.at(InIter).param[0]);
@@ -3646,6 +3647,7 @@ InitStatus BmnSiliconTrackFinder::Init() {
     hprofile_beam_z3 = new TH2D("profile_beam_z3", "beam_profile_Siz3; [cm];[cm]", 100, -15, 15, 100, -20, 5);fList.Add(hprofile_beam_z3);
     hAx_first_tr     = new TH1D("Ax_first_tr","Ax_first_tr; AngleX[mrad]; Events", 200, -.1,.1);fList.Add(hAx_first_tr);
     hAx_more_first_tr= new TH1D("Ax_more_first_tr","Ax_more_first_tr; AngleX[mrad]; Events", 200, -.1,.1); fList.Add(hAx_more_first_tr);
+    
 
     hdX_st1_st2 = new TH1D("X_st1_st2","X (st1-st2)",100, -0.1, 0.1);fList.Add(hdX_st1_st2);
     hdX_st2_st3 = new TH1D("X_st2_st3","X (st2-st3)",100, -5., 5.);fList.Add(hdX_st2_st3);

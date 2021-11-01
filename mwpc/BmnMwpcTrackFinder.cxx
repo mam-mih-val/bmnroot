@@ -954,13 +954,6 @@ void BmnMwpcTrackFinder::SegmentFit(Int_t First_Ch, Float_t **z_gl_, Float_t *si
       }//if coord was
     }//i6
 
-    Amatr = new Double_t*[4];
-    bmatr = new Double_t*[4];
-
-    for(Int_t ii=0; ii<4; ii++) {
-      Amatr[ii] = new Double_t[4];
-      bmatr[ii] = new Double_t[4];
-    }
 
     for(Int_t im=0; im<4; im++) {
       for(Int_t ii=0; ii<4; ii++) {
@@ -1281,6 +1274,14 @@ InitStatus BmnMwpcTrackFinder::Init() {
   Nbest_Ch        = new Int_t[kNChambers];
   ind_best_Ch     = new Int_t*[kNChambers];
   sigma_delta     = new Float_t*[kNumPairs];
+  
+  Amatr = new Double_t*[4];
+  bmatr = new Double_t*[4];
+
+  for(Int_t ii=0; ii<4; ii++) {
+    Amatr[ii] = new Double_t[4];
+    bmatr[ii] = new Double_t[4];
+  }
   
 
   for(Int_t i = 0; i < kNChambers; i++) {

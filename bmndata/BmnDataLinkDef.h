@@ -57,6 +57,7 @@
 #pragma link C++ class BmnECALDigit+;
 #pragma link C++ class BmnLANDDigit+;
 #pragma link C++ class BmnCSCDigit+;
+#pragma link C++ class BmnSiBTDigit+;
 
 #pragma link C++ class BmnADCDigit+;
 #pragma link C++ class BmnTDCDigit+;
@@ -106,6 +107,7 @@
 
 #pragma link C++ class BmnSiliconHit+;
 #pragma link C++ class BmnCSCHit+;
+#pragma link C++ class BmnSiBTHit+;
 
 #pragma link C++ class BmnKalmanFilter+;
 #pragma link C++ class DigiRunHeader+;

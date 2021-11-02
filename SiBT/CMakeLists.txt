@@ -25,6 +25,13 @@ link_directories(${LINK_DIRECTORIES})
 set(SRCS
  BmnSiBT.cxx
  BmnSiBT.cxx
+ BmnSiBTStationSet.cxx
+ BmnSiBTStation.cxx
+ BmnSiBTModule.cxx
+ BmnSiBTLayer.cxx
+ BmnSiBTDigitizer.cxx
+ BmnSiBTHitMaker.cxx
+ BmnSiBTTransform.cxx
 
  BmnSiBTConfiguration.h
 )

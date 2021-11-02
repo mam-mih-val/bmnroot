@@ -110,11 +110,13 @@ set(SRCS
  BmnSiliconHit.cxx
  BmnGemStripHit.cxx
  BmnCSCHit.cxx
+ BmnSiBTHit.cxx
  BmnGemTrack.cxx
  BmnDchDigit.cxx
  BmnDchHitOriginal.cxx
  BmnDchHit.cxx
  BmnCSCDigit.cxx
+ BmnSiBTDigit.cxx
  BmnMwpcDigit.cxx
  BmnMwpcHit.cxx
  BmnTof1Digit.cxx

@@ -14,6 +14,7 @@
 #include "FairMCPoint.h"
 
 #include "FairField.h"
+#include "FairHit.h"
 #include "BmnGemStripDigit.h"
 #include "BmnGemStripHit.h"
 #include "BmnGemStripStationSet.h"

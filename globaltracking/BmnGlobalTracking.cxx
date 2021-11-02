@@ -174,8 +174,9 @@ InitStatus BmnGlobalTracking::Init() {
     fTof1Hits = (TClonesArray*)ioman->GetObject("BmnTof400Hit");
     fTof2Hits = (TClonesArray*)ioman->GetObject("BmnTof700Hit");
 
-    fCbmStsTracks = (TClonesArray*)ioman->GetObject("StsTrack");
-    if (fCbmStsTracks) {
+    fStsTracks = (TClonesArray*)ioman->GetObject("StsTrack");
+    fStsHits = (TClonesArray*)ioman->GetObject("StsHit");
+    if (fStsTracks) {
         printf("BmnGlobalTracking::Init(): branch StsTrack was found! Global tracks will be based on CBM tracks \n");
         fGlobalTracks = new TClonesArray("BmnGlobalTrack", 100);  //out
         ioman->Register("BmnGlobalTrack", "GLOBAL", fGlobalTracks, kTRUE);
@@ -242,7 +243,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
     if (fVerbose > 1)
         cout << "\n======================== Global tracking exec started =====================\n" << endl;
     fEventNo++;
-    if (fCbmStsTracks)
+    if (fStsTracks)
         fGlobalTracks->Delete();
     //if (!fInnerTracks) return;
     if (fIsExp) {
@@ -316,9 +317,9 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
             }
     }
 
-    if (fCbmStsTracks) {
-        for (Int_t i = 0; i < fCbmStsTracks->GetEntriesFast(); ++i) {
-            CbmStsTrack* cbmTrack = (CbmStsTrack*)fCbmStsTracks->At(i);
+    if (fStsTracks) {
+        for (Int_t i = 0; i < fStsTracks->GetEntriesFast(); ++i) {
+            CbmStsTrack* cbmTrack = (CbmStsTrack*)fStsTracks->At(i);
 
             BmnGlobalTrack globTr;
             globTr.SetGemTrackIndex(i);
@@ -340,6 +341,8 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
             //Matching with TOF-700
             MatchingTOF(cbmTrack, &globTr, 2);
             //Matching with DCH2
+            
+            //Refit(&globTr);
             new ((*fGlobalTracks)[fGlobalTracks->GetEntriesFast()]) BmnGlobalTrack(globTr);
         }
     }
@@ -627,14 +630,19 @@ BmnStatus BmnGlobalTracking::MatchingTOF(CbmStsTrack* tr, BmnGlobalTrack* glTr, 
     TVector3 pos0, pos1;
     CbmKFTrack track = CbmKFTrack(*tr, kTRUE); // first point
     track.GetTrackParam(param);
-    Double_t prec = 1. / TMath::Abs(param.GetQp());
+    Double_t prec = 1. / Abs(param.GetQp());
     param.Position(pos0);
 
     for (Int_t j = 0; j < 999; ++j) {
         z += step;
-        if (z > minHit->GetZ()) { z = minHit->GetZ(); finish = 1; }
-        if (z <= zmax) track.Smooth(z);
-        else ok *= !(track.Extrapolate(z));
+        if (z > minHit->GetZ()) {
+            z = minHit->GetZ();
+            finish = 1;
+        }
+        if (z <= zmax)
+            track.Smooth(z);
+        else
+            ok *= !(track.Extrapolate(z));
         if (!ok) break;
         track.GetTrackParam(param);
         param.Position(pos1);
@@ -642,12 +650,13 @@ BmnStatus BmnGlobalTracking::MatchingTOF(CbmStsTrack* tr, BmnGlobalTrack* glTr, 
         if (finish) break;
         pos0 = pos1;
     }
+
     if (ok) {
         // Go to primary vertex
         track = CbmKFTrack(*tr, kTRUE); // first point
         track.GetTrackParam(param);
         param.Position(pos0);
-        Double_t zv = (fVertex) ? fVertex->GetZ() : (fIsSRC) ? -647.5 : -2.3;  // z of target by default
+        Double_t zv = (fVertex) ? fVertex->GetZ() : (fIsSRC) ? -647.5 : 0.0;  // z of target by default
         z = zmin;
         finish = 0;
         for (Int_t j = 0; j < 99; ++j) {
@@ -865,6 +874,7 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack* tr) {
     return kBMNSUCCESS;
 }
 
+//L1 REFIT
 BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
     FairTrackParam parFirst = *(tr->GetParamFirst());
     fPDG = (parFirst.GetQp() > 0.) ? 2212 : -211;
@@ -872,18 +882,10 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
     Double_t totChi2 = 0.0;
 
     //================Refitting to the end of the global track===========================
-    if (tr->GetSilTrackIndex() != -1) {
-        BmnTrack* silTrack = (BmnTrack*)fSiliconTracks->At(tr->GetSilTrackIndex());
-        for (Int_t hitIdx = 0; hitIdx < silTrack->GetNHits(); hitIdx++) {
-            BmnSiliconHit* hit = (BmnSiliconHit*)fSilHits->At(silTrack->GetHitIndex(hitIdx));
-            fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
-            fKalman->Update(&parFirst, hit, chi);
-        }
-    }
-
-    BmnGemTrack* gemTrack = (BmnGemTrack*)fGemTracks->At(tr->GetGemTrackIndex());
-    for (Int_t hitIdx = 0; hitIdx < gemTrack->GetNHits(); hitIdx++) {
-        BmnGemStripHit* hit = (BmnGemStripHit*)fGemHits->At(gemTrack->GetHitIndex(hitIdx));
+    
+    CbmStsTrack* stsTrack = (CbmStsTrack*)fStsTracks->At(tr->GetGemTrackIndex());
+    for (Int_t hitIdx = 0; hitIdx < stsTrack->GetNStsHits(); hitIdx++) {
+        BmnGemStripHit* hit = (BmnGemStripHit*)fStsHits->At(stsTrack->GetStsHitIndex(hitIdx));
         fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
         fKalman->Update(&parFirst, hit, chi);
     }
@@ -957,36 +959,141 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
         totChi2 += chi;
     }
 
-    for (Int_t hitIdx = gemTrack->GetNHits() - 1; hitIdx >= 0; hitIdx--) {
-        BmnGemStripHit* hit = (BmnGemStripHit*)fGemHits->At(gemTrack->GetHitIndex(hitIdx));
+    for (Int_t hitIdx = stsTrack->GetNStsHits() - 1; hitIdx >= 0; hitIdx--) {
+        BmnGemStripHit* hit = (BmnGemStripHit*)fStsHits->At(stsTrack->GetStsHitIndex(hitIdx));
         fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
         fKalman->Update(&parFirst, hit, chi);
         totChi2 += chi;
     }
 
-    if (tr->GetSilTrackIndex() != -1) {
-        BmnTrack* silTrack = (BmnTrack*)fSiliconTracks->At(tr->GetSilTrackIndex());
-        for (Int_t hitIdx = silTrack->GetNHits() - 1; hitIdx >= 0; hitIdx--) {
-            BmnSiliconHit* hit = (BmnSiliconHit*)fSilHits->At(silTrack->GetHitIndex(hitIdx));
-            fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
-            fKalman->Update(&parFirst, hit, chi);
-            totChi2 += chi;
-        }
-    }
-
-    if (tr->GetUpstreamTrackIndex() != -1) {
-        BmnTrack* upsTrack = (BmnTrack*)fUpstreamTracks->At(tr->GetUpstreamTrackIndex());
-        FairTrackParam upsPar(*(upsTrack->GetParamLast()));   
-        fKalman->TGeoTrackPropagate(&parFirst, upsPar.GetZ(), fPDG, nullptr, nullptr, fIsField);
-        UpdateTrackParam(&parFirst, &upsPar, chi);
-        totChi2 += chi;
-    }
-    
     if (!IsParCorrect(&parFirst, fIsField)) tr->SetFlag(-1);
     tr->SetParamFirst(parFirst);
 
     return kBMNSUCCESS;
 }
+
+// BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
+//     FairTrackParam parFirst = *(tr->GetParamFirst());
+//     fPDG = (parFirst.GetQp() > 0.) ? 2212 : -211;
+//     Double_t chi = 0.0;
+//     Double_t totChi2 = 0.0;
+
+//     //================Refitting to the end of the global track===========================
+//     if (tr->GetSilTrackIndex() != -1) {
+//         BmnTrack* silTrack = (BmnTrack*)fSiliconTracks->At(tr->GetSilTrackIndex());
+//         for (Int_t hitIdx = 0; hitIdx < silTrack->GetNHits(); hitIdx++) {
+//             BmnSiliconHit* hit = (BmnSiliconHit*)fSilHits->At(silTrack->GetHitIndex(hitIdx));
+//             fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+//             fKalman->Update(&parFirst, hit, chi);
+//         }
+//     }
+
+//     BmnGemTrack* gemTrack = (BmnGemTrack*)fGemTracks->At(tr->GetGemTrackIndex());
+//     for (Int_t hitIdx = 0; hitIdx < gemTrack->GetNHits(); hitIdx++) {
+//         BmnGemStripHit* hit = (BmnGemStripHit*)fGemHits->At(gemTrack->GetHitIndex(hitIdx));
+//         fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+//         fKalman->Update(&parFirst, hit, chi);
+//     }
+
+//     if (tr->GetCscHitIndex(0) != -1) {
+//         BmnHit* hit = (BmnHit*)fCscHits->At(tr->GetCscHitIndex(0));
+//         fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+//         fKalman->Update(&parFirst, hit, chi);
+//         totChi2 += chi;
+//     }
+
+//     if (tr->GetTof1HitIndex() != -1) {
+//         BmnHit* hit = (BmnHit*)fTof1Hits->At(tr->GetTof1HitIndex());
+//         fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+//         fKalman->Update(&parFirst, hit, chi);
+//     }
+
+//     if (tr->GetCscHitIndex(1) != -1) {
+//         BmnHit* hit = (BmnHit*)fCscHits->At(tr->GetCscHitIndex(1));
+//         fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+//         fKalman->Update(&parFirst, hit, chi);
+//         totChi2 += chi;
+//     }
+
+//     if (tr->GetTof2HitIndex() != -1) {
+//         BmnHit* hit = (BmnHit*)fTof2Hits->At(tr->GetTof2HitIndex());
+//         fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+//         fKalman->Update(&parFirst, hit, chi);
+//     }
+
+//     if (tr->GetDchTrackIndex() != -1) {
+//         BmnTrack* dchTrack = (BmnTrack*)fDchTracks->At(tr->GetDchTrackIndex());
+//         FairTrackParam dchPar(*(dchTrack->GetParamFirst()));   
+//         fKalman->TGeoTrackPropagate(&parFirst, dchPar.GetZ(), fPDG, nullptr, nullptr, fIsField);
+//         UpdateTrackParam(&parFirst, &dchPar, chi);
+//         totChi2 += chi;        
+//     }
+
+//     if (!IsParCorrect(&parFirst, fIsField)) tr->SetFlag(-1);
+//     tr->SetParamLast(parFirst);
+
+//     FairTrackParam parLast = *(tr->GetParamLast());
+
+//     // =============Refitting to the vertex =================
+
+//     if (tr->GetTof2HitIndex() != -1) {
+//         BmnHit* hit = (BmnHit*)fTof2Hits->At(tr->GetTof2HitIndex());
+//         fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+//         fKalman->Update(&parFirst, hit, chi);
+//         totChi2 += chi;
+//     }
+
+//     if (tr->GetCscHitIndex(1) != -1) {
+//         BmnHit* hit = (BmnHit*)fCscHits->At(tr->GetCscHitIndex(1));
+//         fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+//         fKalman->Update(&parFirst, hit, chi);
+//         totChi2 += chi;
+//     }
+
+//     if (tr->GetTof1HitIndex() != -1) {
+//         BmnHit* hit = (BmnHit*)fTof1Hits->At(tr->GetTof1HitIndex());
+//         fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+//         fKalman->Update(&parFirst, hit, chi);
+//         totChi2 += chi;
+//     }
+
+//     if (tr->GetCscHitIndex(0) != -1) {
+//         BmnHit* hit = (BmnHit*)fCscHits->At(tr->GetCscHitIndex(0));
+//         fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+//         fKalman->Update(&parFirst, hit, chi);
+//         totChi2 += chi;
+//     }
+
+//     for (Int_t hitIdx = gemTrack->GetNHits() - 1; hitIdx >= 0; hitIdx--) {
+//         BmnGemStripHit* hit = (BmnGemStripHit*)fGemHits->At(gemTrack->GetHitIndex(hitIdx));
+//         fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+//         fKalman->Update(&parFirst, hit, chi);
+//         totChi2 += chi;
+//     }
+
+//     if (tr->GetSilTrackIndex() != -1) {
+//         BmnTrack* silTrack = (BmnTrack*)fSiliconTracks->At(tr->GetSilTrackIndex());
+//         for (Int_t hitIdx = silTrack->GetNHits() - 1; hitIdx >= 0; hitIdx--) {
+//             BmnSiliconHit* hit = (BmnSiliconHit*)fSilHits->At(silTrack->GetHitIndex(hitIdx));
+//             fKalman->TGeoTrackPropagate(&parFirst, hit->GetZ(), fPDG, nullptr, nullptr, fIsField);
+//             fKalman->Update(&parFirst, hit, chi);
+//             totChi2 += chi;
+//         }
+//     }
+
+//     if (tr->GetUpstreamTrackIndex() != -1) {
+//         BmnTrack* upsTrack = (BmnTrack*)fUpstreamTracks->At(tr->GetUpstreamTrackIndex());
+//         FairTrackParam upsPar(*(upsTrack->GetParamLast()));   
+//         fKalman->TGeoTrackPropagate(&parFirst, upsPar.GetZ(), fPDG, nullptr, nullptr, fIsField);
+//         UpdateTrackParam(&parFirst, &upsPar, chi);
+//         totChi2 += chi;
+//     }
+    
+//     if (!IsParCorrect(&parFirst, fIsField)) tr->SetFlag(-1);
+//     tr->SetParamFirst(parFirst);
+
+//     return kBMNSUCCESS;
+// }
 
 BmnStatus BmnGlobalTracking::UpdateMomentum(BmnGlobalTrack* tr) {
     FairTrackParam par = *(tr->GetParamFirst());

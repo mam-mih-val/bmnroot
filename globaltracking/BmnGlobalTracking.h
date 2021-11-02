@@ -124,7 +124,8 @@ class BmnGlobalTracking : public FairTask {
 
     TClonesArray *fMCTracks;
     
-    TClonesArray* fCbmStsTracks;
+    TClonesArray* fStsHits;
+    TClonesArray* fStsTracks;
     TClonesArray* fGlobalTracks;
 
     TH1F *fhXTof1GemResid;

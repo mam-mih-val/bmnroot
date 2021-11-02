@@ -25,9 +25,12 @@
 using namespace std;
 
 BmnMCTrackCreator::BmnMCTrackCreator(TString gem, TString sil) :
-fMCTracks(NULL),
+fMCTracks(nullptr),
 fNSiliconStations(0),
-fGemPoints(NULL) {
+fSilPoints(nullptr),
+fTof400Points(nullptr),
+fTof700Points(nullptr),
+fGemPoints(nullptr) {
     ReadDataBranches();
     fSilDetector = new BmnSiliconStationSet(sil);
     fGemDetector = new BmnGemStripStationSet(gem);
@@ -49,14 +52,18 @@ void BmnMCTrackCreator::Create() {
     AddPoints(kSILICON, fSilPoints);
     AddPoints(kSSD, fSsdPoints);
     AddPoints(kGEM, fGemPoints);
+    AddPoints(kTOF1, fTof400Points);
+    AddPoints(kTOF, fTof700Points);
+    // printf("fSilDetector->GetNStations() = %d\n", fSilDetector->GetNStations());
+    // printf("fGemDetector->GetNStations() = %d\n", fGemDetector->GetNStations());
     
-//       std::cout << "BmnMCTrackCreator: nof MC tracks=" << fBmnMCTracks.size() << std::endl;
-//       std::map<Int_t, BmnMCTrack>::iterator it;
-//       for (it = fBmnMCTracks.begin(); it != fBmnMCTracks.end(); it++) {
-//           printf("n gem pnts = %d\n", (*it).second.GetNofPoints(kGEM));
-//           printf("n sil pnts = %d\n", (*it).second.GetNofPoints(kSILICON));
-//           //std::cout << (*it).first << " => " << (*it).second;
-//       }
+    //   std::cout << "BmnMCTrackCreator: nof MC tracks=" << fBmnMCTracks.size() << std::endl;
+    //   std::map<Int_t, BmnMCTrack>::iterator it;
+    //   for (it = fBmnMCTracks.begin(); it != fBmnMCTracks.end(); it++) {
+    //       printf("n gem pnts = %d\n", (*it).second.GetNofPoints(kGEM));
+    //       printf("n sil pnts = %d\n", (*it).second.GetNofPoints(kSILICON));
+    //       //std::cout << (*it).first << " => " << (*it).second;
+    //   }
 }
 
 void BmnMCTrackCreator::ReadDataBranches() {
@@ -65,6 +72,8 @@ void BmnMCTrackCreator::ReadDataBranches() {
     fSilPoints = (TClonesArray*) ioman->GetObject("SiliconPoint");
     fSsdPoints = (TClonesArray*) ioman->GetObject("SSDPoint");
     fGemPoints = (TClonesArray*) ioman->GetObject("StsPoint");
+    fTof400Points = (TClonesArray*) ioman->GetObject("TOF400Point");
+    fTof700Points = (TClonesArray*) ioman->GetObject("TOF700Point");
 }
 
 void BmnMCTrackCreator::AddPoints(DetectorId detId, const TClonesArray* array) {
@@ -76,12 +85,18 @@ void BmnMCTrackCreator::AddPoints(DetectorId detId, const TClonesArray* array) {
         Int_t stationId = -1;
         if (detId == kSILICON) {
             stationId = fSilDetector->GetPointStationOwnership(fairPoint->GetZ());
+            // printf("stSil = %d\n", stationId);
         } else if (detId == kSSD) {
             // BmnSSDHitProducer hp;
             // stationId = hp.DefineStationByZ(fairPoint->GetZ(), 0);
         } else if (detId == kGEM) {
             stationId = fGemDetector->GetPointStationOwnership(fairPoint->GetZ()) + fNSiliconStations;
+        } else if (detId == kTOF1) {
+            stationId = 13;
+        } else if (detId == kTOF) {
+            stationId = 17;
         }
+        
         if (stationId < 0) continue;
         FairMCPointCoordinatesAndMomentumToBmnMCPoint(fairPoint, &bmnPoint);
         FairMCPointToBmnMCPoint(fairPoint, &bmnPoint, iPoint, stationId);
@@ -93,9 +108,9 @@ void BmnMCTrackCreator::FairMCPointToBmnMCPoint(const FairMCPoint* fairPoint, Bm
     bmnPoint->SetRefId(refId);
     bmnPoint->SetStationId(stationId);
     const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(fairPoint->GetTrackID()));
-    if (mcTrack == NULL) return; //FIXME! it shouldn't happen
+    if (mcTrack == nullptr) return; //FIXME! it shouldn't happen
     TParticlePDG* pdgParticle = TDatabasePDG::Instance()->GetParticle(mcTrack->GetPdgCode());
-    Float_t charge = (pdgParticle != NULL) ? pdgParticle->Charge() : 0.;
+    Float_t charge = (pdgParticle != nullptr) ? pdgParticle->Charge() : 0.;
     Float_t q = (charge > 0) ? 1. : -1.;
     bmnPoint->SetQ(charge / 3); //Потому что, сука, кварки!
 }

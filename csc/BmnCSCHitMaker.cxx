@@ -291,9 +291,13 @@ void BmnCSCHitMaker::ProcessDigits() {
                 //--------------------------------------------------------------
 
                 //hit matching -------------------------------------------------
+                FairRootManager::Instance()->SetUseFairLinks(kTRUE);
                 if (fHitMatching && fBmnCSCHitMatchesArray) {
                     new ((*fBmnCSCHitMatchesArray)[fBmnCSCHitMatchesArray->GetEntriesFast()])
                             BmnMatch(module->GetIntersectionPointMatch(iPoint));
+                    BmnMatch* hitMatch = (BmnMatch*) fBmnCSCHitMatchesArray->At(fBmnCSCHitMatchesArray->GetEntriesFast() - 1);
+                    for(BmnLink lnk : hitMatch->GetLinks())
+                        hit->AddLink(FairLink(-1, lnk.GetIndex(), lnk.GetWeight()));
                 }
                 //--------------------------------------------------------------
             }

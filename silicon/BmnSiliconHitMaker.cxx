@@ -330,9 +330,13 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 //--------------------------------------------------------------
 
                 //hit MC-matching ----------------------------------------------
+                FairRootManager::Instance()->SetUseFairLinks(kTRUE);
                 if (fHitMatching && fBmnSiliconHitMatchesArray) {
                     new ((*fBmnSiliconHitMatchesArray)[fBmnSiliconHitMatchesArray->GetEntriesFast()])
                             BmnMatch(module->GetIntersectionPointMatch(iPoint));
+                    BmnMatch* hitMatch = (BmnMatch*) fBmnSiliconHitMatchesArray->At(fBmnSiliconHitMatchesArray->GetEntriesFast() - 1);
+                    for(BmnLink lnk : hitMatch->GetLinks())
+                        hit->AddLink(FairLink(-1, lnk.GetIndex(), lnk.GetWeight()));
                 }
                 //--------------------------------------------------------------
             }

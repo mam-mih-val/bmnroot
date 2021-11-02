@@ -82,6 +82,10 @@ void BmnToCbmHitConverter::Exec(Option_t* opt) {
         Int_t sens = 1;
         Int_t detId = 2 << 24 | (stat + 1 + 3) << 16 | sect << 4 | sens << 1;
         new ((*fCbmHitsArray)[fCbmHitsArray->GetEntriesFast()]) CbmStsHit(detId, pos, dpos, 0.0, 0, 0);
+        CbmStsHit* hit = (CbmStsHit*)fCbmHitsArray->At(fCbmHitsArray->GetEntriesFast() - 1);
+        hit->ResetLinks();
+        hit->SetLinks(bmnHit->GetLinks());
+        hit->SetRefIndex(kGEM);
     }
     for (Int_t iHit = 0; iHit < fBmnSilHitsArray->GetEntriesFast(); ++iHit) {
         BmnSiliconHit* bmnHit = (BmnSiliconHit*)fBmnSilHitsArray->At(iHit);
@@ -92,6 +96,10 @@ void BmnToCbmHitConverter::Exec(Option_t* opt) {
         Int_t sens = 1;
         Int_t detId = 2 << 24 | (bmnHit->GetStation() + 1) << 16 | (bmnHit->GetModule() + 1) << 4 | sens << 1;
         new ((*fCbmHitsArray)[fCbmHitsArray->GetEntriesFast()]) CbmStsHit(detId, pos, dpos, 0.0, 0, 0);
+        CbmStsHit* hit = (CbmStsHit*)fCbmHitsArray->At(fCbmHitsArray->GetEntriesFast() - 1);
+        hit->ResetLinks();
+        hit->SetLinks(bmnHit->GetLinks());
+        hit->SetRefIndex(kSILICON);
     }
 
 }

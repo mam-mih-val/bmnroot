@@ -4,6 +4,7 @@
 #include "TSystem.h"
 
 #include "BmnGemStripHitMaker.h"
+#include "FairLinkManager.h"
 
 #include "BmnGemStripStationSet_RunSummer2016.h"
 #include "BmnGemStripStationSet_RunWinter2016.h"
@@ -397,9 +398,13 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 //--------------------------------------------------------------
 
                 //hit MC-matching ----------------------------------------------
+                FairRootManager::Instance()->SetUseFairLinks(kTRUE);
                 if (fHitMatching && fBmnGemStripHitMatchesArray) {
                     new ((*fBmnGemStripHitMatchesArray)[fBmnGemStripHitMatchesArray->GetEntriesFast()])
                         BmnMatch(module->GetIntersectionPointMatch(iPoint));
+                    BmnMatch* hitMatch = (BmnMatch*) fBmnGemStripHitMatchesArray->At(fBmnGemStripHitMatchesArray->GetEntriesFast() - 1);
+                    for(BmnLink lnk : hitMatch->GetLinks())
+                        hit->AddLink(FairLink(-1, lnk.GetIndex(), lnk.GetWeight()));
                 }
                 //--------------------------------------------------------------
             }

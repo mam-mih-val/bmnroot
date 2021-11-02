@@ -206,11 +206,15 @@ private:
     TClonesArray* fGlobalTracks; // BmnGlobalTrack array
     TClonesArray* fGemTracks;
     TClonesArray* fSilTracks;
+    TClonesArray* fStsTracks;
     TClonesArray* fGlobalTrackMatches; // BmnGemTrackMatch array
     TClonesArray* fGemHits;
     TClonesArray* fSilHits;
     TClonesArray* fSsdHits;
+    TClonesArray* fStsHits;
     TClonesArray* fInnerHits;
+    TClonesArray* fTof400Hits;
+    TClonesArray* fTof700Hits;
     
     TClonesArray* fVertex;
     TString fConfigGem;

@@ -1,10 +1,10 @@
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
+R__LOAD_LIBRARY(libcurl)
+#include "../unicom/db_settings.h"
+#include <curl/curl.h>
 #include <services/json.hpp>
 using json = nlohmann::ordered_json;
 //namespace json = nlohmann::json;
-
-TUrl fServiceUrl("159.93.51.133");
-TString fAPIPath("/event_api/v1/bmn/emd");
 
 int write_emd_2db(TString json_path);
 // function for recursively searching for DST ROOT files and reading them to write their event metadata to the Event Catalogue
@@ -134,52 +134,87 @@ int write_emd(TString dir_name, TString storage_name, TString software_version, 
     return 0;
 }
 
+static size_t writeFunction(void* contents, size_t size, size_t nmemb, string* data)
+{
+    size_t realsize = size * nmemb;
+    try
+    {
+        data->append((char*)contents, realsize);
+    }
+    catch (std::bad_alloc& e)
+    {
+      //handle memory problem
+      return 0;
+    }
+
+    return realsize;
+}
+
 // function for writing event metadata from a JSON file to the Event Catalogue
 // returns the success code: 0 - without errors, error_code - otherwise
 int write_emd_2db(TString json_path)
 {   
-    gSystem->ExpandPathName(json_path);
-
-    ifstream json_file(json_path);
-    ostringstream sstr;
-    sstr << json_file.rdbuf();
-
-    // write EMD to the Event Catalogue
-    TString postMsg = "POST ";
-    postMsg += fAPIPath;
-    postMsg += " HTTP/1.1 \r\nHost: ";
-    //postMsg += fServiceUrl.GetProtocol(); postMsg += "://";
-    postMsg += fServiceUrl.GetHost(); postMsg += ":"; postMsg += fServiceUrl.GetPort(); postMsg += "\r\n";
-    //postMsg += "/"; postMsg += fServiceUrl.GetFile();
-    postMsg += "User-Agent: C/1.0\r\n";
-    postMsg += "Content-Type: application/json; charset=utf-8 \r\n";
-    postMsg += "Accept: */*\r\n";
-    postMsg += "Content-Length: ";
-    string json_string = sstr.str();
-    //cout<<"json_string = "<<json_string<<endl;
-    postMsg += json_string.length();
-    postMsg += "\r\nConnection: close\r\n\r\n";
-    postMsg += json_string;
-    //msg += "\r\n";
-    //cout<<"postMsg = "<<postMsg<<endl;
-
-    TSocket fEventSocket(fServiceUrl.GetHost(), fServiceUrl.GetPort());
-    if (!fEventSocket.IsValid())
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    CURL* curl = curl_easy_init();
+    if (!curl)
     {
-        cout<<endl<<"ERROR: cannot connect to host '"<<fServiceUrl.GetHost()<<"' with the Event Metadata API"<<endl;
-        fEventSocket.Close();
+        cout<<"ERROR: CURL initialisation was failed"<<endl<<endl;
         return -1;
     }
 
-    if (fEventSocket.SendRaw(postMsg.Data(), postMsg.Length()) < 0)
+    gSystem->ExpandPathName(json_path);
+    ifstream json_file(json_path);
+    ostringstream sstr;
+    sstr << json_file.rdbuf();
+    string json_string = sstr.str();
+    //cout<<"json_string = "<<json_string<<endl;
+
+    struct curl_slist* headers = NULL;
+    headers = curl_slist_append(headers, "Accept: */*");
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    headers = curl_slist_append(headers, "charset: utf-8");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    TString fServiceUrl = TString::Format("%s/%s", EVENT_API_HOST, EVENT_API_NAME);
+    curl_easy_setopt(curl, CURLOPT_URL, fServiceUrl.Data());
+
+    TString strAccount = TString::Format("%s:%s", EVENT_API_USERNAME, EVENT_API_PASSWORD);
+    curl_easy_setopt(curl, CURLOPT_USERPWD, strAccount.Data());
+
+    curl_easy_setopt(curl, CURLOPT_POST, 1);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_string.c_str());
+
+    string response_string;
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
+
+    // write EMD to the Event Catalogue
+    int res = curl_easy_perform(curl);
+    if (res)
     {
-        cout<<endl<<"ERROR: sending command to host '"<<fServiceUrl.GetHost()<<"' failed"<<endl;
-        fEventSocket.Close();
+        cout<<"ERROR: sending command to '"<<fServiceUrl<<"' failed with code = "<<res<<endl<<endl;
         return -2;
     }
-    cout<<"fEventSocket.GetErrorCode() = "<<fEventSocket.GetErrorCode()<<endl;
 
-    cout<<endl<<"Event metadata were written from JSON file '"<<json_path<<"' to the Event Catalogue"<<endl;
+    long response_code;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+    //double elapsed;
+    //curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &elapsed);
+    //char* url;
+    //curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &url);
+    //cout<<"CURLINFO_TOTAL_TIME = "<<elapsed<<endl;
+    if (response_code == 200)
+        //cout<<"Event metadata were written from JSON file '"<<json_path<<"' to the Event Catalogue"<<endl<<endl;
+        cout<<"Request was successfully finished: "<<response_string<<endl<<endl;
+    else
+    {
+        cout<<"ERROR: sending request to '"<<fServiceUrl<<"' was failed with response: "<<response_string<<" (code = "<<response_code<<")"<<endl<<endl;
+        return -3;
+    }
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+    curl_global_cleanup();
 
     return 0;
 }

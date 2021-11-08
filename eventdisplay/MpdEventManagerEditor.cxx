@@ -20,9 +20,12 @@
 #include "TEveGedEditor.h"
 #include "TGFileDialog.h"
 #include "TThread.h"
+#include "TDatabasePDG.h"
 
 #include <iostream>
 #include <vector>
+#include <cstring>
+
 using namespace std;
 
 #define MAX_ENERGY 12
@@ -34,7 +37,8 @@ MpdEventManagerEditor::MpdEventManagerEditor(const TGWindow* p, Int_t width, Int
    fEventManager(MpdEventManager::Instance()),
    isMagnetFound(false),
    fCurrentEvent(0),
-   fCurrentPDG(0),
+   fCurrentPDGTextEntry(0),
+   fCurrentPDGString(""),
    fVizPri(0),
    fMinEnergy(0),
    fMaxEnergy(0),
@@ -120,12 +124,11 @@ void MpdEventManagerEditor::Init()
 
     // textbox to display only particles with given PDG
     TGHorizontalFrame* f1 = new TGHorizontalFrame(title1);
-    TGLabel* L1 = new TGLabel(f1, "Select PDG: ");
+    TGLabel* L1 = new TGLabel(f1, "Select Particles: ");
     f1->AddFrame(L1, new TGLayoutHints(kLHintsLeft|kLHintsCenterY, 1, 2, 1, 1));
-    fCurrentPDG = new TGNumberEntry(f1, 0., 12, -1,
-                      TGNumberFormat::kNESInteger, TGNumberFormat::kNEAAnyNumber, TGNumberFormat::kNELNoLimits, 0, 1);
-    f1->AddFrame(fCurrentPDG, new TGLayoutHints(kLHintsLeft, 1, 1, 1, 1));
-    fCurrentPDG->Connect("ValueSet(Long_t)","MpdEventManagerEditor", this, "SelectPDG()");
+    fCurrentPDGTextEntry = new TGTextEntry(f1);
+    f1->AddFrame(fCurrentPDGTextEntry, new TGLayoutHints(kLHintsLeft, 1, 1, 1, 1));
+    fCurrentPDGTextEntry->Connect("TextChanged(char*)","MpdEventManagerEditor", this, "SelectPDG()");
     title1->AddFrame(f1);
 
     // textbox for min energy cutting
@@ -255,7 +258,7 @@ void MpdEventManagerEditor::DoVizPri()
 // select displaying particle by PDG code
 void MpdEventManagerEditor::SelectPDG()
 {
-    fEventManager->SelectPDG(fCurrentPDG->GetIntNumber());
+    fCurrentPDGString = fCurrentPDGTextEntry->GetDisplayText();
 }
 
 //______________________________________________________________________________
@@ -367,7 +370,6 @@ void MpdEventManagerEditor::ShowMCPoints(Bool_t is_show)
 
     points->SetRnrState(is_show);
 
-    // highlight ZDC modules if ZDC present
     if (fEventManager->isZDCModule)
     {
         if (is_show)
@@ -375,6 +377,11 @@ void MpdEventManagerEditor::ShowMCPoints(Bool_t is_show)
         else
             RedrawZDC(true);
     }
+
+    fEventManager->fgShowShowMCPoints = is_show;
+    // exec event visualization of selected event
+    if (fEventManager->fgRedrawRecoPointsReqired)
+        fEventManager->GotoEvent(fCurrentEvent->GetIntNumber());
 
     // redraw points
     gEve->Redraw3D();
@@ -473,7 +480,7 @@ void MpdEventManagerEditor::ShowRecoPoints(Bool_t is_show)
         return;
     }
 
-    fEventManager->fgShowRecoPointsIsShow = is_show;
+    fEventManager->fgShowShowRecoPoints = is_show;
     // exec event visualization of selected event
     if (fEventManager->fgRedrawRecoPointsReqired)
         fEventManager->GotoEvent(fCurrentEvent->GetIntNumber());
@@ -492,6 +499,11 @@ void MpdEventManagerEditor::ShowRecoTracks(Bool_t is_show)
         fShowRecoTracks->SetDisabledAndSelected(kFALSE);
         return;
     }
+
+    fEventManager->fgShowShowRecoTracks = is_show;
+    // exec event visualization of selected event
+    if (fEventManager->fgRedrawRecoPointsReqired)
+        fEventManager->GotoEvent(fCurrentEvent->GetIntNumber());
 
     tracks->SetRnrState(is_show);
     gEve->Redraw3D();
@@ -560,6 +572,19 @@ void MpdEventManagerEditor::UpdateEvent()
         iThreadState = 0;
         return;
     }
+
+    fEventManager->fCurrentPDG.clear();
+    istringstream iss(fCurrentPDGString);
+    string s;
+    auto databasePDG = TDatabasePDG::Instance();
+    while (getline(iss, s, ' ')) {
+        auto pdg = atoi(s.c_str());
+        if (pdg)
+             fEventManager->fCurrentPDG.insert(pdg);
+        else
+            fEventManager->fCurrentPDG.insert(databasePDG->GetParticle(s.c_str())->PdgCode());
+    }
+    
 
     // if OFFLINE mode
     if (!fEventManager->isOnline)

@@ -80,7 +80,9 @@ MpdEventManager::MpdEventManager()
    isDarkColor(true),
 
    isZDCModule(NULL),
-   fgShowRecoPointsIsShow(false),
+   fgShowShowMCPoints(false),
+   fgShowShowRecoPoints(false),
+   fgShowShowRecoTracks(false),
    fgRedrawRecoPointsReqired(false),
    fLastUsedColor(2001)
 {
@@ -262,7 +264,8 @@ Int_t MpdEventManager::StringToColor(TString color)
 
 void MpdEventManager::InitColorStructure()
 {
-    ifstream file(gSystem->ExpandPathName("$VMCWORKDIR/config/eventdisplay.json"));
+    auto file_path = gSystem->ExpandPathName("$VMCWORKDIR/config/eventdisplay.json");
+    ifstream file(file_path);
     if (file.is_open())
     {
         json data;
@@ -272,7 +275,14 @@ void MpdEventManager::InitColorStructure()
         {
             for (auto &particle : data["coloring"]["particles"])
                 fPDGToColor[(int) particle["pdg"]] = StringToColor((string) particle["color"]);
+        }
+        catch(const json::type_error &e)
+        {
+            cout << "MpdEventManager::InitColorStructure() Using default coloring for particles!" << endl;
+        }
 
+        try
+        {
             structSelectedColoring *selected_coloring;
             structLevelColoring *level_coloring;
 
@@ -309,13 +319,13 @@ void MpdEventManager::InitColorStructure()
         }
         catch(const json::type_error &e)
         {
-            cout << "Using default ROOT coloring!" << endl;
+            cout << "MpdEventManager::InitColorStructure() Using default ROOT coloring for detectors!" << endl;
             gVisualizationColoring = defaultColoring;
         }
     }
     else
     {
-        cout << "Using default ROOT coloring!" << endl;
+        cout << "MpdEventManager::InitColorStructure() File " << file_path << "not found! Using default coloring!" << endl;
         gVisualizationColoring = defaultColoring;
     }
     file.close();

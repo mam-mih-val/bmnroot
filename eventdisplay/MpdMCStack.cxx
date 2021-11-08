@@ -130,7 +130,7 @@ void MpdMCStack::Exec(Option_t* /*option*/)
 
         if ((fEventManager->IsPriOnly() && (P->GetMother(0) > -1)))
             continue;
-        if ((fEventManager->GetCurrentPDG() != 0) && (fEventManager->GetCurrentPDG() != tr->GetPdgCode()))
+        if ((fEventManager->fCurrentPDG.size() != 0) && (fEventManager->fCurrentPDG.find(tr->GetPdgCode()) == fEventManager->fCurrentPDG.end()))
             continue;
         if (fVerbose > 2)
             cout<<"PEnergy "<<PEnergy<<" Min "<<fEventManager->GetMinEnergy()<<" Max "<<fEventManager->GetMaxEnergy()<<endl;

@@ -95,7 +95,7 @@ InitStatus BmnGlobalTrackDraw::Init()
     fDchTrackList = (TClonesArray*) fManager->GetObject("BmnDchTrack");
 
     fEventManager = MpdEventManager::Instance();
-    if (fVerbose > -10) cout << "BmnGlobalTrackDraw::Init() get instance of MpdEventManager " << endl;
+    if (fVerbose > 2) cout << "BmnGlobalTrackDraw::Init() get instance of MpdEventManager " << endl;
 
     MinEnergyLimit = fEventManager->GetEvtMinEnergy();
     MaxEnergyLimit = fEventManager->GetEvtMaxEnergy();

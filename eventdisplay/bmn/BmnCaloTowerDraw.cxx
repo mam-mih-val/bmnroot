@@ -135,7 +135,7 @@ void BmnCaloTowerDraw::Exec(Option_t* option)
     for (Int_t i = 0; i < fNumModules+1; i++)
         fEneArr[i] = 0;
 
-    if (fEventManager->fgShowRecoPointsIsShow)
+    if (fEventManager->fgShowShowMCPoints || fEventManager->fgShowShowRecoPoints || fEventManager->fgShowShowRecoTracks)
     {
         Int_t nDigits = fDigitList->GetEntriesFast();
         if (fVerbose > 2) cout << "BmnCaloTowerDraw::Exec() | Type: " << fCaloName << " | Number of Calo digits = " << nDigits << endl;

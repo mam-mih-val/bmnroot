@@ -16,6 +16,8 @@
 #include <TEveProjectionAxes.h>
 
 #include <vector>
+#include <unordered_set>
+
 using namespace std;
 
 enum ElementList {MCPointList, MCTrackList, RecoPointList, RecoTrackList};  // enum for Event Element lists
@@ -95,9 +97,6 @@ class MpdEventManager : public TEveEventManager
     virtual void SetPriOnly(Bool_t Pri) { fPriOnly = Pri; }
     virtual Bool_t IsPriOnly() { return fPriOnly; }
 
-    virtual void SelectPDG(Int_t PDG) { fCurrentPDG = PDG; }
-    virtual Int_t GetCurrentPDG() { return fCurrentPDG; }
-
     virtual void SetMaxEnergy(Float_t max) { fMaxEnergy = max; }
     virtual void SetMinEnergy(Float_t min) { fMinEnergy = min; }
     virtual void SetEvtMaxEnergy(Float_t max) { fEvtMaxEnergy = max; }
@@ -136,10 +135,14 @@ class MpdEventManager : public TEveEventManager
 
     // ZDC module visibility flags. NULL if there are no ZDC modules to show
     bool* isZDCModule;  //!
-    // current value of "reco points" checkbox - FOR CALORIMETER TOWERS
-    bool fgShowRecoPointsIsShow;
-    // require event redraw after "reco points" checkbox value is changed - FOR CALORIMETER TOWERS
+    // current value of "mc points", "reco points", "reco tracks" checkbox - FOR CALORIMETER TOWERS
+    bool fgShowShowMCPoints;
+    bool fgShowShowRecoPoints;
+    bool fgShowShowRecoTracks;
+    // require event redraw after "mc points", "reco points", "reco tracks" checkbox value is changed - FOR CALORIMETER TOWERS
     bool fgRedrawRecoPointsReqired;
+
+    unordered_set<Int_t> fCurrentPDG;
 
  protected:
     TEveViewer* GetRPhiView() const { return fRPhiView; }
@@ -176,7 +179,6 @@ class MpdEventManager : public TEveEventManager
     // current event number
     Int_t iCurrentEvent;
     Bool_t fPriOnly;
-    Int_t fCurrentPDG;
     // the most minimum particle energy for selected event
     Float_t fMinEnergy;
     // the most maximum particle energy for selected event

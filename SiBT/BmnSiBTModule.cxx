@@ -129,7 +129,7 @@ Bool_t BmnSiBTModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z,
 
         if(signal <= 0.0) signal = 1e-16;
 
-        Double_t AvalancheRadius = 0.01; //cm
+        Double_t AvalancheRadius = 0.05; //cm (avalanche is about 2-3 strips)
 
         Double_t radius = AvalancheRadius;
         if(radius <= 0.0) return false;
@@ -138,7 +138,7 @@ Bool_t BmnSiBTModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z,
 
         Int_t cycle_cnt = 0;
         while(true) {
-            radius = gRandom->Gaus(AvalancheRadius, 0.005);
+            radius = gRandom->Gaus(AvalancheRadius, 0.025);
             if(radius > AvalancheRadius/2.0  && radius < AvalancheRadius*2.0 && radius > 0.0) break;
             cycle_cnt++;
 

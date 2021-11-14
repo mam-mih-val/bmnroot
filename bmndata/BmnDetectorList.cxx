@@ -22,6 +22,7 @@ void BmnDetectorList::GetSystemName(DetectorId det, TString& name)
         case kLAND: name = "land"; break;
         case kFD:  name = "fd";  break;
         case kSiMD:  name = "simd";  break;
+        case kSiBT:  name = "sibt";  break;
         case kARMTRIG: name = "armtrig"; break;
         case kBC: name = "bc"; break;
         case kSCWALL: name = "scwall"; break;
@@ -57,6 +58,7 @@ void BmnDetectorList::GetSystemNameCaps(DetectorId det, TString& name)
         case kLAND: name = "LAND"; break;
         case kFD:  name = "FD";  break;
         case kSiMD:  name = "SiMD";  break;
+        case kSiBT:  name = "SiBT";  break;
         case kARMTRIG: name = "ARMTRIG"; break;
         case kBC: name = "BC"; break;
         case kSCWALL: name = "SCWALL"; break;

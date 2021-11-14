@@ -301,7 +301,7 @@ TGeoVolume *CreateModule(TString module_name) {
 
     //volumes
     TGeoVolume *moduleV = new TGeoVolume(TString("moduleV")+=TString("_") + module_name, moduleS);
-    TGeoVolume *sensV = new TGeoVolume(TString("SensorV")+=TString("_") + module_name, sensS);
+    TGeoVolume *sensV = new TGeoVolume(TString("CSCSensor")+=TString("_") + module_name, sensS);
 
     //medium
     if(pMedArgonIsobutane7525) {

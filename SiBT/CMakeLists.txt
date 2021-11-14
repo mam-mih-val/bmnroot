@@ -24,7 +24,7 @@ link_directories(${LINK_DIRECTORIES})
 # List of source files
 set(SRCS
  BmnSiBT.cxx
- BmnSiBT.cxx
+ BmnSiBTPoint.cxx
  BmnSiBTStationSet.cxx
  BmnSiBTStation.cxx
  BmnSiBTModule.cxx

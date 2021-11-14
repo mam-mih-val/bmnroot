@@ -116,7 +116,7 @@ Bool_t BmnSiBT::ProcessHits(FairVolume* vol) {
 
         TGeoVolume *currentVolume = gGeoManager->GetCurrentVolume();
         TString currentVolumeName = currentVolume->GetName();
-        TRegexp expr = "^SensorV_module[0-9]+_station[0-9]+$";
+        TRegexp expr = "^SiBTSensor_module[0-9]+_station[0-9]+$";
         if(currentVolumeName.Contains(expr)) {
             TRegexp mod_expt = "module[0-9]+";
             TRegexp stat_expt = "station[0-9]+";
@@ -365,7 +365,7 @@ void BmnSiBT::ExpandNodeForGdml(TGeoNode* node) {
 //--- Check if Sensitive -------------------------------------------------------
 Bool_t BmnSiBT::CheckIfSensitive(std::string name) {
     TString tsname = name;
-    if(tsname.Contains("Sensor")) {
+    if(tsname.Contains("SiBTSensor")) {
         return kTRUE;
     }
     return kFALSE;

@@ -203,6 +203,8 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         fMan->AddTask(StsPoint);
         MpdMCPointDraw* CSCPoint = new MpdMCPointDraw("CSCPoint", mcPointColor, pointMarker);
         fMan->AddTask(CSCPoint);
+        MpdMCPointDraw* SiBTPoint = new MpdMCPointDraw("SiBTPoint", mcPointColor, pointMarker);
+        fMan->AddTask(SiBTPoint);
         MpdMCPointDraw* TOF1Point = new MpdMCPointDraw("TOF400Point", mcPointColor, pointMarker);
         fMan->AddTask(TOF1Point);
         MpdMCPointDraw* DCHPoint = new MpdMCPointDraw("DCHPoint", mcPointColor, pointMarker);

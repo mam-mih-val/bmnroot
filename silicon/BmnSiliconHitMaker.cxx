@@ -135,7 +135,9 @@ BmnSiliconHitMaker::~BmnSiliconHitMaker() {
         }
         delete[] fAlignCor;
     }
-    delete StationSet;
+    if(StationSet){
+        delete StationSet;
+    }
 }
 
 InitStatus BmnSiliconHitMaker::Init() {
@@ -348,7 +350,6 @@ void BmnSiliconHitMaker::ProcessDigits() {
 }
 
 void BmnSiliconHitMaker::Finish() {
-    delete StationSet;
     if (fVerbose > 0) cout << "Work time of the Silicon hit maker: " << workTime << endl;
 }
 

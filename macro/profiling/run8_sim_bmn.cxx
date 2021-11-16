@@ -10,6 +10,7 @@
 #include "TApplication.h"
 #include "TDatabasePDG.h"
 #include "TVirtualMC.h"
+#include "TGeoManager.h"
 
 // FairRoot includes
 #include "FairRunSim.h"
@@ -18,6 +19,7 @@
 #include "FairTrajFilter.h"
 #include "FairModule.h"
 #include "FairDetector.h"
+#include "FairTarget.h"
 #include "FairCave.h"
 #include "FairPipe.h"
 #include "FairMagnet.h"
@@ -39,6 +41,10 @@
 #include "BmnDch.h"
 #include "BmnMwpc.h"
 #include "BmnBd.h"
+#include "BmnSiBT.h"
+#include "BmnSiMD.h"
+#include "BmnScWall.h"
+#include "BmnHodo.h"
 #include "BmnEcal.h"
 #include "BmnSilicon.h"
 #include "MpdUrqmdGenerator.h"
@@ -57,6 +63,7 @@
 #include "BmnCSCDigitizer.h"
 #include "BmnZdcDigitizer.h"
 #include "BmnEcalDigitizer.h"
+#include "BmnFHCalDigitizer.h"
 #include "BmnInnTrackerAlign.h"
 #include "CbmStack.h"
 
@@ -89,7 +96,7 @@ enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM};
 // nEvents - number of events to transport
 // generatorName - generator name for the input file (enumeration above)
 // useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
-void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString outFile = "$VMCWORKDIR/macro/run/bmnsim.root",
+void run8_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString outFile = "$VMCWORKDIR/macro/run8/bmnsim.root",
                  Int_t nStartEvent = 0, Int_t nEvents = 10, enumGenerators generatorName = BOX, Bool_t useRealEffects = kFALSE)
 {
     TStopwatch timer;
@@ -101,13 +108,12 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
 
     // Choose the Geant Navigation System
 #ifdef GEANT4
-    fRun->SetSimSetup(geant4_setup);
     fRun->SetName("TGeant4");
 #else
-    fRun->SetSimSetup(geant3_setup);
     fRun->SetName("TGeant3");
 #endif
 
+    // load BM@N geometry
     fRun->SetMaterials("media.geo");
 
     // -----   Create passive volumes   -------------------------
@@ -119,34 +125,38 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     magnet->SetGeometryFileName("magnet_modified.root");
     fRun->AddModule(magnet);
 
+    FairModule* target = new FairTarget("Target");
+    target->SetGeometryFileName("target_CsI.geo");
+    fRun->AddModule(target);
+    
     // -----   Create detectors        -------------------------
 
-    FairDetector* fd = new BmnFD("FD", kTRUE);
-    fd->SetGeometryFileName("FD_v10.root");
-    fRun->AddModule(fd);
-
-    FairDetector* mwpc = new BmnMwpc("MWPC", kTRUE);
-    mwpc->SetGeometryFileName("MWPC_RunSpring2018.root");
-    fRun->AddModule(mwpc);
+    FairDetector* simd = new BmnSiMD("SiMD", kTRUE);
+    simd->SetGeometryFileName("SiMD_run8_v1.root");
+    fRun->AddModule(simd);
 
     FairDetector* bd = new BmnBd("BD", kTRUE);
-    bd->SetGeometryFileName("geom_BD_det_v2.root");
+    bd->SetGeometryFileName("BD_run8_v1.root");
     fRun->AddModule(bd);
 
+    FairDetector* fd = new BmnFD("FD", kTRUE);
+    fd->SetGeometryFileName("FD_run8_v1.root");
+    fRun->AddModule(fd);
+
     FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
-    silicon->SetGeometryFileName("Silicon_RunSpring2018.root");
+    silicon->SetGeometryFileName("Silicon_Run8_4stations_detailed.root");
     fRun->AddModule(silicon);
 
-    FairDetector* gems = new CbmSts("STS", kTRUE);
-    gems->SetGeometryFileName("GEMS_RunSpring2018.root");
+    FairDetector* gems = new CbmSts("GEM", kTRUE);
+    gems->SetGeometryFileName("GEMS_Run8_detailed.root");
     fRun->AddModule(gems);
 
     FairDetector* csc = new BmnCSC("CSC", kTRUE);
-    csc->SetGeometryFileName("CSC_RunSpring2018.root");
+    csc->SetGeometryFileName("CSC_Run8_detailed.root");
     fRun->AddModule(csc);
 
     FairDetector* tof1 = new BmnTOF1("TOF1", kTRUE);
-    tof1->SetGeometryFileName("TOF400_RUN7_BMN_byKolesnicov_Aligned.root");
+    tof1->SetGeometryFileName("TOF400_RUN7.root");
     fRun->AddModule(tof1);
 
     FairDetector* dch = new BmnDch("DCH", kTRUE);
@@ -158,13 +168,23 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     fRun->AddModule(tof2);
 
     FairDetector* ecal = new BmnEcal("ECAL", kTRUE);
-    ecal->SetGeometryFileName("ECAL_v3_run7_pos4.root");
+    ecal->SetGeometryFileName("ECAL_v3_run8_pos5.root");
     fRun->AddModule(ecal);
 
-    BmnZdc* zdc = new BmnZdc("ZDC", kTRUE);
+    FairDetector* scwall = new BmnScWall("SCWALL", kTRUE);
+    scwall->SetGeometryFileName("ScWall_with_hole_XeCsI_3.9GeV_field_Extrap_scale_1200_900_Zpos_880.0cm_Xshift_58.50cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
+    fRun->AddModule(scwall);
+
+    FairDetector* hodo = new BmnHodo("HODO", kTRUE);
+    hodo->SetGeometryFileName("Hodo_XeCsI_3.9GeV_field_Extrap_scale_1200_900_Zpos_895.0cm_Xshift_36.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
+    fRun->AddModule(hodo);
+
+    BmnZdc* fhcal = new BmnZdc("FHCal", kTRUE);
     //zdc->SetBirk();
-    zdc->SetGeometryFileName("ZDC_RunSpring2018.root");
-    fRun->AddModule(zdc);
+    fhcal->SetGeometryFileName("FHCal_54mods_hole_XeCsI_3.9GeV_field_Extrap_scale_1200_900_Zpos_900.0cm_Xshift_36.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
+    fRun->AddModule(fhcal);
+
+
     // Use the experiment specific MC Event header instead of the default one
     // This one stores additional information about the reaction plane
     //MpdMCEventHeader* mcHeader = new MpdMCEventHeader();
@@ -176,10 +196,11 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
 
     // Smearing of beam interaction point, if needed, and primary vertex position
     // DO NOT do it in corresponding gen. sections to avoid incorrect summation!!!
-    primGen->SetBeam(0.5, -4.6, 0.0, 0.0);  // (beamX0, beamY0, beamSigmaX, beamSigmaY)
-    primGen->SetTarget(-2.3, 0.0);          // (targetZ, targetDz)
-    primGen->SmearVertexZ(kFALSE);
-    primGen->SmearVertexXY(kFALSE);
+    primGen->SetBeam(0.0, 0.0, 1.6, 1.6);  // (beamX0, beamY0, beamSigmaX, beamSigmaY)
+    primGen->SetTarget(0.0875, 0.0875);          // (targetZ, targetDz)
+    primGen->SmearVertexZ(kTRUE);
+    primGen->SmearVertexXY(kTRUE);
+    gRandom->SetSeed(0);
 
     switch (generatorName)
     {
@@ -289,41 +310,37 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
 
     // -----   Digitizers: converting MC points to detector digits   -----------
     // SI-Digitizer
-    BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2018;
+    BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::Run8_3stations;
     BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
     siliconDigit->SetCurrentConfig(si_config);
-    siliconDigit->SetOnlyPrimary(kFALSE);
     siliconDigit->SetUseRealEffects(useRealEffects);
     fRun->AddTask(siliconDigit);
 
     // GEM-Digitizer
-    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2018;
+    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::Run8;
     if (useRealEffects)
         BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_6T);
     BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
     gemDigit->SetCurrentConfig(gem_config);
-    gemDigit->SetOnlyPrimary(kFALSE);
-    gemDigit->SetStripMatching(kTRUE);
     gemDigit->SetUseRealEffects(useRealEffects);
     fRun->AddTask(gemDigit);
 
     // CSC-Digitizer
-    BmnCSCConfiguration::CSC_CONFIG csc_config = BmnCSCConfiguration::RunSpring2018;
+    BmnCSCConfiguration::CSC_CONFIG csc_config = BmnCSCConfiguration::Run8;
     BmnCSCDigitizer* cscDigit = new BmnCSCDigitizer();
     cscDigit->SetCurrentConfig(csc_config);
-    cscDigit->SetOnlyPrimary(kFALSE);
-    cscDigit->SetStripMatching(kTRUE);
     fRun->AddTask(cscDigit);
     
-    // ZDC-Digitizer
-    BmnZdcDigitizer * zdcDigit = new BmnZdcDigitizer();
-    zdcDigit->SetScale(39e3);
-    zdcDigit->SetThreshold(500.);
+    // FHCal-Digitizer
+    BmnFHCalDigitizer * zdcDigit = new BmnFHCalDigitizer();
+    zdcDigit->SetScale(28.2e3);
+    zdcDigit->SetThreshold(0.);
     fRun->AddTask(zdcDigit);
     
     // ECAL-Digitizer
-    BmnEcalDigitizer * ecalDigit = new BmnEcalDigitizer();
-    fRun->AddTask(ecalDigit);
+    // FIXME some problems with channels
+    // BmnEcalDigitizer * ecalDigit = new BmnEcalDigitizer();
+    // fRun->AddTask(ecalDigit);
 
     fRun->Init();
     magField->Print();
@@ -357,10 +374,10 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     // Transport nEvents
     fRun->Run(nEvents);
 
-    gGeoManager->CheckOverlaps(0.0001);
-    gGeoManager->PrintOverlaps();
+    //gGeoManager->CheckOverlaps(0.0001);
+    //gGeoManager->PrintOverlaps();
 
-    //fRun->CreateGeometryFile("full_geometry.root");  // save the full setup geometry to the additional file
+    fRun->CreateGeometryFile("full_geometry.root");  // save the full setup geometry to the additional file
 
 if ((generatorName == QGSM) || (generatorName == DCMQGSM)){
     TString Pdg_table_name = TString::Format("%s%s%c%s", gSystem->BaseName(inFile.Data()), ".g", (fRun->GetName())[6], ".pdg_table.dat");
@@ -373,10 +390,10 @@ if ((generatorName == QGSM) || (generatorName == DCMQGSM)){
     cout << "Macro finished successfully." << endl; // marker of successfully execution for software testing systems
 
     delete fRun;
-    delete magField;
+    //delete magField;
 }
 
 int main(int argc, char** arg)
 {
-   run_sim_bmn();
+   run8_sim_bmn();
 }

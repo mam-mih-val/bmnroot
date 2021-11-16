@@ -1,9 +1,11 @@
 # Source files
 #SRCS=eventdisplay.cxx
 
-#SRCS=run_sim_src.cxx
+#SRCS=run8_sim_bmn.cxx
 #SRCS=run_sim_bmn.cxx
+#SRCS=run_sim_src.cxx
 
+#SRCS=run8_reco_bmn.cxx
 #SRCS=run_reco_bmn.cxx
 #SRCS=run_reco_src.cxx
 
@@ -41,6 +43,8 @@ CFLAGS += -I$(VMCWORKDIR)/sts
 CFLAGS += -I$(VMCWORKDIR)/mwpc
 CFLAGS += -I$(VMCWORKDIR)/scwall
 CFLAGS += -I$(VMCWORKDIR)/silicon
+CFLAGS += -I$(VMCWORKDIR)/SiBT
+CFLAGS += -I$(VMCWORKDIR)/SiMD
 CFLAGS += -I$(VMCWORKDIR)/tof
 CFLAGS += -I$(VMCWORKDIR)/tracking
 CFLAGS += -I$(VMCWORKDIR)/tof1
@@ -79,7 +83,7 @@ LDFLAGS += -lCat -lKF -lBmnData -lBmnField -lMpdGen -lPassive -lGen -lUniDb
 LDFLAGS += -lBase -lGeoBase -lParBase -lTrkBase -lGeane -lEve -lFairTools
 LDFLAGS += -lXMLParser -lXMLIO -lSpectrum -lGenVector -lMinuit -lGeom
 LDFLAGS += -lGeomPainter -lVMC -lpthread -lTracking -lBC -lArmTrig -lFD
-LDFLAGS += -lHodo -lBmnQa -lScWall -lgeant321 -lgeant4vmc -lG4clhep -lPythia6 -lEGPythia6
+LDFLAGS += -lHodo -lBmnQa -lScWall -lSiBT -lSiMD -lgeant321 -lgeant4vmc -lG4clhep -lPythia6 -lEGPythia6
 
 all:	$(OBJECTS)
 

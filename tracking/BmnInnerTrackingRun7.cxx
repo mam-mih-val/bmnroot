@@ -99,10 +99,10 @@ BmnInnerTrackingRun7::~BmnInnerTrackingRun7() {
     delete fKalman;
     delete fGemDetector;
     delete fSilDetector;
-    delete fHitXCutMin;
-    delete fHitXCutMax;
-    delete fHitYCutMin;
-    delete fHitYCutMax;
+    delete[] fHitXCutMin;
+    delete[] fHitXCutMax;
+    delete[] fHitYCutMin;
+    delete[] fHitYCutMax;
 }
 
 InitStatus BmnInnerTrackingRun7::Init() {

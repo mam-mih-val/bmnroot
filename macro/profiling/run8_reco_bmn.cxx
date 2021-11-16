@@ -87,8 +87,8 @@ using namespace std;
 
 //#include "../run/bmnloadlibs.C"
 
-void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
-        TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
+void run8_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
+        TString bmndstFileName = "$VMCWORKDIR/macro/run8/bmndst.root",
         Int_t nStartEvent = 0, Int_t nEvents = 10)
 {
     gDebug = 0; // Debug option
@@ -115,7 +115,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
 
     // -1 means use of the BM@N-setup when processing MC-input
     // DO NOT change it manually!
-    Int_t run_period = 7, run_number = -1;
+    Int_t run_period = 8, run_number = -1;
     Double_t fieldScale = 0.;
     if (!isExp) // for simulation files
         fFileSource = new FairFileSource(inputFileName);
@@ -210,12 +210,12 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
-    if(!isExp) {
-      BmnMwpcHitProducer *mwpcHP = new BmnMwpcHitProducer();
-      fRunAna->AddTask(mwpcHP);
-    }
-    BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp, run_period, run_number);
-    fRunAna->AddTask(mwpcHM);
+    // if(!isExp) {
+    //   BmnMwpcHitProducer *mwpcHP = new BmnMwpcHitProducer();
+    //   fRunAna->AddTask(mwpcHP);
+    // }
+    // BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp, run_period, run_number);
+    // fRunAna->AddTask(mwpcHM);
     
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
@@ -235,7 +235,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ====================================================================== //
     BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
     if (!isExp)
-        cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSpring2018); //set explicitly
+        cscHM->SetCurrentConfig(BmnCSCConfiguration::Run8); //set explicitly
     cscHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(cscHM);
     
@@ -264,10 +264,10 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ====================================================================== //
     // ===                          DCH hit finder                        === //
     // ====================================================================== //
-    if(!isExp) {
-        BmnDchHitProducer *dchHP = new BmnDchHitProducer();
-        fRunAna->AddTask(dchHP);
-    }
+    // if(!isExp) {
+    //     BmnDchHitProducer *dchHP = new BmnDchHitProducer();
+    //     fRunAna->AddTask(dchHP);
+    // }
     
     // ====================================================================== //
     // ===                             ZDC                                === //
@@ -344,8 +344,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ====================================================================== //
     // ===                      Residual analysis                         === //
     // ====================================================================== //
-    BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
-    fRunAna->AddTask(res);
+    // BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
+    // fRunAna->AddTask(res);
 
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)
     BmnFillDstTask* dst_task = new BmnFillDstTask(nEvents);
@@ -380,11 +380,11 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     cout << "Real time " << rtime << " s, CPU time " << ctime << " s" << endl;
     cout << endl;
     // ------------------------------------------------------------------------
-    delete fFileSource;
-    delete fRunAna;
+   // delete fFileSource;
+    //delete fRunAna;
 }
 
 int main(int argc, char** arg)
 {
-   run_reco_bmn();
+   run8_reco_bmn();
 }

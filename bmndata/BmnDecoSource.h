@@ -34,7 +34,7 @@ public:
     Int_t ReadEvent(UInt_t i=0);
     void Close();
 //    void Reset();
-    void FillEventHeader(FairEventHeader* feh);
+//    void FillEventHeader(FairEventHeader* feh);
     TTree* GetInTree() {return fInChain->GetTree();}
     TChain* GetInChain() {return fInChain;}
     

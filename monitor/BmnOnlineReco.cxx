@@ -39,7 +39,9 @@ BmnOnlineReco::BmnOnlineReco() {
     fRunAna = new FairRunAna();
     fDecoSource = new BmnDecoSource();
     fRunAna->SetSource(fDecoSource);
-    fRunAna->SetOutputFile(TString(getenv("VMCWORKDIR")) + "/macro/run/bmndst.root");
+    TString bmndstFileName = TString(getenv("VMCWORKDIR")) + "/macro/run/bmndst.root";
+//    fRunAna->SetOutputFile(bmndstFileName);
+    fRunAna->SetSink(new FairRootFileSink(bmndstFileName));
     fRunAna->SetGenerateRunInfo(false); // set magnet field with factor corresponding to the given run
     // get geometry for run
     TRandom2 * ran = new TRandom2(0);

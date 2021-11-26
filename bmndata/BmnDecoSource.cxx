@@ -134,9 +134,9 @@ Int_t BmnDecoSource::ReadEvent(UInt_t i) {
         fRunId = head->GetRunId();
 
         if (prevRunId != head->GetRunId()) {
-                printf("New Run Id: %5d\n", fRunId);
+            printf("New Run Id: %5d\n", fRunId);
             if (prevRunId != 0)
-                return 1;
+                return 0;
             else
                 printf("Start Run Id: %5d\n", fRunId);
         }
@@ -167,14 +167,14 @@ Int_t BmnDecoSource::ReadEvent(UInt_t i) {
         //        fEventHeader->SetTrigInfo(fDigiArrays->header->GetTrigInfo());
         //        fEventHeader->SetTimeShift(fDigiArrays->header->GetTimeShift());        
         //        fEventHeader->SetStartSignalInfo(fDigiArrays->header->GetStartSignalTime(), fDigiArrays->header->GetStartSignalWidth());
-        if(fFirstEvent && fDigiArrays->trigAr){
-            for (Int_t iTrig =0; iTrig < fDigiArrays->trigAr->size(); iTrig++){
-                TClonesArray  *ar = (*fDigiArrays->trigAr)[iTrig];
-                if(strcmp(ar->GetName(), "BC2") == 0)
+        if (fFirstEvent && fDigiArrays->trigAr) {
+            for (Int_t iTrig = 0; iTrig < fDigiArrays->trigAr->size(); iTrig++) {
+                TClonesArray *ar = (*fDigiArrays->trigAr)[iTrig];
+                if (strcmp(ar->GetName(), "BC2") == 0)
                     iT0BranchIndex = iTrig;
             }
         }
-        
+
         fGemDigits->AbsorbObjects(fDigiArrays->gem);
         fSilDigits->AbsorbObjects(fDigiArrays->silicon);
         fCscDigits->AbsorbObjects(fDigiArrays->csc);
@@ -188,19 +188,18 @@ Int_t BmnDecoSource::ReadEvent(UInt_t i) {
     return 0;
 }
 
-void BmnDecoSource::FillEventHeader(FairEventHeader* feh) {
-
-    ////    printf("fDigiArrays->header->GetEntriesFast() = %d\n", fEventHeader->GetEntriesFast());
-    //    if (fEventHeader) {
-    //        feh->SetRunId(fEventHeader->GetRunId());
-    //        printf("feh run id = %d\n", feh->GetRunId());
-    //        //        feh->SetMCEntryNumber(fEvtHeader->GetMCEntryNumber());
-    //    }
-    //
-    ////    feh->SetInputFileId(0);
-
-    return;
-}
+//void BmnDecoSource::FillEventHeader(FairEventHeader* feh) {
+//
+//    ////    printf("fDigiArrays->header->GetEntriesFast() = %d\n", fEventHeader->GetEntriesFast());
+//    if (fEventHeader) {
+//        feh->SetRunId(fEventHeader->GetRunId());
+//        //            printf("feh run id = %d\n", feh->GetRunId());
+//        //        feh->SetMCEntryNumber(fEvtHeader->GetMCEntryNumber());
+//    }
+//    ////    feh->SetInputFileId(0);
+//
+//    return;
+//}
 
 
 ClassImp(BmnDecoSource)

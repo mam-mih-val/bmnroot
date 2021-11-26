@@ -23,6 +23,7 @@
 #include "TServerSocket.h"
 #include "TKey.h"
 #include "FairRunAna.h"
+#include "FairRootFileSink.h"
 #include "FairParRootFileIo.h"
 #include "FairParAsciiFileIo.h"
 // BmnRoot

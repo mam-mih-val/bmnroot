@@ -29,7 +29,7 @@ ExternalProject_Add(ANALYSISTREE
         -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
         -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}
-#        -DCMAKE_CXX_STANDARD=11 #NOTE this hardcoded value
+        -DCMAKE_CXX_STANDARD=11 #NOTE this hardcoded value
         -DROOTSYS=${SIMPATH}
         -DBOOST_ROOT=${SIMPATH}
         -DBoost_NO_BOOST_CMAKE=ON

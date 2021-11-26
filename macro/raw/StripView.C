@@ -25,7 +25,6 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include <Fit/FitResult.h>
 #include <FairTrackParam.h>
 #include <Rtypes.h>
-#include <root/TVirtualPad.h>
 #include <../../bmndata/BmnEventHeader.h>
 #include <../../bmndata/DigiRunHeader.h>
 #include <limits.h>
@@ -48,10 +47,10 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #endif
 
 
-//#define PAD_WIDTH_SIL   1920
-//#define PAD_HEIGHT_SIL  1280
-#define PAD_WIDTH_SIL   1280
-#define PAD_HEIGHT_SIL  720
+#define PAD_WIDTH_SIL   1920
+#define PAD_HEIGHT_SIL  1280
+//#define PAD_WIDTH_SIL   1280
+//#define PAD_HEIGHT_SIL  720
 //#define ROWS  2
 #define COLS  2
 #define EV_LIMIT  4
@@ -70,26 +69,26 @@ void DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
         if (info->current) {
             maxy = info->current->GetBinContent(info->current->GetMaximumBin());
             if (info->ref != NULL) {
-                //                k = (info->ref->Integral() > 0) ?
-                //                        info->current->Integral() /
-                //                        (Double_t) info->ref->Integral() : 1;
-                //                if (k == 0) k = 1;
-                //                if (info->ref->Integral() > 0)
-                //                k = info->ref->GetBinContent(info->ref->GetMaximumBin());
-                //                                if (maxy < k) {
-                //                                    maxy = k;
-                //                                    info->ref->Draw(info->opt.Data());
-                //                                    info->current->Draw("same hist"); //, info->current->Integral());
-                //                                } else {
-                //                                    info->current->Draw(info->opt.Data());
-                //                                    info->ref->Draw("same hist"); //, info->current->Integral());
-                //                
-                //                                }
+                                k = (info->ref->Integral() > 0) ?
+                                        info->current->Integral() /
+                                        (Double_t) info->ref->Integral() : 1;
+                                if (k == 0) k = 1;
+                                if (info->ref->Integral() > 0)
+                                k = info->ref->GetBinContent(info->ref->GetMaximumBin());
+                                                if (maxy < k) {
+                                                    maxy = k;
+                                                    info->ref->Draw(info->opt.Data());
+                                                    info->current->Draw("same hist"); //, info->current->Integral());
+                                                } else {
+                                                    info->current->Draw(info->opt.Data());
+                                                    info->ref->Draw("same hist"); //, info->current->Integral());
+                                
+                                                }
             }
             //                    info->current->Draw(info->opt.Data());
             //                    info->ref->Draw("same hist"); //, info->current->Integral());
-            info->current->Draw(info->opt.Data());
-            info->ref->Draw("same hist"); //, info->current->Integral());
+//            info->current->Draw(info->opt.Data());
+//            info->ref->Draw("same hist"); //, info->current->Integral());
             //            info->current->GetYaxis()->SetLimits(0, floor(maxy * 1.2));
             //            info->ref->GetYaxis()->SetLimits(0, floor(maxy * 1.2));
             //            
@@ -116,11 +115,13 @@ void StripView(Int_t runID) {
     Int_t fPeriodID = 7;
     Int_t sumMods = 0;
     Int_t maxLayers = 0;
-    BmnSetup fBmnSetup = kBMNSETUP;
+    BmnSetup fBmnSetup = (runID >= 2041 && runID <= 3588) ? kSRCSETUP : kBMNSETUP;
     //    TString inFileNameMK = Form("bmn_run%04i_sidigitthr2all.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
-    TString inFileNameMK = Form("MK_digi_%04i.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    TString inFileNameMK = Form("~/filesbmn/bmn_run%04i_digi_test_MK.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+//    TString inFileNameMK = Form("~/archivebmn//MK_digi_%04i.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
     //    TString inFileNameBmn = Form("/ncx/nica/mpd22/batyuk/digi/run7/bmn/bmn_run%04i_digi.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
-    TString inFileNameBmn = Form("bmn_run%04i_digi_test.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+//    TString inFileNameBmn = Form("~/filesbmn/bmn_run%04i_digi_test_MK_r.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    TString inFileNameBmn = Form("~/filesbmn/bmn_run%04i_digi_test_SM.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
 
     TString fnames[COLS] = {inFileNameMK, inFileNameBmn};
     TString treeNames[COLS] = {"bmndata", "bmndata"};
@@ -159,6 +160,7 @@ void StripView(Int_t runID) {
     TH1F* hsigMK = new TH1F("hsigMK", "hsigMK", hf + 1, 0, hf);
 
     TString name;
+    TString title;
 
     // ********************
     // silicon pads
@@ -184,7 +186,8 @@ void StripView(Int_t runID) {
                 for (Int_t iLayer = 0; iLayer < 2; iLayer++) {
                     BmnSiliconLayer lay = mod->GetStripLayer(iLayer);
                     name = Form("Silicon_%d_Station_%d_module_%d_layer_%d", iCol, iStation, iModule, iLayer);
-                    TH1F *h = new TH1F(name, name, lay.GetNStrips(), 0, lay.GetNStrips());
+                    title = Form("Station_%d_module_%d_layer_%d", iStation, iModule, iLayer);
+                    TH1F *h = new TH1F(name, title, lay.GetNStrips(), 0, lay.GetNStrips());
                     h->SetTitleSize(0.06, "XY");
                     h->SetLabelSize(0.08, "XY");
                     h->GetXaxis()->SetTitle("Strip Number");
@@ -211,7 +214,7 @@ void StripView(Int_t runID) {
     }
     for (Int_t iStation = 0; iStation < stationSet->GetNStations(); iStation++) {
         BmnSiliconStation * st = stationSet->GetSiliconStation(iStation);
-        printf("st[%d]->GetNModules()=%d\n", iStation, st->GetNModules());
+//        printf("st[%d]->GetNModules()=%d\n", iStation, st->GetNModules());
         for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
             BmnSiliconModule *mod = st->GetModule(iModule);
             for (Int_t iLayer = 0; iLayer < 2; iLayer++) {
@@ -248,7 +251,8 @@ void StripView(Int_t runID) {
                 for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
                     BmnGemStripLayer lay = mod->GetStripLayer(iLayer);
                     name = Form("GEM_%i_Station_%d_module_%d_layer_%d", iCol, iStation, iModule, iLayer);
-                    TH1F *h = new TH1F(name, name, lay.GetNStrips(), 0, lay.GetNStrips());
+                    title = Form("Station_%d_module_%d_layer_%d", iStation, iModule, iLayer);
+                    TH1F *h = new TH1F(name, title, lay.GetNStrips(), 0, lay.GetNStrips());
                     h->SetTitleSize(0.06, "XY");
                     h->SetLabelSize(0.08, "XY");
                     h->GetXaxis()->SetTitle("Strip Number");
@@ -311,7 +315,8 @@ void StripView(Int_t runID) {
                 for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
                     BmnCSCLayer lay = mod->GetStripLayer(iLayer);
                     name = Form("CSC_%i_Station_%d_module_%d_layer_%d", iCol, iStation, iModule, iLayer);
-                    TH1F *h = new TH1F(name, name, lay.GetNStrips(), 0, lay.GetNStrips());
+                    title = Form("Station_%d_module_%d_layer_%d", iStation, iModule, iLayer);
+                    TH1F *h = new TH1F(name, title, lay.GetNStrips(), 0, lay.GetNStrips());
                     h->SetTitleSize(0.06, "XY");
                     h->SetLabelSize(0.08, "XY");
                     h->GetXaxis()->SetTitle("Strip Number");
@@ -424,18 +429,18 @@ void StripView(Int_t runID) {
                     //                    if (i == 1)
                     //                        printf("station %d module %d layer %d strip %d\n", station, module, layer, strip);
                     histStrip[i][station][module][layer]->Fill(strip);
-                    if (station == 0 && module == 0 && layer == 0) {
-                        if (i == 0) {
-                            hfilterMK->Fill(strip, dig->GetStripSignal());
-                            if (dig->GetStripNumber() > 511)
-                                hsigMK->Fill(dig->GetStripSignal());
-                        } else {
-                            hfilter->Fill(strip, dig->GetStripSignal());
-
-                            if (dig->GetStripNumber() > 511)
-                                hsig->Fill(dig->GetStripSignal());
-                        }
-                    }
+//                    if (station == 0 && module == 0 && layer == 0) {
+//                        if (i == 0) {
+//                            hfilterMK->Fill(strip, dig->GetStripSignal());
+//                            if (dig->GetStripNumber() > 511)
+//                                hsigMK->Fill(dig->GetStripSignal());
+//                        } else {
+//                            hfilter->Fill(strip, dig->GetStripSignal());
+//
+//                            if (dig->GetStripNumber() > 511)
+//                                hsig->Fill(dig->GetStripSignal());
+//                        }
+//                    }
                 }
             // gem
             if (gemDigit[i])

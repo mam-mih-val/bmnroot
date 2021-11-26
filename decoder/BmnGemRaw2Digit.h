@@ -32,6 +32,8 @@
 #define N_CH_BUF 4096
 #define N_MODULES 2
 #define N_LAYERS 4
+//MK Real time 14122.027469 s, CPU time 8545.100000 s
+//SM Real time  8283.128545 s, CPU time 7648.220000 s
 
 using namespace std;
 using namespace TMath;
@@ -44,7 +46,7 @@ struct BmnGemMap {
     BmnGemMap(Int_t s, Int_t l, Int_t m) : strip(s), lay(l), mod(m) {
     }
 
-    BmnGemMap() : strip(0), lay(0), mod(0) {
+    BmnGemMap() : strip(-1), lay(-1), mod(-1) {
     }
 };
 
@@ -61,6 +63,7 @@ public:
     BmnStatus RecalculatePedestalsMK(Int_t nPedEv);
     BmnStatus LoadPedestalsMK(TTree* tin, TClonesArray *adc, BmnEventHeader* evhead, Int_t npedev);
     void InitAdcProcessorMK(Int_t run, Int_t iread = 0, Int_t iped = 0, Int_t ithr = 0, Int_t test = 0);
+    void RecalculatePedestalsByMap();
 
 private:
     static const Int_t nx0bin = 190;
@@ -236,11 +239,9 @@ private:
     Float_t thresh = 35;
     Float_t thrcsc = 80;
     Float_t thrnoise = 0.03;
-    Float_t dthr = 10;
     Float_t dthrcsc = 15;
 
     // starting thresholds, number of iterations
-    Int_t niter = 3;
     Int_t niterped = 3;
     Float_t thrped = 35;
     Float_t thrpedcsc = 80;
@@ -363,7 +364,7 @@ private:
     TString fMapFileName;
 
     vector<GemMapValue*> fMap;
-    void MapStrip(GemMapValue* gemM, UInt_t ch, Int_t iSmpl, Int_t &station, Int_t &mod, Int_t &lay, Int_t &strip);
+    inline void MapStrip(GemMapValue* gemM, UInt_t ch, Int_t iSmpl, Int_t &station, Int_t &mod, Int_t &lay, Int_t &strip);
     void ProcessDigit(BmnADCDigit* adcDig, GemMapValue* gemM, TClonesArray *gem, Bool_t doFill);
     void ProcessAdc(TClonesArray *silicon, Bool_t doFill);
     void ProcessDigitMK(BmnADCDigit* adcDig, TClonesArray *gem, Bool_t doFill);

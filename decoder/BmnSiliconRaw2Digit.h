@@ -6,7 +6,6 @@
 #include "TClonesArray.h"
 #include "TColor.h"
 #include <iostream>
-#include "TH1F.h"
 #include "BmnADCDigit.h"
 #include "BmnEnums.h"
 #include "TMath.h"
@@ -44,7 +43,6 @@ public:
     BmnStatus FillNoisyChannels();
     BmnStatus LoadPedestalsMK(TTree* tin, TClonesArray *adc, BmnEventHeader* evhead, Int_t npedev);
     void InitAdcProcessorMK(Int_t run, Int_t iread = 0, Int_t iped = 0, Int_t ithr = 0, Int_t test = 0);
-    void DrawDebugHistsMK(TString docName);
     void RecalculatePedestalsByMap();
 
     vector<BmnSiliconMapping> & GetMap() { return fMap;};
@@ -166,20 +164,14 @@ private:
     vector<Int_t> chmap;
     Int_t nev = -1;
     //    Int_t nradc = 0;
-    Int_t niter;
     Int_t niterped;
     Int_t nchip;
     Int_t nchmin;
     Int_t npevents;
-    Double_t cmodcut;
 
     Double_t thresh;
 
     Double_t thrnoise;
-
-    Double_t dthr;
-
-    Double_t thrped;
 
     Int_t test = 0;
     Bool_t read = kFALSE;

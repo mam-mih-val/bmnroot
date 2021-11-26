@@ -53,10 +53,11 @@ private:
 
     BmnCscMapping* FindMapEntry(BmnADCDigit* adcDig);
     void ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TClonesArray *csc, Bool_t doFill);
-//    void ProcessAdc(TClonesArray *csc, Bool_t doFill);
+    void ProcessAdc(TClonesArray *csc, Bool_t doFill);
     BmnStatus ReadMapFile();
     BmnStatus ReadMapLocalFile();
-    Int_t LayerPrediction(Int_t module, Int_t x);
+    inline Int_t LayerPrediction(Int_t module, Int_t x);
+    inline void MapStrip(BmnCscMapping* cscM, UInt_t iCh, Int_t iSmpl, Int_t &station, Int_t &module, Int_t &layer, Int_t &strip);
 
     ClassDef(BmnCscRaw2Digit, 2);
 };

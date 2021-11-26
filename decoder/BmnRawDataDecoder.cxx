@@ -1014,6 +1014,12 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         ////            return kBMNSUCCESS;
         //        }
         if (fGemMapper) fGemMapper->LoadPedestalsMK(fRawTree, adc32, eventHeaderDAQ, Min(fNevents, (UInt_t) 300000));
+//        if (fSiliconMapper) {
+//            fSiliconMapper->DrawDebugHists2D();
+//            fSiliconMapper->DrawDebugHists();
+//            fSiliconMapper->ClearDebugHists();
+////            return kBMNSUCCESS;
+//        }
         printf("[INFO]" ANSI_COLOR_BLUE " First payload loop\n" ANSI_COLOR_RESET);
         for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
             ClearArrays();
@@ -1061,17 +1067,24 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             printf(" Not enough pedestal events (%d instead of %d)\n", fPedEvCntr, fEvForPedestals);
         }
         if (fGemMapper) fGemMapper->RecalculatePedestalsAugmented();
-        if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsByMap();
+        if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsAugmented();//RecalculatePedestalsByMap();
         if (fCscMapper)fCscMapper->RecalculatePedestalsAugmented();
+//        if (fGemMapper) {
+//            fGemMapper->DrawDebugHists2D();
+//            fGemMapper->DrawDebugHists();
+////            fGemMapper->ClearDebugHists();
+//            return kBMNSUCCESS;
+//        }
 //        if (fSiliconMapper) {
-//            fSiliconMapper->DrawDebugHistsMK("sil-ped-cms-SM.pdf");
-//            fSiliconMapper->DrawDebugHists("sil-ped-cms-SM-ev.pdf");
+//            fSiliconMapper->DrawDebugHists2D();
+//            fSiliconMapper->DrawDebugHists();
 //            fSiliconMapper->ClearDebugHists();
+////            return kBMNSUCCESS;
 //        }
         fPedEvCntr = 0;
         printf("\n[INFO]" ANSI_COLOR_BLUE " Clear noisy channels:\n" ANSI_COLOR_RESET);
         printf("\tFilling signal profiles for station-module-layer histograms\n");
-        UInt_t nEvForNoiseCorrection = 100000;
+        UInt_t nEvForNoiseCorrection = 10000;
         printf("\tNumber of requested events is ");
         printf(ANSI_COLOR_RED "%d\n" ANSI_COLOR_RESET, nEvForNoiseCorrection);
         printf("\tActual number of events is ");
@@ -1091,7 +1104,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                     printf("\n[INFO]");
                     printf(ANSI_COLOR_BLUE " ADC pedestals recalculation\n" ANSI_COLOR_RESET);
                     if (fGemMapper) fGemMapper->RecalculatePedestalsAugmented();
-                    if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsByMap();
+                    if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsAugmented();//RecalculatePedestalsByMap();
                     if (fCscMapper)fCscMapper->RecalculatePedestalsAugmented();
                     fPedEvCntr = 0;
                 }
@@ -1125,6 +1138,12 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             fSiliconMapper->LoadPedestalsMK(fRawTree, adc128, eventHeaderDAQ, Min(fNevents, (UInt_t) 300000));
             //            fSiliconMapper->RecalculatePedestalsMK(fPedEvCntr);
         }
+//        if (fSiliconMapper) {
+//            fSiliconMapper->DrawDebugHists2D();
+//            fSiliconMapper->DrawDebugHists();
+//            fSiliconMapper->ClearDebugHists();
+////            return kBMNSUCCESS;
+//        }
         if (fGemMapper) {
             delete fGemMapper;
             fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId, fGemSerials, fGemMapFileName, fBmnSetup, GetAdcDecoMode());
@@ -1162,10 +1181,16 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         printf("\n[INFO]");
         printf(ANSI_COLOR_BLUE " Calculating pedestals\n" ANSI_COLOR_RESET);
         if (fGemMapper) fGemMapper->RecalculatePedestalsAugmented();
-        if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsByMap();
+        if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsAugmented();//RecalculatePedestalsByMap();
         if (fCscMapper) fCscMapper->RecalculatePedestalsAugmented();
         fPedEvCntr = 0;
 
+//        if (fSiliconMapper) {
+//            fSiliconMapper->DrawDebugHists2D();
+//            fSiliconMapper->DrawDebugHists();
+//            fSiliconMapper->ClearDebugHists();
+////            return kBMNSUCCESS;
+//        }
         //        UInt_t nEvForNoiseCorrection = 10000;
         //        printf("\n[INFO]");
         //        printf(ANSI_COLOR_BLUE " Clear noisy channels:\n" ANSI_COLOR_RESET);
@@ -1315,7 +1340,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 printf("\n[INFO]");
                 printf(ANSI_COLOR_BLUE " Recalculating pedestals\n" ANSI_COLOR_RESET);
                 if (fGemMapper) fGemMapper->RecalculatePedestalsAugmented();
-                if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsByMap();
+                if (fSiliconMapper) fSiliconMapper->RecalculatePedestalsAugmented();//RecalculatePedestalsByMap();
                 if (fCscMapper)fCscMapper->RecalculatePedestalsAugmented();
                 fPedEvCntr = 0;
             }

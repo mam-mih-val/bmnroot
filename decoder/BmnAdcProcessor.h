@@ -1,4 +1,3 @@
-
 //
 // Base class for processing data from ADC detectors
 // It's used for pedestal calculation
@@ -10,6 +9,7 @@
 #include "TString.h"
 #include "TTree.h"
 #include "TClonesArray.h"
+#include "TColor.h"
 #include <iostream>
 #include "BmnADCDigit.h"
 #include "BmnEnums.h"
@@ -20,6 +20,7 @@
 #include <vector>
 #include <TH2F.h>
 #include <TCanvas.h>
+#include <TStyle.h>
 #include <BmnSiliconStationSet.h>
 #include <BmnGemStripStationSet.h>
 #include <BmnCSCStationSet.h>
@@ -103,6 +104,14 @@ public:
         return fRun;
     }
 
+    Int_t GetVerbose() {
+        return fVerbose;
+    }
+
+    void SetVerbose(Int_t v) {
+        fVerbose = v;
+    }
+
     vector<UInt_t>& GetSerials() {
         return fAdcSerials;
     }
@@ -117,19 +126,25 @@ public:
         //so we have to use this crutch.
         return (nSmpl == 128) ? 1542 : 1992;
     }
-    void DrawDebugHists(TString docName);
+    void DrawDebugHists();
+    void DrawDebugHists2D();
     void ClearDebugHists();
 
 protected:
+    Int_t fVerbose = 0;
+    Int_t drawCnt = 0;
+    Int_t drawCnt2d = 0;
     Double_t thrMax;
     Double_t thrDif;
-    UInt_t thrIters;
+    Double_t thrped;
+    Int_t niter;
+    Double_t cmodcut;
     Int_t fNSerials;
     vector<UInt_t> fAdcSerials; ///< list of serial id for ADC-detector
     Int_t fNSamples;
     Int_t fNChannels;
     Double_t**** fPedDat = nullptr; ///< data set to calculate pedestals
-    BmnSetup fBmnSetup;
+    BmnSetup fSetup;
     void Run7(Int_t* statsGem, Int_t* statsSil, Int_t* statsGemPermut, Int_t* statsSilPermut);
     void CreateGeometries();
     Int_t* statsGem = nullptr;
@@ -138,9 +153,9 @@ protected:
     Int_t* statsSilPermut = nullptr;
     map <Int_t, Int_t> fGemStats;
     map <Int_t, Int_t> fSilStats;
-    BmnGemStripStationSet* fDetectorGEM = nullptr;
-    BmnSiliconStationSet* fDetectorSI = nullptr;
-    BmnCSCStationSet* fDetectorCSC = nullptr;
+    BmnGemStripStationSet* fGemStationSet = nullptr;
+    BmnSiliconStationSet* fSilStationSet = nullptr;
+    BmnCSCStationSet* fCscStationSet = nullptr;
 
     map<UInt_t, Int_t> fSerMap; ///< ADC serials map
 

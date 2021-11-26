@@ -10,11 +10,8 @@
 #include "TGeoBBox.h"
 #include "TGeoManager.h"
 #include "TClonesArray.h"
-#include "TFile.h"
-#include "BmnFHCalGeoPar.h"
 
 #include <iostream>
-#include <FairGeoParSet.h>
 
 #include "AnalysisTree/DataHeader.hpp"
 #include "AnalysisTree/TaskManager.hpp"
@@ -23,9 +20,8 @@ ClassImp(CbmConverterManager);
 
 InitStatus CbmConverterManager::Init()
 {
-//   task_manager_->SetOutputTreeConfig(AnalysisTree::eBranchWriteMode::kCreateNewTree);
   task_manager_->Init();
-   FillDataHeader();
+  FillDataHeader();
   InitEvent();
   return kSUCCESS;
 }
@@ -56,7 +52,6 @@ void CbmConverterManager::Exec(Option_t* /*opt*/)
 
 void CbmConverterManager::Finish()
 {
-  LOG(info) << "CbmConverterManager::Finish()";
   TDirectory* curr   = gDirectory;  // TODO check why this is needed
   TFile* currentFile = gFile;
 
@@ -78,60 +73,39 @@ void CbmConverterManager::FillDataHeader()
   data_header->SetBeamMomentum(beam_mom_);
 
   auto& psd_mod_pos              = data_header->AddDetector();
-  const int psd_node_id          = 15;
+  const int psd_node_id          = 6;
   const char* module_name_prefix = "module";
 
-  const char* fairGeom         = "FAIRGeom";
+  auto* geoMan   = gGeoManager;
+  auto* caveNode = geoMan->GetTopNode();
+  auto* psdNode  = caveNode->GetDaughter(psd_node_id);
+  std::cout << "-I- " << psdNode->GetName() << std::endl;
 
-  std::cout << "Reading geometry from geomtry file" << std::endl;
-  if( geometry_file_.empty() )
-    throw std::runtime_error("CbmConverterManager::FillDataHeader(): Geometry file is not set");
-  TGeoManager* geoMan = TGeoManager::Import(geometry_file_.c_str(), fairGeom);
-  if( !geoMan )
-    throw std::runtime_error("CbmConverterManager::FillDataHeader(): There is no TGeoManager in file "+geometry_file_);
-  TGeoNode* caveNode  = geoMan->GetTopNode();
-  if( !caveNode )
-    throw std::runtime_error("CbmConverterManager::FillDataHeader(): There is no cave node in TGeoManager");
-  TGeoNode* fhCalNode   = nullptr;
-  TString nodeName;
-
-  for (int i = 0; i < caveNode->GetNdaughters(); i++) {
-    fhCalNode  = caveNode->GetDaughter(i);
-    nodeName = fhCalNode->GetName();
-    nodeName.ToLower();
-    if (nodeName.Contains("zdc")) break;
-  }
-  fhCalNode = fhCalNode->GetDaughter(0);
-  std::cout << "FHCal node name: " << fhCalNode->GetName() << std::endl;
-
-  auto fhCalGeoMatrix = fhCalNode->GetMatrix();
-  auto fhCalBox       = (TGeoBBox*) fhCalNode->GetVolume()->GetShape();
-  TVector3 frontFaceLocal(0, 0, -fhCalBox->GetDZ());
+  auto psdGeoMatrix = psdNode->GetMatrix();
+  auto psdBox       = (TGeoBBox*) psdNode->GetVolume()->GetShape();
+  TVector3 frontFaceLocal(0, 0, -psdBox->GetDZ());
 
   TVector3 frontFaceGlobal;
-  fhCalGeoMatrix->LocalToMaster(&frontFaceLocal[0], &frontFaceGlobal[0]);
+  psdGeoMatrix->LocalToMaster(&frontFaceLocal[0], &frontFaceGlobal[0]);
 
-  std::cout << "FHCal module positions:\n";
-  for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d) {
-    auto* daughter = fhCalNode->GetDaughter(i_d);
-    auto geoMatrix = daughter->GetMatrix();
-    TVector3 translation(geoMatrix->GetTranslation());
+  for (int i_d = 0; i_d < psdNode->GetNdaughters(); ++i_d) {
+    auto* daughter = psdNode->GetDaughter(i_d);
+    TString daughterName(daughter->GetName());
+    if (daughterName.BeginsWith(module_name_prefix)) {
 
-    int modID = daughter->GetNumber();
-    double x  = translation.X();
-    double y  = translation.Y();
-    translation.SetZ(frontFaceGlobal.Z());
-    double z  = translation.Z();
+      auto geoMatrix = daughter->GetMatrix();
+      TVector3 translation(geoMatrix->GetTranslation());
 
-    auto* module = psd_mod_pos.AddChannel();
-    module->SetPosition(x, y, frontFaceGlobal[2]);
+      int modID = daughter->GetNumber();
+      double x  = translation.X();
+      double y  = translation.Y();
 
-    std::cout << Form("%i: (%.1f, %.1f, %.1f)", modID, x, y, z) << std::endl;
+      std::cout << "mod" << modID << " : " << Form("(%.3f, %3f)", x, y) << std::endl;
+
+      auto* module = psd_mod_pos.AddChannel();
+      module->SetPosition(x, y, frontFaceGlobal[2]);
+    }
   }
-
-  geoMan->GetListOfVolumes()->Delete();
-  geoMan->GetListOfShapes()->Delete();
-  delete geoMan;
 
   task_manager_->SetOutputDataHeader(data_header);
 }

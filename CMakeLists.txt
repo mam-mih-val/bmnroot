@@ -128,6 +128,16 @@ include(BmnMacros)
 include(FairMacros)
 include(WriteConfigFile)
 include(Dart)
+include(CTest)
+include(CheckCompiler)
+include(CbmMacros)
+
+# Set the build type: None, Debug, Release, RelWithDebInfo, MinSizeRel, OMP
+# OMP - the quickest multithreading BmnRoot version for a multicore machine
+If(NOT CMAKE_BUILD_TYPE)
+  Message("Set BuildType DEBUG")
+  set(CMAKE_BUILD_TYPE Debug)
+EndIf(NOT CMAKE_BUILD_TYPE)
 
 include(CheckCompiler)
 #Check the compiler and set the compile and link flags
@@ -350,6 +360,13 @@ add_subdirectory (QA)
 add_subdirectory (eventdisplay)
 add_subdirectory (macro)
 add_subdirectory (services)
+add_subdirectory (embedding)
+add_subdirectory (external)
+add_subdirectory (analysis/common/analysis_tree_converter)
+
+if(EXISTS "${CMAKE_SOURCE_DIR}/macro/nica_scheduler/CMakeLists.txt")
+ add_subdirectory (macro/nica_scheduler)
+endif()
 
 Option(BUILD_DOXYGEN "Build Doxygen" OFF)
 if(BUILD_DOXYGEN)

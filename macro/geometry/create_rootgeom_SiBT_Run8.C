@@ -20,7 +20,7 @@ const Int_t NMaxModules = 1;    //max. number of modules in a station
 //(X-Y-Z)Positions of stations
 const Double_t XStationPositions[NStations] = { 0.0/*0*/, 0.0/*1*/, 0.0/*2*/}; //geometry center
 const Double_t YStationPositions[NStations] = { 0.0/*0*/, 0.0/*1*/, 0.0/*2*/}; //geometry center
-const Double_t ZStationPositions[NStations] = { -50.0/*0*/, -120.0/*1*/, -190.0/*2*/}; //a side which is the nearest to the beam
+const Double_t ZStationPositions[NStations] = { -60.0/*0*/, -160.0/*1*/, -260.0/*2*/}; //a side which is the nearest to the beam
 
 //(X-Y-Z)Shifts of modules in each station
 const Double_t XModuleShifts[NStations][NMaxModules] = {
@@ -140,6 +140,7 @@ void create_rootgeom_SiBT_Run8() {
         TGeoVolume *module0 = CreateModule(TString("module0_")+station->GetName());
 
         TGeoCombiTrans *module0_transform = new TGeoCombiTrans();
+            //if (istation == 1) module0_transform->RotateZ(15.0);
             module0_transform->SetTranslation(XModuleShifts[stationNum][0], YModuleShifts[stationNum][0], ZModuleShifts[stationNum][0] + 0.5*ZSensSize);
 
         TGeoCombiTrans *station_transform = new TGeoCombiTrans();

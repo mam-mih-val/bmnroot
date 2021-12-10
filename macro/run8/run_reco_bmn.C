@@ -8,7 +8,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #define L1 // Choose Tracking: L1 or CellAuto
 
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
-        TString bmndstFileName = "$VMCWORKDIR/macro/run8/bmndst.root",
+    TString bmndstFileName = "$VMCWORKDIR/macro/run8/bmndst.root",
         Int_t nStartEvent = 0, Int_t nEvents = 100)
 {
     gDebug = 0; // Debug option
@@ -138,6 +138,12 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
     // fRunAna->AddTask(mwpcHM);
     
     // ====================================================================== //
+    // ===                         SiBT hit finder                        === //
+    // ====================================================================== //
+    BmnSiBTHitMaker* sibtHM = new BmnSiBTHitMaker(run_period, run_number, isExp);
+    fRunAna->AddTask(sibtHM);
+
+    // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
     BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
@@ -221,6 +227,12 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
     innerTF->SetFiltration(isExp); //we use filtration for experimental data only now
     fRunAna->AddTask(innerTF);
 #endif
+
+    // ====================================================================== //
+    // ===                          Tracking (BEAM)                       === //
+    // ====================================================================== //
+    BmnBeamTracking* beamTF = new BmnBeamTracking(run_period);
+    fRunAna->AddTask(beamTF);
 
     // ====================================================================== //
     // ===                          Tracking (MWPC)                       === //

@@ -6,6 +6,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/silicon
+ ${CMAKE_SOURCE_DIR}/SiBT
  ${CMAKE_SOURCE_DIR}/steering
  ${CMAKE_SOURCE_DIR}/tracking
 )
@@ -30,6 +31,7 @@ set(SRCS
   BmnCellAutoTracking.cxx
   BmnInnerTrackingRun7.cxx
   SrcInnerTrackingRun7.cxx
+  BmnBeamTracking.cxx
   BmnCellDuet.cxx
 )
 

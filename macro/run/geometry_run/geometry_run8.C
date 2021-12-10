@@ -19,6 +19,10 @@ void geometry(FairRunSim *fRun)
     
     // -----   Create detectors        -------------------------
 
+    FairDetector* sibt = new BmnSiBT("SiBT", kTRUE);
+    sibt->SetGeometryFileName("SiBT_Run8.root");
+    fRun->AddModule(sibt);
+
     FairDetector* simd = new BmnSiMD("SiMD", kTRUE);
     simd->SetGeometryFileName("SiMD_run8_v1.root");
     fRun->AddModule(simd);
@@ -32,7 +36,7 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(fd);
 
     FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
-    silicon->SetGeometryFileName("Silicon_Run8_4stations_detailed.root");
+    silicon->SetGeometryFileName("Silicon_Run8_3stations_detailed.root");
     fRun->AddModule(silicon);
 
     FairDetector* gems = new CbmSts("GEM", kTRUE);

@@ -12,8 +12,7 @@ enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM};
 // generatorName - generator name for the input file (enumeration above)
 // useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
 void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString outFile = "$VMCWORKDIR/macro/run8/bmnsim.root",
-                 Int_t nStartEvent = 0, Int_t nEvents = 1, enumGenerators generatorName = DCMSMM, Bool_t useRealEffects = kFALSE)
-{
+    Int_t nStartEvent = 0, Int_t nEvents = 1, enumGenerators generatorName = DCMSMM, Bool_t useRealEffects = kFALSE) {
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
@@ -75,7 +74,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     // ------- Ion Generator
     case ION:{
         // Start beam from a far point to check mom. reconstruction procedure (Z, A, q, mult, [GeV] px, py, pz, [cm] vx, vy, vz)
-        FairIonGenerator* fIongen = new FairIonGenerator(6, 12, 6, 1, 0., 0., 4.4, 0., 0., -647.);
+        FairIonGenerator* fIongen = new FairIonGenerator(54, 131, 54, 1, 0., 0., -4.8, 0., 0., 0.); //Xe
         primGen->AddGenerator(fIongen);
         break;
     }
@@ -83,10 +82,10 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     // ------- Box Generator
     case BOX:{
         gRandom->SetSeed(0);
-        FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 10); // 13 = muon; 1 = multipl.
-        boxGen->SetPRange(1., 1.);      // GeV/c, setPRange vs setPtRange
+        FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 13 = muon; 1 = multipl.
+        boxGen->SetPRange(4.8, 4.8);      // GeV/c, setPRange vs setPtRange
         boxGen->SetPhiRange(0, 360);    // Azimuth angle range [degree]
-        boxGen->SetThetaRange(10, 15);  // Polar angle in lab system range [degree]
+        boxGen->SetThetaRange(180, 180);  // Polar angle in lab system range [degree]
         primGen->AddGenerator(boxGen);
         break;
     }
@@ -145,7 +144,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
 
     // -----   Create magnetic field   ----------------------------------------
     BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v5_ascii_Extrap.root");
-    Double_t fieldScale = 1200. / 900.;
+    Double_t fieldScale = 1800. / 900.;
     magField->SetScale(fieldScale);
     fRun->SetField(magField);
 
@@ -154,6 +153,16 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
 
 
     // -----   Digitizers: converting MC points to detector digits   -----------
+    // SiBT-Digitizer
+    BmnSiBTConfiguration::SiBT_CONFIG sibt_config = BmnSiBTConfiguration::Run8;
+    BmnSiBTDigitizer* sibtDigit = new BmnSiBTDigitizer();
+    sibtDigit->SetCurrentConfig(sibt_config);
+    fRun->AddTask(sibtDigit);
+    
+    // SiMD-Digitizer
+    BmnSiMDDigitizer* simdDigit = new BmnSiMDDigitizer();
+    fRun->AddTask(simdDigit);
+
     // SI-Digitizer
     BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::Run8_3stations;
     BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();

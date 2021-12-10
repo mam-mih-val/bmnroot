@@ -28,6 +28,7 @@ BmnSiMDPoint.cxx
 BmnSiMDContFact.cxx  
 BmnSiMDGeo.cxx 
 BmnSiMDGeoPar.cxx
+BmnSiMDDigitizer.cxx
 )
 
 Set(HEADERS)

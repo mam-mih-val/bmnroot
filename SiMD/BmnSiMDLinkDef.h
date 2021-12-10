@@ -10,4 +10,5 @@
 #pragma link C++ class  BmnSiMDGeo+;
 #pragma link C++ class  BmnSiMDGeoPar+;
 #pragma link C++ class  BmnSiMDContFact+;
+#pragma link C++ class  BmnSiMDDigitizer+;
 #endif

@@ -29,11 +29,10 @@ public:
   ~CbmTofHitsConverter() final;
 
   void Init() final;
-  void ProcessData(CbmEvent* event) final;
+  void ProcessData() final;
   void Finish() final {}
 
 private:
-  static void ExtrapolateStraightLine(FairTrackParam* params, float z);
 
   const std::map<int, int>& GetMatchMap(const std::string& name) const
   {
@@ -45,12 +44,8 @@ private:
 
   TClonesArray* cbm_global_tracks_ {nullptr};
   TClonesArray* cbm_tof_hits_ {nullptr};
-  //  TClonesArray* cbm_tof_points_ {nullptr};
   TClonesArray* cbm_tof_match_ {nullptr};
-  //  TClonesArray* cbm_mc_tracks_ {nullptr};
-  CbmMCDataManager* cbm_mc_manager_ {nullptr};
-  CbmMCDataArray* cbm_mc_tracks_new_ {nullptr};
-  CbmMCDataArray* cbm_tof_points_new_ {nullptr};
+  TClonesArray* cbm_mc_tracks_ {nullptr};
 
   AnalysisTree::HitDetector* tof_hits_ {nullptr};
   AnalysisTree::Matching* vtx_tracks_2_tof_ {nullptr};

@@ -62,7 +62,5 @@ Set(DEPENDENCIES Base EG MathCore Physics RIO Core)
 
 GENERATE_LIBRARY()
 
-add_executable (show_event_count show_event_count.cxx)
-target_link_libraries(show_event_count MpdGen ${ROOT_LIBRARIES})
-
-INSTALL(PROGRAMS ${EXECUTABLE_OUTPUT_PATH}/show_event_count DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)
+#add_executable (show_event_count show_event_count.cxx)
+#target_link_libraries(show_event_count MpdGen ${ROOT_LIBRARIES})

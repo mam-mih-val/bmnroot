@@ -49,9 +49,9 @@ void CbmRecEventHeaderConverter::ProcessData()
 
   if (!cbm_prim_vertex_) { throw std::runtime_error("No fPrimVtx"); }
 
-//  rec_event_header_->SetVertexPosition3({cbm_prim_vertex_->GetX(), cbm_prim_vertex_->GetY(), cbm_prim_vertex_->GetZ()});
-//  rec_event_header_->SetField(float(cbm_prim_vertex_->GetChi2() / cbm_prim_vertex_->GetNDF()),
-//                              branch.GetFieldId("vtx_chi2"));
+  rec_event_header_->SetVertexPosition3({cbm_prim_vertex_->GetX(), cbm_prim_vertex_->GetY(), cbm_prim_vertex_->GetZ()});
+  rec_event_header_->SetField(float(cbm_prim_vertex_->GetChi2() / cbm_prim_vertex_->GetNDF()),
+                              branch.GetFieldId("vtx_chi2"));
 
   const int n_sts_tracks = cbm_sts_tracks_->GetEntries();
   rec_event_header_->SetField(n_sts_tracks, branch.GetFieldId("M"));
@@ -59,5 +59,8 @@ void CbmRecEventHeaderConverter::ProcessData()
   rec_event_header_->SetField(int(cbm_header_->GetEventID()), branch.GetFieldId("evt_id"));
   rec_event_header_->SetField(float(cbm_header_->GetT()), branch.GetFieldId("start_time"));
   rec_event_header_->SetField(float(cbm_header_->GetT()), branch.GetFieldId("end_time"));
+  
+  LOG(info) << "CbmRecEventHeaderConverter " << cbm_prim_vertex_->GetX() << " " << cbm_prim_vertex_->GetChi2();
+
 
 }

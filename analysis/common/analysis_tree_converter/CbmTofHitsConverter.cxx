@@ -4,13 +4,9 @@
 
 #include "CbmTofHitsConverter.h"
 
-#include "CbmDefs.h"
-#include "CbmEvent.h"
-#include "CbmMCDataArray.h"
-#include "CbmMCDataManager.h"
 #include <CbmGlobalTrack.h>
 #include <CbmTofHit.h>
-#include <CbmTrackMatchNew.h>
+#include <CbmTrackMatch.h>
 
 #include <FairMCPoint.h>
 #include <FairRootManager.h>
@@ -32,20 +28,12 @@ void CbmTofHitsConverter::Init()
   cbm_tof_hits_      = (TClonesArray*) ioman->GetObject("TofHit");
   cbm_global_tracks_ = (TClonesArray*) ioman->GetObject("GlobalTrack");
   cbm_tof_match_     = (TClonesArray*) ioman->GetObject("TofHitMatch");
-  //  cbm_tof_points_    = (TClonesArray*) ioman->GetObject("TofPoint");
-  //  cbm_mc_tracks_     = (TClonesArray*) ioman->GetObject("MCTrack");
-
-  cbm_mc_manager_     = dynamic_cast<CbmMCDataManager*>(ioman->GetObject("MCDataManager"));
-  cbm_mc_tracks_new_  = cbm_mc_manager_->InitBranch("MCTrack");
-  cbm_tof_points_new_ = cbm_mc_manager_->InitBranch("TofPoint");
+  cbm_mc_tracks_     = (TClonesArray*) ioman->GetObject("MCTrack");
 
   AnalysisTree::BranchConfig tof_branch(out_branch_, AnalysisTree::DetType::kHit);
   tof_branch.AddField<float>("mass2", "Mass squared");
   tof_branch.AddField<float>("l", "Track lenght");
   tof_branch.AddField<float>("t", "ps(?), Measured time ");
-  tof_branch.AddField<float>("qp_tof", "charge * momentum extrapoleted to TOF");
-  tof_branch.AddFields<float>({"dx", "dy", "dz"}, "Distance between TOF hit and extrapolated global track, cm");
-  tof_branch.AddField<int>("mc_pdg", "MC-true PDG code of particle with highest contribution to TOF hit");
 
   auto* man = AnalysisTree::TaskManager::GetInstance();
   man->AddBranch(out_branch_, tof_hits_, tof_branch);
@@ -53,20 +41,7 @@ void CbmTofHitsConverter::Init()
   man->AddMatching(out_branch_, mc_tracks_, tof_hits_2_mc_tracks_);
 }
 
-void CbmTofHitsConverter::ExtrapolateStraightLine(FairTrackParam* params, float z)
-{
-  const Float_t Tx    = params->GetTx();
-  const Float_t Ty    = params->GetTy();
-  const Float_t old_z = params->GetZ();
-  const Float_t dz    = z - old_z;
-
-  const Float_t x = params->GetX() + Tx * dz;
-  const Float_t y = params->GetY() + Ty * dz;
-
-  params->SetPosition({x, y, z});
-}
-
-void CbmTofHitsConverter::ProcessData(CbmEvent* event)
+void CbmTofHitsConverter::ProcessData()
 {
   assert(cbm_tof_hits_);
   tof_hits_->ClearChannels();
@@ -85,20 +60,8 @@ void CbmTofHitsConverter::ProcessData(CbmEvent* event)
   auto rec_tracks_map = GetMatchMap(match_to_);
   auto sim_tracks_map = GetMatchMap(mc_tracks_);
 
-  int file_id{0}, event_id{0};
-  if(event){
-    auto match=event->GetMatch();
-    if (!match)
-      return;
-    file_id = event->GetMatch()->GetMatchedLink().GetFile();
-    event_id = event->GetMatch()->GetMatchedLink().GetEntry();
-  }
-  else{
-    event_id = FairRootManager::Instance()->GetEntryNr();
-  }
-
-  const int n_tracks = event ? event->GetNofData(ECbmDataType::kGlobalTrack) : cbm_global_tracks_->GetEntriesFast();
-  const int n_tof_hits = event ? event->GetNofData(ECbmDataType::kTofHit) : cbm_tof_hits_->GetEntriesFast();
+  const int n_tracks = cbm_global_tracks_->GetEntriesFast();
+  const int n_tof_hits = cbm_tof_hits_->GetEntriesFast();
 
   if (n_tracks <= 0) {
     LOG(warn) << "No global tracks!";
@@ -107,7 +70,7 @@ void CbmTofHitsConverter::ProcessData(CbmEvent* event)
   tof_hits_->Reserve(n_tracks);
 
   for (Int_t igt = 0; igt < n_tracks; igt++) {
-    const auto trackIndex   = event ? event->GetIndex(ECbmDataType::kGlobalTrack, igt) : igt;
+    const auto trackIndex   = igt;
     const auto* globalTrack = static_cast<const CbmGlobalTrack*>(cbm_global_tracks_->At(trackIndex));
     const Int_t tofHitIndex = globalTrack->GetTofHitIndex();
     if (tofHitIndex < 0) continue;
@@ -129,16 +92,11 @@ void CbmTofHitsConverter::ProcessData(CbmEvent* event)
     const Float_t hitY = tofHit->GetY();
     const Float_t hitZ = tofHit->GetZ();
 
-    ExtrapolateStraightLine(&param_last, tofHit->GetZ());
-
     auto& hit = tof_hits_->AddChannel(branch);
     hit.SetPosition(hitX, hitY, hitZ);
     hit.SetSignal(time);
     hit.SetField(m2, i_mass2);
     hit.SetField(float(q * p_tof.Mag()), i_qp);
-    hit.SetField(float(param_last.GetX() - hitX), i_dx);
-    hit.SetField(float(param_last.GetY() - hitY), i_dx + 1);
-    hit.SetField(float(param_last.GetZ() - hitZ), i_dx + 2);
     hit.SetField(l, i_l);
     hit.SetField(time, i_t);
 
@@ -151,12 +109,7 @@ void CbmTofHitsConverter::ProcessData(CbmEvent* event)
     const auto* tofMatch = dynamic_cast<CbmMatch*>(cbm_tof_match_->At(tofHitIndex));
     if (tofMatch && tofMatch->GetNofLinks() > 0) {
       const auto& link = tofMatch->GetMatchedLink();
-      if (link.GetFile() != file_id || link.GetEntry() != event_id) {  // match from different event
-        LOG(warn) << "match from different event";
-        //        continue;
-      }
-      const auto* tofPoint = dynamic_cast<FairMCPoint*>(cbm_tof_points_new_->Get(link));
-      //      const auto* tofPoint = dynamic_cast<FairMCPoint*>(cbm_tof_points_->At(link.GetIndex()));
+      const auto* tofPoint = dynamic_cast<FairMCPoint*>(cbm_tof_points_->At(link.GetIndex()));
 
       if (!tofPoint) { throw std::runtime_error("no TOF point"); }
 

@@ -20,8 +20,9 @@ ClassImp(CbmConverterManager);
 
 InitStatus CbmConverterManager::Init()
 {
+//   task_manager_->SetOutputTreeConfig(AnalysisTree::eBranchWriteMode::kCreateNewTree);
   task_manager_->Init();
-  FillDataHeader();
+//   FillDataHeader();
   InitEvent();
   return kSUCCESS;
 }
@@ -52,6 +53,7 @@ void CbmConverterManager::Exec(Option_t* /*opt*/)
 
 void CbmConverterManager::Finish()
 {
+  LOG(info) << "CbmConverterManager::Finish()";
   TDirectory* curr   = gDirectory;  // TODO check why this is needed
   TFile* currentFile = gFile;
 

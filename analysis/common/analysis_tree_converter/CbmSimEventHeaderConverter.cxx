@@ -27,8 +27,7 @@ void CbmSimEventHeaderConverter::Init()
   auto* ioman = FairRootManager::Instance();
   assert(ioman != nullptr);
 
-//  cbm_mc_manager_    = dynamic_cast<CbmMCDataManager*>(ioman->GetObject("MCDataManager"));
-//  cbm_header_obj_ = cbm_mc_manager_->GetObject("MCEventHeader.");
+  cbm_header_ = (FairMCEventHeader*) ioman->GetObject("MCEventHeader.");
 
   //  ***** SimEventHeader *******
   AnalysisTree::BranchConfig SimEventHeaderBranch("SimEventHeader", AnalysisTree::DetType::kEventHeader);
@@ -45,9 +44,7 @@ void CbmSimEventHeaderConverter::Init()
 
 void CbmSimEventHeaderConverter::ProcessData()
 {
-  FairMCEventHeader* cbm_header{nullptr};
-
-  LOG(info) << "MCEvent " << cbm_header->GetEventID() << " " << cbm_header->GetT();
+  FairMCEventHeader* cbm_header = cbm_header_;
 
   if (!cbm_header) { throw std::runtime_error("CbmSimEventHeaderConverter::Exec - ERROR! No fHeader!"); }
   auto* out_config_  = AnalysisTree::TaskManager::GetInstance()->GetConfig();
@@ -60,4 +57,7 @@ void CbmSimEventHeaderConverter::ProcessData()
   sim_event_header_->SetField(float(cbm_header->GetB()), branch.GetFieldId("b"));
   sim_event_header_->SetField(int(cbm_header->GetEventID()), branch.GetFieldId("event_id"));
   sim_event_header_->SetField(int(cbm_header->GetRunID()), branch.GetFieldId("run_id"));
+  
+  LOG(info) << "CbmSimEventHeaderConverter " << cbm_header->GetX() << " " << cbm_header->GetB() << " " << cbm_header->GetEventID();
+  
 }

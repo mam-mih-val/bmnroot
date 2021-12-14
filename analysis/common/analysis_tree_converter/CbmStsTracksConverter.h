@@ -6,16 +6,12 @@
 #define ANALYSIS_TREE_STSTRACKSCONVERTER_H_
 
 #include "CbmConverterTask.h"
-//#include <CbmMCDataManager.h>
 
 #include "AnalysisTree/Detector.hpp"
 
 class TClonesArray;
 class CbmVertex;
 class CbmStsTrack;
-//class CbmTrackMatchNew;
-//class CbmMCDataManager;
-//class CbmMCDataArray;
 
 namespace AnalysisTree
 {
@@ -43,11 +39,10 @@ private:
   void ReadVertexTracks();
   void MapTracks();
   void InitInput();
-  float ExtrapolateToVertex(CbmStsTrack* sts_track, AnalysisTree::Track& track, int pdg);
+//   float ExtrapolateToVertex(CbmStsTrack* sts_track, AnalysisTree::Track& track, int pdg);
 
   void WriteKFInfo(AnalysisTree::Track& track, CbmStsTrack* sts_track, bool is_good_track) const;
   bool IsGoodCovMatrix(CbmStsTrack* sts_track) const;
-  //  int GetMcPid(const CbmTrackMatchNew* match, AnalysisTree::Track& track) const;
 
   AnalysisTree::TrackDetector* vtx_tracks_ {nullptr};   ///< raw pointers are needed for TTree::Branch
   AnalysisTree::Matching* vtx_tracks_2_sim_ {nullptr};  ///< raw pointers are needed for TTree::Branch
@@ -57,9 +52,6 @@ private:
   TClonesArray* cbm_mc_tracks_ {nullptr};  ///< non-owning pointer
   TClonesArray* cbm_sts_tracks_ {nullptr};  ///< non-owning pointer
   TClonesArray* cbm_sts_match_ {nullptr};   ///< non-owning pointer
-
-//  CbmMCDataManager* cbm_mc_manager_ {nullptr};
-//  CbmMCDataArray* cbm_mc_tracks_new_ {nullptr};
 
   bool is_write_kfinfo_ {true};
   bool is_reproduce_cbmkfpf_ {true};

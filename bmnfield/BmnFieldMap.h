@@ -105,7 +105,7 @@ public:
     const char* GetFileName() { return fFileName.Data(); }
 
     /** Screen output **/
-    void Print();
+    void Print(Option_t*);
 
     virtual void FillParContainer() {
         cout << "To be implemented in BmnNewFieldMap";

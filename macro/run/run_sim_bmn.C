@@ -191,7 +191,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     fRun->AddTask(ecalDigit);
 
     fRun->Init();
-    magField->Print();
+    magField->Print("");
 
     // Trajectories Visualization (TGeoManager only)
     FairTrajFilter* trajFilter = FairTrajFilter::Instance();

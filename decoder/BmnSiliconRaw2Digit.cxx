@@ -21,8 +21,30 @@ BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t>
         TString confSi = (fPeriod == 7) ?
                 ((fSetup == kBMNSETUP) ? "SiliconRunSpring2018.xml" : "SiliconRunSRCSpring2018.xml") :
                 "SiliconRunSpring2017.xml";
+    TString xmlConfFileName;
+    switch (period) {
+        case 8:
+            if (fSetup == kBMNSETUP) {
+                xmlConfFileName = "SiliconRun8_3stations.xml";
+            } else {
+                xmlConfFileName = "SiliconRun8_3stations.xml";
+            }
+            break;
+        case 7:
+            if (fSetup == kBMNSETUP) {
+                xmlConfFileName = "SiliconRunSpring2018.xml";
+            } else {
+                xmlConfFileName = "SiliconRunSRCSpring2018.xml";
+            }
+            break;
+        default:
+            printf("Error! Unknown config!\n");
+            return;
+            break;
+
+    }
         TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
-        fSilStationSet = new BmnSiliconStationSet(gPathSiliconConfig + confSi);
+        fSilStationSet = new BmnSiliconStationSet(gPathSiliconConfig + xmlConfFileName);
 
         Int_t kNStations = fSilStationSet->GetNStations();
         fSigProf = new TH1F***[kNStations];

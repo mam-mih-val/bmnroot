@@ -91,12 +91,30 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
 
     if (decoMode == kBMNADCSM) {
         TString gPathConfig = getenv("VMCWORKDIR");
-        TString confGem = (fPeriod == 7) ?
-                ((fSetup == kBMNSETUP) ? "GemRunSpring2018.xml" : "GemRunSRCSpring2018.xml") :
-                "GemRunSpring2017.xml";
-        // GEM
+    TString xmlConfFileName;
+    switch (period) {
+        case 8:
+            if (fSetup == kBMNSETUP) {
+                xmlConfFileName = "GemRun8.xml";
+            } else {
+                xmlConfFileName = "GemRunSRC2021.xml";
+            }
+            break;
+        case 7:
+            if (fSetup == kBMNSETUP) {
+                xmlConfFileName = "GemRunSpring2018.xml";
+            } else {
+                xmlConfFileName = "GemRunSRCSpring2018.xml";
+            }
+            break;
+        default:
+            printf("Error! Unknown config!\n");
+            return;
+            break;
+
+    }
         TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
-        fGemStationSet = new BmnGemStripStationSet(gPathGemConfig + confGem);
+        fGemStationSet = new BmnGemStripStationSet(gPathGemConfig + xmlConfFileName);
 
 
         Int_t kNStations = fGemStationSet->GetNStations();
@@ -125,7 +143,7 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
                 }
             }
         }
-        thrMax = 35;
+        thrMax = 40;
         thrDif = 10;
         niter = 3;
     }

@@ -23,6 +23,8 @@
 #include "BmnTofHitProducer.h"
 
 #define MAKE_CLUSTERS 1
+#define OCCUPANCY 1
+#define OCCUPANCY_DEBUG 0
 
 using namespace std;
 
@@ -32,7 +34,7 @@ ClassImp(BmnTofHitProducer)
 //--------------------------------------------------------------------------------------------------------------------------------------
 BmnTofHitProducer::BmnTofHitProducer(const char *name, const char *geomFile, Bool_t useMCdata, Int_t verbose, Bool_t test)
 :  BmnTofHitProducerIdeal(name, useMCdata, verbose, test), fTimeSigma(0.100), fErrX(1.0), fErrY(1.0), pRandom(new TRandom2), h2TestStrips(nullptr) , h1TestDistance(nullptr), h2TestNeighborPair(nullptr),
-	fDoINL(true), fDoSlewing(true), fSignalVelosity(0.050)
+	fDoINL(true), fDoSlewing(true), fSignalVelosity(1.0/16.0)
 {
 	pGeoUtils = new BmnTofGeoUtils(useMCdata);
 	pGeoUtils->SetVerbosity(fVerbose);
@@ -65,6 +67,8 @@ BmnTofHitProducer::BmnTofHitProducer(const char *name, const char *geomFile, Boo
 		h2TdetIdStripId = new TH2D("TOF700_TdetIdStripId", ";stripId;detId", 100, -0.5, 99.5, 26, -0.5, 25.5);							fList.Add(h2TdetIdStripId);		
 		h1TestMass = new TH1D("TOF700_TestMass", "Mass", 500, 0., 100.); 											fList.Add(h1TestMass);
 		h1TestMassLong = new TH1D("TOF700_TestMassLong", "Mass - long tracks", 500, 0., 100.); 									fList.Add(h1TestMassLong);
+		h1TestOccupancyTimeShift = new TH1D("TOF700_TestOccupancyTimeShift", "Occupancy Time Shift", 100, -1., 1.); 						fList.Add(h1TestOccupancyTimeShift);
+		h1TestOccupancyPositionShift = new TH1D("TOF700_TestOccupancyPositionShift", "Occupancy Position Shift", 200, -10., 10.); 				fList.Add(h1TestOccupancyPositionShift);
     	}
 	if (!useMCdata)
 	{
@@ -264,10 +268,14 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 		
 			if(fVerbose > 2) pPoint->Print(""); 		
   
-			trackID = pPoint->GetTrackID();	
+			trackID = pPoint->GetTrackID();
 			UID	= pPoint->GetDetectorID();
 			if (UID == 1) continue; //TMP!!!
-			Double_t time = pRandom->Gaus(pPoint->GetTime(), fTimeSigma); // time rsolution in ps		
+			Double_t time = 0.;
+			if (OCCUPANCY)
+			    time = pPoint->GetTime(); // time rsolution in ps		
+			else
+			    time = pRandom->Gaus(pPoint->GetTime(), fTimeSigma); // time rsolution in ps		
 			Double_t length = pRandom->Gaus(pPoint->GetLength(), 1.); // 1 cm		
 			pPoint->Position(pos);
 			pPoint->Momentum(mom);
@@ -287,7 +295,10 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 
 //			if (UID == ((19<<8)|32)) printf("Hit x %f y %f z %f, strip x %f y %f z %f\n", pos.X(), pos.Y(), pos.Z(), pStrip->center.X(), pStrip->center.Y(), pStrip->center.Z());
 		
-			XYZ_smeared.SetXYZ( pRandom->Gaus(pos.X(), fErrX), pStrip->center.Y(), pStrip->center.Z());
+			if (OCCUPANCY)
+			    XYZ_smeared.SetXYZ( pos.X(), pStrip->center.Y(), pStrip->center.Z());
+			else
+			    XYZ_smeared.SetXYZ( pRandom->Gaus(pos.X(), fErrX), pStrip->center.Y(), pStrip->center.Z());
 
 			LStrip::Side_t side;
 			Double_t distance = pStrip->MinDistanceToEdge(&pos, side); // [cm]
@@ -538,8 +549,10 @@ void BmnTofHitProducer::Exec(Option_t* opt)
             	    }
             	}
 	}
-	
-	MergeHitsOnStrip(); // save only the fastest hit in the strip
+	if (OCCUPANCY)
+	    MergeHitsOnStripNew(); // simulation realistic response - several tracks hits in the strip
+	else
+	    MergeHitsOnStrip(); // save only the fastest hit in the strip
 
 	int nFinally = CompressHits(); // remove blank slotes
         
@@ -564,6 +577,148 @@ void BmnTofHitProducer::Finish()
 	}
         
     if (fVerbose > 0) cout << "Work time of the TOF-700 hit finder: " << workTime << endl;
+}
+//------------------------------------------------------------------------------------------------------------------------
+Int_t 	BmnTofHitProducer::MergeHitsOnStripNew(void)
+{
+	typedef map<Int_t, BmnTofHit*> hitsMapType;
+	hitsMapType fHits; // pair<detectorUID, BmnTofHit*> fastest hits map
+	hitsMapType::iterator it;
+	Int_t mergedNmb = 0;
+	Double_t tarrive[70000][2] = {{0.}};
+	Double_t tarrive0[70000][2] = {{0.}};
+	Double_t tarrivemin[70000] = {0.};
+	Double_t tarr[2] = {0.};
+	Double_t tarr1[2] = {0.};
+
+	typedef multiset<Int_t> msUIDsType; // detectorUID for Hits
+	msUIDsType	UIDs;
+	
+	if (OCCUPANCY_DEBUG) printf(" *********** New event ****************\n");
+
+	BmnTofHit *fastHit, *slowHit;
+	for(Int_t hitIndex = 0, nHits = aTofHits->GetEntriesFast(); hitIndex < nHits; hitIndex++ ) // cycle by hits
+	{	
+		BmnTofHit *pHit = (BmnTofHit*) aTofHits->UncheckedAt(hitIndex); 		
+		assert(nullptr != pHit);
+		
+		Int_t UID = pHit->GetDetectorID();
+		if (UID >= 70000) continue;
+		
+		if(fDoTest) UIDs.insert(UID);
+
+		const LStrip *pStrip = pGeoUtils->FindStrip(UID);
+		if (pStrip == NULL) continue;
+		TVector3 pos;
+		pHit->Position(pos);
+		Int_t side;
+		Double_t distance1 = pStrip->DistanceFromPointToLineSegment(&pos, pStrip->A, pStrip->D); // right side, [cm]
+		Double_t distance2 = pStrip->DistanceFromPointToLineSegment(&pos, pStrip->B, pStrip->C); // left  side, [cm]
+		tarr[0] = pHit->GetTimeStamp() + distance1*fSignalVelosity; // right side, [ns]
+		tarr[1] = pHit->GetTimeStamp() + distance2*fSignalVelosity; // left  side, [ns]
+		Double_t tarrmin =  tarr[0];
+		if (tarr[1] < tarrmin) tarrmin = tarr[1];
+		it = fHits.find(UID);
+
+		if(it != fHits.end()) // hit for this detectorUID already exist
+		{
+			mergedNmb++; 
+			if (OCCUPANCY_DEBUG) printf("Chamber %2d strip %2d before %f %f\n",UID>>8, UID&0xFF, tarrive[UID][0],tarrive[UID][1]);
+			//printf("    distance %f %f\n",distance1, distance2);
+			if (tarrmin < tarrivemin[UID])
+			{
+				tarrivemin[UID] = tarrmin;
+				fastHit = pHit;
+				slowHit = it->second;
+				tarrive0[UID][0] = tarr[0];
+				tarrive0[UID][1] = tarr[1];
+			}
+			else
+			{
+				fastHit = it->second;
+				slowHit = pHit;			
+			}
+			if(tarr[0] < tarrive[UID][0]) //  faster hit found on side 0
+			{
+				tarrive[UID][0] = tarr[0];
+				fastHit->SetFlag(kFALSE);
+			}
+			if(tarr[1] < tarrive[UID][1]) //  faster hit  found on side 1
+			{
+				tarrive[UID][1] = tarr[1];
+				fastHit->SetFlag(kFALSE);
+			}
+			if (OCCUPANCY_DEBUG) printf("                    after  %f %f\n",tarrive[UID][0],tarrive[UID][1]);
+
+			if(fDoTest) h2TestMergedTimes->Fill(fastHit->GetTimeStamp(), slowHit->GetTimeStamp());				
+					
+			fastHit->AddLinks(slowHit->GetLinks());		// copy links
+			aTofHits->Remove(slowHit); 			// remove old hit   --> make blank slote !!			
+			it->second = fastHit;				// change pair value to current UID					 
+		}
+		else // insert new detectorUID pair
+		{
+		    fHits.insert(make_pair(UID, pHit));
+		    tarrive[UID][0] = tarr[0];
+		    tarrive[UID][1] = tarr[1];
+		    tarrive0[UID][0] = tarr[0];
+		    tarrive0[UID][1] = tarr[1];
+		    if (tarr[0] < tarr[1]) tarrivemin[UID] = tarr[0];
+		    else                   tarrivemin[UID] = tarr[1];
+		    if (OCCUPANCY_DEBUG) printf("Chamber %2d strip %2d start  %f %f\n",UID>>8, UID&0xFF, tarrive[UID][0],tarrive[UID][1]);
+		}
+		
+	} // cycle by hits
+
+	if (OCCUPANCY_DEBUG) printf(" -------------------- Results ------------------\n");
+
+	for(Int_t hitIndex = 0, nHits = aTofHits->GetEntriesFast(); hitIndex < nHits; hitIndex++ ) // cycle by hits
+	{	
+		BmnTofHit *pHit = (BmnTofHit*) aTofHits->UncheckedAt(hitIndex); 		
+//		BmnTofHit *pHit = (BmnTofHit*) aTofHits->At(hitIndex); 		
+//		assert(nullptr != pHit);
+		if (pHit == nullptr) continue;
+		
+		Int_t UID = pHit->GetDetectorID();
+		if (UID >= 70000) continue;
+
+//		if (pHit->GetFlag()) continue;
+
+		const LStrip *pStrip = pGeoUtils->FindStrip(UID);
+		if (pStrip == NULL) continue;
+		
+		Double_t ta1 = tarrive[UID][0];
+		Double_t ta2 = tarrive[UID][1];
+		Double_t ta  = 0.5*(ta1+ta2);
+		Double_t lstrip = (pStrip->B-pStrip->A).X();
+		ta -= (0.5*lstrip*fSignalVelosity);
+		Double_t dxh = 0.5*(ta1 - ta2)/fSignalVelosity;
+		Double_t xh  = pStrip->center.X() + dxh;
+		TVector3 pos;
+		pHit->Position(pos);
+		Double_t told = pHit->GetTimeStamp();
+		if(fDoTest && !(pHit->GetFlag())) h1TestOccupancyTimeShift->Fill(ta-told);
+		if(fDoTest && !(pHit->GetFlag())) h1TestOccupancyPositionShift->Fill(xh-pos.X());
+		if (OCCUPANCY_DEBUG)
+		{
+		    printf("Chamber %2d strip %2d result %f %f lstrip %f shift %f\n",UID>>8, UID&0xFF, tarrive[UID][0],tarrive[UID][1], lstrip, 0.5*lstrip*fSignalVelosity);
+		    printf("                      time: old %f new %f\n",told,ta);
+		    printf("                      tim0: old %f old %f diff %f\n",tarrive0[UID][0],tarrive0[UID][1],tarrive0[UID][0]-tarrive0[UID][1]);
+		    printf("                      tim0: new %f new %f diff %f\n",tarrive[UID][0],tarrive[UID][1],tarrive[UID][0]-tarrive[UID][1]);
+		    printf("                      posx: old %f new %f\n",pos.X(),xh);
+		    printf("                      posy: old %f new %f\n",pos.Y(),pos.Y());
+		    printf("                      posz: old %f new %f\n",pos.Z(),pos.Z());
+		}
+		ta = pRandom->Gaus(ta, fTimeSigma); // time resolution in ns		
+		pos.SetX(pRandom->Gaus(xh, fErrX));
+		pHit->SetPosition(pos);
+		pHit->SetTimeStamp(ta);
+	} // cycle by hits
+
+	// cycle by detector UIDs list
+	if(fDoTest) for(msUIDsType::const_iterator it1 = UIDs.begin(), itEnd = UIDs.end(); it1 != itEnd;  it1 = UIDs.upper_bound(*it1))	h1TestOccup->Fill(UIDs.count(*it1));
+
+	return 	mergedNmb;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // input- strip edge position & signal times; output- strip crosspoint; return false, if crosspoint outside strip 

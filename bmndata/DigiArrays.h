@@ -1,40 +1,28 @@
-/* 
- * File:   DigiArrays.h
- * Author: ilnur
- *
- * Created on April 20, 2017, 4:12 PM
- */
-
 #ifndef DIGIARRAYS_H
 #define DIGIARRAYS_H 1
 
 #include <vector>
-#include "TTree.h"
 #include "TClonesArray.h"
 #include "BmnEventHeader.h"
 
 class DigiArrays : public TObject {
 public:
 
-    DigiArrays() {
-        gem = NULL;
-        csc = NULL;
-        tof400 = NULL;
-        tof700 = NULL;
-        zdc = NULL;
-        ecal = NULL;
-        land = NULL;
-        dch = NULL;
-        mwpc = NULL;
-        silicon = NULL;
-        header = NULL;
-        
-        trigAr = NULL;
-        trigSrcAr = NULL;
-        
-        gemHits = NULL;
-        silHits = NULL;
-        pv = NULL;
+    DigiArrays() :
+    gem(nullptr),
+    csc(nullptr),
+    tof400(nullptr),
+    tof700(nullptr),
+    zdc(nullptr),
+    ecal(nullptr),
+    land(nullptr),
+    dch(nullptr),
+    mwpc(nullptr),
+    silicon(nullptr),
+    header(nullptr),
+
+    trigAr(nullptr),
+    trigSrcAr(nullptr) {
     };
 
     ~DigiArrays() {
@@ -84,18 +72,6 @@ public:
             land->Delete();
             delete land;
         }
-        if (gemHits) {
-            gemHits->Delete();
-            delete gemHits;
-        }
-        if (silHits) {
-            silHits->Delete();
-            delete silHits;
-        }
-        if (pv) {
-            pv->Delete();
-            delete pv;
-        }
         if (trigAr) {
             for (TClonesArray *ar : (*trigAr))
                 if (ar) {
@@ -125,11 +101,7 @@ public:
     TClonesArray *mwpc;
     std::vector<TClonesArray*> *trigAr;
     std::vector<TClonesArray*> *trigSrcAr;
-    
-    TClonesArray *gemHits;
-    TClonesArray *silHits;
-    TClonesArray *pv;
-        
+
     BmnEventHeader *header; //->
 private:
     ClassDef(DigiArrays, 1)

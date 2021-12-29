@@ -42,8 +42,8 @@ Bool_t BmnDecoSource::Init() {
     //    _tBuf->SetReadMode();
 
     FairRootManager* ioman = FairRootManager::Instance();
-    //    fEventHeader = new DstRunHeader();
-    //    ioman->Register("DstRunHeader", "Event", fEventHeader, kFALSE);
+    fEventHeader = new BmnEventHeader();
+    ioman->RegisterInputObject("BmnEventHeader.", fEventHeader);
 
     fGemDigits = new TClonesArray("BmnGemStripDigit"); //::Class());
     ioman->RegisterInputObject("GEM", fGemDigits);
@@ -67,10 +67,10 @@ Bool_t BmnDecoSource::Init() {
 }
 
 void BmnDecoSource::Close() {
-    //    if (fEventHeader) {
-    //        fEventHeader->Delete();
-    //        delete fEventHeader;
-    //    }
+    if (fEventHeader) {
+//        fEventHeader->Delete();
+        delete fEventHeader;
+    }
     if (fGemDigits) {
         fGemDigits->Delete();
         delete fGemDigits;
@@ -123,23 +123,9 @@ Int_t BmnDecoSource::ReadEvent(UInt_t i) {
             delete fDigiArrays;
             fDigiArrays = NULL;
         }
-        //decoTimeout = 0;
         _tBuf->Reset();
         _tBuf->SetBuffer(zmq_msg_data(&_msg), zmq_msg_size(&_msg));
         fDigiArrays = (DigiArrays*) (_tBuf->ReadObject(DigiArrays::Class()));
-        //    if (fInChain->GetEntry(i))
-        //        return 0;
-        BmnEventHeader* head = fDigiArrays->header;
-        Int_t prevRunId = fRunId;
-        fRunId = head->GetRunId();
-
-        if (prevRunId != head->GetRunId()) {
-            printf("New Run Id: %5d\n", fRunId);
-            if (prevRunId != 0)
-                return 0;
-            else
-                printf("Start Run Id: %5d\n", fRunId);
-        }
         //        cout << "EventID: " << fDigiArrays->header->GetEventId() << endl;
         //        cout << "Accepted: " << fDigiArrays->header->GetTrigInfo()->GetTrigAccepted() << endl;
         //        cout << "Count of GEM digits: " << fDigiArrays->gem->GetEntriesFast() << endl;
@@ -148,25 +134,21 @@ Int_t BmnDecoSource::ReadEvent(UInt_t i) {
         //        cout << "Count of TOF700 digits: " << fDigiArrays->tof700->GetEntriesFast() << endl;
 
         // move result TClonesArray to registered TClonesArray
-        //        fEventHeader->Clear();
-        //        fGemDigits->Clear();
         fT0Digits->Delete();
-        //        fTof1Digits->Clear();
-        //        fEventHeader->Clear();
         fGemDigits->Delete();
         fSilDigits->Delete();
         fTof400Digits->Delete();
         fTof700Digits->Delete();
-        ////        fEventHeader = fDigiArrays->header;
-        //        fEventHeader->SetRunId(fDigiArrays->header->GetRunId());
-        //        fEventHeader->SetEventId(fDigiArrays->header->GetEventId());
-        //        fEventHeader->SetEventTimeTS(fDigiArrays->header->GetEventTimeTS());
-        //        fEventHeader->SetEventTime(fDigiArrays->header->GetEventTime());
-        //        fEventHeader->SetEventType(fDigiArrays->header->GetEventType());
-        //        fEventHeader->SetTripWord(kFALSE);
-        //        fEventHeader->SetTrigInfo(fDigiArrays->header->GetTrigInfo());
-        //        fEventHeader->SetTimeShift(fDigiArrays->header->GetTimeShift());        
-        //        fEventHeader->SetStartSignalInfo(fDigiArrays->header->GetStartSignalTime(), fDigiArrays->header->GetStartSignalWidth());
+        BmnEventHeader *header = fDigiArrays->header;
+        fEventHeader->SetRunId(header->GetRunId());
+        fEventHeader->SetEventId(header->GetEventId());
+        fEventHeader->SetEventTimeTS(header->GetEventTimeTS());
+        fEventHeader->SetEventTime(header->GetEventTime());
+        fEventHeader->SetEventType(header->GetEventType());
+        fEventHeader->SetTripWord(kFALSE);
+        fEventHeader->SetTrigInfo(header->GetTrigInfo());
+        fEventHeader->SetTimeShift(header->GetTimeShift());
+        fEventHeader->SetStartSignalInfo(header->GetStartSignalTime(), header->GetStartSignalWidth());
         if (fFirstEvent && fDigiArrays->trigAr) {
             for (Int_t iTrig = 0; iTrig < fDigiArrays->trigAr->size(); iTrig++) {
                 TClonesArray *ar = (*fDigiArrays->trigAr)[iTrig];
@@ -188,18 +170,32 @@ Int_t BmnDecoSource::ReadEvent(UInt_t i) {
     return 0;
 }
 
-//void BmnDecoSource::FillEventHeader(FairEventHeader* feh) {
-//
-//    ////    printf("fDigiArrays->header->GetEntriesFast() = %d\n", fEventHeader->GetEntriesFast());
-//    if (fEventHeader) {
-//        feh->SetRunId(fEventHeader->GetRunId());
-//        //            printf("feh run id = %d\n", feh->GetRunId());
-//        //        feh->SetMCEntryNumber(fEvtHeader->GetMCEntryNumber());
-//    }
-//    ////    feh->SetInputFileId(0);
-//
-//    return;
-//}
+void BmnDecoSource::FillEventHeader(FairEventHeader* feh) {
+
+    ////    printf("fDigiArrays->header->GetEntriesFast() = %d\n", fEventHeader->GetEntriesFast());
+    if (feh) {
+        feh->SetRunId(feh->GetRunId());
+
+        Int_t prevRunId = fRunId;
+        fRunId = feh->GetRunId();
+
+        if (prevRunId != feh->GetRunId()) {
+            printf("New Run Id: %5d\n", fRunId);
+            fRunInst->GetSink()->Close();
+            TString outDstName = GetDstNameFromRunId(fRunId);
+            fRunInst->SetSink(new FairRootFileSink(outDstName));
+            //            if (prevRunId != 0)
+            //                return 0;
+            //            else
+            //                printf("Start Run Id: %5d\n", fRunId);
+        }
+        //            printf("feh run id = %d\n", feh->GetRunId());
+        //        feh->SetMCEntryNumber(fEvtHeader->GetMCEntryNumber());
+    }
+    ////    feh->SetInputFileId(0);
+
+    return;
+}
 
 
 ClassImp(BmnDecoSource)

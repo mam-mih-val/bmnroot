@@ -66,6 +66,9 @@
 #include "BmnFHCalDigitizer.h"
 #include "BmnInnTrackerAlign.h"
 #include "CbmStack.h"
+#include "BmnSiBTDigitizer.h"
+#include "BmnSiMDDigitizer.h"
+
 
 // GEANT3 and 4 includes
 #include "TGeant4.h"
@@ -131,6 +134,10 @@ void run8_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TStrin
     
     // -----   Create detectors        -------------------------
 
+    FairDetector* sibt = new BmnSiBT("SiBT", kTRUE);
+    sibt->SetGeometryFileName("SiBT_Run8.root");
+    fRun->AddModule(sibt);
+
     FairDetector* simd = new BmnSiMD("SiMD", kTRUE);
     simd->SetGeometryFileName("SiMD_run8_v1.root");
     fRun->AddModule(simd);
@@ -144,7 +151,7 @@ void run8_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TStrin
     fRun->AddModule(fd);
 
     FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
-    silicon->SetGeometryFileName("Silicon_Run8_4stations_detailed.root");
+    silicon->SetGeometryFileName("Silicon_Run8_3stations_detailed.root");
     fRun->AddModule(silicon);
 
     FairDetector* gems = new CbmSts("GEM", kTRUE);
@@ -230,7 +237,7 @@ void run8_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TStrin
     // ------- Ion Generator
     case ION:{
         // Start beam from a far point to check mom. reconstruction procedure (Z, A, q, mult, [GeV] px, py, pz, [cm] vx, vy, vz)
-        FairIonGenerator* fIongen = new FairIonGenerator(6, 12, 6, 1, 0., 0., 4.4, 0., 0., -647.);
+        FairIonGenerator* fIongen = new FairIonGenerator(54, 131, 54, 1, 0., 0., -4.8, 0., 0., 0.); //Xe
         primGen->AddGenerator(fIongen);
         break;
     }
@@ -238,10 +245,10 @@ void run8_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TStrin
     // ------- Box Generator
     case BOX:{
         gRandom->SetSeed(0);
-        FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 10); // 13 = muon; 1 = multipl.
-        boxGen->SetPRange(1., 1.);      // GeV/c, setPRange vs setPtRange
+        FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 13 = muon; 1 = multipl.
+        boxGen->SetPRange(4.8, 4.8);      // GeV/c, setPRange vs setPtRange
         boxGen->SetPhiRange(0, 360);    // Azimuth angle range [degree]
-        boxGen->SetThetaRange(10, 15);  // Polar angle in lab system range [degree]
+        boxGen->SetThetaRange(180, 180);  // Polar angle in lab system range [degree]
         primGen->AddGenerator(boxGen);
         break;
     }
@@ -300,7 +307,7 @@ void run8_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TStrin
 
     // -----   Create magnetic field   ----------------------------------------
     BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v5_ascii_Extrap.root");
-    Double_t fieldScale = 1200. / 900.;
+    Double_t fieldScale = 1800. / 900.;
     magField->SetScale(fieldScale);
     fRun->SetField(magField);
 
@@ -309,6 +316,16 @@ void run8_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TStrin
 
 
     // -----   Digitizers: converting MC points to detector digits   -----------
+    // SiBT-Digitizer
+    BmnSiBTConfiguration::SiBT_CONFIG sibt_config = BmnSiBTConfiguration::Run8;
+    BmnSiBTDigitizer* sibtDigit = new BmnSiBTDigitizer();
+    sibtDigit->SetCurrentConfig(sibt_config);
+    fRun->AddTask(sibtDigit);
+    
+    // SiMD-Digitizer
+    BmnSiMDDigitizer* simdDigit = new BmnSiMDDigitizer();
+    fRun->AddTask(simdDigit);
+
     // SI-Digitizer
     BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::Run8_3stations;
     BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
@@ -343,7 +360,7 @@ void run8_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TStrin
     // fRun->AddTask(ecalDigit);
 
     fRun->Init();
-    magField->Print();
+    magField->Print("");
 
     // Trajectories Visualization (TGeoManager only)
     FairTrajFilter* trajFilter = FairTrajFilter::Instance();

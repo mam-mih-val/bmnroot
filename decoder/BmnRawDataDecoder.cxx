@@ -120,6 +120,10 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
 BmnRawDataDecoder::~BmnRawDataDecoder() {
 }
 
+BmnStatus BmnRawDataDecoder::ProcessRunTLV() {
+    return kBMNSUCCESS;
+}
+
 BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     if (InitConverter(fRawFileName) == kBMNERROR)
         return kBMNERROR;
@@ -137,12 +141,14 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
         if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
         //if (fread(&dat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
         fread(&fDat, kWORDSIZE, 1, fRawFileIn);
+//                                    printf( "word %08X\n", fDat);
         fCurentPositionRawFile = ftello64(fRawFileIn);
         if (fCurentPositionRawFile >= fLengthRawFile) break;
-        if (fDat == kENDOFSPILL) {
+        if (fDat == kENDOFSPILL_OLD || fDat == kENDOFSPILL) {
             // read number of bytes in event
             if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
-            fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
+            fDat = fDat / kNBYTESINWORD + (fPeriodId <= 7 ? 1 : 0); // bytes --> words
+//            printf("ev length %d\n", fDat);
             //read array of current event data and process them
             if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) continue;
 //            printf(ANSI_COLOR_BLUE "EOS iEv = %u lastEv  = %u\n" ANSI_COLOR_RESET,
@@ -153,10 +159,12 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
             isSpillStart = kTRUE;
             nSpillEvents = 0;
         }
-        if (fDat == kSYNC1) { //search for start of event
+        if (fDat == kSYNC1_OLD || fDat == kSYNC1) { //search for start of event
+//                                    printf(ANSI_COLOR_BLUE "kSYNC1\n" ANSI_COLOR_RESET);
             // read number of bytes in event
             if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
-            fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
+            fDat = fDat / kNBYTESINWORD  + (fPeriodId <= 7 ? 1 : 0); // bytes --> words
+//            printf("ev length %d\n", fDat);
             if (fDat >= 100000) { // what the constant?
                 printf("Wrong data size: %d:  skip this event\n", fDat);
                 fread(data, kWORDSIZE, fDat, fRawFileIn);
@@ -328,7 +336,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile(UInt_t limit) {
             }
             fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
         }
-        if (fDat == kSYNC1) { //search for start of event
+        if (fDat == kSYNC1_OLD) { //search for start of event
             // read number of bytes in event
             //printf("kSYNC1\n");
             if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
@@ -1134,7 +1142,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         printf("\n[INFO]" ANSI_COLOR_BLUE " Processing pedestals\n" ANSI_COLOR_RESET);
         if (fSiliconMapper) {
             delete fSiliconMapper;
-            fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId, fSiliconSerials, fBmnSetup, GetAdcDecoMode());
+            fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId, fSiliconSerials, fSiliconMapFileName, fBmnSetup, GetAdcDecoMode());
             fSiliconMapper->InitAdcProcessorMK(fRunId, 1, 0, 0, 0);
             fSiliconMapper->LoadPedestalsMK(fRawTree, adc128, eventHeaderDAQ, Min(fNevents, (UInt_t) 300000));
             //            fSiliconMapper->RecalculatePedestalsMK(fPedEvCntr);
@@ -1443,7 +1451,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     if (fDetectorSetup[2]) {
         silicon = new TClonesArray("BmnSiliconDigit");
         fDigiTree->Branch("SILICON", &silicon);
-        fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId, fSiliconSerials, fBmnSetup, GetAdcDecoMode());
+        fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId, fSiliconSerials, fSiliconMapFileName, fBmnSetup, GetAdcDecoMode());
     }
 
     if (fDetectorSetup[3] || fDetectorSetup[10] && GetAdcDecoMode() == kBMNADCMK) {

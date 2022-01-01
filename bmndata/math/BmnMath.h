@@ -19,6 +19,11 @@ class CbmGlobalTrack;
 #define ANSI_COLOR_RESET "\x1b[0m"
 #define ANSI_COLOR_YELLOW_BG "\x1b[33;7m"
 #define ANSI_COLOR_BLUE_BG "\x1b[94;7m"
+#define ANSI_BOLD "\e[1m"
+#define ANSI_DEFAULT "\e[0m"
+
+#define DBG(a) printf(ANSI_BOLD "Trace %s: %s" ANSI_DEFAULT " (%s:%d)\n", __func__, a, __FILE__, __LINE__);
+#define DBGERR(a) fprintf(stderr, ANSI_COLOR_RED "!!! %s error in %s: %s" ANSI_DEFAULT " (%s:%d)\n", a, __func__, strerror(errno), __FILE__, __LINE__);
 
 namespace lit
 {

@@ -1269,14 +1269,14 @@ TGeoVolume *CreateFrameForStation_StandardModule(TString frame_name, Int_t curre
     TGeoShape *baseRailLowerPartS = new TGeoBBox(TString("baseRailLowerPartS")+=TString("_") + frames->GetName(), baseRailLowerPart_XSize*0.5, baseRailLowerPart_YSize*0.5, baseRailLowerPart_ZSize*0.5);
 
     TGeoTranslation *baseRailUpperPart_pos = new TGeoTranslation();
-    baseRailUpperPart_pos->SetName("baseRailUpperPart_pos");
+    baseRailUpperPart_pos->SetName(TString("baseRailUpperPart_pos")+=TString("_") + frames->GetName());
     baseRailUpperPart_pos->SetDx(0.0);
     baseRailUpperPart_pos->SetDy(+(baseRailMainPart_YSize*0.5 + baseRailUpperPart_YSize*0.5));
     baseRailUpperPart_pos->SetDz(baseRailMainPart_ZSize*0.5 - baseRailUpperPart_ZSize*0.5);
     baseRailUpperPart_pos->RegisterYourself();
 
     TGeoTranslation *baseRailLowerPart_pos = new TGeoTranslation();
-    baseRailLowerPart_pos->SetName("baseRailLowerPart_pos");
+    baseRailLowerPart_pos->SetName(TString("baseRailLowerPart_pos")+=TString("_") + frames->GetName());
     baseRailLowerPart_pos->SetDx(0.0);
     baseRailLowerPart_pos->SetDy(-(baseRailMainPart_YSize*0.5 + baseRailLowerPart_YSize*0.5));
     baseRailLowerPart_pos->SetDz(baseRailMainPart_ZSize*0.5 - baseRailLowerPart_ZSize*0.5);
@@ -1287,9 +1287,9 @@ TGeoVolume *CreateFrameForStation_StandardModule(TString frame_name, Int_t curre
     {
         TString expression = "baseRailMainPartS"; expression += TString("_") + frames->GetName();
             expression += "+baseRailUpperPartS"; expression += TString("_") + frames->GetName();
-            expression += ":baseRailUpperPart_pos";
+            expression += ":baseRailUpperPart_pos"; expression += TString("_") + frames->GetName();
             expression += "+baseRailLowerPartS"; expression += TString("_") + frames->GetName();
-            expression += ":baseRailLowerPart_pos";
+            expression += ":baseRailLowerPart_pos"; expression += TString("_") + frames->GetName();
         baseRailS->MakeNode(expression);
         baseRailS->ComputeBBox(); //need to compute a bounding box
     }
@@ -1343,21 +1343,21 @@ TGeoVolume *CreateFrameForStation_StandardModule(TString frame_name, Int_t curre
     TGeoShape *backRailSidePartS = new TGeoBBox(TString("backRailSidePartS")+=TString("_") + frames->GetName(), backRailSidePart_XSize*0.5, backRailSidePart_YSize*0.5, backRailSidePart_ZSize*0.5);
 
     TGeoTranslation *backRailLowerPart_pos = new TGeoTranslation();
-    backRailLowerPart_pos->SetName("backRailLowerPart_pos");
+    backRailLowerPart_pos->SetName(TString("backRailLowerPart_pos")+=TString("_") + frames->GetName());
     backRailLowerPart_pos->SetDx(0.0);
     backRailLowerPart_pos->SetDy(-(backRailMainPart_YSize*0.5 + backRailLowerPart_YSize*0.5));
     backRailLowerPart_pos->SetDz(backRailMainPart_ZSize*0.5 - backRailLowerPart_ZSize*0.5);
     backRailLowerPart_pos->RegisterYourself();
 
     TGeoTranslation *backRailSidePart1_pos = new TGeoTranslation();
-    backRailSidePart1_pos->SetName("backRailSidePart1_pos");
+    backRailSidePart1_pos->SetName(TString("backRailSidePart1_pos")+=TString("_") + frames->GetName());
     backRailSidePart1_pos->SetDx(+(backRailMainPart_XSize*0.5 - backRailSidePart_XSize*0.5));
     backRailSidePart1_pos->SetDy(0.0);
     backRailSidePart1_pos->SetDz(backRailMainPart_ZSize*0.5 + backRailSidePart_ZSize*0.5);
     backRailSidePart1_pos->RegisterYourself();
 
     TGeoTranslation *backRailSidePart2_pos = new TGeoTranslation();
-    backRailSidePart2_pos->SetName("backRailSidePart2_pos");
+    backRailSidePart2_pos->SetName(TString("backRailSidePart2_pos")+=TString("_") + frames->GetName());
     backRailSidePart2_pos->SetDx(-(backRailMainPart_XSize*0.5 - backRailSidePart_XSize*0.5));
     backRailSidePart2_pos->SetDy(0.0);
     backRailSidePart2_pos->SetDz(backRailMainPart_ZSize*0.5 + backRailSidePart_ZSize*0.5);
@@ -1368,11 +1368,11 @@ TGeoVolume *CreateFrameForStation_StandardModule(TString frame_name, Int_t curre
     {
         TString expression = "backRailMainPartS"; expression += TString("_") + frames->GetName();
             expression += "+backRailLowerPartS"; expression += TString("_") + frames->GetName();
-            expression += ":backRailLowerPart_pos";
+            expression += ":backRailLowerPart_pos"; expression += TString("_") + frames->GetName();
             expression += "+backRailSidePartS"; expression += TString("_") + frames->GetName();
-            expression += ":backRailSidePart1_pos";
+            expression += ":backRailSidePart1_pos"; expression += TString("_") + frames->GetName();
             expression += "+backRailSidePartS"; expression += TString("_") + frames->GetName();
-            expression += ":backRailSidePart2_pos";
+            expression += ":backRailSidePart2_pos"; expression += TString("_") + frames->GetName();
         backRailS->MakeNode(expression);
         backRailS->ComputeBBox(); //need to compute a bounding box
     }
@@ -1550,7 +1550,7 @@ TGeoVolume *CreateFrameForStation_StandardModule(TString frame_name, Int_t curre
     TGeoShape *frontPlaneWindowS = new TGeoBBox(TString("frontPlaneWindowS")+=TString("_") + frames->GetName(), frontPlaneWindow_XSize*0.5, frontPlaneWindow_YSize*0.5, (frontPlaneWithWindow_ZSize+0.001)*0.5);
 
     TGeoTranslation *frontPlaneWindow_pos = new TGeoTranslation();
-    frontPlaneWindow_pos->SetName("frontPlaneWindow_pos");
+    frontPlaneWindow_pos->SetName(TString("frontPlaneWindow_pos")+=TString("_") + frames->GetName());
     frontPlaneWindow_pos->SetDx(0.0);
     frontPlaneWindow_pos->SetDy(-2.85/*shift*/);
     frontPlaneWindow_pos->SetDz(0.0);
@@ -1561,7 +1561,7 @@ TGeoVolume *CreateFrameForStation_StandardModule(TString frame_name, Int_t curre
     {
         TString expression = "frontPlaneWithWindowBlankS"; expression += TString("_") + frames->GetName();
             expression += "-frontPlaneWindowS"; expression += TString("_") + frames->GetName();
-            expression += ":frontPlaneWindow_pos";
+            expression += ":frontPlaneWindow_pos"; expression += TString("_") + frames->GetName();
         frontPlaneWithWindowS->MakeNode(expression);
         frontPlaneWithWindowS->ComputeBBox(); //need to compute a bounding box
     }
@@ -1672,7 +1672,7 @@ TGeoVolume *CreateFrameForStation_StandardModule(TString frame_name, Int_t curre
     TGeoShape *upperSideShieldWindowS = new TGeoBBox(TString("upperSideShieldWindowS")+=TString("_") + frames->GetName(), upperSideShieldWindow_XSize*0.5, upperSideShieldWindow_YSize*0.5, (upperSideShield_ZSize+0.001)*0.5);
 
     TGeoTranslation *upperSideShieldWindow_pos = new TGeoTranslation();
-    upperSideShieldWindow_pos->SetName("upperSideShieldWindow_pos");
+    upperSideShieldWindow_pos->SetName(TString("upperSideShieldWindow_pos")+=TString("_") + frames->GetName());
     upperSideShieldWindow_pos->SetDx(0.0);
     upperSideShieldWindow_pos->SetDy(+1.65/*shift*/);
     upperSideShieldWindow_pos->SetDz(0.0);
@@ -1683,7 +1683,7 @@ TGeoVolume *CreateFrameForStation_StandardModule(TString frame_name, Int_t curre
     {
         TString expression = "upperSideShieldBlankS"; expression += TString("_") + frames->GetName();
             expression += "-upperSideShieldWindowS"; expression += TString("_") + frames->GetName();
-            expression += ":upperSideShieldWindow_pos";
+            expression += ":upperSideShieldWindow_pos"; expression += TString("_") + frames->GetName();
         upperSideShieldWithWindowS->MakeNode(expression);
         upperSideShieldWithWindowS->ComputeBBox(); //need to compute a bounding box
     }
@@ -2018,14 +2018,14 @@ TGeoVolume *CreateFrameForStation_LongModule(TString frame_name, Int_t current_s
     TGeoShape *baseRailLowerPartS = new TGeoBBox(TString("baseRailLowerPartS")+=TString("_") + frames->GetName(), baseRailLowerPart_XSize*0.5, baseRailLowerPart_YSize*0.5, baseRailLowerPart_ZSize*0.5);
 
     TGeoTranslation *baseRailUpperPart_pos = new TGeoTranslation();
-    baseRailUpperPart_pos->SetName("baseRailUpperPart_pos");
+    baseRailUpperPart_pos->SetName(TString("baseRailUpperPart_pos")+=TString("_") + frames->GetName());
     baseRailUpperPart_pos->SetDx(0.0);
     baseRailUpperPart_pos->SetDy(+(baseRailMainPart_YSize*0.5 + baseRailUpperPart_YSize*0.5));
     baseRailUpperPart_pos->SetDz(baseRailMainPart_ZSize*0.5 - baseRailUpperPart_ZSize*0.5);
     baseRailUpperPart_pos->RegisterYourself();
 
     TGeoTranslation *baseRailLowerPart_pos = new TGeoTranslation();
-    baseRailLowerPart_pos->SetName("baseRailLowerPart_pos");
+    baseRailLowerPart_pos->SetName(TString("baseRailLowerPart_pos")+=TString("_") + frames->GetName());
     baseRailLowerPart_pos->SetDx(0.0);
     baseRailLowerPart_pos->SetDy(-(baseRailMainPart_YSize*0.5 + baseRailLowerPart_YSize*0.5));
     baseRailLowerPart_pos->SetDz(baseRailMainPart_ZSize*0.5 - baseRailLowerPart_ZSize*0.5);
@@ -2036,9 +2036,9 @@ TGeoVolume *CreateFrameForStation_LongModule(TString frame_name, Int_t current_s
     {
         TString expression = "baseRailMainPartS"; expression += TString("_") + frames->GetName();
             expression += "+baseRailUpperPartS"; expression += TString("_") + frames->GetName();
-            expression += ":baseRailUpperPart_pos";
+            expression += ":baseRailUpperPart_pos"; expression += TString("_") + frames->GetName();
             expression += "+baseRailLowerPartS"; expression += TString("_") + frames->GetName();
-            expression += ":baseRailLowerPart_pos";
+            expression += ":baseRailLowerPart_pos"; expression += TString("_") + frames->GetName();
         baseRailS->MakeNode(expression);
         baseRailS->ComputeBBox(); //need to compute a bounding box
     }
@@ -2092,21 +2092,21 @@ TGeoVolume *CreateFrameForStation_LongModule(TString frame_name, Int_t current_s
     TGeoShape *backRailSidePartS = new TGeoBBox(TString("backRailSidePartS")+=TString("_") + frames->GetName(), backRailSidePart_XSize*0.5, backRailSidePart_YSize*0.5, backRailSidePart_ZSize*0.5);
 
     TGeoTranslation *backRailLowerPart_pos = new TGeoTranslation();
-    backRailLowerPart_pos->SetName("backRailLowerPart_pos");
+    backRailLowerPart_pos->SetName(TString("backRailLowerPart_pos")+=TString("_") + frames->GetName());
     backRailLowerPart_pos->SetDx(0.0);
     backRailLowerPart_pos->SetDy(-(backRailMainPart_YSize*0.5 + backRailLowerPart_YSize*0.5));
     backRailLowerPart_pos->SetDz(backRailMainPart_ZSize*0.5 - backRailLowerPart_ZSize*0.5);
     backRailLowerPart_pos->RegisterYourself();
 
     TGeoTranslation *backRailSidePart1_pos = new TGeoTranslation();
-    backRailSidePart1_pos->SetName("backRailSidePart1_pos");
+    backRailSidePart1_pos->SetName(TString("backRailSidePart1_pos")+=TString("_") + frames->GetName());
     backRailSidePart1_pos->SetDx(+(backRailMainPart_XSize*0.5 - backRailSidePart_XSize*0.5));
     backRailSidePart1_pos->SetDy(0.0);
     backRailSidePart1_pos->SetDz(backRailMainPart_ZSize*0.5 + backRailSidePart_ZSize*0.5);
     backRailSidePart1_pos->RegisterYourself();
 
     TGeoTranslation *backRailSidePart2_pos = new TGeoTranslation();
-    backRailSidePart2_pos->SetName("backRailSidePart2_pos");
+    backRailSidePart2_pos->SetName(TString("backRailSidePart2_pos")+=TString("_") + frames->GetName());
     backRailSidePart2_pos->SetDx(-(backRailMainPart_XSize*0.5 - backRailSidePart_XSize*0.5));
     backRailSidePart2_pos->SetDy(0.0);
     backRailSidePart2_pos->SetDz(backRailMainPart_ZSize*0.5 + backRailSidePart_ZSize*0.5);
@@ -2117,11 +2117,11 @@ TGeoVolume *CreateFrameForStation_LongModule(TString frame_name, Int_t current_s
     {
         TString expression = "backRailMainPartS"; expression += TString("_") + frames->GetName();
             expression += "+backRailLowerPartS"; expression += TString("_") + frames->GetName();
-            expression += ":backRailLowerPart_pos";
+            expression += ":backRailLowerPart_pos"; expression += TString("_") + frames->GetName();
             expression += "+backRailSidePartS"; expression += TString("_") + frames->GetName();
-            expression += ":backRailSidePart1_pos";
+            expression += ":backRailSidePart1_pos"; expression += TString("_") + frames->GetName();
             expression += "+backRailSidePartS"; expression += TString("_") + frames->GetName();
-            expression += ":backRailSidePart2_pos";
+            expression += ":backRailSidePart2_pos"; expression += TString("_") + frames->GetName();
         backRailS->MakeNode(expression);
         backRailS->ComputeBBox(); //need to compute a bounding box
     }
@@ -2299,7 +2299,7 @@ TGeoVolume *CreateFrameForStation_LongModule(TString frame_name, Int_t current_s
     TGeoShape *frontPlaneWindowS = new TGeoBBox(TString("frontPlaneWindowS")+=TString("_") + frames->GetName(), frontPlaneWindow_XSize*0.5, frontPlaneWindow_YSize*0.5, (frontPlaneWithWindow_ZSize+0.001)*0.5);
 
     TGeoTranslation *frontPlaneWindow_pos = new TGeoTranslation();
-    frontPlaneWindow_pos->SetName("frontPlaneWindow_pos");
+    frontPlaneWindow_pos->SetName(TString("frontPlaneWindow_pos")+=TString("_") + frames->GetName());
     frontPlaneWindow_pos->SetDx(0.0);
     frontPlaneWindow_pos->SetDy(-2.85/*shift*/);
     frontPlaneWindow_pos->SetDz(0.0);
@@ -2310,7 +2310,7 @@ TGeoVolume *CreateFrameForStation_LongModule(TString frame_name, Int_t current_s
     {
         TString expression = "frontPlaneWithWindowBlankS"; expression += TString("_") + frames->GetName();
             expression += "-frontPlaneWindowS"; expression += TString("_") + frames->GetName();
-            expression += ":frontPlaneWindow_pos";
+            expression += ":frontPlaneWindow_pos"; expression += TString("_") + frames->GetName();
         frontPlaneWithWindowS->MakeNode(expression);
         frontPlaneWithWindowS->ComputeBBox(); //need to compute a bounding box
     }
@@ -2421,7 +2421,7 @@ TGeoVolume *CreateFrameForStation_LongModule(TString frame_name, Int_t current_s
     TGeoShape *upperSideShieldWindowS = new TGeoBBox(TString("upperSideShieldWindowS")+=TString("_") + frames->GetName(), upperSideShieldWindow_XSize*0.5, upperSideShieldWindow_YSize*0.5, (upperSideShield_ZSize+0.001)*0.5);
 
     TGeoTranslation *upperSideShieldWindow_pos = new TGeoTranslation();
-    upperSideShieldWindow_pos->SetName("upperSideShieldWindow_pos");
+    upperSideShieldWindow_pos->SetName(TString("upperSideShieldWindow_pos")+=TString("_") + frames->GetName());
     upperSideShieldWindow_pos->SetDx(0.0);
     upperSideShieldWindow_pos->SetDy(+1.65/*shift*/);
     upperSideShieldWindow_pos->SetDz(0.0);
@@ -2432,7 +2432,7 @@ TGeoVolume *CreateFrameForStation_LongModule(TString frame_name, Int_t current_s
     {
         TString expression = "upperSideShieldBlankS"; expression += TString("_") + frames->GetName();
             expression += "-upperSideShieldWindowS"; expression += TString("_") + frames->GetName();
-            expression += ":upperSideShieldWindow_pos";
+            expression += ":upperSideShieldWindow_pos"; expression += TString("_") + frames->GetName();
         upperSideShieldWithWindowS->MakeNode(expression);
         upperSideShieldWithWindowS->ComputeBBox(); //need to compute a bounding box
     }

@@ -129,6 +129,9 @@ set(SRCS
  BmnLANDDigit.cxx
  BmnTrigUnion.h
 
+ BmnScWallDigi.cxx
+ BmnScWallAddress.cxx
+
  BmnVertex.cxx
 )
 

@@ -50,8 +50,8 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
         decoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d_from_run_4278.txt", period));
     else
         decoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d.txt", period));
-    decoder->SetZDCMapping("ZDC_map_period_5.txt");
-//    decoder->SetZDCCalibration("zdc_muon_calibration.txt");
+    decoder->SetZDCMapping("ZDC_map_dry_run_2021.txt");
+    decoder->SetZDCCalibration("zdc_muon_calibration.txt");
     decoder->SetECALMapping(TString("ECAL_map_period_") + PeriodSetupExt);
     decoder->SetECALCalibration("");
     decoder->SetMwpcMapping(TString("MWPC_map_period") + ((period == 6 && decoder->GetRunId() < 1397) ? 5 : PeriodSetupExt));
@@ -62,7 +62,7 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     decoder->SetLANDVScint("neuland_sync_2.txt");
     decoder->InitMaps(); /// <- should be run after all mappings set
     if (doConvert) decoder->ConvertRawToRoot(); // Convert raw data in .data format into adc-,tdc-, ..., sync-digits in .root format
-    BmnStatus decoStatus = decoder->DecodeDataToDigi(); // Decode data into detector-digits using current mappings.
+    /*BmnStatus decoStatus = decoder->DecodeDataToDigi(); // Decode data into detector-digits using current mappings.
     timer.Stop();
     if (decoStatus == kBMNSUCCESS) {
         if (!doHoldRawRoot) gSystem->Exec(TString::Format("rm -f %s", decoder->GetRootFileName().Data()));
@@ -71,6 +71,6 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
         Double_t ctime = timer.CpuTime();
         printf("Real time %f s, CPU time %f s\n", rtime, ctime);
     }
-
+*/
     delete decoder;
 }

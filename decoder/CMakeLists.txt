@@ -36,6 +36,7 @@ set(SRCS
  BmnDchRaw2Digit.cxx
  BmnMwpcRaw2Digit.cxx
  BmnZDCRaw2Digit.cxx
+ BmnScWallRaw2Digit.cxx
  BmnECALRaw2Digit.cxx
  BmnLANDRaw2Digit.cxx
  BmnGemRaw2Digit.cxx

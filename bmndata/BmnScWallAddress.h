@@ -14,7 +14,8 @@
  ** Xidx               on bits 15-19   00000000000011111000000000000000    <<15     5      31
  ** Yidx               on bits 20-24   00000001111100000000000000000000    <<20     5      31
  ** CellSize           on bits 25-26   00000110000000000000000000000000    <<25     2      3
- ** Empty              on bits 27-31   11111000000000000000000000000000    <<27     5     2^5-1
+ ** Zone idx           on bits 27-30   01111000000000000000000000000000    <<27     4      15
+ ** Empty              on bits 31-31   10000000000000000000000000000000    <<31     1      2
  **
  **/
 
@@ -28,23 +29,25 @@
 class BmnScWallAddress {
 public:
   /**
-   * \brief Return address from system ID, ADCidx, ADCch, XIdx, YIdx, CellSize.
+   * \brief Return address from system ID, ADCidx, ADCch, XIdx, YIdx, CellSize, ZoneIdx.
    * \param[in] ADC index.
    * \param[in] ADC channel.
    * \param[in] unique X position number XIdx.
    * \param[in] unique Y position number YIdx.
    * \param[in] cell size CellSize.
-   * \return Address from system ID, ADCidx, ADCch, XIdx, YIdx, CellSize.
+   * \param[in] zone index Zone.
+   * \return Address from system ID, ADCidx, ADCch, XIdx, YIdx, CellSize, Zone.
    **/
-  static uint32_t GetAddress(uint32_t ADCidx, uint32_t ADCch, uint32_t XIdx, uint32_t YIdx, uint32_t CellSize)
+  static uint32_t GetAddress(uint32_t ADCidx, uint32_t ADCch, uint32_t XIdx, uint32_t YIdx, uint32_t CellSize, uint32_t Zone)
   {
-    assert(!( (uint32_t)kSCWALL > fgkSystemIdLength | ADCidx > fgkADCidxLength || ADCch > fgkADCchLength || XIdx > fgkXIdxLength || YIdx > fgkYIdxLength || CellSize > fgkCellSizeLength ));
+    assert(!( (uint32_t)kSCWALL > fgkSystemIdLength || ADCidx > fgkADCidxLength || ADCch > fgkADCchLength || XIdx > fgkXIdxLength || YIdx > fgkYIdxLength || CellSize > fgkCellSizeLength || Zone > fgkZoneShift));
     return (  (((uint32_t)kSCWALL) << fgkSystemIdShift) 
             | (ADCidx << fgkADCidxShift)
             | (ADCch << fgkADCchShift)
             | (XIdx << fgkXIdxShift)
             | (YIdx << fgkYIdxShift)
-            | (CellSize << fgkCellSizeShift)  );
+            | (CellSize << fgkCellSizeShift)
+            | (Zone << fgkZoneShift)  );
   }
 
   /**
@@ -107,6 +110,15 @@ public:
     return (address & (fgkCellSizeLength << fgkCellSizeShift)) >> fgkCellSizeShift;
   }
 
+  /**
+   * \brief Return Zone idx from address.
+   * \param[in] address Unique channel address.
+   * \return Zone index from address.
+   **/
+  static uint32_t GetZoneIdx(uint32_t address)
+  {
+    return (address & (fgkZoneLength << fgkZoneShift)) >> fgkZoneShift;
+  }
 
 private:
   // Length of the index of the corresponding volume
@@ -116,6 +128,7 @@ private:
   static const uint32_t fgkXIdxLength = 31;         // 2^5 - 1
   static const uint32_t fgkYIdxLength = 31;         // 2^5 - 1
   static const uint32_t fgkCellSizeLength = 3;      // 2^2 - 1
+  static const uint32_t fgkZoneLength = 15;         // 2^4 - 1
 
   // Number of a start bit for each volume
   static const uint32_t fgkSystemIdShift  = 0;
@@ -124,6 +137,7 @@ private:
   static const uint32_t fgkXIdxShift = 15;
   static const uint32_t fgkYIdxShift = 20;
   static const uint32_t fgkCellSizeShift = 25;
+  static const uint32_t fgkZoneShift = 27;
 
 };
 

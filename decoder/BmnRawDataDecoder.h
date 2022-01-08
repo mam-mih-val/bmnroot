@@ -42,6 +42,7 @@
 #include "BmnTof1Raw2Digit.h"
 #include "BmnTof2Raw2DigitNew.h"
 #include "BmnZDCRaw2Digit.h"
+#include "BmnScWallRaw2Digit.h"
 #include "BmnECALRaw2Digit.h"
 #include "BmnLANDRaw2Digit.h"
 #include "BmnTrigRaw2Digit.h"
@@ -152,6 +153,7 @@ public:
         d.tof400 = tof400;
         d.tof700 = tof700;
         d.zdc = zdc;
+        d.scwall = scwall;
         d.ecal = ecal;
         d.land = land;
         d.dch = dch;
@@ -216,6 +218,10 @@ public:
         return fZDCMapper;
     }
 
+    BmnScWallRaw2Digit *GetScWallMapper() {
+        return fScWallMapper;
+    }
+
     BmnECALRaw2Digit *GetECALMapper() {
         return fECALMapper;
     }
@@ -271,12 +277,20 @@ public:
         fZDCMapFileName = map;
     }
 
-    void SetECALMapping(TString map) {
-        fECALMapFileName = map;
-    }
-
     void SetZDCCalibration(TString cal) {
         fZDCCalibrationFileName = cal;
+    }
+
+    void SetScWallMapping(TString map) {
+        fScWallMapFileName = map;
+    }
+
+    void SetScWallCalibration(TString cal) {
+        fScWallCalibrationFileName = cal;
+    }
+
+    void SetECALMapping(TString map) {
+        fECALMapFileName = map;
     }
 
     void SetECALCalibration(TString cal) {
@@ -386,6 +400,8 @@ private:
     UInt_t fNCscSerials;
     vector<UInt_t> fZDCSerials; //list of serial id for ZDC
     UInt_t fNZDCSerials;
+    vector<UInt_t> fScWallSerials; //list of serial id for ScWall
+    UInt_t fNScWallSerials;
     vector<UInt_t> fECALSerials; //list of serial id for ECal
     UInt_t fNECALSerials;
 
@@ -426,6 +442,8 @@ private:
     TString fTof700GeomFileName;
     TString fZDCMapFileName;
     TString fZDCCalibrationFileName;
+    TString fScWallMapFileName;
+    TString fScWallCalibrationFileName;
     TString fECALMapFileName;
     TString fECALCalibrationFileName;
     TString fMSCMapFileName;
@@ -447,6 +465,8 @@ private:
     ifstream fTof700MapFile;
     ifstream fZDCMapFile;
     ifstream fZDCCalibraionFile;
+    ifstream fScWallMapFile;
+    ifstream fScWallCalibraionFile;
     ifstream fECALMapFile;
     ifstream fECALCalibraionFile;
     ifstream fTrigMapFile;
@@ -461,7 +481,7 @@ private:
     TClonesArray *sync;
     TClonesArray *adc32; //gem
     TClonesArray *adc128; //sts
-    TClonesArray *adc; //zdc & ecal
+    TClonesArray *adc; //zdc & ecal & scwall
     TClonesArray *hrb;
     TClonesArray *tacquila; // LAND.
     TClonesArray *tdc;
@@ -477,6 +497,7 @@ private:
     TClonesArray *tof400;
     TClonesArray *tof700;
     TClonesArray *zdc;
+    TClonesArray *scwall;
     TClonesArray *ecal;
     TClonesArray *land;
     TClonesArray *dch;
@@ -500,6 +521,7 @@ private:
     BmnTof1Raw2Digit *fTof400Mapper;
     BmnTof2Raw2DigitNew *fTof700Mapper;
     BmnZDCRaw2Digit *fZDCMapper;
+    BmnScWallRaw2Digit *fScWallMapper;
     BmnECALRaw2Digit *fECALMapper;
     BmnLANDRaw2Digit *fLANDMapper;
     BmnMscRaw2Digit *fMSCMapper;

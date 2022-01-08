@@ -46,6 +46,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     tof400 = NULL;
     tof700 = NULL;
     zdc = NULL;
+    scwall = NULL;
     ecal = NULL;
     gem = NULL;
     silicon = NULL;
@@ -77,6 +78,8 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fTof700GeomFileName = "";
     fZDCCalibrationFileName = "";
     fZDCMapFileName = "";
+    fScWallCalibrationFileName = "";
+    fScWallMapFileName = "";
     fECALCalibrationFileName = "";
     fECALMapFileName = "";
     fLANDMapFileName = "";
@@ -95,6 +98,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fTof400Mapper = NULL;
     fTof700Mapper = NULL;
     fZDCMapper = NULL;
+    fScWallMapper = NULL;
     fECALMapper = NULL;
     fLANDMapper = NULL;
     fDataQueue = NULL;
@@ -114,6 +118,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     InitUTCShift();
     fNECALSerials = 0;
     fNZDCSerials = 0;
+    fNScWallSerials = 0;
     //InitMaps();
 }
 
@@ -393,9 +398,9 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         UInt_t payload = (d[idx++] & 0xFFFFFF) / kNBYTESINWORD;
         if (payload > 2000000) {
             printf("[WARNING] Event %d:\n serial = 0x%06X\n id = Ox%02X\n payload = %d\n", fEventId, serial, id, payload);
-            break;
+            //break;
         }
-        //    printf("  idev %02X serial 0x%08X\n", id, serial);
+            printf("  idev %02X serial 0x%08X\n", id, serial);
         switch (id) {
             case kADC64VE_XGE:
             case kADC64VE:
@@ -437,27 +442,13 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             }
             case kADC64WR:
             {
-                Bool_t isZDC = kFALSE;
-                Bool_t isECAL = kFALSE;
-                for (Int_t iSer = 0; (iSer < fNZDCSerials); ++iSer) {
-                    if (serial == fZDCSerials[iSer]) {
-                        isZDC = kTRUE;
-                        break;
-                    }
-                };
-                if (isZDC)
+                auto isZDC = ( std::find(fZDCSerials.begin(), fZDCSerials.end(), serial) != fZDCSerials.end() );
+                auto isECAL = ( std::find(fECALSerials.begin(), fECALSerials.end(), serial) != fECALSerials.end() );
+                auto isSCWALL = ( std::find(fScWallSerials.begin(), fScWallSerials.end(), serial) != fScWallSerials.end() );
+
+                if (isZDC || isECAL || isSCWALL)
                     Process_ADC64WR(&d[idx], payload, serial, adc);
-                else {
-                    for (Int_t iSer = 0; (iSer < fNECALSerials); ++iSer) {
-                        if (serial == fECALSerials[iSer]) {
-                            isECAL = kTRUE;
-                            break;
-                        }
-                    };
-                    if (isECAL)
-                        Process_ADC64WR(&d[idx], payload, serial, adc);
-                }
-                //if (isECAL) printf("Serial 0x%08x %d %d\n",serial,isZDC,isECAL);
+
                 break;
             }
             case kFVME:
@@ -567,6 +558,8 @@ BmnStatus BmnRawDataDecoder::Process_ADC64WR(UInt_t *d, UInt_t len, UInt_t seria
     const UChar_t kNCH = 64;
     const UChar_t kNSTAMPS = 128;
 
+printf("Process_ADC64WR %08X \n", serial);
+
     UShort_t val[kNSTAMPS];
     for (Int_t i = 0; i < kNSTAMPS; ++i) val[i] = 0;
 
@@ -580,7 +573,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64WR(UInt_t *d, UInt_t len, UInt_t seria
             while (iCh < kNCH - 1 && i < len) {
                 iCh = d[i] >> 24;
                 ns = (d[i] & 0xFFF) / 2 - 4;
-                //                printf("WR serial %08X ns = %d\n", serial, ns);
+                                printf("WR serial %08X ns = %d\n", serial, ns);
                 i += 3; // skip two timestamp words (they are empty)
                 for (Int_t iWord = 0; iWord < ns / 2; ++iWord) {
                     val[2 * iWord + 1] = d[i + iWord] & 0xFFFF; //take 16 lower bits and put them into corresponded cell of data-array
@@ -589,7 +582,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64WR(UInt_t *d, UInt_t len, UInt_t seria
 
                 TClonesArray& ar_adc = *arr;
                 if (iCh >= 0 && iCh < kNCH) {
-                    //			printf("ns == %d, serial == 0x%0x, chan == %d\n", ns, serial, iCh);
+                    			printf("ns == %d, serial == 0x%0x, chan == %d\n", ns, serial, iCh);
                     new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ns, val);
                 }
                 i += (ns / 2); //skip words (we've processed them)
@@ -1371,6 +1364,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             if (fTof400Mapper) fTof400Mapper->FillEvent(tdc, &fTimeShifts, tof400);
             if (fTof700Mapper && fT0Time != 0. && fT0Width != -1.) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
             if (fZDCMapper) fZDCMapper->fillEvent(adc, zdc);
+            if (fScWallMapper) fScWallMapper->fillEvent(adc, scwall);
             if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
             if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
         }
@@ -1529,6 +1523,14 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
                 fLANDVScintFileName);
     }
 
+
+    if (fDetectorSetup[11]) {
+        scwall = new TClonesArray("BmnScWallDigi");
+        fDigiTree->Branch("ScWallDigi", &scwall);
+        fScWallMapper = new BmnScWallRaw2Digit(fPeriodId, fRunId, fScWallMapFileName, fScWallCalibrationFileName);
+                fScWallMapper->print();
+    }
+
     if (fDetectorSetup[3] && GetAdcDecoMode() == kBMNADCMK && GetPeriodId() > 6 || fDetectorSetup[10]) {
         csc = new TClonesArray("BmnCSCDigit");
         fDigiTree->Branch("CSC", &csc);
@@ -1553,6 +1555,7 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
     if (tof400) tof400->Delete();
     if (tof700) tof700->Delete();
     if (zdc) zdc->Delete();
+    if (scwall) scwall->Delete();
     if (ecal) ecal->Delete();
     if (land) land->Delete();
     if (fTrigMapper)
@@ -1602,6 +1605,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         if (fTof400Mapper) fTof400Mapper->FillEvent(tdc, &fTimeShifts, tof400);
         if (fTof700Mapper && fT0Time != 0. && fT0Width != -1.) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
         if (fZDCMapper) fZDCMapper->fillEvent(adc, zdc);
+        if (fScWallMapper) fScWallMapper->fillEvent(adc, scwall);
         if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
         if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
     }
@@ -1669,6 +1673,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (fTof400Mapper) delete fTof400Mapper;
     if (fTof700Mapper) delete fTof700Mapper;
     if (fZDCMapper) delete fZDCMapper;
+    if (fScWallMapper) delete fScWallMapper;
     if (fECALMapper) delete fECALMapper;
     if (fLANDMapper) delete fLANDMapper;
     if (fMSCMapper) delete fMSCMapper;
@@ -1692,6 +1697,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (tof400) delete tof400;
     if (tof700) delete tof700;
     if (zdc) delete zdc;
+    if (scwall) delete scwall;
     if (ecal) delete ecal;
     if (land) delete land;
 
@@ -1920,9 +1926,44 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
         fNGemSerials = fGemSerials.size();
     }
 
-    fZDCSerials.push_back(0x046f4083);
-    fZDCSerials.push_back(0x046f4bb2);
+
+    seials.clear();
+    name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fZDCMapFileName;
+    ifstream inFileZDC(name.Data());
+       //printf("ZDC map name = %s\n", name.Data());
+    if (!inFileZDC.is_open())
+        cout << "Error opening map-file (" << name << ")!" << endl;
+    for (Int_t i = 0; i < 2; ++i) getline(inFileZDC, dummy); //comment line in input file
+
+    while (!inFileZDC.eof()) {
+        inFileZDC >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
+        if (!inFileZDC.good()) break;
+        seials.insert(ser);
+       //  printf("ZDC serial: 0x%08x\n", ser);
+    }
+    for (auto s : seials) fZDCSerials.push_back(s);
     fNZDCSerials = fZDCSerials.size();
+    printf("ZDC map name = %s, Nboards = %d, \n", name.Data(), fNZDCSerials);
+
+
+    seials.clear();
+    name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fScWallMapFileName;
+    ifstream inFileSCWALL(name.Data());
+       //printf("SCWALL map name = %s\n", name.Data());
+    if (!inFileSCWALL.is_open())
+        cout << "Error opening map-file (" << name << ")!" << endl;
+    for (Int_t i = 0; i < 2; ++i) getline(inFileSCWALL, dummy); //comment line in input file
+
+    while (!inFileSCWALL.eof()) {
+        inFileSCWALL >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
+        if (!inFileSCWALL.good()) break;
+        seials.insert(ser);
+       //  printf("SCWALL serial: 0x%08x\n", ser);
+    }
+    for (auto s : seials) fScWallSerials.push_back(s);
+    fNScWallSerials = fScWallSerials.size();
+    printf("SCWALL map name = %s, Nboards = %d, \n", name.Data(), fNScWallSerials);
+
 
     seials.clear();
     name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fECALMapFileName;

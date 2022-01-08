@@ -135,6 +135,9 @@ float BmnScWallRaw2Digit::wave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal, F
 
 }
 
+BmnScWallRaw2Digit::~BmnScWallRaw2Digit()
+{
+}
 
 ClassImp(BmnScWallRaw2Digit)
 

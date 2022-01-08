@@ -400,7 +400,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             printf("[WARNING] Event %d:\n serial = 0x%06X\n id = Ox%02X\n payload = %d\n", fEventId, serial, id, payload);
             //break;
         }
-            printf("  idev %02X serial 0x%08X\n", id, serial);
+        //    printf("  idev %02X serial 0x%08X\n", id, serial);
         switch (id) {
             case kADC64VE_XGE:
             case kADC64VE:
@@ -558,7 +558,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64WR(UInt_t *d, UInt_t len, UInt_t seria
     const UChar_t kNCH = 64;
     const UChar_t kNSTAMPS = 128;
 
-printf("Process_ADC64WR %08X \n", serial);
+    printf("Process_ADC64WR %08X \n", serial);
 
     UShort_t val[kNSTAMPS];
     for (Int_t i = 0; i < kNSTAMPS; ++i) val[i] = 0;
@@ -573,7 +573,7 @@ printf("Process_ADC64WR %08X \n", serial);
             while (iCh < kNCH - 1 && i < len) {
                 iCh = d[i] >> 24;
                 ns = (d[i] & 0xFFF) / 2 - 4;
-                                printf("WR serial %08X ns = %d\n", serial, ns);
+                //                printf("WR serial %08X ns = %d\n", serial, ns);
                 i += 3; // skip two timestamp words (they are empty)
                 for (Int_t iWord = 0; iWord < ns / 2; ++iWord) {
                     val[2 * iWord + 1] = d[i + iWord] & 0xFFFF; //take 16 lower bits and put them into corresponded cell of data-array
@@ -582,7 +582,7 @@ printf("Process_ADC64WR %08X \n", serial);
 
                 TClonesArray& ar_adc = *arr;
                 if (iCh >= 0 && iCh < kNCH) {
-                    			printf("ns == %d, serial == 0x%0x, chan == %d\n", ns, serial, iCh);
+                    //			printf("ns == %d, serial == 0x%0x, chan == %d\n", ns, serial, iCh);
                     new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ns, val);
                 }
                 i += (ns / 2); //skip words (we've processed them)
@@ -1525,6 +1525,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
 
 
     if (fDetectorSetup[11]) {
+        printf("scwall in setup \n");
         scwall = new TClonesArray("BmnScWallDigi");
         fDigiTree->Branch("ScWallDigi", &scwall);
         fScWallMapper = new BmnScWallRaw2Digit(fPeriodId, fRunId, fScWallMapFileName, fScWallCalibrationFileName);

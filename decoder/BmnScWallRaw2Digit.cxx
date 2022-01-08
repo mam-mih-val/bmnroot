@@ -2,6 +2,9 @@
 #include "TSystem.h"
 #include "BmnScWallRaw2Digit.h"
 
+void BmnScWallRaw2Digit::print() {
+     printf("SCWALLLL\n");
+}
 
 BmnScWallRaw2Digit::BmnScWallRaw2Digit(){
   n_rec=0;
@@ -39,7 +42,7 @@ void BmnScWallRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ScWalldigit
     Float_t amp = 0., ped = 0.;
     for (int i = 0; i < data->GetEntriesFast(); i++) {
        BmnADCDigit *digit = (BmnADCDigit*) data->At(i);
-
+		printf("ScWall fillEvent %i\n", i);
        int ind;
        TClonesArray &ar_ScWall = *ScWalldigit;
 
@@ -50,6 +53,7 @@ void BmnScWallRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ScWalldigit
 
        if ((amp = wave2amp(digit->GetNSamples(),digit->GetUShortValue(), &ped, &signalMin, &signalMax, &signalPed, &signalInt)) >= 0.)
        {
+		   printf("ped %f\n", ped);
 
            new(ar_ScWall[ScWalldigit->GetEntriesFast()]) BmnScWallDigi(0, signalMin, 1, 
                 signalMax, signalPed, signalInt, 99,

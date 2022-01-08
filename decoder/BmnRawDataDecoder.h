@@ -326,7 +326,7 @@ public:
     }
 
     BmnStatus SetDetectorSetup(Bool_t* setup) {
-        for (Int_t i = 0; i < 11; ++i) {
+        for (Int_t i = 0; i < 12; ++i) {
             fDetectorSetup[i] = setup[i];
         }
 

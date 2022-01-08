@@ -19,7 +19,8 @@
 
 // --- Default constructor
 BmnScWallDigi::BmnScWallDigi()
-  : fuAddress()
+  : TObject()
+  , fuAddress()
   , fSignal()
   , fTimestamp()
 
@@ -42,7 +43,8 @@ BmnScWallDigi::BmnScWallDigi(UInt_t address, Double_t signal, Double_t timestamp
                 Double_t ampl, Double_t zl, Double_t integral, Double_t time_max,
                 Double_t fit_ampl, Double_t fit_zl, Double_t fit_integral, Double_t fit_R2, Double_t fit_time_max)
 
-  : fuAddress(address)
+  : TObject()
+  , fuAddress(address)
   , fSignal(signal)
   , fTimestamp(timestamp)
 

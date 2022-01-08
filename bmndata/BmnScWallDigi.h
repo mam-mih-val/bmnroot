@@ -15,6 +15,7 @@
 #ifndef BmnScWallDigi_H
 #define BmnScWallDigi_H 1
 
+#include "TObject.h"
 #include "BmnDetectorList.h"  // for kSCWALL
 #include "BmnScWallAddress.h"  // for BmnScWallAddress
 
@@ -27,7 +28,7 @@
 #include <string>  // for string
 
 
-class BmnScWallDigi {
+class BmnScWallDigi : public TObject {
 
 public:
   /**@brief Default constructor.

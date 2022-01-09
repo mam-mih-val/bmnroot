@@ -40,7 +40,7 @@ public:
    **/
   static uint32_t GetAddress(uint32_t ADCidx, uint32_t ADCch, uint32_t XIdx, uint32_t YIdx, uint32_t CellSize, uint32_t Zone)
   {
-    assert(!( (uint32_t)kSCWALL > fgkSystemIdLength || ADCidx > fgkADCidxLength || ADCch > fgkADCchLength || XIdx > fgkXIdxLength || YIdx > fgkYIdxLength || CellSize > fgkCellSizeLength || Zone > fgkZoneShift));
+    assert(!( (uint32_t)kSCWALL > fgkSystemIdLength || ADCidx > fgkADCidxLength || ADCch > fgkADCchLength || XIdx > fgkXIdxLength || YIdx > fgkYIdxLength || CellSize > fgkCellSizeLength || Zone > fgkZoneLength));
     return (  (((uint32_t)kSCWALL) << fgkSystemIdShift) 
             | (ADCidx << fgkADCidxShift)
             | (ADCch << fgkADCchShift)

@@ -1,10 +1,13 @@
 //file: full path to raw file
 //nEvents: if 0 then decode all events
 //doConvert: convert RAW --> ROOT before decoding or use file converted before
+#include <boost/program_options.hpp>
+R__LOAD_LIBRARY(libboost_program_options.so)
 
 void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_t doConvert = kTRUE, Bool_t doHoldRawRoot = kFALSE) {
     gSystem->ExpandPathName(file);
     gSystem->ExpandPathName(outfile);
+    //gSystem->Load("$SIMPATH/lib/libboost_program_options.so");
 
     Int_t iVerbose = 1; ///<- Verbosity level: 0 - Progress Bar; 1 - short info on passed events
     UInt_t period = 7;
@@ -18,19 +21,20 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     decoder->SetBmnSetup(stp);
     decoder->SetVerbose(iVerbose);
 
-    Bool_t setup[11]; //array of flags to determine BM@N setup
+    Bool_t setup[12]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
-    setup[0]  = 1; // TRIGGERS
-    setup[1]  = 1; // MWPC
-    setup[2]  = 1; // SILICON
-    setup[3]  = 1; // GEM
-    setup[4]  = 1; // TOF-400
-    setup[5]  = 1; // TOF-700
-    setup[6]  = 1; // DCH
-    setup[7]  = 1; // ZDC
-    setup[8]  = 1; // ECAL
-    setup[9]  = 1; // LAND
-    setup[10] = 1; // CSC
+    setup[0]  = 0; // TRIGGERS
+    setup[1]  = 0; // MWPC
+    setup[2]  = 0; // SILICON
+    setup[3]  = 0; // GEM
+    setup[4]  = 0; // TOF-400
+    setup[5]  = 0; // TOF-700
+    setup[6]  = 0; // DCH
+    setup[7]  = 0; // ZDC
+    setup[8]  = 0; // ECAL
+    setup[9]  = 0; // LAND
+    setup[10] = 0; // CSC
+    setup[11] = 1; // SCWALL
     decoder->SetDetectorSetup(setup);
     decoder->SetAdcDecoMode(period < 6 ? kBMNADCSM : kBMNADCMK);
 
@@ -52,6 +56,8 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
         decoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d.txt", period));
     decoder->SetZDCMapping("ZDC_map_dry_run_2021.txt");
     decoder->SetZDCCalibration("zdc_muon_calibration.txt");
+    decoder->SetScWallMapping("SCWALL_map_dry_run_2022.txt");
+    decoder->SetScWallCalibration("scwall_cosmic_calibration.txt");
     decoder->SetECALMapping(TString("ECAL_map_period_") + PeriodSetupExt);
     decoder->SetECALCalibration("");
     decoder->SetMwpcMapping(TString("MWPC_map_period") + ((period == 6 && decoder->GetRunId() < 1397) ? 5 : PeriodSetupExt));
@@ -62,7 +68,7 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     decoder->SetLANDVScint("neuland_sync_2.txt");
     decoder->InitMaps(); /// <- should be run after all mappings set
     if (doConvert) decoder->ConvertRawToRoot(); // Convert raw data in .data format into adc-,tdc-, ..., sync-digits in .root format
-    /*BmnStatus decoStatus = decoder->DecodeDataToDigi(); // Decode data into detector-digits using current mappings.
+    BmnStatus decoStatus = decoder->DecodeDataToDigi(); // Decode data into detector-digits using current mappings.
     timer.Stop();
     if (decoStatus == kBMNSUCCESS) {
         if (!doHoldRawRoot) gSystem->Exec(TString::Format("rm -f %s", decoder->GetRootFileName().Data()));
@@ -71,6 +77,6 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
         Double_t ctime = timer.CpuTime();
         printf("Real time %f s, CPU time %f s\n", rtime, ctime);
     }
-*/
+
     delete decoder;
 }

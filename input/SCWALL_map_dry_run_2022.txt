@@ -1,0 +1,21 @@
+[VERSION]
+id = 1.0
+
+[COMMENT]
+str = void
+
+[ADCSERIALS]
+# will be sorted
+serial = 0x0aadb6ec
+serial = 0x0aae37f0
+serial = 0x080c33e6
+
+[CONFIGURATION]
+# Zone Z for not connected lines
+# F2 to adc line F0
+# G8 to adc line G0
+#		ADC_serial	ADC_ch	Zone	x(mm)	y(mm)	size(mm)
+#=======================================================================
+config =	0x0aadb6ec	4	B	10	25	26
+config =	0x0aae37f0	0	L	20	21	24
+config =	0x080c33e6	9	C	30	23	20

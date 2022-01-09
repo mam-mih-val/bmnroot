@@ -11,7 +11,7 @@
 #include <cstdlib>
 #include <UniDbRun.h>
 
-
+#include <boost/program_options.hpp>
 
 
 class BmnScWallRaw2Digit{
@@ -23,6 +23,12 @@ public:
     BmnScWallRaw2Digit(Int_t period, Int_t run, TString mappingFile, TString calibrationFile = "", TString MaxPositionFile = "");
     BmnScWallRaw2Digit();
 
+    void ParseConfig(TString mappingFile);
+    std::vector<UInt_t> GetScWallSerials() {return fScWallSerials;}
+
+    Int_t GetFlatChannelFromAdcChannel(UInt_t adc_board_id, UInt_t adc_ch);
+
+
     ~BmnScWallRaw2Digit();
 
     void print();
@@ -33,7 +39,11 @@ public:
  
 private:
 
-
+    std::vector<UInt_t> fScWallSerials;
+    std::set<UInt_t> fUniqueX;
+    std::set<UInt_t> fUniqueY;
+    std::set<UInt_t> fUniqueSize;
+    std::map<UInt_t, UInt_t> fChannelMap; // pair <flat_channel, unique_address>
     int digiPar[6];
 
     int maxchan;

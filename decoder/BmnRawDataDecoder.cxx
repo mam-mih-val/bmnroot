@@ -1947,6 +1947,12 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
     printf("ZDC map name = %s, Nboards = %d, \n", name.Data(), fNZDCSerials);
 
 
+    BmnScWallRaw2Digit* tempScWallMapper = new BmnScWallRaw2Digit();
+    tempScWallMapper->ParseConfig(fScWallMapFileName);
+    fScWallSerials = tempScWallMapper->GetScWallSerials();
+    fNScWallSerials = fScWallSerials.size();
+
+/*
     seials.clear();
     name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fScWallMapFileName;
     ifstream inFileSCWALL(name.Data());
@@ -1964,7 +1970,7 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
     for (auto s : seials) fScWallSerials.push_back(s);
     fNScWallSerials = fScWallSerials.size();
     printf("SCWALL map name = %s, Nboards = %d, \n", name.Data(), fNScWallSerials);
-
+*/
 
     seials.clear();
     name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fECALMapFileName;

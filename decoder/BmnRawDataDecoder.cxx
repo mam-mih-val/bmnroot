@@ -1951,26 +1951,8 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
     tempScWallMapper->ParseConfig(fScWallMapFileName);
     fScWallSerials = tempScWallMapper->GetScWallSerials();
     fNScWallSerials = fScWallSerials.size();
+    delete tempScWallMapper;
 
-/*
-    seials.clear();
-    name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fScWallMapFileName;
-    ifstream inFileSCWALL(name.Data());
-       //printf("SCWALL map name = %s\n", name.Data());
-    if (!inFileSCWALL.is_open())
-        cout << "Error opening map-file (" << name << ")!" << endl;
-    for (Int_t i = 0; i < 2; ++i) getline(inFileSCWALL, dummy); //comment line in input file
-
-    while (!inFileSCWALL.eof()) {
-        inFileSCWALL >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
-        if (!inFileSCWALL.good()) break;
-        seials.insert(ser);
-       //  printf("SCWALL serial: 0x%08x\n", ser);
-    }
-    for (auto s : seials) fScWallSerials.push_back(s);
-    fNScWallSerials = fScWallSerials.size();
-    printf("SCWALL map name = %s, Nboards = %d, \n", name.Data(), fNScWallSerials);
-*/
 
     seials.clear();
     name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fECALMapFileName;

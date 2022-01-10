@@ -14,16 +14,29 @@
 #include <boost/program_options.hpp>
 
 
+struct digiPars {
+  int gateBegin;
+  int gateEnd;
+  float threshold;
+  int signalType;
+  bool doInvert;
+
+  bool isfit;
+  std::vector<std::complex<float>> harmonics;
+};
+
+
 class BmnScWallRaw2Digit{
 
-
-
-
 public:
-    BmnScWallRaw2Digit(Int_t period, Int_t run, TString mappingFile, TString calibrationFile = "", TString MaxPositionFile = "");
+    BmnScWallRaw2Digit(Int_t period, Int_t run, TString mappingFile, TString calibrationFile = "");
     BmnScWallRaw2Digit();
 
     void ParseConfig(TString mappingFile);
+    void ParseCalibration(TString calibrationFile);
+
+
+
     std::vector<UInt_t> GetScWallSerials() {return fScWallSerials;}
 
     Int_t GetFlatChannelFromAdcChannel(UInt_t adc_board_id, UInt_t adc_ch);
@@ -38,13 +51,19 @@ public:
 
  
 private:
+    int fPeriodId; 
+    int fRunId;
+    TString fmappingFileName;
+    TString fcalibrationFileName;
 
     std::vector<UInt_t> fScWallSerials;
     std::set<UInt_t> fUniqueX;
     std::set<UInt_t> fUniqueY;
     std::set<UInt_t> fUniqueSize;
     std::map<UInt_t, UInt_t> fChannelMap; // pair <flat_channel, unique_address>
-    int digiPar[6];
+
+    digiPars fdigiPars;
+    std::map<UInt_t, std::pair<float,float>> fCalibMap; // pair <flat_channel, pair<calib, calibError>>
 
     int maxchan;
     float cell_size[10];
@@ -75,10 +94,9 @@ private:
     float cal_out[64];
     float cale_out[64];
 
+    void MeanRMScalc(std::vector<float> wfm, float* Mean, float* RMS, int begin, int end, int step = 1);
+    void ProcessWfm(std::vector<float> wfm, BmnScWallDigi* digi);
 
-    float wave2amp(UChar_t ns, UShort_t *s, Float_t *p, Float_t *sigMin, Float_t *sigMax, Float_t *sigPed, Float_t *sigInt);
-    Int_t periodId;
-    Int_t runId;
 
     ClassDef(BmnScWallRaw2Digit, 1);
 };

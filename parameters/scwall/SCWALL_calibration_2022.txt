@@ -4,14 +4,16 @@ id = 1.0
 [COMMENT]
 str = void
 
-[PROCESSING]
-#Parameters      gateBegin      gateEnd      threshold      signalType(0 - max, 1 - integral)
-#============================================================================================
-parameters =     4              35           0.1            0
+[PARAMETERS]
+gateBegin = 4
+gateEnd = 35
+threshold = 0.1    # absolute value. To be compared to calibrated value of ScWallDigi.fSignal 
+signalType = 0     # (0 - max, 1 - integral)
+doInvert = 1       # invert signal
 
-[FITHARMONICS]
+[FITPARAMETERS]
 # fit parameters for Prony fit
-isfit = 1 # 0 or 1
+isfit = 1          # apply fit
 harmonic = 0.30
 harmonic = 0.55
 
@@ -41,3 +43,5 @@ calib =           0x0aadb6ec      18          1.0              0.0
 calib =           0x0aadb6ec      19          1.0              0.0
 calib =           0x0aadb6ec      20          1.0              0.0
 calib =           0x0aadb6ec      21          1.0              0.0
+calib =           0x0aae37f0      0           1.0              0.0
+calib =           0x080c33e6      9           1.0              0.0

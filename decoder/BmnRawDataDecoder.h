@@ -465,8 +465,6 @@ private:
     ifstream fTof700MapFile;
     ifstream fZDCMapFile;
     ifstream fZDCCalibraionFile;
-    ifstream fScWallMapFile;
-    ifstream fScWallCalibraionFile;
     ifstream fECALMapFile;
     ifstream fECALCalibraionFile;
     ifstream fTrigMapFile;

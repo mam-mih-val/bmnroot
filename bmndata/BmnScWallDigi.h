@@ -108,6 +108,8 @@ public:
   /** Modifiers **/
   void SetAddress(UInt_t address) { fuAddress = address; };
 
+  void reset();
+
   UInt_t fuAddress       = 0;   /// Unique channel address
   Double_t fSignal       = 0.;  /// Signal [MeV]
   Double_t fTimestamp    = -1.; /// Signal timestamp

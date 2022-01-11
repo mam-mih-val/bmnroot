@@ -558,7 +558,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64WR(UInt_t *d, UInt_t len, UInt_t seria
     const UChar_t kNCH = 64;
     const UChar_t kNSTAMPS = 128;
 
-    printf("Process_ADC64WR %08X \n", serial);
+    //printf("Process_ADC64WR %08X \n", serial);
 
     UShort_t val[kNSTAMPS];
     for (Int_t i = 0; i < kNSTAMPS; ++i) val[i] = 0;

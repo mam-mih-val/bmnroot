@@ -1,11 +1,15 @@
 #ifndef BMNSCWALLRAW2DIGIT_H
 #define	BMNSCWALLRAW2DIGIT_H
 
+#include <iostream>
+#include <numeric>
+
+#include "FairLogger.h"
 #include "TString.h"
 #include "TClonesArray.h"
 #include "BmnADCDigit.h"
 #include "BmnSyncDigit.h"
-#include <iostream>
+
 #include "Riostream.h"
 #include "BmnScWallDigi.h"
 #include <cstdlib>
@@ -13,6 +17,7 @@
 
 #include <boost/program_options.hpp>
 
+#include "PronyFitter.h"
 
 struct digiPars {
   int gateBegin;
@@ -60,10 +65,10 @@ private:
     std::set<UInt_t> fUniqueX;
     std::set<UInt_t> fUniqueY;
     std::set<UInt_t> fUniqueSize;
-    std::map<UInt_t, UInt_t> fChannelMap; // pair <flat_channel, unique_address>
+    std::vector<UInt_t> fChannelVect; // flat_channel to unique_address
 
     digiPars fdigiPars;
-    std::map<UInt_t, std::pair<float,float>> fCalibMap; // pair <flat_channel, pair<calib, calibError>>
+    std::vector<std::pair<float,float>> fCalibVect; // flat_channel to pair<calib, calibError>
 
     int maxchan;
     float cell_size[10];

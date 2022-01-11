@@ -157,5 +157,23 @@ BmnScWallDigi& BmnScWallDigi::operator=(BmnScWallDigi&& other)
   return *this;
 }
 
+void BmnScWallDigi::reset()
+{
+  fuAddress     = 0;   /// Unique channel address
+  fSignal       = 0.;  /// Signal [MeV]
+  fTimestamp    = -1.; /// Signal timestamp
+
+  fAmpl         = 0.;  /// Amplitude from waveform [adc counts]
+  fZL           = 0.;  /// ZeroLevel from waveform [adc counts]
+  fIntegral     = 0.;  /// Energy deposition from waveform [adc counts]
+  fTimeMax      = 0.;  /// Time of maximum in waveform [adc samples]
+
+  fFitAmpl      = 0.;  /// Amplitude from fit of waveform [adc counts]
+  fFitZL        = 0.;  /// ZeroLevel from fit of waveform [adc counts]
+  fFitIntegral  = 0.;  /// Energy deposition from fit of waveform [adc counts]
+  fFitR2        = 2.;  /// Quality of waveform fit [] -- good near 0
+  fFitTimeMax   = -1.; /// Time of maximum in fit of waveform [adc samples]
+
+}
 
 ClassImp(BmnScWallDigi)

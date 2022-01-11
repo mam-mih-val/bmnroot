@@ -8,12 +8,12 @@ BmnSiliconRaw2Digit::BmnSiliconRaw2Digit() {
     fMapFileName = "";
 }
 
-BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, BmnSetup bmnSetup, BmnADCDecoMode decoMode) : BmnAdcProcessor(period, run, "SILICON", ADC_N_CHANNELS, ADC128_N_SAMPLES, vSer) {
+BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, TString MapFileName, BmnSetup bmnSetup, BmnADCDecoMode decoMode) : BmnAdcProcessor(period, run, "SILICON", ADC_N_CHANNELS, ADC128_N_SAMPLES, vSer) {
     fSetup = bmnSetup;
     cout << "Loading SILICON Map from FILE: Period " << period << ", Run " << run << "..." << endl;
 
     fEventId = -1;
-    fMapFileName = Form("SILICON_map_run%d.txt", period);
+    fMapFileName = MapFileName;
     ReadMapFile();
 
     if (decoMode == kBMNADCSM) {

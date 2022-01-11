@@ -421,7 +421,7 @@ void BmnOnlineDecoder::ProcessStream() {
                     i = 0;
                     evExit = kTRUE;
                     break;
-                case kSYNC1:
+                case kSYNC1_OLD:
                     //            printf("i = %d\n", i);
                     //                    if (/*(fRunID > 0) &&*/ (buf[i] == kSYNC1)) 
                     //                    printf("found ksync1\n");
@@ -611,7 +611,7 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
         for (Int_t i = 0; i < n; ++i) {
             _curFile = TString(namelist[i]->d_name);
             Int_t runID = GetRunIdFromName(_curFile);
-            if (runID > 3767) {
+            if (runID > 3800) {
                 //                            if (regex_match(namelist[i]->d_name, re)) {
                 if (runCount == 0) {
                     if (InitDecoder(_curDir + _curFile) == kBMNERROR)

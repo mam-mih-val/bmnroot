@@ -1,8 +1,8 @@
 /*
  * Baranov D.
- * 20.07.2021
+ * 05.01.2022
  * Use this macro to create ROOT geometry for the RUN-8 config. of SILICON
- * detector including 4 Si-Stations with PASSIVE FRAMES!!!
+ * detector including 5 Si-Stations with PASSIVE FRAMES!!!
  *
  * WARNING: all units is in cm!!!
  *
@@ -11,17 +11,15 @@
 using namespace TMath;
 
 //Set Parameters of SILICON detector -------------------------------------------
-const Int_t NStations = 4;      //stations in the detector
+const Int_t NStations = 5;      //stations in the detector
 const Int_t NMaxModules = 22;    //max. number of modules in a station
 
-const Int_t NModulesInStations[NStations] = {10, 14, 18, 22};
+const Int_t NModulesInStations[NStations] = {6, 10, 14, 18, 22};
 
 //(X-Y-Z)Positions of stations (sensitive volumes)
-
-const Double_t XStationPositions[NStations] = { 0.0, 0.0, 0.0 };
-const Double_t YStationPositions[NStations] = { 0.0, 0.0, 0.0 };
-//const Double_t ZStationPositions[NStations] = { +12.37, +12.37+8.64, +12.37+8.64+8.64 }; // something old
-const Double_t ZStationPositions[NStations] = { +15.7, +15.7+8.64, +15.7+8.64+8.64, +15.7+8.64+8.64+8.64 };
+const Double_t XStationPositions[NStations] = { 0.0, 0.0, 0.0, 0.0 };
+const Double_t YStationPositions[NStations] = { 0.0, 0.0, 0.0, 0.0 };
+const Double_t ZStationPositions[NStations] = { 15.7-8.64/*7.06*/, +15.7, +15.7+8.64, +15.7+8.64+8.64, +15.7+8.64+8.64+8.64 };
 
 /*
  * where
@@ -32,18 +30,21 @@ const Double_t ZStationPositions[NStations] = { +15.7, +15.7+8.64, +15.7+8.64+8.
 
 //(X-Y-Z)Shifts of modules in each station
 const Double_t XModuleShifts[NStations][NMaxModules] = {
+    {+9.15/*0*/, +3.15/*1*/, -9.15/*2*/, +9.15/*3*/, +3.15/*4*/, -9.15/*5*/},
     {+15.15/*0*/, +9.15/*1*/, +3.15/*2*/, -9.15/*3*/, -15.15/*4*/, +15.15/*5*/, +9.15/*6*/, +3.15/*7*/, -9.15/*8*/, -15.15/*9*/},
     {+21.15/*0*/, +15.15/*1*/, +9.15/*2*/, +3.15/*3*/, -9.15/*4*/, -15.15/*5*/, -21.15/*6*/, +21.15/*7*/, +15.15/*8*/, +9.15/*9*/, +3.15/*10*/, -9.15/*11*/, -15.15/*12*/, -21.15/*13*/},
     {+27.15/*0*/, +21.15/*1*/, +15.15/*2*/, +9.15/*3*/, +3.15/*4*/, -9.15/*5*/, -15.15/*6*/, -21.15/*7*/, -27.15/*8*/, +27.15/*9*/, +21.15/*10*/, +15.15/*11*/, +9.15/*12*/, +3.15/*13*/, -9.15/*14*/, -15.15/*15*/, -21.15/*16*/, -27.15/*17*/},
     {+33.15/*0*/, +27.15/*1*/, +21.15/*2*/, +15.15/*3*/, +9.15/*4*/, +3.15/*5*/, -9.15/*6*/, -15.15/*7*/, -21.15/*8*/, -27.15/*9*/, -33.15/*10*/, +33.15/*11*/, +27.15/*12*/, +21.15/*13*/, +15.15/*14*/, +9.15/*15*/, +3.15/*16*/, -9.15/*17*/, -15.15/*18*/, -21.15/*19*/, -27.15/*20*/, -33.15/*21*/}
 };
 const Double_t YModuleShifts[NStations][NMaxModules] = {
+    {-0.15/*0*/, +2.85/*1*/, -0.15/*2*/, +0.15/*3*/, -2.85/*4*/, +0.15/*5*/},
     {-0.15/*0*/, -0.15/*1*/, +2.85/*2*/, -0.15/*3*/, -0.15/*4*/, +0.15/*5*/, +0.15/*6*/, -2.85/*7*/, +0.15/*8*/, +0.15/*9*/},
     {-0.15/*0*/, -0.15/*1*/, -0.15/*2*/, +2.85/*3*/, -0.15/*4*/, -0.15/*5*/, -0.15/*6*/, +0.15/*7*/, +0.15/*8*/, +0.15/*9*/, -2.85/*10*/, +0.15/*11*/, +0.15/*12*/, +0.15/*13*/},
     {-0.15/*0*/, -0.15/*1*/, -0.15/*2*/, -0.15/*3*/, +2.85/*4*/, -0.15/*5*/, -0.15/*6*/, -0.15/*7*/, -0.15/*8*/, +0.15/*9*/, +0.15/*10*/, +0.15/*11*/, +0.15/*12*/, -2.85/*13*/, +0.15/*14*/, +0.15/*15*/, +0.15/*16*/, +0.15/*17*/},
     {-0.15/*0*/, -0.15/*1*/, -0.15/*2*/, -0.15/*3*/, -0.15/*4*/, +2.85/*5*/, -0.15/*6*/, -0.15/*7*/, -0.15/*8*/, -0.15/*9*/, -0.15/*10*/, +0.15/*11*/, +0.15/*12*/, +0.15/*13*/, +0.15/*14*/, +0.15/*15*/, -2.85/*16*/, +0.15/*17*/, +0.15/*18*/, +0.15/*19*/, +0.15/*20*/, +0.15/*21*/}
 };
 const Double_t ZModuleShifts[NStations][NMaxModules] = {
+    {+0.14+4.31/*0*/, +1.36+4.31/*1*/, +0.0+4.31/*2*/, +1.22/*3*/, 0.0/*4*/, +1.36/*5*/},
     {+1.36+4.31/*0*/, +0.14+4.31/*1*/, +1.36+4.31/*2*/, +0.0+4.31/*3*/, +1.22+4.31/*4*/, +0.0/*5*/, +1.22/*6*/, 0.0/*7*/, +1.36/*8*/, +0.14/*9*/},
     {+0.14+4.31/*0*/, +1.36+4.31/*1*/, +0.14+4.31/*2*/, +1.36+4.31/*3*/, +0.0+4.31/*4*/, +1.22+4.31/*5*/, +0.0+4.31/*6*/, +1.22/*7*/, +0.0/*8*/, +1.22/*9*/, +0.0/*10*/, +1.36/*11*/, +0.14/*12*/, +1.36/*13*/},
     {+1.36+4.31/*0*/, +0.14+4.31/*1*/, +1.36+4.31/*2*/, +0.14+4.31/*3*/, +1.36+4.31/*4*/, +0.0+4.31/*5*/, +1.22+4.31/*6*/, +0.0+4.31/*7*/, +1.22+4.31/*8*/, +0.0/*9*/, +1.22/*10*/, +0.0/*11*/, +1.22/*12*/, +0.0/*13*/, +1.36/*14*/, +0.14/*15*/, +1.36/*16*/, +0.14/*17*/},
@@ -54,6 +55,7 @@ const Double_t ZModuleShifts[NStations][NMaxModules] = {
 enum ModuleType {RIGHT_ANGLED_MODULE, BEVEL_MODULE, RIGHT_ANGLED_MODULE_HALF, BEVEL_MODULE_HALF};
 
 const ModuleType ModulesTypes[NStations][NMaxModules] = {
+    {RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE},
     {RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE},
     {RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE},
     {RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE, RIGHT_ANGLED_MODULE},
@@ -62,6 +64,7 @@ const ModuleType ModulesTypes[NStations][NMaxModules] = {
 
 //rotations of modules around y-axis by 180 deg.
 const Bool_t ModulesYRotations[NStations][NMaxModules] = {
+    {true/*0*/, true/*1*/, false/*2*/, true/*3*/, true/*4*/, false/*5*/},
     {true/*0*/, true/*1*/, true/*2*/, false/*3*/, false/*4*/, true/*5*/, true/*6*/, true/*7*/, false/*8*/, false/*9*/},
     {true/*0*/, true/*1*/, true/*2*/, true/*3*/, false/*4*/, false/*5*/, false/*6*/, true/*7*/, true/*8*/, true/*9*/, true/*10*/, false/*11*/, false/*12*/, false/*13*/},
     {true/*0*/, true/*1*/, true/*2*/, true/*3*/, true/*4*/, false/*5*/, false/*6*/, false/*7*/, false/*8*/, true/*9*/, true/*10*/, true/*11*/, true/*12*/, true/*13*/, false/*14*/, false/*15*/, false/*16*/, false/*17*/},
@@ -71,12 +74,13 @@ const Bool_t ModulesYRotations[NStations][NMaxModules] = {
 
 //rotations of modules around x-axis by 180 deg.
 const Bool_t ModulesXRotations[NStations][NMaxModules] = {
+    {false/*0*/, false/*1*/, false/*2*/, true/*3*/, true/*4*/, true/*5*/},
     {false/*0*/, false/*1*/, false/*2*/, false/*3*/, false/*4*/, true/*5*/, true/*6*/, true/*7*/, true/*8*/, true/*9*/},
     {false/*0*/, false/*1*/, false/*2*/, false/*3*/, false/*4*/, false/*5*/, false/*6*/, true/*7*/, true/*8*/, true/*9*/, true/*10*/, true/*11*/, true/*12*/, true/*13*/},
     {false/*0*/, false/*1*/, false/*2*/, false/*3*/, false/*4*/, false/*5*/, false/*6*/, false/*7*/, false/*8*/, true/*9*/, true/*10*/, true/*11*/, true/*12*/, true/*13*/, true/*14*/, true/*15*/, true/*16*/, true/*17*/},
     {false/*0*/, false/*1*/, false/*2*/, false/*3*/, false/*4*/, false/*5*/, false/*6*/, false/*7*/, false/*8*/, false/*9*/, false/*10*/, true/*11*/, true/*12*/, true/*13*/, true/*14*/, true/*15*/, true/*16*/, true/*17*/, true/*18*/, true/*19*/, true/*20*/, true/*21*/}
 };
-
+//------------------------------------------------------------------------------
 
 //GeoManager
 TGeoManager* gGeoMan = 0;
@@ -386,14 +390,14 @@ void PrintInformationAboutStations() {
 }
 
 //create geometry of silicon detector with passive frames
-void create_rootgeom_Silicon_Run8_4stations_detailed() {
+void create_rootgeom_Silicon_Run8_5stations_detailed() {
 
     // ----  set working directory  --------------------------------------------
     TString gPath = gSystem->Getenv("VMCWORKDIR");
 
     // -------   Geometry file name (output)   ----------------------------------
     const TString geoDetectorName = "Silicon";
-    const TString geoDetectorVersion = "Run8_4stations_detailed";
+    const TString geoDetectorVersion = "Run8_5stations_detailed";
     const TString geoFileName = gPath + "/geometry/" + geoDetectorName + "_"+ geoDetectorVersion + ".root";
 
     // ----  global geometry parameters  ---------------------------------------
@@ -428,14 +432,14 @@ void create_rootgeom_Silicon_Run8_4stations_detailed() {
     SILICON->SetMedium(pMedAir);
 
     //Let's create SILICON stations filled with modules
-    for(Int_t istation = 0; istation < NStations; ++istation) {
-    //for(Int_t istation = 3; istation < 4; ++istation) {
+    //for(Int_t istation = 0; istation < NStations; ++istation) {
+    for(Int_t istation = 0; istation < 5; ++istation) {
 
         //module size in a station
         ModuleSize module_size = STANDARD_MODULE;
 
-        //(!!!) the third station has long modules (!!!)
-        if(istation == 3) module_size = LONG_MODULE;
+        //(!!!) the last (fourth)  station has long modules (!!!)
+        if(istation == 4) module_size = LONG_MODULE;
 
         TGeoVolume *station = CreateStation(TString("station")+ TString::Itoa(istation, 10));
 
@@ -1329,6 +1333,8 @@ TGeoVolume *CreateFrameForStation_StandardModule(TString frame_name, Int_t curre
     Double_t backRailMainPart_XSize = faceShild_XSize + - 0.3*2/*margin*/; //cm
     Double_t backRailMainPart_YSize = 3.0; //cm
     Double_t backRailMainPart_ZSize = 0.9; //cm, average 6..12 cm
+
+    cout << "backRailMainPart_XSize = " << backRailMainPart_XSize << "\n";
 
     Double_t backRailLowerPart_XSize = backRailMainPart_XSize - 1.4; //cm
     Double_t backRailLowerPart_YSize = 0.7; //cm

@@ -197,7 +197,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     // fRun->AddTask(ecalDigit);
 
     fRun->Init();
-    magField->Print();
+    magField->Print("");
 
     // Trajectories Visualization (TGeoManager only)
     FairTrajFilter* trajFilter = FairTrajFilter::Instance();
@@ -242,4 +242,5 @@ if ((generatorName == QGSM) || (generatorName == DCMQGSM)){
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
     cout << "Macro finished successfully." << endl; // marker of successfully execution for software testing systems
+    delete fRun;
 }

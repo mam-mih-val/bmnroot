@@ -53,6 +53,17 @@
 #include "BmnFillDstTask.h"
 #include "BmnVertexFinder.h"
 #include "BmnPid.h"
+#include "BmnSiBTHitMaker.h"
+#include "BmnBeamTracking.h"
+// L1 tracking
+#include "BmnToCbmHitConverter.h"
+#include "CbmKF.h"
+#include "CbmL1.h"
+#include "CbmL1StsTrackFinder.h"
+#include "CbmFindPrimaryVertex.h"
+#include "CbmPVFinderKF.h"
+#include "CbmStsTrackFinder.h"
+#include "CbmStsFindTracks.h"
 
 
 #include <iostream>
@@ -86,6 +97,7 @@ using namespace std;
 // from that file.
 
 //#include "../run/bmnloadlibs.C"
+#define L1
 
 void run8_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run8/bmndst.root",
@@ -218,6 +230,12 @@ void run8_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
     // fRunAna->AddTask(mwpcHM);
     
     // ====================================================================== //
+    // ===                         SiBT hit finder                        === //
+    // ====================================================================== //
+    BmnSiBTHitMaker* sibtHM = new BmnSiBTHitMaker(run_period, run_number, isExp);
+    fRunAna->AddTask(sibtHM);
+
+    // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
     BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
@@ -301,6 +319,12 @@ void run8_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
     innerTF->SetFiltration(isExp); //we use filtration for experimental data only now
     fRunAna->AddTask(innerTF);
 #endif
+
+    // ====================================================================== //
+    // ===                          Tracking (BEAM)                       === //
+    // ====================================================================== //
+    BmnBeamTracking* beamTF = new BmnBeamTracking(run_period);
+    fRunAna->AddTask(beamTF);
 
     // ====================================================================== //
     // ===                          Tracking (MWPC)                       === //

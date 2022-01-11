@@ -79,6 +79,10 @@ InitStatus BmnSiliconDigitizer::Init() {
             if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_4stations" << "\n";
             break;
 
+        case BmnSiliconConfiguration::Run8_5stations:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_5stations.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_5stations" << "\n";
+            break;
 
         default:
             StationSet = NULL;

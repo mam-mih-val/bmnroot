@@ -12,8 +12,10 @@
 #include <TBufferFile.h>
 // FairRoot
 #include "FairRootManager.h"
+#include "FairRootFileSink.h"
 #include "FairOnlineSource.h"
 #include "FairEventHeader.h"
+#include "FairRunAna.h"
 // BmnRoot
 #include "BmnEnums.h"
 #include "DigiArrays.h"
@@ -34,11 +36,18 @@ public:
     Int_t ReadEvent(UInt_t i=0);
     void Close();
 //    void Reset();
-//    void FillEventHeader(FairEventHeader* feh);
+    void FillEventHeader(FairEventHeader* feh);
     TTree* GetInTree() {return fInChain->GetTree();}
     TChain* GetInChain() {return fInChain;}
+    FairRunAna * GetRunInstance(){ return fRunInst;}
+    void SetRunInstance(FairRunAna * run){ fRunInst = run;}
     
 private:
+    TString GetDstNameFromRunId(Int_t runId) {
+        TString name(Form("bmn_run%d_dst.root", runId));
+        return name;
+    }
+    FairRunAna *fRunInst;
     zmq_msg_t _msg;
     TBufferFile *_tBuf;//= TBufferFile((TBuffer::EMode)0);// = TBufferFile(TBuffer::kRead);
     void * _ctx;
@@ -58,7 +67,7 @@ private:
 
     Int_t iEventNumber;
     Int_t iT0BranchIndex;
-//    DstRunHeader* fEventHeader;
+    BmnEventHeader* fEventHeader;
     TClonesArray* fGemDigits;
     TClonesArray* fSilDigits;
     TClonesArray* fCscDigits;

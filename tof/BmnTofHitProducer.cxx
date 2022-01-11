@@ -550,9 +550,9 @@ void BmnTofHitProducer::Exec(Option_t* opt)
             	}
 	}
 	if (OCCUPANCY)
-	    MergeHitsOnStripNew(); // simulation realistic response - several tracks hits in the strip
+	    if (useMCdata) MergeHitsOnStripNew(); // simulation realistic response - several tracks hits in the strip
 	else
-	    MergeHitsOnStrip(); // save only the fastest hit in the strip
+	    if (useMCdata) MergeHitsOnStrip(); // save only the fastest hit in the strip
 
 	int nFinally = CompressHits(); // remove blank slotes
         

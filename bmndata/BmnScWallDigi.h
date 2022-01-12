@@ -75,6 +75,12 @@ public:
   UInt_t GetAddress() const { return fuAddress; };
 
 
+  /** @brief Cell Id
+       ** @return Cell Id from Unique channel address (see BmnScWallAddress)
+       **/
+  UInt_t GetCellId() const { return BmnScWallAddress::GetCellId(fuAddress); };
+
+
   /** @brief calibrated Signal
        ** @return calibrated Signal
        **/

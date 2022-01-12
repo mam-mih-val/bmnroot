@@ -4,7 +4,7 @@
 
 void BmnScWallRaw2Digit::print()
 {
-  printf("SCWALLLL\n");
+  printf("BmnScWallRaw2Digit : \n");
 }
 
 BmnScWallRaw2Digit::BmnScWallRaw2Digit()
@@ -39,9 +39,12 @@ void BmnScWallRaw2Digit::ParseConfig(TString mappingFile)
 
   // Setup options.
   po::options_description desc("Options");
-  desc.add_options()("VERSION.id", po::value<float>(&version), "version identificator")("COMMENT.str", po::value<std::string>(&comment), "comment")("ADCSERIALS.serial", po::value<vect_string_t>(&adc_serials)->multitoken(),
-                                                                                                                                                    "adc serials")("CONFIGURATION.config", po::value<vect_string_t>(&configuration)->multitoken(),
-                                                                                                                                                                   "configuration");
+  desc.add_options()
+    ("VERSION.id", po::value<float>(&version), "version identificator")
+    ("COMMENT.str", po::value<std::string>(&comment), "comment")
+    ("ADCSERIALS.serial", po::value<vect_string_t>(&adc_serials)->multitoken(), "adc serials")
+    ("CONFIGURATION.config", po::value<vect_string_t>(&configuration)->multitoken(), "configuration")
+    ;
 
   // Load config file.
   po::variables_map vm;
@@ -106,7 +109,7 @@ void BmnScWallRaw2Digit::ParseConfig(TString mappingFile)
 
     UInt_t flat_channel = (UInt_t)GetFlatChannelFromAdcChannel(std::stoul(adc_ser, nullptr, 16), adc_chan);
     UInt_t unique_address = (ZoneIdx > 12) ? 0 : BmnScWallAddress::GetAddress(cell_id, xIdx, yIdx, SizeIdx, ZoneIdx);
-    fChannelVect[flat_channel] = unique_address;
+    fChannelVect.at(flat_channel) = unique_address;
   }
   //std::LOG(DEBUG) << "COMMENT.str: " << comment << std::endl;
 }
@@ -128,9 +131,18 @@ void BmnScWallRaw2Digit::ParseCalibration(TString calibrationFile)
 
   // Setup options.
   po::options_description desc("Options");
-  desc.add_options()("VERSION.id", po::value<float>(&version), "version identificator")("COMMENT.str", po::value<std::string>(&comment), "comment")("PARAMETERS.gateBegin", po::value<int>(&fdigiPars.gateBegin), "digi parameters")("PARAMETERS.gateEnd", po::value<int>(&fdigiPars.gateEnd), "digi parameters")("PARAMETERS.threshold", po::value<float>(&fdigiPars.threshold), "digi parameters")("PARAMETERS.signalType", po::value<int>(&fdigiPars.signalType), "digi parameters")("PARAMETERS.doInvert", po::value<bool>(&fdigiPars.doInvert), "digi parameters")("FITPARAMETERS.isfit", po::value<bool>(&fdigiPars.isfit), "digi parameters")("FITPARAMETERS.harmonic", po::value<vect_complf_t>(&fdigiPars.harmonics)->multitoken(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     "fit harmonics")("CALIBRATION.calib", po::value<vect_string_t>(&calibrations)->multitoken(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      "calibrations");
+  desc.add_options()
+    ("VERSION.id", po::value<float>(&version), "version identificator")
+    ("COMMENT.str", po::value<std::string>(&comment), "comment")
+    ("PARAMETERS.gateBegin", po::value<int>(&fdigiPars.gateBegin), "digi parameters")
+    ("PARAMETERS.gateEnd", po::value<int>(&fdigiPars.gateEnd), "digi parameters")
+    ("PARAMETERS.threshold", po::value<float>(&fdigiPars.threshold), "digi parameters")
+    ("PARAMETERS.signalType", po::value<int>(&fdigiPars.signalType), "digi parameters")
+    ("PARAMETERS.doInvert", po::value<bool>(&fdigiPars.doInvert), "digi parameters")
+    ("FITPARAMETERS.isfit", po::value<bool>(&fdigiPars.isfit), "digi parameters")
+    ("FITPARAMETERS.harmonic", po::value<vect_complf_t>(&fdigiPars.harmonics)->multitoken(), "fit harmonics")
+    ("CALIBRATION.calib", po::value<vect_string_t>(&calibrations)->multitoken(), "calibrations")
+    ;
 
   // Load config file.
   po::variables_map vm;
@@ -155,7 +167,7 @@ void BmnScWallRaw2Digit::ParseCalibration(TString calibrationFile)
   {
     istringstream ss(it);
     ss >> cell_id >> calibration >> calibError;
-    fCalibVect[cell_id] = std::make_pair(calibration, calibError);
+    fCalibVect.at(cell_id) = std::make_pair(calibration, calibError);
   }
 }
 
@@ -181,9 +193,13 @@ void BmnScWallRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ScWalldigit
   {
     BmnADCDigit *digit = (BmnADCDigit *)data->At(i);
     // check if serial is from ScWall
-    if (std::find(fScWallSerials.begin(), fScWallSerials.end(), digit->GetSerial()) == fScWallSerials.end())
+    // cout<<digit->GetSerial() << " " << digit->GetChannel() << endl;
+    if (std::find(fScWallSerials.begin(), fScWallSerials.end(), digit->GetSerial()) == fScWallSerials.end()) {
+      LOG(DEBUG) << std::hex << digit->GetSerial() << "Not found in ";
+      for (auto it : fScWallSerials)
+        cout << it << endl;
       continue;
-
+    }
     std::vector<float> wfm(digit->GetUShortValue(), digit->GetUShortValue() + digit->GetNSamples());
     BmnScWallDigi ThisDigi;
     ThisDigi.reset();

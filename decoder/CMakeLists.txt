@@ -24,8 +24,10 @@ include_directories(${INCLUDE_DIRECTORIES})
 Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
+ ${Boost_LIBRARY_DIRS}
  ${ROOT_LIBRARY_DIR}
  ${FAIRROOT_LIBRARY_DIR}
+ ${Boost_PROGRAM_OPTIONS_LIBRARY}
 )
  
 link_directories(${LINK_DIRECTORIES})
@@ -55,6 +57,6 @@ Set(HEADERS)
 
 Set(LINKDEF DecoderLinkDef.h)
 Set(LIBRARY_NAME Decoder)
-Set(DEPENDENCIES CSC Gem Silicon BmnData UniDb ElogDb TangoData Base Minuit Core)
+Set(DEPENDENCIES CSC Gem Silicon BmnData UniDb ElogDb TangoData Base Minuit Core ${Boost_LIBRARIES})
 
 GENERATE_LIBRARY()

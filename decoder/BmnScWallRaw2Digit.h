@@ -37,23 +37,15 @@ public:
     BmnScWallRaw2Digit(Int_t period, Int_t run, TString mappingFile, TString calibrationFile = "");
     BmnScWallRaw2Digit();
 
-    void ParseConfig(TString mappingFile);
-    void ParseCalibration(TString calibrationFile);
-
-
-
-    std::vector<UInt_t> GetScWallSerials() {return fScWallSerials;}
-
-    Int_t GetFlatChannelFromAdcChannel(UInt_t adc_board_id, UInt_t adc_ch);
-
-
     ~BmnScWallRaw2Digit();
 
+    void ParseConfig(TString mappingFile);
+    void ParseCalibration(TString calibrationFile);
+    void fillEvent(TClonesArray *data, TClonesArray *ScWalldigit);
     void print();
 
- 
-    void fillEvent(TClonesArray *data, TClonesArray *ScWalldigit);
-
+    std::vector<UInt_t> GetScWallSerials() {return fScWallSerials;}
+    Int_t GetFlatChannelFromAdcChannel(UInt_t adc_board_id, UInt_t adc_ch);
  
 private:
     int fPeriodId; 
@@ -69,35 +61,6 @@ private:
 
     digiPars fdigiPars;
     std::vector<std::pair<float,float>> fCalibVect; // flat_channel to pair<calib, calibError>
-
-    int maxchan;
-    float cell_size[10];
-    int n_rec;
-    float thres;
-    int wave2amp_flag;
-    int MaxPos_min, MaxPos_max;
-    int min_samples;
-    int ped_samples;
-    int use_meanxy;
-    float sigma_amp;
-    float shower_energy;
-    float shower_norm;
-    float x_beam, y_beam;
-    float x_min, y_min;
-    float x_max, y_max;
-    float pstart, pstep;
-    int ncells;
-
-    float ScWall_amp[64];
-    float log_amp[64];
-    int number[64];
-    int index[64];
-    int channel0[64];
-    int channel1[64];
-    float cal[64];
-    float cale[64];
-    float cal_out[64];
-    float cale_out[64];
 
     void MeanRMScalc(std::vector<float> wfm, float* Mean, float* RMS, int begin, int end, int step = 1);
     void ProcessWfm(std::vector<float> wfm, BmnScWallDigi* digi);

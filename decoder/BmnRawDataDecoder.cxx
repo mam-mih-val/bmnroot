@@ -398,7 +398,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         UInt_t payload = (d[idx++] & 0xFFFFFF) / kNBYTESINWORD;
         if (payload > 2000000) {
             printf("[WARNING] Event %d:\n serial = 0x%06X\n id = Ox%02X\n payload = %d\n", fEventId, serial, id, payload);
-            //break;
+            break;
         }
         //    printf("  idev %02X serial 0x%08X\n", id, serial);
         switch (id) {
@@ -557,8 +557,6 @@ BmnStatus BmnRawDataDecoder::TakeDataWordUShort(UChar_t n, UInt_t *d, UInt_t i, 
 BmnStatus BmnRawDataDecoder::Process_ADC64WR(UInt_t *d, UInt_t len, UInt_t serial, TClonesArray *arr) {
     const UChar_t kNCH = 64;
     const UChar_t kNSTAMPS = 128;
-
-    //printf("Process_ADC64WR %08X \n", serial);
 
     UShort_t val[kNSTAMPS];
     for (Int_t i = 0; i < kNSTAMPS; ++i) val[i] = 0;

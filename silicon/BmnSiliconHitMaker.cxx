@@ -54,7 +54,7 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
             }
             break;
         case 8: //BM@N RUN-8
-            fCurrentConfig = BmnSiliconConfiguration::Run8_3stations;
+            fCurrentConfig = BmnSiliconConfiguration::Run8_mods_6_10_14_18;
             break;
     }
 
@@ -92,6 +92,11 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
         case BmnSiliconConfiguration::Run8_5stations:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_5stations.xml");
             if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_5stations" << "\n";
+            break;
+
+        case BmnSiliconConfiguration::Run8_mods_6_10_14_18:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_mods_6_10_14_18.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_mods_6_10_14_18" << "\n";
             break;
 
         default:

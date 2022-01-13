@@ -241,24 +241,24 @@ void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
   for (Int_t igate = 0; igate < n_gates; igate++)
     if (gates_rms[igate] < gates_rms[best_gate])
       best_gate = igate;
-  digi->fZL = gates_mean[best_gate];
+  digi->fZL = (int) gates_mean[best_gate];
 
   //MAX and Integral calculation including borders
   LOG(DEBUG) << "BmnScWallRaw2Digit::ProcessWfm  MAX & INT search" << endl;
-  digi->fIntegral = std::accumulate(wfm.begin() + fdigiPars.gateBegin, wfm.begin() + fdigiPars.gateEnd + 1,
+  digi->fIntegral = (int) std::accumulate(wfm.begin() + fdigiPars.gateBegin, wfm.begin() + fdigiPars.gateEnd + 1,
                                     -digi->fZL * (fdigiPars.gateEnd - fdigiPars.gateBegin + 1));
   auto const max_iter = std::max_element(wfm.begin() + fdigiPars.gateBegin, wfm.begin() + fdigiPars.gateEnd + 1);
-  digi->fAmpl = *max_iter - digi->fZL;
-  digi->fTimeMax = std::distance(wfm.begin(), max_iter);
+  digi->fAmpl = (int) *max_iter - digi->fZL;
+  digi->fTimeMax = (int) std::distance(wfm.begin(), max_iter);
 
   //Apply calibration
   LOG(DEBUG) << "BmnScWallRaw2Digit::ProcessWfm  Calibration" << endl;
   UInt_t cell_id = BmnScWallAddress::GetCellId(digi->fuAddress);
   assert(cell_id < fCalibVect.size());
   if (fdigiPars.signalType == 0)
-    digi->fSignal = digi->fAmpl * fCalibVect.at(cell_id).first;
+    digi->fSignal = (float) digi->fAmpl * fCalibVect.at(cell_id).first;
   if (fdigiPars.signalType == 1)
-    digi->fSignal = digi->fIntegral * fCalibVect.at(cell_id).first;
+    digi->fSignal = (float) digi->fIntegral * fCalibVect.at(cell_id).first;
 
   //Prony fitting procedure
   if (fdigiPars.isfit)

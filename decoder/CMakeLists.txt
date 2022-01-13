@@ -57,6 +57,6 @@ Set(HEADERS)
 
 Set(LINKDEF DecoderLinkDef.h)
 Set(LIBRARY_NAME Decoder)
-Set(DEPENDENCIES CSC Gem Silicon BmnData UniDb ElogDb TangoData Base Minuit Core ${Boost_PROGRAM_OPTIONS_LIBRARY})
+Set(DEPENDENCIES CSC Gem Silicon BmnData UniDb ElogDb TangoData Base Minuit Core boost_program_options)
 
 GENERATE_LIBRARY()

@@ -39,9 +39,9 @@ BmnScWallDigi::BmnScWallDigi()
 
 // clang-format off
 // --- Constructor with assignment
-BmnScWallDigi::BmnScWallDigi(UInt_t address, Double_t signal, Double_t timestamp, 
-                Double_t ampl, Double_t zl, Double_t integral, Double_t time_max,
-                Double_t fit_ampl, Double_t fit_zl, Double_t fit_integral, Double_t fit_R2, Double_t fit_time_max)
+BmnScWallDigi::BmnScWallDigi(UInt_t address, Float_t signal, Float_t timestamp, 
+                Int_t ampl, Int_t zl, Int_t integral, Int_t time_max,
+                Float_t fit_ampl, Float_t fit_zl, Float_t fit_integral, Float_t fit_R2, Float_t fit_time_max)
 
   : TObject()
   , fuAddress(address)
@@ -163,10 +163,10 @@ void BmnScWallDigi::reset()
   fSignal       = 0.;  /// Signal [MeV]
   fTimestamp    = -1.; /// Signal timestamp
 
-  fAmpl         = 0.;  /// Amplitude from waveform [adc counts]
-  fZL           = 0.;  /// ZeroLevel from waveform [adc counts]
-  fIntegral     = 0.;  /// Energy deposition from waveform [adc counts]
-  fTimeMax      = 0.;  /// Time of maximum in waveform [adc samples]
+  fAmpl         = 0;  /// Amplitude from waveform [adc counts]
+  fZL           = 0;  /// ZeroLevel from waveform [adc counts]
+  fIntegral     = 0;  /// Energy deposition from waveform [adc counts]
+  fTimeMax      = 0;  /// Time of maximum in waveform [adc samples]
 
   fFitAmpl      = 0.;  /// Amplitude from fit of waveform [adc counts]
   fFitZL        = 0.;  /// ZeroLevel from fit of waveform [adc counts]

@@ -16,7 +16,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/sts
  ${CMAKE_SOURCE_DIR}/bmndst
  ${CMAKE_SOURCE_DIR}/bmnfield
-  ${CMAKE_SOURCE_DIR}/globaltracking
+ ${CMAKE_SOURCE_DIR}/globaltracking
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES

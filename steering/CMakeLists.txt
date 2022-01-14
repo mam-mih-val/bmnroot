@@ -19,6 +19,7 @@ Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 set(LINK_DIRECTORIES
  ${ROOT_LIBRARY_DIR}
  ${FAIRROOT_LIBRARY_DIR}
+ ${Boost_LIBRARY_DIRS}
 )
  
 link_directories(${LINK_DIRECTORIES})
@@ -32,6 +33,6 @@ BmnOfflineQaSteering.cxx
 Set(HEADERS)
 Set(LINKDEF SteeringLinkDef.h)
 Set(LIBRARY_NAME BmnSteering)
-Set(DEPENDENCIES Gem CSC Silicon Base Core)
+Set(DEPENDENCIES Gem CSC Silicon BmnData Base Core)
 
 GENERATE_LIBRARY()

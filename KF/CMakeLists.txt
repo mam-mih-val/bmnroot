@@ -17,7 +17,6 @@ set(INCLUDE_DIRECTORIES
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
- ${Boost_INCLUDE_DIRS}
  ${ROOT_INCLUDE_DIR}
 )
 
@@ -27,6 +26,7 @@ Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 set(LINK_DIRECTORIES
  ${ROOT_LIBRARY_DIR}
  ${FAIRROOT_LIBRARY_DIR}
+ ${Boost_LIBRARY_DIRS}
 )
  
 link_directories(${LINK_DIRECTORIES})
@@ -64,6 +64,7 @@ Interface/BmnStsKFTrackFitter.cxx
 #KFQA/CbmKFTrackFitQA.cxx
 KFQA/KFParticleMatch.cxx
 KFQA/KFMCParticle.cxx
+KFQA/CbmKFPartEfficiencies.h
 #KFQA/CbmKFParticlesFinderQA.cxx
 
 #KFParticle/KFParticleBase.cxx
@@ -74,46 +75,6 @@ KFQA/KFMCParticle.cxx
 
 #KFParticlesFinder/CbmKFParticlesFinder.cxx
 KFParticlesFinder/CbmKFParticleDatabase.cxx
-)
-
-set(HEADERS
-CbmKF.h 
-CbmKFFieldMath.h
-CbmKFHit.h
-CbmKFMaterial.h
-CbmKFMath.h
-CbmKFPixelMeasurement.h
-CbmKFPrimaryVertexFinder.h
-#CbmKFSecondaryVertexFinder.h
-CbmKFTrackInterface.h
-CbmKFUMeasurement.h 
-CbmKFVertexInterface.h
-CbmKFParticle.h
-
-#Interface/CbmEcalTrackExtrapolationKF.h
-Interface/CbmKFStsHit.h
-Interface/CbmKFTrack.h 
-Interface/CbmKFVertex.h 
-Interface/CbmPVFinderKF.h
-#Interface/CbmStsFitPerformanceTask.h
-Interface/CbmStsKFTrackFitter.h
-#Interface/CbmStsKFSecondaryVertexFinder.h
-#Interface/CbmGlobalTrackFitterKF.h
-Interface/BmnKFStsHit.h
-Interface/BmnStsKFTrackFitter.h
-
-#KFQA/CbmKFTrErrMCPoints.h
-#KFQA/CbmKFTrackFitQA.h
-KFQA/KFParticleMatch.h
-KFQA/KFMCParticle.h
-#KFQA/CbmKFParticlesFinderQA.h
-KFQA/CbmKFPartEfficiencies.h
-
-#KFParticle/KFParticleBase.h
-#KFParticle/KFParticle.h
-
-#KFParticlesFinder/CbmKFParticlesFinder.h
-KFParticlesFinder/CbmKFParticleDatabase.h
 )
 
 ADD_DEFINITIONS(-Wall -Wsign-promo  -Wno-pmf-conversions -Wctor-dtor-privacy -Wreorder -Wno-deprecated -Wstrict-null-sentinel -Wno-non-template-friend )
@@ -129,6 +90,7 @@ ELSE (SSE_FOUND)
   "-O3")
 ENDIF (SSE_FOUND)
 
+set(HEADERS)
 Set(LINKDEF KFLinkDef.h)
 Set(LIBRARY_NAME KF)
 Set(DEPENDENCIES Sts TOF Gem Silicon BmnData BmnField Passive Base Core)

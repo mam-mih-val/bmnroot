@@ -8,6 +8,8 @@
 #include "PolynomRealRoots.h"
 #include "MatrixInversion.h"
 
+#include <limits>
+
 namespace PsdSignalFitting {
 
 PronyFitter::PronyFitter(int model_order, int exponent_number, int gate_beg,

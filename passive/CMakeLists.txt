@@ -37,7 +37,7 @@ Set(SRCS
   FairTarget.cxx 
 )
 
-Set(HEADERS )
+Set(HEADERS)
 Set(LINKDEF BmnPassiveLinkDef.h)
 Set(LIBRARY_NAME Passive)
 Set(DEPENDENCIES Base GeoBase ParBase Geom Core)

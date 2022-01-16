@@ -8,6 +8,7 @@
 #include "FairRunAna.h"
 #include "FairTrackParam.h"
 #include "TStyle.h"
+#include "TFile.h"
 #include "TH1F.h"
 
 using namespace std;

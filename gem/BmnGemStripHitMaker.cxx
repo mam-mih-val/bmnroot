@@ -263,9 +263,6 @@ void BmnGemStripHitMaker::ProcessDigits() {
     BmnGemStripDigit* digit;
     BmnMatch* strip_match; // MC-information for a strip
 
-    BmnGemStripStation* station;
-    BmnGemStripModule* module;
-
     //Loading digits ---------------------------------------------------------------
     Int_t AddedDigits = 0;
     Int_t AddedStripDigitMatches = 0;
@@ -278,8 +275,8 @@ void BmnGemStripHitMaker::ProcessDigits() {
         if (digit->GetStripSignal() < fSignalLow || digit->GetStripSignal() > fSignalUp)
             continue;
 
-        station = StationSet->GetGemStation(digit->GetStation());
-        module = station->GetModule(digit->GetModule());
+        BmnGemStripStation* station = StationSet->GetGemStation(digit->GetStation());
+        BmnGemStripModule* module = station->GetModule(digit->GetModule());
 
         if (module->SetStripSignalInLayer(digit->GetStripLayer(), digit->GetStripNumber(), digit->GetStripSignal())) AddedDigits++;
 

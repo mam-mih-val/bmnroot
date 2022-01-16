@@ -1,6 +1,8 @@
 #include "BmnLambdaEmbeddingQa.h"
 #include "BmnSiliconPoint.h"
 
+#include "TObjString.h"
+
 BmnLambdaEmbeddingQa::BmnLambdaEmbeddingQa() :
 fRunAna(nullptr),
 geoms(nullptr),
@@ -1082,7 +1084,7 @@ void BmnLambdaEmbeddingQa::DrawFoundTracks() {
         BmnKalmanFilter* kalman = new BmnKalmanFilter();
 
         FairTrackParam* first = glTrack->GetParamFirst();
-        FairTrackParam* last = glTrack->GetParamLast();
+        FairTrackParam* last_par = glTrack->GetParamLast();
 
         Double_t zStart = first->GetZ();
         hXzRecoFromTracks->Fill(first->GetZ(), first->GetX());
@@ -1097,7 +1099,7 @@ void BmnLambdaEmbeddingQa::DrawFoundTracks() {
             }
         }
 
-        Double_t zFinish = last->GetZ();
+        Double_t zFinish = last_par->GetZ();
 
         Int_t pdg = (first->GetQp() > 0.) ? 2212 : -211;
 

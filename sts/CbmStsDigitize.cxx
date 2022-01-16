@@ -1,18 +1,14 @@
 //* $Id: */
-
 // -------------------------------------------------------------------------
 // -----                    CbmStsDigitize source file             -----
 // -----                  Created 08/07/2008  by R. Karabowicz         -----
 // -------------------------------------------------------------------------
-
-
-
-
 // Includes from ROOT
 #include "TClonesArray.h"
 #include "TGeoBBox.h"
 #include "TObjArray.h"
 #include "TMath.h"
+#include "TFile.h"
 #include "TF1.h"
 #include "TRandom3.h"
 

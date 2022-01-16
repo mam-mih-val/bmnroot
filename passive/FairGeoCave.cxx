@@ -22,6 +22,7 @@
 #include "FairGeoShapes.h"       // for FairGeoShapes
 
 #include <TList.h>    // for TList
+#include <fstream>    // for fstream
 #include <iostream>   // for cout
 #include <string.h>   // for strcmp
 using namespace std;

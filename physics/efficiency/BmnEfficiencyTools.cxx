@@ -2,6 +2,8 @@
 #include "BmnDataTriggerInfo.h"
 #include "BmnEfficiency.h"
 
+#include "TFile.h"
+
 BmnEfficiencyTools::BmnEfficiencyTools(FairRunAna* fRunAna) :
 fPeriod(7) {
     fRunAna->Print();

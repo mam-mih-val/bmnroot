@@ -1,5 +1,7 @@
 #include "BmnEfficiency.h"
 
+#include "TFile.h"
+
 BmnEfficiency::BmnEfficiency(FairRunAna* fAna, BmnInnerTrackerGeometryDraw* fInnTracker, TString dstFile, Int_t nEvents) :
 isGoodDst(kFALSE),
 fNEvents(nEvents),

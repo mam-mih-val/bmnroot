@@ -1,9 +1,13 @@
-#include <BmnMassSpectrumAnal.h>
-
-using namespace std;
-
 #ifndef BMNLAMBDAANALRUN7_H
 #define BMNLAMBDAANALRUN7_H 1
+
+#include <BmnMassSpectrumAnal.h>
+
+#include "TObjString.h"
+
+#include <set>
+
+using namespace std;
 
 // Class to store signal (and its error, if necessary) for different samples of data and path bins
 

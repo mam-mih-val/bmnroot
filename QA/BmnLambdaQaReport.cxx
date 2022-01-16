@@ -25,6 +25,7 @@
 #include "BmnParticlePairsInfo.h"
 #include <iostream>
 #include <vector>
+#include <iomanip>
 using namespace std;
 using lit::NumberToString;
 using lit::Split;

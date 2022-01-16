@@ -3,26 +3,15 @@
 #ifndef BMNGEMHITPRODUCER_H
 #define BMNGEMHITPRODUCER_H 1
 
-#include <math.h>
-#include <iostream>
-#include <vector>
-#include "TString.h"
-#include "TClonesArray.h"
-#include "FairTask.h"
 #include "BmnGemStripStationSet.h"
-#include "BmnGemStripConfiguration.h"
 
+#include "FairTask.h"
 
-#include "CbmStsPoint.h"
-#include "CbmStsTrack.h"
-
-#include "BmnHit.h"
-
-using namespace std;
+#include "TClonesArray.h"
+#include "TString.h"
 
 class BmnGemHitProducer : public FairTask {
 public:
-
     /** Default constructor **/
     BmnGemHitProducer();
 
@@ -41,7 +30,6 @@ public:
     Int_t DefineStationByZ(Double_t z);
 
 private:
-
     TString fInputBranchName;
     TString fTracksBranchName;
     TString fOutputHitsBranchName;
@@ -62,7 +50,6 @@ private:
     BmnGemStripStationSet *GemStationSet; //Entire GEM detector
 
     ClassDef(BmnGemHitProducer, 1);
-
 };
 
 #endif

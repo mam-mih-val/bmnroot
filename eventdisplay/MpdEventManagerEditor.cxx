@@ -17,6 +17,7 @@
 #include <TGLViewer.h>
 #include <TGLScenePad.h>
 #include "TEveBrowser.h"
+#include "TVirtualX.h"
 #include "TEveGedEditor.h"
 #include "TGFileDialog.h"
 #include "TThread.h"

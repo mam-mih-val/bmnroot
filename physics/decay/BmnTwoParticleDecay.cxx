@@ -9,6 +9,7 @@
 //                                                                            //
 //////////  ////////////////////////////////////////////////////////////////////
 #include <TCanvas.h>
+#include "TFile.h"
 #include <TGeoManager.h>
 #include <Fit/FitResult.h>
 #include "BmnTwoParticleDecay.h"

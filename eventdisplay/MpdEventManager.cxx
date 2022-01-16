@@ -7,6 +7,7 @@
 #include "TDOMParser.h"
 #include "TXMLEngine.h"
 #include "TXMLAttr.h"
+#include "TObjString.h"
 #include "TXMLNode.h"
 
 #include "TDatabasePDG.h"

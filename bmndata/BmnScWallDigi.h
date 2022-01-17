@@ -16,8 +16,11 @@
 #define BmnScWallDigi_H 1
 
 #include "TObject.h"
+#include "TCanvas.h"
+#include "TGraph.h"
 #include "BmnDetectorList.h"  // for kSCWALL
 #include "BmnScWallAddress.h"  // for BmnScWallAddress
+
 
 #include <Rtypes.h>      // for THashConsistencyHolder, ClassDefNV
 #include <RtypesCore.h>  // for Float_t, UInt_t, Int_t
@@ -25,6 +28,7 @@
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/base_object.hpp>
 
+#include <numeric>
 #include <string>  // for string
 
 
@@ -40,7 +44,8 @@ public:
        **/
   BmnScWallDigi(UInt_t address, Float_t signal, Float_t timestamp, 
                 Int_t ampl, Int_t zl, Int_t integral, Int_t time_max,
-                Float_t fit_ampl, Float_t fit_zl, Float_t fit_integral, Float_t fit_R2, Float_t fit_time_max);
+                Float_t fit_ampl, Float_t fit_zl, Float_t fit_integral, Float_t fit_R2, Float_t fit_time_max,
+                std::vector<float> wfm, std::vector<float> fit_wfm);
 
 
   /**  Copy constructor **/
@@ -116,6 +121,8 @@ public:
 
   void reset();
 
+  const int DrawWfm();
+
   UInt_t fuAddress       = 0;   /// Unique channel address
   Float_t fSignal       = 0.;  /// Signal [MeV]
   Float_t fTimestamp    = -1.; /// Signal timestamp
@@ -130,6 +137,9 @@ public:
   Float_t fFitIntegral  = 0.;  /// Energy deposition from fit of waveform [adc counts]
   Float_t fFitR2        = 2.;  /// Quality of waveform fit [] -- good near 0
   Float_t fFitTimeMax   = -1.; /// Time of maximum in fit of waveform [adc samples]
+
+  std::vector<float> fWfm;
+  std::vector<float> fFitWfm;
 
   template<class Archive>
   void serialize(Archive& ar, const unsigned int /*version*/)
@@ -149,6 +159,8 @@ public:
     ar& fFitR2;
     ar& fFitTimeMax;
 
+    ar& fWfm;
+    ar& fFitWfm;
   }
 
 private:

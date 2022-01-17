@@ -34,6 +34,9 @@ BmnScWallDigi::BmnScWallDigi()
   , fFitIntegral()
   , fFitR2()
   , fFitTimeMax()
+
+  , fWfm()
+  , fFitWfm()
 {
 }
 
@@ -41,7 +44,8 @@ BmnScWallDigi::BmnScWallDigi()
 // --- Constructor with assignment
 BmnScWallDigi::BmnScWallDigi(UInt_t address, Float_t signal, Float_t timestamp, 
                 Int_t ampl, Int_t zl, Int_t integral, Int_t time_max,
-                Float_t fit_ampl, Float_t fit_zl, Float_t fit_integral, Float_t fit_R2, Float_t fit_time_max)
+                Float_t fit_ampl, Float_t fit_zl, Float_t fit_integral, Float_t fit_R2, Float_t fit_time_max,
+                std::vector<float> wfm, std::vector<float> fit_wfm)
 
   : TObject()
   , fuAddress(address)
@@ -58,6 +62,9 @@ BmnScWallDigi::BmnScWallDigi(UInt_t address, Float_t signal, Float_t timestamp,
   , fFitIntegral(fit_integral)
   , fFitR2(fit_R2)
   , fFitTimeMax(fit_time_max)
+
+  , fWfm(wfm)
+  , fFitWfm(fit_wfm)
 {
 }
 // clang-format on
@@ -79,6 +86,8 @@ BmnScWallDigi::BmnScWallDigi(const BmnScWallDigi& other)
   , fFitR2(other.fFitR2)
   , fFitTimeMax(other.fFitTimeMax)
 
+  , fWfm(other.fWfm)
+  , fFitWfm(other.fFitWfm)
 {
 }
 
@@ -100,6 +109,8 @@ BmnScWallDigi::BmnScWallDigi(BmnScWallDigi&& other)
   , fFitR2(other.fFitR2)
   , fFitTimeMax(other.fFitTimeMax)
 
+  , fWfm(other.fWfm)
+  , fFitWfm(other.fFitWfm)
 {
 }
 
@@ -107,6 +118,8 @@ BmnScWallDigi::BmnScWallDigi(BmnScWallDigi&& other)
 // --- Destructor
 BmnScWallDigi::~BmnScWallDigi()
 {
+  std::vector<float>().swap(fWfm);
+  std::vector<float>().swap(fFitWfm);
 }
 
 
@@ -129,6 +142,8 @@ BmnScWallDigi& BmnScWallDigi::operator=(const BmnScWallDigi& other)
     fFitR2 = other.fFitR2;
     fFitTimeMax     = other.fFitTimeMax;
 
+    fWfm = other.fWfm;
+    fFitWfm = other.fFitWfm;
   }
   return *this;
 }
@@ -153,6 +168,8 @@ BmnScWallDigi& BmnScWallDigi::operator=(BmnScWallDigi&& other)
     fFitR2 = other.fFitR2;
     fFitTimeMax     = other.fFitTimeMax;
 
+    fWfm = other.fWfm;
+    fFitWfm = other.fFitWfm;
   }
   return *this;
 }
@@ -174,6 +191,29 @@ void BmnScWallDigi::reset()
   fFitR2        = 2.;  /// Quality of waveform fit [] -- good near 0
   fFitTimeMax   = -1.; /// Time of maximum in fit of waveform [adc samples]
 
+  fWfm.clear();
+  fFitWfm.clear();
+}
+
+const int BmnScWallDigi::DrawWfm()
+{
+  if(fWfm.empty()) return 0;
+
+  TString hist_name = Form("Ch%u. Signal %.2f FitR2 %.2f", 
+                            BmnScWallAddress::GetCellId(fuAddress), fSignal, fFitR2);
+  TCanvas *canv_ptr = new TCanvas();
+  std::vector<float> points(fWfm.size());
+  std::iota(std::begin(points), std::end(points), 0); // Fill with 0, 1, ..., wfm.back().
+  TGraph *tgr_ptr = new TGraph(fWfm.size(), &points[0], &fWfm[0]);
+  tgr_ptr->SetTitle(hist_name.Data());
+  tgr_ptr->Draw();
+  if(!fFitWfm.empty()){
+    TGraph *tgr_ptr_fit = new TGraph(fFitWfm.size(), &points[0], &fFitWfm[0]);
+    tgr_ptr_fit->SetLineColor(kRed);
+    tgr_ptr_fit->SetLineWidth(2);
+    tgr_ptr_fit->Draw("same");
+  }
+  return 1;
 }
 
 ClassImp(BmnScWallDigi)

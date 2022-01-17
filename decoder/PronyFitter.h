@@ -28,6 +28,8 @@ public:
   PronyFitter(){};
   PronyFitter(int model_order, int exponent_number, int gate_beg, int gate_end);
 
+  void Initialize(int model_order, int exponent_number, int gate_beg, int gate_end);
+
   /**         Default destructor         **/
   ~PronyFitter() { Clear(); };
 
@@ -84,8 +86,7 @@ public:
   std::vector<float> GetFitWfm() { return fFitWfm; }
 
 private:
-  void Initialize(int model_order, int exponent_number, int gate_beg,
-                  int gate_end);
+
   void AllocData();
   void DeleteData();
   void Clear();

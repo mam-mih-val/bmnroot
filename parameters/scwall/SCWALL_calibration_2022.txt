@@ -4,6 +4,9 @@ id = 1.0
 [COMMENT]
 str = void
 
+[CHECKER]
+isWriteWfm = 0     # write waveforms for debug
+
 [PARAMETERS]
 gateBegin = 4
 gateEnd = 35

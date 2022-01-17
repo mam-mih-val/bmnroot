@@ -9,7 +9,7 @@
 static Float_t workTime = 0.0;
 
 BmnSiliconHitMaker::BmnSiliconHitMaker()
-: fHitMatching(kTRUE) {
+    : fHitMatching(kTRUE) {
 
     fInputPointsBranchName = "SiliconPoint";
     fInputDigitsBranchName = "BmnSiliconDigit";
@@ -22,7 +22,7 @@ BmnSiliconHitMaker::BmnSiliconHitMaker()
 }
 
 BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, Bool_t isSrc)
-: fHitMatching(kTRUE) {
+    : fHitMatching(kTRUE) {
 
     fIsExp = isExp;
     fIsSrc = isSrc;
@@ -32,28 +32,26 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
 
     fOutputHitsBranchName = "BmnSiliconHit";
 
-    fBmnEvQualityBranchName = "BmnEventQuality";
-
     fCurrentConfig = BmnSiliconConfiguration::None;
     StationSet = NULL;
 
     fSignalLow = 0.;
     fSignalUp = DBL_MAX;
 
-    switch(run_period) {
-        case 6: //BM@N RUN-6
-            fCurrentConfig = BmnSiliconConfiguration::RunSpring2017;
-            break;
-        case 7: //BM@N RUN-7 (and SRC)
-            if(fIsSrc) {
-                fCurrentConfig = BmnSiliconConfiguration::RunSRCSpring2018;
-            } else {
-                fCurrentConfig = BmnSiliconConfiguration::RunSpring2018;
-            }
-            break;
-        case 8: //BM@N RUN-8
-            fCurrentConfig = BmnSiliconConfiguration::Run8_3stations;
-            break;
+    switch (run_period) {
+    case 6: //BM@N RUN-6
+        fCurrentConfig = BmnSiliconConfiguration::RunSpring2017;
+        break;
+    case 7: //BM@N RUN-7 (and SRC)
+        if (fIsSrc) {
+            fCurrentConfig = BmnSiliconConfiguration::RunSRCSpring2018;
+        } else {
+            fCurrentConfig = BmnSiliconConfiguration::RunSpring2018;
+        }
+        break;
+    case 8: //BM@N RUN-8
+        fCurrentConfig = BmnSiliconConfiguration::Run8_3stations;
+        break;
     }
 
     TString gPathSiliconConfig = gSystem->Getenv("VMCWORKDIR");
@@ -62,43 +60,43 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
     //Create SILICON detector --------------------------------------------------
     switch (fCurrentConfig) {
 
-        case BmnSiliconConfiguration::RunSpring2017:
-            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2017.xml");
-            if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSpring2017" << "\n";
-            break;
+    case BmnSiliconConfiguration::RunSpring2017:
+        StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2017.xml");
+        if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSpring2017" << "\n";
+        break;
 
-        case BmnSiliconConfiguration::RunSpring2018:
-            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2018.xml");
-            if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSpring2018" << "\n";
-            break;
+    case BmnSiliconConfiguration::RunSpring2018:
+        StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2018.xml");
+        if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSpring2018" << "\n";
+        break;
 
-        case BmnSiliconConfiguration::RunSRCSpring2018:
-            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSRCSpring2018.xml");
-            if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSRCSpring2018" << "\n";
-            break;
+    case BmnSiliconConfiguration::RunSRCSpring2018:
+        StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSRCSpring2018.xml");
+        if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSRCSpring2018" << "\n";
+        break;
 
-        case BmnSiliconConfiguration::Run8_3stations:
-            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_3stations.xml");
-            if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_3stations" << "\n";
-            break;
+    case BmnSiliconConfiguration::Run8_3stations:
+        StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_3stations.xml");
+        if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_3stations" << "\n";
+        break;
 
-        case BmnSiliconConfiguration::Run8_4stations:
-            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_4stations.xml");
-            if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_4stations" << "\n";
-            break;
+    case BmnSiliconConfiguration::Run8_4stations:
+        StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_4stations.xml");
+        if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_4stations" << "\n";
+        break;
 
-        case BmnSiliconConfiguration::Run8_5stations:
-            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_5stations.xml");
-            if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_5stations" << "\n";
-            break;
+    case BmnSiliconConfiguration::Run8_5stations:
+        StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_5stations.xml");
+        if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_5stations" << "\n";
+        break;
 
-        case BmnSiliconConfiguration::Run8_mods_6_10_14_18:
-            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_mods_6_10_14_18.xml");
-            if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_mods_6_10_14_18" << "\n";
-            break;
+    case BmnSiliconConfiguration::Run8_mods_6_10_14_18:
+        StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_mods_6_10_14_18.xml");
+        if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_mods_6_10_14_18" << "\n";
+        break;
 
-        default:
-            StationSet = NULL;
+    default:
+        StationSet = NULL;
     }
 
     if (fIsExp) {
@@ -143,7 +141,7 @@ BmnSiliconHitMaker::~BmnSiliconHitMaker() {
         }
         delete[] fAlignCor;
     }
-    if(StationSet){
+    if (StationSet) {
         delete StationSet;
     }
 }
@@ -154,13 +152,13 @@ InitStatus BmnSiliconHitMaker::Init() {
 
     FairRootManager* ioman = FairRootManager::Instance();
 
-    fBmnSiliconDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
+    fBmnSiliconDigitsArray = (TClonesArray*)ioman->GetObject(fInputDigitsBranchName);
     if (!fBmnSiliconDigitsArray) {
         cout << "BmnSiliconHitMaker::Init(): branch " << fInputDigitsBranchName << " not found! Task will be deactivated" << endl;
         SetActive(kFALSE);
         return kERROR;
     }
-    fBmnSiliconDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
+    fBmnSiliconDigitMatchesArray = (TClonesArray*)ioman->GetObject(fInputDigitMatchesBranchName);
 
     if (fVerbose > 1) {
         if (fBmnSiliconDigitMatchesArray) cout << "  Strip matching information exists!\n";
@@ -174,26 +172,16 @@ InitStatus BmnSiliconHitMaker::Init() {
     fBmnSiliconLowerClustersArray = new TClonesArray("StripCluster");
     ioman->Register("BmnSiliconLowerCluster", "SILICON", fBmnSiliconLowerClustersArray, kTRUE);
 
-    //--------------------------------------------------------------------------
-
-    //fBmnEvQuality = (TClonesArray*) ioman->GetObject(fBmnEvQualityBranchName);
-
     if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Init() finished ===============" << endl;
 
     return kSUCCESS;
 }
 
 void BmnSiliconHitMaker::Exec(Option_t* opt) {
-    
+
     if (!IsActive())
         return;
-    
-    // Event separation by triggers ...
-    if (fIsExp && fBmnEvQuality) {
-        BmnEventQuality* evQual = (BmnEventQuality*) fBmnEvQuality->UncheckedAt(0);
-        if (!evQual->GetIsGoodEvent())
-            return;
-    }
+
     fBmnSiliconHitsArray->Delete();
     fBmnSiliconUpperClustersArray->Delete();
     fBmnSiliconLowerClustersArray->Delete();
@@ -202,19 +190,21 @@ void BmnSiliconHitMaker::Exec(Option_t* opt) {
 
     if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Exec() started ================" << endl;
     if (fVerbose > 1) cout << " BmnSiliconHitMaker::Exec(), Number of BmnSiliconDigits = " << fBmnSiliconDigitsArray->GetEntriesFast() << "\n";
+    printf("TEST SHM EXEC 1\n");
 
     ProcessDigits();
+    printf("TEST SHM EXEC 2\n");
 
     if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Exec() finished ===============" << endl;
     clock_t tFinish = clock();
-    workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
+    workTime += ((Float_t)(tFinish - tStart)) / CLOCKS_PER_SEC;
 }
 
 void BmnSiliconHitMaker::ProcessDigits() {
 
     FairMCPoint* MCPoint;
     BmnSiliconDigit* digit;
-    BmnMatch *strip_match; // MC-information for a strip
+    BmnMatch* strip_match; // MC-information for a strip
 
     BmnSiliconStation* station;
     BmnSiliconModule* module;
@@ -224,7 +214,7 @@ void BmnSiliconHitMaker::ProcessDigits() {
     Int_t AddedStripDigitMatches = 0;
 
     for (UInt_t idigit = 0; idigit < fBmnSiliconDigitsArray->GetEntriesFast(); idigit++) {
-        digit = (BmnSiliconDigit*) fBmnSiliconDigitsArray->At(idigit);
+        digit = (BmnSiliconDigit*)fBmnSiliconDigitsArray->At(idigit);
         if (!digit->IsGoodDigit())
             continue;
 
@@ -240,7 +230,7 @@ void BmnSiliconHitMaker::ProcessDigits() {
 
         //Add a MC-match to the current strip if this MC-match array exists
         if (fBmnSiliconDigitMatchesArray) {
-            strip_match = (BmnMatch*) fBmnSiliconDigitMatchesArray->At(idigit);
+            strip_match = (BmnMatch*)fBmnSiliconDigitMatchesArray->At(idigit);
             if (module->SetStripMatchInLayerByZoneId(digit->GetStripLayer(), digit->GetStripNumber(), *strip_match)) AddedStripDigitMatches++;
         }
 
@@ -278,7 +268,7 @@ void BmnSiliconHitMaker::ProcessDigits() {
 
                 if (sigL < 0 || sigU < 0) {
                     if (Abs(sigL - sigU) > 100) continue;
-//                    if (Abs(sigL - sigU) / max(sigU, sigL) > 0.25) continue;
+                    //                    if (Abs(sigL - sigU) / max(sigU, sigL) > 0.25) continue;
                 }
 
                 Double_t x = module->GetIntersectionPointX(iPoint);
@@ -321,9 +311,9 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 y += deltaY;
 
                 new ((*fBmnSiliconHitsArray)[fBmnSiliconHitsArray->GetEntriesFast()])
-                        BmnSiliconHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
+                    BmnSiliconHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
 
-                BmnSiliconHit* hit = (BmnSiliconHit*) fBmnSiliconHitsArray->At(fBmnSiliconHitsArray->GetEntriesFast() - 1);
+                BmnSiliconHit* hit = (BmnSiliconHit*)fBmnSiliconHitsArray->At(fBmnSiliconHitsArray->GetEntriesFast() - 1);
                 hit->SetStation(iStation);
                 hit->SetModule(iModule);
                 hit->SetIndex(fBmnSiliconHitsArray->GetEntriesFast() - 1);
@@ -333,33 +323,33 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 new ((*fBmnSiliconUpperClustersArray)[fBmnSiliconUpperClustersArray->GetEntriesFast()]) StripCluster(module->GetUpperCluster(iPoint));
                 new ((*fBmnSiliconLowerClustersArray)[fBmnSiliconLowerClustersArray->GetEntriesFast()]) StripCluster(module->GetLowerCluster(iPoint));
 
-                BmnMatch digiMatch = module->GetIntersectionPointDigitNumberMatch(iPoint);
-                Int_t idx0 = digiMatch.GetLink(0).GetIndex();
-                Int_t idx1 = digiMatch.GetLink(1).GetIndex();
-                BmnMatch* digiMatch0 = (BmnMatch*)fBmnSiliconDigitMatchesArray->At(idx0);
-                BmnMatch* digiMatch1 = (BmnMatch*)fBmnSiliconDigitMatchesArray->At(idx1);
-
-                Bool_t hitOk = kFALSE;
-                for (Int_t ilink = 0; ilink < digiMatch0->GetNofLinks(); ilink++) {
-                    Int_t iindex = digiMatch0->GetLink(ilink).GetIndex();
-                    for (Int_t jlink = 0; jlink < digiMatch1->GetNofLinks(); jlink++) {
-                        Int_t jindex = digiMatch1->GetLink(jlink).GetIndex();
-                        if (iindex == jindex) {
-                            hitOk = kTRUE;
-                            break;
-                        }
-                    }
-                    if (hitOk) break;
-                }
-
-                hit->SetType(hitOk);
-                if (!hitOk) hit->SetRefIndex(-1);
-                
-                //hit MC-matching ----------------------------------------------
-                FairRootManager::Instance()->SetUseFairLinks(kTRUE);
                 if (fHitMatching) {
+                    BmnMatch digiMatch = module->GetIntersectionPointDigitNumberMatch(iPoint);
+                    Int_t idx0 = digiMatch.GetLink(0).GetIndex();
+                    Int_t idx1 = digiMatch.GetLink(1).GetIndex();
+                    BmnMatch* digiMatch0 = (BmnMatch*)fBmnSiliconDigitMatchesArray->At(idx0);
+                    BmnMatch* digiMatch1 = (BmnMatch*)fBmnSiliconDigitMatchesArray->At(idx1);
+
+                    Bool_t hitOk = kFALSE;
+                    for (Int_t ilink = 0; ilink < digiMatch0->GetNofLinks(); ilink++) {
+                        Int_t iindex = digiMatch0->GetLink(ilink).GetIndex();
+                        for (Int_t jlink = 0; jlink < digiMatch1->GetNofLinks(); jlink++) {
+                            Int_t jindex = digiMatch1->GetLink(jlink).GetIndex();
+                            if (iindex == jindex) {
+                                hitOk = kTRUE;
+                                break;
+                            }
+                        }
+                        if (hitOk) break;
+                    }
+
+                    hit->SetType(hitOk);
+                    if (!hitOk) hit->SetRefIndex(-1);
+
+                    //hit MC-matching ----------------------------------------------
+                    FairRootManager::Instance()->SetUseFairLinks(kTRUE);
                     BmnMatch hitMatch = module->GetIntersectionPointMatch(iPoint);
-                    for(BmnLink lnk : hitMatch.GetLinks())
+                    for (BmnLink lnk : hitMatch.GetLinks())
                         hit->AddLink(FairLink(-1, lnk.GetIndex(), lnk.GetWeight()));
                 }
                 //--------------------------------------------------------------

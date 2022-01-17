@@ -47,8 +47,6 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
 
     fOutputHitsBranchName = "BmnGemStripHit";
 
-    fBmnEvQualityBranchName = "BmnEventQuality";
-
     fField = NULL;
     fFieldScale = 0.0;
 
@@ -215,8 +213,6 @@ InitStatus BmnGemStripHitMaker::Init() {
 
     //--------------------------------------------------------------------------
 
-    //fBmnEvQuality = (TClonesArray*) ioman->GetObject(fBmnEvQualityBranchName);
-
     if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Init() finished ==============" << endl;
 
     return kSUCCESS;
@@ -227,12 +223,6 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
     if (!IsActive())
         return;
 
-    // Event separation by triggers ...
-    if (fIsExp && fBmnEvQuality) {
-        BmnEventQuality* evQual = (BmnEventQuality*)fBmnEvQuality->UncheckedAt(0);
-        if (!evQual->GetIsGoodEvent())
-            return;
-    }
     fBmnGemStripHitsArray->Delete();
     fBmnGemUpperClustersArray->Delete();
     fBmnGemLowerClustersArray->Delete();
@@ -384,33 +374,33 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 new ((*fBmnGemUpperClustersArray)[fBmnGemUpperClustersArray->GetEntriesFast()]) StripCluster(module->GetUpperCluster(iPoint));
                 new ((*fBmnGemLowerClustersArray)[fBmnGemLowerClustersArray->GetEntriesFast()]) StripCluster(module->GetLowerCluster(iPoint));
 
-                BmnMatch digiMatch = module->GetIntersectionPointDigitNumberMatch(iPoint);
-                Int_t idx0 = digiMatch.GetLink(0).GetIndex();
-                Int_t idx1 = digiMatch.GetLink(1).GetIndex();
-                BmnMatch* digiMatch0 = (BmnMatch*)fBmnGemStripDigitMatchesArray->At(idx0);
-                BmnMatch* digiMatch1 = (BmnMatch*)fBmnGemStripDigitMatchesArray->At(idx1);
-
-                Bool_t hitOk = kFALSE;
-                for (Int_t ilink = 0; ilink < digiMatch0->GetNofLinks(); ilink++) {
-                    Int_t iindex = digiMatch0->GetLink(ilink).GetIndex();
-                    for (Int_t jlink = 0; jlink < digiMatch1->GetNofLinks(); jlink++) {
-                        Int_t jindex = digiMatch1->GetLink(jlink).GetIndex();
-                        if (iindex == jindex) {
-                            hitOk = kTRUE;
-                            break;
-                        }
-                    }
-                    if (hitOk) break;
-                }
-
-                hit->SetType(hitOk);
-                if (!hitOk) hit->SetRefIndex(-1);
-
-                //--------------------------------------------------------------
-
-                //hit MC-matching ----------------------------------------------
-                FairRootManager::Instance()->SetUseFairLinks(kTRUE);
                 if (fHitMatching) {
+                    BmnMatch digiMatch = module->GetIntersectionPointDigitNumberMatch(iPoint);
+                    Int_t idx0 = digiMatch.GetLink(0).GetIndex();
+                    Int_t idx1 = digiMatch.GetLink(1).GetIndex();
+                    BmnMatch* digiMatch0 = (BmnMatch*)fBmnGemStripDigitMatchesArray->At(idx0);
+                    BmnMatch* digiMatch1 = (BmnMatch*)fBmnGemStripDigitMatchesArray->At(idx1);
+
+                    Bool_t hitOk = kFALSE;
+                    for (Int_t ilink = 0; ilink < digiMatch0->GetNofLinks(); ilink++) {
+                        Int_t iindex = digiMatch0->GetLink(ilink).GetIndex();
+                        for (Int_t jlink = 0; jlink < digiMatch1->GetNofLinks(); jlink++) {
+                            Int_t jindex = digiMatch1->GetLink(jlink).GetIndex();
+                            if (iindex == jindex) {
+                                hitOk = kTRUE;
+                                break;
+                            }
+                        }
+                        if (hitOk) break;
+                    }
+
+                    hit->SetType(hitOk);
+                    if (!hitOk) hit->SetRefIndex(-1);
+
+                    //--------------------------------------------------------------
+
+                    //hit MC-matching ----------------------------------------------
+                    FairRootManager::Instance()->SetUseFairLinks(kTRUE);
                     BmnMatch hitMatch = module->GetIntersectionPointMatch(iPoint);
                     for (BmnLink lnk : hitMatch.GetLinks())
                         hit->AddLink(FairLink(-1, lnk.GetIndex(), lnk.GetWeight()));

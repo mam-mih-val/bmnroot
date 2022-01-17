@@ -16,7 +16,6 @@ BmnSiliconHitMaker::BmnSiliconHitMaker()
     fInputDigitMatchesBranchName = "BmnSiliconDigitMatch";
 
     fOutputHitsBranchName = "BmnSiliconHit";
-    fOutputHitMatchesBranchName = "BmnSiliconHitMatch";
 
     fCurrentConfig = BmnSiliconConfiguration::None;
     StationSet = NULL;
@@ -32,7 +31,6 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
     fInputDigitMatchesBranchName = "BmnSiliconDigitMatch";
 
     fOutputHitsBranchName = "BmnSiliconHit";
-    fOutputHitMatchesBranchName = "BmnSiliconHitMatch";
 
     fBmnEvQualityBranchName = "BmnEventQuality";
 
@@ -54,7 +52,7 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
             }
             break;
         case 8: //BM@N RUN-8
-            fCurrentConfig = BmnSiliconConfiguration::Run8_mods_6_10_14_18;
+            fCurrentConfig = BmnSiliconConfiguration::Run8_3stations;
             break;
     }
 
@@ -171,17 +169,14 @@ InitStatus BmnSiliconHitMaker::Init() {
 
     fBmnSiliconHitsArray = new TClonesArray(fOutputHitsBranchName);
     ioman->Register(fOutputHitsBranchName, "SILICON", fBmnSiliconHitsArray, kTRUE);
-
-    if (fHitMatching && fBmnSiliconDigitMatchesArray) {
-        fBmnSiliconHitMatchesArray = new TClonesArray("BmnMatch");
-        ioman->Register(fOutputHitMatchesBranchName, "SILICON", fBmnSiliconHitMatchesArray, kTRUE);
-    } else {
-        fBmnSiliconHitMatchesArray = 0;
-    }
+    fBmnSiliconUpperClustersArray = new TClonesArray("StripCluster");
+    ioman->Register("BmnSiliconUpperCluster", "SILICON", fBmnSiliconUpperClustersArray, kTRUE);
+    fBmnSiliconLowerClustersArray = new TClonesArray("StripCluster");
+    ioman->Register("BmnSiliconLowerCluster", "SILICON", fBmnSiliconLowerClustersArray, kTRUE);
 
     //--------------------------------------------------------------------------
 
-    fBmnEvQuality = (TClonesArray*) ioman->GetObject(fBmnEvQualityBranchName);
+    //fBmnEvQuality = (TClonesArray*) ioman->GetObject(fBmnEvQualityBranchName);
 
     if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Init() finished ===============" << endl;
 
@@ -189,6 +184,10 @@ InitStatus BmnSiliconHitMaker::Init() {
 }
 
 void BmnSiliconHitMaker::Exec(Option_t* opt) {
+    
+    if (!IsActive())
+        return;
+    
     // Event separation by triggers ...
     if (fIsExp && fBmnEvQuality) {
         BmnEventQuality* evQual = (BmnEventQuality*) fBmnEvQuality->UncheckedAt(0);
@@ -196,13 +195,9 @@ void BmnSiliconHitMaker::Exec(Option_t* opt) {
             return;
     }
     fBmnSiliconHitsArray->Delete();
+    fBmnSiliconUpperClustersArray->Delete();
+    fBmnSiliconLowerClustersArray->Delete();
 
-    if (fHitMatching && fBmnSiliconHitMatchesArray) {
-        fBmnSiliconHitMatchesArray->Delete();
-    }
-
-    if (!IsActive())
-        return;
     clock_t tStart = clock();
 
     if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Exec() started ================" << endl;
@@ -295,7 +290,7 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 Double_t y_err = module->GetIntersectionPointYError(iPoint);
                 Double_t z_err = 0.0;
 
-                Int_t RefMCIndex = 0;
+                Int_t RefMCIndex = -1;
 
                 //MC-matching for the current hit (define RefMCIndex)) ---------
                 BmnMatch mc_match_hit = module->GetIntersectionPointMatch(iPoint);
@@ -332,22 +327,39 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 hit->SetStation(iStation);
                 hit->SetModule(iModule);
                 hit->SetIndex(fBmnSiliconHitsArray->GetEntriesFast() - 1);
-                hit->SetClusterSizeInLowerLayer(module->GetIntersectionPoint_LowerLayerClusterSize(iPoint)); //cluster size (lower layer |||)
-                hit->SetClusterSizeInUpperLayer(module->GetIntersectionPoint_UpperLayerClusterSize(iPoint)); //cluster size (upper layer ///or\\\)
-                hit->SetStripPositionInLowerLayer(module->GetIntersectionPoint_LowerLayerSripPosition(iPoint)); //strip position (lower layer |||)
-                hit->SetStripPositionInUpperLayer(module->GetIntersectionPoint_UpperLayerSripPosition(iPoint)); //strip position (upper layer ///or\\\)
-                hit->SetStripTotalSignalInLowerLayer(sigL);
-                hit->SetStripTotalSignalInUpperLayer(sigU);
                 hit->SetDigitNumberMatch(module->GetIntersectionPointDigitNumberMatch(iPoint)); //digit number match for the hit
                 //--------------------------------------------------------------
 
+                new ((*fBmnSiliconUpperClustersArray)[fBmnSiliconUpperClustersArray->GetEntriesFast()]) StripCluster(module->GetUpperCluster(iPoint));
+                new ((*fBmnSiliconLowerClustersArray)[fBmnSiliconLowerClustersArray->GetEntriesFast()]) StripCluster(module->GetLowerCluster(iPoint));
+
+                BmnMatch digiMatch = module->GetIntersectionPointDigitNumberMatch(iPoint);
+                Int_t idx0 = digiMatch.GetLink(0).GetIndex();
+                Int_t idx1 = digiMatch.GetLink(1).GetIndex();
+                BmnMatch* digiMatch0 = (BmnMatch*)fBmnSiliconDigitMatchesArray->At(idx0);
+                BmnMatch* digiMatch1 = (BmnMatch*)fBmnSiliconDigitMatchesArray->At(idx1);
+
+                Bool_t hitOk = kFALSE;
+                for (Int_t ilink = 0; ilink < digiMatch0->GetNofLinks(); ilink++) {
+                    Int_t iindex = digiMatch0->GetLink(ilink).GetIndex();
+                    for (Int_t jlink = 0; jlink < digiMatch1->GetNofLinks(); jlink++) {
+                        Int_t jindex = digiMatch1->GetLink(jlink).GetIndex();
+                        if (iindex == jindex) {
+                            hitOk = kTRUE;
+                            break;
+                        }
+                    }
+                    if (hitOk) break;
+                }
+
+                hit->SetType(hitOk);
+                if (!hitOk) hit->SetRefIndex(-1);
+                
                 //hit MC-matching ----------------------------------------------
                 FairRootManager::Instance()->SetUseFairLinks(kTRUE);
-                if (fHitMatching && fBmnSiliconHitMatchesArray) {
-                    new ((*fBmnSiliconHitMatchesArray)[fBmnSiliconHitMatchesArray->GetEntriesFast()])
-                            BmnMatch(module->GetIntersectionPointMatch(iPoint));
-                    BmnMatch* hitMatch = (BmnMatch*) fBmnSiliconHitMatchesArray->At(fBmnSiliconHitMatchesArray->GetEntriesFast() - 1);
-                    for(BmnLink lnk : hitMatch->GetLinks())
+                if (fHitMatching) {
+                    BmnMatch hitMatch = module->GetIntersectionPointMatch(iPoint);
+                    for(BmnLink lnk : hitMatch.GetLinks())
                         hit->AddLink(FairLink(-1, lnk.GetIndex(), lnk.GetWeight()));
                 }
                 //--------------------------------------------------------------

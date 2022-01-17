@@ -134,6 +134,9 @@ public:
     BmnMatch GetIntersectionPointMatch(Int_t indx) { return IntersectionPointMatches.at(indx); } //Intersection point MC-match
     BmnMatch GetIntersectionPointDigitNumberMatch(Int_t indx) { return IntersectionPointDigitNumberMatches.at(indx); } //Intersection point digit number match
 
+    StripCluster GetUpperCluster(Int_t indx) { return UpperClusters.at(indx); }
+    StripCluster GetLowerCluster(Int_t indx) { return LowerClusters.at(indx); }
+    
     void ResetIntersectionPoints();
     //--------------------------------------------------------------------------
 
@@ -182,6 +185,9 @@ private:
     vector<BmnMatch> IntersectionPointMatches; // MC-matches
     vector<BmnMatch> IntersectionPointDigitNumberMatches; // Digit number matches
 
+    vector<StripCluster> UpperClusters;
+    vector<StripCluster> LowerClusters;
+    
     ClassDef(BmnSiliconModule, 1);
 };
 

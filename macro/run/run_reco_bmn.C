@@ -7,7 +7,7 @@
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #define CellAuto // Choose Tracking: L1 or CellAuto
 
-void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmn_run4600_digi.root",
+void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0, Int_t nEvents = 10)
 {

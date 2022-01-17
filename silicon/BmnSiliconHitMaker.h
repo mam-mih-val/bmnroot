@@ -55,7 +55,6 @@ private:
     TString fInputDigitMatchesBranchName;
 
     TString fOutputHitsBranchName;
-    TString fOutputHitMatchesBranchName;
 
     /** Input array of Silicon Points **/
     TClonesArray* fBmnSiliconPointsArray;
@@ -65,8 +64,10 @@ private:
     /** Output array of Silicon Hits **/
     TClonesArray* fBmnSiliconHitsArray;
 
-    /** Output array of Silicon Hit Matches **/
-    TClonesArray* fBmnSiliconHitMatchesArray;
+    /** Output array of Silicon Upper Clusters **/
+    TClonesArray* fBmnSiliconUpperClustersArray;
+    /** Output array of Silicon Lower Clusters **/
+    TClonesArray* fBmnSiliconLowerClustersArray;
 
     Bool_t fHitMatching;
 

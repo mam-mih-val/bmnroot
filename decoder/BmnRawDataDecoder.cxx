@@ -146,18 +146,18 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
         if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
         //if (fread(&dat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
         fread(&fDat, kWORDSIZE, 1, fRawFileIn);
-//                                    printf( "word %08X\n", fDat);
+        //                                    printf( "word %08X\n", fDat);
         fCurentPositionRawFile = ftello64(fRawFileIn);
         if (fCurentPositionRawFile >= fLengthRawFile) break;
         if (fDat == kENDOFSPILL_OLD || fDat == kENDOFSPILL) {
             // read number of bytes in event
             if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
             fDat = fDat / kNBYTESINWORD + (fPeriodId <= 7 ? 1 : 0); // bytes --> words
-//            printf("ev length %d\n", fDat);
+            //            printf("ev length %d\n", fDat);
             //read array of current event data and process them
             if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) continue;
-//            printf(ANSI_COLOR_BLUE "EOS iEv = %u lastEv  = %u\n" ANSI_COLOR_RESET,
-//                    data[0], fEventId);
+            //            printf(ANSI_COLOR_BLUE "EOS iEv = %u lastEv  = %u\n" ANSI_COLOR_RESET,
+            //                    data[0], fEventId);
             ProcessEvent(data, fDat);
             if (msc->GetEntriesFast() > 0)
                 fRawTreeSpills->Fill();
@@ -165,11 +165,11 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
             nSpillEvents = 0;
         }
         if (fDat == kSYNC1_OLD || fDat == kSYNC1) { //search for start of event
-//                                    printf(ANSI_COLOR_BLUE "kSYNC1\n" ANSI_COLOR_RESET);
+            //                                    printf(ANSI_COLOR_BLUE "kSYNC1\n" ANSI_COLOR_RESET);
             // read number of bytes in event
             if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
-            fDat = fDat / kNBYTESINWORD  + (fPeriodId <= 7 ? 1 : 0); // bytes --> words
-//            printf("ev length %d\n", fDat);
+            fDat = fDat / kNBYTESINWORD + (fPeriodId <= 7 ? 1 : 0); // bytes --> words
+            //            printf("ev length %d\n", fDat);
             if (fDat >= 100000) { // what the constant?
                 printf("Wrong data size: %d:  skip this event\n", fDat);
                 fread(data, kWORDSIZE, fDat, fRawFileIn);
@@ -395,38 +395,20 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     while (idx < len) {
         UInt_t serial = d[idx++];
         UInt_t id = (d[idx] >> 24);
-        UInt_t payload = (d[idx++] & 0xFFFFFF) / kNBYTESINWORD;
+        UInt_t payload = (d[idx++] & 0x7FFF) / kNBYTESINWORD;
         if (payload > 2000000) {
             printf("[WARNING] Event %d:\n serial = 0x%06X\n id = Ox%02X\n payload = %d\n", fEventId, serial, id, payload);
             break;
         }
-        //    printf("  idev %02X serial 0x%08X\n", id, serial);
+        //            printf("iev %7d  idev %02X serial 0x%08X\n", fEventId, id, serial);
         switch (id) {
+            case kTQDC16VS_E:
+                //                printf("TQDC-E serial 0x%08X  words %u\n", serial, payload);
+                FillTQDC_Eth(&d[idx], serial, payload);
+                break;
             case kADC64VE_XGE:
             case kADC64VE:
             {
-                //                printf("\n\npayload %d id 0x%02X serial 0%08X\n", payload, id, serial);
-                //                Bool_t isFound = kFALSE;
-                //                for (Int_t iSer = 0; iSer < fNSiliconSerials; ++iSer)
-                //                    if (serial == fSiliconSerials[iSer]) {
-                //                        Process_ADC64VE(&d[idx], payload, serial, 128, adc128);
-                //                        isFound = kTRUE;
-                //                        break;
-                //                    }
-                //                if (isFound) break;
-                //                for (Int_t iSer = 0; iSer < fNGemSerials; ++iSer)
-                //                    if (serial == fGemSerials[iSer]) {
-                //                        Process_ADC64VE(&d[idx], payload, serial, 32, adc32);
-                //                        isFound = kTRUE;
-                //                        break;
-                //                    }
-                //                if (isFound) break;
-                //                for (Int_t iSer = 0; iSer < fNCscSerials; ++iSer)
-                //                    if (serial == fCscSerials[iSer]) {
-                //                        Process_ADC64VE(&d[idx], payload, serial, 32, adc32);
-                //                        isFound = kTRUE;
-                //                        break;
-                //                    }
                 bitset<kWORDSIZE * 8> chMaskLo(d[idx + 3]);
                 bitset<kWORDSIZE * 8> chMaskHi(d[idx + 4]);
                 Int_t nCh = chMaskHi.count() + chMaskLo.count(); //64;
@@ -463,8 +445,15 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             case kLANDDAQ:
                 Process_Tacquila(&d[idx], payload);
                 break;
+            case kUT24VE_TRC:
+                FillUT24VE_TRC(&d[idx], payload, evType);
+                break;
         }
-        idx += payload;
+        if (payload + idx > len) {
+            printf("Error in the event #%d: device payload length mismatch!", fEventId);
+            return kBMNERROR;
+        } else
+            idx += payload;
     }
     eventHeaderDAQ->SetRunId(fRunId);
     eventHeaderDAQ->SetPeriodId(fPeriodId);
@@ -481,16 +470,6 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     return kBMNSUCCESS;
 }
 
-/**
- * Parse ADC64VE 
- * format Mstream Waveform V2 from https://afi.jinr.ru/MStreamWaveformDigitizer
- * @param d Data array ptr
- * @param len payload length
- * @param serial 
- * @param nSmpl
- * @param arr ADC digits storage
- * @return kBMNSUCCESS
- */
 BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr) {
     const UChar_t kNCH = 64;
     const UChar_t kNSTAMPS = nSmpl;
@@ -631,8 +610,8 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                     case kTDC32VL:
                         FillTDC(d, serial, slot, modId, i);
                         break;
+                    case kTQDC16:
                     case kTQDC16VS:
-                    case kTQDC16VS_ETH:
                         FillTQDC(d, serial, slot, modId, i);
                         break;
                     case kMSC:
@@ -829,7 +808,8 @@ BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt
             UInt_t channel = (modId == kTDC64V) ? (d[idx] >> 19) & 0x1F : (d[idx] >> 21) & 0x7;
             //if (modId == kTDC64V && tdcId == 2) channel += 32;
             TClonesArray &ar_tdc = *tdc;
-            new(ar_tdc[tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), channel, tdcId, time);
+            new(ar_tdc[tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == TDC_LEADING), channel, tdcId, time);
+            //            printf("tdc  %08X : %d channel %d\n", serial, slot, channel);
         }
         idx++; //go to the next DATA-word
         type = d[idx] >> 28;
@@ -859,11 +839,12 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
         }
         UInt_t mode = (d[idx] >> 26) & 0x3;
         if (!inADC) { //       printf("type %d mode %d word %0X\n", type, mode, d[idx]);
-            if ((mode == 0) && (type == 4 || type == 5)) { // TDC time
+            if ((mode == 0) && (type == TDC_LEADING || type == TDC_TRAILING)) { // TDC time
                 channel = (d[idx] >> 19) & 0x1F;
                 UInt_t time = ((d[idx] & 0x7FFFF) << 2) | (d[idx] >> 24) & 0x3; // in 25 ps
                 //               printf("TDC time %d channel %d\n", time, channel);
-                new((*tqdc_tdc)[tqdc_tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), channel, 0, time, tdcTimestamp);
+                new((*tqdc_tdc)[tqdc_tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == TDC_LEADING), channel, 0, time, tdcTimestamp);
+                printf("tqdc tdc %08X : %d channel %d\n", serial, slot, channel);
             } else if ((type == 4) && (mode != 0)) { // Trig | ADC Timestamp
                 channel = (d[idx] >> 19) & 0x1F;
                 if (d[idx] & BIT(16)) { // ADC TS
@@ -872,11 +853,11 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
                 } else {// Trig TS
                     trigTimestamp = d[idx] & 0xFFFF;
                 }
-            } else if (type == 2) {
+            } else if (type == TDC_EV_HEADER) {
                 tdcTimestamp = d[idx] & 0xFFF;
                 // UInt_t iEv = (d[idx] >> 12) & 0xFFF;
                 //                printf("TDC ev header: %d\n", iEv);
-            } else if (type == 3) {
+            } else if (type == TDC_EV_TRAILER) {
                 // UInt_t iEv = (d[idx] >> 12) & 0xFFF;
                 //                printf("TDC ev trailer: %d\n", iEv);
             }
@@ -889,10 +870,146 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
                 inADC = kFALSE;
                 iSampl = 0;
                 --idx;
+                printf("tqdc adc %08X : %d channel %d\n", serial, slot, channel);
             }
         }
         type = d[++idx] >> 28;
     }
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::FillBlockADC(UInt_t *d, UInt_t serial, uint8_t channel, uint16_t &len, TClonesArray *ar) {
+    int16_t valI[ADC_SAMPLING_LIMIT];
+    const uint8_t NBytesInSample = 2;
+    uint16_t iWord = 0;
+    while (iWord < len) {
+        uint16_t adcTS = d[iWord] & (BIT(16) - 1);
+        uint16_t SigLen = d[iWord] >> 16;
+        uint16_t NSamples = SigLen / NBytesInSample;
+        uint16_t NSampleWords = SigLen / kNBYTESINWORD + ((SigLen % kNBYTESINWORD) ? 1 : 0);
+        //        printf("adc len %2u ts %3u NSampleWords %u\n", NSamples, adcTS, NSampleWords);
+        if (iWord + NSampleWords + 1 > len) {
+            printf("Error! TQDC ADC wrong payload length! iWord %u SigLen %u len %u\n",
+                    iWord, SigLen, len);
+            return kBMNERROR;
+        }
+        uint16_t iSampleWord = 0;
+        while (iSampleWord++ < NSampleWords) {
+            //        while (iWord + iSampleWord++ < len) {
+            int16_t adcLo = static_cast<int16_t> (d[iWord + iSampleWord] & (BIT(16) - 1));
+            int16_t adcHi = static_cast<int16_t> (d[iWord + iSampleWord] >> 16);
+            //            printf("\tadcHi %4d  adcLow %4d\n", adcHi, adcLo);
+            valI[iSampleWord * 2 - 2] = adcLo;
+            valI[iSampleWord * 2 - 1] = adcHi;
+        }
+        // no slot id for ethernet
+        if (NSamples)
+            new((*ar)[ar->GetEntriesFast()]) BmnTQDCADCDigit(serial, channel, 0, NSamples, valI, 0, adcTS);
+        iWord += iSampleWord;
+    }
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::FillBlockTDC(UInt_t *d, UInt_t serial, uint16_t &len, TClonesArray *ar) {
+    uint16_t tdcTS = 0;
+    uint8_t tdcId = 0;
+    uint16_t tdcLine = 0;
+    while (tdcLine < len) {
+        UInt_t word = d[tdcLine];
+        UInt_t bt = word >> 28;
+        switch (bt) {
+            case TDC_EV_HEADER:
+            {
+                uint16_t evId = (word >> 12) & (BIT(13) - 1);
+                tdcId = (word >> 24) & (BIT(4) - 1);
+                tdcTS = word & (BIT(13) - 1);
+                //                printf("\tTDC header  ev %u TS %u\n", evId, tdcTS);
+                break;
+            }
+            case TDC_EV_TRAILER:
+            {
+                uint16_t evId = (word >> 12) & (BIT(13) - 1);
+                uint16_t tdcWC = word & (BIT(13) - 1);
+                //                printf("\tTDC trailer ev %u WC %u\n", evId, tdcWC);
+                break;
+            }
+            case TDC_LEADING:
+            case TDC_TRAILING:
+            {
+                uint8_t channel = (word >> 21)&(BIT(4) - 1);
+                uint16_t time = word & (BIT(21) - 1);
+                //                printf("\tTDC %s ch %u time %u\n", (bt == TDC_LEADING) ? "leading" : "trailing", channel, time);
+                new((*ar)[ar->GetEntriesFast()]) BmnTDCDigit(serial, 0, 0, (bt == TDC_LEADING), channel, tdcId, time, tdcTS);
+                break;
+            }
+            case TDC_ERROR:
+                if (fVerbose == 0) {
+                    fprintf(stderr, ANSI_COLOR_RED "ERROR: TDC (serial 0x%08X tdcID %d) error flags: 0x%04X\n" ANSI_COLOR_RESET,
+                            serial, ((word >> 24) & ((1 << 4) - 1)), (word & ((1 << 15) - 1)));
+                    if ((word & BIT(12)) || (word & BIT(13))) {
+                        fprintf(stderr, ANSI_COLOR_RED "ERROR: Critical TQDC error thrown\n" ANSI_COLOR_RESET);
+                    }
+                }
+                break;
+        }
+        tdcLine++;
+    }
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::FillTQDC_Eth(UInt_t *d, UInt_t serial, UInt_t &len) {
+    UInt_t index = 0;
+    MStreamHeader ms = {};
+    memcpy(&ms, d, sizeof (ms));
+    index += sizeof (ms) / kNBYTESINWORD;
+    //    ms.Print();
+    MStreamSubtype0Header ms0 = {};
+    memcpy(&ms0, d + index, sizeof (ms0));
+    index += sizeof (ms0) / kNBYTESINWORD;
+    //    printf("len %u msHeader len %u\n", len, ms.Len / kNBYTESINWORD);
+    //    printf("taiFlags %u TAI %s\n",
+    //            ms0.TaiFlags, TTimeStamp(time_t(ms0.TaiSec), ms0.TaiNSec).AsString());
+    while (index < ms.Len / kNBYTESINWORD) {
+        //        TqdcDataHeader th = *reinterpret_cast<TqdcDataHeader*> (d + index);
+        TqdcDataHeader th = {};
+        memcpy(&th, d + index, sizeof (th));
+        index += sizeof (th) / kNBYTESINWORD;
+        //        printf("TQDC DataType %u channel %2u adcBits %u len %4u\n", th.DataType, th.Chan, th.AdcBits, th.Len);
+        uint16_t blockLen = th.Len / kNBYTESINWORD;
+        switch (th.DataType) {
+            case 0: // TDC
+                FillBlockTDC(d + index, serial, blockLen, tqdc_tdc);
+                break;
+            case 1: // ADC
+                FillBlockADC(d + index, serial, th.Chan, blockLen, tqdc_adc);
+                break;
+            default:
+                //                printf("Wrong TQDC data type %u !\n", th.DataType);
+                break;
+        }
+        index += blockLen;
+
+    }
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::FillUT24VE_TRC(UInt_t *d, UInt_t &len, BmnEventType &evType) {
+    UInt_t index = 0;
+    MStreamHeader ms = {};
+    memcpy(&ms, d, sizeof (ms));
+    index += sizeof (ms) / kNBYTESINWORD;
+    MStreamSubtype0Header ms0 = {};
+    memcpy(&ms0, d + index, sizeof (ms0));
+    index += sizeof (ms0) / kNBYTESINWORD;
+    if (ms.Len / kNBYTESINWORD > len)
+        printf("UT24VE-TRC Error! MSHeader payload length larger than from device header!");
+    evType = (d[index] & BIT(16)) ? kBMNPEDESTAL : kBMNPAYLOAD;
+    bool randomTrigger = d[index] & BIT(17);
+    bool periodicTrigger = d[index] & BIT(18);
+    bool externalTTL = d[index] & BIT(19);
+    //    printf("evType %s taiFlags %u TAI %s \n",
+    //            evType == kBMNPEDESTAL ? "pedestal" : "payload", 
+    //            ms0.TaiFlags, TTimeStamp(time_t(ms0.TaiSec), ms0.TaiNSec).AsString());
     return kBMNSUCCESS;
 }
 
@@ -1289,8 +1406,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         }
 
         fSpillCntr += headDAQ->GetSpillStart() ? 1 : 0;
-//        if (headDAQ->GetSpillStart())
-//            printf("Spills: %6d  iEv %6d\n", fSpillCntr, iEv);
+        //        if (headDAQ->GetSpillStart())
+        //            printf("Spills: %6d  iEv %6d\n", fSpillCntr, iEv);
         Bool_t isTripEvent = kFALSE;
         for (Int_t iTrip = 0; iTrip < startTripEvent.size(); ++iTrip) {
             if (headDAQ->GetEventId() > startTripEvent[iTrip] && headDAQ->GetEventId() < endTripEvent[iTrip]) {
@@ -1527,14 +1644,14 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         scwall = new TClonesArray("BmnScWallDigi");
         fDigiTree->Branch("ScWallDigi", &scwall);
         fScWallMapper = new BmnScWallRaw2Digit(fPeriodId, fRunId, fScWallMapFileName, fScWallCalibrationFileName);
-                fScWallMapper->print();
+        fScWallMapper->print();
     }
 
     if (fDetectorSetup[3] && GetAdcDecoMode() == kBMNADCMK && GetPeriodId() > 6 || fDetectorSetup[10]) {
         csc = new TClonesArray("BmnCSCDigit");
         fDigiTree->Branch("CSC", &csc);
         if (GetAdcDecoMode() == kBMNADCSM)
-            fCscMapper = new BmnCscRaw2Digit(fPeriodId, fRunId, fCscSerials);
+            fCscMapper = new BmnCscRaw2Digit(fPeriodId, fRunId, fCscSerials, fCscMapFileName);
     }
     if (fRawTreeSpills)
         fMSCMapper = new BmnMscRaw2Digit(fPeriodId, fRunId, fMSCMapFileName, fRawTreeSpills, fDigiTreeSpills);
@@ -1929,7 +2046,7 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
     seials.clear();
     name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fZDCMapFileName;
     ifstream inFileZDC(name.Data());
-       //printf("ZDC map name = %s\n", name.Data());
+    //printf("ZDC map name = %s\n", name.Data());
     if (!inFileZDC.is_open())
         cout << "Error opening map-file (" << name << ")!" << endl;
     for (Int_t i = 0; i < 2; ++i) getline(inFileZDC, dummy); //comment line in input file
@@ -1938,7 +2055,7 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
         inFileZDC >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
         if (!inFileZDC.good()) break;
         seials.insert(ser);
-       //  printf("ZDC serial: 0x%08x\n", ser);
+        //  printf("ZDC serial: 0x%08x\n", ser);
     }
     for (auto s : seials) fZDCSerials.push_back(s);
     fNZDCSerials = fZDCSerials.size();
@@ -2042,7 +2159,7 @@ BmnStatus BmnRawDataDecoder::InitUTCShift() {
     leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(2012, 7, 1, 0, 0, 34), 35));
     leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(2015, 7, 1, 0, 0, 35), 36));
     leaps.insert(pair<TTimeStamp, Int_t>(TTimeStamp(2017, 1, 1, 0, 0, 36), 37));
-    utc_valid = TTimeStamp(2021, 1, 1, 0, 0, 1);
+    utc_valid = TTimeStamp(2022, 6, 1, 0, 0, 1);
     return kBMNSUCCESS;
 }
 

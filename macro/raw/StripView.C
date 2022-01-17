@@ -112,10 +112,11 @@ void StripView(Int_t runID) {
     const Int_t nColors = 16;
     Int_t ColorMap[nColors] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 49, 11, 12, 13, 14, 15, 16};
     //    Int_t runID = 4600;
-    Int_t fPeriodID = 7;
+    Int_t fPeriodID = 8;
     Int_t sumMods = 0;
     Int_t maxLayers = 0;
-    BmnSetup fBmnSetup = (runID >= 2041 && runID <= 3588) ? kSRCSETUP : kBMNSETUP;
+    BmnSetup fSetup = (runID >= 2041 && runID <= 3588) ? kSRCSETUP : kBMNSETUP;
+    fSetup = kSRCSETUP;
     //    TString inFileNameMK = Form("bmn_run%04i_sidigitthr2all.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
     TString inFileNameMK = Form("~/filesbmn/bmn_run%04i_digi_test_MK.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
 //    TString inFileNameMK = Form("~/archivebmn//MK_digi_%04i.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
@@ -167,7 +168,31 @@ void StripView(Int_t runID) {
     // ********************
     sumMods = 0;
     maxLayers = 0;
-    TString xmlConfFileName = TString("SiliconRun") + ((fBmnSetup == kSRCSETUP) ? "SRC" : "") + (fPeriodID == 7 ? "Spring2018.xml" : "Spring2017.xml");
+    TString xmlConfFileName;
+        switch (fPeriodID) {
+            case 8:
+                if (fSetup == kBMNSETUP) {
+                    xmlConfFileName = "SiliconRun8_3stations.xml";
+                } else {
+                    xmlConfFileName = "SiliconRun8_SRC.xml";
+                }
+                break;
+            case 7:
+                if (fSetup == kBMNSETUP) {
+                    xmlConfFileName = "SiliconRunSpring2018.xml";
+                } else {
+                    xmlConfFileName = "SiliconRunSRCSpring2018.xml";
+                }
+                break;
+            case 6:
+                xmlConfFileName = "SiliconRunSpring2017.xml";
+                break;
+            default:
+                printf("Error! Unknown config!\n");
+                return;
+                break;
+
+        }
     xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/parameters/silicon/XMLConfigs/" + xmlConfFileName;
     printf("xmlConfFileName %s\n", xmlConfFileName.Data());
     BmnSiliconStationSet* stationSet = new BmnSiliconStationSet(xmlConfFileName);
@@ -234,7 +259,30 @@ void StripView(Int_t runID) {
     // ********************
     sumMods = 0;
     maxLayers = 0;
-    xmlConfFileName = TString("GemRun") + ((fBmnSetup == kSRCSETUP) ? "SRC" : "") + (fPeriodID == 7 ? "Spring2018.xml" : "Spring2017.xml");
+        switch (fPeriodID) {
+            case 8:
+                if (fSetup == kBMNSETUP) {
+                    xmlConfFileName = "GemRun8.xml";
+                } else {
+                    xmlConfFileName = "GemRunSRC2021.xml";
+                }
+                break;
+            case 7:
+                if (fSetup == kBMNSETUP) {
+                    xmlConfFileName = "GemRunSpring2018.xml";
+                } else {
+                    xmlConfFileName = "GemRunSRCSpring2018.xml";
+                }
+                break;
+            case 6:
+                xmlConfFileName = "GemRunSpring2017.xml";
+                break;
+            default:
+                printf("Error! Unknown config!\n");
+                return;
+                break;
+
+        }
     xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/parameters/gem/XMLConfigs/" + xmlConfFileName;
     printf("xmlConfFileName %s\n", xmlConfFileName.Data());
     BmnGemStripStationSet *gemStationSet = new BmnGemStripStationSet(xmlConfFileName);
@@ -298,7 +346,27 @@ void StripView(Int_t runID) {
     // ********************
     sumMods = 0;
     maxLayers = 0;
-    xmlConfFileName = TString("CSCRun") + ((fBmnSetup == kSRCSETUP) ? "SRC" : "") + "Spring2018.xml";
+    switch (fPeriodID) {
+        case 8:
+            if (fSetup == kBMNSETUP) {
+                xmlConfFileName = "CSCRun8.xml";
+            } else {
+                xmlConfFileName = "CSCRunSRC2021.xml";
+            }
+            break;
+        case 7:
+            if (fSetup == kBMNSETUP) {
+                xmlConfFileName = "CSCRunSpring2018.xml";
+            } else {
+                xmlConfFileName = "CSCRunSRCSpring2018.xml";
+            }
+            break;
+        default:
+            printf("Error! Unknown config!\n");
+            return;
+            break;
+
+    }
     xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/parameters/csc/XMLConfigs/" + xmlConfFileName;
     printf("xmlConfFileName %s\n", xmlConfFileName.Data());
     BmnCSCStationSet *StationSet = new BmnCSCStationSet(xmlConfFileName);

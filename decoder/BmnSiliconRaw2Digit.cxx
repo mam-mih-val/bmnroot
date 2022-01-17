@@ -21,28 +21,31 @@ BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t>
         TString confSi = (fPeriod == 7) ?
                 ((fSetup == kBMNSETUP) ? "SiliconRunSpring2018.xml" : "SiliconRunSRCSpring2018.xml") :
                 "SiliconRunSpring2017.xml";
-    TString xmlConfFileName;
-    switch (period) {
-        case 8:
-            if (fSetup == kBMNSETUP) {
-                xmlConfFileName = "SiliconRun8_3stations.xml";
-            } else {
-                xmlConfFileName = "SiliconRun8_3stations.xml";
-            }
-            break;
-        case 7:
-            if (fSetup == kBMNSETUP) {
-                xmlConfFileName = "SiliconRunSpring2018.xml";
-            } else {
-                xmlConfFileName = "SiliconRunSRCSpring2018.xml";
-            }
-            break;
-        default:
-            printf("Error! Unknown config!\n");
-            return;
-            break;
+        TString xmlConfFileName;
+        switch (period) {
+            case 8:
+                if (fSetup == kBMNSETUP) {
+                    xmlConfFileName = "SiliconRun8_3stations.xml";
+                } else {
+                    xmlConfFileName = "SiliconRun8_SRC.xml";
+                }
+                break;
+            case 7:
+                if (fSetup == kBMNSETUP) {
+                    xmlConfFileName = "SiliconRunSpring2018.xml";
+                } else {
+                    xmlConfFileName = "SiliconRunSRCSpring2018.xml";
+                }
+                break;
+            case 6:
+                xmlConfFileName = "SiliconRunSpring2017.xml";
+                break;
+            default:
+                printf("Error! Unknown config!\n");
+                return;
+                break;
 
-    }
+        }
         TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
         fSilStationSet = new BmnSiliconStationSet(gPathSiliconConfig + xmlConfFileName);
 
@@ -1012,12 +1015,18 @@ BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
     while (!inFile.eof()) {
         inFile >> std::hex >> ser >> std::dec >> ch_lo >> ch_hi >> mod_adc >> mod >> lay >> station;
         if (!inFile.good()) break;
-        BmnSiliconMapping record;
+        BmnSiliconMapping record = {};
         record.layer = lay;
         record.serial = ser;
         record.module = mod;
-        record.channel_low = ch_lo;
-        record.channel_high = ch_hi;
+        if (ch_lo < ch_hi) {
+            record.channel_low = ch_lo;
+            record.channel_high = ch_hi;
+        } else {
+            record.channel_low = ch_hi;
+            record.channel_high = ch_lo;
+            record.inverted = true;
+        }
         record.station = station;
         fMap.push_back(record);
     }
@@ -1099,14 +1108,15 @@ BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
                 for (auto &it : fMap)
                     if (GetSerials()[iCr] == it.serial && iCh >= it.channel_low && iCh <= it.channel_high) {
                         if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) {
-                            UInt_t iStrip = (iCh - it.channel_low) * GetNSamples() + iSmpl;
+                            //                            Int_t iStrip = (iCh - it.channel_low) * GetNSamples() + iSmpl;
+                            Int_t iStrip = MapStrip(it, iCh, iSmpl);
                             fNoisyChannels[it.station][it.module][it.layer][iStrip] = kTRUE;
                         }
                     }
     // mark noisy
     for (Int_t iSt = 0; iSt < fSilStationSet->GetNStations(); ++iSt) {
         auto * st = fSilStationSet->GetStation(iSt);
-        for (UInt_t iMod = 0; iMod < st->GetNModules(); ++iMod) {
+        for (Int_t iMod = 0; iMod < st->GetNModules(); ++iMod) {
             auto *mod = st->GetModule(iMod);
             for (Int_t iLay = 0; iLay < 2/*mod->GetNStripLayers()*/; ++iLay) {
                 TH1F* prof = fSigProf[iSt][iMod][iLay];
@@ -1209,14 +1219,16 @@ void BmnSiliconRaw2Digit::ProcessAdc(TClonesArray *silicon, Bool_t doFill) {
                     Short_t module = it.module;
                     Short_t layer = it.layer;
                     for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
-                        if ((GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) || (fPedVal[iCr][iCh][iSmpl] == 0.0)) continue;
-                        Short_t strip = (iCh - it.channel_low) * GetNSamples() + iSmpl;
+                        if ((GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE)/* || (fPedVal[iCr][iCh][iSmpl] == 0.0)*/) continue;
+                        //                        Int_t strip = (iCh - it.channel_low) * GetNSamples() + iSmpl;
+                        Int_t strip = MapStrip(it, iCh, iSmpl);
                         Double_t sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl] + fCMode[iCr][iCh] - fSMode[iCr][iCh];
                         if (layer == 1)
                             sig = -sig;
                         Double_t Asig = TMath::Abs(sig);
                         Double_t thr = Max(FinalThr, 4 * GetPedestalsRMS()[iCr][iCh][iSmpl]);
-                        //                                                printf("signal   thr %6f  prms %6f\n", thr, GetPedestalsRMS()[iCr][iCh][iSmpl]);
+//                        if (layer && !doFill)
+//                            printf("%s signal %f thr %6f  prms %6f\n", it.inverted ? "inverted" : "normal", sig, thr, GetPedestalsRMS()[iCr][iCh][iSmpl]);
                         if (sig > thr) {//[station][module][layer][strip] == kFALSE)) {
                             if (doFill) {
                                 if (Abs(fCMode[iCr][iCh] - fSMode[iCr][iCh]) < cmodcut)

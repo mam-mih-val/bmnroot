@@ -648,9 +648,10 @@ void BmnAdcProcessor::PrecalcEventMods(TClonesArray *adc) {
 
             Double_t Sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl];
             Double_t Asig = TMath::Abs(Sig);
-            //            printf("adc %6f ped %6f\n", fAdc[iCr][iCh][iSmpl], fPedVal[iCr][iCh][iSmpl]);
+//                        printf("adc %6f ped %6f\n", fAdc[iCr][iCh][iSmpl], fPedVal[iCr][iCh][iSmpl]);
 
             if ((Asig < thrMax)) {
+//                        printf("adc %6f < thrMax %6f\n", fAdc[iCr][iCh][iSmpl], thrMax);
                 fSMode[iCr][iCh] += fAdc[iCr][iCh][iSmpl];
                 fCMode[iCr][iCh] += fPedVal[iCr][iCh][iSmpl];
                 fNvals[iCr][iCh]++;
@@ -687,7 +688,7 @@ void BmnAdcProcessor::CalcEventMods() {
                 //                    if (iCr == 3 && iCh == 8)
                 //                        printf("iev %04i iter %i sig cms %f  cms %f\n", iEv, iter, fSigCMS[iCr][iCh], fPedCMS[iCr][iCh]);
                 for (Int_t iSmpl = 0; iSmpl < fNSamples; ++iSmpl) {
-                    if (fPedVal[iCr][iCh][iSmpl] == 0 || fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE) continue;
+                    if (/*fPedVal[iCr][iCh][iSmpl] == 0 ||*/ fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE) continue;
                     Double_t sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl] + fCMode[iCr][iCh] - fSMode[iCr][iCh];
                     Double_t Asig = TMath::Abs(sig);
                     //                    Double_t thr = fPedRms[iCr][iCh][iSmpl];

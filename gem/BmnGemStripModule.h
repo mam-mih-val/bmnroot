@@ -5,6 +5,8 @@
 #include "BmnGemStripLayer.h"
 #include "BmnGemStripMedium.h"
 
+#include "BmnStripData.h"
+
 #include "TMath.h"
 
 #include <iostream>
@@ -129,6 +131,9 @@ public:
     Double_t GetIntersectionPoint_UpperLayerSripTotalSignal(Int_t indx) { return IntersectionPoints_UpperLayerStripTotalSignal.at(indx); } //total signal  in the upper layer
     BmnMatch GetIntersectionPointMatch(Int_t indx) { return IntersectionPointMatches.at(indx); } //Intersection point MC-match
     BmnMatch GetIntersectionPointDigitNumberMatch(Int_t indx) { return IntersectionPointDigitNumberMatches.at(indx); } //Intersection point digit number match
+    
+    StripCluster GetUpperCluster(Int_t indx) { return UpperClusters.at(indx); }
+    StripCluster GetLowerCluster(Int_t indx) { return LowerClusters.at(indx); }
 
     void ResetIntersectionPoints();
     //--------------------------------------------------------------------------
@@ -184,6 +189,9 @@ private:
 
     vector<BmnMatch> IntersectionPointMatches; // MC-matches
     vector<BmnMatch> IntersectionPointDigitNumberMatches; // Digit number matches
+
+    vector<StripCluster> UpperClusters;
+    vector<StripCluster> LowerClusters;
 
 //testing part -----------------------------------------------------------------
 public:

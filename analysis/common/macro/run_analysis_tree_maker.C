@@ -2,7 +2,7 @@
    SPDX-License-Identifier: GPL-3.0-only
    Authors: Viktor Klochkov, Viktor Klochkov */
 
-void run_analysis_tree_maker(TString dataSet = "../../../run/test", TString setupName = "sis100_electron",
+void run_analysis_tree_maker(TString dataSet = "data_test/", TString setupName = "sis100_electron",
                              TString unigenFile = "")
 {
   const std::string system = "Au+Au";  // TODO can we read it automatically?
@@ -20,13 +20,13 @@ void run_analysis_tree_maker(TString dataSet = "../../../run/test", TString setu
   // ------------------------------------------------------------------------
 
   // -----   In- and output file names   ------------------------------------
-  TString traFile           = dataSet + ".tra.root";
-  TString rawFile           = dataSet + ".raw.root";
-  TString recFile           = dataSet + ".reco.root";
-  TString geoFile           = dataSet + ".geo.root";
-  TString parFile           = dataSet + ".par.root";
-  const std::string outFile = dataSet.Data() + std::string(".analysistree.root");
-  if (unigenFile.Length() == 0) { unigenFile = srcDir + "/input/urqmd.auau.10gev.centr.root"; }
+  TString traFile           = dataSet + "sim/bmnsim_3731428_2.root";
+//   TString rawFile           = dataSet + ".raw.root";
+  TString recFile           = dataSet + "reco/bmndst_3731428_2.root";
+//   TString geoFile           = dataSet + ".geo.root";
+//   TString parFile           = dataSet + ".par.root";
+  const std::string outFile = dataSet.Data() + std::string("analysistree.root");
+//   if (unigenFile.Length() == 0) { unigenFile = srcDir + "/input/urqmd.auau.10gev.centr.root"; }
   // ------------------------------------------------------------------------
 
   // -----   Timer   --------------------------------------------------------
@@ -55,48 +55,20 @@ void run_analysis_tree_maker(TString dataSet = "../../../run/test", TString setu
 //  TString geoTag;
 //  auto* parFileList = new TList();
 
-  std::cout << "-I- " << myName << ": Using raw file " << rawFile << std::endl;
-  std::cout << "-I- " << myName << ": Using parameter file " << parFile << std::endl;
+//   std::cout << "-I- " << myName << ": Using raw file " << rawFile << std::endl;
+//   std::cout << "-I- " << myName << ": Using parameter file " << parFile << std::endl;
   std::cout << "-I- " << myName << ": Using reco file " << recFile << std::endl;
-  if (unigenFile.Length() > 0) std::cout << "-I- " << myName << ": Using unigen file " << unigenFile << std::endl;
+//   if (unigenFile.Length() > 0) std::cout << "-I- " << myName << ": Using unigen file " << unigenFile << std::endl;
 
   // -----   Reconstruction run   -------------------------------------------
   auto* run         = new FairRunAna();
   auto* inputSource = new FairFileSource(recFile);
   inputSource->AddFriend(traFile);
-  inputSource->AddFriend(rawFile);
+//   inputSource->AddFriend(rawFile);
   run->SetSource(inputSource);
-  run->SetOutputFile(outFile.c_str());
-  run->SetGenerateRunInfo(kTRUE);
+//   run->SetOutputFile(outFile.c_str());
+//   run->SetGenerateRunInfo(kTRUE);
   // ------------------------------------------------------------------------
-
-//  // ----- Mc Data Manager   ------------------------------------------------
-//  auto* mcManager = new CbmMCDataManager("MCManager", is_event_base);
-//  mcManager->AddFile(traFile);
-//  run->AddTask(mcManager);
-//  // ------------------------------------------------------------------------
-//
-//  // ---   STS track matching   ----------------------------------------------
-//  auto* matchTask = new CbmMatchRecoToMC();
-//  run->AddTask(matchTask);
-//  // ------------------------------------------------------------------------
-//
-//  auto* KF = new CbmKF();
-//  run->AddTask(KF);
-//  // needed for tracks extrapolation
-//  auto* l1 = new CbmL1("CbmL1", 1, 3);
-//  if (setup->IsActive(ECbmModuleId::kMvd)) {
-//    setup->GetGeoTag(ECbmModuleId::kMvd, geoTag);
-//    const TString mvdMatBudgetFileName = srcDir + "/parameters/mvd/mvd_matbudget_" + geoTag + ".root";
-//    l1->SetMvdMaterialBudgetFileName(mvdMatBudgetFileName.Data());
-//  }
-//  if (setup->IsActive(ECbmModuleId::kSts)) {
-//    setup->GetGeoTag(ECbmModuleId::kSts, geoTag);
-//    const TString stsMatBudgetFileName = srcDir + "/parameters/sts/sts_matbudget_" + geoTag + ".root";
-//    l1->SetStsMaterialBudgetFileName(stsMatBudgetFileName.Data());
-//  }
-//  run->AddTask(l1);
-
 
   // AnalysisTree converter
   auto* man = new CbmConverterManager();
@@ -104,18 +76,14 @@ void run_analysis_tree_maker(TString dataSet = "../../../run/test", TString setu
   man->SetBeamMomentum(beam_mom);
   man->SetOutputName(outFile, "rTree");
 
-  if(!is_event_base){
-    man->AddTask(new CbmMatchEvents());
-  }
-
   man->AddTask(new CbmSimEventHeaderConverter("SimEventHeader"));
-//  man->AddTask(new CbmRecEventHeaderConverter("RecEventHeader"));
-//  man->AddTask(new CbmSimTracksConverter("SimParticles"));
-//
-//  CbmStsTracksConverter* taskCbmStsTracksConverter = new CbmStsTracksConverter("VtxTracks", "SimParticles");
-//  taskCbmStsTracksConverter->SetIsWriteKFInfo();
-//  taskCbmStsTracksConverter->SetIsReproduceCbmKFPF();
-//  man->AddTask(taskCbmStsTracksConverter);
+  man->AddTask(new CbmRecEventHeaderConverter("RecEventHeader"));
+  man->AddTask(new CbmSimTracksConverter("SimParticles"));
+
+  CbmStsTracksConverter* taskCbmStsTracksConverter = new CbmStsTracksConverter("VtxTracks", "SimParticles");
+  taskCbmStsTracksConverter->SetIsWriteKFInfo();
+  taskCbmStsTracksConverter->SetIsReproduceCbmKFPF();
+  man->AddTask(taskCbmStsTracksConverter);
 //
 //  man->AddTask(new CbmRichRingsConverter("RichRings", "VtxTracks"));
 //  man->AddTask(new CbmTofHitsConverter("TofHits", "VtxTracks"));
@@ -125,31 +93,18 @@ void run_analysis_tree_maker(TString dataSet = "../../../run/test", TString setu
 //  }
   run->AddTask(man);
 
-  // -----  Parameter database   --------------------------------------------
-  FairRuntimeDb* rtdb = run->GetRuntimeDb();
-  auto* parIo1        = new FairParRootFileIo();
-  auto* parIo2        = new FairParAsciiFileIo();
-  parIo1->open(parFile.Data());
-  parIo2->open(parFileList, "in");
-  rtdb->setFirstInput(parIo1);
-  rtdb->setSecondInput(parIo2);
-  rtdb->setOutput(parIo1);
-  rtdb->saveOutput();
-  // ------------------------------------------------------------------------
-
-  // -----   Intialise and run   --------------------------------------------
+// -----   Intialise and run   --------------------------------------------
   run->Init();
 
   std::cout << "Starting run" << std::endl;
   run->Run(0);
   // ------------------------------------------------------------------------
-*/
+
   timer.Stop();
   const Double_t rtime = timer.RealTime();
   const Double_t ctime = timer.CpuTime();
   std::cout << "Macro finished succesfully." << std::endl;
   std::cout << "Output file is " << outFile << std::endl;
-  std::cout << "Parameter file is " << parFile << std::endl;
 
   printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
 

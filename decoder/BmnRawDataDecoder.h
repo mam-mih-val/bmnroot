@@ -535,6 +535,7 @@ private:
      * @return opeartion success
      */
     BmnStatus FillTQDC_Eth(UInt_t *d, UInt_t serial, UInt_t &len);
+    BmnStatus FillTDC72VXS(UInt_t *d, UInt_t serial, UInt_t &len);
     /**
      * Parse UT24VE-TRC MStream data block
      * https://afi.jinr.ru/DataFormatUT24VE-TRC

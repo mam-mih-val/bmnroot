@@ -406,6 +406,10 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                 //                printf("TQDC-E serial 0x%08X  words %u\n", serial, payload);
                 FillTQDC_Eth(&d[idx], serial, payload);
                 break;
+            case kTDC72VXS:
+                //                printf("TDC72VXS serial 0x%08X  words %u\n", serial, payload);
+                FillTDC72VXS(&d[idx], serial, payload);
+                break;
             case kADC64VE_XGE:
             case kADC64VE:
             {
@@ -424,9 +428,9 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             }
             case kADC64WR:
             {
-                auto isZDC = ( std::find(fZDCSerials.begin(), fZDCSerials.end(), serial) != fZDCSerials.end() );
-                auto isECAL = ( std::find(fECALSerials.begin(), fECALSerials.end(), serial) != fECALSerials.end() );
-                auto isSCWALL = ( std::find(fScWallSerials.begin(), fScWallSerials.end(), serial) != fScWallSerials.end() );
+                auto isZDC = (std::find(fZDCSerials.begin(), fZDCSerials.end(), serial) != fZDCSerials.end());
+                auto isECAL = (std::find(fECALSerials.begin(), fECALSerials.end(), serial) != fECALSerials.end());
+                auto isSCWALL = (std::find(fScWallSerials.begin(), fScWallSerials.end(), serial) != fScWallSerials.end());
 
                 if (isZDC || isECAL || isSCWALL)
                     Process_ADC64WR(&d[idx], payload, serial, adc);
@@ -480,16 +484,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
         valU[i] = 0;
         valI[i] = 0;
     }
-
     UInt_t i = 0;
-    //    while (i < len) {
-    //        UInt_t subType = d[i] & 0x3;
-    ////        printf("serial = 0x%X   subType = %d  nSmpl = %d i  =%d\n", serial, subType, nSmpl, i);
-    ////        printf(" other word[0] part = %08X\n", (d[i] & (((1UL << 32) - 1) - 0x3)));
-    ////        printf(" TAI      s = %d  ns = %lu TAI flag = %d\n", d[i + 1], (d[i + 2] & (((1UL << 32) - 1) - 0x3)), (d[i + 2] & 0x3));
-    ////        printf(" readout channels  (0-31) = %08X  (32-63) = %08X\n", d[i + 3], d[i + 4]);
-    //        if (subType == 0) {
-    //            i += 5; //skip unused words
     UInt_t iCh = 0;
     while (iCh < kNCH - 1 && i < len) {
         iCh = d[i] >> 24;
@@ -497,13 +492,10 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
             printf("serial = 0x%X   iCh = %d  nSmpl = %d\n", serial, iCh, nSmpl);
             break;
         }
-        //                UInt_t subType = d[i];
-        //                printf("            subType word = %d  nSmpl = %d\n", subType, nSmpl);
-        //                printf("          s = %d  ns = %lu TAI flag = %d\n", d[i + 1], (d[i + 2] & (((1UL << 32) - 1) - 0x3)), (d[i + 2] & 0x3));
         i += 3; // skip two timestamp words (they contain TAI timestsamps)
         TClonesArray& ar_adc = *arr;
 
-        if (fRunId > GetBoundaryRun(kNSTAMPS)) {
+        if (fRunId > GetBoundaryRun(kNSTAMPS) || fPeriodId == 8) {
             TakeDataWordShort(kNSTAMPS, d, i, valI);
             new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, kNSTAMPS, valI);
         } else {
@@ -984,11 +976,44 @@ BmnStatus BmnRawDataDecoder::FillTQDC_Eth(UInt_t *d, UInt_t serial, UInt_t &len)
                 FillBlockADC(d + index, serial, th.Chan, blockLen, tqdc_adc);
                 break;
             default:
-                //                printf("Wrong TQDC data type %u !\n", th.DataType);
+                printf("Wrong TQDC data type %u !\n", th.DataType);
                 break;
         }
         index += blockLen;
 
+    }
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::FillTDC72VXS(UInt_t *d, UInt_t serial, UInt_t &len) {
+    UInt_t index = 0;
+    MStreamHeader ms = {};
+    memcpy(&ms, d, sizeof (ms));
+    index += sizeof (ms) / kNBYTESINWORD;
+    //    ms.Print();
+    MStreamSubtype0Header ms0 = {};
+    memcpy(&ms0, d + index, sizeof (ms0));
+    index += sizeof (ms0) / kNBYTESINWORD;
+    //    printf("len %u msHeader len %u\n", len, ms.Len / kNBYTESINWORD);
+    //    printf("taiFlags %u TAI %s\n",
+    //            ms0.TaiFlags, TTimeStamp(time_t(ms0.TaiSec), ms0.TaiNSec).AsString());
+    while (index < ms.Len / kNBYTESINWORD) {
+        uint8_t dtype = d[index] >> 28;
+        bool overflow = d[index] & BIT(16);
+        uint16_t blockLen = d[index] & (BIT(16) - 1);
+        if (!overflow)
+            switch (dtype) {
+                case 0: // TDC
+                    FillBlockTDC(d + index, serial, blockLen, tdc);
+                    break;
+                case 0xF: // Stat
+
+                    break;
+                default:
+                    printf("Wrong VXS data type %u !\n", dtype);
+                    break;
+            }
+        index += blockLen;
     }
     return kBMNSUCCESS;
 }

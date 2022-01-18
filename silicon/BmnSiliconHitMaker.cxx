@@ -190,10 +190,8 @@ void BmnSiliconHitMaker::Exec(Option_t* opt) {
 
     if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Exec() started ================" << endl;
     if (fVerbose > 1) cout << " BmnSiliconHitMaker::Exec(), Number of BmnSiliconDigits = " << fBmnSiliconDigitsArray->GetEntriesFast() << "\n";
-    printf("TEST SHM EXEC 1\n");
 
     ProcessDigits();
-    printf("TEST SHM EXEC 2\n");
 
     if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Exec() finished ===============" << endl;
     clock_t tFinish = clock();
@@ -351,6 +349,7 @@ void BmnSiliconHitMaker::ProcessDigits() {
                     BmnMatch hitMatch = module->GetIntersectionPointMatch(iPoint);
                     for (BmnLink lnk : hitMatch.GetLinks())
                         hit->AddLink(FairLink(-1, lnk.GetIndex(), lnk.GetWeight()));
+                    FairRootManager::Instance()->SetUseFairLinks(kFALSE);
                 }
                 //--------------------------------------------------------------
             }

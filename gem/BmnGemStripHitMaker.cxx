@@ -404,6 +404,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
                     BmnMatch hitMatch = module->GetIntersectionPointMatch(iPoint);
                     for (BmnLink lnk : hitMatch.GetLinks())
                         hit->AddLink(FairLink(-1, lnk.GetIndex(), lnk.GetWeight()));
+                    FairRootManager::Instance()->SetUseFairLinks(kFALSE);
                 }
                 //--------------------------------------------------------------
             }

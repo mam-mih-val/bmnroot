@@ -91,28 +91,31 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
 
     if (decoMode == kBMNADCSM) {
         TString gPathConfig = getenv("VMCWORKDIR");
-    TString xmlConfFileName;
-    switch (period) {
-        case 8:
-            if (fSetup == kBMNSETUP) {
-                xmlConfFileName = "GemRun8.xml";
-            } else {
-                xmlConfFileName = "GemRunSRC2021.xml";
-            }
-            break;
-        case 7:
-            if (fSetup == kBMNSETUP) {
-                xmlConfFileName = "GemRunSpring2018.xml";
-            } else {
-                xmlConfFileName = "GemRunSRCSpring2018.xml";
-            }
-            break;
-        default:
-            printf("Error! Unknown config!\n");
-            return;
-            break;
+        TString xmlConfFileName;
+        switch (period) {
+            case 8:
+                if (fSetup == kBMNSETUP) {
+                    xmlConfFileName = "GemRun8.xml";
+                } else {
+                    xmlConfFileName = "GemRunSRC2021.xml";
+                }
+                break;
+            case 7:
+                if (fSetup == kBMNSETUP) {
+                    xmlConfFileName = "GemRunSpring2018.xml";
+                } else {
+                    xmlConfFileName = "GemRunSRCSpring2018.xml";
+                }
+                break;
+            case 6:
+                xmlConfFileName = "GemRunSpring2017.xml";
+                break;
+            default:
+                printf("Error! Unknown config!\n");
+                return;
+                break;
 
-    }
+        }
         TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
         fGemStationSet = new BmnGemStripStationSet(gPathGemConfig + xmlConfFileName);
 
@@ -311,10 +314,10 @@ BmnStatus BmnGemRaw2Digit::FillProfiles(TClonesArray *adc) {
 }
 
 BmnStatus BmnGemRaw2Digit::FillNoisyChannels() {
-//    const Int_t kNStations = 10;
-//    const Int_t kNStrips = 1300;
+    //    const Int_t kNStations = 10;
+    //    const Int_t kNStrips = 1300;
     const Int_t kNStripsInBunch = fNSamples;
-//    const Int_t kNBunches = kNStrips / kNStripsInBunch;
+    //    const Int_t kNBunches = kNStrips / kNStripsInBunch;
     const Int_t kNThresh = 3;
 
     for (Int_t iCr = 0; iCr < GetNSerials(); ++iCr)

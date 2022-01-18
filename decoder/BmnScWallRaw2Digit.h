@@ -59,6 +59,7 @@ private:
     std::set<UInt_t> fUniqueSize;
     std::vector<UInt_t> fChannelVect; // flat_channel to unique_address
 
+    bool fIsWriteWfm;
     digiPars fdigiPars;
     std::vector<std::pair<float,float>> fCalibVect; // flat_channel to pair<calib, calibError>
 

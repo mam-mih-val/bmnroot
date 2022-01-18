@@ -5,12 +5,12 @@ BmnCscRaw2Digit::BmnCscRaw2Digit() {
     fMapFileName = "";
 }
 
-BmnCscRaw2Digit::BmnCscRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer) : BmnAdcProcessor(period, run, "CSC", ADC_N_CHANNELS, ADC32_N_SAMPLES, vSer) {
+BmnCscRaw2Digit::BmnCscRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, TString MapFileName) : BmnAdcProcessor(period, run, "CSC", ADC_N_CHANNELS, ADC32_N_SAMPLES, vSer) {
 
     cout << "Loading CSC Map: Period " << period << ", Run " << run << "..." << endl;
 
     fEventId = 0;
-    fMapFileName = Form("CSC_map_period%d.txt", period);
+    fMapFileName = MapFileName;
     ReadMapFile();
     ReadMapLocalFile();
 
@@ -59,6 +59,7 @@ BmnCscRaw2Digit::BmnCscRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer) :
                 TString histName;
                 histName.Form("CSC_%d_%d_%d", iSt, iMod, iLay);
                 fSigProf[iSt][iMod][iLay] = new TH1F(histName, histName, kNStrips, 0, kNStrips);
+                fSigProf[iSt][iMod][iLay]->SetDirectory(0);
                 fNoisyChannels[iSt][iMod][iLay] = new Bool_t[kNStrips];
                 for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip)
                     fNoisyChannels[iSt][iMod][iLay][iStrip] = kFALSE;

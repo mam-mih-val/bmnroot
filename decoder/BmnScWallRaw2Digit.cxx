@@ -126,7 +126,6 @@ void BmnScWallRaw2Digit::ParseCalibration(TString calibrationFile)
   typedef std::vector<std::complex<float>> vect_complf_t;
   float version;
   std::string comment;
-  //std::vector<std::string> digi_params;
   std::vector<std::string> calibrations;
 
   // Setup options.
@@ -134,6 +133,7 @@ void BmnScWallRaw2Digit::ParseCalibration(TString calibrationFile)
   desc.add_options()
     ("VERSION.id", po::value<float>(&version), "version identificator")
     ("COMMENT.str", po::value<std::string>(&comment), "comment")
+    ("CHECKER.isWriteWfm", po::value<bool>(&fIsWriteWfm), "writing waveforms")
     ("PARAMETERS.gateBegin", po::value<int>(&fdigiPars.gateBegin), "digi parameters")
     ("PARAMETERS.gateEnd", po::value<int>(&fdigiPars.gateEnd), "digi parameters")
     ("PARAMETERS.threshold", po::value<float>(&fdigiPars.threshold), "digi parameters")
@@ -261,10 +261,11 @@ void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
     digi->fSignal = (float) digi->fIntegral * fCalibVect.at(cell_id).first;
 
   //Prony fitting procedure
+  PsdSignalFitting::PronyFitter Pfitter;
   if (fdigiPars.isfit)
   {
     LOG(DEBUG) << "BmnScWallRaw2Digit::ProcessWfm  Fitting" << endl;
-    PsdSignalFitting::PronyFitter Pfitter(fdigiPars.harmonics.size(), fdigiPars.harmonics.size(), fdigiPars.gateBegin, fdigiPars.gateEnd);
+    Pfitter.Initialize(fdigiPars.harmonics.size(), fdigiPars.harmonics.size(), fdigiPars.gateBegin, fdigiPars.gateEnd);
     Pfitter.SetDebugMode(0);
     Pfitter.SetWaveform(wfm, digi->fZL);
     int SignalBeg = Pfitter.CalcSignalBeginStraight();
@@ -281,6 +282,12 @@ void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
     digi->fFitR2 = (fit_R2 > 2.0) ? 2.0 : fit_R2;
     digi->fFitZL = Pfitter.GetZeroLevel();
     digi->fFitTimeMax = Pfitter.GetSignalMaxTime();
+  }
+
+  if (fIsWriteWfm) {
+    digi->fWfm = wfm;
+    if (fdigiPars.isfit) 
+      digi->fFitWfm = Pfitter.GetFitWfm();
   }
 }
 

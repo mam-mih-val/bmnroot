@@ -76,6 +76,7 @@ set(SRCS
  CbmGeoSttPar.cxx
 
  BmnEnums.h
+ RawTypes.h
  BmnStripData.h
  BmnHit.cxx
  BmnLink.cxx

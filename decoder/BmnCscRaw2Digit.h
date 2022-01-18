@@ -31,7 +31,7 @@ struct BmnCscMapping {
 
 class BmnCscRaw2Digit : public BmnAdcProcessor {
 public:
-    BmnCscRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer);
+    BmnCscRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, TString MapFileName);
     BmnCscRaw2Digit();
     ~BmnCscRaw2Digit();
 

@@ -13,7 +13,7 @@ BmnScWallRaw2Digit::BmnScWallRaw2Digit()
   fRunId = 0;
 }
 
-BmnScWallRaw2Digit::BmnScWallRaw2Digit(Int_t period, Int_t run, TString mappingFile, TString CalibrationFile)
+BmnScWallRaw2Digit::BmnScWallRaw2Digit(int period, int run, TString mappingFile, TString CalibrationFile)
 {
   fPeriodId = period;
   fRunId = run;
@@ -103,12 +103,13 @@ void BmnScWallRaw2Digit::ParseConfig(TString mappingFile)
     yIdx = std::distance(fUniqueY.begin(), fUniqueY.find(y_position));
     SizeIdx = std::distance(fUniqueSize.begin(), fUniqueSize.find(size));
 
+    int last_letter = 'V' - 'A' + 1;
     ZoneIdx = (int)(zone[0] - 'A' + 1);
-    if (ZoneIdx > 12)
-      LOG(DEBUG) << "MAX zone letter is L" << endl;
+    if (ZoneIdx > last_letter)
+      LOG(DEBUG) << "MAX zone letter is " << last_letter << endl;
 
-    UInt_t flat_channel = (UInt_t)GetFlatChannelFromAdcChannel(std::stoul(adc_ser, nullptr, 16), adc_chan);
-    UInt_t unique_address = (ZoneIdx > 12) ? 0 : BmnScWallAddress::GetAddress(cell_id, xIdx, yIdx, SizeIdx, ZoneIdx);
+    unsigned int flat_channel = (unsigned int)GetFlatChannelFromAdcChannel(std::stoul(adc_ser, nullptr, 16), adc_chan);
+    unsigned int unique_address = (ZoneIdx > last_letter) ? 0 : BmnScWallAddress::GetAddress(cell_id, xIdx, yIdx, SizeIdx, ZoneIdx);
     fChannelVect.at(flat_channel) = unique_address;
   }
   //std::LOG(DEBUG) << "COMMENT.str: " << comment << std::endl;
@@ -133,7 +134,7 @@ void BmnScWallRaw2Digit::ParseCalibration(TString calibrationFile)
   desc.add_options()
     ("VERSION.id", po::value<float>(&version), "version identificator")
     ("COMMENT.str", po::value<std::string>(&comment), "comment")
-    ("CHECKER.isWriteWfm", po::value<bool>(&fIsWriteWfm), "writing waveforms")
+    ("CHECKER.isWriteWfm", po::value<bool>(&fdigiPars.isWriteWfm), "writing waveforms")
     ("PARAMETERS.gateBegin", po::value<int>(&fdigiPars.gateBegin), "digi parameters")
     ("PARAMETERS.gateEnd", po::value<int>(&fdigiPars.gateEnd), "digi parameters")
     ("PARAMETERS.threshold", po::value<float>(&fdigiPars.threshold), "digi parameters")
@@ -160,9 +161,18 @@ void BmnScWallRaw2Digit::ParseCalibration(TString calibrationFile)
   int cell_id;
   float calibration;
   float calibError;
-
+  int max_cell_id = 0;
+  // First pass for max cell id.
+  for (auto it : calibrations)
+  {
+    istringstream ss(it);
+    ss >> cell_id >> calibration >> calibError;
+    if (cell_id > max_cell_id) max_cell_id = cell_id;
+  }
   fCalibVect.clear();
-  fCalibVect.resize(fScWallSerials.size() * 64);
+  fCalibVect.resize(max_cell_id+1);
+
+  // Second pass for calibrations.
   for (auto it : calibrations)
   {
     istringstream ss(it);
@@ -171,7 +181,7 @@ void BmnScWallRaw2Digit::ParseCalibration(TString calibrationFile)
   }
 }
 
-Int_t BmnScWallRaw2Digit::GetFlatChannelFromAdcChannel(UInt_t adc_board_serial, UInt_t adc_ch)
+int BmnScWallRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int adc_board_serial, unsigned int adc_ch)
 {
   auto it = find(fScWallSerials.begin(), fScWallSerials.end(), adc_board_serial);
   if (it != fScWallSerials.end())
@@ -195,15 +205,15 @@ void BmnScWallRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ScWalldigit
     // check if serial is from ScWall
     // cout<<digit->GetSerial() << " " << digit->GetChannel() << endl;
     if (std::find(fScWallSerials.begin(), fScWallSerials.end(), digit->GetSerial()) == fScWallSerials.end()) {
-      LOG(DEBUG) << std::hex << digit->GetSerial() << "Not found in ";
+      LOG(DEBUG) << "BmnScWallRaw2Digit::fillEvent" << std::hex << digit->GetSerial() << " Not found in ";
       for (auto it : fScWallSerials)
-        cout << it << endl;
+        LOG(DEBUG) << "BmnScWallRaw2Digit::fScWallSerials " << std::hex << it << endl;
       continue;
     }
     std::vector<float> wfm(digit->GetUShortValue(), digit->GetUShortValue() + digit->GetNSamples());
     BmnScWallDigi ThisDigi;
     ThisDigi.reset();
-    UInt_t flat_channel = (UInt_t)GetFlatChannelFromAdcChannel(digit->GetSerial(), digit->GetChannel());
+    unsigned int flat_channel = (unsigned int)GetFlatChannelFromAdcChannel(digit->GetSerial(), digit->GetChannel());
     assert(flat_channel < fChannelVect.size());
     ThisDigi.fuAddress = fChannelVect.at(flat_channel);
     if (ThisDigi.fuAddress == 0)
@@ -219,6 +229,9 @@ void BmnScWallRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ScWalldigit
 
 void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
 {
+  assert(fdigiPars.gateBegin > 0 && fdigiPars.gateBegin < wfm.size());
+  assert(fdigiPars.gateEnd > 0 && fdigiPars.gateEnd < wfm.size());
+
   // Invert
   if (fdigiPars.doInvert)
   {
@@ -234,11 +247,11 @@ void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
   int gate_npoints = (int)floor((fdigiPars.gateBegin - 2.) / n_gates);
 
   Float_t gates_mean[n_gates], gates_rms[n_gates];
-  for (Int_t igate = 0; igate < n_gates; igate++)
+  for (int igate = 0; igate < n_gates; igate++)
     MeanRMScalc(wfm, gates_mean + igate, gates_rms + igate, igate * gate_npoints, (igate + 1) * gate_npoints);
 
   int best_gate = 0;
-  for (Int_t igate = 0; igate < n_gates; igate++)
+  for (int igate = 0; igate < n_gates; igate++)
     if (gates_rms[igate] < gates_rms[best_gate])
       best_gate = igate;
   digi->fZL = (int) gates_mean[best_gate];
@@ -253,7 +266,7 @@ void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
 
   //Apply calibration
   LOG(DEBUG) << "BmnScWallRaw2Digit::ProcessWfm  Calibration" << endl;
-  UInt_t cell_id = BmnScWallAddress::GetCellId(digi->fuAddress);
+  unsigned int cell_id = digi->GetCellId();
   assert(cell_id < fCalibVect.size());
   if (fdigiPars.signalType == 0)
     digi->fSignal = (float) digi->fAmpl * fCalibVect.at(cell_id).first;
@@ -272,7 +285,7 @@ void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
     if (SignalBeg < 1 || SignalBeg > wfm.size())
       return;
     Pfitter.SetExternalHarmonics(fdigiPars.harmonics[0], fdigiPars.harmonics[1]);
-    Int_t best_signal_begin = Pfitter.ChooseBestSignalBegin(SignalBeg - 1, SignalBeg + 1);
+    int best_signal_begin = Pfitter.ChooseBestSignalBegin(SignalBeg - 1, SignalBeg + 1);
     Pfitter.SetSignalBegin(best_signal_begin);
     Pfitter.CalculateFitAmplitudes();
 
@@ -284,7 +297,7 @@ void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
     digi->fFitTimeMax = Pfitter.GetSignalMaxTime();
   }
 
-  if (fIsWriteWfm) {
+  if (fdigiPars.isWriteWfm) {
     digi->fWfm = wfm;
     if (fdigiPars.isfit) 
       digi->fFitWfm = Pfitter.GetFitWfm();

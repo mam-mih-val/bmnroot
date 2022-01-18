@@ -9,7 +9,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
     TString bmndstFileName = "$VMCWORKDIR/macro/run8/bmndst.root",
-        Int_t nStartEvent = 0, Int_t nEvents = 100)
+        Int_t nStartEvent = 0, Int_t nEvents = 10)
 {
     gDebug = 0; // Debug option
     // Verbosity level (0 = quiet (progress bar), 1 = event-level, 2 = track-level, 3 = full debug)
@@ -147,13 +147,14 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
     BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
+    if (isExp) siliconHM->SetHitMatching(kFALSE);
     fRunAna->AddTask(siliconHM);
 
     // ====================================================================== //
     // ===                          GEM hit finder                        === //
     // ====================================================================== //
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
-    gemHM->SetHitMatching(kTRUE);
+    if (isExp) gemHM->SetHitMatching(kFALSE);
     fRunAna->AddTask(gemHM);    
     
     // ====================================================================== //
@@ -162,7 +163,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
     BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
     if (!isExp)
         cscHM->SetCurrentConfig(BmnCSCConfiguration::Run8); //set explicitly
-    cscHM->SetHitMatching(kTRUE);
+    if (isExp) cscHM->SetHitMatching(kFALSE);
     fRunAna->AddTask(cscHM);
     
     // ====================================================================== //
@@ -202,7 +203,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
     fRunAna->AddTask(zdcAna);
        
 #ifdef L1    
-    FairTask* hitConverter = new BmnToCbmHitConverter(iVerbose);
+    BmnToCbmHitConverter* hitConverter = new BmnToCbmHitConverter(iVerbose);
     fRunAna->AddTask(hitConverter);
 
     // ====================================================================== //
@@ -231,14 +232,14 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
     // ====================================================================== //
     // ===                          Tracking (BEAM)                       === //
     // ====================================================================== //
-    BmnBeamTracking* beamTF = new BmnBeamTracking(run_period);
-    fRunAna->AddTask(beamTF);
+    // BmnBeamTracking* beamTF = new BmnBeamTracking(run_period);
+    // fRunAna->AddTask(beamTF);
 
     // ====================================================================== //
     // ===                          Tracking (MWPC)                       === //
     // ====================================================================== //
-    BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp, run_period, run_number);
-    fRunAna->AddTask(mwpcTF);
+    // BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp, run_period, run_number);
+    // fRunAna->AddTask(mwpcTF);
 
     // ====================================================================== //
     // ===                          Tracking (DCH)                        === //

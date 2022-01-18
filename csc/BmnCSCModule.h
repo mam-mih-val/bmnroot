@@ -103,6 +103,9 @@ public:
     Double_t GetIntersectionPoint_LowerLayerSripTotalSignal(Int_t indx) { return IntersectionPoints_LowerLayerStripTotalSignal.at(indx); } //total signal  in the lower layer
     Double_t GetIntersectionPoint_UpperLayerSripTotalSignal(Int_t indx) { return IntersectionPoints_UpperLayerStripTotalSignal.at(indx); } //total signal  in the upper layer
     BmnMatch GetIntersectionPointMatch(Int_t indx) { return IntersectionPointMatches.at(indx); } //Intersection point match
+    
+    StripCluster GetUpperCluster(Int_t indx) { return UpperClusters.at(indx); }
+    StripCluster GetLowerCluster(Int_t indx) { return LowerClusters.at(indx); }
 
     void ResetIntersectionPoints();
     //--------------------------------------------------------------------------
@@ -146,6 +149,9 @@ private:
     vector<Double_t> IntersectionPoints_UpperLayerStripTotalSignal; //total signal in the upper layer for each intersection point
 
     vector<BmnMatch> IntersectionPointMatches;
+
+    vector<StripCluster> UpperClusters;
+    vector<StripCluster> LowerClusters;
 
 };
 //------------------------------------------------------------------------------

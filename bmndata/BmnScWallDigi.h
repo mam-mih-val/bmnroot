@@ -15,6 +15,7 @@
 #ifndef BmnScWallDigi_H
 #define BmnScWallDigi_H 1
 
+#include "TROOT.h"
 #include "TObject.h"
 #include "TCanvas.h"
 #include "TGraph.h"
@@ -122,6 +123,7 @@ public:
   void reset();
 
   const int DrawWfm();
+  const void DeleteCanvases() { gROOT->GetListOfCanvases()->Delete(); }
 
   UInt_t fuAddress       = 0;   /// Unique channel address
   Float_t fSignal       = 0.;  /// Signal [MeV]

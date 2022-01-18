@@ -15,6 +15,7 @@ public:
     tof700(nullptr),
     zdc(nullptr),
     scwall(nullptr),
+    fhcal(nullptr),
     ecal(nullptr),
     land(nullptr),
     dch(nullptr),
@@ -69,6 +70,10 @@ public:
             scwall->Delete();
             delete scwall;
         }
+        if (fhcal) {
+            fhcal->Delete();
+            delete fhcal;
+        }
         if (ecal) {
             ecal->Delete();
             delete ecal;
@@ -101,6 +106,7 @@ public:
     TClonesArray *tof700;
     TClonesArray *zdc;
     TClonesArray *scwall;
+    TClonesArray *fhcal;
     TClonesArray *ecal;
     TClonesArray *land;
     TClonesArray *dch;

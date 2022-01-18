@@ -9,12 +9,11 @@
  **                                     3         2         1         0   Shift  Bits  Values
  ** Current definition:                10987654321098765432109876543210
  ** System id          on bits  0- 4   00000000000000000000000000011111    << 0     5      31
- ** Cell id            on bits  5- 8   00000000000000000111111111100000    << 5    10    1023
+ ** Cell id            on bits  5-14   00000000000000000111111111100000    << 5    10    1023
  ** Xidx               on bits 15-19   00000000000011111000000000000000    <<15     5      31
  ** Yidx               on bits 20-24   00000001111100000000000000000000    <<20     5      31
  ** CellSize           on bits 25-26   00000110000000000000000000000000    <<25     2      3
- ** Zone idx           on bits 27-30   01111000000000000000000000000000    <<27     4      15
- ** Empty              on bits 31-31   10000000000000000000000000000000    <<31     1      1
+ ** Zone idx           on bits 27-31   11111000000000000000000000000000    <<27     5      31
  **
  **/
 
@@ -38,7 +37,12 @@ public:
    **/
   static uint32_t GetAddress(uint32_t CellId, uint32_t XIdx, uint32_t YIdx, uint32_t CellSize, uint32_t Zone)
   {
-    assert(!( (uint32_t)kSCWALL > fgkSystemIdLength || CellId > fgkCellIdLength || XIdx > fgkXIdxLength || YIdx > fgkYIdxLength || CellSize > fgkCellSizeLength || Zone > fgkZoneLength));
+    assert((uint32_t)kSCWALL < fgkSystemIdLength);
+    assert(CellId < fgkCellIdLength);
+    assert(XIdx < fgkXIdxLength);
+    assert(YIdx < fgkYIdxLength);
+    assert(CellSize < fgkCellSizeLength);
+    assert(Zone < fgkZoneLength);
     return (  (((uint32_t)kSCWALL) << fgkSystemIdShift) 
             | (CellId << fgkCellIdShift)
             | (XIdx << fgkXIdxShift)
@@ -114,7 +118,7 @@ private:
   static const uint32_t fgkXIdxLength = 31;         // 2^5 - 1
   static const uint32_t fgkYIdxLength = 31;         // 2^5 - 1
   static const uint32_t fgkCellSizeLength = 3;      // 2^2 - 1
-  static const uint32_t fgkZoneLength = 15;         // 2^4 - 1
+  static const uint32_t fgkZoneLength = 31;         // 2^5 - 1
 
   // Number of a start bit for each volume
   static const uint32_t fgkSystemIdShift  = 0;

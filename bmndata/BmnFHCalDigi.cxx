@@ -2,23 +2,23 @@
    SPDX-License-Identifier: GPL-3.0-only
    Authors: Nikolay Karpushkin [committer] */
 
-/** @file BmnScWallDigi.cxx
+/** @file BmnFHCalDigi.cxx
  ** @author Nikolay Karpushkin <karpushkin@inr.ru>
  ** @date 04.07.2021
  **
- ** Code for Data class for BmnScWall digital signal processing
+ ** Code for Data class for BmnFHCal digital signal processing
  **/
 
-#include "BmnScWallDigi.h"
+#include "BmnFHCalDigi.h"
 
 #include <TBuffer.h>  // for TBuffer
-#include <TClass.h>   // for BmnScWallDigi::IsA()
+#include <TClass.h>   // for BmnFHCalDigi::IsA()
 #include <TString.h>  // for Form, TString
 
 #include <string>  // for basic_string
 
 // --- Default constructor
-BmnScWallDigi::BmnScWallDigi()
+BmnFHCalDigi::BmnFHCalDigi()
   : TObject()
   , fuAddress()
   , fSignal()
@@ -42,7 +42,7 @@ BmnScWallDigi::BmnScWallDigi()
 
 // clang-format off
 // --- Constructor with assignment
-BmnScWallDigi::BmnScWallDigi(UInt_t address, Float_t signal, Float_t timestamp, 
+BmnFHCalDigi::BmnFHCalDigi(UInt_t address, Float_t signal, Float_t timestamp, 
                 Int_t ampl, Int_t zl, Int_t integral, Int_t time_max,
                 Float_t fit_ampl, Float_t fit_zl, Float_t fit_integral, Float_t fit_R2, Float_t fit_time_max,
                 std::vector<float> wfm, std::vector<float> fit_wfm)
@@ -70,7 +70,7 @@ BmnScWallDigi::BmnScWallDigi(UInt_t address, Float_t signal, Float_t timestamp,
 // clang-format on
 
 // --- Copy constructor
-BmnScWallDigi::BmnScWallDigi(const BmnScWallDigi& other)
+BmnFHCalDigi::BmnFHCalDigi(const BmnFHCalDigi& other)
   : fuAddress(other.fuAddress)
   , fSignal(other.fSignal)
   , fTimestamp(other.fTimestamp)
@@ -93,7 +93,7 @@ BmnScWallDigi::BmnScWallDigi(const BmnScWallDigi& other)
 
 
 // --- Move constructor
-BmnScWallDigi::BmnScWallDigi(BmnScWallDigi&& other)
+BmnFHCalDigi::BmnFHCalDigi(BmnFHCalDigi&& other)
   : fuAddress(other.fuAddress)
   , fSignal(other.fSignal)
   , fTimestamp(other.fTimestamp)
@@ -116,7 +116,7 @@ BmnScWallDigi::BmnScWallDigi(BmnScWallDigi&& other)
 
 
 // --- Destructor
-BmnScWallDigi::~BmnScWallDigi()
+BmnFHCalDigi::~BmnFHCalDigi()
 {
   std::vector<float>().swap(fWfm);
   std::vector<float>().swap(fFitWfm);
@@ -124,7 +124,7 @@ BmnScWallDigi::~BmnScWallDigi()
 
 
 // --- Assignment operator
-BmnScWallDigi& BmnScWallDigi::operator=(const BmnScWallDigi& other)
+BmnFHCalDigi& BmnFHCalDigi::operator=(const BmnFHCalDigi& other)
 {
   if (this != &other) {
     fuAddress = other.fuAddress;
@@ -150,7 +150,7 @@ BmnScWallDigi& BmnScWallDigi::operator=(const BmnScWallDigi& other)
 
 
 // --- Move assignment operator
-BmnScWallDigi& BmnScWallDigi::operator=(BmnScWallDigi&& other)
+BmnFHCalDigi& BmnFHCalDigi::operator=(BmnFHCalDigi&& other)
 {
   if (this != &other) {
     fuAddress = other.fuAddress;
@@ -174,7 +174,7 @@ BmnScWallDigi& BmnScWallDigi::operator=(BmnScWallDigi&& other)
   return *this;
 }
 
-void BmnScWallDigi::reset()
+void BmnFHCalDigi::reset()
 {
   fuAddress     = 0;   /// Unique channel address
   fSignal       = 0.;  /// Signal [MeV]
@@ -195,11 +195,11 @@ void BmnScWallDigi::reset()
   fFitWfm.clear();
 }
 
-const int BmnScWallDigi::DrawWfm()
+const int BmnFHCalDigi::DrawWfm()
 {
   if(fWfm.empty()) return 0;
 
-  TString hist_name = Form("Cell%u. Signal %.2f FitR2 %.2f", GetCellId(), fSignal, fFitR2);
+  TString hist_name = Form("Mod%u Sec%u. Signal %.2f FitR2 %.2f", GetModuleId(), GetSectionId(), fSignal, fFitR2);
   TCanvas *canv_ptr = new TCanvas();
   std::vector<float> points(fWfm.size());
   std::iota(std::begin(points), std::end(points), 0); // Fill with 0, 1, ..., wfm.back().
@@ -215,4 +215,4 @@ const int BmnScWallDigi::DrawWfm()
   return 1;
 }
 
-ClassImp(BmnScWallDigi)
+ClassImp(BmnFHCalDigi)

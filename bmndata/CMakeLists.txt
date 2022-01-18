@@ -133,6 +133,8 @@ set(SRCS
 
  BmnScWallDigi.cxx
  BmnScWallAddress.cxx
+ BmnFHCalDigi.cxx
+ BmnFHCalAddress.cxx
 
  BmnVertex.cxx
 )

@@ -28,6 +28,7 @@ enum DetectorId {kREF,  // Reference plane
          kBC,           // Beam Counter triggers
          kSCWALL,       // SCintillator WALL
          kHODO,         // HODOscope
+         kFHCAL,        // Forward Hadron Calorimeter
          kNOFDETS       // Number of elements (e.g. for loops)
 };
 

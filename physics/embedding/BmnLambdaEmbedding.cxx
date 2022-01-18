@@ -778,15 +778,10 @@ void BmnLambdaEmbedding::StartDecodingWithEmbeddedLambdas(TString raw) {
     decoder->SetDigiRootFile(fDigiFileName);
     decoder->SetBmnSetup(kBMNSETUP);
 
-    const Int_t nDets = 11;
-    Bool_t setup[nDets]; //array of flags to determine BM@N setup
-
-    for (Int_t iDet = 0; iDet < nDets; iDet++)
-        setup[iDet] = kFALSE;
-
-    setup[0] = kFALSE; // TRIGGERS
-    setup[2] = kTRUE; // SILICON
-    setup[3] = kTRUE; // GEM
+    std::map<DetectorId, bool> setup; // flags to determine BM@N setup
+    setup.insert(std::make_pair(kBC,        0)); // TRIGGERS
+    setup.insert(std::make_pair(kSILICON,   1)); // SILICON
+    setup.insert(std::make_pair(kGEM,       1)); // GEM
 
     decoder->SetDetectorSetup(setup);
     decoder->SetAdcDecoMode(kBMNADCMK);

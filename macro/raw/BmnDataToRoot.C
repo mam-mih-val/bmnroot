@@ -5,7 +5,6 @@
 void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_t doConvert = kTRUE, Bool_t doHoldRawRoot = kFALSE) {
     gSystem->ExpandPathName(file);
     gSystem->ExpandPathName(outfile);
-    //gSystem->Load("$SIMPATH/lib/libboost_program_options.so");
 
     Int_t iVerbose = 1; ///<- Verbosity level: 0 - Progress Bar; 1 - short info on passed events
     UInt_t period = 7;
@@ -19,20 +18,20 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     decoder->SetBmnSetup(stp);
     decoder->SetVerbose(iVerbose);
 
-    Bool_t setup[12]; //array of flags to determine BM@N setup
-    //Just put "0" to exclude detector from decoding
-    setup[0]  = 1; // TRIGGERS
-    setup[1]  = 1; // MWPC
-    setup[2]  = 1; // SILICON
-    setup[3]  = 1; // GEM
-    setup[4]  = 1; // TOF-400
-    setup[5]  = 1; // TOF-700
-    setup[6]  = 1; // DCH
-    setup[7]  = 1; // ZDC
-    setup[8]  = 1; // ECAL
-    setup[9]  = 1; // LAND
-    setup[10] = 1; // CSC
-    setup[11] = 1; // SCWALL
+    std::map<DetectorId, bool> setup; // flags to determine BM@N setup
+    setup.insert(std::make_pair(kBC,        1)); // TRIGGERS
+    setup.insert(std::make_pair(kMWPC,      1)); // MWPC
+    setup.insert(std::make_pair(kSILICON,   1)); // SILICON
+    setup.insert(std::make_pair(kGEM,       1)); // GEM
+    setup.insert(std::make_pair(kTOF1,      1)); // TOF-400
+    setup.insert(std::make_pair(kTOF,       1)); // TOF-700
+    setup.insert(std::make_pair(kDCH,       1)); // DCH
+    setup.insert(std::make_pair(kZDC,       1)); // ZDC
+    setup.insert(std::make_pair(kECAL,      1)); // ECAL
+    setup.insert(std::make_pair(kLAND,      1)); // LAND
+    setup.insert(std::make_pair(kCSC,       1)); // CSC
+    setup.insert(std::make_pair(kSCWALL,    1)); // SCWALL
+    setup.insert(std::make_pair(kFHCAL,     1)); // FHCAL
     decoder->SetDetectorSetup(setup);
     decoder->SetAdcDecoMode(period < 6 ? kBMNADCSM : kBMNADCMK);
 
@@ -56,6 +55,8 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     decoder->SetZDCCalibration("zdc_muon_calibration.txt");
     decoder->SetScWallMapping("SCWALL_map_dry_run_2022.txt");
     decoder->SetScWallCalibration("SCWALL_calibration_2022.txt");
+    decoder->SetFHCalMapping("FHCAL_map_dry_run_2022.txt");
+    decoder->SetFHCalCalibration("FHCAL_calibration_2022.txt");
     decoder->SetECALMapping(TString("ECAL_map_period_") + PeriodSetupExt);
     decoder->SetECALCalibration("");
     decoder->SetMwpcMapping(TString("MWPC_map_period") + ((period == 6 && decoder->GetRunId() < 1397) ? 5 : PeriodSetupExt));

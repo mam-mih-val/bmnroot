@@ -44,6 +44,7 @@
 #include "BmnTof2Raw2DigitNew.h"
 #include "BmnZDCRaw2Digit.h"
 #include "BmnScWallRaw2Digit.h"
+#include "BmnFHCalRaw2Digit.h"
 #include "BmnECALRaw2Digit.h"
 #include "BmnLANDRaw2Digit.h"
 #include "BmnTrigRaw2Digit.h"
@@ -105,6 +106,7 @@ public:
         d.tof700 = tof700;
         d.zdc = zdc;
         d.scwall = scwall;
+        d.fhcal = fhcal;
         d.ecal = ecal;
         d.land = land;
         d.dch = dch;
@@ -171,6 +173,10 @@ public:
 
     BmnScWallRaw2Digit *GetScWallMapper() {
         return fScWallMapper;
+    }
+
+    BmnFHCalRaw2Digit *GetFHCalMapper() {
+        return fFHCalMapper;
     }
 
     BmnECALRaw2Digit *GetECALMapper() {
@@ -240,6 +246,14 @@ public:
         fScWallCalibrationFileName = cal;
     }
 
+    void SetFHCalMapping(TString map) {
+        fFHCalMapFileName = map;
+    }
+
+    void SetFHCalCalibration(TString cal) {
+        fFHCalCalibrationFileName = cal;
+    }
+
     void SetECALMapping(TString map) {
         fECALMapFileName = map;
     }
@@ -276,11 +290,8 @@ public:
         return fRootFileName;
     }
 
-    BmnStatus SetDetectorSetup(Bool_t* setup) {
-        for (Int_t i = 0; i < 12; ++i) {
-            fDetectorSetup[i] = setup[i];
-        }
-
+    BmnStatus SetDetectorSetup(std::map<DetectorId, bool> setup) {
+        fDetectorSetup = setup;
         return kBMNSUCCESS;
     }
 
@@ -333,12 +344,10 @@ public:
 
 private:
 
-    //9 bits correspond to detectors which we need to decode
-    Bool_t fDetectorSetup[12];
+    std::map<DetectorId, bool> fDetectorSetup;
     pt::ptree conf;
     Bool_t isSpillStart;
     UInt_t fSpillCntr;
-
 
     Int_t fTOF700ReferenceRun;
     Int_t fTOF700ReferenceChamber;
@@ -353,6 +362,8 @@ private:
     UInt_t fNZDCSerials;
     vector<UInt_t> fScWallSerials; //list of serial id for ScWall
     UInt_t fNScWallSerials;
+    vector<UInt_t> fFHCalSerials; //list of serial id for FHCAL
+    UInt_t fNFHCalSerials;
     vector<UInt_t> fECALSerials; //list of serial id for ECal
     UInt_t fNECALSerials;
 
@@ -395,6 +406,8 @@ private:
     TString fZDCCalibrationFileName;
     TString fScWallMapFileName;
     TString fScWallCalibrationFileName;
+    TString fFHCalMapFileName;
+    TString fFHCalCalibrationFileName;
     TString fECALMapFileName;
     TString fECALCalibrationFileName;
     TString fMSCMapFileName;
@@ -430,7 +443,7 @@ private:
     TClonesArray *sync;
     TClonesArray *adc32; //gem
     TClonesArray *adc128; //sts
-    TClonesArray *adc; //zdc & ecal & scwall
+    TClonesArray *adc; //zdc & ecal & scwall & fhcal
     TClonesArray *hrb;
     TClonesArray *tacquila; // LAND.
     TClonesArray *tdc;
@@ -447,6 +460,7 @@ private:
     TClonesArray *tof700;
     TClonesArray *zdc;
     TClonesArray *scwall;
+    TClonesArray *fhcal;
     TClonesArray *ecal;
     TClonesArray *land;
     TClonesArray *dch;
@@ -471,6 +485,7 @@ private:
     BmnTof2Raw2DigitNew *fTof700Mapper;
     BmnZDCRaw2Digit *fZDCMapper;
     BmnScWallRaw2Digit *fScWallMapper;
+    BmnFHCalRaw2Digit *fFHCalMapper;
     BmnECALRaw2Digit *fECALMapper;
     BmnLANDRaw2Digit *fLANDMapper;
     BmnMscRaw2Digit *fMSCMapper;

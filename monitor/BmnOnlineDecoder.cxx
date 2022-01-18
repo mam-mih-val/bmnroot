@@ -63,19 +63,19 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
         rawDataDecoder = new BmnRawDataDecoder();
     rawDataDecoder->SetRunId(runID);
     rawDataDecoder->SetPeriodId(fPeriodID);
-    Bool_t setup[11]; //array of flags to determine BM@N setup
+    std::map<DetectorId, bool> setup; // flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
-    setup[0] = 1; // TRIGGERS
-    setup[1] = 1; // MWPC
-    setup[2] = 1; // SILICON
-    setup[3] = 1; // GEM
-    setup[4] = 1; // TOF-400
-    setup[5] = 1; // TOF-700
-    setup[6] = 1; // DCH
-    setup[7] = 1; // ZDC
-    setup[8] = 1; // ECAL
-    setup[9] = 1; // LAND
-    setup[10] = 1; // CSC
+    setup.insert(std::make_pair(kBC,        1)); // TRIGGERS
+    setup.insert(std::make_pair(kMWPC,      1)); // MWPC
+    setup.insert(std::make_pair(kSILICON,   1)); // SILICON
+    setup.insert(std::make_pair(kGEM,       1)); // GEM
+    setup.insert(std::make_pair(kTOF1,      1)); // TOF-400
+    setup.insert(std::make_pair(kTOF,       1)); // TOF-700
+    setup.insert(std::make_pair(kDCH,       1)); // DCH
+    setup.insert(std::make_pair(kZDC,       1)); // ZDC
+    setup.insert(std::make_pair(kECAL,      1)); // ECAL
+    setup.insert(std::make_pair(kLAND,      1)); // LAND
+    setup.insert(std::make_pair(kCSC,       1)); // CSC
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetBmnSetup(fBmnSetup);
     TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((fBmnSetup == kBMNSETUP) ? "" : "_SRC"));

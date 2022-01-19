@@ -23,7 +23,6 @@
 #define BmnFHCalAddress_H 1
 
 #include "BmnDetectorList.h"  // for kFHCAL
-//#include <RtypesCore.h>  // for uint32_t, uint32_t
 #include <cassert>  // for assert
 
 class BmnFHCalAddress {

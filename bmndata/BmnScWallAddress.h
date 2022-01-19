@@ -21,7 +21,6 @@
 #define BMNSCWALLADDRESS_H 1
 
 #include "BmnDetectorList.h"  // for kSCWALL
-//#include <RtypesCore.h>  // for uint32_t, uint32_t
 #include <cassert>  // for assert
 
 class BmnScWallAddress {

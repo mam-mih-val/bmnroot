@@ -1,0 +1,6 @@
+{
+    "minZ": -8,
+    "maxZ": 8,
+    "minNTracks": 2,
+    "excludedBranches": ["BmnMwpcSegment", "BmnMwpcTrack"]
+}

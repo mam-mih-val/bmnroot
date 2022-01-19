@@ -109,7 +109,8 @@ InitStatus BmnCaloTowerDraw::Init()
         return kERROR;
     }
     //----------------------------------------
-    fModuleZLen = ((TGeoBBox *) gGeoManager->GetCurrentNode()->GetVolume()->GetNode(0)->GetVolume()->GetShape())->GetDZ();
+    fModuleZLen = new Double_t[fNumModules+1];
+    fMaxModuleZLen = 0;
 
     fEneArr = new Float_t[fNumModules+1];
     fMaxE = 1;
@@ -186,43 +187,54 @@ void BmnCaloTowerDraw::Exec(Option_t* option)
 
 void BmnCaloTowerDraw::DrawTowers()
 {
-    gGeoManager->cd("/cave_1");
-    TGeoNode *caveNode = gGeoManager->GetCurrentNode();
-
     gGeoManager->cd(fGeoPath.c_str());
 
-    TGeoNode *caloNode = gGeoManager->GetCurrentNode();
-    TObjArray *caloArr = caloNode->GetVolume()->GetNodes();
+    auto rootNode = gGeoManager->GetCurrentNode();
+    auto rootArr = rootNode->GetVolume()->GetNodes();
 
-    for (Int_t iModule = 0; iModule < caloArr->GetEntriesFast(); iModule++)
+    for (Int_t iModule = 0; iModule < rootArr->GetEntriesFast(); iModule++)
     {
-        TGeoNode *moduleNode = (TGeoNode *) caloArr->UncheckedAt(iModule);
-        TGeoVolume *moduleVolumeCopy;
+        auto caloNode = (TGeoNode *) rootArr->UncheckedAt(iModule);
+        auto caloArr = caloNode->GetVolume()->GetNodes();
 
-        /**
-         * the internal structure of modules does not allow changing their shape 
-         * (all modules have the same TGeoVolume), so during initialization we 
-         * delete and create a new TGeoVolume for each module.
-         */
-        if (fInitDrawFlag)
-            moduleVolumeCopy = (TGeoVolume *) moduleNode->GetVolume()->Clone();
-        else
-            moduleVolumeCopy = (TGeoVolume *) moduleNode->GetVolume();
-        
-        TGeoBBox *box = (TGeoBBox *) moduleVolumeCopy->GetShape();
-        TGeoMatrix *mat = moduleNode->GetMatrix();
-
-        if (fEneArr[iModule+1] != 0)
+        for (Int_t iTower = 0; iTower < caloArr->GetEntriesFast(); iTower++)
         {
-            box->SetBoxDimensions(box->GetDX(), box->GetDY(), fModuleZLen * fEneArr[iModule+1] / fMaxE);
-            ((TGeoTranslation *) mat)->SetDz(fModuleZLen * fEneArr[iModule+1] / fMaxE - fModuleZLen);
+            auto moduleNode = (TGeoNode *) caloArr->UncheckedAt(iTower);
+            TGeoVolume *moduleVolumeCopy;
 
-            moduleNode->SetVisibility(kTRUE);
+            /**
+             * the internal structure of modules does not allow changing their shape 
+             * (all modules have the same TGeoVolume), so during initialization we 
+             * delete and create a new TGeoVolume for each module.
+             */
+            
+            if (fInitDrawFlag)
+            {
+                moduleVolumeCopy = (TGeoVolume *) moduleNode->GetVolume()->Clone();
+                fModuleZLen[iTower] = ((TGeoBBox *) moduleVolumeCopy->GetShape())->GetDZ();
+                if (fMaxModuleZLen < fModuleZLen[iTower])
+                    fMaxModuleZLen = fModuleZLen[iTower];
+            }
+            else
+            {
+                moduleVolumeCopy = (TGeoVolume *) moduleNode->GetVolume();
+            
+                auto box = (TGeoBBox *) moduleVolumeCopy->GetShape();
+                auto mat = moduleNode->GetMatrix();
+
+                if (fEneArr[iTower+1] != 0)
+                {
+                    box->SetBoxDimensions(box->GetDX(), box->GetDY(), fModuleZLen[iTower] * fEneArr[iTower+1] / fMaxE);
+                    ((TGeoTranslation *) mat)->SetDz(fModuleZLen[iTower] * fEneArr[iTower+1] / fMaxE - fMaxModuleZLen);
+
+                    moduleNode->SetVisibility(kTRUE);
+                }
+                else
+                    moduleNode->SetVisibility(kFALSE);
+            }
+
+            moduleNode->SetVolume(moduleVolumeCopy);
         }
-        else
-            moduleNode->SetVisibility(kFALSE);
-
-        moduleNode->SetVolume(moduleVolumeCopy);
     }
     
     fResetRequiredFlag = kTRUE;
@@ -242,6 +254,8 @@ void BmnCaloTowerDraw::Finish() {}
 BmnCaloTowerDraw::~BmnCaloTowerDraw()
 {
     fDigitList->Delete();
+    delete[] fModuleZLen;
+    delete[] fEneArr;
 }
 
 ClassImp(BmnCaloTowerDraw);

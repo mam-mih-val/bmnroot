@@ -302,7 +302,6 @@ set(FAIRROOT_FOUND TRUE)
 if(SIMPATH)
   set(ROOT_INCLUDE_DIR ${ROOT_INCLUDE_DIR} ${VMC_INCLUDE_DIRS})
   set(BASE_INCLUDE_DIRECTORIES ${BASE_INCLUDE_DIRECTORIES} ${FairLogger_INCDIR})
-  #set(LD_LIBRARY_PATH ${LD_LIBRARY_PATH} ${Boost_LIBRARY_DIRS}) # remove when 1.67?
 endif()
 
 # Recurse into the given subdirectories. This does not actually cause another cmake executable to run

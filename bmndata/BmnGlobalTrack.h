@@ -61,6 +61,8 @@ class BmnGlobalTrack : public BmnTrack{
     PidParticles GetParticleTof400();
     PidParticles GetParticleTof700();
     PidParticles GetParticle();
+    
+    Int_t GetRefIndex() { return fRefIndex; }
 
     Bool_t IsPrimary() const { return fIsPrimary;}
 
@@ -90,6 +92,8 @@ class BmnGlobalTrack : public BmnTrack{
 
     void SetPidVectorTof400(vector<Double_t> v) {fPidTof400 = v;}
     void SetPidVectorTof700(vector<Double_t> v) {fPidTof700 = v;}
+    
+    void SetRefIndex(Int_t idx) { fRefIndex = idx; }
 
     /** Output to screen **/
     //void Print() const;
@@ -125,6 +129,8 @@ class BmnGlobalTrack : public BmnTrack{
     vector<Double_t> fPidTof700;
 
     Bool_t fIsPrimary;  // decision after vertex finder task
+    
+    Int_t fRefIndex; //Index of MC track
 
     ClassDef(BmnGlobalTrack, 3);
 };

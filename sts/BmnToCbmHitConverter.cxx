@@ -39,7 +39,7 @@ BmnToCbmHitConverter::~BmnToCbmHitConverter() {
 void BmnToCbmHitConverter::Exec(Option_t* opt) {
     
     fCbmHitsArray->Delete();
-    
+    FairRootManager::Instance()->SetUseFairLinks(kTRUE);
     for (Int_t iHit = 0; iHit < fBmnGemHitsArray->GetEntriesFast(); ++iHit) {
         BmnGemStripHit* bmnHit = (BmnGemStripHit*)fBmnGemHitsArray->At(iHit);
         TVector3 pos;
@@ -101,6 +101,7 @@ void BmnToCbmHitConverter::Exec(Option_t* opt) {
         hit->SetLinks(bmnHit->GetLinks());
         hit->SetRefIndex(bmnHit->GetRefIndex());
     }
+    FairRootManager::Instance()->SetUseFairLinks(kFALSE);
 }
 // -------------------------------------------------------------------------
 

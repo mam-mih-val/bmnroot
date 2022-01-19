@@ -214,20 +214,23 @@ void CbmStsFindTracks::Finish() {
 
   fFinder->Finish();
   
-  cout << endl;
-  cout << "============================================================"
-       << endl;
-  cout << "=====   " << GetName() << ": Run summary " << endl;
-  cout << "===== " << endl;
-  cout << "===== Good events   : " << setw(6) << fNEvents << endl;
-  cout << "===== Failed events : " << setw(6) << fNEventsFailed << endl;
-  cout << "===== Average time  : " << setprecision(4) << setw(8) << right
-       << fTime / Double_t(fNEvents)  << " s" << endl;
-  cout << "===== " << endl;
-  cout << "===== Found tracks per event  : " << fixed << setprecision(0)
-       << fNTracks / Double_t(fNEvents) << endl;
-  cout << "============================================================"
-       << endl;
+  if (fVerbose > 0) {
+    cout << endl;
+    cout << "============================================================"
+      << endl;
+    cout << "=====   " << GetName() << ": Run summary " << endl;
+    cout << "===== " << endl;
+    cout << "===== Good events   : " << setw(6) << fNEvents << endl;
+    cout << "===== Failed events : " << setw(6) << fNEventsFailed << endl;
+    cout << "===== Average time  : " << setprecision(4) << setw(8) << right
+      << fTime / Double_t(fNEvents) << " s" << endl;
+    cout << "===== " << endl;
+    cout << "===== Found tracks per event  : " << fixed << setprecision(0)
+      << fNTracks / Double_t(fNEvents) << endl;
+    cout << "============================================================"
+      << endl;
+  }
+  printf("Work time of CbmStsFindTracks: %4.2f sec.\n", fTime);
 
 }
 // -------------------------------------------------------------------------

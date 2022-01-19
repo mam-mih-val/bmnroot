@@ -1,4 +1,7 @@
 #include "BmnMatchRecoToMC.h"
+#include <TStopwatch.h>
+
+static Double_t workTime = 0.0;
 
 BmnMatchRecoToMC::BmnMatchRecoToMC() :
     FairTask(),
@@ -22,12 +25,18 @@ InitStatus BmnMatchRecoToMC::Init() {
 
 void BmnMatchRecoToMC::Exec(Option_t* opt) {
 
+    TStopwatch sw;
+    sw.Start();
+    
     if (fGlobalTrackMatches) fGlobalTrackMatches->Delete();
     MatchGlobalTracks();
+
+    sw.Stop();
+    workTime += sw.RealTime();
 }
 
 void BmnMatchRecoToMC::Finish() {
-
+    printf("Work time of BmnMatchRecoToMC: %4.2f sec.\n", workTime);
 }
 
 void BmnMatchRecoToMC::ReadAndCreateDataBranches() {

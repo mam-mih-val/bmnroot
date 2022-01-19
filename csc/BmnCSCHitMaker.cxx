@@ -7,8 +7,9 @@
 
 #include "BmnEventHeader.h"
 #include "FairRunAna.h"
+#include <TStopwatch.h>
 
-static Float_t workTime = 0.0;
+static Double_t workTime = 0.0;
 
 BmnCSCHitMaker::BmnCSCHitMaker()
     : fHitMatching(kTRUE) {
@@ -136,6 +137,10 @@ InitStatus BmnCSCHitMaker::Init() {
 }
 
 void BmnCSCHitMaker::Exec(Option_t* opt) {
+
+    TStopwatch sw;
+    sw.Start();
+    
     if (!IsActive())
         return;
 
@@ -146,7 +151,6 @@ void BmnCSCHitMaker::Exec(Option_t* opt) {
 
 
     if (fVerbose > 1) cout << "=================== BmnCSCHitMaker::Exec() started ====================" << endl;
-    clock_t tStart = clock();
 
     fField = FairRunAna::Instance()->GetField();
 
@@ -155,8 +159,9 @@ void BmnCSCHitMaker::Exec(Option_t* opt) {
     ProcessDigits();
 
     if (fVerbose > 1) cout << "=================== BmnCSCHitMaker::Exec() finished ===================" << endl;
-    clock_t tFinish = clock();
-    workTime += ((Float_t)(tFinish - tStart)) / CLOCKS_PER_SEC;
+
+    sw.Stop();
+    workTime += sw.RealTime();
 }
 
 void BmnCSCHitMaker::ProcessDigits() {
@@ -325,7 +330,7 @@ void BmnCSCHitMaker::Finish() {
         TransfSet = nullptr;
     }
 
-    if (fVerbose > 0) cout << "Work time of the CSC hit maker: " << workTime << endl;
+    printf("Work time of BmnCSCHitMaker: %4.2f sec.\n", workTime);
 }
 
 ClassImp(BmnCSCHitMaker)

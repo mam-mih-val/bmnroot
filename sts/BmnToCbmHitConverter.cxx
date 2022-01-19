@@ -1,6 +1,8 @@
 
 #include "BmnToCbmHitConverter.h"
+#include <TStopwatch.h>
 
+static Double_t workTime = 0.0;
 
 // -----   Default constructor   ------------------------------------------
 BmnToCbmHitConverter::BmnToCbmHitConverter()
@@ -37,6 +39,12 @@ BmnToCbmHitConverter::~BmnToCbmHitConverter() {
 
 // -----   Public method Exec   --------------------------------------------
 void BmnToCbmHitConverter::Exec(Option_t* opt) {
+
+    TStopwatch sw;
+    sw.Start();
+
+    if (!IsActive())
+        return;
     
     fCbmHitsArray->Delete();
     FairRootManager::Instance()->SetUseFairLinks(kTRUE);
@@ -102,6 +110,9 @@ void BmnToCbmHitConverter::Exec(Option_t* opt) {
         hit->SetRefIndex(bmnHit->GetRefIndex());
     }
     FairRootManager::Instance()->SetUseFairLinks(kFALSE);
+
+    sw.Stop();
+    workTime += sw.RealTime();
 }
 // -------------------------------------------------------------------------
 
@@ -113,6 +124,16 @@ InitStatus BmnToCbmHitConverter::Init() {
     if (!ioman) Fatal("Init", "No FairRootManager");
     fBmnGemHitsArray = (TClonesArray*)ioman->GetObject(fBmnGemHitsBranchName);
     fBmnSilHitsArray = (TClonesArray*)ioman->GetObject(fBmnSilHitsBranchName);
+    if (!fBmnGemHitsArray) {
+        cout << "BmnToCbmHitConverter::Init(): branch " << fBmnGemHitsBranchName << " not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
+    if (!fBmnSilHitsArray) {
+        cout << "BmnToCbmHitConverter::Init(): branch " << fBmnSilHitsBranchName << " not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
 
     // Register output array
     fCbmHitsArray = new TClonesArray("CbmStsHit");
@@ -130,6 +151,7 @@ InitStatus BmnToCbmHitConverter::Init() {
 
 
 void BmnToCbmHitConverter::Finish() {
+    printf("Work time of BmnToCbmHitConverter: %4.2f sec.\n", workTime);
 }
 
 ClassImp(BmnToCbmHitConverter)

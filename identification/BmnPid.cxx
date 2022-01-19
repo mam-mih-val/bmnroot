@@ -3,6 +3,9 @@
 #include "TGraph.h"
 #include "TCanvas.h"
 #include "TFitResult.h"
+#include <TStopwatch.h>
+
+static Double_t workTime = 0.0;
 
 using namespace std;
 using namespace TMath;
@@ -47,6 +50,10 @@ InitStatus BmnPid::Init(){
 }
 
 void BmnPid::Exec(Option_t* opt) {
+
+    TStopwatch sw;
+    sw.Start();
+    
     if (!IsActive())
         return;
 
@@ -55,6 +62,9 @@ void BmnPid::Exec(Option_t* opt) {
 
     SetVector();
     if (fVerbose > 1) cout << "\n======================== PID exec finished ======================" << endl;
+
+    sw.Stop();
+    workTime += sw.RealTime();
 }
 
 void BmnPid::SetVector(){
@@ -128,5 +138,6 @@ Double_t BmnPid::GetSum(const vector<Double_t>& vec){
 }
 
 void BmnPid::Finish() {
+    printf("Work time of BmnPid: %4.2f sec.\n", workTime);
 }
 

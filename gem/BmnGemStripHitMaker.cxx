@@ -13,7 +13,9 @@
 #include "FairRunAna.h"
 #include "UniDbDetectorParameter.h"
 
-static Float_t workTime = 0.0;
+#include <TStopwatch.h>
+
+static Double_t workTime = 0.0;
 
 BmnGemStripHitMaker::BmnGemStripHitMaker()
     : fHitMatching(kTRUE) {
@@ -220,6 +222,9 @@ InitStatus BmnGemStripHitMaker::Init() {
 
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
 
+    TStopwatch sw;
+    sw.Start();
+    
     if (!IsActive())
         return;
 
@@ -228,7 +233,6 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
     fBmnGemLowerClustersArray->Delete();
 
     if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Exec() started ===============" << endl;
-    clock_t tStart = clock();
 
     fField = FairRunAna::Instance()->GetField();
 
@@ -237,8 +241,9 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
     ProcessDigits();
 
     if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Exec() finished ==============" << endl;
-    clock_t tFinish = clock();
-    workTime += ((Float_t)(tFinish - tStart)) / CLOCKS_PER_SEC;
+
+    sw.Stop();
+    workTime += sw.RealTime();
 }
 
 void BmnGemStripHitMaker::ProcessDigits() {
@@ -426,7 +431,7 @@ void BmnGemStripHitMaker::Finish() {
         TransfSet = nullptr;
     }
 
-    cout << "Work time of the GEM hit maker: " << workTime << endl;
+    printf("Work time of BmnGemStripHitMaker: %4.2f sec.\n", workTime);
 }
 
 ClassImp(BmnGemStripHitMaker)

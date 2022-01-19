@@ -6,7 +6,9 @@
 #include "TSystem.h"
 #include "UniDbDetectorParameter.h"
 
-static Float_t workTime = 0.0;
+#include <TStopwatch.h>
+
+static Double_t workTime = 0.0;
 
 BmnSiliconHitMaker::BmnSiliconHitMaker()
     : fHitMatching(kTRUE) {
@@ -179,6 +181,9 @@ InitStatus BmnSiliconHitMaker::Init() {
 
 void BmnSiliconHitMaker::Exec(Option_t* opt) {
 
+    TStopwatch sw;
+    sw.Start();
+    
     if (!IsActive())
         return;
 
@@ -186,16 +191,15 @@ void BmnSiliconHitMaker::Exec(Option_t* opt) {
     fBmnSiliconUpperClustersArray->Delete();
     fBmnSiliconLowerClustersArray->Delete();
 
-    clock_t tStart = clock();
-
     if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Exec() started ================" << endl;
     if (fVerbose > 1) cout << " BmnSiliconHitMaker::Exec(), Number of BmnSiliconDigits = " << fBmnSiliconDigitsArray->GetEntriesFast() << "\n";
 
     ProcessDigits();
 
     if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Exec() finished ===============" << endl;
-    clock_t tFinish = clock();
-    workTime += ((Float_t)(tFinish - tStart)) / CLOCKS_PER_SEC;
+
+    sw.Stop();
+    workTime += sw.RealTime();
 }
 
 void BmnSiliconHitMaker::ProcessDigits() {
@@ -361,7 +365,7 @@ void BmnSiliconHitMaker::ProcessDigits() {
 }
 
 void BmnSiliconHitMaker::Finish() {
-    if (fVerbose > 0) cout << "Work time of the Silicon hit maker: " << workTime << endl;
+    printf("Work time of BmnSiliconHitMaker: %4.2f sec.\n", workTime);
 }
 
 ClassImp(BmnSiliconHitMaker)

@@ -17,6 +17,7 @@
 #include "CbmMCTrack.h"
 #include "BmnTofHit.h"
 #include "BmnTOFPoint.h"
+#include <TStopwatch.h>
 
 //#include "BmnTofGeoUtils.h"
 
@@ -28,7 +29,7 @@
 
 using namespace std;
 
-static Float_t workTime = 0.0;
+static Double_t workTime = 0.0;
 
 ClassImp(BmnTofHitProducer)
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -243,6 +244,9 @@ Bool_t BmnTofHitProducer::DoubleHitExist(Double_t val) // val - distance to the 
 //--------------------------------------------------------------------------------------------------------------------------------------
 void BmnTofHitProducer::Exec(Option_t* opt) 
 {
+	TStopwatch sw;
+	sw.Start();
+	
     if (!IsActive())
         return;
     
@@ -250,7 +254,7 @@ void BmnTofHitProducer::Exec(Option_t* opt)
     18.2,19.2,20.2,7.1,115.2,113.1,117.1,35.1,9.1,37.1,11.1,39.1,13.1,34.1,8.1,36.1,10.1,38.1,12.1,21.2,
     23.2,25.2,22.2,24.2,26.2,107.2,108.2,109.2,110.2,111.2,112.2,114.1,116.2,118.1,14.1,40.1,119.2,120.2,
     121.2,122.2,123.2,124.2 };
-    clock_t tStart = clock();
+    
     if (fVerbose > 1) cout << endl << "======================== TOF700 exec started ====================" << endl;
 	static const TVector3 XYZ_err(fErrX, fErrY, 0.); 
 
@@ -555,9 +559,9 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 	    if (fUseMCData) MergeHitsOnStrip(); // save only the fastest hit in the strip
 
 	int nFinally = CompressHits(); // remove blank slotes
-        
-        clock_t tFinish = clock();
-        workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
+
+	sw.Stop();
+	workTime += sw.RealTime();
 
         if (fVerbose > 1) cout<<"BmnTof700HitProducer: single hits= "<<nSingleHits<<", double hits= "<<nDoubleHits<<", final hits= "<<nFinally<<endl;
         if (fVerbose == 1) cout << "BmnTof700HitProducer: " << nFinally << " hits" << endl;
@@ -575,8 +579,8 @@ void BmnTofHitProducer::Finish()
 		file.Close();
 		gFile = ptr;
 	}
-        
-    if (fVerbose > 0) cout << "Work time of the TOF-700 hit finder: " << workTime << endl;
+
+	printf("Work time of BmnTofHitProducer: %4.2f sec.\n", workTime);
 }
 //------------------------------------------------------------------------------------------------------------------------
 Int_t 	BmnTofHitProducer::MergeHitsOnStripNew(void)

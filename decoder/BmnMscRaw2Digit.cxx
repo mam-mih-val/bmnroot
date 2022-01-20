@@ -167,6 +167,8 @@ void BmnMscRaw2Digit::FillRunHeader(DigiRunHeader *rh) {
 
 BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnSpillHeader *sh, UInt_t &nPedEvBySpill) {
     sh->Clear();
+    if (fRawSpillTree->GetEntriesFast() <= iSpill)
+        return kBMNERROR;
     BmnTrigInfo *ti = hdr->GetTrigInfo();
     //    if (msc->GetEntriesFast() == 0)
     //        fTempTI = BmnTrigInfo(hdr->GetTrigInfo());

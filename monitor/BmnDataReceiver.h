@@ -17,6 +17,8 @@
 #include <deque>
 #include <TNamed.h>
 
+#include <math/BmnMath.h>
+
 #define PNP_DISCOVER_PORT  33304
 #define PNP_DISCOVER_IP_ADDR "239.192.1.2"
 #define INPUT_IFACE "eno1"
@@ -25,8 +27,6 @@
 #define MAX_PORT_LEN 7
 #define MSG_TIMEOUT       400000
 #define CONN_TIMEOUT     3000000
-#define DBG(a) printf("\e[1mTrace %s: %s\e[0m (%s:%d)\n", __func__, a, __FILE__, __LINE__);
-#define DBGERR(a) printf("\e[1m!!! %s error in %s: %s\e[0m (%s:%d)\n", a, __func__, strerror(errno), __FILE__, __LINE__);
 
 using namespace std;
 

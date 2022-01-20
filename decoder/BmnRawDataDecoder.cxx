@@ -161,8 +161,8 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
             //            printf("ev length %d\n", fDat);
             //read array of current event data and process them
             if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) continue;
-            //            printf(ANSI_COLOR_BLUE "EOS iEv = %u lastEv  = %u\n" ANSI_COLOR_RESET,
-            //                    data[0], fEventId);
+//                        printf(ANSI_COLOR_BLUE "EOS iEv = %u lastEv  = %u\n" ANSI_COLOR_RESET,
+//                                data[0], fEventId);
             ProcessEvent(data, fDat);
             if (msc->GetEntriesFast() > 0)
                 fRawTreeSpills->Fill();
@@ -843,7 +843,7 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
                 UInt_t time = ((d[idx] & 0x7FFFF) << 2) | (d[idx] >> 24) & 0x3; // in 25 ps
                 //               printf("TDC time %d channel %d\n", time, channel);
                 new((*tqdc_tdc)[tqdc_tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == TDC_LEADING), channel, 0, time, tdcTimestamp);
-                printf("tqdc tdc %08X : %d channel %d\n", serial, slot, channel);
+//                printf("tqdc tdc %08X : %d channel %d\n", serial, slot, channel);
             } else if ((type == 4) && (mode != 0)) { // Trig | ADC Timestamp
                 channel = (d[idx] >> 19) & 0x1F;
                 if (d[idx] & BIT(16)) { // ADC TS
@@ -869,7 +869,7 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
                 inADC = kFALSE;
                 iSampl = 0;
                 --idx;
-                printf("tqdc adc %08X : %d channel %d\n", serial, slot, channel);
+//                printf("tqdc adc %08X : %d channel %d\n", serial, slot, channel);
             }
         }
         type = d[++idx] >> 28;

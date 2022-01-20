@@ -95,4 +95,16 @@ bool BmnFunctionSet::isSimulationFile(TString fileName)
     return isSim;
 }
 
+// check whether path is a directory
+bool BmnFunctionSet::isDirectory(TString path)
+{
+    FileStat_t file_stat;
+    gSystem->GetPathInfo(path.Data(), file_stat);
+    if (R_ISDIR(file_stat.fMode))
+        return true;
+    else
+        return false;
+}
+
+
 ClassImp(BmnFunctionSet);

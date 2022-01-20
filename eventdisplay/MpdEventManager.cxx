@@ -7,7 +7,6 @@
 #include "TDOMParser.h"
 #include "TXMLEngine.h"
 #include "TXMLAttr.h"
-#include "TObjString.h"
 #include "TXMLNode.h"
 
 #include "TDatabasePDG.h"
@@ -293,9 +292,9 @@ void MpdEventManager::InitColorStructure()
             {
                 gVisualizationColoring = selectedColoring;
 
-                string cmap = data["coloring"][type]["cmap"];
+                string scheme = data["coloring"][type]["scheme"];
 
-                for (auto &detector : data["coloring"][type][cmap])
+                for (auto &detector : data["coloring"][type][scheme])
                 {
                     selected_coloring = new structSelectedColoring(((string) detector["name"]),
                                                                    ((string) detector["color"]),

@@ -1,0 +1,44 @@
+[VERSION]
+id = 1.0
+
+[COMMENT]
+str = void
+
+[CHECKER]
+isWriteWfm = 0     # write waveforms for debug
+
+[PARAMETERS]
+gateBegin = 4
+gateEnd = 35
+threshold = 0.1    # absolute value. To be compared to calibrated value of ScWallDigi.fSignal 
+signalType = 0     # (0 - max, 1 - integral)
+doInvert = 1       # invert signal
+
+[FITPARAMETERS]
+# fit parameters for Prony fit
+isfit = 1          # apply fit
+harmonic = 0.30
+harmonic = 0.55
+
+[CALIBRATION]
+# cosmic calibration of channel. To be multiplied by signal
+#                 ModId      SecId      Calibration      CalibError
+#=========================================================================
+calib	=           1   1           1           			0
+calib	=           1   2           1           			0
+calib	=           1   3           1           			0
+calib	=           1   4           1           			0
+calib	=           1   5           1           			0
+calib	=           1   6           1           			0
+calib	=           1   7           1           			0
+
+calib	=           5   1           1           			0
+calib	=           5   2           1           			0
+calib	=           5   3           1           			0
+calib	=           5   4           1           			0
+calib	=           5   5           1           			0
+calib	=           5   6           1           			0
+calib	=           5   7           1           			0
+calib	=           5   8           1           			0
+calib	=           5   9           1           			0
+calib	=           5   10          1           			0

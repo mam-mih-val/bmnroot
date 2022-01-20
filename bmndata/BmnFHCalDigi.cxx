@@ -2,13 +2,13 @@
    SPDX-License-Identifier: GPL-3.0-only
    Authors: Nikolay Karpushkin [committer] */
 
-/** @file BmnScWallDigi.cxx
+/** @file BmnFHCalDigi.cxx
  ** @author Nikolay Karpushkin <karpushkin@inr.ru>
- ** @date 06.01.2022
+ ** @date 16.01.2022
  **
- ** Code for Data class for BmnScWall digital signal processing
+ ** Code for Data class for BmnFHCal digital signal processing
  **/
 
-#include "BmnScWallDigi.h"
+#include "BmnFHCalDigi.h"
 
-ClassImp(BmnScWallDigi)
+ClassImp(BmnFHCalDigi)

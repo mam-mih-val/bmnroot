@@ -1,5 +1,5 @@
-#ifndef BMNSCWALLRAW2DIGIT_H
-#define	BMNSCWALLRAW2DIGIT_H
+#ifndef BmnFHCalRaw2Digit_H
+#define	BmnFHCalRaw2Digit_H
 
 #include <iostream>
 #include <numeric>
@@ -11,7 +11,7 @@
 #include "BmnSyncDigit.h"
 
 #include "Riostream.h"
-#include "BmnScWallDigi.h"
+#include "BmnFHCalDigi.h"
 #include <cstdlib>
 #include <UniDbRun.h>
 
@@ -20,24 +20,25 @@
 #include "PronyFitter.h"
 
 
-class BmnScWallRaw2Digit{
+class BmnFHCalRaw2Digit{
 
 public:
-    BmnScWallRaw2Digit(int period, int run, TString mappingFile, TString calibrationFile = "");
-    BmnScWallRaw2Digit();
+    BmnFHCalRaw2Digit(Int_t period, Int_t run, TString mappingFile, TString calibrationFile = "");
+    BmnFHCalRaw2Digit();
 
-    ~BmnScWallRaw2Digit();
+    ~BmnFHCalRaw2Digit();
 
     void ParseConfig(TString mappingFile);
     void ParseCalibration(TString calibrationFile);
-    void fillEvent(TClonesArray *data, TClonesArray *ScWalldigit);
+    void fillEvent(TClonesArray *data, TClonesArray *FHCaldigit);
     void print();
 
-    std::vector<unsigned int> GetScWallSerials() {return fScWallSerials;}
+    std::vector<unsigned int> GetFHCalSerials() {return fFHCalSerials;}
     std::set<int> GetUniqueXpositions() {return fUniqueX;}
     std::set<int> GetUniqueYpositions() {return fUniqueY;}
-    std::set<int> GetUniqueSizes() {return fUniqueSize;}
+    std::set<int> GetUniqueZpositions() {return fUniqueZ;}
     int GetFlatChannelFromAdcChannel(unsigned int adc_board_id, unsigned int adc_ch);
+    int GetFlatCaloChannel(int mod_id, int sec_id);
  
 private:
     int fPeriodId; 
@@ -45,10 +46,10 @@ private:
     TString fmappingFileName;
     TString fcalibrationFileName;
 
-    std::vector<unsigned int> fScWallSerials;
+    std::vector<unsigned int> fFHCalSerials;
     std::set<int> fUniqueX;
     std::set<int> fUniqueY;
-    std::set<int> fUniqueSize;
+    std::set<int> fUniqueZ;
     std::vector<unsigned int> fChannelVect; // flat_channel to unique_address
 
     struct digiPars {
@@ -62,16 +63,14 @@ private:
       bool isfit;
       std::vector<std::complex<float>> harmonics;
     } fdigiPars;
-    std::vector<std::pair<float,float>> fCalibVect; // cell_id to pair<calib, calibError>
+    std::vector<std::pair<float,float>> fCalibVect; // flat_calo_channel to pair<calib, calibError>
 
     void MeanRMScalc(std::vector<float> wfm, float* Mean, float* RMS, int begin, int end, int step = 1);
-    void ProcessWfm(std::vector<float> wfm, BmnScWallDigi* digi);
+    void ProcessWfm(std::vector<float> wfm, BmnFHCalDigi* digi);
 
 
-
-
-    ClassDef(BmnScWallRaw2Digit, 1);
+    ClassDef(BmnFHCalRaw2Digit, 1);
 };
-#endif	/* BMNSCWALLRAW2DIGIT_H */
+#endif	/* BmnFHCalRaw2Digit_H */
 
 

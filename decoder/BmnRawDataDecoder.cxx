@@ -47,6 +47,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     tof700 = NULL;
     zdc = NULL;
     scwall = NULL;
+    fhcal = NULL;
     ecal = NULL;
     gem = NULL;
     silicon = NULL;
@@ -80,6 +81,8 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fZDCMapFileName = "";
     fScWallCalibrationFileName = "";
     fScWallMapFileName = "";
+    fFHCalCalibrationFileName = "";
+    fFHCalMapFileName = "";
     fECALCalibrationFileName = "";
     fECALMapFileName = "";
     fLANDMapFileName = "";
@@ -99,6 +102,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fTof700Mapper = NULL;
     fZDCMapper = NULL;
     fScWallMapper = NULL;
+    fFHCalMapper = NULL;
     fECALMapper = NULL;
     fLANDMapper = NULL;
     fDataQueue = NULL;
@@ -119,6 +123,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fNECALSerials = 0;
     fNZDCSerials = 0;
     fNScWallSerials = 0;
+    fNFHCalSerials = 0;
     //InitMaps();
 }
 
@@ -406,6 +411,10 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                 //                printf("TQDC-E serial 0x%08X  words %u\n", serial, payload);
                 FillTQDC_Eth(&d[idx], serial, payload);
                 break;
+            case kTDC72VXS:
+                //                printf("TDC72VXS serial 0x%08X  words %u\n", serial, payload);
+                FillTDC72VXS(&d[idx], serial, payload);
+                break;
             case kADC64VE_XGE:
             case kADC64VE:
             {
@@ -424,11 +433,12 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             }
             case kADC64WR:
             {
-                auto isZDC = ( std::find(fZDCSerials.begin(), fZDCSerials.end(), serial) != fZDCSerials.end() );
-                auto isECAL = ( std::find(fECALSerials.begin(), fECALSerials.end(), serial) != fECALSerials.end() );
-                auto isSCWALL = ( std::find(fScWallSerials.begin(), fScWallSerials.end(), serial) != fScWallSerials.end() );
+                auto isZDC = (std::find(fZDCSerials.begin(), fZDCSerials.end(), serial) != fZDCSerials.end());
+                auto isECAL = (std::find(fECALSerials.begin(), fECALSerials.end(), serial) != fECALSerials.end());
+                auto isSCWALL = (std::find(fScWallSerials.begin(), fScWallSerials.end(), serial) != fScWallSerials.end());
+                auto isFHCAL = (std::find(fFHCalSerials.begin(), fFHCalSerials.end(), serial) != fFHCalSerials.end());
 
-                if (isZDC || isECAL || isSCWALL)
+                if (isZDC || isECAL || isSCWALL || isFHCAL)
                     Process_ADC64WR(&d[idx], payload, serial, adc);
 
                 break;
@@ -482,14 +492,6 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
     }
 
     UInt_t i = 0;
-    //    while (i < len) {
-    //        UInt_t subType = d[i] & 0x3;
-    ////        printf("serial = 0x%X   subType = %d  nSmpl = %d i  =%d\n", serial, subType, nSmpl, i);
-    ////        printf(" other word[0] part = %08X\n", (d[i] & (((1UL << 32) - 1) - 0x3)));
-    ////        printf(" TAI      s = %d  ns = %lu TAI flag = %d\n", d[i + 1], (d[i + 2] & (((1UL << 32) - 1) - 0x3)), (d[i + 2] & 0x3));
-    ////        printf(" readout channels  (0-31) = %08X  (32-63) = %08X\n", d[i + 3], d[i + 4]);
-    //        if (subType == 0) {
-    //            i += 5; //skip unused words
     UInt_t iCh = 0;
     while (iCh < kNCH - 1 && i < len) {
         iCh = d[i] >> 24;
@@ -497,13 +499,10 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
             printf("serial = 0x%X   iCh = %d  nSmpl = %d\n", serial, iCh, nSmpl);
             break;
         }
-        //                UInt_t subType = d[i];
-        //                printf("            subType word = %d  nSmpl = %d\n", subType, nSmpl);
-        //                printf("          s = %d  ns = %lu TAI flag = %d\n", d[i + 1], (d[i + 2] & (((1UL << 32) - 1) - 0x3)), (d[i + 2] & 0x3));
         i += 3; // skip two timestamp words (they contain TAI timestsamps)
         TClonesArray& ar_adc = *arr;
 
-        if (fRunId > GetBoundaryRun(kNSTAMPS)) {
+        if (fRunId > GetBoundaryRun(kNSTAMPS) || fPeriodId == 8) {
             TakeDataWordShort(kNSTAMPS, d, i, valI);
             new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, kNSTAMPS, valI);
         } else {
@@ -984,11 +983,44 @@ BmnStatus BmnRawDataDecoder::FillTQDC_Eth(UInt_t *d, UInt_t serial, UInt_t &len)
                 FillBlockADC(d + index, serial, th.Chan, blockLen, tqdc_adc);
                 break;
             default:
-                //                printf("Wrong TQDC data type %u !\n", th.DataType);
+                printf("Wrong TQDC data type %u !\n", th.DataType);
                 break;
         }
         index += blockLen;
 
+    }
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::FillTDC72VXS(UInt_t *d, UInt_t serial, UInt_t &len) {
+    UInt_t index = 0;
+    MStreamHeader ms = {};
+    memcpy(&ms, d, sizeof (ms));
+    index += sizeof (ms) / kNBYTESINWORD;
+    //    ms.Print();
+    MStreamSubtype0Header ms0 = {};
+    memcpy(&ms0, d + index, sizeof (ms0));
+    index += sizeof (ms0) / kNBYTESINWORD;
+    //    printf("len %u msHeader len %u\n", len, ms.Len / kNBYTESINWORD);
+    //    printf("taiFlags %u TAI %s\n",
+    //            ms0.TaiFlags, TTimeStamp(time_t(ms0.TaiSec), ms0.TaiNSec).AsString());
+    while (index < ms.Len / kNBYTESINWORD) {
+        uint8_t dtype = d[index] >> 28;
+        bool overflow = d[index] & BIT(16);
+        uint16_t blockLen = d[index] & (BIT(16) - 1);
+        if (!overflow)
+            switch (dtype) {
+                case 0: // TDC
+                    FillBlockTDC(d + index, serial, blockLen, tdc);
+                    break;
+                case 0xF: // Stat
+
+                    break;
+                default:
+                    printf("Wrong VXS data type %u !\n", dtype);
+                    break;
+            }
+        index += blockLen;
     }
     return kBMNSUCCESS;
 }
@@ -1480,6 +1512,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             if (fTof700Mapper && fT0Time != 0. && fT0Width != -1.) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
             if (fZDCMapper) fZDCMapper->fillEvent(adc, zdc);
             if (fScWallMapper) fScWallMapper->fillEvent(adc, scwall);
+            if (fFHCalMapper) fFHCalMapper->fillEvent(adc, fhcal);
             if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
             if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
         }
@@ -1536,7 +1569,8 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
 
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
-    if (fDetectorSetup[0]) {
+    // check if detector is in setup and is active
+    if (fDetectorSetup.count(kBC) > 0 && fDetectorSetup.at(kBC) == 1) {
         fTrigMapper = new BmnTrigRaw2Digit(fTrigPlaceMapFileName, fTrigChannelMapFileName, fDigiTree);
         if (fT0Map == NULL) {
             BmnTrigChannelData tm = fTrigMapper->GetT0Map();
@@ -1551,25 +1585,27 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         fTrigMapper->SetSetup(fBmnSetup);
     }
 
-    if (fDetectorSetup[1]) {
+    if (fDetectorSetup.count(kMWPC) > 0 && fDetectorSetup.at(kMWPC) == 1) {
         mwpc = new TClonesArray("BmnMwpcDigit");
         fDigiTree->Branch("MWPC", &mwpc);
         fMwpcMapper = new BmnMwpcRaw2Digit(fMwpcMapFileName);
     }
 
-    if (fDetectorSetup[2]) {
+    if (fDetectorSetup.count(kSILICON) > 0 && fDetectorSetup.at(kSILICON) == 1) {
         silicon = new TClonesArray("BmnSiliconDigit");
         fDigiTree->Branch("SILICON", &silicon);
         fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId, fSiliconSerials, fSiliconMapFileName, fBmnSetup, GetAdcDecoMode());
     }
 
-    if (fDetectorSetup[3] || fDetectorSetup[10] && GetAdcDecoMode() == kBMNADCMK) {
+    bool isGEM = fDetectorSetup.count(kGEM) > 0 && fDetectorSetup.at(kGEM) == 1;
+    bool isCSC = fDetectorSetup.count(kCSC) > 0 && fDetectorSetup.at(kCSC) == 1;
+    if (isGEM || isCSC && GetAdcDecoMode() == kBMNADCMK) {
         gem = new TClonesArray("BmnGemStripDigit");
         fDigiTree->Branch("GEM", &gem);
         fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId, fGemSerials, fGemMapFileName, fBmnSetup, GetAdcDecoMode());
     }
 
-    if (fDetectorSetup[4]) {
+    if (fDetectorSetup.count(kTOF1) > 0 && fDetectorSetup.at(kTOF1) == 1) {
         tof400 = new TClonesArray("BmnTof1Digit");
         fDigiTree->Branch("TOF400", &tof400);
         fTof400Mapper = new BmnTof1Raw2Digit();
@@ -1584,7 +1620,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         }
     }
 
-    if (fDetectorSetup[5]) {
+    if (fDetectorSetup.count(kTOF) > 0 && fDetectorSetup.at(kTOF) == 1) {
         if (fTOF700ReferenceRun <= 0) {
             UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("TOF2", "slewing_file_id", fPeriodId, fRunId); //(detector_name, parameter_name, period_number, run_number)
             if (pDetectorParameter != NULL) {
@@ -1610,27 +1646,27 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         fTof700Mapper->BookSlewingResults();
     }
 
-    if (fDetectorSetup[6]) {
+    if (fDetectorSetup.count(kDCH) > 0 && fDetectorSetup.at(kDCH) == 1) {
         dch = new TClonesArray("BmnDchDigit");
         fDigiTree->Branch("DCH", &dch);
         fDchMapper = new BmnDchRaw2Digit(fPeriodId, fRunId);
     }
 
-    if (fDetectorSetup[7]) {
+    if (fDetectorSetup.count(kZDC) > 0 && fDetectorSetup.at(kZDC) == 1) {
         zdc = new TClonesArray("BmnZDCDigit");
         fDigiTree->Branch("ZdcDigit", &zdc);
         fZDCMapper = new BmnZDCRaw2Digit(fPeriodId, fRunId, fZDCMapFileName, fZDCCalibrationFileName);
         //        fZDCMapper->print();
     }
 
-    if (fDetectorSetup[8]) {
+    if (fDetectorSetup.count(kECAL) > 0 && fDetectorSetup.at(kECAL) == 1) {
         ecal = new TClonesArray("BmnECALDigit");
         fDigiTree->Branch("EcalDigit", &ecal);
         fECALMapper = new BmnECALRaw2Digit(fRunId);
         //        fECALMapper->print();
     }
 
-    if (fDetectorSetup[9]) {
+    if (fDetectorSetup.count(kLAND) > 0 && fDetectorSetup.at(kLAND) == 1) {
         land = new TClonesArray("BmnLANDDigit");
         fDigiTree->Branch("LAND", &land);
         fLANDMapper = new BmnLANDRaw2Digit(fLANDMapFileName,
@@ -1638,8 +1674,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
                 fLANDVScintFileName);
     }
 
-
-    if (fDetectorSetup[11]) {
+    if (fDetectorSetup.count(kSCWALL) > 0 && fDetectorSetup.at(kSCWALL) == 1) {
         printf("scwall in setup \n");
         scwall = new TClonesArray("BmnScWallDigi");
         fDigiTree->Branch("ScWallDigi", &scwall);
@@ -1647,7 +1682,17 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         fScWallMapper->print();
     }
 
-    if (fDetectorSetup[3] && GetAdcDecoMode() == kBMNADCMK && GetPeriodId() > 6 || fDetectorSetup[10]) {
+    if (fDetectorSetup.count(kFHCAL) > 0 && fDetectorSetup.at(kFHCAL) == 1) {
+        printf("fhcal in setup \n");
+        fhcal = new TClonesArray("BmnFHCalDigi");
+        fDigiTree->Branch("FHCalDigi", &fhcal);
+        fFHCalMapper = new BmnFHCalRaw2Digit(fPeriodId, fRunId, fFHCalMapFileName, fFHCalCalibrationFileName);
+                fFHCalMapper->print();
+    }
+
+    //bool isGEM = fDetectorSetup.count(kGEM) > 0 && fDetectorSetup.at(kGEM) == 1;
+    //bool isCSC = fDetectorSetup.count(kCSC) > 0 && fDetectorSetup.at(kCSC) == 1;
+    if (isGEM && GetAdcDecoMode() == kBMNADCMK && GetPeriodId() > 6 || isCSC) {
         csc = new TClonesArray("BmnCSCDigit");
         fDigiTree->Branch("CSC", &csc);
         if (GetAdcDecoMode() == kBMNADCSM)
@@ -1672,6 +1717,7 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
     if (tof700) tof700->Delete();
     if (zdc) zdc->Delete();
     if (scwall) scwall->Delete();
+    if (fhcal) fhcal->Delete();
     if (ecal) ecal->Delete();
     if (land) land->Delete();
     if (fTrigMapper)
@@ -1722,6 +1768,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         if (fTof700Mapper && fT0Time != 0. && fT0Width != -1.) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
         if (fZDCMapper) fZDCMapper->fillEvent(adc, zdc);
         if (fScWallMapper) fScWallMapper->fillEvent(adc, scwall);
+        if (fFHCalMapper) fFHCalMapper->fillEvent(adc, fhcal);
         if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
         if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
     }
@@ -1790,6 +1837,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (fTof700Mapper) delete fTof700Mapper;
     if (fZDCMapper) delete fZDCMapper;
     if (fScWallMapper) delete fScWallMapper;
+    if (fFHCalMapper) delete fFHCalMapper;
     if (fECALMapper) delete fECALMapper;
     if (fLANDMapper) delete fLANDMapper;
     if (fMSCMapper) delete fMSCMapper;
@@ -1814,6 +1862,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (tof700) delete tof700;
     if (zdc) delete zdc;
     if (scwall) delete scwall;
+    if (fhcal) delete fhcal;
     if (ecal) delete ecal;
     if (land) delete land;
 
@@ -2067,6 +2116,13 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
     fScWallSerials = tempScWallMapper->GetScWallSerials();
     fNScWallSerials = fScWallSerials.size();
     delete tempScWallMapper;
+
+
+    BmnFHCalRaw2Digit* tempFHCalMapper = new BmnFHCalRaw2Digit();
+    tempFHCalMapper->ParseConfig(fFHCalMapFileName);
+    fFHCalSerials = tempFHCalMapper->GetFHCalSerials();
+    fNFHCalSerials = fFHCalSerials.size();
+    delete tempFHCalMapper;
 
 
     seials.clear();

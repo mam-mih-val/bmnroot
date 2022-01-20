@@ -1,1 +1,0 @@
-TOF400_StripMap_RUN7.txt

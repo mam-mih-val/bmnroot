@@ -1,222 +1,240 @@
-[VERSION]
-id = 1.0
-
-[COMMENT]
-str = void
-
-[ADCSERIALS]
-# will be sorted
-serial = 0x0aadb6ec
-serial = 0x0aae37f0
-serial = 0x080c33e6
-
-[CONFIGURATION]
-# Zone Z for not connected lines
-# F2 to adc line F0
-# G8 to adc line G0
-#		ADC_serial	ADC_ch	CellId	Zone	x(mm)	y(mm)	size(mm)
-#=======================================================================
-
-config =	0x0aadb6ec	0	0	Z	0	0	0
-config =	0x0aadb6ec	8	42	A	1125	525	150
-config =	0x0aadb6ec	1	43	A	975	525	150
-config =	0x0aadb6ec	9	44	A	825	525	150
-config =	0x0aadb6ec	2	59	A	1275	375	150
-config =	0x0aadb6ec	10	60	A	1125	375	150
-config =	0x0aadb6ec	3	61	A	975	375	150
-config =	0x0aadb6ec	11	62	A	825	375	150
-config =	0x0aadb6ec	4	77	A	1275	225	150
-config =	0x0aadb6ec	12	78	A	1125	225	150
-config =	0x0aadb6ec	5	79	A	975	225	150
-config =	0x0aadb6ec	13	80	A	825	225	150
-config =	0x0aadb6ec	6	95	A	1275	75	150
-config =	0x0aadb6ec	14	96	A	1125	75	150
-config =	0x0aadb6ec	7	97	A	975	75	150
-config =	0x0aadb6ec	15	98	A	825	75	150
-
-config =	0x0aadb6ec	16	0	Z	0	0	0
-config =	0x0aadb6ec	24	45	B	675	525	150
-config =	0x0aadb6ec	17	46	B	525	525	150
-config =	0x0aadb6ec	25	47	B	375	525	150
-config =	0x0aadb6ec	18	48	B	225	525	150
-config =	0x0aadb6ec	26	49	B	75	525	150
-config =	0x0aadb6ec	19	63	B	675	375	150
-config =	0x0aadb6ec	27	64	B	525	375	150
-config =	0x0aadb6ec	20	65	B	375	375	150
-config =	0x0aadb6ec	28	66	B	225	375	150
-config =	0x0aadb6ec	21	67	B	75	375	150
-config =	0x0aadb6ec	29	81	B	675	225	150
-config =	0x0aadb6ec	22	82	B	225	225	150
-config =	0x0aadb6ec	30	83	B	375	225	150
-config =	0x0aadb6ec	23	84	B	225	225	150
-config =	0x0aadb6ec	31	85	B	75	225	150
-
-config =	0x0aadb6ec	32	0	Z	0	0	0
-config =	0x0aadb6ec	40	50	C	-75	525	150
-config =	0x0aadb6ec	33	51	C	-225	525	150
-config =	0x0aadb6ec	41	52	C	-375	525	150
-config =	0x0aadb6ec	34	53	C	-525	525	150
-config =	0x0aadb6ec	42	54	C	-675	525	150
-config =	0x0aadb6ec	35	68	C	-75	375	150
-config =	0x0aadb6ec	43	69	C	-225	375	150
-config =	0x0aadb6ec	36	70	C	-375	375	150
-config =	0x0aadb6ec	44	71	C	-525	375	150
-config =	0x0aadb6ec	37	72	C	-675	375	150
-config =	0x0aadb6ec	45	86	C	-75	225	150
-config =	0x0aadb6ec	38	87	C	-225	225	150
-config =	0x0aadb6ec	46	88	C	-375	225	150
-config =	0x0aadb6ec	39	89	C	-525	225	150
-config =	0x0aadb6ec	47	90	C	-675	225	150
-
-config =	0x0aadb6ec	48	0	Z	0	0	0
-config =	0x0aadb6ec	56	99	E	675	75	150
-config =	0x0aadb6ec	49	100	E	525	75	150
-config =	0x0aadb6ec	57	101	E	375	75	150
-config =	0x0aadb6ec	50	1	E	262.5	112.5	75
-config =	0x0aadb6ec	58	2	E	187.5	112.5	75
-config =	0x0aadb6ec	51	3	E	112.5	112.5	75
-config =	0x0aadb6ec	59	4	E	37.5	112.5	75
-config =	0x0aadb6ec	52	5	E	-37.5	112.5	75
-config =	0x0aadb6ec	60	11	E	262.5	37.5	75
-config =	0x0aadb6ec	53	12	E	187.5	37.5	75
-config =	0x0aadb6ec	61	13	E	112.5	37.5	75
-config =	0x0aadb6ec	54	14	E	37.5	37.5	75
-config =	0x0aadb6ec	62	15	E	-37.5	37.5	75
-config =	0x0aadb6ec	55	0	Z	0	0	0
-config =	0x0aadb6ec	63	0	Z	0	0	0
-
-config =	0x0aae37f0	0	25	G	-37.5	-37.5	75
-config =	0x0aae37f0	8	112	G	675	-75	150
-config =	0x0aae37f0	1	113	G	525	-75	150
-config =	0x0aae37f0	9	114	G	375	-75	150
-config =	0x0aae37f0	2	21	G	262.5	-37.5	75
-config =	0x0aae37f0	10	22	G	187.5	-37.5	75
-config =	0x0aae37f0	3	23	G	112.5	-37.5	75
-config =	0x0aae37f0	11	24	G	37.5	-37.5	75
-config =	0x0aae37f0	4	0	Z	0	0	0
-config =	0x0aae37f0	12	31	G	262.5	-112.5	75
-config =	0x0aae37f0	5	32	G	187.5	-112.5	75
-config =	0x0aae37f0	13	33	G	112.5	-112.5	75
-config =	0x0aae37f0	6	34	G	37.5	-112.5	75
-config =	0x0aae37f0	14	35	G	-37.5	-112.5	75
-config =	0x0aae37f0	7	0	Z	0	0	0
-config =	0x0aae37f0	15	0	Z	0	0	0
-
-config =	0x0aae37f0	16	0	Z	0	0	0
-config =	0x0aae37f0	24	108	I	1275	-75	150
-config =	0x0aae37f0	17	109	I	1125	-75	150
-config =	0x0aae37f0	25	110	I	975	-75	150
-config =	0x0aae37f0	18	111	I	825	-75	150
-config =	0x0aae37f0	26	121	I	1275	-225	150
-config =	0x0aae37f0	19	122	I	1125	-225	150
-config =	0x0aae37f0	27	123	I	975	-225	150
-config =	0x0aae37f0	20	124	I	825	-225	150
-config =	0x0aae37f0	28	139	I	1275	-375	150
-config =	0x0aae37f0	21	140	I	1125	-375	150
-config =	0x0aae37f0	29	141	I	975	-375	150
-config =	0x0aae37f0	22	142	I	825	-375	150
-config =	0x0aae37f0	30	158	I	1125	-525	150
-config =	0x0aae37f0	23	159	I	975	-525	150
-config =	0x0aae37f0	31	160	I	825	-525	150
-
-config =	0x0aae37f0	32	0	Z	0	0	0
-config =	0x0aae37f0	40	125	J	675	-225	150
-config =	0x0aae37f0	33	126	J	525	-225	150
-config =	0x0aae37f0	41	127	J	375	-225	150
-config =	0x0aae37f0	34	128	J	225	-225	150
-config =	0x0aae37f0	42	129	J	75	-225	150
-config =	0x0aae37f0	35	143	J	675	-375	150
-config =	0x0aae37f0	43	144	J	525	-375	150
-config =	0x0aae37f0	36	145	J	375	-375	150
-config =	0x0aae37f0	44	146	J	225	-375	150
-config =	0x0aae37f0	37	147	J	75	-375	150
-config =	0x0aae37f0	45	161	J	675	-525	150
-config =	0x0aae37f0	38	162	J	525	-525	150
-config =	0x0aae37f0	46	163	J	375	-525	150
-config =	0x0aae37f0	39	164	J	225	-525	150
-config =	0x0aae37f0	47	165	J	75	-525	150
-
-config =	0x0aae37f0	48	0	Z	0	0	0
-config =	0x0aae37f0	56	130	K	-75	-225	150
-config =	0x0aae37f0	49	131	K	-225	-225	150
-config =	0x0aae37f0	57	132	K	-375	-225	150
-config =	0x0aae37f0	50	133	K	-525	-225	150
-config =	0x0aae37f0	58	134	K	-675	-225	150
-config =	0x0aae37f0	51	148	K	-75	-375	150
-config =	0x0aae37f0	59	149	K	-225	-375	150
-config =	0x0aae37f0	52	150	K	-375	-375	150
-config =	0x0aae37f0	60	151	K	-525	-375	150
-config =	0x0aae37f0	53	152	K	-675	-375	150
-config =	0x0aae37f0	61	166	K	-75	-525	150
-config =	0x0aae37f0	54	167	K	-225	-525	150
-config =	0x0aae37f0	62	168	K	-375	-525	150
-config =	0x0aae37f0	55	169	K	-525	-525	150
-config =	0x0aae37f0	63	170	K	-675	-525	150
-
-config =	0x080c33e6	0	0	Z	0	0	0
-config =	0x080c33e6	8	55	D	-825	525	150
-config =	0x080c33e6	1	56	D	-975	525	150
-config =	0x080c33e6	9	57	D	-1125	525	150
-config =	0x080c33e6	2	73	D	-825	375	150
-config =	0x080c33e6	10	74	D	-975	375	150
-config =	0x080c33e6	3	75	D	-1125	375	150
-config =	0x080c33e6	11	76	D	-1275	375	150
-config =	0x080c33e6	4	91	D	-825	225	150
-config =	0x080c33e6	12	92	D	-975	225	150
-config =	0x080c33e6	5	93	D	-1125	225	150
-config =	0x080c33e6	13	94	D	-1275	225	150
-config =	0x080c33e6	6	104	D	-825	75	150
-config =	0x080c33e6	14	105	D	-975	75	150
-config =	0x080c33e6	7	106	D	-1125	75	150
-config =	0x080c33e6	15	107	D	-1275	75	150
-
-config =	0x080c33e6	16	7	F	-187.5	112.5	75
-config =	0x080c33e6	24	6	F	-112.5	112.5	75
-config =	0x080c33e6	17	0	Z	0	0	0
-config =	0x080c33e6	25	8	F	-262.5	112.5	75
-config =	0x080c33e6	18	9	F	-337.5	112.5	75
-config =	0x080c33e6	26	10	F	-412.5	112.5	75
-config =	0x080c33e6	19	102	F	-525	75	150
-config =	0x080c33e6	27	103	F	-675	75	150
-config =	0x080c33e6	20	16	F	-112.5	37.5	75
-config =	0x080c33e6	28	17	F	-187.5	37.5	75
-config =	0x080c33e6	21	18	F	-262.5	37.5	75
-config =	0x080c33e6	29	19	F	-337.5	37.5	75
-config =	0x080c33e6	22	20	F	-412.5	37.5	75
-config =	0x080c33e6	30	0	Z	0	0	0
-config =	0x080c33e6	23	0	Z	0	0	0
-config =	0x080c33e6	31	0	Z	0	0	0
-
-config =	0x080c33e6	32	0	Z	0	0	0
-config =	0x080c33e6	40	26	H	-112.5	-37.5	75
-config =	0x080c33e6	33	27	H	-187.5	-37.5	75
-config =	0x080c33e6	41	28	H	-262.5	-37.5	75
-config =	0x080c33e6	34	29	H	-337.5	-37.5	75
-config =	0x080c33e6	42	30	H	-412.5	-37.5	75
-config =	0x080c33e6	35	115	H	-525	-75	150
-config =	0x080c33e6	43	116	H	-675	-75	150
-config =	0x080c33e6	36	36	H	-112.5	-112.5	75
-config =	0x080c33e6	44	37	H	-187.5	-112.5	75
-config =	0x080c33e6	37	38	H	-262.5	-112.5	75
-config =	0x080c33e6	45	39	H	-337.5	-112.5	75
-config =	0x080c33e6	38	40	H	-412.5	-112.5	75
-config =	0x080c33e6	46	0	Z	0	0	0
-config =	0x080c33e6	39	0	Z	0	0	0
-config =	0x080c33e6	47	0	Z	0	0	0
-
-config =	0x080c33e6	48	0	Z	0	0	0
-config =	0x080c33e6	56	117	L	-825	-75	150
-config =	0x080c33e6	49	118	L	-975	-75	150
-config =	0x080c33e6	57	119	L	-1125	-75	150
-config =	0x080c33e6	50	120	L	-1275	-75	150
-config =	0x080c33e6	58	135	L	-825	-225	150
-config =	0x080c33e6	51	136	L	-975	-225	150
-config =	0x080c33e6	59	137	L	-1125	-225	150
-config =	0x080c33e6	52	138	L	-1275	-225	150
-config =	0x080c33e6	60	153	L	-825	-375	150
-config =	0x080c33e6	53	154	L	-975	-375	150
-config =	0x080c33e6	61	155	L	-1125	-375	150
-config =	0x080c33e6	54	156	L	-1275	-375	150
-config =	0x080c33e6	62	171	L	-825	-525	150
-config =	0x080c33e6	55	172	L	-975	-525	150
-config =	0x080c33e6	63	173	L	-1125	-525	150
+[VERSION]								
+id = 1.0						
+								
+[COMMENT]								
+str = void						
+								
+[ADCSERIALS]								
+# will be sorted					
+serial = 0x0aadb6ec						
+serial = 0x0aae37f0						
+serial = 0x080c33e6						
+serial = 0x0611d032						
+								
+[CONFIGURATION]								
+# Zone Z for not connected lines		
+# F2 to adc line F0			
+# G8 to adc line G0			
+#		ADC_serial	ADC_ch	CellId	Zone	x(mm)	y(mm)	size(mm)	
+#===============================================================================								
+								
+config	=	0x0aadb6ec	0	0	Z	0	0	0
+config	=	0x0aadb6ec	8	42	A	1125	525	150
+config	=	0x0aadb6ec	1	43	A	975	525	150
+config	=	0x0aadb6ec	9	44	A	825	525	150
+config	=	0x0aadb6ec	2	59	A	1275	375	150
+config	=	0x0aadb6ec	10	60	A	1125	375	150
+config	=	0x0aadb6ec	3	61	A	975	375	150
+config	=	0x0aadb6ec	11	62	A	825	375	150
+config	=	0x0aadb6ec	4	77	A	1275	225	150
+config	=	0x0aadb6ec	12	78	A	1125	225	150
+config	=	0x0aadb6ec	5	79	A	975	225	150
+config	=	0x0aadb6ec	13	80	A	825	225	150
+config	=	0x0aadb6ec	6	95	A	1275	75	150
+config	=	0x0aadb6ec	14	96	A	1125	75	150
+config	=	0x0aadb6ec	7	97	A	975	75	150
+config	=	0x0aadb6ec	15	98	A	825	75	150
+								
+config	=	0x0aadb6ec	16	0	Z	0	0	0
+config	=	0x0aadb6ec	24	45	B	675	525	150
+config	=	0x0aadb6ec	17	46	B	525	525	150
+config	=	0x0aadb6ec	25	47	B	375	525	150
+config	=	0x0aadb6ec	18	48	B	225	525	150
+config	=	0x0aadb6ec	26	49	B	75	525	150
+config	=	0x0aadb6ec	19	63	B	675	375	150
+config	=	0x0aadb6ec	27	64	B	525	375	150
+config	=	0x0aadb6ec	20	65	B	375	375	150
+config	=	0x0aadb6ec	28	66	B	225	375	150
+config	=	0x0aadb6ec	21	67	B	75	375	150
+config	=	0x0aadb6ec	29	81	B	675	225	150
+config	=	0x0aadb6ec	22	82	B	225	225	150
+config	=	0x0aadb6ec	30	83	B	375	225	150
+config	=	0x0aadb6ec	23	84	B	225	225	150
+config	=	0x0aadb6ec	31	85	B	75	225	150
+								
+config	=	0x0aadb6ec	32	0	Z	0	0	0
+config	=	0x0aadb6ec	40	50	C	-75	525	150
+config	=	0x0aadb6ec	33	51	C	-225	525	150
+config	=	0x0aadb6ec	41	52	C	-375	525	150
+config	=	0x0aadb6ec	34	53	C	-525	525	150
+config	=	0x0aadb6ec	42	54	C	-675	525	150
+config	=	0x0aadb6ec	35	68	C	-75	375	150
+config	=	0x0aadb6ec	43	69	C	-225	375	150
+config	=	0x0aadb6ec	36	70	C	-375	375	150
+config	=	0x0aadb6ec	44	71	C	-525	375	150
+config	=	0x0aadb6ec	37	72	C	-675	375	150
+config	=	0x0aadb6ec	45	86	C	-75	225	150
+config	=	0x0aadb6ec	38	87	C	-225	225	150
+config	=	0x0aadb6ec	46	88	C	-375	225	150
+config	=	0x0aadb6ec	39	89	C	-525	225	150
+config	=	0x0aadb6ec	47	90	C	-675	225	150
+								
+config	=	0x0aadb6ec	48	0	Z	0	0	0
+config	=	0x0aadb6ec	56	99	E	675	75	150
+config	=	0x0aadb6ec	49	100	E	525	75	150
+config	=	0x0aadb6ec	57	101	E	375	75	150
+config	=	0x0aadb6ec	50	1	E	262.5	112.5	75
+config	=	0x0aadb6ec	58	2	E	187.5	112.5	75
+config	=	0x0aadb6ec	51	3	E	112.5	112.5	75
+config	=	0x0aadb6ec	59	4	E	37.5	112.5	75
+config	=	0x0aadb6ec	52	5	E	-37.5	112.5	75
+config	=	0x0aadb6ec	60	11	E	262.5	37.5	75
+config	=	0x0aadb6ec	53	12	E	187.5	37.5	75
+config	=	0x0aadb6ec	61	13	E	112.5	37.5	75
+config	=	0x0aadb6ec	54	14	E	37.5	37.5	75
+config	=	0x0aadb6ec	62	15	E	-37.5	37.5	75
+config	=	0x0aadb6ec	55	0	Z	0	0	0
+config	=	0x0aadb6ec	63	0	Z	0	0	0
+								
+config	=	0x0aae37f0	0	25	G	-37.5	-37.5	75
+config	=	0x0aae37f0	8	112	G	675	-75	150
+config	=	0x0aae37f0	1	113	G	525	-75	150
+config	=	0x0aae37f0	9	114	G	375	-75	150
+config	=	0x0aae37f0	2	21	G	262.5	-37.5	75
+config	=	0x0aae37f0	10	22	G	187.5	-37.5	75
+config	=	0x0aae37f0	3	23	G	112.5	-37.5	75
+config	=	0x0aae37f0	11	24	G	37.5	-37.5	75
+config	=	0x0aae37f0	4	0	Z	0	0	0
+config	=	0x0aae37f0	12	31	G	262.5	-112.5	75
+config	=	0x0aae37f0	5	32	G	187.5	-112.5	75
+config	=	0x0aae37f0	13	33	G	112.5	-112.5	75
+config	=	0x0aae37f0	6	34	G	37.5	-112.5	75
+config	=	0x0aae37f0	14	35	G	-37.5	-112.5	75
+config	=	0x0aae37f0	7	0	Z	0	0	0
+config	=	0x0aae37f0	15	0	Z	0	0	0
+								
+config	=	0x0aae37f0	16	0	Z	0	0	0
+config	=	0x0aae37f0	24	108	I	1275	-75	150
+config	=	0x0aae37f0	17	109	I	1125	-75	150
+config	=	0x0aae37f0	25	110	I	975	-75	150
+config	=	0x0aae37f0	18	111	I	825	-75	150
+config	=	0x0aae37f0	26	121	I	1275	-225	150
+config	=	0x0aae37f0	19	122	I	1125	-225	150
+config	=	0x0aae37f0	27	123	I	975	-225	150
+config	=	0x0aae37f0	20	124	I	825	-225	150
+config	=	0x0aae37f0	28	139	I	1275	-375	150
+config	=	0x0aae37f0	21	140	I	1125	-375	150
+config	=	0x0aae37f0	29	141	I	975	-375	150
+config	=	0x0aae37f0	22	142	I	825	-375	150
+config	=	0x0aae37f0	30	158	I	1125	-525	150
+config	=	0x0aae37f0	23	159	I	975	-525	150
+config	=	0x0aae37f0	31	160	I	825	-525	150
+								
+config	=	0x0aae37f0	32	0	Z	0	0	0
+config	=	0x0aae37f0	40	125	J	675	-225	150
+config	=	0x0aae37f0	33	126	J	525	-225	150
+config	=	0x0aae37f0	41	127	J	375	-225	150
+config	=	0x0aae37f0	34	128	J	225	-225	150
+config	=	0x0aae37f0	42	129	J	75	-225	150
+config	=	0x0aae37f0	35	143	J	675	-375	150
+config	=	0x0aae37f0	43	144	J	525	-375	150
+config	=	0x0aae37f0	36	145	J	375	-375	150
+config	=	0x0aae37f0	44	146	J	225	-375	150
+config	=	0x0aae37f0	37	147	J	75	-375	150
+config	=	0x0aae37f0	45	161	J	675	-525	150
+config	=	0x0aae37f0	38	162	J	525	-525	150
+config	=	0x0aae37f0	46	163	J	375	-525	150
+config	=	0x0aae37f0	39	164	J	225	-525	150
+config	=	0x0aae37f0	47	165	J	75	-525	150
+								
+config	=	0x0aae37f0	48	0	Z	0	0	0
+config	=	0x0aae37f0	56	130	K	-75	-225	150
+config	=	0x0aae37f0	49	131	K	-225	-225	150
+config	=	0x0aae37f0	57	132	K	-375	-225	150
+config	=	0x0aae37f0	50	133	K	-525	-225	150
+config	=	0x0aae37f0	58	134	K	-675	-225	150
+config	=	0x0aae37f0	51	148	K	-75	-375	150
+config	=	0x0aae37f0	59	149	K	-225	-375	150
+config	=	0x0aae37f0	52	150	K	-375	-375	150
+config	=	0x0aae37f0	60	151	K	-525	-375	150
+config	=	0x0aae37f0	53	152	K	-675	-375	150
+config	=	0x0aae37f0	61	166	K	-75	-525	150
+config	=	0x0aae37f0	54	167	K	-225	-525	150
+config	=	0x0aae37f0	62	168	K	-375	-525	150
+config	=	0x0aae37f0	55	169	K	-525	-525	150
+config	=	0x0aae37f0	63	170	K	-675	-525	150
+								
+config	=	0x080c33e6	0	0	Z	0	0	0
+config	=	0x080c33e6	8	55	D	-825	525	150
+config	=	0x080c33e6	1	56	D	-975	525	150
+config	=	0x080c33e6	9	57	D	-1125	525	150
+config	=	0x080c33e6	2	73	D	-825	375	150
+config	=	0x080c33e6	10	74	D	-975	375	150
+config	=	0x080c33e6	3	75	D	-1125	375	150
+config	=	0x080c33e6	11	76	D	-1275	375	150
+config	=	0x080c33e6	4	91	D	-825	225	150
+config	=	0x080c33e6	12	92	D	-975	225	150
+config	=	0x080c33e6	5	93	D	-1125	225	150
+config	=	0x080c33e6	13	94	D	-1275	225	150
+config	=	0x080c33e6	6	104	D	-825	75	150
+config	=	0x080c33e6	14	105	D	-975	75	150
+config	=	0x080c33e6	7	106	D	-1125	75	150
+config	=	0x080c33e6	15	107	D	-1275	75	150
+								
+config	=	0x080c33e6	16	7	F	-187.5	112.5	75
+config	=	0x080c33e6	24	6	F	-112.5	112.5	75
+config	=	0x080c33e6	17	0	Z	0	0	0
+config	=	0x080c33e6	25	8	F	-262.5	112.5	75
+config	=	0x080c33e6	18	9	F	-337.5	112.5	75
+config	=	0x080c33e6	26	10	F	-412.5	112.5	75
+config	=	0x080c33e6	19	102	F	-525	75	150
+config	=	0x080c33e6	27	103	F	-675	75	150
+config	=	0x080c33e6	20	16	F	-112.5	37.5	75
+config	=	0x080c33e6	28	17	F	-187.5	37.5	75
+config	=	0x080c33e6	21	18	F	-262.5	37.5	75
+config	=	0x080c33e6	29	19	F	-337.5	37.5	75
+config	=	0x080c33e6	22	20	F	-412.5	37.5	75
+config	=	0x080c33e6	30	0	Z	0	0	0
+config	=	0x080c33e6	23	0	Z	0	0	0
+config	=	0x080c33e6	31	0	Z	0	0	0
+								
+config	=	0x080c33e6	32	0	Z	0	0	0
+config	=	0x080c33e6	40	26	H	-112.5	-37.5	75
+config	=	0x080c33e6	33	27	H	-187.5	-37.5	75
+config	=	0x080c33e6	41	28	H	-262.5	-37.5	75
+config	=	0x080c33e6	34	29	H	-337.5	-37.5	75
+config	=	0x080c33e6	42	30	H	-412.5	-37.5	75
+config	=	0x080c33e6	35	115	H	-525	-75	150
+config	=	0x080c33e6	43	116	H	-675	-75	150
+config	=	0x080c33e6	36	36	H	-112.5	-112.5	75
+config	=	0x080c33e6	44	37	H	-187.5	-112.5	75
+config	=	0x080c33e6	37	38	H	-262.5	-112.5	75
+config	=	0x080c33e6	45	39	H	-337.5	-112.5	75
+config	=	0x080c33e6	38	40	H	-412.5	-112.5	75
+config	=	0x080c33e6	46	0	Z	0	0	0
+config	=	0x080c33e6	39	0	Z	0	0	0
+config	=	0x080c33e6	47	0	Z	0	0	0
+								
+config	=	0x080c33e6	48	0	Z	0	0	0
+config	=	0x080c33e6	56	117	L	-825	-75	150
+config	=	0x080c33e6	49	118	L	-975	-75	150
+config	=	0x080c33e6	57	119	L	-1125	-75	150
+config	=	0x080c33e6	50	120	L	-1275	-75	150
+config	=	0x080c33e6	58	135	L	-825	-225	150
+config	=	0x080c33e6	51	136	L	-975	-225	150
+config	=	0x080c33e6	59	137	L	-1125	-225	150
+config	=	0x080c33e6	52	138	L	-1275	-225	150
+config	=	0x080c33e6	60	153	L	-825	-375	150
+config	=	0x080c33e6	53	154	L	-975	-375	150
+config	=	0x080c33e6	61	155	L	-1125	-375	150
+config	=	0x080c33e6	54	156	L	-1275	-375	150
+config	=	0x080c33e6	62	171	L	-825	-525	150
+config	=	0x080c33e6	55	172	L	-975	-525	150
+config	=	0x080c33e6	63	173	L	-1125	-525	150
+								
+config	=	0x0611d032	0	201	V	0	0	150
+config	=	0x0611d032	8	202	V	0	0	150
+config	=	0x0611d032	1	203	V	0	0	150
+config	=	0x0611d032	9	204	V	0	0	150
+config	=	0x0611d032	2	205	V	0	0	150
+config	=	0x0611d032	10	206	V	0	0	150
+config	=	0x0611d032	3	207	V	0	0	150
+config	=	0x0611d032	11	208	V	0	0	150
+config	=	0x0611d032	4	209	V	0	0	150
+config	=	0x0611d032	12	210	V	0	0	150
+config	=	0x0611d032	5	211	V	0	0	150
+config	=	0x0611d032	13	212	V	0	0	150
+config	=	0x0611d032	6	213	V	0	0	150
+config	=	0x0611d032	14	214	V	0	0	150
+config	=	0x0611d032	7	215	V	0	0	150
+config	=	0x0611d032	15	216	V	0	0	150

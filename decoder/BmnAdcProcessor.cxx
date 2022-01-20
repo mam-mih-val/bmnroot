@@ -97,34 +97,34 @@ BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh
             }
         }
     }
-//    Int_t nevents = N_EV_FOR_PEDESTALS - 2;
-//    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
-//        vector<TH1*> hv;
-//        vector<TH1*> hcm;
-//        vector<TH1*> hsm;
-//        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-//            TString hname = TString(Form("%08X:%02d pedestals SM ev", fAdcSerials[iCr], iCh));
-//            TH1* h = new TH2F(hname, hname,
-//                    N_EV_FOR_PEDESTALS, 0, N_EV_FOR_PEDESTALS,
-//                    fNSamples, 0, fNSamples);
-//            h->GetXaxis()->SetTitle("Event #");
-//            h->GetYaxis()->SetTitle("Sample(channel) #");
-//            hv.push_back(h);
-//
-//            hname = TString(Form("%08X:%02d cmods SM ev", fAdcSerials[iCr], iCh));
-//            TH1* hc = new TH1F(hname, hname, nevents, 0, nevents);
-//            hc->GetXaxis()->SetTitle("Event #");
-//            hcm.push_back(hc);
-//
-//            hname = TString(Form("%08X:%02d smods SM ev", fAdcSerials[iCr], iCh));
-//            TH1* hs = new TH1F(hname, hname, nevents, 0, nevents);
-//            hs->GetXaxis()->SetTitle("Event #");
-//            hsm.push_back(hs);
-//        }
-//        hPedLine.push_back(hv);
-//        hCMode.push_back(hcm);
-//        hSMode.push_back(hsm);
-//    }
+    //    Int_t nevents = N_EV_FOR_PEDESTALS - 2;
+    //    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+    //        vector<TH1*> hv;
+    //        vector<TH1*> hcm;
+    //        vector<TH1*> hsm;
+    //        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+    //            TString hname = TString(Form("%08X:%02d pedestals SM ev", fAdcSerials[iCr], iCh));
+    //            TH1* h = new TH2F(hname, hname,
+    //                    N_EV_FOR_PEDESTALS, 0, N_EV_FOR_PEDESTALS,
+    //                    fNSamples, 0, fNSamples);
+    //            h->GetXaxis()->SetTitle("Event #");
+    //            h->GetYaxis()->SetTitle("Sample(channel) #");
+    //            hv.push_back(h);
+    //
+    //            hname = TString(Form("%08X:%02d cmods SM ev", fAdcSerials[iCr], iCh));
+    //            TH1* hc = new TH1F(hname, hname, nevents, 0, nevents);
+    //            hc->GetXaxis()->SetTitle("Event #");
+    //            hcm.push_back(hc);
+    //
+    //            hname = TString(Form("%08X:%02d smods SM ev", fAdcSerials[iCr], iCh));
+    //            TH1* hs = new TH1F(hname, hname, nevents, 0, nevents);
+    //            hs->GetXaxis()->SetTitle("Event #");
+    //            hsm.push_back(hs);
+    //        }
+    //        hPedLine.push_back(hv);
+    //        hCMode.push_back(hcm);
+    //        hSMode.push_back(hsm);
+    //    }
 }
 
 BmnAdcProcessor::~BmnAdcProcessor() {
@@ -441,13 +441,13 @@ BmnStatus BmnAdcProcessor::RecalculatePedestalsAugmented() {
                     if (fPedDat[iCr][iEv][iCh][iSmpl] == 0.0 || fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE) continue;
                     if (Abs(fPedDat[iCr][iEv][iCh][iSmpl]) < 0.1) {
                         if (fVerbose)
-                        printf("iEv %4d iCr %4d iCh %4d iSmpl %4d  fPedDat %5f\n", iEv, iCr, iCh, iSmpl, fPedDat[iCr][iEv][iCh][iSmpl]);
+                            printf("iEv %4d iCr %4d iCh %4d iSmpl %4d  fPedDat %5f\n", iEv, iCr, iCh, iSmpl, fPedDat[iCr][iEv][iCh][iSmpl]);
 
                     }
                     fPedVal[iCr][iCh][iSmpl] += fPedDat[iCr][iEv][iCh][iSmpl]; // / N_EV_FOR_PEDESTALS);
                     fNvalsADC[iCr][iCh][iSmpl]++;
                     nOk++;
-//                    static_cast<TH2*> (hPedLine[iCr][iCh])->Fill(iEv, iSmpl, fPedDat[iCr][iEv][iCh][iSmpl]);
+                    //                    static_cast<TH2*> (hPedLine[iCr][iCh])->Fill(iEv, iSmpl, fPedDat[iCr][iEv][iCh][iSmpl]);
                 }
             }
     }
@@ -464,8 +464,8 @@ BmnStatus BmnAdcProcessor::RecalculatePedestalsAugmented() {
         //        Double_t thr = thrMax - thrDif * iter; //(2 + (nIters - iter)/2.0) * sumRms; //thrMax - thrDif * iter;
         //                Double_t thr = 3.5 * sumRms; //thrMax - thrDif * iter;
         Double_t thr = thrMax - thrDif * iter;
-                        if (fVerbose)
-        printf("iter %d thr %4.2f\n", iter, thr);
+        if (fVerbose)
+            printf("iter %d thr %4.2f\n", iter, thr);
         UInt_t nFiltered = 0;
         // clear
         for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
@@ -638,20 +638,20 @@ void BmnAdcProcessor::PrecalcEventMods(TClonesArray *adc) {
         for (UInt_t iSmpl = 0; iSmpl < fNSamples; iSmpl++) {
             if ((fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE))
                 continue;
-            Double_t val = (GetRun() > GetBoundaryRun(ADC128_N_SAMPLES)) ?
+            Double_t val = (GetRun() > GetBoundaryRun(ADC128_N_SAMPLES) || GetPeriod() == 8) ?
                     ((Double_t) (adcDig->GetShortValue())[iSmpl] / 16) :
                     ((Double_t) (adcDig->GetUShortValue())[iSmpl] / 16);
-            //                printf("    icr %d ich %d ismpl %d                 val %4f\n", iCr, iCh, iSmpl, val);
+//            printf("    icr %d ich %d ismpl %d  int %4d  val %4f\n", iCr, iCh, iSmpl, adcDig->GetShortValue()[iSmpl], val);
             if (fAdc[iCr][iCh][iSmpl] > 0.0)
                 printf("WTF icr %d ich %d ismpl %d already %4f but val %4f\n", iCr, iCh, iSmpl, fAdc[iCr][iCh][iSmpl], val);
             fAdc[iCr][iCh][iSmpl] = val;
 
             Double_t Sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl];
             Double_t Asig = TMath::Abs(Sig);
-//                        printf("adc %6f ped %6f\n", fAdc[iCr][iCh][iSmpl], fPedVal[iCr][iCh][iSmpl]);
+            //                        printf("adc %6f ped %6f\n", fAdc[iCr][iCh][iSmpl], fPedVal[iCr][iCh][iSmpl]);
 
             if ((Asig < thrMax)) {
-//                        printf("adc %6f < thrMax %6f\n", fAdc[iCr][iCh][iSmpl], thrMax);
+                //                        printf("adc %6f < thrMax %6f\n", fAdc[iCr][iCh][iSmpl], thrMax);
                 fSMode[iCr][iCh] += fAdc[iCr][iCh][iSmpl];
                 fCMode[iCr][iCh] += fPedVal[iCr][iCh][iSmpl];
                 fNvals[iCr][iCh]++;

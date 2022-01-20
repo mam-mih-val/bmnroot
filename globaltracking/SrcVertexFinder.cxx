@@ -140,6 +140,7 @@ void SrcVertexFinder::FindVertexAnalitically(vector<BmnTrack> &lTracks, vector<B
                     minVZ = vz;
                     bestCombination = trackCombination;
                 }
+                trackCombination.clear();
             }
         }
     } else if (lTracks.size() != 0 && rTracks.size() == 0) {

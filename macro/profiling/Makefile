@@ -1,9 +1,11 @@
 # Source files
 #SRCS=eventdisplay.cxx
 
-#SRCS=run_sim_src.cxx
+#SRCS=run8_sim_bmn.cxx
 #SRCS=run_sim_bmn.cxx
+#SRCS=run_sim_src.cxx
 
+#SRCS=run8_reco_bmn.cxx
 #SRCS=run_reco_bmn.cxx
 #SRCS=run_reco_src.cxx
 
@@ -27,6 +29,7 @@ CFLAGS += -I$(VMCWORKDIR)/bmndata/cbm
 CFLAGS += -I$(VMCWORKDIR)/bmndata/common
 CFLAGS += -I$(VMCWORKDIR)/bmndata/math
 CFLAGS += -I$(VMCWORKDIR)/cat
+CFLAGS += -I$(VMCWORKDIR)/cat/OffLineInterface
 CFLAGS += -I$(VMCWORKDIR)/csc
 CFLAGS += -I$(VMCWORKDIR)/dch
 CFLAGS += -I$(VMCWORKDIR)/ecal
@@ -36,10 +39,14 @@ CFLAGS += -I$(VMCWORKDIR)/gconfig
 CFLAGS += -I$(VMCWORKDIR)/hodo
 CFLAGS += -I$(VMCWORKDIR)/identification
 CFLAGS += -I$(VMCWORKDIR)/KF
+CFLAGS += -I$(VMCWORKDIR)/KF/Interface
+CFLAGS += -I$(VMCWORKDIR)/KF/KFQA
 CFLAGS += -I$(VMCWORKDIR)/sts
 CFLAGS += -I$(VMCWORKDIR)/mwpc
 CFLAGS += -I$(VMCWORKDIR)/scwall
 CFLAGS += -I$(VMCWORKDIR)/silicon
+CFLAGS += -I$(VMCWORKDIR)/SiBT
+CFLAGS += -I$(VMCWORKDIR)/SiMD
 CFLAGS += -I$(VMCWORKDIR)/tof
 CFLAGS += -I$(VMCWORKDIR)/tracking
 CFLAGS += -I$(VMCWORKDIR)/tof1
@@ -78,7 +85,7 @@ LDFLAGS += -lCat -lKF -lBmnData -lBmnField -lMpdGen -lPassive -lGen -lUniDb
 LDFLAGS += -lBase -lGeoBase -lParBase -lTrkBase -lGeane -lEve -lFairTools
 LDFLAGS += -lXMLParser -lXMLIO -lSpectrum -lGenVector -lMinuit -lGeom
 LDFLAGS += -lGeomPainter -lVMC -lpthread -lTracking -lBC -lArmTrig -lFD
-LDFLAGS += -lHodo -lBmnQa -lScWall -lgeant321 -lgeant4vmc -lG4clhep -lPythia6 -lEGPythia6
+LDFLAGS += -lHodo -lBmnQa -lScWall -lSiBT -lSiMD -lgeant321 -lgeant4vmc -lG4clhep -lPythia6 -lEGPythia6
 
 all:	$(OBJECTS)
 

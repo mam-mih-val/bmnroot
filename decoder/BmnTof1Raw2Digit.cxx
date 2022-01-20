@@ -45,7 +45,7 @@ BmnTof1TDCParameters::BmnTof1TDCParameters() {
 //A small functional class, which is used to compare two BmnTDCDigits
 //It is used to sort by time the TDCDigits in the BmnTof1Raw2Digit::FillEvent()
 
-bool _Tof1TDCCompare::operator()(const BmnTDCDigit& a, const BmnTDCDigit& b) {
+bool _Tof1TDCCompare::operator()(const BmnTDCDigit& a, const BmnTDCDigit& b) const {
     return a.GetValue() < b.GetValue();
 }
 

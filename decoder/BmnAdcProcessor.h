@@ -1,4 +1,3 @@
-
 //
 // Base class for processing data from ADC detectors
 // It's used for pedestal calculation
@@ -10,6 +9,7 @@
 #include "TString.h"
 #include "TTree.h"
 #include "TClonesArray.h"
+#include "TColor.h"
 #include <iostream>
 #include "BmnADCDigit.h"
 #include "BmnEnums.h"
@@ -20,6 +20,7 @@
 #include <vector>
 #include <TH2F.h>
 #include <TCanvas.h>
+#include <TStyle.h>
 #include <BmnSiliconStationSet.h>
 #include <BmnGemStripStationSet.h>
 #include <BmnCSCStationSet.h>
@@ -40,10 +41,12 @@ public:
 
     BmnStatus RecalculatePedestals();
     BmnStatus RecalculatePedestalsAugmented();
-    BmnStatus FillProfiles(TClonesArray *adc);
+    void PrecalcEventMods(TClonesArray *adc);
+    void CalcEventMods();
+    //    BmnStatus FillProfiles(TClonesArray *adc);
     BmnStatus FillNoisyChannels();
     Double_t CalcCMS(Double_t* samples, Int_t size);
-    
+
     /**
      * Calculate signal CM - pedestal CM
      * */
@@ -68,15 +71,15 @@ public:
     Int_t GetNSerials() {
         return fNSerials;
     }
-    
+
     Int_t GetNChannels() {
         return fNChannels;
     }
-    
+
     Int_t GetNSamples() {
         return fNSamples;
     }
-    
+
     Double_t GetPedestal(Int_t ser, Int_t ch, Int_t smpl) {
         return fPedVal[ser][ch][smpl];
     }
@@ -86,7 +89,7 @@ public:
     }
 
     Double_t*** GetPedestalsRMS() {
-        return fPedRms;
+        return fPedCMod2;
     }
 
     Bool_t*** GetNoisyChipChannels() {
@@ -101,8 +104,20 @@ public:
         return fRun;
     }
 
-    vector<UInt_t> GetSerials() {
+    Int_t GetVerbose() {
+        return fVerbose;
+    }
+
+    void SetVerbose(Int_t v) {
+        fVerbose = v;
+    }
+
+    vector<UInt_t>& GetSerials() {
         return fAdcSerials;
+    }
+
+    map<UInt_t, Int_t>& GetSerialMap() {
+        return fSerMap;
     }
 
     inline UInt_t GetBoundaryRun(UInt_t nSmpl) {
@@ -111,17 +126,25 @@ public:
         //so we have to use this crutch.
         return (nSmpl == 128) ? 1542 : 1992;
     }
-    
+    void DrawDebugHists();
+    void DrawDebugHists2D();
+    void ClearDebugHists();
+
 protected:
+    Int_t fVerbose = 0;
+    Int_t drawCnt = 0;
+    Int_t drawCnt2d = 0;
     Double_t thrMax;
     Double_t thrDif;
-    UInt_t   thrIters;
+    Double_t thrped;
+    Int_t niter;
+    Double_t cmodcut;
     Int_t fNSerials;
-    vector<UInt_t> fAdcSerials; //list of serial id for ADC-detector
+    vector<UInt_t> fAdcSerials; ///< list of serial id for ADC-detector
     Int_t fNSamples;
     Int_t fNChannels;
-    Double_t**** fPedDat = nullptr; //data set to calculate pedestals
-    BmnSetup fBmnSetup;
+    Double_t**** fPedDat = nullptr; ///< data set to calculate pedestals
+    BmnSetup fSetup;
     void Run7(Int_t* statsGem, Int_t* statsSil, Int_t* statsGemPermut, Int_t* statsSilPermut);
     void CreateGeometries();
     Int_t* statsGem = nullptr;
@@ -130,32 +153,51 @@ protected:
     Int_t* statsSilPermut = nullptr;
     map <Int_t, Int_t> fGemStats;
     map <Int_t, Int_t> fSilStats;
-    BmnGemStripStationSet* fDetectorGEM = nullptr;
-    BmnSiliconStationSet* fDetectorSI = nullptr;
-    BmnCSCStationSet* fDetectorCSC = nullptr;
+    BmnGemStripStationSet* fGemStationSet = nullptr;
+    BmnSiliconStationSet* fSilStationSet = nullptr;
+    BmnCSCStationSet* fCscStationSet = nullptr;
+
+    map<UInt_t, Int_t> fSerMap; ///< ADC serials map
+
+    Double_t*** fAdc;
+    Double_t*** fPedRms; // set of calculated pedestal errors
+    Double_t*** fPedVal; //set of calculated pedestals
+    Double_t*** fPedValTemp; //set of calculated pedestals
+    Double_t** fCMode; //set of calculated pedestal CMSs
+    Double_t** fCMode0; //set of calculated pedestal CMSs
+    Double_t** fSMode; //set of calculated signal CMSs
+    Double_t** fSMode0; //set of calculated signal CMSs
+
+    vector< vector< TH1* > > hPedLine;
+    vector< vector< TH1* > > hCMode;
+    vector< vector< TH1* > > hSMode;
+
+    vector< vector< TH1* > > hPedLineSi;
+
+    vector< TH1* > hPedSi;
+    vector< TH1* > hCModeSi;
+    vector< TH1* > hSModeSi;
+    Bool_t*** fNoisyChipChannels; // set of noisy channel flags
+    
+    UInt_t** fNvals; // number of valid (under threshold) pedestals
+    UInt_t*** fNvalsCMod; // number of valid (under threshold) pedestals
+    UInt_t*** fNvalsADC; // number of valid (under threshold) ADC signals
+    Double_t*** fPedCMod;
+    Double_t*** fPedCMod2;
+    Double_t** fSumRmsV;
+    
+    TString fDetName; //it's used for .txt files name 
+    Int_t fPeriod;
+    Int_t fRun;
+
 
 private:
 
 
-    Int_t fEntriesInGlobMap; // number of entries in BD table for Global Mapping
+    //    Int_t fEntriesInGlobMap; // number of entries in BD table for Global Mapping
 
-    Int_t fPeriod;
-    Int_t fRun;
-    TString fDetName; //it's used for .txt files name 
 
-    Double_t*** fPedVal; //set of calculated pedestals
-    Double_t*** fPedValTemp; //set of calculated pedestals
-    UInt_t** fNvals; // number of valid (under threshold) pedestals
-    UInt_t*** fNvalsADC; // number of valid (under threshold) ADC signals
-    Double_t** fPedCMS; //set of calculated pedestal CMSs
-    Double_t** fPedCMS0; //set of calculated pedestal CMSs
-    Double_t*** fPedRms; // set of calculated pedestal errors
-    Double_t*** fPedSigRms; // set of calculated (pedestal - signal CMS) errors
-    Double_t*** fPedSigRms2; // set of calculated (pedestal - signal CMS) errors squared
-    Bool_t*** fNoisyChipChannels; // set of noisy channel flags
-    Double_t** fSigCMS; //set of calculated signal CMSs
     UInt_t*** fAdcProfiles;
-    TH2F * h;
     TH2F * hcms;
     TH2F * hscms_adc;
     TH1F * hcms1;

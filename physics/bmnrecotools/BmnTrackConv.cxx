@@ -153,10 +153,10 @@ InitStatus BmnTrackConv::Init() {
         if (!fCBMoldBMNEvHeader)
             isMCDST = kTRUE;
         printf("This is %s DST\n", (isMCDST ? "MC" : "exp"));
-        fCBMGlobalTracks = static_cast<TClonesArray*> (ioman->GetObject(fCBMGlobalTracksCSCName));
+        fCBMGlobalTracks = static_cast<TClonesArray*> (ioman->GetObject(fCBMGlobalTracksName));
         if (!fCBMGlobalTracks) {
             printf("%s tracks not found, we will use common branch %s\n", fCBMGlobalTracksCSCName.Data(), fCBMGlobalTracksName.Data());
-            fCBMGlobalTracks = static_cast<TClonesArray*> (ioman->GetObject(fCBMGlobalTracksName));
+            fCBMGlobalTracks = static_cast<TClonesArray*> (ioman->GetObject(fCBMGlobalTracksCSCName));
         }
         fCBMHits = static_cast<TClonesArray*> (ioman->GetObject(fCBMHitsName));
         fCBMClusters = static_cast<TClonesArray*> (ioman->GetObject(fCBMClustersName));
@@ -190,7 +190,7 @@ InitStatus BmnTrackConv::Init() {
         //            ioman->Register(fBMNTof400HitsName, "", fBMNTof400Hits, kTRUE);
         //        }
 
-        if (fDstFileName.Length()) {
+        if (fDstFileName.Length() && (!isMCDST)) {
             fDstFile = new TFile(fDstFileName, "READ");
             if (fDstFile->IsOpen() == kFALSE) {
                 printf("\n!!!!\ncannot open file %s !\n", fDstFileName.Data());
@@ -453,7 +453,7 @@ void BmnTrackConv::ProcessDST() {
                     iSt -= fGemStationSet->GetNStations();
                     BmnHit* hit = static_cast<BmnHit*> (fBMNCscHits->UncheckedAt(fMapHit[iHitArr]));
                     gTrack->AddHit(fMapHit[iHitArr], hit);
-                    gTrack->SetCscHitIndex(fMapHit[iHitArr]);
+                    gTrack->AddCscHitIndex(0, fMapHit[iHitArr]);
 
                 } else {
                     BmnHit* hit = static_cast<BmnHit*> (fBMNGemHits->UncheckedAt(fMapHit[iHitArr]));
@@ -481,7 +481,7 @@ void BmnTrackConv::ProcessDST() {
         gTrack->SortHits();
     }
 
-    if (fDstFile) {
+    if (fDstFile && (!isMCDST)) {
         while (iEvFile < 100000000) {
             fDstTree->GetEntry(++iEvFile);
             if ((fVerbose > 0) && (iEvFile % 5000 == 0))
@@ -524,10 +524,10 @@ void BmnTrackConv::ProcessDST() {
 void BmnTrackConv::Finish() {
     for (Int_t iAr = 0; iAr < fOutArrays.size(); iAr++) {
         delete fOutArrays[iAr];
-//        delete fInArrays[iAr];
+        //        delete fInArrays[iAr];
     }
-//    delete fBMNEvHeaderIn;
-//    if (fBMNZDCIn) delete fBMNZDCIn;
+    //    delete fBMNEvHeaderIn;
+    //    if (fBMNZDCIn) delete fBMNZDCIn;
     if (fDstFile) {
         fDstFile->Close();
         delete fDstFile;

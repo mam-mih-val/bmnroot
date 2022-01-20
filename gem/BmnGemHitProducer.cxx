@@ -1,15 +1,11 @@
 #include "BmnGemHitProducer.h"
 #include "CbmStsPoint.h"
-#include "CbmMCTrack.h"
+#include "BmnHit.h"
 
 #include "TRandom.h"
-#include "TCanvas.h"
-#include "TH1F.h"
-#include "BmnGemStripHit.h"
 #include "TSystem.h"
 
 using std::cout;
-using namespace TMath;
 
 BmnGemHitProducer::BmnGemHitProducer() {
     fInputBranchName = "StsPoint";
@@ -18,8 +14,6 @@ BmnGemHitProducer::BmnGemHitProducer() {
 }
 
 BmnGemHitProducer::~BmnGemHitProducer() {
-
-
 }
 
 InitStatus BmnGemHitProducer::Init() {

@@ -100,7 +100,7 @@ void MpdMCTracks::Exec(Option_t* /*option*/)
 
     if ((fEventManager->IsPriOnly() && (P->GetMother(0) > -1)))
         continue;
-    if ((fEventManager->GetCurrentPDG() != 0) && (fEventManager->GetCurrentPDG() != tr->GetPDG()))
+    if ((fEventManager->fCurrentPDG.size() != 0) && (fEventManager->fCurrentPDG.find(tr->GetPDG()) == fEventManager->fCurrentPDG.end()))
         continue;
     LOG(DEBUG3)<<"PEnergy "<<PEnergy<<" Min "<<fEventManager->GetMinEnergy()<<" Max "<<fEventManager->GetMaxEnergy();
     if ((PEnergy < fEventManager->GetMinEnergy()) || (PEnergy > fEventManager->GetMaxEnergy()))

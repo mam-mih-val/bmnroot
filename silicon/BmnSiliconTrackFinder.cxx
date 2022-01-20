@@ -22,7 +22,7 @@
 #include <vector>
 
 static Double_t workTime = 0.0;
-TList fhList;
+//TList fhList;
 
 //----------------------------------------------------------------------
 void BmnSiliconTrackFinder::Exec(Option_t* opt) {
@@ -31,8 +31,8 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
   clock_t tStart = clock();
   PrepareArraysToProcessEvent();
   if (fDebug) cout << "\n======================== Silicon track finder exec started  ===================\n" << endl;
-  if (fDebug) printf("Event number: %d\n", fEventNo);
-  fEventNo++;
+  if (fDebug) cout << "Event number: " << fEventNo << endl;
+  fEventNo++ ;
   
   //------------------------Digi-file reading---------------------------
   if(expData) StripsReading(DigitsArrayX,DigitsArrayXp);
@@ -43,7 +43,7 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
   if(fDebug)  cout<<"------------Coordinate Calculation----------"<<endl;
   CoordinateCalculation(NclustX, NclustXp, XCoord, XpCoord, SigmaX, SigmaXp, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, NhitsXYmod, 
                         XClust, XClust_width, sumQx,XpClust, XpClust_width, sumQxp,
-                        XspClust, XspClust_width, sumQxsp,XpspClust, XpspClust_width, sumQxpsp, vec_points);
+                        XspClust, XspClust_width, sumQxsp,XpspClust, XpspClust_width, sumQxpsp, vec_points, Sp_pdg);
                         
   Bool_t Skip = 0;//SkipEvent(NclustX, NclustXp, XCoord, XpCoord);
   if (Skip) return;
@@ -104,14 +104,15 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
     }
   }
   if(fDebug)cout<<"-------------Case4.--------------------------"<<endl;
+  CheckLeftover(Nleftoversp, NleftoverX, NleftoverXp,leftoverXsp,leftoverXpsp,leftoverYsp,leftoverXsigsp,leftoverXpsigsp,leftoverYsigsp,leftoverX,leftoverXp,leftoverXsig,leftoverXpsig);
+  
   if(fDebug) PrintAllTracks(CleanTr);
   
   if(!expData) MCefficiencyCalculation(vec_points, CleanTr);
   if(fDebug)cout<<"---------------------------------------------"<<endl;
-  
   //------Write all Silicon-hits & Tracks------
   WriteSiliconHits(NclustX, NclustXp, NhitsXYmod, XCoord, XClust_width, XClust, sumQx, XpCoord, XpClust_width, XpClust, sumQxp, XspCoord, YspCoord, XspClust_width, XpspClust_width,
-                   XspClust, XpspClust, sumQxsp, sumQxpsp, SigmaX, SigmaXp,SigmspX, SigmspXp, SigmspY);
+                   XspClust, XpspClust, sumQxsp, sumQxpsp, SigmaX, SigmaXp,SigmspX, SigmspXp, SigmspY, Sp_pdg);
   
   WriteSiliconTracks(CleanTr);
 
@@ -122,105 +123,71 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
 }//exec
 //----------------------------------------------------------------------
 
-void BmnSiliconTrackFinder::MCefficiencyCalculation(vector<MC_points>& vec, vector<tracksX>& Tr){
 
-    if (fDebug) cout<<" ---Silicon MC tracks association--"<<endl;
-    //                   ax,   bx,    ay,  by
-    Double_t delt[4] = {-999.,-999.,-999.,-999.}; 
-    Double_t sig[4]  = {0.04, 0.08, 0.05, 0.08};
+void BmnSiliconTrackFinder::WriteSiliconTracks(vector<tracksX>& Tr){
+  if (fDebug) cout << "--WriteSiliconTracks--"<<endl;
+  
+  Int_t Track_counter = 0;
+  
+  
+  for (Int_t InIter = 0; InIter < Tr.size(); ++InIter) {
     
-    Double_t dmatch = 0.;
-    Double_t dmc_match[kMaxMC];
-    Int_t    mc_tr_assoc[kMaxMC];
+    Double_t Fit = Tr.at(InIter).param[2] * Tr.at(InIter).CoordZ[3] + Tr.at(InIter).param[3];
+   // if (fDebug && Fit > 2.) cout<<" Fit > 2. "<<Fit<<fEventNo<<endl;
     
-    for (Int_t j = 0; j < kMaxMC; j++) {
-      dmc_match[j]   = 1000.;
-      mc_tr_assoc[j] = -1;
+    Double_t z1 = Tr.at(InIter).CoordZ[1] + Zcentr;
+    Double_t x1 = Tr.at(InIter).param[0] * Tr.at(InIter).CoordZ[1] + Tr.at(InIter).param[1]; //ax(z)+bx
+    Double_t y1 = Tr.at(InIter).param[2] * Tr.at(InIter).CoordZ[1] + Tr.at(InIter).param[3]; //y
+    Double_t z3 = Tr.at(InIter).CoordZ[3] + Zcentr;
+    Double_t x3 = Tr.at(InIter).param[0] * Tr.at(InIter).CoordZ[3] + Tr.at(InIter).param[1]; //ax(z)+bx
+    Double_t y3 = Tr.at(InIter).param[2] * Tr.at(InIter).CoordZ[3] + Tr.at(InIter).param[3]; //y
+    
+    //if(fDebug)cout<<" itr "<<InIter<<" ax "<<Tr.at(InIter).param[0]<<" bx "<<Tr.at(InIter).param[1]<<endl;
+    
+    for (Int_t st = 1; st < fNstations; ++st) { 
+      if (Tr.at(InIter).CoordX[st] < -900. && Tr.at(InIter).CoordXp[st] > -900.){
+        Tr.at(InIter).CoordY[st] = Tr.at(InIter).param[2] * Tr.at(InIter).CoordZ[st] + Tr.at(InIter).param[3];//y
+        Tr.at(InIter).SigmaY[st] = 0.105581;
+      }
+      
+      //if(fDebug)cout<<" itr "<<InIter<<" st "<<st<<" hit: X "<<Tr.at(InIter).CoordX[st]<<" Y "<<Tr.at(InIter).CoordY[st]<<" SigX "<<Tr.at(InIter).SigmaX[st]<<" SigY "<<Tr.at(InIter).SigmaY[st]<<endl;
+      BmnSiliconHit* hit = new ((*fBmnSiliconHitsArray)[Track_counter])
+                        BmnSiliconHit(0, TVector3(Tr.at(InIter).CoordX[st]+Shift_toCenterOfMagnetX, Tr.at(InIter).CoordY[st]+Shift_toCenterOfMagnetY, Tr.at(InIter).CoordZ[st]+ Zcentr), 
+                        TVector3(Tr.at(InIter).SigmaX[st], Tr.at(InIter).SigmaY[st], -1), InIter);
+      Track_counter++;                 
+      hit->SetStation(st);
+      hit->SetModule(Tr.at(InIter).ModNum[st]);
+      hit->SetIndex(InIter);
+      
+      hit->SetClusterSizeInLowerLayer(Tr.at(InIter).ClSizeX[st]);     //cluster size   (lower layer |||)
+      hit->SetClusterSizeInUpperLayer(Tr.at(InIter).ClSizeXp[st]);    //cluster size   (upper layer ///or\\\)
+      hit->SetStripPositionInLowerLayer(Tr.at(InIter).StripNumX[st]); //strip position (lower layer |||)
+      hit->SetStripPositionInUpperLayer(Tr.at(InIter).StripNumXp[st]);//strip position (upper layer ///or\\\)
+      hit->SetStripTotalSignalInLowerLayer(Tr.at(InIter).SumQX[st]);  //sumQx
+      hit->SetStripTotalSignalInUpperLayer(Tr.at(InIter).SumQXp[st]); //sumQxp
     }
     
-    Double_t dax = -999.;
-    Double_t day = -999.;
-    Double_t dx  = -999.;
-    Double_t dy  = -999.;
+    FairTrackParam trackParamf;
+    trackParamf.SetPosition(TVector3(x1+Shift_toCenterOfMagnetX, y1+Shift_toCenterOfMagnetY, z1));
+    trackParamf.SetTx(Tr.at(InIter).param[0]+ Shift_toCenterOfMagnetAX + Shift_toCenterOfMagnetAX * Tr.at(InIter).param[0]* Tr.at(InIter).param[0]); 
+    trackParamf.SetTy(Tr.at(InIter).param[2]+ Shift_toCenterOfMagnetAY + Shift_toCenterOfMagnetAY * Tr.at(InIter).param[2]* Tr.at(InIter).param[2]);
     
-    if (fDebug) cout<<" Nmc "<<vec.size()<<" Nsi "<<Tr.size()<<endl;
-     
-    for (Int_t itr = 0; itr < vec.size(); itr++) {//mc_tr
-      
-        //---MC Eff ---
-        //---Den
-        if (fDebug && vec.at(itr).Np >= 3 && vec.at(itr).wo3st == 0){
-          hDen_mctrSi->Fill(0); cout<<" SiDen "<<endl;
-        }
-        
-          for (Int_t InIter = 0;  InIter < Tr.size(); InIter++){
-        
-            delt[0] = vec.at(itr).param[0] - Tr.at(InIter).param[0];
-            delt[1] = vec.at(itr).param[1] - Tr.at(InIter).param[1];
-            delt[2] = vec.at(itr).param[2] - Tr.at(InIter).param[2];
-            delt[3] = vec.at(itr).param[3] - Tr.at(InIter).param[3];
-            
-            if (fDebug){
-              if (delt[0] > -900.) hdAx_MC_tr_comb->Fill(dax);
-              if (delt[1] > -900.) hdX_MC_tr_comb ->Fill(dx);
-              if (delt[2] > -900.) hdAy_MC_tr_comb->Fill(day);
-              if (delt[3] > -900.) hdY_MC_tr_comb ->Fill(dy);
-            }
+    FairTrackParam trackParaml;
+    trackParaml.SetPosition(TVector3(x3+Shift_toCenterOfMagnetX, y3+Shift_toCenterOfMagnetY, z3));
+    trackParaml.SetTx(Tr.at(InIter).param[0]+ Shift_toCenterOfMagnetAX + Shift_toCenterOfMagnetAX * Tr.at(InIter).param[0]* Tr.at(InIter).param[0]);
+    trackParaml.SetTy(Tr.at(InIter).param[2]+ Shift_toCenterOfMagnetAY + Shift_toCenterOfMagnetAY * Tr.at(InIter).param[2]* Tr.at(InIter).param[2]);
+    
+    //if(fDebug)cout<<" itr "<<InIter<<" ax "<<Tr.at(InIter).param[0]+ Shift_toCenterOfMagnetAX + Shift_toCenterOfMagnetAX * Tr.at(InIter).param[0]* Tr.at(InIter).param[0]<<" bx "<<x3+Shift_toCenterOfMagnetX<<" z "<<z3<<endl;
+    BmnTrack *track = new ((*fSiTracks)[fSiTracks->GetEntriesFast()]) BmnTrack();
+    track->SetChi2(Tr.at(InIter).Chi2);
+    track->SetNHits(Tr.at(InIter).Nhits);
+    track->SetFlag(InIter);
+    track->SetNDF(Tr.at(InIter).Pdg);
+    track->SetParamFirst(trackParamf);
+    track->SetParamLast(trackParaml);
 
-            dmatch = 0.;
-            dmatch = (delt[0]*delt[0])/(sig[0]*sig[0])+ (delt[1]*delt[1])/(sig[1]*sig[1])+
-                     (delt[2]*delt[2])/(sig[2]*sig[2])+ (delt[3]*delt[3])/(sig[3]*sig[3]);
-                         
-            if ( dmc_match[itr] > dmatch){
-                dmc_match[itr]   = dmatch;
-                mc_tr_assoc[itr] = InIter;
-                dax = delt[0];
-                dx  = delt[1];
-                day = delt[2];
-                dy  = delt[3];
-            }
-          }//CleanTr
-          
-          if (mc_tr_assoc[itr] > -1){
-              if (fDebug && dax < -.00017) cout<<"Siiiii fEventNo "<<fEventNo<<" itr "<<itr<<" Np "<<vec.at(itr).Np<<" mc_Id "<<vec.at(itr).Id<<
-                 " ax_mc "<<vec.at(itr).param[0]<<" reco_ind "<<mc_tr_assoc[itr]<<" ax "<<Tr.at(mc_tr_assoc[itr]).param[0]<<
-                 " dmc_match "<<dmc_match[itr]<<endl;
-            if (fDebug){
-              if (dax > -900.) hdAx_MC_tr->Fill(dax);
-              if (dx > -900.)  hdX_MC_tr ->Fill(dx);
-              if (day > -900.) hdAy_MC_tr->Fill(day);
-              if (dy > -900.)  hdY_MC_tr ->Fill(dy);
-            }
-          }
-    }//vec_points.size
-    
-    if (fDebug) cout<<"Si reject poorly chosen association segments "<<endl;
-    for (Int_t itr = 0; itr < vec.size(); itr++) {//mc_tr
-      if (mc_tr_assoc[itr] == -1) continue;
-       
-      for (Int_t itr2 = 0; itr2 < vec.size(); itr2++) {//mc_tr
-        if (itr2 == itr) continue;
-        if (mc_tr_assoc[itr2] == -1) continue;
-        
-        if (mc_tr_assoc[itr] ==  mc_tr_assoc[itr2]){
-          if (dmc_match[itr2] > dmc_match[itr] ) mc_tr_assoc[itr2] = -1;
-          else {
-            mc_tr_assoc[itr] = -1;
-            break;
-          }
-        }
-      }//itr2
-      //---MC Eff ---
-      //---Num
-      if (fDebug) cout<<" mc_Id "<<vec.at(itr).Id<<" assoc "<<mc_tr_assoc[itr]<<endl;
-      if (fDebug && mc_tr_assoc[itr] > -1 && vec.at(itr).Np >= 3  && vec.at(itr).wo3st == 0){
-         hNum_mctrSi->Fill(0); cout<<" Num "<<endl;
-        }
-    }//itr
-    
-    
-
-  
+  }//InIter
+  //--------------------------------------------------------------------
   
 }
 
@@ -229,7 +196,7 @@ void BmnSiliconTrackFinder::WriteSiliconHits(Int_t **NclustX_, Int_t **NclustXp_
                         Double_t ***XpCoord_, Double_t ***XpClust_width_, Double_t ***XpClust_, Double_t ***sumQxp_, 
                         Double_t ***XspCoord_, Double_t ***YspCoord_, Double_t ***XspClust_width_, Double_t ***XpspClust_width_,
                         Double_t ***XspClust_, Double_t ***XpspClust_, Double_t ***sumQxsp_, Double_t ***sumQxpsp_,
-                        Double_t ***SigmaX_, Double_t ***SigmaXp_,Double_t ***SigmspX_, Double_t ***SigmspXp_, Double_t ***SigmspY_){
+                        Double_t ***SigmaX_, Double_t ***SigmaXp_,Double_t ***SigmspX_, Double_t ***SigmspXp_, Double_t ***SigmspY_, Int_t *** Sp_pdg_ ){
   Int_t countX = 0;
   for (Int_t ist = 1; ist < fNstations; ist++) {
      for (Int_t imod = 0; imod < fNmodules; imod++) {
@@ -289,14 +256,14 @@ void BmnSiliconTrackFinder::WriteSiliconHits(Int_t **NclustX_, Int_t **NclustXp_
       if (ist == 2 && imod > 1) continue;
       for (Int_t cl = 0; cl < NhitsXYmod_[ist][imod]; cl++) {
         
-       //if(fDebug)cout<<" st "<<ist<<" hit: X "<<XCoord[ist][imod][cl] <<" Y "<<-100.<<" SigX "<<SigmaX[ist][imod][cl]<<" SigY "<<-100.<<endl;
+       if(fDebug)cout<<" st "<<ist<<" hit: X "<<XspCoord_[ist][imod][cl] <<" Y "<<YspCoord_[ist][imod][cl]<<" pdg "<<Sp_pdg_[ist][imod][cl]<<endl;
        BmnSiliconHit* hit = new ((*fBmnSiliconHitsXYArray)[countXY])
                         BmnSiliconHit(0, TVector3(XspCoord_[ist][imod][cl]+Shift_toCenterOfMagnetX, YspCoord_[ist][imod][cl]+Shift_toCenterOfMagnetY, Zstation[ist][imod]), 
                         TVector3(SigmspX_[ist][imod][cl], SigmspY_[ist][imod][cl], -1), cl);
         hit->SetStation(ist);
         hit->SetModule(imod);
         hit->SetIndex(countXY);
-        
+        hit->SetPdg(Sp_pdg_[ist][imod][cl]);
         hit->SetClusterSizeInLowerLayer(XspClust_width_[ist][imod][cl]);                         //cluster size   (lower layer |||)
         hit->SetClusterSizeInUpperLayer(XpspClust_width_[ist][imod][cl]);//cluster size   (upper layer ///or\\\)
         hit->SetStripPositionInLowerLayer(XspClust_[ist][imod][cl]);                       //strip position (lower layer |||)
@@ -313,55 +280,145 @@ void BmnSiliconTrackFinder::WriteSiliconHits(Int_t **NclustX_, Int_t **NclustXp_
 }
 
 
-void BmnSiliconTrackFinder::WriteSiliconTracks(vector<tracksX>& Tr){
-  
-  Int_t Track_counter = 0;
-  for (Int_t InIter = 0; InIter < Tr.size(); ++InIter) {
-    Double_t z1 = Tr.at(InIter).CoordZ[1] + Zcentr;
-    Double_t x1 = Tr.at(InIter).param[0] * Tr.at(InIter).CoordZ[1] + Tr.at(InIter).param[1]; //ax(z)+bx
-    Double_t y1 = Tr.at(InIter).param[2] * Tr.at(InIter).CoordZ[1] + Tr.at(InIter).param[3]; //y
-    Double_t z3 = Tr.at(InIter).CoordZ[3] + Zcentr;
-    Double_t x3 = Tr.at(InIter).param[0] * Tr.at(InIter).CoordZ[3] + Tr.at(InIter).param[1]; //ax(z)+bx
-    Double_t y3 = Tr.at(InIter).param[2] * Tr.at(InIter).CoordZ[3] + Tr.at(InIter).param[3]; //y
+void BmnSiliconTrackFinder::MCefficiencyCalculation(vector<MC_points>& vec, vector<tracksX>& Tr){
+
+    if (fDebug) cout<<" ---Silicon MC tracks association--"<<endl;
+    //                   ax,   bx,    ay,  by
+    Double_t delt[4] = {-999.,-999.,-999.,-999.}; 
+    Double_t sig[4]  = {0.04, 0.08, 0.05, 0.08};
     
-    for (Int_t st = 1; st < fNstations; ++st) { 
-       
-     // if(fDebug)cout<<" st "<<st<<" hit: X "<<Tr.at(InIter).CoordX[st]<<" Y "<<Tr.at(InIter).CoordY[st]<<" SigX "<<Tr.at(InIter).SigmaX[st]<<" SigY "<<Tr.at(InIter).SigmaY[st]<<endl;
-      BmnSiliconHit* hit = new ((*fBmnSiliconHitsArray)[Track_counter])
-                        BmnSiliconHit(0, TVector3(Tr.at(InIter).CoordX[st]+Shift_toCenterOfMagnetX, Tr.at(InIter).CoordY[st]+Shift_toCenterOfMagnetY, Tr.at(InIter).CoordZ[st]+ Zcentr), 
-                        TVector3(Tr.at(InIter).SigmaX[st], Tr.at(InIter).SigmaY[st], -1), InIter);
-      Track_counter++;                 
-      hit->SetStation(st);
-      hit->SetModule(Tr.at(InIter).ModNum[st]);
-      hit->SetIndex(InIter);
-      
-      hit->SetClusterSizeInLowerLayer(Tr.at(InIter).ClSizeX[st]);     //cluster size   (lower layer |||)
-      hit->SetClusterSizeInUpperLayer(Tr.at(InIter).ClSizeXp[st]);    //cluster size   (upper layer ///or\\\)
-      hit->SetStripPositionInLowerLayer(Tr.at(InIter).StripNumX[st]); //strip position (lower layer |||)
-      hit->SetStripPositionInUpperLayer(Tr.at(InIter).StripNumXp[st]);//strip position (upper layer ///or\\\)
-      hit->SetStripTotalSignalInLowerLayer(Tr.at(InIter).SumQX[st]);  //sumQx
-      hit->SetStripTotalSignalInUpperLayer(Tr.at(InIter).SumQXp[st]); //sumQxp
+    Double_t dmatch = 0.;
+    Double_t dmc_match[kMaxMC];
+    Int_t    mc_tr_assoc[kMaxMC];
+    
+    for (Int_t j = 0; j < kMaxMC; j++) {
+      dmc_match[j]   = 1000.;
+      mc_tr_assoc[j] = -1;
     }
     
-    FairTrackParam trackParamf;
-    trackParamf.SetPosition(TVector3(x1+Shift_toCenterOfMagnetX, y1+Shift_toCenterOfMagnetY, z1));
-    trackParamf.SetTx(Tr.at(InIter).param[0]+ Shift_toCenterOfMagnetAX + Shift_toCenterOfMagnetAX * Tr.at(InIter).param[0]* Tr.at(InIter).param[0]); 
-    trackParamf.SetTy(Tr.at(InIter).param[2]+ Shift_toCenterOfMagnetAY + Shift_toCenterOfMagnetAY * Tr.at(InIter).param[2]* Tr.at(InIter).param[2]);
+    Double_t dax = -999.;
+    Double_t day = -999.;
+    Double_t dx  = -999.;
+    Double_t dy  = -999.;
+    
+    if (fDebug) cout<<" Nmc "<<vec.size()<<" Nsi "<<Tr.size()<<endl;
+    
+    Int_t Ngood_mc_tracks = 0;
+    Int_t Ngood_reco_tracks = 0;
+    Bool_t wasLi7 = 0;
+    Bool_t wasHe4 = 0;
+     
+    for (Int_t itr = 0; itr < vec.size(); itr++) {//mc_tr
+      
+        //---MC Eff ---
+        //---Den
+        if (fDebug && vec.at(itr).Np >= 3 && vec.at(itr).wo3st == 0){
+          hDen_mctrSi->Fill(0); 
+          Ngood_mc_tracks++;
+          cout<<" SiDen "<<endl;
+          if (vec.at(itr).Pdg == PDG_Li7) wasLi7 = 1;
+          if (vec.at(itr).Pdg == PDG_He4) wasHe4 = 1;
+        }
+        
+          for (Int_t InIter = 0;  InIter < Tr.size(); InIter++){//reco_tr
+        
+            delt[0] = vec.at(itr).param[0] - Tr.at(InIter).param[0];
+            delt[1] = vec.at(itr).param[1] - Tr.at(InIter).param[1];
+            delt[2] = vec.at(itr).param[2] - Tr.at(InIter).param[2];
+            delt[3] = vec.at(itr).param[3] - Tr.at(InIter).param[3];
+            
+            if (fDebug){
+              if (delt[0] > -900.) hdAx_MC_tr_comb->Fill(dax);
+              if (delt[1] > -900.) hdX_MC_tr_comb ->Fill(dx);
+              if (delt[2] > -900.) hdAy_MC_tr_comb->Fill(day);
+              if (delt[3] > -900.) hdY_MC_tr_comb ->Fill(dy);
+            }
 
-    FairTrackParam trackParaml;
-    trackParaml.SetPosition(TVector3(x3+Shift_toCenterOfMagnetX, y3+Shift_toCenterOfMagnetY, z3));
-    trackParaml.SetTx(Tr.at(InIter).param[0]+ Shift_toCenterOfMagnetAX + Shift_toCenterOfMagnetAX * Tr.at(InIter).param[0]* Tr.at(InIter).param[0]);
-    trackParaml.SetTy(Tr.at(InIter).param[2]+ Shift_toCenterOfMagnetAY + Shift_toCenterOfMagnetAY * Tr.at(InIter).param[2]* Tr.at(InIter).param[2]);
+            dmatch = 0.;
+            dmatch = (delt[0]*delt[0])/(sig[0]*sig[0])+ (delt[1]*delt[1])/(sig[1]*sig[1])+
+                     (delt[2]*delt[2])/(sig[2]*sig[2])+ (delt[3]*delt[3])/(sig[3]*sig[3]);
+                         
+            if ( dmc_match[itr] > dmatch){
+                dmc_match[itr]   = dmatch;
+                mc_tr_assoc[itr] = InIter;
+                dax = delt[0];
+                dx  = delt[1];
+                day = delt[2];
+                dy  = delt[3];
+            }
+          }//reco
+          
+          if (mc_tr_assoc[itr] > -1){
+              //if (fDebug && dax < -.00017) 
+              //cout<<"Siiiii fEventNo "<<fEventNo
+              if (fDebug) cout <<" itr "<<itr<<" Np "<<vec.at(itr).Np<<" mc_Id "<<vec.at(itr).Id<<
+                 " ax_mc "<<vec.at(itr).param[0]<<" reco_ind "<<mc_tr_assoc[itr]<<" ax "<<Tr.at(mc_tr_assoc[itr]).param[0]<<
+                 " dmc_match "<<dmc_match[itr]<<endl;
+            if (fDebug){
+              if (dax > -900.) hdAx_MC_tr->Fill(dax);
+              if (dx > -900.)  hdX_MC_tr ->Fill(dx);
+              if (day > -900.) hdAy_MC_tr->Fill(day);
+              if (dy > -900.)  hdY_MC_tr ->Fill(dy);
+            }
+          }
+    }//mc_tr
+    
+    if (wasLi7 && wasHe4) {
+      if (fDebug) cout <<" wasLi7 && wasHe4 "<<wasLi7<<" "<<wasHe4<<endl;
+      hDen_mcreaction->Fill(0);
+    }
+    Int_t Nassoc = 0;
+    
+    if (fDebug) cout<<"Si reject poorly chosen association segments "<<endl;
+    for (Int_t itr = 0; itr < vec.size(); itr++) {//mc_tr
+      if (mc_tr_assoc[itr] == -1) continue;
+       
+      for (Int_t itr2 = 0; itr2 < vec.size(); itr2++) {//mc_tr
+        if (itr2 == itr) continue;
+        if (mc_tr_assoc[itr2] == -1) continue;
+        
+        if (mc_tr_assoc[itr] ==  mc_tr_assoc[itr2]){
+          if (dmc_match[itr2] > dmc_match[itr] ) mc_tr_assoc[itr2] = -1;
+          else {
+            mc_tr_assoc[itr] = -1;
+            break;
+          }
+        }
+      }//itr2
+      //---MC Eff ---
+      //---Num
+      if (fDebug) cout<<" mc_Id "<<vec.at(itr).Id<<" assoc "<<mc_tr_assoc[itr]<<" pdg "<<vec.at(itr).Pdg<<endl;
+      if (fDebug && mc_tr_assoc[itr] > -1 && vec.at(itr).Np >= 3  && vec.at(itr).wo3st == 0){
+         Nassoc++;
+         Ngood_reco_tracks++;
+         hNum_mctrSi->Fill(0); 
+         cout<<" Num "<<endl;
+      }
+    }//itr
+    
+    if (fDebug) cout<<" Nassoc "<<Nassoc<<endl;
+    if (Nassoc == 2 && wasLi7 && wasHe4){
+      if (fDebug) cout<<" hNum_mcreaction "<<endl;
+      hNum_mcreaction->Fill(0);
+    }
+    if (fDebug){
+      hNtrsi_mc ->Fill(Ngood_mc_tracks);
+      hNtrsi_reco->Fill(Ngood_reco_tracks);
+      hNtrsi_mc_vs_reco ->Fill(Ngood_reco_tracks,Ngood_mc_tracks);
+    }
+    
+    for (Int_t InIter = 0;  InIter < Tr.size(); InIter++){//reco_tr
+      for (Int_t itr = 0; itr < vec.size(); itr++) {//mc_tr
+        if ( mc_tr_assoc[itr] == InIter){
+          Tr.at(InIter).Pdg = vec.at(itr).Pdg;
+        }
+      }
+    }
+    for (Int_t InIter = 0;  InIter < Tr.size(); InIter++){//reco_tr
+      if (fDebug) cout<<" InIter "<<InIter<<" Pdg "<<Tr.at(InIter).Pdg<<endl;
+    }
 
-    BmnTrack *track = new ((*fSiTracks)[fSiTracks->GetEntriesFast()]) BmnTrack();
-    track->SetChi2(Tr.at(InIter).Chi2);
-    track->SetNHits(Tr.at(InIter).Nhits);
-    track->SetFlag(InIter);
-    track->SetParamFirst(trackParamf);
-    track->SetParamLast(trackParaml);
-
-  }//InIter
-  //--------------------------------------------------------------------
+  
   
 }
 
@@ -392,6 +449,10 @@ void BmnSiliconTrackFinder::StripsReading(Double_t ***DigitsArrayX_, Double_t **
          if (new_strip < 0) continue;
          DigitsArrayXp_[stat][mod][new_strip] = Ampl;
         }//else
+       // if (stat == 3){
+         // if (new_strip > 639) continue;
+         // DigitsArrayXp_[stat][mod][new_strip+1] = DigitsArrayXp_[stat][mod][new_strip];
+       // }
         // if(fDebug) cout<<" DigitsArrayXp["<<stat<<"]["<<mod<<"]["<<new_strip<<"] = "<<DigitsArrayXp_[stat][mod][new_strip]<<endl;
       }//layer == 1
     }//iDig
@@ -421,8 +482,8 @@ void BmnSiliconTrackFinder::GetXYspatial(Int_t **NClX, Int_t **NClXp, Double_t *
 
             YCoor_cand = (XpCoor[istat][imod][clxp] - XCoor[istat][imod][clx]) / tg2_5;
 
-            // if ( fDebug ) cout<<" istat "<<istat<<" imod "<<imod<<" X "<<XCoor[istat][imod][clx]<<" Xp "<<XpCoor[istat][imod][clxp] <<" Ycand "<<YCoor_cand <<endl;
-            // if ( fDebug ) cout<<" SensitiveAreaY[istat] "<<SensitiveAreaY[istat]<<endl;
+            if ( fDebug ) cout<<" istat "<<istat<<" imod "<<imod<<" X "<<XCoor[istat][imod][clx]<<" Xp "<<XpCoor[istat][imod][clxp] <<" Ycand "<<YCoor_cand <<endl;
+            if ( fDebug ) cout<<" SensitiveAreaY[istat] "<<SensitiveAreaY[istat]<<endl;
 
            if (YCoor_cand >= 0.1148 && YCoor_cand <= SensitiveAreaY[istat]) { // if (YCoor_cand >= 0 && YCoor_cand <= SensitiveAreaY[istat]) {
                
@@ -431,7 +492,7 @@ void BmnSiliconTrackFinder::GetXYspatial(Int_t **NClX, Int_t **NClXp, Double_t *
               if (istat > 1 && YCoor_cand <= half_module) {
                 YCoor_cand -= shift_after_zigzag;
               }
-              // if ( fDebug ) cout<<" Y "<<YCoor_cand<<endl;
+              if ( fDebug ) cout<<" Y "<<YCoor_cand<<endl;
               Xsp[istat][imod][NXYsp[istat][imod]]         = XCoor[istat][imod][clx];
               SigspX[istat][imod][NXYsp[istat][imod]]      = SigmX[istat][imod][clx];
               XspCl[istat][imod][NXYsp[istat][imod]]       = XCl[istat][imod][clx];
@@ -448,7 +509,7 @@ void BmnSiliconTrackFinder::GetXYspatial(Int_t **NClX, Int_t **NClXp, Double_t *
               SigspY[istat][imod][NXYsp[istat][imod]]      = sqrt( pow (SigmX[istat][imod][clx],2) + pow(SigmXp[istat][imod][clxp],2) ) / tg2_5;
               NXYsp[istat][imod]++;
             }
-            //if (fDebug) cout<<" NXYsp["<<istat<<"]["<<imod<<"] "<<NXYsp[istat][imod]<<endl;
+            if (fDebug) cout<<" NXYsp["<<istat<<"]["<<imod<<"] "<<NXYsp[istat][imod]<<endl;
 
           }//if X & Y > -900
         }//NClXp
@@ -489,13 +550,13 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
     for (Int_t imod = 0; imod < fNmodules; imod++) {
       for (Int_t istr = 0; istr < fNstrips; istr++) {
      
-       if ( DigitsArrayX_[istat][imod][istr] == 0. && DigitsArrayX_[istat][imod][istr-1] > 120. && DigitsArrayX_[istat][imod][istr + 1] > 120.)
+       if ( DigitsArrayX_[istat][imod][istr] == 0. && DigitsArrayX_[istat][imod][istr-1] > Cut_AmplX && DigitsArrayX_[istat][imod][istr + 1] > Cut_AmplX)
         DigitsArrayX_[istat][imod][istr] = 0.5 * ( DigitsArrayX_[istat][imod][istr-1] + DigitsArrayX_[istat][imod][istr + 1] ) ;
 
        if ( istat == 1 && imod == 0 ) {
         // dead zone 405-412 strips
-        if ( DigitsArrayX_[istat][imod][404] > 120. ) DigitsArrayX_[istat][imod][405] = 0.5* DigitsArrayX_[istat][imod][404] ;
-        if ( DigitsArrayX_[istat][imod][413] > 120. ) DigitsArrayX_[istat][imod][412] = 0.5* DigitsArrayX_[istat][imod][413] ;
+        if ( DigitsArrayX_[istat][imod][404] > Cut_AmplX ) DigitsArrayX_[istat][imod][405] = 0.5* DigitsArrayX_[istat][imod][404] ;
+        if ( DigitsArrayX_[istat][imod][413] > Cut_AmplX ) DigitsArrayX_[istat][imod][412] = 0.5* DigitsArrayX_[istat][imod][413] ;
        }
 
        if ( DigitsArrayXp_[istat][imod][istr] == 0. && DigitsArrayXp_[istat][imod][istr-1] > 120. && DigitsArrayXp_[istat][imod][istr + 1] > 120.)
@@ -516,17 +577,18 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
       SumAmpl = 0.;
       Strip_counterX = 0;
      
-      // if ( fDebug) cout<<"----x-----"<<endl; 
+       if ( fDebug) cout<<"----x-----"<<endl; 
       for (Int_t istr = 0; istr < fNstrips; istr++){
-       // if ( fDebug && DigitsArrayX_[istat][imod][istr] > 0.) cout<<" DigitsArrayX_["<<istat<<"]["<<imod<<"]["<<istr<<"] "<<DigitsArrayX_[istat][imod][istr]<<endl;
-
+        
+        if ( fDebug && DigitsArrayX_[istat][imod][istr] > 0.) cout<<" DigitsArrayX_["<<istat<<"]["<<imod<<"]["<<istr<<"] "<<DigitsArrayX_[istat][imod][istr]<<endl;
+        
         // looking for start and end of cluster
         if (NfirstX < 0 && DigitsArrayX_[istat][imod][istr] == 0.) continue;
         if (NfirstX < 0 && DigitsArrayX_[istat][imod][istr] > 0.)  NfirstX = istr;
         if (NfirstX >= 0 && DigitsArrayX_[istat][imod][istr + 1] == 0. ) NlastX = istr;
   
         if (NfirstX >= 0 && NlastX > 0) {
-        // if(fDebug) cout<<" NfirstX "<<NfirstX<<" NlastX "<<NlastX<<endl;
+          if(fDebug) cout<<" NfirstX "<<NfirstX<<" NlastX "<<NlastX<<endl;
           Int_t max_ampl_strip = -1,
           num_max_ampl_strip = -1,
           num_left_strip = 0,
@@ -549,7 +611,7 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
             }
             //calculate center of cluster
             CoG = FindClusterCenter(Ampl_strX, ClusterSizeX, SumAmpl);
-            // if(fDebug) cout<<" CoG "<<CoG <<endl;
+            if(fDebug) cout<<" CoG "<<CoG <<endl;
           }
 
           for (Int_t is = NfirstX; is < NlastX + 1; is++) {
@@ -564,9 +626,9 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
           }
           
 
-          // if(fDebug) cout<<" ampl_centr strip "<<DigitsArrayX_[istat][imod][num_centr_strip]<<" Cut_AmplStripX "<<Cut_AmplStripX<<endl;
+          if(fDebug) cout<<" ampl_centr strip "<<DigitsArrayX_[istat][imod][num_centr_strip]<<" Cut_AmplStripX "<<Cut_AmplStripX<<endl;
           if ( num_centr_strip > 0 && DigitsArrayX_[istat][imod][num_centr_strip] < Cut_AmplStripX) {
-           // if(fDebug) cout<<" num_centr_strip > Cut_AmplStripX "<<endl;
+          if(fDebug) cout<<" num_centr_strip > Cut_AmplStripX "<<endl;
            NfirstX = -1;
            NlastX = -1;
            continue;
@@ -578,15 +640,15 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
            continue;
           }
 
-         // if(fDebug) cout<<" NfirstX "<<NfirstX<<" CoG "<<CoG<<" NfirstX + CoG "<<NfirstX + CoG<<endl;
+          if(fDebug) cout<<" NfirstX "<<NfirstX<<" CoG "<<CoG<<" NfirstX + CoG "<<NfirstX + CoG<<endl;
 
           XClust_[istat][imod][NclustX_[istat][imod]] = NfirstX + CoG;
           XClust_width_[istat][imod][NclustX_[istat][imod]] = ClusterSizeX;
           sumQx_[istat][imod][NclustX_[istat][imod]] = SumAmpl;
-          // if(fDebug) cout<<" NclustX_["<<istat<<"]["<<imod<<"] "<<NclustX_[istat][imod]<<" NfX "<<NfirstX<<" NlX "<<NlastX<<" ClustSizeX "<<ClusterSizeX<<" XClust_ "<<XClust_[istat][imod][NclustX_[istat][imod]]<<endl;
+           if(fDebug) cout<<" NclustX_["<<istat<<"]["<<imod<<"] "<<NclustX_[istat][imod]<<" NfX "<<NfirstX<<" NlX "<<NlastX<<" ClustSizeX "<<ClusterSizeX<<" XClust_ "<<XClust_[istat][imod][NclustX_[istat][imod]]<<endl;
 
           NclustX_[istat][imod] ++;
-          // if(fDebug) cout<<" NclustX_["<<istat<<"]["<<imod<<"] "<<NclustX_[istat][imod]<<endl;
+          if(fDebug) cout<<" NclustX_["<<istat<<"]["<<imod<<"] "<<NclustX_[istat][imod]<<endl;
 
           NfirstX = -1;
           NlastX = -1;
@@ -601,13 +663,14 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
       NlastXp = -1;
       ClusterSizeXp = 0;
       SumAmplXp = 0.;
-      // if ( fDebug) cout<<"----xp-----"<<endl;
+       if ( fDebug) cout<<"----xp-----"<<endl;
       for (Int_t istr = 0; istr < fNstrips; istr++) {
 
-       //if ( fDebug && DigitsArrayXp_[istat][imod][istr] > 0.) cout<<" DigitsArrayXp_["<<istat<<"]["<<imod<<"]["<<istr<<"] "<<DigitsArrayXp_[istat][imod][istr]<<endl;
+       if ( fDebug && DigitsArrayXp_[istat][imod][istr] > 0.) cout<<" DigitsArrayXp_["<<istat<<"]["<<imod<<"]["<<istr<<"] "<<DigitsArrayXp_[istat][imod][istr]<<endl;
+       
        // looking for start and end of cluster
-       if (NfirstXp < 0 && DigitsArrayXp_[istat][imod][istr] == 0.)  continue;
-       if (NfirstXp < 0 && DigitsArrayXp_[istat][imod][istr] > 0.)  NfirstXp = istr;
+       if (NfirstXp < 0 && DigitsArrayXp_[istat][imod][istr] == 0.)      continue;
+       if (NfirstXp < 0 && DigitsArrayXp_[istat][imod][istr] > 0.)       NfirstXp = istr;
        if (NfirstXp >= 0 && DigitsArrayXp_[istat][imod][istr + 1] == 0.) NlastXp = istr;
 
        if (NfirstXp >= 0 && NlastXp > 0) {
@@ -651,10 +714,10 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
           //if ( fDebug && SumAmplXp > 0) hsumQ[istat][imod][1]->Fill(log10(float(SumAmplXp))/log10(float(2)));//Fill(SumAmplXp);
 
           if ( num_centr_strip > 0 && DigitsArrayXp_[istat][imod][num_centr_strip] < Cut_AmplStripXp) {
-           // if(fDebug) cout<<" num_centr_strip > Cut_AmplStripX "<<endl;
-           NfirstXp = -1;
-           NlastXp = -1;
-           continue;
+            if(fDebug) cout<<" num_centr_strip > Cut_AmplStripX "<<endl;
+            NfirstXp = -1;
+            NlastXp = -1;
+            continue;
           }
 
           if ( SumAmplXp < Cut_AmplXp) {
@@ -669,12 +732,12 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
            continue;
           }
           */
-          // if(fDebug) cout<<" NfirstXp "<<NfirstXp<<" CoG "<<CoG<<" NfirstXp + CoG "<<NfirstXp + CoG<<endl;
+           if(fDebug) cout<<" NfirstXp "<<NfirstXp<<" CoG "<<CoG<<" NfirstXp + CoG "<<NfirstXp + CoG<<endl;
           XpClust_[istat][imod][NclustXp_[istat][imod]] = NfirstXp + CoG;
           XpClust_width_[istat][imod][NclustXp_[istat][imod]] = ClusterSizeXp;
           sumQxp_[istat][imod][NclustXp_[istat][imod]] = SumAmplXp;
           NclustXp_[istat][imod]++;
-          // if ( fDebug) cout<<"NclustXp_["<<istat<<"]["<<imod<<"] "<<NclustXp_[istat][imod]<<endl;
+           if ( fDebug) cout<<"NclustXp_["<<istat<<"]["<<imod<<"] "<<NclustXp_[istat][imod]<<endl;
 
           NfirstXp = -1;
           NlastXp = -1;
@@ -694,7 +757,8 @@ void BmnSiliconTrackFinder::CoordinateCalculation(Int_t **NclustX_, Int_t **Nclu
 Double_t ***XspCoord_, Double_t ***XpspCoord_, Double_t ***YspCoord_, Double_t ***SigmspX_, Double_t ***SigmspXp_, Double_t ***SigmspY_, 
 Int_t **NhitsXYmod_,
  Double_t ***XClust_, Double_t ***XClust_width_, Double_t ***sumQx_, Double_t ***XpClust_, Double_t ***XpClust_width_, Double_t ***sumQxp_,
- Double_t ***XspClust_, Double_t ***XspClust_width_, Double_t ***sumQxsp_, Double_t ***XpspClust_, Double_t ***XpspClust_width_, Double_t ***sumQxpsp_,vector<MC_points>& vec ){
+ Double_t ***XspClust_, Double_t ***XspClust_width_, Double_t ***sumQxsp_, Double_t ***XpspClust_, Double_t ***XpspClust_width_, Double_t ***sumQxpsp_,
+ vector<MC_points>& vec, Int_t *** Sp_pdg_ ){
    
 if(expData){
   //move X and Xp coordinates on frame size
@@ -811,12 +875,13 @@ if(expData){
       Int_t    st_mc    = -1;
       Double_t sigx_MC  = hit->GetDx();
       Double_t sigxp_MC = hit->GetDy();
+      
       if (sigx_MC < 0 )  sigx_MC = -sigx_MC;
       if (sigxp_MC < 0 ) sigxp_MC= -sigxp_MC;
       
-      if (z_MC > -320.) st_mc = 3;
-      if (z_MC < -434. && z_MC > -436.) st_mc = 2;
-      if (z_MC < -438.) st_mc = 1;
+      if (z_MC > -320.){ st_mc = 3; if (fDebug) hSi_st3mc->Fill(x_MC,(xp_MC - x_MC)/tg2_5 );}
+      if (z_MC < -434. && z_MC > -436.) {st_mc = 2; if (fDebug) hSi_st2mc->Fill(x_MC,(xp_MC - x_MC)/tg2_5 );}
+      if (z_MC < -438.) {st_mc = 1; if (fDebug) hSi_st1mc->Fill(x_MC,(xp_MC - x_MC)/tg2_5 );}
       int imod = 2;
       if (st_mc == 2) imod = 1;
       
@@ -830,27 +895,32 @@ if(expData){
       XspCoord_[st_mc][imod][NhitsXYmod[st_mc][imod]]  = x_MC;
       XpspCoord_[st_mc][imod][NhitsXYmod[st_mc][imod]] = xp_MC;
       YspCoord_[st_mc][imod][NhitsXYmod[st_mc][imod]]  = (xp_MC - x_MC)/tg2_5;
+      Sp_pdg_[st_mc][imod][NhitsXYmod[st_mc][imod]]    = hit->GetType();
       SigmspX_[st_mc][imod][NhitsXYmod[st_mc][imod]]   = sigx_MC;
       SigmspXp_[st_mc][imod][NhitsXYmod[st_mc][imod]]  = sigxp_MC;
       SigmspY_[st_mc][imod][NhitsXYmod[st_mc][imod]]   = sqrt( pow (sigx_MC,2) + pow(sigxp_MC,2) ) / tg2_5;
-      if (fDebug) cout<<" Id "<<Id<<" x "<<x_MC<<" xp "<<xp_MC<<" y "<<YspCoord_[st_mc][imod][NhitsXYmod[st_mc][imod]] <<" z_MC "<<z_MC<<" st_mc "<<st_mc<<endl;
+      if (fDebug) cout<<" Id "<<Id<<" x "<<x_MC<<" xp "<<xp_MC<<" y "<<YspCoord_[st_mc][imod][NhitsXYmod[st_mc][imod]] <<" z_MC "<<z_MC<<" st_mc "<<st_mc<<" pdg "<<hit->GetType()<<endl;
       
       NhitsXYmod_[st_mc][imod]++;
       //if (fDebug) cout<<" NhitsXYmod["<<st_mc<<"] "<<NhitsXYmod[st_mc][imod]<<endl;
     }//iMC
     
-    if (fDebug) cout<<"BmnSiliconHitClean"<<endl;
+    if (fDebug) cout<<"True MC BmnSiliconHitClean"<<endl;
     int tr_before  = -1;
     int Nmc_tracks = -1;
     
     int Nst_mc[kMaxMC]; 
+    int Np_in_3st[kMaxMC];
     int mcTracksArray[kMaxMC]; 
+    int mcPdgCode[kMaxMC];
     double Xmc[kMaxMC][fNstations];
     double Ymc[kMaxMC][fNstations];
     double Zmc[kMaxMC][fNstations];
     for (Int_t  Id= 0; Id < kMaxMC; Id++) { 
-      Nst_mc[Id] = 0;
+      Nst_mc[Id]        = 0;
+      Np_in_3st[Id]     = 0;
       mcTracksArray[Id] = -1;
+      mcPdgCode[Id]     = 0;
       for (Int_t  i = 0; i < fNstations; i++) { 
         Xmc[Id][i] = -999.;
         Ymc[Id][i] = -999.;
@@ -866,6 +936,7 @@ if(expData){
       Double_t z_MC   = hit->GetZ();
       Int_t trackId_MC= hit->GetIndex();
       Int_t     st_mc = -1;
+      Int_t   pdgCode = hit->GetType();//pdg
       
       if (tr_before != trackId_MC) {
         Nmc_tracks++;
@@ -873,14 +944,15 @@ if(expData){
       }
       tr_before = trackId_MC;
       
-      if (z_MC > -320.) st_mc = 3;
+      if (z_MC > -320.) {st_mc = 3; Np_in_3st[Nmc_tracks]++; }
       if (z_MC < -434. && z_MC > -436. ) st_mc = 2;
       if (z_MC < -438.) st_mc = 1;
-      if (fDebug) cout<<" Id "<<trackId_MC<<" x "<<x_MC<<" y "<<y_MC<<" z "<<z_MC<<" st_mc "<<st_mc<<endl;
+      if (fDebug) cout<<" pdgId "<<trackId_MC<<" pdgCode "<<pdgCode<<" x "<<x_MC<<" y "<<y_MC<<" z "<<z_MC<<" st_mc "<<st_mc<<endl;
       
       Xmc[Nmc_tracks][st_mc] = x_MC;
       Ymc[Nmc_tracks][st_mc] = y_MC;
       Zmc[Nmc_tracks][st_mc] = z_MC;
+      mcPdgCode[Nmc_tracks]  = pdgCode;
       Nst_mc[Nmc_tracks]++;
       
     }//iMC
@@ -895,13 +967,15 @@ if(expData){
         }
         tmpTr.Id = mcTracksArray[Id];
         tmpTr.Np = Nst_mc[Id];
-        if (Nst_mc[Id] >= 2 ) vec.push_back(tmpTr);
+        tmpTr.Pdg= mcPdgCode[Id];
+        if (Nst_mc[Id] >= 2 && Np_in_3st[Id] > 0 ) vec.push_back(tmpTr);
       }
     }
     
     if (fDebug) cout<<" vec_points.size() "<<vec.size()<<endl;
       
     for (Int_t  itr = 0; itr < vec.size(); itr++) { 
+      //if (fDebug) cout<<" itr "<<itr<<" Pdg "<<vec.at(itr).Pdg<<endl;
       if (vec.at(itr).x[3] < -900.) vec.at(itr).wo3st = 1;
       if (vec.at(itr).x[1] > -900.){
         vec.at(itr).param[0]  = (vec.at(itr).x[1] - vec.at(itr).x[3])/ (vec.at(itr).z[1] - vec.at(itr).z[3]); 
@@ -914,15 +988,21 @@ if(expData){
         vec.at(itr).param[2]  = (vec.at(itr).y[2] - vec.at(itr).y[3])/ (vec.at(itr).z[2] - vec.at(itr).z[3]); 
         vec.at(itr).param[3]  = (vec.at(itr).y[2] + vec.at(itr).y[3])*0.5;
       }
-      if (fDebug) cout<<" Id "<<vec.at(itr).Id<<" Ax "<<vec.at(itr).param[0]<<" bx "<<vec.at(itr).param[1]<<" Ay "<<vec.at(itr).param[2]<<" by "<<vec.at(itr).param[3]<<" Np "<<vec.at(itr).Np<<endl;
+      if (fDebug) cout<<" mcId "<<vec.at(itr).Id<<" Pdg "<<vec.at(itr).Pdg<<" Ax "<<vec.at(itr).param[0]<<" bx "<<vec.at(itr).param[1]<<" Ay "<<vec.at(itr).param[2]<<" by "<<vec.at(itr).param[3]<<" Np "<<vec.at(itr).Np<<endl;
       if (fDebug) cout<<" Xt "<<vec.at(itr).param[0]*( Z0_SRC_target - Zcentr ) + vec.at(itr).param[1]<<
                         " Yt "<<vec.at(itr).param[2]*( Z0_SRC_target - Zcentr ) + vec.at(itr).param[3]<<endl;
-          
+      
+      if (fDebug) hAxsi_mctrue->Fill(vec.at(itr).param[0]);
+      if (fDebug) hAysi_mctrue->Fill(vec.at(itr).param[2]);
+      if (fDebug) hBxsi_mctrue->Fill(vec.at(itr).param[1]);
+      if (fDebug) hBysi_mctrue->Fill(vec.at(itr).param[3]);
+      
     }
 
   }//if(!expData)
 }
-//
+//----------------------------------------------------------------------
+
 
 
 //-------------------Alignment------------------------------------------
@@ -930,6 +1010,7 @@ void BmnSiliconTrackFinder::CoordinateAlignment( Int_t **NhitsXYmod_,  Double_t 
 Int_t **NclustX_, Int_t **NclustXp_, Double_t ***XCoord_, Double_t ***XpCoord_){
   //if (fDebug) cout<<" Shift coordinates "<<endl;
   
+
   for (Int_t ist = 1; ist < fNstations; ist++) {
       //if ( fDebug ) cout<<" shiftStXtoGlob["<<ist<<"]= "<<shiftStXtoGlob[ist]<<" Y "<< shiftStYtoGlob[ist]<<endl;
       for (Int_t imod = 0; imod < fNmodules; imod++) {
@@ -947,9 +1028,9 @@ Int_t **NclustX_, Int_t **NclustXp_, Double_t ***XCoord_, Double_t ***XpCoord_){
       for (Int_t cl = 0; cl < NhitsXYmod_[ist][imod]; cl++) {
 
         if(ist == 2 || ist == 3) { // gap between Si planes implemented for Run-7
-         //if( YspCoord_[ist][imod][cl] > 0. && YspCoord_[ist][imod][cl] <= 0.1151) continue;
-         //if( YspCoord_[ist][imod][cl] < 0. && YspCoord_[ist][imod][cl] >= -0.1151) continue;
-          //if( YspCoord_[ist][imod][cl] > 0. ) YspCoord_[ist][imod][cl] += 0.1151;
+          if( YspCoord_[ist][imod][cl] > 0. && YspCoord_[ist][imod][cl] <= 0.1151) continue;
+          if( YspCoord_[ist][imod][cl] < 0. && YspCoord_[ist][imod][cl] >= -0.1151) continue;
+          if( YspCoord_[ist][imod][cl] > 0. ) YspCoord_[ist][imod][cl] += 0.1151;
           //else (YspCoord_[ist][imod][cl] -= 0.1151;
           // else{
           //XpCoord[ist][imod][cl]
@@ -1055,7 +1136,6 @@ Int_t **NclustX_, Int_t **NclustXp_, Double_t ***XCoord_, Double_t ***XpCoord_){
     }//imod
   }//ist
   
-  
   if(fDebug) cout<<" --after shift-- "<<endl;
   
    for (Int_t ist = 1; ist < fNstations; ist++) {
@@ -1119,7 +1199,7 @@ Int_t **NclustX_, Int_t **NclustXp_, Double_t ***XCoord_, Double_t ***XpCoord_){
       if(fDebug) cout<<endl;
     }
   if(fDebug) cout<<endl;
-
+  
 }
 //----------------------------------------------------------------------
 
@@ -1131,7 +1211,8 @@ void BmnSiliconTrackFinder::CountSpatialPoints(Int_t **Nleftoversp_, Int_t *Nsp_
   for (Int_t st = 1; st < fNstations; ++st) {
     Nsp_st_[st] = 0;
     for (Int_t imod = 0; imod < fNmodules; imod++) { 
-      if ( Nleftoversp_[st][imod] > 0 ) Nsp_st_[st]++;
+      //if ( fDebug) cout<<" Nleftoversp_["<<st<<"]["<<imod<<"] "<<Nleftoversp_[st][imod]<<endl;
+       Nsp_st_[st] += Nleftoversp_[st][imod];
     }
   }
   if ( fDebug) cout<<" next case? Nsp_st[1] "<<Nsp_st[1]<<" Nsp_st[2] "<<Nsp_st[2]<<" Nsp_st[3] "<<Nsp_st[3]<<endl;
@@ -1280,9 +1361,11 @@ void BmnSiliconTrackFinder::RecordingTracks(vector<tracksX> & vec_tracks_, vecto
 
       if (fDebug) cout<<" itr "<<itr<<" Chi2 "<<vec_tracks_.at(itr).Chi2<<" Nhits "<<vec_tracks_.at(itr).Nhits<<" Xv "<<vec_tracks_.at(itr).Xv<<" Yv "<<vec_tracks_.at(itr).Yv<<endl;
       for (Int_t st = 1; st < fNstations; ++st) {
-         if (fDebug) cout<<" st "<<st<<" Z "<<vec_tracks_.at(itr).CoordZ[st]<<endl;
-         if (fDebug) cout<<" CleanTr.CoordX["<<st <<"]  "<<vec_tracks_.at(itr).CoordX[st]<<" strip "<<vec_tracks_.at(itr).StripNumX[st]<<" Clsize "<<vec_tracks_.at(itr).ClSizeX[st]<<" Q "<<vec_tracks_.at(itr).SumQX[st]<<endl;
-         if (fDebug) cout<<" CleanTr.CoordXp["<<st <<"] "<<vec_tracks_.at(itr).CoordXp[st]<<" strip "<<vec_tracks_.at(itr).StripNumXp[st]<<" Clsize "<<vec_tracks_.at(itr).ClSizeXp[st]<<" Q "<<vec_tracks_.at(itr).SumQXp[st]<<endl;
+        if (fDebug){
+         cout<<" st "<<st<<" Z "<<vec_tracks_.at(itr).CoordZ[st]<<endl;
+         cout<<" CleanTr.CoordX["<<st <<"]  "<<vec_tracks_.at(itr).CoordX[st]<<" strip "<<vec_tracks_.at(itr).StripNumX[st]<<" Clsize "<<vec_tracks_.at(itr).ClSizeX[st]<<" Q "<<vec_tracks_.at(itr).SumQX[st]<<endl;
+         cout<<" CleanTr.CoordXp["<<st <<"] "<<vec_tracks_.at(itr).CoordXp[st]<<" strip "<<vec_tracks_.at(itr).StripNumXp[st]<<" Clsize "<<vec_tracks_.at(itr).ClSizeXp[st]<<" Q "<<vec_tracks_.at(itr).SumQXp[st]<<endl;
+        }
       }//st
     }//Cross
   }//itr
@@ -1424,123 +1507,141 @@ void BmnSiliconTrackFinder::Case1(Int_t **NhitsXYmod_, Double_t ***XspCoord_, Do
   if(fDebug) cout<<" case1: Spatial track "<<endl;
   
   for (Int_t imod1 = 0; imod1 < fNmodules1; imod1++) {
+    if(fDebug && NhitsXYmod_[1][imod1] > 0 ) cout<<" NhitsXYmod_[1]["<<imod1<<"] "<<NhitsXYmod_[1][imod1]<<endl;
     for (Int_t cl1 = 0; cl1 < NhitsXYmod_[1][imod1]; cl1++){ 
       dminx1_x2 = 999.;
 
       for (Int_t imod2 = 0; imod2 < fNmodules2; imod2++) {
+        if(fDebug && NhitsXYmod_[2][imod2]) cout<<" NhitsXYmod_[2]["<<imod2<<"] "<<NhitsXYmod_[2][imod2]<<endl;
         for (Int_t cl2 = 0; cl2 < NhitsXYmod_[2][imod2]; cl2++){ 
 
           NpX_in_line = 0;
-           //if(fDebug){
-           //cout<<" dX(1-2) "<<XspCoord_[1][imod1][cl1]  - XspCoord_[2][imod2][cl2]<<endl;
-           //cout<<" X1 -X1p "<<XspCoord_[1][imod1][cl1]  - XpspCoord_[1][imod1][cl1]<<endl;
-           // cout<<" X2_Xp2 "<<XspCoord_[2][imod2][cl2]  - XpspCoord_[2][imod2][cl2]<<endl;
-           // cout<< " Y1_Y2 "<<YspCoord_[1][imod1][cl1]  - YspCoord_[2][imod2][cl2] <<endl;
-           // }
+         // if(fDebug){
+           //cout<<" dX(1-2) ("<<half_roadX1_X2<<") "<<XspCoord_[1][imod1][cl1]  - XspCoord_[2][imod2][cl2]<<endl;
+           //cout<<" X1 -X1p ("<<half_roadX1_Xp1<<") "<<XspCoord_[1][imod1][cl1]  - XpspCoord_[1][imod1][cl1]<<endl;
+           //cout<<" X2_Xp2 ("<<half_roadX2_Xp2<<") "<<XspCoord_[2][imod2][cl2]  - XpspCoord_[2][imod2][cl2]<<endl;
+           //cout<< " Y1_Y2 ("<<half_roadY1_Y2<<") "<<YspCoord_[1][imod1][cl1]  - YspCoord_[2][imod2][cl2] <<endl;
+          //  }
           
           if (fabs(  XspCoord_[1][imod1][cl1]  - XspCoord_[2][imod2][cl2]  )   > half_roadX1_X2)  continue; //X1-X2
           if (fabs(  XspCoord_[1][imod1][cl1]  - XpspCoord_[1][imod1][cl1]  )  > half_roadX1_Xp1) continue; //X1-Xp1
           if (fabs(  XspCoord_[2][imod2][cl2]  - XpspCoord_[2][imod2][cl2]  )  > half_roadX2_Xp2) continue; //X2-Xp2
           if (fabs(  YspCoord_[1][imod1][cl1]  - YspCoord_[2][imod2][cl2]  )   > half_roadY1_Y2)  continue; //Y1-Y2
          
-          if(fDebug) cout<<" aft. hrd "<<endl;
+          //if(fDebug) cout<<" aft. hrd "<<endl;
 
-          if(fDebug) cout<<" dX(1-2) "<<XspCoord_[1][imod1][cl1]  - XspCoord_[2][imod2][cl2]<<endl;
+          //if(fDebug) cout<<" dX(1-2) "<<XspCoord_[1][imod1][cl1]  - XspCoord_[2][imod2][cl2]<<endl;
           if ( dminx1_x2 > fabs( XspCoord_[1][imod1][cl1]  - XspCoord_[2][imod2][cl2] ) ){
             dminx1_x2 = fabs( XspCoord_[1][imod1][cl1]  - XspCoord_[2][imod2][cl2] );
             iClustXMod[1] = cl1;
             iClustXMod[2] = cl2;
             iModX[1]      = imod1;
             iModX[2]      = imod2;
-            NpX_in_line = 2;
+            NpX_in_line   = 2;
           }
 
           if ( NpX_in_line < 2) continue;
 
           Bool_t was_candidate = 0;
           bx_candidate = 999., by_candidate = 999.;
-          Int_t Imod1_candidate = -1,  Imod2_candidate = -1;
-          Int_t iCl1_candidate = -1, iCl2_candidate = -1;
+          Int_t Imod1_candidate = -1, Imod2_candidate = -1;
+          Int_t iCl1_candidate  = -1, iCl2_candidate  = -1;
           
-          for (Int_t imod3 = 0; imod3 < fNmodules3; imod3++) {                  
+          for (Int_t imod3 = 0; imod3 < fNmodules3; imod3++) {
+            if(fDebug && NhitsXYmod_[3][imod3] > 0 ) cout<<" NhitsXYmod_[3]["<<imod3<<"] "<<NhitsXYmod_[3][imod3]<<endl;
             for (Int_t cl3 = 0; cl3 < NhitsXYmod_[3][imod3]; cl3++){ 
               
-              if(fDebug) cout<<" X3 -X3p "<<XspCoord_[3][imod3][cl3]  - XpspCoord_[3][imod3][cl3]<< " half_roadX3_Xp3 "<<half_roadX3_Xp3<<endl;
+             // if(fDebug) cout<<" X3 -X3p "<<XspCoord_[3][imod3][cl3]  - XpspCoord_[3][imod3][cl3]<<" half_roadX3_Xp3 "<<half_roadX3_Xp3<<endl;
+             // if(fDebug) cout<<" X3 "<<XspCoord_[3][imod3][cl3]<<endl;
+              
               
               if (fabs(  XspCoord_[3][imod3][cl3]  - XpspCoord_[3][imod3][cl3]  )  > half_roadX3_Xp3) continue; 
-
+/*
               Double_t x1_2 = 0.5 * ( XspCoord_[1][imod1][cl1] + XspCoord_[2][imod2][cl2] );
               Double_t y1_2 = 0.5 * ( YspCoord_[1][imod1][cl1] + YspCoord_[2][imod2][cl2] );
               Double_t z1_2 = 0.5 * ( Zstation[1][imod1] + Zstation[2][imod2]);
    
               Double_t ax_target_region = (XspCoord_[3][imod3][cl3] - x1_2 ) / (Zstation[3][imod3] - z1_2 );
-              Double_t bx_target_region = -ax_target_region * ( Zstation[3][imod3] - Z0_SRC_target ) + XspCoord_[3][imod3][cl3];
+              Double_t bx_target_region = ax_target_region * ( Z0_SRC_target - Zstation[3][imod3] ) + XspCoord_[3][imod3][cl3];//Zcentr ??????
               
               Double_t ay_target_region = (YspCoord_[3][imod3][cl3] - y1_2 ) / (Zstation[3][imod3] - z1_2 );
-              Double_t by_target_region = -ay_target_region * ( Zstation[3][imod3] - Z0_SRC_target ) + YspCoord_[3][imod3][cl3];
+              Double_t by_target_region = ay_target_region * ( Z0_SRC_target - Zstation[3][imod3] ) + YspCoord_[3][imod3][cl3];
               
-              if(fDebug)   cout<<" X1 "<< XspCoord_[1][imod1][cl1]<<" X2 "<< XspCoord_[2][imod2][cl2]<<" X3 "<< XspCoord_[3][imod3][cl3]<<" Xp3 "<<XpspCoord_[3][imod3][cl3]<<
-              " x_candidate "<<bx_candidate<<" x_target_region "<<bx_target_region<<" y_target_region "<<by_target_region<<endl;
+*/
+              Double_t ax = (XspCoord_[3][imod3][cl3] - XspCoord_[1][imod1][cl1] ) / (Zstation[3][imod3] - Zstation[1][imod1]);
+              Double_t bx_target_region = ax * ( Z0_SRC_target - Zstation[3][imod3] ) + XspCoord_[3][imod3][cl3];
+              
+              Double_t ay = (YspCoord_[3][imod3][cl3] - YspCoord_[1][imod1][cl1] ) / (Zstation[3][imod3] - Zstation[1][imod1]);
+              Double_t by_target_region = ay * ( Z0_SRC_target - Zstation[3][imod3] ) + YspCoord_[3][imod3][cl3];
 
+              if(fDebug)   cout<<" X1 "<< XspCoord_[1][imod1][cl1]<<" X2 "<< XspCoord_[2][imod2][cl2]<<" X3 "<< XspCoord_[3][imod3][cl3]<<" was_candidate "<<was_candidate<<
+              " ax "<<ax<<" ay "<<ay<<" Z1 "<<Zstation[1][imod1]<<" Z3 "<<Zstation[3][imod1]<<
+             // " x_candidate "<<bx_candidate<<" x_target_region ("<<half_target_regionX <<") "<<bx_target_region<<" y_target_region ("<<half_target_regionY<<") "<<
+             // by_target_region<<
+             endl;
+             
               if(fDebug)   cout<<" bx_target_region "<<bx_target_region<<" half_target_regionX "<<half_target_regionX<<endl;
               if ( fabs(kX_target - bx_target_region) > half_target_regionX) continue;
               if(fDebug)   cout<<" by_target_region "<<by_target_region<<" half_target_regionY "<<half_target_regionY<<endl;
               if ( fabs(kY_target - by_target_region) > half_target_regionY) continue;
             
               if ( was_candidate == 0 ) {
-
                 bx_candidate         = bx_target_region;
                 by_candidate         = by_target_region;
                 iModX_candidate      = imod3;
                 iClustXMod_candidate = cl3;
-              
                 was_candidate = 1;
-                if (fDebug) cout<<" write candidate "<<endl;
-              }
-              else{
-
-               if ( iModX_candidate == imod3   && iClustXMod_candidate == cl3 ) continue;
-               if (fDebug) cout<<" iModX_candidate "<<iModX_candidate<<" imod3 "<<imod3<< " iClustXMod_candidate "<<iClustXMod_candidate<<" cl3 "<<cl3<<endl;
-               if ( fabs(bx_target_region) > (fabs(bx_candidate) + dxV_thr) ) continue;//0.2
-               if ( fabs(by_target_region) > (fabs(by_candidate) + dyV_thr) ) continue;//0.4
-               if ( (fabs(bx_target_region) + 0.25*fabs(by_target_region) ) > ( fabs(bx_candidate) + 0.25*fabs(by_candidate) ) ) continue;// v2 closed to v1 
-              
-               bx_candidate         = bx_target_region;
-               by_candidate         = by_target_region;
-               iModX_candidate      = imod3;//iModX[3];
-               iClustXMod_candidate = cl3;//iClustXMod[3];
-               if (fDebug) cout<<" re - write "<<endl;
+                if (fDebug) cout<<" write candidate: bx_target_region "<<bx_target_region<<" bx_candidate "<<bx_candidate<<" by_target_region "<<by_target_region<<" by_candidate "<<by_candidate<<endl;
+              }else{
+                //if (fDebug) cout<<" bx_target_region "<<bx_target_region<<" bx_candidate "<<" by_target_region "<<by_target_region<<" by_candidate "<<by_candidate<<endl;
+                if ( iModX_candidate == imod3 && iClustXMod_candidate == cl3 ) {if (fDebug) cout<<" 1"<<endl; continue;}
+                if ( fabs(kX_target - bx_target_region) > (fabs(kX_target - bx_candidate) + dxV_thr) ) {if (fDebug) cout<<" 2"<<endl; continue;}//0.2
+                
+                if ( fabs(kY_target - by_target_region) > (fabs(kY_target - by_candidate) + dyV_thr) ) {if (fDebug) cout<<" 3"<<endl; continue;}//0.4
+                //if ( fabs(by_target_region) > (fabs(by_candidate) + dyV_thr) ) {if (fDebug) cout<<" 3"<<endl; continue;}//0.4
+                //if (fDebug) cout<<" left = "<<fabs(bx_target_region) + 0.55*fabs(by_target_region)<<" right = "<<fabs(bx_candidate) + 0.25*fabs(by_candidate)<<endl;
+                
+                if ((fabs(kX_target - bx_target_region) + 0.25*fabs(kY_target - by_target_region) ) > (fabs(kX_target - bx_candidate) + 0.25*fabs(kY_target - by_candidate)) ) 
+                {if (fDebug) cout<<" 4"<<endl; continue;}// v2 closed to v1 
+                
+                
+                bx_candidate         = bx_target_region;
+                by_candidate         = by_target_region;
+                iModX_candidate      = imod3;//iModX[3];
+                iClustXMod_candidate = cl3;//iClustXMod[3];
+                if (fDebug) cout<<" re - write "<<endl;
               }
 
             }//imod3
           }//cl3;
           
           if (bx_candidate > 900.) continue;
-          if ( tmpTr.CoordX[3]  ==  XspCoord_[3][iModX_candidate][iClustXMod_candidate] ) continue;
-          if ( tmpTr.CoordXp[3] ==  XpspCoord_[3][iModX_candidate][iClustXMod_candidate] ) continue;
-          if(fDebug)   cout<<" X used "<<Xforglfit[3][iModX[3]]<<" X cand "<< XspCoord_[3][iModX_candidate][iClustXMod_candidate] <<endl;
+          
+          if ( tmpTr.CoordX[3]  == XspCoord_[3][iModX_candidate][iClustXMod_candidate] )  continue; 
+          if ( tmpTr.CoordXp[3] == XpspCoord_[3][iModX_candidate][iClustXMod_candidate] ) continue;
+          //if(fDebug)   cout<<" X used "<<Xforglfit[3][iModX[3]]<<" X cand "<< XspCoord_[3][iModX_candidate][iClustXMod_candidate] <<endl;
           
           if ( iModX_candidate > -1){
            iModX[3]      = iModX_candidate;
            iClustXMod[3] = iClustXMod_candidate;
           }
           
-          if(fDebug)   cout<<"end 3st: X1 "<< XspCoord_[1][iModX[1]][iClustXMod[1]]<<" X2 "<< XspCoord_[2][iModX[2]][iClustXMod[2]]<<
-                  "X3 "<< XspCoord_[3][iModX_candidate][iClustXMod_candidate]<<" Xp3 "<< XpspCoord_[3][iModX_candidate][iClustXMod_candidate]<<
-                  " Xv_candidate "<<bx_candidate<<" Yv_candidate "<<by_candidate<<endl;
+          //if(fDebug)   cout<<"end 3st: X1 "<< XspCoord_[1][iModX[1]][iClustXMod[1]]<<" X2 "<< XspCoord_[2][iModX[2]][iClustXMod[2]]<<
+          //        "X3 "<< XspCoord_[3][iModX_candidate][iClustXMod_candidate]<<" Xp3 "<< XpspCoord_[3][iModX_candidate][iClustXMod_candidate]<<
+          //        " Xv_candidate "<<bx_candidate<<" Yv_candidate "<<by_candidate<<endl;
                   
           for (Int_t ist = 1; ist < fNstations; ++ist) {
             for (Int_t imod = 0; imod < fNmodules; imod++) {
-             Xforglfit[ist][imod] = -999.;
-             Xpforglfit[ist][imod] = -999.;
-             SigmXforglfit[ist][imod] = -999.;
+             Xforglfit[ist][imod]      = -999.;
+             Xpforglfit[ist][imod]     = -999.;
+             SigmXforglfit[ist][imod]  = -999.;
              SigmXpforglfit[ist][imod] = -999.;
             }
           }
 
           for (Int_t idx = 1; idx < fNstations; ++idx) {
             if ( iClustXMod[idx] < 0 ) continue;
-            if(fDebug)   cout<<" idx" <<idx<<" iModX "<<iModX[idx]<<" iCl "<<iClustXMod[idx]<<" X["<<idx<<"]["<<iClustXMod[idx]<<"] "<<XspCoord_[idx][iModX[idx]][iClustXMod[idx]]<<" Xp["<<idx<<"]["<<iClustXMod[idx]<<"] "<<XpspCoord_[idx][iModX[idx]][iClustXMod[idx]]<<" Z "<<Zstation[idx][iModX[idx]]<<" sigmaX "<<SigmspX_[idx][iModX[idx]][iClustXMod[idx]]<<" sigmaXp "<<SigmspXp_[idx][iModX[idx]][iClustXMod[idx]]<<endl;
+            //if(fDebug)   cout<<" idx" <<idx<<" iModX "<<iModX[idx]<<" iCl "<<iClustXMod[idx]<<" X["<<idx<<"]["<<iClustXMod[idx]<<"] "<<XspCoord_[idx][iModX[idx]][iClustXMod[idx]]<<" Xp["<<idx<<"]["<<iClustXMod[idx]<<"] "<<XpspCoord_[idx][iModX[idx]][iClustXMod[idx]]<<" Z "<<Zstation[idx][iModX[idx]]<<" sigmaX "<<SigmspX_[idx][iModX[idx]][iClustXMod[idx]]<<" sigmaXp "<<SigmspXp_[idx][iModX[idx]][iClustXMod[idx]]<<endl;
 
              Xforglfit[idx][iModX[idx]]     = XspCoord_[idx][iModX[idx]][iClustXMod[idx]];
              SigmXforglfit[idx][iModX[idx]] = SigmspX_[idx][iModX[idx]][iClustXMod[idx]];
@@ -1567,7 +1668,7 @@ void BmnSiliconTrackFinder::Case1(Int_t **NhitsXYmod_, Double_t ***XspCoord_, Do
           TotalNumberOfHits = 6;
           ChiSquareNdf = ChiSquare/(TotalNumberOfHits - 4);
           
-          if ( fDebug) cout<<" before cut ChiSquareNDF "<<ChiSquareNdf<<" TotalNumberOfHits  "<<TotalNumberOfHits <<endl;
+          if ( fDebug) cout<<" before cut ChiSquareNDF "<<ChiSquareNdf<<" Chi2_Globcut "<<Chi2_Globcut<<" TotalNumberOfHits  "<<TotalNumberOfHits <<endl;
           if (fDebug) cout<<endl;
 
           if ( ChiSquareNdf > Chi2_Globcut ) continue;
@@ -1625,8 +1726,8 @@ void BmnSiliconTrackFinder::Case1(Int_t **NhitsXYmod_, Double_t ***XspCoord_, Do
               tmpTr.SumQXp[st]    = sumQxpsp_[st][iModX[st]][iClustXMod[st]];
               
               if (fDebug) cout<<" st "<<st<<" Z "<<tmpTr.CoordZ[st]<<endl;
-              if (fDebug) cout<<" tmpTr.CoordX["<<st <<"]  "<<tmpTr.CoordX[st]<<" strip "<<tmpTr.StripNumX[st]<<" Clsize "<<tmpTr.ClSizeX[st]<<" Q "<<tmpTr.SumQX[st]<<endl;
-              if (fDebug) cout<<" tmpTr.CoordXp["<<st <<"] "<<tmpTr.CoordXp[st]<<" strip "<<tmpTr.StripNumXp[st]<<" Clsize "<<tmpTr.ClSizeXp[st]<<" Q "<<tmpTr.SumQXp[st]<<endl;
+              if (fDebug) cout<<" CoordX["<<st <<"]  "<<tmpTr.CoordX[st]<<" strip "<<tmpTr.StripNumX[st]<<" Clsize "<<tmpTr.ClSizeX[st]<<" Q "<<tmpTr.SumQX[st]<<endl;
+              if (fDebug) cout<<" CoordXp["<<st <<"] "<<tmpTr.CoordXp[st]<<" strip "<<tmpTr.StripNumXp[st]<<" Clsize "<<tmpTr.ClSizeXp[st]<<" Q "<<tmpTr.SumQXp[st]<<endl;
             }//st
 
             out_tracks.push_back(tmpTr);
@@ -1649,6 +1750,8 @@ Double_t ***XCoord_, Double_t ***XpCoord_, Double_t ***SigmaX_, Double_t ***Sigm
 Int_t **NhitsXYmod_, vector<tracksX> & tracks,Int_t **Nspatial, Int_t **NpointsX,Int_t **NpointsXp, 
 Double_t ***pointsXsp, Double_t ***pointsXpsp,Double_t ***pointsYsp,Double_t ***pointsXsigsp,Double_t ***pointsXpsigsp, Double_t ***pointsYsigsp,
 Double_t ***pointsX, Double_t ***pointsXp, Double_t ***pointsXsig,Double_t ***pointsXpsig){
+ 
+ if(fDebug) cout<<" CheckPoints "<<endl;
  
   for (Int_t st = 0; st < fNstations; ++st) {
     for (Int_t imod = 0; imod < fNmodules; imod++) {
@@ -1769,6 +1872,107 @@ Double_t ***pointsX, Double_t ***pointsXp, Double_t ***pointsXsig,Double_t ***po
 }
 //----------------------------------------------------------------------
 
+//----------------------------------------------------------------------
+void BmnSiliconTrackFinder::CheckLeftover(Int_t **Nspatial, Int_t **NpointsX,Int_t **NpointsXp, 
+Double_t ***pointsXsp, Double_t ***pointsXpsp,Double_t ***pointsYsp,Double_t ***pointsXsigsp,Double_t ***pointsXpsigsp, Double_t ***pointsYsigsp,
+Double_t ***pointsX, Double_t ***pointsXp, Double_t ***pointsXsig,Double_t ***pointsXpsig){
+
+if(fDebug) cout<<" CheckLeftover"<<endl;
+
+  for(Int_t ist = 1; ist < fNstations; ist++){
+    if(fDebug) cout<<" pointsXsp["<<ist<<"] ";
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      for (Int_t cl = 0; cl < Nspatial[ist][imod]; cl++){
+       if(fDebug) cout<<pointsXsp[ist][imod][cl]<<" ";
+      }
+    }
+   if(fDebug) cout<<endl;
+  }
+  if(fDebug) cout<<endl;
+  
+  for(Int_t ist = 1; ist < fNstations; ist++){
+    if(fDebug) cout<<" pointsYsp["<<ist<<"] ";
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      for (Int_t cl = 0; cl < Nspatial[ist][imod]; cl++){
+       if(fDebug) cout<<pointsYsp[ist][imod][cl]<<" ";
+      }
+    }
+   if(fDebug) cout<<endl;
+  }
+  if(fDebug) cout<<endl;
+  
+  for(Int_t ist = 1; ist < fNstations; ist++){
+    if(fDebug) cout<<" pointsXpsp["<<ist<<"] ";
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      for (Int_t cl = 0; cl < Nspatial[ist][imod]; cl++){
+       if(fDebug) cout<<pointsXpsp[ist][imod][cl]<<" ";
+      }
+    }
+   if(fDebug) cout<<endl;
+  }
+  if(fDebug) cout<<endl;
+  
+  for(Int_t ist = 1; ist < fNstations; ist++) {
+    if(fDebug) cout<<" pointsX["<<ist<<"] ";
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      for (Int_t cl = 0; cl < NpointsX[ist][imod]; cl++){
+       if(fDebug) cout<<pointsX[ist][imod][cl]<<" ";
+      }
+    }
+    if(fDebug) cout<<endl;
+  }
+  if(fDebug) cout<<endl;
+  
+  for(Int_t ist = 1; ist < fNstations; ist++){
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      for (Int_t cl = 0; cl < NpointsX[ist][imod]; cl++){
+        for(Int_t is = 1; is < fNstations; is++) {
+          for (Int_t im = 0; im < fNmodules; im++) {
+            for (Int_t clp = 0; clp < NpointsXp[is][im]; clp++){
+             //if(fDebug)  cout<< " X["<<ist<<"] "<<pointsX[ist][imod][cl]<<" Xp["<<is<<"] "<< pointsXp[is][im][clp]<<" XXp "<<pointsX[ist][imod][cl] - pointsXp[is][im][clp]<<endl;
+              if (ist == 1 && is == 2){
+                if(fDebug) hXXp12CheckLeftover->Fill(pointsX[ist][imod][cl] - pointsXp[is][im][clp]);
+                if (fDebug && fabs(pointsX[ist][imod][cl] - pointsXp[is][im][clp]) < 0.3 ) hXXp12CheckLeftover03->Fill(pointsX[ist][imod][cl] - pointsXp[is][im][clp]);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+ 
+  
+  for(Int_t ist = 1; ist < fNstations; ist++) {
+    if(fDebug) cout<<" pointsXp["<<ist<<"] ";
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      for (Int_t cl = 0; cl < NpointsXp[ist][imod]; cl++){
+       if(fDebug) cout<<pointsXp[ist][imod][cl]<<" ";
+      }
+    }
+    if(fDebug) cout<<endl;
+  }
+  if(fDebug) cout<<endl;
+  
+  for(Int_t ist = 1; ist < fNstations; ist++) {
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      for (Int_t cl = 0; cl < NpointsXp[ist][imod]; cl++){
+        for(Int_t is = 1; is < fNstations; is++) {
+          for (Int_t im = 0; im < fNmodules; im++) {
+            for (Int_t clp = 0; clp < NpointsX[is][im]; clp++){
+              if (ist == 1 && is == 2){
+                if(fDebug)  hXXp12CheckLeftover->Fill(pointsXp[ist][imod][cl] - pointsX[is][im][clp]);
+                if (fDebug && fabs(pointsXp[ist][imod][cl] - pointsX[is][im][clp]) < 0.3 ) hXXp12CheckLeftover03->Fill(pointsX[ist][imod][cl] - pointsXp[is][im][clp]);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+
+}
+//----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
 void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
@@ -1783,7 +1987,12 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
     hBxglob->Fill(CleanTr_.at(InIter).param[1]);
     hAyglob->Fill(CleanTr_.at(InIter).param[2]);
     hByglob->Fill(CleanTr_.at(InIter).param[3]);
+    
+    
+    //if (CleanTr_.at(InIter).param[3] < -4.) cout<<" !!!!! -4. "<<endl;
     hChiSquareNdf->Fill(CleanTr_.at(InIter).Chi2);
+    if (InIter == 0) hAx_first_tr->Fill(CleanTr_.at(InIter).param[0]);
+    else hAx_more_first_tr->Fill(CleanTr_.at(InIter).param[0]);
     hvertexXY->Fill(CleanTr_.at(InIter).Xv, CleanTr_.at(InIter).Yv);
     sum_xv +=  CleanTr_.at(InIter).Xv;
     sum_yv +=  CleanTr_.at(InIter).Yv;
@@ -1800,7 +2009,7 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
       if ( CleanTr_.at(InIter).CoordX[st] < -900.) continue;
       Double_t Hit = CleanTr_.at(InIter).CoordX[st]; 
       Double_t Fit = CleanTr_.at(InIter).param[0] * CleanTr_.at(InIter).CoordZ[st] + CleanTr_.at(InIter).param[1];
-      cout<<" st "<<st<<" mod "<<CleanTr_.at(InIter).ModNum[st]<<" Xhit "<<Hit<<" Xfit "<< Fit<<" Z "<<CleanTr_.at(InIter).CoordZ[st]<< " strip "<<CleanTr_.at(InIter).StripNumX[st]<<" Clsize "<<CleanTr_.at(InIter).ClSizeX[st]<<" Q "<<CleanTr_.at(InIter).SumQX[st]<<endl;
+      cout<<" st "<<st<<" mod "<<CleanTr_.at(InIter).ModNum[st]<<" Xhit "<<Hit<<" Xfit "<< Fit<<" dX "<<Hit - Fit<<" Z "<<CleanTr_.at(InIter).CoordZ[st]<< " strip "<<CleanTr_.at(InIter).StripNumX[st]<<" Clsize "<<CleanTr_.at(InIter).ClSizeX[st]<<" Q "<<CleanTr_.at(InIter).SumQX[st]<<endl;
       
       if (st == 1 ){
         hX_st_1 -> Fill(CleanTr_.at(InIter).CoordX[st]);
@@ -1835,6 +2044,7 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
           X2_1 = CleanTr_.at(InIter).CoordX[2];
           hdXvsXst2_1 -> Fill(CleanTr_.at(InIter).CoordX[2],CleanTr_.at(InIter).CoordX[2] - Fit);
         }
+        
       }
       if (st == 3 ){
         hX_st_3 -> Fill(CleanTr_.at(InIter).CoordX[st]);
@@ -1843,10 +2053,12 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
         if (CleanTr_.at(InIter).ModNum[3] == 1 ){
           X3_1 = CleanTr_.at(InIter).CoordX[3];
           hdXvsXst3_1 -> Fill(CleanTr_.at(InIter).CoordX[3],CleanTr_.at(InIter).CoordX[3] - Fit);
+          hdXXp3_mod1 -> Fill(CleanTr_.at(InIter).CoordX[st] - CleanTr_.at(InIter).CoordXp[st]); 
         }
         if (CleanTr_.at(InIter).ModNum[3] == 2 ){
           X3_2 = CleanTr_.at(InIter).CoordX[3];
           hdXvsXst3_2 -> Fill(CleanTr_.at(InIter).CoordX[3],CleanTr_.at(InIter).CoordX[3] - Fit);
+          hdXXp3_mod2 -> Fill(CleanTr_.at(InIter).CoordX[st] - CleanTr_.at(InIter).CoordXp[st]); 
         }
       }
     }//st
@@ -1881,13 +2093,24 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
       Double_t Fit = ( CleanTr_.at(InIter).param[0] * CleanTr_.at(InIter).CoordZ[st] + CleanTr_.at(InIter).param[1] ) +
           ( CleanTr_.at(InIter).param[2] * CleanTr_.at(InIter).CoordZ[st] + CleanTr_.at(InIter).param[3] ) * Angle(st,CleanTr_.at(InIter).ModNum[st]) * tg2_5 ;
           // x' = x + y*tg   
-      cout<<" st "<<st<<" Xphit "<<Hit<<" Xpfit "<< Fit<<" Z "<<CleanTr_.at(InIter).CoordZ[st]<< " strip "<<CleanTr_.at(InIter).StripNumXp[st]<<" Clsize "<<CleanTr_.at(InIter).ClSizeXp[st]<<" Q "<<CleanTr_.at(InIter).SumQXp[st]<<endl;
+      hdXp_st_1-> Fill(Hit - Fit);
+      cout<<" st "<<st<<" Xphit "<<Hit<<" Xpfit "<< Fit<<" dXp "<<Hit - Fit<<" Z "<<CleanTr_.at(InIter).CoordZ[st]<< " strip "<<CleanTr_.at(InIter).StripNumXp[st]<<" Clsize "<<CleanTr_.at(InIter).ClSizeXp[st]<<" Q "<<CleanTr_.at(InIter).SumQXp[st]<<endl;
       if (st == 2 ){
+        hdXp_st_2-> Fill(Hit - Fit);
         if (CleanTr_.at(InIter).ModNum[2] == 0 ){
           Xp2_0 = CleanTr_.at(InIter).CoordXp[2];
         }
         if (CleanTr_.at(InIter).ModNum[2] == 1 ){
           Xp2_1 = CleanTr_.at(InIter).CoordXp[2];
+        }
+      }
+      if (st == 3 ){
+        hdXp_st_3-> Fill(Hit - Fit);
+        if ( CleanTr_.at(InIter).ModNum[3] == 1 ){
+          hdXp3_mod1 -> Fill(Hit - Fit);
+        }
+        if ( CleanTr_.at(InIter).ModNum[3] == 2 ){
+          hdXp3_mod2 -> Fill(Hit - Fit);
         }
       }
     }
@@ -1904,11 +2127,15 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
       if ( CleanTr_.at(InIter).CoordY[st] < -900. ) continue;
       Double_t Hit = CleanTr_.at(InIter).CoordY[st];
       Double_t Fit = CleanTr_.at(InIter).param[2] * CleanTr_.at(InIter).CoordZ[st] + CleanTr_.at(InIter).param[3];
-      cout<<" st "<<st<<" Yhit "<<Hit<<" Yfit "<< Fit<<" Z "<<CleanTr_.at(InIter).CoordZ[st]<<endl;
+      cout<<" st "<<st<<" Yhit "<<Hit<<" Yfit "<< Fit<<" dY "<<Hit - Fit<<" Z "<<CleanTr_.at(InIter).CoordZ[st]<<endl;
       
       if (st == 1 ) {hY_st_1 -> Fill(CleanTr_.at(InIter).CoordY[st]);hdYvsYst_1 -> Fill(Hit,Hit - Fit); hdY_st_1-> Fill(Hit - Fit);}
       if (st == 2 ) {hY_st_2 -> Fill(CleanTr_.at(InIter).CoordY[st]);hdYvsYst_2 -> Fill(Hit,Hit - Fit); hdY_st_2-> Fill(Hit - Fit);}
-      if (st == 3 ) {hY_st_3 -> Fill(CleanTr_.at(InIter).CoordY[st]);hdYvsYst_3 -> Fill(CleanTr_.at(InIter).CoordY[3],CleanTr_.at(InIter).CoordY[3] - Fit); hdY_st_3-> Fill(CleanTr_.at(InIter).CoordY[3] - Fit);}
+      if (st == 3 ) {hY_st_3 -> Fill(CleanTr_.at(InIter).CoordY[st]);hdYvsYst_3 -> Fill(CleanTr_.at(InIter).CoordY[3],CleanTr_.at(InIter).CoordY[3] - Fit); 
+        hdY_st_3-> Fill(CleanTr_.at(InIter).CoordY[3] - Fit);
+        if (fabs(Hit - Fit) > 0.1) cout<<" > 0.1 "<<endl;
+      }
+      
      
       if (st == 1 ){
         if ( CleanTr_.at(InIter).ModNum[1] == 0 ){
@@ -1937,6 +2164,7 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
           hdYvsYst2_mod1 -> Fill(Hit,Hit - Fit);
           Y2_1 = CleanTr_.at(InIter).CoordY[st];
         }
+        
       }
       if (st == 3){
         if ( CleanTr_.at(InIter).ModNum[3] == 1 ){
@@ -1949,6 +2177,17 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
         }
       }
     }//st
+    
+    double Ay_pr= -999.;double Y_pr = -999.;
+    if (CleanTr_.at(InIter).CoordY[1] > -900. && CleanTr_.at(InIter).CoordY[3] > -900.){
+      Ay_pr = (CleanTr_.at(InIter).CoordY[1] - CleanTr_.at(InIter).Yv)/(CleanTr_.at(InIter).CoordZ[1] - Z0_SRC_target);
+      Y_pr  = Ay_pr* (CleanTr_.at(InIter).CoordZ[3] - CleanTr_.at(InIter).CoordZ[1]) + CleanTr_.at(InIter).CoordY[1];
+    }
+    if (CleanTr_.at(InIter).CoordY[2] > -900. && CleanTr_.at(InIter).CoordY[3] > -900.){
+      Ay_pr = (CleanTr_.at(InIter).CoordY[2] - CleanTr_.at(InIter).Yv)/(CleanTr_.at(InIter).CoordZ[2] - Z0_SRC_target);
+      Y_pr  = Ay_pr* (CleanTr_.at(InIter).CoordZ[3] - CleanTr_.at(InIter).CoordZ[2]) + CleanTr_.at(InIter).CoordY[2];
+    }
+    cout<<" Y3 predicted "<<Y_pr<<" Y "<<CleanTr_.at(InIter).CoordY[3]<<endl;
     
     hdY_st1_st2->Fill( CleanTr_.at(InIter).CoordY[1] -CleanTr_.at(InIter).CoordY[2] );
     hdY_st2_st3->Fill( CleanTr_.at(InIter).CoordY[2] -CleanTr_.at(InIter).CoordY[3] );
@@ -1981,9 +2220,11 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
       if (Y2_1 < 900.) hY13_Y2_m1->Fill( Y2_1 - (Ax*(CleanTr_.at(InIter).CoordZ[2] - CleanTr_.at(InIter).CoordZ[1]) + CleanTr_.at(InIter).CoordY[1]) );
     }
     
-    hprofile_beam_z1->Fill(CleanTr_.at(InIter).param[0] * CleanTr_.at(InIter).CoordZ[1] + CleanTr_.at(InIter).param[1],CleanTr_.at(InIter).param[2] * CleanTr_.at(InIter).CoordZ[1] + CleanTr_.at(InIter).param[3] );
-    hprofile_beam_z2->Fill(CleanTr_.at(InIter).param[0] * CleanTr_.at(InIter).CoordZ[2] + CleanTr_.at(InIter).param[1],CleanTr_.at(InIter).param[2] * CleanTr_.at(InIter).CoordZ[2] + CleanTr_.at(InIter).param[3] );
-    hprofile_beam_z3->Fill(CleanTr_.at(InIter).param[0] * CleanTr_.at(InIter).CoordZ[3] + CleanTr_.at(InIter).param[1],CleanTr_.at(InIter).param[2] * CleanTr_.at(InIter).CoordZ[3] + CleanTr_.at(InIter).param[3] );
+    double z_cnt = 0;
+    if (CleanTr_.at(InIter).CoordX[1] > -900. || CleanTr_.at(InIter).CoordXp[1] > -900.) hprofile_beam_z1->Fill(CleanTr_.at(InIter).param[0] * (CleanTr_.at(InIter).CoordZ[1] - z_cnt) + CleanTr_.at(InIter).param[1],CleanTr_.at(InIter).param[2] * (CleanTr_.at(InIter).CoordZ[1]- z_cnt) + CleanTr_.at(InIter).param[3] );
+    if (CleanTr_.at(InIter).CoordX[2] > -900. || CleanTr_.at(InIter).CoordXp[2] > -900.) hprofile_beam_z2->Fill(CleanTr_.at(InIter).param[0] * (CleanTr_.at(InIter).CoordZ[2] - z_cnt) + CleanTr_.at(InIter).param[1],CleanTr_.at(InIter).param[2] * (CleanTr_.at(InIter).CoordZ[2]- z_cnt) + CleanTr_.at(InIter).param[3] );
+    hprofile_beam_z3->Fill(CleanTr_.at(InIter).param[0] * (CleanTr_.at(InIter).CoordZ[3] - z_cnt) + CleanTr_.at(InIter).param[1],CleanTr_.at(InIter).param[2] * (CleanTr_.at(InIter).CoordZ[3]- z_cnt) + CleanTr_.at(InIter).param[3] );
+    
     
     for (Int_t st = 1; st < fNstations; ++st) { 
        
@@ -1994,7 +2235,7 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
       if (CleanTr_.at(InIter).Nhits >  N_min_points) {
         D_eff->Fill(2*st-1);
         D_eff->Fill(2*st);
-        if ( CleanTr_.at(InIter).CoordX[st] > -900. )  N_eff->Fill(2*st-1);
+        if ( CleanTr_.at(InIter).CoordX[st]  > -900. ) N_eff->Fill(2*st-1);
         if ( CleanTr_.at(InIter).CoordXp[st] > -900. ) N_eff->Fill(2*st);
       }
     }// st 
@@ -2067,24 +2308,26 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
           
          ay_target_region = (leftoverYsp_[3][imod3][cl3] - leftoverYsp_[Fi_St][imod1][cl1] ) / (Zstation[3][imod3] - Zstation[Fi_St][imod1] );
          by_target_region = -ay_target_region * ( Zstation[3][imod3] - Z0_SRC_target ) + leftoverYsp_[3][imod3][cl3];
+         
+         if (fDebug) cout<<" bx_target_region "<<bx_target_region<<" by_target_region "<<by_target_region<<endl;
         
         if ( fabs(bx_target_region) > half_target_regionX) continue;
         if ( fabs(by_target_region) > half_target_regionY) continue;
         
-        if ( was_candidate == 0 ) {
+          if ( was_candidate == 0 ) {
 
-            xv_candidate         = bx_target_region;
-            yv_candidate         = by_target_region;
-            ax_candidate         = ax_target_region;
-            ay_candidate         = ay_target_region;
-            iModX_candidate      = imod3;
-            iClustXMod_candidate = cl3;
-            was_candidate = 1;
-            if (fDebug) cout<<" write candidate "<<endl;
-        } else{
+              xv_candidate         = bx_target_region;
+              yv_candidate         = by_target_region;
+              ax_candidate         = ax_target_region;
+              ay_candidate         = ay_target_region;
+              iModX_candidate      = imod3;
+              iClustXMod_candidate = cl3;
+              was_candidate = 1;
+             // if (fDebug) cout<<" write candidate "<<endl;
+          } else{
             if ( fabs(bx_target_region) > (fabs(xv_candidate) + dxV_thr) ) continue;//0.2
             if ( fabs(by_target_region) > (fabs(yv_candidate) + dyV_thr) ) continue;//0.4
-            if ( (fabs(bx_target_region) + 0.25*fabs(by_target_region) ) > ( fabs(xv_candidate) + 0.25*fabs(yv_candidate) ) ) continue;// v2 closed to v1 
+            if ( (fabs(bx_target_region) + 0.5*fabs(by_target_region) ) > ( fabs(xv_candidate) + 0.25*fabs(yv_candidate) ) ) continue;// v2 closed to v1 
 
               xv_candidate         = bx_target_region;
               yv_candidate         = by_target_region;
@@ -2093,7 +2336,7 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
               
               iModX_candidate      = imod3;
               iClustXMod_candidate = cl3;
-              if (fDebug) cout<<" re - write.  xv_candidate "<<xv_candidate<<endl;
+             // if (fDebug) cout<<" re - write.  xv_candidate "<<xv_candidate<<endl;
           }
         
           Npoint = 4;
@@ -2102,7 +2345,7 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
     }//st3
     
      
-    if (fDebug) cout<<" aft.st3 cycle:  xv_candidate "<<xv_candidate<<"  by_cand "<<yv_candidate<<endl;
+    if (fDebug) cout<<" aft.st3 cycle:  xv_candidate "<<xv_candidate<<"  by_cand "<<yv_candidate<<" was_candidate "<<was_candidate<<endl;
     if (xv_candidate > 900.) continue;
     
     for (Int_t ist = 1; ist < fNstations; ++ist) {
@@ -2137,11 +2380,11 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
       if ( fDebug) cout<< " try to search 5th p.  Sec_St "<<Sec_St<<" Nmod_Sec "<<Nmod_Sec<<endl; 
         for (Int_t imod2 = 0; imod2 < Nmod_Sec; imod2++) {   
           
-          if ( fDebug) cout<< "     imod2 "<<imod2  <<endl;   
+         // if ( fDebug) cout<< "     imod2 "<<imod2  <<endl;   
           if ( x5_exist ) { Npoint = 5; break;}
           
          for (Int_t clx2 = 0; clx2 <  NleftoverX_[Sec_St][imod2]; clx2++){
-            if ( fDebug) cout<< "     clx2 "<<clx2  <<endl;   
+           // if ( fDebug) cout<< "     clx2 "<<clx2  <<endl;   
            
            iModX[Sec_St]                         = -1;
            iClustXMod[Sec_St]                    = -1;
@@ -2176,6 +2419,8 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
             for (Int_t coeff = 0; coeff < 4; ++coeff) {
               line[coeff] = 0.; 
             }
+            
+            
             
             calculationOfChi2(Xforglfit, Xpforglfit, SigmXforglfit, SigmXpforglfit, iClustXMod, iModX, ChiSquare, line);
             
@@ -2235,10 +2480,10 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
            iClustXMod[Sec_St]                    = clxp2;
            Xforglfit[Sec_St][iModX[Sec_St]]      = -999.;
            SigmXforglfit[Sec_St][iModX[Sec_St]]  = -999.;
-           Xpforglfit[Sec_St][imod2]             = leftoverX_[Sec_St][iModX[Sec_St]][clxp2];
-           SigmXpforglfit[Sec_St][imod2]         = leftoverXsig_[Sec_St][iModX[Sec_St]][clxp2];
+           Xpforglfit[Sec_St][imod2]             = leftoverXp_[Sec_St][iModX[Sec_St]][clxp2];
+           SigmXpforglfit[Sec_St][imod2]         = leftoverXpsig_[Sec_St][iModX[Sec_St]][clxp2];
 
-           //---------------------------	GlobalFit---------------------------------
+           //---------------------------GlobalFit---------------------------------
            TotalNumberOfHits = 0;
            ChiSquareNdf      = 0.;
            ChiSquare         = 0.;
@@ -2339,6 +2584,7 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
           line_cand[3] = yv_candidate + ay_candidate * (  Zcentr - Z0_SRC_target );
           
           if (fDebug) cout<<" case2 4p cand  Xv "<<xv_candidate<<" Yv "<<yv_candidate<<endl;
+          if (fDebug) cout<<" ax "<<line_cand[0]<<" bx "<<line_cand[1]<<" ay "<<line_cand[2]<<" by "<<line_cand[3]<<endl;
           
           for (Int_t st = 1; st < fNstations; ++st) {
               if (iModX[st] < 0) continue;
@@ -2366,8 +2612,8 @@ void BmnSiliconTrackFinder::Case2( Int_t & Fi_St,Int_t **Nleftoversp_,Double_t *
           }
         }
         
-        if ( fabs(line[2] * ( Z0_SRC_target - Zcentr ) + line[3]) > half_target_regionY){
-         if (fDebug) cout<<" case2:--------half_target_regionY cut: "<<half_target_regionY<<" Yv "<<fabs(line[2] * ( Z0_SRC_target - Zcentr ) + line[3])<<endl;
+        if ( fabs(line_cand[2] * ( Z0_SRC_target - Zcentr  ) + line_cand[3]) > half_target_regionY){
+         if (fDebug) cout<<" case2:--------half_target_regionY cut: "<<half_target_regionY<<" Yv "<<fabs(line_cand[2] * ( Z0_SRC_target - Zcentr ) + line_cand[3])<<endl;
          ChiSquareNdf = 999.;
          continue;
         }
@@ -2491,11 +2737,11 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
   
   if(fDebug) cout<<" case3 "<<endl;
 
-  Double_t hrd_case3 = 0.7;//0.5;
-  Bool_t x5_exist = 0, xp5_exist = 0;
-  Int_t  Npoint = 0;
+  Bool_t   x5_exist = 0, xp5_exist = 0;
+  Int_t    Npoint = 0;
   Double_t TotalNumberOfHits = 0;
   Double_t ChiSquareNdf      = 999.;
+  Double_t hrd_case3 = 0.7;//0.5;
  
   for (Int_t imod1 = 0; imod1 < fNmodules1; imod1++) {
     for (Int_t cl1 = 0; cl1 < Nleftoversp_[1][imod1]; cl1++){ 
@@ -2514,10 +2760,10 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
            iModX[i]     = -1;
           }
           
-          if ( fabs(leftoverXsp_[1][imod1][cl1]  -  leftoverXsp_[2][imod2][cl2])   > half_roadX1_X2  ) continue;
+          if ( fabs(leftoverXsp_[1][imod1][cl1]  - leftoverXsp_[2][imod2][cl2] )   > half_roadX1_X2  ) continue;
           if ( fabs(leftoverXsp_[1][imod1][cl1]  - leftoverXpsp_[1][imod1][cl1])   > half_roadX1_Xp1 ) continue;
           if ( fabs(leftoverXsp_[2][imod2][cl2]  - leftoverXpsp_[2][imod2][cl2])   > half_roadX2_Xp2 ) continue;
-          if ( fabs(leftoverYsp_[1][imod1][cl1]  -  leftoverYsp_[2][imod2][cl2])   > half_roadY1_Y2)   continue;
+          if ( fabs(leftoverYsp_[1][imod1][cl1]  - leftoverYsp_[2][imod2][cl2] )   > half_roadY1_Y2)   continue;
 
           iClustXMod[1]= cl1;
           iClustXMod[2]= cl2;
@@ -2530,6 +2776,8 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
           Double_t  y1_2 = 0.5 * ( leftoverYsp_[1][imod1][cl1] +leftoverYsp_[2][imod2][cl2] );
           ax12_from_target = (Xv_av - leftoverXsp_[1][imod1][cl1] )/( Z0_SRC_target - Zstation[1][imod1] );
           ay12_from_target = (Yv_av - y1_2 )/( Z0_SRC_target - z1_2 );
+          
+          if ( fDebug) cout<<" ax12_from_target "<<ax12_from_target<<" Xv_av "<<Xv_av<<" Yv_av "<<Yv_av<<endl;
 
           for (Int_t ist = 1; ist < fNstations; ++ist) {
            for (Int_t imod = 0; imod < fNmodules; imod++) {
@@ -2738,12 +2986,12 @@ void BmnSiliconTrackFinder::Case3( Int_t **Nleftoversp_,Double_t ***leftoverXsp_
         xp5_exist = 0;
       }
           
-    }//if ( !x5_exist){
-    if (fDebug) cout<<"---xp.----"<<endl;
-    if (fDebug) cout<<" was_candidate "<<was_candidate<<endl;
-    if (fDebug) cout<<"case3: end 3xp st: iModX[1] "<<iModX[1]<<" iCl "<<iClustXMod[1]<<" iModX[2] "<<iModX[2]<<" iCl "<<iClustXMod[2]<<endl;
-    if (fDebug) cout<<" TotalNumberOfHits "<<TotalNumberOfHits<<" ChiSquareNdf "<<ChiSquareNdf<<endl;
-    // Xpforglfit - > Xp_cand
+        }//if ( !x5_exist){
+        if (fDebug) cout<<"---xp.----"<<endl;
+        if (fDebug) cout<<" was_candidate "<<was_candidate<<endl;
+        if (fDebug) cout<<"case3: end 3xp st: iModX[1] "<<iModX[1]<<" iCl "<<iClustXMod[1]<<" iModX[2] "<<iModX[2]<<" iCl "<<iClustXMod[2]<<endl;
+        if (fDebug) cout<<" TotalNumberOfHits "<<TotalNumberOfHits<<" ChiSquareNdf "<<ChiSquareNdf<<endl;
+        // Xpforglfit - > Xp_cand
        
        Int_t  Mod_cand[fNstations], iCl_cand[fNstations];
        Double_t X_cand[fNstations], Xp_cand[fNstations], Y_cand[fNstations],
@@ -3112,8 +3360,8 @@ Int_t *iClustXMod_,  Int_t *iModX_, Double_t & ChiSquare_, Double_t *line_){
   
 //---------------------------GlobalFit---------------------------------
   ChiSquare_         = 0.;
-  if ( fDebug) cout<<endl;
-  if(fDebug)   cout<<"--GlobalFit--"<<endl;
+  if (fDebug) cout<<endl;
+  if (fDebug)   cout<<"--GlobalFit--"<<endl;
   //setting global fit matrices to zero
 
   for (Int_t i = 0; i < 4; ++i) {
@@ -3122,7 +3370,8 @@ Int_t *iClustXMod_,  Int_t *iModX_, Double_t & ChiSquare_, Double_t *line_){
     }
   }  
   for (Int_t i = 0; i < 4; ++i) { 
-   rhs[i] = 0; 
+   rhs[i]   = 0; 
+   line_[i] = 0;
   }
   for (Int_t i = 0; i < 16; ++i) { 
    AmatrArray[i] = 0; 
@@ -3143,7 +3392,7 @@ Int_t *iClustXMod_,  Int_t *iModX_, Double_t & ChiSquare_, Double_t *line_){
 
   bool ifSuccess = InvertMatrix(AmatrArray, AmatrInverted);
 
-  if (!ifSuccess) {cout<< "???? InvertMatrix is unsuccessfull ????"<<endl;   }  //FIXME: what does this mean?
+  if (!ifSuccess) {cout<< "???? InvertMatrix is unsuccessfull ????"<<endl;   }  
   if (!ifSuccess) {cout<< "???? InvertMatrix is unsuccessfull ????"<<endl; return;} // continue; }  //FIXME: what does this mean?
 
   for (Int_t coeff = 0; coeff < 4; ++coeff) {
@@ -3151,13 +3400,11 @@ Int_t *iClustXMod_,  Int_t *iModX_, Double_t & ChiSquare_, Double_t *line_){
      line_[coeff] += AmatrInverted[4*iCol + coeff]*rhs[iCol]; 
     }
   }
-   
+   //line_ = { ax, bx, ay, by}
    if ( fDebug ) cout<<" ax "<<line_[0]<<" bx "<<line_[1]<<" ay "<<line_[2]<<" by "<<line_[3]<<endl;
-   if ( fDebug ) cout<<endl;
-  //line_ = { ax, bx, ay, by}
   
   //---------------------------Chi2---------------------------------
-
+  if ( fDebug) cout<<"ChiSquare_ "<<ChiSquare_<<endl;
   for (Int_t ist = 1; ist < fNstations; ++ist) {
     if (Xforglfit_[ist][iModX_[ist]] < -900. ) continue;
    
@@ -3166,17 +3413,17 @@ Int_t *iClustXMod_,  Int_t *iModX_, Double_t & ChiSquare_, Double_t *line_){
     
     Double_t sigmaX_2 = SigmXforglfit_[ist][iModX_[ist]]*SigmXforglfit_[ist][iModX_[ist]];
     ChiSquare_ += ((hit-fit)*(hit-fit))/(sigmaX_2);
-    if ( fDebug) cout<<" ist "<<ist<<" hitx  "<<hit<<" fit "<<fit<<" Z "<<ZstnCforglfit[ist][iModX_[ist]]<<" sigma "<<SigmXforglfit_[ist][iModX_[ist]]<<" ChiSquare_ "<<ChiSquare_<<endl;
+    if ( fDebug) cout<<" ist "<<ist<<" hitx  "<<hit<<" dx "<<hit-fit<<" Z "<<ZstnCforglfit[ist][iModX_[ist]]<<" sigma "<<SigmXforglfit_[ist][iModX_[ist]]<<" ChiSquare_ "<<ChiSquare_<<endl;
   }
   for (Int_t ist = 1; ist < fNstations; ++ist) { 
     if (Xpforglfit_[ist][iModX_[ist]] < -900. ) continue;
     
     Double_t hit = Xpforglfit_[ist][iModX_[ist]];
-    Double_t fit = ( line_[0]*ZstnCforglfit[ist][iModX_[ist]] + line_[1]) + (line_[2]*ZstnCforglfit[ist][iModX_[ist]] + line_[3]) * Angle(ist,iModX_[ist]) * tg2_5 ;// x' = x + y*tg    //x*cos + y*sin
+    Double_t fit = (line_[0]*ZstnCforglfit[ist][iModX_[ist]] + line_[1]) + (line_[2]*ZstnCforglfit[ist][iModX_[ist]] + line_[3]) * Angle(ist,iModX_[ist]) * tg2_5 ;// x' = x + y*tg    //x*cos + y*sin
     
     Double_t sigmaXp_2 = SigmXpforglfit_[ist][iModX_[ist]]*SigmXpforglfit_[ist][iModX_[ist]];
     ChiSquare_ += ((hit-fit)*(hit-fit))/(sigmaXp_2);
-    if ( fDebug) cout<<" ist "<<ist<<" hitxp "<<hit<<" fit "<<fit<<" Z "<<ZstnCforglfit[ist][iModX_[ist]]<<" sigma "<<SigmXpforglfit_[ist][iModX_[ist]]<<" ChiSquare_ "<<ChiSquare_<<endl;
+    if ( fDebug) cout<<" ist "<<ist<<" hitxp "<<hit<<" dxp "<<hit-fit<<" Z "<<ZstnCforglfit[ist][iModX_[ist]]<<" sigma "<<SigmXpforglfit_[ist][iModX_[ist]]<<" ChiSquare_ "<<ChiSquare_<<endl;
   }//ist
   
 }
@@ -3382,113 +3629,77 @@ Double_t BmnSiliconTrackFinder::FindClusterCenter(Double_t* Ampl, Int_t nElement
 
 //----------------------------------------------------------------------
 InitStatus BmnSiliconTrackFinder::Init() {
- 
+  
   //--some hists--
   if (fDebug) {
     
-    hNpoint          = new TH1D("Npoint","Npoints: X+ X'; Npoints; Events", 7,1,8);
-    hChiSquareNdf    = new TH1D("ChiSquareNdf","ChiSquareNdf", 200, 0, Chi2_Globcut);
-    hNtracks         = new TH1D("Ntracks","Ntracks; Ntracks; Events", 10,0,10);
-    hAxglob          = new TH1D("Axglob","AngleX; AngleX[mrad]; Events", 200, -.1,.1);
-    hBxglob          = new TH1D("Bxglob","Bx; [cm]; Events", 200, -10,10);
-    hAyglob          = new TH1D("Ayglob","AngleY; AngleY[mrad]; Events", 200, -.1,.1);
-    hByglob          = new TH1D("Byglob","By; [cm]; Events", 200, -10,10);
-    hvertexXY        = new TH2D("vertexXY","vertexXY", 100, -5, 5, 100, -5, 5);
-    hvertex_aver_XY  = new TH2D("vertex_aver_XY","vertex_aver_XY", 100, -5, 5, 100, -5, 5);
-    hprofile_beam_z1 = new TH2D("profile_beam_z1", "beam_profile_Siz1; [cm];[cm]", 100, -10, 10, 100, -10, 10);
-    hprofile_beam_z2 = new TH2D("profile_beam_z2", "beam_profile_Siz2; [cm];[cm]", 100, -10, 10, 100, -10, 10);
-    hprofile_beam_z3 = new TH2D("profile_beam_z3", "beam_profile_Siz3; [cm];[cm]", 100, -10, 10, 100, -10, 10);
-    fList.Add(hNpoint);
-    fList.Add(hChiSquareNdf);
-    fList.Add(hNtracks);
-    fList.Add(hAxglob);
-    fList.Add(hBxglob);
-    fList.Add(hAyglob);
-    fList.Add(hByglob);
-    fList.Add(hvertexXY);
-    fList.Add(hvertex_aver_XY);
-    fList.Add(hprofile_beam_z1);
-    fList.Add(hprofile_beam_z2);
-    fList.Add(hprofile_beam_z3);
+    hNpoint          = new TH1D("Npoint","Npoints: X+ X'; Npoints; Events", 7,1,8);fList.Add(hNpoint);
+    hChiSquareNdf    = new TH1D("ChiSquareNdf","ChiSquareNdf", 200, 0, Chi2_Globcut);fList.Add(hChiSquareNdf);
+    hNtracks         = new TH1D("Ntracks","Ntracks; Ntracks; Events", 10,0,10);fList.Add(hNtracks);
+    hAxglob          = new TH1D("Axglob","AngleX; tgX[rad]; Events", 200, -.1,.1);fList.Add(hAxglob);
+    hBxglob          = new TH1D("Bxglob","Bx; [cm]; Events", 200, -10,10);fList.Add(hBxglob);
+    hAyglob          = new TH1D("Ayglob","AngleY; tgY[rad]; Events", 200, -.1,.1);fList.Add(hAyglob);
+    hByglob          = new TH1D("Byglob","By; [cm]; Events", 200, -10,10);fList.Add(hByglob);
+    hvertexXY        = new TH2D("vertexXY","vertexXY", 100, -5, 5, 100, -10, 5);fList.Add(hvertexXY);
+    hvertex_aver_XY  = new TH2D("vertex_aver_XY","vertex_aver_XY", 100, -5, 5, 100, -10, 5);fList.Add(hvertex_aver_XY);
+    hprofile_beam_z1 = new TH2D("profile_beam_z1", "beam_profile_Siz1; [cm];[cm]", 100, -10, 10, 100, -15, 5); fList.Add(hprofile_beam_z1);
+    hprofile_beam_z2 = new TH2D("profile_beam_z2", "beam_profile_Siz2; [cm];[cm]", 100, -10, 10, 100, -15, 5);fList.Add(hprofile_beam_z2);
+    hprofile_beam_z3 = new TH2D("profile_beam_z3", "beam_profile_Siz3; [cm];[cm]", 100, -15, 15, 100, -20, 5);fList.Add(hprofile_beam_z3);
+    hAx_first_tr     = new TH1D("Ax_first_tr","Ax_first_tr; AngleX[mrad]; Events", 200, -.1,.1);fList.Add(hAx_first_tr);
+    hAx_more_first_tr= new TH1D("Ax_more_first_tr","Ax_more_first_tr; AngleX[mrad]; Events", 200, -.1,.1); fList.Add(hAx_more_first_tr);
     
-    hdX_st1_st2 = new TH1D("X_st1_st2","X (st1-st2)",100, -0.1, 0.1);
-    hdX_st2_st3 = new TH1D("X_st2_st3","X (st2-st3)",100, -5., 5.);
-    hdX_st1_st3 = new TH1D("X_st1_st3","X (st1-st3)",100, -5., 5.);
-    fList.Add(hdX_st1_st2);
-    fList.Add(hdX_st2_st3);
-    fList.Add(hdX_st1_st3);
+
+    hdX_st1_st2 = new TH1D("X_st1_st2","X (st1-st2)",100, -0.1, 0.1);fList.Add(hdX_st1_st2);
+    hdX_st2_st3 = new TH1D("X_st2_st3","X (st2-st3)",100, -5., 5.);fList.Add(hdX_st2_st3);
+    hdX_st1_st3 = new TH1D("X_st1_st3","X (st1-st3)",100, -5., 5.);fList.Add(hdX_st1_st3);
     
-    hdY_st1_st2 = new TH1D("Y_st1_st2","Y (st1-st2)",100, -1,  1);
-    hdY_st2_st3 = new TH1D("Y_st2_st3","Y (st2-st3)",100, -5., 5.);
-    hdY_st1_st3 = new TH1D("Y_st1_st3","Y (st1-st3)",100, -5., 5.);
-    fList.Add(hdY_st1_st2);
-    fList.Add(hdY_st2_st3);
-    fList.Add(hdY_st1_st3);
+    hdY_st1_st2 = new TH1D("Y_st1_st2","Y (st1-st2)",100, -1,  1);fList.Add(hdY_st1_st2);
+    hdY_st2_st3 = new TH1D("Y_st2_st3","Y (st2-st3)",100, -5., 5.);fList.Add(hdY_st2_st3);
+    hdY_st1_st3 = new TH1D("Y_st1_st3","Y (st1-st3)",100, -5., 5.);fList.Add(hdY_st1_st3);
     
-    hX_st_1    = new TH1D("X_st_1", "X_st_1", 100, -6, 6);
-    hX_st_2    = new TH1D("X_st_2", "X_st_2", 100, -6, 6);
-    hX_st_3    = new TH1D("X_st_3", "X_st_3", 100, -6, 6);
-    fList.Add(hX_st_1);
-    fList.Add(hX_st_2);
-    fList.Add(hX_st_3);
     
-    hdX_st_1    = new TH1D("dX_st_1", "dX_st_1", 100, -0.05, 0.05);
-    hdX_st_2    = new TH1D("dX_st_2", "dX_st_2", 100, -0.05, 0.05);
-    hdX_st_3    = new TH1D("dX_st_3", "dX_st_3", 100, -0.005, 0.005);
-    fList.Add(hdX_st_1);
-    fList.Add(hdX_st_2);
-    fList.Add(hdX_st_3);
+    hX_st_1    = new TH1D("X_st_1", "X_st_1", 100, -6, 6);fList.Add(hX_st_1);
+    hX_st_2    = new TH1D("X_st_2", "X_st_2", 100, -6, 6);fList.Add(hX_st_2);
+    hX_st_3    = new TH1D("X_st_3", "X_st_3", 100, -6, 6);fList.Add(hX_st_3);
     
-    hdXvsXst_1 = new TH2D("dXvsXst_1","dXvsXst_1;XSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.03, 0.03);
-    hdXvsXst_2 = new TH2D("dXvsXst_2","dXvsXst_2;XSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.03, 0.03);
-    hdXvsXst_3 = new TH2D("dXvsXst_3","dXvsXst_3;XSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.0005, 0.0005);
-    fList.Add(hdXvsXst_1);
-    fList.Add(hdXvsXst_2);
-    fList.Add(hdXvsXst_3);
+    hdX_st_1    = new TH1D("dX_st_1", "dX_st_1", 100, -0.02, 0.02);fList.Add(hdX_st_1);
+    hdX_st_2    = new TH1D("dX_st_2", "dX_st_2", 100, -0.02, 0.02);fList.Add(hdX_st_2);
+    hdX_st_3    = new TH1D("dX_st_3", "dX_st_3", 100, -0.002, 0.002);fList.Add(hdX_st_3);
     
-    hX13_X2_m0 = new TH1D("X13_X2_m0","X2_X13_m0", 200, -0.05, 0.05);
-    hX13_X2_m1 = new TH1D("X13_X2_m1","X2_X13_m1", 200, -0.05, 0.05);
-    fList.Add(hX13_X2_m0);
-    fList.Add(hX13_X2_m1);
-    hXp13_Xp2_m0 = new TH1D("Xp13_Xp2_m0","Xp2_Xp13__m0", 200, -0.4, 0.4);
-    hXp13_Xp2_m1 = new TH1D("Xp13_Xp2_m1","Xp2_Xp13__m1", 200, -0.4, 0.4);
-    fList.Add(hXp13_Xp2_m0);
-    fList.Add(hXp13_Xp2_m1);
-    hY13_Y2_m0 = new TH1D("Y13_Y2_m0","Y2_Y13_m0", 200, -1, 1);
-    hY13_Y2_m1 = new TH1D("Y13_Y2_m1","Y2_Y13_m1", 200, -1, 1);
-    fList.Add(hY13_Y2_m0);
-    fList.Add(hY13_Y2_m1);
+    hdXp_st_1    = new TH1D("dXp_st_1", "dXp_st_1", 100, -0.02, 0.02);fList.Add(hdXp_st_1);
+    hdXp_st_2    = new TH1D("dXp_st_2", "dXp_st_2", 100, -0.02, 0.02);fList.Add(hdXp_st_2);
+    hdXp_st_3    = new TH1D("dXp_st_3", "dXp_st_3", 100, -0.02, 0.02);fList.Add(hdXp_st_3);
     
-    hY1m0_Y23 = new TH1D("Y1m0_Y23","Y1m0_Y23",  200, -1, 1);
-    hY1m1_Y23 = new TH1D("Y1m1_Y23","Y1m1_Y23",  200, -1, 1);
-    hY1m2_Y23 = new TH1D("Y1m2_Y23","Y1m2_Y23",  200, -1, 1);
-    hY1m3_Y23 = new TH1D("Y1m3_Y23","Y1m3_Y23",  200, -1, 1);
-    fList.Add(hY1m0_Y23);
-    fList.Add(hY1m1_Y23);
-    fList.Add(hY1m2_Y23);
-    fList.Add(hY1m3_Y23);
+    hdXvsXst_1 = new TH2D("dXvsXst_1","dXvsXst_1;XSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.03, 0.03);fList.Add(hdXvsXst_1);
+    hdXvsXst_2 = new TH2D("dXvsXst_2","dXvsXst_2;XSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.03, 0.03);fList.Add(hdXvsXst_2);
+    hdXvsXst_3 = new TH2D("dXvsXst_3","dXvsXst_3;XSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.0005, 0.0005);fList.Add(hdXvsXst_3);
     
-    hY_st_1    = new TH1D("Y_st_1", "Y_st_1", 100, -6, 6);
-    hY_st_2    = new TH1D("Y_st_2", "Y_st_2", 100, -6, 6);
-    hY_st_3    = new TH1D("Y_st_3", "Y_st_3", 100, -6, 6);
-    fList.Add(hY_st_1);
-    fList.Add(hY_st_2);
-    fList.Add(hY_st_3);
+    hX13_X2_m0 = new TH1D("X13_X2_m0","X2_X13_m0", 200, -0.05, 0.05);fList.Add(hX13_X2_m0);
+    hX13_X2_m1 = new TH1D("X13_X2_m1","X2_X13_m1", 200, -0.05, 0.05);fList.Add(hX13_X2_m1);
     
-    hdY_st_1    = new TH1D("dY_st_1", "dY_st_1", 100, -0.6, 0.6);
-    hdY_st_2    = new TH1D("dY_st_2", "dY_st_2", 100, -0.6, 0.6);
-    hdY_st_3    = new TH1D("dY_st_3", "dY_st_3", 100, -0.6, 0.6);
-    fList.Add(hdY_st_1);
-    fList.Add(hdY_st_2);
-    fList.Add(hdY_st_3);
+    hXp13_Xp2_m0 = new TH1D("Xp13_Xp2_m0","Xp2_Xp13__m0", 200, -0.4, 0.4);fList.Add(hXp13_Xp2_m0);
+    hXp13_Xp2_m1 = new TH1D("Xp13_Xp2_m1","Xp2_Xp13__m1", 200, -0.4, 0.4);fList.Add(hXp13_Xp2_m1);
     
-    hdYvsYst_1 = new TH2D("dYvsYst_1","dYvsYst_1;YSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.6, 0.6);
-    hdYvsYst_2 = new TH2D("dYvsYst_2","dYvsYst_2;YSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.6, 0.6);
-    hdYvsYst_3 = new TH2D("dYvsYst_3","dYvsYst_3;YSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.4, 0.4);
-    fList.Add(hdYvsYst_1);
-    fList.Add(hdYvsYst_2);
-    fList.Add(hdYvsYst_3);
-   
+    hY13_Y2_m0 = new TH1D("Y13_Y2_m0","Y2_Y13_m0", 200, -1, 1);fList.Add(hY13_Y2_m0);
+    hY13_Y2_m1 = new TH1D("Y13_Y2_m1","Y2_Y13_m1", 200, -1, 1);fList.Add(hY13_Y2_m1);
+    
+    hY1m0_Y23 = new TH1D("Y1m0_Y23","Y1m0_Y23",  200, -1, 1);fList.Add(hY1m0_Y23);
+    hY1m1_Y23 = new TH1D("Y1m1_Y23","Y1m1_Y23",  200, -1, 1);fList.Add(hY1m1_Y23);
+    hY1m2_Y23 = new TH1D("Y1m2_Y23","Y1m2_Y23",  200, -1, 1);fList.Add(hY1m2_Y23);
+    hY1m3_Y23 = new TH1D("Y1m3_Y23","Y1m3_Y23",  200, -1, 1);fList.Add(hY1m3_Y23);
+    
+    hY_st_1    = new TH1D("Y_st_1", "Y_st_1", 100, -6, 6);fList.Add(hY_st_1);
+    hY_st_2    = new TH1D("Y_st_2", "Y_st_2", 100, -6, 6);fList.Add(hY_st_2);
+    hY_st_3    = new TH1D("Y_st_3", "Y_st_3", 100, -6, 6);fList.Add(hY_st_3);
+    
+    hdY_st_1    = new TH1D("dY_st_1", "dY_st_1", 100, -0.6, 0.6);fList.Add(hdY_st_1);
+    hdY_st_2    = new TH1D("dY_st_2", "dY_st_2", 100, -0.6, 0.6);fList.Add(hdY_st_2);
+    hdY_st_3    = new TH1D("dY_st_3", "dY_st_3", 100, -0.6, 0.6);fList.Add(hdY_st_3);
+    
+    hdYvsYst_1 = new TH2D("dYvsYst_1","dYvsYst_1;YSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.6, 0.6);fList.Add(hdYvsYst_1);
+    hdYvsYst_2 = new TH2D("dYvsYst_2","dYvsYst_2;YSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.6, 0.6);fList.Add(hdYvsYst_2);
+    hdYvsYst_3 = new TH2D("dYvsYst_3","dYvsYst_3;YSi[cm];hit-fit[cm]", 100, -6, 6, 100, -0.4, 0.4);fList.Add(hdYvsYst_3);
+    
     hdXst1_0_st2_0= new TH1D("dXst1_0_st2_0","dXst1_0_st2_0",100, -0.1, 0.1);
     hdXst1_0_st2_1= new TH1D("dXst1_0_st2_1","dXst1_0_st2_1",100, -0.1, 0.1);
     hdXst1_1_st2_0= new TH1D("dXst1_1_st2_0","dXst1_1_st2_0",100, -0.1, 0.1);
@@ -3514,6 +3725,13 @@ InitStatus BmnSiliconTrackFinder::Init() {
     fList.Add(hdXst2_1_st3_1);
     fList.Add(hdXst2_1_st3_2);
     
+    hdXp3_mod1 = new TH1D("hdXp3_mod1","hdXp3_mod1",100, -0.02, 0.02);fList.Add(hdXp3_mod1);
+    hdXp3_mod2 = new TH1D("hdXp3_mod2","hdXp3_mod2",100, -0.02, 0.02);fList.Add(hdXp3_mod2);
+    hdXXp3_mod1 = new TH1D("hdXXp3_mod1","hdXXp3_mod1",100, -0.5, 0.5);fList.Add(hdXXp3_mod1);
+    hdXXp3_mod2 = new TH1D("hdXXp3_mod2","hdXXp3_mod2",100, -0.5, 0.5);fList.Add(hdXXp3_mod2);
+    hXXp12CheckLeftover = new TH1D("hXXp12CheckLeftover","hXXp12CheckLeftover",100, -10, 10);fList.Add(hXXp12CheckLeftover);
+    hXXp12CheckLeftover03 = new TH1D("hXXp12CheckLeftover03","hXXp12CheckLeftove3",100, -0.3, 0.3);fList.Add(hXXp12CheckLeftover03);
+    
     hdXvsXst1_0 = new TH2D("dXvsXst1_0","dXvsXst1_0", 100, -6, 6, 100, -0.05, 0.05);
     hdXvsXst1_1 = new TH2D("dXvsXst1_1","dXvsXst1_1", 100, -6, 6, 100, -0.05, 0.05);
     hdXvsXst1_2 = new TH2D("dXvsXst1_2","dXvsXst1_2", 100, -6, 6, 100, -0.05, 0.05);
@@ -3537,8 +3755,8 @@ InitStatus BmnSiliconTrackFinder::Init() {
     hdYvsYst1_mod3 = new TH2D("dYvsYst1_mod3","dYvsYst1_mod3", 100, -6, 6, 100, -0.6, 0.6);
     hdYvsYst2_mod0 = new TH2D("dYvsYst2_mod0","dYvsYst2_mod0", 100, -6, 6, 100, -0.6, 0.6);
     hdYvsYst2_mod1 = new TH2D("dYvsYst2_mod1","dYvsYst2_mod1", 100, -6, 6, 100, -0.6, 0.6);
-    hdYvsYst3_mod1 = new TH2D("dYvsYst3_mod1","dYvsYst3_mod1", 100, -6, 6, 100, -0.1, 0.1);
-    hdYvsYst3_mod2 = new TH2D("dYvsYst3_mod2","dYvsYst3_mod2", 100, -6, 6, 100, -0.1, 0.1);
+    hdYvsYst3_mod1 = new TH2D("dYvsYst3_mod1","dYvsYst3_mod1", 100, -6, 6, 100, -0.2, 0.2);
+    hdYvsYst3_mod2 = new TH2D("dYvsYst3_mod2","dYvsYst3_mod2", 100, -6, 6, 100, -0.2, 0.2);
     fList.Add(hdYvsYst1_mod0);
     fList.Add(hdYvsYst1_mod1);
     fList.Add(hdYvsYst1_mod2);
@@ -3572,7 +3790,7 @@ InitStatus BmnSiliconTrackFinder::Init() {
     fList.Add(hdYst2_0_st3_2);
     fList.Add(hdYst2_1_st3_1);
     fList.Add(hdYst2_1_st3_2);
-
+    
     N_eff = new TH1D("N_eff","N_eff", 6,1,7);
     D_eff = new TH1D("D_eff","D_eff", 6,1,7);
     E_eff = new TH1D("E_eff","Hit Efficiency per Layer on Track", 6,1,7);
@@ -3580,6 +3798,38 @@ InitStatus BmnSiliconTrackFinder::Init() {
     fList.Add(N_eff);
     fList.Add(D_eff);
     fList.Add(E_eff);
+    
+    hdAx_MC_tr = new TH1D("dAx_MC_tr","dAx_MC_tr;[rad]",200, -.001,.001);fList.Add(hdAx_MC_tr);
+    hdAy_MC_tr = new TH1D("dAy_MC_tr","dAy_MC_tr;[rad]",200, -.01,.01);fList.Add(hdAy_MC_tr);
+    hdX_MC_tr  = new TH1D("dX_MC_tr","dX_MC_tr;[cm]",200, -2,2);fList.Add(hdX_MC_tr);
+    hdY_MC_tr  = new TH1D("dY_MC_tr","dY_MC_tr;[cm]",200, -2,2);fList.Add(hdY_MC_tr);
+    
+    hAxsi_mctrue  = new TH1D("Axsi_mctrue","Ax_mctrueX; tgX[rad]; Events", 200, -.1,.1);fList.Add(hAxsi_mctrue);
+    hBxsi_mctrue  = new TH1D("Bxsi_mctrue","Bx_mctrue; [cm]; Events", 200, -10,10);fList.Add(hBxsi_mctrue);
+    hAysi_mctrue  = new TH1D("Aysi_mctrue","Ay_mctrue; tgY[rad]; Events", 200, -.1,.1);fList.Add(hAysi_mctrue);
+    hBysi_mctrue  = new TH1D("Bysi_mctrue","By_mctrue; [cm]; Events", 200, -10,10);fList.Add(hBysi_mctrue);
+    
+    hSi_st1mc = new TH2D("Si_st1mc", "beam_profileSi_st1mc smeared; [cm];[cm]", 100, -10, 10, 100, -15, 5); fList.Add(hSi_st1mc);
+    hSi_st2mc = new TH2D("Si_st2mc", "beam_profileSi_st2mc smeared; [cm];[cm]", 100, -10, 10, 100, -15, 5); fList.Add(hSi_st2mc);
+    hSi_st3mc = new TH2D("Si_st3mc", "beam_profileSi_st3mc smeared; [cm];[cm]", 100, -15, 15, 100, -25, 5); fList.Add(hSi_st3mc);
+    
+    hdAx_MC_tr_comb = new TH1D("dAx_MC_tr_comb","dAx_MC_tr_comb;[rad]",200, -.005,.005);fList.Add(hdAx_MC_tr_comb);
+    hdAy_MC_tr_comb = new TH1D("dAy_MC_tr_comb","dAy_MC_tr_comb;[rad]",200, -.005,.005);fList.Add(hdAy_MC_tr_comb);
+    hdX_MC_tr_comb  = new TH1D("dX_MC_tr_comb","dX_MC_tr_comb;[cm]",200, -2,2);fList.Add(hdX_MC_tr_comb);
+    hdY_MC_tr_comb  = new TH1D("dY_MC_tr_comb","dY_MC_tr_comb;[cm]",200, -2,2);fList.Add(hdY_MC_tr_comb);
+
+    hDen_mctrSi = new TH1D("hDen_mctrSi", "Den_mctrSi", 1, 0, 1);fList.Add(hDen_mctrSi);
+    hNum_mctrSi = new TH1D("hNum_mctrSi", "Num_mctrSi", 1, 0, 1);fList.Add(hNum_mctrSi);
+    hEff_mctrSi = new TH1D("hEff_mctrSi", "Eff_mctrSi", 1, 0, 1);fList.Add(hEff_mctrSi);
+    
+    hDen_mcreaction= new TH1D("hDen_mcreaction", "hDen_mcreaction", 1, 0, 1);fList.Add(hDen_mcreaction);
+    hNum_mcreaction= new TH1D("hNum_mcreaction", "hNum_mcreaction", 1, 0, 1);fList.Add(hNum_mcreaction);
+    hEff_mcreaction= new TH1D("hEff_mcreaction", "hEff_mcreaction", 1, 0, 1);fList.Add(hEff_mcreaction);
+    
+    hNtrsi_mc = new TH1D("Ntrsi_mc",";N of Si-tr mc", 10, 0,10); fList.Add(hNtrsi_mc);
+    hNtrsi_reco = new TH1D("Ntrsi_reco",";N of Si-tr reco", 10, 0,10); fList.Add(hNtrsi_reco);
+    hNtrsi_mc_vs_reco= new TH2D("hNtr_mc_vs_reco","hNtr_mc_vs_reco", 10, 0,10, 10, 0,10); fList.Add(hNtrsi_mc_vs_reco);
+    
   }//if (fDebug)
   
   //--Some Arrays--
@@ -3620,6 +3870,7 @@ InitStatus BmnSiliconTrackFinder::Init() {
   XspCoord       = new Double_t**[fNstations];
   XpspCoord      = new Double_t**[fNstations];
   YspCoord       = new Double_t**[fNstations];
+  Sp_pdg         = new Int_t**[fNstations];
   SigmaX         = new Double_t**[fNstations];
   SigmaXp        = new Double_t**[fNstations];
   SigmspX        = new Double_t**[fNstations];
@@ -3682,6 +3933,7 @@ InitStatus BmnSiliconTrackFinder::Init() {
     XspCoord[istat]       = new Double_t*[fNmodules];
     XpspCoord[istat]      = new Double_t*[fNmodules];
     YspCoord[istat]       = new Double_t*[fNmodules];
+    Sp_pdg[istat]         = new Int_t*[fNmodules];
     SigmaX[istat]         = new Double_t*[fNmodules];
     SigmaXp[istat]        = new Double_t*[fNmodules];
     SigmspX[istat]        = new Double_t*[fNmodules];
@@ -3718,6 +3970,7 @@ InitStatus BmnSiliconTrackFinder::Init() {
       XspCoord[istat][im]        = new Double_t[kBig];
       XpspCoord[istat][im]       = new Double_t[kBig];
       YspCoord[istat][im]        = new Double_t[kBig];
+      Sp_pdg[istat][im]          = new Int_t[kBig];
       SigmaX[istat][im]          = new Double_t[kBig];
       SigmaXp[istat][im]         = new Double_t[kBig];
       SigmspX[istat][im]         = new Double_t[kBig];
@@ -3744,24 +3997,24 @@ InitStatus BmnSiliconTrackFinder::Init() {
   FairRootManager* ioman = FairRootManager::Instance();
   
   if (expData) {
-    if (fVerbose) cout<<" expData "<<endl;
+    if (fDebug) cout<<" expData "<<endl;
     fBmnSiDigitsArray = (TClonesArray*) ioman->GetObject("SILICON");
     if (!fBmnSiDigitsArray) {
-      cout<<"fBmnSiDigitsArray::Init(): branch "<<" not found! Task will be deactivated"<<endl;
+      if (fDebug) cout<<"fBmnSiDigitsArray::Init(): branch "<<" not found! Task will be deactivated"<<endl;
       SetActive(kFALSE);
       return kERROR;
     }
   }else{
-    if (fVerbose) cout<<" !expData BmnSiliconTrackFinder::Init()" << endl;
+    if (fDebug) cout<<" !expData BmnSiliconTrackFinder::Init()" << endl;
     fBmnHitsArray = (TClonesArray*)ioman->GetObject(fInputBranchName);
-    if (fVerbose) cout << "fInputBranchName = " << fInputBranchName << "\n";
+    if (fDebug) cout << "fInputBranchName = " << fInputBranchName << "\n";
     if (!fBmnHitsArray) {
       cout << "BmnSiliconTrackFinder::Init(): branch " <<fInputBranchName<< " not found! Task will be deactivated" << endl;
       SetActive(kFALSE);
       return kERROR;
     }
     fBmnHitsArray2 = (TClonesArray*)ioman->GetObject(fInputBranchName2);
-    if (fVerbose) cout << "fInputBranchName2 = " << fInputBranchName2 << "\n";
+    if (fDebug) cout << "fInputBranchName2 = " << fInputBranchName2 << "\n";
     if (!fBmnHitsArray2) {
       cout << "BmnSiliconTrackFinder::Init(): branch " <<fInputBranchName2<< " not found! Task will be deactivated" << endl;
       SetActive(kFALSE);
@@ -3777,7 +4030,8 @@ InitStatus BmnSiliconTrackFinder::Init() {
   }
   half_target_regionX = 3.;
   half_target_regionY = 5.5; // !
-  
+
+    
   if (expData){
     //cut for cluster charge
     Cut_AmplX       = 120.;
@@ -3793,7 +4047,10 @@ InitStatus BmnSiliconTrackFinder::Init() {
     Shift_toCenterOfMagnetY  = -3.43;
     Shift_toCenterOfMagnetAX =  0.;
     Shift_toCenterOfMagnetAY =  0.0024;
+    
   }else{
+    kX_target = 0.5;
+    kY_target =-4.5;
     //cut for cluster charge
     Cut_AmplX       = 0.;
     Cut_AmplXp      = 0.;
@@ -3803,6 +4060,7 @@ InitStatus BmnSiliconTrackFinder::Init() {
     Cut_AmplStripXp = 0.;
     Chi2_Globcut    = 80.;//20.;
     N_min_points    = 4;
+    
     Shift_toCenterOfMagnetX  =  0.;
     Shift_toCenterOfMagnetY  =  0.;
     Shift_toCenterOfMagnetAX =  0.;
@@ -3855,8 +4113,8 @@ InitStatus BmnSiliconTrackFinder::Init() {
     //                         Shift
     shiftStYtoGlob[0] =  0.;
     shiftStYtoGlob[1] =  0.096 +0.001 -0.05 -0.06       +0.32 -0.02;//  + 0.11 -4.5;  
-    shiftStYtoGlob[2] =  0.096 +0.001 -0.05 -0.07 + 0.1 +0.32 -0.02;//  + 0.11 -4.5; 
-    shiftStYtoGlob[3] =  -6.274 + .14        -0.15       +0.32 -0.006;// + 0.11 -4.5;
+    shiftStYtoGlob[2] =  0.096 +0.001 -0.05 -0.07 + 0.1 +0.32 -0.02   - 0.13;//  + 0.11 -4.5; 
+    shiftStYtoGlob[3] =  -6.274 + .14        -0.15       +0.32 -0.006 - 0.13;// + 0.11 -4.5;
   }else{
     
     //--X--    
@@ -3905,6 +4163,8 @@ InitStatus BmnSiliconTrackFinder::Init() {
     shiftStYtoGlob[2] = 0.; //0.096;
     shiftStYtoGlob[3] = 0.; //-6.274;
   }
+ // */
+    
   for (Int_t ist = 1; ist < fNstations; ist++) {
     //if ( fDebug ) cout<<" shiftStXtoGlob["<<ist<<"]= "<<shiftStXtoGlob[ist]<<" Y "<< shiftStYtoGlob[ist]<<endl;
     for (Int_t imod = 0; imod < fNmodules; imod++) {
@@ -4022,6 +4282,7 @@ void BmnSiliconTrackFinder::PrepareArraysToProcessEvent() {
        XspCoord[istat][im][ii]        = -999.;
        XpspCoord[istat][im][ii]       = -999.;
        YspCoord[istat][im][ii]        = -999.;
+       Sp_pdg[istat][im][ii]          = -1;
        SigmaX[istat][im][ii]          = -999.;
        SigmaXp[istat][im][ii]         = -999.;
        SigmspX[istat][im][ii]         = -999.;
@@ -4045,6 +4306,7 @@ void BmnSiliconTrackFinder::PrepareArraysToProcessEvent() {
   
 }
 //----------------------------------------------------------------------
+
 
 
 //-------------------------constructor----------------------------------
@@ -4076,6 +4338,7 @@ BmnSiliconTrackFinder::~BmnSiliconTrackFinder() {
    delete[] XspCoord[istat];
    delete[] XpspCoord[istat];
    delete[] YspCoord[istat];
+   delete[] Sp_pdg[istat];
    delete[] SigmaX[istat];
    delete[] SigmaXp[istat];
    delete[] SigmspX[istat];
@@ -4126,6 +4389,7 @@ BmnSiliconTrackFinder::~BmnSiliconTrackFinder() {
      delete[] XspCoord[istat][im];
      delete[] XpspCoord[istat][im];
      delete[] YspCoord[istat][im];
+     delete[] Sp_pdg[istat][im];
      delete[] SigmaX[istat][im];
      delete[] SigmaXp[istat][im];
      delete[] SigmspX[istat][im];
@@ -4166,6 +4430,7 @@ BmnSiliconTrackFinder::~BmnSiliconTrackFinder() {
   delete[] XspCoord;
   delete[] XpspCoord;
   delete[] YspCoord;
+  delete[] Sp_pdg;
   delete[] SigmaX;
   delete[] SigmaXp;
   delete[] SigmspX;
@@ -4238,8 +4503,10 @@ void BmnSiliconTrackFinder::Finish() {
     
    E_eff->Divide(N_eff,D_eff,1,1);
    hEff_mctrSi->Divide(hNum_mctrSi,hDen_mctrSi,1,1);
+   hEff_mcreaction->Divide(hNum_mcreaction,hDen_mcreaction,1,1);
+   
    printf("BmnSiliconTrackFinder: write hists to file... ");
-   fOutputFileName = Form("HistSiliconTracks_run%d.root", fRunNumber);
+   fOutputFileName = Form("hSiliconTracks_run%d.root", fRunNumber);
    cout<< fOutputFileName <<endl;
    TFile file(fOutputFileName, "RECREATE");
    fList.Write();

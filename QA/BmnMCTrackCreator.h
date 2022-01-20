@@ -134,6 +134,8 @@ private:
     TClonesArray* fSilPoints;
     TClonesArray* fSsdPoints;
     TClonesArray* fGemPoints;
+    TClonesArray* fTof400Points;
+    TClonesArray* fTof700Points;
     
     Int_t fNSiliconStations;
 

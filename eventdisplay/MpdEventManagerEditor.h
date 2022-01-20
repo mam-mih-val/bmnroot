@@ -10,6 +10,8 @@
 #include "TGLabel.h"
 #include "TEveGValuators.h"
 
+#include "string"
+
 class MpdEventManagerEditor;
 struct ThreadParam_OnlineDisplay
 {
@@ -34,7 +36,8 @@ class MpdEventManagerEditor : public TGedFrame
     MpdEventManager* fEventManager;
 
     TGLabel* fEventTime;
-    TGNumberEntry* fCurrentPDG;
+    TGTextEntry* fCurrentPDGTextEntry;
+    string fCurrentPDGString;
     TGCheckButton* fVizPri;
     TEveGValuator* fMinEnergy, *fMaxEnergy;
     TGHorizontalFrame* fGeometryFrame;

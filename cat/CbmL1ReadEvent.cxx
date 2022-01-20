@@ -17,6 +17,14 @@
 #include "CbmL1.h"
 #include "L1Algo/L1Algo.h"
 #include "CbmKF.h"
+#include "CbmStsPoint.h"
+#include "CbmStsDigi.h"
+#include "CbmStsCluster.h"
+#include "CbmStsHit.h"
+#include "CbmMvdPoint.h"
+#include "CbmMvdHit.h"
+#include "CbmMvdHitMatch.h"
+#include "CbmMCTrack.h"
 
 #include "TDatabasePDG.h"
 

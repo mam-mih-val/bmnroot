@@ -1,6 +1,3 @@
-// ------------------------------------------------------------------------
-// -----                     BmnFdPoint header file                   -----
-// ------------------------------------------------------------------------
 
 #ifndef BMNFDPOINT_H
 #define BMNFDPOINT_H
@@ -22,26 +19,13 @@ class BmnFDPoint : public FairMCPoint
 
   /** Default constructor **/
   BmnFDPoint();
-
-
-  /** Constructor with arguments
-   *@param trackID  Index of MCTrack
-   *@param detID    Detector ID (at present, volume MC number)
-   *@param copyNo         Number of active layer inside FD module
-   *@param copyNoMother   FD module number
-   *@param pos      Coordinates  [cm]
-   *@param mom      Momentum of track [GeV]
-   *@param tof      Time since event start [ns]
-   *@param length   Track length since creation [cm]
-   *@param eLoss    Energy deposit [GeV]
-   **/
   
   BmnFDPoint(Int_t trackID, Int_t detID, 
 	      Int_t copyNo, 
 	       TVector3 posIn, TVector3 posOut,
            TVector3 momIn, TVector3 momOut,
 	       Double_t tof, Double_t length, Double_t eLoss, 
-		   Int_t isPrimary, Double_t charge, Int_t pdgId,
+		   Int_t isPrimary, Double_t charge, Int_t pdgId, Double_t lightYield,
 		   Double_t timeIn, Double_t timeOut, Double_t lengthtrack);
  // UInt_t EventId, 
   /** Copy constructor **/
@@ -77,17 +61,10 @@ class BmnFDPoint : public FairMCPoint
 	void PositionOut(TVector3& pos) { pos.SetXYZ(fXOut,fYOut,fZOut);}
     
 	// ---------------------------------------------------------
+    Float_t GetLightYield() const {return fLightYield;}
 
   //void  GetPolarisation(TVector3 &v)  const;	
 
-
-	/*  
-	Double_t GetX()             const { return fX1;      };
-    Double_t GetY()             const { return fY1;      };
-    Double_t GetZ()             const { return fZ1;      };
-	
-	void Position(TVector3& posprim) const { posprim.SetXYZ(fX1, fY1, fZ1); }
-*/
 	
   /** Modifiers **/
    void SetCopy(Short_t i)          { nCopy    = i; }; 
@@ -113,6 +90,7 @@ class BmnFDPoint : public FairMCPoint
 	Int_t fIsPrimary;
     Double_t fCharge;
     Int_t fPdgId;
+    Float_t fLightYield;
 	Double_t fTimeIn;
 	Double_t fTimeOut;
 	Double_t fLengthtrack;

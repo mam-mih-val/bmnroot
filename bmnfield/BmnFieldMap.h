@@ -7,21 +7,12 @@
 #ifndef BMNFIELDMAP_H
 #define BMNFIELDMAP_H 1
 
-#include <stdlib.h>
-#include <vector>
-#include <iostream>
-#include <algorithm>
-#include <stdio.h>
-#include <string.h>
+#include "BmnFieldMapCreator.h"
+#include "BmnFieldMapData.h"
+#include "BmnFieldPar.h"
 #include "FairField.h"
-#include "TVector3.h"
-
-class TArrayF;
-class BmnFieldMapCreator;
-class BmnFieldMapData;
-class BmnFieldPar;
-// class BmnNewFieldMap;
-
+#include "TArrayF.h"
+#include <iostream>
 
 using namespace std;
 
@@ -39,7 +30,6 @@ public:
     BmnFieldMap(const char* mapName);
     BmnFieldMap(BmnFieldPar* fieldPar);
     BmnFieldMap(BmnFieldMapCreator* creator);
-
     virtual ~BmnFieldMap();
 
     virtual void Init();
@@ -66,7 +56,6 @@ public:
         return 0.;
     };
 
-
     /** Write the field map to an ASCII file **/
     void WriteAsciiFile(const char* fileName);
 
@@ -77,97 +66,46 @@ public:
     void SetPosition(Double_t x, Double_t y, Double_t z);
 
     /** Set a global field scaling factor **/
-    void SetScale(Double_t factor) {
-        fScale = factor;
-    }
+    void SetScale(Double_t factor) { fScale = factor; }
+
+    /** Set field map file path **/
+    void SetFileName(const char* file_name) { fFileName = file_name; }
 
     /** Accessors to field parameters in local coordinate system **/
-    Double_t GetXmin() const {
-        return fXmin;
-    }
+    Double_t GetXmin() const { return fXmin; }
+    Double_t GetYmin() const { return fYmin; }
+    Double_t GetZmin() const { return fZmin; }
 
-    Double_t GetYmin() const {
-        return fYmin;
-    }
+    Double_t GetXmax() const { return fXmax; }
+    Double_t GetYmax() const { return fYmax; }
+    Double_t GetZmax() const { return fZmax; }
 
-    Double_t GetZmin() const {
-        return fZmin;
-    }
+    Double_t GetXstep() const { return fXstep; }
+    Double_t GetYstep() const { return fYstep; }
+    Double_t GetZstep() const { return fZstep; }
 
-    Double_t GetXmax() const {
-        return fXmax;
-    }
-
-    Double_t GetYmax() const {
-        return fYmax;
-    }
-
-    Double_t GetZmax() const {
-        return fZmax;
-    }
-
-    Double_t GetXstep() const {
-        return fXstep;
-    }
-
-    Double_t GetYstep() const {
-        return fYstep;
-    }
-
-    Double_t GetZstep() const {
-        return fZstep;
-    }
-
-    Int_t GetNx() const {
-        return fNx;
-    }
-
-    Int_t GetNy() const {
-        return fNy;
-    }
-
-    Int_t GetNz() const {
-        return fNz;
-    }
+    Int_t GetNx() const { return fNx; }
+    Int_t GetNy() const { return fNy; }
+    Int_t GetNz() const { return fNz; }
 
     /** Accessor to field centre position in global system **/
-    Double_t GetPositionX() const {
-        return fPosX;
-    }
-
-    Double_t GetPositionY() const {
-        return fPosY;
-    }
-
-    Double_t GetPositionZ() const {
-        return fPosZ;
-    }
+    Double_t GetPositionX() const { return fPosX; }
+    Double_t GetPositionY() const { return fPosY; }
+    Double_t GetPositionZ() const { return fPosZ; }
 
     /** Accessor to global scaling factor  **/
-    Double_t GetScale() const {
-        return fScale;
-    }
+    Double_t GetScale() const { return fScale; }
 
     /** Accessors to the field value arrays **/
-    TArrayF* GetBx() const {
-        return fBx;
-    }
-
-    TArrayF* GetBy() const {
-        return fBy;
-    }
-
-    TArrayF* GetBz() const {
-        return fBz;
-    }
+    TArrayF* GetBx() const { return fBx; }
+    TArrayF* GetBy() const { return fBy; }
+    TArrayF* GetBz() const { return fBz; }
 
     /** Accessor to field map file **/
-    const char* GetFileName() {
-        return fFileName.Data();
-    }
+    const char* GetFileName() { return fFileName.Data(); }
 
     /** Screen output **/
-    void Print();
+    void Print(Option_t*);
 
     virtual void FillParContainer() {
         cout << "To be implemented in BmnNewFieldMap";
@@ -176,9 +114,7 @@ public:
     /** Reset the field parameters and data **/
     void Reset();
 
-
 protected:
-
     /** Reset the field parameters and data **/
     //void Reset();
 
@@ -227,12 +163,10 @@ protected:
     Bool_t fDebugInfo;
 
 private:
-
     BmnFieldMap(const BmnFieldMap&) = delete;
     BmnFieldMap& operator=(const BmnFieldMap&) = delete;
 
     ClassDef(BmnFieldMap, 1)
 };
-
 
 #endif

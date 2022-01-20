@@ -63,7 +63,7 @@ void L1Algo::BranchFitterFast(const L1Branch &t, L1TrackPar& T, const bool dir, 
   fvec v2  = static_cast<fscal>( vStsStripsB[hit2.b] );
   fvec x2,y2;
   StripsToCoor(u2, v2, x2, y2, sta2);
-  fvec z2 = vStsZPos[hit2.iz];
+  //fvec z2 = vStsZPos[hit2.iz];
 
   fvec dzi = 1./(z1-z0);
 
@@ -184,21 +184,21 @@ void L1Algo::FindMoreHits(L1Branch &t, L1TrackPar& T, const bool dir, const fvec
   fvec x0,y0;
 
   StripsToCoor(u0, v0, x0, y0, sta0);
-  fvec z0 = vStsZPos[hit0.iz];
+  //fvec z0 = vStsZPos[hit0.iz];
 
   fvec u1  = static_cast<fscal>( vStsStrips[hit1.f] );
   fvec v1  = static_cast<fscal>( vStsStripsB[hit1.b] );
   fvec x1,y1;
   StripsToCoor(u1, v1, x1, y1, sta1);
-  fvec z1 = vStsZPos[hit1.iz];
+  //fvec z1 = vStsZPos[hit1.iz];
 
   fvec u2  = static_cast<fscal>( vStsStrips[hit2.f] );
   fvec v2  = static_cast<fscal>( vStsStripsB[hit2.b] );
   fvec x2,y2;
   StripsToCoor(u2, v2, x2, y2, sta2);
-  fvec z2 = vStsZPos[hit2.iz];
+  //fvec z2 = vStsZPos[hit2.iz];
 
-  fvec dzi = 1./(z1-z0);
+  //fvec dzi = 1./(z1-z0);
 
   L1FieldValue fB0, fB1, fB2 _fvecalignment;
   L1FieldRegion fld _fvecalignment;

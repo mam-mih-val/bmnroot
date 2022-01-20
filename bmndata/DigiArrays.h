@@ -1,41 +1,30 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   DigiArrays.h
- * Author: ilnur
- *
- * Created on April 20, 2017, 4:12 PM
- */
-
 #ifndef DIGIARRAYS_H
 #define DIGIARRAYS_H 1
 
 #include <vector>
-#include "TTree.h"
 #include "TClonesArray.h"
 #include "BmnEventHeader.h"
 
 class DigiArrays : public TObject {
 public:
 
-    DigiArrays() {
-        gem = NULL;
-        csc = NULL;
-        tof400 = NULL;
-        tof700 = NULL;
-        zdc = NULL;
-        ecal = NULL;
-        land = NULL;
-        dch = NULL;
-        mwpc = NULL;
-        silicon = NULL;
-        header = NULL;
-        trigAr = NULL;
-        trigSrcAr = NULL;
+    DigiArrays() :
+    gem(nullptr),
+    csc(nullptr),
+    tof400(nullptr),
+    tof700(nullptr),
+    zdc(nullptr),
+    scwall(nullptr),
+    fhcal(nullptr),
+    ecal(nullptr),
+    land(nullptr),
+    dch(nullptr),
+    mwpc(nullptr),
+    silicon(nullptr),
+    header(nullptr),
+
+    trigAr(nullptr),
+    trigSrcAr(nullptr) {
     };
 
     ~DigiArrays() {
@@ -77,6 +66,14 @@ public:
             zdc->Delete();
             delete zdc;
         }
+        if (scwall) {
+            scwall->Delete();
+            delete scwall;
+        }
+        if (fhcal) {
+            fhcal->Delete();
+            delete fhcal;
+        }
         if (ecal) {
             ecal->Delete();
             delete ecal;
@@ -108,12 +105,15 @@ public:
     TClonesArray *tof400;
     TClonesArray *tof700;
     TClonesArray *zdc;
+    TClonesArray *scwall;
+    TClonesArray *fhcal;
     TClonesArray *ecal;
     TClonesArray *land;
     TClonesArray *dch;
     TClonesArray *mwpc;
     std::vector<TClonesArray*> *trigAr;
     std::vector<TClonesArray*> *trigSrcAr;
+
     BmnEventHeader *header; //->
 private:
     ClassDef(DigiArrays, 1)

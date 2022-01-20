@@ -38,11 +38,25 @@ public:
         if (_pad) delete _pad;
         if (_HM) delete _HM;
     }
-    
+    /** 
+     * @brief Load pad tree from json config
+     * @param FileName  path to json config
+     *  */  
     void LoadPTFrom(string FileName);
+    /**
+     * @brief Generate pad branch tree from the boost property tree
+     * @param PropTree boost property tree
+     * @return pointer to the BmnPadBranch instance - start of the branch tree
+     */
     BmnPadBranch* GeneratePadBranch(pt::ptree& PropTree);
     PadInfo* GeneratePadNode(pt::ptree& PropTree);
     TClass* GetClassByName(string ClassName);
+    /**
+     * @brief Create pad structure in the canvas from the pad tree
+     * and associate pad branch instances with the pad pointers
+     * @param br  pad tree
+     * @param pad  canvas or any other TVirtualPad instance
+     */
     static void PadTree2Canvas(BmnPadBranch* br, TVirtualPad *pad);
 
     BmnPadBranch* GetPadBranch(){

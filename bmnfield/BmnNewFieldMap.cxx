@@ -47,12 +47,11 @@ Bool_t BmnNewFieldMap::IsInside(Double_t x, Double_t y, Double_t z,
         Double_t& dx, Double_t& dy,
         Double_t& dz) {
 
-    // Transform into local coordinate system (NOT USED NOW!)
     // fPosX = fPosY = fPosZ = 0
-    Double_t xl = x - fPosX;
-    Double_t yl = y - fPosY;
-    Double_t zl = z - fPosZ;
-
+    Double_t xl = x;
+    Double_t yl = y;
+    Double_t zl = z;
+       
     // ---  Check for being outside the map range
     if (!(xl >= fXmin && xl < fXmax && yl >= fYmin && yl < fYmax &&
             zl >= fZmin && zl < fZmax)) {

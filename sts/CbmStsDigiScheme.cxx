@@ -91,6 +91,8 @@ Bool_t CbmStsDigiScheme::Init()
   CbmStsDigiPar *digiPar = (CbmStsDigiPar*) rtdb->getContainer("CbmStsDigiPar");
 
   Init(geoPar, digiPar);
+
+  return kTRUE;
 }
 // -------------------------------------------------------------------------
 
@@ -220,7 +222,7 @@ CbmStsSensor* CbmStsDigiScheme::GetSensorByName(TString sensorName)
     return p->second;
   }else{
     LOG(DEBUG) << "StsDigiScheme: sensor " << sensorName.Data()
-               << " not found " << FairLogger::endl;
+               << " not found ";
     return NULL;
   }
 }
@@ -260,10 +262,10 @@ Bool_t CbmStsDigiScheme::InitNew(CbmGeoStsPar* geoPar,
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
 
     //Create GEM detector ------------------------------------------------------
-    GemStationSet = new BmnGemStripStationSet(gPathConfig + "/parameters/gem/XMLConfigs/GemFutureConfig2020.xml");
-    SilStationSet = new BmnSiliconStationSet(gPathConfig + "/parameters/silicon/XMLConfigs/SiliconFutureConfig2020.xml");
+    GemStationSet = new BmnGemStripStationSet(gPathConfig + "/parameters/gem/XMLConfigs/GemRun8.xml");
+    SilStationSet = new BmnSiliconStationSet(gPathConfig + "/parameters/silicon/XMLConfigs/SiliconRun8_3stations.xml");
     
-    printf("SilStationSet->GetNStations() = %d\n", SilStationSet->GetNStations());
+    //printf("SilStationSet->GetNStations() = %d\n", SilStationSet->GetNStations());
     for (Int_t iSt = 0; iSt < SilStationSet->GetNStations(); ++iSt) {
       BmnSiliconStation* siStation = SilStationSet->GetStation(iSt);
       
@@ -286,7 +288,7 @@ Bool_t CbmStsDigiScheme::InitNew(CbmGeoStsPar* geoPar,
       fStationMap[iSt] = station;
     }
     
-    printf("GemStationSet->GetNStations() = %d\n", GemStationSet->GetNStations());
+    //printf("GemStationSet->GetNStations() = %d\n", GemStationSet->GetNStations());
     for (Int_t iSt = 0; iSt < GemStationSet->GetNStations(); ++iSt) {
       BmnGemStripStation* gemStation = GemStationSet->GetStation(iSt);
       Double_t statRot = (gemStation->GetModule(0)->GetElectronDriftDirection() == 1) ? 0 : Pi();
@@ -308,7 +310,7 @@ Bool_t CbmStsDigiScheme::InitNew(CbmGeoStsPar* geoPar,
       fStations->Add(station);
       fStationMap[iSt + SilStationSet->GetNStations()] = station;
     }
-    printf("fStations->GetEntries() = %d\n", fStations->GetEntries());
+    //printf("fStations->GetEntries() = %d\n", fStations->GetEntries());
     
   //   return kTRUE;
   

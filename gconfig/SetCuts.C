@@ -1,6 +1,7 @@
 /** Configuration macro for setting common cuts and processes for G3, G4 and Fluka
     specific cuts and processes to g3 or g4 should be set in the g3Config.C, g4Config.C or flConfig.C
 **/
+#include "TVirtualMC.h"
 
 void SetCuts()
 {

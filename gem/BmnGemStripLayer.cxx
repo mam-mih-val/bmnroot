@@ -398,6 +398,8 @@ Double_t BmnGemStripLayer::ConvertPointToStripPosition(Double_t x, Double_t y) {
             return (XRightPointOfStripNumbering-ConvertNormalPointToStripX(x, y))/Pitch;
         }
     }
+
+    return 0;
 }
 
 Double_t BmnGemStripLayer::CalculateStripEquationB(Double_t strip_pos) {

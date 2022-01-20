@@ -200,7 +200,22 @@ void BmnTrackingQaReport::Draw() {
     DrawResAndPull(fPrefix + "Residuals and Pulls for last parameters GLOB", namesResPullsL);
 
 
-	drawHist -> DrawMainCanvas("det2");
+    drawHist->DrawMainCanvas("det2");
+
+    
+    TString pNamesInTof400[5] = {"Sim_vs_P_tof400", "Rec_vs_P_tof400", "Well_vs_P_tof400", "Ghost_vs_P_tof400", "Split_vs_P_tof400"};
+    TString pNamesOutTof400[3] = {"Eff_vs_P_tof400", "Fake_vs_P_tof400", "SplitEff_vs_P_tof400"};
+    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for TOF-400", pNamesInTof400, pNamesOutTof400);
+    
+    TString pNamesInTof700[5] = {"Sim_vs_P_tof700", "Rec_vs_P_tof700", "Well_vs_P_tof700", "Ghost_vs_P_tof700", "Split_vs_P_tof700"};
+    TString pNamesOutTof700[3] = {"Eff_vs_P_tof700", "Fake_vs_P_tof700", "SplitEff_vs_P_tof700"};
+    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for TOF-700", pNamesInTof700, pNamesOutTof700);
+
+    DrawTwoH2(fPrefix + "Distribution of tracks over velocity and rigidity", "banana_tof400", "banana_tof700");
+    DrawTwoH1(fPrefix + "Distribution of TOF-400 residuals for correct matching", "x_residuals_tof400_good", "y_residuals_tof400_good", "");
+    DrawTwoH1(fPrefix + "Distribution of TOF-700 residuals for correct matching", "x_residuals_tof700_good", "y_residuals_tof700_good", "");
+    DrawTwoH1(fPrefix + "Distribution of TOF-400 residuals for wrong matching", "x_residuals_tof400_bad", "y_residuals_tof400_bad", "");
+    DrawTwoH1(fPrefix + "Distribution of TOF-700 residuals for wrong matching", "x_residuals_tof700_bad", "y_residuals_tof700_bad", "");
 }
 
 // void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames, TString* outNames) {
@@ -595,7 +610,7 @@ void BmnTrackingQaReport::DrawTwoH1(const TString canvasName, const TString name
     canvas->SetGrid();
     canvas->Divide(2, 1);
     canvas->cd(1);
-    drawHist->DrawH1(canvas,  HM()->H1(name1), kLinear, kLog, drawOpt.Data(), kRed, 1, 0.75, 1.1, 20);
+    drawHist->DrawH1(canvas,  HM()->H1(name1), kLinear, kLinear, drawOpt.Data(), kRed, 1, 0.75, 1.1, 20);
     canvas->cd(2);
     drawHist->DrawH1(canvas,  HM()->H1(name2), kLinear, kLinear, drawOpt.Data(), kRed, 1, 0.75, 1.1, 20);
 }
@@ -622,7 +637,7 @@ void BmnTrackingQaReport::DrawHitRes(TString pref, TString axis) {
 }
 
 void BmnTrackingQaReport::DrawTwoH2(const TString canvasName, const TString name1, const TString name2) {
-	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1000, 500);
+	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1600, 800);
     canvas->SetGrid();
     canvas->Divide(2, 1);
     canvas->cd(1);

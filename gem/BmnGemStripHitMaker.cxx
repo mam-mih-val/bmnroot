@@ -4,6 +4,7 @@
 #include "TSystem.h"
 
 #include "BmnGemStripHitMaker.h"
+#include "FairLinkManager.h"
 
 #include "BmnGemStripStationSet_RunSummer2016.h"
 #include "BmnGemStripStationSet_RunWinter2016.h"
@@ -72,10 +73,10 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
             }
             break;
         case 8: //BM@N RUN-8
-            fCurrentConfig = BmnGemStripConfiguration::FutureConfig2020;
+            fCurrentConfig = BmnGemStripConfiguration::Run8;
             break;
     }
-    
+
     TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
     gPathGemConfig += "/parameters/gem/XMLConfigs/";
 
@@ -109,18 +110,18 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
             if (fVerbose > 1) cout << "   Current GEM Configuration : GemRunSRCSpring2018" << "\n";
             break;
 
-        case BmnGemStripConfiguration::FutureConfig2020:
-            StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemFutureConfig2020.xml");
+        case BmnGemStripConfiguration::Run8:
+            StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRun8.xml");
             TransfSet = new BmnGemStripTransform();
-            TransfSet->LoadFromXMLFile(gPathGemConfig + "GemFutureConfig2020.xml");
-            if (fVerbose) cout << "   Current GEM Configuration : GemFutureConfig2020" << "\n";
+            TransfSet->LoadFromXMLFile(gPathGemConfig + "GemRun8.xml");
+            if (fVerbose) cout << "   Current GEM Configuration : Run8" << "\n";
             break;
 
-        case BmnGemStripConfiguration::SRCFutureConfig2021:
-            StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemSRCFutureConfig2021.xml");
+        case BmnGemStripConfiguration::RunSRC2021:
+            StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSRC2021.xml");
             TransfSet = new BmnGemStripTransform();
-            TransfSet->LoadFromXMLFile(gPathGemConfig + "GemSRCFutureConfig2021.xml");
-            if (fVerbose) cout << "   Current GEM Configuration : SRCFutureConfig2021" << "\n";
+            TransfSet->LoadFromXMLFile(gPathGemConfig + "GemRunSRC2021.xml");
+            if (fVerbose) cout << "   Current GEM Configuration : RunSRC2021" << "\n";
             break;
 
         default:
@@ -262,9 +263,6 @@ void BmnGemStripHitMaker::ProcessDigits() {
     BmnGemStripDigit* digit;
     BmnMatch* strip_match; // MC-information for a strip
 
-    BmnGemStripStation* station;
-    BmnGemStripModule* module;
-
     //Loading digits ---------------------------------------------------------------
     Int_t AddedDigits = 0;
     Int_t AddedStripDigitMatches = 0;
@@ -277,8 +275,8 @@ void BmnGemStripHitMaker::ProcessDigits() {
         if (digit->GetStripSignal() < fSignalLow || digit->GetStripSignal() > fSignalUp)
             continue;
 
-        station = StationSet->GetGemStation(digit->GetStation());
-        module = station->GetModule(digit->GetModule());
+        BmnGemStripStation* station = StationSet->GetGemStation(digit->GetStation());
+        BmnGemStripModule* module = station->GetModule(digit->GetModule());
 
         if (module->SetStripSignalInLayer(digit->GetStripLayer(), digit->GetStripNumber(), digit->GetStripSignal())) AddedDigits++;
 
@@ -397,9 +395,13 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 //--------------------------------------------------------------
 
                 //hit MC-matching ----------------------------------------------
+                FairRootManager::Instance()->SetUseFairLinks(kTRUE);
                 if (fHitMatching && fBmnGemStripHitMatchesArray) {
                     new ((*fBmnGemStripHitMatchesArray)[fBmnGemStripHitMatchesArray->GetEntriesFast()])
                         BmnMatch(module->GetIntersectionPointMatch(iPoint));
+                    BmnMatch* hitMatch = (BmnMatch*) fBmnGemStripHitMatchesArray->At(fBmnGemStripHitMatchesArray->GetEntriesFast() - 1);
+                    for(BmnLink lnk : hitMatch->GetLinks())
+                        hit->AddLink(FairLink(-1, lnk.GetIndex(), lnk.GetWeight()));
                 }
                 //--------------------------------------------------------------
             }

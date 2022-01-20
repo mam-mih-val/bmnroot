@@ -2,25 +2,15 @@
 // -----                    BmnFieldMap header file                    -------- ----
 // -----                   Created 03/02/2015  by P. Batyuk            -------------
 // ----- Modified 28/07/2016  by A. Zelenov   (Summer student practice - 2017)------
-// -----                        JINR, batyuk@jinr.ru                   -------------
+// -----                      JINR, batyuk@jinr.ru                     -------------
 // ---------------------------------------------------------------------------------
 
 #include "BmnFieldMap.h"
-#include "FairRun.h"
-#include "FairRuntimeDb.h"
-#include "BmnFieldMapCreator.h"
-#include "BmnFieldMapData.h"
-#include "BmnFieldPar.h"
-#include "TArrayF.h"
 #include "TFile.h"
 #include "TMath.h"
 #include "TTree.h"
-#include "FairRunSim.h"
+
 #include <iomanip>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
 
 BmnFieldMap::BmnFieldMap()
 : FairField(),
@@ -305,7 +295,7 @@ void BmnFieldMap::SetPosition(Double_t x, Double_t y, Double_t z) {
     fPosZ = z;
 }
 
-void BmnFieldMap::Print() {
+void BmnFieldMap::Print(Option_t*) {
     TString type = "Map";
     if (fType == 2) type = "Map sym2";
     if (fType == 3) type = "Map sym3";
@@ -433,6 +423,15 @@ void BmnFieldMap::ReadAsciiFile(const char* fileName) {
     } // x-Loop
 
     cout << "   " << index + 1 << " read" << endl;
+  
+    fXmin += fPosX;
+    fXmax += fPosX;
+    
+    fYmin += fPosY;
+    fYmax += fPosY;
+    
+    fZmin += fPosZ;
+    fZmax += fPosZ;
 
     mapFile.close();
 }
@@ -477,18 +476,18 @@ void BmnFieldMap::ReadRootFile(const char* fileName) {
     }
 
     fNx = X.N;
-    fXmin = X.min;
-    fXmax = X.max;
+    fXmin = X.min + fPosX;
+    fXmax = X.max + fPosX;
     fXstep = X.step;
 
     fNy = Y.N;
-    fYmin = Y.min;
-    fYmax = Y.max;
+    fYmin = Y.min + fPosY;
+    fYmax = Y.max + fPosY;
     fYstep = Y.step;
 
     fNz = Z.N;
-    fZmin = Z.min;
-    fZmax = Z.max;
+    fZmin = Z.min + fPosZ;
+    fZmax = Z.max + fPosZ;
     fZstep = Z.step;
 
     fBx = new TArrayF(fNx * fNy * fNz);

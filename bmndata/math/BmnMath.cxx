@@ -346,7 +346,7 @@ TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type) {
     return TVector3(a, b, chi2);
 }
 
-TVector3 LineFitBy3Hits(const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2) {
+TVector3 LineFitBy3Hits(const BmnHit* h0, const BmnHit* h1, const BmnHit* h2) {
     //Weighted Least Square Method//
 
     // sigma
@@ -1156,7 +1156,10 @@ void UpdateTrackParam(FairTrackParam* initPar, const FairTrackParam* detPar, Dou
 
     TMatrixDSym covdet(5), icovdet(5);
     covdet *= 0.;
-    for (int ir = 0; ir < 5; ir++) covdet(ir, ir) = detPar->GetCovariance(ir, ir);
+    for (int ir = 0; ir < 5; ir++) {
+        covdet(ir, ir) = detPar->GetCovariance(ir, ir);
+        if (detPar->GetCovariance(ir, ir) == 0) covdet(ir, ir) = 0.00001;
+    }
     covdet(4, 4) = 10000.;
 
     icovdet = covdet;

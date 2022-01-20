@@ -1,0 +1,233 @@
+{
+    "calorimeters": {
+        "ZDC": {
+            "numberOfModules": 104,
+            "pathToGeometry": "/cave_1/ZDC_common_0/"
+        },
+        
+        "ECAL": {
+            "numberOfModules": 504,
+            "pathToGeometry": "/cave_1/ecal_0/"
+        }
+    },
+    
+    "coloring": {
+        "_comment": [
+            "You can set color name in <'color': 'color_name'>",
+            "1. From predefined set and with '+' or '-' operation, e.g.:",
+            "kWhite, kBlack, kGgray,",
+            "kBlue, kAzure (темно-синий), kCyan (морской волны), kTeal (бирюзовый),",
+            "kGreen, kSpring (светло-зеленый), kGreen+2 (темно-зеленый), kSpring+2 (темно-зеленый), kKhaki",
+            "kYellow, kOrange (желтый с оттенком), kOrange+2 (оранжевый кор.), kOrange+1 (светло-оранжевый кор.), kOrange+7 (выделенно-оранжевый)",
+            "kRed, kViolet, kMagenta (бардовый), kMagenta-6 (светло-бардовый), kPink (темно-розовый).",
+            "2. Set RGB triple as decimal or hex number: <'color': 'RGB(r,g,b)'> or <'color': 'RGB(#rgb_hex)'>",
+            "3. Write color number in ROOT palette"
+        ],
+
+        "particles": [
+
+        ],
+
+        "type": "detectors",
+        
+        "detectors": {
+            "scheme": "new",
+
+            "old": [
+                {
+                    "name": "Magnet",
+                    "color": "RGB(51,63,73)",
+                    "transparency": 45,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "Coil",
+                    "color": "RGB(0,57,225)",
+                    "transparency": 90,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "targ",
+                    "color": "RGB(170,225,0)",
+                    "transparency": 0,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "recoil01",
+                    "color": "RGB(0,57,225)",
+                    "transparency": 67,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "GEMS",
+                    "color": "RGB(225,55,0)",
+                    "transparency": 15,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "TOF400",
+                    "color": "RGB(167,0,225)",
+                    "transparency": 15,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "tof1DetPlateV",
+                    "color": "RGB(167,0,225)",
+                    "transparency": 90,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "DCH",
+                    "color": "RGB(0,170,225)",
+                    "transparency": 30,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "tof700",
+                    "color": "RGB(167,0,225)",
+                    "transparency": 15,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "VMDL",
+                    "color": "RGB(170,225,0)",
+                    "transparency": 0,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "UMDL",
+                    "color": "RGB(0,170,225)",
+                    "transparency": 0,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "Silicon",
+                    "color": "kKhaki",
+                    "transparency": 0,
+                    "isRecursiveColoring": true
+                }
+            ],
+
+            "new": [
+                {
+                    "name": "Magnet",
+                    "color": "RGB(208,207,208)",
+                    "transparency": 45,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "MWPC",
+                    "color": "RGB(227,209,53)",
+                    "transparency": 0,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "SID",
+                    "color": "RGB(6,84,108)",
+                    "transparency": 0,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "BD",
+                    "color": "RGB(6,84,77)",
+                    "transparency": 0,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "Silicon",
+                    "color": "RGB(20,135,177)",
+                    "transparency": 0,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "GEMS",
+                    "color": "RGB(13,211,44)",
+                    "transparency": 15,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "CSC",
+                    "color": "RGB(165,45,44)",
+                    "transparency": 15,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "TOF400",
+                    "color": "RGB(196,156,178)",
+                    "transparency": 15,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "DCH",
+                    "color": "RGB(247,127,0)",
+                    "transparency": 30,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "tof700",
+                    "color": "RGB(196,156,178)",
+                    "transparency": 15,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "ecal",
+                    "color": "RGB(107,157,215)",
+                    "transparency": 0,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "ZDC_common",
+                    "color": "RGB(13,116,187)",
+                    "transparency": 0,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "Coil",
+                    "color": "RGB(177,175,177)",
+                    "transparency": 90,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "Pole",
+                    "color": "RGB(139,136,139)",
+                    "transparency": 80,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "targ",
+                    "color": "RGB(170,225,0)",
+                    "transparency": 0,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "recoil01",
+                    "color": "RGB(0,57,225)",
+                    "transparency": 67,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "tof1DetPlateV",
+                    "color": "RGB(167,0,225)",
+                    "transparency": 90,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "VMDL",
+                    "color": "RGB(170,225,0)",
+                    "transparency": 0,
+                    "isRecursiveColoring": true
+                },
+                {
+                    "name": "UMDL",
+                    "color": "RGB(0,170,225)",
+                    "transparency": 0,
+                    "isRecursiveColoring": true
+                }
+            ]
+        },
+
+        "level": [
+
+        ]
+    }
+}

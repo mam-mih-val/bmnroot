@@ -22,10 +22,13 @@ enum DetectorId {kREF,  // Reference plane
          kSILICON,      // Silicon Detectors
          kLAND,         // Large-Area Neutron Detector
          kFD,           // FD
+         kSiMD,         // SiMD
+         kSiBT,         // SiMD (Silicon Beam Tracker)
          kARMTRIG,      // ARMTRIG(X1, Y1, X2, Y2 for SRC arms)
          kBC,           // Beam Counter triggers
          kSCWALL,       // SCintillator WALL
          kHODO,         // HODOscope
+         kFHCAL,        // Forward Hadron Calorimeter
          kNOFDETS       // Number of elements (e.g. for loops)
 };
 

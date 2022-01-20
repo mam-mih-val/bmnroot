@@ -91,6 +91,8 @@ public:
     void SetEvtHeaderNew(Bool_t Status) {fEvtHeaderIsNew = Status;}
     Bool_t IsEvtHeaderNew() {return fEvtHeaderIsNew;}
 
+    Bool_t SpecifyRunId() { return kTRUE; }
+
 private:
     /** Title of input source, could be input, background or signal*/
     TString fInputTitle;

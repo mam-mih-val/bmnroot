@@ -16,11 +16,10 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/sts
  ${CMAKE_SOURCE_DIR}/bmndst
  ${CMAKE_SOURCE_DIR}/bmnfield
-  ${CMAKE_SOURCE_DIR}/globaltracking
+ ${CMAKE_SOURCE_DIR}/globaltracking
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
- ${Boost_INCLUDE_DIRS}
  ${ROOT_INCLUDE_DIR}
 )
 
@@ -30,6 +29,7 @@ Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 set(LINK_DIRECTORIES
  ${ROOT_LIBRARY_DIR}
  ${FAIRROOT_LIBRARY_DIR}
+ ${Boost_LIBRARY_DIRS}
 )
 
 link_directories(${LINK_DIRECTORIES})
@@ -42,12 +42,7 @@ set(SRCS
  BmnTriggersCheck.cxx
  BmnVertexFinder.cxx
  SrcVertexFinder.cxx
- BmnPVAnalyzer.cxx
 )
-
-If (Boost_FOUND)
-  set(DEFINITIONS BOOST_FOUND)
-EndIf (Boost_FOUND)
 
 Set(HEADERS)
 Set(LINKDEF GlobalTrackingLinkDef.h)

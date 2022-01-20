@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Silicon Beam Tracker (SiBT) configuration: Run8
+    Author: Baranov D.
+    Created: 14.11.2021
+    Updated: ...
+
+    A right-handed coordinates are used.
+    If you look at the detecctor from the target:
+        x-axis is directed to the left,
+        y-axis - to the top,
+        z-axis - to the detector
+-->
+
+<StationSet>
+
+    <!-- Station 0 -->
+    <Station xPosition="0.0" yPosition="0.0" zPosition="-60.0">
+
+        <!-- module 0 -->
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" thickness="0.018">
+
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.0475" xorig="+3.04" yorig="-3.04" xsize="6.08" ysize="6.08" stripDirection="LeftToRight" lxborder="+3.04" lyborder="3.04" rxborder="-3.04" ryborder="-3.04">
+            </Layer>
+
+            <Layer zoneNumber="0" type="upper" stripAngle="+90.0" pitch="0.0475" xorig="+3.04" yorig="-3.04" xsize="6.08" ysize="6.08" stripDirection="LeftToRight" lxborder="+3.04" lyborder="3.04" rxborder="-3.04" ryborder="-3.04">
+            </Layer>
+
+        </Module>
+
+    </Station>
+
+    <!-- Station 1 -->
+    <Station xPosition="0.0" yPosition="0.0" zPosition="-160.0">
+
+       <!-- module 0 -->
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" thickness="0.018">
+
+            <!--<Transform rotOrder="ZYX" xRotationDeg="0.0" yRotationDeg="0.0" zRotationDeg="+15.0" xTranslation="0.0" yTranslation="0.0" zTranslation="0.0" />-->
+
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.0475" xorig="+3.04" yorig="-3.04" xsize="6.08" ysize="6.08" stripDirection="LeftToRight" lxborder="+3.04" lyborder="3.04" rxborder="-3.04" ryborder="-3.04">
+            </Layer>
+
+            <Layer zoneNumber="0" type="upper" stripAngle="+90.0" pitch="0.0475" xorig="+3.04" yorig="-3.04" xsize="6.08" ysize="6.08" stripDirection="LeftToRight" lxborder="+3.04" lyborder="3.04" rxborder="-3.04" ryborder="-3.04">
+            </Layer>
+
+        </Module>
+
+    </Station>
+
+    <!-- Station 2 -->
+    <Station xPosition="0.0" yPosition="0.0" zPosition="-260.0">
+
+        <!-- module 0 -->
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" thickness="0.018">
+
+            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.0475" xorig="+3.04" yorig="-3.04" xsize="6.08" ysize="6.08" stripDirection="LeftToRight" lxborder="+3.04" lyborder="3.04" rxborder="-3.04" ryborder="-3.04">
+            </Layer>
+
+            <Layer zoneNumber="0" type="upper" stripAngle="+90.0" pitch="0.0475" xorig="+3.04" yorig="-3.04" xsize="6.08" ysize="6.08" stripDirection="LeftToRight" lxborder="+3.04" lyborder="3.04" rxborder="-3.04" ryborder="-3.04">
+            </Layer>
+
+        </Module>
+
+    </Station>
+
+</StationSet>
+
+

@@ -26,6 +26,7 @@ Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 set(LINK_DIRECTORIES
  ${ROOT_LIBRARY_DIR}
  ${FAIRROOT_LIBRARY_DIR}
+ ${Boost_LIBRARY_DIRS}
 )
  
 link_directories(${LINK_DIRECTORIES})
@@ -36,6 +37,8 @@ set(SRCS
  BmnDchRaw2Digit.cxx
  BmnMwpcRaw2Digit.cxx
  BmnZDCRaw2Digit.cxx
+ BmnScWallRaw2Digit.cxx
+ BmnFHCalRaw2Digit.cxx
  BmnECALRaw2Digit.cxx
  BmnLANDRaw2Digit.cxx
  BmnGemRaw2Digit.cxx
@@ -47,12 +50,12 @@ set(SRCS
  BmnTrigRaw2Digit.cxx
  BmnCscRaw2Digit.cxx
  BmnMscRaw2Digit.cxx
+ PronyFitter.cxx
 )
 
 Set(HEADERS)
-
 Set(LINKDEF DecoderLinkDef.h)
 Set(LIBRARY_NAME Decoder)
-Set(DEPENDENCIES CSC Gem Silicon BmnData UniDb ElogDb TangoData Base Minuit Core)
+Set(DEPENDENCIES CSC Gem Silicon BmnData UniDb ElogDb TangoData Base Minuit Core boost_program_options)
 
 GENERATE_LIBRARY()

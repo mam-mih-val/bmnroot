@@ -11,7 +11,7 @@ using std::endl;
 
 
 // -----   Default constructor   -------------------------------------------
-CbmVertex::CbmVertex() 
+CbmVertex::CbmVertex()
   : TNamed("Vertex", "Global"),
     fX(0.),
     fY(0.),
@@ -28,7 +28,7 @@ CbmVertex::CbmVertex()
 
 
 // -----   Constructor with name and title   -------------------------------
-CbmVertex::CbmVertex(const char* name, const char* title) 
+CbmVertex::CbmVertex(const char* name, const char* title)
   : TNamed(name, title),
     fX(0.),
     fY(0.),
@@ -41,14 +41,14 @@ CbmVertex::CbmVertex(const char* name, const char* title)
   for(Int_t i=0; i<6; i++) fCovMatrix[i] = 0;
 }
 // -------------------------------------------------------------------------
-  
+
 
 
 // -----   Constructor with all parameters   -------------------------------
 CbmVertex::CbmVertex(const char* name, const char* title,
 		     Double_t x, Double_t y, Double_t z, Double_t chi2,
-		     Int_t ndf, Int_t nTracks, 
-		     const TMatrixFSym& covMat, TVector3 roughVertex) 
+		     Int_t ndf, Int_t nTracks,
+		     const TMatrixFSym& covMat)
   : TNamed(name, title),
     fX(x),
     fY(y),
@@ -67,9 +67,6 @@ CbmVertex::CbmVertex(const char* name, const char* title,
   fNDF     = ndf;
   fNTracks = nTracks;
   */
-  fRoughX = roughVertex.X();
-  fRoughY = roughVertex.Y();
-  fRoughZ = roughVertex.Z();
   Int_t index = 0;
   for (Int_t i=0; i<3; i++) {
     for (Int_t j=i; j<3; j++) fCovMatrix[index++] = covMat[i][j];
@@ -89,10 +86,14 @@ CbmVertex::~CbmVertex() { }
 void CbmVertex::Print() {
   Double_t chi2ndf;
   if (fNDF) chi2ndf = fChi2 / Double_t(fNDF);
-  else chi2ndf = 0.;	       
+  else chi2ndf = 0.;
+
+//if(chi2ndf>0 && chi2ndf<2){
+
   cout << "Vertex coord. (" << fX << "," << fY << "," << fZ << ") cm, "
        << "chi2/ndf = " << chi2ndf << ", " << fNTracks
        << " tracks used" << endl;
+     //}
 }
 // -------------------------------------------------------------------------
 
@@ -127,7 +128,7 @@ Double_t CbmVertex::GetCovariance(Int_t i, Int_t j) const {
 
 // -----   Public method SetVertex   ---------------------------------------
 void CbmVertex::SetVertex(Double_t x, Double_t y, Double_t z, Double_t chi2,
-			  Int_t ndf, Int_t nTracks, 
+			  Int_t ndf, Int_t nTracks,
 			  const TMatrixFSym& covMat) {
   fX       = x;
   fY       = y;
@@ -149,7 +150,7 @@ void CbmVertex::Reset() {
   fX = fY = fZ = fChi2 = 0.;
   fNDF = fNTracks = 0;
   for(Int_t i=0; i<6; i++) fCovMatrix[i] = 0;
-}  
+}
 // -------------------------------------------------------------------------
 
 

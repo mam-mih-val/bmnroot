@@ -1,10 +1,44 @@
-# CMakeList file for library libSsd.
+# Create a library called "libBmnSsd"
 # Last update: D. Baranov, 04.11.2018
 
 
 # -----   Specify library name   --------------------------
 Set(LIBRARY_NAME BmnSsd)
 # ---------------------------------------------------------
+
+# ----  Specify include directories -----------------------
+set(INCLUDE_DIRECTORIES
+    ${BASE_INCLUDE_DIRECTORIES}
+    ${CMAKE_SOURCE_DIR}/bmndata
+
+    ${CMAKE_SOURCE_DIR}/ssd
+    ${CMAKE_SOURCE_DIR}/ssd/setup
+    ${CMAKE_SOURCE_DIR}/ssd/mc
+    ${CMAKE_SOURCE_DIR}/ssd/digitize
+    ${CMAKE_SOURCE_DIR}/ssd/reco
+    ${CMAKE_SOURCE_DIR}/ssd/auxx
+    ${CMAKE_SOURCE_DIR}/ssd/auxx/data
+)
+
+set(SYSTEM_INCLUDE_DIRECTORIES
+    ${ROOT_INCLUDE_DIR}
+    ${Boost_INCLUDE_DIRS}
+)
+# ----  End of include directories ------------------------
+
+include_directories(${INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
+
+
+# ----  Specify link directories --------------------------
+set(LINK_DIRECTORIES
+    ${ROOT_LIBRARY_DIR}
+    ${FAIRROOT_LIBRARY_DIR}
+    ${Boost_LIBRARY_DIRS}
+)
+# -----  End of link directories   ------------------------
+
+link_directories(${LINK_DIRECTORIES})
 
 
 # -----  Specify sources for compilation   ----------------
@@ -88,52 +122,14 @@ set(SRCS
 )
 # -----  End of sources   ---------------------------------
 
-
-
-# ----  Specify include directories -----------------------
-set(INCLUDE_DIRECTORIES
-    ${BASE_INCLUDE_DIRECTORIES}
-    ${CMAKE_SOURCE_DIR}/bmndata
-
-    ${CMAKE_SOURCE_DIR}/ssd
-    ${CMAKE_SOURCE_DIR}/ssd/setup
-    ${CMAKE_SOURCE_DIR}/ssd/mc
-    ${CMAKE_SOURCE_DIR}/ssd/digitize
-    ${CMAKE_SOURCE_DIR}/ssd/reco
-    ${CMAKE_SOURCE_DIR}/ssd/auxx
-    ${CMAKE_SOURCE_DIR}/ssd/auxx/data
-)
-
-set(SYSTEM_INCLUDE_DIRECTORIES
-    ${BASE_INCLUDE_DIRECTORIES}
-    ${Boost_INCLUDE_DIRS}
-    ${ROOT_INCLUDE_DIR}
-)
-# ----  End of include directories ------------------------
-
-
-# ----  Specify link directories --------------------------
-set(LINK_DIRECTORIES
-    ${ROOT_LIBRARY_DIR}
-    ${FAIRROOT_LIBRARY_DIR}
-    ${Boost_LIBRARY_DIRS}
-)
-# -----  End of link directories   ------------------------
-
-
-# -----   Specify library dependences   -------------------
-Set(DEPENDENCIES BmnData Base Core)
-# ---------------------------------------------------------
-
-
 # -----  Specify LinkDef file   ---------------------------
 set(LINKDEF ${LIBRARY_NAME}LinkDef.h)
 # ---------------------------------------------------------
 
+# -----   Specify library dependences   -------------------
+Set(DEPENDENCIES BmnData Base Core boost_serialization)
+# ---------------------------------------------------------
 
 # -----  Let cmake do the job   ---------------------------
-include_directories(${INCLUDE_DIRECTORIES})
-include_directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
-link_directories( ${LINK_DIRECTORIES})
 GENERATE_LIBRARY()
 # ---------------------------------------------------------

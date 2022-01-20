@@ -22,6 +22,10 @@
 #include "TSystemFile.h"
 #include "TServerSocket.h"
 #include "TKey.h"
+#include "FairRunAna.h"
+#include "FairRootFileSink.h"
+#include "FairParRootFileIo.h"
+#include "FairParAsciiFileIo.h"
 // BmnRoot
 #include <BmnTrigDigit.h>
 #include <BmnTof1Digit.h>
@@ -31,25 +35,25 @@
 #include "BmnRawDataDecoder.h"
 #include "BmnEventHeader.h"
 #include "BmnDecoSource.h"
+#include "BmnFillDstTask.h"
 
-#include "FairRunAna.h"
 #include <BmnRunInfo.h>
 #include "BmnFieldMap.h"
 #include "BmnNewFieldMap.h"
 //#include "BmnSiliconHitMaker.h"
 #include "BmnMwpcHitFinder.h"
+#include "BmnSiliconConfiguration.h"
+#include "BmnSiliconHitMaker.h"
 #include "BmnGemStripConfiguration.h"
 #include "BmnGemStripHitMaker.h"
+#include "BmnCSCConfiguration.h"
+#include "BmnCSCHitMaker.h"
+#include "BmnTof1HitProducer.h"
+#include "BmnTofHitProducer.h"
 #include "BmnTriggersCheck.h"
 #include "BmnGlobalTracking.h"
 #include "BmnVertexFinder.h"
-#include "FairParRootFileIo.h"
-#include "FairParAsciiFileIo.h"
-
-
-
-
-
+#include "BmnInnerTrackingRun7.h"
 
 
 using namespace std;

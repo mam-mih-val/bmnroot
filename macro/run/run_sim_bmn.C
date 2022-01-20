@@ -191,7 +191,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     fRun->AddTask(ecalDigit);
 
     fRun->Init();
-    magField->Print();
+    magField->Print("");
 
     // Trajectories Visualization (TGeoManager only)
     FairTrajFilter* trajFilter = FairTrajFilter::Instance();
@@ -231,7 +231,9 @@ if ((generatorName == QGSM) || (generatorName == DCMQGSM)){
     TString Pdg_table_name = TString::Format("%s%s%c%s", gSystem->BaseName(inFile.Data()), ".g", (fRun->GetName())[6], ".pdg_table.dat");
     (TDatabasePDG::Instance())->WritePDGTable(Pdg_table_name.Data());
 }
-
+    delete fRun;
+    delete magField;
+    
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);

@@ -164,7 +164,7 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/bmnsim.root"
     fMan->iDataSource = data_source;
 
     // set output file
-    fRunAna->SetSink(new FairRootFileSink("ed_out.root"));
+    //fRunAna->SetSink(new FairRootFileSink("ed_out.root"));
 
     // set tasks to draw
     SetTasks(fMan, data_source, run_period, run_number, isField, isTarget);
@@ -174,7 +174,7 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/bmnsim.root"
     fMan->isDarkColor = false;
 
     // MpdEventManager::Init(Int_t visopt = 1, Int_t vislvl = 3, Int_t maxvisnds = 10000)
-    fMan->Init();
+    fMan->Init(3, 3, 10000);
 }
 
 // set FairRunAna drawing tasks depending from data source and on/offline mode
@@ -203,16 +203,14 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         fMan->AddTask(StsPoint);
         MpdMCPointDraw* CSCPoint = new MpdMCPointDraw("CSCPoint", mcPointColor, pointMarker);
         fMan->AddTask(CSCPoint);
+        MpdMCPointDraw* SiBTPoint = new MpdMCPointDraw("SiBTPoint", mcPointColor, pointMarker);
+        fMan->AddTask(SiBTPoint);
         MpdMCPointDraw* TOF1Point = new MpdMCPointDraw("TOF400Point", mcPointColor, pointMarker);
         fMan->AddTask(TOF1Point);
         MpdMCPointDraw* DCHPoint = new MpdMCPointDraw("DCHPoint", mcPointColor, pointMarker);
         fMan->AddTask(DCHPoint);
         MpdMCPointDraw* TofPoint = new MpdMCPointDraw("TOF700Point", mcPointColor, pointMarker);
         fMan->AddTask(TofPoint);
-        MpdMCPointDraw* EcalPoint = new MpdMCPointDraw("EcalPoint", mcPointColor, pointMarker);
-        fMan->AddTask(EcalPoint);
-        MpdMCPointDraw* ZDCPoint = new MpdMCPointDraw("ZdcPoint", mcPointColor, pointMarker);
-        fMan->AddTask(ZDCPoint);
         MpdMCPointDraw* SSDPoint = new MpdMCPointDraw("SsdPoint", mcPointColor, pointMarker);
         fMan->AddTask(SSDPoint);
 
@@ -223,8 +221,10 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         //MpdMCStack* MC      Track = new MpdMCStack("MCTrack");
         //fMan->AddTask(MCTrack);
 
-        BmnZDCTowerDraw* BmnZDCTower = new BmnZDCTowerDraw("ZdcDigit", 0, 5);
+        BmnCaloTowerDraw* BmnZDCTower = new BmnCaloTowerDraw("ZdcDigit", kZDC);
         fMan->AddTask(BmnZDCTower);
+        BmnCaloTowerDraw* BmnECALTower = new BmnCaloTowerDraw("EcalDigit", kECAL);
+        fMan->AddTask(BmnECALTower);
 
         // draw Reconstructed Detector Hits
         MpdHitPointSetDraw* BmnMwpcHit = new MpdHitPointSetDraw("BmnMwpcHit", expPointColor, pointMarker);

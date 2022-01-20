@@ -15,6 +15,8 @@
 #include "BmnTrackMatch.h"
 #include "BmnGlobalTrack.h"
 #include "BmnGemTrack.h"
+#include "CbmStsTrack.h"
+#include "CbmStsHit.h"
 #include "BmnGemStripHit.h"
 #include "FairMCPoint.h"
 #include "FairLogger.h"
@@ -38,7 +40,9 @@ private:
     void ReadAndCreateDataBranches();
 
     BmnStatus LinkToMC(const TClonesArray* hitMatchArr, const TClonesArray* points, Int_t id, BmnTrackMatch* trackMatch);
+    BmnStatus LinkToMC(Int_t id, BmnTrackMatch* trackMatch);
 
+    void MatchGlobalTracks();
     void MatchGlobalTracks(
             const TClonesArray* gemHitMatches,
             const TClonesArray* silHitMatches,
@@ -52,9 +56,13 @@ private:
             const TClonesArray* globTracks,
             TClonesArray* trackMatches);
 
+    // STS
+    TClonesArray* fStsHits; // BmnStsHit array
+    TClonesArray* fStsTracks; // BmnStsTrack array
+    
     // GEM
     TClonesArray* fGemPoints; // BmnStsPoint array
-    TClonesArray* fGemTracks; // BmnStsTrack array
+    TClonesArray* fGemTracks; // BmnGemTrack array
     TClonesArray* fGemHitMatches; // Output BmnMatch array
 
     // SILICON
@@ -75,7 +83,8 @@ private:
     BmnMatchRecoToMC& operator=(const BmnMatchRecoToMC&) = delete;
 
     void CalculateTrackQuality(BmnGemTrack* locTr, BmnTrackMatch* trMatch, const TClonesArray* hitMatches, const TClonesArray* points, Int_t &trueCntr, Int_t &falseCntr);
-
+    void CalculateTrackQuality(CbmStsTrack* locTr, BmnTrackMatch* trMatch, Int_t& trueCntr, Int_t& falseCntr);
+    
     ClassDef(BmnMatchRecoToMC, 1);
 };
 

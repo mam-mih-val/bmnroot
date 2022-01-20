@@ -660,7 +660,7 @@ void BmnQaOffline::doResidualsPullsAnal() {
         vector <TClonesArray*> hits = {fCscHits, fTof400Hits, fTof700Hits};
 
         for (auto detector : hitDets) {
-            Int_t idx = detector.Contains("CSC") ? glTrack->GetCscHitIndex() :
+            Int_t idx = detector.Contains("CSC") ? glTrack->GetCscHitIndex(0) :
                     detector.Contains("TOF400") ? glTrack->GetTof1HitIndex() :
                     glTrack->GetTof2HitIndex();
             Int_t idxArr = detector.Contains("CSC") ? 0 : detector.Contains("TOF400") ? 1 : 2;
@@ -809,7 +809,7 @@ void BmnQaOffline::doAverageStripValuePerTrack() {
         BmnGlobalTrack* glTrack = (BmnGlobalTrack*) fGlobalTracks->UncheckedAt(iTrack);
 
         // Get CSC ...
-        Int_t idxCsc = glTrack->GetCscHitIndex();
+        Int_t idxCsc = glTrack->GetCscHitIndex(0);
         if (idxCsc != -1) {
             BmnCSCHit* hit = (BmnCSCHit*) fCscHits->UncheckedAt(idxCsc);
             for (Int_t iLayer = 0; iLayer < nLayers; iLayer++) {

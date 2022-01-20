@@ -46,40 +46,43 @@ using lit::FindAndReplace;
 using lit::Split;
 
 BmnTrackingQa::BmnTrackingQa(Short_t ch, TString name, TString gemConf, TString silConf) : FairTask("BmnTrackingQA", 1),
-                                                                                           fHM(nullptr),
-                                                                                           fOutputDir("./"),
-                                                                                           fMinNofPoints(4),
-                                                                                           fMinNofPointsTof(1),
-                                                                                           fMinNofPointsDch(1),
-                                                                                           fQuota(0.6),
-                                                                                           fEtaCut(100000.0),
-                                                                                           fPCut(0.0),
-                                                                                           fPRangeMin(0.),
-                                                                                           fPRangeMax(4.),
-                                                                                           fPRangeBins(50),
-                                                                                           fYRangeMin(0.),
-                                                                                           fYRangeMax(4.),
-                                                                                           fYRangeBins(100),
-                                                                                           fEtaRangeMin(0.),
-                                                                                           fEtaRangeMax(8.),
-                                                                                           fEtaRangeBins(50),
-                                                                                           fPtRangeMin(0.),
-                                                                                           fPtRangeMax(1.),
-                                                                                           fPtRangeBins(50),
-                                                                                           fThetaRangeMin(0.),
-                                                                                           fThetaRangeMax(40.),
-                                                                                           fThetaRangeBins(50),
-                                                                                           fOutName(name),
-                                                                                           fConfigGem(gemConf),
-                                                                                           fConfigSil(silConf),
-                                                                                           fMCTracks(nullptr),
-                                                                                           fSilHits(nullptr),
-                                                                                           fPrimes(kFALSE),
-                                                                                           fNHitsCut(1000),
-                                                                                           fNStations(0),
-                                                                                           fGlobalTracks(nullptr),
-                                                                                           fGemTracks(nullptr),
-                                                                                           fSilTracks(nullptr) {
+fHM(nullptr),
+fOutputDir("./"),
+fMinNofPoints(4),
+fMinNofPointsTof(1),
+fMinNofPointsDch(1),
+fQuota(0.6),
+fEtaCut(100000.0),
+fPCut(0.0),
+fPRangeMin(0.),
+fPRangeMax(4.),
+fPRangeBins(50),
+fYRangeMin(0.),
+fYRangeMax(4.),
+fYRangeBins(100),
+fEtaRangeMin(0.),
+fEtaRangeMax(8.),
+fEtaRangeBins(50),
+fPtRangeMin(0.),
+fPtRangeMax(1.),
+fPtRangeBins(50),
+fThetaRangeMin(0.),
+fThetaRangeMax(40.),
+fThetaRangeBins(50),
+fOutName(name),
+fConfigGem(gemConf),
+fConfigSil(silConf),
+fMCTracks(nullptr),
+fSilHits(nullptr),
+fTof400Hits(nullptr),
+fTof700Hits(nullptr),
+fPrimes(kFALSE),
+fNHitsCut(1000),
+fNStations(0),
+fGlobalTracks(nullptr),
+fGemTracks(nullptr),
+fStsHits(nullptr),
+fSilTracks(nullptr) {
     fChargeCut = ch;
 }
 
@@ -148,6 +151,9 @@ void BmnTrackingQa::ReadDataBranches() {
     fNStations = 0;
     fInnerHits = (TClonesArray*)ioman->GetObject("BmnInnerHits");
 
+    fTof400Hits = (TClonesArray*)ioman->GetObject("BmnTof400Hit");
+    fTof700Hits = (TClonesArray*)ioman->GetObject("BmnTof700Hit");
+
     if (fInnerTrackerSetup[kSILICON]) {
         fSilHits = (TClonesArray*)ioman->GetObject("BmnSiliconHit");
         fSilDetector = new BmnSiliconStationSet(fConfigSil);
@@ -165,7 +171,12 @@ void BmnTrackingQa::ReadDataBranches() {
         fNStations += fGemDetector->GetNStations();
     }
 
+    fStsHits = (TClonesArray*)ioman->GetObject("StsHit");
+    fStsTracks = (TClonesArray*)ioman->GetObject("StsTrack");
+
     fVertex = (TClonesArray*)ioman->GetObject("BmnVertex");
+
+    printf("\nBRANCHES READ!\n\n");
 }
 
 void BmnTrackingQa::ReadEventHeader() {
@@ -196,10 +207,10 @@ void BmnTrackingQa::CreateH2(
 }
 
 void BmnTrackingQa::CreateTrackHitsHistogram(const string& detName) {
-    string type[] = {"All", "True", "Fake", "TrueOverAll", "FakeOverAll"};
-    Double_t min[] = {0., 0., 0., 0., 0.};
-    Double_t max[] = {20, 20, 20, 1., 1.};
-    Int_t bins[] = {20, 20, 20, 20, 20};
+    string type[] = { "All", "True", "Fake", "TrueOverAll", "FakeOverAll" };
+    Double_t min[] = { 0., 0., 0., 0., 0. };
+    Double_t max[] = { 20, 20, 20, 1., 1. };
+    Int_t bins[] = { 20, 20, 20, 20, 20 };
     for (Int_t i = 0; i < 5; i++) {
         string xTitle = (i == 3 || i == 4) ? "Ratio" : "Number of hits";
         string histName = "hth_" + detName + "_TrackHits_" + type[i];
@@ -392,11 +403,44 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Well_vs_mult", "N", "Counter", nMultBin, 0, nMultBin);
     CreateH1("Fake_vs_mult", "N", "Ghosts, %", nMultBin, 0, nMultBin);
 
+
+    //TOF
+    CreateH1("Eff_vs_P_tof400", "P_{sim}/q, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, 8.0);
+    CreateH1("Split_vs_P_tof400", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
+    CreateH1("SplitEff_vs_P_tof400", "P_{sim}/q, GeV/c", "Splits, %", fPRangeBins, fPRangeMin, 8.0);
+    CreateH1("Sim_vs_P_tof400", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
+    CreateH1("Rec_vs_P_tof400", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
+    CreateH1("Ghost_vs_P_tof400", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
+    CreateH1("Well_vs_P_tof400", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
+    CreateH1("Fake_vs_P_tof400", "P_{sim}/q, GeV/c", "Ghosts, %", fPRangeBins, fPRangeMin, 8.0);
+    CreateH1("Eff_vs_P_tof700", "P_{sim}/q, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, 8.0);
+    CreateH1("Split_vs_P_tof700", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
+    CreateH1("SplitEff_vs_P_tof700", "P_{sim}/q, GeV/c", "Splits, %", fPRangeBins, fPRangeMin, 8.0);
+    CreateH1("Sim_vs_P_tof700", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
+    CreateH1("Rec_vs_P_tof700", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
+    CreateH1("Ghost_vs_P_tof700", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
+    CreateH1("Well_vs_P_tof700", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
+    CreateH1("Fake_vs_P_tof700", "P_{sim}/q, GeV/c", "Ghosts, %", fPRangeBins, fPRangeMin, 8.0);
+
+    CreateH2("banana_tof400", "P_{rec}/Q, GeV/c", "#beta_{rec}", "", 1000, -10, 10, 1000, 0.5, 1.1);
+    CreateH2("banana_tof700", "P_{rec}/Q, GeV/c", "#beta_{rec}", "", 1000, -10, 10, 1000, 0.5, 1.1);
+    CreateH1("x_residuals_tof400_good", "dX, cm", "count", 250, -5.0, 5.0);
+    CreateH1("y_residuals_tof400_good", "dY, cm", "count", 250, -5.0, 5.0);
+    CreateH1("x_residuals_tof400_bad", "dX, cm", "count", 250, -5.0, 5.0);
+    CreateH1("y_residuals_tof400_bad", "dY, cm", "count", 250, -5.0, 5.0);
+    CreateH1("x_residuals_tof700_good", "dX, cm", "count", 250, -5.0, 5.0);
+    CreateH1("y_residuals_tof700_good", "dY, cm", "count", 250, -5.0, 5.0);
+    CreateH1("x_residuals_tof700_bad", "dX, cm", "count", 250, -5.0, 5.0);
+    CreateH1("y_residuals_tof700_bad", "dY, cm", "count", 250, -5.0, 5.0);
+
     //hits residuals
     for (Int_t iSt = 0; iSt < 9; ++iSt) {
         CreateH1(Form("ResX_%dst", iSt), "ResX, cm", "Counter", 100, -0.5, 0.5);
         CreateH1(Form("ResY_%dst", iSt), "ResY, cm", "Counter", 100, -0.5, 0.5);
     }
+
+    printf("\nHISTOGRAMS CREATED!\n\n");
+
 }
 
 void BmnTrackingQa::ProcessGlobal() {
@@ -475,7 +519,11 @@ void BmnTrackingQa::ProcessGlobal() {
             refs.push_back(globMCId);
 
         Int_t Nsil = (glTrack->GetSilTrackIndex() != -1) ? ((BmnTrack*)fSilTracks->At(glTrack->GetSilTrackIndex()))->GetNHits() : 0;
-        Int_t Ngem = (glTrack->GetGemTrackIndex() != -1) ? ((BmnTrack*)fGemTracks->At(glTrack->GetGemTrackIndex()))->GetNHits() : 0;
+        Int_t Ngem = 0;
+        if (fStsTracks)
+            Ngem = ((CbmStsTrack*)fStsTracks->At(glTrack->GetGemTrackIndex()))->GetNStsHits();
+        else
+            Ngem = ((BmnTrack*)fGemTracks->At(glTrack->GetGemTrackIndex()))->GetNHits();
         Int_t N_rec = Nsil + Ngem;  //glTrack->GetNHits();
         Bool_t isTrackOk = globTrackMatch->GetTrueOverAllHitsRatio() >= fQuota && N_rec >= fMinNofPoints;
         //        printf("globTrackMatch->GetTrueOverAllHitsRatio() = %f\n", globTrackMatch->GetTrueOverAllHitsRatio());
@@ -505,7 +553,46 @@ void BmnTrackingQa::ProcessGlobal() {
         fHM->H2("Nh_rec_P_rec")->Fill(N_rec, P_rec);
         fHM->H2("Nh_rec_Theta_rec")->Fill(N_rec, Theta_rec);
 
+        if (glTrack->GetTof1HitIndex() != -1) {
+            fHM->H1("Rec_vs_P_tof400")->Fill(P_sim);
+        }
+        if (glTrack->GetTof2HitIndex() != -1) {
+            fHM->H1("Rec_vs_P_tof700")->Fill(P_sim);
+        }
+
         nAllRecoMachedTracks++;
+
+        //TOF400 
+        if (glTrack->GetTof1HitIndex() != -1) {
+            BmnHit* tofHit = (BmnHit*)fTof400Hits->At(glTrack->GetTof1HitIndex());
+            Int_t tofMcId = tofHit->GetLinksWithType(0x2).GetLink(0).GetIndex();
+            if (globMCId != tofMcId) {
+                fHM->H1("Ghost_vs_P_tof400")->Fill(P_sim);
+                fHM->H1("x_residuals_tof400_bad")->Fill(tofHit->GetResX());
+                fHM->H1("y_residuals_tof400_bad")->Fill(tofHit->GetResY());
+            } else {
+                fHM->H1("Well_vs_P_tof400")->Fill(P_sim);
+                fHM->H2("banana_tof400")->Fill(glTrack->GetP(), glTrack->GetBeta(1));
+                fHM->H1("x_residuals_tof400_good")->Fill(tofHit->GetResX());
+                fHM->H1("y_residuals_tof400_good")->Fill(tofHit->GetResY());
+            }
+        }
+        //TOF700
+        if (glTrack->GetTof2HitIndex() != -1) {
+            BmnHit* tofHit = (BmnHit*)fTof700Hits->At(glTrack->GetTof2HitIndex());
+            Int_t tofMcId = tofHit->GetLinksWithType(0x2).GetLink(0).GetIndex();
+            if (globMCId != tofMcId) {
+                fHM->H1("Ghost_vs_P_tof700")->Fill(P_sim);
+                fHM->H1("x_residuals_tof700_bad")->Fill(tofHit->GetResX());
+                fHM->H1("y_residuals_tof700_bad")->Fill(tofHit->GetResY());
+            } else {
+                fHM->H1("Well_vs_P_tof700")->Fill(P_sim);
+                fHM->H2("banana_tof700")->Fill(glTrack->GetP(), glTrack->GetBeta(2));
+                fHM->H1("x_residuals_tof700_good")->Fill(tofHit->GetResX());
+                fHM->H1("y_residuals_tof700_good")->Fill(tofHit->GetResY());
+            }
+        }
+
         if (!isTrackOk) {
             nBadRecoTracks++;
             nBadRecoInEvent++;
@@ -700,7 +787,9 @@ void BmnTrackingQa::ProcessGlobal() {
         const BmnMCTrack mcTrack = fMCTrackCreator->GetTrack(iTrack);
 
         Int_t nHitsPerTrack = CalcNumberOfMcPointInTrack(mcTrack);
+
         if (nHitsPerTrack < fMinNofPoints) continue;
+
         nAllMcTracks++;
         nReconstructable++;
 
@@ -732,6 +821,17 @@ void BmnTrackingQa::ProcessGlobal() {
         fHM->H2("Nh_sim_P_sim")->Fill(nHitsPerTrack, P);
         fHM->H2("ThetaP_sim")->Fill(theta, P);
         fHM->H2("EtaP_sim")->Fill(eta, P);
+
+        if (mcTrack.GetNofPoints(kTOF1) > 0) {
+            fHM->H1("Sim_vs_P_tof400")->Fill(P);
+        }
+
+        if (mcTrack.GetNofPoints(kTOF) > 0) {
+            fHM->H1("Sim_vs_P_tof700")->Fill(P);
+        }
+
+
+
     }
 
     fHM->H1("Sim_vs_mult")->SetBinContent(nReconstructable, fHM->H1("Sim_vs_mult")->GetBinContent(nReconstructable) + nReconstructable);

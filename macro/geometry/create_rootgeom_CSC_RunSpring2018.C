@@ -221,7 +221,7 @@ TGeoVolume *CreateModule(TString module_name) {
     //volumes
     TGeoVolume *moduleV = new TGeoVolume(TString("moduleV_") + module_name, moduleS);
     TGeoVolume *gasV = new TGeoVolume(TString("gasV_") + module_name, gasS);
-    TGeoVolume *sensV = new TGeoVolume(TString("SensorV_") + module_name, sensS);
+    TGeoVolume *sensV = new TGeoVolume(TString("CSCSensor_") + module_name, sensS);
     TGeoVolume *fiberglassV = new TGeoVolume(TString("fiberglassV_") + module_name, fiberglassS);
     TGeoVolume *honeycombV = new TGeoVolume(TString("honeycombV_") + module_name, honeycombS);
     TGeoVolume *verticalframeV = new TGeoVolume(TString("verticalframeV_") + module_name, verticalframeS);

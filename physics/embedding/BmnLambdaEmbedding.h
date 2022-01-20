@@ -147,8 +147,8 @@ public:
 
     TClonesArray* CreateLambdaStore();
 
-    void SetStorePath(TString path) {
-        fStorePath = path;
+    void SetStorePath(TString store_path) {
+        fStorePath = store_path;
     }
 
     void SetNLambdaStore(Int_t nStores) {

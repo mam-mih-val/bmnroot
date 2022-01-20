@@ -28,6 +28,8 @@
 #pragma link C++ class BmnRealisticMc+;
 #pragma link C++ class BmnEfficiencyTools+;
 #pragma link C++ class EffStore+;
+#pragma link C++ class EffStore2D+;
+#pragma link C++ class InnerTrackerParams+;
 
 // run7
 #pragma link C++ class BmnLambdaAnalRun7++;

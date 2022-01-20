@@ -3,15 +3,11 @@
 // -----         Created 15/01/08                    by V. Friese      -----
 // -------------------------------------------------------------------------
 
-
-#include <iostream>
-#include "TArrayF.h"
-#include "FairField.h"
-#include "BmnFieldMap.h"
 #include "BmnFieldMapCreator.h"
+#include "BmnFieldMap.h"
+#include <iostream>
 
 using namespace std;
-
 
 
 // -------------   Default constructor  -----------------------------------
@@ -33,9 +29,6 @@ BmnFieldMapCreator::BmnFieldMapCreator()
     fInit(kFALSE)
 {
 }
-// ------------------------------------------------------------------------
-
-
 
 // -------------   Standard constructor  ----------------------------------
 BmnFieldMapCreator::BmnFieldMapCreator(const char* mapName) 
@@ -57,9 +50,6 @@ BmnFieldMapCreator::BmnFieldMapCreator(const char* mapName)
 
 {
 }
-// ------------------------------------------------------------------------
-
-
 
 // ------------   Destructor   --------------------------------------------
 BmnFieldMapCreator::~BmnFieldMapCreator() {
@@ -68,8 +58,6 @@ BmnFieldMapCreator::~BmnFieldMapCreator() {
   if (fBz) delete fBz;
   fFieldList.Clear();
 }
-// ------------------------------------------------------------------------
-
 
 
 // -------------   Public method SetGridParameters   ----------------------
@@ -89,8 +77,6 @@ void BmnFieldMapCreator::SetGridParameters(Int_t nx, Double_t xmin,
   fZmax = zmax;
   fInit = kTRUE;
 }
-// ------------------------------------------------------------------------
-
 
 
 // -----------   Public method CreateMap   --------------------------------
@@ -177,6 +163,3 @@ Bool_t BmnFieldMapCreator::CreateMap(const char* fileName) {
   return kTRUE;
 
 }
-// ------------------------------------------------------------------------
-
-

@@ -54,7 +54,7 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
             }
             break;
         case 8: //BM@N RUN-8
-            fCurrentConfig = BmnSiliconConfiguration::FutureConfig2020;
+            fCurrentConfig = BmnSiliconConfiguration::Run8_mods_6_10_14_18;
             break;
     }
 
@@ -79,14 +79,24 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
             if (fVerbose > 1) cout << "   Current SILICON Configuration : RunSRCSpring2018" << "\n";
             break;
 
-        case BmnSiliconConfiguration::FutureConfig2020:
-            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconFutureConfig2020.xml");
-            if (fVerbose) cout << "   Current SILICON Configuration : FutureConfig2020 (3 si-stations)" << "\n";
+        case BmnSiliconConfiguration::Run8_3stations:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_3stations.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_3stations" << "\n";
             break;
 
-        case BmnSiliconConfiguration::FutureConfig2021:
-            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconFutureConfig2021.xml");
-            if (fVerbose) cout << "   Current SILICON Configuration : FutureConfig2021 (4 si-stations)" << "\n";
+        case BmnSiliconConfiguration::Run8_4stations:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_4stations.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_4stations" << "\n";
+            break;
+
+        case BmnSiliconConfiguration::Run8_5stations:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_5stations.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_5stations" << "\n";
+            break;
+
+        case BmnSiliconConfiguration::Run8_mods_6_10_14_18:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_mods_6_10_14_18.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_mods_6_10_14_18" << "\n";
             break;
 
         default:
@@ -135,7 +145,9 @@ BmnSiliconHitMaker::~BmnSiliconHitMaker() {
         }
         delete[] fAlignCor;
     }
-    delete StationSet;
+    if(StationSet){
+        delete StationSet;
+    }
 }
 
 InitStatus BmnSiliconHitMaker::Init() {
@@ -330,9 +342,13 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 //--------------------------------------------------------------
 
                 //hit MC-matching ----------------------------------------------
+                FairRootManager::Instance()->SetUseFairLinks(kTRUE);
                 if (fHitMatching && fBmnSiliconHitMatchesArray) {
                     new ((*fBmnSiliconHitMatchesArray)[fBmnSiliconHitMatchesArray->GetEntriesFast()])
                             BmnMatch(module->GetIntersectionPointMatch(iPoint));
+                    BmnMatch* hitMatch = (BmnMatch*) fBmnSiliconHitMatchesArray->At(fBmnSiliconHitMatchesArray->GetEntriesFast() - 1);
+                    for(BmnLink lnk : hitMatch->GetLinks())
+                        hit->AddLink(FairLink(-1, lnk.GetIndex(), lnk.GetWeight()));
                 }
                 //--------------------------------------------------------------
             }
@@ -344,7 +360,6 @@ void BmnSiliconHitMaker::ProcessDigits() {
 }
 
 void BmnSiliconHitMaker::Finish() {
-    delete StationSet;
     if (fVerbose > 0) cout << "Work time of the Silicon hit maker: " << workTime << endl;
 }
 

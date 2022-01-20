@@ -393,7 +393,7 @@ inline void L1Algo::f30(  // input
   THitI hitsl_2[fvecLen];
   THitI hitsm_2_tmp[fvecLen];
   fvec fvec_0;
-  fvec fvec_1 = 1.; //AZ
+  //fvec fvec_1 = 1.; //AZ
   L1TrackPar L1TrackPar_0;
 
   int n3_V = 0, n3_4 = 0;
@@ -1656,7 +1656,7 @@ void L1Algo::CATrackFinder()
       L1_ASSERT( StsHitsUnusedStopIndex[istal] <= (*vStsHitsUnused).size(), StsHitsUnusedStopIndex[istal] << " <= " << (*vStsHitsUnused).size());
     }
 #endif // L1_NO_ASSERT
-    unsigned int nPortions = 0; /// number of portions
+    //unsigned int nPortions = 0; /// number of portions
     {   
 	 /// possible left hits of triplets are splited in portions of 16 (4 SIMDs) to use memory faster
       portionStopIndex[NStations-1] = 0;
@@ -1684,7 +1684,7 @@ void L1Algo::CATrackFinder()
         ip++;
         portionStopIndex[istal] = ip;
       }// lstations
-      nPortions = ip;
+      //nPortions = ip;
     }
     
 #ifdef COUNTERS

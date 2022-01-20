@@ -83,7 +83,7 @@ void geant3_setup() { Config(); SetCuts(); }
 // nEvents - number of events to transport
 // generatorName - generator name for the input file (enumeration above)
 // useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
-void run_sim_src(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/srcsim.root", Int_t nStartEvent = 0, Int_t nEvents = 10, Bool_t useRealEffects = kFALSE)
+void run_sim_src(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/srcsim.root", Int_t nStartEvent = 0, Int_t nEvents = 100, Bool_t useRealEffects = kFALSE)
 {
 TStopwatch timer;
     timer.Start();
@@ -321,6 +321,8 @@ TStopwatch timer;
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
     cout << "Macro finished successfully." << endl; // marker of successfully execution for software testing systems
+    delete fRun;
+    delete magField;
 }
 
 int main(int argc, char** arg)

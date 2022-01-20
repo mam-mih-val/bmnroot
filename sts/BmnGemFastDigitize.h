@@ -17,6 +17,7 @@
 
 #include <map>
 #include <vector>
+#include <set>
 
 class CbmStsSensor;
 class TTree;
@@ -27,7 +28,6 @@ class TFile;
 
 class BmnGemFastDigitize : public FairTask
 {
-
  public:
 
   /** Default constructor **/  
@@ -76,7 +76,6 @@ class BmnGemFastDigitize : public FairTask
   BmnGemFastDigitize& operator=(const BmnGemFastDigitize&);
 
   ClassDef(BmnGemFastDigitize,0);
-
 };
 
 #endif

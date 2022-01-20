@@ -2,7 +2,7 @@
 // Name        : function_set.h
 // Author      : Konstantin Gertsenberger (gertsen@jinr.ru)
 // Description : set of common C++ functions
-// Version     : 1.06
+// Version     : 1.08
 //============================================================================
 
 #ifndef FUNCTION_SET_H
@@ -91,12 +91,17 @@ bool endswith(string const &full_str, string const &ending);
 int check_directory_exist(const char* path);
 // check and create directory if not exists: 0 - not existed before, 1 - existed, -1 - errno error, -2 - cannot access
 int create_directory(const char* path);
+// check and create all non-existent directories in the path:
+// 0 - not existed before, 1 - existed, 2 - not required, -1 - errno error, -2 - cannot access
+int create_directory_tree(const char* path);
 // get file name without extension from a path
 string get_file_name(string path);
 // get file name with extension from path
 string get_file_name_with_ext(string path);
 // get directory path without last slash from file path
 string get_directory_path(string file_path);
+// get directory name from file path
+string get_directory_name(string file_path);
 
 /*  TIME FUNCTIONS  */
 // get current date as string
@@ -360,12 +365,12 @@ int hex_string_to_int(string hex_string)
 // return byte size in double or code error if negative
 double byte_size_to_double(string byte_size_in_string, char convert_to)
 {
-	if (byte_size_in_string.empty()) return -1;	// empty string
+    if (byte_size_in_string.empty()) return -1;	// empty string
 
-	// remove spaces
-	replace_string_in_text(byte_size_in_string, " ", "");
-	// find text
-	size_t indText = byte_size_in_string.find_first_not_of("0123456789,.");
+    // remove spaces
+    replace_string_in_text(byte_size_in_string, " ", "");
+    // find text
+    size_t indText = byte_size_in_string.find_first_not_of("0123456789,.");
     if (indText == 0) return -2;	// no number at the beginning
 
     string units = "BKMGTP";
@@ -387,7 +392,7 @@ double byte_size_to_double(string byte_size_in_string, char convert_to)
     }
 
     if (convert_dim != value_dim)
-    	number *= pow(1024, convert_dim - value_dim);
+    	number *= pow(1024, value_dim - convert_dim);
 
     return number;
 }
@@ -697,6 +702,38 @@ int create_directory(const char* path)
     }
 }
 
+// check and create all non-existent directories in the path:
+// 0 - not existed before, 1 - existed, -1 - errno error, -2 - cannot access
+int create_directory_tree(const char* path)
+{
+	string str_path(path);
+	size_t pos = str_path.find_last_of('/');
+	if (pos == string::npos)
+		return 1;
+	str_path = str_path.substr(0, pos);
+	int status = check_directory_exist(str_path.c_str());
+	if (status != 0)
+		return status;
+
+	status = create_directory_tree(str_path.c_str());
+	if (status < 0)
+		return status;
+
+	mode_t mode = 0755;
+	status = mkdir(str_path.c_str(), mode);
+	if (status == 0)
+		return 0;
+    switch (errno)
+    {
+    	case ENOENT:
+    		return -1;
+    	case EEXIST:
+    		return -2;
+    	default:
+    		return -1;
+    }
+}
+
 // get file name without extension from a path
 string get_file_name(string path)
 {
@@ -731,10 +768,23 @@ string get_directory_path(string file_path)
     const size_t last_slash_idx = file_path.find_last_of("\\/");
     if (last_slash_idx != string::npos)
         directory = file_path.substr(0, last_slash_idx);
-    else
-        directory = file_path;
 
     return directory;
+}
+
+// get directory name from file path
+string get_directory_name(string file_path)
+{
+	string directory = "";
+	const size_t last_slash_idx = file_path.find_last_of("\\/");
+	if (last_slash_idx != string::npos)
+	{
+		const size_t penult_slash_idx = file_path.find_last_of("\\/", last_slash_idx-1);
+		if (penult_slash_idx != string::npos)
+			directory = file_path.substr(penult_slash_idx+1, last_slash_idx-penult_slash_idx-1);
+	}
+
+	return directory;
 }
 
 

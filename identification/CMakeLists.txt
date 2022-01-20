@@ -10,7 +10,6 @@ Set(INCLUDE_DIRECTORIES
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
- ${Boost_INCLUDE_DIRS}
  ${ROOT_INCLUDE_DIR}
 )
 
@@ -20,6 +19,7 @@ Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 set(LINK_DIRECTORIES
  ${ROOT_LIBRARY_DIR}
  ${FAIRROOT_LIBRARY_DIR}
+ ${Boost_LIBRARY_DIRS}
 )
 
 link_directories(${LINK_DIRECTORIES})
@@ -30,14 +30,7 @@ BmnPidSRC.cxx
 BmnPid.cxx
 )
 
-If (Boost_FOUND)
-  set(DEFINITIONS BOOST_FOUND)
-EndIf (Boost_FOUND)
-
-Set(HEADERS
-BmnPidSRC.h
-BmnPid.h
-)
+Set(HEADERS)
 Set(LINKDEF IdentLinkDef.h)
 Set(LIBRARY_NAME BmnPidSRC)
 Set(DEPENDENCIES BmnDst Dch BmnData Base)

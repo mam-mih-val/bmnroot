@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include "BmnCSCModule.h"
 
 #include "TMath.h"
@@ -122,7 +124,7 @@ Bool_t BmnCSCModule::IsPointInsideZThickness(Double_t z) {
 //Add single point with Gaussian smearing
 Bool_t BmnCSCModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z,
                                          Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID) {
-
+    
     if( IsPointInsideModule(x, y) ) {
 
         if(signal <= 0.0) signal = 1e-16;

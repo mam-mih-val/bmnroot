@@ -39,6 +39,7 @@ BmnOnlineDecoder::~BmnOnlineDecoder() {
 BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     DBG("started")
     rawDataDecoder = new BmnRawDataDecoder(fRawFileName);
+    rawDataDecoder->SetAdcDecoMode(kBMNADCSM);
     Int_t runID = rawDataDecoder->GetRunId();
     if (runID < 1) {
         runID = GetRunIdFromName(_curFile);
@@ -52,6 +53,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     }
     InitDecoder(runID);
 
+    DBG("fin")
     return kBMNSUCCESS;
 }
 
@@ -61,23 +63,23 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
         rawDataDecoder = new BmnRawDataDecoder();
     rawDataDecoder->SetRunId(runID);
     rawDataDecoder->SetPeriodId(fPeriodID);
-    Bool_t setup[11]; //array of flags to determine BM@N setup
+    std::map<DetectorId, bool> setup; // flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
-    setup[0] = 1; // TRIGGERS
-    setup[1] = 1; // MWPC
-    setup[2] = 1; // SILICON
-    setup[3] = 1; // GEM
-    setup[4] = 1; // TOF-400
-    setup[5] = 1; // TOF-700
-    setup[6] = 1; // DCH
-    setup[7] = 1; // ZDC
-    setup[8] = 1; // ECAL
-    setup[9] = 1; // LAND
-    setup[10] = 1; // CSC
+    setup.insert(std::make_pair(kBC,        1)); // TRIGGERS
+    setup.insert(std::make_pair(kMWPC,      1)); // MWPC
+    setup.insert(std::make_pair(kSILICON,   1)); // SILICON
+    setup.insert(std::make_pair(kGEM,       1)); // GEM
+    setup.insert(std::make_pair(kTOF1,      1)); // TOF-400
+    setup.insert(std::make_pair(kTOF,       1)); // TOF-700
+    setup.insert(std::make_pair(kDCH,       1)); // DCH
+    setup.insert(std::make_pair(kZDC,       1)); // ZDC
+    setup.insert(std::make_pair(kECAL,      1)); // ECAL
+    setup.insert(std::make_pair(kLAND,      1)); // LAND
+    setup.insert(std::make_pair(kCSC,       1)); // CSC
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetBmnSetup(fBmnSetup);
     TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((fBmnSetup == kBMNSETUP) ? "" : "_SRC"));
-//    rawDataDecoder->SetAdcDecoMode(period < 6 ? kBMNADCSM : kBMNADCMK);
+    //    rawDataDecoder->SetAdcDecoMode(period < 6 ? kBMNADCSM : kBMNADCMK);
     rawDataDecoder->SetAdcDecoMode(kBMNADCSM);
     rawDataDecoder->SetTof400Mapping(TString("TOF400_PlaceMap_RUN") + PeriodSetupExt, TString("TOF400_StripMap_RUN") + PeriodSetupExt);
     rawDataDecoder->SetTOF700ReferenceRun(-1);
@@ -87,7 +89,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     else
         rawDataDecoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d.txt", fPeriodID));
     rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
-//    rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
+    //    rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
     rawDataDecoder->SetECALMapping(TString("ECAL_map_period_") + PeriodSetupExt);
     rawDataDecoder->SetECALCalibration("");
     rawDataDecoder->SetLANDMapping("land_mapping_jinr_triplex.txt");
@@ -419,7 +421,7 @@ void BmnOnlineDecoder::ProcessStream() {
                     i = 0;
                     evExit = kTRUE;
                     break;
-                case kSYNC1:
+                case kSYNC1_OLD:
                     //            printf("i = %d\n", i);
                     //                    if (/*(fRunID > 0) &&*/ (buf[i] == kSYNC1)) 
                     //                    printf("found ksync1\n");
@@ -574,7 +576,6 @@ TString BmnOnlineDecoder::WatchNext(Int_t inotifDir, Int_t cycleWait) {
                     }
                 }
                 i += sizeof (struct inotify_event) +event->len;
-                delete event;
             }
             if (cycleWait > 0)
                 usleep(cycleWait);
@@ -598,6 +599,8 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
     }
     struct dirent **namelist;
     //    const regex re(".*mpd_run_.*_(\\d+).data");
+
+    
     Int_t runCount = 0;
     Int_t n;
     n = scandir(dirname, &namelist, 0, versionsort);
@@ -608,8 +611,8 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
         for (Int_t i = 0; i < n; ++i) {
             _curFile = TString(namelist[i]->d_name);
             Int_t runID = GetRunIdFromName(_curFile);
-            if (runID > 0) {
-                //            if (regex_match(namelist[i]->d_name, re)) {
+            if (runID > 3800) {
+                //                            if (regex_match(namelist[i]->d_name, re)) {
                 if (runCount == 0) {
                     if (InitDecoder(_curDir + _curFile) == kBMNERROR)
                         continue;

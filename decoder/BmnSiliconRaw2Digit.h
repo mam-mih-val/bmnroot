@@ -4,8 +4,8 @@
 #include "TString.h"
 #include "TTree.h"
 #include "TClonesArray.h"
+#include "TColor.h"
 #include <iostream>
-#include "TH1F.h"
 #include "BmnADCDigit.h"
 #include "BmnEnums.h"
 #include "TMath.h"
@@ -29,11 +29,12 @@ struct BmnSiliconMapping {
     Short_t channel_low;
     Short_t channel_high;
     Short_t station;
+    bool inverted;
 };
 
 class BmnSiliconRaw2Digit : public BmnAdcProcessor {
 public:
-    BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, BmnSetup bmnSetup = kBMNSETUP, BmnADCDecoMode decoMode = kBMNADCMK);
+    BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, TString MapFileName, BmnSetup bmnSetup = kBMNSETUP, BmnADCDecoMode decoMode = kBMNADCMK);
     BmnSiliconRaw2Digit();
     virtual ~BmnSiliconRaw2Digit();
 
@@ -43,13 +44,16 @@ public:
     BmnStatus FillNoisyChannels();
     BmnStatus LoadPedestalsMK(TTree* tin, TClonesArray *adc, BmnEventHeader* evhead, Int_t npedev);
     void InitAdcProcessorMK(Int_t run, Int_t iread = 0, Int_t iped = 0, Int_t ithr = 0, Int_t test = 0);
+    void RecalculatePedestalsByMap();
+
+    vector<BmnSiliconMapping> & GetMap() { return fMap;};
 
 private:
 
     vector<BmnSiliconMapping> fMap;
     Int_t fEventId;
-    TString fMapFileName;    
-        
+    TString fMapFileName;
+
     TH1F**** fSigProf;
     Bool_t**** fNoisyChannels;
     TCanvas *canStrip = nullptr;
@@ -60,13 +64,13 @@ private:
     TH2F* hfilter = nullptr;
     TH2F* hped = nullptr;
     TH2F* hcms = nullptr;
-//    TH2F* hscms;
+    //    TH2F* hscms;
     TH2F* hscms = nullptr;
     TH1F* hscms1 = nullptr;
     TH1F* hscms1full = nullptr;
     TH1F* hped1 = nullptr;
     TH1F* hsig = nullptr;
-    
+
     Int_t nx1bin;
     Int_t ny1bin;
 
@@ -160,21 +164,15 @@ private:
     vector<vector<vector<Double_t> > > cmdx1;
     vector<Int_t> chmap;
     Int_t nev = -1;
-//    Int_t nradc = 0;
-    Int_t niter;
+    //    Int_t nradc = 0;
     Int_t niterped;
     Int_t nchip;
     Int_t nchmin;
     Int_t npevents;
-    Double_t cmodcut;
 
     Double_t thresh;
 
     Double_t thrnoise;
-
-    Double_t dthr;
-
-    Double_t thrped;
 
     Int_t test = 0;
     Bool_t read = kFALSE;
@@ -190,14 +188,21 @@ private:
     TString wpedname;
     TString rnoisename;
     TString pedname;
-    
+
 
     BmnStatus ReadMapFile();
+    inline Int_t MapStrip(BmnSiliconMapping &v, Int_t iCh, Short_t iSmpl){
+        if (v.inverted)
+            return (v.channel_high - iCh + 1) * GetNSamples() - iSmpl;
+        else
+            return (iCh - v.channel_low) * GetNSamples() + iSmpl;
+    }
     void ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* silM, TClonesArray *silicon, Bool_t doFill);
-    
+    void ProcessAdc(TClonesArray *silicon, Bool_t doFill);
+
     void ProcessDigitMK(BmnADCDigit* adcDig, TClonesArray *silicon, Bool_t doFill);
     void PostprocessDigitMK(TClonesArray *silicon);
-    
+
     ClassDef(BmnSiliconRaw2Digit, 1);
 };
 

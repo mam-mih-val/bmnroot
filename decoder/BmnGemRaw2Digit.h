@@ -32,6 +32,8 @@
 #define N_CH_BUF 4096
 #define N_MODULES 2
 #define N_LAYERS 4
+//MK Real time 14122.027469 s, CPU time 8545.100000 s
+//SM Real time  8283.128545 s, CPU time 7648.220000 s
 
 using namespace std;
 using namespace TMath;
@@ -44,7 +46,7 @@ struct BmnGemMap {
     BmnGemMap(Int_t s, Int_t l, Int_t m) : strip(s), lay(l), mod(m) {
     }
 
-    BmnGemMap() : strip(0), lay(0), mod(0) {
+    BmnGemMap() : strip(-1), lay(-1), mod(-1) {
     }
 };
 
@@ -61,6 +63,7 @@ public:
     BmnStatus RecalculatePedestalsMK(Int_t nPedEv);
     BmnStatus LoadPedestalsMK(TTree* tin, TClonesArray *adc, BmnEventHeader* evhead, Int_t npedev);
     void InitAdcProcessorMK(Int_t run, Int_t iread = 0, Int_t iped = 0, Int_t ithr = 0, Int_t test = 0);
+    void RecalculatePedestalsByMap();
 
 private:
     static const Int_t nx0bin = 190;
@@ -112,7 +115,7 @@ private:
     Int_t ndetgem = 14;
     static const Int_t ncsc = 2;
     Int_t nev = -1;
-    
+
     Int_t nbigL = 5;
     Int_t nbigR = 6;
     // only for period 6
@@ -141,7 +144,7 @@ private:
 
     vector<UInt_t> fSerials;
     vector<UInt_t> rSerials;
-    
+
     vector<Int_t> nx0det;
     vector<Int_t> ny0det;
     vector<Int_t> nx1det;
@@ -170,7 +173,7 @@ private:
 
     vector< vector<Float_t> > Pedchr;
     vector< vector<Float_t> > Pedchr2;
-    
+
     Int_t x0big[nx0big] = {};
     Int_t x1big[nx1big] = {};
 
@@ -197,7 +200,7 @@ private:
     vector< vector<Float_t> > Ampy0;
     vector< vector<Float_t> > Ampx1;
     vector< vector<Float_t> > Ampy1;
-    
+
     Int_t x1csc[ncscver] = {};
     Int_t x2csc[ncscver] = {};
     Int_t x3csc[ncscver] = {};
@@ -207,7 +210,7 @@ private:
     Int_t y2csc[ncscin] = {};
     Int_t y3csc[ncscin] = {};
     Int_t y4csc[ncscout] = {};
-    
+
     char ss[10] = {0};
     char sped[20] = {0};
     FILE *Rnoisefile = nullptr;
@@ -230,25 +233,23 @@ private:
     Int_t chsma[nallsma] = {-1};
     Int_t xsmall[nsmall];
     Int_t ysmall[nsmall];
-    
+
     Int_t nchip = 32;
     Int_t nchmin = 8;
     Float_t thresh = 35;
     Float_t thrcsc = 80;
     Float_t thrnoise = 0.03;
-    Float_t dthr = 10;
     Float_t dthrcsc = 15;
 
     // starting thresholds, number of iterations
-    Int_t niter = 3;
     Int_t niterped = 3;
     Float_t thrped = 35;
     Float_t thrpedcsc = 80;
     vector<TH1I *> hNhits;
-    
+
     vector<Int_t> Nclustx;
     vector<Int_t> Nclusty;
-// (\w+) (\w+)\[(\w+)\]\[(\w+)\].+;
+    // (\w+) (\w+)\[(\w+)\]\[(\w+)\].+;
     // $2.resize($3, vector<$1>($4, 0));
     // vector< vector<$1> > $2;
     vector< vector<Int_t> > nchan;
@@ -293,7 +294,7 @@ private:
     Int_t nradc = 0;
     Int_t npevents = 0;
     Int_t test = 0;
-    
+
     TH1I* hAdc;
     TH1I * hChan[18];
     TH1F * hAmp[18];
@@ -356,15 +357,16 @@ private:
     BmnGemMap* fBigL1;
     BmnGemMap* fBigR0;
     BmnGemMap* fBigR1;
-        
+
     TH1F**** fSigProf;
     Bool_t**** fNoisyChannels;
-    
+
     TString fMapFileName;
 
     vector<GemMapValue*> fMap;
-
+    inline void MapStrip(GemMapValue* gemM, UInt_t ch, Int_t iSmpl, Int_t &station, Int_t &mod, Int_t &lay, Int_t &strip);
     void ProcessDigit(BmnADCDigit* adcDig, GemMapValue* gemM, TClonesArray *gem, Bool_t doFill);
+    void ProcessAdc(TClonesArray *silicon, Bool_t doFill);
     void ProcessDigitMK(BmnADCDigit* adcDig, TClonesArray *gem, Bool_t doFill);
     void PostprocessDigitMK(TClonesArray *gem, TClonesArray *csc);
     BmnStatus ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod);

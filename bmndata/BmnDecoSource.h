@@ -2,6 +2,9 @@
 #define BMNDECOSOURCE_H
 
 #include <iostream>
+#include <string>
+#include <cstring>
+#include <vector>
 #include <zmq.h>
 // ROOT
 #include "TString.h"
@@ -9,12 +12,20 @@
 #include <TBufferFile.h>
 // FairRoot
 #include "FairRootManager.h"
+#include "FairRootFileSink.h"
 #include "FairOnlineSource.h"
 #include "FairEventHeader.h"
+#include "FairRunAna.h"
 // BmnRoot
 #include "BmnEnums.h"
 #include "DigiArrays.h"
 #include "BmnEventHeader.h"
+//#include "BmnTof1Digit.h"
+//#include "BmnTof2Digit.h"
+//#include "BmnGemStripDigit.h"
+//#include "BmnSiliconDigit.h"
+
+using namespace std;
 
 class BmnDecoSource : public FairOnlineSource {
 public:
@@ -28,8 +39,15 @@ public:
     void FillEventHeader(FairEventHeader* feh);
     TTree* GetInTree() {return fInChain->GetTree();}
     TChain* GetInChain() {return fInChain;}
+    FairRunAna * GetRunInstance(){ return fRunInst;}
+    void SetRunInstance(FairRunAna * run){ fRunInst = run;}
     
 private:
+    TString GetDstNameFromRunId(Int_t runId) {
+        TString name(Form("bmn_run%d_dst.root", runId));
+        return name;
+    }
+    FairRunAna *fRunInst;
     zmq_msg_t _msg;
     TBufferFile *_tBuf;//= TBufferFile((TBuffer::EMode)0);// = TBufferFile(TBuffer::kRead);
     void * _ctx;
@@ -40,11 +58,21 @@ private:
     TChain* fInChain;
     /**Input Tree */
     TTree* fInTree;
+    
+    Bool_t fFirstEvent;
+    string fT0BranchName;
+    
+    Int_t fRunId;
+    Int_t fPeriodId;
 
     Int_t iEventNumber;
+    Int_t iT0BranchIndex;
     BmnEventHeader* fEventHeader;
     TClonesArray* fGemDigits;
-    TClonesArray* fTof1Digits;
+    TClonesArray* fSilDigits;
+    TClonesArray* fCscDigits;
+    TClonesArray* fTof400Digits;
+    TClonesArray* fTof700Digits;
     TClonesArray* fT0Digits;
     ClassDef(BmnDecoSource, 1);
 };

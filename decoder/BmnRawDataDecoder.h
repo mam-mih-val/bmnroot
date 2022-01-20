@@ -25,6 +25,7 @@
 #include "TClonesArray.h"
 
 #include "BmnEnums.h"
+#include "RawTypes.h"
 #include "BmnTTBDigit.h"
 #include "BmnTDCDigit.h"
 #include "BmnHRBDigit.h"
@@ -42,6 +43,8 @@
 #include "BmnTof1Raw2Digit.h"
 #include "BmnTof2Raw2DigitNew.h"
 #include "BmnZDCRaw2Digit.h"
+#include "BmnScWallRaw2Digit.h"
+#include "BmnFHCalRaw2Digit.h"
 #include "BmnECALRaw2Digit.h"
 #include "BmnLANDRaw2Digit.h"
 #include "BmnTrigRaw2Digit.h"
@@ -54,54 +57,6 @@
 #include "TangoData.h"
 #include "BmnMscRaw2Digit.h"
 
-/***************** SET OF DAQ CONSTANTS *****************/
-const UInt_t kSYNC1 = 0x2A502A50;
-const UInt_t kENDOFSPILL = 0x4A624A62;
-const UInt_t kRUNSTARTSYNC = 0x72617453;
-const UInt_t kRUNSTOPSYNC = 0x706F7453;
-const UInt_t kRUNNUMBERSYNC = 0x236E7552;
-const UInt_t kRUNINDEXSYNC = 0x78646E49;
-const size_t kWORDSIZE = sizeof (UInt_t);
-const Short_t kNBYTESINWORD = 4;
-
-//FVME data types
-const UInt_t kMODDATAMAX = 0x7;
-const UInt_t kMODHEADER = 0x8;
-const UInt_t kMODTRAILER = 0x9;
-const UInt_t kEVHEADER = 0xA;
-const UInt_t kEVTRAILER = 0xB;
-const UInt_t kSPILLHEADER = 0xC;
-const UInt_t kSPILLTRAILER = 0xD;
-const UInt_t kSTATUS = 0xE;
-const UInt_t kPADDING = 0xF;
-
-//module ID
-const UInt_t kTDC64V = 0x10; //DCH
-const UInt_t kTDC64VHLE = 0x53;
-const UInt_t kTDC72VHL = 0x12;
-const UInt_t kTDC32VL = 0x11;
-const UInt_t kTQDC16 = 0x09;
-const UInt_t kTQDC16VS = 0x56;
-const UInt_t kTQDC16VS_ETH = 0xD6;
-const UInt_t kTRIG = 0xA;
-const UInt_t kMSC = 0xF;
-const UInt_t kUT24VE = 0x49;
-const UInt_t kADC64VE = 0xD4;
-const UInt_t kADC64VE_XGE = 0xD9;
-const UInt_t kADC64WR = 0xCA;
-const UInt_t kHRB = 0xC2;
-const UInt_t kFVME = 0xD1;
-const UInt_t kLANDDAQ = 0xDA;
-const UInt_t kU40VE_RC = 0x4C;
-
-//event type trigger
-const UInt_t kEVENTTYPESLOT = 12;
-const UInt_t kWORDTAI = 2;
-const UInt_t kWORDTRIG = 3;
-const UInt_t kWORDAUX = 4;
-const UInt_t kTRIGBEAM = 6;
-const UInt_t kTRIGMINBIAS = 1;
-
 /********************************************************/
 // wait limit for input data (ms)
 #define WAIT_LIMIT 40000000
@@ -113,6 +68,7 @@ public:
     BmnRawDataDecoder(TString file = "", TString outfile = "", ULong_t nEvents = 0, ULong_t period = 7);
     virtual ~BmnRawDataDecoder();
 
+    BmnStatus ProcessRunTLV();
     BmnStatus ConvertRawToRoot();
     BmnStatus ConvertRawToRootIterate(UInt_t *buf, UInt_t len);
     BmnStatus ConvertRawToRootIterateFile(UInt_t limit = WAIT_LIMIT);
@@ -149,6 +105,8 @@ public:
         d.tof400 = tof400;
         d.tof700 = tof700;
         d.zdc = zdc;
+        d.scwall = scwall;
+        d.fhcal = fhcal;
         d.ecal = ecal;
         d.land = land;
         d.dch = dch;
@@ -156,7 +114,7 @@ public:
         d.header = eventHeader;
         d.trigAr = NULL;
         d.trigSrcAr = NULL;
-        if (fTrigMapper){
+        if (fTrigMapper) {
             if (fBmnSetup == kBMNSETUP)
                 d.trigAr = fTrigMapper->GetTrigArrays();
             else
@@ -164,7 +122,7 @@ public:
         }
         return d;
     }
-    
+
     TTree* GetDigiTree() {
         return fDigiTree;
     }
@@ -211,6 +169,14 @@ public:
 
     BmnZDCRaw2Digit *GetZDCMapper() {
         return fZDCMapper;
+    }
+
+    BmnScWallRaw2Digit *GetScWallMapper() {
+        return fScWallMapper;
+    }
+
+    BmnFHCalRaw2Digit *GetFHCalMapper() {
+        return fFHCalMapper;
     }
 
     BmnECALRaw2Digit *GetECALMapper() {
@@ -268,12 +234,28 @@ public:
         fZDCMapFileName = map;
     }
 
-    void SetECALMapping(TString map) {
-        fECALMapFileName = map;
-    }
-
     void SetZDCCalibration(TString cal) {
         fZDCCalibrationFileName = cal;
+    }
+
+    void SetScWallMapping(TString map) {
+        fScWallMapFileName = map;
+    }
+
+    void SetScWallCalibration(TString cal) {
+        fScWallCalibrationFileName = cal;
+    }
+
+    void SetFHCalMapping(TString map) {
+        fFHCalMapFileName = map;
+    }
+
+    void SetFHCalCalibration(TString cal) {
+        fFHCalCalibrationFileName = cal;
+    }
+
+    void SetECALMapping(TString map) {
+        fECALMapFileName = map;
     }
 
     void SetECALCalibration(TString cal) {
@@ -308,11 +290,8 @@ public:
         return fRootFileName;
     }
 
-    BmnStatus SetDetectorSetup(Bool_t* setup) {
-        for (Int_t i = 0; i < 11; ++i) {
-            fDetectorSetup[i] = setup[i];
-        }
-
+    BmnStatus SetDetectorSetup(std::map<DetectorId, bool> setup) {
+        fDetectorSetup = setup;
         return kBMNSUCCESS;
     }
 
@@ -354,23 +333,21 @@ public:
         //so we have to use this crutch.
         return (nSmpl == 128) ? 1542 : 1992;
     }
-    
+
     void SetRawRootFile(TString filename) {
         fRootFileName = filename;
     }
-    
+
     void SetDigiRootFile(TString filename) {
         fDigiFileName = filename;
     }
 
 private:
 
-    //9 bits correspond to detectors which we need to decode
-    Bool_t fDetectorSetup[11];
+    std::map<DetectorId, bool> fDetectorSetup;
     pt::ptree conf;
     Bool_t isSpillStart;
     UInt_t fSpillCntr;
-
 
     Int_t fTOF700ReferenceRun;
     Int_t fTOF700ReferenceChamber;
@@ -383,6 +360,10 @@ private:
     UInt_t fNCscSerials;
     vector<UInt_t> fZDCSerials; //list of serial id for ZDC
     UInt_t fNZDCSerials;
+    vector<UInt_t> fScWallSerials; //list of serial id for ScWall
+    UInt_t fNScWallSerials;
+    vector<UInt_t> fFHCalSerials; //list of serial id for FHCAL
+    UInt_t fNFHCalSerials;
     vector<UInt_t> fECALSerials; //list of serial id for ECal
     UInt_t fNECALSerials;
 
@@ -423,6 +404,10 @@ private:
     TString fTof700GeomFileName;
     TString fZDCMapFileName;
     TString fZDCCalibrationFileName;
+    TString fScWallMapFileName;
+    TString fScWallCalibrationFileName;
+    TString fFHCalMapFileName;
+    TString fFHCalCalibrationFileName;
     TString fECALMapFileName;
     TString fECALCalibrationFileName;
     TString fMSCMapFileName;
@@ -458,7 +443,7 @@ private:
     TClonesArray *sync;
     TClonesArray *adc32; //gem
     TClonesArray *adc128; //sts
-    TClonesArray *adc; //zdc & ecal
+    TClonesArray *adc; //zdc & ecal & scwall & fhcal
     TClonesArray *hrb;
     TClonesArray *tacquila; // LAND.
     TClonesArray *tdc;
@@ -474,6 +459,8 @@ private:
     TClonesArray *tof400;
     TClonesArray *tof700;
     TClonesArray *zdc;
+    TClonesArray *scwall;
+    TClonesArray *fhcal;
     TClonesArray *ecal;
     TClonesArray *land;
     TClonesArray *dch;
@@ -497,10 +484,12 @@ private:
     BmnTof1Raw2Digit *fTof400Mapper;
     BmnTof2Raw2DigitNew *fTof700Mapper;
     BmnZDCRaw2Digit *fZDCMapper;
+    BmnScWallRaw2Digit *fScWallMapper;
+    BmnFHCalRaw2Digit *fFHCalMapper;
     BmnECALRaw2Digit *fECALMapper;
     BmnLANDRaw2Digit *fLANDMapper;
     BmnMscRaw2Digit *fMSCMapper;
-    UInt_t nSpillEvents;    
+    UInt_t nSpillEvents;
     BmnTrigInfo* trigInfoTemp;
     BmnTrigInfo* trigInfoSum;
     BmnEventType fCurEventType;
@@ -532,14 +521,46 @@ private:
     Int_t GetUTCShift(TTimeStamp t);
     BmnStatus GetT0Info(Double_t& t0time, Double_t &t0width);
     BmnStatus ProcessEvent(UInt_t *data, UInt_t len);
+    /**
+     * Parse ADC64VE 
+     * format Mstream Waveform V2 from https://afi.jinr.ru/MStreamWaveformDigitizer
+     * @param d Data array ptr
+     * @param len payload length
+     * @param serial 
+     * @param nSmpl
+     * @param arr ADC digits storage
+     * @return kBMNSUCCESS
+     */
     BmnStatus Process_ADC64VE(UInt_t *data, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr);
     BmnStatus Process_ADC64WR(UInt_t *data, UInt_t len, UInt_t serial, TClonesArray *arr);
     BmnStatus Process_FVME(UInt_t *data, UInt_t len, UInt_t serial, BmnEventType &ped, BmnTrigInfo* spillInfo);
     BmnStatus Process_HRB(UInt_t *data, UInt_t len, UInt_t serial);
     BmnStatus Process_Tacquila(UInt_t *data, UInt_t len);
     BmnStatus FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t slot, UInt_t &idx, BmnTrigInfo* spillInfo);
+    BmnStatus FillBlockTDC(UInt_t *d, UInt_t serial, uint16_t &len, TClonesArray *ar);
+    BmnStatus FillBlockADC(UInt_t *d, UInt_t serial, uint8_t channel, uint16_t &len, TClonesArray *ar);
     BmnStatus FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
     BmnStatus FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
+    /**
+     * Parse TQDC16VS-E MStream data block
+     * https://afi.jinr.ru/DataFormatTQDC16VSE
+     * @param d data pointer
+     * @param serial device serial
+     * @param len payload length
+     * @return opeartion success
+     */
+    BmnStatus FillTQDC_Eth(UInt_t *d, UInt_t serial, UInt_t &len);
+    BmnStatus FillTDC72VXS(UInt_t *d, UInt_t serial, UInt_t &len);
+    /**
+     * Parse UT24VE-TRC MStream data block
+     * https://afi.jinr.ru/DataFormatUT24VE-TRC
+     * @param d data pointer
+     * @param serial device serial
+     * @param len payload length
+     * @param evType calibration/payload event
+     * @return operation success
+     */
+    BmnStatus FillUT24VE_TRC(UInt_t *d, UInt_t &len, BmnEventType &evType);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);
 
     BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t &idx);

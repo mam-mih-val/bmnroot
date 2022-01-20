@@ -376,7 +376,7 @@ void BmnTrackingQaOffline::DoAnalisys(Bool_t anal1, Bool_t anal2, Bool_t anal3) 
                     Int_t mTof1 = track->GetTof1HitIndex();
                     Int_t mTof2 = track->GetTof2HitIndex();
 
-                    Int_t mCsc = track->GetCscHitIndex();
+                    Int_t mCsc = track->GetCscHitIndex(0);
 
                     Int_t mDch1 = track->GetDch1TrackIndex();
                     Int_t mDch2 = track->GetDch2TrackIndex();

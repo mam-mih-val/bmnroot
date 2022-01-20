@@ -1,27 +1,24 @@
 // -------------------------------------------------------------------------
-// -----                    BmnFieldCreator header file                  -----
-// -----                Created 15/01/07  by M. Al-Turany              -----
+// -----                   BmnFieldCreator header file                 -----
+// -----                Created 15/01/07 by M. Al-Turany               -----
 // -------------------------------------------------------------------------
 
+#ifndef BMNFIELDCREATOR_H
+#define BMNFIELDCREATOR_H
 
-#ifndef CBMFIELDCREATOR_H
-#define CBMFIELDCREATOR_H
+#include "BmnFieldPar.h"
 
 #include "FairFieldFactory.h"
-
-class BmnFieldPar;
-
-class FairField;
+#include "FairField.h"
 
 class BmnFieldCreator : public FairFieldFactory 
 {
-
  public:
   BmnFieldCreator();
   virtual ~BmnFieldCreator();
+
   virtual FairField* createFairField();
   virtual void SetParm();
-  ClassDef(BmnFieldCreator,1);
   
  protected:
   BmnFieldPar* fFieldPar;
@@ -29,5 +26,8 @@ class BmnFieldCreator : public FairFieldFactory
  private:
   BmnFieldCreator(const BmnFieldCreator&) = delete;
   BmnFieldCreator& operator=(const BmnFieldCreator&) = delete;
+
+  ClassDef(BmnFieldCreator,1);
 };
-#endif //CBMFIELDCREATOR_H
+
+#endif //BMNFIELDCREATOR_H

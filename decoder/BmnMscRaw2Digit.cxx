@@ -7,14 +7,16 @@ BmnMscRaw2Digit::BmnMscRaw2Digit(Int_t period, Int_t run, TString MapFile, TTree
     SetRawSpillTree(spillTree);
     SetDigSpillTree(digiSpillTree);
     ReadChannelMap(MapFile);
-    if (fBmnSetup == kSRCSETUP) // @TODO extend for BM@N
-        ParseTxtSpillLog(
-            fBmnSetup == kSRCSETUP ?
-            "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/SRC_Data.txt" :
-            "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/summary_corr_v2.txt",
-            fBmnSetup == kSRCSETUP ?
-            "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/spill_run7_src_full.xslt" :
-            "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/spill_run7_bmn_full.xslt");
+    if (fBmnSetup == kSRCSETUP) {// @TODO extend for BM@N
+        BmnStatus status = ParseTxtSpillLog(
+                fBmnSetup == kSRCSETUP ?
+                "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/SRC_Data.txt" :
+                "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/summary_corr_v2.txt",
+                fBmnSetup == kSRCSETUP ?
+                "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/spill_run7_src_full.xslt" :
+                "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/spill_run7_bmn_full.xslt");
+        isValidSpillLog = (status == kBMNSUCCESS);
+    }
 }
 
 BmnStatus BmnMscRaw2Digit::ReadChannelMap(TString mappingFile) {
@@ -73,7 +75,7 @@ BmnStatus BmnMscRaw2Digit::ParseTxtSpillLog(TString LogName, TString SchemeName)
     Int_t log_shift_bmn = 6;
     Int_t log_shift_src = -3;
     fLogShift = fBmnSetup == kBMNSETUP ? log_shift_bmn : log_shift_src;
-    
+
     map<TDatime, vector < Int_t>> temp_spill_map;
     UniParser parser;
     vector<structParseValue*> parse_values;
@@ -166,20 +168,25 @@ void BmnMscRaw2Digit::FillRunHeader(DigiRunHeader *rh) {
 BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnSpillHeader *sh, UInt_t &nPedEvBySpill) {
     sh->Clear();
     BmnTrigInfo *ti = hdr->GetTrigInfo();
+    //    if (msc->GetEntriesFast() == 0)
+    //        fTempTI = BmnTrigInfo(hdr->GetTrigInfo());
     UInt_t iEv = hdr->GetEventId();
     for (Int_t iAdc = 0; iAdc < msc->GetEntriesFast(); ++iAdc) {
         BmnMSCDigit* dig = (BmnMSCDigit*) msc->At(iAdc);
         if (dig->GetLastEventId() > iEv)
-            break;
-        if (dig->GetLastEventId() < iEv) {
-            //            fprintf(stderr, "Spill %u last event %u lost! Curent evId %u \n",
-            //                    iSpill, dig->GetLastEventId(), iEv);
+            return kBMNFINISH;
+        if ((dig->GetLastEventId() < iEv) && (dig->GetLastEventId() > 0)) {
+            fprintf(stderr, "Spill %u last event %u lost! Curent evId %u \n",
+                    iSpill, dig->GetLastEventId(), iEv);
             fRawSpillTree->GetEntry(++iSpill);
             ++iSpillMap;
             nPedEvBySpill = 0;
             return kBMNERROR;
         }
-
+//        fVerbose = 1;
+        if (fVerbose)
+            printf("Spill %u last event %u  Curent evId %u \n",
+                iSpill, dig->GetLastEventId(), iEv);
         UInt_t *arr = dig->GetValue();
         UInt_t serial = dig->GetSerial();
         for (auto &mRec : fMap) {
@@ -189,8 +196,8 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
                 fProtection += arr[mRec.TriggerProtection];
                 fL0 += arr[mRec.L0];
                 UInt_t AcceptedReal = ti->GetTrigAccepted() - nPedEvBySpill;
-                if (fBmnSetup == kSRCSETUP) {
-                    if (fPeriodId == 7) {
+                if ((fBmnSetup == kSRCSETUP) && (fPeriodId == 7) && (isValidSpillLog)) {
+                    if (iSpillMap < spill_map.size()) {
                         map<TDatime, vector < Int_t>>::iterator SpillMapIter = spill_map.begin();
                         advance(SpillMapIter, iSpillMap);
                         if (fVerbose)
@@ -206,7 +213,7 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
                             printf("BT %f DAQ_Busy %f  DAQ_Trigger %f  flux %f\n",
                                 BT, DAQ_Busy, DAQ_Trigger, fBTAccepted);
                     }
-                } else { // BM@N setup
+                } else { // BM@N setup or U40 is present
                     UInt_t den =
                             AcceptedReal +
                             ti->GetTrigBefo() +

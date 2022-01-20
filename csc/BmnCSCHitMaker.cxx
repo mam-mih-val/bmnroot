@@ -113,18 +113,18 @@ InitStatus BmnCSCHitMaker::Init() {
             if (fVerbose > 1) cout << "   Current CSC Configuration : RunSRCSpring2018" << "\n";
             break;
 
-        case BmnCSCConfiguration::FutureConfig2020:
-            StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCFutureConfig2020.xml");
+        case BmnCSCConfiguration::Run8:
+            StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRun8.xml");
             TransfSet = new BmnCSCTransform();
-            TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCFutureConfig2020.xml");
-            if (fVerbose > 1) cout << "   Current CSC Configuration : FutureConfig2020" << "\n";
+            TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCRun8.xml");
+            if (fVerbose) cout << "   Current CSC Configuration : Run8" << "\n";
             break;
 
-        case BmnCSCConfiguration::SRCFutureConfig2021:
-            StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCSRCFutureConfig2021.xml");
+        case BmnCSCConfiguration::RunSRC2021:
+            StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSRC2021.xml");
             TransfSet = new BmnCSCTransform();
-            TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCSRCFutureConfig2021.xml");
-            if (fVerbose) cout << "   Current CSC Configuration : SRCFutureConfig2021" << "\n";
+            TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCRunSRC2021.xml");
+            if (fVerbose) cout << "   Current CSC Configuration : RunSRC2021" << "\n";
             break;
 
         default:
@@ -291,9 +291,13 @@ void BmnCSCHitMaker::ProcessDigits() {
                 //--------------------------------------------------------------
 
                 //hit matching -------------------------------------------------
+                FairRootManager::Instance()->SetUseFairLinks(kTRUE);
                 if (fHitMatching && fBmnCSCHitMatchesArray) {
                     new ((*fBmnCSCHitMatchesArray)[fBmnCSCHitMatchesArray->GetEntriesFast()])
                             BmnMatch(module->GetIntersectionPointMatch(iPoint));
+                    BmnMatch* hitMatch = (BmnMatch*) fBmnCSCHitMatchesArray->At(fBmnCSCHitMatchesArray->GetEntriesFast() - 1);
+                    for(BmnLink lnk : hitMatch->GetLinks())
+                        hit->AddLink(FairLink(-1, lnk.GetIndex(), lnk.GetWeight()));
                 }
                 //--------------------------------------------------------------
             }

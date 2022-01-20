@@ -17,6 +17,8 @@
 
 #include "CbmL1.h"
 #include "TClonesArray.h"
+#include "CbmMvdHit.h"
+#include "CbmStsHit.h"
 #include "CbmStsTrack.h"
 
 //L1Algo tools
@@ -339,7 +341,7 @@ void CbmL1PFFitter::Fit(vector<CbmL1Track> &Tracks, fvec mass)
       fB0.Combine( fB[i], w[i] );
       fld.Set( fB0, fz0, fB1, fz1, fB2, fz2 );
 
-      fvec one = ONE;
+      //fvec one = ONE;
       fvec zero = ZERO;
       fvec initialised = fvec(z[i] > z_end) & fvec(z_start > z[i]);
       fvec w1 = (zero & initialised) + (w[i] & (!initialised));
@@ -410,7 +412,7 @@ void CbmL1PFFitter::Fit(vector<CbmL1Track> &Tracks, fvec mass)
       fB0.Combine( fB[i], w[i] );
       fld.Set( fB0, fz0, fB1, fz1, fB2, fz2 );
 
-      fvec one = ONE;
+      //fvec one = ONE;
       fvec zero = ZERO;
       fvec initialised = fvec(z[i] > z_end) & fvec(z_start > z[i]);
       fvec w1 = (zero & initialised) + (w[i] & (!initialised));
@@ -522,7 +524,7 @@ void CbmL1PFFitter::GetChiToVertex(vector<CbmL1Track> &Tracks, vector<float> &ch
     L1FieldRegion& fld = B[itrack/fvecLen];
     for(int iSt= nStations-4; iSt>=0; iSt--)
     {
-      fvec zero = ZERO;
+      //fvec zero = ZERO;
       fvec w=ONE;
       fvec initialized = fvec(T.z > (zSta[iSt]+2.5));
       w = fvec(w & initialized);
@@ -772,7 +774,7 @@ void CbmL1PFFitter::Fit(vector<CbmStsTrack> &Tracks, int pidHypo)
       fB0.Combine( fB[i], w[i] );
       fld.Set( fB0, fz0, fB1, fz1, fB2, fz2 );
 
-      fvec one = ONE;
+      //fvec one = ONE;
       fvec zero = ZERO;
       fvec initialised = fvec(z[i] > z_end) & fvec(z_start > z[i]);
       fvec w1 = (zero & initialised) + (w[i] & (!initialised));
@@ -843,7 +845,7 @@ void CbmL1PFFitter::Fit(vector<CbmStsTrack> &Tracks, int pidHypo)
       fB0.Combine( fB[i], w[i] );
       fld.Set( fB0, fz0, fB1, fz1, fB2, fz2 );
 
-      fvec one = ONE;
+      //fvec one = ONE;
       fvec zero = ZERO;
       fvec initialised = fvec(z[i] > z_end) & fvec(z_start > z[i]);
       fvec w1 = (zero & initialised) + (w[i] & (!initialised));
@@ -1004,7 +1006,7 @@ void CbmL1PFFitter::GetChiToVertex(vector<CbmStsTrack> &Tracks, vector<L1FieldRe
 
     for(int iSt= nStations-4; iSt>=0; iSt--)
     {
-      fvec zero = ZERO;
+      //fvec zero = ZERO;
       fvec w=ONE;
       fvec initialized = fvec(T.z > (zSta[iSt]+2.5));
       w = fvec(w & initialized);

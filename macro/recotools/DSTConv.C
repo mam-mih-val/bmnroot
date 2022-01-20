@@ -91,7 +91,7 @@ void DSTConv(
     delete fRunAna;
 
     TString outFileTemp = outFile + ".pv.root";
-    FilterPV(outFile, outFileTemp);
+//    FilterPV(outFile, outFileTemp);
     //    std::remove(outFile);
 
     timer.Stop();

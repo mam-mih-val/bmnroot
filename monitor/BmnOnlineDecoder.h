@@ -14,6 +14,7 @@
 #ifndef BMNONLINEDECODER_H
 #define BMNONLINEDECODER_H 1
 #include <climits>
+//#include <regex>
 //FairSoft
 #include "TNamed.h"
 #include "TFile.h"
@@ -47,6 +48,11 @@
 #define UNKNOWN_RUNID           9999
 
 using namespace std;
+
+//Int_t IsRaw(struct dirent * entry) {
+//        const regex re(".*(\\d+).*.data");
+//        return regex_match(entry->d_name, re);
+//    }
 
 class BmnOnlineDecoder : public TNamed {
 public:

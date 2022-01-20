@@ -10,7 +10,7 @@
 #pragma link C++ class CbmStsContFact;
 #pragma link C++ class CbmStsDigiPar;
 #pragma link C++ class CbmStsDigiScheme+;
-#pragma link C++ class CbmStsIdealDigitize+;
+//#pragma link C++ class CbmStsIdealDigitize+;
 #pragma link C++ class CbmStsDigitize+;
 //#pragma link C++ class CbmStsDigitizeTb;
 //#pragma link C++ class CbmStsIdealFindHits+;

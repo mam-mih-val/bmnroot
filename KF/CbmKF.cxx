@@ -1,38 +1,23 @@
 #include "CbmKF.h"
-
 #include "CbmKFFieldMath.h"
-#include "CbmKFMath.h"
 #include "CbmKFHit.h"
+#include "CbmStsStation.h"
+#include "CbmMvdGeoPar.h"
+#include "CbmGeoStsPar.h"
+#include "CbmGeoSttPar.h" //AZ
+#include "BmnFieldPar.h"
+#include "BmnTOFGeoPar.h" //YP
 
 #include "FairGeoNode.h"
 #include "FairRunAna.h"
 #include "FairBaseParSet.h"
-#include "FairField.h"
-#include "BmnFieldMap.h" //AZ
-#include "BmnFieldPar.h"
-#include "CbmMvdGeoPar.h"
-#include "CbmGeoStsPar.h"
-#include "CbmGeoSttPar.h" //AZ
-//#include "CbmGeoTofPar.h"
-#include "BmnTOFGeoPar.h" //YP
 #include "FairGeoPassivePar.h"
-#include "CbmStsStation.h"
 #include "FairRuntimeDb.h"
 
 #include <iostream>
-#include <list>
-#include <vector>
-#include <map>
 #include <cmath>
 
-using std::cout;
-using std::endl;
-using std::pair;
-using std::vector;
-using std::map;
-using std::fabs;
-
-ClassImp(CbmKF)
+using namespace std;
 
 CbmKF *CbmKF::fInstance = 0;
 
@@ -233,7 +218,7 @@ InitStatus CbmKF::Init()
     if( fVerbose ) cout<<"KALMAN FILTER : === READ STT DETECTORS ==="<<endl;
 
     TObjArray *Nodes = sttPar->GetGeoSensitiveNodes();
-    double zold = 0;
+    //double zold = 0;
     int ista = 0; //-1;
     for (Int_t i = 0; i < Nodes->GetEntries(); ++i) {
       FairGeoNode *node = dynamic_cast<FairGeoNode*> (Nodes->At(i));
@@ -268,7 +253,7 @@ InitStatus CbmKF::Init()
 	if( fVerbose ) cout<<" Stt detector "<<name<<": "<<wall.Info()<<", station "<<ista<<endl;
       
 	//if( jsta==ista ) continue; // same station	
-	zold = wall.ZReference;
+    //zold = wall.ZReference;
 	//SttStationIDMap.insert(pair<Int_t,Int_t>(ista+1, ista));
 	SttStationIDMap.insert(pair<Int_t,Int_t>(wall.ID, ista));
 	ista++;
@@ -711,7 +696,7 @@ else fMethod=2;
 
   //AZ
   Double_t zmax = 0.0;
-  BmnNewFieldMap *field;
+  BmnNewFieldMap *field = nullptr;
   if (fMagneticField) {
     field = (BmnNewFieldMap*) fMagneticField; // GP
     zmax = field->GetZmax() + field->GetPositionZ();
@@ -812,3 +797,5 @@ Int_t CbmKF::PassMaterialBetween( CbmKFTrackInterface &track, Double_t &QP0, Int
 Int_t CbmKF::PassMaterialBetween( CbmKFTrackInterface &track, Double_t &QP0, CbmKFHit *fst, CbmKFHit *lst ){
   return PassMaterialBetween( track, QP0, fst->MaterialIndex, lst->MaterialIndex);
 }
+
+ClassImp(CbmKF)

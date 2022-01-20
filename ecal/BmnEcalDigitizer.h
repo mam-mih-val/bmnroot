@@ -8,13 +8,11 @@
 #ifndef BMNECALDIGITIZER_H
 #define BMNECALDIGITIZER_H
 
-#include <iostream> 
-#include <fstream>
+#include "BmnECALDigit.h"
 
 #include <FairTask.h>
 #include <TClonesArray.h>
 
-#include "BmnECALDigit.h"
 
 class BmnEcalDigitizer : public FairTask {
 public:

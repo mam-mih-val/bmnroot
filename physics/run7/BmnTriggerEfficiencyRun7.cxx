@@ -67,8 +67,6 @@ void BmnTriggerEfficiencyRun7::triggerEfficiency() {
                 fMultMap[iEntry] = make_pair(eff->multilplicity().first, eff->multilplicity().second);
                 triggEffs.push_back(eff->efficiency());
                 triggEffErrs.push_back(eff->efficiencyError());
-
-                // cout << eff->trigger() << " " << eff->multilplicity().first << " " << eff->multilplicity().second << " " << eff->efficiency() << " " << eff->efficiencyError() << endl;
             }
 
             delete lAnal;
@@ -174,10 +172,8 @@ void BmnTriggerEfficiencyRun7::triggerEfficiency() {
             dS = TMath::Sqrt(T.second - B.second);
             dB = deltaB(f1, fitSpectrum((TH1F*) hNom->Clone()));
 
-            //cout << dS << " -- nom -- " << dB << endl;
             errTotRelNom = TMath::Sqrt((dS / (T.second - B.second)) * (dS / (T.second - B.second))
                     + (dB / B.second) * (dB / B.second));
-            // cout << " -- nom -- " << errTotNom << endl;
             hNom->Write();
 
             //
@@ -191,18 +187,14 @@ void BmnTriggerEfficiencyRun7::triggerEfficiency() {
             dS = TMath::Sqrt(T.second - B.second);
             dB = deltaB(f1, fitSpectrum((TH1F*) hDenom->Clone()));
 
-            // cout << dS << " -- denom -- " << dB << endl;
             errTotRelDenom = TMath::Sqrt((dS / (T.second - B.second)) * (dS / (T.second - B.second))
                     + (dB / B.second) * (dB / B.second));
-            // cout << " -- denom -- " << errTotDenom << endl;
             hDenom->Write();
 
             noms.push_back(hNom);
             denoms.push_back(hDenom);
 
-            // Calculating total error ...
             errsRelTot.push_back(TMath::Sqrt(errTotRelNom * errTotRelNom + errTotRelDenom * errTotRelDenom));
-            // cout << "errTot = " << TMath::Sqrt(errTotRelNom * errTotRelNom + errTotRelDenom * errTotRelDenom) << endl;
         }
 
         TCanvas* c = new TCanvas("c", "c", 1200, 600);
@@ -340,8 +332,6 @@ void BmnTriggerEfficiencyRun7::triggerEfficiency() {
             Fatal("BmnTriggerEfficiencyRun7::triggerEfficiency", "Trigger condition not supported!!!");
 
         for (auto dst : createFilelist(triggsSet)) {
-            // GetInfoFromDstConnected(dst);
-
             // Getting denom. histos (base) ...
             isAddTriggerCondition = kFALSE;
             ReadFile(dst, cuts);
@@ -349,8 +339,6 @@ void BmnTriggerEfficiencyRun7::triggerEfficiency() {
             // Getting nomin. histos (severe) ...
             isAddTriggerCondition = kTRUE;
             ReadFile(dst, cuts);
-
-            // break;
         }
     }
 
@@ -448,7 +436,6 @@ void BmnTriggerEfficiencyRun7::ReadFile(TString f, BmnParticlePairCut* cut0) {
     if (!eHeaderExt)
         return;
 
-    // for (Int_t iEv = 0; iEv < 1000; iEv++) {
     for (Int_t iEv = 0; iEv < out->GetEntries(); iEv++) {
         out->GetEntry(iEv);
 
@@ -460,7 +447,7 @@ void BmnTriggerEfficiencyRun7::ReadFile(TString f, BmnParticlePairCut* cut0) {
 
         if (TMath::Abs(z) > zCor || nVpTracks < 2)
             continue;
-        
+
         // Getting trigger conditions and track multiplicity ...
         if ((fTrigger.Contains("BT+FD3") || fTrigger.Contains("BT+FD2")) && isAddTriggerCondition) {
             // Nominator ...

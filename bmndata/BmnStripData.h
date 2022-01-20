@@ -174,7 +174,7 @@ public:
     //Add new strip in ascending order of strip number (if cluster has strip with such number - add signal to that strip)
     void AddStrip(Int_t strip_num, Double_t strip_signal) {
         Bool_t StripNumExists = false;
-        Int_t index;
+        size_t index;
         for(index = 0; index < Strips.size(); ++index) {
             if(Strips[index] == strip_num) {
                 StripNumExists = true;
@@ -185,7 +185,7 @@ public:
         else {
             vector<Int_t>::iterator strip_iter = Strips.end();
             vector<Double_t>::iterator signal_iter = Signals.end();
-            for(Int_t i = 0; i < Strips.size(); ++i) {
+            for(size_t i = 0; i < Strips.size(); ++i) {
                 if( strip_num < Strips[i] ) {
                     strip_iter = Strips.begin() + i;
                     signal_iter = Signals.begin() + i;

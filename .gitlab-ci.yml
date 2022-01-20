@@ -362,10 +362,22 @@ deploy:sl6:
   <<: *deploy
   
 deploy:centos7:
-  image: git.jinr.ru:5005/nica/docker-images/centos7/fair:latest
+  image: git.jinr.ru:5005/nica/docker-images/centos7/fair:jun19p1_v18.2.0
   environment:
     name: centos7
   tags:
     - docker
     - no-cvmfs
   <<: *deploy
+
+build_docker:
+  before_script:
+    - echo "Skipping global before_script"
+  image: alpine:latest
+  stage: deploy
+  script:
+    - apk add --no-cache curl
+    - "curl -X POST -F token=$BUILD_TRIGGER_TOKEN -F ref=master -F variables[VERSION]=$CI_COMMIT_REF_SLUG -F variables[SHA]=$CI_COMMIT_SHA https://git.jinr.ru/api/v4/projects/628/trigger/pipeline"
+  only:
+    - tags
+    - dev

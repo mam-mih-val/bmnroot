@@ -94,7 +94,7 @@ public:
     void SetFinishRun(Int_t finish) {
         fFinishRun = finish;
     }
-    
+
     vector <TString> GetFileList() {
         return fInFiles;
     }
@@ -115,10 +115,10 @@ private:
         // If multBin not found ...
         return -1;
     }
-    
+
     Bool_t isVectorOk(vector <Double_t> vector) {
-    
-        for (auto value : vector)           
+
+        for (auto value : vector)
             if (TMath::Abs(value) > 100. || TMath::IsNaN(value))
                 return kFALSE;
 
@@ -126,7 +126,7 @@ private:
     }
 
 protected:
-    void ReadFile(TString, BmnParticlePairCut* cut0 = nullptr, TClonesArray* triggEffInfo = nullptr);
+    void ReadFile(TString, BmnParticlePairCut* cut0 = nullptr, TClonesArray* triggEffInfo = nullptr, Double_t pathMin = 0., Double_t pathMax = 0.);
 
     TFitResultPtr fitSpectrum(TH1F*);
     void fitSpectrum(TH1F*, Double_t&, Double_t&, pair <Double_t, Double_t>&, pair <Double_t, Double_t>&);
@@ -136,8 +136,8 @@ protected:
     static Double_t fitFunction(Double_t*, Double_t*);
 
     void GetPtY(vector <Double_t>, vector <Double_t>, Double_t&, Double_t&);
-    
-     Double_t deltaB(TF1* f, TFitResultPtr fitRes) {
+
+    Double_t deltaB(TF1* f, TFitResultPtr fitRes) {
         TH1F* h = new TH1F("h", "h", 75., xLow, xUp);
 
         Double_t min = h->GetBinCenter(fSignalBinMin);
@@ -198,6 +198,11 @@ protected:
 
     Int_t nYBins;
     map <Int_t, pair <Double_t, Double_t>> fYBinMap;
+
+    Int_t nPathBins;
+    map <Int_t, pair <Double_t, Double_t>> fPathBins;
+
+    Bool_t isMc;
 
     ClassDef(BmnMassSpectrumAnal, 0)
 };

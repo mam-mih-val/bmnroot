@@ -16,6 +16,8 @@ class BmnFunctionSet
     static int CreateDirectoryTree(TString& fileName, int iVerbose = 0, EAccessMode mode = kWritePermission);
     // define whether simulation file
     static bool isSimulationFile(TString fileName);
+    // check whether path is a directory
+    static bool isDirectory(TString path);
 
  private:
     BmnFunctionSet() {}

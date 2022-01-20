@@ -68,11 +68,13 @@ fDoINL(true), fDoSlewing(true), fSignalVelosity(0.060) {
 //--------------------------------------------------------------------------------------------------------------------------------------
 
 BmnTof1HitProducer::~BmnTof1HitProducer() {
-
-    for (Int_t i = 0; i < fNDetectors; i++) {
-        delete pDetector[i];
+    
+    if (!fUseMCData){
+        for (Int_t i = 0; i < fNDetectors; i++) {
+            delete pDetector[i];
+        }
+        delete[] pDetector;
     }
-    delete[] pDetector;
     delete pRandom;
     delete pGeoUtils;
 }

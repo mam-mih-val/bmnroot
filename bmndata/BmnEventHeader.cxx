@@ -68,7 +68,8 @@ void BmnEventHeader::Clear() {
     fStartSignalWidth = 0.0;
     if (fTrigInfo) {
         delete fTrigInfo;
-        fTrigInfo = new BmnTrigInfo();
+        fTrigInfo = nullptr;
+//        fTrigInfo = new BmnTrigInfo();
     }
     fTrigUnion = 0;
 }

@@ -1,0 +1,5 @@
+Name       CrateSerial	Slot	BoardSerial
+===========================================
+TQDC16VS   0x0CCFA51A    16	0x0CCFA51A
+TQDC16VS   0x0CCF3FB2    17	0x0CCF3FB2
+TDC72VHL   0x06EA9711    20	0x0AA1186F

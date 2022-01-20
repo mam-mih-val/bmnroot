@@ -62,7 +62,8 @@ class BmnMwpcHitFinder : public FairTask {
   virtual void Finish();
   
   struct MC_points{
-    Int_t  Id  = -1;
+    Int_t  Id  = -1;//Id
+    Int_t  Pdg = -999;//Id
     Int_t  Np2 = 0;
     Int_t  Np3 = 0;
     Bool_t xWas2=0;
@@ -88,7 +89,7 @@ class BmnMwpcHitFinder : public FairTask {
   private:
   Bool_t expData;
   Bool_t fDebug   = 0;
-  Bool_t fDoTest  = 1;
+  Bool_t fDoTest  = 0;
   UInt_t fEventNo; // event counter
 
   TString fInputBranchName;
@@ -121,7 +122,9 @@ class BmnMwpcHitFinder : public FairTask {
   Float_t *Zmid;
   Float_t *ChZ;
   TH1D  *hNtrMC, *hDen_mc, *hNum_mc, *hEff_mc,
-        *hx_target, *hy_target, *hNp_MCtrue_ch2, *hNp_MCtrue_ch3;
+        *hx_target, *hy_target, *hNp_MCtrue_ch2, *hNp_MCtrue_ch3,
+         *hDen_mcreaction2, *hNum_mcreaction2,*hEff_mcreaction2,
+         *hDen_mcreaction3, *hNum_mcreaction3,*hEff_mcreaction3, *hHalfDeadCh;
         
   TH2D  *hYvsX_mc_ch2, *hYvsX_mc_ch3;
         
@@ -214,8 +217,11 @@ class BmnMwpcHitFinder : public FairTask {
   void FillFreeCoefVector(Int_t , Double_t*, Double_t*** , Int_t , Float_t** , Double_t*, Int_t*);
   void FillFitMatrix(Int_t, Double_t **, Float_t **, Double_t *, Int_t *);
   void InverseMatrix(Double_t**, Double_t**);
-  void MCefficiencyCalculation(vector<MC_points>&, Double_t ***, Int_t *);
+  void MCefficiencyCalculation(Int_t, vector<MC_points>&, Double_t ***, Int_t *);
   void SegmentsStoring(Int_t *, Double_t ***,Double_t **, Int_t **, Double_t ***, Double_t ***, Double_t ****);
+  
+  const Int_t PDG_Li7 = 1000030070;//Li7
+  const Int_t PDG_He4 = 1000020040;//He4
 
   TString fBmnEvQualityBranchName;
   TClonesArray* fBmnEvQuality;

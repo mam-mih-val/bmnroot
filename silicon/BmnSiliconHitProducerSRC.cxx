@@ -1,13 +1,13 @@
-
-
 #include "BmnSiliconHitProducerSRC.h"
 #include "CbmStsPoint.h"
 #include "BmnSiliconPoint.h"
+#include "BmnSiliconHit.h"
 #include "CbmMCTrack.h"
+
 #include "TRandom.h"
 #include "TCanvas.h"
+#include "TFile.h"
 #include "TH1F.h"
-#include "BmnSiliconHit.h"
 #include "TSystem.h"
 
 using std::cout;
@@ -58,6 +58,7 @@ void BmnSiliconHitProducerSRC::Exec(Option_t* opt) {
 
     fBmnHitsArray->Delete();
     fBmnHitsArray2->Delete();
+    
 
     if (fDebug) cout<<"======================== BmnSiliconHitProducerSRC ========================"<<endl;
 
@@ -67,7 +68,6 @@ void BmnSiliconHitProducerSRC::Exec(Option_t* opt) {
     }
     //                  x      xp     z
     Float_t err[3] = {0.0030, 0.0035, 0.}; // Uncertainties of coordinates //[cm], i.e. 30 & 35 mk
-   
 
     for (Int_t iPoint = 0; iPoint < fBmnPointsArray->GetEntriesFast(); iPoint++) {
 
@@ -75,10 +75,11 @@ void BmnSiliconHitProducerSRC::Exec(Option_t* opt) {
         BmnSiliconPoint* siliconPoint = (BmnSiliconPoint*) fBmnPointsArray->UncheckedAt(iPoint);
         
         Int_t charge = siliconPoint->GetCharge();
-        if (charge == 0) continue; //qgsm
+        if (charge == 0)  continue; //qgsm
         //if (charge != 18) continue;//ion carbon
         Int_t IsPrimary = siliconPoint->GetIsPrimary();
         Double_t     Pz = siliconPoint->GetPz();
+        Int_t     pdgId = siliconPoint->GetPdgId();
         if (IsPrimary == 0) continue;
         if (Pz < 1.) continue;
         
@@ -98,26 +99,38 @@ void BmnSiliconHitProducerSRC::Exec(Option_t* opt) {
         Float_t xp_smeared = xp + dXp;
         Float_t z_smeared  = siliconPoint->GetZIn() + dZ;
         
-        if (fDebug) cout<<" track_id "<<track_id<<" charge "<<charge<<" x "<<x<<" x_sm "<<x_smeared<<" y "<<y<<" y_sm "<<(xp_smeared - x_smeared) / tan(2.5*TMath::Pi()/180.) <<" xp_sm "<<xp_smeared<<" z "<<z<<endl;
+        if (fDebug) cout<<" track_id "<<track_id<<" charge "<<charge<<" x "<<x<<" x_sm "<<x_smeared<<" y "<<y<<" y_sm "<<(xp_smeared - x_smeared)/tan(2.5*TMath::Pi()/180.)<<" xp_sm "<<xp_smeared<<" z "<<z<<endl;
         if (fDebug && z > -320.) cout<<" ----------"<<endl;
-          BmnHit* hit = new((*fBmnHitsArray)[fBmnHitsArray->GetEntriesFast()])BmnHit(0, TVector3(x, y, z), //clean/true hit
+        
+        //---faile for Goran---
+        //if (pdgId == PDG_B11 ){//if ( pdgId == PDG_He4 || pdgId == PDG_Li7){//
+          if (fDebug) cout<<" pdgId "<<pdgId<<endl;
+          //|| pdgId == PDG_Li7 || pdgId == PDG_Li8 || pdgId == PDG_He4 || pdgId == PDG_Be9 || pdgId == PDG_H2){
+          
+          //clean/true hit
+          BmnHit* hit = new((*fBmnHitsArray)[fBmnHitsArray->GetEntriesFast()])BmnHit(0, TVector3(x, y, z), 
           TVector3(err[0], err[1], err[2]), iPoint);
           //hit->SetIndex(fBmnHitsArray->GetEntriesFast() - 1);
           hit->SetType(1);
           hit->SetStation(SiliconStationSet->GetPointStationOwnership(siliconPoint->GetZIn()));
           hit->SetIndex(track_id);
-          
-        if(rand_gen.Uniform() <= 1.0) {
+          hit->SetType(pdgId);
+          //hit->SetELoss(static_cast< double>(pdgId));//tmp
         
-          BmnHit* hit2 = new((*fBmnHitsArray2)[fBmnHitsArray2->GetEntriesFast()])BmnHit(0, TVector3(x_smeared, xp_smeared, z_smeared), //sim hit
-          TVector3(err[0], err[1], err[2]), iPoint);
-          //hit2->SetIndex(fBmnHitsArray2->GetEntriesFast() - 1);
-          hit2->SetType(1);
-          hit2->SetStation(SiliconStationSet->GetPointStationOwnership(siliconPoint->GetZIn()));
-          hit2->SetIndex(track_id);
-        }
-       //delete rand_gen;
-    }
+          if(rand_gen.Uniform() <= 1.) {
+            //sim hit smeared
+            BmnHit* hit2 = new((*fBmnHitsArray2)[fBmnHitsArray2->GetEntriesFast()])BmnHit(0, TVector3(x_smeared, xp_smeared, z_smeared), 
+            TVector3(err[0], err[1], err[2]), iPoint);
+            //hit2->SetIndex(fBmnHitsArray2->GetEntriesFast() - 1);
+            hit2->SetType(pdgId);
+            hit2->SetStation(SiliconStationSet->GetPointStationOwnership(siliconPoint->GetZIn()));
+            hit2->SetIndex(track_id);
+            
+          }
+       // }
+       
+    }//iPoint
+    
 }
 
 void BmnSiliconHitProducerSRC::Finish() {

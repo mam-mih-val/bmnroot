@@ -64,6 +64,7 @@
 #include "TGeant4.h"
 #include "TG4RunConfiguration.h"
 #include "TPythia6Decayer.h"
+#include "TVirtualMC.h"
 //#include "TGeant3.h"
 //#include "TGeant3TGeo.h"
 
@@ -175,8 +176,8 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
 
     // Smearing of beam interaction point, if needed, and primary vertex position
     // DO NOT do it in corresponding gen. sections to avoid incorrect summation!!!
-    primGen->SetBeam(0.5, -4.6, 0.0, 0.0);
-    primGen->SetTarget(-2.3, 0.0);
+    primGen->SetBeam(0.5, -4.6, 0.0, 0.0);  // (beamX0, beamY0, beamSigmaX, beamSigmaY)
+    primGen->SetTarget(-2.3, 0.0);          // (targetZ, targetDz)
     primGen->SmearVertexZ(kFALSE);
     primGen->SmearVertexXY(kFALSE);
 
@@ -199,6 +200,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
 
     // ------- Particle Generator
     case PART:{
+        // FairParticleGenerator generates a single particle type (PDG, mult, [GeV] px, py, pz, [cm] vx, vy, vz)
         FairParticleGenerator* partGen = new FairParticleGenerator(211, 10, 1, 0, 3, 1, 0, 0);
         primGen->AddGenerator(partGen);
         break;
@@ -206,7 +208,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
 
     // ------- Ion Generator
     case ION:{
-        // Start beam from a far point to check mom. reconstruction procedure
+        // Start beam from a far point to check mom. reconstruction procedure (Z, A, q, mult, [GeV] px, py, pz, [cm] vx, vy, vz)
         FairIonGenerator* fIongen = new FairIonGenerator(6, 12, 6, 1, 0., 0., 4.4, 0., 0., -647.);
         primGen->AddGenerator(fIongen);
         break;
@@ -216,9 +218,9 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     case BOX:{
         gRandom->SetSeed(0);
         FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 10); // 13 = muon; 1 = multipl.
-        boxGen->SetPRange(1., 1.); // GeV/c, setPRange vs setPtRange
-        boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
-        boxGen->SetThetaRange(10, 15); // Polar angle in lab system range [degree]
+        boxGen->SetPRange(1., 1.);      // GeV/c, setPRange vs setPtRange
+        boxGen->SetPhiRange(0, 360);    // Azimuth angle range [degree]
+        boxGen->SetThetaRange(10, 15);  // Polar angle in lab system range [degree]
         primGen->AddGenerator(boxGen);
         break;
     }
@@ -284,6 +286,8 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     fRun->SetStoreTraj(kTRUE);
     fRun->SetRadLenRegister(kFALSE); // radiation length manager
 
+
+    // -----   Digitizers: converting MC points to detector digits   -----------
     // SI-Digitizer
     BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2018;
     BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
@@ -327,10 +331,10 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     // Trajectories Visualization (TGeoManager only)
     FairTrajFilter* trajFilter = FairTrajFilter::Instance();
     // Set cuts for storing the trajectories
-    trajFilter->SetStepSizeCut(0.01); // 1 cm
-    trajFilter->SetVertexCut(-200., -200., -150., 200., 200., 1100.);
-    trajFilter->SetMomentumCutP(10e-3); // p_lab > 10 MeV
-    trajFilter->SetEnergyCut(0., 4.); // 0 < Etot < 1.04 GeV //
+    trajFilter->SetStepSizeCut(0.01); // [cm]
+    trajFilter->SetVertexCut(-200., -200., -1000., 200., 200., 1100.); // (vxMin, vyMin, vzMin, vxMax, vyMax, vzMax)
+    trajFilter->SetMomentumCutP(30e-3); // p_lab > 30 MeV
+    trajFilter->SetEnergyCut(0., 10.);  // 0 < Etot < 10 GeV
     trajFilter->SetStorePrimaries(kTRUE);
     trajFilter->SetStoreSecondaries(kTRUE); //kFALSE
 
@@ -353,8 +357,8 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     // Transport nEvents
     fRun->Run(nEvents);
 
-    //gGeoManager->CheckOverlaps(0.0001);
-    //gGeoManager->PrintOverlaps();
+    gGeoManager->CheckOverlaps(0.0001);
+    gGeoManager->PrintOverlaps();
 
     //fRun->CreateGeometryFile("full_geometry.root");  // save the full setup geometry to the additional file
 
@@ -366,7 +370,10 @@ if ((generatorName == QGSM) || (generatorName == DCMQGSM)){
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
-    cout << "Macro finished successfully" << endl; // marker of successfully execution for software testing systems
+    cout << "Macro finished successfully." << endl; // marker of successfully execution for software testing systems
+
+    delete fRun;
+    delete magField;
 }
 
 int main(int argc, char** arg)

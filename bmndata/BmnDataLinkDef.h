@@ -51,11 +51,19 @@
 #pragma link C++ class BmnTof1Digit+;
 #pragma link C++ class BmnTof2Digit+;
 #pragma link C++ class BmnTrigDigit+;
+#pragma link C++ class BmnCaloDigit+;
 #pragma link C++ class BmnDchDigit+;
 #pragma link C++ class BmnZDCDigit+;
 #pragma link C++ class BmnECALDigit+;
 #pragma link C++ class BmnLANDDigit+;
 #pragma link C++ class BmnCSCDigit+;
+#pragma link C++ class BmnSiBTDigit+;
+
+#pragma link C++ class BmnDigiContainerTemplate+;
+#pragma link C++ class BmnScWallAddress+;
+#pragma link C++ class BmnScWallDigi+;
+#pragma link C++ class BmnFHCalAddress+;
+#pragma link C++ class BmnFHCalDigi+;
 
 #pragma link C++ class BmnADCDigit+;
 #pragma link C++ class BmnTDCDigit+;
@@ -105,6 +113,7 @@
 
 #pragma link C++ class BmnSiliconHit+;
 #pragma link C++ class BmnCSCHit+;
+#pragma link C++ class BmnSiBTHit+;
 
 #pragma link C++ class BmnKalmanFilter+;
 #pragma link C++ class DigiRunHeader+;

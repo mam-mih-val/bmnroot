@@ -76,6 +76,7 @@ struct UpTracks {
   Double_t  CoordZ[5] = {-999., -999., -999., -999., -999.};
   Double_t  Chi2      =  999.;
   Int_t     Nhits     = -1;
+  Int_t     Pdg       = -1;
 };
 
 using namespace std;
@@ -98,7 +99,8 @@ public:
   }
   
   struct MC_points{
-    Int_t  Id  = -1;
+    Int_t  Id  = -1;//
+    Int_t  Pdg = -1;//
     Int_t  Np_P   = 0;
     Int_t  Np_Si  = 0;
     Int_t  Np_ch2 = 0;
@@ -111,13 +113,18 @@ public:
     Bool_t xWas3=0;
     Bool_t uWas3=0;
     Bool_t vWas3=0;
-    Bool_t wo3st=0;
     Bool_t np_3si=0;
     
     Double_t param[4]= {999., 999., 999., 999.};
     Double_t x_si[4] = {-999., -999.,-999.,-999.};
     Double_t y_si[4] = {-999., -999.,-999.,-999.};
     Double_t z_si[4] = {-999., -999.,-999.,-999.};
+  };
+  struct twotracks{
+    Double_t track1[5]   = {-999.,-999.,-999.,-999.,-999.};//Ax, x, Ay, Y
+    Int_t    track1_pdg  = -999;
+    Double_t track2[5]   = {-999.,-999.,-999.,-999.,-999.};//Ax, x, Ay, Y
+    Int_t    track2_pdg  = -999;
   };
 
 private:
@@ -181,7 +188,7 @@ private:
   vector<Smatch>    OutVector;
   vector<UpTracks>  vecUpTracks;
   vector<MC_points> vec_points;
-  
+  vector<twotracks> vec_twotracks;
   //--------
   void PrepareArraysToProcessEvent();
   void ReadSiliconTracks(Double_t**, Double_t*, Int_t &, vector<MC_points> &);
@@ -225,6 +232,14 @@ private:
   const Double_t Zcentr    = -350.;//cm
   const Double_t kZ_target = -645.191;//cm
   const Double_t kZSi_cent = -392.5;
+  //MC
+  const Int_t PDG_Be7 = 1000040070;//Be7
+  const Int_t PDG_Li6 = 1000030060;//Li6
+  const Int_t PDG_Li7 = 1000030070;//Li7
+  const Int_t PDG_He3 = 1000020030;//He3
+  const Int_t PDG_He4 = 1000020040;//He4
+  const Int_t PDG_H2  = 1000010020;//H2
+  const Int_t PDG_p   = 2212;//proton 
 
   //some hists
   TH1D *hAx_fitUp,*hAy_fitUp,* hx_fitUp,* hy_fitUp,* hchi2_fitUp,* hNhitsUp, 
@@ -232,8 +247,8 @@ private:
     *hdAx_uptr_mc, *hdX_uptr_mc, *hdAy_uptr_mc, *hdY_uptr_mc,
     *hDen_mcuptr, *hNum_mcuptr, *hEff_mcuptr,
     *hAx_upmc, *hAy_upmc, *hX_upmc, *hY_upmc,
-    *hNtr_reco, *hNtr_mc;
-  TH2D  *hNtr_mc_vs_reco;
+    *hNtr_reco, *hNtr_mc, *hNrecoTrif2mc, *hAngle_reco, *hAngle_recoifNmc2, *hAngle_recoifNmc2Cases;
+  TH2D  *hNtr_mc_vs_reco, *hy_vs_x_Up, *hY_vs_Xmctrue, *hvertexXYUp, *hTyTx_Up;
   vector<TH1D*> hResXst, hResYst;
 
   ClassDef(BmnUpstreamTracking, 1)

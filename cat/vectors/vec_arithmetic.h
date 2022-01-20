@@ -1,5 +1,5 @@
 #ifndef _vec_arithmetic_H_
-#define _vec_arithmetic_H
+#define _vec_arithmetic_H_
 
 /* Define all operators after definition of  basic operators */
 

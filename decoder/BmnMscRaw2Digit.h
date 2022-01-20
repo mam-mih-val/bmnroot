@@ -92,6 +92,7 @@ public:
 
 private:
     BmnSetup fBmnSetup;
+    Bool_t isValidSpillLog;
     UInt_t fPeriodId;
     UInt_t fRunId;
     map<TDatime, vector < Int_t>> spill_map;
@@ -101,6 +102,8 @@ private:
     Int_t fLogShift;
     
     Int_t fVerbose = 0;
+    
+    BmnTrigInfo fTempTI;
 
 
     vector<MscMap> fMap;

@@ -149,7 +149,8 @@ void CbmKFMath::five_dim_inv(Double_t a[5][5])
   Double_t b[5][5];
   
   // Set b to I
-  for(i=0;i<5;i++) for(j=0;j<5;j++)
+  for(i=0;i<5;i++)
+      for(j=0;j<5;j++)
     if(i==j) b[i][j]=1.0; else b[i][j]=0.0;
   
     for(i=0;i<5;i++){

@@ -137,7 +137,7 @@ void TestCSCClassTransform() {
     TString gPathDetectorConfig = gSystem->Getenv("VMCWORKDIR");
     gPathDetectorConfig += "/parameters/csc/XMLConfigs/";
 
-    gPathDetectorConfig += "CSCSRCFutureConfig2021.xml";
+    gPathDetectorConfig += "CSCRunSRC2021.xml";
     //gPathDetectorConfig += "CSCFutureConfig2020.xml";
 
 

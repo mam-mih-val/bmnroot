@@ -20,6 +20,7 @@
 #include <TParticlePDG.h>
 #include <TRandom.h>
 #include <TROOT.h>
+#include "TFile.h"
 #include <TSystem.h>
 #include <TTree.h>
 //#include <TH1F.h>
@@ -27,6 +28,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <queue>
 
 using std::cout;
 using std::endl;

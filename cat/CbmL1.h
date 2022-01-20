@@ -19,64 +19,24 @@
 
 #include "CbmL1Track.h"
 #include "CbmL1Vtx.h"
-
 #include "CbmKFParticle.h"
-
 #include "CbmL1MCTrack.h"
-#include "KFMCParticle.h"
-#include "KFParticleMatch.h"
 #include "CbmL1MCPoint.h"
 #include "CbmL1StsHit.h"
+#include "CbmStsDigiScheme.h"
+#include "CbmL1ParticlesFinder.h"
+#include "KFMCParticle.h"
+#include "KFParticleMatch.h"
 
 #include "FairTask.h"
-#include "FairRootManager.h"
-#include "FairDetector.h"
-#include "CbmStsDigiScheme.h"
-
-#include "CbmMCTrack.h"
-#include "CbmStsPoint.h"
-#include "CbmStsDigi.h"
-#include "CbmStsCluster.h"
-#include "CbmStsHit.h"
-
-#include "CbmMvdPoint.h"
-#include "CbmMvdHit.h"
-#include "CbmMvdHitMatch.h"
-
-
 
 #include "TClonesArray.h"
-#include "TRefArray.h"
-#include "TParticle.h"
-#include "TRandom.h"
-#include "TGeoManager.h"
-#include "TGeoMatrix.h"
-#include "TGeoTube.h"
-#include "TGeoCone.h"
-#include "TGeoPcon.h"
-#include "TGeoBBox.h"
-#include "TH1.h"
-#include "TH2.h"
-#include "TProfile.h"
-#include "TProfile2D.h"
 
-#include "../bmnfield/BmnNewFieldMap.h" //GP
-
-#include <iostream>
-#include <fstream>
-#include <set>
-#include <map>
 #include <vector>
-#include <algorithm>
 
 using std::vector;
 
-
 class L1Algo;
-class CbmL1ParticlesFinder;
-class L1FieldSlice;
-class CbmL1Track;
-class CbmL1MCTrack;
 
 class CbmL1HitStore{
  public:

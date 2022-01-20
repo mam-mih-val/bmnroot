@@ -1,4 +1,8 @@
 #include "BmnECALDigit.h"
+#include "TError.h"
+#include <iostream>
+
+using namespace std;
 
 void BmnECALMapElement::SetAdcMap(Int_t chan, ULong_t adcId, UShort_t adcChan) {
     if (fChan > -1 && fChan != chan) {
@@ -51,22 +55,18 @@ void BmnECALMapElement::Print() {
             << "\t" << fLabZ << "\n";
 }
 
-BmnECALDigit::BmnECALDigit(){
-    fChannel = 0;
-    fX = 0;
-    fY = 0;
-    fAmp = 0;
+BmnECALDigit::BmnECALDigit()
+  : BmnCaloDigit()
+{
     fPeakAmp = 0;
     fPeakTime = 0;
     fStartTime = 0;
     fLabX = fLabY = fLabZ = 0;
 }
 
-BmnECALDigit::BmnECALDigit(Float_t x,Float_t y,Short_t ch,Float_t amp){
-    fChannel = ch;
-    fX = x;
-    fY = y;
-    fAmp = amp;
+BmnECALDigit::BmnECALDigit(Float_t x, Float_t y, UChar_t ch, Float_t amp)
+  : BmnCaloDigit(x, y, ch, amp)
+{
     fPeakAmp = 0;
     fPeakTime = 0;
     fStartTime = 0;

@@ -147,7 +147,7 @@ void run_sim_src(TString inFile = "", TString outFile = "$VMCWORKDIR/macro/run/s
     fRun->AddTask(cscDigit);
 
     fRun->Init();
-    magField->Print();
+    magField->Print("");
 
     // Trajectories Visualization (TGeoManager only)
     FairTrajFilter* trajFilter = FairTrajFilter::Instance();

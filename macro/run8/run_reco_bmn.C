@@ -244,9 +244,9 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
     // ====================================================================== //
     // ===                          Tracking (DCH)                        === //
     // ====================================================================== //
-    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(run_period, run_number, isExp);
-    dchTF->SetTransferFunction("transfer_func.txt");
-    fRunAna->AddTask(dchTF);
+    // BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(run_period, run_number, isExp);
+    // dchTF->SetTransferFunction("transfer_func.txt");
+    // fRunAna->AddTask(dchTF);
 
     // ====================================================================== //
     // ===                          Global Tracking                       === //
@@ -267,6 +267,14 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
     BmnVertexFinder* gemVF = new BmnVertexFinder(run_period, isField);
     fRunAna->AddTask(gemVF);
 #endif
+    
+    // ====================================================================== //
+    // ===           Matching global track to MC track procedure          === //
+    // ====================================================================== //
+    if (!isExp) {
+        BmnMatchRecoToMC* mcMatching = new BmnMatchRecoToMC();
+        fRunAna->AddTask(mcMatching);
+    }
     
     // ====================================================================== //
     // ===                      PID procedure                             === //

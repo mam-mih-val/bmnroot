@@ -157,7 +157,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
     if (!isExp)
         cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSpring2018); //set explicitly
-    cscHM->SetHitMatching(kTRUE);
+    if (isExp) cscHM->SetHitMatching(kFALSE);
     fRunAna->AddTask(cscHM);
     
     // ====================================================================== //

@@ -2,6 +2,10 @@
 #include <climits>
 
 BmnTrigParameters::BmnTrigParameters() {
+    CrateSerial = 0;
+    BoardSerial = 0;
+    slot = 0;
+    ChannelCount = 0;
     for (UInt_t i = 0; i < CHANNEL_COUNT_MAX; i++) {
         for (UInt_t j = 0; j < TDC_BIN_COUNT; j++)
             INL[i][j] = 0u;
@@ -14,10 +18,6 @@ BmnTrigParameters::BmnTrigParameters() {
 
 BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString PlacementMapFile, TString StripMapFile, TTree *digiTree) {
     ReadPlacementMap(PlacementMapFile);
-    for (auto &el : fPlacementMap) {
-        BmnTrigParameters* par = el.second;
-        ReadINLFromFile(par);
-    }
     ReadChannelMap(StripMapFile);
     if (digiTree == NULL)
         return;
@@ -45,15 +45,24 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString PlacementMapFile, TString StripMapFil
     }
     // Fill elements of placement map with channel->(strip, mod, branchRef) map //
     for (BmnTrigChannelData &record : fMap) {
+        BmnTrigParameters *par = nullptr;
         map< PlMapKey, BmnTrigParameters*>::iterator itPar = fPlacementMap.find(PlMapKey(record.serial, record.slot));
         if (itPar == fPlacementMap.end()) {
             printf("CrateSeral %08X slot %u not found in the placement map!\n", record.serial, record.slot);
-            continue;
-        }
-        BmnTrigParameters *par = itPar->second;
+            par = new BmnTrigParameters();
+            par->BoardSerial = record.serial;
+            par->name = record.name;
+            par->ChannelCount = ChanCntByName(record.name);
+            fPlacementMap.insert(pair<PlMapKey, BmnTrigParameters*> (PlMapKey(par->BoardSerial, par->slot), par));
+        } else
+            par = itPar->second;
         par->ChannelMap[record.channel] = record.module;
         par->branchArrayPtr[record.channel] = record.branchArrayPtr;
         par->NegativeMap[record.channel] = record.isNegative;
+    }
+    for (auto &el : fPlacementMap) {
+        BmnTrigParameters* par = el.second;
+        ReadINLFromFile(par);
     }
 }
 
@@ -71,29 +80,17 @@ BmnStatus BmnTrigRaw2Digit::ReadPlacementMap(TString mappingFile) {
     UInt_t crateSerial, boardSerial;
     UShort_t slot;
 
-    //    regex reBoardName("(\\D+)(\\d+)(.*)");
-    TPRegexp reBoardName("(\\D+)(\\d+)(.*)");
     pmFile >> dummy >> dummy >> dummy >> dummy;
     pmFile >> dummy;
     while (!pmFile.eof()) {
         pmFile >> name >> hex >> crateSerial >> dec >> slot >> hex >> boardSerial >> dec;
         if (!pmFile.good()) break;
-        TString channelCountStr = name;
-        //        string channelCountStr = name;
-        UInt_t channelCount = CHANNEL_COUNT_MAX;
-        if (reBoardName.MatchB(name)) {
-            //        if (regex_match(name, reBoardName)){
-            //            channelCountStr = regex_replace(name, reBoardName, "$2");
-            reBoardName.Substitute(channelCountStr, "$2");
-            channelCount = strtoul(channelCountStr.Data(), nullptr, 10);
-            //            channelCount = strtoul(channelCountStr.c_str(), nullptr, 10);
-        }
         BmnTrigParameters * par = new BmnTrigParameters();
         par->BoardSerial = boardSerial;
         par->CrateSerial = crateSerial;
         par->slot = slot;
         par->name = name;
-        par->ChannelCount = channelCount;
+        par->ChannelCount = ChanCntByName(name);
         fPlacementMap.insert(pair<PlMapKey, BmnTrigParameters*> (PlMapKey(par->CrateSerial, par->slot), par));
     }
     pmFile.close();
@@ -259,7 +256,7 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
         BmnTrigParameters * par = plIter->second;
         UShort_t rChannel = tdcDig->GetHptdcId() * kNCHANNELS + tdcDig->GetChannel();
         Double_t time = (tdcDig->GetValue() + par->INL[rChannel][tdcDig->GetValue() % TDC_BIN_COUNT]) * TDC_CLOCK / TDC_BIN_COUNT;
-//        printf("\tCrateSeral %08X slot %02u channel %02u  time %+2.2f  leading %d neg %d\n", tdcDig->GetSerial(), tdcDig->GetSlot(), rChannel, time, tdcDig->GetLeading(),par->NegativeMap[rChannel]);
+        //        printf("\tCrateSeral %08X slot %02u channel %02u  time %+2.2f  leading %d neg %d\n", tdcDig->GetSerial(), tdcDig->GetSlot(), rChannel, time, tdcDig->GetLeading(),par->NegativeMap[rChannel]);
         if (tdcDig->GetLeading() ^ par->NegativeMap[rChannel]) {
             par->t[rChannel] = time;
         } else {

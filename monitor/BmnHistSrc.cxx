@@ -11,10 +11,12 @@ BmnHistSrc::~BmnHistSrc() {
 }
 
 void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
+    Int_t arLen = trigAr->size();
     fSrcCols = SRC_COLS;
-    fSrcRows = trigAr->size() / fSrcCols;
-    for (Int_t i = 0; i < fSrcRows; ++i)
-        trigNames.push_back(TString(trigAr->at(i + fSrcRows)->GetName()));
+    fSrcRows = arLen;// / fSrcCols;
+    for (Int_t i = 0; i < fSrcRows; ++i){
+        trigNames.push_back(TString(trigAr->at(i)->GetName()));
+    }
     TString name;
 
     hists.resize(fSrcRows);
@@ -23,44 +25,47 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
 
     for (Int_t iRow = 0; iRow < fSrcRows; iRow++) { // 0 column - Time histograms from TDC by TQDC
         name = fTitle + "_" + trigNames[iRow].Data() + "_Leading_Time";
-        TH1F *h = new TH1F(name, name, 1400, -1000, 2000);
+        TH1F *h = new TH1F(name, name, 1000, 0, 2000);
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
         h->GetXaxis()->SetTitle("Time, ns");
+        h->GetXaxis()->SetTitleOffset(0.4);
         h->GetXaxis()->SetTitleColor(kOrange + 10);
         h->GetYaxis()->SetTitle("Activation Count");
-        h->GetYaxis()->SetTitleOffset(1.1);
+        h->GetYaxis()->SetTitleOffset(0.6);
         h->GetYaxis()->SetTitleColor(kOrange + 10);
         hists[iRow][0] = h;
     }
-    for (Int_t iRow = 0; iRow < fSrcRows; iRow++) { // 1 column - Time histograms from TDC
-        name = fTitle + "_" + trigNames[iRow].Data() + "_Leading_Time(TDC)";
-        TH1F *h = new TH1F(name, name, 1400, -1000, 2000);
+    for (Int_t iRow = 0; iRow < fSrcRows; iRow++) { // 1 column - Amplitude(TQDC -waveform ampl.,  TDC - sig. width)
+        name = fTitle + "_" + trigNames[iRow].Data() + "_Amplitude";
+        TH1F *h = new TH1F(name, name, 1000, 0, 2000);
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
         h->GetXaxis()->SetTitle("Time, ns");
+        h->GetXaxis()->SetTitleOffset(0.4);
         h->GetXaxis()->SetTitleColor(kOrange + 10);
         h->GetYaxis()->SetTitle("Activation Count");
-        h->GetYaxis()->SetTitleOffset(1.1);
+        h->GetYaxis()->SetTitleOffset(0.6);
         h->GetYaxis()->SetTitleColor(kOrange + 10);
         hists[iRow][1] = h;
     }
-    for (Int_t iRow = 0; iRow < fSrcRows; iRow++) { // 2 column - sampling summed
-        name = fTitle + "_" + trigNames[iRow].Data() + "_QDC";
-        TH1F *h = new TH1F(name, name, ADC_SAMPLING_LIMIT * 2 / 100, -ADC_SAMPLING_LIMIT, ADC_SAMPLING_LIMIT);
-        h->SetTitleSize(0.06, "XY");
-        h->SetLabelSize(0.08, "XY");
-        h->GetXaxis()->SetTitle("QDC Channel, ");
-        h->GetXaxis()->SetTitleColor(kOrange + 10);
-        h->GetYaxis()->SetTitle("Activation Count");
-        h->GetYaxis()->SetTitleOffset(1.1);
-        h->GetYaxis()->SetTitleColor(kOrange + 10);
-        hists[iRow][2] = h;
-    }
+//    for (Int_t iRow = 0; iRow < fSrcRows; iRow++) { // 2 column - sampling summed
+//        name = fTitle + "_" + trigNames[iRow].Data() + "_QDC";
+//        TH1F *h = new TH1F(name, name, ADC_SAMPLING_LIMIT * 2 / 100, -ADC_SAMPLING_LIMIT, ADC_SAMPLING_LIMIT);
+//        h->SetTitleSize(0.06, "XY");
+//        h->SetLabelSize(0.08, "XY");
+//        h->GetXaxis()->SetTitle("QDC Channel, ");
+//        h->GetXaxis()->SetTitleColor(kOrange + 10);
+//        h->GetYaxis()->SetTitle("Activation Count");
+//        h->GetYaxis()->SetTitleOffset(1.1);
+//        h->GetYaxis()->SetTitleColor(kOrange + 10);
+//        hists[iRow][2] = h;
+//    }
     // Create canvas
     name = fTitle + "Canvas";
     canvas = new TCanvas(name, name, PAD_WIDTH * fSrcCols, PAD_HEIGHT * fSrcRows);
-    canvas->Divide(fSrcCols, fSrcRows);
+    canvas->Divide(fSrcCols, fSrcRows,0.0001,0.0001);
+            printf("rows %d cols %d  \n",  fSrcRows, fSrcCols);
     canPads.resize(fSrcCols * fSrcRows);
     Names.resize(fSrcCols * fSrcRows);
     for (Int_t iRow = 0; iRow < fSrcRows; iRow++)
@@ -68,10 +73,12 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
             PadInfo *p = new PadInfo();
             p->current = hists[iRow][iCol];
             Int_t iPad = iRow * fSrcCols + iCol;
+//            printf("ipad %d irow %d icol %d  %08X %08X\n", iPad, iRow, iCol, canvas, canvas->GetPad(iPad + 1));
             canPads[iPad] = p;
             canvas->GetPad(iPad + 1)->SetGrid();
-            if (p->current)
+            if (p->current){
                 Names[iPad] = p->current->GetName();
+            }
         }
 }
 
@@ -120,7 +127,7 @@ void BmnHistSrc::DrawBoth() {
 }
 
 void BmnHistSrc::FillFromDigi(DigiArrays *fDigiArrays) {
-    vector<TClonesArray*> *trigAr = fDigiArrays->trigSrcAr;
+    vector<TClonesArray*> *trigAr = fDigiArrays->trigAr;
     if (!trigAr)
         return;
     if (!canvas) {
@@ -129,26 +136,21 @@ void BmnHistSrc::FillFromDigi(DigiArrays *fDigiArrays) {
         SetDir(fDir);
     }
     for (Int_t iTrig = 0; iTrig < trigAr->size(); ++iTrig) {
-        Int_t row = iTrig % fSrcRows;
-        Int_t col = iTrig / fSrcRows;
+        TClonesArray *a = (*trigAr)[iTrig];
         TClass *cl = trigAr->at(iTrig)->GetClass();
         if (cl == BmnTrigWaveDigit::Class()) {
-            for (Int_t digIndex = 0; digIndex < (*trigAr)[iTrig]->GetEntriesFast(); digIndex++) {
-                BmnTrigWaveDigit *tw = (BmnTrigWaveDigit*) (*trigAr)[iTrig]->At(digIndex);
-                //            Short_t module = tw->GetMod();
-                hists[row][col]->Fill(tw->GetPeak());
-                //UInt_t nSmpl = tw->GetNSamples();
-                //Short_t *sampling = tw->GetShortValue();
-                //for (UInt_t iSmpl = 0; iSmpl < nSmpl; iSmpl++)
-                //    hists[iTrig][1]->Fill(sampling[iSmpl]);
+            for (Int_t digIndex = 0; digIndex < a->GetEntriesFast(); digIndex++) {
+                BmnTrigWaveDigit *tw = (BmnTrigWaveDigit*) a->At(digIndex);
+                hists[iTrig][0]->Fill(tw->GetTime());
+                hists[iTrig][1]->Fill(tw->GetPeak());
             }
             continue;
         }
         if (cl == BmnTrigDigit::Class()) {
-            for (Int_t digIndex = 0; digIndex < (*trigAr)[iTrig]->GetEntriesFast(); digIndex++) {
-                BmnTrigDigit *td = (BmnTrigDigit*) (*trigAr)[iTrig]->At(digIndex);
-                Double_t time = td->GetTime();
-                hists[row][col]->Fill(time);
+            for (Int_t digIndex = 0; digIndex < a->GetEntriesFast(); digIndex++) {
+                BmnTrigDigit *td = (BmnTrigDigit*) a->At(digIndex);
+                hists[iTrig][0]->Fill(td->GetTime());
+                hists[iTrig][0]->Fill(td->GetAmp());
             }
         }
     }

@@ -421,19 +421,20 @@ void BmnOnlineDecoder::ProcessStream() {
                     i = 0;
                     evExit = kTRUE;
                     break;
+                case kSYNC1:
                 case kSYNC1_OLD:
                     //            printf("i = %d\n", i);
                     //                    if (/*(fRunID > 0) &&*/ (buf[i] == kSYNC1)) 
                     //                    printf("found ksync1\n");
                     lenBytes = *(++word);
-                    lenWords = lenBytes / kNBYTESINWORD + 1;
+                    lenWords = lenBytes / kNBYTESINWORD + (fPeriodID <= 7 ? 1 : 0);
                     //                    printf("lenBytes == %d\n", lenBytes);
                     //                    printf("lenWords == %d\n", lenWords);
                     //            if (fDat >= 100000) { // what the constant?
                     //                printf("Wrong data size: %d:  skip this event\n", fDat);
                     //                printf("captured %d\n", ((msg_len - i) / kNBYTESINWORD));
                     //                    printf("(msg_len - i) / kNBYTESINWORD = %d  lenWords  %d\n", ((msg_len - i) / kNBYTESINWORD), lenWords);
-                    if ((msg_len - i) / kNBYTESINWORD >= lenWords + MPD_EVENT_HEAD_WORDS) {
+                    if ((msg_len - i) / kNBYTESINWORD >= lenWords + MPD_EVENT_HEAD_WORDS - (fPeriodID <= 7 ? 1 : 0)) {
                         if (!rawDataDecoder)
                             if (InitDecoder(fRunID) == kBMNERROR) {
                                 printf("\n\tError in InitDecoder !!\n\n");
@@ -493,8 +494,8 @@ void BmnOnlineDecoder::ProcessStream() {
 }
 
 void BmnOnlineDecoder::ProcessFileRun(TString rawFileName, UInt_t timeLimit) {
-    Int_t iEv = 0;
-    Int_t lastEv = -1;
+    UInt_t iEv = 0;
+    UInt_t lastEv = 0;
     BmnStatus convertResult = kBMNSUCCESS;
     Int_t sendRes = 0;
     TBufferFile t(TBuffer::kWrite);
@@ -507,7 +508,8 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName, UInt_t timeLimit) {
         lastEv = iEv;
         iEv = rawDataDecoder->GetEventId();
         if (iEv > lastEv) {
-            rawDataDecoder->DecodeDataToDigiIterate();
+            BmnStatus decodeResult = rawDataDecoder->DecodeDataToDigiIterate();
+//        printf("iev %u  convert %d decode %d\n", iEv, convertResult, decodeResult);
             fEvents++;
             DigiArrays iterDigi = rawDataDecoder->GetDigiArraysObject();
             if (iterDigi.header == NULL)
@@ -519,7 +521,7 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName, UInt_t timeLimit) {
             sendRes = zmq_send(_decoSocket, t.Buffer(), t.Length(), ZMQ_NOBLOCK);
             t.Reset();
             if (sendRes == -1) {
-                printf("Send error № %d #%s\n", errno, zmq_strerror(errno));
+                printf("Send error %d #%s\n", errno, zmq_strerror(errno));
 
             }
         }
@@ -611,7 +613,7 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
         for (Int_t i = 0; i < n; ++i) {
             _curFile = TString(namelist[i]->d_name);
             Int_t runID = GetRunIdFromName(_curFile);
-            if (runID > 3800) {
+            if (runID > 00) {
                 //                            if (regex_match(namelist[i]->d_name, re)) {
                 if (runCount == 0) {
                     if (InitDecoder(_curDir + _curFile) == kBMNERROR)
@@ -619,6 +621,7 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
                 } else {
                     rawDataDecoder->ResetDecoder(_curDir + _curFile);
                     rawDataDecoder->SetRunId(runID);
+                    rawDataDecoder->SetBmnSetup(fBmnSetup);
                     rawDataDecoder->SetPeriodId(fPeriodID);
                 }
                 ProcessFileRun(_curFile, 0);

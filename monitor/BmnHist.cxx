@@ -1,18 +1,16 @@
 #include "BmnHist.h"
 
-BmnHist::BmnHist(Int_t PeriodID) {
+BmnHist::BmnHist(Int_t PeriodID, BmnSetup setup) {
     refFile = NULL;
     frecoTree = NULL;
     fDir = NULL;
     fPeriodID = PeriodID;
-    fBmnSetup = kBMNSETUP;
+    fSetup = setup;
     isShown = kFALSE;
 }
 
 BmnHist::~BmnHist() {
 }
-
-//template <class HH>
 
 void BmnHist::DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
     for (Int_t iPad = 0; iPad < canGemStripPads->size(); iPad++) {

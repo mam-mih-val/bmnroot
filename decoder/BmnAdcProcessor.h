@@ -1,5 +1,5 @@
 //
-// Base class for processing data from ADC detectors
+// Base class for processing data from ADC strip detectors
 // It's used for pedestal calculation
 //
 
@@ -129,6 +129,9 @@ public:
     void DrawDebugHists();
     void DrawDebugHists2D();
     void ClearDebugHists();
+    static BmnSiliconStationSet *  GetSilStationSet(Int_t period, BmnSetup stp = kBMNSETUP);
+    static BmnGemStripStationSet * GetGemStationSet(Int_t period, BmnSetup stp = kBMNSETUP);
+    static BmnCSCStationSet *      GetCSCStationSet(Int_t period, BmnSetup stp = kBMNSETUP);
 
 protected:
     Int_t fVerbose = 0;

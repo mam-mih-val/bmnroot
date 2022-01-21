@@ -14,31 +14,7 @@ BmnCscRaw2Digit::BmnCscRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
     ReadMapFile();
     ReadMapLocalFile();
 
-    TString gPathConfig = getenv("VMCWORKDIR");
-    TString xmlConfFileName;
-    switch (period) {
-        case 8:
-            if (fSetup == kBMNSETUP) {
-                xmlConfFileName = "CSCRun8.xml";
-            } else {
-                xmlConfFileName = "CSCRunSRC2021.xml";
-            }
-            break;
-        case 7:
-            if (fSetup == kBMNSETUP) {
-                xmlConfFileName = "CSCRunSpring2018.xml";
-            } else {
-                xmlConfFileName = "CSCRunSRCSpring2018.xml";
-            }
-            break;
-        default:
-            printf("Error! Unknown config!\n");
-            return;
-            break;
-
-    }
-    TString gPathCscConfig = gPathConfig + "/parameters/csc/XMLConfigs/";
-    fCscStationSet = new BmnCSCStationSet(gPathCscConfig + xmlConfFileName);
+    fCscStationSet = BmnAdcProcessor::GetCSCStationSet(period, fSetup);
 
     Int_t kNStations = fCscStationSet->GetNStations();
     fSigProf = new TH1F***[kNStations];

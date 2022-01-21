@@ -90,14 +90,14 @@ public:
                 }
             delete trigAr;
         }
-        if (trigSrcAr) {
-            for (TClonesArray *ar : (*trigSrcAr))
-                if (ar) {
-                    ar->Clear("C");
-                    delete ar;
-                }
-            delete trigSrcAr;
-        }
+//        if (trigSrcAr) {
+//            for (TClonesArray *ar : (*trigSrcAr))
+//                if (ar) {
+//                    ar->Clear("C");
+//                    delete ar;
+//                }
+//            delete trigSrcAr;
+//        }
     };
     TClonesArray *silicon;
     TClonesArray *gem;

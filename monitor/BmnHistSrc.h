@@ -21,7 +21,7 @@
 
 #include "BmnADCDigit.h"
 
-#define SRC_COLS  3
+#define SRC_COLS  2
 
 using namespace std;
 

@@ -17,36 +17,27 @@
 #include "BmnHistCsc.h"
 #include "BmnRawDataDecoder.h"
 
-//const UInt_t moduleCount[CSC_STATIONS_COUNT] = {1, 1, 1, 1, 2, 2, 2};
-//const UInt_t layersCount[CSC_STATIONS_COUNT] = {2, 4, 4, 4, 4, 4, 4};
-//const UInt_t nStrips[CSC_STATIONS_COUNT] = {256, 825, 825, 825, 825, 1100, 1119};
-#define MAX_STRIPS 1020
-
-BmnHistCsc::BmnHistCsc(TString title, TString path, Int_t PeriodID) : BmnHist(PeriodID) {
+BmnHistCsc::BmnHistCsc(TString title, TString path, Int_t periodID, BmnSetup setup) : BmnHist(periodID, setup) {
     sumMods = 0;
     maxLayers = 0;
     refPath = path;
     fTitle = title;
     fName = title + "_cl";
     TString name;
-    //TString xmlConfFileName = fPeriodID == 7 ? "CscRunSpring2018dummy.xml" : "CscRunSpring2017.xml";
-    //xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/csc/XMLConfigs/" + xmlConfFileName;
-    //printf("xmlConfFileName %s\n", xmlConfFileName.Data());
-    //cscStationSet = new BmnCscStripStationSet(xmlConfFileName);
-    for (Int_t iStation = 0; iStation < 1/*cscStationSet->GetNStations()*/; iStation++) {
+    cscStationSet =  BmnAdcProcessor::GetCSCStationSet(periodID, fSetup);
+    for (Int_t iStation = 0; iStation < cscStationSet->GetNStations(); iStation++) {
         vector<vector<TH1F*> > rowCSC;
-        //BmnCscStripStation * st = cscStationSet->GetCscStation(iStation);
-        //sumMods += st->GetNModules();
-        for (Int_t iModule = 0; iModule < 2/*st->GetNModules()*/; iModule++) {
+        BmnCSCStation * st = cscStationSet->GetStation(iStation);
+        sumMods += st->GetNModules();
+        for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
             vector<TH1F*> colCSC;
-            //BmnCscStripModule *mod = st->GetModule(iModule);
-            //if (maxLayers < mod->GetNStripLayers())
-            //    maxLayers = mod->GetNStripLayers();
-            for (Int_t iLayer = 0; iLayer < 4/*mod->GetNStripLayers()*/; iLayer++) {
-                //BmnCscStripLayer lay = mod->GetStripLayer(iLayer);
+            BmnCSCModule *mod = st->GetModule(iModule);
+            if (maxLayers < mod->GetNStripLayers())
+                maxLayers = mod->GetNStripLayers();
+            for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
+                BmnCSCLayer lay = mod->GetStripLayer( iLayer);
                 name = Form(fTitle + "_Station_%d_module_%d_layer_%d", iStation, iModule, iLayer);
-                Int_t lay = 1024;
-                TH1F *h = new TH1F(name, name, lay/*lay.GetNStrips()*/, 0, lay/*lay.GetNStrips()*/);
+                TH1F *h = new TH1F(name, name, lay.GetNStrips(), 0, lay.GetNStrips());
                 h->SetTitleSize(0.06, "XY");
                 h->SetLabelSize(0.08, "XY");
                 h->GetXaxis()->SetTitle("Strip Number");
@@ -63,8 +54,8 @@ BmnHistCsc::BmnHistCsc(TString title, TString path, Int_t PeriodID) : BmnHist(Pe
         histCscStrip.push_back(rowCSC);
 
     }
-    sumMods = 2;
-    maxLayers = 4;
+//    sumMods = 2;
+//    maxLayers = 2;
     // Create canvas
     name = fTitle + "Canvas";
     canCscStrip = new TCanvas(name, name, PAD_WIDTH * maxLayers, PAD_HEIGHT * sumMods);
@@ -73,11 +64,11 @@ BmnHistCsc::BmnHistCsc(TString title, TString path, Int_t PeriodID) : BmnHist(Pe
     canStripPads.resize(sumMods * maxLayers);
     Names.resize(sumMods * maxLayers);
 
-    for (Int_t iStation = 0; iStation < 1/*cscStationSet->GetNStations()*/; iStation++) {
-        //BmnCscStripStation * st = cscStationSet->GetCscStation(iStation);
-        for (Int_t iModule = 0; iModule < 2/*st->GetNModules()*/; iModule++) {
-            //BmnCscStripModule *mod = st->GetModule(iModule);
-            for (Int_t iLayer = 0; iLayer < 4/*mod->GetNStripLayers()*/; iLayer++) {
+    for (Int_t iStation = 0; iStation < cscStationSet->GetNStations(); iStation++) {
+        BmnCSCStation * st = cscStationSet->GetStation(iStation);
+        for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
+            BmnCSCModule *mod = st->GetModule(iModule);
+            for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
                 PadInfo *p = new PadInfo();
                 p->opt = "";
                 p->current = histCscStrip[iStation][iModule][iLayer];
@@ -100,10 +91,6 @@ void BmnHistCsc::Register(THttpServer * serv) {
     fServer->Register("/", this);
     TString path = "/" + fTitle + "/";
     fServer->Register(path, canCscStrip);
-    //    for (auto row : histCscStrip)
-    //        for (auto col : row)
-    //            for (auto el : col)
-    //                fServer->Register(path, el);
     fServer->SetItemField(path, "_monitoring", "2000");
     fServer->SetItemField(path, "_layout", "grid3x3");
     TString cmd = "/" + fName + "/->Reset()";

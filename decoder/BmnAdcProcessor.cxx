@@ -641,7 +641,7 @@ void BmnAdcProcessor::PrecalcEventMods(TClonesArray *adc) {
             Double_t val = (GetRun() > GetBoundaryRun(ADC128_N_SAMPLES) || GetPeriod() == 8) ?
                     ((Double_t) (adcDig->GetShortValue())[iSmpl] / 16) :
                     ((Double_t) (adcDig->GetUShortValue())[iSmpl] / 16);
-//            printf("    icr %d ich %d ismpl %d  int %4d  val %4f\n", iCr, iCh, iSmpl, adcDig->GetShortValue()[iSmpl], val);
+            //            printf("    icr %d ich %d ismpl %d  int %4d  val %4f\n", iCr, iCh, iSmpl, adcDig->GetShortValue()[iSmpl], val);
             if (fAdc[iCr][iCh][iSmpl] > 0.0)
                 printf("WTF icr %d ich %d ismpl %d already %4f but val %4f\n", iCr, iCh, iSmpl, fAdc[iCr][iCh][iSmpl], val);
             fAdc[iCr][iCh][iSmpl] = val;
@@ -921,6 +921,93 @@ Double_t BmnAdcProcessor::CalcCMS(Double_t* samples, Int_t size) {
         CMS = cms;
     }
     return CMS;
+}
+
+BmnSiliconStationSet * BmnAdcProcessor::GetSilStationSet(Int_t period, BmnSetup stp) {
+    TString gPathConfig = getenv("VMCWORKDIR");
+    TString xmlConfFileName;
+    switch (period) {
+        case 8:
+            if (stp == kBMNSETUP) {
+                xmlConfFileName = "SiliconRun8_3stations.xml";
+            } else {
+                xmlConfFileName = "SiliconRun8_SRC.xml";
+            }
+            break;
+        case 7:
+            if (stp == kBMNSETUP) {
+                xmlConfFileName = "SiliconRunSpring2018.xml";
+            } else {
+                xmlConfFileName = "SiliconRunSRCSpring2018.xml";
+            }
+            break;
+        case 6:
+            xmlConfFileName = "SiliconRunSpring2017.xml";
+            break;
+        default:
+            printf("Error! Unknown config!\n");
+            return nullptr;
+            break;
+    }
+    TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
+    return new BmnSiliconStationSet(gPathSiliconConfig + xmlConfFileName);
+}
+
+BmnGemStripStationSet * BmnAdcProcessor::GetGemStationSet(Int_t period, BmnSetup stp) {
+    TString gPathConfig = getenv("VMCWORKDIR");
+    TString xmlConfFileName;
+    switch (period) {
+        case 8:
+            if (stp == kBMNSETUP) {
+                xmlConfFileName = "GemRun8.xml";
+            } else {
+                xmlConfFileName = "GemRunSRC2021.xml";
+            }
+            break;
+        case 7:
+            if (stp == kBMNSETUP) {
+                xmlConfFileName = "GemRunSpring2018.xml";
+            } else {
+                xmlConfFileName = "GemRunSRCSpring2018.xml";
+            }
+            break;
+        case 6:
+            xmlConfFileName = "GemRunSpring2017.xml";
+            break;
+        default:
+            printf("Error! Unknown config!\n");
+            return nullptr;
+            break;
+    }
+    TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
+    return new BmnGemStripStationSet(gPathGemConfig + xmlConfFileName);
+}
+
+BmnCSCStationSet * BmnAdcProcessor::GetCSCStationSet(Int_t period, BmnSetup stp) {
+    TString gPathConfig = getenv("VMCWORKDIR");
+    TString xmlConfFileName;
+    switch (period) {
+        case 8:
+            if (stp == kBMNSETUP) {
+                xmlConfFileName = "CSCRun8.xml";
+            } else {
+                xmlConfFileName = "CSCRunSRC2021.xml";
+            }
+            break;
+        case 7:
+            if (stp == kBMNSETUP) {
+                xmlConfFileName = "CSCRunSpring2018.xml";
+            } else {
+                xmlConfFileName = "CSCRunSRCSpring2018.xml";
+            }
+            break;
+        default:
+            printf("Error! Unknown config!\n");
+            return nullptr;
+            break;
+    }
+    TString gPathCscConfig = gPathConfig + "/parameters/csc/XMLConfigs/";
+    return new BmnCSCStationSet(gPathCscConfig + xmlConfFileName);
 }
 
 ClassImp(BmnAdcProcessor)

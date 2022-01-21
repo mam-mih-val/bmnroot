@@ -8,7 +8,8 @@
 #include "BmnHistTrigger.h"
 #include "BmnRawDataDecoder.h"
 
-BmnHistTrigger::BmnHistTrigger(TString title, TString path, Int_t periodID) : BmnHist(periodID) {
+BmnHistTrigger::BmnHistTrigger(TString title, TString path, Int_t periodID, BmnSetup setup) : BmnHist(periodID,setup) {
+    
     fTitle = title;
     fName = title + "_cl";
     fSelectedBDChannel = -1;
@@ -25,7 +26,7 @@ BmnHistTrigger::BmnHistTrigger(TString title, TString path, Int_t periodID) : Bm
     histSiSimult = NULL;
     histCorrSiBD = NULL;
     histSiBSum = NULL;
-    TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((fBmnSetup == kBMNSETUP) ? "" : "_SRC"));
+    TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((fSetup == kBMNSETUP) ? "" : "_SRC"));
     TString MapFileName = TString("Trig_map_Run") + PeriodSetupExt;
 //    TString("Trig_PlaceMap_Run") + PeriodSetupExt; 
     BmnTrigRaw2Digit *fTrigMapper = new BmnTrigRaw2Digit("0.txt", MapFileName);

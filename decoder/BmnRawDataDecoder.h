@@ -115,10 +115,10 @@ public:
         d.trigAr = NULL;
         d.trigSrcAr = NULL;
         if (fTrigMapper) {
-            if (fBmnSetup == kBMNSETUP)
+//            if (fBmnSetup == kBMNSETUP)
                 d.trigAr = fTrigMapper->GetTrigArrays();
-            else
-                d.trigSrcAr = fTrigMapper->GetTrigArrays();
+//            else
+//                d.trigSrcAr = fTrigMapper->GetTrigArrays();
         }
         return d;
     }

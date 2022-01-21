@@ -99,6 +99,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
         DBGERR("zmq connect")
         return;
     }
+    printf("Monitor listens to %s\n", conStr.Data());
     zmq_msg_t msg;
     TBufferFile t(TBuffer::kRead);
     t.SetReadMode();
@@ -110,6 +111,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
         fServer->ProcessRequests();
         zmq_msg_init(&msg);
         frame_size = zmq_msg_recv(&msg, _decoSocket, ZMQ_DONTWAIT); // ZMQ_DONTWAIT
+//    printf("frame_size %d\n", frame_size);
         if (frame_size == -1) {
             if (errno == EAGAIN) {
                 usleep(DECO_SOCK_WAIT_PERIOD * 1000);
@@ -211,18 +213,18 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     //    fRecoTree4Show->SetDirectory(NULL); // tree will not be saved
 
     TString refName = Form("ref%06d_", fRunID);
-    bhVec.push_back(new BmnHistGem(refName + "GEM", _curDir, fPeriodID));
-    bhVec.push_back(new BmnHistSilicon(refName + "Silicon", _curDir, fPeriodID));
+    bhVec.push_back(new BmnHistGem(refName + "GEM", _curDir, fPeriodID, fSetup));
+    bhVec.push_back(new BmnHistSilicon(refName + "Silicon", _curDir, fPeriodID, fSetup));
     bhVec.push_back(new BmnHistDch(refName + "DCH", _curDir));
     bhVec.push_back(new BmnHistMwpc(refName + "MWPC", _curDir));
     bhVec.push_back(new BmnHistZDC(refName + "ZDC", _curDir));
     bhVec.push_back(new BmnHistECAL(refName + "ECAL", _curDir));
     bhVec.push_back(new BmnHistToF(refName + "ToF400", _curDir));
     bhVec.push_back(new BmnHistToF700(refName + "ToF700", _curDir));
-    bhVec.push_back(new BmnHistTrigger(refName + "Triggers", _curDir, fPeriodID));
+//    bhVec.push_back(new BmnHistTrigger(refName + "Triggers", _curDir, fPeriodID, fSetup));
     bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir));
     bhVec.push_back(new BmnHistLAND(refName + "LAND", _curDir));
-    bhVec.push_back(new BmnHistCsc(refName + "CSC", _curDir));
+    bhVec.push_back(new BmnHistCsc(refName + "CSC", _curDir, fPeriodID, fSetup));
     
     for (auto h : bhVec) {
         h->SetDir(fHistOut, fRecoTree);
@@ -302,18 +304,18 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
 }
 
 void BmnMonitor::RegisterAll() {
-    bhVec4show.push_back(new BmnHistGem("GEM", _curDir, fPeriodID));
-    bhVec4show.push_back(new BmnHistSilicon("Silicon", _curDir, fPeriodID));
+    bhVec4show.push_back(new BmnHistGem("GEM", _curDir, fPeriodID, fSetup));
+    bhVec4show.push_back(new BmnHistSilicon("Silicon", _curDir, fPeriodID, fSetup));
     bhVec4show.push_back(new BmnHistDch("DCH", _curDir));
     bhVec4show.push_back(new BmnHistMwpc("MWPC", _curDir));
     bhVec4show.push_back(new BmnHistZDC("ZDC", _curDir));
     bhVec4show.push_back(new BmnHistECAL("ECAL", _curDir));
     bhVec4show.push_back(new BmnHistToF("ToF400", _curDir));
     bhVec4show.push_back(new BmnHistToF700("ToF700", _curDir));
-    bhVec4show.push_back(new BmnHistTrigger("Triggers", _curDir, fPeriodID));
+//    bhVec4show.push_back(new BmnHistTrigger("Triggers", _curDir, fPeriodID, fSetup));
     bhVec4show.push_back(new BmnHistSrc("SRC", _curDir));
     bhVec4show.push_back(new BmnHistLAND("LAND", _curDir));
-    bhVec4show.push_back(new BmnHistCsc("CSC", _curDir));
+    bhVec4show.push_back(new BmnHistCsc("CSC", _curDir, fPeriodID, fSetup));
     fServer->Register("/", infoCanvas);
     //fServer->Register("/", refList);
     fServer->Register("/", refTable);

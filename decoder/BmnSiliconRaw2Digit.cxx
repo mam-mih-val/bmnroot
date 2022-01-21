@@ -1,7 +1,6 @@
 #include <TStyle.h>
 
 #include "BmnSiliconRaw2Digit.h"
-#include "BmnEventHeader.h"
 
 BmnSiliconRaw2Digit::BmnSiliconRaw2Digit() {
     fEventId = -1;
@@ -17,37 +16,7 @@ BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t>
     ReadMapFile();
 
     if (decoMode == kBMNADCSM) {
-        TString gPathConfig = getenv("VMCWORKDIR");
-        TString confSi = (fPeriod == 7) ?
-                ((fSetup == kBMNSETUP) ? "SiliconRunSpring2018.xml" : "SiliconRunSRCSpring2018.xml") :
-                "SiliconRunSpring2017.xml";
-        TString xmlConfFileName;
-        switch (period) {
-            case 8:
-                if (fSetup == kBMNSETUP) {
-                    xmlConfFileName = "SiliconRun8_3stations.xml";
-                } else {
-                    xmlConfFileName = "SiliconRun8_SRC.xml";
-                }
-                break;
-            case 7:
-                if (fSetup == kBMNSETUP) {
-                    xmlConfFileName = "SiliconRunSpring2018.xml";
-                } else {
-                    xmlConfFileName = "SiliconRunSRCSpring2018.xml";
-                }
-                break;
-            case 6:
-                xmlConfFileName = "SiliconRunSpring2017.xml";
-                break;
-            default:
-                printf("Error! Unknown config!\n");
-                return;
-                break;
-
-        }
-        TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
-        fSilStationSet = new BmnSiliconStationSet(gPathSiliconConfig + xmlConfFileName);
+        fSilStationSet = BmnAdcProcessor::GetSilStationSet(period, fSetup);
 
         Int_t kNStations = fSilStationSet->GetNStations();
         fSigProf = new TH1F***[kNStations];

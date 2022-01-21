@@ -14,9 +14,9 @@ while true;
 
 do
 cd "${BMNROOT}/macro/monitor/"
-/opt/fairsoft/install/bin/root.exe -b -q 'monitor.C( 7, "/bmn/test/mon/", "/bmn/test/mon/", "bmn-mon-3", 9001)'
+/opt/fairsoft/install/bin/root.exe -b -q 'monitor.C( 8, "/bmn/test/mon/", "/bmn/test/mon/", "bmn-mon", 9001)'
 sleep 5
-/opt/fairsoft/install/bin/root.exe -b -q 'monitor.C( 7, "/bmn/test/mon/", "/bmn/test/mon/", "bmn-mon-3", 9000)'
+/opt/fairsoft/install/bin/root.exe -b -q 'monitor.C( 8, "/bmn/test/mon/", "/bmn/test/mon/", "bmn-mon", 9000)'
 sleep 5
 
 done

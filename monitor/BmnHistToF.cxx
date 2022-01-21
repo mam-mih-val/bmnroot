@@ -52,7 +52,7 @@ BmnHistToF::BmnHistToF(TString title, TString path) : BmnHist() {
     histState = new TH2F(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT, 2, 0, 2);
     histState->GetXaxis()->SetTitle("Strip #");
     histState->GetYaxis()->SetTitle("Side");
-    name = fTitle + "_State";
+    name = fTitle + "_State2D";
     histStrip2d = new TH2I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT, TOF400_PLANE_COUNT, 0, TOF400_PLANE_COUNT);
     histStrip2d->GetXaxis()->SetTitle("Strip #");
     histStrip2d->GetYaxis()->SetTitle("Plane #");

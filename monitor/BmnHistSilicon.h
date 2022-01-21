@@ -31,12 +31,13 @@
 #include "BmnHist.h"
 #include "BmnSiliconDigit.h"
 #include "BmnSiliconStationSet.h"
+#include "BmnAdcProcessor.h"
 
 using namespace std;
 
 class BmnHistSilicon : public BmnHist {
 public:
-    BmnHistSilicon(TString title, TString path = "", Int_t periodID = 7);
+    BmnHistSilicon(TString title, TString path = "", Int_t periodID = 7, BmnSetup setup = kBMNSETUP);
     virtual ~BmnHistSilicon();
     void Reset();
     void Register(THttpServer *serv);

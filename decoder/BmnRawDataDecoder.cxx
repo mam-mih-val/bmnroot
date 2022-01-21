@@ -161,8 +161,8 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
             //            printf("ev length %d\n", fDat);
             //read array of current event data and process them
             if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) continue;
-//                        printf(ANSI_COLOR_BLUE "EOS iEv = %u lastEv  = %u\n" ANSI_COLOR_RESET,
-//                                data[0], fEventId);
+            //                        printf(ANSI_COLOR_BLUE "EOS iEv = %u lastEv  = %u\n" ANSI_COLOR_RESET,
+            //                                data[0], fEventId);
             ProcessEvent(data, fDat);
             if (msc->GetEntriesFast() > 0)
                 fRawTreeSpills->Fill();
@@ -170,7 +170,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
             nSpillEvents = 0;
         }
         if (fDat == kSYNC1_OLD || fDat == kSYNC1) { //search for start of event
-            //                                    printf(ANSI_COLOR_BLUE "kSYNC1\n" ANSI_COLOR_RESET);
+            printf(ANSI_COLOR_BLUE "kSYNC1\n" ANSI_COLOR_RESET);
             // read number of bytes in event
             if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
             fDat = fDat / kNBYTESINWORD + (fPeriodId <= 7 ? 1 : 0); // bytes --> words
@@ -346,33 +346,48 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile(UInt_t limit) {
             }
             fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
         }
-        if (fDat == kSYNC1_OLD) { //search for start of event
+
+        if (fDat == kENDOFSPILL_OLD || fDat == kENDOFSPILL) {
             // read number of bytes in event
-            //printf("kSYNC1\n");
-            if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
-            fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
-            if (fDat * kNBYTESINWORD >= 1000000) { // what the constant?
-                printf("Wrong data size: %d:  skip this event\n", fDat);
-                return kBMNFINISH;
-            }
+            if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
+            fDat = fDat / kNBYTESINWORD + (fPeriodId <= 7 ? 1 : 0); // bytes --> words
+            //            printf("ev length %d\n", fDat);
             //read array of current event data and process them
-            if (wait_file(fDat * kNBYTESINWORD * kWORDSIZE, limit) == kBMNERROR) {
-                return kBMNTIMEOUT;
-                printf("file timeout\n");
-            }
-            if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) {
-                printf("finish by length\n");
-                return kBMNFINISH;
-            }
-            fEventId = data[0];
-            if (fEventId <= 0) {
-                printf("bad event #%d\n", fEventId);
-                return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?)
-            }
+            if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) continue;
+            //            printf(ANSI_COLOR_BLUE "EOS iEv = %u lastEv  = %u\n" ANSI_COLOR_RESET,
+//            data[0], fEventId);
             ProcessEvent(data, fDat);
-            fNevents++;
-            break;
-            //        fRawTree->Fill();
+            if (msc->GetEntriesFast() > 0)
+                fRawTreeSpills->Fill();
+            isSpillStart = kTRUE;
+            nSpillEvents = 0;
+        }
+        if (fDat == kSYNC1_OLD || fDat == kSYNC1) { //search for start of event
+            //            printf(ANSI_COLOR_BLUE "kSYNC1\n" ANSI_COLOR_RESET);
+            // read number of bytes in event
+            if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
+            fDat = fDat / kNBYTESINWORD + (fPeriodId <= 7 ? 1 : 0); // bytes --> words
+            //                        printf("ev length %d\n", fDat);
+            if (fDat >= 100000) { // what the constant?
+                printf("Wrong data size: %d:  skip this event\n", fDat);
+                fread(data, kWORDSIZE, fDat, fRawFileIn);
+            } else {
+                //read array of current event data and process them
+                if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) continue;
+                fEventId = data[0];
+//                printf(ANSI_COLOR_BLUE "iEv = %u\n" ANSI_COLOR_RESET, data[0]);
+                if (fEventId <= 0) continue; // skip bad events
+                BmnStatus convResult = ProcessEvent(data, fDat);
+                if (data[0] != (fNevents + 1)) // Just a check to see if somehow ProcessEvent messed up our counting
+                    printf(ANSI_COLOR_RED "***Extreme warning, events are not synced: %i, %i***\n" ANSI_COLOR_RESET, fEventId, fNevents + 1);
+                //                fRawTree->Fill();
+                if (isSpillStart == kTRUE)
+                    isSpillStart = kFALSE;
+                fNevents++;
+                nSpillEvents++;
+                if (convResult == kBMNSUCCESS)
+                    return kBMNSUCCESS;
+            }
         }
     }
     return kBMNSUCCESS;
@@ -843,7 +858,7 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
                 UInt_t time = ((d[idx] & 0x7FFFF) << 2) | (d[idx] >> 24) & 0x3; // in 25 ps
                 //               printf("TDC time %d channel %d\n", time, channel);
                 new((*tqdc_tdc)[tqdc_tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == TDC_LEADING), channel, 0, time, tdcTimestamp);
-//                printf("tqdc tdc %08X : %d channel %d\n", serial, slot, channel);
+                //                printf("tqdc tdc %08X : %d channel %d\n", serial, slot, channel);
             } else if ((type == 4) && (mode != 0)) { // Trig | ADC Timestamp
                 channel = (d[idx] >> 19) & 0x1F;
                 if (d[idx] & BIT(16)) { // ADC TS
@@ -869,7 +884,7 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
                 inADC = kFALSE;
                 iSampl = 0;
                 --idx;
-//                printf("tqdc adc %08X : %d channel %d\n", serial, slot, channel);
+                //                printf("tqdc adc %08X : %d channel %d\n", serial, slot, channel);
             }
         }
         type = d[++idx] >> 28;
@@ -1687,7 +1702,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         fhcal = new TClonesArray("BmnFHCalDigi");
         fDigiTree->Branch("FHCalDigi", &fhcal);
         fFHCalMapper = new BmnFHCalRaw2Digit(fPeriodId, fRunId, fFHCalMapFileName, fFHCalCalibrationFileName);
-                fFHCalMapper->print();
+        fFHCalMapper->print();
     }
 
     //bool isGEM = fDetectorSetup.count(kGEM) > 0 && fDetectorSetup.at(kGEM) == 1;
@@ -1759,9 +1774,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
                 fPedEnough = kTRUE;
             }
         }
-        if ((fGemMapper) && (fPedEnough)) fGemMapper->FillEvent(adc32, gem);
-        if ((fCscMapper) && (fPedEnough)) fCscMapper->FillEvent(adc32, csc);
-        if ((fSiliconMapper) && (fPedEnough)) fSiliconMapper->FillEvent(adc128, silicon);
+        if ((fGemMapper) /*&& (fPedEnough)*/) fGemMapper->FillEvent(adc32, gem);
+        if ((fCscMapper)/* && (fPedEnough)*/) fCscMapper->FillEvent(adc32, csc);
+        if ((fSiliconMapper)/* && (fPedEnough)*/) fSiliconMapper->FillEvent(adc128, silicon);
         if (fDchMapper) fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
         if (fMwpcMapper) fMwpcMapper->FillEvent(hrb, mwpc);
         if (fTof400Mapper) fTof400Mapper->FillEvent(tdc, &fTimeShifts, tof400);

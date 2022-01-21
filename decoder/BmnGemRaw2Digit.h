@@ -8,7 +8,6 @@
 #include <iostream>
 #include "BmnGemStripDigit.h"
 #include "BmnADCDigit.h"
-#include "BmnEnums.h"
 #include "TMath.h"
 #include <fstream>
 #include <list>

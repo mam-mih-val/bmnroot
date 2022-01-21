@@ -6,7 +6,7 @@ and open the template in the editor.
 -->
 <html>
     <head>
-        <title>SRC Triggers</title>
+        <title>ZDC</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style type="text/css">
@@ -29,15 +29,14 @@ and open the template in the editor.
         </style>
         <link rel="stylesheet" type="text/css" href="../css/tabs.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="../css/menu.css" media="screen" />
-        <!--<script type="text/javascript" src="../root.app/jsrootsys/scripts/JSRootCore.js?2d"></script>-->
-<script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRoot.core.js"></script>
+        <script type="text/javascript" src="../root.app/jsrootsys/scripts/JSRootCore.js?2d"></script>
         <script type="text/javascript" src="../scripts/BMTools.js"></script>
         <script>
             var loco = window.location;
             var path0 = loco.protocol + "//" + loco.hostname + "/root.app/";
-            var path = path0 + "SRC/";
-            var runPath = "../root.app/CurRun/root.json";
-            var refPath = "../root.app/refTable/root.json";
+            var path = path0 + "ZDC/";
+            var runPath = "../root.app/CurRun/root.json.gz?compact=3";
+            var refPath = "../root.app/refTable/root.json.gz?compact=3";
             function ResetHist() {
                 var filename = path + "Reset/cmd.json";
                 var xhr = new XMLHttpRequest();
@@ -47,11 +46,15 @@ and open the template in the editor.
             }
             function createTable() {
                 sessionStorage.clear();
+                var mwpc1 = document.getElementById("h2d_Grid");
+                mwpc1.src = path + "ZDC_h2d_Grid/draw.htm?monitoring=10000&opt=colz";
+                var mwpc2 = document.getElementById("h2d_Profile");
+                mwpc2.src = path + "ZDC_h2d_Profile/draw.htm?monitoring=10000&opt=colz";
                 setRunInfo(runPath);
                 drawInfo();
             }
             function drawInfo() {
-                setTimeout(drawInfo, 6000);
+                setTimeout(drawInfo, 5000);
                 JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
                     var info = JSON.parse(obj);
                     if (info.arr.length > 0){
@@ -65,7 +68,7 @@ and open the template in the editor.
                     }
                 }).send(null);
                 redrawCanvases();
-                FillRefTable(refPath, "refTable");
+                FillRefTable(path0 + "refTable" + "/root.json", "refTable");
                 //var refPath = path0 + "refList" + "/root.json";
                 //FillRefSelector(refPath, "refSelector");
             }
@@ -74,9 +77,9 @@ and open the template in the editor.
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("infoC", obj, "");
                 }).send(null);
-                filename = path + "SRCCanvas" + "/root.json.gz?compact=3";
+                filename = path + "ZDCCanvasAmplitudes" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
-                    JSROOT.redraw("srcTableC", obj, "");
+                    JSROOT.redraw("timeTableC", obj, "");
                 }).send(null);
             }
             function cleanCanvases() {
@@ -93,7 +96,7 @@ and open the template in the editor.
                 xhr.open("POST", cmd, true);
                 xhr.withCredentials = true;
                 xhr.send();
-                JSROOT.cleanup("srcTableC");
+                JSROOT.cleanup("timeTableC");
             }
         </script>
     </head>
@@ -110,54 +113,67 @@ and open the template in the editor.
             <li><a href="../MWPC_detectors/index.html"><h3>MWPC</h3></a></li>
             <li><a href="../ZDC/index.html"><h3>ZDC</h3></a></li>
             <li><a href="../ECAL/index.html"><h3>ECAL</h3></a></li>
-<!--            <li><a href="../ScWall/index.html"><h3>ScWall</h3></a></li>
-            <li><a href="../FhCal/index.html"><h3>FhCal</h3></a></li>-->
+            <li><a href="../ScWall/index.html"><h3>ScWall</h3></a></li>
+            <li><a href="../FhCal/index.html"><h3>FhCal</h3></a></li>
             <li><a href="../SRC/index.html"><h3>SRC Triggers</h3></a></li>
             <li><a href="../LAND/index.html"><h3>LAND</h3></a></li>
             <!--<li><a href="../msc/index.html"><h3>MSC</h3></a></li>-->
         </ul>
         <div id="total_counter" align="center">
-            <h1>SRC Triggers</h1>
-            <!--<iframe id="infoCan" ></iframe>--> 
+            <h1>BM@N ZDC</h1> 
+            <!--<iframe id="infoCan" ></iframe>-->             
         </div>
         <div align="center">
-            <div id="infoC" style="width: 90vw;height: 15vw;"> </div>
+            <div id="infoC" style="width: 90vw;height: 18vw;"> </div>
         </div>
+        <button onclick="ResetHist()"> 
+            <h1 style="color:red;">Reset</h1>
+        </button>
 
         <table>
             <tr>
             <tb>
-                <button onclick="ResetHist()">
-                    <h1 style="color:red;">Reset</h1>
+                <input type="text" name="refInput" id="refInput" list="refSelector">
+                <datalist id="refSelector" autocomplete="on"></datalist>
+            </tb>
+            <tb>
+                <button onclick="SetRefRun()"> 
+                    Select Reference Run
                 </button>
             </tb>
+                <tb>
+                    <select class="styleRefTable" id="refTable" onchange="makeSelection()">
+                </tb>
+
         </tr>
-        <tr>
-        <tb>
-            <input type="text" name="refInput" id="refInput" list="refSelector">
-            <datalist id="refSelector" autocomplete="on"></datalist>
-        </tb>
-        <tb>
-            <button onclick="SetRefRun()"> 
-                Select Reference Run
-            </button>
-        </tb>
-            <tb>
-                <select class="styleRefTable" id="refTable" onchange="makeSelection()">
-            </tb>
+    </table>
 
-    </tr>
-</table>
+    <div class="tabs">
+        <input type="radio" name="inset" value="" id="tab_1" checked>
+        <label for="tab_1">2D</label>
 
-<div align="center">
-    <div id="srcTableC" style="width: 98vw;height: 900vw;"> </div>
-</div>
-<!--<div align="center">
-    <iframe style="width: 98vw;height: 240vw;" src="../root.app/GEM/GEMCanvas/draw.htm?monitoring=10000"> </iframe>>
-</div>-->
-<div id="SRC_div" >
-</div>
+        <input type="radio" name="inset" value="" id="tab_2">
+        <label for="tab_2">Amplitudes</label>
 
-</table>
+        <div id="txt_1">
+            <table>
+                <tr>
+                <tb>
+                    <iframe id="h2d_Grid" style = "width: 46vw;height: 46vw;"> </iframe>
+                </tb>
+                </tr>
+                <tr>
+                <tb>
+                    <iframe id="h2d_Profile" style = "width: 46vw;height: 46vw;"> </iframe>
+                </tb>
+                </tr>
+            </table>
+        </div>
+        <div id="txt_2">
+            <div align="center">
+                <div id="timeTableC" style="width: 92vw;height: 46vw;"> </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

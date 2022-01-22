@@ -1,11 +1,26 @@
-
 #include "BmnRawDataDecoder.h"
+#include "BmnTDCDigit.h"
+#include "BmnHRBDigit.h"
+#include "BmnADCDigit.h"
+#include "BmnTacquilaDigit.h"
+#include "BmnTQDCADCDigit.h"
+#include "BmnLANDDigit.h"
+#include "BmnSyncDigit.h"
+#include "BmnGemStripDigit.h"
+#include "BmnMSCDigit.h"
+#include "DigiRunHeader.h"
+#include "UniDbDetectorParameter.h"
+#include "UniDbRun.h"
+#include "TangoData.h"
+#include "RawTypes.h"
 
-#include <BmnMath.h>
-#include <sys/stat.h>
+#include "TSystem.h"
+#include "TStopwatch.h"
+
+#include <bitset>
+#include <iostream>
+
 #include <arpa/inet.h> /* For ntohl for Big Endian LAND. */
-
-using namespace std;
 
 BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEvents, ULong_t period) {
     string confFileName = string(getenv("VMCWORKDIR")) + "/config/bmnconf.json";

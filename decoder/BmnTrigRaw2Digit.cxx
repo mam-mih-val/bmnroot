@@ -2,10 +2,6 @@
 #include <climits>
 
 BmnTrigParameters::BmnTrigParameters() {
-    CrateSerial = 0;
-    BoardSerial = 0;
-    slot = 0;
-    ChannelCount = 0;
     for (UInt_t i = 0; i < CHANNEL_COUNT_MAX; i++) {
         for (UInt_t j = 0; j < TDC_BIN_COUNT; j++)
             INL[i][j] = 0u;
@@ -52,7 +48,7 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString PlacementMapFile, TString StripMapFil
             par = new BmnTrigParameters();
             par->BoardSerial = record.serial;
             par->name = record.name;
-            par->ChannelCount = ChanCntByName(record.name);
+            par->ChannelCount = CHANNEL_COUNT_MAX;//ChanCntByName(record.name);
             fPlacementMap.insert(pair<PlMapKey, BmnTrigParameters*> (PlMapKey(par->BoardSerial, par->slot), par));
         } else
             par = itPar->second;
@@ -90,7 +86,7 @@ BmnStatus BmnTrigRaw2Digit::ReadPlacementMap(TString mappingFile) {
         par->CrateSerial = crateSerial;
         par->slot = slot;
         par->name = name;
-        par->ChannelCount = ChanCntByName(name);
+        par->ChannelCount = CHANNEL_COUNT_MAX;//ChanCntByName(name);
         fPlacementMap.insert(pair<PlMapKey, BmnTrigParameters*> (PlMapKey(par->CrateSerial, par->slot), par));
     }
     pmFile.close();

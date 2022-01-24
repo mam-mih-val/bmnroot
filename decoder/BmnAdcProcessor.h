@@ -6,21 +6,24 @@
 #ifndef BMNADCPROCESSOR_H
 #define BMNADCPROCESSOR_H
 
+#include <fstream>
+#include <iostream>
+#include <list>
+#include <map>
+#include <vector>
+#include <TStopwatch.h>
+
 #include "TString.h"
 #include "TTree.h"
 #include "TClonesArray.h"
 #include "TColor.h"
-#include <iostream>
-#include "BmnADCDigit.h"
-#include "BmnEnums.h"
 #include "TMath.h"
-#include <fstream>
-#include <list>
-#include <map>
-#include <vector>
 #include <TH2F.h>
 #include <TCanvas.h>
 #include <TStyle.h>
+
+#include "BmnADCDigit.h"
+#include "BmnEnums.h"
 #include <BmnSiliconStationSet.h>
 #include <BmnGemStripStationSet.h>
 #include <BmnCSCStationSet.h>

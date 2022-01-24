@@ -1,42 +1,7 @@
 #ifndef BMNRAWDATADECODER_H
 #define BMNRAWDATADECODER_H 1
 
-#include <bitset>
-#include <stdio.h>
-#include <stdlib.h>
-#include <cstdlib>
-#include <cstdio>
-#include <list>
-#include <map>
-#include <deque>
-#include <iostream>
-#include <vector>
-#include <fstream>
-//#include <regex>
-
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-
-#include "TString.h"
-#include "TSystem.h"
-#include "TFile.h"
-#include "TTimeStamp.h"
-#include "TTree.h"
-#include "TClonesArray.h"
-
-#include "BmnEnums.h"
-#include "RawTypes.h"
-#include "BmnTTBDigit.h"
-#include "BmnTDCDigit.h"
-#include "BmnHRBDigit.h"
-#include "BmnADCDigit.h"
-#include "BmnTacquilaDigit.h"
-#include "BmnTQDCADCDigit.h"
-#include "BmnLANDDigit.h"
-#include "BmnSyncDigit.h"
-#include "DigiRunHeader.h"
 #include "BmnGemRaw2Digit.h"
-#include "BmnGemStripDigit.h"
 #include "BmnMwpcRaw2Digit.h"
 #include "BmnDchRaw2Digit.h"
 #include "BmnSiliconRaw2Digit.h"
@@ -50,13 +15,24 @@
 #include "BmnLANDRaw2Digit.h"
 #include "BmnTrigRaw2Digit.h"
 #include "BmnCscRaw2Digit.h"
+#include "BmnMscRaw2Digit.h"
 #include "BmnEventHeader.h"
 #include "DigiArrays.h"
-#include "BmnMSCDigit.h"
-#include <UniDbDetectorParameter.h>
-#include <UniDbRun.h>
-#include "TangoData.h"
-#include "BmnMscRaw2Digit.h"
+
+#include "TString.h"
+#include "TFile.h"
+#include "TTimeStamp.h"
+#include "TTree.h"
+#include "TClonesArray.h"
+
+#pragma GCC system_header
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+
+#include <map>
+#include <deque>
+#include <vector>
+#include <fstream>
 
 /********************************************************/
 // wait limit for input data (ms)
@@ -117,10 +93,10 @@ public:
         d.trigAr = NULL;
         d.trigSrcAr = NULL;
         if (fTrigMapper) {
-            if (fBmnSetup == kBMNSETUP)
+//            if (fBmnSetup == kBMNSETUP)
                 d.trigAr = fTrigMapper->GetTrigArrays();
-            else
-                d.trigSrcAr = fTrigMapper->GetTrigArrays();
+//            else
+//                d.trigSrcAr = fTrigMapper->GetTrigArrays();
         }
         return d;
     }

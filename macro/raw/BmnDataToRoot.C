@@ -34,7 +34,8 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     setup.insert(std::make_pair(kFHCAL,     1)); // FHCAL
     setup.insert(std::make_pair(kHODO,      1)); // HODO
     decoder->SetDetectorSetup(setup);
-    decoder->SetAdcDecoMode(period < 6 ? kBMNADCSM : kBMNADCMK);
+//    decoder->SetAdcDecoMode(period < 6 ? kBMNADCSM : kBMNADCMK);
+    decoder->SetAdcDecoMode(kBMNADCSM);
 
     TString PeriodSetupExt = Form("%d%s.txt", period, ((stp == kBMNSETUP) ? "" : "_SRC"));
     decoder->SetTrigPlaceMapping(TString("Trig_PlaceMap_Run") + PeriodSetupExt);

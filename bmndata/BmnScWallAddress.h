@@ -36,12 +36,12 @@ public:
    **/
   static uint32_t GetAddress(uint32_t CellId, uint32_t XIdx, uint32_t YIdx, uint32_t CellSize, uint32_t Zone)
   {
-    assert((uint32_t)kSCWALL < fgkSystemIdLength);
-    assert(CellId < fgkCellIdLength);
-    assert(XIdx < fgkXIdxLength);
-    assert(YIdx < fgkYIdxLength);
-    assert(CellSize < fgkCellSizeLength);
-    assert(Zone < fgkZoneLength);
+    assert((uint32_t)kSCWALL <= fgkSystemIdLength);
+    assert(CellId <= fgkCellIdLength);
+    assert(XIdx <= fgkXIdxLength);
+    assert(YIdx <= fgkYIdxLength);
+    assert(CellSize <= fgkCellSizeLength);
+    assert(Zone <= fgkZoneLength);
     return (  (((uint32_t)kSCWALL) << fgkSystemIdShift) 
             | (CellId << fgkCellIdShift)
             | (XIdx << fgkXIdxShift)

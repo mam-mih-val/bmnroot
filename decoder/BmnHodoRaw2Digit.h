@@ -1,5 +1,5 @@
-#ifndef BMNSCWALLRAW2DIGIT_H
-#define	BMNSCWALLRAW2DIGIT_H
+#ifndef BMNHodoRAW2DIGIT_H
+#define	BMNHodoRAW2DIGIT_H
 
 #include <iostream>
 #include <numeric>
@@ -7,11 +7,12 @@
 #include "FairLogger.h"
 #include "TString.h"
 #include "TClonesArray.h"
+#include "BmnTQDCADCDigit.h"
 #include "BmnADCDigit.h"
 #include "BmnSyncDigit.h"
 
 #include "Riostream.h"
-#include "BmnScWallDigi.h"
+#include "BmnHodoDigi.h"
 #include <cstdlib>
 #include <UniDbRun.h>
 
@@ -20,20 +21,20 @@
 #include "PronyFitter.h"
 
 
-class BmnScWallRaw2Digit{
+class BmnHodoRaw2Digit{
 
 public:
-    BmnScWallRaw2Digit(int period, int run, TString mappingFile, TString calibrationFile = "");
-    BmnScWallRaw2Digit();
+    BmnHodoRaw2Digit(int period, int run, TString mappingFile, TString calibrationFile = "");
+    BmnHodoRaw2Digit();
 
-    ~BmnScWallRaw2Digit();
+    ~BmnHodoRaw2Digit();
 
     void ParseConfig(TString mappingFile);
     void ParseCalibration(TString calibrationFile);
-    void fillEvent(TClonesArray *data, TClonesArray *ScWalldigit);
+    void fillEvent(TClonesArray *tdc_data, TClonesArray *adc_data, TClonesArray *Hododigit);
     void print();
 
-    std::vector<unsigned int> GetScWallSerials() {return fScWallSerials;}
+    std::vector<unsigned int> GetHodoSerials() {return fHodoSerials;}
     std::vector<short> GetUniqueXpositions() {return fUniqueX;}
     std::vector<short> GetUniqueYpositions() {return fUniqueY;}
     std::vector<short> GetUniqueSizes() {return fUniqueSize;}
@@ -45,7 +46,7 @@ private:
     TString fmappingFileName;
     TString fcalibrationFileName;
 
-    std::vector<unsigned int> fScWallSerials;
+    std::vector<unsigned int> fHodoSerials;
     std::vector<short> fUniqueX;
     std::vector<short> fUniqueY;
     std::vector<short> fUniqueSize;
@@ -65,11 +66,9 @@ private:
     std::vector<std::pair<float,float>> fCalibVect; // cell_id to pair<calib, calibError>
 
     void MeanRMScalc(std::vector<float> wfm, float* Mean, float* RMS, int begin, int end, int step = 1);
-    void ProcessWfm(std::vector<float> wfm, BmnScWallDigi* digi);
+    void ProcessWfm(std::vector<float> wfm, BmnHodoDigi* digi);
 
-
-    ClassDef(BmnScWallRaw2Digit, 1);
+    ClassDef(BmnHodoRaw2Digit, 1);
 };
-#endif	/* BMNSCWALLRAW2DIGIT_H */
-
+#endif	/* BMNHodoRAW2DIGIT_H */
 

@@ -1,19 +1,19 @@
 #include "TMath.h"
 #include "TSystem.h"
-#include "BmnScWallRaw2Digit.h"
+#include "BmnHodoRaw2Digit.h"
 
-void BmnScWallRaw2Digit::print()
+void BmnHodoRaw2Digit::print()
 {
-  printf("BmnScWallRaw2Digit : \n");
+  printf("BmnHodoRaw2Digit : \n");
 }
 
-BmnScWallRaw2Digit::BmnScWallRaw2Digit()
+BmnHodoRaw2Digit::BmnHodoRaw2Digit()
 {
   fPeriodId = 0;
   fRunId = 0;
 }
 
-BmnScWallRaw2Digit::BmnScWallRaw2Digit(int period, int run, TString mappingFile, TString CalibrationFile)
+BmnHodoRaw2Digit::BmnHodoRaw2Digit(int period, int run, TString mappingFile, TString CalibrationFile)
 {
   fPeriodId = period;
   fRunId = run;
@@ -23,7 +23,7 @@ BmnScWallRaw2Digit::BmnScWallRaw2Digit(int period, int run, TString mappingFile,
   ParseCalibration(fcalibrationFileName);
 }
 
-void BmnScWallRaw2Digit::ParseConfig(TString mappingFile)
+void BmnHodoRaw2Digit::ParseConfig(TString mappingFile)
 {
 
   namespace po = boost::program_options;
@@ -34,7 +34,7 @@ void BmnScWallRaw2Digit::ParseConfig(TString mappingFile)
   typedef std::vector<std::string> vect_string_t;
   float version;
   std::string comment;
-  std::vector<std::string> adc_serials;
+  std::vector<std::string> tqdc_serials;
   std::vector<std::string> configuration;
 
   // Setup options.
@@ -42,7 +42,7 @@ void BmnScWallRaw2Digit::ParseConfig(TString mappingFile)
   desc.add_options()
     ("VERSION.id", po::value<float>(&version), "version identificator")
     ("COMMENT.str", po::value<std::string>(&comment), "comment")
-    ("ADCSERIALS.serial", po::value<vect_string_t>(&adc_serials)->multitoken(), "adc serials")
+    ("TQDCSERIALS.serial", po::value<vect_string_t>(&tqdc_serials)->multitoken(), "tqdc serials")
     ("CONFIGURATION.config", po::value<vect_string_t>(&configuration)->multitoken(), "configuration")
     ;
 
@@ -51,80 +51,56 @@ void BmnScWallRaw2Digit::ParseConfig(TString mappingFile)
   std::ifstream config_file((path + mappingFile).Data(), std::ifstream::in);
   if (!config_file.is_open())
   {
-    printf("BmnScWallRaw2Digit : Loading Config from file: %s - file open error!\n", mappingFile.Data());
+    printf("BmnHodoRaw2Digit : Loading Config from file: %s - file open error!\n", mappingFile.Data());
     return;
   }
-  printf("BmnScWallRaw2Digit : Loading Config from file: %s\n", mappingFile.Data());
+  printf("BmnHodoRaw2Digit : Loading Config from file: %s\n", mappingFile.Data());
   po::store(po::parse_config_file(config_file, desc), vm);
   config_file.close();
   po::notify(vm);
 
-  fScWallSerials.clear();
-  for (auto it : adc_serials)
-    fScWallSerials.push_back(std::stoul(it, nullptr, 16));
-  std::sort(fScWallSerials.begin(), fScWallSerials.end());
+  fHodoSerials.clear();
+  for (auto it : tqdc_serials)
+    fHodoSerials.push_back(std::stoul(it, nullptr, 16));
+  std::sort(fHodoSerials.begin(), fHodoSerials.end());
 
-  std::string adc_ser;
-  int adc_chan;
-  int cell_id;
-  std::string zone;
-  short x_position;
-  short y_position;
-  short size;
-
-  std::set<short> UniqueX;
-  std::set<short> UniqueY;
-  std::set<short> UniqueSize;
-  // First pass for unique.
-  for (auto it : configuration)
-  {
-    istringstream ss(it);
-    ss >> adc_ser >> adc_chan >> cell_id >> zone >> x_position >> y_position >> size;
-    UniqueX.insert(x_position);
-    UniqueY.insert(y_position);
-    UniqueSize.insert(size);
-  }
-  std::copy(UniqueX.begin(), UniqueX.end(), std::back_inserter(fUniqueX));
-  std::copy(UniqueY.begin(), UniqueY.end(), std::back_inserter(fUniqueY));
-  std::copy(UniqueSize.begin(), UniqueSize.end(), std::back_inserter(fUniqueSize));
+  std::string tqdc_ser;
+  int tqdc_chan;
+  std::string material;
+  int strip_id;
+  int strip_side;
+  int gain;
 
   fChannelVect.clear();
-  fChannelVect.resize(fScWallSerials.size() * 64);
-  // Second pass for mapping.
+  fChannelVect.resize(fHodoSerials.size() * 16);
   for (auto it : configuration)
   {
     istringstream ss(it);
-    ss >> adc_ser >> adc_chan >> cell_id >> zone >> x_position >> y_position >> size;
-    int adc_board_index, xIdx, yIdx, SizeIdx, ZoneIdx = -1;
-    auto iter = find(fScWallSerials.begin(), fScWallSerials.end(), std::stoul(adc_ser, nullptr, 16));
-    if (iter != fScWallSerials.end())
-      adc_board_index = std::distance(fScWallSerials.begin(), iter);
+    ss >> tqdc_ser >> tqdc_chan >> material >> strip_id >> strip_side >> gain;
+    int board_index, xIdx, yIdx, SizeIdx, ZoneIdx = -1;
+    auto iter = find(fHodoSerials.begin(), fHodoSerials.end(), std::stoul(tqdc_ser, nullptr, 16));
+    if (iter != fHodoSerials.end())
+      board_index = std::distance(fHodoSerials.begin(), iter);
     else
-      printf("BmnScWallRaw2Digit : unknown adc serial\n");
+      printf("BmnHodoRaw2Digit : unknown adc serial\n");
 
-    xIdx = std::distance(UniqueX.begin(), UniqueX.find(x_position));
-    yIdx = std::distance(UniqueY.begin(), UniqueY.find(y_position));
-    SizeIdx = std::distance(UniqueSize.begin(), UniqueSize.find(size));
-
-    int last_letter = 'V' - 'A' + 1;
-    ZoneIdx = (int)(zone[0] - 'A' + 1);
-    if (ZoneIdx > last_letter)
-      LOG(DEBUG) << "MAX zone letter is " << last_letter << endl;
-
-    unsigned int flat_channel = (unsigned int)GetFlatChannelFromAdcChannel(std::stoul(adc_ser, nullptr, 16), adc_chan);
-    unsigned int unique_address = (ZoneIdx > last_letter) ? 0 : BmnScWallAddress::GetAddress(cell_id, xIdx, yIdx, SizeIdx, ZoneIdx);
+    int mater = -1; 
+    if(material[0] == 'S') mater = 0;
+    if(material[0] == 'Q') mater = 1;
+    unsigned int flat_channel = (unsigned int)GetFlatChannelFromAdcChannel(std::stoul(tqdc_ser, nullptr, 16), tqdc_chan);
+    unsigned int unique_address = (mater == -1) ? 0 : BmnHodoAddress::GetAddress(mater, strip_id, strip_side, gain);
     fChannelVect.at(flat_channel) = unique_address;
   }
   //std::LOG(DEBUG) << "COMMENT.str: " << comment << std::endl;
 }
 
-void BmnScWallRaw2Digit::ParseCalibration(TString calibrationFile)
+void BmnHodoRaw2Digit::ParseCalibration(TString calibrationFile)
 {
 
   namespace po = boost::program_options;
 
   TString dir = getenv("VMCWORKDIR");
-  TString path = dir + "/parameters/scwall/";
+  TString path = dir + "/parameters/hodo/";
 
   typedef std::vector<std::string> vect_string_t;
   typedef std::vector<std::complex<float>> vect_complf_t;
@@ -153,70 +129,73 @@ void BmnScWallRaw2Digit::ParseCalibration(TString calibrationFile)
   std::ifstream calib_file((path + calibrationFile).Data(), std::ifstream::in);
   if (!calib_file.is_open())
   {
-    printf("BmnScWallRaw2Digit : Loading Calibration from file: %s - file open error!\n", calibrationFile.Data());
+    printf("BmnHodoRaw2Digit : Loading Calibration from file: %s - file open error!\n", calibrationFile.Data());
     return;
   }
-  printf("BmnScWallRaw2Digit : Loading Calibration from file: %s\n", calibrationFile.Data());
+  printf("BmnHodoRaw2Digit : Loading Calibration from file: %s\n", calibrationFile.Data());
   po::store(po::parse_config_file(calib_file, desc), vm);
   calib_file.close();
   po::notify(vm);
 
-  int cell_id;
+  fCalibVect.clear();
+  fCalibVect.resize(BmnHodoAddress::GetMaxFlatAddress()+1);
+  std::string material;
+  int strip_id;
+  int strip_side;
+  int gain;
   float calibration;
   float calibError;
-  int max_cell_id = 0;
-  // First pass for max cell id.
   for (auto it : calibrations)
   {
     istringstream ss(it);
-    ss >> cell_id >> calibration >> calibError;
-    if (cell_id > max_cell_id) max_cell_id = cell_id;
-  }
-  fCalibVect.clear();
-  fCalibVect.resize(max_cell_id+1);
-
-  // Second pass for calibrations.
-  for (auto it : calibrations)
-  {
-    istringstream ss(it);
-    ss >> cell_id >> calibration >> calibError;
-    fCalibVect.at(cell_id) = std::make_pair(calibration, calibError);
+    ss >> material >> strip_id >> strip_side >> gain >> calibration >> calibError;
+    int mater = -1; 
+    if(material[0] == 'S') mater = 0;
+    if(material[0] == 'Q') mater = 1;
+    if(mater == -1) continue;
+    unsigned int unique_address = BmnHodoAddress::GetAddress(mater, strip_id, strip_side, gain);
+    uint8_t flat_channel = BmnHodoAddress::GetFlatAddress(unique_address);
+    fCalibVect.at(flat_channel) = std::make_pair(calibration, calibError);
   }
 }
 
-int BmnScWallRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int adc_board_serial, unsigned int adc_ch)
+int BmnHodoRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int tqdc_board_serial, unsigned int tqdc_ch)
 {
-  auto it = find(fScWallSerials.begin(), fScWallSerials.end(), adc_board_serial);
-  if (it != fScWallSerials.end())
+  auto it = find(fHodoSerials.begin(), fHodoSerials.end(), tqdc_board_serial);
+  if (it != fHodoSerials.end())
   {
-    int adc_board_index = std::distance(fScWallSerials.begin(), it);
-    return adc_board_index * 64 + adc_ch;
+    int tqdc_board_index = std::distance(fHodoSerials.begin(), it);
+    return tqdc_board_index * 16 + tqdc_ch;
   }
 
-  printf("BmnScWallRaw2Digit :: Serial 0x%08x Not found in map %s.\n", adc_board_serial, fmappingFileName.Data());
+  printf("BmnHodoRaw2Digit :: Serial 0x%08x Not found in map %s.\n", tqdc_board_serial, fmappingFileName.Data());
   return -1;
 }
 
-void BmnScWallRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ScWalldigit)
+void BmnHodoRaw2Digit::fillEvent(TClonesArray *tdc, TClonesArray *adc, TClonesArray *Hododigit)
 {
 
-  LOG(DEBUG) << "BmnScWallRaw2Digit::fillEvent" << endl;
+  LOG(DEBUG) << "BmnHodoRaw2Digit::fillEvent" << endl;
 
-  for (int i = 0; i < data->GetEntriesFast(); i++)
+  for (int iAdc = 0; iAdc < adc->GetEntriesFast(); iAdc++)
   {
-    BmnADCDigit *digit = (BmnADCDigit *)data->At(i);
-    // check if serial is from ScWall
-    // cout<<digit->GetSerial() << " " << digit->GetChannel() << endl;
-    if (std::find(fScWallSerials.begin(), fScWallSerials.end(), digit->GetSerial()) == fScWallSerials.end()) {
-      LOG(DEBUG) << "BmnScWallRaw2Digit::fillEvent" << std::hex << digit->GetSerial() << " Not found in ";
-      for (auto it : fScWallSerials)
-        LOG(DEBUG) << "BmnScWallRaw2Digit::fScWallSerials " << std::hex << it << endl;
+    BmnTQDCADCDigit *adcDig = (BmnTQDCADCDigit*) adc->At(iAdc);
+    //    Double_t adcTimestamp = adcDig->GetAdcTimestamp() * ADC_CLOCK_TQDC16VS;
+    //    Double_t trgTimestamp = adcDig->GetTrigTimestamp() * ADC_CLOCK_TQDC16VS;
+
+    // check if serial is from Hodo
+    // cout<<adcDig->GetSerial() << " " << adcDig->GetChannel() << endl;
+    if (std::find(fHodoSerials.begin(), fHodoSerials.end(), adcDig->GetSerial()) == fHodoSerials.end()) {
+      LOG(DEBUG) << "BmnHodoRaw2Digit::fillEvent" << std::hex << adcDig->GetSerial() << " Not found in ";
+      for (auto it : fHodoSerials)
+        LOG(DEBUG) << "BmnHodoRaw2Digit::fHodoSerials " << std::hex << it << endl;
       continue;
     }
-    std::vector<float> wfm(digit->GetUShortValue(), digit->GetUShortValue() + digit->GetNSamples());
-    BmnScWallDigi ThisDigi;
+
+    std::vector<float> wfm(adcDig->GetShortValue(), adcDig->GetShortValue() + adcDig->GetNSamples());
+    BmnHodoDigi ThisDigi;
     ThisDigi.reset();
-    unsigned int flat_channel = (unsigned int)GetFlatChannelFromAdcChannel(digit->GetSerial(), digit->GetChannel());
+    unsigned int flat_channel = (unsigned int)GetFlatChannelFromAdcChannel(adcDig->GetSerial(), adcDig->GetChannel());
     assert(flat_channel < fChannelVect.size());
     ThisDigi.fuAddress = fChannelVect.at(flat_channel);
     if (ThisDigi.fuAddress == 0)
@@ -225,12 +204,12 @@ void BmnScWallRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ScWalldigit
     if (abs(ThisDigi.fSignal) < fdigiPars.threshold)
       continue;
 
-    TClonesArray &ar_ScWall = *ScWalldigit;
-    new (ar_ScWall[ScWalldigit->GetEntriesFast()]) BmnScWallDigi(ThisDigi);
+    TClonesArray &ar_Hodo = *Hododigit;
+    new (ar_Hodo[Hododigit->GetEntriesFast()]) BmnHodoDigi(ThisDigi);
   }
 }
 
-void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
+void BmnHodoRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnHodoDigi *digi)
 {
   assert(fdigiPars.gateBegin > 0 && fdigiPars.gateEnd > 0);
   if(fdigiPars.gateBegin >= wfm.size()) { 
@@ -247,14 +226,14 @@ void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
   // Invert
   if (fdigiPars.doInvert)
   {
-    LOG(DEBUG) << "BmnScWallRaw2Digit::ProcessWfm Inverting" << endl;
+    LOG(DEBUG) << "BmnHodoRaw2Digit::ProcessWfm Inverting" << endl;
     float myconstant{-1.0};
     std::transform(wfm.begin(), wfm.end(), wfm.begin(),
                    std::bind1st(std::multiplies<float>(), myconstant));
   }
 
   //Zero level calculation
-  LOG(DEBUG) << "BmnScWallRaw2Digit::ProcessWfm ZL calc" << endl;
+  LOG(DEBUG) << "BmnHodoRaw2Digit::ProcessWfm ZL calc" << endl;
   const int n_gates = 3;
   int gate_npoints = (int)floor((fdigiPars.gateBegin - 2.) / n_gates);
 
@@ -269,7 +248,7 @@ void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
   digi->fZL = (int) gates_mean[best_gate];
 
   //MAX and Integral calculation including borders
-  LOG(DEBUG) << "BmnScWallRaw2Digit::ProcessWfm  MAX & INT search" << endl;
+  LOG(DEBUG) << "BmnHodoRaw2Digit::ProcessWfm  MAX & INT search" << endl;
   digi->fIntegral = (int) std::accumulate(wfm.begin() + fdigiPars.gateBegin, wfm.begin() + fdigiPars.gateEnd + 1,
                                     -digi->fZL * (fdigiPars.gateEnd - fdigiPars.gateBegin + 1));
   auto const max_iter = std::max_element(wfm.begin() + fdigiPars.gateBegin, wfm.begin() + fdigiPars.gateEnd + 1);
@@ -277,19 +256,19 @@ void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
   digi->fTimeMax = (int) std::distance(wfm.begin(), max_iter);
 
   //Apply calibration
-  LOG(DEBUG) << "BmnScWallRaw2Digit::ProcessWfm  Calibration" << endl;
-  unsigned int cell_id = digi->GetCellId();
-  assert(cell_id < fCalibVect.size());
+  LOG(DEBUG) << "BmnHodoRaw2Digit::ProcessWfm  Calibration" << endl;
+  uint8_t flat_channel = BmnHodoAddress::GetFlatAddress(digi->GetAddress());
+  assert(flat_channel < fCalibVect.size());
   if (fdigiPars.signalType == 0)
-    digi->fSignal = (float) digi->fAmpl * fCalibVect.at(cell_id).first;
+    digi->fSignal = (float) digi->fAmpl * fCalibVect.at(flat_channel).first;
   if (fdigiPars.signalType == 1)
-    digi->fSignal = (float) digi->fIntegral * fCalibVect.at(cell_id).first;
+    digi->fSignal = (float) digi->fIntegral * fCalibVect.at(flat_channel).first;
 
   //Prony fitting procedure
   PsdSignalFitting::PronyFitter Pfitter;
   if (fdigiPars.isfit)
   {
-    LOG(DEBUG) << "BmnScWallRaw2Digit::ProcessWfm  Fitting" << endl;
+    LOG(DEBUG) << "BmnHodoRaw2Digit::ProcessWfm  Fitting" << endl;
     Pfitter.Initialize(fdigiPars.harmonics.size(), fdigiPars.harmonics.size(), fdigiPars.gateBegin, fdigiPars.gateEnd);
     Pfitter.SetDebugMode(0);
     Pfitter.SetWaveform(wfm, digi->fZL);
@@ -316,7 +295,7 @@ void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
   }
 }
 
-void BmnScWallRaw2Digit::MeanRMScalc(std::vector<float> wfm, float *Mean, float *RMS, int begin, int end, int step)
+void BmnHodoRaw2Digit::MeanRMScalc(std::vector<float> wfm, float *Mean, float *RMS, int begin, int end, int step)
 {
   begin = (begin < 0) ? 0 : begin;
   if (begin > end)
@@ -340,8 +319,8 @@ void BmnScWallRaw2Digit::MeanRMScalc(std::vector<float> wfm, float *Mean, float 
   //printf("AMPL %.2f, RMS %.2f\n",*Mean,*RMS);
 }
 
-BmnScWallRaw2Digit::~BmnScWallRaw2Digit()
+BmnHodoRaw2Digit::~BmnHodoRaw2Digit()
 {
 }
 
-ClassImp(BmnScWallRaw2Digit)
+ClassImp(BmnHodoRaw2Digit)

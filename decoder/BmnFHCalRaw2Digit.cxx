@@ -69,13 +69,13 @@ void BmnFHCalRaw2Digit::ParseConfig(TString mappingFile)
   int module_type;
   int module_id;
   int section_id;
-  int x_position;
-  int y_position;
-  int z_position;
+  short x_position;
+  short y_position;
+  short z_position;
 
-  fUniqueX.clear();
-  fUniqueY.clear();
-  fUniqueZ.clear();
+  std::set<short> UniqueX;
+  std::set<short> UniqueY;
+  std::set<short> UniqueZ;
   // First pass for unique.
   for (auto it : configuration)
   {
@@ -83,10 +83,13 @@ void BmnFHCalRaw2Digit::ParseConfig(TString mappingFile)
     ss >> adc_ser >> adc_chan >> module_type >> module_id >> section_id >> x_position >> y_position >> z_position;
     assert(module_type <= 2);
     assert(section_id <= 10);
-    fUniqueX.insert(x_position);
-    fUniqueY.insert(y_position);
-    fUniqueZ.insert(z_position);
+    UniqueX.insert(x_position);
+    UniqueY.insert(y_position);
+    UniqueZ.insert(z_position);
   }
+  std::copy(UniqueX.begin(), UniqueX.end(), std::back_inserter(fUniqueX));
+  std::copy(UniqueY.begin(), UniqueY.end(), std::back_inserter(fUniqueY));
+  std::copy(UniqueZ.begin(), UniqueZ.end(), std::back_inserter(fUniqueZ));
 
   fChannelVect.clear();
   fChannelVect.resize(fFHCalSerials.size() * 64);
@@ -102,9 +105,9 @@ void BmnFHCalRaw2Digit::ParseConfig(TString mappingFile)
     else
       printf("BmnFHCalRaw2Digit : unknown adc serial\n");
 
-    xIdx = std::distance(fUniqueX.begin(), fUniqueX.find(x_position));
-    yIdx = std::distance(fUniqueY.begin(), fUniqueY.find(y_position));
-    zIdx = std::distance(fUniqueZ.begin(), fUniqueZ.find(z_position));
+    xIdx = std::distance(UniqueX.begin(), UniqueX.find(x_position));
+    yIdx = std::distance(UniqueY.begin(), UniqueY.find(y_position));
+    zIdx = std::distance(UniqueZ.begin(), UniqueZ.find(z_position));
 
     unsigned int flat_channel = (unsigned int)GetFlatChannelFromAdcChannel(std::stoul(adc_ser, nullptr, 16), adc_chan);
     unsigned int unique_address = (module_type == 0) ? 0 : BmnFHCalAddress::GetAddress(module_type, module_id, section_id, xIdx, yIdx, zIdx);
@@ -235,8 +238,17 @@ void BmnFHCalRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *FHCaldigit)
 
 void BmnFHCalRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnFHCalDigi *digi)
 {
-  assert(fdigiPars.gateBegin > 0 && fdigiPars.gateBegin < wfm.size());
-  assert(fdigiPars.gateEnd > 0 && fdigiPars.gateEnd < wfm.size());
+  assert(fdigiPars.gateBegin > 0 && fdigiPars.gateEnd > 0);
+  if(fdigiPars.gateBegin >= wfm.size()) { 
+    LOG(ERROR) << "BmnScWallRaw2Digit:: waveform too short: accessing " << 
+    fdigiPars.gateBegin << "/" << wfm.size() << ". Check calibration file " << fcalibrationFileName;
+    fdigiPars.gateBegin = wfm.size()-1;
+  }
+  if(fdigiPars.gateEnd >= wfm.size()) { 
+    LOG(ERROR) << "BmnScWallRaw2Digit:: waveform too short: accessing " << 
+    fdigiPars.gateEnd << "/" << wfm.size() << ". Check calibration file " << fcalibrationFileName;
+    fdigiPars.gateEnd = wfm.size()-1;
+  }
 
   // Invert
   if (fdigiPars.doInvert)

@@ -879,7 +879,11 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
                 UInt_t time = ((d[idx] & 0x7FFFF) << 2) | (d[idx] >> 24) & 0x3; // in 25 ps
                 //               printf("TDC time %d channel %d\n", time, channel);
                 new((*tqdc_tdc)[tqdc_tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == TDC_LEADING), channel, 0, time, tdcTimestamp);
+<<<<<<< Updated upstream
                 //                printf("tqdc tdc %08X : %d channel %d\n", serial, slot, channel);
+=======
+//                printf("tqdc tdc %08X : %d channel %d\n", serial, slot, channel);
+>>>>>>> Stashed changes
             } else if ((type == 4) && (mode != 0)) { // Trig | ADC Timestamp
                 channel = (d[idx] >> 19) & 0x1F;
                 if (d[idx] & BIT(16)) { // ADC TS
@@ -905,7 +909,11 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
                 inADC = kFALSE;
                 iSampl = 0;
                 --idx;
+<<<<<<< Updated upstream
                 //                printf("tqdc adc %08X : %d channel %d\n", serial, slot, channel);
+=======
+//                printf("tqdc adc %08X : %d channel %d\n", serial, slot, channel);
+>>>>>>> Stashed changes
             }
         }
         type = d[++idx] >> 28;
@@ -2043,7 +2051,7 @@ BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray
     }
     if (fSiliconMapper) {
         Double_t**** pedData = fSiliconMapper->GetPedData();
-        vector<BmnSiliconMapping> & channelMap = fSiliconMapper->GetMap();
+        vector<BmnSiliconMapping*> & channelMap = fSiliconMapper->GetMap();
         map<UInt_t, Int_t>& serialMap = fSiliconMapper->GetSerialMap();
         for (UInt_t iAdc = 0; iAdc < adcSil->GetEntriesFast(); ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adcSil->At(iAdc);
@@ -2052,7 +2060,7 @@ BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray
             //            for (Int_t iSer = 0; iSer < fNSiliconSerials; ++iSer) {
             for (auto & channelMapEl : channelMap) {
                 //                if (adcDig->GetSerial() != fSiliconSerials[iSer]) continue;
-                if ((ser != channelMapEl.serial) || (iCh < channelMapEl.channel_low) || (iCh > channelMapEl.channel_high)) continue;
+                if ((ser != channelMapEl->serial) || (iCh < channelMapEl->channel_low) || (iCh > channelMapEl->channel_high)) continue;
                 Int_t iSer = serialMap[ser];
                 //                printf("SIL ser = 0x%08x, iSer = %02d, ev= %05d, ch = %d\n", adcDig->GetSerial(), iSer, ev, adcDig->GetChannel());
                 for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl) {

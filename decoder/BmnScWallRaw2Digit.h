@@ -64,6 +64,9 @@ private:
     } fdigiPars;
     std::vector<std::pair<float,float>> fCalibVect; // cell_id to pair<calib, calibError>
 
+    int fSignalLength;
+    std::complex<float> **fAZik; // Inverse Harmo matrix for fit
+
     void MeanRMScalc(std::vector<float> wfm, float* Mean, float* RMS, int begin, int end, int step = 1);
     void ProcessWfm(std::vector<float> wfm, BmnScWallDigi* digi);
 

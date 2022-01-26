@@ -182,6 +182,22 @@ void BmnScWallRaw2Digit::ParseCalibration(TString calibrationFile)
     ss >> cell_id >> calibration >> calibError;
     fCalibVect.at(cell_id) = std::make_pair(calibration, calibError);
   }
+
+  if(fdigiPars.isfit) {
+    int model_order = fdigiPars.harmonics.size() + 1;
+    fSignalLength = fdigiPars.gateEnd - fdigiPars.gateBegin + 1;
+    fAZik = new std::complex<float> *[model_order];
+    for (int i = 0; i < model_order; i++) {
+      fAZik[i] = new std::complex<float>[model_order];
+      for (int j = 0; j < model_order; j++)
+        fAZik[i][j] = {0., 0.};
+    }
+    PsdSignalFitting::PronyFitter Pfitter;
+    Pfitter.Initialize(fdigiPars.harmonics.size(), fdigiPars.harmonics.size(), fdigiPars.gateBegin, fdigiPars.gateEnd);
+    Pfitter.SetExternalHarmonics(fdigiPars.harmonics[0], fdigiPars.harmonics[1]);
+    Pfitter.MakeInvHarmoMatrix(fSignalLength, fAZik);
+  }
+
 }
 
 int BmnScWallRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int adc_board_serial, unsigned int adc_ch)
@@ -293,20 +309,22 @@ void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
     Pfitter.Initialize(fdigiPars.harmonics.size(), fdigiPars.harmonics.size(), fdigiPars.gateBegin, fdigiPars.gateEnd);
     Pfitter.SetDebugMode(0);
     Pfitter.SetWaveform(wfm, digi->fZL);
+    //Pfitter.ResetAmplitudes();
     int SignalBeg = Pfitter.CalcSignalBeginStraight();
     if (SignalBeg < 1 || SignalBeg > wfm.size())
       return;
+    if (SignalBeg + fSignalLength > wfm.size()) 
+      SignalBeg = fdigiPars.gateBegin;
     Pfitter.SetExternalHarmonics(fdigiPars.harmonics[0], fdigiPars.harmonics[1]);
-    int best_signal_begin = Pfitter.ChooseBestSignalBegin(SignalBeg - 1, SignalBeg + 1);
-    Pfitter.SetSignalBegin(best_signal_begin);
-    Pfitter.CalculateFitAmplitudes();
+    Pfitter.SetSignalBegin(SignalBeg);
+    Pfitter.CalculateFitAmplitudesFast(fSignalLength, fAZik);
 
     digi->fFitIntegral = Pfitter.GetIntegral(fdigiPars.gateBegin, fdigiPars.gateEnd);
     digi->fFitAmpl = Pfitter.GetMaxAmplitude() - Pfitter.GetZeroLevel();
     float fit_R2 = Pfitter.GetRSquare(fdigiPars.gateBegin, fdigiPars.gateEnd);
     digi->fFitR2 = (fit_R2 > 2.0) ? 2.0 : fit_R2;
     digi->fFitZL = Pfitter.GetZeroLevel();
-    digi->fFitTimeMax = Pfitter.GetSignalMaxTime();
+    digi->fFitTimeMax = Pfitter.GetSignalMaxTime(); 
   }
 
   if (fdigiPars.isWriteWfm) {
@@ -314,6 +332,7 @@ void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
     if (fdigiPars.isfit) 
       digi->fFitWfm = Pfitter.GetFitWfm();
   }
+
 }
 
 void BmnScWallRaw2Digit::MeanRMScalc(std::vector<float> wfm, float *Mean, float *RMS, int begin, int end, int step)

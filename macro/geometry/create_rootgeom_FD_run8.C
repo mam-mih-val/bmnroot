@@ -16,25 +16,22 @@ TGeoManager* gGeoMan = NULL;
 
 //Detector's position
 
-const Double_t FD_Xpos = 38.0;
-const Double_t FD_Ypos = 0.0;
-const Double_t FD_Zpos = 800.0; //cm
+const Double_t Fd_X_pos = -38.0;
+const Double_t Fd_Y_pos = 0.0;
+const Double_t Fd_Z_pos = 900.0;
+ 
+//
 
-// const Double_t Qu_Xpos = 38.0;
-// const Double_t Qu_Ypos = 0.0;
-// const Double_t Qu_Zpos = 900.0; //cm
+const Double_t Qu_X_size = 15.0;
+const Double_t Qu_Y_size = 15.0;
+const Double_t Qu_Z_size = 0.1;
 
-const Double_t Qu_Xsize = 16.0; //cm
-const Double_t Qu_Ysize = 16.0; //cm
-const Double_t Qu_Zsize = 0.1; //cm
-
-const Double_t Box_Zsize = 25; //cm
-const Double_t Box_Ysize = 25.; //cm
-const Double_t Box_Xsize = 10.; //cm
-
-
-void create_rootgeom_FD_run8() {
-        
+void create_Frag_Det_root_v4() {
+    
+  // Load the necessary FairRoot libraries 
+  // gROOT->LoadMacro("home/lashmanov/prog/bmnroot/macro/run/bmnloadlibs.C");
+    bmnloadlibs(); // load libraries
+    
     // -------   Load media from media file   -----------------------------------
     FairGeoLoader*    geoLoad = new FairGeoLoader("TGeo","FairGeoLoader");
     FairGeoInterface* geoFace = geoLoad->getGeoInterface();
@@ -46,8 +43,8 @@ void create_rootgeom_FD_run8() {
     // --------------------------------------------------------------------------
 
     // -------   Geometry file name (output)   ----------------------------------
-    const TString geoDetectorName = "FD";
-    const TString geoDetectorVersion = "run8_v1";
+    const TString geoDetectorName = "FrD";
+    const TString geoDetectorVersion = "v4";
     TString geoFileName = geoPath + "/geometry/" + geoDetectorName + "_"+ geoDetectorVersion + ".root";
     // --------------------------------------------------------------------------  
 
@@ -105,46 +102,75 @@ void create_rootgeom_FD_run8() {
     // Define TOP Geometry
     TGeoVolume* FD_Top = new TGeoVolumeAssembly(geoDetectorName);
     //TGeoVolume* Qu_Top_1 = new TGeoVolumeAssembly(geoDetectorName);
-    FD_Top->SetMedium(pMedPMTvacuum);
+    FD_Top->SetMedium(pMedAir);
    
-    //Transformations (translations, rotations and scales)
-   // TGeoTranslation *Qu_trans = new TGeoTranslation("Qu_trans", Qu_Xpos, Qu_Ypos, Qu_Zpos);
-   // TGeoTranslation *Pmt_trans = new TGeoTranslation("Pmt_trans", Qu_Xpos, -2, Qu_Zpos);
+	TGeoTranslation *Fd_pos = new TGeoTranslation("Fd_pos", Fd_X_pos, Fd_Y_pos, Fd_Z_pos);
 	
-	//TGeoCombiTrans *Quartz_trans = new TGeoCombiTrans("Quartz_trans", 0, 0, 2.8, new TGeoRotation("rot1",0,40,0));
-	TGeoCombiTrans *All_trans = new TGeoCombiTrans("All_trans", FD_Xpos, FD_Ypos, FD_Zpos, new TGeoRotation("rot1", 0, 32, 0));
-	All_trans->RegisterYourself();
+	TGeoCombiTrans *Null_pos = new TGeoCombiTrans("Null_pos", 0, 0, 0, new TGeoRotation("rot01",0,0,0));
+	Null_pos->RegisterYourself();
+	TGeoCombiTrans *Null_pos1 = new TGeoCombiTrans("Null_pos1", 0, 0, 0, new TGeoRotation("rot02",0,0,0));
+	Null_pos1->RegisterYourself();
 	
-	TGeoCombiTrans *Quartz_trans = new TGeoCombiTrans("Quartz_trans", 0, 0, 0, new TGeoRotation("rot2",0,0,0));
-	Quartz_trans->RegisterYourself();
+	TGeoCombiTrans *Quartz_pos = new TGeoCombiTrans("Quartz_pos", 0, 0, 0, new TGeoRotation("rot1",0,0,0));
+	Quartz_pos->RegisterYourself();
+
+	TGeoCombiTrans *PMT_tube_pos = new TGeoCombiTrans("PMT_pos", 0, -65, 0, new TGeoRotation("rot2",0,90,0));
+	PMT_tube_pos->RegisterYourself();
 	
-	//TGeoCombiTrans *PMT_tube_trans = new TGeoCombiTrans("PMT_tube_trans", 0, -29.4, 19, new TGeoRotation("rot3",0,60,0));
-	TGeoCombiTrans *PMT_tube_trans = new TGeoCombiTrans("PMT_tube_trans", 0, -31.9, 20.9, new TGeoRotation("rot3",0,60,0));
-	PMT_tube_trans->RegisterYourself();
+	TGeoCombiTrans *panel_1_1_pos = new TGeoCombiTrans("panel_1_1_pos", 0, 0, 6, new TGeoRotation("rot3",0,0,0));
+	panel_1_1_pos->RegisterYourself();
 	
-	//TGeoCombiTrans *Pmt_trans = new TGeoCombiTrans("Pmt_trans", 0, -12.3, 10, new TGeoRotation("rot2",0,40,0));
-	TGeoCombiTrans *Pmt_trans = new TGeoCombiTrans("Pmt_trans", 0, -8.5, 7, new TGeoRotation("rot4",0,60,0));
-	Pmt_trans->RegisterYourself();
+	TGeoCombiTrans *panel_1_2_pos = new TGeoCombiTrans("panel_1_2_pos", 0, 0, -6, new TGeoRotation("rot4",0,0,0));
+	panel_1_2_pos->RegisterYourself();
 	
-	TGeoCombiTrans *Plane_trans = new TGeoCombiTrans("Plane_trans", 0, 0, -7, new TGeoRotation("rot5",0,0,0));
-	Plane_trans->RegisterYourself();
+	TGeoCombiTrans *panel_2_left_pos = new TGeoCombiTrans("panel_2_left_pos", 11, 0, 0, new TGeoRotation("rot5",90,90,0));
+	panel_2_left_pos->RegisterYourself();
 	
-  //  TGeoTranslation *Cr_trans = new TGeoTranslation("Cr_trans", Qu_Xpos, +7, Qu_Zpos);
-    //SetPos_trans->RegisterYourself();
-    		    
-  	TGeoBBox *Qu_box = new TGeoBBox("Qu_box", Qu_Xsize/2, Qu_Ysize/2, Qu_Zsize/2);
-  	TGeoBBox *PMT_box = new TGeoBBox("PMT_box", Box_Xsize/2, Box_Ysize/2, 20/2);
-  	TGeoBBox *Plane_box = new TGeoBBox("Plane_box", 30/2, 30/2, 14/2);
-  	
-	TGeoTube *PMT_tube = new TGeoTube("PMT_tube", 0, 6/2, 14/2);
-  	
-	//TGeoCone *Air_Cone = new TGeoCone("Air_Cone", 34/2, 0, 21/2, 0, 4/2);
-	TGeoCone *Air_Cone = new TGeoCone("Air_Cone", 40/2, 0, 22/2, 0, 4/2);
+	TGeoCombiTrans *panel_2_right_pos = new TGeoCombiTrans("panel_2_right_pos", -11, 0, 0, new TGeoRotation("rot6",90,90,0));
+	panel_2_right_pos->RegisterYourself();
 	
-	//Composite solids (shapes)
-  											
-	//TGeoCompositeShape *Vac_box_assemb = new TGeoCompositeShape("Vac_box_assemb", "PMT_box:Pmt_trans - Qu_box:Quartz_trans - Plane_box:Plane_trans");
-	TGeoCompositeShape *Vac_box_assemb = new TGeoCompositeShape("Vac_box_assemb", "Air_Cone:Pmt_trans - Plane_box:Plane_trans - Qu_box:Quartz_trans");
+	TGeoCombiTrans *panel_2_down_pos = new TGeoCombiTrans("panel_2_down_pos", 0, -11, 0, new TGeoRotation("rot7",0,90,0));
+	panel_2_down_pos->RegisterYourself();
+	
+	TGeoCombiTrans *panel_2_up_pos = new TGeoCombiTrans("panel_2_up_pos", 0, 11, 0, new TGeoRotation("rot8",0,90,0));
+	panel_2_up_pos->RegisterYourself();
+	
+	TGeoCombiTrans *panel_3_1_pos = new TGeoCombiTrans("panel_3_1_pos", 0, -31, 6, new TGeoRotation("rot9",0,0,0));
+	panel_3_1_pos->RegisterYourself();
+	
+	TGeoCombiTrans *panel_3_2_pos = new TGeoCombiTrans("panel_3_2_pos", 0, -31, -6, new TGeoRotation("rot10",0,0,0));
+	panel_3_2_pos->RegisterYourself();
+	
+	TGeoCombiTrans *panel_4_1_pos = new TGeoCombiTrans("panel_4_1_pos", 11, -31, 0, new TGeoRotation("rot11",90,90,90));
+	panel_4_1_pos->RegisterYourself();
+	
+	TGeoCombiTrans *panel_4_2_pos = new TGeoCombiTrans("panel_4_2_pos", -11, -31, 0, new TGeoRotation("rot12",90,90,90));
+	panel_4_2_pos->RegisterYourself();
+	
+	TGeoCombiTrans *panel_4_2_d_pos = new TGeoCombiTrans("panel_4_2_d_pos", 0, -51, 0, new TGeoRotation("rot13",0,90,0));
+	panel_4_2_d_pos->RegisterYourself();
+	
+//
+	
+	TGeoBBox *Qu_box = new TGeoBBox("Qu_box", Qu_X_size/2, Qu_Y_size/2, Qu_Z_size/2);
+	TGeoTube *PMT_tube = new TGeoTube("PMT_tube", 0, 7.5/2, 28/2);
+	
+	TGeoBBox *panel_1 = new TGeoBBox("panel_1", 22/2, 22/2, 0.2/2);
+	TGeoBBox *panel_1_cut = new TGeoBBox("panel_1_cut", 18/2, 18/2, 1.0/2);
+	TGeoBBox *panel_2 = new TGeoBBox("panel_2", 22/2, 12/2, 0.2/2);
+	TGeoBBox *panel_2_cut = new TGeoBBox("panel_2_cut", 18/2, 8/2, 1.0/2);
+	
+	TGeoBBox *panel_2_l = new TGeoBBox("panel_2_l", 26/2, 16/2, 0.4/2);
+	
+	TGeoBBox *panel_3 = new TGeoBBox("panel_3", 22/2, 40/2, 0.2/2);
+	TGeoBBox *panel_4 = new TGeoBBox("panel_4", 12/2, 40/2, 0.2/2);
+	
+	TGeoCompositeShape *Geom_Cut_1 = new TGeoCompositeShape("Geom_Cut_1", "panel_1:Null_pos - panel_1_cut:Null_pos1");
+	TGeoCompositeShape *Geom_Cut_2 = new TGeoCompositeShape("Geom_Cut_2", "panel_2:Null_pos - panel_2_cut:Null_pos1");
+	
+	TGeoCompositeShape *Al_head = new TGeoCompositeShape("Al_head", "Geom_Cut_1:panel_1_1_pos + Geom_Cut_1:panel_1_2_pos + Geom_Cut_2:panel_2_right_pos + Geom_Cut_2:panel_2_left_pos + panel_2_l:panel_2_down_pos + panel_2:panel_2_up_pos + panel_3:panel_3_1_pos + panel_3:panel_3_2_pos + panel_4:panel_4_1_pos + panel_4:panel_4_2_pos + panel_2_l:panel_4_2_d_pos");
+	
+//
 	
 	TGeoVolume *Qu_ActiveVolumeV = new TGeoVolume("Qu_ActiveVolumeV", Qu_box);
     Qu_ActiveVolumeV->SetMedium(pMedFusedSil);
@@ -154,19 +180,18 @@ void create_rootgeom_FD_run8() {
     Pmt_tube_mat->SetMedium(pMedAir);
     Pmt_tube_mat->SetLineColor(kBlue+4);
 	
-	TGeoVolume *Pmt_ActiveVolumeV  = new TGeoVolume("Pmt_ActiveVolumeV", Vac_box_assemb);
-    Pmt_ActiveVolumeV->SetMedium(pMedPMTvacuum);
-    Pmt_ActiveVolumeV->SetLineColor(kYellow-10);
- 											
+	TGeoVolume *Head_mat = new TGeoVolume("Head_mat", Al_head);
+    Head_mat->SetMedium(pMedaluminium);
+    Head_mat->SetLineColor(kGray+1);
+    //Head_mat->SetLineColor(kBlack);
+	
 	//Adding volumes to the TOP Volume
     
-	top->AddNode(FD_Top, 1, All_trans);
-//	top->AddNode(Qu_Top_1, 1, Qu_trans);
-	FD_Top->AddNode(Qu_ActiveVolumeV, 1);
-	FD_Top->AddNode(Pmt_ActiveVolumeV, 1);
-	FD_Top->AddNode(Pmt_tube_mat, 1, PMT_tube_trans);
-
-   
+	top->AddNode(FD_Top, 1, Fd_pos);
+	FD_Top->AddNode(Qu_ActiveVolumeV, 1, Quartz_pos);	
+	FD_Top->AddNode(Pmt_tube_mat, 1, PMT_tube_pos);	
+	FD_Top->AddNode(Head_mat, 1);	
+	
     top->SetVisContainers(kTRUE);
     
 	//CheckVolume(top);

@@ -19,6 +19,39 @@ BmnGemStripStationSet::BmnGemStripStationSet(TString xml_config_file, map <Int_t
     }
 }
 
+BmnGemStripStationSet::BmnGemStripStationSet(Int_t period, BmnSetup stp){
+    TString gPathConfig = getenv("VMCWORKDIR");
+    TString xmlConfFileName;
+    switch (period) {
+        case 8:
+            if (stp == kBMNSETUP) {
+                xmlConfFileName = "GemRun8.xml";
+            } else {
+                xmlConfFileName = "GemRunSRC2021.xml";
+            }
+            break;
+        case 7:
+            if (stp == kBMNSETUP) {
+                xmlConfFileName = "GemRunSpring2018.xml";
+            } else {
+                xmlConfFileName = "GemRunSRCSpring2018.xml";
+            }
+            break;
+        case 6:
+            xmlConfFileName = "GemRunSpring2017.xml";
+            break;
+        default:
+            printf("Error! Unknown config!\n");
+            xmlConfFileName = "";
+            break;
+    }
+    if (xmlConfFileName.Length()){
+        TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
+        BmnGemStripStationSet(gPathGemConfig + xmlConfFileName);
+    } else
+        BmnGemStripStationSet();
+}
+
  BmnGemStripStationSet::~BmnGemStripStationSet() {
 
     if (XStationPositions) {

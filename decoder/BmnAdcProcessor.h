@@ -12,6 +12,7 @@
 #include <map>
 #include <vector>
 #include <TStopwatch.h>
+#include <memory>
 
 #include "TString.h"
 #include "TTree.h"
@@ -44,7 +45,9 @@ public:
 
     BmnStatus RecalculatePedestals();
     BmnStatus RecalculatePedestalsAugmented();
+    void PrecalcEventModsOld(TClonesArray *adc);
     void PrecalcEventMods(TClonesArray *adc);
+    void (BmnAdcProcessor::*PrecalcEventModsImp)(TClonesArray *adc);
     void CalcEventMods();
     //    BmnStatus FillProfiles(TClonesArray *adc);
     BmnStatus FillNoisyChannels();
@@ -132,7 +135,7 @@ public:
     void DrawDebugHists();
     void DrawDebugHists2D();
     void ClearDebugHists();
-    static BmnSiliconStationSet *  GetSilStationSet(Int_t period, BmnSetup stp = kBMNSETUP);
+    static unique_ptr<BmnSiliconStationSet>  GetSilStationSet(Int_t period, BmnSetup stp = kBMNSETUP);
     static BmnGemStripStationSet * GetGemStationSet(Int_t period, BmnSetup stp = kBMNSETUP);
     static BmnCSCStationSet *      GetCSCStationSet(Int_t period, BmnSetup stp = kBMNSETUP);
 
@@ -160,7 +163,7 @@ protected:
     map <Int_t, Int_t> fGemStats;
     map <Int_t, Int_t> fSilStats;
     BmnGemStripStationSet* fGemStationSet = nullptr;
-    BmnSiliconStationSet* fSilStationSet = nullptr;
+    unique_ptr<BmnSiliconStationSet> fSilStationSet;
     BmnCSCStationSet* fCscStationSet = nullptr;
 
     map<UInt_t, Int_t> fSerMap; ///< ADC serials map

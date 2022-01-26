@@ -12,6 +12,8 @@ BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh
     fNSerials = vSer.size();
     fNChannels = nCh;
     fNSamples = nSmpl;
+    PrecalcEventModsImp = (GetRun() > GetBoundaryRun(fNSamples) || GetPeriod() == 8) ?
+        &BmnAdcProcessor::PrecalcEventMods : &BmnAdcProcessor::PrecalcEventModsOld;
     fAdcSerials = vSer;
     for (int iSer = 0; iSer < fAdcSerials.size(); ++iSer) {
         fSerMap.insert(pair<UInt_t, Int_t>(fAdcSerials[iSer], iSer));
@@ -208,8 +210,8 @@ BmnAdcProcessor::~BmnAdcProcessor() {
     //        }
     if (fGemStationSet)
         delete fGemStationSet;
-    if (fSilStationSet)
-        delete fSilStationSet;
+//    if (fSilStationSet)
+//        delete fSilStationSet;
     if (fCscStationSet)
         delete fCscStationSet;
     if (statsGem)
@@ -530,7 +532,11 @@ BmnStatus BmnAdcProcessor::RecalculatePedestalsAugmented() {
     return kBMNSUCCESS;
 }
 
-void BmnAdcProcessor::PrecalcEventMods(TClonesArray *adc) {
+void BmnAdcProcessor::PrecalcEventModsOld(TClonesArray *adc) {
+    TStopwatch timer;
+    Double_t rtime;
+    Double_t ctime;
+    timer.Start();
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
         memset(fNvals[iCr], 0, sizeof (UInt_t) * fNChannels);
         memset(fCMode[iCr], 0, sizeof (Double_t) * fNChannels);
@@ -539,6 +545,11 @@ void BmnAdcProcessor::PrecalcEventMods(TClonesArray *adc) {
             memset(fAdc[iCr][iCh], 0, sizeof (Double_t) * fNSamples);
         }
     }
+    timer.Stop();
+    rtime = timer.RealTime();
+    ctime = timer.CpuTime();
+//    printf("\nReal time %f s, CPU time %f s  clear\n", rtime, ctime);
+    timer.Start();
     for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
         BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
         UInt_t iCh = adcDig->GetChannel();
@@ -554,9 +565,7 @@ void BmnAdcProcessor::PrecalcEventMods(TClonesArray *adc) {
         for (UInt_t iSmpl = 0; iSmpl < fNSamples; iSmpl++) {
             if ((fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE))
                 continue;
-            Double_t val = (GetRun() > GetBoundaryRun(ADC128_N_SAMPLES) || GetPeriod() == 8) ?
-                    ((Double_t) (adcDig->GetShortValue())[iSmpl] / 16) :
-                    ((Double_t) (adcDig->GetUShortValue())[iSmpl] / 16);
+            Double_t val = static_cast<Double_t>(adcDig->GetUShortValue()[iSmpl] / 16);
             fAdc[iCr][iCh][iSmpl] = val;
 
             Double_t Sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl];
@@ -572,6 +581,65 @@ void BmnAdcProcessor::PrecalcEventMods(TClonesArray *adc) {
         }
 
     }
+    timer.Stop();
+    rtime = timer.RealTime();
+    ctime = timer.CpuTime();
+//    printf("\nReal time %f s, CPU time %f s  fill array\n", rtime, ctime);
+}
+
+void BmnAdcProcessor::PrecalcEventMods(TClonesArray *adc) {
+    TStopwatch timer;
+    Double_t rtime;
+    Double_t ctime;
+    timer.Start();
+    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+        memset(fNvals[iCr], 0, sizeof (UInt_t) * fNChannels);
+        memset(fCMode[iCr], 0, sizeof (Double_t) * fNChannels);
+        memset(fSMode[iCr], 0, sizeof (Double_t) * fNChannels);
+        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+            memset(fAdc[iCr][iCh], 0, sizeof (Double_t) * fNSamples);
+        }
+    }
+    timer.Stop();
+    rtime = timer.RealTime();
+    ctime = timer.CpuTime();
+//    printf("\nReal time %f s, CPU time %f s  clear\n", rtime, ctime);
+    timer.Start();
+    for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
+        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
+        UInt_t iCh = adcDig->GetChannel();
+        UInt_t ser = adcDig->GetSerial();
+        //        printf("Serial %08X \n", ser);
+        auto serIter = fSerMap.find(ser);
+        //        printf("iter %08X end %08X\n", serIter, fSerMap.end());
+        if (serIter == fSerMap.end()) {
+            //            printf("Serial %08X not found in the map\n", ser);
+            continue;
+        }
+        Int_t iCr = serIter->second;
+        for (UInt_t iSmpl = 0; iSmpl < fNSamples; iSmpl++) {
+            if ((fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE))
+                continue;
+            Double_t val = static_cast<Double_t>(adcDig->GetShortValue()[iSmpl] / 16);
+            fAdc[iCr][iCh][iSmpl] = val;
+
+            Double_t Sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl];
+            Double_t Asig = TMath::Abs(Sig);
+            //                        printf("adc %6f ped %6f\n", fAdc[iCr][iCh][iSmpl], fPedVal[iCr][iCh][iSmpl]);
+
+            if ((Asig < thrMax)) {
+                //                        printf("adc %6f < thrMax %6f\n", fAdc[iCr][iCh][iSmpl], thrMax);
+                fSMode[iCr][iCh] += fAdc[iCr][iCh][iSmpl];
+                fCMode[iCr][iCh] += fPedVal[iCr][iCh][iSmpl];
+                fNvals[iCr][iCh]++;
+            }
+        }
+
+    }
+    timer.Stop();
+    rtime = timer.RealTime();
+    ctime = timer.CpuTime();
+//    printf("\nReal time %f s, CPU time %f s  fill array\n", rtime, ctime);
 }
 
 void BmnAdcProcessor::CalcEventMods() {
@@ -700,7 +768,9 @@ void BmnAdcProcessor::CreateGeometries() {
 
     // SI
     TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
-    fSilStationSet = new BmnSiliconStationSet(gPathSiliconConfig + confSi);
+    fSilStationSet = unique_ptr<BmnSiliconStationSet>(new BmnSiliconStationSet(gPathSiliconConfig + confSi));
+//    fSilStationSet = make_unique<BmnSiliconStationSet>(gPathSiliconConfig + confSi);
+//    fSilStationSet = new BmnSiliconStationSet(gPathSiliconConfig + confSi);
 
     // GEM
     TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
@@ -823,7 +893,7 @@ Double_t BmnAdcProcessor::CalcCMS(Double_t* samples, Int_t size) {
     return CMS;
 }
 
-BmnSiliconStationSet * BmnAdcProcessor::GetSilStationSet(Int_t period, BmnSetup stp) {
+unique_ptr<BmnSiliconStationSet> BmnAdcProcessor::GetSilStationSet(Int_t period, BmnSetup stp) {
     TString gPathConfig = getenv("VMCWORKDIR");
     TString xmlConfFileName;
     switch (period) {
@@ -850,7 +920,8 @@ BmnSiliconStationSet * BmnAdcProcessor::GetSilStationSet(Int_t period, BmnSetup 
             break;
     }
     TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
-    return new BmnSiliconStationSet(gPathSiliconConfig + xmlConfFileName);
+    return unique_ptr<BmnSiliconStationSet>(new BmnSiliconStationSet(gPathSiliconConfig + xmlConfFileName));
+//    return std::make_unique<BmnSiliconStationSet>(gPathSiliconConfig + xmlConfFileName);
 }
 
 BmnGemStripStationSet * BmnAdcProcessor::GetGemStationSet(Int_t period, BmnSetup stp) {

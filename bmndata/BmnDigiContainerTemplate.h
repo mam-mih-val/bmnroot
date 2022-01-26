@@ -72,7 +72,7 @@ public:
   /** @brief Class name (static)
        ** @return BmnDigiContainerTemplate
        **/
-  static const char* GetClassName() { return "BmnDigiContainerTemplate"; }
+  virtual const char* GetClassName() { return "BmnDigiContainerTemplate"; }
 
 
   /** @brief Address

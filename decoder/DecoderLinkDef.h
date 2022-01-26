@@ -24,6 +24,7 @@
 #pragma link C++ class BmnRawDataDecoder+;
 #pragma link C++ class BmnSlewingTOF700+;
 #pragma link C++ class BmnMscRaw2Digit+;
+#pragma link C++ class WfmProcessor+;
 #pragma link C++ class PsdSignalFitting::PronyFitter;
 
 #endif

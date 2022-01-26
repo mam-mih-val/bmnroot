@@ -51,6 +51,7 @@ set(SRCS
  BmnTrigRaw2Digit.cxx
  BmnCscRaw2Digit.cxx
  BmnMscRaw2Digit.cxx
+ WfmProcessor.cxx
  PronyFitter.cxx
 )
 

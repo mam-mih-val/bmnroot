@@ -46,11 +46,10 @@ public:
   ~BmnScWallDigi() {};
 
 
-  /** @brief Class name (static)
+  /** @brief Class name
        ** @return BmnScWallDigi
        **/
-  static const char* GetClassName() { return "BmnScWallDigi"; }
-
+  virtual const char* GetClassName() override final { return "BmnScWallDigi"; } 
 
   /** @brief Cell Id
        ** @return Cell Id from Unique channel address (see BmnScWallAddress)
@@ -82,7 +81,7 @@ public:
     return 1;
   }
 
-  ClassDefNV(BmnScWallDigi, 1);
+  ClassDefOverride(BmnScWallDigi, 1);
 };
 
 #endif  // BmnScWallDigi_H

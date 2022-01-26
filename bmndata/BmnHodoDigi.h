@@ -46,10 +46,10 @@ public:
   ~BmnHodoDigi() {};
 
 
-  /** @brief Class name (static)
+  /** @brief Class name
        ** @return BmnHodoDigi
        **/
-  static const char* GetClassName() { return "BmnHodoDigi"; }
+  virtual const char* GetClassName() override final { return "BmnHodoDigi"; }
 
 
   /** @brief Strip Id
@@ -70,7 +70,7 @@ public:
     return 1;
   }
 
-  ClassDefNV(BmnHodoDigi, 1);
+  ClassDefOverride(BmnHodoDigi, 1);
 };
 
 #endif  // BmnHodoDigi_H

@@ -46,10 +46,10 @@ public:
   ~BmnFHCalDigi() {};
 
 
-  /** @brief Class name (static)
+  /** @brief Class name
        ** @return BmnFHCalDigi
        **/
-  static const char* GetClassName() { return "BmnFHCalDigi"; }
+  virtual const char* GetClassName() override final { return "BmnFHCalDigi"; }
 
 
   /** @brief Module Type
@@ -100,7 +100,7 @@ public:
     return 1;
   }
 
-  ClassDefNV(BmnFHCalDigi, 1);
+  ClassDefOverride(BmnFHCalDigi, 1);
 };
 
 #endif  // BmnFHCalDigi_H

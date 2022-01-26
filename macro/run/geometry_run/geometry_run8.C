@@ -32,7 +32,7 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(bd);
 
     FairDetector* fd = new BmnFD("FD", kTRUE);
-    fd->SetGeometryFileName("FD_run8_v1.root");
+    fd->SetGeometryFileName("FD_run8_v4.root");
     fRun->AddModule(fd);
 
     FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
@@ -51,9 +51,9 @@ void geometry(FairRunSim *fRun)
     tof1->SetGeometryFileName("TOF400_RUN7.root");
     fRun->AddModule(tof1);
 
-    FairDetector* dch = new BmnDch("DCH", kTRUE);
-    dch->SetGeometryFileName("DCH_RunSpring2018.root");
-    fRun->AddModule(dch);
+    // FairDetector* dch = new BmnDch("DCH", kTRUE);
+    // dch->SetGeometryFileName("DCH_RunSpring2018.root");
+    // fRun->AddModule(dch);
 
     FairDetector* tof2 = new BmnTOF("TOF", kTRUE);
     tof2->SetGeometryFileName("tof700_run7_with_support.root");
@@ -64,15 +64,15 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(ecal);
 
     FairDetector* scwall = new BmnScWall("SCWALL", kTRUE);
-    scwall->SetGeometryFileName("ScWall_with_hole_XeCsI_3.9GeV_field_Extrap_scale_1200_900_Zpos_880.0cm_Xshift_58.50cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
+    scwall->SetGeometryFileName("ScWall_with_box_with_hole_XeCsI_3.9GeV_field_Extrap_scale_1800_900_Zpos_875.0cm_Xshift_78.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
     fRun->AddModule(scwall);
 
     FairDetector* hodo = new BmnHodo("HODO", kTRUE);
-    hodo->SetGeometryFileName("Hodo_XeCsI_3.9GeV_field_Extrap_scale_1200_900_Zpos_895.0cm_Xshift_36.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
+    hodo->SetGeometryFileName("Hodo_with_box_XeCsI_3.9GeV_field_Extrap_scale_1800_900_Zpos_892.0cm_Xshift_55.50cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
     fRun->AddModule(hodo);
 
     BmnZdc* fhcal = new BmnZdc("FHCal", kTRUE);
     //zdc->SetBirk();
-    fhcal->SetGeometryFileName("FHCal_54mods_hole_XeCsI_3.9GeV_field_Extrap_scale_1200_900_Zpos_900.0cm_Xshift_36.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
+    fhcal->SetGeometryFileName("FHCal_54mods_hole_XeCsI_3.9GeV_field_Extrap_scale_1800_900_Zpos_900.0cm_Xshift_55.5cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
     fRun->AddModule(fhcal);
 }

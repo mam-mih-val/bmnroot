@@ -90,13 +90,13 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
 
 
     if (decoMode == kBMNADCSM) {
-        fGemStationSet = BmnAdcProcessor::GetGemStationSet(period, fSetup);
+        fGemStationSetDer = new BmnGemStripStationSet(period, fSetup);
 
-        Int_t kNStations = fGemStationSet->GetNStations();
+        Int_t kNStations = fGemStationSetDer->GetNStations();
         fSigProf = new TH1F***[kNStations];
         fNoisyChannels = new Bool_t***[kNStations];
         for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
-            auto * st = fGemStationSet->GetStation(iSt);
+            auto * st = fGemStationSetDer->GetStation(iSt);
             Int_t nModules = st->GetNModules();
             fSigProf[iSt] = new TH1F**[nModules];
             fNoisyChannels[iSt] = new Bool_t**[nModules];
@@ -151,9 +151,9 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
     if (!fMap.empty()) for (int i = 0; i < fMap.size(); i++) delete fMap[i];
 
     if (Rnoisefile == nullptr && Wnoisefile == nullptr) {
-        Int_t kNStations = fGemStationSet->GetNStations();
+        Int_t kNStations = fGemStationSetDer->GetNStations();
         for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
-            auto * st = fGemStationSet->GetStation(iSt);
+            auto * st = fGemStationSetDer->GetStation(iSt);
             for (UInt_t iMod = 0; iMod < st->GetNModules(); ++iMod) {
                 auto *mod = st->GetModule(iMod);
                 for (Int_t iLay = 0; iLay < mod->GetNStripLayers(); ++iLay) {
@@ -278,7 +278,7 @@ BmnStatus BmnGemRaw2Digit::FillProfiles(TClonesArray *adc) {
     //            }
     //        }
     //    }
-    PrecalcEventMods(adc);
+    (this->*PrecalcEventModsImp)(adc);
     CalcEventMods();
     ProcessAdc(nullptr, kTRUE);
 
@@ -308,8 +308,8 @@ BmnStatus BmnGemRaw2Digit::FillNoisyChannels() {
                             fNoisyChannels[station][module][layer][strip] = kTRUE;
                         }
                 }
-    for (Int_t iSt = 0; iSt < fGemStationSet->GetNStations(); ++iSt) {
-        auto * st = fGemStationSet->GetStation(iSt);
+    for (Int_t iSt = 0; iSt < fGemStationSetDer->GetNStations(); ++iSt) {
+        auto * st = fGemStationSetDer->GetStation(iSt);
         for (UInt_t iMod = 0; iMod < st->GetNModules(); ++iMod) {
             auto *mod = st->GetModule(iMod);
             for (Int_t iLay = 0; iLay < mod->GetNStripLayers(); ++iLay) {
@@ -420,7 +420,7 @@ BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * gem) {
     //            }
     //        }
     //    }
-    PrecalcEventMods(adc);
+    (this->*PrecalcEventModsImp)(adc);
     CalcEventMods();
     ProcessAdc(gem, kFALSE);
 

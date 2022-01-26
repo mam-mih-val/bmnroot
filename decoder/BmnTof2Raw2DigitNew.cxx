@@ -1321,7 +1321,7 @@ void BmnTof2Raw2DigitNew::readSlewing(Bool_t update)
     }
     else
     {
-	LOG(FATAL)<<"Error open slewing file " << filnr << " - exit!";
+	LOG(ERROR)<<"Error open slewing file " << filnr << " - exit!";
 	return;
     }
   }

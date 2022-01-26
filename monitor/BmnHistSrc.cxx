@@ -1,23 +1,43 @@
 #include "BmnHistSrc.h"
 
-BmnHistSrc::BmnHistSrc(TString title, TString path) : BmnHist() {
+BmnHistSrc::BmnHistSrc(TString title, TString path, Int_t periodID, BmnSetup setup) : BmnHist(periodID, setup) {
     refPath = path;
     fTitle = title;
     fName = title + "_cl";
     canvas = NULL;
+    TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((fSetup == kBMNSETUP) ? "" : "_SRC"));
+    TString MapFileName = TString("Trig_map_Run") + PeriodSetupExt;
+    BmnTrigRaw2Digit *fTrigMapper = new BmnTrigRaw2Digit("0.txt", MapFileName);
+    for (auto &map : *fTrigMapper->GetMap()) {
+        TString trName = map.name;
+        if (!strcmp(trName.Data(), "TDC"))
+            tdcNames.push_back(trName);
+    }
+    TString name = fTitle + "_" + "TDC_mod_amp";
+    Int_t trigCount = tdcNames.size();
+    Double_t max_amp = 50;
+    hTDC = new TH2F(name, name, trigCount, 0, trigCount, 100, 0, max_amp);
+    hTDC->GetXaxis()->SetTitle("TDC #");
+    hTDC->GetYaxis()->SetTitle("Time, ns");
+    hTDC->GetXaxis()->SetTitleOffset(0.4);
+    hTDC->GetXaxis()->SetTitleColor(kOrange + 10);
+    hTDC->GetYaxis()->SetTitleOffset(0.6);
+    hTDC->GetYaxis()->SetTitleColor(kOrange + 10);
+//    hTDC->SetDirectory(0);
 }
 
 BmnHistSrc::~BmnHistSrc() {
+//    if (hTDC) delete hTDC;
 }
 
 void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     Int_t arLen = trigAr->size();
+    TString name;
     fSrcCols = SRC_COLS;
-    fSrcRows = arLen;// / fSrcCols;
-    for (Int_t i = 0; i < fSrcRows; ++i){
+    fSrcRows = arLen; // / fSrcCols;
+    for (Int_t i = 0; i < fSrcRows; ++i) {
         trigNames.push_back(TString(trigAr->at(i)->GetName()));
     }
-    TString name;
 
     hists.resize(fSrcRows);
     for (Int_t i = 0; i < hists.size(); i++)
@@ -38,7 +58,7 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     }
     for (Int_t iRow = 0; iRow < fSrcRows; iRow++) { // 1 column - Amplitude(TQDC -waveform ampl.,  TDC - sig. width)
         name = fTitle + "_" + trigNames[iRow].Data() + "_Amplitude";
-        TH1F *h = new TH1F(name, name, 1000, 0, 2000);
+        TH1F *h = new TH1F(name, name, 500, 0, 2000);
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
         h->GetXaxis()->SetTitle("Time, ns");
@@ -49,23 +69,22 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
         h->GetYaxis()->SetTitleColor(kOrange + 10);
         hists[iRow][1] = h;
     }
-//    for (Int_t iRow = 0; iRow < fSrcRows; iRow++) { // 2 column - sampling summed
-//        name = fTitle + "_" + trigNames[iRow].Data() + "_QDC";
-//        TH1F *h = new TH1F(name, name, ADC_SAMPLING_LIMIT * 2 / 100, -ADC_SAMPLING_LIMIT, ADC_SAMPLING_LIMIT);
-//        h->SetTitleSize(0.06, "XY");
-//        h->SetLabelSize(0.08, "XY");
-//        h->GetXaxis()->SetTitle("QDC Channel, ");
-//        h->GetXaxis()->SetTitleColor(kOrange + 10);
-//        h->GetYaxis()->SetTitle("Activation Count");
-//        h->GetYaxis()->SetTitleOffset(1.1);
-//        h->GetYaxis()->SetTitleColor(kOrange + 10);
-//        hists[iRow][2] = h;
-//    }
+    //    for (Int_t iRow = 0; iRow < fSrcRows; iRow++) { // 2 column - sampling summed
+    //        name = fTitle + "_" + trigNames[iRow].Data() + "_QDC";
+    //        TH1F *h = new TH1F(name, name, ADC_SAMPLING_LIMIT * 2 / 100, -ADC_SAMPLING_LIMIT, ADC_SAMPLING_LIMIT);
+    //        h->SetTitleSize(0.06, "XY");
+    //        h->SetLabelSize(0.08, "XY");
+    //        h->GetXaxis()->SetTitle("QDC Channel, ");
+    //        h->GetXaxis()->SetTitleColor(kOrange + 10);
+    //        h->GetYaxis()->SetTitle("Activation Count");
+    //        h->GetYaxis()->SetTitleOffset(1.1);
+    //        h->GetYaxis()->SetTitleColor(kOrange + 10);
+    //        hists[iRow][2] = h;
+    //    }
     // Create canvas
     name = fTitle + "Canvas";
     canvas = new TCanvas(name, name, PAD_WIDTH * fSrcCols, PAD_HEIGHT * fSrcRows);
-    canvas->Divide(fSrcCols, fSrcRows,0.0001,0.0001);
-            printf("rows %d cols %d  \n",  fSrcRows, fSrcCols);
+    canvas->Divide(fSrcCols, fSrcRows, 0.0001, 0.0001);
     canPads.resize(fSrcCols * fSrcRows);
     Names.resize(fSrcCols * fSrcRows);
     for (Int_t iRow = 0; iRow < fSrcRows; iRow++)
@@ -73,10 +92,10 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
             PadInfo *p = new PadInfo();
             p->current = hists[iRow][iCol];
             Int_t iPad = iRow * fSrcCols + iCol;
-//            printf("ipad %d irow %d icol %d  %08X %08X\n", iPad, iRow, iCol, canvas, canvas->GetPad(iPad + 1));
+            //            printf("ipad %d irow %d icol %d  %08X %08X\n", iPad, iRow, iCol, canvas, canvas->GetPad(iPad + 1));
             canPads[iPad] = p;
             canvas->GetPad(iPad + 1)->SetGrid();
-            if (p->current){
+            if (p->current) {
                 Names[iPad] = p->current->GetName();
             }
         }
@@ -90,6 +109,7 @@ void BmnHistSrc::Register(THttpServer * serv) {
     fServer->Register("/", this);
     TString path = "/" + fTitle + "/";
     fServer->Register(path, canvas);
+    fServer->Register(path, hTDC);
     fServer->SetItemField(path, "_monitoring", "2000");
     fServer->SetItemField(path, "_layout", "grid3x3");
     TString cmd = "/" + fName + "/->Reset()";
@@ -120,6 +140,7 @@ void BmnHistSrc::SetDir(TDirectory* Dir) {
         for (auto el : row)
             if (el)
                 el->SetDirectory(fDir);
+    hTDC->SetDirectory(Dir);
 }
 
 void BmnHistSrc::DrawBoth() {
@@ -151,6 +172,13 @@ void BmnHistSrc::FillFromDigi(DigiArrays *fDigiArrays) {
                 BmnTrigDigit *td = (BmnTrigDigit*) a->At(digIndex);
                 hists[iTrig][0]->Fill(td->GetTime());
                 hists[iTrig][0]->Fill(td->GetAmp());
+            }
+            if (!strcmp(a->GetName(), "TDC")) {
+                for (Int_t digIndex = 0; digIndex < a->GetEntriesFast(); digIndex++) {
+                    BmnTrigDigit *td = (BmnTrigDigit*) a->At(digIndex);
+                    hTDC->Fill(td->GetMod(), td->GetAmp());
+                }
+
             }
         }
     }

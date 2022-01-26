@@ -2,6 +2,8 @@
  * Macro for decoders comparison
  */
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
+R__LOAD_LIBRARY(libFairMQ)
+R__LOAD_LIBRARY(libBmnMonitor)
 
 #if !defined(__CINT__) || defined(__MAKECINT__)
 

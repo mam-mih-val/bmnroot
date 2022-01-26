@@ -11,6 +11,7 @@ const UInt_t kRUNSTARTSYNC = 0x72617453;
 const UInt_t kRUNSTOPSYNC = 0x706F7453;
 const UInt_t kRUNNUMBERSYNC = 0x236E7552;
 const UInt_t kRUNINDEXSYNC = 0x78646E49;
+const UInt_t kJSONSYNC = 0x4E4F534A;
 const size_t kWORDSIZE = sizeof (UInt_t);
 const UShort_t kNBYTESINWORD = 4;
 

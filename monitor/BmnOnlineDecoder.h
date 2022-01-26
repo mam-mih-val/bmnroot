@@ -35,12 +35,14 @@
 #include "BmnDataReceiver.h"
 #include <BmnRawDataDecoder.h>
 #include "BmnEventHeader.h"
+#include "BmnHist.h"
 
 #define RAW_DECODER_SOCKET_PORT 5555
 #define RUN_FILE_CHECK_PERIOD    1e5
 #define DECO_SOCK_WAIT_PERIOD     10
 #define DECO_SOCK_WAIT_LIMIT     5*60e3
 #define INOTIF_BUF_LEN (255 * (sizeof(struct inotify_event) + 255))
+#define MIN_REMNANT_LEN 200 * 1024// crutch actually, will be removed after parser improvement
 #define DAQ_ADDR     "bmn-daq"  //"bmn-hrb-3.jinr.ru"
 #define DAQ_IP         "10.18.11.200"//"10.18.11.193"//
 #define DAQ_PORT               32999
@@ -76,6 +78,13 @@ public:
     Int_t GetPeriodID() const {
         return fPeriodID;
     }
+    void SetDetectorSetup(map<DetectorId, bool> setup) {
+        fDetectorSetup = setup;
+    }
+    void SetDaqAddress(TString addr) {
+        fDAQAddr = addr;
+    }
+    static void StripView(Int_t periodID, Int_t runID, BmnSetup fSetup = kBMNSETUP);
 private:
     BmnStatus InitDecoder(TString);
     BmnStatus InitDecoder(Int_t runID);
@@ -89,8 +98,10 @@ private:
     
     void * _ctx;
     void * _decoSocket;
+    TString fDAQAddr;
     BmnSetup fBmnSetup;
     BmnRawDataDecoder *rawDataDecoder;
+    map<DetectorId, bool> fDetectorSetup;
     TChain *fRecoChain;
     FairRunAna* fRunAna;
     TString _curFile;

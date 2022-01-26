@@ -7,7 +7,7 @@ BmnHistSilicon::BmnHistSilicon(TString title, TString path, Int_t PeriodID, BmnS
     fTitle = title;
     fName = title + "_cl";
     TString name;
-    BmnSiliconStationSet* stationSet = BmnAdcProcessor::GetSilStationSet(PeriodID, fSetup);
+    unique_ptr<BmnSiliconStationSet> stationSet = BmnAdcProcessor::GetSilStationSet(PeriodID, fSetup);
     for (Int_t iStation = 0; iStation < stationSet->GetNStations(); iStation++) {
         vector<vector<TH1F*> > rowGEM;
         BmnSiliconStation* st = stationSet->GetSiliconStation(iStation);

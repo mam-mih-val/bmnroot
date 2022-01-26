@@ -28,7 +28,7 @@ struct BmnCscMapping {
     Short_t station;
 };
 
-typedef map<Int_t, BmnCscMapping*> InChanMap;
+typedef map<Int_t, BmnCscMapping*> InChanMapCSC;
 
 class BmnCscRaw2Digit : public BmnAdcProcessor {
 public:
@@ -44,18 +44,20 @@ private:
 
     TString fMapFileName;
     vector<BmnCscMapping*> fMap;
-    map<UInt_t, InChanMap> fOuterMap; // serial map
+    map<UInt_t, InChanMapCSC> fOuterMap; // serial map
+    vector<InChanMapCSC> fMapVec; // serial map
     vector<UInt_t> fSerials;
     Int_t channel2layer[N_CSC_MODULES][N_CSC_CHANNELS];
     Int_t channel2strip[N_CSC_MODULES][N_CSC_CHANNELS];
     Int_t fEventId;
+    BmnCSCStationSet* fCscStationSetDer = nullptr;
 
     TH1F**** fSigProf;
     Bool_t**** fNoisyChannels;
 
     BmnCscMapping* FindMapEntry(BmnADCDigit* adcDig);
     void ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TClonesArray *csc, Bool_t doFill);
-    void ProcessAdc(TClonesArray *csc, Bool_t doFill);
+    void ProcessAdc(TClonesArray *adc, TClonesArray *csc, Bool_t doFill);
     BmnStatus ReadMapFile();
     BmnStatus ReadMapLocalFile();
     inline Int_t LayerPrediction(Int_t module, Int_t x);

@@ -21,9 +21,9 @@ enum DetectorId {kREF,  // Reference plane
          kCSC,          // Cathode Strip Chambers
          kSILICON,      // Silicon Detectors
          kLAND,         // Large-Area Neutron Detector
-         kFD,           // FD
-         kSiMD,         // SiMD
-         kSiBT,         // SiMD (Silicon Beam Tracker)
+         kFD,           // Forward Detector (= SiMD until run8), Fragment Detector since run8
+         kSiMD,         // SiMD (Silicon Multiplicity Detector, since run8)
+         kSiBT,         // SiBD (Silicon Beam Tracker)
          kARMTRIG,      // ARMTRIG(X1, Y1, X2, Y2 for SRC arms)
          kBC,           // Beam Counter triggers
          kSCWALL,       // SCintillator WALL

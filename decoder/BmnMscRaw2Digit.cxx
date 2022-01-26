@@ -7,7 +7,7 @@ BmnMscRaw2Digit::BmnMscRaw2Digit(Int_t period, Int_t run, TString MapFile, TTree
     SetRawSpillTree(spillTree);
     SetDigSpillTree(digiSpillTree);
     ReadChannelMap(MapFile);
-    if (fBmnSetup == kSRCSETUP) {// @TODO extend for BM@N
+    if ((fBmnSetup == kSRCSETUP) && (fPeriodId == 7)) {// @TODO extend for BM@N
         BmnStatus status = ParseTxtSpillLog(
                 fBmnSetup == kSRCSETUP ?
                 "$VMCWORKDIR/database/uni_db/macros/parse_schemes/spill_run7/SRC_Data.txt" :
@@ -167,6 +167,8 @@ void BmnMscRaw2Digit::FillRunHeader(DigiRunHeader *rh) {
 
 BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnSpillHeader *sh, UInt_t &nPedEvBySpill) {
     sh->Clear();
+    if (fRawSpillTree->GetEntriesFast() <= iSpill)
+        return kBMNERROR;
     BmnTrigInfo *ti = hdr->GetTrigInfo();
     //    if (msc->GetEntriesFast() == 0)
     //        fTempTI = BmnTrigInfo(hdr->GetTrigInfo());
@@ -183,7 +185,7 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
             nPedEvBySpill = 0;
             return kBMNERROR;
         }
-//        fVerbose = 1;
+        //        fVerbose = 1;
         if (fVerbose)
             printf("Spill %u last event %u  Curent evId %u \n",
                 iSpill, dig->GetLastEventId(), iEv);

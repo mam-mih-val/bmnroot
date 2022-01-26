@@ -1,6 +1,8 @@
 
 #include "BmnToCbmHitConverter.h"
+#include <TStopwatch.h>
 
+static Double_t workTime = 0.0;
 
 // -----   Default constructor   ------------------------------------------
 BmnToCbmHitConverter::BmnToCbmHitConverter()
@@ -38,9 +40,14 @@ BmnToCbmHitConverter::~BmnToCbmHitConverter() {
 // -----   Public method Exec   --------------------------------------------
 void BmnToCbmHitConverter::Exec(Option_t* opt) {
 
+    TStopwatch sw;
+    sw.Start();
+
+    if (!IsActive())
+        return;
+    
     fCbmHitsArray->Delete();
-
-
+    FairRootManager::Instance()->SetUseFairLinks(kTRUE);
     for (Int_t iHit = 0; iHit < fBmnGemHitsArray->GetEntriesFast(); ++iHit) {
         BmnGemStripHit* bmnHit = (BmnGemStripHit*)fBmnGemHitsArray->At(iHit);
         TVector3 pos;
@@ -80,13 +87,14 @@ void BmnToCbmHitConverter::Exec(Option_t* opt) {
         }
 
         Int_t sens = 1;
-        Int_t detId = 2 << 24 | (stat + 1 + 3) << 16 | sect << 4 | sens << 1;
+        Int_t detId = kGEM << 24 | (stat + 1 + 3) << 16 | sect << 4 | sens << 1;
         new ((*fCbmHitsArray)[fCbmHitsArray->GetEntriesFast()]) CbmStsHit(detId, pos, dpos, 0.0, 0, 0);
         CbmStsHit* hit = (CbmStsHit*)fCbmHitsArray->At(fCbmHitsArray->GetEntriesFast() - 1);
         hit->ResetLinks();
         hit->SetLinks(bmnHit->GetLinks());
-        hit->SetRefIndex(kGEM);
+        hit->SetRefIndex(bmnHit->GetRefIndex());
     }
+    
     for (Int_t iHit = 0; iHit < fBmnSilHitsArray->GetEntriesFast(); ++iHit) {
         BmnSiliconHit* bmnHit = (BmnSiliconHit*)fBmnSilHitsArray->At(iHit);
         TVector3 pos;
@@ -94,14 +102,17 @@ void BmnToCbmHitConverter::Exec(Option_t* opt) {
         TVector3 dpos;
         bmnHit->PositionError(dpos);
         Int_t sens = 1;
-        Int_t detId = 2 << 24 | (bmnHit->GetStation() + 1) << 16 | (bmnHit->GetModule() + 1) << 4 | sens << 1;
+        Int_t detId = kSILICON << 24 | (bmnHit->GetStation() + 1) << 16 | (bmnHit->GetModule() + 1) << 4 | sens << 1;
         new ((*fCbmHitsArray)[fCbmHitsArray->GetEntriesFast()]) CbmStsHit(detId, pos, dpos, 0.0, 0, 0);
         CbmStsHit* hit = (CbmStsHit*)fCbmHitsArray->At(fCbmHitsArray->GetEntriesFast() - 1);
         hit->ResetLinks();
         hit->SetLinks(bmnHit->GetLinks());
-        hit->SetRefIndex(kSILICON);
+        hit->SetRefIndex(bmnHit->GetRefIndex());
     }
+    FairRootManager::Instance()->SetUseFairLinks(kFALSE);
 
+    sw.Stop();
+    workTime += sw.RealTime();
 }
 // -------------------------------------------------------------------------
 
@@ -111,12 +122,22 @@ InitStatus BmnToCbmHitConverter::Init() {
     // Get input array
     FairRootManager* ioman = FairRootManager::Instance();
     if (!ioman) Fatal("Init", "No FairRootManager");
-    fBmnGemHitsArray = (TClonesArray*)ioman->GetObject("BmnGemStripHit");
-    fBmnSilHitsArray = (TClonesArray*)ioman->GetObject("BmnSiliconHit");
+    fBmnGemHitsArray = (TClonesArray*)ioman->GetObject(fBmnGemHitsBranchName);
+    fBmnSilHitsArray = (TClonesArray*)ioman->GetObject(fBmnSilHitsBranchName);
+    if (!fBmnGemHitsArray) {
+        cout << "BmnToCbmHitConverter::Init(): branch " << fBmnGemHitsBranchName << " not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
+    if (!fBmnSilHitsArray) {
+        cout << "BmnToCbmHitConverter::Init(): branch " << fBmnSilHitsBranchName << " not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
 
     // Register output array
-    fCbmHitsArray = new TClonesArray("CbmStsHit", 1000);
-    ioman->Register("StsHit", "Hit in STS", fCbmHitsArray, kTRUE);
+    fCbmHitsArray = new TClonesArray("CbmStsHit");
+    ioman->Register("StsHit", "STSHIT", fCbmHitsArray, kTRUE);
 
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
 
@@ -130,6 +151,7 @@ InitStatus BmnToCbmHitConverter::Init() {
 
 
 void BmnToCbmHitConverter::Finish() {
+    printf("Work time of BmnToCbmHitConverter: %4.2f sec.\n", workTime);
 }
 
 ClassImp(BmnToCbmHitConverter)

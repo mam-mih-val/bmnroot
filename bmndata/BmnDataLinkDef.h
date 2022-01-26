@@ -64,6 +64,8 @@
 #pragma link C++ class BmnScWallDigi+;
 #pragma link C++ class BmnFHCalAddress+;
 #pragma link C++ class BmnFHCalDigi+;
+#pragma link C++ class BmnHodoAddress+;
+#pragma link C++ class BmnHodoDigi+;
 
 #pragma link C++ class BmnADCDigit+;
 #pragma link C++ class BmnTDCDigit+;

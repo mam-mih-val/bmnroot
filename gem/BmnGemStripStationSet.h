@@ -3,6 +3,7 @@
 
 #include "BmnGemStripStation.h"
 #include "BmnStripData.h"
+#include "BmnEnums.h"
 
 #include "TDOMParser.h"
 #include "TXMLNode.h"
@@ -32,6 +33,8 @@ public:
     BmnGemStripStationSet();
 
     BmnGemStripStationSet(TString xml_config_file, map <Int_t, TVector3>* shifts = nullptr);
+    
+    BmnGemStripStationSet(Int_t period, BmnSetup stp = kBMNSETUP);
 
     /* Destructor */
     virtual ~BmnGemStripStationSet();

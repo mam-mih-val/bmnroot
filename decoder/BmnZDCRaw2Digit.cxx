@@ -300,16 +300,16 @@ BmnZDCRaw2Digit::~BmnZDCRaw2Digit()
       if (TestProf[i]) delete TestProf[i];
       TestProf[i] = NULL;
     }
-    delete hsum_sim;
-    delete hsum_raw;
-    delete hsum;
+    if (hsum_sim) delete hsum_sim;
+    if (hsum_raw) delete hsum_raw;
+    if (hsum) delete hsum;
 
-    delete hxmean;
-    delete hymean;
+    if (hxmean) delete hxmean;
+    if (hymean) delete hymean;
 
     for (int i=0; i<n_rec; i++)
     {
-	delete SampleProf[i];
+	if (SampleProf[i]) delete SampleProf[i];
     }
 }
 

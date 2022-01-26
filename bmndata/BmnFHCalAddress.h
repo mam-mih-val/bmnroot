@@ -39,13 +39,13 @@ public:
    **/
   static uint32_t GetAddress(uint32_t ModuleType, uint32_t ModuleId, uint32_t SectionId, uint32_t XIdx, uint32_t YIdx, uint32_t ZIdx)
   {
-    assert((uint32_t)kFHCAL < fgkSystemIdLength);
-    assert(ModuleType < fgkModTypeLength);
-    assert(ModuleId < fgkModIdxLength);
-    assert(SectionId < fgkSecIdxLength);
-    assert(XIdx < fgkXIdxLength);
-    assert(YIdx < fgkYIdxLength);
-    assert(ZIdx < fgkZIdxLength);
+    assert((uint32_t)kFHCAL <= fgkSystemIdLength);
+    assert(ModuleType <= fgkModTypeLength);
+    assert(ModuleId <= fgkModIdxLength);
+    assert(SectionId <= fgkSecIdxLength);
+    assert(XIdx <= fgkXIdxLength);
+    assert(YIdx <= fgkYIdxLength);
+    assert(ZIdx <= fgkZIdxLength);
     return (  (((uint32_t)kFHCAL) << fgkSystemIdShift) 
             | (ModuleType << fgkModTypeShift)
             | (ModuleId << fgkModIdxShift)

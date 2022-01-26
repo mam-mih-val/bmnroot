@@ -12,6 +12,9 @@
 #include "TClonesArray.h"
 
 #include <iostream>
+#include <TStopwatch.h>
+
+static Double_t workTime = 0.0;
 
 using std::cout;
 using std::endl;
@@ -104,6 +107,9 @@ InitStatus CbmFindPrimaryVertex::Init() {
 // -----   Public method Exec   --------------------------------------------
 void CbmFindPrimaryVertex::Exec(Option_t* opt) {
 
+  TStopwatch sw;
+  sw.Start();
+  
   // Reset primary vertex
   fPrimVert->Reset();
 
@@ -120,6 +126,9 @@ void CbmFindPrimaryVertex::Exec(Option_t* opt) {
     fPrimVert->Print();
     cout << "-------------------------------------------------------" << endl;
   }
+
+  sw.Stop();
+  workTime += sw.RealTime();
 }
 // -------------------------------------------------------------------------
 
@@ -128,6 +137,7 @@ void CbmFindPrimaryVertex::Exec(Option_t* opt) {
 // -----   Public method Finish   ------------------------------------------
 void CbmFindPrimaryVertex::Finish() {
   fPrimVert->Reset();
+  printf("Work time of CbmFindPrimaryVertex: %4.2f sec.\n", workTime);
 }
 // -------------------------------------------------------------------------
 

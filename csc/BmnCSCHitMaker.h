@@ -55,7 +55,6 @@ private:
     TString fInputDigitMatchesBranchName;
 
     TString fOutputHitsBranchName;
-    TString fOutputHitMatchesBranchName;
 
     /** Input array of CSC Points **/
     TClonesArray* fBmnCSCPointsArray;
@@ -64,9 +63,11 @@ private:
 
     /** Output array of CSC Hits **/
     TClonesArray* fBmnCSCHitsArray;
+    /** Output array of CSC Upper Clusters **/
+    TClonesArray* fBmnCSCUpperClustersArray;
+    /** Output array of CSC Lower Clusters **/
+    TClonesArray* fBmnCSCLowerClustersArray;
 
-    /** Output array of CSC Hit Matches **/
-    TClonesArray* fBmnCSCHitMatchesArray;
 
     Bool_t fHitMatching;
     Bool_t fIsExp; // Specify type of input data (MC or real data)

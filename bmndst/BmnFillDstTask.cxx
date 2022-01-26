@@ -27,6 +27,9 @@
 #include <iostream>
 #include <cstring>
 
+#include <TStopwatch.h>
+
+static Double_t workTime = 0.0;
 using namespace std;
 
 // ---- Default constructor -------------------------------------------
@@ -291,6 +294,10 @@ InitStatus BmnFillDstTask::ReInit() {
 
 // ---- Exec ----------------------------------------------------------
 void BmnFillDstTask::Exec(Option_t* /*option*/) {
+
+    TStopwatch sw;
+    sw.Start();
+    
     LOG(DEBUG) << "Exec of BmnFillDstTask";
 
     // fill output DST event header
@@ -426,6 +433,11 @@ void BmnFillDstTask::Exec(Option_t* /*option*/) {
         cout << "Event #" << fIEvent << endl;
     }
     fIEvent++;
+    
+    if (fIEvent == fNEvents) printf("\n");
+
+    sw.Stop();
+    workTime += sw.RealTime();
 }
 
 // ---- Finish --------------------------------------------------------
@@ -436,7 +448,7 @@ void BmnFillDstTask::Finish() {
     FairSink* fSink = ioman->GetSink();
     fSink->WriteObject(fRunHead, "DstRunHeader", TObject::kSingleKey);
 
-    if (fVerbose == 0) printf("\n");
+    printf("Work time of BmnFillDstTask: %4.2f sec.\n", workTime);
 }
 
 void BmnFillDstTask::InitParticleInfo() {

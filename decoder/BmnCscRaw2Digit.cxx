@@ -11,40 +11,22 @@ BmnCscRaw2Digit::BmnCscRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
 
     fEventId = 0;
     fMapFileName = MapFileName;
+    for (Short_t iMod = 0; iMod < N_CSC_MODULES; ++iMod) {
+        for (Short_t ich = 0; ich < N_CSC_CHANNELS; ++ich) {
+            channel2layer[iMod][ich] = -1;
+            channel2strip[iMod][ich] = -1;
+        }
+    }
     ReadMapFile();
     ReadMapLocalFile();
 
-    TString gPathConfig = getenv("VMCWORKDIR");
-    TString xmlConfFileName;
-    switch (period) {
-        case 8:
-            if (fSetup == kBMNSETUP) {
-                xmlConfFileName = "CSCRun8.xml";
-            } else {
-                xmlConfFileName = "CSCRunSRC2021.xml";
-            }
-            break;
-        case 7:
-            if (fSetup == kBMNSETUP) {
-                xmlConfFileName = "CSCRunSpring2018.xml";
-            } else {
-                xmlConfFileName = "CSCRunSRCSpring2018.xml";
-            }
-            break;
-        default:
-            printf("Error! Unknown config!\n");
-            return;
-            break;
+    fCscStationSetDer = BmnAdcProcessor::GetCSCStationSet(period, fSetup);
 
-    }
-    TString gPathCscConfig = gPathConfig + "/parameters/csc/XMLConfigs/";
-    fCscStationSet = new BmnCSCStationSet(gPathCscConfig + xmlConfFileName);
-
-    Int_t kNStations = fCscStationSet->GetNStations();
+    Int_t kNStations = fCscStationSetDer->GetNStations();
     fSigProf = new TH1F***[kNStations];
     fNoisyChannels = new Bool_t***[kNStations];
     for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
-        auto * st = fCscStationSet->GetStation(iSt);
+        auto * st = fCscStationSetDer->GetStation(iSt);
         Int_t kNModules = st->GetNModules();
         fSigProf[iSt] = new TH1F**[kNModules];
         fNoisyChannels[iSt] = new Bool_t**[kNModules];
@@ -72,8 +54,8 @@ BmnCscRaw2Digit::BmnCscRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
 }
 
 BmnCscRaw2Digit::~BmnCscRaw2Digit() {
-    for (Int_t iSt = 0; iSt < fCscStationSet->GetNStations(); ++iSt) {
-        auto * st = fCscStationSet->GetStation(iSt);
+    for (Int_t iSt = 0; iSt < fCscStationSetDer->GetNStations(); ++iSt) {
+        auto * st = fCscStationSetDer->GetStation(iSt);
         for (UInt_t iMod = 0; iMod < st->GetNModules(); ++iMod) {
             auto * mod = st->GetModule(iMod);
             for (Int_t iLay = 0; iLay < mod->GetNStripLayers(); ++iLay) {
@@ -122,22 +104,38 @@ BmnStatus BmnCscRaw2Digit::ReadMapFile() {
         record->channel_high = ch_hi / GetNSamples();
         record->station = station;
         fMap.push_back(record);
+        auto it = fOuterMap.find(ser);
+        if (it == fOuterMap.end()) { // create inner channel map for the serial 
+            InChanMapCSC inner;
+            inner.insert(make_pair(record->channel_low - 1, nullptr));
+            inner.insert(make_pair(record->channel_high, record));
+            fOuterMap.insert(make_pair(ser, move(inner)));
+        } else { // add range to the existing inner channel map
+            InChanMapCSC &inner = it->second;
+            auto innerIt = inner.find(record->channel_low);
+            if (innerIt == inner.end()) {
+                inner.insert(make_pair(record->channel_low - 1, nullptr));
+                inner.insert(make_pair(record->channel_high, record));
+            } else {
+                if (innerIt->second == nullptr) {
+                    innerIt->second = record;
+                } else {
+                    //                    fprintf(stderr, "Wrong CSC map!\n");
+                    //                    return kBMNERROR;
+                }
+            }
+        }
     }
 
     return kBMNSUCCESS;
 }
 
 BmnStatus BmnCscRaw2Digit::ReadMapLocalFile() {
-    Int_t modules = 2;
-    Int_t layers = 4;
+    Short_t modules = 2;
+    Short_t layers = 4;
 
     for (Short_t iMod = 0; iMod < modules; ++iMod) {
-        vector< vector<Int_t> > mVec;
-        vector< vector<Int_t> > mChannel;
         for (Short_t iLay = 0; iLay < layers; ++iLay) {
-            vector<Int_t> lVec(2048);
-            std::fill(lVec.begin(), lVec.end(), -1);
-            vector<Int_t> lChannel;
             TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + TString("CSC_m") + (Long_t) iMod + TString("l") + (Long_t) iLay + TString(".txt");
             ifstream inFile(name.Data());
             if (!inFile.is_open()) {
@@ -148,17 +146,17 @@ BmnStatus BmnCscRaw2Digit::ReadMapLocalFile() {
             while (!inFile.eof()) {
                 Int_t ch;
                 inFile >> ch;
-                lChannel.push_back(ch);
-                lVec[ch] = strip;
+                if (ch < N_CSC_CHANNELS) {
+                    channel2layer[iMod][ch] = iLay;
+                    channel2strip[iMod][ch] = strip;
+                } else {
+                    printf("Error! Wrong strip map in the %s !", name.Data());
+                    return kBMNERROR;
+                }
                 strip++;
             }
-            mVec.push_back(lVec);
-            mChannel.push_back(lChannel);
         }
-        localMap.push_back(mVec);
-        channelMap.push_back(mChannel);
     }
-
     return kBMNSUCCESS;
 }
 
@@ -168,13 +166,31 @@ BmnStatus BmnCscRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * csc) {
     //        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
     //        ProcessDigit(adcDig, FindMapEntry(adcDig), csc, kFALSE);
     //    }
-    PrecalcEventMods(adc);
+    TStopwatch timer;
+    Double_t rtime;
+    Double_t ctime;
+    timer.Start();
+    (this->*PrecalcEventModsImp)(adc);
+    timer.Stop();
+    rtime = timer.RealTime();
+    ctime = timer.CpuTime();
+//    printf("\nReal time %f s, CPU time %f s  PrecalcEventMods\n", rtime, ctime);
+    timer.Start();
     CalcEventMods();
+    timer.Stop();
+    rtime = timer.RealTime();
+    ctime = timer.CpuTime();
+//    printf("Real time %f s, CPU time %f s  CalcEventMods\n", rtime, ctime);
+    timer.Start();
     //    for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
     //        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
     //        ProcessDigit(adcDig, FindMapEntry(adcDig), csc, kFALSE);
     //    }
-    ProcessAdc(csc, kFALSE);
+    ProcessAdc(adc, csc, kFALSE);
+    timer.Stop();
+    rtime = timer.RealTime();
+    ctime = timer.CpuTime();
+//    printf("Real time %f s, CPU time %f s  ProcessAdc\n", rtime, ctime);
 
     return kBMNSUCCESS;
 }
@@ -184,13 +200,13 @@ BmnStatus BmnCscRaw2Digit::FillProfiles(TClonesArray *adc) {
     //        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
     //        ProcessDigit(adcDig, FindMapEntry(adcDig), NULL, kTRUE);
     //    }
-    PrecalcEventMods(adc);
+    (this->*PrecalcEventModsImp)(adc);
     CalcEventMods();
     //    for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
     //        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
     //        ProcessDigit(adcDig, FindMapEntry(adcDig), NULL, kTRUE);
     //    }
-    ProcessAdc(nullptr, kTRUE);
+    ProcessAdc(adc, nullptr, kTRUE);
 
     return kBMNSUCCESS;
 }
@@ -206,30 +222,38 @@ BmnCscMapping* BmnCscRaw2Digit::FindMapEntry(BmnADCDigit* adcDig) {
 }
 
 BmnStatus BmnCscRaw2Digit::FillNoisyChannels() {
-//    const Int_t kNStations = 1;
-//    const Int_t kNStrips = 640; //2048; //FIXME
     const Int_t kNStripsInBunch = GetNSamples();
-//    const Int_t kNBunches = kNStrips / kNStripsInBunch;
+    //    const Int_t kNBunches = kNStrips / kNStripsInBunch;
     const Int_t kNThresh = 3;
 
     for (Int_t iCr = 0; iCr < GetNSerials(); ++iCr)
-        for (Int_t iCh = 0; iCh < GetNChannels(); ++iCh)
-            for (auto &it : fMap)
-                if (GetSerials()[iCr] == it->serial && iCh >= it->channel_low && iCh <= it->channel_high) {
-                    for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl)
-                        if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) {
-                            Int_t station = -1;
-                            Int_t strip = -1;
-                            Int_t layer = -1;
-                            Int_t module = -1;
-                            MapStrip(it, iCh, iSmpl, station, module, layer, strip);
-                            if (strip < 0)
-                                continue;
-                            fNoisyChannels[station][module][layer][strip] = kTRUE;
-                        }
+        for (Int_t iCh = 0; iCh < GetNChannels(); ++iCh) {
+            auto it = fOuterMap.find(GetSerials()[iCr]);
+            if (it == fOuterMap.end())
+                continue;
+            InChanMapCSC & inner = it->second;
+            auto innerIt = inner.lower_bound(iCh);
+            if (innerIt == inner.end())
+                continue;
+            BmnCscMapping* rec = innerIt->second;
+            if (!rec)
+                continue;
+            //            for (auto &it : fMap)
+            //                if (GetSerials()[iCr] == it->serial && iCh >= it->channel_low && iCh <= it->channel_high) {
+            for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl)
+                if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) {
+                    Int_t station = -1;
+                    Int_t strip = -1;
+                    Int_t layer = -1;
+                    Int_t module = -1;
+                    MapStrip(rec, iCh, iSmpl, station, module, layer, strip);
+                    if (strip < 0)
+                        continue;
+                    fNoisyChannels[station][module][layer][strip] = kTRUE;
                 }
-    for (Int_t iSt = 0; iSt < fCscStationSet->GetNStations(); ++iSt) {
-        auto * st = fCscStationSet->GetStation(iSt);
+        }
+    for (Int_t iSt = 0; iSt < fCscStationSetDer->GetNStations(); ++iSt) {
+        auto * st = fCscStationSetDer->GetStation(iSt);
         for (UInt_t iMod = 0; iMod < st->GetNModules(); ++iMod) {
             auto *mod = st->GetModule(iMod);
             for (Int_t iLay = 0; iLay < mod->GetNStripLayers(); ++iLay) {
@@ -260,155 +284,92 @@ BmnStatus BmnCscRaw2Digit::FillNoisyChannels() {
         }
     }
     for (Int_t iCr = 0; iCr < GetNSerials(); ++iCr)
-        for (Int_t iCh = 0; iCh < GetNChannels(); ++iCh)
-            for (auto &it : fMap)
-                if (GetSerials()[iCr] == it->serial && iCh >= it->channel_low && iCh <= it->channel_high) {
-                    for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
-                        Int_t station = -1;
-                        Int_t strip = -1;
-                        Int_t layer = -1;
-                        Int_t module = -1;
-                        MapStrip(it, iCh, iSmpl, station, module, layer, strip);
-                        if (strip < 0)
-                            continue;
-                        if (fNoisyChannels[station][module][layer][strip] == kTRUE)
-                            GetNoisyChipChannels()[iCr][iCh][iSmpl] = kTRUE;
-                    }
-                }
+        for (Int_t iCh = 0; iCh < GetNChannels(); ++iCh) {
+            auto it = fOuterMap.find(GetSerials()[iCr]);
+            if (it == fOuterMap.end())
+                continue;
+            InChanMapCSC & inner = it->second;
+            auto innerIt = inner.lower_bound(iCh);
+            if (innerIt == inner.end())
+                continue;
+            BmnCscMapping* rec = innerIt->second;
+            if (!rec)
+                continue;
+            //            for (auto &it : fMap)
+            //                if (GetSerials()[iCr] == it->serial && iCh >= it->channel_low && iCh <= it->channel_high) {
+            for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
+                Int_t station = -1;
+                Int_t strip = -1;
+                Int_t layer = -1;
+                Int_t module = -1;
+                MapStrip(rec, iCh, iSmpl, station, module, layer, strip);
+                if (strip < 0)
+                    continue;
+                if (fNoisyChannels[station][module][layer][strip] == kTRUE)
+                    GetNoisyChipChannels()[iCr][iCh][iSmpl] = kTRUE;
+            }
+        }
 
     return kBMNSUCCESS;
-}
-
-inline Int_t BmnCscRaw2Digit::LayerPrediction(Int_t module, Int_t x) {
-    Int_t layer = -1;
-    bool found = false;
-    for (Int_t j = 0; j < channelMap[module].size(); j++) {
-        layer = j;
-        auto result = std::find(channelMap[module][j].begin(), channelMap[module][j].end(), x);
-        if (result != std::end(channelMap[module][j])) {
-            found = true;
-            break;
-        }
-    }
-    if (found) return layer;
-    else return -1;
 }
 
 inline void BmnCscRaw2Digit::MapStrip(BmnCscMapping* cscM, UInt_t iCh, Int_t iSmpl, Int_t &station, Int_t &module, Int_t &layer, Int_t &strip) {
     station = cscM->station;
     module = cscM->module;
     Int_t ch2048 = iCh * GetNSamples() + iSmpl;
-    layer = LayerPrediction(module, ch2048);
-    if (layer == -1) return;
-    strip = localMap[module][layer][ch2048];
+    layer = channel2layer[module][ch2048];
+    strip = channel2strip[module][ch2048];
+    //    printf("s %2d    m %2d    l %2d    ch %4d    s %4d\n", station, module, layer, ch2048, strip);
     return;
 }
 
-void BmnCscRaw2Digit::ProcessAdc(TClonesArray *csc, Bool_t doFill) {
+void BmnCscRaw2Digit::ProcessAdc(TClonesArray *adc, TClonesArray *csc, Bool_t doFill) {
     Double_t FinalThr = thrMax - (niter - 1) * thrDif;
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+        auto it = fOuterMap.find(GetSerials()[iCr]);
+        if (it == fOuterMap.end())
+            continue;
         for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-            for (auto &it : fMap)
-                if (GetSerials()[iCr] == it->serial && iCh >= it->channel_low && iCh <= it->channel_high) {
-                    for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
-                        if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) continue;
-                        Int_t station = -1;
-                        Int_t strip = -1;
-                        Int_t layer = -1;
-                        Int_t module = -1;
-                        MapStrip(it, iCh, iSmpl, station, module, layer, strip);
-                        if (strip < 0)
-                            continue;
-                        Double_t sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl] + fCMode[iCr][iCh] - fSMode[iCr][iCh];
-                        Double_t Asig = TMath::Abs(sig);
-                        Double_t thr = Max(FinalThr, 3.5 * GetPedestalsRMS()[iCr][iCh][iSmpl]);
-                        if (Asig > thr) {
-                            if (doFill) {
-                                fSigProf[station][module][layer]->Fill(strip);
-                            } else {
-                                BmnCSCDigit * resDig =
-                                        new((*csc)[csc->GetEntriesFast()])
-                                        BmnCSCDigit(station, module, layer, strip, sig);
-                                //                                if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE)//((Abs(fCMode[iCr][iCh] - fSMode[iCr][iCh]) > cmodcut))
-                                //                                    resDig->SetIsGoodDigit(kFALSE);
-                                //                                else
-                                resDig->SetIsGoodDigit(kTRUE);
-                            }
-                        }
+            auto innerIt = it->second.lower_bound(iCh);
+            if (innerIt == it->second.end())
+                continue;
+            BmnCscMapping* rec = innerIt->second;
+            if (!rec)
+                continue;
+            //            for (auto &it : fMap)
+            //                if (GetSerials()[iCr] == it->serial && iCh >= it->channel_low && iCh <= it->channel_high) {
+            Double_t cs = fCMode[iCr][iCh] - fSMode[iCr][iCh];
+            for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
+                if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) continue;
+                Int_t station = -1;
+                Int_t strip = -1;
+                Int_t layer = -1;
+                Int_t module = -1;
+                MapStrip(rec, iCh, iSmpl, station, module, layer, strip);
+                if (strip < 0)
+                    continue;
+                Double_t sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl] + cs;
+                Double_t Asig = TMath::Abs(sig);
+                Double_t thr = Max(FinalThr, 3.5 * GetPedestalsRMS()[iCr][iCh][iSmpl]);
+                if (Asig > thr) {
+                    if (doFill) {
+                        fSigProf[station][module][layer]->Fill(strip);
+                    } else {
+                        BmnCSCDigit * resDig =
+                                new((*csc)[csc->GetEntriesFast()])
+                                BmnCSCDigit(station, module, layer, strip, sig);
+                        //                                if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE)//((Abs(fCMode[iCr][iCh] - fSMode[iCr][iCh]) > cmodcut))
+                        //                                    resDig->SetIsGoodDigit(kFALSE);
+                        //                                else
+                        resDig->SetIsGoodDigit(kTRUE);
                     }
-                    break;
                 }
+            }
+            //                    break;
+            //                }
         }
     }
 }
-//
-//void BmnCscRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnCscMapping* cscM, TClonesArray * csc, Bool_t doFill) {
-//    if (!adcDig || !cscM) return;
-//    const UInt_t nSmpl = adcDig->GetNSamples();
-//    UInt_t ch = adcDig->GetChannel();
-//    UInt_t ser = adcDig->GetSerial();
-//
-//    Int_t iSer = -1;
-//    for (iSer = 0; iSer < GetSerials().size(); ++iSer)
-//        if (ser == GetSerials()[iSer]) break;
-//    if (iSer == GetSerials().size())
-//        return; // serial not found
-//    BmnCSCDigit candDig[nSmpl];
-//
-//    Short_t cscStation = cscM->station;
-//    Short_t cscModule = cscM->module;
-//    Int_t ch2048 = ch * nSmpl;
-//    Int_t counter = -1;
-//    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-//        ch2048 = ch * nSmpl + iSmpl;
-//        Short_t cscLayer = LayerPrediction(cscModule, ch2048);
-//        if (cscLayer == -1) continue;
-//        BmnCSCDigit dig;
-//        if (localMap[cscModule][cscLayer][ch2048] == -1) continue;
-//        else counter++;
-//        dig.SetStripNumber(localMap[cscModule][cscLayer][ch2048]);
-//        dig.SetStation(cscStation);
-//        dig.SetModule(cscModule);
-//        dig.SetStripLayer(cscLayer);
-//        Double_t sig = (Double_t) ((adcDig->GetShortValue())[iSmpl] / 16);
-//        dig.SetStripSignal(sig);
-//        candDig[counter] = dig;
-//    }
-//    Double_t signals[counter + 1];
-//    for (Int_t iSmpl = 0; iSmpl < counter; ++iSmpl) signals[iSmpl] = 0.0;
-//    Int_t nOk = 0;
-//    for (Int_t iSmpl = 0; iSmpl < counter; ++iSmpl) {
-//        if ((candDig[iSmpl]).GetStripSignal() == 0 ||
-//                fNoisyChannels[candDig[iSmpl].GetStation()][candDig[iSmpl].GetModule()][candDig[iSmpl].GetStripLayer()][candDig[iSmpl].GetStripNumber()] == kTRUE) continue;
-//        signals[iSmpl] = (candDig[iSmpl]).GetStripSignal();
-//        nOk++;
-//    }
-//    Double_t CMS = CalcCMS(signals, nOk);
-//    Double_t SCMS = CalcSCMS(signals, counter, iSer, ch);
-//    Double_t*** vPed = GetPedestals();
-//    Double_t*** vPedRMS = GetPedestalsRMS();
-//    for (Int_t iSmpl = 0; iSmpl < counter; ++iSmpl) {
-//        if ((candDig[iSmpl]).GetStation() == -1) continue;
-//        BmnCSCDigit * dig = &candDig[iSmpl];
-//        Double_t ped = vPed[iSer][ch][iSmpl];
-//        Double_t sig = dig->GetStripSignal() - CMS - ped; // + fCMode[iSer][ch] - fSMode[iSer][ch]);
-//        Double_t Asig = Abs(sig);
-//        //cout << "strip " << iSer << " CMS " << ch << " ped " << iSmpl << endl;
-//        Float_t threshold = Max(50.0, 4 * vPedRMS[iSer][ch][iSmpl]); //50 + 4 * vPedRMS[iSer][ch][iSmpl]; //20;
-//        //if(threshold != 0) cout << threshold << endl;
-//        if (sig < threshold || Asig == 0.0) continue; //FIXME: check cases with sig == 0
-//        if (doFill) {
-//            fSigProf[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()]->Fill(dig->GetStripNumber());
-//        } else {
-//            BmnCSCDigit * resDig = new((*csc)[csc->GetEntriesFast()]) BmnCSCDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
-//            if (fNoisyChannels[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()][dig->GetStripNumber()]) {
-//                resDig->SetIsGoodDigit(kFALSE);
-//            } else {
-//                resDig->SetIsGoodDigit(kTRUE);
-//            }
-//        }
-//    }
-//}
 
 ClassImp(BmnCscRaw2Digit)
 

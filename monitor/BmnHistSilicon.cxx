@@ -1,16 +1,13 @@
 #include "BmnHistSilicon.h"
 
-BmnHistSilicon::BmnHistSilicon(TString title, TString path, Int_t PeriodID) : BmnHist(PeriodID) {
+BmnHistSilicon::BmnHistSilicon(TString title, TString path, Int_t PeriodID, BmnSetup setup) : BmnHist(PeriodID, setup) {
     sumMods = 0;
     maxLayers = 0;
     refPath = path;
     fTitle = title;
     fName = title + "_cl";
     TString name;
-    TString xmlConfFileName = fPeriodID == 7 ? "SiliconRunSpring2018.xml" : "SiliconRunSpring2017.xml";
-    xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/parameters/silicon/XMLConfigs/" + xmlConfFileName;
-    printf("xmlConfFileName %s\n", xmlConfFileName.Data());
-    BmnSiliconStationSet* stationSet = new BmnSiliconStationSet(xmlConfFileName);
+    unique_ptr<BmnSiliconStationSet> stationSet = BmnAdcProcessor::GetSilStationSet(PeriodID, fSetup);
     for (Int_t iStation = 0; iStation < stationSet->GetNStations(); iStation++) {
         vector<vector<TH1F*> > rowGEM;
         BmnSiliconStation* st = stationSet->GetSiliconStation(iStation);
@@ -20,7 +17,7 @@ BmnHistSilicon::BmnHistSilicon(TString title, TString path, Int_t PeriodID) : Bm
             BmnSiliconModule *mod = st->GetModule(iModule);
             if (maxLayers < mod->GetNStripLayers())
                 maxLayers = mod->GetNStripLayers();
-            for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
+            for (Int_t iLayer = 0; iLayer < 2/*mod->GetNStripLayers()*/; iLayer++) {
                 BmnSiliconLayer lay = mod->GetStripLayer(iLayer);
                 name = Form(fTitle + "_Station_%d_module_%d_layer_%d", iStation, iModule, iLayer);
                 TH1F *h = new TH1F(name, name, lay.GetNStrips(), 0, lay.GetNStrips());
@@ -38,13 +35,14 @@ BmnHistSilicon::BmnHistSilicon(TString title, TString path, Int_t PeriodID) : Bm
         histSiliconStrip.push_back(rowGEM);
 
     }
+    maxLayers = 2;
     // Create canvas
     name = fTitle + "Canvas";
     canStrip = new TCanvas(name, name, PAD_WIDTH * maxLayers, PAD_HEIGHT * sumMods);
     canStrip->Divide(maxLayers, sumMods);
     Int_t modCtr = 0; // filling GEM Canvas' pads
     canStripPads.resize(sumMods * maxLayers);
-    for (auto &pad : canStripPads){
+    for (auto &pad : canStripPads) {
         pad = nullptr;
     }
     Names.resize(sumMods * maxLayers);
@@ -52,7 +50,7 @@ BmnHistSilicon::BmnHistSilicon(TString title, TString path, Int_t PeriodID) : Bm
         BmnSiliconStation * st = stationSet->GetSiliconStation(iStation);
         for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
             BmnSiliconModule *mod = st->GetModule(iModule);
-            for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
+            for (Int_t iLayer = 0; iLayer < 2/*mod->GetNStripLayers()*/; iLayer++) {
                 Int_t iPad = modCtr * maxLayers + iLayer;
                 PadInfo *p = new PadInfo();
                 p->current = histSiliconStrip[iStation][iModule][iLayer];
@@ -66,7 +64,7 @@ BmnHistSilicon::BmnHistSilicon(TString title, TString path, Int_t PeriodID) : Bm
 }
 
 BmnHistSilicon::~BmnHistSilicon() {
-//    delete gemStationSet;
+    //    delete gemStationSet;
 }
 
 void BmnHistSilicon::Register(THttpServer * serv) {
@@ -130,8 +128,8 @@ BmnStatus BmnHistSilicon::SetRefRun(Int_t id) {
 }
 
 void BmnHistSilicon::ClearRefRun() {
-    for (auto &pad : canStripPads){
-        if (pad){
+    for (auto &pad : canStripPads) {
+        if (pad) {
             if (pad->ref) delete pad->ref;
             pad->ref = NULL;
         }

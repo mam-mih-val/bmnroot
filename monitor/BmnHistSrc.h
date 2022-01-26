@@ -18,17 +18,18 @@
 #include "BmnHist.h"
 #include "BmnTrigDigit.h"
 #include "BmnTrigWaveDigit.h"
+#include "BmnTrigRaw2Digit.h"
 
 #include "BmnADCDigit.h"
 
-#define SRC_COLS  3
+#define SRC_COLS  2
 
 using namespace std;
 
 class BmnHistSrc : public BmnHist {
 public:
 
-    BmnHistSrc(TString title, TString path = "");
+    BmnHistSrc(TString title, TString path = "", Int_t periodID = 7, BmnSetup setup = kBMNSETUP);
     virtual ~BmnHistSrc();
     void Reset();
     void Register(THttpServer *serv);
@@ -43,6 +44,8 @@ private:
     void SetDir(TDirectory *Dir);
     vector<TString> Names;
     vector<vector<TH1F*> > hists;
+    TH2F *hTDC;
+    vector<TString> tdcNames;
     TCanvas *canvas;
     vector<PadInfo*> canPads;
     Int_t fSrcRows = 0;

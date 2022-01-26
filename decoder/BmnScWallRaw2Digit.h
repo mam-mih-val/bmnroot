@@ -34,9 +34,9 @@ public:
     void print();
 
     std::vector<unsigned int> GetScWallSerials() {return fScWallSerials;}
-    std::set<int> GetUniqueXpositions() {return fUniqueX;}
-    std::set<int> GetUniqueYpositions() {return fUniqueY;}
-    std::set<int> GetUniqueSizes() {return fUniqueSize;}
+    std::vector<short> GetUniqueXpositions() {return fUniqueX;}
+    std::vector<short> GetUniqueYpositions() {return fUniqueY;}
+    std::vector<short> GetUniqueSizes() {return fUniqueSize;}
     int GetFlatChannelFromAdcChannel(unsigned int adc_board_id, unsigned int adc_ch);
  
 private:
@@ -46,9 +46,9 @@ private:
     TString fcalibrationFileName;
 
     std::vector<unsigned int> fScWallSerials;
-    std::set<int> fUniqueX;
-    std::set<int> fUniqueY;
-    std::set<int> fUniqueSize;
+    std::vector<short> fUniqueX;
+    std::vector<short> fUniqueY;
+    std::vector<short> fUniqueSize;
     std::vector<unsigned int> fChannelVect; // flat_channel to unique_address
 
     struct digiPars {
@@ -66,8 +66,6 @@ private:
 
     void MeanRMScalc(std::vector<float> wfm, float* Mean, float* RMS, int begin, int end, int step = 1);
     void ProcessWfm(std::vector<float> wfm, BmnScWallDigi* digi);
-
-
 
 
     ClassDef(BmnScWallRaw2Digit, 1);

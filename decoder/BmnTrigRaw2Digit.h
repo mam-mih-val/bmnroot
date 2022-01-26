@@ -70,10 +70,10 @@ public:
     ~BmnTrigRaw2Digit() {
         for (TClonesArray *ar : trigArrays)
             delete ar;
-//        for (auto el : fMap)
-//            delete el;
+        //        for (auto el : fMap)
+        //            delete el;
         fMap.clear();
-        for (auto &el : fPlacementMap){
+        for (auto &el : fPlacementMap) {
             delete el.second;
         }
         fPlacementMap.clear();
@@ -119,6 +119,21 @@ private:
         UShort_t l = serial & 0x0000FFFF;
         TString inlFileName = Form("%s-%04X-%04X.ini", boardName.Data(), h, l);
         return inlFileName;
+    }
+
+    UInt_t ChanCntByName(TString channelCountStr) {
+        //    regex reBoardName("(\\D+)(\\d+)(.*)");
+        TPRegexp reBoardName("(\\D+)(\\d+)(.*)");
+        //        string channelCountStr = name;
+        UInt_t channelCount = CHANNEL_COUNT_MAX;
+        if (reBoardName.MatchB(channelCountStr)) {
+            //        if (regex_match(name, reBoardName)){
+            //            channelCountStr = regex_replace(name, reBoardName, "$2");
+            reBoardName.Substitute(channelCountStr, "$2");
+            channelCount = strtoul(channelCountStr.Data(), nullptr, 10);
+            //            channelCount = strtoul(channelCountStr.c_str(), nullptr, 10);
+        }
+        return channelCount;
     }
 
     map< PlMapKey, BmnTrigParameters*> fPlacementMap;

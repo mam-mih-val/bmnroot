@@ -68,7 +68,6 @@ private:
     TString fInputDigitMatchesBranchName;
 
     TString fOutputHitsBranchName;
-    TString fOutputHitMatchesBranchName;
 
     /** Input array of Gem Points **/
     TClonesArray* fBmnGemStripPointsArray;
@@ -77,9 +76,10 @@ private:
 
     /** Output array of Gem Hits **/
     TClonesArray* fBmnGemStripHitsArray;
-
-    /** Output array of GEM Hit Matches **/
-    TClonesArray* fBmnGemStripHitMatchesArray;
+    /** Output array of Gem Upper Clusters **/
+    TClonesArray* fBmnGemUpperClustersArray;
+    /** Output array of Gem Lower Clusters **/
+    TClonesArray* fBmnGemLowerClustersArray;
 
     Bool_t fHitMatching;
     Bool_t fIsExp; // Specify type of input data (MC or real data)

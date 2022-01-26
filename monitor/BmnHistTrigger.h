@@ -36,7 +36,7 @@
 
 class BmnHistTrigger : public BmnHist {
 public:
-    BmnHistTrigger(TString title = "Triggers", TString path = "", Int_t periodID = 7);
+    BmnHistTrigger(TString title = "Triggers", TString path = "", Int_t periodID = 7, BmnSetup = kBMNSETUP);
     virtual ~BmnHistTrigger();
 
     void Register(THttpServer *serv);

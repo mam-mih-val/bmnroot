@@ -68,22 +68,25 @@ void BmnScWallRaw2Digit::ParseConfig(TString mappingFile)
   int adc_chan;
   int cell_id;
   std::string zone;
-  int x_position;
-  int y_position;
-  int size;
+  short x_position;
+  short y_position;
+  short size;
 
-  fUniqueX.clear();
-  fUniqueY.clear();
-  fUniqueSize.clear();
+  std::set<short> UniqueX;
+  std::set<short> UniqueY;
+  std::set<short> UniqueSize;
   // First pass for unique.
   for (auto it : configuration)
   {
     istringstream ss(it);
     ss >> adc_ser >> adc_chan >> cell_id >> zone >> x_position >> y_position >> size;
-    fUniqueX.insert(x_position);
-    fUniqueY.insert(y_position);
-    fUniqueSize.insert(size);
+    UniqueX.insert(x_position);
+    UniqueY.insert(y_position);
+    UniqueSize.insert(size);
   }
+  std::copy(UniqueX.begin(), UniqueX.end(), std::back_inserter(fUniqueX));
+  std::copy(UniqueY.begin(), UniqueY.end(), std::back_inserter(fUniqueY));
+  std::copy(UniqueSize.begin(), UniqueSize.end(), std::back_inserter(fUniqueSize));
 
   fChannelVect.clear();
   fChannelVect.resize(fScWallSerials.size() * 64);
@@ -99,9 +102,9 @@ void BmnScWallRaw2Digit::ParseConfig(TString mappingFile)
     else
       printf("BmnScWallRaw2Digit : unknown adc serial\n");
 
-    xIdx = std::distance(fUniqueX.begin(), fUniqueX.find(x_position));
-    yIdx = std::distance(fUniqueY.begin(), fUniqueY.find(y_position));
-    SizeIdx = std::distance(fUniqueSize.begin(), fUniqueSize.find(size));
+    xIdx = std::distance(UniqueX.begin(), UniqueX.find(x_position));
+    yIdx = std::distance(UniqueY.begin(), UniqueY.find(y_position));
+    SizeIdx = std::distance(UniqueSize.begin(), UniqueSize.find(size));
 
     int last_letter = 'V' - 'A' + 1;
     ZoneIdx = (int)(zone[0] - 'A' + 1);
@@ -229,8 +232,17 @@ void BmnScWallRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ScWalldigit
 
 void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
 {
-  assert(fdigiPars.gateBegin > 0 && fdigiPars.gateBegin < wfm.size());
-  assert(fdigiPars.gateEnd > 0 && fdigiPars.gateEnd < wfm.size());
+  assert(fdigiPars.gateBegin > 0 && fdigiPars.gateEnd > 0);
+  if(fdigiPars.gateBegin >= wfm.size()) { 
+    LOG(ERROR) << "BmnScWallRaw2Digit:: waveform too short: accessing " << 
+    fdigiPars.gateBegin << "/" << wfm.size() << ". Check calibration file " << fcalibrationFileName;
+    fdigiPars.gateBegin = wfm.size()-1;
+  }
+  if(fdigiPars.gateEnd >= wfm.size()) { 
+    LOG(ERROR) << "BmnScWallRaw2Digit:: waveform too short: accessing " << 
+    fdigiPars.gateEnd << "/" << wfm.size() << ". Check calibration file " << fcalibrationFileName;
+    fdigiPars.gateEnd = wfm.size()-1;
+  }
 
   // Invert
   if (fdigiPars.doInvert)

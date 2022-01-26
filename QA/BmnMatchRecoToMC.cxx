@@ -1,13 +1,7 @@
-/*
- * BmnMatchRecoToMC.cxx
- *
- * \author Andrey Lebedev <andrey.lebedev@gsi.de> - original author for CBM experiment
- * \author Sergey Merts <sergey.merts@gmail.com> - modifications for BMN experiment
- * \date 2013-2014
- *
- */
-
 #include "BmnMatchRecoToMC.h"
+#include <TStopwatch.h>
+
+static Double_t workTime = 0.0;
 
 BmnMatchRecoToMC::BmnMatchRecoToMC() :
     FairTask(),
@@ -15,15 +9,10 @@ BmnMatchRecoToMC::BmnMatchRecoToMC() :
     fGlobalTracks(nullptr),
     fGemPoints(nullptr),
     fGemTracks(nullptr),
-    fGemHitMatches(nullptr),
-    fSsdPoints(nullptr),
-    fSsdTracks(nullptr),
-    fSsdHitMatches(nullptr),
     fStsTracks(nullptr),
     fStsHits(nullptr),
     fSilPoints(nullptr),
-    fSilTracks(nullptr),
-    fSilHitMatches(nullptr) {
+    fSilTracks(nullptr) {
 }
 
 BmnMatchRecoToMC::~BmnMatchRecoToMC() {
@@ -36,21 +25,18 @@ InitStatus BmnMatchRecoToMC::Init() {
 
 void BmnMatchRecoToMC::Exec(Option_t* opt) {
 
-    static Int_t eventNo = 0;
-    if (eventNo % 100 == 0) cout << "Event #" << eventNo << endl;
-    eventNo++;
+    TStopwatch sw;
+    sw.Start();
+    
+    if (fGlobalTrackMatches) fGlobalTrackMatches->Delete();
+    MatchGlobalTracks();
 
-    if (fGlobalTrackMatches != nullptr) fGlobalTrackMatches->Delete();
-
-    if (fStsTracks) MatchGlobalTracks();
-    else MatchGlobalTracks(fGemHitMatches, fSilHitMatches, fSsdHitMatches,
-        fGemPoints, fSilPoints, fSsdPoints,
-        fGemTracks, fSilTracks, fSsdTracks,
-        fGlobalTracks, fGlobalTrackMatches);
+    sw.Stop();
+    workTime += sw.RealTime();
 }
 
 void BmnMatchRecoToMC::Finish() {
-
+    printf("Work time of BmnMatchRecoToMC: %4.2f sec.\n", workTime);
 }
 
 void BmnMatchRecoToMC::ReadAndCreateDataBranches() {
@@ -62,21 +48,14 @@ void BmnMatchRecoToMC::ReadAndCreateDataBranches() {
     // GEM
     fGemPoints = (TClonesArray*)ioman->GetObject("StsPoint");
     fGemTracks = (TClonesArray*)ioman->GetObject("BmnGemTrack");
-    fGemHitMatches = (TClonesArray*)ioman->GetObject("BmnGemStripHitMatch");
 
     // Sil
     fSilPoints = (TClonesArray*)ioman->GetObject("SiliconPoint");
     fSilTracks = (TClonesArray*)ioman->GetObject("BmnSiliconTrack");
-    fSilHitMatches = (TClonesArray*)ioman->GetObject("BmnSiliconHitMatch");
 
-    // SSD
+    // STS
     fStsHits = (TClonesArray*)ioman->GetObject("StsHit");
     fStsTracks = (TClonesArray*)ioman->GetObject("StsTrack");
-
-    // SSD
-    fSsdPoints = (TClonesArray*)ioman->GetObject("SSDPoint");
-    fSsdTracks = (TClonesArray*)ioman->GetObject("BmnSSDTrack");
-    fSsdHitMatches = (TClonesArray*)ioman->GetObject("BmnSSDHitMatch");
 
     fGlobalTrackMatches = new TClonesArray("BmnTrackMatch", 100);
     ioman->Register("BmnGlobalTrackMatch", "GLOBAL", fGlobalTrackMatches, kTRUE);
@@ -170,9 +149,9 @@ BmnStatus BmnMatchRecoToMC::LinkToMC(Int_t id, BmnTrackMatch* trackMatch) {
 
     FairMCPoint* point = nullptr;
     for (Int_t iLink = 0; iLink < hit->GetNLinks(); ++iLink) {
-        if (hit->GetRefIndex() == kGEM) {
+        if (hit->GetSystemId() == kGEM) {
             point = (FairMCPoint*)(fGemPoints->At(hit->GetLink(iLink).GetIndex()));
-        } else if (hit->GetRefIndex() == kSILICON) {
+        } else if (hit->GetSystemId() == kSILICON) {
             point = (FairMCPoint*)(fSilPoints->At(hit->GetLink(iLink).GetIndex()));
         }
         if (!point) return kBMNERROR;
@@ -187,31 +166,32 @@ void BmnMatchRecoToMC::MatchGlobalTracks() {
     for (Int_t iTrack = 0; iTrack < fGlobalTracks->GetEntriesFast(); ++iTrack) {
         BmnGlobalTrack* glTrack = (BmnGlobalTrack*)(fGlobalTracks->At(iTrack));
         BmnTrackMatch* trackMatch = new ((*fGlobalTrackMatches)[iTrack]) BmnTrackMatch();
-        Int_t trueCounter = 0;
-        Int_t wrongCounter = 0;
-        //GEM
-        if (glTrack->GetGemTrackIndex() != -1) {
-            CbmStsTrack* stsTr = (CbmStsTrack*)fStsTracks->At(glTrack->GetGemTrackIndex());
-            for (Int_t iHit = 0; iHit < stsTr->GetNStsHits(); ++iHit)
-                LinkToMC(stsTr->GetStsHitIndex(iHit), trackMatch);
-            if (!trackMatch->GetNofLinks()) continue;
-            CalculateTrackQuality(stsTr, trackMatch, trueCounter, wrongCounter);
-        }
-        trackMatch->SetNofTrueHits(trueCounter);
-        trackMatch->SetNofWrongHits(wrongCounter);
+
+        if (glTrack->GetGemTrackIndex() == -1) continue; //actually GemTrackIndex is StsTrackIndex
+        CbmStsTrack* stsTr = (CbmStsTrack*)fStsTracks->At(glTrack->GetGemTrackIndex());
+        for (Int_t iHit = 0; iHit < stsTr->GetNStsHits(); ++iHit)
+            LinkToMC(stsTr->GetStsHitIndex(iHit), trackMatch);
+        if (trackMatch->GetNofLinks() == 0) continue;
+        CalculateTrackQuality(stsTr, trackMatch);
+           
+        Int_t refId = (trackMatch->GetTrueOverAllHitsRatio() > 0.6) ? trackMatch->GetMatchedLink().GetIndex() : -1;
+        stsTr->SetTrkID(refId);
+        glTrack->SetRefIndex(refId);
     }
 }
 
-void BmnMatchRecoToMC::CalculateTrackQuality(CbmStsTrack* locTr, BmnTrackMatch* trMatch, Int_t& trueCntr, Int_t& falseCntr) {
+void BmnMatchRecoToMC::CalculateTrackQuality(CbmStsTrack* locTr, BmnTrackMatch* trMatch) {
     // Calculate number of true and wrong hits
+    Int_t trueCounter = 0;
+    Int_t wrongCounter = 0;
     for (Int_t iHit = 0; iHit < locTr->GetNStsHits(); iHit++) {
         CbmStsHit* hit = (CbmStsHit*)(fStsHits->At(locTr->GetStsHitIndex(iHit)));
         Bool_t hasTrue = kFALSE;
         for (Int_t iLink = 0; iLink < hit->GetNLinks(); iLink++) {
             FairMCPoint* point = nullptr;
-            if (hit->GetRefIndex() == kGEM) {
+            if (hit->GetSystemId() == kGEM) {
                 point = (FairMCPoint*)(fGemPoints->At(hit->GetLink(iLink).GetIndex()));
-            } else if (hit->GetRefIndex() == kSILICON) {
+            } else if (hit->GetSystemId() == kSILICON) {
                 point = (FairMCPoint*)(fSilPoints->At(hit->GetLink(iLink).GetIndex()));
             }
             if (!point) continue;
@@ -220,9 +200,12 @@ void BmnMatchRecoToMC::CalculateTrackQuality(CbmStsTrack* locTr, BmnTrackMatch* 
                 break;
             }
         }
-        if (hasTrue) trueCntr++;
-        else falseCntr++;
+        if (hasTrue) trueCounter++;
+        else wrongCounter++;
     }
+
+    trMatch->SetNofTrueHits(trueCounter);
+    trMatch->SetNofWrongHits(wrongCounter);
 }
 
 ClassImp(BmnMatchRecoToMC);

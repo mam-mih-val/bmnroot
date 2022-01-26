@@ -10,4 +10,4 @@ BMNROOT=$HOME/bmnroot
 
 source $BMNROOT/build/config.sh
 
-/opt/fairsoft/install/bin/root.exe -b -q $BMNROOT/macro/monitor/BatchDirectory.C("/bmn/run/current/")
+/opt/fairsoft/install/bin/root.exe -b -q '$BMNROOT/macro/monitor/BatchDirectory.C("/bmn/run/current/")'

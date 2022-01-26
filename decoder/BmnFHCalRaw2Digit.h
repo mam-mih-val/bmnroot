@@ -34,9 +34,9 @@ public:
     void print();
 
     std::vector<unsigned int> GetFHCalSerials() {return fFHCalSerials;}
-    std::set<int> GetUniqueXpositions() {return fUniqueX;}
-    std::set<int> GetUniqueYpositions() {return fUniqueY;}
-    std::set<int> GetUniqueZpositions() {return fUniqueZ;}
+    std::vector<short> GetUniqueXpositions() {return fUniqueX;}
+    std::vector<short> GetUniqueYpositions() {return fUniqueY;}
+    std::vector<short> GetUniqueZpositions() {return fUniqueZ;}
     int GetFlatChannelFromAdcChannel(unsigned int adc_board_id, unsigned int adc_ch);
     int GetFlatCaloChannel(int mod_id, int sec_id);
  
@@ -47,9 +47,9 @@ private:
     TString fcalibrationFileName;
 
     std::vector<unsigned int> fFHCalSerials;
-    std::set<int> fUniqueX;
-    std::set<int> fUniqueY;
-    std::set<int> fUniqueZ;
+    std::vector<short> fUniqueX;
+    std::vector<short> fUniqueY;
+    std::vector<short> fUniqueZ;
     std::vector<unsigned int> fChannelVect; // flat_channel to unique_address
 
     struct digiPars {

@@ -1,0 +1,21 @@
+[VERSION]								
+id = 1.0						
+								
+[COMMENT]								
+str = void						
+								
+[TQDCSERIALS]								
+# will be sorted					
+serial = 0x0ccfa51a
+
+[CONFIGURATION]	
+# Material ( S -- scintillator, Q -- quarz, N -- not connected )
+# Strip Side ( 0 -- down, 1 -- up )	
+# Gain ( 0 -- low, 1 -- high )			
+#		TQDC_serial	TQDC_ch	Mater	StripId	StrSide	Gain
+#====================================================================						
+								
+config	=	0x0ccfa51a	0	N	0	0	0
+config	=	0x0ccfa51a	8	Q	1	0	1
+config	=	0x0ccfa51a	1	Q	1	1	0
+config	=	0x0ccfa51a	9	Q	1	1	1

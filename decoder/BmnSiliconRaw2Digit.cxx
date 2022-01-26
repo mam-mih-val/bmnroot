@@ -1,7 +1,6 @@
 #include <TStyle.h>
 
 #include "BmnSiliconRaw2Digit.h"
-#include "BmnEventHeader.h"
 
 BmnSiliconRaw2Digit::BmnSiliconRaw2Digit() {
     fEventId = -1;
@@ -17,37 +16,7 @@ BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t>
     ReadMapFile();
 
     if (decoMode == kBMNADCSM) {
-        TString gPathConfig = getenv("VMCWORKDIR");
-        TString confSi = (fPeriod == 7) ?
-                ((fSetup == kBMNSETUP) ? "SiliconRunSpring2018.xml" : "SiliconRunSRCSpring2018.xml") :
-                "SiliconRunSpring2017.xml";
-        TString xmlConfFileName;
-        switch (period) {
-            case 8:
-                if (fSetup == kBMNSETUP) {
-                    xmlConfFileName = "SiliconRun8_3stations.xml";
-                } else {
-                    xmlConfFileName = "SiliconRun8_SRC.xml";
-                }
-                break;
-            case 7:
-                if (fSetup == kBMNSETUP) {
-                    xmlConfFileName = "SiliconRunSpring2018.xml";
-                } else {
-                    xmlConfFileName = "SiliconRunSRCSpring2018.xml";
-                }
-                break;
-            case 6:
-                xmlConfFileName = "SiliconRunSpring2017.xml";
-                break;
-            default:
-                printf("Error! Unknown config!\n");
-                return;
-                break;
-
-        }
-        TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
-        fSilStationSet = new BmnSiliconStationSet(gPathSiliconConfig + xmlConfFileName);
+        fSilStationSet = BmnAdcProcessor::GetSilStationSet(period, fSetup);
 
         Int_t kNStations = fSilStationSet->GetNStations();
         fSigProf = new TH1F***[kNStations];
@@ -989,6 +958,7 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
     //        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
     //            delete hPedLineSi[iCr][iCh];
     //        }
+    for (auto it : fMap) delete it;
 }
 
 BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
@@ -1015,20 +985,41 @@ BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
     while (!inFile.eof()) {
         inFile >> std::hex >> ser >> std::dec >> ch_lo >> ch_hi >> mod_adc >> mod >> lay >> station;
         if (!inFile.good()) break;
-        BmnSiliconMapping record = {};
-        record.layer = lay;
-        record.serial = ser;
-        record.module = mod;
+        BmnSiliconMapping * record = new BmnSiliconMapping();
+        record->layer = lay;
+        record->serial = ser;
+        record->module = mod;
         if (ch_lo < ch_hi) {
-            record.channel_low = ch_lo;
-            record.channel_high = ch_hi;
+            record->channel_low = ch_lo;
+            record->channel_high = ch_hi;
         } else {
-            record.channel_low = ch_hi;
-            record.channel_high = ch_lo;
-            record.inverted = true;
+            record->channel_low = ch_hi;
+            record->channel_high = ch_lo;
+            record->inverted = true;
         }
-        record.station = station;
+        record->station = station;
         fMap.push_back(record);
+        auto it = fOuterMap.find(ser);
+        if (it == fOuterMap.end()) { // create inner channel map for the serial 
+            InChanMapSil inner;
+            inner.insert(make_pair(record->channel_low - 1, nullptr));
+            inner.insert(make_pair(record->channel_high, record));
+            fOuterMap.insert(make_pair(ser, move(inner)));
+        } else { // add range to the existing inner channel map
+            InChanMapSil &inner = it->second;
+            auto innerIt = inner.find(record->channel_low);
+            if (innerIt == inner.end()) {
+                inner.insert(make_pair(record->channel_low - 1, nullptr));
+                inner.insert(make_pair(record->channel_high, record));
+            } else {
+                if (innerIt->second == nullptr) {
+                    innerIt->second = record;
+                } else {
+                    //                    fprintf(stderr, "Wrong CSC map!\n");
+                    //                    return kBMNERROR;
+                }
+            }
+        }
     }
     return kBMNSUCCESS;
 }
@@ -1042,9 +1033,31 @@ BmnStatus BmnSiliconRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *silico
     //            if (adcDig->GetSerial() == it.serial && (adcDig->GetChannel() >= it.channel_low && adcDig->GetChannel() <= it.channel_high))
     //                ProcessDigit(adcDig, &it, silicon, kFALSE);
     //        }
-    PrecalcEventMods(adc);
+    TStopwatch timer;
+    Double_t rtime;
+    Double_t ctime;
+    timer.Start();
+    (this->*PrecalcEventModsImp)(adc);
+    timer.Stop();
+    rtime = timer.RealTime();
+    ctime = timer.CpuTime();
+    //    printf("\nReal time %f s, CPU time %f s  PrecalcEventMods\n", rtime, ctime);
+    timer.Start();
     CalcEventMods();
+    timer.Stop();
+    rtime = timer.RealTime();
+    ctime = timer.CpuTime();
+    //    printf("Real time %f s, CPU time %f s  CalcEventMods\n", rtime, ctime);
+    timer.Start();
+    //    for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
+    //        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
+    //        ProcessDigit(adcDig, FindMapEntry(adcDig), csc, kFALSE);
+    //    }
     ProcessAdc(silicon, kFALSE);
+    timer.Stop();
+    rtime = timer.RealTime();
+    ctime = timer.CpuTime();
+    //    printf("Real time %f s, CPU time %f s  ProcessAdc\n", rtime, ctime);
     //    for (auto &it : fMap)
     //        for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
     //            BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
@@ -1086,7 +1099,7 @@ BmnStatus BmnSiliconRaw2Digit::FillProfiles(TClonesArray *adc) {
     //                ProcessDigit(adcDig, &it, NULL, kTRUE);
     //            }
     //        }
-    PrecalcEventMods(adc);
+    (this->*PrecalcEventModsImp)(adc);
     CalcEventMods();
     ProcessAdc(nullptr, kTRUE);
 
@@ -1102,17 +1115,29 @@ BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
     //    const Int_t kNBunches = kNStrips / kNStripsInBunch;
     Int_t kNThresh = 3;
     // repeat noisy channels in the physical terms (station/module/layer)
-    for (Int_t iCr = 0; iCr < GetNSerials(); ++iCr)
-        for (Int_t iCh = 0; iCh < GetNChannels(); ++iCh)
-            for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl)
-                for (auto &it : fMap)
-                    if (GetSerials()[iCr] == it.serial && iCh >= it.channel_low && iCh <= it.channel_high) {
-                        if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) {
-                            //                            Int_t iStrip = (iCh - it.channel_low) * GetNSamples() + iSmpl;
-                            Int_t iStrip = MapStrip(it, iCh, iSmpl);
-                            fNoisyChannels[it.station][it.module][it.layer][iStrip] = kTRUE;
-                        }
-                    }
+    for (Int_t iCr = 0; iCr < GetNSerials(); ++iCr) {
+        auto it = fOuterMap.find(GetSerials()[iCr]);
+        if (it == fOuterMap.end())
+            continue;
+        for (Int_t iCh = 0; iCh < GetNChannels(); ++iCh) {
+            InChanMapSil & inner = it->second;
+            auto innerIt = inner.lower_bound(iCh);
+            if (innerIt == inner.end())
+                continue;
+            BmnSiliconMapping* rec = innerIt->second;
+            if (!rec)
+                continue;
+            for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
+                //                for (auto &it : fMap)
+                //                    if (GetSerials()[iCr] == it.serial && iCh >= it.channel_low && iCh <= it.channel_high) {
+                if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) {
+                    //                            Int_t iStrip = (iCh - it.channel_low) * GetNSamples() + iSmpl;
+                    Int_t iStrip = MapStrip(rec, iCh, iSmpl);
+                    fNoisyChannels[rec->station][rec->module][rec->layer][iStrip] = kTRUE;
+                }
+            }
+        }
+    }
     // mark noisy
     for (Int_t iSt = 0; iSt < fSilStationSet->GetNStations(); ++iSt) {
         auto * st = fSilStationSet->GetStation(iSt);
@@ -1157,13 +1182,13 @@ BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
                                     iSt, iMod, iLay, strip);
                             fNoisyChannels[iSt][iMod][iLay][strip] = kTRUE;
                             for (auto &it : fMap)
-                                if (it.station == iSt && it.module == iMod && it.layer == iLay) {
+                                if (it->station == iSt && it->module == iMod && it->layer == iLay) {
                                     UInt_t iCr = 0;
                                     for (iCr = 0; iCr < GetSerials().size(); iCr++) {
-                                        if (GetSerials()[iCr] == it.serial)
+                                        if (GetSerials()[iCr] == it->serial)
                                             break;
                                     }
-                                    UInt_t iCh = it.channel_low + (strip) / GetNSamples();
+                                    UInt_t iCh = it->channel_low + (strip) / GetNSamples();
                                     UInt_t iSmpl = (strip) % GetNSamples();
                                     GetNoisyChipChannels()[iCr][iCh][iSmpl] = kTRUE;
                                 }
@@ -1184,8 +1209,8 @@ BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
                 for (Int_t iStrip = 0; iStrip < lay.GetNStrips(); ++iStrip) {
                     if (fNoisyChannels[iSt][iMod][iLay][iStrip] == kTRUE) {
                         for (auto &it : fMap)
-                            if (it.station == iSt && it.module == iMod && it.layer == iLay) {
-                                auto serIter = fSerMap.find(it.serial);
+                            if (it->station == iSt && it->module == iMod && it->layer == iLay) {
+                                auto serIter = fSerMap.find(it->serial);
                                 if (serIter == fSerMap.end())
                                     break;
                                 Int_t iCr = serIter->second;
@@ -1194,7 +1219,7 @@ BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
                                 //                                    if (GetSerials()[iCr] == it.serial)
                                 //                                        break;
                                 //                                }
-                                UInt_t iCh = it.channel_low + iStrip / GetNSamples();
+                                UInt_t iCh = it->channel_low + iStrip / GetNSamples();
                                 UInt_t iSmpl = iStrip % GetNSamples();
                                 GetNoisyChipChannels()[iCr][iCh][iSmpl] = kTRUE;
                                 //                                printf("noise on iCr %d, iCh %i, iSmpl %i\n", iCr, iCh, iSmpl);
@@ -1212,40 +1237,50 @@ void BmnSiliconRaw2Digit::ProcessAdc(TClonesArray *silicon, Bool_t doFill) {
     cmodcut = 100;
     Double_t FinalThr = thrMax - (niter - 1) * thrDif;
     for (Int_t iCr = 0; iCr < GetNSerials(); ++iCr) {
+        auto it = fOuterMap.find(GetSerials()[iCr]);
+        if (it == fOuterMap.end())
+            continue;
         for (Int_t iCh = 0; iCh < GetNChannels(); ++iCh) {
-            for (auto &it : fMap)
-                if (GetSerials()[iCr] == it.serial && iCh >= it.channel_low && iCh <= it.channel_high) {
-                    Short_t station = it.station;
-                    Short_t module = it.module;
-                    Short_t layer = it.layer;
-                    for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
-                        if ((GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE)/* || (fPedVal[iCr][iCh][iSmpl] == 0.0)*/) continue;
-                        //                        Int_t strip = (iCh - it.channel_low) * GetNSamples() + iSmpl;
-                        Int_t strip = MapStrip(it, iCh, iSmpl);
-                        Double_t sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl] + fCMode[iCr][iCh] - fSMode[iCr][iCh];
-                        if (layer == 1)
-                            sig = -sig;
-                        Double_t Asig = TMath::Abs(sig);
-                        Double_t thr = Max(FinalThr, 4 * GetPedestalsRMS()[iCr][iCh][iSmpl]);
-//                        if (layer && !doFill)
-//                            printf("%s signal %f thr %6f  prms %6f\n", it.inverted ? "inverted" : "normal", sig, thr, GetPedestalsRMS()[iCr][iCh][iSmpl]);
-                        if (sig > thr) {//[station][module][layer][strip] == kFALSE)) {
-                            if (doFill) {
-                                if (Abs(fCMode[iCr][iCh] - fSMode[iCr][iCh]) < cmodcut)
-                                    fSigProf[station][module][layer]->Fill(strip);
-                            } else {
-                                BmnSiliconDigit * resDig =
-                                        new((*silicon)[silicon->GetEntriesFast()])
-                                        BmnSiliconDigit(station, module, layer, strip, sig);
-                                if ((Abs(fCMode[iCr][iCh] - fSMode[iCr][iCh]) > cmodcut))
-                                    resDig->SetIsGoodDigit(kFALSE);
-                                else
-                                    resDig->SetIsGoodDigit(kTRUE);
-                            }
-                        }
+            InChanMapSil & inner = it->second;
+            auto innerIt = inner.lower_bound(iCh);
+            if (innerIt == inner.end())
+                continue;
+            BmnSiliconMapping* rec = innerIt->second;
+            if (!rec)
+                continue;
+            //            for (auto &it : fMap)
+            //                if (GetSerials()[iCr] == it.serial && iCh >= it.channel_low && iCh <= it.channel_high) {
+            Short_t station = rec->station;
+            Short_t module = rec->module;
+            Short_t layer = rec->layer;
+            for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
+                if ((GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE)/* || (fPedVal[iCr][iCh][iSmpl] == 0.0)*/) continue;
+                //                        Int_t strip = (iCh - it.channel_low) * GetNSamples() + iSmpl;
+                Int_t strip = MapStrip(rec, iCh, iSmpl);
+                Double_t sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl] + fCMode[iCr][iCh] - fSMode[iCr][iCh];
+                if (layer == 1)
+                    sig = -sig;
+                Double_t Asig = TMath::Abs(sig);
+                Double_t thr = Max(FinalThr, 4 * GetPedestalsRMS()[iCr][iCh][iSmpl]);
+                //                        if (layer && !doFill)
+                //                            printf("%s signal %f thr %6f  prms %6f\n", it.inverted ? "inverted" : "normal", sig, thr, GetPedestalsRMS()[iCr][iCh][iSmpl]);
+                if (sig > thr) {//[station][module][layer][strip] == kFALSE)) {
+                    if (doFill) {
+                        if (Abs(fCMode[iCr][iCh] - fSMode[iCr][iCh]) < cmodcut)
+                            fSigProf[station][module][layer]->Fill(strip);
+                    } else {
+                        BmnSiliconDigit * resDig =
+                                new((*silicon)[silicon->GetEntriesFast()])
+                                BmnSiliconDigit(station, module, layer, strip, sig);
+                        if ((Abs(fCMode[iCr][iCh] - fSMode[iCr][iCh]) > cmodcut))
+                            resDig->SetIsGoodDigit(kFALSE);
+                        else
+                            resDig->SetIsGoodDigit(kTRUE);
                     }
-                    break;
                 }
+                //                    }
+                //                    break;
+            }
         }
     }
 }

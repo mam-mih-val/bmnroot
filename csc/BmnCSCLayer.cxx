@@ -541,6 +541,11 @@ void BmnCSCLayer::FindClustersAndStripHits() {
     StripHitsErrors.push_back(cluster_rms);
     StripHitsClusterSize.push_back(NStripsInCluster);
 
+    cluster.MeanPosition = mean_strip_position;
+    cluster.TotalSignal = total_cluster_signal;
+
+    StripClusters.push_back(cluster);
+
     //return to a previous strip
     curcnt--;
     if( curcnt < 0 ) curcnt = 0;

@@ -128,7 +128,7 @@ InitStatus BmnInnerTrackingRun7::Init() {
     fSilTracksArray = new TClonesArray("BmnTrack", 100);                  //out
     ioman->Register(fSilTracksBranchName, "SILICON", fSilTracksArray, kTRUE);
 
-    if (!fGemHitsArray && !fSilHitsArray) {
+    if (!fGemHitsArray) {
         cout << "BmnInnerTrackingRun7::Init(): branch " << fGemHitsBranchName << " not found! Task will be deactivated" << endl;
         SetActive(kFALSE);
         return InitStatus::kERROR;

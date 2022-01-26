@@ -17,22 +17,14 @@
 #include "BmnHistGem.h"
 #include "BmnRawDataDecoder.h"
 
-//const UInt_t moduleCount[GEM_STATIONS_COUNT] = {1, 1, 1, 1, 2, 2, 2};
-//const UInt_t layersCount[GEM_STATIONS_COUNT] = {2, 4, 4, 4, 4, 4, 4};
-//const UInt_t nStrips[GEM_STATIONS_COUNT] = {256, 825, 825, 825, 825, 1100, 1119};
-#define MAX_STRIPS 1020
-
-BmnHistGem::BmnHistGem(TString title, TString path, Int_t PeriodID) : BmnHist(PeriodID) {
+BmnHistGem::BmnHistGem(TString title, TString path, Int_t PeriodID, BmnSetup stp) : BmnHist(PeriodID, stp) {
     sumMods = 0;
     maxLayers = 0;
     refPath = path;
     fTitle = title;
     fName = title + "_cl";
     TString name;
-    TString xmlConfFileName = fPeriodID == 7 ? "GemRunSpring2018.xml" : "GemRunSpring2017.xml";
-    xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/parameters/gem/XMLConfigs/" + xmlConfFileName;
-    printf("xmlConfFileName %s\n", xmlConfFileName.Data());
-    gemStationSet = new BmnGemStripStationSet(xmlConfFileName);
+    gemStationSet = BmnAdcProcessor::GetGemStationSet(fPeriodID, fSetup);
     for (Int_t iStation = 0; iStation < gemStationSet->GetNStations(); iStation++) {
         vector<vector<TH1F*> > rowGEM;
         BmnGemStripStation * st = gemStationSet->GetGemStation(iStation);
@@ -158,7 +150,7 @@ BmnStatus BmnHistGem::SetRefRun(Int_t id) {
 }
 
 void BmnHistGem::ClearRefRun() {
-    for (auto pad : canStripPads){
+    for (auto pad : canStripPads) {
         if (pad->ref) delete pad->ref;
         pad->ref = NULL;
     }

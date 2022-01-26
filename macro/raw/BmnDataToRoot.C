@@ -32,8 +32,10 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     setup.insert(std::make_pair(kCSC,       1)); // CSC
     setup.insert(std::make_pair(kSCWALL,    1)); // SCWALL
     setup.insert(std::make_pair(kFHCAL,     1)); // FHCAL
+    setup.insert(std::make_pair(kHODO,      1)); // HODO
     decoder->SetDetectorSetup(setup);
-    decoder->SetAdcDecoMode(period < 6 ? kBMNADCSM : kBMNADCMK);
+//    decoder->SetAdcDecoMode(period < 6 ? kBMNADCSM : kBMNADCMK);
+    decoder->SetAdcDecoMode(kBMNADCSM);
 
     TString PeriodSetupExt = Form("%d%s.txt", period, ((stp == kBMNSETUP) ? "" : "_SRC"));
     decoder->SetTrigPlaceMapping(TString("Trig_PlaceMap_Run") + PeriodSetupExt);
@@ -51,12 +53,14 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
         decoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d_from_run_4278.txt", period));
     else
         decoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d.txt", period));
-    decoder->SetZDCMapping("ZDC_map_dry_run_2021.txt");
+    decoder->SetZDCMapping("ZDC_map_period_5.txt");
     decoder->SetZDCCalibration("zdc_muon_calibration.txt");
     decoder->SetScWallMapping("SCWALL_map_dry_run_2022.txt");
     decoder->SetScWallCalibration("SCWALL_calibration_2022.txt");
     decoder->SetFHCalMapping("FHCAL_map_dry_run_2022.txt");
     decoder->SetFHCalCalibration("FHCAL_calibration_2022.txt");
+    decoder->SetHodoMapping("HODO_map_dry_run_2022.txt");
+    decoder->SetHodoCalibration("HODO_calibration_2022.txt");
     decoder->SetECALMapping(TString("ECAL_map_period_") + PeriodSetupExt);
     decoder->SetECALCalibration("");
     decoder->SetMwpcMapping(TString("MWPC_map_period") + ((period == 6 && decoder->GetRunId() < 1397) ? 5 : PeriodSetupExt));

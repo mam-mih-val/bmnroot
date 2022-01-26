@@ -1229,7 +1229,7 @@ void BmnGlobalTracking::Finish() {
         matchResid.Close();
     }
 
-    cout << "Work time of the Global matching: " << fTime << endl;
+    printf("Work time of BmnGlobalTracking: %4.2f sec.\n", fTime);
 }
 
 void BmnGlobalTracking::CalculateLength() {

@@ -1,26 +1,30 @@
 //
-// Base class for processing data from ADC detectors
+// Base class for processing data from ADC strip detectors
 // It's used for pedestal calculation
 //
 
 #ifndef BMNADCPROCESSOR_H
 #define BMNADCPROCESSOR_H
 
+#include <fstream>
+#include <iostream>
+#include <list>
+#include <map>
+#include <vector>
+#include <TStopwatch.h>
+#include <memory>
+
 #include "TString.h"
 #include "TTree.h"
 #include "TClonesArray.h"
 #include "TColor.h"
-#include <iostream>
-#include "BmnADCDigit.h"
-#include "BmnEnums.h"
 #include "TMath.h"
-#include <fstream>
-#include <list>
-#include <map>
-#include <vector>
 #include <TH2F.h>
 #include <TCanvas.h>
 #include <TStyle.h>
+
+#include "BmnADCDigit.h"
+#include "BmnEnums.h"
 #include <BmnSiliconStationSet.h>
 #include <BmnGemStripStationSet.h>
 #include <BmnCSCStationSet.h>
@@ -41,7 +45,9 @@ public:
 
     BmnStatus RecalculatePedestals();
     BmnStatus RecalculatePedestalsAugmented();
+    void PrecalcEventModsOld(TClonesArray *adc);
     void PrecalcEventMods(TClonesArray *adc);
+    void (BmnAdcProcessor::*PrecalcEventModsImp)(TClonesArray *adc);
     void CalcEventMods();
     //    BmnStatus FillProfiles(TClonesArray *adc);
     BmnStatus FillNoisyChannels();
@@ -129,6 +135,9 @@ public:
     void DrawDebugHists();
     void DrawDebugHists2D();
     void ClearDebugHists();
+    static unique_ptr<BmnSiliconStationSet>  GetSilStationSet(Int_t period, BmnSetup stp = kBMNSETUP);
+    static BmnGemStripStationSet * GetGemStationSet(Int_t period, BmnSetup stp = kBMNSETUP);
+    static BmnCSCStationSet *      GetCSCStationSet(Int_t period, BmnSetup stp = kBMNSETUP);
 
 protected:
     Int_t fVerbose = 0;
@@ -154,7 +163,7 @@ protected:
     map <Int_t, Int_t> fGemStats;
     map <Int_t, Int_t> fSilStats;
     BmnGemStripStationSet* fGemStationSet = nullptr;
-    BmnSiliconStationSet* fSilStationSet = nullptr;
+    unique_ptr<BmnSiliconStationSet> fSilStationSet;
     BmnCSCStationSet* fCscStationSet = nullptr;
 
     map<UInt_t, Int_t> fSerMap; ///< ADC serials map

@@ -7,6 +7,10 @@
 
 #include "BmnZdcAnalyzer.h"
 #include "FairLogger.h"
+#include <TStopwatch.h>
+
+using namespace std;
+static Float_t workTime = 0.0;
 
 BmnZdcAnalyzer::BmnZdcAnalyzer() {
 }
@@ -38,10 +42,22 @@ InitStatus BmnZdcAnalyzer::Init()
 }
 
 void BmnZdcAnalyzer::Exec(Option_t* opt) {
+
+    TStopwatch sw;
+    sw.Start();
+    
     if (!IsActive())
         return;
 
     fBmnZDCEventData->Set(fArrayOfZdcDigits, fModuleScale, fModuleThreshold);
+
+    sw.Stop();
+    workTime += sw.RealTime();
 }
+
+void BmnZdcAnalyzer::Finish() {
+    printf("Work time of BmnZdcAnalyzer: %4.2f sec.\n", workTime);
+}
+
 
 ClassImp(BmnZdcAnalyzer)

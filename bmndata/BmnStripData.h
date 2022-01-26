@@ -142,7 +142,7 @@ public:
 //------------------------------------------------------------------------------
 
 //Class: strip cluster ---------------------------------------------------------
-class StripCluster {
+class StripCluster : public TObject {
 
 public:
     Double_t OriginPosition; //origin position of the center point

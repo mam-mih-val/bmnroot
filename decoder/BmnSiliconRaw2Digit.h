@@ -31,6 +31,7 @@ struct BmnSiliconMapping {
     Short_t station;
     bool inverted;
 };
+typedef map<Int_t, BmnSiliconMapping*> InChanMapSil;
 
 class BmnSiliconRaw2Digit : public BmnAdcProcessor {
 public:
@@ -46,11 +47,12 @@ public:
     void InitAdcProcessorMK(Int_t run, Int_t iread = 0, Int_t iped = 0, Int_t ithr = 0, Int_t test = 0);
     void RecalculatePedestalsByMap();
 
-    vector<BmnSiliconMapping> & GetMap() { return fMap;};
+    vector<BmnSiliconMapping*> & GetMap() { return fMap;};
 
 private:
 
-    vector<BmnSiliconMapping> fMap;
+    vector<BmnSiliconMapping*> fMap;
+    map<UInt_t, InChanMapSil> fOuterMap; // serial map
     Int_t fEventId;
     TString fMapFileName;
 
@@ -191,11 +193,11 @@ private:
 
 
     BmnStatus ReadMapFile();
-    inline Int_t MapStrip(BmnSiliconMapping &v, Int_t iCh, Short_t iSmpl){
-        if (v.inverted)
-            return (v.channel_high - iCh + 1) * GetNSamples() - iSmpl;
+    inline Int_t MapStrip(BmnSiliconMapping *v, Int_t iCh, Short_t iSmpl){
+        if (v->inverted)
+            return (v->channel_high - iCh + 1) * GetNSamples() - iSmpl;
         else
-            return (iCh - v.channel_low) * GetNSamples() + iSmpl;
+            return (iCh - v->channel_low) * GetNSamples() + iSmpl;
     }
     void ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* silM, TClonesArray *silicon, Bool_t doFill);
     void ProcessAdc(TClonesArray *silicon, Bool_t doFill);

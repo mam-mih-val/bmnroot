@@ -35,7 +35,7 @@ using namespace std;
 class BmnHist : public TNamed {
 public:
 
-    BmnHist(Int_t periodID = 7);
+    BmnHist(Int_t periodID = 7, BmnSetup setup = kBMNSETUP);
     virtual ~BmnHist();
     virtual void Reset() = 0;
     virtual void Register(THttpServer *serv) = 0;
@@ -83,11 +83,11 @@ public:
     }
     
     void SetBmnSetup(BmnSetup v) {
-        this->fBmnSetup = v;
+        this->fSetup = v;
     }
 
     BmnSetup GetBmnSetup() const {
-        return fBmnSetup;
+        return fSetup;
     }
     
 protected:
@@ -101,7 +101,7 @@ protected:
     Int_t refID;
     TFile *refFile;
     Int_t fPeriodID;
-    BmnSetup fBmnSetup = kBMNSETUP;
+    BmnSetup fSetup;
 
     ClassDef(BmnHist, 1)
 

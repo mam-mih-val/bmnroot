@@ -20,6 +20,7 @@ public:
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
+    virtual void Finish();
     
     /// 
     /// Set array of module coeffs for each channel to be used in 

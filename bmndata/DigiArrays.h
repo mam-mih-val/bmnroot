@@ -16,6 +16,7 @@ public:
     zdc(nullptr),
     scwall(nullptr),
     fhcal(nullptr),
+    hodo(nullptr),
     ecal(nullptr),
     land(nullptr),
     dch(nullptr),
@@ -74,6 +75,10 @@ public:
             fhcal->Delete();
             delete fhcal;
         }
+        if (hodo) {
+            hodo->Delete();
+            delete hodo;
+        }
         if (ecal) {
             ecal->Delete();
             delete ecal;
@@ -107,6 +112,7 @@ public:
     TClonesArray *zdc;
     TClonesArray *scwall;
     TClonesArray *fhcal;
+    TClonesArray *hodo;
     TClonesArray *ecal;
     TClonesArray *land;
     TClonesArray *dch;

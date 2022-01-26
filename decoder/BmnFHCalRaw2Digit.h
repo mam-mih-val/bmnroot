@@ -11,16 +11,15 @@
 #include "BmnSyncDigit.h"
 
 #include "Riostream.h"
-#include "BmnFHCalDigi.h"
 #include <cstdlib>
 #include <UniDbRun.h>
 
 #include <boost/program_options.hpp>
+#include "BmnFHCalDigi.h"
+#include "WfmProcessor.h"
 
-#include "PronyFitter.h"
 
-
-class BmnFHCalRaw2Digit{
+class BmnFHCalRaw2Digit : public WfmProcessor {
 
 public:
     BmnFHCalRaw2Digit(Int_t period, Int_t run, TString mappingFile, TString calibrationFile = "");
@@ -51,23 +50,7 @@ private:
     std::vector<short> fUniqueY;
     std::vector<short> fUniqueZ;
     std::vector<unsigned int> fChannelVect; // flat_channel to unique_address
-
-    struct digiPars {
-      bool isWriteWfm;
-      int gateBegin;
-      int gateEnd;
-      float threshold;
-      int signalType;
-      bool doInvert;
-
-      bool isfit;
-      std::vector<std::complex<float>> harmonics;
-    } fdigiPars;
     std::vector<std::pair<float,float>> fCalibVect; // flat_calo_channel to pair<calib, calibError>
-
-    void MeanRMScalc(std::vector<float> wfm, float* Mean, float* RMS, int begin, int end, int step = 1);
-    void ProcessWfm(std::vector<float> wfm, BmnFHCalDigi* digi);
-
 
     ClassDef(BmnFHCalRaw2Digit, 1);
 };

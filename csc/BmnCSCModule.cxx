@@ -706,6 +706,8 @@ void BmnCSCModule::ResetIntersectionPoints() {
     IntersectionPoints_LowerLayerStripTotalSignal.clear();
     IntersectionPoints_UpperLayerStripTotalSignal.clear();
     IntersectionPointMatches.clear();
+    UpperClusters.clear();
+    LowerClusters.clear();
 }
 
 void BmnCSCModule::DefineModuleBorders() {

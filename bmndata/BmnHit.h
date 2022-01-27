@@ -122,6 +122,22 @@ public:
         fDigitNumberMatch = match;
     }
 
+    Int_t GetUpperClusterIndex() {
+        return fUpperClusterIndex;
+    }
+
+    Int_t GetLowerClusterIndex() {
+        return fLowerClusterIndex;
+    }
+
+    void SetUpperClusterIndex(Int_t idx) {
+        fUpperClusterIndex = idx;
+    }
+
+    void SetLowerClusterIndex(Int_t idx) {
+        fLowerClusterIndex = idx;
+    }
+
 private:
 
     /** Is hit used or not **/
@@ -144,6 +160,9 @@ private:
     Double_t fCovXY;          // Covariance of x and y coordinates
 
     BmnMatch fDigitNumberMatch; //digit numbers used for the hit (as weighed center (one strip) of a cluster in each layer
+    
+    Int_t fUpperClusterIndex;
+    Int_t fLowerClusterIndex;
 
     ClassDef(BmnHit, 1);
 

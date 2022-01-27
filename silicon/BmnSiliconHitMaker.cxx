@@ -254,6 +254,9 @@ void BmnSiliconHitMaker::ProcessDigits() {
     if (fVerbose == 1) cout << "BmnSiliconHitMaker: " << NCalculatedPoints << " hits\n";
 
     Int_t clear_matched_points_cnt = 0; // points with the only one match-indexes
+    
+    map<Int_t, StripCluster> UniqueUpperClusters;
+    map<Int_t, StripCluster> UniqueLowerClusters;
 
     for (Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
         station = StationSet->GetSiliconStation(iStation);
@@ -322,9 +325,13 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 hit->SetDigitNumberMatch(module->GetIntersectionPointDigitNumberMatch(iPoint)); //digit number match for the hit
                 //--------------------------------------------------------------
 
-                new ((*fBmnSiliconUpperClustersArray)[fBmnSiliconUpperClustersArray->GetEntriesFast()]) StripCluster(module->GetUpperCluster(iPoint));
-                new ((*fBmnSiliconLowerClustersArray)[fBmnSiliconLowerClustersArray->GetEntriesFast()]) StripCluster(module->GetLowerCluster(iPoint));
-
+                StripCluster ucls = module->GetUpperCluster(iPoint);
+                StripCluster lcls = module->GetLowerCluster(iPoint);
+                UniqueUpperClusters[ucls.GetUniqueID()] = ucls;
+                UniqueLowerClusters[lcls.GetUniqueID()] = lcls;
+                hit->SetUpperClusterIndex(ucls.GetUniqueID());
+                hit->SetLowerClusterIndex(lcls.GetUniqueID());
+ 
                 if (fHitMatching) {
                     BmnMatch digiMatch = module->GetIntersectionPointDigitNumberMatch(iPoint);
                     Int_t idx0 = digiMatch.GetLink(0).GetIndex();
@@ -359,6 +366,14 @@ void BmnSiliconHitMaker::ProcessDigits() {
             }
         }
     }
+    
+    for (auto it : UniqueUpperClusters) {
+        new ((*fBmnSiliconUpperClustersArray)[fBmnSiliconUpperClustersArray->GetEntriesFast()]) StripCluster(it.second);
+    }
+    for (auto it : UniqueLowerClusters) {
+        new ((*fBmnSiliconLowerClustersArray)[fBmnSiliconLowerClustersArray->GetEntriesFast()]) StripCluster(it.second);
+    }
+    
     if (fVerbose > 1) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();

@@ -1,5 +1,8 @@
 #include "BmnGemStripLayer.h"
 
+static Int_t uniqueIdU = 0;
+static Int_t uniqueIdL = 0;
+
 BmnGemStripLayer::BmnGemStripLayer() {
 
     Verbosity = true;
@@ -348,6 +351,7 @@ void BmnGemStripLayer::ResetStripHits() {
     StripHitsTotalSignal.clear();
     StripHitsErrors.clear();
     StripHitsClusterSize.clear();
+    StripClusters.clear();
 }
 
 Double_t BmnGemStripLayer::ConvertNormalPointToStripX(Double_t x, Double_t y) {
@@ -578,6 +582,13 @@ void BmnGemStripLayer::FindClustersAndStripHits() {
 
     cluster.MeanPosition = mean_strip_position;
     cluster.TotalSignal = total_cluster_signal;
+    if (LayerType == LowerStripLayer) {
+        cluster.SetType(0);
+        cluster.SetUniqueID(uniqueIdL++);
+    } else {
+        cluster.SetType(1);
+        cluster.SetUniqueID(uniqueIdU++);
+    }
 
     StripClusters.push_back(cluster);
 

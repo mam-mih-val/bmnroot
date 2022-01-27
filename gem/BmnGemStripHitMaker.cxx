@@ -294,6 +294,9 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
     Int_t clear_matched_points_cnt = 0; // points with the only one match-index
 
+    map<Int_t, StripCluster> UniqueUpperClusters;
+    map<Int_t, StripCluster> UniqueLowerClusters;
+
     for (Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
         BmnGemStripStation* station = StationSet->GetGemStation(iStation);
 
@@ -376,8 +379,12 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 hit->SetIndex(fBmnGemStripHitsArray->GetEntriesFast() - 1);
                 hit->SetDigitNumberMatch(module->GetIntersectionPointDigitNumberMatch(iPoint)); //digit number match for the hit
 
-                new ((*fBmnGemUpperClustersArray)[fBmnGemUpperClustersArray->GetEntriesFast()]) StripCluster(module->GetUpperCluster(iPoint));
-                new ((*fBmnGemLowerClustersArray)[fBmnGemLowerClustersArray->GetEntriesFast()]) StripCluster(module->GetLowerCluster(iPoint));
+                StripCluster ucls = module->GetUpperCluster(iPoint);
+                StripCluster lcls = module->GetLowerCluster(iPoint);
+                UniqueUpperClusters[ucls.GetUniqueID()] = ucls;
+                UniqueLowerClusters[lcls.GetUniqueID()] = lcls;
+                hit->SetUpperClusterIndex(ucls.GetUniqueID());
+                hit->SetLowerClusterIndex(lcls.GetUniqueID());
 
                 if (fHitMatching) {
                     BmnMatch digiMatch = module->GetIntersectionPointDigitNumberMatch(iPoint);
@@ -415,6 +422,14 @@ void BmnGemStripHitMaker::ProcessDigits() {
             }
         }
     }
+
+    for (auto it : UniqueUpperClusters) {
+        new ((*fBmnGemUpperClustersArray)[fBmnGemUpperClustersArray->GetEntriesFast()]) StripCluster(it.second);
+    }
+    for (auto it : UniqueLowerClusters) {
+        new ((*fBmnGemLowerClustersArray)[fBmnGemLowerClustersArray->GetEntriesFast()]) StripCluster(it.second);
+    }
+    
     if (fVerbose > 1) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();

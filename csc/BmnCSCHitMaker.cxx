@@ -205,6 +205,9 @@ void BmnCSCHitMaker::ProcessDigits() {
 
     Int_t clear_matched_points_cnt = 0; // points with the only one match-index
 
+    map<Int_t, StripCluster> UniqueUpperClusters;
+    map<Int_t, StripCluster> UniqueLowerClusters;
+
     for (Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
         station = StationSet->GetStation(iStation);
 
@@ -273,8 +276,12 @@ void BmnCSCHitMaker::ProcessDigits() {
                     cout << "\n";
                 }
 
-                new ((*fBmnCSCUpperClustersArray)[fBmnCSCUpperClustersArray->GetEntriesFast()]) StripCluster(module->GetUpperCluster(iPoint));
-                new ((*fBmnCSCLowerClustersArray)[fBmnCSCLowerClustersArray->GetEntriesFast()]) StripCluster(module->GetLowerCluster(iPoint));
+                StripCluster ucls = module->GetUpperCluster(iPoint);
+                StripCluster lcls = module->GetLowerCluster(iPoint);
+                UniqueUpperClusters[ucls.GetUniqueID()] = ucls;
+                UniqueLowerClusters[lcls.GetUniqueID()] = lcls;
+                hit->SetUpperClusterIndex(ucls.GetUniqueID());
+                hit->SetLowerClusterIndex(lcls.GetUniqueID());
 
                 if (fHitMatching) {
                     //For future update. Add link to DigiNumberMatch
@@ -314,6 +321,14 @@ void BmnCSCHitMaker::ProcessDigits() {
             }
         }
     }
+
+    for (auto it : UniqueUpperClusters) {
+        new ((*fBmnCSCUpperClustersArray)[fBmnCSCUpperClustersArray->GetEntriesFast()]) StripCluster(it.second);
+    }
+    for (auto it : UniqueLowerClusters) {
+        new ((*fBmnCSCLowerClustersArray)[fBmnCSCLowerClustersArray->GetEntriesFast()]) StripCluster(it.second);
+    }
+    
     if (fVerbose > 1) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();

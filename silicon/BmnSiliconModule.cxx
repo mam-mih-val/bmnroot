@@ -246,8 +246,8 @@ void BmnSiliconModule::ResetModuleData() {
 }
 
 Bool_t BmnSiliconModule::IsPointInsideModule(Double_t x, Double_t y) {
-    Double_t xloc = ConvertGlobalToLocalX(x, y);
-    Double_t yloc = ConvertGlobalToLocalY(x, y);
+    Double_t xloc = ConvertRotatedToLocalX(x, y);
+    Double_t yloc = ConvertRotatedToLocalY(x, y);
     for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
         if( StripLayers[ilayer].IsPointInsideStripLayer(xloc, yloc) ) return true;
     }
@@ -276,8 +276,8 @@ Bool_t BmnSiliconModule::IsPointInsideZThickness(Double_t z) {
 Bool_t BmnSiliconModule::AddRealPointSimple(Double_t x, Double_t y, Double_t z,
                                             Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID) {
 
-    Double_t xloc = ConvertGlobalToLocalX(x, y);
-    Double_t yloc = ConvertGlobalToLocalY(x, y);
+    Double_t xloc = ConvertRotatedToLocalX(x, y);
+    Double_t yloc = ConvertRotatedToLocalY(x, y);
 
     if( IsPointInsideModule(x, y) ) {
 
@@ -313,8 +313,8 @@ Bool_t BmnSiliconModule::AddRealPointSimple(Double_t x, Double_t y, Double_t z,
 Bool_t BmnSiliconModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z,
                                Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID) {
 
-    Double_t xloc = ConvertGlobalToLocalX(x, y);
-    Double_t yloc = ConvertGlobalToLocalY(x, y);
+    Double_t xloc = ConvertRotatedToLocalX(x, y);
+    Double_t yloc = ConvertRotatedToLocalY(x, y);
 
     if( IsPointInsideModule(x, y) ) {
 
@@ -717,11 +717,11 @@ void BmnSiliconModule::CalculateStripHitIntersectionPoints() {
                     //check: a point belongs to both strip layers together
                     if( StripLayers[ilayer].IsPointInsideStripLayer(xcoord, ycoord) && StripLayers[jlayer].IsPointInsideStripLayer(xcoord, ycoord) ) {
 
-                        Double_t xglob = ConvertLocalToGlobalX(xcoord, ycoord);
-                        Double_t yglob = ConvertLocalToGlobalY(xcoord, ycoord);
+                        Double_t xrot = ConvertLocalToRotatedX(xcoord, ycoord);
+                        Double_t yrot = ConvertLocalToRotatedY(xcoord, ycoord);
 
-                        IntersectionPointsX.push_back(xglob);
-                        IntersectionPointsY.push_back(yglob);
+                        IntersectionPointsX.push_back(xrot);
+                        IntersectionPointsY.push_back(yrot);
 
                         //Intersection (x,y)-errors from the strip-errors ------
                         Double_t AngleIntersecRad = Abs(iAngleRad - jAngleRad);
@@ -860,11 +860,11 @@ Bool_t BmnSiliconModule::SearchIntersectionPoint(Double_t &x, Double_t &y, Doubl
         }
     }
 
-    Double_t xglob = ConvertLocalToGlobalX(xcoord, ycoord);
-    Double_t yglob = ConvertLocalToGlobalY(xcoord, ycoord);
+    Double_t xrot = ConvertLocalToRotatedX(xcoord, ycoord);
+    Double_t yrot = ConvertLocalToRotatedY(xcoord, ycoord);
 
-    x = xglob;
-    y = yglob;
+    x = xrot;
+    y = yrot;
 
     //check: a point belongs to both strip layers together
     if( StripLayers[ilayer].IsPointInsideStripLayer(xcoord, ycoord) && StripLayers[jlayer].IsPointInsideStripLayer(xcoord, ycoord) ) {
@@ -874,28 +874,28 @@ Bool_t BmnSiliconModule::SearchIntersectionPoint(Double_t &x, Double_t &y, Doubl
     return false;
 }
 
-Double_t BmnSiliconModule::ConvertGlobalToLocalX(Double_t xglob, Double_t yglob) {
-    //if the module is rotated counter-clockwise then our coordinates are rotated clockwise !!!!
-    Double_t xloc = ModuleRotationCenterX + (xglob-ModuleRotationCenterX)*cos(-ModuleRotationAlgleRad) - (yglob-ModuleRotationCenterY)*sin(-ModuleRotationAlgleRad);
+Double_t BmnSiliconModule::ConvertRotatedToLocalX(Double_t xrot, Double_t yrot) {
+    //Getting local X-coordinate by applying an inverse rotation to rotated coordinates
+    Double_t xloc = ModuleRotationCenterX + (xrot-ModuleRotationCenterX)*cos(ModuleRotationAlgleRad) - (yrot-ModuleRotationCenterY)*sin(ModuleRotationAlgleRad);
     return xloc;
 }
 
-Double_t BmnSiliconModule::ConvertGlobalToLocalY(Double_t xglob, Double_t yglob) {
-    //if the module is rotated counter-clockwise then our coordinates are rotated clockwise !!!!
-    Double_t yloc = ModuleRotationCenterY + (yglob-ModuleRotationCenterY)*cos(-ModuleRotationAlgleRad) + (xglob-ModuleRotationCenterX)*sin(-ModuleRotationAlgleRad);
+Double_t BmnSiliconModule::ConvertRotatedToLocalY(Double_t xrot, Double_t yrot) {
+    //Getting local X-coordinate by applying an inverse rotation to rotated coordinates
+    Double_t yloc = ModuleRotationCenterY + (xrot-ModuleRotationCenterX)*sin(ModuleRotationAlgleRad) + (yrot-ModuleRotationCenterY)*cos(ModuleRotationAlgleRad);
     return yloc;
 }
 
-Double_t BmnSiliconModule::ConvertLocalToGlobalX(Double_t xloc, Double_t yloc) {
-    //if the module is rotated counter-clockwise then our coordinates are rotated clockwise !!!!
-    Double_t xglob = ModuleRotationCenterX + (xloc-ModuleRotationCenterX)*cos(ModuleRotationAlgleRad) - (yloc-ModuleRotationCenterY)*sin(ModuleRotationAlgleRad);
-    return xglob;
+Double_t BmnSiliconModule::ConvertLocalToRotatedX(Double_t xloc, Double_t yloc) {
+    //Getting rotated X-coordinate by applying a rotation to local (non-rotated) coordinates
+    Double_t xrot = ModuleRotationCenterX + (xloc-ModuleRotationCenterX)*cos(-ModuleRotationAlgleRad) - (yloc-ModuleRotationCenterY)*sin(-ModuleRotationAlgleRad);
+    return xrot;
 }
 
-Double_t BmnSiliconModule::ConvertLocalToGlobalY(Double_t xloc, Double_t yloc) {
-    //if the module is rotated counter-clockwise then our coordinates are rotated clockwise !!!!
-    Double_t yglob = ModuleRotationCenterY + (yloc-ModuleRotationCenterY)*cos(ModuleRotationAlgleRad) + (xloc-ModuleRotationCenterX)*sin(ModuleRotationAlgleRad);
-    return yglob;
+Double_t BmnSiliconModule::ConvertLocalToRotatedY(Double_t xloc, Double_t yloc) {
+    //Getting rotated Y-coordinate by applying a rotation to local (non-rotated) coordinates
+    Double_t yrot = ModuleRotationCenterY + (xloc-ModuleRotationCenterX)*sin(-ModuleRotationAlgleRad) + (yloc-ModuleRotationCenterY)*cos(-ModuleRotationAlgleRad);
+    return yrot;
 }
 
 void BmnSiliconModule::ResetIntersectionPoints() {

@@ -21,6 +21,7 @@
 #include "TGFileDialog.h"
 #include "TThread.h"
 #include "TDatabasePDG.h"
+#include "TVirtualX.h"
 
 #include <iostream>
 #include <vector>

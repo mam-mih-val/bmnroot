@@ -133,7 +133,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fGemMap = NULL;
     fEvForPedestals = N_EV_FOR_PEDESTALS;
     fBmnSetup = kBMNSETUP;
-    fT0Map = NULL;
+    fT0Serial = 0;
     tai_utc_dif = 0;
     fVerbose = 0;
     isSpillStart = kFALSE;
@@ -151,7 +151,26 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
 BmnRawDataDecoder::~BmnRawDataDecoder() {
 }
 
-BmnStatus BmnRawDataDecoder::ProcessRunTLV() {
+BmnStatus BmnRawDataDecoder::ParseTLV(FILE *file) {
+    fseeko64(file, 0, SEEK_END);
+    fLengthRawFile = ftello64(file);
+    rewind(file);
+    printf("\nRAW FILE: ");
+    printf(ANSI_COLOR_BLUE "%s" ANSI_COLOR_RESET, fRawFileName.Data());
+    printf("\nRAW FILE LENGTH: ");
+    printf(ANSI_COLOR_BLUE "%.3f MB\n" ANSI_COLOR_RESET, fLengthRawFile / 1024. / 1024.);
+    fRootFileOut = new TFile(fRootFileName, "recreate");
+    isSpillStart = kTRUE;
+
+    for (;;) {
+        fread(&fDat, kWORDSIZE, 1, file);
+
+
+
+
+        if (fNevents == fMaxEvent) break;
+    }
+
     return kBMNSUCCESS;
 }
 
@@ -175,7 +194,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
         //                                    printf( "word %08X\n", fDat);
         fCurentPositionRawFile = ftello64(fRawFileIn);
         if (fCurentPositionRawFile >= fLengthRawFile) break;
-        if (fDat == kENDOFSPILL_OLD || fDat == kENDOFSPILL) {
+        if (fDat == SYNC_EOS_OLD || fDat == SYNC_EOS) {
             // read number of bytes in event
             if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
             fDat = fDat / kNBYTESINWORD + (fPeriodId <= 7 ? 1 : 0); // bytes --> words
@@ -190,7 +209,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
             isSpillStart = kTRUE;
             nSpillEvents = 0;
         }
-        if (fDat == kSYNC1_OLD || fDat == kSYNC1) { //search for start of event
+        if (fDat == SYNC_EVENT_OLD || fDat == SYNC_EVENT) { //search for start of event
             //            printf(ANSI_COLOR_BLUE "kSYNC1\n" ANSI_COLOR_RESET);
             // read number of bytes in event
             if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
@@ -342,7 +361,7 @@ BmnStatus BmnRawDataDecoder::wait_file(Int_t len, UInt_t limit) {
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate(UInt_t *buf, UInt_t len) {
     fEventId = buf[0];
-//                printf("EventID = %d\n", fEventId);
+    //                printf("EventID = %d\n", fEventId);
     if (fEventId <= 0) return kBMNERROR;
     ProcessEvent(buf, len);
     fNevents++;
@@ -358,7 +377,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile(UInt_t limit) {
         }
         fCurentPositionRawFile = ftello64(fRawFileIn);
         fread(&fDat, kWORDSIZE, 1, fRawFileIn);
-        if (fDat == kRUNNUMBERSYNC) {
+        if (fDat == SYNC_RUN_NUMBER) {
             printf("RunNumberSync\n");
             syncCounter++;
             if (syncCounter > 1) {
@@ -368,7 +387,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile(UInt_t limit) {
             fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
         }
 
-        if (fDat == kENDOFSPILL_OLD || fDat == kENDOFSPILL) {
+        if (fDat == SYNC_EOS_OLD || fDat == SYNC_EOS) {
             // read number of bytes in event
             if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
             fDat = fDat / kNBYTESINWORD + (fPeriodId <= 7 ? 1 : 0); // bytes --> words
@@ -383,7 +402,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile(UInt_t limit) {
             isSpillStart = kTRUE;
             nSpillEvents = 0;
         }
-        if (fDat == kSYNC1_OLD || fDat == kSYNC1) { //search for start of event
+        if (fDat == SYNC_EVENT_OLD || fDat == SYNC_EVENT) { //search for start of event
             //            printf(ANSI_COLOR_BLUE "kSYNC1\n" ANSI_COLOR_RESET);
             // read number of bytes in event
             if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
@@ -496,7 +515,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                 break;
         }
         if (payload + idx > len) {
-            printf("Error in the event #%d: device payload length mismatch!", fEventId);
+            printf("Error in the event #%d: device payload length mismatch!\n", fEventId);
             return kBMNERROR;
         } else
             idx += payload;
@@ -974,7 +993,7 @@ BmnStatus BmnRawDataDecoder::FillBlockTDC(UInt_t *d, UInt_t serial, uint16_t &le
                 //                uint16_t time = (word>>2) & (BIT(19) - 1);
                 uint16_t time = word & (BIT(21) - 1);
                 //                printf("\tTDC %s ch %u id %d time %u\n", (bt == TDC_LEADING) ? "leading" : "trailing", channel, tdcId, time);
-                new((*ar)[ar->GetEntriesFast()]) BmnTDCDigit(serial, 0, 0, (bt == TDC_LEADING), channel, tdcId, time, tdcTS);
+                new((*ar)[ar->GetEntriesFast()]) BmnTDCDigit(serial, 0, 0, (bt == TDC_LEADING), channel, 0/*tdcId*/, time, 0/*tdcTS*/); // ignore idcId in TQDC
                 break;
             }
             case TDC_ERROR:
@@ -1001,6 +1020,7 @@ BmnStatus BmnRawDataDecoder::FillTQDC_Eth(UInt_t *d, UInt_t serial, UInt_t &len)
     MStreamSubtype0Header ms0 = {};
     memcpy(&ms0, d + index, sizeof (ms0));
     index += sizeof (ms0) / kNBYTESINWORD;
+    FillWR(serial, fEventId, ms0.TaiSec, ms0.TaiNSec);
     //    printf("len %u msHeader len %u\n", len, ms.Len / kNBYTESINWORD);
     //    printf("taiFlags %u TAI %s\n",
     //            ms0.TaiFlags, TTimeStamp(time_t(ms0.TaiSec), ms0.TaiNSec).AsString());
@@ -1036,6 +1056,7 @@ BmnStatus BmnRawDataDecoder::FillTDC72VXS(UInt_t *d, UInt_t serial, UInt_t &len)
     MStreamSubtype0Header ms0 = {};
     memcpy(&ms0, d + index, sizeof (ms0));
     index += sizeof (ms0) / kNBYTESINWORD;
+    FillWR(serial, fEventId, ms0.TaiSec, ms0.TaiNSec);
     while (index < ms.Len / kNBYTESINWORD) {
         uint8_t dtype = d[index] >> 28;
         bool overflow = d[index] & BIT(16);
@@ -1076,6 +1097,15 @@ BmnStatus BmnRawDataDecoder::FillUT24VE_TRC(UInt_t *d, UInt_t &len, BmnEventType
     return kBMNSUCCESS;
 }
 
+
+BmnStatus BmnRawDataDecoder::FillWR(UInt_t serial, Long64_t iEvent, Long64_t t_sec, Long64_t t_ns) {
+    if (tai_utc_dif == 0)
+        tai_utc_dif = GetUTCShift(TTimeStamp(time_t(t_sec), t_ns));
+    fTime_ns = t_ns;
+    fTime_s = t_sec - tai_utc_dif;
+    new((*sync)[sync->GetEntriesFast()]) BmnSyncDigit(serial, iEvent, fTime_s, fTime_ns);
+}
+
 BmnStatus BmnRawDataDecoder::FillSYNC(UInt_t *d, UInt_t serial, UInt_t & idx) {
     UInt_t d0 = d[idx + 0];
     UInt_t d1 = d[idx + 1];
@@ -1091,15 +1121,7 @@ BmnStatus BmnRawDataDecoder::FillSYNC(UInt_t *d, UInt_t serial, UInt_t & idx) {
         ts_t0_s = ((d1 >> 4) & 0xFFFFFF) | ((d2 & 0xFFFF) << 24);
         GlobalEvent = ((d3 & 0x0FFFFFFF) << 12) | ((d2 >> 16) & 0xFFF);
     }
-
-    if (tai_utc_dif == 0)
-        tai_utc_dif = GetUTCShift(TTimeStamp(time_t(ts_t0_s), ts_t0_ns));
-
-    fTime_ns = ts_t0_ns;
-    fTime_s = ts_t0_s - tai_utc_dif;
-
-    TClonesArray &ar_sync = *sync;
-    new(ar_sync[sync->GetEntriesFast()]) BmnSyncDigit(serial, GlobalEvent, fTime_s, fTime_ns);
+    FillWR(serial, GlobalEvent, ts_t0_s, ts_t0_ns);
 
     idx += 3; //skip next 3 words (we've processed them)
     return kBMNSUCCESS;
@@ -1548,19 +1570,19 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 timer.Stop();
                 rtime = timer.RealTime();
                 ctime = timer.CpuTime();
-                //                printf("Real time %f s, CPU time %f s  fCscMapper\n", rtime, ctime);
+                //                                printf("\nReal time %f s, CPU time %f s  fCscMapper\n", rtime, ctime);
                 timer.Start();
                 if (fGemMapper) fGemMapper->FillEvent(adc32, gem);
                 timer.Stop();
                 rtime = timer.RealTime();
                 ctime = timer.CpuTime();
-                //                printf("Real time %f s, CPU time %f s  fGemMapper\n", rtime, ctime);
+                //                                printf("Real time %f s, CPU time %f s  fGemMapper\n", rtime, ctime);
                 timer.Start();
                 if (fSiliconMapper) fSiliconMapper->FillEvent(adc128, silicon);
                 timer.Stop();
                 rtime = timer.RealTime();
                 ctime = timer.CpuTime();
-                //                printf("Real time %f s, CPU time %f s  fSiliconMapper\n", rtime, ctime);
+                //                                printf("Real time %f s, CPU time %f s  fSiliconMapper\n", rtime, ctime);
             } else {
                 if (fGemMapper) fGemMapper->FillEventMK(adc32, gem, csc);
                 if (fSiliconMapper) fSiliconMapper->FillEventMK(adc128, silicon);
@@ -1570,61 +1592,61 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             timer.Stop();
             rtime = timer.RealTime();
             ctime = timer.CpuTime();
-            //            printf("Real time %f s, CPU time %f s  fDchMapper\n", rtime, ctime);
+            //                        printf("Real time %f s, CPU time %f s  fDchMapper\n", rtime, ctime);
             timer.Start();
             if (fMwpcMapper) fMwpcMapper->FillEvent(hrb, mwpc);
             timer.Stop();
             rtime = timer.RealTime();
             ctime = timer.CpuTime();
-            //            printf("Real time %f s, CPU time %f s  fMwpcMapper\n", rtime, ctime);
+            //                        printf("Real time %f s, CPU time %f s  fMwpcMapper\n", rtime, ctime);
             timer.Start();
             if (fTof400Mapper) fTof400Mapper->FillEvent(tdc, &fTimeShifts, tof400);
             timer.Stop();
             rtime = timer.RealTime();
             ctime = timer.CpuTime();
-            //            printf("Real time %f s, CPU time %f s  fTof400Mapper\n", rtime, ctime);
+            //                        printf("Real time %f s, CPU time %f s  fTof400Mapper\n", rtime, ctime);
             timer.Start();
             if (fTof700Mapper && fT0Time != 0. && fT0Width != -1.) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
             timer.Stop();
             rtime = timer.RealTime();
             ctime = timer.CpuTime();
-            //            printf("Real time %f s, CPU time %f s  fTof700Mapper\n", rtime, ctime);
+            //                        printf("Real time %f s, CPU time %f s  fTof700Mapper\n", rtime, ctime);
             timer.Start();
             if (fZDCMapper) fZDCMapper->fillEvent(adc, zdc);
             timer.Stop();
             rtime = timer.RealTime();
             ctime = timer.CpuTime();
-            //            printf("Real time %f s, CPU time %f s  fZDCMapper\n", rtime, ctime);
+            //                        printf("Real time %f s, CPU time %f s  fZDCMapper\n", rtime, ctime);
             timer.Start();
             if (fScWallMapper) fScWallMapper->fillEvent(adc, scwall);
             timer.Stop();
             rtime = timer.RealTime();
             ctime = timer.CpuTime();
-            //            printf("Real time %f s, CPU time %f s  fScWallMapper\n", rtime, ctime);
+            //                        printf("Real time %f s, CPU time %f s  fScWallMapper\n", rtime, ctime);
             timer.Start();
             if (fFHCalMapper) fFHCalMapper->fillEvent(adc, fhcal);
             timer.Stop();
             rtime = timer.RealTime();
             ctime = timer.CpuTime();
-            //            printf("Real time %f s, CPU time %f s  fFHCalMapper\n", rtime, ctime);
+            //                        printf("Real time %f s, CPU time %f s  fFHCalMapper\n", rtime, ctime);
             timer.Start();
             if (fHodoMapper) fHodoMapper->fillEvent(tqdc_tdc, tqdc_adc, hodo);
             timer.Stop();
             rtime = timer.RealTime();
             ctime = timer.CpuTime();
-            //            printf("Real time %f s, CPU time %f s  fHodoMapper\n", rtime, ctime);
+            //                        printf("Real time %f s, CPU time %f s  fHodoMapper\n", rtime, ctime);
             timer.Start();
             if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
             timer.Stop();
             rtime = timer.RealTime();
             ctime = timer.CpuTime();
-            //        printf("Real time %f s, CPU time %f s  fECALMapper\n", rtime, ctime);
+            //                    printf("Real time %f s, CPU time %f s  fECALMapper\n", rtime, ctime);
             timer.Start();
             if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
             timer.Stop();
             rtime = timer.RealTime();
             ctime = timer.CpuTime();
-            //        printf("Real time %f s, CPU time %f s  fLANDMapper\n", rtime, ctime);
+            //                    printf("Real time %f s, CPU time %f s  fLANDMapper\n", rtime, ctime);
         }
         if (fMSCMapper) fMSCMapper->SumEvent(msc, eventHeader, spillHeader, fPedEvCntrBySpill);
 
@@ -1682,15 +1704,9 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     // check if detector is in setup and is active
     if (fDetectorSetup.count(kBC) > 0 && fDetectorSetup.at(kBC) == 1) {
         fTrigMapper = new BmnTrigRaw2Digit(fTrigPlaceMapFileName, fTrigChannelMapFileName, fDigiTree);
-        if (fT0Map == NULL) {
-            BmnTrigChannelData tm = fTrigMapper->GetT0Map();
-            printf("T0 serial 0x%X got from trig mapping\n", tm.serial);
-            if (tm.serial > 0) {
-                fT0Map = new TriggerMapValue();
-                fT0Map->channel = tm.channel;
-                fT0Map->serial = tm.serial;
-                fT0Map->slot = tm.slot;
-            }
+        if (fT0Serial == 0) {
+            fT0Serial = fTrigMapper->GetT0Serial();
+            printf("T0 serial 0x%X got from trig mapping\n", fT0Serial);
         }
         fTrigMapper->SetSetup(fBmnSetup);
     }
@@ -1856,9 +1872,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
 
     if (fVerbose == 1) {
         if (fEventId % 5000 == 0)
-            cout << "Digitization: " << fEventId  << " processed; Spill #" << fSpillCntr << endl;
+            cout << "Digitization: " << fEventId << " processed; Spill #" << fSpillCntr << endl;
     }
-//    printf("fCurEventType %d\n", fCurEventType);
+    //    printf("fCurEventType %d\n", fCurEventType);
     if (fTrigMapper) {
         fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
         fTrigMapper->FillEvent(tdc);
@@ -1881,9 +1897,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
                 fPedEnough = kTRUE;
             }
         }
-        if ((fGemMapper) /*&& (fPedEnough)*/) fGemMapper->FillEvent(adc32, gem);
-        if ((fCscMapper)/* && (fPedEnough)*/) fCscMapper->FillEvent(adc32, csc);
-        if ((fSiliconMapper)/* && (fPedEnough)*/) fSiliconMapper->FillEvent(adc128, silicon);
+        if ((fGemMapper) && (fPedEnough)) fGemMapper->FillEvent(adc32, gem);
+        if ((fCscMapper) && (fPedEnough)) fCscMapper->FillEvent(adc32, csc);
+        if ((fSiliconMapper) && (fPedEnough)) fSiliconMapper->FillEvent(adc128, silicon);
         if (fDchMapper) fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
         if (fMwpcMapper) fMwpcMapper->FillEvent(hrb, mwpc);
         if (fTof400Mapper) fTof400Mapper->FillEvent(tdc, &fTimeShifts, tof400);
@@ -1949,7 +1965,6 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
 
 BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (fGemMap) delete[] fGemMap;
-    if (fT0Map) delete fT0Map;
     if (fGemMapper) delete fGemMapper;
     if (fCscMapper) delete fCscMapper;
     if (fSiliconMapper) delete fSiliconMapper;
@@ -1999,19 +2014,19 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
 }
 
 BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
-    if (fT0Map == NULL) return kBMNERROR;
+    if (fT0Serial == 0) return kBMNERROR;
     Long64_t t0time = 0;
     for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
         BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
-        t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
-        fTime_s = syncDig->GetTime_sec();
-        fTime_ns = syncDig->GetTime_ns();
-        //        printf("serial %08X sync: %s\n", syncDig->GetSerial(), TTimeStamp(time_t(fTime_s), fTime_ns).AsString());
-        if (fEventId == 1) {
-            fRunStartTime = TTimeStamp(time_t(fTime_s), fTime_ns);
-        }
-        if (syncDig->GetSerial() == fT0Map->serial) {
-            //            printf("T0 sync: %s \n", TTimeStamp(time_t(fTime_s), fTime_ns).AsString());
+        if (syncDig->GetSerial() == fT0Serial) {
+            t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
+            fTime_s = syncDig->GetTime_sec();
+            fTime_ns = syncDig->GetTime_ns();
+//            printf("serial %08X sync: %s\n", syncDig->GetSerial(), TTimeStamp(time_t(fTime_s), fTime_ns).AsString());
+            if (fEventId == 1) {
+                fRunStartTime = TTimeStamp(time_t(fTime_s), fTime_ns);
+            }
+//            printf("T0 sync: %s \n", TTimeStamp(time_t(fTime_s), fTime_ns).AsString());
             break;
         }
     }
@@ -2139,7 +2154,7 @@ Int_t BmnRawDataDecoder::GetRunIdFromFile(TString name) {
     }
     UInt_t word;
     while (fread(&word, kWORDSIZE, 1, file)) {
-        if (word == kRUNNUMBERSYNC) {
+        if (word == SYNC_RUN_NUMBER) {
             fread(&word, kWORDSIZE, 1, file); //skip word
             fread(&runId, kWORDSIZE, 1, file);
             return runId;

@@ -48,7 +48,7 @@ BmnSlewingTOF700::BmnSlewingTOF700() {
     fTimeStart_ns = 0;
     syncCounter = 0;
     fBmnSetup = kBMNSETUP;
-    fT0Map = NULL;
+    fT0Serial = 0;
 }
 
 BmnSlewingTOF700::BmnSlewingTOF700(TString file, ULong_t nEvents, ULong_t period) {
@@ -91,7 +91,7 @@ BmnSlewingTOF700::BmnSlewingTOF700(TString file, ULong_t nEvents, ULong_t period
     fTimeStart_ns = 0;
     syncCounter = 0;
     fBmnSetup = kBMNSETUP;
-    fT0Map = NULL;
+    fT0Serial = 0;
     //InitMaps();
 }
 
@@ -100,11 +100,11 @@ BmnSlewingTOF700::~BmnSlewingTOF700() {
 
 
 BmnStatus BmnSlewingTOF700::FillTimeShiftsMap() {
-    if (fT0Map == NULL) return kBMNERROR;
+    if (fT0Serial == 0) return kBMNERROR;
     Long64_t t0time = 0;
     for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
         BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
-        if (syncDig->GetSerial() == fT0Map->serial) {
+        if (syncDig->GetSerial() == fT0Serial) {
             t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
             break;
         }
@@ -185,15 +185,9 @@ BmnStatus BmnSlewingTOF700::SlewingTOF700Init() {
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
     fTrigMapper = new BmnTrigRaw2Digit(fTrigPlaceMapFileName, fTrigChannelMapFileName, fDigiTree);
-    if (fT0Map == NULL) {
-        BmnTrigChannelData tm = fTrigMapper->GetT0Map();
-        printf("T0 serial 0x%X got from trig mapping\n", tm.serial);
-        if (tm.serial > 0) {
-            fT0Map = new TriggerMapValue();
-            fT0Map->channel = tm.channel;
-            fT0Map->serial = tm.serial;
-            fT0Map->slot = tm.slot;
-        }
+    if (fT0Serial == 0) {
+        fT0Serial = fTrigMapper->GetT0Serial();
+        printf("T0 serial 0x%X got from trig mapping\n", fT0Serial);
     }
 
     fTrigMapper->SetSetup(fBmnSetup);

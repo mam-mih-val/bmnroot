@@ -1,5 +1,5 @@
-Name       CrateSerial	Slot	BoardSerial
-===========================================
-TDC72VHL   0x076D3892	18	0x076D180A
-TDC72VHL   0x076D3892	20	0x06E9DA9E
-TQDC16VS   0x076D3892	13	0x046F0C75
+Name       CrateSerial	Slot	BoardSerial   isT0
+====================================================
+TDC72VHL   0x076D3892	18	0x076D180A      1
+TDC72VHL   0x076D3892	20	0x06E9DA9E      0
+TQDC16VS   0x076D3892	13	0x046F0C75      0

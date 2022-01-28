@@ -90,7 +90,10 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
 
 
     if (decoMode == kBMNADCSM) {
-        fGemStationSetDer = new BmnGemStripStationSet(period, fSetup);
+//        fGemStationSetDer = new BmnGemStripStationSet(period, fSetup);
+        fGemStationSetDer = BmnAdcProcessor::GetGemStationSet(period, fSetup);
+//                    printf("fGemStationSetDer %08X\n", fGemStationSetDer);
+//                    printf("\tstations %d\n", fGemStationSetDer->GetNStations());
 
         Int_t kNStations = fGemStationSetDer->GetNStations();
         fSigProf = new TH1F***[kNStations];

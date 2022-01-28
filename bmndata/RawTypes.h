@@ -3,15 +3,15 @@
 
 
 /***************** SET OF DAQ CONSTANTS *****************/
-const UInt_t kSYNC1 = 0x2A50D5AF;
-const UInt_t kSYNC1_OLD = 0x2A502A50;
-const UInt_t kENDOFSPILL = 0x4A62B59D;
-const UInt_t kENDOFSPILL_OLD = 0x4A624A62;
-const UInt_t kRUNSTARTSYNC = 0x72617453;
-const UInt_t kRUNSTOPSYNC = 0x706F7453;
-const UInt_t kRUNNUMBERSYNC = 0x236E7552;
-const UInt_t kRUNINDEXSYNC = 0x78646E49;
-const UInt_t kJSONSYNC = 0x4E4F534A;
+const UInt_t SYNC_EVENT = 0x2A50D5AF;
+const UInt_t SYNC_EVENT_OLD = 0x2A502A50;
+const UInt_t SYNC_EOS = 0x4A62B59D;
+const UInt_t SYNC_EOS_OLD = 0x4A624A62;
+const UInt_t SYNC_RUN_START = 0x72617453;
+const UInt_t SYNC_RUN_STOP = 0x706F7453;
+const UInt_t SYNC_RUN_NUMBER = 0x236E7552;
+const UInt_t SYNC_RUN_INDEX = 0x78646E49;
+const UInt_t SYNC_JSON = 0x4E4F534A;
 const size_t kWORDSIZE = sizeof (UInt_t);
 const UShort_t kNBYTESINWORD = 4;
 

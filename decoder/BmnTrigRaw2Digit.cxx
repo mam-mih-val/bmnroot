@@ -10,6 +10,7 @@ BmnTrigParameters::BmnTrigParameters() {
         branchArrayPtr[i] = NULL;
         t[i] = 0.0;
     }
+    IsT0 = kFALSE;
 }
 
 BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString PlacementMapFile, TString StripMapFile, TTree *digiTree) {
@@ -75,17 +76,19 @@ BmnStatus BmnTrigRaw2Digit::ReadPlacementMap(TString mappingFile) {
     string name;
     UInt_t crateSerial, boardSerial;
     UShort_t slot;
+    UShort_t isT0;
 
-    pmFile >> dummy >> dummy >> dummy >> dummy;
+    pmFile >> dummy >> dummy >> dummy >> dummy >> dummy;
     pmFile >> dummy;
     while (!pmFile.eof()) {
-        pmFile >> name >> hex >> crateSerial >> dec >> slot >> hex >> boardSerial >> dec;
+        pmFile >> name >> hex >> crateSerial >> dec >> slot >> hex >> boardSerial >> dec >> isT0;
         if (!pmFile.good()) break;
         BmnTrigParameters * par = new BmnTrigParameters();
         par->BoardSerial = boardSerial;
         par->CrateSerial = crateSerial;
         par->slot = slot;
         par->name = name;
+        par->IsT0 = isT0;
         par->ChannelCount = CHANNEL_COUNT_MAX;//ChanCntByName(name);
         fPlacementMap.insert(pair<PlMapKey, BmnTrigParameters*> (PlMapKey(par->CrateSerial, par->slot), par));
     }

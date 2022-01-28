@@ -45,7 +45,7 @@ public:
     BmnRawDataDecoder(TString file = "", TString outfile = "", ULong_t nEvents = 0, ULong_t period = 7);
     virtual ~BmnRawDataDecoder();
 
-    BmnStatus ProcessRunTLV();
+    BmnStatus ParseTLV(FILE *fRawFileIn);
     BmnStatus ConvertRawToRoot();
     BmnStatus ConvertRawToRootIterate(UInt_t *buf, UInt_t len);
     BmnStatus ConvertRawToRootIterateFile(UInt_t limit = WAIT_LIMIT);
@@ -497,7 +497,7 @@ private:
     Int_t fEvForPedestals;
     Bool_t fPedEnough;
     GemMapValue* fGemMap;
-    TriggerMapValue* fT0Map;
+    UInt_t fT0Serial;
     deque<UInt_t> *fDataQueue;
 
     //Map to store pairs <Crate serial> - <crate time - T0 time>
@@ -558,6 +558,7 @@ private:
      */
     BmnStatus FillUT24VE_TRC(UInt_t *d, UInt_t &len, BmnEventType &evType);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);
+    BmnStatus FillWR(UInt_t iSerial, Long64_t iEvent, Long64_t t_sec, Long64_t t_ns);
 
     BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t &idx);
     BmnStatus FillTimeShiftsMap();

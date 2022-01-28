@@ -12,7 +12,7 @@ enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM};
 // generatorName - generator name for the input file (enumeration above)
 // useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
 void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString outFile = "$VMCWORKDIR/macro/run8/bmnsim.root",
-    Int_t nStartEvent = 0, Int_t nEvents = 1, enumGenerators generatorName = DCMSMM, Bool_t useRealEffects = kFALSE) {
+    Int_t nStartEvent = 0, Int_t nEvents = 1, enumGenerators generatorName = BOX, Bool_t useRealEffects = kFALSE) {
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
@@ -41,7 +41,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     // Smearing of beam interaction point, if needed, and primary vertex position
     // DO NOT do it in corresponding gen. sections to avoid incorrect summation!!!
     primGen->SetBeam(0.0, 0.0, 1.6, 1.6);  // (beamX0, beamY0, beamSigmaX, beamSigmaY)
-    primGen->SetTarget(0.0875, 0.0875);          // (targetZ, targetDz)
+    primGen->SetTarget(0.0875, 0.0875);    // (targetZ, targetDz)
     primGen->SmearVertexZ(kTRUE);
     primGen->SmearVertexXY(kTRUE);
     gRandom->SetSeed(0);
@@ -83,9 +83,9 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     case BOX:{
         gRandom->SetSeed(0);
         FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 13 = muon; 1 = multipl.
-        boxGen->SetPRange(4.8, 4.8);      // GeV/c, setPRange vs setPtRange
+        boxGen->SetPRange(0.2, 5.0);      // GeV/c, setPRange vs setPtRange
         boxGen->SetPhiRange(0, 360);    // Azimuth angle range [degree]
-        boxGen->SetThetaRange(180, 180);  // Polar angle in lab system range [degree]
+        boxGen->SetThetaRange(0, 40.0);  // Polar angle in lab system range [degree]
         primGen->AddGenerator(boxGen);
         break;
     }
@@ -185,11 +185,11 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     cscDigit->SetCurrentConfig(csc_config);
     fRun->AddTask(cscDigit);
     
-    // FHCal-Digitizer
-    BmnFHCalDigitizer * zdcDigit = new BmnFHCalDigitizer();
-    zdcDigit->SetScale(28.2e3);
-    zdcDigit->SetThreshold(0.);
-    fRun->AddTask(zdcDigit);
+    //FHCal-Digitizer
+    // BmnFHCalDigitizer * fhcalDigit = new BmnFHCalDigitizer();
+    // fhcalDigit->SetScale(28.2e3);
+    // fhcalDigit->SetThreshold(0.);
+    // fRun->AddTask(fhcalDigit);
     
     // ECAL-Digitizer
     // FIXME some problems with channels

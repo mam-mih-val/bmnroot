@@ -191,6 +191,9 @@ void BmnSiliconHitMaker::Exec(Option_t* opt) {
     fBmnSiliconUpperClustersArray->Delete();
     fBmnSiliconLowerClustersArray->Delete();
 
+    BmnSiliconLayer::SetLowerUniqueID(0);
+    BmnSiliconLayer::SetUpperUniqueID(0);
+
     if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Exec() started ================" << endl;
     if (fVerbose > 1) cout << " BmnSiliconHitMaker::Exec(), Number of BmnSiliconDigits = " << fBmnSiliconDigitsArray->GetEntriesFast() << "\n";
 

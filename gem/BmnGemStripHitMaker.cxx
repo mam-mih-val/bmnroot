@@ -231,6 +231,9 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
     fBmnGemStripHitsArray->Delete();
     fBmnGemUpperClustersArray->Delete();
     fBmnGemLowerClustersArray->Delete();
+    
+    BmnGemStripLayer::SetLowerUniqueID(0);
+    BmnGemStripLayer::SetUpperUniqueID(0);
 
     if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Exec() started ===============" << endl;
 

@@ -1,7 +1,7 @@
 #include "BmnCSCLayer.h"
 
-static Int_t uniqueIdU = 0;
-static Int_t uniqueIdL = 0;
+Int_t BmnCSCLayer::fUniqueIdL = 0;
+Int_t BmnCSCLayer::fUniqueIdU = 0;
 
 BmnCSCLayer::BmnCSCLayer() {
 
@@ -549,10 +549,10 @@ void BmnCSCLayer::FindClustersAndStripHits() {
     cluster.TotalSignal = total_cluster_signal;
     if (LayerType == LowerStripLayer) {
         cluster.SetType(0);
-        cluster.SetUniqueID(uniqueIdL++);
+        cluster.SetUniqueID(fUniqueIdL++);
     } else {
         cluster.SetType(1);
-        cluster.SetUniqueID(uniqueIdU++);
+        cluster.SetUniqueID(fUniqueIdU++);
     }
 
     StripClusters.push_back(cluster);

@@ -148,7 +148,8 @@ void BmnCSCHitMaker::Exec(Option_t* opt) {
     fBmnCSCUpperClustersArray->Delete();
     fBmnCSCLowerClustersArray->Delete();
 
-
+    BmnCSCLayer::SetLowerUniqueID(0);
+    BmnCSCLayer::SetUpperUniqueID(0);
 
     if (fVerbose > 1) cout << "=================== BmnCSCHitMaker::Exec() started ====================" << endl;
 

@@ -126,23 +126,40 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
         StationSet = NULL;
     }
 
-    if (fIsExp) {
-        const Int_t nStat = StationSet->GetNStations();
-        UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", run_period, run_number);
-        vector<UniValue*> shifts;
-        if (coeffLorCorrs)
-            coeffLorCorrs->GetValue(shifts);
-
-        fLorCor = new Double_t * [nStat];
-        for (Int_t iStat = 0; iStat < nStat; iStat++) {
-            const Int_t nParams = 3;
-            fLorCor[iStat] = new Double_t[nParams];
-            for (Int_t iPar = 0; iPar < nParams; iPar++) {
-                fLorCor[iStat][iPar] = (coeffLorCorrs) ? ((LorentzShiftValue*)shifts[iStat])->ls[iPar] : 0.0;
+    const Int_t nStat = StationSet->GetNStations();
+    fLorCor = new Double_t * [nStat];
+    for (Int_t iStat = 0; iStat < nStat; iStat++) {
+        const Int_t nParams = 3;
+        fLorCor[iStat] = new Double_t[nParams];
+        for (Int_t iPar = 0; iPar < nParams; iPar++) {
+            fLorCor[iStat][iPar] = 0.0;
+        }
+    }
+    
+    if (run_period == 7) {
+        if (fIsExp) {
+            UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", run_period, run_number);
+            vector<UniValue*> shifts;
+            if (coeffLorCorrs)
+                coeffLorCorrs->GetValue(shifts);
+            for (Int_t iStat = 0; iStat < nStat; iStat++) {
+                const Int_t nParams = 3;
+                for (Int_t iPar = 0; iPar < nParams; iPar++) {
+                    fLorCor[iStat][iPar] = (coeffLorCorrs) ? ((LorentzShiftValue*)shifts[iStat])->ls[iPar] : 0.0;
+                    //printf("fLorCor[%d][%d] = %f\n", iStat, iPar, fLorCor[iStat][iPar]);
+                }
             }
         }
+    } else if (run_period == 8) {
+        for (Int_t iStat = 0; iStat < nStat; iStat++) {
+            fLorCor[iStat][0] = -0.01710;
+            fLorCor[iStat][1] = 0.01730;
+            fLorCor[iStat][2] = 0.00024;
+        }
+    }
 
 
+    if (fIsExp) {
         UniDbDetectorParameter* coeffAlignCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "alignment_shift", run_period, run_number);
         vector<UniValue*> algnShifts;
         if (coeffAlignCorrs)
@@ -170,11 +187,13 @@ BmnGemStripHitMaker::~BmnGemStripHitMaker() {
                 delete[] fAlignCor[iStat][iMod];
             }
             delete[] fAlignCor[iStat];
-            delete[] fLorCor[iStat];
         }
         delete[] fAlignCor;
-        delete[] fLorCor;
     }
+    for (Int_t iStat = 0; iStat < StationSet->GetNStations(); iStat++) {
+        delete[] fLorCor[iStat];
+    }
+    delete[] fLorCor;
 
     delete StationSet;
 }
@@ -224,14 +243,14 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
 
     TStopwatch sw;
     sw.Start();
-    
+
     if (!IsActive())
         return;
 
     fBmnGemStripHitsArray->Delete();
     fBmnGemUpperClustersArray->Delete();
     fBmnGemLowerClustersArray->Delete();
-    
+
     BmnGemStripLayer::SetLowerUniqueID(0);
     BmnGemStripLayer::SetUpperUniqueID(0);
 
@@ -359,19 +378,20 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 if (fIsExp) {
                     x += fAlignCor[iStation][iModule][0];
                     y += fAlignCor[iStation][iModule][1];
+                }
 
-                    if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
-                        if (!fIsSrc) { //For SRC lorentz corrections included into fAlignCor
-                            Double_t Bx = Abs(fField->GetBx(x, y, z));
-                            Double_t By = Abs(fField->GetBy(x, y, z));
-                            Double_t yCor = fLorCor[iStation][0] + fLorCor[iStation][1] * Bx + fLorCor[iStation][2] * Bx * Bx;
-                            Double_t xCor = fLorCor[iStation][0] + fLorCor[iStation][1] * By + fLorCor[iStation][2] * By * By;
-                            Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
-                            x += xCor * sign;
-                            y += yCor * sign;
-                        }
+                if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
+                    if (!fIsSrc) { //For SRC lorentz corrections included into fAlignCor
+                        Double_t Bx = Abs(fField->GetBx(x, y, z));
+                        Double_t By = Abs(fField->GetBy(x, y, z));
+                        Double_t yCor = fLorCor[iStation][0] + fLorCor[iStation][1] * Bx + fLorCor[iStation][2] * Bx * Bx;
+                        Double_t xCor = fLorCor[iStation][0] + fLorCor[iStation][1] * By + fLorCor[iStation][2] * By * By;
+                        Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
+                        x += xCor * sign;
+                        y += yCor * sign;
                     }
                 }
+
 
                 new ((*fBmnGemStripHitsArray)[fBmnGemStripHitsArray->GetEntriesFast()])
                     BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
@@ -432,7 +452,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
     for (auto it : UniqueLowerClusters) {
         new ((*fBmnGemLowerClustersArray)[fBmnGemLowerClustersArray->GetEntriesFast()]) StripCluster(it.second);
     }
-    
+
     if (fVerbose > 1) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();

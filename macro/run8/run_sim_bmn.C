@@ -12,7 +12,7 @@ enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM};
 // generatorName - generator name for the input file (enumeration above)
 // useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
 void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString outFile = "$VMCWORKDIR/macro/run8/bmnsim.root",
-    Int_t nStartEvent = 0, Int_t nEvents = 1, enumGenerators generatorName = BOX, Bool_t useRealEffects = kFALSE) {
+    Int_t nStartEvent = 0, Int_t nEvents = 1, enumGenerators generatorName = BOX, Bool_t useRealEffects = kTRUE) {
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
@@ -173,7 +173,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     // GEM-Digitizer
     BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::Run8;
     if (useRealEffects)
-        BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_6T);
+        BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_8T);
     BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
     gemDigit->SetCurrentConfig(gem_config);
     gemDigit->SetUseRealEffects(useRealEffects);

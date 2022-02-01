@@ -20,7 +20,8 @@ BmnSiliconHitMaker::BmnSiliconHitMaker()
     fOutputHitsBranchName = "BmnSiliconHit";
 
     fCurrentConfig = BmnSiliconConfiguration::None;
-    StationSet = NULL;
+    StationSet = nullptr;
+    TransfSet = nullptr;
 }
 
 BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, Bool_t isSrc)
@@ -35,7 +36,8 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
     fOutputHitsBranchName = "BmnSiliconHit";
 
     fCurrentConfig = BmnSiliconConfiguration::None;
-    StationSet = NULL;
+    StationSet = nullptr;
+    TransfSet = nullptr;
 
     fSignalLow = 0.;
     fSignalUp = DBL_MAX;
@@ -52,7 +54,8 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
         }
         break;
     case 8: //BM@N RUN-8
-        fCurrentConfig = BmnSiliconConfiguration::Run8_3stations;
+        //fCurrentConfig = BmnSiliconConfiguration::Run8_3stations;
+        fCurrentConfig = BmnSiliconConfiguration::Run8_mods_6_10_14_18;
         break;
     }
 
@@ -94,11 +97,13 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
 
     case BmnSiliconConfiguration::Run8_mods_6_10_14_18:
         StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_mods_6_10_14_18.xml");
+        //TransfSet = new BmnSiliconTransform();
+        //TransfSet->LoadFromXMLFile(gPathSiliconConfig + "SiliconRun8_mods_6_10_14_18.xml");
         if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_mods_6_10_14_18" << "\n";
         break;
 
     default:
-        StationSet = NULL;
+        StationSet = nullptr;
     }
 
     if (fIsExp) {
@@ -143,8 +148,13 @@ BmnSiliconHitMaker::~BmnSiliconHitMaker() {
         }
         delete[] fAlignCor;
     }
+
     if (StationSet) {
         delete StationSet;
+    }
+
+    if (TransfSet) {
+        delete TransfSet;
     }
 }
 
@@ -183,7 +193,7 @@ void BmnSiliconHitMaker::Exec(Option_t* opt) {
 
     TStopwatch sw;
     sw.Start();
-    
+
     if (!IsActive())
         return;
 
@@ -257,7 +267,7 @@ void BmnSiliconHitMaker::ProcessDigits() {
     if (fVerbose == 1) cout << "BmnSiliconHitMaker: " << NCalculatedPoints << " hits\n";
 
     Int_t clear_matched_points_cnt = 0; // points with the only one match-indexes
-    
+
     map<Int_t, StripCluster> UniqueUpperClusters;
     map<Int_t, StripCluster> UniqueLowerClusters;
 
@@ -287,6 +297,14 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 Double_t x_err = module->GetIntersectionPointXError(iPoint);
                 Double_t y_err = module->GetIntersectionPointYError(iPoint);
                 Double_t z_err = 0.0;
+
+                //Transform hit coordinates from local coordinate system to global
+                if (TransfSet) {
+                    Plane3D::Point glob_point = TransfSet->ApplyTransforms(Plane3D::Point(-x, y, z), iStation, iModule);
+                    x = -glob_point.X();
+                    y = glob_point.Y();
+                    z = glob_point.Z();
+                }
 
                 Int_t RefMCIndex = -1;
 
@@ -334,7 +352,7 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 UniqueLowerClusters[lcls.GetUniqueID()] = lcls;
                 hit->SetUpperClusterIndex(ucls.GetUniqueID());
                 hit->SetLowerClusterIndex(lcls.GetUniqueID());
- 
+
                 if (fHitMatching) {
                     BmnMatch digiMatch = module->GetIntersectionPointDigitNumberMatch(iPoint);
                     Int_t idx0 = digiMatch.GetLink(0).GetIndex();
@@ -369,20 +387,30 @@ void BmnSiliconHitMaker::ProcessDigits() {
             }
         }
     }
-    
+
     for (auto it : UniqueUpperClusters) {
         new ((*fBmnSiliconUpperClustersArray)[fBmnSiliconUpperClustersArray->GetEntriesFast()]) StripCluster(it.second);
     }
     for (auto it : UniqueLowerClusters) {
         new ((*fBmnSiliconLowerClustersArray)[fBmnSiliconLowerClustersArray->GetEntriesFast()]) StripCluster(it.second);
     }
-    
+
     if (fVerbose > 1) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();
 }
 
 void BmnSiliconHitMaker::Finish() {
+    if (StationSet) {
+        delete StationSet;
+        StationSet = nullptr;
+    }
+
+    if (TransfSet) {
+        delete TransfSet;
+        TransfSet = nullptr;
+    }
+
     printf("Work time of BmnSiliconHitMaker: %4.2f sec.\n", workTime);
 }
 

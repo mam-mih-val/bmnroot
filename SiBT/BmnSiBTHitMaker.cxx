@@ -57,7 +57,15 @@ BmnSiBTHitMaker::BmnSiBTHitMaker(Int_t run_period, Int_t run_number, Bool_t isEx
     }
 }
 
-BmnSiBTHitMaker::~BmnSiBTHitMaker() { }
+BmnSiBTHitMaker::~BmnSiBTHitMaker() {
+    if (StationSet) {
+        delete StationSet;
+    }
+
+    if (TransfSet) {
+        delete TransfSet;
+    }
+}
 
 InitStatus BmnSiBTHitMaker::Init() {
 
@@ -126,10 +134,10 @@ void BmnSiBTHitMaker::Exec(Option_t* opt) {
 
     TStopwatch sw;
     sw.Start();
-    
+
     if (!IsActive())
         return;
-    
+
     // Event separation by triggers ...
     if (fIsExp && fBmnEvQuality) {
         BmnEventQuality* evQual = (BmnEventQuality*) fBmnEvQuality->UncheckedAt(0);

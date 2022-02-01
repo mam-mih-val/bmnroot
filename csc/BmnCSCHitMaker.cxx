@@ -56,7 +56,15 @@ BmnCSCHitMaker::BmnCSCHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp,
     }
 }
 
-BmnCSCHitMaker::~BmnCSCHitMaker() {}
+BmnCSCHitMaker::~BmnCSCHitMaker() {
+    if (StationSet) {
+        delete StationSet;
+    }
+
+    if (TransfSet) {
+        delete TransfSet;
+    }
+}
 
 InitStatus BmnCSCHitMaker::Init() {
 
@@ -140,7 +148,7 @@ void BmnCSCHitMaker::Exec(Option_t* opt) {
 
     TStopwatch sw;
     sw.Start();
-    
+
     if (!IsActive())
         return;
 
@@ -286,7 +294,7 @@ void BmnCSCHitMaker::ProcessDigits() {
 
                 if (fHitMatching) {
                     //For future update. Add link to DigiNumberMatch
-                    
+
                     // BmnMatch digiMatch = module->GetIntersectionPointDigitNumberMatch(iPoint);
                     // Int_t idx0 = digiMatch.GetLink(0).GetIndex();
                     // Int_t idx1 = digiMatch.GetLink(1).GetIndex();
@@ -329,7 +337,7 @@ void BmnCSCHitMaker::ProcessDigits() {
     for (auto it : UniqueLowerClusters) {
         new ((*fBmnCSCLowerClustersArray)[fBmnCSCLowerClustersArray->GetEntriesFast()]) StripCluster(it.second);
     }
-    
+
     if (fVerbose > 1) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();

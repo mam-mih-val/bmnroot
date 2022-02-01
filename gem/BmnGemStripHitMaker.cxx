@@ -135,7 +135,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
             fLorCor[iStat][iPar] = 0.0;
         }
     }
-    
+
     if (run_period == 7) {
         if (fIsExp) {
             UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", run_period, run_number);
@@ -195,7 +195,13 @@ BmnGemStripHitMaker::~BmnGemStripHitMaker() {
     }
     delete[] fLorCor;
 
-    delete StationSet;
+    if (StationSet) {
+        delete StationSet;
+    }
+
+    if (TransfSet) {
+        delete TransfSet;
+    }
 }
 
 InitStatus BmnGemStripHitMaker::Init() {

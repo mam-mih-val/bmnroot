@@ -111,6 +111,9 @@ Int_t BmnDchRaw2Digit::GetChTDC64v(UInt_t tdc, UInt_t ch) {
         { 31, 15, 30, 14, 13, 29, 28, 12, 11, 27, 26, 10, 25, 9, 24, 8, 23, 7, 22, 6, 21, 5, 20, 4, 19, 3, 18, 2, 17, 1, 16, 0},
         { 31, 15, 30, 14, 29, 13, 28, 12, 27, 11, 26, 10, 25, 9, 24, 8, 23, 7, 22, 6, 21, 5, 20, 4, 19, 3, 18, 2, 17, 1, 16, 0}
     };
+//    printf("tdc %2u ch %2u\n", tdc, ch);
+    if (tdc == 0)
+        return 0;
     Int_t val = tdc64v_tdcch2ch[tdc - 1][ch];
     if (tdc == 2) val += 32;
     return val;

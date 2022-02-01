@@ -558,7 +558,7 @@ private:
      */
     BmnStatus FillUT24VE_TRC(UInt_t *d, UInt_t &len, BmnEventType &evType);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);
-    BmnStatus FillWR(UInt_t iSerial, Long64_t iEvent, Long64_t t_sec, Long64_t t_ns);
+    inline void FillWR(UInt_t iSerial, Long64_t iEvent, Long64_t t_sec, Long64_t t_ns);
 
     BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t &idx);
     BmnStatus FillTimeShiftsMap();

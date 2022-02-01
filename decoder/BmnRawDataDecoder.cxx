@@ -453,6 +453,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     BmnEventType evType = kBMNPAYLOAD;
 
     while (idx < len) {
+        Bool_t recognized = kTRUE;
         UInt_t serial = d[idx++];
         UInt_t id = (d[idx] >> 24);
         UInt_t payload = (d[idx++] & 0x7FFF) / kNBYTESINWORD;
@@ -460,7 +461,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             printf("[WARNING] Event %d:\n serial = 0x%06X\n id = Ox%02X\n payload = %d\n", fEventId, serial, id, payload);
             break;
         }
-        //            printf("iev %7d  idev %02X serial 0x%08X\n", fEventId, id, serial);
+//        printf("iev %7d  idx %7lld   idev %02X serial 0x%08X payload %4u\n", fEventId, idx, id, serial, payload);
         switch (id) {
             case kTQDC16VS_E:
                 //                printf("TQDC-E serial 0x%08X  words %u\n", serial, payload);
@@ -513,12 +514,20 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             case kUT24VE_TRC:
                 FillUT24VE_TRC(&d[idx], payload, evType);
                 break;
+            default:
+//                printf("Device id %02X not recognized\n", id);
+                recognized = kFALSE;
+                break;
         }
         if (payload + idx > len) {
             printf("Error in the event #%d: device payload length mismatch!\n", fEventId);
             return kBMNERROR;
-        } else
-            idx += payload;
+        } else {
+            if (recognized)
+                idx += payload;
+            else
+                idx--;
+        }
     }
     eventHeaderDAQ->SetRunId(fRunId);
     eventHeaderDAQ->SetPeriodId(fPeriodId);
@@ -551,7 +560,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
     while (iCh < kNCH - 1 && i < len) {
         iCh = d[i] >> 24;
         if (iCh > 64) {
-            printf("serial = 0x%X   iCh = %d  nSmpl = %d\n", serial, iCh, nSmpl);
+            printf("Wrong ADC channel! serial = 0x%X  iCh = %d  nSmpl = %d\n", serial, iCh, nSmpl);
             break;
         }
         i += 3; // skip two timestamp words (they contain TAI timestsamps)
@@ -1057,6 +1066,7 @@ BmnStatus BmnRawDataDecoder::FillTDC72VXS(UInt_t *d, UInt_t serial, UInt_t &len)
     memcpy(&ms0, d + index, sizeof (ms0));
     index += sizeof (ms0) / kNBYTESINWORD;
     FillWR(serial, fEventId, ms0.TaiSec, ms0.TaiNSec);
+//    printf("\t index %u len %u inner len %u\n", index, len, (ms.Len / kNBYTESINWORD));
     while (index < ms.Len / kNBYTESINWORD) {
         uint8_t dtype = d[index] >> 28;
         bool overflow = d[index] & BIT(16);
@@ -1064,6 +1074,7 @@ BmnStatus BmnRawDataDecoder::FillTDC72VXS(UInt_t *d, UInt_t serial, UInt_t &len)
         if (!overflow)
             switch (dtype) {
                 case 0: // TDC
+//                    printf("TDC at index %4u  len %4u\n", index, blockLen);
                     FillBlockTDC(d + index, serial, blockLen, tdc);
                     break;
                 case 0xF: // Stat
@@ -1086,7 +1097,7 @@ BmnStatus BmnRawDataDecoder::FillUT24VE_TRC(UInt_t *d, UInt_t &len, BmnEventType
     memcpy(&ms0, d + index, sizeof (ms0));
     index += sizeof (ms0) / kNBYTESINWORD;
     if (ms.Len / kNBYTESINWORD > len)
-        printf("UT24VE-TRC Error! MSHeader payload length larger than from device header!");
+        printf("UT24VE-TRC Error! MSHeader payload length larger than from device header!\n");
     evType = (d[index] & BIT(16)) ? kBMNPEDESTAL : kBMNPAYLOAD;
     bool randomTrigger = d[index] & BIT(17);
     bool periodicTrigger = d[index] & BIT(18);
@@ -1097,8 +1108,7 @@ BmnStatus BmnRawDataDecoder::FillUT24VE_TRC(UInt_t *d, UInt_t &len, BmnEventType
     return kBMNSUCCESS;
 }
 
-
-BmnStatus BmnRawDataDecoder::FillWR(UInt_t serial, Long64_t iEvent, Long64_t t_sec, Long64_t t_ns) {
+void BmnRawDataDecoder::FillWR(UInt_t serial, Long64_t iEvent, Long64_t t_sec, Long64_t t_ns) {
     if (tai_utc_dif == 0)
         tai_utc_dif = GetUTCShift(TTimeStamp(time_t(t_sec), t_ns));
     fTime_ns = t_ns;
@@ -2022,11 +2032,11 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
             t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
             fTime_s = syncDig->GetTime_sec();
             fTime_ns = syncDig->GetTime_ns();
-//            printf("serial %08X sync: %s\n", syncDig->GetSerial(), TTimeStamp(time_t(fTime_s), fTime_ns).AsString());
+            //            printf("serial %08X sync: %s\n", syncDig->GetSerial(), TTimeStamp(time_t(fTime_s), fTime_ns).AsString());
             if (fEventId == 1) {
                 fRunStartTime = TTimeStamp(time_t(fTime_s), fTime_ns);
             }
-//            printf("T0 sync: %s \n", TTimeStamp(time_t(fTime_s), fTime_ns).AsString());
+            //            printf("T0 sync: %s \n", TTimeStamp(time_t(fTime_s), fTime_ns).AsString());
             break;
         }
     }
@@ -2297,15 +2307,15 @@ BmnStatus BmnRawDataDecoder::GetT0Info(Double_t& t0time, Double_t &t0width) {
     BmnTrigDigit* dig = 0;
     for (auto ar : *trigArr) {
         if ((fPeriodId == 8) && (fBmnSetup == kSRCSETUP)) { // temporary crutches
-            if ((strcmp(ar->GetName(), "TDC"))) continue;
+            if ((strcmp(ar->GetName(), "T0_1_A"))) continue;
             for (int i = 0; i < ar->GetEntriesFast(); i++) {
+                if (ar->GetEntriesFast() == 0)
+                    return kBMNERROR;
                 dig = (BmnTrigDigit*) ar->At(i);
-                if (dig->GetMod() == 9) {
-                    t0time = dig->GetTime();
-                    t0width = dig->GetAmp();
-                    //                    printf(" t0 %f t0w %f n %d\n", t0time, t0width, ar->GetEntriesFast());
-                    return kBMNSUCCESS;
-                }
+                t0time = dig->GetTime();
+                t0width = dig->GetAmp();
+                //                    printf(" t0 %f t0w %f n %d\n", t0time, t0width, ar->GetEntriesFast());
+                return kBMNSUCCESS;
             }
         } else {
             if (fPeriodId > 6) {

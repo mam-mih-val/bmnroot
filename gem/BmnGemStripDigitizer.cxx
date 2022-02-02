@@ -27,6 +27,13 @@ BmnGemStripDigitizer::BmnGemStripDigitizer()
 }
 
 BmnGemStripDigitizer::~BmnGemStripDigitizer() {
+    if (StationSet) {
+        delete StationSet;
+    }
+
+    if (TransfSet) {
+        delete TransfSet;
+    }
 }
 
 InitStatus BmnGemStripDigitizer::Init() {

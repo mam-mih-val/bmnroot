@@ -19,6 +19,7 @@
 #pragma link C++ class BmnSiliconHitProducer+;
 #pragma link C++ class BmnSiliconHitProducerSRC+;
 #pragma link C++ class BmnSiliconTrackFinder+;
+#pragma link C++ class BmnSiliconTransform+;
 
 #pragma link C++ namespace BmnSiliconConfiguration;
 #pragma link C++ enum BmnSiliconConfiguration::SILICON_CONFIG;

@@ -19,11 +19,19 @@ BmnSiliconDigitizer::BmnSiliconDigitizer()
     fVerbose = 1;
 
     fCurrentConfig = BmnSiliconConfiguration::None;
-    StationSet = NULL;
+    StationSet = nullptr;
     fField = nullptr;
+    TransfSet = nullptr;
 }
 
 BmnSiliconDigitizer::~BmnSiliconDigitizer() {
+    if (StationSet) {
+        delete StationSet;
+    }
+
+    if (TransfSet) {
+        delete TransfSet;
+    }
 }
 
 InitStatus BmnSiliconDigitizer::Init() {
@@ -53,7 +61,6 @@ InitStatus BmnSiliconDigitizer::Init() {
 
     //Create SILICON detector ------------------------------------------------------
     switch (fCurrentConfig) {
-
         case BmnSiliconConfiguration::RunSpring2017:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2017.xml");
             if (fVerbose) cout << "   Current SILICON Configuration : RunSpring2017" << "\n";
@@ -86,18 +93,14 @@ InitStatus BmnSiliconDigitizer::Init() {
 
         case BmnSiliconConfiguration::Run8_mods_6_10_14_18:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_mods_6_10_14_18.xml");
+            //TransfSet = new BmnSiliconTransform();
+            //TransfSet->LoadFromXMLFile(gPathSiliconConfig + "SiliconRun8_mods_6_10_14_18.xml");
             if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_mods_6_10_14_18" << "\n";
             break;
 
         default:
-            StationSet = NULL;
+            StationSet = nullptr;
     }
-    if (fUseRealEffects) {
-        Int_t periodID = 7;
-        Int_t runID = 4649;
-        fField = FairRunSim::Instance()->GetField();
-    }
-
     //--------------------------------------------------------------------------
 
     if (fVerbose) cout << "BmnSiliconDigitizer::Init() finished\n\n";
@@ -158,13 +161,27 @@ void BmnSiliconDigitizer::ProcessMCPoints() {
         Double_t dEloss = SiliconPoint->GetEnergyLoss()*1e6; // in keV
         Int_t refId = ipoint;
 
-        //Int_t mc_station_num = ((BmnSiliconPoint*) SiliconPoint)->GetStation();
-        //Int_t mc_module_num = ((BmnSiliconPoint*) SiliconPoint)->GetModule();
+        //Information from MC-points
+        Int_t mc_station_num = ((BmnSiliconPoint*) SiliconPoint)->GetStation();
+        Int_t mc_module_num = ((BmnSiliconPoint*) SiliconPoint)->GetModule();
 
-        if (fUseRealEffects) {
-            ;
-            // Int_t iSt = StationSet->GetPointStationOwnership(z);
-            // Int_t iMod = StationSet->GetStation(iSt)->GetPointModuleOwnership(x, y, z);
+        //test output
+        //cout << "mc_station_num = " << mc_station_num << "\n";
+        //cout << "mc_module_num = " << mc_module_num << "\n";
+
+        //Transform MC-point coordinates to local coordinate system
+        if(TransfSet && mc_station_num < StationSet->GetNStations()) {
+            if(mc_module_num < StationSet->GetStation(mc_station_num)->GetNModules()) {
+                Plane3D::Point loc_point = TransfSet->ApplyInverseTransforms(Plane3D::Point(-x, y, z), mc_station_num, mc_module_num);
+                Plane3D::Point loc_direct = TransfSet->ApplyInverseTransforms(Plane3D::Point(-(px+x), (py+y), (pz+z)), mc_station_num, mc_module_num);
+                x = -loc_point.X();
+                y = loc_point.Y();
+                z = loc_point.Z();
+
+                px = -(loc_direct.X() - loc_point.X());
+                py = loc_direct.Y() - loc_point.Y();
+                pz = loc_direct.Z() - loc_point.Z();
+            }
         }
 
         StationSet->AddPointToDetector(x, y, z, px, py, pz, dEloss, refId);
@@ -221,7 +238,12 @@ void BmnSiliconDigitizer::ProcessMCPoints() {
 void BmnSiliconDigitizer::Finish() {
     if (StationSet) {
         delete StationSet;
-        StationSet = NULL;
+        StationSet = nullptr;
+    }
+
+    if(TransfSet) {
+        delete TransfSet;
+        TransfSet = nullptr;
     }
 
     cout << "Work time of the Silicon digitizer: " << workTime << endl;

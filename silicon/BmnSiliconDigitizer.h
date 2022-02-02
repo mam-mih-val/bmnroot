@@ -13,8 +13,8 @@
 
 #include "BmnSiliconDigit.h"
 #include "BmnSiliconStationSet.h"
-
 #include "BmnSiliconConfiguration.h"
+#include "BmnSiliconTransform.h"
 
 using namespace std;
 
@@ -72,12 +72,12 @@ private:
     Bool_t fOnlyPrimary;
     Bool_t fStripMatching;
     Bool_t fUseRealEffects;
-    
+
     FairField* fField;
 
     BmnSiliconConfiguration::SILICON_CONFIG fCurrentConfig;
-
-    BmnSiliconStationSet *StationSet; //Entire Silicon detector
+    BmnSiliconStationSet *StationSet; //Entire detector
+    BmnSiliconTransform *TransfSet; //Transformations for detector modules
 
     ClassDef(BmnSiliconDigitizer,1);
 };

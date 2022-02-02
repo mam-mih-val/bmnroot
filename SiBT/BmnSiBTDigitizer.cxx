@@ -22,6 +22,13 @@ BmnSiBTDigitizer::BmnSiBTDigitizer()
 }
 
 BmnSiBTDigitizer::~BmnSiBTDigitizer() {
+    if (StationSet) {
+        delete StationSet;
+    }
+
+    if (TransfSet) {
+        delete TransfSet;
+    }
 
 }
 

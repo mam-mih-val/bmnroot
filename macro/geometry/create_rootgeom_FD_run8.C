@@ -16,9 +16,9 @@ TGeoManager* gGeoMan = NULL;
 
 //Detector's position
 
-const Double_t Fd_X_pos = -38.0;
+const Double_t Fd_X_pos = 46.0;
 const Double_t Fd_Y_pos = 0.0;
-const Double_t Fd_Z_pos = 900.0;
+const Double_t Fd_Z_pos = 850.0;
  
 //
 
@@ -26,7 +26,7 @@ const Double_t Qu_X_size = 15.0;
 const Double_t Qu_Y_size = 15.0;
 const Double_t Qu_Z_size = 0.1;
 
-void create_Frag_Det_root_v4() {
+void create_rootgeom_FD_run8() {
     
   // Load the necessary FairRoot libraries 
   // gROOT->LoadMacro("home/lashmanov/prog/bmnroot/macro/run/bmnloadlibs.C");
@@ -43,8 +43,8 @@ void create_Frag_Det_root_v4() {
     // --------------------------------------------------------------------------
 
     // -------   Geometry file name (output)   ----------------------------------
-    const TString geoDetectorName = "FrD";
-    const TString geoDetectorVersion = "v4";
+    const TString geoDetectorName = "FD";
+    const TString geoDetectorVersion = "run8";
     TString geoFileName = geoPath + "/geometry/" + geoDetectorName + "_"+ geoDetectorVersion + ".root";
     // --------------------------------------------------------------------------  
 

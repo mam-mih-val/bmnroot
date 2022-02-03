@@ -454,9 +454,21 @@ void BmnGemStripHitMaker::ProcessDigits() {
     }
 
     for (auto it : UniqueUpperClusters) {
+        for (Int_t i = 0; i < fBmnGemStripHitsArray->GetEntriesFast(); i++) {
+            BmnGemStripHit* hit = (BmnGemStripHit*)fBmnGemStripHitsArray->At(i);
+            if (hit->GetUpperClusterIndex() != it.first) continue;
+            hit->SetUpperClusterIndex(fBmnGemUpperClustersArray->GetEntriesFast());
+        }
+        it.second.SetUniqueID(fBmnGemUpperClustersArray->GetEntriesFast());
         new ((*fBmnGemUpperClustersArray)[fBmnGemUpperClustersArray->GetEntriesFast()]) StripCluster(it.second);
     }
     for (auto it : UniqueLowerClusters) {
+        for (Int_t i = 0; i < fBmnGemStripHitsArray->GetEntriesFast(); i++) {
+            BmnGemStripHit* hit = (BmnGemStripHit*)fBmnGemStripHitsArray->At(i);
+            if (hit->GetLowerClusterIndex() != it.first) continue;
+            hit->SetLowerClusterIndex(fBmnGemLowerClustersArray->GetEntriesFast());
+        }
+        it.second.SetUniqueID(fBmnGemLowerClustersArray->GetEntriesFast());
         new ((*fBmnGemLowerClustersArray)[fBmnGemLowerClustersArray->GetEntriesFast()]) StripCluster(it.second);
     }
 

@@ -332,9 +332,21 @@ void BmnCSCHitMaker::ProcessDigits() {
     }
 
     for (auto it : UniqueUpperClusters) {
+        for (Int_t i = 0; i < fBmnCSCHitsArray->GetEntriesFast(); i++) {
+            BmnCSCHit* hit = (BmnCSCHit*)fBmnCSCHitsArray->At(i);
+            if (hit->GetUpperClusterIndex() != it.first) continue;
+            hit->SetUpperClusterIndex(fBmnCSCUpperClustersArray->GetEntriesFast());
+        }
+        it.second.SetUniqueID(fBmnCSCUpperClustersArray->GetEntriesFast());
         new ((*fBmnCSCUpperClustersArray)[fBmnCSCUpperClustersArray->GetEntriesFast()]) StripCluster(it.second);
     }
     for (auto it : UniqueLowerClusters) {
+        for (Int_t i = 0; i < fBmnCSCHitsArray->GetEntriesFast(); i++) {
+            BmnCSCHit* hit = (BmnCSCHit*)fBmnCSCHitsArray->At(i);
+            if (hit->GetLowerClusterIndex() != it.first) continue;
+            hit->SetLowerClusterIndex(fBmnCSCLowerClustersArray->GetEntriesFast());
+        }
+        it.second.SetUniqueID(fBmnCSCLowerClustersArray->GetEntriesFast());
         new ((*fBmnCSCLowerClustersArray)[fBmnCSCLowerClustersArray->GetEntriesFast()]) StripCluster(it.second);
     }
 

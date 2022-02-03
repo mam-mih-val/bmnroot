@@ -283,10 +283,10 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 Double_t sigL = module->GetIntersectionPoint_LowerLayerSripTotalSignal(iPoint);
                 Double_t sigU = module->GetIntersectionPoint_UpperLayerSripTotalSignal(iPoint);
 
-                if (sigL < 0 || sigU < 0) {
-                    if (Abs(sigL - sigU) > 100) continue;
-                    //                    if (Abs(sigL - sigU) / max(sigU, sigL) > 0.25) continue;
-                }
+                // if (sigL < 0 || sigU < 0) {
+                //     if (Abs(sigL - sigU) > 100) continue;
+                //     //                    if (Abs(sigL - sigU) / max(sigU, sigL) > 0.25) continue;
+                // }
 
                 Double_t x = module->GetIntersectionPointX(iPoint);
                 Double_t y = module->GetIntersectionPointY(iPoint);
@@ -388,9 +388,21 @@ void BmnSiliconHitMaker::ProcessDigits() {
     }
 
     for (auto it : UniqueUpperClusters) {
+        for (Int_t i = 0; i < fBmnSiliconHitsArray->GetEntriesFast(); i++) {
+            BmnSiliconHit* hit = (BmnSiliconHit*)fBmnSiliconHitsArray->At(i);
+            if (hit->GetUpperClusterIndex() != it.first) continue;
+            hit->SetUpperClusterIndex(fBmnSiliconUpperClustersArray->GetEntriesFast());
+        }
+        it.second.SetUniqueID(fBmnSiliconUpperClustersArray->GetEntriesFast());
         new ((*fBmnSiliconUpperClustersArray)[fBmnSiliconUpperClustersArray->GetEntriesFast()]) StripCluster(it.second);
     }
     for (auto it : UniqueLowerClusters) {
+        for (Int_t i = 0; i < fBmnSiliconHitsArray->GetEntriesFast(); i++) {
+            BmnSiliconHit* hit = (BmnSiliconHit*)fBmnSiliconHitsArray->At(i);
+            if (hit->GetLowerClusterIndex() != it.first) continue;
+            hit->SetLowerClusterIndex(fBmnSiliconLowerClustersArray->GetEntriesFast());
+        }
+        it.second.SetUniqueID(fBmnSiliconLowerClustersArray->GetEntriesFast());
         new ((*fBmnSiliconLowerClustersArray)[fBmnSiliconLowerClustersArray->GetEntriesFast()]) StripCluster(it.second);
     }
 

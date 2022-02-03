@@ -586,7 +586,7 @@ void BmnSiliconLayer::FindClustersAndStripHits() {
         cluster.SetType(1);
         cluster.SetUniqueID(fUniqueIdU++);
     }
-
+    
     StripClusters.push_back(cluster);
 
     //return to a previous strip

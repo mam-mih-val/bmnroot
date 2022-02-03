@@ -152,6 +152,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
         }
     } else if (run_period == 8) {
         for (Int_t iStat = 0; iStat < nStat; iStat++) {
+            //Pol2 approximation of the next configuration: BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_8T
             fLorCor[iStat][0] = -0.01710;
             fLorCor[iStat][1] = 0.01730;
             fLorCor[iStat][2] = 0.00024;

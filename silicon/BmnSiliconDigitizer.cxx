@@ -216,6 +216,9 @@ void BmnSiliconDigitizer::ProcessMCPoints() {
                         Double_t signal = module->GetStripSignalInZone(zone_id, iStrip);
 
                         if (signal > 0.0) {
+                            signal = signal / (120. / 500.0); // el to ADC
+                            if (signal <= 12) continue;
+                            if (signal >= 2048) signal = 2047;
                             new ((*fBmnSiliconDigitsArray)[fBmnSiliconDigitsArray->GetEntriesFast()])
                                     BmnSiliconDigit(iStation, iModule, zone_id, iStrip, signal); // zone_id == layer_num !!!!!!
 

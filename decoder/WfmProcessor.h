@@ -13,7 +13,7 @@ class WfmProcessor{
 public:
 
     WfmProcessor() {};
-    virtual ~WfmProcessor() {};
+    virtual ~WfmProcessor() { if(fAZik) delete[] fAZik; };
 
     void ProcessWfm(std::vector<float> wfm, BmnDigiContainerTemplate* digi);
 
@@ -30,7 +30,7 @@ public:
     } fdigiPars;
 
     int fSignalLength;
-    std::complex<float> **fAZik; // Inverse Harmo matrix for fit
+    std::complex<float> **fAZik = nullptr; // Inverse Harmo matrix for fit
 
 private:
     void MeanRMScalc(std::vector<float> wfm, float* Mean, float* RMS, int begin, int end, int step = 1);

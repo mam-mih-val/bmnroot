@@ -144,6 +144,7 @@ BmnStatus BmnOnlineDecoder::OpenStream() {
     _decoSocket = zmq_socket(_ctx, ZMQ_PUB);
     //    _socket_mcast = zmq_socket(_ctx, ZMQ_XSUB);
     Int_t rcvBuf = 0;
+    Int_t id = 0;
     size_t vl = sizeof (rcvBuf);
     //    if (zmq_getsockopt(_decoSocket, ZMQ_RCVBUF, &rcvBuf, &vl) == -1)
     //        DBGERR("zmq_getsockopt of ZMQ_RCVBUF")
@@ -271,7 +272,7 @@ void BmnOnlineDecoder::ProcessStream() {
                     ((conID == 0) || (msg_len < MIN_REMNANT_LEN)) ? 0 : ZMQ_DONTWAIT );
 //            printf("ID Recv %u\n", conID_size);
             if (conID_size == -1) {
-//                printf("ID Receive error #%d : %s\n", errno, zmq_strerror(errno));
+                printf("ID Receive error #%d : %s\n", errno, zmq_strerror(errno));
                 switch (errno) {
                     case EAGAIN:
                         if ((msg_len < MIN_REMNANT_LEN) || (conID == 0))
@@ -301,7 +302,7 @@ void BmnOnlineDecoder::ProcessStream() {
 //            printf("recv %u\n", frame_size);
             //frame_size = zmq_recv(_socket_data, buf, MAX_BUF_LEN, 0);
             if (frame_size == -1) {
-               // printf("Receive error № %d #%s\n", errno, zmq_strerror(errno));
+                printf("Receive error # %d #%s\n", errno, zmq_strerror(errno));
                 switch (errno) {
                     case EAGAIN:
                         if ((msg_len < MIN_REMNANT_LEN))

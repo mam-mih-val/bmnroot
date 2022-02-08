@@ -51,7 +51,6 @@ check_permissions:
     paths:
       - build
   script:
-    - source /cvmfs/nica.jinr.ru/centos7/bmn/env.sh
     - mkdir build
     - cd build
     - cmake "$CI_PROJECT_DIR"

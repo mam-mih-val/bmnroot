@@ -101,9 +101,9 @@ public:
    * \param[in] address Unique channel address.
    * \return Valueable address part address.
    **/
-  static uint32_t GetFlatAddress(uint32_t address)
+  static uint32_t GetFlatIndex(uint32_t address)
   {
-    return (0x7F & (address >> 5));
+    return (GetMaxFlatIndex() & (address >> fgkMaterialShift));
   }
 
   /**
@@ -111,16 +111,17 @@ public:
    * \param[in] address Unique channel address.
    * \return Max Valueable address part address.
    **/
-  static uint32_t GetMaxFlatAddress()
+  static uint32_t GetMaxFlatIndex()
   {
-    return 0x7F;
+    int mask_length = fgkGainShift + fgkGainLength - fgkMaterialShift;
+    return (1 << mask_length) - 1;
   }
 
 private:
   // Length of the index of the corresponding volume
   static const uint32_t fgkSystemIdLength = 31;     // 2^5 - 1
   static const uint32_t fgkMaterialLength = 1;      // 2^1 - 1
-  static const uint32_t fgkStripIdLength = 31;      // 2^4 - 1
+  static const uint32_t fgkStripIdLength = 31;      // 2^5 - 1
   static const uint32_t fgkStripSideLength = 1;     // 2^1 - 1
   static const uint32_t fgkGainLength = 1;          // 2^1 - 1
 

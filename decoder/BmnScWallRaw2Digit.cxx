@@ -13,8 +13,7 @@ BmnScWallRaw2Digit::BmnScWallRaw2Digit() : WfmProcessor()
   fRunId = 0;
 }
 
-BmnScWallRaw2Digit::BmnScWallRaw2Digit(int period, int run, TString mappingFile, TString CalibrationFile) :
-WfmProcessor()
+BmnScWallRaw2Digit::BmnScWallRaw2Digit(int period, int run, TString mappingFile, TString CalibrationFile) : WfmProcessor()
 {
   fPeriodId = period;
   fRunId = run;
@@ -60,10 +59,10 @@ void BmnScWallRaw2Digit::ParseConfig(TString mappingFile)
   config_file.close();
   po::notify(vm);
 
-  fScWallSerials.clear();
+  fSerials.clear();
   for (auto it : adc_serials)
-    fScWallSerials.push_back(std::stoul(it, nullptr, 16));
-  std::sort(fScWallSerials.begin(), fScWallSerials.end());
+    fSerials.push_back(std::stoul(it, nullptr, 16));
+  std::sort(fSerials.begin(), fSerials.end());
 
   std::string adc_ser;
   int adc_chan;
@@ -90,16 +89,16 @@ void BmnScWallRaw2Digit::ParseConfig(TString mappingFile)
   std::copy(UniqueSize.begin(), UniqueSize.end(), std::back_inserter(fUniqueSize));
 
   fChannelVect.clear();
-  fChannelVect.resize(fScWallSerials.size() * 64);
+  fChannelVect.resize(fSerials.size() * CHANNELS_PER_BOARD);
   // Second pass for mapping.
   for (auto it : configuration)
   {
     istringstream ss(it);
     ss >> adc_ser >> adc_chan >> cell_id >> zone >> x_position >> y_position >> size;
     int adc_board_index, xIdx, yIdx, SizeIdx, ZoneIdx = -1;
-    auto iter = find(fScWallSerials.begin(), fScWallSerials.end(), std::stoul(adc_ser, nullptr, 16));
-    if (iter != fScWallSerials.end())
-      adc_board_index = std::distance(fScWallSerials.begin(), iter);
+    auto iter = find(fSerials.begin(), fSerials.end(), std::stoul(adc_ser, nullptr, 16));
+    if (iter != fSerials.end())
+      adc_board_index = std::distance(fSerials.begin(), iter);
     else
       printf("BmnScWallRaw2Digit : unknown adc serial\n");
 
@@ -201,16 +200,16 @@ void BmnScWallRaw2Digit::ParseCalibration(TString calibrationFile)
 
 }
 
-int BmnScWallRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int adc_board_serial, unsigned int adc_ch)
+int BmnScWallRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int board_serial, unsigned int channel)
 {
-  auto it = find(fScWallSerials.begin(), fScWallSerials.end(), adc_board_serial);
-  if (it != fScWallSerials.end())
+  auto it = find(fSerials.begin(), fSerials.end(), board_serial);
+  if (it != fSerials.end())
   {
-    int adc_board_index = std::distance(fScWallSerials.begin(), it);
-    return adc_board_index * 64 + adc_ch;
+    int adc_board_index = std::distance(fSerials.begin(), it);
+    return adc_board_index * CHANNELS_PER_BOARD + channel;
   }
 
-  printf("BmnScWallRaw2Digit :: Serial 0x%08x Not found in map %s.\n", adc_board_serial, fmappingFileName.Data());
+  printf("BmnScWallRaw2Digit :: Serial 0x%08x Not found in map %s.\n", board_serial, fmappingFileName.Data());
   return -1;
 }
 
@@ -224,10 +223,10 @@ void BmnScWallRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ScWalldigit
     BmnADCDigit *digit = (BmnADCDigit *)data->At(i);
     // check if serial is from ScWall
     // cout<<digit->GetSerial() << " " << digit->GetChannel() << endl;
-    if (std::find(fScWallSerials.begin(), fScWallSerials.end(), digit->GetSerial()) == fScWallSerials.end()) {
+    if (std::find(fSerials.begin(), fSerials.end(), digit->GetSerial()) == fSerials.end()) {
       LOG(DEBUG) << "BmnScWallRaw2Digit::fillEvent" << std::hex << digit->GetSerial() << " Not found in ";
-      for (auto it : fScWallSerials)
-        LOG(DEBUG) << "BmnScWallRaw2Digit::fScWallSerials " << std::hex << it << endl;
+      for (auto it : fSerials)
+        LOG(DEBUG) << "BmnScWallRaw2Digit::fSerials " << std::hex << it << endl;
       continue;
     }
     std::vector<float> wfm(digit->GetUShortValue(), digit->GetUShortValue() + digit->GetNSamples());

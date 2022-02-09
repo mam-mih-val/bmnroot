@@ -11,12 +11,10 @@
 class WfmProcessor{
 
 public:
-
     WfmProcessor() {};
-    virtual ~WfmProcessor() { if(fAZik) delete[] fAZik; };
+    virtual ~WfmProcessor();
 
-    void ProcessWfm(std::vector<float> wfm, BmnDigiContainerTemplate* digi);
-
+protected:
     struct digiPars {
       bool isWriteWfm;
       int gateBegin;
@@ -29,6 +27,7 @@ public:
       std::vector<std::complex<float>> harmonics;
     } fdigiPars;
 
+    void ProcessWfm(std::vector<float> wfm, BmnDigiContainerTemplate* digi);
     int fSignalLength;
     std::complex<float> **fAZik = nullptr; // Inverse Harmo matrix for fit
 
@@ -37,5 +36,3 @@ private:
     ClassDef(WfmProcessor, 1);
 };
 #endif	/* WfmProcessor_H */
-
-

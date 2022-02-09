@@ -59,10 +59,10 @@ void BmnHodoRaw2Digit::ParseConfig(TString mappingFile)
   config_file.close();
   po::notify(vm);
 
-  fHodoSerials.clear();
+  fSerials.clear();
   for (auto it : tqdc_serials)
-    fHodoSerials.push_back(std::stoul(it, nullptr, 16));
-  std::sort(fHodoSerials.begin(), fHodoSerials.end());
+    fSerials.push_back(std::stoul(it, nullptr, 16));
+  std::sort(fSerials.begin(), fSerials.end());
 
   std::string tqdc_ser;
   int tqdc_chan;
@@ -72,15 +72,15 @@ void BmnHodoRaw2Digit::ParseConfig(TString mappingFile)
   int gain;
 
   fChannelVect.clear();
-  fChannelVect.resize(fHodoSerials.size() * 16);
+  fChannelVect.resize(fSerials.size() * CHANNELS_PER_BOARD);
   for (auto it : configuration)
   {
     istringstream ss(it);
     ss >> tqdc_ser >> tqdc_chan >> material >> strip_id >> strip_side >> gain;
     int board_index, xIdx, yIdx, SizeIdx, ZoneIdx = -1;
-    auto iter = find(fHodoSerials.begin(), fHodoSerials.end(), std::stoul(tqdc_ser, nullptr, 16));
-    if (iter != fHodoSerials.end())
-      board_index = std::distance(fHodoSerials.begin(), iter);
+    auto iter = find(fSerials.begin(), fSerials.end(), std::stoul(tqdc_ser, nullptr, 16));
+    if (iter != fSerials.end())
+      board_index = std::distance(fSerials.begin(), iter);
     else
       printf("BmnHodoRaw2Digit : unknown adc serial\n");
 
@@ -138,7 +138,7 @@ void BmnHodoRaw2Digit::ParseCalibration(TString calibrationFile)
   po::notify(vm);
 
   fCalibVect.clear();
-  fCalibVect.resize(BmnHodoAddress::GetMaxFlatAddress()+1);
+  fCalibVect.resize(BmnHodoAddress::GetMaxFlatIndex()+1);
   std::string material;
   int strip_id;
   int strip_side;
@@ -154,7 +154,7 @@ void BmnHodoRaw2Digit::ParseCalibration(TString calibrationFile)
     if(material[0] == 'Q') mater = 1;
     if(mater == -1) continue;
     unsigned int unique_address = BmnHodoAddress::GetAddress(mater, strip_id, strip_side, gain);
-    uint8_t flat_channel = BmnHodoAddress::GetFlatAddress(unique_address);
+    uint8_t flat_channel = BmnHodoAddress::GetFlatIndex(unique_address);
     fCalibVect.at(flat_channel) = std::make_pair(calibration, calibError);
   }
 
@@ -175,16 +175,16 @@ void BmnHodoRaw2Digit::ParseCalibration(TString calibrationFile)
 
 }
 
-int BmnHodoRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int tqdc_board_serial, unsigned int tqdc_ch)
+int BmnHodoRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int board_serial, unsigned int channel)
 {
-  auto it = find(fHodoSerials.begin(), fHodoSerials.end(), tqdc_board_serial);
-  if (it != fHodoSerials.end())
+  auto it = find(fSerials.begin(), fSerials.end(), board_serial);
+  if (it != fSerials.end())
   {
-    int tqdc_board_index = std::distance(fHodoSerials.begin(), it);
-    return tqdc_board_index * 16 + tqdc_ch;
+    int board_index = std::distance(fSerials.begin(), it);
+    return board_index * CHANNELS_PER_BOARD + channel;
   }
 
-  printf("BmnHodoRaw2Digit :: Serial 0x%08x Not found in map %s.\n", tqdc_board_serial, fmappingFileName.Data());
+  printf("BmnHodoRaw2Digit :: Serial 0x%08x Not found in map %s.\n", board_serial, fmappingFileName.Data());
   return -1;
 }
 
@@ -201,10 +201,10 @@ void BmnHodoRaw2Digit::fillEvent(TClonesArray *tdc, TClonesArray *adc, TClonesAr
 
     // check if serial is from Hodo
     // cout<<adcDig->GetSerial() << " " << adcDig->GetChannel() << endl;
-    if (std::find(fHodoSerials.begin(), fHodoSerials.end(), adcDig->GetSerial()) == fHodoSerials.end()) {
+    if (std::find(fSerials.begin(), fSerials.end(), adcDig->GetSerial()) == fSerials.end()) {
       LOG(DEBUG) << "BmnHodoRaw2Digit::fillEvent" << std::hex << adcDig->GetSerial() << " Not found in ";
-      for (auto it : fHodoSerials)
-        LOG(DEBUG) << "BmnHodoRaw2Digit::fHodoSerials " << std::hex << it << endl;
+      for (auto it : fSerials)
+        LOG(DEBUG) << "BmnHodoRaw2Digit::fSerials " << std::hex << it << endl;
       continue;
     }
 
@@ -220,7 +220,7 @@ void BmnHodoRaw2Digit::fillEvent(TClonesArray *tdc, TClonesArray *adc, TClonesAr
 
     //Apply calibration
     LOG(DEBUG) << "BmnHodoRaw2Digit::ProcessWfm  Calibration" << endl;
-    uint8_t flat_index = BmnHodoAddress::GetFlatAddress(ThisDigi.GetAddress());
+    uint8_t flat_index = BmnHodoAddress::GetFlatIndex(ThisDigi.GetAddress());
     assert(flat_index < fCalibVect.size());
     if (fdigiPars.signalType == 0)
       ThisDigi.fSignal = (float) ThisDigi.fAmpl * fCalibVect.at(flat_index).first;

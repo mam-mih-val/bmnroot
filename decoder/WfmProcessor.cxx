@@ -103,4 +103,14 @@ void WfmProcessor::MeanRMScalc(std::vector<float> wfm, float *Mean, float *RMS, 
   //printf("AMPL %.2f, RMS %.2f\n",*Mean,*RMS);
 }
 
+WfmProcessor::~WfmProcessor()
+{
+  if(fdigiPars.isfit && fAZik) {
+      int model_order = fdigiPars.harmonics.size() + 1;
+      for(int i = 0; i < model_order; i++)
+          delete [] fAZik[i];
+      delete [] fAZik;
+  }
+}
+
 ClassImp(WfmProcessor)

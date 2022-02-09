@@ -21,6 +21,7 @@ enum DetectorId {kREF,  // Reference plane
          kCSC,          // Cathode Strip Chambers
          kSILICON,      // Silicon Detectors
          kLAND,         // Large-Area Neutron Detector
+         kTOFCAL,       // SRC ToF-Calorimeter
          kFD,           // Forward Detector (= SiMD until run8), Fragment Detector since run8
          kSiMD,         // SiMD (Silicon Multiplicity Detector, since run8)
          kSiBT,         // SiBD (Silicon Beam Tracker)
@@ -45,6 +46,7 @@ enum DataType {kMCTrack,
                kCscPoint, kCscDigi, kCscHit, kCscTrack,               // CSC
                kStsPoint, kStsDigi, kStsCluster, kStsHit, kStsTrack,  // STS
                kLandPoint, kLandDigi, kLandHit,                       // LAND
+               kTofCalPoint, kTofCalDigi, kTofCalHit,                 // ToF-Cal
                kGlobalTrack                                           // Global
 };
 

@@ -129,6 +129,7 @@ set(SRCS
  BmnZDCDigit.cxx
  BmnZDCEventData.cxx
  BmnLANDDigit.cxx
+ BmnTofCalDigit.cxx
  BmnTrigUnion.h
 
  BmnDigiContainerTemplate.cxx

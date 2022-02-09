@@ -56,6 +56,7 @@
 #pragma link C++ class BmnZDCDigit+;
 #pragma link C++ class BmnECALDigit+;
 #pragma link C++ class BmnLANDDigit+;
+#pragma link C++ class BmnTofCalDigit+;
 #pragma link C++ class BmnCSCDigit+;
 #pragma link C++ class BmnSiBTDigit+;
 

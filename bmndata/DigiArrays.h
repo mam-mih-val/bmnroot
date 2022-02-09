@@ -19,6 +19,7 @@ public:
     hodo(nullptr),
     ecal(nullptr),
     land(nullptr),
+    tofcal(nullptr),
     dch(nullptr),
     mwpc(nullptr),
     silicon(nullptr),
@@ -87,6 +88,10 @@ public:
             land->Delete();
             delete land;
         }
+        if (tofcal) {
+            tofcal->Delete();
+            delete tofcal;
+        }
         if (trigAr) {
             for (TClonesArray *ar : (*trigAr))
                 if (ar) {
@@ -115,6 +120,7 @@ public:
     TClonesArray *hodo;
     TClonesArray *ecal;
     TClonesArray *land;
+    TClonesArray *tofcal;
     TClonesArray *dch;
     TClonesArray *mwpc;
     std::vector<TClonesArray*> *trigAr;

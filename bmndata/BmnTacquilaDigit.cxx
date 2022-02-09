@@ -1,4 +1,5 @@
 #include "BmnTacquilaDigit.h"
+#include <iostream>
 
 /* Magic! */
 #define TACQUILA_CLOCK_MHZ 40.002903

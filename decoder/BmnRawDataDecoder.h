@@ -13,6 +13,7 @@
 #include "BmnHodoRaw2Digit.h"
 #include "BmnECALRaw2Digit.h"
 #include "BmnLANDRaw2Digit.h"
+#include "BmnTofCalRaw2Digit.h"
 #include "BmnTrigRaw2Digit.h"
 #include "BmnCscRaw2Digit.h"
 #include "BmnMscRaw2Digit.h"
@@ -87,6 +88,7 @@ public:
         d.hodo = hodo;
         d.ecal = ecal;
         d.land = land;
+        d.tofcal = tofcal;
         d.dch = dch;
         d.mwpc = mwpc;
         d.header = eventHeader;
@@ -167,6 +169,10 @@ public:
 
     BmnLANDRaw2Digit *GetLANDMapper() {
         return fLANDMapper;
+    }
+
+    BmnTofCalRaw2Digit *GetTofCalMapper() {
+        return fTofCalMapper;
     }
 
     void SetTrigPlaceMapping(TString map) {
@@ -274,6 +280,26 @@ public:
 
     void SetLANDVScint(TString vscint) {
         fLANDVScintFileName = vscint;
+    }
+
+    void SetTofCalMapping(TString map) {
+        fTofCalMapFileName = map;
+    }
+
+    void SetTofCalPedestal(TString clock) {
+        fTofCalClockFileName = clock;
+    }
+
+    void SetTofCalTCal(TString tcal) {
+        fTofCalTCalFileName = tcal;
+    }
+
+    void SetTofCalDiffSync(TString diff_sync) {
+        fTofCalDiffSyncFileName = diff_sync;
+    }
+
+    void SetTofCalVScint(TString vscint) {
+        fTofCalVScintFileName = vscint;
     }
 
     TString GetRootFileName() {
@@ -410,6 +436,11 @@ private:
     TString fLANDTCalFileName;
     TString fLANDDiffSyncFileName;
     TString fLANDVScintFileName;
+    TString fTofCalMapFileName;
+    TString fTofCalClockFileName;
+    TString fTofCalTCalFileName;
+    TString fTofCalDiffSyncFileName;
+    TString fTofCalVScintFileName;
     TString fSiliconMapFileName;
     TString fCscMapFileName;
     TString fTrigPlaceMapFileName;
@@ -440,6 +471,7 @@ private:
     TClonesArray *adc; //zdc & ecal & scwall & fhcal
     TClonesArray *hrb;
     TClonesArray *tacquila; // LAND.
+    TClonesArray *tacquila2; // ToF-Cal
     TClonesArray *tdc;
     TClonesArray *tqdc_tdc;
     TClonesArray *tqdc_adc;
@@ -458,6 +490,7 @@ private:
     TClonesArray *hodo;
     TClonesArray *ecal;
     TClonesArray *land;
+    TClonesArray *tofcal;
     TClonesArray *dch;
     TClonesArray *mwpc;
 
@@ -484,6 +517,7 @@ private:
     BmnHodoRaw2Digit *fHodoMapper;
     BmnECALRaw2Digit *fECALMapper;
     BmnLANDRaw2Digit *fLANDMapper;
+    BmnTofCalRaw2Digit *fTofCalMapper;
     BmnMscRaw2Digit *fMSCMapper;
     UInt_t nSpillEvents;
     BmnTrigInfo* trigInfoTemp;

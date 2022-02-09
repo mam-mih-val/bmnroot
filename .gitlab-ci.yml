@@ -289,6 +289,7 @@ run_digi_src:ubuntu:
     - build:ubuntu
   <<: *run_digi
 
+
 .deploy_template: &deploy
   stage: deploy
   before_script:
@@ -305,23 +306,12 @@ run_digi_src:ubuntu:
     - rm -rf build
     - mkdir build
     - cd build
-    - |
-      if [ $CI_ENVIRONMENT_NAME = "sl6" ]; then
-        scl enable python27 sclo-git212 devtoolset-6 - << \EOF
-        source ../SetEnv.sh
-        echo "Installing in /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME"
-        cmake -DCMAKE_INSTALL_PREFIX=/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME ..
-        make -j 5
-        make install
-      EOF
-      else
-        source /cvmfs/nica.jinr.ru/centos7/bmn/env.sh
-        source ../SetEnv.sh
-        echo "Installing in /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME"
-        cmake -DCMAKE_INSTALL_PREFIX=/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME ..
-        make -j 5
-        make install
-      fi;
+    - source /cvmfs/nica.jinr.ru/centos7/bmn/env.sh
+    - source ../SetEnv.sh
+    - echo "Installing in /cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME"
+    - cmake -DCMAKE_INSTALL_PREFIX=/cvmfs/nica.jinr.ru/$CI_ENVIRONMENT_NAME/bmnroot/$CI_COMMIT_REF_NAME ..
+    - make -j 5
+    - make install
     - |
       retries=5
       cooldown=15
@@ -354,14 +344,6 @@ run_digi_src:ubuntu:
     - dev
   allow_failure: false
   
-deploy:sl6:
-  image: git.jinr.ru:5005/nica/docker-images/sl6/fair-bmn:latest
-  environment:
-    name: sl6
-  tags:
-    - docker
-    - no-cvmfs
-  <<: *deploy
   
 deploy:centos7:
   image: git.jinr.ru:5005/nica/docker-images/centos7/fair:apr21p2_v18.6.7
@@ -371,6 +353,7 @@ deploy:centos7:
     - docker
     - no-cvmfs
   <<: *deploy
+
 
 build_docker:
   before_script:

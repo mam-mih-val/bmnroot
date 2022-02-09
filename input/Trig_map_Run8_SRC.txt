@@ -2,11 +2,11 @@
       Det      Mod      Serial      Slot     Channel  IsNegative
 ================================================================
 TQDC_BC1         0    0x0CCFA51A      0           0       0
-TQDC_VETO        0    0x0CCFA51A      0           1       0
-TQDC_T0_1_A      0    0x0CCFA51A      0           2       0
-TQDC_T0_2_A      0    0x0CCFA51A      0           3       0
-TQDC_BC2_1_A     0    0x0CCFA51A      0           4       0
-TQDC_BC2_2_A     0    0x0CCFA51A      0           5       0
+TQDC_T0_1_A      0    0x0CCFA51A      0           1       0
+TQDC_T0_2_A      0    0x0CCFA51A      0           2       0
+TQDC_BC2_1_A     0    0x0CCFA51A      0           3       0
+TQDC_BC2_2_A     0    0x0CCFA51A      0           4       0
+TQDC_VETO        0    0x0CCFA51A      0           5       0
 TQDC_BC3_1       0    0x0CCFA51A      0           6       0
 TQDC_BC3_2       0    0x0CCFA51A      0           7       0
 TQDC_BC3_SUM     0    0x0CCFA51A      0           8       0

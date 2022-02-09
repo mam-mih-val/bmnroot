@@ -45,7 +45,7 @@ public:
     BmnRawDataDecoder(TString file = "", TString outfile = "", ULong_t nEvents = 0, ULong_t period = 7);
     virtual ~BmnRawDataDecoder();
 
-    BmnStatus ParseTLV(FILE *fRawFileIn);
+    BmnStatus ParseRunTLV(UInt_t *buf, UInt_t &len);
     BmnStatus ConvertRawToRoot();
     BmnStatus ConvertRawToRootIterate(UInt_t *buf, UInt_t len);
     BmnStatus ConvertRawToRootIterateFile(UInt_t limit = WAIT_LIMIT);

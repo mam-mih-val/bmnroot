@@ -170,8 +170,8 @@ config.sh script to bypass this security issue.\"")
   CONVERT_LIST_TO_STRING(${GEANT3_SYSTEM_DIR})
   Set(G3SYS ${output})
 
-  CONVERT_LIST_TO_STRING(${GEANT3_INCLUDE_DIR})
-  Set(GEANT3_INCLUDE_DIR ${output})
+  CONVERT_LIST_TO_STRING(${Geant3_INCLUDE_DIRS})
+  Set(Geant3_INCLUDE_DIRS ${output})
 
   CONVERT_LIST_TO_STRING(${GEANT3_LIBRARY_DIR})
   Set(GEANT3_LIBRARY_DIR ${output})

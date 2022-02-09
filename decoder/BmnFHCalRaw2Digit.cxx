@@ -59,10 +59,10 @@ void BmnFHCalRaw2Digit::ParseConfig(TString mappingFile)
   config_file.close();
   po::notify(vm);
 
-  fFHCalSerials.clear();
+  fSerials.clear();
   for (auto it : adc_serials)
-    fFHCalSerials.push_back(std::stoul(it, nullptr, 16));
-  std::sort(fFHCalSerials.begin(), fFHCalSerials.end());
+    fSerials.push_back(std::stoul(it, nullptr, 16));
+  std::sort(fSerials.begin(), fSerials.end());
 
   std::string adc_ser;
   int adc_chan;
@@ -92,16 +92,16 @@ void BmnFHCalRaw2Digit::ParseConfig(TString mappingFile)
   std::copy(UniqueZ.begin(), UniqueZ.end(), std::back_inserter(fUniqueZ));
 
   fChannelVect.clear();
-  fChannelVect.resize(fFHCalSerials.size() * 64);
+  fChannelVect.resize(fSerials.size() * CHANNELS_PER_BOARD);
   // Second pass for mapping.
   for (auto it : configuration)
   {
     istringstream ss(it);
     ss >> adc_ser >> adc_chan >> module_type >> module_id >> section_id >> x_position >> y_position >> z_position;
     int adc_board_index, xIdx, yIdx, zIdx = -1;
-    auto iter = find(fFHCalSerials.begin(), fFHCalSerials.end(), std::stoul(adc_ser, nullptr, 16));
-    if (iter != fFHCalSerials.end())
-      adc_board_index = std::distance(fFHCalSerials.begin(), iter);
+    auto iter = find(fSerials.begin(), fSerials.end(), std::stoul(adc_ser, nullptr, 16));
+    if (iter != fSerials.end())
+      adc_board_index = std::distance(fSerials.begin(), iter);
     else
       printf("BmnFHCalRaw2Digit : unknown adc serial\n");
 
@@ -172,14 +172,14 @@ void BmnFHCalRaw2Digit::ParseCalibration(TString calibrationFile)
     if (mod_id > max_mod_id) max_mod_id = mod_id;
   }
   fCalibVect.clear();
-  fCalibVect.resize(GetFlatCaloChannel(max_mod_id, 10) + 1);
+  fCalibVect.resize(GetFlatIndex(max_mod_id, 10) + 1);
 
   // Second pass for calibrations.
   for (auto it : calibrations)
   {
     istringstream ss(it);
     ss >> mod_id >> sec_id >> calibration >> calibError;
-    fCalibVect.at(GetFlatCaloChannel(mod_id, sec_id)) = std::make_pair(calibration, calibError);
+    fCalibVect.at(GetFlatIndex(mod_id, sec_id)) = std::make_pair(calibration, calibError);
   }
 
   if(fdigiPars.isfit) {
@@ -198,20 +198,20 @@ void BmnFHCalRaw2Digit::ParseCalibration(TString calibrationFile)
   }
 }
 
-int BmnFHCalRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int adc_board_serial, unsigned int adc_ch)
+int BmnFHCalRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int board_serial, unsigned int channel)
 {
-  auto it = find(fFHCalSerials.begin(), fFHCalSerials.end(), adc_board_serial);
-  if (it != fFHCalSerials.end())
+  auto it = find(fSerials.begin(), fSerials.end(), board_serial);
+  if (it != fSerials.end())
   {
-    int adc_board_index = std::distance(fFHCalSerials.begin(), it);
-    return adc_board_index * 64 + adc_ch;
+    int board_index = std::distance(fSerials.begin(), it);
+    return board_index * CHANNELS_PER_BOARD + channel;
   }
 
-  printf("BmnFHCalRaw2Digit :: Serial 0x%08x Not found in map %s.\n", adc_board_serial, fmappingFileName.Data());
+  printf("BmnFHCalRaw2Digit :: Serial 0x%08x Not found in map %s.\n", board_serial, fmappingFileName.Data());
   return -1;
 }
 
-int BmnFHCalRaw2Digit::GetFlatCaloChannel(int mod_id, int sec_id)
+int BmnFHCalRaw2Digit::GetFlatIndex(int mod_id, int sec_id)
 {
   return mod_id*10 + sec_id - 1;
 }
@@ -225,10 +225,10 @@ void BmnFHCalRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *FHCaldigit)
     BmnADCDigit *digit = (BmnADCDigit *)data->At(i);
     // check if serial is from FHCal
     // cout<<digit->GetSerial() << " " << digit->GetChannel() << endl;
-    if (std::find(fFHCalSerials.begin(), fFHCalSerials.end(), digit->GetSerial()) == fFHCalSerials.end()) {
+    if (std::find(fSerials.begin(), fSerials.end(), digit->GetSerial()) == fSerials.end()) {
       LOG(DEBUG) << "BmnFHCalRaw2Digit::fillEvent" << std::hex << digit->GetSerial() << " Not found in ";
-      for (auto it : fFHCalSerials)
-        LOG(DEBUG) << "BmnFHCalRaw2Digit::fFHCalSerials " << std::hex << it << endl;
+      for (auto it : fSerials)
+        LOG(DEBUG) << "BmnFHCalRaw2Digit::fSerials " << std::hex << it << endl;
       continue;
     }
     
@@ -246,12 +246,12 @@ void BmnFHCalRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *FHCaldigit)
     LOG(DEBUG) << "BmnFHCalRaw2Digit::ProcessWfm  Calibration" << endl;
     int mod_id = ThisDigi.GetModuleId();
     int sec_id = ThisDigi.GetSectionId();
-    int flat_calo_ch = GetFlatCaloChannel(mod_id, sec_id);
-    assert(flat_calo_ch < fCalibVect.size());
+    int flat_index = GetFlatIndex(mod_id, sec_id);
+    assert(flat_index < fCalibVect.size());
     if (fdigiPars.signalType == 0)
-      ThisDigi.fSignal = (float) ThisDigi.fAmpl * fCalibVect.at(flat_calo_ch).first;
+      ThisDigi.fSignal = (float) ThisDigi.fAmpl * fCalibVect.at(flat_index).first;
     if (fdigiPars.signalType == 1)
-      ThisDigi.fSignal = (float) ThisDigi.fIntegral * fCalibVect.at(flat_calo_ch).first;
+      ThisDigi.fSignal = (float) ThisDigi.fIntegral * fCalibVect.at(flat_index).first;
     if (abs(ThisDigi.fSignal) < fdigiPars.threshold)
       continue;
 

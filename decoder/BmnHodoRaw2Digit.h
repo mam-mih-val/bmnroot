@@ -19,7 +19,6 @@
 #include "BmnHodoDigi.h"
 #include "WfmProcessor.h"
 
-
 class BmnHodoRaw2Digit : public WfmProcessor {
 
 public:
@@ -33,19 +32,21 @@ public:
     void fillEvent(TClonesArray *tdc_data, TClonesArray *adc_data, TClonesArray *Hododigit);
     void print();
 
-    std::vector<unsigned int> GetHodoSerials() {return fHodoSerials;}
+    std::vector<unsigned int> GetHodoSerials() {return fSerials;}
     std::vector<short> GetUniqueXpositions() {return fUniqueX;}
     std::vector<short> GetUniqueYpositions() {return fUniqueY;}
     std::vector<short> GetUniqueSizes() {return fUniqueSize;}
-    int GetFlatChannelFromAdcChannel(unsigned int adc_board_id, unsigned int adc_ch);
+    int GetFlatChannelFromAdcChannel(unsigned int board_id, unsigned int channel);
  
 private:
+    static constexpr int CHANNELS_PER_BOARD = 16; // TQDC boards
+
     int fPeriodId; 
     int fRunId;
     TString fmappingFileName;
     TString fcalibrationFileName;
 
-    std::vector<unsigned int> fHodoSerials;
+    std::vector<unsigned int> fSerials;
     std::vector<short> fUniqueX;
     std::vector<short> fUniqueY;
     std::vector<short> fUniqueSize;

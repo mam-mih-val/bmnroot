@@ -18,7 +18,6 @@
 #include "BmnFHCalDigi.h"
 #include "WfmProcessor.h"
 
-
 class BmnFHCalRaw2Digit : public WfmProcessor {
 
 public:
@@ -32,20 +31,22 @@ public:
     void fillEvent(TClonesArray *data, TClonesArray *FHCaldigit);
     void print();
 
-    std::vector<unsigned int> GetFHCalSerials() {return fFHCalSerials;}
+    std::vector<unsigned int> GetFHCalSerials() {return fSerials;}
     std::vector<short> GetUniqueXpositions() {return fUniqueX;}
     std::vector<short> GetUniqueYpositions() {return fUniqueY;}
     std::vector<short> GetUniqueZpositions() {return fUniqueZ;}
-    int GetFlatChannelFromAdcChannel(unsigned int adc_board_id, unsigned int adc_ch);
-    int GetFlatCaloChannel(int mod_id, int sec_id);
+    int GetFlatChannelFromAdcChannel(unsigned int board_id, unsigned int channel);
+    int GetFlatIndex(int mod_id, int sec_id);
  
 private:
+    static constexpr int CHANNELS_PER_BOARD = 64; // ADC64 boards
+
     int fPeriodId; 
     int fRunId;
     TString fmappingFileName;
     TString fcalibrationFileName;
 
-    std::vector<unsigned int> fFHCalSerials;
+    std::vector<unsigned int> fSerials;
     std::vector<short> fUniqueX;
     std::vector<short> fUniqueY;
     std::vector<short> fUniqueZ;

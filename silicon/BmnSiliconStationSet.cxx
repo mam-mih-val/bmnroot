@@ -133,6 +133,20 @@ Int_t BmnSiliconStationSet::GetPointStationOwnership(Double_t zcoord) {
     return -1;
 }
 
+Int_t BmnSiliconStationSet::GetPointStationOwnership(Double_t xcoord, Double_t ycoord, Double_t zcoord) {
+    //for z-positions and z-shifts of all modules in a station
+    for(Int_t iStation = 0; iStation < NStations; iStation++) {
+        Int_t NModules = SiliconStations[iStation]->GetNModules();
+        for(Int_t iModule = 0; iModule < NModules; ++iModule) {
+            //if( SiliconStations[iStation]->GetModule(iModule)->IsPointInsideZThickness(zcoord) ) {
+            if( SiliconStations[iStation]->GetModule(iModule)->IsPointInsideModule(xcoord, ycoord, zcoord) ) {
+                return iStation;
+            }
+        }
+    }
+    return -1;
+}
+
 Bool_t BmnSiliconStationSet::CreateConfigurationFromXMLFile(TString xml_config_file) {
     TDOMParser *parser = new TDOMParser();
     parser->SetValidate(false);
@@ -230,7 +244,7 @@ Bool_t BmnSiliconStationSet::ParseStation(TXMLNode *node, Int_t iStation) {
 
     SiliconStations[iStation] =
             new BmnSiliconStation(node, iStation,
-            XStationPositions[iStation] + dx, YStationPositions[iStation] + dy, ZStationPositions[iStation] + dz);    
+            XStationPositions[iStation] + dx, YStationPositions[iStation] + dy, ZStationPositions[iStation] + dz);
     return true;
 }
 

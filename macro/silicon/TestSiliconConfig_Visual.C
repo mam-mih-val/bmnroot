@@ -18,8 +18,6 @@
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 R__LOAD_LIBRARY(libBmnData.so)
 
-#include "macro/run/bmnloadlibs.C"
-
 #include <fstream>
 #include <vector>
 
@@ -58,12 +56,13 @@ void TestSiliconConfig_Visual() {
     TString gPathDetectorConfig = gSystem->Getenv("VMCWORKDIR");
     gPathDetectorConfig += "/parameters/silicon/XMLConfigs/";
     gPathDetectorConfig += "SiliconRun8_3stations.xml";
+    //gPathDetectorConfig += "SiliconRun8_mods_10_14rot_18.xml";
 
     BmnSiliconStationSet *StationSet = new BmnSiliconStationSet(gPathDetectorConfig);
     //BmnSiliconStationSet *StationSet = new BmnSiliconStationSet("SiliconRun_TestSRC.xml");
 
     //Select the current station to be shown
-    Int_t currentStationNumber = 2;
+    Int_t currentStationNumber = 0;
 
     //Define a set of test points if required
     vector<TLorentzVector> test_points;

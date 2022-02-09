@@ -7,31 +7,12 @@
  *
  * Author: Baranov D.
  * Created: 27.01.2022
+ * Updated: 09.02.2022 (Transforms added)
  */
 
 #include "Rtypes.h"
 
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
-
-#include "macro/run/bmnloadlibs.C"
-
-#include "TCanvas.h"
-#include "TFrame.h"
-#include "TH1F.h"
-#include "TH2F.h"
-#include "TPad.h"
-#include "TRandom.h"
-#include "TBox.h"
-#include "TTree.h"
-#include "TFile.h"
-#include "TClonesArray.h"
-
-#include <fstream>
-#include <iostream>
-#include <vector>
-
-#include "Math/Transform3D.h"
-
 
 using namespace ROOT::Math;
 using namespace std;
@@ -43,7 +24,7 @@ TCanvas *planeZY_canv;
 TCanvas *XYZview_canv;
 
 BmnSiliconStationSet *gStationSet;
-//BmnSiliconTransform *gTransfClass;
+BmnSiliconTransform *gTransfClass;
 vector<vector<Bool_t> > gConfig_visual; // [station][module] = bool (active/inactive)
 
 
@@ -56,14 +37,6 @@ void DrawBranchHits(TTree *points_tree, TClonesArray *points_array, Int_t first_
 
 void TestSiliconClassTransform() {
 
-    // ----  Load libraries   --------------------------------------------------
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-#endif
-    bmnloadlibs(); // load BmnRoot libraries
-    // -------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------
     TString file_prefix = "";
     //file_prefix = "_CC_4gev_b0_16fm";
 
@@ -90,8 +63,6 @@ void TestSiliconClassTransform() {
     fSiliconHits_Tree->SetBranchAddress("BmnSiliconHit", &fSiliconHits_Array);
     Int_t NEvents_fSiliconHits = fSiliconHits_Tree->GetEntries();
 
-
-
 //------------------------------------------------------------------------------
 
     Double_t scale_coeff = 1;
@@ -99,7 +70,7 @@ void TestSiliconClassTransform() {
     Double_t xmax_view = +40.0*scale_coeff;
     Double_t ymin_view = -40.0*scale_coeff;
     Double_t ymax_view = +40.0*scale_coeff;
-    Double_t zmin_view = +0.0*scale_coeff; //was -100
+    Double_t zmin_view = -10.0*scale_coeff; //was -100
     Double_t zmax_view = +100.0*scale_coeff;
 
     //XY plane
@@ -108,6 +79,7 @@ void TestSiliconClassTransform() {
     TH2D *planeXY_h2 = new TH2D("planeXY_h2", "planeXY_h2 (to the target(back))", 10, xmin_view, xmax_view,    10, ymin_view, ymax_view);
     planeXY_h2->GetXaxis()->SetTitle("X(global)");
     planeXY_h2->GetYaxis()->SetTitle("Y(global)");
+    planeXY_h2->SetStats(0);
 
     //ZX plane
     planeZX_canv = new TCanvas("planeZX_canv", "planeZX_canv", 1000, 10, 900, 900);
@@ -115,6 +87,7 @@ void TestSiliconClassTransform() {
     TH2D *planeZX_h2 = new TH2D("planeZX_h2", "planeZX_h2(top)", 10, zmin_view, zmax_view,    10, xmin_view, xmax_view);
     planeZX_h2->GetXaxis()->SetTitle("Z(global)");
     planeZX_h2->GetYaxis()->SetTitle("X(global)");
+    planeZX_h2->SetStats(0);
 
     //ZY plane
     planeZY_canv = new TCanvas("planeZY_canv", "planeZY_canv", 1800, 10, 900, 900);
@@ -122,6 +95,7 @@ void TestSiliconClassTransform() {
     TH2D *planeZY_h2 = new TH2D("planeZY_h2", "planeZY_h2(side)", 10, zmin_view, zmax_view,    10, ymin_view, ymax_view);
     planeZY_h2->GetXaxis()->SetTitle("Z(global)");
     planeZY_h2->GetYaxis()->SetTitle("Y(global)");
+    planeZY_h2->SetStats(0);
 
     //3D view (y and z - swapped)
     XYZview_canv = new TCanvas("XYZview_canv", "XYZview_canv", 2900, 10, 900, 900);
@@ -130,23 +104,25 @@ void TestSiliconClassTransform() {
     XYZview_h3->GetXaxis()->SetTitle("Z");
     XYZview_h3->GetYaxis()->SetTitle("X");
     XYZview_h3->GetZaxis()->SetTitle("Y");
+    XYZview_h3->SetStats(0);
 
 //------------------------------------------------------------------------------
 
 
     TString gPathDetectorConfig = gSystem->Getenv("VMCWORKDIR");
     gPathDetectorConfig += "/parameters/silicon/XMLConfigs/";
-    gPathDetectorConfig += "SiliconRun8_mods_6_10_14_18.xml";
-    //gPathDetectorConfig += "SiliconRun8_3stations.xml";
+    //gPathDetectorConfig += "SiliconRun8_mods_6_10_14_18.xml";
+    gPathDetectorConfig += "SiliconRun8_3stations.xml";
+    //gPathDetectorConfig += "SiliconRun8_mods_10_14rot_18.xml";
+    //gPathDetectorConfig += "SiliconRun8_mods_6_10_14_18.xml";
 
 
     //Current configuration
     gStationSet = new BmnSiliconStationSet(gPathDetectorConfig);
 
-
     //Current transform configuration
-    //gTransfClass = new BmnSiliconTransform();
-    //gTransfClass->LoadFromXMLFile(gPathDetectorConfig);
+    gTransfClass = new BmnSiliconTransform();
+    gTransfClass->LoadFromXMLFile(gPathDetectorConfig);
 
 
     //Selecting modules to visualize -------------------------------------------
@@ -264,8 +240,8 @@ void TestSiliconClassTransform() {
                 }
 
                 for(Int_t ipoint = 0; ipoint < module_borders.size(); ++ipoint) {
-                    //tmodule_borders.push_back(gTransfClass->ApplyTransforms(module_borders[ipoint], istation, imodule));
-                    tmodule_borders.push_back(module_borders[ipoint]);
+                    tmodule_borders.push_back(gTransfClass->ApplyTransforms(module_borders[ipoint], istation, imodule));
+                    //tmodule_borders.push_back(module_borders[ipoint]);
                 }
 
 
@@ -473,12 +449,12 @@ void DrawBranchPoints(TTree *points_tree, TClonesArray *points_array, Int_t firs
             //needs to determine point ownership using local positions
             Plane3D::Point loc_point(x, y, z);
             Plane3D::Point loc_direct(px+x, py+y, pz+z);
-            //if(station_num < gStationSet->GetNStations()) {
-            //    if(module_num < gStationSet->GetStation(station_num)->GetNModules()) {
-                    //loc_point = gTransfClass->ApplyInverseTransforms(loc_point, station_num, module_num);
-                    //loc_direct = gTransfClass->ApplyInverseTransforms(loc_direct, station_num, module_num);
-            //    }
-            //}
+            if(station_num < gStationSet->GetNStations()) {
+                if(module_num < gStationSet->GetStation(station_num)->GetNModules()) {
+                    loc_point = gTransfClass->ApplyInverseTransforms(loc_point, station_num, module_num);
+                    loc_direct = gTransfClass->ApplyInverseTransforms(loc_direct, station_num, module_num);
+                }
+            }
             Double_t xloc = loc_point.X();
             Double_t yloc = loc_point.Y();
             Double_t zloc = loc_point.Z();
@@ -508,8 +484,8 @@ void DrawBranchPoints(TTree *points_tree, TClonesArray *points_array, Int_t firs
             Int_t current_station_num = -1;
             Int_t current_module_num = -1;
             Bool_t visual_status = false;
-            //current_station_num  = gStationSet->GetPointStationOwnership(-xloc, yloc, zloc);
-            current_station_num  = gStationSet->GetPointStationOwnership(zloc);
+            current_station_num  = gStationSet->GetPointStationOwnership(-xloc, yloc, zloc);
+            //current_station_num  = gStationSet->GetPointStationOwnership(zloc);
 
             if(current_station_num >= 0) current_module_num = gStationSet->GetStation(current_station_num)->GetPointModuleOwnership(-xloc, yloc, zloc);
             if(current_station_num >= 0 && current_module_num >= 0) visual_status = gConfig_visual[current_station_num][current_module_num];
@@ -569,7 +545,7 @@ void DrawBranchHits(TTree *points_tree, TClonesArray *points_array, Int_t first_
             Plane3D::Point loc_hit(x, y, z);
             if(station_num < gStationSet->GetNStations()) {
                 if(module_num < gStationSet->GetStation(station_num)->GetNModules()) {
-                    //loc_hit = gTransfClass->ApplyInverseTransforms(loc_hit, station_num, module_num);
+                    loc_hit = gTransfClass->ApplyInverseTransforms(loc_hit, station_num, module_num);
                 }
             }
             Double_t xloc = loc_hit.X();
@@ -579,8 +555,8 @@ void DrawBranchHits(TTree *points_tree, TClonesArray *points_array, Int_t first_
             Int_t current_station_num = -1;
             Int_t current_module_num = -1;
             Bool_t visual_status = false;
-            //current_station_num  = gStationSet->GetPointStationOwnership(-xloc, yloc, zloc);
-            current_station_num  = gStationSet->GetPointStationOwnership(zloc);
+            current_station_num  = gStationSet->GetPointStationOwnership(-xloc, yloc, zloc);
+            //current_station_num  = gStationSet->GetPointStationOwnership(zloc);
 
             if(current_station_num >= 0) current_module_num = gStationSet->GetStation(current_station_num)->GetPointModuleOwnership(-xloc, yloc, zloc);
             if(current_station_num >= 0 && current_module_num >= 0) visual_status = gConfig_visual[current_station_num][current_module_num];

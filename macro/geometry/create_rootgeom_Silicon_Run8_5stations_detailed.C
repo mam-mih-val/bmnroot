@@ -17,8 +17,8 @@ const Int_t NMaxModules = 22;    //max. number of modules in a station
 const Int_t NModulesInStations[NStations] = {6, 10, 14, 18, 22};
 
 //(X-Y-Z)Positions of stations (sensitive volumes)
-const Double_t XStationPositions[NStations] = { 0.0, 0.0, 0.0, 0.0 };
-const Double_t YStationPositions[NStations] = { 0.0, 0.0, 0.0, 0.0 };
+const Double_t XStationPositions[NStations] = { 0.0, 0.0, 0.0, 0.0, 0.0 };
+const Double_t YStationPositions[NStations] = { 0.0, 0.0, 0.0, 0.0, 0.0 };
 const Double_t ZStationPositions[NStations] = { 15.7-8.64/*7.06*/, +15.7, +15.7+8.64, +15.7+8.64+8.64, +15.7+8.64+8.64+8.64 };
 
 /*
@@ -69,7 +69,6 @@ const Bool_t ModulesYRotations[NStations][NMaxModules] = {
     {true/*0*/, true/*1*/, true/*2*/, true/*3*/, false/*4*/, false/*5*/, false/*6*/, true/*7*/, true/*8*/, true/*9*/, true/*10*/, false/*11*/, false/*12*/, false/*13*/},
     {true/*0*/, true/*1*/, true/*2*/, true/*3*/, true/*4*/, false/*5*/, false/*6*/, false/*7*/, false/*8*/, true/*9*/, true/*10*/, true/*11*/, true/*12*/, true/*13*/, false/*14*/, false/*15*/, false/*16*/, false/*17*/},
     {true/*0*/, true/*1*/, true/*2*/, true/*3*/, true/*4*/, true/*5*/, false/*6*/, false/*7*/, false/*8*/, false/*9*/, false/*10*/, true/*11*/, true/*12*/, true/*13*/, true/*14*/, true/*15*/, true/*16*/, false/*17*/, false/*18*/, false/*19*/, false/*20*/, false/*21*/}
-
 };
 
 //rotations of modules around x-axis by 180 deg.

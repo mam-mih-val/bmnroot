@@ -78,24 +78,37 @@ InitStatus BmnSiliconDigitizer::Init() {
 
         case BmnSiliconConfiguration::Run8_3stations:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_3stations.xml");
+            TransfSet = new BmnSiliconTransform();
+            TransfSet->LoadFromXMLFile(gPathSiliconConfig + "SiliconRun8_3stations.xml");
             if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_3stations" << "\n";
             break;
 
         case BmnSiliconConfiguration::Run8_4stations:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_4stations.xml");
+            TransfSet = new BmnSiliconTransform();
+            TransfSet->LoadFromXMLFile(gPathSiliconConfig + "SiliconRun8_4stations.xml");
             if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_4stations" << "\n";
             break;
 
         case BmnSiliconConfiguration::Run8_5stations:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_5stations.xml");
+            TransfSet = new BmnSiliconTransform();
+            TransfSet->LoadFromXMLFile(gPathSiliconConfig + "SiliconRun8_5stations.xml");
             if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_5stations" << "\n";
             break;
 
         case BmnSiliconConfiguration::Run8_mods_6_10_14_18:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_mods_6_10_14_18.xml");
-            //TransfSet = new BmnSiliconTransform();
-            //TransfSet->LoadFromXMLFile(gPathSiliconConfig + "SiliconRun8_mods_6_10_14_18.xml");
+            TransfSet = new BmnSiliconTransform();
+            TransfSet->LoadFromXMLFile(gPathSiliconConfig + "SiliconRun8_mods_6_10_14_18.xml");
             if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_mods_6_10_14_18" << "\n";
+            break;
+
+        case BmnSiliconConfiguration::Run8_mods_10_14rot_18:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_mods_10_14rot_18.xml");
+            TransfSet = new BmnSiliconTransform();
+            TransfSet->LoadFromXMLFile(gPathSiliconConfig + "SiliconRun8_mods_10_14rot_18.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_mods_10_14rot_18" << "\n";
             break;
 
         default:

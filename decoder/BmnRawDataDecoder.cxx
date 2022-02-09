@@ -6,6 +6,7 @@
 #include "BmnTacquilaDigit.h"
 #include "BmnTQDCADCDigit.h"
 #include "BmnLANDDigit.h"
+#include "BmnTofCalDigit.h"
 #include "BmnSyncDigit.h"
 #include "BmnGemStripDigit.h"
 #include "BmnMSCDigit.h"
@@ -57,6 +58,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     adc128 = NULL;
     adc = NULL;
     tacquila = NULL;
+    tacquila2 = NULL;
     msc = NULL;
     dch = NULL;
     tof400 = NULL;
@@ -69,6 +71,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     gem = NULL;
     silicon = NULL;
     land = NULL;
+    tofcal = NULL;
     mwpc = NULL;
     fRawFileName = file;
     fTOF700ReferenceRun = 0;
@@ -109,6 +112,11 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fLANDTCalFileName = "";
     fLANDDiffSyncFileName = "";
     fLANDVScintFileName = "";
+    fTofCalMapFileName = "";
+    fTofCalClockFileName = "";
+    fTofCalTCalFileName = "";
+    fTofCalDiffSyncFileName = "";
+    fTofCalVScintFileName = "";
     fDigiRunHdrName = "DigiRunHeader";
     fDat = 0;
     fGemMapper = NULL;
@@ -125,6 +133,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fHodoMapper = NULL;
     fECALMapper = NULL;
     fLANDMapper = NULL;
+    fTofCalMapper = NULL;
     fDataQueue = NULL;
     fTimeStart_s = 0;
     fTimeStart_ns = 0;
@@ -289,6 +298,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     delete adc128;
     delete adc;
     delete tacquila;
+    delete tacquila2;
     delete hrb;
     delete tdc;
     delete tqdc_tdc;
@@ -341,6 +351,7 @@ BmnStatus BmnRawDataDecoder::InitConverter() {
     adc128 = new TClonesArray("BmnADCDigit");
     adc = new TClonesArray("BmnADCDigit");
     tacquila = new TClonesArray("BmnTacquilaDigit");
+    tacquila2 = new TClonesArray("BmnTacquilaDigit");
     tdc = new TClonesArray("BmnTDCDigit");
     tqdc_adc = new TClonesArray("BmnTQDCADCDigit");
     tqdc_tdc = new TClonesArray("BmnTDCDigit");
@@ -352,6 +363,7 @@ BmnStatus BmnRawDataDecoder::InitConverter() {
     fRawTree->Branch("ADC128", &adc128);
     fRawTree->Branch("ADC", &adc);
     fRawTree->Branch("Tacquila", &tacquila);
+    fRawTree->Branch("Tacquila2", &tacquila2);
     fRawTree->Branch("TDC", &tdc);
     fRawTree->Branch("TQDC_ADC", &tqdc_adc);
     fRawTree->Branch("TQDC_TDC", &tqdc_tdc);
@@ -477,6 +489,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     adc128->Delete();
     adc->Delete();
     tacquila->Delete();
+    tacquila2->Delete();
     msc->Delete();
     if (fVerbose == 1) {
         if (fEventId % 5000 == 0) cout << "Converted event #" << fEventId << endl;
@@ -542,7 +555,13 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             case kHRB:
                 Process_HRB(&d[idx], payload, serial);
                 break;
-            case kLANDDAQ:
+            //case kLANDDAQ:
+            //    Process_Tacquila(&d[idx], payload);
+            //    break;
+            //case kTOFCALDAQ:
+            //    Process_Tacquila(&d[idx], payload);
+            //    break;
+            case kTACQUILADAQ:
                 Process_Tacquila(&d[idx], payload);
                 break;
             case kUT24VE_TRC:
@@ -755,26 +774,36 @@ BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
     uint32_t *p32 = d;
 
     /* 64-bit TRLO II timestamp. */
-    p32 += 2;
+    //p32 += 0;
 
-    /*
-     * 6 scalers:
-     * 0: laniic3 m=1.
-     * 1: laniic3 m=2.
-     * 2: laniic6 m=1.
-     * 3: laniic6 m=2.
-     * 4: JINR DAQ trigger.
-     * 5: ---
-     */
-    p32 += 6;
+	//Make initial check how many scaler words to skip
+	//for ToF-Cal vs. LAND
+	uint32_t scaler_header = ntohl(*p32);
+	unsigned chain = 0;
+	if(scaler_header == 0x5){ //ToF-Cal
+		p32 += 7;
+	}else if(scaler_header == 0x4){ //LAND
+		p32 += 6;
+		//might change ... veto not connected yet
+		//thus gives still error messages
+		chain = 0;
+	}else{
+	cerr << __FILE__ << ':' << __LINE__ << ": Wrong NIM scalers " << scaler_header << ".\n";	
+		return kBMNFINISH;
+	}
 
     /*
      * Tacquila data!
      * We have 2 chains of 10 Tacquila cards each.
      */
-    for (unsigned chain = 0; chain < 2; ++chain) {
+    //for (unsigned chain = 0; chain < 2; ++chain) {
+    for (chain; chain < 2; ++chain) {
         uint32_t header = ntohl(*p32++);
+	//JK
+	if(header == 0x5a5a5a5a) header = ntohl(*p32++);
 #define TACQUILA_PRINT_HEADER << "(header=" << header << ")" <<
+	//std::cout << std::hex << header << std::endl;
+	//std::cout << "#############" << std::endl;
         unsigned count = header & 0x1ff;
         if (count & 1) {
             cerr << __FILE__ << ':' << __LINE__ << ": Odd data count forbidden "
@@ -788,14 +817,16 @@ BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
             return kBMNFINISH;
         }
         unsigned sam = header >> 28;
-        if (5 != sam) {
-            cerr << __FILE__ << ':' << __LINE__ << ": SAM=" << sam << "!=5 "
+        if ((3 != sam) && (5 != sam)) { //ToF-Cal or LAND
+            cerr << __FILE__ << ':' << __LINE__ << ": SAM=" << sam << "!=3 or 5"
                     "forbidden " TACQUILA_PRINT_HEADER ".\n";
             return kBMNFINISH;
         }
         unsigned tac, clock;
         for (unsigned i = 0; i < count; ++i) {
             uint32_t u32 = ntohl(*p32++);
+	    //JK
+	    if(u32 == 0x5a5a5a5a) ntohl(*p32++);
 #define TACQUILA_PRINT_DATA << "(data=" << std::hex << u32 << std::dec << ")" <<
             /*
              * Channels 0..15 are normal, 16 = common stop,
@@ -827,10 +858,18 @@ BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
                 clock = 0x3f - ((u32 >> 12) & 0x3f);
             } else {
                 /* QDC:s are not reversed :) */
-                unsigned qdc = u32 & 0xfff;
-                TClonesArray &ar_tacquila = *tacquila;
-                new(ar_tacquila[tacquila->GetEntriesFast()])
-                        BmnTacquilaDigit(sam, gtb, module - 1, channel, tac, clock, qdc);
+		    unsigned qdc = u32 & 0xfff;
+		    if(sam == 3){
+			    TClonesArray &ar_tacquila = *tacquila;
+			    new(ar_tacquila[tacquila->GetEntriesFast()])
+				    BmnTacquilaDigit(sam, gtb, module - 1, channel, tac, clock, qdc);
+		    }else if(sam == 5){
+			    TClonesArray &ar_tacquila2 = *tacquila2;
+			    new(ar_tacquila2[tacquila2->GetEntriesFast()])
+				    BmnTacquilaDigit(sam, gtb, module - 1, channel, tac, clock, qdc);
+		    }else{
+			    cerr << __FILE__ << ':' << __LINE__ << ": Wrong SAM for TClonesArray.\n";	
+		    }
             }
         }
     }
@@ -1213,6 +1252,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     adc128 = nullptr;
     adc = nullptr;
     tacquila = nullptr;
+    tacquila2 = nullptr;
     eventHeaderDAQ = nullptr;
     msc = nullptr;
 
@@ -1238,6 +1278,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fRawTree->SetBranchAddress("ADC128", &adc128);
     fRawTree->SetBranchAddress("ADC", &adc);
     fRawTree->SetBranchAddress("Tacquila", &tacquila);
+    fRawTree->SetBranchAddress("Tacquila2", &tacquila2);
     fRawTree->SetBranchAddress("BmnEventHeader.", &eventHeaderDAQ);
 
     fRawTreeSpills = (TTree *) fRootFileIn->Get("BMN_RAW_SPILLS");
@@ -1687,11 +1728,16 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             ctime = timer.CpuTime();
             //                                printf("Real time %f s, CPU time %f s  fECALMapper\n", rtime, ctime);
             timer.Start();
-            if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
+            if (fLANDMapper) fLANDMapper->fillEvent(tacquila2, land);
             timer.Stop();
             rtime = timer.RealTime();
             ctime = timer.CpuTime();
             //                    printf("Real time %f s, CPU time %f s  fLANDMapper\n", rtime, ctime);
+            if (fTofCalMapper) fTofCalMapper->fillEvent(tacquila, tofcal);
+            timer.Stop();
+            rtime = timer.RealTime();
+            ctime = timer.CpuTime();
+            //                    printf("Real time %f s, CPU time %f s  fTOFCALMapper\n", rtime, ctime);
         }
         if (fMSCMapper) fMSCMapper->SumEvent(msc, eventHeader, spillHeader, fPedEvCntrBySpill);
 
@@ -1845,6 +1891,14 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
                 fLANDVScintFileName);
     }
 
+   if (fDetectorSetup.count(kTOFCAL) > 0 && fDetectorSetup.at(kTOFCAL) == 1) {
+        tofcal = new TClonesArray("BmnTofCalDigit");
+	fDigiTree->Branch("TofCal", &tofcal);
+        fTofCalMapper = new BmnTofCalRaw2Digit(fTofCalMapFileName,
+                fTofCalClockFileName, fTofCalTCalFileName, fTofCalDiffSyncFileName,
+                fTofCalVScintFileName);
+    }
+
     if (fDetectorSetup.count(kSCWALL) > 0 && fDetectorSetup.at(kSCWALL) == 1) {
         printf("scwall in setup \n");
         scwall = new TClonesArray("BmnScWallDigi");
@@ -1900,6 +1954,7 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
     if (hodo) hodo->Delete();
     if (ecal) ecal->Delete();
     if (land) land->Delete();
+    if (tofcal) tofcal->Delete();
     if (fTrigMapper)
         fTrigMapper->ClearArrays();
     fTimeShifts.clear();
@@ -1954,7 +2009,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         if (fFHCalMapper) fFHCalMapper->fillEvent(adc, fhcal);
         if (fHodoMapper) fHodoMapper->fillEvent(tqdc_tdc, tqdc_adc, hodo);
         if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
-        if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
+        if (fLANDMapper) fLANDMapper->fillEvent(tacquila2, land);
+        if (fTofCalMapper) fTofCalMapper->fillEvent(tacquila, tofcal);
     }
     //    new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(),
     //            TTimeStamp(time_t(fTime_s), fTime_ns), fCurEventType, kFALSE, headDAQ->GetTrigInfo());
@@ -2024,6 +2080,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (fHodoMapper) delete fHodoMapper;
     if (fECALMapper) delete fECALMapper;
     if (fLANDMapper) delete fLANDMapper;
+    if (fTofCalMapper) delete fTofCalMapper;
     if (fMSCMapper) delete fMSCMapper;
 
     delete sync;
@@ -2031,6 +2088,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     delete adc128;
     delete adc;
     delete tacquila;
+    delete tacquila2;
     delete tdc;
     delete tqdc_adc;
     delete tqdc_tdc;
@@ -2050,6 +2108,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (hodo) delete hodo;
     if (ecal) delete ecal;
     if (land) delete land;
+    if (tofcal) delete tofcal;
 
     delete eventHeader;
     delete spillHeader;

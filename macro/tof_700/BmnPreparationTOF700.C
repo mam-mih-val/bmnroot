@@ -36,11 +36,11 @@ void BmnPreparationTOF700(TString file = "mpd_run_trigCode_8760.data", Long_t nE
   {
     if (stp == kSRCSETUP)
     {
-	tof700m->SetT0shift(-10000.);
+	tof700m->SetT0shift(-15000.);
     }
     else
     {
-	tof700m->SetT0shift(-10000.);
+	tof700m->SetT0shift(+147000.);
     }
   }
   else if (period == 8)

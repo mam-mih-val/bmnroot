@@ -28,7 +28,7 @@
 
 //A simple class to compare the TDCDigits. See .cxx code
 struct _Tof1TDCCompare {
-	bool operator()(const BmnTDCDigit& a, const BmnTDCDigit& b);
+    bool operator()(const BmnTDCDigit& a, const BmnTDCDigit& b) const;
 };
 
 //Map element

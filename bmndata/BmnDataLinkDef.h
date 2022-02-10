@@ -59,6 +59,14 @@
 #pragma link C++ class BmnCSCDigit+;
 #pragma link C++ class BmnSiBTDigit+;
 
+#pragma link C++ class BmnDigiContainerTemplate+;
+#pragma link C++ class BmnScWallAddress+;
+#pragma link C++ class BmnScWallDigi+;
+#pragma link C++ class BmnFHCalAddress+;
+#pragma link C++ class BmnFHCalDigi+;
+#pragma link C++ class BmnHodoAddress+;
+#pragma link C++ class BmnHodoDigi+;
+
 #pragma link C++ class BmnADCDigit+;
 #pragma link C++ class BmnTDCDigit+;
 #pragma link C++ class BmnHRBDigit+;

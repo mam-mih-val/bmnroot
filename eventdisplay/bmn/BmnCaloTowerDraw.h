@@ -53,7 +53,8 @@ private:
     Float_t fMaxE;                      // maximum energy loss in the current event
 
     UInt_t fNumModules;                 // number of modules in one calorimeter detector
-    Double_t fModuleZLen;               // z length of calorimeter modules, cm
+    Double_t *fModuleZLen;              //! z length of calorimeter modules, cm
+    Double_t fMaxModuleZLen;
     string fGeoPath;                    //! path to calorimeter geometry
 
     Bool_t fResetRequiredFlag;          // flag true is module sizes are adjusted

@@ -17,8 +17,6 @@
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 R__LOAD_LIBRARY(libBmnData.so)
 
-#include "macro/run/bmnloadlibs.C"
-
 #include "TString.h"
 
 #include <fstream>
@@ -197,13 +195,6 @@ void CalculateParameters(TString xml_file_name);
 
 
 void SiliconConfigCalculate_RunSRCSpring2018() {
-
-    // ----  Load libraries   --------------------------------------------------
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-#endif
-    bmnloadlibs(); // load BmnRoot libraries
-    // -------------------------------------------------------------------------
 
     PrintInfo();
     CalculateParameters("SiliconRunSRCSpring2018.xml");

@@ -593,6 +593,9 @@ void BmnCSCModule::CalculateStripHitIntersectionPoints() {
                             //cluster size (number strips) in both strip layers for each intersection
                             Int_t iLayerClusterSize = StripLayers[ilayer].GetStripHitClusterSize(i_strip_hit);
                             Int_t jLayerClusterSize = StripLayers[jlayer].GetStripHitClusterSize(j_strip_hit);
+                            
+                            UpperClusters.push_back(StripLayers[jlayer].GetStripClusters().at(j_strip_hit));
+                            LowerClusters.push_back(StripLayers[ilayer].GetStripClusters().at(i_strip_hit));
 
                             //strip position in both strip layers for each intersection
                             Double_t iLayerStripPosition = StripLayers[ilayer].ConvertPointToStripPosition(xcoord, ycoord);
@@ -703,6 +706,8 @@ void BmnCSCModule::ResetIntersectionPoints() {
     IntersectionPoints_LowerLayerStripTotalSignal.clear();
     IntersectionPoints_UpperLayerStripTotalSignal.clear();
     IntersectionPointMatches.clear();
+    UpperClusters.clear();
+    LowerClusters.clear();
 }
 
 void BmnCSCModule::DefineModuleBorders() {

@@ -104,11 +104,11 @@ public:
     Bool_t SearchIntersectionPoint(Double_t &x, Double_t &y, Double_t strip_pos_layerA, Double_t strip_pos_layerB, Int_t layerA_index, Int_t layerB_index);
     //--------------------------------------------------------------------------
 
-    //coordinate transformation (for module rotation) --------------------------
-    Double_t ConvertGlobalToLocalX(Double_t xglob, Double_t yglob);
-    Double_t ConvertGlobalToLocalY(Double_t xglob, Double_t yglob);
-    Double_t ConvertLocalToGlobalX(Double_t xloc, Double_t yloc);
-    Double_t ConvertLocalToGlobalY(Double_t xloc, Double_t yloc);
+    //coordinate transformation (2D rotation in the local XY-plane) ------------
+    Double_t ConvertRotatedToLocalX(Double_t xrot, Double_t yrot);
+    Double_t ConvertRotatedToLocalY(Double_t xrot, Double_t yrot);
+    Double_t ConvertLocalToRotatedX(Double_t xloc, Double_t yloc);
+    Double_t ConvertLocalToRotatedY(Double_t xloc, Double_t yloc);
     //--------------------------------------------------------------------------
 
     //Added (real) points ------------------------------------------------------
@@ -133,6 +133,9 @@ public:
     Double_t GetIntersectionPoint_UpperLayerSripTotalSignal(Int_t indx) { return IntersectionPoints_UpperLayerStripTotalSignal.at(indx); } //total signal  in the upper layer
     BmnMatch GetIntersectionPointMatch(Int_t indx) { return IntersectionPointMatches.at(indx); } //Intersection point MC-match
     BmnMatch GetIntersectionPointDigitNumberMatch(Int_t indx) { return IntersectionPointDigitNumberMatches.at(indx); } //Intersection point digit number match
+
+    StripCluster GetUpperCluster(Int_t indx) { return UpperClusters.at(indx); }
+    StripCluster GetLowerCluster(Int_t indx) { return LowerClusters.at(indx); }
 
     void ResetIntersectionPoints();
     //--------------------------------------------------------------------------
@@ -181,6 +184,9 @@ private:
 
     vector<BmnMatch> IntersectionPointMatches; // MC-matches
     vector<BmnMatch> IntersectionPointDigitNumberMatches; // Digit number matches
+
+    vector<StripCluster> UpperClusters;
+    vector<StripCluster> LowerClusters;
 
     ClassDef(BmnSiliconModule, 1);
 };

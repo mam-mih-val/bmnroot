@@ -46,7 +46,7 @@ private:
     BmnGemStripStationSet *GemStationSet; //Entire GEM detector
     BmnSiliconStationSet *SilStationSet;  //Entire SILICON detector
 
-    ClassDef(BmnToCbmHitConverter,1);
+    ClassDef(BmnToCbmHitConverter, 1);
 };
 
 #endif

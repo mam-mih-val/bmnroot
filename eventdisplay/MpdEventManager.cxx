@@ -4,19 +4,20 @@
 #include "MpdEventManagerEditor.h"
 #include "constants.h"
 
-#include "TDOMParser.h"
-#include "TXMLEngine.h"
-#include "TXMLAttr.h"
-#include "TXMLNode.h"
-
 #include "TDatabasePDG.h"
 #include "TEveGeoNode.h"
 #include "TEveManager.h"
 #include "TGeoManager.h"
+#include "TObjString.h"
 #include <TGLViewer.h>
 #include <TGLCameraOverlay.h>
 #include <TGLLightSet.h>
 #include <TEveBrowser.h>
+
+#include "TDOMParser.h"
+#include "TXMLEngine.h"
+#include "TXMLAttr.h"
+#include "TXMLNode.h"
 
 #include "json.hpp"
 
@@ -292,9 +293,9 @@ void MpdEventManager::InitColorStructure()
             {
                 gVisualizationColoring = selectedColoring;
 
-                string cmap = data["coloring"][type]["cmap"];
+                string scheme = data["coloring"][type]["scheme"];
 
-                for (auto &detector : data["coloring"][type][cmap])
+                for (auto &detector : data["coloring"][type][scheme])
                 {
                     selected_coloring = new structSelectedColoring(((string) detector["name"]),
                                                                    ((string) detector["color"]),

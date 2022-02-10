@@ -1,5 +1,8 @@
 #include "BmnGemStripLayer.h"
 
+Int_t BmnGemStripLayer::fUniqueIdL = 0;
+Int_t BmnGemStripLayer::fUniqueIdU = 0;
+
 BmnGemStripLayer::BmnGemStripLayer() {
 
     Verbosity = true;
@@ -348,6 +351,7 @@ void BmnGemStripLayer::ResetStripHits() {
     StripHitsTotalSignal.clear();
     StripHitsErrors.clear();
     StripHitsClusterSize.clear();
+    StripClusters.clear();
 }
 
 Double_t BmnGemStripLayer::ConvertNormalPointToStripX(Double_t x, Double_t y) {
@@ -398,6 +402,8 @@ Double_t BmnGemStripLayer::ConvertPointToStripPosition(Double_t x, Double_t y) {
             return (XRightPointOfStripNumbering-ConvertNormalPointToStripX(x, y))/Pitch;
         }
     }
+
+    return 0;
 }
 
 Double_t BmnGemStripLayer::CalculateStripEquationB(Double_t strip_pos) {
@@ -573,6 +579,18 @@ void BmnGemStripLayer::FindClustersAndStripHits() {
     StripHitsTotalSignal.push_back(total_cluster_signal);
     StripHitsErrors.push_back(cluster_rms);
     StripHitsClusterSize.push_back(NStripsInCluster);
+
+    cluster.MeanPosition = mean_strip_position;
+    cluster.TotalSignal = total_cluster_signal;
+    if (LayerType == LowerStripLayer) {
+        cluster.SetType(0);
+        cluster.SetUniqueID(fUniqueIdL++);
+    } else {
+        cluster.SetType(1);
+        cluster.SetUniqueID(fUniqueIdU++);
+    }
+
+    StripClusters.push_back(cluster);
 
     //return to a previous strip
     curcnt--;

@@ -1,3 +1,3 @@
-Name       CrateSerial	Slot	BoardSerial
-===========================================
-TDC72VHL   0x06EA9711	21	0x076D16A8
+Name       CrateSerial	Slot	BoardSerial   isT0
+====================================================
+TDC72VHL   0x06EA9711	21	0x076D16A8      1

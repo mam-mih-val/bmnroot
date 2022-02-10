@@ -22,10 +22,11 @@
 //#include "BmnTof1GeoUtils.h"
 
 #include "BmnTof1HitProducer.h"
+#include <TStopwatch.h>
 
 using namespace std;
 
-static Float_t workTime = 0.0;
+static Double_t workTime = 0.0;
 
 ClassImp(BmnTof1HitProducer)
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -232,10 +233,13 @@ Bool_t BmnTof1HitProducer::DoubleHitExist(Double_t val) // val - distance to the
 //--------------------------------------------------------------------------------------------------------------------------------------
 
 void BmnTof1HitProducer::Exec(Option_t* opt) {
+    
+    TStopwatch sw;
+    sw.Start();
+    
     if (!IsActive())
         return;
-    clock_t tStart = clock();
-
+    
     if (fVerbose) cout << endl << "======================== TOF400 exec started ====================" << endl;
     static const TVector3 XYZ_err(fErrX, fErrY, 0.);
 
@@ -324,8 +328,8 @@ void BmnTof1HitProducer::Exec(Option_t* opt) {
 
     int nFinally = CompressHits(); // remove blank slotes
 
-    clock_t tFinish = clock();
-    workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
+    sw.Stop();
+    workTime += sw.RealTime();
 
     if (fVerbose) cout << "Tof400  single hits= " << nSingleHits << ", double hits= " << nDoubleHits << ", final hits= " << nFinally << endl;
     if (fVerbose) cout << "======================== TOF400 exec finished ====================" << endl;
@@ -345,7 +349,7 @@ void BmnTof1HitProducer::Finish() {
                 pDetector[i] -> SaveHistToFile(fTestFlnm.Data());
     }
 
-    cout << "Work time of the TOF-400 hit finder: " << workTime << endl;
+    printf("Work time of BmnTof1HitProducer: %4.2f sec.\n", workTime);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------

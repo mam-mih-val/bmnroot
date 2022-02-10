@@ -9,6 +9,9 @@
 #pragma link C++ class BmnDchRaw2Digit+;
 #pragma link C++ class BmnMwpcRaw2Digit+;
 #pragma link C++ class BmnZDCRaw2Digit+;
+#pragma link C++ class BmnScWallRaw2Digit+;
+#pragma link C++ class BmnFHCalRaw2Digit+;
+#pragma link C++ class BmnHodoRaw2Digit+;
 #pragma link C++ class BmnECALRaw2Digit+;
 #pragma link C++ class BmnTof2Raw2DigitNew+;
 #pragma link C++ class BmnTof1Raw2Digit+;
@@ -21,5 +24,7 @@
 #pragma link C++ class BmnRawDataDecoder+;
 #pragma link C++ class BmnSlewingTOF700+;
 #pragma link C++ class BmnMscRaw2Digit+;
+#pragma link C++ class WfmProcessor+;
+#pragma link C++ class PsdSignalFitting::PronyFitter;
 
 #endif

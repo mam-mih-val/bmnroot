@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /* 
  * File:   BmnOnlineDecoder.cxx
  * Author: ilnur
@@ -11,13 +5,14 @@
  * Created on January 11, 2017, 11:08 AM
  */
 
+#include "BmnOnlineDecoder.h"
+#include "RawTypes.h"
+
 #include <regex>
 #include <thread>
 #include <dirent.h>
 #include <sys/inotify.h>
 #include <zmq.h>
-
-#include "BmnOnlineDecoder.h"
 
 BmnOnlineDecoder::BmnOnlineDecoder() {
     fRunID = UNKNOWN_RUNID;
@@ -39,7 +34,6 @@ BmnOnlineDecoder::~BmnOnlineDecoder() {
 BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     DBG("started")
     rawDataDecoder = new BmnRawDataDecoder(fRawFileName);
-    rawDataDecoder->SetAdcDecoMode(kBMNADCSM);
     Int_t runID = rawDataDecoder->GetRunId();
     if (runID < 1) {
         runID = GetRunIdFromName(_curFile);
@@ -63,47 +57,42 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
         rawDataDecoder = new BmnRawDataDecoder();
     rawDataDecoder->SetRunId(runID);
     rawDataDecoder->SetPeriodId(fPeriodID);
-    Bool_t setup[11]; //array of flags to determine BM@N setup
-    //Just put "0" to exclude detector from decoding
-    setup[0] = 1; // TRIGGERS
-    setup[1] = 1; // MWPC
-    setup[2] = 1; // SILICON
-    setup[3] = 1; // GEM
-    setup[4] = 1; // TOF-400
-    setup[5] = 1; // TOF-700
-    setup[6] = 1; // DCH
-    setup[7] = 1; // ZDC
-    setup[8] = 1; // ECAL
-    setup[9] = 1; // LAND
-    setup[10] = 1; // CSC
-    rawDataDecoder->SetDetectorSetup(setup);
+    rawDataDecoder->SetDetectorSetup(fDetectorSetup);
     rawDataDecoder->SetBmnSetup(fBmnSetup);
-    TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((fBmnSetup == kBMNSETUP) ? "" : "_SRC"));
-    //    rawDataDecoder->SetAdcDecoMode(period < 6 ? kBMNADCSM : kBMNADCMK);
     rawDataDecoder->SetAdcDecoMode(kBMNADCSM);
-    rawDataDecoder->SetTof400Mapping(TString("TOF400_PlaceMap_RUN") + PeriodSetupExt, TString("TOF400_StripMap_RUN") + PeriodSetupExt);
-    rawDataDecoder->SetTOF700ReferenceRun(-1);
-    rawDataDecoder->SetTof700Geom(TString("TOF700_geometry_run") + PeriodSetupExt);
-    if (rawDataDecoder->GetRunId() >= 4278 && rawDataDecoder->GetPeriodId() == 7)
-        rawDataDecoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d_from_run_4278.txt", fPeriodID));
-    else
-        rawDataDecoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d.txt", fPeriodID));
-    rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
-    //    rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
-    rawDataDecoder->SetECALMapping(TString("ECAL_map_period_") + PeriodSetupExt);
-    rawDataDecoder->SetECALCalibration("");
-    rawDataDecoder->SetLANDMapping("land_mapping_jinr_triplex.txt");
-    rawDataDecoder->SetLANDPedestal("r0030_land_clock.hh");
-    rawDataDecoder->SetLANDTCal("r0030_land_tcal.hh");
-    rawDataDecoder->SetLANDDiffSync("r352_cosmic1.hh");
-    rawDataDecoder->SetLANDVScint("neuland_sync_2.txt");
+    rawDataDecoder->SetVerbose(1);
+    TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((fBmnSetup == kBMNSETUP) ? "" : "_SRC"));
     rawDataDecoder->SetTrigPlaceMapping(TString("Trig_PlaceMap_Run") + PeriodSetupExt);
     rawDataDecoder->SetTrigChannelMapping(TString("Trig_map_Run") + PeriodSetupExt);
     rawDataDecoder->SetSiliconMapping(TString("SILICON_map_run") + PeriodSetupExt);
     rawDataDecoder->SetGemMapping(TString("GEM_map_run") + PeriodSetupExt);
     rawDataDecoder->SetCSCMapping(TString("CSC_map_period") + PeriodSetupExt);
-    rawDataDecoder->SetMwpcMapping(TString("MWPC_map_period") + ((fPeriodID == 6 && rawDataDecoder->GetRunId() < 1397) ? 5 : PeriodSetupExt));
     rawDataDecoder->SetMSCMapping(TString("MSC_map_Run") + PeriodSetupExt);
+    // in case comment out the line rawDataDecoder->SetTof400Mapping("...")  
+    // the maps of TOF400 will be read from DB (only for JINR network)
+    rawDataDecoder->SetTOF700ReferenceRun(-1);
+    rawDataDecoder->SetTof700Geom(TString("TOF700_geometry_run") + PeriodSetupExt);
+    rawDataDecoder->SetTof400Mapping(TString("TOF400_PlaceMap_RUN") + PeriodSetupExt, TString("TOF400_StripMap_RUN") + PeriodSetupExt);
+    if (rawDataDecoder->GetRunId() >= 4278 && rawDataDecoder->GetPeriodId() == 7)
+        rawDataDecoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d_from_run_4278.txt", fPeriodID));
+    else
+        rawDataDecoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d.txt", fPeriodID));
+    rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
+    rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
+    rawDataDecoder->SetScWallMapping("SCWALL_map_dry_run_2022.txt");
+    rawDataDecoder->SetScWallCalibration("SCWALL_calibration_2022.txt");
+    rawDataDecoder->SetFHCalMapping("FHCAL_map_dry_run_2022.txt");
+    rawDataDecoder->SetFHCalCalibration("FHCAL_calibration_2022.txt");
+    rawDataDecoder->SetHodoMapping("HODO_map_dry_run_2022.txt");
+    rawDataDecoder->SetHodoCalibration("HODO_calibration_2022.txt");
+    rawDataDecoder->SetECALMapping(TString("ECAL_map_period_") + PeriodSetupExt);
+    rawDataDecoder->SetECALCalibration("");
+    rawDataDecoder->SetMwpcMapping(TString("MWPC_map_period") + ((fPeriodID == 6 && rawDataDecoder->GetRunId() < 1397) ? 5 : PeriodSetupExt));
+    rawDataDecoder->SetLANDMapping("land_mapping_jinr_triplex.txt");
+    rawDataDecoder->SetLANDPedestal("r0030_land_clock.hh");
+    rawDataDecoder->SetLANDTCal("r0030_land_tcal.hh");
+    rawDataDecoder->SetLANDDiffSync("r352_cosmic1.hh");
+    rawDataDecoder->SetLANDVScint("neuland_sync_2.txt");
     rawDataDecoder->InitMaps();
     if (_curFile.Length() > 0)
         rawDataDecoder->InitConverter(_curDir + _curFile);
@@ -155,10 +144,11 @@ BmnStatus BmnOnlineDecoder::OpenStream() {
     _decoSocket = zmq_socket(_ctx, ZMQ_PUB);
     //    _socket_mcast = zmq_socket(_ctx, ZMQ_XSUB);
     Int_t rcvBuf = 0;
+    Int_t id = 0;
     size_t vl = sizeof (rcvBuf);
-    if (zmq_getsockopt(_decoSocket, ZMQ_RCVBUF, &rcvBuf, &vl) == -1)
-        DBGERR("zmq_getsockopt of ZMQ_RCVBUF")
-        printf("rcvbuf = %d\n", rcvBuf);
+    //    if (zmq_getsockopt(_decoSocket, ZMQ_RCVBUF, &rcvBuf, &vl) == -1)
+    //        DBGERR("zmq_getsockopt of ZMQ_RCVBUF")
+    //        printf("rcvbuf = %d\n", rcvBuf);
     rcvBuf = 8192; //MAX_BUF_LEN;
     if (zmq_setsockopt(_decoSocket, ZMQ_RCVBUF, &rcvBuf, sizeof (rcvBuf)) == -1)
         DBGERR("zmq_setsockopt of ZMQ_RCVBUF")
@@ -175,12 +165,13 @@ BmnStatus BmnOnlineDecoder::OpenStream() {
     }
     _socket_data = zmq_socket(_ctx, ZMQ_STREAM);
     Char_t endpoint_addr[MAX_ADDR_LEN];
-    snprintf(endpoint_addr, MAX_ADDR_LEN, "tcp://%s:%d", DAQ_IP, DAQ_PORT);
+    //    snprintf(endpoint_addr, MAX_ADDR_LEN, "tcp://%s:%d", DAQ_IP, DAQ_PORT);
+    snprintf(endpoint_addr, MAX_ADDR_LEN, "tcp://%s", fDAQAddr.Data());
     if (zmq_connect(_socket_data, endpoint_addr) != 0) {
         DBGERR("zmq connect")
         return kBMNERROR;
     } else {
-        printf("connected to %s\n", endpoint_addr);
+        printf("\"connected\" to %s\n", endpoint_addr);
     }
     UInt_t rcvBufLen = MAX_BUF_LEN;
     if (zmq_setsockopt(_socket_data, ZMQ_RCVBUF, &rcvBufLen, sizeof (rcvBufLen)) == -1)
@@ -262,48 +253,59 @@ void BmnOnlineDecoder::ProcessStream() {
     DBG("started")
     OpenStream();
     //    UInt_t *buf = (UInt_t*) malloc(MAX_BUF_LEN);
-    Char_t conID[MAX_ADDR_LEN];
-    Int_t conID_size;
+    Char_t conID[MAX_ADDR_LEN] = {0};
+    Int_t conID_size = 0;
     UInt_t msg_len = 0;
     UInt_t frame_size = 0;
     Int_t iEv = 0;
     Int_t lastEv = -1;
+    fEvents = 0;
     BmnStatus convertResult = kBMNSUCCESS;
     Int_t sendRes = 0;
     TBufferFile t(TBuffer::kWrite);
     UInt_t syncCounter = 0;
     Bool_t isListening = kTRUE;
-    while ((isListening) && (msg_len < MAX_BUF_LEN)) {
-        conID_size = zmq_recv(_socket_data, &conID, sizeof (conID), 0);
-        if (conID_size == -1) {
-            printf("Receive error #%d : %s\n", errno, zmq_strerror(errno));
-            switch (errno) {
-                case EAGAIN:
-                    usleep(MSG_TIMEOUT);
-                    break;
-                case EINTR:
-                    isListening = kFALSE;
-                    printf("Exit!\n");
-                    continue;
-                    break;
-                default:
-                    break;
+    while ((isListening)/* && (msg_len > MAX_BUF_LEN)*/) {
+
+//        if ((conID == 0) || (msg_len < MIN_REMNANT_LEN)) {
+            conID_size = zmq_recv(_socket_data, &conID, sizeof (conID),
+                    ((conID == 0) || (msg_len < MIN_REMNANT_LEN)) ? 0 : ZMQ_DONTWAIT );
+//            printf("ID Recv %u\n", conID_size);
+            if (conID_size == -1) {
+                printf("ID Receive error #%d : %s\n", errno, zmq_strerror(errno));
+                switch (errno) {
+                    case EAGAIN:
+                        if ((msg_len < MIN_REMNANT_LEN) || (conID == 0))
+                            usleep(MSG_TIMEOUT);
+//                        else
+//                            printf("no sleep\n");
+                        break;
+                    case EINTR:
+                        isListening = kFALSE;
+                        printf("Exit!\n");
+                        continue;
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+//                printf("ID size =  %d\n Id:%x\n", conID_size, conID);
             }
-        } else {
-            //            printf("ID size =  %d\n Id:%x\n", conID_size, conID);
-        }
+//        }
         zmq_msg_t msg;
         zmq_msg_init(&msg);
         Int_t recv_more = 0;
         UInt_t *msgPtr;
         UInt_t *word;
         do {
-            frame_size = zmq_msg_recv(&msg, _socket_data, 0); // ZMQ_DONTWAIT
+            frame_size = zmq_msg_recv(&msg, _socket_data, ZMQ_DONTWAIT); //  ZMQ_DONTWAIT
+//            printf("recv %u\n", frame_size);
             //frame_size = zmq_recv(_socket_data, buf, MAX_BUF_LEN, 0);
             if (frame_size == -1) {
-                printf("Receive error № %d #%s\n", errno, zmq_strerror(errno));
+                printf("Receive error # %d #%s\n", errno, zmq_strerror(errno));
                 switch (errno) {
                     case EAGAIN:
+                        if ((msg_len < MIN_REMNANT_LEN))
                         usleep(MSG_TIMEOUT);
                         break;
                     case EINTR:
@@ -342,7 +344,7 @@ void BmnOnlineDecoder::ProcessStream() {
                 printf("ZMQ socket options error #%s\n", zmq_strerror(errno));
                 return;
             }
-            //            printf("ZMQ rcvmore = %d\n", recv_more);
+//            printf("ZMQ rcvmore = %d\n", recv_more);
             zmq_msg_close(&msg);
         } while (recv_more);
 
@@ -354,17 +356,18 @@ void BmnOnlineDecoder::ProcessStream() {
         UInt_t lenWords = 0;
         UInt_t runlen = 0;
         UInt_t runID = 0;
-        while ((i < msg_len) && (!evExit)/* / kNBYTESINWORD*/) {
+        while ((i < msg_len/*/ kNBYTESINWORD*/) && (!evExit) && (msg_len > MIN_REMNANT_LEN)) {
+//            printf("iter while   i = %d   msg_len %u   %u\n", i, msg_len, MIN_REMNANT_LEN);
             word = (UInt_t*) (&buf[i]);
             UInt_t payLen = 0;
             switch (*word) {
-                case kRUNSTARTSYNC:
+                case SYNC_RUN_START:
                     printf("i = %d\n", i);
                     printf("start run\n");
                     payLen = *(++word);
                     printf("payLen = %d\n", payLen);
                     for (Int_t iss = 0; iss < payLen; iss++) {
-                        if (*(++word) == kRUNNUMBERSYNC) {
+                        if (*(++word) == SYNC_RUN_NUMBER) {
                             printf("RunNumberSync\n");
                             runlen = *(++word);
                             runID = *(++word);
@@ -379,7 +382,7 @@ void BmnOnlineDecoder::ProcessStream() {
                                 }
                                 if (InitDecoder(runID) == kBMNERROR) {
                                     printf("\n\tError in InitDecoder !!\n\n");
-                                    evExit = kTRUE;
+//                                    evExit = kTRUE;
                                     break;
                                 }
                                 rawDataDecoder->SetRunId(runID);
@@ -392,15 +395,15 @@ void BmnOnlineDecoder::ProcessStream() {
                     printf(" %d will move by %d bytes\n", msg_len, lenBytes);
                     memmove(&buf[0], &buf[lenBytes], msg_len);
                     i = 0;
-                    evExit = kTRUE;
+//                    evExit = kTRUE;
                     break;
-                case kRUNSTOPSYNC:
+                case SYNC_RUN_STOP:
                     printf("i = %d\n", i);
                     printf("stop run\n");
                     payLen = *(++word);
                     printf("payLen = %d\n", payLen);
                     for (Int_t iss = 0; iss < payLen; iss++) {
-                        if (*(++word) == kRUNNUMBERSYNC) {
+                        if (*(++word) == SYNC_RUN_NUMBER) {
                             printf("RunNumberSync\n");
                             runlen = *(++word);
                             runID = *(++word);
@@ -419,25 +422,26 @@ void BmnOnlineDecoder::ProcessStream() {
                     printf(" %d will move by %d bytes\n", msg_len, lenBytes);
                     memmove(&buf[0], &buf[lenBytes], msg_len);
                     i = 0;
-                    evExit = kTRUE;
+//                    evExit = kTRUE;
                     break;
-                case kSYNC1_OLD:
+                case SYNC_EVENT:
+                case SYNC_EVENT_OLD:
                     //            printf("i = %d\n", i);
                     //                    if (/*(fRunID > 0) &&*/ (buf[i] == kSYNC1)) 
                     //                    printf("found ksync1\n");
                     lenBytes = *(++word);
-                    lenWords = lenBytes / kNBYTESINWORD + 1;
+                    lenWords = lenBytes / kNBYTESINWORD + (fPeriodID <= 7 ? 1 : 0);
                     //                    printf("lenBytes == %d\n", lenBytes);
                     //                    printf("lenWords == %d\n", lenWords);
                     //            if (fDat >= 100000) { // what the constant?
                     //                printf("Wrong data size: %d:  skip this event\n", fDat);
                     //                printf("captured %d\n", ((msg_len - i) / kNBYTESINWORD));
                     //                    printf("(msg_len - i) / kNBYTESINWORD = %d  lenWords  %d\n", ((msg_len - i) / kNBYTESINWORD), lenWords);
-                    if ((msg_len - i) / kNBYTESINWORD >= lenWords + MPD_EVENT_HEAD_WORDS) {
+                    if ((msg_len - i) / kNBYTESINWORD >= lenWords + MPD_EVENT_HEAD_WORDS - (fPeriodID <= 7 ? 1 : 0)) {
                         if (!rawDataDecoder)
                             if (InitDecoder(fRunID) == kBMNERROR) {
                                 printf("\n\tError in InitDecoder !!\n\n");
-                                evExit = kTRUE;
+//                                evExit = kTRUE;
                                 break;
                             }
                         rawDataDecoder->SetRunId(fRunID);
@@ -446,10 +450,11 @@ void BmnOnlineDecoder::ProcessStream() {
                         //                        i++;
                         //                            UInt_t* p = &buf[i];
                         ++word;
+//                        printf("start by ev %d  msg_len %u\n", fEvents, msg_len);
                         convertResult = rawDataDecoder->ConvertRawToRootIterate(word, lenWords);
                         if (convertResult == kBMNERROR) {
                             printf("convert failed\n");
-                            evExit = kTRUE;
+//                            evExit = kTRUE;
                             break;
                         }
                         BmnStatus decostat = rawDataDecoder->DecodeDataToDigiIterate();
@@ -470,14 +475,15 @@ void BmnOnlineDecoder::ProcessStream() {
                                 printf("Send error № %d #%s\n", errno, zmq_strerror(errno));
                             }
                         }
-                        lenBytes += MPD_EVENT_HEAD_WORDS * sizeof (UInt_t) + i;
+                        lenBytes += (MPD_EVENT_HEAD_WORDS - (fPeriodID <= 7 ? 1 : 0)) * sizeof (UInt_t) + i;
                         //                        printf(" lenBytes %d \n", lenBytes);
                         msg_len -= lenBytes; //lenWords * kNBYTESINWORD;
                         //                        printf(" %d will move by %d bytes\n", msg_len, lenBytes);
                         memmove(&buf[0], &buf[lenBytes], msg_len);
+//                        printf("end   by ev %d  msg_len %u\n", fEvents, msg_len);
                         i = 0;
                     }
-                    evExit = kTRUE;
+//                    evExit = kTRUE;
                     break;
                 default:
                     break;
@@ -493,8 +499,8 @@ void BmnOnlineDecoder::ProcessStream() {
 }
 
 void BmnOnlineDecoder::ProcessFileRun(TString rawFileName, UInt_t timeLimit) {
-    Int_t iEv = 0;
-    Int_t lastEv = -1;
+    UInt_t iEv = 0;
+    UInt_t lastEv = 0;
     BmnStatus convertResult = kBMNSUCCESS;
     Int_t sendRes = 0;
     TBufferFile t(TBuffer::kWrite);
@@ -507,7 +513,8 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName, UInt_t timeLimit) {
         lastEv = iEv;
         iEv = rawDataDecoder->GetEventId();
         if (iEv > lastEv) {
-            rawDataDecoder->DecodeDataToDigiIterate();
+            BmnStatus decodeResult = rawDataDecoder->DecodeDataToDigiIterate();
+            //        printf("iev %u  convert %d decode %d\n", iEv, convertResult, decodeResult);
             fEvents++;
             DigiArrays iterDigi = rawDataDecoder->GetDigiArraysObject();
             if (iterDigi.header == NULL)
@@ -519,7 +526,7 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName, UInt_t timeLimit) {
             sendRes = zmq_send(_decoSocket, t.Buffer(), t.Length(), ZMQ_NOBLOCK);
             t.Reset();
             if (sendRes == -1) {
-                printf("Send error № %d #%s\n", errno, zmq_strerror(errno));
+                printf("Send error %d #%s\n", errno, zmq_strerror(errno));
 
             }
         }
@@ -600,7 +607,7 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
     struct dirent **namelist;
     //    const regex re(".*mpd_run_.*_(\\d+).data");
 
-    
+
     Int_t runCount = 0;
     Int_t n;
     n = scandir(dirname, &namelist, 0, versionsort);
@@ -611,7 +618,7 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
         for (Int_t i = 0; i < n; ++i) {
             _curFile = TString(namelist[i]->d_name);
             Int_t runID = GetRunIdFromName(_curFile);
-            if (runID > 3800) {
+            if (runID > 00) {
                 //                            if (regex_match(namelist[i]->d_name, re)) {
                 if (runCount == 0) {
                     if (InitDecoder(_curDir + _curFile) == kBMNERROR)
@@ -619,6 +626,7 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
                 } else {
                     rawDataDecoder->ResetDecoder(_curDir + _curFile);
                     rawDataDecoder->SetRunId(runID);
+                    rawDataDecoder->SetBmnSetup(fBmnSetup);
                     rawDataDecoder->SetPeriodId(fPeriodID);
                 }
                 ProcessFileRun(_curFile, 0);
@@ -656,5 +664,404 @@ Int_t BmnOnlineDecoder::GetRunIdFromName(TString name) {
     } else
         return -1;
 }
+
+#define PAD_WIDTH_SIL   1920
+#define PAD_HEIGHT_SIL  1280
+#define COLS  2
+
+void BmnOnlineDecoder::StripView(Int_t periodID, Int_t runID, BmnSetup fSetup) {
+    gStyle->SetOptStat(0);
+    Int_t sumMods = 0;
+    Int_t maxLayers = 0;
+    //    BmnSetup fSetup = (runID >= 2041 && runID <= 3588) ? kSRCSETUP : kBMNSETUP;
+    //    fSetup = kSRCSETUP;
+    //    TString inFileNameMK = Form("bmn_run%04i_sidigitthr2all.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    TString inFileNameMK = Form("~/filesbmn/bmn_run%04i_digi_test_MK.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    //    TString inFileNameMK = Form("~/archivebmn//MK_digi_%04i.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    //    TString inFileNameBmn = Form("/ncx/nica/mpd22/batyuk/digi/run7/bmn/bmn_run%04i_digi.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    //    TString inFileNameBmn = Form("~/filesbmn/bmn_run%04i_digi_test_MK_r.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    TString inFileNameBmn = Form("~/filesbmn/bmn_run%04i_digi_test_SM.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+
+    TString fnames[COLS] = {inFileNameMK, inFileNameBmn};
+    TString treeNames[COLS] = {"bmndata", "bmndata"};
+    TString hdrNames[COLS] = {"BmnEventHeader.", "BmnEventHeader."};
+    TString runhdrNames[COLS] = {"DigiRunHeader", "DigiRunHeader"};
+    TString silNames[COLS] = {"SILICON", "SILICON"};
+    TString gemNames[COLS] = {"GEM", "GEM"};
+    TString cscNames[COLS] = {"CSC", "CSC"};
+    TFile * files[COLS] = {NULL};
+    TTree * trees[COLS] = {NULL};
+    TClonesArray * hits[COLS] = {NULL};
+    TClonesArray * tracks[COLS] = {NULL};
+    DigiRunHeader * runHeaders[COLS] = {NULL, NULL};
+    BmnEventHeader * headers[COLS] = {NULL, NULL};
+    TClonesArray * silDigit[COLS] = {NULL, NULL};
+    TClonesArray * gemDigit[COLS] = {NULL, NULL};
+    TClonesArray * cscDigit[COLS] = {NULL, NULL};
+    vector<vector<vector<TH1F* > > > histStrip[COLS];
+    vector<vector<vector<TH1F* > > > histStripGem[COLS];
+    vector<vector<vector<TH1F* > > > histStripCsc[COLS];
+    TCanvas *canStrip;
+    TCanvas *canStripGem;
+    TCanvas *canStripCsc;
+    vector<PadInfo*> canStripPads;
+    vector<PadInfo*> canStripPadsGem;
+    vector<PadInfo*> canStripPadsCsc;
+
+    Int_t hf = 2400;
+    const Int_t kNStrips = 640;
+    TCanvas *canProf = new TCanvas("canprof", "can", 1920, 1920);
+    canProf->Divide(1, 4);
+    TH2F* hfilter = new TH2F("hfilter", "hfilter", kNStrips + 1, 0, kNStrips, hf + 1, 0, hf);
+    TH2F* hfilterMK = new TH2F("hfilterMK", "hfilterMK", kNStrips + 1, 0, kNStrips, hf + 1, 0, hf);
+    TH1F* hsig = new TH1F("hsig", "hsig", hf + 1, 0, hf);
+    hsig->SetLineColor(kRed);
+    TH1F* hsigMK = new TH1F("hsigMK", "hsigMK", hf + 1, 0, hf);
+
+    TString name;
+    TString title;
+
+    // ********************
+    // silicon pads
+    // ********************
+    sumMods = 0;
+    maxLayers = 0;
+    unique_ptr<BmnSiliconStationSet> stationSet = BmnAdcProcessor::GetSilStationSet(periodID, fSetup);
+    printf("xmlConf stations %i\n", stationSet->GetNStations());
+    for (Int_t iCol = 0; iCol < COLS; iCol++) {
+        for (Int_t iStation = 0; iStation < stationSet->GetNStations(); iStation++) {
+            vector<vector<TH1F*> > rowGEM;
+            BmnSiliconStation* st = stationSet->GetSiliconStation(iStation);
+            sumMods += st->GetNModules();
+            for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
+                vector<TH1F*> colGEM;
+                BmnSiliconModule *mod = st->GetModule(iModule);
+                //                printf("iStation %i iModule %i nlayers %i sumMods %i\n", iStation, iModule, mod->GetNStripLayers(), sumMods);
+                //                if (maxLayers < mod->GetNStripLayers())
+                maxLayers = 2;
+                for (Int_t iLayer = 0; iLayer < 2; iLayer++) {
+                    BmnSiliconLayer lay = mod->GetStripLayer(iLayer);
+                    name = Form("Silicon_%d_Station_%d_module_%d_layer_%d", iCol, iStation, iModule, iLayer);
+                    title = Form("Station_%d_module_%d_layer_%d", iStation, iModule, iLayer);
+                    TH1F *h = new TH1F(name, title, lay.GetNStrips(), 0, lay.GetNStrips());
+                    h->SetTitleSize(0.06, "XY");
+                    h->SetLabelSize(0.08, "XY");
+                    h->GetXaxis()->SetTitle("Strip Number");
+                    h->GetXaxis()->SetTitleColor(kOrange + 10);
+                    h->GetYaxis()->SetTitle("Activation Count");
+                    h->GetYaxis()->SetTitleColor(kOrange + 10);
+                    colGEM.push_back(h);
+                }
+                rowGEM.push_back(colGEM);
+
+            }
+            histStrip[iCol].push_back(rowGEM);
+
+        }
+    }
+    sumMods = sumMods / COLS;
+    name = "SilCanvas";
+    canStrip = new TCanvas(name, name, PAD_WIDTH_SIL * maxLayers, PAD_HEIGHT_SIL * sumMods);
+    canStrip->Divide(maxLayers, sumMods);
+    Int_t modCtr = 0;
+    canStripPads.resize(sumMods * maxLayers);
+    for (auto &pad : canStripPads) {
+        pad = nullptr;
+    }
+    for (Int_t iStation = 0; iStation < stationSet->GetNStations(); iStation++) {
+        BmnSiliconStation * st = stationSet->GetSiliconStation(iStation);
+        //        printf("st[%d]->GetNModules()=%d\n", iStation, st->GetNModules());
+        for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
+            BmnSiliconModule *mod = st->GetModule(iModule);
+            for (Int_t iLayer = 0; iLayer < 2; iLayer++) {
+                Int_t iPad = modCtr * maxLayers + iLayer;
+                PadInfo *p = new PadInfo();
+                p->current = histStrip[0][iStation][iModule][iLayer];
+                p->ref = histStrip[1][iStation][iModule][iLayer];
+                p->ref->SetLineColor(kRed);
+                canStripPads[iPad] = p;
+                canStrip->GetPad(iPad + 1)->SetGrid();
+            }
+            modCtr++;
+        }
+    }
+    // ********************
+    // gem pads
+    // ********************
+    sumMods = 0;
+    maxLayers = 0;
+    BmnGemStripStationSet *gemStationSet = BmnAdcProcessor::GetGemStationSet(periodID, fSetup);
+    for (Int_t iCol = 0; iCol < COLS; iCol++) {
+        for (Int_t iStation = 0; iStation < gemStationSet->GetNStations(); iStation++) {
+            vector<vector<TH1F*> > rowGEM;
+            BmnGemStripStation * st = gemStationSet->GetGemStation(iStation);
+            sumMods += st->GetNModules();
+            for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
+                vector<TH1F*> colGEM;
+                BmnGemStripModule *mod = st->GetModule(iModule);
+                if (maxLayers < mod->GetNStripLayers())
+                    maxLayers = mod->GetNStripLayers();
+                for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
+                    BmnGemStripLayer lay = mod->GetStripLayer(iLayer);
+                    name = Form("GEM_%i_Station_%d_module_%d_layer_%d", iCol, iStation, iModule, iLayer);
+                    title = Form("Station_%d_module_%d_layer_%d", iStation, iModule, iLayer);
+                    TH1F *h = new TH1F(name, title, lay.GetNStrips(), 0, lay.GetNStrips());
+                    h->SetTitleSize(0.06, "XY");
+                    h->SetLabelSize(0.08, "XY");
+                    h->GetXaxis()->SetTitle("Strip Number");
+                    h->GetXaxis()->SetTitleColor(kOrange + 10);
+                    h->GetYaxis()->SetTitle("Activation Count");
+                    h->GetYaxis()->SetTitleColor(kOrange + 10);
+                    h->GetYaxis()->SetTitleOffset(1.0);
+                    colGEM.push_back(h);
+
+                }
+                rowGEM.push_back(colGEM);
+
+            }
+            histStripGem[iCol].push_back(rowGEM);
+
+        }
+    }
+    sumMods = sumMods / COLS;
+    name = "GemCanvas";
+    canStripGem = new TCanvas(name, name, PAD_WIDTH_SIL * maxLayers, PAD_HEIGHT_SIL * sumMods);
+    canStripGem->Divide(maxLayers, sumMods);
+    modCtr = 0;
+    canStripPadsGem.resize(sumMods * maxLayers);
+    for (Int_t iStation = 0; iStation < gemStationSet->GetNStations(); iStation++) {
+        BmnGemStripStation * st = gemStationSet->GetGemStation(iStation);
+        for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
+            BmnGemStripModule *mod = st->GetModule(iModule);
+            for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
+                PadInfo *p = new PadInfo();
+                p->opt = "";
+                p->current = histStripGem[0][iStation][iModule][iLayer];
+                p->ref = histStripGem[1][iStation][iModule][iLayer];
+                p->ref->SetLineColor(kRed);
+                Int_t iPad = modCtr * maxLayers + iLayer;
+                canStripPadsGem[iPad] = p;
+                canStripGem->GetPad(iPad + 1)->SetGrid();
+            }
+            modCtr++;
+        }
+    }
+    // ********************
+    // csc pads
+    // ********************
+    sumMods = 0;
+    maxLayers = 0;
+    BmnCSCStationSet *StationSet = BmnAdcProcessor::GetCSCStationSet(periodID, fSetup);
+    for (Int_t iCol = 0; iCol < COLS; iCol++) {
+        for (Int_t iStation = 0; iStation < StationSet->GetNStations(); iStation++) {
+            vector<vector<TH1F*> > rowGEM;
+            BmnCSCStation * st = StationSet->GetStation(iStation);
+            sumMods += st->GetNModules();
+            for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
+                vector<TH1F*> colGEM;
+                BmnCSCModule *mod = st->GetModule(iModule);
+                if (maxLayers < mod->GetNStripLayers())
+                    maxLayers = mod->GetNStripLayers();
+                for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
+                    BmnCSCLayer lay = mod->GetStripLayer(iLayer);
+                    name = Form("CSC_%i_Station_%d_module_%d_layer_%d", iCol, iStation, iModule, iLayer);
+                    title = Form("Station_%d_module_%d_layer_%d", iStation, iModule, iLayer);
+                    TH1F *h = new TH1F(name, title, lay.GetNStrips(), 0, lay.GetNStrips());
+                    h->SetTitleSize(0.06, "XY");
+                    h->SetLabelSize(0.08, "XY");
+                    h->GetXaxis()->SetTitle("Strip Number");
+                    h->GetXaxis()->SetTitleColor(kOrange + 10);
+                    h->GetYaxis()->SetTitle("Activation Count");
+                    h->GetYaxis()->SetTitleColor(kOrange + 10);
+                    h->GetYaxis()->SetTitleOffset(1.0);
+                    colGEM.push_back(h);
+
+                }
+                rowGEM.push_back(colGEM);
+
+            }
+            histStripCsc[iCol].push_back(rowGEM);
+
+        }
+    }
+    sumMods = sumMods / COLS;
+    name = "CscCanvas";
+    canStripCsc = new TCanvas(name, name, PAD_WIDTH_SIL * maxLayers, PAD_HEIGHT_SIL * sumMods);
+    canStripCsc->Divide(maxLayers, sumMods);
+    modCtr = 0;
+    canStripPadsCsc.resize(sumMods * maxLayers);
+    for (Int_t iStation = 0; iStation < StationSet->GetNStations(); iStation++) {
+        BmnCSCStation * st = StationSet->GetStation(iStation);
+        for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
+            BmnCSCModule *mod = st->GetModule(iModule);
+            for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
+                PadInfo *p = new PadInfo();
+                p->opt = "";
+                p->current = histStripCsc[0][iStation][iModule][iLayer];
+                p->ref = histStripCsc[1][iStation][iModule][iLayer];
+                p->ref->SetLineColor(kRed);
+                Int_t iPad = modCtr * maxLayers + iLayer;
+                canStripPadsCsc[iPad] = p;
+                canStripCsc->GetPad(iPad + 1)->SetGrid();
+            }
+            modCtr++;
+        }
+    }
+
+    // ********************
+    // Trees processing
+    // ********************
+
+    Int_t curEv = 0;
+    Int_t preEv = 0;
+    Long64_t nEvs = LONG_MAX;
+    for (Int_t i = 0; i < COLS; i++) {
+        files[i] = new TFile(fnames[i], "READ");
+        if (files[i]->IsOpen())
+            printf("file %s opened\n", fnames[i].Data());
+        else {
+            fprintf(stderr, "file %s open error\n", fnames[i].Data());
+            return;
+        }
+        trees[i] = (TTree*) files[i]->Get(treeNames[i]);
+        nEvs = Min(nEvs, trees[i]->GetEntries());
+        cout << "#recorded entries = " << trees[i]->GetEntries() << endl;
+        if (i > 0)
+            runHeaders[i] = (DigiRunHeader*) files[i]->Get(runhdrNames[i].Data());
+        //                runHeaders[i]);
+        trees[i]->SetBranchAddress(hdrNames[i], &headers[i]);
+        trees[i]->SetBranchAddress(silNames[i], &silDigit[i]);
+        trees[i]->SetBranchAddress(gemNames[i], &gemDigit[i]);
+        trees[i]->SetBranchAddress(cscNames[i], &cscDigit[i]);
+
+    }
+    for (Int_t i = 0; i < COLS; i++) {
+        cout << "tree # " << i << endl;
+        if (i > 0 && runHeaders[i]) {
+            printf("START (event 1):\t%s\n", runHeaders[i]->GetRunStartTime().AsString());
+            printf("FINISH (event %lld):\t%s\n", nEvs, runHeaders[i]->GetRunEndTime().AsString());
+        }
+        for (Int_t iEv = 0; iEv < nEvs; iEv++) {
+            trees[i]->GetEntry(iEv);
+            if (iEv % 10000 == 0)
+                cout << "iEv = " << iEv << endl;
+            BmnEventHeader *hdr = (BmnEventHeader*) headers[i];
+            BmnTrigInfo * trigInfo = hdr->GetTrigInfo();
+            preEv = curEv;
+            curEv = hdr->GetEventId();
+            if (curEv - preEv > 1)
+                printf("Events between %d & %d missed\n", preEv, curEv);
+            //            printf("cand %04u, acc %04u, bef %04u, after %04u, rjct %04u, all %04u, avail %04u\n",
+            //                    trigInfo->GetTrigCand(),
+            //                    trigInfo->GetTrigAccepted(),
+            //                    trigInfo->GetTrigBefo(),
+            //                    trigInfo->GetTrigAfter(),
+            //                    trigInfo->GetTrigRjct(),
+            //                    trigInfo->GetTrigAll(),
+            //                    trigInfo->GetTrigAvail());
+            // silicon
+            if (silDigit[i])
+                for (Int_t iDig = 0; iDig < silDigit[i]->GetEntriesFast(); iDig++) {
+                    //                                                printf("iDig %d Silicon\n", iDig);
+                    BmnSiliconDigit *dig = (BmnSiliconDigit*) silDigit[i]->UncheckedAt(iDig);
+                    if (!(dig->IsGoodDigit())) {
+                        //                        printf("ev %d is not good\n", curEv);
+                        continue;
+                    }
+                    Int_t module = dig->GetModule();
+                    Int_t station = dig->GetStation();
+                    Int_t layer = dig->GetStripLayer();
+                    Int_t strip = dig->GetStripNumber();
+                    if (periodID == 6 && i == 0) {
+                        module--;
+
+                    }
+                    //                    if (i == 1)
+                    //                        printf("station %d module %d layer %d strip %d\n", station, module, layer, strip);
+                    histStrip[i][station][module][layer]->Fill(strip);
+                    //                    if (station == 0 && module == 0 && layer == 0) {
+                    //                        if (i == 0) {
+                    //                            hfilterMK->Fill(strip, dig->GetStripSignal());
+                    //                            if (dig->GetStripNumber() > 511)
+                    //                                hsigMK->Fill(dig->GetStripSignal());
+                    //                        } else {
+                    //                            hfilter->Fill(strip, dig->GetStripSignal());
+                    //
+                    //                            if (dig->GetStripNumber() > 511)
+                    //                                hsig->Fill(dig->GetStripSignal());
+                    //                        }
+                    //                    }
+                }
+            // gem
+            if (gemDigit[i])
+                for (Int_t iDig = 0; iDig < gemDigit[i]->GetEntriesFast(); iDig++) {
+                    //                                                printf("iDig %d GEM of %d\n", iDig, gemDigit[i]->GetEntriesFast());
+                    BmnGemStripDigit *dig = (BmnGemStripDigit*) gemDigit[i]->UncheckedAt(iDig);
+                    if (!(dig->IsGoodDigit()))
+                        continue;
+                    Int_t module = dig->GetModule();
+                    Int_t station = dig->GetStation();
+                    Int_t layer = dig->GetStripLayer();
+                    Int_t strip = dig->GetStripNumber();
+                    if (periodID == 6 && i == 0) {
+                        station--;
+                    }
+                    //                                        if (i == 1)
+                    //                                            printf("station %d module %d layer %d strip %d\n", station, module, layer, strip);
+                    histStripGem[i][station][module][layer]->Fill(strip);
+                }
+            // csc
+            if (cscDigit[i])
+                for (Int_t iDig = 0; iDig < cscDigit[i]->GetEntriesFast(); iDig++) {
+                    //                                                printf("iDig %d CSC\n", iDig);
+                    BmnCSCDigit *dig = (BmnCSCDigit*) cscDigit[i]->UncheckedAt(iDig);
+                    if (!(dig->IsGoodDigit()))
+                        continue;
+                    Int_t module = dig->GetModule();
+                    Int_t station = dig->GetStation();
+                    Int_t layer = dig->GetStripLayer();
+                    Int_t strip = dig->GetStripNumber();
+                    histStripCsc[i][station][module][layer]->Fill(strip);
+                }
+        }
+        printf("Last event %d\n", curEv);
+    }
+
+    //    for (Int_t col = 0; col < maxLayers; col++)
+    //        for (Int_t row = 0; row < sumMods; row++) {
+    //            TVirtualPad *pad = canStrip->cd(row * maxLayers + col + 1);
+    //            pad->Clear();
+    //            //                if (row > 2)
+    //            //                    h[col][row]->Draw();
+    //            //                else
+    //            TString s = Form("%s.>>%s_X_Vertex(200, -10, 10)", names[col].Data()), "PrimaryVertex.fNTracks>1", "");
+    //            for (Int_t iTrack = 0; iTrack < nColors; iTrack++)
+    //                if (iTrack)
+    //                    h[col][row][iTrack]->Draw("SAME");
+    //                else
+    //                    h[col][row][iTrack]->Draw("");
+    //        }
+
+    BmnHist::DrawRef(canStrip, &canStripPads);
+    canStrip->SaveAs(Form("can-run-%d-sil.png", runID));
+    BmnHist::DrawRef(canStripGem, &canStripPadsGem);
+    canStripGem->SaveAs(Form("can-run-%d-gem.png", runID));
+    BmnHist::DrawRef(canStripCsc, &canStripPadsCsc);
+    canStripCsc->SaveAs(Form("can-run-%d-csc.png", runID));
+    canProf->cd(1);
+    hfilter->Draw("colz");
+    canProf->cd(2);
+    hfilterMK->Draw("colz");
+    canProf->cd(3);
+    hsig->Draw("");
+    //    canProf->cd(4);
+    hsigMK->Draw("same");
+    canProf->SaveAs("can-prof.png");
+    //    canStrip->SaveAs(Form("can-run-%d.eps", runID));
+    //    canStrip->SaveAs(Form("can-run-%d.pdf", runID));
+}
+
+
+
 
 ClassImp(BmnOnlineDecoder);

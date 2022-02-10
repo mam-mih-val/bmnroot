@@ -142,7 +142,7 @@ public:
 //------------------------------------------------------------------------------
 
 //Class: strip cluster ---------------------------------------------------------
-class StripCluster {
+class StripCluster : public TObject {
 
 public:
     Double_t OriginPosition; //origin position of the center point
@@ -150,6 +150,9 @@ public:
     Double_t TotalSignal; //total signal of the cluster
     Double_t PositionResidual; // residual from the origin position
     Bool_t IsCorrect; //correct or incorrect cluster (status)
+    
+    //Cluster type: 0 - lower, 1 - upper
+    Int_t fType; 
 
     vector<Int_t> Strips;
     vector<Double_t> Signals;
@@ -162,7 +165,11 @@ public:
         TotalSignal = 0.0;
         PositionResidual = 0.0;
         IsCorrect = kFALSE;
+        fType = -1;
     }
+    
+    void SetType(Int_t type) { fType = type; }
+    Int_t GetType() { return fType; }
 
     StripCluster(Double_t orig_position, Double_t mean_position, Double_t total_signal) : OriginPosition(orig_position), MeanPosition(mean_position), TotalSignal(total_signal) {
         Strips.clear();
@@ -205,6 +212,7 @@ public:
         TotalSignal = 0.0;
         PositionResidual = 0.0;
         IsCorrect = kFALSE;
+        fType = -1;
     }
     Int_t GetClusterSize() { return Strips.size(); }
 };

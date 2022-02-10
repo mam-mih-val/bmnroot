@@ -20,6 +20,7 @@ Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 set(LINK_DIRECTORIES
  ${ROOT_LIBRARY_DIR}
  ${FAIRROOT_LIBRARY_DIR}
+ ${Boost_LIBRARY_DIRS}
 )
 
 link_directories(${LINK_DIRECTORIES})
@@ -75,6 +76,7 @@ set(SRCS
  CbmGeoSttPar.cxx
 
  BmnEnums.h
+ RawTypes.h
  BmnStripData.h
  BmnHit.cxx
  BmnLink.cxx
@@ -129,6 +131,14 @@ set(SRCS
  BmnLANDDigit.cxx
  BmnTrigUnion.h
 
+ BmnDigiContainerTemplate.cxx
+ BmnScWallDigi.cxx
+ BmnScWallAddress.cxx
+ BmnFHCalDigi.cxx
+ BmnFHCalAddress.cxx
+ BmnHodoDigi.cxx
+ BmnHodoAddress.cxx
+
  BmnVertex.cxx
 )
 
@@ -149,6 +159,6 @@ EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 
 Set(LINKDEF BmnDataLinkDef.h)
 Set(LIBRARY_NAME BmnData)
-Set(DEPENDENCIES Base Core ${ZeroMQ_LIBRARY_SHARED})
+Set(DEPENDENCIES Base Core ${ZeroMQ_LIBRARY_SHARED} boost_serialization)
 
 GENERATE_LIBRARY()

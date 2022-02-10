@@ -12,9 +12,9 @@
 #include "BmnSiliconStation.h"
 #include "BmnSiliconModule.h"
 #include "BmnSiliconLayer.h"
-#include <BmnEventQuality.h>
-
 #include "BmnSiliconConfiguration.h"
+#include "BmnSiliconTransform.h"
+#include <BmnEventQuality.h>
 
 using namespace std;
 using namespace TMath;
@@ -55,7 +55,6 @@ private:
     TString fInputDigitMatchesBranchName;
 
     TString fOutputHitsBranchName;
-    TString fOutputHitMatchesBranchName;
 
     /** Input array of Silicon Points **/
     TClonesArray* fBmnSiliconPointsArray;
@@ -65,23 +64,25 @@ private:
     /** Output array of Silicon Hits **/
     TClonesArray* fBmnSiliconHitsArray;
 
-    /** Output array of Silicon Hit Matches **/
-    TClonesArray* fBmnSiliconHitMatchesArray;
+    /** Output array of Silicon Upper Clusters **/
+    TClonesArray* fBmnSiliconUpperClustersArray;
+    /** Output array of Silicon Lower Clusters **/
+    TClonesArray* fBmnSiliconLowerClustersArray;
 
     Bool_t fHitMatching;
 
     BmnSiliconConfiguration::SILICON_CONFIG fCurrentConfig;
-
-    BmnSiliconStationSet *StationSet; //Entire Silicon detector  
+    BmnSiliconStationSet *StationSet; //Entire detector
+    BmnSiliconTransform *TransfSet; //Transformations for detector modules
 
     Bool_t fIsExp;
     Bool_t fIsSrc;
     TString fBmnEvQualityBranchName;
     TClonesArray* fBmnEvQuality;
-    
+
     Double_t*** fAlignCor;
 
-    Double_t fSignalLow; 
+    Double_t fSignalLow;
     Double_t fSignalUp;
 
     ClassDef(BmnSiliconHitMaker, 1);

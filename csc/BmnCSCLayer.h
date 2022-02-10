@@ -96,6 +96,12 @@ public:
     void ResetStripHits();
     //--------------------------------------------------------------------------
 
+    //Strip Clusters -----------------------------------------------------------
+    vector<StripCluster> GetStripClusters() { return StripClusters; };
+    static void SetLowerUniqueID(Int_t id) { fUniqueIdL = id; }
+    static void SetUpperUniqueID(Int_t id) { fUniqueIdU = id; }
+    //--------------------------------------------------------------------------
+
     //Methods to convert point coordinates into strip system -------------------
     Double_t ConvertNormalPointToStripX(Double_t x, Double_t y);
     Double_t ConvertNormalPointToStripY(Double_t x, Double_t y);
@@ -157,6 +163,13 @@ private:
     vector<Int_t> StripHitsClusterSize; //cluster size (number of strips) for each strip hit
     vector<Double_t> SmoothStrips; //smoothed signal strips (It is filled after smoothing algorithm)
     Double_t ClusterFindingThreshold; //min. threshold cut
+    //--------------------------------------------------------------------------
+    
+    //Strip Clusters -----------------------------------------------------------
+    vector<StripCluster> StripClusters;
+
+    static Int_t fUniqueIdU;
+    static Int_t fUniqueIdL;
     //--------------------------------------------------------------------------
 };
 //------------------------------------------------------------------------------

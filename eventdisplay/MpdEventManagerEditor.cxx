@@ -21,10 +21,11 @@
 #include "TGFileDialog.h"
 #include "TThread.h"
 #include "TDatabasePDG.h"
+#include "TVirtualX.h"
 
 #include <iostream>
 #include <vector>
-#include <cstring>
+#include <regex>
 
 using namespace std;
 
@@ -575,16 +576,26 @@ void MpdEventManagerEditor::UpdateEvent()
 
     fEventManager->fCurrentPDG.clear();
     istringstream iss(fCurrentPDGString);
-    string s;
     auto databasePDG = TDatabasePDG::Instance();
-    while (getline(iss, s, ' ')) {
-        auto pdg = atoi(s.c_str());
-        if (pdg)
-             fEventManager->fCurrentPDG.insert(pdg);
-        else
-            fEventManager->fCurrentPDG.insert(databasePDG->GetParticle(s.c_str())->PdgCode());
+    regex rgx("[\\s,]+");
+    sregex_token_iterator iter(fCurrentPDGString.begin(), fCurrentPDGString.end(), rgx, -1);
+    sregex_token_iterator end;
+    for ( ; iter != end; ++iter)
+    {
+        string s = (*iter).str();
+        if (s != "")
+        {   
+            auto pdg = atoi(s.c_str());
+            if (pdg)
+                fEventManager->fCurrentPDG.insert(pdg);
+            else
+            {
+                auto particle = databasePDG->GetParticle(s.c_str());
+                if (particle)
+                    fEventManager->fCurrentPDG.insert(particle->PdgCode());
+            }
+        }
     }
-    
 
     // if OFFLINE mode
     if (!fEventManager->isOnline)

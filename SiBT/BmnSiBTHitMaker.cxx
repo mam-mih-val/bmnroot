@@ -7,8 +7,9 @@
 
 #include "BmnEventHeader.h"
 #include "FairRunAna.h"
+#include <TStopwatch.h>
 
-static Float_t workTime = 0.0;
+static Double_t workTime = 0.0;
 
 BmnSiBTHitMaker::BmnSiBTHitMaker()
 : fHitMatching(kTRUE) {
@@ -56,7 +57,15 @@ BmnSiBTHitMaker::BmnSiBTHitMaker(Int_t run_period, Int_t run_number, Bool_t isEx
     }
 }
 
-BmnSiBTHitMaker::~BmnSiBTHitMaker() { }
+BmnSiBTHitMaker::~BmnSiBTHitMaker() {
+    if (StationSet) {
+        delete StationSet;
+    }
+
+    if (TransfSet) {
+        delete TransfSet;
+    }
+}
 
 InitStatus BmnSiBTHitMaker::Init() {
 
@@ -122,6 +131,13 @@ InitStatus BmnSiBTHitMaker::Init() {
 }
 
 void BmnSiBTHitMaker::Exec(Option_t* opt) {
+
+    TStopwatch sw;
+    sw.Start();
+
+    if (!IsActive())
+        return;
+
     // Event separation by triggers ...
     if (fIsExp && fBmnEvQuality) {
         BmnEventQuality* evQual = (BmnEventQuality*) fBmnEvQuality->UncheckedAt(0);
@@ -134,11 +150,7 @@ void BmnSiBTHitMaker::Exec(Option_t* opt) {
         fBmnSiBTHitMatchesArray->Delete();
     }
 
-    if (!IsActive())
-        return;
-
     if (fVerbose > 1) cout << "=================== BmnSiBTHitMaker::Exec() started ====================" << endl;
-    clock_t tStart = clock();
 
     fField = FairRunAna::Instance()->GetField();
 
@@ -147,8 +159,9 @@ void BmnSiBTHitMaker::Exec(Option_t* opt) {
     ProcessDigits();
 
     if (fVerbose > 1) cout << "=================== BmnSiBTHitMaker::Exec() finished ===================" << endl;
-    clock_t tFinish = clock();
-    workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
+
+    sw.Stop();
+    workTime += sw.RealTime();
 }
 
 void BmnSiBTHitMaker::ProcessDigits() {
@@ -292,7 +305,7 @@ void BmnSiBTHitMaker::Finish() {
         TransfSet = nullptr;
     }
 
-    if (fVerbose > 0) cout << "Work time of the SiBT hit maker: " << workTime << endl;
+    printf("Work time of BmnSiBTHitMaker: %4.2f sec.\n", workTime);
 }
 
 ClassImp(BmnSiBTHitMaker)

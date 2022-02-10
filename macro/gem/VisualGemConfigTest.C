@@ -16,7 +16,6 @@
 
 #include <Rtypes.h>
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
-#include "macro/run/bmnloadlibs.C"
 
 #include "TCanvas.h"
 #include "TPaveLabel.h"
@@ -62,24 +61,15 @@ void DrawCreatedStationTop(BmnGemStripStation *station, vector<TLorentzVector> &
 
 void VisualGemConfigTest() {
 
-    // ----  Load libraries   --------------------------------------------------
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-#endif
-    bmnloadlibs(); // load BmnRoot libraries
-    // -------------------------------------------------------------------------
-
     //Enable transparency OpenGL via gStyle
-    gStyle->SetCanvasPreferGL(1);
+    //gStyle->SetCanvasPreferGL(1);
 
-    //BmnGemStripStationSet *StationSet = new BmnGemStripStationSet_RunSummer2016(BmnGemStripConfiguration::RunSummer2016);
-    //BmnGemStripStationSet *StationSet = new BmnGemStripStationSet_RunWinter2016(BmnGemStripConfiguration::RunWinter2016);
-    //BmnGemStripStationSet *StationSet = new BmnGemStripStationSet_RunSpring2017(BmnGemStripConfiguration::RunSpring2017);
+    //Select the current configuration
+    TString gPathDetectorConfig = gSystem->Getenv("VMCWORKDIR");
+    gPathDetectorConfig += "/parameters/gem/XMLConfigs/";
+    gPathDetectorConfig += "GemRun8.xml";
 
-    //BmnGemStripStationSet *StationSet = new BmnGemStripStationSet("../../parameters/gem/XMLConfigs/GemRunSpring2017.xml");
-    //BmnGemStripStationSet *StationSet = new BmnGemStripStationSet("../../parameters/gem/XMLConfigs/GemRunSpring2018.xml");
-    //BmnGemStripStationSet *StationSet = new BmnGemStripStationSet("../../parameters/gem/XMLConfigs/GemRunSRCSpring2018.xml");
-    BmnGemStripStationSet *StationSet = new BmnGemStripStationSet("../../parameters/gem/XMLConfigs/GemFutureConfig2020.xml");
+    BmnGemStripStationSet *StationSet = new BmnGemStripStationSet(gPathDetectorConfig);
 
     //Choose a GEM station through a defined point (z-coordinate is used) ------
     if(1) {

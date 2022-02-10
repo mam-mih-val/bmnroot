@@ -19,6 +19,45 @@ BmnGemStripStationSet::BmnGemStripStationSet(TString xml_config_file, map <Int_t
     }
 }
 
+BmnGemStripStationSet::BmnGemStripStationSet(Int_t period, BmnSetup stp, map <Int_t, TVector3>* shifts): NStations(0),
+  XStationPositions(NULL), YStationPositions(NULL), ZStationPositions(NULL),
+  BeamHoleRadiuses(NULL),
+  GemStations(NULL), fStatShifts(shifts) {
+    TString gPathConfig = getenv("VMCWORKDIR");
+    TString xml_config_file;
+    switch (period) {
+        case 8:
+            if (stp == kBMNSETUP) {
+                xml_config_file = "GemRun8.xml";
+            } else {
+                xml_config_file = "GemRunSRC2021.xml";
+            }
+            break;
+        case 7:
+            if (stp == kBMNSETUP) {
+                xml_config_file = "GemRunSpring2018.xml";
+            } else {
+                xml_config_file = "GemRunSRCSpring2018.xml";
+            }
+            break;
+        case 6:
+            xml_config_file = "GemRunSpring2017.xml";
+            break;
+        default:
+            printf("Error! Unknown config!\n");
+            xml_config_file = "";
+            break;
+    }
+    if (xml_config_file.Length()){
+        xml_config_file = gPathConfig + "/parameters/gem/XMLConfigs/" + xml_config_file;
+        Bool_t create_status = CreateConfigurationFromXMLFile(xml_config_file);
+        if(!create_status) {
+            std::cerr << "Error: There are problems with creation of the configuration from XML (in BmnGemStripStationSet)\n";
+            throw(StationSet_Exception("Error in the constructor BmnGemStripStationSet()"));
+        }
+    }
+}
+
  BmnGemStripStationSet::~BmnGemStripStationSet() {
 
     if (XStationPositions) {
@@ -210,8 +249,8 @@ Bool_t BmnGemStripStationSet::CreateConfigurationFromXMLFile(TString xml_config_
     Int_t currentStationNum = 0;
     while(node) {
         if( strcmp(node->GetNodeName(), "Station") == 0 ) {
-            Bool_t parse_status = ParseStation(node, currentStationNum);
-            if(!parse_status) return false;
+            Bool_t b_parse_status = ParseStation(node, currentStationNum);
+            if(!b_parse_status) return false;
             currentStationNum++;
         }
         node = node->GetNextNode();

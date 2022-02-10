@@ -1,12 +1,3 @@
-/**
- * \file BmnMatchRecoToMC.h
- * \brief FairTask for matching RECO data to MC.
- * \author Andrey Lebedev <andrey.lebedev@gsi.de> - original author for CBM experiment
- * \author Sergey Merts <sergey.merts@gmail.com> - modifications for BMN experiment
- * \date 2013-2014
- *
- */
-
 #ifndef BMNMATCHRECOTOMC_H_
 #define BMNMATCHRECOTOMC_H_
 
@@ -36,7 +27,7 @@ public:
     virtual void Finish();
 
 private:
-    
+
     void ReadAndCreateDataBranches();
 
     BmnStatus LinkToMC(const TClonesArray* hitMatchArr, const TClonesArray* points, Int_t id, BmnTrackMatch* trackMatch);
@@ -44,37 +35,30 @@ private:
 
     void MatchGlobalTracks();
     void MatchGlobalTracks(
-            const TClonesArray* gemHitMatches,
-            const TClonesArray* silHitMatches,
-            const TClonesArray* ssdHitMatches,
-            const TClonesArray* gemPoints,
-            const TClonesArray* silPoints,
-            const TClonesArray* ssdPoints,
-            const TClonesArray* gemTracks,
-            const TClonesArray* silTracks,
-            const TClonesArray* ssdTracks,
-            const TClonesArray* globTracks,
-            TClonesArray* trackMatches);
+        const TClonesArray* gemHitMatches,
+        const TClonesArray* silHitMatches,
+        const TClonesArray* ssdHitMatches,
+        const TClonesArray* gemPoints,
+        const TClonesArray* silPoints,
+        const TClonesArray* ssdPoints,
+        const TClonesArray* gemTracks,
+        const TClonesArray* silTracks,
+        const TClonesArray* ssdTracks,
+        const TClonesArray* globTracks,
+        TClonesArray* trackMatches);
 
     // STS
     TClonesArray* fStsHits; // BmnStsHit array
     TClonesArray* fStsTracks; // BmnStsTrack array
-    
+
     // GEM
     TClonesArray* fGemPoints; // BmnStsPoint array
     TClonesArray* fGemTracks; // BmnGemTrack array
-    TClonesArray* fGemHitMatches; // Output BmnMatch array
 
     // SILICON
     TClonesArray* fSilPoints;
     TClonesArray* fSilTracks;
-    TClonesArray* fSilHitMatches;
-
-    // SSD
-    TClonesArray* fSsdPoints;
-    TClonesArray* fSsdTracks;
-    TClonesArray* fSsdHitMatches;
-
+    
     // GLOBAL
     TClonesArray* fGlobalTracks;
     TClonesArray* fGlobalTrackMatches;
@@ -82,9 +66,9 @@ private:
     BmnMatchRecoToMC(const BmnMatchRecoToMC&) = delete;
     BmnMatchRecoToMC& operator=(const BmnMatchRecoToMC&) = delete;
 
-    void CalculateTrackQuality(BmnGemTrack* locTr, BmnTrackMatch* trMatch, const TClonesArray* hitMatches, const TClonesArray* points, Int_t &trueCntr, Int_t &falseCntr);
-    void CalculateTrackQuality(CbmStsTrack* locTr, BmnTrackMatch* trMatch, Int_t& trueCntr, Int_t& falseCntr);
-    
+    void CalculateTrackQuality(BmnGemTrack* locTr, BmnTrackMatch* trMatch, const TClonesArray* hitMatches, const TClonesArray* points, Int_t& trueCntr, Int_t& falseCntr);
+    void CalculateTrackQuality(CbmStsTrack* locTr, BmnTrackMatch* trMatch);
+
     ClassDef(BmnMatchRecoToMC, 1);
 };
 

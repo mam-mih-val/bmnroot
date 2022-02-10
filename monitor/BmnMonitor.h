@@ -77,6 +77,14 @@ public:
     Int_t GetPeriodID() const {
         return fPeriodID;
     }
+    
+    void SetBmnSetup(BmnSetup v) {
+        fSetup = v;
+    }
+
+    BmnSetup GetBmnSetup() const {
+        return fSetup;
+    }
 
 private:
     void InitServer();
@@ -119,6 +127,7 @@ private:
     Int_t _webPort;
     Int_t fTest;
     Int_t fPeriodID;
+    BmnSetup fSetup;
     Int_t fRunID;
     Int_t fEvents;
     BmnWorkerState fState;

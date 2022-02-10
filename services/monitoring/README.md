@@ -1,8 +1,8 @@
-## Database Monitoring Service
+## Monitoring Service for the Information Systems of the experiment
 
 ### Features
 
-This is a service used to monitor availability of the IT infrastructure hosts such as databases.
+This is a service to monitor availability of the IT infrastructure of the experiment systems, such as hosts, databases, web interfaces.
 
 Currently implemented mon-service functionality:
 - PING and PGSQL request probing for any number of monitored servers
@@ -10,7 +10,7 @@ Currently implemented mon-service functionality:
 - Email notifications
 - Response time stored in InfluxDB for visualization and extra notifications with tools like Grafana
 
-Example JSON configuration is contained in `mon-service.EXAMPLE.json` file and parameters are explained
+An example of the JSON configuration is presented in `mon-service.EXAMPLE.json` file, where all parameters are explained
 below.
 
 
@@ -18,7 +18,7 @@ below.
 
 - Linux OS (tested on Ubuntu 16.04 and CentOS 7)
 - Python 3.5 or later
-- Install PyPI packages `influxdb` (5.2.3 or later) and `psycopg2-binary` (2.8.4 or later), e.g. \
+- PyPI packages `influxdb` (5.2.3 or later) and `psycopg2-binary` (2.8.4 or later), e.g. \
 `pip3 install "influxdb>=5.2.3"` \
 `pip3 install "psycopg2-binary>=2.8.4"`
 

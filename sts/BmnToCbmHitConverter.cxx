@@ -1,6 +1,8 @@
 
 #include "BmnToCbmHitConverter.h"
+#include <TStopwatch.h>
 
+static Double_t workTime = 0.0;
 
 // -----   Default constructor   ------------------------------------------
 BmnToCbmHitConverter::BmnToCbmHitConverter()
@@ -38,9 +40,13 @@ BmnToCbmHitConverter::~BmnToCbmHitConverter() {
 // -----   Public method Exec   --------------------------------------------
 void BmnToCbmHitConverter::Exec(Option_t* opt) {
 
+    TStopwatch sw;
+    sw.Start();
+
+    if (!IsActive())
+        return;
+    
     fCbmHitsArray->Delete();
-
-
     for (Int_t iHit = 0; iHit < fBmnGemHitsArray->GetEntriesFast(); ++iHit) {
         BmnGemStripHit* bmnHit = (BmnGemStripHit*)fBmnGemHitsArray->At(iHit);
         TVector3 pos;
@@ -50,43 +56,30 @@ void BmnToCbmHitConverter::Exec(Option_t* opt) {
 
         Int_t stat = bmnHit->GetStation();
         Int_t mod = bmnHit->GetModule();
-
-        const Int_t nLayers = GemStationSet->GetStation(stat)->GetModule(mod)->GetNStripLayers();
-        Bool_t isHitInside[nLayers];
-
+        
         Int_t lay = 0;
-        for (lay = 0; lay < nLayers; lay++) {
-            BmnGemStripLayer layer = GemStationSet->GetStation(stat)->GetModule(mod)->GetStripLayer(lay);
-            if (layer.IsPointInsideStripLayer(-bmnHit->GetX(), bmnHit->GetY())) break;
+        for (lay = 0; lay < GemStationSet->GetStation(stat)->GetModule(mod)->GetNStripLayers(); lay++) {
+            BmnGemStripLayer* layer = &(GemStationSet->GetStation(stat)->GetModule(mod)->GetStripLayer(lay));
+            if (layer->IsPointInsideStripLayer(-bmnHit->GetX(), bmnHit->GetY())) break;
         }
 
-        Int_t sect = -1;
-
-        if (mod == 0) {
-            if (lay < 2) sect = 1;
-            else sect = 2;
-        }
-        else if (mod == 1) {
-            if (lay < 2) sect = 3;
-            else sect = 4;
-        }
-        else if (mod == 2) {
-            if (lay < 2) sect = 5;
-            else sect = 6;
-        }
-        else if (mod == 3) {
-            if (lay < 2) sect = 7;
-            else sect = 8;
-        }
+        //formula for converting from the bm@n system of modules and layers to the cbm one
+        Int_t sect = 2 * mod + 1 + lay / 2;
 
         Int_t sens = 1;
-        Int_t detId = 2 << 24 | (stat + 1 + 3) << 16 | sect << 4 | sens << 1;
+        Int_t detId = kGEM << 24 | (stat + 1 + 3) << 16 | sect << 4 | sens << 1;
         new ((*fCbmHitsArray)[fCbmHitsArray->GetEntriesFast()]) CbmStsHit(detId, pos, dpos, 0.0, 0, 0);
         CbmStsHit* hit = (CbmStsHit*)fCbmHitsArray->At(fCbmHitsArray->GetEntriesFast() - 1);
+
+        FairRootManager::Instance()->SetUseFairLinks(kTRUE);
         hit->ResetLinks();
         hit->SetLinks(bmnHit->GetLinks());
-        hit->SetRefIndex(kGEM);
+        FairRootManager::Instance()->SetUseFairLinks(kFALSE);
+        hit->SetRefIndex(bmnHit->GetRefIndex());
+        hit->fDigiF = bmnHit->GetUpperClusterIndex();
+        hit->fDigiB = bmnHit->GetLowerClusterIndex();
     }
+    
     for (Int_t iHit = 0; iHit < fBmnSilHitsArray->GetEntriesFast(); ++iHit) {
         BmnSiliconHit* bmnHit = (BmnSiliconHit*)fBmnSilHitsArray->At(iHit);
         TVector3 pos;
@@ -94,14 +87,21 @@ void BmnToCbmHitConverter::Exec(Option_t* opt) {
         TVector3 dpos;
         bmnHit->PositionError(dpos);
         Int_t sens = 1;
-        Int_t detId = 2 << 24 | (bmnHit->GetStation() + 1) << 16 | (bmnHit->GetModule() + 1) << 4 | sens << 1;
+        Int_t detId = kSILICON << 24 | (bmnHit->GetStation() + 1) << 16 | (bmnHit->GetModule() + 1) << 4 | sens << 1;
         new ((*fCbmHitsArray)[fCbmHitsArray->GetEntriesFast()]) CbmStsHit(detId, pos, dpos, 0.0, 0, 0);
         CbmStsHit* hit = (CbmStsHit*)fCbmHitsArray->At(fCbmHitsArray->GetEntriesFast() - 1);
+
+        FairRootManager::Instance()->SetUseFairLinks(kTRUE);
         hit->ResetLinks();
         hit->SetLinks(bmnHit->GetLinks());
-        hit->SetRefIndex(kSILICON);
+        FairRootManager::Instance()->SetUseFairLinks(kFALSE);
+        hit->SetRefIndex(bmnHit->GetRefIndex());
+        hit->fDigiF = bmnHit->GetUpperClusterIndex();
+        hit->fDigiB = bmnHit->GetLowerClusterIndex();
     }
 
+    sw.Stop();
+    workTime += sw.RealTime();
 }
 // -------------------------------------------------------------------------
 
@@ -111,12 +111,22 @@ InitStatus BmnToCbmHitConverter::Init() {
     // Get input array
     FairRootManager* ioman = FairRootManager::Instance();
     if (!ioman) Fatal("Init", "No FairRootManager");
-    fBmnGemHitsArray = (TClonesArray*)ioman->GetObject("BmnGemStripHit");
-    fBmnSilHitsArray = (TClonesArray*)ioman->GetObject("BmnSiliconHit");
+    fBmnGemHitsArray = (TClonesArray*)ioman->GetObject(fBmnGemHitsBranchName);
+    fBmnSilHitsArray = (TClonesArray*)ioman->GetObject(fBmnSilHitsBranchName);
+    if (!fBmnGemHitsArray) {
+        cout << "BmnToCbmHitConverter::Init(): branch " << fBmnGemHitsBranchName << " not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
+    if (!fBmnSilHitsArray) {
+        cout << "BmnToCbmHitConverter::Init(): branch " << fBmnSilHitsBranchName << " not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
 
     // Register output array
-    fCbmHitsArray = new TClonesArray("CbmStsHit", 1000);
-    ioman->Register("StsHit", "Hit in STS", fCbmHitsArray, kTRUE);
+    fCbmHitsArray = new TClonesArray("CbmStsHit");
+    ioman->Register("StsHit", "STSHIT", fCbmHitsArray, kTRUE);
 
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
 
@@ -130,6 +140,7 @@ InitStatus BmnToCbmHitConverter::Init() {
 
 
 void BmnToCbmHitConverter::Finish() {
+    printf("Work time of BmnToCbmHitConverter: %4.2f sec.\n", workTime);
 }
 
 ClassImp(BmnToCbmHitConverter)

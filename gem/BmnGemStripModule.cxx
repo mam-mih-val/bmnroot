@@ -979,6 +979,9 @@ void BmnGemStripModule::CalculateStripHitIntersectionPoints() {
                             Int_t iLayerClusterSize = StripLayers[ilayer].GetStripHitClusterSize(i_strip_hit);
                             Int_t jLayerClusterSize = StripLayers[jlayer].GetStripHitClusterSize(j_strip_hit);
 
+                            UpperClusters.push_back(StripLayers[jlayer].GetStripClusters().at(j_strip_hit));
+                            LowerClusters.push_back(StripLayers[ilayer].GetStripClusters().at(i_strip_hit));
+
                             //strip position in both strip layers for each intersection
                             Double_t iLayerStripPosition = StripLayers[ilayer].ConvertPointToStripPosition(xcoord, ycoord);
                             Double_t jLayerStripPosition = StripLayers[jlayer].ConvertPointToStripPosition(xcoord, ycoord);
@@ -1089,6 +1092,8 @@ void BmnGemStripModule::ResetIntersectionPoints() {
     IntersectionPoints_UpperLayerStripTotalSignal.clear();
     IntersectionPointMatches.clear();
     IntersectionPointDigitNumberMatches.clear();
+    UpperClusters.clear();
+    LowerClusters.clear();
 }
 
 void BmnGemStripModule::DefineModuleBorders() {

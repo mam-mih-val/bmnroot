@@ -30,19 +30,13 @@
 #include "BmnHist.h"
 
 #include "BmnCSCDigit.h"
-/*
-#include "BmnCscStripStationSet.h"
-#include "BmnCscStripConfiguration.h"
-#include "BmnCscStripStationSet_RunSpring2017.h"
-#include "BmnCscStripStationSet_RunSummer2016.h"
-#include "BmnCscStripStationSet_RunWinter2016.h"
-*/
+#include "BmnCSCStationSet.h"
 using namespace std;
 
 class BmnHistCsc : public BmnHist {
 public:
 
-    BmnHistCsc(TString title, TString path = "", Int_t periodID = 7);
+    BmnHistCsc(TString title, TString path = "", Int_t periodID = 7, BmnSetup setup = kBMNSETUP);
     virtual ~BmnHistCsc();
     void Reset();
     void Register(THttpServer *serv);
@@ -53,8 +47,7 @@ public:
     BmnStatus  SetRefRun(Int_t id);
 
 private:
-    //BmnCscStripConfiguration::CSC_CONFIG cscStationConfig;
-    //BmnCscStripStationSet *cscStationSet;
+    BmnCSCStationSet *cscStationSet;
     vector<TString> Names;
     vector<vector<vector<TH1F*  > > > histCscStrip;
     TCanvas *canCscStrip;

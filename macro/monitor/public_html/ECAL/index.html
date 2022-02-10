@@ -29,7 +29,8 @@ and open the template in the editor.
         </style>
         <link rel="stylesheet" type="text/css" href="../css/tabs.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="../css/menu.css" media="screen" />
-        <script type="text/javascript" src="../root.app/jsrootsys/scripts/JSRootCore.js?2d"></script>
+        <!--<script type="text/javascript" src="../root.app/jsrootsys/scripts/JSRootCore.js?2d"></script>-->
+<script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRoot.core.js"></script>
         <script type="text/javascript" src="../scripts/BMTools.js"></script>
         <script>
             var loco = window.location;
@@ -104,29 +105,31 @@ and open the template in the editor.
         <ul >
             <li><a href="../index.html"> <h3>Welcome to the BM@N Experiment</h3></a></li>
             <li><a href="../trigger_detectors/index.html"><h3>Triggers</h3></a></li>
-            <li><a href="../gem_detectors/index.html"><h3>GEM</h3></a></li>
             <li><a href="../Silicon/index.html"><h3>Silicon</h3></a></li>
+            <li><a href="../gem_detectors/index.html"><h3>GEM</h3></a></li>
+            <li><a href="../csc/index.html"><h3>CSC</h3></a></li>
             <li><a href="../ToF400_detector/index.html"><h3>ToF400</h3></a></li>
             <li><a href="../ToF700_detector/index.html"><h3>ToF700</h3></a></li>
             <li><a href="../DCH_detectors/index.html"><h3>DCH</h3></a></li>
             <li><a href="../MWPC_detectors/index.html"><h3>MWPC</h3></a></li>
             <li><a href="../ZDC/index.html"><h3>ZDC</h3></a></li>
             <li><a href="../ECAL/index.html"><h3>ECAL</h3></a></li>
+<!--            <li><a href="../ScWall/index.html"><h3>ScWall</h3></a></li>
+            <li><a href="../FhCal/index.html"><h3>FhCal</h3></a></li>-->
             <li><a href="../SRC/index.html"><h3>SRC Triggers</h3></a></li>
             <li><a href="../LAND/index.html"><h3>LAND</h3></a></li>
-            <li><a href="../msc/index.html"><h3>MSC</h3></a></li>
-            <li><a href="../csc/index.html"><h3>CSC</h3></a></li>
+            <!--<li><a href="../msc/index.html"><h3>MSC</h3></a></li>-->
         </ul>
         <div id="total_counter" align="center">
             <h1>BM@N ECAL</h1> 
             <!--<iframe id="infoCan" ></iframe>-->             
         </div>
         <div align="center">
-            <div id="infoC" style="width: 90vw;"> </div>
+            <div id="infoC" style="width: 90vw;height: 15vw;"> </div>
         </div>
-        <button onclick="ResetHist()"> 
+<!--        <button onclick="ResetHist()"> 
             <h1 style="color:red;">Reset</h1>
-        </button>
+        </button>-->
 
         <table>
             <tr>
@@ -169,7 +172,7 @@ and open the template in the editor.
         </div>
         <div id="txt_2">
             <div align="center">
-                <div id="timeTableC" style="width: 92vw;"> </div>
+                <div id="timeTableC" style="width: 92vw;height: 46vw;"> </div>
             </div>
         </div>
     </div>

@@ -8,7 +8,6 @@
 #include <iostream>
 #include "BmnGemStripDigit.h"
 #include "BmnADCDigit.h"
-#include "BmnEnums.h"
 #include "TMath.h"
 #include <fstream>
 #include <list>
@@ -374,6 +373,7 @@ private:
     Int_t fEntriesInGlobMap; // number of entries in BD table for Global Mapping
 
     Int_t fEventId;
+    BmnGemStripStationSet* fGemStationSetDer = nullptr;
 
     ClassDef(BmnGemRaw2Digit, 1);
 };

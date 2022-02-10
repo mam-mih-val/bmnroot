@@ -39,11 +39,12 @@ Set(SYSTEM_INCLUDE_DIRECTORIES
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
-include_directories(SYSTEM  ${SYSTEM_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 Set(LINK_DIRECTORIES
  ${ROOT_LIBRARY_DIR}
  ${FAIRROOT_LIBRARY_DIR}
+ ${Boost_LIBRARY_DIRS}
 )
 
 link_directories(${LINK_DIRECTORIES})
@@ -72,13 +73,9 @@ BmnPadBranch.cxx
 BmnPadGenerator.cxx
 )
 
-If (Boost_FOUND)
-  set(DEFINITIONS BOOST_FOUND)
-EndIf (Boost_FOUND)
-
 Set(HEADERS)
 Set(LINKDEF MonitorLinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)
-Set(DEPENDENCIES GlobalTracking Decoder TOF TOF1 Alignment Gem Silicon CSC Dch Mwpc BmnData BmnField BmnDst Tracking UniDb Base Core ${ZeroMQ_LIBRARY_SHARED} BmnQa)
+Set(DEPENDENCIES BmnQa GlobalTracking Decoder TOF TOF1 Alignment Gem Silicon CSC Dch Mwpc BmnData BmnField BmnDst Tracking UniDb Base Core ${ZeroMQ_LIBRARY_SHARED})
 
 GENERATE_LIBRARY()

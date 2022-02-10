@@ -65,7 +65,7 @@ BmnStatus BmnDchRaw2Digit::ReadMapFromFile(Int_t period) {
         for (Int_t planeId = 0; planeId < 16; ++planeId) {
             if (name != planes[planeId]) continue;
 
-                        //printf("%s\t%d\t%d\t0x%x\t%d\t%d\t%d\n", name.Data(), planeId, group, ser, slot, ch_l, ch_h);
+            //printf("%s\t%d\t%d\t0x%x\t%d\t%d\t%d\n", name.Data(), planeId, group, ser, slot, ch_l, ch_h);
 
             if (planeId / 8 == 0) {
                 DchMapValue* pCurValue = new DchMapValue;
@@ -122,7 +122,10 @@ BmnStatus BmnDchRaw2Digit::FindInMap(BmnTDCDigit* dig, TClonesArray* arr, Long64
     for (Int_t iMap = 0; iMap < nEntriesInMap; ++iMap) {
         DchMapValue* map = (DchMapValue*) mapArr[iMap];
         if (dig->GetSerial() != map->crate || dig->GetSlot() != map->slot) continue;
-        UInt_t ch = GetChTDC64v(dig->GetHptdcId(), dig->GetChannel());
+        UChar_t id = dig->GetHptdcId();
+        if ((id < 1) || (id > 2))
+            continue;
+        UInt_t ch = GetChTDC64v(id, dig->GetChannel());
         if (ch > map->channel_high || ch < map->channel_low) continue;
         Double_t tm = dig->GetValue() / 10.0 - t0 + ts; //divide by 10 for conversion (100 ps -> ns)
         new((*arr)[arr->GetEntriesFast()]) BmnDchDigit(map->plane, map->group * 16 + ch - map->channel_low, tm, 0);

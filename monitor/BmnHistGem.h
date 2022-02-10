@@ -45,7 +45,7 @@ struct histNmask{
 class BmnHistGem : public BmnHist {
 public:
 
-    BmnHistGem(TString title, TString path = "", Int_t periodID = 7);
+    BmnHistGem(TString title, TString path = "", Int_t periodID = 7, BmnSetup setup = kBMNSETUP);
     virtual ~BmnHistGem();
     void Reset();
     void Register(THttpServer *serv);
@@ -56,7 +56,6 @@ public:
     BmnStatus  SetRefRun(Int_t id);
     
 private:
-    BmnGemStripConfiguration::GEM_CONFIG gemStationConfig;
     BmnGemStripStationSet *gemStationSet;
     vector<TString> Names;
     vector<vector<vector<TH1F*  > > > histGemStrip;

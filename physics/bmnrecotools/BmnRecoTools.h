@@ -88,7 +88,7 @@ public:
             Int_t ClusterSizeThr = 0,
             Int_t nBins = 100000);
     static TF1* GetRescaleFunc(TString name, TF1 *mc, TF1 *ex);
-
+    
 
 private:
 

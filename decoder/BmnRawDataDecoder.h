@@ -364,6 +364,7 @@ private:
     pt::ptree conf;
     Bool_t isSpillStart;
     UInt_t fSpillCntr;
+    BmnEventType evType = kBMNPAYLOAD;
 
     Int_t fTOF700ReferenceRun;
     Int_t fTOF700ReferenceChamber;
@@ -563,10 +564,10 @@ private:
      */
     BmnStatus Process_ADC64VE(UInt_t *data, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr);
     BmnStatus Process_ADC64WR(UInt_t *data, UInt_t len, UInt_t serial, TClonesArray *arr);
-    BmnStatus Process_FVME(UInt_t *data, UInt_t len, UInt_t serial, BmnEventType &ped, BmnTrigInfo* spillInfo);
+    BmnStatus Process_FVME(UInt_t *data, UInt_t len, UInt_t serial, BmnTrigInfo* spillInfo);
     BmnStatus Process_HRB(UInt_t *data, UInt_t len, UInt_t serial);
     BmnStatus Process_Tacquila(UInt_t *data, UInt_t len);
-    BmnStatus FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t slot, UInt_t &idx, BmnTrigInfo* spillInfo);
+    BmnStatus FillU40VE(UInt_t *d, UInt_t slot, UInt_t &idx, BmnTrigInfo* spillInfo);
     BmnStatus FillBlockTDC(UInt_t *d, UInt_t serial, uint16_t &len, TClonesArray *ar);
     BmnStatus FillBlockADC(UInt_t *d, UInt_t serial, uint8_t channel, uint16_t &len, TClonesArray *ar);
     BmnStatus FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
@@ -577,9 +578,18 @@ private:
      * @param d data pointer
      * @param serial device serial
      * @param len payload length
-     * @return opeartion success
+     * @return operation success
      */
-    BmnStatus FillTQDC_Eth(UInt_t *d, UInt_t serial, UInt_t &len);
+    BmnStatus FillTQDC_E(UInt_t *d, UInt_t serial, UInt_t &len);
+    /**
+     * Parse MSC16VE-E MStream data block
+     * https://afi.jinr.ru/DataFormatMSC_ETH
+     * @param d data pointer
+     * @param serial device serial
+     * @param len payload length
+     * @return operation success
+     */
+    BmnStatus FillMSC16VE_E(UInt_t *d, UInt_t serial, UInt_t &len);
     BmnStatus FillTDC72VXS(UInt_t *d, UInt_t serial, UInt_t &len);
     /**
      * Parse UT24VE-TRC MStream data block
@@ -590,7 +600,7 @@ private:
      * @param evType calibration/payload event
      * @return operation success
      */
-    BmnStatus FillUT24VE_TRC(UInt_t *d, UInt_t &len, BmnEventType &evType);
+    BmnStatus FillUT24VE_TRC(UInt_t *d, UInt_t &len);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);
     inline void FillWR(UInt_t iSerial, Long64_t iEvent, Long64_t t_sec, Long64_t t_ns);
 

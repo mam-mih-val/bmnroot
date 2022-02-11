@@ -5,12 +5,12 @@
 /***************** SET OF DAQ CONSTANTS *****************/
 const UInt_t SYNC_EVENT = 0x2A50D5AF;
 const UInt_t SYNC_EVENT_OLD = 0x2A502A50;
-const UInt_t SYNC_EOS = 0x4A62B59D;
-const UInt_t SYNC_EOS_OLD = 0x4A624A62;
+const UInt_t SYNC_STAT = 0x4A62B59D; // Statistics
+const UInt_t SYNC_EOS = 0x4A624A62; // End Of Spill
 const UInt_t SYNC_RUN_START = 0x72617453;
 const UInt_t SYNC_RUN_STOP = 0x706F7453;
-const UInt_t SYNC_RUN_NUMBER = 0x236E7552;
-const UInt_t SYNC_RUN_INDEX = 0x78646E49;
+const UInt_t SYNC_RUN_NUMBER = 0x236E7552; // Run ID
+const UInt_t SYNC_RUN_INDEX = 0x78646E49; // Event Builder Name
 const UInt_t SYNC_JSON = 0x4E4F534A;
 const size_t kWORDSIZE = sizeof (UInt_t);
 const UShort_t kNBYTESINWORD = 4;
@@ -35,7 +35,8 @@ const UInt_t kTQDC16 = 0x09;
 const UInt_t kTQDC16VS = 0x56;
 const UInt_t kTQDC16VS_E = 0xD6;
 const UInt_t kTRIG = 0xA;
-const UInt_t kMSC = 0xF;
+const UInt_t kMSC16V = 0xF;
+const UInt_t kMSC16VE_E = 0xD8;
 const UInt_t kUT24VE_TRC = 0xE3;
 const UInt_t kUT24VE = 0xC9;
 const UInt_t kUT24VE_ = 0x49;
@@ -94,13 +95,25 @@ struct __attribute__ ((packed)) MStreamHeader{
 //    uint16_t PacketId : 16;
 };
 
-struct __attribute__ ((packed)) MStreamSubtype0Header{
+struct __attribute__ ((packed)) MStreamTAI{
 //    uint32_t Serial;
 //    uint32_t EventId : 24;
 //    uint8_t Custom : 8;
     uint32_t TaiSec;
     uint8_t TaiFlags : 2;
     uint32_t TaiNSec : 30;
+};
+
+/**
+ *  https://afi.jinr.ru/DataFormatMSC_ETH
+ */
+struct __attribute__ ((packed)) MSC16VE_EHeader{
+    MStreamHeader Hdr;
+    MStreamTAI Tai;
+    uint8_t NCntrBits : 4;
+    uint32_t  : 24;
+    uint8_t Version : 4;
+    uint32_t SliceInt; // Slice interval [ns]
 };
 
 /**

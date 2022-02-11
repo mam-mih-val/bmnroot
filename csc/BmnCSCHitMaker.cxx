@@ -295,6 +295,10 @@ void BmnCSCHitMaker::ProcessDigits() {
 
                 StripCluster ucls = module->GetUpperCluster(iPoint);
                 StripCluster lcls = module->GetLowerCluster(iPoint);
+                ucls.SetModule(iModule);
+                lcls.SetModule(iModule);
+                ucls.SetStation(iStation);
+                lcls.SetStation(iStation);
                 UniqueUpperClusters[ucls.GetUniqueID()] = ucls;
                 UniqueLowerClusters[lcls.GetUniqueID()] = lcls;
                 hit->SetUpperClusterIndex(ucls.GetUniqueID());

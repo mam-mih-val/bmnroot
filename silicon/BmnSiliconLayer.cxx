@@ -579,6 +579,7 @@ void BmnSiliconLayer::FindClustersAndStripHits() {
 
     cluster.MeanPosition = mean_strip_position;
     cluster.TotalSignal = total_cluster_signal;
+    cluster.SetWidth(NStripsInCluster);
     if (LayerType == LowerStripLayer) {
         cluster.SetType(0);
         cluster.SetUniqueID(fUniqueIdL++);

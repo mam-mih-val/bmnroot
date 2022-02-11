@@ -564,12 +564,6 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             case kHRB:
                 Process_HRB(&d[idx], payload, serial);
                 break;
-                //case kLANDDAQ:
-                //    Process_Tacquila(&d[idx], payload);
-                //    break;
-                //case kTOFCALDAQ:
-                //    Process_Tacquila(&d[idx], payload);
-                //    break;
             case kTACQUILADAQ:
                 Process_Tacquila(&d[idx], payload);
                 break;
@@ -879,9 +873,9 @@ BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
                 } else {
                     cerr << __FILE__ << ':' << __LINE__ << ": Wrong SAM for TClonesArray.\n";
                 }
+		    }
             }
         }
-    }
     return kBMNSUCCESS;
 }
 

@@ -93,6 +93,6 @@ ENDIF (SSE_FOUND)
 set(HEADERS)
 Set(LINKDEF KFLinkDef.h)
 Set(LIBRARY_NAME KF)
-Set(DEPENDENCIES Sts TOF Gem Silicon BmnData BmnField Passive Base Core)
+Set(DEPENDENCIES TOF Gem Silicon BmnData BmnField Passive Base Core)
 
 GENERATE_LIBRARY()

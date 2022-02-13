@@ -7,9 +7,12 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/passive
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
+ ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/sts
+ ${CMAKE_SOURCE_DIR}/KF	
+ ${CMAKE_SOURCE_DIR}/KF/Interface
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -74,6 +77,8 @@ CbmStsReconstructionQa.cxx
 CbmBmnStsDigitize.cxx 
 BmnGemFastDigitize.cxx 
 BmnToCbmHitConverter.cxx
+BmnStsVectorFinder.cxx
+BmnStsMatchTracks.cxx
 )
 
 #AZ - debug
@@ -91,6 +96,6 @@ EndIf(CMAKE_BUILD_TYPE EQUAL "Release")
 Set(HEADERS)
 Set(LINKDEF StsLinkDef.h)
 Set(LIBRARY_NAME Sts)
-Set(DEPENDENCIES Gem Silicon BmnData Passive Base Core)
+Set(DEPENDENCIES Gem Silicon BmnData Passive Base Core KF)
 
 GENERATE_LIBRARY()

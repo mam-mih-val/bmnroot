@@ -19,7 +19,7 @@ using std::ios;
 
 ClassImp( BmnKFStsHit );
 
-static CbmKFTube st_tube;
+//AZ static CbmKFTube st_tube;
 
 void BmnKFStsHit::Create( CbmStsHit *h ){
 
@@ -30,7 +30,15 @@ void BmnKFStsHit::Create( CbmStsHit *h ){
   CbmStsSensor* sensor = KF->StsDigi->GetSensor(ista, isec, isen);
   Double_t phis[2] = {sensor->GetStereoF(), sensor->GetStereoB()};
 
-  if(  MaterialIndex>=0 ) tube = (CbmKFTube*)KF->vMaterial[MaterialIndex];
+  //AZ if(  MaterialIndex>=0 ) tube = (CbmKFTube*)KF->vMaterial[MaterialIndex];
+  if ( MaterialIndex>=0 ) {
+    //AZ - adjust hit position
+    tube = (CbmKFTube*)KF->vMaterial[MaterialIndex];
+    st_tube = *tube;
+    st_tube.z = h->GetZ();
+    st_tube.ZReference = h->GetZ();
+    tube = &st_tube;
+  }
   else{
     st_tube.z = st_tube.dz = st_tube.r = st_tube.R = st_tube.rr = st_tube.RR = 0;
     tube = &st_tube;
@@ -42,15 +50,15 @@ void BmnKFStsHit::Create( CbmStsHit *h ){
   //FitPoint.x = pos.X();
   //FitPoint.y = pos.Y();
   //FitPoint.z = pos.Z();
-  Double_t x = pos.X();
-  Double_t y = pos.Y();
-  Double_t z = pos.Z();
+  fX = pos.X();
+  fY = pos.Y();
+  fZ = pos.Z();
   Double_t sigma2 = err.X() * err.X();
 #if 1
   for (Int_t j = 0; j < 2; ++j) {
-    Double_t u = x * cos(phis[j]) + y * sin(phis[j]);
+    Double_t u = fX * cos(phis[j]) + fY * sin(phis[j]);
     //FitPoint[j].Set(z, u, phi, sigma2);
-    FitPoint[j].Set(z, u, phis[j], sigma2);
+    FitPoint[j].Set(fZ, u, phis[j], sigma2);
   }
   //FitPoint.V[0] = err.X() * err.X();
   //FitPoint.V[1] = h->GetCovXY();

@@ -19,12 +19,18 @@ class BmnKFStsHit : public CbmKFHit {
 
  public:
 
-  BmnKFStsHit():FitPoint(),tube(0){};
+ BmnKFStsHit():FitPoint(),tube(0),fX(0.0),fY(0.0),fZ(0.0) {};
   ~BmnKFStsHit(){};
 
   //CbmKFPixelMeasurement FitPoint;
   CbmKFUMeasurement FitPoint[2];
   CbmKFTube *tube;
+  Double_t fX, fY, fZ; //AZ
+  CbmKFTube st_tube; //AZ
+
+  Double_t GetX() const { return fX; }
+  Double_t GetY() const { return fY; }
+  Double_t GetZ() const { return fZ; }
 
   void Create( CbmStsHit *h );
   //void Create( CbmMvdHit *h );
@@ -42,11 +48,14 @@ class BmnKFStsHit : public CbmKFHit {
   const BmnKFStsHit& operator=(const BmnKFStsHit& a) {
     tube = a.tube;
     for (int j = 0; j < 2; ++j) FitPoint[j] = a.FitPoint[j];
+    fX = a.fX;
+    fY = a.fY;
+    fZ = a.fZ;
     return *this;
   };
 
   BmnKFStsHit(const BmnKFStsHit& a):
-    tube(a.tube)    
+  tube(a.tube), fX(a.fX), fY(a.fY), fZ(a.fZ)
       { for (int j = 0; j < 2; ++j) FitPoint[j] = a.FitPoint[j]; }
 
   

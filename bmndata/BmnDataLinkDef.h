@@ -6,6 +6,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
+#pragma link C++ class StripCluster+;
 #pragma link C++ class BmnDetectorList+;
 #pragma link C++ class CbmBaseHit+;
 #pragma link C++ class CbmHit+;

@@ -227,7 +227,9 @@ public:
         fType = -1;
     }
     Int_t GetClusterSize() { return Strips.size(); }
+    ClassDef(StripCluster,1);
 };
+ClassImp(StripCluster);
 //------------------------------------------------------------------------------
 
 #endif /* BMNSTRIPDATA_H */

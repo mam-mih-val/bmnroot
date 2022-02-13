@@ -19,6 +19,8 @@
 #include "CbmMvdHit.h"
 
 #include "TClonesArray.h"
+#include <TFile.h>
+#include <TKey.h>
 #include "TMath.h"
 #include <TProfile2D.h>
 

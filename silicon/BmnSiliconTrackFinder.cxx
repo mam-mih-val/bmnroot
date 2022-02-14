@@ -1996,14 +1996,15 @@ Double_t ***pointsX, Double_t ***pointsXp, Double_t ***pointsXsig,Double_t ***po
 
 //----------------------------------------------------------------------
 void BmnSiliconTrackFinder::CheckLeftover(Int_t **Nspatial, Int_t **NpointsX,Int_t **NpointsXp, 
-Double_t ***pointsXsp, Double_t ***pointsXpsp,Double_t ***pointsYsp,Double_t ***pointsXsigsp,Double_t ***pointsXpsigsp, Double_t ***pointsYsigsp,
-Double_t ***pointsX, Double_t ***pointsXp, Double_t ***pointsXsig,Double_t ***pointsXpsig,  vector<tracksX> & CleanTr_,
+Double_t ***pointsXsp, Double_t ***pointsXpsp,Double_t ***pointsYsp,
+Double_t ***pointsXsigsp,Double_t ***pointsXpsigsp, Double_t ***pointsYsigsp,
+Double_t ***pointsX, Double_t ***pointsXp, Double_t ***pointsXsig,
+Double_t ***pointsXpsig,  vector<tracksX> & CleanTr_,
 Int_t **NhitsXYmod_, Double_t ***XspCoord_, Double_t ***YspCoord_, Double_t ***SigmspX_, Double_t ***SigmspY_){
 
 
-
   if(fDebug) cout<<" CheckLeftover"<<endl;
-  bool woSp[2]={0, 0};
+  bool woSp[fNstations]={0, 0, 0, 0};
 
   //adding a hit from a track. the case when the plane didn't work
   if(fDebug) cout<<endl;

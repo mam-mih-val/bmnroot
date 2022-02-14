@@ -1,11 +1,10 @@
-
-
 #include "BmnSiliconHitProducerSRC.h"
 #include "CbmStsPoint.h"
 #include "BmnSiliconPoint.h"
 #include "CbmMCTrack.h"
 #include "TRandom.h"
 #include "TCanvas.h"
+#include "TFile.h"
 #include "TH1F.h"
 #include "BmnSiliconHit.h"
 #include "TSystem.h"
@@ -116,11 +115,9 @@ void BmnSiliconHitProducerSRC::Exec(Option_t* opt) {
           hit->SetIndex(track_id);
           hit->SetType(pdgId);
           //hit->SetELoss(static_cast< double>(pdgId));//tmp
-          if(rand_gen.Uniform() <= .25) {
-            xp_smeared = -999.;
-          }
-        
-          if(rand_gen.Uniform() <= .80) {
+          if(rand_gen.Uniform() <= .25) xp_smeared = -999.;
+          
+          if(rand_gen.Uniform() <= .90) {
             
             //sim hit smeared
             BmnHit* hit2 = new((*fBmnHitsArray2)[fBmnHitsArray2->GetEntriesFast()])BmnHit(0, TVector3(x_smeared, xp_smeared, z_smeared), 

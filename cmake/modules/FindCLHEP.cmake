@@ -36,6 +36,7 @@ If(CLHEP_CONFIG_EXE)
   execute_process(COMMAND ${CLHEP_CONFIG_EXE} --libs OUTPUT_VARIABLE CLHEP_CONFIG_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
   execute_process(COMMAND ${CLHEP_CONFIG_EXE} --include OUTPUT_VARIABLE CLHEP_CONFIG_INCLUDE_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
   execute_process(COMMAND ${CLHEP_CONFIG_EXE} --prefix OUTPUT_VARIABLE CLHEP_BASE_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+  string (REGEX REPLACE "\""  "" CLHEP_BASE_DIR ${CLHEP_BASE_DIR}) # KG remove double quotes
 
   # clean the variables because they are of the form -I/<dir> or -L/<dir> -l<lib>
   String (REGEX MATCHALL "((-L|-l|-Wl)([^\" ]+|\"[^\"]+\")|/[^\" ]+(a|so|dll))" _all_tokens "${CLHEP_CONFIG_LIBS}")
@@ -45,6 +46,7 @@ If(CLHEP_CONFIG_EXE)
        # If it's a library path, add it to the list
        string (REGEX REPLACE "^-L" "" token ${token})
        string (REGEX REPLACE "//" "/" token ${token})
+       string (REGEX REPLACE "\""  "" token ${token}) # KG remove double quotes
        list (APPEND _directory_list ${token})
     EndIf (token MATCHES "-L([^\" ]+|\"[^\"]+\")")
   EndForEach (token ${_all_tokens})
@@ -55,6 +57,7 @@ If(CLHEP_CONFIG_EXE)
   ForEach (token ${_all_tokens})
     String (REGEX REPLACE "^-I" "" token ${token})
     String (REGEX REPLACE "//" "/" token ${token})
+    string (REGEX REPLACE "\""  "" token ${token}) # KG remove double quotes
     If (EXISTS ${token})
       List (APPEND _incs_found ${token})
     EndIf (EXISTS ${token})

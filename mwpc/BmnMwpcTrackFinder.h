@@ -112,7 +112,7 @@ class BmnMwpcTrackFinder : public FairTask {
     Int_t kNumPairs;
     TVector3 *ChCent;
     vector<MC_points> vec_points;
-
+    Double_t Z0_SRC;
     Double_t ktarget_region;
     Double_t ktarget_regionY;
     Double_t kX_target;
@@ -128,7 +128,6 @@ class BmnMwpcTrackFinder : public FairTask {
 
     Float_t kZ_to_pole;
     Float_t kZ_target;
-    Float_t kZ_DC;
     Int_t kMinHits;
     Int_t kmaxPairs;
     Double_t kChi2_Max;
@@ -182,7 +181,7 @@ class BmnMwpcTrackFinder : public FairTask {
     void TracksStoring(Int_t *, Double_t ***, Double_t **, Int_t **, Double_t****);
 
     const int kMaxMC      = 100;
-    const Double_t Z0_SRC = -647.476;
+    
     
     ClassDef(BmnMwpcTrackFinder, 1)
 };

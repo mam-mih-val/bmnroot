@@ -50,61 +50,66 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
   if(expData) CoordinateAlignment(NhitsXYmod,  XspCoord, XpspCoord, YspCoord,  NclustX, NclustXp, XCoord, XpCoord);
   
   //----------------------------Tracking--------------------------------
-  if(fDebug) cout<<"------------Case1: spatial track------------"<<endl;
-  CountSpatialPoints(NhitsXYmod,Nsp_st);
-  if ( (Nsp_st[1] > 0 && Nsp_st[2] > 0 && Nsp_st[3]) > 0){
-    Case1(NhitsXYmod, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, vec_tracks,
-          XspClust, XspClust_width, sumQxsp,XpspClust, XpspClust_width, sumQxpsp);
-    RecordingTracksAfterSpatialPoints(vec_tracks,CleanTr);
-  }
-  CheckPoints(NclustX, NclustXp, XCoord, XpCoord, SigmaX, SigmaXp, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, NhitsXYmod, CleanTr,
-                Nleftoversp, NleftoverX, NleftoverXp,leftoverXsp,leftoverXpsp,leftoverYsp,leftoverXsigsp,leftoverXpsigsp,leftoverYsigsp,leftoverX,leftoverXp,leftoverXsig,leftoverXpsig);
- 
-  if(fDebug) cout<<"------------Case1.--------------------------"<<endl;
- 
-  if(fDebug) cout<<"------------Case2: 2spatial points + XorX'---"<<endl;
-  CountSpatialPoints(Nleftoversp,Nsp_st);
-  if ( Nsp_st[3] > 0 && (Nsp_st[1] + Nsp_st[2]) > 0 ) {
-    for (Int_t Istn = 1; Istn < 3; ++Istn) {
-     Case2( Istn, Nleftoversp, leftoverXsp, leftoverXpsp, leftoverYsp, leftoverXsigsp,  leftoverXpsigsp, leftoverYsigsp, NleftoverX,  NleftoverXp, 
-           leftoverX, leftoverXp, leftoverXsig, leftoverXpsig, vec_tracks,
-           XClust, XClust_width, sumQx,XpspClust, XpClust_width, sumQxp,
-           XspClust, XspClust_width, sumQxsp,XpspClust, XpspClust_width, sumQxpsp);
-     RecordingTracks(vec_tracks,CleanTr);
-     CheckPoints(NclustX, NclustXp, XCoord, XpCoord, SigmaX, SigmaXp, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, NhitsXYmod, CleanTr,
-                Nleftoversp, NleftoverX, NleftoverXp,leftoverXsp,leftoverXpsp,leftoverYsp,leftoverXsigsp,leftoverXpsigsp,leftoverYsigsp,leftoverX,leftoverXp,leftoverXsig,leftoverXpsig);
-    }
-  }
-  if(fDebug) cout<<"------------Case2.--------------------------"<<endl;
-  
-  if(fDebug) cout<<"------------Case3:2spatial points + check to the vertex--"<<endl;
-  CountSpatialPoints(Nleftoversp,Nsp_st);
-  if ( Nsp_st[1] > 0 && Nsp_st[2] > 0 ) {
-    Case3( Nleftoversp, leftoverXsp, leftoverXpsp, leftoverYsp, leftoverXsigsp,  leftoverXpsigsp, leftoverYsigsp, 
-           NleftoverX,  NleftoverXp, leftoverX, leftoverXp, leftoverXsig, leftoverXpsig, vec_tracks,
-           XClust, XClust_width, sumQx,XpspClust, XpClust_width, sumQxp,
-           XspClust, XspClust_width, sumQxsp,XpspClust, XpspClust_width, sumQxpsp);
-    RecordingTracks_case3(vec_tracks,CleanTr);
-    CheckPoints(NclustX, NclustXp, XCoord, XpCoord, SigmaX, SigmaXp, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, NhitsXYmod, CleanTr,
-                Nleftoversp, NleftoverX, NleftoverXp,leftoverXsp,leftoverXpsp,leftoverYsp,leftoverXsigsp,leftoverXpsigsp,leftoverYsigsp,leftoverX,leftoverXp,leftoverXsig,leftoverXpsig);
-  }
-  if(fDebug) cout<<"------------Case3.--------------------------"<<endl;
-
-  if(fDebug) cout<<"------------Case4:1spatial point in 3st + X/X' in st 1&2-"<<endl;
-  CountSpatialPoints(Nleftoversp,Nsp_st);
-  if ( Nsp_st[3] > 0) {
-    for (Int_t Istn = 1; Istn < 3; ++Istn) {
-     Case4( Istn, Nleftoversp, leftoverXsp, leftoverXpsp, leftoverYsp, leftoverXsigsp,  leftoverXpsigsp, leftoverYsigsp, NleftoverX,  
-            NleftoverXp, leftoverX, leftoverXp, leftoverXsig, leftoverXpsig, vec_tracks,
-            XClust, XClust_width, sumQx,XpspClust, XpClust_width, sumQxp,
+  if(fRunPeriod == 7){
+    if(fDebug) cout<<"------------Case1: spatial track------------"<<endl;
+    CountSpatialPoints(NhitsXYmod,Nsp_st);
+    if ( Nsp_st[1] > 0 && Nsp_st[2] > 0 && Nsp_st[3] > 0 ){
+      Case1(NhitsXYmod, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, vec_tracks,
             XspClust, XspClust_width, sumQxsp,XpspClust, XpspClust_width, sumQxpsp);
-     RecordingTracks(vec_tracks,CleanTr);
-     CheckPoints(NclustX, NclustXp, XCoord, XpCoord, SigmaX, SigmaXp, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, NhitsXYmod, CleanTr,
-                Nleftoversp, NleftoverX, NleftoverXp,leftoverXsp,leftoverXpsp,leftoverYsp,leftoverXsigsp,leftoverXpsigsp,leftoverYsigsp,leftoverX,leftoverXp,leftoverXsig,leftoverXpsig);
+      RecordingTracksAfterSpatialPoints(vec_tracks,CleanTr);
     }
+    CheckPoints(NclustX, NclustXp, XCoord, XpCoord, SigmaX, SigmaXp, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, NhitsXYmod, CleanTr,
+                  Nleftoversp, NleftoverX, NleftoverXp,leftoverXsp,leftoverXpsp,leftoverYsp,leftoverXsigsp,leftoverXpsigsp,leftoverYsigsp,leftoverX,leftoverXp,leftoverXsig,leftoverXpsig);
+    if(fDebug) cout<<"------------Case1.--------------------------"<<endl;
+   
+    if(fDebug) cout<<"------------Case2: 2spatial points + XorX'---"<<endl;
+    CountSpatialPoints(Nleftoversp,Nsp_st);
+    if ( Nsp_st[3] > 0 && (Nsp_st[1] + Nsp_st[2]) > 0 ) {
+      for (Int_t Istn = 1; Istn < 3; ++Istn) {
+       Case2( Istn, Nleftoversp, leftoverXsp, leftoverXpsp, leftoverYsp, leftoverXsigsp,  leftoverXpsigsp, leftoverYsigsp, NleftoverX,  NleftoverXp, 
+             leftoverX, leftoverXp, leftoverXsig, leftoverXpsig, vec_tracks,
+             XClust, XClust_width, sumQx,XpspClust, XpClust_width, sumQxp,
+             XspClust, XspClust_width, sumQxsp,XpspClust, XpspClust_width, sumQxpsp);
+       RecordingTracks(vec_tracks,CleanTr);
+       CheckPoints(NclustX, NclustXp, XCoord, XpCoord, SigmaX, SigmaXp, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, NhitsXYmod, CleanTr,
+                  Nleftoversp, NleftoverX, NleftoverXp,leftoverXsp,leftoverXpsp,leftoverYsp,leftoverXsigsp,leftoverXpsigsp,leftoverYsigsp,leftoverX,leftoverXp,leftoverXsig,leftoverXpsig);
+      }
+    }
+    if(fDebug) cout<<"------------Case2.--------------------------"<<endl;
+    
+    if(fDebug) cout<<"------------Case3:2spatial points + check to the vertex--"<<endl;
+    CountSpatialPoints(Nleftoversp,Nsp_st);
+    if ( Nsp_st[1] > 0 && Nsp_st[2] > 0 ) {
+      Case3( Nleftoversp, leftoverXsp, leftoverXpsp, leftoverYsp, leftoverXsigsp,  leftoverXpsigsp, leftoverYsigsp, 
+             NleftoverX,  NleftoverXp, leftoverX, leftoverXp, leftoverXsig, leftoverXpsig, vec_tracks,
+             XClust, XClust_width, sumQx,XpspClust, XpClust_width, sumQxp,
+             XspClust, XspClust_width, sumQxsp,XpspClust, XpspClust_width, sumQxpsp);
+      RecordingTracks_case3(vec_tracks,CleanTr);
+      CheckPoints(NclustX, NclustXp, XCoord, XpCoord, SigmaX, SigmaXp, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, NhitsXYmod, CleanTr,
+                  Nleftoversp, NleftoverX, NleftoverXp,leftoverXsp,leftoverXpsp,leftoverYsp,leftoverXsigsp,leftoverXpsigsp,leftoverYsigsp,leftoverX,leftoverXp,leftoverXsig,leftoverXpsig);
+    }
+    if(fDebug) cout<<"------------Case3.--------------------------"<<endl;
+
+    if(fDebug) cout<<"------------Case4:1spatial point in 3st + X/X' in st 1&2-"<<endl;
+    CountSpatialPoints(Nleftoversp,Nsp_st);
+    if ( Nsp_st[3] > 0) {
+      for (Int_t Istn = 1; Istn < 3; ++Istn) {
+       Case4( Istn, Nleftoversp, leftoverXsp, leftoverXpsp, leftoverYsp, leftoverXsigsp,  leftoverXpsigsp, leftoverYsigsp, NleftoverX,  
+              NleftoverXp, leftoverX, leftoverXp, leftoverXsig, leftoverXpsig, vec_tracks,
+              XClust, XClust_width, sumQx,XpspClust, XpClust_width, sumQxp,
+              XspClust, XspClust_width, sumQxsp,XpspClust, XpspClust_width, sumQxpsp);
+       RecordingTracks(vec_tracks,CleanTr);
+       CheckPoints(NclustX, NclustXp, XCoord, XpCoord, SigmaX, SigmaXp, XspCoord, XpspCoord, YspCoord, SigmspX, SigmspXp, SigmspY, NhitsXYmod, CleanTr,
+                  Nleftoversp, NleftoverX, NleftoverXp,leftoverXsp,leftoverXpsp,leftoverYsp,leftoverXsigsp,leftoverXpsigsp,leftoverYsigsp,leftoverX,leftoverXp,leftoverXsig,leftoverXpsig);
+      }
+    }
+    if(fDebug)cout<<"-------------Case4.--------------------------"<<endl;
+    CheckLeftover(Nleftoversp, NleftoverX, NleftoverXp,leftoverXsp,leftoverXpsp,leftoverYsp,leftoverXsigsp,leftoverXpsigsp,leftoverYsigsp,leftoverX,leftoverXp,leftoverXsig,leftoverXpsig, CleanTr,
+    NhitsXYmod, XspCoord, YspCoord, SigmspX, SigmspY);
+  }//run7
+  if(fRunPeriod == 8){
+    return;
   }
-  if(fDebug)cout<<"-------------Case4.--------------------------"<<endl;
-  CheckLeftover(Nleftoversp, NleftoverX, NleftoverXp,leftoverXsp,leftoverXpsp,leftoverYsp,leftoverXsigsp,leftoverXpsigsp,leftoverYsigsp,leftoverX,leftoverXp,leftoverXsig,leftoverXpsig);
   
   if(fDebug) PrintAllTracks(CleanTr);
   
@@ -113,7 +118,6 @@ void BmnSiliconTrackFinder::Exec(Option_t* opt) {
   //------Write all Silicon-hits & Tracks------
   WriteSiliconHits(NclustX, NclustXp, NhitsXYmod, XCoord, XClust_width, XClust, sumQx, XpCoord, XpClust_width, XpClust, sumQxp, XspCoord, YspCoord, XspClust_width, XpspClust_width,
                    XspClust, XpspClust, sumQxsp, sumQxpsp, SigmaX, SigmaXp,SigmspX, SigmspXp, SigmspY, Sp_pdg);
-  
   WriteSiliconTracks(CleanTr);
 
   if (fDebug) cout << endl;
@@ -204,8 +208,9 @@ void BmnSiliconTrackFinder::WriteSiliconHits(Int_t **NclustX_, Int_t **NclustXp_
       if (ist == 2 && imod > 1) continue;
       for (Int_t cl = 0; cl < NclustX_[ist][imod]; cl++) {
         
+        if (XCoord_[ist][imod][cl] < -900.) continue;
        //if(fDebug)cout<<" st "<<ist<<" hit: X "<<XCoord[ist][imod][cl] <<" Y "<<-100.<<" SigX "<<SigmaX[ist][imod][cl]<<" SigY "<<-100.<<endl;
-       BmnSiliconHit* hit = new ((*fBmnSiliconHitsXArray)[countX])
+        BmnSiliconHit* hit = new ((*fBmnSiliconHitsXArray)[countX])
                         BmnSiliconHit(0, TVector3(XCoord_[ist][imod][cl]+Shift_toCenterOfMagnetX, -100., Zstation[ist][imod]), 
                         TVector3(SigmaX_[ist][imod][cl], -100, -1), cl);
         hit->SetStation(ist);
@@ -230,6 +235,7 @@ void BmnSiliconTrackFinder::WriteSiliconHits(Int_t **NclustX_, Int_t **NclustXp_
       if (ist == 2 && imod > 1) continue;
       for (Int_t cl = 0; cl < NclustXp_[ist][imod]; cl++) {
         
+        if (XpCoord_[ist][imod][cl] < -900.) continue;
        //if(fDebug)cout<<" st "<<ist<<" hit: X "<<XCoord_[ist][imod][cl] <<" Y "<<-100.<<" SigX "<<SigmaX_[ist][imod][cl]<<" SigY "<<-100.<<endl;
        BmnSiliconHit* hit = new ((*fBmnSiliconHitsXpArray)[countXp])
                         BmnSiliconHit(0, TVector3(XpCoord_[ist][imod][cl]+Shift_toCenterOfMagnetX, -100., Zstation[ist][imod]), 
@@ -257,6 +263,7 @@ void BmnSiliconTrackFinder::WriteSiliconHits(Int_t **NclustX_, Int_t **NclustXp_
       for (Int_t cl = 0; cl < NhitsXYmod_[ist][imod]; cl++) {
         
        if(fDebug)cout<<" st "<<ist<<" hit: X "<<XspCoord_[ist][imod][cl] <<" Y "<<YspCoord_[ist][imod][cl]<<" pdg "<<Sp_pdg_[ist][imod][cl]<<endl;
+       if (XspCoord_[ist][imod][cl] < -900.) continue;
        BmnSiliconHit* hit = new ((*fBmnSiliconHitsXYArray)[countXY])
                         BmnSiliconHit(0, TVector3(XspCoord_[ist][imod][cl]+Shift_toCenterOfMagnetX, YspCoord_[ist][imod][cl]+Shift_toCenterOfMagnetY, Zstation[ist][imod]), 
                         TVector3(SigmspX_[ist][imod][cl], SigmspY_[ist][imod][cl], -1), cl);
@@ -378,10 +385,10 @@ void BmnSiliconTrackFinder::MCefficiencyCalculation(vector<MC_points>& vec, vect
         if (mc_tr_assoc[itr2] == -1) continue;
         
         if (mc_tr_assoc[itr] ==  mc_tr_assoc[itr2]){
-          if (dmc_match[itr2] > dmc_match[itr] ) mc_tr_assoc[itr2] = -1;
+          if (dmc_match[itr2] > 2*dmc_match[itr] ) mc_tr_assoc[itr2] = -1;
           else {
-            mc_tr_assoc[itr] = -1;
-            break;
+            //mc_tr_assoc[itr] = -1;
+            continue;//break;
           }
         }
       }//itr2
@@ -434,13 +441,13 @@ void BmnSiliconTrackFinder::StripsReading(Double_t ***DigitsArrayX_, Double_t **
       if (strip = digit ->GetStripNumber() - 2 < 0) continue;
       strip = digit ->GetStripNumber() -1;// Kapishin's digits start 1th strip & shift for src
       Ampl  = digit ->GetStripSignal();
-      if(fDebug) cout<<" stat "<< stat <<" mod "<< mod <<" layer "<<layer<< " strip "<<strip<<" Ampl "<<Ampl<<endl; 
+      //if(fDebug) cout<<" stat "<< stat <<" mod "<< mod <<" layer "<<layer<< " strip "<<strip<<" Ampl "<<Ampl<<endl; 
         if (layer == 0) {
           DigitsArrayX_[stat][mod][strip] = Ampl;
          // if(fDebug) cout<<" DigitsArrayX["<<stat<<"]["<<mod<<"]["<<strip<<"] = "<<DigitsArrayX_[stat][mod][strip]<<endl;
         }
       if (layer == 1) {
-        if (stat == 1) {
+        if (fRunPeriod == 7 && stat == 1) {
          new_strip = nstripXpsm - strip;
          if (new_strip < 0) continue;
          DigitsArrayXp_[stat][mod][new_strip] = Ampl;
@@ -449,11 +456,11 @@ void BmnSiliconTrackFinder::StripsReading(Double_t ***DigitsArrayX_, Double_t **
          if (new_strip < 0) continue;
          DigitsArrayXp_[stat][mod][new_strip] = Ampl;
         }//else
-       // if (stat == 3){
+         // if (stat == 3){
          // if (new_strip > 639) continue;
          // DigitsArrayXp_[stat][mod][new_strip+1] = DigitsArrayXp_[stat][mod][new_strip];
-       // }
-        // if(fDebug) cout<<" DigitsArrayXp["<<stat<<"]["<<mod<<"]["<<new_strip<<"] = "<<DigitsArrayXp_[stat][mod][new_strip]<<endl;
+         // }
+         // if(fDebug) cout<<" DigitsArrayXp["<<stat<<"]["<<mod<<"]["<<new_strip<<"] = "<<DigitsArrayXp_[stat][mod][new_strip]<<endl;
       }//layer == 1
     }//iDig
 }
@@ -466,10 +473,14 @@ void BmnSiliconTrackFinder::GetXYspatial(Int_t **NClX, Int_t **NClXp, Double_t *
   Double_t ***XspCl, Double_t ***XspCl_width, Double_t ***sQxsp, Double_t ***XpspCl, Double_t ***XpspCl_width, Double_t ***sQxpsp){
 
   SensitiveAreaY = new Double_t[fNstations];
+  
+  for (Int_t istat = 1; istat < fNstations; istat++) {
+    SensitiveAreaY[istat] = 2 * 6.0705 + 0.1148 + 0.2303;
+  }
+  if (fRunPeriod == 7){
+    SensitiveAreaY[1] = 6.0705 + 0.1148;
+  }
   SensitiveAreaY[0] = 0.;
-  SensitiveAreaY[1] = 6.0705 + 0.1148;
-  SensitiveAreaY[2] = 2 * 6.0705 + 0.1148 + 0.2303;
-  SensitiveAreaY[3] = 2 * 6.0705 + 0.1148 + 0.2303;
   Double_t YCoor_cand = -1.;
 
   for (Int_t istat = 1; istat < fNstations; istat++) {
@@ -479,20 +490,21 @@ void BmnSiliconTrackFinder::GetXYspatial(Int_t **NClX, Int_t **NClXp, Double_t *
       for (Int_t clx = 0; clx < NClX[istat][imod]; ++clx) {
         for (Int_t clxp = 0; clxp < NClXp[istat][imod]; ++clxp) {
           if (XCoor[istat][imod][clx] > -900. && XpCoor[istat][imod][clxp] > -900.) {
+            //if ( fabs(XpCoor[istat][imod][clxp] - XCoor[istat][imod][clx]) > 0.3 ) continue;// VP 11.11.2021
 
             YCoor_cand = (XpCoor[istat][imod][clxp] - XCoor[istat][imod][clx]) / tg2_5;
 
-            if ( fDebug ) cout<<" istat "<<istat<<" imod "<<imod<<" X "<<XCoor[istat][imod][clx]<<" Xp "<<XpCoor[istat][imod][clxp] <<" Ycand "<<YCoor_cand <<endl;
-            if ( fDebug ) cout<<" SensitiveAreaY[istat] "<<SensitiveAreaY[istat]<<endl;
-
+            //if ( fDebug ) cout<<" istat "<<istat<<" imod "<<imod<<" X "<<XCoor[istat][imod][clx]<<" Xp "<<XpCoor[istat][imod][clxp] <<" Ycand "<<YCoor_cand <<" SensitiveAreaY[istat] "<<SensitiveAreaY[istat]<<endl;
+          
            if (YCoor_cand >= 0.1148 && YCoor_cand <= SensitiveAreaY[istat]) { // if (YCoor_cand >= 0 && YCoor_cand <= SensitiveAreaY[istat]) {
                
-              if( istat > 1 && YCoor_cand > 6.0705 + 0.1148  &&  YCoor_cand < 6.0705 + 0.1148 + 0.2303 ) continue;
+              if(fRunPeriod == 7 && istat > 1 && YCoor_cand > 6.0705 + 0.1148  &&  YCoor_cand < 6.0705 + 0.1148 + 0.2303 ) continue;
+              //if (fRunPeriod == 7 && istat == 1)
                
-              if (istat > 1 && YCoor_cand <= half_module) {
+              if (fRunPeriod == 7 && istat > 1 && YCoor_cand <= half_module) {
                 YCoor_cand -= shift_after_zigzag;
               }
-              if ( fDebug ) cout<<" Y "<<YCoor_cand<<endl;
+             // if ( fDebug ) cout<<" Y "<<YCoor_cand<<endl;
               Xsp[istat][imod][NXYsp[istat][imod]]         = XCoor[istat][imod][clx];
               SigspX[istat][imod][NXYsp[istat][imod]]      = SigmX[istat][imod][clx];
               XspCl[istat][imod][NXYsp[istat][imod]]       = XCl[istat][imod][clx];
@@ -509,7 +521,7 @@ void BmnSiliconTrackFinder::GetXYspatial(Int_t **NClX, Int_t **NClXp, Double_t *
               SigspY[istat][imod][NXYsp[istat][imod]]      = sqrt( pow (SigmX[istat][imod][clx],2) + pow(SigmXp[istat][imod][clxp],2) ) / tg2_5;
               NXYsp[istat][imod]++;
             }
-            if (fDebug) cout<<" NXYsp["<<istat<<"]["<<imod<<"] "<<NXYsp[istat][imod]<<endl;
+           // if (fDebug) cout<<" NXYsp["<<istat<<"]["<<imod<<"] "<<NXYsp[istat][imod]<<endl;
 
           }//if X & Y > -900
         }//NClXp
@@ -545,15 +557,26 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
   */ 
 
   Int_t counter_strx_mod=0;
-
+  Int_t indX = 0;
+  
   for (Int_t istat = 1; istat < fNstations; istat++) {
     for (Int_t imod = 0; imod < fNmodules; imod++) {
       for (Int_t istr = 0; istr < fNstrips; istr++) {
+        if (istat == 1 && imod > 3) continue;
+        if (istat == 2 && imod > 1) continue;
      
-       if ( DigitsArrayX_[istat][imod][istr] == 0. && DigitsArrayX_[istat][imod][istr-1] > Cut_AmplX && DigitsArrayX_[istat][imod][istr + 1] > Cut_AmplX)
+        if (fDebug && istat == 1 && DigitsArrayX_[istat][imod][istr] > 0.)  hoccupancyX1.at(imod) ->Fill(istr);
+        if (fDebug && istat == 2 && DigitsArrayX_[istat][imod][istr] > 0.)  hoccupancyX2.at(imod) ->Fill(istr);
+        if (fDebug && istat == 3 && DigitsArrayX_[istat][imod][istr] > 0.)  hoccupancyX3.at(imod) ->Fill(istr);
+        
+        if (fDebug && istat == 1 && DigitsArrayXp_[istat][imod][istr] > 0.)  hoccupancyXp1.at(imod) ->Fill(istr);
+        if (fDebug && istat == 2 && DigitsArrayXp_[istat][imod][istr] > 0.)  hoccupancyXp2.at(imod) ->Fill(istr);
+        if (fDebug && istat == 3 && DigitsArrayXp_[istat][imod][istr] > 0.)  hoccupancyXp3.at(imod) ->Fill(istr);
+        
+        if ( DigitsArrayX_[istat][imod][istr] == 0. && DigitsArrayX_[istat][imod][istr-1] > Cut_AmplX && DigitsArrayX_[istat][imod][istr + 1] > Cut_AmplX)
         DigitsArrayX_[istat][imod][istr] = 0.5 * ( DigitsArrayX_[istat][imod][istr-1] + DigitsArrayX_[istat][imod][istr + 1] ) ;
 
-       if ( istat == 1 && imod == 0 ) {
+       if (istat == 1 && imod == 0 ) {
         // dead zone 405-412 strips
         if ( DigitsArrayX_[istat][imod][404] > Cut_AmplX ) DigitsArrayX_[istat][imod][405] = 0.5* DigitsArrayX_[istat][imod][404] ;
         if ( DigitsArrayX_[istat][imod][413] > Cut_AmplX ) DigitsArrayX_[istat][imod][412] = 0.5* DigitsArrayX_[istat][imod][413] ;
@@ -577,10 +600,10 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
       SumAmpl = 0.;
       Strip_counterX = 0;
      
-       if ( fDebug) cout<<"----x-----"<<endl; 
+      // if ( fDebug) cout<<"----x-----"<<endl; 
       for (Int_t istr = 0; istr < fNstrips; istr++){
         
-        if ( fDebug && DigitsArrayX_[istat][imod][istr] > 0.) cout<<" DigitsArrayX_["<<istat<<"]["<<imod<<"]["<<istr<<"] "<<DigitsArrayX_[istat][imod][istr]<<endl;
+       // if ( fDebug && DigitsArrayX_[istat][imod][istr] > 0.) cout<<" DigitsArrayX_["<<istat<<"]["<<imod<<"]["<<istr<<"] "<<DigitsArrayX_[istat][imod][istr]<<endl;
         
         // looking for start and end of cluster
         if (NfirstX < 0 && DigitsArrayX_[istat][imod][istr] == 0.) continue;
@@ -588,7 +611,7 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
         if (NfirstX >= 0 && DigitsArrayX_[istat][imod][istr + 1] == 0. ) NlastX = istr;
   
         if (NfirstX >= 0 && NlastX > 0) {
-          if(fDebug) cout<<" NfirstX "<<NfirstX<<" NlastX "<<NlastX<<endl;
+         // if(fDebug) cout<<" NfirstX "<<NfirstX<<" NlastX "<<NlastX<<endl;
           Int_t max_ampl_strip = -1,
           num_max_ampl_strip = -1,
           num_left_strip = 0,
@@ -611,7 +634,7 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
             }
             //calculate center of cluster
             CoG = FindClusterCenter(Ampl_strX, ClusterSizeX, SumAmpl);
-            if(fDebug) cout<<" CoG "<<CoG <<endl;
+            //if(fDebug) cout<<" CoG "<<CoG <<endl;
           }
 
           for (Int_t is = NfirstX; is < NlastX + 1; is++) {
@@ -626,9 +649,9 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
           }
           
 
-          if(fDebug) cout<<" ampl_centr strip "<<DigitsArrayX_[istat][imod][num_centr_strip]<<" Cut_AmplStripX "<<Cut_AmplStripX<<endl;
+         // if(fDebug) cout<<" ampl_centr strip "<<DigitsArrayX_[istat][imod][num_centr_strip]<<" Cut_AmplStripX "<<Cut_AmplStripX<<endl;
           if ( num_centr_strip > 0 && DigitsArrayX_[istat][imod][num_centr_strip] < Cut_AmplStripX) {
-          if(fDebug) cout<<" num_centr_strip > Cut_AmplStripX "<<endl;
+          //if(fDebug) cout<<" num_centr_strip > Cut_AmplStripX "<<endl;
            NfirstX = -1;
            NlastX = -1;
            continue;
@@ -640,15 +663,15 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
            continue;
           }
 
-          if(fDebug) cout<<" NfirstX "<<NfirstX<<" CoG "<<CoG<<" NfirstX + CoG "<<NfirstX + CoG<<endl;
+          //if(fDebug) cout<<" NfirstX "<<NfirstX<<" CoG "<<CoG<<" NfirstX + CoG "<<NfirstX + CoG<<endl;
 
           XClust_[istat][imod][NclustX_[istat][imod]] = NfirstX + CoG;
           XClust_width_[istat][imod][NclustX_[istat][imod]] = ClusterSizeX;
           sumQx_[istat][imod][NclustX_[istat][imod]] = SumAmpl;
-           if(fDebug) cout<<" NclustX_["<<istat<<"]["<<imod<<"] "<<NclustX_[istat][imod]<<" NfX "<<NfirstX<<" NlX "<<NlastX<<" ClustSizeX "<<ClusterSizeX<<" XClust_ "<<XClust_[istat][imod][NclustX_[istat][imod]]<<endl;
+         //  if(fDebug) cout<<" NclustX_["<<istat<<"]["<<imod<<"] "<<NclustX_[istat][imod]<<" NfX "<<NfirstX<<" NlX "<<NlastX<<" ClustSizeX "<<ClusterSizeX<<" XClust_ "<<XClust_[istat][imod][NclustX_[istat][imod]]<<endl;
 
           NclustX_[istat][imod] ++;
-          if(fDebug) cout<<" NclustX_["<<istat<<"]["<<imod<<"] "<<NclustX_[istat][imod]<<endl;
+         // if(fDebug) cout<<" NclustX_["<<istat<<"]["<<imod<<"] "<<NclustX_[istat][imod]<<endl;
 
           NfirstX = -1;
           NlastX = -1;
@@ -663,10 +686,10 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
       NlastXp = -1;
       ClusterSizeXp = 0;
       SumAmplXp = 0.;
-       if ( fDebug) cout<<"----xp-----"<<endl;
+       //if ( fDebug) cout<<"----xp-----"<<endl;
       for (Int_t istr = 0; istr < fNstrips; istr++) {
 
-       if ( fDebug && DigitsArrayXp_[istat][imod][istr] > 0.) cout<<" DigitsArrayXp_["<<istat<<"]["<<imod<<"]["<<istr<<"] "<<DigitsArrayXp_[istat][imod][istr]<<endl;
+       //if ( fDebug && DigitsArrayXp_[istat][imod][istr] > 0.) cout<<" DigitsArrayXp_["<<istat<<"]["<<imod<<"]["<<istr<<"] "<<DigitsArrayXp_[istat][imod][istr]<<endl;
        
        // looking for start and end of cluster
        if (NfirstXp < 0 && DigitsArrayXp_[istat][imod][istr] == 0.)      continue;
@@ -714,7 +737,7 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
           //if ( fDebug && SumAmplXp > 0) hsumQ[istat][imod][1]->Fill(log10(float(SumAmplXp))/log10(float(2)));//Fill(SumAmplXp);
 
           if ( num_centr_strip > 0 && DigitsArrayXp_[istat][imod][num_centr_strip] < Cut_AmplStripXp) {
-            if(fDebug) cout<<" num_centr_strip > Cut_AmplStripX "<<endl;
+           // if(fDebug) cout<<" num_centr_strip > Cut_AmplStripX "<<endl;
             NfirstXp = -1;
             NlastXp = -1;
             continue;
@@ -732,12 +755,12 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
            continue;
           }
           */
-           if(fDebug) cout<<" NfirstXp "<<NfirstXp<<" CoG "<<CoG<<" NfirstXp + CoG "<<NfirstXp + CoG<<endl;
+         //  if(fDebug) cout<<" NfirstXp "<<NfirstXp<<" CoG "<<CoG<<" NfirstXp + CoG "<<NfirstXp + CoG<<endl;
           XpClust_[istat][imod][NclustXp_[istat][imod]] = NfirstXp + CoG;
           XpClust_width_[istat][imod][NclustXp_[istat][imod]] = ClusterSizeXp;
           sumQxp_[istat][imod][NclustXp_[istat][imod]] = SumAmplXp;
           NclustXp_[istat][imod]++;
-           if ( fDebug) cout<<"NclustXp_["<<istat<<"]["<<imod<<"] "<<NclustXp_[istat][imod]<<endl;
+          // if ( fDebug) cout<<"NclustXp_["<<istat<<"]["<<imod<<"] "<<NclustXp_[istat][imod]<<endl;
 
           NfirstXp = -1;
           NlastXp = -1;
@@ -754,8 +777,8 @@ Double_t *** XpClust_, Double_t *** XpClust_width_, Double_t *** sumQxp_, Int_t 
 
 //--------------CoordinateCalculation-----------------------------------
 void BmnSiliconTrackFinder::CoordinateCalculation(Int_t **NclustX_, Int_t **NclustXp_, Double_t ***XCoord_, Double_t ***XpCoord_, Double_t ***SigmaX_, Double_t ***SigmaXp_,
-Double_t ***XspCoord_, Double_t ***XpspCoord_, Double_t ***YspCoord_, Double_t ***SigmspX_, Double_t ***SigmspXp_, Double_t ***SigmspY_, 
-Int_t **NhitsXYmod_,
+ Double_t ***XspCoord_, Double_t ***XpspCoord_, Double_t ***YspCoord_, Double_t ***SigmspX_, Double_t ***SigmspXp_, Double_t ***SigmspY_, 
+ Int_t **NhitsXYmod_,
  Double_t ***XClust_, Double_t ***XClust_width_, Double_t ***sumQx_, Double_t ***XpClust_, Double_t ***XpClust_width_, Double_t ***sumQxp_,
  Double_t ***XspClust_, Double_t ***XspClust_width_, Double_t ***sumQxsp_, Double_t ***XpspClust_, Double_t ***XpspClust_width_, Double_t ***sumQxpsp_,
  vector<MC_points>& vec, Int_t *** Sp_pdg_ ){
@@ -816,7 +839,6 @@ if(expData){
   GetXYspatial(NclustX_, NclustXp_, XCoord_, XpCoord_, XspCoord_, XpspCoord_, YspCoord_, NhitsXYmod_, SigmaX_, SigmaXp_, SigmspX_, SigmspXp_, SigmspY_,
               XClust_, XClust_width_, sumQx_, XpClust_, XpClust_width_, sumQxp_, XspClust_, XspClust_width_, sumQxsp_, XpspClust_, XpspClust_width_, sumQxpsp_);
 
-  
   /*
   for(Int_t ist = 1; ist < fNstations; ist++) {
     if(fDebug) cout<<" Xspatial["<<ist<<"] ";
@@ -893,7 +915,7 @@ if(expData){
       NclustXp_[st_mc][imod]++;
       
       XspCoord_[st_mc][imod][NhitsXYmod[st_mc][imod]]  = x_MC;
-      XpspCoord_[st_mc][imod][NhitsXYmod[st_mc][imod]] = xp_MC;
+      if (xp_MC > -900.) XpspCoord_[st_mc][imod][NhitsXYmod[st_mc][imod]] = xp_MC;
       YspCoord_[st_mc][imod][NhitsXYmod[st_mc][imod]]  = (xp_MC - x_MC)/tg2_5;
       Sp_pdg_[st_mc][imod][NhitsXYmod[st_mc][imod]]    = hit->GetType();
       SigmspX_[st_mc][imod][NhitsXYmod[st_mc][imod]]   = sigx_MC;
@@ -1017,9 +1039,11 @@ Int_t **NclustX_, Int_t **NclustXp_, Double_t ***XCoord_, Double_t ***XpCoord_){
        // if ( fDebug ) cout<<" ist "<<ist<<" imod "<<imod<<endl;
         if (ist == 1 && imod > 3 ) continue;
         if (ist == 2 && imod > 1 ) continue;
-        // if ( fDebug ) cout<<" shiftX["<<ist<<"]["<<imod<<"]= "<<shiftX[ist][imod]<<" shiftY["<<ist<<"]["<<imod<<"]= "<<shiftY[ist][imod]<<endl;
-      }
+      // if ( fDebug ) cout<<" shiftX["<<ist<<"]["<<imod<<"]= "<<shiftX[ist][imod]<<" shiftY["<<ist<<"]["<<imod<<"]= "<<shiftY[ist][imod]<<endl;
     }
+  }
+  
+if (fRunPeriod == 7){
   
   for(Int_t ist = 1; ist < fNstations; ist++) {
     for (Int_t imod = 0; imod < fNmodules; imod++) {
@@ -1027,21 +1051,17 @@ Int_t **NclustX_, Int_t **NclustXp_, Double_t ***XCoord_, Double_t ***XpCoord_){
       if (ist == 2 && imod > 1 ) continue;
       for (Int_t cl = 0; cl < NhitsXYmod_[ist][imod]; cl++) {
 
-        if(ist == 2 || ist == 3) { // gap between Si planes implemented for Run-7
+        if( (ist == 2 || ist == 3)) { // gap between Si planes 
           if( YspCoord_[ist][imod][cl] > 0. && YspCoord_[ist][imod][cl] <= 0.1151) continue;
           if( YspCoord_[ist][imod][cl] < 0. && YspCoord_[ist][imod][cl] >= -0.1151) continue;
           if( YspCoord_[ist][imod][cl] > 0. ) YspCoord_[ist][imod][cl] += 0.1151;
-          //else (YspCoord_[ist][imod][cl] -= 0.1151;
-          // else{
-          //XpCoord[ist][imod][cl]
-          // YspCoord_[ist][imod][cl] -= 0.1151;
-          // }
         }
         //rotate around X
         if (
           (ist == 1 && (imod == 1 || imod == 3)) || 
           (ist == 2 && imod == 1) ||
           (ist == 3 && (imod == 2 || imod ==3 || imod ==6 || imod ==7) )
+          
         ){
           XspCoord_[ist][imod][cl]  = -XspCoord_[ist][imod][cl];
           XpspCoord_[ist][imod][cl] = -XpspCoord_[ist][imod][cl];
@@ -1052,7 +1072,7 @@ Int_t **NclustX_, Int_t **NclustXp_, Double_t ***XCoord_, Double_t ***XpCoord_){
 
         //rotate around Y
         if (
-          (ist == 1 && (imod == 2|| imod == 3) )||
+          (ist == 1 && (imod == 2 || imod == 3) )||
           (ist == 3 && imod > 3 )
         ) {
           YspCoord_[ist][imod][cl] = -YspCoord_[ist][imod][cl];
@@ -1091,7 +1111,7 @@ Int_t **NclustX_, Int_t **NclustXp_, Double_t ***XCoord_, Double_t ***XpCoord_){
     }//imod
   }//ist
   
-
+ 
   for (Int_t ist = 1; ist < fNstations; ist++) {
     for (Int_t imod = 0; imod < fNmodules; imod++) {
       if (ist == 1 && imod > 3 ) continue;
@@ -1135,6 +1155,96 @@ Int_t **NclustX_, Int_t **NclustXp_, Double_t ***XCoord_, Double_t ***XpCoord_){
       }//xp cl
     }//imod
   }//ist
+  
+}//fRunPeriod == 7
+
+if (fRunPeriod == 8){
+  Double_t Xtmp;
+  //--Shift X & Y spatial coordinates--
+  for(Int_t ist = 1; ist < fNstations; ist++) {
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      for (Int_t cl = 0; cl < NhitsXYmod_[ist][imod]; cl++) {
+        
+        //rotate around X
+        if (imod == 1 ){
+          XspCoord_[ist][imod][cl]  = -XspCoord_[ist][imod][cl];
+          XpspCoord_[ist][imod][cl] = -XpspCoord_[ist][imod][cl];
+        }
+        // if(fDebug) cout<<" after X -> -X "<<endl;
+        // if(fDebug) cout<<ist<<","<<imod<<" X "<<XspCoord_[ist][imod][cl] <<" Y "<<YspCoord_[ist][imod][cl]<<endl;
+
+        //rotate around Y -> the start of counting strips is at the top
+        YspCoord_[ist][imod][cl] = -YspCoord_[ist][imod][cl];
+        
+        // if(fDebug) cout<<" after Y -> -Y "<<endl;
+        // if(fDebug) cout<<ist<<","<<imod<<" X "<<XspCoord_[ist][imod][cl] <<endl;
+        // if(fDebug) cout<<" Y "<<YspCoord_[ist][imod][cl]<<endl;
+        
+        XspCoord_[ist][imod][cl]  += shiftX[ist][imod];
+        YspCoord_[ist][imod][cl]  += shiftY[ist][imod];
+        XpspCoord_[ist][imod][cl] += shiftY[ist][imod]*(-Angle(ist,imod))*tg2_5 + shiftX[ist][imod];
+        // if(fDebug) hXYspatial[ist]->Fill(XspCoord_[ist][imod][cl], YspCoord_[ist][imod][cl]);
+        
+        //shift from Zubarev to Global orientation
+        if( ist == 1 ||  ist == 3){
+          Xtmp = XspCoord_[ist][imod][cl];
+          XspCoord_[ist][imod][cl] = YspCoord_[ist][imod][cl];
+          YspCoord_[ist][imod][cl] = Xtmp;
+        }
+        if( ist == 2 ||  ist == 4){
+          XspCoord_[ist][imod][cl]  = -XspCoord_[ist][imod][cl];
+          YspCoord_[ist][imod][cl]  = -YspCoord_[ist][imod][cl];
+        }
+        
+        //---shift X Y to global---to beam line axis
+        XspCoord_[ist][imod][cl]  += shiftStXtoGlob[ist];
+        YspCoord_[ist][imod][cl]  += shiftStYtoGlob[ist];
+        XpspCoord_[ist][imod][cl] += shiftStYtoGlob[ist]*(Angle(ist,imod))*tg2_5 + shiftStXtoGlob[ist];
+        
+        //if(fDebug){
+          // hYspatialst[ist]-> Fill( YspCoord_[ist][imod][cl]);
+          // cout<<" after shift in the end"<<endl;
+          // cout<<" X "<<XspCoord_[ist][imod][cl] <<" Y "<<YspCoord_[ist][imod][cl]<<endl;
+       // }
+      }//cl
+    }//imod
+  }//ist
+  
+  //--Shift X & X' coordinates--
+  for (Int_t ist = 1; ist < fNstations; ist++) {
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      for (Int_t cl = 0; cl < NclustX_[ist][imod]; cl++) {
+        if (imod == 1) {
+          XCoord_[ist][imod][cl]= -XCoord_[ist][imod][cl];
+        }
+        XCoord_[ist][imod][cl] += shiftX[ist][imod];
+        //if ist == 1 ||  ist == 3 -> Y
+        if( ist == 2 ||  ist == 4){
+          XCoord_[ist][imod][cl] = - XCoord_[ist][imod][cl];
+        }
+        XCoord_[ist][imod][cl] += shiftStXtoGlob[ist];
+      }//xcl
+
+      for (Int_t cl = 0; cl < NclustXp_[ist][imod]; cl++) {
+        //rotate around X
+        if (imod == 1) {
+          XpCoord_[ist][imod][cl]= -XpCoord_[ist][imod][cl];
+        }
+        // if(fDebug) cout<<" after Xp -> -Xp "<<endl;
+        // if(fDebug) cout<<ist<<","<<imod<<" Xp "<<XpCoord_[ist][imod][cl] <<endl;
+        XpCoord_[ist][imod][cl] += shiftY[ist][imod]*(-Angle(ist,imod))*tg2_5 + shiftX[ist][imod];
+        //if ist == 1 ||  ist == 3 -> Yp
+        if( ist == 2 ||  ist == 4){
+          XpCoord_[ist][imod][cl] = - XpCoord_[ist][imod][cl];
+        }
+        // if(fDebug) cout<<" after shift "<<endl;
+        // if(fDebug) cout<<ist<<","<<imod<<" Xp "<<XpCoord_[ist][imod][cl] <<endl;
+        XpCoord_[ist][imod][cl] += shiftStYtoGlob[ist]*(Angle(ist,imod))*tg2_5 + shiftStXtoGlob[ist];
+      }//xp cl
+    }//imod
+  }//ist
+  
+}//RUN8
   
   if(fDebug) cout<<" --after shift-- "<<endl;
   
@@ -1199,6 +1309,18 @@ Int_t **NclustX_, Int_t **NclustXp_, Double_t ***XCoord_, Double_t ***XpCoord_){
       if(fDebug) cout<<endl;
     }
   if(fDebug) cout<<endl;
+  
+  for (Int_t ist = 1; ist < fNstations ; ist++) {
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      if (ist == 1 && imod > 3 ) continue;
+      if (ist == 2 && imod > 1 ) continue;
+      for (Int_t cl = 0; cl < NhitsXYmod_[ist][imod]; cl++) {
+        if(fDebug && ist == 1)  hY_XSisp1bef->Fill(XspCoord_[ist][imod][cl],YspCoord_[ist][imod][cl]);
+        if(fDebug && ist == 2)  hY_XSisp2bef->Fill(XspCoord_[ist][imod][cl],YspCoord_[ist][imod][cl]);
+      }
+      
+    }
+  }
   
 }
 //----------------------------------------------------------------------
@@ -1875,26 +1997,98 @@ Double_t ***pointsX, Double_t ***pointsXp, Double_t ***pointsXsig,Double_t ***po
 //----------------------------------------------------------------------
 void BmnSiliconTrackFinder::CheckLeftover(Int_t **Nspatial, Int_t **NpointsX,Int_t **NpointsXp, 
 Double_t ***pointsXsp, Double_t ***pointsXpsp,Double_t ***pointsYsp,Double_t ***pointsXsigsp,Double_t ***pointsXpsigsp, Double_t ***pointsYsigsp,
-Double_t ***pointsX, Double_t ***pointsXp, Double_t ***pointsXsig,Double_t ***pointsXpsig){
+Double_t ***pointsX, Double_t ***pointsXp, Double_t ***pointsXsig,Double_t ***pointsXpsig,  vector<tracksX> & CleanTr_,
+Int_t **NhitsXYmod_, Double_t ***XspCoord_, Double_t ***YspCoord_, Double_t ***SigmspX_, Double_t ***SigmspY_){
 
-if(fDebug) cout<<" CheckLeftover"<<endl;
 
+
+  if(fDebug) cout<<" CheckLeftover"<<endl;
+  bool woSp[2]={0, 0};
+
+  //adding a hit from a track. the case when the plane didn't work
+  if(fDebug) cout<<endl;
+  if (fDebug && CleanTr_.size() > 0)  cout<<"track was but: "<<endl;
+  
+  for (Int_t InIter = 0;  InIter < CleanTr_.size(); ++InIter){
+    //only for 5 point tracks
+    if (CleanTr_.at(InIter).Nhits < 5 || CleanTr_.at(InIter).Nhits == 6) continue;
+    
+    if(fDebug) cout<<" itr "<<InIter<<" if Nhits = 5: "<<CleanTr_.at(InIter).Nhits<<endl;
+    for (Int_t st = 1; st < fNstations -1 ; ++st) {
+      woSp[st]= 0;
+      
+      //if the track has no point in 1 or 2 stations
+      if ( CleanTr_.at(InIter).CoordX[st] < -900.){
+        
+        if (fDebug)  cout<<"no X["<<st<<"]: "<< CleanTr_.at(InIter).CoordX[st]<<endl;
+        if (fDebug)  cout<<" was sp points? "<<endl;
+        for (Int_t imod = 0; imod < fNmodules; imod++) {
+          if ( st == 1 && imod > 3) continue;
+          if ( st == 2 && imod > 1) continue;
+          
+          if (fDebug)  cout<<" Nspatial["<<st<<"]= "<<NhitsXYmod_[st][imod]<<endl;
+          //checking the number of spatial points in 1 or 2 stations
+          if (NhitsXYmod_[st][imod] > 0 ) woSp[st] = 1;
+          
+          for (Int_t cl = 0; cl < NhitsXYmod_[st][imod]; cl++){
+            if(fDebug) cout<<"st["<<st<<"] "<<" X "<<XspCoord_[st][imod][cl]<<endl;
+          }
+          
+        }//mod
+        Double_t FitX = CleanTr_.at(InIter).param[0] * CleanTr_.at(InIter).CoordZ[st] + CleanTr_.at(InIter).param[1];
+        Double_t FitY = CleanTr_.at(InIter).param[2] * CleanTr_.at(InIter).CoordZ[st] + CleanTr_.at(InIter).param[3];
+        
+        //adding a spatial point from the track if there is no point
+        if ( woSp[st] == 0){
+          if(fDebug) cout<<" woSp["<<st<<"] "<<woSp[st]<<"-> FitX "<<FitX<<" FitY "<<FitY<<endl;
+          XspCoord_[st][1][NhitsXYmod_[st][1]] = FitX;
+          YspCoord_[st][1][NhitsXYmod_[st][1]] = FitY;
+          SigmspX_[st][1][NhitsXYmod_[st][1]]  = 0.0060;
+          SigmspY_[st][1][NhitsXYmod_[st][1]]  = 0.2;
+          NhitsXYmod_[st][1]++;
+        }//woSp[st] == 1
+
+      }//CoordX[st] < -900.
+       
+      if ( CleanTr_.at(InIter).CoordY[st] < -900.){
+        if (fDebug)  cout<<"no Y["<<st<<"] "<< CleanTr_.at(InIter).CoordY[st]<<endl;
+        for (Int_t imod = 0; imod < fNmodules; imod++) {
+          if ( st == 1 && imod > 3) continue;
+          if ( st == 2 && imod > 1) continue;
+          
+          if (fDebug)  cout<<" Nspatial = "<<NhitsXYmod_[st][imod]<<endl;
+          //checking the number of spatial points in 1 or 2 stations
+          if (NhitsXYmod_[st][imod] > 0 ) woSp[st] = 1;
+          
+          for (Int_t cl = 0; cl < NhitsXYmod_[st][imod]; cl++){
+            if(fDebug) cout<<"st["<<st<<"] "<<" Y "<<YspCoord_[st][imod][cl]<<endl;
+          }
+        }//mod
+        Double_t FitX = CleanTr_.at(InIter).param[0] * CleanTr_.at(InIter).CoordZ[st] + CleanTr_.at(InIter).param[1];
+        Double_t FitY = CleanTr_.at(InIter).param[2] * CleanTr_.at(InIter).CoordZ[st] + CleanTr_.at(InIter).param[3];
+        
+        if ( woSp[st] == 0){
+          if(fDebug) cout<<" woSp["<<st<<"] "<<woSp[st]<<"-> FitX "<<FitX<<" FitY "<<FitY<<endl;
+          XspCoord_[st][1][NhitsXYmod_[st][1]] = FitX;
+          YspCoord_[st][1][NhitsXYmod_[st][1]] = FitY;
+          SigmspX_[st][1][NhitsXYmod_[st][1]]  = 0.0060;
+          SigmspY_[st][1][NhitsXYmod_[st][1]]  = 0.2;
+          NhitsXYmod_[st][1]++;
+        }//woSp[st] == 1
+        
+      }//CoordXp[st] < -900.
+    }//st
+    //NhitsXYmod_[ist][imod]
+  }// CleanTr_.size()
+  //adding a hit from a track.
+
+
+  //print all unused hits 
   for(Int_t ist = 1; ist < fNstations; ist++){
     if(fDebug) cout<<" pointsXsp["<<ist<<"] ";
     for (Int_t imod = 0; imod < fNmodules; imod++) {
       for (Int_t cl = 0; cl < Nspatial[ist][imod]; cl++){
        if(fDebug) cout<<pointsXsp[ist][imod][cl]<<" ";
-      }
-    }
-   if(fDebug) cout<<endl;
-  }
-  if(fDebug) cout<<endl;
-  
-  for(Int_t ist = 1; ist < fNstations; ist++){
-    if(fDebug) cout<<" pointsYsp["<<ist<<"] ";
-    for (Int_t imod = 0; imod < fNmodules; imod++) {
-      for (Int_t cl = 0; cl < Nspatial[ist][imod]; cl++){
-       if(fDebug) cout<<pointsYsp[ist][imod][cl]<<" ";
       }
     }
    if(fDebug) cout<<endl;
@@ -1911,7 +2105,6 @@ if(fDebug) cout<<" CheckLeftover"<<endl;
    if(fDebug) cout<<endl;
   }
   if(fDebug) cout<<endl;
-  
   for(Int_t ist = 1; ist < fNstations; ist++) {
     if(fDebug) cout<<" pointsX["<<ist<<"] ";
     for (Int_t imod = 0; imod < fNmodules; imod++) {
@@ -1921,27 +2114,6 @@ if(fDebug) cout<<" CheckLeftover"<<endl;
     }
     if(fDebug) cout<<endl;
   }
-  if(fDebug) cout<<endl;
-  
-  for(Int_t ist = 1; ist < fNstations; ist++){
-    for (Int_t imod = 0; imod < fNmodules; imod++) {
-      for (Int_t cl = 0; cl < NpointsX[ist][imod]; cl++){
-        for(Int_t is = 1; is < fNstations; is++) {
-          for (Int_t im = 0; im < fNmodules; im++) {
-            for (Int_t clp = 0; clp < NpointsXp[is][im]; clp++){
-             //if(fDebug)  cout<< " X["<<ist<<"] "<<pointsX[ist][imod][cl]<<" Xp["<<is<<"] "<< pointsXp[is][im][clp]<<" XXp "<<pointsX[ist][imod][cl] - pointsXp[is][im][clp]<<endl;
-              if (ist == 1 && is == 2){
-                if(fDebug) hXXp12CheckLeftover->Fill(pointsX[ist][imod][cl] - pointsXp[is][im][clp]);
-                if (fDebug && fabs(pointsX[ist][imod][cl] - pointsXp[is][im][clp]) < 0.3 ) hXXp12CheckLeftover03->Fill(pointsX[ist][imod][cl] - pointsXp[is][im][clp]);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
- 
-  
   for(Int_t ist = 1; ist < fNstations; ist++) {
     if(fDebug) cout<<" pointsXp["<<ist<<"] ";
     for (Int_t imod = 0; imod < fNmodules; imod++) {
@@ -1951,22 +2123,112 @@ if(fDebug) cout<<" CheckLeftover"<<endl;
     }
     if(fDebug) cout<<endl;
   }
-  if(fDebug) cout<<endl;
   
-  for(Int_t ist = 1; ist < fNstations; ist++) {
+  //recording points from crossed planes
+  for(Int_t ist = 1; ist < fNstations -1; ist++){
     for (Int_t imod = 0; imod < fNmodules; imod++) {
-      for (Int_t cl = 0; cl < NpointsXp[ist][imod]; cl++){
-        for(Int_t is = 1; is < fNstations; is++) {
+      if ( ist == 1 && imod > 3) continue;
+      if ( ist == 2 && imod > 1) continue;
+      woSp[ist]= 0;
+      
+      if (NhitsXYmod_[ist][imod] > 0 ) woSp[ist] = 1;
+    }
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      if (woSp[ist] == 1) continue;
+      if (fDebug)  cout<< " woSp["<<ist<<"] "<<woSp[ist]<<endl;
+      
+      for (Int_t cl = 0; cl < NpointsX[ist][imod]; cl++){
+        for(Int_t is = 1; is < fNstations -1 ; is++) {
           for (Int_t im = 0; im < fNmodules; im++) {
-            for (Int_t clp = 0; clp < NpointsX[is][im]; clp++){
+            if ( is == 1 && im > 3) continue;
+            if ( is == 2 && im > 1) continue;
+            
+            for (Int_t clp = 0; clp < NpointsXp[is][im]; clp++){
               if (ist == 1 && is == 2){
-                if(fDebug)  hXXp12CheckLeftover->Fill(pointsXp[ist][imod][cl] - pointsX[is][im][clp]);
-                if (fDebug && fabs(pointsXp[ist][imod][cl] - pointsX[is][im][clp]) < 0.3 ) hXXp12CheckLeftover03->Fill(pointsX[ist][imod][cl] - pointsXp[is][im][clp]);
+               if(fDebug)  cout<< " X["<<ist<<"] "<<pointsX[ist][imod][cl]<<" Xp["<<is<<"] "<< pointsXp[is][im][clp]<<" XXp "<<pointsX[ist][imod][cl] - pointsXp[is][im][clp]<<endl;
+                if (fDebug && fabs(pointsX[ist][imod][cl] - pointsXp[is][im][clp]) > 0.) hXXp12CheckLeftover->Fill(pointsX[ist][imod][cl] - pointsXp[is][im][clp]);
+                if (fDebug && fabs(pointsX[ist][imod][cl] - pointsXp[is][im][clp]) > 0. && fabs(pointsX[ist][imod][cl] - pointsXp[is][im][clp]) < 0.2 ){
+                  hXXp12CheckLeftover03->Fill(pointsX[ist][imod][cl] - pointsXp[is][im][clp]);
+                  
+                  XspCoord_[ist][imod][NhitsXYmod_[ist][imod]] = pointsX[ist][imod][cl];
+                  YspCoord_[ist][imod][NhitsXYmod_[ist][imod]] =(pointsX[ist][imod][cl] - pointsXp[is][im][clp]) / tg2_5;
+                  SigmspX_[ist][imod][NhitsXYmod_[ist][imod]]  = pointsXsig[ist][imod][cl];
+                  SigmspY_[ist][imod][NhitsXYmod_[ist][imod]]  = 0.2;
+                  if(fDebug)  cout<< " Ysp "<<(pointsX[ist][imod][cl] - pointsXp[is][im][clp]) / tg2_5<<endl;
+                  NhitsXYmod_[ist][imod]++;
+                }
               }
             }
           }
         }
       }
+    }
+  }
+  if(fDebug) cout<<endl;
+  
+  
+  for(Int_t ist = 1; ist < fNstations -1 ; ist++) {
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      if ( ist == 1 && imod > 3) continue;
+      if ( ist == 2 && imod > 1) continue;
+      woSp[ist]= 0;
+      
+      //checking the number of spatial points in 1 or 2 stations
+      if (NhitsXYmod_[ist][imod] > 0 ) woSp[ist] = 1;
+    }
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      if (woSp[ist] == 1) continue;
+      if (fDebug)  cout<< " woSp["<<ist<<"] "<<woSp[ist]<<endl;
+      
+      for (Int_t cl = 0; cl < NpointsXp[ist][imod]; cl++){
+        for(Int_t is = 1; is < fNstations -1; is++) {
+          for (Int_t im = 0; im < fNmodules; im++) {
+            if ( is == 1 && im > 3) continue;
+            if ( is == 2 && im > 1) continue;
+            
+            for (Int_t clp = 0; clp < NpointsX[is][im]; clp++){
+              if (ist == 1 && is == 2){
+                if (fDebug)  cout<< " Xp["<<ist<<"] "<<pointsXp[ist][imod][cl]<<" X["<<is<<"] "<< pointsX[is][im][clp]<<" XXp "<<pointsXp[ist][imod][cl] - pointsX[is][im][clp]<<endl;
+                if (fDebug && fabs(pointsXp[ist][imod][cl] - pointsX[is][im][clp]) > 0.)   hXXp12CheckLeftover->Fill(pointsXp[ist][imod][cl] - pointsX[is][im][clp]);
+                if (fDebug && fabs(pointsXp[ist][imod][cl] - pointsX[is][im][clp]) > 0. && fabs(pointsXp[ist][imod][cl] - pointsX[is][im][clp]) < 0.3 ){
+                  hXXp12CheckLeftover03->Fill(pointsXp[ist][imod][cl] - pointsX[is][im][clp]);
+                  
+                  XspCoord_[ist][imod][NhitsXYmod_[ist][imod]] = pointsX[is][im][clp];
+                  YspCoord_[ist][imod][NhitsXYmod_[ist][imod]] =(pointsX[is][im][clp] - pointsXp[ist][imod][cl]) / tg2_5;
+                  SigmspX_[ist][imod][NhitsXYmod_[ist][imod]]  = pointsXsig[is][im][clp];
+                  SigmspY_[ist][imod][NhitsXYmod_[ist][imod]]  = 0.2;
+                  if(fDebug)  cout<< " Ysp "<<(pointsX[is][im][clp] - pointsXp[ist][imod][cl]) / tg2_5<<endl;
+                  NhitsXYmod_[ist][imod]++;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+    
+  for(Int_t is = 1; is < fNstations -1; is++) {
+    for (Int_t im = 0; im < fNmodules; im++) {
+      if ( is == 1 && im > 3) continue;
+      if ( is == 2 && im > 1) continue;
+     // if (fDebug)  cout<< " NhitsXYmod_["<<is<<"]["<<im<<"] "<< NhitsXYmod_[is][im]<<endl;
+      for(Int_t icl = 0; icl < NhitsXYmod_[is][im]; icl++) {
+      // if (fDebug)  cout<< " Xsp "<< XspCoord_[is][im][icl]<<endl;
+      }
+    }
+  }
+  
+  for (Int_t ist = 1; ist < fNstations ; ist++) {
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      if (ist == 1 && imod > 3 ) continue;
+      if (ist == 2 && imod > 1 ) continue;
+      for (Int_t cl = 0; cl < NhitsXYmod_[ist][imod]; cl++) {
+        if(fDebug && ist == 1)  hY_XSisp1->Fill(XspCoord_[ist][imod][cl],YspCoord_[ist][imod][cl]);
+        if(fDebug && ist == 2)  hY_XSisp2->Fill(XspCoord_[ist][imod][cl],YspCoord_[ist][imod][cl]);
+      }
+      
     }
   }
   
@@ -1994,8 +2256,25 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
     if (InIter == 0) hAx_first_tr->Fill(CleanTr_.at(InIter).param[0]);
     else hAx_more_first_tr->Fill(CleanTr_.at(InIter).param[0]);
     hvertexXY->Fill(CleanTr_.at(InIter).Xv, CleanTr_.at(InIter).Yv);
+    
     sum_xv +=  CleanTr_.at(InIter).Xv;
     sum_yv +=  CleanTr_.at(InIter).Yv;
+    //for Run8
+    Double_t Z1 = Z0_SRC_target + 126.;
+    Double_t Z2 = Z0_SRC_target + 176.;
+    
+    Double_t X1   = CleanTr_.at(InIter).param[0] * ( Z1 -Zcentr) + CleanTr_.at(InIter).param[1];
+    Double_t Y1   = CleanTr_.at(InIter).param[2] * ( Z1 -Zcentr) + CleanTr_.at(InIter).param[3];
+    
+    Double_t X2   = CleanTr_.at(InIter).param[0] * ( Z2 -Zcentr) + CleanTr_.at(InIter).param[1];
+    Double_t Y2   = CleanTr_.at(InIter).param[2] * ( Z2 -Zcentr) + CleanTr_.at(InIter).param[3];
+    
+    hYXSi1_run8->Fill(X1,Y1);
+    hYXSi2_run8->Fill(X2,Y2);
+    hXSi1_run8->Fill(X1);
+    hYSi1_run8->Fill(Y1);
+    hXSi2_run8->Fill(X2);
+    hYSi2_run8->Fill(Y2);
 
     cout<<endl;
     cout<<" ---iTr "<<InIter<<" Nhits "<<CleanTr_.at(InIter).Nhits<<
@@ -2221,8 +2500,10 @@ void BmnSiliconTrackFinder::PrintAllTracks(vector<tracksX> & CleanTr_){
     }
     
     double z_cnt = 0;
-    if (CleanTr_.at(InIter).CoordX[1] > -900. || CleanTr_.at(InIter).CoordXp[1] > -900.) hprofile_beam_z1->Fill(CleanTr_.at(InIter).param[0] * (CleanTr_.at(InIter).CoordZ[1] - z_cnt) + CleanTr_.at(InIter).param[1],CleanTr_.at(InIter).param[2] * (CleanTr_.at(InIter).CoordZ[1]- z_cnt) + CleanTr_.at(InIter).param[3] );
-    if (CleanTr_.at(InIter).CoordX[2] > -900. || CleanTr_.at(InIter).CoordXp[2] > -900.) hprofile_beam_z2->Fill(CleanTr_.at(InIter).param[0] * (CleanTr_.at(InIter).CoordZ[2] - z_cnt) + CleanTr_.at(InIter).param[1],CleanTr_.at(InIter).param[2] * (CleanTr_.at(InIter).CoordZ[2]- z_cnt) + CleanTr_.at(InIter).param[3] );
+    if (CleanTr_.at(InIter).CoordX[1] > -900. || CleanTr_.at(InIter).CoordXp[1] > -900.) 
+    hprofile_beam_z1->Fill(CleanTr_.at(InIter).param[0] * (CleanTr_.at(InIter).CoordZ[1] - z_cnt) + CleanTr_.at(InIter).param[1],CleanTr_.at(InIter).param[2] * (CleanTr_.at(InIter).CoordZ[1]- z_cnt) + CleanTr_.at(InIter).param[3] );
+    if (CleanTr_.at(InIter).CoordX[2] > -900. || CleanTr_.at(InIter).CoordXp[2] > -900.) 
+    hprofile_beam_z2->Fill(CleanTr_.at(InIter).param[0] * (CleanTr_.at(InIter).CoordZ[2] - z_cnt) + CleanTr_.at(InIter).param[1],CleanTr_.at(InIter).param[2] * (CleanTr_.at(InIter).CoordZ[2]- z_cnt) + CleanTr_.at(InIter).param[3] );
     hprofile_beam_z3->Fill(CleanTr_.at(InIter).param[0] * (CleanTr_.at(InIter).CoordZ[3] - z_cnt) + CleanTr_.at(InIter).param[1],CleanTr_.at(InIter).param[2] * (CleanTr_.at(InIter).CoordZ[3]- z_cnt) + CleanTr_.at(InIter).param[3] );
     
     
@@ -3647,7 +3928,12 @@ InitStatus BmnSiliconTrackFinder::Init() {
     hprofile_beam_z3 = new TH2D("profile_beam_z3", "beam_profile_Siz3; [cm];[cm]", 100, -15, 15, 100, -20, 5);fList.Add(hprofile_beam_z3);
     hAx_first_tr     = new TH1D("Ax_first_tr","Ax_first_tr; AngleX[mrad]; Events", 200, -.1,.1);fList.Add(hAx_first_tr);
     hAx_more_first_tr= new TH1D("Ax_more_first_tr","Ax_more_first_tr; AngleX[mrad]; Events", 200, -.1,.1); fList.Add(hAx_more_first_tr);
-    
+    hYXSi1_run8      = new TH2D("hYXSi1_run8","YXSi1_run8", 100, -15,15, 100, -15,15); fList.Add(hYXSi1_run8);
+    hYXSi2_run8      = new TH2D("hYXSi2_run8","YXSi2_run8", 100, -15,15, 100, -15,15); fList.Add(hYXSi2_run8);
+    hXSi1_run8       = new TH1D("XSi1_run8","XSi1; [cm]; Events", 200, -10,10);fList.Add(hXSi1_run8);
+    hYSi1_run8       = new TH1D("YSi1_run8","YSi1; [cm]; Events", 200, -10,10);fList.Add(hYSi1_run8);
+    hXSi2_run8       = new TH1D("XSi2_run8","XSi2; [cm]; Events", 200, -10,10);fList.Add(hXSi2_run8);
+    hYSi2_run8       = new TH1D("YSi2_run8","YSi2; [cm]; Events", 200, -10,10);fList.Add(hYSi2_run8);
 
     hdX_st1_st2 = new TH1D("X_st1_st2","X (st1-st2)",100, -0.1, 0.1);fList.Add(hdX_st1_st2);
     hdX_st2_st3 = new TH1D("X_st2_st3","X (st2-st3)",100, -5., 5.);fList.Add(hdX_st2_st3);
@@ -3729,42 +4015,26 @@ InitStatus BmnSiliconTrackFinder::Init() {
     hdXp3_mod2 = new TH1D("hdXp3_mod2","hdXp3_mod2",100, -0.02, 0.02);fList.Add(hdXp3_mod2);
     hdXXp3_mod1 = new TH1D("hdXXp3_mod1","hdXXp3_mod1",100, -0.5, 0.5);fList.Add(hdXXp3_mod1);
     hdXXp3_mod2 = new TH1D("hdXXp3_mod2","hdXXp3_mod2",100, -0.5, 0.5);fList.Add(hdXXp3_mod2);
-    hXXp12CheckLeftover = new TH1D("hXXp12CheckLeftover","hXXp12CheckLeftover",100, -10, 10);fList.Add(hXXp12CheckLeftover);
-    hXXp12CheckLeftover03 = new TH1D("hXXp12CheckLeftover03","hXXp12CheckLeftove3",100, -0.3, 0.3);fList.Add(hXXp12CheckLeftover03);
+    hXXp12CheckLeftover   = new TH1D("hXXp12CheckLeftover","hXXp12CheckLeftover",200, -1, 1);fList.Add(hXXp12CheckLeftover);
+    hXXp12CheckLeftover03 = new TH1D("hXXp12CheckLeftover03","hXXp12CheckLeftover03",900, -0.15, 0.15);fList.Add(hXXp12CheckLeftover03);
     
-    hdXvsXst1_0 = new TH2D("dXvsXst1_0","dXvsXst1_0", 100, -6, 6, 100, -0.05, 0.05);
-    hdXvsXst1_1 = new TH2D("dXvsXst1_1","dXvsXst1_1", 100, -6, 6, 100, -0.05, 0.05);
-    hdXvsXst1_2 = new TH2D("dXvsXst1_2","dXvsXst1_2", 100, -6, 6, 100, -0.05, 0.05);
-    hdXvsXst1_3 = new TH2D("dXvsXst1_3","dXvsXst1_3", 100, -6, 6, 100, -0.05, 0.05);
-    hdXvsXst2_0 = new TH2D("dXvsXst2_0","dXvsXst2_0", 100, -6, 6, 100, -0.05, 0.05);
-    hdXvsXst2_1 = new TH2D("dXvsXst2_1","dXvsXst2_1", 100, -6, 6, 100, -0.05, 0.05);
-    hdXvsXst3_1 = new TH2D("dXvsXst3_1","dXvsXst3_1", 100, -6, 6, 100, -0.001, 0.001);
-    hdXvsXst3_2 = new TH2D("dXvsXst3_2","dXvsXst3_2", 100, -6, 6, 100, -0.001, 0.001);
-    fList.Add(hdXvsXst1_0);
-    fList.Add(hdXvsXst1_1);
-    fList.Add(hdXvsXst1_2);
-    fList.Add(hdXvsXst1_3);
-    fList.Add(hdXvsXst2_0);
-    fList.Add(hdXvsXst2_1);
-    fList.Add(hdXvsXst3_1);
-    fList.Add(hdXvsXst3_2);
-    
-    hdYvsYst1_mod0 = new TH2D("dYvsYst1_mod0","dYvsYst1_mod0", 100, -6, 6, 100, -0.6, 0.6);
-    hdYvsYst1_mod1 = new TH2D("dYvsYst1_mod1","dYvsYst1_mod1", 100, -6, 6, 100, -0.6, 0.6);
-    hdYvsYst1_mod2 = new TH2D("dYvsYst1_mod2","dYvsYst1_mod2", 100, -6, 6, 100, -0.6, 0.6);
-    hdYvsYst1_mod3 = new TH2D("dYvsYst1_mod3","dYvsYst1_mod3", 100, -6, 6, 100, -0.6, 0.6);
-    hdYvsYst2_mod0 = new TH2D("dYvsYst2_mod0","dYvsYst2_mod0", 100, -6, 6, 100, -0.6, 0.6);
-    hdYvsYst2_mod1 = new TH2D("dYvsYst2_mod1","dYvsYst2_mod1", 100, -6, 6, 100, -0.6, 0.6);
-    hdYvsYst3_mod1 = new TH2D("dYvsYst3_mod1","dYvsYst3_mod1", 100, -6, 6, 100, -0.2, 0.2);
-    hdYvsYst3_mod2 = new TH2D("dYvsYst3_mod2","dYvsYst3_mod2", 100, -6, 6, 100, -0.2, 0.2);
-    fList.Add(hdYvsYst1_mod0);
-    fList.Add(hdYvsYst1_mod1);
-    fList.Add(hdYvsYst1_mod2);
-    fList.Add(hdYvsYst1_mod3);
-    fList.Add(hdYvsYst2_mod0);
-    fList.Add(hdYvsYst2_mod1);
-    fList.Add(hdYvsYst3_mod1);
-    fList.Add(hdYvsYst3_mod2);
+    hdXvsXst1_0 = new TH2D("dXvsXst1_0","dXvsXst1_0", 100, -6, 6, 100, -0.05, 0.05);fList.Add(hdXvsXst1_0);
+    hdXvsXst1_1 = new TH2D("dXvsXst1_1","dXvsXst1_1", 100, -6, 6, 100, -0.05, 0.05);fList.Add(hdXvsXst1_1);
+    hdXvsXst1_2 = new TH2D("dXvsXst1_2","dXvsXst1_2", 100, -6, 6, 100, -0.05, 0.05);fList.Add(hdXvsXst1_2);
+    hdXvsXst1_3 = new TH2D("dXvsXst1_3","dXvsXst1_3", 100, -6, 6, 100, -0.05, 0.05);fList.Add(hdXvsXst1_3);
+    hdXvsXst2_0 = new TH2D("dXvsXst2_0","dXvsXst2_0", 100, -6, 6, 100, -0.05, 0.05);fList.Add(hdXvsXst2_0);
+    hdXvsXst2_1 = new TH2D("dXvsXst2_1","dXvsXst2_1", 100, -6, 6, 100, -0.05, 0.05);fList.Add(hdXvsXst2_1);
+    hdXvsXst3_1 = new TH2D("dXvsXst3_1","dXvsXst3_1", 100, -6, 6, 100, -0.001, 0.001);fList.Add(hdXvsXst3_1);
+    hdXvsXst3_2 = new TH2D("dXvsXst3_2","dXvsXst3_2", 100, -6, 6, 100, -0.001, 0.001);fList.Add(hdXvsXst3_2);
+
+    hdYvsYst1_mod0 = new TH2D("dYvsYst1_mod0","dYvsYst1_mod0", 100, -6, 6, 100, -0.6, 0.6);fList.Add(hdYvsYst1_mod0);
+    hdYvsYst1_mod1 = new TH2D("dYvsYst1_mod1","dYvsYst1_mod1", 100, -6, 6, 100, -0.6, 0.6);fList.Add(hdYvsYst1_mod1);
+    hdYvsYst1_mod2 = new TH2D("dYvsYst1_mod2","dYvsYst1_mod2", 100, -6, 6, 100, -0.6, 0.6);fList.Add(hdYvsYst1_mod2);
+    hdYvsYst1_mod3 = new TH2D("dYvsYst1_mod3","dYvsYst1_mod3", 100, -6, 6, 100, -0.6, 0.6);fList.Add(hdYvsYst1_mod3);
+    hdYvsYst2_mod0 = new TH2D("dYvsYst2_mod0","dYvsYst2_mod0", 100, -6, 6, 100, -0.6, 0.6);fList.Add(hdYvsYst2_mod0);
+    hdYvsYst2_mod1 = new TH2D("dYvsYst2_mod1","dYvsYst2_mod1", 100, -6, 6, 100, -0.6, 0.6);fList.Add(hdYvsYst2_mod1);
+    hdYvsYst3_mod1 = new TH2D("dYvsYst3_mod1","dYvsYst3_mod1", 100, -6, 6, 100, -0.2, 0.2);fList.Add(hdYvsYst3_mod1);
+    hdYvsYst3_mod2 = new TH2D("dYvsYst3_mod2","dYvsYst3_mod2", 100, -6, 6, 100, -0.2, 0.2);fList.Add(hdYvsYst3_mod2);
     
     hdYst1_0_st2_0= new TH1D("dYst1_0_st2_0","dYst1_0_st2_0",100, -1, 1);
     hdYst1_0_st2_1= new TH1D("dYst1_0_st2_1","dYst1_0_st2_1",100, -1, 1);
@@ -3791,13 +4061,17 @@ InitStatus BmnSiliconTrackFinder::Init() {
     fList.Add(hdYst2_1_st3_1);
     fList.Add(hdYst2_1_st3_2);
     
-    N_eff = new TH1D("N_eff","N_eff", 6,1,7);
-    D_eff = new TH1D("D_eff","D_eff", 6,1,7);
-    E_eff = new TH1D("E_eff","Hit Efficiency per Layer on Track", 6,1,7);
+    hY_XSisp1=  new TH2D("hY_XSisp1","hY_XSisp1", 100, -10, 10, 100, -10, 10);fList.Add(hY_XSisp1);
+    hY_XSisp2=  new TH2D("hY_XSisp2","hY_XSisp2", 100, -10, 10, 100, -10, 10);fList.Add(hY_XSisp2);
+    hY_XSisp3=  new TH2D("hY_XSisp3","hY_XSisp3", 100, -10, 10, 100, -20,  0);fList.Add(hY_XSisp3);
+    
+    hY_XSisp1bef=  new TH2D("hY_XSisp1bef","hY_XSisp1bef", 100, -10, 10, 100, -10, 10);fList.Add(hY_XSisp1bef);
+    hY_XSisp2bef=  new TH2D("hY_XSisp2bef","hY_XSisp2bef", 100, -10, 10, 100, -10, 10);fList.Add(hY_XSisp2bef);
+    
+    N_eff = new TH1D("N_eff","N_eff", 6,1,7);fList.Add(N_eff);
+    D_eff = new TH1D("D_eff","D_eff", 6,1,7);fList.Add(D_eff);
+    E_eff = new TH1D("E_eff","Hit Efficiency per Layer on Track", 6,1,7);fList.Add(E_eff);
     E_eff->Sumw2();
-    fList.Add(N_eff);
-    fList.Add(D_eff);
-    fList.Add(E_eff);
     
     hdAx_MC_tr = new TH1D("dAx_MC_tr","dAx_MC_tr;[rad]",200, -.001,.001);fList.Add(hdAx_MC_tr);
     hdAy_MC_tr = new TH1D("dAy_MC_tr","dAy_MC_tr;[rad]",200, -.01,.01);fList.Add(hdAy_MC_tr);
@@ -3830,6 +4104,32 @@ InitStatus BmnSiliconTrackFinder::Init() {
     hNtrsi_reco = new TH1D("Ntrsi_reco",";N of Si-tr reco", 10, 0,10); fList.Add(hNtrsi_reco);
     hNtrsi_mc_vs_reco= new TH2D("hNtr_mc_vs_reco","hNtr_mc_vs_reco", 10, 0,10, 10, 0,10); fList.Add(hNtrsi_mc_vs_reco);
     
+    
+    TH1D *h;
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      if (imod > 3) continue;
+      h = new TH1D(Form("hoccupancyX1_mod%d",imod), Form("hoccupancyX1_mod%d",imod), fNstrips+1, 0.,fNstrips+1);fList.Add(h); hoccupancyX1.push_back(h);
+    }
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      if (imod > 1) continue;
+      h = new TH1D(Form("hoccupancyX2_mod%d",imod), Form("hoccupancyX2_mod%d",imod), fNstrips+1, 0.,fNstrips+1);fList.Add(h); hoccupancyX2.push_back(h);
+    }
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      h = new TH1D(Form("hoccupancyX3_mod%d",imod), Form("hoccupancyX3_mod%d",imod), fNstrips+1, 0.,fNstrips+1);fList.Add(h); hoccupancyX3.push_back(h);
+    }
+    
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      if (imod > 3) continue;
+      h = new TH1D(Form("hoccupancyXp1_mod%d",imod), Form("hoccupancyXp1_mod%d",imod), fNstrips+1, 0.,fNstrips+1);fList.Add(h); hoccupancyXp1.push_back(h);
+    }
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      if (imod > 1) continue;
+      h = new TH1D(Form("hoccupancyXp2_mod%d",imod), Form("hoccupancyXp2_mod%d",imod), fNstrips+1, 0.,fNstrips+1);fList.Add(h); hoccupancyXp2.push_back(h);
+    }
+    for (Int_t imod = 0; imod < fNmodules; imod++) {
+      h = new TH1D(Form("hoccupancyXp3_mod%d",imod), Form("hoccupancyXp3_mod%d",imod), fNstrips+1, 0.,fNstrips+1);fList.Add(h); hoccupancyXp3.push_back(h);
+    }
+    
   }//if (fDebug)
   
   //--Some Arrays--
@@ -3853,6 +4153,7 @@ InitStatus BmnSiliconTrackFinder::Init() {
   shiftStYtoGlob = new Double_t[fNstations];
   shiftX         = new Double_t*[fNstations];
   shiftY         = new Double_t*[fNstations];
+  shiftYbelow    = new Double_t*[fNstations];
   Zstation       = new Double_t*[fNstations];
   Zposition      = new Double_t[fNstations];
   NclustX        = new Int_t*[fNstations];
@@ -3917,6 +4218,7 @@ InitStatus BmnSiliconTrackFinder::Init() {
     leftoverXpsig[istat]  = new Double_t*[fNmodules];
     shiftX[istat]         = new Double_t[fNmodules];
     shiftY[istat]         = new Double_t[fNmodules];
+    shiftYbelow[istat]    = new Double_t[fNmodules];
     Zstation[istat]       = new Double_t[fNmodules];
     NclustX[istat]        = new Int_t[fNmodules];
     NclustXp[istat]       = new Int_t[fNmodules];
@@ -4024,15 +4326,11 @@ InitStatus BmnSiliconTrackFinder::Init() {
   
   kX_target = 0;
   kY_target = 0;
-  if (fRunPeriod == 7){
-    kX_target = 0.5;
-    kY_target =-4.5;
-  }
   half_target_regionX = 3.;
   half_target_regionY = 5.5; // !
-
-    
-  if (expData){
+  
+  //--cm--
+  if(expData) {
     //cut for cluster charge
     Cut_AmplX       = 120.;
     Cut_AmplXp      = 120.;
@@ -4042,13 +4340,76 @@ InitStatus BmnSiliconTrackFinder::Init() {
     Cut_AmplStripXp = 120.;
     Chi2_Globcut    = 80.;//20.;
     N_min_points    = 4;
-   
-    Shift_toCenterOfMagnetX  =  0.54;
-    Shift_toCenterOfMagnetY  = -3.43;
-    Shift_toCenterOfMagnetAX =  0.;
-    Shift_toCenterOfMagnetAY =  0.0024;
     
-  }else{
+    if (fRunPeriod == 7){
+      kX_target = 0.5;
+      kY_target =-4.5;
+      Z0_SRC_target = -645.191;
+      Zcentr        = -392.524; // Zc = Zi/3
+      Shift_toCenterOfMagnetX  =  0.54;
+      Shift_toCenterOfMagnetY  = -3.43;
+      Shift_toCenterOfMagnetAX =  0.;
+      Shift_toCenterOfMagnetAY =  0.0024;
+      //--X--    
+      shiftX[1][0] = -6.4 + 0.1148 + 0.0026; shiftX[2][0] = -5.9 + .1148 + 0.0075; shiftX[3][0] = -12.15 + 0.1148; shiftX[3][4] = -12.15 + 0.1148;
+      shiftX[1][1] =  5.9 - 0.1148 + 0.0085; shiftX[2][1] =  6.4 - .1148 + 0.009;  shiftX[3][1] = -6.15  + 0.1148; shiftX[3][5] = -6.15  + 0.1148;
+      shiftX[1][2] = -5.9 + 0.1148 + 0.011;                                        shiftX[3][2] =  6.15  - 0.1148; shiftX[3][6] =  6.15  - 0.1148;
+      shiftX[1][3] =  6.4 - 0.1148 + 0.019;                                        shiftX[3][3] =  12.15 - 0.1148; shiftX[3][7] =  12.15 - 0.1148;
+      
+      //--Y--    
+      shiftY[1][0] = -0.4 -0.08; shiftY[2][0] = -6.22 -0.02 ; shiftY[3][0] = -0.15;        shiftY[3][4] =  0.15;
+      shiftY[1][1] =  0.1 -0.06; shiftY[2][1] = -6.72       ; shiftY[3][1] = -0.15 -0.25;  shiftY[3][5] =  0.15;
+      shiftY[1][2] = -0.2 -0.05;                              shiftY[3][2] = -0.15 -0.4;   shiftY[3][6] =  0.15;
+      shiftY[1][3] =  0.4 -0.16;                              shiftY[3][3] = -0.15;        shiftY[3][7] =  0.15;
+
+      Zstation[1][0] = 1.44 + 0.5 * 0.003; Zstation[2][0] = 4.71 + 0.5 * 0.003; Zstation[3][0] = 3.51 + 0.5 * 0.003;       Zstation[3][4] = 2.25 + 0.5 * 0.003;
+      Zstation[1][1] = 2.17 + 0.5 * 0.003; Zstation[2][1] = 5.44 + 0.5 * 0.003; Zstation[3][1] = 1.98 + 0.5 * 0.003 - .08; Zstation[3][5] = 3.78 + 0.5 * 0.003;
+      Zstation[1][2] = 1.44 + 0.5 * 0.003;                                      Zstation[3][2] = 3.29 + 0.5 * 0.003 + .08; Zstation[3][6] = 2.47 + 0.5 * 0.003;
+      Zstation[1][3] = 2.17 + 0.5 * 0.003;                                      Zstation[3][3] = 1.76 + 0.5 * 0.003;       Zstation[3][7] = 4.00 + 0.5 * 0.003;
+
+      //--cm-- Shift
+      shiftStXtoGlob[0] = 0.;     shiftStYtoGlob[0] =  0.;           Zposition[0] = 0.;
+      shiftStXtoGlob[1] = 0.149 ; shiftStYtoGlob[1] =  0.096 + .191; Zposition[1] = 213.999 -6.87;
+      shiftStXtoGlob[2] = 0.149 ; shiftStYtoGlob[2] =  0.096 + .151; Zposition[2] = 213.999 -6.87;
+      shiftStXtoGlob[3] = 0.047 ; shiftStYtoGlob[3] = -6.274 + .174; Zposition[3] = 327.130 + 0.03;
+  
+    }
+    if (fRunPeriod == 8){
+      kX_target = 0.;//??
+      kY_target = 0.;//??
+      Z0_SRC_target = -574.91;  
+      Zcentr        = -423.23; // Zc = Zi/4
+      
+       //--X--    
+      shiftX[1][0] = -6.150 + 0.1148; shiftX[2][0] = -6.130 + 0.1148;  shiftX[3][0] = -6.160 + 0.1148; shiftX[4][0] = -6.158 + 0.1148;
+      shiftX[1][1] =  6.470 - 0.1148; shiftX[2][1] =  6.170 - 0.1148;  shiftX[3][1] =  6.122 - 0.1148; shiftX[4][1] =  6.129 - 0.1148;
+      
+      //--Y--    
+      //up parts
+      shiftY[1][0] = 6.203;       shiftY[2][0] = 6.218;     shiftY[3][0] = 6.206;      shiftY[4][0] =  6.209;
+      shiftY[1][1] = 6.193;       shiftY[2][1] = 6.199;     shiftY[3][1] = 6.197;      shiftY[4][1] =  6.213;
+      //below parts
+      shiftYbelow[1][0] =-0.098;  shiftYbelow[2][0] =-0.084; shiftYbelow[3][0] =-0.094; shiftYbelow[4][0] =-0.091;
+      shiftYbelow[1][1] =-0.104;  shiftYbelow[2][1] =-0.097; shiftYbelow[3][1] =-0.102; shiftYbelow[4][0] =-0.089;
+
+      Zstation[1][0] =-1.14 -1.3;  Zstation[2][0] = 1.145 + 1.3; Zstation[3][0] =-1.095 - 1.3; Zstation[4][0] = 1.140 + 1.3;
+      Zstation[1][1] =-1.85 -1.3;  Zstation[2][1] = 1.870 + 1.3; Zstation[3][1] =-1.850 - 1.3; Zstation[4][1] = 1.875 + 1.3;
+
+      //--cm-- Shift
+      shiftStXtoGlob[1] = 0.193; shiftStYtoGlob[1] = 0.153; Zposition[1] = 124.779;
+      shiftStXtoGlob[2] = 0.193; shiftStYtoGlob[2] = 0.153; Zposition[2] = 126.679;
+      shiftStXtoGlob[3] = 0.193; shiftStYtoGlob[3] = 0.153; Zposition[3] = 176.679;
+      shiftStXtoGlob[4] = 0.193; shiftStYtoGlob[4] = 0.153; Zposition[4] = 178.679;
+      
+      Shift_toCenterOfMagnetX  =  0.;
+      Shift_toCenterOfMagnetY  =  0.;
+      Shift_toCenterOfMagnetAX =  0.;
+      Shift_toCenterOfMagnetAY =  0.;
+      
+    }
+  }
+  if(!expData){
+    
     kX_target = 0.5;
     kY_target =-4.5;
     //cut for cluster charge
@@ -4065,106 +4426,49 @@ InitStatus BmnSiliconTrackFinder::Init() {
     Shift_toCenterOfMagnetY  =  0.;
     Shift_toCenterOfMagnetAX =  0.;
     Shift_toCenterOfMagnetAY =  0.;
-  }
-  
-  //--cm--
-  if(expData) {
-    //--X--    
-    shiftX[1][0] = -6.4 + 0.1148 + 0.0026;
-    shiftX[1][1] =  5.9 - 0.1148 + 0.0085;
-    shiftX[1][2] = -5.9 + 0.1148 + 0.014 -0.003;
-    shiftX[1][3] =  6.4 - 0.1148 + 0.019;
-    
-    shiftX[2][0] = -5.9 + .1148 + 0.0085       - .001;
-    shiftX[2][1] =  6.4 - .1148 + 0.0075+0.003 - .0015;
-    
-    shiftX[3][0] = -12.15 + 0.1148;
-    shiftX[3][1] = -6.15  + 0.1148;      
-    shiftX[3][2] =  6.15  - 0.1148;      
-    shiftX[3][3] =  12.15 - 0.1148;
-    shiftX[3][4] = -12.15 + 0.1148;
-    shiftX[3][5] = -6.15  + 0.1148;
-    shiftX[3][6] =  6.15  - 0.1148;
-    shiftX[3][7] =  12.15 - 0.1148;
-    
-    //--Y--             Si-Si  Pc-Si
-    shiftY[1][0] = -0.4 +0.01 -0.02 -0.06 -0.01;
-    shiftY[1][1] =  0.1 +0.01 -0.04 -0.03;       
-    shiftY[1][2] = -0.2 -0.03       -0.02;           
-    shiftY[1][3] =  0.4 -0.18 +0.01 + 0.01; 
-    
-    shiftY[2][0] = -6.22 -0.02 ;         
-    shiftY[2][1] = -6.72       ;            
-    
-    shiftY[3][0] = -0.15;
-    shiftY[3][1] = -0.15 -0.25;
-    shiftY[3][2] = -0.15 -0.4;
-    shiftY[3][3] = -0.15;
-    shiftY[3][4] =  0.15;
-    shiftY[3][5] =  0.15;
-    shiftY[3][6] =  0.15;
-    shiftY[3][7] =  0.15;
-
-    //--cm--                   Shift
-    shiftStXtoGlob[0] = 0.;
-    shiftStXtoGlob[1] = 0.149 ;
-    shiftStXtoGlob[2] = 0.149 ;
-    shiftStXtoGlob[3] = 0.047 ;
-    //                         Shift
-    shiftStYtoGlob[0] =  0.;
-    shiftStYtoGlob[1] =  0.096 +0.001 -0.05 -0.06       +0.32 -0.02;//  + 0.11 -4.5;  
-    shiftStYtoGlob[2] =  0.096 +0.001 -0.05 -0.07 + 0.1 +0.32 -0.02   - 0.13;//  + 0.11 -4.5; 
-    shiftStYtoGlob[3] =  -6.274 + .14        -0.15       +0.32 -0.006 - 0.13;// + 0.11 -4.5;
-  }else{
     
     //--X--    
-    shiftX[1][0] = -6.4 + 0.1148;
-    shiftX[1][1] =  5.9 - 0.1148;
-    shiftX[1][2] = -5.9 + 0.1148;
-    shiftX[1][3] =  6.4 - 0.1148;
-    
-    shiftX[2][0] = -5.9 + .1148 ;
-    shiftX[2][1] =  6.4 - .1148 ;
-    
-    shiftX[3][0] = -12.15 + 0.1148;
-    shiftX[3][1] = -6.15  + 0.1148;      
-    shiftX[3][2] =  6.15  - 0.1148;      
-    shiftX[3][3] =  12.15 - 0.1148;
-    shiftX[3][4] = -12.15 + 0.1148;
-    shiftX[3][5] = -6.15  + 0.1148;
-    shiftX[3][6] =  6.15  - 0.1148;
-    shiftX[3][7] =  12.15 - 0.1148;
+    shiftX[1][0] = -6.4 + 0.1148; shiftX[2][0] = -5.9 + .1148; shiftX[3][0] = -12.15 + 0.1148; shiftX[3][4] = -12.15 + 0.1148;
+    shiftX[1][1] =  5.9 - 0.1148; shiftX[2][1] =  6.4 - .1148; shiftX[3][1] = -6.15  + 0.1148; shiftX[3][5] = -6.15  + 0.1148;
+    shiftX[1][2] = -5.9 + 0.1148;                              shiftX[3][2] =  6.15  - 0.1148; shiftX[3][6] =  6.15  - 0.1148;
+    shiftX[1][3] =  6.4 - 0.1148;                              shiftX[3][3] =  12.15 - 0.1148; shiftX[3][7] =  12.15 - 0.1148;
     
     //--Y--             
-    shiftY[1][0] = -0.4 ;
-    shiftY[1][1] =  0.1 ;
-    shiftY[1][2] = -0.2 ;
-    shiftY[1][3] =  0.4 ; 
+    shiftY[1][0] = -0.4 ; shiftY[2][0] = -6.22; shiftY[3][0] = -0.15; shiftY[3][4] =  0.15;
+    shiftY[1][1] =  0.1 ; shiftY[2][1] = -6.72; shiftY[3][1] = -0.15; shiftY[3][5] =  0.15;
+    shiftY[1][2] = -0.2 ;                       shiftY[3][2] = -0.15; shiftY[3][6] =  0.15;
+    shiftY[1][3] =  0.4 ;                       shiftY[3][3] = -0.15; shiftY[3][7] =  0.15;
     
-    shiftY[2][0] = -6.22;
-    shiftY[2][1] = -6.72; 
+    shiftStXtoGlob[0] = 0.; shiftStYtoGlob[0] = 0.;
+    shiftStXtoGlob[1] = 0.; shiftStYtoGlob[1] = 0.; 
+    shiftStXtoGlob[2] = 0.; shiftStYtoGlob[2] = 0.; 
+    shiftStXtoGlob[3] = 0.; shiftStYtoGlob[3] = 0.; 
     
-    shiftY[3][0] = -0.15;
-    shiftY[3][1] = -0.15;
-    shiftY[3][2] = -0.15;
-    shiftY[3][3] = -0.15;
-    shiftY[3][4] =  0.15;
-    shiftY[3][5] =  0.15;
-    shiftY[3][6] =  0.15;
-    shiftY[3][7] =  0.15;
-    
-    shiftStXtoGlob[0] = 0.;
-    shiftStXtoGlob[1] = 0.;
-    shiftStXtoGlob[2] = 0.;
-    shiftStXtoGlob[3] = 0.;
-    
-    shiftStYtoGlob[0] = 0.;
-    shiftStYtoGlob[1] = 0.; //0.096;
-    shiftStYtoGlob[2] = 0.; //0.096;
-    shiftStYtoGlob[3] = 0.; //-6.274;
+    Zposition[0] = 0.;
+    Zposition[1] = 213.999 -6.9 + 0.03;
+    Zposition[2] = 213.999 -6.9 + 0.03;
+    Zposition[3] = 327.130 + 0.03;
+
+    Zstation[1][0] = 1.44 + 0.5 * 0.003; Zstation[2][0] = 4.71 + 0.5 * 0.003; Zstation[3][0] = 3.51 + 0.5 * 0.003;       Zstation[3][4] = 2.25 + 0.5 * 0.003;
+    Zstation[1][1] = 2.17 + 0.5 * 0.003; Zstation[2][1] = 5.44 + 0.5 * 0.003; Zstation[3][1] = 1.98 + 0.5 * 0.003 - .08; Zstation[3][5] = 3.78 + 0.5 * 0.003;
+    Zstation[1][2] = 1.44 + 0.5 * 0.003;                                      Zstation[3][2] = 3.29 + 0.5 * 0.003 + .08; Zstation[3][6] = 2.47 + 0.5 * 0.003;
+    Zstation[1][3] = 2.17 + 0.5 * 0.003;                                      Zstation[3][3] = 1.76 + 0.5 * 0.003;       Zstation[3][7] = 4.00 + 0.5 * 0.003;
+
+  }//if(!expData)
+  
+  for (Int_t is = 1; is < fNstations; is++) {
+    for (int im = 0; im < fNmodules; im++) {
+      if ( fRunPeriod == 7 && is == 1 && im > 3) continue;
+      if ( fRunPeriod == 7 && is == 2 && im > 1) continue;
+      Zstation[is][im] += Zposition[is];
+      Zstation[is][im] += Z0_SRC_target; //coordinate system reference bm@n
+      //if (fDebug) cout<<" is "<<is<<" im "<<im<<" Z "<<Zstation[is][im]<<endl;
+     
+      ZstnCforglfit[is][im] = Zstation[is][im] - Zcentr;
+      
+    }
   }
- // */
-    
+  
   for (Int_t ist = 1; ist < fNstations; ist++) {
     //if ( fDebug ) cout<<" shiftStXtoGlob["<<ist<<"]= "<<shiftStXtoGlob[ist]<<" Y "<< shiftStYtoGlob[ist]<<endl;
     for (Int_t imod = 0; imod < fNmodules; imod++) {
@@ -4174,40 +4478,7 @@ InitStatus BmnSiliconTrackFinder::Init() {
     }
   }
 
-  Zposition[0] = 0.;
-  Zposition[1] = 213.999 -6.9 + 0.03;//+ 0.03;
-  Zposition[2] = 213.999 -6.9 + 0.03;//+ 0.03;
-  Zposition[3] = 327.130 + 0.03;//- 5.11 + 0.03;
-
-  Zstation[1][0] = 1.44 + 0.5 * 0.003;
-  Zstation[1][1] = 2.17 + 0.5 * 0.003;
-  Zstation[1][2] = 1.44 + 0.5 * 0.003;
-  Zstation[1][3] = 2.17 + 0.5 * 0.003;
-
-  Zstation[2][0] = 4.71 + 0.5 * 0.003;
-  Zstation[2][1] = 5.44 + 0.5 * 0.003;
-
-  Zstation[3][0] = 3.51 + 0.5 * 0.003;
-  Zstation[3][1] = 1.98 + 0.5 * 0.003 - .08;
-  Zstation[3][2] = 3.29 + 0.5 * 0.003 + .08;
-  Zstation[3][3] = 1.76 + 0.5 * 0.003;
-  Zstation[3][4] = 2.25 + 0.5 * 0.003;
-  Zstation[3][5] = 3.78 + 0.5 * 0.003;
-  Zstation[3][6] = 2.47 + 0.5 * 0.003;
-  Zstation[3][7] = 4.00 + 0.5 * 0.003;
-  
-  for (Int_t is = 1; is < fNstations; is++) {
-    for (int im = 0; im < fNmodules; im++) {
-      if ( is == 1 && im > 3) continue;
-      if ( is == 2 && im > 1) continue;
-      Zstation[is][im] += Zposition[is];
-      Zstation[is][im] += Z0_SRC_target; //coordinate system reference bm@n
-      //if (fDebug) cout<<" is "<<is<<" im "<<im<<" Z "<<Zstation[is][im]<<endl;
-     
-      ZstnCforglfit[is][im] = Zstation[is][im] - Zcentr;
-      
-    }
-  }
+  //--------------------------------------------------------------------
   // Create and register hits arrays
   fBmnSiliconHitsArray = new TClonesArray(fOutputHitsBranchName);
   ioman->Register("BmnSiliconHits", "SI", fBmnSiliconHitsArray, kTRUE);
@@ -4322,6 +4593,21 @@ BmnSiliconTrackFinder::BmnSiliconTrackFinder(Bool_t isExp, Int_t RunPeriod, Int_
     fRunNumber = 0001;
   }
   
+  if (fRunPeriod == 7){
+    fNstations  = 4;
+    fNmodules   = 8;
+    fNmodules1  = 4;
+    fNmodules2  = 2;
+    fNmodules3  = 8;
+  }
+  if (fRunPeriod == 8){
+    fNstations  = 5;
+    fNmodules   = 2;
+    fNmodules1  = 2;
+    fNmodules2  = 2;
+    fNmodules3  = 2;
+  }
+  
 }
 //----------------------------------------------------------------------
 
@@ -4353,6 +4639,7 @@ BmnSiliconTrackFinder::~BmnSiliconTrackFinder() {
    delete[] ZstnCforglfit[istat];
    delete[] shiftX[istat];
    delete[] shiftY[istat];
+   delete[] shiftYbelow[istat];
    delete[] Zstation[istat];
    delete[] Nleftoversp[istat];
    delete[] NleftoverX[istat];
@@ -4447,6 +4734,7 @@ BmnSiliconTrackFinder::~BmnSiliconTrackFinder() {
   delete[] shiftStYtoGlob;
   delete[] shiftX;
   delete[] shiftY;
+  delete[] shiftYbelow;
   delete[] Zstation;
   delete[] Zposition;
   delete[] Nleftoversp;

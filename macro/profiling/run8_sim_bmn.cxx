@@ -47,6 +47,7 @@
 #include "BmnHodo.h"
 #include "BmnEcal.h"
 #include "BmnSilicon.h"
+#include "BmnFHCal.h"
 #include "MpdUrqmdGenerator.h"
 #include "BmnSiliconDigitizer.h"
 #include "BmnGemStripDigitizer.h"
@@ -147,7 +148,7 @@ void run8_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TStrin
     fRun->AddModule(bd);
 
     FairDetector* fd = new BmnFD("FD", kTRUE);
-    fd->SetGeometryFileName("FD_run8_v1.root");
+    fd->SetGeometryFileName("FD_run8.root");
     fRun->AddModule(fd);
 
     FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
@@ -167,11 +168,11 @@ void run8_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TStrin
     fRun->AddModule(tof1);
 
     FairDetector* dch = new BmnDch("DCH", kTRUE);
-    dch->SetGeometryFileName("DCH_RunSpring2018.root");
+    dch->SetGeometryFileName("DCH_Run8.root");
     fRun->AddModule(dch);
 
     FairDetector* tof2 = new BmnTOF("TOF", kTRUE);
-    tof2->SetGeometryFileName("tof700_run7_with_support.root");
+    tof2->SetGeometryFileName("tof700_run8_with_support.root");
     fRun->AddModule(tof2);
 
     FairDetector* ecal = new BmnEcal("ECAL", kTRUE);
@@ -179,16 +180,16 @@ void run8_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TStrin
     fRun->AddModule(ecal);
 
     FairDetector* scwall = new BmnScWall("SCWALL", kTRUE);
-    scwall->SetGeometryFileName("ScWall_with_hole_XeCsI_3.9GeV_field_Extrap_scale_1200_900_Zpos_880.0cm_Xshift_58.50cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
+    scwall->SetGeometryFileName("ScWall_with_box_with_hole_XeCsI_3.9GeV_field_Extrap_scale_1800_900_Zpos_875.0cm_Xshift_78.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
     fRun->AddModule(scwall);
 
     FairDetector* hodo = new BmnHodo("HODO", kTRUE);
-    hodo->SetGeometryFileName("Hodo_XeCsI_3.9GeV_field_Extrap_scale_1200_900_Zpos_895.0cm_Xshift_36.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
+    hodo->SetGeometryFileName("Hodo_with_box_XeCsI_3.9GeV_field_Extrap_scale_1800_900_Zpos_892.0cm_Xshift_55.50cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
     fRun->AddModule(hodo);
 
-    BmnZdc* fhcal = new BmnZdc("FHCal", kTRUE);
+    BmnFHCal* fhcal = new BmnFHCal("FHCal", kTRUE);
     //zdc->SetBirk();
-    fhcal->SetGeometryFileName("FHCal_54mods_hole_XeCsI_3.9GeV_field_Extrap_scale_1200_900_Zpos_900.0cm_Xshift_36.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
+    fhcal->SetGeometryFileName("FHCal_54mods_hole_XeCsI_3.9GeV_field_Extrap_scale_1800_900_Zpos_900.0cm_Xshift_55.5cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
     fRun->AddModule(fhcal);
 
 
@@ -204,7 +205,7 @@ void run8_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TStrin
     // Smearing of beam interaction point, if needed, and primary vertex position
     // DO NOT do it in corresponding gen. sections to avoid incorrect summation!!!
     primGen->SetBeam(0.0, 0.0, 1.6, 1.6);  // (beamX0, beamY0, beamSigmaX, beamSigmaY)
-    primGen->SetTarget(0.0875, 0.0875);          // (targetZ, targetDz)
+    primGen->SetTarget(0.0875, 0.0875);    // (targetZ, targetDz)
     primGen->SmearVertexZ(kTRUE);
     primGen->SmearVertexXY(kTRUE);
     gRandom->SetSeed(0);
@@ -246,9 +247,9 @@ void run8_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TStrin
     case BOX:{
         gRandom->SetSeed(0);
         FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 13 = muon; 1 = multipl.
-        boxGen->SetPRange(4.8, 4.8);      // GeV/c, setPRange vs setPtRange
+        boxGen->SetPRange(0.2, 5.0);      // GeV/c, setPRange vs setPtRange
         boxGen->SetPhiRange(0, 360);    // Azimuth angle range [degree]
-        boxGen->SetThetaRange(180, 180);  // Polar angle in lab system range [degree]
+        boxGen->SetThetaRange(0, 40.0);  // Polar angle in lab system range [degree]
         primGen->AddGenerator(boxGen);
         break;
     }
@@ -336,7 +337,7 @@ void run8_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TStrin
     // GEM-Digitizer
     BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::Run8;
     if (useRealEffects)
-        BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_6T);
+        BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_8T);
     BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
     gemDigit->SetCurrentConfig(gem_config);
     gemDigit->SetUseRealEffects(useRealEffects);

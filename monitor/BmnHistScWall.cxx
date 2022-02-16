@@ -6,63 +6,48 @@ BmnHistScWall::BmnHistScWall(TString title, TString path) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     TGaxis::SetMaxDigits(2);
+    CreateHistos();
+}
+
+void BmnHistScWall::CreateHistos() {
+    BmnScWallRaw2Digit *tempScWallMapper = new BmnScWallRaw2Digit();
+    
+    tempScWallMapper->ParseConfig("SCWALL_map_dry_run_2022.txt"); // scwall map
+    auto UniqueXpos = tempScWallMapper->GetUniqueXpositions();
+    auto UniqueYpos = tempScWallMapper->GetUniqueYpositions();
+    std::copy(UniqueXpos.begin(), UniqueXpos.end(), back_inserter(fUniqueXpos));
+    std::copy(UniqueYpos.begin(), UniqueYpos.end(), back_inserter(fUniqueYpos));
+    delete tempScWallMapper;
+
     TString name;
     name = fTitle + "_h2d_Grid";
-    h2d_grid = new TH2D(name, "ZDC Grid", 20, 0, 20, 20, 0, 20);
-    h2d_grid->GetXaxis()->SetTitle("iX");
+    h2d_grid = new TH2D(name, "ScWall Grid", fUniqueXpos.size()-1, &fUniqueXpos[0], fUniqueYpos.size()-1, &fUniqueYpos[0]);
+    h2d_grid->GetXaxis()->SetTitle("X position");
     h2d_grid->GetXaxis()->SetTitleColor(kOrange + 10);
-    h2d_grid->GetYaxis()->SetTitle("iY");
+    h2d_grid->GetYaxis()->SetTitle("Y position");
     h2d_grid->GetYaxis()->SetTitleColor(kOrange + 10);
     h2d_grid->GetZaxis()->SetNoExponent(kFALSE);
-    name = fTitle + "_h2d_Profile";
-    h2d_profile = new TH2D(name, "ZDC Profile", 200, -700, 700, 200, -700, 700);
-    h2d_profile->GetXaxis()->SetTitle("X");
+    name = fTitle + "_h2d_profile";
+    h2d_profile = new TH2D(name, "ScWall Profile", 200, 0, 200, 200, 0, 5000);
+    h2d_profile->GetXaxis()->SetTitle("Cell id");
     h2d_profile->GetXaxis()->SetTitleColor(kOrange + 10);
-    h2d_profile->GetYaxis()->SetTitle("Y");
+    h2d_profile->GetYaxis()->SetTitle("Average Signal [MeV]");
     h2d_profile->GetYaxis()->SetTitleColor(kOrange + 10);
-    name = fTitle + "_X_Amplitude";
-    hx = new TH1D(name, "ZDC X Amplitude", 200, -700, 700);
-    name = fTitle + "_Y_Amplitude";
-    hy = new TH1D(name, "ZDC Y Amplitude", 200, -700, 700);
     name = fTitle + "CanvasAmplitudes";
-    canAmps = new TCanvas(name, name, PAD_WIDTH * ZDC_ROWS, PAD_HEIGHT * ZDC_COLS);
-    canAmps->Divide(ZDC_ROWS, ZDC_COLS);
-    canAmpsPads.resize(ZDC_ROWS * ZDC_COLS);
-    NamesAmps.resize(ZDC_ROWS * ZDC_COLS);
+    canAmps = new TCanvas(name, name, PAD_WIDTH * ScWall_ROWS, PAD_HEIGHT * ScWall_COLS);
+    canAmps->Divide(ScWall_ROWS, ScWall_COLS);
+    canAmpsPads.resize(ScWall_ROWS * ScWall_COLS);
+    NamesAmps.resize(ScWall_ROWS * ScWall_COLS);
 
     PadInfo *p = new PadInfo();
-    p->current = hx;
+    p->current = h2d_grid;
     canAmpsPads[0] = p;
     PadInfo *p1 = new PadInfo();
-    p1->current = hy;
+    p1->current = h2d_profile;
     canAmpsPads[1] = p1;
-
-    for (Int_t rowIndex = 0; rowIndex < ZDC_ROWS; rowIndex++) {
-        for (Int_t colIndex = 0; colIndex < ZDC_COLS; colIndex++) {
-            Int_t iPad = rowIndex * ZDC_COLS + colIndex;
-            canAmps->GetPad(iPad + 1)->SetGrid();
-            NamesAmps[iPad] = canAmpsPads[iPad]->current->GetName();
-            TH1 *h = canAmpsPads[iPad]->current;
-            h->SetTitleSize(0.06, "XY");
-            h->SetLabelSize(0.08, "XY");
-            h->GetXaxis()->SetTitle("Coordinate");
-            h->GetXaxis()->SetTitleColor(kOrange + 10);
-            h->GetYaxis()->SetTitle("Amplitude");
-            h->GetYaxis()->SetTitleColor(kOrange + 10);
-            h->GetYaxis()->SetTitleOffset(1.4);
-            h->GetYaxis()->SetNoExponent(kFALSE);
-        }
-    }
 }
 
-BmnHistScWall::~BmnHistScWall() {
-    if (fDir != NULL)
-        return;
-    delete h2d_grid;
-    delete h2d_profile;
-    delete hx;
-    delete hy;
-}
+
 
 void BmnHistScWall::Register(THttpServer *serv) {
     fServer = serv;
@@ -90,9 +75,6 @@ void BmnHistScWall::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
         fDir = outFile->mkdir(fTitle + "_hists");
     h2d_grid->SetDirectory(fDir);
     h2d_profile->SetDirectory(fDir);
-    hx->SetDirectory(fDir);
-    hy->SetDirectory(fDir);
-
 }
 
 void BmnHistScWall::DrawBoth() {
@@ -104,29 +86,19 @@ void BmnHistScWall::FillFromDigi(DigiArrays *fDigiArrays) {
     TClonesArray * digits = fDigiArrays->scwall;
     if (!digits)
         return;
-    Double_t xAmp = 0;
-    Double_t yAmp = 0;
-    Double_t Amp = 0;
+    
+    // Loop over digis
     for (Int_t iDig = 0; iDig < digits->GetEntriesFast(); iDig++) {
-        BmnScWallDigi* dig = (BmnScWallDigi*) digits->At(iDig);
-        UInt_t ix = dig->GetX();
-        UInt_t iy = dig->GetY();
-        Double_t amp = dig->GetSignal();
-        Amp += amp;
-        h2d_grid->Fill(ix, iy, dig->GetAmp());
-        xAmp += amp * dig->GetX();
-        yAmp += amp * dig->GetY();
+        BmnScWallDigi* digi = (BmnScWallDigi*) digits->At(iDig);
+        double signal = abs(digi->GetSignal());
+        h2d_profile->Fill(digi->GetCellId(), signal);
+
+        int x_pos = fUniqueXpos.at(digi->GetX());
+        int y_pos = fUniqueYpos.at(digi->GetY());
+        h2d_grid->Fill(x_pos, y_pos, signal);
     }
-    if (Amp == 0)
-        return;
-    xAmp /= Amp;
-    yAmp /= Amp;
-    h2d_profile->Fill(xAmp, yAmp, Amp);
-    hx->Fill(xAmp, Amp);
-    hy->Fill(yAmp, Amp);
-    h2d_profile->Fill(xAmp, yAmp, Amp);
-    hx->Fill(xAmp, Amp);
-    hy->Fill(yAmp, Amp);
+    fEventCounter += digits->GetEntriesFast();
+
 }
 
 BmnStatus BmnHistScWall::SetRefRun(Int_t id) {
@@ -150,10 +122,17 @@ void BmnHistScWall::ClearRefRun() {
 }
 
 void BmnHistScWall::Reset() {
+    printf("BmnHistScWall : Reset histos\n");
     h2d_grid->Reset();
     h2d_profile->Reset();
-    hx->Reset();
-    hy->Reset();
+}
+
+BmnHistScWall::~BmnHistScWall() {
+    if (fDir != NULL)
+        return;
+    delete h2d_grid;
+    delete h2d_profile;
 }
 
 ClassImp(BmnHistScWall);
+

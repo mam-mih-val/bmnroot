@@ -219,11 +219,12 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhVec.push_back(new BmnHistDch(refName + "DCH", _curDir));
     bhVec.push_back(new BmnHistMwpc(refName + "MWPC", _curDir));
     bhVec.push_back(new BmnHistZDC(refName + "ZDC", _curDir));
+    bhVec.push_back(new BmnHistScWall(refName + "ScWall", _curDir));
     bhVec.push_back(new BmnHistECAL(refName + "ECAL", _curDir));
     bhVec.push_back(new BmnHistToF(refName + "ToF400", _curDir));
     bhVec.push_back(new BmnHistToF700(refName + "ToF700", _curDir));
 //    bhVec.push_back(new BmnHistTrigger(refName + "Triggers", _curDir, fPeriodID, fSetup));
-    bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir, fPeriodID, fSetup));
+//    bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir, fPeriodID, fSetup));
     bhVec.push_back(new BmnHistLAND(refName + "LAND", _curDir));
     bhVec.push_back(new BmnHistCsc(refName + "CSC", _curDir, fPeriodID, fSetup));
     
@@ -310,11 +311,12 @@ void BmnMonitor::RegisterAll() {
     bhVec4show.push_back(new BmnHistDch("DCH", _curDir));
     bhVec4show.push_back(new BmnHistMwpc("MWPC", _curDir));
     bhVec4show.push_back(new BmnHistZDC("ZDC", _curDir));
+    bhVec4show.push_back(new BmnHistScWall("ScWall", _curDir));
     bhVec4show.push_back(new BmnHistECAL("ECAL", _curDir));
     bhVec4show.push_back(new BmnHistToF("ToF400", _curDir));
     bhVec4show.push_back(new BmnHistToF700("ToF700", _curDir));
 //    bhVec4show.push_back(new BmnHistTrigger("Triggers", _curDir, fPeriodID, fSetup));
-    bhVec4show.push_back(new BmnHistSrc("SRC", _curDir, fPeriodID, fSetup));
+//    bhVec4show.push_back(new BmnHistSrc("SRC", _curDir, fPeriodID, fSetup));
     bhVec4show.push_back(new BmnHistLAND("LAND", _curDir));
     bhVec4show.push_back(new BmnHistCsc("CSC", _curDir, fPeriodID, fSetup));
     fServer->Register("/", infoCanvas);

@@ -41,6 +41,7 @@
 #include "BmnHistGem.h"
 #include "BmnOnlineDecoder.h"
 #include "BmnHistZDC.h"
+#include "BmnHistScWall.h"
 #include "BmnHistECAL.h"
 #include "BmnHistLAND.h"
 #include "BmnOnlineDecoder.h"

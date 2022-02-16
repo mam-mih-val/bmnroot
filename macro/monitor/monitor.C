@@ -1,4 +1,8 @@
-#include "/home/ilnur/bmnroot/macro/run/bmnloadlibs.C"
+
+#include "TSystem.h"
+
+#include "/home/nikolay/git_projects/bmnroot/macro/run/bmnloadlibs.C"
+//#include "/home/nikolay/git_projects/bmnroot/monitor/BmnMonitor.h"
 R__LOAD_LIBRARY(libFairMQ)
 void monitor(
         Int_t periodID = 8,

@@ -1,5 +1,5 @@
-#ifndef BMNHISTZDC_H
-#define BMNHISTZDC_H 1
+#ifndef BMNHISTScWall_H
+#define BMNHISTScWall_H 1
 
 #include <TNamed.h>
 #include "TChain.h"
@@ -16,14 +16,16 @@
 
 #include "BmnHist.h"
 #include "BmnScWallDigi.h"
-#define ZDC_ROWS    1
-#define ZDC_COLS    2
+#include "BmnScWallRaw2Digit.h"
+#define ScWall_ROWS    1
+#define ScWall_COLS    2
 
 
 class BmnHistScWall : public BmnHist {
 public:
     BmnHistScWall(TString title = "ScWall", TString path = "");
     virtual ~BmnHistScWall();
+    void CreateHistos();
     void Reset();
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile, TTree *recoTree);
@@ -32,11 +34,11 @@ public:
     void FillFromDigi(DigiArrays *fDigiArrays);
     BmnStatus  SetRefRun(Int_t id);
 private:
-    TClonesArray* ZDCHits;
+    long int fEventCounter = 0;
+    vector<float> fUniqueXpos;
+    vector<float> fUniqueYpos;
     TH2D* h2d_grid;
     TH2D* h2d_profile;
-    TH1D* hx;
-    TH1D* hy;
     TCanvas *canAmps;
     vector<PadInfo*> canAmpsPads;
     vector<TString> NamesAmps;
@@ -44,5 +46,5 @@ private:
     ClassDef(BmnHistScWall, 1)
 };
 
-#endif /* BMNHISTZDC_H */
+#endif /* BMNHISTScWall_H */
 

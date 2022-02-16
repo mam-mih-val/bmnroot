@@ -19,6 +19,7 @@
 #pragma link C++ class BmnHistDch++;
 #pragma link C++ class BmnHistMwpc++;
 #pragma link C++ class BmnHistZDC++;
+#pragma link C++ class BmnHistScWall++;
 #pragma link C++ class BmnHistECAL++;
 #pragma link C++ class BmnHistToF++;
 #pragma link C++ class BmnHistToF700++;

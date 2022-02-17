@@ -73,10 +73,10 @@ BmnHistLAND.cxx
 PadInfo.cxx
 BmnPadBranch.cxx
 BmnPadGenerator.cxx
-BmnMQRecoTaskProcessor.cxx
-BmnMQFileSaver.cxx
- BmnMQSink.cxx
- BmnMQRunDevice.cxx
+#BmnMQRecoTaskProcessor.cxx
+#BmnMQFileSaver.cxx
+# BmnMQSink.cxx
+# BmnMQRunDevice.cxx
 )
 
 Set(HEADERS)

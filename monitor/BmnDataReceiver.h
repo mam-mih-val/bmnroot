@@ -17,7 +17,7 @@
 #include <deque>
 #include <TNamed.h>
 
-#include <math/BmnMath.h>
+#include <BmnMath.h>
 
 #define PNP_DISCOVER_PORT  33304
 #define PNP_DISCOVER_IP_ADDR "239.192.1.2"

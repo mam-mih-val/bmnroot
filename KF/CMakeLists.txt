@@ -10,7 +10,6 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/tof
  ${CMAKE_SOURCE_DIR}/sts
- ${CMAKE_SOURCE_DIR}/cat
  ${CMAKE_SOURCE_DIR}/KF
  ${CMAKE_SOURCE_DIR}/KF/Interface
  ${CMAKE_SOURCE_DIR}/KF/KFParticlesFinder
@@ -93,6 +92,6 @@ ENDIF (SSE_FOUND)
 set(HEADERS)
 Set(LINKDEF KFLinkDef.h)
 Set(LIBRARY_NAME KF)
-Set(DEPENDENCIES TOF Gem Silicon BmnData BmnField Passive Base Core)
+Set(DEPENDENCIES Sts TOF Gem Silicon BmnData BmnField Passive Base Core)
 
 GENERATE_LIBRARY()

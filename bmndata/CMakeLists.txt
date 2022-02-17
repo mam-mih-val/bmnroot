@@ -34,6 +34,7 @@ set(SRCS
  cbm/CbmTrackMerger.cxx
  cbm/CbmPrimaryVertexFinder.cxx
  cbm/CbmFindPrimaryVertex.cxx
+ cbm/CbmL1Counters.h
 
  math/BmnMath.cxx
  math/BmnMatrixMath.cxx

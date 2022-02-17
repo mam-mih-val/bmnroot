@@ -55,7 +55,7 @@ Set(SRCS
 BmnMonitor.cxx
 BmnDataReceiver.cxx
 BmnOnlineDecoder.cxx
-BmnOnlineReco.cxx
+#BmnOnlineReco.cxx
 BmnHist.cxx
 BmnHistGem.cxx
 BmnHistCsc.cxx

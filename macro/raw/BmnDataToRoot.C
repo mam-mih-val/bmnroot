@@ -7,7 +7,7 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     gSystem->ExpandPathName(outfile);
 
     Int_t iVerbose = 1; ///<- Verbosity level: 0 - Progress Bar; 1 - short info on passed events
-    UInt_t period = 7;
+    UInt_t period = 8;
 
     TStopwatch timer;
     timer.Start();
@@ -15,6 +15,7 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, outfile, nEvents, period);
     // use kSRCSETUP for Short-Range Correlation program and kBMNSETUP otherwise
     BmnSetup stp = (decoder->GetRunId() >= 2041 && decoder->GetRunId() <= 3588) ? kSRCSETUP : kBMNSETUP;
+    stp = kSRCSETUP;
     decoder->SetBmnSetup(stp);
     decoder->SetVerbose(iVerbose);
 
@@ -26,8 +27,8 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     setup.insert(std::make_pair(kTOF1,      1)); // TOF-400
     setup.insert(std::make_pair(kTOF,       1)); // TOF-700
     setup.insert(std::make_pair(kDCH,       1)); // DCH
-    setup.insert(std::make_pair(kZDC,       1)); // ZDC
-    setup.insert(std::make_pair(kECAL,      1)); // ECAL
+    setup.insert(std::make_pair(kZDC,       0)); // ZDC
+    setup.insert(std::make_pair(kECAL,      0)); // ECAL
     setup.insert(std::make_pair(kLAND,      1)); // LAND
     setup.insert(std::make_pair(kTOFCAL,    1)); // LAND
     setup.insert(std::make_pair(kCSC,       1)); // CSC

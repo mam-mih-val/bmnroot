@@ -51,7 +51,6 @@ BmnHistDch::BmnHistDch(TString title, TString path) : BmnHist() {
         h_times[i]->GetYaxis()->SetTitleFont(62);
     }
     TString name;
-    fDchHits = new TClonesArray("BmnDchHit");
     name = fTitle + "_h_DCH1";
     h_DCH1 = new TH2F(name, "DCH #1", 500, -DCH_WDTH, DCH_WDTH, 500, -DCH_WDTH, DCH_WDTH);
     h_DCH1->GetXaxis()->SetTitle("X, cm");
@@ -93,15 +92,22 @@ BmnHistDch::BmnHistDch(TString title, TString path) : BmnHist() {
 }
 
 BmnHistDch::~BmnHistDch() {
+    delete canWires;
+    delete canTimes;
     if (fDir != NULL)
         return;
-    for (auto h:h_wires)
-        delete h;
-    for (auto h:h_times)
-        delete h;
-    delete fDchHits;
+//    for (auto h:h_wires)
+//        delete h;
+//    for (auto h:h_times)
+//        delete h;
     delete h_DCH1;
     delete h_DCH2;
+    delete canTimes;
+    delete canWires;
+    for (auto pad : canWiresPads)
+        delete pad;
+    for (auto pad : canTimesPads)
+        delete pad;
 }
 
 void BmnHistDch::Register(THttpServer *serv) {
@@ -133,13 +139,25 @@ void BmnHistDch::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
     fDir = NULL;
     if (outFile != NULL)
         fDir = outFile->mkdir(fTitle + "_hists");
-    for (Int_t i = 0; i < kNPLANES; ++i) {
-        h_wires[i]->SetDirectory(fDir);
-        h_times[i]->SetDirectory(fDir);
-    }
+    SetDir(fDir);
+}
+
+void BmnHistDch::SetDir(TDirectory * Dir) {
+    fDir = Dir;
+//    for (Int_t i = 0; i < kNPLANES; ++i) {
+//        h_wires[i]->SetDirectory(fDir);
+//        h_times[i]->SetDirectory(fDir);
+//    }
     h_DCH1->SetDirectory(fDir);
     h_DCH2->SetDirectory(fDir);
-
+    for (auto &el : canWiresPads) {
+        if (el->current)
+            el->current->SetDirectory(fDir);
+    }
+    for (auto &el : canTimesPads) {
+        if (el->current)
+            el->current->SetDirectory(fDir);
+    }
 }
 
 void BmnHistDch::DrawBoth() {
@@ -151,19 +169,12 @@ void BmnHistDch::FillFromDigi(DigiArrays *fDigiArrays) {
     TClonesArray * digits = fDigiArrays->dch;
     if (!digits)
         return;
-    fDchHits->Clear();
-    //    ProcessDchDigits(DchDigits, fDchHits);
     for (Int_t iDig = 0; iDig < digits->GetEntriesFast(); ++iDig) {
         BmnDchDigit* dig = (BmnDchDigit*) digits->At(iDig);
         Int_t plane = dig->GetPlane();
         h_wires[plane]->Fill(dig->GetWireNumber());
         h_times[plane]->Fill(dig->GetTime());
     }
-    //    for (Int_t iHit = 0; iHit < fDchHits->GetEntriesFast(); iHit++) {
-    //        BmnDchHit* hit = (BmnDchHit*) fDchHits->At(iHit);
-    //        if (hit->GetDchId() == 1) h_DCH1->Fill(hit->GetX(), hit->GetY());
-    //        if (hit->GetDchId() == 2) h_DCH2->Fill(hit->GetX(), hit->GetY());
-    //    }
 }
 
 BmnStatus BmnHistDch::SetRefRun(Int_t id) {

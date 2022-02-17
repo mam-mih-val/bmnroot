@@ -65,6 +65,11 @@ BmnHistSilicon::BmnHistSilicon(TString title, TString path, Int_t PeriodID, BmnS
 
 BmnHistSilicon::~BmnHistSilicon() {
     //    delete gemStationSet;
+    delete canStrip;
+    if (fDir)
+        return;
+    for (auto pad : canStripPads)
+        delete pad;
 }
 
 void BmnHistSilicon::Register(THttpServer * serv) {

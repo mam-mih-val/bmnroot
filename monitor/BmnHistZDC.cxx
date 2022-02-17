@@ -62,6 +62,10 @@ BmnHistZDC::~BmnHistZDC() {
     delete h2d_profile;
     delete hx;
     delete hy;
+    if (fDir)
+        return;
+    for (auto pad : canAmpsPads)
+        delete pad;
 }
 
 void BmnHistZDC::Register(THttpServer *serv) {

@@ -275,7 +275,7 @@ void BmnOnlineDecoder::ProcessStream() {
                 printf("ID Receive error #%d : %s\n", errno, zmq_strerror(errno));
                 switch (errno) {
                     case EAGAIN:
-                        if ((msg_len < MIN_REMNANT_LEN) || (conID == 0))
+//                        if ((msg_len < MIN_REMNANT_LEN) || (conID == 0))
                             usleep(MSG_TIMEOUT);
 //                        else
 //                            printf("no sleep\n");
@@ -297,21 +297,27 @@ void BmnOnlineDecoder::ProcessStream() {
         Int_t recv_more = 0;
         UInt_t *msgPtr;
         UInt_t *word;
+        Bool_t isReceiving = kTRUE;
         do {
             frame_size = zmq_msg_recv(&msg, _socket_data, ZMQ_DONTWAIT); //  ZMQ_DONTWAIT
 //            printf("recv %u\n", frame_size);
             //frame_size = zmq_recv(_socket_data, buf, MAX_BUF_LEN, 0);
             if (frame_size == -1) {
-                printf("Receive error # %d #%s\n", errno, zmq_strerror(errno));
+//                printf("Receive error # %d #%s\n", errno, zmq_strerror(errno));
                 switch (errno) {
                     case EAGAIN:
                         if ((msg_len < MIN_REMNANT_LEN))
                         usleep(MSG_TIMEOUT);
                         break;
                     case EINTR:
+//                        printf("EINTR\n");
+                        isReceiving = kFALSE;
                         isListening = kFALSE;
                         printf("Exit!\n");
-                        continue;
+                        break;
+                    case EFAULT:
+//                        printf("EFAULT\n");
+                        isReceiving = kFALSE;
                         break;
                     default:
                         break;
@@ -346,7 +352,7 @@ void BmnOnlineDecoder::ProcessStream() {
             }
 //            printf("ZMQ rcvmore = %d\n", recv_more);
             zmq_msg_close(&msg);
-        } while (recv_more);
+        } while (recv_more && isReceiving);
 
         if (msg_len < 256 * sizeof (UInt_t)) // number doesn't mean anything, just avoid segfault
             continue;

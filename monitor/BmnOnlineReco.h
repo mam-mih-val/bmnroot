@@ -37,6 +37,7 @@
 #include "BmnDecoSource.h"
 #include "BmnFillDstTask.h"
 
+#include "BmnMQSink.h"
 #include <BmnRunInfo.h>
 #include "BmnFieldMap.h"
 #include "BmnNewFieldMap.h"
@@ -62,14 +63,18 @@ using namespace TMath;
 class BmnOnlineReco : public TNamed {
 public:
 
-    BmnOnlineReco();
+    BmnOnlineReco(Int_t periodId = 7, Int_t runId = 4649, BmnSetup setup = kBMNSETUP);
     virtual ~BmnOnlineReco();
-    void RecoStream(TString dir, TString refDir = "", TString decoAddr = "localhost", Int_t webPort = 9000);
+    void RecoStream(TString dir = "", TString refDir = "", TString decoAddr = "localhost", Int_t webPort = 9000);
 
 private:
     void ProcessDigi(Int_t iEv);
 //    BmnStatus OpenStream();
     void FinishRun();
+    TString GetDstNameFromRunId(Int_t runId) {
+        TString name(Form("bmn_run%d_dst.root", runId));
+        return name;
+    }
     
     
     void * _ctx;
@@ -92,6 +97,7 @@ private:
     Bool_t keepWorking;
     Int_t _webPort;
     Int_t fTest;
+    BmnSetup fSetup;
     Int_t fPeriodID;
     Int_t fRunID;
     Int_t fEvents;

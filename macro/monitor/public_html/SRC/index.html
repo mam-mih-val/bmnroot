@@ -78,6 +78,10 @@ and open the template in the editor.
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("srcTableC", obj, "");
                 }).send(null);
+                filename = path + "TriggersCanvasTimesByChannel" + "/root.json.gz?compact=3";
+                JSROOT.NewHttpRequest(filename, 'object', function (obj) {
+                    JSROOT.redraw("timeChannelTableC", obj, "");
+                }).send(null);
             }
             function cleanCanvases() {
                 JSROOT.cleanup("infoC");
@@ -153,6 +157,7 @@ and open the template in the editor.
                             src="../root.app/SRC/SRC_TDC_mod_amp/draw.htm?monitoring=5000&opt=colz"
                             style = "width: 95vw;height: 45vw;"> </iframe>-->
 <div align="center">
+    <div id="timeChannelTableC" style="position:relative;width: 98vw;height: 40vw;"> </div>
     <div id="srcTableC" style="width: 98vw;height: 400vw;"> </div>
 </div>
 <!--<div align="center">

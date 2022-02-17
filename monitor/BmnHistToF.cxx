@@ -123,6 +123,14 @@ BmnHistToF::~BmnHistToF() {
     delete histL;
     delete histR;
     delete Events;
+    delete canTimes;
+    delete can2d;
+    if (fDir)
+        return;
+    for (auto pad : canTimesPads)
+        delete pad;
+    for (auto pad : can2dPads)
+        delete pad;
 }
 
 void BmnHistToF::FillFromDigi(DigiArrays *fDigiArrays) {

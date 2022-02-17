@@ -79,6 +79,11 @@ BmnHistToF700::~BmnHistToF700() {
     delete histL;
     delete histR;
     delete Events;
+    delete canTimes;
+    if (fDir)
+        return;
+    for (auto pad : canTimesPads)
+        delete pad;
 }
 
 void BmnHistToF700::FillFromDigi(DigiArrays *fDigiArrays) {

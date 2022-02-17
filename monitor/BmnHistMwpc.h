@@ -58,7 +58,6 @@ private:
     vector<vector<TH1F* > > h_wires;
     vector<vector<TH1F* > > h_times;
     vector < TH2F* > h_2d;
-    TClonesArray* MwpcHits;
     TH2F* h_MWPC0;
     TH2F* h_MWPC1;
     TH2F* h_MWPC2;

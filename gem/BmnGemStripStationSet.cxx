@@ -19,37 +19,43 @@ BmnGemStripStationSet::BmnGemStripStationSet(TString xml_config_file, map <Int_t
     }
 }
 
-BmnGemStripStationSet::BmnGemStripStationSet(Int_t period, BmnSetup stp){
+BmnGemStripStationSet::BmnGemStripStationSet(Int_t period, BmnSetup stp, map <Int_t, TVector3>* shifts): NStations(0),
+  XStationPositions(NULL), YStationPositions(NULL), ZStationPositions(NULL),
+  BeamHoleRadiuses(NULL),
+  GemStations(NULL), fStatShifts(shifts) {
     TString gPathConfig = getenv("VMCWORKDIR");
-    TString xmlConfFileName;
+    TString xml_config_file;
     switch (period) {
         case 8:
             if (stp == kBMNSETUP) {
-                xmlConfFileName = "GemRun8.xml";
+                xml_config_file = "GemRun8.xml";
             } else {
-                xmlConfFileName = "GemRunSRC2021.xml";
+                xml_config_file = "GemRunSRC2021.xml";
             }
             break;
         case 7:
             if (stp == kBMNSETUP) {
-                xmlConfFileName = "GemRunSpring2018.xml";
+                xml_config_file = "GemRunSpring2018.xml";
             } else {
-                xmlConfFileName = "GemRunSRCSpring2018.xml";
+                xml_config_file = "GemRunSRCSpring2018.xml";
             }
             break;
         case 6:
-            xmlConfFileName = "GemRunSpring2017.xml";
+            xml_config_file = "GemRunSpring2017.xml";
             break;
         default:
             printf("Error! Unknown config!\n");
-            xmlConfFileName = "";
+            xml_config_file = "";
             break;
     }
-    if (xmlConfFileName.Length()){
-        TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
-        BmnGemStripStationSet(gPathGemConfig + xmlConfFileName);
-    } else
-        BmnGemStripStationSet();
+    if (xml_config_file.Length()){
+        xml_config_file = gPathConfig + "/parameters/gem/XMLConfigs/" + xml_config_file;
+        Bool_t create_status = CreateConfigurationFromXMLFile(xml_config_file);
+        if(!create_status) {
+            std::cerr << "Error: There are problems with creation of the configuration from XML (in BmnGemStripStationSet)\n";
+            throw(StationSet_Exception("Error in the constructor BmnGemStripStationSet()"));
+        }
+    }
 }
 
  BmnGemStripStationSet::~BmnGemStripStationSet() {

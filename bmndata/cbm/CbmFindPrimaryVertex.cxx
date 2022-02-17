@@ -24,7 +24,8 @@ CbmFindPrimaryVertex::CbmFindPrimaryVertex()
   : FairTask(),
     fFinder(NULL),
     fTracks(NULL),
-    fPrimVert(NULL)
+    fPrimVert(NULL),
+    fTrBranch("") //AZ 
 {
 }
 // -------------------------------------------------------------------------
@@ -36,7 +37,8 @@ CbmFindPrimaryVertex::CbmFindPrimaryVertex(CbmPrimaryVertexFinder* pvFinder)
   : FairTask(),
     fFinder(pvFinder),
     fTracks(NULL),
-    fPrimVert(NULL)
+    fPrimVert(NULL),
+    fTrBranch("") //AZ 
 {
 }
 // -------------------------------------------------------------------------
@@ -50,7 +52,8 @@ CbmFindPrimaryVertex::CbmFindPrimaryVertex(const char* name,
   : FairTask(),
     fFinder(finder),
     fTracks(NULL),
-    fPrimVert(NULL)
+    fPrimVert(NULL),
+    fTrBranch("") //AZ 
 {
 }
 // -------------------------------------------------------------------------
@@ -82,7 +85,9 @@ InitStatus CbmFindPrimaryVertex::Init() {
   }
 
   // Get CbmStsTrack array
-  fTracks = (TClonesArray*) ioman->GetObject("StsTrack");
+  //AZ fTracks = (TClonesArray*) ioman->GetObject("StsTrack");
+  if (fTrBranch == "") fTracks = (TClonesArray*) ioman->GetObject("StsTrack"); //AZ
+  else fTracks = (TClonesArray*) ioman->GetObject(fTrBranch); //AZ
   if ( ! fTracks) {
     cout << "-W- CbmFindPrimaryVertex::Init: No STSTrack array!"
 	 << endl;

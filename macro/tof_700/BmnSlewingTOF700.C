@@ -1,33 +1,72 @@
-#include <Rtypes.h>
-R__ADD_INCLUDE_PATH($VMCWORKDIR)
-#include "macro/run/bmnloadlibs.C"
-#include "bmndata/BmnEnums.h"
 //file: full path to raw-file
 //nEvents: if 0 then decode all events
-void BmnSlewingTOF700(TString file = "mpd_run_trigCode_4649.data", Long_t nEvents = 0) {
-    bmnloadlibs(); // load BmnRoot libraries
+
+void BmnSlewingTOF700(TString file = "mpd_run_trigCode_8760.data", Long_t nEvents = 0) {
+
+    gSystem->ExpandPathName(file);
+    gSystem->ExpandPathName(outfile);
+
+    Int_t iVerbose = 1; ///<- Verbosity level: 0 - Progress Bar; 1 - short info on passed events
     UInt_t period = 7;
-    BmnSetup stp = kBMNSETUP; // use kSRCSETUP for Short-Range Correlation program and kBMNSETUP otherwise
-//    BmnSetup stp = kSRCSETUP; // use kSRCSETUP for Short-Range Correlation program and kBMNSETUP otherwise
-    BmnSlewingTOF700* decoder = new BmnSlewingTOF700(file, nEvents, period);
+
+    TStopwatch timer;
+    timer.Start();
+
+    BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, outfile, nEvents, period);
+    // use kSRCSETUP for Short-Range Correlation program and kBMNSETUP otherwise
+    BmnSetup stp = (decoder->GetRunId() >= 2041 && decoder->GetRunId() <= 3588) ? kSRCSETUP : kBMNSETUP;
     decoder->SetBmnSetup(stp);
+    decoder->SetVerbose(iVerbose);
+    decoder->SetAdcDecoMode(period < 6 ? kBMNADCSM : kBMNADCMK);
 
     TString PeriodSetupExt = Form("%d%s.txt", period, ((stp == kBMNSETUP) ? "" : "_SRC"));
     decoder->SetTrigPlaceMapping(TString("Trig_PlaceMap_Run") + PeriodSetupExt); 
     decoder->SetTrigChannelMapping(TString("Trig_map_Run") + PeriodSetupExt); 
-    decoder->SetTof700Mapping("TOF700_map_period_7.txt");
+    decoder->SetTOF700ReferenceRun(-1);
+    decoder->SetTof700Geom(TString("TOF700_geometry_run") + PeriodSetupExt);
+    if (decoder->GetRunId() >= 4278 && decoder->GetPeriodId() == 7)
+        decoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d_from_run_4278.txt", period));
+    else
+        decoder->SetTof700Mapping(TString("TOF700_map_period_") + Form("%d.txt", period));
 
-    decoder->SlewingTOF700Init();  // Decode data into detector-digits using current mappings.
-    BmnTof2Raw2DigitNew *tof700m = decoder->GetTof700Mapper();
+  decoder->SlewingTOF700Init();  // Decode data into detector-digits using current mappings.
 
-//  tof700m->SetW(2800,9000); // BMN
-    tof700m->SetW(2600,5300); // SRC
-//  tof700m->SetWT0(670,970); // BMN BC2
-    tof700m->SetWT0(650,1100); // SRC BC2
+  BmnTof2Raw2DigitNew *tof700m = decoder->GetTof700Mapper();
 
-    decoder->SlewingTOF700();  // obtain slewing parameters
+  if (period <= 7)
+  {
+    if (stp == kSRCSETUP)
+    {
+	tof700m->SetT0shift(-15000.);
+    }
+    else
+    {
+	tof700m->SetT0shift(+147000.);
+    }
+  }
+  else if (period == 8)
+  {
+	tof700m->SetT0shift(+10000.);
+  }
+  else
+  {
+    printf{"wrong perion number - %d !\n", period);
+  }
 
-    delete decoder;
+  tof700m->SetW(2800,9000); //Argon
+  //tof700m->SetW(2600,5300); // SRC
+  tof700m->SetWT0(670,970); // BMN BC2
+  //tof700m->SetWT0(650,1100); // SRC BC2
+  //tof700m->SetWT0(200,1400); // BMN BC2 (noises?)
+  //tof700m->SetWT0(390,420); // BMN VETO
+
+  decoder->SlewingTOF700();  // obtain slewing parameters
+
+  // draw quality control histogram - comment out if not neccessary
+  tof700m->drawproft0();
+  tof700m->drawprof();
+
+  delete decoder;
 }
 
 void select_hist()

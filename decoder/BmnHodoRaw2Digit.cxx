@@ -7,13 +7,13 @@ void BmnHodoRaw2Digit::print()
   printf("BmnHodoRaw2Digit : \n");
 }
 
-BmnHodoRaw2Digit::BmnHodoRaw2Digit()
+BmnHodoRaw2Digit::BmnHodoRaw2Digit() : WfmProcessor()
 {
   fPeriodId = 0;
   fRunId = 0;
 }
 
-BmnHodoRaw2Digit::BmnHodoRaw2Digit(int period, int run, TString mappingFile, TString CalibrationFile)
+BmnHodoRaw2Digit::BmnHodoRaw2Digit(int period, int run, TString mappingFile, TString CalibrationFile) : WfmProcessor()
 {
   fPeriodId = period;
   fRunId = run;
@@ -59,10 +59,10 @@ void BmnHodoRaw2Digit::ParseConfig(TString mappingFile)
   config_file.close();
   po::notify(vm);
 
-  fHodoSerials.clear();
+  fSerials.clear();
   for (auto it : tqdc_serials)
-    fHodoSerials.push_back(std::stoul(it, nullptr, 16));
-  std::sort(fHodoSerials.begin(), fHodoSerials.end());
+    fSerials.push_back(std::stoul(it, nullptr, 16));
+  std::sort(fSerials.begin(), fSerials.end());
 
   std::string tqdc_ser;
   int tqdc_chan;
@@ -72,15 +72,15 @@ void BmnHodoRaw2Digit::ParseConfig(TString mappingFile)
   int gain;
 
   fChannelVect.clear();
-  fChannelVect.resize(fHodoSerials.size() * 16);
+  fChannelVect.resize(fSerials.size() * CHANNELS_PER_BOARD);
   for (auto it : configuration)
   {
     istringstream ss(it);
     ss >> tqdc_ser >> tqdc_chan >> material >> strip_id >> strip_side >> gain;
     int board_index, xIdx, yIdx, SizeIdx, ZoneIdx = -1;
-    auto iter = find(fHodoSerials.begin(), fHodoSerials.end(), std::stoul(tqdc_ser, nullptr, 16));
-    if (iter != fHodoSerials.end())
-      board_index = std::distance(fHodoSerials.begin(), iter);
+    auto iter = find(fSerials.begin(), fSerials.end(), std::stoul(tqdc_ser, nullptr, 16));
+    if (iter != fSerials.end())
+      board_index = std::distance(fSerials.begin(), iter);
     else
       printf("BmnHodoRaw2Digit : unknown adc serial\n");
 
@@ -138,7 +138,7 @@ void BmnHodoRaw2Digit::ParseCalibration(TString calibrationFile)
   po::notify(vm);
 
   fCalibVect.clear();
-  fCalibVect.resize(BmnHodoAddress::GetMaxFlatAddress()+1);
+  fCalibVect.resize(BmnHodoAddress::GetMaxFlatIndex()+1);
   std::string material;
   int strip_id;
   int strip_side;
@@ -154,21 +154,37 @@ void BmnHodoRaw2Digit::ParseCalibration(TString calibrationFile)
     if(material[0] == 'Q') mater = 1;
     if(mater == -1) continue;
     unsigned int unique_address = BmnHodoAddress::GetAddress(mater, strip_id, strip_side, gain);
-    uint8_t flat_channel = BmnHodoAddress::GetFlatAddress(unique_address);
+    uint8_t flat_channel = BmnHodoAddress::GetFlatIndex(unique_address);
     fCalibVect.at(flat_channel) = std::make_pair(calibration, calibError);
   }
-}
 
-int BmnHodoRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int tqdc_board_serial, unsigned int tqdc_ch)
-{
-  auto it = find(fHodoSerials.begin(), fHodoSerials.end(), tqdc_board_serial);
-  if (it != fHodoSerials.end())
-  {
-    int tqdc_board_index = std::distance(fHodoSerials.begin(), it);
-    return tqdc_board_index * 16 + tqdc_ch;
+  if(fdigiPars.isfit) {
+    int model_order = fdigiPars.harmonics.size() + 1;
+    fSignalLength = fdigiPars.gateEnd - fdigiPars.gateBegin + 1;
+    fAZik = new std::complex<float> *[model_order];
+    for (int i = 0; i < model_order; i++) {
+      fAZik[i] = new std::complex<float>[model_order];
+      for (int j = 0; j < model_order; j++)
+        fAZik[i][j] = {0., 0.};
+    }
+    PsdSignalFitting::PronyFitter Pfitter;
+    Pfitter.Initialize(fdigiPars.harmonics.size(), fdigiPars.harmonics.size(), fdigiPars.gateBegin, fdigiPars.gateEnd);
+    Pfitter.SetExternalHarmonics(fdigiPars.harmonics[0], fdigiPars.harmonics[1]);
+    Pfitter.MakeInvHarmoMatrix(fSignalLength, fAZik);
   }
 
-  printf("BmnHodoRaw2Digit :: Serial 0x%08x Not found in map %s.\n", tqdc_board_serial, fmappingFileName.Data());
+}
+
+int BmnHodoRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int board_serial, unsigned int channel)
+{
+  auto it = find(fSerials.begin(), fSerials.end(), board_serial);
+  if (it != fSerials.end())
+  {
+    int board_index = std::distance(fSerials.begin(), it);
+    return board_index * CHANNELS_PER_BOARD + channel;
+  }
+
+  printf("BmnHodoRaw2Digit :: Serial 0x%08x Not found in map %s.\n", board_serial, fmappingFileName.Data());
   return -1;
 }
 
@@ -185,10 +201,10 @@ void BmnHodoRaw2Digit::fillEvent(TClonesArray *tdc, TClonesArray *adc, TClonesAr
 
     // check if serial is from Hodo
     // cout<<adcDig->GetSerial() << " " << adcDig->GetChannel() << endl;
-    if (std::find(fHodoSerials.begin(), fHodoSerials.end(), adcDig->GetSerial()) == fHodoSerials.end()) {
+    if (std::find(fSerials.begin(), fSerials.end(), adcDig->GetSerial()) == fSerials.end()) {
       LOG(DEBUG) << "BmnHodoRaw2Digit::fillEvent" << std::hex << adcDig->GetSerial() << " Not found in ";
-      for (auto it : fHodoSerials)
-        LOG(DEBUG) << "BmnHodoRaw2Digit::fHodoSerials " << std::hex << it << endl;
+      for (auto it : fSerials)
+        LOG(DEBUG) << "BmnHodoRaw2Digit::fSerials " << std::hex << it << endl;
       continue;
     }
 
@@ -201,122 +217,21 @@ void BmnHodoRaw2Digit::fillEvent(TClonesArray *tdc, TClonesArray *adc, TClonesAr
     if (ThisDigi.fuAddress == 0)
       continue; // not connected lines
     ProcessWfm(wfm, &ThisDigi);
+
+    //Apply calibration
+    LOG(DEBUG) << "BmnHodoRaw2Digit::ProcessWfm  Calibration" << endl;
+    uint8_t flat_index = BmnHodoAddress::GetFlatIndex(ThisDigi.GetAddress());
+    assert(flat_index < fCalibVect.size());
+    if (fdigiPars.signalType == 0)
+      ThisDigi.fSignal = (float) ThisDigi.fAmpl * fCalibVect.at(flat_index).first;
+    if (fdigiPars.signalType == 1)
+      ThisDigi.fSignal = (float) ThisDigi.fIntegral * fCalibVect.at(flat_index).first;
     if (abs(ThisDigi.fSignal) < fdigiPars.threshold)
       continue;
 
     TClonesArray &ar_Hodo = *Hododigit;
     new (ar_Hodo[Hododigit->GetEntriesFast()]) BmnHodoDigi(ThisDigi);
   }
-}
-
-void BmnHodoRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnHodoDigi *digi)
-{
-  assert(fdigiPars.gateBegin > 0 && fdigiPars.gateEnd > 0);
-  if(fdigiPars.gateBegin >= wfm.size()) { 
-    LOG(ERROR) << "BmnScWallRaw2Digit:: waveform too short: accessing " << 
-    fdigiPars.gateBegin << "/" << wfm.size() << ". Check calibration file " << fcalibrationFileName;
-    fdigiPars.gateBegin = wfm.size()-1;
-  }
-  if(fdigiPars.gateEnd >= wfm.size()) { 
-    LOG(ERROR) << "BmnScWallRaw2Digit:: waveform too short: accessing " << 
-    fdigiPars.gateEnd << "/" << wfm.size() << ". Check calibration file " << fcalibrationFileName;
-    fdigiPars.gateEnd = wfm.size()-1;
-  }
-
-  // Invert
-  if (fdigiPars.doInvert)
-  {
-    LOG(DEBUG) << "BmnHodoRaw2Digit::ProcessWfm Inverting" << endl;
-    float myconstant{-1.0};
-    std::transform(wfm.begin(), wfm.end(), wfm.begin(),
-                   std::bind1st(std::multiplies<float>(), myconstant));
-  }
-
-  //Zero level calculation
-  LOG(DEBUG) << "BmnHodoRaw2Digit::ProcessWfm ZL calc" << endl;
-  const int n_gates = 3;
-  int gate_npoints = (int)floor((fdigiPars.gateBegin - 2.) / n_gates);
-
-  Float_t gates_mean[n_gates], gates_rms[n_gates];
-  for (int igate = 0; igate < n_gates; igate++)
-    MeanRMScalc(wfm, gates_mean + igate, gates_rms + igate, igate * gate_npoints, (igate + 1) * gate_npoints);
-
-  int best_gate = 0;
-  for (int igate = 0; igate < n_gates; igate++)
-    if (gates_rms[igate] < gates_rms[best_gate])
-      best_gate = igate;
-  digi->fZL = (int) gates_mean[best_gate];
-
-  //MAX and Integral calculation including borders
-  LOG(DEBUG) << "BmnHodoRaw2Digit::ProcessWfm  MAX & INT search" << endl;
-  digi->fIntegral = (int) std::accumulate(wfm.begin() + fdigiPars.gateBegin, wfm.begin() + fdigiPars.gateEnd + 1,
-                                    -digi->fZL * (fdigiPars.gateEnd - fdigiPars.gateBegin + 1));
-  auto const max_iter = std::max_element(wfm.begin() + fdigiPars.gateBegin, wfm.begin() + fdigiPars.gateEnd + 1);
-  digi->fAmpl = (int) *max_iter - digi->fZL;
-  digi->fTimeMax = (int) std::distance(wfm.begin(), max_iter);
-
-  //Apply calibration
-  LOG(DEBUG) << "BmnHodoRaw2Digit::ProcessWfm  Calibration" << endl;
-  uint8_t flat_channel = BmnHodoAddress::GetFlatAddress(digi->GetAddress());
-  assert(flat_channel < fCalibVect.size());
-  if (fdigiPars.signalType == 0)
-    digi->fSignal = (float) digi->fAmpl * fCalibVect.at(flat_channel).first;
-  if (fdigiPars.signalType == 1)
-    digi->fSignal = (float) digi->fIntegral * fCalibVect.at(flat_channel).first;
-
-  //Prony fitting procedure
-  PsdSignalFitting::PronyFitter Pfitter;
-  if (fdigiPars.isfit)
-  {
-    LOG(DEBUG) << "BmnHodoRaw2Digit::ProcessWfm  Fitting" << endl;
-    Pfitter.Initialize(fdigiPars.harmonics.size(), fdigiPars.harmonics.size(), fdigiPars.gateBegin, fdigiPars.gateEnd);
-    Pfitter.SetDebugMode(0);
-    Pfitter.SetWaveform(wfm, digi->fZL);
-    int SignalBeg = Pfitter.CalcSignalBeginStraight();
-    if (SignalBeg < 1 || SignalBeg > wfm.size())
-      return;
-    Pfitter.SetExternalHarmonics(fdigiPars.harmonics[0], fdigiPars.harmonics[1]);
-    int best_signal_begin = Pfitter.ChooseBestSignalBegin(SignalBeg - 1, SignalBeg + 1);
-    Pfitter.SetSignalBegin(best_signal_begin);
-    Pfitter.CalculateFitAmplitudes();
-
-    digi->fFitIntegral = Pfitter.GetIntegral(fdigiPars.gateBegin, fdigiPars.gateEnd);
-    digi->fFitAmpl = Pfitter.GetMaxAmplitude() - Pfitter.GetZeroLevel();
-    float fit_R2 = Pfitter.GetRSquare(fdigiPars.gateBegin, fdigiPars.gateEnd);
-    digi->fFitR2 = (fit_R2 > 2.0) ? 2.0 : fit_R2;
-    digi->fFitZL = Pfitter.GetZeroLevel();
-    digi->fFitTimeMax = Pfitter.GetSignalMaxTime();
-  }
-
-  if (fdigiPars.isWriteWfm) {
-    digi->fWfm = wfm;
-    if (fdigiPars.isfit) 
-      digi->fFitWfm = Pfitter.GetFitWfm();
-  }
-}
-
-void BmnHodoRaw2Digit::MeanRMScalc(std::vector<float> wfm, float *Mean, float *RMS, int begin, int end, int step)
-{
-  begin = (begin < 0) ? 0 : begin;
-  if (begin > end)
-  {
-    float swap = end;
-    end = begin;
-    begin = swap;
-  };
-  step = TMath::Abs(step);
-  *Mean = *RMS = 0.;
-  int Delta = 0;
-  for (int n = begin; n <= end; n += step)
-  {
-    *Mean += wfm[n];
-    Delta++;
-  }
-  *Mean /= (float)Delta;
-  for (int n = begin; n <= end; n += step)
-    *RMS += (wfm[n] - *Mean) * (wfm[n] - *Mean);
-  *RMS = TMath::Sqrt(*RMS / ((float)Delta));
-  //printf("AMPL %.2f, RMS %.2f\n",*Mean,*RMS);
 }
 
 BmnHodoRaw2Digit::~BmnHodoRaw2Digit()

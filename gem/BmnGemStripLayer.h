@@ -104,6 +104,8 @@ public:
 
     //Strip Clusters -----------------------------------------------------------
     vector<StripCluster> GetStripClusters() { return StripClusters; };
+    static void SetLowerUniqueID(Int_t id) {fUniqueIdL = id;}
+    static void SetUpperUniqueID(Int_t id) {fUniqueIdU = id;}
     //--------------------------------------------------------------------------
 
     //Methods to convert point coordinates into strip system -------------------
@@ -172,6 +174,9 @@ private:
     
     //Strip Clusters -----------------------------------------------------------
     vector<StripCluster> StripClusters;
+
+    static Int_t fUniqueIdU;
+    static Int_t fUniqueIdL;
     //--------------------------------------------------------------------------
 };
 //------------------------------------------------------------------------------

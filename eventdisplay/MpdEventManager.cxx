@@ -4,19 +4,20 @@
 #include "MpdEventManagerEditor.h"
 #include "constants.h"
 
-#include "TDOMParser.h"
-#include "TXMLEngine.h"
-#include "TXMLAttr.h"
-#include "TXMLNode.h"
-
 #include "TDatabasePDG.h"
 #include "TEveGeoNode.h"
 #include "TEveManager.h"
 #include "TGeoManager.h"
+#include "TObjString.h"
 #include <TGLViewer.h>
 #include <TGLCameraOverlay.h>
 #include <TGLLightSet.h>
 #include <TEveBrowser.h>
+
+#include "TDOMParser.h"
+#include "TXMLEngine.h"
+#include "TXMLAttr.h"
+#include "TXMLNode.h"
 
 #include "json.hpp"
 

@@ -38,6 +38,7 @@ set(SRCS
  BmnSiliconHitProducer.cxx
  BmnSiliconHitProducerSRC.cxx
  BmnSiliconTrackFinder.cxx
+ BmnSiliconTransform.cxx
  BmnSiliconConfiguration.h
 )
 

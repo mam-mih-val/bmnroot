@@ -50,10 +50,10 @@ BmnMwpcTrackFinder::BmnMwpcTrackFinder(Bool_t isExp, Int_t runP, Int_t runNumber
     fRunPeriod = runP;
     fRunNumber = runNumber;
     
-    if (fRunPeriod == 6 || (fRunPeriod == 7 && fRunNumber > 3588) ) {
+    if (fRunPeriod == 6 || (fRunPeriod == 7 && fRunNumber > 3588) ) {//BMN
       kNumPairs = 1;
       kCh_max = 2;
-    } else if ( fRunPeriod == 7 && fRunNumber <= 3588 ) {//SRC
+    } else if ( fRunPeriod == 7 && fRunNumber <= 3588 || fRunPeriod == 8) {//SRC
       kNumPairs = 2;
       kCh_max = 4;
     }
@@ -175,6 +175,7 @@ void BmnMwpcTrackFinder::TracksStoring(Int_t *Nbest, Double_t ***par_ab, Double_
           hpar_phi_pair.at(iPair)  -> Fill(TMath::RadToDeg()*phi);
           hX_in_target_pair.at(iPair)   -> Fill(X_par_to_target);
           hY_in_target_pair.at(iPair)   -> Fill(Y_par_to_target);
+          hY_X_in_target_pair.at(iPair)   -> Fill(X_par_to_target, Y_par_to_target);
           hAx_bx_in_target -> Fill(X_par_to_target, TMath::RadToDeg()*par_ab[iPair][0][itr]);
           hAy_by_in_target -> Fill(Y_par_to_target, TMath::RadToDeg()*par_ab[iPair][2][itr]);
         }
@@ -263,7 +264,7 @@ void BmnMwpcTrackFinder::MCefficiencyCalculation(vector<MC_points>& vec, Int_t *
           }//Nbest_pair[1]
           if (fDebug){
             if (mc_tr_assoc[itr] > -1){
-              cout<<" itr "<<itr<<" Np "<<vec.at(itr).Np<<" mc_Id "<<vec.at(itr).Id<<
+              cout<<" index_mc "<<itr<<" Np "<<vec.at(itr).Np<<" mc_Id "<<vec.at(itr).Id<<" index_track "<<mc_tr_assoc[itr] <<
                // " ax_mc "<<vec.at(itr).param[0]<<" reco_ind "<<mc_tr_assoc[itr]<<" ax "<< par_ab[1][0][mc_tr_assoc[itr]] <<
                  " dmc_match "<<dmc_match[itr]<<endl;
               if (dax > -900.) hdAx_tr_mc->Fill(dax);
@@ -275,7 +276,7 @@ void BmnMwpcTrackFinder::MCefficiencyCalculation(vector<MC_points>& vec, Int_t *
     
     }//vec_points.size
     
-    if (fDebug) cout<<"reject poorly chosen association segments "<<endl;
+    if (fDebug) cout<<"reject poorly chosen association PC tracks "<<endl;
     for (Int_t itr = 0; itr < vec.size(); itr++) {//mc_tr
       if (mc_tr_assoc[itr] == -1) continue;
        
@@ -284,10 +285,10 @@ void BmnMwpcTrackFinder::MCefficiencyCalculation(vector<MC_points>& vec, Int_t *
         if (mc_tr_assoc[itr2] == -1) continue;
         
         if (mc_tr_assoc[itr] ==  mc_tr_assoc[itr2]){
-          if (dmc_match[itr2] > dmc_match[itr] ) mc_tr_assoc[itr2] = -1;
+          if (dmc_match[itr2] > 20. ) mc_tr_assoc[itr2] = -1;
           else {
-            mc_tr_assoc[itr] = -1;
-            break;
+            //mc_tr_assoc[itr] = -1;
+            continue;//break;
           }
         }
       }//itr2
@@ -552,7 +553,7 @@ Int_t **best_Ch, Int_t *Nbest_pair_, Double_t **Chi2_match_, Double_t ***XVU_Ch_
   match OutSegArray[kmaxPairs];
 
   Int_t Pairr = 0;
-  if ( fRunPeriod == 7 && first_Ch == 2) Pairr = 1;
+  if ( fRunPeriod == 7 && first_Ch == 2 || fRunPeriod == 8) Pairr = 1;
   Int_t Secon_Ch = first_Ch+1;
 
   if (Nbest_Ch[first_Ch] > 0 && Nbest_Ch[Secon_Ch] > 0) {
@@ -683,7 +684,7 @@ void BmnMwpcTrackFinder::SegmentMatchingAfterTarget( Int_t first_Ch, Int_t *Nbes
   match OutSegArray[kmaxPairs];
 
   Int_t Pairr = 0;//doesn't work
-  if ( fRunPeriod == 7 && first_Ch == 2) Pairr = 1;// main stream
+  if ( fRunPeriod == 7 && first_Ch == 2 || fRunPeriod == 8) Pairr = 1;// main stream
   Int_t Secon_Ch = first_Ch+1;
 
   if (Nbest_Ch[first_Ch] > 0 && Nbest_Ch[Secon_Ch] > 0) {
@@ -879,8 +880,8 @@ void BmnMwpcTrackFinder::PairMatching( Int_t *Nbest_p, Double_t ***par_ab_p, Flo
           hdY_pair01_vs_y1->Fill(y2,dYm);
           hdX_pair01_inZpair1->Fill(X_pair0_to_pair1 - par_ab_p[1][1][pair1]);
           hdY_pair01_inZpair1->Fill(Y_pair0_to_pair1 - par_ab_p[1][3][pair1]);
-          hY_X_in_target_pair.at(0)  -> Fill(x1, y1);
-          hY_X_in_target_pair.at(1)  -> Fill(x2, y2);
+          //hY_X_in_target_pair.at(0)  -> Fill(x1, y1);
+          //hY_X_in_target_pair.at(1)  -> Fill(x2, y2);
           hAx_bx_in_target_pair.at(0) -> Fill(x1, TMath::RadToDeg()*par_ab_p[0][0][pair0]);
           hAx_bx_in_target_pair.at(1) -> Fill(x2, TMath::RadToDeg()*par_ab_p[1][0][pair1]);
           hAy_by_in_target_pair.at(0) -> Fill(y1, TMath::RadToDeg()*par_ab_p[0][2][pair0]);
@@ -921,9 +922,10 @@ void BmnMwpcTrackFinder::SegmentFit(Int_t First_Ch, Float_t **z_gl_, Float_t *si
   Double_t sigm_1[kNPlanes], sigm2_1[kNPlanes];
   Double_t sigm_2[kNPlanes], sigm2_2[kNPlanes];
   Int_t Pair1 = 0;
-  if (fRunPeriod == 7 && First_Ch == 2) Pair1 = 1;
+  if (fRunPeriod == 7 && First_Ch == 2 || fRunPeriod == 8) Pair1 = 1;
 
   for (Int_t bst = 0; bst < Nbest_pair_[Pair1]; bst++) {
+     if (fDebug) cout<<"SegmentFit bst "<<bst<<endl;
 
     Int_t fir   = First_Ch;
     Int_t sec   = First_Ch+1;
@@ -972,12 +974,12 @@ void BmnMwpcTrackFinder::SegmentFit(Int_t First_Ch, Float_t **z_gl_, Float_t *si
 
     if (fDebug) {
       for(Int_t i = 0; i < kNPlanes; i++) {
-         cout<<" h1 "<<h1[i]<<" XVU_Ch1 "<<XVU_Ch_[fir][i][best1]<<" sigm2 "<< sigm2_1[i]<<endl;
+         //cout<<" h1 "<<h1[i]<<" XVU_Ch1 "<<XVU_Ch_[fir][i][best1]<<" sigm2 "<< sigm2_1[i]<<endl;
         //<<" z "<<z_gl_[fir][i]<<endl;
       }
       cout<<endl;
       for(Int_t i = 0; i < 6; i++) {
-         cout<<" h2 "<<h2[i]<<" XVU_Ch2 "<<XVU_Ch_[sec][i][best2]<<" sigm2 "<< sigm2_2[i]<<endl;
+         //cout<<" h2 "<<h2[i]<<" XVU_Ch2 "<<XVU_Ch_[sec][i][best2]<<" sigm2 "<< sigm2_2[i]<<endl;
         //<<" z "<<z_gl_[sec][i]<<endl;
       }
     }
@@ -1034,7 +1036,7 @@ void BmnMwpcTrackFinder::SegmentFit(Int_t First_Ch, Float_t **z_gl_, Float_t *si
         if(i1==2 || i1==5) dx_[i1]=XVU_Ch_[fir][i1][best1]-0.5*(par_ab_pair_[Pair1][0][bst]+sq3*par_ab_pair_[Pair1][2][bst])*z_gl_[fir][i1]-0.5*(par_ab_pair_[Pair1][1][bst]+sq3*par_ab_pair_[Pair1][3][bst]);
         if(i1==1 || i1==4) dx_[i1]=XVU_Ch_[fir][i1][best1]-0.5*(par_ab_pair_[Pair1][0][bst]-sq3*par_ab_pair_[Pair1][2][bst])*z_gl_[fir][i1]-0.5*(par_ab_pair_[Pair1][1][bst]-sq3*par_ab_pair_[Pair1][3][bst]);
         Chi2_ndf_pair_[Pair1][bst]= Chi2_ndf_pair_[Pair1][bst]+dx_[i1]*dx_[i1]/(sigm2_1[i1]);
-        if ( fDebug) cout<<"best1 "<<best1 <<" i1 "<<i1<<" dx_ "<<dx_[i1]<<" XVU_Ch1 "<<XVU_Ch_[fir][i1][best1]<<" Chi2_ndf_Ch1_2 "<<Chi2_ndf_pair_[Pair1][bst]<<" z_gl1 "<<z_gl_[fir][i1]<<endl;
+        //if ( fDebug) cout<<"best1 "<<best1 <<" i1 "<<i1<<" dx_ "<<dx_[i1]<<" XVU_Ch1 "<<XVU_Ch_[fir][i1][best1]<<" Chi2_ndf_Ch1_2 "<<Chi2_ndf_pair_[Pair1][bst]<<" z_gl1 "<<z_gl_[fir][i1]<<endl;
 
       }// if( Wires_Ch1[i1][best2]>-1){
     }
@@ -1046,7 +1048,7 @@ void BmnMwpcTrackFinder::SegmentFit(Int_t First_Ch, Float_t **z_gl_, Float_t *si
         if(i2==2 || i2==5) dx_[i2]=XVU_Ch_[sec][i2][best2]-0.5*(par_ab_pair_[Pair1][0][bst]+sq3*par_ab_pair_[Pair1][2][bst])*z_gl_[sec][i2]-0.5*(par_ab_pair_[Pair1][1][bst]+sq3*par_ab_pair_[Pair1][3][bst]);
         if(i2==1 || i2==4) dx_[i2]=XVU_Ch_[sec][i2][best2]-0.5*(par_ab_pair_[Pair1][0][bst]-sq3*par_ab_pair_[Pair1][2][bst])*z_gl_[sec][i2]-0.5*(par_ab_pair_[Pair1][1][bst]-sq3*par_ab_pair_[Pair1][3][bst]);
         Chi2_ndf_pair_[Pair1][bst]= Chi2_ndf_pair_[Pair1][bst]+dx_[i2]*dx_[i2]/(sigm2_2[i2]);
-        if ( fDebug) cout<<"best2 "<<best2 <<" i2 "<<i2<<" dx_ "<<dx_[i2]<<" XVU_Ch2 "<<XVU_Ch_[sec][i2][best2]<<" Chi2_ndf_Ch1_2 "<<Chi2_ndf_pair_[Pair1][bst]<<" z_gl2 "<<z_gl_[sec][i2]<<endl;
+        //if ( fDebug) cout<<"best2 "<<best2 <<" i2 "<<i2<<" dx_ "<<dx_[i2]<<" XVU_Ch2 "<<XVU_Ch_[sec][i2][best2]<<" Chi2_ndf_Ch1_2 "<<Chi2_ndf_pair_[Pair1][bst]<<" z_gl2 "<<z_gl_[sec][i2]<<endl;
       }// if( Wires_Ch2[i2][best2]>-1){
     }
 
@@ -1207,7 +1209,6 @@ InitStatus BmnMwpcTrackFinder::Init() {
     if (fDebug) cout << " BmnMwpcTrackFinder::Init() " << endl;
   }
   
-  
 
   fBmnMwpcSegmentsArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
   if (!fBmnMwpcSegmentsArray)
@@ -1236,15 +1237,20 @@ InitStatus BmnMwpcTrackFinder::Init() {
   sq12      = sqrt(12.);
   sigma     = dw/sq12;
   kMiddlePl = 47.25;
-  kZ_DC     = 488.81;
   ktarget_region  = 10.;// 04.05.21 VVP // 4.;
   ktarget_regionY = 10.;// 4.*sq2;
-  //cout<<" kZ_target "<<kZ_target<<" kNumPairs "<<kNumPairs<<endl;
   kX_target = 0;
   kY_target = 0;
+  Z0_SRC = 0.;
   if (fRunPeriod == 7){
-    kX_target = 0.5;
-    kY_target =-4.5;
+    kX_target =  0.5;
+    kY_target = -4.5;
+    Z0_SRC    = -647.476;
+  }
+  if (fRunPeriod == 8){
+    kX_target =  0.;
+    kY_target =  0.;
+    Z0_SRC    = -574.91;
   }
 
   ChCent          = new TVector3[kNChambers];
@@ -1351,8 +1357,8 @@ InitStatus BmnMwpcTrackFinder::Init() {
 
       TH2D *h1;
       h1 = new TH2D(Form("YvsX_pair%d",i), Form("YvsX_pair%d; X[cm]; Y[cm]",i),  100, -25, 25, 100, -21, 21);fList.Add(h1);hYvsX_pair.push_back(h1);
-      
-      h1 = new TH2D(Form("Y_X_in_target_pair%d",i), Form("posY vs posX pair%d in target; X[cm]; Y[cm]",i), 100, -6.,6., 100, -6., 6.);fList.Add(h1);hY_X_in_target_pair.push_back(h1);
+     
+      h1 = new TH2D(Form("Y_X_in_target_pair%d",i), Form("posY vs posX pair%d in target; X[cm]; Y[cm]",i), 150, -7.5,7.5, 150, -13., 2.);fList.Add(h1);hY_X_in_target_pair.push_back(h1);
       h1 = new TH2D(Form("Ax_bx_in_target_pair%d",i), Form("slopeX vs posX in target pair%d; posX[cm]; slopeX",i), 100, -10.,10., 100, -2.3, 2.3);fList.Add(h1);hAx_bx_in_target_pair.push_back(h1);
       h1 = new TH2D(Form("Ay_by_in_target_pair%d",i), Form("slopeY vs posY in target pair%d; posY[cm]; slopeY",i), 100, -10.,10., 100, -2.3, 2.3);fList.Add(h1);hAy_by_in_target_pair.push_back(h1);
     }//if (fDebug)
@@ -1499,36 +1505,60 @@ InitStatus BmnMwpcTrackFinder::Init() {
         }
       }
 
-      if ( fRunPeriod == 7 ) {
-        if (ichh == 0 || ichh == 1) {
-          kZ_loc[0][0] = -1.5;
-          kZ_loc[0][1] = -0.5;
-          kZ_loc[0][2] =  0.5;
-          kZ_loc[0][3] =  1.5;
-          kZ_loc[0][4] =  2.5;
-          kZ_loc[0][5] = -2.5;
+     if (fRunPeriod == 6 || (fRunPeriod == 7 && fRunNumber > 3588) ) { // BMN
 
-          kZ_loc[1][0] = -1.5;
-          kZ_loc[1][1] = -2.5;
-          kZ_loc[1][2] =  2.5;
-          kZ_loc[1][3] =  1.5;
-          kZ_loc[1][4] =  0.5;
-          kZ_loc[1][5] = -0.5;
+        if ( ichh == 0 || ichh == 1) {
+          kZ_loc[ichh][ii] = -0.5 + ii;
+          if(ii == 4) {
+            kZ_loc[ichh][ii] = -2.5;
+          }
+          if(ii == 5) {
+            kZ_loc[ichh][ii] = -1.5;
+          }
         }
       }
-      if ( ichh == 2 || ichh == 3) {
-        kZ_loc[ichh][ii] = -0.5 + ii;
-        if(ii == 4) {
-          kZ_loc[ichh][ii] = -2.5;
-        }
-        if(ii == 5) {
-          kZ_loc[ichh][ii] = -1.5;
-        }
-      }//if ( ich == 0 || ich == 1)
+      if (fRunPeriod == 7 && fRunNumber <= 3588 || fRunPeriod == 8) { //SRC
 
+        if ( ichh == 0 ) {
+          kZ_loc[ichh][0] = -1.5;
+          kZ_loc[ichh][1] = -0.5;
+          kZ_loc[ichh][2] =  0.5;
+          kZ_loc[ichh][3] =  1.5;
+          kZ_loc[ichh][4] =  2.5;
+          kZ_loc[ichh][5] = -2.5;
+        }
+        if(ichh == 1) {
+          kZ_loc[ichh][0] = -1.5;
+          kZ_loc[ichh][1] = -2.5;
+          kZ_loc[ichh][2] =  2.5;
+          kZ_loc[ichh][3] =  1.5;
+          kZ_loc[ichh][4] =  0.5;
+          kZ_loc[ichh][5] = -0.5;
+        }
+        if ( fRunPeriod == 7 && (ichh == 2 || ichh == 3) ) {
+
+          kZ_loc[ichh][ii] = -0.5 + ii;
+          if(ii == 4) {
+            kZ_loc[ichh][ii] = -2.5;
+          }
+          if(ii == 5) {
+            kZ_loc[ichh][ii] = -1.5;
+          }
+        }//fRunPeriod == 7  ch 2 3
+        if ( fRunPeriod == 8 && (ichh == 2 || ichh == 3) ) {
+          kZ_loc[ichh][0] =  0.5;
+          kZ_loc[ichh][1] = -0.5;
+          kZ_loc[ichh][2] = -1.5;
+          kZ_loc[ichh][3] = -2.5;
+          kZ_loc[ichh][4] =  2.5;
+          kZ_loc[ichh][5] =  1.5;
+        }//fRunPeriod == 8  ch 2 3
+        
+      }//SRC
+      
       z_gl[ichh][ii] = kZmid[ichh] + kZ_loc[ichh][ii];
 
-      //if (fDebug) cout<<" ich "<<ichh<<" ii "<<ii<<" kZ_loc "<<kZ_loc[ichh][ii]<<" z_gl "<<z_gl[ichh][ii]<<endl;
+      if (fDebug) cout<<" ich "<<ichh<<" ii "<<ii<<" kZ_loc "<<kZ_loc[ichh][ii]<<" z_gl "<<z_gl[ichh][ii]<<endl;
     }
   }//ich
 

@@ -6,6 +6,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
+#pragma link C++ class StripCluster+;
 #pragma link C++ class BmnDetectorList+;
 #pragma link C++ class CbmBaseHit+;
 #pragma link C++ class CbmHit+;
@@ -56,6 +57,7 @@
 #pragma link C++ class BmnZDCDigit+;
 #pragma link C++ class BmnECALDigit+;
 #pragma link C++ class BmnLANDDigit+;
+#pragma link C++ class BmnTofCalDigit+;
 #pragma link C++ class BmnCSCDigit+;
 #pragma link C++ class BmnSiBTDigit+;
 

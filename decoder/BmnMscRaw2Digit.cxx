@@ -166,9 +166,9 @@ void BmnMscRaw2Digit::FillRunHeader(DigiRunHeader *rh) {
 }
 
 BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnSpillHeader *sh, UInt_t &nPedEvBySpill) {
-    sh->Clear();
-    if (fRawSpillTree->GetEntriesFast() <= iSpill)
-        return kBMNERROR;
+//    sh->Clear();
+//    if (fRawSpillTree->GetEntriesFast() <= iSpill)
+//        return kBMNERROR;
     BmnTrigInfo *ti = hdr->GetTrigInfo();
     //    if (msc->GetEntriesFast() == 0)
     //        fTempTI = BmnTrigInfo(hdr->GetTrigInfo());
@@ -180,7 +180,7 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
         if ((dig->GetLastEventId() < iEv) && (dig->GetLastEventId() > 0)) {
             fprintf(stderr, "Spill %u last event %u lost! Curent evId %u \n",
                     iSpill, dig->GetLastEventId(), iEv);
-            fRawSpillTree->GetEntry(++iSpill);
+//            fRawSpillTree->GetEntry(++iSpill);
             ++iSpillMap;
             nPedEvBySpill = 0;
             return kBMNERROR;
@@ -289,12 +289,12 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
                 }
                 ++iSpill;
                 ++iSpillMap;
-                Int_t r = fRawSpillTree->GetEntry(iSpill);
-                //                printf("Get entry %u returned %d\n", iSpill, r);
-                if (r <= 0) {
-                    //                    fprintf(stderr, "Spill %u read error!\n", iSpill);
-                    return kBMNFINISH;
-                }
+//                Int_t r = fRawSpillTree->GetEntry(iSpill);
+//                //                printf("Get entry %u returned %d\n", iSpill, r);
+//                if (r <= 0) {
+//                    //                    fprintf(stderr, "Spill %u read error!\n", iSpill);
+//                    return kBMNFINISH;
+//                }
                 nPedEvBySpill = 0;
                 break;
             }

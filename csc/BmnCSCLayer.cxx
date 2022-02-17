@@ -1,5 +1,8 @@
 #include "BmnCSCLayer.h"
 
+Int_t BmnCSCLayer::fUniqueIdL = 0;
+Int_t BmnCSCLayer::fUniqueIdU = 0;
+
 BmnCSCLayer::BmnCSCLayer() {
 
     Verbosity = true;
@@ -313,6 +316,7 @@ void BmnCSCLayer::ResetStripHits() {
     StripHitsTotalSignal.clear();
     StripHitsErrors.clear();
     StripHitsClusterSize.clear();
+    StripClusters.clear();
 }
 
 Double_t BmnCSCLayer::ConvertNormalPointToStripX(Double_t x, Double_t y) {
@@ -541,8 +545,16 @@ void BmnCSCLayer::FindClustersAndStripHits() {
     StripHitsErrors.push_back(cluster_rms);
     StripHitsClusterSize.push_back(NStripsInCluster);
 
+    cluster.SetWidth(NStripsInCluster);
     cluster.MeanPosition = mean_strip_position;
     cluster.TotalSignal = total_cluster_signal;
+    if (LayerType == LowerStripLayer) {
+        cluster.SetType(0);
+        cluster.SetUniqueID(fUniqueIdL++);
+    } else {
+        cluster.SetType(1);
+        cluster.SetUniqueID(fUniqueIdU++);
+    }
 
     StripClusters.push_back(cluster);
 

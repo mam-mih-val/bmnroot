@@ -171,7 +171,7 @@ void BmnHistSrc::FillFromDigi(DigiArrays *fDigiArrays) {
             for (Int_t digIndex = 0; digIndex < a->GetEntriesFast(); digIndex++) {
                 BmnTrigDigit *td = (BmnTrigDigit*) a->At(digIndex);
                 hists[iTrig][0]->Fill(td->GetTime());
-                hists[iTrig][0]->Fill(td->GetAmp());
+                hists[iTrig][1]->Fill(td->GetAmp());
             }
             if (!strcmp(a->GetName(), "TDC")) {
                 for (Int_t digIndex = 0; digIndex < a->GetEntriesFast(); digIndex++) {
@@ -210,6 +210,7 @@ void BmnHistSrc::Reset() {
         for (auto el : row)
             if (el)
                 el->Reset();
+              hTDC->Reset();  
 }
 
 

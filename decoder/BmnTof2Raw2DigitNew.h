@@ -84,6 +84,9 @@ public:
     void SetWT0min(int wt0m) {if (wt0m != WT0min) { WT0min = wt0m; for (int c=0; c<MaxPlane; c++) ReBook(c); } }
     int  GetWT0min() { return WT0min; }
 
+    void SetT0shift(float shift) { T0shift = shift; }
+    int  GetT0shift() { return T0shift; }
+
     void SetWT0(int wt1, int wt2) {if (wt1 != WT0min || wt2 != WT0max) { WT0min = wt1;  WT0max = wt2; for (int c=0; c<MaxPlane; c++) ReBook(c); } }
 
     void SetLeadMin(int c, int leadmin) { if (c>0&&c<=MaxPlane) if (leadmin != LeadMin[c-1]) {LeadMin[c-1] = leadmin; ReBook(c-1);} }

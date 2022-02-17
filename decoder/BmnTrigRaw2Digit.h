@@ -55,6 +55,7 @@ struct BmnTrigParameters {
     Double_t INL[CHANNEL_COUNT_MAX][TDC_BIN_COUNT];
     UShort_t ChannelMap[CHANNEL_COUNT_MAX];
     Bool_t NegativeMap[CHANNEL_COUNT_MAX];
+    Bool_t IsT0;
     TClonesArray * branchArrayPtr[CHANNEL_COUNT_MAX];
     Double_t t[CHANNEL_COUNT_MAX];
     BmnTrigParameters();
@@ -94,18 +95,11 @@ public:
         return &trigArrays;
     }
 
-    BmnTrigChannelData GetT0Map() {
-        for (BmnTrigChannelData tM : fMap) {
-            if (tM.name == "T0")
-                return tM;
-        }
-        for (BmnTrigChannelData tM : fMap) {
-            if (tM.name == "BC2")
-                return tM;
-        }
-        BmnTrigChannelData tMno;
-        tMno.serial = 0;
-        return tMno;
+    UInt_t GetT0Serial() {
+        for (auto itPl : fPlacementMap)
+            if (itPl.second->IsT0)
+                return itPl.second->CrateSerial;
+        return 0;
     }
 
     void SetSetup(BmnSetup stp) {

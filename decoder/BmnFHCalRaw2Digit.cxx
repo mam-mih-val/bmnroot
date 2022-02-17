@@ -7,13 +7,13 @@ void BmnFHCalRaw2Digit::print()
   printf("BmnFHCalRaw2Digit : \n");
 }
 
-BmnFHCalRaw2Digit::BmnFHCalRaw2Digit()
+BmnFHCalRaw2Digit::BmnFHCalRaw2Digit() : WfmProcessor()
 {
   fPeriodId = 0;
   fRunId = 0;
 }
 
-BmnFHCalRaw2Digit::BmnFHCalRaw2Digit(int period, int run, TString mappingFile, TString CalibrationFile)
+BmnFHCalRaw2Digit::BmnFHCalRaw2Digit(int period, int run, TString mappingFile, TString CalibrationFile) : WfmProcessor()
 {
   fPeriodId = period;
   fRunId = run;
@@ -59,10 +59,10 @@ void BmnFHCalRaw2Digit::ParseConfig(TString mappingFile)
   config_file.close();
   po::notify(vm);
 
-  fFHCalSerials.clear();
+  fSerials.clear();
   for (auto it : adc_serials)
-    fFHCalSerials.push_back(std::stoul(it, nullptr, 16));
-  std::sort(fFHCalSerials.begin(), fFHCalSerials.end());
+    fSerials.push_back(std::stoul(it, nullptr, 16));
+  std::sort(fSerials.begin(), fSerials.end());
 
   std::string adc_ser;
   int adc_chan;
@@ -92,16 +92,16 @@ void BmnFHCalRaw2Digit::ParseConfig(TString mappingFile)
   std::copy(UniqueZ.begin(), UniqueZ.end(), std::back_inserter(fUniqueZ));
 
   fChannelVect.clear();
-  fChannelVect.resize(fFHCalSerials.size() * 64);
+  fChannelVect.resize(fSerials.size() * CHANNELS_PER_BOARD);
   // Second pass for mapping.
   for (auto it : configuration)
   {
     istringstream ss(it);
     ss >> adc_ser >> adc_chan >> module_type >> module_id >> section_id >> x_position >> y_position >> z_position;
     int adc_board_index, xIdx, yIdx, zIdx = -1;
-    auto iter = find(fFHCalSerials.begin(), fFHCalSerials.end(), std::stoul(adc_ser, nullptr, 16));
-    if (iter != fFHCalSerials.end())
-      adc_board_index = std::distance(fFHCalSerials.begin(), iter);
+    auto iter = find(fSerials.begin(), fSerials.end(), std::stoul(adc_ser, nullptr, 16));
+    if (iter != fSerials.end())
+      adc_board_index = std::distance(fSerials.begin(), iter);
     else
       printf("BmnFHCalRaw2Digit : unknown adc serial\n");
 
@@ -172,32 +172,46 @@ void BmnFHCalRaw2Digit::ParseCalibration(TString calibrationFile)
     if (mod_id > max_mod_id) max_mod_id = mod_id;
   }
   fCalibVect.clear();
-  fCalibVect.resize(GetFlatCaloChannel(max_mod_id, 10) + 1);
+  fCalibVect.resize(GetFlatIndex(max_mod_id, 10) + 1);
 
   // Second pass for calibrations.
   for (auto it : calibrations)
   {
     istringstream ss(it);
     ss >> mod_id >> sec_id >> calibration >> calibError;
-    fCalibVect.at(GetFlatCaloChannel(mod_id, sec_id)) = std::make_pair(calibration, calibError);
+    fCalibVect.at(GetFlatIndex(mod_id, sec_id)) = std::make_pair(calibration, calibError);
   }
 
+  if(fdigiPars.isfit) {
+    int model_order = fdigiPars.harmonics.size() + 1;
+    fSignalLength = fdigiPars.gateEnd - fdigiPars.gateBegin + 1;
+    fAZik = new std::complex<float> *[model_order];
+    for (int i = 0; i < model_order; i++) {
+      fAZik[i] = new std::complex<float>[model_order];
+      for (int j = 0; j < model_order; j++)
+        fAZik[i][j] = {0., 0.};
+    }
+    PsdSignalFitting::PronyFitter Pfitter;
+    Pfitter.Initialize(fdigiPars.harmonics.size(), fdigiPars.harmonics.size(), fdigiPars.gateBegin, fdigiPars.gateEnd);
+    Pfitter.SetExternalHarmonics(fdigiPars.harmonics[0], fdigiPars.harmonics[1]);
+    Pfitter.MakeInvHarmoMatrix(fSignalLength, fAZik);
+  }
 }
 
-int BmnFHCalRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int adc_board_serial, unsigned int adc_ch)
+int BmnFHCalRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int board_serial, unsigned int channel)
 {
-  auto it = find(fFHCalSerials.begin(), fFHCalSerials.end(), adc_board_serial);
-  if (it != fFHCalSerials.end())
+  auto it = find(fSerials.begin(), fSerials.end(), board_serial);
+  if (it != fSerials.end())
   {
-    int adc_board_index = std::distance(fFHCalSerials.begin(), it);
-    return adc_board_index * 64 + adc_ch;
+    int board_index = std::distance(fSerials.begin(), it);
+    return board_index * CHANNELS_PER_BOARD + channel;
   }
 
-  printf("BmnFHCalRaw2Digit :: Serial 0x%08x Not found in map %s.\n", adc_board_serial, fmappingFileName.Data());
+  printf("BmnFHCalRaw2Digit :: Serial 0x%08x Not found in map %s.\n", board_serial, fmappingFileName.Data());
   return -1;
 }
 
-int BmnFHCalRaw2Digit::GetFlatCaloChannel(int mod_id, int sec_id)
+int BmnFHCalRaw2Digit::GetFlatIndex(int mod_id, int sec_id)
 {
   return mod_id*10 + sec_id - 1;
 }
@@ -211,10 +225,10 @@ void BmnFHCalRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *FHCaldigit)
     BmnADCDigit *digit = (BmnADCDigit *)data->At(i);
     // check if serial is from FHCal
     // cout<<digit->GetSerial() << " " << digit->GetChannel() << endl;
-    if (std::find(fFHCalSerials.begin(), fFHCalSerials.end(), digit->GetSerial()) == fFHCalSerials.end()) {
+    if (std::find(fSerials.begin(), fSerials.end(), digit->GetSerial()) == fSerials.end()) {
       LOG(DEBUG) << "BmnFHCalRaw2Digit::fillEvent" << std::hex << digit->GetSerial() << " Not found in ";
-      for (auto it : fFHCalSerials)
-        LOG(DEBUG) << "BmnFHCalRaw2Digit::fFHCalSerials " << std::hex << it << endl;
+      for (auto it : fSerials)
+        LOG(DEBUG) << "BmnFHCalRaw2Digit::fSerials " << std::hex << it << endl;
       continue;
     }
     
@@ -227,125 +241,23 @@ void BmnFHCalRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *FHCaldigit)
     if (ThisDigi.fuAddress == 0)
       continue; // not connected lines
     ProcessWfm(wfm, &ThisDigi);
+
+    //Apply calibration
+    LOG(DEBUG) << "BmnFHCalRaw2Digit::ProcessWfm  Calibration" << endl;
+    int mod_id = ThisDigi.GetModuleId();
+    int sec_id = ThisDigi.GetSectionId();
+    int flat_index = GetFlatIndex(mod_id, sec_id);
+    assert(flat_index < fCalibVect.size());
+    if (fdigiPars.signalType == 0)
+      ThisDigi.fSignal = (float) ThisDigi.fAmpl * fCalibVect.at(flat_index).first;
+    if (fdigiPars.signalType == 1)
+      ThisDigi.fSignal = (float) ThisDigi.fIntegral * fCalibVect.at(flat_index).first;
     if (abs(ThisDigi.fSignal) < fdigiPars.threshold)
       continue;
 
     TClonesArray &ar_FHCal = *FHCaldigit;
     new (ar_FHCal[FHCaldigit->GetEntriesFast()]) BmnFHCalDigi(ThisDigi);
   }
-  
-}
-
-void BmnFHCalRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnFHCalDigi *digi)
-{
-  assert(fdigiPars.gateBegin > 0 && fdigiPars.gateEnd > 0);
-  if(fdigiPars.gateBegin >= wfm.size()) { 
-    LOG(ERROR) << "BmnScWallRaw2Digit:: waveform too short: accessing " << 
-    fdigiPars.gateBegin << "/" << wfm.size() << ". Check calibration file " << fcalibrationFileName;
-    fdigiPars.gateBegin = wfm.size()-1;
-  }
-  if(fdigiPars.gateEnd >= wfm.size()) { 
-    LOG(ERROR) << "BmnScWallRaw2Digit:: waveform too short: accessing " << 
-    fdigiPars.gateEnd << "/" << wfm.size() << ". Check calibration file " << fcalibrationFileName;
-    fdigiPars.gateEnd = wfm.size()-1;
-  }
-
-  // Invert
-  if (fdigiPars.doInvert)
-  {
-    LOG(DEBUG) << "BmnFHCalRaw2Digit::ProcessWfm Inverting" << endl;
-    float myconstant{-1.0};
-    std::transform(wfm.begin(), wfm.end(), wfm.begin(),
-                   std::bind1st(std::multiplies<float>(), myconstant));
-  }
-
-  //Zero level calculation
-  LOG(DEBUG) << "BmnFHCalRaw2Digit::ProcessWfm ZL calc" << endl;
-  const int n_gates = 3;
-  int gate_npoints = (int)floor((fdigiPars.gateBegin - 2.) / n_gates);
-
-  Float_t gates_mean[n_gates], gates_rms[n_gates];
-  for (int igate = 0; igate < n_gates; igate++)
-    MeanRMScalc(wfm, gates_mean + igate, gates_rms + igate, igate * gate_npoints, (igate + 1) * gate_npoints);
-
-  int best_gate = 0;
-  for (int igate = 0; igate < n_gates; igate++)
-    if (gates_rms[igate] < gates_rms[best_gate])
-      best_gate = igate;
-  digi->fZL = (int) gates_mean[best_gate];
-
-  //MAX and Integral calculation including borders
-  LOG(DEBUG) << "BmnFHCalRaw2Digit::ProcessWfm  MAX & INT search" << endl;
-  digi->fIntegral = (int) std::accumulate(wfm.begin() + fdigiPars.gateBegin, wfm.begin() + fdigiPars.gateEnd + 1,
-                                    -digi->fZL * (fdigiPars.gateEnd - fdigiPars.gateBegin + 1));
-  auto const max_iter = std::max_element(wfm.begin() + fdigiPars.gateBegin, wfm.begin() + fdigiPars.gateEnd + 1);
-  digi->fAmpl = (int) *max_iter - digi->fZL;
-  digi->fTimeMax = (int) std::distance(wfm.begin(), max_iter);
-
-  //Apply calibration
-  LOG(DEBUG) << "BmnFHCalRaw2Digit::ProcessWfm  Calibration" << endl;
-  int mod_id = digi->GetModuleId();
-  int sec_id = digi->GetSectionId();
-  int flat_calo_ch = GetFlatCaloChannel(mod_id, sec_id);
-  assert(flat_calo_ch < fCalibVect.size());
-  if (fdigiPars.signalType == 0)
-    digi->fSignal = (float) digi->fAmpl * fCalibVect.at(flat_calo_ch).first;
-  if (fdigiPars.signalType == 1)
-    digi->fSignal = (float) digi->fIntegral * fCalibVect.at(flat_calo_ch).first;
-
-  //Prony fitting procedure
-  PsdSignalFitting::PronyFitter Pfitter;
-  if (fdigiPars.isfit)
-  {
-    LOG(DEBUG) << "BmnFHCalRaw2Digit::ProcessWfm  Fitting" << endl;
-    Pfitter.Initialize(fdigiPars.harmonics.size(), fdigiPars.harmonics.size(), fdigiPars.gateBegin, fdigiPars.gateEnd);
-    Pfitter.SetDebugMode(0);
-    Pfitter.SetWaveform(wfm, digi->fZL);
-    int SignalBeg = Pfitter.CalcSignalBeginStraight();
-    if (SignalBeg < 1 || SignalBeg > wfm.size())
-      return;
-    Pfitter.SetExternalHarmonics(fdigiPars.harmonics[0], fdigiPars.harmonics[1]);
-    int best_signal_begin = Pfitter.ChooseBestSignalBegin(SignalBeg - 1, SignalBeg + 1);
-    Pfitter.SetSignalBegin(best_signal_begin);
-    Pfitter.CalculateFitAmplitudes();
-
-    digi->fFitIntegral = Pfitter.GetIntegral(fdigiPars.gateBegin, fdigiPars.gateEnd);
-    digi->fFitAmpl = Pfitter.GetMaxAmplitude() - Pfitter.GetZeroLevel();
-    float fit_R2 = Pfitter.GetRSquare(fdigiPars.gateBegin, fdigiPars.gateEnd);
-    digi->fFitR2 = (fit_R2 > 2.0) ? 2.0 : fit_R2;
-    digi->fFitZL = Pfitter.GetZeroLevel();
-    digi->fFitTimeMax = Pfitter.GetSignalMaxTime();
-  }
-
-  if (fdigiPars.isWriteWfm) {
-    digi->fWfm = wfm;
-    if (fdigiPars.isfit) 
-      digi->fFitWfm = Pfitter.GetFitWfm();
-  }
-}
-
-void BmnFHCalRaw2Digit::MeanRMScalc(std::vector<float> wfm, float *Mean, float *RMS, int begin, int end, int step)
-{
-  begin = (begin < 0) ? 0 : begin;
-  if (begin > end)
-  {
-    float swap = end;
-    end = begin;
-    begin = swap;
-  };
-  step = TMath::Abs(step);
-  *Mean = *RMS = 0.;
-  int Delta = 0;
-  for (int n = begin; n <= end; n += step)
-  {
-    *Mean += wfm[n];
-    Delta++;
-  }
-  *Mean /= (float)Delta;
-  for (int n = begin; n <= end; n += step)
-    *RMS += (wfm[n] - *Mean) * (wfm[n] - *Mean);
-  *RMS = TMath::Sqrt(*RMS / ((float)Delta));
-  //printf("AMPL %.2f, RMS %.2f\n",*Mean,*RMS);
 }
 
 BmnFHCalRaw2Digit::~BmnFHCalRaw2Digit()

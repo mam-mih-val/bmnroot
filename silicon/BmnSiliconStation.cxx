@@ -199,10 +199,10 @@ Bool_t BmnSiliconStation::CreateConfigurationFromXMLNode(TXMLNode *node) {
 
         while( attr = (TXMLAttr*)next() ) {
             if( strcmp(attr->GetName(), "rotAngleDeg") == 0 ) {
-                RotationAngleDeg = atof(attr->GetValue());
+                RotationAngleDeg = atof(attr->GetValue()); //clockwise direction is plus, if we look at the module in the direction of the beam axis
             }
             if( strcmp(attr->GetName(), "rotCenterX") == 0 ) {
-                RotationCenterX = atof(attr->GetValue());
+                RotationCenterX = -atof(attr->GetValue()); //inverted (from global to local system)
             }
             if( strcmp(attr->GetName(), "rotCenterY") == 0 ) {
                 RotationCenterY = atof(attr->GetValue());
@@ -245,7 +245,7 @@ Bool_t BmnSiliconStation::ParseModule(TXMLNode *node, Int_t iModule) {
 
         while( attr = (TXMLAttr*)next() ) {
             if( strcmp(attr->GetName(), "xShift") == 0 ) {
-                XShiftOfModules[iModule] = -atof(attr->GetValue()); //inverted
+                XShiftOfModules[iModule] = -atof(attr->GetValue()); //inverted (from global to local system)
             }
             if( strcmp(attr->GetName(), "yShift") == 0 ) {
                 YShiftOfModules[iModule] = atof(attr->GetValue());

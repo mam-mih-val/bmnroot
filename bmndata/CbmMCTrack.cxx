@@ -151,7 +151,7 @@ Long64_t CbmMCTrack::GetNPoints(DetectorId detId) const
     else if ( detId == kTOF1 ) return ( (fNPoints & ((Long64_t)  3 <<  5) ) >>  5);
     else if ( detId == kDCH )  return ( (fNPoints & ((Long64_t) 31 <<  7) ) >>  7);
     else if ( detId == kTOF )  return ( (fNPoints & ((Long64_t)  3 << 12) ) >> 12);
-    else if ( detId == kZDC )  return ( (fNPoints & ((Long64_t)127 << 14) ) >> 14);
+    else if (detId == kZDC || detId == kZDC)  return ((fNPoints & ((Long64_t)127 << 14)) >> 14);
     else if ( detId == kSSD )  return ( (fNPoints & ((Long64_t)  7 << 21) ) >> 21);
     else if ( detId == kMWPC ) return ( (fNPoints & ((Long64_t) 31 << 24) ) >> 24);
     else if ( detId == kECAL ) return ( (fNPoints & ((Long64_t)127 << 29) ) >> 29);
@@ -210,7 +210,7 @@ void CbmMCTrack::SetNPoints(Int_t iDet, Long64_t nPoints)
         fNPoints = ( fNPoints & ( ~ ((Long64_t)  3 << 12 ) ) )  |  ( nPoints << 12 );
     }
 
-    else if ( iDet == kZDC ) {
+    else if (iDet == kZDC || iDet == kFHCAL) {
         if      ( nPoints <  0 ) nPoints =  0;
         else if ( nPoints > 127) nPoints =127;
         fNPoints = ( fNPoints & ( ~ ((Long64_t)127 << 14 ) ) )  |  ( nPoints << 14 );

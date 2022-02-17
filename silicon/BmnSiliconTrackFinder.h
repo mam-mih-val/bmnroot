@@ -97,9 +97,9 @@ public:
 private:
   Bool_t fDebug   = 0;
   UInt_t fEventNo = 0; // event counter
-  Int_t fRunNumber;
-  Int_t fRunPeriod;
-  Int_t N;
+  Int_t  fRunNumber;
+  Int_t  fRunPeriod;
+  Int_t  N;
   Bool_t expData;
   TList fList;
   TClonesArray* fBmnSiDigitsArray;
@@ -117,7 +117,18 @@ private:
   TString fInputBranchName2;
   
   //--
+  Int_t     fNstations;
+  Int_t     fNmodules;
+  Int_t     fNmodules1;
+  Int_t     fNmodules2;
+  Int_t     fNmodules3;
+  Double_t  half_target_regionX;
+  Double_t  half_target_regionY;
   Double_t  ChiSquare;
+  Double_t  Z0_SRC_target;
+  Double_t  Zcentr; 
+  Double_t  kX_target;
+  Double_t  kY_target;
   Int_t    *iClustXMod;
   Int_t    *iModX;
   Int_t    *Nsp_st;
@@ -137,11 +148,10 @@ private:
   Int_t    **Nleftoversp;
   Int_t    **NleftoverX;
   Int_t    **NleftoverXp;
-  Double_t   kX_target;
-  Double_t   kY_target;
   Double_t **Amatr;
   Double_t **shiftX;
   Double_t **shiftY;
+  Double_t **shiftYbelow;
   Double_t **Zstation;
   Double_t **Xforglfit;
   Double_t **Xpforglfit;
@@ -201,12 +211,15 @@ private:
       *hdAx_MC_tr_comb, *hdAy_MC_tr_comb, *hdX_MC_tr_comb, *hdY_MC_tr_comb,
       *hDen_mctrSi, *hNum_mctrSi,*hEff_mctrSi, *hNtrsi_mc, *hNtrsi_reco,
       *hDen_mcreaction, *hNum_mcreaction,*hEff_mcreaction,
-      *hdXp3_mod1, *hdXp3_mod2, *hdXXp3_mod1, *hdXXp3_mod2, *hXXp12CheckLeftover, *hXXp12CheckLeftover03;
+      *hdXp3_mod1, *hdXp3_mod2, *hdXXp3_mod1, *hdXXp3_mod2, *hXXp12CheckLeftover, *hXXp12CheckLeftover03,
+      *hXSi1_run8, *hXSi2_run8, *hYSi1_run8, *hYSi2_run8;
   TH2D *hvertexXY, * hvertex_aver_XY,* hprofile_beam_z1,* hprofile_beam_z2,* hprofile_beam_z3, *hdYvsYst_1,*hdYvsYst_2,*hdYvsYst_3,
       *hdXvsXst_1,*hdXvsXst_2,*hdXvsXst_3,
       *hdYvsYst1_mod0, *hdYvsYst1_mod1,*hdYvsYst1_mod2,*hdYvsYst1_mod3,*hdYvsYst2_mod0,*hdYvsYst2_mod1,*hdYvsYst3_mod1,*hdYvsYst3_mod2,
       *hdXvsXst1_0,*hdXvsXst1_1,*hdXvsXst1_2,*hdXvsXst1_3,*hdXvsXst2_0,*hdXvsXst2_1,*hdXvsXst3_1,*hdXvsXst3_2,
-      *hSi_st3mc, *hSi_st2mc, * hSi_st1mc, *hNtrsi_mc_vs_reco;
+      *hSi_st3mc, *hSi_st2mc, * hSi_st1mc, *hNtrsi_mc_vs_reco, *hY_XSisp1, *hY_XSisp2, *hY_XSisp3, *hY_XSisp1bef, *hY_XSisp2bef,
+      *hYXSi1_run8, *hYXSi2_run8;
+  vector<TH1D*> hoccupancyX1, hoccupancyX2, hoccupancyX3, hoccupancyXp1, hoccupancyXp2, hoccupancyXp3;
   
   void StripsReading(Double_t ***, Double_t ***);
   void PrepareArraysToProcessEvent();
@@ -238,7 +251,8 @@ private:
   void RecordingTracks_case3(vector<tracksX> & , vector<tracksX> & );
   void CheckPoints(Int_t **, Int_t **, Double_t ***, Double_t ***, Double_t ***, Double_t ***,Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, Double_t ***, 
                   Int_t **,  vector<tracksX> & ,Int_t **, Int_t **,Int_t **, Double_t ***, Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***);
-  void CheckLeftover(Int_t **, Int_t **,Int_t **, Double_t ***, Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***);
+  void CheckLeftover(Int_t **, Int_t **,Int_t **, Double_t ***, Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***,Double_t ***, vector<tracksX> &,
+                  Int_t **, Double_t ***, Double_t ***, Double_t ***, Double_t ***);
   void PrintAllTracks(vector<tracksX> & );
   void CountSpatialPoints(Int_t **, Int_t *);
   void MCefficiencyCalculation(vector<MC_points>&, vector<tracksX>&);
@@ -259,20 +273,15 @@ private:
   const float tg2_5      = tan(2.5*TMath::Pi()/180.);
   const float sin2_5     = sin(2.5*TMath::Pi()/180.);
   const float cos2_5     = cos(2.5*TMath::Pi()/180.);
+  const Int_t    kBig    = 300;
+  const Int_t   kMaxMC   = 100;
   const Int_t nstripXp   = 640;
   const Int_t nstripXpsm = 614;
+  const Int_t fNstrips   = 643;
   const Double_t sq12    = sqrt(12.);
-  const Int_t    kBig               = 300;
-  const Int_t    fNstations         = 4;
-  const Int_t    fNmodules          = 8;
-  const Int_t    fNmodules1         = 4;
-  const Int_t    fNmodules2         = 2;
-  const Int_t    fNmodules3         = 8;
-  const Int_t    fNstrips           = 643;
+  
   const Double_t deltaX             = 0.0095;    //cm
   const Double_t deltaXp            = 0.01030001;//cm 
-  const Double_t Z0_SRC_target      = -645.191;
-  const Double_t Zcentr             = -392.524; // Zc = Zi/3
   const Double_t half_module        = 6.0705; 
   const Double_t shift_after_zigzag = 0.01;//cm 
   const Double_t Xv_av              = 0.4;
@@ -285,10 +294,8 @@ private:
   const Double_t half_roadX3_Xp3    = 0.55;
   const Double_t half_roadY1_Y2     = 0.45;
   const Double_t half_roadXp1_Xp2_diff_sign = 0.3;
-        Double_t half_target_regionX;
-        Double_t half_target_regionY;
   const Double_t half_roadX1_Xp2     = .5;
-  const Int_t kMaxMC = 100;
+  
   const Int_t PDG_Li7 = 1000030070;//Li7
   const Int_t PDG_He4 = 1000020040;//He4
   

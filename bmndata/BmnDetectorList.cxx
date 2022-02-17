@@ -20,6 +20,7 @@ void BmnDetectorList::GetSystemName(DetectorId det, TString& name)
         case kCSC: name = "csc"; break;
         case kSILICON: name = "silicon"; break;
         case kLAND: name = "land"; break;
+        case kTOFCAL: name = "tofcal"; break;
         case kFD:  name = "fd";  break;
         case kSiMD:  name = "simd";  break;
         case kSiBT:  name = "sibt";  break;
@@ -27,6 +28,7 @@ void BmnDetectorList::GetSystemName(DetectorId det, TString& name)
         case kBC: name = "bc"; break;
         case kSCWALL: name = "scwall"; break;
         case kHODO: name = "hodo"; break;
+        case kFHCAL: name = "fhcal"; break;
         default:    name = "unknown"; break;
     }
 }
@@ -56,6 +58,7 @@ void BmnDetectorList::GetSystemNameCaps(DetectorId det, TString& name)
         case kCSC: name = "CSC"; break;
         case kSILICON: name = "SILICON"; break;
         case kLAND: name = "LAND"; break;
+        case kTOFCAL: name = "TOFCAL"; break;
         case kFD:  name = "FD";  break;
         case kSiMD:  name = "SiMD";  break;
         case kSiBT:  name = "SiBT";  break;
@@ -63,6 +66,7 @@ void BmnDetectorList::GetSystemNameCaps(DetectorId det, TString& name)
         case kBC: name = "BC"; break;
         case kSCWALL: name = "SCWALL"; break;
         case kHODO: name = "HODO"; break;
+        case kFHCAL: name = "FHCAL"; break;
         default:    name = "UNKNOWN"; break;
   }
 }

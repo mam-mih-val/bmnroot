@@ -670,3 +670,6 @@ BEGIN
   END CASE;
 END;
 $$ LANGUAGE plpgsql;
+
+-- ALTER DATABASE bmn_db
+-- SET log_statement = 'mod';

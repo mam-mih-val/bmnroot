@@ -29,6 +29,7 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     setup.insert(std::make_pair(kZDC,       1)); // ZDC
     setup.insert(std::make_pair(kECAL,      1)); // ECAL
     setup.insert(std::make_pair(kLAND,      1)); // LAND
+    setup.insert(std::make_pair(kTOFCAL,    1)); // LAND
     setup.insert(std::make_pair(kCSC,       1)); // CSC
     setup.insert(std::make_pair(kSCWALL,    1)); // SCWALL
     setup.insert(std::make_pair(kFHCAL,     1)); // FHCAL
@@ -68,7 +69,12 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     decoder->SetLANDPedestal("r0030_land_clock.hh");
     decoder->SetLANDTCal("r0030_land_tcal.hh");
     decoder->SetLANDDiffSync("r352_cosmic1.hh");
-    decoder->SetLANDVScint("neuland_sync_2.txt");
+    decoder->SetLANDVScint("neuland_sync_2.txt");    
+    decoder->SetTofCalMapping("tofcal_mapping_jinr_triplex.txt");
+    decoder->SetTofCalPedestal("tofcal_clock.hh");
+    decoder->SetTofCalTCal("tofcal_tcal.hh");
+    decoder->SetTofCalDiffSync("tofcal_diffsync_cosmic1.hh");
+    decoder->SetTofCalVScint("tofcal_sync.txt");
     decoder->InitMaps(); /// <- should be run after all mappings set
     if (doConvert) decoder->ConvertRawToRoot(); // Convert raw data in .data format into adc-,tdc-, ..., sync-digits in .root format
     BmnStatus decoStatus = decoder->DecodeDataToDigi(); // Decode data into detector-digits using current mappings.

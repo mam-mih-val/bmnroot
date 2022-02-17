@@ -16,6 +16,7 @@
 #include <cstring>   // for memcpy
 #include <iostream>
 #include <vector> // for std::vector
+#include <numeric>
 
 #include <stdint.h> // for uint16_t
 #include <stdio.h>  // for printf
@@ -103,8 +104,8 @@ private:
 
   std::vector<float> fWfm;
   float fZeroLevel;
-  std::complex<float> *fz; //!
-  std::complex<float> *fh; //!
+  std::complex<float> *fz = nullptr; //!
+  std::complex<float> *fh = nullptr; //!
   std::vector<float> fFitWfm;
   float fFitZeroLevel;
 };

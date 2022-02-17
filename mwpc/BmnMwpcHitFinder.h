@@ -138,7 +138,7 @@ class BmnMwpcHitFinder : public FairTask {
          hdAx_mc_SegCh, hdAy_mc_SegCh,hdX_mc_SegCh,hdY_mc_SegCh,
          hdAx_mc_Seg_deltaCh, hdAy_mc_Seg_deltaCh, hdX_mc_Seg_deltaCh,hdY_mc_Seg_deltaCh;
          
-  vector<TH2D*>   hEvent_display_Ch, htime_wire_Ch;
+  vector<TH2D*>   hEvent_display_Ch, htime_wire_Ch, hY_X_Ch;
   Int_t kMinHits;
   Int_t kMinHits_before_target;
   Int_t kmaxSeg;
@@ -202,7 +202,7 @@ class BmnMwpcHitFinder : public FairTask {
   Double_t **Amatr;
   Double_t **bmatr;
   const int kMaxMC      = 100;
-  const Double_t Z0_SRC = -647.476;
+  Double_t Z0_SRC;
 
   //functions for Vasilisa method:
   void PrepareArraysToProcessEvent();

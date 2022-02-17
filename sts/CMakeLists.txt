@@ -1,6 +1,4 @@
-# Create a library called "libSts" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libSts"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
@@ -74,19 +72,8 @@ CbmStsReconstructionQa.cxx
 CbmBmnStsDigitize.cxx 
 BmnGemFastDigitize.cxx 
 BmnToCbmHitConverter.cxx
+BmnStsMatchTracks.cxx
 )
-
-#AZ - debug
-If(CMAKE_BUILD_TYPE EQUAL "Debug")
-SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS
-  "-g -O0")
-EndIf(CMAKE_BUILD_TYPE EQUAL "Debug")
-
-#GP - optimize
-If(CMAKE_BUILD_TYPE EQUAL "Release")
-SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS
-  "-Ofast")
-EndIf(CMAKE_BUILD_TYPE EQUAL "Release")
 
 Set(HEADERS)
 Set(LINKDEF StsLinkDef.h)

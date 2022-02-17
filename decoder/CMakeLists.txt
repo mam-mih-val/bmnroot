@@ -42,6 +42,7 @@ set(SRCS
  BmnHodoRaw2Digit.cxx
  BmnECALRaw2Digit.cxx
  BmnLANDRaw2Digit.cxx
+ BmnTofCalRaw2Digit.cxx
  BmnGemRaw2Digit.cxx
  BmnTof2Raw2DigitNew.cxx
  BmnTof1Raw2Digit.cxx
@@ -51,6 +52,7 @@ set(SRCS
  BmnTrigRaw2Digit.cxx
  BmnCscRaw2Digit.cxx
  BmnMscRaw2Digit.cxx
+ WfmProcessor.cxx
  PronyFitter.cxx
 )
 

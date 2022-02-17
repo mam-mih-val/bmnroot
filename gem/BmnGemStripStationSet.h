@@ -34,7 +34,7 @@ public:
 
     BmnGemStripStationSet(TString xml_config_file, map <Int_t, TVector3>* shifts = nullptr);
     
-    BmnGemStripStationSet(Int_t period, BmnSetup stp = kBMNSETUP);
+    BmnGemStripStationSet(Int_t period, BmnSetup stp = kBMNSETUP, map <Int_t, TVector3>* shifts = nullptr);
 
     /* Destructor */
     virtual ~BmnGemStripStationSet();

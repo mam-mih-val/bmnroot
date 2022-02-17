@@ -144,6 +144,7 @@ BmnStatus BmnOnlineDecoder::OpenStream() {
     _decoSocket = zmq_socket(_ctx, ZMQ_PUB);
     //    _socket_mcast = zmq_socket(_ctx, ZMQ_XSUB);
     Int_t rcvBuf = 0;
+    Int_t id = 0;
     size_t vl = sizeof (rcvBuf);
     //    if (zmq_getsockopt(_decoSocket, ZMQ_RCVBUF, &rcvBuf, &vl) == -1)
     //        DBGERR("zmq_getsockopt of ZMQ_RCVBUF")
@@ -271,7 +272,7 @@ void BmnOnlineDecoder::ProcessStream() {
                     ((conID == 0) || (msg_len < MIN_REMNANT_LEN)) ? 0 : ZMQ_DONTWAIT );
 //            printf("ID Recv %u\n", conID_size);
             if (conID_size == -1) {
-//                printf("ID Receive error #%d : %s\n", errno, zmq_strerror(errno));
+                printf("ID Receive error #%d : %s\n", errno, zmq_strerror(errno));
                 switch (errno) {
                     case EAGAIN:
                         if ((msg_len < MIN_REMNANT_LEN) || (conID == 0))
@@ -301,9 +302,10 @@ void BmnOnlineDecoder::ProcessStream() {
 //            printf("recv %u\n", frame_size);
             //frame_size = zmq_recv(_socket_data, buf, MAX_BUF_LEN, 0);
             if (frame_size == -1) {
-                printf("Receive error № %d #%s\n", errno, zmq_strerror(errno));
+                printf("Receive error # %d #%s\n", errno, zmq_strerror(errno));
                 switch (errno) {
                     case EAGAIN:
+                        if ((msg_len < MIN_REMNANT_LEN))
                         usleep(MSG_TIMEOUT);
                         break;
                     case EINTR:
@@ -359,13 +361,13 @@ void BmnOnlineDecoder::ProcessStream() {
             word = (UInt_t*) (&buf[i]);
             UInt_t payLen = 0;
             switch (*word) {
-                case kRUNSTARTSYNC:
+                case SYNC_RUN_START:
                     printf("i = %d\n", i);
                     printf("start run\n");
                     payLen = *(++word);
                     printf("payLen = %d\n", payLen);
                     for (Int_t iss = 0; iss < payLen; iss++) {
-                        if (*(++word) == kRUNNUMBERSYNC) {
+                        if (*(++word) == SYNC_RUN_NUMBER) {
                             printf("RunNumberSync\n");
                             runlen = *(++word);
                             runID = *(++word);
@@ -395,13 +397,13 @@ void BmnOnlineDecoder::ProcessStream() {
                     i = 0;
 //                    evExit = kTRUE;
                     break;
-                case kRUNSTOPSYNC:
+                case SYNC_RUN_STOP:
                     printf("i = %d\n", i);
                     printf("stop run\n");
                     payLen = *(++word);
                     printf("payLen = %d\n", payLen);
                     for (Int_t iss = 0; iss < payLen; iss++) {
-                        if (*(++word) == kRUNNUMBERSYNC) {
+                        if (*(++word) == SYNC_RUN_NUMBER) {
                             printf("RunNumberSync\n");
                             runlen = *(++word);
                             runID = *(++word);
@@ -422,8 +424,8 @@ void BmnOnlineDecoder::ProcessStream() {
                     i = 0;
 //                    evExit = kTRUE;
                     break;
-                case kSYNC1:
-                case kSYNC1_OLD:
+                case SYNC_EVENT:
+                case SYNC_EVENT_OLD:
                     //            printf("i = %d\n", i);
                     //                    if (/*(fRunID > 0) &&*/ (buf[i] == kSYNC1)) 
                     //                    printf("found ksync1\n");

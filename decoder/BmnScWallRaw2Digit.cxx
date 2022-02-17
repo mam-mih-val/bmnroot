@@ -7,13 +7,13 @@ void BmnScWallRaw2Digit::print()
   printf("BmnScWallRaw2Digit : \n");
 }
 
-BmnScWallRaw2Digit::BmnScWallRaw2Digit()
+BmnScWallRaw2Digit::BmnScWallRaw2Digit() : WfmProcessor()
 {
   fPeriodId = 0;
   fRunId = 0;
 }
 
-BmnScWallRaw2Digit::BmnScWallRaw2Digit(int period, int run, TString mappingFile, TString CalibrationFile)
+BmnScWallRaw2Digit::BmnScWallRaw2Digit(int period, int run, TString mappingFile, TString CalibrationFile) : WfmProcessor()
 {
   fPeriodId = period;
   fRunId = run;
@@ -59,10 +59,10 @@ void BmnScWallRaw2Digit::ParseConfig(TString mappingFile)
   config_file.close();
   po::notify(vm);
 
-  fScWallSerials.clear();
+  fSerials.clear();
   for (auto it : adc_serials)
-    fScWallSerials.push_back(std::stoul(it, nullptr, 16));
-  std::sort(fScWallSerials.begin(), fScWallSerials.end());
+    fSerials.push_back(std::stoul(it, nullptr, 16));
+  std::sort(fSerials.begin(), fSerials.end());
 
   std::string adc_ser;
   int adc_chan;
@@ -89,16 +89,16 @@ void BmnScWallRaw2Digit::ParseConfig(TString mappingFile)
   std::copy(UniqueSize.begin(), UniqueSize.end(), std::back_inserter(fUniqueSize));
 
   fChannelVect.clear();
-  fChannelVect.resize(fScWallSerials.size() * 64);
+  fChannelVect.resize(fSerials.size() * CHANNELS_PER_BOARD);
   // Second pass for mapping.
   for (auto it : configuration)
   {
     istringstream ss(it);
     ss >> adc_ser >> adc_chan >> cell_id >> zone >> x_position >> y_position >> size;
     int adc_board_index, xIdx, yIdx, SizeIdx, ZoneIdx = -1;
-    auto iter = find(fScWallSerials.begin(), fScWallSerials.end(), std::stoul(adc_ser, nullptr, 16));
-    if (iter != fScWallSerials.end())
-      adc_board_index = std::distance(fScWallSerials.begin(), iter);
+    auto iter = find(fSerials.begin(), fSerials.end(), std::stoul(adc_ser, nullptr, 16));
+    if (iter != fSerials.end())
+      adc_board_index = std::distance(fSerials.begin(), iter);
     else
       printf("BmnScWallRaw2Digit : unknown adc serial\n");
 
@@ -182,18 +182,34 @@ void BmnScWallRaw2Digit::ParseCalibration(TString calibrationFile)
     ss >> cell_id >> calibration >> calibError;
     fCalibVect.at(cell_id) = std::make_pair(calibration, calibError);
   }
-}
 
-int BmnScWallRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int adc_board_serial, unsigned int adc_ch)
-{
-  auto it = find(fScWallSerials.begin(), fScWallSerials.end(), adc_board_serial);
-  if (it != fScWallSerials.end())
-  {
-    int adc_board_index = std::distance(fScWallSerials.begin(), it);
-    return adc_board_index * 64 + adc_ch;
+  if(fdigiPars.isfit) {
+    int model_order = fdigiPars.harmonics.size() + 1;
+    fSignalLength = fdigiPars.gateEnd - fdigiPars.gateBegin + 1;
+    fAZik = new std::complex<float> *[model_order];
+    for (int i = 0; i < model_order; i++) {
+      fAZik[i] = new std::complex<float>[model_order];
+      for (int j = 0; j < model_order; j++)
+        fAZik[i][j] = {0., 0.};
+    }
+    PsdSignalFitting::PronyFitter Pfitter;
+    Pfitter.Initialize(fdigiPars.harmonics.size(), fdigiPars.harmonics.size(), fdigiPars.gateBegin, fdigiPars.gateEnd);
+    Pfitter.SetExternalHarmonics(fdigiPars.harmonics[0], fdigiPars.harmonics[1]);
+    Pfitter.MakeInvHarmoMatrix(fSignalLength, fAZik);
   }
 
-  printf("BmnScWallRaw2Digit :: Serial 0x%08x Not found in map %s.\n", adc_board_serial, fmappingFileName.Data());
+}
+
+int BmnScWallRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int board_serial, unsigned int channel)
+{
+  auto it = find(fSerials.begin(), fSerials.end(), board_serial);
+  if (it != fSerials.end())
+  {
+    int adc_board_index = std::distance(fSerials.begin(), it);
+    return adc_board_index * CHANNELS_PER_BOARD + channel;
+  }
+
+  printf("BmnScWallRaw2Digit :: Serial 0x%08x Not found in map %s.\n", board_serial, fmappingFileName.Data());
   return -1;
 }
 
@@ -207,10 +223,10 @@ void BmnScWallRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ScWalldigit
     BmnADCDigit *digit = (BmnADCDigit *)data->At(i);
     // check if serial is from ScWall
     // cout<<digit->GetSerial() << " " << digit->GetChannel() << endl;
-    if (std::find(fScWallSerials.begin(), fScWallSerials.end(), digit->GetSerial()) == fScWallSerials.end()) {
+    if (std::find(fSerials.begin(), fSerials.end(), digit->GetSerial()) == fSerials.end()) {
       LOG(DEBUG) << "BmnScWallRaw2Digit::fillEvent" << std::hex << digit->GetSerial() << " Not found in ";
-      for (auto it : fScWallSerials)
-        LOG(DEBUG) << "BmnScWallRaw2Digit::fScWallSerials " << std::hex << it << endl;
+      for (auto it : fSerials)
+        LOG(DEBUG) << "BmnScWallRaw2Digit::fSerials " << std::hex << it << endl;
       continue;
     }
     std::vector<float> wfm(digit->GetUShortValue(), digit->GetUShortValue() + digit->GetNSamples());
@@ -222,122 +238,21 @@ void BmnScWallRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ScWalldigit
     if (ThisDigi.fuAddress == 0)
       continue; // not connected lines
     ProcessWfm(wfm, &ThisDigi);
+    
+    //Apply calibration
+    LOG(DEBUG) << "BmnScWallRaw2Digit::ProcessWfm  Calibration" << endl;
+    unsigned int cell_id = ThisDigi.GetCellId();
+    assert(cell_id < fCalibVect.size());
+    if (fdigiPars.signalType == 0)
+      ThisDigi.fSignal = (float) ThisDigi.fAmpl * fCalibVect.at(cell_id).first;
+    if (fdigiPars.signalType == 1)
+      ThisDigi.fSignal = (float) ThisDigi.fIntegral * fCalibVect.at(cell_id).first;
     if (abs(ThisDigi.fSignal) < fdigiPars.threshold)
       continue;
 
     TClonesArray &ar_ScWall = *ScWalldigit;
     new (ar_ScWall[ScWalldigit->GetEntriesFast()]) BmnScWallDigi(ThisDigi);
   }
-}
-
-void BmnScWallRaw2Digit::ProcessWfm(std::vector<float> wfm, BmnScWallDigi *digi)
-{
-  assert(fdigiPars.gateBegin > 0 && fdigiPars.gateEnd > 0);
-  if(fdigiPars.gateBegin >= wfm.size()) { 
-    LOG(ERROR) << "BmnScWallRaw2Digit:: waveform too short: accessing " << 
-    fdigiPars.gateBegin << "/" << wfm.size() << ". Check calibration file " << fcalibrationFileName;
-    fdigiPars.gateBegin = wfm.size()-1;
-  }
-  if(fdigiPars.gateEnd >= wfm.size()) { 
-    LOG(ERROR) << "BmnScWallRaw2Digit:: waveform too short: accessing " << 
-    fdigiPars.gateEnd << "/" << wfm.size() << ". Check calibration file " << fcalibrationFileName;
-    fdigiPars.gateEnd = wfm.size()-1;
-  }
-
-  // Invert
-  if (fdigiPars.doInvert)
-  {
-    LOG(DEBUG) << "BmnScWallRaw2Digit::ProcessWfm Inverting" << endl;
-    float myconstant{-1.0};
-    std::transform(wfm.begin(), wfm.end(), wfm.begin(),
-                   std::bind1st(std::multiplies<float>(), myconstant));
-  }
-
-  //Zero level calculation
-  LOG(DEBUG) << "BmnScWallRaw2Digit::ProcessWfm ZL calc" << endl;
-  const int n_gates = 3;
-  int gate_npoints = (int)floor((fdigiPars.gateBegin - 2.) / n_gates);
-
-  Float_t gates_mean[n_gates], gates_rms[n_gates];
-  for (int igate = 0; igate < n_gates; igate++)
-    MeanRMScalc(wfm, gates_mean + igate, gates_rms + igate, igate * gate_npoints, (igate + 1) * gate_npoints);
-
-  int best_gate = 0;
-  for (int igate = 0; igate < n_gates; igate++)
-    if (gates_rms[igate] < gates_rms[best_gate])
-      best_gate = igate;
-  digi->fZL = (int) gates_mean[best_gate];
-
-  //MAX and Integral calculation including borders
-  LOG(DEBUG) << "BmnScWallRaw2Digit::ProcessWfm  MAX & INT search" << endl;
-  digi->fIntegral = (int) std::accumulate(wfm.begin() + fdigiPars.gateBegin, wfm.begin() + fdigiPars.gateEnd + 1,
-                                    -digi->fZL * (fdigiPars.gateEnd - fdigiPars.gateBegin + 1));
-  auto const max_iter = std::max_element(wfm.begin() + fdigiPars.gateBegin, wfm.begin() + fdigiPars.gateEnd + 1);
-  digi->fAmpl = (int) *max_iter - digi->fZL;
-  digi->fTimeMax = (int) std::distance(wfm.begin(), max_iter);
-
-  //Apply calibration
-  LOG(DEBUG) << "BmnScWallRaw2Digit::ProcessWfm  Calibration" << endl;
-  unsigned int cell_id = digi->GetCellId();
-  assert(cell_id < fCalibVect.size());
-  if (fdigiPars.signalType == 0)
-    digi->fSignal = (float) digi->fAmpl * fCalibVect.at(cell_id).first;
-  if (fdigiPars.signalType == 1)
-    digi->fSignal = (float) digi->fIntegral * fCalibVect.at(cell_id).first;
-
-  //Prony fitting procedure
-  PsdSignalFitting::PronyFitter Pfitter;
-  if (fdigiPars.isfit)
-  {
-    LOG(DEBUG) << "BmnScWallRaw2Digit::ProcessWfm  Fitting" << endl;
-    Pfitter.Initialize(fdigiPars.harmonics.size(), fdigiPars.harmonics.size(), fdigiPars.gateBegin, fdigiPars.gateEnd);
-    Pfitter.SetDebugMode(0);
-    Pfitter.SetWaveform(wfm, digi->fZL);
-    int SignalBeg = Pfitter.CalcSignalBeginStraight();
-    if (SignalBeg < 1 || SignalBeg > wfm.size())
-      return;
-    Pfitter.SetExternalHarmonics(fdigiPars.harmonics[0], fdigiPars.harmonics[1]);
-    int best_signal_begin = Pfitter.ChooseBestSignalBegin(SignalBeg - 1, SignalBeg + 1);
-    Pfitter.SetSignalBegin(best_signal_begin);
-    Pfitter.CalculateFitAmplitudes();
-
-    digi->fFitIntegral = Pfitter.GetIntegral(fdigiPars.gateBegin, fdigiPars.gateEnd);
-    digi->fFitAmpl = Pfitter.GetMaxAmplitude() - Pfitter.GetZeroLevel();
-    float fit_R2 = Pfitter.GetRSquare(fdigiPars.gateBegin, fdigiPars.gateEnd);
-    digi->fFitR2 = (fit_R2 > 2.0) ? 2.0 : fit_R2;
-    digi->fFitZL = Pfitter.GetZeroLevel();
-    digi->fFitTimeMax = Pfitter.GetSignalMaxTime();
-  }
-
-  if (fdigiPars.isWriteWfm) {
-    digi->fWfm = wfm;
-    if (fdigiPars.isfit) 
-      digi->fFitWfm = Pfitter.GetFitWfm();
-  }
-}
-
-void BmnScWallRaw2Digit::MeanRMScalc(std::vector<float> wfm, float *Mean, float *RMS, int begin, int end, int step)
-{
-  begin = (begin < 0) ? 0 : begin;
-  if (begin > end)
-  {
-    float swap = end;
-    end = begin;
-    begin = swap;
-  };
-  step = TMath::Abs(step);
-  *Mean = *RMS = 0.;
-  int Delta = 0;
-  for (int n = begin; n <= end; n += step)
-  {
-    *Mean += wfm[n];
-    Delta++;
-  }
-  *Mean /= (float)Delta;
-  for (int n = begin; n <= end; n += step)
-    *RMS += (wfm[n] - *Mean) * (wfm[n] - *Mean);
-  *RMS = TMath::Sqrt(*RMS / ((float)Delta));
-  //printf("AMPL %.2f, RMS %.2f\n",*Mean,*RMS);
 }
 
 BmnScWallRaw2Digit::~BmnScWallRaw2Digit()

@@ -13,11 +13,13 @@
 
 #include "CbmStsTrackFitter.h"
 
+#include <map>
 #include <vector>
 
 class CbmKFTrack;
 class CbmVertex;
 class TClonesArray;
+class TProfile2D;
 
 //AZ class CbmStsKFTrackFitter : public CbmStsTrackFitter{
 class BmnStsKFTrackFitter : public CbmStsTrackFitter{
@@ -42,6 +44,14 @@ class BmnStsKFTrackFitter : public CbmStsTrackFitter{
   /** Fit given track using Kalman Filter algorithm 
    */
   Int_t DoFit( CbmStsTrack* track, Int_t pidHypo=211 );
+
+  // Fit given track using Kalman Filter algorithm (with material budget)
+  void ReadMatBudget(TString &matBudgetFileName); 
+  Int_t Fit( CbmStsTrack* track, Int_t pidHypo=211 ); //AZ
+  Int_t FitWithMat (CbmKFTrack& track, Int_t downstream); //AZ
+  // Evaluate material between hits (stations)  
+  void EvalMaterial (CbmKFTrack& track, int ihit, Int_t downstream, CbmKFMaterial &mat); //AZ
+  //void SetMatHistos(std::map<Double_t,TProfile2D*> *matHistos) { fMatHistos = matHistos; } //AZ
  
   /** Extrapolate track to any Z position 
    *
@@ -86,6 +96,8 @@ class BmnStsKFTrackFitter : public CbmStsTrackFitter{
   TClonesArray *fStsHitsArray;
 
   Bool_t fIsInitialised;
+
+  std::map<Double_t,TProfile2D*> fMatHistos;
 
  public:
   

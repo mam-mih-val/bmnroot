@@ -20,7 +20,8 @@ BmnSiliconHitMaker::BmnSiliconHitMaker()
     fOutputHitsBranchName = "BmnSiliconHit";
 
     fCurrentConfig = BmnSiliconConfiguration::None;
-    StationSet = NULL;
+    StationSet = nullptr;
+    TransfSet = nullptr;
 }
 
 BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, Bool_t isSrc)
@@ -35,7 +36,8 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
     fOutputHitsBranchName = "BmnSiliconHit";
 
     fCurrentConfig = BmnSiliconConfiguration::None;
-    StationSet = NULL;
+    StationSet = nullptr;
+    TransfSet = nullptr;
 
     fSignalLow = 0.;
     fSignalUp = DBL_MAX;
@@ -53,6 +55,10 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
         break;
     case 8: //BM@N RUN-8
         fCurrentConfig = BmnSiliconConfiguration::Run8_3stations;
+        break;
+    case 777: //test purpose
+        //fCurrentConfig = BmnSiliconConfiguration::Run8_mods_10_14rot_18;
+        fCurrentConfig = BmnSiliconConfiguration::Run8_mods_6_10_14_18;
         break;
     }
 
@@ -78,27 +84,42 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
         break;
 
     case BmnSiliconConfiguration::Run8_3stations:
-        StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_3stations.xml");
-        if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_3stations" << "\n";
-        break;
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_3stations.xml");
+            TransfSet = new BmnSiliconTransform();
+            TransfSet->LoadFromXMLFile(gPathSiliconConfig + "SiliconRun8_3stations.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_3stations" << "\n";
+            break;
 
-    case BmnSiliconConfiguration::Run8_4stations:
-        StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_4stations.xml");
-        if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_4stations" << "\n";
-        break;
+        case BmnSiliconConfiguration::Run8_4stations:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_4stations.xml");
+            TransfSet = new BmnSiliconTransform();
+            TransfSet->LoadFromXMLFile(gPathSiliconConfig + "SiliconRun8_4stations.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_4stations" << "\n";
+            break;
 
-    case BmnSiliconConfiguration::Run8_5stations:
-        StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_5stations.xml");
-        if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_5stations" << "\n";
-        break;
+        case BmnSiliconConfiguration::Run8_5stations:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_5stations.xml");
+            TransfSet = new BmnSiliconTransform();
+            TransfSet->LoadFromXMLFile(gPathSiliconConfig + "SiliconRun8_5stations.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_5stations" << "\n";
+            break;
 
-    case BmnSiliconConfiguration::Run8_mods_6_10_14_18:
-        StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_mods_6_10_14_18.xml");
-        if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_mods_6_10_14_18" << "\n";
-        break;
+        case BmnSiliconConfiguration::Run8_mods_6_10_14_18:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_mods_6_10_14_18.xml");
+            TransfSet = new BmnSiliconTransform();
+            TransfSet->LoadFromXMLFile(gPathSiliconConfig + "SiliconRun8_mods_6_10_14_18.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_mods_6_10_14_18" << "\n";
+            break;
+
+        case BmnSiliconConfiguration::Run8_mods_10_14rot_18:
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRun8_mods_10_14rot_18.xml");
+            TransfSet = new BmnSiliconTransform();
+            TransfSet->LoadFromXMLFile(gPathSiliconConfig + "SiliconRun8_mods_10_14rot_18.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : SiliconRun8_mods_10_14rot_18" << "\n";
+            break;
 
     default:
-        StationSet = NULL;
+        StationSet = nullptr;
     }
 
     if (fIsExp) {
@@ -143,8 +164,13 @@ BmnSiliconHitMaker::~BmnSiliconHitMaker() {
         }
         delete[] fAlignCor;
     }
+
     if (StationSet) {
         delete StationSet;
+    }
+
+    if (TransfSet) {
+        delete TransfSet;
     }
 }
 
@@ -183,13 +209,16 @@ void BmnSiliconHitMaker::Exec(Option_t* opt) {
 
     TStopwatch sw;
     sw.Start();
-    
+
     if (!IsActive())
         return;
 
     fBmnSiliconHitsArray->Delete();
     fBmnSiliconUpperClustersArray->Delete();
     fBmnSiliconLowerClustersArray->Delete();
+
+    BmnSiliconLayer::SetLowerUniqueID(0);
+    BmnSiliconLayer::SetUpperUniqueID(0);
 
     if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Exec() started ================" << endl;
     if (fVerbose > 1) cout << " BmnSiliconHitMaker::Exec(), Number of BmnSiliconDigits = " << fBmnSiliconDigitsArray->GetEntriesFast() << "\n";
@@ -255,6 +284,9 @@ void BmnSiliconHitMaker::ProcessDigits() {
 
     Int_t clear_matched_points_cnt = 0; // points with the only one match-indexes
 
+    map<Int_t, StripCluster> UniqueUpperClusters;
+    map<Int_t, StripCluster> UniqueLowerClusters;
+
     for (Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
         station = StationSet->GetSiliconStation(iStation);
 
@@ -268,10 +300,10 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 Double_t sigL = module->GetIntersectionPoint_LowerLayerSripTotalSignal(iPoint);
                 Double_t sigU = module->GetIntersectionPoint_UpperLayerSripTotalSignal(iPoint);
 
-                if (sigL < 0 || sigU < 0) {
-                    if (Abs(sigL - sigU) > 100) continue;
-                    //                    if (Abs(sigL - sigU) / max(sigU, sigL) > 0.25) continue;
-                }
+                // if (sigL < 0 || sigU < 0) {
+                //     if (Abs(sigL - sigU) > 100) continue;
+                //     //                    if (Abs(sigL - sigU) / max(sigU, sigL) > 0.25) continue;
+                // }
 
                 Double_t x = module->GetIntersectionPointX(iPoint);
                 Double_t y = module->GetIntersectionPointY(iPoint);
@@ -281,6 +313,14 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 Double_t x_err = module->GetIntersectionPointXError(iPoint);
                 Double_t y_err = module->GetIntersectionPointYError(iPoint);
                 Double_t z_err = 0.0;
+
+                //Transform hit coordinates from local coordinate system to global
+                if (TransfSet) {
+                    Plane3D::Point glob_point = TransfSet->ApplyTransforms(Plane3D::Point(-x, y, z), iStation, iModule);
+                    x = -glob_point.X();
+                    y = glob_point.Y();
+                    z = glob_point.Z();
+                }
 
                 Int_t RefMCIndex = -1;
 
@@ -322,8 +362,16 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 hit->SetDigitNumberMatch(module->GetIntersectionPointDigitNumberMatch(iPoint)); //digit number match for the hit
                 //--------------------------------------------------------------
 
-                new ((*fBmnSiliconUpperClustersArray)[fBmnSiliconUpperClustersArray->GetEntriesFast()]) StripCluster(module->GetUpperCluster(iPoint));
-                new ((*fBmnSiliconLowerClustersArray)[fBmnSiliconLowerClustersArray->GetEntriesFast()]) StripCluster(module->GetLowerCluster(iPoint));
+                StripCluster ucls = module->GetUpperCluster(iPoint);
+                StripCluster lcls = module->GetLowerCluster(iPoint);
+                ucls.SetModule(iModule);
+                lcls.SetModule(iModule);
+                ucls.SetStation(iStation);
+                lcls.SetStation(iStation);
+                UniqueUpperClusters[ucls.GetUniqueID()] = ucls;
+                UniqueLowerClusters[lcls.GetUniqueID()] = lcls;
+                hit->SetUpperClusterIndex(ucls.GetUniqueID());
+                hit->SetLowerClusterIndex(lcls.GetUniqueID());
 
                 if (fHitMatching) {
                     BmnMatch digiMatch = module->GetIntersectionPointDigitNumberMatch(iPoint);
@@ -359,12 +407,42 @@ void BmnSiliconHitMaker::ProcessDigits() {
             }
         }
     }
+
+    for (auto it : UniqueUpperClusters) {
+        for (Int_t i = 0; i < fBmnSiliconHitsArray->GetEntriesFast(); i++) {
+            BmnSiliconHit* hit = (BmnSiliconHit*)fBmnSiliconHitsArray->At(i);
+            if (hit->GetUpperClusterIndex() != it.first) continue;
+            hit->SetUpperClusterIndex(fBmnSiliconUpperClustersArray->GetEntriesFast());
+        }
+        it.second.SetUniqueID(fBmnSiliconUpperClustersArray->GetEntriesFast());
+        new ((*fBmnSiliconUpperClustersArray)[fBmnSiliconUpperClustersArray->GetEntriesFast()]) StripCluster(it.second);
+    }
+    for (auto it : UniqueLowerClusters) {
+        for (Int_t i = 0; i < fBmnSiliconHitsArray->GetEntriesFast(); i++) {
+            BmnSiliconHit* hit = (BmnSiliconHit*)fBmnSiliconHitsArray->At(i);
+            if (hit->GetLowerClusterIndex() != it.first) continue;
+            hit->SetLowerClusterIndex(fBmnSiliconLowerClustersArray->GetEntriesFast());
+        }
+        it.second.SetUniqueID(fBmnSiliconLowerClustersArray->GetEntriesFast());
+        new ((*fBmnSiliconLowerClustersArray)[fBmnSiliconLowerClustersArray->GetEntriesFast()]) StripCluster(it.second);
+    }
+
     if (fVerbose > 1) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();
 }
 
 void BmnSiliconHitMaker::Finish() {
+    if (StationSet) {
+        delete StationSet;
+        StationSet = nullptr;
+    }
+
+    if (TransfSet) {
+        delete TransfSet;
+        TransfSet = nullptr;
+    }
+
     printf("Work time of BmnSiliconHitMaker: %4.2f sec.\n", workTime);
 }
 

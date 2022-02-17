@@ -37,10 +37,10 @@ void PronyFitter::AllocData() {
 
 void PronyFitter::SetWaveform(std::vector<float> &Wfm,
                               float ZeroLevel) {
-  fWfm = Wfm;
+  fWfm.assign(Wfm.begin(), Wfm.end());
   fZeroLevel = ZeroLevel;
   fSampleTotal = fWfm.size();
-  //fFitWfm.clear();
+  fFitWfm.clear();
   fFitWfm.resize(fSampleTotal);
 }
 
@@ -707,7 +707,7 @@ void PronyFitter::CalculateFitAmplitudesFast(int signal_length, std::complex<flo
   fFitZeroLevel = std::real(fh[0]);
   for (int sample_curr = 0; sample_curr < fSampleTotal; sample_curr++) {
     fit_ampl_in_sample = {0., 0.};
-    if ((sample_curr >= fSignalBegin)) { //&& (sample_curr <= fGateEnd)) {
+    if ((sample_curr >= fSignalBegin) && (sample_curr <= fGateEnd)) {
       for (int i = 0; i < fExpNumber + 1; i++) {
         fit_ampl_in_sample += fh[i] * z_power[i];
         z_power[i] *= fz[i];
@@ -736,13 +736,8 @@ void PronyFitter::CalculateFitAmplitudesFast(int signal_length, std::complex<flo
 std::complex<float> *PronyFitter::GetAmplitudes() { return fh; }
 
 float PronyFitter::GetIntegral(int gate_beg, int gate_end) {
-  float integral = 0.;
-  for (int sample_curr = gate_beg; sample_curr <= gate_end; sample_curr++)
-    integral += (float)fFitWfm.at(sample_curr) - fFitZeroLevel;
-
-  if (std::isfinite(integral))
-    return integral;
-  return 0;
+  return std::accumulate(fFitWfm.begin() + gate_beg, fFitWfm.begin() + gate_end + 1,
+                                    -fFitZeroLevel * (gate_end - gate_beg + 1));
 }
 
 float PronyFitter::GetFitValue(int sample_number) {
@@ -919,29 +914,6 @@ float PronyFitter::GetChiSquare(int gate_beg, int gate_end, int time_max) {
 float PronyFitter::GetDeltaInSample(int sample) {
   return fFitWfm.at(sample) - fWfm.at(sample);
 }
-
-/*
-void PronyFitter::DrawFit(TObjArray *check_fit_arr, TString hist_title)
-{
- float *sample_arr = new float[fSampleTotal];
- for(int i = 0; i < fSampleTotal; i++)
-     sample_arr[i] = (float) i;
-
- TGraph* tgr_ptr = new TGraph( fSampleTotal, sample_arr, fWfm);
- TGraph* tgr_ptr_fit = new TGraph( fSampleTotal, sample_arr, fFitWfm);
- TCanvas *canv_ptr = new TCanvas(hist_title.Data());
- tgr_ptr->SetTitle(hist_title.Data());
- tgr_ptr->Draw();
-
- tgr_ptr_fit->SetLineColor(kRed);
- tgr_ptr_fit->SetLineWidth(2);
- tgr_ptr_fit->Draw("same");
-
- check_fit_arr->Add(canv_ptr);
-
- delete[] sample_arr;
-}
-*/
 
 int PronyFitter::ChooseBestSignalBeginHarmonics(int first_sample,
                                                 int last_sample) {
@@ -1268,8 +1240,8 @@ void PronyFitter::ResetAmplitudes() {
 }
 
 void PronyFitter::DeleteData() {
-  delete[] fz;
-  delete[] fh;
+  if(fz) delete[] fz;
+  if(fh) delete[] fh;
 }
 
 void PronyFitter::Clear() {

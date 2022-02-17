@@ -19,7 +19,7 @@ const Int_t NModulesInStations[NStations] = {6, 10, 14, 18};
 //(X-Y-Z)Positions of stations (sensitive volumes)
 const Double_t XStationPositions[NStations] = { 0.0, 0.0, 0.0, 0.0 };
 const Double_t YStationPositions[NStations] = { 0.0, 0.0, 0.0, 0.0 };
-const Double_t ZStationPositions[NStations] = { 15.7-8.64/*7.06*/, +15.7, +15.7+8.64, +15.7+8.64+8.64 };
+const Double_t ZStationPositions[NStations] = { 15.7-8.64+5.0, +15.7+5.0, +15.7+8.64+5.0, +15.7+8.64+8.64+5.0 };
 
 /*
  * where

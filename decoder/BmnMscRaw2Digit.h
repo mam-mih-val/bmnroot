@@ -101,7 +101,7 @@ private:
     TDatime dtEnd;
     Int_t fLogShift;
     
-    Int_t fVerbose = 0;
+    Int_t fVerbose = 1;
     
     BmnTrigInfo fTempTI;
 

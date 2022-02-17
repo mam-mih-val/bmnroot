@@ -1092,6 +1092,8 @@ void BmnGemStripModule::ResetIntersectionPoints() {
     IntersectionPoints_UpperLayerStripTotalSignal.clear();
     IntersectionPointMatches.clear();
     IntersectionPointDigitNumberMatches.clear();
+    UpperClusters.clear();
+    LowerClusters.clear();
 }
 
 void BmnGemStripModule::DefineModuleBorders() {

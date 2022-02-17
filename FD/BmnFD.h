@@ -47,7 +47,7 @@ class BmnFD : public FairDetector
   /** Virtual method ProcessHits
    **
    ** Defines the action to be taken when a step is inside the
-   ** active volume. Creates BmnBdPoints and BmnBdMirrorPoints and adds 
+   ** active volume. Creates BmnFDPoints adds 
    ** them to the collections.
    *@param vol  Pointer to the active volume
    **/

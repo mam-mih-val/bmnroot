@@ -10,7 +10,10 @@ void basiclibs()
   gSystem->Load("libVMC");
   gSystem->Load("libEG");
   gSystem->Load("libEGPythia6");
-  gSystem->Load("libPythia6");
+  if (isLibrary("libpythia6.so"))
+    gSystem->Load("libpythia6.so");
+  else if (isLibrary("libPythia6.so")) // Old FairSoft
+    gSystem->Load("libPythia6.so");
   gSystem->Load("libPhysics");
   gSystem->Load("libNet");
   gSystem->Load("libTree");

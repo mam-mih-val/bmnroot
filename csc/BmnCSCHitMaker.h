@@ -28,7 +28,7 @@ class BmnCSCHitMaker : public FairTask {
 public:
 
     BmnCSCHitMaker();
-    BmnCSCHitMaker(Int_t, Int_t, Bool_t, TString alignFile = "default");
+    BmnCSCHitMaker(Int_t, Int_t, Bool_t, TString alignFile = "default", Bool_t isSrc = kFALSE);
 
     virtual ~BmnCSCHitMaker();
 
@@ -71,6 +71,7 @@ private:
 
     Bool_t fHitMatching;
     Bool_t fIsExp; // Specify type of input data (MC or real data)
+    Bool_t fIsSrc; // Specify type of setup (SRC or BM@N)
 
     BmnCSCConfiguration::CSC_CONFIG fCurrentConfig;
 

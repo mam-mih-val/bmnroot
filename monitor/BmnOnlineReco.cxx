@@ -8,7 +8,7 @@
 #include "UniDbRun.h"
 #include "BmnOnlineReco.h"
 
-BmnOnlineReco::BmnOnlineReco() {
+BmnOnlineReco::BmnOnlineReco(Int_t periodId, Int_t runId, BmnSetup setup) {
     keepWorking = kTRUE;
     fHistOut = NULL;
     fHistOutTemp = NULL;
@@ -25,27 +25,29 @@ BmnOnlineReco::BmnOnlineReco() {
     CurRun = new BmnRunInfo();
     runPub->Add((TObject*) CurRun);
 
-
-    fPeriodID = 7;
-    fRunID = 4649;
+    fSetup = setup;
+    fPeriodID = periodId;
+    fRunID = runId;
     Bool_t isField = kTRUE; // flag for tracking (to use mag.field or not)
     Bool_t isTarget = kTRUE; //kFALSE; // flag for tracking (run with target or not)
     Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
     // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
     Double_t fieldScale = 0.;
-    
-    
+
+
     fRunAna = new FairRunAna();
     fDecoSource = new BmnDecoSource();
     fRunAna->SetSource(fDecoSource);
-    TString bmndstFileName = TString(getenv("VMCWORKDIR")) + "/macro/run/bmndst.root";
-//    fRunAna->SetOutputFile(bmndstFileName);
-    fRunAna->SetSink(new FairRootFileSink(bmndstFileName));
+    TString bmndstFileName = //TString(getenv("VMCWORKDIR")) + "/macro/run/" + 
+            GetDstNameFromRunId(fRunID);
+    //    fRunAna->SetOutputFile(bmndstFileName);
+    //    fRunAna->SetSink(new FairRootFileSink(bmndstFileName));
+    fRunAna->SetSink(new BmnMQSink());
     fRunAna->SetGenerateRunInfo(false); // set magnet field with factor corresponding to the given run
     // get geometry for run
     TRandom2 * ran = new TRandom2(0);
-//    gRandom->SetSeed(0);
+    //    gRandom->SetSeed(0);
     TString geoFileName = Form("current_geo_file_%d.root", UInt_t(ran->Integer(UINT32_MAX)));
     Int_t res_code = UniDbRun::ReadGeometryFile(fPeriodID, fRunID, (char*) geoFileName.Data());
     if (res_code != 0) {
@@ -209,8 +211,8 @@ BmnOnlineReco::BmnOnlineReco() {
     //    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
     //    dchTF->SetTransferFunction("pol_coord00813.txt");
     //    //    fRunAna->AddTask(dchTF);
-    
-    
+
+
     // ====================================================================== //
     // ===                          CSC hit finder                        === //
     // ====================================================================== //
@@ -218,7 +220,7 @@ BmnOnlineReco::BmnOnlineReco() {
     if (!isExp)
         cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSpring2018); //set explicitly
     cscHM->SetHitMatching(kTRUE);
-//    cscHM->SetVerbose(iVerbose);
+    //    cscHM->SetVerbose(iVerbose);
     fRunAna->AddTask(cscHM);
 
     // ====================================================================== //
@@ -227,7 +229,7 @@ BmnOnlineReco::BmnOnlineReco() {
     BmnInnerTrackingRun7* innerTF = new BmnInnerTrackingRun7(fRunID, isField, isTarget);
     innerTF->SetFiltration(isExp); //we use filtration for experimental data only now
     fRunAna->AddTask(innerTF);
-    
+
     // ====================================================================== //
     // ===                          Global Tracking                       === //
     // ====================================================================== //
@@ -246,7 +248,7 @@ BmnOnlineReco::BmnOnlineReco() {
     dst_task->SetRunNumber(fPeriodID, fRunID);
     dst_task->SetVerbose(2);
     fRunAna->AddTask(dst_task);
-    
+
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();
     FairParRootFileIo* parIo1 = new FairParRootFileIo();
@@ -261,6 +263,9 @@ BmnOnlineReco::BmnOnlineReco() {
     // -----   Initialize and run   --------------------------------------------
     fRunAna->GetMainTask()->SetVerbose(iVerbose);
     fRunAna->Init();
+    //    fRunAna->GetMainTask()
+    //                    Reinit(fRunId);
+    //                    fTask->ReInitTask();
 }
 
 BmnOnlineReco::~BmnOnlineReco() {
@@ -273,8 +278,8 @@ BmnOnlineReco::~BmnOnlineReco() {
         zmq_ctx_destroy(_ctx);
         _ctx = NULL;
     }
-//    if (CurRun)
-//        delete CurRun;
+    //    if (CurRun)
+    //        delete CurRun;
     if (runPub)
         delete runPub;
     fDecoSource->Close();

@@ -81,6 +81,11 @@ BmnHistGem::BmnHistGem(TString title, TString path, Int_t PeriodID, BmnSetup stp
 
 BmnHistGem::~BmnHistGem() {
     delete gemStationSet;
+    delete canGemStrip;
+    if (fDir)
+        return;
+    for (auto pad : canStripPads)
+        delete pad;
 }
 
 void BmnHistGem::Register(THttpServer * serv) {

@@ -13,6 +13,10 @@
 #pragma link C++ class PadInfo++;
 #pragma link C++ class BmnPadBranch++;
 #pragma link C++ class BmnPadGenerator++;
+#pragma link C++ class BmnMQSink+;
+#pragma link C++ class BmnMQRunDevice+;
+#pragma link C++ class BmnMQFileSaver+;
+#pragma link C++ class BmnMQRecoTaskProcessor++;
 #pragma link C++ class BmnHistGem++;
 #pragma link C++ class BmnHistCsc++;
 #pragma link C++ class BmnHistSilicon++;

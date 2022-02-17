@@ -497,7 +497,7 @@ private:
 
     //header array
     BmnEventHeader *eventHeader;
-    BmnSpillHeader *spillHeader;
+    TClonesArray *spillHeader;
 
     UInt_t data[10000000];
     ULong_t fMaxEvent;
@@ -600,9 +600,9 @@ private:
      * @param evType calibration/payload event
      * @return operation success
      */
-    BmnStatus FillUT24VE_TRC(UInt_t *d, UInt_t &len);
+    BmnStatus FillUT24VE_TRC(UInt_t *d, UInt_t &serial, UInt_t &len);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);
-    inline void FillWR(UInt_t iSerial, Long64_t iEvent, Long64_t t_sec, Long64_t t_ns);
+    inline void FillWR(UInt_t iSerial, ULong64_t iEvent, Long64_t t_sec, Long64_t t_ns);
 
     BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t &idx);
     BmnStatus FillTimeShiftsMap();

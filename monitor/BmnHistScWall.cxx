@@ -128,6 +128,7 @@ void BmnHistScWall::Reset() {
 }
 
 BmnHistScWall::~BmnHistScWall() {
+    delete canAmps;
     if (fDir != NULL)
         return;
     delete h2d_grid;

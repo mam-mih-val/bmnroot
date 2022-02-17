@@ -165,10 +165,10 @@ void BmnMscRaw2Digit::FillRunHeader(DigiRunHeader *rh) {
     }
 }
 
-BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnSpillHeader *sh, UInt_t &nPedEvBySpill) {
-//    sh->Clear();
-//    if (fRawSpillTree->GetEntriesFast() <= iSpill)
-//        return kBMNERROR;
+BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, TClonesArray *shdr, UInt_t &nPedEvBySpill) {
+    //    sh->Clear();
+    //    if (fRawSpillTree->GetEntriesFast() <= iSpill)
+    //        return kBMNERROR;
     BmnTrigInfo *ti = hdr->GetTrigInfo();
     //    if (msc->GetEntriesFast() == 0)
     //        fTempTI = BmnTrigInfo(hdr->GetTrigInfo());
@@ -180,15 +180,15 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
         if ((dig->GetLastEventId() < iEv) && (dig->GetLastEventId() > 0)) {
             fprintf(stderr, "Spill %u last event %u lost! Curent evId %u \n",
                     iSpill, dig->GetLastEventId(), iEv);
-//            fRawSpillTree->GetEntry(++iSpill);
+            //            fRawSpillTree->GetEntry(++iSpill);
             ++iSpillMap;
             nPedEvBySpill = 0;
             return kBMNERROR;
         }
-        //        fVerbose = 1;
+//        fVerbose = 1;
         if (fVerbose)
-            printf("Spill %u last event %u  Curent evId %u \n",
-                iSpill, dig->GetLastEventId(), iEv);
+            printf("iAdc %d Spill %u last event %u  Curent evId %u \n",
+                iAdc, iSpill, dig->GetLastEventId(), iEv);
         UInt_t *arr = dig->GetValue();
         UInt_t serial = dig->GetSerial();
         for (auto &mRec : fMap) {
@@ -224,37 +224,39 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
                         fBTAccepted += arr[mRec.BTnBusy] * AcceptedReal / (Double_t) den;
                 }
                 fAccepted += AcceptedReal;
-                if (fDigSpillTree) {
-                    // BM@N MSC16
-                    sh->SetBC1(arr[mRec.BC1]);
-                    sh->SetBC2(arr[mRec.BC2]);
-                    sh->SetBC3(arr[mRec.BC3]);
-                    sh->SetBT(arr[mRec.BT]);
-                    sh->SetBTnBusy(arr[mRec.BTnBusy]);
-                    sh->SetL0(arr[mRec.L0]);
-                    sh->SetProt(arr[mRec.TriggerProtection]);
-                    //SRC MSC16
-                    sh->SetBC1H(arr[mRec.BC1H]);
-                    sh->SetBC1BP(arr[mRec.BC1BP]);
-                    sh->SetBC1xBC2(arr[mRec.BC1xBC2]);
-                    sh->SetBC1nBusy(arr[mRec.BC1nBusy]);
-                    sh->SetIntTrig(arr[mRec.IntTrig]);
-                    sh->SetSRCTrig(arr[mRec.SRCTrig]);
-                    sh->SetTrignBusy(arr[mRec.TrignBusy]);
-                    // U40 
-                    sh->SetAccepted(AcceptedReal);
-                    sh->SetAfter(ti->GetTrigAfter());
-                    sh->SetBefo(ti->GetTrigBefo());
-                    sh->SetCand(ti->GetTrigCand());
-                    sh->SetAll(ti->GetTrigAll());
-                    sh->SetAvail(ti->GetTrigAvail());
-                    sh->SetRjct(ti->GetTrigRjct());
+                //                if (shdr->GetEntriesFast()) {
+                //                    BmnSpillHeader *sh = static_cast<BmnSpillHeader*> (shdr->At(0));
+                BmnSpillHeader *sh = new ((*shdr)[shdr->GetEntriesFast()]) BmnSpillHeader();
+                // BM@N MSC16
+                sh->SetBC1(arr[mRec.BC1]);
+                sh->SetBC2(arr[mRec.BC2]);
+                sh->SetBC3(arr[mRec.BC3]);
+                sh->SetBT(arr[mRec.BT]);
+                sh->SetBTnBusy(arr[mRec.BTnBusy]);
+                sh->SetL0(arr[mRec.L0]);
+                sh->SetProt(arr[mRec.TriggerProtection]);
+                //SRC MSC16
+                sh->SetBC1H(arr[mRec.BC1H]);
+                sh->SetBC1BP(arr[mRec.BC1BP]);
+                sh->SetBC1xBC2(arr[mRec.BC1xBC2]);
+                sh->SetBC1nBusy(arr[mRec.BC1nBusy]);
+                sh->SetIntTrig(arr[mRec.IntTrig]);
+                sh->SetSRCTrig(arr[mRec.SRCTrig]);
+                sh->SetTrignBusy(arr[mRec.TrignBusy]);
+                // U40 
+                sh->SetAccepted(AcceptedReal);
+                sh->SetAfter(ti->GetTrigAfter());
+                sh->SetBefo(ti->GetTrigBefo());
+                sh->SetCand(ti->GetTrigCand());
+                sh->SetAll(ti->GetTrigAll());
+                sh->SetAvail(ti->GetTrigAvail());
+                sh->SetRjct(ti->GetTrigRjct());
 
-                    sh->SetLastEventId(iEv);
-                    sh->SetPeriodId(hdr->GetPeriodId());
-                    sh->SetEventTimeTS(hdr->GetEventTimeTS());
-                    fDigSpillTree->Fill();
-                }
+                sh->SetLastEventId(iEv);
+                sh->SetPeriodId(hdr->GetPeriodId());
+                sh->SetEventTimeTS(hdr->GetEventTimeTS());
+                //                    fDigSpillTree->Fill();
+                //                }
 
                 if (fVerbose) {
                     printf("iSpill %4u   last EvId %7u  pedestals %d\n",
@@ -289,12 +291,12 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnS
                 }
                 ++iSpill;
                 ++iSpillMap;
-//                Int_t r = fRawSpillTree->GetEntry(iSpill);
-//                //                printf("Get entry %u returned %d\n", iSpill, r);
-//                if (r <= 0) {
-//                    //                    fprintf(stderr, "Spill %u read error!\n", iSpill);
-//                    return kBMNFINISH;
-//                }
+                //                Int_t r = fRawSpillTree->GetEntry(iSpill);
+                //                //                printf("Get entry %u returned %d\n", iSpill, r);
+                //                if (r <= 0) {
+                //                    //                    fprintf(stderr, "Spill %u read error!\n", iSpill);
+                //                    return kBMNFINISH;
+                //                }
                 nPedEvBySpill = 0;
                 break;
             }

@@ -2002,10 +2002,11 @@ Double_t ***pointsX, Double_t ***pointsXp, Double_t ***pointsXsig,
 Double_t ***pointsXpsig,  vector<tracksX> & CleanTr_,
 Int_t **NhitsXYmod_, Double_t ***XspCoord_, Double_t ***YspCoord_, Double_t ***SigmspX_, Double_t ***SigmspY_){
 
-
   if(fDebug) cout<<" CheckLeftover"<<endl;
-  bool woSp[fNstations]={0, 0, 0, 0};
-
+  bool woSp[fNstations];
+  for (Int_t st = 0; st < fNstations ; ++st) {
+    woSp[st]= 0;
+  }
   //adding a hit from a track. the case when the plane didn't work
   if(fDebug) cout<<endl;
   if (fDebug && CleanTr_.size() > 0)  cout<<"track was but: "<<endl;

@@ -73,6 +73,87 @@ BmnMwpcTrackFinder::BmnMwpcTrackFinder(Bool_t isExp, Int_t runP, Int_t runNumber
 }
 
 BmnMwpcTrackFinder::~BmnMwpcTrackFinder() {
+
+  for(Int_t iCh = 0; iCh<kNChambers; ++iCh){
+    for(Int_t iPlane = 0; iPlane<kNPlanes; ++iPlane){
+      delete[] XVU_Ch[iCh][iPlane];
+      delete[] Clust_Ch[iCh][iPlane]; 
+    }
+    for(Int_t i = 0; i<4; ++i){
+     delete[] par_ab_Ch[iCh][i]; 
+    }
+    delete[] XVU_Ch[iCh];
+    delete[] Clust_Ch[iCh];
+    delete[] par_ab_Ch[iCh];
+    delete[] shift[iCh];
+    delete[] kPln[iCh];
+    delete[] kZ_loc[iCh];
+    delete[] z_gl[iCh];
+    delete[] Chi2_ndf_Ch[iCh];
+    delete[] Nhits_Ch[iCh];
+    delete[] Nhits_match[iCh];
+    delete[] ind_best_Ch[iCh];
+  }
+
+  for(Int_t iPair = 0; iPair<kNumPairs; ++iPair){
+    for(Int_t iBig = 0; iBig<kBig; ++iBig){
+      for(Int_t i = 0; i<4; ++i){
+        delete[] sigma2_pair[iPair][iBig][i];
+      }
+      delete[]  sigma2_pair[iPair][iBig];
+    }
+
+    for(Int_t i = 0; i<4; ++i){
+      delete[] par_ab_pair[iPair][i];
+    }
+
+    delete[] sigma2_pair[iPair];
+    delete[] par_ab_pair[iPair];
+    delete[] shift_pair[iPair];
+    delete[] Chi2_match_pair[iPair];
+    delete[] Chi2_ndf_pair[iPair];
+    delete[] ind_best_pair[iPair];
+    delete[] Nhits_pair[iPair];
+    delete[] sigma_delta[iPair];
+  }
+
+    for(Int_t ii=0; ii<4; ii++) {
+    delete[] Amatr[ii];
+    delete[] bmatr[ii];
+  }
+
+  delete[] Amatr;
+  delete[] bmatr;
+  
+  delete[] kPln;
+  delete[] kZ_loc;
+  delete[] z_gl;
+  delete[] XVU_Ch;
+  delete[] Clust_Ch;
+  delete[] par_ab_Ch;
+  delete[] par_ab_pair;
+  delete[] sigma2_pair;
+  delete[] shift;
+  delete[] shift_pair;
+  delete[] kZ_midle_pair;
+
+  delete[] ChCent;
+  delete[] ZCh;
+  delete[] kZmid;
+  delete[] Chi2_match_pair;
+  delete[] Chi2_ndf_pair;
+  delete[] ind_best_pair;
+  delete[] Chi2_ndf_Ch;
+  delete[] Nhits_Ch;
+  delete[] Nhits_match;
+  delete[] Nhits_pair;
+  delete[] sigm2;
+  delete[] ipl;
+  delete[] Nbest_pair;
+  delete[] Nbest_Ch;
+  delete[] ind_best_Ch;
+  delete[] sigma_delta;
+
 }
 
 void BmnMwpcTrackFinder::Exec(Option_t* opt) {

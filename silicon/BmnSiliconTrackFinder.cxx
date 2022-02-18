@@ -4618,60 +4618,7 @@ BmnSiliconTrackFinder::BmnSiliconTrackFinder(Bool_t isExp, Int_t RunPeriod, Int_
 BmnSiliconTrackFinder::~BmnSiliconTrackFinder() {
   
   for (Int_t istat = 0; istat < fNstations; istat++) {
-   delete[] NclustX[istat];
-   delete[] NclustXp[istat];
-   delete[] NhitsXYmod[istat];
-   delete[] XCoord[istat];
-   delete[] XpCoord[istat];
-   delete[] XspCoord[istat];
-   delete[] XpspCoord[istat];
-   delete[] YspCoord[istat];
-   delete[] Sp_pdg[istat];
-   delete[] SigmaX[istat];
-   delete[] SigmaXp[istat];
-   delete[] SigmspX[istat];
-   delete[] SigmspXp[istat];
-   delete[] SigmspY[istat];
-   delete[] Xforglfit[istat];
-   delete[] Xpforglfit[istat];
-   delete[] Yforglfit[istat];
-   delete[] SigmXforglfit[istat];
-   delete[] SigmXpforglfit[istat];
-   delete[] SigmYforglfit[istat];
-   delete[] ZstnCforglfit[istat];
-   delete[] shiftX[istat];
-   delete[] shiftY[istat];
-   delete[] shiftYbelow[istat];
-   delete[] Zstation[istat];
-   delete[] Nleftoversp[istat];
-   delete[] NleftoverX[istat];
-   delete[] NleftoverXp[istat];
-   delete[] leftoverXsp[istat];
-   delete[] leftoverXpsp[istat];
-   delete[] leftoverYsp[istat];
-   delete[] leftoverXsigsp[istat];
-   delete[] leftoverXpsigsp[istat];
-   delete[] leftoverYsigsp[istat];
-   delete[] leftoverX[istat];
-   delete[] leftoverXp[istat];
-   delete[] leftoverXsig[istat];
-   delete[] leftoverXpsig[istat];
-   
-   delete[] DigitsArrayX[istat];
-   delete[] DigitsArrayXp[istat];
-   delete[] XClust[istat];
-   delete[] XpClust[istat];
-   delete[] XClust_width[istat];
-   delete[] XpClust_width[istat];
-   delete[] sumQx[istat];
-   delete[] sumQxp[istat];
-   delete[] XspClust[istat];
-   delete[] XpspClust[istat];
-   delete[] XspClust_width[istat];
-   delete[] XpspClust_width[istat];
-   delete[] sumQxsp[istat];
-   delete[] sumQxpsp[istat];
-   
+     
     for (Int_t im = 0; im < fNmodules; im++) {
      delete[] XCoord[istat][im];
      delete[] XpCoord[istat][im];
@@ -4709,6 +4656,60 @@ BmnSiliconTrackFinder::~BmnSiliconTrackFinder() {
      delete[] sumQxsp[istat][im];
      delete[] sumQxpsp[istat][im];
     }
+  
+    delete[] NclustX[istat];
+    delete[] NclustXp[istat];
+    delete[] NhitsXYmod[istat];
+    delete[] XCoord[istat];
+    delete[] XpCoord[istat];
+    delete[] XspCoord[istat];
+    delete[] XpspCoord[istat];
+    delete[] YspCoord[istat];
+    delete[] Sp_pdg[istat];
+    delete[] SigmaX[istat];
+    delete[] SigmaXp[istat];
+    delete[] SigmspX[istat];
+    delete[] SigmspXp[istat];
+    delete[] SigmspY[istat];
+    delete[] Xforglfit[istat];
+    delete[] Xpforglfit[istat];
+    delete[] Yforglfit[istat];
+    delete[] SigmXforglfit[istat];
+    delete[] SigmXpforglfit[istat];
+    delete[] SigmYforglfit[istat];
+    delete[] ZstnCforglfit[istat];
+    delete[] shiftX[istat];
+    delete[] shiftY[istat];
+    delete[] shiftYbelow[istat];
+    delete[] Zstation[istat];
+    delete[] Nleftoversp[istat];
+    delete[] NleftoverX[istat];
+    delete[] NleftoverXp[istat];
+    delete[] leftoverXsp[istat];
+    delete[] leftoverXpsp[istat];
+    delete[] leftoverYsp[istat];
+    delete[] leftoverXsigsp[istat];
+    delete[] leftoverXpsigsp[istat];
+    delete[] leftoverYsigsp[istat];
+    delete[] leftoverX[istat];
+    delete[] leftoverXp[istat];
+    delete[] leftoverXsig[istat];
+    delete[] leftoverXpsig[istat];
+   
+    delete[] DigitsArrayX[istat];
+    delete[] DigitsArrayXp[istat];
+    delete[] XClust[istat];
+    delete[] XpClust[istat];
+    delete[] XClust_width[istat];
+    delete[] XpClust_width[istat];
+    delete[] sumQx[istat];
+    delete[] sumQxp[istat];
+    delete[] XspClust[istat];
+    delete[] XpspClust[istat];
+    delete[] XspClust_width[istat];
+    delete[] XpspClust_width[istat];
+    delete[] sumQxsp[istat];
+    delete[] sumQxpsp[istat];
   }
  
   delete[] NclustX;

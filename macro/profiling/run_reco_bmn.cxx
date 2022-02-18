@@ -221,13 +221,14 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
     BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp);
+    if (isExp) siliconHM->SetHitMatching(kFALSE);
     fRunAna->AddTask(siliconHM);
 
     // ====================================================================== //
     // ===                          GEM hit finder                        === //
     // ====================================================================== //
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
-    gemHM->SetHitMatching(kTRUE);
+    if (isExp) gemHM->SetHitMatching(kFALSE);
     fRunAna->AddTask(gemHM);    
     
     // ====================================================================== //
@@ -236,7 +237,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
     if (!isExp)
         cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSpring2018); //set explicitly
-    cscHM->SetHitMatching(kTRUE);
+    if (isExp) cscHM->SetHitMatching(kFALSE);
     fRunAna->AddTask(cscHM);
     
     // ====================================================================== //
@@ -299,7 +300,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ====================================================================== //
     BmnInnerTrackingRun7* innerTF = new BmnInnerTrackingRun7(run_number, isField, isTarget);
     innerTF->SetFiltration(isExp); //we use filtration for experimental data only now
-    fRunAna->AddTask(innerTF);
+    // fRunAna->AddTask(innerTF);
 #endif
 
     // ====================================================================== //
@@ -380,8 +381,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     cout << "Real time " << rtime << " s, CPU time " << ctime << " s" << endl;
     cout << endl;
     // ------------------------------------------------------------------------
-    delete fFileSource;
-    delete fRunAna;
+    //delete fFileSource;
+    //delete fRunAna;
 }
 
 int main(int argc, char** arg)

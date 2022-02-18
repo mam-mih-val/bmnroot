@@ -78,7 +78,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
                   TString srcdstFileName = "$VMCWORKDIR/macro/run/srcdst.root",
                   Int_t nStartEvent = 0, Int_t nEvents = 10)
 {
-    gDebug = 0; // Debug option
+gDebug = 0; // Debug option
     // Verbosity level (0 = quiet (progress bar), 1 = event-level, 2 = track-level, 3 = full debug)
     Int_t iVerbose = 0;
 
@@ -208,13 +208,14 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
     BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp, kTRUE);
+    if (isExp) siliconHM->SetHitMatching(kFALSE);
     fRunAna->AddTask(siliconHM);
     
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp, kTRUE);
-    gemHM->SetHitMatching(kTRUE);
+    if (isExp) gemHM->SetHitMatching(kFALSE);
     gemHM->SetFieldScale(fieldScale);
     fRunAna->AddTask(gemHM);
 
@@ -223,7 +224,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // ====================================================================== //
     BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
     if (!isExp)
-        cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSRCSpring2018); //set explicitly
+        cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSRC2021); //set explicitly
     cscHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(cscHM);
 
@@ -363,7 +364,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     cout << "Real time " << rtime << " s, CPU time " << ctime << " s" << endl;
     cout << endl;
     // ------------------------------------------------------------------------
-    delete fRunAna;
+    //delete fRunAna;
 }
 
 

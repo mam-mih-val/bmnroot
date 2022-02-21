@@ -66,6 +66,11 @@ const UInt_t TDC_ERROR = 6;
 #pragma pack(push,1)
 
 struct __attribute__ ((packed)) DeviceHeader {
+    void Print() {
+        printf("Serial   : %08X\n", Serial);
+        printf("Length   : %8u\n", Len);
+        printf("DeviceId : %8X\n", DeviceId);
+    }
     uint32_t Serial;
     uint32_t Len : 24;
     uint8_t DeviceId : 8;

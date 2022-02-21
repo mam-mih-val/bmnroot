@@ -47,6 +47,7 @@ public:
     virtual ~BmnRawDataDecoder();
 
     BmnStatus ParseRunTLV(UInt_t *buf, UInt_t &len);
+    BmnStatus ParseJsonTLV(UInt_t *buf, UInt_t &len);
     BmnStatus ConvertRawToRoot();
     BmnStatus ConvertRawToRootIterate(UInt_t *buf, UInt_t len);
     BmnStatus ConvertRawToRootIterateFile(UInt_t limit = WAIT_LIMIT);

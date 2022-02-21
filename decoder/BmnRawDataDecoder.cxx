@@ -21,6 +21,7 @@
 
 #include <bitset>
 #include <iostream>
+#include <chrono>
 
 #include <arpa/inet.h> /* For ntohl for Big Endian LAND. */
 
@@ -160,6 +161,22 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
 BmnRawDataDecoder::~BmnRawDataDecoder() {
 }
 
+BmnStatus BmnRawDataDecoder::ParseJsonTLV(UInt_t *d, UInt_t &len) {
+    UInt_t idx = 0;
+    idx++; // skip reserved word
+    DeviceHeader *dh = reinterpret_cast<DeviceHeader *> (d + idx);
+    idx += sizeof (DeviceHeader) / kNBYTESINWORD;
+    //    dh->Print();
+    string str(reinterpret_cast<const char *> (d + idx), (len - idx) * kNBYTESINWORD);
+    replace(str.begin(), str.end(), '\0', ' ');
+    stringstream ss(str);
+    pt::ptree spillStat;
+    pt::read_json(ss, spillStat);
+    //    Double_t temp = spillStat.get<Double_t>("status.runTime.temp.board", -273.15);
+    //    printf("Temp %f\n", temp);
+    return kBMNSUCCESS;
+}
+
 BmnStatus BmnRawDataDecoder::ParseRunTLV(UInt_t *d, UInt_t &len) {
     uint16_t iWord = 0;
     while (iWord < len) {
@@ -282,6 +299,9 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
                 if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
                 fDat = fDat / kNBYTESINWORD;
                 printf("SYNC JSON len %u\n", fDat);
+                if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) continue;
+                ParseJsonTLV(data, fDat);
+                break;
             default:
                 printf("unrecognized sync %08X\n", fDat);
                 break;
@@ -1181,7 +1201,7 @@ BmnStatus BmnRawDataDecoder::FillMSC16VE_E(UInt_t *d, UInt_t serial, UInt_t &len
     //            ms->Tai.TaiFlags, TTimeStamp(time_t(ms->Tai.TaiSec), ms->Tai.TaiNSec).AsString());
     //    printf("ver %u bits %u SliceInt %7u\n", ms->Version, ms->NCntrBits, ms->SliceInt);
     Bool_t hasValues = kFALSE;
-    UInt_t cntrs[BmnMSCDigit::GetNVals()];
+    UInt_t cntrs[BmnMSCDigit::GetNVals()] = {};
     const uint8_t NumsInWord = 4;
     const uint8_t NCntrBits = 7;
     while (index < len) {
@@ -1711,10 +1731,17 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 ctime = timer.CpuTime();
                 //                                                printf("\nReal time %f s, CPU time %f s  fCscMapper\n", rtime, ctime);
                 timer.Start();
+
+//                auto start = chrono::high_resolution_clock::now();
+//                auto stop = chrono::high_resolution_clock::now();
+                clock_t c_start = clock();
                 if (fGemMapper) fGemMapper->FillEvent(adc32, gem);
+                clock_t c_stop = clock();
                 timer.Stop();
                 rtime = timer.RealTime();
                 ctime = timer.CpuTime();
+//                printf("Real time %f s, CPU time %2.6f s  fGemMapper\n",
+//                        rtime, (Double_t)(c_stop-c_start)/CLOCKS_PER_SEC);
                 //                                                printf("Real time %f s, CPU time %f s  fGemMapper\n", rtime, ctime);
                 timer.Start();
                 if (fSiliconMapper) fSiliconMapper->FillEvent(adc128, silicon);

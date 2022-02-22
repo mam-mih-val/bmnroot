@@ -1612,30 +1612,30 @@ BmnUpstreamTracking::~BmnUpstreamTracking() {
     delete[] par_ab_SiTr[iPars];
   }
   for (Int_t iCh = 0; iCh < kNumChambers; iCh++) {
-    delete[] par_ab_Ch[iCh];
-    delete[] par_Seg_z[iCh];
     for (Int_t iPars = 0; iPars < kNumPars; iPars++) {
       delete[] par_ab_Ch[iCh][iPars];
     }
+    delete[] par_ab_Ch[iCh];
+    delete[] par_Seg_z[iCh];
   }
   for (Int_t ip = 0; ip < kNumPairs; ip++) {
-    delete[] par_ab_tr[ip];
-    delete[] par_ab_trz[ip];
     for (Int_t iPars = 0; iPars < kNumPars; iPars++) {
       delete[] par_ab_tr[ip][iPars];
     }
+    delete[] par_ab_tr[ip];
+    delete[] par_ab_trz[ip];
   }
   for (Int_t ist = 0; ist < kNumStSi; ist++) {
-    delete[] SiXYhits[ist];
     for (Int_t ib = 0; ib < kBig; ib++) {
       delete[] SiXYhits[ist][ib];
     }
+    delete[] SiXYhits[ist];
   }
   for (Int_t ib = 0; ib < kBig; ib++) {
-    delete[] Points[ib];
     for (Int_t ip = 0; ip < kPoints; ip++) {
       delete[] Points[ib][ip];
     }
+    delete[] Points[ib];
   }
   for (Int_t ip = 0; ip < kPoints; ip++) {
     delete[] Xforglfit[ip];
@@ -1660,6 +1660,11 @@ BmnUpstreamTracking::~BmnUpstreamTracking() {
   delete[] par_ab_Ch;
   delete[] par_Seg_z;
   delete[] Nseg_Ch;
+  delete[] X_shift_seg;
+  delete[] Z_pair;
+  delete[] Z_Chamber;
+  delete[] NPCTracks;
+  delete[] Y_shiftUp;
 }
 //----------------------------------------------------------------------
 

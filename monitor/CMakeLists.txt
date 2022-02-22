@@ -29,6 +29,7 @@ Set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/monitor
  ${CMAKE_SOURCE_DIR}/steering
  ${CMAKE_SOURCE_DIR}/tracking
+ ${SIMPATH}/include/fairmq
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -54,7 +55,7 @@ Set(SRCS
 BmnMonitor.cxx
 BmnDataReceiver.cxx
 BmnOnlineDecoder.cxx
-BmnOnlineReco.cxx
+#BmnOnlineReco.cxx
 BmnHist.cxx
 BmnHistGem.cxx
 BmnHistCsc.cxx
@@ -72,11 +73,17 @@ BmnHistLAND.cxx
 PadInfo.cxx
 BmnPadBranch.cxx
 BmnPadGenerator.cxx
+#BmnMQRecoTaskProcessor.cxx
+#BmnMQFileSaver.cxx
+# BmnMQSink.cxx
+# BmnMQRunDevice.cxx
 )
 
 Set(HEADERS)
 Set(LINKDEF MonitorLinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)
-Set(DEPENDENCIES BmnQa GlobalTracking Decoder TOF TOF1 Alignment Gem Silicon CSC Dch Mwpc BmnData BmnField BmnDst Tracking UniDb Base Core ${ZeroMQ_LIBRARY_SHARED})
+Set(DEPENDENCIES BmnQa GlobalTracking Decoder TOF TOF1 Alignment Gem Silicon CSC
+ Dch Mwpc BmnData BmnField BmnDst Tracking UniDb Base Core ${ZeroMQ_LIBRARY_SHARED}
+FairMQ)
 
 GENERATE_LIBRARY()

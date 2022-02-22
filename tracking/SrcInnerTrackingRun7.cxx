@@ -60,10 +60,10 @@ SrcInnerTrackingRun7::SrcInnerTrackingRun7(Int_t run, Bool_t field, Bool_t targe
 SrcInnerTrackingRun7::~SrcInnerTrackingRun7() {
     delete fKalman;
     delete fGemDetector;
-    delete fHitXCutMin;
-    delete fHitXCutMax;
-    delete fHitYCutMin;
-    delete fHitYCutMax;
+    delete[] fHitXCutMin;
+    delete[] fHitXCutMax;
+    delete[] fHitYCutMin;
+    delete[] fHitYCutMax;
 }
 
 InitStatus SrcInnerTrackingRun7::Init() {

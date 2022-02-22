@@ -51,13 +51,13 @@ public:
         return fEventId;
     }
     
-    static const UInt_t GetNVals(){
+    constexpr static const uint8_t GetNVals(){
         return NVals;
     }
     /** Destructor **/
     virtual ~BmnMSCDigit();
 private:
-    static const UInt_t NVals = 16;
+    static const uint8_t NVals = 16;
     UInt_t fSerial;
     UChar_t fSlot;
     UInt_t fValue[NVals];

@@ -73,12 +73,15 @@ BmnHistECAL::BmnHistECAL(TString title, TString path) : BmnHist() {
 }
 
 BmnHistECAL::~BmnHistECAL() {
+    delete canAmps;
     if (fDir != NULL)
         return;
     delete h2d_grid;
     delete h2d_profile;
     delete hx;
     delete hy;
+    for (auto pad : canAmpsPads)
+        delete pad;
 }
 
 void BmnHistECAL::Register(THttpServer *serv) {

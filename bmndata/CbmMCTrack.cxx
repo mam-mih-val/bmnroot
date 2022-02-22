@@ -151,7 +151,7 @@ Long64_t CbmMCTrack::GetNPoints(DetectorId detId) const
     else if ( detId == kTOF1 ) return ( (fNPoints & ((Long64_t)  3 <<  5) ) >>  5);
     else if ( detId == kDCH )  return ( (fNPoints & ((Long64_t) 31 <<  7) ) >>  7);
     else if ( detId == kTOF )  return ( (fNPoints & ((Long64_t)  3 << 12) ) >> 12);
-    else if (detId == kZDC || detId == kZDC)  return ((fNPoints & ((Long64_t)127 << 14)) >> 14);
+    else if (detId == kZDC || detId == kFHCAL)  return ((fNPoints & ((Long64_t)127 << 14)) >> 14);
     else if ( detId == kSSD )  return ( (fNPoints & ((Long64_t)  7 << 21) ) >> 21);
     else if ( detId == kMWPC ) return ( (fNPoints & ((Long64_t) 31 << 24) ) >> 24);
     else if ( detId == kECAL ) return ( (fNPoints & ((Long64_t)127 << 29) ) >> 29);
@@ -165,6 +165,7 @@ Long64_t CbmMCTrack::GetNPoints(DetectorId detId) const
     else if ( detId == kHODO ) return ( (fNPoints & ((Long64_t)  1 << 53) ) >> 53);
     else if ( detId == kSiMD ) return ( (fNPoints & ((Long64_t)  1 << 54) ) >> 54);
     else if ( detId == kSiBT ) return ( (fNPoints & ((Long64_t)  3 << 55) ) >> 55);
+    else if ( detId == kTOFCAL ) return ( -1 );
     else {
         LOG(ERROR) << "GetNPoints: Unknown detector ID " << detId;
         return 0;
@@ -292,6 +293,10 @@ void CbmMCTrack::SetNPoints(Int_t iDet, Long64_t nPoints)
         if      ( nPoints <  0 ) nPoints =  0;
         else if ( nPoints >  1 ) nPoints =  3;
         fNPoints = ( fNPoints & ( ~ ((Long64_t)  3 << 55 ) ) )  |  ( nPoints << 55 );
+    }
+
+    else if (iDet == kTOFCAL) {
+        ;
     }
 
     else LOG(ERROR) << "Unknown detector ID " << iDet;

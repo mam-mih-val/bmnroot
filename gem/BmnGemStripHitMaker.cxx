@@ -482,16 +482,6 @@ void BmnGemStripHitMaker::ProcessDigits() {
 }
 
 void BmnGemStripHitMaker::Finish() {
-    if (StationSet) {
-        delete StationSet;
-        StationSet = nullptr;
-    }
-
-    if (TransfSet) {
-        delete TransfSet;
-        TransfSet = nullptr;
-    }
-
     printf("Work time of BmnGemStripHitMaker: %4.2f sec.\n", workTime);
 }
 

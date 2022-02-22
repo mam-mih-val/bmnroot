@@ -158,7 +158,6 @@ class BmnMwpcHitFinder : public FairTask {
   Int_t    *Nlay_w_wires;
   Float_t  *sigm2;
   Float_t  *z2;
-  Float_t  *dX_i;
   Float_t  **shift;
   Float_t  **kZ_loc;
   Float_t  **z_gl;

@@ -26,8 +26,8 @@ BmnMonitor::BmnMonitor() {
     fState = kBMNRECON;
     itersToUpdate = 1000;
     TString name = "infoCanvas";
-    infoCanvas = new TCanvas(name, name, 3 * PAD_WIDTH, 1 * PAD_HEIGHT *2/3);
-    infoCanvas->Divide(3,1);
+    infoCanvas = new TCanvas(name, name, 3 * PAD_WIDTH, 1 * PAD_HEIGHT * 2 / 3);
+    infoCanvas->Divide(3, 1);
     //    refList = new TList();
     //    refList->SetName("refList");
     refTable = new TList();
@@ -45,23 +45,20 @@ BmnMonitor::~BmnMonitor() {
     for (auto h : bhVec)
         if (h) delete h;
     bhVec.clear();
-    DBG("hists deleted")
             //    delete fRecoTree;
     if (fHistOut != NULL)
         delete fHistOut;
-    DBG("delete fHistOut")
     if (infoCanvas) delete infoCanvas;
     for (auto h : bhVec4show)
         if (h) delete h;
     bhVec4show.clear();
-    DBG("hists_4show deleted")
     if (fServer) delete fServer;
     if (_ctx) {
         zmq_ctx_destroy(_ctx);
         _ctx = NULL;
     }
-    if (CurRun)
-        delete CurRun;
+        if (CurRun)
+            delete CurRun;
     if (runPub)
         delete runPub;
 }
@@ -111,7 +108,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
         fServer->ProcessRequests();
         zmq_msg_init(&msg);
         frame_size = zmq_msg_recv(&msg, _decoSocket, ZMQ_DONTWAIT); // ZMQ_DONTWAIT
-//    printf("frame_size %d\n", frame_size);
+        //    printf("frame_size %d\n", frame_size);
         if (frame_size == -1) {
             if (errno == EAGAIN) {
                 usleep(DECO_SOCK_WAIT_PERIOD * 1000);
@@ -133,44 +130,34 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
             t.SetBuffer(zmq_msg_data(&msg), zmq_msg_size(&msg));
             fDigiArrays = (DigiArrays*) (t.ReadObject(DigiArrays::Class()));
             //            gSystem->ProcessEvents();
-//            if (fDigiArrays->header->GetEntriesFast() > 0) {
-                BmnEventHeader* head = new BmnEventHeader();//fDigiArrays->header;
-        head->SetRunId(fDigiArrays->header->GetRunId());
-        head->SetEventId(fDigiArrays->header->GetEventId());
-        head->SetEventTimeTS(fDigiArrays->header->GetEventTimeTS());
-        head->SetEventTime(fDigiArrays->header->GetEventTime());
-        head->SetEventType(fDigiArrays->header->GetEventType());
-        head->SetTripWord(kFALSE);
-        head->SetTrigInfo(fDigiArrays->header->GetTrigInfo());
-        head->SetTimeShift(fDigiArrays->header->GetTimeShift());        
-        head->SetStartSignalInfo(fDigiArrays->header->GetStartSignalTime(), fDigiArrays->header->GetStartSignalWidth());
-                Int_t runID = head->GetRunId();
-                switch (fState) {
-                    case kBMNWAIT:
+            //            if (fDigiArrays->header->GetEntriesFast() > 0) {
+            BmnEventHeader* head = fDigiArrays->header;
+            Int_t runID = head->GetRunId();
+            switch (fState) {
+                case kBMNWAIT:
+                    FinishRun();
+                    fRunID = runID;
+                    CreateFile(fRunID);
+                    DBG("state changed to kBMNWORK")
+                    //fServer->SetTimer(0, kTRUE);
+                    fState = kBMNWORK;
+                    ProcessDigi(0);
+                    break;
+                case kBMNWORK:
+                    if (fRunID != runID) {
+                        printf("change run %5d to %5d\n", runID, fRunID);
                         FinishRun();
                         fRunID = runID;
                         CreateFile(fRunID);
-                        DBG("state changed to kBMNWORK")
-                        //fServer->SetTimer(0, kTRUE);
-                        fState = kBMNWORK;
-                        ProcessDigi(0);
-                        break;
-                    case kBMNWORK:
-                        if (fRunID != runID) {
-                            printf("change run %5d to %5d\n", runID, fRunID);
-                            FinishRun();
-                            //keepWorking = false; // @TODO Remove
-                            fRunID = runID;
-                            CreateFile(fRunID);
-                        }
-                        ProcessDigi(0);
-                        break;
-                    default:
-                        break;
-                }
-//            } else {
-//                printf("No header??\n");
-//            }
+                    }
+                    ProcessDigi(0);
+                    break;
+                default:
+                    break;
+            }
+            //            } else {
+            //                printf("No header??\n");
+            //            }
             fDigiArrays->Clear();
             delete fDigiArrays;
             t.DetachBuffer();
@@ -218,16 +205,16 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhVec.push_back(new BmnHistSilicon(refName + "Silicon", _curDir, fPeriodID, fSetup));
     bhVec.push_back(new BmnHistDch(refName + "DCH", _curDir));
     bhVec.push_back(new BmnHistMwpc(refName + "MWPC", _curDir));
-    bhVec.push_back(new BmnHistZDC(refName + "ZDC", _curDir));
-    bhVec.push_back(new BmnHistScWall(refName + "ScWall", _curDir));
-    bhVec.push_back(new BmnHistECAL(refName + "ECAL", _curDir));
+    //    bhVec.push_back(new BmnHistZDC(refName + "ZDC", _curDir));
+    //    bhVec.push_back(new BmnHistECAL(refName + "ECAL", _curDir));
     bhVec.push_back(new BmnHistToF(refName + "ToF400", _curDir));
     bhVec.push_back(new BmnHistToF700(refName + "ToF700", _curDir));
-//    bhVec.push_back(new BmnHistTrigger(refName + "Triggers", _curDir, fPeriodID, fSetup));
-//    bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir, fPeriodID, fSetup));
+    //    bhVec.push_back(new BmnHistTrigger(refName + "Triggers", _curDir, fPeriodID, fSetup));
+    bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir, fPeriodID, fSetup));
+    bhVec.push_back(new BmnHistScWall(refName + "ScWall", _curDir));
     bhVec.push_back(new BmnHistLAND(refName + "LAND", _curDir));
     bhVec.push_back(new BmnHistCsc(refName + "CSC", _curDir, fPeriodID, fSetup));
-    
+
     for (auto h : bhVec) {
         h->SetDir(fHistOut, fRecoTree);
         h->SetperiodID(fPeriodID);
@@ -264,17 +251,17 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
         TVirtualPad *pad = infoCanvas->cd(1);
         pad->Clear();
         TString runType;
-//        switch (head->GetTrigType()) {
-//            case kBMNBEAM:
-//                runType = "beam";
-//                break;
-//            case kBMNMINBIAS:
-//                runType = "target";
-//                break;
-//            default:
-//                runType = "???";
-//                break;
-//        }
+        //        switch (head->GetTrigType()) {
+        //            case kBMNBEAM:
+        //                runType = "beam";
+        //                break;
+        //            case kBMNMINBIAS:
+        //                runType = "target";
+        //                break;
+        //            default:
+        //                runType = "???";
+        //                break;
+        //        }
         TLatex Tl;
         Tl.SetTextAlign(12);
         Tl.SetTextSize(0.16);
@@ -287,7 +274,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
         pad->Modified();
         pad = infoCanvas->cd(2);
         pad->Clear();
-//        TLatex l2;
+        //        TLatex l2;
         Tl.SetTextAlign(12);
         Tl.SetTextSize(0.16);
         Tl.DrawLatex(0.3, 0.9, Form("Energy: %1.2f", CurRun->GetEnergy()));
@@ -310,13 +297,13 @@ void BmnMonitor::RegisterAll() {
     bhVec4show.push_back(new BmnHistSilicon("Silicon", _curDir, fPeriodID, fSetup));
     bhVec4show.push_back(new BmnHistDch("DCH", _curDir));
     bhVec4show.push_back(new BmnHistMwpc("MWPC", _curDir));
-    bhVec4show.push_back(new BmnHistZDC("ZDC", _curDir));
-    bhVec4show.push_back(new BmnHistScWall("ScWall", _curDir));
-    bhVec4show.push_back(new BmnHistECAL("ECAL", _curDir));
+    //    bhVec4show.push_back(new BmnHistZDC("ZDC", _curDir));
+    //    bhVec4show.push_back(new BmnHistECAL("ECAL", _curDir));
     bhVec4show.push_back(new BmnHistToF("ToF400", _curDir));
     bhVec4show.push_back(new BmnHistToF700("ToF700", _curDir));
-//    bhVec4show.push_back(new BmnHistTrigger("Triggers", _curDir, fPeriodID, fSetup));
-//    bhVec4show.push_back(new BmnHistSrc("SRC", _curDir, fPeriodID, fSetup));
+    //    bhVec4show.push_back(new BmnHistTrigger("Triggers", _curDir, fPeriodID, fSetup));
+    bhVec4show.push_back(new BmnHistSrc("SRC", _curDir, fPeriodID, fSetup));
+    bhVec4show.push_back(new BmnHistScWall("ScWall", _curDir));
     bhVec4show.push_back(new BmnHistLAND("LAND", _curDir));
     bhVec4show.push_back(new BmnHistCsc("CSC", _curDir, fPeriodID, fSetup));
     fServer->Register("/", infoCanvas);
@@ -349,6 +336,8 @@ void BmnMonitor::UpdateRuns() {
     //        free(namelist);
     //    }
 
+    if (refTable->GetEntries())
+        return;
     refTable->Clear();
     runPub->Clear();
     TObjArray* refRuns = GetAlikeRunsByUniDB(fPeriodID, fRunID);
@@ -374,6 +363,7 @@ void BmnMonitor::UpdateRuns() {
                 run->GetStartDatetime().GetDate());
     }
     refRuns->Delete();
+    delete refRuns;
 }
 
 void BmnMonitor::FinishRun() {
@@ -471,7 +461,7 @@ TObjArray* BmnMonitor::GetAlikeRunsByUniDB(Int_t periodID, Int_t runID) {
         fprintf(stderr, "Run %d not found in UniDB!\n", runID);
         return NULL;
     }
-    if (!(Run->GetFieldVoltage() && Run->GetEnergy())){
+    if (!(Run->GetFieldVoltage() && Run->GetEnergy())) {
         fprintf(stderr, "Not enough info on current run!\n");
         return NULL;
     }
@@ -480,13 +470,13 @@ TObjArray* BmnMonitor::GetAlikeRunsByUniDB(Int_t periodID, Int_t runID) {
     CurRun = new BmnRunInfo(Run);
     TObjArray arrayConditions;
     TString beamParticle = Run->GetBeamParticle();
-        printf("Beam particle %s\n", Run->GetBeamParticle().Data());
+    printf("Beam particle %s\n", Run->GetBeamParticle().Data());
     UniSearchCondition* searchCondition = new UniSearchCondition(columnBeamParticle, conditionEqual, beamParticle);
     arrayConditions.Add((TObject*) searchCondition);
-        TString targetParticle = Run->GetTargetParticle() ? *Run->GetTargetParticle() : "";
-        printf("Target particle %s\n", targetParticle.Data());
-        searchCondition = new UniSearchCondition(columnTargetParticle, conditionEqual, targetParticle);
-        arrayConditions.Add((TObject*) searchCondition);
+    TString targetParticle = Run->GetTargetParticle() ? *Run->GetTargetParticle() : "";
+    printf("Target particle %s\n", targetParticle.Data());
+    searchCondition = new UniSearchCondition(columnTargetParticle, conditionEqual, targetParticle);
+    arrayConditions.Add((TObject*) searchCondition);
     if (Run->GetEnergy() != NULL) {
         printf("Beam Energy %f\n", *Run->GetEnergy());
         Double_t beamEnergy = *Run->GetEnergy();

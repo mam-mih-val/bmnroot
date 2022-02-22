@@ -49,7 +49,6 @@ struct MscMap {
 };
 
 class BmnMscRaw2Digit {
-    const UInt_t nCnt = 16;
 
 public:
     BmnMscRaw2Digit(Int_t period, Int_t run, TString mappingFile, TTree *spillTree = nullptr, TTree *digiSpillTree = nullptr);
@@ -68,7 +67,8 @@ public:
 
     void FillRunHeader(DigiRunHeader *rh);
 
-    BmnStatus SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnSpillHeader *sh, UInt_t &nPedEvBySpill);
+    BmnStatus SumEvent(TClonesArray *msc, BmnEventHeader *hdr, TClonesArray *sh, UInt_t &nPedEvBySpill);
+    BmnStatus SumEventTemp(TClonesArray *msc);
 
     BmnStatus ParseTxtSpillLog(TString LogName, TString SchemeName);
 
@@ -95,20 +95,22 @@ private:
     Bool_t isValidSpillLog;
     UInt_t fPeriodId;
     UInt_t fRunId;
-    map<TDatime, vector < Int_t>> spill_map;
-        UInt_t iSpillMap = 0u;
+    map<TDatime, vector < Int_t> > spill_map;
+    UInt_t iSpillMap = 0u;
     TDatime dtStart;
     TDatime dtEnd;
     Int_t fLogShift;
-    
-    Int_t fVerbose = 1;
-    
+
+    Int_t fVerbose = 0;
+
     BmnTrigInfo fTempTI;
 
 
     vector<MscMap> fMap;
     ifstream fMapFile;
     TString fMapFileName;
+
+    map<UInt_t, vector<uint64_t> > fBoardSums;
 
     TTree *fRawSpillTree = nullptr;
     TTree *fDigSpillTree = nullptr;

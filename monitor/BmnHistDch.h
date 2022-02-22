@@ -58,9 +58,9 @@ public:
     BmnStatus  SetRefRun(Int_t id);
 
 private:
+    void SetDir(TDirectory *Dir);
     vector<TString> NamesWires;
     vector<TString> NamesTimes;
-    TClonesArray* fDchHits;
     TH1F * h_wires[kNPLANES];
     TH1F * h_times[kNPLANES];
     TH2F* h_DCH1;

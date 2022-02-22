@@ -76,6 +76,132 @@ BmnMwpcHitFinder::BmnMwpcHitFinder(Bool_t isExp, Int_t runPeriod, Int_t runNumbe
 
 
 BmnMwpcHitFinder::~BmnMwpcHitFinder() {
+
+  fBmnMwpcSegmentsArray->Delete();
+  delete fBmnMwpcSegmentsArray;
+  
+  for(Int_t iCh = 0; iCh<kNChambers; ++iCh){
+    for(Int_t iPlane = 0; iPlane<kNPlanes; ++iPlane){
+      delete[] Wires_Ch[iCh][iPlane];
+      delete[] clust_Ch[iCh][iPlane];
+      delete[] XVU_Ch[iCh][iPlane];
+      delete[] DigitsArray[iCh][iPlane];
+      delete[] ClusterSize[iCh][iPlane];
+      delete[] Coord_wire[iCh][iPlane];
+      delete[] Coord_xuv[iCh][iPlane];
+      delete[] XVU_coord[iCh][iPlane];
+      delete[] Cluster_coord[iCh][iPlane];
+      delete[] Coor_seg[iCh][iPlane];
+      delete[] Cluster_seg[iCh][iPlane];
+    }
+
+    for(Int_t iBig = 0; iBig < kBig; ++iBig) {
+      for(Int_t i = 0; i<4; ++i){
+        delete[] sigma2_seg[iCh][iBig][i];
+      }
+      delete[] sigma2_seg[iCh][iBig];
+    }
+
+    for(Int_t iWire = 0; iWire<kNWires; ++iWire){
+      delete[] wire_Ch[iCh][iWire];
+      delete[] xuv_Ch[iCh][iWire];
+    }
+
+    for(Int_t i = 0; i<4; ++i){
+      delete[] par_ab_Ch[iCh][i];
+      delete[] par_ab_seg[iCh][i];
+    }
+
+    delete[] sigma2_seg[iCh];
+    delete[] Wires_Ch[iCh];
+    delete[] clust_Ch[iCh];
+    delete[] XVU_Ch[iCh];
+    delete[] DigitsArray[iCh];
+    delete[] ClusterSize[iCh];
+    delete[] Coord_wire[iCh];
+    delete[] Coord_xuv[iCh];
+    delete[] XVU_coord[iCh];
+    delete[] Cluster_coord[iCh];
+    delete[] Coor_seg[iCh];
+    delete[] Cluster_seg[iCh];
+    delete[] par_ab_Ch[iCh];
+    delete[] par_ab_seg[iCh];
+    delete[] kPln[iCh];
+    delete[] iw_Ch[iCh];
+    delete[] shift[iCh];
+    delete[] Nhits_Ch[iCh];
+    delete[] Beam_wires_min[iCh];
+    delete[] Beam_wires_max[iCh];
+    delete[] ind_best_Ch[iCh];
+    delete[] best_Ch_gl[iCh];
+    delete[] Chi2_ndf_Ch[iCh];
+    delete[] Chi2_ndf_best_Ch[iCh];
+    delete[] XVU[iCh];
+    delete[] XVU_cl[iCh];
+    delete[] kZ_loc[iCh];
+    delete[] z_gl[iCh];
+    delete[] wire_Ch[iCh];
+    delete[] xuv_Ch[iCh];
+    delete[] Chi2_ndf_seg[iCh];
+    delete[] Nhits_seg[iCh];
+    delete[] Nclust[iCh];
+  }
+  for(Int_t i = 0; i<4; ++i){
+    delete[] matrA[i];
+    delete[] matrb[i];
+    delete[] Amatr[i];
+    delete[] bmatr[i];
+  }
+  delete[] ChCent;
+  delete[] par_ab_Ch;
+  delete[] par_ab_seg;
+  delete[] sigma2_seg;
+  delete[] Wires_Ch;
+  delete[] clust_Ch;
+  delete[] XVU_Ch;
+  delete[] DigitsArray;
+  delete[] ClusterSize;
+  delete[] Coord_wire;
+  delete[] Coord_xuv;
+  delete[] XVU_coord;
+  delete[] Cluster_coord;
+  delete[] Coor_seg;
+  delete[] Cluster_seg;
+  delete[] kPln;
+  delete[] iw_Ch;
+  delete[] shift;
+  delete[] wire_Ch;
+  delete[] xuv_Ch;
+  delete[] Nhits_Ch;
+  delete[] Beam_wires_min;
+  delete[] Beam_wires_max;
+  delete[] Nseg_Ch;
+  delete[] Nbest_Ch;
+  delete[] ind_best_Ch;
+  delete[] best_Ch_gl;
+  delete[] Chi2_ndf_Ch;
+  delete[] Chi2_ndf_best_Ch;
+  delete[] XVU;
+  delete[] XVU_cl;
+  delete[] kZ_loc;
+  delete[] z_gl;
+
+  delete[] counter_pl;
+  delete[] ipl;
+  delete[] Nlay_w_wires;
+  delete[] sigm2;
+  delete[] z2;
+
+  delete[] matrA;
+  delete[] matrb;
+  delete[] Amatr;
+  delete[] bmatr;
+  delete[] Chi2_ndf_seg;
+  delete[] Nhits_seg;
+  delete[] Nclust;
+  delete[] Nbest_seg;
+  delete[] ChZ;
+  delete[] Zmid;
 }
 
 InitStatus BmnMwpcHitFinder::Init() {
@@ -520,10 +646,12 @@ InitStatus BmnMwpcHitFinder::Init() {
     for(int ii = 0; ii < 4; ++ii) { // 4 parameters: tan(x), tan(y), x ,y
       par_ab_Ch[i][ii]  = new Double_t[kBig];
       par_ab_seg[i][ii] = new Double_t[kBig];
-      matrA[ii]    = new Double_t[4];
-      matrb[ii]    = new Double_t[4];
     }//4
   }//kChamber
+  for(int ii = 0; ii < 4; ++ii) { 
+    matrA[ii]    = new Double_t[4];
+    matrb[ii]    = new Double_t[4];
+  }
   for(Int_t i = 0; i < kNChambers; ++i) {
     for(Int_t j = 0; j < kBig; ++j) {
       sigma2_seg[i][j]    = new Double_t*[4];

@@ -21,6 +21,7 @@
 
 #include <bitset>
 #include <iostream>
+#include <chrono>
 
 #include <arpa/inet.h> /* For ntohl for Big Endian LAND. */
 
@@ -160,6 +161,22 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
 BmnRawDataDecoder::~BmnRawDataDecoder() {
 }
 
+BmnStatus BmnRawDataDecoder::ParseJsonTLV(UInt_t *d, UInt_t &len) {
+    UInt_t idx = 0;
+    idx++; // skip reserved word
+    DeviceHeader *dh = reinterpret_cast<DeviceHeader *> (d + idx);
+    idx += sizeof (DeviceHeader) / kNBYTESINWORD;
+    //    dh->Print();
+    string str(reinterpret_cast<const char *> (d + idx), (len - idx) * kNBYTESINWORD);
+    replace(str.begin(), str.end(), '\0', ' ');
+    stringstream ss(str);
+    pt::ptree spillStat;
+    pt::read_json(ss, spillStat);
+    //    Double_t temp = spillStat.get<Double_t>("status.runTime.temp.board", -273.15);
+    //    printf("Temp %f\n", temp);
+    return kBMNSUCCESS;
+}
+
 BmnStatus BmnRawDataDecoder::ParseRunTLV(UInt_t *d, UInt_t &len) {
     uint16_t iWord = 0;
     while (iWord < len) {
@@ -244,22 +261,29 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
                 }
                 break;
             case SYNC_EOS:
-                isSpillStart = kTRUE;
-                nSpillEvents = 0;
                 evType = kBMNEOS;
+                //                printf(ANSI_COLOR_BLUE "EOS  lastEv  = %u\n" ANSI_COLOR_RESET,
+                //                        fEventId);
             case SYNC_STAT:
-                if (fDat != SYNC_EOS) evType = kBMNSTAT;
+                if (fDat != SYNC_EOS) {
+                    evType = kBMNSTAT;
+                    //                    printf(ANSI_COLOR_BLUE "STAT lastEv  = %u\n" ANSI_COLOR_RESET,
+                    //                            fEventId);
+                }
                 // read number of bytes in event
                 if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
                 fDat = fDat / kNBYTESINWORD + (fPeriodId <= 7 ? 1 : 0); // bytes --> words
                 //            printf("ev length %d\n", fDat);
                 //read array of current event data and process them
                 if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) continue;
-                //                        printf(ANSI_COLOR_BLUE "EOS iEv = %u lastEv  = %u\n" ANSI_COLOR_RESET,
-                //                                data[0], fEventId);
                 ProcessEvent(data, fDat);
                 //                if (msc->GetEntriesFast() > 0)
                 //                    fRawTreeSpills->Fill();
+                if (evType == kBMNEOS) {
+                    isSpillStart = kTRUE;
+                    nSpillEvents = 0;
+                }
+                fRawTree->Fill();
                 break;
             case SYNC_RUN_START:
                 printf("RUN START\n");
@@ -275,6 +299,9 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
                 if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
                 fDat = fDat / kNBYTESINWORD;
                 printf("SYNC JSON len %u\n", fDat);
+                if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) continue;
+                ParseJsonTLV(data, fDat);
+                break;
             default:
                 printf("unrecognized sync %08X\n", fDat);
                 break;
@@ -292,7 +319,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     printf("Read %d events; %lld bytes (%.3f Mb)\n\n", fNevents, fCurentPositionRawFile, fCurentPositionRawFile / 1024. / 1024.);
 
     fRawTree->Write();
-//    fRawTreeSpills->Write();
+    //    fRawTreeSpills->Write();
     fRootFileOut->Close();
     fclose(fRawFileIn);
 
@@ -375,9 +402,9 @@ BmnStatus BmnRawDataDecoder::InitConverter() {
     fRawTree->Branch("MSC", &msc);
     fRawTree->Branch("BmnEventHeader.", &eventHeaderDAQ);
 
-//    fRawTreeSpills = new TTree("BMN_RAW_SPILLS", "BMN_RAW_SPILLS");
-//    msc = new TClonesArray(BmnMSCDigit::Class());
-//    fRawTreeSpills->Branch("MSC", &msc);
+    //    fRawTreeSpills = new TTree("BMN_RAW_SPILLS", "BMN_RAW_SPILLS");
+    //    msc = new TClonesArray(BmnMSCDigit::Class());
+    //    fRawTreeSpills->Branch("MSC", &msc);
     return kBMNSUCCESS;
 }
 
@@ -448,8 +475,8 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile(UInt_t limit) {
             //            printf(ANSI_COLOR_BLUE "EOS iEv = %u lastEv  = %u\n" ANSI_COLOR_RESET,
             //            data[0], fEventId);
             ProcessEvent(data, fDat);
-//            if (msc->GetEntriesFast() > 0)
-//                fRawTreeSpills->Fill();
+            //            if (msc->GetEntriesFast() > 0)
+            //                fRawTreeSpills->Fill();
             isSpillStart = kTRUE;
             nSpillEvents = 0;
         }
@@ -497,23 +524,26 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     tacquila2->Delete();
     msc->Delete();
     if (fVerbose == 1) {
-        if (fEventId % 5000 == 0) cout << "Converted event #" << fEventId << endl;
+        if ((fEventId % 5000 == 0) && (evType != kBMNSTAT))
+            cout << "Converted event #" << fEventId << endl;
     } else if (fVerbose == 0)
         DrawBar(fCurentPositionRawFile, fLengthRawFile);
 
     UInt_t idx = 1;
-//    BmnEventType evType = kBMNPAYLOAD;
+    //    BmnEventType evType = kBMNPAYLOAD;
 
     while (idx < len) {
         Bool_t recognized = kTRUE;
-        UInt_t serial = d[idx++];
-        UInt_t id = (d[idx] >> 24);
-        UInt_t payload = (d[idx++] & 0x7FFF) / kNBYTESINWORD;
+        DeviceHeader *dh = reinterpret_cast<DeviceHeader *> (d + idx);
+        UInt_t serial = dh->Serial;
+        uint8_t id = dh->DeviceId;
+        UInt_t payload = dh->Len / kNBYTESINWORD;
+        idx += sizeof (DeviceHeader) / kNBYTESINWORD;
         if (payload > 2000000) {
             printf("[WARNING] Event %d:\n serial = 0x%06X\n id = Ox%02X\n payload = %d\n", fEventId, serial, id, payload);
             break;
         }
-        //                printf("iev %7d  idx %6u/%6u   idev %02X serial 0x%08X payload %4u\n", fEventId, idx, len, id, serial, payload);
+        //        printf("iev %7d  idx %6u/%6u   idev %02X serial 0x%08X payload %4u\n", fEventId, idx, len, id, serial, payload);
         switch (id) {
             case kTQDC16VS_E:
                 //                printf("TQDC-E serial 0x%08X  words %u\n", serial, payload);
@@ -524,7 +554,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                 FillTDC72VXS(&d[idx], serial, payload);
                 break;
             case kMSC16VE_E:
-//                printf("MSC16VE-E serial 0x%08X  words %u\n", serial, payload);
+                //                printf("MSC16VE-E serial 0x%08X  words %u\n", serial, payload);
                 FillMSC16VE_E(&d[idx], serial, payload);
                 break;
             case kADC64VE_XGE:
@@ -568,7 +598,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                 Process_Tacquila(&d[idx], payload);
                 break;
             case kUT24VE_TRC:
-                FillUT24VE_TRC(&d[idx], payload);
+                FillUT24VE_TRC(&d[idx], serial, payload);
                 break;
             default:
                 //                printf("Device id %02X not recognized\n", id);
@@ -873,9 +903,9 @@ BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
                 } else {
                     cerr << __FILE__ << ':' << __LINE__ << ": Wrong SAM for TClonesArray.\n";
                 }
-		    }
             }
         }
+    }
     return kBMNSUCCESS;
 }
 
@@ -1099,33 +1129,29 @@ BmnStatus BmnRawDataDecoder::FillBlockTDC(UInt_t *d, UInt_t serial, uint16_t &le
 
 BmnStatus BmnRawDataDecoder::FillTQDC_E(UInt_t *d, UInt_t serial, UInt_t &len) {
     UInt_t index = 0;
-    MStreamHeader ms = {};
-    memcpy(&ms, d, sizeof (ms));
-    index += sizeof (ms) / kNBYTESINWORD;
-    //    ms.Print();
-    MStreamTAI ms0 = {};
-    memcpy(&ms0, d + index, sizeof (ms0));
-    index += sizeof (ms0) / kNBYTESINWORD;
-    FillWR(serial, fEventId, ms0.TaiSec, ms0.TaiNSec);
+    MStreamHeader *ms = reinterpret_cast<MStreamHeader *> (d);
+    index += sizeof (MStreamHeader) / kNBYTESINWORD;
+    //    ms->Print();
+    MStreamTAI *ms0 = reinterpret_cast<MStreamTAI *> (d + index);
+    index += sizeof (MStreamTAI) / kNBYTESINWORD;
+    FillWR(serial, fEventId, ms0->TaiSec, ms0->TaiNSec);
     //    printf("len %u msHeader len %u\n", len, ms.Len / kNBYTESINWORD);
     //    printf("taiFlags %u TAI %s\n",
-    //            ms0.TaiFlags, TTimeStamp(time_t(ms0.TaiSec), ms0.TaiNSec).AsString());
-    while (index < ms.Len / kNBYTESINWORD) {
-        //        TqdcDataHeader th = *reinterpret_cast<TqdcDataHeader*> (d + index);
-        TqdcDataHeader th = {};
-        memcpy(&th, d + index, sizeof (th));
-        index += sizeof (th) / kNBYTESINWORD;
+    //            ms0->TaiFlags, TTimeStamp(time_t(ms0->TaiSec), ms0->TaiNSec).AsString());
+    while (index < len / kNBYTESINWORD) {
+        TqdcDataHeader *th = reinterpret_cast<TqdcDataHeader*> (d + index);
+        index += sizeof (TqdcDataHeader) / kNBYTESINWORD;
         //        printf("TQDC DataType %u channel %2u adcBits %u len %4u\n", th.DataType, th.Chan, th.AdcBits, th.Len);
-        uint16_t blockLen = th.Len / kNBYTESINWORD;
-        switch (th.DataType) {
+        uint16_t blockLen = th->Len / kNBYTESINWORD;
+        switch (th->DataType) {
             case 0: // TDC
                 FillBlockTDC(d + index, serial, blockLen, tqdc_tdc);
                 break;
             case 1: // ADC
-                FillBlockADC(d + index, serial, th.Chan, blockLen, tqdc_adc);
+                FillBlockADC(d + index, serial, th->Chan, blockLen, tqdc_adc);
                 break;
             default:
-                printf("Wrong TQDC data type %u !\n", th.DataType);
+                printf("Wrong TQDC data type %u !\n", th->DataType);
                 break;
         }
         index += blockLen;
@@ -1136,15 +1162,14 @@ BmnStatus BmnRawDataDecoder::FillTQDC_E(UInt_t *d, UInt_t serial, UInt_t &len) {
 
 BmnStatus BmnRawDataDecoder::FillTDC72VXS(UInt_t *d, UInt_t serial, UInt_t &len) {
     UInt_t index = 0;
-    MStreamHeader ms = {};
-    memcpy(&ms, d, sizeof (ms));
-    index += sizeof (ms) / kNBYTESINWORD;
-    MStreamTAI ms0 = {};
-    memcpy(&ms0, d + index, sizeof (ms0));
-    index += sizeof (ms0) / kNBYTESINWORD;
-    FillWR(serial, fEventId, ms0.TaiSec, ms0.TaiNSec);
+    MStreamHeader *ms = reinterpret_cast<MStreamHeader *> (d);
+    index += sizeof (MStreamHeader) / kNBYTESINWORD;
+    //    ms->Print();
+    MStreamTAI *ms0 = reinterpret_cast<MStreamTAI *> (d + index);
+    index += sizeof (MStreamTAI) / kNBYTESINWORD;
+    FillWR(serial, fEventId, ms0->TaiSec, ms0->TaiNSec);
     //    printf("\t index %u len %u inner len %u\n", index, len, (ms.Len / kNBYTESINWORD));
-    while (index < ms.Len / kNBYTESINWORD) {
+    while (index < len / kNBYTESINWORD) {
         uint8_t dtype = d[index] >> 28;
         bool overflow = d[index] & BIT(16);
         uint16_t blockLen = (d[index] & (BIT(16) - 1)) / kNBYTESINWORD;
@@ -1167,17 +1192,16 @@ BmnStatus BmnRawDataDecoder::FillTDC72VXS(UInt_t *d, UInt_t serial, UInt_t &len)
 
 BmnStatus BmnRawDataDecoder::FillMSC16VE_E(UInt_t *d, UInt_t serial, UInt_t &len) {
     UInt_t index = 0;
-    MSC16VE_EHeader ms = {};
-    memcpy(&ms, d, sizeof (ms));
-    index += sizeof (ms) / kNBYTESINWORD;
-//    ms.Hdr.Print();
-//    printf("msHeader size %lu\n", sizeof (ms));
-//    printf("len %u msHeader len %u\n", len, ms.Hdr.Len / kNBYTESINWORD);
-//    printf("taiFlags %u TAI %s\n",
-//            ms.Tai.TaiFlags, TTimeStamp(time_t(ms.Tai.TaiSec), ms.Tai.TaiNSec).AsString());
-//    printf("ver %u bits %u SliceInt %7u\n", ms.Version, ms.NCntrBits, ms.SliceInt);
+    MSC16VE_EHeader *ms = reinterpret_cast<MSC16VE_EHeader *> (d);
+    index += sizeof (MSC16VE_EHeader) / kNBYTESINWORD;
+    //    ms->Hdr.Print();
+    //    printf("msHeader size %lu\n", sizeof (MSC16VE_EHeader));
+    //    printf("len %u msHeader len %u\n", len, ms->Hdr.Len / kNBYTESINWORD);
+    //    printf("taiFlags %u TAI %s\n",
+    //            ms->Tai.TaiFlags, TTimeStamp(time_t(ms->Tai.TaiSec), ms->Tai.TaiNSec).AsString());
+    //    printf("ver %u bits %u SliceInt %7u\n", ms->Version, ms->NCntrBits, ms->SliceInt);
     Bool_t hasValues = kFALSE;
-    UInt_t cntrs[BmnMSCDigit::GetNVals()];
+    UInt_t cntrs[BmnMSCDigit::GetNVals()] = {};
     const uint8_t NumsInWord = 4;
     const uint8_t NCntrBits = 7;
     while (index < len) {
@@ -1185,11 +1209,11 @@ BmnStatus BmnRawDataDecoder::FillMSC16VE_E(UInt_t *d, UInt_t serial, UInt_t &len
         if (type == 0xE) {
             if (hasValues) {
                 UInt_t sliceNum = (d[index]) & (BIT(24) - 1);
-//                printf(" sliceNum %u\n", sliceNum);
-                TTimeStamp timeShift = TTimeStamp(time_t(0), ms.SliceInt * sliceNum);
-                TTimeStamp time(time_t(ms.Tai.TaiSec - tai_utc_dif), ms.Tai.TaiNSec);
+                //                printf(" sliceNum %u\n", sliceNum);
+                TTimeStamp timeShift = TTimeStamp(time_t(0), ms->SliceInt * sliceNum);
+                TTimeStamp time(time_t(ms->Tai.TaiSec - tai_utc_dif), ms->Tai.TaiNSec);
                 time.Add(timeShift);
-//                printf(" time %s\n", time.AsString());
+                //                printf(" time %s\n", time.AsString());
                 new((*msc)[msc->GetEntriesFast()])BmnMSCDigit(serial, 0, cntrs, fEventId, time);
                 hasValues = kFALSE;
                 memset(cntrs, 0, sizeof (UInt_t) * BmnMSCDigit::GetNVals());
@@ -1198,7 +1222,7 @@ BmnStatus BmnRawDataDecoder::FillMSC16VE_E(UInt_t *d, UInt_t serial, UInt_t &len
             for (uint8_t i = 0; i < NumsInWord; i++) {
                 UInt_t cnt = (d[index] >> (i * NCntrBits)) & (BIT(8) - 1);
                 cntrs[type * NumsInWord + i] = cnt;
-//                printf("\tcnt[%2u] = %2u\n", (type * NumsInWord + i), cnt);
+                //                printf("\tcnt[%2u] = %2u\n", (type * NumsInWord + i), cnt);
                 hasValues = kTRUE;
             }
         }
@@ -1207,15 +1231,15 @@ BmnStatus BmnRawDataDecoder::FillMSC16VE_E(UInt_t *d, UInt_t serial, UInt_t &len
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::FillUT24VE_TRC(UInt_t *d, UInt_t &len) {
+BmnStatus BmnRawDataDecoder::FillUT24VE_TRC(UInt_t *d, UInt_t &serial, UInt_t &len) {
     UInt_t index = 0;
-    MStreamHeader ms = {};
-    memcpy(&ms, d, sizeof (ms));
-    index += sizeof (ms) / kNBYTESINWORD;
-    MStreamTAI ms0 = {};
-    memcpy(&ms0, d + index, sizeof (ms0));
-    index += sizeof (ms0) / kNBYTESINWORD;
-    if (ms.Len / kNBYTESINWORD > len)
+    MStreamHeader *ms = reinterpret_cast<MStreamHeader *> (d);
+    index += sizeof (MStreamHeader) / kNBYTESINWORD;
+    //    ms->Print();
+    MStreamTAI *ms0 = reinterpret_cast<MStreamTAI *> (d + index);
+    index += sizeof (MStreamTAI) / kNBYTESINWORD;
+    FillWR(serial, fEventId, ms0->TaiSec, ms0->TaiNSec);
+    if (ms->Len / kNBYTESINWORD > len)
         printf("UT24VE-TRC Error! MSHeader payload length larger than from device header!\n");
     evType = (d[index] & BIT(16)) ? kBMNPEDESTAL : kBMNPAYLOAD;
     bool randomTrigger = d[index] & BIT(17);
@@ -1229,7 +1253,7 @@ BmnStatus BmnRawDataDecoder::FillUT24VE_TRC(UInt_t *d, UInt_t &len) {
     return kBMNSUCCESS;
 }
 
-void BmnRawDataDecoder::FillWR(UInt_t serial, Long64_t iEvent, Long64_t t_sec, Long64_t t_ns) {
+void BmnRawDataDecoder::FillWR(UInt_t serial, ULong64_t iEvent, Long64_t t_sec, Long64_t t_ns) {
     if (tai_utc_dif == 0)
         tai_utc_dif = GetUTCShift(TTimeStamp(time_t(t_sec), t_ns));
     fTime_ns = t_ns;
@@ -1265,7 +1289,6 @@ BmnStatus BmnRawDataDecoder::FillMSC(UInt_t* d, UInt_t serial, UInt_t slot, UInt
     BmnMSCDigit *dig = new((*msc)[msc->GetEntriesFast()]) BmnMSCDigit(serial, slot, fEventId);
     UInt_t *cntrArrCur = dig->GetValue();
     printf("MSC type %u serial %08X last eventID = %6u\n", type, serial, fEventId);
-    printf("\t%u events \n", nSpillEvents);
     while (type < 6) {
         if (type < 5) {
             UInt_t cnt3 = (d[idx] >> 21) & (BIT(8) - 1);
@@ -1708,10 +1731,17 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 ctime = timer.CpuTime();
                 //                                                printf("\nReal time %f s, CPU time %f s  fCscMapper\n", rtime, ctime);
                 timer.Start();
+
+//                auto start = chrono::high_resolution_clock::now();
+//                auto stop = chrono::high_resolution_clock::now();
+                clock_t c_start = clock();
                 if (fGemMapper) fGemMapper->FillEvent(adc32, gem);
+                clock_t c_stop = clock();
                 timer.Stop();
                 rtime = timer.RealTime();
                 ctime = timer.CpuTime();
+//                printf("Real time %f s, CPU time %2.6f s  fGemMapper\n",
+//                        rtime, (Double_t)(c_stop-c_start)/CLOCKS_PER_SEC);
                 //                                                printf("Real time %f s, CPU time %f s  fGemMapper\n", rtime, ctime);
                 timer.Start();
                 if (fSiliconMapper) fSiliconMapper->FillEvent(adc128, silicon);
@@ -1816,7 +1846,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     printf(ANSI_COLOR_RED "================================================\n" ANSI_COLOR_RESET);
 
     fDigiTree->Write();
-    fDigiTreeSpills->Write();
+    //    fDigiTreeSpills->Write();
     DisposeDecoder();
     fDigiFileOut->Write();
     fDigiFileOut->Close();
@@ -1834,10 +1864,12 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
             conf.get<string>("Decoder.DigiTreeTitle").c_str());
     eventHeader = new BmnEventHeader();
     fDigiTree->Branch("BmnEventHeader.", &eventHeader);
+    spillHeader = new TClonesArray(BmnSpillHeader::Class());
+    fDigiTree->Branch("BmnSpillHeader", &spillHeader);
 
-    fDigiTreeSpills = new TTree("spill", "spill");
-    spillHeader = new BmnSpillHeader();
-    fDigiTreeSpills->Branch("BmnSpillHeader.", &spillHeader);
+    //    fDigiTreeSpills = new TTree("spill", "spill");
+    //    spillHeader = new BmnSpillHeader();
+    //    fDigiTreeSpills->Branch("BmnSpillHeader.", &spillHeader);
 
 
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
@@ -2005,6 +2037,7 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
     if (ecal) ecal->Delete();
     if (land) land->Delete();
     if (tofcal) tofcal->Delete();
+    spillHeader->Delete();
     if (fTrigMapper)
         fTrigMapper->ClearArrays();
     fTimeShifts.clear();

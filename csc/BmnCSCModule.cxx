@@ -124,7 +124,7 @@ Bool_t BmnCSCModule::IsPointInsideZThickness(Double_t z) {
 //Add single point with Gaussian smearing
 Bool_t BmnCSCModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z,
                                          Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID) {
-    
+
     if( IsPointInsideModule(x, y) ) {
 
         if(signal <= 0.0) signal = 1e-16;
@@ -180,6 +180,7 @@ Bool_t BmnCSCModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z,
 
         RealPointsX.push_back(x);
         RealPointsY.push_back(y);
+        RealPointsMC.push_back(refID);
 
         return true;
     }
@@ -212,6 +213,7 @@ Bool_t BmnCSCModule::AddRealPointSimple(Double_t x, Double_t y, Double_t z,
 
         RealPointsX.push_back(x);
         RealPointsY.push_back(y);
+        RealPointsMC.push_back(refID);
 
         return true;
     }
@@ -593,7 +595,7 @@ void BmnCSCModule::CalculateStripHitIntersectionPoints() {
                             //cluster size (number strips) in both strip layers for each intersection
                             Int_t iLayerClusterSize = StripLayers[ilayer].GetStripHitClusterSize(i_strip_hit);
                             Int_t jLayerClusterSize = StripLayers[jlayer].GetStripHitClusterSize(j_strip_hit);
-                            
+
                             UpperClusters.push_back(StripLayers[jlayer].GetStripClusters().at(j_strip_hit));
                             LowerClusters.push_back(StripLayers[ilayer].GetStripClusters().at(i_strip_hit));
 

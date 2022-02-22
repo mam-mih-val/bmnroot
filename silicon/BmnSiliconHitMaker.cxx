@@ -58,7 +58,7 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
         break;
     case 777: //test purpose
         //fCurrentConfig = BmnSiliconConfiguration::Run8_mods_10_14rot_18;
-        fCurrentConfig = BmnSiliconConfiguration::Run8_mods_6_10_14_18;
+        fCurrentConfig = BmnSiliconConfiguration::Run8_3stations;
         break;
     }
 

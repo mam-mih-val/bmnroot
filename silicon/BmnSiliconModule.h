@@ -115,8 +115,9 @@ public:
     Int_t GetNRealPoints() {return RealPointsX.size();} //quantity of added points
     Double_t GetRealPointX(Int_t indx) { return RealPointsX.at(indx); } //X-coord of i-added point
     Double_t GetRealPointY(Int_t indx) { return RealPointsY.at(indx); } //Y-coord of i-added point
+    Double_t GetRealPointMC(Int_t indx) { return RealPointsMC.at(indx); } //MC-index of i-added point
 
-    void ResetRealPoints() { RealPointsX.clear(); RealPointsY.clear(); }
+    void ResetRealPoints() { RealPointsX.clear(); RealPointsY.clear(); RealPointsMC.clear();}
     //--------------------------------------------------------------------------
 
     //Intersection points ------------------------------------------------------
@@ -167,6 +168,7 @@ private:
 
     vector<Double_t> RealPointsX;
     vector<Double_t> RealPointsY;
+    vector<Double_t> RealPointsMC; // index of MC point
 
     vector<Double_t> IntersectionPointsX;
     vector<Double_t> IntersectionPointsY;

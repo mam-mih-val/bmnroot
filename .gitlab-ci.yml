@@ -10,8 +10,6 @@ before_script:
   - '[ $OS_TYPE == "centos7" ] && source /cvmfs/nica.jinr.ru/centos7/bmn/env.sh'
   - export SIMPATH=/cvmfs/nica.jinr.ru/$OS_TYPE/fairsoft/bmn
   - export FAIRROOTPATH=/cvmfs/nica.jinr.ru/$OS_TYPE/fairroot/bmn
-  - sed -i "s/\/opt\/fairsoft\/install/\/cvmfs\/nica.jinr.ru\/$OS_TYPE\/fairsoft\/bmn/g" SetEnv.sh
-  - sed -i "s/\/opt\/fairroot\/install/\/cvmfs\/nica.jinr.ru\/$OS_TYPE\/fairroot\/bmn/g" SetEnv.sh
   - source ./SetEnv.sh
  
 variables:
@@ -301,8 +299,6 @@ run_digi_src:ubuntu:
     - chmod 700 ~/.ssh
     - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
-    - sed -i "s/\/opt\/fairsoft\/install/\/cvmfs\/nica.jinr.ru\/$CI_ENVIRONMENT_NAME\/fairsoft\/jun19p1/g" SetEnv.sh
-    - sed -i "s/\/opt\/fairroot\/install/\/cvmfs\/nica.jinr.ru\/$CI_ENVIRONMENT_NAME\/fairroot\/v18.2.0/g" SetEnv.sh
     - rm -rf build
     - mkdir build
     - cd build

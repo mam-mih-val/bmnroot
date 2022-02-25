@@ -19,9 +19,9 @@ void geometry(FairRunSim *fRun)
     
     // -----   Create detectors        -------------------------
 
-    FairDetector* sibt = new BmnSiBT("SiBT", kTRUE);
-    sibt->SetGeometryFileName("SiBT_Run8.root");
-    fRun->AddModule(sibt);
+//    FairDetector* sibt = new BmnSiBT("SiBT", kTRUE);
+//    sibt->SetGeometryFileName("SiBT_Run8.root");
+//    fRun->AddModule(sibt);
 
     FairDetector* simd = new BmnSiMD("SiMD", kTRUE);
     simd->SetGeometryFileName("SiMD_run8_v1.root");

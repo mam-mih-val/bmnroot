@@ -10,9 +10,9 @@
 #include <TString.h>
 
 #include "AnalysisTree/Detector.hpp"
+#include "AnalysisTree/Matching.hpp"
 
 class TClonesArray;
-class UEvent;
 class TFile;
 class TTree;
 class FairMCEventHeader;
@@ -30,9 +30,14 @@ public:
   void Finish() final {};
 
 private:
+  void MapTracks();
   AnalysisTree::Particles* sim_tracks_ {nullptr};
-  FairMCEventHeader* cbm_header_ {nullptr};
-  TClonesArray* cbm_mc_tracks_ {nullptr};
+  AnalysisTree::Matching* sim_particles_2_vtx_tracks_{nullptr};  ///< raw pointers are needed for TTree::Branch
+  FairMCEventHeader*bmn_header_{nullptr};
+  TClonesArray*bmn_mc_tracks_{nullptr};
+  TClonesArray*bmn_global_tracks_{nullptr};  ///< non-owning pointer
+
+  std::map<int, int> sim_partcles_bmn_tracks_map_;
   
   ClassDef(CbmSimTracksConverter, 1)
 };

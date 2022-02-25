@@ -25,6 +25,7 @@ Set(INCLUDE_DIRECTORIES
   ${CMAKE_SOURCE_DIR}/KF/Interface
 #  ${KFParticle_INCLUDE_DIR}
   ${AnalysisTree_INCLUDE_DIR}
+  ${ROOT_INCLUDE_DIR}
 )
 
 Include_Directories (${INCLUDE_DIRECTORIES})

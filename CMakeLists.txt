@@ -336,7 +336,7 @@ add_subdirectory (eventdisplay)
 add_subdirectory (QA)
 add_subdirectory (macro)
 add_subdirectory (services)
-add_subdirectory (embedding)
+#add_subdirectory (embedding)
 add_subdirectory (external)
 add_subdirectory (analysis/common/analysis_tree_converter)
 

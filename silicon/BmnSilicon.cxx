@@ -109,12 +109,6 @@ Bool_t BmnSilicon::ProcessHits(FairVolume* vol) {
 
         if(gGeoManager->GetCurrentNode()->GetMotherVolume() == 0) return kFALSE; //check if the current node has its mother vol.
 
-        BmnSiliconPoint *p = AddHit(fTrackID, fVolumeID,
-                                    fPosIn, fPosOut,
-                                    fMomIn, fMomOut,
-                                    fTime, fLength, fELoss,
-                                    fIsPrimary, fCharge, fPdgId);
-
         // Determine station and module numbers for the current hit ------------
         Int_t stationNum = -1; // current station number (default)
         Int_t moduleNum = -1; // current module number (default)
@@ -129,9 +123,23 @@ Bool_t BmnSilicon::ProcessHits(FairVolume* vol) {
             moduleNum = TString(TString(moduleVolumeName(mod_expr))(TRegexp("[0-9]+"))).Atoi();
             stationNum = TString(TString(moduleVolumeName(stat_expr))(TRegexp("[0-9]+"))).Atoi();
         }
-        //cout << "stationNum = " << stationNum << "\n";
-        //cout << "moduleNum = " << moduleNum << "\n";
-        //cout << "\n";
+        
+        if (stationNum == -1 || moduleNum == -1) return kFALSE;
+        
+        BmnSiliconPoint* p = AddHit(fTrackID, fVolumeID,
+            fPosIn, fPosOut,
+            fMomIn, fMomOut,
+            fTime, fLength, fELoss,
+            fIsPrimary, fCharge, fPdgId);
+        
+        // if (stationNum == -1) {
+        //     cout << "BmnSilicon.cxx" << endl;
+        //     cout << moduleVolumeName << endl;
+        //     cout << "stationNum = " << stationNum << "\n";
+        //     cout << "moduleNum = " << moduleNum << "\n";
+        //     p->Print(nullptr);
+        //     cout << "\n";
+        // }
 
         p->SetStation(stationNum);
         p->SetModule(moduleNum);

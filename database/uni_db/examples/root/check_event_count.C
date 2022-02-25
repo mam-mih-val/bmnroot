@@ -4,7 +4,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 // function for walking and checking ROOT files in a given directory (and all subdirectories),
 // whether their event count is corresponding the number in BM@N Database
 // returns the success code: 0 - without errors, error_code - otherwise
-int check_event_count(TString dir_name, int period_number, double tolerance_percent = 10)
+int check_event_count(TString dir_name, int period_number, double tolerance_percent = 0)
 {
     gSystem->ExpandPathName(dir_name);
     TSystemDirectory dir(dir_name.Data(), dir_name.Data());

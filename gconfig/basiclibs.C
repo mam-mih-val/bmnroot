@@ -1,6 +1,12 @@
-// $Id: basiclibs.C,v 1.1.1.1 2005/06/23 07:14:09 dbertini Exp $
-//
 // Macro for loading basic libraries used with both Geant3 and Geant4
+
+Bool_t isLibrary(const char* libName)
+{
+  if (TString(gSystem->DynamicPathName(libName, kTRUE)) != TString(""))
+    return kTRUE;
+  else
+    return kFALSE;
+}
 
 void basiclibs()
 {

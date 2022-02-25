@@ -223,6 +223,8 @@ private:
     BmnSiliconStationSet* fSilDetector;
     
     Short_t fChargeCut; //(-1, 0, +1) do QA for negative, all or positive particles
+    
+    Int_t fEventNo;  // event counter
 
     BmnTrackingQa(const BmnTrackingQa&) = delete;
     BmnTrackingQa& operator=(const BmnTrackingQa&) = delete;

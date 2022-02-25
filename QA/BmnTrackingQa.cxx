@@ -81,6 +81,7 @@ fNHitsCut(1000),
 fNStations(0),
 fGlobalTracks(nullptr),
 fGemTracks(nullptr),
+fEventNo(0),
 fStsHits(nullptr),
 fSilTracks(nullptr) {
     fChargeCut = ch;
@@ -109,6 +110,8 @@ InitStatus BmnTrackingQa::Init() {
 }
 
 void BmnTrackingQa::Exec(Option_t* opt) {
+    if (fEventNo % 100 == 0) printf("Event: %d\n", fEventNo);
+    fEventNo++;
     Int_t nHits = 0;
     if (fInnerTrackerSetup[kGEM]) nHits += fGemHits->GetEntriesFast();
     if (fInnerTrackerSetup[kSILICON]) nHits += fSilHits->GetEntriesFast();
@@ -422,8 +425,8 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Well_vs_P_tof700", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
     CreateH1("Fake_vs_P_tof700", "P_{sim}/q, GeV/c", "Ghosts, %", fPRangeBins, fPRangeMin, 8.0);
 
-    CreateH2("banana_tof400", "P_{rec}/Q, GeV/c", "#beta_{rec}", "", 1000, -10, 10, 1000, 0.5, 1.1);
-    CreateH2("banana_tof700", "P_{rec}/Q, GeV/c", "#beta_{rec}", "", 1000, -10, 10, 1000, 0.5, 1.1);
+    CreateH2("banana_tof400", "P_{rec}/Q, GeV/c", "#beta_{rec}", "", 500, -4, 10, 500, 0.5, 1.1);
+    CreateH2("banana_tof700", "P_{rec}/Q, GeV/c", "#beta_{rec}", "", 500, -4, 10, 500, 0.5, 1.1);
     CreateH1("x_residuals_tof400_good", "dX, cm", "count", 250, -5.0, 5.0);
     CreateH1("y_residuals_tof400_good", "dY, cm", "count", 250, -5.0, 5.0);
     CreateH1("x_residuals_tof400_bad", "dX, cm", "count", 250, -5.0, 5.0);
@@ -565,31 +568,35 @@ void BmnTrackingQa::ProcessGlobal() {
         //TOF400 
         if (glTrack->GetTof1HitIndex() != -1) {
             BmnHit* tofHit = (BmnHit*)fTof400Hits->At(glTrack->GetTof1HitIndex());
-            Int_t tofMcId = tofHit->GetLinksWithType(0x2).GetLink(0).GetIndex();
-            if (globMCId != tofMcId) {
-                fHM->H1("Ghost_vs_P_tof400")->Fill(P_sim);
-                fHM->H1("x_residuals_tof400_bad")->Fill(tofHit->GetResX());
-                fHM->H1("y_residuals_tof400_bad")->Fill(tofHit->GetResY());
-            } else {
-                fHM->H1("Well_vs_P_tof400")->Fill(P_sim);
-                fHM->H2("banana_tof400")->Fill(glTrack->GetP(), glTrack->GetBeta(1));
-                fHM->H1("x_residuals_tof400_good")->Fill(tofHit->GetResX());
-                fHM->H1("y_residuals_tof400_good")->Fill(tofHit->GetResY());
+            if (tofHit->GetLinksWithType(0x2).GetNLinks() != 0) {
+                Int_t tofMcId = tofHit->GetLinksWithType(0x2).GetLink(0).GetIndex();
+                if (globMCId != tofMcId) {
+                    fHM->H1("Ghost_vs_P_tof400")->Fill(P_sim);
+                    fHM->H1("x_residuals_tof400_bad")->Fill(tofHit->GetResX());
+                    fHM->H1("y_residuals_tof400_bad")->Fill(tofHit->GetResY());
+                } else {
+                    fHM->H1("Well_vs_P_tof400")->Fill(P_sim);
+                    fHM->H2("banana_tof400")->Fill(glTrack->GetP(), glTrack->GetBeta(1));
+                    fHM->H1("x_residuals_tof400_good")->Fill(tofHit->GetResX());
+                    fHM->H1("y_residuals_tof400_good")->Fill(tofHit->GetResY());
+                }
             }
         }
         //TOF700
         if (glTrack->GetTof2HitIndex() != -1) {
             BmnHit* tofHit = (BmnHit*)fTof700Hits->At(glTrack->GetTof2HitIndex());
-            Int_t tofMcId = tofHit->GetLinksWithType(0x2).GetLink(0).GetIndex();
-            if (globMCId != tofMcId) {
-                fHM->H1("Ghost_vs_P_tof700")->Fill(P_sim);
-                fHM->H1("x_residuals_tof700_bad")->Fill(tofHit->GetResX());
-                fHM->H1("y_residuals_tof700_bad")->Fill(tofHit->GetResY());
-            } else {
-                fHM->H1("Well_vs_P_tof700")->Fill(P_sim);
-                fHM->H2("banana_tof700")->Fill(glTrack->GetP(), glTrack->GetBeta(2));
-                fHM->H1("x_residuals_tof700_good")->Fill(tofHit->GetResX());
-                fHM->H1("y_residuals_tof700_good")->Fill(tofHit->GetResY());
+            if (tofHit->GetLinksWithType(0x2).GetNLinks() != 0) {
+                Int_t tofMcId = tofHit->GetLinksWithType(0x2).GetLink(0).GetIndex();
+                if (globMCId != tofMcId) {
+                    fHM->H1("Ghost_vs_P_tof700")->Fill(P_sim);
+                    fHM->H1("x_residuals_tof700_bad")->Fill(tofHit->GetResX());
+                    fHM->H1("y_residuals_tof700_bad")->Fill(tofHit->GetResY());
+                } else {
+                    fHM->H1("Well_vs_P_tof700")->Fill(P_sim);
+                    fHM->H2("banana_tof700")->Fill(glTrack->GetP(), glTrack->GetBeta(2));
+                    fHM->H1("x_residuals_tof700_good")->Fill(tofHit->GetResX());
+                    fHM->H1("y_residuals_tof700_good")->Fill(tofHit->GetResY());
+                }
             }
         }
 

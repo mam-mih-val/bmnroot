@@ -70,6 +70,7 @@ BmnHistToF.cxx
 BmnHistToF700.cxx
 BmnHistSrc.cxx
 BmnHistLAND.cxx
+BmnHistTofCal.cxx
 PadInfo.cxx
 BmnPadBranch.cxx
 BmnPadGenerator.cxx

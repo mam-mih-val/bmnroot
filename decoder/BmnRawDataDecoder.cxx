@@ -177,7 +177,7 @@ BmnStatus BmnRawDataDecoder::ParseJsonTLV(UInt_t *d, UInt_t &len) {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::ParseRunTLV(UInt_t *d, UInt_t &len) {
+BmnStatus BmnRawDataDecoder::ParseRunTLV(UInt_t *d, UInt_t &len, UInt_t &runId) {
     uint16_t iWord = 0;
     while (iWord < len) {
         UInt_t word = d[iWord++];
@@ -189,8 +189,8 @@ BmnStatus BmnRawDataDecoder::ParseRunTLV(UInt_t *d, UInt_t &len) {
                     printf("Wrong RunId length %u\n", idLen);
                     return kBMNERROR;
                 }
-                fRunId = d[iWord];
-                printf("Run Id %u\n", fRunId);
+                runId = d[iWord];
+                printf("Run Id %u\n", runId);
                 break;
             case SYNC_RUN_INDEX:
             {
@@ -293,7 +293,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
                 if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
                 fDat = fDat / kNBYTESINWORD;
                 if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) continue;
-                ParseRunTLV(data, fDat);
+                ParseRunTLV(data, fDat, fRunId);
                 break;
             case SYNC_JSON:
                 if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
@@ -439,11 +439,10 @@ BmnStatus BmnRawDataDecoder::wait_file(Int_t len, UInt_t limit) {
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate(UInt_t *buf, UInt_t len) {
     fEventId = buf[0];
-    //                printf("EventID = %d\n", fEventId);
+//    printf("EventID = %d\n", fEventId);
     if (fEventId <= 0) return kBMNERROR;
-    ProcessEvent(buf, len);
     fNevents++;
-    return kBMNSUCCESS;
+    return ProcessEvent(buf, len);
 }
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile(UInt_t limit) {
@@ -720,6 +719,9 @@ BmnStatus BmnRawDataDecoder::Process_ADC64WR(UInt_t *d, UInt_t len, UInt_t seria
 
 BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, BmnTrigInfo* spillInfo) {
     //                                    printf("FVME serial %08X len %u\n",serial, len);
+
+    if (evType == kBMNSTAT)
+        evType = kBMNEOS;
     UInt_t modId = 0;
     UInt_t slot = 0;
     UInt_t type = 0;
@@ -1220,7 +1222,7 @@ BmnStatus BmnRawDataDecoder::FillMSC16VE_E(UInt_t *d, UInt_t serial, UInt_t &len
             }
         } else {
             for (uint8_t i = 0; i < NumsInWord; i++) {
-                UInt_t cnt = (d[index] >> (i * NCntrBits)) & (BIT(8) - 1);
+                UInt_t cnt = (d[index] >> (i * NCntrBits)) & (BIT(NCntrBits) - 1);
                 cntrs[type * NumsInWord + i] = cnt;
                 //                printf("\tcnt[%2u] = %2u\n", (type * NumsInWord + i), cnt);
                 hasValues = kTRUE;
@@ -1288,7 +1290,7 @@ BmnStatus BmnRawDataDecoder::FillMSC(UInt_t* d, UInt_t serial, UInt_t slot, UInt
     UInt_t iCnt = 0;
     BmnMSCDigit *dig = new((*msc)[msc->GetEntriesFast()]) BmnMSCDigit(serial, slot, fEventId);
     UInt_t *cntrArrCur = dig->GetValue();
-    printf("MSC type %u serial %08X last eventID = %6u\n", type, serial, fEventId);
+    //    printf("MSC type %u serial %08X last eventID = %6u\n", type, serial, fEventId);
     while (type < 6) {
         if (type < 5) {
             UInt_t cnt3 = (d[idx] >> 21) & (BIT(8) - 1);
@@ -1732,16 +1734,16 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 //                                                printf("\nReal time %f s, CPU time %f s  fCscMapper\n", rtime, ctime);
                 timer.Start();
 
-//                auto start = chrono::high_resolution_clock::now();
-//                auto stop = chrono::high_resolution_clock::now();
+                //                auto start = chrono::high_resolution_clock::now();
+                //                auto stop = chrono::high_resolution_clock::now();
                 clock_t c_start = clock();
                 if (fGemMapper) fGemMapper->FillEvent(adc32, gem);
                 clock_t c_stop = clock();
                 timer.Stop();
                 rtime = timer.RealTime();
                 ctime = timer.CpuTime();
-//                printf("Real time %f s, CPU time %2.6f s  fGemMapper\n",
-//                        rtime, (Double_t)(c_stop-c_start)/CLOCKS_PER_SEC);
+                //                printf("Real time %f s, CPU time %2.6f s  fGemMapper\n",
+                //                        rtime, (Double_t)(c_stop-c_start)/CLOCKS_PER_SEC);
                 //                                                printf("Real time %f s, CPU time %f s  fGemMapper\n", rtime, ctime);
                 timer.Start();
                 if (fSiliconMapper) fSiliconMapper->FillEvent(adc128, silicon);

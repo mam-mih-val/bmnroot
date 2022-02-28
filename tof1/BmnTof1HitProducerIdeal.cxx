@@ -187,10 +187,12 @@ void 			BmnTof1HitProducerIdeal::AddHit(Int_t detUID, const TVector3 &posHit, co
 {
 	BmnTofHit *pHit	= new  ((*aTofHits)[aTofHits->GetEntriesFast()]) BmnTofHit(detUID, posHit, posHitErr, pointIndex);
 	
+	FairRootManager::Instance()->SetUseFairLinks(kTRUE);
 	pHit->SetTimeStamp(time);
 	pHit->AddLink(FairLink(0x1, pointIndex));
 	pHit->AddLink(FairLink(0x2, trackIndex));
-	pHit->AddLink(FairLink(0x4, detUID));	
+	pHit->AddLink(FairLink(0x4, detUID));
+	FairRootManager::Instance()->SetUseFairLinks(kFALSE);
 }
 //------------------------------------------------------------------------------------------------------------------------
 Int_t 			BmnTof1HitProducerIdeal::CompressHits() 

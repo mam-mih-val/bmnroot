@@ -42,6 +42,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF CSCLinkDef.h)
 Set(LIBRARY_NAME CSC)
-Set(DEPENDENCIES BmnData Base XMLParser Core)
+Set(DEPENDENCIES BmnData Base XMLParser Gdml Core)
 
 GENERATE_LIBRARY()

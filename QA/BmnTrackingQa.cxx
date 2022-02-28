@@ -45,7 +45,7 @@ using namespace TMath;
 using lit::FindAndReplace;
 using lit::Split;
 
-BmnTrackingQa::BmnTrackingQa(Short_t ch, TString name, TString gemConf, TString silConf) : FairTask("BmnTrackingQA", 1),
+BmnTrackingQa::BmnTrackingQa(Short_t ch, TString name, TString gemConf, TString silConf, TString cscConf) : FairTask("BmnTrackingQA", 1),
 fHM(nullptr),
 fOutputDir("./"),
 fMinNofPoints(4),
@@ -72,15 +72,19 @@ fThetaRangeBins(50),
 fOutName(name),
 fConfigGem(gemConf),
 fConfigSil(silConf),
+fConfigCsc(cscConf),
 fMCTracks(nullptr),
 fSilHits(nullptr),
 fTof400Hits(nullptr),
 fTof700Hits(nullptr),
+fCscHits(nullptr),
+fCscPoints(nullptr),
 fPrimes(kFALSE),
 fNHitsCut(1000),
 fNStations(0),
 fGlobalTracks(nullptr),
 fGemTracks(nullptr),
+fEventNo(0),
 fStsHits(nullptr),
 fSilTracks(nullptr) {
     fChargeCut = ch;
@@ -104,11 +108,13 @@ InitStatus BmnTrackingQa::Init() {
     fHM = new BmnHistManager();
     CreateHistograms();
     ReadDataBranches();
-    fMCTrackCreator = BmnMCTrackCreator::Instance(fConfigGem, fConfigSil);
+    fMCTrackCreator = BmnMCTrackCreator::Instance(fConfigGem, fConfigSil, fConfigCsc);
     return kSUCCESS;
 }
 
 void BmnTrackingQa::Exec(Option_t* opt) {
+    if (fEventNo % 100 == 0) printf("Event: %d\n", fEventNo);
+    fEventNo++;
     Int_t nHits = 0;
     if (fInnerTrackerSetup[kGEM]) nHits += fGemHits->GetEntriesFast();
     if (fInnerTrackerSetup[kSILICON]) nHits += fSilHits->GetEntriesFast();
@@ -153,6 +159,8 @@ void BmnTrackingQa::ReadDataBranches() {
 
     fTof400Hits = (TClonesArray*)ioman->GetObject("BmnTof400Hit");
     fTof700Hits = (TClonesArray*)ioman->GetObject("BmnTof700Hit");
+    fCscHits = (TClonesArray*)ioman->GetObject("BmnCSCHit");
+    fCscPoints = (TClonesArray*)ioman->GetObject("CSCPoint");
 
     if (fInnerTrackerSetup[kSILICON]) {
         fSilHits = (TClonesArray*)ioman->GetObject("BmnSiliconHit");
@@ -405,25 +413,25 @@ void BmnTrackingQa::CreateHistograms() {
 
 
     //TOF
-    CreateH1("Eff_vs_P_tof400", "P_{sim}/q, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, 8.0);
-    CreateH1("Split_vs_P_tof400", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
-    CreateH1("SplitEff_vs_P_tof400", "P_{sim}/q, GeV/c", "Splits, %", fPRangeBins, fPRangeMin, 8.0);
-    CreateH1("Sim_vs_P_tof400", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
-    CreateH1("Rec_vs_P_tof400", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
-    CreateH1("Ghost_vs_P_tof400", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
-    CreateH1("Well_vs_P_tof400", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
-    CreateH1("Fake_vs_P_tof400", "P_{sim}/q, GeV/c", "Ghosts, %", fPRangeBins, fPRangeMin, 8.0);
-    CreateH1("Eff_vs_P_tof700", "P_{sim}/q, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, 8.0);
-    CreateH1("Split_vs_P_tof700", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
-    CreateH1("SplitEff_vs_P_tof700", "P_{sim}/q, GeV/c", "Splits, %", fPRangeBins, fPRangeMin, 8.0);
-    CreateH1("Sim_vs_P_tof700", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
-    CreateH1("Rec_vs_P_tof700", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
-    CreateH1("Ghost_vs_P_tof700", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
-    CreateH1("Well_vs_P_tof700", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, fPRangeMin, 8.0);
-    CreateH1("Fake_vs_P_tof700", "P_{sim}/q, GeV/c", "Ghosts, %", fPRangeBins, fPRangeMin, 8.0);
+    CreateH1("Eff_vs_P_tof400", "P_{sim}/q, GeV/c", "Efficiency, %", fPRangeBins, 0.0, 8.0);
+    CreateH1("Split_vs_P_tof400", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("SplitEff_vs_P_tof400", "P_{sim}/q, GeV/c", "Splits, %", fPRangeBins, 0.0, 8.0);
+    CreateH1("Sim_vs_P_tof400", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Rec_vs_P_tof400", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Ghost_vs_P_tof400", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Well_vs_P_tof400", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Fake_vs_P_tof400", "P_{sim}/q, GeV/c", "Ghosts, %", fPRangeBins, 0.0, 8.0);
+    CreateH1("Eff_vs_P_tof700", "P_{sim}/q, GeV/c", "Efficiency, %", fPRangeBins, 0.0, 8.0);
+    CreateH1("Split_vs_P_tof700", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("SplitEff_vs_P_tof700", "P_{sim}/q, GeV/c", "Splits, %", fPRangeBins, 0.0, 8.0);
+    CreateH1("Sim_vs_P_tof700", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Rec_vs_P_tof700", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Ghost_vs_P_tof700", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Well_vs_P_tof700", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Fake_vs_P_tof700", "P_{sim}/q, GeV/c", "Ghosts, %", fPRangeBins, 0.0, 8.0);
 
-    CreateH2("banana_tof400", "P_{rec}/Q, GeV/c", "#beta_{rec}", "", 1000, -10, 10, 1000, 0.5, 1.1);
-    CreateH2("banana_tof700", "P_{rec}/Q, GeV/c", "#beta_{rec}", "", 1000, -10, 10, 1000, 0.5, 1.1);
+    CreateH2("banana_tof400", "P_{rec}/Q, GeV/c", "#beta_{rec}", "", 500, -4, 10, 500, 0.5, 1.1);
+    CreateH2("banana_tof700", "P_{rec}/Q, GeV/c", "#beta_{rec}", "", 500, -4, 10, 500, 0.5, 1.1);
     CreateH1("x_residuals_tof400_good", "dX, cm", "count", 250, -5.0, 5.0);
     CreateH1("y_residuals_tof400_good", "dY, cm", "count", 250, -5.0, 5.0);
     CreateH1("x_residuals_tof400_bad", "dX, cm", "count", 250, -5.0, 5.0);
@@ -432,6 +440,23 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("y_residuals_tof700_good", "dY, cm", "count", 250, -5.0, 5.0);
     CreateH1("x_residuals_tof700_bad", "dX, cm", "count", 250, -5.0, 5.0);
     CreateH1("y_residuals_tof700_bad", "dY, cm", "count", 250, -5.0, 5.0);
+    CreateH2("Mass_correlation", "M_{tof400}/Q, GeV/c^{2}/Q", "M_{tof700}/Q, GeV/c^{2}/Q", "", 500, 0, 3, 500, 0, 3);
+
+    //CSC
+    
+    CreateH1("Eff_vs_P_csc", "P_{sim}/q, GeV/c", "Efficiency, %", fPRangeBins, 0.0, 8.0);
+    CreateH1("Split_vs_P_csc", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("SplitEff_vs_P_csc", "P_{sim}/q, GeV/c", "Splits, %", fPRangeBins, 0.0, 8.0);
+    CreateH1("Sim_vs_P_csc", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Rec_vs_P_csc", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Ghost_vs_P_csc", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Well_vs_P_csc", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Fake_vs_P_csc", "P_{sim}/q, GeV/c", "Ghosts, %", fPRangeBins, 0.0, 8.0);
+
+    CreateH1("x_residuals_csc_good", "dX, cm", "count", 250, -5.0, 5.0);
+    CreateH1("y_residuals_csc_good", "dY, cm", "count", 250, -5.0, 5.0);
+    CreateH1("x_residuals_csc_bad", "dX, cm", "count", 250, -5.0, 5.0);
+    CreateH1("y_residuals_csc_bad", "dY, cm", "count", 250, -5.0, 5.0);
 
     //hits residuals
     for (Int_t iSt = 0; iSt < 9; ++iSt) {
@@ -553,43 +578,68 @@ void BmnTrackingQa::ProcessGlobal() {
         fHM->H2("Nh_rec_P_rec")->Fill(N_rec, P_rec);
         fHM->H2("Nh_rec_Theta_rec")->Fill(N_rec, Theta_rec);
 
-        if (glTrack->GetTof1HitIndex() != -1) {
-            fHM->H1("Rec_vs_P_tof400")->Fill(P_sim);
-        }
-        if (glTrack->GetTof2HitIndex() != -1) {
-            fHM->H1("Rec_vs_P_tof700")->Fill(P_sim);
-        }
-
         nAllRecoMachedTracks++;
 
         //TOF400 
         if (glTrack->GetTof1HitIndex() != -1) {
+            fHM->H1("Rec_vs_P_tof400")->Fill(P_sim);
             BmnHit* tofHit = (BmnHit*)fTof400Hits->At(glTrack->GetTof1HitIndex());
-            Int_t tofMcId = tofHit->GetLinksWithType(0x2).GetLink(0).GetIndex();
-            if (globMCId != tofMcId) {
-                fHM->H1("Ghost_vs_P_tof400")->Fill(P_sim);
-                fHM->H1("x_residuals_tof400_bad")->Fill(tofHit->GetResX());
-                fHM->H1("y_residuals_tof400_bad")->Fill(tofHit->GetResY());
-            } else {
-                fHM->H1("Well_vs_P_tof400")->Fill(P_sim);
-                fHM->H2("banana_tof400")->Fill(glTrack->GetP(), glTrack->GetBeta(1));
-                fHM->H1("x_residuals_tof400_good")->Fill(tofHit->GetResX());
-                fHM->H1("y_residuals_tof400_good")->Fill(tofHit->GetResY());
+            if (tofHit->GetLinksWithType(0x2).GetNLinks() != 0) {
+                Int_t tofMcId = tofHit->GetLinksWithType(0x2).GetLink(0).GetIndex();
+                if (globMCId != tofMcId) {
+                    fHM->H1("Ghost_vs_P_tof400")->Fill(P_sim);
+                    fHM->H1("x_residuals_tof400_bad")->Fill(tofHit->GetResX());
+                    fHM->H1("y_residuals_tof400_bad")->Fill(tofHit->GetResY());
+                } else {
+                    fHM->H1("Well_vs_P_tof400")->Fill(P_sim);
+                    fHM->H2("banana_tof400")->Fill(glTrack->GetP(), glTrack->GetBeta(1));
+                    fHM->H1("x_residuals_tof400_good")->Fill(tofHit->GetResX());
+                    fHM->H1("y_residuals_tof400_good")->Fill(tofHit->GetResY());
+                }
             }
         }
         //TOF700
         if (glTrack->GetTof2HitIndex() != -1) {
+            fHM->H1("Rec_vs_P_tof700")->Fill(P_sim);
             BmnHit* tofHit = (BmnHit*)fTof700Hits->At(glTrack->GetTof2HitIndex());
-            Int_t tofMcId = tofHit->GetLinksWithType(0x2).GetLink(0).GetIndex();
-            if (globMCId != tofMcId) {
-                fHM->H1("Ghost_vs_P_tof700")->Fill(P_sim);
-                fHM->H1("x_residuals_tof700_bad")->Fill(tofHit->GetResX());
-                fHM->H1("y_residuals_tof700_bad")->Fill(tofHit->GetResY());
-            } else {
-                fHM->H1("Well_vs_P_tof700")->Fill(P_sim);
-                fHM->H2("banana_tof700")->Fill(glTrack->GetP(), glTrack->GetBeta(2));
-                fHM->H1("x_residuals_tof700_good")->Fill(tofHit->GetResX());
-                fHM->H1("y_residuals_tof700_good")->Fill(tofHit->GetResY());
+            if (tofHit->GetLinksWithType(0x2).GetNLinks() != 0) {
+                Int_t tofMcId = tofHit->GetLinksWithType(0x2).GetLink(0).GetIndex();
+                if (globMCId != tofMcId) {
+                    fHM->H1("Ghost_vs_P_tof700")->Fill(P_sim);
+                    fHM->H1("x_residuals_tof700_bad")->Fill(tofHit->GetResX());
+                    fHM->H1("y_residuals_tof700_bad")->Fill(tofHit->GetResY());
+                } else {
+                    fHM->H1("Well_vs_P_tof700")->Fill(P_sim);
+                    fHM->H2("banana_tof700")->Fill(glTrack->GetP(), glTrack->GetBeta(2));
+                    fHM->H1("x_residuals_tof700_good")->Fill(tofHit->GetResX());
+                    fHM->H1("y_residuals_tof700_good")->Fill(tofHit->GetResY());
+                }
+            }
+        }
+        if (glTrack->GetTof1HitIndex() != -1 && glTrack->GetTof2HitIndex() != -1) {
+            Double_t beta400sq = glTrack->GetBeta(1) * glTrack->GetBeta(1);
+            Double_t beta700sq = glTrack->GetBeta(2) * glTrack->GetBeta(2);
+            Double_t mom2 = glTrack->GetP() * glTrack->GetP();
+            Double_t mass400 = Sqrt(mom2 / beta400sq - mom2);
+            Double_t mass700 = Sqrt(mom2 / beta700sq - mom2);
+            fHM->H2("Mass_correlation")->Fill(mass400, mass700);
+        }
+
+        //CSC
+        if (glTrack->GetCscHitIndex(0) != -1) {
+            fHM->H1("Rec_vs_P_csc")->Fill(P_sim);
+            BmnHit* cscHit = (BmnHit*)fCscHits->At(glTrack->GetCscHitIndex(0));
+            if (cscHit->GetRefIndex() != -1) { //index of parent mc point
+                FairMCPoint* pnt = (FairMCPoint*)fCscPoints->At(cscHit->GetRefIndex());
+                if (globMCId != pnt->GetTrackID()) {
+                    fHM->H1("Ghost_vs_P_csc")->Fill(P_sim);
+                    fHM->H1("x_residuals_csc_bad")->Fill(cscHit->GetResX());
+                    fHM->H1("y_residuals_csc_bad")->Fill(cscHit->GetResY());
+                } else {
+                    fHM->H1("Well_vs_P_csc")->Fill(P_sim);
+                    fHM->H1("x_residuals_csc_good")->Fill(cscHit->GetResX());
+                    fHM->H1("y_residuals_csc_good")->Fill(cscHit->GetResY());
+                }
             }
         }
 
@@ -830,8 +880,9 @@ void BmnTrackingQa::ProcessGlobal() {
             fHM->H1("Sim_vs_P_tof700")->Fill(P);
         }
 
-
-
+        if (mcTrack.GetNofPoints(kCSC) > 0) {
+            fHM->H1("Sim_vs_P_csc")->Fill(P);
+        }
     }
 
     fHM->H1("Sim_vs_mult")->SetBinContent(nReconstructable, fHM->H1("Sim_vs_mult")->GetBinContent(nReconstructable) + nReconstructable);

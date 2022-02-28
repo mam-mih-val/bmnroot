@@ -1,22 +1,5 @@
-// $Id: g4libs.C 331 2008-01-09 15:49:25Z ivana $
-
-//------------------------------------------------
-// The Virtual Monte Carlo examples
-// Copyright (C) 2007, Ivana Hrivnacova
-// All rights reserved.
-//
-// For the licensing terms see geant4_vmc/LICENSE.
-// Contact: vmc@pcroot.cern.ch
-//-------------------------------------------------
-
 /// \file g4libs.C
 /// \brief Macro for loading Geant4 and Geant4 VMC libraries
-
-//
-// Macro for loading Geant4 and Geant4 VMC libraries
-
-
-#include <iostream>
 
 void g4libs()
 {
@@ -322,4 +305,3 @@ void g4libs_global()
 
   cout << "Loading libraries ... finished" << endl;
 }
-

@@ -37,6 +37,7 @@ public:
       fPoints[kTOF1];
       fPoints[kDCH];
       fPoints[kTOF];
+      fPoints[kCSC];
 //      fStationPoints[kGEM];
 //      fStationPoints[kTOF1];
 //      fStationPoints[kDCH1];

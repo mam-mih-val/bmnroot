@@ -24,36 +24,42 @@
 
 using namespace std;
 
-BmnMCTrackCreator::BmnMCTrackCreator(TString gem, TString sil) :
+BmnMCTrackCreator::BmnMCTrackCreator(TString gem, TString sil, TString csc) :
 fMCTracks(nullptr),
 fNSiliconStations(0),
 fSilPoints(nullptr),
 fTof400Points(nullptr),
 fTof700Points(nullptr),
+fCscPoints(nullptr),
 fGemPoints(nullptr) {
     ReadDataBranches();
     fSilDetector = new BmnSiliconStationSet(sil);
     fGemDetector = new BmnGemStripStationSet(gem);
+    fCscDetector = new BmnCSCStationSet(csc);
 }
 
 BmnMCTrackCreator::~BmnMCTrackCreator() {
     delete fGemDetector;
     delete fSilDetector;
+    delete fCscDetector;
 }
 
-BmnMCTrackCreator* BmnMCTrackCreator::Instance(TString gem, TString sil) {
-    static BmnMCTrackCreator instance(gem, sil);
+BmnMCTrackCreator* BmnMCTrackCreator::Instance(TString gem, TString sil, TString csc) {
+    static BmnMCTrackCreator instance(gem, sil, csc);
     return &instance;
 }
 
 void BmnMCTrackCreator::Create() {
     fBmnMCTracks.clear();
     fNSiliconStations = fSilDetector->GetNStations();
+    fNGemStations = fGemDetector->GetNStations();
+    fNCscStations = fCscDetector->GetNStations();
     AddPoints(kSILICON, fSilPoints);
     AddPoints(kSSD, fSsdPoints);
     AddPoints(kGEM, fGemPoints);
     AddPoints(kTOF1, fTof400Points);
     AddPoints(kTOF, fTof700Points);
+    AddPoints(kCSC, fCscPoints);
     // printf("fSilDetector->GetNStations() = %d\n", fSilDetector->GetNStations());
     // printf("fGemDetector->GetNStations() = %d\n", fGemDetector->GetNStations());
     
@@ -74,6 +80,7 @@ void BmnMCTrackCreator::ReadDataBranches() {
     fGemPoints = (TClonesArray*) ioman->GetObject("StsPoint");
     fTof400Points = (TClonesArray*) ioman->GetObject("TOF400Point");
     fTof700Points = (TClonesArray*) ioman->GetObject("TOF700Point");
+    fCscPoints = (TClonesArray*) ioman->GetObject("CSCPoint");
 }
 
 void BmnMCTrackCreator::AddPoints(DetectorId detId, const TClonesArray* array) {
@@ -91,11 +98,13 @@ void BmnMCTrackCreator::AddPoints(DetectorId detId, const TClonesArray* array) {
             // stationId = hp.DefineStationByZ(fairPoint->GetZ(), 0);
         } else if (detId == kGEM) {
             stationId = fGemDetector->GetPointStationOwnership(fairPoint->GetZ()) + fNSiliconStations;
+        } else if (detId == kCSC) {
+            stationId = fCscDetector->GetPointStationOwnership(fairPoint->GetZ()) + fNSiliconStations + fNGemStations;
         } else if (detId == kTOF1) {
-            stationId = 13;
+            stationId = fNSiliconStations + fNGemStations + fNCscStations + 1;
         } else if (detId == kTOF) {
-            stationId = 17;
-        }
+            stationId = fNSiliconStations + fNGemStations + fNCscStations + 2;
+        } 
         
         if (stationId < 0) continue;
         FairMCPointCoordinatesAndMomentumToBmnMCPoint(fairPoint, &bmnPoint);

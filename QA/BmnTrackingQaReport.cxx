@@ -199,22 +199,29 @@ void BmnTrackingQaReport::Draw() {
    	DrawResAndPull(fPrefix + "Residuals and Pulls for first parameters GLOB", namesResPullsF);
     DrawResAndPull(fPrefix + "Residuals and Pulls for last parameters GLOB", namesResPullsL);
 
-
     drawHist->DrawMainCanvas("det2");
     
+    //TOF    
     TString pNamesInTof400[5] = {"Sim_vs_P_tof400", "Rec_vs_P_tof400", "Well_vs_P_tof400", "Ghost_vs_P_tof400", "Split_vs_P_tof400"};
     TString pNamesOutTof400[3] = {"Eff_vs_P_tof400", "Fake_vs_P_tof400", "SplitEff_vs_P_tof400"};
     DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for TOF-400", pNamesInTof400, pNamesOutTof400);
-    
     TString pNamesInTof700[5] = {"Sim_vs_P_tof700", "Rec_vs_P_tof700", "Well_vs_P_tof700", "Ghost_vs_P_tof700", "Split_vs_P_tof700"};
     TString pNamesOutTof700[3] = {"Eff_vs_P_tof700", "Fake_vs_P_tof700", "SplitEff_vs_P_tof700"};
     DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for TOF-700", pNamesInTof700, pNamesOutTof700);
 
-    DrawTwoH2(fPrefix + "Distribution of tracks over velocity and rigidity", "banana_tof400", "banana_tof700", 2000, 500);
+    //DrawTwoH2(fPrefix + "Distribution of tracks over velocity and rigidity", "banana_tof400", "banana_tof700", 2000, 500);
+    DrawThreeH2(fPrefix + "Mass correlation and banana plots for TOF-400 and TOF-700", "Mass_correlation", "banana_tof400", "banana_tof700");
     DrawTwoH1(fPrefix + "Distribution of TOF-400 residuals for correct matching", "x_residuals_tof400_good", "y_residuals_tof400_good", "", kTRUE);
     DrawTwoH1(fPrefix + "Distribution of TOF-700 residuals for correct matching", "x_residuals_tof700_good", "y_residuals_tof700_good", "", kTRUE);
     DrawTwoH1(fPrefix + "Distribution of TOF-400 residuals for wrong matching", "x_residuals_tof400_bad", "y_residuals_tof400_bad", "", kTRUE);
     DrawTwoH1(fPrefix + "Distribution of TOF-700 residuals for wrong matching", "x_residuals_tof700_bad", "y_residuals_tof700_bad", "", kTRUE);
+
+    //CSC
+    TString pNamesInCsc[5] = { "Sim_vs_P_csc", "Rec_vs_P_csc", "Well_vs_P_csc", "Ghost_vs_P_csc", "Split_vs_P_csc" };
+    TString pNamesOutCsc[3] = { "Eff_vs_P_csc", "Fake_vs_P_csc", "SplitEff_vs_P_csc" };
+    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for CSC", pNamesInCsc, pNamesOutCsc);
+    DrawTwoH1(fPrefix + "Distribution of CSC residuals for correct matching", "x_residuals_csc_good", "y_residuals_csc_good", "", kTRUE);
+    DrawTwoH1(fPrefix + "Distribution of CSC residuals for wrong matching", "x_residuals_csc_bad", "y_residuals_csc_bad", "", kTRUE);
 }
 
 // void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames, TString* outNames) {

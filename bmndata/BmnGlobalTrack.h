@@ -111,8 +111,16 @@ class BmnGlobalTrack : public BmnTrack{
     Int_t fDchTrack;
     Int_t fMwpc1Track;
     Int_t fMwpc2Track;
-    vector<Int_t> fCscHit;
     Int_t fUpstreamTrack;
+    
+    //vector of indices for 4 zones: 
+    //0. Small CSC between Magnet and TOF400
+    //1. Small CSC between TOF400 and TOF700
+    //2. Big CSC between TOF400 and TOF700
+    //3. Big CSC between TOF700 and FHCal
+    // So size of vector is 4
+    vector<Int_t> fCscHit; 
+        
 
     // members for PID
     Double_t fBeta400;    // l/t/c //for tof-400

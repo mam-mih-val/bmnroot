@@ -29,8 +29,10 @@ void bmn_qa_generator(
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
     TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
     TString gPathSilConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
+    TString gPathCscConfig = gPathConfig + "/parameters/csc/XMLConfigs/";
     TString confGem = gPathGemConfig + ((period == 8) ? "GemRun8.xml" : (period == 7) ? "GemRunSpring2018.xml" : (period == 6) ? "GemRunSpring2017.xml" : "GemRunSpring2017.xml");
     TString confSil = gPathSilConfig + ((period == 8) ? "SiliconRun8_3stations.xml" : (period == 7) ? "SiliconRunSpring2018.xml" : (period == 6) ? "SiliconRunSpring2017.xml" : "SiliconRunSpring2017.xml");    
+    TString confCSC = gPathCscConfig + ((period == 8) ? "CSCRun8.xml" : "");    
 
     // ============ TASKS ============= //
 
@@ -43,7 +45,7 @@ void bmn_qa_generator(
     //  clQa->SetOnlyPrimes(isPrimary);
     //  fRun->AddTask(clQa);
 
-    BmnTrackingQa* trQaAll = new BmnTrackingQa(0, "tracking_qa", confGem, confSil);
+    BmnTrackingQa* trQaAll = new BmnTrackingQa(0, "tracking_qa", confGem, confSil, confCSC);
     trQaAll->SetDetectorPresence(kSILICON, kTRUE);
     trQaAll->SetDetectorPresence(kSSD, kFALSE);
     trQaAll->SetDetectorPresence(kGEM, kTRUE);

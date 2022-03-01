@@ -362,10 +362,10 @@ void BmnOnlineDecoder::ProcessStream() {
                     msg_len += frame_size;
                     //                    printf("msg_len    = %d\n", msg_len);
                 }
-                Int_t res = msg_len % kNBYTESINWORD;
-                if (res) {
-                    printf("WTF?\n");
-                }
+//                Int_t res = msg_len % kNBYTESINWORD;
+//                if (res) {
+//                    printf("WTF?\n");
+//                }
             }
             size_t opt_size = sizeof (recv_more);
             if (zmq_getsockopt(_socket_data, ZMQ_RCVMORE, &recv_more, &opt_size) == -1) {

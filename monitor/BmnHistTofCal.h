@@ -14,7 +14,7 @@
 #include "THttpServer.h"
 // BmnRoot
 #include "BmnHist.h"
-#include "BmnLANDDigit.h"
+#include "BmnTofCalDigit.h"
 #define BAR_COUNT   120
 #define TOF_MIN    -200
 #define TOF_MAX     200

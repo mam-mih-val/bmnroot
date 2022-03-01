@@ -1,4 +1,5 @@
 #include "BmnHistTofCal.h"
+#include "BmnTofCalDigit.h"
 
 BmnHistTofCal::BmnHistTofCal(TString title, TString path) : BmnHist() {
     fTitle = title;
@@ -78,9 +79,9 @@ void BmnHistTofCal::FillFromDigi(DigiArrays *fDigiArrays) {
     TClonesArray * digits = fDigiArrays->tofcal;
     if (!digits || 0 == digits->GetEntriesFast())
         return;
-    BmnLANDDigit *t0 = (BmnLANDDigit *) digits->At(0);
+    BmnTofCalDigit *t0 = (BmnTofCalDigit *) digits->At(0);
     for (Int_t digIndex = 1; digIndex < digits->GetEntriesFast(); digIndex++) {
-        BmnLANDDigit *dig = (BmnLANDDigit *) digits->At(digIndex);
+        BmnTofCalDigit *dig = (BmnTofCalDigit *) digits->At(digIndex);
         Q0vsBar->Fill(dig->GetGlobBar(), dig->GetEnergy(0));
         Q1vsBar->Fill(dig->GetGlobBar(), dig->GetEnergy(1));
         T0vsBar->Fill(dig->GetGlobBar(), dig->GetTime(0));

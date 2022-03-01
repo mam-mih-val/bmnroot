@@ -88,11 +88,16 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     rawDataDecoder->SetECALMapping(TString("ECAL_map_period_") + PeriodSetupExt);
     rawDataDecoder->SetECALCalibration("");
     rawDataDecoder->SetMwpcMapping(TString("MWPC_map_period") + ((fPeriodID == 6 && rawDataDecoder->GetRunId() < 1397) ? 5 : PeriodSetupExt));
-    rawDataDecoder->SetLANDMapping("land_mapping_jinr_triplex.txt");
-    rawDataDecoder->SetLANDPedestal("r0030_land_clock.hh");
-    rawDataDecoder->SetLANDTCal("r0030_land_tcal.hh");
+    rawDataDecoder->SetLANDMapping("land_mapping_jinr_triplex_2022.txt");
+    rawDataDecoder->SetLANDPedestal("r0030_land_clock_2022.hh");
+    rawDataDecoder->SetLANDTCal("r0030_land_tcal_2022.hh");
     rawDataDecoder->SetLANDDiffSync("r352_cosmic1.hh");
     rawDataDecoder->SetLANDVScint("neuland_sync_2.txt");
+    rawDataDecoder->SetTofCalMapping("tofcal_mapping_jinr_triplex.txt.t0");
+    rawDataDecoder->SetTofCalPedestal("tofcal_ped_JK.hh");
+    rawDataDecoder->SetTofCalTCal("tofcal_tcal_JK.hh");
+    rawDataDecoder->SetTofCalDiffSync("tofcal_diffsync_cosmic1.hh");
+    rawDataDecoder->SetTofCalVScint("tofcal_sync_2022.txt");
     rawDataDecoder->InitMaps();
     if (_curFile.Length() > 0)
         rawDataDecoder->InitConverter(_curDir + _curFile);
@@ -321,7 +326,7 @@ void BmnOnlineDecoder::ProcessStream() {
         Bool_t isReceiving = kTRUE;
         do {
             frame_size = zmq_msg_recv(&msg, _socket_data, ZMQ_DONTWAIT); //  ZMQ_DONTWAIT
-//            printf("recv %u\n", frame_size);
+            //            printf("recv %u\n", frame_size);
             //frame_size = zmq_recv(_socket_data, buf, MAX_BUF_LEN, 0);
             if (frame_size == -1) {
                 printf("Receive error # %d #%s\n", errno, zmq_strerror(errno));
@@ -408,7 +413,7 @@ void BmnOnlineDecoder::ProcessStream() {
                     lenBytes = iWord * sizeof (UInt_t);
                     //                    printf(" lenBytes %u \n", lenBytes);
                     msg_len -= lenBytes; //lenWords * kNBYTESINWORD;
-//                    printf(" %u will move by %u bytes\n", msg_len, lenBytes);
+                    //                    printf(" %u will move by %u bytes\n", msg_len, lenBytes);
                     memmove(&buf[0], &buf[lenBytes], msg_len);
                     iWord = 0;
                     //                    evExit = kTRUE;
@@ -433,19 +438,19 @@ void BmnOnlineDecoder::ProcessStream() {
                     iWord += lenWords;
                     lenBytes = iWord * sizeof (UInt_t);
                     msg_len -= lenBytes; //lenWords * kNBYTESINWORD;
-//                    printf(" %u will move by %u bytes\n", msg_len, lenBytes);
+                    //                    printf(" %u will move by %u bytes\n", msg_len, lenBytes);
                     memmove(&buf[0], &buf[lenBytes], msg_len);
                     iWord = 0;
                     //                    evExit = kTRUE;
                     break;
                 case SYNC_EVENT:
                 case SYNC_EVENT_OLD:
-//                    printf("SYNC_EVENT\n");
+                    //                    printf("SYNC_EVENT\n");
                     lenBytes = *(word + ++iWord);
                     lenWords = lenBytes / kNBYTESINWORD + (fPeriodID <= 7 ? 1 : 0);
-//                    printf("iWord    == %u\n", iWord);
-//                    printf("lenBytes == %u\n", lenBytes);
-//                    printf("lenWords == %u\n", lenWords);
+                    //                    printf("iWord    == %u\n", iWord);
+                    //                    printf("lenBytes == %u\n", lenBytes);
+                    //                    printf("lenWords == %u\n", lenWords);
                     if (msg_len / kNBYTESINWORD >= iWord + lenWords + MPD_EVENT_HEAD_WORDS - (fPeriodID <= 7 ? 1 : 0)) {
                         //                    printf("captured enough\n");
                         if (!rawDataDecoder)
@@ -489,7 +494,7 @@ void BmnOnlineDecoder::ProcessStream() {
                         lenBytes = iWord * sizeof (UInt_t);
                         //                        lenBytes += (MPD_EVENT_HEAD_WORDS - (fPeriodID <= 7 ? 1 : 0)) * sizeof (UInt_t);
                         msg_len -= lenBytes; //lenWords * kNBYTESINWORD;
-//                        printf(" %u will move by %u bytes\n", msg_len, lenBytes);
+                        //                        printf(" %u will move by %u bytes\n", msg_len, lenBytes);
                         memmove(&buf[0], &buf[lenBytes], msg_len);
                         iWord = 0;
                     } else {

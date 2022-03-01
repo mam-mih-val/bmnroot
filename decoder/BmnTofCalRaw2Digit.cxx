@@ -74,7 +74,7 @@ BmnTofCalRaw2Digit::BmnTofCalRaw2Digit(TString a_map_filename, TString
 	std::cerr << __func__ << ':' << line_no << ": INVALID TofCal ARM!!!\n";
 	break;
       }
-      if (tofcal_plane < 1 || tofcal_plane > 4) {
+      if (tofcal_plane < 1 || tofcal_plane > 5) {
 	std::cerr << __func__ << ':' << line_no << ": INVALID TofCal PLANE!!!\n";
 	break;
       }
@@ -163,7 +163,6 @@ BmnTofCalRaw2Digit::BmnTofCalRaw2Digit(TString a_map_filename, TString
       tofcal_plane = strtol(token.at(3).c_str(), NULL, 10); // + plane_ofs;
       tofcal_bar = strtol(token.at(4).c_str(), NULL, 10);
       tofcal_t = strtol(token.at(5).c_str(), NULL, 10);
-     
       if (tofcal_arm < 1 || tofcal_arm > TOFCAL_ARM_N ||
 	  tofcal_plane < 1 || tofcal_plane > TOFCAL_PLANE_N ||
 	  tofcal_bar < 1 || tofcal_bar > TOFCAL_BAR_N ||
@@ -226,12 +225,8 @@ BmnTofCalRaw2Digit::BmnTofCalRaw2Digit(TString a_map_filename, TString
 	  tofcal_bar < 1 || tofcal_bar > TOFCAL_BAR_N) {
 	continue;
       }
-
-      
 	unsigned tdc = strtod(token.at(6).c_str(), NULL);
       float t_ns = strtod(token.at(7).c_str(), NULL);
-	
-
       int tofcal_side = -1;
       switch (tofcal_tcal) {
 	case 1:
@@ -488,16 +483,16 @@ void BmnTofCalRaw2Digit::fillEvent(TClonesArray const *tacquila_array,
       auto const &tacquila1 = *m_builder[det.arm][det.plane][det.bar][1];
       auto const &diff_sync = m_diff_sync[det.arm][det.plane][det.bar];
       // TODO : add slewing correction
-      Float_t time0 = tacquila0.GetTDiff() + diff_sync.time_diff -
+      Float_t time0 = tacquila0.GetTDiff() - 0.5*diff_sync.time_diff -
 	diff_sync.time_sync;
-      Float_t time1 = tacquila1.GetTDiff() - diff_sync.time_diff -
+      Float_t time1 = tacquila1.GetTDiff() + 0.5*diff_sync.time_diff -
 	diff_sync.time_sync;
       Float_t energy0 = (tacquila0.GetQdc() - m_ped[det.arm][det.plane][det.bar][0].ped)
 	* diff_sync.energy_diff0 * diff_sync.energy_sync;
       Float_t energy1 = (tacquila1.GetQdc() - m_ped[det.arm][det.plane][det.bar][1].ped)
 	* diff_sync.energy_diff1 * diff_sync.energy_sync;
       Float_t vscint = m_vscint[det.arm][det.plane][det.bar].vscint;
-      Float_t position = (time1 - time0) * vscint;
+      Float_t position = (time0 - time1) * vscint;
       new (ar_tofcal[tofcal_array->GetEntriesFast()]) BmnTofCalDigit(det.arm, det.plane,
 	  det.bar, tacquila0, tacquila1, time0, time1, energy0, energy1,
 	  position);

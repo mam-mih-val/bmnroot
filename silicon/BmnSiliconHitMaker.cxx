@@ -368,10 +368,58 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 lcls.SetModule(iModule);
                 ucls.SetStation(iStation);
                 lcls.SetStation(iStation);
-                UniqueUpperClusters[ucls.GetUniqueID()] = ucls;
-                UniqueLowerClusters[lcls.GetUniqueID()] = lcls;
-                hit->SetUpperClusterIndex(ucls.GetUniqueID());
-                hit->SetLowerClusterIndex(lcls.GetUniqueID());
+
+                Int_t upperClusterIndex = ucls.GetUniqueID();
+                Int_t lowerClusterIndex = lcls.GetUniqueID();
+
+                //Filtration of duplicate clusters in the current module for the same type of strips
+                Bool_t duplicateUpperCluster = false;
+                for(auto it : UniqueUpperClusters) {
+                    StripCluster cluster = it.second;
+
+                    if(cluster.GetClusterSize() != ucls.GetClusterSize()) continue;
+
+                    Int_t identic_cnt = 0;
+                    for(Int_t istrip = 0; istrip < cluster.GetClusterSize(); ++istrip) {
+                        Int_t strip_num = cluster.Strips.at(istrip);
+                        Double_t strip_signal = cluster.Signals.at(istrip);
+
+                        if( (strip_num == ucls.Strips.at(istrip)) && (strip_signal == ucls.Signals.at(istrip)) ) identic_cnt++;
+                        else break;
+                    }
+                    if(identic_cnt == ucls.GetClusterSize()) {
+                        upperClusterIndex = cluster.GetUniqueID();
+                        duplicateUpperCluster = true;
+                        break;
+                    }
+                }
+
+                Bool_t duplicateLowerCluster = false;
+                for(auto it : UniqueLowerClusters) {
+                    StripCluster cluster = it.second;
+
+                    if(cluster.GetClusterSize() != lcls.GetClusterSize()) continue;
+
+                    Int_t identic_cnt = 0;
+                    for(Int_t istrip = 0; istrip < cluster.GetClusterSize(); ++istrip) {
+                        Int_t strip_num = cluster.Strips.at(istrip);
+                        Double_t strip_signal = cluster.Signals.at(istrip);
+
+                        if( (strip_num == lcls.Strips.at(istrip)) && (strip_signal == lcls.Signals.at(istrip)) ) identic_cnt++;
+                        else break;
+                    }
+                    if(identic_cnt == lcls.GetClusterSize()) {
+                        lowerClusterIndex = cluster.GetUniqueID();
+                        duplicateLowerCluster = true;
+                        break;
+                    }
+                }
+                //--------------------------------------------------------------
+
+                if(!duplicateUpperCluster) UniqueUpperClusters[upperClusterIndex] = ucls;
+                if(!duplicateLowerCluster) UniqueLowerClusters[lowerClusterIndex] = lcls;
+                hit->SetUpperClusterIndex(upperClusterIndex);
+                hit->SetLowerClusterIndex(lowerClusterIndex);
 
                 if (fHitMatching) {
                     BmnMatch digiMatch = module->GetIntersectionPointDigitNumberMatch(iPoint);

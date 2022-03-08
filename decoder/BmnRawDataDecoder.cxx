@@ -74,6 +74,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     land = NULL;
     tofcal = NULL;
     mwpc = NULL;
+    csc = NULL;
     fRawFileName = file;
     fTOF700ReferenceRun = 0;
     fTOF700ReferenceChamber = 0;
@@ -439,7 +440,7 @@ BmnStatus BmnRawDataDecoder::wait_file(Int_t len, UInt_t limit) {
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate(UInt_t *buf, UInt_t len) {
     fEventId = buf[0];
-//    printf("EventID = %d\n", fEventId);
+    //    printf("EventID = %d\n", fEventId);
     if (fEventId <= 0) return kBMNERROR;
     fNevents++;
     return ProcessEvent(buf, len);
@@ -545,7 +546,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         //        printf("iev %7d  idx %6u/%6u   idev %02X serial 0x%08X payload %4u\n", fEventId, idx, len, id, serial, payload);
         switch (id) {
             case kTQDC16VS_E:
-                //                printf("TQDC-E serial 0x%08X  words %u\n", serial, payload);
+//                                printf("TQDC-E serial 0x%08X  words %u\n", serial, payload);
                 FillTQDC_E(&d[idx], serial, payload);
                 break;
             case kTDC72VXS:
@@ -1140,10 +1141,10 @@ BmnStatus BmnRawDataDecoder::FillTQDC_E(UInt_t *d, UInt_t serial, UInt_t &len) {
     //    printf("len %u msHeader len %u\n", len, ms.Len / kNBYTESINWORD);
     //    printf("taiFlags %u TAI %s\n",
     //            ms0->TaiFlags, TTimeStamp(time_t(ms0->TaiSec), ms0->TaiNSec).AsString());
-    while (index < len / kNBYTESINWORD) {
+    while (index < len) {
         TqdcDataHeader *th = reinterpret_cast<TqdcDataHeader*> (d + index);
         index += sizeof (TqdcDataHeader) / kNBYTESINWORD;
-        //        printf("TQDC DataType %u channel %2u adcBits %u len %4u\n", th.DataType, th.Chan, th.AdcBits, th.Len);
+//                printf("TQDC DataType %u channel %2u adcBits %u len %4u  %8X\n", th->DataType, th->Chan, th->AdcBits, th->Len,*th);
         uint16_t blockLen = th->Len / kNBYTESINWORD;
         switch (th->DataType) {
             case 0: // TDC
@@ -1170,11 +1171,11 @@ BmnStatus BmnRawDataDecoder::FillTDC72VXS(UInt_t *d, UInt_t serial, UInt_t &len)
     MStreamTAI *ms0 = reinterpret_cast<MStreamTAI *> (d + index);
     index += sizeof (MStreamTAI) / kNBYTESINWORD;
     FillWR(serial, fEventId, ms0->TaiSec, ms0->TaiNSec);
-    //    printf("\t index %u len %u inner len %u\n", index, len, (ms.Len / kNBYTESINWORD));
-    while (index < len / kNBYTESINWORD) {
+//        printf("\t index %u len %u inner len %u\n", index, len, (ms->Len / kNBYTESINWORD));
+    while (index < len) {
         uint8_t dtype = d[index] >> 28;
         bool overflow = d[index] & BIT(16);
-        uint16_t blockLen = (d[index] & (BIT(16) - 1)) / kNBYTESINWORD;
+        uint16_t blockLen = (d[index++] & (BIT(16) - 1)) / kNBYTESINWORD;
         if (!overflow)
             switch (dtype) {
                 case 0: // TDC
@@ -1935,6 +1936,11 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         tof700 = new TClonesArray("BmnTof2Digit");
         fDigiTree->Branch("TOF700", &tof700);
         fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName, fTOF700ReferenceRun, fTOF700ReferenceChamber, fTof700GeomFileName);
+        // 3.6 mks
+        // 3.7 mks tof400
+        // 3.5 mks DCH
+        if (fPeriodId == 8)
+            fTof700Mapper->SetT0shift(+75000.);
         //        fTof700Mapper->print();
         for (int i = 0; i < 60; i++) {
             if (type_tof700_slewing[i]) {

@@ -57,6 +57,16 @@ public:
        **/
   uint32_t GetStripId() const { return BmnHodoAddress::GetStripId(GetAddress()); };
 
+  /** @brief Strip Side
+       ** @return Strip Side from Unique channel address (see BmnHodoAddress)
+       **/
+  uint32_t GetStripSide() const { return BmnHodoAddress::GetStripSide(GetAddress()); };
+
+  /** @brief Gain
+       ** @return Gain from Unique channel address (see BmnHodoAddress)
+       **/
+  uint32_t GetGain() const { return BmnHodoAddress::GetGain(GetAddress()); };
+
 
   /** @brief System identifier
        ** @return System ID 

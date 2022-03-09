@@ -546,7 +546,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         //        printf("iev %7d  idx %6u/%6u   idev %02X serial 0x%08X payload %4u\n", fEventId, idx, len, id, serial, payload);
         switch (id) {
             case kTQDC16VS_E:
-//                                printf("TQDC-E serial 0x%08X  words %u\n", serial, payload);
+                //                                printf("TQDC-E serial 0x%08X  words %u\n", serial, payload);
                 FillTQDC_E(&d[idx], serial, payload);
                 break;
             case kTDC72VXS:
@@ -1144,7 +1144,7 @@ BmnStatus BmnRawDataDecoder::FillTQDC_E(UInt_t *d, UInt_t serial, UInt_t &len) {
     while (index < len) {
         TqdcDataHeader *th = reinterpret_cast<TqdcDataHeader*> (d + index);
         index += sizeof (TqdcDataHeader) / kNBYTESINWORD;
-//                printf("TQDC DataType %u channel %2u adcBits %u len %4u  %8X\n", th->DataType, th->Chan, th->AdcBits, th->Len,*th);
+        //                printf("TQDC DataType %u channel %2u adcBits %u len %4u  %8X\n", th->DataType, th->Chan, th->AdcBits, th->Len,*th);
         uint16_t blockLen = th->Len / kNBYTESINWORD;
         switch (th->DataType) {
             case 0: // TDC
@@ -1171,7 +1171,7 @@ BmnStatus BmnRawDataDecoder::FillTDC72VXS(UInt_t *d, UInt_t serial, UInt_t &len)
     MStreamTAI *ms0 = reinterpret_cast<MStreamTAI *> (d + index);
     index += sizeof (MStreamTAI) / kNBYTESINWORD;
     FillWR(serial, fEventId, ms0->TaiSec, ms0->TaiNSec);
-//        printf("\t index %u len %u inner len %u\n", index, len, (ms->Len / kNBYTESINWORD));
+    //        printf("\t index %u len %u inner len %u\n", index, len, (ms->Len / kNBYTESINWORD));
     while (index < len) {
         uint8_t dtype = d[index] >> 28;
         bool overflow = d[index] & BIT(16);
@@ -1248,9 +1248,9 @@ BmnStatus BmnRawDataDecoder::FillUT24VE_TRC(UInt_t *d, UInt_t &serial, UInt_t &l
     bool randomTrigger = d[index] & BIT(17);
     bool periodicTrigger = d[index] & BIT(18);
     bool externalTTL = d[index] & BIT(19);
-    //    printf("evType %s taiFlags %u TAI %s \n",
-    //            evType == kBMNPEDESTAL ? "pedestal" : "payload", 
-    //            ms0.TaiFlags, TTimeStamp(time_t(ms0.TaiSec), ms0.TaiNSec).AsString());
+    //        printf("evType %u taiFlags %u TAI %s \n",
+    //                evType, ms0->TaiFlags,
+    //                TTimeStamp(time_t(ms0->TaiSec), ms0->TaiNSec).AsString());
     eventHeaderDAQ->SetInputSignalsAR(d[index++]);
     eventHeaderDAQ->SetInputSignalsBR(d[index]);
     return kBMNSUCCESS;
@@ -1470,15 +1470,17 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                     if (fCscMapper)fCscMapper->RecalculatePedestalsAugmented();
                     fPedEvCntr = 0;
                 }
+                if (curEventType == kBMNPAYLOAD) {
+                    if (fVerbose == 1) {
+                        if (iEv % 5000 == 0 && iEv > 0) cout << "Profile event #" << iEv << "/" << n << ";" << endl;
+                    } else if (fVerbose == 0)
+                        DrawBar(iEv, n);
+                    if (fGemMapper) fGemMapper->FillProfiles(adc32);
+                    //            printf("ev %6d\n", iEv);
+                    if (fSiliconMapper) fSiliconMapper->FillProfiles(adc128);
+                    if (fCscMapper) fCscMapper->FillProfiles(adc32);
+                }
             }
-            if (fVerbose == 1) {
-                if (iEv % 5000 == 0 && iEv > 0) cout << "Profile event #" << iEv << "/" << n << ";" << endl;
-            } else if (fVerbose == 0)
-                DrawBar(iEv, n);
-            if (fGemMapper) fGemMapper->FillProfiles(adc32);
-            //            printf("ev %6d\n", iEv);
-            if (fSiliconMapper) fSiliconMapper->FillProfiles(adc128);
-            if (fCscMapper) fCscMapper->FillProfiles(adc32);
             prevEventType = curEventType;
         }
         printf("\n[INFO]" ANSI_COLOR_BLUE " Marking noisy channels\n" ANSI_COLOR_RESET);
@@ -1709,6 +1711,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         //        eventHeader->SetTrigState(s);
         //        BmnTrigUnion ws = eventHeader->GetTrigState();
         //        printf("ThrBD set to %u\n", ws.Period7BMN.ThrBD);
+        
+        if (fMSCMapper) fMSCMapper->SumEvent(msc, eventHeader, spillHeader, fPedEvCntrBySpill);
         if (curEventType == kBMNPEDESTAL) {
             fPedEvCntrBySpill++;
             if (GetAdcDecoMode() == kBMNADCSM) {
@@ -1726,6 +1730,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 if (fCscMapper)fCscMapper->RecalculatePedestalsAugmented();
                 fPedEvCntr = 0;
             }
+            if (curEventType != kBMNPAYLOAD)
+                continue;
             if (GetAdcDecoMode() == kBMNADCSM) {
                 timer.Start();
                 if (fCscMapper) fCscMapper->FillEvent(adc32, csc);
@@ -1822,7 +1828,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             ctime = timer.CpuTime();
             //                    printf("Real time %f s, CPU time %f s  fTOFCALMapper\n", rtime, ctime);
         }
-        if (fMSCMapper) fMSCMapper->SumEvent(msc, eventHeader, spillHeader, fPedEvCntrBySpill);
 
         fDigiTree->Fill();
         prevEventType = curEventType;
@@ -2066,12 +2071,12 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
             cout << "Digitization: " << fEventId << " processed; Spill #" << fSpillCntr << endl;
     }
     //    printf("fCurEventType %d\n", fCurEventType);
+    fT0Time = 0.;
     if (fTrigMapper) {
         fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
         fTrigMapper->FillEvent(tdc);
+        GetT0Info(fT0Time, fT0Width);
     }
-    fT0Time = 0.;
-    GetT0Info(fT0Time, fT0Width);
     if (fCurEventType == kBMNPEDESTAL) {
         if (fPedEvCntr == fEvForPedestals - 1) return kBMNERROR; //FIX return!
         CopyDataToPedMap(adc32, adc128, fPedEvCntr);
@@ -2244,7 +2249,7 @@ BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray
                 if (adcDig->GetSerial() != fGemSerials[iSer]) continue;
                 //                printf("GEM ser = 0x%08x, iSer = %02d, ev= %05d, ch = %d\n", adcDig->GetSerial(), iSer, ev, adcDig->GetChannel());
                 for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl) {
-                    if (fRunId > GetBoundaryRun(ADC32_N_SAMPLES)) {
+                    if ((fRunId > GetBoundaryRun(ADC32_N_SAMPLES)) || (fPeriodId >= 7)) {
                         pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetShortValue())[iSmpl] / 16.0;
                     } else
                         pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetUShortValue())[iSmpl] / 16.0;
@@ -2269,7 +2274,7 @@ BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray
                 Int_t iSer = serialMap[ser];
                 //                printf("SIL ser = 0x%08x, iSer = %02d, ev= %05d, ch = %d\n", adcDig->GetSerial(), iSer, ev, adcDig->GetChannel());
                 for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl) {
-                    if (fRunId > GetBoundaryRun(ADC128_N_SAMPLES))
+                    if ((fRunId > GetBoundaryRun(ADC128_N_SAMPLES)) || (fPeriodId >= 7))
                         pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetShortValue())[iSmpl] / 16.0;
                     else
                         pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetUShortValue())[iSmpl] / 16.0;
@@ -2492,15 +2497,10 @@ BmnStatus BmnRawDataDecoder::GetT0Info(Double_t& t0time, Double_t &t0width) {
     BmnTrigDigit* dig = 0;
     for (auto ar : *trigArr) {
         if ((fPeriodId == 8) && (fBmnSetup == kSRCSETUP)) { // temporary crutches
-            if ((strcmp(ar->GetName(), "T0_1_A"))) continue;
-            for (int i = 0; i < ar->GetEntriesFast(); i++) {
-                if (ar->GetEntriesFast() == 0)
-                    return kBMNERROR;
-                dig = (BmnTrigDigit*) ar->At(i);
-                t0time = dig->GetTime();
-                t0width = dig->GetAmp();
-                //                    printf(" t0 %f t0w %f n %d\n", t0time, t0width, ar->GetEntriesFast());
-                return kBMNSUCCESS;
+            if ((fRunId >= 986) && (fRunId <= 1086)) {
+                if ((strcmp(ar->GetName(), "BC2_1_A"))) continue;
+            } else {
+                if ((strcmp(ar->GetName(), "T0_1_A"))) continue;
             }
         } else {
             if (fPeriodId > 6) {
@@ -2508,20 +2508,14 @@ BmnStatus BmnRawDataDecoder::GetT0Info(Double_t& t0time, Double_t &t0width) {
             } else {
                 if (strcmp(ar->GetName(), "T0")) continue;
             }
-            for (int i = 0; i < ar->GetEntriesFast(); i++) {
-                dig = (BmnTrigDigit*) ar->At(i);
-                if (fPeriodId > 6) {
-                    if (dig->GetMod() == 0) {
-                        t0time = dig->GetTime();
-                        t0width = dig->GetAmp();
-                        //		printf(" t0 %f t0w %f n %d\n", t0time, t0width, ar->GetEntriesFast());
-                        return kBMNSUCCESS;
-                    }
-                } else {
-                    t0time = dig->GetTime();
-                    t0width = dig->GetAmp();
-                    return kBMNSUCCESS;
-                }
+        }
+        for (int i = 0; i < ar->GetEntriesFast(); i++) {
+            dig = (BmnTrigDigit*) ar->At(i);
+            if (dig->GetMod() == 0) {
+                t0time = dig->GetTime();
+                t0width = dig->GetAmp();
+                //		printf(" t0 %f t0w %f n %d\n", t0time, t0width, ar->GetEntriesFast());
+                return kBMNSUCCESS;
             }
         }
     }

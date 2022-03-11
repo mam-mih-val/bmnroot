@@ -133,8 +133,8 @@ void PronyFitter::CalculateFitHarmonics() {
   }
 
   int total_roots;
-  // polynomRealRoots(zr, fModelOrder, a_arr, total_roots);
-  polynomComplexRoots(zr, zi, fModelOrder, a_arr, total_roots);
+  polynomRealRoots(zr, fModelOrder, a_arr, total_roots);
+  //polynomComplexRoots(zr, zi, fModelOrder, a_arr, total_roots);
   if (fIsDebug) {
     printf("forward polinom roots ");
     for (int i = 0; i < fModelOrder; i++)

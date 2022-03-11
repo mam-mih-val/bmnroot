@@ -6,7 +6,7 @@ and open the template in the editor.
 -->
 <html>
     <head>
-        <title>LAND</title>
+        <title>TofCal</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style type="text/css">
@@ -30,12 +30,12 @@ and open the template in the editor.
         <link rel="stylesheet" type="text/css" href="../css/tabs.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="../css/menu.css" media="screen" />
         <!--<script type="text/javascript" src="../root.app/jsrootsys/scripts/JSRootCore.js?2d"></script>-->
-        <script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRoot.core.js"></script>
+<script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRoot.core.js"></script>
         <script type="text/javascript" src="../scripts/BMTools.js"></script>
         <script>
             var loco = window.location;
             var path0 = loco.protocol + "//" + loco.hostname + "/root.app/";
-            var path = path0 + "LAND/";
+            var path = path0 + "TofCal/";
             var runPath = "../root.app/CurRun/root.json";
             var refPath = "../root.app/refTable/root.json";
             function ResetHist() {
@@ -54,7 +54,7 @@ and open the template in the editor.
                 setTimeout(drawInfo, 5000);
                 JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
                     var info = JSON.parse(obj);
-                    if (info.arr.length > 0) {
+                    if (info.arr.length > 0){
                         var runInfo = info.arr[0];
                         var runID = runInfo.i_run_number;
                         var storedRunId = sessionStorage.getItem('runID');
@@ -74,7 +74,7 @@ and open the template in the editor.
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("infoC", obj, "");
                 }).send(null);
-                filename = path + "LANDCanvas" + "/root.json.gz?compact=3";
+                filename = path + "TofCalCanvas" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("SiliconTableC", obj, "");
                 }).send(null);
@@ -115,9 +115,10 @@ and open the template in the editor.
             <li><a href="../SRC/index.html"><h3>SRC Triggers</h3></a></li>
             <li><a href="../LAND/index.html"><h3>LAND</h3></a></li>
             <li><a href="../TofCal/index.html"><h3>TofCal</h3></a></li>
+            <!--<li><a href="../msc/index.html"><h3>MSC</h3></a></li>-->
         </ul>
         <div id="total_counter" align="center">
-            <h1>BM@N SRC LAND</h1>
+            <h1>BM@N SRC TofCal</h1>
             <!--<iframe id="infoCan" ></iframe>--> 
         </div>
         <div align="center">
@@ -127,9 +128,9 @@ and open the template in the editor.
         <table>
             <tr>
             <tb>
-                <!--                <button onclick="ResetHist()">
-                                    <h1 style="color:red;">Reset</h1>
-                                </button>-->
+<!--                <button onclick="ResetHist()">
+                    <h1 style="color:red;">Reset</h1>
+                </button>-->
             </tb>
         </tr>
         <!--<tr>
@@ -147,13 +148,13 @@ and open the template in the editor.
             </tb>
 
     </tr>-->
-    </table>
+</table>
 
-    <div align="center">
-        <div id="SiliconTableC" style="width: 94vw;height: 70vw;"> </div>
-    </div>
-    <div id="Silicon_div" >
-    </div>
+<div align="center">
+    <div id="SiliconTableC" style="width: 94vw;height: 70vw;"> </div>
+</div>
+<div id="Silicon_div" >
+</div>
 
 </table>
 </body>

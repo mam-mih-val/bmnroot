@@ -5,14 +5,14 @@ id = 1.0
 str = void
 
 [CHECKER]
-isWriteWfm = 1     # write waveforms for debug
+isWriteWfm = 0     # write waveforms for debug
 
 [PARAMETERS]
-gateBegin = 4
-gateEnd = 15
+gateBegin = 20
+gateEnd = 80
 threshold = 0.1    # absolute value. To be compared to calibrated value of ScWallDigi.fSignal 
 signalType = 0     # (0 - max, 1 - integral)
-doInvert = 0       # invert signal
+doInvert = 1       # invert signal
 
 [FITPARAMETERS]
 # fit parameters for Prony fit

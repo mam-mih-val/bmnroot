@@ -5,11 +5,11 @@ id = 1.0
 str = void
 
 [CHECKER]
-isWriteWfm = 1     # write waveforms for debug
+isWriteWfm = 0     # write waveforms for debug
 
 [PARAMETERS]
-gateBegin = 8
-gateEnd = 20
+gateBegin = 10
+gateEnd = 30
 threshold = 0.1    # absolute value. To be compared to calibrated value of ScWallDigi.fSignal 
 signalType = 0     # (0 - max, 1 - integral)
 doInvert = 1       # invert signal
@@ -198,20 +198,3 @@ calib	=           171           1           			0
 calib	=           172           1           			0
 calib	=           173           1           			0
 calib	=           174           1           			0
-
-calib	=           201           1           			0
-calib	=           202           1           			0
-calib	=           203           1           			0
-calib	=           204           1           			0
-calib	=           205           1           			0
-calib	=           206           1           			0
-calib	=           207           1           			0
-calib	=           208           1           			0
-calib	=           209           1           			0
-calib	=           210           1           			0
-calib	=           211           1           			0
-calib	=           212           1           			0
-calib	=           213           1           			0
-calib	=           214           1           			0
-calib	=           215           1           			0
-calib	=           216           1           			0

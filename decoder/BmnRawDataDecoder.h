@@ -46,7 +46,7 @@ public:
     BmnRawDataDecoder(TString file = "", TString outfile = "", ULong_t nEvents = 0, ULong_t period = 7);
     virtual ~BmnRawDataDecoder();
 
-    BmnStatus ParseRunTLV(UInt_t *buf, UInt_t &len);
+    static BmnStatus ParseRunTLV(UInt_t *buf, UInt_t &len, UInt_t &runId);
     BmnStatus ParseJsonTLV(UInt_t *buf, UInt_t &len);
     BmnStatus ConvertRawToRoot();
     BmnStatus ConvertRawToRootIterate(UInt_t *buf, UInt_t len);

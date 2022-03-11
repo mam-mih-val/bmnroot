@@ -45,6 +45,9 @@ private:
     vector<TString> Names;
     vector<vector<TH1F*> > hists;
     TH2F *hTDCTimes;
+    TH2F *hTDCAmps;
+    TH2F *hTQDCTimes;
+    TH2F *hTQDCAmps;
     TCanvas *canvas;
     TCanvas *can2d;
     vector<PadInfo*> canPads;

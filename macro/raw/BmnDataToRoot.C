@@ -66,16 +66,18 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     decoder->SetECALMapping(TString("ECAL_map_period_") + PeriodSetupExt);
     decoder->SetECALCalibration("");
     decoder->SetMwpcMapping(TString("MWPC_map_period") + ((period == 6 && decoder->GetRunId() < 1397) ? 5 : PeriodSetupExt));
-    decoder->SetLANDMapping("land_mapping_jinr_triplex.txt");
-    decoder->SetLANDPedestal("r0030_land_clock.hh");
-    decoder->SetLANDTCal("r0030_land_tcal.hh");
+
+    decoder->SetLANDMapping("land_mapping_jinr_triplex_2022.txt");
+    decoder->SetLANDPedestal("r0030_land_clock_2022.hh");
+    decoder->SetLANDTCal("r0030_land_tcal_2022.hh");
     decoder->SetLANDDiffSync("r352_cosmic1.hh");
     decoder->SetLANDVScint("neuland_sync_2.txt");    
-    decoder->SetTofCalMapping("tofcal_mapping_jinr_triplex.txt");
-    decoder->SetTofCalPedestal("tofcal_clock.hh");
-    decoder->SetTofCalTCal("tofcal_tcal.hh");
+
+    decoder->SetTofCalMapping("tofcal_mapping_jinr_triplex.txt.t0");
+    decoder->SetTofCalPedestal("tofcal_ped_JK.hh");
+    decoder->SetTofCalTCal("tofcal_tcal_JK.hh");
     decoder->SetTofCalDiffSync("tofcal_diffsync_cosmic1.hh");
-    decoder->SetTofCalVScint("tofcal_sync.txt");
+    decoder->SetTofCalVScint("tofcal_sync_2022.txt");
     decoder->InitMaps(); /// <- should be run after all mappings set
     if (doConvert) decoder->ConvertRawToRoot(); // Convert raw data in .data format into adc-,tdc-, ..., sync-digits in .root format
     BmnStatus decoStatus = decoder->DecodeDataToDigi(); // Decode data into detector-digits using current mappings.

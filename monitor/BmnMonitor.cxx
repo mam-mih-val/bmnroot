@@ -213,6 +213,7 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir, fPeriodID, fSetup));
     bhVec.push_back(new BmnHistScWall(refName + "ScWall", _curDir));
     bhVec.push_back(new BmnHistLAND(refName + "LAND", _curDir));
+    bhVec.push_back(new BmnHistTofCal(refName + "TofCal", _curDir));
     bhVec.push_back(new BmnHistCsc(refName + "CSC", _curDir, fPeriodID, fSetup));
 
     for (auto h : bhVec) {
@@ -305,6 +306,7 @@ void BmnMonitor::RegisterAll() {
     bhVec4show.push_back(new BmnHistSrc("SRC", _curDir, fPeriodID, fSetup));
     bhVec4show.push_back(new BmnHistScWall("ScWall", _curDir));
     bhVec4show.push_back(new BmnHistLAND("LAND", _curDir));
+    bhVec4show.push_back(new BmnHistTofCal("TofCal", _curDir));
     bhVec4show.push_back(new BmnHistCsc("CSC", _curDir, fPeriodID, fSetup));
     fServer->Register("/", infoCanvas);
     //fServer->Register("/", refList);

@@ -163,6 +163,7 @@ void BmnMscRaw2Digit::FillRunHeader(DigiRunHeader *rh) {
         rh->SetAccepted(fAccepted);
         rh->SetL0(fL0);
         rh->SetRawMSC(move(fBoardSums));
+//        printf("map len %lu\n",fBoardSums.size());
     }   
 }
 

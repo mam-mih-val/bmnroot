@@ -2,7 +2,7 @@
    SPDX-License-Identifier: GPL-3.0-only
    Authors: Viktor Klochkov, Viktor Klochkov */
 
-void run_analysis_tree_maker(TString dst_file = "data_test/", TString geant_file = "data_test/", TString output_file = "data_test/")
+void run_analysis_tree_maker(std::string dst_file, std::string geant_file, std::string output_file)
 {
   const std::string system = "Au+Au";  // TODO can we read it automatically?
   const float beam_mom     = 12.;
@@ -22,23 +22,13 @@ void run_analysis_tree_maker(TString dst_file = "data_test/", TString geant_file
   TStopwatch timer;
   timer.Start();
   // ------------------------------------------------------------------------
-
-  // -----   Remove old CTest runtime dependency file  ----------------------
-  const TString dataDir  = gSystem->DirName(dst_file);
-  const TString dataName = gSystem->BaseName(dst_file);
-  const TString testName = ("run_treemaker");
-  // ------------------------------------------------------------------------
-
   std::cout << "-I- " << myName << ": Using reco file " << dst_file << std::endl;
-
   // -----   Reconstruction run   -------------------------------------------
   auto* run         = new FairRunAna();
   auto* inputSource = new FairFileSource(dst_file);
   inputSource->AddFriend(geant_file);
   run->SetSource(inputSource);
-
   // ------------------------------------------------------------------------
-
   // AnalysisTree converter
   auto* man = new CbmConverterManager();
   man->SetSystem(system);
@@ -50,8 +40,6 @@ void run_analysis_tree_maker(TString dst_file = "data_test/", TString geant_file
   man->AddTask(new CbmSimTracksConverter("SimParticles"));
 
   CbmStsTracksConverter* taskCbmStsTracksConverter = new CbmStsTracksConverter("VtxTracks", "SimParticles");
-  taskCbmStsTracksConverter->SetIsWriteKFInfo();
-  taskCbmStsTracksConverter->SetIsReproduceCbmKFPF();
   man->AddTask(taskCbmStsTracksConverter);
 
   run->AddTask(man);
@@ -66,7 +54,7 @@ void run_analysis_tree_maker(TString dst_file = "data_test/", TString geant_file
   const Double_t rtime = timer.RealTime();
   const Double_t ctime = timer.CpuTime();
   std::cout << "Macro finished succesfully." << std::endl;
-  std::cout << "Output file is " << outFile << std::endl;
+  std::cout << "Output file is " << output_file << std::endl;
 
   printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
 

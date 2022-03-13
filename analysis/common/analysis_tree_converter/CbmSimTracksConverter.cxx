@@ -98,7 +98,10 @@ void CbmSimTracksConverter::ProcessData()
     }
     passed_idx++;
     auto& track = sim_tracks_->AddChannel(branch);
-    sim_particles_2_vtx_tracks_->AddMatch( passed_idx, sim_partcles_bmn_tracks_map_.at(trackIndex) );
+    try {
+      sim_particles_2_vtx_tracks_->AddMatch(
+          passed_idx, sim_partcles_bmn_tracks_map_.at(trackIndex));
+    }catch(std::exception&){}
     out_indexes_map_.insert(std::make_pair(trackIndex, track.GetId()));
 
     track.SetMomentum(mctrack->GetPx(), mctrack->GetPy(), mctrack->GetPz());

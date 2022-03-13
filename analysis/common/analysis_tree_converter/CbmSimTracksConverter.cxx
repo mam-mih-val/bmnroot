@@ -49,6 +49,7 @@ void CbmSimTracksConverter::Init()
 
 void CbmSimTracksConverter::MapTracks(){
   assert( bmn_global_tracks_ );
+  sim_partcles_bmn_tracks_map_.clear();
   const int n_sts_tracks = bmn_global_tracks_->GetEntries();
   for (short i_track = 0; i_track < n_sts_tracks; ++i_track) {
     const int track_index = i_track;

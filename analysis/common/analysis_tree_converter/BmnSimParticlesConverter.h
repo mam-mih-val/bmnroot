@@ -9,6 +9,8 @@
 
 #include <TString.h>
 
+#include <utility>
+
 #include "AnalysisTree/Detector.hpp"
 #include "AnalysisTree/Matching.hpp"
 
@@ -17,13 +19,14 @@ class TFile;
 class TTree;
 class FairMCEventHeader;
 
-class CbmSimTracksConverter final : public CbmConverterTask {
+class BmnSimParticlesConverter final : public CbmConverterTask {
 
 public:
-  explicit CbmSimTracksConverter(std::string out_branch_name, std::string match_to = "")
-    : CbmConverterTask(std::move(out_branch_name), std::move(match_to)) {};
-
-  ~CbmSimTracksConverter() final;
+  BmnSimParticlesConverter(std::string out_branch_name,
+                        std::string str_global_trk_branch_name)
+      : CbmConverterTask(std::move(out_branch_name)),
+        str_global_trk_branch_name_(std::move(str_global_trk_branch_name)) {}
+  ~BmnSimParticlesConverter() final;
 
   void Init() final;
   void ProcessData() final;
@@ -31,6 +34,7 @@ public:
 
 private:
   void MapTracks();
+  std::string str_global_trk_branch_name_;
   AnalysisTree::Particles* sim_tracks_ {nullptr};
   AnalysisTree::Matching* sim_particles_2_vtx_tracks_{nullptr};  ///< raw pointers are needed for TTree::Branch
   FairMCEventHeader*bmn_header_{nullptr};
@@ -39,7 +43,7 @@ private:
 
   std::map<int, int> sim_partcles_bmn_tracks_map_;
   
-  ClassDef(CbmSimTracksConverter, 1)
+  ClassDef(BmnSimParticlesConverter, 1)
 };
 
 #endif

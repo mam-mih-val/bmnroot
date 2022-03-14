@@ -19,10 +19,9 @@ class CbmConverterTask : public AnalysisTree::Task {
 
 public:
   CbmConverterTask() = default;
-  explicit CbmConverterTask(std::string out_branch_name, std::string match_to = "")
+  explicit CbmConverterTask(std::string out_branch_name)
   {
     out_branch_ = std::move(out_branch_name);
-    match_to_   = std::move(match_to);
   };
 
   ~CbmConverterTask() override = default;
@@ -45,8 +44,6 @@ protected:
   std::string out_branch_ {};
   std::map<std::string, MapType>* indexes_map_ {};  ///< CbmRoot to AnalysisTree indexes map for branches
   ///< from other tasks
-  std::string match_to_ {};  ///< AT branch to match
-
 };
 
 #endif  // ANALYSIS_TREE_CONVERTERTASK_H_

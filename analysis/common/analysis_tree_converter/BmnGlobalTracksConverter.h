@@ -5,6 +5,8 @@
 #ifndef ANALYSIS_TREE_STSTRACKSCONVERTER_H_
 #define ANALYSIS_TREE_STSTRACKSCONVERTER_H_
 
+#include <utility>
+
 #include "CbmConverterTask.h"
 
 #include "AnalysisTree/Detector.hpp"
@@ -18,15 +20,18 @@ namespace AnalysisTree
   class Matching;
 }
 
-class CbmStsTracksConverter final : public CbmConverterTask {
+class BmnGlobalTracksConverter final : public CbmConverterTask {
 
 public:
-  explicit CbmStsTracksConverter(std::string out_branch_name, std::string match_to = "")
-    : CbmConverterTask(std::move(out_branch_name), std::move(match_to))
-  {
-  }
-
-  ~CbmStsTracksConverter() final;
+  BmnGlobalTracksConverter(std::string out_branch_name,
+                           std::string str_sts_trk_branch_name,
+                           std::string str_tof_400_branch_name,
+                           std::string str_tof_700_branch_name)
+      : CbmConverterTask(std::move(out_branch_name)),
+        str_sts_trk_branch_name_(std::move(str_sts_trk_branch_name)),
+        str_tof400_branch_name_(std::move(str_tof_400_branch_name)),
+        str_tof700_branch_name_(std::move(str_tof_700_branch_name)) {}
+  ~BmnGlobalTracksConverter() final;
 
   void Init() final;
   void ProcessData() final;
@@ -36,13 +41,16 @@ private:
   void ReadVertexTracks();
   void InitInput();
 
+  std::string str_sts_trk_branch_name_;
+  std::string str_tof400_branch_name_;
+  std::string str_tof700_branch_name_;
   AnalysisTree::TrackDetector* vtx_tracks_{nullptr};   ///< raw pointers are needed for TTree::Branch
-  AnalysisTree::Matching* sim_particles_2_vtx_tracks_{nullptr};  ///< raw pointers are needed for TTree::Branch
+  AnalysisTree::Matching* global_tracks_2_sts_tracks_{nullptr};  ///< raw pointers are needed for TTree::Branch
   CbmVertex* bmn_vertex_{nullptr};    ///< non-owning pointer
                                             //  TClonesArray* bmn_mc_tracks_ {nullptr};   ///< non-owning pointer
   TClonesArray*bmn_global_tracks_{nullptr};  ///< non-owning pointer
 
-  ClassDef(CbmStsTracksConverter, 1)
+  ClassDef(BmnGlobalTracksConverter, 1)
 };
 
 #endif  // ANALYSIS_TREE_STSTRACKSCONVERTER_H_

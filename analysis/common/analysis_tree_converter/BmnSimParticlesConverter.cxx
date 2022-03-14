@@ -2,7 +2,7 @@
    SPDX-License-Identifier: GPL-3.0-only
    Authors: Daniel Wielanek, Viktor Klochkov [committer] */
 
-#include "CbmSimTracksConverter.h"
+#include "BmnSimParticlesConverter.h"
 #include "CbmMCTrack.h"
 
 #include "FairLogger.h"
@@ -22,9 +22,9 @@
 #include "AnalysisTree/TaskManager.hpp"
 #include "BmnGlobalTrack.h"
 
-ClassImp(CbmSimTracksConverter);
+ClassImp(BmnSimParticlesConverter);
 
-void CbmSimTracksConverter::Init()
+void BmnSimParticlesConverter::Init()
 {
   assert(!out_branch_.empty());
   auto* ioman = FairRootManager::Instance();
@@ -44,10 +44,10 @@ void CbmSimTracksConverter::Init()
   auto* man = AnalysisTree::TaskManager::GetInstance();
 
   man->AddBranch(out_branch_, sim_tracks_, sim_particles_branch);
-  man->AddMatching(out_branch_, match_to_, sim_particles_2_vtx_tracks_);
+  man->AddMatching(out_branch_, str_global_trk_branch_name_, sim_particles_2_vtx_tracks_);
 }
 
-void CbmSimTracksConverter::MapTracks(){
+void BmnSimParticlesConverter::MapTracks(){
   assert( bmn_global_tracks_ );
   sim_partcles_bmn_tracks_map_.clear();
   const int n_sts_tracks = bmn_global_tracks_->GetEntries();
@@ -60,7 +60,7 @@ void CbmSimTracksConverter::MapTracks(){
   }
 }
 
-void CbmSimTracksConverter::ProcessData()
+void BmnSimParticlesConverter::ProcessData()
 {
   assert(bmn_mc_tracks_);
   out_indexes_map_.clear();
@@ -135,4 +135,4 @@ void CbmSimTracksConverter::ProcessData()
     }
   }
 }
-CbmSimTracksConverter::~CbmSimTracksConverter() { delete sim_tracks_; };
+BmnSimParticlesConverter::~BmnSimParticlesConverter() { delete sim_tracks_; };

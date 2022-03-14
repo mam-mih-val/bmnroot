@@ -10,7 +10,7 @@ using namespace std;
 class BmnADCDigit : public TObject {
 protected:
     UInt_t fSerial;
-    UInt_t fChannel;
+    UShort_t fChannel;
     UInt_t fNsmpl;
     UShort_t* fValueU; //[fNsmpl]
     Short_t* fValueI; //[fNsmpl]
@@ -23,8 +23,8 @@ public:
     BmnADCDigit();
 
     /** Constructor to use **/
-    BmnADCDigit(UInt_t iSerial, UInt_t iChannel, UInt_t n, UShort_t *iValue);
-    BmnADCDigit(UInt_t iSerial, UInt_t iChannel, UInt_t n, Short_t *iValue, Bool_t flag = kFALSE);
+    BmnADCDigit(UInt_t iSerial, UShort_t iChannel, UInt_t n, UShort_t *iValue);
+    BmnADCDigit(UInt_t iSerial, UShort_t iChannel, UInt_t n, Short_t *iValue, Bool_t flag = kFALSE);
 
     UInt_t GetSerial() const {
         return fSerial;
@@ -67,7 +67,7 @@ public:
     /** Destructor **/
     virtual ~BmnADCDigit();
 
-    ClassDef(BmnADCDigit, 2);
+    ClassDef(BmnADCDigit, 3);
 };
 
 #endif /* BMNADCDIGIT_H */

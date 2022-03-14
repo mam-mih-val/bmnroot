@@ -49,7 +49,7 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString PlacementMapFile, TString StripMapFil
             par = new BmnTrigParameters();
             par->BoardSerial = record.serial;
             par->name = record.name;
-            par->ChannelCount = CHANNEL_COUNT_MAX;//ChanCntByName(record.name);
+            par->ChannelCount = CHANNEL_COUNT_MAX; //ChanCntByName(record.name);
             fPlacementMap.insert(pair<PlMapKey, BmnTrigParameters*> (PlMapKey(par->BoardSerial, par->slot), par));
         } else
             par = itPar->second;
@@ -89,7 +89,7 @@ BmnStatus BmnTrigRaw2Digit::ReadPlacementMap(TString mappingFile) {
         par->slot = slot;
         par->name = name;
         par->IsT0 = isT0;
-        par->ChannelCount = CHANNEL_COUNT_MAX;//ChanCntByName(name);
+        par->ChannelCount = CHANNEL_COUNT_MAX; //ChanCntByName(name);
         fPlacementMap.insert(pair<PlMapKey, BmnTrigParameters*> (PlMapKey(par->CrateSerial, par->slot), par));
     }
     pmFile.close();
@@ -189,6 +189,22 @@ BmnStatus BmnTrigRaw2Digit::ReadINLFromFile(BmnTrigParameters* par) {
     return kBMNSUCCESS;
 }
 
+void BmnTrigRaw2Digit::ProcessWave(Short_t *iValue, const UShort_t &nVals, Bool_t &isNeg) {
+    Float_t baseLine = 0.0;
+    const UShort_t baseInt = 4;
+    for (UShort_t i = 0; i < baseInt; i++)
+        baseLine += iValue[i];
+    baseLine /= baseInt;
+//    printf("baseline %5.2f\n", baseLine);
+    for (UShort_t i = 0; i < nVals; i++)
+        iValue[i] -= baseLine;
+    if (isNeg)
+        for (UShort_t i = 0; i < nVals; i++) {
+            iValue[i] = -iValue[i];
+//            printf("\t v[%2u] = %5d\n", i, iValue[i]);
+        }
+}
+
 BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
     // Matching of ADC/TDC based on the fact that (TDC_i - TDC_j) > 296ns correspond to different ADC
     // and (TDC_i - (ADC_i - Trig_i) ) ~ 0
@@ -230,13 +246,17 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
                 matchTime = -999.0;
         }
         if (trigAr != NULL/* && minUsed < 296*/) { // ADC window
-            new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigWaveDigit(
+            BmnTrigWaveDigit * dig = new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigWaveDigit(
                     iMod,
                     adcDig->GetShortValue(),
                     adcDig->GetNSamples(),
                     trgTimestamp,
                     adcTimestamp,
                     matchTime);
+            ProcessWave(
+                    dig->GetShortValue(),
+                    dig->GetNSamples(),
+                    par->NegativeMap[iChannel]);
         }
 
     }

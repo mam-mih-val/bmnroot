@@ -28,6 +28,7 @@ void run_analysis_tree_maker(std::string dst_file, std::string geant_file, std::
   auto* inputSource = new FairFileSource(dst_file);
   inputSource->AddFriend(geant_file);
   run->SetSource(inputSource);
+  run->SetOutputFile(output_file.c_str());
   // ------------------------------------------------------------------------
   // AnalysisTree converter
   auto* man = new CbmConverterManager();
@@ -37,10 +38,10 @@ void run_analysis_tree_maker(std::string dst_file, std::string geant_file, std::
 
   man->AddTask(new CbmSimEventHeaderConverter("SimEventHeader"));
   man->AddTask(new CbmRecEventHeaderConverter("RecEventHeader"));
-  man->AddTask(new CbmSimTracksConverter("SimParticles"));
 
-  CbmStsTracksConverter* taskCbmStsTracksConverter = new CbmStsTracksConverter("VtxTracks", "SimParticles");
+  CbmStsTracksConverter* taskCbmStsTracksConverter = new CbmStsTracksConverter("VtxTracks");
   man->AddTask(taskCbmStsTracksConverter);
+  man->AddTask(new CbmSimTracksConverter("SimParticles", "VtxTracks"));
 
   run->AddTask(man);
 

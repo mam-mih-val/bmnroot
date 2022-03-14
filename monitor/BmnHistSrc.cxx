@@ -4,8 +4,7 @@ BmnHistSrc::BmnHistSrc(TString title, TString path, Int_t periodID, BmnSetup set
 hTDCTimes(nullptr),
 hTDCAmps(nullptr),
 hTQDCTimes(nullptr),
-hTQDCAmps(nullptr)
-{
+hTQDCAmps(nullptr) {
     refPath = path;
     fTitle = title;
     fName = title + "_cl";
@@ -56,9 +55,11 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     fRows = arLen; // / fSrcCols;
     for (Int_t i = 0; i < fRows; ++i) {
         TClonesArray * ar = trigAr->at(i);
-        if (ar->GetClass() == BmnTrigWaveDigit::Class())
-            tqdcNames.push_back(TString(ar->GetName()));
-        else
+        if (ar->GetClass() == BmnTrigWaveDigit::Class()) {
+            regex re("TQDC_(.+)");
+            tqdcNames.push_back(TString(regex_replace(ar->GetName(), re, "$1")));
+            //            cout <<regex_replace(ar->GetName(), re, "$1") << endl;
+        } else
             tdcNames.push_back(TString(ar->GetName()));
     }
     // 2 dimensional time
@@ -99,7 +100,7 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     for (Int_t i = 0; i < tqdcNames.size(); ++i) {
         xaTrigTimes->SetBinLabel(i + 1, tqdcNames[i]);
     }
-    
+
     name = fTitle + "CanvasTimesByChannel";
     can2d = new TCanvas(name, name, PAD_WIDTH * fCols, PAD_HEIGHT * rows4Spectrum);
     can2d->Divide(fCols, rows4Spectrum, 0.001, 0.001);
@@ -161,7 +162,7 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
         h->GetXaxis()->SetTitle(
-        (ar->GetClass() == BmnTrigWaveDigit::Class()) ? "Amplitude" : "Width, ns");
+                (ar->GetClass() == BmnTrigWaveDigit::Class()) ? "Amplitude" : "Width, ns");
         h->GetXaxis()->SetTitleOffset(0.6);
         h->GetXaxis()->SetTitleColor(kOrange + 10);
         h->GetYaxis()->SetTitle("Activation Count");
@@ -269,7 +270,7 @@ void BmnHistSrc::FillFromDigi(DigiArrays *fDigiArrays) {
                 hists[iTrig][1]->Fill(tw->GetPeak());
                 hTQDCTimes->Fill(a->GetName(), tw->GetTime(), 1);
                 hTQDCAmps->Fill(a->GetName(), tw->GetPeak(), 1);
-//                printf("%s %5.2f %5d\n",a->GetName(),tw->GetTime(),tw->GetPeak());
+                //                printf("%s %5.2f %5d\n",a->GetName(),tw->GetTime(),tw->GetPeak());
             }
             continue;
         }
@@ -280,7 +281,7 @@ void BmnHistSrc::FillFromDigi(DigiArrays *fDigiArrays) {
                 hists[iTrig][1]->Fill(td->GetAmp());
                 hTDCTimes->Fill(a->GetName(), td->GetTime(), 1);
                 hTDCAmps->Fill(a->GetName(), td->GetAmp(), 1);
-//                printf("%s %5.2f %5.2f\n",a->GetName(),td->GetTime(),td->GetAmp());
+                //                printf("%s %5.2f %5.2f\n",a->GetName(),td->GetTime(),td->GetAmp());
             }
         }
     }

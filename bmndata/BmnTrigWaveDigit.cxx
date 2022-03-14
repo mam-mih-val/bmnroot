@@ -17,7 +17,7 @@ BmnTrigWaveDigit::BmnTrigWaveDigit() {
     fMod = -1;
     fNsmpl = 40;
     fValueI = new Short_t[fNsmpl];
-    for (Int_t i = 0; i < fNsmpl; ++i)
+    for (UInt_t i = 0; i < fNsmpl; ++i)
         fValueI[i] = 0;
     fTrigTimestamp = 0;
     fAdcTimestamp = 0;
@@ -28,18 +28,18 @@ BmnTrigWaveDigit::BmnTrigWaveDigit(const BmnTrigWaveDigit& dig) {
     fMod = dig.GetMod();
     fNsmpl = dig.GetNSamples();
     fValueI = new Short_t[fNsmpl];
-    for (Int_t i = 0; i < fNsmpl; ++i)
+    for (UInt_t i = 0; i < fNsmpl; ++i)
         fValueI[i] = dig.GetShortValue()[i];
     fTrigTimestamp = dig.GetTrigTimestamp();
     fAdcTimestamp = dig.GetAdcTimestamp();
     fTime = dig.GetTime();
 }
 
-BmnTrigWaveDigit::BmnTrigWaveDigit(Short_t iMod, Short_t *iValue, UInt_t nVals, Double_t trigTimestamp, Double_t adcTimestamp, Double_t time) {
+BmnTrigWaveDigit::BmnTrigWaveDigit(UShort_t iMod, Short_t *iValue, UInt_t nVals, Double_t trigTimestamp, Double_t adcTimestamp, Double_t time) {
     fMod = iMod;
     fNsmpl = nVals;
     fValueI = new Short_t[fNsmpl];
-    for (Int_t i = 0; i < fNsmpl; ++i)
+    for (UInt_t i = 0; i < fNsmpl; ++i)
         fValueI[i] = iValue[i];
     fTrigTimestamp = trigTimestamp;
     fAdcTimestamp = adcTimestamp;

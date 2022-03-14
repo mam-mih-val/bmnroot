@@ -2,7 +2,7 @@
    SPDX-License-Identifier: GPL-3.0-only
    Authors: Viktor Klochkov [committer] */
 
-#include "CbmStsTracksConverter.h"
+#include "BmnGlobalTracksConverter.h"
 
 #include "CbmMCTrack.h"
 #include "CbmVertex.h"
@@ -21,24 +21,22 @@
 #include "AnalysisTree/Matching.hpp"
 
 
-ClassImp(CbmStsTracksConverter);
+ClassImp(BmnGlobalTracksConverter);
 
-void CbmStsTracksConverter::ProcessData()
+void BmnGlobalTracksConverter::ProcessData()
 {
   assert(bmn_global_tracks_ != nullptr);
-
   out_indexes_map_.clear();
-
   ReadVertexTracks();
 }
 
-CbmStsTracksConverter::~CbmStsTracksConverter()
+BmnGlobalTracksConverter::~BmnGlobalTracksConverter()
 {
   delete vtx_tracks_;
-  delete sim_particles_2_vtx_tracks_;
+  delete global_tracks_2_sts_tracks_;
 };
 
-void CbmStsTracksConverter::InitInput()
+void BmnGlobalTracksConverter::InitInput()
 {
   auto* ioman = FairRootManager::Instance();
 
@@ -46,12 +44,13 @@ void CbmStsTracksConverter::InitInput()
   bmn_global_tracks_ = (TClonesArray*) ioman->GetObject("BmnGlobalTrack");
 }
 
-void CbmStsTracksConverter::Init()
+void BmnGlobalTracksConverter::Init()
 {
   InitInput();
 
   AnalysisTree::BranchConfig vtx_tracks_config(out_branch_, AnalysisTree::DetType::kTrack);
   vtx_tracks_config.AddField<float>("chi2", "chi2 of the track fit");
+  vtx_tracks_config.AddField<float>("length", "length of the track");
   vtx_tracks_config.AddFields<float>({"dcax", "dcay", "dcaz"},
                                      "not actuall Distance of Closest Approach, but extrapolated to z=z_vtx");
   vtx_tracks_config.AddField<int>("charge", "charge");
@@ -64,7 +63,7 @@ void CbmStsTracksConverter::Init()
   man->AddBranch(out_branch_, vtx_tracks_, vtx_tracks_config);
 }
 
-void CbmStsTracksConverter::ReadVertexTracks()
+void BmnGlobalTracksConverter::ReadVertexTracks()
 {
   assert(bmn_vertex_ && bmn_global_tracks_);
 
@@ -74,6 +73,7 @@ void CbmStsTracksConverter::ReadVertexTracks()
 
   const int iq         = branch.GetFieldId("charge");
   const int indf       = branch.GetFieldId("ndf");
+  const int ilength      = branch.GetFieldId("length");
   const int ichi2      = branch.GetFieldId("chi2");
   const int inhits     = branch.GetFieldId("nhits");
   const int idcax      = branch.GetFieldId("dcax");
@@ -123,7 +123,12 @@ void CbmStsTracksConverter::ReadVertexTracks()
     track.SetField(float(ty), itx+1);
     track.SetField(float(qp), itx+2);
 
+    track.SetField(float(x), ix);
+    track.SetField(float(y), ix+1);
+    track.SetField(float(z), ix+2);
+
     track.SetField(float(chi2), ichi2);
+    track.SetField(float(length), ilength);
 
     track.SetField(int(q), iq);
     track.SetField(int(ndf), indf);

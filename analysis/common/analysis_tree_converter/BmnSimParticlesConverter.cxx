@@ -18,7 +18,6 @@
 
 #include <cassert>
 #include <vector>
-#include <TDatabasePDG.h>
 
 #include "AnalysisTree/TaskManager.hpp"
 #include "BmnGlobalTrack.h"
@@ -45,10 +44,7 @@ void BmnSimParticlesConverter::Init()
   auto* man = AnalysisTree::TaskManager::GetInstance();
 
   man->AddBranch(out_branch_, sim_tracks_, sim_particles_branch);
-  man->AddMatching(out_branch_, str_global_trk_branch_name_,
-                   sim_particles_2_global_tracks_);
-  man->AddMatching(out_branch_, str_sts_trk_branch_name_,
-                   sim_particles_2_sts_tracks_);
+  man->AddMatching(out_branch_, str_global_trk_branch_name_, sim_particles_2_vtx_tracks_);
 }
 
 void BmnSimParticlesConverter::MapTracks(){
@@ -71,8 +67,7 @@ void BmnSimParticlesConverter::ProcessData()
   MapTracks();
 
   sim_tracks_->ClearChannels();
-  sim_particles_2_global_tracks_->Clear();
-  sim_particles_2_sts_tracks_->Clear();
+  sim_particles_2_vtx_tracks_->Clear();
   auto* out_config_  = AnalysisTree::TaskManager::GetInstance()->GetConfig();
   const auto& branch = out_config_->GetBranchConfig(out_branch_);
 
@@ -91,10 +86,6 @@ void BmnSimParticlesConverter::ProcessData()
 
   const Double_t nsTofmc = 1. / (0.3356 * 1E-15);
 
-  auto* data_header  = AnalysisTree::TaskManager::GetInstance()->GetDataHeader();
-  auto y_beam = data_header->GetBeamRapidity();
-  auto beta_beam = tanh(y_beam);
-
   int passed_idx = 0;
   for (int iMcTrack = 0; iMcTrack < nMcTracks; ++iMcTrack) {
     const auto trackIndex = iMcTrack;  //event ? event->GetIndex(ECbmDataType::kMCTrack, iMcTrack) : iMcTrack;
@@ -108,33 +99,16 @@ void BmnSimParticlesConverter::ProcessData()
     }
     auto& track = sim_tracks_->AddChannel(branch);
     try {
-      sim_particles_2_global_tracks_->AddMatch(
-          passed_idx, sim_partcles_bmn_tracks_map_.at(trackIndex));
-      sim_particles_2_sts_tracks_->AddMatch(
+      sim_particles_2_vtx_tracks_->AddMatch(
           passed_idx, sim_partcles_bmn_tracks_map_.at(trackIndex));
     }catch(std::exception&){}
     passed_idx++;
     out_indexes_map_.insert(std::make_pair(trackIndex, track.GetId()));
 
-    float mass = 0;
-    auto database_particle = TDatabasePDG::Instance()->GetParticle( mctrack->GetPdgCode() );
-    if( database_particle ) {
-      mass = database_particle->Mass();
-    } else {
-      auto proton_mass = TDatabasePDG::Instance()->GetParticle( 2212 )->Mass();
-      auto neutron_mass = TDatabasePDG::Instance()->GetParticle( 2112 )->Mass();
-      auto charge_number = GetIonCharge( mctrack->GetPdgCode() );
-      auto mass_number = GetIonMass( mctrack->GetPdgCode() );
-      mass = charge_number*proton_mass + (mass_number - charge_number)*neutron_mass;
-    }
-    track.SetMass(float(mass));
+    track.SetMomentum(mctrack->GetPx(), mctrack->GetPy(), mctrack->GetPz());
+    track.SetMass(float(mctrack->GetMass()));
     track.SetPid(int(mctrack->GetPdgCode()));
-    TVector3 mom3;
-    mctrack->GetMomentum(mom3);
-    TLorentzVector mom4;
-    mom4.SetVectM(mom3, mass);
-    mom4.Boost({0., 0., beta_beam});
-    track.SetMomentum(mom3.Px(), mom3.Py(), mom3.Pz());
+//    track.SetField(int(mctrack->GetGeantProcessId()), igeant_id);
 
     if (mctrack->GetMotherId() >= 0) {  // secondary
       track.SetField(float(mctrack->GetStartX() - bmn_header_->GetX()), istart_x);

@@ -2,12 +2,12 @@
    SPDX-License-Identifier: GPL-3.0-only
    Authors: Viktor Klochkov [committer] */
 
-#ifndef ANALYSIS_TREE_GLOBALTRACKSCONVERTER_H_
-#define ANALYSIS_TREE_GLOBALTRACKSCONVERTER_H_
+#ifndef ANALYSIS_TREE_STSTRACKSCONVERTER_H_
+#define ANALYSIS_TREE_STSTRACKSCONVERTER_H_
 
 #include <utility>
 
-#include "BmnConverterTask.h"
+#include "CbmConverterTask.h"
 
 #include "AnalysisTree/Detector.hpp"
 
@@ -20,14 +20,14 @@ namespace AnalysisTree
   class Matching;
 }
 
-class BmnGlobalTracksConverter final : public BmnConverterTask {
+class BmnGlobalTracksConverter final : public CbmConverterTask {
 
 public:
   BmnGlobalTracksConverter(std::string out_branch_name,
                            std::string str_sts_trk_branch_name,
                            std::string str_tof_400_branch_name,
                            std::string str_tof_700_branch_name)
-      : BmnConverterTask(std::move(out_branch_name)),
+      : CbmConverterTask(std::move(out_branch_name)),
         str_sts_trk_branch_name_(std::move(str_sts_trk_branch_name)),
         str_tof400_branch_name_(std::move(str_tof_400_branch_name)),
         str_tof700_branch_name_(std::move(str_tof_700_branch_name)) {}
@@ -44,15 +44,13 @@ private:
   std::string str_sts_trk_branch_name_;
   std::string str_tof400_branch_name_;
   std::string str_tof700_branch_name_;
-  AnalysisTree::TrackDetector*out_global_tracks_{nullptr};   ///< raw pointers are needed for TTree::Branch
+  AnalysisTree::TrackDetector* vtx_tracks_{nullptr};   ///< raw pointers are needed for TTree::Branch
   AnalysisTree::Matching* global_tracks_2_sts_tracks_{nullptr};  ///< raw pointers are needed for TTree::Branch
-  AnalysisTree::Matching* global_tracks_2_tof400_hits_{nullptr};  ///< raw pointers are needed for TTree::Branch
-  AnalysisTree::Matching* global_tracks_2_tof700_hits_{nullptr};  ///< raw pointers are needed for TTree::Branch
-  CbmVertex*in_bmn_vertex_{nullptr};    ///< non-owning pointer
+  CbmVertex* bmn_vertex_{nullptr};    ///< non-owning pointer
                                             //  TClonesArray* bmn_mc_tracks_ {nullptr};   ///< non-owning pointer
-  TClonesArray*in_bmn_global_tracks_{nullptr};  ///< non-owning pointer
+  TClonesArray*bmn_global_tracks_{nullptr};  ///< non-owning pointer
 
   ClassDef(BmnGlobalTracksConverter, 1)
 };
 
-#endif  // ANALYSIS_TREE_GLOBALTRACKSCONVERTER_H_
+#endif  // ANALYSIS_TREE_STSTRACKSCONVERTER_H_

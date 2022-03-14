@@ -39,9 +39,9 @@ void run_analysis_tree_maker(std::string dst_file, std::string geant_file, std::
   man->AddTask(new CbmSimEventHeaderConverter("SimEventHeader"));
   man->AddTask(new CbmRecEventHeaderConverter("RecEventHeader"));
 
-  CbmStsTracksConverter* taskCbmStsTracksConverter = new CbmStsTracksConverter("VtxTracks");
+  CbmStsTracksConverter* taskCbmStsTracksConverter = new BmnGlobalTracksConverter("GlobalTracks", "StsTracks", "Tof400", "Tof700");
   man->AddTask(taskCbmStsTracksConverter);
-  man->AddTask(new CbmSimTracksConverter("SimParticles", "VtxTracks"));
+  man->AddTask(new BmnSimParticlesConverter("SimParticles", "GlobalTracks"));
 
   run->AddTask(man);
 

@@ -4,7 +4,6 @@
 
 #include "BmnStsTracksConverter.h"
 
-#include "CbmMCTrack.h"
 #include "CbmVertex.h"
 #include "CbmStsTrack.h"
 

@@ -2,8 +2,8 @@
    SPDX-License-Identifier: GPL-3.0-only
    Authors: Viktor Klochkov [committer] */
 
-#ifndef ANALYSIS_TREE_STSTRACKSCONVERTER_H_
-#define ANALYSIS_TREE_STSTRACKSCONVERTER_H_
+#ifndef ANALYSIS_TREE_GLOBALTRACKSCONVERTER_H_
+#define ANALYSIS_TREE_GLOBALTRACKSCONVERTER_H_
 
 #include <utility>
 
@@ -53,4 +53,4 @@ private:
   ClassDef(BmnGlobalTracksConverter, 1)
 };
 
-#endif  // ANALYSIS_TREE_STSTRACKSCONVERTER_H_
+#endif  // ANALYSIS_TREE_GLOBALTRACKSCONVERTER_H_

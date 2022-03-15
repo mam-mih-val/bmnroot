@@ -105,8 +105,12 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, I
 //        printf("Run number string is %s\n", &fname[strlen(fname) - 13]);
 	if (RUN <= 0 || nitem <= 0)
 	{
-	    printf("Run file: \"%s\" - can't extract run number!\n", RunFile.Data());
-	    return;
+	    nitem = sscanf(&fname[strlen(fname) - 12], "%d", &RUN);
+	    if (RUN <= 0 || nitem <= 0)
+	    {
+		printf("Run file: \"%s\" - can't extract run number!\n", RunFile.Data());
+		return;
+	    }
 	}
 	fRUN = RUN;
     }

@@ -1951,7 +1951,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         // 3.7 mks tof400
         // 3.5 mks DCH
         if (fPeriodId == 8)
-            fTof700Mapper->SetT0shift(+75000.);
+            fTof700Mapper->SetT0shift(+15000.);
         //        fTof700Mapper->print();
         for (int i = 0; i < 60; i++) {
             if (type_tof700_slewing[i]) {

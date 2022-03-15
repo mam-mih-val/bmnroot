@@ -14,6 +14,7 @@
 #pragma link C++ class CbmRecEventHeaderConverter + ;
 #pragma link C++ class BmnSimParticlesConverter + ;
 #pragma link C++ class BmnGlobalTracksConverter + ;
+#pragma link C++ class BmnStsTracksConverter + ;
 #pragma link C++ class CbmTofHitsConverter + ;
 #pragma link C++ class CbmPsdModulesConverter + ;
 #pragma link C++ class CbmTrdTracksConverter + ;

@@ -7,7 +7,7 @@
 
 #include <utility>
 
-#include "BmnConverterTask.h"
+#include "CbmConverterTask.h"
 
 #include "AnalysisTree/Detector.hpp"
 
@@ -20,11 +20,11 @@ namespace AnalysisTree
   class Matching;
 }
 
-class BmnStsTracksConverter final : public BmnConverterTask {
+class BmnStsTracksConverter final : public CbmConverterTask {
 
 public:
   explicit BmnStsTracksConverter(const std::string &out_branch_name)
-      : BmnConverterTask(out_branch_name) {}
+      : CbmConverterTask(out_branch_name) {}
   ~BmnStsTracksConverter() final;
 
   void Init() final;
@@ -34,7 +34,6 @@ public:
 private:
   void ReadVertexTracks();
   void InitInput();
-  float ExtrapolateToVertex(CbmStsTrack* sts_track, int pdg);
   AnalysisTree::TrackDetector*out_sts_tracks_{nullptr};   ///< raw pointers are needed for TTree::Branch
 
   CbmVertex*in_bmn_vertex_{nullptr};    ///< non-owning pointer

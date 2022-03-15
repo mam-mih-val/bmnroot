@@ -25,14 +25,14 @@ ClassImp(BmnGlobalTracksConverter);
 
 void BmnGlobalTracksConverter::ProcessData()
 {
-  assert(bmn_global_tracks_ != nullptr);
+  assert(in_bmn_global_tracks_ != nullptr);
   out_indexes_map_.clear();
   ReadVertexTracks();
 }
 
 BmnGlobalTracksConverter::~BmnGlobalTracksConverter()
 {
-  delete vtx_tracks_;
+  delete out_global_tracks_;
   delete global_tracks_2_sts_tracks_;
 };
 
@@ -40,8 +40,8 @@ void BmnGlobalTracksConverter::InitInput()
 {
   auto* ioman = FairRootManager::Instance();
 
-  bmn_vertex_ = (CbmVertex*) ioman->GetObject("PrimaryVertex.");
-  bmn_global_tracks_ = (TClonesArray*) ioman->GetObject("BmnGlobalTrack");
+  in_bmn_vertex_ = (CbmVertex*) ioman->GetObject("PrimaryVertex.");
+  in_bmn_global_tracks_ = (TClonesArray*) ioman->GetObject("BmnGlobalTrack");
 }
 
 void BmnGlobalTracksConverter::Init()
@@ -60,14 +60,16 @@ void BmnGlobalTracksConverter::Init()
 
   auto* man = AnalysisTree::TaskManager::GetInstance();
 
-  man->AddBranch(out_branch_, vtx_tracks_, vtx_tracks_config);
+  man->AddBranch(out_branch_, out_global_tracks_, vtx_tracks_config);
+  man->AddMatching( out_branch_, str_sts_trk_branch_name_, global_tracks_2_sts_tracks_ );
 }
 
 void BmnGlobalTracksConverter::ReadVertexTracks()
 {
-  assert(bmn_vertex_ && bmn_global_tracks_);
+  assert(in_bmn_vertex_ && in_bmn_global_tracks_);
 
-  vtx_tracks_->ClearChannels();
+  out_global_tracks_->ClearChannels();
+  global_tracks_2_sts_tracks_->Clear();
   auto* out_config_  = AnalysisTree::TaskManager::GetInstance()->GetConfig();
   const auto& branch = out_config_->GetBranchConfig(out_branch_);
 
@@ -80,22 +82,22 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
   const int ix      = branch.GetFieldId("x");
   const int itx      = branch.GetFieldId("tx");
 
-  const int n_sts_tracks = bmn_global_tracks_->GetEntries();
+  const int n_sts_tracks = in_bmn_global_tracks_->GetEntries();
   if (n_sts_tracks <= 0) {
     LOG(warn) << "No STS tracks!";
     return;
   }
-  vtx_tracks_->Reserve(n_sts_tracks);
+  out_global_tracks_->Reserve(n_sts_tracks);
 
-  auto vertex_x = bmn_vertex_->GetX();
-  auto vertex_y = bmn_vertex_->GetY();
-  auto vertex_z = bmn_vertex_->GetZ();
+  auto vertex_x = in_bmn_vertex_->GetX();
+  auto vertex_y = in_bmn_vertex_->GetY();
+  auto vertex_z = in_bmn_vertex_->GetZ();
 
   for (short i_track = 0; i_track < n_sts_tracks; ++i_track) {
     const int track_index = i_track;
-    auto* bmn_global_track = dynamic_cast<BmnGlobalTrack*>(bmn_global_tracks_->At(track_index) );
+    auto* bmn_global_track = dynamic_cast<BmnGlobalTrack*>(in_bmn_global_tracks_->At(track_index) );
     if (!bmn_global_track) { throw std::runtime_error("empty track!"); }
-    auto& track = vtx_tracks_->AddChannel(branch);
+    auto& track = out_global_tracks_->AddChannel(branch);
     const FairTrackParam* trackParamFirst = bmn_global_track->GetParamFirst();
 
     float x = trackParamFirst->GetX();
@@ -138,7 +140,7 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
     track.SetField(float(y - vertex_y), idcax + 1);
     track.SetField(float(z - vertex_z), idcax + 2);
 
-    out_indexes_map_.insert(std::make_pair(track_index, track.GetId()));
+    global_tracks_2_sts_tracks_->AddMatch( track_index, track_index );
   }
 }
 

@@ -4,6 +4,7 @@
 
 #include "BmnStsTracksConverter.h"
 
+#include "CbmMCTrack.h"
 #include "CbmVertex.h"
 #include "CbmStsTrack.h"
 
@@ -18,9 +19,7 @@
 #include <CbmTrackMatch.h>
 
 #include "AnalysisTree/Matching.hpp"
-#include "CbmL1PFFitter.h"
-#include "L1Field.h"
-#include "CbmKFVertex.h"
+
 
 ClassImp(BmnStsTracksConverter);
 
@@ -50,15 +49,13 @@ void BmnStsTracksConverter::Init()
 
   AnalysisTree::BranchConfig vtx_tracks_config(out_branch_, AnalysisTree::DetType::kTrack);
   vtx_tracks_config.AddField<float>("chi2", "chi2 of the track fit");
-  vtx_tracks_config.AddField<float>("chi2_vertex", "chi2 of the track extrapolation to the vertex");
   vtx_tracks_config.AddField<float>("length", "length of the track");
   vtx_tracks_config.AddFields<float>({"dcax", "dcay", "dcaz"},
                                      "not actuall Distance of Closest Approach, but extrapolated to z=z_vtx");
   vtx_tracks_config.AddField<int>("charge", "charge");
   vtx_tracks_config.AddField<int>("ndf", "number degrees of freedom");
-  vtx_tracks_config.AddField<int>("n_hits", "number of hits in STS+GEM");
-  vtx_tracks_config.AddFields<float>({"x_first", "y_first", "z_first", "tx_first", "ty_first", "qp_first"}, "first track parameters");
-  vtx_tracks_config.AddFields<float>({"x_last", "y_last", "z_last", "tx_last", "ty_last", "qp_last"}, "last track parameters");
+  vtx_tracks_config.AddField<int>("nhits", "number of hits");
+  vtx_tracks_config.AddFields<float>({"x", "y", "z", "tx", "ty", "qp"}, "track parameters");
 
   auto* man = AnalysisTree::TaskManager::GetInstance();
 
@@ -75,14 +72,10 @@ void BmnStsTracksConverter::ReadVertexTracks()
 
   const int iq         = branch.GetFieldId("charge");
   const int indf       = branch.GetFieldId("ndf");
-  const int inhits     = branch.GetFieldId("n_hits");
   const int ichi2      = branch.GetFieldId("chi2");
-  const int ichi2_vertex      = branch.GetFieldId("chi2_vertex");
   const int idcax      = branch.GetFieldId("dcax");
-  const int ix_first = branch.GetFieldId("x_first");
-  const int ix_last = branch.GetFieldId("x_last");
-  const int itx_first = branch.GetFieldId("tx_first");
-  const int itx_last = branch.GetFieldId("tx_last");
+  const int ix      = branch.GetFieldId("x");
+  const int itx      = branch.GetFieldId("tx");
 
   const int n_sts_tracks = in_sts_tracks_->GetEntries();
   if (n_sts_tracks <= 0) {
@@ -100,32 +93,18 @@ void BmnStsTracksConverter::ReadVertexTracks()
     auto*in_sts_track = dynamic_cast<CbmStsTrack*>(in_sts_tracks_->At(track_index) );
     if (!in_sts_track) { throw std::runtime_error("empty out_track!"); }
     auto&out_track = out_sts_tracks_->AddChannel(branch);
-
-    float chi2_vertex = -999.;
-//    chi2_vertex = ExtrapolateToVertex( in_sts_track, 2212 );
-
     const FairTrackParam* trackParamFirst = in_sts_track->GetParamFirst();
-    const FairTrackParam* trackParamLast = in_sts_track->GetParamLast();
 
-    float x_first = trackParamFirst->GetX();
-    float y_first = trackParamFirst->GetY();
-    float z_first = trackParamFirst->GetZ();
+    float x = trackParamFirst->GetX();
+    float y = trackParamFirst->GetY();
+    float z = trackParamFirst->GetZ();
 
-    float tx_first = trackParamFirst->GetTx();
-    float ty_first = trackParamFirst->GetTy();
-    float qp_first = trackParamFirst->GetQp();
-
-    float x_last = trackParamLast->GetX();
-    float y_last = trackParamLast->GetY();
-    float z_last = trackParamLast->GetZ();
-
-    float tx_last = trackParamLast->GetTx();
-    float ty_last = trackParamLast->GetTy();
-    float qp_last = trackParamLast->GetQp();
+    float tx = trackParamFirst->GetTx();
+    float ty = trackParamFirst->GetTy();
+    float qp = trackParamFirst->GetQp();
 
     float chi2 = in_sts_track->GetChi2();
     int ndf = in_sts_track->GetNDF();
-    int n_hits = in_sts_track->GetNStsHits();
 
     TVector3 momRec;
     trackParamFirst->Momentum(momRec);
@@ -135,45 +114,23 @@ void BmnStsTracksConverter::ReadVertexTracks()
 
     out_track.SetField(int(q), iq);
 
-    out_track.SetField(float(tx_first), itx_first);
-    out_track.SetField(float(ty_first), itx_first +1);
-    out_track.SetField(float(qp_first), itx_first +2);
+    out_track.SetField(float(tx), itx);
+    out_track.SetField(float(ty), itx+1);
+    out_track.SetField(float(qp), itx+2);
 
-    out_track.SetField(float(x_first), ix_first);
-    out_track.SetField(float(y_first), ix_first +1);
-    out_track.SetField(float(z_first), ix_first +2);
-
-    out_track.SetField(float(tx_last), itx_last);
-    out_track.SetField(float(ty_last), itx_last +1);
-    out_track.SetField(float(qp_last), itx_last +2);
-
-    out_track.SetField(float(x_last), ix_last);
-    out_track.SetField(float(y_last), ix_last +1);
-    out_track.SetField(float(z_last), ix_last +2);
+    out_track.SetField(float(x), ix);
+    out_track.SetField(float(y), ix+1);
+    out_track.SetField(float(z), ix+2);
 
     out_track.SetField(float(chi2), ichi2);
-    out_track.SetField(float(chi2_vertex), ichi2_vertex);
 
     out_track.SetField(int(q), iq);
     out_track.SetField(int(ndf), indf);
-    out_track.SetField(int(n_hits), inhits);
 
-    out_track.SetField(float(x_first - vertex_x), idcax);
-    out_track.SetField(float(y_first - vertex_y), idcax + 1);
-    out_track.SetField(float(z_first - vertex_z), idcax + 2);
+    out_track.SetField(float(x - vertex_x), idcax);
+    out_track.SetField(float(y - vertex_y), idcax + 1);
+    out_track.SetField(float(z - vertex_z), idcax + 2);
   }
 }
-float BmnStsTracksConverter::ExtrapolateToVertex(CbmStsTrack* sts_track, int pdg){
-  std::vector<CbmStsTrack> tracks = {*sts_track};
-  CbmL1PFFitter fitter;
-  std::vector<float> chi2_to_vtx;
-  std::vector<L1FieldRegion> field;
-  CbmKFVertex kfVertex = CbmKFVertex(*in_bmn_vertex_);
-  std::cout << "Fitting the track to the vertex" << std::endl;
-  fitter.Fit(tracks, pdg);
-  std::cout << "Calculating the chi2 of the extrapolation" << std::endl;
-  fitter.GetChiToVertex(tracks, field, chi2_to_vtx, kfVertex, 3.);
-  *sts_track = tracks[0];
-  return chi2_to_vtx[0];
-}
+
 // TODO misleading name, move field filling somewhere else?

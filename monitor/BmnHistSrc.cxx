@@ -47,7 +47,9 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     const Int_t MaxTimeTDC = 600;
     const Int_t MaxAmpTDC = 50;
     const Int_t MaxTimeTQDC = 600;
-    const Int_t MaxAmpTQDC = 5000;
+    const Int_t MaxAmpTQDC = 10000;
+    const Int_t MaxAmpTQDC_x10 = 33000;
+            regex reX10("TQDC_.+_X10.*");
     const Int_t rows4Spectrum = 2;
     Int_t arLen = trigAr->size();
     TString name;
@@ -57,7 +59,8 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
         TClonesArray * ar = trigAr->at(i);
         if (ar->GetClass() == BmnTrigWaveDigit::Class()) {
             regex re("TQDC_(.+)");
-            tqdcNames.push_back(TString(regex_replace(ar->GetName(), re, "$1")));
+//            tqdcNames.push_back(TString(regex_replace(ar->GetName(), re, "$1")));
+            tqdcNames.push_back(TString(ar->GetName()));
             //            cout <<regex_replace(ar->GetName(), re, "$1") << endl;
         } else
             tdcNames.push_back(TString(ar->GetName()));
@@ -142,7 +145,7 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
         Int_t maxTime =
                 (ar->GetClass() == BmnTrigWaveDigit::Class()) ? MaxTimeTQDC : MaxTimeTDC;
         name = fTitle + "_" + ar->GetName() + "_Leading_Time";
-        TH1F *h = new TH1F(name, name, 1000, 0, maxTime);
+        TH1F *h = new TH1F(name, name, 800, 0, maxTime);
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
         h->GetXaxis()->SetTitle("Time, ns");
@@ -156,9 +159,11 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     for (Int_t iRow = 0; iRow < fRows; iRow++) { // 1 column - Amplitude(TQDC -waveform ampl.,  TDC - sig. width)
         TClonesArray * ar = trigAr->at(iRow);
         Int_t maxAmp =
-                (ar->GetClass() == BmnTrigWaveDigit::Class()) ? MaxAmpTQDC : MaxAmpTDC;
+                (ar->GetClass() == BmnTrigWaveDigit::Class()) ? 
+                    (regex_match(ar->GetName(), reX10) ? MaxAmpTQDC_x10 : MaxAmpTQDC) : 
+                    MaxAmpTDC;
         name = fTitle + "_" + ar->GetName() + "_Amplitude";
-        TH1F *h = new TH1F(name, name, 500, 0, maxAmp);
+        TH1F *h = new TH1F(name, name, 300, 0, maxAmp);
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
         h->GetXaxis()->SetTitle(

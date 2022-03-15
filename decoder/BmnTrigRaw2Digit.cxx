@@ -195,13 +195,13 @@ void BmnTrigRaw2Digit::ProcessWave(Short_t *iValue, const UShort_t &nVals, Bool_
     for (UShort_t i = 0; i < baseInt; i++)
         baseLine += iValue[i];
     baseLine /= baseInt;
-//    printf("baseline %5.2f\n", baseLine);
+    //    printf("baseline %5.2f\n", baseLine);
     for (UShort_t i = 0; i < nVals; i++)
         iValue[i] -= baseLine;
     if (isNeg)
         for (UShort_t i = 0; i < nVals; i++) {
             iValue[i] = -iValue[i];
-//            printf("\t v[%2u] = %5d\n", i, iValue[i]);
+            //            printf("\t v[%2u] = %5d\n", i, iValue[i]);
         }
 }
 
@@ -241,11 +241,11 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
             // Found the match, so let's save that as and ADC and corresponding TDC
             matchTime = times.at(idx);
             minUsed = diff.at(idx);
-            trigAr = par->branchArrayPtr[iChannel];
-            if (minUsed > 296)
-                matchTime = -999.0;
+            //            if (minUsed > 296)
+            //                matchTime = -999.0;
         }
-        if (trigAr != NULL/* && minUsed < 296*/) { // ADC window
+        trigAr = par->branchArrayPtr[iChannel];
+        if (trigAr) {
             BmnTrigWaveDigit * dig = new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigWaveDigit(
                     iMod,
                     adcDig->GetShortValue(),
@@ -258,7 +258,6 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
                     dig->GetNSamples(),
                     par->NegativeMap[iChannel]);
         }
-
     }
     return kBMNSUCCESS;
 }

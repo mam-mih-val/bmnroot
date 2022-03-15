@@ -1,6 +1,7 @@
 #ifndef BMNDIGIRUNHEADER_H
 #define BMNDIGIRUNHEADER_H
 
+#include <map>
 #include "TObject.h"
 #include "TTimeStamp.h"
 
@@ -22,6 +23,7 @@ private:
     ULong64_t fL0;
     ULong64_t fBP;
     ULong64_t fAP;
+    map<UInt_t, vector<uint64_t> > fBoardSums;///<  (MSC serial, raw sums of the counters)
 
 
 public:
@@ -56,6 +58,8 @@ public:
     ULong64_t GetProtection() { return fProtection; }
     /** Get the L0  */
     ULong64_t GetL0() { return fL0; }
+    /** Get the raw MSC counters  */
+    map<UInt_t, vector<uint64_t> >& GetRawMSC() { return fBoardSums; }
 
 
     TTimeStamp GetRunStartTime() { return fRunStartTime; }
@@ -106,6 +110,12 @@ public:
      * \param[in] cntr : L0 counter
      */
     void SetL0(ULong64_t cntr) { fL0 = cntr; }
+    /** Set the raw MSC counters
+     * \param[in] v : map < MSC serial, counters vector>
+     */
+    void SetRawMSC(map<UInt_t, vector<uint64_t> >  v) { fBoardSums = v;
+//    printf("inner len %lu\n", fBoardSums.size());
+    }
 
     ClassDef(DigiRunHeader, 2)
 };

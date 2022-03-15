@@ -69,6 +69,7 @@ enum BmnEventType {
     kBMNPEDESTAL = 0, /**< pedestal event. */
     kBMNPAYLOAD = 1, /**< spill event. */
     kBMNEOS = 2, /**< End of spill. */
+    kBMNSTAT = 3, /**< Statistics. */
 };
 
 /**

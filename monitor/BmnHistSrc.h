@@ -44,13 +44,18 @@ private:
     void SetDir(TDirectory *Dir);
     vector<TString> Names;
     vector<vector<TH1F*> > hists;
-    TH2F *hTDC;
-    vector<TString> tdcNames;
+    TH2F *hTDCTimes;
+    TH2F *hTDCAmps;
+    TH2F *hTQDCTimes;
+    TH2F *hTQDCAmps;
     TCanvas *canvas;
+    TCanvas *can2d;
     vector<PadInfo*> canPads;
-    Int_t fSrcRows = 0;
-    Int_t fSrcCols = 0;
-    vector<TString> trigNames;
+    vector<PadInfo*> can2dPads;
+    Int_t fRows = 0;
+    Int_t fCols = 0;
+    vector<TString> tdcNames;
+    vector<TString> tqdcNames;
 //    const TString trigNames[13] = 
 //    {
 //        "BC1", "BC2", "BC3", "BC4", "VC",

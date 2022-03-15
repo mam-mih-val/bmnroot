@@ -25,6 +25,8 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
+# DstArrays.h
+# BmnParts.h
  DstRunHeader.cxx
  DstEventHeader.cxx
  BmnFillDstTask.cxx

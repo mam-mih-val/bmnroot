@@ -22,7 +22,7 @@ class BmnTacquilaDigit: public TObject {
     void SetTDiff(BmnTacquilaDigit const &);
 
   private:
-    /* Always 5 at JINR. */
+    /* 3 for Tof-Cal, 5 for LAND at JINR. */
     UInt_t fSam;
     /* Two Tacquila crates, so 0 or 1. */
     UInt_t fGtb;

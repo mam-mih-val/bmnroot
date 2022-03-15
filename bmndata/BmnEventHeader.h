@@ -36,6 +36,8 @@ private:
     Double_t fStartSignalWidth; //ns
     BmnTrigInfo* fTrigInfo;
     UInt_t fTrigUnion;
+    UInt_t fInputsAR;
+    UInt_t fInputsBR;
 
     map<UInt_t, Long64_t> fTimeShift;
 
@@ -88,6 +90,12 @@ public:
     
     /** Get the trigger state */
     BmnTrigUnion GetTrigState() {BmnTrigUnion u; u.storage = fTrigUnion; return u; }
+    
+    /** Get Input signal states, after reduction */
+    UInt_t GetInputSignalsAR() {return fInputsAR; }
+    
+    /** Get Input signal states, before reduction */
+    UInt_t GetInputSignalsBR() {return fInputsBR; }
 
     map<UInt_t, Long64_t> GetTimeShift() { return fTimeShift; }
 
@@ -131,6 +139,12 @@ public:
     
     /** Set the trigger state */
     void SetTrigState(BmnTrigUnion &v) { fTrigUnion = v.storage; }
+    
+    /** Set the Input signal states, after reduction */
+    void SetInputSignalsAR(UInt_t v) { fInputsAR = v; }
+    
+    /** Set the Input signal states, before reduction */
+    void SetInputSignalsBR(UInt_t v) { fInputsBR = v; }
 
     void SetTimeShift(map <UInt_t, Long64_t> time_shift) { fTimeShift = time_shift; }
 

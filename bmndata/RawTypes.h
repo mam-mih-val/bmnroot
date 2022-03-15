@@ -1,16 +1,16 @@
 #ifndef RAWTYPES_H
-#define	RAWTYPES_H
+#define RAWTYPES_H
 
 
 /***************** SET OF DAQ CONSTANTS *****************/
 const UInt_t SYNC_EVENT = 0x2A50D5AF;
 const UInt_t SYNC_EVENT_OLD = 0x2A502A50;
-const UInt_t SYNC_EOS = 0x4A62B59D;
-const UInt_t SYNC_EOS_OLD = 0x4A624A62;
+const UInt_t SYNC_STAT = 0x4A62B59D; // Statistics
+const UInt_t SYNC_EOS = 0x4A624A62; // End Of Spill
 const UInt_t SYNC_RUN_START = 0x72617453;
 const UInt_t SYNC_RUN_STOP = 0x706F7453;
-const UInt_t SYNC_RUN_NUMBER = 0x236E7552;
-const UInt_t SYNC_RUN_INDEX = 0x78646E49;
+const UInt_t SYNC_RUN_NUMBER = 0x236E7552; // Run ID
+const UInt_t SYNC_RUN_INDEX = 0x78646E49; // Event Builder Name
 const UInt_t SYNC_JSON = 0x4E4F534A;
 const size_t kWORDSIZE = sizeof (UInt_t);
 const UShort_t kNBYTESINWORD = 4;
@@ -35,7 +35,8 @@ const UInt_t kTQDC16 = 0x09;
 const UInt_t kTQDC16VS = 0x56;
 const UInt_t kTQDC16VS_E = 0xD6;
 const UInt_t kTRIG = 0xA;
-const UInt_t kMSC = 0xF;
+const UInt_t kMSC16V = 0xF;
+const UInt_t kMSC16VE_E = 0xD8;
 const UInt_t kUT24VE_TRC = 0xE3;
 const UInt_t kUT24VE = 0xC9;
 const UInt_t kUT24VE_ = 0x49;
@@ -45,7 +46,7 @@ const UInt_t kADC64WR = 0xCA;
 const UInt_t kHRB = 0xC2;
 const UInt_t kTDC72VXS = 0xD0;
 const UInt_t kFVME = 0xD1;
-const UInt_t kLANDDAQ = 0xDA;
+const UInt_t kTACQUILADAQ = 0xDA;
 const UInt_t kU40VE_RC = 0x4C;
 
 //event type trigger
@@ -64,53 +65,58 @@ const UInt_t TDC_ERROR = 6;
 
 #pragma pack(push,1)
 
-/**
- * M-Stream Header
- * https://afi.jinr.ru/MStream_2_3
- * (words #1,2,3 are excluded from final data)
- */ 
-struct __attribute__ ((packed)) MStreamHeader{
-    void Print(){
-        printf("Device Id : 0x%08X\n", DeviceId);
-        printf("Subtype   :   %8u\n", Subtype);
-        printf("Length    :   %8u\n", Len);
-//        printf("FragOffset:   %8u\n", FragOffset);
-//        printf("PacketId  :   %8u\n", PacketId);
-        printf("LF        :   %8d\n", LF);
-        printf("EVC       :   %8d\n", EVC);
+struct __attribute__ ((packed)) DeviceHeader {
+    void Print() {
+        printf("Serial   : %08X\n", Serial);
+        printf("Length   : %8u\n", Len);
+        printf("DeviceId : %8X\n", DeviceId);
     }
-    uint16_t Len : 16;
-    uint8_t Subtype : 2;
-    bool ACK : 1;
-    bool RST : 1;
-    bool SYN : 1;
-    bool FIN : 1;
-    bool EVC : 1; // Event Complete
-    bool LF : 1; // last fragment
-//    uint8_t Flags : 6;
+    uint32_t Serial;
+    uint32_t Len : 24;
     uint8_t DeviceId : 8;
-    
-//    uint16_t FragOffset : 16;
-//    uint16_t PacketId : 16;
 };
 
-struct __attribute__ ((packed)) MStreamSubtype0Header{
-//    uint32_t Serial;
-//    uint32_t EventId : 24;
-//    uint8_t Custom : 8;
+/**
+ * M-Stream Header
+ * https://afi.jinr.ru/MpdDeviceRawDataFormat
+ */
+struct __attribute__ ((packed)) MStreamHeader {
+    void Print() {
+        printf("Subtype   :   %8u\n", Subtype);
+        printf("Length    :   %8u\n", Len);
+        printf("CustomBits:   %8u\n", CustomBits);
+    }
+    uint8_t Subtype : 2;
+    uint32_t Len : 22;
+    uint8_t CustomBits : 8;
+};
+
+struct __attribute__ ((packed)) MStreamTAI {
     uint32_t TaiSec;
     uint8_t TaiFlags : 2;
     uint32_t TaiNSec : 30;
 };
 
 /**
+ *  https://afi.jinr.ru/DataFormatMSC_ETH
+ */
+struct __attribute__ ((packed)) MSC16VE_EHeader {
+    MStreamHeader Hdr;
+    MStreamTAI Tai;
+    uint8_t NCntrBits : 4;
+    uint32_t : 24;
+    uint8_t Version : 4;
+    uint32_t SliceInt; // Slice interval [ns]
+};
+
+/**
  * TQDC-E Data Block header
  *  https://afi.jinr.ru/DataFormatTQDC16VSE
  */
-struct __attribute__ ((packed)) TqdcDataHeader{
+struct __attribute__ ((packed)) TqdcDataHeader {
     uint16_t Len : 16;
     uint8_t AdcBits : 3;
-    uint8_t  : 5;
+    uint8_t : 5;
     uint8_t Chan : 4;
     uint8_t DataType : 4;
 };

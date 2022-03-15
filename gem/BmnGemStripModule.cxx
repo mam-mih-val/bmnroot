@@ -468,6 +468,7 @@ Bool_t BmnGemStripModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
 
         RealPointsX.push_back(x);
         RealPointsY.push_back(y);
+        RealPointsMC.push_back(refID);
 
         return true;
     }
@@ -544,6 +545,7 @@ Bool_t BmnGemStripModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z
 
         RealPointsX.push_back(x);
         RealPointsY.push_back(y);
+        RealPointsMC.push_back(refID);
 
         return true;
     }
@@ -576,6 +578,7 @@ Bool_t BmnGemStripModule::AddRealPointSimple(Double_t x, Double_t y, Double_t z,
 
         RealPointsX.push_back(x);
         RealPointsY.push_back(y);
+        RealPointsMC.push_back(refID);
 
         return true;
     }

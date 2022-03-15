@@ -80,6 +80,11 @@ BmnHistLAND::BmnHistLAND(TString title, TString path) : BmnHist() {
 }
 
 BmnHistLAND::~BmnHistLAND() {
+    delete can;
+    if (fDir)
+        return;
+    for (auto pad : canPads)
+        delete pad;
 }
 
 void BmnHistLAND::FillFromDigi(DigiArrays *fDigiArrays) {

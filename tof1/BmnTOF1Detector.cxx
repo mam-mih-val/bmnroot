@@ -492,10 +492,15 @@ Bool_t BmnTOF1Detector::SetCorrTimeShift(TString NameFile) {
 Bool_t BmnTOF1Detector::GetCrossPoint(Int_t NStrip = 0) {
 
     fVectorTemp.SetXYZ(0., 0., 0.);
-    if (TMath::Abs((fTimeL[NStrip] - fTimeR[NStrip]) * 0.5) >= fMaxDelta)
+    if (fCorrLR[NStrip] == 0) { // return the center of the strip in case no LR correction
+        fCrossPoint[NStrip] = fCentrStrip[NStrip];
+        return kTRUE;
+    }
+    else if (TMath::Abs((fTimeL[NStrip] - fTimeR[NStrip]) * 0.5) >= fMaxDelta)
         return kFALSE; // estimated position is out of the strip edge.
     double dL = (fTimeL[NStrip] - fTimeR[NStrip]) * 0.5 / fSignalVelosity;
 
+    //should be checked 
     fVectorTemp(0) = dL * TMath::Cos(fStripAngle[NStrip].X());
     fVectorTemp(1) = dL * TMath::Cos(fStripAngle[NStrip].Y());
     fVectorTemp(2) = dL * TMath::Cos(fStripAngle[NStrip].Z());

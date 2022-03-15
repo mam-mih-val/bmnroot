@@ -42,6 +42,7 @@ set(SRCS
  BmnHodoRaw2Digit.cxx
  BmnECALRaw2Digit.cxx
  BmnLANDRaw2Digit.cxx
+ BmnTofCalRaw2Digit.cxx
  BmnGemRaw2Digit.cxx
  BmnTof2Raw2DigitNew.cxx
  BmnTof1Raw2Digit.cxx

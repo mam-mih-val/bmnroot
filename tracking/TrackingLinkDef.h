@@ -12,4 +12,6 @@
 #pragma link C++ class BmnCellAutoTracking+;
 #pragma link C++ class BmnCellDuet+;
 
+#pragma link C++ class BmnStsVectorFinder+;
+
 #endif

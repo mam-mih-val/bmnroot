@@ -40,6 +40,7 @@
 #pragma link C++ class CbmBmnStsDigitize+;
 #pragma link C++ class BmnGemFastDigitize+;
 #pragma link C++ class BmnToCbmHitConverter+;
+#pragma link C++ class BmnStsMatchTracks+;
 
 // Setup
 //#pragma link C++ class CbmStsAddress;

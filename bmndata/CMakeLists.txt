@@ -34,6 +34,7 @@ set(SRCS
  cbm/CbmTrackMerger.cxx
  cbm/CbmPrimaryVertexFinder.cxx
  cbm/CbmFindPrimaryVertex.cxx
+ cbm/CbmL1Counters.h
 
  math/BmnMath.cxx
  math/BmnMatrixMath.cxx
@@ -129,6 +130,7 @@ set(SRCS
  BmnZDCDigit.cxx
  BmnZDCEventData.cxx
  BmnLANDDigit.cxx
+ BmnTofCalDigit.cxx
  BmnTrigUnion.h
 
  BmnDigiContainerTemplate.cxx

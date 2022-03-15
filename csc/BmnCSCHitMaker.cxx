@@ -12,7 +12,7 @@
 static Double_t workTime = 0.0;
 
 BmnCSCHitMaker::BmnCSCHitMaker()
-    : fHitMatching(kTRUE) {
+: fHitMatching(kTRUE) {
 
     fInputPointsBranchName = "CSCPoint";
     fInputDigitsBranchName = "BmnCSCDigit";
@@ -28,12 +28,13 @@ BmnCSCHitMaker::BmnCSCHitMaker()
     TransfSet = nullptr;
 }
 
-BmnCSCHitMaker::BmnCSCHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, TString alignFile)
-    : fHitMatching(kTRUE) {
+BmnCSCHitMaker::BmnCSCHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, TString alignFile, Bool_t isSrc)
+: fHitMatching(kTRUE) {
 
     fInputPointsBranchName = "CSCPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnCSCDigit" : "CSC";
     fIsExp = isExp;
+    fIsSrc = isSrc;
 
     fInputDigitMatchesBranchName = "BmnCSCDigitMatch";
 
@@ -47,12 +48,19 @@ BmnCSCHitMaker::BmnCSCHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp,
     TransfSet = nullptr;
 
     switch (run_period) {
-    case 7: //BM@N RUN-7 (and SRC)
-        fCurrentConfig = BmnCSCConfiguration::RunSpring2018;
-        if (run_number >= 2041 && run_number <= 3588) {
-            fCurrentConfig = BmnCSCConfiguration::RunSRCSpring2018;
-        }
-        break;
+        case 7: //BM@N RUN-7 (and SRC)
+            fCurrentConfig = BmnCSCConfiguration::RunSpring2018;
+            if (run_number >= 2041 && run_number <= 3588) {
+                fCurrentConfig = BmnCSCConfiguration::RunSRCSpring2018;
+            }
+            break;
+        case 8:
+            if (fIsSrc) {
+                fCurrentConfig = BmnCSCConfiguration::RunSRC2021;
+            } else {
+                fCurrentConfig = BmnCSCConfiguration::Run8;
+            }
+            break;
     }
 }
 
@@ -75,14 +83,14 @@ InitStatus BmnCSCHitMaker::Init() {
 
     FairRootManager* ioman = FairRootManager::Instance();
 
-    fBmnCSCDigitsArray = (TClonesArray*)ioman->GetObject(fInputDigitsBranchName);
+    fBmnCSCDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
     if (!fBmnCSCDigitsArray) {
         cout << "BmnCSCHitMaker::Init(): branch " << fInputDigitsBranchName << " not found! Task will be deactivated" << endl;
         SetActive(kFALSE);
         return kERROR;
     }
 
-    fBmnCSCDigitMatchesArray = (TClonesArray*)ioman->GetObject(fInputDigitMatchesBranchName);
+    fBmnCSCDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
 
     if (fVerbose > 1) {
         if (fBmnCSCDigitMatchesArray) cout << "  Strip matching information exists!\n";
@@ -101,36 +109,36 @@ InitStatus BmnCSCHitMaker::Init() {
 
     //Create CSC detector ------------------------------------------------------
     switch (fCurrentConfig) {
-    case BmnCSCConfiguration::RunSpring2018:
-        StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSpring2018.xml");
-        TransfSet = new BmnCSCTransform();
-        TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCRunSpring2018.xml");
-        if (fVerbose > 1) cout << "   Current CSC Configuration : RunSpring2018" << "\n";
-        break;
+        case BmnCSCConfiguration::RunSpring2018:
+            StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSpring2018.xml");
+            TransfSet = new BmnCSCTransform();
+            TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCRunSpring2018.xml");
+            if (fVerbose > 1) cout << "   Current CSC Configuration : RunSpring2018" << "\n";
+            break;
 
-    case BmnCSCConfiguration::RunSRCSpring2018:
-        StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSRCSpring2018.xml");
-        TransfSet = new BmnCSCTransform();
-        TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCRunSRCSpring2018.xml");
-        if (fVerbose > 1) cout << "   Current CSC Configuration : RunSRCSpring2018" << "\n";
-        break;
+        case BmnCSCConfiguration::RunSRCSpring2018:
+            StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSRCSpring2018.xml");
+            TransfSet = new BmnCSCTransform();
+            TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCRunSRCSpring2018.xml");
+            if (fVerbose > 1) cout << "   Current CSC Configuration : RunSRCSpring2018" << "\n";
+            break;
 
-    case BmnCSCConfiguration::Run8:
-        StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRun8.xml");
-        TransfSet = new BmnCSCTransform();
-        TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCRun8.xml");
-        if (fVerbose) cout << "   Current CSC Configuration : Run8" << "\n";
-        break;
+        case BmnCSCConfiguration::Run8:
+            StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRun8.xml");
+            TransfSet = new BmnCSCTransform();
+            TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCRun8.xml");
+            if (fVerbose) cout << "   Current CSC Configuration : Run8" << "\n";
+            break;
 
-    case BmnCSCConfiguration::RunSRC2021:
-        StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSRC2021.xml");
-        TransfSet = new BmnCSCTransform();
-        TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCRunSRC2021.xml");
-        if (fVerbose) cout << "   Current CSC Configuration : RunSRC2021" << "\n";
-        break;
+        case BmnCSCConfiguration::RunSRC2021:
+            StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSRC2021.xml");
+            TransfSet = new BmnCSCTransform();
+            TransfSet->LoadFromXMLFile(gPathCSCConfig + "CSCRunSRC2021.xml");
+            if (fVerbose) cout << "   Current CSC Configuration : RunSRC2021" << "\n";
+            break;
 
-    default:
-        StationSet = nullptr;
+        default:
+            StationSet = nullptr;
     }
 
     fField = FairRunAna::Instance()->GetField();
@@ -187,7 +195,7 @@ void BmnCSCHitMaker::ProcessDigits() {
     Int_t AddedStripDigitMatches = 0;
 
     for (UInt_t idigit = 0; idigit < fBmnCSCDigitsArray->GetEntriesFast(); idigit++) {
-        digit = (BmnCSCDigit*)fBmnCSCDigitsArray->At(idigit);
+        digit = (BmnCSCDigit*) fBmnCSCDigitsArray->At(idigit);
         if (!digit->IsGoodDigit())
             continue;
         station = StationSet->GetStation(digit->GetStation());
@@ -196,7 +204,7 @@ void BmnCSCHitMaker::ProcessDigits() {
         if (module->SetStripSignalInLayer(digit->GetStripLayer(), digit->GetStripNumber(), digit->GetStripSignal())) AddedDigits++;
 
         if (fBmnCSCDigitMatchesArray) {
-            strip_match = (BmnMatch*)fBmnCSCDigitMatchesArray->At(idigit);
+            strip_match = (BmnMatch*) fBmnCSCDigitMatchesArray->At(idigit);
             if (module->SetStripMatchInLayer(digit->GetStripLayer(), digit->GetStripNumber(), *strip_match)) AddedStripDigitMatches++;
         }
     }
@@ -272,9 +280,9 @@ void BmnCSCHitMaker::ProcessDigits() {
                 x *= -1; // invert to global X //Temporary switched off
 
                 new ((*fBmnCSCHitsArray)[fBmnCSCHitsArray->GetEntriesFast()])
-                    BmnCSCHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
+                        BmnCSCHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
 
-                BmnCSCHit* hit = (BmnCSCHit*)fBmnCSCHitsArray->At(fBmnCSCHitsArray->GetEntriesFast() - 1);
+                BmnCSCHit* hit = (BmnCSCHit*) fBmnCSCHitsArray->At(fBmnCSCHitsArray->GetEntriesFast() - 1);
                 hit->SetStation(iStation);
                 hit->SetModule(iModule);
                 hit->SetIndex(fBmnCSCHitsArray->GetEntriesFast() - 1);
@@ -287,6 +295,10 @@ void BmnCSCHitMaker::ProcessDigits() {
 
                 StripCluster ucls = module->GetUpperCluster(iPoint);
                 StripCluster lcls = module->GetLowerCluster(iPoint);
+                ucls.SetModule(iModule);
+                lcls.SetModule(iModule);
+                ucls.SetStation(iStation);
+                lcls.SetStation(iStation);
                 UniqueUpperClusters[ucls.GetUniqueID()] = ucls;
                 UniqueLowerClusters[lcls.GetUniqueID()] = lcls;
                 hit->SetUpperClusterIndex(ucls.GetUniqueID());
@@ -333,7 +345,7 @@ void BmnCSCHitMaker::ProcessDigits() {
 
     for (auto it : UniqueUpperClusters) {
         for (Int_t i = 0; i < fBmnCSCHitsArray->GetEntriesFast(); i++) {
-            BmnCSCHit* hit = (BmnCSCHit*)fBmnCSCHitsArray->At(i);
+            BmnCSCHit* hit = (BmnCSCHit*) fBmnCSCHitsArray->At(i);
             if (hit->GetUpperClusterIndex() != it.first) continue;
             hit->SetUpperClusterIndex(fBmnCSCUpperClustersArray->GetEntriesFast());
         }
@@ -342,7 +354,7 @@ void BmnCSCHitMaker::ProcessDigits() {
     }
     for (auto it : UniqueLowerClusters) {
         for (Int_t i = 0; i < fBmnCSCHitsArray->GetEntriesFast(); i++) {
-            BmnCSCHit* hit = (BmnCSCHit*)fBmnCSCHitsArray->At(i);
+            BmnCSCHit* hit = (BmnCSCHit*) fBmnCSCHitsArray->At(i);
             if (hit->GetLowerClusterIndex() != it.first) continue;
             hit->SetLowerClusterIndex(fBmnCSCLowerClustersArray->GetEntriesFast());
         }

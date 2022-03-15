@@ -16,11 +16,11 @@ BmnHistToF700::BmnHistToF700(TString title, TString path) : BmnHist() {
     fSelectedSide = -1;
     TString name;
     name = fTitle + "_Leading_Time";
-    histLeadingTime = new TH1D(name, name, 500, -3800, 800);
+    histLeadingTime = new TH1D(name, name, 500, 0, 2000);
     histLeadingTime->GetXaxis()->SetTitle("Time, ns");
     histLeadingTime->GetYaxis()->SetTitle("Activations count");
     name = fTitle + "_Leading_Time_Specific";
-    histLeadingTimeSpecific = new TH1D(name, name, 500, -3800, 800);
+    histLeadingTimeSpecific = new TH1D(name, name, 500, 0, 2000);
     histLeadingTimeSpecific->GetXaxis()->SetTitle("Time, ns");
     histLeadingTimeSpecific->GetYaxis()->SetTitle("Activations count");
     name = fTitle + "_Amplitude";
@@ -79,6 +79,11 @@ BmnHistToF700::~BmnHistToF700() {
     delete histL;
     delete histR;
     delete Events;
+    delete canTimes;
+    if (fDir)
+        return;
+    for (auto pad : canTimesPads)
+        delete pad;
 }
 
 void BmnHistToF700::FillFromDigi(DigiArrays *fDigiArrays) {

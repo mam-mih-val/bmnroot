@@ -68,13 +68,14 @@ class CbmFindPrimaryVertex : public FairTask
   /** Finish **/
   virtual void Finish();
 
+  void SetTrackBranch(TString trBranch = "StsTrack") { fTrBranch = trBranch; } //AZ - set track branch name 
 
  private:
 
   CbmPrimaryVertexFinder* fFinder;
   TClonesArray*           fTracks;
   CbmVertex*              fPrimVert;
-
+  TString                 fTrBranch;     //AZ - Track branch name
 
   CbmFindPrimaryVertex(const CbmFindPrimaryVertex&) = delete;
   CbmFindPrimaryVertex& operator=(const CbmFindPrimaryVertex&) = delete;

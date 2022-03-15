@@ -46,7 +46,9 @@ void bmnloadlibs()
   gSystem->Load("libBmnAlignment");
   gSystem->Load("libGlobalTracking");
   gSystem->Load("libzmq");
+//  gSystem->Load("libFairMQ");
   gSystem->Load("libDecoder");
   gSystem->Load("libBmnMisc");
   gSystem->Load("libBmnPhysics");
+//  gSystem->Load("libBmnMonitor");
 }

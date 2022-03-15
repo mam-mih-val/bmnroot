@@ -83,7 +83,12 @@ BmnHistCsc::BmnHistCsc(TString title, TString path, Int_t periodID, BmnSetup set
 }
 
 BmnHistCsc::~BmnHistCsc() {
-    //delete cscStationSet;
+    delete cscStationSet;
+    delete canCscStrip;
+    if (fDir)
+        return;
+    for (auto pad : canStripPads)
+        delete pad;
 }
 
 void BmnHistCsc::Register(THttpServer * serv) {

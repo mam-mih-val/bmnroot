@@ -71,7 +71,7 @@ void geometry(FairRunSim *fRun)
     hodo->SetGeometryFileName("Hodo_with_box_XeCsI_3.9GeV_field_Extrap_scale_1800_900_Zpos_892.0cm_Xshift_55.50cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
     fRun->AddModule(hodo);
 
-    BmnFHCal* fhcal = new BmnFHCal("FHCal", kTRUE);
+    FairDetector* fhcal = new BmnFHCal("FHCAL", kTRUE);
     //zdc->SetBirk();
     fhcal->SetGeometryFileName("FHCal_54mods_hole_XeCsI_3.9GeV_field_Extrap_scale_1800_900_Zpos_900.0cm_Xshift_55.5cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
     fRun->AddModule(fhcal);

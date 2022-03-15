@@ -12,6 +12,7 @@
 #include "FairTask.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnSiliconStationSet.h"
+#include "BmnCSCStationSet.h"
 #include "BmnMCTrackCreator.h"
 
 class BmnHistManager;
@@ -34,7 +35,7 @@ public:
     /**
      * \brief Constructor.
      */
-    BmnTrackingQa(Short_t ch, TString name, TString gemConf, TString silConf);
+    BmnTrackingQa(Short_t ch, TString name, TString gemConf, TString silConf, TString cscConf);
 
     /**
      * \brief Destructor.
@@ -215,14 +216,20 @@ private:
     TClonesArray* fInnerHits;
     TClonesArray* fTof400Hits;
     TClonesArray* fTof700Hits;
+    TClonesArray* fCscHits;
+    TClonesArray* fCscPoints;
     
     TClonesArray* fVertex;
     TString fConfigGem;
     TString fConfigSil;
+    TString fConfigCsc;
     BmnGemStripStationSet* fGemDetector;
     BmnSiliconStationSet* fSilDetector;
+    BmnCSCStationSet* fCscDetector;
     
     Short_t fChargeCut; //(-1, 0, +1) do QA for negative, all or positive particles
+    
+    Int_t fEventNo;  // event counter
 
     BmnTrackingQa(const BmnTrackingQa&) = delete;
     BmnTrackingQa& operator=(const BmnTrackingQa&) = delete;

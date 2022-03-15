@@ -45,7 +45,6 @@ BmnHistMwpc::BmnHistMwpc(TString title, TString path) : BmnHist() {
         h_wires.push_back(row);
         h_times.push_back(rowTimes);
     }
-    MwpcHits = new TClonesArray("BmnMwpcHit");
     //for (Int_t iStation = 0; iStation < MWPC_STATIONS; iStation++) {
     //name = Form(fTitle + "_h_MWPC%d", iStation);
     name = fTitle + "_h_MWPC0";
@@ -70,12 +69,10 @@ BmnHistMwpc::BmnHistMwpc(TString title, TString path) : BmnHist() {
         for (Int_t iStation = 0; iStation < MWPC_STATIONS; iStation++) {
             //            Int_t iPad = rowIndex * MWPC_STATIONS + colIndex;
             Int_t iPad = iStation * MWPC_MODS + iPlane;
-            PadInfo *p = new PadInfo();
-            p->current = h_wires[iPlane][iStation];
-            canWiresPads[iPad] = p;
-            PadInfo *pt = new PadInfo();
-            pt->current = h_times[iPlane][iStation];
-            canTimesPads[iPad] = pt;
+            canWiresPads[iPad] = new PadInfo();
+            canWiresPads[iPad]->current = h_wires[iPlane][iStation];
+            canTimesPads[iPad] = new PadInfo();
+            canTimesPads[iPad]->current = h_times[iPlane][iStation];
             canTimes->GetPad(iPad + 1)->SetGrid();
             canWires->GetPad(iPad + 1)->SetGrid();
             NamesWires[iPad] = canWiresPads[iPad]->current->GetName();
@@ -85,19 +82,20 @@ BmnHistMwpc::BmnHistMwpc(TString title, TString path) : BmnHist() {
 }
 
 BmnHistMwpc::~BmnHistMwpc() {
+    delete canWires;
+    delete canTimes;
     if (fDir != NULL)
         return;
-    for (auto row : h_wires)
-        for (auto el : row)
-            delete el;
-    for (auto row : h_times)
-        for (auto el : row)
-            delete el;
-    delete MwpcHits;
     delete h_MWPC0;
     delete h_MWPC1;
     delete h_MWPC2;
     delete h_MWPC3;
+    for (auto pad : canWiresPads)
+        delete pad;
+    for (auto pad : canTimesPads)
+        delete pad;
+    for (auto pad : can2dPads)
+        delete pad;
 }
 
 void BmnHistMwpc::Register(THttpServer *serv) {
@@ -146,24 +144,24 @@ void BmnHistMwpc::DrawBoth() {
 }
 
 void BmnHistMwpc::FillFromDigi(DigiArrays *fDigiArrays) {
-    // TClonesArray * digits = fDigiArrays->mwpc;
-    // if (!digits)
-    //     return;
-    // MwpcHits->Clear();
-    // for (Int_t iDig = 0; iDig < digits->GetEntriesFast(); ++iDig) {
-    //     BmnMwpcDigit* dig = (BmnMwpcDigit*) digits->At(iDig);
-    //     Int_t station = dig->GetStation();
-    //     Int_t plane = dig->GetPlane();
-    //     h_wires[plane][station]->Fill(dig->GetWireNumber());
-    //     h_times[plane][station]->Fill(dig->GetTime());
-    // }
-    // for (Int_t iHit = 0; iHit < MwpcHits->GetEntriesFast(); ++iHit) {
-    //     BmnMwpcHit* hit = (BmnMwpcHit*) MwpcHits->At(iHit);
-    //     if (hit->GetMwpcId() == 0) h_MWPC0->Fill(hit->GetX(), hit->GetY());
-    //     if (hit->GetMwpcId() == 1) h_MWPC1->Fill(hit->GetX(), hit->GetY());
-    //     if (hit->GetMwpcId() == 2) h_MWPC2->Fill(hit->GetX(), hit->GetY());
-    //     if (hit->GetMwpcId() == 3) h_MWPC3->Fill(hit->GetX(), hit->GetY());
-    // }
+     TClonesArray * digits = fDigiArrays->mwpc;
+     if (!digits)
+         return;
+     for (Int_t iDig = 0; iDig < digits->GetEntriesFast(); ++iDig) {
+         BmnMwpcDigit* dig = (BmnMwpcDigit*) digits->At(iDig);
+         Int_t station = dig->GetStation();
+         Int_t plane = dig->GetPlane();
+         h_wires[plane][station]->Fill(dig->GetWireNumber());
+         h_times[plane][station]->Fill(dig->GetTime());
+     }
+//     MwpcHits->Clear();
+//     for (Int_t iHit = 0; iHit < MwpcHits->GetEntriesFast(); ++iHit) {
+//         BmnMwpcHit* hit = (BmnMwpcHit*) MwpcHits->At(iHit);
+//         if (hit->GetMwpcId() == 0) h_MWPC0->Fill(hit->GetX(), hit->GetY());
+//         if (hit->GetMwpcId() == 1) h_MWPC1->Fill(hit->GetX(), hit->GetY());
+//         if (hit->GetMwpcId() == 2) h_MWPC2->Fill(hit->GetX(), hit->GetY());
+//         if (hit->GetMwpcId() == 3) h_MWPC3->Fill(hit->GetX(), hit->GetY());
+//     }
 }
 
 BmnStatus BmnHistMwpc::SetRefRun(Int_t id) {

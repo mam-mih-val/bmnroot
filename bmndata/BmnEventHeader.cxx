@@ -13,6 +13,8 @@ fTripWord(kFALSE),
 fSpillStart(kFALSE),
 fStartSignalTime(0),
 fStartSignalWidth(0),
+fInputsAR(0),
+fInputsBR(0),
 fTrigUnion(0) {
     fTrigInfo = new BmnTrigInfo();
 }
@@ -27,6 +29,8 @@ fTripWord(trip),
 fSpillStart(kFALSE),
 fStartSignalTime(0),
 fStartSignalWidth(0),
+fInputsAR(0),
+fInputsBR(0),
 fTrigInfo(trig_info),
 fTrigUnion(0) {
     SetRunId(run_id);

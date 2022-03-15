@@ -208,6 +208,17 @@ BmnHistTrigger::BmnHistTrigger(TString title, TString path, Int_t periodID, BmnS
 BmnHistTrigger::~BmnHistTrigger() {
     BDEvents->Clear();
     delete BDEvents;
+    delete canTimes;
+    delete canProfile;
+    delete can2d;
+    if (fDir)
+        return;
+    for (auto pad : canProfilePads)
+        delete pad;
+    for (auto pad : canTimesPads)
+        delete pad;
+    for (auto pad : can2dPads)
+        delete pad;
 }
 
 void BmnHistTrigger::FillFromDigi(DigiArrays *fDigiArrays) {
@@ -341,6 +352,7 @@ void BmnHistTrigger::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
 }
 
 void BmnHistTrigger::SetDir(TDirectory * Dir) {
+    fDir = Dir;
     for (auto &el : can2dPads) {
         if (el->current)
             el->current->SetDirectory(fDir);

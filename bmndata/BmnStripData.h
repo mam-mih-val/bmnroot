@@ -150,9 +150,12 @@ public:
     Double_t TotalSignal; //total signal of the cluster
     Double_t PositionResidual; // residual from the origin position
     Bool_t IsCorrect; //correct or incorrect cluster (status)
-    
+    Int_t Station;
+    Int_t Module;
+    Int_t Width;
+
     //Cluster type: 0 - lower, 1 - upper
-    Int_t fType; 
+    Int_t fType;
 
     vector<Int_t> Strips;
     vector<Double_t> Signals;
@@ -166,10 +169,19 @@ public:
         PositionResidual = 0.0;
         IsCorrect = kFALSE;
         fType = -1;
+        Station = -1;
+        Module = -1;
+        Width = 0;
     }
-    
+
     void SetType(Int_t type) { fType = type; }
     Int_t GetType() { return fType; }
+    Int_t GetWidth() { return Width; }
+    void SetWidth(Int_t w) { Width = w; }
+    Int_t GetStation() { return Station; }
+    void SetStation(Int_t st) { Station = st; }
+    Int_t GetModule() { return Module; }
+    void  SetModule(Int_t m) { Module = m; }
 
     StripCluster(Double_t orig_position, Double_t mean_position, Double_t total_signal) : OriginPosition(orig_position), MeanPosition(mean_position), TotalSignal(total_signal) {
         Strips.clear();
@@ -203,6 +215,23 @@ public:
             Signals.insert(signal_iter, strip_signal);
         }
     }
+    
+    void Print() {
+        printf("\nCLUSTER INFORMATION (#%d)\n", this->GetUniqueID());
+        if (fType == 0) printf("TYPE: LOWER\n");
+        else if (fType == 1) printf("TYPE: UPPER\n");
+        printf("Station: %d\n", Station);
+        printf("Module: %d\n", Module);
+        printf("Cluster width: %d\n", Width);
+        printf("Total cluster signal: %4.2f\n", TotalSignal);
+        printf("Strips: ");
+        for (auto it : Strips)
+            printf("%d ", it);
+        printf("\nSignals: ");
+        for (auto it : Signals)
+            printf("%4.2f ", it);
+        printf("\n");
+    }
 
     void Clear() {
         Strips.clear();
@@ -215,7 +244,9 @@ public:
         fType = -1;
     }
     Int_t GetClusterSize() { return Strips.size(); }
+    ClassDef(StripCluster,1);
 };
+ClassImp(StripCluster);
 //------------------------------------------------------------------------------
 
 #endif /* BMNSTRIPDATA_H */

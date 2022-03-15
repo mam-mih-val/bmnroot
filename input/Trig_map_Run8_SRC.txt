@@ -1,21 +1,33 @@
 
       Det      Mod      Serial      Slot     Channel  IsNegative
 ================================================================
-TQDC_BC1         0    0x0CCFA51A      0           0       0
+TQDC_BC1         0    0x0CCFA51A      0           0       1
 TQDC_T0_1_A      0    0x0CCFA51A      0           1       0
 TQDC_T0_2_A      0    0x0CCFA51A      0           2       0
 TQDC_BC2_1_A     0    0x0CCFA51A      0           3       0
 TQDC_BC2_2_A     0    0x0CCFA51A      0           4       0
-TQDC_VETO        0    0x0CCFA51A      0           5       0
-TQDC_BC3_1       0    0x0CCFA51A      0           6       0
-TQDC_BC3_2       0    0x0CCFA51A      0           7       0
-TQDC_BC3_SUM     0    0x0CCFA51A      0           8       0
-TQDC_BC4_1       0    0x0CCFA51A      0           9       0
-TQDC_BC4_2       0    0x0CCFA51A      0          10       0
-TQDC_BC4_SUM     0    0x0CCFA51A      0          11       0
-TQDC_BC5_1       0    0x0CCFA51A      0          12       0
-TQDC_BC5_2       0    0x0CCFA51A      0          13       0
-TQDC_BC5_SUM     0    0x0CCFA51A      0          14       0
+TQDC_VETO        0    0x0CCFA51A      0           5       1
+TQDC_BC3_1       0    0x0CCFA51A      0           6       1
+TQDC_BC3_2       0    0x0CCFA51A      0           7       1
+TQDC_BC3_SUM     0    0x0CCFA51A      0           8       1
+TQDC_BC4_1       0    0x0CCFA51A      0           9       1
+TQDC_BC4_2       0    0x0CCFA51A      0          10       1
+TQDC_BC4_SUM     0    0x0CCFA51A      0          11       1
+TQDC_BC5_1       0    0x0CCFA51A      0          12       1
+TQDC_BC5_2       0    0x0CCFA51A      0          13       1
+TQDC_BC5_SUM     0    0x0CCFA51A      0          14       1
+TQDC_BC3_1_X10   0    0x0CD03FB5      0           0       1
+TQDC_BC3_2_X10   0    0x0CD03FB5      0           1       1
+TQDC_BC4_1_X10   0    0x0CD03FB5      0           2       1
+TQDC_BC4_2_X10   0    0x0CD03FB5      0           3       1
+TQDC_BC5_1_X10   0    0x0CD03FB5      0           4       1
+TQDC_BC5_2_X10   0    0x0CD03FB5      0           5       1
+TQDC_FD          0    0x0CD03FB5      0           6       1
+TQDC_BT_Ref      0    0x0CD03FB5      0           8       1
+TQDC_BT_Del      0    0x0CD03FB5      0          10       1
+TQDC_LASER       0    0x0CD03FB5      0          12       1
+TQDC_T0_SUM      0    0x0CD03FB5      0          14       0
+TQDC_BC2_SUM     0    0x0CD03FB5      0          15       0
 T0_1_A           0    0x0aa1186f      0           9       0
 T0_1_M           0    0x0aa1186f      0          35       0
 T0_2_A           0    0x0aa1186f      0           4       0
@@ -24,9 +36,4 @@ BC2_1_A          0    0x0aa1186f      0           3       0
 BC2_1_M          0    0x0aa1186f      0          27       0
 BC2_2_A          0    0x0aa1186f      0          22       0
 BC2_2_M          0    0x0aa1186f      0          34       0
-T0_T             0    0x0aa1186f      0          25       0
-BC2_T            0    0x0aa1186f      0          32       0
-BC3              0    0x0aa1186f      0          29       0
-BC4              0    0x0aa1186f      0          37       0
-BC5              0    0x0aa1186f      0          41       0
 

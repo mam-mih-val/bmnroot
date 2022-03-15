@@ -39,10 +39,10 @@
 
 #define RAW_DECODER_SOCKET_PORT 5555
 #define RUN_FILE_CHECK_PERIOD    1e5
-#define DECO_SOCK_WAIT_PERIOD     10
+#define DECO_SOCK_WAIT_PERIOD     200
 #define DECO_SOCK_WAIT_LIMIT     5*60e3
 #define INOTIF_BUF_LEN (255 * (sizeof(struct inotify_event) + 255))
-#define MIN_REMNANT_LEN 200 * 1024// crutch actually, will be removed after parser improvement
+#define MIN_REMNANT_LEN 300 * 1024// crutch actually, will be removed after parser improvement
 #define DAQ_ADDR     "bmn-daq"  //"bmn-hrb-3.jinr.ru"
 #define DAQ_IP         "10.18.11.200"//"10.18.11.193"//
 #define DAQ_PORT               32999
@@ -90,6 +90,8 @@ private:
     BmnStatus InitDecoder(Int_t runID);
     BmnStatus InitReco();
     BmnStatus IterReco();
+    BmnStatus ConnectDataSocket();
+    BmnStatus ConnectDigiSocket();
     void ProcessFileRun(TString digiName, UInt_t timeLimit = WAIT_LIMIT);
     static TString WatchNext(TString dirname, TString filename, Int_t cycleWait);
     static TString WatchNext(Int_t inotifDir, Int_t cycleWait);

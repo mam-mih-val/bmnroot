@@ -268,8 +268,10 @@ Bool_t CbmStsDigiScheme::InitNew(CbmGeoStsPar* geoPar,
     //printf("SilStationSet->GetNStations() = %d\n", SilStationSet->GetNStations());
     for (Int_t iSt = 0; iSt < SilStationSet->GetNStations(); ++iSt) {
       BmnSiliconStation* siStation = SilStationSet->GetStation(iSt);
-      
-      CbmStsStation* station = new CbmStsStation(Form("stat%02d", iSt + 1), iSt + 1, siStation->GetZPosition(), statD, statRadLength, 0, 0, 0);
+      statRmax = TMath::Max (siStation->GetXSize(), siStation->GetYSize()); //AZ
+      //AZ CbmStsStation* station = new CbmStsStation(Form("stat%02d", iSt + 1), iSt + 1, siStation->GetZPosition(), statD, statRadLength, 0, 0, 0);
+      CbmStsStation* station = new CbmStsStation(Form("stat%02d", iSt + 1), iSt + 1, siStation->GetZPosition(), statD, statRadLength, 0, statRmax, 0);
+
       for (Int_t iMod = 0; iMod < siStation->GetNModules(); ++iMod) {
         BmnSiliconModule* siModule = siStation->GetModule(iMod);
         // for (Int_t iL = 0; iL < siModule->GetNStripLayers(); ++iL) {
@@ -285,14 +287,19 @@ Bool_t CbmStsDigiScheme::InitNew(CbmGeoStsPar* geoPar,
         station->AddSector(sector);
       }
       fStations->Add(station);
-      fStationMap[iSt] = station;
+      //AZ fStationMap[iSt] = station;
+      fStationMap[iSt+1] = station; //AZ
     }
     
     //printf("GemStationSet->GetNStations() = %d\n", GemStationSet->GetNStations());
     for (Int_t iSt = 0; iSt < GemStationSet->GetNStations(); ++iSt) {
       BmnGemStripStation* gemStation = GemStationSet->GetStation(iSt);
+      statRmax = TMath::Max (gemStation->GetXSize(), gemStation->GetYSize()); //AZ
       Double_t statRot = (gemStation->GetModule(0)->GetElectronDriftDirection() == 1) ? 0 : Pi();
-      CbmStsStation* station = new CbmStsStation(Form("stat%02d", iSt + 1 + SilStationSet->GetNStations()), iSt + 1 + SilStationSet->GetNStations(), gemStation->GetZPosition(), statD, statRadLength, statRmin, statRmax, statRot);
+
+      //AZ CbmStsStation* station = new CbmStsStation(Form("stat%02d", iSt + 1 + SilStationSet->GetNStations()), iSt + 1 + SilStationSet->GetNStations(), gemStation->GetZPosition(), statD, statRadLength, statRmin, statRmax, statRot);
+      CbmStsStation* station = new CbmStsStation(Form("stat%02d", iSt + 1 + SilStationSet->GetNStations()), iSt + 1 + SilStationSet->GetNStations(), gemStation->GetZPosition(), statD, statRadLength, statRmin, statRmax, 0);
+
       for (Int_t iMod = 0; iMod < gemStation->GetNModules(); ++iMod) {
         BmnGemStripModule* gemModule = gemStation->GetModule(iMod);
         // for (Int_t iL = 0; iL < gemModule->GetNStripLayers(); ++iL) {
@@ -308,7 +315,8 @@ Bool_t CbmStsDigiScheme::InitNew(CbmGeoStsPar* geoPar,
         station->AddSector(sector);
       }
       fStations->Add(station);
-      fStationMap[iSt + SilStationSet->GetNStations()] = station;
+      //AZ fStationMap[iSt + SilStationSet->GetNStations()] = station;
+      fStationMap[iSt + SilStationSet->GetNStations() + 1] = station; //AZ
     }
     //printf("fStations->GetEntries() = %d\n", fStations->GetEntries());
     

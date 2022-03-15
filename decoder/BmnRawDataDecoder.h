@@ -13,6 +13,7 @@
 #include "BmnHodoRaw2Digit.h"
 #include "BmnECALRaw2Digit.h"
 #include "BmnLANDRaw2Digit.h"
+#include "BmnTofCalRaw2Digit.h"
 #include "BmnTrigRaw2Digit.h"
 #include "BmnCscRaw2Digit.h"
 #include "BmnMscRaw2Digit.h"
@@ -45,7 +46,8 @@ public:
     BmnRawDataDecoder(TString file = "", TString outfile = "", ULong_t nEvents = 0, ULong_t period = 7);
     virtual ~BmnRawDataDecoder();
 
-    BmnStatus ParseRunTLV(UInt_t *buf, UInt_t &len);
+    static BmnStatus ParseRunTLV(UInt_t *buf, UInt_t &len, UInt_t &runId);
+    BmnStatus ParseJsonTLV(UInt_t *buf, UInt_t &len);
     BmnStatus ConvertRawToRoot();
     BmnStatus ConvertRawToRootIterate(UInt_t *buf, UInt_t len);
     BmnStatus ConvertRawToRootIterateFile(UInt_t limit = WAIT_LIMIT);
@@ -87,6 +89,7 @@ public:
         d.hodo = hodo;
         d.ecal = ecal;
         d.land = land;
+        d.tofcal = tofcal;
         d.dch = dch;
         d.mwpc = mwpc;
         d.header = eventHeader;
@@ -167,6 +170,10 @@ public:
 
     BmnLANDRaw2Digit *GetLANDMapper() {
         return fLANDMapper;
+    }
+
+    BmnTofCalRaw2Digit *GetTofCalMapper() {
+        return fTofCalMapper;
     }
 
     void SetTrigPlaceMapping(TString map) {
@@ -276,6 +283,26 @@ public:
         fLANDVScintFileName = vscint;
     }
 
+    void SetTofCalMapping(TString map) {
+        fTofCalMapFileName = map;
+    }
+
+    void SetTofCalPedestal(TString clock) {
+        fTofCalClockFileName = clock;
+    }
+
+    void SetTofCalTCal(TString tcal) {
+        fTofCalTCalFileName = tcal;
+    }
+
+    void SetTofCalDiffSync(TString diff_sync) {
+        fTofCalDiffSyncFileName = diff_sync;
+    }
+
+    void SetTofCalVScint(TString vscint) {
+        fTofCalVScintFileName = vscint;
+    }
+
     TString GetRootFileName() {
         return fRootFileName;
     }
@@ -338,6 +365,7 @@ private:
     pt::ptree conf;
     Bool_t isSpillStart;
     UInt_t fSpillCntr;
+    BmnEventType evType = kBMNPAYLOAD;
 
     Int_t fTOF700ReferenceRun;
     Int_t fTOF700ReferenceChamber;
@@ -410,6 +438,11 @@ private:
     TString fLANDTCalFileName;
     TString fLANDDiffSyncFileName;
     TString fLANDVScintFileName;
+    TString fTofCalMapFileName;
+    TString fTofCalClockFileName;
+    TString fTofCalTCalFileName;
+    TString fTofCalDiffSyncFileName;
+    TString fTofCalVScintFileName;
     TString fSiliconMapFileName;
     TString fCscMapFileName;
     TString fTrigPlaceMapFileName;
@@ -440,6 +473,7 @@ private:
     TClonesArray *adc; //zdc & ecal & scwall & fhcal
     TClonesArray *hrb;
     TClonesArray *tacquila; // LAND.
+    TClonesArray *tacquila2; // ToF-Cal
     TClonesArray *tdc;
     TClonesArray *tqdc_tdc;
     TClonesArray *tqdc_adc;
@@ -458,12 +492,13 @@ private:
     TClonesArray *hodo;
     TClonesArray *ecal;
     TClonesArray *land;
+    TClonesArray *tofcal;
     TClonesArray *dch;
     TClonesArray *mwpc;
 
     //header array
     BmnEventHeader *eventHeader;
-    BmnSpillHeader *spillHeader;
+    TClonesArray *spillHeader;
 
     UInt_t data[10000000];
     ULong_t fMaxEvent;
@@ -484,6 +519,7 @@ private:
     BmnHodoRaw2Digit *fHodoMapper;
     BmnECALRaw2Digit *fECALMapper;
     BmnLANDRaw2Digit *fLANDMapper;
+    BmnTofCalRaw2Digit *fTofCalMapper;
     BmnMscRaw2Digit *fMSCMapper;
     UInt_t nSpillEvents;
     BmnTrigInfo* trigInfoTemp;
@@ -529,10 +565,10 @@ private:
      */
     BmnStatus Process_ADC64VE(UInt_t *data, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr);
     BmnStatus Process_ADC64WR(UInt_t *data, UInt_t len, UInt_t serial, TClonesArray *arr);
-    BmnStatus Process_FVME(UInt_t *data, UInt_t len, UInt_t serial, BmnEventType &ped, BmnTrigInfo* spillInfo);
+    BmnStatus Process_FVME(UInt_t *data, UInt_t len, UInt_t serial, BmnTrigInfo* spillInfo);
     BmnStatus Process_HRB(UInt_t *data, UInt_t len, UInt_t serial);
     BmnStatus Process_Tacquila(UInt_t *data, UInt_t len);
-    BmnStatus FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t slot, UInt_t &idx, BmnTrigInfo* spillInfo);
+    BmnStatus FillU40VE(UInt_t *d, UInt_t slot, UInt_t &idx, BmnTrigInfo* spillInfo);
     BmnStatus FillBlockTDC(UInt_t *d, UInt_t serial, uint16_t &len, TClonesArray *ar);
     BmnStatus FillBlockADC(UInt_t *d, UInt_t serial, uint8_t channel, uint16_t &len, TClonesArray *ar);
     BmnStatus FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
@@ -543,9 +579,18 @@ private:
      * @param d data pointer
      * @param serial device serial
      * @param len payload length
-     * @return opeartion success
+     * @return operation success
      */
-    BmnStatus FillTQDC_Eth(UInt_t *d, UInt_t serial, UInt_t &len);
+    BmnStatus FillTQDC_E(UInt_t *d, UInt_t serial, UInt_t &len);
+    /**
+     * Parse MSC16VE-E MStream data block
+     * https://afi.jinr.ru/DataFormatMSC_ETH
+     * @param d data pointer
+     * @param serial device serial
+     * @param len payload length
+     * @return operation success
+     */
+    BmnStatus FillMSC16VE_E(UInt_t *d, UInt_t serial, UInt_t &len);
     BmnStatus FillTDC72VXS(UInt_t *d, UInt_t serial, UInt_t &len);
     /**
      * Parse UT24VE-TRC MStream data block
@@ -556,9 +601,9 @@ private:
      * @param evType calibration/payload event
      * @return operation success
      */
-    BmnStatus FillUT24VE_TRC(UInt_t *d, UInt_t &len, BmnEventType &evType);
+    BmnStatus FillUT24VE_TRC(UInt_t *d, UInt_t &serial, UInt_t &len);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);
-    inline void FillWR(UInt_t iSerial, Long64_t iEvent, Long64_t t_sec, Long64_t t_ns);
+    inline void FillWR(UInt_t iSerial, ULong64_t iEvent, Long64_t t_sec, Long64_t t_ns);
 
     BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t &idx);
     BmnStatus FillTimeShiftsMap();

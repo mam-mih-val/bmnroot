@@ -156,7 +156,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // ====================================================================== //
     BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
     if (!isExp)
-        cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSRCSpring2018); //set explicitly
+        cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSRC2021); //set explicitly
     cscHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(cscHM);
 

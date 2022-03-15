@@ -156,6 +156,12 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fNScWallSerials = 0;
     fNFHCalSerials = 0;
     fNHodoSerials = 0;
+    for (int c=0; c<60; c++)
+    {
+	refrun_tof700_slewing[c] = 0;
+	refchamber_tof700_slewing[c] = 0;
+	type_tof700_slewing[c] = 0;
+    }
     //InitMaps();
 }
 

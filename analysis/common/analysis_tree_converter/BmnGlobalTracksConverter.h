@@ -44,11 +44,11 @@ private:
   std::string str_sts_trk_branch_name_;
   std::string str_tof400_branch_name_;
   std::string str_tof700_branch_name_;
-  AnalysisTree::TrackDetector* vtx_tracks_{nullptr};   ///< raw pointers are needed for TTree::Branch
+  AnalysisTree::TrackDetector*out_global_tracks_{nullptr};   ///< raw pointers are needed for TTree::Branch
   AnalysisTree::Matching* global_tracks_2_sts_tracks_{nullptr};  ///< raw pointers are needed for TTree::Branch
-  CbmVertex* bmn_vertex_{nullptr};    ///< non-owning pointer
+  CbmVertex*in_bmn_vertex_{nullptr};    ///< non-owning pointer
                                             //  TClonesArray* bmn_mc_tracks_ {nullptr};   ///< non-owning pointer
-  TClonesArray*bmn_global_tracks_{nullptr};  ///< non-owning pointer
+  TClonesArray*in_bmn_global_tracks_{nullptr};  ///< non-owning pointer
 
   ClassDef(BmnGlobalTracksConverter, 1)
 };

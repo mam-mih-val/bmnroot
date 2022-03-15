@@ -2,11 +2,11 @@
    SPDX-License-Identifier: GPL-3.0-only
    Authors: Viktor Klochkov [committer] */
 
-#include "BmnGlobalTracksConverter.h"
+#include "BmnStsTracksConverter.h"
 
 #include "CbmMCTrack.h"
 #include "CbmVertex.h"
-#include "BmnGlobalTrack.h"
+#include "CbmStsTrack.h"
 
 #include "FairRootManager.h"
 
@@ -21,30 +21,29 @@
 #include "AnalysisTree/Matching.hpp"
 
 
-ClassImp(BmnGlobalTracksConverter);
+ClassImp(BmnStsTracksConverter);
 
-void BmnGlobalTracksConverter::ProcessData()
+void BmnStsTracksConverter::ProcessData()
 {
-  assert(in_bmn_global_tracks_ != nullptr);
+  assert(in_sts_tracks_ != nullptr);
   out_indexes_map_.clear();
   ReadVertexTracks();
 }
 
-BmnGlobalTracksConverter::~BmnGlobalTracksConverter()
+BmnStsTracksConverter::~BmnStsTracksConverter()
 {
-  delete out_global_tracks_;
-  delete global_tracks_2_sts_tracks_;
+  delete out_sts_tracks_;
 };
 
-void BmnGlobalTracksConverter::InitInput()
+void BmnStsTracksConverter::InitInput()
 {
   auto* ioman = FairRootManager::Instance();
 
   in_bmn_vertex_ = (CbmVertex*) ioman->GetObject("PrimaryVertex.");
-  in_bmn_global_tracks_ = (TClonesArray*) ioman->GetObject("BmnGlobalTrack");
+  in_sts_tracks_ = (TClonesArray*) ioman->GetObject("StsTrack");
 }
 
-void BmnGlobalTracksConverter::Init()
+void BmnStsTracksConverter::Init()
 {
   InitInput();
 
@@ -60,34 +59,30 @@ void BmnGlobalTracksConverter::Init()
 
   auto* man = AnalysisTree::TaskManager::GetInstance();
 
-  man->AddBranch(out_branch_, out_global_tracks_, vtx_tracks_config);
-  man->AddMatching( out_branch_, str_sts_trk_branch_name_, global_tracks_2_sts_tracks_ );
+  man->AddBranch(out_branch_, out_sts_tracks_, vtx_tracks_config);
 }
 
-void BmnGlobalTracksConverter::ReadVertexTracks()
+void BmnStsTracksConverter::ReadVertexTracks()
 {
-  assert(in_bmn_vertex_ && in_bmn_global_tracks_);
+  assert(in_bmn_vertex_ && in_sts_tracks_);
 
-  out_global_tracks_->ClearChannels();
-  global_tracks_2_sts_tracks_->Clear();
+  out_sts_tracks_->ClearChannels();
   auto* out_config_  = AnalysisTree::TaskManager::GetInstance()->GetConfig();
   const auto& branch = out_config_->GetBranchConfig(out_branch_);
 
   const int iq         = branch.GetFieldId("charge");
   const int indf       = branch.GetFieldId("ndf");
-  const int ilength      = branch.GetFieldId("length");
   const int ichi2      = branch.GetFieldId("chi2");
-  const int inhits     = branch.GetFieldId("nhits");
   const int idcax      = branch.GetFieldId("dcax");
   const int ix      = branch.GetFieldId("x");
   const int itx      = branch.GetFieldId("tx");
 
-  const int n_sts_tracks = in_bmn_global_tracks_->GetEntries();
+  const int n_sts_tracks = in_sts_tracks_->GetEntries();
   if (n_sts_tracks <= 0) {
     LOG(warn) << "No STS tracks!";
     return;
   }
-  out_global_tracks_->Reserve(n_sts_tracks);
+  out_sts_tracks_->Reserve(n_sts_tracks);
 
   auto vertex_x = in_bmn_vertex_->GetX();
   auto vertex_y = in_bmn_vertex_->GetY();
@@ -95,10 +90,10 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
 
   for (short i_track = 0; i_track < n_sts_tracks; ++i_track) {
     const int track_index = i_track;
-    auto* bmn_global_track = dynamic_cast<BmnGlobalTrack*>(in_bmn_global_tracks_->At(track_index) );
-    if (!bmn_global_track) { throw std::runtime_error("empty track!"); }
-    auto& track = out_global_tracks_->AddChannel(branch);
-    const FairTrackParam* trackParamFirst = bmn_global_track->GetParamFirst();
+    auto*in_sts_track = dynamic_cast<CbmStsTrack*>(in_sts_tracks_->At(track_index) );
+    if (!in_sts_track) { throw std::runtime_error("empty out_track!"); }
+    auto&out_track = out_sts_tracks_->AddChannel(branch);
+    const FairTrackParam* trackParamFirst = in_sts_track->GetParamFirst();
 
     float x = trackParamFirst->GetX();
     float y = trackParamFirst->GetY();
@@ -108,39 +103,33 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
     float ty = trackParamFirst->GetTy();
     float qp = trackParamFirst->GetQp();
 
-    float length = bmn_global_track->GetLength();
-    float chi2 = bmn_global_track->GetChi2();
-    int ndf = bmn_global_track->GetNDF();
-    int n_hits = bmn_global_track->GetNHits();
+    float chi2 = in_sts_track->GetChi2();
+    int ndf = in_sts_track->GetNDF();
 
     TVector3 momRec;
     trackParamFirst->Momentum(momRec);
     const Int_t q = trackParamFirst->GetQp() > 0 ? 1 : -1;
 
-    track.SetMomentum3(momRec);
+    out_track.SetMomentum3(momRec);
 
-    track.SetField(int(q), iq);
+    out_track.SetField(int(q), iq);
 
-    track.SetField(float(tx), itx);
-    track.SetField(float(ty), itx+1);
-    track.SetField(float(qp), itx+2);
+    out_track.SetField(float(tx), itx);
+    out_track.SetField(float(ty), itx+1);
+    out_track.SetField(float(qp), itx+2);
 
-    track.SetField(float(x), ix);
-    track.SetField(float(y), ix+1);
-    track.SetField(float(z), ix+2);
+    out_track.SetField(float(x), ix);
+    out_track.SetField(float(y), ix+1);
+    out_track.SetField(float(z), ix+2);
 
-    track.SetField(float(chi2), ichi2);
-    track.SetField(float(length), ilength);
+    out_track.SetField(float(chi2), ichi2);
 
-    track.SetField(int(q), iq);
-    track.SetField(int(ndf), indf);
-    track.SetField(int(n_hits), inhits);
+    out_track.SetField(int(q), iq);
+    out_track.SetField(int(ndf), indf);
 
-    track.SetField(float(x - vertex_x), idcax);
-    track.SetField(float(y - vertex_y), idcax + 1);
-    track.SetField(float(z - vertex_z), idcax + 2);
-
-    global_tracks_2_sts_tracks_->AddMatch( track_index, track_index );
+    out_track.SetField(float(x - vertex_x), idcax);
+    out_track.SetField(float(y - vertex_y), idcax + 1);
+    out_track.SetField(float(z - vertex_z), idcax + 2);
   }
 }
 

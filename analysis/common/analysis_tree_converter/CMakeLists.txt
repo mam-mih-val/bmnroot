@@ -6,6 +6,7 @@ set(SRCS
         CbmSimEventHeaderConverter.cxx
         CbmRecEventHeaderConverter.cxx
         BmnGlobalTracksConverter.cxx
+        BmnStsTracksConverter.cxx
         BmnSimParticlesConverter.cxx
 #        CbmPsdModulesConverter.cxx
        #CbmTofHitsConverter.cxx

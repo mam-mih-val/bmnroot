@@ -11,7 +11,6 @@
 
 #include "UParticle.h"
 #include "UEvent.h"
-#include "URun.h"
 
 #include <TString.h>
 #include <TTree.h>
@@ -49,7 +48,6 @@ private:
   TFile *fInFile;
   TTree *fInTree;
   UEvent *fEvent;
-  URun *fRun;
   UParticle *fParticle;
   Bool_t fSpectatorsON;
 
@@ -61,10 +59,7 @@ private:
   static const Int_t kPdgLambda = 10000000;
   static const Int_t kPdgCharge = 10000;
   static const Int_t kPdgMass   = 10;
-
-  Double_t fGammaCM = 0.;
-  Double_t fBetaCM = 0.;
-
+  
   Int_t GetIonCharge(Int_t pdgCode) const { return (pdgCode % kPdgLambda) / kPdgCharge; }
   Int_t GetIonLambdas(Int_t pdgCode) { return (pdgCode % (10 * kPdgLambda)) / kPdgLambda; }
   Int_t GetIonMass(Int_t pdgCode) { return (pdgCode % kPdgCharge) / kPdgMass; }

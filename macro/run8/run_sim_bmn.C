@@ -40,25 +40,15 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
 
     // Smearing of beam interaction point, if needed, and primary vertex position
     // DO NOT do it in corresponding gen. sections to avoid incorrect summation!!!
-    primGen->SetBeam(0.0, 0.0, 0.3, 0.3);  // (beamX0, beamY0, beamSigmaX, beamSigmaY)
-    primGen->SetBeamAngle(0.0, 0.0, 0.0, 0.0);  // (beamAngleX0, beamAngleY0, beamAngleSigmaX, beamAngleSigmaY)
-    primGen->SetTarget(0.0, 0.175);    // (targetZ, targetDz)
+    primGen->SetBeam(0.0, 0.0, 1.6, 1.6);  // (beamX0, beamY0, beamSigmaX, beamSigmaY)
+    primGen->SetTarget(0.0875, 0.0875);    // (targetZ, targetDz)
     primGen->SmearVertexZ(kTRUE);
-    primGen->SmearGausVertexXY(kTRUE);
+    primGen->SmearVertexXY(kTRUE);
     gRandom->SetSeed(0);
 
     switch (generatorName)
     {
-    // ------- Unigen Generator
-    case UNIGEN:{
-      if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
-      auto* unigen = new MpdUnigenGenerator(inFile);
-      unigen->RegisterIons();
-      primGen->AddGenerator(unigen);
-      if (nStartEvent > 0) unigen->SkipEvents(nStartEvent);
-      break;
-    }
-    // ------- UrQMD Generator
+    // ------- UNIGEN Generator
     case UNIGEN:{
         if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
         auto* unigen = new MpdUnigenGenerator(inFile);
@@ -203,11 +193,11 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     cscDigit->SetCurrentConfig(csc_config);
     fRun->AddTask(cscDigit);
     
-//    FHCal-Digitizer
-     BmnFHCalDigitizer * fhcalDigit = new BmnFHCalDigitizer();
-     fhcalDigit->SetScale(28.2e3);
-     fhcalDigit->SetThreshold(0.);
-     fRun->AddTask(fhcalDigit);
+    //FHCal-Digitizer
+    // BmnFHCalDigitizer * fhcalDigit = new BmnFHCalDigitizer();
+    // fhcalDigit->SetScale(28.2e3);
+    // fhcalDigit->SetThreshold(0.);
+    // fRun->AddTask(fhcalDigit);
     
     // ECAL-Digitizer
     // FIXME some problems with channels
@@ -260,5 +250,5 @@ if ((generatorName == QGSM) || (generatorName == DCMQGSM)){
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
     cout << "Macro finished successfully." << endl; // marker of successfully execution for software testing systems
-//    delete fRun;
+    delete fRun;
 }

@@ -250,5 +250,5 @@ if ((generatorName == QGSM) || (generatorName == DCMQGSM)){
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
     cout << "Macro finished successfully." << endl; // marker of successfully execution for software testing systems
-    delete fRun;
+//    delete fRun;
 }

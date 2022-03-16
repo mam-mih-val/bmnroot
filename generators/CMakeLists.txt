@@ -1,5 +1,7 @@
 # Create a library called "libMpdGen"
 
+add_subdirectory(unigen_format)
+
 EXEC_PROGRAM( gcc ARGS "-dumpversion" OUTPUT_VARIABLE GCC_VERSION )
 STRING(REGEX REPLACE "^([0-9]+)\\.[0-9]+\\.[0-9]" "\\1" req_gcc_major_vers "${GCC_VERSION}")
 STRING(REGEX REPLACE "^[0-9]+\\.([0-9]+)\\.[0-9]" "\\1" req_gcc_minor_vers "${GCC_VERSION}")
@@ -10,6 +12,7 @@ set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/config
  ${CMAKE_SOURCE_DIR}/generators
+ ${CMAKE_SOURCE_DIR}/generators/unigen_format
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -45,6 +48,7 @@ MpdHistoGenerator.cxx
 Mpd3fdGenerator.cxx
 MpdVHLLEGenerator.cxx
 MpdDCMSMMGenerator.cxx
+MpdUnigenGenerator.cxx
 )
 if(PLUTO_FOUND)
 #AZ set(SRCS ${SRCS} FairPlutoReactionGenerator.cxx MpdPlutoGenerator.cxx)
@@ -58,7 +62,7 @@ else(PLUTO_FOUND)
  Set(LINKDEF GenLinkDef.h)
 EndIf(PLUTO_FOUND)
 Set(LIBRARY_NAME MpdGen)
-Set(DEPENDENCIES Base EG MathCore Physics RIO Core)
+Set(DEPENDENCIES Base EG MathCore Physics RIO Core UniGenFormat)
 
 GENERATE_LIBRARY()
 

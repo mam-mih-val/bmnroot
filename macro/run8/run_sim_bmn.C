@@ -48,7 +48,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
 
     switch (generatorName)
     {
-    // ------- UrQMD Generator
+    // ------- UNIGEN Generator
     case UNIGEN:{
         if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
         auto* unigen = new MpdUnigenGenerator(inFile);

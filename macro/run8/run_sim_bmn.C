@@ -51,8 +51,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     // ------- UrQMD Generator
     case UNIGEN:{
         if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
-
-        auto* unigen = new MpdUrqmdGenerator(inFile);
+        auto* unigen = new MpdUnigenGenerator(inFile);
         //urqmdGen->SetEventPlane(0., 360.);
         primGen->AddGenerator(unigen);
         if (nStartEvent > 0) unigen->SkipEvents(nStartEvent);

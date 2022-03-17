@@ -38,17 +38,13 @@ public:
 
 private:
 
-  const std::map<int, int>& GetMatchMap(const std::string& name) const
-  {
-    const auto& it = indexes_map_->find(name);
-    if (it == indexes_map_->end()) { throw std::runtime_error(name + " is not found to match with TOF hits"); }
-    return it->second;
-  }
+  void MapTracks();
 
   TClonesArray*in_bmn_tof_hits_{nullptr};
   TClonesArray*in_bmn_global_tracks_{nullptr};
   const BMNTOF tof_type_;
 
+  std::map<int, int> tof_hit_idx_2_global_trk_idx_;
   AnalysisTree::HitDetector*out_tof_hits_{nullptr};
 
   ClassDef(BmnTofHitsConverter, 1)

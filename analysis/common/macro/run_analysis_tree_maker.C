@@ -42,7 +42,7 @@ void run_analysis_tree_maker(std::string dst_file, std::string geant_file, std::
   man->AddTask(new BmnTofHitsConverter("Tof400Hits", BMNTOF::TOF400));
   man->AddTask(new BmnTofHitsConverter("Tof700Hits", BMNTOF::TOF700));
 
-  auto* taskCbmStsTracksConverter = new BmnGlobalTracksConverter("GlobalTracks", "StsTracks", "Tof400", "Tof700");
+  auto* taskCbmStsTracksConverter = new BmnGlobalTracksConverter("GlobalTracks", "StsTracks", "Tof400Hits", "Tof700Hits");
   man->AddTask(taskCbmStsTracksConverter);
   man->AddTask(new BmnSimParticlesConverter("SimParticles", "GlobalTracks"));
 

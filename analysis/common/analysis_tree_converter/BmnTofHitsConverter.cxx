@@ -24,12 +24,16 @@ void BmnTofHitsConverter::Init()
   assert(!out_branch_.empty());
   auto* ioman = FairRootManager::Instance();
 
+  std::string str_in_tof_hits;
+
   if( tof_type_ == BMNTOF::TOF400 )
-    in_bmn_tof_hits_ = (TClonesArray*) ioman->GetObject("BmnTof400Hit");
+    str_in_tof_hits = "BmnTof400Hit";
   if( tof_type_ == BMNTOF::TOF700 )
-    in_bmn_tof_hits_ = (TClonesArray*) ioman->GetObject("BmnTof700Hit");
+    str_in_tof_hits = "BmnTof700Hit";
+  in_bmn_tof_hits_ = (TClonesArray*) ioman->GetObject(str_in_tof_hits.c_str());
   if( !in_bmn_tof_hits_ )
     throw std::runtime_error( "There is no branch for TOF hits" );
+  std::cout << "Branch " << str_in_tof_hits << " have been successfully read from tree" << std::endl;
   in_bmn_global_tracks_ = (TClonesArray*) ioman->GetObject("BmnGlobalTrack");
   if( !in_bmn_global_tracks_ )
     throw std::runtime_error( "There is no branch for Global tracks" );

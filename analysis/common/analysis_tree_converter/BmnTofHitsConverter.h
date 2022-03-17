@@ -2,12 +2,12 @@
    SPDX-License-Identifier: GPL-3.0-only
    Authors: Viktor Klochkov [committer] */
 
-#ifndef ANALYSIS_TREE_TOFHITSCONVERTER_H
-#define ANALYSIS_TREE_TOFHITSCONVERTER_H
+#ifndef ANALYSIS_TREE_TOF400HITSCONVERTER_H
+#define ANALYSIS_TREE_TOF400HITSCONVERTER_H
 
 #include <utility>
 
-#include "BmnConverterTask.h"
+#include "CbmConverterTask.h"
 
 #include "AnalysisTree/Detector.hpp"
 
@@ -26,10 +26,10 @@ enum class BMNTOF{
   TOF700
 };
 
-class BmnTofHitsConverter final : public BmnConverterTask {
+class BmnTofHitsConverter final : public CbmConverterTask {
 public:
   BmnTofHitsConverter(const std::string &out_branch_name, BMNTOF tof_type)
-      : BmnConverterTask(out_branch_name), tof_type_(tof_type) {}
+      : CbmConverterTask(out_branch_name), tof_type_(tof_type) {}
   ~BmnTofHitsConverter() final;
 
   void Init() final;
@@ -38,18 +38,20 @@ public:
 
 private:
 
-  void MapTracks();
-  // Returns the position-vector of {x,y,x} in exact z
-  TVector3 ExtrapolateStraightLine(FairTrackParam* params, float z);
+  const std::map<int, int>& GetMatchMap(const std::string& name) const
+  {
+    const auto& it = indexes_map_->find(name);
+    if (it == indexes_map_->end()) { throw std::runtime_error(name + " is not found to match with TOF hits"); }
+    return it->second;
+  }
 
   TClonesArray*in_bmn_tof_hits_{nullptr};
   TClonesArray*in_bmn_global_tracks_{nullptr};
-  const BMNTOF tof_type_;
+  BMNTOF tof_type_;
 
-  std::map<int, int> tof_hit_idx_2_global_trk_idx_;
   AnalysisTree::HitDetector*out_tof_hits_{nullptr};
 
   ClassDef(BmnTofHitsConverter, 1)
 };
 
-#endif  // ANALYSIS_TREE_TOFHITSCONVERTER_H
+#endif  // ANALYSIS_TREE_TOF400HITSCONVERTER_H

@@ -8,6 +8,7 @@ set(SRCS
         BmnGlobalTracksConverter.cxx
         BmnStsTracksConverter.cxx
         BmnSimParticlesConverter.cxx
+        BmnTofHitsConverter.cxx
 #        CbmPsdModulesConverter.cxx
        #CbmTofHitsConverter.cxx
     )

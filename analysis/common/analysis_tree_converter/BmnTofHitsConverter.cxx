@@ -28,20 +28,23 @@ void BmnTofHitsConverter::Init()
     in_bmn_tof_hits_ = (TClonesArray*) ioman->GetObject("BmnTof400Hit");
   if( tof_type_ == BMNTOF::TOF700 )
     in_bmn_tof_hits_ = (TClonesArray*) ioman->GetObject("BmnTof700Hit");
-
+  if( !in_bmn_tof_hits_ )
+    throw std::runtime_error( "There is no branch for TOF hits" );
   in_bmn_global_tracks_ = (TClonesArray*) ioman->GetObject("BmnGlobalTrack");
+  if( !in_bmn_global_tracks_ )
+    throw std::runtime_error( "There is no branch for Global tracks" );
 
-  AnalysisTree::BranchConfig tof_branch(out_branch_, AnalysisTree::DetType::kHit);
-  tof_branch.AddField<float>("mass2", "Mass squared");
-  tof_branch.AddField<float>("length", "Track length");
-  tof_branch.AddField<float>("time", "ps(?), Measured time ");
+  AnalysisTree::BranchConfig tof_branch_config(out_branch_, AnalysisTree::DetType::kHit);
+  tof_branch_config.AddField<float>("mass2", "Mass squared");
+  tof_branch_config.AddField<float>("length", "Track length");
+  tof_branch_config.AddField<float>("time", "ps(?), Measured time ");
 
-  tof_branch.AddField<float>("error_x");
-  tof_branch.AddField<float>("error_y");
-  tof_branch.AddField<float>("error_z");
+  tof_branch_config.AddField<float>("error_x");
+  tof_branch_config.AddField<float>("error_y");
+  tof_branch_config.AddField<float>("error_z");
 
   auto* man = AnalysisTree::TaskManager::GetInstance();
-  man->AddBranch(out_branch_, out_tof_hits_, tof_branch);
+  man->AddBranch(out_branch_, out_tof_hits_, tof_branch_config);
 }
 
 void BmnTofHitsConverter::ProcessData()

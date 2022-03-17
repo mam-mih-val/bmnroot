@@ -66,7 +66,7 @@ void BmnTofHitsConverter::ProcessData()
   const int i_l     = branch.GetFieldId("length");
   const int i_dx    = branch.GetFieldId("error_x");
 
-  const int n_global_tracks = in_bmn_tof_hits_->GetEntriesFast();
+  const int n_global_tracks = in_bmn_global_tracks_->GetEntriesFast();
 
   for (Int_t idx_global_track = 0; idx_global_track < n_global_tracks; idx_global_track++) {
     auto in_global_trk = dynamic_cast<BmnGlobalTrack*>(in_bmn_global_tracks_->At(idx_global_track) );

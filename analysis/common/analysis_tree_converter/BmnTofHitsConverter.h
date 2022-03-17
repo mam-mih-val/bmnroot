@@ -2,8 +2,8 @@
    SPDX-License-Identifier: GPL-3.0-only
    Authors: Viktor Klochkov [committer] */
 
-#ifndef ANALYSIS_TREE_TOF400HITSCONVERTER_H
-#define ANALYSIS_TREE_TOF400HITSCONVERTER_H
+#ifndef ANALYSIS_TREE_TOFHITSCONVERTER_H
+#define ANALYSIS_TREE_TOFHITSCONVERTER_H
 
 #include <utility>
 
@@ -54,4 +54,4 @@ private:
   ClassDef(BmnTofHitsConverter, 1)
 };
 
-#endif  // ANALYSIS_TREE_TOF400HITSCONVERTER_H
+#endif  // ANALYSIS_TREE_TOFHITSCONVERTER_H

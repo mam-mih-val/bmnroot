@@ -147,10 +147,10 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
 
     global_tracks_2_sts_tracks_->AddMatch( track_index, track_index );
     auto idx_tof400 = in_bmn_global_track->GetTof1HitIndex();
-    if( idx_tof400 > 0 )
+    if( idx_tof400 >= 0 )
       global_tracks_2_tof400_hits_->AddMatch( track_index, idx_tof400 );
     auto idx_tof700 = in_bmn_global_track->GetTof2HitIndex();
-    if( idx_tof700 > 0 )
+    if( idx_tof700 >= 0 )
       global_tracks_2_tof700_hits_->AddMatch( track_index, idx_tof700 );
   }
 }

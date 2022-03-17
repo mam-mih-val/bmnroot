@@ -57,11 +57,11 @@ void run_analysistree_qa(std::string filelist, bool is_single_file)
   auto* task = new QA::Task;
   task->SetOutputFileName("cbm_qa.root");
 
-  RichRingsQA(*task);
   VertexTracksQA(*task);
   SimParticlesQA(*task);
   SimEventHeaderQA(*task);
   RecEventHeaderQA(*task);
+  TofHitsQA(*task);
 
   man->AddTask(task);
 

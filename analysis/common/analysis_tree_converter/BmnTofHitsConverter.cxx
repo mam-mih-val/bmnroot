@@ -61,12 +61,14 @@ void BmnTofHitsConverter::ProcessData()
 
   for (Int_t idx_global_track = 0; idx_global_track < n_global_tracks; idx_global_track++) {
     auto in_global_trk = dynamic_cast<BmnGlobalTrack*>(in_bmn_global_tracks_->At(idx_global_track) );
-    int idx_tof_hit;
+    int idx_tof_hit=-1;
     if( tof_type_ == BMNTOF::TOF400 )
       idx_tof_hit = in_global_trk->GetTof1HitIndex();
     if(tof_type_ == BMNTOF::TOF700)
       idx_tof_hit = in_global_trk->GetTof2HitIndex();
 
+    if( idx_tof_hit < 0 )
+      continue;
     auto* in_tof_hit = dynamic_cast<BmnTofHit*>(in_bmn_tof_hits_->At(idx_tof_hit));
 
     auto track_param = in_global_trk->GetParamLast();

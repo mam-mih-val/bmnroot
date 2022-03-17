@@ -92,7 +92,8 @@ void BmnTofHitsConverter::ProcessData()
     }catch(std::exception&){}
 
     const Float_t time = in_tof_hit->GetTimeStamp();
-
+    if( fabs(l) < std::numeric_limits<float>::min() )
+      l = in_tof_hit->GetLength();
     const Float_t beta = l / (time * 29.9792458);
     const Float_t m2   = p * p * (1. / (beta * beta) - 1.);
 

@@ -36,6 +36,7 @@ void BmnTofHitsConverter::Init()
 
   AnalysisTree::BranchConfig tof_branch_config(out_branch_, AnalysisTree::DetType::kHit);
   tof_branch_config.AddField<float>("mass2", "Mass squared");
+  tof_branch_config.AddField<float>("beta", "Beta v/c");
   tof_branch_config.AddField<float>("length", "Track length");
   tof_branch_config.AddField<float>("time", "ps(?), Measured time ");
 
@@ -56,6 +57,7 @@ void BmnTofHitsConverter::ProcessData()
   const auto& branch = out_config_->GetBranchConfig(out_branch_);
 
   const int i_mass2 = branch.GetFieldId("mass2");
+  const int i_beta = branch.GetFieldId("beta");
   const int i_t     = branch.GetFieldId("time");
   const int i_l     = branch.GetFieldId("length");
   const int i_dx    = branch.GetFieldId("error_x");
@@ -101,6 +103,7 @@ void BmnTofHitsConverter::ProcessData()
     out_hit.SetPosition(hit_x, hit_y, hit_z);
     out_hit.SetSignal(time);
     out_hit.SetField(m2, i_mass2);
+    out_hit.SetField(beta, i_beta);
     out_hit.SetField(l, i_l);
     out_hit.SetField(time, i_t);
     out_hit.SetField(hit_xerr, i_dx);

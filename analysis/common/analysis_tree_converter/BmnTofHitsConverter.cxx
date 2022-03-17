@@ -55,6 +55,7 @@ void BmnTofHitsConverter::Init()
 void BmnTofHitsConverter::ProcessData()
 {
   assert(in_bmn_tof_hits_);
+  this->MapTracks();
   out_tof_hits_->ClearChannels();
 
   auto* out_config_  = AnalysisTree::TaskManager::GetInstance()->GetConfig();
@@ -66,29 +67,30 @@ void BmnTofHitsConverter::ProcessData()
   const int i_l     = branch.GetFieldId("length");
   const int i_dx    = branch.GetFieldId("error_x");
 
-  const int n_global_tracks = in_bmn_global_tracks_->GetEntriesFast();
+  const int n_global_tracks = in_bmn_global_tracks_->GetEntries();
+  const int n_tof_hits = in_bmn_tof_hits_->GetEntries();
 
-  for (Int_t idx_global_track = 0; idx_global_track < n_global_tracks; idx_global_track++) {
-    auto in_global_trk = dynamic_cast<BmnGlobalTrack*>(in_bmn_global_tracks_->At(idx_global_track) );
-    int idx_tof_hit=-1;
-    if( tof_type_ == BMNTOF::TOF400 )
-      idx_tof_hit = in_global_trk->GetTof1HitIndex();
-    if(tof_type_ == BMNTOF::TOF700)
-      idx_tof_hit = in_global_trk->GetTof2HitIndex();
+  for (Int_t idx_tof_hit = 0; idx_tof_hit < n_tof_hits; idx_tof_hit++) {
 
-    if( idx_tof_hit < 0 )
-      continue;
     auto* in_tof_hit = dynamic_cast<BmnTofHit*>(in_bmn_tof_hits_->At(idx_tof_hit));
     if( !in_tof_hit )
       throw std::runtime_error( "TOF hit is empty" );
 
-    auto track_param = in_global_trk->GetParamLast();
-    TVector3 mom3;
-    track_param->Momentum(mom3);
-    const Float_t p    = mom3.Mag();
-    const Int_t q      = track_param->GetQp() > 0 ? 1 : -1;
+    Float_t p    = 0;
+    Int_t q      = 0;
+    Float_t l    = 0;
 
-    const Float_t l    = in_global_trk->GetLength();
+    try{
+      auto idx_global_trk = tof_hit_idx_2_global_trk_idx_.at(idx_tof_hit);
+      auto in_global_trk = dynamic_cast<BmnGlobalTrack*>(in_bmn_global_tracks_->At(idx_global_trk) );
+      auto track_param = in_global_trk->GetParamLast();
+      TVector3 mom3;
+      track_param->Momentum(mom3);
+      p = mom3.Mag();
+      q = track_param->GetQp() > 0 ? 1 : -1;
+      l = in_global_trk->GetLength();
+    }catch(std::exception&){}
+
     const Float_t time = in_tof_hit->GetTimeStamp();
 
     const Float_t beta = l / (time * 29.9792458);
@@ -119,4 +121,19 @@ void BmnTofHitsConverter::ProcessData()
 BmnTofHitsConverter::~BmnTofHitsConverter()
 {
   delete out_tof_hits_;
+}
+void BmnTofHitsConverter::MapTracks(){
+    tof_hit_idx_2_global_trk_idx_.clear();
+    auto n_global_tracks = in_bmn_global_tracks_->GetEntries();
+    for( int idx_global_trk=0; idx_global_trk < n_global_tracks; ++idx_global_trk ){
+      auto in_global_trk = dynamic_cast<BmnGlobalTrack*>(in_bmn_global_tracks_->At(idx_global_trk) );
+      auto tof_idx=-1;
+      if( tof_type_ == BMNTOF::TOF400 )
+        tof_idx=in_global_trk->GetTof1HitIndex();
+      if( tof_type_ == BMNTOF::TOF700 )
+        tof_idx=in_global_trk->GetTof2HitIndex();
+      if( tof_idx < 0 )
+        continue;
+      tof_hit_idx_2_global_trk_idx_.insert({tof_idx, idx_global_trk});
+    }
 };

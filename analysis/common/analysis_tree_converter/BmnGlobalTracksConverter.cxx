@@ -50,6 +50,8 @@ void BmnGlobalTracksConverter::Init()
 
   AnalysisTree::BranchConfig vtx_tracks_config(out_branch_, AnalysisTree::DetType::kTrack);
   vtx_tracks_config.AddField<float>("chi2", "chi2 of the track fit");
+  vtx_tracks_config.AddField<float>("beta400", "Beta measured with TOF-400");
+  vtx_tracks_config.AddField<float>("beta700", "Beta measured with TOF-700");
   vtx_tracks_config.AddField<float>("length", "length of the track");
   vtx_tracks_config.AddFields<float>({"dcax", "dcay", "dcaz"},
                                      "not actuall Distance of Closest Approach, but extrapolated to z=z_vtx");
@@ -85,6 +87,8 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
   const int idcax      = branch.GetFieldId("dcax");
   const int ix      = branch.GetFieldId("x");
   const int itx      = branch.GetFieldId("tx");
+  const int ibeta400      = branch.GetFieldId("beta400");
+  const int ibeta700      = branch.GetFieldId("beta700");
 
   const int n_sts_tracks = in_bmn_global_tracks_->GetEntries();
   if (n_sts_tracks <= 0) {
@@ -117,6 +121,8 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
     float chi2 = in_bmn_global_track->GetChi2();
     int ndf = in_bmn_global_track->GetNDF();
     int n_hits = in_bmn_global_track->GetNHits();
+    auto beta400 = in_bmn_global_track->GetBeta(1);
+    auto beta700 = in_bmn_global_track->GetBeta(2);
 
     TVector3 momRec;
     trackParamFirst->Momentum(momRec);
@@ -135,6 +141,8 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
     track.SetField(float(z), ix+2);
 
     track.SetField(float(chi2), ichi2);
+    track.SetField(float(beta400), ibeta400);
+    track.SetField(float(beta700), ibeta700);
     track.SetField(float(length), ilength);
 
     track.SetField(int(q), iq);

@@ -39,7 +39,7 @@ const std::string rec_event_header = "RecEventHeader";
 const std::string sim_particles    = "SimParticles";
 const std::string rec_tracks       = "GlobalTracks";
 const std::string tof400_hits         = "Tof400Hits";
-const std::string tof700_hits         = "Tof400Hits";
+const std::string tof700_hits         = "Tof700Hits";
 const std::string trd_tracks       = "TrdTracks";
 const std::string rich_rings       = "RichRings";
 

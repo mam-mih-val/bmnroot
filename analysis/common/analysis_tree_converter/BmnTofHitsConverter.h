@@ -47,7 +47,7 @@ private:
 
   TClonesArray*in_bmn_tof_hits_{nullptr};
   TClonesArray*in_bmn_global_tracks_{nullptr};
-  BMNTOF tof_type_;
+  const BMNTOF tof_type_;
 
   AnalysisTree::HitDetector*out_tof_hits_{nullptr};
 

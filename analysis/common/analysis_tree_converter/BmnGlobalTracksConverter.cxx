@@ -62,6 +62,8 @@ void BmnGlobalTracksConverter::Init()
 
   man->AddBranch(out_branch_, out_global_tracks_, vtx_tracks_config);
   man->AddMatching( out_branch_, str_sts_trk_branch_name_, global_tracks_2_sts_tracks_ );
+  man->AddMatching( out_branch_, str_tof400_branch_name_, global_tracks_2_tof400_hits_ );
+  man->AddMatching( out_branch_, str_tof700_branch_name_, global_tracks_2_tof700_hits_ );
 }
 
 void BmnGlobalTracksConverter::ReadVertexTracks()
@@ -70,6 +72,8 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
 
   out_global_tracks_->ClearChannels();
   global_tracks_2_sts_tracks_->Clear();
+  global_tracks_2_tof400_hits_->Clear();
+  global_tracks_2_tof700_hits_->Clear();
   auto* out_config_  = AnalysisTree::TaskManager::GetInstance()->GetConfig();
   const auto& branch = out_config_->GetBranchConfig(out_branch_);
 
@@ -95,10 +99,11 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
 
   for (short i_track = 0; i_track < n_sts_tracks; ++i_track) {
     const int track_index = i_track;
-    auto* bmn_global_track = dynamic_cast<BmnGlobalTrack*>(in_bmn_global_tracks_->At(track_index) );
-    if (!bmn_global_track) { throw std::runtime_error("empty track!"); }
+    auto*in_bmn_global_track = dynamic_cast<BmnGlobalTrack*>(in_bmn_global_tracks_->At(track_index) );
+    if (!in_bmn_global_track) { throw std::runtime_error("empty track!"); }
     auto& track = out_global_tracks_->AddChannel(branch);
-    const FairTrackParam* trackParamFirst = bmn_global_track->GetParamFirst();
+    const FairTrackParam* trackParamFirst =
+        in_bmn_global_track->GetParamFirst();
 
     float x = trackParamFirst->GetX();
     float y = trackParamFirst->GetY();
@@ -108,10 +113,10 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
     float ty = trackParamFirst->GetTy();
     float qp = trackParamFirst->GetQp();
 
-    float length = bmn_global_track->GetLength();
-    float chi2 = bmn_global_track->GetChi2();
-    int ndf = bmn_global_track->GetNDF();
-    int n_hits = bmn_global_track->GetNHits();
+    float length = in_bmn_global_track->GetLength();
+    float chi2 = in_bmn_global_track->GetChi2();
+    int ndf = in_bmn_global_track->GetNDF();
+    int n_hits = in_bmn_global_track->GetNHits();
 
     TVector3 momRec;
     trackParamFirst->Momentum(momRec);
@@ -141,6 +146,12 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
     track.SetField(float(z - vertex_z), idcax + 2);
 
     global_tracks_2_sts_tracks_->AddMatch( track_index, track_index );
+    auto idx_tof400 = in_bmn_global_track->GetTof1HitIndex();
+    if( idx_tof400 > 0 )
+      global_tracks_2_tof400_hits_->AddMatch( track_index, idx_tof400 );
+    auto idx_tof700 = in_bmn_global_track->GetTof1HitIndex();
+    if( idx_tof700 > 0 )
+      global_tracks_2_tof400_hits_->AddMatch( track_index, idx_tof700 );
   }
 }
 

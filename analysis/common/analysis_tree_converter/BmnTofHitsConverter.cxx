@@ -70,6 +70,8 @@ void BmnTofHitsConverter::ProcessData()
     if( idx_tof_hit < 0 )
       continue;
     auto* in_tof_hit = dynamic_cast<BmnTofHit*>(in_bmn_tof_hits_->At(idx_tof_hit));
+    if( !in_tof_hit )
+      throw std::runtime_error( "TOF hit is empty" );
 
     auto track_param = in_global_trk->GetParamLast();
     TVector3 mom3;

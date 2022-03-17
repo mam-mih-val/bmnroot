@@ -46,6 +46,8 @@ private:
   std::string str_tof700_branch_name_;
   AnalysisTree::TrackDetector*out_global_tracks_{nullptr};   ///< raw pointers are needed for TTree::Branch
   AnalysisTree::Matching* global_tracks_2_sts_tracks_{nullptr};  ///< raw pointers are needed for TTree::Branch
+  AnalysisTree::Matching* global_tracks_2_tof400_hits_{nullptr};  ///< raw pointers are needed for TTree::Branch
+  AnalysisTree::Matching* global_tracks_2_tof700_hits_{nullptr};  ///< raw pointers are needed for TTree::Branch
   CbmVertex*in_bmn_vertex_{nullptr};    ///< non-owning pointer
                                             //  TClonesArray* bmn_mc_tracks_ {nullptr};   ///< non-owning pointer
   TClonesArray*in_bmn_global_tracks_{nullptr};  ///< non-owning pointer

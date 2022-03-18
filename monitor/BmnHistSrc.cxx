@@ -175,18 +175,6 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
         h->GetYaxis()->SetTitleColor(kOrange + 10);
         hists[iRow][1] = h;
     }
-    //    for (Int_t iRow = 0; iRow < fSrcRows; iRow++) { // 2 column - sampling summed
-    //        name = fTitle + "_" + trigNames[iRow].Data() + "_QDC";
-    //        TH1F *h = new TH1F(name, name, ADC_SAMPLING_LIMIT * 2 / 100, -ADC_SAMPLING_LIMIT, ADC_SAMPLING_LIMIT);
-    //        h->SetTitleSize(0.06, "XY");
-    //        h->SetLabelSize(0.08, "XY");
-    //        h->GetXaxis()->SetTitle("QDC Channel, ");
-    //        h->GetXaxis()->SetTitleColor(kOrange + 10);
-    //        h->GetYaxis()->SetTitle("Activation Count");
-    //        h->GetYaxis()->SetTitleOffset(1.1);
-    //        h->GetYaxis()->SetTitleColor(kOrange + 10);
-    //        hists[iRow][2] = h;
-    //    }
     // Create canvas
     name = fTitle + "Canvas";
     canvas = new TCanvas(name, name, PAD_WIDTH * fCols, PAD_HEIGHT * fRows);

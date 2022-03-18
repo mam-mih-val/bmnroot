@@ -138,23 +138,23 @@ void VertexTracksQA(QA::Task& task)
 
 void TofHitsQA(QA::Task& task)
 {
-  task.AddH1({"TOF hit x-position (cm)", {tof400_hits, "x"}, {QA::gNbins, -600, 600}});
-  task.AddH1({"TOF hit y-position (cm)", {tof400_hits, "y"}, {QA::gNbins, -400, 400}});
-  task.AddH1({"TOF hit z-position (cm)", {tof400_hits, "z"}, {QA::gNbins, 0, 800}});
-  task.AddH1({"TOF hit time (nc)", {tof400_hits, "time"}, {QA::gNbins, 0.0, 30.0}});
-  task.AddH1({"TOF hit beta (1/c)", {tof400_hits, "beta"}, {QA::gNbins, -0.2, 1.2}});
+  task.AddH1({"TOF hit x-position (cm)", {tof400_hits, "x"}, {QA::gNbins, -200, 200}});
+  task.AddH1({"TOF hit y-position (cm)", {tof400_hits, "y"}, {QA::gNbins, -100, 100}});
+  task.AddH1({"TOF hit z-position (cm)", {tof400_hits, "z"}, {QA::gNbins, 440, 490}});
+  task.AddH1({"TOF hit time (nc)", {tof400_hits, "time"}, {QA::gNbins, 15.0, 30.0}});
+  task.AddH1({"TOF hit beta (1/c)", {tof400_hits, "beta"}, {QA::gNbins, -0.2, 1.8}});
 
-  task.AddH2({"TOF hit x-position (cm)", {tof400_hits, "x"}, {QA::gNbins, -600, 600}},
-             {"TOF hit y-position (cm)", {tof400_hits, "y"}, {QA::gNbins, -600, 600}});
+  task.AddH2({"TOF hit x-position (cm)", {tof400_hits, "x"}, {QA::gNbins, -200, 200}},
+             {"TOF hit y-position (cm)", {tof400_hits, "y"}, {QA::gNbins, -100, 100}});
 
-  task.AddH1({"TOF hit x-position (cm)", {tof700_hits, "x"}, {QA::gNbins, -600, 600}});
-  task.AddH1({"TOF hit y-position (cm)", {tof700_hits, "y"}, {QA::gNbins, -400, 400}});
-  task.AddH1({"TOF hit z-position (cm)", {tof700_hits, "z"}, {QA::gNbins, 0, 800}});
+  task.AddH1({"TOF hit x-position (cm)", {tof700_hits, "x"}, {QA::gNbins, -200, 200}});
+  task.AddH1({"TOF hit y-position (cm)", {tof700_hits, "y"}, {QA::gNbins, -100, 100}});
+  task.AddH1({"TOF hit z-position (cm)", {tof700_hits, "z"}, {QA::gNbins, 580, 680}});
   task.AddH1({"TOF hit time (nc)", {tof700_hits, "time"}, {QA::gNbins, 0.0, 30.0}});
-  task.AddH1({"TOF hit beta (1/c)", {tof700_hits, "beta"}, {QA::gNbins, -0.2, 1.2}});
+  task.AddH1({"TOF hit beta (1/c)", {tof700_hits, "beta"}, {QA::gNbins, -0.2, 1.8}});
 
-  task.AddH2({"TOF hit x-position (cm)", {tof700_hits, "x"}, {QA::gNbins, -600, 600}},
-             {"TOF hit y-position (cm)", {tof700_hits, "y"}, {QA::gNbins, -600, 600}});
+  task.AddH2({"TOF hit x-position (cm)", {tof700_hits, "x"}, {QA::gNbins, -200, 200}},
+             {"TOF hit y-position (cm)", {tof700_hits, "y"}, {QA::gNbins, -100, 100}});
 
   Variable qp_sts("qp_reco", {{rec_tracks, "q"}, {rec_tracks, "p"}},
                   [](std::vector<double>& qp) { return qp.at(0) * qp.at(1); });

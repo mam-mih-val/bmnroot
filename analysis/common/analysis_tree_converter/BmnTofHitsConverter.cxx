@@ -96,7 +96,12 @@ void BmnTofHitsConverter::ProcessData()
     if( fabs(l) < std::numeric_limits<float>::min() )
       l = in_tof_hit->GetLength();
     const Float_t beta = l / time / SPEED_OF_LIGHT;
-    const Float_t m2   = p * p * (1. / (beta * beta) - 1.);
+
+    Float_t m2;
+    if( fabsf(beta) > std::numeric_limits<float>::min() )
+      m2   = p * p * (1. / (beta * beta) - 1.);
+    else
+      m2 = -999.;
 
     const Float_t hit_x = in_tof_hit->GetX();
     const Float_t hit_y = in_tof_hit->GetY();

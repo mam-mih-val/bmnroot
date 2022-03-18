@@ -161,14 +161,14 @@ void TofHitsQA(QA::Task& task)
   Variable qp_sts("qp_reco", {{rec_tracks, "q"}, {rec_tracks, "p"}},
                   [](std::vector<double>& qp) { return qp.at(0) * qp.at(1); });
 
-  task.AddH2({"sign(q)*p, GeV/c", qp_sts, {QA::gNbins, -10, 10}},
+  task.AddH2({"p#timesz, GeV/c", {rec_tracks, "qp"}, {QA::gNbins, -10, 10}},
              {"m^{2}, GeV^{2}/c^{2}", {tof400_hits, "mass2"}, {QA::gNbins, -1, 2}});
-  task.AddH2({"sign(q)*p, GeV/c", qp_sts, {QA::gNbins, -10, 10}},
+  task.AddH2({"p#timesz, GeV/c", {rec_tracks, "qp"}, {QA::gNbins, -10, 10}},
              {"m^{2}, GeV^{2}/c^{2}", {tof700_hits, "mass2"}, {QA::gNbins, -1, 2}});
 
-  task.AddH2({"sign(q)*p, GeV/c", qp_sts, {QA::gNbins, -10, 10}},
+  task.AddH2({"p#timesz, GeV/c", {rec_tracks, "qp"}, {QA::gNbins, -10, 10}},
              {"m^{2}, GeV^{2}/c^{2}", {tof400_hits, "beta"}, {QA::gNbins, -0.2, 1.2}});
-  task.AddH2({"sign(q)*p, GeV/c", qp_sts, {QA::gNbins, -10, 10}},
+  task.AddH2({"p#timesz, GeV/c", {rec_tracks, "qp"}, {QA::gNbins, -10, 10}},
              {"m^{2}, GeV^{2}/c^{2}", {tof700_hits, "beta"}, {QA::gNbins, -0.2, 1.2}});
 
 }

@@ -41,8 +41,8 @@ void BmnTofHitsConverter::Init()
   AnalysisTree::BranchConfig tof_branch_config(out_branch_, AnalysisTree::DetType::kHit);
   tof_branch_config.AddField<float>("mass2", "Mass squared");
   tof_branch_config.AddField<float>("beta", "Beta v/c");
-  tof_branch_config.AddField<float>("length", "Track length");
-  tof_branch_config.AddField<float>("time", "ps(?), Measured time ");
+  tof_branch_config.AddField<float>("length", "(cm) Track length");
+  tof_branch_config.AddField<float>("time", "(ns) Measured time ");
 
   tof_branch_config.AddField<float>("error_x");
   tof_branch_config.AddField<float>("error_y");
@@ -55,6 +55,7 @@ void BmnTofHitsConverter::Init()
 void BmnTofHitsConverter::ProcessData()
 {
   assert(in_bmn_tof_hits_);
+  const double SPEED_OF_LIGHT = 299'792'458 * 100.0 / pow(10, 9); // speed of light converted to cm/ns
   this->MapTracks();
   out_tof_hits_->ClearChannels();
 
@@ -94,7 +95,7 @@ void BmnTofHitsConverter::ProcessData()
     const Float_t time = in_tof_hit->GetTimeStamp();
     if( fabs(l) < std::numeric_limits<float>::min() )
       l = in_tof_hit->GetLength();
-    const Float_t beta = l / (time * 29.9792458);
+    const Float_t beta = l / time / SPEED_OF_LIGHT;
     const Float_t m2   = p * p * (1. / (beta * beta) - 1.);
 
     const Float_t hit_x = in_tof_hit->GetX();

@@ -83,8 +83,8 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     rawDataDecoder->SetScWallCalibration("SCWALL_calibration_2022.txt");
     rawDataDecoder->SetFHCalMapping("FHCAL_map_dry_run_2022.txt");
     rawDataDecoder->SetFHCalCalibration("FHCAL_calibration_2022.txt");
-    rawDataDecoder->SetHodoMapping("HODO_map_dry_run_2022.txt");
-    rawDataDecoder->SetHodoCalibration("HODO_calibration_2022.txt");
+    rawDataDecoder->SetHodoMapping("HODO_Q_map_dry_run_2022.txt");
+    rawDataDecoder->SetHodoCalibration("HODO_Q_calibration_2022.txt");
     rawDataDecoder->SetECALMapping(TString("ECAL_map_period_") + PeriodSetupExt);
     rawDataDecoder->SetECALCalibration("");
     rawDataDecoder->SetMwpcMapping(TString("MWPC_map_period") + ((fPeriodID == 6 && rawDataDecoder->GetRunId() < 1397) ? 5 : PeriodSetupExt));

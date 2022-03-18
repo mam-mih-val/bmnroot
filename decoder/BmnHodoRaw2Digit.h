@@ -38,6 +38,7 @@ public:
     std::vector<short> GetUniqueSizes() {return fUniqueSize;}
     digiPars GetDigiPars() {return fdigiPars;}
     int GetFlatChannelFromAdcChannel(unsigned int board_id, unsigned int channel);
+    std::pair<float,float> GetCalibPairFromAddress(unsigned int address);
  
 private:
     static constexpr int CHANNELS_PER_BOARD = 16; // TQDC boards

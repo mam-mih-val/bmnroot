@@ -198,6 +198,13 @@ void BmnFHCalRaw2Digit::ParseCalibration(TString calibrationFile)
   }
 }
 
+std::pair<float,float> BmnFHCalRaw2Digit::GetCalibPairFromAddress(unsigned int address)
+{
+  auto mod_id = BmnFHCalAddress::GetModuleId(address);
+  auto sec_id = BmnFHCalAddress::GetSectionId(address);
+  return fCalibVect.at(GetFlatIndex(mod_id, sec_id));
+}
+
 int BmnFHCalRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int board_serial, unsigned int channel)
 {
   auto it = find(fSerials.begin(), fSerials.end(), board_serial);

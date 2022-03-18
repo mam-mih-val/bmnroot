@@ -61,8 +61,8 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, Bool_
     decoder->SetScWallCalibration("SCWALL_calibration_2022.txt");
     decoder->SetFHCalMapping("FHCAL_map_dry_run_2022.txt");
     decoder->SetFHCalCalibration("FHCAL_calibration_2022.txt");
-    decoder->SetHodoMapping("HODO_map_dry_run_2022.txt");
-    decoder->SetHodoCalibration("HODO_calibration_2022.txt");
+    decoder->SetHodoMapping("HODO_Q_map_dry_run_2022.txt");
+    decoder->SetHodoCalibration("HODO_Q_calibration_2022.txt");
     decoder->SetECALMapping(TString("ECAL_map_period_") + PeriodSetupExt);
     decoder->SetECALCalibration("");
     decoder->SetMwpcMapping(TString("MWPC_map_period") + ((period == 6 && decoder->GetRunId() < 1397) ? 5 : PeriodSetupExt));

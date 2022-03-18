@@ -65,10 +65,9 @@ void calibrate_wfm(TString converted_root_file, TString branch_name, TString cal
     }
 
     int counter = 0;
-    int n_events = tree->GetEntries();
+    int n_events = (tree->GetEntries() > max_entries)? max_entries : tree->GetEntries();
     cout << n_events << endl;
-    if(n_events < max_entries) max_entries = n_events;
-    for (int ev = 0; ev < max_entries; ev++) ////nt1->GetEntries() //get entries from .root
+    for (int ev = 0; ev < n_events; ev++) ////nt1->GetEntries() //get entries from .root
     {
         tree->GetEntry(ev);
         for (int i = 0; i < DigiArray->GetEntriesFast(); i++)
@@ -79,7 +78,10 @@ void calibrate_wfm(TString converted_root_file, TString branch_name, TString cal
 
             //##################################
             //SELECTION
-            if(BmnHodoAddress::GetStripId(ThisDigi->GetAddress()) == 9) continue;
+            //if(BmnHodoAddress::GetStripId(ThisDigi->GetAddress()) == 9) continue;
+            //if(BmnScWallAddress::GetCellId(ThisDigi->GetAddress()) == 29) continue;
+            //if(BmnScWallAddress::GetCellId(ThisDigi->GetAddress()) == 40) continue;
+            //if(BmnScWallAddress::GetCellId(ThisDigi->GetAddress()) == 112) continue;
             //##################################
 
             PsdSignalFitting::PronyFitter Pfitter(model_order, exponents, digiPars.gateBegin, digiPars.gateEnd);
@@ -105,7 +107,7 @@ void calibrate_wfm(TString converted_root_file, TString branch_name, TString cal
 
                 //##################################
                 TString signal_name = Form("channel %i fit_integral %.0f integral %.0d chi2 %.1f fit_R2 %.3f", 
-                                    BmnHodoAddress::GetStripId(ThisDigi->GetAddress()), fit_integral, ThisDigi->fIntegral, fit_chi2, fit_R2);
+                                    BmnFHCalAddress::GetModuleId(ThisDigi->GetAddress()), fit_integral, ThisDigi->fIntegral, fit_chi2, fit_R2);
                 //##################################                    
                                     
                 if(counter > max_events_show) continue;

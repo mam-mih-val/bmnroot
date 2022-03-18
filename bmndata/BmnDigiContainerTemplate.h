@@ -99,6 +99,12 @@ public:
   double GetTimestamp() const { return fTimestamp; };
 
 
+  /** @brief Waveform
+       ** @return Signal Waveform
+       **/
+  std::vector<float> GetWfm() const { return fWfm; }
+
+
   /** Modifiers **/
   void SetAddress(UInt_t address) { fuAddress = address; };
 

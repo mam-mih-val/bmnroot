@@ -30,7 +30,8 @@ and open the template in the editor.
         <link rel="stylesheet" type="text/css" href="../css/tabs.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="../css/menu.css" media="screen" />
         <!--<script type="text/javascript" src="../root.app/jsrootsys/scripts/JSRootCore.js?2d"></script>-->
-<script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRoot.core.js"></script>
+<!--<script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRoot.core.js"></script>-->
+        <script type="text/javascript" src="../scripts/jsr/scripts/JSRoot.core.js"></script>
         <script type="text/javascript" src="../scripts/BMTools.js"></script>
         <script>
             var loco = window.location;
@@ -51,7 +52,7 @@ and open the template in the editor.
                 drawInfo();
             }
             function drawInfo() {
-                setTimeout(drawInfo, 6000);
+                setTimeout(drawInfo, 5000);
                 JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
                     var info = JSON.parse(obj);
                     if (info.arr.length > 0){
@@ -78,7 +79,7 @@ and open the template in the editor.
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("srcTableC", obj, "");
                 }).send(null);
-                filename = path + "TriggersCanvasTimesByChannel" + "/root.json.gz?compact=3";
+                filename = path + "SRCCanvasTimesByChannel" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("timeChannelTableC", obj, "");
                 }).send(null);
@@ -114,11 +115,11 @@ and open the template in the editor.
             <li><a href="../MWPC_detectors/index.html"><h3>MWPC</h3></a></li>
             <li><a href="../ZDC/index.html"><h3>ZDC</h3></a></li>
             <li><a href="../ECAL/index.html"><h3>ECAL</h3></a></li>
-<!--            <li><a href="../ScWall/index.html"><h3>ScWall</h3></a></li>
-            <li><a href="../FhCal/index.html"><h3>FhCal</h3></a></li>-->
+            <li><a href="../ScWall/index.html"><h3>ScWall</h3></a></li>
+            <!--<li><a href="../FhCal/index.html"><h3>FhCal</h3></a></li>-->
             <li><a href="../SRC/index.html"><h3>SRC Triggers</h3></a></li>
             <li><a href="../LAND/index.html"><h3>LAND</h3></a></li>
-            <!--<li><a href="../msc/index.html"><h3>MSC</h3></a></li>-->
+            <li><a href="../TofCal/index.html"><h3>TofCal</h3></a></li>
         </ul>
         <div id="total_counter" align="center">
             <h1>SRC Triggers</h1>
@@ -158,7 +159,7 @@ and open the template in the editor.
                             style = "width: 95vw;height: 45vw;"> </iframe>-->
 <div align="center">
     <div id="timeChannelTableC" style="position:relative;width: 98vw;height: 40vw;"> </div>
-    <div id="srcTableC" style="width: 98vw;height: 400vw;"> </div>
+    <div id="srcTableC" style="width: 98vw;height: 500vw;"> </div>
 </div>
 <!--<div align="center">
     <iframe style="width: 98vw;height: 240vw;" src="../root.app/GEM/GEMCanvas/draw.htm?monitoring=10000"> </iframe>>

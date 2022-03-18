@@ -1,11 +1,5 @@
-/********************************************************************************
- *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
- *                                                                              *
- *              This software is distributed under the terms of the             * 
- *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
- *                  copied verbatim in the file "LICENSE"                       *
- ********************************************************************************/
-#include <iostream>
+/// \file g3libs.C
+/// \brief Macro for loading Geant3 and Pythia 6 libraries
 
 Bool_t isLibrary(const char* libName)
 {
@@ -20,7 +14,7 @@ void g3libs()
   cout << "Loading Geant3 libraries ..." << endl;
 
   if (isLibrary("libdummies.so"))
-     gSystem->Load("libdummies.so");
+    gSystem->Load("libdummies.so");
                    // libdummies.so needed from geant3_+vmc version 0.5
 
   if (isLibrary("libpythia6.so"))

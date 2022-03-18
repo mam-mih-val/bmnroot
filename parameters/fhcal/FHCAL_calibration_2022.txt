@@ -8,17 +8,17 @@ str = void
 isWriteWfm = 0     # write waveforms for debug
 
 [PARAMETERS]
-gateBegin = 4
-gateEnd = 35
+gateBegin = 20
+gateEnd = 60
 threshold = -1000  # 0.1    # absolute value. To be compared to calibrated value of ScWallDigi.fSignal 
 signalType = 0     # (0 - max, 1 - integral)
-doInvert = 1       # invert signal
+doInvert = 0       # invert signal
 
 [FITPARAMETERS]
 # fit parameters for Prony fit
 isfit = 1          # apply fit
-harmonic = 0.30
-harmonic = 0.55
+harmonic = 0.65
+harmonic = 0.77
 
 [CALIBRATION]
 # cosmic calibration of channel. To be multiplied by signal

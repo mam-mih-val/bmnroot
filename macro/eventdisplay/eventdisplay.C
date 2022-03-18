@@ -1,173 +1,142 @@
-void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_number, bool isField, bool isTarget);
+void SetTasks(MpdEventManager* fMan, bool isExp, int run_period, int run_number, bool isField, bool isTarget);
 
-// common EVENT DISPLAY macro for simulated and experimental data
+// EVENT DISPLAY macro for experimental and simulated (both MC and reconstructed simulated data) data
+//    reco_file - ROOT file with reconstructed data for simulated or experimetal events
+//    sim_file  - ROOT file with MC data (and detector geometry) in case of MC visualization
+//    is_online - false (default) to use Offline Mode (manual switching of events); true to use Online Mode (continious view events)
 //
-// data source: 0 - event display for simulatated data (it shows both MC and reconstructed simulated data):
-//      sim_run_info - path to the ROOT file with MC data and detector geometry
-//      reco_file - ROOT file with reconstructed data for simulated events
-// data source: 1 - offline event display for reconstructed experimental data (it can work in online continious view):
-//      sim_run_info - run number in 'runN-NN' format, e.g. "run3-642" to obtain BM@N geometry from the Unified Database
-//      reco_file - ROOT file with reconstructed data for experimental events
-// data source: 2 - online event display for raw experimental data from directory (it can work in offline mode for last modified file in the directory):
-//                  it uses ATLAS TDAQ components, so TDAQ should be present on your machine (FindTDAQ.cmake script)
-//      sim_run_info - run number in 'runN-NN' format, e.g. "run6-1" to obtain BM@N geometry from the Unified Database
-//      reco_file - path to the directory with raw '*.data' files, e.g. "/tdaq/data/" (last slash is required)
-// is_online: false (default) - use Offline Mode (manual switching of events); true - use Online Mode (continious view events)
-
-//void eventdisplay(char* sim_run_info = "run6-1220", char* reco_file = "$VMCWORKDIR/macro/run/bmn_run1220.root", int data_source = 1, bool is_online = false)
-//void eventdisplay(char* sim_run_info = "run6-1220", char* reco_file = "/tdaq/data/", int data_source = 2, bool is_online = true)
-void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/bmnsim.root", const char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 0, bool is_online = false)
+// void eventdisplay(const char* reco_file = "$VMCWORKDIR/macro/run/bmn_run1220.root", const char* sim_file = "", bool is_online = false)
+void eventdisplay(const char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root",
+                  const char* sim_file = "$VMCWORKDIR/macro/run/bmnsim.root",
+                  bool is_online = false)
 {
-    gDebug = 0;
+    gDebug = 0; // Debug option
 
-    // CREATE FairRunAna
+    // create FairRunAna
     FairRunAna* fRunAna = new FairRunAna();
 
-    int run_period = -1, run_number = -1;
-    bool isTarget = false, isField = true;
-    FairSource* fFileSource = NULL;
+    // check reconstruction file exists
+    TString strRecoFile(reco_file), strSimFile(sim_file);
+    if (!BmnFunctionSet::CheckFileExist(strRecoFile, 1)) return;
 
-    TString strSimRunInfo(sim_run_info), strRecoFile(reco_file);
+    Int_t run_period = 7, run_number = -1;
+    Bool_t isField = (strRecoFile.Contains("noField")) ? kFALSE : kTRUE;
+    Bool_t isTarget = kTRUE;
+    Bool_t isExp = !BmnFunctionSet::isSimulationFile(strRecoFile);
+    Double_t fieldScale = 0.;
+
+    FairSource* fFileSource = NULL;
     // FOR SIMULATION : set source of events to display and addtiional parameters
-    if (data_source == 0)
+    if (!isExp)
     {
         // check file existence with MC data and detector geometry
-        if (!BmnFunctionSet::CheckFileExist(strSimRunInfo))
+        if (!BmnFunctionSet::CheckFileExist(strSimFile))
         {
-            cout<<endl<<"ERROR: Simulation file with detector geometry wasn't found!"<<endl;
+            cout<<endl<<"ERROR: simulation file with detector geometry was not found: "<<strSimFile<<endl;
             return;
         }
 
-        fFileSource = new FairFileSource(strSimRunInfo);
+        fFileSource = new FairFileSource(strSimFile);
 
         // set parameter file with MC data and detector geometry
         FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();
         FairParRootFileIo* parIo1 = new FairParRootFileIo();
-        parIo1->open(strSimRunInfo.Data());
+        parIo1->open(strSimFile.Data());
         rtdb->setFirstInput(parIo1);
         rtdb->setOutput(parIo1);
         rtdb->saveOutput();
 
         // add file with reconstructed data as a friend
-        if (BmnFunctionSet::CheckFileExist(strRecoFile))
-            ((FairFileSource*)fFileSource)->AddFriend(strRecoFile);
-        else
-            cout<<endl<<"Warning: File with reconstructed data wasn't found!"<<endl;
+        ((FairFileSource*)fFileSource)->AddFriend(strRecoFile);
     }
     // FOR EXPERIMENTAL DATA
-    // FROM RECONSTRUCTED ROOT FILE (data_source == 1), FROM DIRECTORY WITH RAW .DATA FILES (data_source == 2)
     else
     {
-        Ssiz_t indDash = strSimRunInfo.First('-');
-        if ((indDash > 0) && (strSimRunInfo.BeginsWith("run")))
+        // set source as root data file (without additional directories)
+        fFileSource = new BmnFileSource(strRecoFile, run_period, run_number);
+
+        // get geometry for run
+        gRandom->SetSeed(0);
+        TString geoFileName = Form("current_geo_file_%d.root", UInt_t(gRandom->Integer(UINT32_MAX)));
+        Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
+        if (res_code != 0)
         {
-            // get run period
-            run_period = TString(strSimRunInfo(3, indDash - 3)).Atoi();
-            // get run number
-            run_number = TString(strSimRunInfo(indDash+1, strSimRunInfo.Length() - indDash-1)).Atoi();
-
-            // get geometry for run
-            TString root_file_path = "current_geo_file.root";
-            Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*)root_file_path.Data());
-            if (res_code != 0)
-            {
-                cout << "\nGeometry couldn't' be read from the database" << endl;
-                return;
-            }
-
-            // get gGeoManager from ROOT file (if required)
-            TFile* geoFile = new TFile(root_file_path, "READ");
-            if (!geoFile->IsOpen())
-            {
-                cout<<"Error: could not open ROOT file with geometry!"<<endl;
-                return;
-            }
-            TList* keyList = geoFile->GetListOfKeys();
-            TIter next(keyList);
-            TKey* key = (TKey*) next();
-            TString className(key->GetClassName());
-            if (className.BeginsWith("TGeoManager"))
-                key->ReadObj();
-            else
-            {
-                cout<<"Error: TGeoManager isn't top element in geometry file "<<root_file_path<<endl;
-                return;
-            }
-
-            // set magnet field with factor corresponding the given run (for GEANE)
-            UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
-            if (pCurrentRun == 0)
-                return;
-
-            Double_t fieldScale = 0.0;
-            Double_t map_current  = 55.87;
-            Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
-            if ((field_voltage == NULL) || (*field_voltage < 10))
-            {
-                fieldScale = 0;
-                isField = kFALSE;
-            }
-            else
-                fieldScale = (*field_voltage) / map_current;
-            BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.dat");
-            magField->SetScale(fieldScale);
-            magField->Init();
-            fRunAna->SetField(magField);
-            TString targ = "-", beam = pCurrentRun->GetBeamParticle();
-            if (pCurrentRun->GetTargetParticle() != NULL)
-            {
-                isTarget = kTRUE;
-                targ = *(pCurrentRun->GetTargetParticle());
-            }
-
-            cout << "\n\n|||||||||||||||| EXPERIMENTAL RUN SUMMARY ||||||||||||||||" << endl;
-            cout << "||\t\tPeriod:\t\t" << run_period << "\t\t\t||" << endl;
-            cout << "||\t\tNumber:\t\t" << run_number << "\t\t\t||" << endl;
-            cout << "||\t\tBeam:\t\t" << beam << "\t\t\t||" << endl;
-            cout << "||\t\tTarget:\t\t" << targ << "\t\t\t||" << endl;
-            cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
-            cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
-        }
-        else
-        {
-            cout<<"Error: run info wasn't found!"<<endl;
+            cout << "ERROR: could not read geometry file from the database" << endl;
             return;
         }
 
-        if (!BmnFunctionSet::CheckFileExist(strRecoFile)) return;
-
-        // set source as raw data file
-        if (data_source == 1)
-            fFileSource = new BmnFileSource(strRecoFile);
-        // set source as TDAQ Event Monitor
-        if (data_source == 2)
+        // get gGeoManager from ROOT file (if required)
+        TFile* geoFile = new TFile(geoFileName, "READ");
+        if (!geoFile->IsOpen())
         {
-            // load TDAQ libraries
-            gSystem->Load("libemon");
-            gSystem->Load("libemon-dal");
-            gSystem->Load("libcmdline");
-            gSystem->Load("libipc");
-            gSystem->Load("libowl");
-            gSystem->Load("libomniORB4");
-            gSystem->Load("libomnithread");
-            gSystem->Load("libers");
-
-            //fFileSource = new BmnTdaqSource("bmn", "raw", "file", 2);
+            cout << "ERROR: could not open ROOT file with geometry: " + geoFileName << endl;
+            exit(-4);
         }
+        TList* keyList = geoFile->GetListOfKeys();
+        TIter next(keyList);
+        TKey* key = (TKey*) next();
+        TString className(key->GetClassName());
+        if (className.BeginsWith("TGeoManager"))
+            key->ReadObj();
+        else {
+            cout << "ERROR: TGeoManager is not top element in geometry file " + geoFileName << endl;
+            return;
+        }
+
+        // set magnet field with factor corresponding to the given run
+        UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
+        if (pCurrentRun == 0)
+            exit(-6);
+        Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
+        if (field_voltage == NULL) {
+            cout << "ERROR: no field voltage was found for run " << run_period << ":" << run_number << endl;
+            exit(-7);
+        }
+        Double_t map_current = 55.87;
+        if (*field_voltage < 10) {
+            fieldScale = 0;
+            isField = kFALSE;
+        } else
+            fieldScale = (*field_voltage) / map_current;
+
+        BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v5_ascii_Extrap.root");
+        magField->SetScale(fieldScale);
+        magField->Init();
+        fRunAna->SetField(magField);
+        isExp = kTRUE;
+        TString targ;
+        if (pCurrentRun->GetTargetParticle() == NULL) {
+            targ = "-";
+            isTarget = kFALSE;
+        } else {
+            targ = (pCurrentRun->GetTargetParticle())[0];
+            isTarget = kTRUE;
+        }
+        TString beam = pCurrentRun->GetBeamParticle();
+        cout << "\n\n|||||||||||||||| EXPERIMENTAL RUN SUMMARY ||||||||||||||||" << endl;
+        cout << "||\t\t\t\t\t\t\t||" << endl;
+        cout << "||\t\tPeriod:\t\t" << run_period << "\t\t\t||" << endl;
+        cout << "||\t\tNumber:\t\t" << run_number << "\t\t\t||" << endl;
+        cout << "||\t\tBeam:\t\t" << beam << "\t\t\t||" << endl;
+        cout << "||\t\tTarget:\t\t" << targ << "\t\t\t||" << endl;
+        cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
+        cout << "||\t\t\t\t\t\t\t||" << endl;
+        cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
+        remove(geoFileName.Data());
     }
 
     if (fFileSource != NULL) fRunAna->SetSource(fFileSource);
+    // set output file
+    fRunAna->SetSink(new FairRootFileSink("ed_out.root"));
+    fRunAna->SetGenerateRunInfo(false);
 
     // Create Event Manager
     MpdEventManager* fMan = new MpdEventManager();
     fMan->isOnline = is_online;
-    fMan->iDataSource = data_source;
-
-    // set output file
-    //fRunAna->SetSink(new FairRootFileSink("ed_out.root"));
+    fMan->iDataSource = isExp;
 
     // set tasks to draw
-    SetTasks(fMan, data_source, run_period, run_number, isField, isTarget);
+    SetTasks(fMan, isExp, run_period, run_number, isField, isTarget);
 
     // light background color by default
     fMan->background_color = 17;
@@ -178,13 +147,13 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/bmnsim.root"
 }
 
 // set FairRunAna drawing tasks depending from data source and on/offline mode
-void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_number, bool isField, bool isTarget)
+void SetTasks(MpdEventManager* fMan, bool isExp, int run_period, int run_number, bool isField, bool isTarget)
 {
     Style_t pointMarker = kFullDotSmall;
     Color_t mcPointColor = kRed, recoPointColor = kBlack, expPointColor = kRed;
 
     // FOR SIMULATION
-    if (data_source == 0)
+    if (!isExp)
     {
         // draw MC Points
         MpdMCPointDraw* ArmTrigPoint = new MpdMCPointDraw("ArmTrigPoint", mcPointColor, pointMarker);
@@ -264,7 +233,7 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
     }
 
     // FOR EXPERIMENTAL DATA FROM RECONSTRUCTED ROOT FILE
-    if (data_source == 1)
+    if (isExp)
     {
         // draw MWPC Hits
         MpdHitPointSetDraw* BmnMwpcHit = new MpdHitPointSetDraw("BmnMwpcHit", expPointColor, pointMarker);
@@ -312,51 +281,4 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
 
         return;
     }
-/*
-    // FOR EXPERIMENTAL DATA FROM DIRECTORY WITH .DATA FILES
-    if (data_source == 2)
-    {
-        // GEM hit finder
-        BmnGemStripConfiguration::GEM_CONFIG gem_config;
-        if (run_period == 6)
-            gem_config = BmnGemStripConfiguration::RunSpring2017;
-        else if (run_period == 5)
-            gem_config = BmnGemStripConfiguration::RunWinter2016;
-        BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(true);
-        gemHM->SetCurrentConfig(gem_config);
-        gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
-        gemHM->SetHitMatching(kTRUE);
-        gemHM->SetVerbose(0);
-        fMan->AddTask(gemHM);
-
-        // Tracking GEM
-        BmnGemTracking* gemTF = new BmnGemTracking();
-        gemTF->SetTarget(isTarget);
-        gemTF->SetField(isField);
-        TVector3 vAppr = TVector3(0.0, -3.5, -21.7);
-        gemTF->SetRoughVertex(vAppr);
-        gemTF->SetVerbose(1);
-        fMan->AddTask(gemTF);
-
-        // TOF-400 hit finder
-        BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", false, 0, kTRUE);
-        fMan->AddTask(tof1HP);
-
-        // draw GEM hits
-        MpdHitPointSetDraw* GemHit = new MpdHitPointSetDraw("BmnGemStripHit", expPointColor, pointMarker);
-        GemHit->SetVerbose(1);
-        fMan->AddTask(GemHit);
-
-        // draw TOF-400 hits
-        MpdHitPointSetDraw* Tof1Hit = new MpdHitPointSetDraw("BmnTof400Hit", expPointColor, pointMarker);
-        Tof1Hit->SetVerbose(1);
-        fMan->AddTask(Tof1Hit);
-
-        // draw GEM seeds or tracks
-        BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemTrack", "BmnGemStripHit");
-        GemTrack->SetVerbose(1);
-        fMan->AddTask(GemTrack);
-
-        return;
-    }*/
 }

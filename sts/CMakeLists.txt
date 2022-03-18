@@ -78,6 +78,6 @@ BmnStsMatchTracks.cxx
 Set(HEADERS)
 Set(LINKDEF StsLinkDef.h)
 Set(LIBRARY_NAME Sts)
-Set(DEPENDENCIES Gem Silicon BmnData Passive Base Core)
+Set(DEPENDENCIES Gem Silicon BmnData Passive Base Gdml Core)
 
 GENERATE_LIBRARY()

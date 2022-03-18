@@ -478,6 +478,14 @@ void BmnCSCLayer::FindClustersAndStripHits() {
 
     Int_t NStripsInCluster = cluster.GetClusterSize();
 
+    //Share the common strip signal of two adjacent clusters in half
+    if(true) {
+        if(AnalyzableStrips.at(curcnt) >= AnalyzableStrips.at(curcnt-1)) {
+            cluster.Signals.at(cluster.Signals.size()-1) *= 0.5;
+            AnalyzableStrips.at(curcnt-1) *= 0.5;
+        }
+    }
+
     //mean position and cluster signal -----------------------------------------
     for(Int_t i = 0; i < NStripsInCluster; ++i) {
         Double_t strip_num = cluster.Strips.at(i);

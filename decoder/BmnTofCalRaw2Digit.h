@@ -6,7 +6,7 @@
 #include "TClonesArray.h"
 
 #define TOFCAL_ARM_N 2
-#define TOFCAL_PLANE_N 4
+#define TOFCAL_PLANE_N 5 
 #define TOFCAL_BAR_N 15
 #define TOFCAL_SIDE_N 2
 #define TACQ_CRATE_N 2

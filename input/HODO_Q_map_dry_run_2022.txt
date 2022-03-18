@@ -1,0 +1,88 @@
+[VERSION]								
+id = 1.0						
+								
+[COMMENT]								
+str = void						
+								
+[TQDCSERIALS]								
+# will be sorted					
+serial = 0x0a7a3133
+serial = 0x076d3c21
+serial = 0x076d3c3c
+serial = 0x076d2b5f
+
+[CONFIGURATION]	
+# Material ( S -- scintillator, Q -- quarz, N -- not connected )
+# Strip Side ( 0 -- down, 1 -- up )	
+# Gain ( 0 -- low, 1 -- high )			
+#		TQDC_serial	TQDC_ch	Mater	StripId	StrSide	Gain
+#====================================================================						
+
+config	=	0x0a7a3133	0	Q	9	1	0
+config	=	0x0a7a3133	1	Q	10	1	0
+config	=	0x0a7a3133	2	Q	11	1	0
+config	=	0x0a7a3133	3	Q	12	1	0
+config	=	0x0a7a3133	4	Q	13	1	0
+config	=	0x0a7a3133	5	Q	14	1	0
+config	=	0x0a7a3133	6	Q	15	1	0
+config	=	0x0a7a3133	7	Q	16	1	0
+config	=	0x0a7a3133	8	Q	9	1	1
+config	=	0x0a7a3133	9	Q	10	1	1
+config	=	0x0a7a3133	10	Q	11	1	1
+config	=	0x0a7a3133	11	Q	12	1	1
+config	=	0x0a7a3133	12	Q	13	1	1
+config	=	0x0a7a3133	13	Q	14	1	1
+config	=	0x0a7a3133	14	Q	15	1	1
+config	=	0x0a7a3133	15	Q	16	1	1
+								
+config	=	0x076d3c21	0	Q	1	1	0
+config	=	0x076d3c21	1	Q	2	1	0
+config	=	0x076d3c21	2	Q	3	1	0
+config	=	0x076d3c21	3	Q	4	1	0
+config	=	0x076d3c21	4	Q	5	1	0
+config	=	0x076d3c21	5	Q	6	1	0
+config	=	0x076d3c21	6	Q	7	1	0
+config	=	0x076d3c21	7	Q	8	1	0
+config	=	0x076d3c21	8	Q	1	1	1
+config	=	0x076d3c21	9	Q	2	1	1
+config	=	0x076d3c21	10	Q	3	1	1
+config	=	0x076d3c21	11	Q	4	1	1
+config	=	0x076d3c21	12	Q	5	1	1
+config	=	0x076d3c21	13	Q	6	1	1
+config	=	0x076d3c21	14	Q	7	1	1
+config	=	0x076d3c21	15	Q	8	1	1
+
+config	=	0x076d3c3c	0	Q	16	0	0
+config	=	0x076d3c3c	1	Q	15	0	0
+config	=	0x076d3c3c	2	Q	14	0	0
+config	=	0x076d3c3c	3	Q	13	0	0
+config	=	0x076d3c3c	4	Q	12	0	0
+config	=	0x076d3c3c	5	Q	11	0	0
+config	=	0x076d3c3c	6	Q	10	0	0
+config	=	0x076d3c3c	7	Q	9	0	0
+config	=	0x076d3c3c	8	Q	16	0	1
+config	=	0x076d3c3c	9	Q	15	0	1
+config	=	0x076d3c3c	10	Q	14	0	1
+config	=	0x076d3c3c	11	Q	13	0	1
+config	=	0x076d3c3c	12	Q	12	0	1
+config	=	0x076d3c3c	13	Q	11	0	1
+config	=	0x076d3c3c	14	Q	10	0	1
+config	=	0x076d3c3c	15	Q	9	0	1
+
+config	=	0x076d2b5f	0	Q	8	0	0
+config	=	0x076d2b5f	1	Q	7	0	0
+config	=	0x076d2b5f	2	Q	6	0	0
+config	=	0x076d2b5f	3	Q	5	0	0
+config	=	0x076d2b5f	4	Q	4	0	0
+config	=	0x076d2b5f	5	Q	3	0	0
+config	=	0x076d2b5f	6	Q	2	0	0
+config	=	0x076d2b5f	7	Q	1	0	0
+config	=	0x076d2b5f	8	Q	8	0	1
+config	=	0x076d2b5f	9	Q	7	0	1
+config	=	0x076d2b5f	10	Q	6	0	1
+config	=	0x076d2b5f	11	Q	5	0	1
+config	=	0x076d2b5f	12	Q	4	0	1
+config	=	0x076d2b5f	13	Q	3	0	1
+config	=	0x076d2b5f	14	Q	2	0	1
+config	=	0x076d2b5f	15	Q	1	0	1
+

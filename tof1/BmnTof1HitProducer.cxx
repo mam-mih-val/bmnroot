@@ -69,8 +69,8 @@ fDoINL(true), fDoSlewing(true), fSignalVelosity(0.060) {
 //--------------------------------------------------------------------------------------------------------------------------------------
 
 BmnTof1HitProducer::~BmnTof1HitProducer() {
-    
-    if (!fUseMCData){
+
+    if (!fUseMCData) {
         for (Int_t i = 0; i < fNDetectors; i++) {
             delete pDetector[i];
         }
@@ -113,6 +113,7 @@ InitStatus BmnTof1HitProducer::Init() {
         if (fVerbose) cout << "BmnTof1HitProducer::Init(): looking for branch " << NameT0Branch << "for start" << endl;
         if (fPeriod == 6) NameT0Branch = "T0";
         if (fPeriod == 7) NameT0Branch = "BC2";
+        if (fPeriod == 8) NameT0Branch = "T0_1_A"; // temporary fix
         aExpDigitsT0 = (TClonesArray*) FairRootManager::Instance()->GetObject(NameT0Branch.Data());
         if (!aExpDigitsT0) {
             cout << "BmnTof1HitProducer::Init(): branch T0 not found! Task will be deactivated" << endl;
@@ -145,26 +146,6 @@ InitStatus BmnTof1HitProducer::Init() {
             return kERROR;
         }
 
-        //        NameFileLRcorrection = Form("TOF400_LRCorr_RUN%i_v2.dat", fPeriod);
-        //        Bool_t FlagFileLRcorrection = IsFile(NameFileLRcorrection);
-        //        if (!FlagFileLRcorrection) {
-        //            cout << endl << "File " << NameFileLRcorrection.Data() << " for LR correction is not found" << endl;
-        //            cout << "Check /input folder for file" << endl;
-        //        }
-        //
-        //        NameFileSlewingCorrection = Form("TOF400_SlewingCorr_BMN_RUN%i_v2.root", fPeriod);
-        //        Bool_t FlagFileSlewingCorrection = IsFile(NameFileSlewingCorrection);
-        //        if (!FlagFileSlewingCorrection) {
-        //            cout << endl << "File " << NameFileSlewingCorrection.Data() << " for Slewing correction is not found" << endl;
-        //            cout << "Check /input folder for file" << endl;
-        //        }
-        //
-        //        NameFileTimeShiftCorrection = Form("TOF400_TimeShiftCorr_BMN_RUN%i_v3.dat", fPeriod);
-        //        Bool_t FlagFileTimeShiftCorrection = IsFile(NameFileTimeShiftCorrection);
-        //        if (!FlagFileTimeShiftCorrection) {
-        //            cout << "File " << NameFileTimeShiftCorrection.Data() << " for Time shift correction is not found" << endl;
-        //            cout << "Check /input folder for file" << endl;
-        //        }
         pDetector = new BmnTOF1Detector *[fNDetectors];
         for (Int_t i = 0; i < fNDetectors; i++) {
             Int_t DoTestForDetector = 0; // For developers only. Level of Histograms filling (0-don't fill, 1-low, 2-high). 
@@ -233,13 +214,13 @@ Bool_t BmnTof1HitProducer::DoubleHitExist(Double_t val) // val - distance to the
 //--------------------------------------------------------------------------------------------------------------------------------------
 
 void BmnTof1HitProducer::Exec(Option_t* opt) {
-    
+
     TStopwatch sw;
     sw.Start();
-    
+
     if (!IsActive())
         return;
-    
+
     if (fVerbose) cout << endl << "======================== TOF400 exec started ====================" << endl;
     static const TVector3 XYZ_err(fErrX, fErrY, 0.);
 
@@ -448,6 +429,21 @@ Bool_t BmnTof1HitProducer::SetCorrFiles() {
 
             temp = true;
         }
+    }
+
+    // Run 8 (2022) ???
+    if (fPeriod == 8) {
+        // temporary fix for reconstruction possibility 
+        return kTRUE;
+        //        NameFileLRcorrection = Form("TOF400_LRCorr_RUN%i.dat", fPeriod);
+        //        NameFileSlewingCorrection = Form("TOF400_SlewingCorr_RUN%i.root", fPeriod);
+        //        NameFileTimeShiftCorrection = Form("TOF400_TimeShiftCorr_RUN%i.dat", fPeriod);
+
+        //        FlagFileLRcorrection = false;
+        //        FlagFileSlewingCorrection = false;
+        //        FlagFileTimeShiftCorrection = false;
+        //
+        //        temp = true;
     }
 
     if (temp) {

@@ -523,6 +523,14 @@ void BmnSiliconLayer::FindClustersAndStripHits() {
 
     Int_t NStripsInCluster = cluster.GetClusterSize();
 
+    //Share the common strip signal of two adjacent clusters in half
+    if(true) {
+        if(AnalyzableStrips.at(curcnt) >= AnalyzableStrips.at(curcnt-1)) {
+            cluster.Signals.at(cluster.Signals.size()-1) *= 0.5;
+            AnalyzableStrips.at(curcnt-1) *= 0.5;
+        }
+    }
+
     //mean position and cluster signal -----------------------------------------
     for(Int_t i = 0; i < NStripsInCluster; ++i) {
         Double_t strip_num = cluster.Strips.at(i) + FirstStripNumber;
@@ -587,7 +595,14 @@ void BmnSiliconLayer::FindClustersAndStripHits() {
         cluster.SetType(1);
         cluster.SetUniqueID(fUniqueIdU++);
     }
-    
+
+    /* Update strip numbers in the local cluster according to
+     * the FirstStripNumber shift before we can use it in the outer code
+     */
+    for(Int_t i = 0; i < NStripsInCluster; ++i) {
+        cluster.Strips.at(i) += FirstStripNumber;
+    }
+
     StripClusters.push_back(cluster);
 
     //return to a previous strip

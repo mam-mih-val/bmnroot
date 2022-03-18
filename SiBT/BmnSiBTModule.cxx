@@ -180,6 +180,7 @@ Bool_t BmnSiBTModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z,
 
         RealPointsX.push_back(x);
         RealPointsY.push_back(y);
+        RealPointsMC.push_back(refID);
 
         return true;
     }
@@ -212,6 +213,7 @@ Bool_t BmnSiBTModule::AddRealPointSimple(Double_t x, Double_t y, Double_t z,
 
         RealPointsX.push_back(x);
         RealPointsY.push_back(y);
+        RealPointsMC.push_back(refID);
 
         return true;
     }

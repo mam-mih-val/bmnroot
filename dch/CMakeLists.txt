@@ -40,6 +40,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF DchLinkDef.h)
 Set(LIBRARY_NAME Dch)
-Set(DEPENDENCIES BmnData Base Core)
+Set(DEPENDENCIES BmnData Base Gdml Core)
 
 GENERATE_LIBRARY()

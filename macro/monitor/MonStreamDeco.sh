@@ -9,7 +9,7 @@ source $BMNROOT/build/config.sh
 while true; 
 
 do
-/opt/fairsoft/install/bin/root.exe -b -q '$BMNROOT/macro/monitor/monStreamDecoder.C("bmn-daq.he.jinr.ru:32999",8, kSRCSETUP)'
+/opt/fairsoft/install/bin/root.exe -b -q $BMNROOT'/macro/monitor/monStreamDecoder.C("10.18.86.85:21323",8, kSRCSETUP)'
 sleep 40
 
 done

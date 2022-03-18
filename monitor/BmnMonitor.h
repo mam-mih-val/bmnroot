@@ -44,6 +44,7 @@
 #include "BmnHistScWall.h"
 #include "BmnHistECAL.h"
 #include "BmnHistLAND.h"
+#include "BmnHistTofCal.h"
 #include "BmnOnlineDecoder.h"
 #include "BmnHistSilicon.h"
 #include "BmnHistCsc.h"

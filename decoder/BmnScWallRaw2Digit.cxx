@@ -200,6 +200,12 @@ void BmnScWallRaw2Digit::ParseCalibration(TString calibrationFile)
 
 }
 
+std::pair<float,float> BmnScWallRaw2Digit::GetCalibPairFromAddress(unsigned int address)
+{
+  auto cell_id = BmnScWallAddress::GetCellId(address);
+  return fCalibVect.at(cell_id);
+}
+
 int BmnScWallRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int board_serial, unsigned int channel)
 {
   auto it = find(fSerials.begin(), fSerials.end(), board_serial);

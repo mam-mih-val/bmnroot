@@ -30,7 +30,8 @@ and open the template in the editor.
         <link rel="stylesheet" type="text/css" href="../css/tabs.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="../css/menu.css" media="screen" />
         <!--<script type="text/javascript" src="../root.app/jsrootsys/scripts/JSRootCore.js?2d"></script>-->
-<script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRoot.core.js"></script>
+<!--<script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRoot.core.js"></script>-->
+        <script type="text/javascript" src="../scripts/jsr/scripts/JSRoot.core.js"></script>
         <script type="text/javascript" src="../scripts/BMTools.js"></script>
         <script>
             var loco = window.location;
@@ -54,7 +55,7 @@ and open the template in the editor.
                 setTimeout(drawInfo, 5000);
                 JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
                     var info = JSON.parse(obj);
-                    if (info.arr.length > 0){
+                    if (info.arr.length > 0) {
                         var runInfo = info.arr[0];
                         var runID = runInfo.i_run_number;
                         var storedRunId = sessionStorage.getItem('runID');
@@ -110,11 +111,11 @@ and open the template in the editor.
             <li><a href="../MWPC_detectors/index.html"><h3>MWPC</h3></a></li>
             <li><a href="../ZDC/index.html"><h3>ZDC</h3></a></li>
             <li><a href="../ECAL/index.html"><h3>ECAL</h3></a></li>
-<!--            <li><a href="../ScWall/index.html"><h3>ScWall</h3></a></li>
-            <li><a href="../FhCal/index.html"><h3>FhCal</h3></a></li>-->
+            <li><a href="../ScWall/index.html"><h3>ScWall</h3></a></li>
+            <!--<li><a href="../FhCal/index.html"><h3>FhCal</h3></a></li>-->
             <li><a href="../SRC/index.html"><h3>SRC Triggers</h3></a></li>
             <li><a href="../LAND/index.html"><h3>LAND</h3></a></li>
-            <!--<li><a href="../msc/index.html"><h3>MSC</h3></a></li>-->
+            <li><a href="../TofCal/index.html"><h3>TofCal</h3></a></li>
         </ul>
         <div id="total_counter" align="center">
             <h1>BM@N SRC LAND</h1>
@@ -127,9 +128,9 @@ and open the template in the editor.
         <table>
             <tr>
             <tb>
-<!--                <button onclick="ResetHist()">
-                    <h1 style="color:red;">Reset</h1>
-                </button>-->
+                <!--                <button onclick="ResetHist()">
+                                    <h1 style="color:red;">Reset</h1>
+                                </button>-->
             </tb>
         </tr>
         <!--<tr>
@@ -147,13 +148,13 @@ and open the template in the editor.
             </tb>
 
     </tr>-->
-</table>
+    </table>
 
-<div align="center">
-    <div id="SiliconTableC" style="width: 94vw;height: 70vw;"> </div>
-</div>
-<div id="Silicon_div" >
-</div>
+    <div align="center">
+        <div id="SiliconTableC" style="width: 94vw;height: 70vw;"> </div>
+    </div>
+    <div id="Silicon_div" >
+    </div>
 
 </table>
 </body>

@@ -14,6 +14,7 @@
 #include <assert.h>
 #include "BmnGemStripStationSet.h"
 #include "BmnSiliconStationSet.h"
+#include "BmnCSCStationSet.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"
 
 class TClonesArray;
@@ -34,7 +35,7 @@ private:
     /**
      * \brief Constructor.
      */
-    BmnMCTrackCreator(TString gem, TString sil);
+    BmnMCTrackCreator(TString gem, TString sil, TString csc);
 
 public:
     /**
@@ -45,7 +46,7 @@ public:
     /**
      * \brief Singleton instance.
      */
-    static BmnMCTrackCreator* Instance(TString gem, TString sil);
+    static BmnMCTrackCreator* Instance(TString gem, TString sil, TString csc);
 
     /**
      * \brief Creates array of BmnMCTracks for current event.
@@ -136,8 +137,11 @@ private:
     TClonesArray* fGemPoints;
     TClonesArray* fTof400Points;
     TClonesArray* fTof700Points;
+    TClonesArray* fCscPoints;
     
     Int_t fNSiliconStations;
+    Int_t fNGemStations;
+    Int_t fNCscStations;
 
     // Stores created BmnMCTrack objects.
     // std::map<MC track index, BmnMCTrack object>.
@@ -145,6 +149,7 @@ private:
 
     BmnGemStripStationSet* fGemDetector;
     BmnSiliconStationSet* fSilDetector;
+    BmnCSCStationSet* fCscDetector;
 };
 
 #endif /* BMNMCTRACKCREATOR_H_ */

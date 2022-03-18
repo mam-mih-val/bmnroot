@@ -35,8 +35,10 @@ public:
     std::vector<short> GetUniqueXpositions() {return fUniqueX;}
     std::vector<short> GetUniqueYpositions() {return fUniqueY;}
     std::vector<short> GetUniqueZpositions() {return fUniqueZ;}
+    digiPars GetDigiPars() {return fdigiPars;}
     int GetFlatChannelFromAdcChannel(unsigned int board_id, unsigned int channel);
     int GetFlatIndex(int mod_id, int sec_id);
+    std::pair<float,float> GetCalibPairFromAddress(unsigned int address);
  
 private:
     static constexpr int CHANNELS_PER_BOARD = 64; // ADC64 boards

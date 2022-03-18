@@ -113,7 +113,9 @@ public:
     /** Set the raw MSC counters
      * \param[in] v : map < MSC serial, counters vector>
      */
-    void SetRawMSC(map<UInt_t, vector<uint64_t> >  &&v) { fBoardSums = v; }
+    void SetRawMSC(map<UInt_t, vector<uint64_t> >  v) { fBoardSums = v;
+//    printf("inner len %lu\n", fBoardSums.size());
+    }
 
     ClassDef(DigiRunHeader, 2)
 };

@@ -293,13 +293,14 @@ Bool_t BmnSiliconModule::AddRealPointSimple(Double_t x, Double_t y, Double_t z,
             AddStripSignalInLayerByZoneId(zone_id, (Int_t)strip_pos, signal);
 
             //strip match
-            AddStripMatchInLayerByZoneId(zone_id, (Int_t)strip_pos, 1.0, refID);
+            AddStripMatchInLayerByZoneId(zone_id, (Int_t)strip_pos, signal, refID);
 
         }
         //----------------------------------------------------------------------
 
         RealPointsX.push_back(x);
         RealPointsY.push_back(y);
+        RealPointsMC.push_back(refID);
 
         return true;
     }
@@ -366,13 +367,14 @@ Bool_t BmnSiliconModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z,
                 Int_t strip_num = cluster_layers[ilayer].Strips.at(ielement);
                 Double_t strip_signal = cluster_layers[ilayer].Signals.at(ielement);
                 Int_t zone_id = StripLayers[ilayer].GetZoneID();
-                AddStripMatchInLayerByZoneId(zone_id, strip_num, 1.0, refID);
+                AddStripMatchInLayerByZoneId(zone_id, strip_num, strip_signal, refID);
             }
         }
         //----------------------------------------------------------------------
 
         RealPointsX.push_back(x);
         RealPointsY.push_back(y);
+        RealPointsMC.push_back(refID);
 
         return true;
     }

@@ -41,6 +41,7 @@ void BmnHistScWall::CreateHistos() {
 
     PadInfo *p = new PadInfo();
     p->current = h2d_grid;
+    p->opt = "colz";
     canAmpsPads[0] = p;
     PadInfo *p1 = new PadInfo();
     p1->current = h2d_profile;

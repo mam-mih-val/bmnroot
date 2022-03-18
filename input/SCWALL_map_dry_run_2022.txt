@@ -9,7 +9,7 @@ str = void
 serial = 0x0aadb6ec						
 serial = 0x0aae37f0						
 serial = 0x080c33e6						
-serial = 0x0611d032						
+serial = 0x0611d032
 								
 [CONFIGURATION]								
 # Zone Z for not connected lines		
@@ -47,7 +47,7 @@ config	=	0x0aadb6ec	20	65	B	375	375	150
 config	=	0x0aadb6ec	28	66	B	225	375	150
 config	=	0x0aadb6ec	21	67	B	75	375	150
 config	=	0x0aadb6ec	29	81	B	675	225	150
-config	=	0x0aadb6ec	22	82	B	225	225	150
+config	=	0x0aadb6ec	22	82	B	525	225	150
 config	=	0x0aadb6ec	30	83	B	375	225	150
 config	=	0x0aadb6ec	23	84	B	225	225	150
 config	=	0x0aadb6ec	31	85	B	75	225	150
@@ -221,20 +221,20 @@ config	=	0x080c33e6	54	156	L	-1275	-375	150
 config	=	0x080c33e6	62	171	L	-825	-525	150
 config	=	0x080c33e6	55	172	L	-975	-525	150
 config	=	0x080c33e6	63	173	L	-1125	-525	150
-								
-config	=	0x0611d032	0	201	V	0	0	150
-config	=	0x0611d032	8	202	V	0	0	150
-config	=	0x0611d032	1	203	V	0	0	150
-config	=	0x0611d032	9	204	V	0	0	150
-config	=	0x0611d032	2	205	V	0	0	150
-config	=	0x0611d032	10	206	V	0	0	150
-config	=	0x0611d032	3	207	V	0	0	150
-config	=	0x0611d032	11	208	V	0	0	150
-config	=	0x0611d032	4	209	V	0	0	150
-config	=	0x0611d032	12	210	V	0	0	150
-config	=	0x0611d032	5	211	V	0	0	150
-config	=	0x0611d032	13	212	V	0	0	150
-config	=	0x0611d032	6	213	V	0	0	150
-config	=	0x0611d032	14	214	V	0	0	150
-config	=	0x0611d032	7	215	V	0	0	150
-config	=	0x0611d032	15	216	V	0	0	150
+
+config  =       0x0611d032	0 	201     V	0       0       150
+config  =	0x0611d032	8	202     V	0	0	150
+config  =       0x0611d032	1 	203     V	0       0       150
+config  =	0x0611d032	9 	204     V	0       0       150
+config  =	0x0611d032	2 	205     V	0       0       150
+config  =	0x0611d032	10	206     V	0       0       150
+config  =       0x0611d032      3 	207     V	0       0       150
+config  =	0x0611d032	11	208     V	0       0       150
+config  =       0x0611d032	4 	209     V	0       0       150
+config  =	0x0611d032	12	210     V	0       0       150
+config  =       0x0611d032      5       211     V       0       0       150
+config  =	0x0611d032	13	212     V	0       0       150
+config  =	0x0611d032	6 	213     V	0       0       150
+config  =	0x0611d032	14	214     V	0       0       150
+config  =	0x0611d032	7 	215     V	0       0       150
+config  =	0x0611d032	15	216     V	0       0       150

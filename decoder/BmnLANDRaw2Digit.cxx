@@ -84,7 +84,8 @@ BmnLANDRaw2Digit::BmnLANDRaw2Digit(TString a_map_filename, TString
       if (1 == tacq_crate) {
 	tacq_module_max = 10;
       } else if (2 == tacq_crate) {
-	tacq_module_max = 6;
+	//JK tacq_module_max = 6;
+	tacq_module_max = 10;
       } else {
 	std::cerr << __func__ << ':' << line_no << ": INVALID TACQUILA CRATE!!!\n";
 	break;

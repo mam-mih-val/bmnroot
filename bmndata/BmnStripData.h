@@ -215,6 +215,23 @@ public:
             Signals.insert(signal_iter, strip_signal);
         }
     }
+    
+    void Print() {
+        printf("\nCLUSTER INFORMATION (#%d)\n", this->GetUniqueID());
+        if (fType == 0) printf("TYPE: LOWER\n");
+        else if (fType == 1) printf("TYPE: UPPER\n");
+        printf("Station: %d\n", Station);
+        printf("Module: %d\n", Module);
+        printf("Cluster width: %d\n", Width);
+        printf("Total cluster signal: %4.2f\n", TotalSignal);
+        printf("Strips: ");
+        for (auto it : Strips)
+            printf("%d ", it);
+        printf("\nSignals: ");
+        for (auto it : Signals)
+            printf("%4.2f ", it);
+        printf("\n");
+    }
 
     void Clear() {
         Strips.clear();

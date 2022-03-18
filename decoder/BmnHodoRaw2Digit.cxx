@@ -175,6 +175,12 @@ void BmnHodoRaw2Digit::ParseCalibration(TString calibrationFile)
 
 }
 
+std::pair<float,float> BmnHodoRaw2Digit::GetCalibPairFromAddress(unsigned int address)
+{
+  uint8_t flat_channel = BmnHodoAddress::GetFlatIndex(address);
+  return fCalibVect.at(flat_channel);
+}
+
 int BmnHodoRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int board_serial, unsigned int channel)
 {
   auto it = find(fSerials.begin(), fSerials.end(), board_serial);

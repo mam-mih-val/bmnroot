@@ -109,7 +109,7 @@ public:
 private:
 
     TString Serial2FileName(TString boardName, UInt_t serial) {
-        UShort_t h = (serial & 0xFFFF0000) >> 16;
+        UShort_t h = serial >> 16;
         UShort_t l = serial & 0x0000FFFF;
         TString inlFileName = Form("%s-%04X-%04X.ini", boardName.Data(), h, l);
         return inlFileName;
@@ -129,6 +129,8 @@ private:
         }
         return channelCount;
     }
+    
+    void ProcessWave(Short_t *iValue, const uint16_t &nVals, Bool_t &isNeg);
 
     map< PlMapKey, BmnTrigParameters*> fPlacementMap;
     vector<BmnTrigChannelData> fMap;

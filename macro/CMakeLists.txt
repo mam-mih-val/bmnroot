@@ -4,6 +4,7 @@ add_subdirectory(srcAnalysis)
 INSTALL(DIRECTORY ./ DESTINATION ${CMAKE_INSTALL_PREFIX}/macro
 	PATTERN "./profiling" EXCLUDE
 	PATTERN "./CMakeLists.txt" EXCLUDE
+	PATTERN "./raw/*.root" EXCLUDE
 )
 
 INSTALL(DIRECTORY ../config DESTINATION ${CMAKE_INSTALL_PREFIX})

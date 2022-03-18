@@ -39,6 +39,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF SiBTLinkDef.h)
 Set(LIBRARY_NAME SiBT)
-Set(DEPENDENCIES BmnData Base XMLParser Core)
+Set(DEPENDENCIES BmnData Base XMLParser Gdml Core)
 
 GENERATE_LIBRARY()

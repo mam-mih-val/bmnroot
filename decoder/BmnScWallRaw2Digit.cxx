@@ -235,7 +235,7 @@ void BmnScWallRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ScWalldigit
         LOG(DEBUG) << "BmnScWallRaw2Digit::fSerials " << std::hex << it << endl;
       continue;
     }
-    std::vector<float> wfm(digit->GetUShortValue(), digit->GetUShortValue() + digit->GetNSamples());
+    std::vector<float> wfm((short*) digit->GetUShortValue(), (short*) digit->GetUShortValue()+digit->GetNSamples());
     BmnScWallDigi ThisDigi;
     ThisDigi.reset();
     unsigned int flat_channel = (unsigned int)GetFlatChannelFromAdcChannel(digit->GetSerial(), digit->GetChannel());

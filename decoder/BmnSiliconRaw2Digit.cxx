@@ -958,7 +958,10 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
     //        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
     //            delete hPedLineSi[iCr][iCh];
     //        }
-    for (auto it : fMap) delete it;
+    for (auto &it : fMap) delete it;
+    for (auto &it : fOuterMap)
+        for (auto &inner : it.second)
+            delete inner.second;
 }
 
 BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
@@ -1007,18 +1010,34 @@ BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
             fOuterMap.insert(make_pair(ser, move(inner)));
         } else { // add range to the existing inner channel map
             InChanMapSil &inner = it->second;
-            auto innerIt = inner.find(record->channel_low);
-            if (innerIt == inner.end()) {
-                inner.insert(make_pair(record->channel_low - 1, nullptr));
+            auto innerItHi = inner.find(record->channel_high);
+            auto innerItLo = inner.find(record->channel_low - 1);
+            if (innerItHi == inner.end()) {
                 inner.insert(make_pair(record->channel_high, record));
             } else {
-                if (innerIt->second == nullptr) {
-                    innerIt->second = record;
+                if (innerItHi->second == nullptr) {
+                    inner.erase(innerItHi);
+                    inner.insert(make_pair(record->channel_high, record));
                 } else {
-                    //                    fprintf(stderr, "Wrong CSC map!\n");
-                    //                    return kBMNERROR;
+                    fprintf(stderr, "Wrong %s map! Overlapping intervals for %08X!\n", fDetName.Data(), ser);
+                    return kBMNERROR;
                 }
             }
+            if (innerItLo == inner.end()) {
+                inner.insert(make_pair(record->channel_low - 1, nullptr));
+            }
+//            auto innerIt = inner.find(record->channel_low);
+//            if (innerIt == inner.end()) {
+//                inner.insert(make_pair(record->channel_low - 1, nullptr));
+//                inner.insert(make_pair(record->channel_high, record));
+//            } else {
+//                if (innerIt->second == nullptr) {
+//                    innerIt->second = record;
+//                } else {
+//                    //                    fprintf(stderr, "Wrong CSC map!\n");
+//                    //                    return kBMNERROR;
+//                }
+//            }
         }
     }
     return kBMNSUCCESS;
@@ -1043,7 +1062,11 @@ BmnStatus BmnSiliconRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *silico
     ctime = timer.CpuTime();
     //    printf("\nReal time %f s, CPU time %f s  PrecalcEventMods\n", rtime, ctime);
     timer.Start();
+#ifdef BUILD_DEBUG
     CalcEventMods();
+#else
+    CalcEventMods_simd();
+#endif
     timer.Stop();
     rtime = timer.RealTime();
     ctime = timer.CpuTime();
@@ -1100,7 +1123,11 @@ BmnStatus BmnSiliconRaw2Digit::FillProfiles(TClonesArray *adc) {
     //            }
     //        }
     (this->*PrecalcEventModsImp)(adc);
+#ifdef BUILD_DEBUG
     CalcEventMods();
+#else
+    CalcEventMods_simd();
+#endif
     ProcessAdc(nullptr, kTRUE);
 
     return kBMNSUCCESS;
@@ -1127,7 +1154,7 @@ BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
             BmnSiliconMapping* rec = innerIt->second;
             if (!rec)
                 continue;
-            for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
+            for (Short_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
                 //                for (auto &it : fMap)
                 //                    if (GetSerials()[iCr] == it.serial && iCh >= it.channel_low && iCh <= it.channel_high) {
                 if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) {
@@ -1253,7 +1280,7 @@ void BmnSiliconRaw2Digit::ProcessAdc(TClonesArray *silicon, Bool_t doFill) {
             Short_t station = rec->station;
             Short_t module = rec->module;
             Short_t layer = rec->layer;
-            for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
+            for (Short_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
                 if ((GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE)/* || (fPedVal[iCr][iCh][iSmpl] == 0.0)*/) continue;
                 //                        Int_t strip = (iCh - it.channel_low) * GetNSamples() + iSmpl;
                 Int_t strip = MapStrip(rec, iCh, iSmpl);
@@ -1303,7 +1330,7 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
 
     BmnSiliconDigit candDig[nSmpl];
 
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+    for (Short_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         BmnSiliconDigit dig;
         dig.SetStation(silM->station);
         dig.SetModule(silM->module);
@@ -1317,13 +1344,13 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         //            hsig->Fill(dig.GetStripSignal());
         //        }
     }
-    Double_t*** vPed = GetPedestals();
+    Float_t*** vPed = GetPedestals();
     Double_t*** vPedRMS = GetPedestalsRMS();
 
     Double_t signals[nSmpl];
     Double_t cmode[nSmpl];
     Int_t nOk = 0;
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+    for (Short_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         signals[iSmpl] = 0.0;
         cmode[iSmpl] = 0.0;
     }
@@ -1350,7 +1377,7 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
     //    }
     //    Double_t pedCMS = CalcCMS(signals, ch);
 
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+    for (Short_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
         //        if ((candDig[iSmpl]).GetStation() == 0 && (candDig[iSmpl]).GetModule() == 0 && (candDig[iSmpl]).GetStripLayer() == 0)
         //            hrms->Fill((candDig[iSmpl]).GetStripNumber(), vPedRMS[iSer][ch][iSmpl]);

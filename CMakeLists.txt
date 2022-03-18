@@ -25,8 +25,9 @@ project(BMNROOT)
 # OMP - the quickest multithreading BmnRoot version for a multicore machine
 If(NOT CMAKE_BUILD_TYPE)
   Message("Set BuildType DEBUG")
-  set(CMAKE_BUILD_TYPE Debug)
+add_compile_definitions(BUILD_DEBUG=${CMAKE_BUILD_TYPE})
 EndIf(NOT CMAKE_BUILD_TYPE)
+  Message("CMake Build Type: ${CMAKE_BUILD_TYPE}")
 
 Option(USE_PATH_INFO "Information from PATH and LD_LIBRARY_PATH are used." ON)
 Option(ALIBUILD "Flag if we are building with AliBuild." OFF)

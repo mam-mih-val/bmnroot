@@ -90,10 +90,10 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
 
 
     if (decoMode == kBMNADCSM) {
-//        fGemStationSetDer = new BmnGemStripStationSet(period, fSetup);
+        //        fGemStationSetDer = new BmnGemStripStationSet(period, fSetup);
         fGemStationSetDer = BmnAdcProcessor::GetGemStationSet(period, fSetup);
-//                    printf("fGemStationSetDer %08X\n", fGemStationSetDer);
-//                    printf("\tstations %d\n", fGemStationSetDer->GetNStations());
+        //                    printf("fGemStationSetDer %08X\n", fGemStationSetDer);
+        //                    printf("\tstations %d\n", fGemStationSetDer->GetNStations());
 
         Int_t kNStations = fGemStationSetDer->GetNStations();
         fSigProf = new TH1F***[kNStations];
@@ -121,9 +121,27 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
                 }
             }
         }
-        thrMax = 40;
-        thrDif = 10;
-        niter = 3;
+
+        switch (GetPeriod()) {
+            case 8:
+                thrMax = 40;
+                thrDif = 10;
+                niter = 4;
+                break;
+            case 7:
+                thrMax = 40;
+                thrDif = 10;
+                niter = 3;
+                break;
+            case 6:
+                thrMax = 40;
+                thrDif = 10;
+                niter = 3;
+                break;
+            default:
+                fprintf(stderr, "Unsupported period %d !\n", GetPeriod());
+                break;
+        }
     }
 }
 
@@ -282,7 +300,11 @@ BmnStatus BmnGemRaw2Digit::FillProfiles(TClonesArray *adc) {
     //        }
     //    }
     (this->*PrecalcEventModsImp)(adc);
+#ifdef BUILD_DEBUG
     CalcEventMods();
+#else
+    CalcEventMods_simd();
+#endif
     ProcessAdc(nullptr, kTRUE);
 
     return kBMNSUCCESS;
@@ -386,9 +408,9 @@ void BmnGemRaw2Digit::ProcessAdc(TClonesArray *gem, Bool_t doFill) {
 
                         Double_t sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl] + fCMode[iCr][iCh] - fSMode[iCr][iCh];
                         Double_t Asig = TMath::Abs(sig);
-                        //                        printf("gem thrMax  %4.2f niter %d dthr %4.2f FinalThr %4.2f\n", thrMax, niter, dthr, FinalThr);
+                        //                        printf("gem thrMax  %4.2f niter %d dthr %4.2f FinalThr %4.2f\n", thrMax, niter, thrDif, FinalThr);
                         Double_t thr = Max(FinalThr, 3.5 * GetPedestalsRMS()[iCr][iCh][iSmpl]);
-                        //                                                printf("signal   thr %6f  prms %6f\n", thr, GetPedestalsRMS()[iCr][iCh][iSmpl]);
+                        //                        printf("signal %6.2f  thr %6f  prms %6f\n", sig, thr, GetPedestalsRMS()[iCr][iCh][iSmpl]);
                         if (sig > thr) {//[station][module][layer][strip] == kFALSE)) {
                             if (doFill/* && (Abs(fCMode[iCr][iCh] - fSMode[iCr][iCh]) < cmodcut)*/) {
                                 fSigProf[station][module][layer]->Fill(strip);
@@ -424,7 +446,11 @@ BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * gem) {
     //        }
     //    }
     (this->*PrecalcEventModsImp)(adc);
+#ifdef BUILD_DEBUG
     CalcEventMods();
+#else
+    CalcEventMods_simd();
+#endif
     ProcessAdc(gem, kFALSE);
 
     return kBMNSUCCESS;
@@ -1092,7 +1118,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapValue* gemM, TClon
     Double_t CMS = CalcCMS(signals, nOk);
     Double_t SCMS = CalcSCMS(signals, nSmpl, iSer, ch);
 
-    Double_t*** vPed = GetPedestals();
+    Float_t*** vPed = GetPedestals();
     Double_t*** vPedRMS = GetPedestalsRMS();
 
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {

@@ -70,7 +70,10 @@ BmnCscRaw2Digit::~BmnCscRaw2Digit() {
     }
     delete[] fNoisyChannels;
     delete[] fSigProf;
-    for (auto it : fMap) delete it;
+//    for (auto it : fMap) delete it;
+    for (auto &it : fOuterMap)
+        for (auto &inner : it.second)
+            delete inner.second;
 }
 
 BmnStatus BmnCscRaw2Digit::ReadMapFile() {
@@ -136,7 +139,11 @@ BmnStatus BmnCscRaw2Digit::ReadMapLocalFile() {
 
     for (Short_t iMod = 0; iMod < modules; ++iMod) {
         for (Short_t iLay = 0; iLay < layers; ++iLay) {
-            TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + TString("CSC_m") + (Long_t) iMod + TString("l") + (Long_t) iLay + TString(".txt");
+            TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + 
+                    TString("CSC_m") + iMod + 
+                    TString("l") + iLay +//(((iMod == 1) && (fPeriod == 8) && (fSetup = kSRCSETUP)) ? (iLay + 2) % 4 : iLay) +
+                    TString(".txt");
+//    layer = ((module == 1) && (fPeriod == 8) && (fSetup = kSRCSETUP)) ? (layer + 2) % 4 : layer;
             ifstream inFile(name.Data());
             if (!inFile.is_open()) {
                 printf(ANSI_COLOR_RED "\n[ERROR]" ANSI_COLOR_RESET);
@@ -174,13 +181,17 @@ BmnStatus BmnCscRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * csc) {
     timer.Stop();
     rtime = timer.RealTime();
     ctime = timer.CpuTime();
-//    printf("\nReal time %f s, CPU time %f s  PrecalcEventMods\n", rtime, ctime);
+    //    printf("\nReal time %f s, CPU time %f s  PrecalcEventMods\n", rtime, ctime);
     timer.Start();
+#ifdef BUILD_DEBUG
     CalcEventMods();
+#else
+    CalcEventMods_simd();
+#endif
     timer.Stop();
     rtime = timer.RealTime();
     ctime = timer.CpuTime();
-//    printf("Real time %f s, CPU time %f s  CalcEventMods\n", rtime, ctime);
+    //    printf("Real time %f s, CPU time %f s  CalcEventMods\n", rtime, ctime);
     timer.Start();
     //    for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
     //        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
@@ -190,7 +201,7 @@ BmnStatus BmnCscRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * csc) {
     timer.Stop();
     rtime = timer.RealTime();
     ctime = timer.CpuTime();
-//    printf("Real time %f s, CPU time %f s  ProcessAdc\n", rtime, ctime);
+    //    printf("Real time %f s, CPU time %f s  ProcessAdc\n", rtime, ctime);
 
     return kBMNSUCCESS;
 }
@@ -201,7 +212,11 @@ BmnStatus BmnCscRaw2Digit::FillProfiles(TClonesArray *adc) {
     //        ProcessDigit(adcDig, FindMapEntry(adcDig), NULL, kTRUE);
     //    }
     (this->*PrecalcEventModsImp)(adc);
+#ifdef BUILD_DEBUG
     CalcEventMods();
+#else
+    CalcEventMods_simd();
+#endif
     //    for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
     //        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
     //        ProcessDigit(adcDig, FindMapEntry(adcDig), NULL, kTRUE);

@@ -1,5 +1,10 @@
 #include "BmnAdcProcessor.h"
 #include <BmnMath.h>
+#include <vector>
+#include "P4_F32vec4.h"
+
+static Double_t workTime_cpu = 0.0;
+static Double_t workTime_real = 0.0;
 
 BmnAdcProcessor::BmnAdcProcessor() {
 }
@@ -12,8 +17,20 @@ BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh
     fNSerials = vSer.size();
     fNChannels = nCh;
     fNSamples = nSmpl;
-    PrecalcEventModsImp = (GetRun() > GetBoundaryRun(fNSamples) || GetPeriod() == 8) ?
-        &BmnAdcProcessor::PrecalcEventMods : &BmnAdcProcessor::PrecalcEventModsOld;
+    PrecalcEventModsImp = (GetRun() > GetBoundaryRun(fNSamples) || GetPeriod() >= 7) ?
+//#if CMAKE_BUILD_TYPE == Release
+//            &BmnAdcProcessor::PrecalcEventMods : &BmnAdcProcessor::PrecalcEventModsOld;
+//#else
+//            &BmnAdcProcessor::PrecalcEventMods_simd : &BmnAdcProcessor::PrecalcEventModsOld;
+//#endif
+
+#ifdef BUILD_DEBUG
+            &BmnAdcProcessor::PrecalcEventMods : &BmnAdcProcessor::PrecalcEventModsOld;
+//            printf("\n\nDebug!!!\n\n");
+#else
+            &BmnAdcProcessor::PrecalcEventMods_simd : &BmnAdcProcessor::PrecalcEventModsOld;
+//            printf("\n\nRelease!!!\n\n");
+#endif      
     fAdcSerials = vSer;
     for (int iSer = 0; iSer < fAdcSerials.size(); ++iSer) {
         fSerMap.insert(pair<UInt_t, Int_t>(fAdcSerials[iSer], iSer));
@@ -22,9 +39,11 @@ BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh
     Int_t high = 120;
     Int_t highcms = 500;
 
-    fPedVal = new Double_t**[fNSerials];
+    fPedVal = new Float_t**[fNSerials];
+    //fPedVal = new Double_t**[fNSerials];
     fPedValTemp = new Double_t**[fNSerials];
-    fNvals = new UInt_t*[fNSerials];
+    //  fNvals = new UInt_t*[fNSerials];
+    fNvals = new Float_t*[fNSerials];
     fNvalsCMod = new UInt_t**[fNSerials];
     fNvalsADC = new UInt_t**[fNSerials];
     fPedRms = new Double_t**[fNSerials];
@@ -32,17 +51,20 @@ BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh
     fPedCMod2 = new Double_t**[fNSerials];
     fSumRmsV = new Double_t*[fNSerials];
     fNoisyChipChannels = new Bool_t**[fNSerials];
-    fCMode = new Double_t*[fNSerials];
-    fCMode0 = new Double_t*[fNSerials];
-    fSMode = new Double_t*[fNSerials];
-    fSMode0 = new Double_t*[fNSerials];
+    fCMode = new Float_t*[fNSerials];
+    fCMode0 = new Float_t*[fNSerials];
+    fSMode = new Float_t*[fNSerials];
+    fSMode0 = new Float_t*[fNSerials];
     fAdcProfiles = new UInt_t**[fNSerials];
-    fAdc = new Double_t**[fNSerials];
+    fAdc = new Float_t**[fNSerials];
+    //fAdc = new Double_t**[fNSerials];
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
-        fPedVal[iCr] = new Double_t*[fNChannels];
+        //fPedVal[iCr] = new Double_t*[fNChannels];
+        fPedVal[iCr] = new Float_t*[fNChannels];
         fPedValTemp[iCr] = new Double_t*[fNChannels];
-        fNvals[iCr] = new UInt_t[fNChannels];
-        memset(fNvals[iCr], 0, sizeof (UInt_t) * fNChannels);
+        //fNvals[iCr] = new UInt_t[fNChannels];
+        fNvals[iCr] = new Float_t[fNChannels];
+        memset(fNvals[iCr], 0, sizeof (Float_t) * fNChannels);
         fNvalsCMod[iCr] = new UInt_t*[fNChannels];
         fNvalsADC[iCr] = new UInt_t*[fNChannels];
         fPedRms[iCr] = new Double_t*[fNChannels];
@@ -52,13 +74,15 @@ BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh
         memset(fSumRmsV[iCr], 0, sizeof (Double_t) * fNChannels);
         fNoisyChipChannels[iCr] = new Bool_t*[fNChannels];
         fAdcProfiles[iCr] = new UInt_t*[fNChannels];
-        fAdc[iCr] = new Double_t*[fNChannels];
-        fCMode[iCr] = new Double_t[fNChannels];
-        fCMode0[iCr] = new Double_t[fNChannels];
-        fSMode[iCr] = new Double_t[fNChannels];
-        fSMode0[iCr] = new Double_t[fNChannels];
+        //fAdc[iCr] = new Double_t*[fNChannels];
+        fAdc[iCr] = new Float_t*[fNChannels];
+        fCMode[iCr] = new Float_t[fNChannels];
+        fCMode0[iCr] = new Float_t[fNChannels];
+        fSMode[iCr] = new Float_t[fNChannels];
+        fSMode0[iCr] = new Float_t[fNChannels];
         for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-            fPedVal[iCr][iCh] = new Double_t[fNSamples];
+            //fPedVal[iCr][iCh] = new Double_t[fNSamples];
+            fPedVal[iCr][iCh] = new Float_t[fNSamples];
             fPedValTemp[iCr][iCh] = new Double_t[fNSamples];
             fNvalsADC[iCr][iCh] = new UInt_t[fNSamples];
             memset(fNvalsADC[iCr][iCh], 0, sizeof (UInt_t) * fNSamples);
@@ -69,7 +93,8 @@ BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh
             fPedCMod2[iCr][iCh] = new Double_t[fNSamples];
             fNoisyChipChannels[iCr][iCh] = new Bool_t[fNSamples];
             fAdcProfiles[iCr][iCh] = new UInt_t[fNSamples];
-            fAdc[iCr][iCh] = new Double_t[fNSamples];
+            //fAdc[iCr][iCh] = new Double_t[fNSamples];
+            fAdc[iCr][iCh] = new Float_t[fNSamples];
             fCMode[iCr][iCh] = 0.0;
             fCMode0[iCr][iCh] = 0.0;
             fSMode[iCr][iCh] = 0.0;
@@ -210,8 +235,8 @@ BmnAdcProcessor::~BmnAdcProcessor() {
     //        }
     if (fGemStationSet)
         delete fGemStationSet;
-//    if (fSilStationSet)
-//        delete fSilStationSet;
+    //    if (fSilStationSet)
+    //        delete fSilStationSet;
     if (fCscStationSet)
         delete fCscStationSet;
     if (statsGem)
@@ -222,6 +247,7 @@ BmnAdcProcessor::~BmnAdcProcessor() {
         delete[] statsGemPermut;
     if (statsSilPermut)
         delete[] statsSilPermut;
+    printf("LOOK HERE: Real time %f s, CPU time %f s ADC processor\n", workTime_real, workTime_cpu);
 }
 
 void BmnAdcProcessor::DrawDebugHists() {
@@ -279,7 +305,7 @@ void BmnAdcProcessor::DrawDebugHists2D() {
         for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
             c->Clear("D");
             c->cd(1);
-            hPedLine[iCr][iCh]->Draw("colz");
+            hPedLineSi[iCr][iCh]->Draw("colz");
             c->Print(docName);
             //            c->SaveAs(Form("%s.png", hPedLine[iCr][iCh]->GetName()));
         }
@@ -369,6 +395,55 @@ BmnStatus BmnAdcProcessor::RecalculatePedestals() {
 }
 
 BmnStatus BmnAdcProcessor::RecalculatePedestalsAugmented() {
+    if (hSModeSi.size() == 0) {
+        for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+            vector<TH1*> hv;
+            vector<TH1*> hcm;
+            vector<TH1*> hsm;
+            for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+                //                        printf("Creating  icr %2d ich %2d %s\n", iCr, iCh, Form("%08X:%02d pedestal line MK", fSerials[iCr], iCh));
+                TString hname = TString(Form("%08X:%02d pedestals SM", fAdcSerials[iCr], iCh));
+                TH1* h = new TH2F(hname, hname,
+                        500, 0, 500,
+                        fNSamples, 0, fNSamples);
+                h->GetXaxis()->SetTitle("Event #");
+                h->GetYaxis()->SetTitle("Sample(channel) #");
+                h->SetDirectory(0);
+                hv.push_back(h);
+            }
+            hPedLineSi.push_back(hv);
+        }
+
+        const Int_t maxAdc = 8192;
+        const Int_t MaxSig = 2300;
+        const Int_t RngSig = 90;
+        const Int_t StripSi = fNChannels * fNSamples;
+        for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+            TString hname = TString(Form("%08X pedestals SM", fAdcSerials[iCr]));
+            //        TH1* h = new TH2F(hname, hname, maxAdc, 0, maxAdc, MaxSig, 0, MaxSig);
+            TH1* h = new TH2F(hname, hname, StripSi, 0, StripSi, 2 * RngSig, -RngSig, RngSig);
+            //    printf("maxAdc %04d max %04f peds\n", maxAdc, h->GetXaxis()->GetXmax());
+            h->GetXaxis()->SetTitle("Channel #");
+            h->GetYaxis()->SetTitle("Signal");
+            h->SetDirectory(0);
+            hPedSi.push_back(h);
+
+            hname = TString(Form("%08X cmods SM", fAdcSerials[iCr]));
+            TH1* hc = new TH2F(hname, hname, StripSi, 0, StripSi, 2 * RngSig, -RngSig, RngSig);
+            //    printf("maxAdc %04d max %04f cmode\n", maxAdc, hc->GetXaxis()->GetXmax());
+            hc->GetXaxis()->SetTitle("Channel #");
+            hc->GetYaxis()->SetTitle("Signal");
+            hc->SetDirectory(0);
+            hCModeSi.push_back(hc);
+
+            hname = TString(Form("%08X smods SM", fAdcSerials[iCr]));
+            TH1* hs = new TH2F(hname, hname, StripSi, 0, StripSi, 2 * RngSig, -RngSig, RngSig);
+            hs->GetXaxis()->SetTitle("Channel #");
+            hs->GetYaxis()->SetTitle("Signal");
+            hs->SetDirectory(0);
+            hSModeSi.push_back(hs);
+        }
+    }
     if (fVerbose)
         printf("%s %s started   niter %d  thrMax  %4.2f\n", fDetName.Data(), __func__, niter, thrMax);
     const UShort_t nSmpl = fNSamples;
@@ -393,7 +468,7 @@ BmnStatus BmnAdcProcessor::RecalculatePedestalsAugmented() {
                     fPedVal[iCr][iCh][iSmpl] += fPedDat[iCr][iEv][iCh][iSmpl]; // / N_EV_FOR_PEDESTALS);
                     fNvalsADC[iCr][iCh][iSmpl]++;
                     nOk++;
-                    //                    static_cast<TH2*> (hPedLine[iCr][iCh])->Fill(iEv, iSmpl, fPedDat[iCr][iEv][iCh][iSmpl]);
+                    static_cast<TH2*> (hPedLineSi[iCr][iCh])->Fill(iEv, iSmpl, fPedDat[iCr][iEv][iCh][iSmpl]);
                 }
             }
     }
@@ -425,9 +500,10 @@ BmnStatus BmnAdcProcessor::RecalculatePedestalsAugmented() {
         for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS - 1; ++iEv) {
             // clear
             for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
-                memset(fNvals[iCr], 0, sizeof (UInt_t) * fNChannels);
-                memset(fCMode[iCr], 0, sizeof (Double_t) * fNChannels);
-                memset(fSMode[iCr], 0, sizeof (Double_t) * fNChannels);
+                // memset(fNvals[iCr], 0, sizeof (UInt_t) * fNChannels);
+                memset(fNvals[iCr], 0, sizeof (Float_t) * fNChannels);
+                memset(fCMode[iCr], 0, sizeof (Float_t) * fNChannels);
+                memset(fSMode[iCr], 0, sizeof (Float_t) * fNChannels);
             }
             // Pedestals pre filtering
             for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
@@ -479,6 +555,13 @@ BmnStatus BmnAdcProcessor::RecalculatePedestalsAugmented() {
                             fPedCMod2[iCr][iCh][iSmpl] += Adc*Adc;
                             fNvalsCMod[iCr][iCh][iSmpl]++;
                             nFiltered++;
+                        }
+                        if (iter == niter - 1) {
+                            Int_t ic = iCh * nSmpl + iSmpl;
+                            //                        printf("iCh %4d iSmpl %4d  ic %4d  cmod %5f smod %5f\n", iCh, iSmpl,ic, fPedCMS[iCr][iCh], fSigCMS[iCr][iCh]);
+                            hCModeSi[iCr]->Fill(ic, fCMode[iCr][iCh]);
+                            hSModeSi[iCr]->Fill(ic, fSMode[iCr][iCh]);
+                            hPedSi[iCr]->Fill(ic, fPedVal[iCr][iCh][iSmpl]);
                         }
                     }
                 }
@@ -538,17 +621,17 @@ void BmnAdcProcessor::PrecalcEventModsOld(TClonesArray *adc) {
     Double_t ctime;
     timer.Start();
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
-        memset(fNvals[iCr], 0, sizeof (UInt_t) * fNChannels);
-        memset(fCMode[iCr], 0, sizeof (Double_t) * fNChannels);
-        memset(fSMode[iCr], 0, sizeof (Double_t) * fNChannels);
+        memset(fNvals[iCr], 0, sizeof (Float_t) * fNChannels);
+        memset(fCMode[iCr], 0, sizeof (Float_t) * fNChannels);
+        memset(fSMode[iCr], 0, sizeof (Float_t) * fNChannels);
         for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-            memset(fAdc[iCr][iCh], 0, sizeof (Double_t) * fNSamples);
+            memset(fAdc[iCr][iCh], 0, sizeof (Float_t) * fNSamples);
         }
     }
     timer.Stop();
     rtime = timer.RealTime();
     ctime = timer.CpuTime();
-//    printf("\nReal time %f s, CPU time %f s  clear\n", rtime, ctime);
+    //    printf("\nReal time %f s, CPU time %f s  clear\n", rtime, ctime);
     timer.Start();
     for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
         BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
@@ -565,7 +648,7 @@ void BmnAdcProcessor::PrecalcEventModsOld(TClonesArray *adc) {
         for (UInt_t iSmpl = 0; iSmpl < fNSamples; iSmpl++) {
             if ((fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE))
                 continue;
-            Double_t val = static_cast<Double_t>(adcDig->GetUShortValue()[iSmpl] / 16);
+            Double_t val = static_cast<Double_t> (adcDig->GetUShortValue()[iSmpl] / 16);
             fAdc[iCr][iCh][iSmpl] = val;
 
             Double_t Sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl];
@@ -584,7 +667,7 @@ void BmnAdcProcessor::PrecalcEventModsOld(TClonesArray *adc) {
     timer.Stop();
     rtime = timer.RealTime();
     ctime = timer.CpuTime();
-//    printf("\nReal time %f s, CPU time %f s  fill array\n", rtime, ctime);
+    //    printf("\nReal time %f s, CPU time %f s  fill array\n", rtime, ctime);
 }
 
 void BmnAdcProcessor::PrecalcEventMods(TClonesArray *adc) {
@@ -593,17 +676,18 @@ void BmnAdcProcessor::PrecalcEventMods(TClonesArray *adc) {
     Double_t ctime;
     timer.Start();
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
-        memset(fNvals[iCr], 0, sizeof (UInt_t) * fNChannels);
-        memset(fCMode[iCr], 0, sizeof (Double_t) * fNChannels);
-        memset(fSMode[iCr], 0, sizeof (Double_t) * fNChannels);
+        // memset(fNvals[iCr], 0, sizeof (UInt_t) * fNChannels);
+        memset(fNvals[iCr], 0, sizeof (Float_t) * fNChannels);
+        memset(fCMode[iCr], 0, sizeof (Float_t) * fNChannels);
+        memset(fSMode[iCr], 0, sizeof (Float_t) * fNChannels);
         for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-            memset(fAdc[iCr][iCh], 0, sizeof (Double_t) * fNSamples);
+            memset(fAdc[iCr][iCh], 0, sizeof (Float_t) * fNSamples);
         }
     }
     timer.Stop();
     rtime = timer.RealTime();
     ctime = timer.CpuTime();
-//    printf("\nReal time %f s, CPU time %f s  clear\n", rtime, ctime);
+    //    printf("\nReal time %f s, CPU time %f s  clear\n", rtime, ctime);
     timer.Start();
     for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
         BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
@@ -620,7 +704,7 @@ void BmnAdcProcessor::PrecalcEventMods(TClonesArray *adc) {
         for (UInt_t iSmpl = 0; iSmpl < fNSamples; iSmpl++) {
             if ((fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE))
                 continue;
-            Double_t val = static_cast<Double_t>(adcDig->GetShortValue()[iSmpl] / 16);
+            Double_t val = static_cast<Double_t> (adcDig->GetShortValue()[iSmpl] / 16);
             fAdc[iCr][iCh][iSmpl] = val;
 
             Double_t Sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl];
@@ -639,10 +723,131 @@ void BmnAdcProcessor::PrecalcEventMods(TClonesArray *adc) {
     timer.Stop();
     rtime = timer.RealTime();
     ctime = timer.CpuTime();
-//    printf("\nReal time %f s, CPU time %f s  fill array\n", rtime, ctime);
+
+}
+
+//simd function
+
+void BmnAdcProcessor::PrecalcEventMods_simd(TClonesArray *adc) {
+    TStopwatch timer;
+    Double_t rtime;
+    Double_t ctime;
+    timer.Start();
+    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+        // memset(fNvals[iCr], 0, sizeof (UInt_t) * fNChannels);
+        memset(fNvals[iCr], 0, sizeof (Float_t) * fNChannels);
+        memset(fCMode[iCr], 0, sizeof (Float_t) * fNChannels);
+        memset(fSMode[iCr], 0, sizeof (Float_t) * fNChannels);
+        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+            memset(fAdc[iCr][iCh], 0, sizeof (Float_t) * fNSamples);
+        }
+    }
+    timer.Stop();
+    rtime = timer.RealTime();
+    ctime = timer.CpuTime();
+    //    printf("\nReal time %f s, CPU time %f s  clear\n", rtime, ctime);
+    timer.Start();
+
+    fvec * fNvals_vec, * fSMode_vec, * fCMode_vec;
+    fvec* fPedVal_vec, * fAdc_vec, * fNoisyChipChannels_vec;
+    Float_t*** fNoisy_float;
+
+    fNoisy_float = new Float_t**[fNSerials];
+    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+        fNoisy_float[iCr] = new Float_t*[fNChannels];
+        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+            fNoisy_float[iCr][iCh] = new Float_t[fNSamples];
+            for (Int_t iSmpl = 0; iSmpl < fNSamples; ++iSmpl) {
+                //fNoisy_float[iCr][iCh][iSmpl] = (Float_t)fNoisyChipChannels[iCr][iCh][iSmpl];
+                if (fNoisyChipChannels[iCr][iCh][iSmpl])
+                    fNoisy_float[iCr][iCh][iSmpl] = 1.0;
+                else
+                    fNoisy_float[iCr][iCh][iSmpl] = 0.0;
+            }
+        }
+    }
+    for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
+        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
+        UInt_t iCh = adcDig->GetChannel();
+        UInt_t ser = adcDig->GetSerial();
+        //        printf("Serial %08X \n", ser);
+        auto serIter = fSerMap.find(ser);
+        //        printf("iter %08X end %08X\n", serIter, fSerMap.end());
+        if (serIter == fSerMap.end()) {
+            //            printf("Serial %08X not found in the map\n", ser);
+            continue;
+        }
+
+        Int_t iCr = serIter->second;
+        for (UInt_t iSmpl = 0; iSmpl < fNSamples; iSmpl++) {
+            if ((fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE))
+                continue;
+            Float_t val = static_cast<Float_t> (adcDig->GetShortValue()[iSmpl] / 16);
+            fAdc[iCr][iCh][iSmpl] = val;
+        }
+
+        fPedVal_vec = (fvec *) fPedVal[iCr][iCh];
+        fAdc_vec = (fvec *) fAdc[iCr][iCh];
+        fNoisyChipChannels_vec = (fvec *) fNoisy_float[iCr][iCh]; //!!!!!!!
+        fvec fSMode_sum = 0.0;
+        fvec fCMode_sum = 0.0;
+        fvec Nval = 0.0;
+        Float_t sum1;
+        Float_t sum2;
+        Float_t sum3;
+
+        for (Int_t iSmpl = 0; iSmpl < fNSamples / 4; iSmpl++) {
+            //if ((fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE)) continue;
+            fvec sig = if3(fvec(fNoisyChipChannels_vec[iSmpl] == 1.0), 10000, fAdc_vec[iSmpl] - fPedVal_vec[iSmpl]);
+            //cout << "result of the comparison: " << sig << endl;
+            fvec Asig = fabs(sig);
+            //cout << "absolute value: " << Asig << endl;
+            fvec thrMax_vec = thrMax;
+            Nval = if3(fvec(Asig < thrMax_vec), Nval + 1.0, Nval + 0.0);
+            fSMode_sum = if3(fvec(Asig < thrMax_vec), fSMode_sum + fAdc_vec[iSmpl], fSMode_sum + 0.0);
+            fCMode_sum = if3(fvec(Asig < thrMax_vec), fCMode_sum + fPedVal_vec[iSmpl], fCMode_sum + 0.0);
+        }
+        fvec helper = 0.0;
+        helper = _mm_movehl_ps(helper, fSMode_sum);
+        fSMode_sum = fSMode_sum + helper;
+        helper = _mm_shuffle_ps(fSMode_sum, fSMode_sum, 1);
+        fSMode_sum = _mm_add_ss(fSMode_sum, helper);
+        _mm_store_ss(&sum1, fSMode_sum);
+        fSMode[iCr][iCh] += sum1;
+
+        helper = 0.0;
+        helper = _mm_movehl_ps(helper, fCMode_sum);
+        fCMode_sum = fCMode_sum + helper;
+        helper = _mm_shuffle_ps(fCMode_sum, fCMode_sum, 1);
+        fCMode_sum = _mm_add_ss(fCMode_sum, helper);
+        _mm_store_ss(&sum2, fCMode_sum);
+        fCMode[iCr][iCh] += sum2;
+
+        helper = 0.0;
+        helper = _mm_movehl_ps(helper, Nval);
+        Nval = Nval + helper;
+        helper = _mm_shuffle_ps(Nval, Nval, 1);
+        Nval = _mm_add_ss(Nval, helper);
+        _mm_store_ss(&sum3, Nval);
+        fNvals[iCr][iCh] += sum3;
+    }
+    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+            delete[] fNoisy_float[iCr][iCh];
+        }
+        delete[] fNoisy_float[iCr];
+    }
+    delete[] fNoisy_float;
+
+    timer.Stop();
+    rtime = timer.RealTime();
+    ctime = timer.CpuTime();
+
 }
 
 void BmnAdcProcessor::CalcEventMods() {
+    TStopwatch timer;
+    timer.Start();
     // normalize
     Int_t fNvalsMin = 0;
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
@@ -680,6 +885,7 @@ void BmnAdcProcessor::CalcEventMods() {
                     }
                 }
             }
+
         for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
             for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
                 if (fNvals[iCr][iCh] > fNvalsMin) {
@@ -691,6 +897,143 @@ void BmnAdcProcessor::CalcEventMods() {
                 }
             }
     }
+    timer.Stop();
+    workTime_cpu += (Double_t) timer.CpuTime();
+    workTime_real += (Double_t) timer.RealTime();
+}
+
+//simd function
+
+void BmnAdcProcessor::CalcEventMods_simd() {
+    TStopwatch timer;
+    timer.Start();
+
+    // normalize
+    fvec fNvalsMin_vec = 0;
+    fvec * fNvals_vec, * fSMode_vec, * fCMode_vec;
+    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+        fNvals_vec = (fvec *) fNvals[iCr];
+        fSMode_vec = (fvec *) fSMode[iCr];
+        fCMode_vec = (fvec *) fCMode[iCr];
+        for (Int_t iCh = 0; iCh < fNChannels / 4; iCh++) {
+            fSMode_vec[iCh] = if3(fvec(fNvals_vec[iCh] > fNvalsMin_vec), fSMode_vec[iCh] / fNvals_vec[iCh], 0.0);
+            fCMode_vec[iCh] = if3(fvec(fNvals_vec[iCh] > fNvalsMin_vec), fCMode_vec[iCh] / fNvals_vec[iCh], 0.0);
+        }
+        fNvals[iCr] = (Float_t*) fNvals_vec;
+        fSMode[iCr] = (Float_t*) fSMode_vec;
+        fCMode[iCr] = (Float_t*) fCMode_vec;
+    }
+    // filter out sigs to get mods
+
+    Float_t*** fNoisy_float;
+    fNoisy_float = new Float_t**[fNSerials];
+    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+        fNoisy_float[iCr] = new Float_t*[fNChannels];
+        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+            fNoisy_float[iCr][iCh] = new Float_t[fNSamples];
+            for (Int_t iSmpl = 0; iSmpl < fNSamples; ++iSmpl) {
+                //fNoisy_float[iCr][iCh][iSmpl] = (Float_t)fNoisyChipChannels[iCr][iCh][iSmpl];
+                if (fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE)
+                    fNoisy_float[iCr][iCh][iSmpl] = 1.0;
+                else
+                    fNoisy_float[iCr][iCh][iSmpl] = 0.0;
+            }
+        }
+    }
+
+
+    fvec* fSMode0_vec, * fCMode0_vec;
+    fvec* fPedVal_vec, * fAdc_vec, * fNoisyChipChannels_vec;
+    for (Int_t iter = -2; iter < niter; ++iter) {
+        for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+            fSMode0_vec = (fvec *) fSMode0[iCr];
+            fCMode0_vec = (fvec *) fCMode0[iCr];
+            fNvals_vec = (fvec *) fNvals[iCr];
+            for (Int_t iCh = 0; iCh < fNChannels / 4; iCh++) {
+                fSMode0_vec[iCh] = 0.0;
+                fCMode0_vec[iCh] = 0.0;
+                fNvals_vec[iCh] = 0;
+            }
+            fSMode0[iCr] = (Float_t *) fSMode0_vec;
+            fCMode0[iCr] = (Float_t *) fCMode0_vec;
+            fNvals[iCr] = (Float_t *) fNvals_vec;
+        }
+        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
+            for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+                fPedVal_vec = (fvec *) fPedVal[iCr][iCh];
+                fAdc_vec = (fvec *) fAdc[iCr][iCh];
+                fNoisyChipChannels_vec = (fvec *) fNoisy_float[iCr][iCh]; //!!!!!!!
+                Float_t cs = fCMode[iCr][iCh] - fSMode[iCr][iCh];
+                fvec cs_vec = cs;
+                fvec fSMode0_sum = 0.0;
+                fvec fCMode0_sum = 0.0;
+                fvec Nval = 0.0;
+                Float_t sum1;
+                Float_t sum2;
+                Float_t sum3;
+
+                for (Int_t iSmpl = 0; iSmpl < fNSamples / 4; iSmpl++) {
+                    //if (fPedVal[iCr][iCh][iSmpl] == 0 || fNoisyChipChannels[iCr][iCh][iSmpl] == kTRUE) continue;
+                    fvec sig = if3(fvec(fPedVal_vec[iSmpl] == 0.0) | fvec(fNoisyChipChannels_vec[iSmpl] == 1.0), 10000, fAdc_vec[iSmpl] - fPedVal_vec[iSmpl] + cs_vec);
+                    fvec Asig = fabs(sig);
+                    Float_t thr = thrMax - iter * thrDif;
+                    fvec thr_vec = thr;
+                    Nval = if3(fvec(Asig < thr_vec), Nval + 1.0, Nval + 0.0);
+                    fSMode0_sum = if3(fvec(Asig < thr_vec), fSMode0_sum + fAdc_vec[iSmpl], fSMode0_sum + 0.0);
+                    fCMode0_sum = if3(fvec(Asig < thr_vec), fCMode0_sum + fPedVal_vec[iSmpl], fCMode0_sum + 0.0);
+                }
+                fvec helper = 0.0;
+                helper = _mm_movehl_ps(helper, fSMode0_sum);
+                fSMode0_sum = fSMode0_sum + helper;
+                helper = _mm_shuffle_ps(fSMode0_sum, fSMode0_sum, 1);
+                fSMode0_sum = _mm_add_ss(fSMode0_sum, helper);
+                _mm_store_ss(&sum1, fSMode0_sum);
+                fSMode0[iCr][iCh] += sum1;
+
+                helper = 0.0;
+                helper = _mm_movehl_ps(helper, fCMode0_sum);
+                fCMode0_sum = fCMode0_sum + helper;
+                helper = _mm_shuffle_ps(fCMode0_sum, fCMode0_sum, 1);
+                fCMode0_sum = _mm_add_ss(fCMode0_sum, helper);
+                _mm_store_ss(&sum2, fCMode0_sum);
+                fCMode0[iCr][iCh] += sum2;
+
+                helper = 0.0;
+                helper = _mm_movehl_ps(helper, Nval);
+                Nval = Nval + helper;
+                helper = _mm_shuffle_ps(Nval, Nval, 1);
+                Nval = _mm_add_ss(Nval, helper);
+                _mm_store_ss(&sum3, Nval);
+                fNvals[iCr][iCh] += sum3;
+            }
+
+        for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+            fNvals_vec = (fvec *) fNvals[iCr];
+            fSMode_vec = (fvec *) fSMode[iCr];
+            fCMode_vec = (fvec *) fCMode[iCr];
+            fSMode0_vec = (fvec *) fSMode0[iCr];
+            fCMode0_vec = (fvec *) fCMode0[iCr];
+            for (Int_t iCh = 0; iCh < fNChannels / 4; iCh++) {
+                fSMode_vec[iCh] = if3(fvec(fNvals_vec[iCh] > fNvalsMin_vec), fSMode0_vec[iCh] / fNvals_vec[iCh], 0.0);
+                fCMode_vec[iCh] = if3(fvec(fNvals_vec[iCh] > fNvalsMin_vec), fCMode0_vec[iCh] / fNvals_vec[iCh], 0.0);
+            }
+            fNvals[iCr] = (Float_t *) fNvals_vec;
+            fSMode[iCr] = (Float_t *) fSMode_vec;
+            fCMode[iCr] = (Float_t *) fCMode_vec;
+        }
+    }
+
+    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+            delete[] fNoisy_float[iCr][iCh];
+        }
+        delete[] fNoisy_float[iCr];
+    }
+    delete[] fNoisy_float;
+
+    timer.Stop();
+    workTime_cpu += (Double_t) timer.CpuTime();
+    workTime_real += (Double_t) timer.RealTime();
 }
 
 void BmnAdcProcessor::Run7(Int_t* _statsGem, Int_t* _statsSil, Int_t* _statsGemPermut, Int_t* _statsSilPermut) {
@@ -769,8 +1112,8 @@ void BmnAdcProcessor::CreateGeometries() {
     // SI
     TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
     fSilStationSet = unique_ptr<BmnSiliconStationSet>(new BmnSiliconStationSet(gPathSiliconConfig + confSi));
-//    fSilStationSet = make_unique<BmnSiliconStationSet>(gPathSiliconConfig + confSi);
-//    fSilStationSet = new BmnSiliconStationSet(gPathSiliconConfig + confSi);
+    //    fSilStationSet = make_unique<BmnSiliconStationSet>(gPathSiliconConfig + confSi);
+    //    fSilStationSet = new BmnSiliconStationSet(gPathSiliconConfig + confSi);
 
     // GEM
     TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
@@ -921,7 +1264,7 @@ unique_ptr<BmnSiliconStationSet> BmnAdcProcessor::GetSilStationSet(Int_t period,
     }
     TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
     return unique_ptr<BmnSiliconStationSet>(new BmnSiliconStationSet(gPathSiliconConfig + xmlConfFileName));
-//    return std::make_unique<BmnSiliconStationSet>(gPathSiliconConfig + xmlConfFileName);
+    //    return std::make_unique<BmnSiliconStationSet>(gPathSiliconConfig + xmlConfFileName);
 }
 
 BmnGemStripStationSet * BmnAdcProcessor::GetGemStationSet(Int_t period, BmnSetup stp) {

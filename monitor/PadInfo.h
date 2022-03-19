@@ -22,9 +22,12 @@ public:
         if (ref) delete ref;
         current = NULL;
         ref = NULL;
+        for (auto &el : aux)
+            if (el) delete el;
     }
     TH1* current;
     TH1* ref;
+    std::vector<TH1*> aux;
     TVirtualPad * padPtr;
     TString opt;
     TString name;

@@ -28,8 +28,8 @@ void BmnHist::DrawPad(TVirtualPad *pad, PadInfo *info) {
     Double_t maxy;
     Double_t k = 1;
     if (info->current) {
-        //        maxy = info->current->GetMaximum(); //
-        maxy = info->current->GetBinContent(info->current->GetMaximumBin());
+//        maxy = info->current->GetMaximum();
+                maxy = info->current->GetBinContent(info->current->GetMaximumBin());
         info->current->Draw(info->opt.Data());
         if (info->ref != NULL) {
             k = (info->ref->Integral() > 0) ?
@@ -40,6 +40,13 @@ void BmnHist::DrawPad(TVirtualPad *pad, PadInfo *info) {
             k = k * info->ref->GetMaximum(); //GetBinContent(info->ref->GetMaximumBin());
             if (maxy < k)
                 maxy = k;
+        }
+        for (auto h : info->aux) {
+            if (h) {
+                h->Draw("same");
+                if (maxy < h->GetMaximum())
+                    maxy = h->GetMaximum();
+            }
         }
         //            info->current->GetYaxis()->SetRange(0, maxy * 1.4);
         info->current->SetMaximum(maxy * 1.2);

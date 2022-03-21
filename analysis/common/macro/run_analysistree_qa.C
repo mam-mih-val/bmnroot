@@ -22,15 +22,12 @@
 
 using namespace AnalysisTree;
 
-void KFPFTracksQA(QA::Task& task);
 void VertexTracksQA(QA::Task& task);
 void TofHitsQA(QA::Task& task);
 void SimParticlesQA(QA::Task& task);
 void SimEventHeaderQA(QA::Task& task);
 void RecEventHeaderQA(QA::Task& task);
 void EfficiencyMaps(QA::Task& task);
-void TrdTracksQA(QA::Task& task);
-void RichRingsQA(QA::Task& task);
 
 void run_analysistree_qa(std::string filelist, bool is_single_file = false);
 
@@ -74,46 +71,6 @@ void run_analysistree_qa(std::string filelist, bool is_single_file)
     std::cout << " Test passed" << std::endl;
     std::cout << " All ok " << std::endl;
   }
-}
-
-void TrdTracksQA(QA::Task& task)
-{
-  AddTrackQA(&task, trd_tracks);
-  AddTracksMatchQA(&task, trd_tracks, rec_tracks);
-
-  task.AddH1({"TRD energy loss in 1st station, keV", {trd_tracks, "energy_loss_0"}, {QA::gNbins, 0, 50}});
-  task.AddH1({"TRD energy loss in 2nd station", {trd_tracks, "energy_loss_1"}, {QA::gNbins, 0, 50}});
-  task.AddH1({"TRD energy loss in 3rd station", {trd_tracks, "energy_loss_2"}, {QA::gNbins, 0, 50}});
-  task.AddH1({"TRD energy loss in 4th station", {trd_tracks, "energy_loss_3"}, {QA::gNbins, 0, 50}});
-
-  task.AddH1({"Number of hits in TRD", {trd_tracks, "n_hits"}, {6, 0, 6}});
-
-  task.AddH1({"PID Likelihood, e^{-}", {trd_tracks, "pid_like_e"}, {QA::gNbins, -1, 1}});
-  task.AddH1({"PID Likelihood, #pi", {trd_tracks, "pid_like_pi"}, {QA::gNbins, -1, 1}});
-  task.AddH1({"PID Likelihood, K", {trd_tracks, "pid_like_k"}, {QA::gNbins, -1, 1}});
-  task.AddH1({"PID Likelihood, p", {trd_tracks, "pid_like_p"}, {QA::gNbins, -1, 1}});
-
-  task.AddH1({"#chi^{2}/NDF", {trd_tracks, "chi2_ov_ndf"}, {QA::gNbins, 0, 30}});
-  task.AddH1({"p_{T}^{last} (GeV/c)", {trd_tracks, "pT_out"}, {QA::gNbins, 0, 10}});
-  task.AddH1({"p^{last} (GeV/c)", {trd_tracks, "p_out"}, {QA::gNbins, 0, 10}});
-}
-
-void RichRingsQA(QA::Task& task)
-{
-  task.AddH1({"RICh ring x-position (cm)", {rich_rings, "x"}, {QA::gNbins, -100, 100}});
-  task.AddH1({"RICh ring y-position (cm)", {rich_rings, "y"}, {QA::gNbins, -250, 250}});
-  task.AddH2({"RICh ring x-position (cm)", {rich_rings, "x"}, {QA::gNbins, -100, 100}},
-             {"RICh ring y-position (cm)", {rich_rings, "y"}, {QA::gNbins, -250, 250}});
-
-  task.AddH1({"Ring radius", {rich_rings, "radius"}, {QA::gNbins, 0, 10}});
-
-  task.AddH1({"n_hits", {rich_rings, "n_hits"}, {QA::gNbins, 0, 60}});
-  task.AddH1({"n_hits_on_ring", {rich_rings, "n_hits_on_ring"}, {QA::gNbins, 0, 100}});
-  task.AddH1({"axis_a", {rich_rings, "axis_a"}, {QA::gNbins, 0, 10}});
-  task.AddH1({"axis_b", {rich_rings, "axis_b"}, {QA::gNbins, 0, 10}});
-
-  task.AddH1({"chi2_ov_ndf", {rich_rings, "chi2_ov_ndf"}, {QA::gNbins, 0, 1}});
-  task.AddH1({"phi_ellipse", {rich_rings, "phi_ellipse"}, {QA::gNbins, -3.2, 3.2}});
 }
 
 void VertexTracksQA(QA::Task& task)
@@ -173,7 +130,11 @@ void TofHitsQA(QA::Task& task)
 
 }
 
-void SimParticlesQA(QA::Task& task) { AddParticleQA(&task, sim_particles); }
+void SimParticlesQA(QA::Task& task) {
+  AddParticleQA(&task, sim_particles);
+  Cuts* is_primary   = new Cuts("Primary", {EqualsCut({"SimParticles" + ".mother_id"}, -1)});
+  AddParticleQA(&task, sim_particles, is_primary);
+}
 
 void SimEventHeaderQA(QA::Task& task)
 {
@@ -243,29 +204,6 @@ void EfficiencyMaps(QA::Task& task)
              {"p_{T}, GeV/c", {sim_particles, "pT"}, {QA::gNbins, 0, 2}}, mc_pions_pos);
   task.AddH2({"#it{y}_{Lab}", pion_y, {QA::gNbins, -1, 5}}, {"p_{T}, GeV/c", {rec_tracks, "pT"}, {QA::gNbins, 0, 2}},
              mc_pions_pos);
-}
-
-void KFPFTracksQA(QA::Task& task)
-{
-  const std::vector<std::string> field_par_names_ {"cx0", "cx1", "cx2", "cy1", "cy2", "cz0", "cz1", "cz2"};
-  const std::vector<std::string> cov_names_ {"cov1", "cov2",  "cov3",  "cov4",  "cov5",  "cov6",  "cov7", "cov8",
-                                             "cov9", "cov10", "cov11", "cov12", "cov13", "cov14", "cov15"};
-
-  task.AddH1({"x, cm", {rec_tracks, "x"}, {QA::gNbins, -10, 10}});
-  task.AddH1({"y, cm", {rec_tracks, "y"}, {QA::gNbins, -10, 10}});
-  task.AddH1({"z, cm", {rec_tracks, "z"}, {QA::gNbins, 0, 40}});
-  task.AddH1({"t_{x}", {rec_tracks, "tx"}, {QA::gNbins, -2, 2}});
-  task.AddH1({"t_{y}", {rec_tracks, "ty"}, {QA::gNbins, -2, 2}});
-  task.AddH1({"q*p, GeV/c", {rec_tracks, "qp"}, {QA::gNbins, -10, 10}});
-
-  for (const auto& field_par_name : field_par_names_)
-    task.AddH1({field_par_name, {rec_tracks, field_par_name}, {QA::gNbins, -1, 1}});
-
-  for (const auto& cov_name : cov_names_)
-    task.AddH1({cov_name, {rec_tracks, cov_name}, {1000, -.1, .1}});
-
-  task.AddH1({"cy0", {rec_tracks, "cy0"}, {QA::gNbins, -12, -8}});
-  task.AddH1({"z0", {rec_tracks, "z0"}, {QA::gNbins, 0, 40}});
 }
 
 int main(int argc, char** argv)

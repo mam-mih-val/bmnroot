@@ -132,7 +132,7 @@ void TofHitsQA(QA::Task& task)
 
 void SimParticlesQA(QA::Task& task) {
   AddParticleQA(&task, sim_particles);
-  Cuts* is_primary   = new Cuts("Primary", {EqualsCut({"SimParticles" + ".mother_id"}, -1)});
+  Cuts* is_primary   = new Cuts("Primary", {EqualsCut({sim_particles + ".mother_id"}, -1)});
   AddParticleQA(&task, sim_particles, is_primary);
 }
 

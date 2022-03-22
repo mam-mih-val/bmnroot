@@ -126,7 +126,7 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
             case 8:
                 thrMax = 40;
                 thrDif = 10;
-                niter = 4;
+                niter = 3;
                 break;
             case 7:
                 thrMax = 40;
@@ -189,7 +189,6 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
         }
         delete[] fNoisyChannels;
         delete[] fSigProf;
-        return;
     }
     // MK Postprocessing
     // !!!! search for noisy channels to write to the file
@@ -279,12 +278,13 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
         if (hNhits[det])
             delete hNhits[det];
     }
-    if (!read) {
+    if (!read && wnoisename.Length()) {
         Int_t retn = system(Form("mv %s %s", wnoisename.Data(), rnoisename.Data()));
         //        printf("mv     noise ret %d\n", retn);
         Int_t retp = system(Form("mv %s %s", wpedname.Data(), pedname.Data()));
         //        printf("mv  pedestal ret %d\n", retp);
     }
+    if (fGemStationSetDer) delete fGemStationSetDer;
 }
 
 BmnStatus BmnGemRaw2Digit::FillProfiles(TClonesArray *adc) {

@@ -858,7 +858,6 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
         delete[] fNoisyChannels;
         delete[] fSigProf;
         if (canStrip) delete canStrip;
-        return;
     }
     // MK Postprocessing
     if (test != 2) {
@@ -943,7 +942,7 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
         if (hNhits[det])
             delete hNhits[det];
     }
-    if (!read) {
+    if (!read && wnoisename.Length()) {
         Int_t retn = system(Form("mv %s %s", wnoisename.Data(), rnoisename.Data()));
         //        printf("mv    noise ret %d\n", retn);
         Int_t retp = system(Form("mv %s %s", wpedname.Data(), pedname.Data()));
@@ -958,7 +957,7 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
     //        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
     //            delete hPedLineSi[iCr][iCh];
     //        }
-    for (auto &it : fMap) delete it;
+//    for (auto &it : fMap) delete it;
     for (auto &it : fOuterMap)
         for (auto &inner : it.second)
             delete inner.second;

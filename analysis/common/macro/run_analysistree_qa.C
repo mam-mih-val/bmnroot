@@ -92,6 +92,15 @@ void VertexTracksQA(QA::Task& task, std::string branch)
   task.AddH1({"#chi^{2}/NDF", chi2_over_ndf, {QA::gNbins, 0, 10}});
   task.AddH2({"DCA_{x}, cm", {branch, "dcax"}, {QA::gNbins, -1, 1}},
              {"DCA_{y}, cm", {branch, "dcay"}, {QA::gNbins, -1, 1}});
+
+  task.AddH2({"q#timesp first [GeV/c]", {branch, "qp_first"}, {QA::gNbins, -5, 5}},
+             {"q#timesp last [GeV/c]", {branch, "qp_last"}, {QA::gNbins, -5, 5}});
+
+  task.AddH2({"t_{x} first [GeV/c]", {branch, "tx_first"}, {QA::gNbins, -1, 1}},
+             {"t_{x} first [GeV/c]", {branch, "tx_last"}, {QA::gNbins, -1, 1}});
+
+  task.AddH2({"t_{y} first [GeV/c]", {branch, "ty_first"}, {QA::gNbins, -1, 1}},
+             {"t_{y} first [GeV/c]", {branch, "ty_last"}, {QA::gNbins, -1, 1}});
 }
 
 void TofHitsQA(QA::Task& task)

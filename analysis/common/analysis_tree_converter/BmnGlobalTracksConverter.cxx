@@ -57,7 +57,7 @@ void BmnGlobalTracksConverter::Init()
                                      "not actuall Distance of Closest Approach, but extrapolated to z=z_vtx");
   vtx_tracks_config.AddField<int>("charge", "charge");
   vtx_tracks_config.AddField<int>("ndf", "number degrees of freedom");
-  vtx_tracks_config.AddField<int>("nhits", "number of hits");
+  vtx_tracks_config.AddField<int>("n_hits", "number of hits");
   vtx_tracks_config.AddFields<float>({"x_first", "y_first", "z_first", "tx_first", "ty_first", "qp_first"}, "first track parameters");
   vtx_tracks_config.AddFields<float>({"x_last", "y_last", "z_last", "tx_last", "ty_last", "qp_last"}, "last track parameters");
 

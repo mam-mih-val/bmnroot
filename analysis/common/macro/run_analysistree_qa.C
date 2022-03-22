@@ -138,29 +138,17 @@ void TrackingQA(QA::Task& task){
                                 charge = particle->Charge() / 3.0;
                               else
                                 charge = GetIonCharge(var.at(1));
-                              return var.at(0) * charge;
+                              return charge / var.at(0);
                             });
 
-  Variable sim_particles_tx("sim_particles_tx", {{sim_particles, "p"}, {sim_particles, "px"}, {sim_particles, "pid"}},
+  Variable sim_particles_tx("sim_particles_tx", {{sim_particles, "px"}, {sim_particles, "pz"}},
                          [](std::vector<double>& var) {
-                              auto particle = TDatabasePDG::Instance()->GetParticle(var.at(2));
-                              double charge=1.0;
-                              if( particle )
-                                charge = particle->Charge() / 3.0;
-                              else
-                                charge = GetIonCharge(var.at(2));
-                              return var.at(0) / var.at(1) * charge;
+                              return var.at(0) / var.at(1);
                             });
 
-  Variable sim_particles_ty("sim_particles_ty", {{sim_particles, "p"}, {sim_particles, "py"}, {sim_particles, "pid"}},
+  Variable sim_particles_ty("sim_particles_ty", {{sim_particles, "py"}, {sim_particles, "pz"}},
                          [](std::vector<double>& var) {
-                              auto particle = TDatabasePDG::Instance()->GetParticle(var.at(2));
-                              double charge=1.0;
-                              if( particle )
-                                charge = particle->Charge() / 3.0;
-                              else
-                                charge = GetIonCharge(var.at(2));
-                              return var.at(0) / var.at(1) * charge;
+                              return var.at(0) / var.at(1);
                             });
 
   task.AddH2({"q#timesp STS [GeV/c]", {sts_tracks, "qp_first"}, {QA::gNbins, -5, 5}},

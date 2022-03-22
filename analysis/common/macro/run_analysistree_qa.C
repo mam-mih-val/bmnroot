@@ -30,6 +30,12 @@ void RecEventHeaderQA(QA::Task& task);
 void EfficiencyMaps(QA::Task& task);
 void TrackingQA(QA::Task& task);
 
+const int kPdgLambda = 10000000;
+const int kPdgCharge = 10000;
+const int kPdgMass   = 10;
+
+Int_t GetIonCharge(int pdgCode) { return (pdgCode % kPdgLambda) / kPdgCharge; }
+
 void run_analysistree_qa(std::string filelist, bool is_single_file = false);
 
 const std::string sim_event_header = "SimEventHeader";
@@ -127,21 +133,33 @@ void TrackingQA(QA::Task& task){
   Variable sim_particles_qp("sim_particles_qp", {{sim_particles, "p"}, {sim_particles, "pid"}},
                          [](std::vector<double>& var) {
                               auto particle = TDatabasePDG::Instance()->GetParticle(var.at(1));
-                              auto charge = particle->Charge() / 3.0;
+                              double charge=1.0;
+                              if( particle )
+                                charge = particle->Charge() / 3.0;
+                              else
+                                charge = GetIonCharge(var.at(1));
                               return var.at(0) * charge;
                             });
 
   Variable sim_particles_tx("sim_particles_tx", {{sim_particles, "p"}, {sim_particles, "px"}, {sim_particles, "pid"}},
                          [](std::vector<double>& var) {
                               auto particle = TDatabasePDG::Instance()->GetParticle(var.at(2));
-                              auto charge = particle->Charge() / 3.0;
+                              double charge=1.0;
+                              if( particle )
+                                charge = particle->Charge() / 3.0;
+                              else
+                                charge = GetIonCharge(var.at(2));
                               return var.at(0) / var.at(1) * charge;
                             });
 
   Variable sim_particles_ty("sim_particles_ty", {{sim_particles, "p"}, {sim_particles, "py"}, {sim_particles, "pid"}},
                          [](std::vector<double>& var) {
                               auto particle = TDatabasePDG::Instance()->GetParticle(var.at(2));
-                              auto charge = particle->Charge() / 3.0;
+                              double charge=1.0;
+                              if( particle )
+                                charge = particle->Charge() / 3.0;
+                              else
+                                charge = GetIonCharge(var.at(2));
                               return var.at(0) / var.at(1) * charge;
                             });
 
@@ -207,14 +225,14 @@ void TofHitsQA(QA::Task& task)
   Variable qp_sts("qp_reco", {{rec_tracks, "q"}, {rec_tracks, "p"}},
                   [](std::vector<double>& qp) { return qp.at(0) * qp.at(1); });
 
-  task.AddH2({"p#timesz, GeV/c", {rec_tracks, "qp"}, {QA::gNbins, -10, 10}},
+  task.AddH2({"p#timesz, GeV/c", {rec_tracks, "qp_first"}, {QA::gNbins, -10, 10}},
              {"m^{2}, GeV^{2}/c^{2}", {tof400_hits, "mass2"}, {QA::gNbins, -1, 2}});
-  task.AddH2({"p#timesz, GeV/c", {rec_tracks, "qp"}, {QA::gNbins, -10, 10}},
+  task.AddH2({"p#timesz, GeV/c", {rec_tracks, "qp_first"}, {QA::gNbins, -10, 10}},
              {"m^{2}, GeV^{2}/c^{2}", {tof700_hits, "mass2"}, {QA::gNbins, -1, 2}});
 
-  task.AddH2({"p#timesz, GeV/c", {rec_tracks, "qp"}, {QA::gNbins, -10, 10}},
+  task.AddH2({"p#timesz, GeV/c", {rec_tracks, "qp_first"}, {QA::gNbins, -10, 10}},
              {"m^{2}, GeV^{2}/c^{2}", {tof400_hits, "beta"}, {QA::gNbins, -0.2, 1.2}});
-  task.AddH2({"p#timesz, GeV/c", {rec_tracks, "qp"}, {QA::gNbins, -10, 10}},
+  task.AddH2({"p#timesz, GeV/c", {rec_tracks, "qp_first"}, {QA::gNbins, -10, 10}},
              {"m^{2}, GeV^{2}/c^{2}", {tof700_hits, "beta"}, {QA::gNbins, -0.2, 1.2}});
 
 }

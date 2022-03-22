@@ -28,6 +28,7 @@ void SimParticlesQA(QA::Task& task);
 void SimEventHeaderQA(QA::Task& task);
 void RecEventHeaderQA(QA::Task& task);
 void EfficiencyMaps(QA::Task& task);
+void TrackingQA(QA::Task& task);
 
 void run_analysistree_qa(std::string filelist, bool is_single_file = false);
 
@@ -61,6 +62,7 @@ void run_analysistree_qa(std::string filelist, bool is_single_file)
   SimEventHeaderQA(*task);
   RecEventHeaderQA(*task);
   TofHitsQA(*task);
+  TrackingQA(*task);
 
   man->AddTask(task);
 
@@ -96,11 +98,88 @@ void VertexTracksQA(QA::Task& task, std::string branch)
   task.AddH2({"q#timesp first [GeV/c]", {branch, "qp_first"}, {QA::gNbins, -5, 5}},
              {"q#timesp last [GeV/c]", {branch, "qp_last"}, {QA::gNbins, -5, 5}});
 
-  task.AddH2({"t_{x} first [GeV/c]", {branch, "tx_first"}, {QA::gNbins, -1, 1}},
-             {"t_{x} last [GeV/c]", {branch, "tx_last"}, {QA::gNbins, -1, 1}});
+  task.AddH2({"t_{x} first", {branch, "tx_first"}, {QA::gNbins, -1, 1}},
+             {"t_{x} last", {branch, "tx_last"}, {QA::gNbins, -1, 1}});
 
-  task.AddH2({"t_{y} first [GeV/c]", {branch, "ty_first"}, {QA::gNbins, -1, 1}},
-             {"t_{y} last [GeV/c]", {branch, "ty_last"}, {QA::gNbins, -1, 1}});
+  task.AddH2({"t_{y} first", {branch, "ty_first"}, {QA::gNbins, -1, 1}},
+             {"t_{y} last", {branch, "ty_last"}, {QA::gNbins, -1, 1}});
+}
+
+void TrackingQA(QA::Task& task){
+  task.AddH2({"q#timesp STS [GeV/c]", {sts_tracks, "qp_first"}, {QA::gNbins, -5, 5}},
+             {"q#timesp Global [GeV/c]", {rec_tracks, "qp_first"}, {QA::gNbins, -5, 5}});
+
+  task.AddH2({"q#timesp STS [GeV/c]", {sts_tracks, "qp_last"}, {QA::gNbins, -5, 5}},
+             {"q#timesp Global [GeV/c]", {rec_tracks, "qp_last"}, {QA::gNbins, -5, 5}});
+
+  task.AddH2({"t_{x} STS", {sts_tracks, "tx_first"}, {QA::gNbins, -1, 1}},
+             {"t_{x} Global", {rec_tracks, "tx_first"}, {QA::gNbins, -1, 1}});
+
+  task.AddH2({"t_{x} STS", {sts_tracks, "tx_last"}, {QA::gNbins, -1, 1}},
+             {"t_{x} Global", {rec_tracks, "tx_last"}, {QA::gNbins, -1, 1}});
+
+  task.AddH2({"t_{y} STS", {sts_tracks, "ty_first"}, {QA::gNbins, -1, 1}},
+             {"t_{y} Global", {rec_tracks, "ty_first"}, {QA::gNbins, -1, 1}});
+
+  task.AddH2({"t_{y} STS", {sts_tracks, "ty_last"}, {QA::gNbins, -1, 1}},
+             {"t_{y} Global", {rec_tracks, "ty_last"}, {QA::gNbins, -1, 1}});
+
+  Variable sim_particles_qp("sim_particles_qp", {{sim_particles, "p"}, {sim_particles, "pid"}},
+                         [](std::vector<double>& var) {
+                              auto particle = TDatabasePDG::Instance()->GetParticle(var.at(1));
+                              auto charge = particle->Charge() / 3.0;
+                              return var.at(0) * charge;
+                            });
+
+  Variable sim_particles_tx("sim_particles_tx", {{sim_particles, "p"}, {sim_particles, "px"}, {sim_particles, "pid"}},
+                         [](std::vector<double>& var) {
+                              auto particle = TDatabasePDG::Instance()->GetParticle(var.at(2));
+                              auto charge = particle->Charge() / 3.0;
+                              return var.at(0) / var.at(1) * charge;
+                            });
+
+  Variable sim_particles_ty("sim_particles_ty", {{sim_particles, "p"}, {sim_particles, "py"}, {sim_particles, "pid"}},
+                         [](std::vector<double>& var) {
+                              auto particle = TDatabasePDG::Instance()->GetParticle(var.at(2));
+                              auto charge = particle->Charge() / 3.0;
+                              return var.at(0) / var.at(1) * charge;
+                            });
+
+  task.AddH2({"q#timesp STS [GeV/c]", {sts_tracks, "qp_first"}, {QA::gNbins, -5, 5}},
+             {"q#timesp GEN [GeV/c]", sim_particles_qp, {QA::gNbins, -5, 5}});
+
+  task.AddH2({"q#timesp STS [GeV/c]", {sts_tracks, "qp_last"}, {QA::gNbins, -5, 5}},
+             {"q#timesp GEN [GeV/c]", sim_particles_qp, {QA::gNbins, -5, 5}});
+
+  task.AddH2({"t_{x} STS", {sts_tracks, "tx_first"}, {QA::gNbins, -1, 1}},
+             {"t_{x} GEN", sim_particles_qp, {QA::gNbins, -1, 1}});
+
+  task.AddH2({"t_{x} STS", {sts_tracks, "tx_last"}, {QA::gNbins, -1, 1}},
+             {"t_{x} GEN", sim_particles_qp, {QA::gNbins, -1, 1}});
+
+  task.AddH2({"t_{y} STS", {sts_tracks, "ty_first"}, {QA::gNbins, -1, 1}},
+             {"t_{y} GEN", sim_particles_qp, {QA::gNbins, -1, 1}});
+
+  task.AddH2({"t_{y} STS", {sts_tracks, "ty_last"}, {QA::gNbins, -1, 1}},
+             {"t_{y} GEN", sim_particles_qp, {QA::gNbins, -1, 1}});
+
+  task.AddH2({"q#timesp Global [GeV/c]", {rec_tracks, "qp_first"}, {QA::gNbins, -5, 5}},
+             {"q#timesp GEN [GeV/c]", sim_particles_qp, {QA::gNbins, -5, 5}});
+
+  task.AddH2({"q#timesp Global [GeV/c]", {rec_tracks, "qp_last"}, {QA::gNbins, -5, 5}},
+             {"q#timesp GEN [GeV/c]", sim_particles_qp, {QA::gNbins, -5, 5}});
+
+  task.AddH2({"t_{x} Global", {rec_tracks, "tx_first"}, {QA::gNbins, -1, 1}},
+             {"t_{x} GEN", sim_particles_qp, {QA::gNbins, -1, 1}});
+
+  task.AddH2({"t_{x} Global", {rec_tracks, "tx_last"}, {QA::gNbins, -1, 1}},
+             {"t_{x} GEN", sim_particles_qp, {QA::gNbins, -1, 1}});
+
+  task.AddH2({"t_{y} Global", {rec_tracks, "ty_first"}, {QA::gNbins, -1, 1}},
+             {"t_{y} GEN", sim_particles_qp, {QA::gNbins, -1, 1}});
+
+  task.AddH2({"t_{y} Global", {rec_tracks, "ty_last"}, {QA::gNbins, -1, 1}},
+             {"t_{y} GEN", sim_particles_qp, {QA::gNbins, -1, 1}});
 }
 
 void TofHitsQA(QA::Task& task)

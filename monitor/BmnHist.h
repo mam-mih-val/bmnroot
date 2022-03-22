@@ -74,11 +74,11 @@ public:
         return refPath;
     }
 
-    void SetperiodID(Int_t v) {
+    void SetPeriodID(Int_t v) {
         this->fPeriodID = v;
     }
 
-    Int_t GetperiodID() const {
+    Int_t GetPeriodID() const {
         return fPeriodID;
     }
     

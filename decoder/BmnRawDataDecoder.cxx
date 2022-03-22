@@ -136,12 +136,10 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fECALMapper = NULL;
     fLANDMapper = NULL;
     fTofCalMapper = NULL;
-    fDataQueue = NULL;
     fTimeStart_s = 0;
     fTimeStart_ns = 0;
     syncCounter = 0;
     fPedoCounter = 0;
-    fGemMap = NULL;
     fEvForPedestals = N_EV_FOR_PEDESTALS;
     fBmnSetup = kBMNSETUP;
     fT0Serial = 0;
@@ -156,11 +154,10 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, TString outfile, ULong_t nEve
     fNScWallSerials = 0;
     fNFHCalSerials = 0;
     fNHodoSerials = 0;
-    for (int c=0; c<60; c++)
-    {
-	refrun_tof700_slewing[c] = 0;
-	refchamber_tof700_slewing[c] = 0;
-	type_tof700_slewing[c] = 0;
+    for (int c = 0; c < 60; c++) {
+        refrun_tof700_slewing[c] = 0;
+        refchamber_tof700_slewing[c] = 0;
+        type_tof700_slewing[c] = 0;
     }
     //InitMaps();
 }
@@ -346,30 +343,6 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::InitConverter(deque<UInt_t> *dq) {
-    fDataQueue = dq;
-    fRawTree = new TTree("BMN_RAW", "BMN_RAW");
-    //    fRawFileIn = fopen(fRawFileName, "rb");
-    //    if (fDataQueue == NULL) {
-    //        printf("\n!!!!!\ncannot open stream\nConvertRawToRoot are stopped\n!!!!!\n\n");
-    //        return kBMNERROR;
-    //    }
-    //    fRootFileOut = new TFile(fRootFileName, "recreate");
-    //    fseeko64(fRawFileIn, 0, SEEK_END);
-    //    fLengthRawFile = ftello64(fRawFileIn);
-    //    rewind(fRawFileIn);
-    fLengthRawFile = fDataQueue->size();
-    //    printf("\nRawData File %s;\nLength RawData - %lld bytes (%.3f Mb)\n", fRawFileName.Data(), fLengthRawFile, fLengthRawFile / 1024. / 1024.);
-    //    printf("RawRoot File %s\n\n", fRootFileName.Data());
-
-    //    fRunId = TString(file(fRawFileName.Length() - 8, 3)).Atoi();
-    //    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
-
-    InitConverter(fRawFileName);
-    return kBMNSUCCESS;
-
-}
-
 BmnStatus BmnRawDataDecoder::InitConverter(TString FileName) {
     printf(ANSI_COLOR_RED "\n================ CONVERTING ================\n" ANSI_COLOR_RESET);
     fRawFileName = FileName;
@@ -412,18 +385,6 @@ BmnStatus BmnRawDataDecoder::InitConverter() {
     //    fRawTreeSpills = new TTree("BMN_RAW_SPILLS", "BMN_RAW_SPILLS");
     //    msc = new TClonesArray(BmnMSCDigit::Class());
     //    fRawTreeSpills->Branch("MSC", &msc);
-    return kBMNSUCCESS;
-}
-
-BmnStatus BmnRawDataDecoder::wait_stream(deque<UInt_t> *que, Int_t len, UInt_t limit) {
-    Int_t t;
-    Int_t dt = 10000;
-    while (que->size() < len) {
-        if (t > limit)
-            return kBMNERROR;
-        usleep(dt);
-        t += dt;
-    }
     return kBMNSUCCESS;
 }
 
@@ -1717,7 +1678,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         //        eventHeader->SetTrigState(s);
         //        BmnTrigUnion ws = eventHeader->GetTrigState();
         //        printf("ThrBD set to %u\n", ws.Period7BMN.ThrBD);
-        
+
         if (fMSCMapper) fMSCMapper->SumEvent(msc, eventHeader, spillHeader, fPedEvCntrBySpill);
         if (curEventType == kBMNPEDESTAL) {
             fPedEvCntrBySpill++;
@@ -2036,7 +1997,9 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
 
     fPedEvCntr = 0; // counter for pedestal events between two recalculations
     fPedEvCntrBySpill = 0; // counter for pedestal events between two spills
+    fNoiseEvCntr = 0; // counter of event for noise channel detection
     fPedEnough = kFALSE;
+    fNoiseEnough = kFALSE;
     return kBMNSUCCESS;
 }
 
@@ -2092,15 +2055,25 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
                 printf("\n[INFO]");
                 printf(ANSI_COLOR_BLUE " Recalculating pedestals\n" ANSI_COLOR_RESET);
                 if (fGemMapper)fGemMapper->RecalculatePedestalsAugmented();
-                if (fSiliconMapper)fSiliconMapper->RecalculatePedestalsAugmented();
                 if (fCscMapper)fCscMapper->RecalculatePedestalsAugmented();
+                if (fSiliconMapper)fSiliconMapper->RecalculatePedestalsAugmented();
                 fPedEvCntr = 0;
                 fPedEnough = kTRUE;
             }
         }
-        if ((fGemMapper) && (fPedEnough)) fGemMapper->FillEvent(adc32, gem);
-        if ((fCscMapper) && (fPedEnough)) fCscMapper->FillEvent(adc32, csc);
-        if ((fSiliconMapper) && (fPedEnough)) fSiliconMapper->FillEvent(adc128, silicon);
+        if (fPedEnough) {
+            if (fNoiseEnough) {
+                if ((fGemMapper)) fGemMapper->FillEvent(adc32, gem);
+                if ((fCscMapper)) fCscMapper->FillEvent(adc32, csc);
+                if ((fSiliconMapper)) fSiliconMapper->FillEvent(adc128, silicon);
+
+            } else {
+                if (fGemMapper) fGemMapper->FillProfiles(adc32);
+                if (fCscMapper) fCscMapper->FillProfiles(adc32);
+                if (fSiliconMapper) fSiliconMapper->FillProfiles(adc128);
+                fNoiseEvCntr++;
+            }
+        }
         if (fDchMapper) fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
         if (fMwpcMapper) fMwpcMapper->FillEvent(hrb, mwpc);
         if (fTof400Mapper) fTof400Mapper->FillEvent(tdc, &fTimeShifts, tof400);
@@ -2113,8 +2086,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         if (fLANDMapper) fLANDMapper->fillEvent(tacquila2, land);
         if (fTofCalMapper) fTofCalMapper->fillEvent(tacquila, tofcal);
     }
-    //    new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(),
-    //            TTimeStamp(time_t(fTime_s), fTime_ns), fCurEventType, kFALSE, headDAQ->GetTrigInfo());
     eventHeader->SetRunId(headDAQ->GetRunId());
     eventHeader->SetEventId(headDAQ->GetEventId());
     eventHeader->SetPeriodId(headDAQ->GetPeriodId());
@@ -2166,7 +2137,6 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
 }
 
 BmnStatus BmnRawDataDecoder::DisposeDecoder() {
-    if (fGemMap) delete[] fGemMap;
     if (fGemMapper) delete fGemMapper;
     if (fCscMapper) delete fCscMapper;
     if (fSiliconMapper) delete fSiliconMapper;

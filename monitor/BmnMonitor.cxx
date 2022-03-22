@@ -218,14 +218,14 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
 
     for (auto h : bhVec) {
         h->SetDir(fHistOut, fRecoTree);
-        h->SetperiodID(fPeriodID);
+        h->SetPeriodID(fPeriodID);
     }
     for (auto h : bhVec4show) {
         //        h->SetDir(fHistOutTemp, fRecoTree4Show);
         h->SetDir(NULL, NULL);
         h->ClearRefRun();
         h->Reset();
-        h->SetperiodID(fPeriodID);
+        h->SetPeriodID(fPeriodID);
     }
     return kBMNSUCCESS;
 }
@@ -315,7 +315,7 @@ void BmnMonitor::RegisterAll() {
     for (auto h : bhVec4show) {
         h->Register(fServer);
         h->SetRefPath(_refDir);
-        h->SetperiodID(fPeriodID);
+        h->SetPeriodID(fPeriodID);
     }
 }
 

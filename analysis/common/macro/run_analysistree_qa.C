@@ -141,14 +141,22 @@ void TrackingQA(QA::Task& task){
                               return charge / var.at(0);
                             });
 
-  Variable sim_particles_tx("sim_particles_tx", {{sim_particles, "px"}, {sim_particles, "pz"}},
+  Variable sim_particles_tx("sim_particles_tx", {{sim_particles, "px"}, {sim_particles, "pz"}, {sim_particles, "pid"}},
                          [](std::vector<double>& var) {
-                              return var.at(0) / var.at(1);
+                              auto particle = TDatabasePDG::Instance()->GetParticle(var.at(2));
+                              double charge=1.0;
+                              if( particle )
+                                charge = particle->Charge() > 0 ? +1.0 : -1.0;
+                              return var.at(0) / var.at(1) * charge;
                             });
 
-  Variable sim_particles_ty("sim_particles_ty", {{sim_particles, "py"}, {sim_particles, "pz"}},
+  Variable sim_particles_ty("sim_particles_ty", {{sim_particles, "py"}, {sim_particles, "pz"}, {sim_particles, "pid"}},
                          [](std::vector<double>& var) {
-                              return var.at(0) / var.at(1);
+                              auto particle = TDatabasePDG::Instance()->GetParticle(var.at(2));
+                              double charge=1.0;
+                              if( particle )
+                                charge = particle->Charge() > 0 ? +1.0 : -1.0;
+                              return var.at(0) / var.at(1) * charge;
                             });
 
   task.AddH2({"q#timesp STS [GeV/c]", {sts_tracks, "qp_first"}, {QA::gNbins, -5, 5}},

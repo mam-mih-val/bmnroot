@@ -147,7 +147,7 @@ void TrackingQA(QA::Task& task){
                               double charge=1.0;
                               if( particle )
                                 charge = particle->Charge() > 0 ? +1.0 : -1.0;
-                              return var.at(0) / var.at(1) * charge;
+                              return var.at(0) / var.at(1);
                             });
 
   Variable sim_particles_ty("sim_particles_ty", {{sim_particles, "py"}, {sim_particles, "pz"}, {sim_particles, "pid"}},
@@ -156,7 +156,7 @@ void TrackingQA(QA::Task& task){
                               double charge=1.0;
                               if( particle )
                                 charge = particle->Charge() > 0 ? +1.0 : -1.0;
-                              return var.at(0) / var.at(1) * charge;
+                              return var.at(0) / var.at(1);
                             });
 
   task.AddH2({"q/p STS [GeV/c]", {sts_tracks, "qp_first"}, {QA::gNbins, -5, 5}},

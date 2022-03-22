@@ -23,9 +23,11 @@ class BmnSimParticlesConverter final : public CbmConverterTask {
 
 public:
   BmnSimParticlesConverter(std::string out_branch_name,
-                        std::string str_global_trk_branch_name)
+                           std::string str_global_trk_branch_name,
+                           std::string str_sts_trk_branch_name)
       : CbmConverterTask(std::move(out_branch_name)),
-        str_global_trk_branch_name_(std::move(str_global_trk_branch_name)) {}
+        str_global_trk_branch_name_(std::move(str_global_trk_branch_name)),
+        str_sts_trk_branch_name_(std::move(str_sts_trk_branch_name)) {}
   ~BmnSimParticlesConverter() final;
 
   void Init() final;
@@ -35,8 +37,10 @@ public:
 private:
   void MapTracks();
   std::string str_global_trk_branch_name_;
+  std::string str_sts_trk_branch_name_;
   AnalysisTree::Particles* sim_tracks_ {nullptr};
-  AnalysisTree::Matching* sim_particles_2_vtx_tracks_{nullptr};  ///< raw pointers are needed for TTree::Branch
+  AnalysisTree::Matching*sim_particles_2_global_tracks_{nullptr};  ///< raw pointers are needed for TTree::Branch
+  AnalysisTree::Matching* sim_particles_2_sts_tracks_{nullptr};  ///< raw pointers are needed for TTree::Branch
   FairMCEventHeader*bmn_header_{nullptr};
   TClonesArray*bmn_mc_tracks_{nullptr};
   TClonesArray*bmn_global_tracks_{nullptr};  ///< non-owning pointer

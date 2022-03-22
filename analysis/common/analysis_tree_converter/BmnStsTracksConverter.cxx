@@ -53,8 +53,8 @@ void BmnStsTracksConverter::Init()
                                      "not actuall Distance of Closest Approach, but extrapolated to z=z_vtx");
   vtx_tracks_config.AddField<int>("charge", "charge");
   vtx_tracks_config.AddField<int>("ndf", "number degrees of freedom");
-  vtx_tracks_config.AddField<int>("nhits", "number of hits");
-  vtx_tracks_config.AddFields<float>({"x", "y", "z", "tx", "ty", "qp"}, "track parameters");
+  vtx_tracks_config.AddFields<float>({"x_first", "y_first", "z_first", "tx_first", "ty_first", "qp_first"}, "first track parameters");
+  vtx_tracks_config.AddFields<float>({"x_last", "y_last", "z_last", "tx_last", "ty_last", "qp_last"}, "last track parameters");
 
   auto* man = AnalysisTree::TaskManager::GetInstance();
 
@@ -71,10 +71,13 @@ void BmnStsTracksConverter::ReadVertexTracks()
 
   const int iq         = branch.GetFieldId("charge");
   const int indf       = branch.GetFieldId("ndf");
+  const int inhits     = branch.GetFieldId("nhits");
   const int ichi2      = branch.GetFieldId("chi2");
   const int idcax      = branch.GetFieldId("dcax");
-  const int ix      = branch.GetFieldId("x");
-  const int itx      = branch.GetFieldId("tx");
+  const int ix_first = branch.GetFieldId("x_first");
+  const int ix_last = branch.GetFieldId("x_last");
+  const int itx_first = branch.GetFieldId("tx_first");
+  const int itx_last = branch.GetFieldId("tx_last");
 
   const int n_sts_tracks = in_sts_tracks_->GetEntries();
   if (n_sts_tracks <= 0) {
@@ -93,17 +96,27 @@ void BmnStsTracksConverter::ReadVertexTracks()
     if (!in_sts_track) { throw std::runtime_error("empty out_track!"); }
     auto&out_track = out_sts_tracks_->AddChannel(branch);
     const FairTrackParam* trackParamFirst = in_sts_track->GetParamFirst();
+    const FairTrackParam* trackParamLast = in_sts_track->GetParamLast();
 
-    float x = trackParamFirst->GetX();
-    float y = trackParamFirst->GetY();
-    float z = trackParamFirst->GetZ();
+    float x_first = trackParamFirst->GetX();
+    float y_first = trackParamFirst->GetY();
+    float z_first = trackParamFirst->GetZ();
 
-    float tx = trackParamFirst->GetTx();
-    float ty = trackParamFirst->GetTy();
-    float qp = trackParamFirst->GetQp();
+    float tx_first = trackParamFirst->GetTx();
+    float ty_first = trackParamFirst->GetTy();
+    float qp_first = trackParamFirst->GetQp();
+
+    float x_last = trackParamLast->GetX();
+    float y_last = trackParamLast->GetY();
+    float z_last = trackParamLast->GetZ();
+
+    float tx_last = trackParamLast->GetTx();
+    float ty_last = trackParamLast->GetTy();
+    float qp_last = trackParamLast->GetQp();
 
     float chi2 = in_sts_track->GetChi2();
     int ndf = in_sts_track->GetNDF();
+    int n_hits = in_sts_track->GetNStsHits();
 
     TVector3 momRec;
     trackParamFirst->Momentum(momRec);
@@ -113,22 +126,31 @@ void BmnStsTracksConverter::ReadVertexTracks()
 
     out_track.SetField(int(q), iq);
 
-    out_track.SetField(float(tx), itx);
-    out_track.SetField(float(ty), itx+1);
-    out_track.SetField(float(qp), itx+2);
+    out_track.SetField(float(tx_first), itx_first);
+    out_track.SetField(float(ty_first), itx_first +1);
+    out_track.SetField(float(qp_first), itx_first +2);
 
-    out_track.SetField(float(x), ix);
-    out_track.SetField(float(y), ix+1);
-    out_track.SetField(float(z), ix+2);
+    out_track.SetField(float(x_first), ix_first);
+    out_track.SetField(float(y_first), ix_first +1);
+    out_track.SetField(float(z_first), ix_first +2);
+
+    out_track.SetField(float(tx_last), itx_last);
+    out_track.SetField(float(ty_last), itx_last +1);
+    out_track.SetField(float(qp_last), itx_last +2);
+
+    out_track.SetField(float(x_last), ix_last);
+    out_track.SetField(float(y_last), ix_last +1);
+    out_track.SetField(float(z_last), ix_last +2);
 
     out_track.SetField(float(chi2), ichi2);
 
     out_track.SetField(int(q), iq);
     out_track.SetField(int(ndf), indf);
+    out_track.SetField(int(n_hits), inhits);
 
-    out_track.SetField(float(x - vertex_x), idcax);
-    out_track.SetField(float(y - vertex_y), idcax + 1);
-    out_track.SetField(float(z - vertex_z), idcax + 2);
+    out_track.SetField(float(x_first - vertex_x), idcax);
+    out_track.SetField(float(y_first - vertex_y), idcax + 1);
+    out_track.SetField(float(z_first - vertex_z), idcax + 2);
   }
 }
 

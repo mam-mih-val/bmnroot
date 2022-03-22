@@ -22,7 +22,7 @@
 
 using namespace AnalysisTree;
 
-void VertexTracksQA(QA::Task& task);
+void VertexTracksQA(QA::Task& task, std::string branch=std::string("GlobalTracks"));
 void TofHitsQA(QA::Task& task);
 void SimParticlesQA(QA::Task& task);
 void SimEventHeaderQA(QA::Task& task);
@@ -35,6 +35,7 @@ const std::string sim_event_header = "SimEventHeader";
 const std::string rec_event_header = "RecEventHeader";
 const std::string sim_particles    = "SimParticles";
 const std::string rec_tracks       = "GlobalTracks";
+const std::string sts_tracks       = "StsTracks";
 const std::string tof400_hits         = "Tof400Hits";
 const std::string tof700_hits         = "Tof700Hits";
 const std::string trd_tracks       = "TrdTracks";
@@ -55,6 +56,7 @@ void run_analysistree_qa(std::string filelist, bool is_single_file)
   task->SetOutputFileName("cbm_qa.root");
 
   VertexTracksQA(*task);
+  VertexTracksQA(*task, sts_tracks);
   SimParticlesQA(*task);
   SimEventHeaderQA(*task);
   RecEventHeaderQA(*task);
@@ -73,24 +75,23 @@ void run_analysistree_qa(std::string filelist, bool is_single_file)
   }
 }
 
-void VertexTracksQA(QA::Task& task)
+void VertexTracksQA(QA::Task& task, std::string branch)
 {
-  AddTrackQA(&task, rec_tracks);
-  if (!sim_particles.empty()) { AddTracksMatchQA(&task, rec_tracks, sim_particles); }
+  AddTrackQA(&task, branch);
+  if (!sim_particles.empty()) { AddTracksMatchQA(&task, branch, sim_particles); }
 
-  Variable chi2_over_ndf("chi2_ndf", {{rec_tracks, "chi2"}, {rec_tracks, "ndf"}},
+  Variable chi2_over_ndf("chi2_ndf", {{branch, "chi2"}, {branch, "ndf"}},
                          [](std::vector<double>& var) { return var.at(0) / var.at(1); });
 
-  task.AddH1({"DCA_{x}, cm", {rec_tracks, "dcax"}, {QA::gNbins, -1, 1}});
-  task.AddH1({"DCA_{y}, cm", {rec_tracks, "dcay"}, {QA::gNbins, -1, 1}});
-  task.AddH1({"DCA_{z}, cm", {rec_tracks, "dcaz"}, {QA::gNbins, -1, 1}});
-  task.AddH1({"NDF", {rec_tracks, "ndf"}, {30, 0, 30}});
-//  task.AddH1({"Number of hits (STS+MVD)", {rec_tracks, "nhits"}, {15, 0, 15}});
-//  task.AddH1({"Number of hits (MVD)", {rec_tracks, "nhits_mvd"}, {5, 0, 5}});
-  task.AddH1({"#chi^{2}_{vertex}", {rec_tracks, "vtx_chi2"}, {500, 0, 100}});
+  task.AddH1({"DCA_{x}, cm", {branch, "dcax"}, {QA::gNbins, -1, 1}});
+  task.AddH1({"DCA_{y}, cm", {branch, "dcay"}, {QA::gNbins, -1, 1}});
+  task.AddH1({"DCA_{z}, cm", {branch, "dcaz"}, {QA::gNbins, -1, 1}});
+  task.AddH1({"NDF", {branch, "ndf"}, {30, 0, 30}});
+  task.AddH1({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}});
+  task.AddH1({"#chi^{2}_{vertex}", {branch, "vtx_chi2"}, {500, 0, 100}});
   task.AddH1({"#chi^{2}/NDF", chi2_over_ndf, {QA::gNbins, 0, 10}});
-  task.AddH2({"DCA_{x}, cm", {rec_tracks, "dcax"}, {QA::gNbins, -1, 1}},
-             {"DCA_{y}, cm", {rec_tracks, "dcay"}, {QA::gNbins, -1, 1}});
+  task.AddH2({"DCA_{x}, cm", {branch, "dcax"}, {QA::gNbins, -1, 1}},
+             {"DCA_{y}, cm", {branch, "dcay"}, {QA::gNbins, -1, 1}});
 }
 
 void TofHitsQA(QA::Task& task)

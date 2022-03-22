@@ -71,6 +71,7 @@ void BmnSimParticlesConverter::ProcessData()
 
   sim_tracks_->ClearChannels();
   sim_particles_2_global_tracks_->Clear();
+  sim_particles_2_sts_tracks_->Clear();
   auto* out_config_  = AnalysisTree::TaskManager::GetInstance()->GetConfig();
   const auto& branch = out_config_->GetBranchConfig(out_branch_);
 

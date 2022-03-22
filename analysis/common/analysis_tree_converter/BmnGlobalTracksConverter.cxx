@@ -84,7 +84,7 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
   const int indf       = branch.GetFieldId("ndf");
   const int ilength      = branch.GetFieldId("length");
   const int ichi2      = branch.GetFieldId("chi2");
-  const int inhits     = branch.GetFieldId("nhits");
+  const int inhits     = branch.GetFieldId("n_hits");
   const int idcax      = branch.GetFieldId("dcax");
   const int ix_first = branch.GetFieldId("x_first");
   const int ix_last = branch.GetFieldId("x_last");

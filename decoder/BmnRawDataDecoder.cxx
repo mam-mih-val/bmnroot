@@ -2028,6 +2028,7 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
 }
 
 BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
+    UInt_t nEvForNoiseCorrection = 10000;
     ClearArrays();
 
     BmnEventHeader* headDAQ = eventHeaderDAQ;
@@ -2073,6 +2074,13 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
                 if (fCscMapper) fCscMapper->FillProfiles(adc32);
                 if (fSiliconMapper) fSiliconMapper->FillProfiles(adc128);
                 fNoiseEvCntr++;
+                if (fNoiseEvCntr >= nEvForNoiseCorrection) {
+                    fNoiseEnough = kTRUE;
+                    printf("\n[INFO]" ANSI_COLOR_BLUE " Marking noisy channels\n" ANSI_COLOR_RESET);
+                    if (fGemMapper) fGemMapper->FillNoisyChannels();
+                    if (fCscMapper) fCscMapper->FillNoisyChannels();
+                    if (fSiliconMapper) fSiliconMapper->FillNoisyChannels();
+                }
             }
         }
         if (fDchMapper) fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);

@@ -53,6 +53,7 @@ void BmnStsTracksConverter::Init()
                                      "not actuall Distance of Closest Approach, but extrapolated to z=z_vtx");
   vtx_tracks_config.AddField<int>("charge", "charge");
   vtx_tracks_config.AddField<int>("ndf", "number degrees of freedom");
+  vtx_tracks_config.AddField<int>("n_hits", "number of hits in STS+GEM");
   vtx_tracks_config.AddFields<float>({"x_first", "y_first", "z_first", "tx_first", "ty_first", "qp_first"}, "first track parameters");
   vtx_tracks_config.AddFields<float>({"x_last", "y_last", "z_last", "tx_last", "ty_last", "qp_last"}, "last track parameters");
 
@@ -71,7 +72,7 @@ void BmnStsTracksConverter::ReadVertexTracks()
 
   const int iq         = branch.GetFieldId("charge");
   const int indf       = branch.GetFieldId("ndf");
-  const int inhits     = branch.GetFieldId("nhits");
+  const int inhits     = branch.GetFieldId("n_hits");
   const int ichi2      = branch.GetFieldId("chi2");
   const int idcax      = branch.GetFieldId("dcax");
   const int ix_first = branch.GetFieldId("x_first");

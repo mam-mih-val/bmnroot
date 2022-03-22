@@ -97,10 +97,10 @@ void VertexTracksQA(QA::Task& task, std::string branch)
              {"q#timesp last [GeV/c]", {branch, "qp_last"}, {QA::gNbins, -5, 5}});
 
   task.AddH2({"t_{x} first [GeV/c]", {branch, "tx_first"}, {QA::gNbins, -1, 1}},
-             {"t_{x} first [GeV/c]", {branch, "tx_last"}, {QA::gNbins, -1, 1}});
+             {"t_{x} last [GeV/c]", {branch, "tx_last"}, {QA::gNbins, -1, 1}});
 
   task.AddH2({"t_{y} first [GeV/c]", {branch, "ty_first"}, {QA::gNbins, -1, 1}},
-             {"t_{y} first [GeV/c]", {branch, "ty_last"}, {QA::gNbins, -1, 1}});
+             {"t_{y} last [GeV/c]", {branch, "ty_last"}, {QA::gNbins, -1, 1}});
 }
 
 void TofHitsQA(QA::Task& task)

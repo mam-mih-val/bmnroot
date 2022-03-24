@@ -218,17 +218,17 @@ void TofHitsQA(QA::Task& task)
   task.AddH2({"TOF hit x-position (cm)", {tof700_hits, "x"}, {QA::gNbins, -200, 200}},
              {"TOF hit y-position (cm)", {tof700_hits, "y"}, {QA::gNbins, -100, 100}});
 
-  Variable qp_sts("qp_reco", {{rec_tracks, "q"}, {rec_tracks, "p"}},
+  Variable qp_global("qp_reco", {{rec_tracks, "charge"}, {rec_tracks, "p"}},
                   [](std::vector<double>& qp) { return qp.at(0) * qp.at(1); });
 
-  task.AddH2({"p#timesz, GeV/c", {rec_tracks, "qp_first"}, {QA::gNbins, -10, 10}},
-             {"m^{2}, GeV^{2}/c^{2}", {tof400_hits, "mass2"}, {QA::gNbins, -1, 2}});
-  task.AddH2({"p#timesz, GeV/c", {rec_tracks, "qp_first"}, {QA::gNbins, -10, 10}},
-             {"m^{2}, GeV^{2}/c^{2}", {tof700_hits, "mass2"}, {QA::gNbins, -1, 2}});
+  task.AddH2({"q#timesp, GeV/c", qp_global, {QA::gNbins, -5, 5}},
+             {"m^{2}, GeV^{2}/c^{2}", {tof400_hits, "mass2"}, {QA::gNbins, -0.5, 5}});
+  task.AddH2({"q#timesp, GeV/c", qp_global, {QA::gNbins, -5, 5}},
+             {"m^{2}, GeV^{2}/c^{2}", {tof700_hits, "mass2"}, {QA::gNbins, -0.5, 5}});
 
-  task.AddH2({"p#timesz, GeV/c", {rec_tracks, "qp_first"}, {QA::gNbins, -10, 10}},
+  task.AddH2({"q#timesp, GeV/c", qp_global, {QA::gNbins, -5, 5}},
              {"m^{2}, GeV^{2}/c^{2}", {tof400_hits, "beta"}, {QA::gNbins, -0.2, 1.2}});
-  task.AddH2({"p#timesz, GeV/c", {rec_tracks, "qp_first"}, {QA::gNbins, -10, 10}},
+  task.AddH2({"q#timesp, GeV/c", qp_global, {QA::gNbins, -5, 5}},
              {"m^{2}, GeV^{2}/c^{2}", {tof700_hits, "beta"}, {QA::gNbins, -0.2, 1.2}});
 
 }

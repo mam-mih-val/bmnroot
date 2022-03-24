@@ -858,44 +858,66 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
         delete[] fNoisyChannels;
         delete[] fSigProf;
         if (canStrip) delete canStrip;
-    }
-    // MK Postprocessing
-    if (test != 2) {
-        for (Int_t it = 0; it < niter; ++it) {
+    } else {
+        // MK Postprocessing
+        if (test != 2) {
+            for (Int_t it = 0; it < niter; ++it) {
+
+                for (Int_t det = 0; det < ndet; ++det) {
+                    Int_t mChan = nchdet[det];
+
+                    Float_t sumhits[maxchip2];
+                    Int_t nsumch[maxchip2];
+                    for (Int_t j = 0; j < maxchip2; ++j) {
+                        sumhits[j] = 0;
+                        nsumch[j] = 0;
+                    }
+
+                    for (Int_t j = 0; j < mChan; ++j) {
+                        if (noisech[det][j] == 0) {
+                            Int_t ichip = (Int_t) j / 128;
+                            sumhits[ichip] += hNhits[det]->GetBinContent(j + 1);
+                            nsumch[ichip]++;
+                        }
+                    }
+
+                    for (Int_t j = 0; j < maxchip2; ++j) {
+                        Int_t nsum = nsumch[j];
+                        if (nsum > 0) sumhits[j] /= nsum;
+                    }
+
+                    for (Int_t j = 0; j < mChan; ++j) {
+                        if (noisech[det][j] == 0) {
+                            Int_t ichip = (Int_t) j / 128;
+                            Double_t sum = sumhits[ichip];
+                            //                        printf("nhits = %f sum = %f  ichip = %i j = %i\n", hNhits[det]->GetBinContent(j + 1), sum, ichip, j);
+                            if ((hNhits[det]->GetBinContent(j + 1) > 5 * sum && sum > 10) ||
+                                    (hNhits[det]->GetBinContent(j + 1) > 4 * sum && sum > 100) ||
+                                    (hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 1000)) {
+
+                                //                            cout << " new noise det= " << det << " chan= " << j << " iter= " << it << endl;
+                                noisech[det][j] = 1;
+                                if (!read) {
+                                    Int_t cont1 = j + det * 10000;
+                                    fprintf(Wnoisefile, " %d\n", cont1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }// test = 2
+        else {
 
             for (Int_t det = 0; det < ndet; ++det) {
                 Int_t mChan = nchdet[det];
 
-                Float_t sumhits[maxchip2];
-                Int_t nsumch[maxchip2];
-                for (Int_t j = 0; j < maxchip2; ++j) {
-                    sumhits[j] = 0;
-                    nsumch[j] = 0;
-                }
-
                 for (Int_t j = 0; j < mChan; ++j) {
                     if (noisech[det][j] == 0) {
-                        Int_t ichip = (Int_t) j / 128;
-                        sumhits[ichip] += hNhits[det]->GetBinContent(j + 1);
-                        nsumch[ichip]++;
-                    }
-                }
-
-                for (Int_t j = 0; j < maxchip2; ++j) {
-                    Int_t nsum = nsumch[j];
-                    if (nsum > 0) sumhits[j] /= nsum;
-                }
-
-                for (Int_t j = 0; j < mChan; ++j) {
-                    if (noisech[det][j] == 0) {
-                        Int_t ichip = (Int_t) j / 128;
-                        Double_t sum = sumhits[ichip];
-                        //                        printf("nhits = %f sum = %f  ichip = %i j = %i\n", hNhits[det]->GetBinContent(j + 1), sum, ichip, j);
-                        if ((hNhits[det]->GetBinContent(j + 1) > 5 * sum && sum > 10) ||
-                                (hNhits[det]->GetBinContent(j + 1) > 4 * sum && sum > 100) ||
-                                (hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 1000)) {
-
-                            //                            cout << " new noise det= " << det << " chan= " << j << " iter= " << it << endl;
+                        Double_t sumhitdet = hNhits[det]->GetBinContent(j + 1) / (Double_t) npevents;
+                        //                    hnoise[det]->Fill(sumhitdet);
+                        if (sumhitdet > thrnoise) {
+                            //                        cout << " new noise det= " << det << " chan= " << j << " test2: noise> " << thrnoise << endl;
                             noisech[det][j] = 1;
                             if (!read) {
                                 Int_t cont1 = j + det * 10000;
@@ -904,49 +926,28 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
                         }
                     }
                 }
+
             }
         }
-    }// test = 2
-    else {
+        if (Wnoisefile)
+            fclose(Wnoisefile);
+        if (Rnoisefile)
+            fclose(Rnoisefile);
+        if (Wpedfile)
+            fclose(Wpedfile);
+        if (Pedfile)
+            fclose(Pedfile);
 
-        for (Int_t det = 0; det < ndet; ++det) {
-            Int_t mChan = nchdet[det];
-
-            for (Int_t j = 0; j < mChan; ++j) {
-                if (noisech[det][j] == 0) {
-                    Double_t sumhitdet = hNhits[det]->GetBinContent(j + 1) / (Double_t) npevents;
-                    //                    hnoise[det]->Fill(sumhitdet);
-                    if (sumhitdet > thrnoise) {
-                        //                        cout << " new noise det= " << det << " chan= " << j << " test2: noise> " << thrnoise << endl;
-                        noisech[det][j] = 1;
-                        if (!read) {
-                            Int_t cont1 = j + det * 10000;
-                            fprintf(Wnoisefile, " %d\n", cont1);
-                        }
-                    }
-                }
-            }
-
+        for (Int_t det = 0; det < ndet; det++) {
+            if (hNhits[det])
+                delete hNhits[det];
         }
-    }
-    if (Wnoisefile)
-        fclose(Wnoisefile);
-    if (Rnoisefile)
-        fclose(Rnoisefile);
-    if (Wpedfile)
-        fclose(Wpedfile);
-    if (Pedfile)
-        fclose(Pedfile);
-
-    for (Int_t det = 0; det < ndet; det++) {
-        if (hNhits[det])
-            delete hNhits[det];
-    }
-    if (!read && wnoisename.Length()) {
-        Int_t retn = system(Form("mv %s %s", wnoisename.Data(), rnoisename.Data()));
-        //        printf("mv    noise ret %d\n", retn);
-        Int_t retp = system(Form("mv %s %s", wpedname.Data(), pedname.Data()));
-        //        printf("mv pedestal ret %d\n", retp);
+        if (!read && wnoisename.Length()) {
+            Int_t retn = system(Form("mv %s %s", wnoisename.Data(), rnoisename.Data()));
+            //        printf("mv    noise ret %d\n", retn);
+            Int_t retp = system(Form("mv %s %s", wpedname.Data(), pedname.Data()));
+            //        printf("mv pedestal ret %d\n", retp);
+        }
     }
     //    for (Int_t iCr = 0; iCr < nadc; ++iCr) {
     //        delete hPedSi[iCr];
@@ -957,7 +958,7 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
     //        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
     //            delete hPedLineSi[iCr][iCh];
     //        }
-//    for (auto &it : fMap) delete it;
+    //    for (auto &it : fMap) delete it;
     for (auto &it : fOuterMap)
         for (auto &inner : it.second)
             delete inner.second;
@@ -1025,18 +1026,18 @@ BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
             if (innerItLo == inner.end()) {
                 inner.insert(make_pair(record->channel_low - 1, nullptr));
             }
-//            auto innerIt = inner.find(record->channel_low);
-//            if (innerIt == inner.end()) {
-//                inner.insert(make_pair(record->channel_low - 1, nullptr));
-//                inner.insert(make_pair(record->channel_high, record));
-//            } else {
-//                if (innerIt->second == nullptr) {
-//                    innerIt->second = record;
-//                } else {
-//                    //                    fprintf(stderr, "Wrong CSC map!\n");
-//                    //                    return kBMNERROR;
-//                }
-//            }
+            //            auto innerIt = inner.find(record->channel_low);
+            //            if (innerIt == inner.end()) {
+            //                inner.insert(make_pair(record->channel_low - 1, nullptr));
+            //                inner.insert(make_pair(record->channel_high, record));
+            //            } else {
+            //                if (innerIt->second == nullptr) {
+            //                    innerIt->second = record;
+            //                } else {
+            //                    //                    fprintf(stderr, "Wrong CSC map!\n");
+            //                    //                    return kBMNERROR;
+            //                }
+            //            }
         }
     }
     return kBMNSUCCESS;

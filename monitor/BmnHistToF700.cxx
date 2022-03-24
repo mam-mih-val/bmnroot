@@ -14,7 +14,7 @@ BmnHistToF700::BmnHistToF700(TString title, TString path) : BmnHist() {
     const Int_t NTimeBins = 5000;
     const Int_t TimeUpper = 2500;
     const Int_t NAmpBins = 500;
-    const Int_t AmpUpper = 5000;
+    const Int_t AmpUpper = 100;
     fSelectedPlane = -1;
     fSelectedStrip = -1;
     fSelectedSide = -1;
@@ -104,7 +104,7 @@ void BmnHistToF700::FillFromDigi(DigiArrays *fDigiArrays) {
         BmnTof2Digit *td = (BmnTof2Digit *) digits->At(digIndex);
         Int_t strip = td->GetStrip();
         histLeadingTime->Fill(td->GetTime());
-        histAmp->Fill(td->GetAmplitude());
+        histAmp->Fill(td->GetAmplitude() * ch2ns);
         histStrip->Fill(strip + td->GetPlane() * TOF2_MAX_STRIPS_IN_CHAMBER);
         if (
                 ((td->GetPlane() == fSelectedPlane) || (fSelectedPlane < 0)) &&

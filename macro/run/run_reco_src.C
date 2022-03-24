@@ -34,7 +34,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
 
     // -2 means use of the SRC-setup when processing MC-input
     // DO NOT change it manually!
-    Int_t run_period = 7, run_number = -2;
+    Int_t run_period = 8, run_number = -2;
     Double_t fieldScale = 0.;
     if (!isExp) // for simulation files
         fFileSource = new FairFileSource(inputFileName);
@@ -46,68 +46,72 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
         // get geometry for run
         gRandom->SetSeed(0);
         TString geoFileName = Form("current_geo_file_%d.root", UInt_t(gRandom->Integer(UINT32_MAX)));
-        Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
-        if (res_code != 0) {
-            cout << "ERROR: could not read geometry file from the database" << endl;
-            exit(-3);
-        }
-
-        // get gGeoManager from ROOT file (if required)
-        TFile* geoFile = new TFile(geoFileName, "READ");
-        if (!geoFile->IsOpen()) {
-            cout << "ERROR: could not open ROOT file with geometry: " + geoFileName << endl;
-            exit(-4);
-        }
-        TList* keyList = geoFile->GetListOfKeys();
-        TIter next(keyList);
-        TKey* key = (TKey*) next();
-        TString className(key->GetClassName());
-        if (className.BeginsWith("TGeoManager"))
-            key->ReadObj();
-        else {
-            cout << "ERROR: TGeoManager is not top element in geometry file " + geoFileName << endl;
-            exit(-5);
-        }
-
-        // set magnet field with factor corresponding to the given run
-        UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
-        if (pCurrentRun == 0)
-            exit(-6);
-        Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
-        if (field_voltage == NULL) {
-            cout << "ERROR: no field voltage was found for run " << run_period << ":" << run_number << endl;
-            exit(-7);
-        }
+//        Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
+//        if (res_code != 0) {
+//            cout << "ERROR: could not read geometry file from the database" << endl;
+//            exit(-3);
+//        }
+//
+//        // get gGeoManager from ROOT file (if required)
+//        TFile* geoFile = new TFile(geoFileName, "READ");
+//        if (!geoFile->IsOpen()) {
+//            cout << "ERROR: could not open ROOT file with geometry: " + geoFileName << endl;
+//            exit(-4);
+//        }
+//        TList* keyList = geoFile->GetListOfKeys();
+//        TIter next(keyList);
+//        TKey* key = (TKey*) next();
+//        TString className(key->GetClassName());
+//        if (className.BeginsWith("TGeoManager"))
+//            key->ReadObj();
+//        else {
+//            cout << "ERROR: TGeoManager is not top element in geometry file " + geoFileName << endl;
+//            exit(-5);
+//        }
+//
+//        // set magnet field with factor corresponding to the given run
+//        UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
+//        if (pCurrentRun == 0)
+//            exit(-6);
+//        Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
+//        if (field_voltage == NULL) {
+//            cout << "ERROR: no field voltage was found for run " << run_period << ":" << run_number << endl;
+//            exit(-7);
+//        }
         Double_t map_current = 55.87;
-        if (*field_voltage < 10) {
-            fieldScale = 0;
-            isField = kFALSE;
-        } else
-            fieldScale = (*field_voltage) / map_current;
+//        if (*field_voltage < 10) {
+//            fieldScale = 0;
+//            isField = kFALSE;
+//        } else
+//            fieldScale = (*field_voltage) / map_current;
+        fieldScale = 0;
+//            isField = kFALSE;
+//        } else
+//            fieldScale = (*field_voltage) / map_current;
 
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v5_ascii_Extrap.root");
         magField->SetScale(fieldScale);
         magField->Init();
         fRunAna->SetField(magField);
         isExp = kTRUE;
-        TString targ;
-        if (pCurrentRun->GetTargetParticle() == NULL) {
-            targ = "-";
-            isTarget = kFALSE;
-        } else {
-            targ = (pCurrentRun->GetTargetParticle())[0];
-            isTarget = kTRUE;
-        }
-        TString beam = pCurrentRun->GetBeamParticle();
-        cout << "\n\n|||||||||||||||| EXPERIMENTAL RUN SUMMARY ||||||||||||||||" << endl;
-        cout << "||\t\t\t\t\t\t\t||" << endl;
-        cout << "||\t\tPeriod:\t\t" << run_period << "\t\t\t||" << endl;
-        cout << "||\t\tNumber:\t\t" << run_number << "\t\t\t||" << endl;
-        cout << "||\t\tBeam:\t\t" << beam << "\t\t\t||" << endl;
-        cout << "||\t\tTarget:\t\t" << targ << "\t\t\t||" << endl;
-        cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
-        cout << "||\t\t\t\t\t\t\t||" << endl;
-        cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
+//        TString targ;
+//        if (pCurrentRun->GetTargetParticle() == NULL) {
+//            targ = "-";
+//            isTarget = kFALSE;
+//        } else {
+//            targ = (pCurrentRun->GetTargetParticle())[0];
+//            isTarget = kTRUE;
+//        }
+//        TString beam = pCurrentRun->GetBeamParticle();
+//        cout << "\n\n|||||||||||||||| EXPERIMENTAL RUN SUMMARY ||||||||||||||||" << endl;
+//        cout << "||\t\t\t\t\t\t\t||" << endl;
+//        cout << "||\t\tPeriod:\t\t" << run_period << "\t\t\t||" << endl;
+//        cout << "||\t\tNumber:\t\t" << run_number << "\t\t\t||" << endl;
+//        cout << "||\t\tBeam:\t\t" << beam << "\t\t\t||" << endl;
+//        cout << "||\t\tTarget:\t\t" << targ << "\t\t\t||" << endl;
+//        cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
+//        cout << "||\t\t\t\t\t\t\t||" << endl;
+//        cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
         remove(geoFileName.Data());
     }
 
@@ -141,7 +145,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // ====================================================================== //
     BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, run_number, isExp, kTRUE);
     if (isExp) siliconHM->SetHitMatching(kFALSE);
-    fRunAna->AddTask(siliconHM);
+//    fRunAna->AddTask(siliconHM);
     
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
@@ -155,8 +159,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // ===                          CSC hit finder                        === //
     // ====================================================================== //
     BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
-    if (!isExp)
-        cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSRC2021); //set explicitly
+    cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSRC2021); //set explicitly
     cscHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(cscHM);
 
@@ -247,11 +250,6 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // Residual analysis
     BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
     fRunAna->AddTask(res);
-
-    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, kFALSE);
-    glTF->SetSrcSetup(kTRUE);
-    glTF->SetRunNumber(run_number);
-    fRunAna->AddTask(glTF);
 
     // ====================================================================== //
     // ===                      Primary vertex finding                    === //

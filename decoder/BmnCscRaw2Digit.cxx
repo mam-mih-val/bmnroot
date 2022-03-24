@@ -147,9 +147,8 @@ BmnStatus BmnCscRaw2Digit::ReadMapLocalFile() {
         for (Short_t iLay = 0; iLay < layers; ++iLay) {
             TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") +
                     TString("CSC_m") + iMod +
-                    TString("l") + iLay + //(((iMod == 1) && (fPeriod == 8) && (fSetup = kSRCSETUP)) ? (iLay + 2) % 4 : iLay) +
+                    TString("l") + (((iMod == 1) && (fPeriod < 8)) ? (iLay + 2) % 4 : iLay) +
                     TString(".txt");
-            //    layer = ((module == 1) && (fPeriod == 8) && (fSetup = kSRCSETUP)) ? (layer + 2) % 4 : layer;
             ifstream inFile(name.Data());
             if (!inFile.is_open()) {
                 printf(ANSI_COLOR_RED "\n[ERROR]" ANSI_COLOR_RESET);

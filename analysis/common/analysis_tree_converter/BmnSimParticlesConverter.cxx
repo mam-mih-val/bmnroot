@@ -124,7 +124,7 @@ void BmnSimParticlesConverter::ProcessData()
       auto mass_number = GetIonMass( mctrack->GetPdgCode() );
       mass = charge_number*proton_mass + (mass_number - charge_number)*neutron_mass;
     }
-    track.SetMass(float(mctrack->GetMass()));
+    track.SetMass(float(mass));
     track.SetPid(int(mctrack->GetPdgCode()));
 //    track.SetField(int(mctrack->GetGeantProcessId()), igeant_id);
 

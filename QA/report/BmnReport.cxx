@@ -8,6 +8,7 @@
 #include "BmnHtmlReportElement.h"
 #include "TCanvas.h"
 #include <fstream>
+#include <TError.h>
 
 BmnReport::BmnReport() :
 fReportName("qa_report"),

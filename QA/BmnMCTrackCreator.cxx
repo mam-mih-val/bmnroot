@@ -31,6 +31,7 @@ fSilPoints(nullptr),
 fTof400Points(nullptr),
 fTof700Points(nullptr),
 fCscPoints(nullptr),
+fDchPoints(nullptr),
 fGemPoints(nullptr) {
     ReadDataBranches();
     fSilDetector = new BmnSiliconStationSet(sil);
@@ -60,6 +61,7 @@ void BmnMCTrackCreator::Create() {
     AddPoints(kTOF1, fTof400Points);
     AddPoints(kTOF, fTof700Points);
     AddPoints(kCSC, fCscPoints);
+    AddPoints(kDCH, fDchPoints);
     // printf("fSilDetector->GetNStations() = %d\n", fSilDetector->GetNStations());
     // printf("fGemDetector->GetNStations() = %d\n", fGemDetector->GetNStations());
     
@@ -81,6 +83,7 @@ void BmnMCTrackCreator::ReadDataBranches() {
     fTof400Points = (TClonesArray*) ioman->GetObject("TOF400Point");
     fTof700Points = (TClonesArray*) ioman->GetObject("TOF700Point");
     fCscPoints = (TClonesArray*) ioman->GetObject("CSCPoint");
+    fDchPoints = (TClonesArray*) ioman->GetObject("DCHPoint");
 }
 
 void BmnMCTrackCreator::AddPoints(DetectorId detId, const TClonesArray* array) {
@@ -104,7 +107,9 @@ void BmnMCTrackCreator::AddPoints(DetectorId detId, const TClonesArray* array) {
             stationId = fNSiliconStations + fNGemStations + fNCscStations + 1;
         } else if (detId == kTOF) {
             stationId = fNSiliconStations + fNGemStations + fNCscStations + 2;
-        } 
+        } else if (detId == kDCH) {
+            stationId = fNSiliconStations + fNGemStations + fNCscStations + 3;
+        }
         
         if (stationId < 0) continue;
         FairMCPointCoordinatesAndMomentumToBmnMCPoint(fairPoint, &bmnPoint);

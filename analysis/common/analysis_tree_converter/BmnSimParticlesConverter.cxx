@@ -118,10 +118,13 @@ void BmnSimParticlesConverter::ProcessData()
     if( database_particle ) {
       mass = database_particle->Mass();
     } else {
+      auto proton_mass = TDatabasePDG::Instance()->GetParticle( 2212 )->Mass();
+      auto neutron_mass = TDatabasePDG::Instance()->GetParticle( 2112 )->Mass();
+      auto charge_number = GetIonCharge( mctrack->GetPdgCode() );
       auto mass_number = GetIonMass( mctrack->GetPdgCode() );
-      mass = mass_number*0.931;
+      mass = charge_number*proton_mass + (mass_number - charge_number)*neutron_mass;
     }
-    track.SetMass(float(mass));
+    track.SetMass(float(mctrack->GetMass()));
     track.SetPid(int(mctrack->GetPdgCode()));
 //    track.SetField(int(mctrack->GetGeantProcessId()), igeant_id);
 

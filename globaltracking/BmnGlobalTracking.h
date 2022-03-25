@@ -100,6 +100,10 @@ public:
         fPeriod = p;
     }
 
+    void SetInnerTracksBranchName(TString name) {
+        fInnerTrackBranchName = name;
+    }
+
 private:
 
     /*
@@ -131,6 +135,8 @@ private:
     TClonesArray* fStsTracks;
     TClonesArray* fGlobalTracks;
 
+    TString fInnerTrackBranchName;
+
     Short_t fPeriod;
     Bool_t fIsField;  // run with mag.field or not
     Bool_t fIsSRC;    // flag to turn on specific parts for SRC
@@ -150,6 +156,7 @@ private:
 
     BmnStatus MatchingTOF(BmnGlobalTrack* tr, Int_t num);
     BmnStatus MatchingDCH(BmnGlobalTrack* tr);
+    BmnStatus MatchingDCH(BmnGlobalTrack* tr, Int_t num);
     BmnStatus MatchingUpstream(BmnGlobalTrack* tr);
     BmnStatus MatchingCSC(BmnGlobalTrack* glTr, vector<Int_t> stations);
 

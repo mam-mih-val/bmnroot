@@ -12,7 +12,7 @@ enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM};
 // generatorName - generator name for the input file (enumeration above)
 // useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
 void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString outFile = "$VMCWORKDIR/macro/run8/bmnsim.root",
-    Int_t nStartEvent = 0, Int_t nEvents = 10, enumGenerators generatorName = DCMSMM, Bool_t useRealEffects = kTRUE) {
+    Int_t nStartEvent = 0, Int_t nEvents = 1, enumGenerators generatorName = BOX, Bool_t useRealEffects = kTRUE) {
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
@@ -40,11 +40,10 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
 
     // Smearing of beam interaction point, if needed, and primary vertex position
     // DO NOT do it in corresponding gen. sections to avoid incorrect summation!!!
-    primGen->SetBeam(0.0, 0.0, 0.3, 0.3);  // (beamX0, beamY0, beamSigmaX, beamSigmaY)
-    primGen->SetBeamAngle(0.0, 0.0, 0.0, 0.0);  // (beamAngleX0, beamAngleY0, beamAngleSigmaX, beamAngleSigmaY)
-    primGen->SetTarget(0.0, 0.175);    // (targetZ, targetDz)
+    primGen->SetBeam(0.0, 0.0, 0.5, 0.5);  // (beamX0, beamY0, beamSigmaX, beamSigmaY)
+    primGen->SetTarget(0.0875, 0.0875);    // (targetZ, targetDz)
     primGen->SmearVertexZ(kTRUE);
-    primGen->SmearGausVertexXY(kTRUE);
+    primGen->SmearVertexXY(kTRUE);
     gRandom->SetSeed(0);
 
     switch (generatorName)
@@ -75,7 +74,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     // ------- Ion Generator
     case ION:{
         // Start beam from a far point to check mom. reconstruction procedure (Z, A, q, mult, [GeV] px, py, pz, [cm] vx, vy, vz)
-        FairIonGenerator* fIongen = new FairIonGenerator(54, 131, 54, 1, 0., 0., 4.8, 0., 0., 0.); //Xe
+        FairIonGenerator* fIongen = new FairIonGenerator(54, 131, 54, 1, 0., 0., -4.8, 0., 0., 0.); //Xe
         primGen->AddGenerator(fIongen);
         break;
     }
@@ -83,7 +82,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     // ------- Box Generator
     case BOX:{
         gRandom->SetSeed(0);
-        FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); //(PDG code, multiplicity)
+        FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 13 = muon; 1 = multipl.
         boxGen->SetPRange(0.2, 5.0);      // GeV/c, setPRange vs setPtRange
         boxGen->SetPhiRange(0, 360);    // Azimuth angle range [degree]
         boxGen->SetThetaRange(0, 40.0);  // Polar angle in lab system range [degree]
@@ -187,10 +186,10 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     fRun->AddTask(cscDigit);
     
     //FHCal-Digitizer
-    BmnFHCalDigitizer* fhcalDigit = new BmnFHCalDigitizer();
+    // BmnFHCalDigitizer * fhcalDigit = new BmnFHCalDigitizer();
     // fhcalDigit->SetScale(28.2e3);
     // fhcalDigit->SetThreshold(0.);
-    fRun->AddTask(fhcalDigit);
+    // fRun->AddTask(fhcalDigit);
     
     // ECAL-Digitizer
     // FIXME some problems with channels

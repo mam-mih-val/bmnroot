@@ -40,7 +40,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
 
     // Smearing of beam interaction point, if needed, and primary vertex position
     // DO NOT do it in corresponding gen. sections to avoid incorrect summation!!!
-    primGen->SetBeam(0.0, 0.0, 1.6, 1.6);  // (beamX0, beamY0, beamSigmaX, beamSigmaY)
+    primGen->SetBeam(0.0, 0.0, 0.5, 0.5);  // (beamX0, beamY0, beamSigmaX, beamSigmaY)
     primGen->SetTarget(0.0875, 0.0875);    // (targetZ, targetDz)
     primGen->SmearVertexZ(kTRUE);
     primGen->SmearVertexXY(kTRUE);

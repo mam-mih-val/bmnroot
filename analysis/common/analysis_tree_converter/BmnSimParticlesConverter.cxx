@@ -18,6 +18,7 @@
 
 #include <cassert>
 #include <vector>
+#include <TDatabasePDG.h>
 
 #include "AnalysisTree/TaskManager.hpp"
 #include "BmnGlobalTrack.h"
@@ -112,6 +113,17 @@ void BmnSimParticlesConverter::ProcessData()
     out_indexes_map_.insert(std::make_pair(trackIndex, track.GetId()));
 
     track.SetMomentum(mctrack->GetPx(), mctrack->GetPy(), mctrack->GetPz());
+    float mass = 0;
+    auto database_particle = TDatabasePDG::Instance()->GetParticle( mctrack->GetPdgCode() );
+    if( database_particle ) {
+      mass = database_particle->Mass();
+    } else {
+      auto proton_mass = TDatabasePDG::Instance()->GetParticle( 2212 )->Mass();
+      auto neutron_mass = TDatabasePDG::Instance()->GetParticle( 2112 )->Mass();
+      auto charge_number = GetIonCharge( mctrack->GetPdgCode() );
+      auto mass_number = GetIonMass( mctrack->GetPdgCode() );
+      mass = charge_number*proton_mass + (mass_number - charge_number)*neutron_mass;
+    }
     track.SetMass(float(mctrack->GetMass()));
     track.SetPid(int(mctrack->GetPdgCode()));
 //    track.SetField(int(mctrack->GetGeantProcessId()), igeant_id);

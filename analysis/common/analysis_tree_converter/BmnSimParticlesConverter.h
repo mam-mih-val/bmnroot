@@ -36,6 +36,15 @@ public:
 
 private:
   void MapTracks();
+
+  static const int PDGLAMBDA = 10000000;
+  static const int PDGCHARGE = 10000;
+  static const int PDGMASS = 10;
+
+  int GetIonCharge(Int_t pdgCode) const { return (pdgCode % PDGLAMBDA) / PDGCHARGE; }
+  int GetIonLambdas(Int_t pdgCode) { return (pdgCode % (10 * PDGLAMBDA)) / PDGLAMBDA; }
+  int GetIonMass(Int_t pdgCode) { return (pdgCode % PDGCHARGE) / PDGMASS; }
+
   std::string str_global_trk_branch_name_;
   std::string str_sts_trk_branch_name_;
   AnalysisTree::Particles* sim_tracks_ {nullptr};

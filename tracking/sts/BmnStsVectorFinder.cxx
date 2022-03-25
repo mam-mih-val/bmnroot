@@ -34,6 +34,10 @@ using std::pair;
 using std::set;
 using std::vector;
 
+#include <TStopwatch.h>
+
+static Double_t workTime = 0.0;
+
 // -----   Default constructor   -------------------------------------------
 BmnStsVectorFinder::BmnStsVectorFinder() 
   : FairTask("STS Vector Finder"),
@@ -167,6 +171,9 @@ InitStatus BmnStsVectorFinder::Init() {
 // -----   Public method Exec   --------------------------------------------
 void BmnStsVectorFinder::Exec(Option_t* opt) 
 {
+  
+    TStopwatch sw;
+    sw.Start();
 
   //*
   // Reset output array
@@ -203,10 +210,12 @@ void BmnStsVectorFinder::Exec(Option_t* opt)
     Int_t ista = hit->GetStationNr() - 0;
     fNsta = TMath::Max(fNsta,ista);
     // Code below for debugging
-    set<Int_t> idset = GetHitId(hit, idmaxP);
-    for (set<Int_t>::iterator sit = idset.begin(); sit != idset.end(); ++sit) 
-      fHit2id.insert(pair<Int_t,Int_t>(ihit,*sit));
-  }
+    if (fVerbose > 0) {
+      set<Int_t> idset = GetHitId(hit, idmaxP);
+      for (set<Int_t>::iterator sit = idset.begin(); sit != idset.end(); ++sit)
+        fHit2id.insert(pair<Int_t, Int_t>(ihit, *sit));
+    }
+    }
   
   Int_t nHitsOut = 0;
   discarded = 0;
@@ -249,6 +258,9 @@ void BmnStsVectorFinder::Exec(Option_t* opt)
   
   // Post-processing - try to exclude fake tracks (with too many shared clusters)
   ExcludeFakes();
+  
+  sw.Stop();
+  workTime += sw.RealTime();
 }
 
 // -------------------------------------------------------------------------
@@ -382,7 +394,7 @@ set<Int_t> BmnStsVectorFinder::GetHitId(CbmStsHit *hit, Int_t& idmaxP)
 set<Int_t> BmnStsVectorFinder::GetHitIdBmn(CbmStsHit *hit, Int_t& idmaxP)
 {
   // Get IDs contributing to given hit (for debugging purposes) - for BmnRoot data structures
-  
+
   set<Int_t> ids;
   //int ind = 0; // Si hit
   //if (hit->GetSystemId() == kGEM) ind = 2; // GEM hit
@@ -470,28 +482,30 @@ void BmnStsVectorFinder::BuildTrackCand()
       aaa.code = "-" + to_string(aaa.stahit[ista]) + "-"; // hit index coded
       //aaa.second[fNsta-1] = mit->second;
       //if (fExact) {
-	set<Int_t> ids = GetHitId(mit->second, idmaxP);
+      
+      //set<Int_t> ids = GetHitId(mit->second, idmaxP);
 	aaa.idmaxP = idmaxP;
 	//}
       //cout << "aaa.z " <<((CbmStsHit*) fHitArray->UncheckedAt(aaa.stahit[ista]))->GetZ() << " ";
       fSeedVec[ista].push_back(aaa);
     } //for (multimap<Double_t,Int_t>::iterator mit
-    
-    Int_t ncand = fSeedVec[ista].size();
-    cout << " Vector stat: " << ista << " " << ncand;// << endl;
-    pair<multimap<Int_t,Int_t>::iterator,multimap<Int_t,Int_t>::iterator> ret;
-  
-    for (Int_t j = 0; j < ncand; ++j) {
-      Int_t ih = fSeedVec[ista][j].stahit[ista];
-      ret = fHit2id.equal_range(ih);
-      cout << " (" << ih << "*";
-      for (multimap<Int_t,Int_t>::iterator mit = ret.first; mit != ret.second; ++mit) {
-	if (mit != ret.first) cout << ":";
-	cout << mit->second;
+    if (fVerbose > 0) {
+      Int_t ncand = fSeedVec[ista].size();
+      cout << " Vector stat: " << ista << " " << ncand;// << endl;
+      pair<multimap<Int_t, Int_t>::iterator, multimap<Int_t, Int_t>::iterator> ret;
+
+      for (Int_t j = 0; j < ncand; ++j) {
+        Int_t ih = fSeedVec[ista][j].stahit[ista];
+        ret = fHit2id.equal_range(ih);
+        cout << " (" << ih << "*";
+        for (multimap<Int_t, Int_t>::iterator mit = ret.first; mit != ret.second; ++mit) {
+          if (mit != ret.first) cout << ":";
+          cout << mit->second;
+        }
+        cout << ")";
       }
-      cout << ")";
+      cout << "\n";
     }
-    cout << "\n";
 
     // Extend track candidates
     //if (fCandVec[ista].size()) ExtendTracks(ista);
@@ -984,6 +998,7 @@ Double_t BmnStsVectorFinder::FilterHit(candvec &cand, CbmStsTrack &track)
   }
   return chi2ndf;
   */
+ return 0.0;
 }
 //*/
 // -------------------------------------------------------------------------
@@ -1047,6 +1062,12 @@ void BmnStsVectorFinder::FinishEvent()
   /*
   FairRootManager* ioman = FairRootManager::Instance();
   */
+}
+
+// -------------------------------------------------------------------------
+
+void BmnStsVectorFinder::Finish() {
+  printf("Work time of BmnStsVectorFinder: %4.2f sec.\n", workTime);
 }
 
 //__________________________________________________________________________
@@ -1165,10 +1186,11 @@ void BmnStsVectorFinder::FitTracks()
       kftr.Fit(kTRUE); // downstream
       kftr.Fit(kFALSE); // upstream
       */
+     if (fVerbose > 0) {
       cout << " aaaaaaa " << endl;
       //track.GetParamFirst()->Print();
       cout << track.GetChi2() << " " << nhits << " " << endl;
-
+     }
       //AZ-111221 if (track.GetChi2() / track.GetNDF() > gkChi2Cut) {
       if (track.GetChi2() / track.GetNDF() > gkChi2Cut && track.GetNStsHits() > 3) {
 	/*
@@ -1251,7 +1273,7 @@ void BmnStsVectorFinder::FitTracks()
 	  int ndf = (track.GetFlag() == 0) ? track.GetNDF() : 1;
 	  //cout << " bbbbbb " << endl;
 	  //track.GetParamFirst()->Print();
-	  cout << " bbbbbb " << track.GetChi2() << " " << hits.GetSize() << " " << track.GetChi2()/ndf << endl;
+	  if (fVerbose > 0) cout << " bbbbbb " << track.GetChi2() << " " << hits.GetSize() << " " << track.GetChi2()/ndf << endl;
 	  if (track.GetChi2() / track.GetNDF() > gkChi2Cut) iok = 0;
 	} else iok = 0;
 	
@@ -1293,10 +1315,11 @@ void BmnStsVectorFinder::FitTracks()
 	fTracks.insert(pair<Double_t,CbmStsTrack>(-qual,track));
 	pair<multimap<Int_t,Int_t>::iterator,multimap<Int_t,Int_t>::iterator> ret;
 	nhits = hits.GetSize();
+  if (fVerbose > 0) {
 	cout << " Good track: " << endl;
 	//track.GetParamFirst()->Print();
 	cout << track.GetChi2() << " " << nhits << " " << track.GetParamFirst()->GetZ() << endl;
-
+  
 	for (Int_t j = nhits-1; j >= 0; --j) {
 	  ret = fHit2id.equal_range(hits[j]);
 	  cout << " (";
@@ -1308,6 +1331,7 @@ void BmnStsVectorFinder::FitTracks()
 	  cout << ")";
 	}
 	cout << "\n";
+  }
       }
 
     } // for (Int_t itra = 0; 

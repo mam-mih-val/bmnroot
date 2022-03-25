@@ -26,6 +26,10 @@ public:
     virtual void Exec(Option_t* opt);
     virtual void Finish();
 
+    void SetInnerTracksBranchName(TString name) {
+        fInnerTrackBranchName = name;
+    }
+
 private:
 
     void ReadAndCreateDataBranches();
@@ -62,6 +66,8 @@ private:
     // GLOBAL
     TClonesArray* fGlobalTracks;
     TClonesArray* fGlobalTrackMatches;
+
+    TString fInnerTrackBranchName;
 
     BmnMatchRecoToMC(const BmnMatchRecoToMC&) = delete;
     BmnMatchRecoToMC& operator=(const BmnMatchRecoToMC&) = delete;

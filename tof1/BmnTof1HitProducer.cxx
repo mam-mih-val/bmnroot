@@ -110,10 +110,10 @@ InitStatus BmnTof1HitProducer::Init() {
 
         //looking for T0 branch
         TString NameT0Branch;
-        if (fVerbose) cout << "BmnTof1HitProducer::Init(): looking for branch " << NameT0Branch << "for start" << endl;
         if (fPeriod == 6) NameT0Branch = "T0";
         if (fPeriod == 7) NameT0Branch = "BC2";
         if (fPeriod == 8) NameT0Branch = "T0_1_A"; // temporary fix
+        if (fVerbose) cout << "BmnTof1HitProducer::Init(): looking for branch " << NameT0Branch << " for start" << endl;
         aExpDigitsT0 = (TClonesArray*) FairRootManager::Instance()->GetObject(NameT0Branch.Data());
         if (!aExpDigitsT0) {
             cout << "BmnTof1HitProducer::Init(): branch T0 not found! Task will be deactivated" << endl;

@@ -65,6 +65,7 @@ private:
     Double_t fDoubleTemp, fMaxDelta;
     Int_t fHit_Per_Ev, fNEvents, fStrip;
     Bool_t fFlagHit[fNStr], fKilled[fNStr];
+    Int_t fKillSide;
     Double_t fCorrLR[fNStr], fCorrTimeShift[fNStr];
     Double_t fDigitL[fNStr], fDigitR[fNStr], fHit[fNStr];
     Double_t fCommonTimeShift;
@@ -103,6 +104,7 @@ public:
     void Clear();
     Bool_t SetDigit(BmnTof1Digit *TofDigit);
     void KillStrip(Int_t NumberOfStrip);
+    void KillSide(Int_t NumberOfSide);
     Int_t FindHits(BmnTrigDigit *T0);
     Int_t FindHits(BmnTrigDigit *T0, TClonesArray *TofHit);
     TList* GetList(Int_t n);

@@ -14,6 +14,7 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t fill_hist = 0, Int_t Verbos
     memset(fKilled, 0, sizeof (fKilled));
     memset(fCorrLR, 0, sizeof (fCorrLR));
     memset(fCorrTimeShift, 0, sizeof (fCorrTimeShift));
+    fKillSide = -1;
     fNEvents = 0;
     //KillStrip(0);
     //KillStrip(47);
@@ -143,17 +144,27 @@ Bool_t BmnTOF1Detector::SetDigit(BmnTof1Digit * TofDigit) {
     fStrip = TofDigit->GetStrip();
     if (fStrip < 0 || fStrip > fNStr) return kFALSE;
     if (fVerbose > 3) cout << " Plane = " << TofDigit->GetPlane() << "; Strip " << TofDigit->GetStrip() << "; Side " << TofDigit->GetSide() << "; Time " << TofDigit->GetTime() << "; Amp " << TofDigit->GetAmplitude() << endl;
-    if (TofDigit->GetSide() == 0 && fFlagHit[fStrip] == kFALSE && fKilled[fStrip] == kFALSE) {
+    if (TofDigit->GetSide() == 0 && fFlagHit[fStrip] == kFALSE && fKilled[fStrip] == kFALSE && fKillSide != 0) {
         fTimeLtemp[fStrip] = TofDigit->GetTime() - 2. * fCorrLR[fStrip];
         if (fVerbose > 3) cout << "Setting Shift: strip # " << fStrip << " shift val " << fCorrLR[fStrip] << "; shifted timeL " << fTimeLtemp[fStrip] << "\n";
         fWidthLtemp[fStrip] = TofDigit->GetAmplitude();
         fDigitL[fStrip]++;
+        if (fKillSide == 1) {
+            fTimeRtemp[fStrip] = fTimeLtemp[fStrip];
+            fWidthRtemp[fStrip] = fWidthLtemp[fStrip];
+            fDigitR[fStrip]++;
+        }
     }
-    if (TofDigit->GetSide() == 1 && fFlagHit[fStrip] == kFALSE && fKilled[fStrip] == kFALSE) {
+    if (TofDigit->GetSide() == 1 && fFlagHit[fStrip] == kFALSE && fKilled[fStrip] == kFALSE && fKillSide != 1) {
         fTimeRtemp[fStrip] = TofDigit->GetTime();
         if (fVerbose > 3) cout << "Setting Shift: strip # " << fStrip << " shift val " << fCorrLR[fStrip] << "; shifted timeR " << fTimeRtemp[fStrip] << "\n";
         fWidthRtemp[fStrip] = TofDigit->GetAmplitude();
         fDigitR[fStrip]++;
+        if (fKillSide == 0) {
+            fTimeLtemp[fStrip] = fTimeRtemp[fStrip];
+            fWidthLtemp[fStrip] = fWidthRtemp[fStrip];
+            fDigitL[fStrip]++;
+        }
     }
     if (
             fTimeRtemp[fStrip] != 0 && fTimeLtemp[fStrip] != 0
@@ -180,6 +191,12 @@ Bool_t BmnTOF1Detector::SetDigit(BmnTof1Digit * TofDigit) {
 
 void BmnTOF1Detector::KillStrip(Int_t NumberOfStrip) {
     fKilled[NumberOfStrip] = kTRUE;
+}
+
+//----------------------------------------------------------------------------------------
+
+void BmnTOF1Detector::KillSide(Int_t NumberOfSide) {
+    fKillSide = NumberOfSide;
 }
 
 //----------------------------------------------------------------------------------------

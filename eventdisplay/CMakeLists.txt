@@ -46,6 +46,7 @@ if (BMNROOT)
     ${CMAKE_SOURCE_DIR}/dch
     ${CMAKE_SOURCE_DIR}/zdc
     ${CMAKE_SOURCE_DIR}/services
+    ${CMAKE_SOURCE_DIR}/eventdisplay/bmn
   )
   Set(SRCS
     ${SRCS}
@@ -68,6 +69,7 @@ if (MPDROOT)
     ${CMAKE_SOURCE_DIR}/lhetrack
     ${CMAKE_SOURCE_DIR}/emc
     ${CMAKE_SOURCE_DIR}/zdc
+    ${CMAKE_SOURCE_DIR}/eventdisplay/mpd
   )
   Set(SRCS
     ${SRCS}

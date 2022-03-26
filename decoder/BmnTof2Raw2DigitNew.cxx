@@ -99,15 +99,25 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, I
 
     int RUN = 0;
     const char *fname = RunFile.Data();
-    sscanf(&fname[strlen(fname) - 13], "%d", &RUN);
-//    printf("Run number string is %s\n", &fname[strlen(fname) - 13]);
-    if (RUN <= 0)
+    if (strlen(fname) > 0)
     {
-	printf("Run file: %s - can't extract run number!\n", RunFile.Data());
-	return;
+	int nitem = sscanf(&fname[strlen(fname) - 13], "%d", &RUN);
+//        printf("Run number string is %s\n", &fname[strlen(fname) - 13]);
+	if (RUN <= 0 || nitem <= 0)
+	{
+	    nitem = sscanf(&fname[strlen(fname) - 12], "%d", &RUN);
+	    if (RUN <= 0 || nitem <= 0)
+	    {
+		printf("Run file: \"%s\" - can't extract run number!\n", RunFile.Data());
+		return;
+	    }
+	}
+	fRUN = RUN;
     }
-    fRUN = RUN;
-
+    else
+    {
+	fRUN = 0;
+    }
     ifstream in;
     in.open((path + mappingFile).Data());
     if (!in.is_open())
@@ -128,13 +138,19 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, I
     else if (SlewingRun < 0)
     {
 	fSlewRun = SlewingRun;
-	printf("Loading TOF700 Map from file: %s , reference slewing run %d\n",mappingFile.Data(), fRUN);
+	if (fRUN > 0)
+	    printf("Loading TOF700 Map from file: %s , reference slewing run %d\n",mappingFile.Data(), fRUN);
+	else
+	    printf("Loading TOF700 Map from file: %s , without slewing corrections!\n",mappingFile.Data());
 //	printf("Loading TOF700 Map from file: %s\n",mappingFile.Data());
 //	printf("Loading TOF700 Map from file: %s, without slewing corrections!\n",mappingFile.Data());
     }
     else
     {
-	printf("Loading TOF700 Map from file: %s , reference slewing run %d\n",mappingFile.Data(), fRUN);
+	if (fRUN > 0)
+	    printf("Loading TOF700 Map from file: %s , reference slewing run %d\n",mappingFile.Data(), fRUN);
+	else
+	    printf("Loading TOF700 Map from file: %s , without slewing corrections!\n",mappingFile.Data());
 //	printf("Loading TOF700 Map from file: %s\n",mappingFile.Data());
     }
 
@@ -399,7 +415,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, I
     DNL_read();
     
     Wcut = 2800;
-    Wmax = 7800;
+    Wmax = 9000;
     WT0min = 720;
     WT0max = 820;
 
@@ -1316,12 +1332,17 @@ void BmnTof2Raw2DigitNew::readSlewing(Bool_t update)
     fSlewing = 0;
     if (fSlewRun < 0)
     {
+	if (fRUN > 0) printf("Error open slewing file %s, work without slewing corrections!\n", filnr);
+	return;
+    }
+    else if (fSlewRun > 0)
+    {
 	printf("Error open slewing file %s, work without slewing corrections!\n", filnr);
+//	LOG(ERROR)<<"Error open slewing file " << filnr << " - exit!";
 	return;
     }
     else
     {
-	LOG(ERROR)<<"Error open slewing file " << filnr << " - exit!";
 	return;
     }
   }

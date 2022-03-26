@@ -17,8 +17,8 @@ doInvert = 0       # invert signal
 [FITPARAMETERS]
 # fit parameters for Prony fit
 isfit = 1          # apply fit
-harmonic = 0.30
-harmonic = 0.55
+harmonic = 0.65
+harmonic = 0.77
 
 [CALIBRATION]
 # cosmic calibration of channel. To be multiplied by signal

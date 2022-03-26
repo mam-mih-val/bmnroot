@@ -198,6 +198,13 @@ void BmnFHCalRaw2Digit::ParseCalibration(TString calibrationFile)
   }
 }
 
+std::pair<float,float> BmnFHCalRaw2Digit::GetCalibPairFromAddress(unsigned int address)
+{
+  auto mod_id = BmnFHCalAddress::GetModuleId(address);
+  auto sec_id = BmnFHCalAddress::GetSectionId(address);
+  return fCalibVect.at(GetFlatIndex(mod_id, sec_id));
+}
+
 int BmnFHCalRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int board_serial, unsigned int channel)
 {
   auto it = find(fSerials.begin(), fSerials.end(), board_serial);
@@ -232,7 +239,7 @@ void BmnFHCalRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *FHCaldigit)
       continue;
     }
     
-    std::vector<float> wfm(digit->GetUShortValue(), digit->GetUShortValue() + digit->GetNSamples());
+    std::vector<float> wfm((short*) digit->GetUShortValue(), (short*) digit->GetUShortValue()+digit->GetNSamples());
     BmnFHCalDigi ThisDigi;
     ThisDigi.reset();
     unsigned int flat_channel = (unsigned int)GetFlatChannelFromAdcChannel(digit->GetSerial(), digit->GetChannel());

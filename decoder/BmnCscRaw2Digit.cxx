@@ -70,7 +70,11 @@ BmnCscRaw2Digit::~BmnCscRaw2Digit() {
     }
     delete[] fNoisyChannels;
     delete[] fSigProf;
-    for (auto it : fMap) delete it;
+    //    for (auto it : fMap) delete it;
+    for (auto &it : fOuterMap)
+        for (auto &inner : it.second)
+            delete inner.second;
+    if (fCscStationSetDer) delete fCscStationSetDer;
 }
 
 BmnStatus BmnCscRaw2Digit::ReadMapFile() {
@@ -103,7 +107,7 @@ BmnStatus BmnCscRaw2Digit::ReadMapFile() {
         record->channel_low = ch_lo / GetNSamples();
         record->channel_high = ch_hi / GetNSamples();
         record->station = station;
-        fMap.push_back(record);
+        //        fMap.push_back(record);
         auto it = fOuterMap.find(ser);
         if (it == fOuterMap.end()) { // create inner channel map for the serial 
             InChanMapCSC inner;
@@ -112,17 +116,22 @@ BmnStatus BmnCscRaw2Digit::ReadMapFile() {
             fOuterMap.insert(make_pair(ser, move(inner)));
         } else { // add range to the existing inner channel map
             InChanMapCSC &inner = it->second;
-            auto innerIt = inner.find(record->channel_low);
-            if (innerIt == inner.end()) {
-                inner.insert(make_pair(record->channel_low - 1, nullptr));
+            auto innerItHi = inner.find(record->channel_high);
+            auto innerItLo = inner.find(record->channel_low - 1);
+            if (innerItHi == inner.end()) {
                 inner.insert(make_pair(record->channel_high, record));
             } else {
-                if (innerIt->second == nullptr) {
-                    innerIt->second = record;
+                if (innerItHi->second == nullptr) {
+                    inner.erase(innerItHi);
+                    inner.insert(make_pair(record->channel_high, record));
                 } else {
-                    //                    fprintf(stderr, "Wrong CSC map!\n");
-                    //                    return kBMNERROR;
+                    delete record;
+                    // fprintf(stderr, "Wrong %s map! Overlapping intervals for %08X!\n", fDetName.Data(), ser);
+                    // return kBMNERROR;
                 }
+            }
+            if (innerItLo == inner.end()) {
+                inner.insert(make_pair(record->channel_low - 1, nullptr));
             }
         }
     }
@@ -136,7 +145,10 @@ BmnStatus BmnCscRaw2Digit::ReadMapLocalFile() {
 
     for (Short_t iMod = 0; iMod < modules; ++iMod) {
         for (Short_t iLay = 0; iLay < layers; ++iLay) {
-            TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + TString("CSC_m") + (Long_t) iMod + TString("l") + (Long_t) iLay + TString(".txt");
+            TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") +
+                    TString("CSC_m") + iMod +
+                    TString("l") + (((iMod == 1) && (fPeriod < 8)) ? (iLay + 2) % 4 : iLay) +
+                    TString(".txt");
             ifstream inFile(name.Data());
             if (!inFile.is_open()) {
                 printf(ANSI_COLOR_RED "\n[ERROR]" ANSI_COLOR_RESET);
@@ -174,13 +186,17 @@ BmnStatus BmnCscRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * csc) {
     timer.Stop();
     rtime = timer.RealTime();
     ctime = timer.CpuTime();
-//    printf("\nReal time %f s, CPU time %f s  PrecalcEventMods\n", rtime, ctime);
+    //    printf("\nReal time %f s, CPU time %f s  PrecalcEventMods\n", rtime, ctime);
     timer.Start();
+#ifdef BUILD_DEBUG
     CalcEventMods();
+#else
+    CalcEventMods_simd();
+#endif
     timer.Stop();
     rtime = timer.RealTime();
     ctime = timer.CpuTime();
-//    printf("Real time %f s, CPU time %f s  CalcEventMods\n", rtime, ctime);
+    //    printf("Real time %f s, CPU time %f s  CalcEventMods\n", rtime, ctime);
     timer.Start();
     //    for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
     //        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
@@ -190,7 +206,7 @@ BmnStatus BmnCscRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * csc) {
     timer.Stop();
     rtime = timer.RealTime();
     ctime = timer.CpuTime();
-//    printf("Real time %f s, CPU time %f s  ProcessAdc\n", rtime, ctime);
+    //    printf("Real time %f s, CPU time %f s  ProcessAdc\n", rtime, ctime);
 
     return kBMNSUCCESS;
 }
@@ -201,7 +217,11 @@ BmnStatus BmnCscRaw2Digit::FillProfiles(TClonesArray *adc) {
     //        ProcessDigit(adcDig, FindMapEntry(adcDig), NULL, kTRUE);
     //    }
     (this->*PrecalcEventModsImp)(adc);
+#ifdef BUILD_DEBUG
     CalcEventMods();
+#else
+    CalcEventMods_simd();
+#endif
     //    for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
     //        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
     //        ProcessDigit(adcDig, FindMapEntry(adcDig), NULL, kTRUE);
@@ -211,15 +231,15 @@ BmnStatus BmnCscRaw2Digit::FillProfiles(TClonesArray *adc) {
     return kBMNSUCCESS;
 }
 
-BmnCscMapping* BmnCscRaw2Digit::FindMapEntry(BmnADCDigit* adcDig) {
-    for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
-        BmnCscMapping* tM = fMap[iMap];
-        UInt_t ch = adcDig->GetChannel();
-        if (adcDig->GetSerial() == tM->serial && (ch >= tM->channel_low && ch <= tM->channel_high))
-            return tM;
-    }
-    return NULL;
-}
+//BmnCscMapping* BmnCscRaw2Digit::FindMapEntry(BmnADCDigit* adcDig) {
+//    for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
+//        BmnCscMapping* tM = fMap[iMap];
+//        UInt_t ch = adcDig->GetChannel();
+//        if (adcDig->GetSerial() == tM->serial && (ch >= tM->channel_low && ch <= tM->channel_high))
+//            return tM;
+//    }
+//    return NULL;
+//}
 
 BmnStatus BmnCscRaw2Digit::FillNoisyChannels() {
     const Int_t kNStripsInBunch = GetNSamples();

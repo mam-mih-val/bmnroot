@@ -47,11 +47,15 @@ public:
     BmnStatus RecalculatePedestalsAugmented();
     void PrecalcEventModsOld(TClonesArray *adc);
     void PrecalcEventMods(TClonesArray *adc);
+    void PrecalcEventMods_simd(TClonesArray *adc);
     void (BmnAdcProcessor::*PrecalcEventModsImp)(TClonesArray *adc);
     void CalcEventMods();
+    void CalcEventMods_simd();
     //    BmnStatus FillProfiles(TClonesArray *adc);
     BmnStatus FillNoisyChannels();
     Double_t CalcCMS(Double_t* samples, Int_t size);
+    Double_t CalcCMS1(Double_t* samples, Int_t size);
+    BmnStatus SaveFilterInfo();
 
     /**
      * Calculate signal CM - pedestal CM
@@ -86,11 +90,11 @@ public:
         return fNSamples;
     }
 
-    Double_t GetPedestal(Int_t ser, Int_t ch, Int_t smpl) {
+    Float_t GetPedestal(Int_t ser, Int_t ch, Int_t smpl) {
         return fPedVal[ser][ch][smpl];
     }
 
-    Double_t*** GetPedestals() {
+    Float_t*** GetPedestals() {
         return fPedVal;
     }
 
@@ -168,14 +172,20 @@ protected:
 
     map<UInt_t, Int_t> fSerMap; ///< ADC serials map
 
-    Double_t*** fAdc;
+    //Double_t*** fAdc;
+    Float_t*** fAdc;
     Double_t*** fPedRms; // set of calculated pedestal errors
-    Double_t*** fPedVal; //set of calculated pedestals
+    //Double_t*** fPedVal; //set of calculated pedestals
+    Float_t*** fPedVal;
     Double_t*** fPedValTemp; //set of calculated pedestals
-    Double_t** fCMode; //set of calculated pedestal CMSs
-    Double_t** fCMode0; //set of calculated pedestal CMSs
-    Double_t** fSMode; //set of calculated signal CMSs
-    Double_t** fSMode0; //set of calculated signal CMSs
+    //Double_t** fCMode; //set of calculated pedestal CMSs
+    Float_t** fCMode;
+    //Double_t** fCMode0; //set of calculated pedestal CMSs
+    Float_t** fCMode0;
+   // Double_t** fSMode; //set of calculated signal CMSs
+    Float_t** fSMode;
+   // Double_t** fSMode0; //set of calculated signal CMSs
+    Float_t** fSMode0;
 
     vector< vector< TH1* > > hPedLine;
     vector< vector< TH1* > > hCMode;
@@ -187,8 +197,9 @@ protected:
     vector< TH1* > hCModeSi;
     vector< TH1* > hSModeSi;
     Bool_t*** fNoisyChipChannels; // set of noisy channel flags
-    
-    UInt_t** fNvals; // number of valid (under threshold) pedestals
+
+    Float_t** fNvals;
+    //UInt_t** fNvals; // number of valid (under threshold) pedestals
     UInt_t*** fNvalsCMod; // number of valid (under threshold) pedestals
     UInt_t*** fNvalsADC; // number of valid (under threshold) ADC signals
     Double_t*** fPedCMod;

@@ -13,6 +13,7 @@
 
 #include "BmnAcceptanceFunction.h"
 #include "BmnDchHit.h"
+#include "BmnDchTrack.h"
 #include "BmnEnums.h"
 #include "BmnGemStripHit.h"
 #include "BmnGemTrack.h"
@@ -78,7 +79,9 @@ fSilHits(nullptr),
 fTof400Hits(nullptr),
 fTof700Hits(nullptr),
 fCscHits(nullptr),
+fDchTracks(nullptr),
 fCscPoints(nullptr),
+fInnerTrackBranchName("StsTrack"),
 fPrimes(kFALSE),
 fNHitsCut(1000),
 fNStations(0),
@@ -116,10 +119,10 @@ void BmnTrackingQa::Exec(Option_t* opt) {
     if (fEventNo % 100 == 0) printf("Event: %d\n", fEventNo);
     fEventNo++;
     Int_t nHits = 0;
-    if (fInnerTrackerSetup[kGEM]) nHits += fGemHits->GetEntriesFast();
-    if (fInnerTrackerSetup[kSILICON]) nHits += fSilHits->GetEntriesFast();
-    if (fInnerTrackerSetup[kSSD]) nHits += fSsdHits->GetEntriesFast();
-    if (nHits > fNHitsCut || nHits == 0) return;
+    // if (fInnerTrackerSetup[kGEM]) nHits += fGemHits->GetEntriesFast();
+    // if (fInnerTrackerSetup[kSILICON]) nHits += fSilHits->GetEntriesFast();
+    // if (fInnerTrackerSetup[kSSD]) nHits += fSsdHits->GetEntriesFast();
+    // if (nHits > fNHitsCut || nHits == 0) return;
     // Increase event counter
     fHM->H1("hen_EventNo_TrackingQa")->Fill(0.5);
     ReadEventHeader();
@@ -161,6 +164,7 @@ void BmnTrackingQa::ReadDataBranches() {
     fTof700Hits = (TClonesArray*)ioman->GetObject("BmnTof700Hit");
     fCscHits = (TClonesArray*)ioman->GetObject("BmnCSCHit");
     fCscPoints = (TClonesArray*)ioman->GetObject("CSCPoint");
+    fDchTracks = (TClonesArray*)ioman->GetObject("BmnDchTrack");
 
     if (fInnerTrackerSetup[kSILICON]) {
         fSilHits = (TClonesArray*)ioman->GetObject("BmnSiliconHit");
@@ -180,9 +184,10 @@ void BmnTrackingQa::ReadDataBranches() {
     }
 
     fStsHits = (TClonesArray*)ioman->GetObject("StsHit");
-    fStsTracks = (TClonesArray*)ioman->GetObject("StsTrack");
+    fStsTracks = (TClonesArray*)ioman->GetObject(fInnerTrackBranchName);
 
     fVertex = (TClonesArray*)ioman->GetObject("BmnVertex");
+    fVertexL1 = (CbmVertex*)ioman->GetObject("PrimaryVertex.");
 
     printf("\nBRANCHES READ!\n\n");
 }
@@ -227,6 +232,7 @@ void BmnTrackingQa::CreateTrackHitsHistogram(const string& detName) {
 }
 
 void BmnTrackingQa::CreateHistograms() {
+
     // Number of points distributions
     const Float_t minNofPoints = -0.5;
     const Float_t maxNofPoints = 14.5;
@@ -251,13 +257,28 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("momMean_1D", "P_{sim}/q, GeV/c", "#Delta P / P, #mu, %", fPRangeBins / 2, fPRangeMin, 10);
     CreateH1("momRes_Mean", "#Delta P / P, %", "Counter", 100, -10.0, 10.0);
 
+    CreateH2("PxRes_2D", "Px_{sim}/q, GeV/c", "#Delta Px / Px, %", "", 100, fPRangeMin, 1, 100, -10.0, 10.0);
+    CreateH1("PxRes_1D", "Px_{sim}/q, GeV/c", "#LT#Delta Px / Px#GT, %", fPRangeBins / 2, fPRangeMin, 1);
+    CreateH1("PxMean_1D", "Px_{sim}/q, GeV/c", "#Delta Px / Px, #mu, %", fPRangeBins / 2, fPRangeMin, 1);
+    CreateH1("PxRes_Mean", "#Delta Px / Px, %", "Counter", 100, -10.0, 10.0);
+
+    CreateH2("PyRes_2D", "Py_{sim}/q, GeV/c", "#Delta Py / Py, %", "", 100, fPRangeMin, 1, 100, -10.0, 10.0);
+    CreateH1("PyRes_1D", "Py_{sim}/q, GeV/c", "#LT#Delta Py / Py#GT, %", fPRangeBins / 2, fPRangeMin, 1);
+    CreateH1("PyMean_1D", "Py_{sim}/q, GeV/c", "#Delta Py / Py, #mu, %", fPRangeBins / 2, fPRangeMin, 1);
+    CreateH1("PyRes_Mean", "#Delta Py / Py, %", "Counter", 100, -10.0, 10.0);
+
+    CreateH2("PzRes_2D", "Pz_{sim}/q, GeV/c", "#Delta Pz / Pz, %", "", 100, fPRangeMin, 8, 100, -10.0, 10.0);
+    CreateH1("PzRes_1D", "Pz_{sim}/q, GeV/c", "#LT#Delta Pz / Pz#GT, %", fPRangeBins / 2, fPRangeMin, 8);
+    CreateH1("PzMean_1D", "Pz_{sim}/q, GeV/c", "#Delta Pz / Pz, #mu, %", fPRangeBins / 2, fPRangeMin, 8);
+    CreateH1("PzRes_Mean", "#Delta Pz / Pz, %", "Counter", 100, -10.0, 10.0);
+
     CreateH2("MomRes_vs_Theta", "#theta_{sim}", "#Delta P / P, %", "", fThetaRangeBins * 2, fThetaRangeMin, fThetaRangeMax, 100, -10, 10);
     CreateH1("MomRes_vs_Theta_1D", "#theta_{sim}", "#Delta P / P, #sigma, %", fThetaRangeBins / 2, fThetaRangeMin, fThetaRangeMax);
     CreateH1("MomMean_vs_Theta_1D", "#theta_{sim}", "#Delta P / P, #mu, %", fThetaRangeBins / 2, fThetaRangeMin, fThetaRangeMax);
 
-    CreateH2("MomRes_vs_Length", "Length, cm", "#Delta P / P, %", "", 400, 0, 200, 100, -10, 10);
-    CreateH1("MomRes_vs_Length_1D", "Length, cm", "#Delta P / P, #sigma, %", 50, 0, 200);
-    CreateH1("MomMean_vs_Length_1D", "Length, cm", "#Delta P / P, #mu, %", 50, 0, 200);
+    CreateH2("MomRes_vs_Length", "Length, cm", "#Delta P / P, %", "", 400, 0, 800, 100, -10, 10);
+    CreateH1("MomRes_vs_Length_1D", "Length, cm", "#Delta P / P, #sigma, %", 50, 0, 800);
+    CreateH1("MomMean_vs_Length_1D", "Length, cm", "#Delta P / P, #mu, %", 50, 0, 800);
 
     CreateH2("MomRes_vs_nHits", "N_{hits}", "#Delta P / P, %", "", 12, 0, 12, 100, -10, 10);
     CreateH1("MomRes_vs_nHits_1D", "N_{hits}", "#Delta P / P, #sigma, %", 12, 0, 12);
@@ -275,10 +296,25 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH2("Py_rec_Py_sim", "P^{y}_{sim}/q, GeV/c", "P^{y}/q_{rec}, GeV/c", "", 100, -fPtRangeMax, fPtRangeMax, 100, -fPtRangeMax, fPtRangeMax);
     CreateH2("Pz_rec_Pz_sim", "P^{z}_{sim}/q, GeV/c", "P^{z}/q_{rec}, GeV/c", "", 100, fPtRangeMin, 4, 100, fPtRangeMin, 4);
     CreateH2("Pt_rec_Pt_sim", "P^{t}_{sim}/q, GeV/c", "P^{t}/q_{rec}, GeV/c", "", 100, fPtRangeMin, 4, 100, fPtRangeMin, 4);
+
     CreateH2("Eta_rec_Eta_sim", "#eta_{sim}", "#eta_{rec}", "", 100, fEtaRangeMin, fEtaRangeMax, 100, fEtaRangeMin, fEtaRangeMax);
+    CreateH2("EtaRes_2D", "#eta_{sim}", "#Delta #eta / #eta, %", "", 100, 0, 4, 100, -5.0, 5.0);
+    CreateH1("EtaRes_1D", "#eta_{sim}", "#LT#Delta #eta / #eta#GT, %", fPRangeBins / 2, 0, 4);
+    CreateH1("EtaMean_1D", "#eta_{sim}", "#Delta #eta / #eta, #mu, %", fPRangeBins / 2, 0, 4);
+    CreateH1("EtaRes_Mean", "#Delta #eta / #eta, %", "Counter", 100, -5.0, 5.0);
 
     CreateH2("Tx_rec_Tx_sim", "T^{x}_{sim}", "T^{x}_{rec}", "", 100, -1.0, 1.0, 100, -1.0, 1.0);
+    CreateH2("TxRes_2D", "Tx_{sim}", "#Delta Tx / Tx, %", "", 100, -1, 1, 100, -10.0, 10.0);
+    CreateH1("TxRes_1D", "Tx_{sim}", "#LT#Delta Tx / Tx#GT, %", fPRangeBins / 2, -1, 1);
+    CreateH1("TxMean_1D", "Tx_{sim}", "#Delta Tx / Tx, #mu, %", fPRangeBins / 2, -1, 1);
+    CreateH1("TxRes_Mean", "#Delta Tx / Tx, %", "Counter", 100, -10.0, 10.0);
+
     CreateH2("Ty_rec_Ty_sim", "T^{y}_{sim}", "T^{y}_{rec}", "", 100, -1.0, 1.0, 100, -1.0, 1.0);
+    CreateH2("TyRes_2D", "Ty_{sim}", "#Delta Ty / Ty, %", "", 100, -1, 1, 100, -10.0, 10.0);
+    CreateH1("TyRes_1D", "Ty_{sim}", "#LT#Delta Ty / Ty#GT, %", fPRangeBins / 2, -1, 1);
+    CreateH1("TyMean_1D", "Ty_{sim}", "#Delta Ty / Ty, #mu, %", fPRangeBins / 2, -1, 1);
+    CreateH1("TyRes_Mean", "#Delta Ty / Ty, %", "Counter", 100, -10.0, 10.0);
+
     CreateH2("Nh_rec_Nh_sim", "Number of mc-points", "Number of reco-hits", "", nofBinsPoints, minNofPoints, maxNofPoints, nofBinsPoints, minNofPoints, maxNofPoints);
 
     CreateH2("Nh_sim_Eta_sim", "Number of mc-points", "#eta_{sim}", "", nofBinsPoints, minNofPoints, maxNofPoints, 100, fEtaRangeMin, fEtaRangeMax);
@@ -335,19 +371,19 @@ void BmnTrackingQa::CreateHistograms() {
 
     CreateH2("MomRes_vs_Chi2", "#chi^{2}", "#Delta P / P, %", "", 100, 0, 10, 100, -10, 10);
     CreateH2("Mom_vs_Chi2", "#chi^{2}", "P_{rec}/q, GeV/c", "", 100, 0, 10, 100, fPRangeMin, fPRangeMax);
-    CreateH2("Mom_vs_Length", "Length, cm", "P_{rec}/q, GeV/c", "", 400, 0, 200, 100, fPRangeMin, fPRangeMax);
+    CreateH2("Mom_vs_Length", "Length, cm", "P_{rec}/q, GeV/c", "", 400, 0, 800, 100, fPRangeMin, fPRangeMax);
     CreateH1("Chi2", "#chi^{2} / NDF", "Counter", 100, 0, 10);
-    CreateH1("Length", "length, cm", "Counter", 400, 0, 200);
+    CreateH1("Length", "length, cm", "Counter", 400, 0, 800);
 
-    CreateH1("VertResX", "#DeltaV_{x}, cm", "Counter", 100, -1.0, 1.0);
-    CreateH1("VertResY", "#DeltaV_{y}, cm", "Counter", 100, -1.0, 1.0);
-    CreateH1("VertResZ", "#DeltaV_{z}, cm", "Counter", 100, -10.0, 10.0);
+    CreateH1("VertResX", "#DeltaV_{x}, cm", "Counter", 100, -2.0, 2.0);
+    CreateH1("VertResY", "#DeltaV_{y}, cm", "Counter", 100, -2.0, 2.0);
+    CreateH1("VertResZ", "#DeltaV_{z}, cm", "Counter", 100, -2.0, 2.0);
     CreateH1("VertX", "V_{x}, cm", "Counter", 300, -1.0, 1.0);
-    CreateH1("VertY", "V_{y}, cm", "Counter", 300, -6.0, 0.0);
-    CreateH1("VertZ", "V_{z}, cm", "Counter", 300, -10.0, +10.0);
-    CreateH2("VertX_vs_Ntracks", "Number of tracks", "V_{x}, cm", "", 10, 0, 10, 300, -1.0, 1.0);
-    CreateH2("VertY_vs_Ntracks", "Number of tracks", "V_{y}, cm", "", 10, 0, 10, 300, -6.0, 0.0);
-    CreateH2("VertZ_vs_Ntracks", "Number of tracks", "V_{z}, cm", "", 10, 0, 10, 300, -10.0, +10.0);
+    CreateH1("VertY", "V_{y}, cm", "Counter", 300, -1.0, 1.0);
+    CreateH1("VertZ", "V_{z}, cm", "Counter", 300, -2.0, +2.0);
+    CreateH2("VertX_vs_Ntracks", "Number of tracks", "V_{x}, cm", "", 100, 0, 100, 300, -1.0, 1.0);
+    CreateH2("VertY_vs_Ntracks", "Number of tracks", "V_{y}, cm", "", 100, 0, 100, 300, -1.0, 1.0);
+    CreateH2("VertZ_vs_Ntracks", "Number of tracks", "V_{z}, cm", "", 100, 0, 100, 300, -2.0, +2.0);
 
     CreateH2("Eff_vs_EtaP", "#eta_{sim}", "P_{sim, GeV/c}", "", 100, fEtaRangeMin, fEtaRangeMax, 100, fPRangeMin, fPRangeMax);
     CreateH2("Clones_vs_EtaP", "#eta_{sim}", "P_{sim, GeV/c}", "", 100, fEtaRangeMin, fEtaRangeMax, 100, fPRangeMin, fPRangeMax);
@@ -397,10 +433,6 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Ty_l", "t_{y}", "", 100, -1.0, 1.0);
     CreateH1("Qp_l", "q/p, (GeV/c)^{-1}", "", 100, -20.0, 20.0);
 
-    CreateH1("Efficiency_vs_multiplicity", "N", "Efficiency, %", 100, 0.0, 100.0);
-    CreateH1("Well_vs_multiplicity", "N", "Efficiency, %", 100, 0.0, 100.0);
-    CreateH1("Efficiency_vs_multiplicity", "N", "Efficiency, %", 100, 0.0, 100.0);
-
     Int_t nMultBin = 100;
     CreateH1("Eff_vs_mult", "N", "Efficiency, %", nMultBin, 0, nMultBin);
     CreateH1("Split_vs_mult", "N", "Counter", nMultBin, 0, nMultBin);
@@ -432,18 +464,23 @@ void BmnTrackingQa::CreateHistograms() {
 
     CreateH2("banana_tof400", "P_{rec}/Q, GeV/c", "#beta_{rec}", "", 500, -4, 10, 500, 0.5, 1.1);
     CreateH2("banana_tof700", "P_{rec}/Q, GeV/c", "#beta_{rec}", "", 500, -4, 10, 500, 0.5, 1.1);
+    CreateH2("banana_tof400_good", "P_{rec}/Q, GeV/c", "#beta_{rec}", "", 500, -4, 10, 500, 0.5, 1.1);
+    CreateH2("banana_tof700_good", "P_{rec}/Q, GeV/c", "#beta_{rec}", "", 500, -4, 10, 500, 0.5, 1.1);
     CreateH1("x_residuals_tof400_good", "dX, cm", "count", 250, -5.0, 5.0);
     CreateH1("y_residuals_tof400_good", "dY, cm", "count", 250, -5.0, 5.0);
     CreateH1("x_residuals_tof400_bad", "dX, cm", "count", 250, -5.0, 5.0);
     CreateH1("y_residuals_tof400_bad", "dY, cm", "count", 250, -5.0, 5.0);
+    CreateH2("x_resi_vs_mom_tof400_good", "P/Q, GeV/c/Q", "dX, cm", "", 500, 0, 8, 500, -5.0, 5.0);
+    CreateH2("y_resi_vs_mom_tof400_good", "P/Q, GeV/c/Q", "dY, cm", "", 500, 0, 8, 500, -5.0, 5.0);
     CreateH1("x_residuals_tof700_good", "dX, cm", "count", 250, -5.0, 5.0);
     CreateH1("y_residuals_tof700_good", "dY, cm", "count", 250, -5.0, 5.0);
+    CreateH2("x_resi_vs_mom_tof700_good", "P/Q, GeV/c/Q", "dX, cm", "", 500, 0, 8, 500, -5.0, 5.0);
+    CreateH2("y_resi_vs_mom_tof700_good", "P/Q, GeV/c/Q", "dY, cm", "", 500, 0, 8, 500, -5.0, 5.0);
     CreateH1("x_residuals_tof700_bad", "dX, cm", "count", 250, -5.0, 5.0);
     CreateH1("y_residuals_tof700_bad", "dY, cm", "count", 250, -5.0, 5.0);
     CreateH2("Mass_correlation", "M_{tof400}/Q, GeV/c^{2}/Q", "M_{tof700}/Q, GeV/c^{2}/Q", "", 500, 0, 3, 500, 0, 3);
 
     //CSC
-    
     CreateH1("Eff_vs_P_csc", "P_{sim}/q, GeV/c", "Efficiency, %", fPRangeBins, 0.0, 8.0);
     CreateH1("Split_vs_P_csc", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
     CreateH1("SplitEff_vs_P_csc", "P_{sim}/q, GeV/c", "Splits, %", fPRangeBins, 0.0, 8.0);
@@ -455,8 +492,44 @@ void BmnTrackingQa::CreateHistograms() {
 
     CreateH1("x_residuals_csc_good", "dX, cm", "count", 250, -5.0, 5.0);
     CreateH1("y_residuals_csc_good", "dY, cm", "count", 250, -5.0, 5.0);
+    CreateH2("x_resi_vs_mom_csc_good", "P/Q, GeV/c/Q", "dX, cm", "", 500, 0, 8, 500, -5.0, 5.0);
+    CreateH2("y_resi_vs_mom_csc_good", "P/Q, GeV/c/Q", "dY, cm", "", 500, 0, 8, 500, -5.0, 5.0);
     CreateH1("x_residuals_csc_bad", "dX, cm", "count", 250, -5.0, 5.0);
     CreateH1("y_residuals_csc_bad", "dY, cm", "count", 250, -5.0, 5.0);
+
+    //DCH1
+    CreateH1("Eff_vs_P_dch1", "P_{sim}/q, GeV/c", "Efficiency, %", fPRangeBins, 0.0, 8.0);
+    CreateH1("Split_vs_P_dch1", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("SplitEff_vs_P_dch1", "P_{sim}/q, GeV/c", "Splits, %", fPRangeBins, 0.0, 8.0);
+    CreateH1("Sim_vs_P_dch1", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Rec_vs_P_dch1", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Ghost_vs_P_dch1", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Well_vs_P_dch1", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Fake_vs_P_dch1", "P_{sim}/q, GeV/c", "Ghosts, %", fPRangeBins, 0.0, 8.0);
+
+    CreateH1("x_residuals_dch1_good", "dX, cm", "count", 250, -5.0, 5.0);
+    CreateH1("y_residuals_dch1_good", "dY, cm", "count", 250, -5.0, 5.0);
+    CreateH2("x_resi_vs_mom_dch1_good", "P/Q, GeV/c/Q", "dX, cm", "", 500, 0, 8, 500, -5.0, 5.0);
+    CreateH2("y_resi_vs_mom_dch1_good", "P/Q, GeV/c/Q", "dY, cm", "", 500, 0, 8, 500, -5.0, 5.0);
+    CreateH1("x_residuals_dch1_bad", "dX, cm", "count", 250, -5.0, 5.0);
+    CreateH1("y_residuals_dch1_bad", "dY, cm", "count", 250, -5.0, 5.0);
+
+    //DCH2
+    CreateH1("Eff_vs_P_dch2", "P_{sim}/q, GeV/c", "Efficiency, %", fPRangeBins, 0.0, 8.0);
+    CreateH1("Split_vs_P_dch2", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("SplitEff_vs_P_dch2", "P_{sim}/q, GeV/c", "Splits, %", fPRangeBins, 0.0, 8.0);
+    CreateH1("Sim_vs_P_dch2", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Rec_vs_P_dch2", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Ghost_vs_P_dch2", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Well_vs_P_dch2", "P_{sim}/q, GeV/c", "Counter", fPRangeBins, 0.0, 8.0);
+    CreateH1("Fake_vs_P_dch2", "P_{sim}/q, GeV/c", "Ghosts, %", fPRangeBins, 0.0, 8.0);
+
+    CreateH1("x_residuals_dch2_good", "dX, cm", "count", 250, -5.0, 5.0);
+    CreateH1("y_residuals_dch2_good", "dY, cm", "count", 250, -5.0, 5.0);
+    CreateH2("x_resi_vs_mom_dch2_good", "P/Q, GeV/c/Q", "dX, cm", "", 500, 0, 8, 500, -5.0, 5.0);
+    CreateH2("y_resi_vs_mom_dch2_good", "P/Q, GeV/c/Q", "dY, cm", "", 500, 0, 8, 500, -5.0, 5.0);
+    CreateH1("x_residuals_dch2_bad", "dX, cm", "count", 250, -5.0, 5.0);
+    CreateH1("y_residuals_dch2_bad", "dY, cm", "count", 250, -5.0, 5.0);
 
     //hits residuals
     for (Int_t iSt = 0; iSt < 9; ++iSt) {
@@ -469,6 +542,7 @@ void BmnTrackingQa::CreateHistograms() {
 }
 
 void BmnTrackingQa::ProcessGlobal() {
+    
     vector<Int_t> refs;
     vector<Int_t> splits;
 
@@ -478,22 +552,37 @@ void BmnTrackingQa::ProcessGlobal() {
 
     BmnVertex* vrt = (fVertex == nullptr) ? nullptr : (BmnVertex*)fVertex->At(0);
 
+
     if (vrt != nullptr) {
-        fHM->H1("VertResX")->Fill(vrt->GetX() - 0.5);
-        fHM->H1("VertResY")->Fill(vrt->GetY() - (-4.6));
-        fHM->H1("VertResZ")->Fill(vrt->GetZ() - (-2.3));
-        fHM->H1("VertX")->Fill(vrt->GetX());
-        fHM->H1("VertY")->Fill(vrt->GetY());
-        fHM->H1("VertZ")->Fill(vrt->GetZ());
-        fHM->H1("VertX_vs_Ntracks")->Fill(fGlobalTracks->GetEntriesFast(), vrt->GetX());
-        fHM->H1("VertY_vs_Ntracks")->Fill(fGlobalTracks->GetEntriesFast(), vrt->GetY());
-        fHM->H1("VertZ_vs_Ntracks")->Fill(fGlobalTracks->GetEntriesFast(), vrt->GetZ());
+        if (vrt->GetNTracks() > 1) {
+            fHM->H1("VertResX")->Fill(vrt->GetX() - 0.0);
+            fHM->H1("VertResY")->Fill(vrt->GetY() - (0.0));
+            fHM->H1("VertResZ")->Fill(vrt->GetZ() - (0.0));
+            fHM->H1("VertX")->Fill(vrt->GetX());
+            fHM->H1("VertY")->Fill(vrt->GetY());
+            fHM->H1("VertZ")->Fill(vrt->GetZ());
+            fHM->H1("VertX_vs_Ntracks")->Fill(fGlobalTracks->GetEntriesFast(), vrt->GetX());
+            fHM->H1("VertY_vs_Ntracks")->Fill(fGlobalTracks->GetEntriesFast(), vrt->GetY());
+            fHM->H1("VertZ_vs_Ntracks")->Fill(fGlobalTracks->GetEntriesFast(), vrt->GetZ());
+        }
+    } else if (fVertexL1 != nullptr) {
+        if (fVertexL1->GetNTracks() > 1) {
+            fHM->H1("VertResX")->Fill(fVertexL1->GetX() - 0.0);
+            fHM->H1("VertResY")->Fill(fVertexL1->GetY() - (0.0));
+            fHM->H1("VertResZ")->Fill(fVertexL1->GetZ() - (0.0));
+            fHM->H1("VertX")->Fill(fVertexL1->GetX());
+            fHM->H1("VertY")->Fill(fVertexL1->GetY());
+            fHM->H1("VertZ")->Fill(fVertexL1->GetZ());
+            fHM->H1("VertX_vs_Ntracks")->Fill(fGlobalTracks->GetEntriesFast(), fVertexL1->GetX());
+            fHM->H1("VertY_vs_Ntracks")->Fill(fGlobalTracks->GetEntriesFast(), fVertexL1->GetY());
+            fHM->H1("VertZ_vs_Ntracks")->Fill(fGlobalTracks->GetEntriesFast(), fVertexL1->GetZ());
+        }
     }
 
     for (Int_t iTrack = 0; iTrack < fGlobalTracks->GetEntriesFast(); iTrack++) {
         BmnGlobalTrack* glTrack = (BmnGlobalTrack*)(fGlobalTracks->At(iTrack));
         if (!glTrack) continue;
-        if (glTrack->GetParamFirst()->GetQp() * fChargeCut < 0) continue;
+        //if (glTrack->GetParamFirst()->GetQp() * fChargeCut < 0) continue;
         nAllRecoTracks++;
         nAllRecoInEvent++;
         BmnTrackMatch* globTrackMatch = (BmnTrackMatch*)(fGlobalTrackMatches->At(iTrack));
@@ -583,37 +672,51 @@ void BmnTrackingQa::ProcessGlobal() {
         //TOF400 
         if (glTrack->GetTof1HitIndex() != -1) {
             fHM->H1("Rec_vs_P_tof400")->Fill(P_sim);
+            fHM->H2("banana_tof400")->Fill(glTrack->GetP(), glTrack->GetBeta(1));
             BmnHit* tofHit = (BmnHit*)fTof400Hits->At(glTrack->GetTof1HitIndex());
-            if (tofHit->GetLinksWithType(0x2).GetNLinks() != 0) {
-                Int_t tofMcId = tofHit->GetLinksWithType(0x2).GetLink(0).GetIndex();
-                if (globMCId != tofMcId) {
-                    fHM->H1("Ghost_vs_P_tof400")->Fill(P_sim);
-                    fHM->H1("x_residuals_tof400_bad")->Fill(tofHit->GetResX());
-                    fHM->H1("y_residuals_tof400_bad")->Fill(tofHit->GetResY());
-                } else {
-                    fHM->H1("Well_vs_P_tof400")->Fill(P_sim);
-                    fHM->H2("banana_tof400")->Fill(glTrack->GetP(), glTrack->GetBeta(1));
-                    fHM->H1("x_residuals_tof400_good")->Fill(tofHit->GetResX());
-                    fHM->H1("y_residuals_tof400_good")->Fill(tofHit->GetResY());
+            Bool_t found = kFALSE;
+            for (Int_t iLnk = 0; iLnk < tofHit->GetLinksWithType(0x2).GetNLinks(); ++iLnk) {
+                if (tofHit->GetLinksWithType(0x2).GetLink(iLnk).GetIndex() == globMCId) {
+                    found = kTRUE;
+                    break;
                 }
+            }
+            if (!found) {
+                fHM->H1("Ghost_vs_P_tof400")->Fill(P_sim);
+                fHM->H1("x_residuals_tof400_bad")->Fill(tofHit->GetResX());
+                fHM->H1("y_residuals_tof400_bad")->Fill(tofHit->GetResY());
+            } else {
+                fHM->H1("Well_vs_P_tof400")->Fill(P_sim);
+                fHM->H2("banana_tof400_good")->Fill(glTrack->GetP(), glTrack->GetBeta(1));
+                fHM->H1("x_residuals_tof400_good")->Fill(tofHit->GetResX());
+                fHM->H1("y_residuals_tof400_good")->Fill(tofHit->GetResY());
+                fHM->H2("x_resi_vs_mom_tof400_good")->Fill(P_sim, tofHit->GetResX());
+                fHM->H2("y_resi_vs_mom_tof400_good")->Fill(P_sim, tofHit->GetResY());
             }
         }
         //TOF700
         if (glTrack->GetTof2HitIndex() != -1) {
             fHM->H1("Rec_vs_P_tof700")->Fill(P_sim);
+            fHM->H2("banana_tof700")->Fill(glTrack->GetP(), glTrack->GetBeta(2));
             BmnHit* tofHit = (BmnHit*)fTof700Hits->At(glTrack->GetTof2HitIndex());
-            if (tofHit->GetLinksWithType(0x2).GetNLinks() != 0) {
-                Int_t tofMcId = tofHit->GetLinksWithType(0x2).GetLink(0).GetIndex();
-                if (globMCId != tofMcId) {
-                    fHM->H1("Ghost_vs_P_tof700")->Fill(P_sim);
-                    fHM->H1("x_residuals_tof700_bad")->Fill(tofHit->GetResX());
-                    fHM->H1("y_residuals_tof700_bad")->Fill(tofHit->GetResY());
-                } else {
-                    fHM->H1("Well_vs_P_tof700")->Fill(P_sim);
-                    fHM->H2("banana_tof700")->Fill(glTrack->GetP(), glTrack->GetBeta(2));
-                    fHM->H1("x_residuals_tof700_good")->Fill(tofHit->GetResX());
-                    fHM->H1("y_residuals_tof700_good")->Fill(tofHit->GetResY());
+            Bool_t found = kFALSE;
+            for (Int_t iLnk = 0; iLnk < tofHit->GetLinksWithType(0x2).GetNLinks(); ++iLnk) {
+                if (tofHit->GetLinksWithType(0x2).GetLink(iLnk).GetIndex() == globMCId) {
+                    found = kTRUE;
+                    break;
                 }
+            }
+            if (!found) {
+                fHM->H1("Ghost_vs_P_tof700")->Fill(P_sim);
+                fHM->H1("x_residuals_tof700_bad")->Fill(tofHit->GetResX());
+                fHM->H1("y_residuals_tof700_bad")->Fill(tofHit->GetResY());
+            } else {
+                fHM->H1("Well_vs_P_tof700")->Fill(P_sim);
+                fHM->H2("banana_tof700_good")->Fill(glTrack->GetP(), glTrack->GetBeta(2));
+                fHM->H1("x_residuals_tof700_good")->Fill(tofHit->GetResX());
+                fHM->H1("y_residuals_tof700_good")->Fill(tofHit->GetResY());
+                fHM->H2("x_resi_vs_mom_tof700_good")->Fill(P_sim, tofHit->GetResX());
+                fHM->H2("y_resi_vs_mom_tof700_good")->Fill(P_sim, tofHit->GetResY());
             }
         }
         if (glTrack->GetTof1HitIndex() != -1 && glTrack->GetTof2HitIndex() != -1) {
@@ -639,8 +742,45 @@ void BmnTrackingQa::ProcessGlobal() {
                     fHM->H1("Well_vs_P_csc")->Fill(P_sim);
                     fHM->H1("x_residuals_csc_good")->Fill(cscHit->GetResX());
                     fHM->H1("y_residuals_csc_good")->Fill(cscHit->GetResY());
+                    fHM->H2("x_resi_vs_mom_csc_good")->Fill(P_sim, cscHit->GetResX());
+                    fHM->H2("y_resi_vs_mom_csc_good")->Fill(P_sim, cscHit->GetResY());
                 }
             }
+        }
+
+        //DCH1
+        if (glTrack->GetDch1TrackIndex() != -1) {
+            fHM->H1("Rec_vs_P_dch1")->Fill(P_sim);
+            BmnDchTrack* dchTr = (BmnDchTrack*)fDchTracks->At(glTrack->GetDch1TrackIndex());
+            if (dchTr)
+                if (globMCId != dchTr->GetTrackId()) {
+                    fHM->H1("Ghost_vs_P_dch1")->Fill(P_sim);
+                    fHM->H1("x_residuals_dch1_bad")->Fill(0.0);
+                    fHM->H1("y_residuals_dch1_bad")->Fill(0.0);
+                } else {
+                    fHM->H1("Well_vs_P_dch1")->Fill(P_sim);
+                    fHM->H1("x_residuals_dch1_good")->Fill(0.0);
+                    fHM->H1("y_residuals_dch1_good")->Fill(0.0);
+                    fHM->H2("x_resi_vs_mom_dch1_good")->Fill(P_sim, 0.0);
+                    fHM->H2("y_resi_vs_mom_dch1_good")->Fill(P_sim, 0.0);
+                }
+        }
+        //DCH2
+        if (glTrack->GetDch2TrackIndex() != -1) {
+            fHM->H1("Rec_vs_P_dch2")->Fill(P_sim);
+            BmnDchTrack* dchTr = (BmnDchTrack*)fDchTracks->At(glTrack->GetDch2TrackIndex());
+            if (dchTr)
+                if (globMCId != dchTr->GetTrackId()) {
+                    fHM->H1("Ghost_vs_P_dch2")->Fill(P_sim);
+                    fHM->H1("x_residuals_dch2_bad")->Fill(0.0);
+                    fHM->H1("y_residuals_dch2_bad")->Fill(0.0);
+                } else {
+                    fHM->H1("Well_vs_P_dch2")->Fill(P_sim);
+                    fHM->H1("x_residuals_dch2_good")->Fill(0.0);
+                    fHM->H1("y_residuals_dch2_good")->Fill(0.0);
+                    fHM->H2("x_resi_vs_mom_dch2_good")->Fill(P_sim, 0.0);
+                    fHM->H2("y_resi_vs_mom_dch2_good")->Fill(P_sim, 0.0);
+                }
         }
 
         if (!isTrackOk) {
@@ -678,6 +818,9 @@ void BmnTrackingQa::ProcessGlobal() {
 
             Float_t chi2 = glTrack->GetChi2() / glTrack->GetNDF();
             fHM->H2("momRes_2D")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
+            fHM->H2("PxRes_2D")->Fill(Px_sim, (Px_sim - Px_rec) / Px_sim * 100.0);
+            fHM->H2("PyRes_2D")->Fill(Py_sim, (Py_sim - Py_rec) / Py_sim * 100.0);
+            fHM->H2("PzRes_2D")->Fill(Pz_sim, (Pz_sim - Pz_rec) / Pz_sim * 100.0);
             fHM->H2("MomRes_vs_Chi2")->Fill(chi2, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_Length")->Fill(glTrack->GetLength(), (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_nHits")->Fill(glTrack->GetNHits(), (P_sim - P_rec) / P_sim * 100.0);
@@ -689,10 +832,15 @@ void BmnTrackingQa::ProcessGlobal() {
 
             fHM->H2("P_rec_P_sim")->Fill(P_sim, P_rec);
             fHM->H2("Eta_rec_Eta_sim")->Fill(Eta_sim, Eta_rec);
+            fHM->H2("EtaRes_2D")->Fill(Eta_sim, (Eta_sim - Eta_rec) / Eta_sim * 100.0);
             fHM->H2("Px_rec_Px_sim")->Fill(Px_sim, Px_rec);
             fHM->H2("Py_rec_Py_sim")->Fill(Py_sim, Py_rec);
             fHM->H2("Pt_rec_Pt_sim")->Fill(Sqrt(Px_sim * Px_sim + Pz_sim * Pz_sim), Pz_rec * Sqrt(1 + Tx * Tx));
-            fHM->H2("Tx_rec_Tx_sim")->Fill(Px_sim / Pz_sim, Tx);
+            Float_t Tx_sim = Px_sim / Pz_sim;
+            Float_t Ty_sim = Py_sim / Pz_sim;
+            fHM->H2("Tx_rec_Tx_sim")->Fill(Tx_sim, Tx);
+            fHM->H2("TxRes_2D")->Fill(Tx_sim, (Tx_sim - Tx) / Tx_sim * 100.0);
+            fHM->H2("TyRes_2D")->Fill(Ty_sim, (Ty_sim - Ty) / Ty_sim * 100.0);
             fHM->H2("Ty_rec_Ty_sim")->Fill(Py_sim / Pz_sim, Ty);
             fHM->H2("Pz_rec_Pz_sim")->Fill(Pz_sim, Pz_rec);
             fHM->H2("EtaP_rec")->Fill(Eta_rec, P_rec);
@@ -793,7 +941,7 @@ void BmnTrackingQa::ProcessGlobal() {
         else if (mcTrack.GetNofPoints(kGEM) != 0)
             pnt = mcTrack.GetPoint(kGEM, 0);
 
-        if (pnt.GetQ() * fChargeCut < 0) continue;
+        //if (pnt.GetQ() * fChargeCut < 0) continue;
 
         nSplitInOneEvent++;
         nWellRecoInEvent--;
@@ -851,7 +999,7 @@ void BmnTrackingQa::ProcessGlobal() {
         else if (mcTrack.GetNofPoints(kGEM) != 0)
             pnt = mcTrack.GetPoint(kGEM, 0);
 
-        if (pnt.GetQ() * fChargeCut < 0) continue;
+        //if (pnt.GetQ() * fChargeCut < 0) continue;
 
         Float_t Px = pnt.GetPx();
         Float_t Py = pnt.GetPy();
@@ -883,6 +1031,16 @@ void BmnTrackingQa::ProcessGlobal() {
         if (mcTrack.GetNofPoints(kCSC) > 0) {
             fHM->H1("Sim_vs_P_csc")->Fill(P);
         }
+
+        // printf("mcTrack.GetNofPoints(kDCH) = %d\n", mcTrack.GetNofPoints(kDCH));
+        if (mcTrack.GetNofPoints(kDCH) == 16) {
+            fHM->H1("Sim_vs_P_dch1")->Fill(P);
+            fHM->H1("Sim_vs_P_dch2")->Fill(P);
+        }
+
+        // if (mcTrack.GetNofPoints(kDCH) > 0) {
+        //     fHM->H1("Sim_vs_P_dch2")->Fill(P);
+        // }
     }
 
     fHM->H1("Sim_vs_mult")->SetBinContent(nReconstructable, fHM->H1("Sim_vs_mult")->GetBinContent(nReconstructable) + nReconstructable);

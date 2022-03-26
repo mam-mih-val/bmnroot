@@ -12,7 +12,7 @@ enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM};
 // generatorName - generator name for the input file (enumeration above)
 // useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
 void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString outFile = "$VMCWORKDIR/macro/run8/bmnsim.root",
-    Int_t nStartEvent = 0, Int_t nEvents = 1, enumGenerators generatorName = BOX, Bool_t useRealEffects = kTRUE) {
+    Int_t nStartEvent = 0, Int_t nEvents = 10, enumGenerators generatorName = DCMSMM, Bool_t useRealEffects = kTRUE) {
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
@@ -40,10 +40,11 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
 
     // Smearing of beam interaction point, if needed, and primary vertex position
     // DO NOT do it in corresponding gen. sections to avoid incorrect summation!!!
-    primGen->SetBeam(0.0, 0.0, 1.6, 1.6);  // (beamX0, beamY0, beamSigmaX, beamSigmaY)
-    primGen->SetTarget(0.0875, 0.0875);    // (targetZ, targetDz)
+    primGen->SetBeam(0.0, 0.0, 0.3, 0.3);  // (beamX0, beamY0, beamSigmaX, beamSigmaY)
+    primGen->SetBeamAngle(0.0, 0.0, 0.0, 0.0);  // (beamAngleX0, beamAngleY0, beamAngleSigmaX, beamAngleSigmaY)
+    primGen->SetTarget(0.0, 0.175);    // (targetZ, targetDz)
     primGen->SmearVertexZ(kTRUE);
-    primGen->SmearVertexXY(kTRUE);
+    primGen->SmearGausVertexXY(kTRUE);
     gRandom->SetSeed(0);
 
     switch (generatorName)
@@ -74,7 +75,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     // ------- Ion Generator
     case ION:{
         // Start beam from a far point to check mom. reconstruction procedure (Z, A, q, mult, [GeV] px, py, pz, [cm] vx, vy, vz)
-        FairIonGenerator* fIongen = new FairIonGenerator(54, 131, 54, 1, 0., 0., -4.8, 0., 0., 0.); //Xe
+        FairIonGenerator* fIongen = new FairIonGenerator(54, 131, 54, 1, 0., 0., 4.8, 0., 0., 0.); //Xe
         primGen->AddGenerator(fIongen);
         break;
     }

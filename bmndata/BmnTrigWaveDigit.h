@@ -24,9 +24,9 @@ class BmnTrigWaveDigit : public TNamed {
 public:
     BmnTrigWaveDigit();
     BmnTrigWaveDigit(const BmnTrigWaveDigit&);
-    BmnTrigWaveDigit(Short_t iMod, Short_t *iValue, UInt_t nVals, Double_t trigTimestamp, Double_t adcTimestamp, Double_t time);
+    BmnTrigWaveDigit(UShort_t iMod, Short_t *iValue, UInt_t nVals, Double_t trigTimestamp, Double_t adcTimestamp, Double_t time);
 
-    Short_t GetMod() const {
+    UShort_t GetMod() const {
         return fMod;
     }
 
@@ -71,14 +71,14 @@ public:
 
     virtual ~BmnTrigWaveDigit();
 protected:
-    Short_t fMod;
+    UShort_t fMod;
     UInt_t fNsmpl;
     Short_t* fValueI; //[fNsmpl]
     Double_t fTrigTimestamp;
     Double_t fAdcTimestamp;
     Double_t fTime;
 
-    ClassDef(BmnTrigWaveDigit, 2);
+    ClassDef(BmnTrigWaveDigit, 3);
 };
 
 #endif /* BMNTRIGWAVEDIGIT_H */

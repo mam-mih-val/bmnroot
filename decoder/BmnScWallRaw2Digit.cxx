@@ -200,6 +200,12 @@ void BmnScWallRaw2Digit::ParseCalibration(TString calibrationFile)
 
 }
 
+std::pair<float,float> BmnScWallRaw2Digit::GetCalibPairFromAddress(unsigned int address)
+{
+  auto cell_id = BmnScWallAddress::GetCellId(address);
+  return fCalibVect.at(cell_id);
+}
+
 int BmnScWallRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int board_serial, unsigned int channel)
 {
   auto it = find(fSerials.begin(), fSerials.end(), board_serial);
@@ -229,7 +235,7 @@ void BmnScWallRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ScWalldigit
         LOG(DEBUG) << "BmnScWallRaw2Digit::fSerials " << std::hex << it << endl;
       continue;
     }
-    std::vector<float> wfm(digit->GetUShortValue(), digit->GetUShortValue() + digit->GetNSamples());
+    std::vector<float> wfm((short*) digit->GetUShortValue(), (short*) digit->GetUShortValue()+digit->GetNSamples());
     BmnScWallDigi ThisDigi;
     ThisDigi.reset();
     unsigned int flat_channel = (unsigned int)GetFlatChannelFromAdcChannel(digit->GetSerial(), digit->GetChannel());

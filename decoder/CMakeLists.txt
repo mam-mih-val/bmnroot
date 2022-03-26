@@ -9,6 +9,8 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndata/common
+ ${CMAKE_SOURCE_DIR}/cat
+ ${CMAKE_SOURCE_DIR}/cat/vectors
  ${CMAKE_SOURCE_DIR}/csc
  ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/gem
@@ -55,6 +57,17 @@ set(SRCS
  WfmProcessor.cxx
  PronyFitter.cxx
 )
+
+if (CMAKE_BUILD_TYPE STREQUAL Release)
+    ADD_DEFINITIONS(-DHAVE_SSE)
+    SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS
+            "-msse -O3")
+    Message(STATUS "Decoder will be compiled in -O3 SSE mode")
+else()
+    Message(STATUS "Decoder will be compiled in debug SSE mode")
+    SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS
+            "-msse  ")
+endif()
 
 Set(HEADERS)
 Set(LINKDEF DecoderLinkDef.h)

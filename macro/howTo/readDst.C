@@ -2,11 +2,9 @@
 #include <TChain.h>
 #include <TClonesArray.h>
 #include <TFile.h>
-
 using namespace std;
-// @(#)bmnroot/macro/howTo:$Id$
-// Author: Pavel Batyuk <pavel.batyuk@jinr.ru> 2017-07-18, edited by KG, updated 2020-06-23
 
+// @(#)bmnroot/macro/howTo:$Id$
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 // readDst.C                                                                  //
@@ -15,10 +13,10 @@ using namespace std;
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void readDst(TString fileName = "") {
+int readDst(TString fileName = "") {
     if (fileName == "") {
         cout << "File not specified!" << endl;
-        return;
+        return -1;
     }
 
     // open file with 'bmndata' tree
@@ -46,33 +44,83 @@ void readDst(TString fileName = "") {
     // assign TClonesArrays to tree branches
     TClonesArray* globTracks = nullptr;
     out->SetBranchAddress("BmnGlobalTrack", &globTracks);
+    if (globTracks == nullptr)
+    {
+        LOG(ERROR)<<"'BmnGlobalTrack' branch was not found, please, check the structure of the DST file";
+        return -2;
+    }
 
     TClonesArray* gemTrack = nullptr;
     out->SetBranchAddress("BmnGemTrack", &gemTrack);
+    if (gemTrack == nullptr)
+    {
+        LOG(ERROR)<<"'BmnGemTrack' branch was not found, please, check the structure of the DST file";
+        return -3;
+    }
 
     TClonesArray* gemHits = nullptr;
     out->SetBranchAddress("BmnGemStripHit", &gemHits);
+    if (gemHits == nullptr)
+    {
+        LOG(ERROR)<<"'BmnGemStripHit' branch was not found, please, check the structure of the DST file";
+        return -4;
+    }
 
     TClonesArray* silTrack = nullptr;
     out->SetBranchAddress("BmnSiliconTrack", &silTrack);
+    if (silTrack == nullptr)
+    {
+        LOG(ERROR)<<"'BmnSiliconTrack' branch was not found, please, check the structure of the DST file";
+        return -5;
+    }
 
     TClonesArray* silHits = nullptr;
     out->SetBranchAddress("BmnSiliconHit", &silHits);
+    if (silHits == nullptr)
+    {
+        LOG(ERROR)<<"'BmnSiliconHit' branch was not found, please, check the structure of the DST file";
+        return -6;
+    }
 
     TClonesArray* tof400Hits = nullptr;
     out->SetBranchAddress("BmnTof400Hit", &tof400Hits);
+    if (tof400Hits == nullptr)
+    {
+        LOG(ERROR)<<"'BmnTof400Hit' branch was not found, please, check the structure of the DST file";
+        return -7;
+    }
 
     TClonesArray* tof700Hits = nullptr;
     out->SetBranchAddress("BmnTof700Hit", &tof700Hits);
+    if (tof700Hits == nullptr)
+    {
+        LOG(ERROR)<<"'BmnTof700Hit' branch was not found, please, check the structure of the DST file";
+        return -8;
+    }
 
     TClonesArray* cscHits = nullptr;
     out->SetBranchAddress("BmnCSCHit", &cscHits);
+    if (cscHits == nullptr)
+    {
+        LOG(ERROR)<<"'BmnCSCHit' branch was not found, please, check the structure of the DST file";
+        return -9;
+    }
 
     TClonesArray* dchTracks = nullptr;
     out->SetBranchAddress("BmnDchTrack", &dchTracks);
+    if (dchTracks == nullptr)
+    {
+        LOG(ERROR)<<"'BmnDchTrack' branch was not found, please, check the structure of the DST file";
+        return -10;
+    }
 
     TClonesArray* vertices = nullptr;
     out->SetBranchAddress("BmnVertex", &vertices);
+    if (vertices == nullptr)
+    {
+        LOG(ERROR)<<"'BmnVertex' branch was not found, please, check the structure of the DST file";
+        return -11;
+    }
 
     // event loop
     for (Int_t iEv = 0; iEv < out->GetEntries(); iEv++) {
@@ -101,27 +149,30 @@ void readDst(TString fileName = "") {
             BmnTrack* gemTr = nullptr;
             BmnTrack* silTr = nullptr;
 
-            if (track->GetGemTrackIndex() != -1)
+            // GEM tracks ...
+            if (track->GetGemTrackIndex() != -1) {
                 gemTr = (BmnTrack*) gemTrack->UncheckedAt(track->GetGemTrackIndex());
 
-            if (track->GetSilTrackIndex() != -1)
-                silTr = (BmnTrack*) silTrack->UncheckedAt(track->GetSilTrackIndex());
-
-            // Hits on GEM track ...
-            if (track->GetGemTrackIndex() != -1)
-                for (Int_t iHit = 0; iHit < gemTr->GetNHits(); iHit++) {
+                // Hits on GEM track ...
+                for (Int_t iHit = 0; iHit < gemTr->GetNHits(); iHit++)
+                {
                     BmnGemStripHit* hit = (BmnGemStripHit*) gemHits->UncheckedAt(gemTr->GetHitIndex(iHit));
 
                     // See $VMCWORKDIR/bmndata/BmnGemStripHit.h to get more ...
                 }
+            }
 
-            // Hits on SILICON track
-            if (track->GetSilTrackIndex() != -1)
+            // Silicon tracks ...
+            if (track->GetSilTrackIndex() != -1) {
+                silTr = (BmnTrack*) silTrack->UncheckedAt(track->GetSilTrackIndex());
+
+                // Hits on SILICON track
                 for (Int_t iHit = 0; iHit < silTr->GetNHits(); iHit++) {
                     BmnSiliconHit* hit = (BmnSiliconHit*) silHits->UncheckedAt(silTr->GetHitIndex(iHit));
 
                     // See $VMCWORKDIR/bmndata/BmnSiliconHit.h to get more ...
                 }
+            }
 
             // TOF400 matched hit ...
             if (track->GetTof1HitIndex() != -1) {
@@ -137,12 +188,13 @@ void readDst(TString fileName = "") {
                 // See $VMCWORKDIR/bmndata/BmnTofHit.h to get more ...               
             }
 
-            // CSC matched hit ...
-            if (track->GetCscHitIndex() != -1) {
-                BmnCSCHit* hit = (BmnCSCHit*) cscHits->UncheckedAt(track->GetCscHitIndex());
+            // CSC matched hits ...
+            for (Int_t indHit : track->GetVectorCscHitIndices())
+                if (track->GetCscHitIndex(indHit) != -1) {
+                    BmnCSCHit* hit = (BmnCSCHit*) cscHits->UncheckedAt(track->GetCscHitIndex(indHit));
 
-                // See $VMCWORKDIR/bmndata/BmnCSCHit.h to get more ...              
-            }
+                    // See $VMCWORKDIR/bmndata/BmnCSCHit.h to get more ...
+                }
 
             // DCH matched track
             if (track->GetDchTrackIndex() != -1) {
@@ -154,4 +206,6 @@ void readDst(TString fileName = "") {
             }
         }// for (Int_t iTrack = 0; iTrack < globTracks->GetEntriesFast(); iTrack++)
     }// for (Int_t iEv = 0; iEv < out->GetEntries(); iEv++)
+
+    return 0;
 }

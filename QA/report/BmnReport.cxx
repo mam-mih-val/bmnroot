@@ -8,6 +8,7 @@
 #include "BmnHtmlReportElement.h"
 #include "TCanvas.h"
 #include <fstream>
+#include <TError.h>
 
 BmnReport::BmnReport() :
 fReportName("qa_report"),
@@ -53,10 +54,12 @@ void BmnReport::SaveCanvasesAsImages() const {
     if (GetOutputDir() == "") return;
     Int_t nofCanvases = fCanvases.size();
     cout << "nofCanvases = " << nofCanvases << endl;
+    gErrorIgnoreLevel = kWarning;
     for (Int_t i = 0; i < nofCanvases; i++) {
         TCanvas* canvas = fCanvases[i];
         canvas->SaveAs(TString(GetOutputDir() + string(canvas->GetTitle()) + ".png").Data());
     }
+    gErrorIgnoreLevel = kPrint;
 }
 
 void BmnReport::WriteCanvases() const {

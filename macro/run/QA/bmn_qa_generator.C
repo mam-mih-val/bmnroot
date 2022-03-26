@@ -5,20 +5,14 @@
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 
 void bmn_qa_generator(
-        // TString recoFile = "$VMCWORKDIR/macro/run/bmndst_ArPb_geo2018.root",
-        // TString recoFile = "$VMCWORKDIR/macro/run/bmndst_ArPb_noLor.root",
-        TString recoFile = "$VMCWORKDIR/macro/run8/bmndst.root",
-        // TString recoFile = "$VMCWORKDIR/macro/run/bmndst_KrPb_noLor.root",
-        // TString mcFile = "/home/merz/batyuk/home/batyuk/bmnroot_run7/macro/run/testParams/evetest_ArPb_geo2018.root",
-        // TString mcFile = "/home/merz/batyuk/nfs/evetest_10k_ArPb_noLor.root",
-        TString mcFile = "$VMCWORKDIR/macro/run8/bmnsim.root",
-        // TString mcFile = "/home/merz/batyuk/nfs/evetest_10k_KrPb_noLor.root",
-        TString outFile = "qa.root",
-        Int_t nStartEvent = 0,
-        Bool_t isPrimary = kFALSE,
-        Int_t nEvents = 1000000) {
+    TString recoFile = "$VMCWORKDIR/macro/run8/BMNDST_VF.root",
+    TString mcFile = "$VMCWORKDIR/macro/run8/BMNSIM.root",
+    TString outFile = "qa_0.root",
+    Int_t nStartEvent = 0,
+    Bool_t isPrimary = kFALSE,
+    Int_t nEvents = 1000000) {
 
-    FairRunAna *fRun = new FairRunAna();
+    FairRunAna* fRun = new FairRunAna();
     fRun->SetInputFile(recoFile);
     fRun->AddFriend(mcFile);
     fRun->SetOutputFile(outFile);
@@ -31,8 +25,8 @@ void bmn_qa_generator(
     TString gPathSilConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
     TString gPathCscConfig = gPathConfig + "/parameters/csc/XMLConfigs/";
     TString confGem = gPathGemConfig + ((period == 8) ? "GemRun8.xml" : (period == 7) ? "GemRunSpring2018.xml" : (period == 6) ? "GemRunSpring2017.xml" : "GemRunSpring2017.xml");
-    TString confSil = gPathSilConfig + ((period == 8) ? "SiliconRun8_3stations.xml" : (period == 7) ? "SiliconRunSpring2018.xml" : (period == 6) ? "SiliconRunSpring2017.xml" : "SiliconRunSpring2017.xml");    
-    TString confCSC = gPathCscConfig + ((period == 8) ? "CSCRun8.xml" : "");    
+    TString confSil = gPathSilConfig + ((period == 8) ? "SiliconRun8_3stations.xml" : (period == 7) ? "SiliconRunSpring2018.xml" : (period == 6) ? "SiliconRunSpring2017.xml" : "SiliconRunSpring2017.xml");
+    TString confCSC = gPathCscConfig + ((period == 8) ? "CSCRun8.xml" : "");
 
     // ============ TASKS ============= //
 
@@ -50,19 +44,21 @@ void bmn_qa_generator(
     trQaAll->SetDetectorPresence(kSSD, kFALSE);
     trQaAll->SetDetectorPresence(kGEM, kTRUE);
     trQaAll->SetOnlyPrimes(isPrimary);
+    //trQaAll->SetInnerTracksBranchName("StsTrack");
+    trQaAll->SetInnerTracksBranchName("StsVector");
     fRun->AddTask(trQaAll);
-//
-//    BmnTrackingQa* trQaPos = new BmnTrackingQa(+1, "tracking_qa_positive", confGem, confSil);
-//    trQaPos->SetOnlyPrimes(isPrimary);
-//    fRun->AddTask(trQaPos);
-//
-//    BmnTrackingQa* trQaNeg = new BmnTrackingQa(-1, "tracking_qa_negative", confGem, confSil);
-//    trQaNeg->SetOnlyPrimes(isPrimary);
-//    fRun->AddTask(trQaNeg);
+    //
+    //    BmnTrackingQa* trQaPos = new BmnTrackingQa(+1, "tracking_qa_positive", confGem, confSil);
+    //    trQaPos->SetOnlyPrimes(isPrimary);
+    //    fRun->AddTask(trQaPos);
+    //
+    //    BmnTrackingQa* trQaNeg = new BmnTrackingQa(-1, "tracking_qa_negative", confGem, confSil);
+    //    trQaNeg->SetOnlyPrimes(isPrimary);
+    //    fRun->AddTask(trQaNeg);
 
-    // ============ TASKS ============= //
+        // ============ TASKS ============= //
 
-    // -----   Intialise and run   --------------------------------------------
+        // -----   Intialise and run   --------------------------------------------
     fRun->Init();
     cout << "Starting run" << endl;
     fRun->Run(nStartEvent, nStartEvent + nEvents);

@@ -4,32 +4,11 @@ BmnHistSrc::BmnHistSrc(TString title, TString path, Int_t periodID, BmnSetup set
 hTDCTimes(nullptr),
 hTDCAmps(nullptr),
 hTQDCTimes(nullptr),
-hTQDCAmps(nullptr)
-{
+hTQDCAmps(nullptr) {
     refPath = path;
     fTitle = title;
     fName = title + "_cl";
     canvas = NULL;
-    //    TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((fSetup == kBMNSETUP) ? "" : "_SRC"));
-    //    TString MapFileName = TString("Trig_map_Run") + PeriodSetupExt;
-    //    BmnTrigRaw2Digit *fTrigMapper = new BmnTrigRaw2Digit("0.txt", MapFileName);
-    //    for (auto &map : *fTrigMapper->GetMap()) {
-    //        TString trName = map.name;
-    //        if (!strcmp(trName.Data(), "TDC"))
-    //            tdcNames.push_back(trName);
-    //    }
-    //    TString name = fTitle + "_" + "TDC_mod_amp";
-    //    Int_t trigCount = tdcNames.size();
-    //    Double_t max_amp = 50;
-    //    hTDCTimes = new TH2F(name, name, trigCount, 0, trigCount, 100, 0, max_amp);
-    //    hTDCTimes->GetXaxis()->SetTitle("TDC #");
-    //    hTDCTimes->GetYaxis()->SetTitle("Time, ns");
-    //    hTDCTimes->GetXaxis()->SetTitleOffset(0.4);
-    //    hTDCTimes->GetXaxis()->SetTitleColor(kOrange + 10);
-    //    hTDCTimes->GetYaxis()->SetTitleOffset(0.6);
-    //    hTDCTimes->GetYaxis()->SetTitleColor(kOrange + 10);
-    //    hTDCTimes->SetDirectory(0);
-    //    delete fTrigMapper;
 }
 
 BmnHistSrc::~BmnHistSrc() {
@@ -48,7 +27,9 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     const Int_t MaxTimeTDC = 600;
     const Int_t MaxAmpTDC = 50;
     const Int_t MaxTimeTQDC = 600;
-    const Int_t MaxAmpTQDC = 5000;
+    const Int_t MaxAmpTQDC = 10000;
+    const Int_t MaxAmpTQDC_x10 = 33000;
+    regex reX10("TQDC_.+_X10.*");
     const Int_t rows4Spectrum = 2;
     Int_t arLen = trigAr->size();
     TString name;
@@ -56,9 +37,12 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     fRows = arLen; // / fSrcCols;
     for (Int_t i = 0; i < fRows; ++i) {
         TClonesArray * ar = trigAr->at(i);
-        if (ar->GetClass() == BmnTrigWaveDigit::Class())
+        if (ar->GetClass() == BmnTrigWaveDigit::Class()) {
+            regex re("TQDC_(.+)");
+            //            tqdcNames.push_back(TString(regex_replace(ar->GetName(), re, "$1")));
             tqdcNames.push_back(TString(ar->GetName()));
-        else
+            //            cout <<regex_replace(ar->GetName(), re, "$1") << endl;
+        } else
             tdcNames.push_back(TString(ar->GetName()));
     }
     // 2 dimensional time
@@ -99,7 +83,7 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     for (Int_t i = 0; i < tqdcNames.size(); ++i) {
         xaTrigTimes->SetBinLabel(i + 1, tqdcNames[i]);
     }
-    
+
     name = fTitle + "CanvasTimesByChannel";
     can2d = new TCanvas(name, name, PAD_WIDTH * fCols, PAD_HEIGHT * rows4Spectrum);
     can2d->Divide(fCols, rows4Spectrum, 0.001, 0.001);
@@ -133,15 +117,18 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
 
     // 1 dimensional
     hists.resize(fRows);
-    for (Int_t i = 0; i < hists.size(); i++)
-        hists[i].resize(fCols);
+    histsAux.resize(fRows);
+    for (Int_t i = 0; i < hists.size(); i++) {
+        hists[i].resize(fCols, nullptr);
+        histsAux[i].resize(fCols, nullptr);
+    }
 
     for (Int_t iRow = 0; iRow < fRows; iRow++) { // 0 column - Time histograms from TDC by TQDC
         TClonesArray * ar = trigAr->at(iRow);
         Int_t maxTime =
                 (ar->GetClass() == BmnTrigWaveDigit::Class()) ? MaxTimeTQDC : MaxTimeTDC;
         name = fTitle + "_" + ar->GetName() + "_Leading_Time";
-        TH1F *h = new TH1F(name, name, 1000, 0, maxTime);
+        TH1F *h = new TH1F(name, name, 800, 0, maxTime);
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
         h->GetXaxis()->SetTitle("Time, ns");
@@ -151,36 +138,54 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
         h->GetYaxis()->SetTitleOffset(0.6);
         h->GetYaxis()->SetTitleColor(kOrange + 10);
         hists[iRow][0] = h;
+        if (ar->GetClass() == BmnTrigWaveDigit::Class()) {
+            name = fTitle + "_" + ar->GetName() + "_Leading_Time_filtered";
+            h = new TH1F(name, name, 800, 0, maxTime);
+            h->SetTitleSize(0.06, "XY");
+            h->SetLabelSize(0.08, "XY");
+            h->GetXaxis()->SetTitle("Time, ns");
+            h->GetXaxis()->SetTitleOffset(0.6);
+            h->GetXaxis()->SetTitleColor(kOrange + 10);
+            h->GetYaxis()->SetTitle("Activation Count");
+            h->GetYaxis()->SetTitleOffset(0.6);
+            h->GetYaxis()->SetTitleColor(kOrange + 10);
+            h->SetLineColor(kMagenta);
+            histsAux[iRow][0] = h;
+        }
     }
     for (Int_t iRow = 0; iRow < fRows; iRow++) { // 1 column - Amplitude(TQDC -waveform ampl.,  TDC - sig. width)
         TClonesArray * ar = trigAr->at(iRow);
         Int_t maxAmp =
-                (ar->GetClass() == BmnTrigWaveDigit::Class()) ? MaxAmpTQDC : MaxAmpTDC;
+                (ar->GetClass() == BmnTrigWaveDigit::Class()) ?
+                (regex_match(ar->GetName(), reX10) ? MaxAmpTQDC_x10 : MaxAmpTQDC) :
+                MaxAmpTDC;
         name = fTitle + "_" + ar->GetName() + "_Amplitude";
-        TH1F *h = new TH1F(name, name, 500, 0, maxAmp);
+        TH1F *h = new TH1F(name, name, 300, 0, maxAmp);
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
         h->GetXaxis()->SetTitle(
-        (ar->GetClass() == BmnTrigWaveDigit::Class()) ? "Amplitude" : "Width, ns");
+                (ar->GetClass() == BmnTrigWaveDigit::Class()) ? "Amplitude" : "Width, ns");
         h->GetXaxis()->SetTitleOffset(0.6);
         h->GetXaxis()->SetTitleColor(kOrange + 10);
         h->GetYaxis()->SetTitle("Activation Count");
         h->GetYaxis()->SetTitleOffset(0.5);
         h->GetYaxis()->SetTitleColor(kOrange + 10);
         hists[iRow][1] = h;
+        if (ar->GetClass() == BmnTrigWaveDigit::Class()) {
+            name = fTitle + "_" + ar->GetName() + "_Amplitude_filtered";
+            h = new TH1F(name, name, 300, 0, maxAmp);
+            h->SetTitleSize(0.06, "XY");
+            h->SetLabelSize(0.08, "XY");
+            h->GetXaxis()->SetTitle("Amplitude");
+            h->GetXaxis()->SetTitleOffset(0.6);
+            h->GetXaxis()->SetTitleColor(kOrange + 10);
+            h->GetYaxis()->SetTitle("Activation Count");
+            h->GetYaxis()->SetTitleOffset(0.5);
+            h->GetYaxis()->SetTitleColor(kOrange + 10);
+            h->SetLineColor(kMagenta);
+            histsAux[iRow][1] = h;
+        }
     }
-    //    for (Int_t iRow = 0; iRow < fSrcRows; iRow++) { // 2 column - sampling summed
-    //        name = fTitle + "_" + trigNames[iRow].Data() + "_QDC";
-    //        TH1F *h = new TH1F(name, name, ADC_SAMPLING_LIMIT * 2 / 100, -ADC_SAMPLING_LIMIT, ADC_SAMPLING_LIMIT);
-    //        h->SetTitleSize(0.06, "XY");
-    //        h->SetLabelSize(0.08, "XY");
-    //        h->GetXaxis()->SetTitle("QDC Channel, ");
-    //        h->GetXaxis()->SetTitleColor(kOrange + 10);
-    //        h->GetYaxis()->SetTitle("Activation Count");
-    //        h->GetYaxis()->SetTitleOffset(1.1);
-    //        h->GetYaxis()->SetTitleColor(kOrange + 10);
-    //        hists[iRow][2] = h;
-    //    }
     // Create canvas
     name = fTitle + "Canvas";
     canvas = new TCanvas(name, name, PAD_WIDTH * fCols, PAD_HEIGHT * fRows);
@@ -191,6 +196,7 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
         for (Int_t iCol = 0; iCol < fCols; iCol++) {
             PadInfo *p = new PadInfo();
             p->current = hists[iRow][iCol];
+            p->aux.push_back(histsAux[iRow][iCol]);
             Int_t iPad = iRow * fCols + iCol;
             //            printf("ipad %d irow %d icol %d  %08X %08X\n", iPad, iRow, iCol, canvas, canvas->GetPad(iPad + 1));
             canPads[iPad] = p;
@@ -242,6 +248,10 @@ void BmnHistSrc::SetDir(TDirectory* Dir) {
         for (auto el : row)
             if (el)
                 el->SetDirectory(fDir);
+    for (auto row : histsAux)
+        for (auto el : row)
+            if (el)
+                el->SetDirectory(fDir);
     if (hTDCTimes) hTDCTimes->SetDirectory(fDir);
 }
 
@@ -267,9 +277,13 @@ void BmnHistSrc::FillFromDigi(DigiArrays *fDigiArrays) {
                 BmnTrigWaveDigit *tw = (BmnTrigWaveDigit*) a->At(digIndex);
                 hists[iTrig][0]->Fill(tw->GetTime());
                 hists[iTrig][1]->Fill(tw->GetPeak());
+                if (tw->GetTime() > -900) {
+                    histsAux[iTrig][0]->Fill(tw->GetTime());
+                    histsAux[iTrig][1]->Fill(tw->GetPeak());
+                }
                 hTQDCTimes->Fill(a->GetName(), tw->GetTime(), 1);
                 hTQDCAmps->Fill(a->GetName(), tw->GetPeak(), 1);
-//                printf("%s %5.2f %5d\n",a->GetName(),tw->GetTime(),tw->GetPeak());
+                //                printf("%s %5.2f %5d\n",a->GetName(),tw->GetTime(),tw->GetPeak());
             }
             continue;
         }
@@ -280,7 +294,7 @@ void BmnHistSrc::FillFromDigi(DigiArrays *fDigiArrays) {
                 hists[iTrig][1]->Fill(td->GetAmp());
                 hTDCTimes->Fill(a->GetName(), td->GetTime(), 1);
                 hTDCAmps->Fill(a->GetName(), td->GetAmp(), 1);
-//                printf("%s %5.2f %5.2f\n",a->GetName(),td->GetTime(),td->GetAmp());
+                //                printf("%s %5.2f %5.2f\n",a->GetName(),td->GetTime(),td->GetAmp());
             }
         }
     }
@@ -309,6 +323,10 @@ void BmnHistSrc::ClearRefRun() {
 
 void BmnHistSrc::Reset() {
     for (auto row : hists)
+        for (auto el : row)
+            if (el)
+                el->Reset();
+    for (auto row : histsAux)
         for (auto el : row)
             if (el)
                 el->Reset();

@@ -30,7 +30,8 @@ and open the template in the editor.
         <link rel="stylesheet" type="text/css" href="../css/tabs.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="../css/menu.css" media="screen" />
         <!--<script type="text/javascript" src="../root.app/jsrootsys/scripts/JSRootCore.js?2d"></script>-->
-<script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRoot.core.js"></script>
+<!--<script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRoot.core.js"></script>-->
+        <script type="text/javascript" src="../scripts/jsr/scripts/JSRoot.core.js"></script>
         <script type="text/javascript" src="../scripts/BMTools.js"></script>
         <script>
             var loco = window.location;
@@ -51,7 +52,7 @@ and open the template in the editor.
                 drawInfo();
             }
             function drawInfo() {
-                setTimeout(drawInfo, 6000);
+                setTimeout(drawInfo, 5000);
                 JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
                     var info = JSON.parse(obj);
                     if (info.arr.length > 0){
@@ -157,6 +158,8 @@ and open the template in the editor.
                             src="../root.app/SRC/SRC_TDC_mod_amp/draw.htm?monitoring=5000&opt=colz"
                             style = "width: 95vw;height: 45vw;"> </iframe>-->
 <div align="center">
+            <h3>Blue - all TQDC digits</h3>
+            <h3>Magenta - matched by time</h3>
     <div id="timeChannelTableC" style="position:relative;width: 98vw;height: 40vw;"> </div>
     <div id="srcTableC" style="width: 98vw;height: 500vw;"> </div>
 </div>

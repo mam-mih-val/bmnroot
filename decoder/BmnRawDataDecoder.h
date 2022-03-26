@@ -57,23 +57,13 @@ public:
     BmnStatus FinishRun();
     BmnStatus InitConverter(TString FileName);
     BmnStatus InitConverter();
-    BmnStatus InitConverter(deque<UInt_t> *dq);
     BmnStatus InitDecoder();
     BmnStatus InitMaps();
     void ResetDecoder(TString file);
     BmnStatus DisposeDecoder();
-    BmnStatus wait_stream(deque<UInt_t> *que, Int_t len, UInt_t limit = WAIT_LIMIT);
     BmnStatus wait_file(Int_t len, UInt_t limit = WAIT_LIMIT);
     BmnStatus TakeDataWordShort(UChar_t n, UInt_t *d, UInt_t i, Short_t* valI);
     BmnStatus TakeDataWordUShort(UChar_t n, UInt_t *d, UInt_t i, UShort_t* valU);
-
-    void SetQue(deque<UInt_t> *v) {
-        fDataQueue = v;
-    }
-
-    deque<UInt_t> *GetQue() {
-        return fDataQueue;
-    }
 
     DigiArrays GetDigiArraysObject() {
         //        fDigiTree->GetEntry(GetEventId());
@@ -448,19 +438,6 @@ private:
     TString fTrigPlaceMapFileName;
     TString fTrigChannelMapFileName;
 
-    ifstream fDchMapFile;
-    ifstream fMwpcMapFile;
-    ifstream fGemMapFile;
-    ifstream fCscMapFile;
-    ifstream fTof400MapFile;
-    ifstream fTof700MapFile;
-    ifstream fZDCMapFile;
-    ifstream fZDCCalibraionFile;
-    ifstream fECALMapFile;
-    ifstream fECALCalibraionFile;
-    ifstream fTrigMapFile;
-    ifstream fTrigINLFile;
-
     TFile *fRootFileIn;
     TFile *fRootFileOut;
     TFile *fDigiFileOut;
@@ -530,11 +507,12 @@ private:
     BmnADCDecoMode fAdcDecoMode;
     UInt_t fPedEvCntrBySpill;
     UInt_t fPedEvCntr;
+    UInt_t fNoiseEvCntr;
     Int_t fEvForPedestals;
     Bool_t fPedEnough;
-    GemMapValue* fGemMap;
+    Bool_t fNoiseEnough;
+//    GemMapValue* fGemMap;
     UInt_t fT0Serial;
-    deque<UInt_t> *fDataQueue;
 
     //Map to store pairs <Crate serial> - <crate time - T0 time>
     map<UInt_t, Long64_t> fTimeShifts;

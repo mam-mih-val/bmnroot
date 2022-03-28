@@ -22,9 +22,9 @@
 
 using namespace AnalysisTree;
 
-void VertexTracksQA(QA::Task& task, std::string branch=std::string("GlobalTracks"));
+void VertexTracksQA(QA::Task& task, std::string branch=std::string("GlobalTracks"), Cuts* cuts=nullptr);
 void TofHitsQA(QA::Task& task);
-void SimParticlesQA(QA::Task& task);
+void SimParticlesQA(QA::Task& task, Cuts* cuts=nullptr);
 void SimEventHeaderQA(QA::Task& task);
 void RecEventHeaderQA(QA::Task& task);
 void EfficiencyMaps(QA::Task& task);
@@ -62,9 +62,12 @@ void run_analysistree_qa(std::string filelist, bool is_single_file)
   auto* task = new QA::Task;
   task->SetOutputFileName("cbm_qa.root");
 
-  VertexTracksQA(*task);
+  VertexTracksQA(*task, rec_tracks);
+  VertexTracksQA(*task, rec_tracks, new Cuts("Primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
   VertexTracksQA(*task, sts_tracks);
+  VertexTracksQA(*task, sts_tracks, new Cuts("Primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
   SimParticlesQA(*task);
+  SimParticlesQA(*task, new Cuts("Primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
   SimEventHeaderQA(*task);
   RecEventHeaderQA(*task);
   TofHitsQA(*task);
@@ -83,32 +86,32 @@ void run_analysistree_qa(std::string filelist, bool is_single_file)
   }
 }
 
-void VertexTracksQA(QA::Task& task, std::string branch)
+void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
 {
-  AddTrackQA(&task, branch);
-  if (!sim_particles.empty()) { AddTracksMatchQA(&task, branch, sim_particles); }
+  AddTrackQA(&task, branch, cuts);
+  if (!sim_particles.empty()) { AddTracksMatchQA(&task, branch, sim_particles, cuts); }
 
   Variable chi2_over_ndf("chi2_ndf", {{branch, "chi2"}, {branch, "ndf"}},
                          [](std::vector<double>& var) { return var.at(0) / var.at(1); });
 
-  task.AddH1({"DCA_{x}, cm", {branch, "dcax"}, {QA::gNbins, -1, 1}});
-  task.AddH1({"DCA_{y}, cm", {branch, "dcay"}, {QA::gNbins, -1, 1}});
-  task.AddH1({"DCA_{z}, cm", {branch, "dcaz"}, {QA::gNbins, -1, 1}});
-  task.AddH1({"NDF", {branch, "ndf"}, {30, 0, 30}});
-  task.AddH1({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}});
-  task.AddH1({"#chi^{2}_{vertex}", {branch, "vtx_chi2"}, {500, 0, 100}});
-  task.AddH1({"#chi^{2}/NDF", chi2_over_ndf, {QA::gNbins, 0, 10}});
+  task.AddH1({"DCA_{x}, cm", {branch, "dcax"}, {QA::gNbins, -1, 1}}, cuts);
+  task.AddH1({"DCA_{y}, cm", {branch, "dcay"}, {QA::gNbins, -1, 1}}, cuts);
+  task.AddH1({"DCA_{z}, cm", {branch, "dcaz"}, {QA::gNbins, -1, 1}}, cuts);
+  task.AddH1({"NDF", {branch, "ndf"}, {30, 0, 30}}, cuts);
+  task.AddH1({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}}, cuts);
+  task.AddH1({"#chi^{2}_{vertex}", {branch, "vtx_chi2"}, {500, 0, 100}}, cuts);
+  task.AddH1({"#chi^{2}/NDF", chi2_over_ndf, {QA::gNbins, 0, 10}}, cuts);
   task.AddH2({"DCA_{x}, cm", {branch, "dcax"}, {QA::gNbins, -1, 1}},
-             {"DCA_{y}, cm", {branch, "dcay"}, {QA::gNbins, -1, 1}});
+             {"DCA_{y}, cm", {branch, "dcay"}, {QA::gNbins, -1, 1}}, cuts);
 
   task.AddH2({"q/p first [GeV/c]", {branch, "qp_first"}, {QA::gNbins, -5, 5}},
-             {"q/p last [GeV/c]", {branch, "qp_last"}, {QA::gNbins, -5, 5}});
+             {"q/p last [GeV/c]", {branch, "qp_last"}, {QA::gNbins, -5, 5}}, cuts);
 
   task.AddH2({"t_{x} first", {branch, "tx_first"}, {QA::gNbins, -1, 1}},
-             {"t_{x} last", {branch, "tx_last"}, {QA::gNbins, -1, 1}});
+             {"t_{x} last", {branch, "tx_last"}, {QA::gNbins, -1, 1}}, cuts);
 
   task.AddH2({"t_{y} first", {branch, "ty_first"}, {QA::gNbins, -1, 1}},
-             {"t_{y} last", {branch, "ty_last"}, {QA::gNbins, -1, 1}});
+             {"t_{y} last", {branch, "ty_last"}, {QA::gNbins, -1, 1}}, cuts);
 }
 
 void TrackingQA(QA::Task& task){
@@ -233,10 +236,8 @@ void TofHitsQA(QA::Task& task)
 
 }
 
-void SimParticlesQA(QA::Task& task) {
-  AddParticleQA(&task, sim_particles);
-  Cuts* is_primary   = new Cuts("Primary", {EqualsCut({sim_particles + ".mother_id"}, -1)});
-  AddParticleQA(&task, sim_particles, is_primary);
+void SimParticlesQA(QA::Task& task, Cuts cuts) {
+  AddParticleQA(&task, sim_particles, cuts);
 }
 
 void SimEventHeaderQA(QA::Task& task)

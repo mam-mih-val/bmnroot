@@ -231,9 +231,9 @@ void TofHitsQA(QA::Task& task)
   task.AddH2({"q#timesp, GeV/c", qp_global, {QA::gNbins, -5, 5}},
              {"m^{2}, GeV^{2}/c^{2}", {tof700_hits, "beta"}, {QA::gNbins, -0.2, 1.2}});
 
-  task.AddH2({"Z_{last} Global", {rec_tracks, "z_last"}, {{QA::gNbins, 300, 700}}},
+  task.AddH2({"Z_{last} Global", {rec_tracks, "z_last"}, {QA::gNbins, 300, 700}},
              {"Z_{TOF-400} Global", {tof400_hits, "z"}, {QA::gNbins, 300, 700}});
-  task.AddH2({"Z_{last} Global", {rec_tracks, "z_last"}, {{QA::gNbins, 300, 700}}},
+  task.AddH2({"Z_{last} Global", {rec_tracks, "z_last"}, {QA::gNbins, 300, 700}},
              {"Z_{TOF-700} Global", {tof700_hits, "z"}, {QA::gNbins, 300, 700}});
 
 }

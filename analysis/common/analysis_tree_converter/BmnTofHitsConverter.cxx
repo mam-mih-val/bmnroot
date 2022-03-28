@@ -43,6 +43,7 @@ void BmnTofHitsConverter::Init()
   tof_branch_config.AddField<float>("beta", "Beta v/c");
   tof_branch_config.AddField<float>("length", "(cm) Track length");
   tof_branch_config.AddField<float>("time", "(ns) Measured time ");
+  tof_branch_config.AddField<float>("matching_radius", "(cm) Matching radius to Global Track (if no matching -999)");
 
   tof_branch_config.AddField<float>("error_x");
   tof_branch_config.AddField<float>("error_y");
@@ -51,6 +52,21 @@ void BmnTofHitsConverter::Init()
   auto* man = AnalysisTree::TaskManager::GetInstance();
   man->AddBranch(out_branch_, out_tof_hits_, tof_branch_config);
 }
+
+void BmnTofHitsConverter::ExtrapolateStraightLine(FairTrackParam* params, float z)
+{
+  const Float_t Tx    = params->GetTx();
+  const Float_t Ty    = params->GetTy();
+  const Float_t old_z = params->GetZ();
+  const Float_t dz    = z - old_z;
+
+  const Float_t x = params->GetX() + Tx * dz;
+  const Float_t y = params->GetY() + Ty * dz;
+
+  params->SetPosition({x, y, z});
+}
+
+
 
 void BmnTofHitsConverter::ProcessData()
 {
@@ -67,6 +83,7 @@ void BmnTofHitsConverter::ProcessData()
   const int i_t     = branch.GetFieldId("time");
   const int i_l     = branch.GetFieldId("length");
   const int i_dx    = branch.GetFieldId("error_x");
+  const int i_matching_r  = branch.GetFieldId("matching_radius");
 
   const int n_global_tracks = in_bmn_global_tracks_->GetEntries();
   const int n_tof_hits = in_bmn_tof_hits_->GetEntries();
@@ -77,9 +94,19 @@ void BmnTofHitsConverter::ProcessData()
     if( !in_tof_hit )
       throw std::runtime_error( "TOF hit is empty" );
 
-    Float_t p    = 0;
-    Int_t q      = 0;
-    Float_t l    = 0;
+
+    const Float_t hit_x = in_tof_hit->GetX();
+    const Float_t hit_y = in_tof_hit->GetY();
+    const Float_t hit_z = in_tof_hit->GetZ();
+
+    const Float_t hit_xerr = in_tof_hit->GetDx();
+    const Float_t hit_yerr = in_tof_hit->GetDy();
+    const Float_t hit_zerr = in_tof_hit->GetDz();
+
+    float p    = 0;
+    int q      = 0;
+    float l    = 0;
+    float matching_r = -999.0;
 
     try{
       auto idx_global_trk = tof_hit_idx_2_global_trk_idx_.at(idx_tof_hit);
@@ -90,6 +117,8 @@ void BmnTofHitsConverter::ProcessData()
       p = mom3.Mag();
       q = track_param->GetQp() > 0 ? 1 : -1;
       l = in_global_trk->GetLength();
+      ExtrapolateStraightLine( track_param, hit_z );
+      matching_r = sqrtf( pow(track_param->GetX() - hit_x, 2) + pow(track_param->GetY() - hit_y, 2) );
     }catch(std::exception&){}
 
     const Float_t time = in_tof_hit->GetTimeStamp();
@@ -103,14 +132,6 @@ void BmnTofHitsConverter::ProcessData()
     else
       m2 = -999.;
 
-    const Float_t hit_x = in_tof_hit->GetX();
-    const Float_t hit_y = in_tof_hit->GetY();
-    const Float_t hit_z = in_tof_hit->GetZ();
-
-    const Float_t hit_xerr = in_tof_hit->GetDx();
-    const Float_t hit_yerr = in_tof_hit->GetDy();
-    const Float_t hit_zerr = in_tof_hit->GetDz();
-
     auto&out_hit = out_tof_hits_->AddChannel(branch);
 
     out_hit.SetPosition(hit_x, hit_y, hit_z);
@@ -119,6 +140,7 @@ void BmnTofHitsConverter::ProcessData()
     out_hit.SetField(beta, i_beta);
     out_hit.SetField(l, i_l);
     out_hit.SetField(time, i_t);
+    out_hit.SetField(matching_r, i_matching_r);
     out_hit.SetField(hit_xerr, i_dx);
     out_hit.SetField(hit_yerr, i_dx+1);
     out_hit.SetField(hit_zerr, i_dx+2);

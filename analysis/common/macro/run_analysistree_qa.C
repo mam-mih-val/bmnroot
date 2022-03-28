@@ -241,7 +241,7 @@ void TofHitsQA(QA::Task& task)
 
 }
 
-void SimParticlesQA(QA::Task& task, Cuts cuts) {
+void SimParticlesQA(QA::Task& task, Cuts* cuts) {
   AddParticleQA(&task, sim_particles, cuts);
 }
 

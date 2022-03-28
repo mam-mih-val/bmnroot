@@ -96,7 +96,7 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
 
   task.AddH1({"DCA_{x}, cm", {branch, "dcax"}, {QA::gNbins, -10, 10}}, cuts);
   task.AddH1({"DCA_{y}, cm", {branch, "dcay"}, {QA::gNbins, -10, 10}}, cuts);
-  task.AddH1({"DCA_{z}, cm", {branch, "dcaz"}, {QA::gNbins, -10, 10}}, cuts);
+  task.AddH1({"DCA_{z}, cm", {branch, "dcaz"}, {QA::gNbins, -10, 100}}, cuts);
   task.AddH1({"NDF", {branch, "ndf"}, {30, 0, 30}}, cuts);
   task.AddH1({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}}, cuts);
   task.AddH1({"#chi^{2}_{vertex}", {branch, "vtx_chi2"}, {500, 0, 100}}, cuts);

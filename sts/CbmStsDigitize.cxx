@@ -14,6 +14,7 @@
 #include "TObjArray.h"
 #include "TMath.h"
 #include "TF1.h"
+#include <TFile.h> //AZ-290322
 #include "TRandom3.h"
 
 #include "TGeoManager.h"

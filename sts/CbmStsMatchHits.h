@@ -91,6 +91,7 @@ class CbmStsMatchHits : public FairTask
   CbmStsDigiPar*    fDigiPar;     /** Digitisation parameter container **/
   CbmStsDigiScheme* fDigiScheme;  /** Digitisation scheme **/
   TClonesArray*     fPoints;      /** Array of CbmStsPoint **/
+  TClonesArray*     fPointsSi;    /** Array of BmnSiliconPoint AZ-280322 **/
   TClonesArray*     fDigis;       /** Array of CbmStsDigi **/
   TClonesArray*     fDigiMatches; /** Array of CbmStsDigiMatch **/
   TClonesArray*     fHits;        /** Array of CbmStsHit **/

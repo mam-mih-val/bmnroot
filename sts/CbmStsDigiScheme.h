@@ -19,14 +19,15 @@
 #ifndef CbmStsDigiScheme_H
 #define CbmStsDigiScheme_H 1
 
-#include "TObjArray.h"
-#include "TObject.h"
-
 #include <iostream>
 #include <map>
 
 #include "BmnGemStripStationSet.h"
 #include "BmnSiliconStationSet.h"
+
+#include "TObjArray.h"
+#include "TObject.h"
+#include <TGeoCompositeShape.h> //AZ-180322
 
 class CbmGeoStsPar;
 class CbmStsDigiPar;
@@ -81,12 +82,13 @@ class CbmStsDigiScheme : public TObject
   /** Screen output  **/
   void Print(Bool_t kLong = kFALSE);
 
-  //AZ
-  static CbmStsDigiScheme* Instance();
+  //AZ-290322
+  static CbmStsDigiScheme* Instance(int version = 1);
 
  private:
 
   static CbmStsDigiScheme* fgInstance; //AZ - Static instance of this class
+  static int fVersion;               //AZ-290322 - configuration version (CBM if 0, else BM@N)
   TObjArray* fStations;       /** Array of CbmStsStation **/
   Int_t fNSectors;            /** Total number of sectors **/
   Int_t fNSensors;            /** Total number of sensors **/
@@ -106,13 +108,15 @@ class CbmStsDigiScheme : public TObject
 
 
   /** New init method (from V12a on) **/
-  Bool_t InitNew(CbmGeoStsPar* geoPar, CbmStsDigiPar* digiPar);
+  Bool_t InitNew(CbmGeoStsPar* geoPar, CbmStsDigiPar* digiPar); // CBM configuration
+  Bool_t InitNewNew(CbmGeoStsPar* geoPar, CbmStsDigiPar* digiPar); //AZ-290322 - BM@N configuration
 
   CbmStsSector* SetSensor(Int_t moduleNr, Int_t statNr, CbmStsStation* station,
 			  CbmStsStationDigiPar* stationPar); //GP
   Int_t SetSensorsCbm(Int_t moduleNr, Int_t statNr, CbmStsStation* station,
 		      CbmStsStationDigiPar* stationPar); //AZ
-  
+  Int_t AddHotZone(Int_t moduleNr, Int_t statNr, CbmStsStation* station, CbmStsStationDigiPar* stationPar); //AZ-170322
+  void AddHotZones(); //AZ-180322
 
   BmnGemStripStationSet *GemStationSet; //Entire GEM detector
   BmnSiliconStationSet *SilStationSet;  //Entire SILICON detector

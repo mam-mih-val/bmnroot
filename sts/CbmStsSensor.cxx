@@ -964,6 +964,7 @@ Int_t CbmStsSensor::IntersectClusters(Double_t fChan, Double_t bChan,
   Double_t xtemp, ytemp;
   
   if (fStereoF==0.&&fStereoB*180/TMath::Pi()<80) {
+    //exit(0); //AZ-220322
     Double_t tanstrB = TMath::Tan(fStereoB);
     Double_t tanstrF = TMath::Tan(fStereoF);
     Int_t nStripMaxB = ( fStereoB<0. ? 0 :  Int_t(fLy*tanstrB/fLx)+1 ); // max. number of BSts
@@ -1101,6 +1102,14 @@ Int_t CbmStsSensor::IntersectClusters(Double_t fChan, Double_t bChan,
     }
   }
   //*/
+  //AZ-180322 - Exclude beam hole for BM@N "virtual" hot zones
+  if (fName.Contains("Sensor_hot")) {
+    gGeoManager->cd(fName);
+    gGeoManager->CdUp();
+    TString where = gGeoManager->FindNode(xCross+TMath::Sign(safety,fX0), yCross+TMath::Sign(safety,fY0), zCross)->GetName();
+    //cout << " WHERE: " << where << " " << fName << endl;
+    if (!where.Contains("hot")) return -1;
+  }
   return fDetectorId;
 }
 

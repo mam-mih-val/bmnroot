@@ -31,6 +31,7 @@ CbmStsMatchTracks::CbmStsMatchTracks()
   : FairTask("STSMatchTracks"), 
   fTracks(NULL),
   fPoints(NULL),
+  fPointsSi(nullptr), //AZ-280322
   fHits(NULL),
   fMatches(NULL),
   fTime(0.),
@@ -51,6 +52,7 @@ CbmStsMatchTracks::CbmStsMatchTracks(Int_t iVerbose)
   : FairTask("STSMatchTracks", iVerbose),
   fTracks(NULL),
   fPoints(NULL),
+  fPointsSi(nullptr), //AZ-280322
   fHits(NULL),
   fMatches(NULL),
   fTime(0.),
@@ -71,6 +73,7 @@ CbmStsMatchTracks::CbmStsMatchTracks(const char* name, Int_t iVerbose)
   : FairTask(name, iVerbose),
   fTracks(NULL),
   fPoints(NULL),
+  fPointsSi(nullptr), //AZ-280322
   fHits(NULL),
   fMatches(NULL),
   fTime(0.),
@@ -121,6 +124,7 @@ void CbmStsMatchTracks::Exec(Option_t* opt) {
   Int_t nFakeSum    = 0;
   Int_t nMCTrackSum = 0;
   map<Int_t, Int_t>::iterator it;
+  TClonesArray *points = nullptr; //AZ-289322
 
   // Loop over StsTracks
   Int_t nTracks = fTracks->GetEntriesFast();
@@ -152,7 +156,12 @@ void CbmStsMatchTracks::Exec(Option_t* opt) {
 	nFake++;
 	continue;
       }
-      point = (FairMCPoint*) fPoints->At(iPoint);
+      
+      points = fPoints; //AZ-280322
+      if (fPointsSi && hit->GetStationNr() < 5 && hit->GetDx() < 0.01)
+	points = fPointsSi; //AZ-280322
+      //AZ-289322 point = (FairMCPoint*) fPoints->At(iPoint);
+      point = (FairMCPoint*) points->At(iPoint);
       if ( ! point ) {
 	cout << "-E- CbmStsMatchTracks::Exec: "
 	     << "Empty MCPoint " << iPoint << " from MapsHit " << iHit
@@ -277,6 +286,7 @@ InitStatus CbmStsMatchTracks::Init() {
     cout << "-E- CbmStsMatchTracks::Init: No StsPoint array!" << endl;
     return kERROR;
   }
+  fPointsSi = (TClonesArray*) ioman->GetObject("SiliconPoint"); //AZ-280322
 
   // Create and register StsTrackMatch array
   fMatches = new TClonesArray("CbmTrackMatch",100);

@@ -434,16 +434,17 @@ Bool_t BmnTof1HitProducer::SetCorrFiles() {
     // Run 8 (2022) ???
     if (fPeriod == 8) {
         // temporary fix for reconstruction possibility 
-        return kTRUE;
-        //        NameFileLRcorrection = Form("TOF400_LRCorr_RUN%i.dat", fPeriod);
+
+        NameFileLRcorrection = Form("TOF400_LRCorr_RUN%i_SRC.dat", fPeriod);
         //        NameFileSlewingCorrection = Form("TOF400_SlewingCorr_RUN%i.root", fPeriod);
         //        NameFileTimeShiftCorrection = Form("TOF400_TimeShiftCorr_RUN%i.dat", fPeriod);
 
-        //        FlagFileLRcorrection = false;
+        FlagFileLRcorrection = true;
         //        FlagFileSlewingCorrection = false;
         //        FlagFileTimeShiftCorrection = false;
         //
         //        temp = true;
+        return kTRUE;
     }
 
     if (temp) {

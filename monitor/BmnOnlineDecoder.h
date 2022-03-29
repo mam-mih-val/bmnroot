@@ -46,7 +46,8 @@
 #define DAQ_ADDR     "bmn-daq"  //"bmn-hrb-3.jinr.ru"
 #define DAQ_IP         "10.18.11.200"//"10.18.11.193"//
 #define DAQ_PORT               32999
-#define MPD_EVENT_HEAD_WORDS       3 // sync + payload lenght + iEv
+#define MPD_EVENT_HEAD_WORDS_OLD   3 // sync + payload lenght + iEv
+#define MPD_EVENT_HEAD_WORDS       2 // sync + payload lenght
 #define UNKNOWN_RUNID      999999999
 
 using namespace std;

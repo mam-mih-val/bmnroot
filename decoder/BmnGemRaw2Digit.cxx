@@ -189,47 +189,69 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
         }
         delete[] fNoisyChannels;
         delete[] fSigProf;
-    }
-    // MK Postprocessing
-    // !!!! search for noisy channels to write to the file
-    if (test != 2) {
-        for (Int_t it = 0; it < niter; ++it) {
+    } else {
+        // MK Postprocessing
+        // !!!! search for noisy channels to write to the file
+        if (test != 2) {
+            for (Int_t it = 0; it < niter; ++it) {
+                for (Int_t det = 0; det < ndet; ++det) {
+                    Int_t mChan = nchdet[det];
+
+                    Float_t sumhits[maxchip2];
+                    Int_t nsumch[maxchip2];
+                    for (Int_t j = 0; j < maxchip2; ++j) {
+                        sumhits[j] = 0;
+                        nsumch[j] = 0;
+                    }
+
+                    for (Int_t j = 0; j < mChan; ++j) {
+                        if (noisech[det][j] == 0) {
+                            Int_t ichip = (Int_t) j / 16;
+                            sumhits[ichip] += hNhits[det]->GetBinContent(j + 1);
+                            nsumch[ichip]++;
+                        }
+                    }
+
+                    for (Int_t j = 0; j < maxchip2; ++j) {
+                        Int_t nsum = nsumch[j];
+                        if (nsum > 0) sumhits[j] /= nsum;
+                    }
+
+                    for (Int_t j = 0; j < mChan; ++j) {
+                        if (noisech[det][j] == 0) {
+                            Int_t ichip = (Int_t) j / 16;
+                            Float_t sum = sumhits[ichip];
+                            //                        if (it > 0)
+                            //                            printf("nhits = %f sum = %f  det = %i ichip = %i j = %i\n", hNhits[det]->GetBinContent(j + 1), sum, det, ichip, j);
+
+                            // cuts to define channel as noisy
+                            if ((hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 10) ||
+                                    (hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 100) ||
+                                    (hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 1000)) {
+
+                                //                            cout << " new noise det= " << det << " chan= " << j << " iter= " << it << endl;
+                                noisech[det][j] = 1;
+                                if (!read) {
+                                    Int_t cont1 = j + det * 10000;
+                                    fprintf(Wnoisefile, " %d\n", cont1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }// test = 2
+        else {
+
             for (Int_t det = 0; det < ndet; ++det) {
                 Int_t mChan = nchdet[det];
 
-                Float_t sumhits[maxchip2];
-                Int_t nsumch[maxchip2];
-                for (Int_t j = 0; j < maxchip2; ++j) {
-                    sumhits[j] = 0;
-                    nsumch[j] = 0;
-                }
-
-                for (Int_t j = 0; j < mChan; ++j) {
+                for (Int_t j = -1; j < mChan; ++j) {
                     if (noisech[det][j] == 0) {
-                        Int_t ichip = (Int_t) j / 16;
-                        sumhits[ichip] += hNhits[det]->GetBinContent(j + 1);
-                        nsumch[ichip]++;
-                    }
-                }
-
-                for (Int_t j = 0; j < maxchip2; ++j) {
-                    Int_t nsum = nsumch[j];
-                    if (nsum > 0) sumhits[j] /= nsum;
-                }
-
-                for (Int_t j = 0; j < mChan; ++j) {
-                    if (noisech[det][j] == 0) {
-                        Int_t ichip = (Int_t) j / 16;
-                        Float_t sum = sumhits[ichip];
-                        //                        if (it > 0)
-                        //                            printf("nhits = %f sum = %f  det = %i ichip = %i j = %i\n", hNhits[det]->GetBinContent(j + 1), sum, det, ichip, j);
-
-                        // cuts to define channel as noisy
-                        if ((hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 10) ||
-                                (hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 100) ||
-                                (hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 1000)) {
-
-                            //                            cout << " new noise det= " << det << " chan= " << j << " iter= " << it << endl;
+                        Float_t sumhitdet = hNhits[det]->GetBinContent(j + 1) / (Float_t) npevents;
+                        //      hnoise[det]->Fill(sumhitdet);
+                        if (sumhitdet > thrnoise) {
+                            //                        cout << " new noise det= " << det << " chan= " << j << " test2: noise> " << thrnoise << endl;
                             noisech[det][j] = 1;
                             if (!read) {
                                 Int_t cont1 = j + det * 10000;
@@ -238,51 +260,30 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
                         }
                     }
                 }
+
             }
         }
-    }// test = 2
-    else {
+        //    cout << " npedevents= " << npevents << " nloopev= " << nev << endl;
+        cout << endl;
 
-        for (Int_t det = 0; det < ndet; ++det) {
-            Int_t mChan = nchdet[det];
-
-            for (Int_t j = -1; j < mChan; ++j) {
-                if (noisech[det][j] == 0) {
-                    Float_t sumhitdet = hNhits[det]->GetBinContent(j + 1) / (Float_t) npevents;
-                    //      hnoise[det]->Fill(sumhitdet);
-                    if (sumhitdet > thrnoise) {
-                        //                        cout << " new noise det= " << det << " chan= " << j << " test2: noise> " << thrnoise << endl;
-                        noisech[det][j] = 1;
-                        if (!read) {
-                            Int_t cont1 = j + det * 10000;
-                            fprintf(Wnoisefile, " %d\n", cont1);
-                        }
-                    }
-                }
-            }
-
+        if (Wnoisefile)
+            fclose(Wnoisefile);
+        if (Rnoisefile)
+            fclose(Rnoisefile);
+        if (Wpedfile)
+            fclose(Wpedfile);
+        if (Pedfile)
+            fclose(Pedfile);
+        for (Int_t det = 0; det < ndet; det++) {
+            if (hNhits[det])
+                delete hNhits[det];
         }
-    }
-    //    cout << " npedevents= " << npevents << " nloopev= " << nev << endl;
-    cout << endl;
-
-    if (Wnoisefile)
-        fclose(Wnoisefile);
-    if (Rnoisefile)
-        fclose(Rnoisefile);
-    if (Wpedfile)
-        fclose(Wpedfile);
-    if (Pedfile)
-        fclose(Pedfile);
-    for (Int_t det = 0; det < ndet; det++) {
-        if (hNhits[det])
-            delete hNhits[det];
-    }
-    if (!read && wnoisename.Length()) {
-        Int_t retn = system(Form("mv %s %s", wnoisename.Data(), rnoisename.Data()));
-        //        printf("mv     noise ret %d\n", retn);
-        Int_t retp = system(Form("mv %s %s", wpedname.Data(), pedname.Data()));
-        //        printf("mv  pedestal ret %d\n", retp);
+        if (!read && wnoisename.Length()) {
+            Int_t retn = system(Form("mv %s %s", wnoisename.Data(), rnoisename.Data()));
+            //        printf("mv     noise ret %d\n", retn);
+            Int_t retp = system(Form("mv %s %s", wpedname.Data(), pedname.Data()));
+            //        printf("mv  pedestal ret %d\n", retp);
+        }
     }
     if (fGemStationSetDer) delete fGemStationSetDer;
 }

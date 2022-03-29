@@ -28,6 +28,7 @@
 #include "CbmStsSensor.h" //AZ
 #include "CbmStsSector.h"
 #include "CbmStsStation.h"
+#include "BmnSiliconPoint.h" //AZ-280322
 #include "FairGeoVector.h"
 #include "FairGeoNode.h"
 
@@ -55,6 +56,7 @@ CbmStsMatchHits::CbmStsMatchHits()
   fDigiPar(NULL),
   fPassGeo(NULL),
   fPoints(NULL),
+  fPointsSi(nullptr), //AZ-280322
   fDigis(NULL),
   fDigiMatches(NULL),
   fHits(NULL),
@@ -87,6 +89,7 @@ CbmStsMatchHits::CbmStsMatchHits(Int_t iVerbose)
   fDigiPar(NULL),
   fPassGeo(NULL),
   fPoints(NULL),
+  fPointsSi(nullptr), //AZ-280322
   fDigis(NULL),
   fDigiMatches(NULL),
   fHits(NULL),
@@ -119,6 +122,7 @@ CbmStsMatchHits::CbmStsMatchHits(const char* name, Int_t iVerbose)
   fDigiPar(NULL),
   fPassGeo(NULL),
   fPoints(NULL),
+  fPointsSi(nullptr), //AZ-280322
   fDigis(NULL),
   fDigiMatches(NULL),
   fHits(NULL),
@@ -415,6 +419,8 @@ void CbmStsMatchHits::ExecReal(Option_t* opt) {
 
   Int_t nofStsHits = fHits->GetEntriesFast();
   Int_t nofStsPoints = fPoints->GetEntriesFast();
+  int nofSiPoints = 0; //AZ-280322
+  if (fPointsSi) nofSiPoints = fPointsSi->GetEntriesFast(); //AZ-280322
   //cout << "there are " << nofStsPoints << " points and " << nofStsHits << " hits." << endl;
   Int_t   hitStationLimits[2][100];
 
@@ -441,9 +447,16 @@ void CbmStsMatchHits::ExecReal(Option_t* opt) {
   //for ( Int_t istat = 0 ; istat < fNStations ; istat++ )
   //   cout << "station " << istat << " hits from " << hitStationLimits[0][istat] << " to " << hitStationLimits[1][istat] << endl;
 
-  for ( Int_t ipnt = 0 ; ipnt < nofStsPoints ; ipnt++ ) {
-    CbmStsPoint *stsPoint = (CbmStsPoint*)fPoints->At(ipnt);
-
+  int nTotPoints = nofSiPoints + nofStsPoints; //AZ-280322
+  CbmStsPoint *stsPoint = nullptr; //AZ-280322
+  
+  //AZ-280322 for ( Int_t ipnt = 0 ; ipnt < nofStsPoints ; ipnt++ ) {
+  for ( Int_t iii = 0 ; iii < nTotPoints ; iii++ ) { //AZ-280322
+    //AZ-280322 CbmStsPoint *stsPoint = (CbmStsPoint*)fPoints->At(ipnt);
+    int ipnt = (iii < nofSiPoints) ? iii : iii - nofSiPoints;
+    if (iii < nofSiPoints) stsPoint = (CbmStsPoint*)fPointsSi->At(ipnt); //AZ-280322
+    else stsPoint = (CbmStsPoint*)fPoints->At(ipnt); //AZ-280322
+    
     // This is a workaround. Has to be worked out when new digi scheme is implemented. TODO.
     //AZ Double_t zPoint = stsPoint->GetZIn();
     //AZ Int_t stationNr = TMath::Nint((zPoint-30.)/10.);
@@ -540,8 +553,10 @@ void CbmStsMatchHits::ExecReal(Option_t* opt) {
       if (nMatch == 2) {
 	Double_t xH = stsHit->GetX();
 	Double_t yH = stsHit->GetY();
-	Double_t xP = stsPoint->GetX(stsHit->GetZ());
-	Double_t yP = stsPoint->GetY(stsHit->GetZ());
+	//AZ-280322 Double_t xP = stsPoint->GetX(stsHit->GetZ());
+	//AZ-280322 Double_t yP = stsPoint->GetY(stsHit->GetZ());
+	Double_t xP = stsPoint->GetXIn(); //AZ-280322 
+	Double_t yP = stsPoint->GetYIn(); //AZ-280322 
         Double_t dist = TMath::Sqrt( (xP-xH)*(xP-xH) + (yP-yH)*(yP-yH) );
 	nMatched++;
         NofMatched++;
@@ -561,7 +576,7 @@ void CbmStsMatchHits::ExecReal(Option_t* opt) {
       CbmStsHit *stsHit= (CbmStsHit*)fHits->At(GoodHitIndex[k]);
       stsHit->SetRefIndex(ipnt);
     }
-  } // for ( Int_t ipnt = 0 ; ipnt < nofStsPoints ;
+  } // for ( Int_t iii = 0 ; iii < nTotPoints ;
 
   // Event statistics
   fTimer.Stop();
@@ -749,6 +764,7 @@ InitStatus CbmStsMatchHits::Init() {
     cout << "-E- " << GetName() << "::Init: No STSPoint array!" << endl;
     return kERROR;
   }
+  fPointsSi = (TClonesArray*) ioman->GetObject("SiliconPoint"); //AZ-289322
   fDigis  = (TClonesArray*) ioman->GetObject("StsDigi");
   if ( ! fDigis ) {
     cout << "-E- " << GetName() << "::Init: No StsDigi array!" << endl;

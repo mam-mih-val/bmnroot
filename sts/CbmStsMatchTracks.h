@@ -72,6 +72,7 @@ class CbmStsMatchTracks : public FairTask
 
   TClonesArray* fTracks;       // Array of CbmStsTracks
   TClonesArray* fPoints;       // Array of CbmStsPoints
+  TClonesArray* fPointsSi;     // Array of BmnSiliconPoints-AZ-280322
   TClonesArray* fHits;         // Array of CbmStsHits
   TClonesArray* fMatches;      // Array of CbmStsTrackMatch
   TStopwatch    fTimer;        // Timer

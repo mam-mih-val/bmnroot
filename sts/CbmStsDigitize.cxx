@@ -1,14 +1,18 @@
 //* $Id: */
+
 // -------------------------------------------------------------------------
 // -----                    CbmStsDigitize source file             -----
 // -----                  Created 08/07/2008  by R. Karabowicz         -----
 // -------------------------------------------------------------------------
+
+
+
+
 // Includes from ROOT
 #include "TClonesArray.h"
 #include "TGeoBBox.h"
 #include "TObjArray.h"
 #include "TMath.h"
-#include "TFile.h"
 #include "TF1.h"
 #include "TRandom3.h"
 
@@ -34,6 +38,7 @@
 #include "CbmStsStation.h"
 #include "CbmMCTrack.h" //AZ
 #include "BmnGemFastDigitize.h" //AZ
+#include "BmnSiliconPoint.h" //AZ-280322
 
 #include <TDatabasePDG.h>
 
@@ -61,6 +66,7 @@ CbmStsDigitize::CbmStsDigitize()
   : FairTask("STS Digitizer", 1),
   fGeoPar(NULL),
   fDigiPar(NULL),
+  fPointsSi(nullptr), //AZ-280322
   fPoints(NULL),
   fDigis(NULL),
   fDigiMatches(NULL),
@@ -104,6 +110,7 @@ CbmStsDigitize::CbmStsDigitize(Int_t iVerbose)
   : FairTask("STSDigitize", iVerbose), 
   fGeoPar(NULL),
   fDigiPar(NULL),
+  fPointsSi(nullptr), //AZ-280322
   fPoints(NULL),
   fDigis(NULL),
   fDigiMatches(NULL),
@@ -147,6 +154,7 @@ CbmStsDigitize::CbmStsDigitize(const char* name, Int_t iVerbose)
   : FairTask(name, iVerbose), 
   fGeoPar(NULL),
   fDigiPar(NULL),
+  fPointsSi(nullptr), //AZ-280322
   fPoints(NULL),
   fDigis(NULL),
   fDigiMatches(NULL),
@@ -269,61 +277,68 @@ void CbmStsDigitize::Exec(Option_t* opt) {
   for (mapIt=fPointMap.begin(); mapIt!=fPointMap.end(); mapIt++)
     ((*mapIt).second).clear();
   
-  for (Int_t iPoint=0; iPoint<fPoints->GetEntriesFast(); iPoint++) {
-    CbmStsPoint* point = (CbmStsPoint*) fPoints->At(iPoint);
-    /*AZ!!! Exclude some points !!!
-    CbmMCTrack *mcTr = (CbmMCTrack*) fMCTracks->UncheckedAt(point->GetTrackID());
-    if (TMath::Abs(mcTr->GetPdgCode()) != 211) continue;
-    TVector3 mom;
-    mcTr->GetMomentum(mom);
-    if (mom.Eta() > 2) continue;
-    //AZ
-    */
-    //if (point->GetZIn() > 100.0) continue; //!!!AZ - exclude GEMs (010920)
+  for (int idet = 0; idet < 2; ++idet) { //AZ-280322
+    TClonesArray *points = (idet == 0) ? fPointsSi : fPoints;
+    if (points == nullptr) continue;
 
-    Double_t xin = point->GetXIn();
-    Double_t yin = point->GetYIn();
-    Double_t zin = point->GetZIn();
-    gGeoManager->FindNode(xin,yin,zin);
-    TGeoNode* curNode = gGeoManager->GetCurrentNode();
-    if (TString(curNode->GetName()).Contains("part")) {
-      // AZ - Test beam silicon
-      //cout << curNode->GetName() << " " << gGeoManager->GetPath() << endl;
-      gGeoManager->CdUp();
-      curNode = gGeoManager->GetCurrentNode();
-      //cout << curNode->GetName() << " " << gGeoManager->GetPath() << endl;
-      //exit(0);
+    //AZ-280322 for (Int_t iPoint=0; iPoint<fPoints->GetEntriesFast(); iPoint++) {
+    for (Int_t iPoint = 0; iPoint < points->GetEntriesFast(); iPoint++) {
+      //AZ-280322 CbmStsPoint* point = (CbmStsPoint*) fPoints->At(iPoint);
+      CbmStsPoint* point = (CbmStsPoint*) points->At(iPoint);
+      /*AZ!!! Exclude some points !!!
+	CbmMCTrack *mcTr = (CbmMCTrack*) fMCTracks->UncheckedAt(point->GetTrackID());
+	if (TMath::Abs(mcTr->GetPdgCode()) != 211) continue;
+	TVector3 mom;
+	mcTr->GetMomentum(mom);
+	if (mom.Eta() > 2) continue;
+	//AZ
+	*/
+      //if (point->GetZIn() > 100.0) continue; //!!!AZ - exclude GEMs (010920)
+      
+      Double_t xin = point->GetXIn();
+      Double_t yin = point->GetYIn();
+      Double_t zin = point->GetZIn();
+      gGeoManager->FindNode(xin,yin,zin);
+      TGeoNode* curNode = gGeoManager->GetCurrentNode();
+      if (TString(curNode->GetName()).Contains("part")) {
+	// AZ - Test beam silicon
+	//cout << curNode->GetName() << " " << gGeoManager->GetPath() << endl;
+	gGeoManager->CdUp();
+	curNode = gGeoManager->GetCurrentNode();
+	//cout << curNode->GetName() << " " << gGeoManager->GetPath() << endl;
+	//exit(0);
+      }
+      
+      CbmStsSensor* sensor = NULL;
+      if ( fDigiScheme->IsNewGeometry() ) {
+	TString curPath = fDigiScheme->GetCurrentPath();
+	//if (!curPath.Contains("Si") && CrossSpacer(curNode, point)) continue; //AZ - emulate spacers
+	sensor = fDigiScheme->GetSensorByName(curPath);
+      }
+      else sensor = fDigiScheme->GetSensorByName(curNode->GetName());
+      
+      if ( fPointMap.find(sensor) == fPointMap.end() ) {
+	cerr << "-E- " << fName << "::Exec:: sensor " << curNode->GetName()
+	     << " not found in digi scheme!" << endl;
+	continue;
+      }
+      fPointMap[sensor].insert(iPoint); 
+      nPoints++;
     }
+  } // for (int idet = 0; idet < 2;
     
-    CbmStsSensor* sensor = NULL;
-    if ( fDigiScheme->IsNewGeometry() ) {
-      TString curPath = fDigiScheme->GetCurrentPath();
-      //if (!curPath.Contains("Si") && CrossSpacer(curNode, point)) continue; //AZ - emulate spacers
-      sensor = fDigiScheme->GetSensorByName(curPath);
-    }
-    else sensor = fDigiScheme->GetSensorByName(curNode->GetName());
-
-    if ( fPointMap.find(sensor) == fPointMap.end() ) {
-      cerr << "-E- " << fName << "::Exec:: sensor " << curNode->GetName()
-	   << " not found in digi scheme!" << endl;
-      continue;
-    }
-    fPointMap[sensor].insert(iPoint); 
-    nPoints++;
-  }
-  
   for (Int_t iStation=fDigiScheme->GetNStations(); iStation > 0 ; ) {
     CbmStsStation* station = fDigiScheme->GetStation(--iStation);
     for (Int_t iSector=station->GetNSectors(); iSector > 0 ; ) {
       CbmStsSector* sector = station->GetSector(--iSector);
-
+      
       map<Int_t, set<Int_t> >::iterator mapCh;
-
+      
       for (mapCh=fFChannelPointsMap.begin(); mapCh!=fFChannelPointsMap.end(); mapCh++)
 	((*mapCh).second).clear();
       for (mapCh=fBChannelPointsMap.begin(); mapCh!=fBChannelPointsMap.end(); mapCh++)
 	((*mapCh).second).clear();
-
+      
       // simulating detector+cables+electronics noise 
       // should be more sophisticated...
       // the question is: sectorwise or sensorwise???
@@ -331,22 +346,23 @@ void CbmStsDigitize::Exec(Option_t* opt) {
       
       //-----aplying noise on every channel-----
       for (Int_t iChannel=nChannels ; iChannel > 0 ; ) {
-// 	fStripSignalF[--iChannel] = fGen->Landau(.1,.02);
-// 	fStripSignalB[  iChannel] = fGen->Landau(.1,.02);
-// 	fStripSignalF[--iChannel] = 0.;
-// 	fStripSignalB[  iChannel] = 0.;
- 	//AZ fStripSignalF[--iChannel] = TMath::Abs(gRandom->Gaus(0.,fFNoiseWidth));
+	// 	fStripSignalF[--iChannel] = fGen->Landau(.1,.02);
+	// 	fStripSignalB[  iChannel] = fGen->Landau(.1,.02);
+	// 	fStripSignalF[--iChannel] = 0.;
+	// 	fStripSignalB[  iChannel] = 0.;
+	//AZ fStripSignalF[--iChannel] = TMath::Abs(gRandom->Gaus(0.,fFNoiseWidth));
 	fStripSignalF[--iChannel] = 0;
- 	//AZ fStripSignalB[  iChannel] = TMath::Abs(gRandom->Gaus(0.,fBNoiseWidth));
+	//AZ fStripSignalB[  iChannel] = TMath::Abs(gRandom->Gaus(0.,fBNoiseWidth));
       }
       //AZ 
       Int_t nChannelsB = sector->GetNChannelsBack();
       //-----aplying noise on every channel-----
       for (Int_t iChannel=nChannelsB ; iChannel > 0 ; ) {
- 	//AZ fStripSignalB[--iChannel] = TMath::Abs(gRandom->Gaus(0.,fBNoiseWidth));
+	//AZ fStripSignalB[--iChannel] = TMath::Abs(gRandom->Gaus(0.,fBNoiseWidth));
 	fStripSignalB[--iChannel] = 0;
       }
       //AZ 
+      //if (sector->GetStationNr() > 3) cout << " yyyy " << sector->GetStationNr() << " " << sector->GetSectorNr() << endl; //AZ-290322
       
       for (Int_t iSensor=sector->GetNSensors(); iSensor > 0 ; ) {
 	CbmStsSensor* sensor = sector->GetSensor(--iSensor);
@@ -359,7 +375,7 @@ void CbmStsDigitize::Exec(Option_t* opt) {
 	} else ProduceHitResponse(sensor);
 	//ProduceHitResponseAZ(sensor); //AZ
       }
-
+      
       Int_t   stationNr = sector->GetStationNr();
       Int_t    sectorNr = sector->GetSectorNr();
       Int_t sectorDetId = sector->GetDetectorId();
@@ -370,9 +386,9 @@ void CbmStsDigitize::Exec(Option_t* opt) {
 	//AZ if ( fStripSignalF[ifstr] < (fFThreshold*1000.) ) continue;//threshold cut
 	//if (fastDig && dx > 0.02) {
 	//if (fStripSignalF[ifstr] < 13.0*1) continue;
-        //} else if ( fStripSignalF[ifstr] < (fFThreshold*1000.) ) continue;//threshold cut
-
-        //-----random strip inefficiency-----
+	//} else if ( fStripSignalF[ifstr] < (fFThreshold*1000.) ) continue;//threshold cut
+	
+	//-----random strip inefficiency-----
 	Double_t generator;
 	generator = gRandom->Rndm()*100.;
 	//AZ if (generator< (fStripDeadTime/100.)*occupancy [iStation][iSector][ifstr/125]) continue;
@@ -411,7 +427,7 @@ void CbmStsDigitize::Exec(Option_t* opt) {
       }
       
       nChannels = sector->GetNChannelsBack(); //AZ 
-
+      
       for ( Int_t ibstr = 0 ; ibstr < nChannels ; ibstr++ ) {
 	if ( fStripSignalB[ibstr] < 1) continue; //AZ
 	//AZ if ( fStripSignalB[ibstr] < (fBThreshold*1000.) ) continue; //threshold cut
@@ -446,7 +462,7 @@ void CbmStsDigitize::Exec(Option_t* opt) {
 	  for (it1=chPnt.begin(); it1!=chPnt.end(); it1++) {
 	    pnt = (*it1);
 	    if ( it1==chPnt.begin() ) 
-	    match = new ((*fDigiMatches)[fNDigis]) CbmStsDigiMatch(pnt);
+	      match = new ((*fDigiMatches)[fNDigis]) CbmStsDigiMatch(pnt);
 	    else {
 	      match->AddPoint(pnt);
 	      fNMulti++;
@@ -457,7 +473,7 @@ void CbmStsDigitize::Exec(Option_t* opt) {
 	nDigisB++;
       }
     }
-  }
+  } 
   
   fTimer.Stop();
   cout << "+ " << flush;
@@ -533,16 +549,29 @@ void CbmStsDigitize::ProduceHitResponseSi(CbmStsSensor* sensor)
 
   Int_t       iPoint = -1;
   CbmStsPoint* point = NULL;
+  BmnSiliconPoint* pointsi = nullptr; //AZ-280322
 
   set<Int_t>::iterator it1;
 
   Double_t dPitch, step = fStep; //AZ
   if (TString(sensor->GetName()).Contains("Si") || sensor->GetDx() < 0.0200) step = 0.001; //AZ - silicon
+  TClonesArray *points = (fPointsSi == nullptr) ? fPoints : fPointsSi; //AZ-280322
+  TVector3 posIn, posOut; //AZ-280322
 
   for (it1=pSet.begin(); it1!=pSet.end(); it1++) {
     iPoint = (*it1);
-    point  = (CbmStsPoint*) fPoints->At(iPoint);
+    //AZ-280322 point  = (CbmStsPoint*) fPoints->At(iPoint);
+    if (fPointsSi) {
+      pointsi  = (BmnSiliconPoint*) points->UncheckedAt(iPoint);
+      pointsi->PositionIn(posIn);
+      pointsi->PositionOut(posOut);
+    } else {
+      point  = (CbmStsPoint*) points->At(iPoint);
+      point->PositionIn(posIn);
+      point->PositionOut(posOut);
+    }
 
+    /*AZ-280322
     Double_t xin = point->GetXIn();
     Double_t yin = point->GetYIn();
     Double_t zin = point->GetZIn();
@@ -550,11 +579,18 @@ void CbmStsDigitize::ProduceHitResponseSi(CbmStsSensor* sensor)
     Double_t xvec = point->GetXOut()-xin;
     Double_t yvec = point->GetYOut()-yin;
     Double_t zvec = point->GetZOut()-zin;
-
+    cout << xin << " " << yin << " " << zin << " " << point->GetXOut() << " " << yvec << " " << point->GetZOut() << endl; //AZ-280322
+    */
+    posOut -= posIn; //AZ-280322
+    Double_t xin = posIn.X(), yin = posIn.Y(), zin = posIn.Z(); //AZ-280322
+    Double_t xvec = posOut.X(), yvec = posOut.Y(), zvec = posOut.Z(); //AZ-280322
+    
     //Int_t nofSteps = (Int_t)(TMath::Sqrt(xvec*xvec+yvec*yvec+zvec*zvec)/fStep+1);
     Int_t nofSteps = (Int_t)(TMath::Sqrt(xvec*xvec+yvec*yvec+zvec*zvec)/step+1);
     
-    Double_t stepEL = fEnergyLossToSignal*point->GetEnergyLoss()/(nofSteps+1);
+    //AZ-280322 Double_t stepEL = fEnergyLossToSignal*point->GetEnergyLoss()/(nofSteps+1);
+    Double_t eloss = (fPointsSi == nullptr) ? point->GetEnergyLoss() : pointsi->GetEnergyLoss(); //AZ-280322
+    Double_t stepEL = fEnergyLossToSignal * eloss / (nofSteps + 1); //AZ-280322
     //Double_t stepEL = 0.0; //AZ
     //if (sensor->GetDx() < 0.0200) stepEL = 280000000 * 1.5 * point->GetEnergyLoss() / (nofSteps+1); //AZ - Si
     //else stepEL = fEnergyLossToSignal*point->GetEnergyLoss()/(nofSteps+1); //AZ
@@ -708,6 +744,8 @@ void CbmStsDigitize::ProduceHitResponse(CbmStsSensor* sensor)
     ////mean collision distance (mean free flight path) [cm]
     Double_t mcd = 1/mnoc; //ES
 
+    mcd = 0.0245; //AZ-190322 - test - pi+, p = 1 GeV/c
+
     while(current_length < track_length) {
 
       current_step = gRandom->Exp(mcd);
@@ -850,10 +888,12 @@ void CbmStsDigitize::ProduceHitResponse(CbmStsSensor* sensor)
 	  */
 	  Double_t dPrel = dPitch / dx;
           //if ( iIChan != -1 && dPitch/dx < 0.2) { // strip width 0.16 mm
-          if ( iIChan != -1 && TMath::Abs(dPitch/dx) < 0.1) { // strip width 0.16 mm
-	    fStripSignalF[iIChan] += 1.0;//stepEl_current;
+          //AZ-200322 if ( iIChan != -1 && TMath::Abs(dPitch/dx) < 0.1) { // strip width 0.16 mm
+	  if ( iIChan != -1) { //AZ-200322
+	    //AZ-200322 fStripSignalF[iIChan] += 1.0;//stepEl_current;
+	    fStripSignalF[iIChan] += 0.25;//stepEl_current;
 	    fFChannelPointsMap[iIChan].insert(iPoint);
-	    continue; // electron does not reach backside strips
+	    //AZ-200322 continue; // electron does not reach backside strips
           }
 
           //AZ iIChan = sensor->GetBackChannel (xin,yin,zin);
@@ -864,9 +904,11 @@ void CbmStsDigitize::ProduceHitResponse(CbmStsSensor* sensor)
           //else if (sensor->GetNChannelsFront() > 900 && sensor->GetSectorNr() == 3 && iIChan < 600) iIChan = -1;
 
           //if ( iIChan != -1 && dPitch/dy < 0.85) { // strip width 0.68 mm
-          if ( iIChan != -1 && TMath::Abs(dPitch/dy) < 0.425) { // strip width 0.68 mm
-	    if (gRandom->Rndm() < 0.68) continue; // kill electron to equalize responses from 2 sides
-	    fStripSignalB[iIChan] += 1.0;//stepEl_current;
+          //AZ-200322 if ( iIChan != -1 && TMath::Abs(dPitch/dy) < 0.425) { // strip width 0.68 mm
+	  if ( iIChan != -1) { //AZ-200322
+	    //AZ-200322 if (gRandom->Rndm() < 0.68) continue; // kill electron to equalize responses from 2 sides
+	    //AZ-200322 fStripSignalB[iIChan] += 1.0;//stepEl_current;
+	    fStripSignalB[iIChan] += 0.25;//stepEl_current;
 	    fBChannelPointsMap[iIChan].insert(iPoint);
           }
         }
@@ -1037,6 +1079,7 @@ InitStatus CbmStsDigitize::Init() {
   // Get input array 
   FairRootManager* ioman = FairRootManager::Instance();
   if ( ! ioman ) Fatal("Init", "No FairRootManager");
+  fPointsSi = (TClonesArray*) ioman->GetObject("SiliconPoint"); //AZ-280322
   fPoints = (TClonesArray*) ioman->GetObject("StsPoint");
   fMCTracks = (TClonesArray*) ioman->GetObject("MCTrack"); //AZ
 

@@ -98,6 +98,7 @@ class CbmStsDigitize : public FairTask
   CbmGeoStsPar*     fGeoPar;       /** Geometry parameter container **/
   CbmStsDigiPar*    fDigiPar;      /** Digitisation parameter container **/
   CbmStsDigiScheme* fDigiScheme;   /** Digitisation scheme **/
+  TClonesArray*     fPointsSi;     /** Input array of CbmSiliconPoint AZ-280322**/
   TClonesArray*     fPoints;       /** Input array of CbmStsPoint **/
   TClonesArray*     fDigis;        /** Output array of CbmStsDigi **/
   TClonesArray*     fDigiMatches;  /** Output array of CbmStsDigiMatches**/

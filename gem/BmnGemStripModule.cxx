@@ -168,7 +168,7 @@ Bool_t BmnGemStripModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
     //Condition: a start point is inside the module and outside its dead zone (in strip layers)
     if( IsPointInsideModule(x, y) ) {
 
-        gRandom->SetSeed(AvalancheGenerationSeed);
+      //AZ-260322 gRandom->SetSeed(AvalancheGenerationSeed);
 
         //Distance from entry point (x,y,z) to exit point (along z-axis)
         Double_t z_distance_from_in_to_out;

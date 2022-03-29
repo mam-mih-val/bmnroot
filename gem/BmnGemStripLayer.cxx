@@ -30,7 +30,8 @@ BmnGemStripLayer::BmnGemStripLayer() {
         }
     }
 
-    ClusterFindingThreshold = 0.0;
+    //AZ ClusterFindingThreshold = 0.0;
+    ClusterFindingThreshold = 1.0;
 
     InitializeLayer();
 }
@@ -65,7 +66,8 @@ BmnGemStripLayer::BmnGemStripLayer(Int_t zone_number, StripLayerType layer_type,
         }
     }
 
-    ClusterFindingThreshold = 0.0;
+    //AZ ClusterFindingThreshold = 0.0;
+    ClusterFindingThreshold = 1.0;
 
     InitializeLayer();
 }
@@ -474,7 +476,8 @@ void BmnGemStripLayer::FindClustersAndStripHits() {
         }
 
         if( cluster.GetClusterSize() > 0 ) {
-            if( AnalyzableStrips.at(is) >= (cluster.Signals.at(cluster.GetClusterSize()-1)) ) {
+	  //AZ-210322 if( AnalyzableStrips.at(is) >= (cluster.Signals.at(cluster.GetClusterSize()-1)) ) {
+	  if( int(AnalyzableStrips.at(is)) > int(cluster.Signals.at(cluster.GetClusterSize()-1)) ) { //AZ-210322
                 if(descent) {
                     ascent = false;
                     descent = false;
@@ -583,14 +586,24 @@ void BmnGemStripLayer::FindClustersAndStripHits() {
 //    }
     //--------------------------------------------------------------------------
 
-    StripHits.push_back(mean_strip_position);
-    StripHitsTotalSignal.push_back(total_cluster_signal);
-    StripHitsErrors.push_back(cluster_rms);
-    StripHitsClusterSize.push_back(NStripsInCluster);
+    if (total_cluster_signal > 40) {//AZ-220322
+      StripHits.push_back(mean_strip_position);
+      StripHitsTotalSignal.push_back(total_cluster_signal);
+      StripHitsErrors.push_back(cluster_rms);
+      StripHitsClusterSize.push_back(NStripsInCluster);
+      if (LayerType == LowerStripLayer) {
+        cluster.SetType(0);
+        cluster.SetUniqueID(fUniqueIdL++);
+      } else {
+        cluster.SetType(1);
+        cluster.SetUniqueID(fUniqueIdU++);
+      }
+    }//AZ
 
     cluster.SetWidth(NStripsInCluster);
     cluster.MeanPosition = mean_strip_position;
     cluster.TotalSignal = total_cluster_signal;
+    /*AZ-240322
     if (LayerType == LowerStripLayer) {
         cluster.SetType(0);
         cluster.SetUniqueID(fUniqueIdL++);
@@ -598,8 +611,10 @@ void BmnGemStripLayer::FindClustersAndStripHits() {
         cluster.SetType(1);
         cluster.SetUniqueID(fUniqueIdU++);
     }
+    */
 
-    StripClusters.push_back(cluster);
+    //AZ-220322 StripClusters.push_back(cluster);
+    if (total_cluster_signal > 40) StripClusters.push_back(cluster); //AZ-220322 
 
     //return to a previous strip
     curcnt--;

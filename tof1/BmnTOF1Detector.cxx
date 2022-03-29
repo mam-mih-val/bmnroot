@@ -143,6 +143,7 @@ void BmnTOF1Detector::Clear() {
 Bool_t BmnTOF1Detector::SetDigit(BmnTof1Digit * TofDigit) {
     fStrip = TofDigit->GetStrip();
     if (fStrip < 0 || fStrip > fNStr) return kFALSE;
+    if (fFlagHit[fStrip] == kTRUE) return kFALSE;
     if (fVerbose > 3) cout << " Plane = " << TofDigit->GetPlane() << "; Strip " << TofDigit->GetStrip() << "; Side " << TofDigit->GetSide() << "; Time " << TofDigit->GetTime() << "; Amp " << TofDigit->GetAmplitude() << endl;
     if (TofDigit->GetSide() == 0 && fFlagHit[fStrip] == kFALSE && fKilled[fStrip] == kFALSE && fKillSide != 0) {
         fTimeLtemp[fStrip] = TofDigit->GetTime() - 2. * fCorrLR[fStrip];
@@ -168,7 +169,7 @@ Bool_t BmnTOF1Detector::SetDigit(BmnTof1Digit * TofDigit) {
     }
     if (
             fTimeRtemp[fStrip] != 0 && fTimeLtemp[fStrip] != 0
-            && TMath::Abs((fTimeLtemp[fStrip] - fTimeRtemp[fStrip]) * 0.5) <= fMaxDelta // cat for length of strip  
+            //&& TMath::Abs((fTimeLtemp[fStrip] - fTimeRtemp[fStrip]) * 0.5) <= fMaxDelta // cat for length of strip  
             //        && TMath::Abs((fWidthLtemp[fStrip] - fWidthRtemp[fStrip]) * 0.5) <= 1.5 // cat for Amplitude correlation
             //&& fFlagHit[fStrip] == kFALSE
             )
@@ -411,7 +412,7 @@ Bool_t BmnTOF1Detector::SetCorrLR(Double_t* Mass) {
 Bool_t BmnTOF1Detector::SetCorrLR(TString NameFile) {
     char line[256];
     Int_t Pl, St;
-    Double_t Temp;
+    Double_t CorrFit, CorrMean;
     ifstream f_corr;
     TString dir = Form("%s%s%s", getenv("VMCWORKDIR"), "/input/", NameFile.Data());
     f_corr.open(dir);
@@ -419,22 +420,21 @@ Bool_t BmnTOF1Detector::SetCorrLR(TString NameFile) {
     f_corr.getline(line, 256);
     if (f_corr.is_open() == kTRUE) {
         while (!f_corr.eof()) {
-            f_corr >> Pl >> St >> Temp;
+            f_corr >> Pl >> St >> CorrFit >> CorrMean;
             if (Pl == fNPlane) {
-                fCorrLR[St] = Temp;
-                f_corr >> Temp;
+                fCorrLR[St] = CorrMean;
                 // If diff between my shift and old shift is greater than the actual cable, throw 
                 // strip out
                 // if (TMath::Abs(Temp - fCorrLR[St]) > 2.) fCorrLR[St] = -11.9766;
                 // cout << Pl << " " << St << " " << CorrLR[St] << " " << Temp << "\n";
-            } else
-                f_corr >> Temp;
+            }
         }
     } else {
         cout << "File " << NameFile.Data() << " for LR correction is not found" << endl;
         cout << "Check " << dir.Data() << " folder for file" << endl;
         return kFALSE;
     }
+    f_corr.close();
     return kTRUE;
 }
 //----------------------------------------------------------------------------------------
@@ -512,8 +512,7 @@ Bool_t BmnTOF1Detector::GetCrossPoint(Int_t NStrip = 0) {
     if (fCorrLR[NStrip] == 0) { // return the center of the strip in case no LR correction
         fCrossPoint[NStrip] = fCentrStrip[NStrip];
         return kTRUE;
-    }
-    else if (TMath::Abs((fTimeL[NStrip] - fTimeR[NStrip]) * 0.5) >= fMaxDelta)
+    } else if (TMath::Abs((fTimeL[NStrip] - fTimeR[NStrip]) * 0.5) >= fMaxDelta)
         return kFALSE; // estimated position is out of the strip edge.
     double dL = (fTimeL[NStrip] - fTimeR[NStrip]) * 0.5 / fSignalVelosity;
 
@@ -620,7 +619,7 @@ Bool_t BmnTOF1Detector::GetXYZTime(Int_t Str, TVector3 *XYZ, Double_t *ToF) {
 
 Bool_t BmnTOF1Detector::GetLRTime(Int_t Str, Double_t *LMinusRTime) {
 
-    if (fTof[Str] == 0) return kFALSE;
+    //   if (fTof[Str] == 0) return kFALSE;
     if (NULL == LMinusRTime) return kFALSE;
     *LMinusRTime = (fTimeL[Str] - fTimeR[Str]) * 0.5;
     return kTRUE;

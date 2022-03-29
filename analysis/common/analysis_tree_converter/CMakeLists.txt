@@ -87,4 +87,4 @@ GENERATE_LIBRARY()
 #        DESTINATION share/cbmroot/macro/analysis_tree
 #       )
 
-Add_Dependencies(CbmAnalysisTreeInterface ANALYSISTREE)
+Add_Dependencies(CbmAnalysisTreeInterface ANALYSISTREE Cat)

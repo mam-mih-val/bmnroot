@@ -25,6 +25,9 @@ Set(INCLUDE_DIRECTORIES
   ${CMAKE_SOURCE_DIR}/bmndata/cbm
   ${CMAKE_SOURCE_DIR}/KF
   ${CMAKE_SOURCE_DIR}/KF/Interface
+  ${CMAKE_SOURCE_DIR}/cat
+  ${CMAKE_SOURCE_DIR}/cat/ParticleFinder
+  ${CMAKE_SOURCE_DIR}/cat/L1Algo
 #  ${KFParticle_INCLUDE_DIR}
   ${AnalysisTree_INCLUDE_DIR}
   ${ROOT_INCLUDE_DIR}
@@ -44,6 +47,7 @@ message(STATUS "!!! ${INCLUDE_DIRECTORIES}")
 set (LINK_DIRECTORIES
   ${AnalysisTree_LIBRARY_DIR}
   ${KFParticle_LIB_DIR}
+  ${Cat_LIB_DIR}
   ${FAIRROOT_LIBRARY_DIR}
   ${ROOT_LIBRARY_DIR}
   ${Boost_LIBRARY_DIRS}

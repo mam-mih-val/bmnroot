@@ -18,7 +18,9 @@
 #include <CbmTrackMatch.h>
 
 #include "AnalysisTree/Matching.hpp"
-
+#include "CbmL1PFFitter.h"
+#include "L1Field.h"
+#include "CbmKFVertex.h"
 
 ClassImp(BmnStsTracksConverter);
 
@@ -48,6 +50,7 @@ void BmnStsTracksConverter::Init()
 
   AnalysisTree::BranchConfig vtx_tracks_config(out_branch_, AnalysisTree::DetType::kTrack);
   vtx_tracks_config.AddField<float>("chi2", "chi2 of the track fit");
+  vtx_tracks_config.AddField<float>("chi2_vertex", "chi2 of the track extrapolation to the vertex");
   vtx_tracks_config.AddField<float>("length", "length of the track");
   vtx_tracks_config.AddFields<float>({"dcax", "dcay", "dcaz"},
                                      "not actuall Distance of Closest Approach, but extrapolated to z=z_vtx");
@@ -74,6 +77,7 @@ void BmnStsTracksConverter::ReadVertexTracks()
   const int indf       = branch.GetFieldId("ndf");
   const int inhits     = branch.GetFieldId("n_hits");
   const int ichi2      = branch.GetFieldId("chi2");
+  const int ichi2_vertex      = branch.GetFieldId("chi2_vertex");
   const int idcax      = branch.GetFieldId("dcax");
   const int ix_first = branch.GetFieldId("x_first");
   const int ix_last = branch.GetFieldId("x_last");
@@ -96,6 +100,9 @@ void BmnStsTracksConverter::ReadVertexTracks()
     auto*in_sts_track = dynamic_cast<CbmStsTrack*>(in_sts_tracks_->At(track_index) );
     if (!in_sts_track) { throw std::runtime_error("empty out_track!"); }
     auto&out_track = out_sts_tracks_->AddChannel(branch);
+
+    auto chi2_vertex = ExtrapolateToVertex( in_sts_track, 2212 );
+
     const FairTrackParam* trackParamFirst = in_sts_track->GetParamFirst();
     const FairTrackParam* trackParamLast = in_sts_track->GetParamLast();
 
@@ -144,6 +151,7 @@ void BmnStsTracksConverter::ReadVertexTracks()
     out_track.SetField(float(z_last), ix_last +2);
 
     out_track.SetField(float(chi2), ichi2);
+    out_track.SetField(float(chi2_vertex), ichi2_vertex);
 
     out_track.SetField(int(q), iq);
     out_track.SetField(int(ndf), indf);
@@ -154,5 +162,15 @@ void BmnStsTracksConverter::ReadVertexTracks()
     out_track.SetField(float(z_first - vertex_z), idcax + 2);
   }
 }
-
+float BmnStsTracksConverter::ExtrapolateToVertex(CbmStsTrack* sts_track, int pdg){
+  std::vector<CbmStsTrack> tracks = {*sts_track};
+  CbmL1PFFitter fitter;
+  std::vector<float> chi2_to_vtx;
+  std::vector<L1FieldRegion> field;
+  CbmKFVertex kfVertex = CbmKFVertex(*in_bmn_vertex_);
+  fitter.Fit(tracks, pdg);
+  fitter.GetChiToVertex(tracks, field, chi2_to_vtx, kfVertex, 3.);
+  *sts_track = tracks[0];
+  return chi2_to_vtx[0];
+}
 // TODO misleading name, move field filling somewhere else?

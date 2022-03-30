@@ -829,6 +829,8 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
             if (fKalman->Update(&parFirst, (BmnHit*)hit, chi) == kBMNERROR) return kBMNERROR;
             totChi2 += chi;
         }
+        Double_t zTarget = (fVertex) ? fVertex->GetZ() : 0.0;  // z of target by default (FIXME)
+        fKalman->TGeoTrackPropagate(&parFirst, zTarget, fPDG, nullptr, nullptr, fIsField);
     } else if (fInnerTracks) {
         BmnGemTrack* gemTrack = (BmnGemTrack*)fGemTracks->At(tr->GetGemTrackIndex());
         for (Int_t hitIdx = gemTrack->GetNHits() - 1; hitIdx >= 0; hitIdx--) {

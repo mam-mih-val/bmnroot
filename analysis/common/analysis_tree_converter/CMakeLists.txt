@@ -22,6 +22,7 @@ Set(INCLUDE_DIRECTORIES
   /lustre/hades/user/parfenov/Soft/FAIRSOFT/fairsoft_jun19p1/install/include/root6/
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/bmndata
+  ${CMAKE_SOURCE_DIR}/bmndata/math
   ${CMAKE_SOURCE_DIR}/bmndata/cbm
   ${CMAKE_SOURCE_DIR}/KF
   ${CMAKE_SOURCE_DIR}/KF/Interface

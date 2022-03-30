@@ -102,7 +102,7 @@ void BmnStsTracksConverter::ReadVertexTracks()
     auto&out_track = out_sts_tracks_->AddChannel(branch);
 
     float chi2_vertex = -999.;
-//    auto chi2_vertex = ExtrapolateToVertex( in_sts_track, 2212 );
+    chi2_vertex = ExtrapolateToVertex( in_sts_track, 2212 );
 
     const FairTrackParam* trackParamFirst = in_sts_track->GetParamFirst();
     const FairTrackParam* trackParamLast = in_sts_track->GetParamLast();
@@ -169,7 +169,7 @@ float BmnStsTracksConverter::ExtrapolateToVertex(CbmStsTrack* sts_track, int pdg
   std::vector<float> chi2_to_vtx;
   std::vector<L1FieldRegion> field;
   CbmKFVertex kfVertex = CbmKFVertex(*in_bmn_vertex_);
-  fitter.Fit(tracks, pdg);
+//  fitter.Fit(tracks, pdg);
   fitter.GetChiToVertex(tracks, field, chi2_to_vtx, kfVertex, 3.);
   *sts_track = tracks[0];
   return chi2_to_vtx[0];

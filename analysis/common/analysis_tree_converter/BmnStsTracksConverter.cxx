@@ -169,7 +169,9 @@ float BmnStsTracksConverter::ExtrapolateToVertex(CbmStsTrack* sts_track, int pdg
   std::vector<float> chi2_to_vtx;
   std::vector<L1FieldRegion> field;
   CbmKFVertex kfVertex = CbmKFVertex(*in_bmn_vertex_);
-//  fitter.Fit(tracks, pdg);
+  std::cout << "Fitting the track to the vertex" << std::endl;
+  fitter.Fit(tracks, pdg);
+  std::cout << "Calculating the chi2 of the extrapolation" << std::endl;
   fitter.GetChiToVertex(tracks, field, chi2_to_vtx, kfVertex, 3.);
   *sts_track = tracks[0];
   return chi2_to_vtx[0];

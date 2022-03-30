@@ -101,7 +101,7 @@ void BmnStsTracksConverter::ReadVertexTracks()
     if (!in_sts_track) { throw std::runtime_error("empty out_track!"); }
     auto&out_track = out_sts_tracks_->AddChannel(branch);
 
-    auto chi2_vertex = ExtrapolateToVertex( in_sts_track, 2212 );
+//    auto chi2_vertex = ExtrapolateToVertex( in_sts_track, 2212 );
 
     const FairTrackParam* trackParamFirst = in_sts_track->GetParamFirst();
     const FairTrackParam* trackParamLast = in_sts_track->GetParamLast();

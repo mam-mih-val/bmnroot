@@ -53,6 +53,8 @@ set (LINK_DIRECTORIES
   ${ROOT_LIBRARY_DIR}
   ${Boost_LIBRARY_DIRS}
 )
+
+message(STATUS "Cat library: ${KFParticle_LIB_DIR}" )
  
 link_directories(${LINK_DIRECTORIES})
 
@@ -70,11 +72,7 @@ Set(LINKDEF CbmAnalysisTreeInterfaceLinkDef.h)
 Set(_AnalysisTree_LIB AnalysisTreeBase AnalysisTreeInfra)
 
 Set(DEPENDENCIES
-        KF
-        BmnData
-        AnalysisTree
         Cat
-        #	${_AnalysisTree_LIB}
         #	CbmData
         #	CbmBase
 #	L1

@@ -274,12 +274,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
             fPDG = (globTr.GetP() > 0.) ? 2212 : -211;
             Double_t len = 0.0;
             Double_t zTarget = (fVertex) ? fVertex->GetZ() : 0.0;  // z of target by default (FIXME)
-<<<<<<< HEAD
             if (fKalman->TGeoTrackPropagate(&par, zTarget, fPDG, nullptr, &len) == kBMNERROR) continue;
-=======
-            fKalman->TGeoTrackPropagate(par_first, zTarget, fPDG, nullptr, &len, fIsField);
-            if (fKalman->TGeoTrackPropagate(&par, zTarget, fPDG, nullptr, &len, fIsField) == kBMNERROR) continue;
->>>>>>> 69c5163b (Checking the track extrapolation)
             globTr.SetLength(len);
 
             //Matching with Small CSC1

@@ -7,6 +7,7 @@
 #include "CbmMCTrack.h"
 #include "CbmVertex.h"
 #include "BmnGlobalTrack.h"
+#include "BmnKalmanFilter.h"
 
 #include "FairRootManager.h"
 
@@ -72,7 +73,7 @@ void BmnGlobalTracksConverter::Init()
 void BmnGlobalTracksConverter::ReadVertexTracks()
 {
   assert(in_bmn_vertex_ && in_bmn_global_tracks_);
-
+  BmnKalmanFilter kalman_filter;
   out_global_tracks_->ClearChannels();
   global_tracks_2_sts_tracks_->Clear();
   global_tracks_2_tof400_hits_->Clear();
@@ -109,11 +110,13 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
     auto*in_bmn_global_track = dynamic_cast<BmnGlobalTrack*>(in_bmn_global_tracks_->At(track_index) );
     if (!in_bmn_global_track) { throw std::runtime_error("empty out_track!"); }
     auto&out_track = out_global_tracks_->AddChannel(branch);
-    const FairTrackParam* trackParamFirst =
+    FairTrackParam* trackParamFirst =
         in_bmn_global_track->GetParamFirst();
 
-    const FairTrackParam* trackParamLast =
+    FairTrackParam* trackParamLast =
         in_bmn_global_track->GetParamLast();
+
+    kalman_filter.RK4TrackExtrapolate(trackParamFirst, vertex_z, nullptr);
 
     float x_first = trackParamFirst->GetX();
     float y_first = trackParamFirst->GetY();

@@ -69,11 +69,14 @@ Set(LINKDEF CbmAnalysisTreeInterfaceLinkDef.h)
 
 Set(_AnalysisTree_LIB AnalysisTreeBase AnalysisTreeInfra)
 
-Set(DEPENDENCIES 
-#	${_AnalysisTree_LIB}
-#	CbmData
-#	CbmBase
-	#KF
+Set(DEPENDENCIES
+        KF
+        BmnData
+        AnalysisTree
+        Cat
+        #	${_AnalysisTree_LIB}
+        #	CbmData
+        #	CbmBase
 #	L1
 #	CbmSimGenerators
 )

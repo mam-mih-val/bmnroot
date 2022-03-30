@@ -18,7 +18,7 @@ BmnKalmanFilter::~BmnKalmanFilter() {
 BmnStatus BmnKalmanFilter::RK4TrackExtrapolate(FairTrackParam *par, Double_t zOut, vector<Double_t> *F) {
     Double_t zIn = par->GetZ();
     fField = FairRunAna::Instance()->GetField();
-
+    assert(fField);
     vector<Double_t> xIn;
     xIn.resize(5);
     xIn[0] = par->GetX();

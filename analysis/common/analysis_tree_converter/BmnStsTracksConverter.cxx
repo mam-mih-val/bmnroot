@@ -102,7 +102,7 @@ void BmnStsTracksConverter::ReadVertexTracks()
     auto&out_track = out_sts_tracks_->AddChannel(branch);
 
     float chi2_vertex = -999.;
-    chi2_vertex = ExtrapolateToVertex( in_sts_track, 2212 );
+//    chi2_vertex = ExtrapolateToVertex( in_sts_track, 2212 );
 
     const FairTrackParam* trackParamFirst = in_sts_track->GetParamFirst();
     const FairTrackParam* trackParamLast = in_sts_track->GetParamLast();

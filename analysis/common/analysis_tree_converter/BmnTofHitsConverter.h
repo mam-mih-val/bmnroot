@@ -39,7 +39,8 @@ public:
 private:
 
   void MapTracks();
-  void ExtrapolateStraightLine(FairTrackParam* params, float z);
+  // Returns the position-vector of {x,y,x} in exact z
+  TVector3 ExtrapolateStraightLine(FairTrackParam* params, float z);
 
   TClonesArray*in_bmn_tof_hits_{nullptr};
   TClonesArray*in_bmn_global_tracks_{nullptr};

@@ -53,7 +53,7 @@ void BmnTofHitsConverter::Init()
   man->AddBranch(out_branch_, out_tof_hits_, tof_branch_config);
 }
 
-void BmnTofHitsConverter::ExtrapolateStraightLine(FairTrackParam* params, float z)
+TVector3 BmnTofHitsConverter::ExtrapolateStraightLine(FairTrackParam* params, float z)
 {
   const Float_t Tx    = params->GetTx();
   const Float_t Ty    = params->GetTy();
@@ -63,7 +63,7 @@ void BmnTofHitsConverter::ExtrapolateStraightLine(FairTrackParam* params, float 
   const Float_t x = params->GetX() + Tx * dz;
   const Float_t y = params->GetY() + Ty * dz;
 
-  params->SetPosition({x, y, z});
+  return {x, y, z};
 }
 
 
@@ -113,11 +113,14 @@ void BmnTofHitsConverter::ProcessData()
       auto in_global_trk = dynamic_cast<BmnGlobalTrack*>(in_bmn_global_tracks_->At(idx_global_trk) );
       auto track_param = in_global_trk->GetParamLast();
       TVector3 mom3;
+      TVector3 pos3;
       track_param->Momentum(mom3);
+      track_param->Position(pos3);
       p = mom3.Mag();
-      q = track_param->GetQp() > 0 ? 1 : -1;
       l = in_global_trk->GetLength();
-      ExtrapolateStraightLine( track_param, hit_z );
+      auto pos3_at_hit = ExtrapolateStraightLine( track_param, hit_z );
+      auto pos3_difference = pos3 - pos3_at_hit;
+      l -= pos3_difference.Mag();
       matching_r = sqrtf( pow(track_param->GetX() - hit_x, 2) + pow(track_param->GetY() - hit_y, 2) );
     }catch(std::exception&){}
 

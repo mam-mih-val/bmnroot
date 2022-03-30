@@ -630,11 +630,12 @@ void CbmL1PFFitter::Fit(vector<CbmStsTrack> &Tracks, int pidHypo)
 
   FairRootManager *fManger = FairRootManager::Instance();
   TClonesArray *listStsHits = (TClonesArray *)  fManger->GetObject("StsHit");
+  assert(listStsHits);
   int NMvdStations = CbmL1::Instance()->algo->NMvdStations;
   TClonesArray *listMvdHits=0;
   if(NMvdStations>0.)
     listMvdHits = (TClonesArray *)  fManger->GetObject("MvdHit");
-
+  assert( listMvdHits );
   static int nHits = CbmL1::Instance()->algo->NStations;
   int iVec=0, i=0;
   int nTracks_SIMD = fvecLen;

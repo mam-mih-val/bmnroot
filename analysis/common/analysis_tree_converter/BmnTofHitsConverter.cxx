@@ -121,7 +121,7 @@ void BmnTofHitsConverter::ProcessData()
       auto pos3_at_hit = ExtrapolateStraightLine( track_param, hit_z );
       auto pos3_difference = pos3 - pos3_at_hit;
       l -= pos3_difference.Mag();
-      matching_r = sqrtf( pow(track_param->GetX() - hit_x, 2) + pow(track_param->GetY() - hit_y, 2) );
+      matching_r = sqrtf( pow(pos3_at_hit.X() - hit_x, 2) + pow(pos3_at_hit.Y() - hit_y, 2) );
     }catch(std::exception&){}
 
     const Float_t time = in_tof_hit->GetTimeStamp();

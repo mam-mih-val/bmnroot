@@ -48,6 +48,7 @@ set (LINK_DIRECTORIES
   ${AnalysisTree_LIBRARY_DIR}
   ${KFParticle_LIB_DIR}
   ${Cat_LIB_DIR}
+  ${Cat_LIBRARY_DIR}
   ${FAIRROOT_LIBRARY_DIR}
   ${ROOT_LIBRARY_DIR}
   ${Boost_LIBRARY_DIRS}
@@ -87,4 +88,4 @@ GENERATE_LIBRARY()
 #        DESTINATION share/cbmroot/macro/analysis_tree
 #       )
 
-Add_Dependencies(CbmAnalysisTreeInterface ANALYSISTREE Cat)
+Add_Dependencies(CbmAnalysisTreeInterface ANALYSISTREE Cat KF)

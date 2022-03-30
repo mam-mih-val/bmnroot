@@ -116,8 +116,6 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
     FairTrackParam* trackParamLast =
         in_bmn_global_track->GetParamLast();
 
-    kalman_filter.RK4TrackExtrapolate(trackParamFirst, vertex_z, nullptr);
-
     float x_first = trackParamFirst->GetX();
     float y_first = trackParamFirst->GetY();
     float z_first = trackParamFirst->GetZ();

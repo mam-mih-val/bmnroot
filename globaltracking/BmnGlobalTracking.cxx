@@ -247,7 +247,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
             FairTrackParam* par_first = globTr.GetParamFirst();
             Double_t len = 0.0;
             Double_t zTarget = (fVertex) ? fVertex->GetZ() : 0.0;  // z of target by default (FIXME)
-            fKalman->RK4TrackExtrapolate(par_first, zTarget, nullptr);
+            fKalman->TGeoTrackPropagate(par_first, zTarget, fPDG, nullptr, &len, fIsField);
             if (fKalman->TGeoTrackPropagate(&par, zTarget, fPDG, nullptr, &len, fIsField) == kBMNERROR) continue;
             globTr.SetLength(len);
 

@@ -101,7 +101,7 @@ void BmnHistGem::Register(THttpServer * serv) {
     fServer->SetItemField(path, "_layout", "grid3x3");
     TString cmd = "/" + fName + "/->Reset()";
     TString cmdTitle = path + "Reset";
-    fServer->RegisterCommand(cmdTitle.Data(), cmd.Data(), "button;");
+//    fServer->RegisterCommand(cmdTitle.Data(), cmd.Data(), "button;");
     fServer->Restrict(cmdTitle.Data(), "visible=shift");
     fServer->Restrict(cmdTitle.Data(), "allow=shift");
     fServer->Restrict(cmdTitle.Data(), "deny=guest");

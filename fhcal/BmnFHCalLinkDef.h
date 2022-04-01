@@ -10,4 +10,6 @@
 #pragma link C++ class  BmnFHCalGeo+;
 #pragma link C++ class  BmnFHCalGeoPar+;
 #pragma link C++ class  BmnFHCalContFact+;
+#pragma link C++ class  BmnFHCalDigitizer+;
+#pragma link C++ class  BmnFHCalDigit+;
 #endif

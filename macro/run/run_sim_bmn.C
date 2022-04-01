@@ -205,11 +205,6 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
 
     // Fill the Parameter containers for this run
     FairRuntimeDb *rtdb = fRun->GetRuntimeDb();
-
-    BmnFieldPar* fieldPar = (BmnFieldPar*) rtdb->getContainer("BmnFieldPar");
-    fieldPar->SetParameters(magField);
-    fieldPar->setChanged();
-    fieldPar->setInputVersion(fRun->GetRunId(), 1);
     Bool_t kParameterMerged = kTRUE;
     FairParRootFileIo* output = new FairParRootFileIo(kParameterMerged);
     //AZ output->open(parFile.Data());

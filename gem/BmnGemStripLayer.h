@@ -125,6 +125,8 @@ public:
     void SetClusterFindingThreshold(Double_t threshold) { ClusterFindingThreshold = threshold; }
     Double_t GetClusterFindingThreshold() { return ClusterFindingThreshold; }
 
+    void SetTotalClusterThreshold(Double_t th) { TotalClusterThreshold = th; }
+
     vector<Double_t> GetSmoothStrips() { return SmoothStrips; } //for test
     //--------------------------------------------------------------------------
 
@@ -169,7 +171,8 @@ private:
     vector<Double_t> StripHitsErrors;
     vector<Int_t> StripHitsClusterSize; //cluster size (number of strips) for each strip hit
     vector<Double_t> SmoothStrips; //smoothed signal strips (It is filled after smoothing algorithm)
-    Double_t ClusterFindingThreshold; //min. threshold cut
+    Double_t ClusterFindingThreshold; //min. threshold cut for strip to be included in cluster
+    Double_t TotalClusterThreshold; //min. threshold cut for total cluster signal to be written into TClonesArray
     //--------------------------------------------------------------------------
     
     //Strip Clusters -----------------------------------------------------------

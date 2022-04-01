@@ -198,6 +198,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
     // ===    Converter for Silicon and GEM hits to CBM format            === //
     // ====================================================================== //
     BmnToCbmHitConverter* hitConverter = new BmnToCbmHitConverter(iVerbose);
+    hitConverter->SetFixedErrors();
     fRunAna->AddTask(hitConverter);
        
     TString innerTrackBranchName;

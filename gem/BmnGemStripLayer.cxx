@@ -33,6 +33,8 @@ BmnGemStripLayer::BmnGemStripLayer() {
     //AZ ClusterFindingThreshold = 0.0;
     ClusterFindingThreshold = 1.0;
 
+    TotalClusterThreshold = 40;
+
     InitializeLayer();
 }
 
@@ -586,7 +588,7 @@ void BmnGemStripLayer::FindClustersAndStripHits() {
 //    }
     //--------------------------------------------------------------------------
 
-    if (total_cluster_signal > 40) {//AZ-220322
+    if (total_cluster_signal > TotalClusterThreshold) {//AZ-220322
       StripHits.push_back(mean_strip_position);
       StripHitsTotalSignal.push_back(total_cluster_signal);
       StripHitsErrors.push_back(cluster_rms);
@@ -614,7 +616,7 @@ void BmnGemStripLayer::FindClustersAndStripHits() {
     */
 
     //AZ-220322 StripClusters.push_back(cluster);
-    if (total_cluster_signal > 40) StripClusters.push_back(cluster); //AZ-220322 
+    if (total_cluster_signal > TotalClusterThreshold) StripClusters.push_back(cluster); //AZ-220322 
 
     //return to a previous strip
     curcnt--;

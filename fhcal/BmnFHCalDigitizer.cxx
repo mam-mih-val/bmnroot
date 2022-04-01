@@ -9,7 +9,7 @@
 #include <FairRunSim.h>
 
 #include "BmnFHCalDigitizer.h"
-#include "BmnZdcPoint.h"
+#include "BmnFHCalPoint.h"
 
 BmnFHCalDigitizer::BmnFHCalDigitizer() {
 }
@@ -24,33 +24,30 @@ InitStatus BmnFHCalDigitizer::Init() {
     fMIPNoise = 0.2;
 
     FairRootManager* ioman = FairRootManager::Instance();
-    fArrayOfZdcPoints = (TClonesArray*) ioman->GetObject("ZdcPoint");
-    fArrayOfZdcDigits = new TClonesArray("BmnZDCDigit");
-    ioman->Register("ZDC", "Zdc", fArrayOfZdcDigits, kTRUE);
+    fArrayOfFHCalPoints = (TClonesArray*) ioman->GetObject("FHCalPoint");
+    fArrayOfFHCalDigits = new TClonesArray("BmnFHCalDigit");
+    ioman->Register("FHCalDigit", "FHCal", fArrayOfFHCalDigits, kTRUE);
 
-    LoadMap("FHCal_map_v1.txt");
-
-    Info(__func__,"ZDC digitizer ready");
+    Info(__func__,"FHCal digitizer ready");
     return kSUCCESS;
 }
 
 void BmnFHCalDigitizer::Exec(Option_t* opt) {
 
     // Initialize
-    fArrayOfZdcDigits->Delete();
+    fArrayOfFHCalDigits->Delete();
 
     float eSumModSect[55][11];
 
     for (Int_t i = 0; i < 55; i++) {
-        fModules[i].SetAmp(0.);
         for (Int_t j = 0; j < 11; j++) eSumModSect[i][j] = 0;
     }
 
 
     // Collect points
-    Int_t N = fArrayOfZdcPoints->GetEntries();
+    Int_t N = fArrayOfFHCalPoints->GetEntries();
     for (Int_t i = 0; i < N; i++) {
-        BmnZdcPoint * p = (BmnZdcPoint *)fArrayOfZdcPoints->At(i);
+        BmnFHCalPoint * p = (BmnFHCalPoint *)fArrayOfFHCalPoints->At(i);
 
         Int_t iModule = p->GetCopyMother();
         Int_t iChannel = p->GetCopy();
@@ -60,19 +57,20 @@ void BmnFHCalDigitizer::Exec(Option_t* opt) {
         if (iModule <= 54) {
             //collect and sum up energy losses for sections
             eSumModSect[iModule][iSect] += p->GetEnergyLoss();
-            //fModules[ch].SetAmp(fModules[ch].GetAmp() + p->GetEnergyLoss());
         } else {
-            Error(__func__,"ZDC module %d ignored", iModule);
+            Error(__func__,"FHCal module %d ignored", iModule);
         }
     }
 
     // Digitize SiPM response and store digits
 
     Double_t eSumFHCal = 0.;
+    Double_t eSumFHCalMC = 0.;
 
     for (Int_t iModule = 1; iModule <= 54; iModule++) {
 
       Double_t eSumModule = 0.;
+      Double_t eSumModuleMC = 0.;
 
       Int_t nSect = 10;
       if (iModule <= 34) nSect = 7;
@@ -98,58 +96,33 @@ void BmnFHCalDigitizer::Exec(Option_t* opt) {
             if (amp < fLargeModThreshold) continue;
         }
 
+        eSumModuleMC += eSumGeant;
+        eSumFHCalMC += eSumGeant;
         eSumModule += amp;
         eSumFHCal += amp;
 
+        BmnFHCalDigit * p = new((*fArrayOfFHCalDigits)[fArrayOfFHCalDigits->GetEntriesFast()]) BmnFHCalDigit();
+        p->SetModuleID(iModule);
+        p->SetSectionID(iSect);
+        p->SetELoss(eSumGeant);
+        p->SetELossDigi(amp);
+
       } //for (Int_t iSect
 
-      BmnZDCDigit * p = new((*fArrayOfZdcDigits)[fArrayOfZdcDigits->GetEntriesFast()]) BmnZDCDigit();
-      *p = fModules[iModule];
-      p->SetAmp(eSumModule);
+      BmnFHCalDigit * p = new((*fArrayOfFHCalDigits)[fArrayOfFHCalDigits->GetEntriesFast()]) BmnFHCalDigit();
+      p->SetModuleID(iModule);
+      p->SetSectionID(0);
+      p->SetELoss(eSumModuleMC);
+      p->SetELossDigi(eSumModule);
 
     } //for (Int_t iModule
 
-    BmnZDCDigit * p = new((*fArrayOfZdcDigits)[fArrayOfZdcDigits->GetEntriesFast()]) BmnZDCDigit();
-    *p = fModules[0];
-    p->SetAmp(eSumFHCal);
+    BmnFHCalDigit * p = new((*fArrayOfFHCalDigits)[fArrayOfFHCalDigits->GetEntriesFast()]) BmnFHCalDigit();
+    p->SetModuleID(0);
+    p->SetSectionID(0);
+    p->SetELoss(eSumFHCalMC);
+    p->SetELossDigi(eSumFHCalMC);
 
-}
-
-void BmnFHCalDigitizer::LoadMap(const char * fileName) {
-    ifstream in;
-
-    TString path = getenv("VMCWORKDIR");
-    path += "/input/";
-    path += fileName;
-    in.open(path.Data());
-    if (!in.is_open())
-    {
-        Fatal(__func__, "Loading ZDC Map from file: %s - file open error!\n",fileName);
-	return;
-    }
-    Info(__func__, "Loading ZDC Map from file: %s\n", fileName);
-
-    TString dummy;
-    in >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
-
-    int ixmin = -1, ixmax = -1, iymin = -1, iymax = -1;
-    int xmin = 10000., xmax = -10000., ymin = 10000., ymax = -10000.;
-    while (!in.eof()) {
-        int id,chan,front_chan,size,ix,iy,used;
-	float x,y;
-        in >> std::hex >> id >> std::dec >> chan >> front_chan >> size >> ix >> iy >> x >> y >> used;
-        if (!in.good()) break;
-	//printf("%0x %d %d %d %d %d %f %f\n",id,chan,front_chan,size,ix,iy,x,y);
-        if (front_chan > 0 && front_chan < 55) {
-            fModules[front_chan].SetChannel(front_chan);
-            fModules[front_chan].SetSize(size);
-            fModules[front_chan].SetIX(ix);
-            fModules[front_chan].SetIY(iy);
-            fModules[front_chan].SetX(x);
-            fModules[front_chan].SetY(y);
-        }
-    }
-    in.close();
 }
 
 ClassImp(BmnFHCalDigitizer)

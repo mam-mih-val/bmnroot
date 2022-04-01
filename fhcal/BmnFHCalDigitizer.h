@@ -14,7 +14,7 @@
 #include <FairTask.h>
 #include <TClonesArray.h>
 
-#include "BmnZDCDigit.h"
+#include "BmnFHCalDigit.h"
 
 #include "TRandom3.h"
 
@@ -22,8 +22,6 @@ class BmnFHCalDigitizer : public FairTask {
 public:
     BmnFHCalDigitizer();
     virtual ~BmnFHCalDigitizer();
-
-    void LoadMap(const char * fileName);
 
     void SetScale(Double_t val) { fScale = val; }
     void SetThreshold(Double_t val) { fSmallModThreshold = fLargeModThreshold = val; }
@@ -41,10 +39,8 @@ public:
 
 private:
 
-    BmnZDCDigit fModules[55];
-
-    TClonesArray * fArrayOfZdcPoints; // input
-    TClonesArray * fArrayOfZdcDigits; // output
+    TClonesArray * fArrayOfFHCalPoints; // input
+    TClonesArray * fArrayOfFHCalDigits; // output
 
     Double_t fScale = 1.;
     Double_t fSmallModThreshold = 0.;

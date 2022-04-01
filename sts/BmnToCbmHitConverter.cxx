@@ -8,12 +8,18 @@ static Double_t workTime = 0.0;
 BmnToCbmHitConverter::BmnToCbmHitConverter()
     : FairTask("BMN to CBM Hits Converter", 1),
     fBmnGemHitsArray(nullptr),
+    fBmnGemLowerClusters(nullptr),
+    fBmnGemUpperClusters(nullptr),
     fBmnSilHitsArray(nullptr),
+    fBmnSilLowerClusters(nullptr),
+    fBmnSilUpperClusters(nullptr),
     fCbmHitsArray(nullptr),
+    fUseFixedErrors(kFALSE),
     fBmnGemHitsBranchName("BmnGemStripHit"),
     fBmnSilHitsBranchName("BmnSiliconHit"),
-    fCbmHitsBranchName("StsHit")
-{}
+    fCbmHitsBranchName("StsHit"),
+    fGemConfigFile("GemRun8.xml"),
+    fSilConfigFile("SiliconRun8_3stations.xml") {}
 // -------------------------------------------------------------------------
 
 
@@ -22,17 +28,22 @@ BmnToCbmHitConverter::BmnToCbmHitConverter()
 BmnToCbmHitConverter::BmnToCbmHitConverter(Int_t iVerbose)
     : FairTask("BMN to CBM Hits Converter", iVerbose),
     fBmnGemHitsArray(nullptr),
+    fBmnGemLowerClusters(nullptr),
+    fBmnGemUpperClusters(nullptr),
     fBmnSilHitsArray(nullptr),
+    fBmnSilLowerClusters(nullptr),
+    fBmnSilUpperClusters(nullptr),
     fCbmHitsArray(nullptr),
+    fUseFixedErrors(kFALSE),
     fBmnGemHitsBranchName("BmnGemStripHit"),
     fBmnSilHitsBranchName("BmnSiliconHit"),
-    fCbmHitsBranchName("StsHit")
-{}
+    fCbmHitsBranchName("StsHit"),
+    fGemConfigFile("GemRun8.xml"),
+    fSilConfigFile("SiliconRun8_3stations.xml") {}
 // -------------------------------------------------------------------------
 
 // -----   Destructor   ----------------------------------------------------
-BmnToCbmHitConverter::~BmnToCbmHitConverter() {
-}
+BmnToCbmHitConverter::~BmnToCbmHitConverter() {}
 // -------------------------------------------------------------------------
 
 
@@ -45,41 +56,54 @@ void BmnToCbmHitConverter::Exec(Option_t* opt) {
 
     if (!IsActive())
         return;
-    
+
     fCbmHitsArray->Delete();
     for (Int_t iHit = 0; iHit < fBmnGemHitsArray->GetEntriesFast(); ++iHit) {
         BmnGemStripHit* bmnHit = (BmnGemStripHit*)fBmnGemHitsArray->At(iHit);
+
+        //Section for hit filtration by signal asymmetry
+        // StripCluster* uc = (StripCluster*)fBmnGemUpperClusters->At(bmnHit->GetUpperClusterIndex());
+        // StripCluster* lc = (StripCluster*)fBmnGemLowerClusters->At(bmnHit->GetLowerClusterIndex());
+        // Float_t ls = lc->TotalSignal;
+        // Float_t us = uc->TotalSignal;
+        // if (us < ls - 1000 || us > ls + 1000) continue;
+        // if (Abs((us - ls) / (us + ls)) > 0.75) //asymmetry
+        //     continue;
+
         TVector3 pos;
         bmnHit->Position(pos);
         TVector3 dpos;
-        bmnHit->PositionError(dpos);
-	//dpos[0] = 0.08/TMath::Sqrt(12); //AZ
-	//dpos[1] = 0.1234; //AZ
-	dpos[0] = 0.015; //AZ - as in cbmroot
-	dpos[1] = 0.058; //AZ - as in cbmroot
+        if (fUseFixedErrors) {
+            //dpos[0] = 0.08/TMath::Sqrt(12); //AZ
+            //dpos[1] = 0.1234; //AZ
+            dpos[0] = 0.015; //AZ - as in cbmroot
+            dpos[1] = 0.058; //AZ - as in cbmroot
+        } else {
+            bmnHit->PositionError(dpos);
+        }
 
         Int_t stat = bmnHit->GetStation();
         Int_t mod = bmnHit->GetModule();
-	//ElectronDriftDirectionInModule driftDir = 
-	//GemStationSet->GetStation(stat)->GetModule(mod)->GetElectronDriftDirection(); //AZ-200322
-	//if (driftDir == BackwardZAxisEDrift) pos[2] -= 0.9; //AZ-200322
-	//if (driftDir == ForwardZAxisEDrift) pos[2] -= 0.9; //AZ-200322
-        
+        //ElectronDriftDirectionInModule driftDir = 
+        //GemStationSet->GetStation(stat)->GetModule(mod)->GetElectronDriftDirection(); //AZ-200322
+        //if (driftDir == BackwardZAxisEDrift) pos[2] -= 0.9; //AZ-200322
+        //if (driftDir == ForwardZAxisEDrift) pos[2] -= 0.9; //AZ-200322
+
         Int_t lay = 0;
         for (lay = 0; lay < GemStationSet->GetStation(stat)->GetModule(mod)->GetNStripLayers(); lay++) {
             BmnGemStripLayer* layer = &(GemStationSet->GetStation(stat)->GetModule(mod)->GetStripLayer(lay));
             if (layer->IsPointInsideStripLayer(-bmnHit->GetX(), bmnHit->GetY())) break;
         }
-	if (lay == GemStationSet->GetStation(stat)->GetModule(mod)->GetNStripLayers()) continue; //AZ-230322 - strange case
+        if (lay == GemStationSet->GetStation(stat)->GetModule(mod)->GetNStripLayers()) continue; //AZ-230322 - strange case //CHECK IT!!!
 
-        //formula for converting from the bm@n system of modules and layers to the cbm one
-        //AZ Int_t sect = 2 * mod + 1 + lay / 2;
-	int sect = (mod % 2) * 2 + (mod / 2 * 4) + 1 + lay / 2; //AZ-130322
+            //formula for converting from the bm@n system of modules and layers to the cbm one
+        Int_t sect = 2 * mod + 1 + lay / 2;
 
         Int_t sens = 1;
-	if (fBmnSilHitsArray->GetEntriesFast() == 0) stat -= 3; //!!!AZ-190322 - configuration w/out 3 stations of Si
-        Int_t detId = kGEM << 24 | (stat + 1 + 3) << 16 | sect << 4 | sens << 1;
-	//Int_t detId = kGEM << 24 | (stat + 1 + 3) << 16 | (mod+1) << 4 | sens << 1; //AZ
+
+        Int_t nSilStations = SilStationSet->GetNStations();
+        Int_t detId = kGEM << 24 | (stat + 1 + nSilStations) << 16 | sect << 4 | sens << 1;
+
         new ((*fCbmHitsArray)[fCbmHitsArray->GetEntriesFast()]) CbmStsHit(detId, pos, dpos, 0.0, 0, 0);
         CbmStsHit* hit = (CbmStsHit*)fCbmHitsArray->At(fCbmHitsArray->GetEntriesFast() - 1);
 
@@ -88,24 +112,33 @@ void BmnToCbmHitConverter::Exec(Option_t* opt) {
         hit->SetLinks(bmnHit->GetLinks());
         FairRootManager::Instance()->SetUseFairLinks(kFALSE);
         hit->SetRefIndex(bmnHit->GetRefIndex());
-        hit->fDigiF = bmnHit->GetUpperClusterIndex();
-        //AZ-230322 hit->fDigiB = bmnHit->GetLowerClusterIndex() + 1000000; //!!!AZ - for VectorFinder (to have unique indices)
-        hit->fDigiB = bmnHit->GetLowerClusterIndex() + 0; //!!!AZ-230322 - for VectorFinder (to have unique indices)
-	hit->fDigiF = bmnHit->GetLowerClusterIndex() + 0; //AZ-250322
-	hit->fDigiB = bmnHit->GetUpperClusterIndex() + 1000000; //AZ-250322
+        hit->fDigiF = bmnHit->GetLowerClusterIndex() + 0; //AZ-250322
+        hit->fDigiB = bmnHit->GetUpperClusterIndex() + 1000000; //AZ-250322
     }
-    
+
     for (Int_t iHit = 0; iHit < fBmnSilHitsArray->GetEntriesFast(); ++iHit) {
         BmnSiliconHit* bmnHit = (BmnSiliconHit*)fBmnSilHitsArray->At(iHit);
+        //Section for hit filtration by signal asymmetry
+        // StripCluster* uc = (StripCluster*)fBmnSilUpperClusters->At(bmnHit->GetUpperClusterIndex());
+        // StripCluster* lc = (StripCluster*)fBmnSilLowerClusters->At(bmnHit->GetLowerClusterIndex());
+        // Float_t ls = lc->TotalSignal;
+        // Float_t us = uc->TotalSignal;
+        // if (us < ls - 1000 || us > ls + 1000) continue;
+        // if (Abs((us - ls) / (us + ls)) > 0.75) //asymmetry
+        //     continue;
+
         TVector3 pos;
         bmnHit->Position(pos);
-	pos[2] -= 0.0150; //AZ - shift to the entrance
+        pos[2] -= 0.0150; //AZ - shift to the entrance
         TVector3 dpos;
-        bmnHit->PositionError(dpos);
-	dpos[0]= 0.01/TMath::Sqrt(12); //AZ
-	//dpos[1] = 0.1234; //AZ
-	dpos[1] = 0.021; //AZ - as in cbmroot
-
+        if (fUseFixedErrors) {
+            dpos[0] = 0.01 / TMath::Sqrt(12); //AZ
+            //dpos[1] = 0.1234; //AZ
+            dpos[1] = 0.021; //AZ - as in cbmroot
+        } else {
+            bmnHit->PositionError(dpos);
+        }
+        
         Int_t sens = 1;
         Int_t detId = kSILICON << 24 | (bmnHit->GetStation() + 1) << 16 | (bmnHit->GetModule() + 1) << 4 | sens << 1;
         new ((*fCbmHitsArray)[fCbmHitsArray->GetEntriesFast()]) CbmStsHit(detId, pos, dpos, 0.0, 0, 0);
@@ -116,8 +149,6 @@ void BmnToCbmHitConverter::Exec(Option_t* opt) {
         hit->SetLinks(bmnHit->GetLinks());
         FairRootManager::Instance()->SetUseFairLinks(kFALSE);
         hit->SetRefIndex(bmnHit->GetRefIndex());
-        //AZ-260322 hit->fDigiF = bmnHit->GetUpperClusterIndex() + 2000000; //!!!AZ - for VectorFinder (to have unique indices)
-        //AZ-260322 hit->fDigiB = bmnHit->GetLowerClusterIndex() + 3000000; //!!!AZ - for VectorFinder (to have unique indices)
         hit->fDigiF = bmnHit->GetLowerClusterIndex() + 2000000; //!!!AZ - for VectorFinder (to have unique indices) - 260322
         hit->fDigiB = bmnHit->GetUpperClusterIndex() + 3000000; //!!!AZ - for VectorFinder (to have unique indices) - 260322
     }
@@ -135,6 +166,11 @@ InitStatus BmnToCbmHitConverter::Init() {
     if (!ioman) Fatal("Init", "No FairRootManager");
     fBmnGemHitsArray = (TClonesArray*)ioman->GetObject(fBmnGemHitsBranchName);
     fBmnSilHitsArray = (TClonesArray*)ioman->GetObject(fBmnSilHitsBranchName);
+
+    fBmnGemLowerClusters = (TClonesArray*)ioman->GetObject("BmnGemLowerCluster");
+    fBmnGemUpperClusters = (TClonesArray*)ioman->GetObject("BmnGemUpperCluster");
+    fBmnSilLowerClusters = (TClonesArray*)ioman->GetObject("BmnSiliconLowerCluster");
+    fBmnSilUpperClusters = (TClonesArray*)ioman->GetObject("BmnSiliconUpperCluster");
     if (!fBmnGemHitsArray) {
         cout << "BmnToCbmHitConverter::Init(): branch " << fBmnGemHitsBranchName << " not found! Task will be deactivated" << endl;
         SetActive(kFALSE);
@@ -153,8 +189,8 @@ InitStatus BmnToCbmHitConverter::Init() {
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
 
     //Create GEM detector ------------------------------------------------------
-    GemStationSet = new BmnGemStripStationSet(gPathConfig + "/parameters/gem/XMLConfigs/GemRun8.xml");
-    SilStationSet = new BmnSiliconStationSet(gPathConfig + "/parameters/silicon/XMLConfigs/SiliconRun8_3stations.xml");
+    GemStationSet = new BmnGemStripStationSet(gPathConfig + "/parameters/gem/XMLConfigs/" + fGemConfigFile);
+    SilStationSet = new BmnSiliconStationSet(gPathConfig + "/parameters/silicon/XMLConfigs/" + fSilConfigFile);
 
     return kSUCCESS;
 }

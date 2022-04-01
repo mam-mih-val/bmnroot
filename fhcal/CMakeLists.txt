@@ -28,6 +28,8 @@ BmnFHCalPoint.cxx
 BmnFHCalContFact.cxx  
 BmnFHCalGeo.cxx 
 BmnFHCalGeoPar.cxx
+BmnFHCalDigitizer.cxx
+BmnFHCalDigit.cxx
 )
 
 Set(HEADERS)

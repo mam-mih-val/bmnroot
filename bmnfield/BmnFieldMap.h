@@ -45,7 +45,10 @@ class BmnFieldMap : public FairField
     void SetPosition(Double_t x, Double_t y, Double_t z);
 
     /** Set a global field scaling factor **/
-    void SetScale(Double_t factor) { fScale = factor; }
+    void SetScale(Double_t factor) { fScale = factor; fDisabled = (factor == 0 ? kTRUE : kFALSE); }
+
+    /** Disable magnetic field **/
+    void SetDisabled(Bool_t is_disabled = kTRUE) { fDisabled = is_disabled; }
 
     /** Set field map file path **/
     void SetFileName(const char* file_name) { fFileName = file_name; }
@@ -74,6 +77,9 @@ class BmnFieldMap : public FairField
 
     /** Accessor to global scaling factor  **/
     Double_t GetScale() const { return fScale; }
+
+    /** Whether magnetic field is disabled (zero)  **/
+    Bool_t IsDisabled() const { return fDisabled; }
 
     /** Accessors to the field value arrays **/
     TArrayF* GetBx() const { return fBx; }
@@ -138,6 +144,8 @@ class BmnFieldMap : public FairField
     Double_t fHc[2]; //! Interpolated field (1-dim)
 
     Bool_t fDebugInfo;
+    /** Whether magnetic field is off **/
+    Bool_t fDisabled;
 
 private:
     BmnFieldMap(const BmnFieldMap&) = delete;

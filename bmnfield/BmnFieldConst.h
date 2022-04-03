@@ -57,8 +57,8 @@ class BmnFieldConst : public FairField
      **/
     void SetField(Double_t bX, Double_t bY, Double_t bZ);
 
-    /** Disable magnetic field **/
-    void SetDisabled(Bool_t is_disabled = kTRUE) { fDisabled = is_disabled; }
+    /** Turn magnetic field off **/
+    void SetFieldOff(Bool_t is_off = kTRUE) { fIsOff = is_off; }
 
     /** Get components of field at a given point
      ** @param x,y,z   Point coordinates [cm]
@@ -80,8 +80,8 @@ class BmnFieldConst : public FairField
     Double_t GetBy() const { return fBy; }
     Double_t GetBz() const { return fBz; }
 
-    /** Whether magnetic field is disabled (zero)  **/
-    Bool_t IsDisabled() const { return fDisabled; }
+    /** Whether magnetic field is off **/
+    Bool_t IsFieldOff() const { return fIsOff; }
 
     /** Screen output **/
     virtual void Print(Option_t*) const;
@@ -103,7 +103,7 @@ class BmnFieldConst : public FairField
     Double_t fBz;
 
     /** Whether magnetic field is off **/
-    Bool_t fDisabled;
+    Bool_t fIsOff;
 };
 
 #endif

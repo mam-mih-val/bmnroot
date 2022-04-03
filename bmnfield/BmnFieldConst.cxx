@@ -33,7 +33,7 @@ BmnFieldConst::BmnFieldConst()
     , fBx(0)
     , fBy(0)
     , fBz(0)
-    , fDisabled(kFALSE)
+    , fIsOff(kFALSE)
 {
     fType = 0;
 }
@@ -58,7 +58,7 @@ BmnFieldConst::BmnFieldConst(const char* name,
     , fBx(bX)
     , fBy(bY)
     , fBz(bZ)
-    , fDisabled(kFALSE)
+    , fIsOff(kFALSE)
 
 {
     fType = 0;
@@ -75,7 +75,7 @@ BmnFieldConst::BmnFieldConst(BmnFieldPar* fieldPar)
     , fBx(0)
     , fBy(0)
     , fBz(0)
-    , fDisabled(kFALSE)
+    , fIsOff(kFALSE)
 {
     if (!fieldPar) {
         LOG(warn) << "BmnFieldConst::BmnFieldConst: empty parameter container!";
@@ -91,7 +91,7 @@ BmnFieldConst::BmnFieldConst(BmnFieldPar* fieldPar)
         fBy = fieldPar->GetBy();
         fBz = fieldPar->GetBz();
         fType = fieldPar->GetType();
-        fDisabled = fieldPar->IsDisabled();
+        fIsOff = fieldPar->IsFieldOff();
     }
 }
 
@@ -117,8 +117,8 @@ void BmnFieldConst::SetField(Double_t bX, Double_t bY, Double_t bZ)
     fBx = bX;
     fBy = bY;
     fBz = bZ;
-    if ((bX == 0) && (bY == 0) && (bZ == 0)) fDisabled = kTRUE;
-    else fDisabled = kFALSE;
+    if ((bX == 0) && (bY == 0) && (bZ == 0)) fIsOff = kTRUE;
+    else fIsOff = kFALSE;
 }
 
 Double_t BmnFieldConst::GetBx(Double_t x, Double_t y, Double_t z)
@@ -151,7 +151,7 @@ void BmnFieldConst::Print(Option_t*) const
     LOG(info) << "----  " << fTitle << " : " << fName;
     LOG(info) << "----";
     LOG(info) << "----  Field type    : constant";
-    if (fDisabled) LOG(info) << "----  Field is off  ----";
+    if (fIsOff) LOG(info) << "----  Field is off  ----";
     LOG(info) << "----";
     LOG(info) << "----  Field regions : ";
     LOG(info) << "----        x = " << setw(4) << fXmin << " to " << setw(4) << fXmax << " cm";

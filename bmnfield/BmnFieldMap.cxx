@@ -35,7 +35,7 @@ fBx(NULL),
 fBy(NULL),
 fBz(NULL),
 fDebugInfo(kFALSE),
-fDisabled(kFALSE)
+fIsOff(kFALSE)
 {
     // Initilization of arrays is to my knowledge not
     // possible in member initalization lists
@@ -78,7 +78,7 @@ fBx(NULL),
 fBy(NULL),
 fBz(NULL),
 fDebugInfo(kFALSE),
-fDisabled(kFALSE)
+fIsOff(kFALSE)
 {
     // Initilization of arrays is to my knowledge not
     // possible in member initalization lists
@@ -124,7 +124,7 @@ fBx(NULL),
 fBy(NULL),
 fBz(NULL),
 fDebugInfo(kFALSE),
-fDisabled(kFALSE)
+fIsOff(kFALSE)
 {
     // Initilization of arrays is to my knowledge not
     // possible in member initalization lists
@@ -151,7 +151,7 @@ fDisabled(kFALSE)
         fPosY = fieldPar->GetPositionY();
         fPosZ = fieldPar->GetPositionZ();
         fScale = fieldPar->GetScale();
-        fDisabled = fieldPar->IsDisabled();
+        fIsOff = fieldPar->IsFieldOff();
         TString dir = getenv("VMCWORKDIR");
         fFileName = dir + "/input/" + fName;
         fType = fieldPar->GetType();
@@ -261,7 +261,7 @@ void BmnFieldMap::Print(Option_t*)
     cout << "----  Target position: ( " << setw(6) << fPosX << ", "
             << setw(6) << fPosY << ", " << setw(6) << fPosZ << ") cm" << endl;
     cout << "----  Field scaling factor: " << fScale << endl;
-    if (fDisabled) cout << "----  Field is off  ----" << endl;
+    if (fIsOff) cout << "----  Field is off  ----" << endl;
     Double_t bx = GetBx(fPosX, fPosY, fPosX);
     Double_t by = GetBy(fPosX, fPosY, fPosY);
     Double_t bz = GetBz(fPosX, fPosY, fPosZ);
@@ -279,7 +279,7 @@ void BmnFieldMap::Reset()
     fXstep = fYstep = fZstep = 0.;
     fNx = fNy = fNz = 0;
     fScale = 1.;
-    fDisabled = kFALSE;
+    fIsOff = kFALSE;
     if (fBx) {
         delete fBx;
         fBx = NULL;

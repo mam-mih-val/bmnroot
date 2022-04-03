@@ -36,7 +36,7 @@ fPosX(0.),
 fPosY(0.),
 fPosZ(0.),
 fScale(0.),
-fDisabled(kFALSE),
+fIsOff(kFALSE),
 fDistortionFilename(""),
 fParentName(""),
 fTypeOfParent(0) {
@@ -60,7 +60,7 @@ fPosX(0.),
 fPosY(0.),
 fPosZ(0.),
 fScale(0.),
-fDisabled(kFALSE),
+fIsOff(kFALSE),
 fDistortionFilename(""),
 fParentName(""),
 fTypeOfParent(0) {
@@ -93,7 +93,7 @@ void BmnFieldPar::putParams(FairParamList* list) {
         list->add("Field Bx", fBx);
         list->add("Field By", fBy);
         list->add("Field Bz", fBz);
-        list->add("Field off", fDisabled);
+        list->add("Field is off", fIsOff);
     }
     else if (fType >= 1 && fType <= kMaxFieldMapType) { // field map
         list->add("Field map name", fMapName);
@@ -101,7 +101,7 @@ void BmnFieldPar::putParams(FairParamList* list) {
         list->add("Field y position", fPosY);
         list->add("Field z position", fPosZ);
         list->add("Field scaling factor", fScale);
-        list->add("Field off", fDisabled);
+        list->add("Field is off", fIsOff);
 
         if (fType == kTypeDistorted) { // BmnFieldMapDistorted case   
             list->add("Field map distortion filename", fDistortionFilename.Data());
@@ -132,7 +132,7 @@ Bool_t BmnFieldPar::getParams(FairParamList* list) {
         if (!list->fill("Field Bx", &fBx)) return kFALSE;
         if (!list->fill("Field By", &fBy)) return kFALSE;
         if (!list->fill("Field Bz", &fBz)) return kFALSE;
-        if (!list->fill("Field off", &fDisabled)) return kFALSE;
+        if (!list->fill("Field is off", &fIsOff)) return kFALSE;
     }
     else if (fType >= 1 && fType <= kMaxFieldMapType) { // field map
         Text_t mapName[80];
@@ -142,7 +142,7 @@ Bool_t BmnFieldPar::getParams(FairParamList* list) {
         if (!list->fill("Field y position", &fPosY)) return kFALSE;
         if (!list->fill("Field z position", &fPosZ)) return kFALSE;
         if (!list->fill("Field scaling factor", &fScale)) return kFALSE;
-        if (!list->fill("Field off", &fDisabled)) return kFALSE;
+        if (!list->fill("Field is off", &fIsOff)) return kFALSE;
 
         if (fType == kTypeDistorted) { // BmnFieldMapDistorted case 
             Text_t tmp[kMaxLen];
@@ -188,7 +188,7 @@ void BmnFieldPar::SetParameters(FairField* field) {
         fZmax = fieldConst->GetZmax();
         fMapName = "";
         fPosX = fPosY = fPosZ = fScale = 0.;
-        fDisabled = fieldConst->IsDisabled();
+        fIsOff = fieldConst->IsFieldOff();
     }
     else if (fType >= 1 && fType <= kMaxFieldMapType) { // field map
         BmnFieldMap* fieldMap = (BmnFieldMap*) field;
@@ -200,7 +200,7 @@ void BmnFieldPar::SetParameters(FairField* field) {
         fPosY = fieldMap->GetPositionY();
         fPosZ = fieldMap->GetPositionZ();
         fScale = fieldMap->GetScale();
-        fDisabled = fieldMap->IsDisabled();
+        fIsOff = fieldMap->IsFieldOff();
     }
     else {
         cerr << "-W- BmnFieldPar::SetParameters: Unknown field type "
@@ -209,7 +209,7 @@ void BmnFieldPar::SetParameters(FairField* field) {
         fXmin = fXmax = fYmin = fYmax = fZmin = fZmax = 0.;
         fMapName = "";
         fPosX = fPosY = fPosZ = fScale = 0.;
-        fDisabled = kFALSE;
+        fIsOff = kFALSE;
     }
 
     return;

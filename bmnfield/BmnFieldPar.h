@@ -68,6 +68,7 @@ class BmnFieldPar : public FairParGenericSet
   Double_t GetPositionY() const { return fPosY; }
   Double_t GetPositionZ() const { return fPosZ; }
   Double_t GetScale()     const { return fScale; }
+  Bool_t   IsDisabled()     const { return fDisabled; }
 
   void     GetDistortionFilename(TString& filename) { filename = fDistortionFilename; }
   void     GetParentName(TString& parentname) { parentname = fParentName; }
@@ -105,6 +106,9 @@ class BmnFieldPar : public FairParGenericSet
 
   /** Scaling factor for field map **/
   Double_t fScale;
+
+  /** Whether magnetic field is off **/
+  Bool_t fDisabled;
 
   /** Field map distortion filename (in case of distorted field map) **/
   TString fDistortionFilename;

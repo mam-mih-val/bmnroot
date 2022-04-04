@@ -37,6 +37,7 @@ public:
   void Finish() final {}
 
 private:
+
   void MapTracks();
   // Returns the position-vector of {x,y,x} in exact z
   TVector3 ExtrapolateStraightLine(FairTrackParam* params, float z);

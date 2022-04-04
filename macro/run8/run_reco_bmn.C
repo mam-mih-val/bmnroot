@@ -5,7 +5,7 @@
 // nStartEvent - number of first event to process (starts with zero), default: 0
 // nEvents - number of events to process, 0 - all events of given file will be processed, default: 1 000 events
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
-#define VF // Choose Tracking: L1 or VF
+#define L1 // Choose Tracking: L1 or VF
 
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
     TString bmndstFileName = "$VMCWORKDIR/macro/run8/bmndst.root",

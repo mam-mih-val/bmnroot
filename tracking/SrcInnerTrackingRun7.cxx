@@ -16,6 +16,7 @@
 #include "FairRunAna.h"
 #include "FairTrackParam.h"
 #include "TStyle.h"
+#include "BmnFieldMap.h"
 #if defined(_OPENMP)
 #include <cstdlib>
 
@@ -29,14 +30,8 @@ static Double_t workTime = 0.0;
 using namespace std;
 using namespace TMath;
 
-SrcInnerTrackingRun7::SrcInnerTrackingRun7(Int_t run, Bool_t field, Bool_t target, TString steerFile) : fSteering(nullptr),
-                                                                                                        fSteerFile(steerFile) {
-    if (steerFile == "")
-        fSteering = new BmnSteering(field ? "SRC_run7_withField.dat" : "SRC_run7_noField.dat");
-    else
-        fSteering = new BmnSteering(fSteerFile);
+SrcInnerTrackingRun7::SrcInnerTrackingRun7(Int_t run, Bool_t target) : fSteering(nullptr), fSteerFile("") {
     fEventNo = 0;
-    fIsField = field;
     fIsTarget = target;
     fGemHitsArray = nullptr;
     fHitsArray = nullptr;
@@ -107,6 +102,10 @@ InitStatus SrcInnerTrackingRun7::Init() {
     fHitYCutMin = new Double_t[fNStations];
     fHitYCutMax = new Double_t[fNStations];
 
+    BmnFieldMap* field = (BmnFieldMap*)FairRunAna::Instance()->GetField();
+    Bool_t isField = !(field->IsFieldOff());
+    fSteering = new BmnSteering(isField ? "SRC_run7_withField.dat" : "SRC_run7_noField.dat");
+    
     if (fVerbose > 1) cout << "======================== GEM tracking init finished ===================" << endl;
 
     return kSUCCESS;
@@ -204,7 +203,10 @@ BmnStatus SrcInnerTrackingRun7::FindTracks_6of6() {
             }
         }
     }
-    if (fIsField)
+    
+    BmnFieldMap* field = (BmnFieldMap*)FairRunAna::Instance()->GetField();
+    Bool_t isField = !(field->IsFieldOff());
+    if (isField)
         TrackUpdateByKalman(candidates);
     else
         TrackUpdateByLine(candidates);
@@ -226,7 +228,9 @@ BmnStatus SrcInnerTrackingRun7::FindTracks_3of6() {
     FindCandidateByThreeStations(2, 3, 4, candidates, sortedHits);
     FindCandidateByThreeStations(3, 4, 5, candidates, sortedHits);
 
-    if (fIsField)
+    BmnFieldMap* field = (BmnFieldMap*)FairRunAna::Instance()->GetField();
+    Bool_t isField = !(field->IsFieldOff());
+    if (isField)
         TrackUpdateByKalman(candidates);
     else
         TrackUpdateByLine(candidates);
@@ -250,7 +254,9 @@ BmnStatus SrcInnerTrackingRun7::FindTracks_5of6() {
     FindCandidateByFiveStations(0, 2, 3, 4, 5, candidates, sortedHits);
     FindCandidateByFiveStations(1, 2, 3, 4, 5, candidates, sortedHits);
 
-    if (fIsField)
+    BmnFieldMap* field = (BmnFieldMap*)FairRunAna::Instance()->GetField();
+    Bool_t isField = !(field->IsFieldOff());
+    if (isField)
         TrackUpdateByKalman(candidates);
     else
         TrackUpdateByLine(candidates);
@@ -285,7 +291,9 @@ BmnStatus SrcInnerTrackingRun7::FindTracks_4of6() {
     FindCandidateByFourStations(0, 1, 3, 5, candidates, sortedHits);
     FindCandidateByFourStations(0, 1, 3, 4, candidates, sortedHits);
 
-    if (fIsField)
+    BmnFieldMap* field = (BmnFieldMap*)FairRunAna::Instance()->GetField();
+    Bool_t isField = !(field->IsFieldOff());
+    if (isField)
         TrackUpdateByKalman(candidates);
     else
         TrackUpdateByLine(candidates);
@@ -404,7 +412,7 @@ BmnStatus SrcInnerTrackingRun7::MatchHit(BmnTrack* cand, vector<BmnHit*> sortedH
     //Double_t minDX = DBL_MAX;
     //Double_t minDY = DBL_MAX;
     BmnHit* minHit = nullptr;
-    fKalman->TGeoTrackPropagate(&par, sortedHits.at(0)->GetZ(), 2212, nullptr, nullptr, fIsField);
+    fKalman->TGeoTrackPropagate(&par, sortedHits.at(0)->GetZ(), 2212, nullptr, nullptr);
     for (BmnHit* hit : sortedHits) {
         //Double_t dX = Abs(par.GetX() - hit->GetX());
         //Double_t dY = Abs(par.GetY() - hit->GetY());
@@ -501,14 +509,14 @@ BmnStatus SrcInnerTrackingRun7::TrackUpdateByKalman(vector<BmnTrack>& cands) {
         for (Int_t iHit = 0; iHit < cand.GetNHits(); ++iHit) {
             BmnHit* hit = (BmnHit*)fHitsArray->At(cand.GetHitIndex(iHit));
             Double_t chi = 0.0;
-            fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 2212, nullptr, nullptr, fIsField);
+            fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 2212, nullptr, nullptr);
             fKalman->Update(&par, hit, chi);
         }
         cand.SetParamLast(par);
         for (Int_t iHit = cand.GetNHits() - 1; iHit >= 0; iHit--) {
             BmnHit* hit = (BmnHit*)fHitsArray->At(cand.GetHitIndex(iHit));
             Double_t chi = 0.0;
-            fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 2212, nullptr, nullptr, fIsField);
+            fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 2212, nullptr, nullptr);
             fKalman->Update(&par, hit, chi);
             chiTot += chi;
         }
@@ -523,7 +531,7 @@ BmnStatus SrcInnerTrackingRun7::TrackSelection(vector<BmnTrack>& sortedTracks) {
     CheckSharedHits(sortedTracks);
     for (Int_t iTr = 0; iTr < sortedTracks.size(); ++iTr) {
         BmnTrack tr = sortedTracks[iTr];
-        if (tr.GetFlag() == 666 || !IsParCorrect(tr.GetParamFirst(), fIsField) || !IsParCorrect(tr.GetParamLast(), fIsField)) continue;
+        if (tr.GetFlag() == 666 || !IsParCorrect(tr.GetParamFirst()) || !IsParCorrect(tr.GetParamLast())) continue;
         BmnTrack gemTr;
         BmnGlobalTrack globTr;
 
@@ -684,18 +692,22 @@ BmnStatus SrcInnerTrackingRun7::CalcCovMatrix(BmnTrack* tr) {
 }
 
 BmnStatus SrcInnerTrackingRun7::CalculateTrackParams(BmnTrack* tr) {
+
+    BmnFieldMap* field = (BmnFieldMap*)FairRunAna::Instance()->GetField();
+    Bool_t isField = !(field->IsFieldOff());
+
     //Estimation of track parameters for events with magnetic field
     const UInt_t nHits = tr->GetNHits();
     if (nHits < 3) return kBMNERROR;
     TVector3 lineParZY = LineFit(tr, fHitsArray, "ZY");
     if (lineParZY.Z() > 1) return kBMNERROR;  //cout << "chi2_lineFit = " << lineParZY.Z() << endl;
-    //tr->SetNDF(nHits - (fIsField ? 3 : 2));
+    //tr->SetNDF(nHits - (isField ? 3 : 2));
     const Double_t B = lineParZY.X();  //angle coefficient for helicoid
 
     Double_t Tx_first = CalcTx((BmnHit*)fHitsArray->At(tr->GetHitIndex(0)), (BmnHit*)fHitsArray->At(tr->GetHitIndex(1)), (BmnHit*)fHitsArray->At(tr->GetHitIndex(2)));
     Double_t Tx_last = CalcTx((BmnHit*)fHitsArray->At(tr->GetHitIndex(nHits - 1)), (BmnHit*)fHitsArray->At(tr->GetHitIndex(nHits - 2)), (BmnHit*)fHitsArray->At(tr->GetHitIndex(nHits - 3)));
 
-    if (fIsField) CalcCovMatrix(tr);
+    if (isField) CalcCovMatrix(tr);
     TVector3 firstPos;
     TVector3 lastPos;
     ((BmnHit*)fHitsArray->At(tr->GetHitIndex(0)))->Position(firstPos);
@@ -707,7 +719,7 @@ BmnStatus SrcInnerTrackingRun7::CalculateTrackParams(BmnTrack* tr) {
     tr->GetParamLast()->SetTx(Tx_last);
     tr->GetParamLast()->SetTy(B);
     Bool_t doSimple = (nHits == 3) ? kTRUE : kFALSE;
-    Double_t QP = fIsField ? CalcQp(tr, doSimple) : 0.0;
+    Double_t QP = isField ? CalcQp(tr, doSimple) : 0.0;
     tr->GetParamFirst()->SetQp(QP);
     tr->GetParamLast()->SetQp(QP);
     return kBMNSUCCESS;

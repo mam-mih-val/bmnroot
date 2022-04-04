@@ -36,7 +36,7 @@ class SrcInnerTrackingRun7 : public FairTask {
     // Constructors/Destructors ---------
 
     SrcInnerTrackingRun7(){};
-    SrcInnerTrackingRun7(Int_t run, Bool_t field, Bool_t target, TString steerFile = "");
+    SrcInnerTrackingRun7(Int_t run, Bool_t target);
     virtual ~SrcInnerTrackingRun7();
 
     virtual InitStatus Init();
@@ -86,7 +86,6 @@ class SrcInnerTrackingRun7 : public FairTask {
 
     BmnKalmanFilter* fKalman;
 
-    Bool_t fIsField;   // run with mag.field or not
     Bool_t fIsTarget;  // run with target or not
 
     UInt_t fEventNo;

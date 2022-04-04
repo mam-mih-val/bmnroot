@@ -37,7 +37,7 @@ class BmnInnerTrackingRun7 : public FairTask {
     // Constructors/Destructors ---------
 
     BmnInnerTrackingRun7(){};
-    BmnInnerTrackingRun7(Int_t run, Bool_t field, Bool_t target, TString steerFile = "");
+    BmnInnerTrackingRun7(Int_t run, Bool_t target);
     void SetFiltration(Bool_t f) {
         fDoHitAsymFiltration = f;
     }
@@ -94,7 +94,6 @@ class BmnInnerTrackingRun7 : public FairTask {
 
     BmnKalmanFilter* fKalman;
 
-    Bool_t fIsField;   // run with mag.field or not
     Bool_t fIsTarget;  // run with target or not
     Bool_t fDoHitAsymFiltration;
 
@@ -117,8 +116,6 @@ class BmnInnerTrackingRun7 : public FairTask {
 
     TString fSteerFile;
     BmnSteering* fSteering;
-
-    Bool_t isSRC;
 
     ClassDef(BmnInnerTrackingRun7, 1);
 };

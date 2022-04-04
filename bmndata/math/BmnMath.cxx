@@ -21,6 +21,8 @@
 #include "TH2F.h"
 #include "TLine.h"
 #include "TMath.h"
+#include "FairRunAna.h"
+#include "BmnFieldMap.h"
 
 using namespace TMath;
 
@@ -173,7 +175,12 @@ TVector3 SpiralFit(BmnGemTrack* tr, const TClonesArray* arr) {
     return TVector3(a, b, 1 / k);
 }
 
+//checking with flag isField is needed for backward compatibility
 Bool_t IsParCorrect(const FairTrackParam* par, const Bool_t isField) {
+    return IsParCorrect(par);
+}
+
+Bool_t IsParCorrect(const FairTrackParam* par) {
     const Float_t maxSlopeX = 5.;
     const Float_t maxSlopeY = 1.;
     const Float_t maxX = 300.0;
@@ -185,6 +192,9 @@ Bool_t IsParCorrect(const FairTrackParam* par, const Bool_t isField) {
     if (abs(par->GetTx()) > maxSlopeX || abs(par->GetTy()) > maxSlopeY) return kFALSE;
     if (abs(par->GetX()) > maxX || abs(par->GetY()) > maxY) return kFALSE;
     if (IsNaN(par->GetX()) || IsNaN(par->GetY()) || IsNaN(par->GetTx()) || IsNaN(par->GetTy())) return kFALSE;
+
+    BmnFieldMap* field = (BmnFieldMap*) FairRunAna::Instance()->GetField();
+    Bool_t isField = !(field->IsFieldOff());
 
     if (isField) {
         if (abs(par->GetQp()) > maxQp) return kFALSE;

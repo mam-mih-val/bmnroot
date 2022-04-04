@@ -42,7 +42,8 @@ public:
     BmnStatus Smooth(BmnFitNode* thisNode, BmnFitNode* prevNode);
     
     BmnStatus TGeoTrackPropagate(FairTrackParam* par, Double_t zOut, Int_t pdg, vector<Double_t>* F, Double_t* length, Bool_t isField);
-    
+    BmnStatus TGeoTrackPropagate(FairTrackParam* par, Double_t zOut, Int_t pdg, vector<Double_t>* F, Double_t* length);
+
 private:
     FairField* fField;
     BmnGeoNavigator* fNavigator;

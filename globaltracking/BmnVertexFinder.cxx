@@ -9,11 +9,10 @@
 using namespace std;
 using namespace TMath;
 
-BmnVertexFinder::BmnVertexFinder(Int_t period, Bool_t isField) {
+BmnVertexFinder::BmnVertexFinder(Int_t period) {
     fPeriodId = period;
     fEventNo = 0;
     fGlobalTracksArray = NULL;
-    fIsField = isField;
     fRobustRefit = kTRUE;
     fGlobalTracksBranchName = "BmnGlobalTrack";
     fVertexBranchName = "BmnVertex";
@@ -80,7 +79,7 @@ BmnVertex BmnVertexFinder::FindPrimaryVertex(TClonesArray* tracks) {
     for (Int_t iTr = 0; iTr < tracks->GetEntriesFast(); ++iTr) {
         BmnGlobalTrack* track = (BmnGlobalTrack*)tracks->At(iTr);
         FairTrackParam par0 = *(track->GetParamFirst());
-        if (fKalman->TGeoTrackPropagate(&par0, roughVertexZ, (par0.GetQp() > 0.) ? 2212 : -211, NULL, NULL, kTRUE) == kBMNERROR) {
+        if (fKalman->TGeoTrackPropagate(&par0, roughVertexZ, (par0.GetQp() > 0.) ? 2212 : -211, NULL, NULL) == kBMNERROR) {
             continue;
         }
 
@@ -112,7 +111,7 @@ BmnVertex BmnVertexFinder::FindPrimaryVertex(TClonesArray* tracks) {
         BmnGlobalTrack* track = (BmnGlobalTrack*)tracks->At(iTr);
         if (track->GetFlag() != 0) continue;
         FairTrackParam par0 = *(track->GetParamFirst());
-        if (fKalman->TGeoTrackPropagate(&par0, vz, (par0.GetQp() > 0.) ? 2212 : -211, NULL, NULL, kTRUE) == kBMNERROR) {
+        if (fKalman->TGeoTrackPropagate(&par0, vz, (par0.GetQp() > 0.) ? 2212 : -211, NULL, NULL) == kBMNERROR) {
             continue;
         }
         xHits.push_back(par0.GetX());
@@ -153,7 +152,7 @@ BmnVertex BmnVertexFinder::FindSecondaryVertex(TClonesArray* tracks) {
         BmnGlobalTrack* track = (BmnGlobalTrack*)tracks->At(iTr);
         if (track->GetFlag() != 1) continue;
         FairTrackParam par0 = *(track->GetParamFirst());
-        if (fKalman->TGeoTrackPropagate(&par0, vz, (par0.GetQp() > 0.) ? 2212 : -211, NULL, NULL, kTRUE) == kBMNERROR) {
+        if (fKalman->TGeoTrackPropagate(&par0, vz, (par0.GetQp() > 0.) ? 2212 : -211, NULL, NULL) == kBMNERROR) {
             continue;
         }
         xHits.push_back(par0.GetX());
@@ -197,7 +196,7 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range, TClon
             Double_t yTr[nPlanes];
             Bool_t trOk = kTRUE;
             for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
-                if (fKalman->TGeoTrackPropagate(&par0, zPlane[iPlane], (par0.GetQp() > 0.) ? 2212 : -211, NULL, NULL, kTRUE) == kBMNERROR) {
+                if (fKalman->TGeoTrackPropagate(&par0, zPlane[iPlane], (par0.GetQp() > 0.) ? 2212 : -211, NULL, NULL) == kBMNERROR) {
                     track->SetFlag(-1);  //maybe 666???
                     trOk = kFALSE;
                     break;

@@ -26,7 +26,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     FairRunAna* fRunAna = new FairRunAna();
     fRunAna->SetEventHeader(new DstEventHeader());
 
-    Bool_t isField = (inputFileName.Contains("noField")) ? kFALSE : kTRUE; // flag for tracking (to use mag.field or not)
     Bool_t isTarget = kTRUE; //kTRUE; // flag for tracking (run with target or not)
     Bool_t isExp = !BmnFunctionSet::isSimulationFile(inputFileName); // flag for hit finder (to create digits or take them from data-file)
 
@@ -82,7 +81,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         Double_t map_current = 55.87;
         if (*field_voltage < 10) {
             fieldScale = 0;
-            isField = kFALSE;
         } else
             fieldScale = (*field_voltage) / map_current;
 
@@ -218,7 +216,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ====================================================================== //
     // ===                       Tracking (InnerTracker)                  === //
     // ====================================================================== //
-    BmnInnerTrackingRun7* innerTF = new BmnInnerTrackingRun7(run_number, isField, isTarget);
+    BmnInnerTrackingRun7* innerTF = new BmnInnerTrackingRun7(run_number, isTarget);
     innerTF->SetFiltration(isExp); //we use filtration for experimental data only now
     fRunAna->AddTask(innerTF);
 #endif
@@ -241,7 +239,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ====================================================================== //
     Bool_t doAlign = kTRUE;
     if (!isExp) doAlign = kFALSE;
-    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, kFALSE/*doAlign*/);
+    BmnGlobalTracking* glTF = new BmnGlobalTracking(isExp, kFALSE/*doAlign*/);
     fRunAna->AddTask(glTF);
 
     // ====================================================================== //
@@ -252,7 +250,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     CbmFindPrimaryVertex * findVertex = new CbmFindPrimaryVertex(pvFinder);
     fRunAna->AddTask(findVertex);
 #else    
-    BmnVertexFinder* gemVF = new BmnVertexFinder(run_period, isField);
+    BmnVertexFinder* gemVF = new BmnVertexFinder(run_period);
     fRunAna->AddTask(gemVF);
 #endif
     
@@ -265,7 +263,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ====================================================================== //
     // ===                      Residual analysis                         === //
     // ====================================================================== //
-    BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
+    BmnResiduals* res = new BmnResiduals(run_period, run_number);
     fRunAna->AddTask(res);
 
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)

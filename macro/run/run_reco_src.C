@@ -245,10 +245,10 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     fRunAna->AddTask(dchTF);
 
     // Residual analysis
-    BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
+    BmnResiduals* res = new BmnResiduals(run_period, run_number);
     fRunAna->AddTask(res);
 
-    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, kFALSE);
+    BmnGlobalTracking* glTF = new BmnGlobalTracking(isExp, kFALSE);
     glTF->SetSrcSetup(kTRUE);
     glTF->SetRunNumber(run_number);
     fRunAna->AddTask(glTF);
@@ -256,7 +256,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // ====================================================================== //
     // ===                      Primary vertex finding                    === //
     // ====================================================================== //
-    SrcVertexFinder* VF = new SrcVertexFinder(run_period, isField, isExp);
+    SrcVertexFinder* VF = new SrcVertexFinder(run_period, isExp);
     fRunAna->AddTask(VF);
 
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)

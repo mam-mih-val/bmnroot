@@ -23,16 +23,12 @@ class SrcVertexFinder : public FairTask {
    public:
     // Constructors/Destructors ---------
     SrcVertexFinder(){};
-    SrcVertexFinder(Int_t period, Bool_t isField, Bool_t isExp);
+    SrcVertexFinder(Int_t period, Bool_t isExp);
     virtual ~SrcVertexFinder();
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
     virtual void Finish();
-
-    void SetField(Bool_t f) {
-        fIsField = f;
-    }
 
     void FindVertexAnalitically(vector<BmnTrack>& lTracks, vector<BmnTrack>& rTracks);
     void FindVertexByVirtualPlanes(vector<BmnTrack>& lTracks, vector<BmnTrack>& rTracks);
@@ -56,7 +52,6 @@ class SrcVertexFinder : public FairTask {
 
     Double_t fTime;
 
-    Bool_t fIsField;
     Bool_t fisExp;
     FairField* fField;
     BmnKalmanFilter* fKalman;

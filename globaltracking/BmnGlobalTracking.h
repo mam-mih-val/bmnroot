@@ -54,6 +54,7 @@ public:
      */
     BmnGlobalTracking();
     BmnGlobalTracking(Bool_t);
+    BmnGlobalTracking(Bool_t isExp, Bool_t doAlign);
     BmnGlobalTracking(Bool_t isField, Bool_t isExp, Bool_t doAlign);
 
     /**
@@ -83,10 +84,6 @@ public:
     const Short_t GetDoAlign() const {
         return fDoAlign;
     };
-
-    void SetField(Bool_t f) {
-        fIsField = f;
-    }
 
     void SetSrcSetup(Bool_t f) {
         fIsSRC = f;
@@ -138,7 +135,6 @@ private:
     TString fInnerTrackBranchName;
 
     Short_t fPeriod;
-    Bool_t fIsField;  // run with mag.field or not
     Bool_t fIsSRC;    // flag to turn on specific parts for SRC
     Bool_t fIsExp;
     Bool_t fDoAlign;

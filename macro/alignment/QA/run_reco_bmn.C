@@ -85,7 +85,7 @@ void run_reco_bmn(TString inputFileName = "evetest_RUN7_GEM.root",
   // ====================================================================== //
   // ===                     Primary vertex finding                     === //
   // ====================================================================== //
-  BmnVertexFinder* gemVF = new BmnVertexFinder(run_period, isField);
+  BmnVertexFinder* gemVF = new BmnVertexFinder(run_period);
   gemVF->SetVertexApproximation(vertex);
   fRunAna->AddTask(gemVF);
 

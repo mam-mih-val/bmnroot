@@ -21,7 +21,7 @@ class BmnResiduals : public FairTask {
 public:
 
     BmnResiduals() {};
-    BmnResiduals(Int_t, Int_t, Bool_t);
+    BmnResiduals(Int_t, Int_t);
     
     virtual InitStatus Init();
 
@@ -34,7 +34,6 @@ public:
 
 
 private: 
-    Bool_t fIsField;
     Int_t fPeriod;
     Int_t fNumber;
     

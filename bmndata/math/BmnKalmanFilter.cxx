@@ -1,5 +1,6 @@
 
 #include "BmnKalmanFilter.h"
+#include "BmnFieldMap.h"
 
 using namespace std;
 using namespace TMath;
@@ -489,7 +490,16 @@ BmnStatus BmnKalmanFilter::Smooth(BmnFitNode *thisNode, BmnFitNode *prevNode) {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam *par, Double_t zOut, Int_t pdg, vector<Double_t> *F, Double_t *length, Bool_t isField) {
+//propagate with flag isField is needed for backward compatibility
+BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam* par, Double_t zOut, Int_t pdg, vector<Double_t>* F, Double_t* length, Bool_t isField) {
+    return TGeoTrackPropagate(par, zOut, pdg, F, length);
+}
+
+BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam *par, Double_t zOut, Int_t pdg, vector<Double_t> *F, Double_t *length) {
+
+    BmnFieldMap* field = (BmnFieldMap*) FairRunAna::Instance()->GetField();
+    Bool_t isField = !(field->IsFieldOff());
+
     if (!IsParCorrect(par, isField))
         return kBMNERROR;
     Double_t zIn = par->GetZ();

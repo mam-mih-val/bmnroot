@@ -42,14 +42,12 @@ SrcInnerTrackingRun7::SrcInnerTrackingRun7(Int_t run, Bool_t target) : fSteering
     fGemHitsBranchName = "BmnGemStripHit";
     fGlobTracksBranchName = "BmnGlobalTrack";
     fGemTracksBranchName = "BmnGemTrack";
-    fNStations = fSteering->GetNStations();
     fGemDetector = nullptr;
     fHitXCutMin = nullptr;
     fHitXCutMax = nullptr;
     fHitYCutMin = nullptr;
     fHitYCutMax = nullptr;
     fNHitsCut = 0;
-    if (fVerbose > 1) fSteering->PrintParamTable();
 }
 
 SrcInnerTrackingRun7::~SrcInnerTrackingRun7() {
@@ -96,7 +94,7 @@ InitStatus SrcInnerTrackingRun7::Init() {
     TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/GemRunSRCSpring2018.xml";
     fGemDetector = new BmnGemStripStationSet(gPathGemConfig);
 
-    //Int_t fNStations = fGemDetector->GetNStations() - 4;  // first four stations are in arms
+    fNStations = fGemDetector->GetNStations() - 4;  // first four stations are in arms
     fHitXCutMin = new Double_t[fNStations];
     fHitXCutMax = new Double_t[fNStations];
     fHitYCutMin = new Double_t[fNStations];

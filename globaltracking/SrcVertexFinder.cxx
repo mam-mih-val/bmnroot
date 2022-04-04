@@ -9,7 +9,7 @@
 using namespace std;
 using namespace TMath;
 
-SrcVertexFinder::SrcVertexFinder(Int_t period, Bool_t isField, Bool_t isExp) {
+SrcVertexFinder::SrcVertexFinder(Int_t period, Bool_t isExp) {
     fPeriodId = period;
     fEventNo = 0;
     fGlobalTracksArray = nullptr;
@@ -19,7 +19,6 @@ SrcVertexFinder::SrcVertexFinder(Int_t period, Bool_t isField, Bool_t isExp) {
     fVertexArray = nullptr;
     fArmTracksArray = nullptr;
     fTime = 0.0;
-    fIsField = isField;
     fisExp = isExp;
     fKalman = new BmnKalmanFilter();
 }
@@ -341,7 +340,7 @@ void SrcVertexFinder::FindVertexByVirtualPlanes(vector<BmnTrack> &lTracks, vecto
             BmnTrack *track = &bestCombination[iTr];
             FairTrackParam par0 = (track->GetParamFirst()->GetZ() < -400) ? (*(track->GetParamLast())) : (*(track->GetParamFirst()));
             Double_t len = track->GetLength();
-            if (fKalman->TGeoTrackPropagate(&par0, minVZ, 2212, nullptr, &len, kFALSE) == kBMNERROR) {
+            if (fKalman->TGeoTrackPropagate(&par0, minVZ, 2212, nullptr, &len) == kBMNERROR) {
                 track->SetFlag(13);
                 continue;
             }
@@ -439,7 +438,7 @@ Float_t SrcVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range, vecto
             Double_t yTr[nPlanes];
             Bool_t trOk = kTRUE;
             for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
-                if (fKalman->TGeoTrackPropagate(&par0, zPlane[iPlane], 2212, nullptr, nullptr, kFALSE) == kBMNERROR) {
+                if (fKalman->TGeoTrackPropagate(&par0, zPlane[iPlane], 2212, nullptr, nullptr) == kBMNERROR) {
                     trOk = kFALSE;
                     break;
                 }

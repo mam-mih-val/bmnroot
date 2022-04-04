@@ -43,7 +43,7 @@ public:
 private:
 
     TString fMapFileName;
-    vector<BmnCscMapping*> fMap;
+//    vector<BmnCscMapping*> fMap;
     map<UInt_t, InChanMapCSC> fOuterMap; // serial map
     vector<InChanMapCSC> fMapVec; // serial map
     vector<UInt_t> fSerials;

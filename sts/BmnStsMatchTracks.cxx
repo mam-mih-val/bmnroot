@@ -162,10 +162,10 @@ void BmnStsMatchTracks::Exec(Option_t* opt) {
 	continue;
       }
       //point = (FairMCPoint*) fPoints->At(iPoint);
-      if (hit->GetSystemId() == kGEM) { 
-	point = (FairMCPoint*) fGemPoints->At(iPoint);
-      } else if (hit->GetSystemId() == kSILICON) {
+      if (hit->GetSystemId() == kSILICON || (fSilPoints && hit->GetDx() < 0.01)) { //AZ-280322
 	point = (FairMCPoint*) fSilPoints->At(iPoint);
+      } else if (hit->GetSystemId() == kGEM) { 
+	point = (FairMCPoint*) fGemPoints->At(iPoint);
       }
       if ( ! point ) {
 	cout << "-E- CbmStsMatchTracks::Exec: "
@@ -298,7 +298,8 @@ InitStatus BmnStsMatchTracks::Init() {
   // Get StsTrack Array
   //AZ fTracks = (TClonesArray*) ioman->GetObject("StsTrack");
   if (fTrBranch == "") fTracks = (TClonesArray*) ioman->GetObject("StsTrack"); //AZ
-  else fTracks = (TClonesArray*) ioman->GetObject(fTrBranch); //AZ              
+  else fTracks = (TClonesArray*) ioman->GetObject(fTrBranch); //AZ
+
   if ( ! fTracks ) {
     cout << "-E- BmnStsMatchTracks::Init: No StsTrack array!" << endl;
     return kERROR;
@@ -314,8 +315,8 @@ InitStatus BmnStsMatchTracks::Init() {
   fSilPoints = (TClonesArray*) ioman->GetObject("SiliconPoint");
   if ( ! fSilPoints ) {
     cout << "-E- BmnStsMatchTracks::Init: No SiliconPoint array!" << endl;
-    return kERROR;
-  }
+    //AZ-170322 return kERROR;
+ }
 
   // Create and register StsTrackMatch array
   fMatches = new TClonesArray("CbmTrackMatch",100);

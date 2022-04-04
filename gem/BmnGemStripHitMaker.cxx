@@ -71,7 +71,11 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
         }
         break;
     case 8: //BM@N RUN-8
-        fCurrentConfig = BmnGemStripConfiguration::Run8;
+        if (fIsSrc) {
+            fCurrentConfig = BmnGemStripConfiguration::RunSRC2021;
+        } else {
+            fCurrentConfig = BmnGemStripConfiguration::Run8;
+        }
         break;
     }
 
@@ -389,11 +393,13 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
                     if (!fIsSrc) { //For SRC lorentz corrections included into fAlignCor
-                        Double_t Bx = Abs(fField->GetBx(x, y, z));
-                        Double_t By = Abs(fField->GetBy(x, y, z));
+                        //Double_t Bx = Abs(fField->GetBx(x, y, z));
+                        //Double_t By = Abs(fField->GetBy(x, y, z));
+			            Double_t Bx = Abs(fField->GetBx(0.0, 0.0, 135.0)); //AZ-290322 - fixed value for L1 tracking
+			            Double_t By = Abs(fField->GetBy(0.0, 0.0, 135.0)); //AZ-290322
                         Double_t yCor = fLorCor[iStation][0] + fLorCor[iStation][1] * Bx + fLorCor[iStation][2] * Bx * Bx;
                         Double_t xCor = fLorCor[iStation][0] + fLorCor[iStation][1] * By + fLorCor[iStation][2] * By * By;
-                        Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
+            			Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
                         x += xCor * sign;
                         y += yCor * sign;
                     }

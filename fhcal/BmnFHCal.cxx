@@ -84,8 +84,11 @@ void BmnFHCal::Initialize() {
   FairRun* sim = FairRun::Instance();
   FairRuntimeDb* rtdb = sim->GetRuntimeDb();
 
-  fVSCVolId = gMC->VolId("zdc01s");
-  fVSCNICAVolId = gMC->VolId("zdc01s_NICA");
+  //fVSCVolId = gMC->VolId("zdc01s");
+  //fVSCNICAVolId = gMC->VolId("zdc01s_NICA");
+  fVSCVolId = gMC->VolId("fhcal01s");
+  fVSCNICAVolId = gMC->VolId("fhcal01s_NICA");
+
 }
 
 // -------------------------------------------------------------------------
@@ -410,7 +413,8 @@ void BmnFHCal::ConstructGeometry() {
 //Check if Sensitive-----------------------------------------------------------
 Bool_t BmnFHCal::CheckIfSensitive(std::string name) {
   TString tsname = name;
-  if (tsname.Contains("zdc01s") || tsname.Contains("zdc01s_NICA")) {
+  //if (tsname.Contains("zdc01s") || tsname.Contains("zdc01s_NICA")) {
+  if (tsname.Contains("fhcal01s") || tsname.Contains("fhcal01s_NICA")) {
     return kTRUE;
   }
   return kFALSE;

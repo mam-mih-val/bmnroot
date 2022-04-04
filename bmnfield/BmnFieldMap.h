@@ -1,20 +1,14 @@
 // ---------------------------------------------------------------------------------
-// -----                    BmnFieldMap header file                    -------- ----
-// -----                   Created 03/02/2015  by P. Batyuk            -------------
-// ----- Modified 28/07/2016  by A. Zelenov   (Summer student practice - 2017)------
-// -----                        JINR, batyuk@jinr.ru                   -------------
+// -----                    BmnFieldMap header file                    -------------
+// -----                Created 03/02/2015  by P. Batyuk               -------------
 // ---------------------------------------------------------------------------------
 #ifndef BMNFIELDMAP_H
 #define BMNFIELDMAP_H 1
 
-#include "BmnFieldMapCreator.h"
 #include "BmnFieldMapData.h"
 #include "BmnFieldPar.h"
 #include "FairField.h"
 #include "TArrayF.h"
-#include <iostream>
-
-using namespace std;
 
 typedef struct {
     Int_t N;
@@ -23,38 +17,23 @@ typedef struct {
     Float_t step;
 } coordinate_info_t;
 
-class BmnFieldMap : public FairField {
-public:
-
+class BmnFieldMap : public FairField
+{
+  public:
     BmnFieldMap();
     BmnFieldMap(const char* mapName);
     BmnFieldMap(BmnFieldPar* fieldPar);
-    BmnFieldMap(BmnFieldMapCreator* creator);
     virtual ~BmnFieldMap();
 
     virtual void Init();
 
-    virtual Double_t GetBx(Double_t x, Double_t y, Double_t z) {
-        cout << "X, to be implemented in BmnNewFieldMap";
-        return 0.;
-    }
-
-    virtual Double_t GetBy(Double_t x, Double_t y, Double_t z) {
-        cout << "Y, to be implemented in BmnNewFieldMap";
-        return 0.;
-    }
-
-    virtual Double_t GetBz(Double_t x, Double_t y, Double_t z) {
-        cout << "Z, to be implemented in BmnNewFieldMap";
-        return 0.;
-    }
+    virtual Double_t GetBx(Double_t x, Double_t y, Double_t z) = 0;
+    virtual Double_t GetBy(Double_t x, Double_t y, Double_t z) = 0;
+    virtual Double_t GetBz(Double_t x, Double_t y, Double_t z) = 0;
 
     virtual Bool_t IsInside(Double_t x, Double_t y, Double_t z,
-            Int_t& ix, Int_t& iy, Int_t& iz,
-            Double_t& dx, Double_t& dy, Double_t& dz) {
-        cout << "XYZ, To be implemented in BmnNewFieldMap";
-        return 0.;
-    };
+                            Int_t& ix, Int_t& iy, Int_t& iz,
+                            Double_t& dx, Double_t& dy, Double_t& dz) = 0;
 
     /** Write the field map to an ASCII file **/
     void WriteAsciiFile(const char* fileName);
@@ -66,7 +45,10 @@ public:
     void SetPosition(Double_t x, Double_t y, Double_t z);
 
     /** Set a global field scaling factor **/
-    void SetScale(Double_t factor) { fScale = factor; }
+    void SetScale(Double_t factor) { fScale = factor; fIsOff = (factor == 0 ? kTRUE : kFALSE); }
+
+    /** Turn magnetic field off **/
+    void SetFieldOff(Bool_t is_off = kTRUE) { fIsOff = is_off; }
 
     /** Set field map file path **/
     void SetFileName(const char* file_name) { fFileName = file_name; }
@@ -96,6 +78,9 @@ public:
     /** Accessor to global scaling factor  **/
     Double_t GetScale() const { return fScale; }
 
+    /** Whether magnetic field is off **/
+    Bool_t IsFieldOff() const { return fIsOff; }
+
     /** Accessors to the field value arrays **/
     TArrayF* GetBx() const { return fBx; }
     TArrayF* GetBy() const { return fBy; }
@@ -107,14 +92,12 @@ public:
     /** Screen output **/
     void Print(Option_t*);
 
-    virtual void FillParContainer() {
-        cout << "To be implemented in BmnNewFieldMap";
-    }
+    virtual void FillParContainer() = 0;
 
     /** Reset the field parameters and data **/
     void Reset();
 
-protected:
+  protected:
     /** Reset the field parameters and data **/
     //void Reset();
 
@@ -161,12 +144,14 @@ protected:
     Double_t fHc[2]; //! Interpolated field (1-dim)
 
     Bool_t fDebugInfo;
+    /** Whether magnetic field is off **/
+    Bool_t fIsOff;
 
 private:
     BmnFieldMap(const BmnFieldMap&) = delete;
     BmnFieldMap& operator=(const BmnFieldMap&) = delete;
 
-    ClassDef(BmnFieldMap, 1)
+  ClassDef(BmnFieldMap, 2)
 };
 
 #endif

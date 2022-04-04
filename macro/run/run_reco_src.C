@@ -25,7 +25,6 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     FairRunAna* fRunAna = new FairRunAna();
     fRunAna->SetEventHeader(new DstEventHeader());
 
-    Bool_t isField = (inputFileName.Contains("noField")) ? kFALSE : kTRUE; // flag for tracking (to use mag.field or not)
     Bool_t isTarget = kTRUE; //kTRUE; // flag for tracking (run with target or not)
     Bool_t isExp = !BmnFunctionSet::isSimulationFile(inputFileName); // flag for hit finder (to create digits or take them from data-file)
 
@@ -81,7 +80,6 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
         Double_t map_current = 55.87;
         if (*field_voltage < 10) {
             fieldScale = 0;
-            isField = kFALSE;
         } else
             fieldScale = (*field_voltage) / map_current;
 
@@ -184,10 +182,10 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // ====================================================================== //
     // ===                         ArmTrig hit finder                     === //
     // ====================================================================== //
-    if(!isExp){
-        BmnArmTrigHitProducer *armTrigHitProducer = new BmnArmTrigHitProducer();
-        fRunAna->AddTask(armTrigHitProducer);
-    }
+    // if(!isExp){
+    //     BmnArmTrigHitProducer *armTrigHitProducer = new BmnArmTrigHitProducer();
+    //     fRunAna->AddTask(armTrigHitProducer);
+    // }
 
     // ====================================================================== //
     // ===                        BC hit finder                     === //
@@ -228,7 +226,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // ====================================================================== //
     // ===                   Tracking (GEM in magnet)                     === //
     // ====================================================================== //
-    SrcInnerTrackingRun7* innerTF = new SrcInnerTrackingRun7(run_number, isField, isTarget);
+    SrcInnerTrackingRun7* innerTF = new SrcInnerTrackingRun7(run_number, isTarget);
     fRunAna->AddTask(innerTF);
 
     // ====================================================================== //
@@ -245,10 +243,10 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     fRunAna->AddTask(dchTF);
 
     // Residual analysis
-    BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
+    BmnResiduals* res = new BmnResiduals(run_period, run_number);
     fRunAna->AddTask(res);
 
-    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, kFALSE);
+    BmnGlobalTracking* glTF = new BmnGlobalTracking(isExp, kFALSE);
     glTF->SetSrcSetup(kTRUE);
     glTF->SetRunNumber(run_number);
     fRunAna->AddTask(glTF);
@@ -256,7 +254,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // ====================================================================== //
     // ===                      Primary vertex finding                    === //
     // ====================================================================== //
-    SrcVertexFinder* VF = new SrcVertexFinder(run_period, isField, isExp);
+    SrcVertexFinder* VF = new SrcVertexFinder(run_period, isExp);
     fRunAna->AddTask(VF);
 
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)

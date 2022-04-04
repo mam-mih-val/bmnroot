@@ -153,9 +153,9 @@ void create_rootgeom_TOF400_RUN8_SRC() {
     const Double_t tofZgap = 0.9; // 9 mm between detectors
     const Double_t tofYoverlap = 3.0; // 30 mm detectors overlap at Y direction
     const Double_t tofZshift = tofZgap + DetZsize;
-    const Double_t FromCoverToRpc = 8.3;
+    const Double_t FromCoverToRpc = 7.95;
     const Double_t FromHVToRpc = 2.3;
-    const Double_t ZSP41 = 1333.7575 + 300;// +300 is temporary fix. the length from 1k200
+    const Double_t ZSP41 = 1333.7575 + 304.812;//the length from 1k200
 
 
     /*
@@ -291,7 +291,7 @@ void create_rootgeom_TOF400_RUN8_SRC() {
     topTof->AddNode(vDetector, 10, cR10);
 
     //--------------------------------------------------------------------------
-    //3 box det 15-19
+    //3 box det 10-15
     Double_t angleXDegBox3 = 0.063; //0.063
     Double_t angleYDegBox3 = -31.091; //-31.091
     Double_t angleZDegBox3 = 0.062; //0.062
@@ -357,11 +357,11 @@ void create_rootgeom_TOF400_RUN8_SRC() {
     geoRot2->RotateY(angleYDegBox2);
     geoRot2->RotateZ(angleZDegBox2);
 
-    TVector3 *d16 = new TVector3(0, 2. * DetYsize - 2 * tofYoverlap, FromCoverToRpc);
-    TVector3 *d17 = new TVector3(0, 1. * DetYsize - 1 * tofYoverlap, FromCoverToRpc - tofZshift);
-    TVector3 *d18 = new TVector3(0, 0, FromCoverToRpc);
-    TVector3 *d19 = new TVector3(0, -1. * DetYsize + 1 * tofYoverlap, FromCoverToRpc - tofZshift);
-    TVector3 *d20 = new TVector3(0, -2. * DetYsize + 2 * tofYoverlap, FromCoverToRpc);
+    TVector3 *d16 = new TVector3(0, 2. * DetYsize - 2 * tofYoverlap, FromCoverToRpc - tofZshift);
+    TVector3 *d17 = new TVector3(0, 1. * DetYsize - 1 * tofYoverlap, FromCoverToRpc);
+    TVector3 *d18 = new TVector3(0, 0, FromCoverToRpc - tofZshift);
+    TVector3 *d19 = new TVector3(0, -1. * DetYsize + 1 * tofYoverlap, FromCoverToRpc);
+    TVector3 *d20 = new TVector3(0, -2. * DetYsize + 2 * tofYoverlap, FromCoverToRpc - tofZshift);
 
     d16->RotateX(TMath::DegToRad() * angleXDegBox2);
     d17->RotateX(TMath::DegToRad() * angleXDegBox2);

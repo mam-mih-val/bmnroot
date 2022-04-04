@@ -269,7 +269,7 @@ void BmnDrawOnline::DrawMainCanvas(TString nameOfCanv){
 				
 
 void BmnDrawOnline:: RegisterCanvases(TFile* file){
-	TString namesOfCanv[] = {"det1", "det2", "pid", "He3", "pi+", "e-", "proton", "K+", "D", "T", "He4"};
+	TString namesOfCanv[] = {"inner", "TOF", "CSC", "DCH", "pid", "He3", "pi+", "e-", "proton", "K+", "D", "T", "He4"};
 	Int_t size = sizeof(namesOfCanv)/sizeof(namesOfCanv[0]);
 	for (Int_t i = 0; i < size; ++i) {
         TCanvas* canv = (TCanvas *)file->Get(namesOfCanv[i]);

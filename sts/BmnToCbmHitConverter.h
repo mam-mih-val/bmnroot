@@ -14,9 +14,9 @@
 #include "BmnGemStripStationSet.h"
 #include "BmnSiliconStationSet.h"
 
-class BmnToCbmHitConverter : public FairTask {
+class BmnToCbmHitConverter : public FairTask
+{
 public:
-
     BmnToCbmHitConverter();
     BmnToCbmHitConverter(Int_t iVerbose);
 
@@ -24,27 +24,40 @@ public:
 
     virtual InitStatus Init();
 
-    virtual void Exec(Option_t* opt);
+    virtual void Exec(Option_t *opt);
 
     virtual void Finish();
 
-private:
+    void SetGemConfigFile(TString file) { fGemConfigFile = file; }
+    void SetSilConfigFile(TString file) { fSilConfigFile = file; }
 
+    void SetFixedErrors() { fUseFixedErrors = kTRUE; }
+
+private:
     TString fBmnGemHitsBranchName;
     TString fBmnSilHitsBranchName;
     TString fCbmHitsBranchName;
 
     /** Input array of BNM GEM Hits **/
-    TClonesArray* fBmnGemHitsArray;
-    
+    TClonesArray *fBmnGemHitsArray;
+    TClonesArray *fBmnGemUpperClusters;
+    TClonesArray *fBmnGemLowerClusters;
+
     /** Input array of BNM Silicon Hits **/
-    TClonesArray* fBmnSilHitsArray;
+    TClonesArray *fBmnSilHitsArray;
+    TClonesArray *fBmnSilUpperClusters;
+    TClonesArray *fBmnSilLowerClusters;
 
     /** Output array of CBM Hits **/
-    TClonesArray* fCbmHitsArray;
+    TClonesArray *fCbmHitsArray;
 
-    BmnGemStripStationSet *GemStationSet; //Entire GEM detector
-    BmnSiliconStationSet *SilStationSet;  //Entire SILICON detector
+    TString fGemConfigFile;
+    TString fSilConfigFile;
+
+    BmnGemStripStationSet *GemStationSet; // Entire GEM detector
+    BmnSiliconStationSet *SilStationSet;  // Entire SILICON detector
+
+    Bool_t fUseFixedErrors;
 
     ClassDef(BmnToCbmHitConverter, 1);
 };

@@ -11,24 +11,28 @@
 BmnHistToF700::BmnHistToF700(TString title, TString path) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
+    const Int_t NTimeBins = 5000;
+    const Int_t TimeUpper = 2500;
+    const Int_t NAmpBins = 500;
+    const Int_t AmpUpper = 100;
     fSelectedPlane = -1;
     fSelectedStrip = -1;
     fSelectedSide = -1;
     TString name;
     name = fTitle + "_Leading_Time";
-    histLeadingTime = new TH1D(name, name, 500, 0, 2500);
+    histLeadingTime = new TH1D(name, name, NTimeBins, 0, TimeUpper);
     histLeadingTime->GetXaxis()->SetTitle("Time, ns");
     histLeadingTime->GetYaxis()->SetTitle("Activations count");
     name = fTitle + "_Leading_Time_Specific";
-    histLeadingTimeSpecific = new TH1D(name, name, 500, 0, 2500);
+    histLeadingTimeSpecific = new TH1D(name, name, NTimeBins, 0, TimeUpper);
     histLeadingTimeSpecific->GetXaxis()->SetTitle("Time, ns");
     histLeadingTimeSpecific->GetYaxis()->SetTitle("Activations count");
     name = fTitle + "_Amplitude";
-    histAmp = new TH1D(name, name, 1000, 0, 5000);
+    histAmp = new TH1D(name, name, NAmpBins, 0, AmpUpper);
     histAmp->GetXaxis()->SetTitle("Amplitude, ns");
     histAmp->GetYaxis()->SetTitle("Activations count");
     name = fTitle + "_Amplitude_Specific";
-    histAmpSpecific = new TH1D(name, name, 1000, 0, 5000);
+    histAmpSpecific = new TH1D(name, name, NAmpBins, 0, AmpUpper);
     histAmpSpecific->GetXaxis()->SetTitle("Amplitude, ns");
     histAmpSpecific->GetYaxis()->SetTitle("Activations count");
     name = fTitle + "_Strip";
@@ -87,6 +91,7 @@ BmnHistToF700::~BmnHistToF700() {
 }
 
 void BmnHistToF700::FillFromDigi(DigiArrays *fDigiArrays) {
+    const Double_t ch2ns = 0.02344;
     TClonesArray * digits = fDigiArrays->tof700;
     if (!digits)
         return;
@@ -99,12 +104,12 @@ void BmnHistToF700::FillFromDigi(DigiArrays *fDigiArrays) {
         BmnTof2Digit *td = (BmnTof2Digit *) digits->At(digIndex);
         Int_t strip = td->GetStrip();
         histLeadingTime->Fill(td->GetTime());
-        histAmp->Fill(td->GetAmplitude());
+        histAmp->Fill(td->GetAmplitude() * ch2ns);
         histStrip->Fill(strip + td->GetPlane() * TOF2_MAX_STRIPS_IN_CHAMBER);
         if (
                 ((td->GetPlane() == fSelectedPlane) || (fSelectedPlane < 0)) &&
                 ((td->GetStrip() == fSelectedStrip) || (fSelectedStrip < 0))) {
-            histAmpSpecific->Fill(td->GetAmplitude());
+            histAmpSpecific->Fill(td->GetAmplitude() * ch2ns);
             histLeadingTimeSpecific->Fill(td->GetTime());
         }
 
@@ -182,13 +187,13 @@ void BmnHistToF700::SetSelection(Int_t Plane, Int_t Strip) {
             command = command + " && ";
         command = command + Form("fSide == %d", fSelectedSide);
     }
-    if (frecoTree != NULL) {
         histAmpSpecific->Reset();
         histAmpSpecific->SetTitle("Amplitude For: " + command);
-        TString direction = "fAmplitude>>" + TString(histAmpSpecific->GetName());
-        frecoTree->Draw(direction, command, "");
         histLeadingTimeSpecific->Reset();
         histLeadingTimeSpecific->SetTitle("Leading Time For: " + command);
+    if (frecoTree != NULL) {
+        TString direction = "fAmplitude>>" + TString(histAmpSpecific->GetName());
+        frecoTree->Draw(direction, command, "");
         direction = "fTime>>" + TString(histLeadingTimeSpecific->GetName());
         frecoTree->Draw(direction, command, "");
     }

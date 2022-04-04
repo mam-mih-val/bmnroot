@@ -1,8 +1,6 @@
 // ---------------------------------------------------------------------------------
-// -----                    BmnFieldMap header file                    -------- ----
-// -----                   Created 03/02/2015  by P. Batyuk            -------------
-// ----- Modified 28/07/2016  by A. Zelenov   (Summer student practice - 2017)------
-// -----                      JINR, batyuk@jinr.ru                     -------------
+// -----                    BmnFieldMap header file                    -------------
+// -----                 Created 03/02/2015  by P. Batyuk              -------------
 // ---------------------------------------------------------------------------------
 
 #include "BmnFieldMap.h"
@@ -11,6 +9,8 @@
 #include "TTree.h"
 
 #include <iomanip>
+#include <iostream>
+using namespace std;
 
 BmnFieldMap::BmnFieldMap()
 : FairField(),
@@ -33,7 +33,10 @@ fNy(0),
 fNz(0),
 fBx(NULL),
 fBy(NULL),
-fBz(NULL) {
+fBz(NULL),
+fDebugInfo(kFALSE),
+fIsOff(kFALSE)
+{
     // Initilization of arrays is to my knowledge not
     // possible in member initalization lists
     for (Int_t i = 0; i < 2; i++) {
@@ -74,7 +77,9 @@ fNz(0),
 fBx(NULL),
 fBy(NULL),
 fBz(NULL),
-fDebugInfo(kFALSE) {
+fDebugInfo(kFALSE),
+fIsOff(kFALSE)
+{
     // Initilization of arrays is to my knowledge not
     // possible in member initalization lists
     for (Int_t i = 0; i < 2; i++) {
@@ -117,7 +122,10 @@ fNy(0),
 fNz(0),
 fBx(NULL),
 fBy(NULL),
-fBz(NULL) {
+fBz(NULL),
+fDebugInfo(kFALSE),
+fIsOff(kFALSE)
+{
     // Initilization of arrays is to my knowledge not
     // possible in member initalization lists
     for (Int_t i = 0; i < 2; i++) {
@@ -143,83 +151,24 @@ fBz(NULL) {
         fPosY = fieldPar->GetPositionY();
         fPosZ = fieldPar->GetPositionZ();
         fScale = fieldPar->GetScale();
+        fIsOff = fieldPar->IsFieldOff();
         TString dir = getenv("VMCWORKDIR");
         fFileName = dir + "/input/" + fName;
         fType = fieldPar->GetType();
     }
 }
 
-BmnFieldMap::BmnFieldMap(BmnFieldMapCreator* creator)
-: FairField(),
-fFileName(""),
-fScale(1.),
-fPosX(0.),
-fPosY(0.),
-fPosZ(0.),
-fXmin(0.),
-fXmax(0.),
-fXstep(0.),
-fYmin(0.),
-fYmax(0.),
-fYstep(0.),
-fZmin(0.),
-fZmax(0.),
-fZstep(0.),
-fNx(0),
-fNy(0),
-fNz(0),
-fBx(NULL),
-fBy(NULL),
-fBz(NULL) {
-    // Initilization of arrays is to my knowledge not
-    // possible in member initalization lists
-    for (Int_t i = 0; i < 2; i++) {
-        fHc[i] = 0;
-        for (Int_t j = 0; j < 2; j++) {
-            fHb[i][j] = 0;
-            for (Int_t k = 0; k < 2; k++) {
-                fHa[i][j][k] = 0;
-            }
-        }
-    }
-    // Assign values to data members of base classes
-    // There is no appropriate constructor of the base
-    // class.
-    fName = "";
-    fType = 1;
-    if (!creator) {
-        cerr << "-W- BmnFieldMap: no creator given!" << endl;
-    } else {
-        fType = 1;
-        fName = creator->GetMapName();
-        fXmin = creator->GetXmin();
-        fXmax = creator->GetXmax();
-        fYmin = creator->GetYmin();
-        fYmax = creator->GetYmax();
-        fZmin = creator->GetZmin();
-        fZmax = creator->GetZmax();
-        fNx = creator->GetNx();
-        fNy = creator->GetNy();
-        fNz = creator->GetNz();
-        fXstep = (fXmax - fXmin) / Double_t(fNx - 1);
-        fYstep = (fYmax - fYmin) / Double_t(fNy - 1);
-        fZstep = (fZmax - fZmin) / Double_t(fNz - 1);
-        fBx = creator->GetBx();
-        fBy = creator->GetBy();
-        fBz = creator->GetBz();
-    }
-}
-
-BmnFieldMap::~BmnFieldMap() {
+BmnFieldMap::~BmnFieldMap()
+{
     if (fBx) delete fBx;
     if (fBy) delete fBy;
     if (fBz) delete fBz;
 }
 
-void BmnFieldMap::Init() {
+void BmnFieldMap::Init()
+{
     if (fFileName.EndsWith(".root")) ReadRootFile(fFileName);
     else if (fFileName.EndsWith(".dat")) ReadAsciiFile(fFileName);
-
     else {
         cerr << "-E- BmnFieldMap::Init: No proper file name defined! ("
                 << fFileName << ")" << endl;
@@ -227,11 +176,10 @@ void BmnFieldMap::Init() {
     }
 }
 
-void BmnFieldMap::WriteAsciiFile(const char* fileName) {
-
+void BmnFieldMap::WriteAsciiFile(const char* fileName)
+{
     // Open file
-    cout << "-I- BmnFieldMap: Writing field map to ASCII file "
-            << fileName << endl;
+    cout << "-I- BmnFieldMap: Writing field map to ASCII file " << fileName << endl;
     ofstream mapFile(fileName);
     if (!mapFile.is_open()) {
         cerr << "-E- BmnFieldMap:ReadAsciiFile: Could not open file! " << endl;
@@ -273,29 +221,25 @@ void BmnFieldMap::WriteAsciiFile(const char* fileName) {
     } // x-Loop
     cout << "   " << index + 1 << " written" << endl;
     mapFile.close();
-
-
 }
 
-void BmnFieldMap::WriteRootFile(const char* fileName,
-        const char* mapName) {
-
+void BmnFieldMap::WriteRootFile(const char* fileName, const char* mapName)
+{
     BmnFieldMapData* data = new BmnFieldMapData(mapName, *this);
     TFile* oldFile = gFile;
     TFile* file = new TFile(fileName, "RECREATE");
     data->Write();
     file->Close();
     if (oldFile) oldFile->cd();
-
 }
 
-void BmnFieldMap::SetPosition(Double_t x, Double_t y, Double_t z) {
-    fPosX = x;
-    fPosY = y;
-    fPosZ = z;
+void BmnFieldMap::SetPosition(Double_t x, Double_t y, Double_t z)
+{
+    fPosX = x; fPosY = y; fPosZ = z;
 }
 
-void BmnFieldMap::Print(Option_t*) {
+void BmnFieldMap::Print(Option_t*)
+{
     TString type = "Map";
     if (fType == 2) type = "Map sym2";
     if (fType == 3) type = "Map sym3";
@@ -317,6 +261,7 @@ void BmnFieldMap::Print(Option_t*) {
     cout << "----  Target position: ( " << setw(6) << fPosX << ", "
             << setw(6) << fPosY << ", " << setw(6) << fPosZ << ") cm" << endl;
     cout << "----  Field scaling factor: " << fScale << endl;
+    if (fIsOff) cout << "----  Field is off  ----" << endl;
     Double_t bx = GetBx(fPosX, fPosY, fPosX);
     Double_t by = GetBy(fPosX, fPosY, fPosY);
     Double_t bz = GetBz(fPosX, fPosY, fPosZ);
@@ -326,13 +271,15 @@ void BmnFieldMap::Print(Option_t*) {
     cout << "======================================================" << endl;
 }
 
-void BmnFieldMap::Reset() {
+void BmnFieldMap::Reset()
+{
     fPosX = fPosY = fPosZ = 0.;
     fXmin = fYmin = fZmin = 0.;
     fXmax = fYmax = fZmax = 0.;
     fXstep = fYstep = fZstep = 0.;
     fNx = fNy = fNz = 0;
     fScale = 1.;
+    fIsOff = kFALSE;
     if (fBx) {
         delete fBx;
         fBx = NULL;
@@ -347,8 +294,8 @@ void BmnFieldMap::Reset() {
     }
 }
 
-void BmnFieldMap::ReadAsciiFile(const char* fileName) {
-
+void BmnFieldMap::ReadAsciiFile(const char* fileName)
+{
     Double_t bx = 0., by = 0., bz = 0.;
 
     // Open file
@@ -436,7 +383,8 @@ void BmnFieldMap::ReadAsciiFile(const char* fileName) {
     mapFile.close();
 }
 
-void BmnFieldMap::ReadRootFile(const char* fileName) {
+void BmnFieldMap::ReadRootFile(const char* fileName)
+{
     TString *type = 0;
     coordinate_info_t X;
     coordinate_info_t Y;
@@ -523,8 +471,8 @@ void BmnFieldMap::ReadRootFile(const char* fileName) {
     delete file;
 }
 
-void BmnFieldMap::SetField(const BmnFieldMapData* data) {
-
+void BmnFieldMap::SetField(const BmnFieldMapData* data)
+{
     // Check compatibility
     if (data->GetType() != fType) {
         if (!((data->GetType() == 3)&&(fType == 5))) // E.Litvinenko
@@ -572,8 +520,8 @@ void BmnFieldMap::SetField(const BmnFieldMapData* data) {
     }
 }
 
-Double_t BmnFieldMap::Interpolate(Double_t dx, Double_t dy, Double_t dz) {
-
+Double_t BmnFieldMap::Interpolate(Double_t dx, Double_t dy, Double_t dz)
+{
     // Interpolate in x coordinate
     fHb[0][0] = fHa[0][0][0] + (fHa[1][0][0] - fHa[0][0][0]) * dx;
     fHb[1][0] = fHa[0][1][0] + (fHa[1][1][0] - fHa[0][1][0]) * dx;

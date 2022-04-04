@@ -16,18 +16,22 @@
  ** In case of pixel sensor backside channel is -1
  **/
 
+
+
 #ifndef CBMSTSSHIT_H
 #define CBMSTSSHIT_H 1
 
 #include "CbmHit.h"
+
 #include "BmnDetectorList.h"
 
-#include "TVector3.h"
-
+class TVector3;
 
 class CbmStsHit : public CbmHit
 {
+
  public:
+
   /** Default constructor (not for use) **/
   CbmStsHit();
 
@@ -74,9 +78,11 @@ class CbmStsHit : public CbmHit
 
   void SetStatLayer(Int_t it)              { fStatLayer = it; }
   Int_t GetStatLayer()                const { return fStatLayer; }
-  void AddIndex(int index){
-			AddLink(FairLink(kStsCluster, index));
-		}
+  //AZ void AddIndex(int index){ AddLink(FairLink(kStsCluster, index)); }
+  //void AddIndex(int index) { SetInsertHistory(kFALSE); AddLink(FairLink(kStsCluster, index)); } //AZ
+  //void AddIndex(int index) { SetInsertHistory(kFALSE); if (GetPointerToLinks() == NULL) AddLink(FairLink()); SetInsertHistory(kFALSE); AddLink(FairLink(kStsCluster, index)); } //AZ
+  void AddIndex(int index); //AZ
+  void SetSignalDiv(Double_t sigDiv) { fSignalDiv = sigDiv; } //AZ
 
   /** Screen output **/
   virtual void Print(Option_t* opt) const;

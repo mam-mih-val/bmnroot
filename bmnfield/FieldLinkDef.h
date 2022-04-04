@@ -11,7 +11,6 @@
 #pragma link C++ class BmnFieldConst+;
 #pragma link C++ class BmnFieldContFact+;
 #pragma link C++ class BmnFieldMap+;
-#pragma link C++ class BmnFieldMapCreator+;
 #pragma link C++ class BmnFieldMapData+;
 #pragma link C++ class BmnFieldMapSym3+;
 #pragma link C++ class BmnFieldPar+;

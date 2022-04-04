@@ -14,6 +14,7 @@
 #include "BmnSiliconStationSet.h"
 #include "BmnCSCStationSet.h"
 #include "BmnMCTrackCreator.h"
+#include "CbmVertex.h"
 
 class BmnHistManager;
 class BmnTrackMatch;
@@ -118,6 +119,10 @@ public:
         fInnerTrackerSetup[det] = use;
     };
 
+    void SetInnerTracksBranchName(TString name) {
+        fInnerTrackBranchName = name;
+    }
+
 
 private:
     /**
@@ -218,15 +223,19 @@ private:
     TClonesArray* fTof700Hits;
     TClonesArray* fCscHits;
     TClonesArray* fCscPoints;
+    TClonesArray* fDchTracks;
     
-    TClonesArray* fVertex;
+    TClonesArray* fVertex; //BMN tracking
+    CbmVertex* fVertexL1; //L1 tracking
     TString fConfigGem;
     TString fConfigSil;
     TString fConfigCsc;
     BmnGemStripStationSet* fGemDetector;
     BmnSiliconStationSet* fSilDetector;
     BmnCSCStationSet* fCscDetector;
-    
+
+    TString fInnerTrackBranchName;
+
     Short_t fChargeCut; //(-1, 0, +1) do QA for negative, all or positive particles
     
     Int_t fEventNo;  // event counter

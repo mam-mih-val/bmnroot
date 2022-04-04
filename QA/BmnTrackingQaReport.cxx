@@ -37,7 +37,7 @@ BmnTrackingQaReport::BmnTrackingQaReport() : BmnSimulationReport(),
 
 BmnTrackingQaReport::BmnTrackingQaReport(TString name) : BmnSimulationReport(),
                                                          fGlobalTrackVariants(),
-                                                         fPrefix(name + ": ") {
+                                                         fPrefix("") {
     SetReportName(name);
 }
 
@@ -88,28 +88,28 @@ string BmnTrackingQaReport::PrintEventInfo() {
 void BmnTrackingQaReport::Draw() {
     gStyle->SetPalette(77);
 	drawHist = new BmnDrawOnline("RECREATE");
-    DrawEventsInfo(fPrefix + "Distribution of impact parameter and multiplicity");
+    DrawEventsInfo(fPrefix + "Impact parameter and multiplicity");
     SetDefaultDrawStyle();
 
     TString pNamesIn[5] = {"Sim_vs_P", "Rec_vs_P", "Well_vs_P", "Ghost_vs_P", "Split_vs_P"};
     TString pNamesOut[3] = {"Eff_vs_P", "Fake_vs_P", "SplitEff_vs_P"};
-    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event", pNamesIn, pNamesOut);
+    DrawEffGem(fPrefix + "Efficiency on momentum", pNamesIn, pNamesOut);
 
     TString pNamesInWide[5] = {"Sim_vs_P_wide", "Rec_vs_P_wide", "Well_vs_P_wide", "Ghost_vs_P_wide", "Split_vs_P_wide"};
     TString pNamesOutWide[3] = {"Eff_vs_P_wide", "Fake_vs_P_wide", "SplitEff_vs_P_wide"};
-    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event in wide momentum range", pNamesInWide, pNamesOutWide);
+    DrawEffGem(fPrefix + "Efficiency on momentum in wide range", pNamesInWide, pNamesOutWide);
 
     TString etaNamesIn[5] = {"Sim_vs_Eta", "Rec_vs_Eta", "Well_vs_Eta", "Ghost_vs_Eta", "Split_vs_Eta"};
     TString etaNamesOut[3] = {"Eff_vs_Eta", "Fake_vs_Eta", "SplitEff_vs_Eta"};
-    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs Pseudorapidity per event", etaNamesIn, etaNamesOut);
+    DrawEffGem(fPrefix + "Efficiency on pseudorapidity", etaNamesIn, etaNamesOut);
 
     TString thetaNamesIn[5] = {"Sim_vs_Theta", "Rec_vs_Theta", "Well_vs_Theta", "Ghost_vs_Theta", "Split_vs_Theta"};
     TString thetaNamesOut[3] = {"Eff_vs_Theta", "Fake_vs_Theta", "SplitEff_vs_Theta"};
-    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs theta per event", thetaNamesIn, thetaNamesOut);
+    DrawEffGem(fPrefix + "Efficiency on theta", thetaNamesIn, thetaNamesOut);
 
     TString nhNamesIn[5] = {"Sim_vs_Nh", "Rec_vs_Nh", "Well_vs_Nh", "Ghost_vs_Nh", "Split_vs_Nh"};
     TString nhNamesOut[3] = {"Eff_vs_Nh", "Fake_vs_Nh", "SplitEff_vs_Nh"};
-    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs Nh per event", nhNamesIn, nhNamesOut);
+    DrawEffGem(fPrefix + "Efficiency on number of hits", nhNamesIn, nhNamesOut);
 
     //DrawNhitsGem(fPrefix + "Distribution of RECO-tracks vs number of hits per track");
 
@@ -151,9 +151,15 @@ void BmnTrackingQaReport::Draw() {
     DrawTwoH2(fPrefix + "Distribution of tracks over Theta and Momentum", "ThetaP_sim", "ThetaP_rec");
     DrawTwoH2(fPrefix + "P_reco vs P_mc", "P_rec_P_sim", "Pt_rec_Pt_sim");
     DrawOneH2(fPrefix + "Pseudorapidity_reco vs Pseudorapidity_mc", "Eta_rec_Eta_sim");
-    //    DrawThreeH2(fPrefix + "Tx_reco vs Tx_mc (left) and Ty_reco vs Ty_mc (right) for GLOB", "Tx_rec_Tx_sim", "Ty_rec_Ty_sim", "Qp_rec_Qp_sim");
+    DrawMomResGem(fPrefix + "Eta resolution", "EtaRes_2D", "EtaRes_1D", "EtaMean_1D", "EtaRes_Mean");
+    DrawTwoH2(fPrefix + "Tx_reco vs Tx_mc (left) and Ty_reco vs Ty_mc (right) for GLOB", "Tx_rec_Tx_sim", "Ty_rec_Ty_sim");
+    DrawMomResGem(fPrefix + "Tx resolution", "TxRes_2D", "TxRes_1D", "TxMean_1D", "TxRes_Mean");
+    DrawMomResGem(fPrefix + "Ty resolution", "TyRes_2D", "TyRes_1D", "TyMean_1D", "TyRes_Mean");
     DrawThreeH2(fPrefix + "Reco vs MC for X-, Y- and Z-component of Momentum", "Px_rec_Px_sim", "Py_rec_Py_sim", "Pz_rec_Pz_sim");
     DrawMomResGem(fPrefix + "Momentum resolution", "momRes_2D", "momRes_1D", "momMean_1D", "momRes_Mean");
+    DrawMomResGem(fPrefix + "Px resolution", "PxRes_2D", "PxRes_1D", "PxMean_1D", "PxRes_Mean");
+    DrawMomResGem(fPrefix + "Py resolution", "PyRes_2D", "PyRes_1D", "PyMean_1D", "PyRes_Mean");
+    DrawMomResGem(fPrefix + "Pz resolution", "PzRes_2D", "PzRes_1D", "PzMean_1D", "PzRes_Mean");
     DrawMomResGem(fPrefix + "Momentum resolution vs. theta", "MomRes_vs_Theta", "MomRes_vs_Theta_1D", "MomMean_vs_Theta_1D", "momRes_Mean");
     DrawMomResGem(fPrefix + "Momentum resolution and momentum vs. length of tracks", "MomRes_vs_Length", "MomRes_vs_Length_1D", "MomMean_vs_Length_1D", "momRes_Mean");
     DrawMomResGem(fPrefix + "Momentum resolution vs. Number of hits", "MomRes_vs_nHits", "MomRes_vs_nHits_1D", "MomMean_vs_nHits_1D", "momRes_Mean");
@@ -183,13 +189,14 @@ void BmnTrackingQaReport::Draw() {
 
     DrawThreeH2(fPrefix + "Vertex vs number of tracks in event", "VertX_vs_Ntracks", "VertY_vs_Ntracks", "VertZ_vs_Ntracks");
     DrawVertResGem(fPrefix + "Vertex resolution", "VertResX", "VertResY", "VertResZ");
+    DrawThreeH1(fPrefix + "Vertex distribution for X and Y directions", "VertX", "VertY", "VertZ");
 
     TString multNamesIn[5] = {"Sim_vs_mult", "Rec_vs_mult", "Well_vs_mult", "Ghost_vs_mult", "Split_vs_mult"};
     TString multNamesOut[3] = {"Eff_vs_mult", "Fake_vs_mult", "SplitEff_vs_mult"};
-    DrawEffGem(fPrefix + "", multNamesIn, multNamesOut);
+    DrawEffGem(fPrefix + "Efficiency on multiplicity", multNamesIn, multNamesOut);
 	
 	//Вызов метода, который поместит все гистограммы на один холст
-	drawHist -> DrawMainCanvas("det1");
+	drawHist -> DrawMainCanvas("Inner tracking");
 	
 	
 	// DrawHitRes(fPrefix, "X");
@@ -198,8 +205,6 @@ void BmnTrackingQaReport::Draw() {
     TString namesResPullsL[15] = {"ResX_l", "ResY_l", "ResTx_l", "ResTy_l", "ResQp_l", "ErrX_l", "ErrY_l", "ErrTx_l", "ErrTy_l", "ErrQp_l", "PullX_l", "PullY_l", "PullTx_l", "PullTy_l", "PullQp_l"};
    	DrawResAndPull(fPrefix + "Residuals and Pulls for first parameters GLOB", namesResPullsF);
     DrawResAndPull(fPrefix + "Residuals and Pulls for last parameters GLOB", namesResPullsL);
-
-    drawHist->DrawMainCanvas("det2");
     
     //TOF    
     TString pNamesInTof400[5] = {"Sim_vs_P_tof400", "Rec_vs_P_tof400", "Well_vs_P_tof400", "Ghost_vs_P_tof400", "Split_vs_P_tof400"};
@@ -209,12 +214,17 @@ void BmnTrackingQaReport::Draw() {
     TString pNamesOutTof700[3] = {"Eff_vs_P_tof700", "Fake_vs_P_tof700", "SplitEff_vs_P_tof700"};
     DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for TOF-700", pNamesInTof700, pNamesOutTof700);
 
-    //DrawTwoH2(fPrefix + "Distribution of tracks over velocity and rigidity", "banana_tof400", "banana_tof700", 2000, 500);
+    
+    DrawTwoH2(fPrefix + "Distribution of tracks over velocity and rigidity (track and hit have same MCID)", "banana_tof400_good", "banana_tof700_good", 1000, 500);
     DrawThreeH2(fPrefix + "Mass correlation and banana plots for TOF-400 and TOF-700", "Mass_correlation", "banana_tof400", "banana_tof700");
     DrawTwoH1(fPrefix + "Distribution of TOF-400 residuals for correct matching", "x_residuals_tof400_good", "y_residuals_tof400_good", "", kTRUE);
     DrawTwoH1(fPrefix + "Distribution of TOF-700 residuals for correct matching", "x_residuals_tof700_good", "y_residuals_tof700_good", "", kTRUE);
     DrawTwoH1(fPrefix + "Distribution of TOF-400 residuals for wrong matching", "x_residuals_tof400_bad", "y_residuals_tof400_bad", "", kTRUE);
     DrawTwoH1(fPrefix + "Distribution of TOF-700 residuals for wrong matching", "x_residuals_tof700_bad", "y_residuals_tof700_bad", "", kTRUE);
+    DrawTwoH2(fPrefix + "Residuals over rigidity for TOF-400", "x_resi_vs_mom_tof400_good", "y_resi_vs_mom_tof400_good", 1000, 500);
+    DrawTwoH2(fPrefix + "Residuals over rigidity for TOF-700", "x_resi_vs_mom_tof700_good", "y_resi_vs_mom_tof700_good", 1000, 500);
+
+    drawHist->DrawMainCanvas("TOF");
 
     //CSC
     TString pNamesInCsc[5] = { "Sim_vs_P_csc", "Rec_vs_P_csc", "Well_vs_P_csc", "Ghost_vs_P_csc", "Split_vs_P_csc" };
@@ -222,6 +232,27 @@ void BmnTrackingQaReport::Draw() {
     DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for CSC", pNamesInCsc, pNamesOutCsc);
     DrawTwoH1(fPrefix + "Distribution of CSC residuals for correct matching", "x_residuals_csc_good", "y_residuals_csc_good", "", kTRUE);
     DrawTwoH1(fPrefix + "Distribution of CSC residuals for wrong matching", "x_residuals_csc_bad", "y_residuals_csc_bad", "", kTRUE);
+    DrawTwoH2(fPrefix + "Residuals over rigidity for CSC", "x_resi_vs_mom_csc_good", "y_resi_vs_mom_csc_good", 1000, 500);
+
+    drawHist->DrawMainCanvas("CSC");
+
+    //DCH1
+    TString pNamesInDch1[5] = { "Sim_vs_P_dch1", "Rec_vs_P_dch1", "Well_vs_P_dch1", "Ghost_vs_P_dch1", "Split_vs_P_dch1" };
+    TString pNamesOutDch1[3] = { "Eff_vs_P_dch1", "Fake_vs_P_dch1", "SplitEff_vs_P_dch1" };
+    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for DCH1", pNamesInDch1, pNamesOutDch1);
+    DrawTwoH1(fPrefix + "Distribution of DCH1 residuals for correct matching", "x_residuals_dch1_good", "y_residuals_dch1_good", "", kTRUE);
+    DrawTwoH1(fPrefix + "Distribution of DCH1 residuals for wrong matching", "x_residuals_dch1_bad", "y_residuals_dch1_bad", "", kTRUE);
+    DrawTwoH2(fPrefix + "Residuals over rigidity for DCH1", "x_resi_vs_mom_dch1_good", "y_resi_vs_mom_dch1_good", 1000, 500);
+
+    //DCH2
+    TString pNamesInDch2[5] = { "Sim_vs_P_dch2", "Rec_vs_P_dch2", "Well_vs_P_dch2", "Ghost_vs_P_dch2", "Split_vs_P_dch2" };
+    TString pNamesOutDch2[3] = { "Eff_vs_P_dch2", "Fake_vs_P_dch2", "SplitEff_vs_P_dch2" };
+    DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for DCH2", pNamesInDch2, pNamesOutDch2);
+    DrawTwoH1(fPrefix + "Distribution of DCH2 residuals for correct matching", "x_residuals_dch2_good", "y_residuals_dch2_good", "", kTRUE);
+    DrawTwoH1(fPrefix + "Distribution of DCH2 residuals for wrong matching", "x_residuals_dch2_bad", "y_residuals_dch2_bad", "", kTRUE);
+    DrawTwoH2(fPrefix + "Residuals over rigidity for DCH2", "x_resi_vs_mom_dch2_good", "y_resi_vs_mom_dch2_good", 1000, 500);
+    
+    drawHist->DrawMainCanvas("DCH");
 }
 
 // void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames, TString* outNames) {
@@ -362,11 +393,12 @@ void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames,
     HM()->H1(ghost)->SetMinimum(0.0);
     HM()->H1(split)->SetMinimum(0.0);
 
-    printf("NAME = %s\n", HM()->H1(sim)->GetName());
-    printf("HM()->H1(sim) = %f\n", HM()->H1(sim)->GetEntries());
-    printf("HM()->H1(well) = %f\n", HM()->H1(well)->GetEntries());
-    printf("HM()->H1(ghost) = %f\n", HM()->H1(ghost)->GetEntries());
-    printf("HM()->H1(split) = %f\n", HM()->H1(split)->GetEntries());
+//Debugging
+    // printf("NAME = %s\n", HM()->H1(sim)->GetName());
+    // printf("HM()->H1(sim) = %f\n", HM()->H1(sim)->GetEntries());
+    // printf("HM()->H1(well) = %f\n", HM()->H1(well)->GetEntries());
+    // printf("HM()->H1(ghost) = %f\n", HM()->H1(ghost)->GetEntries());
+    // printf("HM()->H1(split) = %f\n", HM()->H1(split)->GetEntries());
 
     vector<TH1*> histos1;
     histos1.push_back(HM()->H1(sim));
@@ -474,13 +506,13 @@ void BmnTrackingQaReport::DrawMomResGem(const TString canvasName, TString name2d
 
     canvas->cd(2);
     FillAndFitSlice(nameSigma, nameMean, name2d);
-    HM()->H1(nameSigma)->SetMaximum(10.0);
+    HM()->H1(nameSigma)->SetMaximum(6.0);
     HM()->H1(nameSigma)->SetMinimum(0.0);
     drawHist->DrawH1(canvas,  HM()->H1(nameSigma), kLinear, kLinear, "PE1", kRed, 1, 0.75, 1.1, 20);
 
     canvas->cd(3);
-    HM()->H1(nameMean)->SetMaximum(10.0);
-    HM()->H1(nameMean)->SetMinimum(-10.0);
+    HM()->H1(nameMean)->SetMaximum(2.0);
+    HM()->H1(nameMean)->SetMinimum(-2.0);
     drawHist->DrawH1(canvas,  HM()->H1(nameMean), kLinear, kLinear, "PE1", kRed, 1, 0.75, 1.1, 20);
 
     canvas->cd(4);

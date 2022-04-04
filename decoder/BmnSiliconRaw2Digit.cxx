@@ -858,45 +858,66 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
         delete[] fNoisyChannels;
         delete[] fSigProf;
         if (canStrip) delete canStrip;
-        return;
-    }
-    // MK Postprocessing
-    if (test != 2) {
-        for (Int_t it = 0; it < niter; ++it) {
+    } else {
+        // MK Postprocessing
+        if (test != 2) {
+            for (Int_t it = 0; it < niter; ++it) {
+
+                for (Int_t det = 0; det < ndet; ++det) {
+                    Int_t mChan = nchdet[det];
+
+                    Float_t sumhits[maxchip2];
+                    Int_t nsumch[maxchip2];
+                    for (Int_t j = 0; j < maxchip2; ++j) {
+                        sumhits[j] = 0;
+                        nsumch[j] = 0;
+                    }
+
+                    for (Int_t j = 0; j < mChan; ++j) {
+                        if (noisech[det][j] == 0) {
+                            Int_t ichip = (Int_t) j / 128;
+                            sumhits[ichip] += hNhits[det]->GetBinContent(j + 1);
+                            nsumch[ichip]++;
+                        }
+                    }
+
+                    for (Int_t j = 0; j < maxchip2; ++j) {
+                        Int_t nsum = nsumch[j];
+                        if (nsum > 0) sumhits[j] /= nsum;
+                    }
+
+                    for (Int_t j = 0; j < mChan; ++j) {
+                        if (noisech[det][j] == 0) {
+                            Int_t ichip = (Int_t) j / 128;
+                            Double_t sum = sumhits[ichip];
+                            //                        printf("nhits = %f sum = %f  ichip = %i j = %i\n", hNhits[det]->GetBinContent(j + 1), sum, ichip, j);
+                            if ((hNhits[det]->GetBinContent(j + 1) > 5 * sum && sum > 10) ||
+                                    (hNhits[det]->GetBinContent(j + 1) > 4 * sum && sum > 100) ||
+                                    (hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 1000)) {
+
+                                //                            cout << " new noise det= " << det << " chan= " << j << " iter= " << it << endl;
+                                noisech[det][j] = 1;
+                                if (!read) {
+                                    Int_t cont1 = j + det * 10000;
+                                    fprintf(Wnoisefile, " %d\n", cont1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }// test = 2
+        else {
 
             for (Int_t det = 0; det < ndet; ++det) {
                 Int_t mChan = nchdet[det];
 
-                Float_t sumhits[maxchip2];
-                Int_t nsumch[maxchip2];
-                for (Int_t j = 0; j < maxchip2; ++j) {
-                    sumhits[j] = 0;
-                    nsumch[j] = 0;
-                }
-
                 for (Int_t j = 0; j < mChan; ++j) {
                     if (noisech[det][j] == 0) {
-                        Int_t ichip = (Int_t) j / 128;
-                        sumhits[ichip] += hNhits[det]->GetBinContent(j + 1);
-                        nsumch[ichip]++;
-                    }
-                }
-
-                for (Int_t j = 0; j < maxchip2; ++j) {
-                    Int_t nsum = nsumch[j];
-                    if (nsum > 0) sumhits[j] /= nsum;
-                }
-
-                for (Int_t j = 0; j < mChan; ++j) {
-                    if (noisech[det][j] == 0) {
-                        Int_t ichip = (Int_t) j / 128;
-                        Double_t sum = sumhits[ichip];
-                        //                        printf("nhits = %f sum = %f  ichip = %i j = %i\n", hNhits[det]->GetBinContent(j + 1), sum, ichip, j);
-                        if ((hNhits[det]->GetBinContent(j + 1) > 5 * sum && sum > 10) ||
-                                (hNhits[det]->GetBinContent(j + 1) > 4 * sum && sum > 100) ||
-                                (hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 1000)) {
-
-                            //                            cout << " new noise det= " << det << " chan= " << j << " iter= " << it << endl;
+                        Double_t sumhitdet = hNhits[det]->GetBinContent(j + 1) / (Double_t) npevents;
+                        //                    hnoise[det]->Fill(sumhitdet);
+                        if (sumhitdet > thrnoise) {
+                            //                        cout << " new noise det= " << det << " chan= " << j << " test2: noise> " << thrnoise << endl;
                             noisech[det][j] = 1;
                             if (!read) {
                                 Int_t cont1 = j + det * 10000;
@@ -905,49 +926,28 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
                         }
                     }
                 }
+
             }
         }
-    }// test = 2
-    else {
+        if (Wnoisefile)
+            fclose(Wnoisefile);
+        if (Rnoisefile)
+            fclose(Rnoisefile);
+        if (Wpedfile)
+            fclose(Wpedfile);
+        if (Pedfile)
+            fclose(Pedfile);
 
-        for (Int_t det = 0; det < ndet; ++det) {
-            Int_t mChan = nchdet[det];
-
-            for (Int_t j = 0; j < mChan; ++j) {
-                if (noisech[det][j] == 0) {
-                    Double_t sumhitdet = hNhits[det]->GetBinContent(j + 1) / (Double_t) npevents;
-                    //                    hnoise[det]->Fill(sumhitdet);
-                    if (sumhitdet > thrnoise) {
-                        //                        cout << " new noise det= " << det << " chan= " << j << " test2: noise> " << thrnoise << endl;
-                        noisech[det][j] = 1;
-                        if (!read) {
-                            Int_t cont1 = j + det * 10000;
-                            fprintf(Wnoisefile, " %d\n", cont1);
-                        }
-                    }
-                }
-            }
-
+        for (Int_t det = 0; det < ndet; det++) {
+            if (hNhits[det])
+                delete hNhits[det];
         }
-    }
-    if (Wnoisefile)
-        fclose(Wnoisefile);
-    if (Rnoisefile)
-        fclose(Rnoisefile);
-    if (Wpedfile)
-        fclose(Wpedfile);
-    if (Pedfile)
-        fclose(Pedfile);
-
-    for (Int_t det = 0; det < ndet; det++) {
-        if (hNhits[det])
-            delete hNhits[det];
-    }
-    if (!read) {
-        Int_t retn = system(Form("mv %s %s", wnoisename.Data(), rnoisename.Data()));
-        //        printf("mv    noise ret %d\n", retn);
-        Int_t retp = system(Form("mv %s %s", wpedname.Data(), pedname.Data()));
-        //        printf("mv pedestal ret %d\n", retp);
+        if (!read && wnoisename.Length()) {
+            Int_t retn = system(Form("mv %s %s", wnoisename.Data(), rnoisename.Data()));
+            //        printf("mv    noise ret %d\n", retn);
+            Int_t retp = system(Form("mv %s %s", wpedname.Data(), pedname.Data()));
+            //        printf("mv pedestal ret %d\n", retp);
+        }
     }
     //    for (Int_t iCr = 0; iCr < nadc; ++iCr) {
     //        delete hPedSi[iCr];
@@ -958,7 +958,10 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
     //        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
     //            delete hPedLineSi[iCr][iCh];
     //        }
-    for (auto it : fMap) delete it;
+    //    for (auto &it : fMap) delete it;
+    for (auto &it : fOuterMap)
+        for (auto &inner : it.second)
+            delete inner.second;
 }
 
 BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
@@ -1007,18 +1010,34 @@ BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
             fOuterMap.insert(make_pair(ser, move(inner)));
         } else { // add range to the existing inner channel map
             InChanMapSil &inner = it->second;
-            auto innerIt = inner.find(record->channel_low);
-            if (innerIt == inner.end()) {
-                inner.insert(make_pair(record->channel_low - 1, nullptr));
+            auto innerItHi = inner.find(record->channel_high);
+            auto innerItLo = inner.find(record->channel_low - 1);
+            if (innerItHi == inner.end()) {
                 inner.insert(make_pair(record->channel_high, record));
             } else {
-                if (innerIt->second == nullptr) {
-                    innerIt->second = record;
+                if (innerItHi->second == nullptr) {
+                    inner.erase(innerItHi);
+                    inner.insert(make_pair(record->channel_high, record));
                 } else {
-                    //                    fprintf(stderr, "Wrong CSC map!\n");
-                    //                    return kBMNERROR;
+                    fprintf(stderr, "Wrong %s map! Overlapping intervals for %08X!\n", fDetName.Data(), ser);
+                    return kBMNERROR;
                 }
             }
+            if (innerItLo == inner.end()) {
+                inner.insert(make_pair(record->channel_low - 1, nullptr));
+            }
+            //            auto innerIt = inner.find(record->channel_low);
+            //            if (innerIt == inner.end()) {
+            //                inner.insert(make_pair(record->channel_low - 1, nullptr));
+            //                inner.insert(make_pair(record->channel_high, record));
+            //            } else {
+            //                if (innerIt->second == nullptr) {
+            //                    innerIt->second = record;
+            //                } else {
+            //                    //                    fprintf(stderr, "Wrong CSC map!\n");
+            //                    //                    return kBMNERROR;
+            //                }
+            //            }
         }
     }
     return kBMNSUCCESS;
@@ -1043,7 +1062,11 @@ BmnStatus BmnSiliconRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *silico
     ctime = timer.CpuTime();
     //    printf("\nReal time %f s, CPU time %f s  PrecalcEventMods\n", rtime, ctime);
     timer.Start();
+#ifdef BUILD_DEBUG
     CalcEventMods();
+#else
+    CalcEventMods_simd();
+#endif
     timer.Stop();
     rtime = timer.RealTime();
     ctime = timer.CpuTime();
@@ -1100,7 +1123,11 @@ BmnStatus BmnSiliconRaw2Digit::FillProfiles(TClonesArray *adc) {
     //            }
     //        }
     (this->*PrecalcEventModsImp)(adc);
+#ifdef BUILD_DEBUG
     CalcEventMods();
+#else
+    CalcEventMods_simd();
+#endif
     ProcessAdc(nullptr, kTRUE);
 
     return kBMNSUCCESS;
@@ -1127,11 +1154,8 @@ BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
             BmnSiliconMapping* rec = innerIt->second;
             if (!rec)
                 continue;
-            for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
-                //                for (auto &it : fMap)
-                //                    if (GetSerials()[iCr] == it.serial && iCh >= it.channel_low && iCh <= it.channel_high) {
+            for (Short_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
                 if (GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE) {
-                    //                            Int_t iStrip = (iCh - it.channel_low) * GetNSamples() + iSmpl;
                     Int_t iStrip = MapStrip(rec, iCh, iSmpl);
                     fNoisyChannels[rec->station][rec->module][rec->layer][iStrip] = kTRUE;
                 }
@@ -1165,17 +1189,6 @@ BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
                         Double_t curr = prof->GetBinContent(strip + 1);
                         Double_t next = prof->GetBinContent(strip);
                         //                        if (kNThresh * meanDiff < next - curr)
-                        if (mean > 1000)
-                            kNThresh = 3;
-                        else {
-                            if (mean > 100)
-                                kNThresh = 4;
-                            else {
-                                if (mean > 10)
-                                    kNThresh = 5;
-                            }
-                        }
-                        //                        kNThresh = 3;
                         if ((kNThresh * Abs(mean) < Abs(curr - mean))/* || (kNThresh * meanDiff < -next + curr)*/) {
                             if (fVerbose)
                                 printf("profile noise on iSt %d iMod %d iLay %d strip %d\n",
@@ -1199,36 +1212,56 @@ BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
         }
     }
     // repeat noisy channels back into the electronics terms
-    for (Int_t iSt = 0; iSt < fSilStationSet->GetNStations(); ++iSt) {
-        auto * st = fSilStationSet->GetStation(iSt);
-        for (UInt_t iMod = 0; iMod < st->GetNModules(); ++iMod) {
-            auto *mod = st->GetModule(iMod);
-            for (Int_t iLay = 0; iLay < 2/*mod->GetNStripLayers()*/; ++iLay) {
-                Int_t realILayer = (mod->GetNStripLayers() == 4) ? 2 * iLay : iLay;
-                auto & lay = mod->GetStripLayer(realILayer);
-                for (Int_t iStrip = 0; iStrip < lay.GetNStrips(); ++iStrip) {
-                    if (fNoisyChannels[iSt][iMod][iLay][iStrip] == kTRUE) {
-                        for (auto &it : fMap)
-                            if (it->station == iSt && it->module == iMod && it->layer == iLay) {
-                                auto serIter = fSerMap.find(it->serial);
-                                if (serIter == fSerMap.end())
-                                    break;
-                                Int_t iCr = serIter->second;
-                                //                                UInt_t iCr = 0;
-                                //                                for (iCr = 0; iCr < GetSerials().size(); iCr++) {
-                                //                                    if (GetSerials()[iCr] == it.serial)
-                                //                                        break;
-                                //                                }
-                                UInt_t iCh = it->channel_low + iStrip / GetNSamples();
-                                UInt_t iSmpl = iStrip % GetNSamples();
-                                GetNoisyChipChannels()[iCr][iCh][iSmpl] = kTRUE;
-                                //                                printf("noise on iCr %d, iCh %i, iSmpl %i\n", iCr, iCh, iSmpl);
-                            }
-                    }
-                }
+    for (Int_t iCr = 0; iCr < GetNSerials(); ++iCr) {
+        auto it = fOuterMap.find(GetSerials()[iCr]);
+        if (it == fOuterMap.end())
+            continue;
+        for (Int_t iCh = 0; iCh < GetNChannels(); ++iCh) {
+            InChanMapSil & inner = it->second;
+            auto innerIt = inner.lower_bound(iCh);
+            if (innerIt == inner.end())
+                continue;
+            BmnSiliconMapping* rec = innerIt->second;
+            if (!rec)
+                continue;
+            for (Short_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
+                    Int_t iStrip = MapStrip(rec, iCh, iSmpl);
+                if (fNoisyChannels[rec->station][rec->module][rec->layer][iStrip] == kTRUE)
+                    GetNoisyChipChannels()[iCr][iCh][iSmpl] = kTRUE;
             }
         }
     }
+    
+//    for (Int_t iSt = 0; iSt < fSilStationSet->GetNStations(); ++iSt) {
+//        auto * st = fSilStationSet->GetStation(iSt);
+//        for (UInt_t iMod = 0; iMod < st->GetNModules(); ++iMod) {
+//            auto *mod = st->GetModule(iMod);
+//            for (Int_t iLay = 0; iLay < 2/*mod->GetNStripLayers()*/; ++iLay) {
+//                Int_t realILayer = (mod->GetNStripLayers() == 4) ? 2 * iLay : iLay;
+//                auto & lay = mod->GetStripLayer(realILayer);
+//                for (Int_t iStrip = 0; iStrip < lay.GetNStrips(); ++iStrip) {
+//                    if (fNoisyChannels[iSt][iMod][iLay][iStrip] == kTRUE) {
+//                        for (auto &it : fMap)
+//                            if (it->station == iSt && it->module == iMod && it->layer == iLay) {
+//                                auto serIter = fSerMap.find(it->serial);
+//                                if (serIter == fSerMap.end())
+//                                    break;
+//                                Int_t iCr = serIter->second;
+//                                //                                UInt_t iCr = 0;
+//                                //                                for (iCr = 0; iCr < GetSerials().size(); iCr++) {
+//                                //                                    if (GetSerials()[iCr] == it.serial)
+//                                //                                        break;
+//                                //                                }
+//                                UInt_t iCh = it->channel_low + iStrip / GetNSamples();
+//                                UInt_t iSmpl = iStrip % GetNSamples();
+//                                GetNoisyChipChannels()[iCr][iCh][iSmpl] = kTRUE;
+//                                //                                printf("noise on iCr %d, iCh %i, iSmpl %i\n", iCr, iCh, iSmpl);
+//                            }
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     return kBMNSUCCESS;
 }
@@ -1253,7 +1286,7 @@ void BmnSiliconRaw2Digit::ProcessAdc(TClonesArray *silicon, Bool_t doFill) {
             Short_t station = rec->station;
             Short_t module = rec->module;
             Short_t layer = rec->layer;
-            for (Int_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
+            for (Short_t iSmpl = 0; iSmpl < GetNSamples(); ++iSmpl) {
                 if ((GetNoisyChipChannels()[iCr][iCh][iSmpl] == kTRUE)/* || (fPedVal[iCr][iCh][iSmpl] == 0.0)*/) continue;
                 //                        Int_t strip = (iCh - it.channel_low) * GetNSamples() + iSmpl;
                 Int_t strip = MapStrip(rec, iCh, iSmpl);
@@ -1303,7 +1336,7 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
 
     BmnSiliconDigit candDig[nSmpl];
 
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+    for (Short_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         BmnSiliconDigit dig;
         dig.SetStation(silM->station);
         dig.SetModule(silM->module);
@@ -1317,13 +1350,13 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         //            hsig->Fill(dig.GetStripSignal());
         //        }
     }
-    Double_t*** vPed = GetPedestals();
+    Float_t*** vPed = GetPedestals();
     Double_t*** vPedRMS = GetPedestalsRMS();
 
     Double_t signals[nSmpl];
     Double_t cmode[nSmpl];
     Int_t nOk = 0;
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+    for (Short_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         signals[iSmpl] = 0.0;
         cmode[iSmpl] = 0.0;
     }
@@ -1350,7 +1383,7 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
     //    }
     //    Double_t pedCMS = CalcCMS(signals, ch);
 
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+    for (Short_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
         //        if ((candDig[iSmpl]).GetStation() == 0 && (candDig[iSmpl]).GetModule() == 0 && (candDig[iSmpl]).GetStripLayer() == 0)
         //            hrms->Fill((candDig[iSmpl]).GetStripNumber(), vPedRMS[iSer][ch][iSmpl]);

@@ -15,6 +15,7 @@ BmnStripDigit::BmnStripDigit(BmnStripDigit* digit) {
     fStripLayer = digit->fStripLayer;
     fStripNumber = digit->fStripNumber;
     fStripSignal = digit->fStripSignal;
+    fIsGoodDigit = digit->fIsGoodDigit; //AZ-260322
 }
 
 BmnStripDigit::BmnStripDigit(Int_t iStation, Int_t iModule, Int_t iStripLayer, Int_t iStripNumber, Double_t iStripSignal) {
@@ -23,6 +24,7 @@ BmnStripDigit::BmnStripDigit(Int_t iStation, Int_t iModule, Int_t iStripLayer, I
     fStripLayer = iStripLayer;
     fStripNumber = iStripNumber;
     fStripSignal = iStripSignal;
+    fIsGoodDigit = kTRUE; //AZ-260322
 }
 
 BmnStripDigit::~BmnStripDigit() {

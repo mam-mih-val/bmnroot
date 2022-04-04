@@ -1,12 +1,11 @@
 #include "BmnResiduals.h"
 #include "BmnKalmanFilter.h"
 
-BmnResiduals::BmnResiduals(Int_t period, Int_t number, Bool_t flagField) : fGlobalTracks(nullptr),
+BmnResiduals::BmnResiduals(Int_t period, Int_t number) : fGlobalTracks(nullptr),
                                                                            fGemTracks(nullptr),
                                                                            fSilTracks(nullptr),
                                                                            fGemHits(nullptr),
                                                                            fSilHits(nullptr) {
-    fIsField = flagField;
     fPeriod = period;
     fNumber = number;
 
@@ -102,7 +101,7 @@ void BmnResiduals::Exec(Option_t* opt) {
             Double_t x = allHits[iHit]->GetX();
             Double_t y = allHits[iHit]->GetY();
             Double_t z = allHits[iHit]->GetZ();
-            fKalman->TGeoTrackPropagate(&par, z, 2212, nullptr, nullptr, fIsField);
+            fKalman->TGeoTrackPropagate(&par, z, 2212, nullptr, nullptr);
             xRes = x - par.GetX();
             yRes = y - par.GetY();
             allHits[iHit]->SetResXY(xRes, yRes);

@@ -68,6 +68,9 @@ class BmnStsVectorFinder : public FairTask
 
   /** Virtual method FinishEvent **/
   virtual void FinishEvent();
+  
+  /** Virtual method Finish **/
+  virtual void Finish();
 
   void SetMatBudgetFileName (TString s) { fMatBudgetFileName = s; }
 

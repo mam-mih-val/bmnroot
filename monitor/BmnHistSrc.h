@@ -44,6 +44,7 @@ private:
     void SetDir(TDirectory *Dir);
     vector<TString> Names;
     vector<vector<TH1F*> > hists;
+    vector<vector<TH1F*> > histsAux;
     TH2F *hTDCTimes;
     TH2F *hTDCAmps;
     TH2F *hTQDCTimes;

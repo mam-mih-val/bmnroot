@@ -128,6 +128,20 @@ void CbmStsHit::Print(Option_t* opt) const {
 }
 // -------------------------------------------------------------------------
 
+void CbmStsHit::AddIndex(int index) 
+{ 
+  //AZ - durty trick to suppress warnings "FairMultiLinkedData::InsertHistory Link to wrong Class"
 
+  if (GetPointerToLinks() == NULL) {
+    AddLink(FairLink(-1, -1)); 
+    SetInsertHistory(kFALSE);
+    //cout << " aaaaaaa " << GetPointerToLinks()->GetLinks().size() << endl;
+    ResetLinks();
+    //cout << " bbbb " << GetPointerToLinks()->GetLinks().size() << endl;
+  } 
+  AddLink(FairLink(kStsCluster, index));
+}
+
+// ------------------------------------------------------------------------- 
 
 ClassImp(CbmStsHit)

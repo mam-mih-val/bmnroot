@@ -226,7 +226,7 @@ BmnOnlineReco::BmnOnlineReco(Int_t periodId, Int_t runId, BmnSetup setup) {
     // ====================================================================== //
     // ===                       Tracking (InnerTracker)                  === //
     // ====================================================================== //
-    BmnInnerTrackingRun7* innerTF = new BmnInnerTrackingRun7(fRunID, isField, isTarget);
+    BmnInnerTrackingRun7* innerTF = new BmnInnerTrackingRun7(fRunID, isTarget);
     innerTF->SetFiltration(isExp); //we use filtration for experimental data only now
     fRunAna->AddTask(innerTF);
 
@@ -240,7 +240,7 @@ BmnOnlineReco::BmnOnlineReco(Int_t periodId, Int_t runId, BmnSetup setup) {
     // ====================================================================== //
     // ===                      Primary vertex finding                    === //
     // ====================================================================== //
-    BmnVertexFinder* gemVF = new BmnVertexFinder(fRunID, isField);
+    BmnVertexFinder* gemVF = new BmnVertexFinder(fRunID);
     fRunAna->AddTask(gemVF);
 
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)

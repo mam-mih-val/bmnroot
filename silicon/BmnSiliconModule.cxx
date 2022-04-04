@@ -326,7 +326,7 @@ Bool_t BmnSiliconModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z,
         Double_t radius = AvalancheRadius;
         if(radius <= 0.0) return false;
 
-        gRandom->SetSeed(0);
+        //AZ-260322 gRandom->SetSeed(0);
 
         Int_t cycle_cnt = 0;
         while(true) {

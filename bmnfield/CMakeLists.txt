@@ -25,7 +25,6 @@ set(SRCS
  BmnFieldConst.cxx
  BmnFieldContFact.cxx
  BmnFieldMap.cxx
- BmnFieldMapCreator.cxx
  BmnFieldMapData.cxx
  BmnFieldMapSym3.cxx
  BmnFieldPar.cxx

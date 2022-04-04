@@ -64,7 +64,7 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(ecal);
 
     FairDetector* scwall = new BmnScWall("SCWALL", kTRUE);
-    scwall->SetGeometryFileName("ScWall_with_box_with_hole_XeCsI_3.9GeV_field_Extrap_scale_1800_900_Zpos_875.0cm_Xshift_78.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
+    scwall->SetGeometryFileName("ScWall_run8_with_hole_in_box_with_hole_XeCsI_3.9GeV_field_Extrap_scale_1800_900_Zpos_875.0cm_Xshift_78.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
     fRun->AddModule(scwall);
 
     FairDetector* hodo = new BmnHodo("HODO", kTRUE);

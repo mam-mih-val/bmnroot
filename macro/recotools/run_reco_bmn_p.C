@@ -221,7 +221,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                      Primary vertex finding                    === //
     // ====================================================================== //
-    BmnVertexFinder* gemVF = new BmnVertexFinder(run_period, isField);
+    BmnVertexFinder* gemVF = new BmnVertexFinder(run_period);
     fRunAna->AddTask(gemVF);
 #endif
 
@@ -266,7 +266,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     fRunAna->AddTask(dchTF);
 
     // Residual analysis
-    BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
+    BmnResiduals* res = new BmnResiduals(run_period, run_number);
     fRunAna->AddTask(res);
 
     BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, kTRUE);

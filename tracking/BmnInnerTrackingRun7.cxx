@@ -17,6 +17,7 @@
 #include "FairRunAna.h"
 #include "FairTrackParam.h"
 #include "TStyle.h"
+#include "BmnFieldMap.h"
 #if defined(_OPENMP)
 #include <cstdlib>
 
@@ -40,33 +41,8 @@ static Double_t trackSelectionTime = 0.0;
 using namespace std;
 using namespace TMath;
 
-BmnInnerTrackingRun7::BmnInnerTrackingRun7(Int_t run, Bool_t field, Bool_t target, TString steerFile) : fSteering(nullptr),
-                                                                                                        fSteerFile(steerFile) {
-    // Deciding whether we are getting MC ...
-    if (run < 0) {
-        // MC-input given
-        if (run < -2)
-            Fatal("BmnInnerTrackingRun7()", "Probably, run number has been changed manually in reco macro. Aborting ...");
-
-        // After the first decision made, we are selecting setup used in when preparing the MC-input
-        // When processing MC-input
-        // -2 means use of the SRC-setup
-        // -1 means use of the BM@N-setup
-        isSRC = (run == -2) ? kTRUE : kFALSE;
-    }
-    // Define a setup to be used by comparing with current runID, exp. data input given
-    else {
-        const Int_t runTransition = 3589;  // FIXME!
-        isSRC = (run < runTransition) ? kTRUE : kFALSE;
-    }
-
-    TString setup = isSRC ? "SRC" : "BMN";
-    if (steerFile == "")
-        fSteering = new BmnSteering(field ? TString(setup + "_run7_withField.dat") : TString(setup + "_run7_noField.dat"));  // FIXME (should be got from UniDb)
-    else
-        fSteering = new BmnSteering(fSteerFile);
+BmnInnerTrackingRun7::BmnInnerTrackingRun7(Int_t run, Bool_t target) : fSteering(nullptr), fSteerFile("") {
     fEventNo = 0;
-    fIsField = field;
     fIsTarget = target;
     fNSiliconStations = 0;
     fGemHitsArray = nullptr;
@@ -83,7 +59,6 @@ BmnInnerTrackingRun7::BmnInnerTrackingRun7(Int_t run, Bool_t field, Bool_t targe
     fGlobTracksBranchName = "BmnGlobalTrack";
     fGemTracksBranchName = "BmnGemTrack";
     fSilTracksBranchName = "BmnSiliconTrack";
-    fNStations = fSteering->GetNStations();
     fGemDetector = nullptr;
     fSilDetector = nullptr;
     fHitXCutMin = nullptr;
@@ -92,7 +67,6 @@ BmnInnerTrackingRun7::BmnInnerTrackingRun7(Int_t run, Bool_t field, Bool_t targe
     fHitYCutMax = nullptr;
     fNHitsCut = 0;
     fDoHitAsymFiltration = kTRUE;
-    if (fVerbose > 1) fSteering->PrintParamTable();
 }
 
 BmnInnerTrackingRun7::~BmnInnerTrackingRun7() {
@@ -145,11 +119,11 @@ InitStatus BmnInnerTrackingRun7::Init() {
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
 
     TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
-    TString confGem = "GemRun" + TString(isSRC ? "SRC" : "") + "Spring2018.xml";
+    TString confGem = "GemRunSpring2018.xml";
     fGemDetector = new BmnGemStripStationSet(gPathGemConfig + confGem);
 
     TString gPathSiConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
-    TString confSi = "SiliconRun" + TString(isSRC ? "SRC" : "") + "Spring2018.xml";
+    TString confSi = "SiliconRunSpring2018.xml";
     fSilDetector = new BmnSiliconStationSet(gPathSiConfig + confSi);
 
     Int_t nGemStations = fGemDetector->GetNStations();
@@ -157,15 +131,16 @@ InitStatus BmnInnerTrackingRun7::Init() {
 
     fNSiliconStations = nSilStations;
 
-    if (isSRC)
-        nGemStations -= 4;
-
     fNStations = nGemStations + nSilStations;
 
     fHitXCutMin = new Double_t[fNStations];
     fHitXCutMax = new Double_t[fNStations];
     fHitYCutMin = new Double_t[fNStations];
     fHitYCutMax = new Double_t[fNStations];
+    
+    BmnFieldMap* field = (BmnFieldMap*)FairRunAna::Instance()->GetField();
+    Bool_t isField = !(field->IsFieldOff());
+    fSteering = new BmnSteering(isField ? "BMN_run7_withField.dat" : "BMN_run7_noField.dat");
 
     if (fVerbose > 1) cout << "======================== GEM tracking init finished ===================" << endl;
 
@@ -415,8 +390,10 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_4of4_OnLastGEMStations() {
     //     cout << cand.GetNDF() << endl;
     //     cand.Print();
     // }
-
-    if (fIsField)
+    
+    BmnFieldMap* field = (BmnFieldMap*)FairRunAna::Instance()->GetField();
+    Bool_t isField = !(field->IsFieldOff());
+    if (isField)
         TrackUpdateByKalman(candidates);
     else
         TrackUpdateByLine(candidates);
@@ -549,7 +526,9 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_3of4_OnLastGEMStations() {
         cand.SetNDF(cand.GetNHits() * 2 - 5);
     }
 
-    if (fIsField)
+    BmnFieldMap* field = (BmnFieldMap*) FairRunAna::Instance()->GetField();
+    Bool_t isField = !(field->IsFieldOff());
+    if (isField)
         TrackUpdateByKalman(candidates);
     else
         TrackUpdateByLine(candidates);
@@ -570,7 +549,7 @@ BmnStatus BmnInnerTrackingRun7::MatchHit(BmnTrack* cand, vector<BmnHit*> sortedH
     //Double_t minDY = DBL_MAX;
     BmnHit* minHit = nullptr;
     clock_t t0_0 = 0;  //clock();
-    fKalman->TGeoTrackPropagate(&par, sortedHits.at(0)->GetZ(), 2212, nullptr, nullptr, fIsField);
+    fKalman->TGeoTrackPropagate(&par, sortedHits.at(0)->GetZ(), 2212, nullptr, nullptr);
     clock_t t0_1 = 0;  //clock();
     for (BmnHit* hit : sortedHits) {
         //Double_t dX = Abs(par.GetX() - hit->GetX());
@@ -836,8 +815,10 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_2of2_OnFirstGEMStationsDownstream() {
     clock_t t1 = 0;  //clock();
     construct_2of4_time += ((Double_t)(t1 - t0)) / CLOCKS_PER_SEC;
     //cout << "FindTracks_2of2_OnFirstGEMstStations::candidates = " << candidates.size() << endl;
-
-    if (fIsField)
+    
+    BmnFieldMap* field = (BmnFieldMap*)FairRunAna::Instance()->GetField();
+    Bool_t isField = !(field->IsFieldOff());
+    if (isField)
         TrackUpdateByKalman(candidates);
     else
         TrackUpdateByLine(candidates);
@@ -916,7 +897,9 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_2of2_OnFirstGEMStationsUpstream() {
         cand.SetNDF(cand.GetNHits() * 2 - 5);
     }
 
-    if (fIsField)
+    BmnFieldMap* field = (BmnFieldMap*)FairRunAna::Instance()->GetField();
+    Bool_t isField = !(field->IsFieldOff());
+    if (isField)
         TrackUpdateByKalman(candidates);
     else
         TrackUpdateByLine(candidates);
@@ -1020,14 +1003,14 @@ BmnStatus BmnInnerTrackingRun7::TrackUpdateByKalman(vector<BmnTrack>& cands) {
         for (Int_t iHit = 0; iHit < cand.GetNHits(); ++iHit) {
             BmnHit* hit = (BmnHit*)fHitsArray->At(cand.GetHitIndex(iHit));
             Double_t chi = 0.0;
-            fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 2212, nullptr, nullptr, fIsField);
+            fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 2212, nullptr, nullptr);
             fKalman->Update(&par, hit, chi);
         }
         cand.SetParamLast(par);
         for (Int_t iHit = cand.GetNHits() - 1; iHit >= 0; iHit--) {
             BmnHit* hit = (BmnHit*)fHitsArray->At(cand.GetHitIndex(iHit));
             Double_t chi = 0.0;
-            fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 2212, nullptr, nullptr, fIsField);
+            fKalman->TGeoTrackPropagate(&par, hit->GetZ(), 2212, nullptr, nullptr);
             fKalman->Update(&par, hit, chi);
             chiTot += chi;
         }
@@ -1047,7 +1030,7 @@ BmnStatus BmnInnerTrackingRun7::TrackSelection(vector<BmnTrack>& sortedTracks) {
 
     // for (Int_t iTr = 0; iTr < sortedTracks.size(); ++iTr) {
     //     BmnTrack* tr = &(sortedTracks[iTr]);
-    //     if (tr->GetFlag() == 666 || !IsParCorrect(tr->GetParamFirst(), fIsField) || !IsParCorrect(tr->GetParamLast(), fIsField)) continue;
+    //     if (tr->GetFlag() == 666 || !IsParCorrect(tr->GetParamFirst()) || !IsParCorrect(tr->GetParamLast())) continue;
     //     Bool_t badTrack = kFALSE;
     //     BmnHit* hit0 = (BmnHit*)fHitsArray->At(tr->GetHitIndex(0));
     //     Int_t stPrev = hit0->GetStation();
@@ -1066,7 +1049,7 @@ BmnStatus BmnInnerTrackingRun7::TrackSelection(vector<BmnTrack>& sortedTracks) {
     CheckSharedHits(sortedTracks);
     for (Int_t iTr = 0; iTr < sortedTracks.size(); ++iTr) {
         BmnTrack tr = sortedTracks[iTr];
-        if (tr.GetFlag() == 666 || !IsParCorrect(tr.GetParamFirst(), fIsField) || !IsParCorrect(tr.GetParamLast(), fIsField)) continue;
+        if (tr.GetFlag() == 666 || !IsParCorrect(tr.GetParamFirst()) || !IsParCorrect(tr.GetParamLast())) continue;
         BmnTrack gemTr;
         BmnTrack silTr;
         BmnGlobalTrack globTr;
@@ -1237,19 +1220,22 @@ BmnStatus BmnInnerTrackingRun7::CalcCovMatrix(BmnTrack* tr) {
 }
 
 BmnStatus BmnInnerTrackingRun7::CalculateTrackParams(BmnTrack* tr) {
+    
+    BmnFieldMap* field = (BmnFieldMap*)FairRunAna::Instance()->GetField();
+    Bool_t isField = !(field->IsFieldOff());
     clock_t t0 = 0;  //clock();
     //Estimation of track parameters for events with magnetic field
     const UInt_t nHits = tr->GetNHits();
     if (nHits < 3) return kBMNERROR;
     TVector3 lineParZY = LineFit(tr, fHitsArray, "ZY");
     if (lineParZY.Z() > 1) return kBMNERROR;  //cout << "chi2_lineFit = " << lineParZY.Z() << endl;
-    //tr->SetNDF(nHits - (fIsField ? 3 : 2));
+    //tr->SetNDF(nHits - (isField ? 3 : 2));
     const Double_t B = lineParZY.X();  //angle coefficient for helicoid
 
     Double_t Tx_first = CalcTx((BmnHit*)fHitsArray->At(tr->GetHitIndex(0)), (BmnHit*)fHitsArray->At(tr->GetHitIndex(1)), (BmnHit*)fHitsArray->At(tr->GetHitIndex(2)));
     Double_t Tx_last = CalcTx((BmnHit*)fHitsArray->At(tr->GetHitIndex(nHits - 1)), (BmnHit*)fHitsArray->At(tr->GetHitIndex(nHits - 2)), (BmnHit*)fHitsArray->At(tr->GetHitIndex(nHits - 3)));
 
-    if (fIsField) CalcCovMatrix(tr);
+    if (isField) CalcCovMatrix(tr);
     TVector3 firstPos;
     TVector3 lastPos;
     ((BmnHit*)fHitsArray->At(tr->GetHitIndex(0)))->Position(firstPos);
@@ -1261,7 +1247,7 @@ BmnStatus BmnInnerTrackingRun7::CalculateTrackParams(BmnTrack* tr) {
     tr->GetParamLast()->SetTx(Tx_last);
     tr->GetParamLast()->SetTy(B);
     Bool_t doSimple = (nHits == 3) ? kTRUE : kFALSE;
-    Double_t QP = fIsField ? CalcQp(tr, doSimple) : 0.0;
+    Double_t QP = isField ? CalcQp(tr, doSimple) : 0.0;
     tr->GetParamFirst()->SetQp(QP);
     tr->GetParamLast()->SetQp(QP);
     clock_t t1 = 0;  //clock();

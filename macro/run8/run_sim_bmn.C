@@ -3,7 +3,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 
 #define GEANT4  // Choose: GEANT3 GEANT4
 // enumeration of generator names corresponding input files
-enum enumGenerators{UNIGEN, URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM};
+enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM};
 
 // inFile - input file with generator data, if needed
 // outFile - output file with MC data, default: bmnsim.root
@@ -12,7 +12,7 @@ enum enumGenerators{UNIGEN, URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM};
 // generatorName - generator name for the input file (enumeration above)
 // useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
 void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString outFile = "$VMCWORKDIR/macro/run8/bmnsim.root",
-    Int_t nStartEvent = 0, Int_t nEvents = 1, enumGenerators generatorName = BOX, Bool_t useRealEffects = kTRUE) {
+    Int_t nStartEvent = 0, Int_t nEvents = 10, enumGenerators generatorName = DCMSMM, Bool_t useRealEffects = kTRUE) {
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
@@ -43,23 +43,13 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     primGen->SetBeam(0.0, 0.0, 0.3, 0.3);  // (beamX0, beamY0, beamSigmaX, beamSigmaY)
     primGen->SetBeamAngle(0.0, 0.0, 0.0, 0.0);  // (beamAngleX0, beamAngleY0, beamAngleSigmaX, beamAngleSigmaY)
     primGen->SetTarget(0.0, 0.175);    // (targetZ, targetDz)
-
     primGen->SmearVertexZ(kTRUE);
     primGen->SmearGausVertexXY(kTRUE);
     gRandom->SetSeed(0);
 
     switch (generatorName)
     {
-    // ------- UNIGEN Generator
-    case UNIGEN:{
-        if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
-        auto* unigen = new MpdUnigenGenerator(inFile);
-        unigen->RegisterIons();
-        //urqmdGen->SetEventPlane(0., 360.);
-        primGen->AddGenerator(unigen);
-        if (nStartEvent > 0) unigen->SkipEvents(nStartEvent);
-        break;
-    }// ------- UrQMD Generator
+    // ------- UrQMD Generator
     case URQMD:{
         if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
 
@@ -85,7 +75,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     // ------- Ion Generator
     case ION:{
         // Start beam from a far point to check mom. reconstruction procedure (Z, A, q, mult, [GeV] px, py, pz, [cm] vx, vy, vz)
-        FairIonGenerator* fIongen = new FairIonGenerator(54, 131, 54, 1, 0., 0., -4.8, 0., 0., 0.); //Xe
+        FairIonGenerator* fIongen = new FairIonGenerator(54, 131, 54, 1, 0., 0., 4.8, 0., 0., 0.); //Xe
         primGen->AddGenerator(fIongen);
         break;
     }
@@ -253,5 +243,5 @@ if ((generatorName == QGSM) || (generatorName == DCMQGSM)){
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
     cout << "Macro finished successfully." << endl; // marker of successfully execution for software testing systems
-//    delete fRun;
+    delete fRun;
 }

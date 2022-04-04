@@ -108,7 +108,7 @@ Bool_t BmnTof1Raw2Digit::setRun(Int_t nPeriod, Int_t nRun) {
         //Get the placement map
         vector<UniValue*> tdcmap_array;
         pLoadedPlacement->GetValue(tdcmap_array);
-        MapIntValue* temptdcMap = new MapIntValue;
+        MapIntValue* temptdcMap = nullptr;
         //loop over TDCs stored in the DB
         for (int i = 0; i < tdcmap_array.size(); i++) {
             temptdcMap = (MapIntValue*) tdcmap_array.at(i);
@@ -136,7 +136,7 @@ Bool_t BmnTof1Raw2Digit::setRun(Int_t nPeriod, Int_t nRun) {
         //Get the str map
         vector<UniValue*> stripmap_array;
         pLoadedStr->GetValue(stripmap_array);
-        MapDVectorValue* tempstrMap = new MapDVectorValue;
+        MapDVectorValue* tempstrMap = nullptr;
         for (int i = 0; i < stripmap_array.size(); i++) {
             tempstrMap = (MapDVectorValue*) stripmap_array.at(i);
             //Looking for TDC in the map
@@ -180,7 +180,7 @@ Bool_t BmnTof1Raw2Digit::setRun(Int_t nPeriod, Int_t nRun) {
     //get INL from DB to vector
     vector<UniValue*> inl_array;
     pLoadedInl->GetValue(inl_array);
-    TdcInlValue* tempInl = new TdcInlValue;
+    TdcInlValue* tempInl = nullptr;
     UInt_t serialtemp;
     Bool_t flagtemp = false;
     Tof1TDCMapIter tdcs = TDCMap.begin();

@@ -22,16 +22,12 @@ public:
 
     // Constructors/Destructors ---------
     BmnVertexFinder() {};
-    BmnVertexFinder(Int_t period, Bool_t isField);
+    BmnVertexFinder(Int_t period);
     virtual ~BmnVertexFinder();
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
     virtual void Finish();
-
-    void SetField(Bool_t f) {
-        fIsField = f;
-    }
 
     BmnVertex FindPrimaryVertex(TClonesArray* tracks);
     BmnVertex FindSecondaryVertex(TClonesArray* tracks);
@@ -54,7 +50,6 @@ public:
 
     Double_t fTime;
 
-    Bool_t fIsField;
     Bool_t fRobustRefit;
     FairField* fField;
     BmnKalmanFilter* fKalman;

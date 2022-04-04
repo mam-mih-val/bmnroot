@@ -12,6 +12,7 @@ BmnMatchRecoToMC::BmnMatchRecoToMC() :
     fStsTracks(nullptr),
     fStsHits(nullptr),
     fSilPoints(nullptr),
+    fInnerTrackBranchName("StsTrack"),
     fSilTracks(nullptr) {
 }
 
@@ -27,7 +28,7 @@ void BmnMatchRecoToMC::Exec(Option_t* opt) {
 
     TStopwatch sw;
     sw.Start();
-    
+
     if (fGlobalTrackMatches) fGlobalTrackMatches->Delete();
     MatchGlobalTracks();
 
@@ -55,7 +56,7 @@ void BmnMatchRecoToMC::ReadAndCreateDataBranches() {
 
     // STS
     fStsHits = (TClonesArray*)ioman->GetObject("StsHit");
-    fStsTracks = (TClonesArray*)ioman->GetObject("StsTrack");
+    fStsTracks = (TClonesArray*)ioman->GetObject(fInnerTrackBranchName);
 
     fGlobalTrackMatches = new TClonesArray("BmnTrackMatch", 100);
     ioman->Register("BmnGlobalTrackMatch", "GLOBAL", fGlobalTrackMatches, kTRUE);
@@ -173,7 +174,7 @@ void BmnMatchRecoToMC::MatchGlobalTracks() {
             LinkToMC(stsTr->GetStsHitIndex(iHit), trackMatch);
         if (trackMatch->GetNofLinks() == 0) continue;
         CalculateTrackQuality(stsTr, trackMatch);
-           
+
         Int_t refId = (trackMatch->GetTrueOverAllHitsRatio() > 0.6) ? trackMatch->GetMatchedLink().GetIndex() : -1;
         stsTr->SetTrkID(refId);
         glTrack->SetRefIndex(refId);

@@ -23,7 +23,11 @@ BmnOnlineDecoder::BmnOnlineDecoder() {
 }
 
 BmnOnlineDecoder::~BmnOnlineDecoder() {
-    if (rawDataDecoder) delete rawDataDecoder;
+    if (rawDataDecoder) {
+        rawDataDecoder->DisposeDecoder();
+        delete rawDataDecoder;
+        rawDataDecoder = NULL;
+    }
     if (_ctx) {
         zmq_ctx_destroy(_ctx);
         _ctx = NULL;
@@ -332,7 +336,7 @@ void BmnOnlineDecoder::ProcessStream() {
                 printf("Receive error # %d #%s\n", errno, zmq_strerror(errno));
                 switch (errno) {
                     case EAGAIN:
-                        if ((msg_len < MIN_REMNANT_LEN))
+                        if ((msg_len < MPD_EVENT_HEAD_WORDS_OLD))
                             usleep(MSG_TIMEOUT);
                         break;
                     case EINTR:
@@ -353,19 +357,25 @@ void BmnOnlineDecoder::ProcessStream() {
             } else {
                 if (frame_size) {
                     if (msg_len + frame_size > MAX_BUF_LEN) {
-                        UInt_t dropped = msg_len + frame_size - MAX_BUF_LEN;
-                        msg_len -= dropped;
-                        printf("buf overflow!\t %d will move by %d bytes\n", msg_len, dropped);
-                        memmove(buf, &buf[frame_size], msg_len);
+                        printf("buf overflow! msg len %u frame size %u\n", msg_len, frame_size);
+                        printf("Something wrong! Exit!\n");
+                        isReceiving = kFALSE;
+                        isListening = kFALSE;
+                        msg_len = 0;
+                        //                        if (msg_len % kNBYTESINWORD) {
+                        //                            printf("Something wrong! Resetting buffer!\n");
+                        //                            msg_len = 0;
+                        //                        } else {
+                        //                            UInt_t dropped = msg_len + frame_size - MAX_BUF_LEN;
+                        //                            msg_len -= dropped;
+                        //                            printf("Frame_size %u\t Message length %d, dropped %d bytes\n", frame_size, msg_len, dropped);
+                        //                            memmove(buf, &buf[frame_size], msg_len);
+                        //                        }
                     }
                     memcpy(buf + msg_len, zmq_msg_data(&msg), frame_size);
                     msg_len += frame_size;
                     //                    printf("msg_len    = %d\n", msg_len);
                 }
-//                Int_t res = msg_len % kNBYTESINWORD;
-//                if (res) {
-//                    printf("WTF?\n");
-//                }
             }
             size_t opt_size = sizeof (recv_more);
             if (zmq_getsockopt(_socket_data, ZMQ_RCVMORE, &recv_more, &opt_size) == -1) {
@@ -376,7 +386,7 @@ void BmnOnlineDecoder::ProcessStream() {
             zmq_msg_close(&msg);
         } while (recv_more && isReceiving);
 
-        if (msg_len < 256 * sizeof (UInt_t)) // number doesn't mean anything, just avoid segfault
+        if (msg_len < MPD_EVENT_HEAD_WORDS_OLD * sizeof (UInt_t))
             continue;
         UInt_t iWord = 0;
         Bool_t evExit = false;
@@ -384,14 +394,23 @@ void BmnOnlineDecoder::ProcessStream() {
         UInt_t lenWords = 0;
         UInt_t runID = 0;
         word = reinterpret_cast<UInt_t*> (buf);
-        while ((iWord < msg_len / kNBYTESINWORD) && (!evExit) && (msg_len > MIN_REMNANT_LEN)) {
+        while ((iWord < msg_len / kNBYTESINWORD) && (!evExit) && (msg_len > MPD_EVENT_HEAD_WORDS_OLD)) {
             //            printf("iter iWord  = %u   msg_len %u   %u\n", iWord, msg_len, MIN_REMNANT_LEN);
-            switch (*(word + iWord)) {
+            switch (UInt_t val = *(word + iWord)) {
                 case SYNC_RUN_START:
                     printf("iWord = %u\n", iWord);
                     printf("start run\n");
                     lenWords = *(word + ++iWord) / sizeof (UInt_t);
                     printf("payLen = %u words\n", lenWords);
+                    if (lenWords + iWord > MAX_BUF_LEN) {
+                        printf("Wrong payload size!\n");
+                        lenBytes = iWord * sizeof (UInt_t);
+                        msg_len -= lenBytes;
+                        printf(" %u will move by %u bytes\n", msg_len, lenBytes);
+                        memmove(&buf[0], &buf[lenBytes], msg_len);
+                        iWord = 0;
+                        break;
+                    }
                     BmnRawDataDecoder::ParseRunTLV((word + ++iWord), lenWords, runID);
                     printf("runID = %u\n", runID);
                     if (fRunID != runID) {
@@ -404,6 +423,10 @@ void BmnOnlineDecoder::ProcessStream() {
                         }
                         if (InitDecoder(runID) == kBMNERROR) {
                             printf("\n\tError in InitDecoder !!\n\n");
+                            if (rawDataDecoder) {
+                                delete rawDataDecoder;
+                                rawDataDecoder = NULL;
+                            }
                             //                                    evExit = kTRUE;
                             break;
                         }
@@ -411,9 +434,9 @@ void BmnOnlineDecoder::ProcessStream() {
                     }
                     iWord += lenWords;
                     lenBytes = iWord * sizeof (UInt_t);
-                    //                    printf(" lenBytes %u \n", lenBytes);
-                    msg_len -= lenBytes; //lenWords * kNBYTESINWORD;
-                    //                    printf(" %u will move by %u bytes\n", msg_len, lenBytes);
+                    printf(" lenBytes %u \n", lenBytes);
+                    msg_len -= lenBytes;
+                    printf(" %u will move by %u bytes\n", msg_len, lenBytes);
                     memmove(&buf[0], &buf[lenBytes], msg_len);
                     iWord = 0;
                     //                    evExit = kTRUE;
@@ -424,6 +447,11 @@ void BmnOnlineDecoder::ProcessStream() {
                     printf("payLen = %d words\n", lenWords);
                     if (lenWords + iWord > MAX_BUF_LEN) {
                         printf("Wrong payload size!\n");
+                        lenBytes = iWord * sizeof (UInt_t);
+                        msg_len -= lenBytes;
+                        printf(" %u will move by %u bytes\n", msg_len, lenBytes);
+                        memmove(&buf[0], &buf[lenBytes], msg_len);
+                        iWord = 0;
 
                         break;
                     }
@@ -437,7 +465,7 @@ void BmnOnlineDecoder::ProcessStream() {
                     }
                     iWord += lenWords;
                     lenBytes = iWord * sizeof (UInt_t);
-                    msg_len -= lenBytes; //lenWords * kNBYTESINWORD;
+                    msg_len -= lenBytes;
                     //                    printf(" %u will move by %u bytes\n", msg_len, lenBytes);
                     memmove(&buf[0], &buf[lenBytes], msg_len);
                     iWord = 0;
@@ -445,13 +473,13 @@ void BmnOnlineDecoder::ProcessStream() {
                     break;
                 case SYNC_EVENT:
                 case SYNC_EVENT_OLD:
-                    //                    printf("SYNC_EVENT\n");
+                    //                    printf(ANSI_COLOR_BLUE"SYNC_EVENT\n"ANSI_COLOR_RESET);
                     lenBytes = *(word + ++iWord);
                     lenWords = lenBytes / kNBYTESINWORD + (fPeriodID <= 7 ? 1 : 0);
-                    //                    printf("iWord    == %u\n", iWord);
-                    //                    printf("lenBytes == %u\n", lenBytes);
-                    //                    printf("lenWords == %u\n", lenWords);
-                    if (msg_len / kNBYTESINWORD >= iWord + lenWords + MPD_EVENT_HEAD_WORDS - (fPeriodID <= 7 ? 1 : 0)) {
+//                    printf("iWord    == %u\n", iWord);
+//                    printf("lenBytes == %u\n", lenBytes);
+//                    printf("lenWords == %u\n", lenWords);
+                    if (msg_len / kNBYTESINWORD >= lenWords + (fPeriodID > 7 ? MPD_EVENT_HEAD_WORDS : MPD_EVENT_HEAD_WORDS_OLD)) {
                         //                    printf("captured enough\n");
                         if (!rawDataDecoder)
                             if (InitDecoder(fRunID) == kBMNERROR) {
@@ -465,36 +493,152 @@ void BmnOnlineDecoder::ProcessStream() {
                         if (convertResult == kBMNERROR) {
                             printf("convert failed\n");
                             //                            evExit = kTRUE;
-                            break;
                             lenBytes = iWord * sizeof (UInt_t);
                             msg_len -= lenBytes;
                             printf(" %u will move by %u bytes\n", msg_len, lenBytes);
                             memmove(&buf[0], &buf[lenBytes], msg_len);
                             iWord = 0;
+                            break;
                         }
-                        iWord += lenWords;
                         BmnStatus decostat = rawDataDecoder->DecodeDataToDigiIterate();
                         //                        printf(" decostat %d \n", decostat);
                         fEvents++;
                         if (decostat == kBMNSUCCESS) {
                             DigiArrays iterDigi = rawDataDecoder->GetDigiArraysObject();
-                            if (iterDigi.header == NULL)
-                                continue;
                             BmnEventHeader* head = iterDigi.header;
-                            if (head->GetEventType() != kBMNPAYLOAD)
-                                continue;
-                            t.WriteObject(&iterDigi);
-                            sendRes = zmq_send(_decoSocket, t.Buffer(), t.Length(), ZMQ_NOBLOCK);
-                            //                            printf("sendRes %d\n", sendRes);
-                            t.Reset();
-                            if (sendRes == -1) {
-                                printf("Send error # %d : %s\n", errno, zmq_strerror(errno));
+                            if (head) {
+                                if (head->GetEventType() == kBMNPAYLOAD) {
+                                    t.WriteObject(&iterDigi);
+                                    sendRes = zmq_send(_decoSocket, t.Buffer(), t.Length(), ZMQ_NOBLOCK);
+                                    //                            printf("sendRes %d\n", sendRes);
+                                    t.Reset();
+                                    if (sendRes == -1) {
+                                        printf("Send error # %d : %s\n", errno, zmq_strerror(errno));
+                                    }
+                                }
                             }
                         }
+                        iWord += lenWords;
                         lenBytes = iWord * sizeof (UInt_t);
-                        //                        lenBytes += (MPD_EVENT_HEAD_WORDS - (fPeriodID <= 7 ? 1 : 0)) * sizeof (UInt_t);
-                        msg_len -= lenBytes; //lenWords * kNBYTESINWORD;
-                        //                        printf(" %u will move by %u bytes\n", msg_len, lenBytes);
+                        msg_len -= lenBytes;
+//                        printf(" %u will move by %u bytes\n", msg_len, lenBytes);
+                        memmove(&buf[0], &buf[lenBytes], msg_len);
+                        iWord = 0;
+                    } else {
+                        //                        printf("Not enough data in the buffer!\n");
+                        iWord = 0;
+                        evExit = kTRUE;
+                    }
+                    break;
+                case SYNC_STAT: // just skip at this point
+//                    printf(ANSI_COLOR_BLUE "STAT\n" ANSI_COLOR_RESET);
+                    lenBytes = *(word + ++iWord);
+                    lenWords = lenBytes / kNBYTESINWORD + (fPeriodID <= 7 ? 1 : 0);
+//                    printf("iWord    == %u\n", iWord);
+//                    printf("lenBytes == %u\n", lenBytes);
+//                    printf("lenWords == %u\n", lenWords);
+                    if (msg_len / kNBYTESINWORD >= MPD_EVENT_HEAD_WORDS_OLD + lenWords) {
+                        ++iWord; // if other is commented
+                        //                        if (!rawDataDecoder)
+                        //                            if (InitDecoder(fRunID) == kBMNERROR) {
+                        //                                printf("\n\tError in InitDecoder !!\n\n");
+                        //                                //                                evExit = kTRUE;
+                        //                                break;
+                        //                            }
+                        //                        //                        rawDataDecoder->SetRunId(fRunID);
+                        //                        convertResult = rawDataDecoder->ConvertRawToRootIterate(word + ++iWord, lenWords);
+                        //                        printf(" convertResult %d \n", convertResult);
+                        //                        if (convertResult == kBMNERROR) {
+                        //                            printf("convert failed\n");
+                        //                            //                            evExit = kTRUE;
+                        //                            lenBytes = iWord * sizeof (UInt_t);
+                        //                            msg_len -= lenBytes;
+                        //                            printf(" %u will move by %u bytes\n", msg_len, lenBytes);
+                        //                            memmove(&buf[0], &buf[lenBytes], msg_len);
+                        //                            iWord = 0;
+                        //                            break;
+                        //                        }
+                        //                        BmnStatus decostat = rawDataDecoder->DecodeDataToDigiIterate();
+                        //                        printf(" decostat %d \n", decostat);
+                        //                        fEvents++;
+                        //                        if (decostat == kBMNSUCCESS) {
+                        //                            DigiArrays iterDigi = rawDataDecoder->GetDigiArraysObject();
+                        //                            BmnEventHeader* head = iterDigi.header;
+                        //                            if (head) {
+                        //                                if (head->GetEventType() == kBMNPAYLOAD) {
+                        //                                    t.WriteObject(&iterDigi);
+                        //                                    sendRes = zmq_send(_decoSocket, t.Buffer(), t.Length(), ZMQ_NOBLOCK);
+                        //                                    //                            printf("sendRes %d\n", sendRes);
+                        //                                    t.Reset();
+                        //                                    if (sendRes == -1) {
+                        //                                        printf("Send error # %d : %s\n", errno, zmq_strerror(errno));
+                        //                                    }
+                        //                                }
+                        //                            }
+                        //                        }
+                        iWord += lenWords;
+                        lenBytes = iWord * sizeof (UInt_t);
+                        msg_len -= lenBytes;
+//                        printf(" %u will move by %u bytes\n", msg_len, lenBytes);
+                        memmove(&buf[0], &buf[lenBytes], msg_len);
+                        iWord = 0;
+                    } else {
+                        //                        printf("Not enough data in the buffer!\n");
+                        iWord = 0;
+                        evExit = kTRUE;
+                    }
+                    break;
+                case SYNC_JSON:
+//                    printf(ANSI_COLOR_BLUE"SYNC_JSON\n"ANSI_COLOR_RESET);
+                    lenBytes = *(word + ++iWord);
+                    lenWords = lenBytes / kNBYTESINWORD + (fPeriodID <= 7 ? 1 : 0);
+//                    printf("iWord    == %u\n", iWord);
+//                    printf("lenBytes == %u\n", lenBytes);
+//                    printf("lenWords == %u\n", lenWords);
+                    if (msg_len / kNBYTESINWORD >= lenWords + MPD_EVENT_HEAD_WORDS) {
+                        ++iWord; // if other is commented
+                        //                    printf("captured enough\n");
+                        //                        if (!rawDataDecoder)
+                        //                            if (InitDecoder(fRunID) == kBMNERROR) {
+                        //                                printf("\n\tError in InitDecoder !!\n\n");
+                        //                                //                                evExit = kTRUE;
+                        //                                break;
+                        //                            }
+                        //                        //                        rawDataDecoder->SetRunId(fRunID);
+                        //                        convertResult = rawDataDecoder->ConvertRawToRootIterate(word + ++iWord, lenWords);
+                        //                        printf(" convertResult %d \n", convertResult);
+                        //                        if (convertResult == kBMNERROR) {
+                        //                            printf("convert failed\n");
+                        //                            //                            evExit = kTRUE;
+                        //                            lenBytes = iWord * sizeof (UInt_t);
+                        //                            msg_len -= lenBytes;
+                        //                            printf(" %u will move by %u bytes\n", msg_len, lenBytes);
+                        //                            memmove(&buf[0], &buf[lenBytes], msg_len);
+                        //                            iWord = 0;
+                        //                            break;
+                        //                        }
+                        //                        BmnStatus decostat = rawDataDecoder->DecodeDataToDigiIterate();
+                        //                        printf(" decostat %d \n", decostat);
+                        //                        fEvents++;
+                        //                        if (decostat == kBMNSUCCESS) {
+                        //                            DigiArrays iterDigi = rawDataDecoder->GetDigiArraysObject();
+                        //                            BmnEventHeader* head = iterDigi.header;
+                        //                            if (head) {
+                        //                                if (head->GetEventType() == kBMNPAYLOAD) {
+                        //                                    t.WriteObject(&iterDigi);
+                        //                                    sendRes = zmq_send(_decoSocket, t.Buffer(), t.Length(), ZMQ_NOBLOCK);
+                        //                                    //                            printf("sendRes %d\n", sendRes);
+                        //                                    t.Reset();
+                        //                                    if (sendRes == -1) {
+                        //                                        printf("Send error # %d : %s\n", errno, zmq_strerror(errno));
+                        //                                    }
+                        //                                }
+                        //                            }
+                        //                        }
+                        iWord += lenWords;
+                        lenBytes = iWord * sizeof (UInt_t);
+                        msg_len -= lenBytes;
+//                        printf(" %u will move by %u bytes\n", msg_len, lenBytes);
                         memmove(&buf[0], &buf[lenBytes], msg_len);
                         iWord = 0;
                     } else {

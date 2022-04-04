@@ -54,6 +54,7 @@ public:
      */
     BmnGlobalTracking();
     BmnGlobalTracking(Bool_t);
+    BmnGlobalTracking(Bool_t isExp, Bool_t doAlign);
     BmnGlobalTracking(Bool_t isField, Bool_t isExp, Bool_t doAlign);
 
     /**
@@ -84,10 +85,6 @@ public:
         return fDoAlign;
     };
 
-    void SetField(Bool_t f) {
-        fIsField = f;
-    }
-
     void SetSrcSetup(Bool_t f) {
         fIsSRC = f;
     }
@@ -98,6 +95,10 @@ public:
 
     void SetPeriodNumber(Short_t p) {
         fPeriod = p;
+    }
+
+    void SetInnerTracksBranchName(TString name) {
+        fInnerTrackBranchName = name;
     }
 
 private:
@@ -131,8 +132,9 @@ private:
     TClonesArray* fStsTracks;
     TClonesArray* fGlobalTracks;
 
+    TString fInnerTrackBranchName;
+
     Short_t fPeriod;
-    Bool_t fIsField;  // run with mag.field or not
     Bool_t fIsSRC;    // flag to turn on specific parts for SRC
     Bool_t fIsExp;
     Bool_t fDoAlign;
@@ -150,6 +152,7 @@ private:
 
     BmnStatus MatchingTOF(BmnGlobalTrack* tr, Int_t num);
     BmnStatus MatchingDCH(BmnGlobalTrack* tr);
+    BmnStatus MatchingDCH(BmnGlobalTrack* tr, Int_t num);
     BmnStatus MatchingUpstream(BmnGlobalTrack* tr);
     BmnStatus MatchingCSC(BmnGlobalTrack* glTr, vector<Int_t> stations);
 

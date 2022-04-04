@@ -193,9 +193,9 @@ private:
 
 
     BmnStatus ReadMapFile();
-    inline Int_t MapStrip(BmnSiliconMapping *v, Int_t iCh, Short_t iSmpl){
+    inline Int_t MapStrip(BmnSiliconMapping *v, Int_t &iCh, Short_t &iSmpl){
         if (v->inverted)
-            return (v->channel_high - iCh + 1) * GetNSamples() - iSmpl;
+            return (v->channel_high - iCh) * GetNSamples() + iSmpl;
         else
             return (iCh - v->channel_low) * GetNSamples() + iSmpl;
     }

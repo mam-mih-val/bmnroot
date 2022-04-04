@@ -17,5 +17,4 @@
 #pragma link C++ class  BmnZdcBScanner+;
 #pragma link C++ class  BmnZdcDigitizer+;
 #pragma link C++ class  BmnZdcAnalyzer+;
-#pragma link C++ class  BmnFHCalDigitizer+;
 #endif

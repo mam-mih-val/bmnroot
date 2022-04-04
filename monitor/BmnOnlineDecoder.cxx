@@ -357,8 +357,10 @@ void BmnOnlineDecoder::ProcessStream() {
             } else {
                 if (frame_size) {
                     if (msg_len + frame_size > MAX_BUF_LEN) {
-                        printf("buf overflow! \n");
-                        printf("Something wrong! Resetting buffer!\n");
+                        printf("buf overflow! msg len %u frame size %u\n", msg_len, frame_size);
+                        printf("Something wrong! Exit!\n");
+                        isReceiving = kFALSE;
+                        isListening = kFALSE;
                         msg_len = 0;
                         //                        if (msg_len % kNBYTESINWORD) {
                         //                            printf("Something wrong! Resetting buffer!\n");
@@ -522,11 +524,6 @@ void BmnOnlineDecoder::ProcessStream() {
 //                        printf(" %u will move by %u bytes\n", msg_len, lenBytes);
                         memmove(&buf[0], &buf[lenBytes], msg_len);
                         iWord = 0;
-                        if (fEvents > 1000) {
-                            isListening = kFALSE;
-                            evExit = kTRUE;
-                            printf("Exit!\n");
-                        }
                     } else {
                         //                        printf("Not enough data in the buffer!\n");
                         iWord = 0;
@@ -644,11 +641,6 @@ void BmnOnlineDecoder::ProcessStream() {
 //                        printf(" %u will move by %u bytes\n", msg_len, lenBytes);
                         memmove(&buf[0], &buf[lenBytes], msg_len);
                         iWord = 0;
-                        if (fEvents > 10000) {
-                            isListening = kFALSE;
-                            evExit = kTRUE;
-                            printf("Exit!\n");
-                        }
                     } else {
                         //                        printf("Not enough data in the buffer!\n");
                         iWord = 0;

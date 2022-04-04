@@ -197,10 +197,10 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     fRun->AddTask(cscDigit);
     
     //FHCal-Digitizer
-    // BmnFHCalDigitizer * fhcalDigit = new BmnFHCalDigitizer();
-    // fhcalDigit->SetScale(28.2e3);
-    // fhcalDigit->SetThreshold(0.);
-    // fRun->AddTask(fhcalDigit);
+     BmnFHCalDigitizer * fhcalDigit = new BmnFHCalDigitizer();
+     fhcalDigit->SetScale(28.2e3);
+     fhcalDigit->SetThreshold(0.);
+     fRun->AddTask(fhcalDigit);
     
     // ECAL-Digitizer
     // FIXME some problems with channels

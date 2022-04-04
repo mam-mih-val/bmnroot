@@ -228,7 +228,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     // ====================================================================== //
     // ===                   Tracking (GEM in magnet)                     === //
     // ====================================================================== //
-    SrcInnerTrackingRun7* innerTF = new SrcInnerTrackingRun7(run_number, isField, isTarget);
+    SrcInnerTrackingRun7* innerTF = new SrcInnerTrackingRun7(run_number, isTarget);
     fRunAna->AddTask(innerTF);
 
     // ====================================================================== //

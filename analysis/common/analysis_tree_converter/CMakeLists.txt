@@ -1,16 +1,15 @@
 Set(LIBRARY_NAME CbmAnalysisTreeInterface)
 
 set(SRCS
-        BmnConverterManager.cxx
-        BmnConverterTask.cxx
-        BmnSimEventHeaderConverter.cxx
-        BmnRecEventHeaderConverter.cxx
+        CbmConverterManager.cxx
+        CbmConverterTask.cxx
+        CbmSimEventHeaderConverter.cxx
+        CbmRecEventHeaderConverter.cxx
         BmnGlobalTracksConverter.cxx
         BmnStsTracksConverter.cxx
         BmnSimParticlesConverter.cxx
         BmnTofHitsConverter.cxx
-        BmnFHCalModulesConverter.cxx
-#        BmnFHCalModulesConverter.cxx
+#        CbmPsdModulesConverter.cxx
        #CbmTofHitsConverter.cxx
     )
 
@@ -78,7 +77,6 @@ Set(_AnalysisTree_LIB AnalysisTreeBase AnalysisTreeInfra)
 Set(DEPENDENCIES
         Cat
         FHCal
-        Geom
         #	CbmData
         #	CbmBase
 #	L1

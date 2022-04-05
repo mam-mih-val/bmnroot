@@ -84,8 +84,11 @@ void CbmConverterManager::FillDataHeader()
   in_file->GetObject("BmnFHCalGeoPar", fhcal_geometry_par);
   in_file->ls();
   std::cout << "FHCal geometry is stored in: " << fhcal_geometry_par << std::endl;
-
   assert(fhcal_geometry_par);
+
+  auto* sensitive_node_list = fhcal_geometry_par->GetGeoSensitiveNodes();
+  std::cout << "Number of active nodes: " << sensitive_node_list->GetEntriesFast() << std::endl;
+  std::cout << "Name of node: " << sensitive_node_list->At(0)->GetName() << std::endl;
 
   auto& psd_mod_pos              = data_header->AddDetector();
   const int psd_node_id          = 6;
@@ -107,24 +110,24 @@ void CbmConverterManager::FillDataHeader()
   TVector3 frontFaceGlobal;
   psdGeoMatrix->LocalToMaster(&frontFaceLocal[0], &frontFaceGlobal[0]);
 
-//  for (int i_d = 0; i_d < psdNode->GetNdaughters(); ++i_d) {
-//    auto* daughter = psdNode->GetDaughter(i_d);
-//    TString daughterName(daughter->GetName());
-//    if (daughterName.BeginsWith(module_name_prefix)) {
-//
-//      auto geoMatrix = daughter->GetMatrix();
-//      TVector3 translation(geoMatrix->GetTranslation());
-//
-//      int modID = daughter->GetNumber();
-//      double x  = translation.X();
-//      double y  = translation.Y();
-//
-//      std::cout << "mod" << modID << " : " << Form("(%.3f, %3f)", x, y) << std::endl;
-//
-//      auto* module = psd_mod_pos.AddChannel();
-//      module->SetPosition(x, y, frontFaceGlobal[2]);
-//    }
-//  }
+  for (int i_d = 0; i_d < psdNode->GetNdaughters(); ++i_d) {
+    auto* daughter = psdNode->GetDaughter(i_d);
+    TString daughterName(daughter->GetName());
+    if (daughterName.BeginsWith(module_name_prefix)) {
+
+      auto geoMatrix = daughter->GetMatrix();
+      TVector3 translation(geoMatrix->GetTranslation());
+
+      int modID = daughter->GetNumber();
+      double x  = translation.X();
+      double y  = translation.Y();
+
+      std::cout << "mod" << modID << " : " << Form("(%.3f, %3f)", x, y) << std::endl;
+
+      auto* module = psd_mod_pos.AddChannel();
+      module->SetPosition(x, y, frontFaceGlobal[2]);
+    }
+  }
 
   task_manager_->SetOutputDataHeader(data_header);
 }

@@ -3,7 +3,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 
 #define GEANT4  // Choose: GEANT3 GEANT4
 // enumeration of generator names corresponding input files
-enum enumGenerators{UNIGEN, URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM};
+enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM};
 
 // inFile - input file with generator data, if needed
 // outFile - output file with MC data, default: bmnsim.root
@@ -49,16 +49,6 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
 
     switch (generatorName)
     {
-    // ------- UNIGEN Generator
-    case UNIGEN:{
-      if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
-      auto* unigen = new MpdUnigenGenerator(inFile);
-      unigen->RegisterIons();
-      //urqmdGen->SetEventPlane(0., 360.);
-      primGen->AddGenerator(unigen);
-      if (nStartEvent > 0) unigen->SkipEvents(nStartEvent);
-      break;
-    }
     // ------- UrQMD Generator
     case URQMD:{
         if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
@@ -93,7 +83,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     // ------- Box Generator
     case BOX:{
         gRandom->SetSeed(0);
-        FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 13 = muon; 1 = multipl.
+        FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); (PDG code, multiplicity)
         boxGen->SetPRange(0.2, 5.0);      // GeV/c, setPRange vs setPtRange
         boxGen->SetPhiRange(0, 360);    // Azimuth angle range [degree]
         boxGen->SetThetaRange(0, 40.0);  // Polar angle in lab system range [degree]
@@ -197,10 +187,10 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     fRun->AddTask(cscDigit);
     
     //FHCal-Digitizer
-     BmnFHCalDigitizer * fhcalDigit = new BmnFHCalDigitizer();
-     fhcalDigit->SetScale(28.2e3);
-     fhcalDigit->SetThreshold(0.);
-     fRun->AddTask(fhcalDigit);
+    BmnFHCalDigitizer* fhcalDigit = new BmnFHCalDigitizer();
+    // fhcalDigit->SetScale(28.2e3);
+    // fhcalDigit->SetThreshold(0.);
+    fRun->AddTask(fhcalDigit);
     
     // ECAL-Digitizer
     // FIXME some problems with channels
@@ -253,5 +243,5 @@ if ((generatorName == QGSM) || (generatorName == DCMQGSM)){
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
     cout << "Macro finished successfully." << endl; // marker of successfully execution for software testing systems
-//    delete fRun;
+    delete fRun;
 }

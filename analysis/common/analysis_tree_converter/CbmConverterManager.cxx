@@ -14,6 +14,7 @@
 #include "BmnFHCalGeoPar.h"
 
 #include <iostream>
+#include <FairGeoParSet.h>
 
 #include "AnalysisTree/DataHeader.hpp"
 #include "AnalysisTree/TaskManager.hpp"
@@ -80,27 +81,19 @@ void CbmConverterManager::FillDataHeader()
   assert(ioman != nullptr);
   auto* in_file = (TFile*) ioman->GetInChain()->GetListOfFiles()->Last();
   assert(in_file);
-  BmnFHCalGeoPar* fhcal_geometry_par{nullptr};
-  in_file->GetObject("BmnFHCalGeoPar", fhcal_geometry_par);
-  in_file->ls();
-  std::cout << "FHCal geometry is stored in: " << fhcal_geometry_par << std::endl;
-  assert(fhcal_geometry_par);
-
-  auto* sensitive_node_list = fhcal_geometry_par->GetGeoSensitiveNodes();
-  fhcal_geometry_par->printParams();
-  std::cout << "Number of active nodes: " << sensitive_node_list->GetEntries() << std::endl;
-  std::cout << "Name of node: " << sensitive_node_list->At(0)->GetName() << std::endl;
+  FairGeoParSet*fair_geo_par_set{nullptr};
+  in_file->GetObject("FairGeoParSet", fair_geo_par_set);
 
   auto& psd_mod_pos              = data_header->AddDetector();
-  const int psd_node_id          = 6;
+  const int psd_node_id          = 15;
   const char* module_name_prefix = "module";
 
   std::cout << "Extracting Geometry Parameters" << std::endl;
-  auto* geoMan   = gGeoManager;
+  auto* geoMan   = fair_geo_par_set->GetGeometry();
   std::cout << geoMan << std::endl;
   auto* caveNode = geoMan->GetTopNode();
   std::cout << caveNode << std::endl;
-  auto* psdNode  = caveNode->GetDaughter(psd_node_id);
+  auto* psdNode  = caveNode->GetDaughter(psd_node_id)->GetDaughter(0);
   std::cout << psdNode << std::endl;
   std::cout << "-I- " << psdNode->GetName() << std::endl;
 

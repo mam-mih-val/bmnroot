@@ -91,7 +91,9 @@ void CbmConverterManager::FillDataHeader()
   std::cout << "Extracting Geometry Parameters" << std::endl;
   auto* geoMan   = fair_geo_par_set->GetGeometry();
   auto* caveNode = geoMan->GetTopNode();
-  auto* psdNode  = fair_geo_par_set->GetGeometry()->GetTopNode()->GetDaughter(15)->GetDaughter(0);
+  std::cout << caveNode << std::endl;
+  auto* fhcal_glob_node =caveNode->GetDaughter(psd_node_id);
+  auto* psdNode  = fhcal_glob_node->GetDaughter(0);
   std::cout << psdNode << std::endl;
   std::cout << "-I- " << psdNode->GetName() << std::endl;
 

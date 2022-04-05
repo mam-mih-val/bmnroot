@@ -78,9 +78,13 @@ void CbmConverterManager::FillDataHeader()
   const int psd_node_id          = 6;
   const char* module_name_prefix = "module";
 
+  std::cout << "Extracting Geometry Parameters" << std::endl;
   auto* geoMan   = gGeoManager;
+  std::cout << geoMan << std::endl;
   auto* caveNode = geoMan->GetTopNode();
+  std::cout << caveNode << std::endl;
   auto* psdNode  = caveNode->GetDaughter(psd_node_id);
+  std::cout << psdNode << std::endl;
   std::cout << "-I- " << psdNode->GetName() << std::endl;
 
   auto psdGeoMatrix = psdNode->GetMatrix();

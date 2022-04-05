@@ -83,7 +83,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     // ------- Box Generator
     case BOX:{
         gRandom->SetSeed(0);
-        FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 13 = muon; 1 = multipl.
+        FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); (PDG code, multiplicity)
         boxGen->SetPRange(0.2, 5.0);      // GeV/c, setPRange vs setPtRange
         boxGen->SetPhiRange(0, 360);    // Azimuth angle range [degree]
         boxGen->SetThetaRange(0, 40.0);  // Polar angle in lab system range [degree]
@@ -187,10 +187,10 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     fRun->AddTask(cscDigit);
     
     //FHCal-Digitizer
-    // BmnFHCalDigitizer * fhcalDigit = new BmnFHCalDigitizer();
+    BmnFHCalDigitizer* fhcalDigit = new BmnFHCalDigitizer();
     // fhcalDigit->SetScale(28.2e3);
     // fhcalDigit->SetThreshold(0.);
-    // fRun->AddTask(fhcalDigit);
+    fRun->AddTask(fhcalDigit);
     
     // ECAL-Digitizer
     // FIXME some problems with channels

@@ -78,11 +78,13 @@ void CbmConverterManager::FillDataHeader()
 
   auto* ioman = FairRootManager::Instance();
   assert(ioman != nullptr);
-  auto* in_file = ioman->GetInFile();
+  auto* in_file = (TFile*) ioman->GetInChain()->GetListOfFiles()->Last();
   assert(in_file);
   BmnFHCalGeoPar* fhcal_geometry_par{nullptr};
   in_file->GetObject("BmnFHCalGeoPar", fhcal_geometry_par);
+  in_file->ls();
   std::cout << "FHCal geometry is stored in: " << fhcal_geometry_par << std::endl;
+
   assert(fhcal_geometry_par);
 
   auto& psd_mod_pos              = data_header->AddDetector();

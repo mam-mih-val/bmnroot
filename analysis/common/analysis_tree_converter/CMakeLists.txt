@@ -29,6 +29,7 @@ Set(INCLUDE_DIRECTORIES
   ${CMAKE_SOURCE_DIR}/cat
   ${CMAKE_SOURCE_DIR}/cat/ParticleFinder
   ${CMAKE_SOURCE_DIR}/cat/L1Algo
+  ${CMAKE_SOURCE_DIR}/fhcal
 #  ${KFParticle_INCLUDE_DIR}
   ${AnalysisTree_INCLUDE_DIR}
   ${ROOT_INCLUDE_DIR}
@@ -50,6 +51,7 @@ set (LINK_DIRECTORIES
   ${KFParticle_LIB_DIR}
   ${Cat_LIB_DIR}
   ${Cat_LIBRARY_DIR}
+  ${FHCalls_LIBRARY_DIR}
   ${FAIRROOT_LIBRARY_DIR}
   ${ROOT_LIBRARY_DIR}
   ${Boost_LIBRARY_DIRS}
@@ -74,6 +76,7 @@ Set(_AnalysisTree_LIB AnalysisTreeBase AnalysisTreeInfra)
 
 Set(DEPENDENCIES
         Cat
+        FHCal
         #	CbmData
         #	CbmBase
 #	L1

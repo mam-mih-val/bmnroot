@@ -93,7 +93,7 @@ void CbmConverterManager::FillDataHeader()
   auto* caveNode = geoMan->GetTopNode();
   std::cout << caveNode->GetNdaughters() << std::endl;
   auto* fhcal_glob_node =caveNode->GetDaughter(15);
-  auto* psdNode  = fhcal_glob_node->GetDaughter(0);
+  auto* psdNode  = geoMan->GetTopNode()->GetDaughter(15)->GetDaughter(0);
   std::cout << psdNode << std::endl;
   std::cout << "-I- " << psdNode->GetName() << std::endl;
 

@@ -10,6 +10,7 @@
 #include "TGeoBBox.h"
 #include "TGeoManager.h"
 #include "TClonesArray.h"
+#include "BmnFHCalGeoPar.h"
 
 #include <iostream>
 
@@ -73,6 +74,12 @@ void CbmConverterManager::FillDataHeader()
   std::cout << "ReadDataHeader" << std::endl;
   data_header->SetSystem(system_);
   data_header->SetBeamMomentum(beam_mom_);
+
+  auto* ioman = FairRootManager::Instance();
+  assert(ioman != nullptr);
+  auto* fhcal_geometry_par = (BmnFHCalGeoPar*) ioman->GetObject("BmnFHCalGeoPar");
+  std::cout << "FHCal geometry is stored in: " << fhcal_geometry_par << std::endl;
+  assert(fhcal_geometry_par);
 
   auto& psd_mod_pos              = data_header->AddDetector();
   const int psd_node_id          = 6;

@@ -10,6 +10,7 @@
 #include "TGeoBBox.h"
 #include "TGeoManager.h"
 #include "TClonesArray.h"
+#include "TFile.h"
 #include "BmnFHCalGeoPar.h"
 
 #include <iostream>
@@ -77,7 +78,10 @@ void CbmConverterManager::FillDataHeader()
 
   auto* ioman = FairRootManager::Instance();
   assert(ioman != nullptr);
-  auto* fhcal_geometry_par = (BmnFHCalGeoPar*) ioman->GetObject("BmnFHCalGeoPar");
+  auto* in_file = ioman->GetInFile();
+  assert(in_file);
+  BmnFHCalGeoPar* fhcal_geometry_par{nullptr};
+  in_file->GetObject("BmnFHCalGeoPar", fhcal_geometry_par);
   std::cout << "FHCal geometry is stored in: " << fhcal_geometry_par << std::endl;
   assert(fhcal_geometry_par);
 

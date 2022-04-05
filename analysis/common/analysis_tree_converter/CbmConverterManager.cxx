@@ -87,7 +87,7 @@ void CbmConverterManager::FillDataHeader()
   assert(fhcal_geometry_par);
 
   auto* sensitive_node_list = fhcal_geometry_par->GetGeoSensitiveNodes();
-  std::cout << "Number of active nodes: " << sensitive_node_list->GetEntriesFast() << std::endl;
+  std::cout << "Number of active nodes: " << sensitive_node_list->GetEntries() << std::endl;
   std::cout << "Name of node: " << sensitive_node_list->At(0)->GetName() << std::endl;
 
   auto& psd_mod_pos              = data_header->AddDetector();

@@ -22,7 +22,7 @@ InitStatus CbmConverterManager::Init()
 {
 //   task_manager_->SetOutputTreeConfig(AnalysisTree::eBranchWriteMode::kCreateNewTree);
   task_manager_->Init();
-//   FillDataHeader();
+   FillDataHeader();
   InitEvent();
   return kSUCCESS;
 }
@@ -90,24 +90,24 @@ void CbmConverterManager::FillDataHeader()
   TVector3 frontFaceGlobal;
   psdGeoMatrix->LocalToMaster(&frontFaceLocal[0], &frontFaceGlobal[0]);
 
-  for (int i_d = 0; i_d < psdNode->GetNdaughters(); ++i_d) {
-    auto* daughter = psdNode->GetDaughter(i_d);
-    TString daughterName(daughter->GetName());
-    if (daughterName.BeginsWith(module_name_prefix)) {
-
-      auto geoMatrix = daughter->GetMatrix();
-      TVector3 translation(geoMatrix->GetTranslation());
-
-      int modID = daughter->GetNumber();
-      double x  = translation.X();
-      double y  = translation.Y();
-
-      std::cout << "mod" << modID << " : " << Form("(%.3f, %3f)", x, y) << std::endl;
-
-      auto* module = psd_mod_pos.AddChannel();
-      module->SetPosition(x, y, frontFaceGlobal[2]);
-    }
-  }
+//  for (int i_d = 0; i_d < psdNode->GetNdaughters(); ++i_d) {
+//    auto* daughter = psdNode->GetDaughter(i_d);
+//    TString daughterName(daughter->GetName());
+//    if (daughterName.BeginsWith(module_name_prefix)) {
+//
+//      auto geoMatrix = daughter->GetMatrix();
+//      TVector3 translation(geoMatrix->GetTranslation());
+//
+//      int modID = daughter->GetNumber();
+//      double x  = translation.X();
+//      double y  = translation.Y();
+//
+//      std::cout << "mod" << modID << " : " << Form("(%.3f, %3f)", x, y) << std::endl;
+//
+//      auto* module = psd_mod_pos.AddChannel();
+//      module->SetPosition(x, y, frontFaceGlobal[2]);
+//    }
+//  }
 
   task_manager_->SetOutputDataHeader(data_header);
 }

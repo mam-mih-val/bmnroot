@@ -5,17 +5,17 @@
 #ifndef ANALYSIS_TREE_SIMEVENTHEADERCONVERTER_H_
 #define ANALYSIS_TREE_SIMEVENTHEADERCONVERTER_H_
 
-#include "CbmConverterTask.h"
+#include "BmnConverterTask.h"
 
 #include "AnalysisTree/EventHeader.hpp"
 
 class FairMCEventHeader;
 class CbmVertex;
 
-class CbmSimEventHeaderConverter final : public CbmConverterTask {
+class BmnSimEventHeaderConverter final : public BmnConverterTask {
 public:
-  explicit CbmSimEventHeaderConverter(std::string out_branch_name) : CbmConverterTask(std::move(out_branch_name)) {};
-  ~CbmSimEventHeaderConverter() final = default;
+  explicit BmnSimEventHeaderConverter(std::string out_branch_name) : BmnConverterTask(std::move(out_branch_name)) {};
+  ~BmnSimEventHeaderConverter() final = default;
 
   void Init() final;
   void ProcessData() final;
@@ -25,7 +25,7 @@ private:
   AnalysisTree::EventHeader* sim_event_header_ {nullptr};
   FairMCEventHeader* cbm_header_ {nullptr};
 
-  ClassDef(CbmSimEventHeaderConverter, 1)
+  ClassDef(BmnSimEventHeaderConverter, 1)
 };
 
 #endif  // ANALYSIS_TREE_SIMEVENTHEADERCONVERTER_H_

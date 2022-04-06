@@ -5,7 +5,7 @@
 #ifndef ANALYSIS_TREE_SIMTRACKSCONVERTER_H_
 #define ANALYSIS_TREE_SIMTRACKSCONVERTER_H_
 
-#include "CbmConverterTask.h"
+#include "BmnConverterTask.h"
 
 #include <TString.h>
 
@@ -19,13 +19,13 @@ class TFile;
 class TTree;
 class FairMCEventHeader;
 
-class BmnSimParticlesConverter final : public CbmConverterTask {
+class BmnSimParticlesConverter final : public BmnConverterTask {
 
 public:
   BmnSimParticlesConverter(std::string out_branch_name,
                            std::string str_global_trk_branch_name,
                            std::string str_sts_trk_branch_name)
-      : CbmConverterTask(std::move(out_branch_name)),
+      : BmnConverterTask(std::move(out_branch_name)),
         str_global_trk_branch_name_(std::move(str_global_trk_branch_name)),
         str_sts_trk_branch_name_(std::move(str_sts_trk_branch_name)) {}
   ~BmnSimParticlesConverter() final;

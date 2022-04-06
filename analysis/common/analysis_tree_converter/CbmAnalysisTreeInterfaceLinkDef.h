@@ -8,15 +8,15 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class CbmConverterManager + ;
-#pragma link C++ class CbmConverterTask + ;
-#pragma link C++ class CbmSimEventHeaderConverter + ;
-#pragma link C++ class CbmRecEventHeaderConverter + ;
+#pragma link C++ class BmnConverterManager + ;
+#pragma link C++ class BmnConverterTask + ;
+#pragma link C++ class BmnSimEventHeaderConverter + ;
+#pragma link C++ class BmnRecEventHeaderConverter + ;
 #pragma link C++ class BmnSimParticlesConverter + ;
 #pragma link C++ class BmnGlobalTracksConverter + ;
 #pragma link C++ class BmnStsTracksConverter + ;
 #pragma link C++ class BmnTofHitsConverter + ;
-#pragma link C++ class CbmPsdModulesConverter + ;
+#pragma link C++ class BmnFHCalModulesConverter + ;
 #pragma link C++ class CbmTrdTracksConverter + ;
 #pragma link C++ class CbmRichRingsConverter + ;
 //#pragma link C++ class CbmMatchEvents + ;

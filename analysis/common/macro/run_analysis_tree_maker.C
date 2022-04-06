@@ -31,21 +31,22 @@ void run_analysis_tree_maker(std::string dst_file, std::string geant_file, std::
   run->SetOutputFile(output_file.c_str());
   // ------------------------------------------------------------------------
   // AnalysisTree converter
-  auto* man = new CbmConverterManager();
+  auto* man = new BmnConverterManager();
   man->SetSystem(system);
   man->SetBeamMomentum(beam_mom);
   man->SetOutputName(output_file, "rTree");
   man->SetGeometryFile(geometry_file);
 
-  man->AddTask(new CbmSimEventHeaderConverter("SimEventHeader"));
-  man->AddTask(new CbmRecEventHeaderConverter("RecEventHeader"));
+  man->AddTask(new BmnSimEventHeaderConverter("SimEventHeader"));
+  man->AddTask(new BmnRecEventHeaderConverter("RecEventHeader"));
+  man->AddTask(new BmnFHCalModulesConverter("FHCalModules"));
   man->AddTask(new BmnStsTracksConverter("StsTracks"));
 
   man->AddTask(new BmnTofHitsConverter("Tof400Hits", BMNTOF::TOF400));
   man->AddTask(new BmnTofHitsConverter("Tof700Hits", BMNTOF::TOF700));
 
-  auto* taskCbmStsTracksConverter = new BmnGlobalTracksConverter("GlobalTracks", "StsTracks", "Tof400Hits", "Tof700Hits");
-  man->AddTask(taskCbmStsTracksConverter);
+  auto* taskBmnGlobalTracksConverter = new BmnGlobalTracksConverter("GlobalTracks", "StsTracks", "Tof400Hits", "Tof700Hits");
+  man->AddTask(taskBmnGlobalTracksConverter);
   man->AddTask(new BmnSimParticlesConverter("SimParticles", "GlobalTracks", "StsTracks"));
 
   run->AddTask(man);

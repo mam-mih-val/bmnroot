@@ -2,7 +2,7 @@
    SPDX-License-Identifier: GPL-3.0-only
    Authors: Viktor Klochkov [committer] */
 
-#include "CbmSimEventHeaderConverter.h"
+#include "BmnSimEventHeaderConverter.h"
 
 //#include "CbmEvent.h"
 
@@ -19,9 +19,9 @@
 #include "cassert"
 #include "iostream"
 
-ClassImp(CbmSimEventHeaderConverter);
+ClassImp(BmnSimEventHeaderConverter);
 
-void CbmSimEventHeaderConverter::Init()
+void BmnSimEventHeaderConverter::Init()
 {
   assert(!out_branch_.empty());
   auto* ioman = FairRootManager::Instance();
@@ -42,11 +42,11 @@ void CbmSimEventHeaderConverter::Init()
   sim_event_header_->Init(SimEventHeaderBranch);
 }
 
-void CbmSimEventHeaderConverter::ProcessData()
+void BmnSimEventHeaderConverter::ProcessData()
 {
   FairMCEventHeader* cbm_header = cbm_header_;
 
-  if (!cbm_header) { throw std::runtime_error("CbmSimEventHeaderConverter::Exec - ERROR! No fHeader!"); }
+  if (!cbm_header) { throw std::runtime_error("BmnSimEventHeaderConverter::Exec - ERROR! No fHeader!"); }
   auto* out_config_  = AnalysisTree::TaskManager::GetInstance()->GetConfig();
   const auto& branch = out_config_->GetBranchConfig(out_branch_);
 
@@ -58,6 +58,6 @@ void CbmSimEventHeaderConverter::ProcessData()
   sim_event_header_->SetField(int(cbm_header->GetEventID()), branch.GetFieldId("event_id"));
   sim_event_header_->SetField(int(cbm_header->GetRunID()), branch.GetFieldId("run_id"));
   
-  LOG(info) << "CbmSimEventHeaderConverter " << cbm_header->GetX() << " " << cbm_header->GetB() << " " << cbm_header->GetEventID();
+  LOG(info) << "BmnSimEventHeaderConverter " << cbm_header->GetX() << " " << cbm_header->GetB() << " " << cbm_header->GetEventID();
   
 }

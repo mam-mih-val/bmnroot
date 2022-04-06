@@ -14,17 +14,17 @@
 
 class FairRootManager;
 
-class CbmConverterTask : public AnalysisTree::Task {
+class BmnConverterTask : public AnalysisTree::Task {
   using MapType = std::map<int, int>;
 
 public:
-  CbmConverterTask() = default;
-  explicit CbmConverterTask(std::string out_branch_name)
+  BmnConverterTask() = default;
+  explicit BmnConverterTask(std::string out_branch_name)
   {
     out_branch_ = std::move(out_branch_name);
   };
 
-  ~CbmConverterTask() override = default;
+  ~BmnConverterTask() override = default;
 
   virtual void ProcessData() = 0;
 

@@ -29,6 +29,7 @@ void SimEventHeaderQA(QA::Task& task);
 void RecEventHeaderQA(QA::Task& task);
 void EfficiencyMaps(QA::Task& task);
 void TrackingQA(QA::Task& task);
+void FHCalModulesQA(QA::Task& task);
 
 const int kPdgLambda = 10000000;
 const int kPdgCharge = 10000;
@@ -47,6 +48,7 @@ const std::string tof400_hits         = "Tof400Hits";
 const std::string tof700_hits         = "Tof700Hits";
 const std::string trd_tracks       = "TrdTracks";
 const std::string rich_rings       = "RichRings";
+const std::string fhcal_modules       = "FHCalModules";
 
 void run_analysistree_qa(std::string filelist, bool is_single_file)
 {
@@ -72,6 +74,7 @@ void run_analysistree_qa(std::string filelist, bool is_single_file)
   RecEventHeaderQA(*task);
   TofHitsQA(*task);
   TrackingQA(*task);
+  FHCalModulesQA(*task);
 
   man->AddTask(task);
 
@@ -84,6 +87,15 @@ void run_analysistree_qa(std::string filelist, bool is_single_file)
     std::cout << " Test passed" << std::endl;
     std::cout << " All ok " << std::endl;
   }
+}
+
+void FHCalModulesQA(QA::Task& task){
+  task.AddH1({"E_{FHCal} in each module", {fhcal_modules, "signal"}, {QA::gNbins, 0, 100}});
+  task.AddH2({"E_{FHCal}", {fhcal_modules, "signal"}, {QA::gNbins, 0, 100}},
+             {"module id", {fhcal_modules, "number"}, {QA::gNbins, 0, 54}});
+  task.AddH2({"X (cm)", {fhcal_modules, "x"}, {QA::gNbins, -100, 100}},
+             {"Y (cm)", {fhcal_modules, "y"}, {QA::gNbins, -100, 100}});
+
 }
 
 void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
@@ -268,7 +280,7 @@ void RecEventHeaderQA(QA::Task& task)
   task.AddH1({"z_{vertex} (cm)", {rec_event_header, "vtx_z"}, {QA::gNbins, -1, 1}});
   task.AddH1({"#chi^{2}_{vertex fit}", {rec_event_header, "vtx_chi2"}, {QA::gNbins, 0, 5}});
 
-  task.AddH1({"E_{PSD} (GeV)", {rec_event_header, "Epsd"}, {QA::gNbins, 0, 60}});
+  task.AddH1({"E_{FHCal} (GeV)", {rec_event_header, "total_fhcal_energy"}, {QA::gNbins, 0, 1000}});
   task.AddH1({"M_{tracks}", {rec_event_header, "M"}, {100, 0, 100}});
   task.AddH1({"Event ID", {rec_event_header, "evt_id"}, {QA::gNbins, 0, 2000}});
 

@@ -7,7 +7,7 @@
 
 #include <utility>
 
-#include "CbmConverterTask.h"
+#include "BmnConverterTask.h"
 
 #include "AnalysisTree/Detector.hpp"
 
@@ -20,14 +20,14 @@ namespace AnalysisTree
   class Matching;
 }
 
-class BmnGlobalTracksConverter final : public CbmConverterTask {
+class BmnGlobalTracksConverter final : public BmnConverterTask {
 
 public:
   BmnGlobalTracksConverter(std::string out_branch_name,
                            std::string str_sts_trk_branch_name,
                            std::string str_tof_400_branch_name,
                            std::string str_tof_700_branch_name)
-      : CbmConverterTask(std::move(out_branch_name)),
+      : BmnConverterTask(std::move(out_branch_name)),
         str_sts_trk_branch_name_(std::move(str_sts_trk_branch_name)),
         str_tof400_branch_name_(std::move(str_tof_400_branch_name)),
         str_tof700_branch_name_(std::move(str_tof_700_branch_name)) {}

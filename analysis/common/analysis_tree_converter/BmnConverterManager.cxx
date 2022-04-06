@@ -2,9 +2,9 @@
    SPDX-License-Identifier: GPL-3.0-only
    Authors: Viktor Klochkov [committer] */
 
-#include "CbmConverterManager.h"
+#include "BmnConverterManager.h"
 
-#include "CbmConverterTask.h"
+#include "BmnConverterTask.h"
 //#include "CbmEvent.h"
 
 #include "TGeoBBox.h"
@@ -19,9 +19,9 @@
 #include "AnalysisTree/DataHeader.hpp"
 #include "AnalysisTree/TaskManager.hpp"
 
-ClassImp(CbmConverterManager);
+ClassImp(BmnConverterManager);
 
-InitStatus CbmConverterManager::Init()
+InitStatus BmnConverterManager::Init()
 {
 //   task_manager_->SetOutputTreeConfig(AnalysisTree::eBranchWriteMode::kCreateNewTree);
   task_manager_->Init();
@@ -30,13 +30,13 @@ InitStatus CbmConverterManager::Init()
   return kSUCCESS;
 }
 
-void CbmConverterManager::AddTask(CbmConverterTask* task)
+void BmnConverterManager::AddTask(BmnConverterTask * task)
 {
   tasks_.emplace_back(task);
   task_manager_->AddTask(reinterpret_cast<AnalysisTree::Task*>(task));
 }
 
-void CbmConverterManager::ProcessData(){
+void BmnConverterManager::ProcessData(){
   index_map_.clear();
 
   for (auto* task : tasks_) {
@@ -47,16 +47,16 @@ void CbmConverterManager::ProcessData(){
   task_manager_->FillOutput();
 }
 
-void CbmConverterManager::Exec(Option_t* /*opt*/)
+void BmnConverterManager::Exec(Option_t* /*opt*/)
 {
   LOG(info) << "Event based mode\n";
   ProcessData();
 }
 
 
-void CbmConverterManager::Finish()
+void BmnConverterManager::Finish()
 {
-  LOG(info) << "CbmConverterManager::Finish()";
+  LOG(info) << "BmnConverterManager::Finish()";
   TDirectory* curr   = gDirectory;  // TODO check why this is needed
   TFile* currentFile = gFile;
 
@@ -66,7 +66,7 @@ void CbmConverterManager::Finish()
   gDirectory = curr;
 }
 
-void CbmConverterManager::FillDataHeader()
+void BmnConverterManager::FillDataHeader()
 {
   // Force user to write data info //TODO is there a way to read it from a file automatically?
   assert(!system_.empty() && beam_mom_);
@@ -85,13 +85,13 @@ void CbmConverterManager::FillDataHeader()
 
   std::cout << "Reading geometry from geomtry file" << std::endl;
   if( geometry_file_.empty() )
-    throw std::runtime_error("CbmConverterManager::FillDataHeader(): Geometry file is not set");
+    throw std::runtime_error("BmnConverterManager::FillDataHeader(): Geometry file is not set");
   TGeoManager* geoMan = TGeoManager::Import(geometry_file_.c_str(), fairGeom);
   if( !geoMan )
-    throw std::runtime_error("CbmConverterManager::FillDataHeader(): There is no TGeoManager in file "+geometry_file_);
+    throw std::runtime_error("BmnConverterManager::FillDataHeader(): There is no TGeoManager in file "+geometry_file_);
   TGeoNode* caveNode  = geoMan->GetTopNode();
   if( !caveNode )
-    throw std::runtime_error("CbmConverterManager::FillDataHeader(): There is no cave node in TGeoManager");
+    throw std::runtime_error("BmnConverterManager::FillDataHeader(): There is no cave node in TGeoManager");
   TGeoNode* fhCalNode   = nullptr;
   TString nodeName;
 
@@ -124,7 +124,7 @@ void CbmConverterManager::FillDataHeader()
     double z  = translation.Z();
 
     auto* module = psd_mod_pos.AddChannel();
-    module->SetPosition(x, y, frontFaceGlobal[2]);
+    module->SetPosition(-x, y, frontFaceGlobal[2]);
 
     std::cout << Form("%i: (%.1f, %.1f, %.1f)", modID, x, y, z) << std::endl;
   }
@@ -135,4 +135,4 @@ void CbmConverterManager::FillDataHeader()
 
   task_manager_->SetOutputDataHeader(data_header);
 }
-CbmConverterManager::~CbmConverterManager() = default;
+BmnConverterManager::~BmnConverterManager() = default;

@@ -17,19 +17,19 @@ namespace AnalysisTree
   class DataHeader;
 }  // namespace AnalysisTree
 
-class CbmConverterTask;
+class BmnConverterTask;
 
-class CbmConverterManager : public FairTask {
+class BmnConverterManager : public FairTask {
 
 public:
-  CbmConverterManager() = default;
-  ~CbmConverterManager() override;
+  BmnConverterManager() = default;
+  ~BmnConverterManager() override;
 
   InitStatus Init() override;
   void Exec(Option_t* opt) override;
   void Finish() override;
 
-  void AddTask(CbmConverterTask* task);
+  void AddTask(BmnConverterTask * task);
 
   void SetSystem(const std::string& system) { system_ = system; }
   void SetBeamMomentum(float beam_mom) { beam_mom_ = beam_mom; }
@@ -59,12 +59,12 @@ private:
   std::string system_;
   float beam_mom_ {0.};
 
-  std::vector<CbmConverterTask*> tasks_ {};
+  std::vector<BmnConverterTask *> tasks_ {};
 
   std::map<std::string, std::map<int, int>> index_map_ {};  ///< map CbmRoot to AT of indexes for a given branch
   TClonesArray* events_ {nullptr};
 
-  ClassDefOverride(CbmConverterManager, 1)
+  ClassDefOverride(BmnConverterManager, 1)
 };
 
 #endif  // ANALYSIS_TREE_CONVERTERMANAGER_H_

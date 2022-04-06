@@ -23,7 +23,7 @@ void BmnFHCalModulesConverter::Init()
   assert(!out_branch_.empty());
   auto* ioman = FairRootManager::Instance();
   assert(ioman != nullptr);
-  in_fhcal_digits_ = (TClonesArray*) ioman->GetObject("BmnFHCalDigit");
+  in_fhcal_digits_ = (TClonesArray*) ioman->GetObject("FHCalDigit");
 
   AnalysisTree::BranchConfig out_fhcal_branch_config_(out_branch_, AnalysisTree::DetType::kModule);
 

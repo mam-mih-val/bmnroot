@@ -77,6 +77,7 @@ Set(_AnalysisTree_LIB AnalysisTreeBase AnalysisTreeInfra)
 Set(DEPENDENCIES
         Cat
         FHCal
+        Geom
         #	CbmData
         #	CbmBase
 #	L1

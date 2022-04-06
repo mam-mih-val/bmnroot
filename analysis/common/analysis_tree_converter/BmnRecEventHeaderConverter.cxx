@@ -28,7 +28,7 @@ void BmnRecEventHeaderConverter::Init()
   in_event_header_ = (FairMCEventHeader*) ioman->GetObject("MCEventHeader.");
   in_prim_vertex_ = (CbmVertex*) ioman->GetObject("PrimaryVertex.");
   in_global_tracks_ = (TClonesArray*) ioman->GetObject("BmnGlobalTrack");
-  in_fhcal_digits_ = (TClonesArray*) ioman->GetObject("FHCalDigit");
+  in_fhcal_digits_ = (TClonesArray*) ioman->GetObject("BmnFHCalDigit");
 
   //  ***** RecEventHeader *******
   AnalysisTree::BranchConfig RecEventHeaderBranch("RecEventHeader", AnalysisTree::DetType::kEventHeader);

@@ -3,7 +3,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 
 #define GEANT4  // Choose: GEANT3 GEANT4
 // enumeration of generator names corresponding input files
-enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM};
+enum enumGenerators{UNIGEN, URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM};
 
 // inFile - input file with generator data, if needed
 // outFile - output file with MC data, default: bmnsim.root
@@ -48,6 +48,15 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
 
     switch (generatorName)
     {
+    // ------- Unigen Generator
+    case UNIGEN:{
+      if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
+      auto* unigen = new MpdUnigenGenerator(inFile);
+      unigen->RegisterIons();
+      primGen->AddGenerator(unigen);
+      if (nStartEvent > 0) unigen->SkipEvents(nStartEvent);
+      break;
+    }
     // ------- UrQMD Generator
     case URQMD:{
         if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
@@ -185,11 +194,11 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     cscDigit->SetCurrentConfig(csc_config);
     fRun->AddTask(cscDigit);
     
-    //FHCal-Digitizer
-    // BmnFHCalDigitizer * fhcalDigit = new BmnFHCalDigitizer();
-    // fhcalDigit->SetScale(28.2e3);
-    // fhcalDigit->SetThreshold(0.);
-    // fRun->AddTask(fhcalDigit);
+    FHCal-Digitizer
+     BmnFHCalDigitizer * fhcalDigit = new BmnFHCalDigitizer();
+     fhcalDigit->SetScale(28.2e3);
+     fhcalDigit->SetThreshold(0.);
+     fRun->AddTask(fhcalDigit);
     
     // ECAL-Digitizer
     // FIXME some problems with channels

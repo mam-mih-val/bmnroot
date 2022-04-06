@@ -41,13 +41,13 @@ void BmnFHCalModulesConverter::ProcessData()
   auto* config       = AnalysisTree::TaskManager::GetInstance()->GetConfig();
   const auto&out_branch_config = config->GetBranchConfig(out_branch_);
 
-//  const int n_fhcal_modules = data_header->GetModulePositions(0).GetNumberOfChannels();
-//  for (int i = 0; i < n_fhcal_modules; ++i) {
-//    auto& module = out_fhcal_branch_->AddChannel(out_branch_config);
-//    module.SetSignal(0.0f);
-//  }
-  auto n_digits = in_fhcal_digits_->GetEntriesFast();
+  const int n_fhcal_modules = data_header->GetModulePositions(0).GetNumberOfChannels();
+  for (int i = 0; i < n_fhcal_modules; ++i) {
+    auto& module = out_fhcal_branch_->AddChannel(out_branch_config);
+    module.SetSignal(0.0f);
+  }
 
+  auto n_digits = in_fhcal_digits_->GetEntriesFast();
   for (int i = 0; i < n_digits; ++i) {
     auto* in_digit = dynamic_cast<BmnFHCalDigit*>(in_fhcal_digits_->At(i));
     if( in_digit->GetModuleID() == 0 )
@@ -55,10 +55,10 @@ void BmnFHCalModulesConverter::ProcessData()
     if( in_digit->GetSectionID() != 0 )
       continue;
     auto module_id = in_digit->GetModuleID();
-    auto module = out_fhcal_branch_->AddChannel();
+    auto& module = out_fhcal_branch_->Channel(module_id-1);
     float energy_scaled = in_digit->GetELossDigi();
-    module->SetSignal(energy_scaled);
-    module->SetNumber(module_id);
+    module.SetSignal(energy_scaled);
+    module.SetNumber(module_id-1);
   }
 }
 

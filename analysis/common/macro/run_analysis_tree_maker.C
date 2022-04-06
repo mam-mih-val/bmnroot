@@ -2,10 +2,10 @@
    SPDX-License-Identifier: GPL-3.0-only
    Authors: Viktor Klochkov, Viktor Klochkov */
 
-void run_analysis_tree_maker(std::string dst_file, std::string geant_file, std::string output_file)
+void run_analysis_tree_maker(std::string dst_file, std::string geant_file, std::string geometry_file, std::string output_file)
 {
-  const std::string system = "Au+Au";  // TODO can we read it automatically?
-  const float beam_mom     = 12.;
+  const std::string system = "Xe+Cs";  // TODO can we read it automatically?
+  const float beam_mom     = 4.85;
   const bool is_event_base = false;
 
   // --- Logger settings ----------------------------------------------------
@@ -35,6 +35,7 @@ void run_analysis_tree_maker(std::string dst_file, std::string geant_file, std::
   man->SetSystem(system);
   man->SetBeamMomentum(beam_mom);
   man->SetOutputName(output_file, "rTree");
+  man->SetGeometryFile(geometry_file);
 
   man->AddTask(new CbmSimEventHeaderConverter("SimEventHeader"));
   man->AddTask(new CbmRecEventHeaderConverter("RecEventHeader"));

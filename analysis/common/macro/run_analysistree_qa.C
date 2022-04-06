@@ -29,6 +29,7 @@ void SimEventHeaderQA(QA::Task& task);
 void RecEventHeaderQA(QA::Task& task);
 void EfficiencyMaps(QA::Task& task);
 void TrackingQA(QA::Task& task);
+void FHCalModulesQA(QA::Task& task);
 
 const int kPdgLambda = 10000000;
 const int kPdgCharge = 10000;
@@ -47,6 +48,7 @@ const std::string tof400_hits         = "Tof400Hits";
 const std::string tof700_hits         = "Tof700Hits";
 const std::string trd_tracks       = "TrdTracks";
 const std::string rich_rings       = "RichRings";
+const std::string fhcal_modules       = "FHCalModules";
 
 void run_analysistree_qa(std::string filelist, bool is_single_file)
 {
@@ -72,6 +74,7 @@ void run_analysistree_qa(std::string filelist, bool is_single_file)
   RecEventHeaderQA(*task);
   TofHitsQA(*task);
   TrackingQA(*task);
+  FHCalModulesQA(*task);
 
   man->AddTask(task);
 
@@ -86,6 +89,15 @@ void run_analysistree_qa(std::string filelist, bool is_single_file)
   }
 }
 
+void FHCalModulesQA(QA::Task& task){
+  task.AddH1({"E_{FHCal} in each module", {fhcal_modules, "signal"}, {150, 0, 500}});
+  task.AddH2({"E_{FHCal}", {fhcal_modules, "signal"}, {100, 0, 1000}},
+             {"module id", {fhcal_modules, "number"}, {55, 0, 55}});
+  task.AddH2({"X (cm)", {fhcal_modules, "x"}, {QA::gNbins, -100, 100}},
+             {"Y (cm)", {fhcal_modules, "y"}, {QA::gNbins, -100, 100}});
+
+}
+
 void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
 {
   AddTrackQA(&task, branch, cuts);
@@ -94,9 +106,11 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
   Variable chi2_over_ndf("chi2_ndf", {{branch, "chi2"}, {branch, "ndf"}},
                          [](std::vector<double>& var) { return var.at(0) / var.at(1); });
 
-  task.AddH1({"DCA_{x}, cm", {branch, "dcax"}, {QA::gNbins, -10, 10}}, cuts);
-  task.AddH1({"DCA_{y}, cm", {branch, "dcay"}, {QA::gNbins, -10, 10}}, cuts);
-  task.AddH1({"DCA_{z}, cm", {branch, "dcaz"}, {QA::gNbins, -10, 100}}, cuts);
+  task.AddH1({"DCA_{x}, cm", {branch, "dcax"}, {QA::gNbins, -5, 5}}, cuts);
+  task.AddH1({"DCA_{y}, cm", {branch, "dcay"}, {QA::gNbins, -5, 5}}, cuts);
+  task.AddH1({"DCA_{z}, cm", {branch, "dcaz"}, {QA::gNbins, -5, 5}}, cuts);
+  task.AddH1({"z_{extr}, cm", {branch, "z_first"}, {QA::gNbins, -10, 190}}, cuts);
+
   task.AddH1({"NDF", {branch, "ndf"}, {30, 0, 30}}, cuts);
   task.AddH1({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}}, cuts);
   task.AddH1({"#chi^{2}_{vertex}", {branch, "vtx_chi2"}, {500, 0, 100}}, cuts);
@@ -201,22 +215,24 @@ void TrackingQA(QA::Task& task){
 
 void TofHitsQA(QA::Task& task)
 {
+  task.AddH1({"TOF hit matching radius (cm)", {tof400_hits, "matching_radius"}, {QA::gNbins, 0, 30}});
   task.AddH1({"TOF hit x-position (cm)", {tof400_hits, "x"}, {QA::gNbins, -200, 200}});
   task.AddH1({"TOF hit y-position (cm)", {tof400_hits, "y"}, {QA::gNbins, -100, 100}});
   task.AddH1({"TOF hit z-position (cm)", {tof400_hits, "z"}, {QA::gNbins, 440, 490}});
   task.AddH1({"TOF hit time (nc)", {tof400_hits, "time"}, {QA::gNbins, 15.0, 30.0}});
   task.AddH1({"TOF hit beta (1/c)", {tof400_hits, "beta"}, {QA::gNbins, -0.2, 1.8}});
-  task.AddH1({"TOF hit mass2 (GeV^{2}/c^{4})", {tof400_hits, "mass2"}, {QA::gNbins, -0.2, 1.8}});
+  task.AddH1({"TOF hit mass2 (GeV^{2}/c^{4})", {tof400_hits, "mass2"}, {QA::gNbins, -0.5, 4.5}});
 
   task.AddH2({"TOF hit x-position (cm)", {tof400_hits, "x"}, {QA::gNbins, -200, 200}},
              {"TOF hit y-position (cm)", {tof400_hits, "y"}, {QA::gNbins, -100, 100}});
 
+  task.AddH1({"TOF hit matching radius (cm)", {tof700_hits, "matching_radius"}, {QA::gNbins, 0, 30}});
   task.AddH1({"TOF hit x-position (cm)", {tof700_hits, "x"}, {QA::gNbins, -200, 200}});
   task.AddH1({"TOF hit y-position (cm)", {tof700_hits, "y"}, {QA::gNbins, -100, 100}});
   task.AddH1({"TOF hit z-position (cm)", {tof700_hits, "z"}, {QA::gNbins, 580, 680}});
   task.AddH1({"TOF hit time (nc)", {tof700_hits, "time"}, {QA::gNbins, 0.0, 30.0}});
   task.AddH1({"TOF hit beta (1/c)", {tof700_hits, "beta"}, {QA::gNbins, -0.2, 1.8}});
-  task.AddH1({"TOF hit mass2 (GeV^{2}/c^{4})", {tof700_hits, "mass2"}, {QA::gNbins, -0.2, 1.8}});
+  task.AddH1({"TOF hit mass2 (GeV^{2}/c^{4})", {tof700_hits, "mass2"}, {QA::gNbins, -0.5, 4.5}});
 
   task.AddH2({"TOF hit x-position (cm)", {tof700_hits, "x"}, {QA::gNbins, -200, 200}},
              {"TOF hit y-position (cm)", {tof700_hits, "y"}, {QA::gNbins, -100, 100}});
@@ -225,18 +241,23 @@ void TofHitsQA(QA::Task& task)
                   [](std::vector<double>& qp) { return qp.at(0) * qp.at(1); });
 
   task.AddH2({"q#timesp, GeV/c", qp_global, {QA::gNbins, -5, 5}},
-             {"m^{2}, GeV^{2}/c^{2}", {tof400_hits, "mass2"}, {QA::gNbins, -3.0, 5}});
+             {"m^{2}, GeV^{2}/c^{4}", {tof400_hits, "mass2"}, {QA::gNbins, -1.0, 5}});
   task.AddH2({"q#timesp, GeV/c", qp_global, {QA::gNbins, -5, 5}},
-             {"m^{2}, GeV^{2}/c^{2}", {tof700_hits, "mass2"}, {QA::gNbins, -3.0, 5}});
+             {"m^{2}, GeV^{2}/c^{4}", {tof700_hits, "mass2"}, {QA::gNbins, -1.0, 5}});
 
   task.AddH2({"q#timesp, GeV/c", qp_global, {QA::gNbins, -5, 5}},
-             {"m^{2}, GeV^{2}/c^{2}", {tof400_hits, "beta"}, {QA::gNbins, -0.2, 1.2}});
+             {"m^{2}, GeV^{2}/c^{4}", {tof400_hits, "beta"}, {QA::gNbins, -0.2, 1.2}});
   task.AddH2({"q#timesp, GeV/c", qp_global, {QA::gNbins, -5, 5}},
-             {"m^{2}, GeV^{2}/c^{2}", {tof700_hits, "beta"}, {QA::gNbins, -0.2, 1.2}});
+             {"m^{2}, GeV^{2}/c^{4}", {tof700_hits, "beta"}, {QA::gNbins, -0.2, 1.2}});
+
+  task.AddH2({"Z_{last} Global", {rec_tracks, "z_last"}, {QA::gNbins, 300, 700}},
+             {"Z_{TOF-400} Global", {tof400_hits, "z"}, {QA::gNbins, 300, 700}});
+  task.AddH2({"Z_{last} Global", {rec_tracks, "z_last"}, {QA::gNbins, 300, 700}},
+             {"Z_{TOF-700} Global", {tof700_hits, "z"}, {QA::gNbins, 300, 700}});
 
 }
 
-void SimParticlesQA(QA::Task& task, Cuts cuts) {
+void SimParticlesQA(QA::Task& task, Cuts* cuts) {
   AddParticleQA(&task, sim_particles, cuts);
 }
 
@@ -246,7 +267,7 @@ void SimEventHeaderQA(QA::Task& task)
   task.AddH1({"y_{vertex}^{MC} (cm)", {sim_event_header, "vtx_y"}, {QA::gNbins, -1, 1}});
   task.AddH1({"z_{vertex}^{MC} (cm)", {sim_event_header, "vtx_z"}, {QA::gNbins, -1, 1}});
   task.AddH1({"b (fm)", {sim_event_header, "b"}, {QA::gNbins, 0, 20}});
-  task.AddH1({"#Psi_{RP}", {sim_event_header, "psi_RP"}, {QA::gNbins, 0, 6.5}});
+  task.AddH1({"#Psi_{RP}", {sim_event_header, "psi_RP"}, {QA::gNbins, -3.5, 3.5}});
 
   task.AddH2({"x_{vertex}^{MC} (cm)", {sim_event_header, "vtx_x"}, {QA::gNbins, -1, 1}},
              {"y_{vertex}^{MC} (cm)", {sim_event_header, "vtx_y"}, {QA::gNbins, -1, 1}});
@@ -259,8 +280,8 @@ void RecEventHeaderQA(QA::Task& task)
   task.AddH1({"z_{vertex} (cm)", {rec_event_header, "vtx_z"}, {QA::gNbins, -1, 1}});
   task.AddH1({"#chi^{2}_{vertex fit}", {rec_event_header, "vtx_chi2"}, {QA::gNbins, 0, 5}});
 
-  task.AddH1({"E_{PSD} (GeV)", {rec_event_header, "Epsd"}, {QA::gNbins, 0, 60}});
-  task.AddH1({"M_{tracks}", {rec_event_header, "M"}, {800, 0, 800}});
+  task.AddH1({"E_{FHCal} (GeV)", {rec_event_header, "total_fhcal_energy"}, {150, 0, 15'000}});
+  task.AddH1({"M_{tracks}", {rec_event_header, "M"}, {100, 0, 100}});
   task.AddH1({"Event ID", {rec_event_header, "evt_id"}, {QA::gNbins, 0, 2000}});
 
   task.AddH2({"x_{vertex} (cm)", {rec_event_header, "vtx_x"}, {QA::gNbins, -1, 1}},

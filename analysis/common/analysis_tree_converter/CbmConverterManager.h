@@ -34,6 +34,9 @@ public:
   void SetSystem(const std::string& system) { system_ = system; }
   void SetBeamMomentum(float beam_mom) { beam_mom_ = beam_mom; }
 
+  void SetGeometryFile(const std::string &geometry_file) {
+    geometry_file_ = geometry_file;
+  }
   void SetOutputName(std::string file, std::string tree = "rTree")
   {
     task_manager_->SetOutputName(std::move(file), std::move(tree));
@@ -50,6 +53,7 @@ private:
   void FillDataHeader();
   void ProcessData();
 
+  std::string geometry_file_;
   AnalysisTree::TaskManager* task_manager_ {AnalysisTree::TaskManager::GetInstance()};
 
   std::string system_;

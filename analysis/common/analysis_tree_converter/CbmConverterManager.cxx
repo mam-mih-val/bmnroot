@@ -84,6 +84,7 @@ void CbmConverterManager::FillDataHeader()
   FairGeoParSet*fair_geo_par_set{nullptr};
   in_file->GetObject("FairGeoParSet", fair_geo_par_set);
 
+  in_file->cd();
   auto& psd_mod_pos              = data_header->AddDetector();
   const int psd_node_id          = 15;
   const char* module_name_prefix = "module";

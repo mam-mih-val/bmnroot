@@ -77,52 +77,61 @@ void CbmConverterManager::FillDataHeader()
   data_header->SetSystem(system_);
   data_header->SetBeamMomentum(beam_mom_);
 
-  auto* ioman = FairRootManager::Instance();
-  assert(ioman != nullptr);
-  auto* in_file = (TFile*) ioman->GetInChain()->GetListOfFiles()->Last();
-  assert(in_file);
-  FairGeoParSet*fair_geo_par_set{nullptr};
-  in_file->GetObject("FairGeoParSet", fair_geo_par_set);
-
-  in_file->cd();
   auto& psd_mod_pos              = data_header->AddDetector();
   const int psd_node_id          = 15;
   const char* module_name_prefix = "module";
 
-  std::cout << "Extracting Geometry Parameters" << std::endl;
-  auto* geoMan   = fair_geo_par_set->GetGeometry();
-  auto* caveNode = geoMan->GetTopNode();
-  std::cout << caveNode->GetNdaughters() << std::endl;
-  auto* fhcal_glob_node =caveNode->GetDaughter(15);
-  auto* psdNode  = geoMan->GetTopNode()->GetDaughter(15)->GetDaughter(0);
-  std::cout << psdNode << std::endl;
-  std::cout << "-I- " << psdNode->GetName() << std::endl;
+  const char* fairGeom         = "FAIRGeom";
 
-  auto psdGeoMatrix = psdNode->GetMatrix();
-  auto psdBox       = (TGeoBBox*) psdNode->GetVolume()->GetShape();
-  TVector3 frontFaceLocal(0, 0, -psdBox->GetDZ());
+  std::cout << "Reading geometry from geomtry file" << std::endl;
+  if( geometry_file_.empty() )
+    throw std::runtime_error("CbmConverterManager::FillDataHeader(): Geometry file is not set");
+  TGeoManager* geoMan = TGeoManager::Import(geometry_file_.c_str(), fairGeom);
+  if( !geoMan )
+    throw std::runtime_error("CbmConverterManager::FillDataHeader(): There is no TGeoManager in file "+geometry_file_);
+  TGeoNode* caveNode  = geoMan->GetTopNode();
+  if( !caveNode )
+    throw std::runtime_error("CbmConverterManager::FillDataHeader(): There is no cave node in TGeoManager");
+  TGeoNode* fhCalNode   = nullptr;
+  TString nodeName;
+
+  for (int i = 0; i < caveNode->GetNdaughters(); i++) {
+    fhCalNode  = caveNode->GetDaughter(i);
+    nodeName = fhCalNode->GetName();
+    nodeName.ToLower();
+    if (nodeName.Contains("zdc")) break;
+  }
+  fhCalNode = fhCalNode->GetDaughter(0);
+  std::cout << "FHCal node name: " << fhCalNode->GetName() << std::endl;
+
+  auto fhCalGeoMatrix = fhCalNode->GetMatrix();
+  auto fhCalBox       = (TGeoBBox*) fhCalNode->GetVolume()->GetShape();
+  TVector3 frontFaceLocal(0, 0, -fhCalBox->GetDZ());
 
   TVector3 frontFaceGlobal;
-  psdGeoMatrix->LocalToMaster(&frontFaceLocal[0], &frontFaceGlobal[0]);
+  fhCalGeoMatrix->LocalToMaster(&frontFaceLocal[0], &frontFaceGlobal[0]);
 
-  for (int i_d = 0; i_d < psdNode->GetNdaughters(); ++i_d) {
-    auto* daughter = psdNode->GetDaughter(i_d);
-    TString daughterName(daughter->GetName());
-    if (daughterName.BeginsWith(module_name_prefix)) {
+  std::cout << "FHCal module positions:\n";
+  for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d) {
+    auto* daughter = fhCalNode->GetDaughter(i_d);
+    auto geoMatrix = daughter->GetMatrix();
+    TVector3 translation(geoMatrix->GetTranslation());
 
-      auto geoMatrix = daughter->GetMatrix();
-      TVector3 translation(geoMatrix->GetTranslation());
+    int modID = daughter->GetNumber();
+    double x  = translation.X();
+    double y  = translation.Y();
+    translation.SetZ(frontFaceGlobal.Z());
+    double z  = translation.Z();
 
-      int modID = daughter->GetNumber();
-      double x  = translation.X();
-      double y  = translation.Y();
+    auto* module = psd_mod_pos.AddChannel();
+    module->SetPosition(x, y, frontFaceGlobal[2]);
 
-      std::cout << "mod" << modID << " : " << Form("(%.3f, %3f)", x, y) << std::endl;
-
-      auto* module = psd_mod_pos.AddChannel();
-      module->SetPosition(x, y, frontFaceGlobal[2]);
-    }
+    std::cout << Form("%i: (%.1f, %.1f, %.1f)", modID, x, y, z) << std::endl;
   }
+
+  geoMan->GetListOfVolumes()->Delete();
+  geoMan->GetListOfShapes()->Delete();
+  delete geoMan;
 
   task_manager_->SetOutputDataHeader(data_header);
 }

@@ -45,6 +45,7 @@ fPDG(2212),
 fTime(0.0),
 fChiSqCut(100.),
 fVertex(nullptr),
+fVertexL1(nullptr),
 fIsSRC(kFALSE),
 fKalman(nullptr),
 fInnerTrackBranchName("StsTrack"),
@@ -68,6 +69,7 @@ fPDG(2212),
 fTime(0.0),
 fChiSqCut(100.),
 fVertex(nullptr),
+fVertexL1(nullptr),
 fPeriod(7),
 fIsSRC(kFALSE),
 fDoAlign(doAlign),
@@ -94,6 +96,7 @@ fPDG(2212),
 fTime(0.0),
 fChiSqCut(100.),
 fVertex(nullptr),
+fVertexL1(nullptr),
 fPeriod(7),
 fIsSRC(kFALSE),
 fDoAlign(doAlign),
@@ -119,6 +122,8 @@ InitStatus BmnGlobalTracking::Init() {
     fCscHits = (TClonesArray*)ioman->GetObject("BmnCSCHit");
     fTof1Hits = (TClonesArray*)ioman->GetObject("BmnTof400Hit");
     fTof2Hits = (TClonesArray*)ioman->GetObject("BmnTof700Hit");
+
+    fVertexL1 = (CbmVertex*)ioman->GetObject("PrimaryVertex.");
 
     fStsTracks = (TClonesArray*)ioman->GetObject(fInnerTrackBranchName);
     fStsHits = (TClonesArray*)ioman->GetObject("StsHit");
@@ -273,7 +278,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
             FairTrackParam par(*(globTr.GetParamLast()));
             fPDG = (globTr.GetP() > 0.) ? 2212 : -211;
             Double_t len = 0.0;
-            Double_t zTarget = (fVertex) ? fVertex->GetZ() : 0.0;  // z of target by default (FIXME)
+            Double_t zTarget = (fVertexL1) ? fVertexL1->GetZ() : 0.0;
             if (fKalman->TGeoTrackPropagate(&par, zTarget, fPDG, nullptr, &len) == kBMNERROR) continue;
             globTr.SetLength(len);
 
@@ -859,7 +864,21 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
         totChi2 += chi;
     }
 
+    TVector3 pos;
+    if (fVertexL1) {
+        pos = TVector3(fVertexL1->GetX(), fVertexL1->GetY(), fVertexL1->GetZ());
+    } else {
+        pos = TVector3(0.0, 0.0, 0.0);
+    }
+    TVector3 dpos = TVector3(0.005, 0.005, 0.0);
+    if (fKalman->TGeoTrackPropagate(&parFirst, pos.z(), fPDG, nullptr, nullptr) == kBMNERROR) return kBMNERROR;
+    // update in virtual hit FIXME
+    // BmnHit* vertexHit = new BmnHit(0, pos, dpos, -1);
+    // if (fKalman->Update(&parFirst, vertexHit, chi) == kBMNERROR) return kBMNERROR;
+    // totChi2 += chi; 
+
     if (!IsParCorrect(&parFirst)) tr->SetFlag(-1);
+    tr->SetChi2(totChi2);
     tr->SetParamFirst(parFirst);
 
     return kBMNSUCCESS;

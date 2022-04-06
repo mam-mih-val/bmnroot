@@ -254,6 +254,14 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
     fRunAna->AddTask(dchTF);
 
     // ====================================================================== //
+    // ===                      Primary vertex finding                    === //
+    // ====================================================================== //  
+    CbmPrimaryVertexFinder* pvFinder = new CbmPVFinderKF();
+    CbmFindPrimaryVertex * findVertex = new CbmFindPrimaryVertex(pvFinder);
+    findVertex->SetTrackBranch(innerTrackBranchName);
+    fRunAna->AddTask(findVertex);
+
+    // ====================================================================== //
     // ===                          Global Tracking                       === //
     // ====================================================================== //
     Bool_t doAlign = kTRUE;
@@ -261,14 +269,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
     BmnGlobalTracking* glTF = new BmnGlobalTracking(isExp, kFALSE/*doAlign*/);
     glTF->SetInnerTracksBranchName(innerTrackBranchName);
     fRunAna->AddTask(glTF);
-
-    // ====================================================================== //
-    // ===                      Primary vertex finding                    === //
-    // ====================================================================== //  
-    CbmPrimaryVertexFinder* pvFinder = new CbmPVFinderKF();
-    CbmFindPrimaryVertex * findVertex = new CbmFindPrimaryVertex(pvFinder);
-    findVertex->SetTrackBranch(innerTrackBranchName);
-    fRunAna->AddTask(findVertex);
 
     // ====================================================================== //
     // ===           Matching global track to MC track procedure          === //

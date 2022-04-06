@@ -7,7 +7,7 @@
 
 #include <utility>
 
-#include "CbmConverterTask.h"
+#include "BmnConverterTask.h"
 
 #include "AnalysisTree/Detector.hpp"
 
@@ -26,10 +26,10 @@ enum class BMNTOF{
   TOF700
 };
 
-class BmnTofHitsConverter final : public CbmConverterTask {
+class BmnTofHitsConverter final : public BmnConverterTask {
 public:
   BmnTofHitsConverter(const std::string &out_branch_name, BMNTOF tof_type)
-      : CbmConverterTask(out_branch_name), tof_type_(tof_type) {}
+      : BmnConverterTask(out_branch_name), tof_type_(tof_type) {}
   ~BmnTofHitsConverter() final;
 
   void Init() final;

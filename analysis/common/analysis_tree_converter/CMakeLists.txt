@@ -1,15 +1,16 @@
 Set(LIBRARY_NAME CbmAnalysisTreeInterface)
 
 set(SRCS
-        CbmConverterManager.cxx
-        CbmConverterTask.cxx
-        CbmSimEventHeaderConverter.cxx
-        CbmRecEventHeaderConverter.cxx
+        BmnConverterManager.cxx
+        BmnConverterTask.cxx
+        BmnSimEventHeaderConverter.cxx
+        BmnRecEventHeaderConverter.cxx
         BmnGlobalTracksConverter.cxx
         BmnStsTracksConverter.cxx
         BmnSimParticlesConverter.cxx
         BmnTofHitsConverter.cxx
-#        CbmPsdModulesConverter.cxx
+        BmnFHCalModulesConverter.cxx
+#        BmnFHCalModulesConverter.cxx
        #CbmTofHitsConverter.cxx
     )
 

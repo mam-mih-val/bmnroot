@@ -26,6 +26,7 @@
 #include "CbmStsHit.h"
 #include "CbmTofPoint.h"
 #include "BmnVertex.h"
+#include "CbmVertex.h"
 #include "FairMCPoint.h"
 #include "FairRootManager.h"
 #include "FairRunAna.h"
@@ -146,6 +147,7 @@ private:
     Float_t fChiSqCut;  // Chi square cut for hit to be attached to track.
 
     BmnVertex* fVertex;  // vertex information
+    CbmVertex* fVertexL1;  // vertex information for L1 case
 
     BmnKalmanFilter* fKalman;
     Double_t fTime;

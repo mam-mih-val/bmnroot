@@ -43,7 +43,7 @@ fPhiMax(0.) {
   Double_t pProj = fRun->GetPProj();  // projectile momentum per nucleon
   Double_t eTarg = TMath::Sqrt(pProj * pProj + mProt * mProt);
   Double_t eProj = TMath::Sqrt(pTarg * pTarg + mProt * mProt);
-  fBetaCM        = pTarg / eTarg;
+  fBetaCM        = pProj / eProj;
   fGammaCM       = 1. / TMath::Sqrt(1. - fBetaCM * fBetaCM);
   Double_t pBeam = fGammaCM * (pProj - fBetaCM * eProj);
   LOG(info) << GetName() << ": sqrt(s_NN) = " << fRun->GetNNSqrtS() << " GeV, p_beam = " << pBeam << " GeV/u";

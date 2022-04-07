@@ -35,6 +35,7 @@ fPhiMax(0.) {
     Fatal("MpdUnigenGenerator", "Cannot open input file.");
     exit(1);
   }
+
   fInTree = (TTree*) fInFile->Get("events");
   fRun = dynamic_cast<URun*>(fInFile->Get("run"));
   Double_t mProt = 0.938272;
@@ -46,8 +47,7 @@ fPhiMax(0.) {
   fGammaCM       = 1. / TMath::Sqrt(1. - fBetaCM * fBetaCM);
   Double_t pBeam = fGammaCM * (pProj - fBetaCM * eProj);
   LOG(info) << GetName() << ": sqrt(s_NN) = " << fRun->GetNNSqrtS() << " GeV, p_beam = " << pBeam << " GeV/u";
-  LOG(info) << GetName() << ": Lorentz transformation to lab system: "
-            << " beta " << fBetaCM << ", gamma " << fGammaCM;
+  LOG(info) << GetName() << ": Lorentz transformation to lab system: " << " beta " << fBetaCM << ", gamma " << fGammaCM;
 
 
   if (!fInTree){
@@ -112,7 +112,7 @@ Bool_t MpdUnigenGenerator::ReadEvent(FairPrimaryGenerator* primGen){
     
     Double_t px = fParticle->Px();
     Double_t py = fParticle->Py();
-    Double_t pz = fParticle->Py();
+    Double_t pz = fParticle->Pz();
     Double_t mass = fParticle->GetMomentum().M();
 
     Double_t e = sqrt(mass * mass + px * px + py * py + pz * pz);

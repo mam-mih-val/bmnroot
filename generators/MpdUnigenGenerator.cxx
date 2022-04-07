@@ -1,5 +1,8 @@
 #include "MpdUnigenGenerator.h"
 
+#include "constants.h"
+
+
 MpdUnigenGenerator::MpdUnigenGenerator() :
 FairGenerator(),
 fEventNumber(0),
@@ -7,7 +10,8 @@ fInFile(nullptr),
 fInTree(nullptr),
 fEvent(nullptr),
 fParticle(nullptr),
-fEventPlaneSet(kFALSE), 
+fRun(nullptr),
+fEventPlaneSet(kFALSE),
 fSpectatorsON(kFALSE),
 fPhiMin(0.), 
 fPhiMax(0.) { 
@@ -20,7 +24,8 @@ fInFile(nullptr),
 fInTree(nullptr),
 fEvent(nullptr),
 fParticle(nullptr),
-fEventPlaneSet(kFALSE), 
+fRun(nullptr),
+fEventPlaneSet(kFALSE),
 fPhiMin(0.), 
 fPhiMax(0.) { 
   std::cout << "-I MpdUnigenGenerator: Opening input file " << fileName.Data() << std::endl;
@@ -31,7 +36,9 @@ fPhiMax(0.) {
     exit(1);
   }
   fInTree = (TTree*) fInFile->Get("events");
-
+  fRun = dynamic_cast<URun*>(fInFile->Get("run"));
+  fBetaCM = fRun->GetBetaCM();
+  fGammaCM = fRun->GetGammaCM();
   if (!fInTree){
     Fatal("MpdUnigenGenerator", "Cannot open TTree from the file.");
     exit(1);
@@ -93,7 +100,13 @@ Bool_t MpdUnigenGenerator::ReadEvent(FairPrimaryGenerator* primGen){
       continue;
     
     Double_t px = fParticle->Px();
-    Double_t py = fParticle->Py(); 
+    Double_t py = fParticle->Py();
+    Double_t pz = fParticle->Py();
+    Double_t mass = fParticle->GetMomentum().M();
+
+    Double_t e = sqrt(mass * mass + px * px + py * py + pz * pz);
+    if (gCoordinateSystem == sysLaboratory)
+      pz = fGammaCM * (pz + fBetaCM * e);
     
     if (fEventPlaneSet) {
       Double_t pt = TMath::Sqrt(px * px + py * py);
@@ -104,7 +117,7 @@ Bool_t MpdUnigenGenerator::ReadEvent(FairPrimaryGenerator* primGen){
     }
 
     if (fParticle->GetPdg() < 1e9) {
-      primGen->AddTrack(fParticle->GetPdg(), px, py, fParticle->Pz(), 0., 0., 0.);
+      primGen->AddTrack(fParticle->GetPdg(), px, py, pz, 0., 0., 0.);
     } else {
       // Since hyper-nuclei are not (yet) supported by FairRoot, their PDG
       // is replaced by that of the non-strange analogue.
@@ -115,7 +128,7 @@ Bool_t MpdUnigenGenerator::ReadEvent(FairPrimaryGenerator* primGen){
       }
       // Charged ions can be registered
       if (GetIonCharge(ionPdg)) {
-        primGen->AddTrack(ionPdg, px, py, fParticle->Pz(), 0., 0., 0.);
+        primGen->AddTrack(ionPdg, px, py, pz, 0., 0., 0.);
       } else {
         // Neutral ions are not supported by GEANT4.
         // They are thus decomposed into neutrons (as an approximation)
@@ -123,7 +136,7 @@ Bool_t MpdUnigenGenerator::ReadEvent(FairPrimaryGenerator* primGen){
         for (Int_t iNeutron = 0; iNeutron < mass; iNeutron++) {
           Double_t pxNeutron = px/(Double_t)mass;
           Double_t pyNeutron = py/(Double_t)mass;
-          Double_t pzNeutron = fParticle->Pz()/(Double_t)mass;
+          Double_t pzNeutron = pz/(Double_t)mass;
           Double_t eNeutron = fParticle->E()/(Double_t)mass;
 
           primGen->AddTrack(2112, pxNeutron, pyNeutron, pzNeutron, 0., 0., 0.);

@@ -12,4 +12,7 @@
 #pragma link C++ class  BmnFHCalContFact+;
 #pragma link C++ class  BmnFHCalDigitizer+;
 #pragma link C++ class  BmnFHCalDigit+;
+#pragma link C++ class  BmnFHCalModule+;
+#pragma link C++ class  BmnFHCalEvent+;
+#pragma link C++ class  BmnFHCalReconstructor+;
 #endif

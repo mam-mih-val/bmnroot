@@ -45,7 +45,7 @@ void BmnFHCalDigitizer::Exec(Option_t* opt) {
 
 
     // Collect points
-    Int_t N = fArrayOfFHCalPoints->GetEntries();
+    Int_t N = fArrayOfFHCalPoints->GetEntriesFast();
     for (Int_t i = 0; i < N; i++) {
         BmnFHCalPoint * p = (BmnFHCalPoint *)fArrayOfFHCalPoints->At(i);
 

@@ -30,6 +30,9 @@ BmnFHCalGeo.cxx
 BmnFHCalGeoPar.cxx
 BmnFHCalDigitizer.cxx
 BmnFHCalDigit.cxx
+BmnFHCalModule.cxx
+BmnFHCalEvent.cxx
+BmnFHCalReconstructor.cxx
 )
 
 Set(HEADERS)

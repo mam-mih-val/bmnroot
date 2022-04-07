@@ -30,15 +30,6 @@ public:
   {
   }
 
-  /** @brief Constructor with detailed assignment.
-   **//*
-  BmnFHCalEvent(float Energy, std::vector<BmnFHCalModule> ModulesArr)
-    : TObject()
-    , fTotalEnergy(Energy)
-    , fModulesArr(ModulesArr)
-  {
-  }
-*/
   /** Destructor **/
   ~BmnFHCalEvent(){ reset(); }
 
@@ -53,9 +44,9 @@ public:
   float GetTotalEnergy() const { return fTotalEnergy; };
 
   /** @brief Module info
-   ** @return BmnFHCalModule object with index mod_id
+   ** @return BmnFHCalModule object with index mod_id = {1 to 54}
    **/
-  BmnFHCalModule* GetModule(uint8_t mod_id) { return &fModulesArr.at(mod_id); };
+  BmnFHCalModule* GetModule(uint8_t mod_id) { return &fModulesArr.at(mod_id-1); };
 
 
   /** @brief Set Deposited Energy
@@ -66,24 +57,25 @@ public:
   /** @brief Set ModulesArrtor
    ** @return Set Vector of BmnFHCalModule objects
    **/
-  void SetModule(uint8_t mod_id, BmnFHCalModule Module) { fModulesArr.at(mod_id) = Module; };
+  void SetModule(uint8_t mod_id, BmnFHCalModule Module) { fModulesArr.at(mod_id-1) = Module; };
 
   /** @brief Zero all fiels
    ** @return Set All fields to zero
    **/
   void reset() { fTotalEnergy = 0.; fModulesArr.fill({}); }
+  void ResetEnergies() { fTotalEnergy = 0.; for(auto &it:fModulesArr) it.ResetSections(); }
 
   float GetAsymmetry();
   float GetMoment();
 
+  void SummarizeEvent();
   virtual void Print(Option_t *option = "") const {};
 
 
-  static const int fgkMaxModules = 55; // 54 modules numbered from 1 to 54 inclusively
+  static const int fgkMaxModules = 54; // 54 modules numbered from 1 to 54 inclusively
 private:
   /// BOOST serialization interface
   friend class boost::serialization::access;
-
 
   float fTotalEnergy;
   std::array<BmnFHCalModule, fgkMaxModules> fModulesArr;

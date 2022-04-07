@@ -8,59 +8,90 @@
 #include "BmnFHCalReconstructor.h"
 
 
-BmnFHCalReconstructor::BmnFHCalReconstructor() {
-  printf("BmnFHCalReconstructor: constructor\n");
+BmnFHCalReconstructor::BmnFHCalReconstructor(TString config_file, bool isExp) {
+  fConfigFile = config_file;
+  fIsExp = isExp;
+  printf("BmnFHCalReconstructor: Config %s; isExp %i\n", fConfigFile.Data(), fIsExp);
 }
 
 BmnFHCalReconstructor::~BmnFHCalReconstructor() {
+  if(fBmnFHCalEvent) delete fBmnFHCalEvent;
 }
 
 InitStatus BmnFHCalReconstructor::Init() {
   fworkTime = 0.;
   fpFairRootMgr = FairRootManager::Instance();
-  fArrayOfFHCalDigits = (TClonesArray*) fpFairRootMgr->GetObject("FHCalDigit");
+  (fIsExp)? fArrayOfFHCalDigits = (TClonesArray*) fpFairRootMgr->GetObject("FHCalDigi") :
+            fArrayOfFHCalDigits = (TClonesArray*) fpFairRootMgr->GetObject("FHCalDigit");
 
-  fpFairRootMgr->RegisterAny("BmnFHCalEvent", fBmnFHCalEvent, kTRUE); //GOOD !! for tobject
-  //ioman->Register("BmnFHCalEvent", "FHCal", fBmnFHCalEvent, kTRUE);
+  fBmnFHCalEvent = new BmnFHCalEvent();
+  fBmnFHCalEvent->reset();
+  ParseConfig();
+  fpFairRootMgr->RegisterAny("FHCalEvent", fBmnFHCalEvent, kTRUE);
 
   Info(__func__,"FHCal Reconstructor ready");
   return kSUCCESS;
 }
 
+void BmnFHCalReconstructor::ParseConfig() {
+  BmnFHCalRaw2Digit *Mapper = new BmnFHCalRaw2Digit();
+  Mapper->ParseConfig(fConfigFile);
+  auto uniAddrVect = Mapper->GetChannelVect();
+  auto ThatVectorX = Mapper->GetUniqueXpositions();
+  auto ThatVectorY = Mapper->GetUniqueYpositions();
+  for(auto it : uniAddrVect){
+    if(it == 0) continue;
+    auto mod_id = BmnFHCalAddress::GetModuleId(it);
+    auto this_mod = fBmnFHCalEvent->GetModule(mod_id);
+    this_mod->SetModuleId(mod_id);
+
+    if(BmnFHCalAddress::GetModuleType(it) == 1) this_mod->SetNsections(7);
+    if(BmnFHCalAddress::GetModuleType(it) == 2) this_mod->SetNsections(10);
+    this_mod->SetX(ThatVectorX.at(BmnFHCalAddress::GetXIdx(it)));
+    this_mod->SetY(ThatVectorY.at(BmnFHCalAddress::GetYIdx(it)));
+  }
+  delete Mapper;
+}
+
 void BmnFHCalReconstructor::Exec(Option_t* opt) {
   TStopwatch sw;
   sw.Start();
-  
-  //fBmnFHCalEvent->reset();
-  /*if (!IsActive())
-      return;*/
+  fBmnFHCalEvent->ResetEnergies();
 
-  BmnFHCalEvent event;
-  for (int i = 0; i < fArrayOfFHCalDigits->GetEntriesFast(); i++) {
-    BmnFHCalDigit *ThisDigi = (BmnFHCalDigit*) fArrayOfFHCalDigits->At(i);
-    if(ThisDigi->GetELoss() < 0.) continue;
+  if(fIsExp) {
+    for (int i = 0; i < fArrayOfFHCalDigits->GetEntriesFast(); i++) {
+      BmnFHCalDigi *ThisDigi = (BmnFHCalDigi*) fArrayOfFHCalDigits->At(i);
+      if(ThisDigi->GetSignal() < 0.) continue;
 
-    auto mod_id = ThisDigi->GetModuleID();
-    auto sec_id = ThisDigi->GetSectionID();
-    if (mod_id <= 0 || mod_id >= BmnFHCalEvent::fgkMaxModules || sec_id <= 0 || sec_id >= BmnFHCalModule::fgkMaxSections) {
-      Error(__func__,"FHCal digi ignored. Mod %d Sec %d", mod_id, sec_id);
-      continue;
+      auto mod_id = ThisDigi->GetModuleId(); // 1 to 54
+      auto sec_id = ThisDigi->GetSectionId();// 1 to 10
+      if (mod_id <= 0 || mod_id > BmnFHCalEvent::fgkMaxModules || sec_id <= 0 || sec_id > BmnFHCalModule::fgkMaxSections) {
+        //Error(__func__,"FHCal digi ignored. Mod %d Sec %d", mod_id, sec_id);
+        continue;
+      }
+      fBmnFHCalEvent->GetModule(mod_id)->SetSectionEnergy(sec_id, ThisDigi->GetSignal());
     }
+    fBmnFHCalEvent->SummarizeEvent();
 
-    event.GetModule(mod_id)->SetNsections(5);
-    event.GetModule(mod_id)->SetModuleId(mod_id);
-    event.GetModule(mod_id)->SetSectionEnergy(sec_id, ThisDigi->GetELoss());
+  }
+  else {
+    for (int i = 0; i < fArrayOfFHCalDigits->GetEntriesFast(); i++) {
+      BmnFHCalDigit *ThisDigi = (BmnFHCalDigit*) fArrayOfFHCalDigits->At(i);
+      if(ThisDigi->GetELoss() < 0.) continue;
+
+      auto mod_id = ThisDigi->GetModuleID(); // 1 to 54
+      auto sec_id = ThisDigi->GetSectionID();// 1 to 10
+      if (mod_id <= 0 || mod_id > BmnFHCalEvent::fgkMaxModules || sec_id <= 0 || sec_id > BmnFHCalModule::fgkMaxSections) {
+        //Error(__func__,"FHCal digi ignored. Mod %d Sec %d", mod_id, sec_id);
+        continue;
+      }
+      fBmnFHCalEvent->GetModule(mod_id)->SetSectionEnergy(sec_id, ThisDigi->GetELoss());
+    }
+    fBmnFHCalEvent->SummarizeEvent();
   }
 
-  event.SetTotalEnergy(58.59);
-  fBmnFHCalEvent->emplace_back(event);
-  fpFairRootMgr->Fill();
-
-  fBmnFHCalEvent->clear();
   sw.Stop();
   fworkTime += sw.RealTime();
-
-
 }
 
 void BmnFHCalReconstructor::Finish() {

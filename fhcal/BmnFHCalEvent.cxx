@@ -7,6 +7,16 @@
 
 #include "BmnFHCalEvent.h"
 
+void BmnFHCalEvent::SummarizeEvent()
+{
+  float TotalEnergy = 0.;
+  for(auto &it:fModulesArr){
+    it.SummarizeModule();
+    TotalEnergy += it.GetEnergy();
+  }
+  SetTotalEnergy(TotalEnergy);
+}
+
 
 ClassImp(BmnFHCalEvent)
 

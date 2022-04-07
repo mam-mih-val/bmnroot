@@ -23,26 +23,28 @@
 #include "BmnFHCalDigit.h"
 #include "BmnFHCalModule.h"
 #include "BmnFHCalEvent.h"
+#include "BmnFHCalRaw2Digit.h"
+
 
 class BmnFHCalReconstructor : public FairTask {
 public:
-  BmnFHCalReconstructor();
+  BmnFHCalReconstructor(TString config_file, bool isExp);
   ~BmnFHCalReconstructor();
 
   virtual InitStatus Init();
   virtual void Exec(Option_t* opt);
+  void ParseConfig();
   virtual void Finish();
 
 private:
-
-  TClonesArray* fArrayOfFHCalDigits; // input
-  std::vector<BmnFHCalEvent>* fBmnFHCalEvent = nullptr;
-  //BmnFHCalEvent* fBmnFHCalEvent; // output
-  
-  float fworkTime;
-
   FairRootManager* fpFairRootMgr = nullptr;
+  TClonesArray* fArrayOfFHCalDigits; // input
+  BmnFHCalEvent* fBmnFHCalEvent = nullptr; ; // output
+  
+  TString fConfigFile;
+  bool fIsExp;
 
+  float fworkTime;
   ClassDef(BmnFHCalReconstructor,1);
 };
 

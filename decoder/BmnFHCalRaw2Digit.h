@@ -38,8 +38,9 @@ public:
     digiPars GetDigiPars() {return fdigiPars;}
     int GetFlatChannelFromAdcChannel(unsigned int board_id, unsigned int channel);
     int GetFlatIndex(int mod_id, int sec_id);
+    std::vector<unsigned int> GetChannelVect() {return fChannelVect;}
     std::pair<float,float> GetCalibPairFromAddress(unsigned int address);
- 
+    
 private:
     static constexpr int CHANNELS_PER_BOARD = 64; // ADC64 boards
 

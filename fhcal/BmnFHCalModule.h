@@ -12,10 +12,10 @@
 #define BMNFHCALMODULE_H
 
 #include <array>
+#include <numeric>
 #include <TClonesArray.h>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/base_object.hpp>
-
 
 class BmnFHCalModule
 {
@@ -70,9 +70,9 @@ public:
 
 
   /** @brief Section energy
-   ** @return Get Energy in section with index
+   ** @return Get Energy in section with index sec_id
    **/
-  float GetSectionEnergy(int index) const { return fSectArr.at(index); }
+  float GetSectionEnergy(int sec_id) const { return fSectArr.at(sec_id-1); }
 
   /** @brief X
    ** @return module X position [mm]
@@ -91,24 +91,23 @@ public:
   void SetX(float X) { fX = X; }
   void SetY(float Y) { fY = Y; }
   void SetNsections(int Nsections) { fNsections = Nsections; }
-  void SetSectionEnergy(int index, float Energy) { fSectArr.at(index) = Energy; }
+  void SetSectionEnergy(int sec_id, float Energy) { fSectArr.at(sec_id-1) = Energy; }
+  void ResetSections() { fSectArr.fill({}); }
+
+  void SummarizeModule(){ SetEnergy(std::accumulate(std::begin(fSectArr), std::end(fSectArr), 0.0)); }
+  void reset();
 
   virtual void Print(Option_t *option = "") const;
 
 
-  static const int fgkMaxSections = 11; // 10 sections numbered from 1 to 10 inclusively
+  static const int fgkMaxSections = 10; // 10 sections numbered from 1 to 10 inclusively
 private:
-
-
-
   int fModId;
   float fModuleEnergy;
   float fX;
   float fY;
   int fNsections;
   std::array<float, fgkMaxSections> fSectArr;
-
-  void reset();
 
   ClassDef(BmnFHCalModule, 1);
 };

@@ -187,10 +187,11 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
     }
     
     // ====================================================================== //
-    // ===                             ZDC                                === //
+    // ===                      FHCAL reconstructor                       === //
     // ====================================================================== //
-    // BmnZdcAnalyzer * zdcAna = new BmnZdcAnalyzer();
-    // fRunAna->AddTask(zdcAna);
+    //TODO check isExp
+    BmnFHCalReconstructor* fhcalReco = new BmnFHCalReconstructor("FHCAL_map_dry_run_2022.txt", isExp);
+    fRunAna->AddTask(fhcalReco);
 
     // ====================================================================== //
     // ===    Converter for Silicon and GEM hits to CBM format            === //

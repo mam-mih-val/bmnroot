@@ -124,6 +124,9 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
   task.AddH2({"DCA_{x}, cm", {branch, "dcax"}, {QA::gNbins, -10, 10}},
              {"DCA_{y}, cm", {branch, "dcay"}, {QA::gNbins, -10, 10}}, cuts);
 
+  task.AddH2({"y_{lab}", y_lab, {100, -1, 3}},
+             {"p_{T} (GeV/c)", {branch, "pT"}, {100, 0, 3}}, cuts);
+
   task.AddH2({"q/p first [GeV/c]", {branch, "qp_first"}, {QA::gNbins, -5, 5}},
              {"q/p last [GeV/c]", {branch, "qp_last"}, {QA::gNbins, -5, 5}}, cuts);
 

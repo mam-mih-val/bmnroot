@@ -138,7 +138,7 @@ Bool_t MpdUnigenGenerator::ReadEvent(FairPrimaryGenerator* primGen){
         std::cout << "-W- MpdUnigenGenerator: Replacing hypernucleus (PDG " << fParticle->GetPdg() << ") by PDG " << ionPdg << std::endl;
       }
       // Charged ions can be registered
-      if (GetIonCharge(ionPdg)) {
+      if (GetIonCharge(ionPdg) > 0) {
         primGen->AddTrack(ionPdg, px, py, pz, 0., 0., 0.);
       } else {
         // Neutral ions are not supported by GEANT4.

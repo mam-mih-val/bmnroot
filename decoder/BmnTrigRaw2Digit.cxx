@@ -205,7 +205,7 @@ void BmnTrigRaw2Digit::ProcessWave(Short_t *iValue, const UShort_t &nVals, Bool_
         }
 }
 
-BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
+BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc, map<UInt_t, Long64_t> & tsMap) {
     // Matching of ADC/TDC based on the fact that (TDC_i - TDC_j) > 296ns correspond to different ADC
     // and (TDC_i - (ADC_i - Trig_i) ) ~ 0
     std::vector<Double_t> times;
@@ -222,12 +222,13 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
         UShort_t iMod = par->ChannelMap[iChannel];
         Double_t adcTimestamp = adcDig->GetAdcTimestamp() * ADC_CLOCK_TQDC16VS;
         Double_t trgTimestamp = adcDig->GetTrigTimestamp() * ADC_CLOCK_TQDC16VS;
+        Double_t boardShift = par->IsT0 ? 0 : tsMap[adcDig->GetSerial()];
 
         for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
             BmnTDCDigit* tdcDig = (BmnTDCDigit*) tdc->At(iTdc);
             if (tdcDig->GetSerial() != adcDig->GetSerial() || tdcDig->GetSlot() != adcDig->GetSlot()) continue;
             if (tdcDig->GetChannel() != iChannel) continue;
-            Double_t time = (tdcDig->GetValue() + par->INL[iChannel][tdcDig->GetValue() % TDC_BIN_COUNT]) * TDC_CLOCK / TDC_BIN_COUNT;
+            Double_t time = (tdcDig->GetValue() + par->INL[iChannel][tdcDig->GetValue() % TDC_BIN_COUNT]) * TDC_CLOCK / TDC_BIN_COUNT + boardShift;
             // Double_t tdcTimestamp = tdcDig->GetTimestamp() * TDC_CLOCK;
             diff.push_back(fabs(time - (adcTimestamp - trgTimestamp)));
             times.push_back(time);
@@ -262,7 +263,7 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
+BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, map<UInt_t, Long64_t> & tsMap) {
     for (auto &el : fPlacementMap)
         for (Int_t i = 0; i < CHANNEL_COUNT_MAX; i++)
             el.second->t[i] = -1.0;
@@ -272,8 +273,9 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
         if (plIter == fPlacementMap.end())
             continue;
         BmnTrigParameters * par = plIter->second;
+        Double_t boardShift = par->IsT0 ? 0 : tsMap[tdcDig->GetSerial()];
         UShort_t rChannel = tdcDig->GetHptdcId() * kNCHANNELS + tdcDig->GetChannel();
-        Double_t time = (tdcDig->GetValue() + par->INL[rChannel][tdcDig->GetValue() % TDC_BIN_COUNT]) * TDC_CLOCK / TDC_BIN_COUNT;
+        Double_t time = (tdcDig->GetValue() + par->INL[rChannel][tdcDig->GetValue() % TDC_BIN_COUNT]) * TDC_CLOCK / TDC_BIN_COUNT + boardShift;
         //        printf("\tCrateSeral %08X slot %02u channel %02u  time %+2.2f  leading %d neg %d\n", tdcDig->GetSerial(), tdcDig->GetSlot(), rChannel, time, tdcDig->GetLeading(),par->NegativeMap[rChannel]);
         if (tdcDig->GetLeading() ^ par->NegativeMap[rChannel]) {
             par->t[rChannel] = time;

@@ -407,8 +407,8 @@ BmnStatus BmnRawDataDecoder::wait_file(Int_t len, UInt_t limit) {
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate(UInt_t *buf, UInt_t len) {
     fEventId = buf[0];
-    //    printf("EventID = %d\n", fEventId);
-    if (fEventId <= 0) return kBMNERROR;
+//        printf("EventID = %d\n", fEventId);
+//    if (fEventId <= 0) return kBMNERROR;
     fNevents++;
     return ProcessEvent(buf, len);
 }
@@ -1640,13 +1640,13 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         Double_t ctime;
         if (fTrigMapper) {
             timer.Start();
-            fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
+            fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc, fTimeShifts);
             timer.Stop();
             rtime = timer.RealTime();
             ctime = timer.CpuTime();
             //                    printf("\nReal time %f s, CPU time %f s  fTrigMapper TQDC\n", rtime, ctime);
             timer.Start();
-            fTrigMapper->FillEvent(tdc);
+            fTrigMapper->FillEvent(tdc, fTimeShifts);
             timer.Stop();
             rtime = timer.RealTime();
             ctime = timer.CpuTime();
@@ -2043,8 +2043,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     //    printf("fCurEventType %d\n", fCurEventType);
     fT0Time = 0.;
     if (fTrigMapper) {
-        fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
-        fTrigMapper->FillEvent(tdc);
+        fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc, fTimeShifts);
+        fTrigMapper->FillEvent(tdc, fTimeShifts);
         GetT0Info(fT0Time, fT0Width);
     }
     if (fCurEventType == kBMNPEDESTAL) {

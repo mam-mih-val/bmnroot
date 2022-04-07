@@ -84,8 +84,8 @@ public:
         return &fMap;
     }
 
-    BmnStatus FillEvent(TClonesArray *tdc);
-    BmnStatus FillEvent(TClonesArray *tdc, TClonesArray *adc);
+    BmnStatus FillEvent(TClonesArray *tdc, map<UInt_t, Long64_t> & tsMap);
+    BmnStatus FillEvent(TClonesArray *tdc, TClonesArray *adc, map<UInt_t, Long64_t> & tsMap);
     BmnStatus ReadINLFromFile(BmnTrigParameters* par);
     BmnStatus ReadChannelMap(TString mappingFile);
     BmnStatus ReadPlacementMap(TString mappingFile);

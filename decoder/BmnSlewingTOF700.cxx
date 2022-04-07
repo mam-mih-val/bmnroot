@@ -222,8 +222,8 @@ BmnStatus BmnSlewingTOF700::SlewingTOF700() {
         //}
 
         if (fTrigMapper) {
-            fTrigMapper->FillEvent(tdc);
-            fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
+            fTrigMapper->FillEvent(tdc, fTimeShifts);
+            fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc, fTimeShifts);
         }
         fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
@@ -250,8 +250,8 @@ BmnStatus BmnSlewingTOF700::SlewingTOF700() {
         //}
 
         if (fTrigMapper) {
-            fTrigMapper->FillEvent(tdc);
-            fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
+            fTrigMapper->FillEvent(tdc, fTimeShifts);
+            fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc, fTimeShifts);
         }
         fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
@@ -281,8 +281,8 @@ BmnStatus BmnSlewingTOF700::SlewingTOF700() {
         //}
 
         if (fTrigMapper) {
-            fTrigMapper->FillEvent(tdc);
-            fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
+            fTrigMapper->FillEvent(tdc, fTimeShifts);
+            fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc, fTimeShifts);
         }
         fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
@@ -321,8 +321,8 @@ BmnStatus BmnSlewingTOF700::PreparationTOF700() {
         //}
 
         if (fTrigMapper) {
-            fTrigMapper->FillEvent(tdc);
-            fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
+            fTrigMapper->FillEvent(tdc, fTimeShifts);
+            fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc, fTimeShifts);
         }
         fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);

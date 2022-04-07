@@ -106,6 +106,12 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
   Variable chi2_over_ndf("chi2_ndf", {{branch, "chi2"}, {branch, "ndf"}},
                          [](std::vector<double>& var) { return var.at(0) / var.at(1); });
 
+  Variable y_lab("y_lab", {{branch, "pz"}, {sim_particles, "E"}},
+                         [](std::vector<double>& var) { return 0.5 * (
+                                                                 log( var.at(1) + var.at(0) ) -
+                                                                 log( var.at(1) - var.at(0) )); });
+
+  task.AddH1({"y_{lab}", y_lab, {100, -1, 3}}, cuts);
   task.AddH1({"DCA_{x}, cm", {branch, "dcax"}, {QA::gNbins, -5, 5}}, cuts);
   task.AddH1({"DCA_{y}, cm", {branch, "dcay"}, {QA::gNbins, -5, 5}}, cuts);
   task.AddH1({"DCA_{z}, cm", {branch, "dcaz"}, {QA::gNbins, -5, 5}}, cuts);

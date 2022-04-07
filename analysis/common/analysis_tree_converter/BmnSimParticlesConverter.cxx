@@ -134,7 +134,7 @@ void BmnSimParticlesConverter::ProcessData()
     TLorentzVector mom4;
     mom4.SetVectM(mom3, mass);
     mom4.Boost({0., 0., beta_beam});
-    track.SetMomentum(mom4.Px(), mom4.Py(), mom4.Pz());
+    track.SetMomentum(mom3.Px(), mom3.Py(), mom3.Pz());
 
     if (mctrack->GetMotherId() >= 0) {  // secondary
       track.SetField(float(mctrack->GetStartX() - bmn_header_->GetX()), istart_x);

@@ -1,6 +1,6 @@
-﻿-- createlang -d bmn_elog plpgsql;
+-- createlang -d bmn_elog plpgsql;
 -- drop database bmn_elog;
-create database bmn_elog;
+-- create database bmn_elog;
 
 -- alter table person_ add column email varchar(30) null
 create table person_

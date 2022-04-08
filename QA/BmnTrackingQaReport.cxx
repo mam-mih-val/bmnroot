@@ -25,7 +25,9 @@
 #include "report/BmnHistManager.h"
 #include "report/BmnReportElement.h"
 
-const Float_t pMax = 5.0;
+//basic height and wigth of pad
+const Float_t baseW = 500;
+const Float_t baseH = 500;
 
 using namespace std;
 using namespace lit;
@@ -113,10 +115,10 @@ void BmnTrackingQaReport::Draw() {
 
     //DrawNhitsGem(fPrefix + "Distribution of RECO-tracks vs number of hits per track");
 
-    DrawTwoH2(fPrefix + "Distribution of tracks over number of hits and Pseudorapidity", "Nh_sim_Eta_sim", "Nh_rec_Eta_rec");
-    DrawTwoH2(fPrefix + "Distribution of tracks over number of hits and Momentum", "Nh_sim_P_sim", "Nh_rec_P_rec");
-    DrawTwoH2(fPrefix + "Distribution of tracks over number of hits and Theta", "Nh_sim_Theta_sim", "Nh_rec_Theta_rec");
-    DrawTwoH2(fPrefix + "Distribution of tracks over Pseudorapidity and Momentum", "EtaP_sim", "EtaP_rec");
+    DrawTwoH2(fPrefix + "Distribution of tracks over number of hits and Pseudorapidity", "Nh_sim_Eta_sim", "Nh_rec_Eta_rec", 2 * baseW, baseH);
+    DrawTwoH2(fPrefix + "Distribution of tracks over number of hits and Momentum", "Nh_sim_P_sim", "Nh_rec_P_rec", 2 * baseW, baseH);
+    DrawTwoH2(fPrefix + "Distribution of tracks over number of hits and Theta", "Nh_sim_Theta_sim", "Nh_rec_Theta_rec", 2 * baseW, baseH);
+    DrawTwoH2(fPrefix + "Distribution of tracks over Pseudorapidity and Momentum", "EtaP_sim", "EtaP_rec", 2 * baseW, baseH);
 
     for (Int_t i = 1; i < HM()->H2("EtaP_sim")->GetXaxis()->GetNbins(); ++i) {
         for (Int_t j = 1; j < HM()->H2("EtaP_sim")->GetYaxis()->GetNbins(); ++j) {
@@ -148,11 +150,11 @@ void BmnTrackingQaReport::Draw() {
 
     DrawThreeH2(fPrefix + "Distribution of Efficiency, Ghosts and Clones over Pseudorapidity and Momentum", "Eff_vs_EtaP", "Clones_vs_EtaP", "Fakes_vs_EtaP");
     DrawOneH2(fPrefix + "Correlation between number of points in MC-track and number of hits in Reco-track", "Nh_rec_Nh_sim");
-    DrawTwoH2(fPrefix + "Distribution of tracks over Theta and Momentum", "ThetaP_sim", "ThetaP_rec");
-    DrawTwoH2(fPrefix + "P_reco vs P_mc", "P_rec_P_sim", "Pt_rec_Pt_sim");
+    DrawTwoH2(fPrefix + "Distribution of tracks over Theta and Momentum", "ThetaP_sim", "ThetaP_rec", 2 * baseW, baseH);
+    DrawTwoH2(fPrefix + "P_reco vs P_mc", "P_rec_P_sim", "Pt_rec_Pt_sim", 2 * baseW, baseH);
     DrawOneH2(fPrefix + "Pseudorapidity_reco vs Pseudorapidity_mc", "Eta_rec_Eta_sim");
     DrawMomResGem(fPrefix + "Eta resolution", "EtaRes_2D", "EtaRes_1D", "EtaMean_1D", "EtaRes_Mean");
-    DrawTwoH2(fPrefix + "Tx_reco vs Tx_mc (left) and Ty_reco vs Ty_mc (right) for GLOB", "Tx_rec_Tx_sim", "Ty_rec_Ty_sim");
+    DrawTwoH2(fPrefix + "Tx_reco vs Tx_mc (left) and Ty_reco vs Ty_mc (right) for GLOB", "Tx_rec_Tx_sim", "Ty_rec_Ty_sim", 2 * baseW, baseH);
     DrawMomResGem(fPrefix + "Tx resolution", "TxRes_2D", "TxRes_1D", "TxMean_1D", "TxRes_Mean");
     DrawMomResGem(fPrefix + "Ty resolution", "TyRes_2D", "TyRes_1D", "TyMean_1D", "TyRes_Mean");
     DrawThreeH2(fPrefix + "Reco vs MC for X-, Y- and Z-component of Momentum", "Px_rec_Px_sim", "Py_rec_Py_sim", "Pz_rec_Pz_sim");
@@ -163,7 +165,7 @@ void BmnTrackingQaReport::Draw() {
     DrawMomResGem(fPrefix + "Momentum resolution vs. theta", "MomRes_vs_Theta", "MomRes_vs_Theta_1D", "MomMean_vs_Theta_1D", "momRes_Mean");
     DrawMomResGem(fPrefix + "Momentum resolution and momentum vs. length of tracks", "MomRes_vs_Length", "MomRes_vs_Length_1D", "MomMean_vs_Length_1D", "momRes_Mean");
     DrawMomResGem(fPrefix + "Momentum resolution vs. Number of hits", "MomRes_vs_nHits", "MomRes_vs_nHits_1D", "MomMean_vs_nHits_1D", "momRes_Mean");
-    DrawTwoH2(fPrefix + "Tracks quality distributions", "MomRes_vs_Chi2", "Mom_vs_Chi2");
+    DrawTwoH2(fPrefix + "Tracks quality distributions", "MomRes_vs_Chi2", "Mom_vs_Chi2", 2 * baseW, baseH);
     //DrawTwoH2(fPrefix + "Momentum resolution and momentum vs. length of tracks", "MomRes_vs_Length", "Mom_vs_Length");
     //DrawOneH2(fPrefix + "Momentum resolution vs. Number of hits", "MomRes_vs_nHits");
     //DrawOneH2(fPrefix + "Momentum resolution vs. theta", "MomRes_vs_Theta");
@@ -204,7 +206,6 @@ void BmnTrackingQaReport::Draw() {
 	TString namesResPullsF[15] = {"ResX_f", "ResY_f", "ResTx_f", "ResTy_f", "ResQp_f", "ErrX_f", "ErrY_f", "ErrTx_f", "ErrTy_f", "ErrQp_f", "PullX_f", "PullY_f", "PullTx_f", "PullTy_f", "PullQp_f"};
     TString namesResPullsL[15] = {"ResX_l", "ResY_l", "ResTx_l", "ResTy_l", "ResQp_l", "ErrX_l", "ErrY_l", "ErrTx_l", "ErrTy_l", "ErrQp_l", "PullX_l", "PullY_l", "PullTx_l", "PullTy_l", "PullQp_l"};
    	DrawResAndPull(fPrefix + "Residuals and Pulls for first parameters GLOB", namesResPullsF);
-    DrawResAndPull(fPrefix + "Residuals and Pulls for last parameters GLOB", namesResPullsL);
     
     //TOF    
     TString pNamesInTof400[5] = {"Sim_vs_P_tof400", "Rec_vs_P_tof400", "Well_vs_P_tof400", "Ghost_vs_P_tof400", "Split_vs_P_tof400"};
@@ -215,14 +216,14 @@ void BmnTrackingQaReport::Draw() {
     DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for TOF-700", pNamesInTof700, pNamesOutTof700);
 
     
-    DrawTwoH2(fPrefix + "Distribution of tracks over velocity and rigidity (track and hit have same MCID)", "banana_tof400_good", "banana_tof700_good", 1000, 500);
+    DrawTwoH2(fPrefix + "Distribution of tracks over velocity and rigidity (track and hit have same MCID)", "banana_tof400_good", "banana_tof700_good", 2 * baseW, baseH);
     DrawThreeH2(fPrefix + "Mass correlation and banana plots for TOF-400 and TOF-700", "Mass_correlation", "banana_tof400", "banana_tof700");
     DrawTwoH1(fPrefix + "Distribution of TOF-400 residuals for correct matching", "x_residuals_tof400_good", "y_residuals_tof400_good", "", kTRUE);
     DrawTwoH1(fPrefix + "Distribution of TOF-700 residuals for correct matching", "x_residuals_tof700_good", "y_residuals_tof700_good", "", kTRUE);
     DrawTwoH1(fPrefix + "Distribution of TOF-400 residuals for wrong matching", "x_residuals_tof400_bad", "y_residuals_tof400_bad", "", kTRUE);
     DrawTwoH1(fPrefix + "Distribution of TOF-700 residuals for wrong matching", "x_residuals_tof700_bad", "y_residuals_tof700_bad", "", kTRUE);
-    DrawTwoH2(fPrefix + "Residuals over rigidity for TOF-400", "x_resi_vs_mom_tof400_good", "y_resi_vs_mom_tof400_good", 1000, 500);
-    DrawTwoH2(fPrefix + "Residuals over rigidity for TOF-700", "x_resi_vs_mom_tof700_good", "y_resi_vs_mom_tof700_good", 1000, 500);
+    DrawTwoH2(fPrefix + "Residuals over rigidity for TOF-400", "x_resi_vs_mom_tof400_good", "y_resi_vs_mom_tof400_good", 2 * baseW, baseH);
+    DrawTwoH2(fPrefix + "Residuals over rigidity for TOF-700", "x_resi_vs_mom_tof700_good", "y_resi_vs_mom_tof700_good", 2 * baseW, baseH);
 
     drawHist->DrawMainCanvas("TOF");
 
@@ -232,7 +233,7 @@ void BmnTrackingQaReport::Draw() {
     DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for CSC", pNamesInCsc, pNamesOutCsc);
     DrawTwoH1(fPrefix + "Distribution of CSC residuals for correct matching", "x_residuals_csc_good", "y_residuals_csc_good", "", kTRUE);
     DrawTwoH1(fPrefix + "Distribution of CSC residuals for wrong matching", "x_residuals_csc_bad", "y_residuals_csc_bad", "", kTRUE);
-    DrawTwoH2(fPrefix + "Residuals over rigidity for CSC", "x_resi_vs_mom_csc_good", "y_resi_vs_mom_csc_good", 1000, 500);
+    DrawTwoH2(fPrefix + "Residuals over rigidity for CSC", "x_resi_vs_mom_csc_good", "y_resi_vs_mom_csc_good", 2 * baseW, baseH);
 
     drawHist->DrawMainCanvas("CSC");
 
@@ -242,7 +243,7 @@ void BmnTrackingQaReport::Draw() {
     DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for DCH1", pNamesInDch1, pNamesOutDch1);
     DrawTwoH1(fPrefix + "Distribution of DCH1 residuals for correct matching", "x_residuals_dch1_good", "y_residuals_dch1_good", "", kTRUE);
     DrawTwoH1(fPrefix + "Distribution of DCH1 residuals for wrong matching", "x_residuals_dch1_bad", "y_residuals_dch1_bad", "", kTRUE);
-    DrawTwoH2(fPrefix + "Residuals over rigidity for DCH1", "x_resi_vs_mom_dch1_good", "y_resi_vs_mom_dch1_good", 1000, 500);
+    DrawTwoH2(fPrefix + "Residuals over rigidity for DCH1", "x_resi_vs_mom_dch1_good", "y_resi_vs_mom_dch1_good", 2 * baseW, baseH);
 
     //DCH2
     TString pNamesInDch2[5] = { "Sim_vs_P_dch2", "Rec_vs_P_dch2", "Well_vs_P_dch2", "Ghost_vs_P_dch2", "Split_vs_P_dch2" };
@@ -250,7 +251,7 @@ void BmnTrackingQaReport::Draw() {
     DrawEffGem(fPrefix + "Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for DCH2", pNamesInDch2, pNamesOutDch2);
     DrawTwoH1(fPrefix + "Distribution of DCH2 residuals for correct matching", "x_residuals_dch2_good", "y_residuals_dch2_good", "", kTRUE);
     DrawTwoH1(fPrefix + "Distribution of DCH2 residuals for wrong matching", "x_residuals_dch2_bad", "y_residuals_dch2_bad", "", kTRUE);
-    DrawTwoH2(fPrefix + "Residuals over rigidity for DCH2", "x_resi_vs_mom_dch2_good", "y_resi_vs_mom_dch2_good", 1000, 500);
+    DrawTwoH2(fPrefix + "Residuals over rigidity for DCH2", "x_resi_vs_mom_dch2_good", "y_resi_vs_mom_dch2_good", 2 * baseW, baseH);
     
     drawHist->DrawMainCanvas("DCH");
 }
@@ -373,7 +374,7 @@ void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames,
     TString clon = outNames[2];
 
     Int_t nofEvents = HM()->H1("hen_EventNo_TrackingQa")->GetEntries();
-    TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1200, 600);
+    TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 2 * baseW, baseH);
     canvas->SetGrid();
     canvas->Divide(2, 1);
     canvas->cd(1);
@@ -470,7 +471,7 @@ void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames,
 
 void BmnTrackingQaReport::DrawNhitsGem(const TString canvasName) {	 
     Int_t nofEvents = HM()->H1("hen_EventNo_TrackingQa")->GetEntries();
-    TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 600, 600);
+    TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), baseW, baseH);
     canvas->SetGrid();
     HM()->H1("Well_vs_Nh")->Sumw2();
     HM()->H1("Well_vs_Nh")->Scale(1. / nofEvents);
@@ -486,7 +487,7 @@ void BmnTrackingQaReport::DrawNhitsGem(const TString canvasName) {
 }
 
 void BmnTrackingQaReport::DrawEventsInfo(const TString canvasName) {	 
-    TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1500, 500);
+    TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 3 * baseW, baseH);
     canvas->SetGrid();
     canvas->Divide(3, 1);
     canvas->cd(1);
@@ -498,7 +499,7 @@ void BmnTrackingQaReport::DrawEventsInfo(const TString canvasName) {
 }
 
 void BmnTrackingQaReport::DrawMomResGem(const TString canvasName, TString name2d, TString nameSigma, TString nameMean, TString nameAver) {
-	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1600, 400);
+	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 4 * baseW, baseH);
     canvas->SetGrid();
     canvas->Divide(4, 1);
     canvas->cd(1);
@@ -536,7 +537,7 @@ void BmnTrackingQaReport::DrawMomResGem(const TString canvasName, TString name2d
 }
 
 void BmnTrackingQaReport::DrawResAndPull(const TString canvasName, TString* inNames) {
-    TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1500, 2100);
+    TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 5 * baseW, 3 * baseH);
     canvas->SetGrid();
     canvas->Divide(5, 3);
 
@@ -549,7 +550,7 @@ void BmnTrackingQaReport::DrawResAndPull(const TString canvasName, TString* inNa
         if (!fit) continue;
         Float_t xMax = HM()->H1(inNames[i])->GetXaxis()->GetXmax();
         Float_t yMax = HM()->H1(inNames[i])->GetMaximum();
-        TPaveStats* ps = new TPaveStats(xMax / 2, yMax / 2, xMax, yMax);
+        TPaveStats* ps = new TPaveStats(xMax * 0.2, yMax * 0.1, xMax, yMax);
         ps->SetFillColor(0);
         ps->SetShadowColor(0);
         ps->AddText(Form("#mu = %2.2f", fit->GetParameter(1)));
@@ -559,19 +560,19 @@ void BmnTrackingQaReport::DrawResAndPull(const TString canvasName, TString* inNa
     }
 }
 
-void BmnTrackingQaReport::DrawResAndPull_2D(const TString canvasName, TString* inNames) {
-	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1500, 100);
-    canvas->SetGrid();
-    canvas->Divide(5, 1);
+// void BmnTrackingQaReport::DrawResAndPull_2D(const TString canvasName, TString* inNames) {
+// 	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1500, 100);
+//     canvas->SetGrid();
+//     canvas->Divide(5, 1);
 
-    for (Int_t i = 0; i < 5; ++i) {
-        canvas->cd(i + 1);
-        drawHist->DrawH2(canvas,  HM()->H2(inNames[i]), kLinear, kLinear, kLinear, "colz");
-    }
-}
+//     for (Int_t i = 0; i < 5; ++i) {
+//         canvas->cd(i + 1);
+//         drawHist->DrawH2(canvas,  HM()->H2(inNames[i]), kLinear, kLinear, kLinear, "colz");
+//     }
+// }
 
 void BmnTrackingQaReport::DrawPar(const TString canvasName, TString* inNames) {
-	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1500, 100);
+	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 5 * baseW, baseH);
     canvas->SetGrid();
     canvas->Divide(5, 1);
 
@@ -605,7 +606,7 @@ void BmnTrackingQaReport::FillAndFitSlice(TString nameSigma, TString nameMean, T
 }
 
 void BmnTrackingQaReport::DrawVertResGem(const TString canvasName, TString name1dX, TString name1dY, TString name1dZ) {
-	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1500, 500);
+	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 3 * baseW, baseH);
     canvas->SetGrid();
     canvas->Divide(3, 1);
 
@@ -638,13 +639,13 @@ void BmnTrackingQaReport::DrawMuSigma(TVirtualPad* pad, TH1* h) {
 }
 
 void BmnTrackingQaReport::DrawOneH1(const TString canvasName, const TString name1, const TString drawOpt) {
-	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 500, 500);
+	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), baseW, baseH);
     canvas->SetGrid();
     drawHist->DrawH1(canvas,  HM()->H1(name1), kLinear, kLog, drawOpt.Data(), kRed, 1, 0.75, 1.1, 20);
 }
 
 void BmnTrackingQaReport::DrawTwoH1(const TString canvasName, const TString name1, const TString name2, const TString drawOpt, Bool_t doFit) {
-	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1000, 500);
+	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 2 * baseW, baseH);
     canvas->SetGrid();
     canvas->Divide(2, 1);
     canvas->cd(1);
@@ -662,25 +663,25 @@ void BmnTrackingQaReport::DrawTwoH1(const TString canvasName, const TString name
 }
 
 void BmnTrackingQaReport::DrawOneH2(const TString canvasName, const TString name1) {
-	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 500, 500);
+	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), baseW, baseH);
     canvas->SetGrid();
     drawHist->DrawH2(canvas,  HM()->H2(name1), kLinear, kLinear, kLinear, "colz");
 }
 
-void BmnTrackingQaReport::DrawHitRes(TString pref, TString axis) {
-	TString name = Form("%s %s Residuals between hits and tracks", pref.Data(), axis.Data());
-    TCanvas* canvas = CreateCanvas(name.Data(), name.Data(), 1200, 2100);
-    canvas->SetGrid();
-    canvas->Divide(3, 3);
-    for (Int_t i = 0; i < 9; ++i) {
-        canvas->cd(i + 1);
-        HM()->H1(Form("Res%s_%dst", axis.Data(), i))->Fit("gaus", "RQ", "", -0.05, 0.05);
-        drawHist->DrawH1(canvas,  HM()->H1(Form("Res%s_%dst", axis.Data(), i)), kLinear, kLinear, "", kBlue, 1, 0.75, 1.1, 20);
-        //        HM()->H1(Form("Res%s_%dst", axis.Data(), i))->GetYaxis()->SetMaxDigits(2);
-        //        TGaxis::SetMaxDigits(2);
-        DrawMuSigma(canvas->cd(i + 1), HM()->H1(Form("Res%s_%dst", axis.Data(), i)));
-    }
-}
+// void BmnTrackingQaReport::DrawHitRes(TString pref, TString axis) {
+// 	TString name = Form("%s %s Residuals between hits and tracks", pref.Data(), axis.Data());
+//     TCanvas* canvas = CreateCanvas(name.Data(), name.Data(), 1200, 2100);
+//     canvas->SetGrid();
+//     canvas->Divide(3, 3);
+//     for (Int_t i = 0; i < 9; ++i) {
+//         canvas->cd(i + 1);
+//         HM()->H1(Form("Res%s_%dst", axis.Data(), i))->Fit("gaus", "RQ", "", -0.05, 0.05);
+//         drawHist->DrawH1(canvas,  HM()->H1(Form("Res%s_%dst", axis.Data(), i)), kLinear, kLinear, "", kBlue, 1, 0.75, 1.1, 20);
+//         //        HM()->H1(Form("Res%s_%dst", axis.Data(), i))->GetYaxis()->SetMaxDigits(2);
+//         //        TGaxis::SetMaxDigits(2);
+//         DrawMuSigma(canvas->cd(i + 1), HM()->H1(Form("Res%s_%dst", axis.Data(), i)));
+//     }
+// }
 
 void BmnTrackingQaReport::DrawTwoH2(const TString canvasName, const TString name1, const TString name2, Int_t w, Int_t h) {
 	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), w, h);
@@ -693,7 +694,7 @@ void BmnTrackingQaReport::DrawTwoH2(const TString canvasName, const TString name
 }
 
 void BmnTrackingQaReport::DrawThreeH2(const TString canvasName, const TString name1, const TString name2, const TString name3) {
-	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1500, 500);
+	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 3 * baseW, baseH);
     canvas->SetGrid();
     canvas->Divide(3, 1);
     canvas->cd(1);
@@ -705,7 +706,7 @@ void BmnTrackingQaReport::DrawThreeH2(const TString canvasName, const TString na
 }
 
 void BmnTrackingQaReport::DrawThreeH1(const TString canvasName, const TString name1, const TString name2, const TString name3) {
-	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1500, 500);
+	TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 3 * baseW, baseH);
     canvas->SetGrid();
     canvas->Divide(3, 1);
     canvas->cd(1);

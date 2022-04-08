@@ -159,7 +159,8 @@ private:
     void ProcessGlobal();
 
     Int_t CalcNumberOfMcPointInTrack(BmnMCTrack mcTrack);
-    
+    Int_t CalcNumberOfMcPointInTrack(Int_t trId);
+
     TString fOutName;
 
     BmnHistManager* fHM; // Histogram manager
@@ -224,7 +225,9 @@ private:
     TClonesArray* fCscHits;
     TClonesArray* fCscPoints;
     TClonesArray* fDchTracks;
-    
+    TClonesArray* fGemPoints;
+    TClonesArray* fSilPoints;
+
     TClonesArray* fVertex; //BMN tracking
     CbmVertex* fVertexL1; //L1 tracking
     TString fConfigGem;

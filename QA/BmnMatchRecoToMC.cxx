@@ -175,7 +175,7 @@ void BmnMatchRecoToMC::MatchGlobalTracks() {
         if (trackMatch->GetNofLinks() == 0) continue;
         CalculateTrackQuality(stsTr, trackMatch);
 
-        Int_t refId = (trackMatch->GetTrueOverAllHitsRatio() > 0.6) ? trackMatch->GetMatchedLink().GetIndex() : -1;
+        Int_t refId = (trackMatch->GetTrueOverAllHitsRatio() >= 0.6) ? trackMatch->GetMatchedLink().GetIndex() : -1;
         stsTr->SetTrkID(refId);
         glTrack->SetRefIndex(refId);
     }

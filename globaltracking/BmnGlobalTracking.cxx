@@ -267,6 +267,8 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
         for (Int_t i = 0; i < fStsTracks->GetEntriesFast(); ++i) {
             CbmStsTrack* cbmTrack = (CbmStsTrack*)fStsTracks->At(i);
 
+            if (cbmTrack->GetNStsHits() < 4) continue;
+
             BmnGlobalTrack globTr;
 
             globTr.SetGemTrackIndex(i);

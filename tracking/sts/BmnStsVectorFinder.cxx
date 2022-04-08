@@ -230,8 +230,10 @@ void BmnStsVectorFinder::Exec(Option_t* opt)
     TClonesArray *trArray = (ipass == 0) ? fTrackArray : fVectorArray;
     nHitsOut += ExcludeHits(minHits, trArray);
 
-    cout << "-I- BmnStsVectorFinder: start - " << nHits0 << ", end - "
-	 << nHits0-nHitsOut << endl;
+    if (fVerbose > 0) {
+      cout << "-I- BmnStsVectorFinder: start - " << nHits0 << ", end - "
+        << nHits0 - nHitsOut << endl;
+    }
 
     Int_t ntr0 = fVectorArray->GetEntriesFast();
     //BuildTrackCand();
@@ -250,11 +252,13 @@ void BmnStsVectorFinder::Exec(Option_t* opt)
     BuildTracks();
     FitTracks();
     RemoveDoubles();
-    cout << "\n ***** Pass " << ipass << ": Number of found tracks = " 
-	 << fVectorArray->GetEntriesFast() - ntr0 << " " << fVectorArray->GetEntriesFast() << "\n" << endl;
-  }
+    if (fVerbose > 0) {
+      cout << "\n ***** Pass " << ipass << ": Number of found tracks = "
+        << fVectorArray->GetEntriesFast() - ntr0 << " " << fVectorArray->GetEntriesFast() << "\n" << endl;
+    }
+    }
     
-  cout << "discarded " << discarded << " track candidates" << endl;
+  if (fVerbose > 0) cout << "discarded " << discarded << " track candidates" << endl;
   
   // Post-processing - try to exclude fake tracks (with too many shared clusters)
   ExcludeFakes();
@@ -431,7 +435,7 @@ void BmnStsVectorFinder::BuildTrackCand()
   //fmapHits.clear();
   
   Int_t nHits = fHitArray->GetEntriesFast(), idmaxP = 0;
-  cout << "nHits" << nHits << endl;
+  if (fVerbose > 0) cout << "nHits " << nHits << endl;
   TVector3 pos;
   
   for (Int_t ih = 0; ih < nHits; ++ih) {
@@ -469,10 +473,10 @@ void BmnStsVectorFinder::BuildTrackCand()
   Int_t stastop = fNsta - 1 - fNskips[fPass];
   stastop = 0;
   
-  cout << "fNskips fPass " << fNskips[fPass] << " " << fPass << " stastop " << stastop << " fNsta-1 " << fNsta-1 << endl;
+  if (fVerbose > 0) cout << "fNskips fPass " << fNskips[fPass] << " " << fPass << " stastop " << stastop << " fNsta-1 " << fNsta-1 << endl;
 
   for (Int_t ista = fNsta-1; ista >= stastop; --ista) {
-    cout << "xmapsize " << fmapX[ista].size() << endl;
+    if (fVerbose > 0) cout << "xmapsize " << fmapX[ista].size() << endl;
     for (multimap<Double_t,Int_t>::iterator mit = fmapX[ista].begin(); mit != fmapX[ista].end(); ++mit) {
       //map<Int_t,Int_t> aaa;
       candvec aaa;
@@ -1382,7 +1386,7 @@ void BmnStsVectorFinder::RemoveDoubles()
     new ((*fVectorArray)[nOut++]) CbmStsTrack(mit->second);
     //cout << " yyyyy " << mit->second.GetParamFirst()->GetZ() << " " << mit->second.GetNStsHits() << endl;
   }
-  cout << " RemoveDoubles: " << fTracks.size() << " " << nOK << endl;
+  if (fVerbose > 0)cout << " RemoveDoubles: " << fTracks.size() << " " << nOK << endl;
 }
 
 // -------------------------------------------------------------------------
@@ -1472,7 +1476,7 @@ void BmnStsVectorFinder::RemoveFakes()
     }
   }
     
-  cout << " Remove fakes: " << nOK << " " << nOut << endl;
+  if (fVerbose > 0) cout << " Remove fakes: " << nOK << " " << nOut << endl;
 }
 
 // -------------------------------------------------------------------------
@@ -1575,7 +1579,7 @@ void BmnStsVectorFinder::ExcludeFakes()
   
   fVectorArray->Compress();
   
-  cout << " Exclude fakes: " << ncand << " " << fVectorArray->GetEntriesFast() << endl;
+  if (fVerbose > 0) cout << " Exclude fakes: " << ncand << " " << fVectorArray->GetEntriesFast() << endl;
 }
 
 // -------------------------------------------------------------------------
@@ -1708,7 +1712,7 @@ set<int> BmnStsVectorFinder::KalmanWindow(candvec &cand, int hitIndx)
   fitter.Extrapolate(&track, z, &param);
   Double_t sigx = 5 * TMath::Sqrt (param.GetCovariance(0,0));
   Double_t sigy = 5 * TMath::Sqrt (param.GetCovariance(1,1));
-  cout << " Kalman: " << z << " " << hit->GetStationNr() << " " << sigx << " " << sigy << endl;
+  if (fVerbose > 0) cout << " Kalman: " << z << " " << hit->GetStationNr() << " " << sigx << " " << sigy << endl;
 
   // Get hits on the downstream station
   int istanext = hit->GetStationNr() - 1;

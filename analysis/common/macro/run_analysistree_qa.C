@@ -65,26 +65,26 @@ void run_analysistree_qa(std::string filelist, bool is_single_file)
   task->SetOutputFileName("cbm_qa.root");
 
   VertexTracksQA(*task, rec_tracks);
-  VertexTracksQA(*task, rec_tracks, new Cuts("Primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
-  VertexTracksQA(*task, rec_tracks, new Cuts("protons", {EqualsCut({sim_particles + ".mother_id"}, -1),
+  VertexTracksQA(*task, rec_tracks, new Cuts("rec_primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
+  VertexTracksQA(*task, rec_tracks, new Cuts("rec_protons", {EqualsCut({sim_particles + ".mother_id"}, -1),
                                              EqualsCut({sim_particles + ".pid"}, 2212)}));
-  VertexTracksQA(*task, rec_tracks, new Cuts("pi_neg", {EqualsCut({sim_particles + ".mother_id"}, -1),
+  VertexTracksQA(*task, rec_tracks, new Cuts("rec_pi_neg", {EqualsCut({sim_particles + ".mother_id"}, -1),
                                             EqualsCut({sim_particles + ".pid"}, 211)}));
-  VertexTracksQA(*task, rec_tracks, new Cuts("pi_pos", {EqualsCut({sim_particles + ".mother_id"}, -1),
+  VertexTracksQA(*task, rec_tracks, new Cuts("rec_pi_pos", {EqualsCut({sim_particles + ".mother_id"}, -1),
                                             EqualsCut({sim_particles + ".pid"}, -211)}));
-  VertexTracksQA(*task, rec_tracks, new Cuts("deuteron", {EqualsCut({sim_particles + ".mother_id"}, -1),
+  VertexTracksQA(*task, rec_tracks, new Cuts("rec_deuteron", {EqualsCut({sim_particles + ".mother_id"}, -1),
                                              EqualsCut({sim_particles + ".pid"}, 1000010020)}));
   VertexTracksQA(*task, sts_tracks);
   VertexTracksQA(*task, sts_tracks, new Cuts("Primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
   SimParticlesQA(*task);
-  SimParticlesQA(*task, new Cuts("primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
-  SimParticlesQA(*task, new Cuts("protons", {EqualsCut({sim_particles + ".mother_id"}, -1),
+  SimParticlesQA(*task, new Cuts("sim_primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
+  SimParticlesQA(*task, new Cuts("sim_protons", {EqualsCut({sim_particles + ".mother_id"}, -1),
                                              EqualsCut({sim_particles + ".pid"}, 2212)}));
-  SimParticlesQA(*task, new Cuts("pi_neg", {EqualsCut({sim_particles + ".mother_id"}, -1),
+  SimParticlesQA(*task, new Cuts("sim_pi_neg", {EqualsCut({sim_particles + ".mother_id"}, -1),
                                              EqualsCut({sim_particles + ".pid"}, 211)}));
-  SimParticlesQA(*task, new Cuts("pi_pos", {EqualsCut({sim_particles + ".mother_id"}, -1),
+  SimParticlesQA(*task, new Cuts("sim_pi_pos", {EqualsCut({sim_particles + ".mother_id"}, -1),
                                              EqualsCut({sim_particles + ".pid"}, -211)}));
-  SimParticlesQA(*task, new Cuts("deuteron", {EqualsCut({sim_particles + ".mother_id"}, -1),
+  SimParticlesQA(*task, new Cuts("sim_deuteron", {EqualsCut({sim_particles + ".mother_id"}, -1),
                                              EqualsCut({sim_particles + ".pid"}, 1000010020)}));
   SimEventHeaderQA(*task);
   RecEventHeaderQA(*task);

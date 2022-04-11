@@ -30,6 +30,7 @@ BmnBdGeo.cxx
 BmnBdGeoPar.cxx
 BmnBdHit.cxx
 BmnBdHitProducer.cxx
+BmnBdDigitizer.cxx
 )
 
 Set(HEADERS)

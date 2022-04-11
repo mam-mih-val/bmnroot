@@ -12,4 +12,5 @@
 #pragma link C++ class  BmnBdContFact+;
 #pragma link C++ class  BmnBdHit+;
 #pragma link C++ class  BmnBdHitProducer+;
+#pragma link C++ class  BmnBdDigitizer+;
 #endif

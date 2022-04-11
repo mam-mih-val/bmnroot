@@ -12,7 +12,7 @@ enum enumGenerators{URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM};
 // generatorName - generator name for the input file (enumeration above)
 // useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
 void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString outFile = "$VMCWORKDIR/macro/run8/bmnsim.root",
-    Int_t nStartEvent = 0, Int_t nEvents = 10, enumGenerators generatorName = DCMSMM, Bool_t useRealEffects = kTRUE) {
+    Int_t nStartEvent = 0, Int_t nEvents = 100, enumGenerators generatorName = DCMSMM, Bool_t useRealEffects = kTRUE) {
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
@@ -159,6 +159,10 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     BmnSiBTDigitizer* sibtDigit = new BmnSiBTDigitizer();
     sibtDigit->SetCurrentConfig(sibt_config);
     fRun->AddTask(sibtDigit);
+    
+    // BD-Digitizer
+    BmnBdDigitizer* bdDigit = new BmnBdDigitizer();
+    fRun->AddTask(bdDigit);
     
     // SiMD-Digitizer
     BmnSiMDDigitizer* simdDigit = new BmnSiMDDigitizer();

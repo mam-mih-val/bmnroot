@@ -9,7 +9,7 @@ void L1Algo::Init( const fscal geo[] )
     for( int i=0; i<3; i++){
       z[i] = geo[ind++]; B[i].x = geo[ind++];   B[i].y = geo[ind++];  B[i].z = geo[ind++];
 #ifndef TBB2
-      std::cout<<"L1Algo Input Magnetic field:"<<z[i][0]<<" "<<B[i].x[0]<<" "<<B[i].y[0]<<" "<<B[i].z[0]<<std::endl;
+      //std::cout<<"L1Algo Input Magnetic field:"<<z[i][0]<<" "<<B[i].x[0]<<" "<<B[i].y[0]<<" "<<B[i].z[0]<<std::endl;
 #endif // TBB2
     }
     vtxFieldRegion.Set(B[0], z[0], B[1], z[1], B[2], z[2] );
@@ -21,7 +21,7 @@ void L1Algo::Init( const fscal geo[] )
 
   // cout << "N MVD & STS stations: " << NMvdStations << " " << NStations-NMvdStations << endl;
 #ifndef TBB2
-  std::cout<<"L1Algo Input "<<NStations<<" Stations:"<<std::endl;
+  //std::cout<<"L1Algo Input "<<NStations<<" Stations:"<<std::endl;
 #endif // TBB2
   for( int i=0; i<NStations; i++ ){
     L1Station &st = vStations[i];
@@ -98,9 +98,9 @@ void L1Algo::Init( const fscal geo[] )
     for( int iC=0; iC<N; iC++ ) st.fieldSlice.cy[iC] = geo[ind++];
     for( int iC=0; iC<N; iC++ ) st.fieldSlice.cz[iC] = geo[ind++];
 #ifndef TBB2
-    std::cout<<"    "<<st.z[0] <<" "<<st.materialInfo.thick[0]<<" "<<st.materialInfo.RL[0]<<", "
-        <<N<<" field coeff."<<std::endl;
-    std::cout<<"       "<<f_phi<<" "<<f_sigma <<" "<<b_phi<<" "<<b_sigma <<std::endl;
+    //std::cout<<"    "<<st.z[0] <<" "<<st.materialInfo.thick[0]<<" "<<st.materialInfo.RL[0]<<", "
+    //    <<N<<" field coeff."<<std::endl;
+    //std::cout<<"       "<<f_phi<<" "<<f_sigma <<" "<<b_phi<<" "<<b_sigma <<std::endl;
 #endif // TBB2
   }
 

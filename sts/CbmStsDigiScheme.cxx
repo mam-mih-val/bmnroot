@@ -520,7 +520,7 @@ Bool_t CbmStsDigiScheme::InitNewNew(CbmGeoStsPar* geoPar,
   // }                                    // station loop
   
   cout << "-I- CbmStsDigiScheme::InitNew: Intialisation successful" << endl;
-  Print();
+  //Print();
   return kTRUE;
 }
 // -------------------------------------------------------------------------

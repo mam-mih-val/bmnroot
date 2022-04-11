@@ -409,7 +409,7 @@ InitStatus CbmL1::Init()
         }
       }
 //      cout << "Station  "<<  ist << ",  Xmax  " << Xmax<<",  Ymax" << Ymax<<endl;
-      cout << " AZ - station " << ist << " " << f_phi*TMath::RadToDeg() << " " << b_phi*TMath::RadToDeg() << " " << Xmax << " " << Ymax << endl;
+      if (fVerbose) cout << " AZ - station " << ist << " " << f_phi*TMath::RadToDeg() << " " << b_phi*TMath::RadToDeg() << " " << Xmax << " " << Ymax << endl;
     }
 
     double dx = 1.; // step for the field approximation
@@ -531,9 +531,9 @@ InitStatus CbmL1::Init()
     gFile = oldfile;
   }
   else{
-    cout << "No material budget file is found. Homogenious budget will be used" << endl;
+    if (fVerbose) cout << "No material budget file is found. Homogenious budget will be used" << endl;
     for( int iSta = algo->NMvdStations; iSta < algo->NStations; iSta++ ) {
-      cout << iSta << endl;
+      //cout << iSta << endl;
       algo->fRadThick[iSta].SetBins(1, 100); // mvd should be in +-100 cm square
       algo->fRadThick[iSta].table.resize(1);
       algo->fRadThick[iSta].table[0].resize(1);

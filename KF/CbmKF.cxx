@@ -372,7 +372,7 @@ BmnTOFGeoPar *TofPar = reinterpret_cast<BmnTOFGeoPar*>(RunDB->findContainer("Bmn
 
     CbmKFTube tube1( 100500, 0,0,0/*-21.9*/, 2.*0.25, 0, 0.5, 0.5 ); //hard-coded target with Pb rad. lenght, -23.4 z pos.
     vTargets.push_back( tube1 );
-    cout<<" Target material "<<tube1.Info()<<endl;
+    if( fVerbose ) cout<<" Target material "<<tube1.Info()<<endl;
 
     node = dynamic_cast<FairGeoNode*> (Nodes->FindObject("targ_0"));  // classes can't be cast
    // cout<<" node: "<<node<<endl;
@@ -380,7 +380,7 @@ BmnTOFGeoPar *TofPar = reinterpret_cast<BmnTOFGeoPar*>(RunDB->findContainer("Bmn
       CbmKFTube tube;
       if( !ReadTube( tube, node) ){
 	vTargets.push_back( tube );
-	if( true ) cout<<" Target material "<<tube.Info()<<endl;
+	if( fVerbose ) if( true ) cout<<" Target material "<<tube.Info()<<endl;
       }
     }
   }
@@ -428,7 +428,7 @@ BmnTOFGeoPar *TofPar = reinterpret_cast<BmnTOFGeoPar*>(RunDB->findContainer("Bmn
     sort( vMaterial.begin(), vMaterial.end(), CbmKFMaterial::comparePDown );
     for( unsigned i=0; i<vMaterial.size(); i++ ){
       fMaterialID2IndexMap.insert(pair<Int_t,Int_t>(vMaterial[i]->ID, i));
-      cout<<" KF  TOTAL MATIREAL: "<<vMaterial[i]->ID<<endl;
+      if (fVerbose) cout<<" KF  TOTAL MATIREAL: "<<vMaterial[i]->ID<<endl;
     }    
     
   }

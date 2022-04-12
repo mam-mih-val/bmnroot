@@ -89,6 +89,13 @@ InitStatus BmnCSCDigitizer::Init() {
             if (fVerbose) cout << "   Current CSC Configuration : RunSRC2021" << "\n";
             break;
 
+        case BmnCSCConfiguration::LargeCSC_Run8:
+            StationSet = new BmnCSCStationSet(gPathCSCConfig + "LargeCSCRun8.xml");
+            TransfSet = new BmnCSCTransform();
+            TransfSet->LoadFromXMLFile(gPathCSCConfig + "LargeCSCRun8.xml");
+            if (fVerbose) cout << "   Current CSC Configuration : LargeCSCRun8" << "\n";
+            break;
+
         default:
             StationSet = nullptr;
     }

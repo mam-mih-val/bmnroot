@@ -18,13 +18,13 @@
 #include "BmnFHCalModule.h"
 
 
-class BmnFHCalEvent : public TObject
+class BmnFHCalEvent : public TNamed
 {
 public:
   /** @brief Default constructor.
    **/
   BmnFHCalEvent()
-    : TObject()
+    : TNamed()
     , fTotalEnergy()
     , fModulesArr()
   {

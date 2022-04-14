@@ -5,7 +5,7 @@
 // nStartEvent - number of first event to process (starts with zero), default: 0
 // nEvents - number of events to process, 0 - all events of given file will be processed, default: 1 000 events
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
-#define VF // Choose Tracking: L1, VF or CellAuto
+#define TRACKINGL1 // Choose Tracking: TRACKINGL1, TRACKINGVF or CellAuto
 
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
@@ -207,7 +207,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     }
 
     TString innerTrackBranchName; //use different track container
-#ifdef L1
+#ifdef TRACKINGL1
     innerTrackBranchName = "StsTrack";
 #else
     innerTrackBranchName = "StsVector";
@@ -232,7 +232,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         FairTask* stsFindTracks = new CbmStsFindTracks(iVerbose, stsTrackFinder);
         fRunAna->AddTask(stsFindTracks);
 
-#ifdef VF  
+#ifdef TRACKINGVF
         BmnStsVectorFinder* vf = new BmnStsVectorFinder();
         fRunAna->AddTask(vf);
 #endif

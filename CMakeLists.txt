@@ -24,10 +24,9 @@ project(BMNROOT)
 # Set the build type: None, Debug, Release, RelWithDebInfo, MinSizeRel, OMP
 # OMP - the quickest multithreading BmnRoot version for a multicore machine
 If(NOT CMAKE_BUILD_TYPE)
-  Message("Set BuildType DEBUG")
-add_compile_definitions(BUILD_DEBUG=${CMAKE_BUILD_TYPE})
+  SET(CMAKE_BUILD_TYPE Debug)
+  Message("Set BuildType  DEBUG")
 EndIf(NOT CMAKE_BUILD_TYPE)
-  Message("CMake Build Type: ${CMAKE_BUILD_TYPE}")
 
 Option(USE_PATH_INFO "Information from PATH and LD_LIBRARY_PATH are used." ON)
 Option(ALIBUILD "Flag if we are building with AliBuild." OFF)
@@ -279,6 +278,8 @@ If (Boost_FOUND)
 Else (Boost_FOUND)
   Set(Boost_Avail 0)
 EndIf (Boost_FOUND)
+# Needed for Boost from 1.73.0 to prevent warnings
+add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS)
 
 # set a variable which should be used in all CMakeLists.txt
 # Defines all basic include directories from fairbase

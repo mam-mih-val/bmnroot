@@ -18,19 +18,21 @@ BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh
     fNChannels = nCh;
     fNSamples = nSmpl;
     PrecalcEventModsImp = (GetRun() > GetBoundaryRun(fNSamples) || GetPeriod() >= 7) ?
-//#if CMAKE_BUILD_TYPE == Release
-//            &BmnAdcProcessor::PrecalcEventMods : &BmnAdcProcessor::PrecalcEventModsOld;
+//#if CMAKE_BUILD_TYPE == Debug
+//        &BmnAdcProcessor::PrecalcEventMods : &BmnAdcProcessor::PrecalcEventModsOld;
+//        printf("\n\nDebug!!!\n\n");
 //#else
-//            &BmnAdcProcessor::PrecalcEventMods_simd : &BmnAdcProcessor::PrecalcEventModsOld;
+//        &BmnAdcProcessor::PrecalcEventMods_simd : &BmnAdcProcessor::PrecalcEventModsOld;
+//        printf("\n\nRelease!!!\n\n");
 //#endif
 
 #ifdef BUILD_DEBUG
             &BmnAdcProcessor::PrecalcEventMods : &BmnAdcProcessor::PrecalcEventModsOld;
-//            printf("\n\nDebug!!!\n\n");
+            printf("\n\nDebug!!!\n\n");
 #else
             &BmnAdcProcessor::PrecalcEventMods_simd : &BmnAdcProcessor::PrecalcEventModsOld;
-//            printf("\n\nRelease!!!\n\n");
-#endif      
+            printf("\n\nRelease!!!\n\n");
+#endif   
     fAdcSerials = vSer;
     for (int iSer = 0; iSer < fAdcSerials.size(); ++iSer) {
         fSerMap.insert(pair<UInt_t, Int_t>(fAdcSerials[iSer], iSer));
@@ -1234,6 +1236,11 @@ Double_t BmnAdcProcessor::CalcCMS(Double_t* samples, Int_t size) {
         CMS = cms;
     }
     return CMS;
+}
+
+BmnStatus BmnAdcProcessor::SaveFilterInfo(){
+    
+    return kBMNSUCCESS;
 }
 
 unique_ptr<BmnSiliconStationSet> BmnAdcProcessor::GetSilStationSet(Int_t period, BmnSetup stp) {

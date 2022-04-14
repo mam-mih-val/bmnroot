@@ -29,7 +29,6 @@ void BmnRecEventHeaderConverter::Init()
   in_event_header_ = dynamic_cast<FairMCEventHeader*>(ioman->GetObject("MCEventHeader."));
   in_prim_vertex_ = dynamic_cast<CbmVertex*>(ioman->GetObject("PrimaryVertex."));
   in_global_tracks_ = dynamic_cast<TClonesArray*>(ioman->GetObject("BmnGlobalTrack"));
-  ioman->FindObject("FHCalEvent");
   in_fhcal_event_ = dynamic_cast<BmnFHCalEvent*>(ioman->GetObject("FHCalEvent"));
 
   //  ***** RecEventHeader *******

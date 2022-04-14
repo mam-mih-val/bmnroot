@@ -27,7 +27,8 @@ InitStatus BmnFHCalReconstructor::Init() {
   fBmnFHCalEvent = new BmnFHCalEvent();
   fBmnFHCalEvent->reset();
   ParseConfig();
-  fpFairRootMgr->RegisterAny("FHCalEvent", fBmnFHCalEvent, kTRUE);
+  fpFairRootMgr->Register("FHCalEvent", "FHCal",
+                          reinterpret_cast<TNamed *>(fBmnFHCalEvent), kTRUE);
 
   Info(__func__,"FHCal Reconstructor ready");
   return kSUCCESS;

@@ -13,7 +13,7 @@
 
 #include <vector>
 
-#include <TObject.h>
+#include <TNamed.h>
 #include <TClonesArray.h>
 #include "BmnFHCalModule.h"
 

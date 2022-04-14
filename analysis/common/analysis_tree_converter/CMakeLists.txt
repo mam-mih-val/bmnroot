@@ -30,7 +30,7 @@ Set(INCLUDE_DIRECTORIES
   ${CMAKE_SOURCE_DIR}/cat
   ${CMAKE_SOURCE_DIR}/cat/ParticleFinder
   ${CMAKE_SOURCE_DIR}/cat/L1Algo
-  ${CMAKE_SOURCE_DIR}/fhcal
+  ${CMAKE_SOURCE_DIR}/detectors/fhcal
 #  ${KFParticle_INCLUDE_DIR}
   ${AnalysisTree_INCLUDE_DIR}
   ${ROOT_INCLUDE_DIR}

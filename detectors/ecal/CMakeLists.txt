@@ -1,12 +1,9 @@
-# Create a library called "BmnPidSRC"
+# Create a library called "libEcal"
 
-Set(INCLUDE_DIRECTORIES
+set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/bmndst
- ${CMAKE_SOURCE_DIR}/detectors/dch
- ${CMAKE_SOURCE_DIR}/identification
+ ${CMAKE_SOURCE_DIR}/detectors/ecal
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -21,18 +18,22 @@ set(LINK_DIRECTORIES
  ${FAIRROOT_LIBRARY_DIR}
  ${Boost_LIBRARY_DIRS}
 )
-
+ 
 link_directories(${LINK_DIRECTORIES})
 
 # List of source files
-Set(SRCS
-BmnPidSRC.cxx
-BmnPid.cxx
+set(SRCS
+BmnEcal.cxx 
+BmnEcalPoint.cxx  
+BmnEcalContFact.cxx  
+BmnEcalGeo.cxx 
+BmnEcalGeoPar.cxx
+BmnEcalDigitizer.cxx
 )
 
 Set(HEADERS)
-Set(LINKDEF IdentLinkDef.h)
-Set(LIBRARY_NAME BmnPidSRC)
-Set(DEPENDENCIES BmnDst Dch BmnData Base)
+Set(LINKDEF BmnEcalLinkDef.h)
+Set(LIBRARY_NAME Ecal)
+Set(DEPENDENCIES BmnData Base Core)
 
 GENERATE_LIBRARY()

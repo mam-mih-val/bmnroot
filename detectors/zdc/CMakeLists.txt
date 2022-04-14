@@ -1,12 +1,10 @@
-# Create a library called "BmnPidSRC"
+# Create a library called "libZdc"
 
-Set(INCLUDE_DIRECTORIES
+set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/bmndst
- ${CMAKE_SOURCE_DIR}/detectors/dch
- ${CMAKE_SOURCE_DIR}/identification
+ ${CMAKE_SOURCE_DIR}/detectors/zdc
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -21,18 +19,28 @@ set(LINK_DIRECTORIES
  ${FAIRROOT_LIBRARY_DIR}
  ${Boost_LIBRARY_DIRS}
 )
-
+ 
 link_directories(${LINK_DIRECTORIES})
 
 # List of source files
-Set(SRCS
-BmnPidSRC.cxx
-BmnPid.cxx
+set(SRCS
+BmnZdc.cxx 
+BmnZdcPoint.cxx  
+BmnZdcContFact.cxx  
+BmnZdcGeo.cxx 
+BmnZdcGeoPar.cxx
+BmnZdcDigi.cxx
+BmnZdcDigiPar.cxx
+BmnZdcDigiScheme.cxx
+BmnZdcDigiProducer.cxx
+BmnZdcBScanner.cxx
+BmnZdcDigitizer.cxx
+BmnZdcAnalyzer.cxx
 )
 
 Set(HEADERS)
-Set(LINKDEF IdentLinkDef.h)
-Set(LIBRARY_NAME BmnPidSRC)
-Set(DEPENDENCIES BmnDst Dch BmnData Base)
+Set(LINKDEF BmnZdcLinkDef.h)
+Set(LIBRARY_NAME Zdc)
+Set(DEPENDENCIES BmnData Base Core)
 
 GENERATE_LIBRARY()

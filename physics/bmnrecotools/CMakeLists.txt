@@ -4,15 +4,15 @@ set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/generators
- ${CMAKE_SOURCE_DIR}/bd
- ${CMAKE_SOURCE_DIR}/tof1
+ ${CMAKE_SOURCE_DIR}/detectors/bd
+ ${CMAKE_SOURCE_DIR}/detectors/tof1
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
- ${CMAKE_SOURCE_DIR}/csc
- ${CMAKE_SOURCE_DIR}/silicon
- ${CMAKE_SOURCE_DIR}/gem
- ${CMAKE_SOURCE_DIR}/dch
+ ${CMAKE_SOURCE_DIR}/detectors/csc
+ ${CMAKE_SOURCE_DIR}/detectors/silicon
+ ${CMAKE_SOURCE_DIR}/detectors/gem
+ ${CMAKE_SOURCE_DIR}/detectors/dch
  ${CMAKE_SOURCE_DIR}/bmndst
  ${CMAKE_SOURCE_DIR}/physics/bmnrecotools
 )

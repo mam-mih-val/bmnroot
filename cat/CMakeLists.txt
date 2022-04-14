@@ -5,9 +5,9 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
- ${CMAKE_SOURCE_DIR}/silicon
- ${CMAKE_SOURCE_DIR}/gem
- ${CMAKE_SOURCE_DIR}/sts
+ ${CMAKE_SOURCE_DIR}/detectors/silicon
+ ${CMAKE_SOURCE_DIR}/detectors/gem
+ ${CMAKE_SOURCE_DIR}/detectors/sts
  ${CMAKE_SOURCE_DIR}/KF
  ${CMAKE_SOURCE_DIR}/KF/KFQA
  ${CMAKE_SOURCE_DIR}/KF/Interface

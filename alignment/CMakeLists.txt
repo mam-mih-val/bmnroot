@@ -8,10 +8,10 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/uni_db
- ${CMAKE_SOURCE_DIR}/mwpc
- ${CMAKE_SOURCE_DIR}/dch
- ${CMAKE_SOURCE_DIR}/silicon
- ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/detectors/mwpc
+ ${CMAKE_SOURCE_DIR}/detectors/dch
+ ${CMAKE_SOURCE_DIR}/detectors/silicon
+ ${CMAKE_SOURCE_DIR}/detectors/gem
  ${CMAKE_SOURCE_DIR}/alignment
 )
 

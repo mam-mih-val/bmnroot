@@ -65,19 +65,24 @@ void BmnGlobalTracksConverter::Init()
   auto* man = AnalysisTree::TaskManager::GetInstance();
 
   man->AddBranch(out_branch_, out_global_tracks_, vtx_tracks_config);
-  man->AddMatching( out_branch_, str_sts_trk_branch_name_, global_tracks_2_sts_tracks_ );
-  man->AddMatching( out_branch_, str_tof400_branch_name_, global_tracks_2_tof400_hits_ );
-  man->AddMatching( out_branch_, str_tof700_branch_name_, global_tracks_2_tof700_hits_ );
+  if( !std::empty(str_sts_trk_branch_name_) )
+    man->AddMatching( out_branch_, str_sts_trk_branch_name_, global_tracks_2_sts_tracks_ );
+  if( !std::empty(str_tof400_branch_name_) )
+    man->AddMatching( out_branch_, str_tof400_branch_name_, global_tracks_2_tof400_hits_ );
+  if( !std::empty(str_tof700_branch_name_) )
+    man->AddMatching( out_branch_, str_tof700_branch_name_, global_tracks_2_tof700_hits_ );
 }
 
 void BmnGlobalTracksConverter::ReadVertexTracks()
 {
   assert(in_bmn_vertex_ && in_bmn_global_tracks_);
-  BmnKalmanFilter kalman_filter;
   out_global_tracks_->ClearChannels();
-  global_tracks_2_sts_tracks_->Clear();
-  global_tracks_2_tof400_hits_->Clear();
-  global_tracks_2_tof700_hits_->Clear();
+  if( global_tracks_2_sts_tracks_ )
+    global_tracks_2_sts_tracks_->Clear();
+  if( global_tracks_2_tof400_hits_ )
+    global_tracks_2_tof400_hits_->Clear();
+  if( global_tracks_2_tof700_hits_ )
+    global_tracks_2_tof700_hits_->Clear();
   auto* out_config_  = AnalysisTree::TaskManager::GetInstance()->GetConfig();
   const auto& branch = out_config_->GetBranchConfig(out_branch_);
 
@@ -176,12 +181,13 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
     out_track.SetField(float(y_first - vertex_y), idcax + 1);
     out_track.SetField(float(z_first - vertex_z), idcax + 2);
 
-    global_tracks_2_sts_tracks_->AddMatch( track_index, track_index );
+    if( global_tracks_2_sts_tracks_ )
+      global_tracks_2_sts_tracks_->AddMatch( track_index, track_index );
     auto idx_tof400 = in_bmn_global_track->GetTof1HitIndex();
-    if( idx_tof400 >= 0 )
+    if( idx_tof400 >= 0 && global_tracks_2_tof400_hits_ )
       global_tracks_2_tof400_hits_->AddMatch( track_index, idx_tof400 );
     auto idx_tof700 = in_bmn_global_track->GetTof2HitIndex();
-    if( idx_tof700 >= 0 )
+    if( idx_tof700 >= 0 && global_tracks_2_tof700_hits_ )
       global_tracks_2_tof700_hits_->AddMatch( track_index, idx_tof700 );
   }
 }

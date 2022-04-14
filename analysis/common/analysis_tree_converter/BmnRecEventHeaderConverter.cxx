@@ -25,10 +25,11 @@ void BmnRecEventHeaderConverter::Init()
   assert(!out_branch_.empty());
   auto* ioman = FairRootManager::Instance();
   assert(ioman != nullptr);
-  in_event_header_ = (FairMCEventHeader*) ioman->GetObject("MCEventHeader.");
-  in_prim_vertex_ = (CbmVertex*) ioman->GetObject("PrimaryVertex.");
-  in_global_tracks_ = (TClonesArray*) ioman->GetObject("BmnGlobalTrack");
-  in_fhcal_digits_ = (TClonesArray*) ioman->GetObject("FHCalDigit");
+
+  in_event_header_ = dynamic_cast<FairMCEventHeader*>(ioman->GetObject("MCEventHeader."));
+  in_prim_vertex_ = dynamic_cast<CbmVertex*>(ioman->GetObject("PrimaryVertex."));
+  in_global_tracks_ = dynamic_cast<TClonesArray*>(ioman->GetObject("BmnGlobalTrack"));
+  in_fhcal_event_ = dynamic_cast<BmnFHCalEvent*>(ioman->GetObject("FHCalEvent"));
 
   //  ***** RecEventHeader *******
   AnalysisTree::BranchConfig RecEventHeaderBranch("RecEventHeader", AnalysisTree::DetType::kEventHeader);
@@ -64,16 +65,7 @@ void BmnRecEventHeaderConverter::ProcessData()
   rec_event_header_->SetField(float(in_event_header_->GetT()), branch.GetFieldId("start_time"));
   rec_event_header_->SetField(float(in_event_header_->GetT()), branch.GetFieldId("end_time"));
 
-  float e_fhcal = 0;
-  for (int i = 0; i < in_fhcal_digits_->GetEntriesFast(); ++i) {
-    auto* in_digit = dynamic_cast<BmnFHCalDigit*>(in_fhcal_digits_->At(i));
-    if( in_digit->GetModuleID() == 0 )
-      continue;
-    if( in_digit->GetSectionID() != 0 )
-      continue;
-    float energy_scaled = in_digit->GetELossDigi();
-    e_fhcal+=energy_scaled;
-  }
+  float e_fhcal = in_fhcal_event_->GetTotalEnergy();
   rec_event_header_->SetField(float(e_fhcal), branch.GetFieldId("total_fhcal_energy"));
 
   LOG(info) << "BmnRecEventHeaderConverter " << in_prim_vertex_->GetX() << " " << in_prim_vertex_->GetChi2();

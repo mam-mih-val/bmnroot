@@ -51,6 +51,7 @@ void BmnRecEventHeaderConverter::ProcessData()
   const auto& branch = out_config_->GetBranchConfig(out_branch_);
 
   if (!in_prim_vertex_) { throw std::runtime_error("No fPrimVtx"); }
+  if (!in_fhcal_event_) { throw std::runtime_error("No FHCalEvent"); }
 
   rec_event_header_->SetVertexPosition3({in_prim_vertex_->GetX(),
                                          in_prim_vertex_->GetY(),

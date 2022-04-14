@@ -49,8 +49,7 @@ fVertexL1(nullptr),
 fIsSRC(kFALSE),
 fKalman(nullptr),
 fInnerTrackBranchName("StsTrack"),
-fEventNo(0) {
-}
+fEventNo(0) {}
 
 BmnGlobalTracking::BmnGlobalTracking(Bool_t isExp, Bool_t doAlign) : fInnerTracks(nullptr),
 fSiliconTracks(nullptr),
@@ -106,8 +105,7 @@ fEventNo(0) {
     fKalman = new BmnKalmanFilter();
 }
 
-BmnGlobalTracking::~BmnGlobalTracking() {
-}
+BmnGlobalTracking::~BmnGlobalTracking() {}
 
 InitStatus BmnGlobalTracking::Init() {
     if (fVerbose > 1)
@@ -299,7 +297,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
             //Matching with DCH2
             MatchingDCH(&globTr, 2);
 
-            Refit(&globTr);
+            if (Refit(&globTr) == kBMNERROR) continue;
             new ((*fGlobalTracks)[fGlobalTracks->GetEntriesFast()]) BmnGlobalTrack(globTr);
         }
     } else if (fInnerTracks) {
@@ -652,11 +650,11 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack* tr, Int_t num) {
     Double_t sigmaYdchGgemResid = (fIsExp) ? 2.33 : 1;
     Double_t xCut = 3 * sigmaXdchGgemResid;
     Double_t yCut = 3 * sigmaYdchGgemResid;
-    
+
     //dch1 ~510, dch2 ~710, dchGlob ~610
     Double_t zDchTh1 = 550.0;
     Double_t zDchTh2 = 650.0;
-    
+
     Double_t minZ = 10000.0;
     for (Int_t iTr = 0; iTr < fDchTracks->GetEntriesFast(); ++iTr) {
         BmnTrack* dchTr = (BmnTrack*)fDchTracks->At(iTr);
@@ -670,7 +668,7 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack* tr, Int_t num) {
 
     FairTrackParam parMinZ(*(tr->GetParamLast()));
     if (fKalman->TGeoTrackPropagate(&parMinZ, minZ, fPDG, nullptr, nullptr) == kBMNERROR) return kBMNERROR;
-    
+
     Double_t minDX = DBL_MAX;
     Double_t minDY = DBL_MAX;
     BmnTrack* minTrack = nullptr;
@@ -681,12 +679,12 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack* tr, Int_t num) {
         if (!dchTr) continue;
 
         Double_t trZ = dchTr->GetParamFirst()->GetZ();
-        
+
         Bool_t ok = kFALSE;
         if (trZ < zDchTh1 && num == 1) ok = kTRUE;
         if (trZ > zDchTh2 && num == 2) ok = kTRUE;
         if (!ok) continue;
-        
+
         FairTrackParam param = parMinZ;
         if (fKalman->TGeoTrackPropagate(&param, trZ, fPDG, nullptr, nullptr) == kBMNERROR)
             continue;
@@ -702,7 +700,7 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack* tr, Int_t num) {
         }
     }
     if (minIdx == -1) return kBMNERROR;
-    
+
     Double_t len = 0.0;
     FairTrackParam par(*(tr->GetParamLast()));
     FairTrackParam dchPar(*(minTrack->GetParamFirst()));
@@ -714,7 +712,7 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack* tr, Int_t num) {
     len += tr->GetLength();
     tr->SetNHits(tr->GetNHits() + 1);
     tr->SetLength(len);
-    
+
     if (num == 1)
         tr->SetDch1TrackIndex(minIdx);
     else

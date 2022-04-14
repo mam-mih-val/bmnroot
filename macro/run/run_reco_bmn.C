@@ -268,15 +268,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     fRunAna->AddTask(dchTF);
 
     // ====================================================================== //
-    // ===                          Global Tracking                       === //
-    // ====================================================================== //
-    Bool_t doAlign = kTRUE;
-    if (!isExp) doAlign = kFALSE;
-    BmnGlobalTracking* glTF = new BmnGlobalTracking(isExp, kFALSE/*doAlign*/);
-    glTF->SetInnerTracksBranchName(innerTrackBranchName);
-    fRunAna->AddTask(glTF);
-
-    // ====================================================================== //
     // ===                      Primary vertex finding                    === //
     // ====================================================================== //
     if (run_period >= 8) {
@@ -288,6 +279,15 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         BmnVertexFinder* gemVF = new BmnVertexFinder(run_period);
         fRunAna->AddTask(gemVF);
     }
+    
+    // ====================================================================== //
+    // ===                          Global Tracking                       === //
+    // ====================================================================== //
+    Bool_t doAlign = kTRUE;
+    if (!isExp) doAlign = kFALSE;
+    BmnGlobalTracking* glTF = new BmnGlobalTracking(isExp, kFALSE/*doAlign*/);
+    glTF->SetInnerTracksBranchName(innerTrackBranchName);
+    fRunAna->AddTask(glTF);
 
     // ====================================================================== //
     // ===           Matching global track to MC track procedure          === //

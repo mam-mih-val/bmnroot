@@ -23,7 +23,7 @@ void BmnFHCalModulesConverter::Init()
   assert(!out_branch_.empty());
   auto* ioman = FairRootManager::Instance();
   assert(ioman != nullptr);
-  in_fhcal_digits_ = (TClonesArray*) ioman->GetObject("FHCalDigit");
+  in_fhcal_event_ = dynamic_cast<BmnFHCalEvent*>(ioman->GetObject("FHCalEvent"));
 
   AnalysisTree::BranchConfig out_fhcal_branch_config_(out_branch_, AnalysisTree::DetType::kModule);
 
@@ -34,7 +34,9 @@ void BmnFHCalModulesConverter::Init()
 
 void BmnFHCalModulesConverter::ProcessData()
 {
-  assert(in_fhcal_digits_);
+  if(!in_fhcal_event_)
+    throw std::runtime_error( std::string(__func__) + ": Input FHCal event is not initialized");
+
   out_fhcal_branch_->ClearChannels();
 
   auto* data_header  = AnalysisTree::TaskManager::GetInstance()->GetDataHeader();
@@ -42,23 +44,12 @@ void BmnFHCalModulesConverter::ProcessData()
   const auto&out_branch_config = config->GetBranchConfig(out_branch_);
 
   const int n_fhcal_modules = data_header->GetModulePositions(0).GetNumberOfChannels();
-  for (int i = 0; i < n_fhcal_modules; ++i) {
-    auto& module = out_fhcal_branch_->AddChannel(out_branch_config);
-    module.SetSignal(0.0f);
-  }
-
-  auto n_digits = in_fhcal_digits_->GetEntriesFast();
-  for (int i = 0; i < n_digits; ++i) {
-    auto* in_digit = dynamic_cast<BmnFHCalDigit*>(in_fhcal_digits_->At(i));
-    if( in_digit->GetModuleID() == 0 )
-      continue;
-    if( in_digit->GetSectionID() != 0 )
-      continue;
-    auto module_id = in_digit->GetModuleID();
-    auto& module = out_fhcal_branch_->Channel(module_id-1);
-    float energy_scaled = in_digit->GetELossDigi();
-    module.SetSignal(energy_scaled);
-    module.SetNumber(module_id-1);
+  for (int idx = 0; idx < n_fhcal_modules; ++idx) {
+    auto in_module = in_fhcal_event_->GetModule(idx);
+    auto energy = in_module->GetEnergy();
+    auto&out_module = out_fhcal_branch_->AddChannel(out_branch_config);
+    out_module.SetSignal(energy);
+    out_module.SetNumber(idx);
   }
 }
 

@@ -6,6 +6,8 @@
 #define ANALYSIS_TREE_PSDMODULESCONVERTER_H_
 
 #include "BmnConverterTask.h"
+#include "BmnFHCalEvent.h"
+#include "BmnFHCalModule.h"
 
 #include "AnalysisTree/Detector.hpp"
 
@@ -23,8 +25,9 @@ public:
   void Finish() final;
 
 private:
+
   AnalysisTree::ModuleDetector*out_fhcal_branch_{nullptr};
-  TClonesArray*in_fhcal_digits_{nullptr};
+  BmnFHCalEvent *in_fhcal_event_{nullptr};
 
   ClassDef(BmnFHCalModulesConverter, 1)
 };

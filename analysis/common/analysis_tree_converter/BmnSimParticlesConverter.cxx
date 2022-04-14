@@ -45,10 +45,12 @@ void BmnSimParticlesConverter::Init()
   auto* man = AnalysisTree::TaskManager::GetInstance();
 
   man->AddBranch(out_branch_, sim_tracks_, sim_particles_branch);
-  man->AddMatching(out_branch_, str_global_trk_branch_name_,
-                   sim_particles_2_global_tracks_);
-  man->AddMatching(out_branch_, str_sts_trk_branch_name_,
-                   sim_particles_2_sts_tracks_);
+  if( !std::empty(str_sts_trk_branch_name_) )
+    man->AddMatching(out_branch_, str_global_trk_branch_name_,
+                     sim_particles_2_global_tracks_);
+  if( !std::empty(str_sts_trk_branch_name_) )
+    man->AddMatching(out_branch_, str_sts_trk_branch_name_,
+                     sim_particles_2_sts_tracks_);
 }
 
 void BmnSimParticlesConverter::MapTracks(){
@@ -71,8 +73,10 @@ void BmnSimParticlesConverter::ProcessData()
   MapTracks();
 
   sim_tracks_->ClearChannels();
-  sim_particles_2_global_tracks_->Clear();
-  sim_particles_2_sts_tracks_->Clear();
+  if( sim_particles_2_global_tracks_ )
+    sim_particles_2_global_tracks_->Clear();
+  if( sim_particles_2_sts_tracks_ )
+    sim_particles_2_sts_tracks_->Clear();
   auto* out_config_  = AnalysisTree::TaskManager::GetInstance()->GetConfig();
   const auto& branch = out_config_->GetBranchConfig(out_branch_);
 
@@ -108,9 +112,11 @@ void BmnSimParticlesConverter::ProcessData()
     }
     auto& track = sim_tracks_->AddChannel(branch);
     try {
-      sim_particles_2_global_tracks_->AddMatch(
+      if( sim_particles_2_global_tracks_ )
+        sim_particles_2_global_tracks_->AddMatch(
           passed_idx, sim_partcles_bmn_tracks_map_.at(trackIndex));
-      sim_particles_2_sts_tracks_->AddMatch(
+      if( sim_particles_2_sts_tracks_ )
+          sim_particles_2_sts_tracks_->AddMatch(
           passed_idx, sim_partcles_bmn_tracks_map_.at(trackIndex));
     }catch(std::exception&){}
     passed_idx++;

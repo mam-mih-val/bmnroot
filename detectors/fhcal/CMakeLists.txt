@@ -42,6 +42,6 @@ BmnFHCalReconstructor.cxx
 Set(HEADERS)
 Set(LINKDEF BmnFHCalLinkDef.h)
 Set(LIBRARY_NAME FHCal)
-Set(DEPENDENCIES BmnData Decoder UniDb Base Core)
+Set(DEPENDENCIES BmnData Decoder UniDb Base Core boost_program_options)
 
 GENERATE_LIBRARY()

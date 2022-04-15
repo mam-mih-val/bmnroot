@@ -1,12 +1,10 @@
-# Create a library called "BmnPidSRC"
+# Create a library called "libTOF"
 
-Set(INCLUDE_DIRECTORIES
+set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/bmndst
- ${CMAKE_SOURCE_DIR}/detectors/dch
- ${CMAKE_SOURCE_DIR}/identification
+ ${CMAKE_SOURCE_DIR}/decoder
+ ${CMAKE_SOURCE_DIR}/detectors/tof
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -25,14 +23,20 @@ set(LINK_DIRECTORIES
 link_directories(${LINK_DIRECTORIES})
 
 # List of source files
-Set(SRCS
-BmnPidSRC.cxx
-BmnPid.cxx
+set(SRCS
+BmnTOF.cxx
+BmnTOFPoint.cxx
+BmnTOFContFact.cxx
+BmnTOFGeo.cxx
+BmnTOFGeoPar.cxx
+BmnTofHitProducer.cxx
+BmnTofHitProducerIdeal.cxx
+BmnTofGeoUtils.cxx
 )
 
 Set(HEADERS)
-Set(LINKDEF IdentLinkDef.h)
-Set(LIBRARY_NAME BmnPidSRC)
-Set(DEPENDENCIES BmnDst Dch BmnData Base)
+Set(LINKDEF BmnTOFLinkDef.h)
+Set(LIBRARY_NAME TOF)
+Set(DEPENDENCIES Decoder BmnData Base Core) 
 
 GENERATE_LIBRARY()

@@ -1,16 +1,13 @@
-# Create a library called "libBmnSteering"
+# Create a library called "libTOF1"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/detectors/csc
- ${CMAKE_SOURCE_DIR}/detectors/gem
- ${CMAKE_SOURCE_DIR}/detectors/silicon
- ${CMAKE_SOURCE_DIR}/steering
+ ${CMAKE_SOURCE_DIR}/detectors/tof1
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
- ${ROOT_INCLUDE_DIR} 
+ ${ROOT_INCLUDE_DIR}
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -26,13 +23,22 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnSteering.cxx
-BmnOfflineQaSteering.cxx
+BmnTOF1.cxx 
+BmnTOF1Point.cxx  
+BmnTOF1ContFact.cxx  
+BmnTOF1Geo.cxx 
+BmnTOF1GeoPar.cxx
+BmnTof1HitProducer.cxx
+BmnTof1HitProducerIdeal.cxx
+BmnTof1GeoUtils.cxx
+BmnTOF1TDC.cxx
+BmnTOF1Detector.cxx
+BmnTOF1Conteiner.cxx
 )
 
 Set(HEADERS)
-Set(LINKDEF SteeringLinkDef.h)
-Set(LIBRARY_NAME BmnSteering)
-Set(DEPENDENCIES Gem CSC Silicon BmnData Base Core)
+Set(LINKDEF BmnTOF1LinkDef.h)
+Set(LIBRARY_NAME TOF1)
+Set(DEPENDENCIES BmnData Base Core)
 
 GENERATE_LIBRARY()

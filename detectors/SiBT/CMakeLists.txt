@@ -1,16 +1,13 @@
-# Create a library called "libBmnSteering"
+# Create a library called "libSiBT" (Silicon Beam Tracker)
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/detectors/csc
- ${CMAKE_SOURCE_DIR}/detectors/gem
- ${CMAKE_SOURCE_DIR}/detectors/silicon
- ${CMAKE_SOURCE_DIR}/steering
+ ${CMAKE_SOURCE_DIR}/detectors/SiBT
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
- ${ROOT_INCLUDE_DIR} 
+ ${ROOT_INCLUDE_DIR}
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -21,18 +18,27 @@ set(LINK_DIRECTORIES
  ${FAIRROOT_LIBRARY_DIR}
  ${Boost_LIBRARY_DIRS}
 )
- 
+
 link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnSteering.cxx
-BmnOfflineQaSteering.cxx
+ BmnSiBT.cxx
+ BmnSiBTPoint.cxx
+ BmnSiBTStationSet.cxx
+ BmnSiBTStation.cxx
+ BmnSiBTModule.cxx
+ BmnSiBTLayer.cxx
+ BmnSiBTDigitizer.cxx
+ BmnSiBTHitMaker.cxx
+ BmnSiBTTransform.cxx
+
+ BmnSiBTConfiguration.h
 )
 
 Set(HEADERS)
-Set(LINKDEF SteeringLinkDef.h)
-Set(LIBRARY_NAME BmnSteering)
-Set(DEPENDENCIES Gem CSC Silicon BmnData Base Core)
+Set(LINKDEF SiBTLinkDef.h)
+Set(LIBRARY_NAME SiBT)
+Set(DEPENDENCIES BmnData Base XMLParser Gdml Core)
 
 GENERATE_LIBRARY()

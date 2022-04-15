@@ -11,9 +11,9 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmndata/common
  ${CMAKE_SOURCE_DIR}/cat
  ${CMAKE_SOURCE_DIR}/cat/vectors
- ${CMAKE_SOURCE_DIR}/csc
- ${CMAKE_SOURCE_DIR}/silicon
- ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/detectors/csc
+ ${CMAKE_SOURCE_DIR}/detectors/silicon
+ ${CMAKE_SOURCE_DIR}/detectors/gem
   ${CMAKE_SOURCE_DIR}/decoder
 )
 

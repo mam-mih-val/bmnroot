@@ -66,6 +66,7 @@ void run_analysistree_qa(std::string filelist, bool is_single_file)
 
   VertexTracksQA(*task, rec_tracks);
   VertexTracksQA(*task, rec_tracks, new Cuts("rec_primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
+  VertexTracksQA(*task, rec_tracks, new Cuts("rec_secondary", {RangeCut({sim_particles + ".mother_id"}, 0., 999.)}));
   VertexTracksQA(*task, rec_tracks, new Cuts("rec_protons", {EqualsCut({sim_particles + ".mother_id"}, -1),
                                              EqualsCut({sim_particles + ".pid"}, 2212)}));
   VertexTracksQA(*task, rec_tracks, new Cuts("rec_pi_neg", {EqualsCut({sim_particles + ".mother_id"}, -1),
@@ -73,25 +74,25 @@ void run_analysistree_qa(std::string filelist, bool is_single_file)
   VertexTracksQA(*task, rec_tracks, new Cuts("rec_pi_pos", {EqualsCut({sim_particles + ".mother_id"}, -1),
                                             EqualsCut({sim_particles + ".pid"}, -211)}));
   VertexTracksQA(*task, rec_tracks, new Cuts("rec_deuteron", {EqualsCut({sim_particles + ".mother_id"}, -1),
-                                             EqualsCut({sim_particles + ".pid"}, 1000010020)}));
+                                             RangeCut({sim_particles + ".pid"}, 1000010020-0.5, 1000010020+0.5)}));
   VertexTracksQA(*task, sts_tracks);
   VertexTracksQA(*task, sts_tracks, new Cuts("Primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
   SimParticlesQA(*task);
   SimParticlesQA(*task, new Cuts("sim_primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
+  SimParticlesQA(*task, new Cuts("sim_secondary", {RangeCut({sim_particles + ".mother_id"}, 0., 999.)}));
   SimParticlesQA(*task, new Cuts("sim_protons", {EqualsCut({sim_particles + ".mother_id"}, -1),
-                                             EqualsCut({sim_particles + ".pid"}, 2212)}));
+                                                 EqualsCut({sim_particles + ".pid"}, 2212)}));
   SimParticlesQA(*task, new Cuts("sim_pi_neg", {EqualsCut({sim_particles + ".mother_id"}, -1),
-                                             EqualsCut({sim_particles + ".pid"}, 211)}));
+                                                EqualsCut({sim_particles + ".pid"}, 211)}));
   SimParticlesQA(*task, new Cuts("sim_pi_pos", {EqualsCut({sim_particles + ".mother_id"}, -1),
-                                             EqualsCut({sim_particles + ".pid"}, -211)}));
+                                                EqualsCut({sim_particles + ".pid"}, -211)}));
   SimParticlesQA(*task, new Cuts("sim_deuteron", {EqualsCut({sim_particles + ".mother_id"}, -1),
-                                             EqualsCut({sim_particles + ".pid"}, 1000010020)}));
+                                                  RangeCut({sim_particles + ".pid"}, 1000010020-0.5, 1000010020+0.5)}));
   SimEventHeaderQA(*task);
   RecEventHeaderQA(*task);
   TofHitsQA(*task);
   TrackingQA(*task);
   FHCalModulesQA(*task);
-
   man->AddTask(task);
 
   man->Init({filelist}, {"rTree"});
@@ -106,8 +107,8 @@ void run_analysistree_qa(std::string filelist, bool is_single_file)
 }
 
 void FHCalModulesQA(QA::Task& task){
-  task.AddH1({"E_{FHCal} in each module", {fhcal_modules, "signal"}, {150, 0, 3000}});
-  task.AddH2({"E_{FHCal}", {fhcal_modules, "signal"}, {100, 0, 3000}},
+  task.AddH1({"E_{FHCal} in each module", {fhcal_modules, "signal"}, {250, 0, 2.5}});
+  task.AddH2({"E_{FHCal}", {fhcal_modules, "signal"}, {250, 0, 2.5}},
              {"module id", {fhcal_modules, "number"}, {55, 0, 55}});
   task.AddH2({"X (cm)", {fhcal_modules, "x"}, {QA::gNbins, -100, 100}},
              {"Y (cm)", {fhcal_modules, "y"}, {QA::gNbins, -100, 100}});
@@ -135,7 +136,7 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
   task.AddH1({"DCA_{x}, cm", {branch, "dcax"}, {QA::gNbins, -5, 5}}, cuts);
   task.AddH1({"DCA_{y}, cm", {branch, "dcay"}, {QA::gNbins, -5, 5}}, cuts);
   task.AddH1({"DCA_{z}, cm", {branch, "dcaz"}, {QA::gNbins, -5, 5}}, cuts);
-  task.AddH1({"z_{extr}, cm", {branch, "z_first"}, {QA::gNbins, -10, 190}}, cuts);
+  task.AddH1({"z_{extr}, cm", {branch, "z_first"}, {QA::gNbins, -5, 5}}, cuts);
 
   task.AddH1({"NDF", {branch, "ndf"}, {30, 0, 30}}, cuts);
   task.AddH1({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}}, cuts);
@@ -288,6 +289,10 @@ void TofHitsQA(QA::Task& task)
 
 void SimParticlesQA(QA::Task& task, Cuts* cuts) {
   AddParticleQA(&task, sim_particles, cuts);
+  Variable v1("v1", {{sim_particles, "phi"}, {sim_event_header, "psi_RP"}}, [](std::vector<double> phi) { return cos(phi[0] - phi[1]); });
+  Variable v2("v2", {{sim_particles, "phi"}, {sim_event_header, "psi_RP"}}, [](std::vector<double> phi) { return cos(2 * (phi[0] - phi[1])); });
+  task.AddProfile({"#it{y}", {sim_particles, "rapidity"}, {25, 0.0, 2.5}}, {"v_{1}", v1, {}}, cuts));
+  task.AddProfile({"#it{y}", {sim_particles, "rapidity"}, {25, 0.0, 2.5}}, {"v_{1}", v2, {}}, cuts));
 }
 
 void SimEventHeaderQA(QA::Task& task)
@@ -309,8 +314,10 @@ void RecEventHeaderQA(QA::Task& task)
   task.AddH1({"z_{vertex} (cm)", {rec_event_header, "vtx_z"}, {QA::gNbins, -1, 1}});
   task.AddH1({"#chi^{2}_{vertex fit}", {rec_event_header, "vtx_chi2"}, {QA::gNbins, 0, 5}});
 
-  task.AddH1({"E_{FHCal} (GeV)", {rec_event_header, "total_fhcal_energy"}, {200, 0, 200'000}});
+  task.AddH1({"E_{FHCal} (GeV)", {rec_event_header, "total_fhcal_energy"}, {200, 0, 10}});
   task.AddH1({"M_{tracks}", {rec_event_header, "M"}, {250, 0, 250}});
+  task.AddH2({"M_{tracks}", {rec_event_header, "M"}, {250, 0, 250}},
+             {"E_{FHCal} (GeV)", {rec_event_header, "total_fhcal_energy"}, {200, 0, 10}});
   task.AddH1({"Event ID", {rec_event_header, "evt_id"}, {QA::gNbins, 0, 2000}});
 
   task.AddH2({"x_{vertex} (cm)", {rec_event_header, "vtx_x"}, {QA::gNbins, -1, 1}},

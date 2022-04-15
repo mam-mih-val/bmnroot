@@ -33,6 +33,7 @@ create table trigger_
  trigger_info varchar(60) unique not null
 );
 
+-- record_ contains only base fields (specific fields are defined via eLog platform, such as 'sp_41', 'target_width', etc.)
 create table record_
 (
  record_id serial primary key,
@@ -43,14 +44,9 @@ create table record_
  run_number int null,
  trigger_id int null references trigger_(trigger_id) on update cascade,
  daq_status varchar(70) null,
- sp_41 int null,
- sp_57 int null,
- vkm2 int null,
- field_comment varchar(70) null,
  beam varchar(10) null references beam_(beam) on update cascade,
  energy float null check (energy > 0),
  target varchar(10) null references target_(target) on update cascade,
- target_width float null,
  record_comment text
 );
 

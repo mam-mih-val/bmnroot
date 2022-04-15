@@ -291,8 +291,8 @@ void SimParticlesQA(QA::Task& task, Cuts* cuts) {
   AddParticleQA(&task, sim_particles, cuts);
   Variable v1("v1", {{sim_particles, "phi"}, {sim_event_header, "psi_RP"}}, [](std::vector<double> phi) { return cos(phi[0] - phi[1]); });
   Variable v2("v2", {{sim_particles, "phi"}, {sim_event_header, "psi_RP"}}, [](std::vector<double> phi) { return cos(2 * (phi[0] - phi[1])); });
-  task.AddProfile({"#it{y}", {sim_particles, "rapidity"}, {25, 0.0, 2.5}}, {"v_{1}", v1, {}}, cuts));
-  task.AddProfile({"#it{y}", {sim_particles, "rapidity"}, {25, 0.0, 2.5}}, {"v_{1}", v2, {}}, cuts));
+  task.AddProfile({"#it{y}", {sim_particles, "rapidity"}, {25, 0.0, 2.5}}, {"v_{1}", v1, {}}, cuts);
+  task.AddProfile({"#it{y}", {sim_particles, "rapidity"}, {25, 0.0, 2.5}}, {"v_{1}", v2, {}}, cuts);
 }
 
 void SimEventHeaderQA(QA::Task& task)

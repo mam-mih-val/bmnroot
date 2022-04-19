@@ -3,6 +3,8 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/raw
+ ${CMAKE_SOURCE_DIR}/bmndata/header
  ${CMAKE_SOURCE_DIR}/detectors/SiBT
 )
 
@@ -29,7 +31,9 @@ set(SRCS
  BmnSiBTStation.cxx
  BmnSiBTModule.cxx
  BmnSiBTLayer.cxx
+ BmnSiBTDigit.cxx
  BmnSiBTDigitizer.cxx
+ BmnSiBTHit.cxx
  BmnSiBTHitMaker.cxx
  BmnSiBTTransform.cxx
 

@@ -8,15 +8,30 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/database/tango
  ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/raw
+ ${CMAKE_SOURCE_DIR}/bmndata/gem
+ ${CMAKE_SOURCE_DIR}/bmndata/header
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndata/common
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
+ ${CMAKE_SOURCE_DIR}/detectors/mwpc
  ${CMAKE_SOURCE_DIR}/detectors/silicon
  ${CMAKE_SOURCE_DIR}/detectors/gem
  ${CMAKE_SOURCE_DIR}/detectors/csc
+ ${CMAKE_SOURCE_DIR}/detectors/dch
+ ${CMAKE_SOURCE_DIR}/detectors/tof1
+ ${CMAKE_SOURCE_DIR}/detectors/tof
+ ${CMAKE_SOURCE_DIR}/detectors/tofcal
+ ${CMAKE_SOURCE_DIR}/detectors/ecal
+ ${CMAKE_SOURCE_DIR}/detectors/zdc
+ ${CMAKE_SOURCE_DIR}/detectors/scwall
+ ${CMAKE_SOURCE_DIR}/detectors/hodo
+ ${CMAKE_SOURCE_DIR}/detectors/fhcal
+ ${CMAKE_SOURCE_DIR}/detectors/land
  ${CMAKE_SOURCE_DIR}/bmndst
 ## New directory structure for common library to be built ...
  ${CMAKE_SOURCE_DIR}/decoder
+ ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/physics
  ${CMAKE_SOURCE_DIR}/physics/bmnrecotools
  ${CMAKE_SOURCE_DIR}/physics/decay
@@ -70,6 +85,6 @@ run7/BmnTriggerEfficiencyRun7.cxx
 Set(HEADERS)
 Set(LINKDEF LinkDef.h)
 Set(LIBRARY_NAME BmnPhysics)
-Set(DEPENDENCIES BmnDst Decoder Gem Silicon CSC BmnData BmnField UniDb ElogDb)
+Set(DEPENDENCIES BmnDst GlobalTracking Decoder LAND FHCal Hodo ScWall Zdc Ecal TofCal TOF TOF1 Gem Silicon CSC Dch Mwpc BmnData BmnField UniDb ElogDb)
 
 GENERATE_LIBRARY()

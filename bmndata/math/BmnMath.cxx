@@ -7,7 +7,6 @@
 #include "BmnHit.h"
 #include "CbmGlobalTrack.h"
 #include "CbmHit.h"
-#include "CbmPixelHit.h"
 #include "CbmStripHit.h"
 #include "FairTrackParam.h"
 #include "Math/BrentRootFinder.h"

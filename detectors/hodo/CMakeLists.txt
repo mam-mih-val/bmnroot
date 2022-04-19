@@ -23,11 +23,13 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnHodo.cxx 
-BmnHodoPoint.cxx  
-BmnHodoContFact.cxx  
-BmnHodoGeo.cxx 
-BmnHodoGeoPar.cxx
+ BmnHodo.cxx
+ BmnHodoPoint.cxx
+ BmnHodoDigi.cxx
+ BmnHodoAddress.cxx
+ BmnHodoContFact.cxx
+ BmnHodoGeo.cxx
+ BmnHodoGeoPar.cxx
 )
 
 Set(HEADERS)

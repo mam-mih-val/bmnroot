@@ -19,7 +19,7 @@ CbmStripHit::CbmStripHit():
 	fDu(0.),
 	fDphi(0.)
 {
-	SetType(kSTRIPHIT);
+    SetType(kSTRIPHIT_o);
 }
 
 CbmStripHit::CbmStripHit(
@@ -37,7 +37,7 @@ CbmStripHit::CbmStripHit(
 	fDu(du),
 	fDphi(dphi)
 {
-	SetType(kSTRIPHIT);
+    SetType(kSTRIPHIT_o);
    SetAddress(address);
    SetZ(z);
    SetDz(dz);
@@ -55,7 +55,7 @@ CbmStripHit::CbmStripHit(
 	fDu(err.X()),
 	fDphi(err.Y())
 {
-	SetType(kSTRIPHIT);
+    SetType(kSTRIPHIT_o);
    SetAddress(address);
    SetZ(pos.Z());
    SetDz(err.Z());

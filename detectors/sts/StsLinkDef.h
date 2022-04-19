@@ -3,7 +3,14 @@
 #pragma link off all globals;
 #pragma link off all classes;
 #pragma link off all functions;
- 
+
+#pragma link C++ class CbmStsDetectorId+;
+#pragma link C++ class CbmStsDigi+;
+#pragma link C++ class CbmStsDigiLight+;
+#pragma link C++ class CbmStsDigiMatch+;
+#pragma link C++ class CbmStsHit+;
+#pragma link C++ class CbmStsCluster+;
+
 #pragma link C++ class CbmGeoSts+;
 #pragma link C++ class CbmGeoStsPar;
 #pragma link C++ class CbmSts+;

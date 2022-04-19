@@ -3,6 +3,7 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/gem
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/detectors/dch
 )
@@ -30,6 +31,9 @@ set(SRCS
  BmnDchContFact.cxx
  BmnDchGeo.cxx
  BmnDchGeoPar.cxx
+ BmnDchDigit.cxx
+ BmnDchHitOriginal.cxx
+ BmnDchHit.cxx
  BmnDchHitProducer.cxx
  BmnDchTrackFinder.cxx
  BmnDchTrack.cxx

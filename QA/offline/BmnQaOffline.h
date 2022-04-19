@@ -14,7 +14,6 @@
 #include <BmnZDCDigit.h>
 #include <BmnTrigDigit.h>
 #include <BmnTrigWaveDigit.h>
-#include <BmnGlobalTrack.h>
 #include <BmnSiliconTrack.h>
 #include <BmnGemTrack.h>
 #include <BmnDchTrack.h>

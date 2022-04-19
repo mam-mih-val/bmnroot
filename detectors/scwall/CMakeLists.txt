@@ -23,11 +23,13 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnScWall.cxx 
-BmnScWallPoint.cxx  
-BmnScWallContFact.cxx  
-BmnScWallGeo.cxx 
-BmnScWallGeoPar.cxx
+ BmnScWall.cxx
+ BmnScWallPoint.cxx
+ BmnScWallDigi.cxx
+ BmnScWallAddress.cxx
+ BmnScWallContFact.cxx
+ BmnScWallGeo.cxx
+ BmnScWallGeoPar.cxx
 )
 
 Set(HEADERS)

@@ -26,6 +26,7 @@
 #include "BmnUtils.h"
 #include "CbmBaseHit.h"
 #include "CbmGlobalTrack.h"
+#include "BmnGlobalTrack.h"
 #include "CbmMCTrack.h"
 #include "CbmStsTrack.h"
 #include "CbmTofHit.h"

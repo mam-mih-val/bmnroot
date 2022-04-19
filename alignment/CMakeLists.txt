@@ -3,6 +3,7 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/gem
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmnfield
@@ -12,6 +13,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/detectors/dch
  ${CMAKE_SOURCE_DIR}/detectors/silicon
  ${CMAKE_SOURCE_DIR}/detectors/gem
+ ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/alignment
 )
 
@@ -45,6 +47,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF AlignLinkDef.h)
 Set(LIBRARY_NAME BmnAlignment)
-Set(DEPENDENCIES Gem Silicon Dch Mwpc BmnData BmnField UniDb Base Core)
+Set(DEPENDENCIES GlobalTracking Gem Silicon Dch Mwpc BmnData BmnField UniDb Base Core)
 
 GENERATE_LIBRARY()

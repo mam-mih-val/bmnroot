@@ -1,9 +1,11 @@
-# Create a library called "libTOF"
+# Create a library called "libBmnRecoZdc"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/detectors/tof
+ ${CMAKE_SOURCE_DIR}/detectors/zdc
+ ${CMAKE_SOURCE_DIR}/decoder
+ ${CMAKE_SOURCE_DIR}/reconstruction/zdc
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -16,27 +18,19 @@ Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 set(LINK_DIRECTORIES
  ${ROOT_LIBRARY_DIR}
  ${FAIRROOT_LIBRARY_DIR}
- ${Boost_LIBRARY_DIRS}
 )
-
+ 
 link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
- BmnTOF.cxx
- BmnTOFPoint.cxx
- BmnTof2Digit.cxx
- BmnTOFContFact.cxx
- BmnTOFGeo.cxx
- BmnTOFGeoPar.cxx
- BmnTofHit.cxx
- BmnTofHitProducerIdeal.cxx
- BmnTofGeoUtils.cxx
+ BmnZDCEventData.cxx
+ BmnZdcAnalyzer.cxx
 )
 
 Set(HEADERS)
-Set(LINKDEF BmnTOFLinkDef.h)
-Set(LIBRARY_NAME TOF)
-Set(DEPENDENCIES BmnData Base Core) 
+Set(LINKDEF BmnRecoZdcLinkDef.h)
+Set(LIBRARY_NAME BmnRecoZdc)
+Set(DEPENDENCIES Decoder Zdc BmnData Base Core)
 
 GENERATE_LIBRARY()

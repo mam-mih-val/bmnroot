@@ -23,12 +23,13 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnEcal.cxx 
-BmnEcalPoint.cxx  
-BmnEcalContFact.cxx  
-BmnEcalGeo.cxx 
-BmnEcalGeoPar.cxx
-BmnEcalDigitizer.cxx
+ BmnEcal.cxx 
+ BmnEcalPoint.cxx  
+ BmnEcalContFact.cxx  
+ BmnEcalGeo.cxx 
+ BmnEcalGeoPar.cxx
+ BmnECALDigit.cxx
+ BmnEcalDigitizer.cxx
 )
 
 Set(HEADERS)

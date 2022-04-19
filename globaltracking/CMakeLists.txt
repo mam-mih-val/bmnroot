@@ -5,6 +5,9 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/raw
+ ${CMAKE_SOURCE_DIR}/bmndata/gem
+ ${CMAKE_SOURCE_DIR}/bmndata/header
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/detectors/dch
@@ -36,12 +39,14 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
+ BmnGlobalTrack.cxx
  BmnGlobalTracking.cxx
  BmnUpstreamTracking.cxx
  #BmnSRCTriggersCheck.cxx - compilation failed
  BmnTriggersCheck.cxx
  BmnVertexFinder.cxx
  SrcVertexFinder.cxx
+ BmnGemDchTrack.cxx
 )
 
 Set(HEADERS)

@@ -3,9 +3,11 @@
 Set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/gem
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndst
  ${CMAKE_SOURCE_DIR}/detectors/dch
+ ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/identification
 )
 
@@ -33,6 +35,6 @@ BmnPid.cxx
 Set(HEADERS)
 Set(LINKDEF IdentLinkDef.h)
 Set(LIBRARY_NAME BmnPidSRC)
-Set(DEPENDENCIES BmnDst Dch BmnData Base)
+Set(DEPENDENCIES GlobalTracking BmnDst Dch BmnData Base)
 
 GENERATE_LIBRARY()

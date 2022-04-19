@@ -3,17 +3,25 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmnfield
+ ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/raw
+ ${CMAKE_SOURCE_DIR}/bmndata/gem
+ ${CMAKE_SOURCE_DIR}/bmndata/header
  ${CMAKE_SOURCE_DIR}/generators
  ${CMAKE_SOURCE_DIR}/detectors/bd
  ${CMAKE_SOURCE_DIR}/detectors/tof1
- ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/detectors/csc
  ${CMAKE_SOURCE_DIR}/detectors/silicon
+ ${CMAKE_SOURCE_DIR}/detectors/sts
  ${CMAKE_SOURCE_DIR}/detectors/gem
  ${CMAKE_SOURCE_DIR}/detectors/dch
+ ${CMAKE_SOURCE_DIR}/detectors/tof
+ ${CMAKE_SOURCE_DIR}/detectors/zdc
  ${CMAKE_SOURCE_DIR}/bmndst
+ ${CMAKE_SOURCE_DIR}/globaltracking
+ ${CMAKE_SOURCE_DIR}/reconstruction/zdc
  ${CMAKE_SOURCE_DIR}/physics/bmnrecotools
 )
 
@@ -47,6 +55,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF RecoToolsLinkDef.h)
 Set(LIBRARY_NAME RecoTools)
-Set(DEPENDENCIES BmnDst Gem Silicon CSC BmnData MpdGen BmnField Base Core Bd TOF1 Dch)
+Set(DEPENDENCIES BmnDst GlobalTracking BmnRecoZdc Zdc CSC Gem Sts Silicon BmnData MpdGen BmnField Base Core Bd TOF1 Dch)
 
 GENERATE_LIBRARY()

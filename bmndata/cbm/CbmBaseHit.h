@@ -12,17 +12,17 @@
 #define CBMBASEHIT_H_
 
 enum HitType_o {
-	kHIT_o,
-	kPIXELHIT_o,
-	kSTRIPHIT_o,
-	kSTSHIT_o,
-	kMVDHIT_o,
-	kRICHHIT_o,
-	kMUCHPIXELHIT_o,
-	kMUCHSTRAWHIT_o,
-	kTRDHIT_o,
-	kTOFHIT_o,
-	kECALHIT_o
+    kHIT_o,
+    kPIXELHIT_o,
+    kSTRIPHIT_o,
+    kSTSHIT_o,
+    kMVDHIT_o,
+    kRICHHIT_o,
+    kMUCHPIXELHIT_o,
+    kMUCHSTRAWHIT_o,
+    kTRDHIT_o,
+    kTOFHIT_o,
+    kECALHIT_o
 };
 
 #include "TObject.h"

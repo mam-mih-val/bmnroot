@@ -20,26 +20,27 @@ set(LINK_DIRECTORIES
 )
 
 set(SRCS
-MpdEventManager.cxx  
-MpdMCTracks.cxx
-MpdMCStack.cxx
-MpdEventManagerEditor.cxx
-MpdMCTracksEditor.cxx
-MpdBoxSet.cxx
-MpdBoxSetDraw.cxx
-MpdBoxSetEditor.cxx
-MpdPointSetDraw.cxx
-MpdMCPointDraw.cxx
-MpdHitDraw.cxx
-MpdXMLNode.cxx
-MpdHitPointSetDraw.cxx
-MpdWebScreenshots.cxx
+ MpdEventManager.cxx  
+ MpdMCTracks.cxx
+ MpdMCStack.cxx
+ MpdEventManagerEditor.cxx
+ MpdMCTracksEditor.cxx
+ MpdBoxSet.cxx
+ MpdBoxSetDraw.cxx
+ MpdBoxSetEditor.cxx
+ MpdPointSetDraw.cxx
+ MpdMCPointDraw.cxx
+ MpdHitDraw.cxx
+ MpdXMLNode.cxx
+ MpdHitPointSetDraw.cxx
+ MpdWebScreenshots.cxx
 )
 
 if (BMNROOT)
   Set(INCLUDE_DIRECTORIES
     ${INCLUDE_DIRECTORIES}
     ${CMAKE_SOURCE_DIR}/bmndata
+    ${CMAKE_SOURCE_DIR}/bmndata/gem
     ${CMAKE_SOURCE_DIR}/globaltracking
     ${CMAKE_SOURCE_DIR}/detectors/silicon
     ${CMAKE_SOURCE_DIR}/detectors/gem
@@ -137,5 +138,9 @@ if (MPDROOT)
 endif (MPDROOT)
 
 Set(LIBRARY_NAME EventDisplay)
+
+If ((${FairRoot_VERSION_MAJOR} MATCHES "18") AND (${FairRoot_VERSION_MINOR} MATCHES "6") AND (${FairRoot_VERSION_PATCH} MATCHES "7"))
+ add_definitions(-DFairRoot_18_6_7)
+EndIf()
 
 GENERATE_LIBRARY()

@@ -10,7 +10,6 @@
 #define BMNACCEPTANCEFUNCTION_H_
 
 #include "CbmMCTrack.h"
-#include "BmnGlobalTrack.h"
 #include "BmnTrackMatch.h"
 #include "TClonesArray.h"
 #include "TMath.h"

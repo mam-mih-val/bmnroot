@@ -3,6 +3,8 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/raw
+ ${CMAKE_SOURCE_DIR}/bmndata/header
  ${CMAKE_SOURCE_DIR}/detectors/csc
 )
 
@@ -29,7 +31,9 @@ set(SRCS
  BmnCSCStation.cxx
  BmnCSCModule.cxx
  BmnCSCLayer.cxx
+ BmnCSCDigit.cxx
  BmnCSCDigitizer.cxx
+ BmnCSCHit.cxx
  BmnCSCHitMaker.cxx
  BmnCSCTransform.cxx
 

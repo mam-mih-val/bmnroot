@@ -7,6 +7,10 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmndata/common
  ${CMAKE_SOURCE_DIR}/bmndata/math
+ ${CMAKE_SOURCE_DIR}/bmndata/source
+ ${CMAKE_SOURCE_DIR}/bmndata/header
+ ${CMAKE_SOURCE_DIR}/bmndata/raw
+ ${CMAKE_SOURCE_DIR}/bmndata/gem
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -28,7 +32,14 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
+ cbm/CbmStsPoint.cxx
+ cbm/CbmDigi.cxx
+ cbm/CbmBaseHit.cxx
+ cbm/CbmHit.cxx
+ cbm/CbmStripHit.cxx
  cbm/CbmVertex.cxx
+ 
+ cbm/CbmStsTrack.cxx
  cbm/CbmStsTrackFinder.cxx
  cbm/CbmStsTrackFitter.cxx
  cbm/CbmTofMerger.cxx
@@ -36,6 +47,19 @@ set(SRCS
  cbm/CbmPrimaryVertexFinder.cxx
  cbm/CbmFindPrimaryVertex.cxx
  cbm/CbmL1Counters.h
+ cbm/CbmTrackMatch.cxx
+ cbm/CbmGlobalTrack.cxx
+
+ cbm/CbmMvdDetectorId.cxx
+ cbm/CbmMvdGeoPar.cxx
+ cbm/CbmMvdPoint.cxx
+ cbm/CbmMvdHit.cxx
+ cbm/CbmMvdHitMatch.cxx
+
+ cbm/CbmTofPoint.cxx
+ cbm/CbmTofHit.cxx
+ cbm/CbmTofTrack.cxx
+ cbm/CbmGeoSttPar.cxx
 
  math/BmnMath.cxx
  math/BmnMatrixMath.cxx
@@ -46,103 +70,51 @@ set(SRCS
  math/BmnMaterialInfo.h
 
  common/BmnFunctionSet.cxx
+ common/BmnCounterTask.cxx
 
- BmnDetectorList.cxx
- CbmMCPointBuffer.h
- CbmMCTrack.cxx
- CbmStack.cxx
- CbmDigi.cxx
- CbmBaseHit.cxx
- CbmHit.cxx
- CbmPixelHit.cxx
- CbmTrackMatch.cxx
- CbmGlobalTrack.cxx
+ source/BmnFileSource.cxx
+ source/BmnDecoSource.cxx
 
- CbmStsDetectorId.cxx
- CbmStsPoint.cxx
- CbmStsDigi.cxx
- CbmStsDigiMatch.cxx
- CbmStsDigiLight.cxx
- CbmStsHit.cxx
- CbmStsCluster.cxx
- CbmStsTrack.cxx
- CbmMvdDetectorId.cxx
- CbmMvdGeoPar.cxx
- CbmMvdPoint.cxx
- CbmMvdHit.cxx
- CbmMvdHitMatch.cxx
- CbmTofPoint.cxx
- CbmTofHit.cxx
- CbmTofTrack.cxx
- CbmEcalPoint.cxx
- CbmGeoSttPar.cxx
+ header/BmnEventHeader.cxx
+ header/BmnSpillHeader.cxx
+ header/DigiRunHeader.cxx
+
+ raw/RawTypes.h
+ raw/BmnADCDigit.cxx
+ raw/BmnTDCDigit.cxx
+ raw/BmnTQDCADCDigit.cxx
+ raw/BmnTTBDigit.cxx
+ raw/BmnMSCDigit.cxx
+ raw/BmnHRBDigit.cxx
+ raw/BmnSyncDigit.cxx
+ raw/BmnTrigDigit.cxx
+ raw/BmnTrigWaveDigit.cxx
+ raw/BmnTrigInfo.cxx
+ raw/BmnTrigUnion.h
+ raw/DigiArrays.h
+
+ gem/BmnGemStripHit.cxx
+ gem/BmnGemTrack.cxx
 
  BmnEnums.h
- RawTypes.h
+ BmnDetectorList.cxx
+ CbmMCTrack.cxx
+ CbmStack.cxx
+
  BmnStripData.h
+ BmnStripDigit.cxx
+ BmnCaloDigit.cxx
+ BmnTacquilaDigit.cxx
+ BmnDigiContainerTemplate.cxx
  BmnHit.cxx
  BmnLink.cxx
  BmnMatch.cxx
  BmnTrack.cxx
- BmnTrackMatch.cxx
- BmnGemDchTrack.cxx
- BmnGlobalTrack.cxx
  BmnIdentifiableTrack.cxx
- BmnEventHeader.cxx
- BmnSpillHeader.cxx
- DigiRunHeader.cxx
- BmnEventQuality.cxx
- BmnFileSource.cxx
- BmnDecoSource.cxx
- BmnFitNode.h
- BmnCounterTask.cxx
-
- BmnTrigInfo.cxx
- BmnStripDigit.cxx
- BmnTrigDigit.cxx
- BmnTrigWaveDigit.cxx
- BmnADCDigit.cxx
- BmnTDCDigit.cxx
- BmnTacquilaDigit.cxx
- BmnTQDCADCDigit.cxx
- BmnHRBDigit.cxx
- BmnSyncDigit.cxx
- BmnTTBDigit.cxx
- BmnMSCDigit.cxx
- DigiArrays.h
-
- BmnSiliconHit.cxx
- BmnGemStripHit.cxx
- BmnCSCHit.cxx
- BmnSiBTHit.cxx
- BmnGemTrack.cxx
- BmnDchDigit.cxx
- BmnDchHitOriginal.cxx
- BmnDchHit.cxx
- BmnCSCDigit.cxx
- BmnSiBTDigit.cxx
- BmnMwpcDigit.cxx
- BmnMwpcHit.cxx
- BmnTof1Digit.cxx
- BmnTof2Digit.cxx
- BmnTofHit.cxx
- BmnCaloDigit.cxx
- BmnECALDigit.cxx
- BmnZDCDigit.cxx
- BmnZDCEventData.cxx
- BmnLANDDigit.cxx
- BmnTofCalDigit.cxx
- BmnTrigUnion.h
-
- BmnDigiContainerTemplate.cxx
- BmnScWallDigi.cxx
- BmnScWallAddress.cxx
- BmnFHCalDigi.cxx
- BmnFHCalAddress.cxx
- BmnHodoDigi.cxx
- BmnHodoAddress.cxx
-
+ BmnTrackMatch.cxx
  BmnVertex.cxx
+ BmnEventQuality.cxx
+ BmnFitNode.h
 )
 
 Set(HEADERS)

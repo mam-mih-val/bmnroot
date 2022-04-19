@@ -12,7 +12,9 @@
 #pragma link C++ class BmnCSCStation+;
 #pragma link C++ class BmnCSCModule+;
 #pragma link C++ class BmnCSCLayer+;
+#pragma link C++ class BmnCSCDigit+;
 #pragma link C++ class BmnCSCDigitizer+;
+#pragma link C++ class BmnCSCHit+;
 #pragma link C++ class BmnCSCHitMaker+;
 #pragma link C++ class BmnCSCTransform+;
 

@@ -3,6 +3,7 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/detectors/silicon
@@ -35,6 +36,7 @@ set(SRCS
  BmnSiliconHitMaker.cxx
  BmnSiliconDigit.cxx
  BmnSiliconTrack.cxx
+ BmnSiliconHit.cxx
  BmnSiliconHitProducer.cxx
  BmnSiliconHitProducerSRC.cxx
  BmnSiliconTrackFinder.cxx

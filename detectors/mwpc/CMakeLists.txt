@@ -3,6 +3,10 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/raw
+ ${CMAKE_SOURCE_DIR}/bmndata/cbm
+ ${CMAKE_SOURCE_DIR}/bmndata/gem
+ ${CMAKE_SOURCE_DIR}/bmndata/header
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/detectors/mwpc
 )
@@ -24,18 +28,20 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnMwpcSegment.cxx
-BmnMwpcHitProducer.cxx
-BmnMwpcHitFinder.cxx
-BmnMwpcGeometry.cxx
-BmnMwpcGeometrySRC.cxx
-BmnMwpcTrack.cxx
-BmnMwpcTrackFinder.cxx
-BmnMwpc.cxx
-BmnMwpcContFact.cxx
-BmnMwpcGeo.cxx
-BmnMwpcGeoPar.cxx
-BmnMwpcPoint.cxx
+ BmnMwpcSegment.cxx
+ BmnMwpcDigit.cxx
+ BmnMwpcHit.cxx
+ BmnMwpcHitProducer.cxx
+ BmnMwpcHitFinder.cxx
+ BmnMwpcGeometry.cxx
+ BmnMwpcGeometrySRC.cxx
+ BmnMwpcTrack.cxx
+ BmnMwpcTrackFinder.cxx
+ BmnMwpc.cxx
+ BmnMwpcContFact.cxx
+ BmnMwpcGeo.cxx
+ BmnMwpcGeoPar.cxx
+ BmnMwpcPoint.cxx
 )
 
 Set(HEADERS)

@@ -4,7 +4,6 @@
 #include "FairTask.h"
 #include "BmnMatch.h"
 #include "BmnTrackMatch.h"
-#include "BmnGlobalTrack.h"
 #include "BmnGemTrack.h"
 #include "CbmStsTrack.h"
 #include "CbmStsHit.h"

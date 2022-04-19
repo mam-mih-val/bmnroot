@@ -3,6 +3,8 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/raw
+ ${CMAKE_SOURCE_DIR}/bmndata/header
  ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/bmndst
@@ -25,8 +27,6 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-# DstArrays.h
-# BmnParts.h
  DstRunHeader.cxx
  DstEventHeader.cxx
  BmnFillDstTask.cxx

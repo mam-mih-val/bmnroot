@@ -3,6 +3,7 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/raw
  ${CMAKE_SOURCE_DIR}/detectors/tofcal
 )
 
@@ -23,8 +24,9 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnTofCalHit.cxx
-BmnTofCalHitProducer.cxx
+ BmnTofCalDigit.cxx
+ BmnTofCalHit.cxx
+ BmnTofCalHitProducer.cxx
 )
 
 Set(HEADERS)

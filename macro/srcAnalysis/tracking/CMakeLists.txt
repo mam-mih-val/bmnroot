@@ -1,6 +1,9 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/gem
+ ${CMAKE_SOURCE_DIR}/detectors/mwpc
+ ${CMAKE_SOURCE_DIR}/detectors/tof
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -20,6 +23,6 @@ set(LINK_DIRECTORIES
 link_directories(${LINK_DIRECTORIES})
 
 add_executable(track_arms track_arms.cpp SRCEvent.cpp)
-target_link_libraries(track_arms BmnData ${ROOT_LIBRARIES} Minuit Spectrum GenVector MathMore)
+target_link_libraries(track_arms Mwpc BmnData ${ROOT_LIBRARIES} Minuit Spectrum GenVector MathMore)
 
 INSTALL(PROGRAMS ${EXECUTABLE_OUTPUT_PATH}/track_arms DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)

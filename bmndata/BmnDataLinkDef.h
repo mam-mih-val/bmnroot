@@ -1,5 +1,4 @@
 // $Id: BmnDataLinkDef.h,v
-
 #ifdef __CINT__
 
 #pragma link off all globals;
@@ -9,65 +8,35 @@
 #pragma link C++ class StripCluster+;
 #pragma link C++ class BmnDetectorList+;
 #pragma link C++ class CbmBaseHit+;
+#pragma link C++ class CbmStripHit+;
 #pragma link C++ class CbmHit+;
-#pragma link C++ class CbmPixelHit+;
 #pragma link C++ class CbmStack+;
 #pragma link C++ class CbmMCTrack+;
-#pragma link C++ class BmnDchHit+;
-#pragma link C++ class BmnDchHitOriginal+;
-#pragma link C++ class BmnGlobalTrack+;
+#pragma link C++ class CbmGlobalTrack+;
 
 #pragma link C++ class CbmMvdPoint+;
 #pragma link C++ class CbmMvdDetectorId+;
 #pragma link C++ class CbmTofHit+;
 #pragma link C++ class CbmTofPoint+;
-#pragma link C++ class CbmEcalPoint+;
 #pragma link C++ class CbmDigi+;
-#pragma link C++ class CbmStsDigiLight+;
 
-#pragma link C++ class CbmStsPoint+;
-#pragma link C++ class CbmStsDetectorId+;
-#pragma link C++ class CbmStsDigi+;
-#pragma link C++ class CbmStsDigiMatch+;
-#pragma link C++ class CbmStsHit+;
-#pragma link C++ class CbmStsCluster+;
-#pragma link C++ class CbmStsTrack+;
 #pragma link C++ class CbmTrackMatch+;
 #pragma link C++ class CbmTofTrack+;
-#pragma link C++ class BmnTofHit+;
 #pragma link C++ class BmnGemStripHit+;
 #pragma link C++ class BmnGemTrack+;
 
 #pragma link C++ class CbmMvdHit+;
 #pragma link C++ class CbmMvdHitMatch+;
-#pragma link C++ class CbmGlobalTrack+;
 #pragma link C++ class CbmMvdGeoPar+;
 #pragma link C++ class CbmGeoSttPar+;
 
-#pragma link C++ class BmnMwpcHit+;
 #pragma link C++ class BmnTrackMatch+;
 
 #pragma link C++ class BmnStripDigit+;
-#pragma link C++ class BmnMwpcDigit+;
-#pragma link C++ class BmnTof1Digit+;
-#pragma link C++ class BmnTof2Digit+;
 #pragma link C++ class BmnTrigDigit+;
 #pragma link C++ class BmnCaloDigit+;
-#pragma link C++ class BmnDchDigit+;
-#pragma link C++ class BmnZDCDigit+;
-#pragma link C++ class BmnECALDigit+;
-#pragma link C++ class BmnLANDDigit+;
-#pragma link C++ class BmnTofCalDigit+;
-#pragma link C++ class BmnCSCDigit+;
-#pragma link C++ class BmnSiBTDigit+;
 
 #pragma link C++ class BmnDigiContainerTemplate+;
-#pragma link C++ class BmnScWallAddress+;
-#pragma link C++ class BmnScWallDigi+;
-#pragma link C++ class BmnFHCalAddress+;
-#pragma link C++ class BmnFHCalDigi+;
-#pragma link C++ class BmnHodoAddress+;
-#pragma link C++ class BmnHodoDigi+;
 
 #pragma link C++ class BmnADCDigit+;
 #pragma link C++ class BmnTDCDigit+;
@@ -92,9 +61,10 @@
 #pragma link C++ class BmnIdentifiableTrack+;
 
 #pragma link C++ class BmnEventQuality+;
-#pragma link C++ class BmnZDCEventData+;
 
+#pragma link C++ class CbmStsPoint+;
 #pragma link C++ class CbmVertex+;
+#pragma link C++ class CbmStsTrack+;
 #pragma link C++ class CbmStsTrackFitter+;
 #pragma link C++ class CbmStsTrackFinder+;
 #pragma link C++ class CbmTofMerger+;
@@ -109,15 +79,10 @@
 #pragma link C++ class BmnFunctionSet+;
 
 #pragma link C++ class BmnTrack+;
-#pragma link C++ class BmnGemDchTrack+;
 #pragma link C++ class BmnHit+;
 #pragma link C++ class BmnLink+;
 #pragma link C++ class BmnMatch+;
 #pragma link C++ class BmnTrigInfo+;
-
-#pragma link C++ class BmnSiliconHit+;
-#pragma link C++ class BmnCSCHit+;
-#pragma link C++ class BmnSiBTHit+;
 
 #pragma link C++ class BmnKalmanFilter+;
 #pragma link C++ class DigiRunHeader+;

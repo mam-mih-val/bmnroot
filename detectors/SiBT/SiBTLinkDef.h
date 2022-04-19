@@ -1,5 +1,4 @@
 // $Id: SiBTLinkDef.h,v
-
 #ifdef __CINT__
 
 #pragma link off all globals;
@@ -12,7 +11,9 @@
 #pragma link C++ class BmnSiBTStation+;
 #pragma link C++ class BmnSiBTModule+;
 #pragma link C++ class BmnSiBTLayer+;
+#pragma link C++ class BmnSiBTDigit+;
 #pragma link C++ class BmnSiBTDigitizer+;
+#pragma link C++ class BmnSiBTHit+;
 #pragma link C++ class BmnSiBTHitMaker+;
 #pragma link C++ class BmnSiBTTransform+;
 

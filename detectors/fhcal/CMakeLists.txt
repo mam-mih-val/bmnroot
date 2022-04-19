@@ -3,9 +3,6 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/database/unicom
- ${CMAKE_SOURCE_DIR}/database/uni_db
- ${CMAKE_SOURCE_DIR}/decoder
  ${CMAKE_SOURCE_DIR}/detectors/fhcal
 )
 
@@ -26,21 +23,22 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnFHCal.cxx 
-BmnFHCalPoint.cxx  
-BmnFHCalContFact.cxx  
-BmnFHCalGeo.cxx 
+BmnFHCal.cxx
+BmnFHCalPoint.cxx
+BmnFHCalAddress.cxx
+BmnFHCalContFact.cxx
+BmnFHCalGeo.cxx
 BmnFHCalGeoPar.cxx
 BmnFHCalDigitizer.cxx
+BmnFHCalDigi.cxx
 BmnFHCalDigit.cxx
 BmnFHCalModule.cxx
 BmnFHCalEvent.cxx
-BmnFHCalReconstructor.cxx
 )
 
 Set(HEADERS)
 Set(LINKDEF BmnFHCalLinkDef.h)
 Set(LIBRARY_NAME FHCal)
-Set(DEPENDENCIES BmnData Decoder UniDb Base Core)
+Set(DEPENDENCIES BmnData Base Core)
 
 GENERATE_LIBRARY()

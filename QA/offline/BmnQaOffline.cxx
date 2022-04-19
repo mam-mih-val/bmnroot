@@ -1,4 +1,5 @@
 #include "BmnQaOffline.h"
+#include "BmnGlobalTrack.h"
 
 Int_t BmnQaOffline::fCurrentEvent = 0;
 

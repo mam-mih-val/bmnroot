@@ -4,7 +4,10 @@ set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/passive
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/raw
+ ${CMAKE_SOURCE_DIR}/bmndata/header
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
+ ${CMAKE_SOURCE_DIR}/bmndata/gem
  ${CMAKE_SOURCE_DIR}/detectors/silicon
  ${CMAKE_SOURCE_DIR}/detectors/gem
  ${CMAKE_SOURCE_DIR}/detectors/sts
@@ -35,6 +38,13 @@ set(SRCS
 #setup/CbmStsSensorType.cxx
 #setup/CbmStsSensorTypeDssd.cxx
 #setup/CbmStsSetup.cxx
+
+ CbmStsDetectorId.cxx
+ CbmStsDigi.cxx
+ CbmStsDigiMatch.cxx
+ CbmStsDigiLight.cxx
+ CbmStsHit.cxx
+ CbmStsCluster.cxx
 
 CbmGeoSts.cxx 
 CbmGeoStsPar.cxx 

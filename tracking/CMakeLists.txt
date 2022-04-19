@@ -3,6 +3,7 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/gem
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmnfield
@@ -13,6 +14,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/steering
  ${CMAKE_SOURCE_DIR}/KF
  ${CMAKE_SOURCE_DIR}/KF/Interface
+ ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/tracking
  ${CMAKE_SOURCE_DIR}/tracking/sts
 )
@@ -46,6 +48,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF TrackingLinkDef.h)
 Set(LIBRARY_NAME Tracking)
-Set(DEPENDENCIES KF Sts Gem Silicon BmnSteering BmnField BmnData Base Core)
+Set(DEPENDENCIES GlobalTracking KF Sts Gem Silicon BmnSteering BmnField BmnData Base Core)
 
 GENERATE_LIBRARY()

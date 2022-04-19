@@ -9,6 +9,9 @@ Set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/bmndst
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/raw
+ ${CMAKE_SOURCE_DIR}/bmndata/gem
+ ${CMAKE_SOURCE_DIR}/bmndata/header
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/bmndata/common
@@ -19,8 +22,15 @@ Set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/detectors/dch
  ${CMAKE_SOURCE_DIR}/detectors/silicon
  ${CMAKE_SOURCE_DIR}/detectors/gem
- ${CMAKE_SOURCE_DIR}/detectors/tof
  ${CMAKE_SOURCE_DIR}/detectors/tof1
+ ${CMAKE_SOURCE_DIR}/detectors/tof
+ ${CMAKE_SOURCE_DIR}/detectors/tofcal
+ ${CMAKE_SOURCE_DIR}/detectors/ecal
+ ${CMAKE_SOURCE_DIR}/detectors/zdc
+ ${CMAKE_SOURCE_DIR}/detectors/hodo
+ ${CMAKE_SOURCE_DIR}/detectors/scwall
+ ${CMAKE_SOURCE_DIR}/detectors/fhcal
+ ${CMAKE_SOURCE_DIR}/detectors/land
  ${CMAKE_SOURCE_DIR}/alignment
  ${CMAKE_SOURCE_DIR}/decoder
  ${CMAKE_SOURCE_DIR}/KF
@@ -83,8 +93,8 @@ BmnPadGenerator.cxx
 Set(HEADERS)
 Set(LINKDEF MonitorLinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)
-Set(DEPENDENCIES BmnQa GlobalTracking Decoder TOF TOF1 Alignment Gem Silicon CSC
- Dch Mwpc BmnData BmnField BmnDst Tracking UniDb Base Core ${ZeroMQ_LIBRARY_SHARED}
+Set(DEPENDENCIES BmnQa GlobalTracking Decoder Alignment LAND FHCal ScWall Zdc Ecal TofCal TOF TOF1 Gem Silicon CSC Dch Mwpc 
+                 BmnData BmnField BmnDst Tracking UniDb Base Core ${ZeroMQ_LIBRARY_SHARED}
 FairMQ)
 
 GENERATE_LIBRARY()

@@ -1,10 +1,10 @@
-
 /**
  * \file BmnPidQa.cxx
  * \author Andrey Lebedev <andrey.lebedev@gsi.de> - original author for CBM experiment
  * \author Sergey Merts <sergey.merts@gmail.com> - modifications for BMN experiment
  * \date 2007-2021
  */
+
 #include "BmnPidQa.h"
 #include <fstream>
 #include <iostream>
@@ -23,6 +23,7 @@
 #include "BmnUtils.h"
 #include "CbmBaseHit.h"
 #include "CbmGlobalTrack.h"
+#include "BmnGlobalTrack.h"
 #include "CbmMCTrack.h"
 #include "CbmStsTrack.h"
 #include "CbmTofHit.h"

@@ -1,4 +1,5 @@
 #include "BmnMatchRecoToMC.h"
+#include "BmnGlobalTrack.h"
 #include <TStopwatch.h>
 
 static Double_t workTime = 0.0;

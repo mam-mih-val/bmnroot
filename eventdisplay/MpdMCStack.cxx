@@ -145,7 +145,11 @@ void MpdMCStack::Exec(Option_t* /*option*/)
         // PROPAGATION
         // Int_t GeantCode = TDatabasePDG::Instance()->ConvertPdgToGeant3(tr->GetPdgCode());
         // gMC3->Ertrak(x1, p1, x2, p2,G eantCode, "L");
-        fPro->PropagateToLength(100.0);
+        #ifdef FairRoot_18_6_7
+            fPro->SetDestinationLength(100.0);
+        #else
+            fPro->PropagateToLength(100.0);
+        #endif
         fPro->Propagate(x1, p1, x2, p2, tr->GetPdgCode());
         TGeoTrack* tr1 = fTrajFilter->GetCurrentTrk();
 

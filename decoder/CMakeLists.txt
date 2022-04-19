@@ -7,14 +7,28 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/database/elog_db
  ${CMAKE_SOURCE_DIR}/database/tango
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/raw
+ ${CMAKE_SOURCE_DIR}/bmndata/gem
+ ${CMAKE_SOURCE_DIR}/bmndata/header
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmndata/common
  ${CMAKE_SOURCE_DIR}/cat
  ${CMAKE_SOURCE_DIR}/cat/vectors
+ ${CMAKE_SOURCE_DIR}/detectors/mwpc
  ${CMAKE_SOURCE_DIR}/detectors/csc
  ${CMAKE_SOURCE_DIR}/detectors/silicon
  ${CMAKE_SOURCE_DIR}/detectors/gem
-  ${CMAKE_SOURCE_DIR}/decoder
+ ${CMAKE_SOURCE_DIR}/detectors/dch
+ ${CMAKE_SOURCE_DIR}/detectors/tof1
+ ${CMAKE_SOURCE_DIR}/detectors/tof
+ ${CMAKE_SOURCE_DIR}/detectors/tofcal
+ ${CMAKE_SOURCE_DIR}/detectors/ecal
+ ${CMAKE_SOURCE_DIR}/detectors/zdc
+ ${CMAKE_SOURCE_DIR}/detectors/scwall
+ ${CMAKE_SOURCE_DIR}/detectors/hodo
+ ${CMAKE_SOURCE_DIR}/detectors/fhcal
+ ${CMAKE_SOURCE_DIR}/detectors/land
+ ${CMAKE_SOURCE_DIR}/decoder
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -77,6 +91,6 @@ endif()
 Set(HEADERS)
 Set(LINKDEF DecoderLinkDef.h)
 Set(LIBRARY_NAME Decoder)
-Set(DEPENDENCIES CSC Gem Silicon BmnData UniDb ElogDb TangoData Base Minuit Core boost_program_options)
+Set(DEPENDENCIES LAND FHCal Hodo ScWall Zdc Ecal TofCal TOF TOF1 CSC Gem Silicon Dch Mwpc BmnData UniDb ElogDb TangoData Base Minuit Core boost_program_options)
 
 GENERATE_LIBRARY()

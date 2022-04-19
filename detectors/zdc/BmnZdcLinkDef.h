@@ -1,4 +1,3 @@
-
 #ifdef __CINT__
 
 #pragma link off all globals;
@@ -15,6 +14,7 @@
 #pragma link C++ class  BmnZdcDigiScheme+;
 #pragma link C++ class  BmnZdcDigiProducer+;
 #pragma link C++ class  BmnZdcBScanner+;
+#pragma link C++ class  BmnZDCDigit+;
 #pragma link C++ class  BmnZdcDigitizer+;
-#pragma link C++ class  BmnZdcAnalyzer+;
+
 #endif

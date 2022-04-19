@@ -1,4 +1,3 @@
-
 #ifdef __CINT__
 
 #pragma link off all globals;
@@ -7,7 +6,10 @@
 
 #pragma link C++ class  BmnHodo+;
 #pragma link C++ class  BmnHodoPoint+;
+#pragma link C++ class  BmnHodoAddress+;
+#pragma link C++ class  BmnHodoDigi+;
 #pragma link C++ class  BmnHodoGeo+;
 #pragma link C++ class  BmnHodoGeoPar+;
 #pragma link C++ class  BmnHodoContFact+;
+
 #endif

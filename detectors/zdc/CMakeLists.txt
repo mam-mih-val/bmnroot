@@ -3,6 +3,9 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmndata/raw
+ ${CMAKE_SOURCE_DIR}/bmndata/gem
+ ${CMAKE_SOURCE_DIR}/bmndata/header
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/detectors/zdc
 )
@@ -24,18 +27,18 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnZdc.cxx 
-BmnZdcPoint.cxx  
-BmnZdcContFact.cxx  
-BmnZdcGeo.cxx 
-BmnZdcGeoPar.cxx
-BmnZdcDigi.cxx
-BmnZdcDigiPar.cxx
-BmnZdcDigiScheme.cxx
-BmnZdcDigiProducer.cxx
-BmnZdcBScanner.cxx
-BmnZdcDigitizer.cxx
-BmnZdcAnalyzer.cxx
+ BmnZdc.cxx 
+ BmnZdcPoint.cxx  
+ BmnZdcContFact.cxx  
+ BmnZdcGeo.cxx 
+ BmnZdcGeoPar.cxx
+ BmnZdcDigi.cxx
+ BmnZdcDigiPar.cxx
+ BmnZdcDigiScheme.cxx
+ BmnZdcDigiProducer.cxx
+ BmnZdcBScanner.cxx
+ BmnZDCDigit.cxx
+ BmnZdcDigitizer.cxx
 )
 
 Set(HEADERS)

@@ -19,6 +19,7 @@
 #include "CbmMCTrack.h"
 #include "BmnParticlePair.h"
 #include "BmnSiliconPoint.h"
+#include "BmnGlobalTrack.h"
 
 #include <boost/assign/list_of.hpp>
 #include <fstream>

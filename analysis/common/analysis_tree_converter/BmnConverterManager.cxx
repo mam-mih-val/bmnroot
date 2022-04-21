@@ -124,7 +124,7 @@ void BmnConverterManager::FillDataHeader()
     double z  = translation.Z();
 
     auto* module = psd_mod_pos.AddChannel();
-    module->SetPosition(-x, y, frontFaceGlobal[2]);
+    module->SetPosition(x, y, frontFaceGlobal[2]);
 
     std::cout << Form("%i: (%.1f, %.1f, %.1f)", modID, x, y, z) << std::endl;
   }

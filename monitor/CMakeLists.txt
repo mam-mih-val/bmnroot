@@ -6,15 +6,14 @@ Set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/database/elog_db
  ${CMAKE_SOURCE_DIR}/database/tango
- ${CMAKE_SOURCE_DIR}/bmnfield
- ${CMAKE_SOURCE_DIR}/bmndst
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/raw
- ${CMAKE_SOURCE_DIR}/bmndata/gem
- ${CMAKE_SOURCE_DIR}/bmndata/header
- ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/bmndata/cbm
- ${CMAKE_SOURCE_DIR}/bmndata/common
+ ${CMAKE_SOURCE_DIR}/field
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/raw
+ ${CMAKE_SOURCE_DIR}/base/gem
+ ${CMAKE_SOURCE_DIR}/base/header
+ ${CMAKE_SOURCE_DIR}/base/math
+ ${CMAKE_SOURCE_DIR}/base/cbm
  ${CMAKE_SOURCE_DIR}/QA
  ${CMAKE_SOURCE_DIR}/QA/report
  ${CMAKE_SOURCE_DIR}/detectors/mwpc
@@ -33,13 +32,12 @@ Set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/detectors/land
  ${CMAKE_SOURCE_DIR}/alignment
  ${CMAKE_SOURCE_DIR}/decoder
- ${CMAKE_SOURCE_DIR}/KF
- ${CMAKE_SOURCE_DIR}/KF/Interface
- ${CMAKE_SOURCE_DIR}/globaltracking
+ ${CMAKE_SOURCE_DIR}/reconstruction/KF
+ ${CMAKE_SOURCE_DIR}/reconstruction/KF/Interface
+ ${CMAKE_SOURCE_DIR}/reconstruction/tracking
+ ${CMAKE_SOURCE_DIR}/reconstruction/globaltracking
  ${CMAKE_SOURCE_DIR}/monitor
  ${CMAKE_SOURCE_DIR}/steering
- ${CMAKE_SOURCE_DIR}/tracking
- ${SIMPATH}/include/fairmq
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -47,6 +45,7 @@ Set(SYSTEM_INCLUDE_DIRECTORIES
  ${XML2_INCLUDE_DIR}
  ${ZeroMQ_INCLUDE_DIR}
  ${Boost_INCLUDE_DIRS}
+ ${FairMQ_PREFIX}/include/fairmq
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -93,8 +92,7 @@ BmnPadGenerator.cxx
 Set(HEADERS)
 Set(LINKDEF MonitorLinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)
-Set(DEPENDENCIES BmnQa GlobalTracking Decoder Alignment LAND FHCal ScWall Zdc Ecal TofCal TOF TOF1 Gem Silicon CSC Dch Mwpc 
-                 BmnData BmnField BmnDst Tracking UniDb Base Core ${ZeroMQ_LIBRARY_SHARED}
-FairMQ)
+Set(DEPENDENCIES BmnQa BmnGlobalTracking BmnDecoder Alignment LAND FHCal ScWall Zdc Ecal TofCal TOF TOF1 Gem Silicon CSC Dch Mwpc
+                 BmnBase BmnField BmnTracking UniDb Base Core ${ZeroMQ_LIBRARY_SHARED} FairMQ)
 
 GENERATE_LIBRARY()

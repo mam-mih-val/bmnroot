@@ -42,7 +42,7 @@ Set(SRCS
 )
 
 Set(HEADERS)
-Set(LINKDEF BmnPassiveLinkDef.h)
+Set(LINKDEF PassiveLinkDef.h)
 Set(LIBRARY_NAME Passive)
 Set(DEPENDENCIES Base GeoBase ParBase Geom Core) #${VMCLIB}
 

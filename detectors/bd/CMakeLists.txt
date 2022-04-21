@@ -2,8 +2,9 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/raw
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/raw
  ${CMAKE_SOURCE_DIR}/detectors/bd
 )
 
@@ -24,19 +25,19 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnBd.cxx 
-BmnBdPoint.cxx  
-BmnBdContFact.cxx  
-BmnBdGeo.cxx 
-BmnBdGeoPar.cxx
-BmnBdHit.cxx
-BmnBdHitProducer.cxx
-BmnBdDigitizer.cxx
+ BmnBd.cxx
+ BmnBdPoint.cxx
+ BmnBdContFact.cxx
+ BmnBdGeo.cxx
+ BmnBdGeoPar.cxx
+ BmnBdHit.cxx
+ BmnBdHitProducer.cxx
+ BmnBdDigitizer.cxx
 )
 
 Set(HEADERS)
-Set(LINKDEF BmnBdLinkDef.h)
+Set(LINKDEF BdLinkDef.h)
 Set(LIBRARY_NAME Bd)
-Set(DEPENDENCIES BmnData Base Core)
+Set(DEPENDENCIES BmnBase Base Core)
 
 GENERATE_LIBRARY()

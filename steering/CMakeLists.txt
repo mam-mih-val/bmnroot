@@ -2,7 +2,8 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
  ${CMAKE_SOURCE_DIR}/detectors/csc
  ${CMAKE_SOURCE_DIR}/detectors/gem
  ${CMAKE_SOURCE_DIR}/detectors/silicon
@@ -33,6 +34,6 @@ BmnOfflineQaSteering.cxx
 Set(HEADERS)
 Set(LINKDEF SteeringLinkDef.h)
 Set(LIBRARY_NAME BmnSteering)
-Set(DEPENDENCIES Gem CSC Silicon BmnData Base Core)
+Set(DEPENDENCIES Gem CSC Silicon BmnBase Base Core)
 
 GENERATE_LIBRARY()

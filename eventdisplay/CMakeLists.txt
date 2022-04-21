@@ -39,9 +39,10 @@ set(SRCS
 if (BMNROOT)
   Set(INCLUDE_DIRECTORIES
     ${INCLUDE_DIRECTORIES}
-    ${CMAKE_SOURCE_DIR}/bmndata
-    ${CMAKE_SOURCE_DIR}/bmndata/gem
-    ${CMAKE_SOURCE_DIR}/globaltracking
+    ${CMAKE_SOURCE_DIR}/base
+    ${CMAKE_SOURCE_DIR}/base/data
+    ${CMAKE_SOURCE_DIR}/base/gem
+    ${CMAKE_SOURCE_DIR}/reconstruction/globaltracking
     ${CMAKE_SOURCE_DIR}/detectors/silicon
     ${CMAKE_SOURCE_DIR}/detectors/gem
     ${CMAKE_SOURCE_DIR}/detectors/dch
@@ -131,7 +132,7 @@ else (TDAQ_FOUND)
   Set(DEPENDENCIES Base XMLParser Eve Geom EG Physics Ged Gui Graf3d Tree Core xml2)
 endif (TDAQ_FOUND)
 if (BMNROOT)
- Set(DEPENDENCIES GlobalTracking Gem Silicon Dch BmnData Geane ${DEPENDENCIES})
+ Set(DEPENDENCIES BmnGlobalTracking Gem Silicon Dch BmnBase Geane ${DEPENDENCIES})
 endif (BMNROOT)
 if (MPDROOT)
  Set(DEPENDENCIES LHETrack Kalman MpdDst Zdc Emc tpc Geane ${DEPENDENCIES})

@@ -4,14 +4,13 @@ set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/uni_db
- ${CMAKE_SOURCE_DIR}/bmnfield
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/bmndata/cbm
+ ${CMAKE_SOURCE_DIR}/field
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/math
+ ${CMAKE_SOURCE_DIR}/base/cbm
  ${CMAKE_SOURCE_DIR}/detectors/csc
  ${CMAKE_SOURCE_DIR}/detectors/silicon
  ${CMAKE_SOURCE_DIR}/detectors/gem
- ${CMAKE_SOURCE_DIR}/bmndst
  ${CMAKE_SOURCE_DIR}/decoder
  ${CMAKE_SOURCE_DIR}/physics/particles
  ${CMAKE_SOURCE_DIR}/physics/bmnrecotools
@@ -49,6 +48,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF EmbeddingLinkDef.h)
 Set(LIBRARY_NAME BmnEmbedding)
-Set(DEPENDENCIES RecoTools BmnParticles Decoder BmnDst Gem Silicon CSC BmnData BmnField UniDb Base Core)
+Set(DEPENDENCIES BmnRecoTools BmnParticles BmnDecoder Gem Silicon CSC BmnBase BmnField UniDb Base Core)
 
 GENERATE_LIBRARY()

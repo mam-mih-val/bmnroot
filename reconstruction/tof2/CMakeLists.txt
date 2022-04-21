@@ -2,8 +2,9 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/raw
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/raw
  ${CMAKE_SOURCE_DIR}/detectors/tof
  ${CMAKE_SOURCE_DIR}/decoder
  ${CMAKE_SOURCE_DIR}/reconstruction/tof2
@@ -30,8 +31,8 @@ set(SRCS
 )
 
 Set(HEADERS)
-Set(LINKDEF BmnRecoTof2LinkDef.h)
+Set(LINKDEF RecoTof2LinkDef.h)
 Set(LIBRARY_NAME BmnRecoTof2)
-Set(DEPENDENCIES Decoder TOF BmnData Base Core)
+Set(DEPENDENCIES BmnDecoder TOF BmnBase Base Core)
 
 GENERATE_LIBRARY()

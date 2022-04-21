@@ -24,7 +24,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include <FairTrackParam.h>
 #include <Rtypes.h>
 #include <root/TVirtualPad.h>
-#include <bmndata/BmnEventHeader.h>
+#include <BmnEventHeader.h>
 #include "BmnHist.h"
 #include "BmnSiliconDigit.h"
 #include "BmnSiliconStationSet.h"

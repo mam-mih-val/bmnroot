@@ -1,5 +1,9 @@
+#ifndef EXTRACTZ2_H
+#define EXTRACTZ2_H 1
+
 #include "BmnTrigWaveDigit.h"
-#include "BmnTrigDigit.h"
+#include "TClonesArray.h"
+
 // Define some constants for analysis
 const double pedBC1 = 69.2885;
 const double pedBC2 = -11.7212;
@@ -114,3 +118,5 @@ void grabZ2OR(TClonesArray *TQDC_BC1, TClonesArray *bc2Data, double t0Time, doub
             z2B = a_out + b_out * y + c_out * y * y;
     }
 }
+
+#endif

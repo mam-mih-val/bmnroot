@@ -20,7 +20,6 @@
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripConfiguration.h"
 #include "BmnGemStripTransform.h"
-#include <BmnEventQuality.h>
 
 using namespace std;
 

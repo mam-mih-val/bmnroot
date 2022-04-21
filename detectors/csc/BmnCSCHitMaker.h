@@ -20,7 +20,6 @@
 #include "BmnCSCConfiguration.h"
 #include "BmnCSCTransform.h"
 //#include "BmnInnTrackerAlign.h"
-#include <BmnEventQuality.h>
 
 using namespace std;
 

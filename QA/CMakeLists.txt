@@ -5,13 +5,14 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/database/elog_db
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/raw
- ${CMAKE_SOURCE_DIR}/bmndata/gem
- ${CMAKE_SOURCE_DIR}/bmndata/header
- ${CMAKE_SOURCE_DIR}/bmndata/cbm
- ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/bmndst
+ ${CMAKE_SOURCE_DIR}/field
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/raw
+ ${CMAKE_SOURCE_DIR}/base/gem
+ ${CMAKE_SOURCE_DIR}/base/header
+ ${CMAKE_SOURCE_DIR}/base/cbm
+ ${CMAKE_SOURCE_DIR}/base/math
  ${CMAKE_SOURCE_DIR}/detectors/ssd/auxx/data
  ${CMAKE_SOURCE_DIR}/detectors/mwpc
  ${CMAKE_SOURCE_DIR}/detectors/csc
@@ -24,13 +25,11 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/detectors/ecal
  ${CMAKE_SOURCE_DIR}/detectors/zdc
  ${CMAKE_SOURCE_DIR}/steering
- ${CMAKE_SOURCE_DIR}/globaltracking
+ ${CMAKE_SOURCE_DIR}/reconstruction/globaltracking
  ${CMAKE_SOURCE_DIR}/physics/decay
-# ${CMAKE_SOURCE_DIR}/monitor
  ${CMAKE_SOURCE_DIR}/QA
  ${CMAKE_SOURCE_DIR}/QA/report
  ${CMAKE_SOURCE_DIR}/QA/offline
- ${CMAKE_SOURCE_DIR}/bmnfield
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -100,9 +99,9 @@ If ( ${ROOT_HAS_GDML} STREQUAL yes )
 EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 
 Set(HEADERS)
-Set(LINKDEF BmnQALinkDef.h)
+Set(LINKDEF QALinkDef.h)
 Set(LIBRARY_NAME BmnQa)
-Set(DEPENDENCIES BmnPhysics GlobalTracking BmnSteering BmnDst Zdc Ecal TOF TOF1 Sts Gem Silicon Dch CSC Mwpc BmnData UniDb Base Core)
+Set(DEPENDENCIES BmnPhysics BmnGlobalTracking BmnSteering Zdc Ecal TOF TOF1 Sts Gem Silicon Dch CSC Mwpc BmnBase UniDb Base Core)
 
 If ( ${ROOT_HAS_GDML} STREQUAL yes )
  Set (DEPENDENCIES ${DEPENDENCIES} Gdml)

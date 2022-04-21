@@ -2,13 +2,14 @@
 
 Set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/gem
- ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/bmndst
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/header
+ ${CMAKE_SOURCE_DIR}/base/gem
+ ${CMAKE_SOURCE_DIR}/base/math
  ${CMAKE_SOURCE_DIR}/detectors/dch
- ${CMAKE_SOURCE_DIR}/globaltracking
- ${CMAKE_SOURCE_DIR}/identification
+ ${CMAKE_SOURCE_DIR}/reconstruction/globaltracking
+ ${CMAKE_SOURCE_DIR}/reconstruction/identification
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -28,13 +29,13 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 Set(SRCS
-BmnPidSRC.cxx
-BmnPid.cxx
+ BmnPidSRC.cxx
+ BmnPid.cxx
 )
 
 Set(HEADERS)
 Set(LINKDEF IdentLinkDef.h)
 Set(LIBRARY_NAME BmnPidSRC)
-Set(DEPENDENCIES GlobalTracking BmnDst Dch BmnData Base)
+Set(DEPENDENCIES BmnGlobalTracking Dch BmnBase Base)
 
 GENERATE_LIBRARY()

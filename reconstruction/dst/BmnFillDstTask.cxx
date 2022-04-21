@@ -1,5 +1,5 @@
 /********************************************************************************
- *    BmnFillDstTask.h                                                          *
+ *    BmnFillDstTask.cxx                                                          *
  *    BM@N Fill DST Task class implementation                                   *
  *    Fill Event Headers in the DST file after reconstruction                   *
  *    Konstantin Gertsenberger                                                  *
@@ -11,10 +11,10 @@
 #define ANSI_COLOR_RESET "\x1b[0m"
 
 #include "BmnFillDstTask.h"
+#include "ExtractZ2.h"
+#include "BmnTrigDigit.h"
 #include "UniDbRun.h"
 #include "function_set.h"
-
-#include "ExtractZ2.cxx"
 
 #include "FairLogger.h"
 
@@ -22,12 +22,11 @@
 #include "TFile.h"
 #include "TROOT.h"
 #include "TSystem.h"
+#include <TStopwatch.h>
 
 #include <fstream>
 #include <iostream>
 #include <cstring>
-
-#include <TStopwatch.h>
 
 static Double_t workTime = 0.0;
 using namespace std;

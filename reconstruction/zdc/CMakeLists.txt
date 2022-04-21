@@ -2,7 +2,7 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/base/data
  ${CMAKE_SOURCE_DIR}/detectors/zdc
  ${CMAKE_SOURCE_DIR}/decoder
  ${CMAKE_SOURCE_DIR}/reconstruction/zdc
@@ -30,8 +30,8 @@ set(SRCS
 )
 
 Set(HEADERS)
-Set(LINKDEF BmnRecoZdcLinkDef.h)
+Set(LINKDEF RecoZdcLinkDef.h)
 Set(LIBRARY_NAME BmnRecoZdc)
-Set(DEPENDENCIES Decoder Zdc BmnData Base Core)
+Set(DEPENDENCIES BmnDecoder Zdc BmnBase Base Core)
 
 GENERATE_LIBRARY()

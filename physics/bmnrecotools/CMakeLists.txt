@@ -1,17 +1,18 @@
-# Create a library called "libRecoTools"
+# Create a library called "libBmnRecoTools"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmnfield
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/raw
- ${CMAKE_SOURCE_DIR}/bmndata/gem
- ${CMAKE_SOURCE_DIR}/bmndata/header
+ ${CMAKE_SOURCE_DIR}/field
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/raw
+ ${CMAKE_SOURCE_DIR}/base/gem
+ ${CMAKE_SOURCE_DIR}/base/header
+ ${CMAKE_SOURCE_DIR}/base/math
+ ${CMAKE_SOURCE_DIR}/base/cbm
  ${CMAKE_SOURCE_DIR}/generators
  ${CMAKE_SOURCE_DIR}/detectors/bd
  ${CMAKE_SOURCE_DIR}/detectors/tof1
- ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/bmndata/cbm
  ${CMAKE_SOURCE_DIR}/detectors/csc
  ${CMAKE_SOURCE_DIR}/detectors/silicon
  ${CMAKE_SOURCE_DIR}/detectors/sts
@@ -19,8 +20,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/detectors/dch
  ${CMAKE_SOURCE_DIR}/detectors/tof
  ${CMAKE_SOURCE_DIR}/detectors/zdc
- ${CMAKE_SOURCE_DIR}/bmndst
- ${CMAKE_SOURCE_DIR}/globaltracking
+ ${CMAKE_SOURCE_DIR}/reconstruction/globaltracking
  ${CMAKE_SOURCE_DIR}/reconstruction/zdc
  ${CMAKE_SOURCE_DIR}/physics/bmnrecotools
 )
@@ -54,7 +54,7 @@ set(SRCS
 
 Set(HEADERS)
 Set(LINKDEF RecoToolsLinkDef.h)
-Set(LIBRARY_NAME RecoTools)
-Set(DEPENDENCIES BmnDst GlobalTracking BmnRecoZdc Zdc CSC Gem Sts Silicon BmnData MpdGen BmnField Base Core Bd TOF1 Dch)
+Set(LIBRARY_NAME BmnRecoTools)
+Set(DEPENDENCIES BmnGlobalTracking BmnRecoZdc Zdc CSC Gem Sts Silicon BmnBase MpdGen BmnField Base Core Bd TOF1 Dch)
 
 GENERATE_LIBRARY()

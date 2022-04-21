@@ -2,20 +2,21 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmnfield
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/cbm
+ ${CMAKE_SOURCE_DIR}/field
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/cbm
  ${CMAKE_SOURCE_DIR}/detectors/silicon
  ${CMAKE_SOURCE_DIR}/detectors/gem
  ${CMAKE_SOURCE_DIR}/detectors/sts
- ${CMAKE_SOURCE_DIR}/KF
- ${CMAKE_SOURCE_DIR}/KF/KFQA
- ${CMAKE_SOURCE_DIR}/KF/Interface
- ${CMAKE_SOURCE_DIR}/KF/KFParticlesFinder
- ${CMAKE_SOURCE_DIR}/cat
- ${CMAKE_SOURCE_DIR}/cat/L1Algo
- ${CMAKE_SOURCE_DIR}/cat/OffLineInterface
- ${CMAKE_SOURCE_DIR}/cat/ParticleFinder
+ ${CMAKE_SOURCE_DIR}/reconstruction/KF
+ ${CMAKE_SOURCE_DIR}/reconstruction/KF/KFQA
+ ${CMAKE_SOURCE_DIR}/reconstruction/KF/Interface
+ ${CMAKE_SOURCE_DIR}/reconstruction/KF/KFParticlesFinder
+ ${CMAKE_SOURCE_DIR}/reconstruction/cat
+ ${CMAKE_SOURCE_DIR}/reconstruction/cat/L1Algo
+ ${CMAKE_SOURCE_DIR}/reconstruction/cat/OffLineInterface
+ ${CMAKE_SOURCE_DIR}/reconstruction/cat/ParticleFinder
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -82,6 +83,6 @@ ENDIF (SSE_FOUND)
 
 Set(LINKDEF CatLinkDef.h)
 Set(LIBRARY_NAME Cat)
-Set(DEPENDENCIES KF Sts Gem Silicon BmnData BmnField Base Core)
+Set(DEPENDENCIES KF Sts Gem Silicon BmnBase BmnField Base Core)
 
 GENERATE_LIBRARY()

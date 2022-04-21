@@ -2,9 +2,10 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/gem
- ${CMAKE_SOURCE_DIR}/bmndata/math
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/gem
+ ${CMAKE_SOURCE_DIR}/base/math
  ${CMAKE_SOURCE_DIR}/detectors/dch
 )
 
@@ -44,6 +45,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF DchLinkDef.h)
 Set(LIBRARY_NAME Dch)
-Set(DEPENDENCIES BmnData Base Gdml Core)
+Set(DEPENDENCIES BmnBase Base Gdml Core)
 
 GENERATE_LIBRARY()

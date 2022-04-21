@@ -1,16 +1,16 @@
-# Create a library called "libBmnData"
+# Create a library called "libBmnBase"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmnfield
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/cbm
- ${CMAKE_SOURCE_DIR}/bmndata/common
- ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/bmndata/source
- ${CMAKE_SOURCE_DIR}/bmndata/header
- ${CMAKE_SOURCE_DIR}/bmndata/raw
- ${CMAKE_SOURCE_DIR}/bmndata/gem
+ ${CMAKE_SOURCE_DIR}/field
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/cbm
+ ${CMAKE_SOURCE_DIR}/base/math
+ ${CMAKE_SOURCE_DIR}/base/source
+ ${CMAKE_SOURCE_DIR}/base/header
+ ${CMAKE_SOURCE_DIR}/base/raw
+ ${CMAKE_SOURCE_DIR}/base/gem
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -69,15 +69,14 @@ set(SRCS
  math/BmnMaterialEffects.cxx
  math/BmnMaterialInfo.h
 
- common/BmnFunctionSet.cxx
- common/BmnCounterTask.cxx
-
  source/BmnFileSource.cxx
  source/BmnDecoSource.cxx
 
  header/BmnEventHeader.cxx
  header/BmnSpillHeader.cxx
  header/DigiRunHeader.cxx
+ header/DstRunHeader.cxx
+ header/DstEventHeader.cxx
 
  raw/RawTypes.h
  raw/BmnADCDigit.cxx
@@ -96,25 +95,26 @@ set(SRCS
  gem/BmnGemStripHit.cxx
  gem/BmnGemTrack.cxx
 
+ data/CbmMCTrack.cxx
+ data/CbmStack.cxx
+ data/BmnStripData.h
+ data/BmnStripDigit.cxx
+ data/BmnCaloDigit.cxx
+ data/BmnTacquilaDigit.cxx
+ data/BmnDigiContainerTemplate.cxx
+ data/BmnHit.cxx
+ data/BmnLink.cxx
+ data/BmnMatch.cxx
+ data/BmnTrack.cxx
+ data/BmnIdentifiableTrack.cxx
+ data/BmnTrackMatch.cxx
+ data/BmnVertex.cxx
+ data/BmnEventQuality.cxx
+ data/BmnFitNode.h
+ 
  BmnEnums.h
  BmnDetectorList.cxx
- CbmMCTrack.cxx
- CbmStack.cxx
-
- BmnStripData.h
- BmnStripDigit.cxx
- BmnCaloDigit.cxx
- BmnTacquilaDigit.cxx
- BmnDigiContainerTemplate.cxx
- BmnHit.cxx
- BmnLink.cxx
- BmnMatch.cxx
- BmnTrack.cxx
- BmnIdentifiableTrack.cxx
- BmnTrackMatch.cxx
- BmnVertex.cxx
- BmnEventQuality.cxx
- BmnFitNode.h
+ BmnFunctionSet.cxx
 )
 
 Set(HEADERS)
@@ -132,8 +132,8 @@ If ( ${ROOT_HAS_GDML} STREQUAL yes )
  Set (DEPENDENCIES ${DEPENDENCIES} Gdml)
 EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 
-Set(LINKDEF BmnDataLinkDef.h)
-Set(LIBRARY_NAME BmnData)
+Set(LINKDEF BaseLinkDef.h)
+Set(LIBRARY_NAME BmnBase)
 Set(DEPENDENCIES Base Core ${ZeroMQ_LIBRARY_SHARED} boost_serialization)
 
 GENERATE_LIBRARY()

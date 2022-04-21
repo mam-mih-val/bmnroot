@@ -1,4 +1,4 @@
-# Create a library called "libDecoder"
+# Create a library called "libBmnDecoder"
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
@@ -6,14 +6,12 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/database/elog_db
  ${CMAKE_SOURCE_DIR}/database/tango
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/raw
- ${CMAKE_SOURCE_DIR}/bmndata/gem
- ${CMAKE_SOURCE_DIR}/bmndata/header
- ${CMAKE_SOURCE_DIR}/bmndata/math
- ${CMAKE_SOURCE_DIR}/bmndata/common
- ${CMAKE_SOURCE_DIR}/cat
- ${CMAKE_SOURCE_DIR}/cat/vectors
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/raw
+ ${CMAKE_SOURCE_DIR}/base/gem
+ ${CMAKE_SOURCE_DIR}/base/header
+ ${CMAKE_SOURCE_DIR}/base/math
  ${CMAKE_SOURCE_DIR}/detectors/mwpc
  ${CMAKE_SOURCE_DIR}/detectors/csc
  ${CMAKE_SOURCE_DIR}/detectors/silicon
@@ -29,6 +27,8 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/detectors/fhcal
  ${CMAKE_SOURCE_DIR}/detectors/land
  ${CMAKE_SOURCE_DIR}/decoder
+ ${CMAKE_SOURCE_DIR}/reconstruction/cat
+ ${CMAKE_SOURCE_DIR}/reconstruction/cat/vectors
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -75,7 +75,6 @@ set(SRCS
 If (${CMAKE_BUILD_TYPE} STREQUAL Debug)
   add_compile_definitions(BUILD_DEBUG=${CMAKE_BUILD_TYPE})
 EndIf(${CMAKE_BUILD_TYPE} STREQUAL Debug)
-  Message("Decoder Build Type  ${CMAKE_BUILD_TYPE}")
 
 if (CMAKE_BUILD_TYPE STREQUAL Release)
     ADD_DEFINITIONS(-DHAVE_SSE)
@@ -90,7 +89,7 @@ endif()
 
 Set(HEADERS)
 Set(LINKDEF DecoderLinkDef.h)
-Set(LIBRARY_NAME Decoder)
-Set(DEPENDENCIES LAND FHCal Hodo ScWall Zdc Ecal TofCal TOF TOF1 CSC Gem Silicon Dch Mwpc BmnData UniDb ElogDb TangoData Base Minuit Core boost_program_options)
+Set(LIBRARY_NAME BmnDecoder)
+Set(DEPENDENCIES LAND FHCal Hodo ScWall Zdc Ecal TofCal TOF TOF1 CSC Gem Silicon Dch Mwpc BmnBase UniDb ElogDb TangoData Base Minuit Core boost_program_options)
 
 GENERATE_LIBRARY()

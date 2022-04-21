@@ -2,8 +2,9 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/raw
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/raw
  ${CMAKE_SOURCE_DIR}/detectors/SiMD
 )
 
@@ -33,8 +34,8 @@ BmnSiMDDigitizer.cxx
 )
 
 Set(HEADERS)
-Set(LINKDEF BmnSiMDLinkDef.h)
+Set(LINKDEF SiMDLinkDef.h)
 Set(LIBRARY_NAME SiMD)
-Set(DEPENDENCIES BmnData Base Core)
+Set(DEPENDENCIES BmnBase Base Core)
 
 GENERATE_LIBRARY()

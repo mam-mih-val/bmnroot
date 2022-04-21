@@ -2,9 +2,10 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/raw
- ${CMAKE_SOURCE_DIR}/bmndata/header
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/raw
+ ${CMAKE_SOURCE_DIR}/base/header
  ${CMAKE_SOURCE_DIR}/detectors/mwpc
  ${CMAKE_SOURCE_DIR}/detectors/csc
  ${CMAKE_SOURCE_DIR}/detectors/silicon
@@ -34,6 +35,7 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
+ BmnCounterTask.cxx
  BmnDigiContainer.cxx
  BmnDigiMergeTask.cxx
 )
@@ -41,6 +43,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF MiscLinkDef.h)
 Set(LIBRARY_NAME BmnMisc)
-Set(DEPENDENCIES Zdc Ecal TOF TOF1 Gem Silicon CSC Dch Mwpc BmnData Base Core)
+Set(DEPENDENCIES Zdc Ecal TOF TOF1 Gem Silicon CSC Dch Mwpc BmnBase Base Core)
 
 GENERATE_LIBRARY()

@@ -2,8 +2,9 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/raw
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/raw
  ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/detectors/fhcal
@@ -32,8 +33,8 @@ set(SRCS
 )
 
 Set(HEADERS)
-Set(LINKDEF BmnRecoFHCalLinkDef.h)
+Set(LINKDEF RecoFHCalLinkDef.h)
 Set(LIBRARY_NAME BmnRecoFHCal)
-Set(DEPENDENCIES Decoder FHCal UniDb BmnData Base Core)
+Set(DEPENDENCIES BmnDecoder FHCal UniDb BmnBase Base Core)
 
 GENERATE_LIBRARY()

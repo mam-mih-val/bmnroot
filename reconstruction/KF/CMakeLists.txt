@@ -3,17 +3,18 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/passive
- ${CMAKE_SOURCE_DIR}/bmnfield
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/cbm
+ ${CMAKE_SOURCE_DIR}/field
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/cbm
  ${CMAKE_SOURCE_DIR}/detectors/silicon
  ${CMAKE_SOURCE_DIR}/detectors/gem
  ${CMAKE_SOURCE_DIR}/detectors/tof
  ${CMAKE_SOURCE_DIR}/detectors/sts
- ${CMAKE_SOURCE_DIR}/KF
- ${CMAKE_SOURCE_DIR}/KF/Interface
- ${CMAKE_SOURCE_DIR}/KF/KFParticlesFinder
- ${CMAKE_SOURCE_DIR}/KF/KFQA
+ ${CMAKE_SOURCE_DIR}/reconstruction/KF
+ ${CMAKE_SOURCE_DIR}/reconstruction/KF/Interface
+ ${CMAKE_SOURCE_DIR}/reconstruction/KF/KFParticlesFinder
+ ${CMAKE_SOURCE_DIR}/reconstruction/KF/KFQA
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -93,6 +94,6 @@ ENDIF (SSE_FOUND)
 set(HEADERS)
 Set(LINKDEF KFLinkDef.h)
 Set(LIBRARY_NAME KF)
-Set(DEPENDENCIES Sts TOF Gem Silicon BmnData BmnField Passive Base Core)
+Set(DEPENDENCIES Sts TOF Gem Silicon BmnBase BmnField Passive Base Core)
 
 GENERATE_LIBRARY()

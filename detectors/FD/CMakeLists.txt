@@ -1,8 +1,8 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/mcstack
- ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
  ${CMAKE_SOURCE_DIR}/detectors/FD
 )
 
@@ -31,8 +31,8 @@ BmnFDGeoPar.cxx
 )
 
 Set(HEADERS)
-Set(LINKDEF BmnFDLinkDef.h)
+Set(LINKDEF FDLinkDef.h)
 Set(LIBRARY_NAME FD)
-Set(DEPENDENCIES BmnData Core Base)
+Set(DEPENDENCIES BmnBase Core Base)
 
 GENERATE_LIBRARY()

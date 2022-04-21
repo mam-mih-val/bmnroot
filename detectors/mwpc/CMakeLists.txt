@@ -2,12 +2,13 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/raw
- ${CMAKE_SOURCE_DIR}/bmndata/cbm
- ${CMAKE_SOURCE_DIR}/bmndata/gem
- ${CMAKE_SOURCE_DIR}/bmndata/header
- ${CMAKE_SOURCE_DIR}/bmndata/math
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/raw
+ ${CMAKE_SOURCE_DIR}/base/cbm
+ ${CMAKE_SOURCE_DIR}/base/gem
+ ${CMAKE_SOURCE_DIR}/base/header
+ ${CMAKE_SOURCE_DIR}/base/math
  ${CMAKE_SOURCE_DIR}/detectors/mwpc
 )
 
@@ -47,6 +48,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF MwpcLinkDef.h)
 Set(LIBRARY_NAME Mwpc)
-Set(DEPENDENCIES BmnData Gdml Base Core)
+Set(DEPENDENCIES BmnBase Gdml Base Core)
 
 GENERATE_LIBRARY()

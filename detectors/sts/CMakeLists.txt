@@ -3,11 +3,12 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/passive
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/raw
- ${CMAKE_SOURCE_DIR}/bmndata/header
- ${CMAKE_SOURCE_DIR}/bmndata/cbm
- ${CMAKE_SOURCE_DIR}/bmndata/gem
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/raw
+ ${CMAKE_SOURCE_DIR}/base/header
+ ${CMAKE_SOURCE_DIR}/base/cbm
+ ${CMAKE_SOURCE_DIR}/base/gem
  ${CMAKE_SOURCE_DIR}/detectors/silicon
  ${CMAKE_SOURCE_DIR}/detectors/gem
  ${CMAKE_SOURCE_DIR}/detectors/sts
@@ -88,6 +89,6 @@ BmnStsMatchTracks.cxx
 Set(HEADERS)
 Set(LINKDEF StsLinkDef.h)
 Set(LIBRARY_NAME Sts)
-Set(DEPENDENCIES Gem Silicon BmnData Passive Base Gdml Core)
+Set(DEPENDENCIES Gem Silicon BmnBase Passive Base Gdml Core)
 
 GENERATE_LIBRARY()

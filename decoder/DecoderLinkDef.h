@@ -1,5 +1,4 @@
-// $Id: BmnDataLinkDef.h,v
-
+// $Id: DecoderLinkDef.h,v
 #ifdef __CINT__
 
 #pragma link off all globals;

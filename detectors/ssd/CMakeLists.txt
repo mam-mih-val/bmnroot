@@ -1,7 +1,6 @@
 # Create a library called "libBmnSsd"
 # Last update: D. Baranov, 04.11.2018
 
-
 # -----   Specify library name   --------------------------
 Set(LIBRARY_NAME BmnSsd)
 # ---------------------------------------------------------
@@ -9,8 +8,7 @@ Set(LIBRARY_NAME BmnSsd)
 # ----  Specify include directories -----------------------
 set(INCLUDE_DIRECTORIES
     ${BASE_INCLUDE_DIRECTORIES}
-    ${CMAKE_SOURCE_DIR}/bmndata
-
+    ${CMAKE_SOURCE_DIR}/base
     ${CMAKE_SOURCE_DIR}/detectors/ssd
     ${CMAKE_SOURCE_DIR}/detectors/ssd/setup
     ${CMAKE_SOURCE_DIR}/detectors/ssd/mc
@@ -127,7 +125,7 @@ set(LINKDEF ${LIBRARY_NAME}LinkDef.h)
 # ---------------------------------------------------------
 
 # -----   Specify library dependences   -------------------
-Set(DEPENDENCIES BmnData Base Core boost_serialization)
+Set(DEPENDENCIES BmnBase Base Core boost_serialization)
 # ---------------------------------------------------------
 
 # -----  Let cmake do the job   ---------------------------

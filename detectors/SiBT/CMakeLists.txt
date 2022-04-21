@@ -2,9 +2,10 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/raw
- ${CMAKE_SOURCE_DIR}/bmndata/header
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
+ ${CMAKE_SOURCE_DIR}/base/raw
+ ${CMAKE_SOURCE_DIR}/base/header
  ${CMAKE_SOURCE_DIR}/detectors/SiBT
 )
 
@@ -43,6 +44,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF SiBTLinkDef.h)
 Set(LIBRARY_NAME SiBT)
-Set(DEPENDENCIES BmnData Base XMLParser Gdml Core)
+Set(DEPENDENCIES BmnBase Base XMLParser Gdml Core)
 
 GENERATE_LIBRARY()

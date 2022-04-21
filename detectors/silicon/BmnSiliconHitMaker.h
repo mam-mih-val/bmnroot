@@ -1,8 +1,6 @@
 #ifndef BMNSILICONHITMAKER_H
 #define BMNSILICONHITMAKER_H
 
-#include "Rtypes.h"
-
 #include "FairTask.h"
 #include "FairMCPoint.h"
 
@@ -14,7 +12,6 @@
 #include "BmnSiliconLayer.h"
 #include "BmnSiliconConfiguration.h"
 #include "BmnSiliconTransform.h"
-#include <BmnEventQuality.h>
 
 using namespace std;
 using namespace TMath;

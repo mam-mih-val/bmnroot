@@ -2,7 +2,8 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
  ${CMAKE_SOURCE_DIR}/detectors/tof
 )
 
@@ -35,8 +36,8 @@ set(SRCS
 )
 
 Set(HEADERS)
-Set(LINKDEF BmnTOFLinkDef.h)
+Set(LINKDEF TOFLinkDef.h)
 Set(LIBRARY_NAME TOF)
-Set(DEPENDENCIES BmnData Base Core) 
+Set(DEPENDENCIES BmnBase Base Core)
 
 GENERATE_LIBRARY()

@@ -2,12 +2,12 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/bmndata
- ${CMAKE_SOURCE_DIR}/bmndata/raw
- ${CMAKE_SOURCE_DIR}/bmndata/header
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/raw
+ ${CMAKE_SOURCE_DIR}/base/header
  ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/uni_db
- ${CMAKE_SOURCE_DIR}/bmndst
+ ${CMAKE_SOURCE_DIR}/reconstruction/dst
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -27,14 +27,13 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
- DstRunHeader.cxx
- DstEventHeader.cxx
+ #ExtractZ2.h
  BmnFillDstTask.cxx
 )
 
 Set(HEADERS)
-Set(LINKDEF BmnDstLinkDef.h)
+Set(LINKDEF DstLinkDef.h)
 Set(LIBRARY_NAME BmnDst)
-Set(DEPENDENCIES BmnData UniDb Base Core)
+Set(DEPENDENCIES BmnBase UniDb Base Core)
 
 GENERATE_LIBRARY()

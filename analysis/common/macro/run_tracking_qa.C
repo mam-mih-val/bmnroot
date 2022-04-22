@@ -50,7 +50,7 @@ const std::string trd_tracks       = "TrdTracks";
 const std::string rich_rings       = "RichRings";
 const std::string fhcal_modules       = "FHCalModules";
 
-void run_analysistree_qa(std::string filelist, bool is_single_file)
+void run_tracking_qa(std::string filelist, bool is_single_file)
 {
   if (is_single_file) {
     std::ofstream fl("fl_temp.txt");

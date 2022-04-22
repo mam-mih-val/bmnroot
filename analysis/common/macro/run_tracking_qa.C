@@ -148,6 +148,6 @@ int main(int argc, char** argv)
   }
 
   const std::string filelist = argv[1];
-  run_analysistree_qa(filelist);
+  run_tracking_qa(filelist);
   return 0;
 }

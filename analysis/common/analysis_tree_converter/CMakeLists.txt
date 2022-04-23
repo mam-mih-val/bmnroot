@@ -59,5 +59,7 @@ If ( ${ROOT_HAS_GDML} STREQUAL yes )
 EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 
 Set(LINKDEF CbmAnalysisTreeInterfaceLinkDef.h)
-Set(DEPENDENCIES FHCal Geom)
 Set(LIBRARY_NAME CbmAnalysisTreeInterface)
+Set(DEPENDENCIES FHCal Geom)
+
+GENERATE_LIBRARY()

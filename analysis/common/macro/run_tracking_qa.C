@@ -65,27 +65,29 @@ void run_tracking_qa(std::string filelist, bool is_single_file)
   task->SetOutputFileName("cbm_qa.root");
 
   VertexTracksQA(*task, rec_tracks);
-  VertexTracksQA(*task, rec_tracks, new Cuts("rec_primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
-  VertexTracksQA(*task, rec_tracks, new Cuts("rec_secondary", {RangeCut({sim_particles + ".mother_id"}, 0., 999.)}));
-  VertexTracksQA(*task, rec_tracks, new Cuts("rec_protons", {EqualsCut({sim_particles + ".mother_id"}, -1),
-                                             EqualsCut({sim_particles + ".pid"}, 2212)}));
-  VertexTracksQA(*task, rec_tracks, new Cuts("rec_pi_neg", {EqualsCut({sim_particles + ".mother_id"}, -1),
-                                            EqualsCut({sim_particles + ".pid"}, 211)}));
-  VertexTracksQA(*task, rec_tracks, new Cuts("rec_pi_pos", {EqualsCut({sim_particles + ".mother_id"}, -1),
-                                            EqualsCut({sim_particles + ".pid"}, -211)}));
-  VertexTracksQA(*task, rec_tracks, new Cuts("rec_deuteron", {EqualsCut({sim_particles + ".mother_id"}, -1),
-                                             RangeCut({sim_particles + ".pid"}, 1000010020-0.5, 1000010020+0.5)}));
-
-  SimParticlesQA(*task, new Cuts("sim_primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
-  SimParticlesQA(*task, new Cuts("sim_secondary", {RangeCut({sim_particles + ".mother_id"}, 0., 999.)}));
-  SimParticlesQA(*task, new Cuts("sim_protons", {EqualsCut({sim_particles + ".mother_id"}, -1),
-                                                 EqualsCut({sim_particles + ".pid"}, 2212)}));
-  SimParticlesQA(*task, new Cuts("sim_pi_neg", {EqualsCut({sim_particles + ".mother_id"}, -1),
-                                                EqualsCut({sim_particles + ".pid"}, 211)}));
-  SimParticlesQA(*task, new Cuts("sim_pi_pos", {EqualsCut({sim_particles + ".mother_id"}, -1),
-                                                EqualsCut({sim_particles + ".pid"}, -211)}));
-  SimParticlesQA(*task, new Cuts("sim_deuteron", {EqualsCut({sim_particles + ".mother_id"}, -1),
-                                                  RangeCut({sim_particles + ".pid"}, 1000010020-0.5, 1000010020+0.5)}));
+  VertexTracksQA(*task, rec_tracks, new Cuts("primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
+  VertexTracksQA(*task, rec_tracks, new Cuts("secondary", {RangeCut({sim_particles + ".mother_id"}, 0., 999.)}));
+  SimParticlesQA(*task, new Cuts("primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
+  SimParticlesQA( *task, new Cuts("secondary", {RangeCut({sim_particles + ".mother_id"}, 0., 999.)}));
+  std::vector pid_codes{2212, 211, -211};
+  for (auto pid : pid_codes) {
+    auto* particle_cut = new Cuts(std::to_string( pid ), {EqualsCut({sim_particles + ".pid"}, 2212)});
+    auto* tof400_cut = new Cuts(std::to_string( pid )+"_tof400", {EqualsCut({sim_particles + ".pid"}, 2212),
+                                                                RangeCut({rec_tracks + ".beta400"}, 0., 999.)});
+    auto* tof700_cut = new Cuts(std::to_string( pid )+"_tof700", {EqualsCut({sim_particles + ".pid"}, 2212),
+                                                                RangeCut({rec_tracks + ".beta700"}, 0., 999.)});
+    auto* tof_cut = new Cuts(std::to_string( pid )+"_tof", {EqualsCut({sim_particles + ".pid"}, 2212),
+                                                            SimpleCut({sim_particles + ".beta400",
+                                                                        sim_particles + ".beta700"},
+                                                                       [](std::vector<double> betas){
+                                                                         return betas[0] > 0. || betas[1] > 0.;
+                                                                       })});
+    VertexTracksQA(*task, rec_tracks, particle_cut);
+    VertexTracksQA(*task, rec_tracks, tof400_cut);
+    VertexTracksQA(*task, rec_tracks, tof700_cut);
+    VertexTracksQA(*task, rec_tracks, tof_cut);
+    SimParticlesQA(*task, particle_cut);
+  }
   man->AddTask(task);
 
   man->Init({filelist}, {"rTree"});
@@ -129,14 +131,16 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
   task.AddH2({"DCA_{x}, cm", {branch, "dcax"}, {QA::gNbins, -10, 10}},
              {"DCA_{y}, cm", {branch, "dcay"}, {QA::gNbins, -10, 10}}, cuts);
 
-  task.AddH2({"y_{lab}", y_lab, {100, 0, 4}},
-             {"p_{T} (GeV/c)", {branch, "pT"}, {100, 0, 3}}, cuts);
+  task.AddH2({"y_{lab}", y_lab, {50, 0, 4}},
+             {"p_{T} (GeV/c)", {branch, "pT"}, {50, 0, 3}}, cuts);
   task.AddProfile({"p_{sim} (GeV/c)", {sim_particles, "p"}, {250, 0.0, 5.0}}, {"res (%)", momentum_resolution, {}}, cuts);
+  task.AddProfile({"p_{T} (GeV/c)", {sim_particles, "pT"}, {150, 0.0, 3.0}}, {"res (%)", momentum_resolution, {}}, cuts);
+  task.AddProfile({"#eta", {sim_particles, "eta"}, {250, 0.0, 5.0}}, {"res (%)", momentum_resolution, {}}, cuts);
 
 }
 void SimParticlesQA(QA::Task& task, Cuts* cuts=nullptr){
-  task.AddH2({"y_{lab}", {sim_particles, "rapidity"}, {100, 0, 4}},
-             {"p_{T} (GeV/c)", {sim_particles, "pT"}, {100, 0, 3}}, cuts);
+  task.AddH2({"y_{lab}", {sim_particles, "rapidity"}, {50, 0, 4}},
+             {"p_{T} (GeV/c)", {sim_particles, "pT"}, {50, 0, 3}}, cuts);
 }
 
 int main(int argc, char** argv)

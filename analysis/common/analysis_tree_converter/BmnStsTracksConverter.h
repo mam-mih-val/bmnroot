@@ -34,7 +34,6 @@ public:
 private:
   void ReadVertexTracks();
   void InitInput();
-  float ExtrapolateToVertex(CbmStsTrack* sts_track, int pdg);
   AnalysisTree::TrackDetector*out_sts_tracks_{nullptr};   ///< raw pointers are needed for TTree::Branch
 
   CbmVertex*in_bmn_vertex_{nullptr};    ///< non-owning pointer

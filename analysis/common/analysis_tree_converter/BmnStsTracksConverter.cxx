@@ -18,8 +18,6 @@
 #include <CbmTrackMatch.h>
 
 #include "AnalysisTree/Matching.hpp"
-#include "CbmL1PFFitter.h"
-#include "L1Field.h"
 #include "CbmKFVertex.h"
 
 ClassImp(BmnStsTracksConverter);
@@ -162,18 +160,5 @@ void BmnStsTracksConverter::ReadVertexTracks()
     out_track.SetField(float(y_first - vertex_y), idcax + 1);
     out_track.SetField(float(z_first - vertex_z), idcax + 2);
   }
-}
-float BmnStsTracksConverter::ExtrapolateToVertex(CbmStsTrack* sts_track, int pdg){
-  std::vector<CbmStsTrack> tracks = {*sts_track};
-  CbmL1PFFitter fitter;
-  std::vector<float> chi2_to_vtx;
-  std::vector<L1FieldRegion> field;
-  CbmKFVertex kfVertex = CbmKFVertex(*in_bmn_vertex_);
-  std::cout << "Fitting the track to the vertex" << std::endl;
-  fitter.Fit(tracks, pdg);
-  std::cout << "Calculating the chi2 of the extrapolation" << std::endl;
-  fitter.GetChiToVertex(tracks, field, chi2_to_vtx, kfVertex, 3.);
-  *sts_track = tracks[0];
-  return chi2_to_vtx[0];
 }
 // TODO misleading name, move field filling somewhere else?

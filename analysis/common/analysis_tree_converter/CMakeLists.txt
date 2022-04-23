@@ -45,16 +45,18 @@ set(SRCS
 
 Set(HEADERS)
 
-message(STATUS "!!! ${INCLUDE_DIRECTORIES}")
+EXEC_PROGRAM( ${ROOT_CONFIG_EXECUTABLE}
+        ARGS "--has-gdml"
+        OUTPUT_VARIABLE ROOT_HAS_GDML )
 
-IF (SSE_FOUND)
-  Message(STATUS "${LIBRARY_NAME} will be compiled with SSE support")
-  ADD_DEFINITIONS(-DHAVE_SSE)
-  SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS "-msse -O3")
-ELSE (SSE_FOUND)
-  MESSAGE(STATUS "${LIBRARY_NAME} will be compiled without SSE support")
-  SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS "-msse -O3")
-ENDIF (SSE_FOUND)
+If ( ${ROOT_HAS_GDML} STREQUAL yes )
+  Message(STATUS "Build CbmModule with Gdml support")
+  Add_Definitions(-DROOT_HAS_GDML)
+EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
+
+If ( ${ROOT_HAS_GDML} STREQUAL yes )
+  Set (DEPENDENCIES ${DEPENDENCIES} Gdml)
+EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 
 Set(LINKDEF CbmAnalysisTreeInterfaceLinkDef.h)
 Set(DEPENDENCIES FHCal Geom)

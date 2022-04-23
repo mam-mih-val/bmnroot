@@ -77,8 +77,8 @@ void run_tracking_qa(std::string filelist, bool is_single_file)
     auto* tof700_cut = new Cuts(std::to_string( pid )+"_tof700", {EqualsCut({sim_particles + ".pid"}, 2212),
                                                                 RangeCut({rec_tracks + ".beta700"}, 0., 999.)});
     auto* tof_cut = new Cuts(std::to_string( pid )+"_tof", {EqualsCut({sim_particles + ".pid"}, 2212),
-                                                            SimpleCut({sim_particles + ".beta400",
-                                                                        sim_particles + ".beta700"},
+                                                            SimpleCut({rec_tracks + ".beta400",
+                                                                       rec_tracks + ".beta700"},
                                                                        [](std::vector<double> betas){
                                                                          return betas[0] > 0. || betas[1] > 0.;
                                                                        })});

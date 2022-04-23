@@ -3,6 +3,7 @@ set(AnalysisTree_LIBRARIES AnalysisTreeBase AnalysisTreeInfra)
 set(AnalysisTree_INCLUDE_DIR "${CMAKE_BINARY_DIR}/include")
 
 Set(INCLUDE_DIRECTORIES
+  ${CMAKE_CURRENT_SOURCE_DIR}
   ${BASE_INCLUDE_DIRECTORIES}
   ${CMAKE_SOURCE_DIR}/bmndata
   ${CMAKE_SOURCE_DIR}/bmndata/math

@@ -24,7 +24,7 @@ include_directories(${INCLUDE_DIRECTORIES})
 Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set (LINK_DIRECTORIES
-  ${AnalysisTree_LIBRARY_DIR}
+  ${AnalysisTree_LIB_DIR}
   ${FAIRROOT_LIBRARY_DIR}
   ${ROOT_LIBRARY_DIR}
   ${Boost_LIBRARY_DIRS}
@@ -48,6 +48,6 @@ Set(HEADERS)
 
 Set(LINKDEF CbmAnalysisTreeInterfaceLinkDef.h)
 Set(LIBRARY_NAME CbmAnalysisTreeInterface)
-Set(DEPENDENCIES FHCal Geom AnalysisTreeBase AnalysisTreeInfra)
+Set(DEPENDENCIES FHCal Geom)
 
 GENERATE_LIBRARY()

@@ -71,12 +71,12 @@ void run_tracking_qa(std::string filelist, bool is_single_file)
   SimParticlesQA( *task, new Cuts("secondary", {RangeCut({sim_particles + ".mother_id"}, 0., 999.)}));
   std::vector pid_codes{2212, 211, -211};
   for (auto pid : pid_codes) {
-    auto* particle_cut = new Cuts(std::to_string( pid ), {EqualsCut({sim_particles + ".pid"}, 2212)});
-    auto* tof400_cut = new Cuts(std::to_string( pid )+"_tof400", {EqualsCut({sim_particles + ".pid"}, 2212),
+    auto* particle_cut = new Cuts(std::to_string( pid ), {EqualsCut({sim_particles + ".pid"}, pid)});
+    auto* tof400_cut = new Cuts(std::to_string( pid )+"_tof400", {EqualsCut({sim_particles + ".pid"}, pid),
                                                                 RangeCut({rec_tracks + ".beta400"}, 0., 999.)});
-    auto* tof700_cut = new Cuts(std::to_string( pid )+"_tof700", {EqualsCut({sim_particles + ".pid"}, 2212),
+    auto* tof700_cut = new Cuts(std::to_string( pid )+"_tof700", {EqualsCut({sim_particles + ".pid"}, pid),
                                                                 RangeCut({rec_tracks + ".beta700"}, 0., 999.)});
-    auto* tof_cut = new Cuts(std::to_string( pid )+"_tof", {EqualsCut({sim_particles + ".pid"}, 2212),
+    auto* tof_cut = new Cuts(std::to_string( pid )+"_tof", {EqualsCut({sim_particles + ".pid"}, pid),
                                                             SimpleCut({rec_tracks + ".beta400",
                                                                        rec_tracks + ".beta700"},
                                                                        [](std::vector<double> betas){

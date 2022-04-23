@@ -17,10 +17,5 @@
 #pragma link C++ class BmnStsTracksConverter + ;
 #pragma link C++ class BmnTofHitsConverter + ;
 #pragma link C++ class BmnFHCalModulesConverter + ;
-#pragma link C++ class CbmTrdTracksConverter + ;
-#pragma link C++ class CbmRichRingsConverter + ;
-//#pragma link C++ class CbmMatchEvents + ;
-
-//#pragma link C++ class CbmMuchTracksConverter+;
 
 #endif

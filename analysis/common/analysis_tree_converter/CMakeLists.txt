@@ -48,6 +48,6 @@ Set(HEADERS)
 
 Set(LINKDEF CbmAnalysisTreeInterfaceLinkDef.h)
 Set(LIBRARY_NAME CbmAnalysisTreeInterface)
-Set(DEPENDENCIES FHCal Geom)
+Set(DEPENDENCIES FHCal Geom AnalysisTreeBase AnalysisTreeInfra)
 
 GENERATE_LIBRARY()

@@ -37,7 +37,7 @@ const int kPdgMass   = 10;
 
 Int_t GetIonCharge(int pdgCode) { return (pdgCode % kPdgLambda) / kPdgCharge; }
 
-void run_analysistree_qa(std::string filelist, bool is_single_file = false);
+void run_analysistree_qa(std::string filelist, std::string output_file="bmn_qa.root", bool is_single_file = false);
 
 const std::string sim_event_header = "SimEventHeader";
 const std::string rec_event_header = "RecEventHeader";
@@ -50,7 +50,7 @@ const std::string trd_tracks       = "TrdTracks";
 const std::string rich_rings       = "RichRings";
 const std::string fhcal_modules       = "FHCalModules";
 
-void run_analysistree_qa(std::string filelist, bool is_single_file)
+void run_analysistree_qa(std::string filelist, std::string output_file, bool is_single_file)
 {
   if (is_single_file) {
     std::ofstream fl("fl_temp.txt");
@@ -62,7 +62,7 @@ void run_analysistree_qa(std::string filelist, bool is_single_file)
   TaskManager* man = TaskManager::GetInstance();
 
   auto* task = new QA::Task;
-  task->SetOutputFileName("cbm_qa.root");
+  task->SetOutputFileName(output_file);
 
   VertexTracksQA(*task, rec_tracks);
   VertexTracksQA(*task, rec_tracks, new Cuts("rec_primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));

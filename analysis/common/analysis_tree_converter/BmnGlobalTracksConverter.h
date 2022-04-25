@@ -11,6 +11,8 @@
 
 #include "AnalysisTree/Detector.hpp"
 
+#include <FairTrackParam.h>
+
 class TClonesArray;
 class CbmVertex;
 class CbmStsTrack;
@@ -36,6 +38,7 @@ public:
   void Init() final;
   void ProcessData() final;
   void Finish() final {}
+  TVector3 ExtrapolateStraightLine(FairTrackParam* params, float z);
 
 private:
   void ReadVertexTracks();

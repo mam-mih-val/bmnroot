@@ -37,7 +37,7 @@ const int kPdgMass   = 10;
 
 Int_t GetIonCharge(int pdgCode) { return (pdgCode % kPdgLambda) / kPdgCharge; }
 
-void run_tracking_qa(std::string filelist, bool is_single_file = false);
+void run_tracking_qa(std::string filelist, std::string output_file="tracking_qa.root", bool is_single_file = false);
 
 const std::string sim_event_header = "SimEventHeader";
 const std::string rec_event_header = "RecEventHeader";
@@ -50,7 +50,7 @@ const std::string trd_tracks       = "TrdTracks";
 const std::string rich_rings       = "RichRings";
 const std::string fhcal_modules       = "FHCalModules";
 
-void run_tracking_qa(std::string filelist, bool is_single_file)
+void run_tracking_qa(std::string filelist, std::string output_file, bool is_single_file)
 {
   if (is_single_file) {
     std::ofstream fl("fl_temp.txt");
@@ -62,7 +62,7 @@ void run_tracking_qa(std::string filelist, bool is_single_file)
   TaskManager* man = TaskManager::GetInstance();
 
   auto* task = new QA::Task;
-  task->SetOutputFileName("cbm_qa.root");
+  task->SetOutputFileName(output_file);
 
   VertexTracksQA(*task, rec_tracks);
   VertexTracksQA(*task, rec_tracks, new Cuts("primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
@@ -130,6 +130,11 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
   task.AddH1({"#chi^{2}/NDF", chi2_over_ndf, {QA::gNbins, 0, 100}}, cuts);
   task.AddH2({"DCA_{x}, cm", {branch, "dcax"}, {QA::gNbins, -10, 10}},
              {"DCA_{y}, cm", {branch, "dcay"}, {QA::gNbins, -10, 10}}, cuts);
+
+  task.AddH2({"X at z=450, cm", {branch, "x400"}, {250, -500, 500}},
+             {"Y at z=450, cm", {branch, "y400"}, {250, -500, 500}}, cuts);
+
+
 
   task.AddH2({"y_{lab}", y_lab, {50, 0, 4}},
              {"p_{T} (GeV/c)", {branch, "pT"}, {50, 0, 3}}, cuts);

@@ -10,6 +10,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifndef BMNLAMBDAEMBEDDING_H
+#define BMNLAMBDAEMBEDDING_H 1
+
 #include <iostream>
 #include <stdlib.h>
 #include <vector>
@@ -48,9 +51,6 @@
 #endif  
 
 using namespace std;
-
-#ifndef BMNLAMBDAEMBEDDING_H
-#define BMNLAMBDAEMBEDDING_H 1
 
 class SignalNormalizationUtils : public TNamed {
 public:

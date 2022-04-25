@@ -1,8 +1,8 @@
-#include <TNamed.h>
-#include <TVector3.h>
-
 #ifndef BMNEMBMONITOR_H
 #define BMNEMBMONITOR_H 1
+
+#include <TNamed.h>
+#include <TVector3.h>
 
 class BmnLambdaEmbeddingMonitor : public TNamed {
 public:

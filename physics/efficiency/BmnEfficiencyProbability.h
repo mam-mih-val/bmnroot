@@ -1,3 +1,6 @@
+#ifndef BMNEFFPROB_H
+#define BMNEFFPROB_H 1
+
 #include <iostream>
 #include <TNamed.h>
 #include <TH1F.h>
@@ -5,9 +8,6 @@
 #include <TF1.h>
 #include <TFile.h>
 #include <TRandom.h>
-
-#ifndef BMNEFFPROB_H
-#define BMNEFFPROB_H 1
 
 using namespace std;
 

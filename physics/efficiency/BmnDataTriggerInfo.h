@@ -1,3 +1,6 @@
+#ifndef BMNDATATRIGGERINFO_H
+#define BMNDATATRIGGERINFO_H 1
+
 #include <iostream>
 #include <TNamed.h>
 
@@ -5,9 +8,6 @@
 #include <ElogDbTrigger.h>
 
 #include <map>
-
-#ifndef BMNDATATRIGGERINFO_H
-#define BMNDATATRIGGERINFO_H 1
 
 using namespace std;
 

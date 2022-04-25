@@ -1,3 +1,6 @@
+#ifndef BMNREALMC_H
+#define BMNREALMC_H 1
+
 #include <iostream>
 #include <FairTask.h>
 #include <TClonesArray.h>
@@ -10,9 +13,6 @@
 #include <BmnEfficiency.h>
 
 using namespace std;
-
-#ifndef BMNREALMC_H
-#define BMNREALMC_H 1
 
 class BmnRealisticMc : public FairTask {
 public:

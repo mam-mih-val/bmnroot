@@ -1,3 +1,6 @@
+#ifndef BMNEFF_H
+#define BMNEFF_H 1
+
 #include <TNamed.h>
 #include <TChain.h>
 #include <TObject.h>
@@ -21,9 +24,6 @@
 #include "BmnNewFieldMap.h"
 
 #include <vector>
-
-#ifndef BMNEFF_H
-#define BMNEFF_H 1
 
 using namespace std;
 

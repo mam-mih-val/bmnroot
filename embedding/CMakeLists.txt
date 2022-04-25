@@ -35,13 +35,6 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
- BmnLambdaEmbedding.cxx   
- BmnLambdaStore.cxx 
- BmnLambdaMisc.cxx 
- BmnLambdaEmbeddingMonitor.cxx
- BmnLambdaEmbeddingQa.cxx 
- BmnInnerTrackerGeometryDraw.cxx 
- BmnLambdaEmbeddingDrawHistos.cxx
  BmnEfficiency.cxx
 )
 

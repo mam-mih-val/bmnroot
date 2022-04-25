@@ -1,3 +1,6 @@
+#ifndef BMNEFFTOOLS_H
+#define BMNEFFTOOLS_H 1
+
 #include <iostream>
 #include <TNamed.h>
 #include <TH2.h>
@@ -11,9 +14,6 @@
 #include <FairRunAna.h>
 #include <TGraph.h>
 #include <TEfficiency.h>
-
-#ifndef BMNEFFTOOLS_H
-#define BMNEFFTOOLS_H 1
 
 using namespace std;
 

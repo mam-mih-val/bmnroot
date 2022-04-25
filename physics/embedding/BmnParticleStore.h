@@ -1,9 +1,11 @@
+#ifndef BMNPARTICLESTORE_H
+#define BMNPARTICLESTORE_H 1
+
 #include <TNamed.h>
 #include <TMath.h>
 #include <TVector3.h>
 
-#ifndef BMNPARTICLESTORE_H
-#define BMNPARTICLESTORE_H 1
+using namespace TMath;
 
 class BmnParticleStore : public TNamed {
 public:

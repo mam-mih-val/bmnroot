@@ -59,6 +59,7 @@ void BmnGlobalTracksConverter::Init()
   vtx_tracks_config.AddField<int>("charge", "charge");
   vtx_tracks_config.AddField<int>("ndf", "number degrees of freedom");
   vtx_tracks_config.AddField<int>("n_hits", "number of hits");
+  vtx_tracks_config.AddFields<float>({"x400", "y400"}, "coordinates at TOF-400 plane");
   vtx_tracks_config.AddFields<float>({"x_first", "y_first", "z_first", "tx_first", "ty_first", "qp_first"}, "first track parameters");
   vtx_tracks_config.AddFields<float>({"x_last", "y_last", "z_last", "tx_last", "ty_last", "qp_last"}, "last track parameters");
 
@@ -72,6 +73,20 @@ void BmnGlobalTracksConverter::Init()
   if( !std::empty(str_tof700_branch_name_) )
     man->AddMatching( out_branch_, str_tof700_branch_name_, global_tracks_2_tof700_hits_ );
 }
+
+TVector3 BmnGlobalTracksConverter::ExtrapolateStraightLine(FairTrackParam* params, float z)
+{
+  const Float_t Tx    = params->GetTx();
+  const Float_t Ty    = params->GetTy();
+  const Float_t old_z = params->GetZ();
+  const Float_t dz    = z - old_z;
+
+  const Float_t x = params->GetX() + Tx * dz;
+  const Float_t y = params->GetY() + Ty * dz;
+
+  return {x, y, z};
+}
+
 
 void BmnGlobalTracksConverter::ReadVertexTracks()
 {
@@ -98,6 +113,7 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
   const int itx_last = branch.GetFieldId("tx_last");
   const int ibeta400      = branch.GetFieldId("beta400");
   const int ibeta700      = branch.GetFieldId("beta700");
+  const int ix400      = branch.GetFieldId("x400");
 
   const int n_global_tracks = in_bmn_global_tracks_->GetEntries();
   if (n_global_tracks <= 0) {
@@ -180,6 +196,11 @@ void BmnGlobalTracksConverter::ReadVertexTracks()
     out_track.SetField(float(x_first - vertex_x), idcax);
     out_track.SetField(float(y_first - vertex_y), idcax + 1);
     out_track.SetField(float(z_first - vertex_z), idcax + 2);
+
+    auto pos400 = ExtrapolateStraightLine( trackParamLast, 450 );
+
+    out_track.SetField( float( pos400.x() ), ix400 );
+    out_track.SetField( float( pos400.y() ), ix400+1 );
 
     if( global_tracks_2_sts_tracks_ )
       global_tracks_2_sts_tracks_->AddMatch( track_index, track_index );

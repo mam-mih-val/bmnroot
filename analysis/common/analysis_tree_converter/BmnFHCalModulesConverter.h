@@ -26,7 +26,7 @@ public:
 
 private:
 
-  AnalysisTree::ModuleDetector*out_fhcal_branch_{nullptr};
+  AnalysisTree::HitDetector *out_fhcal_branch_{nullptr};
   BmnFHCalEvent *in_fhcal_event_{nullptr};
 
   ClassDef(BmnFHCalModulesConverter, 1)

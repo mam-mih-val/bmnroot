@@ -1,6 +1,7 @@
 #! /usr/bin/python3
 
 import os
+import requests
 import sys
 import argparse
 import smtplib
@@ -59,6 +60,12 @@ def test_pgsql_connection(params):
     # print("PUTVAL pgsql_resp_time {}".format(time_elapsed))
     return {"success": True, "latency": time_elapsed}
 
+def test_http(http_addr):
+    result_request = requests.get(http_addr)  # Getting status code from the web site
+    if 200 <= result_request.status_code <= 299:
+        return {"success": True}
+    # if status code is less than 200 or more than 299 (normal response) then show error message
+    return {"success": False}
 
 def send_email(to, short_msg, long_msg=""):
     try:
@@ -113,6 +120,7 @@ def main():
     # Variables storing previous success/fail values
     ping_prev_success = {}
     pgsql_prev_success = {}
+    http_prev_success = {}
     influxdb_prev_success = True
     influxdb_initialized = False
 
@@ -123,6 +131,8 @@ def main():
             pgsql_prev_success[server] = True
         else:
             print("Unsupported DBMS type: " + server_params["DBMS"])
+    for server in config["WEB"]:
+        http_prev_success[server] = True
 
     try:
         if "OUTPUT" in config and config["OUTPUT"]["DBMS"].upper() == "INFLUXDB":
@@ -137,7 +147,7 @@ def main():
         while True:
             # Do all PING tests
             for test_name, test_params in config["PING"].items():
-                result_ping = test_ping(test_params["IP"])
+                result_ping = test_ping(test_params["HOST"])
                 print("PING " + test_name + ": " + str(result_ping))
                 success = result_ping["success"]
                 if ping_prev_success[test_name] != success:
@@ -186,6 +196,18 @@ def main():
                             send_email(get_notify(config["OUTPUT"]), "InfluxDB is unreachable!", str(err))
                 else:
                     print("Skip writing to InfluxDB due to no configuration.")
+
+            # Do all HTTP tests
+            for test_name, test_params in config["WEB"].items():
+                result_http = test_http(test_params["HTTP"])
+                print("Checking website for " + test_name + " (" + test_params["HTTP"] + "): " + str(result_http))
+                success = result_http["success"]
+                if http_prev_success[test_name] != success:
+                    if success:
+                        send_email(get_notify(config["OUTPUT"]), test_name + " - Web Interface state changed to UP")
+                    else:
+                        send_email(get_notify(config["OUTPUT"]), test_name + " - Web Interface state changed to *** DOWN ***")
+                    http_prev_success[test_name] = success
 
             sleep(config["INTERVAL_SEC"])
 

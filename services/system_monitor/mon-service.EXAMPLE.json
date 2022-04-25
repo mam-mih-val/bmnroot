@@ -1,32 +1,42 @@
 {
   "PING": {
     "server1": {
-      "IP": "192.168.65.116",
+      "HOST": "192.168.65.116",
       "NOTIFY": "mail1.jinr.ru"
     },
-    "router1": {
-      "IP": "10.254.0.41",
+    "server2": {
+      "HOST": "myserver.jinr.ru",
       "NOTIFY": "mail2.jinr.ru"
     }
   },
+
   "DATABASE": {
     "server1": {
       "SERVER": "192.168.65.116",
       "DBMS": "PGSQL",
       "PORT": 5432,
-      "DBNAME": "testdb",
-      "USER": "testuser",
-      "PASS": "pass",
+      "DBNAME": "mydb1",
+      "USER": "user_reader1",
+      "PASS": "user_pass1",
       "NOTIFY": "mail3.jinr.ru"
     },
-    "server-centos2": {
-      "SERVER": "192.168.65.62",
+    "server2": {
+      "SERVER": "dbserver.jinr.ru",
       "DBMS": "PGSQL",
       "PORT": 5432,
-      "DBNAME": "books_store",
-      "USER": "bookuser",
-      "PASS": "lab123",
+      "DBNAME": "mydb2",
+      "USER": "user_reader2",
+      "PASS": "User_pass2",
       "NOTIFY": "mail5.jinr.ru,mail6.jinr.ru"
+    }
+  },
+
+  "WEB": {
+    "mywebsite": {
+      "HTTP": "http://mywebsite.jinr.ru"
+    },
+    "mywebinterface": {
+      "HTTP": "https://mywebinterface.jinr.ru"
     }
   },
 
@@ -34,16 +44,16 @@
     "DBMS": "INFLUXDB",
     "SERVER": "192.168.65.52",
     "PORT": 8086,
-    "DBNAME": "pgsqltest",
-    "USER": "influx",
-    "PASS": "123456",
+    "DBNAME": "myinfluxdbname",
+    "USER": "influxdbuser",
+    "PASS": "influxdbpass",
     "NOTIFY": "mail1.jinr.ru,mail2.jinr.ru"
   },
 
   "INTERVAL_SEC": 60,
 
   "MAIL": {
-    "SERVER": "smtp.yandex.ru",
+    "SERVER": "smtp.jinr.ru",
     "PORT": 587,
     "USER": "***",
     "PASS": "***"
@@ -51,5 +61,5 @@
 
   "LOG": "mail1.jinr.ru,mail2.jinr.ru",
   "NOTIFY": "mail-default@jinr.ru",
-  "NAME": "Monitoring Service"
+  "NAME": "My Monitoring Service"
 }

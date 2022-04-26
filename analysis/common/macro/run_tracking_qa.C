@@ -76,6 +76,8 @@ void run_tracking_qa(std::string filelist, std::string output_file, bool is_sing
                                                                 RangeCut({rec_tracks + ".beta400"}, 0., 999.)});
     auto* tof700_cut = new Cuts(std::to_string( pid )+"_tof700", {EqualsCut({sim_particles + ".pid"}, pid),
                                                                 RangeCut({rec_tracks + ".beta700"}, 0., 999.)});
+    auto* not_tof700_cut = new Cuts(std::to_string( pid )+"_!tof700", {EqualsCut({sim_particles + ".pid"}, pid),
+                                                                RangeCut({rec_tracks + ".beta700"}, -1e9, -0.)});
     auto* tof_cut = new Cuts(std::to_string( pid )+"_tof", {EqualsCut({sim_particles + ".pid"}, pid),
                                                             SimpleCut({rec_tracks + ".beta400",
                                                                        rec_tracks + ".beta700"},
@@ -85,6 +87,7 @@ void run_tracking_qa(std::string filelist, std::string output_file, bool is_sing
     VertexTracksQA(*task, rec_tracks, particle_cut);
     VertexTracksQA(*task, rec_tracks, tof400_cut);
     VertexTracksQA(*task, rec_tracks, tof700_cut);
+    VertexTracksQA(*task, rec_tracks, not_tof700_cut);
     VertexTracksQA(*task, rec_tracks, tof_cut);
     SimParticlesQA(*task, particle_cut);
   }

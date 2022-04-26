@@ -65,10 +65,12 @@ set(SRCS
  BmnPidQa.cxx
  BmnPidQaReport.cxx
  BmnTrackingQa.cxx
+ BmnTrackingQaExp.cxx
  BmnLambdaQa.cxx
  BmnClusteringQa.cxx
  BmnUtils.cxx
  BmnTrackingQaReport.cxx
+ BmnTrackingQaExpReport.cxx
  BmnLambdaQaReport.cxx
  BmnClusteringQaReport.cxx
  BmnMCTrack.cxx

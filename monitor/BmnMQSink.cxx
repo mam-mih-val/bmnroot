@@ -3,8 +3,8 @@
 using namespace std;
 
 BmnMQSink::BmnMQSink() :
-fSender(nullptr)
-, fCtx(nullptr)
+//fSender(nullptr)
+ fCtx(nullptr)
 , fOutSocket(nullptr)
 , fOutPort(0) {
 }
@@ -13,8 +13,8 @@ BmnMQSink::BmnMQSink(const BmnMQSink&) {
 }
 
 BmnMQSink::~BmnMQSink() {
-    if (fSender)
-        delete fSender;
+//    if (fSender)
+//        delete fSender;
     if (fCtx)
         zmq_ctx_destroy(fCtx);
 }
@@ -22,52 +22,52 @@ BmnMQSink::~BmnMQSink() {
 Bool_t BmnMQSink::InitSink() {
     printf("BmnMQSink::InitSink\n");
     fOutChannel = "data-out";
-    FairMQProgOptions *config = new FairMQProgOptions();
-    string DstChanName = "chans." + fOutChannel + ".0.address";
-    ////    config->SetValue<string>("out-channel", DstChanName);
-    ////    boost::program_options::options_description options;
-    ////    options.add_options()
-    ////            ("in-channel", bpo::value<std::string>()->default_value("digi"), "Name of the input channel")
-    ////            ("out-channel", bpo::value<std::string>()->default_value("dst"), "Name of the output channel");
-    ////    //    config.AddToCmdLineOptions()
-    //       config->SetValue<string>(DstChanName, "tcp://127.0.0.1:6666");
-    //       config->SetValue<string>("transport", "zeromq");
-    string arg = "--channel-config 'name=data-out,type=push,method=connect,rateLogging=1,address=tcp://localhost:5220'";
-    vector<string> args;
-    //       args.push_back(arg);
-    args.push_back("");
-    args.push_back("--mq-config");
-    args.push_back("../monitor/mq-reco.json");
-    args.push_back("--id");
-    args.push_back("mq-sink");
-    args.push_back("--channel-config");
-    args.push_back("name=data-out,type=pub,method=connect,rateLogging=1,address=tcp://localhost:5220");
-//    config->ParseAll(args, kFALSE);
-//    config->SetProperty<string>("data.0.address", "tcp://localhost:4321");
-    config->SetProperty<string>(fOutChannel, DstChanName);
-    config->PrintOptions();
-    config->PrintOptionsRaw();
-    fSender = new FairMQDevice(*config,{0, 0, 0});
-    //    fSender = new FairMQDevice();
-    //    fSender->SetId("mq-sink");
-    fSender->SetConfig(*config);
-    //    fSender->fChannels = config->GetVarMap();
-    //    fSender->RunStateMachine();
-    //            fSender->ChangeState("INIT_DEVICE");
-    //    fSender->RegisterChannelEndpoints();
-    //    FairMQProgOptions* config =  fSender->GetConfig();
-    //    fSender->RegisterChannelEndpoint(fOutChannel);
-    //    if (fConfig.Count("print-channels")) {
-    fSender->PrintRegisteredChannels();
-    printf("BmnMQSink::InitSink PrintRegisteredChannels\n");
-    //    fSender->RunStateMachine();
-    //    printf("BmnMQSink::InitSink RunStateMachine\n");
-    //        fSender.ChangeState(fair::mq::Transition::End);
-    //        return 0;
-    //    }
-    //    fSender.SetConfig(fConfig);
-    //    fSender.RunStateMachine();
-    //    printf("BmnMQSink::InitSink RunStateMachine\n");
+//    FairMQProgOptions *config = new FairMQProgOptions();
+//    string DstChanName = "chans." + fOutChannel + ".0.address";
+//    ////    config->SetValue<string>("out-channel", DstChanName);
+//    ////    boost::program_options::options_description options;
+//    ////    options.add_options()
+//    ////            ("in-channel", bpo::value<std::string>()->default_value("digi"), "Name of the input channel")
+//    ////            ("out-channel", bpo::value<std::string>()->default_value("dst"), "Name of the output channel");
+//    ////    //    config.AddToCmdLineOptions()
+//    //       config->SetValue<string>(DstChanName, "tcp://127.0.0.1:6666");
+//    //       config->SetValue<string>("transport", "zeromq");
+//    string arg = "--channel-config 'name=data-out,type=push,method=connect,rateLogging=1,address=tcp://localhost:5220'";
+//    vector<string> args;
+//    //       args.push_back(arg);
+//    args.push_back("");
+//    args.push_back("--mq-config");
+//    args.push_back("../monitor/mq-reco.json");
+//    args.push_back("--id");
+//    args.push_back("mq-sink");
+//    args.push_back("--channel-config");
+//    args.push_back("name=data-out,type=pub,method=connect,rateLogging=1,address=tcp://localhost:5220");
+////    config->ParseAll(args, kFALSE);
+////    config->SetProperty<string>("data.0.address", "tcp://localhost:4321");
+//    config->SetProperty<string>(fOutChannel, DstChanName);
+//    config->PrintOptions();
+//    config->PrintOptionsRaw();
+//    fSender = new FairMQDevice(*config,{0, 0, 0});
+//    //    fSender = new FairMQDevice();
+//    //    fSender->SetId("mq-sink");
+//    fSender->SetConfig(*config);
+//    //    fSender->fChannels = config->GetVarMap();
+//    //    fSender->RunStateMachine();
+//    //            fSender->ChangeState("INIT_DEVICE");
+//    //    fSender->RegisterChannelEndpoints();
+//    //    FairMQProgOptions* config =  fSender->GetConfig();
+//    //    fSender->RegisterChannelEndpoint(fOutChannel);
+//    //    if (fConfig.Count("print-channels")) {
+//    fSender->PrintRegisteredChannels();
+//    printf("BmnMQSink::InitSink PrintRegisteredChannels\n");
+//    //    fSender->RunStateMachine();
+//    //    printf("BmnMQSink::InitSink RunStateMachine\n");
+//    //        fSender.ChangeState(fair::mq::Transition::End);
+//    //        return 0;
+//    //    }
+//    //    fSender.SetConfig(fConfig);
+//    //    fSender.RunStateMachine();
+//    //    printf("BmnMQSink::InitSink RunStateMachine\n");
 
     fOutPort = 6666;
     fCtx = zmq_ctx_new();
@@ -191,7 +191,7 @@ void BmnMQSink::EmitPersistentBranchWrongTypeWarning(const char* brname,
 
 void BmnMQSink::Fill() {
 //    printf("BmnMQSink::Fill\n");
-    FairMQParts parts;
+//    FairMQParts parts;
     TBufferFile t(TBuffer::kWrite);
 
     //    for (auto &brEl : fPersistentBranchesMap) {
@@ -237,26 +237,26 @@ void BmnMQSink::Fill() {
     if (sendRes == -1) {
         fprintf(stderr, "Send error # %d #%s\n", errno, zmq_strerror(errno));
     }
-    int64_t sent = 0;
-    printf("fChannels size %lu\n", fSender->fChannels.size());
-    for (const pair<string, vector < FairMQChannel>> &gr : fSender->fChannels) {
-        printf("gr: %s \n", gr.first.c_str());
-        for (const FairMQChannel & ch : gr.second) {
-            printf("\taddr:%s\n", ch.GetAddress().c_str());
-        }
-    }
-    //    fSender->Send(parts, "data-out");
-    //    printf("sent %ld\n", sent);
-    //                sent = fSender->Send(parts, "dst:1:1");
-    //                printf("sent %ld\n", sent);
-    //    //    //    sent = fSender->Send(parts, "dst");
-    //    //    //    printf("sent %ld\n", sent);
-    //    //    sent = fSender->Send(parts, "dst:1");
-    //    //    printf("sent %ld\n", sent);
-    //    //    sent = fSender->Send(parts, "dst:0:0");
-    //    //    printf("sent %ld\n", sent);
-    //    sent = fSender->Send(parts, "out-channel");
-    //    printf("sent %ld\n", sent);
+//    int64_t sent = 0;
+//    printf("fChannels size %lu\n", fSender->fChannels.size());
+//    for (const pair<string, vector < FairMQChannel>> &gr : fSender->fChannels) {
+//        printf("gr: %s \n", gr.first.c_str());
+//        for (const FairMQChannel & ch : gr.second) {
+//            printf("\taddr:%s\n", ch.GetAddress().c_str());
+//        }
+//    }
+//    //    fSender->Send(parts, "data-out");
+//    //    printf("sent %ld\n", sent);
+//    //                sent = fSender->Send(parts, "dst:1:1");
+//    //                printf("sent %ld\n", sent);
+//    //    //    //    sent = fSender->Send(parts, "dst");
+//    //    //    //    printf("sent %ld\n", sent);
+//    //    //    sent = fSender->Send(parts, "dst:1");
+//    //    //    printf("sent %ld\n", sent);
+//    //    //    sent = fSender->Send(parts, "dst:0:0");
+//    //    //    printf("sent %ld\n", sent);
+//    //    sent = fSender->Send(parts, "out-channel");
+//    //    printf("sent %ld\n", sent);
 }
 
 FairSink * BmnMQSink::CloneSink() {

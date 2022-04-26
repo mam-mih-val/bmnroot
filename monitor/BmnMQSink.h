@@ -17,13 +17,13 @@
 // FairRoot
 #include <FairRootManager.h>
 #include <FairSink.h>
-#include <fairmq/Message.h>
+//#include <fairmq/Message.h>
+////#include <fairmq/Device.h>
 //#include <fairmq/Device.h>
-#include <fairmq/Device.h>
-#include <fairmq/ProgOptions.h>
-//#include <FairMQLogger.h>
-
-#include <fairmq/DeviceRunner.h>
+//#include <fairmq/ProgOptions.h>
+////#include <FairMQLogger.h>
+//
+//#include <fairmq/DeviceRunner.h>
 // BmnRoot
 
 #include "BmnMath.h"
@@ -78,7 +78,7 @@ class BmnMQSink : public FairSink
 
   private:
 //      fair::mq::DeviceRunner fSender;
-      fair::mq::Device* fSender;// FairMQDevice* fSender;
+//      fair::mq::Device* fSender;// FairMQDevice* fSender;
       std::string fOutChannel;
       BmnParts fParts;
       void * fCtx;

@@ -83,11 +83,11 @@ BmnHistTofCal.cxx
 PadInfo.cxx
 BmnPadBranch.cxx
 BmnPadGenerator.cxx
-BmnMQRecoTaskProcessor.cxx
-BmnMQFileSaver.cxx
+#BmnMQRecoTaskProcessor.cxx
+#BmnMQFileSaver.cxx
  BmnMQSource.cxx
  BmnMQSink.cxx
- BmnMQRunDevice.cxx
+ #BmnMQRunDevice.cxx
 )
 
 Set(HEADERS)

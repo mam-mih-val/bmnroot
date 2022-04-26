@@ -62,7 +62,8 @@ class BmnMQSink : public FairSink
     virtual bool CreatePersistentBranchesAny();
 
     virtual void WriteObject(TObject*  f , const char* name, Int_t /* option = 0 */) {
-        printf("\t\t WriteObject %08X %s\n", f, name);}
+//        printf("\t\t WriteObject %08X %s\n", f, name);
+    }
     virtual void WriteGeometry() {printf("\t\tWriteGeometry\n"); }
 
     virtual FairSink* CloneSink();

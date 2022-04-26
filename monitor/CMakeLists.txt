@@ -14,6 +14,7 @@ Set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/base/header
  ${CMAKE_SOURCE_DIR}/base/math
  ${CMAKE_SOURCE_DIR}/base/cbm
+ ${CMAKE_SOURCE_DIR}/base/source
  ${CMAKE_SOURCE_DIR}/QA
  ${CMAKE_SOURCE_DIR}/QA/report
  ${CMAKE_SOURCE_DIR}/detectors/mwpc
@@ -21,6 +22,7 @@ Set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/detectors/dch
  ${CMAKE_SOURCE_DIR}/detectors/silicon
  ${CMAKE_SOURCE_DIR}/detectors/gem
+ ${CMAKE_SOURCE_DIR}/detectors/sts
  ${CMAKE_SOURCE_DIR}/detectors/tof1
  ${CMAKE_SOURCE_DIR}/detectors/tof
  ${CMAKE_SOURCE_DIR}/detectors/tofcal
@@ -32,6 +34,8 @@ Set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/detectors/land
  ${CMAKE_SOURCE_DIR}/alignment
  ${CMAKE_SOURCE_DIR}/decoder
+ ${CMAKE_SOURCE_DIR}/reconstruction/dst
+ ${CMAKE_SOURCE_DIR}/reconstruction/tof2
  ${CMAKE_SOURCE_DIR}/reconstruction/KF
  ${CMAKE_SOURCE_DIR}/reconstruction/KF/Interface
  ${CMAKE_SOURCE_DIR}/reconstruction/tracking

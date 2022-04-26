@@ -112,6 +112,8 @@ void BmnConverterManager::FillDataHeader()
   fhCalGeoMatrix->LocalToMaster(&frontFaceLocal[0], &frontFaceGlobal[0]);
 
   std::cout << "FHCal module positions:\n";
+  for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d){ psd_mod_pos.AddChannel(); }
+
   for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d) {
     auto* daughter = fhCalNode->GetDaughter(i_d);
     auto geoMatrix = daughter->GetMatrix();
@@ -123,10 +125,9 @@ void BmnConverterManager::FillDataHeader()
     translation.SetZ(frontFaceGlobal.Z());
     double z  = translation.Z();
 
-    auto* module = psd_mod_pos.AddChannel();
-    module->SetPosition(x, y, frontFaceGlobal[2]);
-
-    std::cout << Form("%i: (%.1f, %.1f, %.1f)", modID, x, y, z) << std::endl;
+    auto& module = psd_mod_pos.Channel( modID-1 );
+    module.SetPosition(x, y, frontFaceGlobal[2]);
+//    std::cout << Form("%i: (%.1f, %.1f, %.1f)", modID, x, y, z) << std::endl;
   }
 
   geoMan->GetListOfVolumes()->Delete();

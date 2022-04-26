@@ -25,8 +25,7 @@ void BmnFHCalModulesConverter::Init()
   assert(ioman != nullptr);
   in_fhcal_event_ = dynamic_cast<BmnFHCalEvent*>(ioman->GetObject("FHCalEvent"));
 
-  AnalysisTree::BranchConfig out_fhcal_branch_config_(out_branch_, AnalysisTree::DetType::kHit);
-  out_fhcal_branch_config_.AddField<int>("id", "ID of the module");
+  AnalysisTree::BranchConfig out_fhcal_branch_config_(out_branch_, AnalysisTree::DetType::kModule);
 
   auto* man = AnalysisTree::TaskManager::GetInstance();
   man->AddBranch(out_branch_, out_fhcal_branch_, out_fhcal_branch_config_);
@@ -44,23 +43,14 @@ void BmnFHCalModulesConverter::ProcessData()
   auto* config       = AnalysisTree::TaskManager::GetInstance()->GetConfig();
   const auto&out_branch_config = config->GetBranchConfig(out_branch_);
 
-  auto i_id = out_branch_config.GetFieldId("id");
-
   const int n_fhcal_modules = data_header->GetModulePositions(0).GetNumberOfChannels();
-  for (int idx = 1; idx <= n_fhcal_modules; ++idx) {
-    auto in_module = in_fhcal_event_->GetModule(idx);
+  for (int idx = 0; idx < n_fhcal_modules; ++idx) {
+    auto in_module = in_fhcal_event_->GetModule(idx+1);
     auto energy = in_module->GetEnergy();
 
-    if( energy < std::numeric_limits<float>::min() )
-      continue;
-
-    auto x = in_module->GetX();
-    auto y = in_module->GetY();
-
     auto&out_module = out_fhcal_branch_->AddChannel(out_branch_config);
-    out_module.SetField( int(idx), i_id );
     out_module.SetSignal(energy);
-    out_module.SetPosition(x, y, 900); // FIXME: hardcoded z position of FHCal
+    out_module.SetNumber(idx);
   }
 }
 

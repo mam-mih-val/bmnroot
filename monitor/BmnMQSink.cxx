@@ -185,8 +185,8 @@ bool BmnMQSink::CreatePersistentBranchesAny() {
 void BmnMQSink::EmitPersistentBranchWrongTypeWarning(const char* brname,
         const char* type1,
         const char* type2) const {
-    LOG(warn) << "Trying to read from persistent branch " << brname << " with wrong type " << type1
-            << " (expexted: " << type2 << " )";
+    //LOG(warn) << "Trying to read from persistent branch " << brname << " with wrong type " << type1
+    //        << " (expexted: " << type2 << " )";
 }
 
 void BmnMQSink::Fill() {

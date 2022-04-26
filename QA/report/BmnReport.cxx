@@ -16,6 +16,9 @@ fReportTitle("QA report"),
 fOutputDir("./"),
 fR(NULL),
 fOut(NULL),
+fMonitorMode(kFALSE),
+fServer(nullptr),
+fInitCanvasesDone(kFALSE),
 fCanvases() {
 }
 
@@ -36,17 +39,34 @@ void BmnReport::DeleteReportElement() {
 
 void BmnReport::CreateReports() {
     Draw(); // User has to implement this function!
-    SaveCanvasesAsImages();
-    WriteCanvases();
+    if (!fMonitorMode) {
+        SaveCanvasesAsImages();
+        WriteCanvases();
 
-    CreateReportElement();
-    Create(); // User has to implement this function!
-    DeleteReportElement();
+        CreateReportElement();
+        Create(); // User has to implement this function!
+        DeleteReportElement();
+    }
 }
 
+/**
+ * @brief Create or just find already created
+ * @param name
+ * @param title
+ * @param ww
+ * @param wh
+ * @return 
+ */
 TCanvas* BmnReport::CreateCanvas(const char* name, const char* title, Int_t ww, Int_t wh) {
-    TCanvas* canvas = new TCanvas(name, title, ww, wh);
+    TCanvas* canvas = nullptr;
+    string sname(name);
+    auto it = fCanvasMap.find(sname);
+    if (it == fCanvasMap.end()){
+    canvas = new TCanvas(name, title, ww, wh);
     fCanvases.push_back(canvas);
+    fCanvasMap.insert(make_pair(sname, canvas));
+    } else
+        canvas = it->second;
     return canvas;
 }
 
@@ -75,6 +95,13 @@ void BmnReport::PrintCanvases() const {
     for (Int_t i = 0; i < nofCanvases; i++) {
         TCanvas* canvas = fCanvases[i];
         Out() << R()->Image(canvas->GetName(), canvas->GetName());
+    }
+}
+
+void BmnReport::Register(string path){
+    for (auto  can : fCanvases){
+//        printf("reg %s\n", can->GetName());
+        fServer->Register(path.c_str(), can);
     }
 }
 

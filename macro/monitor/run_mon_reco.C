@@ -1,0 +1,76 @@
+
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+        
+void run_mon_reco(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
+        TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
+        Int_t nStartEvent = 0, Int_t nEvents = 10)
+{
+    gDebug = 0; // Debug option
+    // Verbosity level (0 = quiet (progress bar), 1 = event-level, 2 = track-level, 3 = full debug)
+    Int_t iVerbose = 0;
+    Int_t period = 7;
+    Bool_t isPrimary = kFALSE;
+    TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
+    TString gPathGemConfig = gPathConfig + "/parameters/gem/XMLConfigs/";
+    TString gPathSilConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
+    TString gPathCscConfig = gPathConfig + "/parameters/csc/XMLConfigs/";
+    TString confGem = gPathGemConfig + ((period == 8) ? "GemRun8.xml" : (period == 7) ? "GemRunSpring2018.xml" : (period == 6) ? "GemRunSpring2017.xml" : "GemRunSpring2017.xml");
+    TString confSil = gPathSilConfig + ((period == 8) ? "SiliconRun8_3stations.xml" : (period == 7) ? "SiliconRunSpring2018.xml" : (period == 6) ? "SiliconRunSpring2017.xml" : "SiliconRunSpring2017.xml");
+    TString confCSC = gPathCscConfig + ((period == 8) ? "CSCRun8.xml" : "");
+    
+    // -----   Timer   ---------------------------------------------------------
+    TStopwatch timer;
+    timer.Start();
+
+    // check input file exists
+    if (!BmnFunctionSet::CheckFileExist(inputFileName, 1)) exit(-1);
+
+    // -----   Reconstruction run   --------------------------------------------
+//    FairRunAna* fRunAna = new FairRunAna();
+    FairRunOnline* fRunAna = new FairRunOnline();
+//    fRunAna->SetEventHeader(new DstEventHeader());
+
+    // Declare input source as simulation file or experimental data
+    FairSource* fFileSource= new BmnMQSource("tcp://localhost:6666", kTRUE);
+    fRunAna->SetSource(fFileSource);
+
+    // if directory for the output file does not exist, then create
+    if (BmnFunctionSet::CreateDirectoryTree(bmndstFileName, 1) < 0) exit(-2);
+    fRunAna->SetSink(new FairRootFileSink(bmndstFileName));
+//    fRunAna->SetSink(new BmnMQSink());
+//    fRunAna->SetGenerateRunInfo(false);
+    
+//    BmnQaOffline* qaSystem = new BmnQaOffline("");
+//    fRunAna->AddTask(qaSystem);
+    
+    BmnTrackingQaExp* trQaAll = new BmnTrackingQaExp(0, "tracking_qa", confGem, confSil, confCSC);
+    trQaAll->SetDetectorPresence(kSILICON, kTRUE);
+    trQaAll->SetDetectorPresence(kSSD, kFALSE);
+    trQaAll->SetDetectorPresence(kGEM, kTRUE);
+    trQaAll->SetOnlyPrimes(isPrimary);
+    trQaAll->SetMonitorMode(kTRUE);
+    THttpServer* fServer = new THttpServer("http:8080;noglobal;cors");
+    fServer->SetTimer(50, kTRUE);
+    trQaAll->SetObjServer(fServer);
+    //trQaAll->SetInnerTracksBranchName("StsTrack");
+    trQaAll->SetInnerTracksBranchName("StsVector");
+    fRunAna->AddTask(trQaAll);
+    // -------------------------------------------------------------------------
+    // -----   Initialize and run   --------------------------------------------
+    fRunAna->GetMainTask()->SetVerbose(iVerbose);
+    fRunAna->Init();
+    cout << "Starting run" << endl;
+    fRunAna->Run(-1, -1);
+    // -------------------------------------------------------------------------
+    // -----   Finish   --------------------------------------------------------
+    timer.Stop();
+    Double_t rtime = timer.RealTime();
+    Double_t ctime = timer.CpuTime();
+    cout << endl << endl;
+    cout << "Macro finished successfully." << endl; // marker of successful execution for CDASH
+    cout << "Input  file is " + inputFileName << endl;
+    cout << "Output file is " + bmndstFileName << endl;
+    cout << "Real time " << rtime << " s, CPU time " << ctime << " s" << endl;
+    cout << endl;
+    // ------------------------------------------------------------------------
+}

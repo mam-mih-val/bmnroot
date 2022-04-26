@@ -48,4 +48,25 @@ DstEventHeader::DstEventHeader(UInt_t run_id, UInt_t event_id, TTimeStamp event_
 // -----   Destructor   ----------------------------------------------------
 DstEventHeader::~DstEventHeader() {}
 
+void DstEventHeader::CopyFrom(DstEventHeader * hdr) {
+    fHeaderName = hdr->fHeaderName;
+    fEventId = hdr->fEventId;
+    fEventTimeTS = hdr->fEventTimeTS;
+    fTriggerType = hdr->fTriggerType;
+    fB = hdr->fB;
+    fZ2in = hdr->fZ2in;
+    fZ2out = hdr->fZ2out;
+    fADCin = hdr->fADCin;
+    fADCout = hdr->fADCout;
+    fZ1 = hdr->fZ1;
+    fZ2 = hdr->fZ2;
+    fZ3 = hdr->fZ3;
+    fZ4 = hdr->fZ4;
+    fADC1 = hdr->fADC1;
+    fADC2 = hdr->fADC2;
+    fADC3 = hdr->fADC3;
+    fADC4 = hdr->fADC4;
+    fZin = hdr->fZin;
+}
+
 ClassImp(DstEventHeader)

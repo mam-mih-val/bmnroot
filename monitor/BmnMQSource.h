@@ -1,5 +1,5 @@
-#ifndef BMNDECOSOURCE_H
-#define BMNDECOSOURCE_H
+#ifndef BMNMQSOURCE_H
+#define BMNMQSOURCE_H
 
 #include <iostream>
 #include <string>
@@ -18,19 +18,18 @@
 #include "FairRunAna.h"
 // BmnRoot
 #include "BmnEnums.h"
-#include "DigiArrays.h"
+#include "BmnParts.h"
+#include "DstEventHeader.h"
 #include "BmnEventHeader.h"
 //#include "BmnTof1Digit.h"
 //#include "BmnTof2Digit.h"
 //#include "BmnGemStripDigit.h"
 //#include "BmnSiliconDigit.h"
 
-using namespace std;
-
-class BmnDecoSource : public FairOnlineSource {
+class BmnMQSource : public FairOnlineSource {
 public:
-    BmnDecoSource(TString addr = "localhost");
-    virtual ~BmnDecoSource();
+    BmnMQSource(std::string addr = "tcp://localhost:6666", Bool_t toFile = kFALSE);
+    virtual ~BmnMQSource();
     
     Bool_t Init();
     Int_t ReadEvent(UInt_t i=0);
@@ -45,16 +44,19 @@ private:
         TString name(Form("bmn_run%d_dst.root", runId));
         return name;
     }
+    Bool_t InitZMQ();
     FairRunAna *fRunInst;
     zmq_msg_t _msg;
-    TBufferFile *_tBuf;//= TBufferFile((TBuffer::EMode)0);// = TBufferFile(TBuffer::kRead);
+    TBufferFile *_tBuf;
     void * _ctx;
     void * _decoSocket;
-    TString _addrString;
-    DigiArrays *fDigiArrays;
+    std::string _addrString;
+    std::vector<TNamed*> fNamVec;
+    std::vector<TClonesArray*> fArrVec;
     
     Bool_t fFirstEvent;
-    string fT0BranchName;
+    Bool_t fToFile;
+    std::string fT0BranchName;
     
     Int_t fRunId;
     Int_t fPeriodId;
@@ -68,7 +70,7 @@ private:
     TClonesArray* fTof400Digits;
     TClonesArray* fTof700Digits;
     TClonesArray* fT0Digits;
-    ClassDef(BmnDecoSource, 1);
+    ClassDef(BmnMQSource, 1);
 };
 
-#endif /* BMNDECOSOURCE_H */
+#endif /* BMNMQSOURCE_H */

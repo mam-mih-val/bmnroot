@@ -174,7 +174,6 @@ void BmnDecoSource::FillEventHeader(FairEventHeader* feh) {
 
     ////    printf("fDigiArrays->header->GetEntriesFast() = %d\n", fEventHeader->GetEntriesFast());
     if (feh) {
-        feh->SetRunId(feh->GetRunId());
 
         Int_t prevRunId = fRunId;
         fRunId = feh->GetRunId();

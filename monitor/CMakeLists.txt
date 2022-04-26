@@ -64,7 +64,7 @@ Set(SRCS
 BmnMonitor.cxx
 BmnDataReceiver.cxx
 BmnOnlineDecoder.cxx
-#BmnOnlineReco.cxx
+BmnOnlineReco.cxx
 BmnHist.cxx
 BmnHistGem.cxx
 BmnHistCsc.cxx
@@ -83,10 +83,11 @@ BmnHistTofCal.cxx
 PadInfo.cxx
 BmnPadBranch.cxx
 BmnPadGenerator.cxx
-#BmnMQRecoTaskProcessor.cxx
-#BmnMQFileSaver.cxx
-# BmnMQSink.cxx
-# BmnMQRunDevice.cxx
+BmnMQRecoTaskProcessor.cxx
+BmnMQFileSaver.cxx
+ BmnMQSource.cxx
+ BmnMQSink.cxx
+ BmnMQRunDevice.cxx
 )
 
 Set(HEADERS)

@@ -61,6 +61,9 @@ public:
             const string& fileName,
             const string& outputDir);
 
+    void SetHM(BmnHistManager *hm) {
+        fHM = hm;
+    }
     /**
      * \brief Return pointer to Histogram manager.
      */

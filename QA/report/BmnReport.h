@@ -13,6 +13,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
+#include <root/THttpServer.h>
 
 using namespace std;
 
@@ -46,16 +48,23 @@ public:
     * \brief All text output goes to this stream.
     */
    ostream& Out() const { return *fOut; }
+   
+   void Register(string path);
+   void CallDraw(){ Draw();}
 
    /* Setters */
    void SetReportName(TString name) { fReportName = name.Data(); }
    void SetReportTitle(const string& title) { fReportTitle = title; }
    void SetOutputDir(const string& outputDir) { fOutputDir = outputDir; }
+   void SetMonitorMode(const Bool_t mm) { fMonitorMode = mm; }
+   void SetObjServer(THttpServer * s) { fServer = s; }
 
    /* Accessors */
    const string& GetReportName() const { return fReportName; }
    const string& GetReportTitle() const { return fReportTitle; }
    const string& GetOutputDir() const { return fOutputDir; }
+   Bool_t GetMonitorMode() const { return fMonitorMode; }
+   THttpServer * GetObjServer() const { return fServer; }
 
 protected:
    /**
@@ -102,6 +111,11 @@ protected:
     * \brief Print images created from canvases in the report.
     */
    void PrintCanvases() const;
+   
+   
+    THttpServer * fServer;
+   Bool_t fMonitorMode;
+   Bool_t fInitCanvasesDone;
 
 private:
    /**
@@ -125,6 +139,7 @@ private:
    // to image and printed in the report.
    // User can use CreateCanvas function which automatically push created canvas in this vector.
    vector<TCanvas*> fCanvases;
+   map <string, TCanvas*> fCanvasMap;
 
 //private:
 

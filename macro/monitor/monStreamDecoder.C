@@ -1,7 +1,7 @@
 R__LOAD_LIBRARY(libFairMQ)
 void monStreamDecoder(TString addr = "bmn-daq.he.jinr.ru:32999",
-        Int_t periodID = 8,
-        BmnSetup bmnSetup = kSRCSETUP) {
+        Int_t periodID = 7,
+        BmnSetup bmnSetup = kBMNSETUP) {
     
     BmnOnlineDecoder *deco = new BmnOnlineDecoder();
     deco->SetPeriodID(periodID);

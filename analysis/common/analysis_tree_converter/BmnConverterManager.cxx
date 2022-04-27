@@ -134,7 +134,7 @@ void BmnConverterManager::FillDataHeader()
       ext_module.SetPosition(x - 57.5, y, frontFaceGlobal[2]);
     }
     if( 43 < modID && modID < 54 ){
-      auto rel_id = 54 + ( modID - 44 );
+      auto rel_id = 54 + ( modID - 34 );
       auto& ext_module = psd_mod_pos.Channel( rel_id );
       ext_module.SetPosition(x + 57.5, y, frontFaceGlobal[2]);
     }

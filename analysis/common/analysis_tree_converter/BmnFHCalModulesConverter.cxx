@@ -48,7 +48,7 @@ void BmnFHCalModulesConverter::ProcessData()
   for( int i=0; i<n_fhcal_modules; ++i ){
     auto& out_module = out_fhcal_branch_->AddChannel(out_branch_config);
   }
-  for (int idx = 0; idx < n_fhcal_modules; ++idx) {
+  for (int idx = 0; idx < 54; ++idx) {
     auto in_module = in_fhcal_event_->GetModule(idx+1);
     auto energy = in_module->GetEnergy();
 

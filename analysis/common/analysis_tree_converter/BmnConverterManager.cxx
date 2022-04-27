@@ -113,21 +113,31 @@ void BmnConverterManager::FillDataHeader()
 
   std::cout << "FHCal module positions:\n";
   for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d){ psd_mod_pos.AddChannel(); }
+  for (int i_d = 35; i_d < 54; ++i_d){ psd_mod_pos.AddChannel(); }
 
   for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d) {
     auto* daughter = fhCalNode->GetDaughter(i_d);
     auto geoMatrix = daughter->GetMatrix();
     TVector3 translation(geoMatrix->GetTranslation());
 
-    int modID = daughter->GetNumber();
+    int modID = daughter->GetNumber() - 1;
     double x  = translation.X();
     double y  = translation.Y();
     translation.SetZ(frontFaceGlobal.Z());
     double z  = translation.Z();
 
-    auto& module = psd_mod_pos.Channel( modID-1 );
+    auto& module = psd_mod_pos.Channel( modID );
     module.SetPosition(x, y, frontFaceGlobal[2]);
-//    std::cout << Form("%i: (%.1f, %.1f, %.1f)", modID, x, y, z) << std::endl;
+    if( 33 < modID && modID < 44 ){
+      auto rel_id = 54 + ( modID - 34 );
+      auto& ext_module = psd_mod_pos.Channel( rel_id );
+      ext_module.SetPosition(x - 57.5, y, frontFaceGlobal[2]);
+    }
+    if( 43 < modID && modID < 54 ){
+      auto rel_id = 54 + ( modID - 44 );
+      auto& ext_module = psd_mod_pos.Channel( rel_id );
+      ext_module.SetPosition(x + 57.5, y, frontFaceGlobal[2]);
+    }
   }
 
   geoMan->GetListOfVolumes()->Delete();

@@ -62,7 +62,7 @@ void BmnFHCalModulesConverter::ProcessData()
       ext_module.SetSignal( energy );
     }
     if( 43 < idx && idx < 54 ){
-      auto rel_id = 54 + ( idx - 44 );
+      auto rel_id = 54 + ( idx - 34 );
       auto& ext_module = out_fhcal_branch_->Channel( rel_id );
       ext_module.SetSignal( energy );
     }

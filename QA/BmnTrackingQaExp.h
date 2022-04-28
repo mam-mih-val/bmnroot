@@ -10,6 +10,9 @@
 #ifndef BMNTRACKINGQAEXP_H_
 #define BMNTRACKINGQAEXP_H_
 
+#include <time.h>
+#include <chrono>
+
 #include "FairTask.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnSiliconStationSet.h"
@@ -259,6 +262,11 @@ private:
     Short_t fChargeCut; //(-1, 0, +1) do QA for negative, all or positive particles
     
     Int_t fEventNo;  // event counter
+    
+   const Int_t fNItersToUpdate = 10;
+   const chrono::seconds fTimeToUpdate = 5s; //<-redraw each timeout seconds
+   Int_t fNItersSinceUpdate;
+   chrono::time_point<chrono::system_clock> fTicksLastUpdate;
 
     BmnTrackingQaExp(const BmnTrackingQaExp&) = delete;
     BmnTrackingQaExp& operator=(const BmnTrackingQaExp&) = delete;

@@ -1,6 +1,8 @@
 
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
         
+#define L1Tracking // Choose Tracking: L1, VF or CellAuto
+        
 void run_mon_reco(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0, Int_t nEvents = 10)
@@ -31,8 +33,9 @@ void run_mon_reco(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
 //    fRunAna->SetEventHeader(new DstEventHeader());
 
     // Declare input source as simulation file or experimental data
-    FairSource* fFileSource= new BmnMQSource("tcp://localhost:6666", kTRUE);
-    fRunAna->SetSource(fFileSource);
+    BmnMQSource* fMqSource= new BmnMQSource("tcp://localhost:6666", kTRUE);
+//    BmnFileSource* fFileSource = new BmnFileSource("/ncx/eos/nica/bmn/exp/dst/run7/prerelease/3590-4707_BMN_Argon/bmn_run4649_dst.root");
+    fRunAna->SetSource(fMqSource);
 
     // if directory for the output file does not exist, then create
     if (BmnFunctionSet::CreateDirectoryTree(bmndstFileName, 1) < 0) exit(-2);
@@ -49,11 +52,17 @@ void run_mon_reco(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     trQaAll->SetDetectorPresence(kGEM, kTRUE);
     trQaAll->SetOnlyPrimes(isPrimary);
     trQaAll->SetMonitorMode(kTRUE);
-    THttpServer* fServer = new THttpServer("http:8080;noglobal;cors");
+    THttpServer* fServer = new THttpServer("http:8081;noglobal;cors");
     fServer->SetTimer(50, kTRUE);
     trQaAll->SetObjServer(fServer);
-    //trQaAll->SetInnerTracksBranchName("StsTrack");
-    trQaAll->SetInnerTracksBranchName("StsVector");
+    fMqSource->SetObjServer(fServer);
+    TString innerTrackBranchName; //use different track container
+#ifdef L1Tracking
+    innerTrackBranchName = "StsTrack";
+#else
+    innerTrackBranchName = "StsVector";
+#endif
+    trQaAll->SetInnerTracksBranchName(innerTrackBranchName);
     fRunAna->AddTask(trQaAll);
     // -------------------------------------------------------------------------
     // -----   Initialize and run   --------------------------------------------

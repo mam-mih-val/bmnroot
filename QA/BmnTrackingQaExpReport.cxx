@@ -88,7 +88,6 @@ string BmnTrackingQaExpReport::PrintEventInfo() {
 }
 
 void BmnTrackingQaExpReport::Draw() {
-    printf("%s\n", __func__);
     gStyle->SetPalette(77);
     //	drawHist = new BmnDrawOnline("RECREATE");
     DrawEventsInfo(fPrefix + "Impact parameter and multiplicity");
@@ -116,49 +115,49 @@ void BmnTrackingQaExpReport::Draw() {
 
     //DrawNhitsGem(fPrefix + "Distribution of RECO-tracks vs number of hits per track");
 
-    DrawTwoH2(fPrefix + "Distribution of tracks over number of hits and Pseudorapidity", "Nh_sim_Eta_sim", "Nh_rec_Eta_rec", 2 * baseW, baseH);
-    DrawTwoH2(fPrefix + "Distribution of tracks over number of hits and Momentum", "Nh_sim_P_sim", "Nh_rec_P_rec", 2 * baseW, baseH);
-    DrawTwoH2(fPrefix + "Distribution of tracks over number of hits and Theta", "Nh_sim_Theta_sim", "Nh_rec_Theta_rec", 2 * baseW, baseH);
-    DrawTwoH2(fPrefix + "Distribution of tracks over Pseudorapidity and Momentum", "EtaP_sim", "EtaP_rec", 2 * baseW, baseH);
+//    DrawTwoH2(fPrefix + "Distribution of tracks over number of hits and Pseudorapidity", "Nh_sim_Eta_sim", "Nh_rec_Eta_rec", 2 * baseW, baseH);
+//    DrawTwoH2(fPrefix + "Distribution of tracks over number of hits and Momentum", "Nh_sim_P_sim", "Nh_rec_P_rec", 2 * baseW, baseH);
+//    DrawTwoH2(fPrefix + "Distribution of tracks over number of hits and Theta", "Nh_sim_Theta_sim", "Nh_rec_Theta_rec", 2 * baseW, baseH);
+//    DrawTwoH2(fPrefix + "Distribution of tracks over Pseudorapidity and Momentum", "EtaP_sim", "EtaP_rec", 2 * baseW, baseH);
 
-    for (Int_t i = 1; i < HM()->H2("EtaP_sim")->GetXaxis()->GetNbins(); ++i) {
-        for (Int_t j = 1; j < HM()->H2("EtaP_sim")->GetYaxis()->GetNbins(); ++j) {
-            Float_t nom = HM()->H2("EtaP_rec")->GetBinContent(i, j);
-            Float_t denom = HM()->H2("EtaP_sim")->GetBinContent(i, j);
-            Float_t content = (denom < 0.001) ? 0.0 : nom / denom * 100.0;
-            if (content > 100.0) content = 100.0;
-            HM()->H2("Eff_vs_EtaP")->SetBinContent(i, j, content);
-        }
-    }
-    for (Int_t i = 1; i < HM()->H2("EtaP_rec")->GetXaxis()->GetNbins(); ++i) {
-        for (Int_t j = 1; j < HM()->H2("EtaP_rec")->GetYaxis()->GetNbins(); ++j) {
-            Float_t nom = HM()->H2("Clones_vs_EtaP")->GetBinContent(i, j);
-            Float_t denom = HM()->H2("EtaP_rec")->GetBinContent(i, j);
-            Float_t content = (denom < 0.001) ? 0.0 : nom / denom * 100.0;
-            if (content > 100.0) content = 100.0;
-            HM()->H2("Clones_vs_EtaP")->SetBinContent(i, j, content);
-        }
-    }
-    for (Int_t i = 1; i < HM()->H2("EtaP_rec")->GetXaxis()->GetNbins(); ++i) {
-        for (Int_t j = 1; j < HM()->H2("EtaP_rec")->GetYaxis()->GetNbins(); ++j) {
-            Float_t nom = HM()->H2("Fakes_vs_EtaP")->GetBinContent(i, j);
-            Float_t denom = HM()->H2("EtaP_rec")->GetBinContent(i, j);
-            Float_t content = (denom < 0.001) ? 0.0 : nom / denom * 100.0;
-            if (content > 100.0) content = 100.0;
-            HM()->H2("Fakes_vs_EtaP")->SetBinContent(i, j, content);
-        }
-    }
+//    for (Int_t i = 1; i < HM()->H2("EtaP_sim")->GetXaxis()->GetNbins(); ++i) {
+//        for (Int_t j = 1; j < HM()->H2("EtaP_sim")->GetYaxis()->GetNbins(); ++j) {
+//            Float_t nom = HM()->H2("EtaP_rec")->GetBinContent(i, j);
+//            Float_t denom = HM()->H2("EtaP_sim")->GetBinContent(i, j);
+//            Float_t content = (denom < 0.001) ? 0.0 : nom / denom * 100.0;
+//            if (content > 100.0) content = 100.0;
+//            HM()->H2("Eff_vs_EtaP")->SetBinContent(i, j, content);
+//        }
+//    }
+//    for (Int_t i = 1; i < HM()->H2("EtaP_rec")->GetXaxis()->GetNbins(); ++i) {
+//        for (Int_t j = 1; j < HM()->H2("EtaP_rec")->GetYaxis()->GetNbins(); ++j) {
+//            Float_t nom = HM()->H2("Clones_vs_EtaP")->GetBinContent(i, j);
+//            Float_t denom = HM()->H2("EtaP_rec")->GetBinContent(i, j);
+//            Float_t content = (denom < 0.001) ? 0.0 : nom / denom * 100.0;
+//            if (content > 100.0) content = 100.0;
+//            HM()->H2("Clones_vs_EtaP")->SetBinContent(i, j, content);
+//        }
+//    }
+//    for (Int_t i = 1; i < HM()->H2("EtaP_rec")->GetXaxis()->GetNbins(); ++i) {
+//        for (Int_t j = 1; j < HM()->H2("EtaP_rec")->GetYaxis()->GetNbins(); ++j) {
+//            Float_t nom = HM()->H2("Fakes_vs_EtaP")->GetBinContent(i, j);
+//            Float_t denom = HM()->H2("EtaP_rec")->GetBinContent(i, j);
+//            Float_t content = (denom < 0.001) ? 0.0 : nom / denom * 100.0;
+//            if (content > 100.0) content = 100.0;
+//            HM()->H2("Fakes_vs_EtaP")->SetBinContent(i, j, content);
+//        }
+//    }
 
     DrawThreeH2(fPrefix + "Distribution of Efficiency, Ghosts and Clones over Pseudorapidity and Momentum", "Eff_vs_EtaP", "Clones_vs_EtaP", "Fakes_vs_EtaP");
-    DrawOneH2(fPrefix + "Correlation between number of points in MC-track and number of hits in Reco-track", "Nh_rec_Nh_sim");
+//    DrawOneH2(fPrefix + "Correlation between number of points in MC-track and number of hits in Reco-track", "Nh_rec_Nh_sim");
     DrawTwoH2(fPrefix + "Distribution of tracks over Theta and Momentum", "ThetaP_sim", "ThetaP_rec", 2 * baseW, baseH);
-    DrawTwoH2(fPrefix + "P_reco vs P_mc", "P_rec_P_sim", "Pt_rec_Pt_sim", 2 * baseW, baseH);
-    DrawOneH2(fPrefix + "Pseudorapidity_reco vs Pseudorapidity_mc", "Eta_rec_Eta_sim");
+//    DrawTwoH2(fPrefix + "P_reco vs P_mc", "P_rec_P_sim", "Pt_rec_Pt_sim", 2 * baseW, baseH);
+//    DrawOneH2(fPrefix + "Pseudorapidity_reco vs Pseudorapidity_mc", "Eta_rec_Eta_sim");
     DrawMomResGem(fPrefix + "Eta resolution", "EtaRes_2D", "EtaRes_1D", "EtaMean_1D", "EtaRes_Mean");
-    DrawTwoH2(fPrefix + "Tx_reco vs Tx_mc (left) and Ty_reco vs Ty_mc (right) for GLOB", "Tx_rec_Tx_sim", "Ty_rec_Ty_sim", 2 * baseW, baseH);
+//    DrawTwoH2(fPrefix + "Tx_reco vs Tx_mc (left) and Ty_reco vs Ty_mc (right) for GLOB", "Tx_rec_Tx_sim", "Ty_rec_Ty_sim", 2 * baseW, baseH);
     DrawMomResGem(fPrefix + "Tx resolution", "TxRes_2D", "TxRes_1D", "TxMean_1D", "TxRes_Mean");
     DrawMomResGem(fPrefix + "Ty resolution", "TyRes_2D", "TyRes_1D", "TyMean_1D", "TyRes_Mean");
-    DrawThreeH2(fPrefix + "Reco vs MC for X-, Y- and Z-component of Momentum", "Px_rec_Px_sim", "Py_rec_Py_sim", "Pz_rec_Pz_sim");
+//    DrawThreeH2(fPrefix + "Reco vs MC for X-, Y- and Z-component of Momentum", "Px_rec_Px_sim", "Py_rec_Py_sim", "Pz_rec_Pz_sim");
     DrawMomResGem(fPrefix + "Momentum resolution", "momRes_2D", "momRes_1D", "momMean_1D", "momRes_Mean");
     DrawMomResGem(fPrefix + "Px resolution", "PxRes_2D", "PxRes_1D", "PxMean_1D", "PxRes_Mean");
     DrawMomResGem(fPrefix + "Py resolution", "PyRes_2D", "PyRes_1D", "PyMean_1D", "PyRes_Mean");
@@ -179,6 +178,7 @@ void BmnTrackingQaExpReport::Draw() {
     DrawThreeH2(fPrefix + "Vertex vs number of tracks in event", "VertX_vs_Ntracks", "VertY_vs_Ntracks", "VertZ_vs_Ntracks");
     DrawVertResGem(fPrefix + "Vertex resolution", "VertResX", "VertResY", "VertResZ");
     DrawThreeH1(fPrefix + "Vertex distribution for X and Y directions", "VertX", "VertY", "VertZ");
+    DrawOneH2(fPrefix + "Vertex profile", "VertXY");
 
     TString multNamesIn[5] = {"Sim_vs_mult", "Rec_vs_mult", "Well_vs_mult", "Ghost_vs_mult", "Split_vs_mult"};
     TString multNamesOut[3] = {"Eff_vs_mult", "Fake_vs_mult", "SplitEff_vs_mult"};
@@ -262,6 +262,7 @@ void BmnTrackingQaExpReport::DrawEffGem(const TString canvasName, TString* inNam
     canvas->Divide(2, 1);
     }
     canvas->cd(1);
+    if (!fInitCanvasesDone) {
     HM()->H1(sim)->Sumw2();
     //        HM()->H1(sim)->Scale(1. / nofEvents);
     HM()->H1(rec)->Sumw2();
@@ -277,6 +278,7 @@ void BmnTrackingQaExpReport::DrawEffGem(const TString canvasName, TString* inNam
     HM()->H1(well)->SetMinimum(0.0);
     HM()->H1(ghost)->SetMinimum(0.0);
     HM()->H1(split)->SetMinimum(0.0);
+    }
 
     //Debugging
     // printf("NAME = %s\n", HM()->H1(sim)->GetName());
@@ -360,9 +362,11 @@ void BmnTrackingQaExpReport::DrawNhitsGem(const TString canvasName) {
     canvas->SetGrid();
     }
     canvas->cd();
+    if (!fInitCanvasesDone) {
     HM()->H1("Well_vs_Nh")->Sumw2();
+        HM()->H1("Ghost_vs_Nh")->Sumw2();
+    }
     HM()->H1("Well_vs_Nh")->Scale(1. / nofEvents);
-    HM()->H1("Ghost_vs_Nh")->Sumw2();
     HM()->H1("Ghost_vs_Nh")->Scale(1. / nofEvents);
     vector<TH1*> histos1;
     histos1.push_back(HM()->H1("Well_vs_Nh"));

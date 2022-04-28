@@ -95,7 +95,8 @@ fGemTracks(nullptr),
 fEventNo(0),
 fStsHits(nullptr),
 fSilTracks(nullptr),
-fServer(nullptr) {
+fServer(nullptr),
+fNItersSinceUpdate(0) {
     fChargeCut = ch;
 }
 
@@ -124,9 +125,10 @@ InitStatus BmnTrackingQaExp::Init() {
         fReport->SetOnlyPrimes(fPrimes);
         fReport->SetMonitorMode(fMonitorMode);
         fReport->SetObjServer(fServer);
+        fTicksLastUpdate = chrono::system_clock::now();
         fReport->CallDraw();
         fReport->Register("/");
-        fServer->SetTimer(50, kFALSE);
+        //        fServer->SetTimer(50, kFALSE);
     } else {
 
     }
@@ -146,10 +148,19 @@ void BmnTrackingQaExp::Exec(Option_t* opt) {
     ReadEventHeader();
     ProcessGlobal();
     if (fMonitorMode) {
+        fNItersSinceUpdate++;
         fServer->ProcessRequests();
+        chrono::time_point now = chrono::system_clock::now();
+        chrono::seconds time = chrono::duration_cast<chrono::seconds>(now - fTicksLastUpdate);
+        time_t tt = chrono::system_clock::to_time_t(now);
+        printf("\ntime %s\n", ctime(&tt));
+        if ((time > fTimeToUpdate) || (fNItersSinceUpdate > fNItersToUpdate)) {
         fReport->CallDraw();
-
+            printf("\n\nDraw! iters %d\n\n", fNItersSinceUpdate);
+            fTicksLastUpdate = now;
+            fNItersSinceUpdate = 0;
     }
+}
 }
 
 void BmnTrackingQaExp::Finish() {
@@ -410,6 +421,7 @@ void BmnTrackingQaExp::CreateHistograms() {
     CreateH1("VertX", "V_{x}, cm", "Counter", 300, -1.0, 1.0);
     CreateH1("VertY", "V_{y}, cm", "Counter", 300, -1.0, 1.0);
     CreateH1("VertZ", "V_{z}, cm", "Counter", 300, -2.0, +2.0);
+    CreateH2("VertXY", "V_{x}, cm", "V_{y}, cm", "", 100, -5.0, 5.0, 100, -5.0, 5.0);
     CreateH2("VertX_vs_Ntracks", "Number of tracks", "V_{x}, cm", "", 100, 0, 100, 300, -1.0, 1.0);
     CreateH2("VertY_vs_Ntracks", "Number of tracks", "V_{y}, cm", "", 100, 0, 100, 300, -1.0, 1.0);
     CreateH2("VertZ_vs_Ntracks", "Number of tracks", "V_{z}, cm", "", 100, 0, 100, 300, -2.0, +2.0);
@@ -574,6 +586,7 @@ void BmnTrackingQaExp::ProcessGlobal() {
             fHM->H1("VertX")->Fill(vrt->GetX());
             fHM->H1("VertY")->Fill(vrt->GetY());
             fHM->H1("VertZ")->Fill(vrt->GetZ());
+            fHM->H1("VertXY")->Fill(vrt->GetX(), vrt->GetY());
             fHM->H1("VertX_vs_Ntracks")->Fill(fGlobalTracks->GetEntriesFast(), vrt->GetX());
             fHM->H1("VertY_vs_Ntracks")->Fill(fGlobalTracks->GetEntriesFast(), vrt->GetY());
             fHM->H1("VertZ_vs_Ntracks")->Fill(fGlobalTracks->GetEntriesFast(), vrt->GetZ());
@@ -586,6 +599,7 @@ void BmnTrackingQaExp::ProcessGlobal() {
             fHM->H1("VertX")->Fill(fVertexL1->GetX());
             fHM->H1("VertY")->Fill(fVertexL1->GetY());
             fHM->H1("VertZ")->Fill(fVertexL1->GetZ());
+            fHM->H1("VertXY")->Fill(fVertexL1->GetX(), fVertexL1->GetY());
             fHM->H1("VertX_vs_Ntracks")->Fill(fGlobalTracks->GetEntriesFast(), fVertexL1->GetX());
             fHM->H1("VertY_vs_Ntracks")->Fill(fGlobalTracks->GetEntriesFast(), fVertexL1->GetY());
             fHM->H1("VertZ_vs_Ntracks")->Fill(fGlobalTracks->GetEntriesFast(), fVertexL1->GetZ());

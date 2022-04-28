@@ -10,6 +10,7 @@
 #include "TString.h"
 #include "TChain.h"
 #include <TBufferFile.h>
+#include <THttpServer.h>
 // FairRoot
 #include "FairRootManager.h"
 #include "FairRootFileSink.h"
@@ -38,6 +39,9 @@ public:
     void FillEventHeader(FairEventHeader* feh);
     FairRunAna * GetRunInstance(){ return fRunInst;}
     void SetRunInstance(FairRunAna * run){ fRunInst = run;}
+
+   void SetObjServer(THttpServer * s) { fServer = s; }
+   THttpServer * GetObjServer() const { return fServer; }
     
 private:
     TString GetDstNameFromRunId(Int_t runId) {
@@ -54,6 +58,8 @@ private:
     std::vector<TNamed*> fNamVec;
     std::vector<TClonesArray*> fArrVec;
     
+    THttpServer * fServer;
+    
     Bool_t fFirstEvent;
     Bool_t fToFile;
     std::string fT0BranchName;
@@ -64,12 +70,6 @@ private:
     Int_t iEventNumber;
     Int_t iT0BranchIndex;
     BmnEventHeader* fEventHeader;
-    TClonesArray* fGemDigits;
-    TClonesArray* fSilDigits;
-    TClonesArray* fCscDigits;
-    TClonesArray* fTof400Digits;
-    TClonesArray* fTof700Digits;
-    TClonesArray* fT0Digits;
     ClassDef(BmnMQSource, 1);
 };
 

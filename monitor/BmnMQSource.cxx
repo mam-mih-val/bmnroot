@@ -5,12 +5,7 @@ BmnMQSource::BmnMQSource(std::string addr, Bool_t toFile) :
 iEventNumber(0),
 _tBuf(nullptr),
 fEventHeader(nullptr),
-fGemDigits(nullptr),
-fSilDigits(nullptr),
-fCscDigits(nullptr),
-fT0Digits(nullptr),
-fTof400Digits(nullptr),
-fTof700Digits(nullptr) {
+fServer(nullptr) {
     _addrString = addr; //Form("tcp://%s:%d", addr.Data(), 6666);
     fRunId = 0;
     fPeriodId = 7;
@@ -33,7 +28,7 @@ Bool_t BmnMQSource::Init() {
         if (errno != EAGAIN)
             return kFALSE;
     } else {
-//        printf("Received frame_size = %d\n", frame_size);
+        //        printf("Received frame_size = %d\n", frame_size);
         BmnParts * parts = nullptr;
         _tBuf->Reset();
         _tBuf->SetBuffer(zmq_msg_data(&_msg), zmq_msg_size(&_msg));
@@ -45,14 +40,14 @@ Bool_t BmnMQSource::Init() {
         for (TClonesArray * ar : parts->GetArrays()) {
             TClonesArray * newAr = new TClonesArray(ar->GetClass());
             newAr->SetName(ar->GetName());
-//            printf("Register %30s  %30s\n", ar->GetName(), newAr->GetName());
+            //            printf("Register %30s  %30s\n", ar->GetName(), newAr->GetName());
             ioman->RegisterInputObject(newAr->GetName(), newAr);
             //            ioman->Register(newAr->GetName(), ".", newAr, fToFile);
             fArrVec.push_back(newAr);
         }
         for (TNamed * tn : parts->GetObjects()) {
-//            printf("Register %20s\n", tn->GetName());
-//            printf("ClassName %20s  Class_Name %20s  GetName %20s\n", tn->ClassName(), tn->Class_Name(), tn->GetName());
+            //            printf("Register %20s\n", tn->GetName());
+            //            printf("ClassName %20s  Class_Name %20s  GetName %20s\n", tn->ClassName(), tn->Class_Name(), tn->GetName());
             TClass * cl = tn->Class();
             TNamed* ob = static_cast<TNamed*> (tn->Clone()); // cl->New());
             ioman->RegisterInputObject(tn->GetName(), ob);
@@ -85,22 +80,26 @@ void BmnMQSource::Close() {
 }
 
 Int_t BmnMQSource::ReadEvent(UInt_t i) {
+    const Int_t TimeDelta = 20000; // sleep micro seconds
     printf("ReadEvent(%4u)\n", i);
     zmq_msg_init(&_msg);
     Int_t frame_size = 0;
     do {
-        frame_size = zmq_msg_recv(&_msg, _decoSocket, 0); // ZMQ_DONTWAIT
-//    printf("Received frame_size = %d  inside\n", frame_size);
+        if (fServer)
+            fServer->ProcessRequests();
+        frame_size = zmq_msg_recv(&_msg, _decoSocket, ZMQ_DONTWAIT); // ZMQ_DONTWAIT
+//            printf("Received frame_size = %d  inside\n", frame_size);
         if (frame_size == -1) {
-//            fprintf(stderr, "Receive error № %d #%s\n", errno, zmq_strerror(errno));
-            if ((errno == EAGAIN) || (errno == EINTR))
+            if ((errno == EAGAIN)/* || (errno == EINTR)*/){
+                usleep(TimeDelta);
                 continue;
-            else
+            }
+            else {
                 return 1;
+                fprintf(stderr, "Receive error № %d #%s\n", errno, zmq_strerror(errno));
+            }
         }
     } while (frame_size <= 0);
-    //else {
-//    printf("Received frame_size = %d\n", frame_size);
     BmnParts * parts = nullptr;
 
     _tBuf->Reset();
@@ -109,10 +108,6 @@ Int_t BmnMQSource::ReadEvent(UInt_t i) {
     //        cout << "TCA len : " << parts->GetArrays().size() << endl;
     //        cout << "Obj len : " << parts->GetObjects().size() << endl;
     //        cout << "Accepted: " << fDigiArrays->header->GetTrigInfo()->GetTrigAccepted() << endl;
-    //        cout << "Count of GEM digits: " << fDigiArrays->gem->GetEntriesFast() << endl;
-    //        cout << "Count of Sil digits: " << fDigiArrays->silicon->GetEntriesFast() << endl;
-    //        cout << "Count of TOF400 digits: " << fDigiArrays->tof400->GetEntriesFast() << endl;
-    //        cout << "Count of TOF700 digits: " << fDigiArrays->tof700->GetEntriesFast() << endl;
 
     // move result TClonesArray to registered TClonesArray
     for (UInt_t iAr = 0; iAr < fArrVec.size(); iAr++) {
@@ -131,8 +126,6 @@ Int_t BmnMQSource::ReadEvent(UInt_t i) {
     }
     _tBuf->DetachBuffer();
     zmq_msg_close(&_msg);
-    //    }
-
     return 0;
 }
 

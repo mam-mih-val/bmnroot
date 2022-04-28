@@ -199,9 +199,30 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
 
     //FHCal-Digitizer (for period >= 8)
     BmnFHCalDigitizer* fhcalDigit = new BmnFHCalDigitizer();
-    // fhcalDigit->SetScale(28.2e3);
-    // fhcalDigit->SetThreshold(0.);
+    fhcalDigit->SetGeV2MIP(0.005); // 5 MeV from 1 MIP in FHCal section
+    fhcalDigit->SetMIP2Pix(15); // 15 pix for 1 MIP in SiPM
+    fhcalDigit->SetScale(28.2e3); // scale to convert visible to full energy
+    fhcalDigit->SetMIPNoise(0.2); // electronic noise in MIP scale
+    fhcalDigit->SetThreshold(0.5*0.005*28.2e3); //0.5 MIP noise cut
     fRun->AddTask(fhcalDigit);
+
+    //ScWall-Digitizer
+    BmnScWallDigitizer * fScWallDigit = new BmnScWallDigitizer();
+    fScWallDigit->SetScale(1.);
+    fScWallDigit->SetThreshold(0.);
+    fScWallDigit->SetGeV2MIP(0.0021); // 2.1 MeV from 1 MIP in 1cm plastic
+    fScWallDigit->SetMIP2Pix(15); // 15 pix for 1 MIP in SiPM
+    fScWallDigit->SetMIPNoise(0.1); // electronic noise in MIP scale
+    fRun->AddTask(fScWallDigit);
+
+    //Hodo-Digitizer
+    BmnHodoDigitizer * fHodoDigit = new BmnHodoDigitizer();
+    fHodoDigit->SetScale(1.);
+    fHodoDigit->SetThreshold(0.);
+    fHodoDigit->SetGeV2MIP(0.00083); // 0.83 MeV from 1 MIP in 4mm plastic
+    fHodoDigit->SetMIP2Pix(15); // 15 pix for 1 MIP in SiPM
+    fHodoDigit->SetMIPNoise(0.1); // electronic noise in MIP scale
+    fRun->AddTask(fHodoDigit);
 
 
     // // ECAL-Digitizer (for period < 8)

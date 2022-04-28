@@ -31,6 +31,8 @@ set(SRCS
  BmnHodoContFact.cxx
  BmnHodoGeo.cxx
  BmnHodoGeoPar.cxx
+ BmnHodoDigit.cxx
+ BmnHodoDigitizer.cxx
 )
 
 Set(HEADERS)

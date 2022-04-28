@@ -11,5 +11,7 @@
 #pragma link C++ class  BmnHodoGeo+;
 #pragma link C++ class  BmnHodoGeoPar+;
 #pragma link C++ class  BmnHodoContFact+;
+#pragma link C++ class  BmnHodoDigit+;
+#pragma link C++ class  BmnHodoDigitizer+;
 
 #endif

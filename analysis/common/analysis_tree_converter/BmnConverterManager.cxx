@@ -113,7 +113,7 @@ void BmnConverterManager::FillDataHeader()
 
   std::cout << "FHCal module positions:\n";
   for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d){ psd_mod_pos.AddChannel(); }
-  for (int i_d = 35; i_d < 54; ++i_d){ psd_mod_pos.AddChannel(); }
+  for (int i_d = 34; i_d < 54; ++i_d){ psd_mod_pos.AddChannel(); }
 
   for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d) {
     auto* daughter = fhCalNode->GetDaughter(i_d);

@@ -109,7 +109,7 @@ void run_analysistree_qa(std::string filelist, std::string output_file, bool is_
 void FHCalModulesQA(QA::Task& task){
   task.AddH1({"E_{FHCal} in each module", {fhcal_modules, "signal"}, {250, 0, 2.5}});
   task.AddH2({"E_{FHCal}", {fhcal_modules, "signal"}, {250, 0, 2.5}},
-             {"module id", {fhcal_modules, "number"}, {55, 0, 55}});
+             {"module id", {fhcal_modules, "number"}, {75, 0, 75}});
   task.AddH2({"X (cm)", {fhcal_modules, "x"}, {QA::gNbins, -100, 100}},
              {"Y (cm)", {fhcal_modules, "y"}, {QA::gNbins, -100, 100}});
 

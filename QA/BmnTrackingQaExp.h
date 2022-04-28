@@ -264,7 +264,7 @@ private:
     Int_t fEventNo;  // event counter
     
    const Int_t fNItersToUpdate = 10;
-   const chrono::seconds fTimeToUpdate = 5; //<-redraw each timeout seconds
+   const chrono::seconds fTimeToUpdate = chrono::seconds(5); //<-redraw each timeout seconds
    Int_t fNItersSinceUpdate;
    chrono::time_point<chrono::system_clock> fTicksLastUpdate;
 

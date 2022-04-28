@@ -150,7 +150,7 @@ void BmnTrackingQaExp::Exec(Option_t* opt) {
     if (fMonitorMode) {
         fNItersSinceUpdate++;
         fServer->ProcessRequests();
-        chrono::time_point now = chrono::system_clock::now();
+        chrono::time_point<chrono::system_clock> now = chrono::system_clock::now();
         chrono::seconds time = chrono::duration_cast<chrono::seconds>(now - fTicksLastUpdate);
         time_t tt = chrono::system_clock::to_time_t(now);
         printf("\ntime %s\n", ctime(&tt));

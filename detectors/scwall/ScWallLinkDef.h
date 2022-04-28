@@ -11,5 +11,7 @@
 #pragma link C++ class  BmnScWallGeo+;
 #pragma link C++ class  BmnScWallGeoPar+;
 #pragma link C++ class  BmnScWallContFact+;
+#pragma link C++ class  BmnScWallDigit+;
+#pragma link C++ class  BmnScWallDigitizer+;
 
 #endif

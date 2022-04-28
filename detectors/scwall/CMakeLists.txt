@@ -31,6 +31,8 @@ set(SRCS
  BmnScWallContFact.cxx
  BmnScWallGeo.cxx
  BmnScWallGeoPar.cxx
+ BmnScWallDigit.cxx
+ BmnScWallDigitizer.cxx
 )
 
 Set(HEADERS)

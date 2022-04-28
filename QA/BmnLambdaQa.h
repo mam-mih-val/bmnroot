@@ -13,8 +13,8 @@
 #include "FairTask.h"
 #include <string>
 #include <vector>
-#include "report/BmnSimulationReport.h"
-#include "report/BmnHistManager.h"
+#include "BmnSimulationReport.h"
+#include "BmnHistManager.h"
 #include "BmnParticlePairsInfo.h"
 
 using std::string;

@@ -7,7 +7,7 @@
 
 #include "BmnClusteringQa.h"
 #include "BmnClusteringQaReport.h"
-#include "report/BmnHistManager.h"
+#include "BmnHistManager.h"
 #include "BmnHit.h"
 #include "FairRootManager.h"
 #include "FairMCPoint.h"

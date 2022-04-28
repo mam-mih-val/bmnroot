@@ -8,12 +8,12 @@
 #define BMNPIDQAREPORT_H_
 
 #include "TParticlePDG.h"
-#include "report/BmnSimulationReport.h"
+#include "BmnSimulationReport.h"
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include "TEfficiency.h"
-#include "report/BmnDrawOnline.h"
+#include "BmnDrawOnline.h"
 using std::string;
 using std::vector;
 using std::unordered_map;

@@ -64,8 +64,10 @@ CbmL1StsHit.h
 CbmL1Track.h
 CbmL1TrackPar.h
 CbmL1Vtx.h
-OffLineInterface/CbmL1StsTrackFinder.h
+CbmL1ParticlesFinder.h
 CbmL1PartEfficiencies.h
+
+OffLineInterface/CbmL1StsTrackFinder.h
 )
 
 ADD_DEFINITIONS(-Wall -Wsign-promo  -Wno-pmf-conversions -Wctor-dtor-privacy -Wreorder -Wno-deprecated -Wstrict-null-sentinel -Wno-non-template-friend -Wno-register)

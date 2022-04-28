@@ -38,7 +38,7 @@
 #include "TFitResult.h"
 #include "TH1.h"
 #include "TH2F.h"
-#include "report/BmnHistManager.h"
+#include "BmnHistManager.h"
 #include "BmnSiliconPoint.h"
 #include "CbmStsPoint.h"
 

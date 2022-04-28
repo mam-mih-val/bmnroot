@@ -10,7 +10,7 @@
 #ifndef BMNLAMBDAQAREPORT_H_
 #define BMNLAMBDAQAREPORT_H_
 
-#include "report/BmnSimulationReport.h"
+#include "BmnSimulationReport.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"
 #include <TClonesArray.h>

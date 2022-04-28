@@ -20,10 +20,10 @@
 #include "TString.h"
 #include "TStyle.h"
 #include "map"
-#include "report/BmnDrawHist.h"
-#include "report/BmnDrawOnline.h"
-#include "report/BmnHistManager.h"
-#include "report/BmnReportElement.h"
+#include "BmnDrawHist.h"
+#include "BmnDrawOnline.h"
+#include "BmnHistManager.h"
+#include "BmnReportElement.h"
 
 const Float_t pMax = 5.0;
 

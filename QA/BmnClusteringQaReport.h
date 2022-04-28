@@ -8,7 +8,7 @@
 #ifndef BMNCLUSTERINGQAREPORT_H_
 #define BMNCLUSTERINGQAREPORT_H_
 
-#include "report/BmnSimulationReport.h"
+#include "BmnSimulationReport.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"
 #include <string>

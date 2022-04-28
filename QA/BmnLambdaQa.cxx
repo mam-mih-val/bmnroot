@@ -9,13 +9,13 @@
 
 #include "BmnLambdaQa.h"
 #include "BmnLambdaQaReport.h"
-#include "report/BmnHistManager.h"
+#include "BmnHistManager.h"
 //#include "CbmStsAddress.h"
 #include <TChain.h>
 #include <TString.h>
 #include "BmnGemTrack.h"
 #include <TClonesArray.h>
-#include "report/BmnSimulationReport.h"
+#include "BmnSimulationReport.h"
 #include "CbmMCTrack.h"
 #include "BmnParticlePair.h"
 #include "BmnSiliconPoint.h"

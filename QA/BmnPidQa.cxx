@@ -36,7 +36,7 @@
 #include "TFitResult.h"
 #include "TH1.h"
 #include "TH2F.h"
-#include "report/BmnHistManager.h"
+#include "BmnHistManager.h"
 
 using namespace std;
 using namespace TMath;

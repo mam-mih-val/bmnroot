@@ -1,8 +1,8 @@
 #ifndef BMNTRACKINGQAEXPREPORT_H_
 #define BMNTRACKINGQAEXPREPORT_H_
 
-#include "report/BmnSimulationReport.h"
-#include "report/BmnDrawOnline.h"
+#include "BmnSimulationReport.h"
+#include "BmnDrawOnline.h"
 #include <string>
 #include <vector>
 using std::string;

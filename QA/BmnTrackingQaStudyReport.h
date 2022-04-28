@@ -8,7 +8,7 @@
 #ifndef BMNTRACKINGQASTUDYREPORT_H_
 #define BMNTRACKINGQASTUDYREPORT_H_
 
-#include "report/BmnStudyReport.h"
+#include "BmnStudyReport.h"
 #include <string>
 using std::string;
 class TH1;

@@ -5,9 +5,9 @@
  * \date 2011
  */
 #include "BmnClusteringQaReport.h"
-#include "report/BmnReportElement.h"
-#include "report/BmnHistManager.h"
-#include "report/BmnDrawHist.h"
+#include "BmnReportElement.h"
+#include "BmnHistManager.h"
+#include "BmnDrawHist.h"
 #include "BmnUtils.h"
 #include "TH1.h"
 #include "TF1.h"

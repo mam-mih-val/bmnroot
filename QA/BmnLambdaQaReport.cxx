@@ -8,9 +8,9 @@
  */
 
 #include "BmnLambdaQaReport.h"
-#include "report/BmnReportElement.h"
-#include "report/BmnHistManager.h"
-#include "report/BmnDrawHist.h"
+#include "BmnReportElement.h"
+#include "BmnHistManager.h"
+#include "BmnDrawHist.h"
 #include "BmnUtils.h"
 #include "TProfile.h"
 #include "TF1.h"

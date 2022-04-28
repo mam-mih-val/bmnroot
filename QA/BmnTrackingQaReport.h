@@ -7,8 +7,8 @@
 #ifndef BMNTRACKINGQAREPORT_H_
 #define BMNTRACKINGQAREPORT_H_
 
-#include "report/BmnSimulationReport.h"
-#include "report/BmnDrawOnline.h"
+#include "BmnSimulationReport.h"
+#include "BmnDrawOnline.h"
 #include <string>
 #include <vector>
 using std::string;

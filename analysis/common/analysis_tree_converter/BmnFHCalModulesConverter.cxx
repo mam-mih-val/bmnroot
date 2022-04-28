@@ -47,6 +47,7 @@ void BmnFHCalModulesConverter::ProcessData()
   const int n_fhcal_modules = data_header->GetModulePositions(0).GetNumberOfChannels();
   for( int i=0; i<n_fhcal_modules; ++i ){
     auto& out_module = out_fhcal_branch_->AddChannel(out_branch_config);
+    out_module.SetNumber(i);
   }
   for (int idx = 0; idx < 54; ++idx) {
     auto in_module = in_fhcal_event_->GetModule(idx+1);
@@ -54,14 +55,8 @@ void BmnFHCalModulesConverter::ProcessData()
 
     auto&out_module = out_fhcal_branch_->Channel(idx);
     out_module.SetSignal(energy);
-    out_module.SetNumber(idx);
 
-    if( 33 < idx && idx < 44 ){
-      auto rel_id = 54 + ( idx - 34 );
-      auto& ext_module = out_fhcal_branch_->Channel( rel_id );
-      ext_module.SetSignal( energy );
-    }
-    if( 43 < idx && idx < 54 ){
+    if( 33 < idx && idx < 54 ){
       auto rel_id = 54 + ( idx - 34 );
       auto& ext_module = out_fhcal_branch_->Channel( rel_id );
       ext_module.SetSignal( energy );

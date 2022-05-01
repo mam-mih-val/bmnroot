@@ -17,7 +17,7 @@
 <StationSet>
 
 <!-- Station 0 -->
-    <Station xPosition="110.0" yPosition="0.0" zPosition="410.0">
+    <Station xPosition="160.0" yPosition="0.0" zPosition="410.0">
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="27.1875" zShift="1.25" thickness="0.76">
@@ -176,7 +176,7 @@
     </Station>
 
     <!-- Station 1 -->
-    <Station xPosition="-110.0" yPosition="0.0" zPosition="410.0">
+    <Station xPosition="-160.0" yPosition="0.0" zPosition="410.0">
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="27.1875" zShift="1.25" thickness="0.76">
@@ -335,7 +335,7 @@
     </Station>
 
     <!-- Station 2 -->
-    <Station xPosition="130.0" yPosition="0.0" zPosition="470.0">
+    <Station xPosition="180.0" yPosition="0.0" zPosition="470.0">
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="27.1875" zShift="1.25" thickness="0.76">
@@ -494,7 +494,7 @@
     </Station>
 
     <!-- Station 3 -->
-    <Station xPosition="-130.0" yPosition="0.0" zPosition="470.0">
+    <Station xPosition="-180.0" yPosition="0.0" zPosition="470.0">
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="27.1875" zShift="1.25" thickness="0.76">

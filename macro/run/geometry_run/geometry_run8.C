@@ -44,11 +44,13 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(gems);
 
     FairDetector* csc = new BmnCSC("CSC", kTRUE);
-    csc->SetGeometryFileName("CSC_Run8_detailed.root");
+    csc->SetGeometryFileName("CSC_Run8_detailed_shifted.root");
+    //csc->SetGeometryFileName("CSC_Run8_detailed.root");
     fRun->AddModule(csc);
 
     FairDetector* tof1 = new BmnTOF1("TOF1", kTRUE);
-    tof1->SetGeometryFileName("TOF400_RUN7.root");
+    tof1->SetGeometryFileName("TOF400_RUN8_shifted.root");
+    //tof1->SetGeometryFileName("TOF400_RUN7.root");
     fRun->AddModule(tof1);
 
     FairDetector* dch = new BmnDch("DCH", kTRUE);

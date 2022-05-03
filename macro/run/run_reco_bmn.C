@@ -9,7 +9,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
-    Int_t nStartEvent = 0, Int_t nEvents = 10) {
+    Int_t nStartEvent = 0, Int_t nEvents = 10, int user_field_scale=1.0) {
     gDebug = 0; // Debug option
     // Verbosity level (0 = quiet (progress bar), 1 = event-level, 2 = track-level, 3 = full debug)
     Int_t iVerbose = 0;
@@ -84,7 +84,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
             fieldScale = (*field_voltage) / map_current;
 
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v5_ascii_Extrap.root");
-        magField->SetScale(fieldScale);
+        magField->SetScale(fieldScale*user_field_scale);
         magField->Init();
         fRunAna->SetField(magField);
         isExp = kTRUE;

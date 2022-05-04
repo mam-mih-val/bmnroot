@@ -467,16 +467,11 @@ void PronyFitter::SetHarmonics(std::complex<float> *z) {
   std::memcpy(fz, z, (fExpNumber + 1) * sizeof(std::complex<float>));
 }
 
-void PronyFitter::SetExternalHarmonics(std::complex<float> z1,
-                                       std::complex<float> z2) {
-  std::complex<float> *z_arr = new std::complex<float>[fExpNumber + 1];
-  for (int i = 0; i <= fExpNumber; i++)
-    z_arr[i] = {0., 0.};
-  z_arr[0] = {1., 0.};
-  z_arr[1] = z1;
-  z_arr[2] = z2;
-  SetHarmonics(z_arr);
-  delete[] z_arr;
+void PronyFitter::SetExternalHarmonics(std::vector<std::complex<float>> harmonics) {
+  auto copy_harmonics = harmonics;
+  const std::complex<float> unit = {1., 0.};
+  copy_harmonics.insert(copy_harmonics.begin(), unit);
+  SetHarmonics(&copy_harmonics[0]);
 }
 
 std::complex<float> *PronyFitter::GetHarmonics() { return fz; }
@@ -762,16 +757,26 @@ float PronyFitter::GetFitValue(float x) {
 float PronyFitter::GetZeroLevel() { return (float)fFitZeroLevel; }
 
 float PronyFitter::GetSignalMaxTime() {
-  return fSignalBegin + std::real((std::log(-fh[2] * std::log(fz[2])) -
+  if(fExpNumber == 2){
+    return fSignalBegin + std::real((std::log(-fh[2] * std::log(fz[2])) -
                                    std::log(fh[1] * log(fz[1]))) /
                                   (std::log(fz[1]) - std::log(fz[2])));
+  }
+  else{
+    auto const max_iter = std::max_element(fFitWfm.begin(), fFitWfm.end());
+    return (float) std::distance(fFitWfm.begin(), max_iter);
+  }
+     
 }
 
 float PronyFitter::GetSignalBeginFromPhase() {
-  if (std::real(fh[2] / fh[1]) < 0)
-    return fSignalBegin +
-           std::real(std::log(-fh[2] / fh[1]) / std::log(fz[1] / fz[2]));
-  return -999.;
+  if(fExpNumber == 2){
+    if (std::real(fh[2] / fh[1]) < 0)
+      return fSignalBegin +
+            std::real(std::log(-fh[2] / fh[1]) / std::log(fz[1] / fz[2]));
+  }
+
+  return fSignalBegin;
 }
 
 float PronyFitter::GetMaxAmplitude() { return GetFitValue(GetSignalMaxTime()); }

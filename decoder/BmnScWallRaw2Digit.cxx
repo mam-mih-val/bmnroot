@@ -194,7 +194,7 @@ void BmnScWallRaw2Digit::ParseCalibration(TString calibrationFile)
     }
     PsdSignalFitting::PronyFitter Pfitter;
     Pfitter.Initialize(fdigiPars.harmonics.size(), fdigiPars.harmonics.size(), fdigiPars.gateBegin, fdigiPars.gateEnd);
-    Pfitter.SetExternalHarmonics(fdigiPars.harmonics[0], fdigiPars.harmonics[1]);
+    Pfitter.SetExternalHarmonics(fdigiPars.harmonics);
     Pfitter.MakeInvHarmoMatrix(fSignalLength, fAZik);
   }
 

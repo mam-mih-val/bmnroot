@@ -64,7 +64,7 @@ public:
   void SetWaveform(std::vector<float> &Wfm, float ZeroLevel);
   void SetSignalBegin(int SignalBeg);
   void SetHarmonics(std::complex<float> *z);
-  void SetExternalHarmonics(std::complex<float> z1, std::complex<float> z2);
+  void SetExternalHarmonics(std::vector<std::complex<float>> harmonics);
   //
   //                           Getters
   //

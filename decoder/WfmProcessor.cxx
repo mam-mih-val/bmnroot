@@ -45,6 +45,7 @@ void WfmProcessor::ProcessWfm(std::vector<float> wfm, BmnDigiContainerTemplate *
   auto const max_iter = std::max_element(wfm.begin() + fdigiPars.gateBegin, wfm.begin() + fdigiPars.gateEnd + 1);
   digi->fAmpl = (int) *max_iter - digi->fZL;
   digi->fTimeMax = (int) std::distance(wfm.begin(), max_iter);
+  if (fdigiPars.isWriteWfm) digi->fWfm = wfm;
 
   //Prony fitting procedure
   PsdSignalFitting::PronyFitter Pfitter;
@@ -60,7 +61,7 @@ void WfmProcessor::ProcessWfm(std::vector<float> wfm, BmnDigiContainerTemplate *
       return;
     if (SignalBeg + fSignalLength > wfm.size()) 
       SignalBeg = fdigiPars.gateBegin;
-    Pfitter.SetExternalHarmonics(fdigiPars.harmonics[0], fdigiPars.harmonics[1]);
+    Pfitter.SetExternalHarmonics(fdigiPars.harmonics);
     Pfitter.SetSignalBegin(SignalBeg);
     Pfitter.CalculateFitAmplitudesFast(fSignalLength, fAZik);
 
@@ -72,11 +73,9 @@ void WfmProcessor::ProcessWfm(std::vector<float> wfm, BmnDigiContainerTemplate *
     digi->fFitTimeMax = Pfitter.GetSignalMaxTime(); 
   }
 
-  if (fdigiPars.isWriteWfm) {
-    digi->fWfm = wfm;
-    if (fdigiPars.isfit) 
-      digi->fFitWfm = Pfitter.GetFitWfm();
-  }
+  if (fdigiPars.isWriteWfm && fdigiPars.isfit)
+    digi->fFitWfm = Pfitter.GetFitWfm();
+    
 }
 
 void WfmProcessor::MeanRMScalc(std::vector<float> wfm, float *Mean, float *RMS, int begin, int end, int step)

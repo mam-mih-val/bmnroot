@@ -4,7 +4,7 @@
 # ${BMNROOT_BINARY_DIR} or ${CMAKE_BINARY_DIR}.
 
 # Check if cmake has the required version
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.2 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0.0 FATAL_ERROR)
 ### CMP0025   Compiler id for Apple Clang is now AppleClang.
 ### CMP0042   MACOSX_RPATH is enabled by default.
 foreach(p
@@ -110,15 +110,8 @@ if(NOT DEFINED BUILD_SHARED_LIBS)
   set(BUILD_SHARED_LIBS ON)
 endif()
 
-# Check if the compiler support specific C++11 features
-# Up to now this is only a check since the code does not use
-# any of the features of the new standard
 Set(CheckSrcDir "${FAIRROOTPATH}/share/fairbase/cmake/checks")
-include(CheckCXX11Features)
 include(CheckSymbolExists)
-If(NOT _HAS_CXX11_FLAG)
-  Message(FATAL_ERROR "The used C++ compiler (${CMAKE_CXX_COMPILER}) does not support C++11. BmnRoot can only be compiled with compilers supporting C++11. Please install such a compiler.")
-EndIf()
 
 find_package(FairRoot REQUIRED)
 

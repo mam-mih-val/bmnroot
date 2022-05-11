@@ -84,11 +84,14 @@ void run_tracking_qa(std::string filelist, std::string output_file, bool is_sing
                                                                        [](std::vector<double> betas){
                                                                          return betas[0] > 0. || betas[1] > 0.;
                                                                        })});
+    auto* midrap_cut = new Cuts(std::to_string( pid )+"_midrap", {EqualsCut({sim_particles + ".pid"}, pid),
+                                                                  RangeCut({sim_particles + ".rapidity"}, -0.2+1.18, 0.2+1.18)});
     VertexTracksQA(*task, rec_tracks, particle_cut);
     VertexTracksQA(*task, rec_tracks, tof400_cut);
     VertexTracksQA(*task, rec_tracks, tof700_cut);
     VertexTracksQA(*task, rec_tracks, not_tof700_cut);
     VertexTracksQA(*task, rec_tracks, tof_cut);
+    VertexTracksQA(*task, rec_tracks, midrap_cut);
     SimParticlesQA(*task, particle_cut);
   }
   man->AddTask(task);

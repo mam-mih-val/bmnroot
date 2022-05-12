@@ -300,7 +300,7 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_4of4_OnLastGEMStations() {
                 if (y8 > yRangeMin[iY] && y8 < yRangeMax[iY]) break;
             if ((iX >= nxRanges) || (iY >= nyRanges))
             {
-                cout<<"WARNING: x8 or y8 is out of range, the hit is skipped (x = "<<x8<<", y = "<<y8<<")"<<endl;
+                if (fVerbose > 0) cout<<"WARNING: x8 or y8 is out of range, the hit is skipped (x = "<<x8<<", y = "<<y8<<")"<<endl;
                 continue;
             }
             Double_t rmsX = 2.0 * xRMS[8][iX];
@@ -323,7 +323,7 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_4of4_OnLastGEMStations() {
                     if (y7 > yRangeMin[iY] && y7 < yRangeMax[iY]) break;
                 if ((iX >= nxRanges) || (iY >= nyRanges))
                 {
-                    cout<<"WARNING: x7 or y7 is out of range, the hit is skipped (x = "<<x7<<", y = "<<y7<<")"<<endl;
+                    if (fVerbose > 0) cout<<"WARNING: x7 or y7 is out of range, the hit is skipped (x = "<<x7<<", y = "<<y7<<")"<<endl;
                     continue;
                 }
                 rmsX = 2.0 * xRMS[7][iX];
@@ -346,7 +346,7 @@ BmnStatus BmnInnerTrackingRun7::FindTracks_4of4_OnLastGEMStations() {
                         if (y6 > yRangeMin[iY] && y6 < yRangeMax[iY]) break;
                     if ((iX >= nxRanges) || (iY >= nyRanges))
                     {
-                        cout<<"WARNING: x6 or y6 is out of range, the hit is skipped (x = "<<x6<<", y = "<<y6<<")"<<endl;
+                        if (fVerbose > 0) cout<<"WARNING: x6 or y6 is out of range, the hit is skipped (x = "<<x6<<", y = "<<y6<<")"<<endl;
                         continue;
                     }
                     rmsX = 2.0 * xRMS[6][iX];
@@ -453,7 +453,7 @@ BmnStatus BmnInnerTrackingRun7::FindCandidateByThreeStations(Short_t st0,
                 if (y2 > yRangeMin[iY] && y2 < yRangeMax[iY]) break;
             if ((iX >= nxRanges) || (iY >= nyRanges))
             {
-                cout<<"WARNING: x2 or y2 is out of range, the hit is skipped (x = "<<x2<<", y = "<<y2<<")"<<endl;
+                if (fVerbose > 0) cout<<"WARNING: x2 or y2 is out of range, the hit is skipped (x = "<<x2<<", y = "<<y2<<")"<<endl;
                 continue;
             }
             Double_t rmsX = 2.0 * xRMS[st2][iX];
@@ -474,7 +474,7 @@ BmnStatus BmnInnerTrackingRun7::FindCandidateByThreeStations(Short_t st0,
                     if (y1 > yRangeMin[iY] && y1 < yRangeMax[iY]) break;
                 if ((iX >= nxRanges) || (iY >= nyRanges))
                 {
-                    cout<<"WARNING: x1 or y1 is out of range, the hit is skipped (x = "<<x1<<", y = "<<y1<<")"<<endl;
+                    if (fVerbose > 0) cout<<"WARNING: x1 or y1 is out of range, the hit is skipped (x = "<<x1<<", y = "<<y1<<")"<<endl;
                     continue;
                 }
                 rmsX = 2.0 * xRMS[st1][iX];

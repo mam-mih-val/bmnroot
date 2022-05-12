@@ -176,7 +176,7 @@ void SimParticlesQA(QA::Task& task, Cuts* cuts=nullptr){
   Variable y_cm("y_cm", { {sim_particles, "rapidity"} },
                  [](std::vector<double>& var) {
                    double y_lab = var.at(0);
-                   return y_lab - 1.17268 );
+                   return y_lab - 1.17268; );
                  });
 
   task.AddH2({"y_{cm}", y_cm, {50, -1, 3}},

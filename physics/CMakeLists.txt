@@ -10,7 +10,6 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/base
  ${CMAKE_SOURCE_DIR}/base/data
  ${CMAKE_SOURCE_DIR}/base/raw
- ${CMAKE_SOURCE_DIR}/base/gem
  ${CMAKE_SOURCE_DIR}/base/header
  ${CMAKE_SOURCE_DIR}/base/math
  ${CMAKE_SOURCE_DIR}/base/cbm

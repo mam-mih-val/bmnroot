@@ -10,7 +10,6 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/base/source
  ${CMAKE_SOURCE_DIR}/base/header
  ${CMAKE_SOURCE_DIR}/base/raw
- ${CMAKE_SOURCE_DIR}/base/gem
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -91,9 +90,6 @@ set(SRCS
  raw/BmnTrigInfo.cxx
  raw/BmnTrigUnion.h
  raw/DigiArrays.h
-
- gem/BmnGemStripHit.cxx
- gem/BmnGemTrack.cxx
 
  data/CbmMCTrack.cxx
  data/CbmStack.cxx

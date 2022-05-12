@@ -5,7 +5,6 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/base
  ${CMAKE_SOURCE_DIR}/base/data
  ${CMAKE_SOURCE_DIR}/base/raw
- ${CMAKE_SOURCE_DIR}/base/gem
  ${CMAKE_SOURCE_DIR}/base/cbm
  ${CMAKE_SOURCE_DIR}/base/header
  ${CMAKE_SOURCE_DIR}/database/unicom
@@ -54,6 +53,9 @@ set(SRCS
 
   BmnGemStripConfiguration.h
   BmnGemStripMediumConfiguration.h
+
+  BmnGemStripHit.cxx
+  BmnGemTrack.cxx
 )
 
 IF (SSE_FOUND)

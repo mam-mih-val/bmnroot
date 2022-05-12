@@ -25,6 +25,9 @@
 #pragma link C++ class BmnGemStripMedium+;
 #pragma link C++ class BmnGemStripTransform+;
 
+#pragma link C++ class BmnGemStripHit+;
+#pragma link C++ class BmnGemTrack+;
+
 #pragma link C++ namespace BmnGemStripConfiguration;
 #pragma link C++ enum BmnGemStripConfiguration::GEM_CONFIG;
 #pragma link C++ namespace BmnGemStripMediumConfiguration;

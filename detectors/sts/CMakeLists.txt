@@ -8,7 +8,6 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/base/raw
  ${CMAKE_SOURCE_DIR}/base/header
  ${CMAKE_SOURCE_DIR}/base/cbm
- ${CMAKE_SOURCE_DIR}/base/gem
  ${CMAKE_SOURCE_DIR}/detectors/silicon
  ${CMAKE_SOURCE_DIR}/detectors/gem
  ${CMAKE_SOURCE_DIR}/detectors/sts

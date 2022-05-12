@@ -41,7 +41,6 @@ if (BMNROOT)
     ${INCLUDE_DIRECTORIES}
     ${CMAKE_SOURCE_DIR}/base
     ${CMAKE_SOURCE_DIR}/base/data
-    ${CMAKE_SOURCE_DIR}/base/gem
     ${CMAKE_SOURCE_DIR}/reconstruction/globaltracking
     ${CMAKE_SOURCE_DIR}/detectors/silicon
     ${CMAKE_SOURCE_DIR}/detectors/gem

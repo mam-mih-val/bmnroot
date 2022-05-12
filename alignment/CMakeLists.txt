@@ -5,7 +5,6 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/field
  ${CMAKE_SOURCE_DIR}/base
  ${CMAKE_SOURCE_DIR}/base/data
- ${CMAKE_SOURCE_DIR}/base/gem
  ${CMAKE_SOURCE_DIR}/base/math
  ${CMAKE_SOURCE_DIR}/base/cbm
  ${CMAKE_SOURCE_DIR}/database/unicom

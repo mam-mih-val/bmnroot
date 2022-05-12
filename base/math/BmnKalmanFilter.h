@@ -19,7 +19,6 @@
 #include "BmnMath.h"
 #include "BmnMatrixMath.h"
 #include "TClonesArray.h"
-#include "BmnGemTrack.h"
 #include "BmnGeoNavigator.h"
 #include "BmnMaterialEffects.h"
 
@@ -38,7 +37,6 @@ public:
     BmnStatus Update(FairTrackParam* par, const BmnHit* hit, Double_t& chiSq);
     void UpdateF(vector<Double_t>& F, const vector<Double_t>& newF);
     
-    BmnStatus FitSmooth(BmnGemTrack* track, TClonesArray* hits);
     BmnStatus Smooth(BmnFitNode* thisNode, BmnFitNode* prevNode);
     
     BmnStatus TGeoTrackPropagate(FairTrackParam* par, Double_t zOut, Int_t pdg, vector<Double_t>* F, Double_t* length, Bool_t isField);

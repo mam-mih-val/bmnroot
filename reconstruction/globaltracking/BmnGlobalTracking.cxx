@@ -18,6 +18,7 @@
 #include "BmnEventHeader.h"
 #include "BmnMwpcGeometry.h"
 #include "BmnSiliconTrack.h"
+#include "BmnGemStripHit.h"
 #include "TFile.h"
 #include "BmnFieldMap.h"
 #include "omp.h"

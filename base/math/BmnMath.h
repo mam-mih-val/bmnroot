@@ -2,9 +2,8 @@
 #define BMNMATH_H_
 
 #include "FairTrackParam.h"
-#include "BmnGemStripHit.h"
-#include "BmnGemTrack.h"
-#include "BmnGemStripHit.h"
+#include "BmnTrack.h"
+#include "BmnHit.h"
 #include "TLorentzVector.h"
 #include "TVectorD.h"
 #include "TF1.h"
@@ -28,28 +27,13 @@ class CbmGlobalTrack;
 namespace lit
 {
 
-/* Calculates chi square
- * @param par Pointer to the updated or smoothed track parameter
- * @param hit Pointer to the hit
- * @return chi square contribution for this hit */
-Float_t ChiSq(const FairTrackParam* par, const CbmHit* hit);
 
-/* Calculates chi square for strip hits
- * @param par Pointer to the updated or smoothed track parameter
- * @param hit Pointer to the strip hit
- * @return chi square contribution for this strip hit */
-Float_t ChiSq(const FairTrackParam* par, const CbmStripHit* hit);
+Float_t ChiSq(const FairTrackParam* par, const BmnHit* hit);
 
-Float_t ChiSq(const FairTrackParam* par, const BmnGemStripHit* hit);
-
-Int_t NDF(const BmnGemTrack* track);
+Int_t NDF(const BmnTrack* track);
 
 }
 
-Float_t ChiSq(const TVector3* par, const BmnGemTrack* tr, const TClonesArray* arr, const TString type);
-TVector3 SpiralFit(BmnGemTrack* tr, const TClonesArray* arr);
-TLorentzVector SpiralParabolicFit(BmnGemTrack* tr, const TClonesArray* arr);
-TVector3 SpiralFitByTwoPoints(const BmnGemTrack* tr, const TClonesArray* arr);
 Bool_t IsParCorrect(const FairTrackParam* par, const Bool_t isField);
 Bool_t IsParCorrect(const FairTrackParam* par);
 Float_t NumericalRootFinder(TF1 f, Float_t left, Float_t right);
@@ -62,7 +46,7 @@ TVector3 CircleBy3Hit(BmnTrack* track, const TClonesArray* arr);
 TVector3 CircleBy3Hit(const BmnHit* h0, const BmnHit* h1, const BmnHit* h2);
 TVector3 Pol2By3Hit(BmnTrack* track, const TClonesArray* arr);
 Double_t CalcTx(const BmnHit* h0, const BmnHit* h1, const BmnHit* h2);
-void DrawHits(BmnGemTrack* track, const TClonesArray* arr);
+void DrawHits(BmnTrack* track, const TClonesArray* arr);
 Float_t NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22);
 Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
 

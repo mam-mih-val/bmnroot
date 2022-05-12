@@ -65,9 +65,6 @@
 #pragma link C++ class DigiArrays+;
 #pragma link C++ class vector<TClonesArray*>+;
 
-#pragma link C++ class BmnGemStripHit+;
-#pragma link C++ class BmnGemTrack+;
-
 #pragma link C++ class CbmStack+;
 #pragma link C++ class CbmMCTrack+;
 #pragma link C++ class BmnStripDigit+;

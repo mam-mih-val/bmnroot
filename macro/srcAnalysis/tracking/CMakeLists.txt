@@ -2,9 +2,9 @@ set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/base
  ${CMAKE_SOURCE_DIR}/base/data
- ${CMAKE_SOURCE_DIR}/base/gem
  ${CMAKE_SOURCE_DIR}/detectors/mwpc
  ${CMAKE_SOURCE_DIR}/detectors/tof
+ ${CMAKE_SOURCE_DIR}/detectors/gem
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES

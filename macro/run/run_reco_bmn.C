@@ -5,7 +5,7 @@
 // nStartEvent - number of first event to process (starts with zero), default: 0
 // nEvents - number of events to process, 0 - all events of given file will be processed, default: 1 000 events
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
-#define VF // Choose Tracking: L1Tracking, VF or CellAuto
+#define L1Tracking // Choose Tracking: L1Tracking, VF or CellAuto
 
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
@@ -113,7 +113,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // if directory for the output file does not exist, then create
     if (BmnFunctionSet::CreateDirectoryTree(bmndstFileName, 1) < 0) exit(-2);
     fRunAna->SetSink(new FairRootFileSink(bmndstFileName));
-//    fRunAna->SetSink(new BmnMQSink());
     fRunAna->SetGenerateRunInfo(false);
 
     // if nEvents is equal 0 then all events of the given file starting with "nStartEvent" should be processed
@@ -218,7 +217,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ===                       Inner Tracking                           === //
     // ====================================================================== //
     if (run_period >= 8) {
-        FairTask* hitConverter = new BmnToCbmHitConverter(iVerbose);
+        BmnToCbmHitConverter* hitConverter = new BmnToCbmHitConverter(iVerbose);
+        hitConverter->SetFixedErrors();
         fRunAna->AddTask(hitConverter);
 
         CbmKF* kalman = new CbmKF();

@@ -357,37 +357,6 @@ void BmnKalmanFilter::UpdateF(vector<Double_t> &F, const vector<Double_t> &newF)
     F.assign(A.begin(), A.end());
 }
 
-BmnStatus BmnKalmanFilter::FitSmooth(BmnGemTrack *track, TClonesArray *hits) {  //FIXME
-
-    const Int_t n = track->GetNHits();
-
-    vector<BmnFitNode> nodes = track->GetFitNodes();
-    nodes[n - 1].SetSmoothedParam(nodes[n - 1].GetUpdatedParam());
-
-    for (int i = n - 1; i > 0; i--) {
-        //        nodes[i].GetSmoothedParam()->Print();
-        //        if (Smooth(&nodes[i - 1], &nodes[i]) == kBMNERROR) return kBMNERROR;
-        Smooth(&nodes[i - 1], &nodes[i]);
-        //        nodes[i].GetSmoothedParam()->Print();
-    }
-
-    track->SetChi2(0.);
-    for (int i = 0; i < n; i++) {
-        BmnGemStripHit *hit = (BmnGemStripHit *)hits->At(track->GetHitIndex(i));
-        Double_t chi2Hit = lit::ChiSq(nodes[i].GetSmoothedParam(), hit);
-        nodes[i].SetChiSqSmoothed(chi2Hit);
-        track->SetChi2(track->GetChi2() + chi2Hit);
-    }
-
-    FairTrackParam *parFirst = nodes[0].GetSmoothedParam();
-    if (parFirst->GetQp() != 0.0)
-        track->SetParamFirst(*parFirst);
-    track->SetFitNodes(nodes);
-    //    track->SetNDF(lit::NDF(track));
-
-    return kBMNSUCCESS;
-}
-
 // We are going in the upstream direction
 // this Node (k) , prevNode (k+1)
 

@@ -140,7 +140,7 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
                                                         double pz = var.at(0);
                                                         return 0.5 * (
                                                                  log( E + pz ) -
-                                                                 log( E - pz ) - 1.17268 );
+                                                                 log( E - pz ) ) - 1.17268;
                  });
   Variable momentum_resolution("momentum_resolution", {{branch, "p"}, {sim_particles, "p"}},
                          [](std::vector<double>& var) {

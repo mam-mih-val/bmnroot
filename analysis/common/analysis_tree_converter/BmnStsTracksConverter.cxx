@@ -18,7 +18,6 @@
 #include <CbmTrackMatch.h>
 
 #include "AnalysisTree/Matching.hpp"
-#include "CbmKFVertex.h"
 
 ClassImp(BmnStsTracksConverter);
 

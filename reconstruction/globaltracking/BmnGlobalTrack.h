@@ -63,6 +63,8 @@ class BmnGlobalTrack : public BmnTrack{
     PidParticles GetParticle();
     
     Int_t GetRefIndex() { return fRefIndex; }
+    Double_t GetChi2InVertex() { return fChi2InVertex; }
+
 
     Bool_t IsPrimary() const { return fIsPrimary;}
 
@@ -94,6 +96,7 @@ class BmnGlobalTrack : public BmnTrack{
     void SetPidVectorTof700(vector<Double_t> v) {fPidTof700 = v;}
     
     void SetRefIndex(Int_t idx) { fRefIndex = idx; }
+    void SetChi2InVertex(Double_t chi) { fChi2InVertex = chi; }
 
     /** Output to screen **/
     //void Print() const;
@@ -130,6 +133,7 @@ class BmnGlobalTrack : public BmnTrack{
     Int_t fA;
     Int_t fZ;
     Int_t fPDG;
+    Double_t fChi2InVertex;
    
     // fPidTof400 - probability for particle species TOF400
     // fPidTof700 - probability for particle species TOF700

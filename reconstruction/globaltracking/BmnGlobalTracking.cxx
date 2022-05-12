@@ -868,12 +868,15 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
     } else {
         pos = TVector3(0.0, 0.0, 0.0);
     }
-    TVector3 dpos = TVector3(0.005, 0.005, 0.0);
+    TVector3 dpos = TVector3(0.05, 0.05, 0.0);
     if (fKalman->TGeoTrackPropagate(&parFirst, pos.z(), fPDG, nullptr, nullptr) == kBMNERROR) return kBMNERROR;
-    // update in virtual hit FIXME
-    // BmnHit* vertexHit = new BmnHit(0, pos, dpos, -1);
-    // if (fKalman->Update(&parFirst, vertexHit, chi) == kBMNERROR) return kBMNERROR;
-    // totChi2 += chi; 
+    // update in virtual vertex hit
+    BmnHit* vertexHit = new BmnHit(0, pos, dpos, -1);
+    // printf("BEFORE\n"); parFirst.Print();
+    if (fKalman->Update(&parFirst, vertexHit, chi) == kBMNERROR) return kBMNERROR;
+    // printf("AFTER\n"); parFirst.Print();
+    // printf("chiInVertex = %f\n", chi);
+    tr->SetChi2InVertex(chi);
 
     if (!IsParCorrect(&parFirst)) tr->SetFlag(-1);
     tr->SetChi2(totChi2);

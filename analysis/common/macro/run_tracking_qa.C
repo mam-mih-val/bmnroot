@@ -72,26 +72,48 @@ void run_tracking_qa(std::string filelist, std::string output_file, bool is_sing
   std::vector pid_codes{2212, 211, -211};
   for (auto pid : pid_codes) {
     auto* particle_cut = new Cuts(std::to_string( pid ), {EqualsCut({sim_particles + ".pid"}, pid)});
-    auto* tof400_cut = new Cuts(std::to_string( pid )+"_tof400", {EqualsCut({sim_particles + ".pid"}, pid),
-                                                                RangeCut({rec_tracks + ".beta400"}, 0., 999.)});
-    auto* tof700_cut = new Cuts(std::to_string( pid )+"_tof700", {EqualsCut({sim_particles + ".pid"}, pid),
-                                                                RangeCut({rec_tracks + ".beta700"}, 0., 999.)});
-    auto* not_tof700_cut = new Cuts(std::to_string( pid )+"_!tof700", {EqualsCut({sim_particles + ".pid"}, pid),
-                                                                RangeCut({rec_tracks + ".beta700"}, -1e9, -0.)});
-    auto* tof_cut = new Cuts(std::to_string( pid )+"_tof", {EqualsCut({sim_particles + ".pid"}, pid),
-                                                            SimpleCut({rec_tracks + ".beta400",
+    auto* tof400_cut = new Cuts(std::to_string( pid )+"_tof400", {
+                                                                     EqualsCut({sim_particles + ".pid"}, pid),
+                                                                     EqualsCut({sim_particles + ".mother_id"}, -1),
+                                                                     RangeCut({rec_tracks + ".beta400"}, 0., 999.)
+                                                                 });
+    auto* tof700_cut = new Cuts(std::to_string( pid )+"_tof700", {
+                                                                     EqualsCut({sim_particles + ".pid"}, pid),
+                                                                     EqualsCut({sim_particles + ".mother_id"}, -1),
+                                                                     RangeCut({rec_tracks + ".beta700"}, 0., 999.)
+                                                                 });
+    auto* not_tof700_cut = new Cuts(std::to_string( pid )+"_!tof700", {
+                                                                          EqualsCut({sim_particles + ".pid"}, pid),
+                                                                          EqualsCut({sim_particles + ".mother_id"}, -1),
+                                                                          RangeCut({rec_tracks + ".beta700"}, -1e9, -0.)
+                                                                      });
+    auto* tof_cut = new Cuts(std::to_string( pid )+"_tof", {
+                                                               EqualsCut({sim_particles + ".pid"}, pid),
+                                                               EqualsCut({sim_particles + ".mother_id"}, -1),
+                                                               SimpleCut({rec_tracks + ".beta400",
                                                                        rec_tracks + ".beta700"},
                                                                        [](std::vector<double> betas){
                                                                          return betas[0] > 0. || betas[1] > 0.;
-                                                                       })});
-    auto* midrap_cut = new Cuts(std::to_string( pid )+"_midrap", {EqualsCut({sim_particles + ".pid"}, pid),
-                                                                  RangeCut({sim_particles + ".rapidity"}, -0.2+1.18, 0.2+1.18)});
+                                                                       })
+                                                           });
+    auto* midrap_cut = new Cuts(std::to_string( pid )+"_midrap", {
+                                                                     EqualsCut({sim_particles + ".pid"}, pid),
+                                                                     EqualsCut({sim_particles + ".mother_id"}, -1),
+                                                                     RangeCut({sim_particles + ".rapidity"}, -0.5 + 1.17268, 0.5 + 1.17268)
+                                                                 });
+    auto* midrap_lo_pT_cut = new Cuts(std::to_string( pid )+"_midrap_lo_pT", {
+                                                                     EqualsCut({sim_particles + ".pid"}, pid),
+                                                                     EqualsCut({sim_particles + ".mother_id"}, -1),
+                                                                     RangeCut({sim_particles + ".rapidity"}, -0.5 + 1.17268, 0.5 + 1.17268),
+                                                                     RangeCut({rec_tracks + ".pT"}, 0.0, 0.5)
+                                                                 });
     VertexTracksQA(*task, rec_tracks, particle_cut);
     VertexTracksQA(*task, rec_tracks, tof400_cut);
     VertexTracksQA(*task, rec_tracks, tof700_cut);
     VertexTracksQA(*task, rec_tracks, not_tof700_cut);
     VertexTracksQA(*task, rec_tracks, tof_cut);
     VertexTracksQA(*task, rec_tracks, midrap_cut);
+    VertexTracksQA(*task, rec_tracks, midrap_lo_pT_cut);
     SimParticlesQA(*task, particle_cut);
   }
   man->AddTask(task);
@@ -112,20 +134,20 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
   Variable chi2_over_ndf("chi2_ndf", {{branch, "chi2"}, {branch, "ndf"}},
                          [](std::vector<double>& var) { return var.at(0) / var.at(1); });
 
-  Variable y_lab("y_lab", {{branch, "pz"}, {branch, "p"}, {sim_particles, "mass"}},
+  Variable y_cm("y_cm", {{branch, "pz"}, {branch, "p"}, {sim_particles, "mass"}},
                          [](std::vector<double>& var) {
                                                         double E = sqrt( var.at(1)*var.at(1) + var.at(2)*var.at(2) );
                                                         double pz = var.at(0);
                                                         return 0.5 * (
                                                                  log( E + pz ) -
-                                                                 log( E - pz ) );
+                                                                 log( E - pz ) - 1.17268 );
                  });
   Variable momentum_resolution("momentum_resolution", {{branch, "p"}, {sim_particles, "p"}},
                          [](std::vector<double>& var) {
                                  return fabs(var.at(0) - var.at(1)) / var.at(1);
                  });
 
-  task.AddH1({"y_{lab}", y_lab, {100, 0, 4}}, cuts);
+  task.AddH1({"y_{cm}", y_cm, {100, -1, 3}}, cuts);
   task.AddH1({"DCA_{x}, cm", {branch, "dcax"}, {QA::gNbins, -5, 5}}, cuts);
   task.AddH1({"DCA_{y}, cm", {branch, "dcay"}, {QA::gNbins, -5, 5}}, cuts);
   task.AddH1({"DCA_{z}, cm", {branch, "dcaz"}, {QA::gNbins, -5, 5}}, cuts);
@@ -142,15 +164,22 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
 
 
 
-  task.AddH2({"y_{lab}", y_lab, {50, 0, 4}},
+  task.AddH2({"y_{cm}", y_cm, {50, -1, 3}},
              {"p_{T} (GeV/c)", {branch, "pT"}, {50, 0, 3}}, cuts);
+
   task.AddProfile({"p_{sim} (GeV/c)", {sim_particles, "p"}, {250, 0.0, 5.0}}, {"res (%)", momentum_resolution, {}}, cuts);
   task.AddProfile({"p_{T} (GeV/c)", {sim_particles, "pT"}, {150, 0.0, 3.0}}, {"res (%)", momentum_resolution, {}}, cuts);
   task.AddProfile({"#eta", {sim_particles, "eta"}, {250, 0.0, 5.0}}, {"res (%)", momentum_resolution, {}}, cuts);
 
 }
 void SimParticlesQA(QA::Task& task, Cuts* cuts=nullptr){
-  task.AddH2({"y_{lab}", {sim_particles, "rapidity"}, {50, 0, 4}},
+  Variable y_cm("y_cm", { {sim_particles, "rapidity"} },
+                 [](std::vector<double>& var) {
+                   double y_lab = var.at(0);
+                   return y_lab - 1.17268 );
+                 });
+
+  task.AddH2({"y_{cm}", y_cm, {50, -1, 3}},
              {"p_{T} (GeV/c)", {sim_particles, "pT"}, {50, 0, 3}}, cuts);
 }
 

@@ -111,7 +111,7 @@ void BmnConverterManager::FillDataHeader()
   TVector3 frontFaceGlobal;
   fhCalGeoMatrix->LocalToMaster(&frontFaceLocal[0], &frontFaceGlobal[0]);
 
-  std::cout << "FHCal module positions:\n";
+  std::cout << "FHCal modules:\n";
   auto n_fhcal_modules = fhCalNode->GetNdaughters();
   for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d){ psd_mod_pos.AddChannel(); }
 
@@ -128,7 +128,10 @@ void BmnConverterManager::FillDataHeader()
 
     auto& module = psd_mod_pos.Channel( modID );
     module.SetPosition(x, y, frontFaceGlobal[2]);
+
+    std::cout << modID << ", ";
   }
+  std::cout << std::endl;
 
   for (int i = 0; i < caveNode->GetNdaughters(); i++) {
     fhCalNode  = caveNode->GetDaughter(i);
@@ -145,6 +148,8 @@ void BmnConverterManager::FillDataHeader()
 
   fhCalGeoMatrix->LocalToMaster(&frontFaceLocal[0], &frontFaceGlobal[0]);
 
+
+  std::cout << "ScWall modules:\n";
   for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d) {
     auto* sub_node = fhCalNode->GetDaughter(i_d);
     for (int j_d = 0; j_d < sub_node->GetNdaughters(); ++j_d){ psd_mod_pos.AddChannel(); }
@@ -157,7 +162,7 @@ void BmnConverterManager::FillDataHeader()
       auto geoMatrix = daughter->GetMatrix();
       TVector3 translation(geoMatrix->GetTranslation());
 
-      int modID = daughter->GetNumber() - 1 + n_fhcal_modules;
+      int modID = n_fhcal_modules + daughter->GetNumber() - 1;
       double x = translation.X();
       double y = translation.Y();
       translation.SetZ(frontFaceGlobal.Z());
@@ -165,8 +170,12 @@ void BmnConverterManager::FillDataHeader()
 
       auto &module = psd_mod_pos.Channel(modID);
       module.SetPosition(x, y, frontFaceGlobal[2]);
+      std::cout << daughter->GetNumber() - 1 << ", ";
     }
   }
+  std::cout << std::endl;
+
+  std::cout << "FHCal and ScWall geometry have been successfully written" << std::endl;
 
   geoMan->GetListOfVolumes()->Delete();
   geoMan->GetListOfShapes()->Delete();

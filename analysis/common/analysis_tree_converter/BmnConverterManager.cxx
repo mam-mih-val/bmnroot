@@ -168,9 +168,14 @@ void BmnConverterManager::FillDataHeader()
       translation.SetZ(frontFaceGlobal.Z());
       double z = translation.Z();
 
-      auto &module = psd_mod_pos.Channel(modID);
-      module.SetPosition(x, y, frontFaceGlobal[2]);
-      std::cout << daughter->GetNumber() - 1 << ", ";
+      try {
+        auto &module = psd_mod_pos.Channel(modID);
+        module.SetPosition(x, y, frontFaceGlobal[2]);
+        std::cout << daughter->GetNumber() - 1 << ", ";
+      }catch( std::exception &e ){
+        std::cout << "Exception catched. Debug information: i_d=" << i_d << " j_d=" << j_d << " modID=" << modID << std::endl;
+        throw e;
+      }
     }
   }
   std::cout << std::endl;

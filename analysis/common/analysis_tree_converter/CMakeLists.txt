@@ -11,6 +11,7 @@ Set(INCLUDE_DIRECTORIES
   ${CMAKE_SOURCE_DIR}/base/math
   ${CMAKE_SOURCE_DIR}/detectors/tof
   ${CMAKE_SOURCE_DIR}/detectors/fhcal
+  ${CMAKE_SOURCE_DIR}/detectors/scwall
   ${CMAKE_SOURCE_DIR}/reconstruction/globaltracking
   ${AnalysisTree_INCLUDE_DIR}
 )
@@ -49,6 +50,6 @@ Set(HEADERS)
 
 Set(LINKDEF CbmAnalysisTreeInterfaceLinkDef.h)
 Set(LIBRARY_NAME CbmAnalysisTreeInterface)
-Set(DEPENDENCIES FHCal BmnBase BmnGlobalTracking Geom AnalysisTreeBase AnalysisTreeInfra)
+Set(DEPENDENCIES FHCal ScWall BmnBase BmnGlobalTracking Geom AnalysisTreeBase AnalysisTreeInfra)
 
 GENERATE_LIBRARY()

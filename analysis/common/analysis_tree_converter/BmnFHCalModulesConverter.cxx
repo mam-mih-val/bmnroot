@@ -24,6 +24,8 @@ void BmnFHCalModulesConverter::Init()
   auto* ioman = FairRootManager::Instance();
   assert(ioman != nullptr);
   in_fhcal_event_ = dynamic_cast<BmnFHCalEvent*>(ioman->GetObject("FHCalEvent"));
+  assert(in_fhcal_event_ != nullptr);
+  in_bmn_scwall_digits_ = dynamic_cast<TClonesArray*>(ioman->GetObject("ScWallDigit"));
 
   AnalysisTree::BranchConfig out_fhcal_branch_config_(out_branch_, AnalysisTree::DetType::kModule);
 
@@ -55,13 +57,17 @@ void BmnFHCalModulesConverter::ProcessData()
 
     auto&out_module = out_fhcal_branch_->Channel(idx);
     out_module.SetSignal(energy);
-
-    if( 33 < idx && idx < 54 ){
-      auto rel_id = 54 + ( idx - 34 );
-      auto& ext_module = out_fhcal_branch_->Channel( rel_id );
-      ext_module.SetSignal( energy );
-    }
   }
+  auto n_scwall_digits = in_bmn_scwall_digits_->GetEntriesFast();
+  for (int idx = 0; idx < n_scwall_digits; ++idx) {
+    auto in_module = dynamic_cast<BmnScWallDigit*>(in_bmn_scwall_digits_->At(idx));
+    auto module_id = in_module->GetCellID();
+    auto energy = in_module->GetELossDigi();
+
+    auto&out_module = out_fhcal_branch_->Channel(module_id+54);
+    out_module.SetSignal(energy);
+  }
+
 }
 
 void BmnFHCalModulesConverter::Finish() {}

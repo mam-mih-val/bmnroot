@@ -112,8 +112,8 @@ void BmnConverterManager::FillDataHeader()
   fhCalGeoMatrix->LocalToMaster(&frontFaceLocal[0], &frontFaceGlobal[0]);
 
   std::cout << "FHCal module positions:\n";
+  auto n_fhcal_modules = fhCalNode->GetNdaughters();
   for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d){ psd_mod_pos.AddChannel(); }
-  for (int i_d = 34; i_d < 54; ++i_d){ psd_mod_pos.AddChannel(); }
 
   for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d) {
     auto* daughter = fhCalNode->GetDaughter(i_d);
@@ -128,15 +128,40 @@ void BmnConverterManager::FillDataHeader()
 
     auto& module = psd_mod_pos.Channel( modID );
     module.SetPosition(x, y, frontFaceGlobal[2]);
-    if( 33 < modID && modID < 44 ){
-      auto rel_id = 54 + ( modID - 34 );
-      auto& ext_module = psd_mod_pos.Channel( rel_id );
-      ext_module.SetPosition(x - 57.5, y, frontFaceGlobal[2]);
-    }
-    if( 43 < modID && modID < 54 ){
-      auto rel_id = 54 + ( modID - 34 );
-      auto& ext_module = psd_mod_pos.Channel( rel_id );
-      ext_module.SetPosition(x + 57.5, y, frontFaceGlobal[2]);
+  }
+
+  for (int i = 0; i < caveNode->GetNdaughters(); i++) {
+    fhCalNode  = caveNode->GetDaughter(i);
+    nodeName = fhCalNode->GetName();
+    nodeName.ToLower();
+    if (nodeName.Contains("scwall")) break;
+  }
+  fhCalNode = fhCalNode->GetDaughter(0);
+  std::cout << "ScWall node name: " << fhCalNode->GetName() << std::endl;
+
+  auto ScWallGeoMatrix = fhCalNode->GetMatrix();
+  auto ScWallBox       = (TGeoBBox*) fhCalNode->GetVolume()->GetShape();
+  frontFaceLocal = TVector3(0, 0, -fhCalBox->GetDZ());
+
+  fhCalGeoMatrix->LocalToMaster(&frontFaceLocal[0], &frontFaceGlobal[0]);
+
+  for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d){ psd_mod_pos.AddChannel(); }
+
+  for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d) {
+    auto* sub_node = fhCalNode->GetDaughter(i_d);
+    for( int j_d = 0; j_d < sub_node->GetNdaughters(); ++j_d ) {
+      auto *daughter = sub_node->GetDaughter(j_d);
+      auto geoMatrix = daughter->GetMatrix();
+      TVector3 translation(geoMatrix->GetTranslation());
+
+      int modID = daughter->GetNumber() - 1 + n_fhcal_modules;
+      double x = translation.X();
+      double y = translation.Y();
+      translation.SetZ(frontFaceGlobal.Z());
+      double z = translation.Z();
+
+      auto &module = psd_mod_pos.Channel(modID);
+      module.SetPosition(x, y, frontFaceGlobal[2]);
     }
   }
 

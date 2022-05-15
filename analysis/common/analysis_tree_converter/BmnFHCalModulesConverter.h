@@ -9,6 +9,8 @@
 #include "BmnFHCalEvent.h"
 #include "BmnFHCalModule.h"
 
+#include "BmnScWallDigit.h"
+
 #include "AnalysisTree/Detector.hpp"
 
 class TClonesArray;
@@ -28,6 +30,8 @@ private:
 
   AnalysisTree::ModuleDetector *out_fhcal_branch_{nullptr};
   BmnFHCalEvent *in_fhcal_event_{nullptr};
+  TClonesArray* in_bmn_scwall_digits_{nullptr};  ///< non-owning pointer
+
 
   ClassDef(BmnFHCalModulesConverter, 1)
 };

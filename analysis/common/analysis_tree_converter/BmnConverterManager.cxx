@@ -144,19 +144,18 @@ void BmnConverterManager::FillDataHeader()
 
   auto ScWallGeoMatrix = fhCalNode->GetMatrix();
   auto ScWallBox       = (TGeoBBox*) fhCalNode->GetVolume()->GetShape();
-  frontFaceLocal = TVector3(0, 0, -fhCalBox->GetDZ());
+  frontFaceLocal = TVector3(0, 0, -ScWallBox->GetDZ());
 
-  fhCalGeoMatrix->LocalToMaster(&frontFaceLocal[0], &frontFaceGlobal[0]);
+  ScWallGeoMatrix->LocalToMaster(&frontFaceLocal[0], &frontFaceGlobal[0]);
 
 
   std::cout << "ScWall modules:\n";
-  for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d) {
-    auto* sub_node = fhCalNode->GetDaughter(i_d);
-    for (int j_d = 0; j_d < sub_node->GetNdaughters(); ++j_d){ psd_mod_pos.AddChannel(); }
-  }
+
+  for( int idx=0; idx<216; idx++ ){ psd_mod_pos.AddChannel(); }
 
   for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d) {
     auto* sub_node = fhCalNode->GetDaughter(i_d);
+    std::cout << sub_node->GetName() << std::endl;
     for( int j_d = 0; j_d < sub_node->GetNdaughters(); ++j_d ) {
       auto *daughter = sub_node->GetDaughter(j_d);
       auto geoMatrix = daughter->GetMatrix();
@@ -168,7 +167,6 @@ void BmnConverterManager::FillDataHeader()
       translation.SetZ(frontFaceGlobal.Z());
       double z = translation.Z();
       std::cout << daughter->GetNumber() - 1 << ", ";
-      std::cout << daughter->GetName() << std::endl;
       try {
         auto &module = psd_mod_pos.Channel(modID);
         module.SetPosition(x, y, frontFaceGlobal[2]);
@@ -177,6 +175,7 @@ void BmnConverterManager::FillDataHeader()
         throw e;
       }
     }
+    std::cout << std::endl;
   }
   std::cout << std::endl;
 

@@ -61,7 +61,7 @@ void BmnFHCalModulesConverter::ProcessData()
   auto n_scwall_digits = in_bmn_scwall_digits_->GetEntriesFast();
   for (int idx = 0; idx < n_scwall_digits; ++idx) {
     auto in_module = dynamic_cast<BmnScWallDigit*>(in_bmn_scwall_digits_->At(idx));
-    auto module_id = in_module->GetCellID();
+    auto module_id = in_module->GetCellID()-1;
     auto energy = in_module->GetELossDigi();
 
     auto&out_module = out_fhcal_branch_->Channel(module_id+54);

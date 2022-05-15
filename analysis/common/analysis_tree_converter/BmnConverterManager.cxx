@@ -168,6 +168,7 @@ void BmnConverterManager::FillDataHeader()
       translation.SetZ(frontFaceGlobal.Z());
       double z = translation.Z();
       std::cout << daughter->GetNumber() - 1 << ", ";
+      std::cout << daughter->GetName() << std::endl;
       try {
         auto &module = psd_mod_pos.Channel(modID);
         module.SetPosition(x, y, frontFaceGlobal[2]);

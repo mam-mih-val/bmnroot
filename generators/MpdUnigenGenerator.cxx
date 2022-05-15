@@ -160,14 +160,6 @@ Bool_t MpdUnigenGenerator::ReadEvent(FairPrimaryGenerator* primGen){
   return kTRUE;
 }
 
-//MpdUnigenGenerator::~MpdUnigenGenerator(){
-//  fInFile->Close();
-//
-//  delete fInTree;
-//  delete fEvent;
-//  delete fParticle;
-//}
-
 Int_t MpdUnigenGenerator::RegisterIons(void) {
   std::cout << "-I- MpdUnigenGenerator: Registering ions..." << std::endl;
   UParticle* particle {nullptr};

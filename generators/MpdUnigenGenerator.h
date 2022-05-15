@@ -28,11 +28,11 @@ class MpdUnigenGenerator : public FairGenerator {
 public:
 
   MpdUnigenGenerator();
-  MpdUnigenGenerator(TString fileName, Bool_t isSpectator = kFALSE);
+  explicit MpdUnigenGenerator(TString fileName, Bool_t isSpectator = kFALSE);
   ~MpdUnigenGenerator() override = default;
 
-  Bool_t ReadEvent(FairPrimaryGenerator* primGen);
-  Int_t RegisterIons(void);
+  Bool_t ReadEvent(FairPrimaryGenerator* primGen) override;
+  Int_t RegisterIons();
 
   void SkipEvents(Int_t ev) {
       fEventNumber = ev;

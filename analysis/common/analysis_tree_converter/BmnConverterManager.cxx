@@ -147,9 +147,11 @@ void BmnConverterManager::FillDataHeader()
 
   for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d) {
     auto* sub_node = fhCalNode->GetDaughter(i_d);
+    for (int j_d = 0; j_d < sub_node->GetNdaughters(); ++j_d){ psd_mod_pos.AddChannel(); }
+  }
 
-    for (int idx = 0; idx < sub_node->GetNdaughters(); ++idx){ psd_mod_pos.AddChannel(); }
-
+  for (int i_d = 0; i_d < fhCalNode->GetNdaughters(); ++i_d) {
+    auto* sub_node = fhCalNode->GetDaughter(i_d);
     for( int j_d = 0; j_d < sub_node->GetNdaughters(); ++j_d ) {
       auto *daughter = sub_node->GetDaughter(j_d);
       auto geoMatrix = daughter->GetMatrix();

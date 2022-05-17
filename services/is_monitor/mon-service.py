@@ -61,11 +61,14 @@ def test_pgsql_connection(params):
     return {"success": True, "latency": time_elapsed}
 
 def test_http(http_addr):
-    result_request = requests.get(http_addr)  # Getting status code from the web site
-    if 200 <= result_request.status_code <= 299:
-        return {"success": True}
-    # if status code is less than 200 or more than 299 (normal response) then show error message
-    return {"success": False}
+    try:
+        result_request = requests.get(http_addr, timeout=5)  # Getting status code from the web site
+        # if status code is less than 200 or more than 299 then show error message
+        if result_request.status_code < 200 and result_request.status_code > 299:
+            return {"success": False}
+    except requests.exceptions.RequestException as err:    # ConnectionError, HTTPError, Timeout, TooManyRedirects
+        return {"success": False}
+    return {"success": True}
 
 def send_email(to, short_msg, long_msg=""):
     try:

@@ -90,10 +90,10 @@ An example of the JSON configuration is presented in `mon-service.EXAMPLE.json` 
 ### Starting
 
 To start in foreground:  \
-`./mon-service.py [--config <configfile>]`
+`python3 mon-service.py --config <configfile>`
 
 To start in background:  \
-`nohup ./mon-service.py [--config <configfile>] &`
+`nohup python3 mon-service.py --config <configfile> &`
 
 JSON config file name must be provided. There is no default file name.
 

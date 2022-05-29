@@ -85,9 +85,9 @@ BmnTofHitProducer::~BmnTofHitProducer()
 //--------------------------------------------------------------------------------------------------------------------------------------
 InitStatus BmnTofHitProducer::Init() 
 {
-    	LOG(INFO) << "Begin [BmnTof700HitProducer::Init].";
+    	LOG(info) << "Begin [BmnTof700HitProducer::Init].";
     	
-    	if(fOnlyPrimary && fVerbose > 1) LOG(INFO)<<" Only primary particles are processed!!! ";
+    	if(fOnlyPrimary && fVerbose > 1) LOG(info)<<" Only primary particles are processed!!! ";
 
 	if(fUseMCData)
 	{
@@ -199,7 +199,7 @@ InitStatus BmnTofHitProducer::Init()
 //	pGeoUtils->ParseStripsGeometry(fgeomFile);
 	pGeoUtils->FindNeighborStrips(h1TestDistance, h2TestNeighborPair, fDoTest);
 	
-    	LOG(INFO) << "Initialization [BmnTof700HitProducer::Init] finished succesfully.";
+    	LOG(info) << "Initialization [BmnTof700HitProducer::Init] finished succesfully.";
 
 	return kSUCCESS;
 }
@@ -572,7 +572,7 @@ void BmnTofHitProducer::Finish()
 {
   	if(fDoTest)
     	{
-      		LOG(INFO) << "[BmnTof700HitProducer::Finish] Update " << fTestFlnm.Data() << " file.";
+      		LOG(info) << "[BmnTof700HitProducer::Finish] Update " << fTestFlnm.Data() << " file.";
 		TFile *ptr = gFile;
 		TFile file(fTestFlnm.Data(), "RECREATE");
 		fList.Write(); 

@@ -66,11 +66,11 @@ void BmnSsdMC::ConstructGeometry() {
 
   // --- Only ROOT geometries are supported
   if (  ! fileName.EndsWith(".root") ) {
-    LOG(FATAL) <<  GetName() << ": Geometry format of file "
+    LOG(fatal) <<  GetName() << ": Geometry format of file "
     		       << fileName.Data() << " not supported.";
   }
 
-  LOG(INFO) << "Constructing " << GetName() << "  geometry from ROOT  file "
+  LOG(info) << "Constructing " << GetName() << "  geometry from ROOT  file "
   		      << fileName.Data();
   ConstructRootGeometry();
 }
@@ -129,7 +129,7 @@ void BmnSsdMC::Initialize() {
   			}
   		}
   	}
-  	LOG(INFO) << fName << ": Address map initialised with "
+  	LOG(info) << fName << ": Address map initialised with "
   			      << Int_t(fAddressMap.size()) << " sensors. "
   			     ;
 
@@ -196,7 +196,7 @@ void BmnSsdMC::Reset() {
 // -----   Screen log   ----------------------------------------------------
 void BmnSsdMC::Print(Option_t* /*opt*/) const {
   //Int_t nHits = fSsdPoints->GetEntriesFast();
-  LOG(INFO) << fName << ": " << fSsdPoints->GetEntriesFast()
+  LOG(info) << fName << ": " << fSsdPoints->GetEntriesFast()
             << " points registered in this event.";
 }
 // -------------------------------------------------------------------------
@@ -213,7 +213,7 @@ BmnSsdPoint* BmnSsdMC::CreatePoint() {
 
   // --- Check detector address
   if ( fStatusIn.fAddress != fStatusOut.fAddress ) {
-    LOG(ERROR) << GetName() << ": inconsistent detector addresses "
+    LOG(error) << GetName() << ": inconsistent detector addresses "
                << fStatusIn.fAddress << " " << fStatusOut.fAddress
               ;
     return NULL;
@@ -221,7 +221,7 @@ BmnSsdPoint* BmnSsdMC::CreatePoint() {
 
   // --- Check track Id
   if ( fStatusIn.fTrackId != fStatusOut.fTrackId ) {
-    LOG(ERROR) << GetName() << ": inconsistent track Id "
+    LOG(error) << GetName() << ": inconsistent track Id "
                << fStatusIn.fTrackId << " " << fStatusOut.fTrackId
               ;
     return NULL;
@@ -229,7 +229,7 @@ BmnSsdPoint* BmnSsdMC::CreatePoint() {
 
   // --- Check track PID
   if ( fStatusIn.fPid != fStatusOut.fPid ) {
-    LOG(ERROR) << GetName() << ": inconsistent track PID "
+    LOG(error) << GetName() << ": inconsistent track PID "
                << fStatusIn.fPid << " " << fStatusOut.fPid
               ;
     return NULL;
@@ -253,7 +253,7 @@ BmnSsdPoint* BmnSsdMC::CreatePoint() {
   if ( fStatusOut.fFlag ) flag += 2;   // second coordinate is exit step
 
   // --- Debug output
-  LOG(DEBUG2) << GetName() << ": Creating point from track "
+  LOG(debug2) << GetName() << ": Creating point from track "
               << fStatusIn.fTrackId << " in sensor "
               << fStatusIn.fAddress << ", position (" << posIn.X()
               << ", " << posIn.Y() << ", " << posIn.Z()
@@ -276,7 +276,7 @@ void BmnSsdMC::SetStatus(BmnSsdTrackStatus& status) {
 
   // --- Check for TVirtualMC and TGeomanager
   if ( ! (gMC  && gGeoManager) ) {
-	LOG(ERROR) << fName << ": No TVirtualMC or TGeoManager instance!"
+	LOG(error) << fName << ": No TVirtualMC or TGeoManager instance!"
 	          ;
 		return;
   }
@@ -288,7 +288,7 @@ void BmnSsdMC::SetStatus(BmnSsdTrackStatus& status) {
 
   auto it = fAddressMap.find(path);
   if ( it == fAddressMap.end() ) {
-  	LOG(FATAL) << fName << ": Path not found in address map! "
+  	LOG(fatal) << fName << ": Path not found in address map! "
   			      << gGeoManager->GetPath();
   	status.fAddress = 0;
   }
@@ -356,11 +356,11 @@ void BmnSsdMC::ExpandSsdNodes(TGeoNode* fN)
     TGeoVolume* v= fNode->GetVolume();
 //    AssignMediumAtImport(v);
 //    if (!gGeoManager->FindVolumeFast(v->GetName())) {
-//      LOG(DEBUG2)<<"Register Volume " << v->GetName();
+//      LOG(debug2)<<"Register Volume " << v->GetName();
 //      v->RegisterYourself();
 //    }
     if ( (this->InheritsFrom("FairDetector")) && CheckIfSensitive(v->GetName())) {
-      //     LOG(INFO)<<"Sensitive Volume "<< v->GetName();
+      //     LOG(info)<<"Sensitive Volume "<< v->GetName();
       AddSensitiveVolume(v);
     }
   }
@@ -374,7 +374,7 @@ Bool_t BmnSsdMC::IsNewGeometryFile(TString /*filename*/)
   TList* l = f->GetListOfKeys();
   Int_t numKeys = l->GetSize();
   if ( 2 != numKeys) {
-    LOG(INFO) << "Not exactly two keys in the file. File is not of new type."
+    LOG(info) << "Not exactly two keys in the file. File is not of new type."
 	     ;
     return kFALSE;
   }
@@ -386,12 +386,12 @@ Bool_t BmnSsdMC::IsNewGeometryFile(TString /*filename*/)
   TGeoRotation* rot = NULL;
   while ((key = (TKey*)next())) {
     if (strcmp(key->GetClassName(),"TGeoVolume") == 0) {
-      LOG(DEBUG) << "Found TGeoVolume in geometry file.";
+      LOG(debug) << "Found TGeoVolume in geometry file.";
       foundGeoVolume =  kTRUE;
       continue;
     }
     if (strcmp(key->GetClassName(),"TGeoTranslation") == 0) {
-      LOG(DEBUG) << "Found TGeoTranslation in geometry file.";
+      LOG(debug) << "Found TGeoTranslation in geometry file.";
       foundGeoMatrix =  kTRUE;
       trans = static_cast<TGeoTranslation*>(key->ReadObj());
       rot = new TGeoRotation();
@@ -399,7 +399,7 @@ Bool_t BmnSsdMC::IsNewGeometryFile(TString /*filename*/)
       continue;
     }
     if (strcmp(key->GetClassName(),"TGeoRotation") == 0) {
-      LOG(DEBUG) << "Found TGeoRotation in geometry file.";
+      LOG(debug) << "Found TGeoRotation in geometry file.";
       foundGeoMatrix =  kTRUE;
       trans = new TGeoTranslation();
       rot = static_cast<TGeoRotation*>(key->ReadObj());
@@ -407,7 +407,7 @@ Bool_t BmnSsdMC::IsNewGeometryFile(TString /*filename*/)
       continue;
     }
     if (strcmp(key->GetClassName(),"TGeoCombiTrans") == 0) {
-      LOG(DEBUG) << "Found TGeoCombiTrans in geometry file.";
+      LOG(debug) << "Found TGeoCombiTrans in geometry file.";
       foundGeoMatrix =  kTRUE;
       fCombiTrans = static_cast<TGeoCombiTrans*>(key->ReadObj());
       continue;
@@ -417,10 +417,10 @@ Bool_t BmnSsdMC::IsNewGeometryFile(TString /*filename*/)
     return kTRUE;
   } else {
     if ( !foundGeoVolume) {
-      LOG(INFO) << "No TGeoVolume found in geometry file. File is not of new type.";
+      LOG(info) << "No TGeoVolume found in geometry file. File is not of new type.";
     }
     if ( !foundGeoMatrix) {
-      LOG(INFO) << "Not TGeoMatrix derived object found in geometry file. File is not of new type.";
+      LOG(info) << "Not TGeoMatrix derived object found in geometry file. File is not of new type.";
     }
     return kFALSE;
   }

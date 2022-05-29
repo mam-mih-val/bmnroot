@@ -139,7 +139,7 @@ endif (MPDROOT)
 
 Set(LIBRARY_NAME EventDisplay)
 
-If ((${FairRoot_VERSION_MAJOR} MATCHES "18") AND (${FairRoot_VERSION_MINOR} MATCHES "6") AND (${FairRoot_VERSION_PATCH} MATCHES "7"))
+If ((${FairRoot_VERSION_MAJOR} MATCHES "18") AND (${FairRoot_VERSION_MINOR} MATCHES "6") AND (${FairRoot_VERSION_PATCH} VERSION_GREATER "6"))
  add_definitions(-DFairRoot_18_6_7)
 EndIf()
 

@@ -13,6 +13,7 @@
 #include <TGLCameraOverlay.h>
 #include <TGLLightSet.h>
 #include <TEveBrowser.h>
+#include <TColor.h>
 
 #include "TDOMParser.h"
 #include "TXMLEngine.h"

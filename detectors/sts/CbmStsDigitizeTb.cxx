@@ -137,9 +137,9 @@ void CbmStsDigitizeTb::DigitizePoint(const CbmStsPoint* point,
   }
   else sensor = fDigiScheme->GetSensorByName(curNode->GetName());
   if ( ! sensor ) {
-    LOG(DEBUG) << fName << ": node " << fDigiScheme->GetCurrentPath()
+    LOG(debug) << fName << ": node " << fDigiScheme->GetCurrentPath()
                  << " not found in digi scheme!";
-    LOG(DEBUG2) << "\t" << "MCPoint information:";
+    LOG(debug2) << "\t" << "MCPoint information:";
     point->Info();
     return;
   }
@@ -312,12 +312,12 @@ void CbmStsDigitizeTb::Exec(Option_t* opt) {
 
 
   fTimer.Stop();
-  LOG(INFO) << fName << ": " << fixed << setprecision(4)
+  LOG(info) << fName << ": " << fixed << setprecision(4)
             << fTimer.RealTime() << " s, " << nPoints << " points (outside: "
             << nOut << "), " << nDigiAll << " digis";
-  if ( nPoints ) LOG(INFO) << ", time " << setprecision(3) << tStart
+  if ( nPoints ) LOG(info) << ", time " << setprecision(3) << tStart
                            << " ns to " << tStop << " ns";
-  LOG(INFO);
+  LOG(info);
   
 
   fNEvents     += 1.;
@@ -393,31 +393,31 @@ void CbmStsDigitizeTb::Reset() {
 void CbmStsDigitizeTb::Finish() {
   Exec(""); // Digitise the remaining points in the MCBuffer
   fNEvents -= 1; // Correct for extra call to Exec
-  LOG(INFO);
-  LOG(INFO) << "============================================================"
+  LOG(info);
+  LOG(info) << "============================================================"
       ;
-  LOG(INFO) << "===== " << fName << ": Run summary ";
-  LOG(INFO) << "===== ";
-  LOG(INFO) << "===== Events processed          : " << setw(8) << fNEvents;
-  //LOG(INFO).setf(ios_base::fixed, ios_base::floatfield);
-  LOG(INFO) << "===== Real time per event       : "
+  LOG(info) << "===== " << fName << ": Run summary ";
+  LOG(info) << "===== ";
+  LOG(info) << "===== Events processed          : " << setw(8) << fNEvents;
+  //LOG(info).setf(ios_base::fixed, ios_base::floatfield);
+  LOG(info) << "===== Real time per event       : "
        << setw(8) << setprecision(4) 
        << fTime / fNEvents << " s";
-  LOG(INFO) << "===== StsPoints per event       : "
+  LOG(info) << "===== StsPoints per event       : "
        << setw(8) << setprecision(2) 
        << fNPoints / fNEvents;
-  LOG(INFO) << "===== Outside hits per event    : "
+  LOG(info) << "===== Outside hits per event    : "
        << setw(8) << setprecision(2) 
        << fNOutside / fNEvents << " = " 
        << setw(6) << setprecision(2) 
        << fNOutside / fNPoints * 100. << " %";
-  LOG(INFO) << "===== Front digis per point     : "
+  LOG(info) << "===== Front digis per point     : "
        << setw(8) << setprecision(2) 
        << fNDigisFront / (fNPoints-fNOutside);
-  LOG(INFO) << "===== Back digis per point      : "
+  LOG(info) << "===== Back digis per point      : "
        << setw(8) << setprecision(2) 
        << fNDigisBack / (fNPoints-fNOutside);
-  LOG(INFO) << "============================================================"
+  LOG(info) << "============================================================"
       ;
 	
 }					       

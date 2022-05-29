@@ -47,7 +47,7 @@ BmnFillDstTask::BmnFillDstTask() : FairTask("BmnFillDstTask"),
                                    fBC2Calib(0),
                                    fDoCalibration(kFALSE),
                                    isSimulationInput(false) {
-    LOG(DEBUG) << "Defaul Constructor of BmnFillDstTask";
+    LOG(debug) << "Defaul Constructor of BmnFillDstTask";
 }
 
 // ---- Constructor with the given event number to be processed -------
@@ -67,7 +67,7 @@ BmnFillDstTask::BmnFillDstTask(Long64_t nEvents) : FairTask("BmnFillDstTask"),
                                                    fDoCalibration(kFALSE),
                                                    isSimulationInput(false) {
     fRunHead = new DstRunHeader();
-    LOG(DEBUG) << "Constructor of BmnFillDstTask";
+    LOG(debug) << "Constructor of BmnFillDstTask";
 }
 
 // Constructor with input Event Header Name and event number to be processed
@@ -87,7 +87,7 @@ BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, Long64_t nEvents
                                                                                     fDoCalibration(kFALSE),
                                                                                     isSimulationInput(false) {
     fRunHead = new DstRunHeader();
-    LOG(DEBUG) << "Constructor of BmnFillDstTask";
+    LOG(debug) << "Constructor of BmnFillDstTask";
 }
 
 // Constructor with input and output Event Header Name, and event number to be processed
@@ -107,17 +107,17 @@ BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, TString output_e
                                                                                                                       fDoCalibration(kFALSE),
                                                                                                                       isSimulationInput(false) {
     fRunHead = new DstRunHeader();
-    LOG(DEBUG) << "Constructor of BmnFillDstTask";
+    LOG(debug) << "Constructor of BmnFillDstTask";
 }
 
 // ---- Destructor ----------------------------------------------------
 BmnFillDstTask::~BmnFillDstTask() {
-    LOG(DEBUG) << "Destructor of BmnFillDstTask";
+    LOG(debug) << "Destructor of BmnFillDstTask";
 }
 
 // ----  Initialisation  ----------------------------------------------
 void BmnFillDstTask::SetParContainers() {
-    LOG(DEBUG) << "SetParContainers of BmnFillDstTask";
+    LOG(debug) << "SetParContainers of BmnFillDstTask";
     // Load all necessary parameter containers from the runtime data base
     /*
     FairRunAna* ana = FairRunAna::Instance();
@@ -130,12 +130,12 @@ void BmnFillDstTask::SetParContainers() {
 
 // ---- Init ----------------------------------------------------------
 InitStatus BmnFillDstTask::Init() {
-    LOG(DEBUG) << "Initilization of BmnFillDstTask";
+    LOG(debug) << "Initilization of BmnFillDstTask";
 
     // Get a handle from the IO manager
     FairRootManager* ioman = FairRootManager::Instance();
     if (!ioman) {
-        LOG(ERROR) << "Init: FairRootManager is not instantiated!\n"
+        LOG(error) << "Init: FairRootManager is not instantiated!\n"
                    << "BmnFillDstTask will be inactive";
         return kERROR;
     }
@@ -146,7 +146,7 @@ InitStatus BmnFillDstTask::Init() {
         // if no input Event Header was found, searching for "MCEventHeader."
         fMCEventHead = (FairMCEventHeader*)ioman->GetObject("MCEventHeader.");
         if (!fMCEventHead) {
-            LOG(ERROR) << "No input Event Header (" << fInputEventHeaderName << " or MCEventHeader.) was found!\n"
+            LOG(error) << "No input Event Header (" << fInputEventHeaderName << " or MCEventHeader.) was found!\n"
                        << "BmnFillDstTask will be inactive!";
             return kERROR;
         }
@@ -214,7 +214,7 @@ InitStatus BmnFillDstTask::Init() {
     // Get a pointer to the output DST Event Header
     fDstHead = (DstEventHeader*)ioman->GetObject(fOutputEventHeaderName);
     if (!fDstHead) {
-        LOG(ERROR) << "No Event Header(" << fOutputEventHeaderName << ") prepared for the output DST file!\n"
+        LOG(error) << "No Event Header(" << fOutputEventHeaderName << ") prepared for the output DST file!\n"
                    << "BmnFillDstTask will be inactive";
         return kERROR;
     }
@@ -287,7 +287,7 @@ InitStatus BmnFillDstTask::Init() {
 
 // ---- ReInit  -------------------------------------------------------
 InitStatus BmnFillDstTask::ReInit() {
-    LOG(DEBUG) << "Re-initilization of BmnFillDstTask";
+    LOG(debug) << "Re-initilization of BmnFillDstTask";
     return kSUCCESS;
 }
 
@@ -297,7 +297,7 @@ void BmnFillDstTask::Exec(Option_t* /*option*/) {
     TStopwatch sw;
     sw.Start();
     
-    LOG(DEBUG) << "Exec of BmnFillDstTask";
+    LOG(debug) << "Exec of BmnFillDstTask";
 
     // fill output DST event header
     if (isSimulationInput) {
@@ -441,7 +441,7 @@ void BmnFillDstTask::Exec(Option_t* /*option*/) {
 
 // ---- Finish --------------------------------------------------------
 void BmnFillDstTask::Finish() {
-    LOG(DEBUG) << "Finish of BmnFillDstTask";
+    LOG(debug) << "Finish of BmnFillDstTask";
 
     FairRootManager* ioman = FairRootManager::Instance();
     FairSink* fSink = ioman->GetSink();

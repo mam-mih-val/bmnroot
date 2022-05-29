@@ -1,6 +1,6 @@
 // -------------------------------------------------------------------------
-// -----                  CbmStsReconstructionQa header file               -----
-// -----                  Created 06/02/07  by R. Karabowicz               -----
+// -----                  CbmStsReconstructionQa header file           -----
+// -----                  Created 06/02/07  by R. Karabowicz           -----
 // -------------------------------------------------------------------------
 
 

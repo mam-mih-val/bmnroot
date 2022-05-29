@@ -42,7 +42,7 @@ InitStatus CbmStsMCQa::Init()
 {
   fSetup = CbmStsSetup::Instance();
   fNofStation = fSetup -> GetNofStations();
-  LOG(INFO) << "Sts Setup consist of " << fNofStation << " stations.";
+  LOG(info) << "Sts Setup consist of " << fNofStation << " stations.";
     
   ReadDataBranches();
   CreateHistograms();
@@ -53,15 +53,15 @@ void CbmStsMCQa::ReadDataBranches()
 {  
   FairRootManager* ioman = FairRootManager::Instance();
   if ( NULL == ioman )
-    LOG(FATAL) << "No FairRootManager!";
+    LOG(fatal) << "No FairRootManager!";
   
   fStsPoints = dynamic_cast<TClonesArray*>(ioman -> GetObject("StsPoint"));
   if ( NULL == fStsPoints )
-    LOG(ERROR) << "No StsPoint array!"; 
+    LOG(error) << "No StsPoint array!"; 
 
   fMCTracks = dynamic_cast<TClonesArray*>(ioman -> GetObject("MCTrack"));
   if ( NULL == fMCTracks )
-    LOG(ERROR) << "No MCTrack array!"; 
+    LOG(error) << "No MCTrack array!"; 
 }
 
 void CbmStsMCQa::CreateHistograms()
@@ -199,19 +199,19 @@ void CbmStsMCQa::Finish(){
   Float_t xmin = fHM -> H2("h_sts_PointsMapEvent_Station0") -> GetXaxis()->GetXmin();
   Float_t scaleX = static_cast<Float_t>(xbins)/(xmax - xmin);
 
-  LOG(INFO) << "scaleX: " << scaleX;
+  LOG(info) << "scaleX: " << scaleX;
 
   Int_t ybins = fHM -> H2("h_sts_PointsMapEvent_Station0") -> GetYaxis()->GetNbins();
   Int_t ymax = fHM -> H2("h_sts_PointsMapEvent_Station0") -> GetYaxis()->GetXmax();
   Int_t ymin = fHM -> H2("h_sts_PointsMapEvent_Station0") -> GetYaxis()->GetXmin();
   Float_t scaleY = static_cast<Float_t>(ybins)/(ymax - ymin);
 
-  LOG(INFO) << "scaleY: " << scaleY;
+  LOG(info) << "scaleY: " << scaleY;
 
   Float_t scale = scaleX * scaleY;
   scale=1.;
 
-  LOG(INFO) << "Scale factor to cm^2: " << scale;
+  LOG(info) << "Scale factor to cm^2: " << scale;
 
   for(Int_t i=0; i<fNofStation; ++i) {
     fHM -> Scale(Form("h_sts_PointsMapEvent_Station%i", i),scale/nofEvents);

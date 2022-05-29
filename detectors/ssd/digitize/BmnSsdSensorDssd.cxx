@@ -96,7 +96,7 @@ Int_t BmnSsdSensorDssd::FindHits(std::vector<BmnSsdCluster*>& clusters,
       nClustersB++;
     }
     else
-      LOG(FATAL) << GetName() << ": Illegal side qualifier "
+      LOG(fatal) << GetName() << ": Illegal side qualifier "
       << side;
   }  // Loop over clusters in module
   LOG(DEBUG3) << GetName() << ": " << nClusters << " clusters (front "
@@ -201,7 +201,7 @@ Double_t BmnSsdSensorDssd::LorentzShift(Double_t z, Int_t chargeType,
   if      ( chargeType == 0 ) driftZ = fDz / 2. - z;  // electrons
   else if ( chargeType == 1 ) driftZ = fDz / 2. + z;  // holes
   else {
-    LOG(ERROR) << GetName() << ": illegal charge type " << chargeType
+    LOG(error) << GetName() << ": illegal charge type " << chargeType
        ;
     return 0.;
   }
@@ -239,15 +239,15 @@ Double_t BmnSsdSensorDssd::LorentzShift(Double_t z, Int_t chargeType,
 
 // -----   Print charge status   -------------------------------------------
 void BmnSsdSensorDssd::PrintChargeStatus() const {
-  LOG(INFO) << GetName() << ": Charge status: \n";
+  LOG(info) << GetName() << ": Charge status: \n";
   for (Int_t side = 0; side < 2; side++) {
     for (Int_t strip = 0; strip < GetNofStrips(side); strip++) {
       if ( fStripCharge[side][strip] > 0. )
-        LOG(INFO) << "          " << (side ? "Back  " : "Front ") << "strip "
+        LOG(info) << "          " << (side ? "Back  " : "Front ") << "strip "
         << strip << "  charge " << fStripCharge[side][strip] << "\n";
     } //# strips
   } //# front and back side
-  LOG(INFO) << "          Total: front side "
+  LOG(info) << "          Total: front side "
       << (fStripCharge[0]).GetSum() << ", back side "
       << (fStripCharge[1]).GetSum();
 }
@@ -260,7 +260,7 @@ Int_t BmnSsdSensorDssd::CalculateResponse(BmnSsdSensorPoint* point) {
 
   // --- Catch if parameters are not set
   if ( ! fIsSet ) {
-    LOG(FATAL) << fName << ": sensor is not initialised!"
+    LOG(fatal) << fName << ": sensor is not initialised!"
        ;
     return -1;
   }
@@ -424,7 +424,7 @@ void BmnSsdSensorDssd::RegisterCharge(Int_t side, Int_t strip,
 
   // --- Check existence of module
   if ( ! GetModule() ) {
-    LOG(ERROR) << GetName() << ": No module connected to sensor "
+    LOG(error) << GetName() << ": No module connected to sensor "
         << GetName() << ", side " << side << ", strip "
         << strip << ", time " << time << ", charge " << charge
        ;
@@ -469,7 +469,7 @@ Bool_t BmnSsdSensorDssd::SelfTest() {
         Int_t channel = GetModuleChannel(strip, side, sensorId);
         pair<Int_t, Int_t> test = GetStrip(channel, sensorId);
         if ( test.first != strip || test.second != side ) {
-          LOG(ERROR) << fName << "Self test failed! Sensor " << sensorId
+          LOG(error) << fName << "Self test failed! Sensor " << sensorId
               << " side " << side << " strip " << strip
               << " gives channel " << channel << " gives strip "
               << test.first << " side " << test.second

@@ -54,7 +54,7 @@ MpdMCTracks::~MpdMCTracks()
 // -------------------------------------------------------------------------
 InitStatus MpdMCTracks::Init()
 {
-  LOG(DEBUG)<<"MpdMCTracks::Init()";
+  LOG(debug)<<"MpdMCTracks::Init()";
 
   FairRootManager* fManager = FairRootManager::Instance();
   fEventManager = MpdEventManager::Instance();
@@ -63,7 +63,7 @@ InitStatus MpdMCTracks::Init()
   fTrackList = (TClonesArray*) fManager->GetObject("GeoTracks");
   if (fTrackList == 0)
   {
-    LOG(ERROR)<<"MpdMCTracks::Init() branch "<<GetName()<<" not found! Task will be deactivated";
+    LOG(error)<<"MpdMCTracks::Init() branch "<<GetName()<<" not found! Task will be deactivated";
     SetActive(kFALSE);
   }
   LOG(DEBUG1)<<"MpdMCTracks::Init() get track list "<<fTrackList;

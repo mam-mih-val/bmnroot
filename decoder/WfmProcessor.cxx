@@ -4,12 +4,12 @@ void WfmProcessor::ProcessWfm(std::vector<float> wfm, BmnDigiContainerTemplate *
 {
   assert(fdigiPars.gateBegin > 0 && fdigiPars.gateEnd > 0);
   if(fdigiPars.gateBegin >= wfm.size()) { 
-    LOG(ERROR) << "WfmProcessor : Filling " << digi->GetClassName() << ". waveform too short: accessing " << 
+    LOG(error) << "WfmProcessor : Filling " << digi->GetClassName() << ". waveform too short: accessing " << 
     fdigiPars.gateBegin << "/" << wfm.size() << ". Check calibration file ";
     fdigiPars.gateBegin = wfm.size()-1;
   }
   if(fdigiPars.gateEnd >= wfm.size()) { 
-    LOG(ERROR) << "WfmProcessor : Filling " << digi->GetClassName() << ". waveform too short: accessing " << 
+    LOG(error) << "WfmProcessor : Filling " << digi->GetClassName() << ". waveform too short: accessing " << 
     fdigiPars.gateEnd << "/" << wfm.size() << ". Check calibration file ";
     fdigiPars.gateEnd = wfm.size()-1;
   }
@@ -17,14 +17,14 @@ void WfmProcessor::ProcessWfm(std::vector<float> wfm, BmnDigiContainerTemplate *
   // Invert
   if (fdigiPars.doInvert)
   {
-    LOG(DEBUG) << "WfmProcessor : Filling " << digi->GetClassName() << ". Inverting";
+    LOG(debug) << "WfmProcessor : Filling " << digi->GetClassName() << ". Inverting";
     float myconstant{-1.0};
     std::transform(wfm.begin(), wfm.end(), wfm.begin(),
                    std::bind1st(std::multiplies<float>(), myconstant));
   }
 
   //Zero level calculation
-  LOG(DEBUG) << "WfmProcessor : Filling " << digi->GetClassName() << ". ZL calc";
+  LOG(debug) << "WfmProcessor : Filling " << digi->GetClassName() << ". ZL calc";
   const int n_gates = 3;
   int gate_npoints = (int)floor((fdigiPars.gateBegin - 2.) / n_gates);
 
@@ -39,7 +39,7 @@ void WfmProcessor::ProcessWfm(std::vector<float> wfm, BmnDigiContainerTemplate *
   digi->fZL = (int) gates_mean[best_gate];
 
   //MAX and Integral calculation including borders
-  LOG(DEBUG) << "WfmProcessor : Filling " << digi->GetClassName() << ". MAX & INT search";
+  LOG(debug) << "WfmProcessor : Filling " << digi->GetClassName() << ". MAX & INT search";
   digi->fIntegral = (int) std::accumulate(wfm.begin() + fdigiPars.gateBegin, wfm.begin() + fdigiPars.gateEnd + 1,
                                     -digi->fZL * (fdigiPars.gateEnd - fdigiPars.gateBegin + 1));
   auto const max_iter = std::max_element(wfm.begin() + fdigiPars.gateBegin, wfm.begin() + fdigiPars.gateEnd + 1);
@@ -51,7 +51,7 @@ void WfmProcessor::ProcessWfm(std::vector<float> wfm, BmnDigiContainerTemplate *
   PsdSignalFitting::PronyFitter Pfitter;
   if (fdigiPars.isfit)
   {
-    LOG(DEBUG) << "WfmProcessor : Filling " << digi->GetClassName() << ". Fitting";
+    LOG(debug) << "WfmProcessor : Filling " << digi->GetClassName() << ". Fitting";
     Pfitter.Initialize(fdigiPars.harmonics.size(), fdigiPars.harmonics.size(), fdigiPars.gateBegin, fdigiPars.gateEnd);
     Pfitter.SetDebugMode(0);
     Pfitter.SetWaveform(wfm, digi->fZL);

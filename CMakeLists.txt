@@ -169,10 +169,10 @@ endif()
 # REQUIRED means that cmake will stop if this packages are not found
 # For example the framework can run without GEANT4, but ROOT is mandatory
 find_package(ROOT 6.10.08 REQUIRED)
+find_package(VMC REQUIRED)
 if(ROOT_vmc_FOUND)
   set(VMCLIB ROOT::VMC)
 else()
-  find_package(VMC REQUIRED)
   set(VMCLIB VMCLibrary)
 endif()
 find_package(FairLogger REQUIRED)

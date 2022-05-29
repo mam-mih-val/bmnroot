@@ -93,10 +93,10 @@ CbmMCTrack::~CbmMCTrack()
 // -----   Public method Print   -------------------------------------------
 void CbmMCTrack::Print(Int_t trackId) const
 {
-    LOG(DEBUG) << "Track " << trackId << ", mother : " << fMotherId << ", Type " << fPdgCode
+    LOG(debug) << "Track " << trackId << ", mother : " << fMotherId << ", Type " << fPdgCode
                << ", momentum (" << fPx << ", " << fPy << ", " << fPz << ") GeV";
 
-    LOG(DEBUG) << "       Ref " << GetNPoints(kREF)
+    LOG(debug) << "       Ref " << GetNPoints(kREF)
                << ", BD "    << GetNPoints(kBD)
                << ", GEM "   << GetNPoints(kGEM)
                << ", TOF1 "  << GetNPoints(kTOF1)
@@ -167,7 +167,7 @@ Long64_t CbmMCTrack::GetNPoints(DetectorId detId) const
     else if ( detId == kSiBT ) return ( (fNPoints & ((Long64_t)  3 << 55) ) >> 55);
     else if ( detId == kTOFCAL ) return ( -1 );
     else {
-        LOG(ERROR) << "GetNPoints: Unknown detector ID " << detId;
+        LOG(error) << "GetNPoints: Unknown detector ID " << detId;
         return 0;
     }
 }
@@ -299,7 +299,7 @@ void CbmMCTrack::SetNPoints(Int_t iDet, Long64_t nPoints)
         ;
     }
 
-    else LOG(ERROR) << "Unknown detector ID " << iDet;
+    else LOG(error) << "Unknown detector ID " << iDet;
 }
 
 ClassImp(CbmMCTrack)

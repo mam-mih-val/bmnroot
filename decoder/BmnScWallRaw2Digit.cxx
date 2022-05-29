@@ -109,13 +109,13 @@ void BmnScWallRaw2Digit::ParseConfig(TString mappingFile)
     int last_letter = 'V' - 'A' + 1;
     ZoneIdx = (int)(zone[0] - 'A' + 1);
     if (ZoneIdx > last_letter)
-      LOG(DEBUG) << "MAX zone letter is " << last_letter << endl;
+      LOG(debug) << "MAX zone letter is " << last_letter << endl;
 
     unsigned int flat_channel = (unsigned int)GetFlatChannelFromAdcChannel(std::stoul(adc_ser, nullptr, 16), adc_chan);
     unsigned int unique_address = (ZoneIdx > last_letter) ? 0 : BmnScWallAddress::GetAddress(cell_id, xIdx, yIdx, SizeIdx, ZoneIdx);
     fChannelVect.at(flat_channel) = unique_address;
   }
-  //std::LOG(DEBUG) << "COMMENT.str: " << comment << std::endl;
+  //std::LOG(debug) << "COMMENT.str: " << comment << std::endl;
 }
 
 void BmnScWallRaw2Digit::ParseCalibration(TString calibrationFile)
@@ -222,7 +222,7 @@ int BmnScWallRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int board_serial, 
 void BmnScWallRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ScWalldigit)
 {
 
-  LOG(DEBUG) << "BmnScWallRaw2Digit::fillEvent" << endl;
+  LOG(debug) << "BmnScWallRaw2Digit::fillEvent" << endl;
 
   for (int i = 0; i < data->GetEntriesFast(); i++)
   {
@@ -230,9 +230,9 @@ void BmnScWallRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ScWalldigit
     // check if serial is from ScWall
     // cout<<digit->GetSerial() << " " << digit->GetChannel() << endl;
     if (std::find(fSerials.begin(), fSerials.end(), digit->GetSerial()) == fSerials.end()) {
-      LOG(DEBUG) << "BmnScWallRaw2Digit::fillEvent" << std::hex << digit->GetSerial() << " Not found in ";
+      LOG(debug) << "BmnScWallRaw2Digit::fillEvent" << std::hex << digit->GetSerial() << " Not found in ";
       for (auto it : fSerials)
-        LOG(DEBUG) << "BmnScWallRaw2Digit::fSerials " << std::hex << it << endl;
+        LOG(debug) << "BmnScWallRaw2Digit::fSerials " << std::hex << it << endl;
       continue;
     }
     std::vector<float> wfm((short*) digit->GetUShortValue(), (short*) digit->GetUShortValue()+digit->GetNSamples());
@@ -246,7 +246,7 @@ void BmnScWallRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ScWalldigit
     ProcessWfm(wfm, &ThisDigi);
     
     //Apply calibration
-    LOG(DEBUG) << "BmnScWallRaw2Digit::ProcessWfm  Calibration" << endl;
+    LOG(debug) << "BmnScWallRaw2Digit::ProcessWfm  Calibration" << endl;
     unsigned int cell_id = ThisDigi.GetCellId();
     assert(cell_id < fCalibVect.size());
     if (fdigiPars.signalType == 0)

@@ -164,12 +164,12 @@ Int_t BmnSsdSensorDssdStereo::GetStripNumber(Double_t x, Double_t y,
 
   // Check whether in active area (should have been caught before)
   if ( TMath::Abs(x) > fDx / 2. ) {
-    LOG(ERROR) << GetName() << ": Outside active area : x = "
+    LOG(error) << GetName() << ": Outside active area : x = "
         << x << " cm";
     return -1;
   }
   if ( TMath::Abs(y) > fDy / 2. ) {
-    LOG(ERROR) << GetName() << ": Outside active area : y = "
+    LOG(error) << GetName() << ": Outside active area : y = "
         << y << " cm";
     return -1;
   }
@@ -201,13 +201,13 @@ Bool_t BmnSsdSensorDssdStereo::Init() {
 
   // Check presence of node
   if ( ! fNode ) {
-    LOG(ERROR) << GetName() << ": No node assigned!";
+    LOG(error) << GetName() << ": No node assigned!";
     return kFALSE;
   }
 
   // Check whether parameters are assigned
   if ( fNofStrips <= 0 ) {
-    LOG(ERROR) << GetName() << ": Parameters are not set!"
+    LOG(error) << GetName() << ": Parameters are not set!"
        ;
     return kFALSE;
   }
@@ -219,7 +219,7 @@ Bool_t BmnSsdSensorDssdStereo::Init() {
   // Active size in x coordinate
   fDx = Double_t(fNofStrips) * fPitch;
   if ( fDx >= 2. * shape->GetDX() ) {
-    LOG(ERROR) << GetName() << ": Active size in x ( " << fNofStrips << " x "
+    LOG(error) << GetName() << ": Active size in x ( " << fNofStrips << " x "
         << fPitch << " cm exceeds volume extension " << 2. * shape->GetDX()
        ;
     return kFALSE;
@@ -227,7 +227,7 @@ Bool_t BmnSsdSensorDssdStereo::Init() {
 
   // Active size in y coordinate
   if ( fDy >= 2. * shape->GetDY() ) {
-    LOG(ERROR) << GetName() << ": Active size in y ( " << fDy
+    LOG(error) << GetName() << ": Active size in y ( " << fDy
         << " cm exceeds volume extension " << 2. * shape->GetDY()
        ;
     return kFALSE;
@@ -238,14 +238,14 @@ Bool_t BmnSsdSensorDssdStereo::Init() {
 
   // Stereo angle front side must be between -85 and 85 degrees
   if ( TMath::Abs(fStereoF) > 85. ) {
-    LOG(ERROR) << GetName() << ": Stereo angle front side ( " << fStereoF
+    LOG(error) << GetName() << ": Stereo angle front side ( " << fStereoF
         << "° exceeds maximum 85° ";
     return kFALSE;
   }
 
   // Stereo angle back side must be between -85 and 85 degrees
   if ( TMath::Abs(fStereoB) > 85. ) {
-    LOG(ERROR) << GetName() << ": Stereo angle back side ( " << fStereoB
+    LOG(error) << GetName() << ": Stereo angle back side ( " << fStereoB
         << "° exceeds maximum 85° ";
     return kFALSE;
   }
@@ -381,13 +381,13 @@ Int_t BmnSsdSensorDssdStereo::IntersectClusters(BmnSsdCluster* clusterF,
   Double_t xB = -1.;
   GetClusterPosition(clusterF->GetPosition(), xF, side);
   if ( side != 0 )
-    LOG(FATAL) << GetName() << ": Inconsistent side qualifier " << side
+    LOG(fatal) << GetName() << ": Inconsistent side qualifier " << side
     << " for front side cluster! ";
   Double_t exF = clusterF->GetPositionError() * fPitch;
   Double_t du = exF * TMath::Cos(TMath::DegToRad() * fStereoF);
   GetClusterPosition(clusterB->GetPosition(), xB, side);
   if ( side != 1 )
-    LOG(FATAL) << GetName() << ": Inconsistent side qualifier " << side
+    LOG(fatal) << GetName() << ": Inconsistent side qualifier " << side
     << " for back side cluster! ";
   Double_t exB = clusterB->GetPositionError() * fPitch;
   Double_t dv = exB * TMath::Cos(TMath::DegToRad() * fStereoB);

@@ -63,7 +63,7 @@ Int_t CbmModuleList::GetModuleId(const char* moduleName) {
 // ------   Get module name from module Id   --------------------------------
 TString CbmModuleList::GetModuleName(Int_t moduleId) {
   if ( fModules.find(moduleId) == fModules.end() ) {
-    LOG(ERROR) << "Module List: Illegal module Id " << moduleId;
+    LOG(error) << "Module List: Illegal module Id " << moduleId;
     return "";
   }
   return fModules.find(moduleId)->second;

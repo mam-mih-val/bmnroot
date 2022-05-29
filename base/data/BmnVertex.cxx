@@ -35,7 +35,7 @@ BmnVertex::BmnVertex(Double_t x, Double_t y, Double_t z, Double_t chi2,
       fFlag(flag),
       fTrackIdxs(idxs) {
     if ((covMat.GetNrows() != 3) && (covMat.GetNcols() != 3)) {
-        LOG(ERROR) << "Wrong dimension of passed covariance matrix. Clear the covariance matrix.";
+        LOG(error) << "Wrong dimension of passed covariance matrix. Clear the covariance matrix.";
         for (Int_t i = 0; i < 6; i++) fCovMatrix[i] = 0;
     } else {
         Int_t index = 0;
@@ -98,7 +98,7 @@ void BmnVertex::SetVertex(Double_t x, Double_t y, Double_t z, Double_t chi2,
     fFlag = flag;
     fTrackIdxs = idxs;
     if ((covMat.GetNrows() != 3) && (covMat.GetNcols() != 3)) {
-        LOG(ERROR) << "Wrong dimension of passed covariance matrix. Clear the covariance matrix.";
+        LOG(error) << "Wrong dimension of passed covariance matrix. Clear the covariance matrix.";
         for (Int_t i = 0; i < 6; i++) fCovMatrix[i] = 0;
     } else {
         Int_t index = 0;

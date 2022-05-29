@@ -149,15 +149,15 @@ void CbmStsDigitizeQa::Finish(){
 void CbmStsDigitizeQa::ReadDataBranches(){
     FairRootManager* ioman = FairRootManager::Instance();
     if ( NULL == ioman )
-	LOG(FATAL) << GetName() << ": No FairRootManager!";
+	LOG(fatal) << GetName() << ": No FairRootManager!";
 
     fStsPoints = (TClonesArray*)ioman -> GetObject("StsPoint");
     if ( NULL == fStsPoints )
-	LOG(ERROR) << GetName() << ": No StsPoint array!";
+	LOG(error) << GetName() << ": No StsPoint array!";
 
     fStsDigis = (TClonesArray*) ioman -> GetObject("StsDigi");
     if ( NULL == fStsDigis )
-	LOG(ERROR) << GetName() << ": No StsDigi array!";
+	LOG(error) << GetName() << ": No StsDigi array!";
 }
 
 void CbmStsDigitizeQa::CreateHistograms(){

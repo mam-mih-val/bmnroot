@@ -241,7 +241,7 @@ void CbmStack::FillTrackArray()
 // -----   Public method UpdateTrackIndex   --------------------------------
 void CbmStack::UpdateTrackIndex(TRefArray* detList)
 {
-    LOG(INFO) << "Updating track indices...";
+    LOG(info) << "Updating track indices...";
     Int_t nColl = 0;
 
     // First update mother ID in MCTracks
@@ -293,7 +293,7 @@ void CbmStack::UpdateTrackIndex(TRefArray* detList)
 
         }   // Collections of this detector
     }       // List of active detectors
-    LOG(INFO) << "...stack and " << nColl << " collections updated.";
+    LOG(info) << "...stack and " << nColl << " collections updated.";
 }
 
 // -----   Public method Reset   -------------------------------------------

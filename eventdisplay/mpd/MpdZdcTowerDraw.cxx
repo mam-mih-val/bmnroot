@@ -67,7 +67,7 @@ InitStatus MpdZdcTowerDraw::Init()
     fDigitList = (TClonesArray*) fManager->GetObject("ZdcDigit");
     if (fDigitList == 0)
     {
-        LOG(ERROR)<<"MpdZdcTowerDraw::Init() branch ZdcDigit not found! Task will be deactivated";
+        LOG(error)<<"MpdZdcTowerDraw::Init() branch ZdcDigit not found! Task will be deactivated";
         SetActive(kFALSE);
     }
     

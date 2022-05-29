@@ -89,7 +89,7 @@ void BmnSsdModule::AddSignal(UShort_t channel, Double_t time,
 
   // --- Discard charge if the channel is dead
   if ( fDeadChannels.count(channel) ) {
-    LOG(DEBUG) << GetName() << ": discarding signal in dead channel "
+    LOG(debug) << GetName() << ": discarding signal in dead channel "
         << channel;
     return;
   }
@@ -234,7 +234,7 @@ void BmnSsdModule::Digitize(UShort_t channel, BmnSsdSignal* signal) {
   // --- If no digitiser task is present (debug mode): create a digi and
   // --- add it to the digi buffer.
   else {
-    LOG(FATAL) << GetName() << ": no digitiser task present!";
+    LOG(fatal) << GetName() << ": no digitiser task present!";
   }
   return;
 }
@@ -252,7 +252,7 @@ Int_t BmnSsdModule::FindHits(TClonesArray* hitArray, BmnEvent* event) {
     nHits += sensor->FindHits(fClusters, hitArray, event, fDeadTime);
   }
 
-  LOG(DEBUG2) << GetName() << ": Clusters " << fClusters.size()
+  LOG(debug2) << GetName() << ": Clusters " << fClusters.size()
 			            << ", sensors " << GetNofDaughters() << ", hits "
 			            << nHits;
   return nHits;
@@ -305,7 +305,7 @@ Int_t BmnSsdModule::GetAddressFromName(TString name) {
     if ( name[13] != 'M' ) isValid = kFALSE;
   }
   if ( ! isValid ) {
-    LOG(FATAL) << "GetAddressFromName: Not a valid module name "
+    LOG(fatal) << "GetAddressFromName: Not a valid module name "
         << name;
     return 0;
   }
@@ -454,7 +454,7 @@ void BmnSsdModule::SetParameters(Double_t dynRange, Double_t threshold,
     fNofChannels = 2 * TMath::Max(nStripsF, nStripsB);
   }
   else {
-    LOG(FATAL) << GetName() << ": No sensor connected!";
+    LOG(fatal) << GetName() << ": No sensor connected!";
     return;
   }
 

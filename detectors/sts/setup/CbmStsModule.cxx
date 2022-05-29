@@ -47,7 +47,7 @@ void CbmStsModule::AddSensor(CbmStsSenzor* sensor) {
   // Check compatibility with already present sensors
   if ( ! fSensors.empty() ) {
     if ( sensor->GetType() != fSensors[0]->GetType() ) {
-      LOG(ERROR) << "Sensor type " << sensor->GetType()->GetTypeId()
+      LOG(error) << "Sensor type " << sensor->GetType()->GetTypeId()
                  << " incompatible with sensor type "
                  << fSensors[0]->GetType()->GetTypeId();
       return;

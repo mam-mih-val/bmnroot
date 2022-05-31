@@ -99,7 +99,7 @@ Int_t BmnSsdSensorDssd::FindHits(std::vector<BmnSsdCluster*>& clusters,
       LOG(fatal) << GetName() << ": Illegal side qualifier "
       << side;
   }  // Loop over clusters in module
-  LOG(DEBUG3) << GetName() << ": " << nClusters << " clusters (front "
+  LOG(debug3) << GetName() << ": " << nClusters << " clusters (front "
       << frontClusters.size() << ", back " << backClusters.size()
       << ") ";
 
@@ -115,7 +115,7 @@ Int_t BmnSsdSensorDssd::FindHits(std::vector<BmnSsdCluster*>& clusters,
 
       // --- Calculate intersection points
       Int_t nOfHits = IntersectClusters(clusterF, clusterB);
-      LOG(DEBUG4) << GetName() << ": Cluster front " << iClusterF
+      LOG(debug4) << GetName() << ": Cluster front " << iClusterF
           << ", cluster back " << iClusterB
           << ", intersections " << nOfHits;
       nHits += nOfHits;
@@ -124,7 +124,7 @@ Int_t BmnSsdSensorDssd::FindHits(std::vector<BmnSsdCluster*>& clusters,
 
   }  // front side clusters
 
-  LOG(DEBUG3) << GetName() << ": Clusters " << nClusters << " ( "
+  LOG(debug3) << GetName() << ": Clusters " << nClusters << " ( "
       << nClustersF << " / " << nClustersB << " ), hits: "
       << nHits;
 
@@ -169,7 +169,7 @@ void BmnSsdSensorDssd::GetClusterPosition(Double_t centre,
     xCluster -= GetConditions()->GetMeanLorentzShift(side);
   }
 
-  LOG(DEBUG4) << GetName() << ": Cluster centre " << centre
+  LOG(debug4) << GetName() << ": Cluster centre " << centre
       << ", sensor index " << GetIndex() << ", side "
       << side << ", cluster position " << xCluster
      ;
@@ -224,7 +224,7 @@ Double_t BmnSsdSensorDssd::LorentzShift(Double_t z, Int_t chargeType,
   // --- but the have also the opposite charge sign, so the Lorentz force
   // --- on them is also in the positive x direction.
   Double_t shift = muHall * bY * driftZ * 1.e-4;
-  LOG(DEBUG4) << GetName() << ": Drift " << driftZ
+  LOG(debug4) << GetName() << ": Drift " << driftZ
       << " cm, mobility " << muHall
       << " cm**2/(Vs), field " << bY
       << " T, shift " << shift << " cm";
@@ -266,8 +266,8 @@ Int_t BmnSsdSensorDssd::CalculateResponse(BmnSsdSensorPoint* point) {
   }
 
   // --- Debug
-  LOG(DEBUG3) << ToString();
-  LOG(DEBUG3) << GetName() << ": Processing point " << point->ToString()
+  LOG(debug3) << ToString();
+  LOG(debug3) << GetName() << ": Processing point " << point->ToString()
                        ;
 
   // --- Number of created charge signals (coded front/back side)
@@ -283,12 +283,12 @@ Int_t BmnSsdSensorDssd::CalculateResponse(BmnSsdSensorPoint* point) {
   // --- Cross talk
   if ( BmnSsdSetup::Instance()->GetDigiParameters()->GetUseCrossTalk() ) {
     if ( FairLogger::GetLogger()->IsLogNeeded(DEBUG4) ) {
-      LOG(DEBUG4) << GetName() << ": Status before cross talk"
+      LOG(debug4) << GetName() << ": Status before cross talk"
          ;
       PrintChargeStatus();
     }
     Double_t ctcoeff =  GetConditions()->GetCrossTalk();
-    LOG(DEBUG4) << GetName() << ": Cross-talk coefficient is "
+    LOG(debug4) << GetName() << ": Cross-talk coefficient is "
         << ctcoeff;
     CrossTalk(ctcoeff);
   }
@@ -366,7 +366,7 @@ void BmnSsdSensorDssd::ProduceCharge(BmnSsdSensorPoint* point) {
 
   // Average charge per step, used for uniform distribution
   Double_t chargePerStep = chargeTotal / nSteps;
-  LOG(DEBUG3) << GetName() << ": Trajectory length " << trajLength
+  LOG(debug3) << GetName() << ": Trajectory length " << trajLength
       << " cm, steps " << nSteps << ", step size " << stepSize * 1.e4
       << " mu, charge per step " << chargePerStep;
 
@@ -435,7 +435,7 @@ void BmnSsdSensorDssd::RegisterCharge(Int_t side, Int_t strip,
   Int_t channel = GetModuleChannel(strip, side, GetSensorId() );
 
   // --- Debug output
-  LOG(DEBUG4) << fName << ": Registering charge: side " << side
+  LOG(debug4) << fName << ": Registering charge: side " << side
       << ", strip " << strip << ", time " << time
       << ", charge " << charge
       << " to channel " << channel

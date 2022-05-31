@@ -203,7 +203,7 @@ void BmnSsdDigitize::CreateDigi(Int_t address, UShort_t channel,
   SendDigi(digi);
 
   fNofDigis++;
-  LOG(DEBUG3) << GetName() << ": created digi at " << time
+  LOG(debug3) << GetName() << ": created digi at " << time
       << " ns with ADC " << adc << " at address " << address
       << " (module "
       << fSetup->GetElement(address, kSsdModule)->GetName()

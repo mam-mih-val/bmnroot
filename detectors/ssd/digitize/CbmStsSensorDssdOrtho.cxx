@@ -64,7 +64,7 @@ void CbmStsSensorDssdOrtho::Diffusion(Double_t x, Double_t y,
     fracR = 0.5 * ( 1. - TMath::Erf( 0.707107 * dRight / sigma) );
   fracC = 1. - fracL - fracR;
 
-  LOG(DEBUG4) << GetName() << ": Distances to next strip " << dLeft << " / "
+  LOG(debug4) << GetName() << ": Distances to next strip " << dLeft << " / "
       << dRight << ", charge fractions " << fracL << " / " << fracC
       << " / " << fracR;
 }
@@ -155,7 +155,7 @@ void CbmStsSensorDssdOrtho::PropagateCharge(Double_t x, Double_t y,
   Double_t zCharge = z;
 
   // Debug
-  LOG(DEBUG4) << GetName() << ": Propagating charge " << charge
+  LOG(debug4) << GetName() << ": Propagating charge " << charge
       << " from (" << x << ", " << y << ", " << z
       << ") on side " << side << " of sensor " << GetName()
      ;
@@ -164,13 +164,13 @@ void CbmStsSensorDssdOrtho::PropagateCharge(Double_t x, Double_t y,
   if ( CbmStsSetup::Instance()->GetDigiParameters()->GetUseLorentzShift() ) {
     xCharge += LorentzShift(z, side, bY);
   }
-  LOG(DEBUG4) << GetName() << ": After Lorentz shift: (" << xCharge << ", "
+  LOG(debug4) << GetName() << ": After Lorentz shift: (" << xCharge << ", "
       << yCharge << ", " << zCharge << ") cm";
 
   // Stop if the charge after Lorentz shift is not in the active area.
   // Diffusion into the active area is not treated.
   if ( ! IsInside(xCharge, yCharge) ) {
-    LOG(DEBUG4) << GetName() << ": Charge outside active area"
+    LOG(debug4) << GetName() << ": Charge outside active area"
        ;
     return;
   }
@@ -179,7 +179,7 @@ void CbmStsSensorDssdOrtho::PropagateCharge(Double_t x, Double_t y,
   if ( ! CbmStsSetup::Instance()->GetDigiParameters()->GetUseDiffusion() ) {
     Int_t iStrip = GetStripNumber(xCharge, yCharge, side);
     fStripCharge[side][iStrip] += charge;
-    LOG(DEBUG4) << GetName() << ": Adding charge " << charge << " to strip "
+    LOG(debug4) << GetName() << ": Adding charge " << charge << " to strip "
         << iStrip;
   } //? Do not use diffusion
 
@@ -194,7 +194,7 @@ void CbmStsSensorDssdOrtho::PropagateCharge(Double_t x, Double_t y,
                                       GetConditions()->GetTemperature(),
                                       side);
     assert (diffusionWidth >= 0.);
-    LOG(DEBUG4) << GetName() << ": Diffusion width = " << diffusionWidth
+    LOG(debug4) << GetName() << ": Diffusion width = " << diffusionWidth
         << " cm";
     // Calculate charge fractions in strips
     Double_t fracL = 0.;  // fraction of charge in left neighbour
@@ -212,17 +212,17 @@ void CbmStsSensorDssdOrtho::PropagateCharge(Double_t x, Double_t y,
     // Collect charge on the readout strips
     if ( fracC > 0. ) {
       fStripCharge[side][iStripC] += charge * fracC;    // centre strip
-      LOG(DEBUG4) << GetName() << ": Adding charge " << charge * fracC
+      LOG(debug4) << GetName() << ": Adding charge " << charge * fracC
           << " to strip " << iStripC;
     }
     if ( fracL > 0. && iStripL >= 0 ) {
       fStripCharge[side][iStripL] += charge * fracL;  // right neighbour
-      LOG(DEBUG4) << GetName() << ": Adding charge " << charge * fracL
+      LOG(debug4) << GetName() << ": Adding charge " << charge * fracL
           << " to strip " << iStripL;
     }
     if ( fracR > 0. && iStripR < fNofStrips[side] ) {
       fStripCharge[side][iStripR] += charge * fracR;  // left neighbour
-      LOG(DEBUG4) << GetName() << ": Adding charge " << charge * fracR
+      LOG(debug4) << GetName() << ": Adding charge " << charge * fracR
           << " to strip " << iStripR;
     }
   } //? Use diffusion

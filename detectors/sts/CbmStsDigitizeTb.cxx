@@ -218,7 +218,7 @@ void CbmStsDigitizeTb::DigitizePoint(const CbmStsPoint* point,
     nBack++;
   }
 
-  LOG(DEBUG1) << fName << ": point ( " << fixed << setprecision(4)
+  LOG(debug1) << fName << ": point ( " << fixed << setprecision(4)
               << xPoint << ", " << yPoint << ", "
               << zPoint << ") cm, t = " << setprecision(3)
               << point->GetTime() << " ns, digis: " << nFront << " front, "

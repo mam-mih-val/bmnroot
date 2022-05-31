@@ -67,12 +67,12 @@ BmnSsdSensor* BmnSsdSetup::AssignSensor(Int_t address,
     assert (sensor->GetAddress() == address);
     sensor->SetNode(node);
     sensor->Init();
-    LOG(DEBUG1) << GetName() << ": Assigning " << sensor->ToString()
+    LOG(debug1) << GetName() << ": Assigning " << sensor->ToString()
         << "\n\t\t to node " << node->GetName();
   }
   else {
     sensor = DefaultSensor(address, node); // Not found; create and add.
-    LOG(DEBUG1) << GetName() << ": Assigning default " << sensor->ToString()
+    LOG(debug1) << GetName() << ": Assigning default " << sensor->ToString()
         << "\n\t\t to node " << node->GetName();
     fNofSensorsDefault++;
   }
@@ -767,7 +767,7 @@ Int_t BmnSsdSetup::SetModuleParameters(const char* fileName) {
     // --- Set parameters of module
     module->SetParameters(dynRange, threshold, nAdc, tResol, tDead, noise,
                           zeroNoise, fracDead);
-    LOG(DEBUG1) << GetName() << ": Set " << module->ToString()
+    LOG(debug1) << GetName() << ": Set " << module->ToString()
        ;
     nModules++;
 
@@ -962,7 +962,7 @@ Int_t BmnSsdSetup::SetSensorConditions(const char* fileName) {
     // --- Set conditions of sensor (n.b. conversion from kG to T)
     sensor->SetConditions(vDep, vBias, temperature, cCoupling, cInterstrip,
                           field[0]/10., field[1]/10., field[2]/10.);
-    LOG(DEBUG1) << GetName() << ": Conditions of sensor " << sensor->GetName()
+    LOG(debug1) << GetName() << ": Conditions of sensor " << sensor->GetName()
         << " " << sensor->GetConditions()->ToString();
     nSensors++;
 

@@ -219,7 +219,7 @@ void CbmStsSensorTypeDssd::RegisterCharge(const CbmStsSenzor* sensor,
   sensor->GetModule()->AddSignal(channel, time, charge);
 
   // --- Debug output
-  LOG(DEBUG3) << fName << ": Registering charge: side " << side
+  LOG(debug3) << fName << ": Registering charge: side " << side
               << ", strip " << strip << ", time " << time
               << ", charge " << charge;
 

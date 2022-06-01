@@ -268,7 +268,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
     //gGeoManager->CheckOverlaps(0.0001);
     //gGeoManager->PrintOverlaps();
 
-    //fRun->CreateGeometryFile("full_geometry.root");  // save the full setup geometry to the additional file
+    fRun->CreateGeometryFile("full_geometry.root");  // save the full setup geometry to the additional file
 
     if ((generatorName == QGSM) || (generatorName == DCMQGSM)) {
         TString Pdg_table_name = TString::Format("%s%s%c%s", gSystem->BaseName(inFile.Data()), ".g", (fRun->GetName())[6], ".pdg_table.dat");

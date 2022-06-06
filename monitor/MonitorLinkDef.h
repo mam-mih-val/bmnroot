@@ -16,9 +16,9 @@
 #pragma link C++ class BmnParts+;
 #pragma link C++ class BmnMQSource+;
 #pragma link C++ class BmnMQSink+;
-#pragma link C++ class BmnMQRunDevice+;
-#pragma link C++ class BmnMQFileSaver+;
-#pragma link C++ class BmnMQRecoTaskProcessor++;
+//#pragma link C++ class BmnMQRunDevice+;
+//#pragma link C++ class BmnMQFileSaver+;
+//#pragma link C++ class BmnMQRecoTaskProcessor++;
 #pragma link C++ class BmnHistGem++;
 #pragma link C++ class BmnHistCsc++;
 #pragma link C++ class BmnHistSilicon++;

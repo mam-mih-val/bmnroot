@@ -33,7 +33,8 @@ create table trigger_
  trigger_info varchar(60) unique not null
 );
 
--- record_ contains only base fields (specific fields are defined via eLog platform, such as 'sp_41', 'target_width', etc.)
+-- record_ contains only base fields (specific columns including magnetic field info are defined via eLog platform)
+-- specific 'target_width' field remains to combine target info into one web column
 create table record_
 (
  record_id serial primary key,
@@ -47,6 +48,7 @@ create table record_
  beam varchar(10) null references beam_(beam) on update cascade,
  energy float null check (energy > 0),
  target varchar(10) null references target_(target) on update cascade,
+ target_width float null,
  record_comment text
 );
 

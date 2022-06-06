@@ -94,8 +94,8 @@ Bool_t BmnMQSink::InitSink() {
 }
 
 void BmnMQSink::RegisterImpl(const char* name, const char* folderName, void* ob) {
-    printf("RegisterImpl name %s  foldername %s  ob %08X\n",
-            name, folderName, ob);
+    printf("RegisterImpl name %s  foldername %s  ob %08lX\n",
+            name, folderName, reinterpret_cast<uintptr_t>(ob));
     if (std::strstr(name, ".")) {
         TNamed * obn = static_cast<TNamed*> (ob);
         printf("casted: name %s class name %s classname %s class_name %s\n",
@@ -131,7 +131,7 @@ void BmnMQSink::RegisterImpl(const char* name, const char* folderName, void* ob)
 
 void BmnMQSink::RegisterAny(const char* brname, const std::type_info& oi, const std::type_info& pi, void* obj) {
     fPersistentBranchesMap[brname] = std::unique_ptr<TypeAddressPair const>(new TypeAddressPair(oi, pi, obj));
-    printf("\nRegisterAny brname %s  %08X\n", brname, fPersistentBranchesMap[brname].get());
+    printf("\nRegisterAny brname %s  %08lX\n", brname, reinterpret_cast<uintptr_t>(fPersistentBranchesMap[brname].get()));
 }
 
 bool BmnMQSink::IsPersistentBranchAny(const char* name) {

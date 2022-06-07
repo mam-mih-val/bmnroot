@@ -45,8 +45,14 @@ InitStatus BmnCSCDigitizer::Init() {
 
     FairRootManager* ioman = FairRootManager::Instance();
 
-    fBmnCSCPointsArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
-    fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
+    fBmnCSCPointsArray = (TClonesArray*)ioman->GetObject(fInputBranchName);
+    if (!fBmnCSCPointsArray) {
+        cout << "BmnCSCDigitizer::Init(): branch " << fInputBranchName << " not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
+
+    fMCTracksArray = (TClonesArray*)ioman->GetObject("MCTrack");
 
     fBmnCSCDigitsArray = new TClonesArray(fOutputDigitsBranchName);
     ioman->Register(fOutputDigitsBranchName, "CSC_DIGIT", fBmnCSCDigitsArray, kTRUE);
@@ -106,6 +112,10 @@ InitStatus BmnCSCDigitizer::Init() {
 }
 
 void BmnCSCDigitizer::Exec(Option_t* opt) {
+
+    if (!IsActive())
+        return;
+
     clock_t tStart = clock();
     fBmnCSCDigitsArray->Delete();
 
@@ -113,10 +123,10 @@ void BmnCSCDigitizer::Exec(Option_t* opt) {
         fBmnCSCDigitMatchesArray->Delete();
     }
 
-    if (!fBmnCSCPointsArray) {
-        Error("BmnCSCDigitizer::Exec()", " !!! Unknown branch name !!! ");
-        return;
-    }
+    // if (!fBmnCSCPointsArray) {
+    //     Error("BmnCSCDigitizer::Exec()", " !!! Unknown branch name !!! ");
+    //     return;
+    // }
 
     if (fVerbose) {
         cout << "\n BmnCSCDigitizer::Exec(), event = " << entrys << "\n";

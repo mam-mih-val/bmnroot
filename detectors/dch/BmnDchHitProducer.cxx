@@ -53,8 +53,15 @@ InitStatus BmnDchHitProducer::Init() {
   //Get ROOT Manager
   FairRootManager* ioman = FairRootManager::Instance();
 
-  fBmnPointsArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
-  fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
+  fBmnPointsArray = (TClonesArray*)ioman->GetObject(fInputBranchName);
+  
+  if (!fBmnPointsArray) {
+        cout << "BmnDchHitProducer::Init(): branch " << fInputBranchName << " not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+  }
+  
+  fMCTracksArray = (TClonesArray*)ioman->GetObject("MCTrack");
 
   fBmnHitsArray = new TClonesArray(fOutputHitsBranchName, 100);
   ioman->Register(fOutputHitsBranchName, "DCH", fBmnHitsArray, kTRUE);
@@ -63,6 +70,9 @@ InitStatus BmnDchHitProducer::Init() {
 }
 
 void BmnDchHitProducer::Exec(Option_t* opt) {
+  
+  if (!IsActive())
+    return;
 
   fBmnHitsArray->Delete();
 

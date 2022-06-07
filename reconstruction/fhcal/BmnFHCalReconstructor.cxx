@@ -22,7 +22,13 @@ InitStatus BmnFHCalReconstructor::Init() {
   fworkTime = 0.;
   fpFairRootMgr = FairRootManager::Instance();
   (fIsExp)? fArrayOfFHCalDigits = (TClonesArray*) fpFairRootMgr->GetObject("FHCalDigi") :
-            fArrayOfFHCalDigits = (TClonesArray*) fpFairRootMgr->GetObject("FHCalDigit");
+    fArrayOfFHCalDigits = (TClonesArray*)fpFairRootMgr->GetObject("FHCalDigit");
+
+  if (!fArrayOfFHCalDigits) {
+        cout << "BmnFHCalReconstructor::Init(): branch with Digits not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+  }
 
   fBmnFHCalEvent = new BmnFHCalEvent();
   fBmnFHCalEvent->reset();
@@ -54,6 +60,10 @@ void BmnFHCalReconstructor::ParseConfig() {
 }
 
 void BmnFHCalReconstructor::Exec(Option_t* opt) {
+  
+  if (!IsActive())
+    return;
+    
   TStopwatch sw;
   sw.Start();
   fBmnFHCalEvent->ResetEnergies();

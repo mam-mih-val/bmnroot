@@ -26,6 +26,11 @@ InitStatus BmnScWallDigitizer::Init() {
 
     FairRootManager* ioman = FairRootManager::Instance();
     fArrayOfScWallPoints = (TClonesArray*) ioman->GetObject("ScWallPoint");
+    if (!fArrayOfScWallPoints) {
+        cout << "BmnScWallDigitizer::Init(): branch ScWallPoint not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
     fArrayOfScWallDigits = new TClonesArray("BmnScWallDigit");
     ioman->Register("ScWallDigit", "ScWall", fArrayOfScWallDigits, kTRUE);
 
@@ -35,6 +40,9 @@ InitStatus BmnScWallDigitizer::Init() {
 
 void BmnScWallDigitizer::Exec(Option_t* opt) {
 
+    if (!IsActive())
+        return;
+    
     // Initialize
     fArrayOfScWallDigits->Delete();
 

@@ -28,6 +28,11 @@ InitStatus BmnHodoDigitizer::Init() {
 
     FairRootManager* ioman = FairRootManager::Instance();
     fArrayOfHodoPoints = (TClonesArray*) ioman->GetObject("HodoPoint");
+    if (!fArrayOfHodoPoints) {
+        cout << "BmnHodoDigitizer::Init(): branch HodoPoint not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
     fArrayOfHodoDigits = new TClonesArray("BmnHodoDigit");
     ioman->Register("HodoDigit", "Hodo", fArrayOfHodoDigits, kTRUE);
 
@@ -37,6 +42,9 @@ InitStatus BmnHodoDigitizer::Init() {
 
 void BmnHodoDigitizer::Exec(Option_t* opt) {
 
+    if (!IsActive())
+        return;
+    
     // Initialize
     fArrayOfHodoDigits->Delete();
 

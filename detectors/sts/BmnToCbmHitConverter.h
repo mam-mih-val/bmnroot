@@ -31,7 +31,7 @@ public:
     void SetGemConfigFile(TString file) { fGemConfigFile = file; }
     void SetSilConfigFile(TString file) { fSilConfigFile = file; }
 
-    void SetFixedErrors() { fUseFixedErrors = kTRUE; }
+    void SetFixedErrors(Float_t dXgem = 0.015, Float_t dYgem = 0.058, Float_t dXsil = 0.003, Float_t dYsil = 0.021);
 
 private:
     TString fBmnGemHitsBranchName;
@@ -58,6 +58,10 @@ private:
     BmnSiliconStationSet *SilStationSet;  // Entire SILICON detector
 
     Bool_t fUseFixedErrors;
+    Float_t fDXgem;
+    Float_t fDYgem;
+    Float_t fDXsil;
+    Float_t fDYsil;    
 
     ClassDef(BmnToCbmHitConverter, 1);
 };

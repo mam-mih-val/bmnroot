@@ -151,6 +151,18 @@ private:
 
     BmnKalmanFilter* fKalman;
     Double_t fTime;
+    
+    Long_t fNMatchedDch1;
+    Long_t fNMatchedDch2;
+    Long_t fNMatchedTof400;
+    Long_t fNMatchedTof700;
+    Long_t fNMatchedNearCsc;
+    Long_t fNMatchedFarCsc;
+    Long_t fNInnerTracks;
+    Long_t fNGoodInnerTracks;
+    Long_t fNGoodGlobalTracks;
+
+    void PrintStatistics();
 
     BmnStatus MatchingTOF(BmnGlobalTrack* tr, Int_t num);
     BmnStatus MatchingDCH(BmnGlobalTrack* tr);

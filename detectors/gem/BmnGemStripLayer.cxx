@@ -33,7 +33,7 @@ BmnGemStripLayer::BmnGemStripLayer() {
     //AZ ClusterFindingThreshold = 0.0;
     ClusterFindingThreshold = 1.0;
 
-    TotalClusterThreshold = 40;
+    TotalClusterThreshold = 40.0;
 
     InitializeLayer();
 }
@@ -70,6 +70,8 @@ BmnGemStripLayer::BmnGemStripLayer(Int_t zone_number, StripLayerType layer_type,
 
     //AZ ClusterFindingThreshold = 0.0;
     ClusterFindingThreshold = 1.0;
+    
+    TotalClusterThreshold = 40.0;
 
     InitializeLayer();
 }

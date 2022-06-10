@@ -5,8 +5,8 @@
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 
 void bmn_qa_generator(
-    TString recoFile = "$VMCWORKDIR/macro/run8/BMNDST_VF.root",
-    TString mcFile = "$VMCWORKDIR/macro/run8/BMNSIM.root",
+    TString recoFile = "$VMCWORKDIR/macro/run/bmndst.root",
+    TString mcFile = "$VMCWORKDIR/macro/run/bmnsim.root",
     TString outFile = "qa_0.root",
     Int_t nStartEvent = 0,
     Bool_t isPrimary = kFALSE,
@@ -44,8 +44,8 @@ void bmn_qa_generator(
     trQaAll->SetDetectorPresence(kSSD, kFALSE);
     trQaAll->SetDetectorPresence(kGEM, kTRUE);
     trQaAll->SetOnlyPrimes(isPrimary);
-    //trQaAll->SetInnerTracksBranchName("StsTrack");
-    trQaAll->SetInnerTracksBranchName("StsVector");
+    trQaAll->SetInnerTracksBranchName("StsTrack");
+    //trQaAll->SetInnerTracksBranchName("StsVector");
     fRun->AddTask(trQaAll);
     //
     //    BmnTrackingQa* trQaPos = new BmnTrackingQa(+1, "tracking_qa_positive", confGem, confSil);

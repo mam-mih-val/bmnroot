@@ -342,7 +342,7 @@ run_digi_src:ubuntu:
   
   
 deploy:centos7:
-  image: git.jinr.ru:5005/nica/docker-images/centos7/fair:apr21p2_v18.6.7
+  image: git.jinr.ru:5005/nica/docker-images/centos7/fair:latest
   environment:
     name: centos7
   tags:

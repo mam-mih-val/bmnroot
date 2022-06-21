@@ -1,0 +1,38 @@
+# Create a library called "libDbTools"
+
+set(INCLUDE_DIRECTORIES
+ ${CMAKE_SOURCE_DIR}/database/uni_db
+ ${CMAKE_SOURCE_DIR}/database/elog_db
+ ${CMAKE_SOURCE_DIR}/services
+ ${CMAKE_SOURCE_DIR}/database/tools
+)
+
+Set(SYSTEM_INCLUDE_DIRECTORIES
+ ${Boost_INCLUDE_DIRS}
+ ${ROOT_INCLUDE_DIR}
+ ${XML2_INCLUDE_DIR}
+)
+
+include_directories(${INCLUDE_DIRECTORIES})
+Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
+
+set(LINK_DIRECTORIES
+ ${ROOT_LIBRARY_DIR}
+ ${XML2_LIBRARY_DIR}
+ ${Boost_LIBRARY_DIRS}
+)
+ 
+link_directories(${LINK_DIRECTORIES})
+
+# List of source files
+set(SRCS
+ UniGenerateClasses.cxx
+ UniParser.cxx
+)
+
+set(HEADERS)
+Set(LINKDEF DbToolsLinkDef.h)
+Set(LIBRARY_NAME DbTools)
+Set(DEPENDENCIES ElogDb UniDb Core Geom Gpad Net xml2)
+
+GENERATE_LIBRARY()

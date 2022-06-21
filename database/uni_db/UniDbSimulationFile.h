@@ -47,7 +47,7 @@ class UniDbSimulationFile
 	TString* chr_file_md5;
 
 	//Constructor
-	UniDbSimulationFile(UniConnection* connUniDb, int file_id, TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, int* file_size, TString* file_md5);
+    UniDbSimulationFile(UniConnection* db_connect, int file_id, TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, int* file_size, TString* file_md5);
 	/* END OF PRIVATE GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
  public:
@@ -61,10 +61,10 @@ class UniDbSimulationFile
 	static UniDbSimulationFile* GetSimulationFile(int file_id);
 	/// get simulation file from the database
 	static UniDbSimulationFile* GetSimulationFile(TString file_path);
-	/// check simulation file exists in the database
-	static bool CheckSimulationFileExists(int file_id);
-	/// check simulation file exists in the database
-	static bool CheckSimulationFileExists(TString file_path);
+    /// check simulation file exists in the database: 1 - true, 0 - false, <0 - database operation errors
+    static int CheckSimulationFileExists(int file_id);
+    /// check simulation file exists in the database: 1 - true, 0 - false, <0 - database operation errors
+    static int CheckSimulationFileExists(TString file_path);
 	/// delete simulation file from the database
 	static int DeleteSimulationFile(int file_id);
 	/// delete simulation file from the database
@@ -82,19 +82,19 @@ class UniDbSimulationFile
 	/// get beam particle of the current simulation file
 	TString GetBeamParticle() {return str_beam_particle;}
 	/// get target particle of the current simulation file
-	TString* GetTargetParticle() {if (str_target_particle == NULL) return NULL; else return new TString(*str_target_particle);}
+	TString* GetTargetParticle() {if (str_target_particle == nullptr) return nullptr; else return new TString(*str_target_particle);}
 	/// get energy of the current simulation file
-	double* GetEnergy() {if (d_energy == NULL) return NULL; else return new double(*d_energy);}
+	double* GetEnergy() {if (d_energy == nullptr) return nullptr; else return new double(*d_energy);}
 	/// get centrality of the current simulation file
 	TString GetCentrality() {return str_centrality;}
 	/// get event count of the current simulation file
-	int* GetEventCount() {if (i_event_count == NULL) return NULL; else return new int(*i_event_count);}
+	int* GetEventCount() {if (i_event_count == nullptr) return nullptr; else return new int(*i_event_count);}
 	/// get file desc of the current simulation file
-	TString* GetFileDesc() {if (str_file_desc == NULL) return NULL; else return new TString(*str_file_desc);}
+	TString* GetFileDesc() {if (str_file_desc == nullptr) return nullptr; else return new TString(*str_file_desc);}
 	/// get file size of the current simulation file
-	int* GetFileSize() {if (i_file_size == NULL) return NULL; else return new int(*i_file_size);}
+	int* GetFileSize() {if (i_file_size == nullptr) return nullptr; else return new int(*i_file_size);}
 	/// get file md5 of the current simulation file
-	TString* GetFileMd5() {if (chr_file_md5 == NULL) return NULL; else return new TString(*chr_file_md5);}
+	TString* GetFileMd5() {if (chr_file_md5 == nullptr) return nullptr; else return new TString(*chr_file_md5);}
 
 	// Setters
 	/// set file path of the current simulation file

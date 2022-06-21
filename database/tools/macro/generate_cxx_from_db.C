@@ -6,7 +6,7 @@ void generate_cxx_from_db()
     gDebug = 0;
 
     UniGenerateClasses gen;
-    int res = gen.GenerateClasses(UNIFIED_DB, "UniDb", true); //(UniConnectionType connection_type, TString class_prefix, bool isOnlyUpdate)
+    int res = gen.GenerateClasses(UNIFIED_DB, "UniDb", true); //(ConnectionType connection_type, TString class_prefix, bool isOnlyUpdate)
     //int res = gen.GenerateClasses(ELOG_DB, "ElogDb", true);
 
     if (res == 0)

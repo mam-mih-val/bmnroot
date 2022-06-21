@@ -17,7 +17,7 @@ void selecting_parameters()
 
     TIter res_it(pValuesArray);
     UniDbDetectorParameter* curRow;
-    while ((curRow = (UniDbDetectorParameter*)res_it()) != NULL)
+    while ((curRow = (UniDbDetectorParameter*)res_it()) != nullptr)
         curRow->Print();
 
     // clean memory after work - deleting the array of parameter values

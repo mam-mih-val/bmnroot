@@ -1,7 +1,7 @@
 TString datFile("$VMCWORKDIR/database/uni_db/examples/trigger/ir/uRun6TripsSpBounded.dat");
 
-int GetNGemTripsSpill( int RUN=1408, int chamber[]=NULL, int evFirst[]=NULL, int evLast[]=NULL, 
-                       int spFirst[]=NULL, int spLast[]=NULL) {
+int GetNGemTripsSpill( int RUN=1408, int chamber[]=nullptr, int evFirst[]=nullptr, int evLast[]=nullptr, 
+                       int spFirst[]=nullptr, int spLast[]=nullptr) {
   int run, nTngs, nTrips;
   ifstream fs;
   gSystem->ExpandPathName(datFile);
@@ -19,7 +19,7 @@ int GetNGemTripsSpill( int RUN=1408, int chamber[]=NULL, int evFirst[]=NULL, int
 }
 
 
-int FillSpillVeto(int run=1408, int MSP=3000, bool *spv=NULL) {
+int FillSpillVeto(int run=1408, int MSP=3000, bool *spv=nullptr) {
 
   for(int i=0; i<MSP; i++) spv[i]=false;
 

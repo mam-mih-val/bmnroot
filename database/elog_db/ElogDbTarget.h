@@ -13,20 +13,20 @@
 #include "TString.h"
 #include "TDatime.h"
 
-#include "UniConnection.h"
+#include "ElogConnection.h"
 
 class ElogDbTarget
 {
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-        UniConnection* connectionUniDb;
+        ElogConnection* connectionDb;
 
 	/// target
 	TString str_target;
 
 	//Constructor
-        ElogDbTarget(UniConnection* connUniDb, TString target);
+    ElogDbTarget(ElogConnection* db_connect, TString target);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
@@ -38,8 +38,8 @@ class ElogDbTarget
 	static ElogDbTarget* CreateTarget(TString target);
 	/// get target from the database
 	static ElogDbTarget* GetTarget(TString target);
-	/// check target exists in the database
-	static bool CheckTargetExists(TString target);
+    /// check target exists in the database: 1 - true, 0 - false, <0 - database operation errors
+    static int CheckTargetExists(TString target);
 	/// delete target from the database
 	static int DeleteTarget(TString target);
 	/// print all targets

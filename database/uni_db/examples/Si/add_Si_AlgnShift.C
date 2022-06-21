@@ -22,7 +22,7 @@ void add_Si_AlgnShift(Int_t run = 7) {
 
 
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("Silicon", "alignment_shift", run, 3681, run, 5184, shiftValues);
-    if (pDetectorParameter == NULL)
+    if (pDetectorParameter == nullptr)
         return_error = true;
     // clean memory after work
     for (int i = 0; i < shiftValues.size(); i++) delete shiftValues[i];

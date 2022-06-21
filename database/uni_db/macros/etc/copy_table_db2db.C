@@ -1,4 +1,4 @@
-#include "../../../db_settings.h"
+#include "../../../uni_db_settings.h"
 
 int copy_table_db2db()
 {
@@ -8,18 +8,18 @@ int copy_table_db2db()
 
     // connection to MySQL
     TSQLServer* MySQLServer = TSQLServer::Connect("mysql://nc4.jinr.ru/mpd_grids", MYSQL_DB_USERNAME, MYSQL_DB_PASSWORD);
-    if (MySQLServer == 0x00)
+    if (MySQLServer == nullptr)
     {
         cout<<"Error: connection to MySQLServer wasn't established"<<endl;
-        return 0x00;
+        return nullptr;
     }
 
     // connection to PostgreSQL
     TSQLServer* PgSQLServer = TSQLServer::Connect("pgsql://" + UNI_DB_HOST + "/" + UNI_DB_NAME, UNI_DB_USERNAME, UNI_DB_PASSWORD);
-    if (PgSQLServer == 0x00)
+    if (PgSQLServer == nullptr)
     {
         cout<<"Error: connection to PgSQLServer wasn't established"<<endl;
-        return 0x00;
+        return nullptr;
     }
 
 

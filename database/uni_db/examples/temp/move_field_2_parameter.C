@@ -2,7 +2,7 @@
 class UniqueRunNumber;
 void move_field_2_parameter(int period)
 {
-    UniqueRunNumber* run_numbers = NULL;
+    UniqueRunNumber* run_numbers = nullptr;
     int run_count = UniDbRun::GetRunNumbers(period, 1, period, 100000, run_numbers);
     if (run_count <= 0)
         return;
@@ -14,14 +14,14 @@ void move_field_2_parameter(int period)
     {
         // get run time
         UniDbRun* pRun = UniDbRun::GetRun(run_numbers[i].period_number, run_numbers[i].run_number);
-        if (pRun == NULL)
+        if (pRun == nullptr)
         {
             cout<<"The function encountered with errors: no experimental run was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             continue;
         }
 
         double* field_voltage = pRun->GetFieldVoltage();
-        if (field_voltage == NULL)
+        if (field_voltage == nullptr)
         {
             cout<<"No field current in the database for this run ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             delete pRun;
@@ -32,8 +32,8 @@ void move_field_2_parameter(int period)
         // check if magnet exists in the database
         if (!UniDbDetector::CheckDetectorExists(detector_name))
         {
-            UniDbDetector* pDetector = UniDbDetector::CreateDetector(detector_name, NULL);
-            if (pDetector == NULL)
+            UniDbDetector* pDetector = UniDbDetector::CreateDetector(detector_name, nullptr);
+            if (pDetector == nullptr)
             {
                 cout << "\nMacro finished with errors" << endl;
                 return;
@@ -47,7 +47,7 @@ void move_field_2_parameter(int period)
         if (!UniDbParameter::CheckParameterExists(parameter_name))
         {
             UniDbParameter* pParameter = UniDbParameter::CreateParameter(parameter_name, DoubleType);
-            if (pParameter == NULL)
+            if (pParameter == nullptr)
             {
                 cout << "\nMacro finished with errors" << endl;
                 return;
@@ -61,7 +61,7 @@ void move_field_2_parameter(int period)
         DoubleValue dValue; dValue.value = *field_voltage;
         UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,
                                                      run_numbers[i].period_number, run_numbers[i].run_number, run_numbers[i].period_number, run_numbers[i].run_number, &dValue);
-        if (pDetectorParameter == NULL)
+        if (pDetectorParameter == nullptr)
         {
             cout << "\nMacro finished with errors" << endl;
             return;
@@ -77,7 +77,7 @@ void move_field_2_parameter(int period)
 
 void print_parameter(int period)
 {
-    UniqueRunNumber* run_numbers = NULL;
+    UniqueRunNumber* run_numbers = nullptr;
     int run_count = UniDbRun::GetRunNumbers(period, 1, period, 100000, run_numbers);
     if (run_count <= 0)
         return;
@@ -89,7 +89,7 @@ void print_parameter(int period)
     {
         UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter(detector_name, parameter_name,
                                                      run_numbers[i].period_number, run_numbers[i].run_number);
-        if (pDetectorParameter == NULL)
+        if (pDetectorParameter == nullptr)
         {
             cout<<"No field current was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<")"<<endl;
             continue;

@@ -1,6 +1,5 @@
-// $Id: SiliconLinkDef.h,v
-
-#ifdef __CINT__
+// $Id: TrackingLinkDef.h,v
+#ifdef __CLING__
 
 #pragma link off all globals;
 #pragma link off all classes;

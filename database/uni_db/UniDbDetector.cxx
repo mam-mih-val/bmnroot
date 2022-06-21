@@ -13,9 +13,9 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbDetector::UniDbDetector(UniConnection* connUniDb, TString detector_name, TString* description)
+UniDbDetector::UniDbDetector(UniConnection* db_connect, TString detector_name, TString* description)
 {
-	connectionUniDb = connUniDb;
+    connectionUniDb = db_connect;
 
 	str_detector_name = detector_name;
 	str_description = description;
@@ -33,19 +33,19 @@ UniDbDetector::~UniDbDetector()
 // -----   Creating new detector in the database  ---------------------------
 UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* description)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+    UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"insert into detector_(detector_name, description) "
 		"values ($1, $2)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, detector_name);
-	if (description == NULL)
+	if (description == nullptr)
 		stmt->SetNull(1);
 	else
 		stmt->SetString(1, *description);
@@ -55,8 +55,8 @@ UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* des
 	{
 		cout<<"ERROR: inserting new detector to the Database has been failed"<<endl;
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	delete stmt;
@@ -64,26 +64,26 @@ UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* des
 	TString tmp_detector_name;
 	tmp_detector_name = detector_name;
 	TString* tmp_description;
-	if (description == NULL) tmp_description = NULL;
+	if (description == nullptr) tmp_description = nullptr;
 	else
 		tmp_description = new TString(*description);
 
-	return new UniDbDetector(connUniDb, tmp_detector_name, tmp_description);
+    return new UniDbDetector(connDb, tmp_detector_name, tmp_description);
 }
 
 // -----  Get detector from the database  ---------------------------
 UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+    UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select detector_name, description "
 		"from detector_ "
 		"where lower(detector_name) = lower('%s')", detector_name.Data());
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get detector from the database
 	if (!stmt->Process())
@@ -91,8 +91,8 @@ UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 		cout<<"ERROR: getting detector from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	// store result of statement in buffer
@@ -104,35 +104,35 @@ UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 		cout<<"ERROR: detector was not found in the database"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	TString tmp_detector_name;
 	tmp_detector_name = stmt->GetString(0);
 	TString* tmp_description;
-	if (stmt->IsNull(1)) tmp_description = NULL;
+	if (stmt->IsNull(1)) tmp_description = nullptr;
 	else
 		tmp_description = new TString(stmt->GetString(1));
 
 	delete stmt;
 
-	return new UniDbDetector(connUniDb, tmp_detector_name, tmp_description);
+    return new UniDbDetector(connDb, tmp_detector_name, tmp_description);
 }
 
 // -----  Check detector exists in the database  ---------------------------
-bool UniDbDetector::CheckDetectorExists(TString detector_name)
+int UniDbDetector::CheckDetectorExists(TString detector_name)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+    UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
 		"from detector_ "
 		"where lower(detector_name) = lower('%s')", detector_name.Data());
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get detector from the database
 	if (!stmt->Process())
@@ -140,8 +140,8 @@ bool UniDbDetector::CheckDetectorExists(TString detector_name)
 		cout<<"ERROR: getting detector from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return false;
+        delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -151,28 +151,28 @@ bool UniDbDetector::CheckDetectorExists(TString detector_name)
 	if (!stmt->NextResultRow())
 	{
 		delete stmt;
-		delete connUniDb;
-		return false;
+        delete connDb;
+        return 0;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 
-	return true;
+    return 1;
 }
 
 // -----  Delete detector from the database  ---------------------------
 int UniDbDetector::DeleteDetector(TString detector_name)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+    UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"delete from detector_ "
 		"where lower(detector_name) = lower($1)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, detector_name);
@@ -183,27 +183,27 @@ int UniDbDetector::DeleteDetector(TString detector_name)
 		cout<<"ERROR: deleting detector from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+        delete connDb;
+        return -2;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 	return 0;
 }
 
 // -----  Print all 'detectors'  ---------------------------------
 int UniDbDetector::PrintAll()
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+    UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select detector_name, description "
 		"from detector_");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get all 'detectors' from the database
 	if (!stmt->Process())
@@ -211,8 +211,8 @@ int UniDbDetector::PrintAll()
 		cout<<"ERROR: getting all 'detectors' from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+        delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -225,14 +225,14 @@ int UniDbDetector::PrintAll()
 		cout<<"detector_name: ";
 		cout<<(stmt->GetString(0));
 		cout<<", description: ";
-		if (stmt->IsNull(1)) cout<<"NULL";
+		if (stmt->IsNull(1)) cout<<"nullptr";
 		else
 			cout<<stmt->GetString(1);
 		cout<<"."<<endl;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 
 	return 0;
 }
@@ -247,13 +247,13 @@ int UniDbDetector::SetDetectorName(TString detector_name)
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update detector_ "
 		"set detector_name = $1 "
 		"where detector_name = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, detector_name);
@@ -282,16 +282,16 @@ int UniDbDetector::SetDescription(TString* description)
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update detector_ "
 		"set description = $1 "
 		"where detector_name = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (description == NULL)
+	if (description == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetString(0, *description);
@@ -308,7 +308,7 @@ int UniDbDetector::SetDescription(TString* description)
 
 	if (str_description)
 		delete str_description;
-	if (description == NULL) str_description = NULL;
+	if (description == nullptr) str_description = nullptr;
 	else
 		str_description = new TString(*description);
 
@@ -320,7 +320,7 @@ int UniDbDetector::SetDescription(TString* description)
 void UniDbDetector::Print()
 {
 	cout<<"Table 'detector_'";
-	cout<<". detector_name: "<<str_detector_name<<". description: "<<(str_description == NULL? "NULL": *str_description)<<endl;
+	cout<<". detector_name: "<<str_detector_name<<". description: "<<(str_description == nullptr? "nullptr": *str_description)<<endl;
 
 	return;
 }

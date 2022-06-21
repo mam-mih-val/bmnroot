@@ -13,9 +13,9 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-ElogDbBeam::ElogDbBeam(UniConnection* connUniDb, TString beam)
+ElogDbBeam::ElogDbBeam(ElogConnection* connect_db, TString beam)
 {
-	connectionUniDb = connUniDb;
+    connectionDb = connect_db;
 
 	str_beam = beam;
 }
@@ -23,22 +23,22 @@ ElogDbBeam::ElogDbBeam(UniConnection* connUniDb, TString beam)
 // -----   Destructor   -------------------------------------------------
 ElogDbBeam::~ElogDbBeam()
 {
-	if (connectionUniDb)
-		delete connectionUniDb;
+	if (connectionDb)
+		delete connectionDb;
 }
 
 // -----   Creating new beam in the database  ---------------------------
 ElogDbBeam* ElogDbBeam::CreateBeam(TString beam)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"insert into beam_(beam) "
 		"values ($1)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, beam);
@@ -48,8 +48,8 @@ ElogDbBeam* ElogDbBeam::CreateBeam(TString beam)
 	{
 		cout<<"ERROR: inserting new beam to the Database has been failed"<<endl;
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	delete stmt;
@@ -57,22 +57,22 @@ ElogDbBeam* ElogDbBeam::CreateBeam(TString beam)
 	TString tmp_beam;
 	tmp_beam = beam;
 
-	return new ElogDbBeam(connUniDb, tmp_beam);
+    return new ElogDbBeam(connDb, tmp_beam);
 }
 
 // -----  Get beam from the database  ---------------------------
 ElogDbBeam* ElogDbBeam::GetBeam(TString beam)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select beam "
 		"from beam_ "
 		"where lower(beam) = lower('%s')", beam.Data());
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get beam from the database
 	if (!stmt->Process())
@@ -80,8 +80,8 @@ ElogDbBeam* ElogDbBeam::GetBeam(TString beam)
 		cout<<"ERROR: getting beam from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	// store result of statement in buffer
@@ -93,8 +93,8 @@ ElogDbBeam* ElogDbBeam::GetBeam(TString beam)
 		cout<<"ERROR: beam was not found in the database"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	TString tmp_beam;
@@ -102,22 +102,22 @@ ElogDbBeam* ElogDbBeam::GetBeam(TString beam)
 
 	delete stmt;
 
-	return new ElogDbBeam(connUniDb, tmp_beam);
+    return new ElogDbBeam(connDb, tmp_beam);
 }
 
 // -----  Check beam exists in the database  ---------------------------
-bool ElogDbBeam::CheckBeamExists(TString beam)
+int ElogDbBeam::CheckBeamExists(TString beam)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
 		"from beam_ "
 		"where lower(beam) = lower('%s')", beam.Data());
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get beam from the database
 	if (!stmt->Process())
@@ -125,8 +125,8 @@ bool ElogDbBeam::CheckBeamExists(TString beam)
 		cout<<"ERROR: getting beam from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return false;
+        delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -136,28 +136,28 @@ bool ElogDbBeam::CheckBeamExists(TString beam)
 	if (!stmt->NextResultRow())
 	{
 		delete stmt;
-		delete connUniDb;
-		return false;
+        delete connDb;
+        return 0;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 
-	return true;
+    return 1;
 }
 
 // -----  Delete beam from the database  ---------------------------
 int ElogDbBeam::DeleteBeam(TString beam)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"delete from beam_ "
 		"where lower(beam) = lower($1)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, beam);
@@ -168,27 +168,27 @@ int ElogDbBeam::DeleteBeam(TString beam)
 		cout<<"ERROR: deleting beam from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+        delete connDb;
+        return -2;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 	return 0;
 }
 
 // -----  Print all 'beams'  ---------------------------------
 int ElogDbBeam::PrintAll()
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select beam "
 		"from beam_");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get all 'beams' from the database
 	if (!stmt->Process())
@@ -196,8 +196,8 @@ int ElogDbBeam::PrintAll()
 		cout<<"ERROR: getting all 'beams' from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+        delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -213,7 +213,7 @@ int ElogDbBeam::PrintAll()
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 
 	return 0;
 }
@@ -222,19 +222,19 @@ int ElogDbBeam::PrintAll()
 // Setters functions
 int ElogDbBeam::SetBeam(TString beam)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update beam_ "
 		"set beam = $1 "
 		"where beam = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, beam);

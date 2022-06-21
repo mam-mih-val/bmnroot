@@ -34,7 +34,7 @@ UniGeoConverter::UniGeoConverter()
 // -------------------------------------------------------------------------
 
 // hierarchical writing geometry data to database
-int UniGeoConverter::RecursiveNodeChanging(TSQLServer* uni_db, TGeoNode* node, int parent_node_id)
+int UniGeoConverter::RecursiveNodeChanging(TSQLServer* db_server, TGeoNode* node, int parent_node_id)
 {
     for(int i = 0; i < node->GetNdaughters(); i++)
     {
@@ -329,7 +329,7 @@ int UniGeoConverter::RecursiveNodeChanging(TSQLServer* uni_db, TGeoNode* node, i
 
         // storing last inserted node ID
         int last_id = parent_node_id;
-        TSQLStatement* stmt_last = uni_db->Statement("SELECT LAST_INSERT_ID()");
+        TSQLStatement* stmt_last = db_server->Statement("SELECT LAST_INSERT_ID()");
         // process getting last id
         if (stmt_last->Process())
         {
@@ -978,14 +978,14 @@ int UniGeoConverter::WriteRootGeoToDB(TString geo_file_path)
         return -1;
     }
 
-    UniConnection* connectionUniDb = UniConnection::Open(UNIFIED_DB);
-    if (connectionUniDb == 0x00)
+    UniConnection* connDb = UniConnection::Open();
+    if (connectionUniDb == nullptr)
     {
         cout<<"ERROR: connection to the database cannot be established"<<endl;
         return -2;
     }
 
-    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
     // get detector geometry from ROOT file
     TFile* geoFile = new TFile(geo_file_path, "READ");

@@ -14,9 +14,9 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbRunGeometry::UniDbRunGeometry(UniConnection* connUniDb, int geometry_id, unsigned char* root_geometry, Long_t size_root_geometry)
+UniDbRunGeometry::UniDbRunGeometry(UniConnection* db_connect, int geometry_id, unsigned char* root_geometry, Long_t size_root_geometry)
 {
-	connectionUniDb = connUniDb;
+    connectionUniDb = db_connect;
 
 	i_geometry_id = geometry_id;
 	blob_root_geometry = root_geometry;
@@ -40,18 +40,18 @@ UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(unsigned char* root_geomet
     if (gSystem->AccessPathName(patch_check))
     {
         cout<<"ERROR: TPgSQLStatement (CERN ROOT) was not patched to write binary data into the Unified Database"<<endl;
-        return 0x00;
+        return nullptr;
     }
 
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"insert into run_geometry(root_geometry) "
 		"values ($1)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetBinary(0, root_geometry, size_root_geometry, 0x4000000);
@@ -61,15 +61,15 @@ UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(unsigned char* root_geomet
 	{
 		cout<<"ERROR: inserting new run geometry to the Database has been failed"<<endl;
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	delete stmt;
 
 	// getting last inserted ID
 	int geometry_id;
-	TSQLStatement* stmt_last = uni_db->Statement("SELECT currval(pg_get_serial_sequence('run_geometry','geometry_id'))");
+    TSQLStatement* stmt_last = db_server->Statement("SELECT currval(pg_get_serial_sequence('run_geometry','geometry_id'))");
 
 	// process getting last id
 	if (stmt_last->Process())
@@ -82,7 +82,7 @@ UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(unsigned char* root_geomet
 		{
 			cout<<"ERROR: no last ID in DB!"<<endl;
 			delete stmt_last;
-			return 0x00;
+            return nullptr;
 		}
 		else
 		{
@@ -94,7 +94,7 @@ UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(unsigned char* root_geomet
 	{
 		cout<<"ERROR: getting last ID has been failed!"<<endl;
 		delete stmt_last;
-		return 0x00;
+        return nullptr;
 	}
 
 	int tmp_geometry_id;
@@ -104,22 +104,22 @@ UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(unsigned char* root_geomet
 	tmp_root_geometry = new unsigned char[tmp_sz_root_geometry];
 	memcpy(tmp_root_geometry, root_geometry, tmp_sz_root_geometry);
 
-	return new UniDbRunGeometry(connUniDb, tmp_geometry_id, tmp_root_geometry, tmp_sz_root_geometry);
+    return new UniDbRunGeometry(connDb, tmp_geometry_id, tmp_root_geometry, tmp_sz_root_geometry);
 }
 
 // -----  Get run geometry from the database  ---------------------------
 UniDbRunGeometry* UniDbRunGeometry::GetRunGeometry(int geometry_id)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select geometry_id, root_geometry "
 		"from run_geometry "
 		"where geometry_id = %d", geometry_id);
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get run geometry from the database
 	if (!stmt->Process())
@@ -127,8 +127,8 @@ UniDbRunGeometry* UniDbRunGeometry::GetRunGeometry(int geometry_id)
 		cout<<"ERROR: getting run geometry from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	// store result of statement in buffer
@@ -140,35 +140,35 @@ UniDbRunGeometry* UniDbRunGeometry::GetRunGeometry(int geometry_id)
 		cout<<"ERROR: run geometry was not found in the database"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	int tmp_geometry_id;
 	tmp_geometry_id = stmt->GetInt(0);
 	unsigned char* tmp_root_geometry;
-	tmp_root_geometry = NULL;
+	tmp_root_geometry = nullptr;
 	Long_t tmp_sz_root_geometry = 0;
 	stmt->GetBinary(1, (void*&)tmp_root_geometry, tmp_sz_root_geometry);
 
 	delete stmt;
 
-	return new UniDbRunGeometry(connUniDb, tmp_geometry_id, tmp_root_geometry, tmp_sz_root_geometry);
+    return new UniDbRunGeometry(connDb, tmp_geometry_id, tmp_root_geometry, tmp_sz_root_geometry);
 }
 
 // -----  Check run geometry exists in the database  ---------------------------
-bool UniDbRunGeometry::CheckRunGeometryExists(int geometry_id)
+int UniDbRunGeometry::CheckRunGeometryExists(int geometry_id)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
 		"from run_geometry "
 		"where geometry_id = %d", geometry_id);
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get run geometry from the database
 	if (!stmt->Process())
@@ -176,8 +176,8 @@ bool UniDbRunGeometry::CheckRunGeometryExists(int geometry_id)
 		cout<<"ERROR: getting run geometry from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return false;
+        delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -187,28 +187,28 @@ bool UniDbRunGeometry::CheckRunGeometryExists(int geometry_id)
 	if (!stmt->NextResultRow())
 	{
 		delete stmt;
-		delete connUniDb;
-		return false;
+        delete connDb;
+        return 0;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 
-	return true;
+    return 1;
 }
 
 // -----  Delete run geometry from the database  ---------------------------
 int UniDbRunGeometry::DeleteRunGeometry(int geometry_id)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"delete from run_geometry "
 		"where geometry_id = $1");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, geometry_id);
@@ -219,12 +219,12 @@ int UniDbRunGeometry::DeleteRunGeometry(int geometry_id)
 		cout<<"ERROR: deleting run geometry from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+        delete connDb;
+        return -2;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 	return 0;
 }
 
@@ -232,15 +232,15 @@ int UniDbRunGeometry::DeleteRunGeometry(int geometry_id)
 // -----  Print all 'run geometries'  ---------------------------------
 int UniDbRunGeometry::PrintAll()
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select geometry_id, root_geometry "
 		"from run_geometry");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get all 'run geometrys' from the database
 	if (!stmt->Process())
@@ -248,8 +248,8 @@ int UniDbRunGeometry::PrintAll()
 		cout<<"ERROR: getting all 'run geometrys' from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+        delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -262,7 +262,7 @@ int UniDbRunGeometry::PrintAll()
 		cout<<"geometry_id: ";
 		cout<<(stmt->GetInt(0));
 		cout<<", root_geometry: ";
-		unsigned char* tmp_root_geometry = NULL;
+		unsigned char* tmp_root_geometry = nullptr;
 		Long_t tmp_sz_root_geometry=0;
 		stmt->GetBinary(1, (void*&)tmp_root_geometry, tmp_sz_root_geometry);
 		cout<<(void*)tmp_root_geometry<<", binary size: "<<tmp_sz_root_geometry;
@@ -270,7 +270,7 @@ int UniDbRunGeometry::PrintAll()
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 
 	return 0;
 }
@@ -285,13 +285,13 @@ int UniDbRunGeometry::SetRootGeometry(unsigned char* root_geometry, Long_t size_
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update run_geometry "
 		"set root_geometry = $1 "
 		"where geometry_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetBinary(0, root_geometry, size_root_geometry, 0x4000000);
@@ -335,18 +335,18 @@ UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(int geometry_id, unsigned 
     if (gSystem->AccessPathName(patch_check))
     {
         cout<<"ERROR: TPgSQLStatement (CERN ROOT) was not patched to write binary data into the Unified Database"<<endl;
-        return 0x00;
+        return nullptr;
     }
 
-    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-    if (connUniDb == 0x00) return 0x00;
+    UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return nullptr;
 
-    TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
     TString sql = TString::Format(
         "insert into run_geometry(geometry_id, root_geometry) "
         "values ($1,$2)");
-    TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
     stmt->NextIteration();
     stmt->SetInt(0, geometry_id);
@@ -357,8 +357,8 @@ UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(int geometry_id, unsigned 
     {
         cout<<"ERROR: inserting new run geometry to the Database has been failed"<<endl;
         delete stmt;
-        delete connUniDb;
-        return 0x00;
+        delete connDb;
+        return nullptr;
     }
 
     delete stmt;
@@ -370,34 +370,34 @@ UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(int geometry_id, unsigned 
     tmp_root_geometry = new unsigned char[tmp_sz_root_geometry];
     memcpy(tmp_root_geometry, root_geometry, tmp_sz_root_geometry);
 
-    return new UniDbRunGeometry(connUniDb, tmp_geometry_id, tmp_root_geometry, tmp_sz_root_geometry);
+    return new UniDbRunGeometry(connDb, tmp_geometry_id, tmp_root_geometry, tmp_sz_root_geometry);
 }
 
 // -----  Get all 'run geometries'  -----------------------------------
 TObjArray* UniDbRunGeometry::GetAll()
 {
-    TObjArray* arrayResult = NULL;
+    TObjArray* arrayResult = nullptr;
 
-    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-    if (connUniDb == 0x00)
+    UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr)
     {
         cout<<"ERROR: connection to the Unified Database was failed"<<endl;
         return arrayResult;
     }
 
-    TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
     TString sql = TString::Format(
         "select geometry_id, root_geometry "
         "from run_geometry");
-    TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
     // get all 'run geometries' from the database
     if (!stmt->Process())
     {
         cout<<"ERROR: getting all 'run geometries' from the dataBase has been failed"<<endl;
         delete stmt;
-        delete connUniDb;
+        delete connDb;
 
         return arrayResult;
     }
@@ -410,15 +410,15 @@ TObjArray* UniDbRunGeometry::GetAll()
     arrayResult->SetOwner(kTRUE);
     while (stmt->NextResultRow())
     {
-        UniConnection* connRun = UniConnection::Open(UNIFIED_DB);
-        if (connRun == 0x00)
+        UniConnection* connRun = UniConnection::Open();
+        if (connRun == nullptr)
         {
             cout<<"ERROR: the connection to the Unified Database for the selected run was failed"<<endl;
             return arrayResult;
         }
 
         int tmp_geometry_id = stmt->GetInt(0);
-        unsigned char* tmp_root_geometry = NULL;
+        unsigned char* tmp_root_geometry = nullptr;
         Long_t tmp_sz_root_geometry = 0;
         stmt->GetBinary(1, (void*&)tmp_root_geometry, tmp_sz_root_geometry);
 

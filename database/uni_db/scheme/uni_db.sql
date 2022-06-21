@@ -128,7 +128,7 @@ create index det_name_par_lower_idx on detector_parameter((lower(detector_name))
 -- function to set link to the existed geometry with a given id
 CREATE OR REPLACE FUNCTION set_geometry_id() RETURNS TRIGGER AS $$
 BEGIN
-  IF NEW.geometry_id is NULL then
+  IF NEW.geometry_id is nullptr then
     --SELECT last_value INTO NEW.geometry_id FROM run_geometry_new_geometry_id_seq;
     NEW.geometry_id = 57;
   END IF;
@@ -153,7 +153,7 @@ BEGIN
     THEN
       SELECT value_id INTO valueID
       FROM detector_parameter dp
-      WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and dp.expiry_date is NULL and
+      WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and dp.expiry_date is nullptr and
             NEW.start_period = dp.start_period and NEW.end_period = dp.end_period and NEW.start_run = dp.start_run and NEW.end_run = dp.end_run and
             NEW.value_key = dp.value_key;
 

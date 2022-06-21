@@ -5,7 +5,7 @@ void get_parameter_value_complex()
 
     // get noise parameter values presented by IIStructure: Int+Int (slot:channel)
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("DCH1", "noise", 1, 133);
-    if (pDetectorParameter != NULL)
+    if (pDetectorParameter != nullptr)
     {
         vector<UniValue*> pValues;
         pDetectorParameter->GetValue(pValues);

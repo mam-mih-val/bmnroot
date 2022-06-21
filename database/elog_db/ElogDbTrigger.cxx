@@ -13,9 +13,9 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-ElogDbTrigger::ElogDbTrigger(UniConnection* connUniDb, int trigger_id, TString trigger_info)
+ElogDbTrigger::ElogDbTrigger(ElogConnection* db_connect, int trigger_id, TString trigger_info)
 {
-	connectionUniDb = connUniDb;
+    connectionDb = db_connect;
 
 	i_trigger_id = trigger_id;
 	str_trigger_info = trigger_info;
@@ -24,22 +24,22 @@ ElogDbTrigger::ElogDbTrigger(UniConnection* connUniDb, int trigger_id, TString t
 // -----   Destructor   -------------------------------------------------
 ElogDbTrigger::~ElogDbTrigger()
 {
-	if (connectionUniDb)
-		delete connectionUniDb;
+	if (connectionDb)
+		delete connectionDb;
 }
 
 // -----   Creating new trigger in the database  ---------------------------
 ElogDbTrigger* ElogDbTrigger::CreateTrigger(TString trigger_info)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+        ElogConnection* connDb = ElogConnection::Open();
+	if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"insert into trigger_(trigger_info) "
 		"values ($1)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, trigger_info);
@@ -49,15 +49,15 @@ ElogDbTrigger* ElogDbTrigger::CreateTrigger(TString trigger_info)
 	{
 		cout<<"ERROR: inserting new trigger to the Database has been failed"<<endl;
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	delete stmt;
 
 	// getting last inserted ID
 	int trigger_id;
-	TSQLStatement* stmt_last = uni_db->Statement("SELECT currval(pg_get_serial_sequence('trigger_','trigger_id'))");
+	TSQLStatement* stmt_last = db_server->Statement("SELECT currval(pg_get_serial_sequence('trigger_','trigger_id'))");
 
 	// process getting last id
 	if (stmt_last->Process())
@@ -70,7 +70,7 @@ ElogDbTrigger* ElogDbTrigger::CreateTrigger(TString trigger_info)
 		{
 			cout<<"ERROR: no last ID in DB!"<<endl;
 			delete stmt_last;
-			return 0x00;
+			return nullptr;
 		}
 		else
 		{
@@ -82,7 +82,7 @@ ElogDbTrigger* ElogDbTrigger::CreateTrigger(TString trigger_info)
 	{
 		cout<<"ERROR: getting last ID has been failed!"<<endl;
 		delete stmt_last;
-		return 0x00;
+		return nullptr;
 	}
 
 	int tmp_trigger_id;
@@ -90,22 +90,22 @@ ElogDbTrigger* ElogDbTrigger::CreateTrigger(TString trigger_info)
 	TString tmp_trigger_info;
 	tmp_trigger_info = trigger_info;
 
-	return new ElogDbTrigger(connUniDb, tmp_trigger_id, tmp_trigger_info);
+	return new ElogDbTrigger(connDb, tmp_trigger_id, tmp_trigger_info);
 }
 
 // -----  Get trigger from the database  ---------------------------
 ElogDbTrigger* ElogDbTrigger::GetTrigger(int trigger_id)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+        ElogConnection* connDb = ElogConnection::Open();
+	if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select trigger_id, trigger_info "
 		"from trigger_ "
 		"where trigger_id = %d", trigger_id);
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get trigger from the database
 	if (!stmt->Process())
@@ -113,8 +113,8 @@ ElogDbTrigger* ElogDbTrigger::GetTrigger(int trigger_id)
 		cout<<"ERROR: getting trigger from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	// store result of statement in buffer
@@ -126,8 +126,8 @@ ElogDbTrigger* ElogDbTrigger::GetTrigger(int trigger_id)
 		cout<<"ERROR: trigger was not found in the database"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	int tmp_trigger_id;
@@ -137,22 +137,22 @@ ElogDbTrigger* ElogDbTrigger::GetTrigger(int trigger_id)
 
 	delete stmt;
 
-	return new ElogDbTrigger(connUniDb, tmp_trigger_id, tmp_trigger_info);
+	return new ElogDbTrigger(connDb, tmp_trigger_id, tmp_trigger_info);
 }
 
 // -----  Get trigger from the database by unique key  --------------
 ElogDbTrigger* ElogDbTrigger::GetTrigger(TString trigger_info)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+        ElogConnection* connDb = ElogConnection::Open();
+	if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select trigger_id, trigger_info "
 		"from trigger_ "
 		"where lower(trigger_info) = lower('%s')", trigger_info.Data());
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get trigger from the database
 	if (!stmt->Process())
@@ -160,8 +160,8 @@ ElogDbTrigger* ElogDbTrigger::GetTrigger(TString trigger_info)
 		cout<<"ERROR: getting trigger from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	// store result of statement in buffer
@@ -173,8 +173,8 @@ ElogDbTrigger* ElogDbTrigger::GetTrigger(TString trigger_info)
 		cout<<"ERROR: trigger was not found in the database"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	int tmp_trigger_id;
@@ -184,22 +184,22 @@ ElogDbTrigger* ElogDbTrigger::GetTrigger(TString trigger_info)
 
 	delete stmt;
 
-	return new ElogDbTrigger(connUniDb, tmp_trigger_id, tmp_trigger_info);
+	return new ElogDbTrigger(connDb, tmp_trigger_id, tmp_trigger_info);
 }
 
 // -----  Check trigger exists in the database  ---------------------------
-bool ElogDbTrigger::CheckTriggerExists(int trigger_id)
+int ElogDbTrigger::CheckTriggerExists(int trigger_id)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
 		"from trigger_ "
 		"where trigger_id = %d", trigger_id);
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get trigger from the database
 	if (!stmt->Process())
@@ -207,8 +207,8 @@ bool ElogDbTrigger::CheckTriggerExists(int trigger_id)
 		cout<<"ERROR: getting trigger from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return false;
+		delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -218,29 +218,29 @@ bool ElogDbTrigger::CheckTriggerExists(int trigger_id)
 	if (!stmt->NextResultRow())
 	{
 		delete stmt;
-		delete connUniDb;
-		return false;
+		delete connDb;
+        return 0;
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 
-	return true;
+    return 1;
 }
 
 // -----  Check trigger exists in the database by unique key  --------------
-bool ElogDbTrigger::CheckTriggerExists(TString trigger_info)
+int ElogDbTrigger::CheckTriggerExists(TString trigger_info)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
 		"from trigger_ "
 		"where lower(trigger_info) = lower('%s')", trigger_info.Data());
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get trigger from the database
 	if (!stmt->Process())
@@ -248,8 +248,8 @@ bool ElogDbTrigger::CheckTriggerExists(TString trigger_info)
 		cout<<"ERROR: getting trigger from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return false;
+		delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -259,28 +259,28 @@ bool ElogDbTrigger::CheckTriggerExists(TString trigger_info)
 	if (!stmt->NextResultRow())
 	{
 		delete stmt;
-		delete connUniDb;
-		return false;
+		delete connDb;
+        return 0;
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 
-	return true;
+    return 1;
 }
 
 // -----  Delete trigger from the database  ---------------------------
 int ElogDbTrigger::DeleteTrigger(int trigger_id)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"delete from trigger_ "
 		"where trigger_id = $1");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, trigger_id);
@@ -291,27 +291,27 @@ int ElogDbTrigger::DeleteTrigger(int trigger_id)
 		cout<<"ERROR: deleting trigger from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+		delete connDb;
+        return -2;
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 	return 0;
 }
 
 // -----  Delete trigger from the database by unique key  --------------
 int ElogDbTrigger::DeleteTrigger(TString trigger_info)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"delete from trigger_ "
 		"where lower(trigger_info) = lower($1)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, trigger_info);
@@ -322,27 +322,27 @@ int ElogDbTrigger::DeleteTrigger(TString trigger_info)
 		cout<<"ERROR: deleting trigger from the DataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+		delete connDb;
+        return -2;
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 	return 0;
 }
 
 // -----  Print all 'triggers'  ---------------------------------
 int ElogDbTrigger::PrintAll()
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select trigger_id, trigger_info "
 		"from trigger_");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get all 'triggers' from the database
 	if (!stmt->Process())
@@ -350,8 +350,8 @@ int ElogDbTrigger::PrintAll()
 		cout<<"ERROR: getting all 'triggers' from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+		delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -369,7 +369,7 @@ int ElogDbTrigger::PrintAll()
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 
 	return 0;
 }
@@ -378,19 +378,19 @@ int ElogDbTrigger::PrintAll()
 // Setters functions
 int ElogDbTrigger::SetTriggerInfo(TString trigger_info)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+	TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update trigger_ "
 		"set trigger_info = $1 "
 		"where trigger_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, trigger_info);

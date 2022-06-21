@@ -22,7 +22,7 @@ void read_Tof1_mapping(Int_t period = 7, Int_t run = 4700) {
 
     // get parameter of TDC's map
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("TOF1", "TOF1_TdcMap", period, run); //(detector_name, parameter_name, period_number, run_number)
-    if (pDetectorParameter == NULL) {
+    if (pDetectorParameter == nullptr) {
         cout << "\nMacro finished with errors" << endl;
         return;
     }
@@ -45,7 +45,7 @@ void read_Tof1_mapping(Int_t period = 7, Int_t run = 4700) {
     //--------------------------------------------------------------------------
     // get parameter of Strip's map 
     UniDbDetectorParameter* pDetectorParameter2 = UniDbDetectorParameter::GetDetectorParameter("TOF1", "TOF1_StripMap", period, run); //(detector_name, parameter_name, period_number, run_number)
-    if (pDetectorParameter2 == NULL) {
+    if (pDetectorParameter2 == nullptr) {
         cout << "\nMacro finished with errors" << endl;
         return;
     }

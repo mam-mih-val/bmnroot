@@ -2,6 +2,8 @@
 #include "UniDbRun.h"
 #include "UniDbParameter.h"
 #include "UniDbDetectorParameter.h"
+#include "ElogConnection.h"
+#include "UniConnection.h"
 #define ONLY_DECLARATIONS
 #include "function_set.h"
 
@@ -238,7 +240,7 @@ int write_string_to_db(string &write_string, TSQLStatement* stmt, structParseSch
         token = write_string;
         structParseRow row = schema.vecRows[i];
 
-        unsigned char* pArray = NULL;
+        unsigned char* pArray = nullptr;
         Long_t size_array = -1;
         if (row.isParse)
         {
@@ -390,13 +392,13 @@ int write_string_to_db(string &write_string, TSQLStatement* stmt, structParseSch
 xmlNodePtr findNodeByName(xmlNodePtr rootnode, const char* nodename)
 {
     xmlNodePtr node = rootnode;
-    if (node == NULL)
+    if (node == nullptr)
     {
         cout<<"XML document is empty!"<<endl;
-        return NULL;
+        return nullptr;
     }
 
-    while (node != NULL)
+    while (node != nullptr)
     {
         if (node->type != XML_ELEMENT_NODE)
         {
@@ -404,14 +406,14 @@ xmlNodePtr findNodeByName(xmlNodePtr rootnode, const char* nodename)
             continue;
         }
 
-        if ((node->name != NULL) && (strcmp((char*)node->name, nodename) == 0))
+        if ((node->name != nullptr) && (strcmp((char*)node->name, nodename) == 0))
             return node;
         else
         {
-            if (node->children != NULL)
+            if (node->children != nullptr)
             {
                 xmlNodePtr intNode = findNodeByName(node->children, nodename);
-                if (intNode != NULL)
+                if (intNode != nullptr)
                     return intNode;
             }
         }
@@ -419,13 +421,13 @@ xmlNodePtr findNodeByName(xmlNodePtr rootnode, const char* nodename)
         node = node->next;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 int UniParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
 {
     // pointer to XML document
-    xmlDocPtr docXML = xmlReadFile(xmlName, NULL, 0);
+    xmlDocPtr docXML = xmlReadFile(xmlName, nullptr, 0);
     if (!docXML)
     {
         cout<<"ERROR: reading XML file '"<<xmlName<<"' was failed"<<endl;
@@ -433,7 +435,7 @@ int UniParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
     }
 
     // read schema
-    xmlDocPtr docSchema = xmlReadFile(schemaPath, NULL, 0);
+    xmlDocPtr docSchema = xmlReadFile(schemaPath, nullptr, 0);
     if (!docSchema)
     {
         cout<<"ERROR: reading schema file '"<<schemaPath<<"' was failed"<<endl;
@@ -460,14 +462,14 @@ int UniParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
     cur_schema_node = cur_schema_node->children;
 
     // open connection to database
-    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-    if (connUniDb == 0x00)
+    UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr)
     {
         xmlFreeDoc(docXML);
         xmlFreeDoc(docSchema);
         return -3;
     }
-    TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
     string strTableName = "";
     // parse SCHEMA file
@@ -487,10 +489,10 @@ int UniParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
             string strSearchName = (char*)xmlGetProp(cur_schema_node, (unsigned char*)"name");
             // search for XML node with given name and move cursor to the new position
             cur_xml_node = findNodeByName(cur_xml_node, strSearchName.c_str());
-            if (cur_xml_node == NULL)
+            if (cur_xml_node == nullptr)
             {
                 cout<<"ERROR: end of the XML document was reached while parsing (search for)"<<endl;
-                delete connUniDb;
+                delete connDb;
                 xmlFreeDoc(docXML);
                 xmlFreeDoc(docSchema);
                 return -8;
@@ -514,11 +516,11 @@ int UniParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
                         if (cur_xml_node->type != XML_ELEMENT_NODE)
                             cur_xml_node = cur_xml_node->next;
 
-                        if (cur_xml_node == NULL)
+                        if (cur_xml_node == nullptr)
                         {
                             cout<<"ERROR: end of the XML document was reached while parsing (move - down)"<<endl;
                             xmlFree(value);
-                            delete connUniDb;
+                            delete connDb;
                             xmlFreeDoc(docXML);
                             xmlFreeDoc(docSchema);
                             return -6;
@@ -547,7 +549,7 @@ int UniParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
             if (column_count == 0)
             {
                 cout<<"ERROR: no columns were chosen for insert or update"<<endl;
-                delete connUniDb;
+                delete connDb;
                 xmlFreeDoc(docXML);
                 xmlFreeDoc(docSchema);
                 return -7;
@@ -555,7 +557,7 @@ int UniParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
             TString sql = prepare_sql_code(vecElements, strTableName, isUpdate);
             cout<<"SQL code: "<<sql<<endl;
 
-            TSQLStatement* stmt = uni_db->Statement(sql);
+            TSQLStatement* stmt = db_server->Statement(sql);
 
             // run XML file cycle and write the fields to DB
             int cycle_counter = 0;
@@ -603,7 +605,7 @@ int UniParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
         cur_schema_node = cur_schema_node->next;
     }// for docSchema level 0
 
-    delete connUniDb;
+    delete connDb;
     xmlFreeDoc(docXML);
     xmlFreeDoc(docSchema);
 
@@ -621,7 +623,7 @@ int UniParser::ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate)
     }
 
     // read schema
-    xmlDocPtr docSchema = xmlReadFile(schemaPath, NULL, 0);
+    xmlDocPtr docSchema = xmlReadFile(schemaPath, nullptr, 0);
     if (!docSchema)
     {
         cout<<"ERROR: reading schema file '"<<schemaPath<<"' was failed"<<endl;
@@ -644,10 +646,10 @@ int UniParser::ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate)
     cur_schema_node = cur_schema_node->children;
 
     // open connection to database
-    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-    if (connUniDb == 0x00)
+    UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr)
         return -3;
-    TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
     // parse SCHEMA file
     string strTableName = "", cur_line;
@@ -682,7 +684,7 @@ int UniParser::ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate)
             for (int i = 0; i < skip_count; i++)
                 getline(csvFile, cur_line);
 
-            TSQLStatement* stmt = uni_db->Statement(sql);
+            TSQLStatement* stmt = db_server->Statement(sql);
 
             // run CSV file cycle and write the fields to DB
             int cycle_counter = 0;
@@ -730,7 +732,7 @@ int UniParser::ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate)
         cur_schema_node = cur_schema_node->next;
     }// for docSchema level 0
 
-    delete connUniDb;
+    delete connDb;
     csvFile.close();
     xmlFreeDoc(docSchema);
 
@@ -748,7 +750,7 @@ int UniParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
     }
 
     // read schema
-    xmlDocPtr docSchema = xmlReadFile(schemaPath, NULL, 0);
+    xmlDocPtr docSchema = xmlReadFile(schemaPath, nullptr, 0);
     if (!docSchema)
     {
         cout<<"ERROR: reading schema file '"<<schemaPath<<"' was failed"<<endl;
@@ -771,11 +773,11 @@ int UniParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
     cur_schema_node = cur_schema_node->children;
 
     // open connection to database
-    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-    if (connUniDb == 0x00)
+    UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr)
         return -3;
 
-    TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
     // parse SCHEMA file
     string strTableName = "", cur_line;
@@ -821,7 +823,7 @@ int UniParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
             for (int i = 0; i < skip_count; i++)
                 getline(txtFile, cur_line);
 
-            TSQLStatement* stmt = uni_db->Statement(sql);
+            TSQLStatement* stmt = db_server->Statement(sql);
 
             // run TXT file cycle and write the fields to DB
             int cycle_counter = 0;
@@ -871,7 +873,7 @@ int UniParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
         cur_schema_node = cur_schema_node->next;
     }// parse SCHEMA file
 
-    delete connUniDb;
+    delete connDb;
     txtFile.close();
     xmlFreeDoc(docSchema);
 
@@ -890,7 +892,7 @@ int UniParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sche
     }
 
     // read schema
-    xmlDocPtr docSchema = xmlReadFile(schemaPath, NULL, 0);
+    xmlDocPtr docSchema = xmlReadFile(schemaPath, nullptr, 0);
     if (!docSchema)
     {
         cout<<"ERROR: reading schema file '"<<schemaPath<<"' was failed"<<endl;
@@ -913,8 +915,8 @@ int UniParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sche
     cur_schema_node = cur_schema_node->children;
 
     // open connection to database
-    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-    if (connUniDb == 0x00)
+    UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr)
         return -3;
 
     // parse SCHEMA file
@@ -1042,7 +1044,7 @@ int UniParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sche
         */
 
         UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "noise", period_number, run_number, period_number, run_number, arr); //(detector_name, parameter_name, start_run, end_run, parameter_value)
-        if (pDetectorParameter == NULL)
+        if (pDetectorParameter == nullptr)
             continue;
 
         // clean memory after work
@@ -1052,7 +1054,7 @@ int UniParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sche
     }
 
     txtFile.close();
-    delete connUniDb;
+    delete connDb;
 
     return 0;
 }
@@ -1060,7 +1062,7 @@ int UniParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sche
 int UniParser::ParseDb2Db()
 {
     TSQLServer* source_db = TSQLServer::Connect("pgsql://nc13.jinr.ru/bmn_elog", "login", "password");
-    if (source_db == 0x00)
+    if (source_db == nullptr)
     {
         cout<<"ERROR: source database connection was not established"<<endl;
         return -1;
@@ -1087,7 +1089,7 @@ int UniParser::ParseDb2Db()
     stmt_source->StoreResult();
 
     TSQLServer* dest_db = TSQLServer::Connect("pgsql://nc13.jinr.ru/bmn_elog", "login", "password");
-    if (dest_db == 0x00)
+    if (dest_db == nullptr)
     {
         cout<<"ERROR: destination database connection was not established"<<endl;
         return -3;
@@ -1203,7 +1205,7 @@ int UniParser::ParseTxt2Struct(TString txtName, TString schemaPath, vector<struc
     }
 
     // read schema
-    xmlDocPtr docSchema = xmlReadFile(schemaPath.Data(), NULL, 0);
+    xmlDocPtr docSchema = xmlReadFile(schemaPath.Data(), nullptr, 0);
     if (!docSchema)
     {
         if (iVerbose > 0) cout<<"ERROR: reading schema file '"<<schemaPath<<"' was failed"<<endl;
@@ -1437,16 +1439,16 @@ int UniParser::ConvertElogCsv(TString csvName, char separate_symbol)
         return -1;
     }
 
-    UniConnection* connUni = UniConnection::Open(ELOG_DB);
-    if (connUni == 0x00) return -1;
-    TSQLServer* elog_server = connUni->GetSQLServer();
-    if (elog_server == 0x00)
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
+    TSQLServer* elog_server = connDb->GetSQLServer();
+    if (elog_server == nullptr)
     {
         cout<<"ERROR: ELOG connection was not established"<<endl;
         return -2;
     }
     //cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;
-    TSQLStatement* stmt = NULL;
+    TSQLStatement* stmt = nullptr;
 
     // run and parse CSV file, and update the fields in DB
     int skip_line = 1, updated_count = 0;

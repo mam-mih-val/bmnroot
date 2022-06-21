@@ -3,6 +3,8 @@
 // -----                  Created 18/08/15 by K. Gertsenberger         -----
 // -------------------------------------------------------------------------
 #include "UniGenerateClasses.h"
+#include "UniConnection.h"
+#include "ElogConnection.h"
 #include "function_set.h"
 
 #include "TSQLServer.h"
@@ -19,7 +21,7 @@ using namespace std;
 // -----   Constructor   -------------------------------
 UniGenerateClasses::UniGenerateClasses()
 {
-    arrTableJoin = NULL;
+    arrTableJoin = nullptr;
 
     /*arrTableJoin = new TObjArray();
 
@@ -102,24 +104,48 @@ UniGenerateClasses::~UniGenerateClasses()
 }
 
 // -----  generate C++ classess - wrappers for DB tables  -------------------------------
-int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TString class_prefix, bool isOnlyUpdate)
+int UniGenerateClasses::GenerateClasses(ConnectionType connection_type, TString class_prefix, bool isOnlyUpdate)
 {
-    UniConnection* connectionUniDb = UniConnection::Open(connection_type);
-    if (connectionUniDb == 0x00)
+    TSQLServer* db_server = nullptr;
+    TObject* connDb;
+    switch (connection_type)
     {
-        cout<<"ERROR: connection to the database can't be established"<<endl;
-        return -1;
+        case UNIFIED_DB:
+        {
+            connDb = UniConnection::Open();
+            if (connDb == nullptr)
+            {
+                cout<<"ERROR: connection to the Unified Database was not established"<<endl;
+                return -1;
+            }
+            db_server = ((UniConnection*)connDb)->GetSQLServer();
+            break;
+        }
+        case ELOG_DB:
+        {
+            connDb = ElogConnection::Open();
+            if (connDb == nullptr)
+            {
+                cout<<"ERROR: connection to the Logbook Database was not established"<<endl;
+                return -2;
+            }
+            db_server = ((ElogConnection*)connDb)->GetSQLServer();
+            break;
+        }
+        default:
+        {
+            cout<<"ERROR: Connection Type is undefined"<<endl;
+            return -3;
+        }
     }
 
-    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
-
     // define DBMS: MySQL or Postgres
-    enumDBMS curDBMS;
-    if (strcmp(uni_db->GetDBMS(), "MySQL") == 0) curDBMS = MySQL;
-    else if (strcmp(uni_db->GetDBMS(), "PgSQL") == 0) curDBMS = PgSQL;
+    UniConnection::enumDBMS curDBMS;
+    if (strcmp(db_server->GetDBMS(), "MySQL") == 0) curDBMS = UniConnection::MySQL;
+    else if (strcmp(db_server->GetDBMS(), "PgSQL") == 0) curDBMS = UniConnection::PgSQL;
     else
     {
-        cout<<"ERROR: this type of DBMS is not supported: "<<uni_db->GetDBMS()<<endl;
+        cout<<"ERROR: this type of DBMS is not supported: "<<db_server->GetDBMS()<<endl;
         return -2;
     }
 
@@ -134,7 +160,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
     TString strClassPrefix = get_file_name_with_ext(class_prefix.Data());
 
     // get list of database tables
-    TList* lst = uni_db->GetTablesList();
+    TList* lst = db_server->GetTablesList();
     TIter next(lst);
     TObject* obj;
 
@@ -146,15 +172,15 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         TString strTableName = obj->GetName();
 
         // exclude system tables
-        if ((curDBMS == PgSQL) && (strTableName.BeginsWith("pg_") || strTableName.BeginsWith("sql_")))
+        if ((curDBMS == UniConnection::PgSQL) && (strTableName.BeginsWith("pg_") || strTableName.BeginsWith("sql_")))
             continue;
 
         cout<<"Parsing table: "<<strTableName<<endl;
-        TSQLTableInfo* pTableInfo = uni_db->GetTableInfo(strTableName.Data());
+        TSQLTableInfo* pTableInfo = db_server->GetTableInfo(strTableName.Data());
 
         // GET LIST OF COLUMNS FOR THE CURRENT TABLE (pTableInfo->GetColumns() doesn't provide required info)
         vector<structColumnInfo*> vecColumns;
-        if (curDBMS == MySQL)
+        if (curDBMS == UniConnection::MySQL)
         {
             sql = TString::Format("SELECT ordinal_position, column_name, data_type, (is_nullable = 'YES') AS is_nullable, "
                                   "(extra = 'auto_increment') AS is_identity, (column_key = 'PRI') AS is_primary, (column_key = 'UNI') AS is_unique "
@@ -162,7 +188,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                                   "WHERE table_name = '%s' "
                                   "ORDER BY ordinal_position", strTableName.Data());
         }
-        else if (curDBMS == PgSQL)
+        else if (curDBMS == UniConnection::PgSQL)
         {
             sql = TString::Format("SELECT DISTINCT a.attnum as ordinal_position, a.attname as column_name, format_type(a.atttypid, a.atttypmod) as data_type, "
                                   "a.attnotnull as is_nullable, pg_get_expr(def.adbin, def.adrelid) as is_default, coalesce(i.indisprimary, false) as is_primary, coalesce(i.indisunique, false) as is_unique, atttypmod as type_parameter "
@@ -175,7 +201,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                                   "ORDER BY a.attnum;", strTableName.Data());
         }
 
-        TSQLResult* res = uni_db->Query(sql);
+        TSQLResult* res = db_server->Query(sql);
         int nrows = res->GetRowCount();
         if (nrows == 0)
         {
@@ -362,14 +388,14 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
             }
             sColumnInfo->strShortVariableName = strShortVar;
 
-            if (curDBMS == MySQL)
+            if (curDBMS == UniConnection::MySQL)
             {
                 sColumnInfo->isNullable = ((row->GetField(3))[0] == '1');
                 sColumnInfo->isIdentity = ((row->GetField(4))[0] == '1');
                 sColumnInfo->isPrimary = ((row->GetField(5))[0] == '1');
                 sColumnInfo->isUnique = ((row->GetField(6))[0] == '1');
             }
-            else if (curDBMS == PgSQL)
+            else if (curDBMS == UniConnection::PgSQL)
             {
                 string def_value = row->GetField(4);
                 sColumnInfo->isNullable = ((row->GetField(3))[0] == 'f');
@@ -512,7 +538,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         hFile<<"\t/* GENERATED PRIVATE MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */\n";
 
         hFile<<"\t/// connection to the database\n";
-        hFile<<"\tUniConnection* connectionUniDb;\n\n";
+        hFile<<"\tUniConnection* connectionDB;\n\n";
 
         // adding member variables corresponding table columns
         for(vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
@@ -535,7 +561,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
         // CONSTRUCTOR - DECLARATION
         hFile<<"\n\t//Constructor\n";
-        hFile<<(TString::Format("\t%s(UniConnection* connUniDb", strClassName.Data())).Data();
+        hFile<<(TString::Format("\t%s(UniConnection* db_connect", strClassName.Data())).Data();
         for(vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
         {
             structColumnInfo* cur_col= *it;
@@ -633,8 +659,8 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         }
 
         // CHECK RECORD EXISTS - DECLARATION
-        hFile<<(TString::Format("\t/// check %s exists in the database\n", strTableNameSpace.Data())).Data();
-        hFile<<(TString::Format("\tstatic bool Check%sExists(", strShortTableName.Data())).Data();
+        hFile<<(TString::Format("\t/// check %s exists in the database: 1- true, 0 - false, <0 - database operation error\n", strTableNameSpace.Data())).Data();
+        hFile<<(TString::Format("\tstatic int Check%sExists(", strShortTableName.Data())).Data();
         count = 0;
         is_flag = false;
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
@@ -662,8 +688,8 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                 if (!cur_col->isUnique)
                     continue;
 
-                hFile<<(TString::Format("\t/// check %s exists in the database\n", strTableNameSpace.Data())).Data();
-                hFile<<(TString::Format("\tstatic bool Check%sExists(%s %s);\n", strShortTableName.Data(), cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
+                hFile<<(TString::Format("\t/// check %s exists in the database: 1- true, 0 - false, <0 - database operation error\n", strTableNameSpace.Data())).Data();
+                hFile<<(TString::Format("\tstatic int Check%sExists(%s %s);\n", strShortTableName.Data(), cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
             }
         }
 
@@ -716,7 +742,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
             if (cur_col->isNullable)
             {
-                hFile<<(TString::Format("if (%s == NULL) return NULL; else ", cur_col->strVariableName.Data())).Data();
+                hFile<<(TString::Format("if (%s == nullptr) return nullptr; else ", cur_col->strVariableName.Data())).Data();
                 if (cur_col->isBinary)
                 {
                     structColumnInfo* next_col = *(it+1);
@@ -755,7 +781,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
                 if (cur_col->isNullable)
                 {
-                    hFile<<(TString::Format("if (%s == NULL) return NULL; else ", cur_col->strVariableName.Data())).Data();
+                    hFile<<(TString::Format("if (%s == nullptr) return nullptr; else ", cur_col->strVariableName.Data())).Data();
                     if (cur_col->isBinary)
                     {
                         structColumnInfo* next_col = (structColumnInfo*) curTableJoin->arrManualFieldNames->At(i+1);
@@ -899,7 +925,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
         // CONSTRUCTOR - IMPLEMENTATION
         cxxFile<<"// -----   Constructor with database connection   -----------------------\n";
-        cxxFile<<(TString::Format("%s::%s(UniConnection* connUniDb", strClassName.Data(), strClassName.Data())).Data();
+        cxxFile<<(TString::Format("%s::%s(UniConnection* db_connect", strClassName.Data(), strClassName.Data())).Data();
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
         {
             structColumnInfo* cur_col= *it;
@@ -915,7 +941,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         }// for join table
         cxxFile<<")\n{\n";
 
-        cxxFile<<"\tconnectionUniDb = connUniDb;\n\n";
+        cxxFile<<"\tconnectionDB = db_connect;\n\n";
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
         {
             structColumnInfo* cur_col= *it;
@@ -933,7 +959,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
         // DESTRUCTOR - IMPLEMENTATION
         cxxFile<<"// -----   Destructor   -------------------------------------------------\n";
-        cxxFile<<(TString::Format("%s::~%s()\n{\n\tif (connectionUniDb)\n\t\tdelete connectionUniDb;\n", strClassName.Data(), strClassName.Data())).Data();
+        cxxFile<<(TString::Format("%s::~%s()\n{\n\tif (connectionDB)\n\t\tdelete connectionDB;\n", strClassName.Data(), strClassName.Data())).Data();
 
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
         {
@@ -995,10 +1021,10 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
             }
         }// for join table
         cxxFile<<")\n{\n";
-        cxxFile<<(TString::Format("\tUniConnection* connUniDb = UniConnection::Open(%s);\n", UniConnection::DbToString(connection_type))).Data();
-        cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
+        cxxFile<<(TString::Format("\tUniConnection* connDb = UniConnection::Open(%s);\n", UniConnection::DbToString())).Data();
+        cxxFile<<"\tif (connDb == nullptr) return nullptr;\n\n";
 
-        cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
+        cxxFile<<"\tTSQLServer* db_server = connDb->GetSQLServer();\n\n";
         cxxFile<<(TString::Format("\tTString sql = TString::Format(\n\t\t\"insert into %s(", strTableName.Data())).Data();
         count = 0;
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
@@ -1019,14 +1045,14 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         cxxFile<<") \"\n\t\t\"values (";
         for (int i = 1 ; i <= count; i++)
         {
-            if (curDBMS == MySQL)
+            if (curDBMS == UniConnection::MySQL)
             {
                 if (i == 1)
                     cxxFile<<"?";
                 else
                     cxxFile<<", ?";
             }
-            else if (curDBMS == PgSQL)
+            else if (curDBMS == UniConnection::PgSQL)
             {
                 if (i == 1)
                     cxxFile<<"$1";
@@ -1037,7 +1063,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         }
         cxxFile<<")\");\n";
 
-        cxxFile<<"\tTSQLStatement* stmt = uni_db->Statement(sql);\n\n";
+        cxxFile<<"\tTSQLStatement* stmt = db_server->Statement(sql);\n\n";
 
         cxxFile<<"\tstmt->NextIteration();\n";
         count = 0;
@@ -1052,7 +1078,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
             }
 
             if (cur_col->isNullable)
-                cxxFile<<(TString::Format("\tif (%s == NULL)\n\t\tstmt->SetNull(%d);\n\telse\n\t", cur_col->strColumnName.Data(), count)).Data();
+                cxxFile<<(TString::Format("\tif (%s == nullptr)\n\t\tstmt->SetNull(%d);\n\telse\n\t", cur_col->strColumnName.Data(), count)).Data();
 
             if (!cur_col->isBinary)
                 cxxFile<<(TString::Format("\tstmt->Set%s(%d, %s);\n", cur_col->strStatementType.Data(), count, cur_col->strColumnPointer.Data())).Data();
@@ -1070,7 +1096,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         cxxFile<<(TString::Format("\n\t// inserting new %s to the Database\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\tif (!stmt->Process())\n\t{\n";
         cxxFile<<(TString::Format("\t\tcout<<\"ERROR: inserting new %s to the Database has been failed\"<<endl;\n", strTableNameSpace.Data())).Data();
-        cxxFile<<"\t\tdelete stmt;\n\t\tdelete connUniDb;\n\t\treturn 0x00;\n\t}\n\n";
+        cxxFile<<"\t\tdelete stmt;\n\t\tdelete connDb;\n\t\treturn nullptr;\n\t}\n\n";
 
         cxxFile<<"\tdelete stmt;\n\n";
 
@@ -1078,13 +1104,13 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         {
             cxxFile<<"\t// getting last inserted ID\n";
             cxxFile<<(TString::Format("\tint %s;\n", strIdentityColumnName.Data())).Data();
-            if (curDBMS == MySQL)
+            if (curDBMS == UniConnection::MySQL)
             {
-                cxxFile<<"\tTSQLStatement* stmt_last = uni_db->Statement(\"SELECT LAST_INSERT_ID()\");\n";
+                cxxFile<<"\tTSQLStatement* stmt_last = db_server->Statement(\"SELECT LAST_INSERT_ID()\");\n";
             }
-            else if (curDBMS == PgSQL)
+            else if (curDBMS == UniConnection::PgSQL)
             {
-                cxxFile<<(TString::Format("\tTSQLStatement* stmt_last = uni_db->Statement(\"SELECT currval(pg_get_serial_sequence('%s','%s'))\");\n",
+                cxxFile<<(TString::Format("\tTSQLStatement* stmt_last = db_server->Statement(\"SELECT currval(pg_get_serial_sequence('%s','%s'))\");\n",
                                           strTableName.Data(), strIdentityColumnName.Data())).Data();
             }
 
@@ -1096,14 +1122,14 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                      "\t\tif (!stmt_last->NextResultRow())\n\t\t{\n"
                      "\t\t\tcout<<\"ERROR: no last ID in DB!\"<<endl;\n"
                      "\t\t\tdelete stmt_last;\n"
-                     "\t\t\treturn 0x00;\n\t\t}\n"
+                     "\t\t\treturn nullptr;\n\t\t}\n"
                     "\t\telse\n\t\t{\n";
             cxxFile<<(TString::Format("\t\t\t%s = stmt_last->GetInt(0);\n", strIdentityColumnName.Data())).Data();
             cxxFile<<"\t\t\tdelete stmt_last;\n\t\t}\n\t}\n"
                      "\telse\n\t{\n"
                      "\t\tcout<<\"ERROR: getting last ID has been failed!\"<<endl;\n"
                      "\t\tdelete stmt_last;\n"
-                     "\t\treturn 0x00;\n\t}\n\n";
+                     "\t\treturn nullptr;\n\t}\n\n";
         }
 
         // for join table
@@ -1136,14 +1162,14 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                 cxxFile<<(TString::Format(", %s", curTableJoin->strJoinField.strColumnName.Data())).Data();
             cxxFile<<");\n";
 
-            cxxFile<<"\tstmt = uni_db->Statement(sql);\n";
+            cxxFile<<"\tstmt = db_server->Statement(sql);\n";
 
             cxxFile<<"\n\t// get join table record from DB\n";
             cxxFile<<"\tif (!stmt->Process())\n\t{\n";
             cxxFile<<(TString::Format("\t\tcout<<\"ERROR: getting join record from DB has been failed for '%s' table\"<<endl;\n\n", curTableJoin->strJoinTableName.Data())).Data();
             cxxFile<<"\t\tdelete stmt;\n";
-            cxxFile<<"\t\tdelete connUniDb;\n";
-            cxxFile<<"\t\treturn 0x00;\n\t}\n\n";
+            cxxFile<<"\t\tdelete connDb;\n";
+            cxxFile<<"\t\treturn nullptr;\n\t}\n\n";
 
             cxxFile<<"\t// store result of statement in buffer\n";
             cxxFile<<"\tstmt->StoreResult();\n\n";
@@ -1152,7 +1178,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
             cxxFile<<"\tif (!stmt->NextResultRow())\n\t{\n";
             cxxFile<<(TString::Format("\t\tcout<<\"ERROR: the record was not found in '%s' table\"<<endl;\n\n", curTableJoin->strJoinTableName.Data())).Data();
             cxxFile<<"\t\tdelete stmt;\n";
-            cxxFile<<"\t\tdelete connUniDb;\n";
+            cxxFile<<"\t\tdelete connDb;\n";
 
             count = 0;
             TIter nextGet(curTableJoin->arrManualFieldNames);
@@ -1163,10 +1189,10 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
                 if (cur_col->isNullable)
                 {
-                    cxxFile<<(TString::Format("\tif (stmt->IsNull(%d)) %s = NULL;\n\telse\n\t", count, TempVar.Data())).Data();
+                    cxxFile<<(TString::Format("\tif (stmt->IsNull(%d)) %s = nullptr;\n\telse\n\t", count, TempVar.Data())).Data();
                     if (cur_col->isBinary)
                     {
-                        cxxFile<<(TString::Format("\t{\n\t\t%s = NULL;\n", TempVar.Data())).Data();
+                        cxxFile<<(TString::Format("\t{\n\t\t%s = nullptr;\n", TempVar.Data())).Data();
                         cur_col= (structColumnInfo*) nextGet();
                         cxxFile<<(TString::Format("\t\t%s %s = 0;\n", cur_col->strVariableType.Data(), cur_col->strTempVariableName.Data())).Data();
                         cxxFile<<(TString::Format("\t\tstmt->Get%s(%d, (void*&)%s, %s);\n\t}\n", StatementType.Data(), count,
@@ -1179,7 +1205,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                 {
                     if (cur_col->isBinary)
                     {
-                        cxxFile<<(TString::Format("\t%s = NULL;\n", TempVar.Data())).Data();
+                        cxxFile<<(TString::Format("\t%s = nullptr;\n", TempVar.Data())).Data();
                         cur_col= (structColumnInfo*) nextGet();
                         cxxFile<<(TString::Format("\t%s %s = 0;\n", cur_col->strVariableType.Data(), cur_col->strTempVariableName.Data())).Data();
                         cxxFile<<(TString::Format("\tstmt->Get%s(%d, (void*&)%s, %s);\n", StatementType.Data(), count,
@@ -1205,7 +1231,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
             if (cur_col->isNullable)
             {
-                cxxFile<<(TString::Format("\tif (%s == NULL) %s = NULL;\n\telse\n\t", cur_col->strColumnName.Data(), TempVar.Data())).Data();
+                cxxFile<<(TString::Format("\tif (%s == nullptr) %s = nullptr;\n\telse\n\t", cur_col->strColumnName.Data(), TempVar.Data())).Data();
                 if (cur_col->isBinary)
                 {
                     ++it;
@@ -1232,7 +1258,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
             }
         }
 
-        cxxFile<<(TString::Format("\n\treturn new %s(connUniDb", strClassName.Data())).Data();
+        cxxFile<<(TString::Format("\n\treturn new %s(connDb", strClassName.Data())).Data();
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
         {
             structColumnInfo* cur_col= *it;
@@ -1272,10 +1298,10 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         }
         cxxFile<<")\n{\n";
 
-        cxxFile<<(TString::Format("\tUniConnection* connUniDb = UniConnection::Open(%s);\n", UniConnection::DbToString(connection_type))).Data();
-        cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
+        cxxFile<<(TString::Format("\tUniConnection* connDb = UniConnection::Open(%s);\n", UniConnection::DbToString())).Data();
+        cxxFile<<"\tif (connDb == nullptr) return nullptr;\n\n";
 
-        cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
+        cxxFile<<"\tTSQLServer* db_server = connDb->GetSQLServer();\n\n";
         cxxFile<<"\tTString sql = TString::Format(\n\t\t\"select";
         count = 0;
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
@@ -1348,14 +1374,14 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         }
         cxxFile<<");\n";
 
-        cxxFile<<"\tTSQLStatement* stmt = uni_db->Statement(sql);\n";
+        cxxFile<<"\tTSQLStatement* stmt = db_server->Statement(sql);\n";
 
         cxxFile<<(TString::Format("\n\t// get %s from the database\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\tif (!stmt->Process())\n\t{\n";
         cxxFile<<(TString::Format("\t\tcout<<\"ERROR: getting %s from the database has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\t\tdelete stmt;\n";
-        cxxFile<<"\t\tdelete connUniDb;\n";
-        cxxFile<<"\t\treturn 0x00;\n\t}\n\n";
+        cxxFile<<"\t\tdelete connDb;\n";
+        cxxFile<<"\t\treturn nullptr;\n\t}\n\n";
 
         cxxFile<<"\t// store result of statement in buffer\n";
         cxxFile<<"\tstmt->StoreResult();\n\n";
@@ -1364,8 +1390,8 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         cxxFile<<"\tif (!stmt->NextResultRow())\n\t{\n";
         cxxFile<<(TString::Format("\t\tcout<<\"ERROR: %s was not found in the database\"<<endl;\n\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\t\tdelete stmt;\n";
-        cxxFile<<"\t\tdelete connUniDb;\n";
-        cxxFile<<"\t\treturn 0x00;\n\t}\n\n";
+        cxxFile<<"\t\tdelete connDb;\n";
+        cxxFile<<"\t\treturn nullptr;\n\t}\n\n";
 
         count = 0;
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
@@ -1377,10 +1403,10 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
             if (cur_col->isNullable)
             {
-                cxxFile<<(TString::Format("\tif (stmt->IsNull(%d)) %s = NULL;\n\telse\n\t", count, TempVar.Data())).Data();
+                cxxFile<<(TString::Format("\tif (stmt->IsNull(%d)) %s = nullptr;\n\telse\n\t", count, TempVar.Data())).Data();
                 if (cur_col->isBinary)
                 {
-                    cxxFile<<(TString::Format("\t{\n\t\t%s = NULL;\n", TempVar.Data())).Data();
+                    cxxFile<<(TString::Format("\t{\n\t\t%s = nullptr;\n", TempVar.Data())).Data();
                     ++it;
                     cur_col= *it;
                     cxxFile<<(TString::Format("\t\t%s %s = 0;\n", cur_col->strVariableType.Data(), cur_col->strTempVariableName.Data())).Data();
@@ -1394,7 +1420,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
             {
                 if (cur_col->isBinary)
                 {
-                    cxxFile<<(TString::Format("\t%s = NULL;\n", TempVar.Data())).Data();
+                    cxxFile<<(TString::Format("\t%s = nullptr;\n", TempVar.Data())).Data();
                     ++it;
                     cur_col= *it;
                     cxxFile<<(TString::Format("\t%s %s = 0;\n", cur_col->strVariableType.Data(), cur_col->strTempVariableName.Data())).Data();
@@ -1420,10 +1446,10 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
                 if (cur_col->isNullable)
                 {
-                    cxxFile<<(TString::Format("\tif (stmt->IsNull(%d)) %s = NULL;\n\telse\n\t", count, TempVar.Data())).Data();
+                    cxxFile<<(TString::Format("\tif (stmt->IsNull(%d)) %s = nullptr;\n\telse\n\t", count, TempVar.Data())).Data();
                     if (cur_col->isBinary)
                     {
-                        cxxFile<<(TString::Format("\t{\n\t\t%s = NULL;\n", TempVar.Data())).Data();
+                        cxxFile<<(TString::Format("\t{\n\t\t%s = nullptr;\n", TempVar.Data())).Data();
                         cur_col= (structColumnInfo*) nextGet();
                         cxxFile<<(TString::Format("\t\t%s %s = 0;\n", cur_col->strVariableType.Data(), cur_col->strTempVariableName.Data())).Data();
                         cxxFile<<(TString::Format("\t\tstmt->Get%s(%d, (void*&)%s, %s);\n\t}\n", StatementType.Data(), count,
@@ -1436,7 +1462,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                 {
                     if (cur_col->isBinary)
                     {
-                        cxxFile<<(TString::Format("\t%s = NULL;\n", TempVar.Data())).Data();
+                        cxxFile<<(TString::Format("\t%s = nullptr;\n", TempVar.Data())).Data();
                         cur_col= (structColumnInfo*) nextGet();
                         cxxFile<<(TString::Format("\t%s %s = 0;\n", cur_col->strVariableType.Data(), cur_col->strTempVariableName.Data())).Data();
                         cxxFile<<(TString::Format("\tstmt->Get%s(%d, (void*&)%s, %s);\n", StatementType.Data(), count,
@@ -1453,7 +1479,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
         cxxFile<<"\n\tdelete stmt;\n\n";
 
-        cxxFile<<(TString::Format("\treturn new %s(connUniDb", strClassName.Data())).Data();
+        cxxFile<<(TString::Format("\treturn new %s(connDb", strClassName.Data())).Data();
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
         {
             structColumnInfo* cur_col= *it;
@@ -1496,10 +1522,10 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                 cxxFile<<(TString::Format("%s* %s::Get%s(%s %s)\n{\n" ,
                                           strClassName.Data(), strClassName.Data(), strShortTableName.Data(), cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
 
-                cxxFile<<(TString::Format("\tUniConnection* connUniDb = UniConnection::Open(%s);\n", UniConnection::DbToString(connection_type))).Data();
-                cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
+                cxxFile<<(TString::Format("\tUniConnection* connDb = UniConnection::Open(%s);\n", UniConnection::DbToString())).Data();
+                cxxFile<<"\tif (connDb == nullptr) return nullptr;\n\n";
 
-                cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
+                cxxFile<<"\tTSQLServer* db_server = connDb->GetSQLServer();\n\n";
                 cxxFile<<"\tTString sql = TString::Format(\n\t\t\"select";
                 count = 0;
                 for (vector<structColumnInfo*>::iterator it_inner = vecColumns.begin(); it_inner != vecColumns.end(); ++it_inner)
@@ -1529,14 +1555,14 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                     cxxFile<<(TString::Format(" \"\n\t\t\"where %s = %%%s\", %s);\n",
                                               cur_col->strColumnName.Data(), cur_col->strPrintfType.Data(), cur_col->strColumnName.Data())).Data();
 
-                cxxFile<<"\tTSQLStatement* stmt = uni_db->Statement(sql);\n";
+                cxxFile<<"\tTSQLStatement* stmt = db_server->Statement(sql);\n";
 
                 cxxFile<<(TString::Format("\n\t// get %s from the database\n", strTableNameSpace.Data())).Data();
                 cxxFile<<"\tif (!stmt->Process())\n\t{\n";
                 cxxFile<<(TString::Format("\t\tcout<<\"ERROR: getting %s from the database has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
                 cxxFile<<"\t\tdelete stmt;\n";
-                cxxFile<<"\t\tdelete connUniDb;\n";
-                cxxFile<<"\t\treturn 0x00;\n\t}\n\n";
+                cxxFile<<"\t\tdelete connDb;\n";
+                cxxFile<<"\t\treturn nullptr;\n\t}\n\n";
 
                 cxxFile<<"\t// store result of statement in buffer\n";
                 cxxFile<<"\tstmt->StoreResult();\n\n";
@@ -1545,8 +1571,8 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                 cxxFile<<"\tif (!stmt->NextResultRow())\n\t{\n";
                 cxxFile<<(TString::Format("\t\tcout<<\"ERROR: %s was not found in the database\"<<endl;\n\n", strTableNameSpace.Data())).Data();
                 cxxFile<<"\t\tdelete stmt;\n";
-                cxxFile<<"\t\tdelete connUniDb;\n";
-                cxxFile<<"\t\treturn 0x00;\n\t}\n\n";
+                cxxFile<<"\t\tdelete connDb;\n";
+                cxxFile<<"\t\treturn nullptr;\n\t}\n\n";
 
                 count = 0;
                 for (vector<structColumnInfo*>::iterator it_inner = vecColumns.begin(); it_inner != vecColumns.end(); ++it_inner)
@@ -1559,10 +1585,10 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
                     if (current_col->isNullable)
                     {
-                        cxxFile<<(TString::Format("\tif (stmt->IsNull(%d)) %s = NULL;\n\telse\n\t", count, TempVar.Data())).Data();
+                        cxxFile<<(TString::Format("\tif (stmt->IsNull(%d)) %s = nullptr;\n\telse\n\t", count, TempVar.Data())).Data();
                         if (current_col->isBinary)
                         {
-                            cxxFile<<(TString::Format("\t{\n\t\t%s = NULL;\n", TempVar.Data())).Data();
+                            cxxFile<<(TString::Format("\t{\n\t\t%s = nullptr;\n", TempVar.Data())).Data();
                             ++it_inner;
                             current_col= *it_inner;
                             cxxFile<<(TString::Format("\t\t%s %s = 0;\n", current_col->strVariableType.Data(), current_col->strTempVariableName.Data())).Data();
@@ -1577,7 +1603,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                     {
                         if (current_col->isBinary)
                         {
-                            cxxFile<<(TString::Format("\t%s = NULL;\n", TempVar.Data())).Data();
+                            cxxFile<<(TString::Format("\t%s = nullptr;\n", TempVar.Data())).Data();
                             ++it_inner;
                             current_col= *it_inner;
                             cxxFile<<(TString::Format("\t%s %s = 0;\n", current_col->strVariableType.Data(), current_col->strTempVariableName.Data())).Data();
@@ -1602,10 +1628,10 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
                         if (cur_col->isNullable)
                         {
-                            cxxFile<<(TString::Format("\tif (stmt->IsNull(%d)) %s = NULL;\n\telse\n\t", count, TempVar.Data())).Data();
+                            cxxFile<<(TString::Format("\tif (stmt->IsNull(%d)) %s = nullptr;\n\telse\n\t", count, TempVar.Data())).Data();
                             if (cur_col->isBinary)
                             {
-                                cxxFile<<(TString::Format("\t{\n\t\t%s = NULL;\n", TempVar.Data())).Data();
+                                cxxFile<<(TString::Format("\t{\n\t\t%s = nullptr;\n", TempVar.Data())).Data();
                                 cur_col= (structColumnInfo*) nextGet();
                                 cxxFile<<(TString::Format("\t\t%s %s = 0;\n", cur_col->strVariableType.Data(), cur_col->strTempVariableName.Data())).Data();
                                 cxxFile<<(TString::Format("\t\tstmt->Get%s(%d, (void*&)%s, %s);\n\t}\n", StatementType.Data(), count,
@@ -1618,7 +1644,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                         {
                             if (cur_col->isBinary)
                             {
-                                cxxFile<<(TString::Format("\t%s = NULL;\n", TempVar.Data())).Data();
+                                cxxFile<<(TString::Format("\t%s = nullptr;\n", TempVar.Data())).Data();
                                 cur_col= (structColumnInfo*) nextGet();
                                 cxxFile<<(TString::Format("\t%s %s = 0;\n", cur_col->strVariableType.Data(), cur_col->strTempVariableName.Data())).Data();
                                 cxxFile<<(TString::Format("\tstmt->Get%s(%d, (void*&)%s, %s);\n", StatementType.Data(), count,
@@ -1635,7 +1661,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
                 cxxFile<<"\n\tdelete stmt;\n\n";
 
-                cxxFile<<(TString::Format("\treturn new %s(connUniDb", strClassName.Data())).Data();
+                cxxFile<<(TString::Format("\treturn new %s(connDb", strClassName.Data())).Data();
                 for(vector<structColumnInfo*>::iterator it_inner = vecColumns.begin(); it_inner != vecColumns.end(); ++it_inner)
                 {
                     structColumnInfo* current_col = *it_inner;
@@ -1669,7 +1695,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
         // CHECK RECORD EXISTS - IMPLEMENTATION
         cxxFile<<(TString::Format("// -----  Check %s exists in the database  ---------------------------\n", strTableNameSpace.Data())).Data();
-        cxxFile<<(TString::Format("bool %s::Check%sExists(", strClassName.Data(), strShortTableName.Data())).Data();
+        cxxFile<<(TString::Format("int %s::Check%sExists(", strClassName.Data(), strShortTableName.Data())).Data();
         count = 0;
         is_flag = false;
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
@@ -1689,10 +1715,10 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         }
         cxxFile<<")\n{\n";
 
-        cxxFile<<(TString::Format("\tUniConnection* connUniDb = UniConnection::Open(%s);\n", UniConnection::DbToString(connection_type))).Data();
-        cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
+        cxxFile<<(TString::Format("\tUniConnection* connDb = UniConnection::Open(%s);\n", UniConnection::DbToString())).Data();
+        cxxFile<<"\tif (connDb == nullptr) return -1;\n\n";
 
-        cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
+        cxxFile<<"\tTSQLServer* db_server = connDb->GetSQLServer();\n\n";
         cxxFile<<(TString::Format("\tTString sql = TString::Format(\n\t\t\"select 1 \"\n\t\t\"from %s", strTableName.Data())).Data();
         // for join table
         if (isJoin)
@@ -1734,14 +1760,14 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         }
         cxxFile<<");\n";
 
-        cxxFile<<"\tTSQLStatement* stmt = uni_db->Statement(sql);\n";
+        cxxFile<<"\tTSQLStatement* stmt = db_server->Statement(sql);\n";
 
         cxxFile<<(TString::Format("\n\t// get %s from the database\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\tif (!stmt->Process())\n\t{\n";
         cxxFile<<(TString::Format("\t\tcout<<\"ERROR: getting %s from the database has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\t\tdelete stmt;\n";
-        cxxFile<<"\t\tdelete connUniDb;\n";
-        cxxFile<<"\t\treturn false;\n\t}\n\n";
+        cxxFile<<"\t\tdelete connDb;\n";
+        cxxFile<<"\t\treturn -2;\n\t}\n\n";
 
         cxxFile<<"\t// store result of statement in buffer\n";
         cxxFile<<"\tstmt->StoreResult();\n\n";
@@ -1749,12 +1775,12 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         cxxFile<<"\t// extract row\n";
         cxxFile<<"\tif (!stmt->NextResultRow())\n\t{\n";
         cxxFile<<"\t\tdelete stmt;\n";
-        cxxFile<<"\t\tdelete connUniDb;\n";
-        cxxFile<<"\t\treturn false;\n\t}\n\n";
+        cxxFile<<"\t\tdelete connDb;\n";
+        cxxFile<<"\t\treturn 0;\n\t}\n\n";
 
         cxxFile<<"\tdelete stmt;\n";
-        cxxFile<<"\tdelete connUniDb;\n\n";
-        cxxFile<<"\treturn true;\n}\n\n";
+        cxxFile<<"\tdelete connDb;\n\n";
+        cxxFile<<"\treturn 1;\n}\n\n";
 
         // static get functions for Unique fields
         if (is_flag)
@@ -1766,13 +1792,13 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                     continue;
 
                 cxxFile<<(TString::Format("// -----  Check %s exists in the database by unique key  --------------\n", strTableNameSpace.Data())).Data();
-                cxxFile<<(TString::Format("bool %s::Check%sExists(%s %s)\n{\n" ,
+                cxxFile<<(TString::Format("int %s::Check%sExists(%s %s)\n{\n" ,
                                           strClassName.Data(), strShortTableName.Data(), cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
 
-                cxxFile<<(TString::Format("\tUniConnection* connUniDb = UniConnection::Open(%s);\n", UniConnection::DbToString(connection_type))).Data();
-                cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
+                cxxFile<<(TString::Format("\tUniConnection* connDb = UniConnection::Open(%s);\n", UniConnection::DbToString())).Data();
+                cxxFile<<"\tif (connDb == nullptr) return -1;\n\n";
 
-                cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
+                cxxFile<<"\tTSQLServer* db_server = connDb->GetSQLServer();\n\n";
                 cxxFile<<(TString::Format("\tTString sql = TString::Format(\n\t\t\"select 1 \"\n\t\t\"from %s", strTableName.Data())).Data();
                 // for join table
                 if (isJoin)
@@ -1787,14 +1813,14 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                     cxxFile<<(TString::Format(" \"\n\t\t\"where %s = %%%s\", %s);\n",
                                               cur_col->strColumnName.Data(), cur_col->strPrintfType.Data(), cur_col->strColumnName.Data())).Data();
 
-                cxxFile<<"\tTSQLStatement* stmt = uni_db->Statement(sql);\n";
+                cxxFile<<"\tTSQLStatement* stmt = db_server->Statement(sql);\n";
 
                 cxxFile<<(TString::Format("\n\t// get %s from the database\n", strTableNameSpace.Data())).Data();
                 cxxFile<<"\tif (!stmt->Process())\n\t{\n";
                 cxxFile<<(TString::Format("\t\tcout<<\"ERROR: getting %s from the database has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
                 cxxFile<<"\t\tdelete stmt;\n";
-                cxxFile<<"\t\tdelete connUniDb;\n";
-                cxxFile<<"\t\treturn false;\n\t}\n\n";
+                cxxFile<<"\t\tdelete connDb;\n";
+                cxxFile<<"\t\treturn -2;\n\t}\n\n";
 
                 cxxFile<<"\t// store result of statement in buffer\n";
                 cxxFile<<"\tstmt->StoreResult();\n\n";
@@ -1802,12 +1828,12 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                 cxxFile<<"\t// extract row\n";
                 cxxFile<<"\tif (!stmt->NextResultRow())\n\t{\n";
                 cxxFile<<"\t\tdelete stmt;\n";
-                cxxFile<<"\t\tdelete connUniDb;\n";
-                cxxFile<<"\t\treturn false;\n\t}\n\n";
+                cxxFile<<"\t\tdelete connDb;\n";
+                cxxFile<<"\t\treturn 0;\n\t}\n\n";
 
                 cxxFile<<"\tdelete stmt;\n";
-                cxxFile<<"\tdelete connUniDb;\n\n";
-                cxxFile<<"\treturn true;\n}\n\n";
+                cxxFile<<"\tdelete connDb;\n\n";
+                cxxFile<<"\treturn 1;\n}\n\n";
             }// for(vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
         }// static get functions for Unique fields
 
@@ -1833,10 +1859,10 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         }
         cxxFile<<")\n{\n";
 
-        cxxFile<<(TString::Format("\tUniConnection* connUniDb = UniConnection::Open(%s);\n", UniConnection::DbToString(connection_type))).Data();
-        cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
+        cxxFile<<(TString::Format("\tUniConnection* connDb = UniConnection::Open(%s);\n", UniConnection::DbToString())).Data();
+        cxxFile<<"\tif (connDb == nullptr) return -1;\n\n";
 
-        cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
+        cxxFile<<"\tTSQLServer* db_server = connDb->GetSQLServer();\n\n";
         cxxFile<<(TString::Format("\tTString sql = TString::Format(\n\t\t\"delete from %s \"\n\t\t\"where", strTableName.Data())).Data();
         count = 0;
         for(vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
@@ -1848,14 +1874,14 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
             if (count > 0)
                 cxxFile<<" and";
 
-            if (curDBMS == MySQL)
+            if (curDBMS == UniConnection::MySQL)
             {
                 if (cur_col->strStatementType == "String")
                     cxxFile<<(TString::Format(" lower(%s) = lower(?)", cur_col->strColumnName.Data())).Data();
                 else
                     cxxFile<<(TString::Format(" %s = ?", cur_col->strColumnName.Data())).Data();
             }
-            else if (curDBMS == PgSQL)
+            else if (curDBMS == UniConnection::PgSQL)
             {
                 if (cur_col->strStatementType == "String")
                     cxxFile<<(TString::Format(" lower(%s) = lower($%d)", cur_col->strColumnName.Data(), count+1)).Data();
@@ -1867,7 +1893,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         }
         cxxFile<<"\");\n";
 
-        cxxFile<<"\tTSQLStatement* stmt = uni_db->Statement(sql);\n\n";
+        cxxFile<<"\tTSQLStatement* stmt = db_server->Statement(sql);\n\n";
 
         cxxFile<<"\tstmt->NextIteration();\n";
         count = 0;
@@ -1885,11 +1911,11 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         cxxFile<<"\tif (!stmt->Process())\n\t{\n";
         cxxFile<<(TString::Format("\t\tcout<<\"ERROR: deleting %s from the dataBase has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\t\tdelete stmt;\n";
-        cxxFile<<"\t\tdelete connUniDb;\n";
-        cxxFile<<"\t\treturn -1;\n\t}\n\n";
+        cxxFile<<"\t\tdelete connDb;\n";
+        cxxFile<<"\t\treturn -2;\n\t}\n\n";
 
         cxxFile<<"\tdelete stmt;\n";
-        cxxFile<<"\tdelete connUniDb;\n";
+        cxxFile<<"\tdelete connDb;\n";
         cxxFile<<"\treturn 0;\n}\n\n";
 
         // static Delete functions for Unique fields
@@ -1905,19 +1931,19 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                 cxxFile<<(TString::Format("int %s::Delete%s(%s %s)\n{\n" ,
                                           strClassName.Data(), strShortTableName.Data(), cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
 
-                cxxFile<<(TString::Format("\tUniConnection* connUniDb = UniConnection::Open(%s);\n", UniConnection::DbToString(connection_type))).Data();
-                cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
+                cxxFile<<(TString::Format("\tUniConnection* connDb = UniConnection::Open(%s);\n", UniConnection::DbToString())).Data();
+                cxxFile<<"\tif (connDb == nullptr) return -1;\n\n";
 
-                cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
+                cxxFile<<"\tTSQLServer* db_server = connDb->GetSQLServer();\n\n";
 
-                if (curDBMS == MySQL)
+                if (curDBMS == UniConnection::MySQL)
                 {
                     if (cur_col->strStatementType == "String")
                         cxxFile<<(TString::Format("\tTString sql = TString::Format(\n\t\t\"delete from %s \"\n\t\t\"where lower(%s) = lower(?)\");\n", strTableName.Data(), cur_col->strColumnName.Data())).Data();
                     else
                         cxxFile<<(TString::Format("\tTString sql = TString::Format(\n\t\t\"delete from %s \"\n\t\t\"where %s = ?\");\n", strTableName.Data(), cur_col->strColumnName.Data())).Data();
                 }
-                else if (curDBMS == PgSQL)
+                else if (curDBMS == UniConnection::PgSQL)
                 {
                     if (cur_col->strStatementType == "String")
                         cxxFile<<(TString::Format("\tTString sql = TString::Format(\n\t\t\"delete from %s \"\n\t\t\"where lower(%s) = lower($1)\");\n", strTableName.Data(), cur_col->strColumnName.Data())).Data();
@@ -1925,7 +1951,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                         cxxFile<<(TString::Format("\tTString sql = TString::Format(\n\t\t\"delete from %s \"\n\t\t\"where %s = $1\");\n", strTableName.Data(), cur_col->strColumnName.Data())).Data();
                 }
 
-                cxxFile<<"\tTSQLStatement* stmt = uni_db->Statement(sql);\n\n";
+                cxxFile<<"\tTSQLStatement* stmt = db_server->Statement(sql);\n\n";
 
                 cxxFile<<"\tstmt->NextIteration();\n";
                 cxxFile<<(TString::Format("\tstmt->Set%s(0, %s);\n", cur_col->strStatementType.Data(), cur_col->strColumnName.Data())).Data();
@@ -1934,11 +1960,11 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                 cxxFile<<"\tif (!stmt->Process())\n\t{\n";
                 cxxFile<<(TString::Format("\t\tcout<<\"ERROR: deleting %s from the DataBase has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
                 cxxFile<<"\t\tdelete stmt;\n";
-                cxxFile<<"\t\tdelete connUniDb;\n";
-                cxxFile<<"\t\treturn -1;\n\t}\n\n";
+                cxxFile<<"\t\tdelete connDb;\n";
+                cxxFile<<"\t\treturn -2;\n\t}\n\n";
 
                 cxxFile<<"\tdelete stmt;\n";
-                cxxFile<<"\tdelete connUniDb;\n";
+                cxxFile<<"\tdelete connDb;\n";
                 cxxFile<<"\treturn 0;\n}\n\n";
             }// for(vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
         }// static Delete functions for Unique fields
@@ -1947,10 +1973,10 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         cxxFile<<(TString::Format("// -----  Print all '%ss'  ---------------------------------\n", strTableNameSpace.Data())).Data();
         cxxFile<<(TString::Format("int %s::PrintAll()\n{\n", strClassName.Data())).Data();
 
-        cxxFile<<(TString::Format("\tUniConnection* connUniDb = UniConnection::Open(%s);\n", UniConnection::DbToString(connection_type))).Data();
-        cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
+        cxxFile<<(TString::Format("\tUniConnection* connDb = UniConnection::Open(%s);\n", UniConnection::DbToString())).Data();
+        cxxFile<<"\tif (connDb == nullptr) return -1;\n\n";
 
-        cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
+        cxxFile<<"\tTSQLServer* db_server = connDb->GetSQLServer();\n\n";
         cxxFile<<"\tTString sql = TString::Format(\n\t\t\"select";
         count = 0;
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
@@ -1984,14 +2010,14 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         }// for join table
         cxxFile<<(TString::Format(" \"\n\t\t\"from %s\");\n", strTableName.Data())).Data();
 
-        cxxFile<<"\tTSQLStatement* stmt = uni_db->Statement(sql);\n";
+        cxxFile<<"\tTSQLStatement* stmt = db_server->Statement(sql);\n";
 
         cxxFile<<(TString::Format("\n\t// get all '%ss' from the database\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\tif (!stmt->Process())\n\t{\n";
         cxxFile<<(TString::Format("\t\tcout<<\"ERROR: getting all '%ss' from the dataBase has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\t\tdelete stmt;\n";
-        cxxFile<<"\t\tdelete connUniDb;\n";
-        cxxFile<<"\t\treturn -1;\n\t}\n\n";
+        cxxFile<<"\t\tdelete connDb;\n";
+        cxxFile<<"\t\treturn -2;\n\t}\n\n";
 
         cxxFile<<"\t// store result of statement in buffer\n";
         cxxFile<<"\tstmt->StoreResult();\n\n";
@@ -2013,11 +2039,11 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
             if (cur_col->isNullable)
             {
-                cxxFile<<(TString::Format("\t\tif (stmt->IsNull(%d)) cout<<\"NULL\";\n\t\telse\n\t", count)).Data();
+                cxxFile<<(TString::Format("\t\tif (stmt->IsNull(%d)) cout<<\"nullptr\";\n\t\telse\n\t", count)).Data();
                 if (cur_col->isBinary)
                 {
                     cxxFile<<(TString::Format("\t\t%s %s;\n", cur_col->strVariableType.Data(), TempVar.Data())).Data();
-                    cxxFile<<(TString::Format("\t\t{\n\t\t\t%s = NULL;\n", TempVar.Data())).Data();
+                    cxxFile<<(TString::Format("\t\t{\n\t\t\t%s = nullptr;\n", TempVar.Data())).Data();
                     ++it;
                     cur_col= *it;
                     cxxFile<<(TString::Format("\t\t\t%s %s=0;\n", cur_col->strVariableType.Data(), cur_col->strTempVariableName.Data())).Data();
@@ -2039,7 +2065,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
             {
                 if (cur_col->isBinary)
                 {
-                    cxxFile<<(TString::Format("\t\t%s %s = NULL;\n", cur_col->strVariableType.Data(), TempVar.Data())).Data();
+                    cxxFile<<(TString::Format("\t\t%s %s = nullptr;\n", cur_col->strVariableType.Data(), TempVar.Data())).Data();
                     ++it;
                     cur_col= *it;
                     cxxFile<<(TString::Format("\t\t%s %s=0;\n", cur_col->strVariableType.Data(), cur_col->strTempVariableName.Data())).Data();
@@ -2075,11 +2101,11 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
                 if (cur_col->isNullable)
                 {
-                    cxxFile<<(TString::Format("\t\tif (stmt->IsNull(%d)) cout<<\"NULL\";\n\t\telse\n\t", count)).Data();
+                    cxxFile<<(TString::Format("\t\tif (stmt->IsNull(%d)) cout<<\"nullptr\";\n\t\telse\n\t", count)).Data();
                     if (cur_col->isBinary)
                     {
                         cxxFile<<(TString::Format("\t\t%s %s;\n", cur_col->strVariableType.Data(), TempVar.Data())).Data();
-                        cxxFile<<(TString::Format("\t\t{\n\t\t\t%s = NULL;\n", TempVar.Data())).Data();
+                        cxxFile<<(TString::Format("\t\t{\n\t\t\t%s = nullptr;\n", TempVar.Data())).Data();
                         cur_col= (structColumnInfo*) nextCol();
                         cxxFile<<(TString::Format("\t\t\t%s %s=0;\n", cur_col->strVariableType.Data(), cur_col->strTempVariableName.Data())).Data();
                         cxxFile<<(TString::Format("\t\t\tstmt->Get%s(%d, (void*&)%s, %s);\n\t\t}\n", StatementType.Data(), count,
@@ -2100,7 +2126,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                 {
                     if (cur_col->isBinary)
                     {
-                        cxxFile<<(TString::Format("\t\t%s %s = NULL;\n", cur_col->strVariableType.Data(), TempVar.Data())).Data();
+                        cxxFile<<(TString::Format("\t\t%s %s = nullptr;\n", cur_col->strVariableType.Data(), TempVar.Data())).Data();
                         cur_col= (structColumnInfo*) nextCol();
                         cxxFile<<(TString::Format("\t\t%s %s=0;\n", cur_col->strVariableType.Data(), cur_col->strTempVariableName.Data())).Data();
                         cxxFile<<(TString::Format("\t\tstmt->Get%s(%d, (void*&)%s, %s);\n", StatementType.Data(), count,
@@ -2125,7 +2151,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
         cxxFile<<"\t\tcout<<\".\"<<endl;\n\t}\n\n";
 
         cxxFile<<"\tdelete stmt;\n";
-        cxxFile<<"\tdelete connUniDb;\n\n";
+        cxxFile<<"\tdelete connDb;\n\n";
         cxxFile<<"\treturn 0;\n}\n\n";
 
         // SETTERS FUNCTIONS - IMPLEMENTATION
@@ -2147,15 +2173,15 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                 cxxFile<<(TString::Format("%s %s)\n{\n", temp_col->strVariableType.Data(), temp_col->strColumnName.Data())).Data();
             }
 
-            cxxFile<<"\tif (!connectionUniDb)\n\t{\n\t\tcout<<\"CRITICAL ERROR: Connection object is null\"<<endl;\n\t\treturn -1;\n\t}\n\n";
+            cxxFile<<"\tif (!connectionDB)\n\t{\n\t\tcout<<\"CRITICAL ERROR: Connection object is null\"<<endl;\n\t\treturn -1;\n\t}\n\n";
 
-            cxxFile<<"\tTSQLServer* uni_db = connectionUniDb->GetSQLServer();\n\n";
+            cxxFile<<"\tTSQLServer* db_server = connectionDB->GetSQLServer();\n\n";
 
-            if (curDBMS == MySQL)
+            if (curDBMS == UniConnection::MySQL)
             {
                 cxxFile<<(TString::Format("\tTString sql = TString::Format(\n\t\t\"update %s \"\n\t\t\"set %s = ? \"\n\t\t\"where", strTableName.Data(), cur_col->strColumnName.Data())).Data();
             }
-            else if (curDBMS == PgSQL)
+            else if (curDBMS == UniConnection::PgSQL)
             {
                 cxxFile<<(TString::Format("\tTString sql = TString::Format(\n\t\t\"update %s \"\n\t\t\"set %s = $1 \"\n\t\t\"where", strTableName.Data(), cur_col->strColumnName.Data())).Data();
             }
@@ -2166,14 +2192,14 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                 if (!current_col->isPrimary)
                     continue;
 
-                if (curDBMS == MySQL)
+                if (curDBMS == UniConnection::MySQL)
                 {
                     if (count == 0)
                         cxxFile<<(TString::Format(" %s = ?", current_col->strColumnName.Data())).Data();
                     else
                         cxxFile<<(TString::Format(" and %s = ?", current_col->strColumnName.Data())).Data();
                 }
-                else if (curDBMS == PgSQL)
+                else if (curDBMS == UniConnection::PgSQL)
                 {
                     if (count == 0)
                         cxxFile<<(TString::Format(" %s = $2", current_col->strColumnName.Data())).Data();
@@ -2185,12 +2211,12 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
             }
             cxxFile<<"\");\n";
 
-            cxxFile<<"\tTSQLStatement* stmt = uni_db->Statement(sql);\n\n";
+            cxxFile<<"\tTSQLStatement* stmt = db_server->Statement(sql);\n\n";
 
             cxxFile<<"\tstmt->NextIteration();\n";
 
             if (cur_col->isNullable)
-                cxxFile<<(TString::Format("\tif (%s == NULL)\n\t\tstmt->SetNull(0);\n\telse\n\t", cur_col->strColumnName.Data())).Data();
+                cxxFile<<(TString::Format("\tif (%s == nullptr)\n\t\tstmt->SetNull(0);\n\telse\n\t", cur_col->strColumnName.Data())).Data();
 
             if (!cur_col->isBinary)
                 cxxFile<<(TString::Format("\tstmt->Set%s(0, %s);\n", cur_col->strStatementType.Data(), cur_col->strColumnPointer.Data())).Data();
@@ -2224,7 +2250,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
 
             if (cur_col->isNullable)
             {
-                cxxFile<<(TString::Format("\tif (%s == NULL) %s = NULL;\n\telse\n\t", cur_col->strColumnName.Data(), cur_col->strVariableName.Data())).Data();
+                cxxFile<<(TString::Format("\tif (%s == nullptr) %s = nullptr;\n\telse\n\t", cur_col->strColumnName.Data(), cur_col->strVariableName.Data())).Data();
                 if (cur_col->isBinary)
                 {
                     cxxFile<<(TString::Format("\t{\n\t\t%s %s = %s;\n", temp_col->strVariableType.Data(), temp_col->strVariableName.Data(), cur_col->strColumnName.Data())).Data();
@@ -2271,20 +2297,20 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                 if (cur_col->isNullable)
                 {
                     if (cur_col->isDateTime)
-                        cxxFile<<(TString::Format("<<\". %s: \"<<(%s == NULL? \"NULL\": (*%s).AsSQLString())",
+                        cxxFile<<(TString::Format("<<\". %s: \"<<(%s == nullptr? \"nullptr\": (*%s).AsSQLString())",
                                                   cur_col->strColumnName.Data(), cur_col->strVariableName.Data(), cur_col->strVariableName.Data())).Data();
                     else
                     {
                         if (cur_col->isTimeStamp)
-                            cxxFile<<(TString::Format("<<\". %s: \"<<(%s == NULL? \"NULL\": (*%s).AsString(\"s\"))",
+                            cxxFile<<(TString::Format("<<\". %s: \"<<(%s == nullptr? \"nullptr\": (*%s).AsString(\"s\"))",
                                                       cur_col->strColumnName.Data(), cur_col->strVariableName.Data(), cur_col->strVariableName.Data())).Data();
                         else
                         {
                             if (cur_col->strPrintfType == "s")
-                                cxxFile<<(TString::Format("<<\". %s: \"<<(%s == NULL? \"NULL\": *%s)",
+                                cxxFile<<(TString::Format("<<\". %s: \"<<(%s == nullptr? \"nullptr\": *%s)",
                                                           cur_col->strColumnName.Data(), cur_col->strVariableName.Data(), cur_col->strVariableName.Data())).Data();
                             else
-                                cxxFile<<(TString::Format("<<\". %s: \"<<(%s == NULL? \"NULL\": TString::Format(\"%%%s\", *%s))",
+                                cxxFile<<(TString::Format("<<\". %s: \"<<(%s == nullptr? \"nullptr\": TString::Format(\"%%%s\", *%s))",
                                                           cur_col->strColumnName.Data(), cur_col->strVariableName.Data(), cur_col->strPrintfType.Data(), cur_col->strVariableName.Data())).Data();
                         }
 
@@ -2319,20 +2345,20 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
                     if (cur_col->isNullable)
                     {
                         if (cur_col->isDateTime)
-                            cxxFile<<(TString::Format("<<\". %s: \"<<(%s == NULL? \"NULL\": (*%s).AsSQLString())",
+                            cxxFile<<(TString::Format("<<\". %s: \"<<(%s == nullptr? \"nullptr\": (*%s).AsSQLString())",
                                                       cur_col->strColumnName.Data(), cur_col->strVariableName.Data(), cur_col->strVariableName.Data())).Data();
                         else
                         {
                             if (cur_col->isTimeStamp)
-                                cxxFile<<(TString::Format("<<\". %s: \"<<(%s == NULL? \"NULL\": (*%s).AsString(\"s\"))",
+                                cxxFile<<(TString::Format("<<\". %s: \"<<(%s == nullptr? \"nullptr\": (*%s).AsString(\"s\"))",
                                                           cur_col->strColumnName.Data(), cur_col->strVariableName.Data(), cur_col->strVariableName.Data())).Data();
                             else
                             {
                                 if (cur_col->strPrintfType == "s")
-                                    cxxFile<<(TString::Format("<<\". %s: \"<<(%s == NULL? \"NULL\": *%s)",
+                                    cxxFile<<(TString::Format("<<\". %s: \"<<(%s == nullptr? \"nullptr\": *%s)",
                                                               cur_col->strColumnName.Data(), cur_col->strVariableName.Data(), cur_col->strVariableName.Data())).Data();
                                 else
-                                    cxxFile<<(TString::Format("<<\". %s: \"<<(%s == NULL? \"NULL\": TString::Format(\"%%%s\", *%s))",
+                                    cxxFile<<(TString::Format("<<\". %s: \"<<(%s == nullptr? \"nullptr\": TString::Format(\"%%%s\", *%s))",
                                                               cur_col->strColumnName.Data(), cur_col->strVariableName.Data(), cur_col->strPrintfType.Data(), cur_col->strVariableName.Data())).Data();
                             }
                         }
@@ -2385,7 +2411,7 @@ int UniGenerateClasses::GenerateClasses(UniConnectionType connection_type, TStri
     }// cycle for all database tables
 
     delete lst;
-    delete connectionUniDb;
+    delete connDb;
 
     return 0;
 }

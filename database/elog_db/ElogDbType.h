@@ -13,14 +13,14 @@
 #include "TString.h"
 #include "TDatime.h"
 
-#include "UniConnection.h"
+#include "ElogConnection.h"
 
 class ElogDbType
 {
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-        UniConnection* connectionUniDb;
+    ElogConnection* connectionDb;
 
 	/// type id
 	int i_type_id;
@@ -28,7 +28,7 @@ class ElogDbType
 	TString str_type_text;
 
 	//Constructor
-        ElogDbType(UniConnection* connUniDb, int type_id, TString type_text);
+    ElogDbType(ElogConnection* db_connect, int type_id, TString type_text);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
@@ -42,10 +42,10 @@ class ElogDbType
 	static ElogDbType* GetType(int type_id);
 	/// get type from the database
 	static ElogDbType* GetType(TString type_text);
-	/// check type exists in the database
-	static bool CheckTypeExists(int type_id);
-	/// check type exists in the database
-	static bool CheckTypeExists(TString type_text);
+    /// check type exists in the database: 1 - true, 0 - false, <0 - database operation errors
+    static int CheckTypeExists(int type_id);
+    /// check type exists in the database: 1 - true, 0 - false, <0 - database operation errors
+    static int CheckTypeExists(TString type_text);
 	/// delete type from the database
 	static int DeleteType(int type_id);
 	/// delete type from the database

@@ -44,7 +44,7 @@ void add_GEM_AlgnShift(Int_t run = 7) {
 
 
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("GEM", "alignment_shift", run, 2214, run, 3588, shiftValues);
-    if (pDetectorParameter == NULL)
+    if (pDetectorParameter == nullptr)
         return_error = true;
     // clean memory after work
     for (int i = 0; i < shiftValues.size(); i++) delete shiftValues[i];

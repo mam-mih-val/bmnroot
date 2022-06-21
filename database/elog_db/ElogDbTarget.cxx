@@ -13,9 +13,9 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-ElogDbTarget::ElogDbTarget(UniConnection* connUniDb, TString target)
+ElogDbTarget::ElogDbTarget(ElogConnection* db_connect, TString target)
 {
-	connectionUniDb = connUniDb;
+    connectionDb = db_connect;
 
 	str_target = target;
 }
@@ -23,22 +23,22 @@ ElogDbTarget::ElogDbTarget(UniConnection* connUniDb, TString target)
 // -----   Destructor   -------------------------------------------------
 ElogDbTarget::~ElogDbTarget()
 {
-	if (connectionUniDb)
-		delete connectionUniDb;
+	if (connectionDb)
+		delete connectionDb;
 }
 
 // -----   Creating new target in the database  ---------------------------
 ElogDbTarget* ElogDbTarget::CreateTarget(TString target)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+        ElogConnection* connDb = ElogConnection::Open();
+	if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"insert into target_(target) "
 		"values ($1)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, target);
@@ -48,8 +48,8 @@ ElogDbTarget* ElogDbTarget::CreateTarget(TString target)
 	{
 		cout<<"ERROR: inserting new target to the Database has been failed"<<endl;
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	delete stmt;
@@ -57,22 +57,22 @@ ElogDbTarget* ElogDbTarget::CreateTarget(TString target)
 	TString tmp_target;
 	tmp_target = target;
 
-	return new ElogDbTarget(connUniDb, tmp_target);
+	return new ElogDbTarget(connDb, tmp_target);
 }
 
 // -----  Get target from the database  ---------------------------
 ElogDbTarget* ElogDbTarget::GetTarget(TString target)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+        ElogConnection* connDb = ElogConnection::Open();
+	if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select target "
 		"from target_ "
 		"where lower(target) = lower('%s')", target.Data());
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get target from the database
 	if (!stmt->Process())
@@ -80,8 +80,8 @@ ElogDbTarget* ElogDbTarget::GetTarget(TString target)
 		cout<<"ERROR: getting target from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	// store result of statement in buffer
@@ -93,8 +93,8 @@ ElogDbTarget* ElogDbTarget::GetTarget(TString target)
 		cout<<"ERROR: target was not found in the database"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	TString tmp_target;
@@ -102,22 +102,22 @@ ElogDbTarget* ElogDbTarget::GetTarget(TString target)
 
 	delete stmt;
 
-	return new ElogDbTarget(connUniDb, tmp_target);
+	return new ElogDbTarget(connDb, tmp_target);
 }
 
 // -----  Check target exists in the database  ---------------------------
-bool ElogDbTarget::CheckTargetExists(TString target)
+int ElogDbTarget::CheckTargetExists(TString target)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
 		"from target_ "
 		"where lower(target) = lower('%s')", target.Data());
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get target from the database
 	if (!stmt->Process())
@@ -125,8 +125,8 @@ bool ElogDbTarget::CheckTargetExists(TString target)
 		cout<<"ERROR: getting target from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return false;
+		delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -136,28 +136,28 @@ bool ElogDbTarget::CheckTargetExists(TString target)
 	if (!stmt->NextResultRow())
 	{
 		delete stmt;
-		delete connUniDb;
-		return false;
+		delete connDb;
+        return 0;
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 
-	return true;
+    return 1;
 }
 
 // -----  Delete target from the database  ---------------------------
 int ElogDbTarget::DeleteTarget(TString target)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"delete from target_ "
 		"where lower(target) = lower($1)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, target);
@@ -168,27 +168,27 @@ int ElogDbTarget::DeleteTarget(TString target)
 		cout<<"ERROR: deleting target from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+		delete connDb;
+        return -2;
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 	return 0;
 }
 
 // -----  Print all 'targets'  ---------------------------------
 int ElogDbTarget::PrintAll()
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select target "
 		"from target_");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get all 'targets' from the database
 	if (!stmt->Process())
@@ -196,8 +196,8 @@ int ElogDbTarget::PrintAll()
 		cout<<"ERROR: getting all 'targets' from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+		delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -213,7 +213,7 @@ int ElogDbTarget::PrintAll()
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 
 	return 0;
 }
@@ -222,19 +222,19 @@ int ElogDbTarget::PrintAll()
 // Setters functions
 int ElogDbTarget::SetTarget(TString target)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+	TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update target_ "
 		"set target = $1 "
 		"where target = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, target);

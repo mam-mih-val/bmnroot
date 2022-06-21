@@ -16,7 +16,7 @@
 
 #include "UniConnection.h"
 #include "UniSearchCondition.h"
-#include "db_structures.h"
+#include "uni_db_structures.h"
 
 class UniDbRun
 {
@@ -53,7 +53,7 @@ class UniDbRun
 	TString* chr_file_md5;
 
 	//Constructor
-	UniDbRun(UniConnection* connUniDb, int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, int* file_size, int* geometry_id, TString* file_md5);
+    UniDbRun(UniConnection* db_connect, int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, int* file_size, int* geometry_id, TString* file_md5);
 	/* END OF PRIVATE GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
  public:
@@ -67,8 +67,8 @@ class UniDbRun
 	static UniDbRun* GetRun(int period_number, int run_number);
 	/// get run from the database
 	static UniDbRun* GetRun(TString file_path);
-	/// check run exists in the database
-	static bool CheckRunExists(int period_number, int run_number);
+    /// check run exists in the database: 1 - true, 0 - false, <0 - database operation error
+    static int CheckRunExists(int period_number, int run_number);
 	/// check run exists in the database
 	static bool CheckRunExists(TString file_path);
 	/// delete run from the database
@@ -88,23 +88,23 @@ class UniDbRun
 	/// get beam particle of the current run
 	TString GetBeamParticle() {return str_beam_particle;}
 	/// get target particle of the current run
-	TString* GetTargetParticle() {if (str_target_particle == NULL) return NULL; else return new TString(*str_target_particle);}
+	TString* GetTargetParticle() {if (str_target_particle == nullptr) return nullptr; else return new TString(*str_target_particle);}
 	/// get energy of the current run
-	double* GetEnergy() {if (d_energy == NULL) return NULL; else return new double(*d_energy);}
+	double* GetEnergy() {if (d_energy == nullptr) return nullptr; else return new double(*d_energy);}
 	/// get start datetime of the current run
 	TDatime GetStartDatetime() {return ts_start_datetime;}
 	/// get end datetime of the current run
-	TDatime* GetEndDatetime() {if (ts_end_datetime == NULL) return NULL; else return new TDatime(*ts_end_datetime);}
+	TDatime* GetEndDatetime() {if (ts_end_datetime == nullptr) return nullptr; else return new TDatime(*ts_end_datetime);}
 	/// get event count of the current run
-	int* GetEventCount() {if (i_event_count == NULL) return NULL; else return new int(*i_event_count);}
+	int* GetEventCount() {if (i_event_count == nullptr) return nullptr; else return new int(*i_event_count);}
 	/// get field voltage of the current run
-	double* GetFieldVoltage() {if (d_field_voltage == NULL) return NULL; else return new double(*d_field_voltage);}
+	double* GetFieldVoltage() {if (d_field_voltage == nullptr) return nullptr; else return new double(*d_field_voltage);}
 	/// get file size of the current run
-	int* GetFileSize() {if (i_file_size == NULL) return NULL; else return new int(*i_file_size);}
+	int* GetFileSize() {if (i_file_size == nullptr) return nullptr; else return new int(*i_file_size);}
 	/// get geometry id of the current run
-	int* GetGeometryId() {if (i_geometry_id == NULL) return NULL; else return new int(*i_geometry_id);}
+	int* GetGeometryId() {if (i_geometry_id == nullptr) return nullptr; else return new int(*i_geometry_id);}
 	/// get file md5 of the current run
-	TString* GetFileMd5() {if (chr_file_md5 == NULL) return NULL; else return new TString(*chr_file_md5);}
+	TString* GetFileMd5() {if (chr_file_md5 == nullptr) return nullptr; else return new TString(*chr_file_md5);}
 
 	// Setters
 	/// set period number of the current run

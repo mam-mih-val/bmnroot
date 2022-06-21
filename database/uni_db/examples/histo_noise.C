@@ -19,7 +19,7 @@ void histo_noise()
     {
         // get noise parameter values presented by IIStructure: Int+Int (slot:channel)
         UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("DCH1", "noise", run_numbers[i].period_number, run_numbers[i].run_number); //(detector_name, parameter_name, period_number, run_number)
-        if (pDetectorParameter != NULL)
+        if (pDetectorParameter != nullptr)
         {
             vector<UniValue*> pValues;
             pDetectorParameter->GetValue(pValues);

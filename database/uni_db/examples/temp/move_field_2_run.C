@@ -15,7 +15,7 @@ void move_field_2_run(int period)
         // get the average magnetic field from Runs of the Unified Database
         UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter(detector_name, parameter_name,
                                                      run_numbers[i].period_number, run_numbers[i].run_number);
-        if (pDetectorParameter == NULL)
+        if (pDetectorParameter == nullptr)
         {
             cout<<"No field voltage was found for run ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<")"<<endl;
             continue;
@@ -25,7 +25,7 @@ void move_field_2_run(int period)
 
         // get run
         UniDbRun* pRun = UniDbRun::GetRun(run_numbers[i].period_number, run_numbers[i].run_number);
-        if (pRun == NULL)
+        if (pRun == nullptr)
         {
             cout<<"The function encountered with errors: no experimental run was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             continue;
@@ -55,7 +55,7 @@ void convert_current_2_voltage(int period)
         // get the field current from parameter values of the Unified Database
         UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter(detector_name, parameter_name,
                                                      run_numbers[i].period_number, run_numbers[i].run_number);
-        if (pDetectorParameter == NULL)
+        if (pDetectorParameter == nullptr)
         {
             cout<<"No field current was found for run ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<")"<<endl;
             continue;
@@ -68,14 +68,14 @@ void convert_current_2_voltage(int period)
 
         // get run
         UniDbRun* pRun = UniDbRun::GetRun(run_numbers[i].period_number, run_numbers[i].run_number);
-        if (pRun == NULL)
+        if (pRun == nullptr)
         {
             cout<<"The function encountered with errors: no experimental run was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             continue;
         }
 
         double* current_voltage = pRun->GetFieldVoltage();
-        if (current_voltage == NULL)
+        if (current_voltage == nullptr)
         {
             pRun->SetFieldVoltage(&field_voltage);
             cout<<"Field voltage was written for run "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<": "<<field_voltage<<" mV"<<endl;

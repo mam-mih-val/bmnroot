@@ -69,7 +69,7 @@ int copy_data_table2table()
             }
             case IIArrayType:
             {
-                IIStructure* ii_value = NULL; int element_count;
+                IIStructure* ii_value = nullptr; int element_count;
                 pParameter->GetIIArray(ii_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
@@ -82,7 +82,7 @@ int copy_data_table2table()
             }
             case IntArrayType:
             {
-                int* i_value = NULL; int element_count;
+                int* i_value = nullptr; int element_count;
                 pParameter->GetIntArray(i_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
@@ -94,7 +94,7 @@ int copy_data_table2table()
             }
             case DoubleArrayType:
             {
-                double* d_value = NULL; int element_count;
+                double* d_value = nullptr; int element_count;
                 pParameter->GetDoubleArray(d_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
@@ -120,7 +120,7 @@ int copy_data_table2table()
             }
             case UIntArrayType:
             {
-                unsigned int* ui_value = NULL; int element_count;
+                unsigned int* ui_value = nullptr; int element_count;
                 pParameter->GetUIntArray(ui_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
@@ -132,7 +132,7 @@ int copy_data_table2table()
             }
             case DchMapArrayType:
             {
-                DchMapStructure* dch_value = NULL; int element_count;
+                DchMapStructure* dch_value = nullptr; int element_count;
                 pParameter->GetDchMapArray(dch_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
@@ -149,7 +149,7 @@ int copy_data_table2table()
             }
             case GemMapArrayType:
             {
-                GemMapStructure* gem_value = NULL; int element_count;
+                GemMapStructure* gem_value = nullptr; int element_count;
                 pParameter->GetGemMapArray(gem_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
@@ -166,7 +166,7 @@ int copy_data_table2table()
             }
             case GemPedestalArrayType:
             {
-                GemPedestalStructure* gem_ped_value = NULL; int element_count;
+                GemPedestalStructure* gem_ped_value = nullptr; int element_count;
                 pParameter->GetGemPedestalArray(gem_ped_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
@@ -181,7 +181,7 @@ int copy_data_table2table()
             }
             case TriggerMapArrayType:
             {
-                TriggerMapStructure* trigger_value = NULL; int element_count;
+                TriggerMapStructure* trigger_value = nullptr; int element_count;
                 pParameter->GetTriggerMapArray(trigger_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
@@ -195,7 +195,7 @@ int copy_data_table2table()
             }
             case LorentzShiftArrayType:
             {
-                LorentzShiftStructure* lorentz_value = NULL; int element_count;
+                LorentzShiftStructure* lorentz_value = nullptr; int element_count;
                 pParameter->GetLorentzShiftArray(lorentz_value, element_count);
                 for (int j = 0; j < element_count; j++)
                 {
@@ -387,7 +387,7 @@ int copy_geometry_table2table()
 
     cout<<"Getting original array for run geometries..."<<endl;
     TObjArray* pGeometryArray = UniDbRunGeometry::GetAll();
-    if (pGeometryArray == NULL)
+    if (pGeometryArray == nullptr)
     {
         cout<<"ERROR: getting run geometries was failed"<<endl;
         return -1;

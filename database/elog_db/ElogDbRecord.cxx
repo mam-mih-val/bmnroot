@@ -13,9 +13,9 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-ElogDbRecord::ElogDbRecord(UniConnection* connUniDb, int record_id, TDatime record_date, int* shift_leader_id, int type_id, int* period_number, int* run_number, int* trigger_id, TString* daq_status, int* sp_41, int* sp_57, int* vkm2, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment)
+ElogDbRecord::ElogDbRecord(ElogConnection* db_connect, int record_id, TDatime record_date, int* shift_leader_id, int type_id, int* period_number, int* run_number, int* trigger_id, TString* daq_status, int* sp_41, int* sp_57, int* vkm2, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment)
 {
-	connectionUniDb = connUniDb;
+    connectionDb = db_connect;
 
 	i_record_id = record_id;
 	dt_record_date = record_date;
@@ -39,8 +39,8 @@ ElogDbRecord::ElogDbRecord(UniConnection* connUniDb, int record_id, TDatime reco
 // -----   Destructor   -------------------------------------------------
 ElogDbRecord::~ElogDbRecord()
 {
-	if (connectionUniDb)
-		delete connectionUniDb;
+	if (connectionDb)
+		delete connectionDb;
 	if (i_shift_leader_id)
 		delete i_shift_leader_id;
 	if (i_period_number)
@@ -74,72 +74,72 @@ ElogDbRecord::~ElogDbRecord()
 // -----   Creating new record in the database  ---------------------------
 ElogDbRecord* ElogDbRecord::CreateRecord(TDatime record_date, int* shift_leader_id, int type_id, int* period_number, int* run_number, int* trigger_id, TString* daq_status, int* sp_41, int* sp_57, int* vkm2, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+        ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"insert into record_(record_date, shift_leader_id, type_id, period_number, run_number, trigger_id, daq_status, sp_41, sp_57, vkm2, field_comment, beam, energy, target, target_width, record_comment) "
 		"values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetDatime(0, record_date);
-	if (shift_leader_id == NULL)
+	if (shift_leader_id == nullptr)
 		stmt->SetNull(1);
 	else
 		stmt->SetInt(1, *shift_leader_id);
 	stmt->SetInt(2, type_id);
-	if (period_number == NULL)
+	if (period_number == nullptr)
 		stmt->SetNull(3);
 	else
 		stmt->SetInt(3, *period_number);
-	if (run_number == NULL)
+	if (run_number == nullptr)
 		stmt->SetNull(4);
 	else
 		stmt->SetInt(4, *run_number);
-	if (trigger_id == NULL)
+	if (trigger_id == nullptr)
 		stmt->SetNull(5);
 	else
 		stmt->SetInt(5, *trigger_id);
-	if (daq_status == NULL)
+	if (daq_status == nullptr)
 		stmt->SetNull(6);
 	else
 		stmt->SetString(6, *daq_status);
-	if (sp_41 == NULL)
+	if (sp_41 == nullptr)
 		stmt->SetNull(7);
 	else
 		stmt->SetInt(7, *sp_41);
-	if (sp_57 == NULL)
+	if (sp_57 == nullptr)
 		stmt->SetNull(8);
 	else
 		stmt->SetInt(8, *sp_57);
-	if (vkm2 == NULL)
+	if (vkm2 == nullptr)
 		stmt->SetNull(9);
 	else
 		stmt->SetInt(9, *vkm2);
-	if (field_comment == NULL)
+	if (field_comment == nullptr)
 		stmt->SetNull(10);
 	else
 		stmt->SetString(10, *field_comment);
-	if (beam == NULL)
+	if (beam == nullptr)
 		stmt->SetNull(11);
 	else
 		stmt->SetString(11, *beam);
-	if (energy == NULL)
+	if (energy == nullptr)
 		stmt->SetNull(12);
 	else
 		stmt->SetDouble(12, *energy);
-	if (target == NULL)
+	if (target == nullptr)
 		stmt->SetNull(13);
 	else
 		stmt->SetString(13, *target);
-	if (target_width == NULL)
+	if (target_width == nullptr)
 		stmt->SetNull(14);
 	else
 		stmt->SetDouble(14, *target_width);
-	if (record_comment == NULL)
+	if (record_comment == nullptr)
 		stmt->SetNull(15);
 	else
 		stmt->SetString(15, *record_comment);
@@ -149,15 +149,15 @@ ElogDbRecord* ElogDbRecord::CreateRecord(TDatime record_date, int* shift_leader_
 	{
 		cout<<"ERROR: inserting new record to the Database has been failed"<<endl;
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	delete stmt;
 
 	// getting last inserted ID
 	int record_id;
-	TSQLStatement* stmt_last = uni_db->Statement("SELECT currval(pg_get_serial_sequence('record_','record_id'))");
+	TSQLStatement* stmt_last = db_server->Statement("SELECT currval(pg_get_serial_sequence('record_','record_id'))");
 
 	// process getting last id
 	if (stmt_last->Process())
@@ -170,7 +170,7 @@ ElogDbRecord* ElogDbRecord::CreateRecord(TDatime record_date, int* shift_leader_
 		{
 			cout<<"ERROR: no last ID in DB!"<<endl;
 			delete stmt_last;
-			return 0x00;
+            return nullptr;
 		}
 		else
 		{
@@ -182,7 +182,7 @@ ElogDbRecord* ElogDbRecord::CreateRecord(TDatime record_date, int* shift_leader_
 	{
 		cout<<"ERROR: getting last ID has been failed!"<<endl;
 		delete stmt_last;
-		return 0x00;
+        return nullptr;
 	}
 
 	int tmp_record_id;
@@ -190,80 +190,80 @@ ElogDbRecord* ElogDbRecord::CreateRecord(TDatime record_date, int* shift_leader_
 	TDatime tmp_record_date;
 	tmp_record_date = record_date;
 	int* tmp_shift_leader_id;
-	if (shift_leader_id == NULL) tmp_shift_leader_id = NULL;
+	if (shift_leader_id == nullptr) tmp_shift_leader_id = nullptr;
 	else
 		tmp_shift_leader_id = new int(*shift_leader_id);
 	int tmp_type_id;
 	tmp_type_id = type_id;
 	int* tmp_period_number;
-	if (period_number == NULL) tmp_period_number = NULL;
+	if (period_number == nullptr) tmp_period_number = nullptr;
 	else
 		tmp_period_number = new int(*period_number);
 	int* tmp_run_number;
-	if (run_number == NULL) tmp_run_number = NULL;
+	if (run_number == nullptr) tmp_run_number = nullptr;
 	else
 		tmp_run_number = new int(*run_number);
 	int* tmp_trigger_id;
-	if (trigger_id == NULL) tmp_trigger_id = NULL;
+	if (trigger_id == nullptr) tmp_trigger_id = nullptr;
 	else
 		tmp_trigger_id = new int(*trigger_id);
 	TString* tmp_daq_status;
-	if (daq_status == NULL) tmp_daq_status = NULL;
+	if (daq_status == nullptr) tmp_daq_status = nullptr;
 	else
 		tmp_daq_status = new TString(*daq_status);
 	int* tmp_sp_41;
-	if (sp_41 == NULL) tmp_sp_41 = NULL;
+	if (sp_41 == nullptr) tmp_sp_41 = nullptr;
 	else
 		tmp_sp_41 = new int(*sp_41);
 	int* tmp_sp_57;
-	if (sp_57 == NULL) tmp_sp_57 = NULL;
+	if (sp_57 == nullptr) tmp_sp_57 = nullptr;
 	else
 		tmp_sp_57 = new int(*sp_57);
 	int* tmp_vkm2;
-	if (vkm2 == NULL) tmp_vkm2 = NULL;
+	if (vkm2 == nullptr) tmp_vkm2 = nullptr;
 	else
 		tmp_vkm2 = new int(*vkm2);
 	TString* tmp_field_comment;
-	if (field_comment == NULL) tmp_field_comment = NULL;
+	if (field_comment == nullptr) tmp_field_comment = nullptr;
 	else
 		tmp_field_comment = new TString(*field_comment);
 	TString* tmp_beam;
-	if (beam == NULL) tmp_beam = NULL;
+	if (beam == nullptr) tmp_beam = nullptr;
 	else
 		tmp_beam = new TString(*beam);
 	double* tmp_energy;
-	if (energy == NULL) tmp_energy = NULL;
+	if (energy == nullptr) tmp_energy = nullptr;
 	else
 		tmp_energy = new double(*energy);
 	TString* tmp_target;
-	if (target == NULL) tmp_target = NULL;
+	if (target == nullptr) tmp_target = nullptr;
 	else
 		tmp_target = new TString(*target);
 	double* tmp_target_width;
-	if (target_width == NULL) tmp_target_width = NULL;
+	if (target_width == nullptr) tmp_target_width = nullptr;
 	else
 		tmp_target_width = new double(*target_width);
 	TString* tmp_record_comment;
-	if (record_comment == NULL) tmp_record_comment = NULL;
+	if (record_comment == nullptr) tmp_record_comment = nullptr;
 	else
 		tmp_record_comment = new TString(*record_comment);
 
-	return new ElogDbRecord(connUniDb, tmp_record_id, tmp_record_date, tmp_shift_leader_id, tmp_type_id, tmp_period_number, tmp_run_number, tmp_trigger_id, tmp_daq_status, tmp_sp_41, tmp_sp_57, tmp_vkm2, tmp_field_comment, tmp_beam, tmp_energy, tmp_target, tmp_target_width, tmp_record_comment);
+    return new ElogDbRecord(connDb, tmp_record_id, tmp_record_date, tmp_shift_leader_id, tmp_type_id, tmp_period_number, tmp_run_number, tmp_trigger_id, tmp_daq_status, tmp_sp_41, tmp_sp_57, tmp_vkm2, tmp_field_comment, tmp_beam, tmp_energy, tmp_target, tmp_target_width, tmp_record_comment);
 }
 
 // -----  Get record from the database  ---------------------------
 ElogDbRecord* ElogDbRecord::GetRecord(int record_id)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+        ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select record_id, record_date, shift_leader_id, type_id, period_number, run_number, trigger_id, daq_status, sp_41, sp_57, vkm2, field_comment, beam, energy, target, target_width, record_comment "
 		"from record_ "
 		"where record_id = %d", record_id);
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get record from the database
 	if (!stmt->Process())
@@ -271,8 +271,8 @@ ElogDbRecord* ElogDbRecord::GetRecord(int record_id)
 		cout<<"ERROR: getting record from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	// store result of statement in buffer
@@ -284,8 +284,8 @@ ElogDbRecord* ElogDbRecord::GetRecord(int record_id)
 		cout<<"ERROR: record was not found in the database"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	int tmp_record_id;
@@ -293,82 +293,82 @@ ElogDbRecord* ElogDbRecord::GetRecord(int record_id)
 	TDatime tmp_record_date;
 	tmp_record_date = stmt->GetDatime(1);
 	int* tmp_shift_leader_id;
-	if (stmt->IsNull(2)) tmp_shift_leader_id = NULL;
+	if (stmt->IsNull(2)) tmp_shift_leader_id = nullptr;
 	else
 		tmp_shift_leader_id = new int(stmt->GetInt(2));
 	int tmp_type_id;
 	tmp_type_id = stmt->GetInt(3);
 	int* tmp_period_number;
-	if (stmt->IsNull(4)) tmp_period_number = NULL;
+	if (stmt->IsNull(4)) tmp_period_number = nullptr;
 	else
 		tmp_period_number = new int(stmt->GetInt(4));
 	int* tmp_run_number;
-	if (stmt->IsNull(5)) tmp_run_number = NULL;
+	if (stmt->IsNull(5)) tmp_run_number = nullptr;
 	else
 		tmp_run_number = new int(stmt->GetInt(5));
 	int* tmp_trigger_id;
-	if (stmt->IsNull(6)) tmp_trigger_id = NULL;
+	if (stmt->IsNull(6)) tmp_trigger_id = nullptr;
 	else
 		tmp_trigger_id = new int(stmt->GetInt(6));
 	TString* tmp_daq_status;
-	if (stmt->IsNull(7)) tmp_daq_status = NULL;
+	if (stmt->IsNull(7)) tmp_daq_status = nullptr;
 	else
 		tmp_daq_status = new TString(stmt->GetString(7));
 	int* tmp_sp_41;
-	if (stmt->IsNull(8)) tmp_sp_41 = NULL;
+	if (stmt->IsNull(8)) tmp_sp_41 = nullptr;
 	else
 		tmp_sp_41 = new int(stmt->GetInt(8));
 	int* tmp_sp_57;
-	if (stmt->IsNull(9)) tmp_sp_57 = NULL;
+	if (stmt->IsNull(9)) tmp_sp_57 = nullptr;
 	else
 		tmp_sp_57 = new int(stmt->GetInt(9));
 	int* tmp_vkm2;
-	if (stmt->IsNull(10)) tmp_vkm2 = NULL;
+	if (stmt->IsNull(10)) tmp_vkm2 = nullptr;
 	else
 		tmp_vkm2 = new int(stmt->GetInt(10));
 	TString* tmp_field_comment;
-	if (stmt->IsNull(11)) tmp_field_comment = NULL;
+	if (stmt->IsNull(11)) tmp_field_comment = nullptr;
 	else
 		tmp_field_comment = new TString(stmt->GetString(11));
 	TString* tmp_beam;
-	if (stmt->IsNull(12)) tmp_beam = NULL;
+	if (stmt->IsNull(12)) tmp_beam = nullptr;
 	else
 		tmp_beam = new TString(stmt->GetString(12));
 	double* tmp_energy;
-	if (stmt->IsNull(13)) tmp_energy = NULL;
+	if (stmt->IsNull(13)) tmp_energy = nullptr;
 	else
 		tmp_energy = new double(stmt->GetDouble(13));
 	TString* tmp_target;
-	if (stmt->IsNull(14)) tmp_target = NULL;
+	if (stmt->IsNull(14)) tmp_target = nullptr;
 	else
 		tmp_target = new TString(stmt->GetString(14));
 	double* tmp_target_width;
-	if (stmt->IsNull(15)) tmp_target_width = NULL;
+	if (stmt->IsNull(15)) tmp_target_width = nullptr;
 	else
 		tmp_target_width = new double(stmt->GetDouble(15));
 	TString* tmp_record_comment;
-	if (stmt->IsNull(16)) tmp_record_comment = NULL;
+	if (stmt->IsNull(16)) tmp_record_comment = nullptr;
 	else
 		tmp_record_comment = new TString(stmt->GetString(16));
 
 	delete stmt;
 
-	return new ElogDbRecord(connUniDb, tmp_record_id, tmp_record_date, tmp_shift_leader_id, tmp_type_id, tmp_period_number, tmp_run_number, tmp_trigger_id, tmp_daq_status, tmp_sp_41, tmp_sp_57, tmp_vkm2, tmp_field_comment, tmp_beam, tmp_energy, tmp_target, tmp_target_width, tmp_record_comment);
+    return new ElogDbRecord(connDb, tmp_record_id, tmp_record_date, tmp_shift_leader_id, tmp_type_id, tmp_period_number, tmp_run_number, tmp_trigger_id, tmp_daq_status, tmp_sp_41, tmp_sp_57, tmp_vkm2, tmp_field_comment, tmp_beam, tmp_energy, tmp_target, tmp_target_width, tmp_record_comment);
 }
 
 // -----  Check record exists in the database  ---------------------------
-bool ElogDbRecord::CheckRecordExists(int record_id)
+int ElogDbRecord::CheckRecordExists(int record_id)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
 		"from record_ "
 		"where record_id = %d", record_id);
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get record from the database
 	if (!stmt->Process())
@@ -376,8 +376,8 @@ bool ElogDbRecord::CheckRecordExists(int record_id)
 		cout<<"ERROR: getting record from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return false;
+        delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -387,28 +387,28 @@ bool ElogDbRecord::CheckRecordExists(int record_id)
 	if (!stmt->NextResultRow())
 	{
 		delete stmt;
-		delete connUniDb;
-		return false;
+        delete connDb;
+        return 0;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 
-	return true;
+    return 1;
 }
 
 // -----  Delete record from the database  ---------------------------
 int ElogDbRecord::DeleteRecord(int record_id)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"delete from record_ "
 		"where record_id = $1");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, record_id);
@@ -419,27 +419,27 @@ int ElogDbRecord::DeleteRecord(int record_id)
 		cout<<"ERROR: deleting record from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+        delete connDb;
+        return -2;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 	return 0;
 }
 
 // -----  Print all 'records'  ---------------------------------
 int ElogDbRecord::PrintAll()
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select record_id, record_date, shift_leader_id, type_id, period_number, run_number, trigger_id, daq_status, sp_41, sp_57, vkm2, field_comment, beam, energy, target, target_width, record_comment "
 		"from record_");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get all 'records' from the database
 	if (!stmt->Process())
@@ -447,8 +447,8 @@ int ElogDbRecord::PrintAll()
 		cout<<"ERROR: getting all 'records' from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+        delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -463,68 +463,68 @@ int ElogDbRecord::PrintAll()
 		cout<<", record_date: ";
 		cout<<(stmt->GetDatime(1)).AsSQLString();
 		cout<<", shift_leader_id: ";
-		if (stmt->IsNull(2)) cout<<"NULL";
+		if (stmt->IsNull(2)) cout<<"nullptr";
 		else
 			cout<<stmt->GetInt(2);
 		cout<<", type_id: ";
 		cout<<(stmt->GetInt(3));
 		cout<<", period_number: ";
-		if (stmt->IsNull(4)) cout<<"NULL";
+		if (stmt->IsNull(4)) cout<<"nullptr";
 		else
 			cout<<stmt->GetInt(4);
 		cout<<", run_number: ";
-		if (stmt->IsNull(5)) cout<<"NULL";
+		if (stmt->IsNull(5)) cout<<"nullptr";
 		else
 			cout<<stmt->GetInt(5);
 		cout<<", trigger_id: ";
-		if (stmt->IsNull(6)) cout<<"NULL";
+		if (stmt->IsNull(6)) cout<<"nullptr";
 		else
 			cout<<stmt->GetInt(6);
 		cout<<", daq_status: ";
-		if (stmt->IsNull(7)) cout<<"NULL";
+		if (stmt->IsNull(7)) cout<<"nullptr";
 		else
 			cout<<stmt->GetString(7);
 		cout<<", sp_41: ";
-		if (stmt->IsNull(8)) cout<<"NULL";
+		if (stmt->IsNull(8)) cout<<"nullptr";
 		else
 			cout<<stmt->GetInt(8);
 		cout<<", sp_57: ";
-		if (stmt->IsNull(9)) cout<<"NULL";
+		if (stmt->IsNull(9)) cout<<"nullptr";
 		else
 			cout<<stmt->GetInt(9);
 		cout<<", vkm2: ";
-		if (stmt->IsNull(10)) cout<<"NULL";
+		if (stmt->IsNull(10)) cout<<"nullptr";
 		else
 			cout<<stmt->GetInt(10);
 		cout<<", field_comment: ";
-		if (stmt->IsNull(11)) cout<<"NULL";
+		if (stmt->IsNull(11)) cout<<"nullptr";
 		else
 			cout<<stmt->GetString(11);
 		cout<<", beam: ";
-		if (stmt->IsNull(12)) cout<<"NULL";
+		if (stmt->IsNull(12)) cout<<"nullptr";
 		else
 			cout<<stmt->GetString(12);
 		cout<<", energy: ";
-		if (stmt->IsNull(13)) cout<<"NULL";
+		if (stmt->IsNull(13)) cout<<"nullptr";
 		else
 			cout<<stmt->GetDouble(13);
 		cout<<", target: ";
-		if (stmt->IsNull(14)) cout<<"NULL";
+		if (stmt->IsNull(14)) cout<<"nullptr";
 		else
 			cout<<stmt->GetString(14);
 		cout<<", target_width: ";
-		if (stmt->IsNull(15)) cout<<"NULL";
+		if (stmt->IsNull(15)) cout<<"nullptr";
 		else
 			cout<<stmt->GetDouble(15);
 		cout<<", record_comment: ";
-		if (stmt->IsNull(16)) cout<<"NULL";
+		if (stmt->IsNull(16)) cout<<"nullptr";
 		else
 			cout<<stmt->GetString(16);
 		cout<<"."<<endl;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 
 	return 0;
 }
@@ -533,19 +533,19 @@ int ElogDbRecord::PrintAll()
 // Setters functions
 int ElogDbRecord::SetRecordDate(TDatime record_date)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update record_ "
 		"set record_date = $1 "
 		"where record_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetDatime(0, record_date);
@@ -568,22 +568,22 @@ int ElogDbRecord::SetRecordDate(TDatime record_date)
 
 int ElogDbRecord::SetShiftLeaderId(int* shift_leader_id)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update record_ "
 		"set shift_leader_id = $1 "
 		"where record_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (shift_leader_id == NULL)
+	if (shift_leader_id == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetInt(0, *shift_leader_id);
@@ -600,7 +600,7 @@ int ElogDbRecord::SetShiftLeaderId(int* shift_leader_id)
 
 	if (i_shift_leader_id)
 		delete i_shift_leader_id;
-	if (shift_leader_id == NULL) i_shift_leader_id = NULL;
+	if (shift_leader_id == nullptr) i_shift_leader_id = nullptr;
 	else
 		i_shift_leader_id = new int(*shift_leader_id);
 
@@ -610,19 +610,19 @@ int ElogDbRecord::SetShiftLeaderId(int* shift_leader_id)
 
 int ElogDbRecord::SetTypeId(int type_id)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update record_ "
 		"set type_id = $1 "
 		"where record_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, type_id);
@@ -645,22 +645,22 @@ int ElogDbRecord::SetTypeId(int type_id)
 
 int ElogDbRecord::SetPeriodNumber(int* period_number)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update record_ "
 		"set period_number = $1 "
 		"where record_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (period_number == NULL)
+	if (period_number == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetInt(0, *period_number);
@@ -677,7 +677,7 @@ int ElogDbRecord::SetPeriodNumber(int* period_number)
 
 	if (i_period_number)
 		delete i_period_number;
-	if (period_number == NULL) i_period_number = NULL;
+	if (period_number == nullptr) i_period_number = nullptr;
 	else
 		i_period_number = new int(*period_number);
 
@@ -687,22 +687,22 @@ int ElogDbRecord::SetPeriodNumber(int* period_number)
 
 int ElogDbRecord::SetRunNumber(int* run_number)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update record_ "
 		"set run_number = $1 "
 		"where record_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (run_number == NULL)
+	if (run_number == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetInt(0, *run_number);
@@ -719,7 +719,7 @@ int ElogDbRecord::SetRunNumber(int* run_number)
 
 	if (i_run_number)
 		delete i_run_number;
-	if (run_number == NULL) i_run_number = NULL;
+	if (run_number == nullptr) i_run_number = nullptr;
 	else
 		i_run_number = new int(*run_number);
 
@@ -729,22 +729,22 @@ int ElogDbRecord::SetRunNumber(int* run_number)
 
 int ElogDbRecord::SetTriggerId(int* trigger_id)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update record_ "
 		"set trigger_id = $1 "
 		"where record_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (trigger_id == NULL)
+	if (trigger_id == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetInt(0, *trigger_id);
@@ -761,7 +761,7 @@ int ElogDbRecord::SetTriggerId(int* trigger_id)
 
 	if (i_trigger_id)
 		delete i_trigger_id;
-	if (trigger_id == NULL) i_trigger_id = NULL;
+	if (trigger_id == nullptr) i_trigger_id = nullptr;
 	else
 		i_trigger_id = new int(*trigger_id);
 
@@ -771,22 +771,22 @@ int ElogDbRecord::SetTriggerId(int* trigger_id)
 
 int ElogDbRecord::SetDaqStatus(TString* daq_status)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update record_ "
 		"set daq_status = $1 "
 		"where record_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (daq_status == NULL)
+	if (daq_status == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetString(0, *daq_status);
@@ -803,7 +803,7 @@ int ElogDbRecord::SetDaqStatus(TString* daq_status)
 
 	if (str_daq_status)
 		delete str_daq_status;
-	if (daq_status == NULL) str_daq_status = NULL;
+	if (daq_status == nullptr) str_daq_status = nullptr;
 	else
 		str_daq_status = new TString(*daq_status);
 
@@ -813,22 +813,22 @@ int ElogDbRecord::SetDaqStatus(TString* daq_status)
 
 int ElogDbRecord::SetSp41(int* sp_41)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update record_ "
 		"set sp_41 = $1 "
 		"where record_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (sp_41 == NULL)
+	if (sp_41 == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetInt(0, *sp_41);
@@ -845,7 +845,7 @@ int ElogDbRecord::SetSp41(int* sp_41)
 
 	if (i_sp_41)
 		delete i_sp_41;
-	if (sp_41 == NULL) i_sp_41 = NULL;
+	if (sp_41 == nullptr) i_sp_41 = nullptr;
 	else
 		i_sp_41 = new int(*sp_41);
 
@@ -855,22 +855,22 @@ int ElogDbRecord::SetSp41(int* sp_41)
 
 int ElogDbRecord::SetSp57(int* sp_57)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update record_ "
 		"set sp_57 = $1 "
 		"where record_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (sp_57 == NULL)
+	if (sp_57 == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetInt(0, *sp_57);
@@ -887,7 +887,7 @@ int ElogDbRecord::SetSp57(int* sp_57)
 
 	if (i_sp_57)
 		delete i_sp_57;
-	if (sp_57 == NULL) i_sp_57 = NULL;
+	if (sp_57 == nullptr) i_sp_57 = nullptr;
 	else
 		i_sp_57 = new int(*sp_57);
 
@@ -897,22 +897,22 @@ int ElogDbRecord::SetSp57(int* sp_57)
 
 int ElogDbRecord::SetVkm2(int* vkm2)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update record_ "
 		"set vkm2 = $1 "
 		"where record_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (vkm2 == NULL)
+	if (vkm2 == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetInt(0, *vkm2);
@@ -929,7 +929,7 @@ int ElogDbRecord::SetVkm2(int* vkm2)
 
 	if (i_vkm2)
 		delete i_vkm2;
-	if (vkm2 == NULL) i_vkm2 = NULL;
+	if (vkm2 == nullptr) i_vkm2 = nullptr;
 	else
 		i_vkm2 = new int(*vkm2);
 
@@ -939,22 +939,22 @@ int ElogDbRecord::SetVkm2(int* vkm2)
 
 int ElogDbRecord::SetFieldComment(TString* field_comment)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update record_ "
 		"set field_comment = $1 "
 		"where record_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (field_comment == NULL)
+	if (field_comment == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetString(0, *field_comment);
@@ -971,7 +971,7 @@ int ElogDbRecord::SetFieldComment(TString* field_comment)
 
 	if (str_field_comment)
 		delete str_field_comment;
-	if (field_comment == NULL) str_field_comment = NULL;
+	if (field_comment == nullptr) str_field_comment = nullptr;
 	else
 		str_field_comment = new TString(*field_comment);
 
@@ -981,22 +981,22 @@ int ElogDbRecord::SetFieldComment(TString* field_comment)
 
 int ElogDbRecord::SetBeam(TString* beam)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update record_ "
 		"set beam = $1 "
 		"where record_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (beam == NULL)
+	if (beam == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetString(0, *beam);
@@ -1013,7 +1013,7 @@ int ElogDbRecord::SetBeam(TString* beam)
 
 	if (str_beam)
 		delete str_beam;
-	if (beam == NULL) str_beam = NULL;
+	if (beam == nullptr) str_beam = nullptr;
 	else
 		str_beam = new TString(*beam);
 
@@ -1023,22 +1023,22 @@ int ElogDbRecord::SetBeam(TString* beam)
 
 int ElogDbRecord::SetEnergy(double* energy)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update record_ "
 		"set energy = $1 "
 		"where record_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (energy == NULL)
+	if (energy == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetDouble(0, *energy);
@@ -1055,7 +1055,7 @@ int ElogDbRecord::SetEnergy(double* energy)
 
 	if (d_energy)
 		delete d_energy;
-	if (energy == NULL) d_energy = NULL;
+	if (energy == nullptr) d_energy = nullptr;
 	else
 		d_energy = new double(*energy);
 
@@ -1065,22 +1065,22 @@ int ElogDbRecord::SetEnergy(double* energy)
 
 int ElogDbRecord::SetTarget(TString* target)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update record_ "
 		"set target = $1 "
 		"where record_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (target == NULL)
+	if (target == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetString(0, *target);
@@ -1097,7 +1097,7 @@ int ElogDbRecord::SetTarget(TString* target)
 
 	if (str_target)
 		delete str_target;
-	if (target == NULL) str_target = NULL;
+	if (target == nullptr) str_target = nullptr;
 	else
 		str_target = new TString(*target);
 
@@ -1107,22 +1107,22 @@ int ElogDbRecord::SetTarget(TString* target)
 
 int ElogDbRecord::SetTargetWidth(double* target_width)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update record_ "
 		"set target_width = $1 "
 		"where record_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (target_width == NULL)
+	if (target_width == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetDouble(0, *target_width);
@@ -1139,7 +1139,7 @@ int ElogDbRecord::SetTargetWidth(double* target_width)
 
 	if (d_target_width)
 		delete d_target_width;
-	if (target_width == NULL) d_target_width = NULL;
+	if (target_width == nullptr) d_target_width = nullptr;
 	else
 		d_target_width = new double(*target_width);
 
@@ -1149,22 +1149,22 @@ int ElogDbRecord::SetTargetWidth(double* target_width)
 
 int ElogDbRecord::SetRecordComment(TString* record_comment)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update record_ "
 		"set record_comment = $1 "
 		"where record_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (record_comment == NULL)
+	if (record_comment == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetString(0, *record_comment);
@@ -1181,7 +1181,7 @@ int ElogDbRecord::SetRecordComment(TString* record_comment)
 
 	if (str_record_comment)
 		delete str_record_comment;
-	if (record_comment == NULL) str_record_comment = NULL;
+	if (record_comment == nullptr) str_record_comment = nullptr;
 	else
 		str_record_comment = new TString(*record_comment);
 
@@ -1193,7 +1193,7 @@ int ElogDbRecord::SetRecordComment(TString* record_comment)
 void ElogDbRecord::Print()
 {
 	cout<<"Table 'record_'";
-	cout<<". record_id: "<<i_record_id<<". record_date: "<<dt_record_date.AsSQLString()<<". shift_leader_id: "<<(i_shift_leader_id == NULL? "NULL": TString::Format("%d", *i_shift_leader_id))<<". type_id: "<<i_type_id<<". period_number: "<<(i_period_number == NULL? "NULL": TString::Format("%d", *i_period_number))<<". run_number: "<<(i_run_number == NULL? "NULL": TString::Format("%d", *i_run_number))<<". trigger_id: "<<(i_trigger_id == NULL? "NULL": TString::Format("%d", *i_trigger_id))<<". daq_status: "<<(str_daq_status == NULL? "NULL": *str_daq_status)<<". sp_41: "<<(i_sp_41 == NULL? "NULL": TString::Format("%d", *i_sp_41))<<". sp_57: "<<(i_sp_57 == NULL? "NULL": TString::Format("%d", *i_sp_57))<<". vkm2: "<<(i_vkm2 == NULL? "NULL": TString::Format("%d", *i_vkm2))<<". field_comment: "<<(str_field_comment == NULL? "NULL": *str_field_comment)<<". beam: "<<(str_beam == NULL? "NULL": *str_beam)<<". energy: "<<(d_energy == NULL? "NULL": TString::Format("%f", *d_energy))<<". target: "<<(str_target == NULL? "NULL": *str_target)<<". target_width: "<<(d_target_width == NULL? "NULL": TString::Format("%f", *d_target_width))<<". record_comment: "<<(str_record_comment == NULL? "NULL": *str_record_comment)<<endl;
+	cout<<". record_id: "<<i_record_id<<". record_date: "<<dt_record_date.AsSQLString()<<". shift_leader_id: "<<(i_shift_leader_id == nullptr? "nullptr": TString::Format("%d", *i_shift_leader_id))<<". type_id: "<<i_type_id<<". period_number: "<<(i_period_number == nullptr? "nullptr": TString::Format("%d", *i_period_number))<<". run_number: "<<(i_run_number == nullptr? "nullptr": TString::Format("%d", *i_run_number))<<". trigger_id: "<<(i_trigger_id == nullptr? "nullptr": TString::Format("%d", *i_trigger_id))<<". daq_status: "<<(str_daq_status == nullptr? "nullptr": *str_daq_status)<<". sp_41: "<<(i_sp_41 == nullptr? "nullptr": TString::Format("%d", *i_sp_41))<<". sp_57: "<<(i_sp_57 == nullptr? "nullptr": TString::Format("%d", *i_sp_57))<<". vkm2: "<<(i_vkm2 == nullptr? "nullptr": TString::Format("%d", *i_vkm2))<<". field_comment: "<<(str_field_comment == nullptr? "nullptr": *str_field_comment)<<". beam: "<<(str_beam == nullptr? "nullptr": *str_beam)<<". energy: "<<(d_energy == nullptr? "nullptr": TString::Format("%f", *d_energy))<<". target: "<<(str_target == nullptr? "nullptr": *str_target)<<". target_width: "<<(d_target_width == nullptr? "nullptr": TString::Format("%f", *d_target_width))<<". record_comment: "<<(str_record_comment == nullptr? "nullptr": *str_record_comment)<<endl;
 
 	return;
 }
@@ -1201,22 +1201,22 @@ void ElogDbRecord::Print()
 
 TObjArray* ElogDbRecord::GetRecords(int period_number, int run_number)
 {
-    TObjArray* arrayResult = NULL;
+    TObjArray* arrayResult = nullptr;
 
-    UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-    if (connUniDb == 0x00)
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr)
     {
         cout<<"ERROR: connection to the eLog Database was failed"<<endl;
         return arrayResult;
     }
 
-    TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
     TString sql = TString::Format(
         "select record_id, record_date, shift_leader_id, type_id, period_number, run_number, trigger_id, daq_status, sp_41, sp_57, vkm2, field_comment, beam, energy, target, target_width, record_comment "
         "from record_ "
         "where period_number = %d and run_number = %d", period_number, run_number);
-    TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
     //cout<<"SQL code: "<<sql<<endl;
 
     // get record from the database
@@ -1225,7 +1225,7 @@ TObjArray* ElogDbRecord::GetRecords(int period_number, int run_number)
         cout<<"ERROR: getting record from the database has been failed"<<endl;
 
         delete stmt;
-        delete connUniDb;
+        delete connDb;
 
         return arrayResult;
     }
@@ -1238,8 +1238,8 @@ TObjArray* ElogDbRecord::GetRecords(int period_number, int run_number)
     arrayResult->SetOwner(kTRUE);
     while (stmt->NextResultRow())
     {
-        UniConnection* connRecord = UniConnection::Open(ELOG_DB);
-        if (connRecord == 0x00)
+        ElogConnection* connRecord = ElogConnection::Open();
+        if (connRecord == nullptr)
         {
             cout<<"ERROR: connection to the eLog database for a record was failed"<<endl;
             return arrayResult;
@@ -1250,65 +1250,65 @@ TObjArray* ElogDbRecord::GetRecords(int period_number, int run_number)
         TDatime tmp_record_date;
         tmp_record_date = stmt->GetDatime(1);
         int* tmp_shift_leader_id;
-        if (stmt->IsNull(2)) tmp_shift_leader_id = NULL;
+        if (stmt->IsNull(2)) tmp_shift_leader_id = nullptr;
         else
             tmp_shift_leader_id = new int(stmt->GetInt(2));
         int tmp_type_id;
         tmp_type_id = stmt->GetInt(3);
         int* tmp_period_number;
-        if (stmt->IsNull(4)) tmp_period_number = NULL;
+        if (stmt->IsNull(4)) tmp_period_number = nullptr;
         else
             tmp_period_number = new int(stmt->GetInt(4));
         int* tmp_run_number;
-        if (stmt->IsNull(5)) tmp_run_number = NULL;
+        if (stmt->IsNull(5)) tmp_run_number = nullptr;
         else
             tmp_run_number = new int(stmt->GetInt(5));
         int* tmp_trigger_id;
-        if (stmt->IsNull(6)) tmp_trigger_id = NULL;
+        if (stmt->IsNull(6)) tmp_trigger_id = nullptr;
         else
             tmp_trigger_id = new int(stmt->GetInt(6));
         TString* tmp_daq_status;
-        if (stmt->IsNull(7)) tmp_daq_status = NULL;
+        if (stmt->IsNull(7)) tmp_daq_status = nullptr;
         else
             tmp_daq_status = new TString(stmt->GetString(7));
         int* tmp_sp_41;
-        if (stmt->IsNull(8)) tmp_sp_41 = NULL;
+        if (stmt->IsNull(8)) tmp_sp_41 = nullptr;
         else
             tmp_sp_41 = new int(stmt->GetInt(8));
         int* tmp_sp_57;
-        if (stmt->IsNull(9)) tmp_sp_57 = NULL;
+        if (stmt->IsNull(9)) tmp_sp_57 = nullptr;
         else
             tmp_sp_57 = new int(stmt->GetInt(9));
         int* tmp_vkm2;
-        if (stmt->IsNull(10)) tmp_vkm2 = NULL;
+        if (stmt->IsNull(10)) tmp_vkm2 = nullptr;
         else
             tmp_vkm2 = new int(stmt->GetInt(10));
         TString* tmp_field_comment;
-        if (stmt->IsNull(11)) tmp_field_comment = NULL;
+        if (stmt->IsNull(11)) tmp_field_comment = nullptr;
         else
             tmp_field_comment = new TString(stmt->GetString(11));
         TString* tmp_beam;
-        if (stmt->IsNull(12)) tmp_beam = NULL;
+        if (stmt->IsNull(12)) tmp_beam = nullptr;
         else
             tmp_beam = new TString(stmt->GetString(12));
         double* tmp_energy;
-        if (stmt->IsNull(13)) tmp_energy = NULL;
+        if (stmt->IsNull(13)) tmp_energy = nullptr;
         else
             tmp_energy = new double(stmt->GetDouble(13));
         TString* tmp_target;
-        if (stmt->IsNull(14)) tmp_target = NULL;
+        if (stmt->IsNull(14)) tmp_target = nullptr;
         else
             tmp_target = new TString(stmt->GetString(14));
         double* tmp_target_width;
-        if (stmt->IsNull(15)) tmp_target_width = NULL;
+        if (stmt->IsNull(15)) tmp_target_width = nullptr;
         else
             tmp_target_width = new double(stmt->GetDouble(15));
         TString* tmp_record_comment;
-        if (stmt->IsNull(16)) tmp_record_comment = NULL;
+        if (stmt->IsNull(16)) tmp_record_comment = nullptr;
         else
             tmp_record_comment = new TString(stmt->GetString(16));
 
-        arrayResult->Add((TObject*) new ElogDbRecord(connUniDb, tmp_record_id, tmp_record_date, tmp_shift_leader_id, tmp_type_id, tmp_period_number, tmp_run_number, tmp_trigger_id, tmp_daq_status, tmp_sp_41, tmp_sp_57, tmp_vkm2, tmp_field_comment, tmp_beam, tmp_energy, tmp_target, tmp_target_width, tmp_record_comment));
+        arrayResult->Add((TObject*) new ElogDbRecord(connDb, tmp_record_id, tmp_record_date, tmp_shift_leader_id, tmp_type_id, tmp_period_number, tmp_run_number, tmp_trigger_id, tmp_daq_status, tmp_sp_41, tmp_sp_57, tmp_vkm2, tmp_field_comment, tmp_beam, tmp_energy, tmp_target, tmp_target_width, tmp_record_comment));
     }
 
     delete stmt;
@@ -1318,16 +1318,16 @@ TObjArray* ElogDbRecord::GetRecords(int period_number, int run_number)
 
 TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
 {
-    TObjArray* arrayResult = NULL;
+    TObjArray* arrayResult = nullptr;
 
-    UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-    if (connUniDb == 0x00)
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr)
     {
         cout<<"ERROR: connection to the eLog Database was failed"<<endl;
         return arrayResult;
     }
 
-    TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
     TString sql = TString::Format(
                 "select record_id, record_date, shift_leader_id, r.type_id, period_number, run_number, r.trigger_id, daq_status, sp_41, sp_57, vkm2, field_comment, beam, energy, target, target_width, record_comment "
@@ -1338,26 +1338,26 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
     TString strCondition;
     bool isFirst = true;
     TIter next(&search_conditions);
-    UniSearchCondition* curCondition;
-    while (curCondition = (UniSearchCondition*) next())
+    ElogSearchCondition* curCondition;
+    while (curCondition = (ElogSearchCondition*) next())
     {
         strCondition = "";
 
         switch (curCondition->GetColumn())
         {
-            case columnRecordDate:      strCondition += "record_date "; break;
-            case columnShiftLeader:     strCondition += "lower(person_name) "; break;
-            case columnType:            strCondition += "lower(type_text) "; break;
-            case columnRunNumber:       strCondition += "run_number "; break;
-            case columnPeriodNumber:    strCondition += "period_number "; break;
-            case columnTrigger:         strCondition += "lower(trigger_info) "; break;
-            case columnDaqStatus:       strCondition += "lower(daq_status) "; break;
-            case columnSp41:            strCondition += "sp_41 "; break;
-            case columnSp57:            strCondition += "sp_57 "; break;
-            case columnVkm2:            strCondition += "vkm2 "; break;
-            case columnBeamParticle:    strCondition += "lower(beam) "; break;
-            case columnEnergy:          strCondition += "energy "; break;
-            case columnTargetParticle:  strCondition += "lower(target) "; break;
+            case ElogSearchCondition::columnRecordDate:      strCondition += "record_date "; break;
+            case ElogSearchCondition::columnShiftLeader:     strCondition += "lower(person_name) "; break;
+            case ElogSearchCondition::columnType:            strCondition += "lower(type_text) "; break;
+            case ElogSearchCondition::columnRunNumber:       strCondition += "run_number "; break;
+            case ElogSearchCondition::columnPeriodNumber:    strCondition += "period_number "; break;
+            case ElogSearchCondition::columnTrigger:         strCondition += "lower(trigger_info) "; break;
+            case ElogSearchCondition::columnDaqStatus:       strCondition += "lower(daq_status) "; break;
+            case ElogSearchCondition::columnSp41:            strCondition += "sp_41 "; break;
+            case ElogSearchCondition::columnSp57:            strCondition += "sp_57 "; break;
+            case ElogSearchCondition::columnVkm2:            strCondition += "vkm2 "; break;
+            case ElogSearchCondition::columnBeamParticle:    strCondition += "lower(beam) "; break;
+            case ElogSearchCondition::columnEnergy:          strCondition += "energy "; break;
+            case ElogSearchCondition::columnTargetParticle:  strCondition += "lower(target) "; break;
             default:
                 cout<<"ERROR: column in the search condition was not defined, condition is skipped"<<endl;
                 continue;
@@ -1365,15 +1365,15 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
 
         switch (curCondition->GetCondition())
         {
-            case conditionLess:             strCondition += "< "; break;
-            case conditionLessOrEqual:      strCondition += "<= "; break;
-            case conditionEqual:            strCondition += "= "; break;
-            case conditionNotEqual:         strCondition += "<> "; break;
-            case conditionGreater:          strCondition += "> "; break;
-            case conditionGreaterOrEqual:   strCondition += ">= "; break;
-            case conditionLike:             strCondition += "like "; break;
-            case conditionNull:             strCondition += "is null "; break;
-            case conditionNotNull:          strCondition += "is not null "; break;
+            case ElogSearchCondition::conditionLess:             strCondition += "< "; break;
+            case ElogSearchCondition::conditionLessOrEqual:      strCondition += "<= "; break;
+            case ElogSearchCondition::conditionEqual:            strCondition += "= "; break;
+            case ElogSearchCondition::conditionNotEqual:         strCondition += "<> "; break;
+            case ElogSearchCondition::conditionGreater:          strCondition += "> "; break;
+            case ElogSearchCondition::conditionGreaterOrEqual:   strCondition += ">= "; break;
+            case ElogSearchCondition::conditionLike:             strCondition += "like "; break;
+            case ElogSearchCondition::conditionNull:             strCondition += "is null "; break;
+            case ElogSearchCondition::conditionNotNull:          strCondition += "is not null "; break;
             default:
                 cout<<"ERROR: comparison operator in the search condition was not defined, condition is skipped"<<endl;
                 continue;
@@ -1382,7 +1382,8 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
         switch (curCondition->GetValueType())
         {
             case 0:
-                if ((curCondition->GetCondition() != conditionNull) && (curCondition->GetCondition() != conditionNotNull)) continue;
+                if ((curCondition->GetCondition() != ElogSearchCondition::conditionNull) &&
+                    (curCondition->GetCondition() != ElogSearchCondition::conditionNotNull)) continue;
                 break;
             case 1: strCondition += Form("%d", curCondition->GetIntValue()); break;
             case 2: strCondition += Form("%u", curCondition->GetUIntValue()); break;
@@ -1406,7 +1407,7 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
     }
     sql += " order by record_date";
 
-    TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
     //cout<<"SQL code: "<<sql<<endl;
 
     // get table record from DB
@@ -1414,7 +1415,7 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
     {
         cout<<"ERROR: getting eLog records from the database has been failed"<<endl;
         delete stmt;
-        delete connUniDb;
+        delete connDb;
 
         return arrayResult;
     }
@@ -1427,8 +1428,8 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
     arrayResult->SetOwner(kTRUE);
     while (stmt->NextResultRow())
     {
-        UniConnection* connRun = UniConnection::Open(ELOG_DB);
-        if (connRun == 0x00)
+        ElogConnection* connRun = ElogConnection::Open();
+        if (connRun == nullptr)
         {
             cout<<"ERROR: connection to the eLog database for a record was failed"<<endl;
             return arrayResult;
@@ -1439,65 +1440,65 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
         TDatime tmp_record_date;
         tmp_record_date = stmt->GetDatime(1);
         int* tmp_shift_leader_id;
-        if (stmt->IsNull(2)) tmp_shift_leader_id = NULL;
+        if (stmt->IsNull(2)) tmp_shift_leader_id = nullptr;
         else
             tmp_shift_leader_id = new int(stmt->GetInt(2));
         int tmp_type_id;
         tmp_type_id = stmt->GetInt(3);
         int* tmp_period_number;
-        if (stmt->IsNull(4)) tmp_period_number = NULL;
+        if (stmt->IsNull(4)) tmp_period_number = nullptr;
         else
             tmp_period_number = new int(stmt->GetInt(4));
         int* tmp_run_number;
-        if (stmt->IsNull(5)) tmp_run_number = NULL;
+        if (stmt->IsNull(5)) tmp_run_number = nullptr;
         else
             tmp_run_number = new int(stmt->GetInt(5));
         int* tmp_trigger_id;
-        if (stmt->IsNull(6)) tmp_trigger_id = NULL;
+        if (stmt->IsNull(6)) tmp_trigger_id = nullptr;
         else
             tmp_trigger_id = new int(stmt->GetInt(6));
         TString* tmp_daq_status;
-        if (stmt->IsNull(7)) tmp_daq_status = NULL;
+        if (stmt->IsNull(7)) tmp_daq_status = nullptr;
         else
             tmp_daq_status = new TString(stmt->GetString(7));
         int* tmp_sp_41;
-        if (stmt->IsNull(8)) tmp_sp_41 = NULL;
+        if (stmt->IsNull(8)) tmp_sp_41 = nullptr;
         else
             tmp_sp_41 = new int(stmt->GetInt(8));
         int* tmp_sp_57;
-        if (stmt->IsNull(9)) tmp_sp_57 = NULL;
+        if (stmt->IsNull(9)) tmp_sp_57 = nullptr;
         else
             tmp_sp_57 = new int(stmt->GetInt(9));
         int* tmp_vkm2;
-        if (stmt->IsNull(10)) tmp_vkm2 = NULL;
+        if (stmt->IsNull(10)) tmp_vkm2 = nullptr;
         else
             tmp_vkm2 = new int(stmt->GetInt(10));
         TString* tmp_field_comment;
-        if (stmt->IsNull(11)) tmp_field_comment = NULL;
+        if (stmt->IsNull(11)) tmp_field_comment = nullptr;
         else
             tmp_field_comment = new TString(stmt->GetString(11));
         TString* tmp_beam;
-        if (stmt->IsNull(12)) tmp_beam = NULL;
+        if (stmt->IsNull(12)) tmp_beam = nullptr;
         else
             tmp_beam = new TString(stmt->GetString(12));
         double* tmp_energy;
-        if (stmt->IsNull(13)) tmp_energy = NULL;
+        if (stmt->IsNull(13)) tmp_energy = nullptr;
         else
             tmp_energy = new double(stmt->GetDouble(13));
         TString* tmp_target;
-        if (stmt->IsNull(14)) tmp_target = NULL;
+        if (stmt->IsNull(14)) tmp_target = nullptr;
         else
             tmp_target = new TString(stmt->GetString(14));
         double* tmp_target_width;
-        if (stmt->IsNull(15)) tmp_target_width = NULL;
+        if (stmt->IsNull(15)) tmp_target_width = nullptr;
         else
             tmp_target_width = new double(stmt->GetDouble(15));
         TString* tmp_record_comment;
-        if (stmt->IsNull(16)) tmp_record_comment = NULL;
+        if (stmt->IsNull(16)) tmp_record_comment = nullptr;
         else
             tmp_record_comment = new TString(stmt->GetString(16));
 
-        arrayResult->Add((TObject*) new ElogDbRecord(connUniDb, tmp_record_id, tmp_record_date, tmp_shift_leader_id, tmp_type_id, tmp_period_number, tmp_run_number, tmp_trigger_id, tmp_daq_status, tmp_sp_41, tmp_sp_57, tmp_vkm2, tmp_field_comment, tmp_beam, tmp_energy, tmp_target, tmp_target_width, tmp_record_comment));
+        arrayResult->Add((TObject*) new ElogDbRecord(connDb, tmp_record_id, tmp_record_date, tmp_shift_leader_id, tmp_type_id, tmp_period_number, tmp_run_number, tmp_trigger_id, tmp_daq_status, tmp_sp_41, tmp_sp_57, tmp_vkm2, tmp_field_comment, tmp_beam, tmp_energy, tmp_target, tmp_target_width, tmp_record_comment));
     }
 
     delete stmt;
@@ -1505,7 +1506,7 @@ TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
     return arrayResult;
 }
 
-TObjArray* ElogDbRecord::Search(const UniSearchCondition& search_condition)
+TObjArray* ElogDbRecord::Search(const ElogSearchCondition& search_condition)
 {
     TObjArray search_conditions;
     search_conditions.Add((TObject*)&search_condition);

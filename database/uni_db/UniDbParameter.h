@@ -14,7 +14,7 @@
 #include "TDatime.h"
 
 #include "UniConnection.h"
-#include "db_structures.h"
+#include "uni_db_structures.h"
 
 #include <iostream>
 using namespace std;
@@ -36,7 +36,7 @@ class UniDbParameter
 	bool b_is_array;
 
 	//Constructor
-	UniDbParameter(UniConnection* connUniDb, int parameter_id, TString parameter_name, int parameter_type, bool is_array);
+    UniDbParameter(UniConnection* db_connect, int parameter_id, TString parameter_name, int parameter_type, bool is_array);
 	/* END OF PRIVATE GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
  public:
@@ -50,10 +50,10 @@ class UniDbParameter
 	static UniDbParameter* GetParameter(int parameter_id);
 	/// get parameter from the database
 	static UniDbParameter* GetParameter(TString parameter_name);
-	/// check parameter exists in the database
-	static bool CheckParameterExists(int parameter_id);
-	/// check parameter exists in the database
-	static bool CheckParameterExists(TString parameter_name);
+    /// check parameter exists in the database: 1 - true, 0 - false, <0 - database operation errors
+    static int CheckParameterExists(int parameter_id);
+    /// check parameter exists in the database: 1 - true, 0 - false, <0 - database operation errors
+    static int CheckParameterExists(TString parameter_name);
 	/// delete parameter from the database
 	static int DeleteParameter(int parameter_id);
 	/// delete parameter from the database
@@ -84,7 +84,7 @@ class UniDbParameter
 	/* END OF PUBLIC GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
     // enumeration 'enumValueType' is corresponding parameter_type member UniDbParameter, you can see it in db_structures
-    static bool CheckAndGetParameterID(TSQLServer* uni_db, TString parameter_name, enumValueType enum_parameter_type, int& parameter_id);
+    static bool CheckAndGetParameterID(TSQLServer* db_server, TString parameter_name, enumValueType enum_parameter_type, int& parameter_id);
 
  ClassDef(UniDbParameter,1);
 };

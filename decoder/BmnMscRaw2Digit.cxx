@@ -96,14 +96,14 @@ BmnStatus BmnMscRaw2Digit::ParseTxtSpillLog(TString LogName, TString SchemeName)
     TObjArray arrayConditions;
     arrayConditions.SetOwner(kTRUE);
 
-    UniSearchCondition* searchCondition = new UniSearchCondition(columnPeriodNumber, conditionEqual, fPeriodId);
+    UniSearchCondition* searchCondition = new UniSearchCondition(UniSearchCondition::columnPeriodNumber, UniSearchCondition::conditionEqual, fPeriodId);
     arrayConditions.Add((TObject*) searchCondition);
     if (target != "") {
-        searchCondition = new UniSearchCondition(columnTargetParticle, conditionEqual, target); // one can choose any condition: beam, energy...
+        searchCondition = new UniSearchCondition(UniSearchCondition::columnTargetParticle, UniSearchCondition::conditionEqual, target); // one can choose any condition: beam, energy...
         arrayConditions.Add((TObject*) searchCondition);
     }
     if (beam != "") {
-        searchCondition = new UniSearchCondition(columnBeamParticle, conditionEqual, beam);
+        searchCondition = new UniSearchCondition(UniSearchCondition::columnBeamParticle, UniSearchCondition::conditionEqual, beam);
         arrayConditions.Add((TObject*) searchCondition);
     }
 

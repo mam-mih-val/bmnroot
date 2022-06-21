@@ -1,64 +1,35 @@
 // -------------------------------------------------------------------------
 // -----                       UniConnection source file               -----
-// -----                  Created 28/01/13 by K. Gertsenberger         -----
 // -------------------------------------------------------------------------
 #include "UniConnection.h"
 
-mapSQLServer* UniConnection::mapConnection = 0x00;
+mapSQLServer* UniConnection::mapConnection = nullptr;
 
 // -----   Constructor with connection   ----------------------
 UniConnection::UniConnection(TSQLServer* pSQLServer)
 {
-    server_db = pSQLServer;
+    db_server = pSQLServer;
 }
 
 // -------------------------------------------------------------------
-UniConnection* UniConnection::Open(UniConnectionType connection_type)
+UniConnection* UniConnection::Open()
 {
-    TString conString = "";
-    switch (connection_type)
-    {
-        case UNIFIED_DB:
-            conString = TString::Format("pgsql://%s/%s", UNI_DB_HOST, UNI_DB_NAME);
-            break;
-        case TANGO_DB:
-            conString = TString::Format("mysql://%s/%s", TANGO_DB_HOST, TANGO_DB_NAME);
-            break;
-        case ELOG_DB:
-            conString = TString::Format("pgsql://%s/%s", ELOG_DB_HOST, ELOG_DB_NAME);
-            break;
-        default:
-            {
-                cout<<"ERROR: incorrect database connection type!"<<endl;
-                return 0x00;
-            }
-    }
+    TString conString = TString::Format("pgsql://%s/%s", UNI_DB_HOST, UNI_DB_NAME);
 
-    if (UniConnection::mapConnection == NULL)
+    if (UniConnection::mapConnection == nullptr)
         UniConnection::mapConnection = new mapSQLServer();
 
-    TSQLServer* pSQLServer = 0x00;
+    TSQLServer* pSQLServer = nullptr;
     itSQLServer it = UniConnection::mapConnection->find(conString.Data());
     if (it != UniConnection::mapConnection->end())
         pSQLServer = it->second;
     else
     {
-        switch (connection_type)
+        pSQLServer = TSQLServer::Connect(conString, UNI_DB_USERNAME, UNI_DB_PASSWORD);
+        if (pSQLServer == nullptr)
         {
-            case UNIFIED_DB:
-                pSQLServer = TSQLServer::Connect(conString, UNI_DB_USERNAME, UNI_DB_PASSWORD);
-                break;
-            case TANGO_DB:
-                pSQLServer = TSQLServer::Connect(conString, TANGO_DB_USERNAME, TANGO_DB_PASSWORD);
-                break;
-            case ELOG_DB:
-                pSQLServer = TSQLServer::Connect(conString, ELOG_DB_USERNAME, ELOG_DB_PASSWORD);
-                break;
-        }
-        if (pSQLServer == 0x00)
-        {
-            cout<<"ERROR: database connection was not established (m.b. wrong login or password)"<<endl;
-            return 0x00;
+            cout<<"ERROR: database connection was not established ("<<UNI_DB_HOST<<") for '"<<UNI_DB_USERNAME<<"' user"<<endl;
+            return nullptr;
         }
         //cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;
 
@@ -83,15 +54,15 @@ UniConnection* UniConnection::Open(enumDBMS database_type, const char* strDBHost
         default:
             {
                 cout<<"ERROR: incorrect database type!"<<endl;
-                return 0x00;
+                return nullptr;
             }
     }
     TString conString = TString::Format("%s://%s/%s", db_type, strDBHost, strDBName);
 
-    if (UniConnection::mapConnection == NULL)
+    if (UniConnection::mapConnection == nullptr)
         UniConnection::mapConnection = new mapSQLServer();
 
-    TSQLServer* pSQLServer = 0x00;
+    TSQLServer* pSQLServer = nullptr;
     itSQLServer it = UniConnection::mapConnection->find(conString.Data());
     if (it != UniConnection::mapConnection->end())
     {
@@ -100,10 +71,10 @@ UniConnection* UniConnection::Open(enumDBMS database_type, const char* strDBHost
     else
     {
         pSQLServer = TSQLServer::Connect(conString, strUID, strPassword);
-        if (pSQLServer == 0x00)
+        if (pSQLServer == nullptr)
         {
-            cout<<"ERROR: database connection was not established (m.b. wrong login or password)"<<endl;
-            return 0x00;
+            cout<<"ERROR: database connection was not established ("<<strDBHost<<") for '"<<strUID<<"' user"<<endl;
+            return nullptr;
         }
         //cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;
 
@@ -116,8 +87,8 @@ UniConnection* UniConnection::Open(enumDBMS database_type, const char* strDBHost
 // -------------------------------------------------------------------
 UniConnection::~UniConnection()
 {
-    //if (uni_db)
-    //    delete uni_db;
+    //if (db_server)
+    //    delete db_server;
 }
 
 // -------------------------------------------------------------------

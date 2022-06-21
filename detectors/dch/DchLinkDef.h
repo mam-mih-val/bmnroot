@@ -1,4 +1,5 @@
-#ifdef __CINT__
+// $Id: DchLinkDef.h,v
+#ifdef __CLING__
 
 #pragma link off all globals;
 #pragma link off all classes;

@@ -20,10 +20,8 @@
 // </cycle>
 // possible data types: "int", "hex", "double", "string", "datetime", "binary"
 
-#ifndef UniParser_H
-#define UniParser_H 1
-
-#include "UniConnection.h"
+#ifndef UNIPARSER_H
+#define UNIPARSER_H 1
 
 #include "TString.h"
 #include "TDatime.h"

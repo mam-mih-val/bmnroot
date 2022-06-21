@@ -49,7 +49,7 @@ class UniDbDetectorParameter
 	Long_t sz_parameter_value;
 
 	//Constructor
-	UniDbDetectorParameter(UniConnection* connUniDb, int value_id, TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, int value_key, unsigned char* parameter_value, Long_t size_parameter_value);
+    UniDbDetectorParameter(UniConnection* db_connect, int value_id, TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, int value_key, unsigned char* parameter_value, Long_t size_parameter_value);
 	/* END OF PRIVATE GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
  public:
@@ -61,8 +61,8 @@ class UniDbDetectorParameter
 	static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, int value_key, unsigned char* parameter_value, Long_t size_parameter_value);
 	/// get detector parameter from the database
 	static UniDbDetectorParameter* GetDetectorParameter(int value_id);
-	/// check detector parameter exists in the database
-	static bool CheckDetectorParameterExists(int value_id);
+    /// check detector parameter exists in the database: 1 - true, 0 - false, <0 - database operation errors
+    static int CheckDetectorParameterExists(int value_id);
 	/// delete detector parameter from the database
 	static int DeleteDetectorParameter(int value_id);
 	/// print all detector parameters

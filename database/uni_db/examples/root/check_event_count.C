@@ -1,5 +1,4 @@
-R__ADD_INCLUDE_PATH($VMCWORKDIR)
-#include "database/unicom/function_set.h"
+#include "function_set.h"
 
 // function for walking and checking ROOT files in a given directory (and all subdirectories),
 // whether their event count is corresponding the number in BM@N Database
@@ -9,7 +8,7 @@ int check_event_count(TString dir_name, int period_number, double tolerance_perc
     gSystem->ExpandPathName(dir_name);
     TSystemDirectory dir(dir_name.Data(), dir_name.Data());
     TList* file_list = dir.GetListOfFiles();
-    if (file_list == NULL)
+    if (file_list == nullptr)
     {
         cout<<"WARNING: There are no files in the directory: "<<dir_name<<endl;
         return 0;

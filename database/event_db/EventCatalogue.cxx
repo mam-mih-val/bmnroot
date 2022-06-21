@@ -1,8 +1,8 @@
 #include "EventCatalogue.h"
-#include "../unicom/db_settings.h"
+#include "event_db_settings.h"
 
 #include <curl/curl.h>
-#include <../../services/json.hpp>
+#include <json.hpp>
 
 #include <fstream>
 #include <sstream>
@@ -44,7 +44,7 @@ int EventCatalogue::WriteEventMetadata(string json_file_path)
     string json_string = sstr.str();
     //cout<<"json_string = "<<json_string<<endl;
 
-    struct curl_slist* headers = NULL;
+    struct curl_slist* headers = nullptr;
     headers = curl_slist_append(headers, "Accept: */*");
     headers = curl_slist_append(headers, "Content-Type: application/json");
     headers = curl_slist_append(headers, "charset: utf-8");

@@ -6,7 +6,7 @@
 //============================================================================
 
 // own headers
-#include "db_settings.h"
+#include "uni_db_settings.h"
 
 // ROOT includes
 #include "TString.h"
@@ -149,10 +149,10 @@ int main(int argc, char** argv)
     // generate query
     TString strConnection = "pgsql://" + TString(UNI_DB_HOST) + "/" + (TString)UNI_DB_NAME;
     TSQLServer* pSQLServer = TSQLServer::Connect(strConnection, UNI_DB_USERNAME, UNI_DB_PASSWORD);
-    if (pSQLServer == 0x00)
+    if (pSQLServer == nullptr)
     {
         cout<<"Connection to the database was not established"<<endl;
-        return 0x00;
+        return -1;
     }
 
     TString sql = "select file_path "

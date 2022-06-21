@@ -2,10 +2,10 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/database/elog_db
  ${CMAKE_SOURCE_DIR}/database/tango
+ ${CMAKE_SOURCE_DIR}/database/tools
  ${CMAKE_SOURCE_DIR}/base
  ${CMAKE_SOURCE_DIR}/base/data
  ${CMAKE_SOURCE_DIR}/base/raw
@@ -89,6 +89,6 @@ endif()
 Set(HEADERS)
 Set(LINKDEF DecoderLinkDef.h)
 Set(LIBRARY_NAME BmnDecoder)
-Set(DEPENDENCIES LAND FHCal Hodo ScWall Zdc Ecal TofCal TOF TOF1 CSC Gem Silicon Dch Mwpc BmnBase UniDb ElogDb TangoData Base Minuit Core boost_program_options)
+Set(DEPENDENCIES LAND FHCal Hodo ScWall Zdc Ecal TofCal TOF TOF1 CSC Gem Silicon Dch Mwpc BmnBase DbTools UniDb ElogDb TangoData Base Minuit Core boost_program_options)
 
 GENERATE_LIBRARY()

@@ -12,7 +12,7 @@ void add_TRIG_mapping() {
     bool return_error = false;
     
     //needed only to put new detector in dataBase
-    //UniDbDetector* pDetector = UniDbDetector::CreateDetector("BD", NULL);
+    //UniDbDetector* pDetector = UniDbDetector::CreateDetector("BD", nullptr);
 
     vector<UniValue*> pT0;
     vector<UniValue*> pBC1;

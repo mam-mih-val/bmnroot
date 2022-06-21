@@ -142,7 +142,7 @@ void add_Tof1_INL_new(TString ListOfINLFiles = "ListINLFiles_Run7.txt", int sP =
     if (anwser == 'Y' || anwser == 'y') {
         //Upload it
         UniDbDetectorParameter* t = UniDbDetectorParameter::CreateDetectorParameter("TOF1", "TOF1_inl", sP, sR, eP, eR, InlData);
-        if (t == NULL) {
+        if (t == nullptr) {
             cerr << "Failed to upload the INL" << endl;
         } else {
             delete t;

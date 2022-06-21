@@ -434,11 +434,11 @@ TObjArray* BmnMonitor::GetAlikeRunsByElog(Int_t periodID, Int_t runID) {
     }
     printf("search  Energy %f I %f beam %s target %s\n\n", beamEnergy, I_SP41, beamParticle.Data(), targetParticle.Data());
     TObjArray arrayConditions;
-    UniSearchCondition* searchCondition = new UniSearchCondition(columnBeamParticle, conditionEqual, beamParticle);
+    UniSearchCondition* searchCondition = new UniSearchCondition(UniSearchCondition::columnBeamParticle, UniSearchCondition::conditionEqual, beamParticle);
     arrayConditions.Add((TObject*) searchCondition);
-    searchCondition = new UniSearchCondition(columnTargetParticle, conditionEqual, targetParticle);
+    searchCondition = new UniSearchCondition(UniSearchCondition::columnTargetParticle, UniSearchCondition::conditionEqual, targetParticle);
     arrayConditions.Add((TObject*) searchCondition);
-    searchCondition = new UniSearchCondition(columnEnergy, conditionEqual, beamEnergy);
+    searchCondition = new UniSearchCondition(UniSearchCondition::columnEnergy, UniSearchCondition::conditionEqual, beamEnergy);
     arrayConditions.Add((TObject*) searchCondition);
     //    searchCondition = new UniSearchCondition(colu, conditionEqual, beamEnergy);
     //    arrayConditions.Add((TObject*) searchCondition);
@@ -473,24 +473,24 @@ TObjArray* BmnMonitor::GetAlikeRunsByUniDB(Int_t periodID, Int_t runID) {
     TObjArray arrayConditions;
     TString beamParticle = Run->GetBeamParticle();
     printf("Beam particle %s\n", Run->GetBeamParticle().Data());
-    UniSearchCondition* searchCondition = new UniSearchCondition(columnBeamParticle, conditionEqual, beamParticle);
+    UniSearchCondition* searchCondition = new UniSearchCondition(UniSearchCondition::columnBeamParticle, UniSearchCondition::conditionEqual, beamParticle);
     arrayConditions.Add((TObject*) searchCondition);
     TString targetParticle = Run->GetTargetParticle() ? *Run->GetTargetParticle() : "";
     printf("Target particle %s\n", targetParticle.Data());
-    searchCondition = new UniSearchCondition(columnTargetParticle, conditionEqual, targetParticle);
+    searchCondition = new UniSearchCondition(UniSearchCondition::columnTargetParticle, UniSearchCondition::conditionEqual, targetParticle);
     arrayConditions.Add((TObject*) searchCondition);
     if (Run->GetEnergy() != NULL) {
         printf("Beam Energy %f\n", *Run->GetEnergy());
         Double_t beamEnergy = *Run->GetEnergy();
-        searchCondition = new UniSearchCondition(columnEnergy, conditionEqual, beamEnergy);
+        searchCondition = new UniSearchCondition(UniSearchCondition::columnEnergy, UniSearchCondition::conditionEqual, beamEnergy);
         arrayConditions.Add((TObject*) searchCondition);
     }
     if (Run->GetFieldVoltage() != NULL) {
         printf("Field voltage %f\n", *Run->GetFieldVoltage());
         Double_t V_SP41 = *Run->GetFieldVoltage();
-        searchCondition = new UniSearchCondition(columnFieldVoltage, conditionLessOrEqual, V_SP41 * 1.15);
+        searchCondition = new UniSearchCondition(UniSearchCondition::columnFieldVoltage, UniSearchCondition::conditionLessOrEqual, V_SP41 * 1.15);
         arrayConditions.Add((TObject*) searchCondition);
-        searchCondition = new UniSearchCondition(columnFieldVoltage, conditionGreaterOrEqual, V_SP41 * 0.85);
+        searchCondition = new UniSearchCondition(UniSearchCondition::columnFieldVoltage, UniSearchCondition::conditionGreaterOrEqual, V_SP41 * 0.85);
         arrayConditions.Add((TObject*) searchCondition);
     }
     printf("search\n");

@@ -22,14 +22,14 @@ void get_parameter_value_inl()
     for (int i = 0; i < channel_count; i++)
     {
         UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("TOF1", "inl", 5, 419, TDC_SERIAL, i); //(detector_name, parameter_name, period_number, run_number, dc_serial, channel)
-        if (pDetectorParameter == NULL)
+        if (pDetectorParameter == nullptr)
         {
             is_error = true;
             continue;
         }
 
         int inl_size = -1;
-        double* inl_for_channel = NULL;
+        double* inl_for_channel = nullptr;
         int res_code = pDetectorParameter->GetDoubleArray(inl_for_channel, inl_size);
         if (res_code != 0)
         {

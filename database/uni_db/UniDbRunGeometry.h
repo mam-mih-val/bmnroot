@@ -31,7 +31,7 @@ class UniDbRunGeometry
 	Long_t sz_root_geometry;
 
 	//Constructor
-	UniDbRunGeometry(UniConnection* connUniDb, int geometry_id, unsigned char* root_geometry, Long_t size_root_geometry);
+    UniDbRunGeometry(UniConnection* db_connect, int geometry_id, unsigned char* root_geometry, Long_t size_root_geometry);
 	/* END OF PRIVATE GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
  public:
@@ -43,8 +43,8 @@ class UniDbRunGeometry
 	static UniDbRunGeometry* CreateRunGeometry(unsigned char* root_geometry, Long_t size_root_geometry);
 	/// get run geometry from the database
 	static UniDbRunGeometry* GetRunGeometry(int geometry_id);
-	/// check run geometry exists in the database
-	static bool CheckRunGeometryExists(int geometry_id);
+    /// check run geometry exists in the database: 1 - true, 0 - false, <0 - database operation errors
+    static int CheckRunGeometryExists(int geometry_id);
 	/// delete run geometry from the database
 	static int DeleteRunGeometry(int geometry_id);
     /// print all run geometries

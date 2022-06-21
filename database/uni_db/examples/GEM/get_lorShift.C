@@ -2,7 +2,7 @@ void get_lorShift(Int_t runPeriod = 6, Int_t runNumber = 1217) {
     bool return_error = false;
 
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", runPeriod, runNumber);
-    if (pDetectorParameter == NULL)
+    if (pDetectorParameter == nullptr)
         return_error = true;
 
     vector<UniValue*> shifts;

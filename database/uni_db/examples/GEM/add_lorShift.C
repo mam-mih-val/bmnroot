@@ -73,7 +73,7 @@ void add_lorShift(Int_t run = 6)
 
     // Normal voltage, RUN6
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("GEM", "lorentz_shift", 6, 1219, 6, 1992, lorShiftValues);
-    if (pDetectorParameter == NULL)
+    if (pDetectorParameter == nullptr)
         return_error = true;
 
     // clean memory after work

@@ -1,5 +1,4 @@
 // $Id: ElogDbLinkDef.h,v
-
 #ifdef __CLING__
 
 #pragma link off all globals;
@@ -13,6 +12,16 @@
 #pragma link C++ class ElogDbTarget+;
 #pragma link C++ class ElogDbRecord+;
 #pragma link C++ class ElogDbAttachment+;
+
+#pragma link C++ class ElogConnection+;
+#pragma link C++ class ElogSearchCondition+;
+
+// the database enums
+#pragma link C++ enum ElogColumns;
+#ifndef enumConditions_link
+#define enumConditions_link 1
+#pragma link C++ enum enumConditions;
+#endif
 
 #endif
 

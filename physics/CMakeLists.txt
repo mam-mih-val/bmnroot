@@ -2,10 +2,10 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/database/elog_db
  ${CMAKE_SOURCE_DIR}/database/tango
+ ${CMAKE_SOURCE_DIR}/database/tools
  ${CMAKE_SOURCE_DIR}/field
  ${CMAKE_SOURCE_DIR}/base
  ${CMAKE_SOURCE_DIR}/base/data
@@ -83,6 +83,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF PhysicsLinkDef.h)
 Set(LIBRARY_NAME BmnPhysics)
-Set(DEPENDENCIES BmnGlobalTracking BmnDecoder LAND FHCal Hodo ScWall Zdc Ecal TofCal TOF TOF1 Gem Silicon CSC Dch Mwpc BmnBase BmnField UniDb ElogDb)
+Set(DEPENDENCIES BmnGlobalTracking BmnDecoder LAND FHCal Hodo ScWall Zdc Ecal TofCal TOF TOF1 Gem Silicon CSC Dch Mwpc BmnBase BmnField DbTools UniDb ElogDb)
 
 GENERATE_LIBRARY()

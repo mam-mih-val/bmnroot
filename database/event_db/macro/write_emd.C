@@ -1,6 +1,6 @@
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 R__LOAD_LIBRARY(libcurl)
-#include "../unicom/db_settings.h"
+#include "event_db_settings.h"
 #include <curl/curl.h>
 #include <services/json.hpp>
 using json = nlohmann::ordered_json;
@@ -15,7 +15,7 @@ int write_emd(TString dir_name, TString storage_name, TString software_version, 
 
     TSystemDirectory dir(dir_name.Data(), dir_name.Data());
     TList* file_list = dir.GetListOfFiles();
-    if (file_list == NULL)
+    if (file_list == nullptr)
     {
         cout<<"WARNING: There are no files in the directory: "<<dir_name<<endl;
         return 0;

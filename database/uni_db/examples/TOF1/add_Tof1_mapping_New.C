@@ -68,7 +68,7 @@ void add_Tof1_mapping_New(TString placement_map_filename = "TOF400_PlaceMap_RUN7
 //    delete pParameter;
     //write detector parameters in DB
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("TOF1", "TOF1_TdcMap", sP, sR, eP, eR, PlMap);
-    if (pDetectorParameter == NULL)
+    if (pDetectorParameter == nullptr)
         return_error = true;
     //
     //    // clean memory after work
@@ -138,7 +138,7 @@ void add_Tof1_mapping_New(TString placement_map_filename = "TOF400_PlaceMap_RUN7
     //write detector parameters in DB
     cout << "Write to DB " << endl;
     UniDbDetectorParameter* pDetectorParameter2 = UniDbDetectorParameter::CreateDetectorParameter("TOF1", "TOF1_StripMap", sP, sR, eP, eR, StrMap);
-    if (pDetectorParameter2 == NULL)
+    if (pDetectorParameter2 == nullptr)
         return_error = true;
 
     //clean memory after work

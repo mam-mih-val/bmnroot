@@ -22,7 +22,7 @@ void read_tof1_inl(Int_t period = 7, Int_t run = 4700) {
 
      // get parameter of TDC's map
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("TOF1", "inl_test", period, run); //(detector_name, parameter_name, period_number, run_number)
-    if (pDetectorParameter == NULL) {
+    if (pDetectorParameter == nullptr) {
         cout << "\nMacro finished with errors" << endl;
         return;
     }

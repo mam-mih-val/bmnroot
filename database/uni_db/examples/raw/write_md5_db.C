@@ -15,13 +15,13 @@ int write_md5_db(int period_number, bool isSkipExisted = true)
     {
         // get run time
         UniDbRun* pRun = UniDbRun::GetRun(run_numbers[i].period_number, run_numbers[i].run_number);
-        if (pRun == NULL)
+        if (pRun == nullptr)
         {
             cout<<"The function encountered with errors: no experimental run was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             isError = true;
             continue;
         }
-        if ((isSkipExisted) && (pRun->GetFileMd5() != NULL)) continue;
+        if ((isSkipExisted) && (pRun->GetFileMd5() != nullptr)) continue;
 
         TString strFilePath = pRun->GetFilePath();
         gSystem->ExpandPathName(strFilePath);
@@ -64,7 +64,7 @@ int write_sim_md5_db(bool isSkipExisted = true)
     for (int i = 0; i < file_count; i++)
     {
         UniDbSimulationFile* pFile = (UniDbSimulationFile*) simulation_files->At(i);
-        if ((isSkipExisted) && (pFile->GetFileMd5() != NULL)) continue;
+        if ((isSkipExisted) && (pFile->GetFileMd5() != nullptr)) continue;
 
         TString strFilePath = pFile->GetFilePath();
         gSystem->ExpandPathName(strFilePath);

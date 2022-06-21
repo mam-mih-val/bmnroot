@@ -8,7 +8,7 @@ int del_files_not_in_db(TString dir_name, int period_number, double limit_size_i
     gSystem->ExpandPathName(dir_name);
     TSystemDirectory dir(dir_name.Data(), dir_name.Data());
     TList* file_list = dir.GetListOfFiles();
-    if (file_list == NULL)
+    if (file_list == nullptr)
     {
         cout<<"WARNING: There are no files in the directory: "<<dir_name<<endl;
         return 0;
@@ -43,7 +43,7 @@ int del_files_not_in_db(TString dir_name, int period_number, double limit_size_i
 
                 // get run from the Database
                 UniDbRun* pRun = UniDbRun::GetRun(period_number, run_number);
-                if (pRun == NULL)
+                if (pRun == nullptr)
                 {
                     Long64_t size = 0;
                     Long_t id = 0, flags = 0, modtime = 0;

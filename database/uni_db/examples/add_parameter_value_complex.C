@@ -26,7 +26,7 @@ void add_parameter_value_complex()
     }
 
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "noise", 1, 77, 1, 77, pValues);
-    if (pDetectorParameter == NULL)
+    if (pDetectorParameter == nullptr)
         return_error = true;
 
     // clean memory after work

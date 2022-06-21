@@ -12,7 +12,7 @@
 #ifndef UNIVALUE_H
 #define UNIVALUE_H 1
 
-#include "db_settings.h"
+#include "uni_db_settings.h"
 
 #include <boost/endian/conversion.hpp>
 

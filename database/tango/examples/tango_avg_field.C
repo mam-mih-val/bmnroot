@@ -6,7 +6,7 @@ double tango_avg_field(int period = 6, int run = 1886)
 
     // get run time
     UniDbRun* pRun = UniDbRun::GetRun(period, run);
-    if (pRun == NULL)
+    if (pRun == nullptr)
     {
         cout<<"Macro finished with errors: no experimental run was found for given numbers"<<endl;
         return -1;
@@ -16,7 +16,7 @@ double tango_avg_field(int period = 6, int run = 1886)
     TString strDateStart = dateStart.AsSQLString();
 
     TDatime* dateEnd = pRun->GetEndDatetime();
-    if (dateEnd == NULL)
+    if (dateEnd == nullptr)
     {
         cout<<"The function encountered with errors: no end datetime in the database ("<<period<<":"<<run<<"). This run will be skipped!"<<endl;
         delete pRun;
@@ -29,7 +29,7 @@ double tango_avg_field(int period = 6, int run = 1886)
     const char* parameter_name = "ch1";
 
     TObjArray* tango_data = db_tango.GetTangoParameter(detector_name, parameter_name, strDateStart.Data(), strDateEnd.Data());
-    if (tango_data == NULL)
+    if (tango_data == nullptr)
     {
         cout<<"Macro finished with errors: return data is null"<<endl;
         return -3;
@@ -69,7 +69,7 @@ void tango_avg_field_write_db(int period = 7)
 
         // get run time
         UniDbRun* pRun = UniDbRun::GetRun(run_numbers[i].period_number, run_numbers[i].run_number);
-        if (pRun == NULL)
+        if (pRun == nullptr)
         {
             cout<<"The function encountered with errors: no experimental run was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             continue;
@@ -79,7 +79,7 @@ void tango_avg_field_write_db(int period = 7)
         TString strDateStart = dateStart.AsSQLString();
 
         TDatime* dateEnd = pRun->GetEndDatetime();
-        if (dateEnd == NULL)
+        if (dateEnd == nullptr)
         {
             cout<<"The function encountered with errors: no end datetime in the database ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             delete pRun;
@@ -91,7 +91,7 @@ void tango_avg_field_write_db(int period = 7)
         const char* parameter_name = "ch1";
 
         TObjArray* tango_data = db_tango.GetTangoParameter(detector_name, parameter_name, strDateStart.Data(), strDateEnd.Data());
-        if (tango_data == NULL)
+        if (tango_data == nullptr)
         {
             cout<<"The function encountered with errors: return data is null ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             continue;
@@ -132,7 +132,7 @@ int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end 
 
     // get time of the begin run
     UniDbRun* pRunBegin = UniDbRun::GetRun(period_begin, run_begin);
-    if (pRunBegin == NULL)
+    if (pRunBegin == nullptr)
     {
         cout<<"Macro finished with errors: no experimental run was found - "<<period_begin<<":"<<run_begin<<" (period:run)"<<endl;
         return -1;
@@ -142,7 +142,7 @@ int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end 
     TString strDateStart = dateStart.AsSQLString();
     cout<<"strDateStart: "<<strDateStart.Data()<<endl;
 
-    TDatime* dateEnd = NULL;
+    TDatime* dateEnd = nullptr;
     if ((period_end == -1) && (run_end == -1))
         dateEnd = pRunBegin->GetEndDatetime();
     else
@@ -151,7 +151,7 @@ int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end 
 
         // get time of the end run
         UniDbRun* pRunEnd = UniDbRun::GetRun(period_end, run_end);
-        if (pRunEnd == NULL)
+        if (pRunEnd == nullptr)
         {
             cout<<"Macro finished with errors: no experimental run was found - "<<period_end<<":"<<run_end<<" (period:run)"<<endl;
             delete pRunBegin;
@@ -161,7 +161,7 @@ int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end 
         delete pRunEnd;
     }
 
-    if (dateEnd == NULL)
+    if (dateEnd == nullptr)
     {
         cout<<"Macro finished with errors: no end datetime in the database for this run"<<endl;
         delete pRunBegin;
@@ -175,7 +175,7 @@ int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end 
     const char* detector_name = "bmn";
     const char* parameter_name = "ch1";
     TObjArray* tango_data = db_tango.GetTangoParameter(detector_name, parameter_name, strDateStart.Data(), strDateEnd.Data());
-    if (tango_data == NULL)
+    if (tango_data == nullptr)
     {
         cout<<"Macro finished with errors: return Tango data is null"<<endl;
         return -3;
@@ -205,7 +205,7 @@ void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
     {
         // get run time
         UniDbRun* pRun = UniDbRun::GetRun(run_numbers[i].period_number, run_numbers[i].run_number);
-        if (pRun == NULL)
+        if (pRun == nullptr)
         {
             cout<<"The function encountered with errors: no experimental run was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             continue;
@@ -215,7 +215,7 @@ void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
         TString strDateStart = dateStart.AsSQLString();
 
         TDatime* dateEnd = pRun->GetEndDatetime();
-        if (dateEnd == NULL)
+        if (dateEnd == nullptr)
         {
             cout<<"The function encountered with errors: no end datetime in the database for the run ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             delete dateEnd;
@@ -228,21 +228,21 @@ void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
 
         // get elog info
         TObjArray* arrayRecords = ElogDbRecord::GetRecords(run_numbers[i].period_number, run_numbers[i].run_number);
-        if (arrayRecords == NULL)
+        if (arrayRecords == nullptr)
         {
             cout<<"The function encountered with errors: no ELOG record was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             continue;
         }
-        int* pField = NULL;
+        int* pField = nullptr;
         for (int j = 0; j < arrayRecords->GetEntriesFast(); j++)
         {
             ElogDbRecord* pRecord = (ElogDbRecord*) arrayRecords->At(j);
             pField = pRecord->GetSp41();
-            if (pField != NULL)
+            if (pField != nullptr)
                 break;
         }
 
-        if (pField == NULL)
+        if (pField == nullptr)
         {
             cout<<"The function encountered with errors: no SP-41 field was set in ELOG ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             delete arrayRecords;
@@ -254,7 +254,7 @@ void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
 
         // calculate average magnetic field (voltage, mV) from the Tango database
         TObjArray* tango_data = db_tango.GetTangoParameter(detector_name, parameter_name, strDateStart.Data(), strDateEnd.Data());
-        if (tango_data == NULL)
+        if (tango_data == nullptr)
         {
             cout<<"The function encountered with errors: return Tango data is null ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             delete pField;
@@ -312,21 +312,21 @@ void compare_avg_field_graph(int period = 7)
     {
         // get ELOG info
         TObjArray* arrayRecords = ElogDbRecord::GetRecords(run_numbers[i].period_number, run_numbers[i].run_number);
-        if (arrayRecords == NULL)
+        if (arrayRecords == nullptr)
         {
             cout<<"The function encountered with errors: no ELOG record was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             continue;
         }
 
-        int* pField = NULL;
+        int* pField = nullptr;
         for (int j = 0; j < arrayRecords->GetEntriesFast(); j++)
         {
             ElogDbRecord* pRecord = (ElogDbRecord*) arrayRecords->At(j);
             pField = pRecord->GetSp41();
-            if (pField != NULL)
+            if (pField != nullptr)
                 break;
         }
-        if (pField == NULL)
+        if (pField == nullptr)
         {
             cout<<"The function encountered with errors: no SP-41 field was set in ELOG ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             delete arrayRecords;
@@ -338,14 +338,14 @@ void compare_avg_field_graph(int period = 7)
 
         // get UniDb average field for run
         UniDbRun* pRun = UniDbRun::GetRun(run_numbers[i].period_number, run_numbers[i].run_number);
-        if (pRun == NULL)
+        if (pRun == nullptr)
         {
             cout<<"The function encountered with errors: no experimental run was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             continue;
         }
         double* avg_field = pRun->GetFieldVoltage();
         delete pRun;
-        if (avg_field == NULL)
+        if (avg_field == nullptr)
         {
             cout<<"The function encountered with errors: no magnet field in the BM@N database ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             if (run_error[i] == 1) run_error[i] = 3;

@@ -13,14 +13,14 @@
 #include "TString.h"
 #include "TDatime.h"
 
-#include "UniConnection.h"
+#include "ElogConnection.h"
 
 class ElogDbTrigger
 {
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-        UniConnection* connectionUniDb;
+        ElogConnection* connectionDb;
 
 	/// trigger id
 	int i_trigger_id;
@@ -28,7 +28,7 @@ class ElogDbTrigger
 	TString str_trigger_info;
 
 	//Constructor
-        ElogDbTrigger(UniConnection* connUniDb, int trigger_id, TString trigger_info);
+    ElogDbTrigger(ElogConnection* db_connect, int trigger_id, TString trigger_info);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
@@ -42,10 +42,10 @@ class ElogDbTrigger
 	static ElogDbTrigger* GetTrigger(int trigger_id);
 	/// get trigger from the database
 	static ElogDbTrigger* GetTrigger(TString trigger_info);
-	/// check trigger exists in the database
-	static bool CheckTriggerExists(int trigger_id);
-	/// check trigger exists in the database
-	static bool CheckTriggerExists(TString trigger_info);
+    /// check trigger exists in the database: 1 - true, 0 - false, <0 - database operation errors
+    static int CheckTriggerExists(int trigger_id);
+    /// check trigger exists in the database: 1 - true, 0 - false, <0 - database operation errors
+    static int CheckTriggerExists(TString trigger_info);
 	/// delete trigger from the database
 	static int DeleteTrigger(int trigger_id);
 	/// delete trigger from the database

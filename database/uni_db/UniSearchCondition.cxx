@@ -48,5 +48,4 @@ UniSearchCondition::UniSearchCondition() :
     iValueType(0)
 {}
 
-// -------------------------------------------------------------------
 ClassImp(UniSearchCondition);

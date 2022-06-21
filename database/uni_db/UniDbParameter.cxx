@@ -13,9 +13,9 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbParameter::UniDbParameter(UniConnection* connUniDb, int parameter_id, TString parameter_name, int parameter_type, bool is_array)
+UniDbParameter::UniDbParameter(UniConnection* db_connect, int parameter_id, TString parameter_name, int parameter_type, bool is_array)
 {
-	connectionUniDb = connUniDb;
+    connectionUniDb = db_connect;
 
 	i_parameter_id = parameter_id;
 	str_parameter_name = parameter_name;
@@ -33,15 +33,15 @@ UniDbParameter::~UniDbParameter()
 // -----   Creating new parameter in the database  ---------------------------
 UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int parameter_type, bool is_array)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+	if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"insert into parameter_(parameter_name, parameter_type, is_array) "
 		"values ($1, $2, $3)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, parameter_name);
@@ -53,15 +53,15 @@ UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int para
 	{
 		cout<<"ERROR: inserting new parameter to the Database has been failed"<<endl;
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	delete stmt;
 
 	// getting last inserted ID
 	int parameter_id;
-	TSQLStatement* stmt_last = uni_db->Statement("SELECT currval(pg_get_serial_sequence('parameter_','parameter_id'))");
+    TSQLStatement* stmt_last = db_server->Statement("SELECT currval(pg_get_serial_sequence('parameter_','parameter_id'))");
 
 	// process getting last id
 	if (stmt_last->Process())
@@ -74,7 +74,7 @@ UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int para
 		{
 			cout<<"ERROR: no last ID in DB!"<<endl;
 			delete stmt_last;
-			return 0x00;
+			return nullptr;
 		}
 		else
 		{
@@ -86,7 +86,7 @@ UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int para
 	{
 		cout<<"ERROR: getting last ID has been failed!"<<endl;
 		delete stmt_last;
-		return 0x00;
+		return nullptr;
 	}
 
 	int tmp_parameter_id;
@@ -98,22 +98,22 @@ UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int para
 	bool tmp_is_array;
 	tmp_is_array = is_array;
 
-	return new UniDbParameter(connUniDb, tmp_parameter_id, tmp_parameter_name, tmp_parameter_type, tmp_is_array);
+	return new UniDbParameter(connDb, tmp_parameter_id, tmp_parameter_name, tmp_parameter_type, tmp_is_array);
 }
 
 // -----  Get parameter from the database  ---------------------------
 UniDbParameter* UniDbParameter::GetParameter(int parameter_id)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+	if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select parameter_id, parameter_name, parameter_type, is_array "
 		"from parameter_ "
 		"where parameter_id = %d", parameter_id);
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get parameter from the database
 	if (!stmt->Process())
@@ -121,8 +121,8 @@ UniDbParameter* UniDbParameter::GetParameter(int parameter_id)
 		cout<<"ERROR: getting parameter from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	// store result of statement in buffer
@@ -134,8 +134,8 @@ UniDbParameter* UniDbParameter::GetParameter(int parameter_id)
 		cout<<"ERROR: parameter was not found in the database"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	int tmp_parameter_id;
@@ -149,22 +149,22 @@ UniDbParameter* UniDbParameter::GetParameter(int parameter_id)
 
 	delete stmt;
 
-	return new UniDbParameter(connUniDb, tmp_parameter_id, tmp_parameter_name, tmp_parameter_type, tmp_is_array);
+	return new UniDbParameter(connDb, tmp_parameter_id, tmp_parameter_name, tmp_parameter_type, tmp_is_array);
 }
 
 // -----  Get parameter from the database by unique key  --------------
 UniDbParameter* UniDbParameter::GetParameter(TString parameter_name)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+	if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select parameter_id, parameter_name, parameter_type, is_array "
 		"from parameter_ "
 		"where lower(parameter_name) = lower('%s')", parameter_name.Data());
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get parameter from the database
 	if (!stmt->Process())
@@ -172,8 +172,8 @@ UniDbParameter* UniDbParameter::GetParameter(TString parameter_name)
 		cout<<"ERROR: getting parameter from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	// store result of statement in buffer
@@ -185,8 +185,8 @@ UniDbParameter* UniDbParameter::GetParameter(TString parameter_name)
 		cout<<"ERROR: parameter was not found in the database"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	int tmp_parameter_id;
@@ -200,22 +200,22 @@ UniDbParameter* UniDbParameter::GetParameter(TString parameter_name)
 
 	delete stmt;
 
-	return new UniDbParameter(connUniDb, tmp_parameter_id, tmp_parameter_name, tmp_parameter_type, tmp_is_array);
+	return new UniDbParameter(connDb, tmp_parameter_id, tmp_parameter_name, tmp_parameter_type, tmp_is_array);
 }
 
 // -----  Check parameter exists in the database  ---------------------------
-bool UniDbParameter::CheckParameterExists(int parameter_id)
+int UniDbParameter::CheckParameterExists(int parameter_id)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
 		"from parameter_ "
 		"where parameter_id = %d", parameter_id);
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get parameter from the database
 	if (!stmt->Process())
@@ -223,8 +223,8 @@ bool UniDbParameter::CheckParameterExists(int parameter_id)
 		cout<<"ERROR: getting parameter from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return false;
+		delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -234,29 +234,29 @@ bool UniDbParameter::CheckParameterExists(int parameter_id)
 	if (!stmt->NextResultRow())
 	{
 		delete stmt;
-		delete connUniDb;
-		return false;
+		delete connDb;
+        return 0;
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 
-	return true;
+    return 1;
 }
 
 // -----  Check parameter exists in the database by unique key  --------------
-bool UniDbParameter::CheckParameterExists(TString parameter_name)
+int UniDbParameter::CheckParameterExists(TString parameter_name)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
 		"from parameter_ "
 		"where lower(parameter_name) = lower('%s')", parameter_name.Data());
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get parameter from the database
 	if (!stmt->Process())
@@ -264,8 +264,8 @@ bool UniDbParameter::CheckParameterExists(TString parameter_name)
 		cout<<"ERROR: getting parameter from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return false;
+		delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -275,28 +275,28 @@ bool UniDbParameter::CheckParameterExists(TString parameter_name)
 	if (!stmt->NextResultRow())
 	{
 		delete stmt;
-		delete connUniDb;
-		return false;
+		delete connDb;
+        return 0;
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 
-	return true;
+    return 1;
 }
 
 // -----  Delete parameter from the database  ---------------------------
 int UniDbParameter::DeleteParameter(int parameter_id)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"delete from parameter_ "
 		"where parameter_id = $1");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, parameter_id);
@@ -307,27 +307,27 @@ int UniDbParameter::DeleteParameter(int parameter_id)
 		cout<<"ERROR: deleting parameter from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+		delete connDb;
+        return -2;
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 	return 0;
 }
 
 // -----  Delete parameter from the database by unique key  --------------
 int UniDbParameter::DeleteParameter(TString parameter_name)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"delete from parameter_ "
 		"where lower(parameter_name) = lower($1)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, parameter_name);
@@ -338,27 +338,27 @@ int UniDbParameter::DeleteParameter(TString parameter_name)
 		cout<<"ERROR: deleting parameter from the DataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+		delete connDb;
+        return -2;
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 	return 0;
 }
 
 // -----  Print all 'parameters'  ---------------------------------
 int UniDbParameter::PrintAll()
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select parameter_id, parameter_name, parameter_type, is_array "
 		"from parameter_");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get all 'parameters' from the database
 	if (!stmt->Process())
@@ -366,8 +366,8 @@ int UniDbParameter::PrintAll()
 		cout<<"ERROR: getting all 'parameters' from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+		delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -389,7 +389,7 @@ int UniDbParameter::PrintAll()
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 
 	return 0;
 }
@@ -404,13 +404,13 @@ int UniDbParameter::SetParameterName(TString parameter_name)
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+	TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update parameter_ "
 		"set parameter_name = $1 "
 		"where parameter_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, parameter_name);
@@ -439,13 +439,13 @@ int UniDbParameter::SetParameterType(int parameter_type)
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+	TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update parameter_ "
 		"set parameter_type = $1 "
 		"where parameter_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, parameter_type);
@@ -474,13 +474,13 @@ int UniDbParameter::SetIsArray(bool is_array)
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+	TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update parameter_ "
 		"set is_array = $1 "
 		"where parameter_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, is_array);
@@ -511,14 +511,14 @@ void UniDbParameter::Print()
 }
 /* END OF GENERATED CLASS PART (SHOULD NOT BE CHANGED MANUALLY) */
 
-bool UniDbParameter::CheckAndGetParameterID(TSQLServer* uni_db, TString parameter_name, enumValueType enum_parameter_type, int& parameter_id)
+bool UniDbParameter::CheckAndGetParameterID(TSQLServer* db_server, TString parameter_name, enumValueType enum_parameter_type, int& parameter_id)
 {
     // get parameter object from 'parameter_' table
     TString sql = TString::Format(
         "select parameter_id, parameter_name, parameter_type "
         "from parameter_ "
         "where lower(parameter_name) = lower('%s')", parameter_name.Data());
-    TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
     // get table record from DB
     if (!stmt->Process())

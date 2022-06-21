@@ -13,9 +13,9 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-ElogDbType::ElogDbType(UniConnection* connUniDb, int type_id, TString type_text)
+ElogDbType::ElogDbType(ElogConnection* db_connect, int type_id, TString type_text)
 {
-	connectionUniDb = connUniDb;
+    connectionDb = db_connect;
 
 	i_type_id = type_id;
 	str_type_text = type_text;
@@ -24,22 +24,22 @@ ElogDbType::ElogDbType(UniConnection* connUniDb, int type_id, TString type_text)
 // -----   Destructor   -------------------------------------------------
 ElogDbType::~ElogDbType()
 {
-	if (connectionUniDb)
-		delete connectionUniDb;
+	if (connectionDb)
+		delete connectionDb;
 }
 
 // -----   Creating new type in the database  ---------------------------
 ElogDbType* ElogDbType::CreateType(TString type_text)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+        ElogConnection* connDb = ElogConnection::Open();
+	if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"insert into type_(type_text) "
 		"values ($1)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, type_text);
@@ -49,15 +49,15 @@ ElogDbType* ElogDbType::CreateType(TString type_text)
 	{
 		cout<<"ERROR: inserting new type to the Database has been failed"<<endl;
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	delete stmt;
 
 	// getting last inserted ID
 	int type_id;
-	TSQLStatement* stmt_last = uni_db->Statement("SELECT currval(pg_get_serial_sequence('type_','type_id'))");
+	TSQLStatement* stmt_last = db_server->Statement("SELECT currval(pg_get_serial_sequence('type_','type_id'))");
 
 	// process getting last id
 	if (stmt_last->Process())
@@ -70,7 +70,7 @@ ElogDbType* ElogDbType::CreateType(TString type_text)
 		{
 			cout<<"ERROR: no last ID in DB!"<<endl;
 			delete stmt_last;
-			return 0x00;
+			return nullptr;
 		}
 		else
 		{
@@ -82,7 +82,7 @@ ElogDbType* ElogDbType::CreateType(TString type_text)
 	{
 		cout<<"ERROR: getting last ID has been failed!"<<endl;
 		delete stmt_last;
-		return 0x00;
+		return nullptr;
 	}
 
 	int tmp_type_id;
@@ -90,22 +90,22 @@ ElogDbType* ElogDbType::CreateType(TString type_text)
 	TString tmp_type_text;
 	tmp_type_text = type_text;
 
-	return new ElogDbType(connUniDb, tmp_type_id, tmp_type_text);
+	return new ElogDbType(connDb, tmp_type_id, tmp_type_text);
 }
 
 // -----  Get type from the database  ---------------------------
 ElogDbType* ElogDbType::GetType(int type_id)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+        ElogConnection* connDb = ElogConnection::Open();
+	if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select type_id, type_text "
 		"from type_ "
 		"where type_id = %d", type_id);
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get type from the database
 	if (!stmt->Process())
@@ -113,8 +113,8 @@ ElogDbType* ElogDbType::GetType(int type_id)
 		cout<<"ERROR: getting type from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	// store result of statement in buffer
@@ -126,8 +126,8 @@ ElogDbType* ElogDbType::GetType(int type_id)
 		cout<<"ERROR: type was not found in the database"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	int tmp_type_id;
@@ -137,22 +137,22 @@ ElogDbType* ElogDbType::GetType(int type_id)
 
 	delete stmt;
 
-	return new ElogDbType(connUniDb, tmp_type_id, tmp_type_text);
+	return new ElogDbType(connDb, tmp_type_id, tmp_type_text);
 }
 
 // -----  Get type from the database by unique key  --------------
 ElogDbType* ElogDbType::GetType(TString type_text)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+        ElogConnection* connDb = ElogConnection::Open();
+	if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select type_id, type_text "
 		"from type_ "
 		"where lower(type_text) = lower('%s')", type_text.Data());
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get type from the database
 	if (!stmt->Process())
@@ -160,8 +160,8 @@ ElogDbType* ElogDbType::GetType(TString type_text)
 		cout<<"ERROR: getting type from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	// store result of statement in buffer
@@ -173,8 +173,8 @@ ElogDbType* ElogDbType::GetType(TString type_text)
 		cout<<"ERROR: type was not found in the database"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+		delete connDb;
+		return nullptr;
 	}
 
 	int tmp_type_id;
@@ -184,22 +184,22 @@ ElogDbType* ElogDbType::GetType(TString type_text)
 
 	delete stmt;
 
-	return new ElogDbType(connUniDb, tmp_type_id, tmp_type_text);
+	return new ElogDbType(connDb, tmp_type_id, tmp_type_text);
 }
 
 // -----  Check type exists in the database  ---------------------------
-bool ElogDbType::CheckTypeExists(int type_id)
+int ElogDbType::CheckTypeExists(int type_id)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
 		"from type_ "
 		"where type_id = %d", type_id);
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get type from the database
 	if (!stmt->Process())
@@ -207,8 +207,8 @@ bool ElogDbType::CheckTypeExists(int type_id)
 		cout<<"ERROR: getting type from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return false;
+		delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -218,29 +218,29 @@ bool ElogDbType::CheckTypeExists(int type_id)
 	if (!stmt->NextResultRow())
 	{
 		delete stmt;
-		delete connUniDb;
-		return false;
+		delete connDb;
+        return 0;
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 
-	return true;
+    return 1;
 }
 
 // -----  Check type exists in the database by unique key  --------------
-bool ElogDbType::CheckTypeExists(TString type_text)
+int ElogDbType::CheckTypeExists(TString type_text)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
 		"from type_ "
 		"where lower(type_text) = lower('%s')", type_text.Data());
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get type from the database
 	if (!stmt->Process())
@@ -248,8 +248,8 @@ bool ElogDbType::CheckTypeExists(TString type_text)
 		cout<<"ERROR: getting type from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return false;
+		delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -259,28 +259,28 @@ bool ElogDbType::CheckTypeExists(TString type_text)
 	if (!stmt->NextResultRow())
 	{
 		delete stmt;
-		delete connUniDb;
-		return false;
+		delete connDb;
+        return 0;
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 
-	return true;
+    return 1;
 }
 
 // -----  Delete type from the database  ---------------------------
 int ElogDbType::DeleteType(int type_id)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"delete from type_ "
 		"where type_id = $1");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, type_id);
@@ -291,27 +291,27 @@ int ElogDbType::DeleteType(int type_id)
 		cout<<"ERROR: deleting type from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+		delete connDb;
+        return -2;
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 	return 0;
 }
 
 // -----  Delete type from the database by unique key  --------------
 int ElogDbType::DeleteType(TString type_text)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"delete from type_ "
 		"where lower(type_text) = lower($1)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, type_text);
@@ -322,27 +322,27 @@ int ElogDbType::DeleteType(TString type_text)
 		cout<<"ERROR: deleting type from the DataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+		delete connDb;
+        return -2;
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 	return 0;
 }
 
 // -----  Print all 'types'  ---------------------------------
 int ElogDbType::PrintAll()
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+	TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select type_id, type_text "
 		"from type_");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get all 'types' from the database
 	if (!stmt->Process())
@@ -350,8 +350,8 @@ int ElogDbType::PrintAll()
 		cout<<"ERROR: getting all 'types' from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+		delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -369,7 +369,7 @@ int ElogDbType::PrintAll()
 	}
 
 	delete stmt;
-	delete connUniDb;
+	delete connDb;
 
 	return 0;
 }
@@ -378,19 +378,19 @@ int ElogDbType::PrintAll()
 // Setters functions
 int ElogDbType::SetTypeText(TString type_text)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+	TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update type_ "
 		"set type_text = $1 "
 		"where type_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+	TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, type_text);

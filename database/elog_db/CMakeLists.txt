@@ -1,14 +1,13 @@
 # Create a library called "libElogDb"
 
 set(INCLUDE_DIRECTORIES
- ${ROOT_INCLUDE_DIR}
- ${XML2_INCLUDE_DIR}
- ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/elog_db
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
+ ${Boost_INCLUDE_DIRS}
  ${ROOT_INCLUDE_DIR}
+ ${XML2_INCLUDE_DIR}
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -16,6 +15,8 @@ Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
  ${ROOT_LIBRARY_DIR}
+ ${XML2_LIBRARY_DIR}
+ ${Boost_LIBRARY_DIRS}
 )
  
 link_directories(${LINK_DIRECTORIES})
@@ -28,13 +29,18 @@ set(SRCS
  ElogDbBeam.cxx
  ElogDbTarget.cxx
  ElogDbRecord.cxx
- ElogDbAttachment.cxx
+ ElogDbAttachment.cxx 
+ 
+ ElogConnection.cxx
+ ElogSearchCondition.cxx
+
+ elog_db_settings.h
 )
 
 set(HEADERS)
 Set(LINKDEF ElogDbLinkDef.h)
 Set(LIBRARY_NAME ElogDb)
-Set(DEPENDENCIES UniCommon Core Geom Gpad Net)
+Set(DEPENDENCIES Core Geom Gpad Net)
 
 GENERATE_LIBRARY()
 

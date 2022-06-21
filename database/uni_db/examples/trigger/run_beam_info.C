@@ -30,8 +30,8 @@ void run_beam_info(int period = 7, int run = 0, TString target = "",
         exit(-2);
     }
 
-    UniqueRunNumber* run_numbers = NULL;
-    TObjArray* pRunArray = NULL;
+    UniqueRunNumber* run_numbers = nullptr;
+    TObjArray* pRunArray = nullptr;
     int run_count = 1;
     // get all runs for the given period if run_number = 0
     if (run == 0)
@@ -74,30 +74,30 @@ void run_beam_info(int period = 7, int run = 0, TString target = "",
     // cycle for all runs to sum the spill data
     for (int i = 0; i < run_count; i++)
     {
-        if (run_numbers != NULL) run = run_numbers[i].run_number;
-        if (pRunArray != NULL) run = ((UniDbRun*) pRunArray->At(i))->GetRunNumber();
+        if (run_numbers != nullptr) run = run_numbers[i].run_number;
+        if (pRunArray != nullptr) run = ((UniDbRun*) pRunArray->At(i))->GetRunNumber();
 
         // get run time
         UniDbRun* pRun = UniDbRun::GetRun(period, run);
-        if (pRun == NULL)
+        if (pRun == nullptr)
         {
             cout<<endl<<"Macro finished with errors: no experimental run was found "<<period<<" : "<<run<<" / "<<((UniDbRun*) pRunArray->At(i))->GetRunNumber()<<endl;
-            if (run_numbers != NULL)
+            if (run_numbers != nullptr)
                 delete [] run_numbers;
-            if (pRunArray != NULL)
+            if (pRunArray != nullptr)
                 delete pRunArray;
             exit(-5);
         }
 
         TDatime dtStart = pRun->GetStartDatetime();
         TDatime* dateEnd = pRun->GetEndDatetime();
-        if (dateEnd == NULL)
+        if (dateEnd == nullptr)
         {
             cout<<"Macro finished with errors: no end datetime in the database for this run"<<endl;
             delete pRun;
-            if (run_numbers != NULL)
+            if (run_numbers != nullptr)
                 delete [] run_numbers;
-            if (pRunArray != NULL)
+            if (pRunArray != nullptr)
                 delete pRunArray;
             exit(-6);
         }
@@ -260,9 +260,9 @@ void run_beam_info(int period = 7, int run = 0, TString target = "",
     }
 
     // cleaning memory after work
-    if (run_numbers != NULL)
+    if (run_numbers != nullptr)
         delete [] run_numbers;
-    if (pRunArray != NULL)
+    if (pRunArray != nullptr)
         delete pRunArray;
 
     cout<<"Macro finished successfully"<<endl;

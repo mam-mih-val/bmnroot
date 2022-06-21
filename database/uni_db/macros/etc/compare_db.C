@@ -43,7 +43,7 @@ int compare_db()
 
         UniDbDetectorParameterNew* pNewParameter = UniDbDetectorParameterNew::GetDetectorParameter(pParameter->GetDetectorName(), pParameter->GetParameterName(),
                                                                                                    pParameter->GetStartPeriod(), pParameter->GetStartRun());
-        if (pNewParameter == NULL)
+        if (pNewParameter == nullptr)
         {
             cout<<"ERROR: returning new parameter was failed, where"<<endl<<"pParameter->GetDetectorName() = "<<pParameter->GetDetectorName()<<
                 ". pParameter->GetParameterName() = "<<pParameter->GetParameterName()<<". pParameter->GetStartPeriod() = "<<pParameter->GetStartPeriod()<<
@@ -62,7 +62,7 @@ int compare_db()
         {
             case BoolType:
             {
-                if (pParameter->GetDcSerial() == NULL)
+                if (pParameter->GetDcSerial() == nullptr)
                 {
                     BoolValue* pValue = (BoolValue*) parameter_value[0];
                     if (parameter_value.size() != 1)
@@ -102,7 +102,7 @@ int compare_db()
             }
             case IntType:
             {
-                if (pParameter->GetDcSerial() == NULL)
+                if (pParameter->GetDcSerial() == nullptr)
                 {
                     IntValue* pValue = (IntValue*) parameter_value[0];
                     if (parameter_value.size() != 1)
@@ -142,7 +142,7 @@ int compare_db()
             }
             case DoubleType:
             {
-                if (pParameter->GetDcSerial() != NULL)
+                if (pParameter->GetDcSerial() != nullptr)
                 {
                     cout<<"ERROR: old parameter has dc_serial, but it belongs to DoubleType"<<endl;
                     return -11;
@@ -164,7 +164,7 @@ int compare_db()
             }
             case StringType:
             {
-                if (pParameter->GetDcSerial() != NULL)
+                if (pParameter->GetDcSerial() != nullptr)
                 {
                     cout<<"ERROR: old parameter has dc_serial, but it belongs to StringType"<<endl;
                     return -14;
@@ -187,13 +187,13 @@ int compare_db()
             }
             case IIArrayType:
             {
-                if (pParameter->GetDcSerial() != NULL)
+                if (pParameter->GetDcSerial() != nullptr)
                 {
                     cout<<"ERROR: old parameter has dc_serial, but it belongs to IIArrayType"<<endl;
                     return -17;
                 }
 
-                IIStructure* ii_value = NULL; int element_count;
+                IIStructure* ii_value = nullptr; int element_count;
                 pParameter->GetIIArray(ii_value, element_count);
                 if (parameter_value.size() != element_count)
                 {
@@ -214,13 +214,13 @@ int compare_db()
             }
             case IntArrayType:
             {
-                if (pParameter->GetDcSerial() != NULL)
+                if (pParameter->GetDcSerial() != nullptr)
                 {
                     cout<<"ERROR: old parameter has dc_serial, but it belongs to IntArrayType"<<endl;
                     return -20;
                 }
 
-                int* i_value = NULL; int element_count;
+                int* i_value = nullptr; int element_count;
                 pParameter->GetIntArray(i_value, element_count);
                 if (parameter_value.size() != element_count)
                 {
@@ -241,9 +241,9 @@ int compare_db()
             }
             case DoubleArrayType:
             {
-                if (pParameter->GetDcSerial() == NULL)
+                if (pParameter->GetDcSerial() == nullptr)
                 {
-                    double* d_value = NULL; int element_count;
+                    double* d_value = nullptr; int element_count;
                     pParameter->GetDoubleArray(d_value, element_count);
                     if (parameter_value.size() != element_count)
                     {
@@ -262,7 +262,7 @@ int compare_db()
                 }
                 else
                 {
-                    double* d_value = NULL; int element_count;
+                    double* d_value = nullptr; int element_count;
                     pParameter->GetDoubleArray(d_value, element_count);
 
                     bool is_global_found = false;
@@ -306,7 +306,7 @@ int compare_db()
             }
             case BinaryArrayType:
             {
-                if (pParameter->GetDcSerial() != NULL)
+                if (pParameter->GetDcSerial() != nullptr)
                 {
                     cout<<"ERROR: old parameter has dc_serial, but it belongs to BinaryArrayType"<<endl;
                     return -24;
@@ -319,7 +319,7 @@ int compare_db()
                     return -25;
                 }
 
-                unsigned char* p_old_bytes = NULL; size_t byte_count;
+                unsigned char* p_old_bytes = nullptr; size_t byte_count;
                 if (pParameter->GetBinaryArray(p_old_bytes, byte_count) != 0)
                 {
                     cout<<"ERROR: returning binary array was failed for BinaryArrayType"<<endl;
@@ -344,13 +344,13 @@ int compare_db()
             }
             case UIntArrayType:
             {
-                if (pParameter->GetDcSerial() != NULL)
+                if (pParameter->GetDcSerial() != nullptr)
                 {
                     cout<<"ERROR: old parameter has dc_serial, but it belongs to UIntArrayType"<<endl;
                     return -29;
                 }
 
-                unsigned int* ui_value = NULL; int element_count;
+                unsigned int* ui_value = nullptr; int element_count;
                 pParameter->GetUIntArray(ui_value, element_count);
                 if (parameter_value.size() != element_count)
                 {
@@ -371,13 +371,13 @@ int compare_db()
             }
             case DchMapArrayType:
             {
-                if (pParameter->GetDcSerial() != NULL)
+                if (pParameter->GetDcSerial() != nullptr)
                 {
                     cout<<"ERROR: old parameter has dc_serial, but it belongs to DchMapArrayType"<<endl;
                     return -32;
                 }
 
-                DchMapStructure* dch_value = NULL; int element_count;
+                DchMapStructure* dch_value = nullptr; int element_count;
                 pParameter->GetDchMapArray(dch_value, element_count);
                 if (parameter_value.size() != element_count)
                 {
@@ -399,13 +399,13 @@ int compare_db()
             }
             case GemMapArrayType:
             {
-                if (pParameter->GetDcSerial() != NULL)
+                if (pParameter->GetDcSerial() != nullptr)
                 {
                     cout<<"ERROR: old parameter has dc_serial, but it belongs to GemMapArrayType"<<endl;
                     return -35;
                 }
 
-                GemMapStructure* gem_value = NULL; int element_count;
+                GemMapStructure* gem_value = nullptr; int element_count;
                 pParameter->GetGemMapArray(gem_value, element_count);
                 if (parameter_value.size() != element_count)
                 {
@@ -427,13 +427,13 @@ int compare_db()
             }
             case GemPedestalArrayType:
             {
-                if (pParameter->GetDcSerial() != NULL)
+                if (pParameter->GetDcSerial() != nullptr)
                 {
                     cout<<"ERROR: old parameter has dc_serial, but it belongs to GemPedestalArrayType"<<endl;
                     return -38;
                 }
 
-                GemPedestalStructure* gem_ped_value = NULL; int element_count;
+                GemPedestalStructure* gem_ped_value = nullptr; int element_count;
                 pParameter->GetGemPedestalArray(gem_ped_value, element_count);
                 if (parameter_value.size() != element_count)
                 {
@@ -455,13 +455,13 @@ int compare_db()
             }
             case TriggerMapArrayType:
             {
-                if (pParameter->GetDcSerial() != NULL)
+                if (pParameter->GetDcSerial() != nullptr)
                 {
                     cout<<"ERROR: old parameter has dc_serial, but it belongs to TriggerMapArrayType"<<endl;
                     return -41;
                 }
 
-                TriggerMapStructure* trigger_value = NULL; int element_count;
+                TriggerMapStructure* trigger_value = nullptr; int element_count;
                 pParameter->GetTriggerMapArray(trigger_value, element_count);
                 if (parameter_value.size() != element_count)
                 {
@@ -484,13 +484,13 @@ int compare_db()
             }
             case LorentzShiftArrayType:
             {
-                if (pParameter->GetDcSerial() != NULL)
+                if (pParameter->GetDcSerial() != nullptr)
                 {
                     cout<<"ERROR: old parameter has dc_serial, but it belongs to LorentzShiftArrayType"<<endl;
                     return -44;
                 }
 
-                LorentzShiftStructure* lorentz_value = NULL; int element_count;
+                LorentzShiftStructure* lorentz_value = nullptr; int element_count;
                 pParameter->GetLorentzShiftArray(lorentz_value, element_count);
                 if (parameter_value.size() != element_count)
                 {
@@ -551,7 +551,7 @@ int compare_geometry()
     // find all run geometries in the old table of the old database
     cout<<"Getting original array for run geometries..."<<endl;
     TObjArray* pGeometryArray = UniDbRunGeometry::GetAll();
-    if (pGeometryArray == NULL)
+    if (pGeometryArray == nullptr)
     {
         cout<<"ERROR: getting run geometries was failed"<<endl;
         return -1;
@@ -567,7 +567,7 @@ int compare_geometry()
         cout<<"Current run geometry: "<<pGeometry->GetGeometryId()<<endl;
 
         UniDbRunGeometryNew* pGeometryNew = UniDbRunGeometryNew::GetRunGeometry(pGeometry->GetGeometryId());
-        if (pGeometryNew == NULL)
+        if (pGeometryNew == nullptr)
         {
             cout<<"ERROR: returning new run geometry was failed, where pGeometry->GetGeometryId() = "<<pGeometry->GetGeometryId()<<endl;
             return -2;

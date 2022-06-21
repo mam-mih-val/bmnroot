@@ -269,7 +269,7 @@ inline UniValue* CreateParameterValue(enumValueType parameter_type)
     }
 
     cout<<"ERROR: The given value type is not supported!"<<endl;
-    return NULL;
+    return nullptr;
 }
 #endif
 

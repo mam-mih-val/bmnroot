@@ -29,7 +29,7 @@ void show_raw_size(int period = 7, int limit_run_gb = 100)
     {
         // get run
         UniDbRun* pRun = UniDbRun::GetRun(run_numbers[i].period_number, run_numbers[i].run_number);
-        if (pRun == NULL)
+        if (pRun == nullptr)
         {
             cout<<"The function encountered with errors: no experimental run was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             continue;
@@ -40,12 +40,12 @@ void show_raw_size(int period = 7, int limit_run_gb = 100)
         int* p_event_count = pRun->GetEventCount();
         delete pRun;
 
-        if (p_run_size == NULL)
+        if (p_run_size == nullptr)
         {
             cout<<"The function encountered with errors: file size was not defined for "<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<endl;
             continue;
         }
-        if (p_event_count == NULL)
+        if (p_event_count == nullptr)
         {
             cout<<"The function encountered with errors: event count was not defined for "<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<endl;
             continue;
@@ -127,7 +127,7 @@ int calculate_size(TString dir_path, TH1F* hist_file_size, TH1F* hist_event_size
 
     TSystemDirectory dir(dir_path.Data(), dir_path.Data());
     TList* file_list = dir.GetListOfFiles();
-    if (file_list == NULL)
+    if (file_list == nullptr)
     {
         cout<<"WARNING: There are no files in the directory: "<<dir_path<<endl;
         return 0;
@@ -157,7 +157,7 @@ int calculate_size(TString dir_path, TH1F* hist_file_size, TH1F* hist_event_size
 
                 TFile root_file(file_path);
                 TTree* root_tree = (TTree*) root_file.Get("bmndata");
-                if (root_tree == NULL)
+                if (root_tree == nullptr)
                 {
                     cout<<"ERROR: there are no tree 'bmndata' in file: "<<file_path<<endl;
                     root_file.Close();

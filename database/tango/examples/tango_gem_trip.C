@@ -11,7 +11,7 @@ void tango_gem_trip(int period, int run, bool isShowOnlyTrip = false)
 
     // get run time
     UniDbRun* pRun = UniDbRun::GetRun(period, run);
-    if (pRun == NULL)
+    if (pRun == nullptr)
     {
         cout<<"Macro finished with errors: no experimental run was found for period = "<<period<<", run = "<<run<<endl;
         exit(-2);
@@ -19,7 +19,7 @@ void tango_gem_trip(int period, int run, bool isShowOnlyTrip = false)
 
     TString strDateStart = pRun->GetStartDatetime().AsSQLString();
     TDatime* dateEnd = pRun->GetEndDatetime();
-    if (dateEnd == NULL)
+    if (dateEnd == nullptr)
     {
         cout<<"Macro finished with errors: no end datetime in the database for period = "<<period<<", run = "<<run<<endl;
         delete pRun;
@@ -54,7 +54,7 @@ void tango_gem_trip(int period, int run, bool isShowOnlyTrip = false)
     // ((TObjArray*)tango_data->At(0))->At(2) -> TangoTimeInterval*: third time interval satisfying the condition for the first channel 0
     TObjArray* tango_data = db_tango.SearchTangoIntervals(detector_name, parameter_name, strDateStart.Data(), strDateEnd.Data(),
                                                           condition, condition_value, map_channel);
-    if (tango_data == NULL)
+    if (tango_data == nullptr)
     {
         cout<<"Macro finished with errors"<<endl;
         exit(-1);

@@ -14,9 +14,9 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbSimulationFile::UniDbSimulationFile(UniConnection* connUniDb, int file_id, TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, int* file_size, TString* file_md5)
+UniDbSimulationFile::UniDbSimulationFile(UniConnection* db_connect, int file_id, TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, int* file_size, TString* file_md5)
 {
-	connectionUniDb = connUniDb;
+    connectionUniDb = db_connect;
 
 	i_file_id = file_id;
 	str_file_path = file_path;
@@ -53,42 +53,42 @@ UniDbSimulationFile::~UniDbSimulationFile()
 // -----   Creating new simulation file in the database  ---------------------------
 UniDbSimulationFile* UniDbSimulationFile::CreateSimulationFile(TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, int* file_size, TString* file_md5)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"insert into simulation_file(file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_desc, file_size, file_md5) "
 		"values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, file_path);
 	stmt->SetString(1, generator_name);
 	stmt->SetString(2, beam_particle);
-	if (target_particle == NULL)
+	if (target_particle == nullptr)
 		stmt->SetNull(3);
 	else
 		stmt->SetString(3, *target_particle);
-	if (energy == NULL)
+	if (energy == nullptr)
 		stmt->SetNull(4);
 	else
 		stmt->SetDouble(4, *energy);
 	stmt->SetString(5, centrality);
-	if (event_count == NULL)
+	if (event_count == nullptr)
 		stmt->SetNull(6);
 	else
 		stmt->SetInt(6, *event_count);
-	if (file_desc == NULL)
+	if (file_desc == nullptr)
 		stmt->SetNull(7);
 	else
 		stmt->SetString(7, *file_desc);
-	if (file_size == NULL)
+	if (file_size == nullptr)
 		stmt->SetNull(8);
 	else
 		stmt->SetInt(8, *file_size);
-	if (file_md5 == NULL)
+	if (file_md5 == nullptr)
 		stmt->SetNull(9);
 	else
 		stmt->SetString(9, *file_md5);
@@ -98,15 +98,15 @@ UniDbSimulationFile* UniDbSimulationFile::CreateSimulationFile(TString file_path
 	{
 		cout<<"ERROR: inserting new simulation file to the Database has been failed"<<endl;
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	delete stmt;
 
 	// getting last inserted ID
 	int file_id;
-	TSQLStatement* stmt_last = uni_db->Statement("SELECT currval(pg_get_serial_sequence('simulation_file','file_id'))");
+	TSQLStatement* stmt_last = db_server->Statement("SELECT currval(pg_get_serial_sequence('simulation_file','file_id'))");
 
 	// process getting last id
 	if (stmt_last->Process())
@@ -119,7 +119,7 @@ UniDbSimulationFile* UniDbSimulationFile::CreateSimulationFile(TString file_path
 		{
 			cout<<"ERROR: no last ID in DB!"<<endl;
 			delete stmt_last;
-			return 0x00;
+            return nullptr;
 		}
 		else
 		{
@@ -131,7 +131,7 @@ UniDbSimulationFile* UniDbSimulationFile::CreateSimulationFile(TString file_path
 	{
 		cout<<"ERROR: getting last ID has been failed!"<<endl;
 		delete stmt_last;
-		return 0x00;
+        return nullptr;
 	}
 
 	int tmp_file_id;
@@ -143,48 +143,48 @@ UniDbSimulationFile* UniDbSimulationFile::CreateSimulationFile(TString file_path
 	TString tmp_beam_particle;
 	tmp_beam_particle = beam_particle;
 	TString* tmp_target_particle;
-	if (target_particle == NULL) tmp_target_particle = NULL;
+	if (target_particle == nullptr) tmp_target_particle = nullptr;
 	else
 		tmp_target_particle = new TString(*target_particle);
 	double* tmp_energy;
-	if (energy == NULL) tmp_energy = NULL;
+	if (energy == nullptr) tmp_energy = nullptr;
 	else
 		tmp_energy = new double(*energy);
 	TString tmp_centrality;
 	tmp_centrality = centrality;
 	int* tmp_event_count;
-	if (event_count == NULL) tmp_event_count = NULL;
+	if (event_count == nullptr) tmp_event_count = nullptr;
 	else
 		tmp_event_count = new int(*event_count);
 	TString* tmp_file_desc;
-	if (file_desc == NULL) tmp_file_desc = NULL;
+	if (file_desc == nullptr) tmp_file_desc = nullptr;
 	else
 		tmp_file_desc = new TString(*file_desc);
 	int* tmp_file_size;
-	if (file_size == NULL) tmp_file_size = NULL;
+	if (file_size == nullptr) tmp_file_size = nullptr;
 	else
 		tmp_file_size = new int(*file_size);
 	TString* tmp_file_md5;
-	if (file_md5 == NULL) tmp_file_md5 = NULL;
+	if (file_md5 == nullptr) tmp_file_md5 = nullptr;
 	else
 		tmp_file_md5 = new TString(*file_md5);
 
-	return new UniDbSimulationFile(connUniDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size, tmp_file_md5);
+    return new UniDbSimulationFile(connDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size, tmp_file_md5);
 }
 
 // -----  Get simulation file from the database  ---------------------------
 UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(int file_id)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select file_id, file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_desc, file_size, file_md5 "
 		"from simulation_file "
 		"where file_id = %d", file_id);
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get simulation file from the database
 	if (!stmt->Process())
@@ -192,8 +192,8 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(int file_id)
 		cout<<"ERROR: getting simulation file from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	// store result of statement in buffer
@@ -205,8 +205,8 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(int file_id)
 		cout<<"ERROR: simulation file was not found in the database"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	int tmp_file_id;
@@ -218,50 +218,50 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(int file_id)
 	TString tmp_beam_particle;
 	tmp_beam_particle = stmt->GetString(3);
 	TString* tmp_target_particle;
-	if (stmt->IsNull(4)) tmp_target_particle = NULL;
+	if (stmt->IsNull(4)) tmp_target_particle = nullptr;
 	else
 		tmp_target_particle = new TString(stmt->GetString(4));
 	double* tmp_energy;
-	if (stmt->IsNull(5)) tmp_energy = NULL;
+	if (stmt->IsNull(5)) tmp_energy = nullptr;
 	else
 		tmp_energy = new double(stmt->GetDouble(5));
 	TString tmp_centrality;
 	tmp_centrality = stmt->GetString(6);
 	int* tmp_event_count;
-	if (stmt->IsNull(7)) tmp_event_count = NULL;
+	if (stmt->IsNull(7)) tmp_event_count = nullptr;
 	else
 		tmp_event_count = new int(stmt->GetInt(7));
 	TString* tmp_file_desc;
-	if (stmt->IsNull(8)) tmp_file_desc = NULL;
+	if (stmt->IsNull(8)) tmp_file_desc = nullptr;
 	else
 		tmp_file_desc = new TString(stmt->GetString(8));
 	int* tmp_file_size;
-	if (stmt->IsNull(9)) tmp_file_size = NULL;
+	if (stmt->IsNull(9)) tmp_file_size = nullptr;
 	else
 		tmp_file_size = new int(stmt->GetInt(9));
 	TString* tmp_file_md5;
-	if (stmt->IsNull(10)) tmp_file_md5 = NULL;
+	if (stmt->IsNull(10)) tmp_file_md5 = nullptr;
 	else
 		tmp_file_md5 = new TString(stmt->GetString(10));
 
 	delete stmt;
 
-	return new UniDbSimulationFile(connUniDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size, tmp_file_md5);
+    return new UniDbSimulationFile(connDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size, tmp_file_md5);
 }
 
 // -----  Get simulation file from the database by unique key  --------------
 UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(TString file_path)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select file_id, file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_desc, file_size, file_md5 "
 		"from simulation_file "
 		"where lower(file_path) = lower('%s')", file_path.Data());
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get simulation file from the database
 	if (!stmt->Process())
@@ -269,8 +269,8 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(TString file_path)
 		cout<<"ERROR: getting simulation file from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	// store result of statement in buffer
@@ -282,8 +282,8 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(TString file_path)
 		cout<<"ERROR: simulation file was not found in the database"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	int tmp_file_id;
@@ -295,50 +295,50 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(TString file_path)
 	TString tmp_beam_particle;
 	tmp_beam_particle = stmt->GetString(3);
 	TString* tmp_target_particle;
-	if (stmt->IsNull(4)) tmp_target_particle = NULL;
+	if (stmt->IsNull(4)) tmp_target_particle = nullptr;
 	else
 		tmp_target_particle = new TString(stmt->GetString(4));
 	double* tmp_energy;
-	if (stmt->IsNull(5)) tmp_energy = NULL;
+	if (stmt->IsNull(5)) tmp_energy = nullptr;
 	else
 		tmp_energy = new double(stmt->GetDouble(5));
 	TString tmp_centrality;
 	tmp_centrality = stmt->GetString(6);
 	int* tmp_event_count;
-	if (stmt->IsNull(7)) tmp_event_count = NULL;
+	if (stmt->IsNull(7)) tmp_event_count = nullptr;
 	else
 		tmp_event_count = new int(stmt->GetInt(7));
 	TString* tmp_file_desc;
-	if (stmt->IsNull(8)) tmp_file_desc = NULL;
+	if (stmt->IsNull(8)) tmp_file_desc = nullptr;
 	else
 		tmp_file_desc = new TString(stmt->GetString(8));
 	int* tmp_file_size;
-	if (stmt->IsNull(9)) tmp_file_size = NULL;
+	if (stmt->IsNull(9)) tmp_file_size = nullptr;
 	else
 		tmp_file_size = new int(stmt->GetInt(9));
 	TString* tmp_file_md5;
-	if (stmt->IsNull(10)) tmp_file_md5 = NULL;
+	if (stmt->IsNull(10)) tmp_file_md5 = nullptr;
 	else
 		tmp_file_md5 = new TString(stmt->GetString(10));
 
 	delete stmt;
 
-	return new UniDbSimulationFile(connUniDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size, tmp_file_md5);
+    return new UniDbSimulationFile(connDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size, tmp_file_md5);
 }
 
 // -----  Check simulation file exists in the database  ---------------------------
-bool UniDbSimulationFile::CheckSimulationFileExists(int file_id)
+int UniDbSimulationFile::CheckSimulationFileExists(int file_id)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
 		"from simulation_file "
 		"where file_id = %d", file_id);
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get simulation file from the database
 	if (!stmt->Process())
@@ -346,8 +346,8 @@ bool UniDbSimulationFile::CheckSimulationFileExists(int file_id)
 		cout<<"ERROR: getting simulation file from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return false;
+        delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -357,29 +357,29 @@ bool UniDbSimulationFile::CheckSimulationFileExists(int file_id)
 	if (!stmt->NextResultRow())
 	{
 		delete stmt;
-		delete connUniDb;
-		return false;
+        delete connDb;
+        return 0;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 
-	return true;
+    return 1;
 }
 
 // -----  Check simulation file exists in the database by unique key  --------------
-bool UniDbSimulationFile::CheckSimulationFileExists(TString file_path)
+int UniDbSimulationFile::CheckSimulationFileExists(TString file_path)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
 		"from simulation_file "
 		"where lower(file_path) = lower('%s')", file_path.Data());
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get simulation file from the database
 	if (!stmt->Process())
@@ -387,8 +387,8 @@ bool UniDbSimulationFile::CheckSimulationFileExists(TString file_path)
 		cout<<"ERROR: getting simulation file from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return false;
+        delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -398,28 +398,28 @@ bool UniDbSimulationFile::CheckSimulationFileExists(TString file_path)
 	if (!stmt->NextResultRow())
 	{
 		delete stmt;
-		delete connUniDb;
-		return false;
+        delete connDb;
+        return 0;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 
-	return true;
+    return 1;
 }
 
 // -----  Delete simulation file from the database  ---------------------------
 int UniDbSimulationFile::DeleteSimulationFile(int file_id)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"delete from simulation_file "
 		"where file_id = $1");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, file_id);
@@ -430,27 +430,27 @@ int UniDbSimulationFile::DeleteSimulationFile(int file_id)
 		cout<<"ERROR: deleting simulation file from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+        delete connDb;
+        return -2;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 	return 0;
 }
 
 // -----  Delete simulation file from the database by unique key  --------------
 int UniDbSimulationFile::DeleteSimulationFile(TString file_path)
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"delete from simulation_file "
 		"where lower(file_path) = lower($1)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, file_path);
@@ -461,27 +461,27 @@ int UniDbSimulationFile::DeleteSimulationFile(TString file_path)
 		cout<<"ERROR: deleting simulation file from the DataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+        delete connDb;
+        return -2;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 	return 0;
 }
 
 // -----  Print all 'simulation files'  ---------------------------------
 int UniDbSimulationFile::PrintAll()
 {
-	UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-	if (connUniDb == 0x00) return 0x00;
+	UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select file_id, file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_desc, file_size, file_md5 "
 		"from simulation_file");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get all 'simulation files' from the database
 	if (!stmt->Process())
@@ -489,8 +489,8 @@ int UniDbSimulationFile::PrintAll()
 		cout<<"ERROR: getting all 'simulation files' from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+        delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -509,36 +509,36 @@ int UniDbSimulationFile::PrintAll()
 		cout<<", beam_particle: ";
 		cout<<(stmt->GetString(3));
 		cout<<", target_particle: ";
-		if (stmt->IsNull(4)) cout<<"NULL";
+		if (stmt->IsNull(4)) cout<<"nullptr";
 		else
 			cout<<stmt->GetString(4);
 		cout<<", energy: ";
-		if (stmt->IsNull(5)) cout<<"NULL";
+		if (stmt->IsNull(5)) cout<<"nullptr";
 		else
 			cout<<stmt->GetDouble(5);
 		cout<<", centrality: ";
 		cout<<(stmt->GetString(6));
 		cout<<", event_count: ";
-		if (stmt->IsNull(7)) cout<<"NULL";
+		if (stmt->IsNull(7)) cout<<"nullptr";
 		else
 			cout<<stmt->GetInt(7);
 		cout<<", file_desc: ";
-		if (stmt->IsNull(8)) cout<<"NULL";
+		if (stmt->IsNull(8)) cout<<"nullptr";
 		else
 			cout<<stmt->GetString(8);
 		cout<<", file_size: ";
-		if (stmt->IsNull(9)) cout<<"NULL";
+		if (stmt->IsNull(9)) cout<<"nullptr";
 		else
 			cout<<stmt->GetInt(9);
 		cout<<", file_md5: ";
-		if (stmt->IsNull(10)) cout<<"NULL";
+		if (stmt->IsNull(10)) cout<<"nullptr";
 		else
 			cout<<stmt->GetString(10);
 		cout<<"."<<endl;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 
 	return 0;
 }
@@ -553,13 +553,13 @@ int UniDbSimulationFile::SetFilePath(TString file_path)
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update simulation_file "
 		"set file_path = $1 "
 		"where file_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, file_path);
@@ -588,13 +588,13 @@ int UniDbSimulationFile::SetGeneratorName(TString generator_name)
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update simulation_file "
 		"set generator_name = $1 "
 		"where file_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, generator_name);
@@ -623,13 +623,13 @@ int UniDbSimulationFile::SetBeamParticle(TString beam_particle)
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update simulation_file "
 		"set beam_particle = $1 "
 		"where file_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, beam_particle);
@@ -658,16 +658,16 @@ int UniDbSimulationFile::SetTargetParticle(TString* target_particle)
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update simulation_file "
 		"set target_particle = $1 "
 		"where file_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (target_particle == NULL)
+	if (target_particle == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetString(0, *target_particle);
@@ -684,7 +684,7 @@ int UniDbSimulationFile::SetTargetParticle(TString* target_particle)
 
 	if (str_target_particle)
 		delete str_target_particle;
-	if (target_particle == NULL) str_target_particle = NULL;
+	if (target_particle == nullptr) str_target_particle = nullptr;
 	else
 		str_target_particle = new TString(*target_particle);
 
@@ -700,16 +700,16 @@ int UniDbSimulationFile::SetEnergy(double* energy)
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update simulation_file "
 		"set energy = $1 "
 		"where file_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (energy == NULL)
+	if (energy == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetDouble(0, *energy);
@@ -726,7 +726,7 @@ int UniDbSimulationFile::SetEnergy(double* energy)
 
 	if (d_energy)
 		delete d_energy;
-	if (energy == NULL) d_energy = NULL;
+	if (energy == nullptr) d_energy = nullptr;
 	else
 		d_energy = new double(*energy);
 
@@ -742,13 +742,13 @@ int UniDbSimulationFile::SetCentrality(TString centrality)
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update simulation_file "
 		"set centrality = $1 "
 		"where file_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, centrality);
@@ -777,16 +777,16 @@ int UniDbSimulationFile::SetEventCount(int* event_count)
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update simulation_file "
 		"set event_count = $1 "
 		"where file_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (event_count == NULL)
+	if (event_count == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetInt(0, *event_count);
@@ -803,7 +803,7 @@ int UniDbSimulationFile::SetEventCount(int* event_count)
 
 	if (i_event_count)
 		delete i_event_count;
-	if (event_count == NULL) i_event_count = NULL;
+	if (event_count == nullptr) i_event_count = nullptr;
 	else
 		i_event_count = new int(*event_count);
 
@@ -819,16 +819,16 @@ int UniDbSimulationFile::SetFileDesc(TString* file_desc)
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update simulation_file "
 		"set file_desc = $1 "
 		"where file_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (file_desc == NULL)
+	if (file_desc == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetString(0, *file_desc);
@@ -845,7 +845,7 @@ int UniDbSimulationFile::SetFileDesc(TString* file_desc)
 
 	if (str_file_desc)
 		delete str_file_desc;
-	if (file_desc == NULL) str_file_desc = NULL;
+	if (file_desc == nullptr) str_file_desc = nullptr;
 	else
 		str_file_desc = new TString(*file_desc);
 
@@ -861,16 +861,16 @@ int UniDbSimulationFile::SetFileSize(int* file_size)
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update simulation_file "
 		"set file_size = $1 "
 		"where file_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (file_size == NULL)
+	if (file_size == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetInt(0, *file_size);
@@ -887,7 +887,7 @@ int UniDbSimulationFile::SetFileSize(int* file_size)
 
 	if (i_file_size)
 		delete i_file_size;
-	if (file_size == NULL) i_file_size = NULL;
+	if (file_size == nullptr) i_file_size = nullptr;
 	else
 		i_file_size = new int(*file_size);
 
@@ -903,16 +903,16 @@ int UniDbSimulationFile::SetFileMd5(TString* file_md5)
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update simulation_file "
 		"set file_md5 = $1 "
 		"where file_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
-	if (file_md5 == NULL)
+	if (file_md5 == nullptr)
 		stmt->SetNull(0);
 	else
 		stmt->SetString(0, *file_md5);
@@ -929,7 +929,7 @@ int UniDbSimulationFile::SetFileMd5(TString* file_md5)
 
 	if (chr_file_md5)
 		delete chr_file_md5;
-	if (file_md5 == NULL) chr_file_md5 = NULL;
+	if (file_md5 == nullptr) chr_file_md5 = nullptr;
 	else
 		chr_file_md5 = new TString(*file_md5);
 
@@ -941,7 +941,7 @@ int UniDbSimulationFile::SetFileMd5(TString* file_md5)
 void UniDbSimulationFile::Print()
 {
 	cout<<"Table 'simulation_file'";
-	cout<<". file_id: "<<i_file_id<<". file_path: "<<str_file_path<<". generator_name: "<<str_generator_name<<". beam_particle: "<<str_beam_particle<<". target_particle: "<<(str_target_particle == NULL? "NULL": *str_target_particle)<<". energy: "<<(d_energy == NULL? "NULL": TString::Format("%f", *d_energy))<<". centrality: "<<str_centrality<<". event_count: "<<(i_event_count == NULL? "NULL": TString::Format("%d", *i_event_count))<<". file_desc: "<<(str_file_desc == NULL? "NULL": *str_file_desc)<<". file_size: "<<(i_file_size == NULL? "NULL": TString::Format("%d", *i_file_size))<<". file_md5: "<<(chr_file_md5 == NULL? "NULL": *chr_file_md5)<<endl;
+	cout<<". file_id: "<<i_file_id<<". file_path: "<<str_file_path<<". generator_name: "<<str_generator_name<<". beam_particle: "<<str_beam_particle<<". target_particle: "<<(str_target_particle == nullptr? "nullptr": *str_target_particle)<<". energy: "<<(d_energy == nullptr? "nullptr": TString::Format("%f", *d_energy))<<". centrality: "<<str_centrality<<". event_count: "<<(i_event_count == nullptr? "nullptr": TString::Format("%d", *i_event_count))<<". file_desc: "<<(str_file_desc == nullptr? "nullptr": *str_file_desc)<<". file_size: "<<(i_file_size == nullptr? "nullptr": TString::Format("%d", *i_file_size))<<". file_md5: "<<(chr_file_md5 == nullptr? "nullptr": *chr_file_md5)<<endl;
 
 	return;
 }
@@ -950,21 +950,21 @@ void UniDbSimulationFile::Print()
 
 TObjArray* UniDbSimulationFile::GetSimulationFiles()
 {
-    TObjArray* arrayResult = NULL;
+    TObjArray* arrayResult = nullptr;
 
-    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-    if (connUniDb == 0x00)
+    UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr)
     {
         cout<<"ERROR: connection to the Unified Database was failed"<<endl;
         return arrayResult;
     }
 
-    TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
     TString sql = TString::Format(
         "select file_id, file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_desc, file_size, file_md5 "
         "from simulation_file");
-    TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
     //cout<<"SQL code: "<<sql<<endl;
 
     // get record from the database
@@ -973,7 +973,7 @@ TObjArray* UniDbSimulationFile::GetSimulationFiles()
         cout<<"ERROR: getting record from the database has been failed"<<endl;
 
         delete stmt;
-        delete connUniDb;
+        delete connDb;
 
         return arrayResult;
     }
@@ -986,8 +986,8 @@ TObjArray* UniDbSimulationFile::GetSimulationFiles()
     arrayResult->SetOwner(kTRUE);
     while (stmt->NextResultRow())
     {
-        UniConnection* connRun = UniConnection::Open(UNIFIED_DB);
-        if (connRun == 0x00)
+        UniConnection* connRun = UniConnection::Open();
+        if (connRun == nullptr)
         {
             cout<<"ERROR: the connection to the Unified Database for the selected simulation file was failed"<<endl;
             return arrayResult;
@@ -1002,33 +1002,33 @@ TObjArray* UniDbSimulationFile::GetSimulationFiles()
         TString tmp_beam_particle;
         tmp_beam_particle = stmt->GetString(3);
         TString* tmp_target_particle;
-        if (stmt->IsNull(4)) tmp_target_particle = NULL;
+        if (stmt->IsNull(4)) tmp_target_particle = nullptr;
         else
             tmp_target_particle = new TString(stmt->GetString(4));
         double* tmp_energy;
-        if (stmt->IsNull(5)) tmp_energy = NULL;
+        if (stmt->IsNull(5)) tmp_energy = nullptr;
         else
             tmp_energy = new double(stmt->GetDouble(5));
         TString tmp_centrality;
         tmp_centrality = stmt->GetString(6);
         int* tmp_event_count;
-        if (stmt->IsNull(7)) tmp_event_count = NULL;
+        if (stmt->IsNull(7)) tmp_event_count = nullptr;
         else
             tmp_event_count = new int(stmt->GetInt(7));
         TString* tmp_file_desc;
-        if (stmt->IsNull(8)) tmp_file_desc = NULL;
+        if (stmt->IsNull(8)) tmp_file_desc = nullptr;
         else
             tmp_file_desc = new TString(stmt->GetString(8));
         int* tmp_file_size;
-        if (stmt->IsNull(9)) tmp_file_size = NULL;
+        if (stmt->IsNull(9)) tmp_file_size = nullptr;
         else
             tmp_file_size = new int(stmt->GetInt(9));
         TString* tmp_file_md5;
-        if (stmt->IsNull(10)) tmp_file_md5 = NULL;
+        if (stmt->IsNull(10)) tmp_file_md5 = nullptr;
         else
             tmp_file_md5 = new TString(stmt->GetString(10));
 
-        arrayResult->Add((TObject*) new UniDbSimulationFile(connUniDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size, tmp_file_md5));
+        arrayResult->Add((TObject*) new UniDbSimulationFile(connDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size, tmp_file_md5));
     }
 
     delete stmt;
@@ -1038,17 +1038,17 @@ TObjArray* UniDbSimulationFile::GetSimulationFiles()
 
 TObjArray* UniDbSimulationFile::Search(TObjArray& search_conditions)
 {
-    TObjArray* arrayResult = NULL;
+    TObjArray* arrayResult = nullptr;
     search_conditions.SetOwner(kTRUE);
 
-    UniConnection* connUniDb = UniConnection::Open(UNIFIED_DB);
-    if (connUniDb == 0x00)
+    UniConnection* connDb = UniConnection::Open();
+    if (connDb == nullptr)
     {
         cout<<"ERROR: connection to the Unified Database was failed"<<endl;
         return arrayResult;
     }
 
-    TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
     TString sql = TString::Format(
         "select file_id, file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_desc, file_size, file_md5 "
@@ -1064,15 +1064,15 @@ TObjArray* UniDbSimulationFile::Search(TObjArray& search_conditions)
 
         switch (curCondition->GetColumn())
         {
-            case columnFilePath:        strCondition += "lower(file_path) "; break;
-            case columnGeneratorName:   strCondition += "lower(generator_name) "; break;
-            case columnBeamParticle:    strCondition += "lower(beam_particle) "; break;
-            case columnTargetParticle:  strCondition += "lower(target_particle) "; break;
-            case columnEnergy:          strCondition += "energy "; break;
-            case columnCentrality:      strCondition += "lower(centrality) "; break;
-            case columnEventCount:      strCondition += "event_count "; break;
-            case columnFileDesc:        strCondition += "lower(file_desc) "; break;
-            case columnFileSize:        strCondition += "file_size "; break;
+            case UniSearchCondition::columnFilePath:        strCondition += "lower(file_path) "; break;
+            case UniSearchCondition::columnGeneratorName:   strCondition += "lower(generator_name) "; break;
+            case UniSearchCondition::columnBeamParticle:    strCondition += "lower(beam_particle) "; break;
+            case UniSearchCondition::columnTargetParticle:  strCondition += "lower(target_particle) "; break;
+            case UniSearchCondition::columnEnergy:          strCondition += "energy "; break;
+            case UniSearchCondition::columnCentrality:      strCondition += "lower(centrality) "; break;
+            case UniSearchCondition::columnEventCount:      strCondition += "event_count "; break;
+            case UniSearchCondition::columnFileDesc:        strCondition += "lower(file_desc) "; break;
+            case UniSearchCondition::columnFileSize:        strCondition += "file_size "; break;
             default:
                 cout<<"ERROR: the column in the search condition was not defined, the condition is skipped"<<endl;
                 continue;
@@ -1080,15 +1080,15 @@ TObjArray* UniDbSimulationFile::Search(TObjArray& search_conditions)
 
         switch (curCondition->GetCondition())
         {
-            case conditionLess:             strCondition += "< "; break;
-            case conditionLessOrEqual:      strCondition += "<= "; break;
-            case conditionEqual:            strCondition += "= "; break;
-            case conditionNotEqual:         strCondition += "<> "; break;
-            case conditionGreater:          strCondition += "> "; break;
-            case conditionGreaterOrEqual:   strCondition += ">= "; break;
-            case conditionLike:             strCondition += "like "; break;
-            case conditionNull:             strCondition += "is null "; break;
-            case conditionNotNull:          strCondition += "is not null "; break;
+            case UniSearchCondition::conditionLess:             strCondition += "< "; break;
+            case UniSearchCondition::conditionLessOrEqual:      strCondition += "<= "; break;
+            case UniSearchCondition::conditionEqual:            strCondition += "= "; break;
+            case UniSearchCondition::conditionNotEqual:         strCondition += "<> "; break;
+            case UniSearchCondition::conditionGreater:          strCondition += "> "; break;
+            case UniSearchCondition::conditionGreaterOrEqual:   strCondition += ">= "; break;
+            case UniSearchCondition::conditionLike:             strCondition += "like "; break;
+            case UniSearchCondition::conditionNull:             strCondition += "is null "; break;
+            case UniSearchCondition::conditionNotNull:          strCondition += "is not null "; break;
             default:
                 cout<<"ERROR: the comparison operator in the search condition was not defined, the condition is skipped"<<endl;
                 continue;
@@ -1097,7 +1097,8 @@ TObjArray* UniDbSimulationFile::Search(TObjArray& search_conditions)
         switch (curCondition->GetValueType())
         {
             case 0:
-                if ((curCondition->GetCondition() != conditionNull) && (curCondition->GetCondition() != conditionNotNull)) continue;
+                if ((curCondition->GetCondition() != UniSearchCondition::conditionNull) &&
+                    (curCondition->GetCondition() != UniSearchCondition::conditionNotNull)) continue;
                 break;
             case 1: strCondition += Form("%d", curCondition->GetIntValue()); break;
             case 2: strCondition += Form("%u", curCondition->GetUIntValue()); break;
@@ -1121,7 +1122,7 @@ TObjArray* UniDbSimulationFile::Search(TObjArray& search_conditions)
     }
     sql += " order by generator_name";
 
-    TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
     //cout<<"SQL code: "<<sql<<endl;
 
     // get table record from DB
@@ -1129,7 +1130,7 @@ TObjArray* UniDbSimulationFile::Search(TObjArray& search_conditions)
     {
         cout<<"ERROR: getting simulation files from the Unified Database has been failed"<<endl;
         delete stmt;
-        delete connUniDb;
+        delete connDb;
 
         return arrayResult;
     }
@@ -1142,8 +1143,8 @@ TObjArray* UniDbSimulationFile::Search(TObjArray& search_conditions)
     arrayResult->SetOwner(kTRUE);
     while (stmt->NextResultRow())
     {
-        UniConnection* connRun = UniConnection::Open(UNIFIED_DB);
-        if (connRun == 0x00)
+        UniConnection* connRun = UniConnection::Open();
+        if (connRun == nullptr)
         {
             cout<<"ERROR: the connection to the Unified Database for the selected simulation file was failed"<<endl;
             return arrayResult;
@@ -1158,33 +1159,33 @@ TObjArray* UniDbSimulationFile::Search(TObjArray& search_conditions)
         TString tmp_beam_particle;
         tmp_beam_particle = stmt->GetString(3);
         TString* tmp_target_particle;
-        if (stmt->IsNull(4)) tmp_target_particle = NULL;
+        if (stmt->IsNull(4)) tmp_target_particle = nullptr;
         else
             tmp_target_particle = new TString(stmt->GetString(4));
         double* tmp_energy;
-        if (stmt->IsNull(5)) tmp_energy = NULL;
+        if (stmt->IsNull(5)) tmp_energy = nullptr;
         else
             tmp_energy = new double(stmt->GetDouble(5));
         TString tmp_centrality;
         tmp_centrality = stmt->GetString(6);
         int* tmp_event_count;
-        if (stmt->IsNull(7)) tmp_event_count = NULL;
+        if (stmt->IsNull(7)) tmp_event_count = nullptr;
         else
             tmp_event_count = new int(stmt->GetInt(7));
         TString* tmp_file_desc;
-        if (stmt->IsNull(8)) tmp_file_desc = NULL;
+        if (stmt->IsNull(8)) tmp_file_desc = nullptr;
         else
             tmp_file_desc = new TString(stmt->GetString(8));
         int* tmp_file_size;
-        if (stmt->IsNull(9)) tmp_file_size = NULL;
+        if (stmt->IsNull(9)) tmp_file_size = nullptr;
         else
             tmp_file_size = new int(stmt->GetInt(9));
         TString* tmp_file_md5;
-        if (stmt->IsNull(10)) tmp_file_md5 = NULL;
+        if (stmt->IsNull(10)) tmp_file_md5 = nullptr;
         else
             tmp_file_md5 = new TString(stmt->GetString(10));
 
-        arrayResult->Add((TObject*) new UniDbSimulationFile(connUniDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size, tmp_file_md5));
+        arrayResult->Add((TObject*) new UniDbSimulationFile(connDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size, tmp_file_md5));
     }
 
     delete stmt;

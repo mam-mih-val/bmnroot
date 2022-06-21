@@ -11,11 +11,11 @@ void write_geometry_to_db(int geometry_link, int start_period, int start_run, in
     if (geometry_link == -1)
     {
         UniqueRunNumber* pPreviousRunNumber = UniDbRun::FindPreviousRun(start_period, start_run);
-        if (pPreviousRunNumber == NULL)
+        if (pPreviousRunNumber == nullptr)
             return;
 
         UniDbRun* pPreviosRun = UniDbRun::GetRun(pPreviousRunNumber->period_number, pPreviousRunNumber->run_number);
-        if (pPreviosRun == NULL)
+        if (pPreviosRun == nullptr)
         {
             cout<<"ERROR: getting of previous run "<<pPreviousRunNumber->period_number<<":"<<pPreviousRunNumber->run_number<<" (period:number) was failed"<<endl;
             delete pPreviousRunNumber;
@@ -24,7 +24,7 @@ void write_geometry_to_db(int geometry_link, int start_period, int start_run, in
         }
         delete pPreviousRunNumber;
 
-        if (pPreviosRun->GetGeometryId() == NULL)
+        if (pPreviosRun->GetGeometryId() == nullptr)
         {
             cout<<"ERROR: no geometry id was found in the prevoius run "<<pPreviousRunNumber->period_number<<":"<<pPreviousRunNumber->run_number<<" (period:number)"<<endl;
             delete pPreviosRun;
@@ -35,7 +35,7 @@ void write_geometry_to_db(int geometry_link, int start_period, int start_run, in
         delete pPreviosRun;
     }
 
-    UniqueRunNumber* pUniqueRuns = NULL;
+    UniqueRunNumber* pUniqueRuns = nullptr;
     int run_count = UniDbRun::GetRunNumbers(start_period, start_run, end_period, end_run, pUniqueRuns);
     if (run_count < 0)
     {
@@ -48,7 +48,7 @@ void write_geometry_to_db(int geometry_link, int start_period, int start_run, in
         cout<<"Setting link to geometry for run_period:run   "<<pUniqueRuns[i].period_number<<":"<<pUniqueRuns[i].run_number<<"..."<<endl;
 
         UniDbRun* pCurRun = UniDbRun::GetRun(pUniqueRuns[i].period_number, pUniqueRuns[i].run_number);
-        if (pCurRun == NULL)
+        if (pCurRun == nullptr)
         {
             cout<<"ERROR: getting of run "<<pUniqueRuns[i].period_number<<":"<<pUniqueRuns[i].run_number<<" (period:number) was failed"<<endl;
             res_code = -1;

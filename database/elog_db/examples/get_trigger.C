@@ -7,7 +7,7 @@ TString get_trigger(int period_number = 7, int run_number = 4608)
     ElogDbRecord* curRecord;
     while (curRecord == (ElogDbRecord*)next())
     {
-        if (curRecord->GetTriggerId() != NULL)
+        if (curRecord->GetTriggerId() != nullptr)
             strTrigger = ElogDbTrigger::GetTrigger(*(curRecord->GetTriggerId()))->GetTriggerInfo();
     }
 

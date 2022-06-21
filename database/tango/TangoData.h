@@ -6,8 +6,6 @@
 #ifndef TANGODATA_H
 #define TANGODATA_H 1
 
-#include "UniSearchCondition.h"
-
 #include "TDatime.h"
 #include "TObjArray.h"
 #include "TString.h"
@@ -15,6 +13,9 @@
 #include <vector>
 #include <string>
 using namespace std;
+
+enum enumConditions {conditionLess, conditionLessOrEqual, conditionEqual, conditionNotEqual, conditionGreater,
+                     conditionGreaterOrEqual, conditionLike, conditionNull, conditionNotNull};
 
 struct CSVElement
 {
@@ -80,7 +81,7 @@ class TangoData
     //	parameter_name - name of physical parameter stored in Tango (e.g. "uset" for ZDC or "u" for GEM)
     //	date_start - time from which to start reading the parameter, format: "YYYY-MM-DD HH:MM:SS" (e.g. "2015-03-13 23:00:00")
     //	date_end - end time of parameter reading, the same format (e.g. "2015-03-13 24:00:00")
-    // Returns TObjArray with TangoTimeParameter objects (i.e. conditionally TObjArray<TangoTimeParameter*>), or NULL in case errors.
+    // Returns TObjArray with TangoTimeParameter objects (i.e. conditionally TObjArray<TangoTimeParameter*>), or nullptr in case errors.
     TObjArray* GetTangoParameter(const char* detector_name, const char* parameter_name, const char* date_start, const char* date_end);
 
     // Function SearchTangoIntervals gets time intervals for defined condition on parameter, from the Tango database (MySQL connection defined in 'db_settings.h' file).
@@ -90,11 +91,11 @@ class TangoData
     //  parameter_name - name of physical parameter stored in Tango (e.g. "uset" for ZDC or "u" for GEM)
     //  date_start - time from which to start searching for time intervals satisfied the condition, format: "YYYY-MM-DD HH:MM:SS" (e.g. "2015-03-13 23:00:00")
     //	date_end - end time of searching time intervals, the same format (e.g. "2015-03-13 24:00:00")
-    //  condition - condition of time interval sampling, default: conditionEqual (the possible list in 'uni_db/db_structures.h')
+    //  condition - condition of time interval sampling, default: conditionEqual (the possible list in 'uni_db/uni_db_structures.h')
     //  value - boolean value for the condition with which the comparison is performed, default: true
-    //  mapChannel - vector of integer values (map) to change the order of result TObjArray-s in the common result array, if, for example, channels go in a different sequence; NULL - if not used
+    //  mapChannel - vector of integer values (map) to change the order of result TObjArray-s in the common result array, if, for example, channels go in a different sequence; nullptr - if not used
     // Returns common TObjArray with TObjArray objects containing TangoTimeInterval (i.e. conditionally TObjArray<TObjArray<TangoTimeInterval*>>),
-    // if no intervals found - returns the common TObjArray with zero TObjArray elements; in case of errors - returns NULL
+    // if no intervals found - returns the common TObjArray with zero TObjArray elements; in case of errors - returns nullptr
     TObjArray* SearchTangoIntervals(const char* detector_name, const char* parameter_name, const char* date_start, const char* date_end,
                                     enumConditions condition = conditionEqual, bool value = true, vector<int>* mapChannel = nullptr);
 

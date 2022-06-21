@@ -4,14 +4,14 @@ void work_large_object()
     timer.Start();
     gDebug = 0;
 
-    UniConnection* connectionUniDb = UniConnection::Open(UNIFIED_DB);
-    if (connectionUniDb == 0x00)
+    UniConnection* connDb = UniConnection::Open();
+    if (connectionUniDb == nullptr)
     {
         cout<<"ERROR: connection to the database can not be established"<<endl;
         return -1;
     }
 
-    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
     cout<<"DB: "<<uni_db->GetDB()<<". Type: "<<uni_db->GetDBMS()<<"."<<endl;
 
@@ -38,8 +38,8 @@ void work_large_object()
     delete connectionUniDb;
 
     // print all values
-    connectionUniDb = UniConnection::Open(UNIFIED_DB);
-    if (connectionUniDb == 0x00)
+    connDb = UniConnection::Open();
+    if (connectionUniDb == nullptr)
     {
         cout<<"ERROR: connection to the database can't be established"<<endl;
         return -2;

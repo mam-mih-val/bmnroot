@@ -1,7 +1,6 @@
 # Create a library called "libUniDb"
 
 set(INCLUDE_DIRECTORIES
- ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/uni_db
 )
 
@@ -32,13 +31,20 @@ set(SRCS
  UniDbDetectorParameter.cxx
  UniDbSimulationFile.cxx
  
- UniParser.cxx
+ UniConnection.cxx
+ UniSearchCondition.cxx 
+
+ uni_db_settings.h
+ 
+ UniValue.cxx
+ # add definitions of the possible database structures and enums
+ uni_db_structures.h
 )
 
 set(HEADERS)
 Set(LINKDEF UniDbLinkDef.h)
 Set(LIBRARY_NAME UniDb)
-Set(DEPENDENCIES UniCommon Core Geom Gpad Net xml2)
+Set(DEPENDENCIES Core Geom Gpad Net xml2)
 
 GENERATE_LIBRARY()
 

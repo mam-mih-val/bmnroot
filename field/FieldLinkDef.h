@@ -1,7 +1,5 @@
-// FieldLinkDef.h 
-// V. Friese  13/02/06
-
-#ifdef __CINT__
+// $Id: FieldLinkDef.h,v
+#ifdef __CLING__
 
 #pragma link off all globals;
 #pragma link off all classes;

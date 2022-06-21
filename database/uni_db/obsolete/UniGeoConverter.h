@@ -34,7 +34,7 @@ class UniGeoConverter
  private:
     UniGeoConverter();
 
-    static int RecursiveNodeChanging(TSQLServer* uni_db, TGeoNode* node, int parent_node_id);
+    static int RecursiveNodeChanging(TSQLServer* db_server, TGeoNode* node, int parent_node_id);
 
  public:
     virtual ~UniGeoConverter(); // Destructor

@@ -23,7 +23,7 @@ void change_1detector_geometry(int start_period = 7, int start_run = 2041, int e
 
     // generate output name for temporary file with old full geometry
     TString strFullGeoFileName;
-    srand(time(NULL));
+    srand(time(nullptr));
     strFullGeoFileName.Form("full_old_%x%x.root",//-%x-%x-%x-%x%x%x",
                             rand(), rand());//,                 // Generates a 64-bit Hex number
                           //    rand(),                         // Generates a 32-bit Hex number
@@ -84,7 +84,7 @@ void change_1detector_geometry(int start_period = 7, int start_run = 2041, int e
         arrDetectorNames.AddLast((TObject*)(new TObjString(cur_volume->GetName())));
 
         TString new_det = " ";
-        TFile* fileDetectorGeo = NULL;
+        TFile* fileDetectorGeo = nullptr;
         if (volume_name == TString(detector_name))
         {
             // get detector volume from ROOT file
@@ -108,7 +108,7 @@ void change_1detector_geometry(int start_period = 7, int start_run = 2041, int e
                 {
                     cur_volume = cur_volume->GetNode(0)->GetVolume();
                     if (!(cur_volume->GetName() == TString(detector_name)))
-                        cur_volume = NULL;
+                        cur_volume = nullptr;
                 }
             }
             if (!cur_volume)
@@ -133,7 +133,7 @@ void change_1detector_geometry(int start_period = 7, int start_run = 2041, int e
 #endif
         cur_volume->Export(strDetectorGeoName->String(), volume_name);
 
-        if (fileDetectorGeo != NULL)
+        if (fileDetectorGeo != nullptr)
         {
             fileDetectorGeo->Close();
             delete fileDetectorGeo;
@@ -157,7 +157,7 @@ void change_1detector_geometry(int start_period = 7, int start_run = 2041, int e
 #endif
 
         TGeoVolume* detector_volume = TGeoVolume::Import(impDetectorFile->String(), impDetectorName->String());
-        if (detector_volume == NULL)
+        if (detector_volume == nullptr)
         {
             cout<<"ERROR: Importing detector from file: "<<impDetectorFile->String()<<endl;
             arrDetectorNames.Delete();

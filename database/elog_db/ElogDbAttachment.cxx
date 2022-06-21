@@ -13,9 +13,9 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULD NOT BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-ElogDbAttachment::ElogDbAttachment(UniConnection* connUniDb, int record_id, int attachment_number, TString file_path)
+ElogDbAttachment::ElogDbAttachment(ElogConnection* connect_db, int record_id, int attachment_number, TString file_path)
 {
-	connectionUniDb = connUniDb;
+    connectionDb = connect_db;
 
 	i_record_id = record_id;
 	i_attachment_number = attachment_number;
@@ -25,22 +25,22 @@ ElogDbAttachment::ElogDbAttachment(UniConnection* connUniDb, int record_id, int 
 // -----   Destructor   -------------------------------------------------
 ElogDbAttachment::~ElogDbAttachment()
 {
-	if (connectionUniDb)
-		delete connectionUniDb;
+	if (connectionDb)
+		delete connectionDb;
 }
 
 // -----   Creating new attachment in the database  ---------------------------
 ElogDbAttachment* ElogDbAttachment::CreateAttachment(int record_id, int attachment_number, TString file_path)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"insert into attachment_(record_id, attachment_number, file_path) "
 		"values ($1, $2, $3)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, record_id);
@@ -52,8 +52,8 @@ ElogDbAttachment* ElogDbAttachment::CreateAttachment(int record_id, int attachme
 	{
 		cout<<"ERROR: inserting new attachment to the Database has been failed"<<endl;
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	delete stmt;
@@ -65,22 +65,22 @@ ElogDbAttachment* ElogDbAttachment::CreateAttachment(int record_id, int attachme
 	TString tmp_file_path;
 	tmp_file_path = file_path;
 
-	return new ElogDbAttachment(connUniDb, tmp_record_id, tmp_attachment_number, tmp_file_path);
+    return new ElogDbAttachment(connDb, tmp_record_id, tmp_attachment_number, tmp_file_path);
 }
 
 // -----  Get attachment from the database  ---------------------------
 ElogDbAttachment* ElogDbAttachment::GetAttachment(int record_id, int attachment_number)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select record_id, attachment_number, file_path "
 		"from attachment_ "
 		"where record_id = %d and attachment_number = %d", record_id, attachment_number);
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get attachment from the database
 	if (!stmt->Process())
@@ -88,8 +88,8 @@ ElogDbAttachment* ElogDbAttachment::GetAttachment(int record_id, int attachment_
 		cout<<"ERROR: getting attachment from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	// store result of statement in buffer
@@ -101,8 +101,8 @@ ElogDbAttachment* ElogDbAttachment::GetAttachment(int record_id, int attachment_
 		cout<<"ERROR: attachment was not found in the database"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	int tmp_record_id;
@@ -114,22 +114,22 @@ ElogDbAttachment* ElogDbAttachment::GetAttachment(int record_id, int attachment_
 
 	delete stmt;
 
-	return new ElogDbAttachment(connUniDb, tmp_record_id, tmp_attachment_number, tmp_file_path);
+    return new ElogDbAttachment(connDb, tmp_record_id, tmp_attachment_number, tmp_file_path);
 }
 
 // -----  Get attachment from the database by unique key  --------------
 ElogDbAttachment* ElogDbAttachment::GetAttachment(TString file_path)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return nullptr;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select record_id, attachment_number, file_path "
 		"from attachment_ "
 		"where lower(file_path) = lower('%s')", file_path.Data());
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get attachment from the database
 	if (!stmt->Process())
@@ -137,8 +137,8 @@ ElogDbAttachment* ElogDbAttachment::GetAttachment(TString file_path)
 		cout<<"ERROR: getting attachment from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	// store result of statement in buffer
@@ -150,8 +150,8 @@ ElogDbAttachment* ElogDbAttachment::GetAttachment(TString file_path)
 		cout<<"ERROR: attachment was not found in the database"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return 0x00;
+        delete connDb;
+        return nullptr;
 	}
 
 	int tmp_record_id;
@@ -163,22 +163,22 @@ ElogDbAttachment* ElogDbAttachment::GetAttachment(TString file_path)
 
 	delete stmt;
 
-	return new ElogDbAttachment(connUniDb, tmp_record_id, tmp_attachment_number, tmp_file_path);
+    return new ElogDbAttachment(connDb, tmp_record_id, tmp_attachment_number, tmp_file_path);
 }
 
 // -----  Check attachment exists in the database  ---------------------------
-bool ElogDbAttachment::CheckAttachmentExists(int record_id, int attachment_number)
+int ElogDbAttachment::CheckAttachmentExists(int record_id, int attachment_number)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
 		"from attachment_ "
 		"where record_id = %d and attachment_number = %d", record_id, attachment_number);
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get attachment from the database
 	if (!stmt->Process())
@@ -186,8 +186,8 @@ bool ElogDbAttachment::CheckAttachmentExists(int record_id, int attachment_numbe
 		cout<<"ERROR: getting attachment from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return false;
+        delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -197,29 +197,29 @@ bool ElogDbAttachment::CheckAttachmentExists(int record_id, int attachment_numbe
 	if (!stmt->NextResultRow())
 	{
 		delete stmt;
-		delete connUniDb;
-		return false;
+        delete connDb;
+        return 0;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 
-	return true;
+    return 1;
 }
 
 // -----  Check attachment exists in the database by unique key  --------------
-bool ElogDbAttachment::CheckAttachmentExists(TString file_path)
+int ElogDbAttachment::CheckAttachmentExists(TString file_path)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
 		"from attachment_ "
 		"where lower(file_path) = lower('%s')", file_path.Data());
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get attachment from the database
 	if (!stmt->Process())
@@ -227,8 +227,8 @@ bool ElogDbAttachment::CheckAttachmentExists(TString file_path)
 		cout<<"ERROR: getting attachment from the database has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return false;
+        delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -238,28 +238,28 @@ bool ElogDbAttachment::CheckAttachmentExists(TString file_path)
 	if (!stmt->NextResultRow())
 	{
 		delete stmt;
-		delete connUniDb;
-		return false;
+        delete connDb;
+        return 0;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 
-	return true;
+    return 1;
 }
 
 // -----  Delete attachment from the database  ---------------------------
 int ElogDbAttachment::DeleteAttachment(int record_id, int attachment_number)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"delete from attachment_ "
 		"where record_id = $1 and attachment_number = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, record_id);
@@ -271,27 +271,27 @@ int ElogDbAttachment::DeleteAttachment(int record_id, int attachment_number)
 		cout<<"ERROR: deleting attachment from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+        delete connDb;
+        return -2;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 	return 0;
 }
 
 // -----  Delete attachment from the database by unique key  --------------
 int ElogDbAttachment::DeleteAttachment(TString file_path)
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"delete from attachment_ "
 		"where lower(file_path) = lower($1)");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, file_path);
@@ -302,27 +302,27 @@ int ElogDbAttachment::DeleteAttachment(TString file_path)
 		cout<<"ERROR: deleting attachment from the DataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+        delete connDb;
+        return -2;
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 	return 0;
 }
 
 // -----  Print all 'attachments'  ---------------------------------
 int ElogDbAttachment::PrintAll()
 {
-        UniConnection* connUniDb = UniConnection::Open(ELOG_DB);
-	if (connUniDb == 0x00) return 0x00;
+    ElogConnection* connDb = ElogConnection::Open();
+    if (connDb == nullptr) return -1;
 
-	TSQLServer* uni_db = connUniDb->GetSQLServer();
+    TSQLServer* db_server = connDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select record_id, attachment_number, file_path "
 		"from attachment_");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	// get all 'attachments' from the database
 	if (!stmt->Process())
@@ -330,8 +330,8 @@ int ElogDbAttachment::PrintAll()
 		cout<<"ERROR: getting all 'attachments' from the dataBase has been failed"<<endl;
 
 		delete stmt;
-		delete connUniDb;
-		return -1;
+        delete connDb;
+        return -2;
 	}
 
 	// store result of statement in buffer
@@ -351,7 +351,7 @@ int ElogDbAttachment::PrintAll()
 	}
 
 	delete stmt;
-	delete connUniDb;
+    delete connDb;
 
 	return 0;
 }
@@ -360,19 +360,19 @@ int ElogDbAttachment::PrintAll()
 // Setters functions
 int ElogDbAttachment::SetRecordId(int record_id)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update attachment_ "
 		"set record_id = $1 "
 		"where record_id = $2 and attachment_number = $3");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, record_id);
@@ -396,19 +396,19 @@ int ElogDbAttachment::SetRecordId(int record_id)
 
 int ElogDbAttachment::SetAttachmentNumber(int attachment_number)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update attachment_ "
 		"set attachment_number = $1 "
 		"where record_id = $2 and attachment_number = $3");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, attachment_number);
@@ -432,19 +432,19 @@ int ElogDbAttachment::SetAttachmentNumber(int attachment_number)
 
 int ElogDbAttachment::SetFilePath(TString file_path)
 {
-	if (!connectionUniDb)
+	if (!connectionDb)
 	{
 		cout<<"Connection object is null"<<endl;
 		return -1;
 	}
 
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"update attachment_ "
 		"set file_path = $1 "
 		"where record_id = $2 and attachment_number = $3");
-	TSQLStatement* stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = db_server->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, file_path);

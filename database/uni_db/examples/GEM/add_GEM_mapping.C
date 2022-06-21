@@ -24,7 +24,7 @@ void add_GEM_mapping()
     ReadAndPut(path + TString("GEM_map_run7.txt"), pValues);
 
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_global_mapping", 7, 1, 7, 10000, pValues);
-    if (pDetectorParameter == NULL)
+    if (pDetectorParameter == nullptr)
         return_error = true;
 
     // clean memory after work

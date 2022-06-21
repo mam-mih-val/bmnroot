@@ -28,7 +28,7 @@ void add_slewing_file_id(TString strFileList, int file_id, int period_number = 7
     while (!fList.eof())
     {
         fList >> strCurrentFile;
-        if (strCurrentFile[0] == 0x00) continue;
+        if (strCurrentFile[0] == nullptr) continue;
         cout<<"Current file: "<<strCurrentFile<<endl;
 
         // open current file
@@ -85,7 +85,7 @@ void add_slewing_file_id(TString strFileList, int file_id, int period_number = 7
 
     // create parameter in the Database (only once)
     /*UniDbParameter* pParameter = UniDbParameter::CreateParameter("slewing_file_id", IntType);
-    if (pParameter == NULL)
+    if (pParameter == nullptr)
     {
         cout << "\nMacro finished with errors" << endl;
         return;
@@ -99,7 +99,7 @@ void add_slewing_file_id(TString strFileList, int file_id, int period_number = 7
     {
         IntValue iValue; iValue.value = file_id;
         UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("TOF2", "slewing_file_id", period_number, (*it).iStartRun, period_number, (*it).iEndRun, &iValue);
-        if (pDetectorParameter == NULL)
+        if (pDetectorParameter == nullptr)
         {
             cout<<"Macro finished with errors"<<endl;
             return;

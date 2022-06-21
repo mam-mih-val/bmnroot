@@ -2,7 +2,7 @@
 void get_slewing_file_id(int period_number, int run_number)
 {
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("TOF2", "slewing_file_id", period_number, run_number); //(detector_name, parameter_name, period_number, run_number)
-    if (pDetectorParameter == NULL)
+    if (pDetectorParameter == nullptr)
     {
         cout<<"There is no File ID for "<<period_number<<":"<<run_number<<endl;
         return;

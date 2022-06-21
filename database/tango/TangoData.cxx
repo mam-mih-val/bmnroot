@@ -1,5 +1,5 @@
 #include "TangoData.h"
-#include "UniConnection.h"
+#include "TangoConnection.h"
 
 #include <TSQLServer.h>
 #include <TSQLStatement.h>
@@ -61,34 +61,34 @@ TangoData::~TangoData() {}
 //	parameter_name - name of physical parameter stored in Tango (e.g. "uset" for ZDC or "u" for GEM)
 //	date_start - time from which to start reading the parameter, format: "YYYY-MM-DD HH:MM:SS" (e.g. "2015-03-13 23:00:00")
 //	date_end - end time of parameter reading, the same format (e.g. "2015-03-13 24:00:00")
-// Returns TobjArray with TangoTimeParameter objects (i.e. conditionally TObjArray<TangoTimeParameter*>), or NULL in case errors.
+// Returns TobjArray with TangoTimeParameter objects (i.e. conditionally TObjArray<TangoTimeParameter*>), or nullptr in case errors.
 TObjArray* TangoData::GetTangoParameter(const char* detector_name, const char* parameter_name, const char* date_start, const char* date_end)
 {
-    if ((date_start == NULL) || (date_end == NULL))
+    if ((date_start == nullptr) || (date_end == nullptr))
     {
-        cout<<"ERROR: date start and date end should be not NULL!"<<endl;
-        return NULL;
+        cout<<"ERROR: date start and date end should be not nullptr!"<<endl;
+        return nullptr;
     }
 
     // TANGO database connection
-    UniConnection* connUniDb = UniConnection::Open(TANGO_DB);
-    if (connUniDb == 0x00) return NULL;
-    TSQLServer* db = connUniDb->GetSQLServer();
-    if (db == NULL) return NULL;
+    TangoConnection* connDb = TangoConnection::Open();
+    if (connDb == nullptr) return nullptr;
+    TSQLServer* db_server = connDb->GetSQLServer();
+    if (db_server == nullptr) return nullptr;
 
-    if (db->GetTables(db->GetDB()) == NULL)
-        return NULL;
+    if (db_server->GetTables(db_server->GetDB()) == nullptr)
+        return nullptr;
 
     // searching for parameters with given parameter_name for detector with detector_name
     TString strStatement = TString::Format(
                 "SELECT att_conf_id,data_type FROM att_conf ac join att_conf_data_type acdt on ac.att_conf_data_type_id = acdt.att_conf_data_type_id WHERE family=\"%s\" and name=\"%s\" ",
                 detector_name, parameter_name);
-    TSQLStatement* stmt_select = db->Statement(strStatement);
+    TSQLStatement* stmt_select = db_server->Statement(strStatement);
     if (!stmt_select->Process())
     {
             cout<<"ERROR: getting info about parameter from Tango has been failed: detector_name = "<<detector_name<<", parameter_name = "<<parameter_name<<endl;
             delete stmt_select;
-            return NULL;
+            return nullptr;
     }
 
     stmt_select->StoreResult();
@@ -96,7 +96,7 @@ TObjArray* TangoData::GetTangoParameter(const char* detector_name, const char* p
     {
         cout<<"ERROR: There is no parameter '"<<parameter_name<<"' for "<<detector_name<<" detector"<<endl;
         delete stmt_select;
-        return NULL;
+        return nullptr;
     }
     // Now Tango team duplicates parameters for every Nuclotron session
     if ((stmt_select->GetNumAffectedRows() > 1) && (strcmp(date_end, "2018-01-01") > 0))
@@ -105,7 +105,7 @@ TObjArray* TangoData::GetTangoParameter(const char* detector_name, const char* p
         {
             cout<<"ERROR: There is no second row for parameter '"<<parameter_name<<"' for "<<detector_name<<" detector"<<endl;
             delete stmt_select;
-            return NULL;
+            return nullptr;
         }
     }
 
@@ -130,7 +130,7 @@ TObjArray* TangoData::GetTangoParameter(const char* detector_name, const char* p
             else
             {
                 cout<<"ERROR: This Tango type is not supported: '"<<data_type<<"'"<<endl;
-                return NULL;
+                return nullptr;
             }
         }
     }
@@ -145,12 +145,12 @@ TObjArray* TangoData::GetTangoParameter(const char* detector_name, const char* p
                                       table_name.Data(), data_id, date_start, date_end);
     //cout<<"Query data: "<<query_data<<endl;
 
-    stmt_select = db->Statement(query_data);
+    stmt_select = db_server->Statement(query_data);
     if (!stmt_select->Process())
     {
             cout<<"ERROR: getting info about parameter values from Tango has been failed"<<endl;
             delete stmt_select;
-            return NULL;
+            return nullptr;
     }
 
     stmt_select->StoreResult();
@@ -170,7 +170,7 @@ TObjArray* TangoData::GetTangoParameter(const char* detector_name, const char* p
             cout<<"ERROR: Parameter length can't be equal 0"<<endl;
             delete tango_data;
             delete stmt_select;
-            return NULL;
+            return nullptr;
         }
 
         int i_real_par_len = 1;
@@ -180,7 +180,7 @@ TObjArray* TangoData::GetTangoParameter(const char* detector_name, const char* p
             cout<<"ERROR: Real parameter length can't be equal 0"<<endl;
             delete tango_data;
             delete stmt_select;
-            return NULL;
+            return nullptr;
         }
 
         TangoTimeParameter* par = new TangoTimeParameter(datetime, par_type);
@@ -199,7 +199,7 @@ TObjArray* TangoData::GetTangoParameter(const char* detector_name, const char* p
                 cout<<"ERROR: idx should be equal index of the parameter array"<<endl;
                 delete tango_data;
                 delete stmt_select;
-                return NULL;
+                return nullptr;
             }
 
             if (ind >= i_real_par_len)
@@ -240,17 +240,17 @@ TObjArray* TangoData::GetTangoParameter(const char* detector_name, const char* p
 //	parameter_name - name of physical parameter stored in Tango (e.g. "uset" for ZDC or "u" for GEM)
 //      date_start - time from which to start searching for time intervals satisfied the condition, format: "YYYY-MM-DD HH:MM:SS" (e.g. "2015-03-13 23:00:00")
 //	date_end - end time of searching time intervals, the same format (e.g. "2015-03-13 24:00:00")
-//      condition - condition of time interval sampling, default: conditionEqual (the possible list in 'uni_db/db_structures.h')
+//      condition - condition of time interval sampling, default: conditionEqual (the possible list in 'uni_db/uni_db_structures.h')
 //      value - boolean value for the condition with which the comparison is performed, default: true
-//      mapChannel - vector of integer values (map) to change the order of result TObjArray-s in the common result array, if, for example, channels go in a different sequence; NULL - if not used
+//      mapChannel - vector of integer values (map) to change the order of result TObjArray-s in the common result array, if, for example, channels go in a different sequence; nullptr - if not used
 // Returns common TObjArray with TObjArray objects containing TangoTimeInterval (i.e. conditionally TObjArray<TObjArray<TangoTimeInterval*>>),
-// if no intervals found - returns the common TObjArray with zero TObjArray elements; in case of errors - returns NULL
+// if no intervals found - returns the common TObjArray with zero TObjArray elements; in case of errors - returns nullptr
 TObjArray* TangoData::SearchTangoIntervals(const char* detector_name, const char* parameter_name, const char* date_start, const char* date_end,
                                            enumConditions condition, bool value, vector<int>* mapChannel)
 {
     // get Tango parameter values for the given time period
     TObjArray* tango_data = GetTangoParameter(detector_name, parameter_name, date_start, date_end);
-    if (tango_data == NULL) return NULL;
+    if (tango_data == nullptr) return nullptr;
 
     TObjArray* pTimeIntervals = new TObjArray();
     pTimeIntervals->SetOwner(kTRUE);
@@ -264,7 +264,7 @@ TObjArray* TangoData::SearchTangoIntervals(const char* detector_name, const char
 
     vector<int> vecStart;
     vector<bool> vecCondition;
-    TangoTimeParameter* pParameter = NULL;
+    TangoTimeParameter* pParameter = nullptr;
     //cout<<"tango_data->GetEntriesFast(): "<<tango_data->GetEntriesFast()<<endl;
     for (int i = 0; i < tango_data->GetEntriesFast(); i++)
     {
@@ -298,7 +298,7 @@ TObjArray* TangoData::SearchTangoIntervals(const char* detector_name, const char
                     cout<<"ERROR: comparison operator in the searching of intervals is not appropriable for boolean type"<<endl;
                     delete tango_data;
                     delete pTimeIntervals;
-                    return NULL;
+                    return nullptr;
                 }
             }
 

@@ -4,14 +4,14 @@ void work_binary_object()
     timer.Start();
     gDebug = 0;
 
-    UniConnection* connectionUniDb = UniConnection::Open(UNIFIED_DB);
-    if (connectionUniDb == 0x00)
+    UniConnection* connDb = UniConnection::Open();
+    if (connectionUniDb == nullptr)
     {
         cout<<"ERROR: connection to the database can not be established"<<endl;
         return -1;
     }
 
-    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+    TSQLServer* db_server = connectionUniDb->GetSQLServer();
 
     cout<<"DB: "<<uni_db->GetDB()<<". Type: "<<uni_db->GetDBMS()<<"."<<endl;
 
@@ -20,7 +20,7 @@ void work_binary_object()
 
     string file_name("input.txt");
     FILE* input_file = fopen(file_name.c_str(), "rb");
-    if (input_file == NULL) return;
+    if (input_file == nullptr) return;
     fseek(input_file, 0L, SEEK_END);
     size_t file_size = ftell(input_file);
     unsigned char* in_array = new unsigned char[file_size];
@@ -45,8 +45,8 @@ void work_binary_object()
     delete connectionUniDb;
 
     // print all values
-    connectionUniDb = UniConnection::Open(UNIFIED_DB);
-    if (connectionUniDb == 0x00)
+    connDb = UniConnection::Open();
+    if (connectionUniDb == nullptr)
     {
         cout<<"ERROR: connection to the database can't be established"<<endl;
         return -2;

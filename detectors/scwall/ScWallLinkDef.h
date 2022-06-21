@@ -1,4 +1,5 @@
-#ifdef __CINT__
+// $Id: ScWallLinkDef.h,v
+#ifdef __CLING__
 
 #pragma link off all globals;
 #pragma link off all classes;

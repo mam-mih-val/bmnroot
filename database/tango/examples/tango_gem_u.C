@@ -11,7 +11,7 @@ void tango_gem_u(const char* date_start = "2016-12-21 12:20:00", const char* dat
     // TObjArray stores array of TangoTimeParameter* (parameter's values) for all time points (uni_db/TangoData.h)
     // tango_data->At(0) -> TangoTimeParameter*: parameter's values for fist time point of the given period (date_start - date_end)
     TObjArray* tango_data = db_tango.GetTangoParameter(detector_name, parameter_name, date_start, date_end);
-    if (tango_data == NULL)
+    if (tango_data == nullptr)
     {
         cout<<"Macro finished with errors"<<endl;
         exit(-1);
@@ -36,7 +36,7 @@ void tango_gem_u(int period, int run)
 
     // get run time
     UniDbRun* pRun = UniDbRun::GetRun(period, run);
-    if (pRun == NULL)
+    if (pRun == nullptr)
     {
         cout<<"Macro finished with errors: no experimental run was found for period = "<<period<<", run = "<<run<<endl;
         exit(-2);
@@ -44,7 +44,7 @@ void tango_gem_u(int period, int run)
 
     TString strDateStart = pRun->GetStartDatetime().AsSQLString();
     TDatime* dateEnd = pRun->GetEndDatetime();
-    if (dateEnd == NULL)
+    if (dateEnd == nullptr)
     {
         cout<<"Macro finished with errors: no end datetime in the database for period = "<<period<<", run = "<<run<<endl;
         delete pRun;
@@ -59,7 +59,7 @@ void tango_gem_u(int period, int run)
     // TObjArray stores array of TangoTimeParameter* (parameter's values) for all time points (uni_db/TangoData.h)
     // tango_data->At(0) -> TangoTimeParameter*: parameter's values for fist time point of the given period (date_start - date_end)
     TObjArray* tango_data = db_tango.GetTangoParameter(detector_name, parameter_name, strDateStart.Data(), strDateEnd.Data());
-    if (tango_data == NULL)
+    if (tango_data == nullptr)
     {
         cout<<"Macro finished with errors"<<endl;
         exit(-1);

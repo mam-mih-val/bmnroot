@@ -5,7 +5,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/base
  ${CMAKE_SOURCE_DIR}/base/raw
  ${CMAKE_SOURCE_DIR}/base/header
- ${CMAKE_SOURCE_DIR}/database/unicom
+ ${CMAKE_SOURCE_DIR}/services
  ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/reconstruction/dst
 )

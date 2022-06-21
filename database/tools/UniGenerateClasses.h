@@ -12,10 +12,10 @@
 #ifndef UNIGENERATECLASSES_H
 #define UNIGENERATECLASSES_H 1
 
-#include "UniConnection.h"
-
 #include "TString.h"
 #include "TObjArray.h"
+
+enum ConnectionType{UNIFIED_DB, TANGO_DB, ELOG_DB};
 
 struct structColumnInfo
 {
@@ -56,7 +56,7 @@ struct structTableJoin
     structColumnInfo strJoinField;
     TObjArray* arrManualFieldNames;
 
-    structTableJoin() { arrManualFieldNames = NULL; }
+    structTableJoin() { arrManualFieldNames = nullptr; }
     ~structTableJoin() { if (arrManualFieldNames) delete arrManualFieldNames; }
 };
 
@@ -71,7 +71,7 @@ class UniGenerateClasses
     //      connection_type - database from enumeration;
     //      class_prefix - prefix with directory name and prefix of classes' names
     //      isOnlyUpdate - whether only update of the existing classes or create new ones
-    int GenerateClasses(UniConnectionType connection_type, TString class_prefix = "UniDb", bool isOnlyUpdate = true);
+    int GenerateClasses(ConnectionType connection_type, TString class_prefix = "UniDb", bool isOnlyUpdate = true);
 
     TObjArray* arrTableJoin;
 

@@ -13,14 +13,14 @@
 #include "TString.h"
 #include "TDatime.h"
 
-#include "UniConnection.h"
+#include "ElogConnection.h"
 
 class ElogDbPerson
 {
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-        UniConnection* connectionUniDb;
+    ElogConnection* connectionDb;
 
 	/// person id
 	int i_person_id;
@@ -30,7 +30,7 @@ class ElogDbPerson
 	int i_is_active;
 
 	//Constructor
-        ElogDbPerson(UniConnection* connUniDb, int person_id, TString person_name, int is_active);
+    ElogDbPerson(ElogConnection* db_connect, int person_id, TString person_name, int is_active);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
@@ -44,10 +44,10 @@ class ElogDbPerson
 	static ElogDbPerson* GetPerson(int person_id);
 	/// get person from the database
 	static ElogDbPerson* GetPerson(TString person_name);
-	/// check person exists in the database
-	static bool CheckPersonExists(int person_id);
-	/// check person exists in the database
-	static bool CheckPersonExists(TString person_name);
+    /// check person exists in the database: 1 - true, 0 - false, <0 - database operation errors
+    static int CheckPersonExists(int person_id);
+    /// check person exists in the database: 1 - true, 0 - false, <0 - database operation errors
+    static int CheckPersonExists(TString person_name);
 	/// delete person from the database
 	static int DeletePerson(int person_id);
 	/// delete person from the database

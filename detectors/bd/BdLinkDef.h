@@ -1,5 +1,5 @@
-
-#ifdef __CINT__
+// $Id: BdLinkDef.h,v
+#ifdef __CLING__
 
 #pragma link off all globals;
 #pragma link off all classes;

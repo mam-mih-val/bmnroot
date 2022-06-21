@@ -13,14 +13,14 @@
 #include "TString.h"
 #include "TDatime.h"
 
-#include "UniConnection.h"
+#include "ElogConnection.h"
 
 class ElogDbAttachment
 {
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 	/// connection to the database
-        UniConnection* connectionUniDb;
+    ElogConnection* connectionDb;
 
 	/// record id
 	int i_record_id;
@@ -30,7 +30,7 @@ class ElogDbAttachment
 	TString str_file_path;
 
 	//Constructor
-        ElogDbAttachment(UniConnection* connUniDb, int record_id, int attachment_number, TString file_path);
+    ElogDbAttachment(ElogConnection* connect_db, int record_id, int attachment_number, TString file_path);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
@@ -44,10 +44,10 @@ class ElogDbAttachment
 	static ElogDbAttachment* GetAttachment(int record_id, int attachment_number);
 	/// get attachment from the database
 	static ElogDbAttachment* GetAttachment(TString file_path);
-	/// check attachment exists in the database
-	static bool CheckAttachmentExists(int record_id, int attachment_number);
-	/// check attachment exists in the database
-	static bool CheckAttachmentExists(TString file_path);
+    /// check attachment exists in the database: 1 - true, 0 - false, <0 - database operation errors
+    static int CheckAttachmentExists(int record_id, int attachment_number);
+    /// check attachment exists in the database: 1 - true, 0 - false, <0 - database operation errors
+    static int CheckAttachmentExists(TString file_path);
 	/// delete attachment from the database
 	static int DeleteAttachment(int record_id, int attachment_number);
 	/// delete attachment from the database

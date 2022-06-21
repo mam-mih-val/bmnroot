@@ -28,7 +28,7 @@ class UniDbDetector
 	TString* str_description;
 
 	//Constructor
-	UniDbDetector(UniConnection* connUniDb, TString detector_name, TString* description);
+    UniDbDetector(UniConnection* db_connect, TString detector_name, TString* description);
 	/* END OF PRIVATE GENERATED PART (SHOULD NOT BE CHANGED MANUALLY) */
 
  public:
@@ -40,8 +40,8 @@ class UniDbDetector
 	static UniDbDetector* CreateDetector(TString detector_name, TString* description);
 	/// get detector from the database
 	static UniDbDetector* GetDetector(TString detector_name);
-	/// check detector exists in the database
-	static bool CheckDetectorExists(TString detector_name);
+    /// check detector exists in the database: 1 - true, 0 - false, <0 - database operation errors
+    static int CheckDetectorExists(TString detector_name);
 	/// delete detector from the database
 	static int DeleteDetector(TString detector_name);
 	/// print all detectors
@@ -51,7 +51,7 @@ class UniDbDetector
 	/// get detector name of the current detector
 	TString GetDetectorName() {return str_detector_name;}
 	/// get description of the current detector
-	TString* GetDescription() {if (str_description == NULL) return NULL; else return new TString(*str_description);}
+	TString* GetDescription() {if (str_description == nullptr) return nullptr; else return new TString(*str_description);}
 
 	// Setters
 	/// set detector name of the current detector

@@ -2,13 +2,13 @@
 void selecting_records()
 {
     TObjArray arrayConditions;
-    UniSearchCondition* searchCondition = new UniSearchCondition(columnPeriodNumber, conditionEqual, 6);
+    ElogSearchCondition* searchCondition = new ElogSearchCondition(columnPeriodNumber, conditionEqual, 6);
     arrayConditions.Add((TObject*)searchCondition);
-    searchCondition = new UniSearchCondition(columnTargetParticle, conditionEqual, TString("Cu"));
+    searchCondition = new ElogSearchCondition(columnTargetParticle, conditionEqual, TString("Cu"));
     arrayConditions.Add((TObject*)searchCondition);
-    searchCondition = new UniSearchCondition(columnSp41, conditionGreaterOrEqual, 1200);
+    searchCondition = new ElogSearchCondition(columnSp41, conditionGreaterOrEqual, 1200);
     arrayConditions.Add((TObject*)searchCondition);
-    searchCondition = new UniSearchCondition(columnSp41, conditionLessOrEqual, 1800);
+    searchCondition = new ElogSearchCondition(columnSp41, conditionLessOrEqual, 1800);
     arrayConditions.Add((TObject*)searchCondition);
 
     TObjArray* pRecordArray = ElogDbRecord::Search(arrayConditions);
@@ -20,8 +20,8 @@ void selecting_records()
     for (int i = 0; i < pRecordArray->GetEntriesFast(); i++)
     {
         ElogDbRecord* pRecord = (ElogDbRecord*) pRecordArray->At(i);
-        cout<<"Record: time - "<<pRecord->GetRecordDate().AsSQLString()<<", period - "<<(pRecord->GetPeriodNumber() == NULL ? -1 : *pRecord->GetPeriodNumber())
-            <<", run - "<<(pRecord->GetRunNumber() == NULL ? -1 : *pRecord->GetRunNumber())<<", SP-41 field - "<<(pRecord->GetSp41() == NULL ? -1 : *pRecord->GetSp41())<<"A"<<endl;
+        cout<<"Record: time - "<<pRecord->GetRecordDate().AsSQLString()<<", period - "<<(pRecord->GetPeriodNumber() == nullptr ? -1 : *pRecord->GetPeriodNumber())
+            <<", run - "<<(pRecord->GetRunNumber() == nullptr ? -1 : *pRecord->GetRunNumber())<<", SP-41 field - "<<(pRecord->GetSp41() == nullptr ? -1 : *pRecord->GetSp41())<<"A"<<endl;
     }
 
     // clean memory after work - deleting the array of runs

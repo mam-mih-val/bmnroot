@@ -124,6 +124,9 @@ def main():
     ping_prev_success = {}
     pgsql_prev_success = {}
     http_prev_success = {}
+    ping_failed = 0
+    pgsql_failed = 0
+    http_failed = 0
     influxdb_prev_success = True
     influxdb_initialized = False
 
@@ -153,11 +156,15 @@ def main():
                 result_ping = test_ping(test_params["HOST"])
                 print("PING " + test_name + ": " + str(result_ping))
                 success = result_ping["success"]
-                if ping_prev_success[test_name] != success:
+                if ping_prev_success[test_name] != success or ping_failed > 0:
                     if success:
                         send_email(get_notify(test_params), test_name + " - PING state changed to UP")
+                        ping_failed = 0
                     else:
-                        send_email(get_notify(test_params), test_name + " - PING state changed to *** DOWN ***")
+                        if ping_failed == 1
+                            send_email(get_notify(test_params), test_name + " - PING state changed to *** DOWN ***")
+                        else
+                            ping_failed += 1
                     ping_prev_success[test_name] = success
 
             # Do all PGSQL tests
@@ -168,11 +175,15 @@ def main():
                 result_pgsql = test_pgsql_connection(test_params)
                 print("PGSQL " + test_name + ": " + str(result_pgsql))
                 success = result_pgsql["success"]
-                if pgsql_prev_success[test_name] != success:
+                if pgsql_prev_success[test_name] != success or pgsql_failed > 0:
                     if success:
                         send_email(get_notify(test_params), test_name + " - PGSQL state changed to UP")
+                        pgsql_failed = 0
                     else:
-                        send_email(get_notify(test_params), test_name + " - PGSQL state changed to *** DOWN ***")
+                        if pgsql_failed == 1
+                            send_email(get_notify(test_params), test_name + " - PGSQL state changed to *** DOWN ***")
+                        else
+                            pgsql_failed += 1
                     pgsql_prev_success[test_name] = success
 
                 if "OUTPUT" in config and config["OUTPUT"]["DBMS"].upper() == "INFLUXDB":
@@ -205,11 +216,15 @@ def main():
                 result_http = test_http(test_params["HTTP"])
                 print("Checking website for " + test_name + " (" + test_params["HTTP"] + "): " + str(result_http))
                 success = result_http["success"]
-                if http_prev_success[test_name] != success:
+                if http_prev_success[test_name] != success or http_failed > 0:
                     if success:
                         send_email(get_notify(config["OUTPUT"]), test_name + " - Web Interface state changed to UP")
+                        http_failed = 0
                     else:
-                        send_email(get_notify(config["OUTPUT"]), test_name + " - Web Interface state changed to *** DOWN ***")
+                        if http_failed == 1
+                            send_email(get_notify(config["OUTPUT"]), test_name + " - Web Interface state changed to *** DOWN ***")
+                        else
+                            http_failed += 1
                     http_prev_success[test_name] = success
 
             sleep(config["INTERVAL_SEC"])

@@ -68,7 +68,7 @@
     "PASS": "*"
   },
 
-  "INTERVAL_SEC": 60,
+  "INTERVAL_SEC": 450,
 
   "MAIL": {
     "SERVER": "mail.jinr.ru",

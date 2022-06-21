@@ -50,7 +50,7 @@
     "NOTIFY": "mail1.jinr.ru,mail2.jinr.ru"
   },
 
-  "INTERVAL_SEC": 60,
+  "INTERVAL_SEC": 450,
 
   "MAIL": {
     "SERVER": "smtp.jinr.ru",

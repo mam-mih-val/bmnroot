@@ -21,14 +21,9 @@
 //#pragma link C++ class vector<structParseValue*>+;
 
 // the database enums
-#pragma link C++ enum UniColumns;
 #pragma link C++ enum enumValueType;
 #pragma link C++ enum ConnectionType;
 //#pragma link C++ enum enumParameterType;
-#ifndef enumConditions_link
-#define enumConditions_link 1
-#pragma link C++ enum enumConditions;
-#endif
 
 // the database structures
 #pragma link C++ struct UniqueRunNumber++;

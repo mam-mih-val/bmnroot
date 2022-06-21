@@ -16,12 +16,5 @@
 #pragma link C++ class ElogConnection+;
 #pragma link C++ class ElogSearchCondition+;
 
-// the database enums
-#pragma link C++ enum ElogColumns;
-#ifndef enumConditions_link
-#define enumConditions_link 1
-#pragma link C++ enum enumConditions;
-#endif
-
 #endif
 

@@ -7,7 +7,7 @@ This is a service to monitor availability of the IT infrastructure of the experi
 Currently implemented mon-service functionality:
 - PING, PGSQL, and HTTP requests probing for any number of monitored servers and Web interfaces
 - Configurable via JSON file
-- Email notifications
+- Email notifications (sent when a check fails twice)
 - Response time stored in InfluxDB for visualization and extra notifications with tools like Grafana
 
 An example of the JSON configuration is presented in `mon-service.EXAMPLE.json` file, where all parameters are explained below.
@@ -71,7 +71,7 @@ An example of the JSON configuration is presented in `mon-service.EXAMPLE.json` 
     "NOTIFY": "mail1.jinr.ru,mail2.jinr.ru"     <-- Where to sent notifications about InfluxDB availability
   },
 
-  "INTERVAL_SEC": 60,               <-- Interval to wait between probe requests
+  "INTERVAL_SEC": 450,              <-- Interval to wait between probe requests
 
   "MAIL": {                         <-- Mail server parameters
     "SERVER": "smtp.jinr.ru",

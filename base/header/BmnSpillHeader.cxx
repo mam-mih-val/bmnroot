@@ -80,6 +80,13 @@ void BmnSpillHeader::Clear() {
     fRj = 0;
     fAll = 0;
     fAvail = 0;
+    fBC1H = 0;
+    fBC1BP = 0;
+    fBC1xBC2 = 0;
+    fBC1nBusy = 0;
+    fIntTrig = 0;
+    fSRCTrig = 0;
+    fTrignBusy = 0;
 }
 
 

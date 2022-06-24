@@ -69,6 +69,7 @@ set(SRCS
  BmnMscRaw2Digit.cxx
  WfmProcessor.cxx
  PronyFitter.cxx
+ BmnProfRawTools.cxx
 )
 
 If (${CMAKE_BUILD_TYPE} STREQUAL Debug)

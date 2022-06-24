@@ -93,6 +93,20 @@ BmnPadGenerator.cxx
  #BmnMQRunDevice.cxx
 )
 
+add_executable(bmn-mon-prof BmnMonProf.cxx)
+target_link_libraries(bmn-mon-prof PRIVATE
+ ${ZeroMQ_LIBRARY_SHARED}
+ Core
+ RIO
+ RHTTP
+ Hist
+ BmnDecoder
+)
+
+target_link_directories(bmn-mon-prof PRIVATE
+ ${LINK_DIRECTORIES}
+)
+
 Set(HEADERS)
 Set(LINKDEF MonitorLinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)

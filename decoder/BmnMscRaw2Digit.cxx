@@ -167,7 +167,7 @@ void BmnMscRaw2Digit::FillRunHeader(DigiRunHeader *rh) {
     }   
 }
 
-BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, TClonesArray *shdr, UInt_t &nPedEvBySpill) {
+BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnSpillHeader *shdr, UInt_t &nPedEvBySpill) {
     //    sh->Clear();
     //    if (fRawSpillTree->GetEntriesFast() <= iSpill)
     //        return kBMNERROR;
@@ -186,7 +186,6 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, TClo
             if (it == fBoardSums.end()) {
                 vector<uint64_t> v(dig->GetValue(), dig->GetValue() + BmnMSCDigit::GetNVals());
                 fBoardSums.insert(make_pair(dig->GetSerial(), move(v)));
-                auto itCheck = fBoardSums.find(dig->GetSerial());
             } else {
                 for (uint8_t i = 0; i < BmnMSCDigit::GetNVals(); i++)
                     it->second[i] += dig->GetValue()[i];
@@ -237,39 +236,39 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, TClo
                             fBTAccepted += arr[mRec.BTnBusy] * AcceptedReal / (Double_t) den;
                     }
                     fAccepted += AcceptedReal;
-                    //                if (shdr->GetEntriesFast()) {
-                    //                    BmnSpillHeader *sh = static_cast<BmnSpillHeader*> (shdr->At(0));
-                    BmnSpillHeader *sh = new ((*shdr)[shdr->GetEntriesFast()]) BmnSpillHeader();
-                    // BM@N MSC16
-                    sh->SetBC1(arr[mRec.BC1]);
-                    sh->SetBC2(arr[mRec.BC2]);
-                    sh->SetBC3(arr[mRec.BC3]);
-                    sh->SetBT(arr[mRec.BT]);
-                    sh->SetBTnBusy(arr[mRec.BTnBusy]);
-                    sh->SetL0(arr[mRec.L0]);
-                    sh->SetProt(arr[mRec.TriggerProtection]);
-                    //SRC MSC16
-                    sh->SetBC1H(arr[mRec.BC1H]);
-                    sh->SetBC1BP(arr[mRec.BC1BP]);
-                    sh->SetBC1xBC2(arr[mRec.BC1xBC2]);
-                    sh->SetBC1nBusy(arr[mRec.BC1nBusy]);
-                    sh->SetIntTrig(arr[mRec.IntTrig]);
-                    sh->SetSRCTrig(arr[mRec.SRCTrig]);
-                    sh->SetTrignBusy(arr[mRec.TrignBusy]);
-                    // U40 
-                    sh->SetAccepted(AcceptedReal);
-                    sh->SetAfter(ti->GetTrigAfter());
-                    sh->SetBefo(ti->GetTrigBefo());
-                    sh->SetCand(ti->GetTrigCand());
-                    sh->SetAll(ti->GetTrigAll());
-                    sh->SetAvail(ti->GetTrigAvail());
-                    sh->SetRjct(ti->GetTrigRjct());
-
-                    sh->SetLastEventId(iEv);
-                    sh->SetPeriodId(hdr->GetPeriodId());
-                    sh->SetEventTimeTS(hdr->GetEventTimeTS());
-                    //                    fDigSpillTree->Fill();
-                    //                }
+//                    //                if (shdr->GetEntriesFast()) {
+//                    //                    BmnSpillHeader *sh = static_cast<BmnSpillHeader*> (shdr->At(0));
+//                    BmnSpillHeader *sh = new ((*shdr)[shdr->GetEntriesFast()]) BmnSpillHeader();
+//                    // BM@N MSC16
+//                    sh->SetBC1(arr[mRec.BC1]);
+//                    sh->SetBC2(arr[mRec.BC2]);
+//                    sh->SetBC3(arr[mRec.BC3]);
+//                    sh->SetBT(arr[mRec.BT]);
+//                    sh->SetBTnBusy(arr[mRec.BTnBusy]);
+//                    sh->SetL0(arr[mRec.L0]);
+//                    sh->SetProt(arr[mRec.TriggerProtection]);
+//                    //SRC MSC16
+//                    sh->SetBC1H(arr[mRec.BC1H]);
+//                    sh->SetBC1BP(arr[mRec.BC1BP]);
+//                    sh->SetBC1xBC2(arr[mRec.BC1xBC2]);
+//                    sh->SetBC1nBusy(arr[mRec.BC1nBusy]);
+//                    sh->SetIntTrig(arr[mRec.IntTrig]);
+//                    sh->SetSRCTrig(arr[mRec.SRCTrig]);
+//                    sh->SetTrignBusy(arr[mRec.TrignBusy]);
+//                    // U40 
+//                    sh->SetAccepted(AcceptedReal);
+//                    sh->SetAfter(ti->GetTrigAfter());
+//                    sh->SetBefo(ti->GetTrigBefo());
+//                    sh->SetCand(ti->GetTrigCand());
+//                    sh->SetAll(ti->GetTrigAll());
+//                    sh->SetAvail(ti->GetTrigAvail());
+//                    sh->SetRjct(ti->GetTrigRjct());
+//
+//                    sh->SetLastEventId(iEv);
+//                    sh->SetPeriodId(hdr->GetPeriodId());
+//                    sh->SetEventTimeTS(hdr->GetEventTimeTS());
+//                    //                    fDigSpillTree->Fill();
+//                    //                }
 
                     if (fVerbose) {
                         printf("iSpill %4u   last EvId %7u  pedestals %d\n",
@@ -319,6 +318,144 @@ BmnStatus BmnMscRaw2Digit::SumEvent(TClonesArray *msc, BmnEventHeader *hdr, TClo
     return kBMNSUCCESS;
 }
 
+// for period 7
+BmnStatus BmnMscRaw2Digit::SumEvent7(TClonesArray *msc, BmnEventHeader *hdr, BmnSpillHeader *sh, UInt_t &nPedEvBySpill) {
+    sh->Clear();
+    if (fRawSpillTree->GetEntriesFast() <= iSpill)
+        return kBMNERROR;
+    BmnTrigInfo *ti = hdr->GetTrigInfo();
+    //    if (msc->GetEntriesFast() == 0)
+    //        fTempTI = BmnTrigInfo(hdr->GetTrigInfo());
+    UInt_t iEv = hdr->GetEventId();
+    for (Int_t iAdc = 0; iAdc < msc->GetEntriesFast(); ++iAdc) {
+        BmnMSCDigit* dig = (BmnMSCDigit*) msc->At(iAdc);
+        if (dig->GetLastEventId() > iEv)
+            return kBMNFINISH;
+        if ((dig->GetLastEventId() < iEv) && (dig->GetLastEventId() > 0)) {
+            fprintf(stderr, "Spill %u last event %u lost! Curent evId %u \n",
+                    iSpill, dig->GetLastEventId(), iEv);
+            fRawSpillTree->GetEntry(++iSpill);
+            ++iSpillMap;
+            nPedEvBySpill = 0;
+            return kBMNERROR;
+        }
+                fVerbose = 1;
+        if (fVerbose)
+            printf("Spill %u last event %u  Curent evId %u \n",
+                iSpill, dig->GetLastEventId(), iEv);
+        UInt_t *arr = dig->GetValue();
+        UInt_t serial = dig->GetSerial();
+        for (auto &mRec : fMap) {
+            if (mRec.serial == serial) {
+                fBT += arr[mRec.BT];
+                fBTnBusy += arr[mRec.BTnBusy];
+                fProtection += arr[mRec.TriggerProtection];
+                fL0 += arr[mRec.L0];
+                UInt_t AcceptedReal = ti->GetTrigAccepted() - nPedEvBySpill;
+                if ((fBmnSetup == kSRCSETUP) && (fPeriodId == 7) && (isValidSpillLog)) {
+                    if (iSpillMap < spill_map.size()) {
+                        map<TDatime, vector < Int_t>>::iterator SpillMapIter = spill_map.begin();
+                        advance(SpillMapIter, iSpillMap);
+                        if (fVerbose)
+                            printf(" spill  %s\n", SpillMapIter->first.AsSQLString());
+                        vector<Int_t> v = SpillMapIter->second;
+                        /** flux ~= sum [BT * (DAQ_Busy -peds)/ (DAQ_TRigger - peds)]*/
+                        Double_t BT = v[15];
+                        Double_t DAQ_Busy = v[21];
+                        Double_t DAQ_Trigger = v[22];
+                        if (DAQ_Trigger - nPedEvBySpill != 0)
+                            fBTAccepted += BT * (DAQ_Busy - nPedEvBySpill) / (DAQ_Trigger - nPedEvBySpill);
+                        if (fVerbose)
+                            printf("BT %f DAQ_Busy %f  DAQ_Trigger %f  flux %f\n",
+                                BT, DAQ_Busy, DAQ_Trigger, fBTAccepted);
+                    }
+                } else { // BM@N setup or U40 is present
+                    UInt_t den =
+                            AcceptedReal +
+                            ti->GetTrigBefo() +
+                            ti->GetTrigAfter();
+                    if (den > 0)
+                        fBTAccepted += arr[mRec.BTnBusy] * AcceptedReal / (Double_t) den;
+                }
+                fAccepted += AcceptedReal;
+                if (fDigSpillTree) {
+                    // BM@N MSC16
+                    sh->SetBC1(arr[mRec.BC1]);
+                    sh->SetBC2(arr[mRec.BC2]);
+                    sh->SetBC3(arr[mRec.BC3]);
+                    sh->SetBT(arr[mRec.BT]);
+                    sh->SetBTnBusy(arr[mRec.BTnBusy]);
+                    sh->SetL0(arr[mRec.L0]);
+                    sh->SetProt(arr[mRec.TriggerProtection]);
+                    //SRC MSC16
+                    sh->SetBC1H(arr[mRec.BC1H]);
+                    sh->SetBC1BP(arr[mRec.BC1BP]);
+                    sh->SetBC1xBC2(arr[mRec.BC1xBC2]);
+                    sh->SetBC1nBusy(arr[mRec.BC1nBusy]);
+                    sh->SetIntTrig(arr[mRec.IntTrig]);
+                    sh->SetSRCTrig(arr[mRec.SRCTrig]);
+                    sh->SetTrignBusy(arr[mRec.TrignBusy]);
+                    // U40 
+                    sh->SetAccepted(AcceptedReal);
+                    sh->SetAfter(ti->GetTrigAfter());
+                    sh->SetBefo(ti->GetTrigBefo());
+                    sh->SetCand(ti->GetTrigCand());
+                    sh->SetAll(ti->GetTrigAll());
+                    sh->SetAvail(ti->GetTrigAvail());
+                    sh->SetRjct(ti->GetTrigRjct());
+
+                    sh->SetLastEventId(iEv);
+                    sh->SetPeriodId(hdr->GetPeriodId());
+                    sh->SetEventTimeTS(hdr->GetEventTimeTS());
+                    fDigSpillTree->Fill();
+                }
+
+                if (fVerbose) {
+                    printf("iSpill %4u   last EvId %7u  pedestals %d\n",
+                            iSpill, dig->GetLastEventId(), nPedEvBySpill);
+                    hdr->GetEventTimeTS().Print();
+                    printf(ANSI_COLOR_BLUE " MSC16:" ANSI_COLOR_RESET"\t"
+                            "BC1  %7u,    BC2 %7u,   BC3   %4u, BeamTrigger %7u,      L0 %7u, TrigProtection %7u, BT&Busy %7u\n"
+                            "\tBC1H %7u,  BC1BP %7u, BC1xBC2 %4u,   BC1nBusy  %7u, IntTrig %7u,      SRCTrig %7u, TrignBusy %7u\n",
+                            arr[mRec.BC1],
+                            arr[mRec.BC2],
+                            arr[mRec.BC3],
+                            arr[mRec.BT],
+                            arr[mRec.L0],
+                            arr[mRec.TriggerProtection],
+                            arr[mRec.BTnBusy],
+                            arr[mRec.BC1H],
+                            arr[mRec.BC1BP],
+                            arr[mRec.BC1xBC2],
+                            arr[mRec.BC1nBusy],
+                            arr[mRec.IntTrig],
+                            arr[mRec.SRCTrig],
+                            arr[mRec.TrignBusy]
+                            ); // BM@N
+                    printf(ANSI_COLOR_BLUE " U40VE:" ANSI_COLOR_RESET"\tcand %7u,   acc  %7u,   before  %4u,    after  %6u,  rjct %6u,  all %7u,  avail %7u\n\n",
+                            ti->GetTrigCand(),
+                            ti->GetTrigAccepted(),
+                            ti->GetTrigBefo(),
+                            ti->GetTrigAfter(),
+                            ti->GetTrigRjct(),
+                            ti->GetTrigAll(),
+                            ti->GetTrigAvail());
+                }
+                ++iSpill;
+                ++iSpillMap;
+                Int_t r = fRawSpillTree->GetEntry(iSpill);
+                //                printf("Get entry %u returned %d\n", iSpill, r);
+                if (r <= 0) {
+                    //                    fprintf(stderr, "Spill %u read error!\n", iSpill);
+                    return kBMNFINISH;
+                }
+                nPedEvBySpill = 0;
+                break;
+            }
+        }
+    }
+    return kBMNSUCCESS;
+}
 
 ClassImp(BmnMscRaw2Digit)
 

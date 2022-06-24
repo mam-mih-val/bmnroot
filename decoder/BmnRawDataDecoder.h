@@ -356,6 +356,7 @@ private:
     Bool_t isSpillStart;
     UInt_t fSpillCntr;
     BmnEventType evType = kBMNPAYLOAD;
+    bool isRawRootInputFile;
 
     Int_t fTOF700ReferenceRun;
     Int_t fTOF700ReferenceChamber;
@@ -475,7 +476,7 @@ private:
 
     //header array
     BmnEventHeader *eventHeader;
-    TClonesArray *spillHeader;
+    BmnSpillHeader *spillHeader;
 
     UInt_t data[10000000];
     ULong_t fMaxEvent;

@@ -67,7 +67,8 @@ public:
 
     void FillRunHeader(DigiRunHeader *rh);
 
-    BmnStatus SumEvent(TClonesArray *msc, BmnEventHeader *hdr, TClonesArray *sh, UInt_t &nPedEvBySpill);
+    BmnStatus SumEvent(TClonesArray *msc, BmnEventHeader *hdr, BmnSpillHeader *sh, UInt_t &nPedEvBySpill);
+    BmnStatus SumEvent7(TClonesArray *msc, BmnEventHeader *hdr, BmnSpillHeader *sh, UInt_t &nPedEvBySpill);
     BmnStatus SumEventTemp(TClonesArray *msc);
 
     BmnStatus ParseTxtSpillLog(TString LogName, TString SchemeName);

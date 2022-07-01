@@ -41,6 +41,8 @@
 
 #pragma link C++ class BmnFileSource+;
 #pragma link C++ class BmnDecoSource+;
+#pragma link C++ class BmnProfRawTools++;
+#pragma link C++ class BmnProfilometerSource++;
 
 #pragma link C++ class BmnEventHeader+;
 #pragma link C++ class BmnSpillHeader+;

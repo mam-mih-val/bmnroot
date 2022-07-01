@@ -21,6 +21,8 @@
 #pragma link C++ class BmnTofCalRaw2Digit+;
 #pragma link C++ class BmnSiliconRaw2Digit+;
 #pragma link C++ class BmnCscRaw2Digit+;
+#pragma link C++ class BmnProfRaw2Digit+;
+#pragma link C++ class BmnProfAsic2Raw+;
 #pragma link C++ class BmnRawDataDecoder+;
 #pragma link C++ class BmnSlewingTOF700+;
 #pragma link C++ class BmnMscRaw2Digit+;

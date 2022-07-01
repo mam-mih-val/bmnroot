@@ -14,6 +14,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/detectors/mwpc
  ${CMAKE_SOURCE_DIR}/detectors/csc
  ${CMAKE_SOURCE_DIR}/detectors/silicon
+ ${CMAKE_SOURCE_DIR}/detectors/SiBT
  ${CMAKE_SOURCE_DIR}/detectors/gem
  ${CMAKE_SOURCE_DIR}/detectors/dch
  ${CMAKE_SOURCE_DIR}/detectors/tof1
@@ -66,10 +67,11 @@ set(SRCS
  BmnSlewingTOF700.cxx
  BmnTrigRaw2Digit.cxx
  BmnCscRaw2Digit.cxx
+ BmnProfRaw2Digit.cxx
+ BmnProfAsic2Raw.cxx
  BmnMscRaw2Digit.cxx
  WfmProcessor.cxx
  PronyFitter.cxx
- BmnProfRawTools.cxx
 )
 
 If (${CMAKE_BUILD_TYPE} STREQUAL Debug)
@@ -90,6 +92,7 @@ endif()
 Set(HEADERS)
 Set(LINKDEF DecoderLinkDef.h)
 Set(LIBRARY_NAME BmnDecoder)
-Set(DEPENDENCIES LAND FHCal Hodo ScWall Zdc Ecal TofCal TOF TOF1 CSC Gem Silicon Dch Mwpc BmnBase DbTools UniDb ElogDb TangoData Base Minuit Core boost_program_options)
+Set(DEPENDENCIES LAND FHCal Hodo ScWall Zdc Ecal TofCal TOF TOF1 CSC Gem Silicon
+SiBT Dch Mwpc BmnBase DbTools UniDb ElogDb TangoData Base Minuit Core boost_program_options)
 
 GENERATE_LIBRARY()

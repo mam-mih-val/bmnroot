@@ -39,8 +39,16 @@ bool BmnProfRawTools::adc_num(const bitset<32> &word) {
     return word[17];
 }
 
+bool BmnProfRawTools::adc_num(const uint32_t &word) {
+    return word & (1 << 17);
+}
+
 bool BmnProfRawTools::fco(const bitset<32> &word) {
     return word[16];
+}
+
+bool BmnProfRawTools::fco(const uint32_t &word) {
+    return word & (1 << 16);
 }
 
 int BmnProfRawTools::adc_ch(vector<bitset < 32 >> &adc_word, char channel_name) {
@@ -78,6 +86,29 @@ int BmnProfRawTools::adc_ch(vector<bitset < 32 >> &adc_word, size_t start_index,
     }
     return static_cast<int> (result - 0x800);
 }
+
+//int BmnProfRawTools::adc_ch(vector<uint32_t> &adc_word, size_t start_index, char channel_name) {
+//    uint32_t result = 0;
+//    map<char, size_t> offsets{
+//        {'A', 0},
+//        {'B', 2},
+//        {'C', 4},
+//        {'D', 6},
+//        {'E', 8},
+//        {'F', 10},
+//        {'G', 12},
+//        {'H', 14}};
+//    for (size_t i = 0; i < 6; i++) {
+//        result += ((adc_word[start_index + i] >> offsets[channel_name]) & 1) << (10 - 2 * i + 1);
+//        result += ((adc_word[start_index + i] >> offsets[channel_name] + 1) & 1) << (10 - 2 * i);
+//    }
+//    return result - 0x800;
+//    //	return result.to_ulong();
+//}
+
+
+
+
 
 //---------------------------------------------------
 // Tracker detector 128x128 strip mapping

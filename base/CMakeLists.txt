@@ -67,9 +67,11 @@ set(SRCS
  math/BmnKalmanFilter.cxx
  math/BmnMaterialEffects.cxx
  math/BmnMaterialInfo.h
+ math/BmnProfRawTools.cxx
 
  source/BmnFileSource.cxx
  source/BmnDecoSource.cxx
+ source/BmnProfilometerSource.cxx
 
  header/BmnEventHeader.cxx
  header/BmnSpillHeader.cxx

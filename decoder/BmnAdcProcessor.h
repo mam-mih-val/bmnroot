@@ -34,15 +34,19 @@
 #define ADC128_N_SAMPLES 128 //number of samples in one ADC digit //silicon
 #define ADC32_N_SAMPLES 32 //number of samples in one ADC digit //gem
 
+typedef pair<UInt_t, UChar_t> PlMapKey;
+
 using namespace std;
 using namespace TMath;
 
 class BmnAdcProcessor {
 public:
     BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh, Int_t nSmpl, vector<UInt_t> vSer);
+    BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh, Int_t nSmpl);
     BmnAdcProcessor();
     virtual ~BmnAdcProcessor();
 
+    void SetSerials(vector<UInt_t> &vSer);
     BmnStatus RecalculatePedestals();
     BmnStatus RecalculatePedestalsAugmented();
     void PrecalcEventModsOld(TClonesArray *adc);
@@ -56,6 +60,7 @@ public:
     Double_t CalcCMS(Double_t* samples, Int_t size);
     Double_t CalcCMS1(Double_t* samples, Int_t size);
     BmnStatus SaveFilterInfo();
+    BmnStatus LoadFilterInfo();
 
     /**
      * Calculate signal CM - pedestal CM
@@ -160,6 +165,7 @@ protected:
     BmnSetup fSetup;
     void Run7(Int_t* statsGem, Int_t* statsSil, Int_t* statsGemPermut, Int_t* statsSilPermut);
     void CreateGeometries();
+    void InitArrays();
     Int_t* statsGem = nullptr;
     Int_t* statsSil = nullptr;
     Int_t* statsGemPermut = nullptr;

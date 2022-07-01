@@ -10,8 +10,7 @@
 #include <THttpServer.h>
 #include <TBufferFile.h>
 #include <TCanvas.h>
-#include <TH1F.h>
-//#include <fairmq/Device.h>
+#include <TH2F.h>
 // BmnRoot
 #include "BmnDataReceiver.h"
 #include "BmnProfRawTools.h"
@@ -33,18 +32,16 @@ vector<boost::circular_buffer<size_t> > cb_event_count;
 
 vector<TH1*> hVec;
 vector<vector<int>> adc1_word_char;
-//vector<int> adc1_word_chA, adc1_word_chB;
 vector<vector<vector<int>>> adc1_ch;
-//vector<vector<int>> adc1_chA, adc1_chB;
 vector<vector<float>> adc1_ch_mean; // mean by spill
-//vector<float> adc1_chA_mean, adc1_chB_mean; // mean by spill
 
 vector<vector<bitset < ASIC_channel >> > adc1, adc2;
 vector<bitset < ASIC_channel >> adc1_word, adc2_word;
-uint32_t holdb_temp = 0;
-uint32_t holdb;
-vector<uint32_t> trigger_pside, trigger_nside;
+//vector<uint32_t> trigger_pside, trigger_nside;
 uint32_t spill_cntr = 0;
+size_t NChars = 0;
+const int NBins = 200;
+const float thr = 50;
 
 struct ProfiMap {
     char ChannelName;
@@ -103,6 +100,8 @@ static vector<float> MeanVector(vector<vector<int>> &vec) {
 }
 
 int ProcessBuffer(uint32_t *word, size_t len) {
+    uint32_t holdb_temp = 0;
+    uint32_t holdb = 0;
     string str(reinterpret_cast<char*> (word), 6);
     //    printf("str %s\n", str.c_str());
     for (uint32_t i = 0; i < len; i++) {
@@ -119,7 +118,6 @@ int ProcessBuffer(uint32_t *word, size_t len) {
                 } else if (BmnProfRawTools::adc_num(data)) { // 2nd ADC
                     adc2_word.push_back(bitset<32>(data));
                 }
-                temp_cntr++;
             } else {
                 if (adc1_word.size() == 6 * ASIC_channel) adc1.push_back(adc1_word);
                 if (adc2_word.size() == 6 * ASIC_channel) adc2.push_back(adc2_word);
@@ -136,13 +134,12 @@ int ProcessBuffer(uint32_t *word, size_t len) {
                 holdb_temp = holdb;
             }
         } else {
-            spill_cntr++;
-            if (BmnProfRawTools::trig_psd(data)) {
-                trigger_pside.push_back(data);
-                temp_cntr = 0;
-            } else if (BmnProfRawTools::trig_nsd(data)) {
-                trigger_nside.push_back(data);
-            }
+            //            spill_cntr++;
+            //            if (BmnProfRawTools::trig_psd(data)) {
+            //                trigger_pside.push_back(data);
+            //            } else if (BmnProfRawTools::trig_nsd(data)) {
+            //                trigger_nside.push_back(data);
+            //            }
         }
     }
     return 0;
@@ -152,6 +149,8 @@ int ReorderBits() {
     vector<bitset < 32 >> temp;
     //    printf("ReorderBits adc1 size %lu\n", adc1.size());
     for (size_t i = 0; i < adc1.size(); i++) {
+        gSystem->ProcessEvents();
+        //                printf("events processed in the reorder func\n");
         //        printf("ReorderBits adc1[%02lu].size() %lu\n", i, adc1.size());
         for (size_t j = 0; j < adc1[i].size(); j = j + 6) {
             for (size_t k = 0; k < 6; ++k) {
@@ -161,12 +160,8 @@ int ReorderBits() {
                 adc1_word_char[iChar].push_back(BmnProfRawTools::adc_ch(temp, channel_maps[iChar].ChannelName));
             temp.clear();
         }
-        // push to vectors
         for (size_t iChar = 0; iChar < channel_maps.size(); iChar++)
             adc1_ch[iChar].push_back(move(adc1_word_char[iChar]));
-        // clear
-        //        adc1_word_chA.clear();
-        //        adc1_word_chB.clear();
     }
     return 0;
 }
@@ -179,11 +174,23 @@ int CalcMean() {
 }
 
 int FillSpill() {
+    for (size_t i = 0; i < hVec.size(); i++) {
+        hVec[i]->Reset();
+    }
     for (size_t iChar = 0; iChar < channel_maps.size(); iChar++) {
         vector<float> cur(ASIC_channel, 0);
         for (size_t iEvent = 0; iEvent < adc1_ch[iChar].size(); iEvent++)
             for (size_t iCh = 0; iCh < ASIC_channel; iCh++) {
-                cur[iCh] += /*adc1_ch[iChar][iEvent][iCh] - */adc1_ch_mean[iChar][iCh];
+                float sig = adc1_ch[iChar][iEvent][iCh] - adc1_ch_mean[iChar][iCh];
+                cur[iCh] += sig;
+                if (
+                        ((sig > thr) && channel_maps[iChar].LayerType == 'p') ||
+                        ((sig < -thr) && channel_maps[iChar].LayerType == 'n')
+                        ) {
+                    int strip = channel_maps[iChar].StripMap[iCh];
+                    hVec[3 * iChar]->Fill(strip);
+                    hVec[3 * iChar + 2]->Fill(sig);
+                }
             }
         cb[iChar].push_front(move(cur));
         //                printf("adc1_ch[%02lu]size %lu\n", iChar, adc1_ch[iChar].size());
@@ -191,25 +198,63 @@ int FillSpill() {
         size_t event_count = 0;
         for (size_t &ne : cb_event_count[iChar])
             event_count += ne;
-        printf("events[%02lu] %lu\n", iChar, event_count);
+        //        printf("events[%02lu] %lu\n", iChar, event_count);
         for (size_t iCh = 0; iCh < ASIC_channel; iCh++) {
             float sum = 0;
             for (size_t iSpill = 0; iSpill < cb[iChar].size(); iSpill++) {
                 sum += cb[iChar][iSpill][iCh];
             }
-            if (event_count)
+            if (event_count) {
                 sum /= (float) event_count;
+            }
             //            printf("sum %5.2f\n", sum);
-            hVec[iChar]->SetBinContent(channel_maps[iChar].StripMap[iCh], sum);
+            int strip = channel_maps[iChar].StripMap[iCh];
+            //            hVec[3* iChar]->SetBinContent(strip, sum);
+            hVec[3 * iChar + 1]->SetBinContent(strip, adc1_ch_mean[iChar][iCh]);
         }
     }
+    for (size_t iEvent = 0; iEvent < adc1_ch[0].size(); iEvent++) {
+        bitset<ASIC_channel> x = 0;
+        bitset<ASIC_channel> y = 0;
+        for (size_t iChar = 0; iChar < channel_maps.size(); iChar++) {
+            for (size_t iCh = 0; iCh < ASIC_channel; iCh++) {
+                float sig = adc1_ch[iChar][iEvent][iCh] - adc1_ch_mean[iChar][iCh];
+                if (
+                        ((sig > thr) && channel_maps[iChar].LayerType == 'p') ||
+                        ((sig < -thr) && channel_maps[iChar].LayerType == 'n')
+                        ) {
+                    int strip = channel_maps[iChar].StripMap[iCh];
+                    if (channel_maps[iChar].LayerType == 'p')
+                        x[strip] = true;
+                    else
+                        y[strip] = true;
+                }
+            }
+        }
+        for (size_t iX = 0; iX < ASIC_channel; iX++)
+            for (size_t iY = 0; iY < ASIC_channel; iY++)
+                if (x[iX] && y[iY])
+                    hVec[6]->Fill(iX, iY);
+    }
     return 0;
+}
+
+void ClearAllVectors() {
+    adc1.clear();
+    adc2.clear();
+    adc1_word.clear();
+    adc2_word.clear();
+    for (size_t i = 0; i < NChars; i++) {
+        adc1_word_char[i].clear();
+        adc1_ch[i].clear();
+        adc1_ch_mean[i].clear();
+    }
 }
 
 int Draw(TCanvas *c, vector<TH1*> hv) {
     for (size_t i = 0; i < hv.size(); i++) {
         c->cd(i + 1);
-        hv[i]->Draw();
+        hv[i]->Draw("colz");
     }
     c->Update();
     c->Modified();
@@ -238,27 +283,35 @@ int main(int argc, char **argv) {
     // hist declaration
     TCanvas *c = new TCanvas("Profilometer", "Profilometer", PAD_WIDTH, PAD_HEIGHT);
     fServer->Register("/", c);
-    size_t NChars = channel_maps.size();
-    c->Divide(1, NChars);
+    NChars = channel_maps.size();
+    c->Divide(3, NChars + 1, 0.001, 0.001);
     for (auto & map : channel_maps) {
-        TH1F *h = new TH1F(
+        TH1 *h = new TH1F(
                 Form("h%c_strips", map.LayerType),
                 Form("%c side", map.LayerType), ASIC_channel, 0, ASIC_channel);
-//        TH1F *hMean = new TH1F(
-//                Form("h%c_strips_mean", map.LayerType),
-//                Form("%c side mean", map.LayerType), ASIC_channel, 0, ASIC_channel);
+        TH1 *hMean = new TH1F(
+                Form("h%c_strips_mean", map.LayerType),
+                Form("%c side mean", map.LayerType), ASIC_channel, 0, ASIC_channel);
+        TH1 *hSig = new TH1F(
+                Form("h%c_sig", map.LayerType),
+                Form("%c side signals", map.LayerType), NBins, 0, 0);
         hVec.push_back(h);
-//        hVec.push_back(hMean);
+        hVec.push_back(hMean);
+        hVec.push_back(hSig);
 
     }
+    TH1 *h2d = new TH2F("h_2D", "Profile 2D",
+            ASIC_channel, 0, ASIC_channel,
+            ASIC_channel, 0, ASIC_channel);
+    hVec.push_back(h2d);
     adc1_word_char.resize(NChars);
     adc1_ch.resize(NChars);
     adc1_ch_mean.resize(NChars);
     cb.resize(NChars, boost::circular_buffer<vector<float> >(SpillCount));
     cb_event_count.resize(NChars, boost::circular_buffer<size_t>(SpillCount));
     for (size_t iChar = 0; iChar < channel_maps.size(); iChar++) {
-        printf("init cb[%02lu]size %lu\n", iChar, cb[iChar].size());
-        printf("init cb_event_count[%02lu]size %lu\n", iChar, cb_event_count[iChar].size());
+        //        printf("init cb[%02lu]size %lu\n", iChar, cb[iChar].size());
+        //        printf("init cb_event_count[%02lu]size %lu\n", iChar, cb_event_count[iChar].size());
     }
 
     // data socket init
@@ -270,13 +323,17 @@ int main(int argc, char **argv) {
         DBGERR("zmq socket")
         return 0;
     }
-    if (zmq_setsockopt(_rawSocket, ZMQ_SUBSCRIBE, NULL, 0) == -1) {
-        DBGERR("zmq subscribe")
-        return 0;
-    }
     if (zmq_connect(_rawSocket, SourceAddr) != 0) {
         DBGERR("zmq connect")
         return -1;
+    }
+    //    if (zmq_connect(_rawSocket, "tcp://127.0.0.1:5602") != 0) {
+    //        DBGERR("zmq connect")
+    //        return -1;
+    //    }
+    if (zmq_setsockopt(_rawSocket, ZMQ_SUBSCRIBE, NULL, 0) == -1) {
+        DBGERR("zmq subscribe")
+        return 0;
     }
     printf("MonProf listens to %s\n", SourceAddr);
 
@@ -307,7 +364,6 @@ int main(int argc, char **argv) {
     t.SetReadMode();
     bool keepWorking = kTRUE;
     bool isReceiving = kTRUE;
-    UInt_t decoTimeout = 0;
     const Int_t MaxStrLen = 100;
     bool isIdFound = kFALSE;
     bool isHeaderFound = kFALSE;
@@ -318,7 +374,7 @@ int main(int argc, char **argv) {
 
         do {
             gSystem->ProcessEvents();
-            fServer->ProcessRequests();
+            //            fServer->ProcessRequests();
             zmq_msg_t msg;
             zmq_msg_init(&msg);
             Int_t frame_size = zmq_msg_recv(&msg, _rawSocket, ZMQ_DONTWAIT); //  ZMQ_DONTWAIT
@@ -388,8 +444,10 @@ int main(int argc, char **argv) {
             printf("FillSpill\n");
             Draw(c, hVec);
             printf("Draw\n\n");
+            ClearAllVectors();
             isHeaderFound = kFALSE;
             isTrailerFound = kFALSE;
+            //            return 0;
         }
     }
     for (auto h : hVec)

@@ -1,7 +1,7 @@
 # Create a library called "libTangoData"
 
 set(INCLUDE_DIRECTORIES
- ${CMAKE_SOURCE_DIR}/database/tango
+ ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES

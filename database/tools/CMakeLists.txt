@@ -1,10 +1,10 @@
 # Create a library called "libDbTools"
 
 set(INCLUDE_DIRECTORIES
- ${CMAKE_SOURCE_DIR}/database/uni_db
- ${CMAKE_SOURCE_DIR}/database/elog_db
+ ${CMAKE_CURRENT_SOURCE_DIR}/../uni_db
+ ${CMAKE_CURRENT_SOURCE_DIR}/../elog_db
  ${CMAKE_SOURCE_DIR}/services
- ${CMAKE_SOURCE_DIR}/database/tools
+ ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES

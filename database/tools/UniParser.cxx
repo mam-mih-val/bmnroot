@@ -1064,7 +1064,7 @@ int UniParser::ParseDb2Db()
     TSQLServer* source_db = TSQLServer::Connect("pgsql://nc13.jinr.ru/bmn_elog", "login", "password");
     if (source_db == nullptr)
     {
-        cout<<"ERROR: source database connection was not established"<<endl;
+        cout<<"ERROR: source database connection was not established (nc13.jinr.ru) for bmn_elog"<<endl;
         return -1;
     }
 
@@ -1091,7 +1091,7 @@ int UniParser::ParseDb2Db()
     TSQLServer* dest_db = TSQLServer::Connect("pgsql://nc13.jinr.ru/bmn_elog", "login", "password");
     if (dest_db == nullptr)
     {
-        cout<<"ERROR: destination database connection was not established"<<endl;
+        cout<<"ERROR: destination database connection was not established (nc13.jinr.ru) for bmn_elog"<<endl;
         return -3;
     }
 

@@ -4,7 +4,7 @@ void test_db(TString strDbHost, TString strDbName, TString strUserName, TString 
     TSQLServer* pSQLServer =TSQLServer::Connect(conString, strUserName.Data(), strDbPassword.Data());
     if (pSQLServer == nullptr)
     {
-        cout<<"ERROR: database connection was not established (m.b. wrong login or password)"<<endl;
+        cout<<"ERROR: database connection was not established ("<<strDbHost<<") for '"<<strUserName<<"' user"<<endl;
         return nullptr;
     }
     cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;

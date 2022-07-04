@@ -6,7 +6,7 @@
 #SRCS=run_sim_src.cxx
 
 #SRCS=run8_reco_bmn.cxx
-#SRCS=run_reco_bmn.cxx
+SRCS=run_reco_bmn.cxx
 #SRCS=run_reco_src.cxx
 
 # Compiler

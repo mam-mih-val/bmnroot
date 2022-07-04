@@ -1,7 +1,7 @@
 # Create a library called "libElogDb"
 
 set(INCLUDE_DIRECTORIES
- ${CMAKE_SOURCE_DIR}/database/elog_db
+ ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES

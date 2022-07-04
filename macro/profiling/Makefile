@@ -1,12 +1,10 @@
 # Source files
 #SRCS=eventdisplay.cxx
 
-#SRCS=run8_sim_bmn.cxx
 #SRCS=run_sim_bmn.cxx
 #SRCS=run_sim_src.cxx
 
-#SRCS=run8_reco_bmn.cxx
-SRCS=run_reco_bmn.cxx
+#SRCS=run_reco_bmn.cxx
 #SRCS=run_reco_src.cxx
 
 # Compiler
@@ -17,55 +15,56 @@ OBJECTS=$(patsubst %.cxx, %, $(SRCS))
 ROOTCONFIG := root-config
 
 CFLAGS := $(shell $(ROOTCONFIG) --cflags)
-CFLAGS += -I$(VMCWORKDIR)/bmnfield
+CFLAGS += -I$(VMCWORKDIR)/field
 CFLAGS += -I$(VMCWORKDIR)/generators
 CFLAGS += -I$(VMCWORKDIR)/passive
 CFLAGS += -I$(VMCWORKDIR)/alignment
-CFLAGS += -I$(VMCWORKDIR)/armTriggers
-CFLAGS += -I$(VMCWORKDIR)/bd
-CFLAGS += -I$(VMCWORKDIR)/bc
-CFLAGS += -I$(VMCWORKDIR)/bmndata
-CFLAGS += -I$(VMCWORKDIR)/bmndata/cbm
-CFLAGS += -I$(VMCWORKDIR)/bmndata/common
-CFLAGS += -I$(VMCWORKDIR)/bmndata/math
-CFLAGS += -I$(VMCWORKDIR)/cat
-CFLAGS += -I$(VMCWORKDIR)/cat/OffLineInterface
-CFLAGS += -I$(VMCWORKDIR)/csc
-CFLAGS += -I$(VMCWORKDIR)/dch
-CFLAGS += -I$(VMCWORKDIR)/ecal
-CFLAGS += -I$(VMCWORKDIR)/FD
-CFLAGS += -I$(VMCWORKDIR)/fhcal
-CFLAGS += -I$(VMCWORKDIR)/gem
+CFLAGS += -I$(VMCWORKDIR)/detectors/armTriggers
+CFLAGS += -I$(VMCWORKDIR)/detectors/bd
+CFLAGS += -I$(VMCWORKDIR)/detectors/bc
+CFLAGS += -I$(VMCWORKDIR)/base
+CFLAGS += -I$(VMCWORKDIR)/base/cbm
+CFLAGS += -I$(VMCWORKDIR)/base/data
+CFLAGS += -I$(VMCWORKDIR)/base/header
+CFLAGS += -I$(VMCWORKDIR)/base/math
+CFLAGS += -I$(VMCWORKDIR)/base/raw
+CFLAGS += -I$(VMCWORKDIR)/base/source
+CFLAGS += -I$(VMCWORKDIR)/reconstruction/cat
+CFLAGS += -I$(VMCWORKDIR)/reconstruction/cat/OffLineInterface
+CFLAGS += -I$(VMCWORKDIR)/detectors/csc
+CFLAGS += -I$(VMCWORKDIR)/detectors/dch
+CFLAGS += -I$(VMCWORKDIR)/detectors/ecal
+CFLAGS += -I$(VMCWORKDIR)/detectors/FD
+CFLAGS += -I$(VMCWORKDIR)/detectors/fhcal
+CFLAGS += -I$(VMCWORKDIR)/detectors/gem
 CFLAGS += -I$(VMCWORKDIR)/gconfig
-CFLAGS += -I$(VMCWORKDIR)/hodo
-CFLAGS += -I$(VMCWORKDIR)/identification
-CFLAGS += -I$(VMCWORKDIR)/KF
-CFLAGS += -I$(VMCWORKDIR)/KF/Interface
-CFLAGS += -I$(VMCWORKDIR)/KF/KFQA
-CFLAGS += -I$(VMCWORKDIR)/sts
-CFLAGS += -I$(VMCWORKDIR)/mwpc
-CFLAGS += -I$(VMCWORKDIR)/scwall
-CFLAGS += -I$(VMCWORKDIR)/silicon
-CFLAGS += -I$(VMCWORKDIR)/SiBT
-CFLAGS += -I$(VMCWORKDIR)/SiMD
-CFLAGS += -I$(VMCWORKDIR)/tof
-CFLAGS += -I$(VMCWORKDIR)/tracking
-CFLAGS += -I$(VMCWORKDIR)/tof1
+CFLAGS += -I$(VMCWORKDIR)/detectors/hodo
+CFLAGS += -I$(VMCWORKDIR)/reconstruction/identification
+CFLAGS += -I$(VMCWORKDIR)/reconstruction/KF
+CFLAGS += -I$(VMCWORKDIR)/reconstruction/KF/Interface
+CFLAGS += -I$(VMCWORKDIR)/reconstruction/KF/KFQA
+CFLAGS += -I$(VMCWORKDIR)/detectors/sts
+CFLAGS += -I$(VMCWORKDIR)/detectors/mwpc
+CFLAGS += -I$(VMCWORKDIR)/detectors/scwall
+CFLAGS += -I$(VMCWORKDIR)/detectors/silicon
+CFLAGS += -I$(VMCWORKDIR)/detectors/SiBT
+CFLAGS += -I$(VMCWORKDIR)/detectors/SiMD
+CFLAGS += -I$(VMCWORKDIR)/detectors/tof
+CFLAGS += -I$(VMCWORKDIR)/reconstruction/tracking
+CFLAGS += -I$(VMCWORKDIR)/detectors/tof1
 CFLAGS += -I$(VMCWORKDIR)/QA
-CFLAGS += -I$(VMCWORKDIR)/zdc
-CFLAGS += -I$(VMCWORKDIR)/land
-CFLAGS += -I$(VMCWORKDIR)/csc
+CFLAGS += -I$(VMCWORKDIR)/detectors/zdc
+CFLAGS += -I$(VMCWORKDIR)/detectors/land
 CFLAGS += -I$(VMCWORKDIR)/steering
-#CFLAGS += -I$(VMCWORKDIR)/ssd/mc
-CFLAGS += -I$(VMCWORKDIR)/bmndst
+#CFLAGS += -I$(VMCWORKDIR)/detectors/ssd/mc
+CFLAGS += -I$(VMCWORKDIR)/reconstruction/dst
 CFLAGS += -I$(VMCWORKDIR)/decoder
-CFLAGS += -I$(VMCWORKDIR)/globaltracking
+CFLAGS += -I$(VMCWORKDIR)/reconstruction/globaltracking
 CFLAGS += -I$(VMCWORKDIR)/eventdisplay
 CFLAGS += -I$(VMCWORKDIR)/eventdisplay/bmn
 CFLAGS += -I$(VMCWORKDIR)/eventdisplay/mpd
 CFLAGS += -I$(VMCWORKDIR)/database/uni_db
-CFLAGS += -I$(VMCWORKDIR)/database/unicom
-CFLAGS += -I$(VMCWORKDIR)/zdc
+CFLAGS += -I$(VMCWORKDIR)/database/tools
 CFLAGS += -I${FAIRROOTPATH}/include
 CFLAGS += -I$(SIMPATH)/include
 CFLAGS += -I$(ROOT_INCLUDE_PATH)
@@ -95,4 +94,3 @@ $(OBJECTS): % : $(SRCS)
 
 clean:
 	rm -vf $(basename $(SRCS)) *.o
-

@@ -4,3 +4,7 @@
 [submodule "database/geo_db"]
 	path = database/geo_db
 	url = https://git.jinr.ru/nica_db/geo_db.git
+[submodule "database/uni_db"]
+	path = database/uni_db
+	url = git@git.jinr.ru:nica_db/unidb.git
+	branch = master

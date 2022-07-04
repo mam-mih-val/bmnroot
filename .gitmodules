@@ -12,3 +12,7 @@
 	path = database/elog_db
 	url = git@git.jinr.ru:nica_db/elog.git
 	branch = master
+[submodule "database/event_db"]
+	path = database/event_db
+	url = git@git.jinr.ru:nica_db/eventdb.git
+	branch = master

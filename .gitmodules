@@ -8,3 +8,7 @@
 	path = database/uni_db
 	url = git@git.jinr.ru:nica_db/unidb.git
 	branch = master
+[submodule "database/elog_db"]
+	path = database/elog_db
+	url = git@git.jinr.ru:nica_db/elog.git
+	branch = master

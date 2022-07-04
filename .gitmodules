@@ -6,13 +6,13 @@
 	url = https://git.jinr.ru/nica_db/geo_db.git
 [submodule "database/uni_db"]
 	path = database/uni_db
-	url = https://git.jinr.ru:nica_db/unidb.git
+	url = https://git.jinr.ru/nica_db/unidb.git
 	branch = master
 [submodule "database/elog_db"]
 	path = database/elog_db
-	url = https://git.jinr.ru:nica_db/elog.git
+	url = https://git.jinr.ru/nica_db/elog.git
 	branch = master
 [submodule "database/event_db"]
 	path = database/event_db
-	url = https://git.jinr.ru:nica_db/eventdb.git
+	url = https://git.jinr.ru/nica_db/eventdb.git
 	branch = master

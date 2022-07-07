@@ -24,35 +24,47 @@
 #include "FairRootFileSink.h"
 
 // BM@N includes
+#include "BmnBeamTracking.h"
+#include "BmnCSCHitMaker.h"
+#include "BmnDchHitProducer.h"
+#include "BmnDchTrackFinder.h"
+#include "BmnFHCalReconstructor.h"
 #include "BmnFileSource.h"
-#include "UniDbRun.h"
 #include "BmnFieldMap.h"
-#include "BmnNewFieldMap.h"
-#include "BmnCounterTask.h"
-#include "BmnTriggersCheck.h"
-#include "BmnMwpcHitFinder.h"
-#include "BmnSiliconHitMaker.h"
+#include "BmnFillDstTask.h"
+#include "BmnFunctionSet.h"
 #include "BmnGemStripHitMaker.h"
-#include "BmnTof1HitProducer.h"
-#include "BmnTofHitProducer.h"
+#include "BmnGemResiduals.h"
+#include "BmnGemTrack.h"
+#include "BmnGlobalTracking.h"
+#include "BmnInnerTrackingRun7.h"
+#include "BmnNewFieldMap.h"
+#include "BmnLANDHitProducer.h"
+#include "BmnMatchRecoToMC.h"
+#include "BmnMwpcHitFinder.h"
 #include "BmnMwpcHitProducer.h"
 #include "BmnMwpcTrackFinder.h"
-#include "BmnGemTrack.h"
-#include "BmnDchTrackFinder.h"
-#include "BmnGlobalTracking.h"
-#include "BmnGemResiduals.h"
-#include "BmnSiResiduals.h"
-#include "BmnLANDHitProducer.h"
-#include "BmnFunctionSet.h"
-#include "DstEventHeader.h"
-#include "MpdGetNumEvents.h"    
-#include "BmnCSCHitMaker.h"
-#include "BmnInnerTrackingRun7.h"
-#include "BmnDchHitProducer.h"
-#include "BmnZdcAnalyzer.h"
-#include "BmnFillDstTask.h"
-#include "BmnVertexFinder.h"
 #include "BmnPid.h"
+#include "BmnSiBTHitMaker.h"
+#include "BmnSiliconHitMaker.h"
+#include "BmnSiResiduals.h"
+#include "BmnStsMatchTracks.h"
+#include "BmnToCbmHitConverter.h"
+#include "BmnTof1HitProducer.h"
+#include "BmnTofHitProducer.h"
+#include "BmnVertexFinder.h"
+#include "BmnZdcAnalyzer.h"
+#include "CbmFindPrimaryVertex.h"
+#include "CbmStsFindTracks.h"
+#include "CbmKF.h"
+#include "CbmL1.h"
+#include "CbmL1StsTrackFinder.h"
+#include "CbmPrimaryVertexFinder.h"
+#include "CbmPVFinderKF.h"
+#include "CbmStsTrackFinder.h"
+#include "DstEventHeader.h" 
+#include "MpdGetNumEvents.h"  
+#include "UniDbRun.h"
 
 
 #include <iostream>
@@ -86,6 +98,7 @@ using namespace std;
 // from that file.
 
 //#include "../run/bmnloadlibs.C"
+#define L1Tracking // Choose Tracking: L1Tracking, VF or CellAuto
 
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
@@ -106,7 +119,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     FairRunAna* fRunAna = new FairRunAna();
     fRunAna->SetEventHeader(new DstEventHeader());
 
-    Bool_t isField = (inputFileName.Contains("noField")) ? kFALSE : kTRUE; // flag for tracking (to use mag.field or not)
     Bool_t isTarget = kTRUE; //kTRUE; // flag for tracking (run with target or not)
     Bool_t isExp = !BmnFunctionSet::isSimulationFile(inputFileName); // flag for hit finder (to create digits or take them from data-file)
 
@@ -115,7 +127,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
 
     // -1 means use of the BM@N-setup when processing MC-input
     // DO NOT change it manually!
-    Int_t run_period = 7, run_number = -1;
+    Int_t run_period = 8, run_number = -1;
     Double_t fieldScale = 0.;
     if (!isExp) // for simulation files
         fFileSource = new FairFileSource(inputFileName);
@@ -127,7 +139,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         // get geometry for run
         gRandom->SetSeed(0);
         TString geoFileName = Form("current_geo_file_%d.root", UInt_t(gRandom->Integer(UINT32_MAX)));
-        Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
+        Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*)geoFileName.Data());
         if (res_code != 0) {
             cout << "ERROR: could not read geometry file from the database" << endl;
             exit(-3);
@@ -141,7 +153,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         }
         TList* keyList = geoFile->GetListOfKeys();
         TIter next(keyList);
-        TKey* key = (TKey*) next();
+        TKey* key = (TKey*)next();
         TString className(key->GetClassName());
         if (className.BeginsWith("TGeoManager"))
             key->ReadObj();
@@ -162,7 +174,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         Double_t map_current = 55.87;
         if (*field_voltage < 10) {
             fieldScale = 0;
-            isField = kFALSE;
         } else
             fieldScale = (*field_voltage) / map_current;
 
@@ -206,17 +217,24 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // Add TObjectString file names to a TList which is passed as input to the FairParAsciiFileIo.
     // The FairParAsciiFileIo will create on fly a concatenated input parameter file, which is then used during the reconstruction.
     TList* parFileNameList = new TList();
-    
+
     // ====================================================================== //
-    // ===                           MWPC hit finder                      === //
+    // ===                   Hits in front of the target                  === //
     // ====================================================================== //
-    if(!isExp) {
-      BmnMwpcHitProducer *mwpcHP = new BmnMwpcHitProducer();
-      fRunAna->AddTask(mwpcHP);
+    if (run_period >= 8) {
+        if (isExp) {
+            BmnSiBTHitMaker* sibtHM = new BmnSiBTHitMaker(run_period, run_number, isExp);
+            fRunAna->AddTask(sibtHM);
+        }
+    } else {
+        if (!isExp) {
+            BmnMwpcHitProducer* mwpcHP = new BmnMwpcHitProducer();
+            fRunAna->AddTask(mwpcHP);
+        }
+        BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp, run_period, run_number);
+        fRunAna->AddTask(mwpcHM);
     }
-    BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp, run_period, run_number);
-    fRunAna->AddTask(mwpcHM);
-    
+
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
@@ -229,17 +247,17 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ====================================================================== //
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, run_number, isExp);
     if (isExp) gemHM->SetHitMatching(kFALSE);
-    fRunAna->AddTask(gemHM);    
-    
+    fRunAna->AddTask(gemHM);
+
     // ====================================================================== //
     // ===                          CSC hit finder                        === //
     // ====================================================================== //
     BmnCSCHitMaker* cscHM = new BmnCSCHitMaker(run_period, run_number, isExp);
     if (!isExp)
-        cscHM->SetCurrentConfig(BmnCSCConfiguration::RunSpring2018); //set explicitly
+        cscHM->SetCurrentConfig(BmnCSCConfiguration::Run8); //set explicitly
     if (isExp) cscHM->SetHitMatching(kFALSE);
     fRunAna->AddTask(cscHM);
-    
+
     // ====================================================================== //
     // ===                          TOF1 hit finder                       === //
     // ====================================================================== //
@@ -261,53 +279,81 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     tof2HP->SetDiffTimeMaxSmall(1.2f); // Abs maximal difference for small chambers
     tof2HP->SetDiffTimeMaxBig(3.5f); // Abs maximal difference for big chambers
     fRunAna->AddTask(tof2HP);
-    
+
     // ====================================================================== //
     // ===                          DCH hit finder                        === //
     // ====================================================================== //
-    if(!isExp) {
-        BmnDchHitProducer *dchHP = new BmnDchHitProducer();
+    if (!isExp) {
+        BmnDchHitProducer* dchHP = new BmnDchHitProducer();
         fRunAna->AddTask(dchHP);
     }
-    
-    // ====================================================================== //
-    // ===                             ZDC                                === //
-    // ====================================================================== //
-    BmnZdcAnalyzer * zdcAna = new BmnZdcAnalyzer();
-    fRunAna->AddTask(zdcAna);
-       
-#ifdef L1    
-    FairTask* hitConverter = new BmnToCbmHitConverter(iVerbose);
-    fRunAna->AddTask(hitConverter);
 
     // ====================================================================== //
-    // ===                         STS track finding                      === //
+    // ===                         FHCAL/ZDC                              === //
     // ====================================================================== //
-    CbmKF* kalman = new CbmKF();
-    fRunAna->AddTask(kalman);
+    if (run_period >= 8) {
+        //TODO check isExp
+        BmnFHCalReconstructor* fhcalReco = new BmnFHCalReconstructor("FHCAL_map_dry_run_2022.txt", isExp);
+        fRunAna->AddTask(fhcalReco);
+    } else {
+        BmnZdcAnalyzer* zdcAna = new BmnZdcAnalyzer();
+        fRunAna->AddTask(zdcAna);
+    }
 
-    CbmL1* l1 = new CbmL1();
-    TString stsMatBudgetFile = ""; // paramDir + "/sts/sts_matbudget_v12b_12344444.root"; // paramDir + "/sts_matbudget_var_fr.root";
-    l1->SetMaterialBudgetFileName(stsMatBudgetFile);
-    fRunAna->AddTask(l1);
-
-    CbmStsTrackFinder* stsTrackFinder = new CbmL1StsTrackFinder();
-    FairTask* stsFindTracks = new CbmStsFindTracks(iVerbose, stsTrackFinder);
-    fRunAna->AddTask(stsFindTracks);
+    TString innerTrackBranchName; //use different track container
+#ifdef L1Tracking
+    innerTrackBranchName = "StsTrack";
 #else
-    // ====================================================================== //
-    // ===                       Tracking (InnerTracker)                  === //
-    // ====================================================================== //
-    BmnInnerTrackingRun7* innerTF = new BmnInnerTrackingRun7(run_number, isField, isTarget);
-    innerTF->SetFiltration(isExp); //we use filtration for experimental data only now
-    // fRunAna->AddTask(innerTF);
+    innerTrackBranchName = "StsVector";
 #endif
 
     // ====================================================================== //
-    // ===                          Tracking (MWPC)                       === //
+    // ===                       Inner Tracking                           === //
     // ====================================================================== //
-    BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp, run_period, run_number);
-    fRunAna->AddTask(mwpcTF);
+    if (run_period >= 8) {
+        BmnToCbmHitConverter* hitConverter = new BmnToCbmHitConverter(iVerbose);
+        hitConverter->SetFixedErrors();
+        fRunAna->AddTask(hitConverter);
+
+        CbmKF* kalman = new CbmKF();
+        fRunAna->AddTask(kalman);
+
+        CbmL1* l1 = new CbmL1();
+        TString stsMatBudgetFile = "";
+        l1->SetMaterialBudgetFileName(stsMatBudgetFile);
+        fRunAna->AddTask(l1);
+
+        CbmStsTrackFinder* stsTrackFinder = new CbmL1StsTrackFinder();
+        FairTask* stsFindTracks = new CbmStsFindTracks(iVerbose, stsTrackFinder);
+        fRunAna->AddTask(stsFindTracks);
+
+#ifdef VF  
+        BmnStsVectorFinder* vf = new BmnStsVectorFinder();
+        fRunAna->AddTask(vf);
+#endif
+
+        BmnStsMatchTracks* stsMatchTracks = new BmnStsMatchTracks(iVerbose);
+        stsMatchTracks->SetTrackBranch(innerTrackBranchName);
+        fRunAna->AddTask(stsMatchTracks);
+
+    } else {
+        BmnInnerTrackingRun7* innerTF = new BmnInnerTrackingRun7(run_number, isTarget);
+        innerTF->SetFiltration(isExp); //we use filtration for experimental data only now
+        fRunAna->AddTask(innerTF);
+    }
+
+    // ====================================================================== //
+    // ===                          Beam Tracking                         === //
+    // ====================================================================== //
+    if (run_period >= 8) {
+        if (isExp) {
+            BmnBeamTracking* beamTF = new BmnBeamTracking(run_period);
+            fRunAna->AddTask(beamTF);
+        }
+    } else {
+        BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp, run_period, run_number);
+        fRunAna->AddTask(mwpcTF);
+    }
 
     // ====================================================================== //
     // ===                          Tracking (DCH)                        === //
@@ -317,25 +363,36 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     fRunAna->AddTask(dchTF);
 
     // ====================================================================== //
+    // ===                      Primary vertex finding                    === //
+    // ====================================================================== //
+    if (run_period >= 8) {
+        CbmPrimaryVertexFinder* pvFinder = new CbmPVFinderKF();
+        CbmFindPrimaryVertex* findVertex = new CbmFindPrimaryVertex(pvFinder);
+        findVertex->SetTrackBranch(innerTrackBranchName);
+        fRunAna->AddTask(findVertex);
+    } else {
+        BmnVertexFinder* gemVF = new BmnVertexFinder(run_period);
+        fRunAna->AddTask(gemVF);
+    }
+    
+    // ====================================================================== //
     // ===                          Global Tracking                       === //
     // ====================================================================== //
     Bool_t doAlign = kTRUE;
     if (!isExp) doAlign = kFALSE;
-    BmnGlobalTracking* glTF = new BmnGlobalTracking(isField, isExp, kFALSE/*doAlign*/);
+    BmnGlobalTracking* glTF = new BmnGlobalTracking(isExp, kFALSE/*doAlign*/);
+    glTF->SetInnerTracksBranchName(innerTrackBranchName);
     fRunAna->AddTask(glTF);
 
     // ====================================================================== //
-    // ===                      Primary vertex finding                    === //
+    // ===           Matching global track to MC track procedure          === //
     // ====================================================================== //
-#ifdef L1   
-    CbmPrimaryVertexFinder* pvFinder = new CbmPVFinderKF();
-    CbmFindPrimaryVertex * findVertex = new CbmFindPrimaryVertex(pvFinder);
-    fRunAna->AddTask(findVertex);
-#else    
-    BmnVertexFinder* gemVF = new BmnVertexFinder(run_period, isField);
-    fRunAna->AddTask(gemVF);
-#endif
-    
+    if (!isExp) {
+        BmnMatchRecoToMC* mcMatching = new BmnMatchRecoToMC();
+        mcMatching->SetInnerTracksBranchName(innerTrackBranchName);
+        fRunAna->AddTask(mcMatching);
+    }
+
     // ====================================================================== //
     // ===                      PID procedure                             === //
     // ====================================================================== //
@@ -345,8 +402,10 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     // ====================================================================== //
     // ===                      Residual analysis                         === //
     // ====================================================================== //
-    BmnResiduals* res = new BmnResiduals(run_period, run_number, isField);
-    fRunAna->AddTask(res);
+    if (run_period < 8) {
+        BmnResiduals* res = new BmnResiduals(run_period, run_number);
+        fRunAna->AddTask(res);
+    }
 
     // Fill DST Event Header (if iVerbose = 0, then print progress bar)
     BmnFillDstTask* dst_task = new BmnFillDstTask(nEvents);

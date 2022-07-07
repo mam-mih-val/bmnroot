@@ -21,7 +21,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/detectors/zdc
  ${CMAKE_SOURCE_DIR}/reconstruction/globaltracking
  ${CMAKE_SOURCE_DIR}/reconstruction/zdc
- ${CMAKE_SOURCE_DIR}/physics/bmnrecotools
+ ${CMAKE_SOURCE_DIR}/reconstruction/bmnrecotools
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES

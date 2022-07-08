@@ -1278,8 +1278,8 @@ unique_ptr<BmnSiliconStationSet> BmnAdcProcessor::GetSilStationSet(Int_t period,
             break;
     }
     TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
-    //    return unique_ptr<BmnSiliconStationSet>(new BmnSiliconStationSet(gPathSiliconConfig + xmlConfFileName));
-    return std::make_unique<BmnSiliconStationSet>(gPathSiliconConfig + xmlConfFileName);
+        return unique_ptr<BmnSiliconStationSet>(new BmnSiliconStationSet(gPathSiliconConfig + xmlConfFileName));
+//    return std::make_unique<BmnSiliconStationSet>(gPathSiliconConfig + xmlConfFileName);
 }
 
 BmnGemStripStationSet * BmnAdcProcessor::GetGemStationSet(Int_t period, BmnSetup stp) {

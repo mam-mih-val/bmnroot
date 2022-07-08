@@ -42,6 +42,7 @@ uint32_t spill_cntr = 0;
 size_t NChars = 0;
 const int NBins = 200;
 const float thr = 50;
+const int NCols = 4; // canvas columns
 
 struct ProfiMap {
     char ChannelName;
@@ -183,13 +184,14 @@ int FillSpill() {
             for (size_t iCh = 0; iCh < ASIC_channel; iCh++) {
                 float sig = adc1_ch[iChar][iEvent][iCh] - adc1_ch_mean[iChar][iCh];
                 cur[iCh] += sig;
+                hVec[NCols * iChar + 3]->Fill(iCh, adc1_ch[iChar][iEvent][iCh]);
                 if (
                         ((sig > thr) && channel_maps[iChar].LayerType == 'p') ||
                         ((sig < -thr) && channel_maps[iChar].LayerType == 'n')
                         ) {
                     int strip = channel_maps[iChar].StripMap[iCh];
-                    hVec[3 * iChar]->Fill(strip);
-                    hVec[3 * iChar + 2]->Fill(sig);
+                    hVec[NCols * iChar]->Fill(strip);
+                    hVec[NCols * iChar + 2]->Fill(sig);
                 }
             }
         cb[iChar].push_front(move(cur));
@@ -210,7 +212,7 @@ int FillSpill() {
             //            printf("sum %5.2f\n", sum);
             int strip = channel_maps[iChar].StripMap[iCh];
             //            hVec[3* iChar]->SetBinContent(strip, sum);
-            hVec[3 * iChar + 1]->SetBinContent(strip, adc1_ch_mean[iChar][iCh]);
+            hVec[NCols * iChar + 1]->SetBinContent(strip, adc1_ch_mean[iChar][iCh]);
         }
     }
     for (size_t iEvent = 0; iEvent < adc1_ch[0].size(); iEvent++) {
@@ -234,7 +236,7 @@ int FillSpill() {
         for (size_t iX = 0; iX < ASIC_channel; iX++)
             for (size_t iY = 0; iY < ASIC_channel; iY++)
                 if (x[iX] && y[iY])
-                    hVec[6]->Fill(iX, iY);
+                    hVec[2 * NCols]->Fill(iX, iY);
     }
     return 0;
 }
@@ -284,7 +286,7 @@ int main(int argc, char **argv) {
     TCanvas *c = new TCanvas("Profilometer", "Profilometer", PAD_WIDTH, PAD_HEIGHT);
     fServer->Register("/", c);
     NChars = channel_maps.size();
-    c->Divide(3, NChars + 1, 0.001, 0.001);
+    c->Divide(NCols, NChars + 1, 0.001, 0.001);
     for (auto & map : channel_maps) {
         TH1 *h = new TH1F(
                 Form("h%c_strips", map.LayerType),
@@ -295,9 +297,13 @@ int main(int argc, char **argv) {
         TH1 *hSig = new TH1F(
                 Form("h%c_sig", map.LayerType),
                 Form("%c side signals", map.LayerType), NBins, 0, 0);
+        TH1 *hPed = new TH2F(
+                Form("h%c_ped", map.LayerType),
+                Form("%c side pedestals", map.LayerType), ASIC_channel, 0, ASIC_channel, NBins, -150, 150);
         hVec.push_back(h);
         hVec.push_back(hMean);
         hVec.push_back(hSig);
+        hVec.push_back(hPed);
 
     }
     TH1 *h2d = new TH2F("h_2D", "Profile 2D",

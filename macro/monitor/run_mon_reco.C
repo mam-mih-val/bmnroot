@@ -52,7 +52,7 @@ void run_mon_reco(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     trQaAll->SetDetectorPresence(kGEM, kTRUE);
     trQaAll->SetOnlyPrimes(isPrimary);
     trQaAll->SetMonitorMode(kTRUE);
-    THttpServer* fServer = new THttpServer("http:8081;noglobal;cors");
+    THttpServer* fServer = new THttpServer("fastcgi:8081;noglobal;cors");
     fServer->SetTimer(50, kTRUE);
     trQaAll->SetObjServer(fServer);
     fMqSource->SetObjServer(fServer);

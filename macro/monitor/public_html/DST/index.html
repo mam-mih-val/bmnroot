@@ -6,7 +6,7 @@ and open the template in the editor.
 -->
 <html>
     <head>
-        <title>Silicon detectors</title>
+        <title>Reconstruction</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style type="text/css">
@@ -36,10 +36,10 @@ and open the template in the editor.
         <script>
             var loco = window.location;
 //            var path0 = /*loco.protocol + "//" + loco.hostname + */"../root.app/";
-            var path0 = "localhost:8080/";
-            var path = path0 + "Silicon/";
-            var runPath = "localhost:8080/CurRun/root.json";
-            var refPath = "localhost:8080/refTable/root.json";
+            var path0 = "localhost/root.dst/";
+            var path = "../root.dst/";
+            var runPath = "localhost/root.app/CurRun/root.json";
+            var refPath = "localhost/root.app/refTable/root.json";
             function ResetHist() {
                 var filename = path + "Reset/cmd.json";
                 var xhr = new XMLHttpRequest();
@@ -56,37 +56,50 @@ and open the template in the editor.
             }
             function drawInfo() {
                 setTimeout(drawInfo, 5000);
-                JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
-                    var info = JSON.parse(obj);
-                    if (info.arr.length > 0) {
-                        var runInfo = info.arr[0];
-                        var runID = runInfo.i_run_number;
-                        var storedRunId = sessionStorage.getItem('runID');
-                        if ((storedRunId === null) || (storedRunId == runID))
-                            return;
-                        sessionStorage.setItem('runID', runID);
-                        cleanCanvases();
-                    }
-                }).send(null);
+//                JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
+//                    var info = JSON.parse(obj);
+//                    if (info.arr.length > 0) {
+//                        var runInfo = info.arr[0];
+//                        var runID = runInfo.i_run_number;
+//                        var storedRunId = sessionStorage.getItem('runID');
+//                        if ((storedRunId === null) || (storedRunId == runID))
+//                            return;
+//                        sessionStorage.setItem('runID', runID);
+//                        cleanCanvases();
+//                    }
+//                }).send(null);
                 redrawCanvases();
-                FillRefTable(path0 + "refTable" + "/root.json", "refTable");
+//                FillRefTable(path0 + "refTable" + "/root.json", "refTable");
                 //var refPath = path0 + "refList" + "/root.json";
                 //FillRefSelector(refPath, "refSelector");
             }
             function redrawCanvases() {
                 var filename = path0 + "infoCanvas" + "/root.json";
 
+//                JSROOT.NewHttpRequest(filename, 'object', function (obj) {
+//                    alert(JSON.stringify(obj));
+//                    JSROOT.redraw("infoC", obj, "");
+//                }).send(null);
+                filename = path + "Tracks_Statistics/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
-                    JSROOT.redraw("infoC", obj, "");
+                    JSROOT.redraw("GlobalC", obj, "");
+
                 }).send(null);
-                filename = path + "SiliconCanvas" + "/root.json.gz?compact=3";
-                JSROOT.NewHttpRequest(filename, 'object', function (obj) {
-                    JSROOT.redraw("SiliconTableC", obj, "");
-                }).send(null);
+                var v = document.getElementById("Vx_Vy");
+                v.src = null;
+                v.src = "../root.dst/Vertex_distribution_for_X_and_Y_directions/root.png";
+                
+                var v = document.getElementById("vert_vs_ntracks");
+                v.src = null;
+                v.src = "../root.dst/Vertex_vs_number_of_tracks_in_event/root.png";
+                
+                var v = document.getElementById("chi2");
+                v.src = null;
+                v.src = "../root.dst/Chi_square_and_length_distributions/root.png";/*?monitoring=3000";*/
             }
             function cleanCanvases() {
-                JSROOT.cleanup("infoC");
-                JSROOT.cleanup("SiliconTableC");
+//                JSROOT.cleanup("infoC");
+                JSROOT.cleanup("GlobalC");
                 var sel = document.getElementById("refTable");
                 sel.innerHTML = "";
             }
@@ -99,21 +112,21 @@ and open the template in the editor.
                 xhr.withCredentials = true;
                 xhr.onreadystatechange = function () {
 //                    if (xhr.readyState === 4) {
-                        var response = JSON.parse(xmlhttp.responseText);
-                            alert(
-                                    "ready state: " +xhr.readyState+
-                                    "status : " + xhr.status +
-                                    "response: " + response);
+                    var response = JSON.parse(xmlhttp.responseText);
+                    alert(
+                            "ready state: " + xhr.readyState +
+                            "status : " + xhr.status +
+                            "response: " + response);
 //                    }
                 }
                 xhr.send();
-                JSROOT.cleanup("SiliconTableC");
+                JSROOT.cleanup("GlobalC");
             }
         </script>
     </head>
     <body onload="createTable()">
         <ul >
-            <li><a href="../index.html"> <h3>Welcome to the BM@N Experiment</h3></a></li>
+            <li><a href="../index.html"> <h3>BM@N Experiment</h3></a></li>
             <li><a href="../trigger_detectors/index.html"><h3>Triggers</h3></a></li>
             <li><a href="../Silicon/index.html"><h3>Silicon</h3></a></li>
             <li><a href="../gem_detectors/index.html"><h3>GEM</h3></a></li>
@@ -125,15 +138,14 @@ and open the template in the editor.
             <li><a href="../ZDC/index.html"><h3>ZDC</h3></a></li>
             <li><a href="../ECAL/index.html"><h3>ECAL</h3></a></li>
             <li><a href="../ScWall/index.html"><h3>ScWall</h3></a></li>
-            <!--<li><a href="../FhCal/index.html"><h3>FhCal</h3></a></li>-->
             <li><a href="../TofCal/index.html"><h3>TofCal</h3></a></li>
         </ul>
         <div id="total_counter" align="center">
-            <h1>BM@N Silicons</h1>  
+            <h1>BM@N DST</h1>  
             <!--<iframe id="infoCan" ></iframe>--> 
         </div>
         <div align="center">
-            <div id="infoC" style="width: 90vw;height: 15vw;"> </div>
+            <div id="infoC" style="width: 90vw;height: 0vw;"> </div>
         </div>
 
         <table>
@@ -161,13 +173,39 @@ and open the template in the editor.
     </tr>
 </table>
 
-<div align="center">
-    <div id="SiliconTableC" style="width: 95vw;height: 160vw;"> </div>
-</div>
 <!--<div align="center">
-    <iframe style="width: 98vw;height: 240vw;" src="../root.app/Silicon/SiliconCanvas/draw.htm?monitoring=10000"> </iframe>>
+    <iframe style="width: 40vw;height: 30vw;" src="../root.dst/Vertex_profile/draw.htm?monitoring=3000"> </iframe>>
 </div>-->
-<div id="Silicon_div" >
+
+<h2>Vertex profile</h2>  
+<div id="txt_1" align="center">
+    <table>
+        <tr>
+        <tb>
+            <iframe id="h2d_Grid" style = "width: 35vw;height: 25vw;" src="../root.dst/Vertex_profile/draw.htm?monitoring=3000"> </iframe>
+        </tb>
+        </tr>
+        <tr>
+        <tb>
+            <iframe id="Vx_Vy" style = "width: 55vw;height: 25vw;"> </iframe>
+        </tb>
+        </tr>
+    </table>
+</div>
+<h2>Track statistics</h2>
+<div align="center">
+    <div id="GlobalC" style="width: 95vw;height: 25vw;"> </div>
+</div>
+
+<h2>Chi2</h2>
+<div align="center">
+    <iframe style="width: 90vw;height: 25vw;"  id="chi2"> </iframe>
+</div>
+
+<h2>Vertices vs NTracks</h2>
+<h2></h2>  
+<div align="center">
+    <iframe style="width: 90vw;height: 25vw;"  id="vert_vs_ntracks"> </iframe>
 </div>
 
 </table>

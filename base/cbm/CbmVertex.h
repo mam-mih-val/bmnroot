@@ -94,7 +94,8 @@ void SetVertexXYZ(Double_t x, Double_t y, Double_t z){
 
   /** Reset the member variables **/
   void Reset();
-		    
+  
+  void CopyFrom(CbmVertex * hdr);
 
  private:
 

@@ -57,14 +57,6 @@ protected:
     void DrawPar(const TString canvasName, TString* inNames);
     void DrawVertResGem(const TString canvasName, TString name1dX, TString name1dY, TString name1dZ);
     void FillAndFitSlice(TString nameSigma, TString nameMean, TString name2d);
-    void DrawMuSigma(TVirtualPad* pad, TH1* h);
-   
-    void DrawOneH1(const TString canvasName, const TString name1, const TString drawOpt);
-    void DrawTwoH1(const TString canvasName, const TString name1, const TString name2, const TString drawOpt, Bool_t doFit);
-    void DrawOneH2(const TString canvasName, const TString name1);
-    void DrawTwoH2(const TString canvasName, const TString name1, const TString name2, Int_t w = 1000, Int_t h = 500);
-    void DrawThreeH1(const TString canvasName, const TString name1, const TString name2, const TString name3);
-    void DrawThreeH2(const TString canvasName, const TString name1, const TString name2, const TString name3);
 
     void DrawEffGhostGem(const TString canvasName);
     void DrawEffGem(const TString canvasName, TString* inNames, TString* outNames);

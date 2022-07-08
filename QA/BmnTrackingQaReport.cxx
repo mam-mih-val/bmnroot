@@ -25,9 +25,6 @@
 #include "BmnHistManager.h"
 #include "BmnReportElement.h"
 
-//basic height and wigth of pad
-const Float_t baseW = 500;
-const Float_t baseH = 500;
 
 using namespace std;
 using namespace lit;

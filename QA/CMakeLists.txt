@@ -60,6 +60,7 @@ set(SRCS
  report/BmnReportElement.h
 
 
+ BmnQaBase.cxx
  BmnPidQa.cxx
  BmnPidQaReport.cxx
  BmnTrackingQa.cxx

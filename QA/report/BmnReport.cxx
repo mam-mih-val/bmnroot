@@ -23,6 +23,10 @@ fCanvases() {
 }
 
 BmnReport::~BmnReport() {
+    for (auto h: fCanvases){
+        if (h)
+            delete h;
+    }
 }
 
 void BmnReport::CreateReportElement() {

@@ -82,7 +82,7 @@ unique_ptr<BmnSiBTStationSet> BmnProfRaw2Digit::GetProfStationSet(Int_t period) 
             break;
     }
     TString gPathSiliconConfig = gPathConfig + "/parameters/profilometer/XMLConfigs/";
-        return unique_ptr<BmnSiliconStationSet>(new BmnSiliconStationSet(gPathSiliconConfig + xmlConfFileName));
+        return unique_ptr<BmnSiBTStationSet>(new BmnSiBTStationSet(gPathSiliconConfig + xmlConfFileName));
 //    return std::make_unique<BmnSiBTStationSet>(gPathSiliconConfig + xmlConfFileName);
 }
 

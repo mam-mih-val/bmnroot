@@ -20,6 +20,8 @@ PadInfo* BmnPadGenerator::GeneratePadNode(pt::ptree& propTree) {
         ROOT::NewFunc_t histNew = cl->GetNew();
         string name = propTree.get<string>("Name");
         string title = propTree.get<string>("Title");
+        string variable = propTree.get<string>("Variable");
+        //        string selection = propTree.get<string>("Selection");
         printf("Hist name %s\n", name.c_str());
         vector<Int_t> dimVec;
         boost::optional<pt::ptree> dim = propTree.get_child("Dimensions");
@@ -31,11 +33,16 @@ PadInfo* BmnPadGenerator::GeneratePadNode(pt::ptree& propTree) {
         } else
             dimVec.resize(3, 0); // default 1Dim histogram
         info = new PadInfo();
-        info->name = TString(clName.c_str());
+        info->name = name;
+        info->variable = variable;
         boost::optional<string> opt = propTree.get_optional<string>("Options");
         if (opt) {
-            info->opt = TString(opt.get());
-            printf("info opt %s\n", info->opt.Data());
+            info->opt = opt.get();
+            printf("info opt %s\n", info->opt.c_str());
+        }
+        boost::optional<string> sel = propTree.get_optional<string>("Selection");
+        if (sel) {
+            info->selection = sel.get();
         }
         TH1* h = nullptr;
         TH2* h2 = nullptr;
@@ -43,18 +50,17 @@ PadInfo* BmnPadGenerator::GeneratePadNode(pt::ptree& propTree) {
         switch (dimVec.size()) {
             case 3:
                 h = static_cast<TH1*> (histNew(0));
-                h->SetName(name.c_str());
-                h->SetTitle(title.c_str());
                 h->SetBins(
                         dimVec[0],
                         dimVec[1],
                         dimVec[2]);
+                h->SetName(name.c_str());
+                h->SetTitle(title.c_str());
                 _HM->Add(name, h);
                 info->current = h; //_HM->H1(name);
                 break;
             case 6:
                 h2 = static_cast<TH2*> (histNew(0));
-                h2->SetName(info->name);
                 h2->SetBins(
                         dimVec[0],
                         dimVec[1],
@@ -69,7 +75,6 @@ PadInfo* BmnPadGenerator::GeneratePadNode(pt::ptree& propTree) {
                 break;
             case 9:
                 h3 = static_cast<TH3*> (histNew(0));
-                h3->SetName(info->name);
                 h3->SetBins(
                         dimVec[0],
                         dimVec[1],
@@ -89,6 +94,7 @@ PadInfo* BmnPadGenerator::GeneratePadNode(pt::ptree& propTree) {
                 throw string("Wrong dimensions!");
                 break;
         }
+        info->temp = static_cast<TH1*> (info->current->Clone((name + "_temp").c_str()));
         printf("hist class name %s\n", info->current->Class()->GetName());
     } catch (std::exception& ex) {
         printf("Exception for node: %s\n", ex.what());

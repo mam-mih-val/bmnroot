@@ -10,10 +10,6 @@
 #pragma link C++ class BmnMonitor++;
 #pragma link C++ class BmnOnlineDecoder++;
 #pragma link C++ class BmnOnlineReco++;
-#pragma link C++ class BmnHist++;
-#pragma link C++ class PadInfo++;
-#pragma link C++ class BmnPadBranch++;
-#pragma link C++ class BmnPadGenerator++;
 #pragma link C++ class BmnParts+;
 #pragma link C++ class BmnMQSource+;
 #pragma link C++ class BmnMQSink+;

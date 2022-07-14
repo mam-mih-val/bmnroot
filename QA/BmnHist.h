@@ -47,8 +47,10 @@ public:
 //    template <class HH>
     static void DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads);
     static void DrawPad(TVirtualPad *pad, PadInfo *info);
+    static void FillPad(PadInfo *info, TTree* tree);
     static BmnStatus LoadRefRun(Int_t refID, TString FullName, TString fTitle, vector<PadInfo*> canPads, vector<TString> Names);
     static BmnStatus DrawPadTree(BmnPadBranch* br);
+    static BmnStatus FillPadTree(BmnPadBranch* br, TTree* tree);
 
     void SetRefRunName(TString v) {
         this->refRunName = v;

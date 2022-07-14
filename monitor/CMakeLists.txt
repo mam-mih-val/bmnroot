@@ -68,7 +68,6 @@ BmnMonitor.cxx
 BmnDataReceiver.cxx
 BmnOnlineDecoder.cxx
 BmnOnlineReco.cxx
-BmnHist.cxx
 BmnHistGem.cxx
 BmnHistCsc.cxx
 BmnHistSilicon.cxx
@@ -83,9 +82,6 @@ BmnHistToF700.cxx
 BmnHistSrc.cxx
 BmnHistLAND.cxx
 BmnHistTofCal.cxx
-PadInfo.cxx
-BmnPadBranch.cxx
-BmnPadGenerator.cxx
 #BmnMQRecoTaskProcessor.cxx
 #BmnMQFileSaver.cxx
  BmnMQSource.cxx

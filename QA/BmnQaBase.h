@@ -123,7 +123,7 @@ protected:
     
     Int_t fEventNo;  // event counter
     
-   const Int_t fNItersToUpdate = 10;
+   const Int_t fNItersToUpdate = 20;
    const chrono::seconds fTimeToUpdate = chrono::seconds(5); //<-redraw each timeout seconds
    Int_t fNItersSinceUpdate;
    chrono::time_point<chrono::system_clock> fTicksLastUpdate;

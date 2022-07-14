@@ -152,7 +152,7 @@ Int_t BmnMQSource::ReadEvent(UInt_t i) {
         if (!strcmp(fNamVec[iAr]->ClassName(), "CbmVertex")) {
             static_cast<CbmVertex*> (fNamVec[iAr])->CopyFrom(
                     static_cast<CbmVertex*> (parts->GetObjects()[iAr]));
-                            cout << "VZ " << static_cast<CbmVertex*> (fNamVec[iAr])->GetZ() << endl;
+//                            cout << "VZ " << static_cast<CbmVertex*> (fNamVec[iAr])->GetZ() << endl;
         }
     }
     _tBuf->DetachBuffer();

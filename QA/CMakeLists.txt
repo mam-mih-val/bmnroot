@@ -60,6 +60,10 @@ set(SRCS
  report/BmnReportElement.h
 
 
+ BmnHist.cxx
+ PadInfo.cxx
+ BmnPadBranch.cxx
+ BmnPadGenerator.cxx
  BmnQaBase.cxx
  BmnPidQa.cxx
  BmnPidQaReport.cxx
@@ -72,6 +76,7 @@ set(SRCS
  BmnTrackingQaExpReport.cxx
  BmnLambdaQaReport.cxx
  BmnClusteringQaReport.cxx
+ BmnCustomQa.cxx
  BmnMCTrack.cxx
  BmnMCTrackCreator.cxx
  BmnAcceptanceFunction.h

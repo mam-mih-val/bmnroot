@@ -28,9 +28,9 @@ void BmnHist::DrawPad(TVirtualPad *pad, PadInfo *info) {
     Double_t maxy;
     Double_t k = 1;
     if (info->current) {
-//        maxy = info->current->GetMaximum();
-                maxy = info->current->GetBinContent(info->current->GetMaximumBin());
-        info->current->Draw(info->opt.Data());
+        //        maxy = info->current->GetMaximum();
+        maxy = info->current->GetBinContent(info->current->GetMaximumBin());
+        info->current->Draw(info->opt.c_str());
         if (info->ref != NULL) {
             k = (info->ref->Integral() > 0) ?
                     info->current->Integral() / info->ref->Integral() : 1.0;
@@ -53,6 +53,17 @@ void BmnHist::DrawPad(TVirtualPad *pad, PadInfo *info) {
     }
     pad->Update();
     pad->Modified();
+}
+
+void BmnHist::FillPad(PadInfo *info, TTree* tree) {
+    Long64_t dr = tree->Draw(
+            (info->variable + ">>" + info->temp->GetName()).c_str(),
+            (info->selection/* + " >>" + info->temp->GetName()*/).c_str(),
+            (info->opt + " goff").c_str());
+//    printf("draw %lld integral %f\n", dr, *info->temp->GetIntegral());
+//    printf(" max %f\n", info->temp->GetMaximum());
+    info->current->Add(info->temp);
+    info->temp->Reset();
 }
 
 BmnStatus BmnHist::LoadRefRun(Int_t refID, TString FullName, TString fTitle, vector<PadInfo*> canPads, vector<TString> Names) {
@@ -98,6 +109,20 @@ BmnStatus BmnHist::DrawPadTree(BmnPadBranch* br) {
     } else {
         for (auto &b : br->GetBranchesRef()) {
             DrawPadTree(b);
+        }
+    }
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnHist::FillPadTree(BmnPadBranch* br, TTree * tree) {
+    if (!br)
+        return kBMNERROR;
+    if (PadInfo * info = br->GetPadInfo()) {
+        TVirtualPad* pad = info->padPtr;
+        FillPad(info, tree);
+    } else {
+        for (auto &b : br->GetBranchesRef()) {
+            FillPadTree(b, tree);
         }
     }
     return kBMNSUCCESS;

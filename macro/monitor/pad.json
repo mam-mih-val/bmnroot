@@ -1,35 +1,35 @@
 {
-    "Name": "GEMS",
-    "Title": "GEM Canvas",
+    "Name": "Custom canvas",
+    "Title": "Custom Canvas",
     "DivX": "2",
     "DivY": "1",
     "Pads": [
         {
-            "Class": "TH2I",
-            "Name": "GEM-hits0",
-            "Title": "GEM hits",
-            "Variable": "",
-            "Selection": "",
+            "Class": "TH2F",
+            "Name": "Vertex2D",
+            "Title": "Vertex XY",
+            "Variable": "BmnVertex.fY:BmnVertex.fX",
+            "Selection": "(BmnVertex.fZ>-10 && BmnVertex.fZ<10)",
             "Options": "colz",
             "Dimensions": [
                 200,
-                0,
-                400,
-                400,
-                -200,
-                200
+                -5,
+                5,
+                200,
+                -5,
+                5
             ]
         },
         {
             "Class": "TH1F",
-            "Name": "GEM0",
-            "Title": "Gem Strip",
-            "Variable": "",
-            "Selection": "",
+            "Name": "VZ",
+            "Title": "Vertex Z",
+            "Variable": "BmnVertex.fZ",
+            "Selection": "(BmnVertex.fZ>-10 && BmnVertex.fZ<10)",
             "Dimensions": [
                 200,
-                0,
-                400
+                -10,
+                10
             ]
         }
     ]

@@ -2,7 +2,7 @@
 
 #include "/home/ilnur/bmnroot/macro/run/bmnloadlibs.C"
 void HistGenTest(
-        TString FileName = "/home/ilnur/filesbmn/pad.json") {
+        TString FileName = "pad.json") {
 #if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
 #endif

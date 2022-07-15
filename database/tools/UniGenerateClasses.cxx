@@ -147,7 +147,7 @@ int UniGenerateClasses::GenerateClasses(TString json_configuration_file)
 
     TClass* connection_class = TClass::GetClass(strConnectionName.Data());
     TMethodCall open_method(connection_class, "Open", "");
-    Longptr_t method_result = 0;
+    Long_t method_result = 0;
     open_method.Execute(method_result);
     TObject* pConnectionObject = (TObject*)method_result;
     if (pConnectionObject == nullptr)

@@ -1,0 +1,7 @@
+{
+    "settings": {
+        "connectionName"    : "ElogConnection",
+        "classPrefix"       : "ElogDb",
+        "onlyUpdateClasses" : true
+    }
+}

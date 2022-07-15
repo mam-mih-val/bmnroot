@@ -1,13 +1,13 @@
 // -------------------------------------------------------------------------
-// -----                    UniGenerateClasses header file           -----
+// -----                    UniGenerateClasses header file             -----
 // -----                  Created 18/08/15  by K. Gertsenberger        -----
 // -------------------------------------------------------------------------
 
 /** UniGenerateClasses.h
  *@author K.Gertsenberger <gertsen@jinr.ru>
  **
- ** Class for generating DB classes
- **/
+ ** Class for autogenerating database classes based on the database structure (tables)
+**/
 
 #ifndef UNIGENERATECLASSES_H
 #define UNIGENERATECLASSES_H 1
@@ -15,7 +15,7 @@
 #include "TString.h"
 #include "TObjArray.h"
 
-enum ConnectionType{UNIFIED_DB, TANGO_DB, ELOG_DB};
+enum ConnectionType{UNIFIED_DB, ELOG_DB};
 
 struct structColumnInfo
 {
@@ -48,7 +48,7 @@ struct structColumnInfo
     bool isTimeStamp;
 };
 
-// structure to join another table's fields (for read-only) - NOT IMPLEMENTED YET
+// structure to join fields of another table
 struct structTableJoin
 {
     TString strSourceTableName;
@@ -56,9 +56,10 @@ struct structTableJoin
     structColumnInfo strJoinField;
     TObjArray* arrManualFieldNames;
 
-    structTableJoin() { arrManualFieldNames = nullptr; }
+    structTableJoin()  { arrManualFieldNames = nullptr; }
     ~structTableJoin() { if (arrManualFieldNames) delete arrManualFieldNames; }
 };
+
 
 class UniGenerateClasses
 {
@@ -66,16 +67,12 @@ class UniGenerateClasses
     UniGenerateClasses();             // Constructor
     virtual ~UniGenerateClasses();    // Destructor
 
-    // Generate C++ classess - wrappers for DB tables
+    // Generate C++ classes - wrappers for all tables of the given database
     // Parameters:
-    //      connection_type - database from enumeration;
-    //      class_prefix - prefix with directory name and prefix of classes' names
-    //      isOnlyUpdate - whether only update of the existing classes or create new ones
-    int GenerateClasses(ConnectionType connection_type, TString class_prefix = "UniDb", bool isOnlyUpdate = true);
+    //      json_configuration_file - path to JSON file with the configuration of the class generator
+    static int GenerateClasses(TString json_configuration_file);
 
-    TObjArray* arrTableJoin;
-
-  ClassDef(UniGenerateClasses,1);
+  ClassDef(UniGenerateClasses, 2);
 };
 
 #endif

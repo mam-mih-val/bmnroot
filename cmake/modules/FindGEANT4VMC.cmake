@@ -36,6 +36,7 @@ FIND_PATH(GEANT4VMC_MACRO_DIR NAMES g4libs.C PATHS
   ${SIMPATH}/transport/geant4_vmc/examples/macro/
   ${SIMPATH}/share/geant4_vmc/macro/
   ${GEANT4_VMC_ROOT}/share/examples/macro/
+  ${SIMPATH}/share/Geant4VMC-6.0.1/examples/macro
   NO_DEFAULT_PATH
 )
 

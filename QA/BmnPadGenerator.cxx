@@ -14,7 +14,10 @@ void BmnPadGenerator::LoadPTFrom(string FileName) {
 PadInfo* BmnPadGenerator::GeneratePadNode(pt::ptree& propTree) {
     PadInfo * info = nullptr;
     try {
-        string clName = propTree.get<string>("Class");
+        boost::optional<string> clOpt = propTree.get_optional<string>("Class");
+        if (!clOpt)
+            return info;
+        string clName = clOpt.get();
         TClass* cl = TClass::GetClass(clName.c_str());
         printf("cl name %s\n", cl->GetName());
         ROOT::NewFunc_t histNew = cl->GetNew();

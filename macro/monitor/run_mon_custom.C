@@ -5,7 +5,8 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
         
 void run_mon_custom(TString inputFileName = "/ncx/eos/nica/bmn/exp/dst/run7/prerelease/3590-4707_BMN_Argon/bmn_run4649_dst.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
-        Int_t nStartEvent = 0, Int_t nEvents = 0)
+        TString padConfName = "pad-sample.json",
+        Int_t nStartEvent = 0, Int_t nEvents = 165932)
 {
     gDebug = 0; // Debug option
     // Verbosity level (0 = quiet (progress bar), 1 = event-level, 2 = track-level, 3 = full debug)
@@ -13,7 +14,6 @@ void run_mon_custom(TString inputFileName = "/ncx/eos/nica/bmn/exp/dst/run7/prer
     Int_t period = 7;
     Bool_t isPrimary = kFALSE;
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
-    string padConfName = "pad.json";
     
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
@@ -38,7 +38,7 @@ void run_mon_custom(TString inputFileName = "/ncx/eos/nica/bmn/exp/dst/run7/prer
 //    fRunAna->SetSink(new BmnMQSink());
 //    fRunAna->SetGenerateRunInfo(false);
     
-    BmnCustomQa* trQaAll = new BmnCustomQa("custom_qa", padConfName);
+    BmnCustomQa* trQaAll = new BmnCustomQa("custom_qa", string(padConfName.Data()));
     trQaAll->SetMonitorMode(kTRUE);
     THttpServer* fServer = new THttpServer("fastcgi:8081;noglobal;cors");
     fServer->SetTimer(50, kTRUE);
@@ -50,7 +50,6 @@ void run_mon_custom(TString inputFileName = "/ncx/eos/nica/bmn/exp/dst/run7/prer
     fRunAna->GetMainTask()->SetVerbose(iVerbose);
     fRunAna->Init();
     cout << "Starting run" << endl;
-//    fRunAna->Run(-1, -1);
     fRunAna->Run(nStartEvent, nStartEvent + nEvents);
     // -------------------------------------------------------------------------
     // -----   Finish   --------------------------------------------------------

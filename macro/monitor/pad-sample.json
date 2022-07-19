@@ -1,0 +1,102 @@
+{
+    "DivX": "2",
+    "DivY": "1",
+    "Pads": [
+        {
+            "Class": "TH2F",
+            "Name": "Vertex2D",
+            "Title": "Vertex XY",
+            "Variable": "BmnVertex.fY:BmnVertex.fX",
+            "Selection": "(BmnVertex.fZ>-10 && BmnVertex.fZ<10)",
+            "Options": "colz",
+            "Dimensions": [
+                200,
+                -5,
+                5,
+                200,
+                -5,
+                5
+            ]
+        },
+        {
+            "Name": "Right pad",
+            "DivX": "1",
+            "DivY": "2",
+            "Pads": [
+                {
+
+                    "Name": "Vert axes pad",
+                    "DivX": "2",
+                    "DivY": "1",
+                    "Pads": [
+                        {
+                            "Class": "TH1F",
+                            "Name": "VX",
+                            "Title": "Vertex X",
+                            "Variable": "BmnVertex.fX",
+                            "Selection": "(BmnVertex.fZ>-10 && BmnVertex.fZ<10)",
+                            "Dimensions": [
+                                200,
+                                -10,
+                                10
+                            ]
+                        },
+                        {
+                            "Class": "TH1F",
+                            "Name": "VY",
+                            "Title": "Vertex Y",
+                            "Variable": "BmnVertex.fY",
+                            "Selection": "(BmnVertex.fZ>-10 && BmnVertex.fZ<10)",
+                            "Dimensions": [
+                                200,
+                                -10,
+                                10
+                            ]
+                        }
+                    ]
+                },
+                {
+
+                    "Name": "Track count pad",
+                    "DivX": "3",
+                    "DivY": "1",
+                    "Pads": [
+                        {
+                            "Class": "TH1I",
+                            "Name": "GlobalTracks",
+                            "Title": "GlobalTracks",
+                            "Variable": "BmnGlobalTrack@.GetEntries()",
+                            "Dimensions": [
+                                20,
+                                0,
+                                20
+                            ]
+                        },
+                        {
+                            "Class": "TH1I",
+                            "Name": "SiliconTracks",
+                            "Title": "SiliconTracks",
+                            "Variable": "BmnSiliconTrack@.GetEntries()",
+                            "Dimensions": [
+                                20,
+                                0,
+                                20
+                            ]
+                        },
+                        {
+                            "Class": "TH1I",
+                            "Name": "GemTracks",
+                            "Title": "GemTracks",
+                            "Variable": "BmnGemTrack@.GetEntries()",
+                            "Dimensions": [
+                                20,
+                                0,
+                                20
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

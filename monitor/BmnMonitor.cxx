@@ -45,7 +45,7 @@ BmnMonitor::~BmnMonitor() {
     for (auto h : bhVec)
         if (h) delete h;
     bhVec.clear();
-            //    delete fRecoTree;
+    //    delete fRecoTree;
     if (fHistOut != NULL)
         delete fHistOut;
     if (infoCanvas) delete infoCanvas;
@@ -57,8 +57,8 @@ BmnMonitor::~BmnMonitor() {
         zmq_ctx_destroy(_ctx);
         _ctx = NULL;
     }
-        if (CurRun)
-            delete CurRun;
+    if (CurRun)
+        delete CurRun;
     if (runPub)
         delete runPub;
 }
@@ -170,7 +170,8 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
 }
 
 void BmnMonitor::InitServer() {
-    TString cgiStr = Form("fastcgi:%d", _webPort);
+    TString cgiStr = Form("fastcgi:%d;noglobal;cors", _webPort);
+    //    TString cgiStr = Form("http:%d;noglobal", _webPort);
     if (gSystem->AccessPathName(_curDir + "auth.htdigest") != 0) {
         printf("Authorization file not found\nStarting server without authorization\n");
         fServer = new THttpServer(cgiStr.Data());
@@ -205,14 +206,14 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhVec.push_back(new BmnHistSilicon(refName + "Silicon", _curDir, fPeriodID, fSetup));
     bhVec.push_back(new BmnHistDch(refName + "DCH", _curDir));
     bhVec.push_back(new BmnHistMwpc(refName + "MWPC", _curDir));
-    //    bhVec.push_back(new BmnHistZDC(refName + "ZDC", _curDir));
-    //    bhVec.push_back(new BmnHistECAL(refName + "ECAL", _curDir));
+    bhVec.push_back(new BmnHistZDC(refName + "ZDC", _curDir));
+    bhVec.push_back(new BmnHistECAL(refName + "ECAL", _curDir));
     bhVec.push_back(new BmnHistToF(refName + "ToF400", _curDir));
     bhVec.push_back(new BmnHistToF700(refName + "ToF700", _curDir));
-    //    bhVec.push_back(new BmnHistTrigger(refName + "Triggers", _curDir, fPeriodID, fSetup));
-    bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir, fPeriodID, fSetup));
+    bhVec.push_back(new BmnHistTrigger(refName + "Triggers", _curDir, fPeriodID, fSetup));
+    //    bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir, fPeriodID, fSetup));
     bhVec.push_back(new BmnHistScWall(refName + "ScWall", _curDir));
-    bhVec.push_back(new BmnHistLAND(refName + "LAND", _curDir));
+//    bhVec.push_back(new BmnHistLAND(refName + "LAND", _curDir));
     bhVec.push_back(new BmnHistTofCal(refName + "TofCal", _curDir));
     bhVec.push_back(new BmnHistCsc(refName + "CSC", _curDir, fPeriodID, fSetup));
 
@@ -298,14 +299,14 @@ void BmnMonitor::RegisterAll() {
     bhVec4show.push_back(new BmnHistSilicon("Silicon", _curDir, fPeriodID, fSetup));
     bhVec4show.push_back(new BmnHistDch("DCH", _curDir));
     bhVec4show.push_back(new BmnHistMwpc("MWPC", _curDir));
-    //    bhVec4show.push_back(new BmnHistZDC("ZDC", _curDir));
-    //    bhVec4show.push_back(new BmnHistECAL("ECAL", _curDir));
+    bhVec4show.push_back(new BmnHistZDC("ZDC", _curDir));
+    bhVec4show.push_back(new BmnHistECAL("ECAL", _curDir));
     bhVec4show.push_back(new BmnHistToF("ToF400", _curDir));
     bhVec4show.push_back(new BmnHistToF700("ToF700", _curDir));
-    //    bhVec4show.push_back(new BmnHistTrigger("Triggers", _curDir, fPeriodID, fSetup));
-    bhVec4show.push_back(new BmnHistSrc("SRC", _curDir, fPeriodID, fSetup));
+    bhVec4show.push_back(new BmnHistTrigger("Triggers", _curDir, fPeriodID, fSetup));
+    //    bhVec4show.push_back(new BmnHistSrc("SRC", _curDir, fPeriodID, fSetup));
     bhVec4show.push_back(new BmnHistScWall("ScWall", _curDir));
-    bhVec4show.push_back(new BmnHistLAND("LAND", _curDir));
+//    bhVec4show.push_back(new BmnHistLAND("LAND", _curDir));
     bhVec4show.push_back(new BmnHistTofCal("TofCal", _curDir));
     bhVec4show.push_back(new BmnHistCsc("CSC", _curDir, fPeriodID, fSetup));
     fServer->Register("/", infoCanvas);

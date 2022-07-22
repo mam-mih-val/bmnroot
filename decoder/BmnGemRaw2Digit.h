@@ -352,6 +352,8 @@ private:
 
     BmnGemMap* fSmall;
     BmnGemMap* fMid;
+    vector<BmnGemMap*> fBigL;
+    vector<BmnGemMap*> fBigR;
     BmnGemMap* fBigL0;
     BmnGemMap* fBigL1;
     BmnGemMap* fBigR0;
@@ -369,6 +371,8 @@ private:
     void ProcessDigitMK(BmnADCDigit* adcDig, TClonesArray *gem, Bool_t doFill);
     void PostprocessDigitMK(TClonesArray *gem, TClonesArray *csc);
     BmnStatus ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod);
+    BmnStatus ReadLocalMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod);
+    BmnStatus ReadGlobalMap(TString FileName);
 
     Int_t fEntriesInGlobMap; // number of entries in BD table for Global Mapping
 

@@ -24,50 +24,31 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
 
     fEventId = 0;
 
+    ReadGlobalMap(mapFileName);
+
     fSmall = new BmnGemMap[N_CH_BUF];
     fMid = new BmnGemMap[N_CH_BUF];
-    fBigL0 = new BmnGemMap[N_CH_BUF];
-    fBigL1 = new BmnGemMap[N_CH_BUF];
-    fBigR0 = new BmnGemMap[N_CH_BUF];
-    fBigR1 = new BmnGemMap[N_CH_BUF];
-
-    //    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", period, run);
-    //    fEntriesInGlobMap = 0;
-    //    if (mapPar != NULL) mapPar->GetGemMapArray(fMap, fEntriesInGlobMap);
-    //    delete mapPar;
-    //    for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
-    //        if (find(fSerials.begin(), fSerials.end(), fMap[i].serial) == fSerials.end())
-    //            fSerials.push_back(fMap[i].serial);
-
-    string dummy;
-    UInt_t id = 0;
-    UInt_t ser = 0;
-    UInt_t ch_lo = 0;
-    UInt_t ch_hi = 0;
-    UInt_t station = 0;
-    UInt_t hot = 0;
-    //    TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + TString(Form("GEM_map_run%d_SRC.txt", period));
-    TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + mapFileName;
-    printf("%s\n", name.Data());
-    ifstream inFile(name.Data());
-    if (!inFile.is_open())
-        cout << "Error opening map-file (" << name << ")!" << endl;
-    for (Int_t i = 0; i < 5; ++i) getline(inFile, dummy); //comment line in input file
-
-    while (!inFile.eof()) {
-        inFile >> std::hex >> ser >> std::dec >> ch_lo >> ch_hi >> id >> station >> hot;
-        if (!inFile.good()) break;
-        GemMapValue* record = new GemMapValue;
-        record->channel_high = ch_hi / GetNSamples();
-        record->serial = ser;
-        record->channel_low = ch_lo / GetNSamples();
-        record->station = station;
-        record->hotZone = hot;
-        record->id = id;
-        fMap.push_back(record);
+    //    fBigL0 = new BmnGemMap[N_CH_BUF];
+    //    fBigL1 = new BmnGemMap[N_CH_BUF];
+    //    fBigR0 = new BmnGemMap[N_CH_BUF];
+    //    fBigR1 = new BmnGemMap[N_CH_BUF];
+    Byte_t nMods = 4;
+    for (Byte_t i = 0; i < nMods; i++) {
+        fBigL.push_back(new BmnGemMap[N_CH_BUF]);
+        fBigR.push_back(new BmnGemMap[N_CH_BUF]);
     }
-    fEntriesInGlobMap = fMap.size();
 
+
+    if (fPeriod >= 8) {
+        ReadLocalMap("X0_Bottom_Left.txt", fBigL[2], 2, 3);
+        ReadLocalMap("X0_Bottom_Right.txt", fBigL[2], 3, 3);
+        ReadLocalMap("X_Bottom_Left.txt", fBigL[3], 0, 3);
+        ReadLocalMap("X_Bottom_Right.txt", fBigL[3], 1, 3);
+        ReadLocalMap("Y0_Bottom_Left.txt", fBigR[2], 2, 2);
+        ReadLocalMap("Y0_Bottom_Right.txt", fBigR[2], 3, 2);
+        ReadLocalMap("Y_Bottom_Left.txt", fBigR[3], 0, 2);
+        ReadLocalMap("Y_Bottom_Right.txt", fBigR[3], 1, 2);
+    }
     ReadMap("GEM_X_small", fSmall, 0, 0);
     ReadMap("GEM_Y_small", fSmall, 1, 0);
 
@@ -76,17 +57,17 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
     ReadMap("GEM_X1_middle", fMid, 0, 0);
     ReadMap("GEM_Y1_middle", fMid, 1, 0);
 
-    ReadMap("GEM_X0_Big_Left", fBigL0, 2, 1);
-    ReadMap("GEM_Y0_Big_Left", fBigL0, 3, 1);
+    ReadMap("GEM_X0_Big_Left", fBigL[0], 2, 1);
+    ReadMap("GEM_Y0_Big_Left", fBigL[0], 3, 1);
 
-    ReadMap("GEM_X1_Big_Left", fBigL1, 0, 1);
-    ReadMap("GEM_Y1_Big_Left", fBigL1, 1, 1);
+    ReadMap("GEM_X1_Big_Left", fBigL[1], 0, 1);
+    ReadMap("GEM_Y1_Big_Left", fBigL[1], 1, 1);
 
-    ReadMap("GEM_X0_Big_Right", fBigR0, 2, 0);
-    ReadMap("GEM_Y0_Big_Right", fBigR0, 3, 0);
+    ReadMap("GEM_X0_Big_Right", fBigR[0], 2, 0);
+    ReadMap("GEM_Y0_Big_Right", fBigR[0], 3, 0);
 
-    ReadMap("GEM_X1_Big_Right", fBigR1, 0, 0);
-    ReadMap("GEM_Y1_Big_Right", fBigR1, 1, 0);
+    ReadMap("GEM_X1_Big_Right", fBigR[1], 0, 0);
+    ReadMap("GEM_Y1_Big_Right", fBigR[1], 1, 0);
 
 
     if (decoMode == kBMNADCSM) {
@@ -145,17 +126,69 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
     }
 }
 
+BmnStatus BmnGemRaw2Digit::ReadGlobalMap(TString FileName) {
+    string dummy;
+    UInt_t id = 0;
+    UInt_t ser = 0;
+    UInt_t ch_lo = 0;
+    UInt_t ch_hi = 0;
+    UInt_t station = 0;
+    UInt_t hot = 0;
+    TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + FileName;
+    printf("%s\n", name.Data());
+    ifstream inFile(name.Data());
+    if (!inFile.is_open()) {
+        cout << "Error opening map-file (" << name << ")!" << endl;
+        return kBMNERROR;
+    }
+    for (Int_t i = 0; i < 5; ++i) getline(inFile, dummy); //comment line in input file
+
+    while (!inFile.eof()) {
+        inFile >> std::hex >> ser >> std::dec >> ch_lo >> ch_hi >> id >> station >> hot;
+        if (!inFile.good()) break;
+        GemMapValue* record = new GemMapValue;
+        record->channel_high = ch_hi / GetNSamples();
+        record->serial = ser;
+        record->channel_low = ch_lo / GetNSamples();
+        record->station = station;
+        record->hotZone = hot;
+        record->id = id;
+        fMap.push_back(record);
+    }
+    fEntriesInGlobMap = fMap.size();
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnGemRaw2Digit::ReadLocalMap(TString FileName, BmnGemMap* m, Int_t lay, Int_t mod) {
+    TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + FileName;
+    printf("%s\n", name.Data());
+    ifstream inFile(name.Data());
+    if (!inFile.is_open()) {
+        cout << "Error opening map-file (" << name << ")!" << endl;
+        return kBMNERROR;
+    }
+    Int_t iStrip = 0;
+    Int_t chan = 0;
+    while (!inFile.eof()) {
+        inFile >> chan;
+        if (!inFile.good()) break;
+        m[chan] = BmnGemMap(iStrip++, lay, mod);
+//        printf("\t\t strip %4d  lay %4d mod %4d  chan %4d\n", iStrip, lay, mod, chan);
+    }
+    return kBMNSUCCESS;
+}
+
 BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod) {
     Int_t size = 0;
     UniDbDetectorParameter* par = UniDbDetectorParameter::GetDetectorParameter("GEM", parName, GetPeriod(), GetRun());
     vector<UniValue*> iiArr;
     if (par != NULL) par->GetValue(iiArr);
     delete par;
-    //    printf("%20s  mod %d lay %d\n", parName.Data(), mod, lay);
+//    printf("%20s  mod %d lay %d\n", parName.Data(), mod, lay);
     for (Int_t i = 0; i < iiArr.size(); ++i) {
         IIValue* pValue = (IIValue*) iiArr[i];
         m[pValue->value2] = BmnGemMap(pValue->value1 - 1, lay, mod); // Strip begins from 0
-        //        printf("\t\t strip %4d  lay %4d mod %4d  chan %4d %s\n", pValue->value1, lay, mod, pValue->value2, (pValue->value1 == 0) ? "WFT!!!" : "");
+//        printf("\t\t strip %4d  lay %4d mod %4d  chan %4d %s\n", pValue->value1, lay, mod, pValue->value2, (pValue->value1 == 0) ? "WFT!!!" : "");
     }
 
     if (!iiArr.empty()) for (int i = 0; i < iiArr.size(); i++) delete iiArr[i];
@@ -165,10 +198,14 @@ BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int
 BmnGemRaw2Digit::~BmnGemRaw2Digit() {
     if (fSmall) delete[] fSmall;
     if (fMid) delete[] fMid;
-    if (fBigL0) delete[] fBigL0;
-    if (fBigL1) delete[] fBigL1;
-    if (fBigR0) delete[] fBigR0;
-    if (fBigR1) delete[] fBigR1;
+    for (size_t i = 0; i < fBigL.size(); i++) {
+        delete[] fBigL[i];
+        delete[] fBigR[i];
+    }
+    //    if (fBigL0) delete[] fBigL0;
+    //    if (fBigL1) delete[] fBigL1;
+    //    if (fBigR0) delete[] fBigR0;
+    //    if (fBigR1) delete[] fBigR1;
     if (!fMap.empty()) for (int i = 0; i < fMap.size(); i++) delete fMap[i];
 
     if (Rnoisefile == nullptr && Wnoisefile == nullptr) {
@@ -1055,14 +1092,14 @@ inline void BmnGemRaw2Digit::MapStrip(GemMapValue* gemM, UInt_t ch, Int_t iSmpl,
             if (gemM->channel_low == 0) //st 1,2,4
                 realChannel += 1024;
             if (gemM->id % 10 == 0)
-                fBigMap = fBigL0;
+                fBigMap = fBigL[gemM->hotZone / 2]; // fBigL0;
             else
-                fBigMap = fBigR0;
+                fBigMap = fBigR[gemM->hotZone / 2]; // fBigR0;
         } else { //big zone
             if (gemM->id % 10 == 0)
-                fBigMap = fBigL1;
+                fBigMap = fBigL[gemM->hotZone / 2]; // fBigL1;
             else
-                fBigMap = fBigR1;
+                fBigMap = fBigR[gemM->hotZone / 2]; // fBigR1;
             if (gemM->channel_high - gemM->channel_low < 128 / GetNSamples()) realChannel = (2048 + ch2048 - gemM->channel_low * GetNSamples());
             //            printf("Big gemM->id rem 10 = %d   st %d mod %d l %d  strip %d\n",
             //                    (gemM->id % 10), gemM->station, (gemM->hotZone >> 1), fBigMap[realChannel].lay,fBigMap[realChannel].strip);

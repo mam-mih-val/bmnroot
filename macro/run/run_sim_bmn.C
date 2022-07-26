@@ -12,7 +12,8 @@ enum enumGenerators {UNIGEN, URQMD, QGSM, HSD, BOX, PART, ION, DCMQGSM, DCMSMM }
 // generatorName - generator name for the input file (enumeration above)
 // useRealEffects - whether we use realistic effects at simulation (Lorentz, misalignment)
 void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString outFile = "$VMCWORKDIR/macro/run/bmnsim.root",
-    Int_t nStartEvent = 0, Int_t nEvents = 10, enumGenerators generatorName = BOX, Bool_t useRealEffects = kTRUE) {
+    Int_t nStartEvent = 0, Int_t nEvents = 10, enumGenerators generatorName = BOX, Bool_t useRealEffects = kTRUE,
+                 double magFieldScaling = 1.0) {
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
@@ -154,7 +155,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
 
     // -----   Create magnetic field   ----------------------------------------
     BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v5_ascii_Extrap.root");
-    Double_t fieldScale = 1800. / 900.;
+    Double_t fieldScale = 1800. / 900. * magFieldScaling;
     magField->SetScale(fieldScale);
     fRun->SetField(magField);
 

@@ -31,10 +31,11 @@ static Double_t workTime = 0.0;
 ClassImp(BmnTof1HitProducer)
 //--------------------------------------------------------------------------------------------------------------------------------------
 BmnTof1HitProducer::BmnTof1HitProducer(const char *name, Bool_t useMCdata, Int_t verbose, Bool_t test)
-: BmnTof1HitProducerIdeal(name, useMCdata, verbose, test), fTimeSigma(0.100), fErrX(1. / sqrt(12.)), fErrY(0.5), pRandom(new TRandom2), h2TestStrips(nullptr), h1TestDistance(nullptr), h2TestNeighborPair(nullptr),
-fDoINL(true), fDoSlewing(true), fSignalVelosity(0.060) {
+: BmnTof1HitProducerIdeal(name, useMCdata, verbose, test), fTimeSigma(0.100), fErrX(1. / sqrt(12.)), fErrY(0.5), pRandom(new TRandom2),
+h2TestStrips(nullptr), h1TestDistance(nullptr), h2TestNeighborPair(nullptr),
+fSignalVelosity(0.060) {
     pGeoUtils = new BmnTof1GeoUtils;
-
+    
     if (fDoTest) {
         fTestFlnm = "test.BmnTof400HitProducer.root";
         effTestEfficiencySingleHit = new TEfficiency("effSingleHit", "Efficiency single hit;R, cm;Side", 10000, -0.1, 1.);
@@ -83,43 +84,57 @@ BmnTof1HitProducer::~BmnTof1HitProducer() {
 
 InitStatus BmnTof1HitProducer::Init() {
 
-    if (fVerbose) cout << endl << "BmnTof1HitProducer::Init(): Start" << endl;
+    if (fVerbose) cout << endl << "BmnTof400HitProducer::Init(): Start" << endl;
 
     if (fOnlyPrimary) cout << " Only primary particles are processed!!! \n"; // FIXME NOT used now ADDD
 
     if (fUseMCData) {
         aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF400Point");
         if (!aMcPoints) {
-            cout << "BmnTof1HitProducer::Init(): branch TOF1Point not found! Task will be deactivated" << endl;
+            cout << "BmnTof400HitProducer::Init(): branch TOF1Point not found! Task will be deactivated" << endl;
             SetActive(kFALSE);
             return kERROR;
         }
         aMcTracks = (TClonesArray*) FairRootManager::Instance()->GetObject("MCTrack");
         if (!aMcTracks) {
-            cout << "BmnTof1HitProducer::Init(): branch MCTrack not found! Task will be deactivated" << endl;
+            cout << "BmnTof400HitProducer::Init(): branch MCTrack not found! Task will be deactivated" << endl;
             SetActive(kFALSE);
             return kERROR;
         }
     } else {
         aExpDigits = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF400");
         if (!aExpDigits) {
-            cout << "BmnTof1HitProducer::Init(): branch TOF400 not found! Task will be deactivated" << endl;
+            cout << "BmnTof400HitProducer::Init(): branch TOF400 not found! Task will be deactivated" << endl;
             SetActive(kFALSE);
             return kERROR;
         }
 
         //looking for T0 branch
-        TString NameT0Branch;
+        TString NameT0Branch, NameT0Branch2;
         if (fPeriod == 6) NameT0Branch = "T0";
         if (fPeriod == 7) NameT0Branch = "BC2";
-        if (fPeriod == 8) NameT0Branch = "T0_1_A"; // temporary fix
-        if (fVerbose) cout << "BmnTof1HitProducer::Init(): looking for branch " << NameT0Branch << " for start" << endl;
+        if (fPeriod == 8) {
+            NameT0Branch = "T0_1_A";
+            NameT0Branch2 = "T0_2_A";
+        }
+        if (fVerbose) cout << "BmnTof400HitProducer::Init(): looking for branch " << NameT0Branch << " for start" << endl;
         aExpDigitsT0 = (TClonesArray*) FairRootManager::Instance()->GetObject(NameT0Branch.Data());
         if (!aExpDigitsT0) {
-            cout << "BmnTof1HitProducer::Init(): branch T0 not found! Task will be deactivated" << endl;
+            printf("BmnTof400HitProducer::Init(): branch %s not found! Task will be deactivated\n", NameT0Branch.Data());
             SetActive(kFALSE);
             return kERROR;
         }
+
+        if (fPeriod == 8) {
+            if (fVerbose) cout << "BmnTof400HitProducer::Init(): looking for branch " << NameT0Branch2 << " for start" << endl;
+            aExpDigitsT0_2 = (TClonesArray*) FairRootManager::Instance()->GetObject(NameT0Branch2.Data());
+            if (!aExpDigitsT0_2) {
+                printf("BmnTof400HitProducer::Init(): branch %s not found! Task will be deactivated\n", NameT0Branch2.Data());
+                SetActive(kFALSE);
+                return kERROR;
+            }
+        }
+
     }
 
     // Create and register output array
@@ -130,18 +145,18 @@ InitStatus BmnTof1HitProducer::Init() {
     fNDetectors = -1;
     fNDetectors = pGeoUtils->ParseTGeoManager(fUseMCData, h2TestStrips, true);
     if (fNDetectors <= 0) {
-        cout << "BmnTof1HitProducer::Init(): No TOF400 detectors in geometry file for the current run! Task will be deactivated" << endl;
+        cout << "BmnTof400HitProducer::Init(): No TOF400 detectors in geometry file for the current run! Task will be deactivated" << endl;
         SetActive(kFALSE);
         return kERROR;
     }
-    if (fVerbose) cout << "BmnTof1HitProducer::Init(): number of TOF400 Detectors from geometry file = " << fNDetectors << endl;
+    if (fVerbose) cout << "BmnTof400HitProducer::Init(): number of TOF400 Detectors from geometry file = " << fNDetectors << endl;
     pGeoUtils->FindNeighborStrips(h1TestDistance, h2TestNeighborPair, fDoTest);
 
     // Init BmnTOF1Detectors 
     if (!fUseMCData) {
 
         if (!SetCorrFiles()) {
-            cout << "BmnTof1HitProducer::Init(): No corrections for the current run! Task will be deactivated" << endl;
+            cout << "BmnTof400HitProducer::Init(): No corrections for the current run! Task will be deactivated" << endl;
             SetActive(kFALSE);
             return kERROR;
         }
@@ -149,7 +164,7 @@ InitStatus BmnTof1HitProducer::Init() {
         pDetector = new BmnTOF1Detector *[fNDetectors];
         for (Int_t i = 0; i < fNDetectors; i++) {
             Int_t DoTestForDetector = 0; // For developers only. Level of Histograms filling (0-don't fill, 1-low, 2-high). 
-            pDetector[i] = new BmnTOF1Detector(i, DoTestForDetector, fVerbose);
+            pDetector[i] = new BmnTOF1Detector(i, DoTestForDetector, 0);
 
             if (FlagFileLRcorrection) pDetector[i]->SetCorrLR(NameFileLRcorrection);
             if (FlagFileSlewingCorrection) pDetector[i]->SetCorrSlewing(NameFileSlewingCorrection);
@@ -164,7 +179,7 @@ InitStatus BmnTof1HitProducer::Init() {
         }
     }
 
-    if (fVerbose) cout << "BmnTof1HitProducer::Init(): Initialization finished succesfully." << endl;
+    if (fVerbose) cout << "BmnTof400HitProducer::Init(): Initialization finished succesfully." << endl;
 
 
     return kSUCCESS;
@@ -342,13 +357,27 @@ void BmnTof1HitProducer::SetSeed(UInt_t seed) {
 
 BmnTrigDigit* BmnTof1HitProducer::FingT0Digit() {
     BmnTrigDigit* digT0 = NULL;
-    for (Int_t i = 0; i < aExpDigitsT0->GetEntriesFast(); i++) {
-        digT0 = (BmnTrigDigit*) aExpDigitsT0->At(i);
-        if (digT0->GetMod() == 0) {
-            //if (fVerbose) 
-            //    cout << "BmnTof1HitProducer::FingT0Digit(): T0 digit is found, Time = " << digT0->GetTime() << endl;
-            return digT0; // take first T0 digit with Mod == 0. needed for ToF calculation.
+    BmnTrigDigit* digT0_1 = NULL;
+    BmnTrigDigit* digT0_2 = NULL;
+
+    if (fPeriod != 8) {
+        for (Int_t i = 0; i < aExpDigitsT0->GetEntriesFast(); i++) {
+            digT0 = (BmnTrigDigit*) aExpDigitsT0->At(i);
+            if (digT0->GetMod() == 0) {
+                //if (fVerbose) 
+                //    cout << "BmnTof1HitProducer::FingT0Digit(): T0 digit is found, Time = " << digT0->GetTime() << endl;
+                return digT0; // take first T0 digit with Mod == 0. needed for ToF calculation.
+            }
         }
+    } else if (fPeriod == 8) {
+        digT0 = new BmnTrigDigit();
+        if (aExpDigitsT0->GetEntriesFast() == 0 || aExpDigitsT0_2->GetEntriesFast() == 0) return NULL;
+        digT0_1 = (BmnTrigDigit*) aExpDigitsT0->At(0);
+        digT0_2 = (BmnTrigDigit*) aExpDigitsT0_2->At(0);
+        digT0->SetAmp(digT0_1->GetAmp() + digT0_2->GetAmp());
+        digT0->SetTime((digT0_1->GetTime() + digT0_2->GetTime()) * 0.5);
+        return digT0; // take Time and Amp from BC2 detector (two PMT on one Scintillator)
+
     }
     return NULL;
 }
@@ -431,20 +460,19 @@ Bool_t BmnTof1HitProducer::SetCorrFiles() {
         }
     }
 
-    // Run 8 (2022) ???
+    // Run 8 (2022) 
     if (fPeriod == 8) {
-        // temporary fix for reconstruction possibility 
 
         NameFileLRcorrection = Form("TOF400_LRCorr_RUN%i_SRC.dat", fPeriod);
-        //        NameFileSlewingCorrection = Form("TOF400_SlewingCorr_RUN%i.root", fPeriod);
-        //        NameFileTimeShiftCorrection = Form("TOF400_TimeShiftCorr_RUN%i.dat", fPeriod);
+        NameFileSlewingCorrection = Form("TOF400_SlewingCorr_RUN%i_SRC.root", fPeriod);
+        NameFileTimeShiftCorrection = Form("TOF400_TimeShiftCorr_RUN%i_SRC.dat", fPeriod);
 
         FlagFileLRcorrection = true;
-        //        FlagFileSlewingCorrection = false;
-        //        FlagFileTimeShiftCorrection = false;
+        FlagFileSlewingCorrection = true;
+        FlagFileTimeShiftCorrection = true;
         //
-        //        temp = true;
-        return kTRUE;
+        temp = true;
+        //return kTRUE;
     }
 
     if (temp) {

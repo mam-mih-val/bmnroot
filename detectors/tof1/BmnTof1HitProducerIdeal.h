@@ -18,6 +18,7 @@ class BmnTof1HitProducerIdeal : public FairTask
     TClonesArray* aMcTracks;    //! <--- MC input
     TClonesArray* aExpDigits;   //! <--- Exp input
     TClonesArray* aExpDigitsT0;	//! <--- Exp input
+    TClonesArray* aExpDigitsT0_2;	//! <--- Exp input for run8 SRC
     TClonesArray* aTofHits;	    //! ---> output
 
     Bool_t  fDoTest;

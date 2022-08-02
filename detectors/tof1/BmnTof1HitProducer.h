@@ -25,9 +25,6 @@ class BmnTof1HitProducer : public BmnTof1HitProducerIdeal
         Double_t 		fTimeSigma;     // Uncertainties of time, gaus sigma [ns],  default: 100 ps
    	Double_t		fErrX, fErrY; 	// Uncertainties of coordinates, gaus sigma [cm], dX= 10./sqrt(12.) mm, default: dY= 5 mm.
         TRandom2 		*pRandom;    
-   
-   	Bool_t			fDoINL;
-   	Bool_t			fDoSlewing;   	
         
         Int_t                   fPeriod, fRun;
    
@@ -66,9 +63,6 @@ public:
 	void			SetAlongStripResolution(Double_t Xerr){ fErrX = Xerr;};	
 	void 			SetSeed(UInt_t seed = 0);	
 	
-	void 			SetDoINL(bool val){ fDoINL = val;}
-	void 			SetDoSlewing(bool val){ fDoSlewing = val;}		
-	
 	TString			GetParameters()
 	{ 
 		char s[32];
@@ -76,7 +70,6 @@ public:
 		buf+=" ns, fErrX="; sprintf(s, "%.4g", fErrX); buf+=(s); 
 		buf+=" cm, fErrY="; sprintf(s, "%.4g", fErrY); buf+=(s); 
 		buf+=" cm, fDoTest="; buf+=fDoTest; buf+=", fDoMergeHits="; buf+=fDoMergeHits;
-		buf+=", fDoINL="; buf+=fDoINL; buf+=", fDoSlewing="; buf+=fDoSlewing;		
 		return buf;
 	}
         

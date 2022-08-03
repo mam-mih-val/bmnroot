@@ -56,6 +56,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
       auto* unigen = new MpdUnigenGenerator(inFile);
       unigen->RegisterIons();
       primGen->AddGenerator(unigen);
+      primGen->SetEventPlane(-M_PI, M_PI);
       if (nStartEvent > 0) unigen->SkipEvents(nStartEvent);
       break;
     }

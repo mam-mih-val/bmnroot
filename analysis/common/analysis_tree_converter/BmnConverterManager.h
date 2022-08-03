@@ -33,6 +33,7 @@ public:
 
   void SetSystem(const std::string& system) { system_ = system; }
   void SetBeamMomentum(float beam_mom) { beam_mom_ = beam_mom; }
+  void SetSqrtSnn(float sqrt_s_nn);
 
   void SetGeometryFile(const std::string &geometry_file) {
     geometry_file_ = geometry_file;

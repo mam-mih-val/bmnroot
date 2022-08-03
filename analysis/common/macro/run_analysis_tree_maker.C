@@ -5,6 +5,7 @@
 void run_analysis_tree_maker(std::string dst_file, std::string geant_file, std::string geometry_file, std::string output_file)
 {
   const std::string system = "Xe+Cs";  // TODO can we read it automatically?
+  const float sqrt_snn     = 3.0;
   const float beam_mom     = 4.85;
   const bool is_event_base = false;
 
@@ -33,7 +34,7 @@ void run_analysis_tree_maker(std::string dst_file, std::string geant_file, std::
   // AnalysisTree converter
   auto* man = new BmnConverterManager();
   man->SetSystem(system);
-  man->SetBeamMomentum(beam_mom);
+  man->SetSqrtSnn(sqrt_snn);
   man->SetOutputName(output_file, "rTree");
   man->SetGeometryFile(geometry_file);
 

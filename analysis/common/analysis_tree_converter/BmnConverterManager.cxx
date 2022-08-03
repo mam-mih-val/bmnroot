@@ -187,4 +187,8 @@ void BmnConverterManager::FillDataHeader()
 
   task_manager_->SetOutputDataHeader(data_header);
 }
+void BmnConverterManager::SetSqrtSnn(float energy) {
+  const double M=0.940;
+  auto p_mom = energy * sqrt( energy*energy / ( 4*M*M ) - 1 );
+}
 BmnConverterManager::~BmnConverterManager() = default;

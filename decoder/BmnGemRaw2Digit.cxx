@@ -48,7 +48,7 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
         ReadLocalMap("Y0_Bottom_Right.txt", fBigHot[3], 3, 3);
         ReadLocalMap("Y_Bottom_Left.txt", fBig[2], 1, 2);
         ReadLocalMap("Y_Bottom_Right.txt", fBig[3], 1, 3);
-        
+
         ReadLocalMap("X0_Top_Left.txt", fBigHot[0], 2, 0);
         ReadLocalMap("X0_Top_Right.txt", fBigHot[1], 2, 1);
         ReadLocalMap("X_Top_Left.txt", fBig[0], 0, 0);
@@ -217,120 +217,23 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
     //    if (fBigR1) delete[] fBigR1;
     if (!fMap.empty()) for (int i = 0; i < fMap.size(); i++) delete fMap[i];
 
-    if (Rnoisefile == nullptr && Wnoisefile == nullptr) {
-        Int_t kNStations = fGemStationSetDer->GetNStations();
-        for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
-            auto * st = fGemStationSetDer->GetStation(iSt);
-            for (UInt_t iMod = 0; iMod < st->GetNModules(); ++iMod) {
-                auto *mod = st->GetModule(iMod);
-                for (Int_t iLay = 0; iLay < mod->GetNStripLayers(); ++iLay) {
-                    delete fSigProf[iSt][iMod][iLay];
-                    delete[] fNoisyChannels[iSt][iMod][iLay];
-                }
-                delete[] fSigProf[iSt][iMod];
-                delete[] fNoisyChannels[iSt][iMod];
+    Int_t kNStations = fGemStationSetDer->GetNStations();
+    for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
+        auto * st = fGemStationSetDer->GetStation(iSt);
+        for (UInt_t iMod = 0; iMod < st->GetNModules(); ++iMod) {
+            auto *mod = st->GetModule(iMod);
+            for (Int_t iLay = 0; iLay < mod->GetNStripLayers(); ++iLay) {
+                delete fSigProf[iSt][iMod][iLay];
+                delete[] fNoisyChannels[iSt][iMod][iLay];
             }
-            delete[] fSigProf[iSt];
-            delete[] fNoisyChannels[iSt];
+            delete[] fSigProf[iSt][iMod];
+            delete[] fNoisyChannels[iSt][iMod];
         }
-        delete[] fNoisyChannels;
-        delete[] fSigProf;
-    } else {
-        // MK Postprocessing
-        // !!!! search for noisy channels to write to the file
-        if (test != 2) {
-            for (Int_t it = 0; it < niter; ++it) {
-                for (Int_t det = 0; det < ndet; ++det) {
-                    Int_t mChan = nchdet[det];
-
-                    Float_t sumhits[maxchip2];
-                    Int_t nsumch[maxchip2];
-                    for (Int_t j = 0; j < maxchip2; ++j) {
-                        sumhits[j] = 0;
-                        nsumch[j] = 0;
-                    }
-
-                    for (Int_t j = 0; j < mChan; ++j) {
-                        if (noisech[det][j] == 0) {
-                            Int_t ichip = (Int_t) j / 16;
-                            sumhits[ichip] += hNhits[det]->GetBinContent(j + 1);
-                            nsumch[ichip]++;
-                        }
-                    }
-
-                    for (Int_t j = 0; j < maxchip2; ++j) {
-                        Int_t nsum = nsumch[j];
-                        if (nsum > 0) sumhits[j] /= nsum;
-                    }
-
-                    for (Int_t j = 0; j < mChan; ++j) {
-                        if (noisech[det][j] == 0) {
-                            Int_t ichip = (Int_t) j / 16;
-                            Float_t sum = sumhits[ichip];
-                            //                        if (it > 0)
-                            //                            printf("nhits = %f sum = %f  det = %i ichip = %i j = %i\n", hNhits[det]->GetBinContent(j + 1), sum, det, ichip, j);
-
-                            // cuts to define channel as noisy
-                            if ((hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 10) ||
-                                    (hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 100) ||
-                                    (hNhits[det]->GetBinContent(j + 1) > 3 * sum && sum > 1000)) {
-
-                                //                            cout << " new noise det= " << det << " chan= " << j << " iter= " << it << endl;
-                                noisech[det][j] = 1;
-                                if (!read) {
-                                    Int_t cont1 = j + det * 10000;
-                                    fprintf(Wnoisefile, " %d\n", cont1);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }// test = 2
-        else {
-
-            for (Int_t det = 0; det < ndet; ++det) {
-                Int_t mChan = nchdet[det];
-
-                for (Int_t j = -1; j < mChan; ++j) {
-                    if (noisech[det][j] == 0) {
-                        Float_t sumhitdet = hNhits[det]->GetBinContent(j + 1) / (Float_t) npevents;
-                        //      hnoise[det]->Fill(sumhitdet);
-                        if (sumhitdet > thrnoise) {
-                            //                        cout << " new noise det= " << det << " chan= " << j << " test2: noise> " << thrnoise << endl;
-                            noisech[det][j] = 1;
-                            if (!read) {
-                                Int_t cont1 = j + det * 10000;
-                                fprintf(Wnoisefile, " %d\n", cont1);
-                            }
-                        }
-                    }
-                }
-
-            }
-        }
-        //    cout << " npedevents= " << npevents << " nloopev= " << nev << endl;
-        cout << endl;
-
-        if (Wnoisefile)
-            fclose(Wnoisefile);
-        if (Rnoisefile)
-            fclose(Rnoisefile);
-        if (Wpedfile)
-            fclose(Wpedfile);
-        if (Pedfile)
-            fclose(Pedfile);
-        for (Int_t det = 0; det < ndet; det++) {
-            if (hNhits[det])
-                delete hNhits[det];
-        }
-        if (!read && wnoisename.Length()) {
-            Int_t retn = system(Form("mv %s %s", wnoisename.Data(), rnoisename.Data()));
-            //        printf("mv     noise ret %d\n", retn);
-            Int_t retp = system(Form("mv %s %s", wpedname.Data(), pedname.Data()));
-            //        printf("mv  pedestal ret %d\n", retp);
-        }
+        delete[] fSigProf[iSt];
+        delete[] fNoisyChannels[iSt];
     }
+    delete[] fNoisyChannels;
+    delete[] fSigProf;
     if (fGemStationSetDer) delete fGemStationSetDer;
 }
 
@@ -515,7 +418,7 @@ inline void BmnGemRaw2Digit::MapStrip(GemMapValue* gemM, UInt_t ch, Int_t iSmpl,
         Bool_t isFlipped = ((gemM->id % 10 == 0) ^ (mod % 2 == 0));
         Int_t mapMod = mod + (isFlipped ?
                 ((mod % 2 == 0) ? 1 : -1) : 0); // if the station is flipped get ( 0 <-> 1, 2<-> 3 module)
-//        printf("id %d mod %d mapmod %d\n", gemM->id,mod, mapMod );
+        //        printf("id %d mod %d mapmod %d\n", gemM->id,mod, mapMod );
         if (gemM->hotZone % 2 == 0) { //hot zone
             if (gemM->channel_low == 0) //st 1,2,4
                 realChannel += 1024;

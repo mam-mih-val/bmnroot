@@ -2404,12 +2404,22 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
     if (!inFile.is_open())
         cout << "Error opening map-file (" << name << ")!" << endl;
     printf("Open GEM map file %s\n", fGemMapFileName.Data());
-    for (Int_t i = 0; i < 5; ++i) getline(inFile, dummy); //comment line in input file
+    if (fPeriodId < 8) {
+        for (Int_t i = 0; i < 5; ++i) getline(inFile, dummy); //comment line in input file
 
-    while (!inFile.eof()) {
-        inFile >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy >> dummy;
-        if (!inFile.good()) break;
-        seials.insert(ser);
+        while (!inFile.eof()) {
+            inFile >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy >> dummy;
+            if (!inFile.good()) break;
+            seials.insert(ser);
+        }
+    } else {        
+        for (Int_t i = 0; i < 8; ++i) getline(inFile, dummy); //comment lines in input file
+
+        while (!inFile.eof()) {
+            inFile >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
+            if (!inFile.good()) break;
+            seials.insert(ser);
+        }
     }
     for (auto s : seials) fGemSerials.push_back(s);
     fNGemSerials = fGemSerials.size();

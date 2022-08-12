@@ -42,11 +42,36 @@ struct BmnGemMap {
     Int_t lay; // strip type: 0 - x, 1 - y
     Int_t mod; //hot zones: 1 - inner zone, 0 - outer zone
 
-    BmnGemMap(Int_t s, Int_t l, Int_t m) : strip(s), lay(l), mod(m) {
+    BmnGemMap(Int_t s, Int_t l, Int_t m) : strip(s), lay(l), mod(m) {}
+
+    BmnGemMap() : strip(-1), lay(-1), mod(-1) {}
+};
+
+struct GemMapLine {
+    Int_t Serial;
+    Int_t Ch_lo;
+    Int_t Ch_hi;
+    Int_t GEM_id;
+    Int_t Side;
+    Int_t Type;
+    Int_t Station;
+    Int_t Module;
+    Int_t Zone;
+
+    void Print() {
+        cout << Serial << " " << Ch_lo << " " << Ch_hi << " " << GEM_id << " " << Side << " " << Type << " " << Station << " " << Module << " " << Zone << endl;
     }
 
-    BmnGemMap() : strip(-1), lay(-1), mod(-1) {
-    }
+    GemMapLine() :
+        Serial(-1),
+        Ch_lo(-1),
+        Ch_hi(-1),
+        GEM_id(-1),
+        Side(-1),
+        Type(-1),
+        Station(-1),
+        Module(-1),
+        Zone(-1) {}
 };
 
 class BmnGemRaw2Digit : public BmnAdcProcessor {
@@ -55,8 +80,8 @@ public:
     BmnGemRaw2Digit();
     ~BmnGemRaw2Digit();
 
-    BmnStatus FillEvent(TClonesArray *adc, TClonesArray *gem);
-    BmnStatus FillProfiles(TClonesArray *adc);
+    BmnStatus FillEvent(TClonesArray* adc, TClonesArray* gem);
+    BmnStatus FillProfiles(TClonesArray* adc);
     BmnStatus FillNoisyChannels();
 
 private:
@@ -65,7 +90,7 @@ private:
     Int_t niterped = 3;
     Float_t thrped = 35;
     Float_t thrpedcsc = 80;
-    vector<TH1I *> hNhits;
+    vector<TH1I*> hNhits;
 
     BmnGemMap* fSmall;
     BmnGemMap* fMid;
@@ -81,13 +106,17 @@ private:
 
     TString fMapFileName;
 
+    vector<GemMapLine*> fMapRun8;
     vector<GemMapValue*> fMap;
-    inline void MapStrip(GemMapValue* gemM, UInt_t ch, Int_t iSmpl, Int_t &station, Int_t &mod, Int_t &lay, Int_t &strip);
-    void ProcessDigit(BmnADCDigit* adcDig, GemMapValue* gemM, TClonesArray *gem, Bool_t doFill);
-    void ProcessAdc(TClonesArray *silicon, Bool_t doFill);
+    inline void MapStrip(GemMapValue* gemM, UInt_t ch, Int_t iSmpl, Int_t& station, Int_t& mod, Int_t& lay, Int_t& strip);
+    inline void MapStripRun8(GemMapLine* gemM, UInt_t ch, Int_t iSmpl, Int_t& station, Int_t& mod, Int_t& lay, Int_t& strip);
+    void ProcessDigit(BmnADCDigit* adcDig, GemMapValue* gemM, TClonesArray* gem, Bool_t doFill);
+    void ProcessAdc(TClonesArray* silicon, Bool_t doFill);
+    void ProcessAdcRun8(TClonesArray* silicon, Bool_t doFill);
     BmnStatus ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod);
     BmnStatus ReadLocalMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod);
     BmnStatus ReadGlobalMap(TString FileName);
+    BmnStatus ReadGlobalMapRun8(TString FileName);
 
     Int_t fEntriesInGlobMap; // number of entries in BD table for Global Mapping
 

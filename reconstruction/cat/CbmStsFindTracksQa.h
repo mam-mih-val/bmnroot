@@ -3,7 +3,6 @@
 // -----                  Created 11/01/06  by V. Friese               -----
 // -------------------------------------------------------------------------
 
-
 /** CbmStsFindTracksQa.h
  *@author V.Friese <v.friese@gsi.de>
  **
@@ -29,7 +28,6 @@ class TH1F;
 class TList;
 class FairGeoPassivePar;
 class CbmGeoStsPar;
-
 
 
 class CbmStsFindTracksQa : public FairTask
@@ -67,8 +65,6 @@ class CbmStsFindTracksQa : public FairTask
 
   /** Execution **/
   virtual void Exec(Option_t* opt);
-
-
 
  private:
 
@@ -172,6 +168,4 @@ class CbmStsFindTracksQa : public FairTask
 
 };
 
-
 #endif
-				 

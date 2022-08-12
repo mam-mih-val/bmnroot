@@ -57,29 +57,29 @@ private:
     TString fOutputHitMatchesBranchName;
 
     /** Input array of SiBT Points **/
-    TClonesArray* fBmnSiBTPointsArray;
-    TClonesArray* fBmnSiBTDigitsArray;
-    TClonesArray* fBmnSiBTDigitMatchesArray;
+    TClonesArray* fBmnSiBTPointsArray;          //!
+    TClonesArray* fBmnSiBTDigitsArray;          //!
+    TClonesArray* fBmnSiBTDigitMatchesArray;    //!
 
     /** Output array of SiBT Hits **/
-    TClonesArray* fBmnSiBTHitsArray;
+    TClonesArray* fBmnSiBTHitsArray;            //!
 
     /** Output array of SiBT Hit Matches **/
-    TClonesArray* fBmnSiBTHitMatchesArray;
+    TClonesArray* fBmnSiBTHitMatchesArray;      //!
 
     Bool_t fHitMatching;
     Bool_t fIsExp; // Specify type of input data (MC or real data)
 
     BmnSiBTConfiguration::SiBT_CONFIG fCurrentConfig;
 
-    BmnSiBTStationSet *StationSet; //Entire SiBT detector
+    BmnSiBTStationSet *StationSet;  //!Entire SiBT detector
 
-    BmnSiBTTransform *TransfSet; //Transformations for each module of the detector
+    BmnSiBTTransform *TransfSet;    //! Transformations for each module of the detector
 
-    FairField* fField;
+    FairField* fField;              //!
 
     TString fBmnEvQualityBranchName;
-    TClonesArray* fBmnEvQuality;
+    TClonesArray* fBmnEvQuality;    //!
 
     ClassDef(BmnSiBTHitMaker, 1);
 };

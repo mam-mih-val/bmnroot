@@ -44,8 +44,6 @@ CbmKF::CbmKF(const char *name, Int_t iVerbose ):
   fMethod(2),
   fMaterialID2IndexMap()
 {
-  if( !fInstance ) fInstance = this;
-  StsDigi = CbmStsDigiScheme::Instance(); //AZ
 }
 
 CbmKF::~CbmKF(){
@@ -77,6 +75,9 @@ InitStatus CbmKF::ReInit()
 
 InitStatus CbmKF::Init()
 {
+  if( !fInstance ) fInstance = this;
+  StsDigi = CbmStsDigiScheme::Instance(); //AZ
+
   fMagneticField = 0;
   
   vMvdMaterial.clear();

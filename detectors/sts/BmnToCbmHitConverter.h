@@ -1,22 +1,24 @@
 #ifndef BMNTOCBMHITCONVERTER_H
 #define BMNTOCBMHITCONVERTER_H 1
 
-#include <iostream>
-
-#include "TClonesArray.h"
-
-#include "FairTask.h"
-#include "TSystem.h"
-#include "FairMCPoint.h"
 #include "BmnGemStripHit.h"
 #include "BmnSiliconHit.h"
 #include "CbmStsHit.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnSiliconStationSet.h"
 
+#include "FairTask.h"
+#include "FairMCPoint.h"
+
+#include "TClonesArray.h"
+#include "TSystem.h"
+
+#include <iostream>
+
+
 class BmnToCbmHitConverter : public FairTask
 {
-public:
+  public:
     BmnToCbmHitConverter();
     BmnToCbmHitConverter(Int_t iVerbose);
 
@@ -39,23 +41,23 @@ private:
     TString fCbmHitsBranchName;
 
     /** Input array of BNM GEM Hits **/
-    TClonesArray *fBmnGemHitsArray;
-    TClonesArray *fBmnGemUpperClusters;
-    TClonesArray *fBmnGemLowerClusters;
+    TClonesArray *fBmnGemHitsArray;         //!
+    TClonesArray *fBmnGemUpperClusters;     //!
+    TClonesArray *fBmnGemLowerClusters;     //!
 
     /** Input array of BNM Silicon Hits **/
-    TClonesArray *fBmnSilHitsArray;
-    TClonesArray *fBmnSilUpperClusters;
-    TClonesArray *fBmnSilLowerClusters;
+    TClonesArray *fBmnSilHitsArray;         //!
+    TClonesArray *fBmnSilUpperClusters;     //!
+    TClonesArray *fBmnSilLowerClusters;     //!
 
     /** Output array of CBM Hits **/
-    TClonesArray *fCbmHitsArray;
+    TClonesArray *fCbmHitsArray;            //!
 
     TString fGemConfigFile;
     TString fSilConfigFile;
 
-    BmnGemStripStationSet *GemStationSet; // Entire GEM detector
-    BmnSiliconStationSet *SilStationSet;  // Entire SILICON detector
+    BmnGemStripStationSet *GemStationSet;   //! Entire GEM detector
+    BmnSiliconStationSet *SilStationSet;    //! Entire SILICON detector
 
     Bool_t fUseFixedErrors;
     Float_t fDXgem;
@@ -63,7 +65,7 @@ private:
     Float_t fDXsil;
     Float_t fDYsil;    
 
-    ClassDef(BmnToCbmHitConverter, 1);
+  ClassDef(BmnToCbmHitConverter, 1);
 };
 
 #endif

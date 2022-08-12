@@ -10,7 +10,7 @@
 #include <map>
 #include <iostream>
 
-class LRectangle1	// convex quadrangle
+class LRectangle1 : public TObject	// convex quadrangle
 {
   private:
     bool		IsInvalid;
@@ -21,10 +21,10 @@ class LRectangle1	// convex quadrangle
     Int_t       volumeUID;
     TVector3    A, B, C, D, center, perp;  // [cm]
 
-    LRectangle1() : IsInvalid(true), volumeUID(kInvalid){};
+    LRectangle1() : IsInvalid(true), volumeUID(kInvalid) {}
     LRectangle1(Int_t uid, const TVector3& a, const TVector3& b, const TVector3& c, const TVector3& d, bool check = false);
 
-    void        GetInteriorAngle(int vertexIndex) const {;} // FIXME
+    void        GetInteriorAngle(int vertexIndex) const {} // FIXME
     TVector3    GetCenter() const{ return (A+B+C+D) * 0.25;}
     bool        isInvalid() const{ return IsInvalid;}
 
@@ -60,6 +60,7 @@ class LRectangle1	// convex quadrangle
             IsInvalid = true;
         }
     }
+  //  ClassDef(LRectangle1, 1);
 };
 
 class LStrip1 : public LRectangle1
@@ -79,9 +80,11 @@ class LStrip1 : public LRectangle1
 
     void        Dump(const char* comment = nullptr, std::ostream& out = std::cout) const;
     Double_t    Distance(Side_t side, const LStrip1& strip);
+
+  //  ClassDef(LStrip1, 1);
 };
 
-class BmnTof1GeoUtils
+class BmnTof1GeoUtils : public TObject
 {
     typedef std::map<Int_t, LStrip1>    MStripType; // pair<detectorUID, Strip parameters>
     typedef MStripType::const_iterator  MStripCIT;
@@ -95,6 +98,8 @@ class BmnTof1GeoUtils
     void            FindNeighborStrips(TH1D* h1 = nullptr, TH2D* h2 = nullptr, bool doTest = false);
     Int_t           ParseTGeoManager(bool useMCinput, TH2D* h1 = nullptr, bool forced = false);
     const LStrip1*  FindStrip(Int_t UID);
+
+  //ClassDef(BmnTof1GeoUtils, 1);
 };
 
 #endif

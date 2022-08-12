@@ -1,6 +1,8 @@
 #ifndef BMNFUNCTIONSET_H
 #define BMNFUNCTIONSET_H 1
 
+#include "FairRunAnaProof.h"
+
 #include "TString.h"
 #include "TSystem.h"
 
@@ -18,6 +20,8 @@ class BmnFunctionSet
     static bool isSimulationFile(TString fileName);
     // check whether path is a directory
     static bool isDirectory(TString path);
+    // configuring PROOF execution for FaiRunAna
+    static FairRunAnaProof* EnableProof(Int_t proofWorkers);
 
  private:
     BmnFunctionSet() {}

@@ -13,14 +13,18 @@
 using std::cout;
 
 TString fhTestFlnm2;
-//TList fhList2;
-TH1F* hMCtr_ion_dc1 ;
-TH1F* hMCtr_ion_dc2 ;
-TH1F* hMCtr_ionID_dc1;
-TH1F* hMCtr_ionID_dc2;
 
-const UInt_t fNActivePlanes = 8; //number of active wire planes in DHC
-BmnDchHitProducer::BmnDchHitProducer() {
+BmnDchHitProducer::BmnDchHitProducer() :
+  FairTask("BmnDchHitProducer"),
+  fBmnPointsArray(nullptr),
+  fMCTracksArray(nullptr),
+  fBmnHitsArray(nullptr),
+  fPlaneTypes(nullptr),
+  hMCtr_ion_dc1(nullptr),
+  hMCtr_ion_dc2(nullptr),
+  hMCtr_ionID_dc1(nullptr),
+  hMCtr_ionID_dc2(nullptr)
+{
   fInputBranchName = "DCHPoint";
   fOutputHitsBranchName = "BmnDchHit";
   fhTestFlnm2 = "test.BmnDCH_MC.root";

@@ -138,8 +138,6 @@ const LStrip1* BmnTof1GeoUtils::FindStrip(Int_t UID)
     return &(cit->second);
 }
 
-
-
 LRectangle1::LRectangle1(Int_t uid, const TVector3& a, const TVector3& b, const TVector3& c, const TVector3& d, bool check) 
     : IsInvalid(false), volumeUID(uid), A(a), B(b), C(c), D(d)
 {
@@ -202,14 +200,14 @@ void LRectangle1::Dump(const char* comment, ostream& out) const
 
 
 LStrip1::LStrip1() 
-    : LRectangle1(), sectorID(kInvalid), boxID(kInvalid),  detectorID(kInvalid), stripID(kInvalid)
+    : sectorID(kInvalid), boxID(kInvalid),  detectorID(kInvalid), stripID(kInvalid)
 { 
     neighboring[kRight] = kInvalid;
     neighboring[kLeft] = kInvalid;
 }
 
 LStrip1::LStrip1(Int_t uid, Int_t sector, Int_t box, Int_t detector, Int_t strip) 
-    : LRectangle1(), sectorID(sector), boxID(box),  detectorID(detector), stripID(strip)
+    : sectorID(sector), boxID(box),  detectorID(detector), stripID(strip)
 { 
     volumeUID = uid;
     neighboring[kRight] = kInvalid;

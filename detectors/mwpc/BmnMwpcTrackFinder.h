@@ -13,34 +13,33 @@
 #ifndef BMNMWPCTRACKFINDER_H
 #define BMNMWPCTRACKFINDER_H
 
-#include <TMath.h>
-#include <TNamed.h>
-#include <TClonesArray.h>
-#include <TString.h>
-#include "FairTask.h"
 #include "BmnMwpcTrack.h"
 #include "BmnMwpcHit.h"
 #include "BmnMwpcGeometrySRC.h"
 #include "BmnEnums.h"
 #include "BmnMath.h"
-#include <vector>
+
+#include "FairTask.h"
+
+#include <TMath.h>
+#include <TClonesArray.h>
+#include <TString.h>
 #include "TH1D.h"
 #include "TH2D.h"
+
+#include <vector>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
-class TH1D;
-class TH2D;
-
 using namespace std;
 using namespace TMath;
 
-class BmnMwpcTrackFinder : public FairTask {
-    public:
-
-    BmnMwpcTrackFinder() {};
-    BmnMwpcTrackFinder(Bool_t, Int_t, Int_t);
+class BmnMwpcTrackFinder : public FairTask
+{
+  public:
+    BmnMwpcTrackFinder() {}
+    BmnMwpcTrackFinder(Bool_t isExp, Int_t runPeriod, Int_t runNumber);
     virtual ~BmnMwpcTrackFinder();
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
@@ -70,7 +69,7 @@ class BmnMwpcTrackFinder : public FairTask {
       Int_t  Id  = -1;
     };
 
-    private:
+  private:
     Bool_t expData;
     Bool_t fDebug = 0;
     UInt_t fEventNo; // event counter
@@ -83,12 +82,12 @@ class BmnMwpcTrackFinder : public FairTask {
     TString fOutputFileName;
 
     /** Input array of MWPC hits **/
-    TClonesArray* fBmnMwpcSegmentsArray;
-    TClonesArray* fBmnHitsArray;
+    TClonesArray* fBmnMwpcSegmentsArray;    //!
+    TClonesArray* fBmnHitsArray;            //!
     /** Output array of MWPC tracks **/
-    TClonesArray* fBmnMwpcTracksArray;
+    TClonesArray* fBmnMwpcTracksArray;      //!
 
-    BmnMwpcGeometrySRC* fMwpcGeo;
+    BmnMwpcGeometrySRC* fMwpcGeo;           //!
     TList fList;
 
     vector<TH1D*> hpar_Ax_Ch, hpar_Bx_Ch, hpar_Ay_Ch, hpar_By_Ch, hChi2_match_pair, hChi2_ndf_Ch, hpar_Ax_pair, hpar_Bx_pair, hpar_Ay_pair, hpar_By_pair, hpar_theta_pair, hpar_phi_pair, 
@@ -100,9 +99,9 @@ class BmnMwpcTrackFinder : public FairTask {
          *hdX_pair_1,*hdY_pair_1,*hdAx_pair_1,*hdAy_pair_1,*hChi2m_pair_1,*hXv_pair_1  ,*hYv_pair_1,
          *hDen, *hNum, *hEff,
          *hDen_mctr, *hNum_mctr, *hEff_mctr,
-         *hdAx_tr_mc, *hdX_tr_mc, *hdAy_tr_mc, *hdY_tr_mc, *hNtrpc_reco, *hNtrpc_mc;
-    TH2D *hNtrpc_mc_vs_reco;
-    TH2D *hAx_bx_in_target, *hAy_by_in_target, *hY_X_in_target, *hdX_pair01_vs_x1, *hdY_pair01_vs_y1, *htheta_p1vsp0, *hChi2best_Chi2fake_after_target, *hChi2best_Chi2fake_before_target, *hYvsX_mc_pair;
+         *hdAx_tr_mc, *hdX_tr_mc, *hdAy_tr_mc, *hdY_tr_mc, *hNtrpc_reco, *hNtrpc_mc;    //!
+    TH2D *hNtrpc_mc_vs_reco;    //!
+    TH2D *hAx_bx_in_target, *hAy_by_in_target, *hY_X_in_target, *hdX_pair01_vs_x1, *hdY_pair01_vs_y1, *htheta_p1vsp0, *hChi2best_Chi2fake_after_target, *hChi2best_Chi2fake_before_target, *hYvsX_mc_pair;  //!
 
     Short_t kNChambers;
     Short_t kNPlanes;
@@ -110,21 +109,21 @@ class BmnMwpcTrackFinder : public FairTask {
     Int_t kCh_min;
     Int_t kCh_max;
     Int_t kNumPairs;
-    TVector3 *ChCent;
+    TVector3 *ChCent;               //!
     vector<MC_points> vec_points;
     Double_t Z0_SRC;
     Double_t ktarget_region;
     Double_t ktarget_regionY;
     Double_t kX_target;
     Double_t kY_target;
-    Float_t *kZmid;
-    Float_t *ZCh;
-    Float_t **kZ_loc;
-    Float_t *kZ_midle_pair;
+    Float_t *kZmid;                 //!
+    Float_t *ZCh;                   //!
+    Float_t **kZ_loc;               //!
+    Float_t *kZ_midle_pair;         //!
 
-    Float_t **z_gl;
-    Float_t **shift;
-    Float_t **shift_pair;
+    Float_t **z_gl;                 //!
+    Float_t **shift;                //!
+    Float_t **shift_pair;           //!
 
     Float_t kZ_to_pole;
     Float_t kZ_target;
@@ -140,30 +139,30 @@ class BmnMwpcTrackFinder : public FairTask {
     Double_t sigma;
     Short_t kMiddlePl;
 
-    Int_t **kPln;
-    Float_t *sigm2;
-    Float_t **sigma_delta;
-    Int_t *ipl;
-    Double_t **matrA;
-    Double_t **matrb;
-    Double_t **Amatr;
-    Double_t **bmatr;
+    Int_t **kPln;                   //!
+    Float_t *sigm2;                 //!
+    Float_t **sigma_delta;          //!
+    Int_t *ipl;                     //!
+    Double_t **matrA;               //!
+    Double_t **matrb;               //!
+    Double_t **Amatr;               //!
+    Double_t **bmatr;               //!
 
-    Double_t ***par_ab_Ch;
-    Double_t ***par_ab_pair;
-    Double_t****sigma2_pair;
-    Double_t ***XVU_Ch;
-    Double_t ***Clust_Ch;
-    Double_t **Chi2_match_pair;
-    Double_t **Chi2_ndf_pair;
-    Double_t **Chi2_ndf_Ch;
-    Int_t **ind_best_pair;
-    Int_t **ind_best_Ch;
-    Int_t **Nhits_match;
-    Int_t *Nbest_pair;
-    Int_t *Nbest_Ch;
-    Int_t **Nhits_Ch;
-    Int_t **Nhits_pair;
+    Double_t ***par_ab_Ch;          //!
+    Double_t ***par_ab_pair;        //!
+    Double_t****sigma2_pair;        //!
+    Double_t ***XVU_Ch;             //!
+    Double_t ***Clust_Ch;           //!
+    Double_t **Chi2_match_pair;     //!
+    Double_t **Chi2_ndf_pair;       //!
+    Double_t **Chi2_ndf_Ch;         //!
+    Int_t **ind_best_pair;          //!
+    Int_t **ind_best_Ch;            //!
+    Int_t **Nhits_match;            //!
+    Int_t *Nbest_pair;              //!
+    Int_t *Nbest_Ch;                //!
+    Int_t **Nhits_Ch;               //!
+    Int_t **Nhits_pair;             //!
     
     void ReadSegments(Double_t ***, Int_t **, Double_t **, Int_t *, Double_t ***, Double_t ***, vector<MC_points>&);
     void PrepareArraysToProcessEvent();
@@ -181,9 +180,8 @@ class BmnMwpcTrackFinder : public FairTask {
     void TracksStoring(Int_t *, Double_t ***, Double_t **, Int_t **, Double_t****);
 
     const int kMaxMC      = 100;
-    
-    
-    ClassDef(BmnMwpcTrackFinder, 1)
+
+  ClassDef(BmnMwpcTrackFinder, 1)
 };
 
 #endif

@@ -1583,11 +1583,44 @@ void BmnUpstreamTracking::PrepareArraysToProcessEvent() {
 }
 //----------------------------------------------------------------------
 
-
+BmnUpstreamTracking::BmnUpstreamTracking() :
+  hAx_fitUp(nullptr),
+  hAy_fitUp(nullptr),
+  hx_fitUp(nullptr),
+  hy_fitUp(nullptr),
+  hchi2_fitUp(nullptr),
+  hNhitsUp(nullptr),
+  hdAx_tr_mc_comb(nullptr),
+  hdX_tr_mc_comb(nullptr),
+  hdAy_tr_mc_comb(nullptr),
+  hdY_tr_mc_comb(nullptr),
+  hdAx_uptr_mc(nullptr),
+  hdX_uptr_mc(nullptr),
+  hdAy_uptr_mc(nullptr),
+  hdY_uptr_mc(nullptr),
+  hDen_mcuptr(nullptr),
+  hNum_mcuptr(nullptr),
+  hEff_mcuptr(nullptr),
+  hAx_upmc(nullptr),
+  hAy_upmc(nullptr),
+  hX_upmc(nullptr),
+  hY_upmc(nullptr),
+  hNtr_reco(nullptr),
+  hNtr_mc(nullptr),
+  hNrecoTrif2mc(nullptr),
+  hAngle_reco(nullptr),
+  hAngle_recoifNmc2(nullptr),
+  hAngle_recoifNmc2Cases(nullptr),
+  hNtr_mc_vs_reco(nullptr),
+  hy_vs_x_Up(nullptr),
+  hY_vs_Xmctrue(nullptr),
+  hvertexXYUp(nullptr),
+  hTyTx_Up(nullptr)
+{}
 
 //-------------------------constructor----------------------------------
-BmnUpstreamTracking::BmnUpstreamTracking(Bool_t isExp, Int_t runNumber) {
-
+BmnUpstreamTracking::BmnUpstreamTracking(Bool_t isExp, Int_t runNumber)
+{
   fRunNumber = runNumber;
   expData    = isExp;
   fInputBranchName1       = "BmnSiliconTrack";

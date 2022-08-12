@@ -5,139 +5,138 @@
  **/
 
 #include "BmnGlobalTracking.h"
-
-#include <Fit/FitResult.h>
-
-#include <iterator>
-#include <map>
-#include "TVectorD.h"
-
-#include <algorithm>
-#include <vector>
-
 #include "BmnEventHeader.h"
 #include "BmnMwpcGeometry.h"
 #include "BmnSiliconTrack.h"
 #include "BmnGemStripHit.h"
-#include "TFile.h"
 #include "BmnFieldMap.h"
+
+#include "TVectorD.h"
+#include "TFile.h"
+
+//#include <Fit/FitResult.h>
+
+#include <iterator>
+#include <map>
+#include <algorithm>
+#include <vector>
 #include "omp.h"
 
 using namespace TMath;
 
-//-----------------------------------------
-
 BmnGlobalTracking::BmnGlobalTracking() : fDoAlign(kFALSE),
-fInnerTracks(nullptr),
-fSiliconTracks(nullptr),
-fGemHits(nullptr),
-fGemTracks(nullptr),
-fSilHits(nullptr),
-fCscHits(nullptr),
-fGemVertex(nullptr),
-fTof1Hits(nullptr),
-fTof2Hits(nullptr),
-fDchHits(nullptr),
-fUpsHits(nullptr),
-fMCTracks(nullptr),
-fEvHead(nullptr),
-fUpstreamTracks(nullptr),
-fPDG(2212),
-fTime(0.0),
-fChiSqCut(100.),
-fVertex(nullptr),
-fVertexL1(nullptr),
-fIsSRC(kFALSE),
-fKalman(nullptr),
-fNMatchedDch1(0),
-fNMatchedDch2(0),
-fNMatchedTof400(0),
-fNMatchedTof700(0),
-fNMatchedNearCsc(0),
-fNMatchedFarCsc(0),
-fNInnerTracks(0),
-fNGoodInnerTracks(0),
-fNGoodGlobalTracks(0),
-fInnerTrackBranchName("StsTrack"),
-fEventNo(0) {}
+    fInnerTracks(nullptr),
+    fSiliconTracks(nullptr),
+    fGemHits(nullptr),
+    fGemTracks(nullptr),
+    fSilHits(nullptr),
+    fCscHits(nullptr),
+    fGemVertex(nullptr),
+    fTof1Hits(nullptr),
+    fTof2Hits(nullptr),
+    fDchHits(nullptr),
+    fUpsHits(nullptr),
+    fMCTracks(nullptr),
+    fEvHead(nullptr),
+    fUpstreamTracks(nullptr),
+    fPDG(2212),
+    fTime(0.0),
+    fChiSqCut(100.),
+    fVertex(nullptr),
+    fVertexL1(nullptr),
+    fIsSRC(kFALSE),
+    fKalman(nullptr),
+    fNMatchedDch1(0),
+    fNMatchedDch2(0),
+    fNMatchedTof400(0),
+    fNMatchedTof700(0),
+    fNMatchedNearCsc(0),
+    fNMatchedFarCsc(0),
+    fNInnerTracks(0),
+    fNGoodInnerTracks(0),
+    fNGoodGlobalTracks(0),
+    fInnerTrackBranchName("StsTrack"),
+    fEventNo(0)
+{}
 
 BmnGlobalTracking::BmnGlobalTracking(Bool_t isExp, Bool_t doAlign) : fInnerTracks(nullptr),
-fSiliconTracks(nullptr),
-fGemHits(nullptr),
-fCscHits(nullptr),
-fGemTracks(nullptr),
-fGemVertex(nullptr),
-fTof1Hits(nullptr),
-fTof2Hits(nullptr),
-fDchHits(nullptr),
-fUpsHits(nullptr),
-fMCTracks(nullptr),
-fEvHead(nullptr),
-fUpstreamTracks(nullptr),
-fPDG(2212),
-fTime(0.0),
-fChiSqCut(100.),
-fVertex(nullptr),
-fVertexL1(nullptr),
-fPeriod(7),
-fIsSRC(kFALSE),
-fDoAlign(doAlign),
-fNMatchedDch1(0),
-fNMatchedDch2(0),
-fNMatchedTof400(0),
-fNMatchedTof700(0),
-fNMatchedNearCsc(0),
-fNMatchedFarCsc(0),
-fNInnerTracks(0),
-fNGoodInnerTracks(0),
-fNGoodGlobalTracks(0),
-fIsExp(isExp),
-fInnerTrackBranchName("StsTrack"),
-fEventNo(0) {
-    fKalman = new BmnKalmanFilter();
-}
+    fSiliconTracks(nullptr),
+    fGemHits(nullptr),
+    fCscHits(nullptr),
+    fGemTracks(nullptr),
+    fGemVertex(nullptr),
+    fTof1Hits(nullptr),
+    fTof2Hits(nullptr),
+    fDchHits(nullptr),
+    fUpsHits(nullptr),
+    fMCTracks(nullptr),
+    fEvHead(nullptr),
+    fUpstreamTracks(nullptr),
+    fPDG(2212),
+    fTime(0.0),
+    fChiSqCut(100.),
+    fVertex(nullptr),
+    fVertexL1(nullptr),
+    fPeriod(7),
+    fIsSRC(kFALSE),
+    fDoAlign(doAlign),
+    fNMatchedDch1(0),
+    fNMatchedDch2(0),
+    fNMatchedTof400(0),
+    fNMatchedTof700(0),
+    fNMatchedNearCsc(0),
+    fNMatchedFarCsc(0),
+    fNInnerTracks(0),
+    fNGoodInnerTracks(0),
+    fNGoodGlobalTracks(0),
+    fIsExp(isExp),
+    fInnerTrackBranchName("StsTrack"),
+    fEventNo(0)
+{}
 
 BmnGlobalTracking::BmnGlobalTracking(Bool_t isField, Bool_t isExp, Bool_t doAlign) : fInnerTracks(nullptr),
-fSiliconTracks(nullptr),
-fGemHits(nullptr),
-fCscHits(nullptr),
-fGemTracks(nullptr),
-fGemVertex(nullptr),
-fTof1Hits(nullptr),
-fTof2Hits(nullptr),
-fDchHits(nullptr),
-fUpsHits(nullptr),
-fMCTracks(nullptr),
-fEvHead(nullptr),
-fUpstreamTracks(nullptr),
-fPDG(2212),
-fTime(0.0),
-fChiSqCut(100.),
-fVertex(nullptr),
-fVertexL1(nullptr),
-fPeriod(7),
-fIsSRC(kFALSE),
-fDoAlign(doAlign),
-fNMatchedDch1(0),
-fNMatchedDch2(0),
-fNMatchedTof400(0),
-fNMatchedTof700(0),
-fNMatchedNearCsc(0),
-fNMatchedFarCsc(0),
-fNInnerTracks(0),
-fNGoodInnerTracks(0),
-fNGoodGlobalTracks(0),
-fIsExp(isExp),
-fInnerTrackBranchName("StsTrack"),
-fEventNo(0) {
-    fKalman = new BmnKalmanFilter();
-}
+    fSiliconTracks(nullptr),
+    fGemHits(nullptr),
+    fCscHits(nullptr),
+    fGemTracks(nullptr),
+    fGemVertex(nullptr),
+    fTof1Hits(nullptr),
+    fTof2Hits(nullptr),
+    fDchHits(nullptr),
+    fUpsHits(nullptr),
+    fMCTracks(nullptr),
+    fEvHead(nullptr),
+    fUpstreamTracks(nullptr),
+    fPDG(2212),
+    fTime(0.0),
+    fChiSqCut(100.),
+    fVertex(nullptr),
+    fVertexL1(nullptr),
+    fPeriod(7),
+    fIsSRC(kFALSE),
+    fDoAlign(doAlign),
+    fNMatchedDch1(0),
+    fNMatchedDch2(0),
+    fNMatchedTof400(0),
+    fNMatchedTof700(0),
+    fNMatchedNearCsc(0),
+    fNMatchedFarCsc(0),
+    fNInnerTracks(0),
+    fNGoodInnerTracks(0),
+    fNGoodGlobalTracks(0),
+    fIsExp(isExp),
+    fInnerTrackBranchName("StsTrack"),
+    fEventNo(0)
+{}
 
 BmnGlobalTracking::~BmnGlobalTracking() {}
 
-InitStatus BmnGlobalTracking::Init() {
+InitStatus BmnGlobalTracking::Init()
+{
     if (fVerbose > 1)
         cout << "BmnGlobalTracking::Init started\n";
+
+    fKalman = new BmnKalmanFilter();
 
     FairRootManager* ioman = FairRootManager::Instance();
     if (!ioman)

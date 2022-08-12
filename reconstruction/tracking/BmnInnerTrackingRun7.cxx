@@ -49,7 +49,6 @@ BmnInnerTrackingRun7::BmnInnerTrackingRun7(Int_t run, Bool_t target) : fSteering
     fSilHitsArray = nullptr;
     fHitsArray = nullptr;
     fRoughVertex = TVector3(0.5, -4.6, -2.3);
-    fKalman = new BmnKalmanFilter();
     fGlobTracksArray = nullptr;
     fGemTracksArray = nullptr;
     fSilTracksArray = nullptr;
@@ -81,6 +80,8 @@ BmnInnerTrackingRun7::~BmnInnerTrackingRun7() {
 
 InitStatus BmnInnerTrackingRun7::Init() {
     if (fVerbose > 1) cout << "======================== GEM tracking init started ====================" << endl;
+
+    fKalman = new BmnKalmanFilter();
 
     //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();

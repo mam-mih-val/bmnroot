@@ -14,39 +14,33 @@
 
 using namespace std;
 
-class  BmnArmTrigHitProducer : public FairTask {
-public:
-
-     BmnArmTrigHitProducer();
-
+class BmnArmTrigHitProducer : public FairTask
+{
+  public:
+    BmnArmTrigHitProducer();
     virtual ~ BmnArmTrigHitProducer();
 
     virtual InitStatus Init();
-
     virtual void Exec(Option_t* opt);
-
     virtual void Finish();
 
     //void ProcessMCPoints();
 
-
 private:
-
     TString fInputBranchName;
     TString fOutputHitsBranchName;
     TString fOutputHitMatchesBranchName;
 
     /** Input array of ArmTrig Points **/
-    TClonesArray* fBmnArmTrigPointsArray;
+    TClonesArray* fBmnArmTrigPointsArray;   //!
 
     /** Output array of ArmTrig Hits **/
-    TClonesArray* fBmnArmTrigHitsArray;
+    TClonesArray* fBmnArmTrigHitsArray;     //!
     
     Bool_t fOnlyPrimary;
     Bool_t fUseRealEffects;
 
-    ClassDef( BmnArmTrigHitProducer,1);
+  ClassDef(BmnArmTrigHitProducer,1);
 };
 
 #endif /*  BmnArmTrigHitProducer_H */
-

@@ -13,17 +13,24 @@
 #include <vector>
 #include "BmnSteering.h"
 
-BmnSteering::~BmnSteering() {
+BmnSteering::~BmnSteering()
+{}
 
-}
-
-BmnSteering::BmnSteering() {
-
-}
+BmnSteering::BmnSteering() :
+  fHitXCutMin(nullptr),
+  fHitXCutMax(nullptr),
+  fHitYCutMin(nullptr),
+  fHitYCutMax(nullptr),
+  fCellSlopeXZCutMin(nullptr),
+  fCellSlopeXZCutMax(nullptr),
+  fCellSlopeYZCutMin(nullptr),
+  fCellSlopeYZCutMax(nullptr)
+{}
 
 BmnSteering::BmnSteering(TString fileName) :
-fSteerFile(fileName),
-fMarkerValue(-1000.) {
+  fSteerFile(fileName),
+  fMarkerValue(-1000.)
+{
     fDiffSlopeXZ0 = fMarkerValue;
     fDiffSlopeYZ0 = fMarkerValue;
     fDiffSlopeXZSlope = fMarkerValue;

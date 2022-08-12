@@ -8,25 +8,28 @@
 #define	BmnKalmanFilter_H
 
 #include "BmnEnums.h"
-#include "FairTrackParam.h"
-#include "BmnHit.h"
-#include "TMatrixD.h"
-#include "BmnFitNode.h"
-#include <vector>
-#include "FairRunAna.h"
-#include "FairField.h"
-#include "TMath.h"
-#include "BmnMath.h"
-#include "BmnMatrixMath.h"
-#include "TClonesArray.h"
 #include "BmnGeoNavigator.h"
 #include "BmnMaterialEffects.h"
+#include "BmnHit.h"
+#include "BmnFitNode.h"
+#include "BmnMath.h"
+#include "BmnMatrixMath.h"
 
-class BmnKalmanFilter {
-public:
+#include "FairTrackParam.h"
+#include "FairRunAna.h"
+#include "FairField.h"
+
+#include "TClonesArray.h"
+#include "TMath.h"
+#include "TMatrixD.h"
+
+#include <vector>
+
+class BmnKalmanFilter
+{
+  public:
     /* Constructor */
     BmnKalmanFilter();
-
     /* Destructor */
     virtual ~BmnKalmanFilter();
     
@@ -42,11 +45,10 @@ public:
     BmnStatus TGeoTrackPropagate(FairTrackParam* par, Double_t zOut, Int_t pdg, vector<Double_t>* F, Double_t* length, Bool_t isField);
     BmnStatus TGeoTrackPropagate(FairTrackParam* par, Double_t zOut, Int_t pdg, vector<Double_t>* F, Double_t* length);
 
-private:
+  private:
     FairField* fField;
     BmnGeoNavigator* fNavigator;
-    BmnMaterialEffects* fMaterial;
+    BmnMaterialEffects* fMaterial;  //!
 };
 
 #endif	/* BmnKalmanFilter_H */
-

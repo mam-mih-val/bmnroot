@@ -55,6 +55,7 @@ BmnInnTrackerAlign::BmnInnTrackerAlign(Int_t period, Int_t run, TString fileName
 
     // Get Lorentz corrections ...
     const Int_t nStat = fDetectorGEM->GetNStations();
+    nStations = fDetectorGEM->GetNStations();
     fLorCorrs = new Double_t*[nStat];
     UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", period, run);
     vector<UniValue*> shifts;
@@ -121,8 +122,6 @@ BmnInnTrackerAlign::~BmnInnTrackerAlign() {
 
     delete fDetectorGEM;
     delete fDetectorSI;
-    delete fBranchGemCorrs;
-    delete fBranchSilCorrs;
 }
 
 Double_t*** BmnInnTrackerAlign::GetGemCorrs(TFile* file) {

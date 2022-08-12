@@ -25,10 +25,14 @@ BmnSiliconHitMaker::BmnSiliconHitMaker()
 }
 
 BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, Bool_t isSrc)
-    : fHitMatching(kTRUE) {
-
+    : fHitMatching(kTRUE)
+{
     fIsExp = isExp;
     fIsSrc = isSrc;
+
+    fRunPeriod = run_period;
+    fRunNumber = run_number;
+
     fInputPointsBranchName = "SiliconPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnSiliconDigit" : "SILICON";
     fInputDigitMatchesBranchName = "BmnSiliconDigitMatch";
@@ -42,7 +46,7 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
     fSignalLow = 0.;
     fSignalUp = DBL_MAX;
 
-    switch (run_period) {
+    switch (fRunPeriod) {
     case 6: //BM@N RUN-6
         fCurrentConfig = BmnSiliconConfiguration::RunSpring2017;
         break;
@@ -61,7 +65,10 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
         fCurrentConfig = BmnSiliconConfiguration::Run8_3stations;
         break;
     }
+}
 
+void BmnSiliconHitMaker::createSiliconDetector()
+{
     TString gPathSiliconConfig = gSystem->Getenv("VMCWORKDIR");
     gPathSiliconConfig += "/parameters/silicon/XMLConfigs/";
 
@@ -124,7 +131,7 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
 
     if (fIsExp) {
         const Int_t nStat = StationSet->GetNStations();
-        UniDbDetectorParameter* coeffAlignCorrs = UniDbDetectorParameter::GetDetectorParameter("Silicon", "alignment_shift", run_period, run_number);
+        UniDbDetectorParameter* coeffAlignCorrs = UniDbDetectorParameter::GetDetectorParameter("Silicon", "alignment_shift", fRunPeriod, fRunNumber);
         vector<UniValue*> algnShifts;
         if (coeffAlignCorrs)
             coeffAlignCorrs->GetValue(algnShifts);
@@ -177,6 +184,8 @@ BmnSiliconHitMaker::~BmnSiliconHitMaker() {
 InitStatus BmnSiliconHitMaker::Init() {
 
     if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Init() started ================" << endl;
+
+    createSiliconDetector();
 
     FairRootManager* ioman = FairRootManager::Instance();
 

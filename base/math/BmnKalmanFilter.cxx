@@ -8,6 +8,7 @@ using namespace TMath;
 BmnKalmanFilter::BmnKalmanFilter() {
     fMaterial = new BmnMaterialEffects();
     fNavigator = new BmnGeoNavigator();
+    fField = nullptr;
 }
 
 BmnKalmanFilter::~BmnKalmanFilter() {

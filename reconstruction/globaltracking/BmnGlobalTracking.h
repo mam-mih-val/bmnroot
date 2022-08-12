@@ -10,8 +10,6 @@
 #ifndef BmnGlobalTracking_H_
 #define BmnGlobalTracking_H_
 
-#include <string>
-#include <vector>
 #include "BmnDchHit.h"
 #include "BmnDchTrack.h"
 #include "BmnGemTrack.h"
@@ -27,11 +25,15 @@
 #include "CbmTofPoint.h"
 #include "BmnVertex.h"
 #include "CbmVertex.h"
+#include "CbmKFTrack.h"
+#include "CbmStsTrack.h"
+
 #include "FairMCPoint.h"
 #include "FairRootManager.h"
 #include "FairRunAna.h"
 #include "FairRuntimeDb.h"
 #include "FairTask.h"
+
 #include "TClonesArray.h"
 #include "TFitResult.h"
 #include "TFitResultPtr.h"
@@ -40,16 +42,14 @@
 #include "TH2F.h"
 #include "TMath.h"
 #include <TStopwatch.h>
-#include "CbmKFTrack.h"
-#include "CbmStsTrack.h"
 
-
-class TClonesArray;
-
+#include <string>
+#include <vector>
 using namespace std;
 
-class BmnGlobalTracking : public FairTask {
-public:
+class BmnGlobalTracking : public FairTask
+{
+  public:
     /**
      * \brief Constructor.
      */
@@ -102,36 +102,35 @@ public:
         fInnerTrackBranchName = name;
     }
 
-private:
-
+  private:
     /*
      * \brief Calculate length of the global track
      */
     Double_t CalculateLength(CbmStsTrack* tr);
 
     // INPUT ARRAYS
-    TClonesArray* fInnerTracks;  //GEM+SIL for BM@N, GEM for SRC
-    TClonesArray* fGemTracks;
-    TClonesArray* fSiliconTracks;  //for SRC only
-    TClonesArray* fGemVertex;
-    TClonesArray* fGemHits;
-    TClonesArray* fSilHits;
-    TClonesArray* fCscHits;
-    TClonesArray* fMwpcTracks;
-    TClonesArray* fMwpcHits;
-    TClonesArray* fDchTracks;
-    TClonesArray* fDchHits;
-    TClonesArray* fTof1Hits;
-    TClonesArray* fTof2Hits;
-    TClonesArray* fUpstreamTracks;
-    TClonesArray* fUpsHits;
+    TClonesArray* fInnerTracks;     //! GEM+SIL for BM@N, GEM for SRC
+    TClonesArray* fGemTracks;       //!
+    TClonesArray* fSiliconTracks;   //! for SRC only
+    TClonesArray* fGemVertex;       //!
+    TClonesArray* fGemHits;         //!
+    TClonesArray* fSilHits;         //!
+    TClonesArray* fCscHits;         //!
+    TClonesArray* fMwpcTracks;      //!
+    TClonesArray* fMwpcHits;        //!
+    TClonesArray* fDchTracks;       //!
+    TClonesArray* fDchHits;         //!
+    TClonesArray* fTof1Hits;        //!
+    TClonesArray* fTof2Hits;        //!
+    TClonesArray* fUpstreamTracks;  //!
+    TClonesArray* fUpsHits;         //!
 
-    TClonesArray* fEvHead;
-    TClonesArray* fMCTracks;
+    TClonesArray* fEvHead;          //!
+    TClonesArray* fMCTracks;        //!
 
-    TClonesArray* fStsHits;
-    TClonesArray* fStsTracks;
-    TClonesArray* fGlobalTracks;
+    TClonesArray* fStsHits;         //!
+    TClonesArray* fStsTracks;       //!
+    TClonesArray* fGlobalTracks;    //!
 
     TString fInnerTrackBranchName;
 
@@ -146,10 +145,10 @@ private:
     Int_t fPDG;         // PDG hypothesis
     Float_t fChiSqCut;  // Chi square cut for hit to be attached to track.
 
-    BmnVertex* fVertex;  // vertex information
-    CbmVertex* fVertexL1;  // vertex information for L1 case
+    BmnVertex* fVertex;     //! vertex information
+    CbmVertex* fVertexL1;   //! vertex information for L1 case
 
-    BmnKalmanFilter* fKalman;
+    BmnKalmanFilter* fKalman;   //!
     Double_t fTime;
     
     Long_t fNMatchedDch1;
@@ -181,7 +180,7 @@ private:
 
     void CalcdQdn(BmnGlobalTrack* tr);
 
-    ClassDef(BmnGlobalTracking, 1);
+  ClassDef(BmnGlobalTracking, 1);
 };
 
 #endif /* BmnGlobalTracking_H_ */

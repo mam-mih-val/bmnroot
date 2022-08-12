@@ -24,17 +24,14 @@
 using namespace std;
 
 class BmnCSCHitMaker : public FairTask {
-public:
+  public:
 
     BmnCSCHitMaker();
     BmnCSCHitMaker(Int_t, Int_t, Bool_t, TString alignFile = "default", Bool_t isSrc = kFALSE);
-
     virtual ~BmnCSCHitMaker();
 
     virtual InitStatus Init();
-
     virtual void Exec(Option_t* opt);
-
     virtual void Finish();
 
     void ProcessDigits();
@@ -45,9 +42,11 @@ public:
 
     void SetCurrentConfig(BmnCSCConfiguration::CSC_CONFIG config) {
         fCurrentConfig = config;
+        configSetExplicitly = true;
     }
 
-private:
+  private:
+    void initCurrentConfig();
 
     TString fInputPointsBranchName;
     TString fInputDigitsBranchName;
@@ -56,16 +55,16 @@ private:
     TString fOutputHitsBranchName;
 
     /** Input array of CSC Points **/
-    TClonesArray* fBmnCSCPointsArray;
-    TClonesArray* fBmnCSCDigitsArray;
-    TClonesArray* fBmnCSCDigitMatchesArray;
+    TClonesArray* fBmnCSCPointsArray;           //!
+    TClonesArray* fBmnCSCDigitsArray;           //!
+    TClonesArray* fBmnCSCDigitMatchesArray;     //!
 
     /** Output array of CSC Hits **/
-    TClonesArray* fBmnCSCHitsArray;
+    TClonesArray* fBmnCSCHitsArray;             //!
     /** Output array of CSC Upper Clusters **/
-    TClonesArray* fBmnCSCUpperClustersArray;
+    TClonesArray* fBmnCSCUpperClustersArray;    //!
     /** Output array of CSC Lower Clusters **/
-    TClonesArray* fBmnCSCLowerClustersArray;
+    TClonesArray* fBmnCSCLowerClustersArray;    //!
 
 
     Bool_t fHitMatching;
@@ -73,18 +72,18 @@ private:
     Bool_t fIsSrc; // Specify type of setup (SRC or BM@N)
 
     BmnCSCConfiguration::CSC_CONFIG fCurrentConfig;
+    bool configSetExplicitly = false;
 
-    BmnCSCStationSet *StationSet; //Entire CSC detector
+    BmnCSCStationSet *StationSet;   //! Entire CSC detector
 
-    BmnCSCTransform *TransfSet; //Transformations for each module of the detector
+    BmnCSCTransform *TransfSet;     //! Transformations for each module of the detector
 
-    FairField* fField;
+    FairField* fField;              //!
 
     TString fBmnEvQualityBranchName;
-    TClonesArray* fBmnEvQuality;
+    TClonesArray* fBmnEvQuality;    //!
 
     ClassDef(BmnCSCHitMaker, 1);
 };
-
 
 #endif

@@ -45,9 +45,9 @@ class CbmStsTrackFitterIdeal : public CbmStsTrackFitter
 private:
 
   /** Data branches **/
-  TClonesArray* fArrayMCTrack;
-  TClonesArray* fArrayStsPoint;
-  TClonesArray* fArrayStsHit;
+  TClonesArray* fArrayMCTrack;      //!
+  TClonesArray* fArrayStsPoint;     //!
+  TClonesArray* fArrayStsHit;       //!
 
   TDatabasePDG* dbPDG;
 

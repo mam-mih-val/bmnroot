@@ -10,27 +10,23 @@
 #include "TList.h"
 #include <TVector3.h>
 
-class BmnSiliconStationSet {
-
-protected:
-
+class BmnSiliconStationSet
+{
+  protected:
     /* station set parameters*/
-    Int_t NStations; //number of stations in the Silicon detector
+    Int_t NStations; // number of stations in the Silicon detector
 
-    Double_t *XStationPositions; //x-position of each station [array]
-    Double_t *YStationPositions; //y-position of each station [array]
-    Double_t *ZStationPositions; //z-position of each station [array]
+    Double_t *XStationPositions;        //[NStations] x-position of each station [array]
+    Double_t *YStationPositions;        //[NStations] y-position of each station [array]
+    Double_t *ZStationPositions;        //[NStations] z-position of each station [array]
 
-    BmnSiliconStation **SiliconStations; //Silicon stations [array]
-    map <Int_t, TVector3>* fStatShifts;
+    BmnSiliconStation **SiliconStations; //[NStations] Silicon stations [array]
+    map <Int_t, TVector3>* fStatShifts;  //->
 
-public:
-
+  public:
     /* Constructor */
     BmnSiliconStationSet();
-
     BmnSiliconStationSet(TString xml_config_file, map <Int_t, TVector3>* shifts = nullptr);
-
     /* Destructor */
     virtual ~BmnSiliconStationSet();
 
@@ -64,16 +60,12 @@ public:
      * the 'xcoord' parameter! (into local coordinate system) */
     Int_t GetPointStationOwnership(Double_t xcoord, Double_t ycoord, Double_t zcoord);
 
-
-private:
-
+  private:
     Bool_t CreateConfigurationFromXMLFile(TString xml_config_file);
     Int_t CountNumberOfStations(TXMLNode *node);
     Bool_t ParseStation(TXMLNode *node, Int_t iStation);
 
-    ClassDef(BmnSiliconStationSet, 1);
-
+  ClassDef(BmnSiliconStationSet, 1);
 };
 
 #endif /* BMNSILICONSTATIONSET_H */
-

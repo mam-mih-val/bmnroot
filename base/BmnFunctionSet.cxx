@@ -106,5 +106,26 @@ bool BmnFunctionSet::isDirectory(TString path)
         return false;
 }
 
+// check whether path is a directory
+FairRunAnaProof* BmnFunctionSet::EnableProof(Int_t proofWorkers)
+{
+    cout<<"PROOF-Lite mode is activated"<<endl;
+    TString strProofString = "";
+    if (proofWorkers > 0)
+        strProofString += TString::Format("workers=%d", proofWorkers);
+
+    FairRunAnaProof* proofRun = new FairRunAnaProof(strProofString);
+    proofRun->SetProofParName("$VMCWORKDIR/config/libBmnRoot.par");
+    proofRun->SetProofOutputStatus("merge");
+
+    TProof* proofSession = proofRun->GetProof();
+    proofSession->SetLogLevel(0, TProofDebug::kAll);
+
+    proofSession->SetParameter("PROOF_PacketizerStrategy", (Int_t) 0);
+    proofSession->SetParallel(proofWorkers);
+
+    return proofRun;
+}
+
 
 ClassImp(BmnFunctionSet);

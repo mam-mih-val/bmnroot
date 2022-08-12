@@ -12,8 +12,15 @@
 using namespace std;
 static Float_t workTime = 0.0;
 
-BmnZdcAnalyzer::BmnZdcAnalyzer() {
-}
+BmnZdcAnalyzer::BmnZdcAnalyzer() :
+  FairTask("BmnZdcAnalyzer"),
+
+  fArrayOfZdcDigits(nullptr),
+  fBmnZDCEventData(nullptr),
+
+  fModuleScale(nullptr),
+  fModuleThreshold(nullptr)
+{}
 
 BmnZdcAnalyzer::~BmnZdcAnalyzer() {
 }

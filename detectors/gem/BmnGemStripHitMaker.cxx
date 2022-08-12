@@ -39,6 +39,10 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
 
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
+
+    fRunPeriod = run_period;
+    fRunNumber = run_number;
+
     fIsExp = isExp;
     fIsSrc = isSrc;
 
@@ -56,7 +60,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
     StationSet = nullptr;
     TransfSet = nullptr;
 
-    switch (run_period) {
+    switch (fRunPeriod) {
     case 5: //BM@N RUN-5
         fCurrentConfig = BmnGemStripConfiguration::RunWinter2016;
         break;
@@ -78,7 +82,10 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
         }
         break;
     }
+}
 
+void BmnGemStripHitMaker::createGemDetector()
+{
     TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
     gPathGemConfig += "/parameters/gem/XMLConfigs/";
 
@@ -140,9 +147,9 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
         }
     }
 
-    if (run_period == 7) {
+    if (fRunPeriod == 7) {
         if (fIsExp) {
-            UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", run_period, run_number);
+            UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", fRunPeriod, fRunNumber);
             vector<UniValue*> shifts;
             if (coeffLorCorrs)
                 coeffLorCorrs->GetValue(shifts);
@@ -154,7 +161,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
                 }
             }
         }
-    } else if (run_period == 8) {
+    } else if (fRunPeriod == 8) {
         for (Int_t iStat = 0; iStat < nStat; iStat++) {
             //Pol2 approximation of the next configuration: BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_8T
             fLorCor[iStat][0] = -0.01710;
@@ -163,9 +170,8 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
         }
     }
 
-
     if (fIsExp) {
-        UniDbDetectorParameter* coeffAlignCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "alignment_shift", run_period, run_number);
+        UniDbDetectorParameter* coeffAlignCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "alignment_shift", fRunPeriod, fRunNumber);
         vector<UniValue*> algnShifts;
         if (coeffAlignCorrs)
             coeffAlignCorrs->GetValue(algnShifts);
@@ -212,6 +218,8 @@ BmnGemStripHitMaker::~BmnGemStripHitMaker() {
 InitStatus BmnGemStripHitMaker::Init() {
 
     if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Init() started ===============" << endl;
+
+    createGemDetector();
 
     //if GEM configuration is not set -> return a fatal error
     if (!fCurrentConfig) Fatal("BmnGemStripHitMaker::Init()", " !!! Current GEM config is not set !!! ");

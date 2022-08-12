@@ -33,28 +33,25 @@ protected:
     Double_t ZPosition;
 
     /*Shifts of modules in each station*/
-    Double_t *XShiftOfModules;
-    Double_t *YShiftOfModules;
-    Double_t *ZShiftOfModules;
+    Double_t *XShiftOfModules;                  //[NModules]
+    Double_t *YShiftOfModules;                  //[NModules]
+    Double_t *ZShiftOfModules;                  //[NModules]
 
-    Double_t *DriftGapThicknessOfModules;
-    Double_t *FTransfGapThicknessOfModules;
-    Double_t *STransfGapThicknessOfModules;
-    Double_t *InductionGapThicknessOfModules;
+    Double_t *DriftGapThicknessOfModules;       //[NModules]
+    Double_t *FTransfGapThicknessOfModules;     //[NModules]
+    Double_t *STransfGapThicknessOfModules;     //[NModules]
+    Double_t *InductionGapThicknessOfModules;   //[NModules]
 
     Double_t BeamHoleRadius;
 
-    BmnGemStripModule **Modules; //modules in the station [array]
+    BmnGemStripModule **Modules;                //[NModules] modules in the station [array]
 
-public:
-
+  public:
     /* Constructor */
     BmnGemStripStation();
-
     BmnGemStripStation(TXMLNode *stationNode, Int_t iStation,
                        Double_t xpos_station, Double_t ypos_station, Double_t zpos_station,
                        Double_t beamradius);
-
     /* Destructor */
     virtual ~BmnGemStripStation();
 
@@ -105,11 +102,10 @@ public:
 
     //--------------------------------------------------------------------------
 
-protected:
+  protected:
     void DefineStationBorders();
 
-private:
-
+  private:
     Bool_t CreateConfigurationFromXMLNode(TXMLNode *node);
     Int_t CountNumberOfModules(TXMLNode *node);
     Bool_t ParseModule(TXMLNode *node, Int_t iModule);

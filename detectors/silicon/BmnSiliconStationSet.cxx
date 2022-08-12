@@ -2,23 +2,24 @@
 
 BmnSiliconStationSet::BmnSiliconStationSet()
 : NStations(0),
-XStationPositions(NULL), YStationPositions(NULL), ZStationPositions(NULL),
-SiliconStations(NULL) {
-}
+  XStationPositions(NULL), YStationPositions(NULL), ZStationPositions(NULL),
+  SiliconStations(NULL),
+  fStatShifts(NULL)
+{}
 
 BmnSiliconStationSet::BmnSiliconStationSet(TString xml_config_file, map <Int_t, TVector3>* shifts)
 : NStations(0),
-XStationPositions(NULL), YStationPositions(NULL), ZStationPositions(NULL),
-SiliconStations(NULL), fStatShifts(shifts) {
-
+  XStationPositions(NULL), YStationPositions(NULL), ZStationPositions(NULL),
+  SiliconStations(NULL), fStatShifts(shifts)
+{
     Bool_t create_status = CreateConfigurationFromXMLFile(xml_config_file);
     if (!create_status) {
         std::cerr << "Error: There are problems with creation of the configuration from XML (in BmnSiliconStationSet)\n";
     }
 }
 
-BmnSiliconStationSet::~BmnSiliconStationSet() {
-
+BmnSiliconStationSet::~BmnSiliconStationSet()
+{
     if (XStationPositions) {
         delete [] XStationPositions;
         XStationPositions = NULL;

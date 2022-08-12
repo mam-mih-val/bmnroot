@@ -5,10 +5,11 @@
 #pragma link off all classes;
 #pragma link off all functions;
  
-#pragma link C++ class  CbmL1+;
-#pragma link C++ class  CbmL1StsTrackFinder+;
-
-#pragma link C++ class  CbmL1PartEfficiencies+;
+#pragma link C++ class CbmL1+;
+#pragma link C++ class CbmL1StsTrackFinder+;
+#pragma link C++ class CbmL1PartEfficiencies+;
+#pragma link C++ class CbmStsFindTracks+;
+#pragma link C++ class CbmStsFindTracksQa+;
 
 #endif
 

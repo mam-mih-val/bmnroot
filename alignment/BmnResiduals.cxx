@@ -1,6 +1,8 @@
 #include "BmnResiduals.h"
 #include "BmnKalmanFilter.h"
 
+#include "FairLogger.h"
+
 BmnResiduals::BmnResiduals(Int_t period, Int_t number) : fGlobalTracks(nullptr),
                                                                            fGemTracks(nullptr),
                                                                            fSilTracks(nullptr),
@@ -30,7 +32,10 @@ InitStatus BmnResiduals::Init() {
     fGemHits = (TClonesArray*)ioman->GetObject(fBranchGemHits.Data());
     fSilHits = (TClonesArray*)ioman->GetObject(fBranchSilHits.Data());
 
-    fFairEventHeader->SetRunId(fNumber);
+    if (fFairEventHeader != nullptr)
+        fFairEventHeader->SetRunId(fNumber);
+    else
+        LOG(debug)<<__PRETTY_FUNCTION__<<": fFairEventHeader is not initalized. fBranchFairEventHeader == "<<fBranchFairEventHeader;
 
     return kSUCCESS;
 }

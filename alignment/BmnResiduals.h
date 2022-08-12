@@ -38,22 +38,22 @@ private:
     Int_t fNumber;
     
     TString fBranchGlobTracks;
-    TClonesArray* fGlobalTracks;
+    TClonesArray* fGlobalTracks;     //!
     
     TString fBranchGemHits;
-    TClonesArray* fGemHits;
+    TClonesArray* fGemHits;          //!
     
     TString fBranchSilHits;
-    TClonesArray* fSilHits;
+    TClonesArray* fSilHits;          //!
     
     TString fBranchGemTracks;
-    TClonesArray* fGemTracks;
+    TClonesArray* fGemTracks;        //!
     
     TString fBranchSilTracks;
-    TClonesArray* fSilTracks;
+    TClonesArray* fSilTracks;        //!
     
     TString fBranchFairEventHeader;
-    FairEventHeader* fFairEventHeader;
+    FairEventHeader* fFairEventHeader;   //!
 
     ClassDef(BmnResiduals, 1)
 };

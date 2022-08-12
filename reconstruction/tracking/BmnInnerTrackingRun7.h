@@ -73,26 +73,26 @@ class BmnInnerTrackingRun7 : public FairTask {
     void SetHitsUsing(BmnTrack* tr, Bool_t use);
     BmnStatus DrawHits();
 
-    BmnGemStripStationSet* fGemDetector;
-    BmnSiliconStationSet* fSilDetector;
+    BmnGemStripStationSet* fGemDetector;        //!
+    BmnSiliconStationSet* fSilDetector;         //!
     TString fGemHitsBranchName;
     TString fSilHitsBranchName;
     TString fGlobTracksBranchName;
     TString fGemTracksBranchName;
     TString fSilTracksBranchName;
 
-    TClonesArray* fGlobTracksArray;
-    TClonesArray* fSilTracksArray;
-    TClonesArray* fGemTracksArray;
-    TClonesArray* fSilHitsArray;
-    TClonesArray* fGemHitsArray;
-    TClonesArray* fHitsArray;
+    TClonesArray* fGlobTracksArray;             //!
+    TClonesArray* fSilTracksArray;              //!
+    TClonesArray* fGemTracksArray;              //!
+    TClonesArray* fSilHitsArray;                //!
+    TClonesArray* fGemHitsArray;                //!
+    TClonesArray* fHitsArray;                   //!
 
-    TClonesArray* fMCTracksArray;
-    TClonesArray* fSilPointsArray;
-    TClonesArray* fGemPointsArray;
+    TClonesArray* fMCTracksArray;               //!
+    TClonesArray* fSilPointsArray;              //!
+    TClonesArray* fGemPointsArray;              //!
 
-    BmnKalmanFilter* fKalman;
+    BmnKalmanFilter* fKalman;                   //!
 
     Bool_t fIsTarget;  // run with target or not
     Bool_t fDoHitAsymFiltration;
@@ -103,19 +103,19 @@ class BmnInnerTrackingRun7 : public FairTask {
 
     TVector3 fRoughVertex;  // for correct transformation
 
-    FairField* fField;
+    FairField* fField;                          //!
 
     Double_t fChiSquareCut;
-    Double_t* fHitXCutMin;
-    Double_t* fHitXCutMax;
-    Double_t* fHitYCutMin;
-    Double_t* fHitYCutMax;
+    Double_t* fHitXCutMin;                      //!
+    Double_t* fHitXCutMax;                      //!
+    Double_t* fHitYCutMin;                      //!
+    Double_t* fHitYCutMax;                      //!
 
     Int_t fNHitsCut;
     Double_t fDistCut;
 
     TString fSteerFile;
-    BmnSteering* fSteering;
+    BmnSteering* fSteering;                     //!
 
     ClassDef(BmnInnerTrackingRun7, 1);
 };

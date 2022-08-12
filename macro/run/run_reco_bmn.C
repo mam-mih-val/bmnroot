@@ -4,12 +4,13 @@
 // bmndstFileName - output file with reconstructed data
 // nStartEvent - number of first event to process (starts with zero), default: 0
 // nEvents - number of events to process, 0 - all events of given file will be processed, default: 1 000 events
+// proofThreads - parameter for enabling PROOF: -1 - default mode (without PROOF), 0 - PROOF uses all cores, >0 - number of PROOF threads
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #define L1Tracking // Choose Tracking: L1Tracking, VF or CellAuto
 
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
-    Int_t nStartEvent = 0, Int_t nEvents = 10) {
+    Int_t nStartEvent = 0, Int_t nEvents = 10, Int_t proofThreads = -1) {
     gDebug = 0; // Debug option
     // Verbosity level (0 = quiet (progress bar), 1 = event-level, 2 = track-level, 3 = full debug)
     Int_t iVerbose = 0;
@@ -22,7 +23,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     if (!BmnFunctionSet::CheckFileExist(inputFileName, 1)) exit(-1);
 
     // -----   Reconstruction run   --------------------------------------------
-    FairRunAna* fRunAna = new FairRunAna();
+    FairRunAna* fRunAna = (proofThreads < 0) ? new FairRunAna() : BmnFunctionSet::EnableProof(proofThreads);
     fRunAna->SetEventHeader(new DstEventHeader());
 
     Bool_t isTarget = kTRUE; //kTRUE; // flag for tracking (run with target or not)
@@ -229,8 +230,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         l1->SetMaterialBudgetFileName(stsMatBudgetFile);
         fRunAna->AddTask(l1);
 
-        CbmStsTrackFinder* stsTrackFinder = new CbmL1StsTrackFinder();
-        FairTask* stsFindTracks = new CbmStsFindTracks(iVerbose, stsTrackFinder);
+        FairTask* stsFindTracks = new CbmStsFindTracks(iVerbose, "CbmL1StsTrackFinder");
         fRunAna->AddTask(stsFindTracks);
 
 #ifdef VF  

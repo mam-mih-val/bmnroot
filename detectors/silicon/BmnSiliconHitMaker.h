@@ -1,9 +1,6 @@
 #ifndef BMNSILICONHITMAKER_H
 #define BMNSILICONHITMAKER_H
 
-#include "FairTask.h"
-#include "FairMCPoint.h"
-
 #include "BmnSiliconDigit.h"
 #include "BmnSiliconHit.h"
 #include "BmnSiliconStationSet.h"
@@ -13,12 +10,15 @@
 #include "BmnSiliconConfiguration.h"
 #include "BmnSiliconTransform.h"
 
+#include "FairTask.h"
+#include "FairMCPoint.h"
+
 using namespace std;
 using namespace TMath;
 
-class BmnSiliconHitMaker : public FairTask {
-public:
-
+class BmnSiliconHitMaker : public FairTask
+{
+  public:
     BmnSiliconHitMaker();
     BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, Bool_t isSrc = kFALSE);
 
@@ -45,7 +45,11 @@ public:
         fSignalUp = max;
     }
 
-private:
+  private:
+    void createSiliconDetector();
+
+    Int_t fRunPeriod;
+    Int_t fRunNumber;
 
     TString fInputPointsBranchName;
     TString fInputDigitsBranchName;
@@ -54,36 +58,35 @@ private:
     TString fOutputHitsBranchName;
 
     /** Input array of Silicon Points **/
-    TClonesArray* fBmnSiliconPointsArray;
-    TClonesArray* fBmnSiliconDigitsArray;
-    TClonesArray* fBmnSiliconDigitMatchesArray;
+    TClonesArray* fBmnSiliconPointsArray;           //!
+    TClonesArray* fBmnSiliconDigitsArray;           //!
+    TClonesArray* fBmnSiliconDigitMatchesArray;     //!
 
     /** Output array of Silicon Hits **/
-    TClonesArray* fBmnSiliconHitsArray;
+    TClonesArray* fBmnSiliconHitsArray;             //!
 
     /** Output array of Silicon Upper Clusters **/
-    TClonesArray* fBmnSiliconUpperClustersArray;
+    TClonesArray* fBmnSiliconUpperClustersArray;    //!
     /** Output array of Silicon Lower Clusters **/
-    TClonesArray* fBmnSiliconLowerClustersArray;
+    TClonesArray* fBmnSiliconLowerClustersArray;    //!
 
     Bool_t fHitMatching;
 
     BmnSiliconConfiguration::SILICON_CONFIG fCurrentConfig;
-    BmnSiliconStationSet *StationSet; //Entire detector
-    BmnSiliconTransform *TransfSet; //Transformations for detector modules
+    BmnSiliconStationSet *StationSet;               //! Entire detector
+    BmnSiliconTransform *TransfSet;                 //! Transformations for detector modules
 
     Bool_t fIsExp;
     Bool_t fIsSrc;
     TString fBmnEvQualityBranchName;
-    TClonesArray* fBmnEvQuality;
+    TClonesArray* fBmnEvQuality;                    //!
 
-    Double_t*** fAlignCor;
+    Double_t*** fAlignCor;                          //!
 
     Double_t fSignalLow;
     Double_t fSignalUp;
 
-    ClassDef(BmnSiliconHitMaker, 1);
+  ClassDef(BmnSiliconHitMaker, 1);
 };
 
 #endif /* BMNSILICONHITMAKER_H */
-

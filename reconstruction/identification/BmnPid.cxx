@@ -15,23 +15,23 @@ BmnPid::BmnPid(Int_t power) {
     fGlobalTracksArray = NULL;
     fGlobalTracksBranchName = "BmnGlobalTrack";
     fModelPower = power;
-    
-    db = TDatabasePDG::Instance();  
+}
+
+BmnPid::~BmnPid() {
+}
+
+InitStatus BmnPid::Init()
+{
+    if (fVerbose > 1) cout << "=========================== PID init started ====================" << endl;
+
+    db = TDatabasePDG::Instance();
 
     //Add several types of particles to the database.
     // p, pi, K, e are already in it
     db->AddParticle("D","D",1.876123928, true, 0, 3, "Core", 1000010020, 1000010020, 1000010020);
     db->AddParticle("T","T",2.809432115, true, 0, 3, "Core", 1000010030, 1000010030, 1000010030);
     db->AddParticle("He3","He3",2.809413523, true, 0, 6, "Core", 1000020030, 1000020030, 1000020030);
-    db->AddParticle("He4","He4",3.728401326, true, 0, 6, "Core", 1000020040, 1000020040, 1000020040);       
-}
-
-BmnPid::~BmnPid() {
-}
-
-InitStatus BmnPid::Init(){
-
-    if (fVerbose > 1) cout << "=========================== PID init started ====================" << endl;
+    db->AddParticle("He4","He4",3.728401326, true, 0, 6, "Core", 1000020040, 1000020040, 1000020040);
 
     //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();

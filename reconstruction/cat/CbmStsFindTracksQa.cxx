@@ -32,20 +32,14 @@
 // Includes from C++
 #include <iostream>
 #include <iomanip>
-
-using std::cout;
-using std::endl;
-using std::cerr;
-using std::setw;
-using std::left;
-using std::right;
-using std::fixed;
-using std::setprecision;
-
+using namespace std;
 
 // -----   Default constructor   -------------------------------------------
 CbmStsFindTracksQa::CbmStsFindTracksQa(Int_t iVerbose)
   : FairTask("STSFindTracksQA", iVerbose),
+  fHitMap(),
+  fMatchMap(),
+  fQualiMap(),
   fMCTracks(NULL),
   fStsPoints(NULL),
   fStsHits(NULL),
@@ -72,9 +66,9 @@ CbmStsFindTracksQa::CbmStsFindTracksQa(Int_t iVerbose)
   fhNpAccPrim(new TH1F()),
   fhNpRecPrim(new TH1F()),
   fhNpEffPrim(new TH1F()),
+  fhNpAccSec(new TH1F()),
   fhNpRecSec(new TH1F()),
   fhNpEffSec(new TH1F()),
-  fhNpAccSec(new TH1F()),
   fhZAccSec(new TH1F()),
   fhZRecSec(new TH1F()),
   fhZEffSec(new TH1F()),
@@ -94,10 +88,7 @@ CbmStsFindTracksQa::CbmStsFindTracksQa(Int_t iVerbose)
   fNEvents(0),
   fNEventsFailed(0),
   fTime(0.),
-  fTimer(),
-  fHitMap(),
-  fMatchMap(),
-  fQualiMap()
+  fTimer()
 {}
 
 // -------------------------------------------------------------------------
@@ -108,6 +99,9 @@ CbmStsFindTracksQa::CbmStsFindTracksQa(Int_t iVerbose)
 CbmStsFindTracksQa::CbmStsFindTracksQa(Int_t minHits, Double_t quota,
 				       Int_t iVerbose)
   : FairTask("STSFindTracksQA", iVerbose),
+  fHitMap(),
+  fMatchMap(),
+  fQualiMap(),
   fMCTracks(NULL),
   fStsPoints(NULL),
   fStsHits(NULL),
@@ -134,9 +128,9 @@ CbmStsFindTracksQa::CbmStsFindTracksQa(Int_t minHits, Double_t quota,
   fhNpAccPrim(new TH1F()),
   fhNpRecPrim(new TH1F()),
   fhNpEffPrim(new TH1F()),
+  fhNpAccSec(new TH1F()),
   fhNpRecSec(new TH1F()),
   fhNpEffSec(new TH1F()),
-  fhNpAccSec(new TH1F()),
   fhZAccSec(new TH1F()),
   fhZRecSec(new TH1F()),
   fhZEffSec(new TH1F()),
@@ -156,10 +150,7 @@ CbmStsFindTracksQa::CbmStsFindTracksQa(Int_t minHits, Double_t quota,
   fNEvents(0),
   fNEventsFailed(0),
   fTime(0.),
-  fTimer(),
-  fHitMap(),
-  fMatchMap(),
-  fQualiMap()
+  fTimer()
 {}
 // -------------------------------------------------------------------------
 
@@ -403,10 +394,10 @@ void CbmStsFindTracksQa::Exec(Option_t* opt) {
     // Get matched StsTrack
     Int_t    iRec  = -1;
     Double_t quali =  0.;
-    Bool_t   isRec = kFALSE;
+    //Bool_t   isRec = kFALSE;
     if (fMatchMap.find(iMC) != fMatchMap.end() ) {
       iRec  = fMatchMap[iMC];
-      isRec = kTRUE;
+      //isRec = kTRUE;
       CbmStsTrack* stsTrack = (CbmStsTrack*) fStsTracks->At(iRec);
       if ( ! stsTrack ) {
 	cout << "-E- " << GetName() << "::Exec: "

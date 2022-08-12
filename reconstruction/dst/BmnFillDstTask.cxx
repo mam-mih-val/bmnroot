@@ -66,7 +66,6 @@ BmnFillDstTask::BmnFillDstTask(Long64_t nEvents) : FairTask("BmnFillDstTask"),
                                                    fBC2Calib(0),
                                                    fDoCalibration(kFALSE),
                                                    isSimulationInput(false) {
-    fRunHead = new DstRunHeader();
     LOG(debug) << "Constructor of BmnFillDstTask";
 }
 
@@ -86,7 +85,6 @@ BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, Long64_t nEvents
                                                                                     fBC2Calib(0),
                                                                                     fDoCalibration(kFALSE),
                                                                                     isSimulationInput(false) {
-    fRunHead = new DstRunHeader();
     LOG(debug) << "Constructor of BmnFillDstTask";
 }
 
@@ -106,7 +104,6 @@ BmnFillDstTask::BmnFillDstTask(TString input_event_header_name, TString output_e
                                                                                                                       fBC2Calib(0),
                                                                                                                       fDoCalibration(kFALSE),
                                                                                                                       isSimulationInput(false) {
-    fRunHead = new DstRunHeader();
     LOG(debug) << "Constructor of BmnFillDstTask";
 }
 
@@ -131,6 +128,8 @@ void BmnFillDstTask::SetParContainers() {
 // ---- Init ----------------------------------------------------------
 InitStatus BmnFillDstTask::Init() {
     LOG(debug) << "Initilization of BmnFillDstTask";
+
+    fRunHead = new DstRunHeader();
 
     // Get a handle from the IO manager
     FairRootManager* ioman = FairRootManager::Instance();

@@ -30,14 +30,14 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-#setup/CbmStsAddress.cxx
-#setup/CbmStsElement.cxx
-#setup/CbmStsModule.cxx
-#setup/CbmStsSenzor.cxx
-#setup/CbmStsSensorPoint.cxx
-#setup/CbmStsSensorType.cxx
-#setup/CbmStsSensorTypeDssd.cxx
-#setup/CbmStsSetup.cxx
+ #setup/CbmStsAddress.cxx
+ #setup/CbmStsElement.cxx
+ #setup/CbmStsModule.cxx
+ #setup/CbmStsSenzor.cxx
+ #setup/CbmStsSensorPoint.cxx
+ #setup/CbmStsSensorType.cxx
+ #setup/CbmStsSensorTypeDssd.cxx
+ #setup/CbmStsSetup.cxx
 
  CbmStsDetectorId.cxx
  CbmStsDigi.cxx
@@ -46,43 +46,42 @@ set(SRCS
  CbmStsHit.cxx
  CbmStsCluster.cxx
 
-CbmGeoSts.cxx 
-CbmGeoStsPar.cxx 
-CbmSts.cxx 
-CbmStsContFact.cxx 
-CbmStsDigiPar.cxx 
-CbmStsDigiScheme.cxx 
-#CbmStsIdealDigitize.cxx 
-CbmStsDigitize.cxx 
-#CbmStsDigitizeTb.cxx 
-#CbmStsIdealFindHits.cxx 
-CbmStsClusterFinder.cxx 
-CbmStsFindHits.cxx 
-CbmStsFindTracks.cxx 
-CbmStsFindTracksQa.cxx 
-CbmStsFitTracks.cxx 
-#CbmStsHitProducerIdeal.cxx 
-#CbmStsIdealMatchHits.cxx 
-CbmStsMatchHits.cxx 
-CbmStsMatchTracks.cxx 
-CbmStsParAsciiFileIo.cxx 
-CbmStsParRootFileIo.cxx 
-CbmStsRadTool.cxx
-CbmStsSensor.cxx 
-CbmStsSensorDigiPar.cxx 
-CbmStsSector.cxx 
-CbmStsSectorDigiPar.cxx 
-CbmStsStation.cxx 
-CbmStsStationDigiPar.cxx 
-CbmStsTrackFinderIdeal.cxx 
-CbmStsTrackFitterIdeal.cxx 
-CbmStsSimulationQa.cxx 
-CbmStsFindHitsQa.cxx
-CbmStsReconstructionQa.cxx
-CbmBmnStsDigitize.cxx 
-BmnGemFastDigitize.cxx 
-BmnToCbmHitConverter.cxx
-BmnStsMatchTracks.cxx
+ CbmGeoSts.cxx
+ CbmGeoStsPar.cxx
+ CbmSts.cxx
+ CbmStsContFact.cxx
+ CbmStsDigiPar.cxx
+ CbmStsDigiScheme.cxx
+ #CbmStsIdealDigitize.cxx
+ CbmStsDigitize.cxx
+ #CbmStsDigitizeTb.cxx
+ #CbmStsIdealFindHits.cxx
+ CbmStsClusterFinder.cxx
+ CbmStsFindHits.cxx
+
+ CbmStsFitTracks.cxx
+ #CbmStsHitProducerIdeal.cxx
+ #CbmStsIdealMatchHits.cxx
+ CbmStsMatchHits.cxx
+ CbmStsMatchTracks.cxx
+ CbmStsParAsciiFileIo.cxx
+ CbmStsParRootFileIo.cxx
+ CbmStsRadTool.cxx
+ CbmStsSensor.cxx
+ CbmStsSensorDigiPar.cxx
+ CbmStsSector.cxx
+ CbmStsSectorDigiPar.cxx
+ CbmStsStation.cxx
+ CbmStsStationDigiPar.cxx
+ CbmStsTrackFinderIdeal.cxx
+ CbmStsTrackFitterIdeal.cxx
+ CbmStsSimulationQa.cxx
+ CbmStsFindHitsQa.cxx
+ CbmStsReconstructionQa.cxx
+ CbmBmnStsDigitize.cxx
+ BmnGemFastDigitize.cxx
+ BmnToCbmHitConverter.cxx
+ BmnStsMatchTracks.cxx
 )
 
 Set(HEADERS)

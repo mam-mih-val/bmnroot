@@ -23,7 +23,6 @@ BmnBeamTracking::BmnBeamTracking(Int_t run) {
 
     fEventNo = 0;
     fSiBTHitsArray = nullptr;
-    fKalman = new BmnKalmanFilter();
     fBeamTracksArray = nullptr;
     fField = nullptr;
     fSiBTHitsBranchName = "BmnSiBTHit";
@@ -39,6 +38,8 @@ BmnBeamTracking::~BmnBeamTracking() {
 InitStatus BmnBeamTracking::Init() {
     if (fVerbose > 1)
         cout << "======================== BEAM tracking init started ====================" << endl;
+
+    fKalman = new BmnKalmanFilter();
 
     //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();

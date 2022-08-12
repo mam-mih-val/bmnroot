@@ -12,24 +12,24 @@
 #ifndef BMNSTEERING_H
 #define BMNSTEERING_H 1
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
 #include <TNamed.h>
 #include <TMath.h>
 #include <TVector3.h>
 #include <TSystem.h>
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+
 using namespace std;
 using namespace TMath;
 
-class BmnSteering : public TNamed {
-public:
-
+class BmnSteering : public TNamed
+{
+  public:
     BmnSteering();
     BmnSteering(TString);
-
     virtual ~BmnSteering();
 
     void PrintParamTable();
@@ -114,17 +114,17 @@ private:
 
     Int_t fNStatsInnerTracker;
 
-    Double_t* fHitXCutMin;
-    Double_t* fHitXCutMax;
+    Double_t* fHitXCutMin;          //[fNStatsInnerTracker]
+    Double_t* fHitXCutMax;          //[fNStatsInnerTracker]
 
-    Double_t* fHitYCutMin;
-    Double_t* fHitYCutMax;
+    Double_t* fHitYCutMin;          //[fNStatsInnerTracker]
+    Double_t* fHitYCutMax;          //[fNStatsInnerTracker]
 
-    Double_t* fCellSlopeXZCutMin;
-    Double_t* fCellSlopeXZCutMax;
+    Double_t* fCellSlopeXZCutMin;   //[fNStatsInnerTracker]
+    Double_t* fCellSlopeXZCutMax;   //[fNStatsInnerTracker]
 
-    Double_t* fCellSlopeYZCutMin;
-    Double_t* fCellSlopeYZCutMax;
+    Double_t* fCellSlopeYZCutMin;   //[fNStatsInnerTracker]
+    Double_t* fCellSlopeYZCutMax;   //[fNStatsInnerTracker]
 
     Double_t fDiffSlopeXZ0;
     Double_t fDiffSlopeYZ0;
@@ -140,7 +140,7 @@ private:
     
     Double_t fMarkerValue;
 
-    ClassDef(BmnSteering, 1);
+  ClassDef(BmnSteering, 1);
 };
 
 #endif

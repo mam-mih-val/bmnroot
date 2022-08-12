@@ -81,7 +81,7 @@ class CbmKF : public FairTask {
   void SetMethod(Int_t fm){ fMethod=fm; }
 
   //AZ CbmStsDigiScheme StsDigi;
-  CbmStsDigiScheme *StsDigi;
+  CbmStsDigiScheme *StsDigi;    //!
 
   int GetNMvdStations() const { return CbmKF::Instance()->vMvdMaterial.size(); }
   //AZ int GetNStsStations() const { return const_cast<CbmStsDigiScheme*>(&StsDigi)->GetNStations();}
@@ -93,7 +93,7 @@ class CbmKF : public FairTask {
   
  // FairField *fMagneticField;
 
-BmnNewFieldMap* fMagneticField;
+ BmnNewFieldMap* fMagneticField; //!
 
   
   Int_t fMethod; /* 0 = straight line,

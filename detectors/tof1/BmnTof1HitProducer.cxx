@@ -28,12 +28,12 @@ using namespace std;
 
 static Double_t workTime = 0.0;
 
-ClassImp(BmnTof1HitProducer)
 //--------------------------------------------------------------------------------------------------------------------------------------
 BmnTof1HitProducer::BmnTof1HitProducer(const char *name, Bool_t useMCdata, Int_t verbose, Bool_t test)
-: BmnTof1HitProducerIdeal(name, useMCdata, verbose, test), fTimeSigma(0.100), fErrX(1. / sqrt(12.)), fErrY(0.5), pRandom(new TRandom2),
-h2TestStrips(nullptr), h1TestDistance(nullptr), h2TestNeighborPair(nullptr),
-fSignalVelosity(0.060) {
+    : BmnTof1HitProducerIdeal(name, useMCdata, verbose, test), fTimeSigma(0.100), fErrX(1. / sqrt(12.)), fErrY(0.5), pRandom(nullptr),
+      h2TestStrips(nullptr), h1TestDistance(nullptr), h2TestNeighborPair(nullptr),
+      fSignalVelosity(0.060)
+{
     pGeoUtils = new BmnTof1GeoUtils;
     
     if (fDoTest) {
@@ -85,6 +85,8 @@ BmnTof1HitProducer::~BmnTof1HitProducer() {
 InitStatus BmnTof1HitProducer::Init() {
 
     if (fVerbose) cout << endl << "BmnTof400HitProducer::Init(): Start" << endl;
+
+    pRandom = new TRandom2();
 
     if (fOnlyPrimary) cout << " Only primary particles are processed!!! \n"; // FIXME NOT used now ADDD
 
@@ -152,7 +154,7 @@ InitStatus BmnTof1HitProducer::Init() {
     if (fVerbose) cout << "BmnTof400HitProducer::Init(): number of TOF400 Detectors from geometry file = " << fNDetectors << endl;
     pGeoUtils->FindNeighborStrips(h1TestDistance, h2TestNeighborPair, fDoTest);
 
-    // Init BmnTOF1Detectors 
+    // Init BmnTOF1Detectors
     if (!fUseMCData) {
 
         if (!SetCorrFiles()) {
@@ -163,7 +165,7 @@ InitStatus BmnTof1HitProducer::Init() {
 
         pDetector = new BmnTOF1Detector *[fNDetectors];
         for (Int_t i = 0; i < fNDetectors; i++) {
-            Int_t DoTestForDetector = 0; // For developers only. Level of Histograms filling (0-don't fill, 1-low, 2-high). 
+            Int_t DoTestForDetector = 0; // For developers only. Level of Histograms filling (0-don't fill, 1-low, 2-high).
             pDetector[i] = new BmnTOF1Detector(i, DoTestForDetector, 0);
 
             if (FlagFileLRcorrection) pDetector[i]->SetCorrLR(NameFileLRcorrection);
@@ -196,7 +198,7 @@ Bool_t BmnTof1HitProducer::HitExist(Double_t val) // val - distance to the pad e
     //              \
     //               \
     //                \
-    // 95%             \ 
+    // 95%             \
     //  <-----------|--|
     //            0.2  0.
     //-------------------------------------
@@ -214,9 +216,9 @@ Bool_t BmnTof1HitProducer::DoubleHitExist(Double_t val) // val - distance to the
     //-------------------------------------
     // 30%               /
     //                  /
-    //                 / 
+    //                 /
     //                /
-    // 0%            /  
+    // 0%            /
     //  <-----------|----|
     //            0.5    0.
     //-------------------------------------
@@ -254,7 +256,7 @@ void BmnTof1HitProducer::Exec(Option_t* opt) {
 
             trackID = pPoint->GetTrackID();
             UID = pPoint->GetDetectorID();
-            Double_t time = pRandom->Gaus(pPoint->GetTime(), fTimeSigma); // 100 ps		
+            Double_t time = pRandom->Gaus(pPoint->GetTime(), fTimeSigma); // 100 ps
             pPoint->Position(pos);
 
             const LStrip1 *pStrip = pGeoUtils->FindStrip(UID);
@@ -265,7 +267,7 @@ void BmnTof1HitProducer::Exec(Option_t* opt) {
             Double_t distance = pStrip->MinDistanceToEdge(&pos, side); // [cm]
 
             bool passed;
-            if (passed = HitExist(distance)) // check efficiency 
+            if (passed = HitExist(distance)) // check efficiency
             {
                 AddHit(UID, XYZ_smeared, XYZ_err, pointIndex, trackID, time);
                 nSingleHits++;
@@ -364,7 +366,7 @@ BmnTrigDigit* BmnTof1HitProducer::FingT0Digit() {
         for (Int_t i = 0; i < aExpDigitsT0->GetEntriesFast(); i++) {
             digT0 = (BmnTrigDigit*) aExpDigitsT0->At(i);
             if (digT0->GetMod() == 0) {
-                //if (fVerbose) 
+                //if (fVerbose)
                 //    cout << "BmnTof1HitProducer::FingT0Digit(): T0 digit is found, Time = " << digT0->GetTime() << endl;
                 return digT0; // take first T0 digit with Mod == 0. needed for ToF calculation.
             }
@@ -460,7 +462,7 @@ Bool_t BmnTof1HitProducer::SetCorrFiles() {
         }
     }
 
-    // Run 8 (2022) 
+    // Run 8 (2022)
     if (fPeriod == 8) {
 
         NameFileLRcorrection = Form("TOF400_LRCorr_RUN%i_SRC.dat", fPeriod);
@@ -477,7 +479,7 @@ Bool_t BmnTof1HitProducer::SetCorrFiles() {
 
     if (temp) {
 
-        //check all files exist 
+        //check all files exist
         if (!IsFile(NameFileLRcorrection)) {
             FlagFileLRcorrection = false;
             if (fVerbose) {
@@ -518,3 +520,5 @@ Bool_t BmnTof1HitProducer::OutOfRange(Int_t iPlane = -1) {
         return kTRUE;
     return kFALSE;
 }
+
+ClassImp(BmnTof1HitProducer)

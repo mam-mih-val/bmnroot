@@ -189,6 +189,6 @@ void BmnConverterManager::FillDataHeader()
 }
 void BmnConverterManager::SetSqrtSnn(float energy) {
   const double M=0.940;
-  auto beam_mom_ = energy * sqrt( energy*energy / ( 4*M*M ) - 1 );
+  beam_mom_ = energy * sqrt( energy*energy / ( 4*M*M ) - 1 );
 }
 BmnConverterManager::~BmnConverterManager() = default;

@@ -2,10 +2,10 @@
    SPDX-License-Identifier: GPL-3.0-only
    Authors: Viktor Klochkov, Viktor Klochkov */
 
-void run_analysis_tree_maker(std::string dst_file, std::string geant_file, std::string geometry_file, std::string output_file)
+void run_analysis_tree_maker(std::string dst_file, std::string geant_file, std::string geometry_file, std::string output_file, double sqrt_snn)
 {
   const std::string system = "Xe+Cs";  // TODO can we read it automatically?
-  const float sqrt_snn     = 3.0;
+//  const float sqrt_snn     = 3.0;
   const float beam_mom     = 4.85;
   const bool is_event_base = false;
 

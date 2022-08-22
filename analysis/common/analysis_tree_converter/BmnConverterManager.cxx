@@ -69,7 +69,7 @@ void BmnConverterManager::Finish()
 void BmnConverterManager::FillDataHeader()
 {
   // Force user to write data info //TODO is there a way to read it from a file automatically?
-  assert(!system_.empty() && beam_mom_);
+//  assert(!system_.empty() && beam_mom_);
 
   auto* data_header = new AnalysisTree::DataHeader();
 

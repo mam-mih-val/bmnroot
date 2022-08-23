@@ -44,7 +44,6 @@ public:
       fPhiMin = phiMin;
       fPhiMax = phiMax;
       fEventPlaneSet = kTRUE;
-      random_device_ = std::random_device();
       random_engine_ = std::mt19937(random_device_());
       uniform_real_distribution_ = std::uniform_real_distribution<double>(fPhiMin,fPhiMax);
   }

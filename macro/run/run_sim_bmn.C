@@ -64,7 +64,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
         exit(-3);
       }
       auto n_avail_events = n_events_in_tree - nStartEvent - 1;
-      nEvents = std::min<int>(n_events_in_tree, nEvents);
+      nEvents = std::min<int>(n_avail_events, nEvents);
       cout << nEvents << " are availiable and will be processed" << endl;
       if (nStartEvent > 0) unigen->SkipEvents(nStartEvent);
       break;

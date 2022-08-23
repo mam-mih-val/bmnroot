@@ -2,6 +2,7 @@
 #define MPDUNIGENGENERATOR_H
 
 #include <iostream>
+#include <random>
 #include <FairGenerator.h>
 #include <FairPrimaryGenerator.h>
 #include <FairMCEventHeader.h>

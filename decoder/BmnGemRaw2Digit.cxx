@@ -514,7 +514,7 @@ inline void BmnGemRaw2Digit::MapStripRun8(GemMapLine* gemM, UInt_t ch, Int_t iSm
     BmnGemMap* fBigMap = NULL;
     mod = gemM->Module;
     if (gemM->Zone == 0) { //hot zone
-        Int_t chShift = (gemM->Ch_lo == 0) ? 2048 : 1024;
+        Int_t chShift = (gemM->Ch_lo == 0) ? 0 : -1024;
         realChannel += chShift;
         fBigMap = fBigHot[mod];
     } else { //big zone

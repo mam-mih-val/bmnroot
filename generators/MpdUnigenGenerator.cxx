@@ -101,10 +101,8 @@ Bool_t MpdUnigenGenerator::ReadEvent(FairPrimaryGenerator* primGen){
   std::cout << "Rotation of EP will be performed " << fEventPlaneSet << std::endl;
   if (fEventPlaneSet) {
 //    gRandom->SetSeed(0);
-    std::random_device r;
-    std::mt19937 re(r);
-    std::uniform_real_distribution<double> unif(fPhiMin,fPhiMax);
-    dphi = unif(re);
+
+    dphi = uniform_real_distribution_(random_engine_);
 //    dphi = gRandom->Uniform(fPhiMin, fPhiMax);
     std::cout << "EP is rotated to " << dphi << std::endl;
     phi += dphi;

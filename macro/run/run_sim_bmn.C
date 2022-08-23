@@ -276,7 +276,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
         TString Pdg_table_name = TString::Format("%s%s%c%s", gSystem->BaseName(inFile.Data()), ".g", (fRun->GetName())[6], ".pdg_table.dat");
         (TDatabasePDG::Instance())->WritePDGTable(Pdg_table_name.Data());
     }
-    delete fRun;
+//    delete fRun;
     delete magField;
 
     timer.Stop();

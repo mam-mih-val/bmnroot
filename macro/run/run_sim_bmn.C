@@ -63,6 +63,9 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
              << endl;
         exit(-3);
       }
+      auto n_avail_events = n_events_in_tree - nStartEvent - 1;
+      nEvents = std::min(n_events_in_tree, nEvents);
+      cout << nEvents << " are availiable and will be processed" << endl;
       if (nStartEvent > 0) unigen->SkipEvents(nStartEvent);
       break;
     }
@@ -282,7 +285,7 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
         TString Pdg_table_name = TString::Format("%s%s%c%s", gSystem->BaseName(inFile.Data()), ".g", (fRun->GetName())[6], ".pdg_table.dat");
         (TDatabasePDG::Instance())->WritePDGTable(Pdg_table_name.Data());
     }
-//    delete fRun;
+    delete fRun;
     delete magField;
 
     timer.Stop();

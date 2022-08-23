@@ -57,6 +57,12 @@ void run_sim_bmn(TString inFile = "DCMSMM_XeCsI_3.9AGeV_mb_10k_142.r12", TString
       unigen->RegisterIons();
       primGen->AddGenerator(unigen);
       primGen->SetEventPlane(-M_PI, M_PI);
+      auto n_events_in_tree = unigen->GetNEntries();
+      if( nStartEvent >= n_events_in_tree ) {
+        cout << "You are trying to specify the event out reach of current tree" << generatorName
+             << endl;
+        exit(-3);
+      }
       if (nStartEvent > 0) unigen->SkipEvents(nStartEvent);
       break;
     }

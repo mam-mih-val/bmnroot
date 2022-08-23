@@ -30,7 +30,7 @@ public:
   MpdUnigenGenerator();
   explicit MpdUnigenGenerator(TString fileName, Bool_t isSpectator = kFALSE);
   ~MpdUnigenGenerator() override = default;
-
+  Long64_t GetNEntries(){ return fNEntries; }
   Bool_t ReadEvent(FairPrimaryGenerator* primGen) override;
   Int_t RegisterIons();
 

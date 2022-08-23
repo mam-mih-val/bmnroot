@@ -46,6 +46,7 @@ public:
   }
 private:
   Long64_t fEventNumber; //!
+  Long64_t fNEntries; //!
   TFile *fInFile;
   TTree *fInTree;
   UEvent *fEvent;

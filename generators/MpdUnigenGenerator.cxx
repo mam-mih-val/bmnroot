@@ -37,6 +37,7 @@ fPhiMax(0.) {
   }
 
   fInTree = (TTree*) fInFile->Get("events");
+  fNEntries = fInTree->GetEntries();
   fRun = dynamic_cast<URun*>(fInFile->Get("run"));
   Double_t mProt = 0.938272;
   Double_t pTarg = fRun->GetPTarg();  // target momentum per nucleon
@@ -80,6 +81,13 @@ Bool_t MpdUnigenGenerator::ReadEvent(FairPrimaryGenerator* primGen){
   if (!primGen) {
     cout << "-E- MpdUnigenGenerator::ReadEvent: "
          << "No PrimaryGenerator!" << endl;
+    return kFALSE;
+  }
+
+  // Check if current event exists in tree
+  if ( fEventNumber >= fNEntries ) {
+    cout << "-E- MpdUnigenGenerator::ReadEvent: "
+         << "Reached the of the tree" << endl;
     return kFALSE;
   }
 

@@ -1,5 +1,5 @@
 // Macro for generating C++ classes - wrappers for all database tables
-void generate_cxx_from_db(TString json_configuration_file = "$VMCWORKDIR/database/tools/scheme/elog_db.json")
+void generate_cxx_from_db(TString json_configuration_file = "$VMCWORKDIR/database/tools/scheme/uni_db.json")
 {
     TStopwatch timer;
     timer.Start();

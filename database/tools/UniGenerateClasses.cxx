@@ -108,7 +108,7 @@ int UniGenerateClasses::GenerateClasses(TString json_configuration_file)
     TObjArray* arrTableJoin = nullptr;
 
     bool isOnlyUpdate = true;
-    TString strConnectionName = "", strClassPrefix = "";
+    TString strConnectionName = "", strClassPrefix = "", strClassDirectory = "";
 
     string file_path = gSystem->ExpandPathName(json_configuration_file.Data());
     ifstream file(file_path);
@@ -136,6 +136,17 @@ int UniGenerateClasses::GenerateClasses(TString json_configuration_file)
         catch(const json::type_error &e)
         {
             isOnlyUpdate = true;
+        }
+
+        try
+        {
+            strClassDirectory = ((string)data["settings"]["classDirectory"]).c_str();
+            if ((strClassDirectory != "") && (strClassDirectory[strClassDirectory.Length()-1] != '/')) strClassDirectory += '/';
+            strClassDirectory = gSystem->ExpandPathName(strClassDirectory.Data());
+        }
+        catch(const json::type_error &e)
+        {
+            strClassDirectory = "";
         }
     }
     else
@@ -294,10 +305,20 @@ int UniGenerateClasses::GenerateClasses(TString json_configuration_file)
                         }
                         else
                         {
-                            sColumnInfo->strVariableType = "int";
-                            sColumnInfo->strStatementType = "Int";
-                            sColumnInfo->strPrintfType = "d";
-                            sColumnInfo->strVariableName = "i_"+strColumnNameWO;
+                            if (strDataType.BeginsWith("bigint"))
+                            {
+                                sColumnInfo->strVariableType = "int64_t";
+                                sColumnInfo->strStatementType = "Long64";
+                                sColumnInfo->strPrintfType = "ld";
+                                sColumnInfo->strVariableName = "i64_"+strColumnNameWO;
+                            }
+                            else
+                            {
+                                sColumnInfo->strVariableType = "int";
+                                sColumnInfo->strStatementType = "Int";
+                                sColumnInfo->strPrintfType = "d";
+                                sColumnInfo->strVariableName = "i_"+strColumnNameWO;
+                            }
                         }
                     }
 
@@ -488,7 +509,7 @@ int UniGenerateClasses::GenerateClasses(TString json_configuration_file)
             strTableNameSpace = strTableNameSpace.Replace(char_under, 1, ' ');
 
         // CREATING OR CHANGING HEADER FILE
-        TString strFileName = strClassName + ".h"; // set header file name
+        TString strFileName = strClassDirectory + strClassName + ".h"; // set header file name
         // open and write to file
         ifstream oldFile;
         TString strTempFileName;
@@ -887,7 +908,7 @@ int UniGenerateClasses::GenerateClasses(TString json_configuration_file)
         }
 
         // CREATING OR CHANGING CXX FILE
-        strFileName = strClassName + ".cxx";
+        strFileName = strClassDirectory + strClassName + ".cxx";
         // open and write to file
         ofstream cxxFile;
         if (isOnlyUpdate)

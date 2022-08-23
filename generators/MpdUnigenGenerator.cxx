@@ -98,8 +98,11 @@ Bool_t MpdUnigenGenerator::ReadEvent(FairPrimaryGenerator* primGen){
   Double_t dphi = 0.;
   // ---> Generate rotation angle
   if (fEventPlaneSet) {
-    gRandom->SetSeed(0);
-    dphi = gRandom->Uniform(fPhiMin, fPhiMax);
+//    gRandom->SetSeed(0);
+    std::uniform_real_distribution<double> unif(fPhiMin,fPhiMax);
+    std::default_random_engine re;
+    dphi = unif(re);
+//    dphi = gRandom->Uniform(fPhiMin, fPhiMax);
     std::cout << "EP is rotated to " << dphi << std::endl;
     phi += dphi;
   }

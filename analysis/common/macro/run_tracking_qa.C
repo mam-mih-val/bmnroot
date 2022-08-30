@@ -144,7 +144,19 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
                  });
   Variable momentum_resolution("momentum_resolution", {{branch, "p"}, {sim_particles, "p"}},
                          [](std::vector<double>& var) {
-                                 return fabs(var.at(0) - var.at(1)) / var.at(1);
+                                 return var.at(1) != 0 ? fabs(var.at(0) - var.at(1)) / var.at(1) : 1.0;
+                 });
+  Variable px_resolution("px_resolution", {{branch, "px"}, {sim_particles, "px"}},
+                         [](std::vector<double>& var) {
+                                 return var.at(1) != 0 ? fabs(var.at(0) - var.at(1)) / var.at(1) : 1.0;
+                 });
+  Variable py_resolution("py_resolution", {{branch, "py"}, {sim_particles, "py"}},
+                         [](std::vector<double>& var) {
+                                 return var.at(1) != 0 ? fabs(var.at(0) - var.at(1)) / var.at(1) : 1.0;
+                 });
+  Variable pz_resolution("pz_resolution", {{branch, "pz"}, {sim_particles, "pz"}},
+                         [](std::vector<double>& var) {
+                                 return var.at(1) != 0 ? fabs(var.at(0) - var.at(1)) / var.at(1) : 1.0;
                  });
 
   task.AddH1({"y_{cm}", y_cm, {100, -1, 3}}, cuts);
@@ -171,6 +183,9 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
   task.AddProfile({"p_{T} (GeV/c)", {sim_particles, "pT"}, {150, 0.0, 3.0}}, {"res (%)", momentum_resolution, {}}, cuts);
   task.AddProfile({"#eta", {sim_particles, "eta"}, {250, 0.0, 5.0}}, {"res (%)", momentum_resolution, {}}, cuts);
 
+  task.AddProfile({"p_{x} (GeV/c)", {sim_particles, "px"}, {250, 0.0, 5.0}}, {"res (%)", px_resolution, {}}, cuts);
+  task.AddProfile({"p_{y} (GeV/c)", {sim_particles, "py"}, {250, 0.0, 5.0}}, {"res (%)", py_resolution, {}}, cuts);
+  task.AddProfile({"p_{z} (GeV/c)", {sim_particles, "pz"}, {250, 0.0, 5.0}}, {"res (%)", pz_resolution, {}}, cuts);
 }
 void SimParticlesQA(QA::Task& task, Cuts* cuts=nullptr){
   Variable y_cm("y_cm", { {sim_particles, "rapidity"} },

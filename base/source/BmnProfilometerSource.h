@@ -10,7 +10,7 @@
 #include "TChain.h"
 #include "TClonesArray.h"
 #include <TBufferFile.h>
-#include <root/TPRegexp.h>
+#include <TPRegexp.h>
 // FairRoot
 #include "FairRootManager.h"
 #include "FairRootFileSink.h"

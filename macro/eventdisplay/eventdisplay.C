@@ -22,7 +22,7 @@ void eventdisplay(const char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root",
     Int_t run_period = 7, run_number = -1;
     Bool_t isField = (strRecoFile.Contains("noField")) ? kFALSE : kTRUE;
     Bool_t isTarget = kTRUE;
-    Bool_t isExp = !BmnFunctionSet::isSimulationFile(strRecoFile);
+    Bool_t isExp = (BmnFunctionSet::isSimulationFile(strRecoFile) == 0);
     Double_t fieldScale = 0.;
 
     FairSource* fFileSource = NULL;

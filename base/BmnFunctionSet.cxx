@@ -70,29 +70,38 @@ int BmnFunctionSet::CreateDirectoryTree(TString& fileName, int iVerbose, EAccess
     return 1;
 }
 
-bool BmnFunctionSet::isSimulationFile(TString fileName)
+int BmnFunctionSet::isSimulationFile(TString fileName)
 {
     gSystem->ExpandPathName(fileName);
     if (gSystem->AccessPathName(fileName.Data()) == true)
     {
         cout<<"ERROR: no specified file: "<<fileName<<endl;
-        return false;
+        return -1;
     }
 
     TFile* fRootFile = new TFile(fileName.Data());
     if (fRootFile->IsZombie())
     {
-        cout<<"ERROR: opening the input file"<<endl;
-        return false;
+        cout<<"ERROR: opening the input file failed"<<endl;
+        return -2;
     }
 
-    TObject* list = fRootFile->Get("BranchList");
-    bool isSim = false;
-    if (list) isSim = true;
+    TObject* branch_list = fRootFile->Get("BranchList");
+    if (branch_list == nullptr)
+    {
+        fRootFile->Close();
+        return 0;
+    }
+
+    TObject* mctrack_find = branch_list->FindObject("MCTrack");
+    if (mctrack_find == nullptr)
+    {
+        fRootFile->Close();
+        return 0;
+    }
 
     fRootFile->Close();
-
-    return isSim;
+    return 1;
 }
 
 // check whether path is a directory

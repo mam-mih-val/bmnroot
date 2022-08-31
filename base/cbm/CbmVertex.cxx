@@ -5,7 +5,7 @@
 #include "CbmVertex.h"
 
 #include <iostream>
-#include <root/TNamed.h>
+#include <TNamed.h>
 
 using std::cout;
 using std::endl;

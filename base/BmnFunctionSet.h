@@ -16,8 +16,8 @@ class BmnFunctionSet
     static int CheckDirectoryExist(TString& fileName, int iVerbose = 0, EAccessMode mode = kFileExists);
     // create directory tree for the file name if not exists: 1 - exists, 0 - not existed, -1 - exists but cannot access with the mode (default: kWritePermission)
     static int CreateDirectoryTree(TString& fileName, int iVerbose = 0, EAccessMode mode = kWritePermission);
-    // define whether simulation file
-    static bool isSimulationFile(TString fileName);
+    // define whether simulation file: 1 - true, 0 - false, <0 - some errors occured
+    static int isSimulationFile(TString fileName);
     // check whether path is a directory
     static bool isDirectory(TString path);
     // configuring PROOF execution for FaiRunAna

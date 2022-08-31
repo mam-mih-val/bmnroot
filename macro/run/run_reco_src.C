@@ -26,7 +26,7 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/srcsim.root",
     fRunAna->SetEventHeader(new DstEventHeader());
 
     Bool_t isTarget = kTRUE; //kTRUE; // flag for tracking (run with target or not)
-    Bool_t isExp = !BmnFunctionSet::isSimulationFile(inputFileName); // flag for hit finder (to create digits or take them from data-file)
+    Bool_t isExp = (BmnFunctionSet::isSimulationFile(inputFileName) == 0); // flag for hit finder (to create digits or take them from data-file)
 
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;

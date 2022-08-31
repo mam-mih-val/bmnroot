@@ -144,19 +144,31 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
                  });
   Variable momentum_resolution("momentum_resolution", {{branch, "p"}, {sim_particles, "p"}},
                          [](std::vector<double>& var) {
-                                 return var.at(1) != 0 ? fabs(var.at(0) - var.at(1)) / var.at(1) : 1.0;
+                                 auto res = fabs(var.at(0) - var.at(1)) / var.at(1);
+                                 if( res < 100.0 )
+                                  return res;
+                                 else return 100;
                  });
   Variable px_resolution("px_resolution", {{branch, "px"}, {sim_particles, "px"}},
                          [](std::vector<double>& var) {
-                                 return var.at(1) != 0 ? fabs(var.at(0) - var.at(1)) / var.at(1) : 1.0;
+                           auto res = fabs(var.at(0) - var.at(1)) / var.at(1);
+                           if( res < 100.0 )
+                             return res;
+                           else return 100;
                  });
   Variable py_resolution("py_resolution", {{branch, "py"}, {sim_particles, "py"}},
                          [](std::vector<double>& var) {
-                                 return var.at(1) != 0 ? fabs(var.at(0) - var.at(1)) / var.at(1) : 1.0;
+                           auto res = fabs(var.at(0) - var.at(1)) / var.at(1);
+                           if( res < 100.0 )
+                             return res;
+                           else return 100;
                  });
   Variable pz_resolution("pz_resolution", {{branch, "pz"}, {sim_particles, "pz"}},
                          [](std::vector<double>& var) {
-                                 return var.at(1) != 0 ? fabs(var.at(0) - var.at(1)) / var.at(1) : 1.0;
+                           auto res = fabs(var.at(0) - var.at(1)) / var.at(1);
+                           if( res < 100.0 )
+                             return res;
+                           else return 100;
                  });
 
   task.AddH1({"y_{cm}", y_cm, {100, -1, 3}}, cuts);

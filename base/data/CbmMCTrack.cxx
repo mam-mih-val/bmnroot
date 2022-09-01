@@ -29,6 +29,7 @@ CbmMCTrack::CbmMCTrack()
     fStartT(0.),
     fNPoints(0)
 {
+   fPolar[0] = fPolar[1] = fPolar[2] = 0.0; //AZ-310822
 }
 
 // -----   Standard constructor   ------------------------------------------
@@ -49,6 +50,7 @@ CbmMCTrack::CbmMCTrack(Int_t pdgCode, Int_t motherId, Double_t px,
 {
   if (nPoints >= 0) fNPoints = nPoints;
   //  else              fNPoints = 0;
+   fPolar[0] = fPolar[1] = fPolar[2] = 0.0; //AZ-310822
 }
 
 // -----   Copy constructor   ----------------------------------------------
@@ -66,6 +68,7 @@ CbmMCTrack::CbmMCTrack(const CbmMCTrack& track)
     fNPoints(track.fNPoints)
 {
   //  *this = track;
+   for (Int_t i = 0; i < 3; ++i) fPolar[i] = track.fPolar[i]; //AZ-310822
 }
 
 // -----   Constructor from TParticle   ------------------------------------
@@ -82,6 +85,10 @@ CbmMCTrack::CbmMCTrack(TParticle* part)
     fStartT(part->T()*1e09),
     fNPoints(0)
 {
+   //AZ-310822
+   TVector3 polar3;
+   part->GetPolarisation(polar3);
+   for (Int_t i = 0; i < 3; ++i) fPolar[i] = polar3[i];
 }
 
 // -----   Destructor   ----------------------------------------------------

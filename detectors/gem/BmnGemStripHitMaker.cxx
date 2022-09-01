@@ -407,7 +407,18 @@ void BmnGemStripHitMaker::ProcessDigits() {
 			            Double_t By = Abs(fField->GetBy(0.0, 0.0, 135.0)); //AZ-290322
                         Double_t yCor = fLorCor[iStation][0] + fLorCor[iStation][1] * Bx + fLorCor[iStation][2] * Bx * Bx;
                         Double_t xCor = fLorCor[iStation][0] + fLorCor[iStation][1] * By + fLorCor[iStation][2] * By * By;
-            			Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
+			if (int(TMath::Abs(By)+0.5) == 4) {
+			   //AZ-180822 - 0.4T 
+                           xCor += 0.0160;
+                           yCor += 0.0140;
+                        }
+                        else if (int(TMath::Abs(By)+0.5) == 6) {
+			   //AZ-180822 - 0.6T
+                           xCor += 0.0180;
+                           yCor += 0.0140;
+                        }
+
+			Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
                         x += xCor * sign;
                         y += yCor * sign;
                     }

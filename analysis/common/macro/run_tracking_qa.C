@@ -99,12 +99,12 @@ void run_tracking_qa(std::string filelist, std::string output_file, bool is_sing
     auto* midrap_cut = new Cuts(std::to_string( pid )+"_midrap", {
                                                                      EqualsCut({sim_particles + ".pid"}, pid),
                                                                      EqualsCut({sim_particles + ".mother_id"}, -1),
-                                                                     RangeCut({sim_particles + ".rapidity"}, -0.5 + 0.804541, 0.5 + 0.804541)
+                                                                     RangeCut({sim_particles + ".rapidity"}, -0.5 + 1.05666, 0.5 + 1.05666)
                                                                  });
     auto* midrap_lo_pT_cut = new Cuts(std::to_string( pid )+"_midrap_lo_pT", {
                                                                      EqualsCut({sim_particles + ".pid"}, pid),
                                                                      EqualsCut({sim_particles + ".mother_id"}, -1),
-                                                                     RangeCut({sim_particles + ".rapidity"}, -0.5 + 0.804541, 0.5 + 0.804541),
+                                                                     RangeCut({sim_particles + ".rapidity"}, -0.5 + 1.05666, 0.5 + 1.05666),
                                                                      RangeCut({rec_tracks + ".pT"}, 0.0, 0.5)
                                                                  });
     VertexTracksQA(*task, rec_tracks, particle_cut);
@@ -140,7 +140,7 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
                                                         double pz = var.at(0);
                                                         return 0.5 * (
                                                                  log( E + pz ) -
-                                                                 log( E - pz ) ) - 0.804541;
+                                                                 log( E - pz ) ) - 1.05666;
                  });
   Variable momentum_resolution("momentum_resolution", {{branch, "p"}, {sim_particles, "p"}},
                          [](std::vector<double>& var) {
@@ -203,7 +203,7 @@ void SimParticlesQA(QA::Task& task, Cuts* cuts=nullptr){
   Variable y_cm("y_cm", { {sim_particles, "rapidity"} },
                  [](std::vector<double>& var) {
                    double y_lab = var.at(0);
-                   return y_lab - 0.804541;
+                   return y_lab - 1.05666;
                  });
 
   task.AddH2({"y_{cm}", y_cm, {50, -1, 3}},

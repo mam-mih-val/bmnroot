@@ -22,9 +22,9 @@
 
 using namespace AnalysisTree;
 
-void VertexTracksQA(QA::Task& task, std::string branch=std::string("GlobalTracks"), Cuts* cuts=nullptr);
+void VertexTracksQA(QA::Task& task, std::string branch=std::string("GlobalTracks"), Cuts* cuts=nullptr, double y_beam);
 void TofHitsQA(QA::Task& task);
-void SimParticlesQA(QA::Task& task, Cuts* cuts=nullptr);
+void SimParticlesQA(QA::Task& task, Cuts* cuts=nullptr, double y_beam);
 void SimEventHeaderQA(QA::Task& task);
 void RecEventHeaderQA(QA::Task& task);
 void EfficiencyMaps(QA::Task& task);
@@ -37,7 +37,7 @@ const int kPdgMass   = 10;
 
 Int_t GetIonCharge(int pdgCode) { return (pdgCode % kPdgLambda) / kPdgCharge; }
 
-void run_tracking_qa(std::string filelist, std::string output_file="tracking_qa.root", bool is_single_file = false);
+void run_tracking_qa(std::string filelist, std::string output_file="tracking_qa.root", bool is_single_file = false, double y_beam = 1.0);
 
 const std::string sim_event_header = "SimEventHeader";
 const std::string rec_event_header = "RecEventHeader";
@@ -50,7 +50,7 @@ const std::string trd_tracks       = "TrdTracks";
 const std::string rich_rings       = "RichRings";
 const std::string fhcal_modules       = "FHCalModules";
 
-void run_tracking_qa(std::string filelist, std::string output_file, bool is_single_file)
+void run_tracking_qa(std::string filelist, std::string output_file, bool is_single_file, double y_beam)
 {
   if (is_single_file) {
     std::ofstream fl("fl_temp.txt");
@@ -64,11 +64,11 @@ void run_tracking_qa(std::string filelist, std::string output_file, bool is_sing
   auto* task = new QA::Task;
   task->SetOutputFileName(output_file);
 
-  VertexTracksQA(*task, rec_tracks);
-  VertexTracksQA(*task, rec_tracks, new Cuts("primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
-  VertexTracksQA(*task, rec_tracks, new Cuts("secondary", {RangeCut({sim_particles + ".mother_id"}, 0., 999.)}));
-  SimParticlesQA(*task, new Cuts("primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}));
-  SimParticlesQA( *task, new Cuts("secondary", {RangeCut({sim_particles + ".mother_id"}, 0., 999.)}));
+  VertexTracksQA(*task, rec_tracks, nullptr, y_beam);
+  VertexTracksQA(*task, rec_tracks, new Cuts("primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}), y_beam);
+  VertexTracksQA(*task, rec_tracks, new Cuts("secondary", {RangeCut({sim_particles + ".mother_id"}, 0., 999.)}), y_beam);
+  SimParticlesQA(*task, new Cuts("primary", {EqualsCut({sim_particles + ".mother_id"}, -1)}), y_beam);
+  SimParticlesQA( *task, new Cuts("secondary", {RangeCut({sim_particles + ".mother_id"}, 0., 999.)}), y_beam);
   std::vector pid_codes{2212, 211, -211};
   for (auto pid : pid_codes) {
     auto* particle_cut = new Cuts(std::to_string( pid ), {EqualsCut({sim_particles + ".pid"}, pid)});
@@ -99,22 +99,22 @@ void run_tracking_qa(std::string filelist, std::string output_file, bool is_sing
     auto* midrap_cut = new Cuts(std::to_string( pid )+"_midrap", {
                                                                      EqualsCut({sim_particles + ".pid"}, pid),
                                                                      EqualsCut({sim_particles + ".mother_id"}, -1),
-                                                                     RangeCut({sim_particles + ".rapidity"}, -0.5 + 1.05666, 0.5 + 1.05666)
+                                                                     RangeCut({sim_particles + ".rapidity"}, -0.5 + y_beam, 0.5 + y_beam)
                                                                  });
     auto* midrap_lo_pT_cut = new Cuts(std::to_string( pid )+"_midrap_lo_pT", {
                                                                      EqualsCut({sim_particles + ".pid"}, pid),
                                                                      EqualsCut({sim_particles + ".mother_id"}, -1),
-                                                                     RangeCut({sim_particles + ".rapidity"}, -0.5 + 1.05666, 0.5 + 1.05666),
+                                                                     RangeCut({sim_particles + ".rapidity"}, -0.5 + y_beam, 0.5 + y_beam),
                                                                      RangeCut({rec_tracks + ".pT"}, 0.0, 0.5)
                                                                  });
-    VertexTracksQA(*task, rec_tracks, particle_cut);
-    VertexTracksQA(*task, rec_tracks, tof400_cut);
-    VertexTracksQA(*task, rec_tracks, tof700_cut);
-    VertexTracksQA(*task, rec_tracks, not_tof700_cut);
-    VertexTracksQA(*task, rec_tracks, tof_cut);
-    VertexTracksQA(*task, rec_tracks, midrap_cut);
-    VertexTracksQA(*task, rec_tracks, midrap_lo_pT_cut);
-    SimParticlesQA(*task, particle_cut);
+    VertexTracksQA(*task, rec_tracks, particle_cut, y_beam);
+    VertexTracksQA(*task, rec_tracks, tof400_cut, y_beam);
+    VertexTracksQA(*task, rec_tracks, tof700_cut, y_beam);
+    VertexTracksQA(*task, rec_tracks, not_tof700_cut, y_beam);
+    VertexTracksQA(*task, rec_tracks, tof_cut, y_beam);
+    VertexTracksQA(*task, rec_tracks, midrap_cut, y_beam);
+    VertexTracksQA(*task, rec_tracks, midrap_lo_pT_cut, y_beam);
+    SimParticlesQA(*task, particle_cut, y_beam);
   }
   man->AddTask(task);
 
@@ -129,18 +129,18 @@ void run_tracking_qa(std::string filelist, std::string output_file, bool is_sing
   }
 }
 
-void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
+void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts, double y_beam)
 {
   Variable chi2_over_ndf("chi2_ndf", {{branch, "chi2"}, {branch, "ndf"}},
                          [](std::vector<double>& var) { return var.at(0) / var.at(1); });
 
   Variable y_cm("y_cm", {{branch, "pz"}, {branch, "p"}, {sim_particles, "mass"}},
-                         [](std::vector<double>& var) {
+                         [y_beam](std::vector<double>& var) {
                                                         double E = sqrt( var.at(1)*var.at(1) + var.at(2)*var.at(2) );
                                                         double pz = var.at(0);
                                                         return 0.5 * (
                                                                  log( E + pz ) -
-                                                                 log( E - pz ) ) - 1.05666;
+                                                                 log( E - pz ) ) - y_beam;
                  });
   Variable momentum_resolution("momentum_resolution", {{branch, "p"}, {sim_particles, "p"}},
                          [](std::vector<double>& var) {
@@ -199,11 +199,11 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts)
   task.AddProfile({"p_{y} (GeV/c)", {sim_particles, "py"}, {250, 0.0, 5.0}}, {"res (%)", py_resolution, {}}, cuts);
   task.AddProfile({"p_{z} (GeV/c)", {sim_particles, "pz"}, {250, 0.0, 5.0}}, {"res (%)", pz_resolution, {}}, cuts);
 }
-void SimParticlesQA(QA::Task& task, Cuts* cuts=nullptr){
+void SimParticlesQA(QA::Task& task, Cuts* cuts=nullptr, double y_beam){
   Variable y_cm("y_cm", { {sim_particles, "rapidity"} },
-                 [](std::vector<double>& var) {
+                 [y_beam](std::vector<double>& var) {
                    double y_lab = var.at(0);
-                   return y_lab - 1.05666;
+                   return y_lab - y_beam;
                  });
 
   task.AddH2({"y_{cm}", y_cm, {50, -1, 3}},

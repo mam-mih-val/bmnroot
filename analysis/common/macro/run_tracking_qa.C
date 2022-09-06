@@ -75,7 +75,7 @@ void run_tracking_qa(std::string filelist, std::string output_file, bool is_sing
     auto* good_particle_cut = new Cuts(std::to_string( pid )+"good_candidate", {
                                                                 EqualsCut({sim_particles + ".pid"}, pid),
                                                                 RangeCut({rec_tracks + ".n_hits"}, 6.5, 999.),
-                                                                SimpleCut({{rec_tracks, "chi2"}, {rec_tracks, "ndf"}},
+                                                                SimpleCut({{rec_tracks + ".chi2"}, {rec_tracks + ".ndf"}},
                                                                           [](std::vector<double>& var) { return var.at(0) / var.at(1) < 15.0; }),
                                                             });
     auto* tof400_cut = new Cuts(std::to_string( pid )+"_tof400", {

@@ -229,9 +229,9 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts, double y_bea
   task.AddProfile({"#chi^{2}/NDF", chi2_over_ndf, {200, 0, 100}}, {"py res", py_resolution, {}}, cuts);
   task.AddProfile({"#chi^{2}/NDF", chi2_over_ndf, {200, 0, 100}}, {"pz res", pz_resolution, {}}, cuts);
 
-  task.AddProfile({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}}, {250, 0.0, 5.0}}, {"res (%)", px_resolution, {}}, cuts);
-  task.AddProfile({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}}, {250, 0.0, 5.0}}, {"res (%)", py_resolution, {}}, cuts);
-  task.AddProfile({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}}, {250, 0.0, 5.0}}, {"res (%)", pz_resolution, {}}, cuts);
+  task.AddProfile({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}}, {"px res", px_resolution, {}}, cuts);
+  task.AddProfile({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}}, {"py res", py_resolution, {}}, cuts);
+  task.AddProfile({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}}, {"pz res", pz_resolution, {}}, cuts);
 }
 void SimParticlesQA(QA::Task& task, Cuts* cuts=nullptr, double y_beam){
   Variable y_cm("y_cm", { {sim_particles, "rapidity"} },

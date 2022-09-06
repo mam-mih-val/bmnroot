@@ -156,21 +156,21 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts, double y_bea
                  });
   Variable px_resolution("px_resolution", {{branch, "px"}, {sim_particles, "px"}},
                          [](std::vector<double>& var) {
-                           auto res = fabs(var.at(0) - var.at(1)) / var.at(1);
+                           auto res = fabs(var.at(0) - var.at(1)) / fabs(var.at(1));
                            if( res < 100.0 )
                              return res;
                            else return 100.;
                  });
   Variable py_resolution("py_resolution", {{branch, "py"}, {sim_particles, "py"}},
                          [](std::vector<double>& var) {
-                           auto res = fabs(var.at(0) - var.at(1)) / var.at(1);
+                           auto res = fabs(var.at(0) - var.at(1)) / fabs(var.at(1));
                            if( res < 100.0 )
                              return res;
                            else return 100.;
                  });
   Variable pz_resolution("pz_resolution", {{branch, "pz"}, {sim_particles, "pz"}},
                          [](std::vector<double>& var) {
-                           auto res = fabs(var.at(0) - var.at(1)) / var.at(1);
+                           auto res = fabs(var.at(0) - var.at(1)) / fabs(var.at(1));
                            if( res < 100.0 )
                              return res;
                            else return 100.;
@@ -225,9 +225,9 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts, double y_bea
   task.AddProfile({"p_{y} (GeV/c)", {sim_particles, "py"}, {250, 0.0, 5.0}}, {"res", py_resolution, {}}, cuts);
   task.AddProfile({"p_{z} (GeV/c)", {sim_particles, "pz"}, {250, 0.0, 5.0}}, {"res", pz_resolution, {}}, cuts);
 
-  task.AddProfile({"#chi^{2}/NDF", chi2_over_ndf, {200, 0, 100}}, {"px res", px_resolution, {}}, cuts);
-  task.AddProfile({"#chi^{2}/NDF", chi2_over_ndf, {200, 0, 100}}, {"py res", py_resolution, {}}, cuts);
-  task.AddProfile({"#chi^{2}/NDF", chi2_over_ndf, {200, 0, 100}}, {"pz res", pz_resolution, {}}, cuts);
+  task.AddProfile({"#chi^{2}/NDF", chi2_over_ndf, {50, 0, 100}}, {"px res", px_resolution, {}}, cuts);
+  task.AddProfile({"#chi^{2}/NDF", chi2_over_ndf, {50, 0, 100}}, {"py res", py_resolution, {}}, cuts);
+  task.AddProfile({"#chi^{2}/NDF", chi2_over_ndf, {50, 0, 100}}, {"pz res", pz_resolution, {}}, cuts);
 
   task.AddProfile({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}}, {"px res", px_resolution, {}}, cuts);
   task.AddProfile({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}}, {"py res", py_resolution, {}}, cuts);

@@ -22,9 +22,9 @@
 
 using namespace AnalysisTree;
 
-void VertexTracksQA(QA::Task& task, std::string branch=std::string("GlobalTracks"), Cuts* cuts=nullptr, double y_beam);
+void VertexTracksQA(QA::Task& task, std::string branch=std::string("GlobalTracks"), Cuts* cuts=nullptr, double y_beam=1.0);
 void TofHitsQA(QA::Task& task);
-void SimParticlesQA(QA::Task& task, Cuts* cuts=nullptr, double y_beam);
+void SimParticlesQA(QA::Task& task, Cuts* cuts=nullptr, double y_beam=1.0);
 void SimEventHeaderQA(QA::Task& task);
 void RecEventHeaderQA(QA::Task& task);
 void EfficiencyMaps(QA::Task& task);

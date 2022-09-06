@@ -72,6 +72,12 @@ void run_tracking_qa(std::string filelist, std::string output_file, bool is_sing
   std::vector pid_codes{2212, 211, -211};
   for (auto pid : pid_codes) {
     auto* particle_cut = new Cuts(std::to_string( pid ), {EqualsCut({sim_particles + ".pid"}, pid)});
+    auto* good_particle_cut = new Cuts(std::to_string( pid )+"good_candidate", {
+                                                                EqualsCut({sim_particles + ".pid"}, pid),
+                                                                RangeCut({rec_tracks + ".n_hits"}, 6.5, 999.),
+                                                                SimpleCut({{branch, "chi2"}, {branch, "ndf"}},
+                                                                          [](std::vector<double>& var) { return var.at(0) / var.at(1) < 15.0; }),
+                                                            });
     auto* tof400_cut = new Cuts(std::to_string( pid )+"_tof400", {
                                                                      EqualsCut({sim_particles + ".pid"}, pid),
                                                                      EqualsCut({sim_particles + ".mother_id"}, -1),

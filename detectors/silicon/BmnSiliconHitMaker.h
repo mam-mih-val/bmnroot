@@ -1,6 +1,7 @@
 #ifndef BMNSILICONHITMAKER_H
 #define BMNSILICONHITMAKER_H
 
+#include "BmnTask.h"
 #include "BmnSiliconDigit.h"
 #include "BmnSiliconHit.h"
 #include "BmnSiliconStationSet.h"
@@ -10,13 +11,12 @@
 #include "BmnSiliconConfiguration.h"
 #include "BmnSiliconTransform.h"
 
-#include "FairTask.h"
 #include "FairMCPoint.h"
 
 using namespace std;
 using namespace TMath;
 
-class BmnSiliconHitMaker : public FairTask
+class BmnSiliconHitMaker : public BmnTask
 {
   public:
     BmnSiliconHitMaker();
@@ -44,6 +44,10 @@ class BmnSiliconHitMaker : public FairTask
         fSignalLow = min;
         fSignalUp = max;
     }
+
+    virtual InitStatus OnlineInit();
+    virtual InitStatus OnlineRead(const std::unique_ptr<TTree> &dataTree, const std::unique_ptr<TTree> &resultTree);
+    virtual void OnlineWrite(const std::unique_ptr<TTree> &dataTree);
 
   private:
     void createSiliconDetector();

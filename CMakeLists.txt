@@ -260,6 +260,7 @@ endif()
 list(APPEND boost_dependencies filesystem serialization boost_program_options)
 
 find_package(Boost 1.41)
+#find_package(Boost 1.78)
 #find_package2(PUBLIC Boost
 #  VERSION 1.67
 #  COMPONENTS ${boost_dependencies}
@@ -323,6 +324,7 @@ add_subdirectory (reconstruction/bmnrecotools)
 add_subdirectory (physics)
 add_subdirectory (monitor)
 add_subdirectory (eventdisplay)
+add_subdirectory (online)
 add_subdirectory (QA)
 add_subdirectory (macro)
 add_subdirectory (services)

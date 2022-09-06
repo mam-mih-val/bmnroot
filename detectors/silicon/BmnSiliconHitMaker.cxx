@@ -214,13 +214,47 @@ InitStatus BmnSiliconHitMaker::Init() {
     return kSUCCESS;
 }
 
+InitStatus BmnSiliconHitMaker::OnlineInit()
+{
+    createSiliconDetector();
+
+    fBmnSiliconDigitsArray = new TClonesArray("BmnSiliconDigit");
+    fBmnSiliconDigitMatchesArray = nullptr;
+
+    fBmnSiliconHitsArray = new TClonesArray(fOutputHitsBranchName);
+    fBmnSiliconUpperClustersArray = new TClonesArray("StripCluster");
+    fBmnSiliconLowerClustersArray = new TClonesArray("StripCluster");
+
+    return kSUCCESS;
+}
+
+InitStatus BmnSiliconHitMaker::OnlineRead(const std::unique_ptr<TTree> &dataTree, const std::unique_ptr<TTree> &resultTree)
+{
+    if (!IsActive()) return kERROR;
+
+    SetOnlineActive();
+
+    fBmnSiliconDigitsArray->Delete();
+    if (dataTree->SetBranchAddress(fInputDigitsBranchName, &fBmnSiliconDigitsArray)) {
+        LOG(error) << "BmnSiliconHitMaker::Init(): branch " << fInputDigitsBranchName
+                   << " not found! Task will be deactivated";
+        SetOnlineActive(kFALSE);
+        return kERROR;
+    }
+
+    fBmnSiliconHitsArray->Delete();
+    fBmnSiliconUpperClustersArray->Delete();
+    fBmnSiliconLowerClustersArray->Delete();
+
+    return kSUCCESS;
+}
+
 void BmnSiliconHitMaker::Exec(Option_t* opt) {
 
     TStopwatch sw;
     sw.Start();
 
-    if (!IsActive())
-        return;
+    if (!IsActive() || !IsOnlineActive()) return;
 
     fBmnSiliconHitsArray->Delete();
     fBmnSiliconUpperClustersArray->Delete();
@@ -487,6 +521,16 @@ void BmnSiliconHitMaker::ProcessDigits() {
     if (fVerbose > 1) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();
+}
+
+void BmnSiliconHitMaker::OnlineWrite(const std::unique_ptr<TTree> &dataTree)
+{
+    if (!IsActive() || !IsOnlineActive()) return;
+
+    dataTree->Branch(fOutputHitsBranchName, &fBmnSiliconHitsArray);
+    dataTree->Branch("BmnSiliconUpperCluster", &fBmnSiliconUpperClustersArray);
+    dataTree->Branch("BmnSiliconLowerCluster", &fBmnSiliconLowerClustersArray);
+    dataTree->Fill();
 }
 
 void BmnSiliconHitMaker::Finish() {

@@ -1,29 +1,27 @@
 #ifndef BMNCSCHITMAKER_H
 #define BMNCSCHITMAKER_H 1
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
-#include "Rtypes.h"
-#include "TClonesArray.h"
-#include "TRegexp.h"
-#include "TString.h"
-
-#include "FairTask.h"
-#include "FairMCPoint.h"
-
-#include "FairField.h"
+#include "BmnTask.h"
 #include "BmnCSCDigit.h"
 #include "BmnCSCHit.h"
 #include "BmnCSCStationSet.h"
 #include "BmnCSCConfiguration.h"
 #include "BmnCSCTransform.h"
-//#include "BmnInnTrackerAlign.h"
+
+#include "FairMCPoint.h"
+#include "FairField.h"
+
+#include "TClonesArray.h"
+#include "TRegexp.h"
+#include "TString.h"
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
-class BmnCSCHitMaker : public FairTask {
+class BmnCSCHitMaker : public BmnTask {
   public:
 
     BmnCSCHitMaker();
@@ -44,6 +42,11 @@ class BmnCSCHitMaker : public FairTask {
         fCurrentConfig = config;
         configSetExplicitly = true;
     }
+
+    virtual InitStatus OnlineInit();
+    virtual InitStatus OnlineRead(const std::unique_ptr<TTree> &dataTree, const std::unique_ptr<TTree> &resultTree);
+    virtual void OnlineWrite(const std::unique_ptr<TTree> &dataTree);
+    virtual void SetField(const std::unique_ptr<FairField> &magneticField) { fField = magneticField.get(); }
 
   private:
     void initCurrentConfig();
@@ -83,7 +86,9 @@ class BmnCSCHitMaker : public FairTask {
     TString fBmnEvQualityBranchName;
     TClonesArray* fBmnEvQuality;    //!
 
-    ClassDef(BmnCSCHitMaker, 1);
+    void LoadDetectorConfiguration();
+
+  ClassDef(BmnCSCHitMaker, 1);
 };
 
 #endif

@@ -1,0 +1,8 @@
+{
+    "bmnShmOptions": {
+        "shmName": "BmnOnlineSharedMemory",
+        "writeSemName": "BmnOnlineWriteSemaphore",
+        "readSemName": "BmnOnlineReadSemaphore",
+        "msgName": "BmnOnlineMessage"
+    }
+}

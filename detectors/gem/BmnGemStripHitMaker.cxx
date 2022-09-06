@@ -258,13 +258,51 @@ InitStatus BmnGemStripHitMaker::Init() {
     return kSUCCESS;
 }
 
+InitStatus BmnGemStripHitMaker::OnlineInit()
+{
+    // if GEM configuration is not set -> return a fatal error
+    if (!fCurrentConfig) LOG(fatal) << "BmnGemStripHitMaker():OnlineInit() !!! Current GEM config is not set !!! ";
+
+    createGemDetector();
+
+    fBmnGemStripDigitsArray = new TClonesArray("BmnGemStripDigit");
+    fBmnGemStripDigitMatchesArray = nullptr;
+
+    fBmnGemStripHitsArray = new TClonesArray(fOutputHitsBranchName);
+    fBmnGemUpperClustersArray = new TClonesArray("StripCluster");
+    fBmnGemLowerClustersArray = new TClonesArray("StripCluster");
+
+    if (!fField) LOG(fatal) << "BmnCSCHitMaker::OnlineInit() No Magnetic Field found!";
+    return kSUCCESS;
+}
+
+InitStatus BmnGemStripHitMaker::OnlineRead(const std::unique_ptr<TTree> &dataTree, const std::unique_ptr<TTree> &resultTree)
+{
+    if (!IsActive()) return kERROR;
+
+    SetOnlineActive();
+
+    fBmnGemStripDigitsArray->Delete();
+    if (dataTree->SetBranchAddress(fInputDigitsBranchName, &fBmnGemStripDigitsArray)) {
+        LOG(error) << "BmnGemStripHitMaker::OnlineReadData(): branch " << fInputDigitsBranchName
+                   << " not found! Task will be deactivated";
+        SetOnlineActive(kFALSE);
+        return kERROR;
+    }
+
+    fBmnGemStripHitsArray->Delete();
+    fBmnGemUpperClustersArray->Delete();
+    fBmnGemLowerClustersArray->Delete();
+
+    return kSUCCESS;
+}
+
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
 
     TStopwatch sw;
     sw.Start();
 
-    if (!IsActive())
-        return;
+    if (!IsActive() || !IsOnlineActive()) return;
 
     fBmnGemStripHitsArray->Delete();
     fBmnGemUpperClustersArray->Delete();
@@ -274,8 +312,6 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
     BmnGemStripLayer::SetUpperUniqueID(0);
 
     if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Exec() started ===============" << endl;
-
-    fField = FairRunAna::Instance()->GetField();
 
     if (fVerbose > 1) cout << " BmnGemStripHitMaker::Exec(), Number of BmnGemStripDigits = " << fBmnGemStripDigitsArray->GetEntriesFast() << "\n";
 
@@ -504,6 +540,16 @@ void BmnGemStripHitMaker::ProcessDigits() {
     if (fVerbose > 1) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();
+}
+
+void BmnGemStripHitMaker::OnlineWrite(const std::unique_ptr<TTree>& dataTree)
+{
+    if (!IsActive() || !IsOnlineActive()) return;
+
+    dataTree->Branch(fOutputHitsBranchName, &fBmnGemStripHitsArray);
+    dataTree->Branch("BmnGemUpperCluster", &fBmnGemUpperClustersArray);
+    dataTree->Branch("BmnGemLowerCluster", &fBmnGemLowerClustersArray);
+    dataTree->Fill();
 }
 
 void BmnGemStripHitMaker::Finish() {

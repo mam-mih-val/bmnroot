@@ -198,7 +198,7 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts, double y_bea
                          [](std::vector<double>& var) {
                     return var.at(1);
                  });
-  Variable ycm_tru("pT_tru", {{branch, "pT"}, {sim_particles, "rapidity"}},
+  Variable ycm_tru("ycm_tru", {{branch, "pT"}, {sim_particles, "rapidity"}},
                          [y_beam](std::vector<double>& var) {
                     return var.at(1) - y_beam;
                  });

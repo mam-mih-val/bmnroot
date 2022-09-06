@@ -135,6 +135,6 @@ EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 
 Set(LINKDEF BaseLinkDef.h)
 Set(LIBRARY_NAME BmnBase)
-Set(DEPENDENCIES Base Core ${ZeroMQ_LIBRARY_SHARED} boost_serialization)
+Set(DEPENDENCIES Base Core ${ZeroMQ_LIBRARY_SHARED} boost_serialization rt)
 
 GENERATE_LIBRARY()

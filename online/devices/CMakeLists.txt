@@ -51,6 +51,6 @@ set(SRCS
 
 Set(HEADERS)
 set(LIBRARY_NAME BmnOnlineDevices)
-set(DEPENDENCIES BmnRecoFHCal BmnRecoTof2 Silicon Gem Sts CSC FHCal Ecal Dch TOF1 TOF Mwpc UniDb FairMQ Base Core)
+set(DEPENDENCIES BmnRecoFHCal BmnRecoTof2 Silicon Gem Sts CSC FHCal Ecal Dch TOF1 TOF Mwpc UniDb FairMQ Base Core rt)
 
 GENERATE_LIBRARY()

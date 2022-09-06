@@ -207,8 +207,15 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts, double y_bea
   task.AddH2({"y_{cm}^{tru}", ycm_tru, {50, -1, 3}},
              {"p_{T}^{tru} (GeV/c)", pT_tru, {50, 0, 3}}, cuts);
 
-  task.AddH2({"#chi^{2}/NDF", chi2_over_ndf, {250, 0, 100}},
-             {"|p_{tru}-p_{rec}| (GeV/c)", momentum_error, {250, 0, 5}}, cuts);
+  task.AddH2({"#chi^{2}/NDF", chi2_over_ndf, {200, 0, 100}},
+             {"#frac{|p^{tru}-p^{rec}|}{p^{tru}} (GeV/c)", momentum_resolution, {200, 0, 1}}, cuts);
+
+  task.AddH2({"#chi^{2}/NDF", chi2_over_ndf, {200, 0, 100}},
+             {"#frac{|p^{tru}_{x}-p^{rec}_{x}|}{p^{tru}_{x}} (GeV/c)", px_resolution, {200, 0, 1}}, cuts);
+  task.AddH2({"#chi^{2}/NDF", chi2_over_ndf, {200, 0, 100}},
+             {"#frac{|p^{tru}_{y}-p^{rec}_{y}|}{p^{tru}_{y}} (GeV/c)", py_resolution, {200, 0, 1}}, cuts);
+  task.AddH2({"#chi^{2}/NDF", chi2_over_ndf, {200, 0, 100}},
+             {"#frac{|p^{tru}_{z}-p^{rec}_{z}|}{p^{tru}_{z}} (GeV/c)", pz_resolution, {200, 0, 1}}, cuts);
 
   task.AddProfile({"p_{sim} (GeV/c)", {sim_particles, "p"}, {250, 0.0, 5.0}}, {"res (%)", momentum_resolution, {}}, cuts);
   task.AddProfile({"p_{T} (GeV/c)", {sim_particles, "pT"}, {150, 0.0, 3.0}}, {"res (%)", momentum_resolution, {}}, cuts);

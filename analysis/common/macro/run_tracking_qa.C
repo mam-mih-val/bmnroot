@@ -114,6 +114,7 @@ void run_tracking_qa(std::string filelist, std::string output_file, bool is_sing
                                                                      RangeCut({rec_tracks + ".pT"}, 0.0, 0.5)
                                                                  });
     VertexTracksQA(*task, rec_tracks, particle_cut, y_beam);
+    VertexTracksQA(*task, rec_tracks, good_particle_cut, y_beam);
     VertexTracksQA(*task, rec_tracks, tof400_cut, y_beam);
     VertexTracksQA(*task, rec_tracks, tof700_cut, y_beam);
     VertexTracksQA(*task, rec_tracks, not_tof700_cut, y_beam);

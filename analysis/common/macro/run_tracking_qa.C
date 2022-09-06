@@ -72,11 +72,22 @@ void run_tracking_qa(std::string filelist, std::string output_file, bool is_sing
   std::vector pid_codes{2212, 211, -211};
   for (auto pid : pid_codes) {
     auto* particle_cut = new Cuts(std::to_string( pid ), {EqualsCut({sim_particles + ".pid"}, pid)});
-    auto* good_particle_cut = new Cuts(std::to_string( pid )+"good_candidate", {
+    auto* good_particle_cut = new Cuts(std::to_string( pid )+"_good_candidate", {
                                                                 EqualsCut({sim_particles + ".pid"}, pid),
                                                                 RangeCut({rec_tracks + ".n_hits"}, 6.5, 999.),
                                                                 SimpleCut({{rec_tracks + ".chi2"}, {rec_tracks + ".ndf"}},
                                                                           [](std::vector<double>& var) { return var.at(0) / var.at(1) < 15.0; }),
+                                                            });
+    auto* good_particle_tof_cut = new Cuts(std::to_string( pid )+"_good_candidate_tof", {
+                                                                EqualsCut({sim_particles + ".pid"}, pid),
+                                                                RangeCut({rec_tracks + ".n_hits"}, 6.5, 999.),
+                                                                SimpleCut({{rec_tracks + ".chi2"}, {rec_tracks + ".ndf"}},
+                                                                          [](std::vector<double>& var) { return var.at(0) / var.at(1) < 15.0; }),
+                                                                SimpleCut({rec_tracks + ".beta400",
+                                                                           rec_tracks + ".beta700"},
+                                                                          [](std::vector<double> betas){
+                                                                            return betas[0] > 0. || betas[1] > 0.;
+                                                                          })
                                                             });
     auto* tof400_cut = new Cuts(std::to_string( pid )+"_tof400", {
                                                                      EqualsCut({sim_particles + ".pid"}, pid),
@@ -115,6 +126,7 @@ void run_tracking_qa(std::string filelist, std::string output_file, bool is_sing
                                                                  });
     VertexTracksQA(*task, rec_tracks, particle_cut, y_beam);
     VertexTracksQA(*task, rec_tracks, good_particle_cut, y_beam);
+    VertexTracksQA(*task, rec_tracks, good_particle_tof_cut, y_beam);
     VertexTracksQA(*task, rec_tracks, tof400_cut, y_beam);
     VertexTracksQA(*task, rec_tracks, tof700_cut, y_beam);
     VertexTracksQA(*task, rec_tracks, not_tof700_cut, y_beam);

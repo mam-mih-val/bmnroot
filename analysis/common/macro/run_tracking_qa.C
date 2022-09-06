@@ -149,6 +149,11 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts, double y_bea
                                   return res;
                                  else return 100.;
                  });
+  Variable momentum_error("momentum_error", {{branch, "p"}, {sim_particles, "p"}},
+                         [](std::vector<double>& var) {
+                                 auto res = fabs( var.at(0) - var.at(1) );
+                                 return res;
+                 });
   Variable px_resolution("px_resolution", {{branch, "px"}, {sim_particles, "px"}},
                          [](std::vector<double>& var) {
                            auto res = fabs(var.at(0) - var.at(1)) / var.at(1);
@@ -170,6 +175,14 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts, double y_bea
                              return res;
                            else return 100.;
                  });
+  Variable pT_tru("pT_tru", {{branch, "pT"}, {sim_particles, "pT"}},
+                         [](std::vector<double>& var) {
+                    return var.at(1);
+                 });
+  Variable ycm_tru("pT_tru", {{branch, "pT"}, {sim_particles, "rapidity"}},
+                         [y_beam](std::vector<double>& var) {
+                    return var.at(1) - y_beam;
+                 });
 
   task.AddH1({"y_{cm}", y_cm, {100, -1, 3}}, cuts);
   task.AddH1({"DCA_{x}, cm", {branch, "dcax"}, {QA::gNbins, -5, 5}}, cuts);
@@ -190,6 +203,12 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts, double y_bea
 
   task.AddH2({"y_{cm}", y_cm, {50, -1, 3}},
              {"p_{T} (GeV/c)", {branch, "pT"}, {50, 0, 3}}, cuts);
+
+  task.AddH2({"y_{cm}^{tru}", ycm_tru, {50, -1, 3}},
+             {"p_{T}^{tru} (GeV/c)", pT_tru, {50, 0, 3}}, cuts);
+
+  task.AddH2({"#chi^{2}/NDF", chi2_over_ndf, {250, 0, 100}},
+             {"|p_{tru}-p_{rec}| (GeV/c)", momentum_error, {250, 0, 5}}, cuts);
 
   task.AddProfile({"p_{sim} (GeV/c)", {sim_particles, "p"}, {250, 0.0, 5.0}}, {"res (%)", momentum_resolution, {}}, cuts);
   task.AddProfile({"p_{T} (GeV/c)", {sim_particles, "pT"}, {150, 0.0, 3.0}}, {"res (%)", momentum_resolution, {}}, cuts);

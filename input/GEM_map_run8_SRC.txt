@@ -1,9 +1,12 @@
-//GEM_id: the second digit 0=left, 1=right;
-//Module: 0=00 (mod0,hotZone), 1=01 (mod0,bigZone), 2=10 (mod1,hotZone), 3=11 (mod1,bigZone)
-//For middle GEMs Module = 0 or 2
-   Serial    Ch_lo    Ch_hi   GEM_id  Station  Module
-=====================================================
-0xA79EF10        0     2047        0        0       0
-0x611DF9B      384      511        0        0       0
-0xA7B319C        0     2047        0        1       0
-0x611DF9B      256      383        0        1       0
+//GEM_id: GEM production number
+//Type: 0=directed, 1=rotated
+//Side: 0=left, 1=right
+//Module: 0 - upper-left, 1 - upper-right, 2 - lower-left, 3 - lower-right
+//Zone: 0=hot, 1=big
+//For middle GEMs Module = 0 or 1, Zone = 0
+    Serial   Ch_lo    Ch_hi  GEM_id    Side     Type  Station  Module  Zone 
+===========================================================================
+0xa79ef10       0    2047       0       0       0       0       0       0
+0x611df9b     384     511       0       0       0       0       0       0
+0xa7b319c       0    2047       0       0       0       1       0       0
+0x611df9b     256     383       0       0       0       1       0       0

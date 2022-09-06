@@ -96,27 +96,22 @@ private:
     BmnGemMap* fMid;
     vector<BmnGemMap*> fBigHot;
     vector<BmnGemMap*> fBig;
-    BmnGemMap* fBigL0;
-    BmnGemMap* fBigL1;
-    BmnGemMap* fBigR0;
-    BmnGemMap* fBigR1;
 
     TH1F**** fSigProf;
     Bool_t**** fNoisyChannels;
 
     TString fMapFileName;
 
-    vector<GemMapLine*> fMapRun8;
-    vector<GemMapValue*> fMap;
-    inline void MapStrip(GemMapValue* gemM, UInt_t ch, Int_t iSmpl, Int_t& station, Int_t& mod, Int_t& lay, Int_t& strip);
-    inline void MapStripRun8(GemMapLine* gemM, UInt_t ch, Int_t iSmpl, Int_t& station, Int_t& mod, Int_t& lay, Int_t& strip);
-    void ProcessDigit(BmnADCDigit* adcDig, GemMapValue* gemM, TClonesArray* gem, Bool_t doFill);
+
+
+    vector<GemMapLine*> fMap;
+    //vector<GemMapValue*> fMap;
+    inline void MapStrip(GemMapLine* gemM, UInt_t ch, Int_t iSmpl, Int_t& station, Int_t& mod, Int_t& lay, Int_t& strip);
+    void ProcessDigit(BmnADCDigit* adcDig, GemMapLine* gemM, TClonesArray* gem, Bool_t doFill);
     void ProcessAdc(TClonesArray* silicon, Bool_t doFill);
-    void ProcessAdcRun8(TClonesArray* silicon, Bool_t doFill);
     BmnStatus ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod);
     BmnStatus ReadLocalMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod);
     BmnStatus ReadGlobalMap(TString FileName);
-    BmnStatus ReadGlobalMapRun8(TString FileName);
 
     Int_t fEntriesInGlobMap; // number of entries in BD table for Global Mapping
 

@@ -217,13 +217,21 @@ void VertexTracksQA(QA::Task& task, std::string branch, Cuts* cuts, double y_bea
   task.AddH2({"#chi^{2}/NDF", chi2_over_ndf, {200, 0, 100}},
              {"#frac{|p^{tru}_{z}-p^{rec}_{z}|}{p^{tru}_{z}} (GeV/c)", pz_resolution, {200, 0, 1}}, cuts);
 
-  task.AddProfile({"p_{sim} (GeV/c)", {sim_particles, "p"}, {250, 0.0, 5.0}}, {"res (%)", momentum_resolution, {}}, cuts);
-  task.AddProfile({"p_{T} (GeV/c)", {sim_particles, "pT"}, {150, 0.0, 3.0}}, {"res (%)", momentum_resolution, {}}, cuts);
-  task.AddProfile({"#eta", {sim_particles, "eta"}, {250, 0.0, 5.0}}, {"res (%)", momentum_resolution, {}}, cuts);
+  task.AddProfile({"p_{sim} (GeV/c)", {sim_particles, "p"}, {250, 0.0, 5.0}}, {"res", momentum_resolution, {}}, cuts);
+  task.AddProfile({"p_{T} (GeV/c)", {sim_particles, "pT"}, {150, 0.0, 3.0}}, {"res", momentum_resolution, {}}, cuts);
+  task.AddProfile({"#eta", {sim_particles, "eta"}, {250, 0.0, 5.0}}, {"res", momentum_resolution, {}}, cuts);
 
-  task.AddProfile({"p_{x} (GeV/c)", {sim_particles, "px"}, {250, 0.0, 5.0}}, {"res (%)", px_resolution, {}}, cuts);
-  task.AddProfile({"p_{y} (GeV/c)", {sim_particles, "py"}, {250, 0.0, 5.0}}, {"res (%)", py_resolution, {}}, cuts);
-  task.AddProfile({"p_{z} (GeV/c)", {sim_particles, "pz"}, {250, 0.0, 5.0}}, {"res (%)", pz_resolution, {}}, cuts);
+  task.AddProfile({"p_{x} (GeV/c)", {sim_particles, "px"}, {250, 0.0, 5.0}}, {"res", px_resolution, {}}, cuts);
+  task.AddProfile({"p_{y} (GeV/c)", {sim_particles, "py"}, {250, 0.0, 5.0}}, {"res", py_resolution, {}}, cuts);
+  task.AddProfile({"p_{z} (GeV/c)", {sim_particles, "pz"}, {250, 0.0, 5.0}}, {"res", pz_resolution, {}}, cuts);
+
+  task.AddProfile({"#chi^{2}/NDF", chi2_over_ndf, {200, 0, 100}}, {"px res", px_resolution, {}}, cuts);
+  task.AddProfile({"#chi^{2}/NDF", chi2_over_ndf, {200, 0, 100}}, {"py res", py_resolution, {}}, cuts);
+  task.AddProfile({"#chi^{2}/NDF", chi2_over_ndf, {200, 0, 100}}, {"pz res", pz_resolution, {}}, cuts);
+
+  task.AddProfile({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}}, {250, 0.0, 5.0}}, {"res (%)", px_resolution, {}}, cuts);
+  task.AddProfile({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}}, {250, 0.0, 5.0}}, {"res (%)", py_resolution, {}}, cuts);
+  task.AddProfile({"N_{hits}", {branch, "n_hits"}, {30, 0, 30}}, {250, 0.0, 5.0}}, {"res (%)", pz_resolution, {}}, cuts);
 }
 void SimParticlesQA(QA::Task& task, Cuts* cuts=nullptr, double y_beam){
   Variable y_cm("y_cm", { {sim_particles, "rapidity"} },

@@ -13,9 +13,9 @@
 #pragma link C++ class  BmnNdetGeo+;
 #pragma link C++ class  BmnNdetGeoPar+;
 //RENAME
-#pragma link C++ class  BmnNdetDigi+;
-#pragma link C++ class  BmnNdetDigiPar+;
-#pragma link C++ class  BmnNdetDigiScheme+;
-#pragma link C++ class  BmnNdetDigiProducer+;
+#pragma link C++ class  BmnNdetDigit+;
+#pragma link C++ class  BmnNdetDigitPar+;
+#pragma link C++ class  BmnNdetDigitScheme+;
+#pragma link C++ class  BmnNdetDigitizer+;
 
 #endif

@@ -1,6 +1,6 @@
 /*************************************************************************************
  *
- *         BmnNdetDigiPar
+ *         BmnNdetDigitPar
  *    Container class for BmnNdet digitisation parameters  
  *         
  *  Author:   Elena Litvinenko
@@ -10,20 +10,20 @@
  *
  ************************************************************************************/
 
-#ifndef BMNNDETDIGIPAR_H
-#define BMNNDETDIGIPAR_H
+#ifndef BMNNDETDIGITPAR_H
+#define BMNNDETDIGITPAR_H
 
 #include "FairParGenericSet.h"
 #include "TObjArray.h"
 
-class BmnNdetDigiPar: public FairParGenericSet
+class BmnNdetDigitPar: public FairParGenericSet
 {
 
  public :
 
-  BmnNdetDigiPar (const char *name="BmnNdetDigiPar", const char *title="NDET Digi Parameters", const char *context="TestDefaultContext");
+  BmnNdetDigitPar (const char *name="BmnNdetDigitPar", const char *title="NDET Digi Parameters", const char *context="TestDefaultContext");
 
-  virtual ~BmnNdetDigiPar() {};
+  virtual ~BmnNdetDigitPar() {};
 
   void putParams(FairParamList* list);
   Bool_t getParams(FairParamList* list);
@@ -38,7 +38,7 @@ class BmnNdetDigiPar: public FairParGenericSet
    Double_t fADCResolution; // Hardware parameter
    Double_t fEnergyDigiThreshold;
 
-  ClassDef(BmnNdetDigiPar,2);
+  ClassDef(BmnNdetDigitPar,2);
 
 };
-#endif // BMNNDETDIGIPAR_H
+#endif // BMNNDETDIGITPAR_H

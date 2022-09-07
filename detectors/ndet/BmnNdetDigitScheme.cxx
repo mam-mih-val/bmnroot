@@ -1,6 +1,6 @@
 /*************************************************************************************
  *
- *         Class BmnNdetDigiScheme
+ *         Class BmnNdetDigitScheme
  *         
  *  Author:   Elena Litvinenko
  *  e-mail:   litvin@nf.jinr.ru
@@ -9,7 +9,7 @@
  *
  ************************************************************************************/
 
-#include "BmnNdetDigiScheme.h"
+#include "BmnNdetDigitScheme.h"
 #include "TGeoBBox.h"
 #include "TGeoManager.h"
 #include "TGeoNode.h"
@@ -19,16 +19,16 @@ using std::cout;
 using std::endl;
 
 
-BmnNdetDigiScheme* BmnNdetDigiScheme::fInstance = 0;
-Bool_t BmnNdetDigiScheme::fInitialized = 0;
-Int_t BmnNdetDigiScheme::fRefcount = 0;
+BmnNdetDigitScheme* BmnNdetDigitScheme::fInstance = 0;
+Bool_t BmnNdetDigitScheme::fInitialized = 0;
+Int_t BmnNdetDigitScheme::fRefcount = 0;
 
-static Int_t kNDET = 1; //  // hard-coded basic NDET detector number
+//static Int_t kNDET = 1; //  // hard-coded basic NDET detector number
 
 
 // -------------------------------------------------------------------------
 
-BmnNdetDigiScheme::BmnNdetDigiScheme() : 
+BmnNdetDigitScheme::BmnNdetDigitScheme() : 
 Nx(0),Ny(0),Nz(0)
 {
   fNdetDigiPar=0;
@@ -36,7 +36,7 @@ Nx(0),Ny(0),Nz(0)
 
 // -------------------------------------------------------------------------
 
-BmnNdetDigiScheme::~BmnNdetDigiScheme()
+BmnNdetDigitScheme::~BmnNdetDigitScheme()
 {
   fRefcount--;
   if(!fRefcount){
@@ -46,26 +46,26 @@ BmnNdetDigiScheme::~BmnNdetDigiScheme()
 }
 // -------------------------------------------------------------------------
 
-BmnNdetDigiScheme*  BmnNdetDigiScheme::Instance()
+BmnNdetDigitScheme*  BmnNdetDigitScheme::Instance()
 {
-  if(!fInstance) fInstance = new BmnNdetDigiScheme();
+  if(!fInstance) fInstance = new BmnNdetDigitScheme();
   fRefcount++;
   return fInstance;
 }
 
 // -------------------------------------------------------------------------
 
-Bool_t BmnNdetDigiScheme::Init (BmnNdetGeoPar* geoPar, BmnNdetDigiPar* digiPar, Int_t pVerbose)
+Bool_t BmnNdetDigitScheme::Init (BmnNdetGeoPar* geoPar, BmnNdetDigitPar* digiPar, Int_t pVerbose)
 {
   if (!fInitialized){
  
     if ( ! geoPar ) {
-      cout << "-W- BmnNdetDigiScheme::Init: "
+      cout << "-W- BmnNdetDigitScheme::Init: "
 	   << "No geometry parameters available!" << endl;
       return kFALSE;
     }
     if ( ! digiPar ) {
-      cout << "-W-  BmnNdetDigiScheme::Init: "
+      cout << "-W-  BmnNdetDigitScheme::Init: "
 	   << "No digitization parameters available!" << endl;
       //      return kFALSE;
     }
@@ -73,14 +73,14 @@ Bool_t BmnNdetDigiScheme::Init (BmnNdetGeoPar* geoPar, BmnNdetDigiPar* digiPar, 
 
     TObjArray* sensNodes = geoPar->GetGeoSensitiveNodes();
     if (!sensNodes) {
-      cout << "-W-  BmnNdetDigiScheme::Init: "
+      cout << "-W-  BmnNdetDigitScheme::Init: "
 	   << "No sensitive nodes available!" << endl;
       return kFALSE;
     }
 
     fPasNodes = geoPar->GetGeoPassiveNodes();
     if (!fPasNodes) {
-      cout << "-W-  BmnNdetDigiScheme::Init: "
+      cout << "-W-  BmnNdetDigitScheme::Init: "
 	   << "No passive nodes available!" << endl;
       return kFALSE;
     }
@@ -91,7 +91,7 @@ Bool_t BmnNdetDigiScheme::Init (BmnNdetGeoPar* geoPar, BmnNdetDigiPar* digiPar, 
     CalcDimensions (kNDET,Nx,Ny,Nz);
 
   if (pVerbose) 
-      cout << endl << "-W-  BmnNdetDigiScheme::Init: finished." << endl;
+      cout << endl << "-W-  BmnNdetDigitScheme::Init: finished." << endl;
   
   }
   return kTRUE;
@@ -99,7 +99,7 @@ Bool_t BmnNdetDigiScheme::Init (BmnNdetGeoPar* geoPar, BmnNdetDigiPar* digiPar, 
 
 // -------------------------------------------------------------------------
 
-BmnNdetVolInfo_t* BmnNdetDigiScheme::CreateVolInfoElement (FairGeoNode* nod, Int_t pVerbose)
+BmnNdetVolInfo_t* BmnNdetDigitScheme::CreateVolInfoElement (FairGeoNode* nod, Int_t pVerbose)
 {
   if (!nod)
     return NULL;
@@ -156,8 +156,8 @@ BmnNdetVolInfo_t* BmnNdetDigiScheme::CreateVolInfoElement (FairGeoNode* nod, Int
 
 // -------------------------------------------------------------------------
 
-BmnNdetVolId_t* BmnNdetDigiScheme::CreateVolElement (FairGeoNode* nod, Int_t nodeNumber,
-						   BmnNdetDigiId_t* right, Int_t pVerbose)
+BmnNdetVolId_t* BmnNdetDigitScheme::CreateVolElement (FairGeoNode* nod, Int_t nodeNumber,
+						   BmnNdetDigitId_t* right, Int_t pVerbose)
 {
   if (!nod)
     return NULL;
@@ -198,7 +198,7 @@ BmnNdetVolId_t* BmnNdetDigiScheme::CreateVolElement (FairGeoNode* nod, Int_t nod
 
   }
   else {
-    cout << "-E-  BmnNdetDigiScheme::CreateVolInfoElement:  Strange for me node: "
+    cout << "-E-  BmnNdetDigitScheme::CreateVolInfoElement:  Strange for me node: "
 	 << nod->GetName() << "  Node number:" << nodeNumber  << "  Mother:" << mother_name << endl;
     return NULL;
   }
@@ -207,24 +207,24 @@ BmnNdetVolId_t* BmnNdetDigiScheme::CreateVolElement (FairGeoNode* nod, Int_t nod
 
 // -------------------------------------------------------------------------
 
-Bool_t BmnNdetDigiScheme::AddNodes (TObjArray* sensNodes, Int_t pVerbose)
+Bool_t BmnNdetDigitScheme::AddNodes (TObjArray* sensNodes, Int_t pVerbose)
 {
   Int_t nNodes = sensNodes->GetEntriesFast();
   Int_t nPasNodes = fPasNodes->GetEntriesFast();
   FairGeoNode *nod=0;
   Int_t nodeNumber,nodeCopyNo,nodeVolumeId, chanId2=0, chanId1=0, ndet_channel=0;
   BmnNdetVolId_t *left1,*left2;
-  BmnNdetDigiId_t *right1,*right2;
+  BmnNdetDigitId_t *right1,*right2;
 
   // if (pVerbose) {
-  //     cout << "-W-  BmnNdetDigiScheme::AddNodes: started.  nNodes:" << nNodes  << endl;
+  //     cout << "-W-  BmnNdetDigitScheme::AddNodes: started.  nNodes:" << nNodes  << endl;
   // }
 
   // for (nodeNumber=0;nodeNumber<nNodes;nodeNumber++) {
 
   if (pVerbose) {
-    //      cout << "-W-  BmnNdetDigiScheme::AddNodes: started.  nNodes:" << nNodes  << endl;
-      cout << "-W-  BmnNdetDigiScheme::AddNodes: started.  nNodes:" << nPasNodes  << endl;
+    //      cout << "-W-  BmnNdetDigitScheme::AddNodes: started.  nNodes:" << nNodes  << endl;
+      cout << "-W-  BmnNdetDigitScheme::AddNodes: started.  nNodes:" << nPasNodes  << endl;
   }
 
   TString nod_name;
@@ -239,7 +239,7 @@ Bool_t BmnNdetDigiScheme::AddNodes (TObjArray* sensNodes, Int_t pVerbose)
 
         ndet_channel++;
 
-	right1 = new BmnNdetDigiId_t;
+	right1 = new BmnNdetDigitId_t;
 	//	left1 = CreateVolElement(nod, nodeNumber, right1, pVerbose);
 	left1 = CreateVolElement(nod, ndet_channel, right1, pVerbose);
 
@@ -249,7 +249,7 @@ Bool_t BmnNdetDigiScheme::AddNodes (TObjArray* sensNodes, Int_t pVerbose)
 	CreateVolInfoElement(nod,1);
 	// left2 = new BmnNdetVolId_t ((*left1).begin(),(*left1).end());
 	// (*left2)[0]=(*left1)[0]+1;
-	// right2 = new BmnNdetDigiId_t (right1->begin(),right1->end());
+	// right2 = new BmnNdetDigitId_t (right1->begin(),right1->end());
 	// (*right2)[0] = (*right1)[0]+1;
 
 	// fVolToDigiIdMap[*left2]=*right2;
@@ -259,7 +259,7 @@ Bool_t BmnNdetDigiScheme::AddNodes (TObjArray* sensNodes, Int_t pVerbose)
 
     }
     else {
-      cout << "-W-  BmnNdetDigiScheme::AddNodes: "
+      cout << "-W-  BmnNdetDigitScheme::AddNodes: "
 	//	   << "Node number "<< nodeNumber << " from " << nNodes  << " not found!" << endl;
 	   << "Node number "<< nodeNumber << " from " << nPasNodes  << " not found!" << endl;
       return kFALSE;
@@ -270,10 +270,10 @@ Bool_t BmnNdetDigiScheme::AddNodes (TObjArray* sensNodes, Int_t pVerbose)
 
 // -------------------------------------------------------------------------
 
-Bool_t BmnNdetDigiScheme::CreateVolCopyElements  (BmnNdetVolId_t* left, BmnNdetDigiId_t* right)
+Bool_t BmnNdetDigitScheme::CreateVolCopyElements  (BmnNdetVolId_t* left, BmnNdetDigitId_t* right)
 {
   BmnNdetVolId_t *left1,*left2;
-  BmnNdetDigiId_t *right1,*right2;
+  BmnNdetDigitId_t *right1,*right2;
 
   if (!fPasNodes) 
     return kFALSE;
@@ -293,7 +293,7 @@ Bool_t BmnNdetDigiScheme::CreateVolCopyElements  (BmnNdetVolId_t* left, BmnNdetD
 
       left1 = new BmnNdetVolId_t ((*left).begin(),(*left).end());
       (*left1)[1]=(*left)[1]+moduleID;
-      right1 = new BmnNdetDigiId_t (right->begin(),right->end());
+      right1 = new BmnNdetDigitId_t (right->begin(),right->end());
       (*right1)[1] = (*right)[1]+moduleID;
 
       fVolToDigiIdMap[*left1]=*right1;
@@ -306,7 +306,7 @@ Bool_t BmnNdetDigiScheme::CreateVolCopyElements  (BmnNdetVolId_t* left, BmnNdetD
 
 // -------------------------------------------------------------------------
 
-Bool_t BmnNdetDigiScheme::CreateVolInfoCopyElements  (BmnNdetDigiId_t* right, BmnNdetVolInfo_t *volInfo )
+Bool_t BmnNdetDigitScheme::CreateVolInfoCopyElements  (BmnNdetDigitId_t* right, BmnNdetVolInfo_t *volInfo )
 {
 
 
@@ -334,10 +334,10 @@ Bool_t BmnNdetDigiScheme::CreateVolInfoCopyElements  (BmnNdetDigiId_t* right, Bm
     (*volInfo1)[0]=pos.getValues(0);    // X [cm]
     (*volInfo1)[1]=pos.getValues(1);    // Y [cm]
 
-    BmnNdetDigiId_t *right1 = new BmnNdetDigiId_t (right->begin(),right->end());
+    BmnNdetDigitId_t *right1 = new BmnNdetDigitId_t (right->begin(),right->end());
     (*right1)[1] = (*right)[1]+moduleID;
 
-    BmnNdetDigiId_t *right2 = new BmnNdetDigiId_t (right1->begin(),right1->end());
+    BmnNdetDigitId_t *right2 = new BmnNdetDigitId_t (right1->begin(),right1->end());
     (*right2)[0] = (*right1)[0]+1;
 
     BmnNdetVolInfo_t *volInfo2 = new BmnNdetVolInfo_t (*volInfo1);
@@ -353,7 +353,7 @@ Bool_t BmnNdetDigiScheme::CreateVolInfoCopyElements  (BmnNdetDigiId_t* right, Bm
 
 // -------------------------------------------------------------------------
 
-Bool_t BmnNdetDigiScheme::GetVolCenterXYZ (BmnNdetDigiId_t* pDigiID, Double_t &x, Double_t &y,Double_t &z)
+Bool_t BmnNdetDigitScheme::GetVolCenterXYZ (BmnNdetDigitId_t* pDigiID, Double_t &x, Double_t &y,Double_t &z)
 {
   if (!pDigiID)
       return kFALSE;
@@ -374,7 +374,7 @@ Bool_t BmnNdetDigiScheme::GetVolCenterXYZ (BmnNdetDigiId_t* pDigiID, Double_t &x
 
 // -------------------------------------------------------------------------
 
-Bool_t BmnNdetDigiScheme::GetVolDxDyDz   (BmnNdetDigiId_t* pDigiID, Double_t &Dx, Double_t &Dy, Double_t &Dz)
+Bool_t BmnNdetDigitScheme::GetVolDxDyDz   (BmnNdetDigitId_t* pDigiID, Double_t &Dx, Double_t &Dy, Double_t &Dz)
 {
   if (!pDigiID)
       return kFALSE;
@@ -395,7 +395,7 @@ Bool_t BmnNdetDigiScheme::GetVolDxDyDz   (BmnNdetDigiId_t* pDigiID, Double_t &Dx
 
 // -------------------------------------------------------------------------
 
-Bool_t BmnNdetDigiScheme::IsVolumeExist     (BmnNdetVolId_t* pVolId)
+Bool_t BmnNdetDigitScheme::IsVolumeExist     (BmnNdetVolId_t* pVolId)
 {
   if (!pVolId)
     return kFALSE;
@@ -405,9 +405,9 @@ Bool_t BmnNdetDigiScheme::IsVolumeExist     (BmnNdetVolId_t* pVolId)
 
 // -------------------------------------------------------------------------
 
-BmnNdetDigiId_t BmnNdetDigiScheme::GetDigiId     (BmnNdetVolId_t* pVolId)
+BmnNdetDigitId_t BmnNdetDigitScheme::GetDigiId     (BmnNdetVolId_t* pVolId)
 {
-  static const BmnNdetDigiId_t not_found (4,-1);
+  static const BmnNdetDigitId_t not_found (4,-1);
 
   if (IsVolumeExist(pVolId))
     return fVolToDigiIdMap[*pVolId]; 
@@ -417,29 +417,29 @@ BmnNdetDigiId_t BmnNdetDigiScheme::GetDigiId     (BmnNdetVolId_t* pVolId)
 
 // -------------------------------------------------------------------------
 
-Int_t BmnNdetDigiScheme::GetGroupID (BmnNdetVolId_t* pVolId)
+Int_t BmnNdetDigitScheme::GetGroupID (BmnNdetVolId_t* pVolId)
 {
-  BmnNdetDigiId_t  digiID = GetDigiId (pVolId);
+  BmnNdetDigitId_t  digiID = GetDigiId (pVolId);
   //  return digiID.first;
   return digiID[0];
 }
 
 // -------------------------------------------------------------------------
 
-Int_t BmnNdetDigiScheme::GetChannelID  (BmnNdetVolId_t* pVolId)
+Int_t BmnNdetDigitScheme::GetChannelID  (BmnNdetVolId_t* pVolId)
 {
-  BmnNdetDigiId_t  digiID = GetDigiId (pVolId);
+  BmnNdetDigitId_t  digiID = GetDigiId (pVolId);
   //  return digiID.second;
   return digiID[2];
 }
 
 // -------------------------------------------------------------------------
 
-BmnNdetVolInfo_t* BmnNdetDigiScheme::GetVolInfo(BmnNdetVolId_t* pVolId)
+BmnNdetVolInfo_t* BmnNdetDigitScheme::GetVolInfo(BmnNdetVolId_t* pVolId)
 {
   if (IsVolumeExist(pVolId)) {
 
-    BmnNdetDigiId_t pDigiID = GetDigiId(pVolId);
+    BmnNdetDigitId_t pDigiID = GetDigiId(pVolId);
 
     if (fDigiToVolInfoMap.find(pDigiID)==fDigiToVolInfoMap.end())
       return NULL;
@@ -453,12 +453,12 @@ BmnNdetVolInfo_t* BmnNdetDigiScheme::GetVolInfo(BmnNdetVolId_t* pVolId)
 
 // -------------------------------------------------------------------------
 
-void BmnNdetDigiScheme::PrintVolume (Int_t volID, Int_t copyNoMotherMother)
+void BmnNdetDigitScheme::PrintVolume (Int_t volID, Int_t copyNoMotherMother)
 {
   Int_t content[]={volID,copyNoMotherMother};
   BmnNdetVolId_t pVolId (content,content+sizeof(content)/sizeof(Int_t));
 
-  BmnNdetDigiId_t pDigiID = GetDigiId(&pVolId);
+  BmnNdetDigitId_t pDigiID = GetDigiId(&pVolId);
 
   cout << " BmnNdet Volume: "  <<   volID<< "," << copyNoMotherMother << 
     "   DigiID: " << pDigiID[0] << "," << pDigiID[1]<< "," << pDigiID[2] ;
@@ -481,14 +481,14 @@ if (IsVolumeExist(&pVolId))
 
 // -------------------------------------------------------------------------
 
-Bool_t BmnNdetDigiScheme::CalcDimensions (Int_t pGlobalDetectorNumber, Int_t &nx, Int_t &ny, Int_t &nz)
+Bool_t BmnNdetDigitScheme::CalcDimensions (Int_t pGlobalDetectorNumber, Int_t &nx, Int_t &ny, Int_t &nz)
 {
 
   if (fDigiToVolInfoMap.empty())
     return kFALSE;
 
   Bool_t result = kFALSE;
-  std::map<BmnNdetDigiId_t,BmnNdetVolInfo_t*>::iterator it;
+  std::map<BmnNdetDigitId_t,BmnNdetVolInfo_t*>::iterator it;
   std::map<Double_t,Int_t>  xmap, ymap, zmap;
   Double_t x,y,z;
   nx = ny = nz = 0;
@@ -532,7 +532,7 @@ Bool_t BmnNdetDigiScheme::CalcDimensions (Int_t pGlobalDetectorNumber, Int_t &nx
 
 // -------------------------------------------------------------------------
 
-void BmnNdetDigiScheme::GetNdetDimensions (Int_t &nx, Int_t &ny, Int_t &nz)
+void BmnNdetDigitScheme::GetNdetDimensions (Int_t &nx, Int_t &ny, Int_t &nz)
 {
   nx=Nx; ny=Ny; nz=Nz;
 }
@@ -540,12 +540,12 @@ void BmnNdetDigiScheme::GetNdetDimensions (Int_t &nx, Int_t &ny, Int_t &nz)
 
 // -------------------------------------------------------------------------
 
-BmnNdetDigiId_t  BmnNdetDigiScheme::GetDigiIdFromCoords  (Double_t x, Double_t y, Double_t z)
+BmnNdetDigitId_t  BmnNdetDigitScheme::GetDigiIdFromCoords  (Double_t x, Double_t y, Double_t z)
 {
   Int_t content[]={-1,-1};
   BmnNdetVolId_t resultmc (content,content+sizeof(content)/sizeof(Int_t));
 
-  BmnNdetDigiId_t result (-1,-1);
+  BmnNdetDigitId_t result (-1,-1);
   if (gGeoManager) {
     TGeoNode *tgn = gGeoManager->FindNode(x,y,z);
     if (tgn) {
@@ -563,17 +563,17 @@ BmnNdetDigiId_t  BmnNdetDigiScheme::GetDigiIdFromCoords  (Double_t x, Double_t y
 
 // -------------------------------------------------------------------------
 
-BmnNdetDigiId_t  BmnNdetDigiScheme::GetDigiIdFromVolumeData  (Int_t pMcVolumeNumber, Int_t pMotherMotherCopyNumber)
+BmnNdetDigitId_t  BmnNdetDigitScheme::GetDigiIdFromVolumeData  (Int_t pMcVolumeNumber, Int_t pMotherMotherCopyNumber)
 {
   Int_t content[]={pMcVolumeNumber,pMotherMotherCopyNumber};
   BmnNdetVolId_t pVolId (content,content+sizeof(content)/sizeof(Int_t));
-  BmnNdetDigiId_t  digiID = GetDigiId (&pVolId);
+  BmnNdetDigitId_t  digiID = GetDigiId (&pVolId);
   return digiID;
 }
 
 // -------------------------------------------------------------------------
 
-void BmnNdetDigiScheme::SplitDigiID (BmnNdetDigiId_t digiID, Int_t &module_groupID, Int_t &modID, Int_t &chanID)
+void BmnNdetDigitScheme::SplitDigiID (BmnNdetDigitId_t digiID, Int_t &module_groupID, Int_t &modID, Int_t &chanID)
 {
   module_groupID = digiID[0];
   modID = digiID[1];
@@ -582,14 +582,14 @@ void BmnNdetDigiScheme::SplitDigiID (BmnNdetDigiId_t digiID, Int_t &module_group
 
 // -------------------------------------------------------------------------
 
-void BmnNdetDigiScheme::Print() 
+void BmnNdetDigitScheme::Print() 
 {
   cout << "*********************************************" << endl;
 
-  cout <<  "***  BmnNdetDigiScheme:" << endl;
+  cout <<  "***  BmnNdetDigitScheme:" << endl;
   cout << " BmnNdet  Nx,Ny,Nz:  " << Nx << "," << Ny<< "," << Nz;
 
-  std::map<BmnNdetVolId_t,BmnNdetDigiId_t>::iterator it;
+  std::map<BmnNdetVolId_t,BmnNdetDigitId_t>::iterator it;
 
   for ( it=fVolToDigiIdMap.begin() ; it != fVolToDigiIdMap.end(); ++it)
     PrintVolume((*it).first[0],(*it).first[1]);
@@ -599,11 +599,11 @@ void BmnNdetDigiScheme::Print()
 
 // -------------------------------------------------------------------------
 
-Bool_t  BmnNdetDigiScheme::GetGroupIdModIdChanId (Int_t pMcVolumeNumber, Int_t pMcCopyNumber, Int_t pMotherCopyNumber, Int_t pMotherMotherCopyNumber, Int_t &pGroupId, Int_t &pChanId, Int_t &pModId)
+Bool_t  BmnNdetDigitScheme::GetGroupIdModIdChanId (Int_t pMcVolumeNumber, Int_t pMcCopyNumber, Int_t pMotherCopyNumber, Int_t pMotherMotherCopyNumber, Int_t &pGroupId, Int_t &pChanId, Int_t &pModId)
 {
   Int_t content[]={pMotherMotherCopyNumber,pMotherCopyNumber,pMcVolumeNumber,pMcCopyNumber};
   BmnNdetVolId_t pVolId (content,content+sizeof(content)/sizeof(Int_t));
-  BmnNdetDigiId_t  digiID = GetDigiId (&pVolId);
+  BmnNdetDigitId_t  digiID = GetDigiId (&pVolId);
   pGroupId = digiID[0];
   pModId = digiID[1];
   pChanId = digiID[2];
@@ -612,5 +612,5 @@ Bool_t  BmnNdetDigiScheme::GetGroupIdModIdChanId (Int_t pMcVolumeNumber, Int_t p
 } 
 
 // -------------------------------------------------------------------------
-ClassImp(BmnNdetDigiScheme)
+ClassImp(BmnNdetDigitScheme)
 

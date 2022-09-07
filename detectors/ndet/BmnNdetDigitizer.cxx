@@ -1,6 +1,6 @@
 /*************************************************************************************
  *
- *            BmnNdetDigiProducer 
+ *            BmnNdetDigitizer 
  *    Class to create digital data taken from BmnNdet detector 
  *         
  *  Author:   Elena Litvinenko
@@ -20,8 +20,8 @@
 #include "FairRunAna.h"
 #include "FairRuntimeDb.h"
 
-#include "BmnNdetDigiProducer.h"
-#include "BmnNdetDigi.h"
+#include "BmnNdetDigitizer.h"
+#include "BmnNdetDigit.h"
 #include "BmnNdetPoint.h"
 
 #include "TROOT.h"
@@ -29,7 +29,7 @@
 
 
 // -----   Default constructor   -------------------------------------------
-BmnNdetDigiProducer::BmnNdetDigiProducer(const char* name) :
+BmnNdetDigitizer::BmnNdetDigitizer(const char* name) :
   FairTask(name) {
   fPointArray=0;
   fDigiArray=0;
@@ -48,13 +48,13 @@ BmnNdetDigiProducer::BmnNdetDigiProducer(const char* name) :
 // -------------------------------------------------------------------------
 
 // -----   Destructor   ----------------------------------------------------
-BmnNdetDigiProducer::~BmnNdetDigiProducer() { }
+BmnNdetDigitizer::~BmnNdetDigitizer() { }
 // -------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------
-void BmnNdetDigiProducer::SetParContainers() 
+void BmnNdetDigitizer::SetParContainers() 
 {
-   cout << "-I- BmnNdetDigiProducer: SetParContainers started..." << endl;
+   cout << "-I- BmnNdetDigitizer: SetParContainers started..." << endl;
 
    //   Get run and runtime database
    FairRunAna* run = FairRunAna::Instance();
@@ -63,25 +63,25 @@ void BmnNdetDigiProducer::SetParContainers()
    FairRuntimeDb* rtdb = run->GetRuntimeDb();
    if ( ! rtdb ) Fatal("FairMuchDigitize::SetParContainers", "No runtime database");
   
-   cout << "-I- BmnNdetDigiProducer: SetParContainers continued..." << endl;
+   cout << "-I- BmnNdetDigitizer: SetParContainers continued..." << endl;
 
    rtdb->activateParIo(rtdb->getFirstInput());
    //   fGeoPar=( BmnNdetGeoPar*) rtdb->getContainer("BmnNdetGeoPar");
    fGeoPar=( BmnNdetGeoPar*) gROOT->FindObject("BmnNdetGeoPar");
    fGeoPar->print();
 
-   cout << "-I- BmnNdetDigiProducer: SetParContainers finished." << endl;
+   cout << "-I- BmnNdetDigitizer: SetParContainers finished." << endl;
 }
 
 // -------------------------------------------------------------------------
 // -----   Public method Init   --------------------------------------------
-InitStatus BmnNdetDigiProducer::Init() {
+InitStatus BmnNdetDigitizer::Init() {
  
 
-  cout << "-I- BmnNdetDigiProducer: Init started..." << endl;
+  cout << "-I- BmnNdetDigitizer: Init started..." << endl;
    fRandom3 = new TRandom3();
 
-   Int_t nbMods=225;
+   Int_t nbMods=9;
    Int_t nbSect=15;
 
    // Get nDet module mapping (if mapping file is set)
@@ -159,31 +159,31 @@ InitStatus BmnNdetDigiProducer::Init() {
   // Get input array
   fPointArray = (TClonesArray*) ioman->GetObject("NdetPoint");
   if ( ! fPointArray ) {
-    cout << "-W- BmnNdetDigiProducer::Init: "
+    cout << "-W- BmnNdetDigitizer::Init: "
 	 << "No NdetPoint array!" << endl;
     return kERROR;
   }
   
   // Create and register output array
-  fDigiArray = new TClonesArray("BmnNdetDigi");  
+  fDigiArray = new TClonesArray("BmnNdetDigit");  
   ioman->Register("NdetDigi","Ndet",fDigiArray,kTRUE);
  
-  BmnNdetDigiScheme *fDigiScheme  = BmnNdetDigiScheme::Instance();
+  BmnNdetDigitScheme *fDigiScheme  = BmnNdetDigitScheme::Instance();
   fDigiScheme->Init(fGeoPar,0,2);
 
-  cout << "-I- BmnNdetDigiProducer: Intialization successfull" << endl;
+  cout << "-I- BmnNdetDigitizer: Intialization successfull" << endl;
   
   return kSUCCESS;
 
 }
 
 // -------------------------------------------------------------------------
-void BmnNdetDigiProducer::CreateHistograms ( BmnNdetDigiId_t *pDigiID)
+void BmnNdetDigitizer::CreateHistograms ( BmnNdetDigitId_t *pDigiID)
 {
   Int_t nx,ny, nz;
   Double_t dx, dy, dz;
 
-  BmnNdetDigiScheme *fDigiScheme  = BmnNdetDigiScheme::Instance();
+  BmnNdetDigitScheme *fDigiScheme  = BmnNdetDigitScheme::Instance();
   // fDigiScheme->GetNdetDimensions (nx,ny,nz);
   // fDigiScheme->GetVolDxDyDz (pDigiID,dx, dy, dz);
   nx = 10 ; ny = 10 ; dx = 75; dy = 75; dz=1010;  // mm
@@ -196,7 +196,7 @@ void BmnNdetDigiProducer::CreateHistograms ( BmnNdetDigiId_t *pDigiID)
   fHistNdetEn = new TH2F ("HistNdetEn","HistNdetEnergy",Nx,-Dx,Dx,Ny,-Dy,Dy);
 
   if (!fHistNdetEn) 
-    cout << "-E- BmnNdetDigiProducer: HistNdetEn Histogram not created !!" << endl;
+    cout << "-E- BmnNdetDigitizer: HistNdetEn Histogram not created !!" << endl;
   else {
     FairRootManager* ioman = FairRootManager::Instance();
     fHistNdetEn->SetDirectory((TFile*)ioman->GetOutFile());
@@ -206,30 +206,30 @@ void BmnNdetDigiProducer::CreateHistograms ( BmnNdetDigiId_t *pDigiID)
 }
 
 // -----   Public method Exec   --------------------------------------------
-void BmnNdetDigiProducer::Exec(Option_t* opt) {
+void BmnNdetDigitizer::Exec(Option_t* opt) {
  
 
   //#define EDEBUG
 #ifdef EDEBUG
   static Int_t lEDEBUGcounter=0;
-  cout << "EDEBUG-- BmnNdetDigiProducer::Exec() started... " << endl;;
+  cout << "EDEBUG-- BmnNdetDigitizer::Exec() started... " << endl;;
 #endif
 
   if ( ! fDigiArray ) Fatal("Exec", "No DigiArray");
   
   fDigiArray->Clear();
 
-  BmnNdetDigiScheme *pDigiScheme  = BmnNdetDigiScheme::Instance();
+  BmnNdetDigitScheme *pDigiScheme  = BmnNdetDigitScheme::Instance();
 
   if (!pDigiScheme) 
-    Fatal("BmnNdetDigiProducer::Exec", "No DigiScheme");
+    Fatal("BmnNdetDigitizer::Exec", "No DigiScheme");
 
   //Int_t module_groupID, modID, chanID;
   Int_t modID, chanID;
   Double_t time;
-  BmnNdetDigiId_t digiID;
+  BmnNdetDigitId_t digiID;
    // marina
-   Int_t nbMods=225;
+   Int_t nbMods=9;
    Int_t nbSect=15;
    Double_t dEdepSectEv[nbMods][nbSect];
    Double_t dTimeEv[nbMods][nbSect];
@@ -244,9 +244,9 @@ void BmnNdetDigiProducer::Exec(Option_t* opt) {
   
   BmnNdetPoint* point  = NULL;
 
-  map<BmnNdetDigiId_t, Float_t> fDigiIdEnergy;
+  map<BmnNdetDigitId_t, Float_t> fDigiIdEnergy;
   fDigiIdEnergy.clear();
-  map<BmnNdetDigiId_t, Float_t>::const_iterator p;
+  map<BmnNdetDigitId_t, Float_t>::const_iterator p;
   
   Int_t nPoints = fPointArray->GetEntriesFast();
   Double_t e1=0;
@@ -277,7 +277,7 @@ void BmnNdetDigiProducer::Exec(Option_t* opt) {
 
 #ifdef EDEBUG
       if (lEDEBUGcounter<20) {
-	cout << "EDEBUG-- BmnNdetDigiProducer::Exec:  point : "; point->Print("");
+	cout << "EDEBUG-- BmnNdetDigitizer::Exec:  point : "; point->Print("");
 	lEDEBUGcounter++;
       }
 #endif
@@ -286,7 +286,7 @@ void BmnNdetDigiProducer::Exec(Option_t* opt) {
 #ifdef EDEBUG
     else {
       if (lEDEBUGcounter<100) {
-	cout << "EDEBUG-- BmnNdetDigiProducer::Exec:  Boundary point? : "; point->Print("");
+	cout << "EDEBUG-- BmnNdetDigitizer::Exec:  Boundary point? : "; point->Print("");
 	lEDEBUGcounter++;
       }
     }
@@ -302,8 +302,8 @@ void BmnNdetDigiProducer::Exec(Option_t* opt) {
             Double_t recEnergy = RecoEnergy(dEdepSectEv[i][ii]);
 
 	    //module_groupID=1;
-	    //BmnNdetDigi *digi = AddHit(module_groupID, i + 1, ii + 1, dEdepSectEv[i][ii]);
-               BmnNdetDigi *digi = AddHit(dTimeEv[i][ii], i + 1, ii + 1, dEdepSectEv[i][ii]);
+	    //BmnNdetDigit *digi = AddHit(module_groupID, i + 1, ii + 1, dEdepSectEv[i][ii]);
+               BmnNdetDigit *digi = AddHit(dTimeEv[i][ii], i + 1, ii + 1, dEdepSectEv[i][ii]);
                digi->ConvertSim();
                digi->SetELossReco(recEnergy);
                e1 += recEnergy;
@@ -324,10 +324,10 @@ void BmnNdetDigiProducer::Exec(Option_t* opt) {
 
     if ((module_groupID!=-1)&&(chanID!=-1)) {
       eloss = (*p).second;
-      BmnNdetDigi* digi = AddHit(module_groupID, modID, chanID, eloss); 
+      BmnNdetDigit* digi = AddHit(module_groupID, modID, chanID, eloss); 
 #ifdef EDEBUG
       if (lEDEBUGcounter<50) {
-	cout << "EDEBUG-- BmnNdetDigiProducer::Exec: "<< module_groupID<< " " << chanID << "   " << 
+	cout << "EDEBUG-- BmnNdetDigitizer::Exec: "<< module_groupID<< " " << chanID << "   " << 
 	  (*p).second << "     " << lEDEBUGcounter << endl;
 	lEDEBUGcounter++;
       }
@@ -341,18 +341,18 @@ void BmnNdetDigiProducer::Exec(Option_t* opt) {
 
 
 // -----   Private method AddDigi   --------------------------------------------
-//BmnNdetDigi* BmnNdetDigiProducer::AddHit(Int_t module_groupID, Int_t modID, Int_t chanID,Float_t energy)
-BmnNdetDigi* BmnNdetDigiProducer::AddHit(Double_t time, Int_t modID, Int_t chanID,Float_t energy)
+//BmnNdetDigit* BmnNdetDigitizer::AddHit(Int_t module_groupID, Int_t modID, Int_t chanID,Float_t energy)
+BmnNdetDigit* BmnNdetDigitizer::AddHit(Double_t time, Int_t modID, Int_t chanID,Float_t energy)
 {
   TClonesArray& clref = *fDigiArray;
   Int_t size = clref.GetEntriesFast();
-  //BmnNdetDigi* result = new(clref[size]) BmnNdetDigi(module_groupID,modID,chanID,(Double_t)energy);
-  BmnNdetDigi* result = new(clref[size]) BmnNdetDigi(time,modID,chanID,(Double_t)energy);
+  //BmnNdetDigit* result = new(clref[size]) BmnNdetDigit(module_groupID,modID,chanID,(Double_t)energy);
+  BmnNdetDigit* result = new(clref[size]) BmnNdetDigit(time,modID,chanID,(Double_t)energy);
   //  result->Print();
   return result;
 }
 // ----
-Double_t BmnNdetDigiProducer::RecoEnergy(Double_t pfELoss)
+Double_t BmnNdetDigitizer::RecoEnergy(Double_t pfELoss)
 {
    Double_t energyMIP        = pfELoss / fMIPEnergy;
    Double_t energyPix        = fRandom3->Poisson(energyMIP * fPix2Mip);
@@ -364,4 +364,4 @@ Double_t BmnNdetDigiProducer::RecoEnergy(Double_t pfELoss)
 }
 
 
-ClassImp(BmnNdetDigiProducer)
+ClassImp(BmnNdetDigitizer)

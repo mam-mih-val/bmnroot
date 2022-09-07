@@ -1,6 +1,6 @@
 /*************************************************************************************
  *
- *            BmnNdetDigi 
+ *            BmnNdetDigit 
  *    Class for digital data taken from BmnNdet detector 
  *         
  *  Author:   Elena Litvinenko
@@ -10,21 +10,21 @@
  *
  ************************************************************************************/
 
-#ifndef BMNNDETDIGI_H
-#define BMNNDETDIGI_H
+#ifndef BMNNDETDIGIT_H
+#define BMNNDETDIGIT_H
 
 #include "BmnNdetPoint.h"
 
-class BmnNdetDigi: public TObject
+class BmnNdetDigit: public TObject
 {
  public:
 
-  BmnNdetDigi();
-  //BmnNdetDigi(Int_t pfGroupID, Int_t pfModuleID, Int_t pfChannelID, Double_t   pfELoss, Double_t   pfELossDigi=0 );
-  BmnNdetDigi(Double_t pfTime, Int_t pfModuleID, Int_t pfChannelID, Double_t   pfELoss );
-  BmnNdetDigi(BmnNdetPoint *p);
+  BmnNdetDigit();
+  //BmnNdetDigit(Int_t pfGroupID, Int_t pfModuleID, Int_t pfChannelID, Double_t   pfELoss, Double_t   pfELossDigi=0 );
+  BmnNdetDigit(Double_t pfTime, Int_t pfModuleID, Int_t pfChannelID, Double_t   pfELoss );
+  BmnNdetDigit(BmnNdetPoint *p);
 
-  virtual ~BmnNdetDigi();
+  virtual ~BmnNdetDigit();
   void Clear();
   
   void InitStatic();
@@ -149,8 +149,8 @@ class BmnNdetDigi: public TObject
    Double_t fModuleX;    // Module X coordinate
    Double_t fModuleY;    // Module Y coordinate
 
-  ClassDef(BmnNdetDigi,3);
+  ClassDef(BmnNdetDigit,3);
 
 };
 
-#endif // BMNNDETDIGI_H
+#endif // BMNNDETDIGIT_H

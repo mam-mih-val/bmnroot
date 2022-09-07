@@ -1,6 +1,6 @@
 /*************************************************************************************
  *
- *         BmnNdetDigiPar
+ *         BmnNdetDigitPar
  *    Container class for BmnNdet digitisation parameters  
  *         
  *  Author:   Elena Litvinenko
@@ -10,19 +10,19 @@
  *
  ************************************************************************************/
 
-#include "BmnNdetDigiPar.h"
+#include "BmnNdetDigitPar.h"
 #include "FairParamList.h"
 
-ClassImp(BmnNdetDigiPar)
+ClassImp(BmnNdetDigitPar)
 
-BmnNdetDigiPar::BmnNdetDigiPar (const char *name, const char *title,
+BmnNdetDigitPar::BmnNdetDigitPar (const char *name, const char *title,
 			      const char *context)
   : FairParGenericSet(name, title, context)
 {
 
 }
 
-void BmnNdetDigiPar::putParams(FairParamList* list)
+void BmnNdetDigitPar::putParams(FairParamList* list)
 {
   if(!list) return;
    list->add("ADCBits", fADCBits);
@@ -30,7 +30,7 @@ void BmnNdetDigiPar::putParams(FairParamList* list)
    list->add("EnergyDigiThreshold", fEnergyDigiThreshold);
   //  list->add("param",fparam);
 }
-Bool_t BmnNdetDigiPar::getParams(FairParamList* list)
+Bool_t BmnNdetDigitPar::getParams(FairParamList* list)
 {
   if (!list) return kFALSE;
    if (!list->fill("ADCBits", &fADCBits)) return kFALSE;

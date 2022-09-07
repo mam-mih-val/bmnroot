@@ -1,7 +1,7 @@
 
 /*************************************************************************************
  *
- *            BmnNdetDigi 
+ *            BmnNdetDigit 
  *    Class for digital data taken from BmnNdet detector 
  *         
  *  Author:   Elena Litvinenko
@@ -11,8 +11,8 @@
  *
  ************************************************************************************/
 
-#include "BmnNdetDigi.h"
-#include "BmnNdetDigiScheme.h"
+#include "BmnNdetDigit.h"
+#include "BmnNdetDigitScheme.h"
 
 #include <iostream>
 using std::cout;
@@ -22,15 +22,15 @@ static const Int_t    kADCBits             = 30;   // build-in constant
 static const Double_t kADCResolution       = 1e-9; // build-in constant
 static const Double_t kEnergyDigiThreshold = 0;    // build-in constant
 
-char BmnNdetDigi::fWasInitialized = 0;
+char BmnNdetDigit::fWasInitialized = 0;
 
-Int_t    BmnNdetDigi::fADCBits             = kADCBits;
-Double_t BmnNdetDigi::fADCResolution       = kADCResolution;
-Double_t BmnNdetDigi::fEnergyDigiThreshold = kEnergyDigiThreshold;
+Int_t    BmnNdetDigit::fADCBits             = kADCBits;
+Double_t BmnNdetDigit::fADCResolution       = kADCResolution;
+Double_t BmnNdetDigit::fEnergyDigiThreshold = kEnergyDigiThreshold;
 
 // -------------------------------------------------------------------------
 
-BmnNdetDigi::BmnNdetDigi()
+BmnNdetDigit::BmnNdetDigit()
 {
   //fGroupID = -1;
   fTime = -100;
@@ -46,9 +46,9 @@ BmnNdetDigi::BmnNdetDigi()
 
 // -------------------------------------------------------------------------
 
-//BmnNdetDigi::BmnNdetDigi(Int_t pfGroupID, Int_t pfModuleID, Int_t pfChannelID, Double_t   pfELoss, Double_t   pfELossDigi)
-//BmnNdetDigi::BmnNdetDigi(Int_t pfGroupID, Int_t pfModuleID, Int_t pfChannelID, Double_t   pfELoss)
-BmnNdetDigi::BmnNdetDigi(Double_t pfTime, Int_t pfModuleID, Int_t pfChannelID, Double_t   pfELoss)
+//BmnNdetDigit::BmnNdetDigit(Int_t pfGroupID, Int_t pfModuleID, Int_t pfChannelID, Double_t   pfELoss, Double_t   pfELossDigi)
+//BmnNdetDigit::BmnNdetDigit(Int_t pfGroupID, Int_t pfModuleID, Int_t pfChannelID, Double_t   pfELoss)
+BmnNdetDigit::BmnNdetDigit(Double_t pfTime, Int_t pfModuleID, Int_t pfChannelID, Double_t   pfELoss)
 {
   //fGroupID = pfGroupID;
   fTime = pfTime;
@@ -62,7 +62,7 @@ BmnNdetDigi::BmnNdetDigi(Double_t pfTime, Int_t pfModuleID, Int_t pfChannelID, D
 
 // -------------------------------------------------------------------------
 
-BmnNdetDigi::BmnNdetDigi(BmnNdetPoint *p)
+BmnNdetDigit::BmnNdetDigit(BmnNdetPoint *p)
 {
   //fGroupID = -1;
   fTime = -100;
@@ -71,7 +71,7 @@ BmnNdetDigi::BmnNdetDigi(BmnNdetPoint *p)
   fELoss     = 0;
   fELossDigi = 0;
 
-  BmnNdetDigiScheme *pDigiScheme  = BmnNdetDigiScheme::Instance();
+  BmnNdetDigitScheme *pDigiScheme  = BmnNdetDigitScheme::Instance();
 
   if ((pDigiScheme)&&(p)) { 
     /*
@@ -99,7 +99,7 @@ BmnNdetDigi::BmnNdetDigi(BmnNdetPoint *p)
 
 // -------------------------------------------------------------------------
 
-BmnNdetDigi::~BmnNdetDigi()
+BmnNdetDigit::~BmnNdetDigit()
 {
 
 }
@@ -107,7 +107,7 @@ BmnNdetDigi::~BmnNdetDigi()
 
 // -------------------------------------------------------------------------
 
-void BmnNdetDigi::Clear()
+void BmnNdetDigit::Clear()
 {
    fWasInitialized      = 0;
    fADCBits             = kADCBits;
@@ -121,18 +121,18 @@ void BmnNdetDigi::Clear()
 // -------------------------------------------------------------------------
 // -------------------------------------------------------------------------
 
-void BmnNdetDigi::InitStatic()
+void BmnNdetDigit::InitStatic()
 {
    Bool_t do_init = ((!fWasInitialized));
    //Bool_t do_init = 1;
   if (do_init) {
     Clear();
     fWasInitialized               = 1;
-    BmnNdetDigiScheme *pDigiScheme  = BmnNdetDigiScheme::Instance();
+    BmnNdetDigitScheme *pDigiScheme  = BmnNdetDigitScheme::Instance();
 
     if (pDigiScheme) { 
 
-      BmnNdetDigiPar*    pNdetDigiPar=0;
+      BmnNdetDigitPar*    pNdetDigiPar=0;
 
       pNdetDigiPar = pDigiScheme->GetNdetDigiPar();
 
@@ -149,10 +149,10 @@ void BmnNdetDigi::InitStatic()
 
 // -------------------------------------------------------------------------
 
-void BmnNdetDigi::Print(const Option_t* opt)
+void BmnNdetDigit::Print(const Option_t* opt)
 {
   /*
-  cout << " BmnNdetDigi  ModuleGroupID:" << fGroupID  << " ModuleID:" << fModuleID<< " ChanID:" << fChannelID<< 
+  cout << " BmnNdetDigit  ModuleGroupID:" << fGroupID  << " ModuleID:" << fModuleID<< " ChanID:" << fChannelID<< 
   " ELossDigi:" << fELossDigi<< " ELoss: " << fELoss << endl;
   */
   /*
@@ -169,9 +169,9 @@ void BmnNdetDigi::Print(const Option_t* opt)
 
 // -------------------------------------------------------------------------
 
-UInt_t BmnNdetDigi::AddNdetPoint (BmnNdetPoint *p)
+UInt_t BmnNdetDigit::AddNdetPoint (BmnNdetPoint *p)
 {
-  BmnNdetDigiScheme *pDigiScheme  = BmnNdetDigiScheme::Instance();
+  BmnNdetDigitScheme *pDigiScheme  = BmnNdetDigitScheme::Instance();
 
   if ((pDigiScheme)&&(p)) { 
     /*
@@ -197,7 +197,7 @@ UInt_t BmnNdetDigi::AddNdetPoint (BmnNdetPoint *p)
 
 // -------------------------------------------------------------------------
 
-UInt_t BmnNdetDigi::ADC(Double_t pfELoss)
+UInt_t BmnNdetDigit::ADC(Double_t pfELoss)
 {
    //  if (pfELoss<=fEnergyDigiThreshold) {
    if (pfELoss > 0) {
@@ -210,4 +210,4 @@ UInt_t BmnNdetDigi::ADC(Double_t pfELoss)
 
 // -------------------------------------------------------------------------
 
-ClassImp(BmnNdetDigi)
+ClassImp(BmnNdetDigit)

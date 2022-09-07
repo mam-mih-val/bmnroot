@@ -4,33 +4,33 @@
 // *  Modified by M.Golubeva July 2022
 // -------------------------------------------------------------------------
 
-#ifndef BMNNDETDIGIPRODUCER_H
-#define BMNNDETDIGIPRODUCER_H 1
+#ifndef BMNNDETDIGITIZER_H
+#define BMNNDETDIGITIZER_H 1
 
 
 #include <map>
 #include "FairTask.h"
 #include "TClonesArray.h"
-#include "BmnNdetDigi.h"
+#include "BmnNdetDigit.h"
 #include "BmnNdetGeoPar.h"
-#include "BmnNdetDigiScheme.h"
+#include "BmnNdetDigitScheme.h"
 
 #include "TParameter.h"
 #include "TH2F.h"
 
 #include "TRandom3.h"
 
-class BmnNdetDigiProducer : public FairTask
+class BmnNdetDigitizer : public FairTask
 {
 
  public:
 
   /** Default constructor **/  
-  BmnNdetDigiProducer(const char* name="BmnNdet Digi Producer");
+  BmnNdetDigitizer(const char* name="BmnNdet Digi Producer");
 
 
   /** Destructor **/
-  ~BmnNdetDigiProducer();
+  ~BmnNdetDigitizer();
 
 
   /** Virtual method Init **/
@@ -40,10 +40,10 @@ class BmnNdetDigiProducer : public FairTask
   /** Virtual method Exec **/
   virtual void Exec(Option_t* opt);
 
-  //BmnNdetDigi* AddHit(Int_t module_groupID, Int_t modID, Int_t chanID,Float_t energy);
-  BmnNdetDigi* AddHit(Double_t time, Int_t modID, Int_t chanID,Float_t energy);
+  //BmnNdetDigit* AddHit(Int_t module_groupID, Int_t modID, Int_t chanID,Float_t energy);
+  BmnNdetDigit* AddHit(Double_t time, Int_t modID, Int_t chanID,Float_t energy);
 
-  void CreateHistograms ( BmnNdetDigiId_t *pDigiID);
+  void CreateHistograms ( BmnNdetDigitId_t *pDigiID);
 
    inline void SetPix2Mip(Double_t setValue) { fPix2Mip = setValue; }
    inline void SetMIPEnergy(Double_t setValue) { fMIPEnergy = setValue; }
@@ -78,14 +78,14 @@ class BmnNdetDigiProducer : public FairTask
  /** Input array of BmnNdetPoints **/
   TClonesArray* fPointArray;
 
-  /** Output array of BmnNdetDigi **/
+  /** Output array of BmnNdetDigit **/
   TClonesArray* fDigiArray; 
 
 
   /** Input geometry parameters container**/
   BmnNdetGeoPar* fGeoPar;
   
-  ClassDef(BmnNdetDigiProducer,2);
+  ClassDef(BmnNdetDigitizer,2);
   
 };
 

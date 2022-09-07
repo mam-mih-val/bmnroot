@@ -29,10 +29,10 @@ BmnNdetPoint.cxx
 BmnNdetContFact.cxx  
 BmnNdetGeo.cxx 
 BmnNdetGeoPar.cxx
-BmnNdetDigi.cxx
-BmnNdetDigiPar.cxx
-BmnNdetDigiScheme.cxx
-BmnNdetDigiProducer.cxx
+BmnNdetDigit.cxx
+BmnNdetDigitPar.cxx
+BmnNdetDigitScheme.cxx
+BmnNdetDigitizer.cxx
 )
 
 Set(HEADERS)

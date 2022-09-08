@@ -271,7 +271,7 @@ Bool_t CbmStsDigiScheme::InitNewNew(CbmGeoStsPar* geoPar,
 
     //Create GEM detector ------------------------------------------------------
     GemStationSet = new BmnGemStripStationSet(gPathConfig + "/parameters/gem/XMLConfigs/GemRun8.xml");
-    SilStationSet = new BmnSiliconStationSet(gPathConfig + "/parameters/silicon/XMLConfigs/SiliconRun8_3stations.xml");
+    SilStationSet = new BmnSiliconStationSet(gPathConfig + "/parameters/silicon/XMLConfigs/SiliconRun8_4stations.xml");
     
     //printf("SilStationSet->GetNStations() = %d\n", SilStationSet->GetNStations());
     int nSiStat = SilStationSet->GetNStations(); //AZ-190322

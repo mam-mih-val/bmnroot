@@ -19,7 +19,7 @@ BmnToCbmHitConverter::BmnToCbmHitConverter()
     fBmnSilHitsBranchName("BmnSiliconHit"),
     fCbmHitsBranchName("StsHit"),
     fGemConfigFile("GemRun8.xml"),
-    fSilConfigFile("SiliconRun8_3stations.xml") {}
+    fSilConfigFile("SiliconRun8_4stations.xml") {}
 // -------------------------------------------------------------------------
 
 
@@ -39,7 +39,7 @@ BmnToCbmHitConverter::BmnToCbmHitConverter(Int_t iVerbose)
     fBmnSilHitsBranchName("BmnSiliconHit"),
     fCbmHitsBranchName("StsHit"),
     fGemConfigFile("GemRun8.xml"),
-    fSilConfigFile("SiliconRun8_3stations.xml") {}
+    fSilConfigFile("SiliconRun8_4stations.xml") {}
 // -------------------------------------------------------------------------
 
 // -----   Destructor   ----------------------------------------------------

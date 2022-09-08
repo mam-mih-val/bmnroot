@@ -133,12 +133,14 @@ void BmnTrackingQa::Exec(Option_t* opt) {
 }
 
 void BmnTrackingQa::Finish() {
-    fHM->WriteToFile();
+    
     BmnSimulationReport* report = new BmnTrackingQaReport(fOutName);
     report->SetOnlyPrimes(fPrimes);
     report->Create(fHM, fOutputDir);
+    fHM->WriteToFile();
     delete report;
 
+    
     printf("nAllMC = %d\n", nAllMcTracks);
     printf("nAllReco = %d\n", nAllRecoTracks);
     printf("nGoodReco = %d\n", nGoodRecoTracks);
@@ -154,6 +156,7 @@ void BmnTrackingQa::ReadDataBranches() {
     if (nullptr == fMCTracks) Fatal("Init", "No MCTrack array!");
 
     fGlobalTracks = (TClonesArray*)ioman->GetObject("BmnGlobalTrack");
+    if (nullptr == fGlobalTracks) Fatal("Init", "No BmnGlobalTrack array!");
     fGlobalTrackMatches = (TClonesArray*)ioman->GetObject("BmnGlobalTrackMatch");
 
     fGemTracks = (TClonesArray*)ioman->GetObject("BmnGemTrack");

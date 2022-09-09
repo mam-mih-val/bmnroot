@@ -11,6 +11,7 @@
 #include "BmnScWallRaw2Digit.h"
 #include "BmnFHCalRaw2Digit.h"
 #include "BmnHodoRaw2Digit.h"
+#include "BmnNdetRaw2Digit.h"
 #include "BmnECALRaw2Digit.h"
 #include "BmnLANDRaw2Digit.h"
 #include "BmnTofCalRaw2Digit.h"
@@ -77,6 +78,7 @@ public:
         d.scwall = scwall;
         d.fhcal = fhcal;
         d.hodo = hodo;
+        d.ndet = ndet;
         d.ecal = ecal;
         d.land = land;
         d.tofcal = tofcal;
@@ -152,6 +154,10 @@ public:
 
     BmnHodoRaw2Digit *GetHodoMapper() {
         return fHodoMapper;
+    }
+
+    BmnNdetRaw2Digit *GetNdetMapper() {
+        return fNdetMapper;
     }
 
     BmnECALRaw2Digit *GetECALMapper() {
@@ -239,6 +245,14 @@ public:
 
     void SetHodoCalibration(TString cal) {
         fHodoCalibrationFileName = cal;
+    }
+
+    void SetNdetMapping(TString map) {
+        fNdetMapFileName = map;
+    }
+
+    void SetNdetCalibration(TString cal) {
+        fNdetCalibrationFileName = cal;
     }
 
     void SetECALMapping(TString map) {
@@ -375,6 +389,8 @@ private:
     UInt_t fNFHCalSerials;
     vector<UInt_t> fHodoSerials; //list of serial id for HODO
     UInt_t fNHodoSerials;
+    vector<UInt_t> fNdetSerials; //list of serial id for NDET
+    UInt_t fNNdetSerials;
     vector<UInt_t> fECALSerials; //list of serial id for ECal
     UInt_t fNECALSerials;
 
@@ -421,6 +437,8 @@ private:
     TString fFHCalCalibrationFileName;
     TString fHodoMapFileName;
     TString fHodoCalibrationFileName;
+    TString fNdetMapFileName;
+    TString fNdetCalibrationFileName;
     TString fECALMapFileName;
     TString fECALCalibrationFileName;
     TString fMSCMapFileName;
@@ -468,6 +486,7 @@ private:
     TClonesArray *scwall;
     TClonesArray *fhcal;
     TClonesArray *hodo;
+    TClonesArray *ndet;
     TClonesArray *ecal;
     TClonesArray *land;
     TClonesArray *tofcal;
@@ -495,6 +514,7 @@ private:
     BmnScWallRaw2Digit *fScWallMapper;
     BmnFHCalRaw2Digit *fFHCalMapper;
     BmnHodoRaw2Digit *fHodoMapper;
+    BmnNdetRaw2Digit *fNdetMapper;
     BmnECALRaw2Digit *fECALMapper;
     BmnLANDRaw2Digit *fLANDMapper;
     BmnTofCalRaw2Digit *fTofCalMapper;

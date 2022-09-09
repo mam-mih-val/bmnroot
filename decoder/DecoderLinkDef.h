@@ -11,6 +11,7 @@
 #pragma link C++ class BmnScWallRaw2Digit+;
 #pragma link C++ class BmnFHCalRaw2Digit+;
 #pragma link C++ class BmnHodoRaw2Digit+;
+#pragma link C++ class BmnNdetRaw2Digit+;
 #pragma link C++ class BmnECALRaw2Digit+;
 #pragma link C++ class BmnTof2Raw2DigitNew+;
 #pragma link C++ class BmnTof1Raw2Digit+;

@@ -24,7 +24,7 @@ harmonic = 0.67
 # Material ( S -- scintillator, Q -- quarz, N -- not connected )
 # Strip Side ( 0 -- down, 1 -- up )	
 # Gain ( 0 -- low, 1 -- high )	
-# cosmic calibration of channel. To be multiplied by signal
+# calibration of channel. To be multiplied by signal
 #           Mater   StripId  StrSide  Gain  Calib  CalibError
 #=========================================================================
 

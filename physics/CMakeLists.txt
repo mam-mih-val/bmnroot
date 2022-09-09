@@ -26,6 +26,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/detectors/scwall
  ${CMAKE_SOURCE_DIR}/detectors/hodo
  ${CMAKE_SOURCE_DIR}/detectors/fhcal
+ ${CMAKE_SOURCE_DIR}/detectors/ndet
  ${CMAKE_SOURCE_DIR}/detectors/land
 ## New directory structure for common library to be built ...
  ${CMAKE_SOURCE_DIR}/decoder
@@ -83,6 +84,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF PhysicsLinkDef.h)
 Set(LIBRARY_NAME BmnPhysics)
-Set(DEPENDENCIES BmnRecoTools BmnGlobalTracking BmnDecoder LAND FHCal Hodo ScWall Zdc Ecal TofCal TOF TOF1 Gem Silicon CSC Dch Mwpc BmnBase BmnField DbTools UniDb ElogDb)
+Set(DEPENDENCIES BmnRecoTools BmnGlobalTracking BmnDecoder LAND FHCal Hodo ScWall Ndet Zdc Ecal TofCal TOF TOF1 Gem Silicon CSC Dch Mwpc BmnBase BmnField DbTools UniDb ElogDb)
 
 GENERATE_LIBRARY()

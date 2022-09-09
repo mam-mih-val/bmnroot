@@ -30,6 +30,7 @@ Set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/detectors/hodo
  ${CMAKE_SOURCE_DIR}/detectors/scwall
  ${CMAKE_SOURCE_DIR}/detectors/fhcal
+ ${CMAKE_SOURCE_DIR}/detectors/ndet
  ${CMAKE_SOURCE_DIR}/detectors/land
  ${CMAKE_SOURCE_DIR}/alignment
  ${CMAKE_SOURCE_DIR}/decoder
@@ -106,7 +107,7 @@ target_link_directories(bmn-mon-prof PRIVATE
 Set(HEADERS)
 Set(LINKDEF MonitorLinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)
-Set(DEPENDENCIES BmnQa BmnGlobalTracking BmnDecoder Alignment LAND FHCal ScWall Zdc Ecal TofCal TOF TOF1 Gem Silicon CSC Dch Mwpc
+Set(DEPENDENCIES BmnQa BmnGlobalTracking BmnDecoder Alignment LAND FHCal ScWall Ndet Zdc Ecal TofCal TOF TOF1 Gem Silicon CSC Dch Mwpc
                  BmnBase BmnField BmnTracking DbTools ElogDb UniDb Base Core ${ZeroMQ_LIBRARY_SHARED} FairMQ)
 
 GENERATE_LIBRARY()

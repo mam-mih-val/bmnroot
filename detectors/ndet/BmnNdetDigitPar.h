@@ -21,7 +21,7 @@ class BmnNdetDigitPar: public FairParGenericSet
 
  public :
 
-  BmnNdetDigitPar (const char *name="BmnNdetDigitPar", const char *title="NDET Digi Parameters", const char *context="TestDefaultContext");
+  BmnNdetDigitPar (const char *name="BmnNdetDigitPar", const char *title="NDET Digit Parameters", const char *context="TestDefaultContext");
 
   virtual ~BmnNdetDigitPar() {};
 

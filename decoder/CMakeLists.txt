@@ -25,6 +25,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/detectors/scwall
  ${CMAKE_SOURCE_DIR}/detectors/hodo
  ${CMAKE_SOURCE_DIR}/detectors/fhcal
+ ${CMAKE_SOURCE_DIR}/detectors/ndet
  ${CMAKE_SOURCE_DIR}/detectors/land
  ${CMAKE_SOURCE_DIR}/decoder
  ${CMAKE_SOURCE_DIR}/reconstruction/cat
@@ -56,6 +57,7 @@ set(SRCS
  BmnScWallRaw2Digit.cxx
  BmnFHCalRaw2Digit.cxx
  BmnHodoRaw2Digit.cxx
+ BmnNdetRaw2Digit.cxx
  BmnECALRaw2Digit.cxx
  BmnLANDRaw2Digit.cxx
  BmnTofCalRaw2Digit.cxx
@@ -92,7 +94,7 @@ endif()
 Set(HEADERS)
 Set(LINKDEF DecoderLinkDef.h)
 Set(LIBRARY_NAME BmnDecoder)
-Set(DEPENDENCIES LAND FHCal Hodo ScWall Zdc Ecal TofCal TOF TOF1 CSC Gem Silicon
+Set(DEPENDENCIES LAND FHCal Hodo ScWall Ndet Zdc Ecal TofCal TOF TOF1 CSC Gem Silicon
 SiBT Dch Mwpc BmnBase DbTools UniDb ElogDb TangoData Base Minuit Core boost_program_options)
 
 GENERATE_LIBRARY()

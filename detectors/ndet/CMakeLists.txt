@@ -27,6 +27,8 @@ set(SRCS
 BmnNdet.cxx 
 BmnNdetPoint.cxx  
 BmnNdetContFact.cxx  
+BmnNdetAddress.cxx
+BmnNdetDigi.cxx
 BmnNdetGeo.cxx 
 BmnNdetGeoPar.cxx
 BmnNdetDigit.cxx

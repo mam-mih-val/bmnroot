@@ -323,6 +323,12 @@ void RecEventHeaderQA(QA::Task& task)
   task.AddH1({"M_{tracks}", {rec_event_header, "M"}, {250, 0, 250}});
   task.AddH2({"M_{tracks}", {rec_event_header, "M"}, {250, 0, 250}},
              {"E_{FHCal} (GeV)", {rec_event_header, "total_fhcal_energy"}, {200, 0, 10}});
+
+  task.AddH2({"M_{tracks}", {rec_event_header, "M"}, {250, 0, 250}},
+             {"b (fm)", {sim_event_header, "b"}, {200, 0, 20}});
+  task.AddH2({"E_{FHCal} (GeV)", {rec_event_header, "total_fhcal_energy"}, {200, 0, 10}},
+             {"b (fm)", {sim_event_header, "b"}, {200, 0, 20}});
+
   task.AddH1({"Event ID", {rec_event_header, "evt_id"}, {QA::gNbins, 0, 2000}});
 
   task.AddH2({"x_{vertex} (cm)", {rec_event_header, "vtx_x"}, {QA::gNbins, -1, 1}},

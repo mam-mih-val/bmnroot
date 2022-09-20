@@ -26,7 +26,7 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
         fBig.push_back(new BmnGemMap[N_CH_BUF]);
     }
 
-    if (fPeriod >= 8) {
+    if ((fPeriod >= 8) && fSetup != kSRCSETUP) {
         ReadLocalMap("X0_Bottom_Left.txt", fBigHot[2], 2, 2);
         ReadLocalMap("X0_Bottom_Right.txt", fBigHot[3], 2, 3);
         ReadLocalMap("X_Bottom_Left.txt", fBig[2], 0, 2);

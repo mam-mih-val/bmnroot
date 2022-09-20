@@ -124,13 +124,13 @@ void BmnSimulationReport::DrawTwoH1(const TString canvasName, const TString name
     }
     canvas->cd(1);
     DrawH1(/*canvas,*/ HM()->H1(name1), kLinear, kLinear, drawOpt.Data(), kRed, 1, 0.75, 1.1, 20);
-    if (doFit) {
+    if ((doFit) && (HM()->H1(name1)->GetEntries() > MinNEntries4Fit)) {
         HM()->H1(name1)->Fit("gaus", "WWQ");
         DrawMuSigma(canvas->cd(1), HM()->H1(name1));
     }
     canvas->cd(2);
     DrawH1(/*canvas,*/ HM()->H1(name2), kLinear, kLinear, drawOpt.Data(), kRed, 1, 0.75, 1.1, 20);
-    if (doFit) {
+    if ((doFit) && (HM()->H1(name2)->GetEntries() > MinNEntries4Fit)) {
         HM()->H1(name2)->Fit("gaus", "WWQ");
         DrawMuSigma(canvas->cd(2), HM()->H1(name2));
     }

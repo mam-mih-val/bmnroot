@@ -4,9 +4,9 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #define L1Tracking // Choose Tracking: L1, VF or CellAuto
         
 void run_mon_custom(TString inputFileName = "/ncx/eos/nica/bmn/exp/dst/run7/prerelease/3590-4707_BMN_Argon/bmn_run4649_dst.root",
-        TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
+        TString bmndstFileName = "$VMCWORKDIR/macro/monitor/qa-dst.root",
         TString padConfName = "pad-sample.json",
-        Int_t nStartEvent = 0, Int_t nEvents = 165932)
+        Int_t nStartEvent = 0, Int_t nEvents = 0)
 {
     gDebug = 0; // Debug option
     // Verbosity level (0 = quiet (progress bar), 1 = event-level, 2 = track-level, 3 = full debug)
@@ -50,6 +50,9 @@ void run_mon_custom(TString inputFileName = "/ncx/eos/nica/bmn/exp/dst/run7/prer
     fRunAna->GetMainTask()->SetVerbose(iVerbose);
     fRunAna->Init();
     cout << "Starting run" << endl;
+    if (nEvents == 0)
+        nEvents = MpdGetNumEvents::GetNumROOTEvents((char*)inputFileName.Data()) - nStartEvent;
+    if 
     fRunAna->Run(nStartEvent, nStartEvent + nEvents);
     // -------------------------------------------------------------------------
     // -----   Finish   --------------------------------------------------------

@@ -17,7 +17,7 @@ void monitor(
 //    gSystem->Load("libBmnMonitor");
     BmnMonitor *bm = new BmnMonitor();
     bm->SetPeriodID(periodID);
-    bm->SetBmnSetup(kSRCSETUP);
+    bm->SetBmnSetup(kBMNSETUP);
     bm->MonitorStreamZ(dirName, refDir, decoAddr, webPort);  
     delete bm;
 }

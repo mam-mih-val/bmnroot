@@ -13,7 +13,7 @@ void HistGenTest(
     BmnPadBranch * br = g->GetPadBranch();
     TCanvas* can = new TCanvas("canHits", "", 1920, 1080);
     g->PadTree2Canvas(br, can);
-    BmnHist::DrawPadTree(br);
+    BmnHist::DrawPadFromTree(br);
     
     can->Update();
     can->Modified();

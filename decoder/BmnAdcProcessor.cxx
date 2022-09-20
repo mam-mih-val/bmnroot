@@ -26,10 +26,12 @@ BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh
 
 #ifdef BUILD_DEBUG
             &BmnAdcProcessor::PrecalcEventMods : &BmnAdcProcessor::PrecalcEventModsOld;
-    printf("\n\nDebug!!!\n");
+    if (fVerbose)
+        printf("\n\nDebug!!!\n");
 #else
             &BmnAdcProcessor::PrecalcEventMods_simd : &BmnAdcProcessor::PrecalcEventModsOld;
-    printf("\n\nRelease!!!\n");
+    if (fVerbose)
+        printf("\n\nRelease!!!\n");
 #endif
 }
 
@@ -1278,8 +1280,8 @@ unique_ptr<BmnSiliconStationSet> BmnAdcProcessor::GetSilStationSet(Int_t period,
             break;
     }
     TString gPathSiliconConfig = gPathConfig + "/parameters/silicon/XMLConfigs/";
-        return unique_ptr<BmnSiliconStationSet>(new BmnSiliconStationSet(gPathSiliconConfig + xmlConfFileName));
-//    return std::make_unique<BmnSiliconStationSet>(gPathSiliconConfig + xmlConfFileName);
+    return unique_ptr<BmnSiliconStationSet>(new BmnSiliconStationSet(gPathSiliconConfig + xmlConfFileName));
+    //    return std::make_unique<BmnSiliconStationSet>(gPathSiliconConfig + xmlConfFileName);
 }
 
 BmnGemStripStationSet * BmnAdcProcessor::GetGemStationSet(Int_t period, BmnSetup stp) {

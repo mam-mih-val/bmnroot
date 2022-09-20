@@ -48,6 +48,7 @@ using lit::FindAndReplace;
 using lit::Split;
 
 BmnTrackingQaExp::BmnTrackingQaExp(Short_t ch, TString name, TString gemConf, TString silConf, TString cscConf) : BmnQaBase("BmnTrackingQAExp", 1),
+fEventNo(0),
 fMinNofPoints(4),
 fMinNofPointsTof(1),
 fMinNofPointsDch(1),
@@ -117,6 +118,7 @@ InitStatus BmnTrackingQaExp::Init() {
         fReport->SetMonitorMode(fMonitorMode);
         fReport->SetObjServer(fServer);
         fTicksLastUpdate = chrono::system_clock::now();
+        SetDefaultDrawStyle();
         fReport->CallDraw();
         fReport->Register("/");
         //        fServer->SetTimer(50, kFALSE);
@@ -147,7 +149,7 @@ void BmnTrackingQaExp::Exec(Option_t* opt) {
         //        printf("\ntime %s\n", ctime(&tt));
         if ((time > fTimeToUpdate) || (fNItersSinceUpdate > fNItersToUpdate)) {
             fReport->CallDraw();
-            printf("\n\nDraw! iters %d\n\n", fNItersSinceUpdate);
+            printf("Draw! iters %d\n", fNItersSinceUpdate);
             fTicksLastUpdate = now;
             fNItersSinceUpdate = 0;
         }
@@ -155,12 +157,13 @@ void BmnTrackingQaExp::Exec(Option_t* opt) {
 }
 
 void BmnTrackingQaExp::Finish() {
-    fHM->WriteToFile();
+    //    fHM->WriteToFile();
     if (!fMonitorMode) {
         fReport = new BmnTrackingQaExpReport(fOutName);
         fReport->SetOnlyPrimes(fPrimes);
         fReport->Create(fHM, fOutputDir);
-    }
+    } else
+        fReport->CallDraw();
 
     printf("nAllMC = %d\n", nAllMcTracks);
     printf("nAllReco = %d\n", nAllRecoTracks);
@@ -173,17 +176,9 @@ void BmnTrackingQaExp::ReadDataBranches() {
     FairRootManager* ioman = FairRootManager::Instance();
     if (nullptr == ioman) Fatal("Init", "BmnRootManager is not instantiated");
 
-    //    fMCTracks = (TClonesArray*)ioman->GetObject("MCTrack");
-    //    if (nullptr == fMCTracks) Fatal("Init", "No MCTrack array!");
-
     fGlobalTracks = (TClonesArray*) ioman->GetObject("BmnGlobalTrack");
-    cout << "fGlobalTracks   " << fGlobalTracks << endl;
-    //    fGlobalTrackMatches = (TClonesArray*)ioman->GetObject("BmnGlobalTrackMatch");
-
     fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTrack");
-    cout << "fGemTracks   " << fGemTracks << endl;
     fSilTracks = (TClonesArray*) ioman->GetObject("BmnSiliconTrack");
-    cout << "fSilTracks   " << fSilTracks << endl;
 
     fNStations = 0;
     fInnerHits = (TClonesArray*) ioman->GetObject("BmnInnerHits");
@@ -191,11 +186,7 @@ void BmnTrackingQaExp::ReadDataBranches() {
     fTof400Hits = (TClonesArray*) ioman->GetObject("BmnTof400Hit");
     fTof700Hits = (TClonesArray*) ioman->GetObject("BmnTof700Hit");
     fCscHits = (TClonesArray*) ioman->GetObject("BmnCSCHit");
-    cout << "fCscHits   " << fCscHits << endl;
-    //    fCscPoints = (TClonesArray*)ioman->GetObject("CSCPoint");
     fDchTracks = (TClonesArray*) ioman->GetObject("BmnDchTrack");
-    //    fSilPoints = (TClonesArray*)ioman->GetObject("SiliconPoint");
-    //    fGemPoints = (TClonesArray*)ioman->GetObject("StsPoint");
 
     if (fInnerTrackerSetup[kSILICON]) {
         fSilHits = (TClonesArray*) ioman->GetObject("BmnSiliconHit");
@@ -224,10 +215,6 @@ void BmnTrackingQaExp::ReadDataBranches() {
 }
 
 void BmnTrackingQaExp::ReadEventHeader() {
-    //    FairMCEventHeader* evHead = (FairMCEventHeader*)FairRootManager::Instance()->GetObject("MCEventHeader.");
-    //    fHM->H1("Impact parameter")->Fill(evHead->GetB());
-    //    fHM->H1("Multiplicity")->Fill(evHead->GetNPrim());
-    //    fHM->H2("Impact_Mult")->Fill(evHead->GetB(), evHead->GetNPrim());
 }
 
 void BmnTrackingQaExp::CreateTrackHitsHistogram(const string& detName) {
@@ -579,8 +566,8 @@ void BmnTrackingQaExp::ProcessGlobal() {
             fHM->H1("VertZ_vs_Ntracks")->Fill(fGlobalTracks->GetEntriesFast(), fVertexL1->GetZ());
         }
     }
-//    fHM->H1("Nof_GemTracks")->Fill(fGemTracks->GetEntriesFast());
-//    fHM->H1("Nof_SilTracks")->Fill(fSilTracks->GetEntriesFast());
+    //    fHM->H1("Nof_GemTracks")->Fill(fGemTracks->GetEntriesFast());
+    //    fHM->H1("Nof_SilTracks")->Fill(fSilTracks->GetEntriesFast());
     if (fGlobalTracks) {
         fHM->H1("Nof_GlobalTracks")->Fill(fGlobalTracks->GetEntriesFast());
 
@@ -939,54 +926,6 @@ void BmnTrackingQaExp::ProcessGlobal() {
     fHM->H1("Rec_vs_mult")->SetBinContent(nReconstructable, fHM->H1("Rec_vs_mult")->GetBinContent(nReconstructable) + nAllRecoInEvent);
     fHM->H1("Split_vs_mult")->SetBinContent(nReconstructable, fHM->H1("Split_vs_mult")->GetBinContent(nReconstructable) + nSplitInOneEvent);
     fHM->H1("Ghost_vs_mult")->SetBinContent(nReconstructable, fHM->H1("Ghost_vs_mult")->GetBinContent(nReconstructable) + nBadRecoInEvent);
-}
-
-Int_t BmnTrackingQaExp::CalcNumberOfMcPointInTrack(BmnMCTrack mcTrack) {
-    Int_t nHitsOnStation[fNStations];
-    for (Int_t i = 0; i < fNStations; ++i)
-        nHitsOnStation[i] = 0;
-    vector<BmnMCPoint> pointsGem = mcTrack.GetPoints(kGEM);
-    for (BmnMCPoint pntGEM : pointsGem) {
-        nHitsOnStation[pntGEM.GetStationId()]++;
-    }
-    vector<BmnMCPoint> pointsSil = mcTrack.GetPoints(kSILICON);
-    for (BmnMCPoint pntSIL : pointsSil)
-        nHitsOnStation[pntSIL.GetStationId()]++;
-
-    Int_t nHitsPerTrack = 0;
-    Bool_t isGood = kTRUE;
-    for (Int_t iSt = 0; iSt < fNStations; iSt++) {
-        if (nHitsOnStation[iSt] == 0) continue;
-        if (nHitsOnStation[iSt] > 1) return -1;
-        nHitsPerTrack++;
-    }
-    return nHitsPerTrack;
-}
-
-Int_t BmnTrackingQaExp::CalcNumberOfMcPointInTrack(Int_t trId) {
-    Int_t nHitsOnStation[fNStations];
-    for (Int_t i = 0; i < fNStations; ++i)
-        nHitsOnStation[i] = 0;
-
-    for (Int_t i = 0; i < fSilPoints->GetEntriesFast(); ++i) {
-        BmnSiliconPoint* pnt = (BmnSiliconPoint*) fSilPoints->At(i);
-        if (pnt->GetTrackID() != trId) continue;
-        nHitsOnStation[pnt->GetStation()]++;
-    }
-
-    for (Int_t i = 0; i < fGemPoints->GetEntriesFast(); ++i) {
-        CbmStsPoint* pnt = (CbmStsPoint*) fGemPoints->At(i);
-        if (pnt->GetTrackID() != trId) continue;
-        nHitsOnStation[pnt->GetStation() + fSilDetector->GetNStations()]++;
-    }
-
-    Int_t nHitsPerTrack = 0;
-    for (Int_t iSt = 0; iSt < fNStations; iSt++) {
-        if (nHitsOnStation[iSt] == 0) continue;
-        if (nHitsOnStation[iSt] > 1) return -1;
-        nHitsPerTrack++;
-    }
-    return nHitsPerTrack;
 }
 
 ClassImp(BmnTrackingQaExp);

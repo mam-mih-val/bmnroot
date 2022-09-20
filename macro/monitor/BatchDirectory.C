@@ -1,7 +1,7 @@
 #include "../run/bmnloadlibs.C"
 R__LOAD_LIBRARY(libFairMQ)
 void BatchDirectory(TString dirName = "/bmn/run/current/",
-        BmnSetup stp = kSRCSETUP, Int_t periodId = 7) {
+        BmnSetup stp = kBMNSETUP, Int_t periodId = 7) {
 //#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
 //    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
 //#endif
@@ -22,12 +22,12 @@ void BatchDirectory(TString dirName = "/bmn/run/current/",
     setup.insert(std::make_pair(kDCH,       1)); // DCH
     setup.insert(std::make_pair(kZDC,       1)); // ZDC
     setup.insert(std::make_pair(kECAL,      1)); // ECAL
-    setup.insert(std::make_pair(kLAND,      1)); // LAND
-    setup.insert(std::make_pair(kTOFCAL,    1)); // LAND
+    setup.insert(std::make_pair(kLAND,      0)); // LAND
+    setup.insert(std::make_pair(kTOFCAL,    0)); // LAND
     setup.insert(std::make_pair(kCSC,       1)); // CSC
-    setup.insert(std::make_pair(kSCWALL,    1)); // SCWALL
-    setup.insert(std::make_pair(kFHCAL,     1)); // FHCAL
-    setup.insert(std::make_pair(kHODO,      1)); // HODO
+    setup.insert(std::make_pair(kSCWALL,    0)); // SCWALL
+    setup.insert(std::make_pair(kFHCAL,     0)); // FHCAL
+    setup.insert(std::make_pair(kHODO,      0)); // HODO
     bm->SetDetectorSetup(setup);
 
 

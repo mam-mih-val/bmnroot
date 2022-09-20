@@ -23,6 +23,8 @@ fDchTracks(nullptr),
 fDetGem(nullptr),
 fDetSilicon(nullptr),
 fDetCsc(nullptr),
+period(0),
+fRunId(0),
 fSteering(new BmnOfflineQaSteering()) {
     isDstRead = ReadDstTree(file);
 }
@@ -32,7 +34,6 @@ Bool_t BmnQaOffline::ReadDstTree(TString fileDst) {
     fChainDst->Add(fileDst.Data());
 
     // Get dst header ...
-    fDstHeader = new DstEventHeader();
     fChainDst->SetBranchAddress("DstEventHeader.", &fDstHeader);
     fChainDst->GetEntry(0);
 
@@ -61,17 +62,27 @@ InitStatus BmnQaOffline::Init() {
 
     ioman = FairRootManager::Instance();
 
-    fBmnHeader = (BmnEventHeader*) ioman->GetObject("BmnEventHeader.");
+    fBmnHeader = static_cast<BmnEventHeader*>(ioman->GetObject("BmnEventHeader."));
+    if (fBmnHeader){
+        printf("BmnEventHeader. found\n");
+        fRunId = fBmnHeader->GetRunId();
+    } else
+    {
+    fDstHeader = static_cast<DstEventHeader*>(ioman->GetObject("DstEventHeader."));
+        printf("DstEventHeader. found\n");
+        fRunId = fDstHeader->GetRunId();
+        
+    }
     // Get general info on period and exp. setup, detectors and trigger been
-    period = fSteering->GetRunAndSetupByRunId(fBmnHeader->GetRunId()).first;
-    setup = fSteering->GetRunAndSetupByRunId(fBmnHeader->GetRunId()).second;
+    period = fSteering->GetRunAndSetupByRunId(fRunId).first;
+    setup = fSteering->GetRunAndSetupByRunId(fRunId).second;
     nDets = fSteering->GetDetectors(period, setup).size(); // Number of detectors should be set for a certain run / setup extension
     Int_t nTrigs = fSteering->GetTriggers(period, setup).size(); // Number of triggers should be set for a certain run / setup extension
 
     prefix = TString::Format("RUN%d_SETUP_%s_", period, setup.Data());
 
     // Initialize some detector geometries ... 
-    fSteering->SetGeometriesByRunId(fBmnHeader->GetRunId(), fDetGem, fDetSilicon, fDetCsc);
+    fSteering->SetGeometriesByRunId(fRunId, fDetGem, fDetSilicon, fDetCsc);
 
     // Read input arrays with det. and trig. info ...
     DETECTORS = new TClonesArray*[nDets];
@@ -89,33 +100,33 @@ InitStatus BmnQaOffline::Init() {
 
     coordinate = new BmnCoordinateDetQa*[nCoordinate];
     for (Int_t iDet = 0; iDet < nCoordinate; iDet++)
-        coordinate[iDet] = new BmnCoordinateDetQa(fSteering->GetDetectors(period, setup)[iDet], fBmnHeader->GetRunId());
+        coordinate[iDet] = new BmnCoordinateDetQa(fSteering->GetDetectors(period, setup)[iDet], fRunId);
 
     time = new BmnTimeDetQa*[nTime];
     for (Int_t iDet = nCoordinate; iDet < nCoordinate + nTime; iDet++)
-        time[iDet - nCoordinate] = new BmnTimeDetQa(fSteering->GetDetectors(period, setup)[iDet], fBmnHeader->GetRunId());
+        time[iDet - nCoordinate] = new BmnTimeDetQa(fSteering->GetDetectors(period, setup)[iDet], fRunId);
 
     calorimeter = new BmnCalorimeterDetQa*[nCalorimeter];
     for (Int_t iDet = nCoordinate + nTime; iDet < nCoordinate + nTime + nCalorimeter; iDet++)
-        calorimeter[iDet - nCoordinate - nTime] = new BmnCalorimeterDetQa(fSteering->GetDetectors(period, setup)[iDet], fBmnHeader->GetRunId());
+        calorimeter[iDet - nCoordinate - nTime] = new BmnCalorimeterDetQa(fSteering->GetDetectors(period, setup)[iDet], fRunId);
 
     for (Int_t iDet = 0; iDet < nTrigs; iDet++)
         fTrigCorr[TRIGGERS[iDet]] = fSteering->GetTriggers(period, setup)[iDet];
 
     if (fTrigCorr.size() != 0)
-        triggers = new BmnTrigDetQa(fTrigCorr, fBmnHeader->GetRunId());
+        triggers = new BmnTrigDetQa(fTrigCorr, fRunId);
 
     // Dst
-    dst = new BmnDstQa(fBmnHeader->GetRunId());
+    dst = new BmnDstQa(fRunId);
 
     Char_t* geoFileName = (Char_t*) "current_geo_file.root";
-    Int_t res_code = UniDbRun::ReadGeometryFile(period, fBmnHeader->GetRunId(), geoFileName);
+    Int_t res_code = UniDbRun::ReadGeometryFile(period, fRunId, geoFileName);
     if (res_code != 0) {
         cout << "Geometry file can't be read from the database" << endl;
         exit(-1);
     }
     TGeoManager::Import(geoFileName);
-    UniDbRun* db = UniDbRun::GetRun(period, fBmnHeader->GetRunId());
+    UniDbRun* db = UniDbRun::GetRun(period, fRunId);
     isField = (*db->GetFieldVoltage() > 10.) ? kTRUE : kFALSE;
 
     return kSUCCESS;

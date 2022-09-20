@@ -50,7 +50,7 @@ public:
      */
     BmnPadBranch* GeneratePadBranch(pt::ptree& PropTree);
     PadInfo* GeneratePadNode(pt::ptree& PropTree);
-    TClass* GetClassByName(string ClassName);
+//    TClass* GetClassByName(string ClassName);
     /**
      * @brief Create pad structure in the canvas from the pad tree
      * and associate pad branch instances with the pad pointers
@@ -64,9 +64,9 @@ public:
     }
 
 private:
-    BmnPadBranch* _pad;
-    pt::ptree _TreeScheme;
-    BmnHistManager* _HM;
+    BmnPadBranch* _pad; //!
+    pt::ptree _TreeScheme; //!
+    BmnHistManager* _HM; //!
 //    map<string, >
 
 };

@@ -145,9 +145,6 @@ private:
 
     void CreateHistograms();
     void ProcessGlobal();
-
-    Int_t CalcNumberOfMcPointInTrack(BmnMCTrack mcTrack);
-    Int_t CalcNumberOfMcPointInTrack(Int_t trId);
     
     BmnMCTrackCreator* fMCTrackCreator; // MC track creator tool
 
@@ -227,7 +224,7 @@ private:
     
     Int_t fEventNo;  // event counter
     
-   const Int_t fNItersToUpdate = 10;
+   const Int_t fNItersToUpdate = 100;
    const chrono::seconds fTimeToUpdate = chrono::seconds(5); //<-redraw each timeout seconds
    Int_t fNItersSinceUpdate;
    chrono::time_point<chrono::system_clock> fTicksLastUpdate;

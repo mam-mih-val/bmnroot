@@ -833,11 +833,11 @@ Int_t BmnOnlineDecoder::GetRunIdFromName(TString name) {
 
 void BmnOnlineDecoder::StripView(Int_t periodID, Int_t runID, BmnSetup fSetup) {
     //    TString inFileNameMK = Form("bmn_run%04i_sidigitthr2all.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
-    TString OrigFileName = Form("~/filesbmn/bmn_run%04i_digi_test_MK.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
-    //    TString inFileNameMK = Form("~/archivebmn//MK_digi_%04i.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    TString OrigFileName = Form("bmn_run%04i_digi_test_MK.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    //    TString inFileNameMK = Form("MK_digi_%04i.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
     //    TString inFileNameBmn = Form("/ncx/nica/mpd22/batyuk/digi/run7/bmn/bmn_run%04i_digi.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
-    //    TString inFileNameBmn = Form("~/filesbmn/bmn_run%04i_digi_test_MK_r.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
-    TString TestFileName = Form("~/filesbmn/bmn_run%04i_digi_test_SM.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    //    TString inFileNameBmn = Form("bmn_run%04i_digi_test_MK_r.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    TString TestFileName = Form("bmn_run%04i_digi_test_SM.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
     StripView(OrigFileName, TestFileName, periodID, runID, fSetup);
 }
 
@@ -970,13 +970,14 @@ void BmnOnlineDecoder::StripView(TString OrigFileName, TString TestFileName, Int
                     name = Form("GEM_%i_Station_%d_module_%d_layer_%d", iCol, iStation, iModule, iLayer);
                     title = Form("Station_%d_module_%d_layer_%d", iStation, iModule, iLayer);
                     TH1F *h = new TH1F(name, title, lay.GetNStrips(), 0, lay.GetNStrips());
-                    h->SetTitleSize(0.06, "XY");
-                    h->SetLabelSize(0.08, "XY");
+                    h->SetTitleSize(0.07, "XY");
+                    h->SetLabelSize(0.07, "XY");
                     h->GetXaxis()->SetTitle("Strip Number");
                     h->GetXaxis()->SetTitleColor(kOrange + 10);
+                    h->GetXaxis()->SetTitleOffset(0.7);
                     h->GetYaxis()->SetTitle("Activation Count");
                     h->GetYaxis()->SetTitleColor(kOrange + 10);
-                    h->GetYaxis()->SetTitleOffset(1.0);
+                    h->GetYaxis()->SetTitleOffset(0.7);
                     colGEM.push_back(h);
 
                 }
@@ -990,7 +991,7 @@ void BmnOnlineDecoder::StripView(TString OrigFileName, TString TestFileName, Int
     sumMods = sumMods / COLS;
     name = "GemCanvas";
     canStripGem = new TCanvas(name, name, PAD_WIDTH_SIL * maxLayers, PAD_HEIGHT_SIL * sumMods);
-    canStripGem->Divide(maxLayers, sumMods);
+    canStripGem->Divide(maxLayers, sumMods, 0.002, 0.002);
     modCtr = 0;
     canStripPadsGem.resize(sumMods * maxLayers);
     for (Int_t iStation = 0; iStation < gemStationSet->GetNStations(); iStation++) {

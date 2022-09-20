@@ -1,12 +1,3 @@
-/**
- * \file BmnCustomQa.h
- * \brief FairTask for tracking performance calculation.
- * \author Andrey Lebedev <andrey.lebedev@gsi.de> - original author for CBM experiment
- * \author Sergey Merts <sergey.merts@gmail.com> - modifications for BMN experiment
- * \author Ilnur Gabdrakhmanov <ilnur@jinr.ru> - disentangle Exp and MC processing
- * \date 2007-2022
- */
-
 #ifndef BMNCUSTOMQA_H
 #define BMNCUSTOMQA_H
 
@@ -34,10 +25,6 @@
 #include "BmnPadGenerator.h"
 //#include "BmnCustomQaReport.h"
 
-class BmnHistManager;
-class BmnTrackMatch;
-class BmnMCTrackCreator;
-class BmnGlobalElectronId;
 
 using std::string;
 using std::vector;
@@ -82,27 +69,26 @@ public:
 
 
 private:
+    
+    void Redraw();
+    
     /**
      * \brief Read data branches from input data files.
      */
     void ReadDataBranches();
 
-
-    void ReadEventHeader();
-
-
     void CreateHistograms();
     void ProcessGlobal();
-
+    
     string fPadConfFileName;
     BmnPadGenerator * fPadGenerator;
     BmnPadBranch * fPadTree;
     
     TTree* fTreeTemp;
-    std::vector<TNamed*> fNamVecIn;
-    std::vector<TNamed*> fNamVec;
-    std::vector<TClonesArray*> fArrVecIn;
-    std::vector<TClonesArray*> fArrVec;
+    vector<TObject*> fNamVecIn;
+    vector<TObject*> fNamVec;
+    vector<TClonesArray*> fArrVecIn;
+    vector<TClonesArray*> fArrVec;
     
     TCanvas * can = nullptr;
 

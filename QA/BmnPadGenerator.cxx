@@ -48,8 +48,6 @@ PadInfo* BmnPadGenerator::GeneratePadNode(pt::ptree& propTree) {
             info->selection = sel.get();
         }
         TH1* h = nullptr;
-        TH2* h2 = nullptr;
-        TH3* h3 = nullptr;
         switch (dimVec.size()) {
             case 3:
                 h = static_cast<TH1*> (histNew(0));
@@ -63,22 +61,22 @@ PadInfo* BmnPadGenerator::GeneratePadNode(pt::ptree& propTree) {
                 info->current = h; //_HM->H1(name);
                 break;
             case 6:
-                h2 = static_cast<TH2*> (histNew(0));
-                h2->SetBins(
+                h = static_cast<TH2*> (histNew(0));
+                h->SetBins(
                         dimVec[0],
                         dimVec[1],
                         dimVec[2],
                         dimVec[3],
                         dimVec[4],
                         dimVec[5]);
-                h2->SetName(name.c_str());
-                h2->SetTitle(title.c_str());
-                _HM->Add(name, h2);
-                info->current = h2; //_HM->H2(name);
+                h->SetName(name.c_str());
+                h->SetTitle(title.c_str());
+                _HM->Add(name, h);
+                info->current = h; //_HM->H2(name);
                 break;
             case 9:
-                h3 = static_cast<TH3*> (histNew(0));
-                h3->SetBins(
+                h = static_cast<TH3*> (histNew(0));
+                h->SetBins(
                         dimVec[0],
                         dimVec[1],
                         dimVec[2],
@@ -88,17 +86,16 @@ PadInfo* BmnPadGenerator::GeneratePadNode(pt::ptree& propTree) {
                         dimVec[6],
                         dimVec[7],
                         dimVec[8]);
-                h3->SetName(name.c_str());
-                h3->SetTitle(title.c_str());
-                _HM->Add(name, h3);
-                info->current = h3;
+                h->SetName(name.c_str());
+                h->SetTitle(title.c_str());
+                _HM->Add(name, h);
+                info->current = h;
                 break;
             default:
                 throw string("Wrong dimensions!");
                 break;
         }
         info->temp = static_cast<TH1*> (info->current->Clone((name + "_temp").c_str()));
-        printf("hist class name %s\n", info->current->Class()->GetName());
     } catch (std::exception& ex) {
         printf("Exception for node: %s\n", ex.what());
         if (info) {

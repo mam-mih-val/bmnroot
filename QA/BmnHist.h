@@ -49,8 +49,8 @@ public:
     static void DrawPad(TVirtualPad *pad, PadInfo *info);
     static void FillPad(PadInfo *info, TTree* tree);
     static BmnStatus LoadRefRun(Int_t refID, TString FullName, TString fTitle, vector<PadInfo*> canPads, vector<TString> Names);
-    static BmnStatus DrawPadTree(BmnPadBranch* br);
-    static BmnStatus FillPadTree(BmnPadBranch* br, TTree* tree);
+    static BmnStatus DrawPadFromTree(BmnPadBranch* br);
+    static BmnStatus FillPadFromTree(BmnPadBranch* br, TTree* tree);
 
     void SetRefRunName(TString v) {
         this->refRunName = v;

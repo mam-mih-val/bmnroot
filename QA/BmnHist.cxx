@@ -100,7 +100,7 @@ BmnStatus BmnHist::LoadRefRun(Int_t refID, TString FullName, TString fTitle, vec
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnHist::DrawPadTree(BmnPadBranch* br) {
+BmnStatus BmnHist::DrawPadFromTree(BmnPadBranch* br) {
     if (!br)
         return kBMNERROR;
     if (PadInfo * info = br->GetPadInfo()) {
@@ -108,13 +108,13 @@ BmnStatus BmnHist::DrawPadTree(BmnPadBranch* br) {
         DrawPad(pad, info);
     } else {
         for (auto &b : br->GetBranchesRef()) {
-            DrawPadTree(b);
+            DrawPadFromTree(b);
         }
     }
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnHist::FillPadTree(BmnPadBranch* br, TTree * tree) {
+BmnStatus BmnHist::FillPadFromTree(BmnPadBranch* br, TTree * tree) {
     if (!br)
         return kBMNERROR;
     if (PadInfo * info = br->GetPadInfo()) {
@@ -122,7 +122,7 @@ BmnStatus BmnHist::FillPadTree(BmnPadBranch* br, TTree * tree) {
         FillPad(info, tree);
     } else {
         for (auto &b : br->GetBranchesRef()) {
-            FillPadTree(b, tree);
+            FillPadFromTree(b, tree);
         }
     }
     return kBMNSUCCESS;

@@ -116,6 +116,7 @@ private:
     BmnDstQa* dst;
     
     Int_t period;
+    Int_t fRunId;
     TString setup;
     TString prefix;
     

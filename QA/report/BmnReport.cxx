@@ -18,8 +18,7 @@ fR(NULL),
 fOut(NULL),
 fMonitorMode(kFALSE),
 fServer(nullptr),
-fInitCanvasesDone(kFALSE),
-fCanvases() {
+fInitCanvasesDone(kFALSE) {
 }
 
 BmnReport::~BmnReport() {

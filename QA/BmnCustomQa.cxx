@@ -1,11 +1,3 @@
-/**
- * \file BmnCustomQa.cxx
- * \author Andrey Lebedev <andrey.lebedev@gsi.de> - original author for CBM experiment
- * \author Sergey Merts <sergey.merts@gmail.com> - modifications for BMN experiment
- * \author Ilnur Gabdrakhmanov <ilnur@jinr.ru> - disentangle Exp and MC processing
- * \date 2007-2022
- */
-
 #include "BmnCustomQa.h"
 
 #include <fstream>
@@ -72,13 +64,12 @@ InitStatus BmnCustomQa::Init() {
         //        fReport->Register("/");
         //        //        fServer->SetTimer(50, kFALSE);
     } else {
-
     }
     return kSUCCESS;
 }
 
 void BmnCustomQa::Exec(Option_t* opt) {
-    if (fEventNo % 100 == 0) printf("Event: %d\n", fEventNo);
+    if (fEventNo % 100 == 0) printf("Events: %d\n", fEventNo);
     fEventNo++;
     // Int_t nHits = 0;
     // if (fInnerTrackerSetup[kGEM]) nHits += fGemHits->GetEntriesFast();
@@ -97,9 +88,7 @@ void BmnCustomQa::Exec(Option_t* opt) {
         time_t tt = chrono::system_clock::to_time_t(now);
         //        printf("time %s\n", ctime(&tt));
         if ((time > fTimeToUpdate) || (fNItersSinceUpdate > fNItersToUpdate)) {
-            BmnHist::FillPadTree(fPadTree, fTreeTemp);
-            fTreeTemp->Reset();
-            BmnHist::DrawPadTree(fPadTree);
+            Redraw();
             if (fVerbose)
                 printf("Draw! iters %d\n", fNItersSinceUpdate);
             fTicksLastUpdate = now;
@@ -111,11 +100,18 @@ void BmnCustomQa::Exec(Option_t* opt) {
 void BmnCustomQa::Finish() {
     fHM->WriteToFile();
     if (!fMonitorMode) {
+        Redraw();
         //        fReport = new BmnCustomQaReport(fOutName);
         //        fReport->SetOnlyPrimes(fPrimes);
         //        fReport->Create(fHM, fOutputDir);
     }
     can->SaveAs("custom.pdf");
+}
+
+void BmnCustomQa::Redraw() {
+    BmnHist::FillPadFromTree(fPadTree, fTreeTemp);
+    fTreeTemp->Reset();
+    BmnHist::DrawPadFromTree(fPadTree);
 }
 
 void BmnCustomQa::ReadDataBranches() {
@@ -125,58 +121,40 @@ void BmnCustomQa::ReadDataBranches() {
     TList* brList = ioman->GetBranchNameList();
     for (Int_t i = 0; i < brList->GetEntries(); i++) {
         TString str = static_cast<TObjString*> (brList->At(i))->GetString();
-        cout << str << endl;
-        if (str.Contains(".")) {
-            if (str.Contains("ZDCEventData.") || str.Contains("DstEventHeader."))
-                continue;
-            TNamed* inObj = static_cast<TNamed *> (ioman->GetObject(str));
-            TClass *cl = TClass::GetClass(inObj->ClassName());
-            printf("cl name %s\n", cl->GetName());
-            ROOT::NewFunc_t funcNew = cl->GetNew();
-            TNamed* workObj = static_cast<TNamed*> (funcNew(0));
-            //            workObj->SetNameTitle(inObj->GetName(), inObj->GetTitle());
-            workObj->SetNameTitle((string(inObj->GetName()) + "_clone").c_str(), inObj->GetTitle());
-            fTreeTemp->Branch(str.Data(), &workObj);
-            fNamVecIn.push_back(inObj);
-            fNamVec.push_back(workObj);
-        } else {
-
-            TClonesArray * inTCA = static_cast<TClonesArray*> (ioman->GetObject(str));
-            TClass *cl = inTCA->GetClass();
-            printf("cl name %s\n", cl->GetName());
+        TObject *obj = ioman->GetObject(str);
+        TClass *cl = TClass::GetClass(obj->ClassName());
+//        printf("ClassName: %s\n", obj->ClassName());
+        if (cl == TClonesArray::Class()) {
+            TClonesArray * inTCA = static_cast<TClonesArray*> (obj);
             TClonesArray * newTCA = new TClonesArray(inTCA->GetClass());
-//            newTCA->SetName(inTCA->GetName());
             fTreeTemp->Branch(str.Data(), &newTCA);
             fArrVecIn.push_back(inTCA);
             fArrVec.push_back(newTCA);
 
+        } else {
+            TNamed* inObj = static_cast<TNamed *> (obj);
+//            printf(" in obj n: %s t: %s\n", inObj->GetName(), inObj->GetTitle());
+            TObject* workObj = inObj->Clone(/*TString(inObj->GetName()) + "_clone." + str*/)/*funcNew(0)*/;
+//            printf("new obj n: %s t: %s\n", workObj->GetName(), workObj->GetTitle());
+            TBranch *b = fTreeTemp->Branch(str.Data(), "TObject", workObj);
+//            printf(" branch 0x%016lX\n", (uint64_t)b);
+            fNamVecIn.push_back(inObj);
+            fNamVec.push_back(workObj);
         }
     }
     printf("\nBRANCHES READ!\n\n");
 }
 
-void BmnCustomQa::ReadEventHeader() {
-    //    FairMCEventHeader* evHead = (FairMCEventHeader*)FairRootManager::Instance()->GetObject("MCEventHeader.");
-    //    fHM->H1("Impact parameter")->Fill(evHead->GetB());
-    //    fHM->H1("Multiplicity")->Fill(evHead->GetNPrim());
-    //    fHM->H2("Impact_Mult")->Fill(evHead->GetB(), evHead->GetNPrim());
-}
-
 void BmnCustomQa::CreateHistograms() {
-
-
     // Create number of object histograms
-    UInt_t nofBinsC = 100000;
-    Double_t maxXC = (Double_t) nofBinsC;
 
     fPadGenerator = new BmnPadGenerator();
     fPadGenerator->LoadPTFrom(fPadConfFileName);
     fPadTree = fPadGenerator->GetPadBranch();
     can = new TCanvas("CustomCan", "Custom Canvas", 1920, 1080);
-    fPadGenerator->PadTree2Canvas(fPadTree, can);
+    BmnPadGenerator::PadTree2Canvas(fPadTree, can);
     fServer->Register("/", can);
     printf("\nHISTOGRAMS CREATED!\n\n");
-
 }
 
 void BmnCustomQa::ProcessGlobal() {
@@ -186,23 +164,23 @@ void BmnCustomQa::ProcessGlobal() {
         //                    cout << "Count of " << fArrVec[iAr]->GetName() << " digits: " << fArrVec[iAr]->GetEntriesFast() << endl;
     }
     for (UInt_t iAr = 0; iAr < fNamVec.size(); iAr++) {
-        //        printf("ClassName %20s  Class_Name %20s  GetName %20s\n", fNamVec[iAr]->ClassName(), fNamVec[iAr]->Class_Name(), fNamVec[iAr]->GetName());
+        
+        printf("Title: %10s ClassName: %18s Class_Name: %12s GetName: %12s\n",
+                fNamVec[iAr]->GetTitle(), fNamVec[iAr]->ClassName(), fNamVec[iAr]->Class_Name(), fNamVec[iAr]->GetName());
         if (!strcmp(fNamVec[iAr]->ClassName(), "DstEventHeader")) {
             static_cast<DstEventHeader*> (fNamVec[iAr])->CopyFrom(
                     static_cast<DstEventHeader*> (fNamVecIn[iAr]));
             //                cout << "Object " << fNamVec[iAr]->GetName() << endl;
             cout << "EventID: " << static_cast<DstEventHeader*> (fNamVec[iAr])->GetEventId() << endl;
         }
-        if (!strcmp(fNamVec[iAr]->ClassName(), "CbmVertex")) {
-            static_cast<CbmVertex*> (fNamVec[iAr])->CopyFrom(
-                    static_cast<CbmVertex*> (fNamVecIn[iAr]));
-            //                            cout << "VZ " << static_cast<CbmVertex*> (fNamVec[iAr])->GetZ() << endl;
-        }
+        //        if (!strcmp(fNamVec[iAr]->ClassName(), "CbmVertex")) {
+        //            static_cast<CbmVertex*> (fNamVec[iAr])->CopyFrom(
+        //                    static_cast<CbmVertex*> (fNamVecIn[iAr]));
+        //            //                            cout << "VZ " << static_cast<CbmVertex*> (fNamVec[iAr])->GetZ() << endl;
+        //        }
     }
     fTreeTemp->Fill();
-    //    printf("tree len %lld\n", fTreeTemp->GetEntriesFast());
+    printf("tree len %lld\n", fTreeTemp->GetEntriesFast());
 }
-
-
 
 ClassImp(BmnCustomQa);

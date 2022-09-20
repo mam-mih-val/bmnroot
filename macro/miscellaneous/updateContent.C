@@ -1,13 +1,13 @@
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-// updateContent.C                                                            //
-//                                                                            //
-// An example macro how to update Branch in the ROOT file                     //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
+/**
+ *  updateContent.C 
+ * 
+ *  An example macro how to copy raw root data and make first events        
+ *  as pedestal ones                                                      
+ * 
+ */
 
 int updateContent(TString fileName = "", TString destName = "", TString treeName = "BMN_RAW", TString brName = "ADC32") {
-    const Int_t NEvents = 100;
+    Int_t nPedsMax = 100;
     const TString EHDigiName = "BmnEventHeader.";
     vector<TString> digiNamesOther;
     vector<TClass*> digiClassesOther;
@@ -73,7 +73,6 @@ int updateContent(TString fileName = "", TString destName = "", TString treeName
 
 
     // fill events
-    Int_t nPedsMax = 100;
     Int_t nPedsAdded = 0;
     for (UInt_t iEv = 0; iEv < fNEventSource; ++iEv) {
         DrawBar(iEv, fNEventSource);

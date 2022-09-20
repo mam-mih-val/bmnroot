@@ -121,7 +121,6 @@ BmnStatus BmnEmbedding::Embed(TString inSourceName, TString inBaseName, TString 
         digiNamesOther.push_back(TString(b->GetName()));
         digiBaseArsOther.push_back(arDigi);
         digiClassesOther.push_back(arDigi->GetClass());
-        arDigi->GetClass();
     }
     UInt_t fNEventBase = fInTreeBase->GetEntries();
     for (Int_t i = 0; i < fNArs; i++) {

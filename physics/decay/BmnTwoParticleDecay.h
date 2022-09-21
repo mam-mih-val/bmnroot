@@ -42,8 +42,8 @@
 #include "BmnGemStripHit.h"
 #include "BmnKalmanFilter.h"
 #include <BmnParticlePair.h>
-#include <UniDbDetectorParameter.h>
-#include <UniDbRun.h>
+#include <UniDetectorParameter.h>
+#include <UniRun.h>
 #include "BmnTrackMatch.h"
 #include <DstEventHeader.h>
 #include <BmnEventHeader.h>

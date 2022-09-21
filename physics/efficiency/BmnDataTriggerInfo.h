@@ -4,8 +4,8 @@
 #include <iostream>
 #include <TNamed.h>
 
-#include <ElogDbRecord.h>
-#include <ElogDbTrigger.h>
+#include <ElogRecord.h>
+#include <ElogTrigger.h>
 
 #include <map>
 

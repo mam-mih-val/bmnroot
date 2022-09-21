@@ -38,7 +38,7 @@
 #include "FairTrackParam.h"
 #include "BmnFileSource.h"
 #include "BmnFieldConst.h"
-#include "UniDbRun.h"
+#include "UniRun.h"
 #include "BmnFieldMap.h"
 #include "BmnNewFieldMap.h"
 #include "CbmStsDigiPar.h"
@@ -199,7 +199,7 @@ void run_reco_gem_r7(TString inFile = "", TString outFile = "", TString geoFile 
 
    // -----   Field map   -------------------------------------------
    //  Int_t run_period=1, run_number=065;
-   //  UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
+   //  UniRun* pCurrentRun = UniRun::GetRun(run_period, run_number);
    //  if (pCurrentRun == 0) {
    //      exit(-2);
    //  }

@@ -9,7 +9,7 @@
 #include <iostream>
 #include "Riostream.h"
 #include <cstdlib>
-#include <UniDbDetectorParameter.h>
+#include <UniDetectorParameter.h>
 #include <string>
 #include <map>
 #include <set>

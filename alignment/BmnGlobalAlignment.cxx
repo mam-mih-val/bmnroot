@@ -112,9 +112,9 @@ InitStatus BmnGlobalAlignment::Init() {
     delete chain;
 
     Double_t fieldVolt = 0.;
-    UniDbRun* runInfo = NULL;
+    UniRun* runInfo = NULL;
     if (fRunId != 0) {
-        runInfo = UniDbRun::GetRun(fRunPeriod, fRunId);
+        runInfo = UniRun::GetRun(fRunPeriod, fRunId);
         if (!runInfo)
             throw;
         fieldVolt = *runInfo->GetFieldVoltage();
@@ -141,7 +141,7 @@ InitStatus BmnGlobalAlignment::Init() {
     fChain = ioman->GetInChain();
 
     Char_t* geoFileName = (Char_t*) "current_geo_file.root";
-    Int_t res_code = UniDbRun::ReadGeometryFile(fRunPeriod, fRunId, geoFileName);
+    Int_t res_code = UniRun::ReadGeometryFile(fRunPeriod, fRunId, geoFileName);
     if (res_code != 0) {
         cout << "Geometry file can't be read from the database" << endl;
         exit(-1);

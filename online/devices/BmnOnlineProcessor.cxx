@@ -9,7 +9,7 @@
 #include "BmnSiliconHitMaker.h"
 #include "BmnTof1HitProducer.h"
 #include "BmnTofHitProducer.h"
-#include "UniDbRun.h"
+#include "UniRun.h"
 
 #include <RootSerializer.h>
 #include <TFile.h>
@@ -80,7 +80,7 @@ Bool_t BmnOnlineProcessor::SetUpExRun(std::unique_ptr<TTree> &dataTree) {
 
     auto random = std::make_unique<TRandom2>(0);
     TString geoFileName = Form("current_geo_file_%d.root", UInt_t(random->Integer(UINT32_MAX)));
-    if (UniDbRun::ReadGeometryFile(runPeriod, runNumber, const_cast<char *>(geoFileName.Data()))) {
+    if (UniRun::ReadGeometryFile(runPeriod, runNumber, const_cast<char *>(geoFileName.Data()))) {
         LOG(error) << "ERROR: could not read geometry file from the database";
         return kFALSE;
     }
@@ -104,7 +104,7 @@ Bool_t BmnOnlineProcessor::SetUpExRun(std::unique_ptr<TTree> &dataTree) {
     geoFile->Close();
     remove(geoFileName.Data());
 
-    auto currentRun = std::unique_ptr<UniDbRun>(UniDbRun::GetRun(runPeriod, runNumber));
+    auto currentRun = std::unique_ptr<UniRun>(UniRun::GetRun(runPeriod, runNumber));
     if (!currentRun) return kFALSE;
     auto fieldVoltage = std::unique_ptr<Double_t>(currentRun->GetFieldVoltage());
     if (!fieldVoltage) {

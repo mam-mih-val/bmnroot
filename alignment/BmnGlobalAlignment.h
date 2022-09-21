@@ -41,8 +41,8 @@
 #include <BmnSiliconStationSet.h>
 #include <BmnGemStripStationSet.h>
 
-#include <UniDbDetectorParameter.h>
-#include <UniDbRun.h>
+#include <UniDetectorParameter.h>
+#include <UniRun.h>
 
 #include <BmnFieldMap.h>
 #include <BmnNewFieldMap.h>

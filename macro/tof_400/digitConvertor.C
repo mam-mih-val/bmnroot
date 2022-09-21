@@ -31,8 +31,8 @@
 
 // BMN includes
 #include "UniSearchCondition.h"
-#include "UniDbDetectorParameter.h"
-#include "UniDbRun.h"
+#include "UniDetectorParameter.h"
+#include "UniRun.h"
 
 #include "BmnTOF1Point.h"
 #include "BmnTDCDigit.h"
@@ -264,7 +264,7 @@ void	LoadTofDBParameters()
         UniSearchCondition* searchCondition = new UniSearchCondition(columnDetectorName, conditionEqual, TString("TOF1"));
         arrayConditions.Add((TObject*)searchCondition);
 
-    	TObjArray* pParameterValueArray = UniDbDetectorParameter::Search(arrayConditions);
+    	TObjArray* pParameterValueArray = UniDetectorParameter::Search(arrayConditions);
 
     	// clean memory for conditions after search
         for (int i = 0; i < arrayConditions.GetEntriesFast(); i++) delete (UniSearchCondition*) arrayConditions[i];
@@ -277,7 +277,7 @@ void	LoadTofDBParameters()
 		
     	for (int i = 0; i < pParameterValueArray->GetEntriesFast(); i++)
     	{
-        	UniDbDetectorParameter* pParameterValue = (UniDbDetectorParameter*) pParameterValueArray->At(i);
+        	UniDetectorParameter* pParameterValue = (UniDetectorParameter*) pParameterValueArray->At(i);
         	
         	parName = pParameterValue->GetParameterName();
         	DcSerial = pParameterValue->GetDcSerial();
@@ -297,13 +297,13 @@ void	LoadTofDBParameters()
     	cout<<" Parameters loaded = "<<Nloaded<<endl;   	
 
     	// clean memory after work
-    	for (int i = 0; i < pParameterValueArray->GetEntriesFast(); i++)	delete (UniDbRun*)pParameterValueArray->At(i);   	
+    	for (int i = 0; i < pParameterValueArray->GetEntriesFast(); i++)	delete (UniRun*)pParameterValueArray->At(i);   	
     	delete pParameterValueArray;
 }
 //-------------------------------------------------------------------------------------
 bool LoadGeoFile(int runId, const char* geoFlnm)
 {
-    int res_code = UniDbRun::ReadGeometryFile(runId, const_cast<char*>(geoFlnm)); 
+    int res_code = UniRun::ReadGeometryFile(runId, const_cast<char*>(geoFlnm)); 
     if (res_code != 0)
     {
         cerr<<"\n ---> [LoadGeoFile] Error: Can't load geo file from DB."<<endl;

@@ -13,7 +13,7 @@
 #include "BmnFillDstTask.h"
 #include "ExtractZ2.h"
 #include "BmnTrigDigit.h"
-#include "UniDbRun.h"
+#include "UniRun.h"
 #include "function_set.h"
 
 #include "FairLogger.h"
@@ -232,7 +232,7 @@ InitStatus BmnFillDstTask::Init() {
     if (fRunNumber > 0) {
         InitParticleInfo();
 
-        UniDbRun* pCurrentRun = UniDbRun::GetRun(fPeriodNumber, fRunNumber);
+        UniRun* pCurrentRun = UniRun::GetRun(fPeriodNumber, fRunNumber);
         if (pCurrentRun != 0) {
             fRunHead->SetPeriodRun(fPeriodNumber, fRunNumber);
             TDatime start_date = pCurrentRun->GetStartDatetime();

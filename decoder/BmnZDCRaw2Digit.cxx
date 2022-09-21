@@ -136,7 +136,7 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(Int_t period, Int_t run, TString mappingFile, T
     char filn[128], tit1[32] = {"Channel"}, tit2[32] = {"Calibration"}, tit3[32] = {"Error"};
     TString path1 = dir + "/parameters/zdc/";
     
-    UniDbRun* Run = UniDbRun::GetRun(periodId, runId);
+    UniRun* Run = UniRun::GetRun(periodId, runId);
     if (strlen(CalibrationFile.Data()) == 0){
         if (Run == nullptr)
             sprintf(filn, "%szdc_muon_calibration.txt", path1.Data()); //default

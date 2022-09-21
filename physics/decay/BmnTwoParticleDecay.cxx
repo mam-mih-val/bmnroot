@@ -452,7 +452,7 @@ InitStatus BmnTwoParticleDecay::Init() {
     } else {
         // Read current geometry from database
         Char_t* geoFileName = (Char_t*) "current_geo_file.root";
-        Int_t res_code = UniDbRun::ReadGeometryFile(fRunPeriod, fRunId, geoFileName);
+        Int_t res_code = UniRun::ReadGeometryFile(fRunPeriod, fRunId, geoFileName);
         if (res_code != 0) {
             cout << "Geometry file can't be read from the database" << endl;
             exit(-1);
@@ -461,7 +461,7 @@ InitStatus BmnTwoParticleDecay::Init() {
     }
 
     // Get run info..
-    UniDbRun* runInfo = UniDbRun::GetRun(fRunPeriod, fRunId);
+    UniRun* runInfo = UniRun::GetRun(fRunPeriod, fRunId);
     if (!runInfo) {
         cout << "Something is wrong when getting run info from DB..." << endl;
         throw;

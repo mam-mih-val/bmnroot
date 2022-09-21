@@ -10,7 +10,7 @@ void tango_gem_trip(int period, int run, bool isShowOnlyTrip = false)
     TangoData db_tango;
 
     // get run time
-    UniDbRun* pRun = UniDbRun::GetRun(period, run);
+    UniRun* pRun = UniRun::GetRun(period, run);
     if (pRun == nullptr)
     {
         cout<<"Macro finished with errors: no experimental run was found for period = "<<period<<", run = "<<run<<endl;
@@ -71,7 +71,7 @@ void tango_gem_trip(int period, int run, bool isShowOnlyTrip = false)
 void tango_gem_trip(int period, bool isShowOnlyTrip = false)
 {
     UniqueRunNumber* run_numbers;
-    int run_count = UniDbRunPeriod::GetRunNumbers(period, run_numbers);
+    int run_count = UniRunPeriod::GetRunNumbers(period, run_numbers);
     if (run_count <= 0) return;
 
     for (int i = 0; i < run_count; i++)

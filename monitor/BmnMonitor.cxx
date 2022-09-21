@@ -10,7 +10,7 @@
 
 #include <TLatex.h>
 
-#include "UniDbRun.h"
+#include "UniRun.h"
 #include "BmnMonitor.h"
 
 BmnMonitor::BmnMonitor() {
@@ -354,7 +354,7 @@ void BmnMonitor::UpdateRuns() {
     }
     runPub->Add((TObject*) CurRun);
     for (Int_t iRun = 0; iRun < refRuns->GetEntriesFast(); iRun++) {
-        UniDbRun* run = (UniDbRun*) refRuns->At(iRun);
+        UniRun* run = (UniRun*) refRuns->At(iRun);
         BmnRunInfo* runInfo = new BmnRunInfo(run);
         refTable->Add((TObject*) runInfo);
         printf("run %04d Energy %f Voltage %f Beam %s Target %s Date %d\n",
@@ -411,13 +411,13 @@ TObjArray* BmnMonitor::GetAlikeRunsByElog(Int_t periodID, Int_t runID) {
     TString targetParticle = "";
     Double_t beamEnergy = 0;
     Double_t I_SP41 = 0;
-    TObjArray* recs = ElogDbRecord::GetRecords(periodID, runID);
+    TObjArray* recs = ElogRecord::GetRecords(periodID, runID);
     if (recs == NULL) {
         fprintf(stderr, "Run not found in ELOG!\n");
         return NULL;
     }
     for (Int_t iRec = 0; iRec < recs->GetEntriesFast(); iRec++) {
-        ElogDbRecord* rec = (ElogDbRecord*) recs->At(iRec);
+        ElogRecord* rec = (ElogRecord*) recs->At(iRec);
         TObjArray *strings = reElementName.MatchS(rec->GetBeam()->Data());
         if (strings->GetEntriesFast() > 1)
             beamParticle = ((TObjString*) strings->At(1))->GetString();
@@ -444,11 +444,11 @@ TObjArray* BmnMonitor::GetAlikeRunsByElog(Int_t periodID, Int_t runID) {
     //    searchCondition = new UniSearchCondition(colu, conditionEqual, beamEnergy);
     //    arrayConditions.Add((TObject*) searchCondition);
 
-    TObjArray* refRuns = UniDbRun::Search(arrayConditions);
+    TObjArray* refRuns = UniRun::Search(arrayConditions);
     arrayConditions.SetOwner(kTRUE);
     arrayConditions.Delete();
     for (Int_t iRun = 0; iRun < refRuns->GetEntriesFast(); iRun++) {
-        UniDbRun* run = (UniDbRun*) refRuns->At(iRun);
+        UniRun* run = (UniRun*) refRuns->At(iRun);
         printf("run %04d Energy %f Voltage %f Date %d\n", run->GetRunNumber(), *run->GetEnergy(), *run->GetFieldVoltage(), run->GetStartDatetime().GetDate());
     }
     refRuns->Delete();
@@ -458,7 +458,7 @@ TObjArray* BmnMonitor::GetAlikeRunsByElog(Int_t periodID, Int_t runID) {
 
 TObjArray* BmnMonitor::GetAlikeRunsByUniDB(Int_t periodID, Int_t runID) {
     printf("getalike \n");
-    UniDbRun* Run = UniDbRun::GetRun(periodID, runID);
+    UniRun* Run = UniRun::GetRun(periodID, runID);
     printf("getalike request returned\n");
     if (Run == NULL) {
         fprintf(stderr, "Run %d not found in UniDB!\n", runID);
@@ -495,7 +495,7 @@ TObjArray* BmnMonitor::GetAlikeRunsByUniDB(Int_t periodID, Int_t runID) {
         arrayConditions.Add((TObject*) searchCondition);
     }
     printf("search\n");
-    TObjArray* refRuns = UniDbRun::Search(arrayConditions);
+    TObjArray* refRuns = UniRun::Search(arrayConditions);
     printf("search request returned\n");
     arrayConditions.SetOwner(kTRUE);
     arrayConditions.Delete();

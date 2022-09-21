@@ -5,7 +5,7 @@ double tango_avg_field(int period = 6, int run = 1886)
     TangoData db_tango;
 
     // get run time
-    UniDbRun* pRun = UniDbRun::GetRun(period, run);
+    UniRun* pRun = UniRun::GetRun(period, run);
     if (pRun == nullptr)
     {
         cout<<"Macro finished with errors: no experimental run was found for given numbers"<<endl;
@@ -59,7 +59,7 @@ double tango_avg_field(int period = 6, int run = 1886)
 void tango_avg_field_write_db(int period = 7)
 {
     UniqueRunNumber* run_numbers;
-    int run_count = UniDbRunPeriod::GetRunNumbers(period, run_numbers);
+    int run_count = UniRunPeriod::GetRunNumbers(period, run_numbers);
     if (run_count <= 0)
         return;
 
@@ -68,7 +68,7 @@ void tango_avg_field_write_db(int period = 7)
         TangoData db_tango;
 
         // get run time
-        UniDbRun* pRun = UniDbRun::GetRun(run_numbers[i].period_number, run_numbers[i].run_number);
+        UniRun* pRun = UniRun::GetRun(run_numbers[i].period_number, run_numbers[i].run_number);
         if (pRun == nullptr)
         {
             cout<<"The function encountered with errors: no experimental run was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
@@ -131,7 +131,7 @@ int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end 
     TangoData db_tango;
 
     // get time of the begin run
-    UniDbRun* pRunBegin = UniDbRun::GetRun(period_begin, run_begin);
+    UniRun* pRunBegin = UniRun::GetRun(period_begin, run_begin);
     if (pRunBegin == nullptr)
     {
         cout<<"Macro finished with errors: no experimental run was found - "<<period_begin<<":"<<run_begin<<" (period:run)"<<endl;
@@ -150,7 +150,7 @@ int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end 
         if (period_end == -1) period_end = period_begin;
 
         // get time of the end run
-        UniDbRun* pRunEnd = UniDbRun::GetRun(period_end, run_end);
+        UniRun* pRunEnd = UniRun::GetRun(period_end, run_end);
         if (pRunEnd == nullptr)
         {
             cout<<"Macro finished with errors: no experimental run was found - "<<period_end<<":"<<run_end<<" (period:run)"<<endl;
@@ -193,7 +193,7 @@ int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end 
 void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
 {
     UniqueRunNumber* run_numbers;
-    int run_count = UniDbRun::GetRunNumbers(period, 1, period, 100000, run_numbers);
+    int run_count = UniRun::GetRunNumbers(period, 1, period, 100000, run_numbers);
     if (run_count <= 0)
         return;
 
@@ -204,7 +204,7 @@ void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
     for (int i = 0; i < run_count; i++)
     {
         // get run time
-        UniDbRun* pRun = UniDbRun::GetRun(run_numbers[i].period_number, run_numbers[i].run_number);
+        UniRun* pRun = UniRun::GetRun(run_numbers[i].period_number, run_numbers[i].run_number);
         if (pRun == nullptr)
         {
             cout<<"The function encountered with errors: no experimental run was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
@@ -227,7 +227,7 @@ void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
         delete pRun;
 
         // get elog info
-        TObjArray* arrayRecords = ElogDbRecord::GetRecords(run_numbers[i].period_number, run_numbers[i].run_number);
+        TObjArray* arrayRecords = ElogRecord::GetRecords(run_numbers[i].period_number, run_numbers[i].run_number);
         if (arrayRecords == nullptr)
         {
             cout<<"The function encountered with errors: no ELOG record was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
@@ -236,7 +236,7 @@ void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
         int* pField = nullptr;
         for (int j = 0; j < arrayRecords->GetEntriesFast(); j++)
         {
-            ElogDbRecord* pRecord = (ElogDbRecord*) arrayRecords->At(j);
+            ElogRecord* pRecord = (ElogRecord*) arrayRecords->At(j);
             pField = pRecord->GetSp41();
             if (pField != nullptr)
                 break;
@@ -301,7 +301,7 @@ void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
 void compare_avg_field_graph(int period = 7)
 {
     UniqueRunNumber* run_numbers;
-    int run_count = UniDbRun::GetRunNumbers(period, 1, period, 100000, run_numbers);
+    int run_count = UniRun::GetRunNumbers(period, 1, period, 100000, run_numbers);
     if (run_count <= 0)
         return;
 
@@ -311,7 +311,7 @@ void compare_avg_field_graph(int period = 7)
     for (int i = 0; i < run_count; i++)
     {
         // get ELOG info
-        TObjArray* arrayRecords = ElogDbRecord::GetRecords(run_numbers[i].period_number, run_numbers[i].run_number);
+        TObjArray* arrayRecords = ElogRecord::GetRecords(run_numbers[i].period_number, run_numbers[i].run_number);
         if (arrayRecords == nullptr)
         {
             cout<<"The function encountered with errors: no ELOG record was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
@@ -321,7 +321,7 @@ void compare_avg_field_graph(int period = 7)
         int* pField = nullptr;
         for (int j = 0; j < arrayRecords->GetEntriesFast(); j++)
         {
-            ElogDbRecord* pRecord = (ElogDbRecord*) arrayRecords->At(j);
+            ElogRecord* pRecord = (ElogRecord*) arrayRecords->At(j);
             pField = pRecord->GetSp41();
             if (pField != nullptr)
                 break;
@@ -337,7 +337,7 @@ void compare_avg_field_graph(int period = 7)
         delete arrayRecords;
 
         // get UniDb average field for run
-        UniDbRun* pRun = UniDbRun::GetRun(run_numbers[i].period_number, run_numbers[i].run_number);
+        UniRun* pRun = UniRun::GetRun(run_numbers[i].period_number, run_numbers[i].run_number);
         if (pRun == nullptr)
         {
             cout<<"The function encountered with errors: no experimental run was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;

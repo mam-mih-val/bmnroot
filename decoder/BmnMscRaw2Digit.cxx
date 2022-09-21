@@ -122,7 +122,7 @@ BmnStatus BmnMscRaw2Digit::ParseTxtSpillLog(TString LogName, TString SchemeName)
     for (int i_total = 0; i_total < sum_size; i_total++)
         total_columns.push_back(0);
     // get run time
-    UniDbRun* pRun = UniDbRun::GetRun(fPeriodId, fRunId);
+    UniRun* pRun = UniRun::GetRun(fPeriodId, fRunId);
     if (pRun == NULL) {
         cout << endl << "Error: no experimental run was found " << fPeriodId << " : " << fRunId << endl;
         return kBMNERROR;
@@ -138,7 +138,7 @@ BmnStatus BmnMscRaw2Digit::ParseTxtSpillLog(TString LogName, TString SchemeName)
     delete pRun;
     //    fSpillMapIter = spill_map.lower_bound(dtStart);
     // check for presence in ELOG
-    TObjArray* recs = ElogDbRecord::GetRecords(fPeriodId, fRunId);
+    TObjArray* recs = ElogRecord::GetRecords(fPeriodId, fRunId);
     if (recs == NULL) {
         fprintf(stderr, "ELOG Error!\n");
         return kBMNERROR;

@@ -11,10 +11,10 @@ BmnStatus BmnDchRaw2Digit::ReadMapFromDB(Int_t period, Int_t run) {
 
     cout << "Loading the DCH Map from DB: Period " << period << ", Run " << run << "..." << endl;
 
-    UniDbDetectorParameter* pDetectorParameter1 = UniDbDetectorParameter::GetDetectorParameter("DCH1", "DCH_mapping", period, run);
+    UniDetectorParameter* pDetectorParameter1 = UniDetectorParameter::GetDetectorParameter("DCH1", "DCH_mapping", period, run);
     if (pDetectorParameter1 != NULL)
         pDetectorParameter1->GetValue(fMap1);
-    UniDbDetectorParameter* pDetectorParameter2 = UniDbDetectorParameter::GetDetectorParameter("DCH2", "DCH_mapping", period, run);
+    UniDetectorParameter* pDetectorParameter2 = UniDetectorParameter::GetDetectorParameter("DCH2", "DCH_mapping", period, run);
     if (pDetectorParameter2 != NULL)
         pDetectorParameter2->GetValue(fMap2);
     delete pDetectorParameter1;

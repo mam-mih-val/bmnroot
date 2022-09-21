@@ -11,7 +11,7 @@
 #include "BmnGemStripStationSet_RunSpring2017.h"
 #include "BmnEventHeader.h"
 #include "FairRunAna.h"
-#include "UniDbDetectorParameter.h"
+#include "UniDetectorParameter.h"
 
 #include <TStopwatch.h>
 
@@ -149,7 +149,7 @@ void BmnGemStripHitMaker::createGemDetector()
 
     if (fRunPeriod == 7) {
         if (fIsExp) {
-            UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", fRunPeriod, fRunNumber);
+            UniDetectorParameter* coeffLorCorrs = UniDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", fRunPeriod, fRunNumber);
             vector<UniValue*> shifts;
             if (coeffLorCorrs)
                 coeffLorCorrs->GetValue(shifts);
@@ -171,7 +171,7 @@ void BmnGemStripHitMaker::createGemDetector()
     }
 
     if (fIsExp) {
-        UniDbDetectorParameter* coeffAlignCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "alignment_shift", fRunPeriod, fRunNumber);
+        UniDetectorParameter* coeffAlignCorrs = UniDetectorParameter::GetDetectorParameter("GEM", "alignment_shift", fRunPeriod, fRunNumber);
         vector<UniValue*> algnShifts;
         if (coeffAlignCorrs)
             coeffAlignCorrs->GetValue(algnShifts);

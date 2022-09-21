@@ -11,8 +11,8 @@
 #include "BmnGemStripDigit.h"
 #include "BmnMSCDigit.h"
 #include "DigiRunHeader.h"
-#include "UniDbDetectorParameter.h"
-#include "UniDbRun.h"
+#include "UniDetectorParameter.h"
+#include "UniRun.h"
 #include "TangoData.h"
 #include "RawTypes.h"
 
@@ -1584,8 +1584,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
             fSize = Double_t(fLengthRawFile / 1024. / 1024.);
 
-            //            if (!UniDbRun::GetRun(fPeriodId, runId))
-            //                UniDbRun::CreateRun(fPeriodId, runId, TString::Format("/nica/data4mpd1/dataBMN/bmndata2/run6/raw/mpd_run_Glob_%d.data", runId), "", NULL, NULL, fRunStartTime, &fRunEndTime, &nEv, NULL, &fSize, NULL);
+            //            if (!UniRun::GetRun(fPeriodId, runId))
+            //                UniRun::CreateRun(fPeriodId, runId, TString::Format("/nica/data4mpd1/dataBMN/bmndata2/run6/raw/mpd_run_Glob_%d.data", runId), "", NULL, NULL, fRunStartTime, &fRunEndTime, &nEv, NULL, &fSize, NULL);
 
             //check for trip information
             TangoData db_tango;
@@ -1920,7 +1920,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
 
     if (fDetectorSetup.count(kTOF) > 0 && fDetectorSetup.at(kTOF) == 1) {
         if (fTOF700ReferenceRun <= 0) {
-            UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("TOF2", "slewing_file_id", fPeriodId, fRunId); //(detector_name, parameter_name, period_number, run_number)
+            UniDetectorParameter* pDetectorParameter = UniDetectorParameter::GetDetectorParameter("TOF2", "slewing_file_id", fPeriodId, fRunId); //(detector_name, parameter_name, period_number, run_number)
             if (pDetectorParameter != NULL) {
                 IntValue* pReferenceRun = (IntValue*) pDetectorParameter->GetValue();
                 fTOF700ReferenceRun = pReferenceRun->value;
@@ -2150,8 +2150,8 @@ BmnStatus BmnRawDataDecoder::FinishRun() {
     Double_t fSize = Double_t(fLengthRawFile / 1024. / 1024.);
     Int_t nEv = fNevents;
 
-    //    if (!UniDbRun::GetRun(fPeriodId, fRunId))
-    //        UniDbRun::CreateRun(fPeriodId, fRunId, fRawFileName, "", NULL, NULL, fRunStartTime, &fRunEndTime, &nEv, NULL, &fSize, NULL);
+    //    if (!UniRun::GetRun(fPeriodId, fRunId))
+    //        UniRun::CreateRun(fPeriodId, fRunId, fRawFileName, "", NULL, NULL, fRunStartTime, &fRunEndTime, &nEv, NULL, &fSize, NULL);
 
     return kBMNSUCCESS;
 }
@@ -2415,7 +2415,7 @@ Int_t BmnRawDataDecoder::GetRunIdFromFile(TString name) {
 
 BmnStatus BmnRawDataDecoder::InitMaps() {
     //    Int_t fEntriesInGlobMap = 0;
-    //    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
+    //    UniDetectorParameter* mapPar = UniDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
     //    if (mapPar != NULL) mapPar->GetGemMapArray(fGemMap, fEntriesInGlobMap);
     //
     //    for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
@@ -2531,7 +2531,7 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
 
     //    Int_t nEntries = 1;
     //    if (mapPar != NULL) delete mapPar;
-    //    mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", fPeriodId, fRunId);
+    //    mapPar = UniDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", fPeriodId, fRunId);
     //    if (mapPar != NULL) {
     //        mapPar->GetTriggerMapArray(fT0Map, nEntries);
     //        delete mapPar;

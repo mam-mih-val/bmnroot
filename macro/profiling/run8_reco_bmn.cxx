@@ -25,7 +25,7 @@
 
 // BM@N includes
 #include "BmnFileSource.h"
-#include "UniDbRun.h"
+#include "UniRun.h"
 #include "BmnFieldMap.h"
 #include "BmnNewFieldMap.h"
 #include "BmnCounterTask.h"
@@ -139,7 +139,7 @@ void run8_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
         // get geometry for run
         gRandom->SetSeed(0);
         TString geoFileName = Form("current_geo_file_%d.root", UInt_t(gRandom->Integer(UINT32_MAX)));
-        Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
+        Int_t res_code = UniRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
         if (res_code != 0) {
             cout << "ERROR: could not read geometry file from the database" << endl;
             exit(-3);
@@ -163,7 +163,7 @@ void run8_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run8/bmnsim.root",
         }
 
         // set magnet field with factor corresponding to the given run
-        UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
+        UniRun* pCurrentRun = UniRun::GetRun(run_period, run_number);
         if (pCurrentRun == 0)
             exit(-6);
         Double_t* field_voltage = pCurrentRun->GetFieldVoltage();

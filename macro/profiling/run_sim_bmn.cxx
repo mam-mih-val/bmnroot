@@ -72,7 +72,7 @@
 #include "MpdLAQGSMGenerator.h"
 #include "MpdPHSDGenerator.h"
 #include "MpdUrqmdGenerator.h"
-#include "UniDbRun.h"
+#include "UniRun.h"
 
 // GEANT3 and 4 includes
 #include "TGeant4.h"

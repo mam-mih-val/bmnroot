@@ -77,7 +77,7 @@ void BmnEfficiencyTools::Process() {
                 continue;
 
             // Getting curr. target ...
-            UniDbRun* pCurrentRun = UniDbRun::GetRun(fPeriod, iDst);
+            UniRun* pCurrentRun = UniRun::GetRun(fPeriod, iDst);
             if (!pCurrentRun)
                 continue;
 

@@ -1,5 +1,6 @@
 #include "BmnGemRaw2Digit.h"
 #include "BmnEventHeader.h"
+#include <UniRun.h>
 
 BmnGemRaw2Digit::BmnGemRaw2Digit() {
     fSmall = nullptr;
@@ -191,7 +192,7 @@ BmnStatus BmnGemRaw2Digit::ReadLocalMap(TString FileName, BmnGemMap* m, Int_t la
 
 BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod) {
     Int_t size = 0;
-    UniDbDetectorParameter* par = UniDbDetectorParameter::GetDetectorParameter("GEM", parName, GetPeriod(), GetRun());
+    UniDetectorParameter* par = UniDetectorParameter::GetDetectorParameter("GEM", parName, GetPeriod(), GetRun());
     vector<UniValue*> iiArr;
     if (par != NULL) par->GetValue(iiArr);
     delete par;

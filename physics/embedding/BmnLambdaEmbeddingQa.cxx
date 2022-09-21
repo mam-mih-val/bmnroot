@@ -874,7 +874,7 @@ void BmnLambdaEmbeddingQa::DoDrawEventsWithEmbeddedSignals() {
         // Read current geometry from database
         dst->GetEntry(0);
         Char_t* geoFileName = (Char_t*) "current_geo_file.root";
-        Int_t res_code = UniDbRun::ReadGeometryFile(7, hDst->GetRunId(), geoFileName);
+        Int_t res_code = UniRun::ReadGeometryFile(7, hDst->GetRunId(), geoFileName);
         if (res_code != 0) {
             cout << "Geometry file can't be read from the database" << endl;
             exit(-1);
@@ -884,7 +884,7 @@ void BmnLambdaEmbeddingQa::DoDrawEventsWithEmbeddedSignals() {
 
         // Setting appropriate mag. field
         fMagField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
-        UniDbRun* pCurrentRun = UniDbRun::GetRun(7, hDst->GetRunId());
+        UniRun* pCurrentRun = UniRun::GetRun(7, hDst->GetRunId());
         fMagField->SetScale(*pCurrentRun->GetFieldVoltage() / 55.7);
         fRunAna->SetField(fMagField);
         fMagField->Init();

@@ -14,8 +14,8 @@
 #include <map>
 #include "BmnAdcProcessor.h"
 #include <vector>
-#include <UniDbDetectorParameter.h>
-#include <UniDbDetector.h>
+#include <UniDetectorParameter.h>
+#include <UniDetector.h>
 
 #include <TSystem.h>
 #include <BmnEventHeader.h>

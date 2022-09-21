@@ -4,7 +4,7 @@
 
 #include "TClonesArray.h"
 #include "TSystem.h"
-#include "UniDbDetectorParameter.h"
+#include "UniDetectorParameter.h"
 
 #include <TStopwatch.h>
 
@@ -131,7 +131,7 @@ void BmnSiliconHitMaker::createSiliconDetector()
 
     if (fIsExp) {
         const Int_t nStat = StationSet->GetNStations();
-        UniDbDetectorParameter* coeffAlignCorrs = UniDbDetectorParameter::GetDetectorParameter("Silicon", "alignment_shift", fRunPeriod, fRunNumber);
+        UniDetectorParameter* coeffAlignCorrs = UniDetectorParameter::GetDetectorParameter("Silicon", "alignment_shift", fRunPeriod, fRunNumber);
         vector<UniValue*> algnShifts;
         if (coeffAlignCorrs)
             coeffAlignCorrs->GetValue(algnShifts);

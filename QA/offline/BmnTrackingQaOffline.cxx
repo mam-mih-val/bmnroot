@@ -50,7 +50,7 @@ fEosHost("root://ncm.jinr.ru/") {
     
     fAna = new FairRunAna();
     Char_t* geoFileName = (Char_t*) "current_geo_file.root";
-    Int_t res_code = UniDbRun::ReadGeometryFile(fPeriod, 4649, geoFileName);
+    Int_t res_code = UniRun::ReadGeometryFile(fPeriod, 4649, geoFileName);
     if (res_code != 0) {
         cout << "Geometry file can't be read from the database" << endl;
         exit(-1);
@@ -95,15 +95,15 @@ fEosHost("root://ncm.jinr.ru/") {
 }
 
 TString BmnTrackingQaOffline::GetTrigger(Int_t run) {
-    TObjArray* runRecord = ElogDbRecord::GetRecords(fPeriod, run);
+    TObjArray* runRecord = ElogRecord::GetRecords(fPeriod, run);
 
     TString trigger = "";
 
     TIter it(runRecord);
-    ElogDbRecord* curRecord;
-    while ((curRecord = (ElogDbRecord*) it())) {
+    ElogRecord* curRecord;
+    while ((curRecord = (ElogRecord*) it())) {
         if (curRecord->GetTriggerId())
-            trigger = ElogDbTrigger::GetTrigger(*(curRecord->GetTriggerId()))->GetTriggerInfo();
+            trigger = ElogTrigger::GetTrigger(*(curRecord->GetTriggerId()))->GetTriggerInfo();
     }
 
     auto trigIter = fTriggerMap.find(trigger);
@@ -190,7 +190,7 @@ void BmnTrackingQaOffline::DoAnalisys(Bool_t anal1, Bool_t anal2, Bool_t anal3) 
         return;
 
     for (Int_t iDst = start; iDst < finish; iDst++) {
-        UniDbRun* pCurrentRun = UniDbRun::GetRun(fPeriod, iDst);
+        UniRun* pCurrentRun = UniRun::GetRun(fPeriod, iDst);
 
         // Check presense of the current run in DB ...
         if (!pCurrentRun)

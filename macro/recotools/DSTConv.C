@@ -62,7 +62,7 @@ void DSTConv(
     if (nEvents == 0)
         nEvents = MpdGetNumEvents::GetNumROOTEvents((char*) inFile.Data()) - nStartEvent;
 
-    //    if (!UniDbRun::GetRun(fPeriodId, runId)) {
+    //    if (!UniRun::GetRun(fPeriodId, runId)) {
     //        printf("Run not found in ELOG. Exit.\n");
     //        return;
     //    }

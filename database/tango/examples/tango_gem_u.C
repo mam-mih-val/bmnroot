@@ -35,7 +35,7 @@ void tango_gem_u(int period, int run)
     TangoData db_tango;
 
     // get run time
-    UniDbRun* pRun = UniDbRun::GetRun(period, run);
+    UniRun* pRun = UniRun::GetRun(period, run);
     if (pRun == nullptr)
     {
         cout<<"Macro finished with errors: no experimental run was found for period = "<<period<<", run = "<<run<<endl;

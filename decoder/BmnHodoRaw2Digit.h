@@ -13,7 +13,7 @@
 
 #include "Riostream.h"
 #include <cstdlib>
-#include <UniDbRun.h>
+#include <UniRun.h>
 
 #include <boost/program_options.hpp>
 #include "BmnHodoDigi.h"

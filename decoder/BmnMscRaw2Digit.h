@@ -19,8 +19,8 @@
 #include "BmnTrigInfo.h"
 #include "DigiRunHeader.h"
 //#include  "db_structures.h"
-#include  "ElogDbRecord.h"
-#include  "UniDbRun.h"
+#include  "ElogRecord.h"
+#include  "UniRun.h"
 #include  "UniParser.h"
 #include  "UniSearchCondition.h"
 

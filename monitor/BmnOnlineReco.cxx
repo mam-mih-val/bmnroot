@@ -5,7 +5,7 @@
 #include <fcntl.h>
 #include <TRandom2.h>
 
-#include "UniDbRun.h"
+#include "UniRun.h"
 #include "BmnOnlineReco.h"
 
 BmnOnlineReco::BmnOnlineReco(Int_t periodId, Int_t runId, BmnSetup setup) {
@@ -49,7 +49,7 @@ BmnOnlineReco::BmnOnlineReco(Int_t periodId, Int_t runId, BmnSetup setup) {
     TRandom2 * ran = new TRandom2(0);
     //    gRandom->SetSeed(0);
     TString geoFileName = Form("current_geo_file_%d.root", UInt_t(ran->Integer(UINT32_MAX)));
-    Int_t res_code = UniDbRun::ReadGeometryFile(fPeriodID, fRunID, (char*) geoFileName.Data());
+    Int_t res_code = UniRun::ReadGeometryFile(fPeriodID, fRunID, (char*) geoFileName.Data());
     if (res_code != 0) {
         cout << "Geometry file can't be read from the database" << endl;
         exit(-2);
@@ -70,7 +70,7 @@ BmnOnlineReco::BmnOnlineReco(Int_t periodId, Int_t runId, BmnSetup setup) {
         cout << "Error: TGeoManager isn't top element in geometry file " + geoFileName << endl;
         exit(-4);
     }
-    UniDbRun* pCurrentRun = UniDbRun::GetRun(fPeriodID, fRunID);
+    UniRun* pCurrentRun = UniRun::GetRun(fPeriodID, fRunID);
     if (pCurrentRun == 0)
         exit(-5);
     Double_t* field_voltage = pCurrentRun->GetFieldVoltage();

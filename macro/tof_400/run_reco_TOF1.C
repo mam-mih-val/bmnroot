@@ -40,7 +40,7 @@ void run_reco_TOF1(TString inFile = "run689:$VMCWORKDIR/macro/run/tof1digit_bmn_
 
         // get geometry for run
         TString root_file_path = "current_geo_file.root";
-        Int_t res_code = UniDbRun::ReadGeometryFile(run_number, root_file_path.Data());
+        Int_t res_code = UniRun::ReadGeometryFile(run_number, root_file_path.Data());
         if (res_code != 0) {
             cout << "\nGeometry file can't be read from the database" << endl;
             exit(-1);

@@ -1,7 +1,7 @@
 #include "UniParser.h"
-#include "UniDbRun.h"
-#include "UniDbParameter.h"
-#include "UniDbDetectorParameter.h"
+#include "UniRun.h"
+#include "UniParameter.h"
+#include "UniDetectorParameter.h"
 #include "ElogConnection.h"
 #include "UniConnection.h"
 #define ONLY_DECLARATIONS
@@ -1043,7 +1043,7 @@ int UniParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sche
         cout<<endl;
         */
 
-        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "noise", period_number, run_number, period_number, run_number, arr); //(detector_name, parameter_name, start_run, end_run, parameter_value)
+        UniDetectorParameter* pDetectorParameter = UniDetectorParameter::CreateDetectorParameter("DCH1", "noise", period_number, run_number, period_number, run_number, arr); //(detector_name, parameter_name, start_run, end_run, parameter_value)
         if (pDetectorParameter == nullptr)
             continue;
 

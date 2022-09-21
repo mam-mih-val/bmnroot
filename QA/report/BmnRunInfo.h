@@ -1,12 +1,12 @@
 #ifndef BMNRUNINFO_H
 #define BMNRUNINFO_H
 
-#include "UniDbRun.h"
+#include "UniRun.h"
 
 class BmnRunInfo : public TObject {
 public:
     BmnRunInfo();
-    BmnRunInfo(UniDbRun* orig);
+    BmnRunInfo(UniRun* orig);
     virtual ~BmnRunInfo();// Getters
 	/// get period number of the current run
 	Int_t GetPeriodNumber() {return i_period_number;}

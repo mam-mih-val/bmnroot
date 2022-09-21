@@ -49,7 +49,7 @@ void BmnWriteRawInfo(TString input_file, TString output_file = "", UInt_t period
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(input_file, output_file, nEvents, period);
     decoder->SetBmnSetup(stp);
 
-    bool isRunExist = UniDbRun::CheckRunExists(decoder->GetPeriodId(), decoder->GetRunId());
+    bool isRunExist = UniRun::CheckRunExists(decoder->GetPeriodId(), decoder->GetRunId());
     // if run exists and flag 'OnlyCreate' was set then exit
     if ((iAction == OnlyCreate) && (isRunExist))
     {
@@ -138,7 +138,7 @@ void BmnWriteRawInfo(TString input_file, TString output_file = "", UInt_t period
                 cout<<"Run "<<decoder->GetPeriodId()<<":"<<decoder->GetRunId()<<" exists and 'Only Create' flag was set"<<endl;
             else
             {
-                UniDbRun* pRun = UniDbRun::GetRun(decoder->GetPeriodId(), decoder->GetRunId());
+                UniRun* pRun = UniRun::GetRun(decoder->GetPeriodId(), decoder->GetRunId());
 
                 bool isErrors = false;
                 if (pRun == NULL) isErrors = true;
@@ -172,7 +172,7 @@ void BmnWriteRawInfo(TString input_file, TString output_file = "", UInt_t period
                 TMD5* pMD5 = TMD5::FileChecksum(input_file.Data());
                 if (pMD5) strMD5 = pMD5->AsString();
                 else cout<<"WARNING: a problem occured while file checksum calculation: "<<input_file<<endl;
-                UniDbRun* pRun = UniDbRun::CreateRun(decoder->GetPeriodId(), decoder->GetRunId(), input_file, "", NULL, NULL, startDate, &endDate, &event_count, NULL, &file_size, NULL, strMD5);
+                UniRun* pRun = UniRun::CreateRun(decoder->GetPeriodId(), decoder->GetRunId(), input_file, "", NULL, NULL, startDate, &endDate, &event_count, NULL, &file_size, NULL, strMD5);
                 if (pMD5) delete pMD5;
                 if (strMD5) delete strMD5;
 

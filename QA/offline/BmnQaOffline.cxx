@@ -1,5 +1,6 @@
 #include "BmnQaOffline.h"
 #include "BmnGlobalTrack.h"
+#include <UniRun.h>
 
 Int_t BmnQaOffline::fCurrentEvent = 0;
 
@@ -120,13 +121,13 @@ InitStatus BmnQaOffline::Init() {
     dst = new BmnDstQa(fRunId);
 
     Char_t* geoFileName = (Char_t*) "current_geo_file.root";
-    Int_t res_code = UniDbRun::ReadGeometryFile(period, fRunId, geoFileName);
+    Int_t res_code = UniRun::ReadGeometryFile(period, fRunId, geoFileName);
     if (res_code != 0) {
         cout << "Geometry file can't be read from the database" << endl;
         exit(-1);
     }
     TGeoManager::Import(geoFileName);
-    UniDbRun* db = UniDbRun::GetRun(period, fRunId);
+    UniRun* db = UniRun::GetRun(period, fRunId);
     isField = (*db->GetFieldVoltage() > 10.) ? kTRUE : kFALSE;
 
     return kSUCCESS;

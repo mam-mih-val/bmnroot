@@ -13,7 +13,7 @@ isEmbedded(kFALSE) {
     }
 }
 
-BmnADCDigit::BmnADCDigit(UInt_t iSerial, UShort_t iChannel, UInt_t n, UShort_t *iValue) :
+BmnADCDigit::BmnADCDigit(UInt_t iSerial, UShort_t iChannel, UInt_t n, vector<UShort_t> iValue) :
 isEmbedded(kFALSE),
 fValueI(nullptr) {
     fSerial = iSerial;
@@ -25,6 +25,19 @@ fValueI(nullptr) {
     }
 }
 
+BmnADCDigit::BmnADCDigit(UInt_t iSerial, UShort_t iChannel, UInt_t n, UShort_t *iValue) :
+isEmbedded(kFALSE),
+fValueI(nullptr) {
+    fSerial = iSerial;
+    fChannel = iChannel;
+    fNsmpl = n;
+    fValueU = new UShort_t[fNsmpl];
+    if (iValue)
+        for (Int_t i = 0; i < fNsmpl; ++i) {
+            fValueU[i] = iValue[i];
+        }
+}
+
 BmnADCDigit::BmnADCDigit(UInt_t iSerial, UShort_t iChannel, UInt_t n, Short_t *iValue, Bool_t flagEmb) :
 fValueU(nullptr) {
     isEmbedded = flagEmb;
@@ -32,9 +45,10 @@ fValueU(nullptr) {
     fChannel = iChannel;
     fNsmpl = n;
     fValueI = new Short_t[fNsmpl];
-    for (Int_t i = 0; i < fNsmpl; ++i) {
-        fValueI[i] = iValue[i];
-    }
+    if (iValue)
+        for (Int_t i = 0; i < fNsmpl; ++i) {
+            fValueI[i] = iValue[i];
+        }
 }
 
 BmnADCDigit::~BmnADCDigit() {

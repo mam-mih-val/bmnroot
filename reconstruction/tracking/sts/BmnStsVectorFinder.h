@@ -24,6 +24,7 @@
 
 #include <set>
 #include <string>
+#include <unordered_map>
 
 //typedef std::pair<Double_t,std::map<Int_t,Int_t> > candvec;
 
@@ -34,9 +35,9 @@ class BmnStsVectorFinder : public FairTask
 
   struct hitinfo {
     hitinfo() {}
-    hitinfo (TVector3 v3, Double_t txi, Double_t tyi) : xyz(v3), tx(txi), ty(tyi), used(0) {;}
+    hitinfo (TVector3 v3, Double_t phxi, Double_t tyi) : xyz(v3), phx(phxi), ty(tyi), used(0) {;}
     TVector3 xyz;
-    Double_t tx;
+    Double_t phx;
     Double_t ty;
     int used;
   };
@@ -46,6 +47,8 @@ class BmnStsVectorFinder : public FairTask
     Int_t idmaxP;
     Double_t momxz;
     Double_t ty;
+    Double_t lengxz;
+    Double_t varx;
     std::map<Int_t,Int_t> stahit;
     std::string code;
     FairTrackParam param;
@@ -84,6 +87,7 @@ class BmnStsVectorFinder : public FairTask
     return GetHitId((CbmStsHit*)fHitArray->UncheckedAt(hitInd), idmaxP); }
   void BuildTrackCand();
   void BuildDoublets();
+  Bool_t CheckVarx(Double_t dx, Double_t dz, Double_t tx, Double_t distxz, Double_t& varx); //AZ-310722
   void BuildTriplets();
   void BuildTracks();
   void ExtendTrack(candvec cand);
@@ -99,20 +103,24 @@ class BmnStsVectorFinder : public FairTask
   void ExcludeFakes();
   Double_t DxVsMom(Int_t ista, candvec &aaa);
   Double_t Proxim(Double_t ang1, Double_t ang2);
-  Double_t LinearFit(CbmStsTrack *tr, Int_t newtr, Double_t &ty);
-  Double_t Curv3(candvec &cand);
+  //AZ-280722 Double_t LinearFit(CbmStsTrack *tr, Int_t newtr, Double_t &ty);
+  Double_t LinearFit(candvec &cand, candvec &cand2, CbmStsTrack *tr, Int_t newtr, Double_t &ty); //AZ-280722
+  Double_t Curv3(candvec &cand1, candvec &cand2, candvec &cand3, int newtr3);
   std::set<int> KalmanWindow(candvec &cand, int hitIndx);
+  std::string MakeCode(candvec &cand);
 
   /** Input / output array of CbmStsHits **/
-  TClonesArray *fClusArray[4], *fHitArray, *fTrackArray, *fDigiMatches, *fStsPoints;
+   TClonesArray *fClusArray[4], *fHitArray, *fTrackArray, *fDigiMatches, *fStsPoints, *fSilPoints;
   TClonesArray *fVectorArray; // output tracks
   Int_t fPass; // pass number
   Int_t fNsta; // number of stations
+  Int_t fNbranches; // max number of branches in a triplet from one doublet
   Int_t fExact; // exact match - for debug
   Int_t discarded; // number of discarded 3-hit candidates with bad chi2, debug
   Int_t fExactSel; // exact match for selected ID - for debug
-  TVector3 fXyzv; // mean vertex position 
-  std::multimap<Double_t,Int_t> fmapTx[19], fmapTy[19], fmapX[19], fmapY[19];
+  TVector3 fXyzv; // mean vertex position
+  Double_t fBy; // max. field in Tesla
+  std::multimap<Double_t,Int_t> fmapPhx[19], fmapTy[19], fmapX[19], fmapY[19];
   std::vector<candvec> fSeedVec[19]; // 
   std::vector<candvec> fCandVec[19]; // 
   std::set<string> fCandCodes[19];
@@ -120,21 +128,25 @@ class BmnStsVectorFinder : public FairTask
   //std::multimap<Int_t,candvec> fCandMap3[19]; // 
 
   std::vector<candvec> fCandVec2[19]; // doublets
-  std::multimap<int,int> fMap2[19]; // hit index -> index in fCandVec2
+  //AZ-130722 std::multimap<int,int> fMap2[19]; // hit index -> index in fCandVec2
+  std::unordered_multimap<int,int> fMap2[19]; //AZ-130722 hit index -> index in fCandVec2
 
   std::vector<candvec> fCandVec3[19]; // triplets
-  std::multimap<int,int> fMap3[19]; // hit index -> index in fCandVec3
-  std::map<std::string,int> fMapCode3[19]; // triplet code -> index in fCandVec3
+  //AZ-130722 std::multimap<int,int> fMap3[19]; // hit index -> index in fCandVec3
+  std::unordered_multimap<int,int> fMap3[19]; //AZ-130722 hit index -> index in fCandVec3
+  //AZ-130722 std::map<std::string,int> fMapCode3[19]; // triplet code -> index in fCandVec3
+  std::unordered_map<std::string,int> fMapCode3[19]; //AZ-130722 triplet code -> index in fCandVec3
 
   std::multimap<Double_t,CbmStsTrack> fTracks; // 
-  std::map<Int_t,hitinfo> fmapHits;
-  std::multimap<Int_t,Int_t> fHit2id, fClusMaps[2];
+  //AZ-130722 std::map<Int_t,hitinfo> fmapHits;
+  std::unordered_map<Int_t,hitinfo> fmapHits; //AZ-130722
+  //AZ-130722 std::multimap<Int_t,Int_t> fHit2id, fClusMaps[2];
+  std::unordered_multimap<Int_t,Int_t> fHit2id, fClusMaps[2]; //AZ-130722
   Int_t *fNhitsMin, fNskips[20];
-  Double_t *fdTanX, *fdTanY, *fdX;
+  Double_t *fdTanX, *fdTanY, *fdTanY3, *fPhiXZ, *fTanXmax, *fZmean, *fPTcut, *fCurvSta;
   //CbmStsKFTrackFitter fitter;
   BmnStsKFTrackFitter fitter;
   std::set<string> fCandSet[19];
-  //std::set<string> fTripleCodes[19];
 
   TString fMatBudgetFileName;
   //std::map<Double_t,TProfile2D*> fMatHistos;

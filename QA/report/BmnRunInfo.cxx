@@ -20,7 +20,7 @@ BmnRunInfo::BmnRunInfo() {
     i_trigger_id = 0;
 }
 
-BmnRunInfo::BmnRunInfo(UniDbRun* orig) {
+BmnRunInfo::BmnRunInfo(UniRun* orig) {
     i_period_number = orig->GetPeriodNumber();
     i_run_number = orig->GetRunNumber();
     str_beam_particle = orig->GetBeamParticle();

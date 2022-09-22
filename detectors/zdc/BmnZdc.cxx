@@ -301,7 +301,7 @@ void BmnZdc::ConstructGeometry()
     TString zdcGeoFileName = GetGeometryFileName();
     if (zdcGeoFileName.EndsWith(".root"))
     {
-        LOG(INFO) << "Constructing ZDC geometry from ROOT file " << zdcGeoFileName.Data();
+        LOG(info) << "Constructing ZDC geometry from ROOT file " << zdcGeoFileName.Data();
         ConstructRootGeometry();
     }
 

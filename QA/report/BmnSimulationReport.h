@@ -7,14 +7,22 @@
 #ifndef BMNSIMULATIONREPORT_H_
 #define BMNSIMULATIONREPORT_H_
 
+#include <string>
+
+#include "TF1.h"
+#include "TPaveStats.h"
+
 #include "BmnReport.h"
 #include "BmnDrawHist.h"
-#include <string>
 
 using std::ostream;
 using std::string;
 
 class BmnHistManager;
+
+//basic height and wigth of pad
+const Float_t baseW = 500;
+const Float_t baseH = 500;
 
 /**
  * \class BmnSimulationReport
@@ -64,6 +72,7 @@ public:
     void SetHM(BmnHistManager *hm) {
         fHM = hm;
     }
+
     /**
      * \brief Return pointer to Histogram manager.
      */
@@ -108,6 +117,17 @@ public:
     Bool_t GetOnlyPrimes() const {
         return fPrimes;
     }
+
+protected:
+    void DrawMuSigma(TVirtualPad* pad, TH1* h);
+    void DrawOneH1(const TString canvasName, const TString name1, const TString drawOpt);
+    void DrawTwoH1(const TString canvasName, const TString name1, const TString name2, const TString drawOpt, Bool_t doFit);
+    void DrawOneH2(const TString canvasName, const TString name1);
+    void DrawTwoH2(const TString canvasName, const TString name1, const TString name2, Int_t w = 1000, Int_t h = 500);
+    void DrawThreeH1(const TString canvasName, const TString name1, const TString name2, const TString name3);
+    void DrawThreeH2(const TString canvasName, const TString name1, const TString name2, const TString name3);
+    
+    const Int_t MinNEntries4Fit = 10;
 
 private:
     BmnHistManager* fHM; // Histogram manager

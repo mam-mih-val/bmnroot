@@ -3,6 +3,7 @@
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/field
+ ${CMAKE_SOURCE_DIR}/passive
  ${CMAKE_SOURCE_DIR}/base
  ${CMAKE_SOURCE_DIR}/base/data
  ${CMAKE_SOURCE_DIR}/base/cbm
@@ -37,11 +38,14 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-CbmL1.cxx 
-CbmL1Performance.cxx 
+CbmL1.cxx
+CbmL1Performance.cxx
 CbmL1ReadEvent.cxx
 CbmL1MCTrack.cxx
 CbmL1ParticlesFinder.cxx
+
+CbmStsFindTracks.cxx
+CbmStsFindTracksQa.cxx
 
 L1Algo/L1Algo.cxx
 L1Algo/L1CATrackFinder.cxx
@@ -67,6 +71,9 @@ CbmL1Vtx.h
 CbmL1ParticlesFinder.h
 CbmL1PartEfficiencies.h
 
+CbmStsFindTracks.h
+CbmStsFindTracksQa.h
+
 OffLineInterface/CbmL1StsTrackFinder.h
 )
 
@@ -85,6 +92,6 @@ ENDIF (SSE_FOUND)
 
 Set(LINKDEF CatLinkDef.h)
 Set(LIBRARY_NAME Cat)
-Set(DEPENDENCIES KF Sts Gem Silicon BmnBase BmnField Base Core)
+Set(DEPENDENCIES KF Sts Gem Silicon BmnBase Passive BmnField Base Core)
 
 GENERATE_LIBRARY()

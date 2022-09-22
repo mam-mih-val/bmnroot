@@ -89,7 +89,7 @@ void BmnSsdSensorDssdStereo::Diffusion(Double_t x, Double_t y,
     fracR = 0.5 * ( 1. - TMath::Erf( 0.707107 * dRight / sigma) );
   fracC = 1. - fracL - fracR;
 
-  LOG(DEBUG4) << GetName() << ": Distances to next strip " << dLeft << " / "
+  LOG(debug4) << GetName() << ": Distances to next strip " << dLeft << " / "
       << dRight << ", charge fractions " << fracL << " / " << fracC
       << " / " << fracR;
 }
@@ -164,12 +164,12 @@ Int_t BmnSsdSensorDssdStereo::GetStripNumber(Double_t x, Double_t y,
 
   // Check whether in active area (should have been caught before)
   if ( TMath::Abs(x) > fDx / 2. ) {
-    LOG(ERROR) << GetName() << ": Outside active area : x = "
+    LOG(error) << GetName() << ": Outside active area : x = "
         << x << " cm";
     return -1;
   }
   if ( TMath::Abs(y) > fDy / 2. ) {
-    LOG(ERROR) << GetName() << ": Outside active area : y = "
+    LOG(error) << GetName() << ": Outside active area : y = "
         << y << " cm";
     return -1;
   }
@@ -201,13 +201,13 @@ Bool_t BmnSsdSensorDssdStereo::Init() {
 
   // Check presence of node
   if ( ! fNode ) {
-    LOG(ERROR) << GetName() << ": No node assigned!";
+    LOG(error) << GetName() << ": No node assigned!";
     return kFALSE;
   }
 
   // Check whether parameters are assigned
   if ( fNofStrips <= 0 ) {
-    LOG(ERROR) << GetName() << ": Parameters are not set!"
+    LOG(error) << GetName() << ": Parameters are not set!"
        ;
     return kFALSE;
   }
@@ -219,7 +219,7 @@ Bool_t BmnSsdSensorDssdStereo::Init() {
   // Active size in x coordinate
   fDx = Double_t(fNofStrips) * fPitch;
   if ( fDx >= 2. * shape->GetDX() ) {
-    LOG(ERROR) << GetName() << ": Active size in x ( " << fNofStrips << " x "
+    LOG(error) << GetName() << ": Active size in x ( " << fNofStrips << " x "
         << fPitch << " cm exceeds volume extension " << 2. * shape->GetDX()
        ;
     return kFALSE;
@@ -227,7 +227,7 @@ Bool_t BmnSsdSensorDssdStereo::Init() {
 
   // Active size in y coordinate
   if ( fDy >= 2. * shape->GetDY() ) {
-    LOG(ERROR) << GetName() << ": Active size in y ( " << fDy
+    LOG(error) << GetName() << ": Active size in y ( " << fDy
         << " cm exceeds volume extension " << 2. * shape->GetDY()
        ;
     return kFALSE;
@@ -238,14 +238,14 @@ Bool_t BmnSsdSensorDssdStereo::Init() {
 
   // Stereo angle front side must be between -85 and 85 degrees
   if ( TMath::Abs(fStereoF) > 85. ) {
-    LOG(ERROR) << GetName() << ": Stereo angle front side ( " << fStereoF
+    LOG(error) << GetName() << ": Stereo angle front side ( " << fStereoF
         << "° exceeds maximum 85° ";
     return kFALSE;
   }
 
   // Stereo angle back side must be between -85 and 85 degrees
   if ( TMath::Abs(fStereoB) > 85. ) {
-    LOG(ERROR) << GetName() << ": Stereo angle back side ( " << fStereoB
+    LOG(error) << GetName() << ": Stereo angle back side ( " << fStereoB
         << "° exceeds maximum 85° ";
     return kFALSE;
   }
@@ -347,32 +347,32 @@ Int_t BmnSsdSensorDssdStereo::IntersectClusters(BmnSsdCluster* clusterF,
 
   // --- Ideal hit finder
   if ( kFALSE ){  //TODO Proper implementation
-    LOG(DEBUG3) << GetName() << ": ideal model of Hit Finder";
+    LOG(debug3) << GetName() << ": ideal model of Hit Finder";
 
     const BmnMatch *clusterFMatch, *clusterBMatch;
 
     clusterFMatch = static_cast<const BmnMatch*>(clusterF -> GetMatch());
     if (clusterFMatch){
-      LOG(DEBUG4) << GetName() << ": front cluster exists";
+      LOG(debug4) << GetName() << ": front cluster exists";
       if ((clusterFMatch -> GetNofLinks()) != 1) {
-        LOG(DEBUG4) << GetName() << ": front cluster has more or less than 1 BmnLink";
+        LOG(debug4) << GetName() << ": front cluster has more or less than 1 BmnLink";
         return 0;
-      } else LOG(DEBUG4) << GetName() << ": front cluster has " <<  clusterFMatch -> GetNofLinks() << " BmnLink";
+      } else LOG(debug4) << GetName() << ": front cluster has " <<  clusterFMatch -> GetNofLinks() << " BmnLink";
     } else return 0;
 
     clusterBMatch = static_cast<const BmnMatch*> (clusterB -> GetMatch());
     if (clusterBMatch){
-      LOG(DEBUG4) << GetName() << ": back cluster exists";
+      LOG(debug4) << GetName() << ": back cluster exists";
       if ((clusterBMatch -> GetNofLinks()) != 1){
-        LOG(DEBUG4) << GetName() << ": back cluster has more or less than 1 BmnLink";
+        LOG(debug4) << GetName() << ": back cluster has more or less than 1 BmnLink";
         return 0;
-      } else LOG(DEBUG4) << GetName() << ": back cluster has " <<  clusterBMatch -> GetNofLinks() << " BmnLink";
+      } else LOG(debug4) << GetName() << ": back cluster has " <<  clusterBMatch -> GetNofLinks() << " BmnLink";
     } else return 0;
 
     if (clusterBMatch -> GetLink(0).GetIndex() != clusterFMatch -> GetLink(0).GetIndex()){
-      LOG(DEBUG4) << GetName() << ": back and front clusters have different index of BmnLink";
+      LOG(debug4) << GetName() << ": back and front clusters have different index of BmnLink";
       return 0;
-    } else LOG(DEBUG4) << GetName() << ": back and front clusters have the same index of BmnLink";
+    } else LOG(debug4) << GetName() << ": back and front clusters have the same index of BmnLink";
   }
 
   // --- Calculate cluster centre position on readout edge
@@ -381,13 +381,13 @@ Int_t BmnSsdSensorDssdStereo::IntersectClusters(BmnSsdCluster* clusterF,
   Double_t xB = -1.;
   GetClusterPosition(clusterF->GetPosition(), xF, side);
   if ( side != 0 )
-    LOG(FATAL) << GetName() << ": Inconsistent side qualifier " << side
+    LOG(fatal) << GetName() << ": Inconsistent side qualifier " << side
     << " for front side cluster! ";
   Double_t exF = clusterF->GetPositionError() * fPitch;
   Double_t du = exF * TMath::Cos(TMath::DegToRad() * fStereoF);
   GetClusterPosition(clusterB->GetPosition(), xB, side);
   if ( side != 1 )
-    LOG(FATAL) << GetName() << ": Inconsistent side qualifier " << side
+    LOG(fatal) << GetName() << ": Inconsistent side qualifier " << side
     << " for back side cluster! ";
   Double_t exB = clusterB->GetPositionError() * fPitch;
   Double_t dv = exB * TMath::Cos(TMath::DegToRad() * fStereoB);
@@ -430,7 +430,7 @@ Int_t BmnSsdSensorDssdStereo::IntersectClusters(BmnSsdCluster* clusterF,
 
       // --- Intersect the two lines
       Bool_t found = Intersect(xFi, exF, xBi, exB, xC, yC, varX, varY, varXY);
-      LOG(DEBUG4) << GetName() << ": Trying " << xFi << ", " << xBi
+      LOG(debug4) << GetName() << ": Trying " << xFi << ", " << xBi
           << ", intersection ( " << xC << ", " << yC
           << " ) " << ( found ? "TRUE" : "FALSE" )
          ;
@@ -485,7 +485,7 @@ void BmnSsdSensorDssdStereo::PropagateCharge(Double_t x, Double_t y,
   Double_t zCharge = z;
 
   // Debug
-  LOG(DEBUG4) << GetName() << ": Propagating charge " << charge
+  LOG(debug4) << GetName() << ": Propagating charge " << charge
       << " from (" << x << ", " << y << ", " << z
       << ") on side " << side << " of sensor " << GetName()
      ;
@@ -493,14 +493,14 @@ void BmnSsdSensorDssdStereo::PropagateCharge(Double_t x, Double_t y,
   // Lorentz shift on the drift to the readout plane
   if ( BmnSsdSetup::Instance()->GetDigiParameters()->GetUseLorentzShift() ) {
     xCharge += LorentzShift(z, side, bY);
-    LOG(DEBUG4) << GetName() << ": After Lorentz shift: (" << xCharge << ", "
+    LOG(debug4) << GetName() << ": After Lorentz shift: (" << xCharge << ", "
         << yCharge << ", " << zCharge << ") cm";
   }
 
   // Stop is the charge after Lorentz shift is not in the active area.
   // Diffusion into the active area is not treated.
   if ( ! IsInside(xCharge, yCharge) ) {
-    LOG(DEBUG4) << GetName() << ": Charge outside active area"
+    LOG(debug4) << GetName() << ": Charge outside active area"
        ;
     return;
   }
@@ -509,7 +509,7 @@ void BmnSsdSensorDssdStereo::PropagateCharge(Double_t x, Double_t y,
   if ( ! BmnSsdSetup::Instance()->GetDigiParameters()->GetUseDiffusion() ) {
     Int_t iStrip = GetStripNumber(xCharge, yCharge, side);
     fStripCharge[side][iStrip] += charge;
-    LOG(DEBUG4) << GetName() << ": Adding charge " << charge << " to strip "
+    LOG(debug4) << GetName() << ": Adding charge " << charge << " to strip "
         << iStrip;
   } //? Do not use diffusion
 
@@ -524,7 +524,7 @@ void BmnSsdSensorDssdStereo::PropagateCharge(Double_t x, Double_t y,
                                       GetConditions()->GetTemperature(),
                                       side);
     assert (diffusionWidth >= 0.);
-    LOG(DEBUG4) << GetName() << ": Diffusion width = " << diffusionWidth
+    LOG(debug4) << GetName() << ": Diffusion width = " << diffusionWidth
         << " cm";
     // Calculate charge fractions in strips
     Double_t fracL = 0.;  // fraction of charge in left neighbour
@@ -550,17 +550,17 @@ void BmnSsdSensorDssdStereo::PropagateCharge(Double_t x, Double_t y,
     // Collect charge on the readout strips
     if ( fracC > 0. ) {
       fStripCharge[side][iStripC] += charge * fracC;    // centre strip
-      LOG(DEBUG4) << GetName() << ": Adding charge " << charge * fracC
+      LOG(debug4) << GetName() << ": Adding charge " << charge * fracC
           << " to strip " << iStripC;
     }
     if ( fracL > 0. && iStripL >= 0 ) {
       fStripCharge[side][iStripL] += charge * fracL;  // right neighbour
-      LOG(DEBUG4) << GetName() << ": Adding charge " << charge * fracL
+      LOG(debug4) << GetName() << ": Adding charge " << charge * fracL
           << " to strip " << iStripL;
     }
     if ( fracR > 0. && iStripR < fNofStrips ) {
       fStripCharge[side][iStripR] += charge * fracR;  // left neighbour
-      LOG(DEBUG4) << GetName() << ": Adding charge " << charge * fracR
+      LOG(debug4) << GetName() << ": Adding charge " << charge * fracR
           << " to strip " << iStripR;
     }
   } //? Use diffusion

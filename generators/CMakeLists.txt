@@ -12,6 +12,8 @@ set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
  ${CMAKE_SOURCE_DIR}/config
  ${CMAKE_SOURCE_DIR}/generators
+ ${CMAKE_SOURCE_DIR}/base
+ ${CMAKE_SOURCE_DIR}/base/data
  ${CMAKE_SOURCE_DIR}/generators/unigen_format
 )
 
@@ -62,9 +64,11 @@ else(PLUTO_FOUND)
  Set(LINKDEF GenLinkDef.h)
 EndIf(PLUTO_FOUND)
 Set(LIBRARY_NAME MpdGen)
-Set(DEPENDENCIES Base EG MathCore Physics RIO Core UniGenFormat)
+Set(DEPENDENCIES Base EG MathCore Physics RIO Core UniGenFormat BmnBase)
 
 GENERATE_LIBRARY()
 
-#add_executable (show_event_count show_event_count.cxx)
-#target_link_libraries(show_event_count MpdGen ${ROOT_LIBRARIES})
+add_executable (show_event_count show_event_count.cxx)
+target_link_libraries(show_event_count MpdGen ${ROOT_LIBRARIES})
+
+INSTALL(PROGRAMS ${EXECUTABLE_OUTPUT_PATH}/show_event_count DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)

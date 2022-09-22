@@ -37,7 +37,7 @@ CbmStsAcceptance::CbmStsAcceptance()
 
 	// TODO: This is a sloppy way of preventing more than one instance.
 	// Should be a real single ton class.
-	if ( fNofInstances ) LOG(FATAL) << GetName()
+	if ( fNofInstances ) LOG(fatal) << GetName()
 			<< ": Instance of this class is already present! Aborting...";
 
 	fNofInstances++;
@@ -90,11 +90,11 @@ void CbmStsAcceptance::Exec(Option_t* /*opt*/) {
 	} //# StsPoints
 
 	// Perform consistency check
-	if ( ! Test() ) LOG(FATAL) << GetName() << ": consistency check failed!";
+	if ( ! Test() ) LOG(fatal) << GetName() << ": consistency check failed!";
 
 	fTimer.Stop();
-  LOG(DEBUG) << ToString();
-  LOG(INFO) << "+ " << setw(20) << GetName() << ": Event " << setw(6)
+  LOG(debug) << ToString();
+  LOG(info) << "+ " << setw(20) << GetName() << ": Event " << setw(6)
               << right << fNofEvents << ", time " << fixed << setprecision(6)
               << fTimer.RealTime() << " s, STS points: " << nPoints
               << ", map size " << fCountMap.size()
@@ -113,16 +113,16 @@ void CbmStsAcceptance::Exec(Option_t* /*opt*/) {
 // -----   End-of-run action   ----------------------------------------------
 void CbmStsAcceptance::Finish() {
 	std::cout << std::endl;
-	LOG(INFO) << "=====================================";
-	LOG(INFO) << GetName() << ": Run summary";
-	LOG(INFO) << "Events processed    : " << fNofEvents;
-	LOG(INFO) << "StsPoints / event   : " << setprecision(1)
+	LOG(info) << "=====================================";
+	LOG(info) << GetName() << ": Run summary";
+	LOG(info) << "Events processed    : " << fNofEvents;
+	LOG(info) << "StsPoints / event   : " << setprecision(1)
             << fNofPointsTot / Double_t(fNofEvents)
            ;
-	LOG(INFO) << "Real time per event : " << setprecision(6)
+	LOG(info) << "Real time per event : " << setprecision(6)
 			      << fTimeTot / Double_t(fNofEvents)
 		        << " s";
-	LOG(INFO) << "=====================================";
+	LOG(info) << "=====================================";
 }
 // --------------------------------------------------------------------------
 
@@ -182,7 +182,7 @@ InitStatus CbmStsAcceptance::Init() {
   // --- Get input array (StsPoint)
   fPoints = (TClonesArray*) ioman->GetObject("StsPoint");
   if ( ! fPoints ) {
-  	LOG(ERROR) << GetName()
+  	LOG(error) << GetName()
   			       << ": No StsPoint array. Task will be deactivated."
   			      ;
   	SetActive(kFALSE);
@@ -192,7 +192,7 @@ InitStatus CbmStsAcceptance::Init() {
   // --- Get input array (MCTrack)
   fTracks = (TClonesArray*) ioman->GetObject("MCTrack");
   if ( ! fTracks ) {
-  	LOG(ERROR) << GetName()
+  	LOG(error) << GetName()
   			       << ": No MCTrack array. Task will be deactivated."
   			      ;
   	SetActive(kFALSE);
@@ -223,10 +223,10 @@ Bool_t CbmStsAcceptance::Test() {
 		// The value of 31 is the maximal number that can be stored in CbmMCTrack
 		// for the count of StsPoints. Sometimes there are more (spiralling electrons).
 		if ( nPoints1 != nPoints2 && nPoints1 < 31) {
-			LOG(ERROR) << GetName() << ": Track " << trackId
+			LOG(error) << GetName() << ": Track " << trackId
 					<< " points from MCTrack " << nPoints1
 					<< ", points from StsAcceptance " << nPoints2;
-			LOG(ERROR) << track->ToString();
+			LOG(error) << track->ToString();
 			result = kFALSE;
 		}
 	} //# MCTracks

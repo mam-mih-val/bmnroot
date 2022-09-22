@@ -67,7 +67,7 @@ void fhcal_profile(TString converted_root_file, TString result_file_name, int ma
     double ScWallCtrEnergy = 0.;
 
     int counter = 0;
-    int n_events = (tree->GetEntries() > max_entries)? max_entries : tree->GetEntries();
+    int n_events = (max_entries>0 && tree->GetEntries()>max_entries)? max_entries : tree->GetEntries();
     cout << n_events << endl;
     for (int ev = 0; ev < n_events; ev++) ////nt1->GetEntries() //get entries from .root
     {

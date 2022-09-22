@@ -100,7 +100,7 @@ Bool_t BmnTof1Raw2Digit::setRun(Int_t nPeriod, Int_t nRun) {
     //--------------------------------------------------------------------------
     //Load the TDC's map (placement map) from the DB
     if (fVerbose >= 1) cout << "\tLoading the placement map..." << endl;
-    UniDbDetectorParameter* pLoadedPlacement = UniDbDetectorParameter::GetDetectorParameter("TOF1", "TOF1_TdcMap", nPeriod, nRun);
+    UniDetectorParameter* pLoadedPlacement = UniDetectorParameter::GetDetectorParameter("TOF1", "TOF1_TdcMap", nPeriod, nRun);
     if (pLoadedPlacement == 0) {
         printf(ANSI_COLOR_RED "\t\tTOF400 Crucial error: failed to load the placement map\n" ANSI_COLOR_RESET);
         return kFALSE;
@@ -128,7 +128,7 @@ Bool_t BmnTof1Raw2Digit::setRun(Int_t nPeriod, Int_t nRun) {
     //--------------------------------------------------------------------------
     //Load the strip mapping from the DB (TDCs channel -> plane, strip, side).
     if (fVerbose >= 1) cout << "\tLoading strip map..." << endl;
-    UniDbDetectorParameter* pLoadedStr = UniDbDetectorParameter::GetDetectorParameter("TOF1", "TOF1_StripMap", nPeriod, nRun);
+    UniDetectorParameter* pLoadedStr = UniDetectorParameter::GetDetectorParameter("TOF1", "TOF1_StripMap", nPeriod, nRun);
     if (pLoadedStr == 0) {
         printf(ANSI_COLOR_RED "\t\tTOF400 Crucial error: failed to load the strip map\n" ANSI_COLOR_RESET);
         return kFALSE;
@@ -171,7 +171,7 @@ Bool_t BmnTof1Raw2Digit::setRun(Int_t nPeriod, Int_t nRun) {
     //--------------------------------------------------------------------------
     //Load Inl from DB
     if (fVerbose >= 1) cout << "\tLoading the INL correction from DB... " << endl;
-    UniDbDetectorParameter* pLoadedInl = UniDbDetectorParameter::GetDetectorParameter("TOF1", "TOF1_inl", nPeriod, nRun); //(detector_name, parameter_name, period_number, run_number)
+    UniDetectorParameter* pLoadedInl = UniDetectorParameter::GetDetectorParameter("TOF1", "TOF1_inl", nPeriod, nRun); //(detector_name, parameter_name, period_number, run_number)
     if (pLoadedInl == NULL) {
         printf(ANSI_COLOR_RED "\t\tINL are not exist in DB! Time of Flight fill be wrong!\n" ANSI_COLOR_RESET);
         return kTRUE; //

@@ -46,8 +46,14 @@ InitStatus BmnSiBTDigitizer::Init() {
 
     FairRootManager* ioman = FairRootManager::Instance();
 
-    fBmnSiBTPointsArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
-    fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
+    fBmnSiBTPointsArray = (TClonesArray*)ioman->GetObject(fInputBranchName);
+    if (!fBmnSiBTPointsArray) {
+        cout << "BmnSiBTDigitizer::Init(): branch " << fInputBranchName << " not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
+    
+    fMCTracksArray = (TClonesArray*)ioman->GetObject("MCTrack");
 
     fBmnSiBTDigitsArray = new TClonesArray(fOutputDigitsBranchName);
     ioman->Register(fOutputDigitsBranchName, "SiBT_DIGIT", fBmnSiBTDigitsArray, kTRUE);
@@ -80,6 +86,10 @@ InitStatus BmnSiBTDigitizer::Init() {
 }
 
 void BmnSiBTDigitizer::Exec(Option_t* opt) {
+    
+    if (!IsActive())
+        return;
+    
     clock_t tStart = clock();
     fBmnSiBTDigitsArray->Delete();
 

@@ -359,7 +359,7 @@ vector <TString> BmnTriggerEfficiencyRun7::createFilelist(vector <TString> trigg
     BmnDataTriggerInfo* trInfo = new BmnDataTriggerInfo();
 
     for (Int_t iFile = fStartRun; iFile < fFinishRun; iFile++) {
-        UniDbRun* pCurrentRun = UniDbRun::GetRun(fPeriod, iFile);
+        UniRun* pCurrentRun = UniRun::GetRun(fPeriod, iFile);
 
         // Check presense of the current run in DB ...
         if (!pCurrentRun)

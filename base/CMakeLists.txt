@@ -10,11 +10,12 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/base/source
  ${CMAKE_SOURCE_DIR}/base/header
  ${CMAKE_SOURCE_DIR}/base/raw
+ ${CMAKE_SOURCE_DIR}/services
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
- ${Boost_INCLUDE_DIRS}
  ${ROOT_INCLUDE_DIR}
+ ${Boost_INCLUDE_DIRS}
  ${ZeroMQ_INCLUDE_DIR}
 )
 
@@ -67,9 +68,12 @@ set(SRCS
  math/BmnKalmanFilter.cxx
  math/BmnMaterialEffects.cxx
  math/BmnMaterialInfo.h
+ math/BmnProfRawTools.cxx
 
  source/BmnFileSource.cxx
  source/BmnDecoSource.cxx
+ source/BmnProfilometerSource.cxx
+ source/BmnOnlineShmSource.cxx
 
  header/BmnEventHeader.cxx
  header/BmnSpillHeader.cxx
@@ -110,6 +114,7 @@ set(SRCS
  
  BmnEnums.h
  BmnDetectorList.cxx
+ BmnTask.cxx
  BmnFunctionSet.cxx
 )
 
@@ -130,6 +135,6 @@ EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 
 Set(LINKDEF BaseLinkDef.h)
 Set(LIBRARY_NAME BmnBase)
-Set(DEPENDENCIES Base Core ${ZeroMQ_LIBRARY_SHARED} boost_serialization)
+Set(DEPENDENCIES Base Core ${ZeroMQ_LIBRARY_SHARED} boost_serialization rt)
 
 GENERATE_LIBRARY()

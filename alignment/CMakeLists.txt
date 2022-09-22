@@ -7,7 +7,6 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/base/data
  ${CMAKE_SOURCE_DIR}/base/math
  ${CMAKE_SOURCE_DIR}/base/cbm
- ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/detectors/mwpc
  ${CMAKE_SOURCE_DIR}/detectors/dch

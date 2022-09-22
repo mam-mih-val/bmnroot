@@ -115,7 +115,7 @@ void BmnQaMonitor::CreateInfoLists() {
                         continue;
                     }
 
-                   UniDbRun* run = UniDbRun::GetRun(runs[iRun], iFile);
+                   UniRun* run = UniRun::GetRun(runs[iRun], iFile);
                     if (run) {                        
                         bri[iRelease][iRun][iSetup][iFile - borderFiles.first] = new BmnRunInfo(run);
                         listForSetup->Add((TObject*) bri[iRelease][iRun][iSetup][iFile - borderFiles.first]);

@@ -22,7 +22,7 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t fill_hist = 0, Int_t Verbos
     fNPlane = NPlane;
     fStripLength = 30; // cm
     fSignalVelosity = 0.06; // 0.06 ns/cm
-    fMaxDelta = (fStripLength * 0.5 + 2.0) * fSignalVelosity; // + 20 mm on the strip edge
+    fMaxDelta = (fStripLength * 0.5 + 3.0) * fSignalVelosity; // + 20 mm on the strip edge
     fCommonTimeShift = 0;
 
     for (Int_t i = 0; i < fNStr; i++) {
@@ -169,7 +169,7 @@ Bool_t BmnTOF1Detector::SetDigit(BmnTof1Digit * TofDigit) {
     }
     if (
             fTimeRtemp[fStrip] != 0 && fTimeLtemp[fStrip] != 0
-            //&& TMath::Abs((fTimeLtemp[fStrip] - fTimeRtemp[fStrip]) * 0.5) <= fMaxDelta // cat for length of strip  
+            && TMath::Abs((fTimeLtemp[fStrip] - fTimeRtemp[fStrip]) * 0.5) <= fMaxDelta // cat for length of strip  
             //        && TMath::Abs((fWidthLtemp[fStrip] - fWidthRtemp[fStrip]) * 0.5) <= 1.5 // cat for Amplitude correlation
             //&& fFlagHit[fStrip] == kFALSE
             )
@@ -512,8 +512,9 @@ Bool_t BmnTOF1Detector::GetCrossPoint(Int_t NStrip = 0) {
     if (fCorrLR[NStrip] == 0) { // return the center of the strip in case no LR correction
         fCrossPoint[NStrip] = fCentrStrip[NStrip];
         return kTRUE;
-    } else if (TMath::Abs((fTimeL[NStrip] - fTimeR[NStrip]) * 0.5) >= fMaxDelta)
-        return kFALSE; // estimated position is out of the strip edge.
+    } 
+//    else if (TMath::Abs((fTimeL[NStrip] - fTimeR[NStrip]) * 0.5) >= fMaxDelta)
+//        return kFALSE; // estimated position is out of the strip edge.
     double dL = (fTimeL[NStrip] - fTimeR[NStrip]) * 0.5 / fSignalVelosity;
 
     //should be checked 

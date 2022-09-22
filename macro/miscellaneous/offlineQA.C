@@ -28,7 +28,7 @@ void offlineQA(TString digiFile = "/nica/mpd22/batyuk/digi/run6/bmn_run1558_digi
 
     fRunAna->SetOutputFile(out.Data());
 
-    UniDbRun* pCurrentRun = UniDbRun::GetRun(periodId, runId); // FIXME
+    UniRun* pCurrentRun = UniRun::GetRun(periodId, runId); // FIXME
     Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
    
     Double_t map_current = 55.87;

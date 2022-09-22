@@ -3,9 +3,9 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
         
 #define L1Tracking // Choose Tracking: L1, VF or CellAuto
         
-void run_mon_reco(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
-        TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
-        Int_t nStartEvent = 0, Int_t nEvents = 10)
+void run_mon_reco(TString inputFileName = "/ncx/eos/nica/bmn/exp/dst/run7/prerelease/3590-4707_BMN_Argon/bmn_run4649_dst.root",
+        TString bmndstFileName = "$VMCWORKDIR/macro/monitor/bmndst.root",
+        Int_t nStartEvent = -1, Int_t nEvents = -1)
 {
     gDebug = 0; // Debug option
     // Verbosity level (0 = quiet (progress bar), 1 = event-level, 2 = track-level, 3 = full debug)
@@ -33,9 +33,12 @@ void run_mon_reco(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
 //    fRunAna->SetEventHeader(new DstEventHeader());
 
     // Declare input source as simulation file or experimental data
-    BmnMQSource* fMqSource= new BmnMQSource("tcp://localhost:6666", kTRUE);
-//    BmnFileSource* fFileSource = new BmnFileSource("/ncx/eos/nica/bmn/exp/dst/run7/prerelease/3590-4707_BMN_Argon/bmn_run4649_dst.root");
-    fRunAna->SetSource(fMqSource);
+    BmnMQSource* source= new BmnMQSource("tcp://localhost:6666", kTRUE);
+//    BmnFileSource* source = new BmnFileSource(inputFileName);
+    fRunAna->SetSource(source);
+    // if nEvents is equal 0 then all events of the given file starting with "nStartEvent" should be processed
+    if (nEvents == 0)
+        nEvents = MpdGetNumEvents::GetNumROOTEvents((char*)inputFileName.Data()) - nStartEvent;
 
     // if directory for the output file does not exist, then create
     if (BmnFunctionSet::CreateDirectoryTree(bmndstFileName, 1) < 0) exit(-2);
@@ -52,7 +55,7 @@ void run_mon_reco(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     trQaAll->SetDetectorPresence(kGEM, kTRUE);
     trQaAll->SetOnlyPrimes(isPrimary);
     trQaAll->SetMonitorMode(kTRUE);
-    THttpServer* fServer = new THttpServer("http:8081;noglobal;cors");
+    THttpServer* fServer = new THttpServer("fastcgi:8081;noglobal;cors");
     fServer->SetTimer(50, kTRUE);
     trQaAll->SetObjServer(fServer);
     fMqSource->SetObjServer(fServer);
@@ -69,7 +72,7 @@ void run_mon_reco(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     fRunAna->GetMainTask()->SetVerbose(iVerbose);
     fRunAna->Init();
     cout << "Starting run" << endl;
-    fRunAna->Run(-1, -1);
+    fRunAna->Run(nStartEvent, nStartEvent + nEvents);
     // -------------------------------------------------------------------------
     // -----   Finish   --------------------------------------------------------
     timer.Stop();

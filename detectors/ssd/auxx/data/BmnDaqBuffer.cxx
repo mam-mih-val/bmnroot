@@ -181,7 +181,7 @@ Int_t BmnDaqBuffer::GetSize(Int_t det) const {
 // -----   Insert data into buffer   -----------------------------------------
 void BmnDaqBuffer::InsertData(BmnDigi* digi) {
 
-  if ( ! digi ) LOG(FATAL) << "DaqBuffer: invalid digi pointer";
+  if ( ! digi ) LOG(fatal) << "DaqBuffer: invalid digi pointer";
 
   Int_t iDet = digi->GetSystemId();
   if ( iDet >= kNOFDETS) {
@@ -192,7 +192,7 @@ void BmnDaqBuffer::InsertData(BmnDigi* digi) {
   pair<Double_t, BmnDigi*> value (digi->GetTime(), digi);
   fData[iDet].insert(value);
 
-  LOG(DEBUG2) << "DaqBuffer: Inserting digi, detectorID "
+  LOG(debug2) << "DaqBuffer: Inserting digi, detectorID "
               << digi->GetAddress() << ", time " << digi->GetTime();
 
 }
@@ -213,18 +213,18 @@ BmnDaqBuffer* BmnDaqBuffer::Instance() {
 void BmnDaqBuffer::PrintStatus() const {
   TString sysName;
   Int_t size = GetSize();
-  LOG(INFO) << "DaqBuffer: Status ";
+  LOG(info) << "DaqBuffer: Status ";
   if ( ! size ) {
-    LOG(INFO) << "empty";
+    LOG(info) << "empty";
     return;
   }
   for (Int_t det = kREF; det < kNOFDETS; det++) {
     if ( GetSize(det) ) {
       sysName = BmnModuleList::GetModuleNameCaps(det);
-      LOG(INFO) << sysName << " " << GetSize(det) << "  ";
+      LOG(info) << sysName << " " << GetSize(det) << "  ";
     }
   }
-  LOG(INFO) << "\t     " << "Total: " << GetSize() << " from "
+  LOG(info) << "\t     " << "Total: " << GetSize() << " from "
             << fixed << setprecision(3) << GetFirstTime() << " ns to "
             << GetLastTime() << " ns";
 }

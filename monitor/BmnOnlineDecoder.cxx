@@ -476,9 +476,9 @@ void BmnOnlineDecoder::ProcessStream() {
                     //                    printf(ANSI_COLOR_BLUE"SYNC_EVENT\n"ANSI_COLOR_RESET);
                     lenBytes = *(word + ++iWord);
                     lenWords = lenBytes / kNBYTESINWORD + (fPeriodID <= 7 ? 1 : 0);
-//                    printf("iWord    == %u\n", iWord);
-//                    printf("lenBytes == %u\n", lenBytes);
-//                    printf("lenWords == %u\n", lenWords);
+                    //                    printf("iWord    == %u\n", iWord);
+                    //                    printf("lenBytes == %u\n", lenBytes);
+                    //                    printf("lenWords == %u\n", lenWords);
                     if (msg_len / kNBYTESINWORD >= lenWords + (fPeriodID > 7 ? MPD_EVENT_HEAD_WORDS : MPD_EVENT_HEAD_WORDS_OLD)) {
                         //                    printf("captured enough\n");
                         if (!rawDataDecoder)
@@ -521,7 +521,7 @@ void BmnOnlineDecoder::ProcessStream() {
                         iWord += lenWords;
                         lenBytes = iWord * sizeof (UInt_t);
                         msg_len -= lenBytes;
-//                        printf(" %u will move by %u bytes\n", msg_len, lenBytes);
+                        //                        printf(" %u will move by %u bytes\n", msg_len, lenBytes);
                         memmove(&buf[0], &buf[lenBytes], msg_len);
                         iWord = 0;
                     } else {
@@ -531,12 +531,12 @@ void BmnOnlineDecoder::ProcessStream() {
                     }
                     break;
                 case SYNC_STAT: // just skip at this point
-//                    printf(ANSI_COLOR_BLUE "STAT\n" ANSI_COLOR_RESET);
+                    //                    printf(ANSI_COLOR_BLUE "STAT\n" ANSI_COLOR_RESET);
                     lenBytes = *(word + ++iWord);
                     lenWords = lenBytes / kNBYTESINWORD + (fPeriodID <= 7 ? 1 : 0);
-//                    printf("iWord    == %u\n", iWord);
-//                    printf("lenBytes == %u\n", lenBytes);
-//                    printf("lenWords == %u\n", lenWords);
+                    //                    printf("iWord    == %u\n", iWord);
+                    //                    printf("lenBytes == %u\n", lenBytes);
+                    //                    printf("lenWords == %u\n", lenWords);
                     if (msg_len / kNBYTESINWORD >= MPD_EVENT_HEAD_WORDS_OLD + lenWords) {
                         ++iWord; // if other is commented
                         //                        if (!rawDataDecoder)
@@ -579,7 +579,7 @@ void BmnOnlineDecoder::ProcessStream() {
                         iWord += lenWords;
                         lenBytes = iWord * sizeof (UInt_t);
                         msg_len -= lenBytes;
-//                        printf(" %u will move by %u bytes\n", msg_len, lenBytes);
+                        //                        printf(" %u will move by %u bytes\n", msg_len, lenBytes);
                         memmove(&buf[0], &buf[lenBytes], msg_len);
                         iWord = 0;
                     } else {
@@ -589,12 +589,12 @@ void BmnOnlineDecoder::ProcessStream() {
                     }
                     break;
                 case SYNC_JSON:
-//                    printf(ANSI_COLOR_BLUE"SYNC_JSON\n"ANSI_COLOR_RESET);
+                    //                    printf(ANSI_COLOR_BLUE"SYNC_JSON\n"ANSI_COLOR_RESET);
                     lenBytes = *(word + ++iWord);
                     lenWords = lenBytes / kNBYTESINWORD + (fPeriodID <= 7 ? 1 : 0);
-//                    printf("iWord    == %u\n", iWord);
-//                    printf("lenBytes == %u\n", lenBytes);
-//                    printf("lenWords == %u\n", lenWords);
+                    //                    printf("iWord    == %u\n", iWord);
+                    //                    printf("lenBytes == %u\n", lenBytes);
+                    //                    printf("lenWords == %u\n", lenWords);
                     if (msg_len / kNBYTESINWORD >= lenWords + MPD_EVENT_HEAD_WORDS) {
                         ++iWord; // if other is commented
                         //                    printf("captured enough\n");
@@ -638,7 +638,7 @@ void BmnOnlineDecoder::ProcessStream() {
                         iWord += lenWords;
                         lenBytes = iWord * sizeof (UInt_t);
                         msg_len -= lenBytes;
-//                        printf(" %u will move by %u bytes\n", msg_len, lenBytes);
+                        //                        printf(" %u will move by %u bytes\n", msg_len, lenBytes);
                         memmove(&buf[0], &buf[lenBytes], msg_len);
                         iWord = 0;
                     } else {
@@ -780,7 +780,7 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
         for (Int_t i = 0; i < n; ++i) {
             _curFile = TString(namelist[i]->d_name);
             Int_t runID = GetRunIdFromName(_curFile);
-            if (runID > 00) {
+            if (runID > 4000) {
                 //                            if (regex_match(namelist[i]->d_name, re)) {
                 if (runCount == 0) {
                     if (InitDecoder(_curDir + _curFile) == kBMNERROR)
@@ -827,24 +827,26 @@ Int_t BmnOnlineDecoder::GetRunIdFromName(TString name) {
         return -1;
 }
 
-#define PAD_WIDTH_SIL   1920
-#define PAD_HEIGHT_SIL  1280
+#define PAD_WIDTH_SIL  1280
+#define PAD_HEIGHT_SIL  840
 #define COLS  2
 
 void BmnOnlineDecoder::StripView(Int_t periodID, Int_t runID, BmnSetup fSetup) {
+    //    TString inFileNameMK = Form("bmn_run%04i_sidigitthr2all.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    TString OrigFileName = Form("bmn_run%04i_digi_test_MK.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    //    TString inFileNameMK = Form("MK_digi_%04i.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    //    TString inFileNameBmn = Form("/ncx/nica/mpd22/batyuk/digi/run7/bmn/bmn_run%04i_digi.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    //    TString inFileNameBmn = Form("bmn_run%04i_digi_test_MK_r.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    TString TestFileName = Form("bmn_run%04i_digi_test_SM.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
+    StripView(OrigFileName, TestFileName, periodID, runID, fSetup);
+}
+
+void BmnOnlineDecoder::StripView(TString OrigFileName, TString TestFileName, Int_t periodID, Int_t runID, BmnSetup fSetup) {
     gStyle->SetOptStat(0);
     Int_t sumMods = 0;
     Int_t maxLayers = 0;
-    //    BmnSetup fSetup = (runID >= 2041 && runID <= 3588) ? kSRCSETUP : kBMNSETUP;
-    //    fSetup = kSRCSETUP;
-    //    TString inFileNameMK = Form("bmn_run%04i_sidigitthr2all.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
-    TString inFileNameMK = Form("~/filesbmn/bmn_run%04i_digi_test_MK.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
-    //    TString inFileNameMK = Form("~/archivebmn//MK_digi_%04i.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
-    //    TString inFileNameBmn = Form("/ncx/nica/mpd22/batyuk/digi/run7/bmn/bmn_run%04i_digi.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
-    //    TString inFileNameBmn = Form("~/filesbmn/bmn_run%04i_digi_test_MK_r.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
-    TString inFileNameBmn = Form("~/filesbmn/bmn_run%04i_digi_test_SM.root", runID); //Form("MK_digi_%04i.root", runID);//Form("MK_digi_%04i_newest.root", runID);
 
-    TString fnames[COLS] = {inFileNameMK, inFileNameBmn};
+    TString fnames[COLS] = {OrigFileName, TestFileName};
     TString treeNames[COLS] = {"bmndata", "bmndata"};
     TString hdrNames[COLS] = {"BmnEventHeader.", "BmnEventHeader."};
     TString runhdrNames[COLS] = {"DigiRunHeader", "DigiRunHeader"};
@@ -968,13 +970,14 @@ void BmnOnlineDecoder::StripView(Int_t periodID, Int_t runID, BmnSetup fSetup) {
                     name = Form("GEM_%i_Station_%d_module_%d_layer_%d", iCol, iStation, iModule, iLayer);
                     title = Form("Station_%d_module_%d_layer_%d", iStation, iModule, iLayer);
                     TH1F *h = new TH1F(name, title, lay.GetNStrips(), 0, lay.GetNStrips());
-                    h->SetTitleSize(0.06, "XY");
-                    h->SetLabelSize(0.08, "XY");
+                    h->SetTitleSize(0.07, "XY");
+                    h->SetLabelSize(0.07, "XY");
                     h->GetXaxis()->SetTitle("Strip Number");
                     h->GetXaxis()->SetTitleColor(kOrange + 10);
+                    h->GetXaxis()->SetTitleOffset(0.7);
                     h->GetYaxis()->SetTitle("Activation Count");
                     h->GetYaxis()->SetTitleColor(kOrange + 10);
-                    h->GetYaxis()->SetTitleOffset(1.0);
+                    h->GetYaxis()->SetTitleOffset(0.7);
                     colGEM.push_back(h);
 
                 }
@@ -988,7 +991,7 @@ void BmnOnlineDecoder::StripView(Int_t periodID, Int_t runID, BmnSetup fSetup) {
     sumMods = sumMods / COLS;
     name = "GemCanvas";
     canStripGem = new TCanvas(name, name, PAD_WIDTH_SIL * maxLayers, PAD_HEIGHT_SIL * sumMods);
-    canStripGem->Divide(maxLayers, sumMods);
+    canStripGem->Divide(maxLayers, sumMods, 0.002, 0.002);
     modCtr = 0;
     canStripPadsGem.resize(sumMods * maxLayers);
     for (Int_t iStation = 0; iStation < gemStationSet->GetNStations(); iStation++) {

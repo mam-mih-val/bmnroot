@@ -15,9 +15,24 @@
 using namespace std;
 using namespace TMath;
 
-BmnMwpcHitProducer::BmnMwpcHitProducer() : //(Int_t num = 1) :
- fEventNo(0),
-fOnlyPrimary(kFALSE) {
+BmnMwpcHitProducer::BmnMwpcHitProducer() :
+  //(Int_t num = 1) :
+  fEventNo(0),
+  fOnlyPrimary(kFALSE),
+  fBmnMwpcPointsArray(nullptr),
+  fBmnPointsArray(nullptr),
+  fBmnMwpcDigitsArray(nullptr),
+  fMCTracksArray(nullptr),
+  fBmnMwpcHitsArray(nullptr),
+  fBmnHitsArray(nullptr),
+  hY_vsX2(nullptr),
+  hY_vsX3(nullptr),
+  hY_vsX_pl0(nullptr),
+  hY_vsX_pl1(nullptr),
+  hY_vsX_pl2(nullptr),
+  hY_vsX_star2(nullptr),
+  hY_vsX_star3(nullptr)
+{
     fInputBranchName = "MWPCPoint";
     fOutputHitsBranchName = "BmnMwpcHit";
     fMwpcNum = 1;

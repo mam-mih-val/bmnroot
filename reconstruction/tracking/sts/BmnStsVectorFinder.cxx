@@ -45,6 +45,7 @@ BmnStsVectorFinder::BmnStsVectorFinder()
     fTrackArray(NULL),
     fPass(0),
     fNsta(0),
+    fNbranches(5),
     fExact(0),
     fExactSel(-9),
     fNhitsMin(NULL),
@@ -100,7 +101,7 @@ InitStatus BmnStsVectorFinder::Init() {
   if ( ! fTrackArray ) {
     cout << "-W- BmnStsVectorFinder::Init: "
 	 << "No StsTrack array!" << endl;
-    return kERROR;
+    //AZ-100722 return kERROR;
   }
 
   fDigiMatches = (TClonesArray*) ioman->GetObject("StsDigiMatch");
@@ -117,6 +118,11 @@ InitStatus BmnStsVectorFinder::Init() {
     return kERROR;
   }
 
+  fSilPoints = (TClonesArray*) ioman->GetObject("SiliconPoint");
+  if ( ! fSilPoints ) {
+    cout << "-E- BmnStsVectorFinder::Init: No SiliconPoint array!" << endl;
+  }
+  
   // Create and register output array
   fVectorArray = new TClonesArray("CbmStsTrack");
   ioman->Register("StsVector", "STS", fVectorArray, kTRUE);
@@ -130,20 +136,32 @@ InitStatus BmnStsVectorFinder::Init() {
   fitter.Init();
 
   // Define logic
-  //static Int_t nHitsMin[20] = {6, 5, 6, 5, 4, 3}; // min number of hits per track vs iteration - Run 6
-  //static Int_t nHitsMin[20] = {8, 7, 8, 7, 5, 4, 3, 3}; // min number of hits per track vs iteration - Run 7
-  //static Double_t dTanX[20] = {0.05, 0.05, 0.1, 0.1, 0.3, 0.3, 0.3, 0.3}; // window size in TanX vs iteration
-  //static Double_t dTanY[20] = {0.01, 0.01, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02}; // window size in TanY vs iteration
-  //static Int_t nHitsMin[20] = {7, 7, 5, 5, 3}; // min number of hits per track vs iteration - Run 7
-  static Int_t nHitsMin[20] = {7, 7, 5, 5, 4}; // min number of hits per track vs iteration - Run 7
-  //static Double_t dTanX[20] = {0.05, 0.1, 0.1, 0.3, 0.3}; // window size in TanX vs iteration
-  static Double_t dTanX[20] = {0.05, 0.1, 0.1, 0.2, 0.1}; // window size in TanX vs iteration
-  static Double_t dTanY[20] = {0.01, 0.02, 0.02, 0.02, 0.02}; // window size in TanY vs iteration
-  static Double_t dX[20] = {1.0, 1.0, 1.0, 1.0, 1.5, 2.0, 2.0, 2.0}; // window size in extrapolated X vs iteration
+  static Int_t nHitsMin[20] =   {7,    5,    4,    4}; // min number of hits per track vs iteration - Run 7
+  //static Double_t dTanX[20] =   {0.001, 0.003, 0.002, 0.008}; // window size in TanX vs iteration
+  static Double_t dTanX[20] =   {0.002, 0.003, 0.002, 0.008}; // window size in TanX vs iteration
+  //static Double_t dTanY[20] =   {0.01, 0.02, 0.01, 0.02}; // window size in TanY vs iteration
+  static Double_t dTanY[20] =   {0.01, 0.02, 0.02, 0.03}; // window size in TanY vs iteration
+  static Double_t dTanY3[20] =  {0.01, 0.02, 0.02, 0.03}; // window size in TanY vs iteration
+  //static Double_t dVarX[20] =   {0.004, 0.01, 0.006, 0.02}; // window size in VarX vs iteration - coherent with ptCut
+  static Double_t ptCut[20] =   {1.0,  0.3,  0.7,  0.1}; // min pxz
+  static Double_t curvSta[20] = {12.0, 12.0, 12.0, 7.5,  5.5,  4.5,   3.6,   3.0,  3.0,  3.0}; //AZ-310722 - max curvature in stations (for tracks starting in Si) 
+  static Double_t phiXZ[20] =   {0.76, 0.69, 0.69, 0.95, 0.74, 0.60,  0.51,  0.44,  0.39,  0.35}; //Max phi_XZ in stations
+  static Double_t tanXmax[20] = {0.95, 0.83, 0.83, 1.40, 0.91, 0.68,  0.56,  0.47,  0.41,  0.37}; //Max tan_X in stations
+  static Double_t zMean[20] =   {18.5, 27.2, 35.8, 60.9, 91.7, 123.4, 154.0, 185.8, 216.5, 248.0}; //Mean Z of stations
+  //*/
+
   fNhitsMin = nHitsMin;
   fdTanX = dTanX;
   fdTanY = dTanY;
-  fdX = dX;
+  fdTanY3 = dTanY3;
+  fPhiXZ = phiXZ;
+  fTanXmax = tanXmax;
+  fZmean = zMean;
+  fPTcut = ptCut;
+  //fVarx = dVarX;
+  fCurvSta = curvSta;
+
+  for (int j = 0; j < 20; ++j) if (fPTcut[j] > 0.001) fPTcut[j] = 1 / fPTcut[j]; //AZ-170722 - curvature 
 
   //fExact = 1; // for debug // removed DZ 13.10.2021
   //fExactSel = 13; // for debug
@@ -156,9 +174,13 @@ InitStatus BmnStsVectorFinder::Init() {
     for (Int_t j = 0; j < 20; ++j) {
       dTanX[j] *= scale;
       dTanY[j] *= scale;
-      dX[j] *= scale;
+      //dX[j] *= scale;
     }
   }
+  
+  FairField *magField = FairRunAna::Instance()->GetField();
+  fBy = TMath::Abs (magField->GetBy (0.0, 0.0, 135.0)) / 10; // max. field in Tesla
+  for (int j = 0; j < 20; ++j) fCurvSta[j] *= (0.8 / fBy); //AZ-290822 - max curvature vs field 
   
   if (fMatBudgetFileName != "") fitter.ReadMatBudget(fMatBudgetFileName);
 
@@ -186,10 +208,15 @@ void BmnStsVectorFinder::Exec(Option_t* opt)
     fCandCodes[j].clear();
   }
     
-  Int_t nTracks = fTrackArray->GetEntriesFast();
-  if (nTracks == 0) return;
+  //AZ-100722 Int_t nTracks = fTrackArray->GetEntriesFast();
+  //AZ-100722 if (nTracks == 0) return;
+  Int_t nTracks = 0;
+  if (fTrackArray) {
+     nTracks = fTrackArray->GetEntriesFast();
+     if (nTracks == 0) return;     
+  }
 
-  const Int_t nPass = 5; //5; //8;
+  const Int_t nPass = 4; //4; //5; //8;
   Int_t nsta = CbmKF::Instance()->GetNStsStations();
   for (Int_t j = 0; j < nPass; ++j) fNskips[j] = nsta - fNhitsMin[j];
 
@@ -256,7 +283,7 @@ void BmnStsVectorFinder::Exec(Option_t* opt)
       cout << "\n ***** Pass " << ipass << ": Number of found tracks = "
         << fVectorArray->GetEntriesFast() - ntr0 << " " << fVectorArray->GetEntriesFast() << "\n" << endl;
     }
-    }
+  }
     
   if (fVerbose > 0) cout << "discarded " << discarded << " track candidates" << endl;
   
@@ -273,11 +300,16 @@ Int_t BmnStsVectorFinder::ExcludeHits(Int_t minHits, TClonesArray *trArray)
 {
   // Exclude hits used for tracking
   
-  Int_t nTracks = trArray->GetEntriesFast();
+  //AZ-100722 Int_t nTracks = trArray->GetEntriesFast();
+  Int_t nTracks = 0; //AZ-100722 
+  if (trArray) nTracks = trArray->GetEntriesFast(); //AZ-100722
+
   if (nTracks == 0) return 0;
   Int_t nHitsOut = 0;
-  multimap<Int_t,Int_t>::iterator mit;
-  pair<multimap<Int_t,Int_t>::iterator,multimap<Int_t,Int_t>::iterator> ret;
+  //AZ-130722 multimap<Int_t,Int_t>::iterator mit;
+  //AZ-130722 pair<multimap<Int_t,Int_t>::iterator,multimap<Int_t,Int_t>::iterator> ret;
+  unordered_multimap<Int_t,Int_t>::iterator mit;
+  pair<unordered_multimap<Int_t,Int_t>::iterator,unordered_multimap<Int_t,Int_t>::iterator> ret; //AZ-130722
 
   for (Int_t itra = 0; itra < nTracks; ++itra) {
     CbmStsTrack *track = (CbmStsTrack*) trArray->UncheckedAt(itra);
@@ -289,10 +321,13 @@ Int_t BmnStsVectorFinder::ExcludeHits(Int_t minHits, TClonesArray *trArray)
     Int_t nHitsTr = track->GetNStsHits();
 
     for (Int_t ihit = 0; ihit < nHitsTr; ++ihit) {
-      CbmStsHit *hit = (CbmStsHit*) fHitArray->UncheckedAt(track->GetStsHitIndex(ihit));
+      int indx = track->GetStsHitIndex(ihit); //AZ-130722
+      //AZ-130722 CbmStsHit *hit = (CbmStsHit*) fHitArray->UncheckedAt(track->GetStsHitIndex(ihit));
+      CbmStsHit *hit = (CbmStsHit*) fHitArray->UncheckedAt(indx); //AZ-130722
       if ( ! hit ) continue;
 
       if (fNhitsMin[fPass] < -5) {
+      //if (fNhitsMin[fPass] > 6) { //AZ-180722
 	// Exclude all hits created from given clusters
 	Int_t iclusF = hit->GetDigi(0);
 	ret = fClusMaps[0].equal_range(iclusF);
@@ -300,7 +335,8 @@ Int_t BmnStsVectorFinder::ExcludeHits(Int_t minHits, TClonesArray *trArray)
 	  CbmStsHit *hit1 = (CbmStsHit*) fHitArray->UncheckedAt(mit->second);
 	  if (hit1->GetUniqueID() == 0) ++nHitsOut; // excluded hit - used in track
 	  hit1->SetUniqueID(1); // exclude hit - used in track
-	  fmapHits[ihit].used = 1;
+	  //AZ-130722 fmapHits[ihit].used = 1;
+	  fmapHits[mit->second].used = 1; //AZ-130722
 	}
 	Int_t iclusB = hit->GetDigi(1);
 	ret = fClusMaps[1].equal_range(iclusB);
@@ -308,12 +344,29 @@ Int_t BmnStsVectorFinder::ExcludeHits(Int_t minHits, TClonesArray *trArray)
 	  CbmStsHit *hit1 = (CbmStsHit*) fHitArray->UncheckedAt(mit->second);
 	  if (hit1->GetUniqueID() == 0) ++nHitsOut; // excluded hit - used in track
 	  hit1->SetUniqueID(1); // exclude hit - used in track
-	  fmapHits[ihit].used = 1;
+	  //AZ-130722 fmapHits[ihit].used = 1;
+	  fmapHits[mit->second].used = 1; //AZ-130722
 	}
       }
       if (hit->GetUniqueID() == 0) ++nHitsOut;
       hit->SetUniqueID(1);
-      fmapHits[ihit].used = 1;
+      //AZ-130722 fmapHits[ihit].used = 1;
+      fmapHits[indx].used = 1; //AZ-130722
+
+      //AZ-130722 Remove used doublets
+      //*
+      int ista = hit->GetStationNr() - 1;
+      ret = fMap2[ista].equal_range(indx);
+      fMap2[ista].erase(ret.first,ret.second);
+      //AZ-140722 Remove used triplets
+      ret = fMap3[ista].equal_range(indx);
+      for (mit = ret.first; mit != ret.second; ++mit) {
+	 candvec cand = fCandVec3[ista][mit->second];
+	 string code = MakeCode(cand);
+	 fMapCode3[ista].erase(code);
+      }
+      fMap3[ista].erase(ret.first,ret.second);
+      //*/
     }
     
   }
@@ -403,10 +456,13 @@ set<Int_t> BmnStsVectorFinder::GetHitIdBmn(CbmStsHit *hit, Int_t& idmaxP)
   //int ind = 0; // Si hit
   //if (hit->GetSystemId() == kGEM) ind = 2; // GEM hit
 
-  if (hit->GetRefIndex() == -1) ids.insert(-1); // fake hit
+  if (hit->GetRefIndex() == -1 || fStsPoints == nullptr || fSilPoints == nullptr) ids.insert(-1); // fake hit
   else {
-    CbmStsPoint *p = (CbmStsPoint*) fStsPoints->UncheckedAt(hit->GetRefIndex());
-    ids.insert(p->GetTrackID());
+     //AZ-150722 CbmStsPoint *p = (CbmStsPoint*) fStsPoints->UncheckedAt(hit->GetRefIndex());
+     FairMCPoint *p = nullptr;
+     if (hit->GetSystemId() == kGEM) p = (FairMCPoint*) fStsPoints->UncheckedAt(hit->GetRefIndex());
+     else p = (FairMCPoint*) fSilPoints->UncheckedAt(hit->GetRefIndex());
+     ids.insert(p->GetTrackID());
   }
   return ids;
 }
@@ -418,7 +474,7 @@ void BmnStsVectorFinder::BuildTrackCand()
   // Build track candidates
   
   for (Int_t ist = 0; ist < fNsta; ++ist) {
-    fmapTx[ist].clear();
+    fmapPhx[ist].clear();
     fmapTy[ist].clear();
     fmapX[ist].clear();
     fmapY[ist].clear();
@@ -459,12 +515,11 @@ void BmnStsVectorFinder::BuildTrackCand()
     Double_t dx = hit->GetX() - fXyzv[0];
     Double_t dy = hit->GetY() - fXyzv[1];
     Double_t dz = hit->GetZ() - fXyzv[2];
-    if (fPass >= 0) fmapHits[ih] = hitinfo(pos,dx/dz,dy/dz);
+    //AZ-250822 if (fPass >= 0) fmapHits[ih] = hitinfo(pos,dx/dz,dy/dz);
+    if (fPass >= 0) fmapHits[ih] = hitinfo (pos, TMath::ATan2(dx,dz)/fPhiXZ[ista]/fZmean[ista]/fBy, dy/dz/fTanXmax[ista]); //AZ-280822
     fmapX[ista].insert(pair<Double_t,Int_t>(pos[0],ih));
     fmapY[ista].insert(pair<Double_t,Int_t>(pos[1],ih));
-    //fmapTx[ista].insert(pair<Double_t,Int_t>(get<2>(fmapHits[ih]),ih));
-    //fmapTy[ista].insert(pair<Double_t,Int_t>(get<3>(fmapHits[ih]),ih));
-    fmapTx[ista].insert(pair<Double_t,Int_t>(fmapHits[ih].tx,ih));
+    fmapPhx[ista].insert(pair<Double_t,Int_t>(fmapHits[ih].phx,ih));
     fmapTy[ista].insert(pair<Double_t,Int_t>(fmapHits[ih].ty,ih));
   }
 
@@ -487,8 +542,8 @@ void BmnStsVectorFinder::BuildTrackCand()
       //aaa.second[fNsta-1] = mit->second;
       //if (fExact) {
       
-      //set<Int_t> ids = GetHitId(mit->second, idmaxP);
-	aaa.idmaxP = idmaxP;
+      set<Int_t> ids = GetHitId(mit->second, idmaxP);
+      aaa.idmaxP = idmaxP;
 	//}
       //cout << "aaa.z " <<((CbmStsHit*) fHitArray->UncheckedAt(aaa.stahit[ista]))->GetZ() << " ";
       fSeedVec[ista].push_back(aaa);
@@ -496,13 +551,15 @@ void BmnStsVectorFinder::BuildTrackCand()
     if (fVerbose > 0) {
       Int_t ncand = fSeedVec[ista].size();
       cout << " Vector stat: " << ista << " " << ncand;// << endl;
-      pair<multimap<Int_t, Int_t>::iterator, multimap<Int_t, Int_t>::iterator> ret;
+      //AZ-130722 pair<multimap<Int_t, Int_t>::iterator, multimap<Int_t, Int_t>::iterator> ret;
+      pair<unordered_multimap<Int_t, Int_t>::iterator, unordered_multimap<Int_t, Int_t>::iterator> ret; //AZ-130722 
 
       for (Int_t j = 0; j < ncand; ++j) {
         Int_t ih = fSeedVec[ista][j].stahit[ista];
         ret = fHit2id.equal_range(ih);
         cout << " (" << ih << "*";
-        for (multimap<Int_t, Int_t>::iterator mit = ret.first; mit != ret.second; ++mit) {
+        //AZ-130722 for (multimap<Int_t, Int_t>::iterator mit = ret.first; mit != ret.second; ++mit) {
+        for (unordered_multimap<Int_t, Int_t>::iterator mit = ret.first; mit != ret.second; ++mit) { //AZ-130722
           if (mit != ret.first) cout << ":";
           cout << mit->second;
         }
@@ -522,6 +579,8 @@ void BmnStsVectorFinder::BuildDoublets()
 {
   // Build doublets
 
+  int rebuild2 = 1; //AZ-140722
+
   for (Int_t ist = 0; ist < fNsta; ++ist) {
     fCandVec[ist].clear();
     fCandVec2[ist].clear();
@@ -529,7 +588,17 @@ void BmnStsVectorFinder::BuildDoublets()
     fCandVec3[ist].clear();
     fMap3[ist].clear();
     fMapCode3[ist].clear();
+    //AZ-140722 - Does not seem to speed up
+    /*
+    if ( (fPass == 0) || (TMath::Abs(fdTanX[fPass]-fdTanX[fPass-1]) > 0.001) || //AZ-140722
+	 (TMath::Abs(fdTanY[fPass]-fdTanY[fPass-1]) > 0.001) ) {
+       fCandVec2[ist].clear();
+       fMap2[ist].clear();
+       rebuild2 = 1;
+    }
+    */
   }
+  if (rebuild2 == 0) return; //AZ-140722 - do not rebuild doublets
 
   Int_t idmaxP = 0;
 
@@ -537,19 +606,27 @@ void BmnStsVectorFinder::BuildDoublets()
     Int_t nTra = fSeedVec[ista].size();
     Int_t istanext = ista + 1;
     if (nTra == 0 || fSeedVec[istanext].size() == 0) continue;
-    Double_t dty = fdTanY[fPass], dtx = fdTanX[fPass];
+    Double_t dty = fdTanY[fPass], dphx = fdTanX[fPass];
+    //dty *= 5; //AZ-040822
+    //dtx *= 2; //AZ-040822
 
     for (Int_t itra = 0; itra < nTra; ++itra) {
       candvec &aaa = fSeedVec[ista][itra];
       Int_t ih = aaa.stahit[ista];
       if (fmapHits[ih].used) continue; // used hit
-      Double_t tx = fmapHits[ih].tx;
+      //if (fMap2[ista].count
+      Double_t phx = fmapHits[ih].phx;
+      phx *= (fPhiXZ[ista] * fZmean[ista]); //AZ-280822
+      phx /= (fPhiXZ[istanext] * fZmean[istanext]); //AZ-280822
       Double_t ty = fmapHits[ih].ty;
+      ty *= (fTanXmax[ista] / fTanXmax[istanext]); //AZ-280822
+      //AZ-250822 Double_t distxz = TMath::Sqrt (fmapHits[ih].tx*fmapHits[ih].tx + 1) * 
+	   // (fmapHits[ih].xyz.Z() - fXyzv[2]); //AZ-310722 - XZ-distance to PV 
       // Get hits on the downstream station
       multimap<Double_t,Int_t>::iterator mityb = fmapTy[istanext].lower_bound(ty-dty);
       multimap<Double_t,Int_t>::iterator mitye = fmapTy[istanext].upper_bound(ty+dty);     
-      multimap<Double_t,Int_t>::iterator mitxb = fmapTx[istanext].lower_bound(tx-dtx);     
-      multimap<Double_t,Int_t>::iterator mitxe = fmapTx[istanext].upper_bound(tx+dtx);
+      multimap<Double_t,Int_t>::iterator mitxb = fmapPhx[istanext].lower_bound(phx-dphx);     
+      multimap<Double_t,Int_t>::iterator mitxe = fmapPhx[istanext].upper_bound(phx+dphx);
       // Get hits from the acceptance window 
       set<Int_t> setTx, setTy, intersect;
       for (multimap<Double_t,Int_t>::iterator mit = mitxb; mit != mitxe; ++mit) 
@@ -557,6 +634,9 @@ void BmnStsVectorFinder::BuildDoublets()
       for (multimap<Double_t,Int_t>::iterator mit = mityb; mit != mitye; ++mit)
 	if (fmapHits[mit->second].used == 0) setTy.insert(mit->second);
       set_intersection(setTx.begin(), setTx.end(), setTy.begin(), setTy.end(), std::inserter(intersect, intersect.begin()));
+      //cout << " Intersect: " << ista << " " << setTx.size() << " " << setTy.size() << " " << intersect.size() << endl;
+      Double_t xp = fmapHits[ih].xyz[0]; //AZ-280722
+      Double_t zp = fmapHits[ih].xyz[2]; //AZ-280722
 
       for (set<Int_t>::iterator sit = intersect.begin(); sit != intersect.end(); ++sit) {
 	CbmStsHit *hit = (CbmStsHit*) fHitArray->UncheckedAt(*sit);
@@ -572,6 +652,15 @@ void BmnStsVectorFinder::BuildDoublets()
 	candvec aaa1 = aaa;
 	aaa1.stahit[istanext] = *sit; // second hit of the doublet
 	//aaa1.nextind = *sit; // second hit of the doublet
+	Double_t dx = xp - fmapHits[*sit].xyz[0]; //AZ-280722
+	Double_t dz = zp - fmapHits[*sit].xyz[2]; //AZ-280722
+	aaa1.lengxz = TMath::Sqrt (dx*dx + dz*dz); //AZ-280722 - doublet length in XZ-plane
+	//AZ-250822 Double_t varx = 0.0;
+	//AZ-250822 if (!CheckVarx(dx, dz, tx, distxz, varx)) continue; //AZ-310722 - apply cut on X-variable
+	aaa1.momxz = Curv3(aaa1, aaa1, aaa1, 0); //AZ-310722 - pxz-estimate with the origin at the primary vertex
+	if (TMath::Abs(aaa1.momxz) > fPTcut[fPass] || TMath::Abs(aaa1.momxz) > fCurvSta[ista]) continue; //AZ-310722
+	aaa1.ty = fmapHits[*sit].ty; //AZ-290822
+	//AZ-250822 aaa1.varx = varx;
 	fCandVec2[ista].push_back(aaa1);
 	fMap2[ista].insert(pair<int,int>(ih,fCandVec2[ista].size()-1));
 	//if (aaa1.idmaxP == 78 || aaa1.idmaxP == 222 || aaa1.idmaxP == 127)
@@ -582,9 +671,20 @@ void BmnStsVectorFinder::BuildDoublets()
     } // for (Int_t itra = 0;
     
     Int_t ncand = fCandVec2[ista].size();
-    //cout << " Doublet stat: " << ista << " " << ncand << endl;
+    if (fVerbose >= 1) cout << " Doublet stat: " << ista << " " << ncand << endl;
   } // for (Int_t ista = fNsta-1; 
   
+}
+
+// -------------------------------------------------------------------------
+
+Bool_t BmnStsVectorFinder::CheckVarx(Double_t dx, Double_t dz, Double_t tx, Double_t distxz, Double_t& varx)
+{
+   //AZ-310722 - Check Varx
+
+   varx = (dx / dz - tx) / distxz;
+   //AZ-250822 if (TMath::Abs(varx) > fVarx[fPass]) return kFALSE;
+   return kTRUE;
 }
 
 // -------------------------------------------------------------------------
@@ -595,8 +695,10 @@ void BmnStsVectorFinder::BuildTriplets()
 
   Int_t idmaxP = 0;
   
-  pair<multimap<Int_t,int>::iterator,multimap<Int_t,int>::iterator> ret;
-  multimap<Int_t,int>::iterator mit, mit1;
+  //AZ-130722 pair<multimap<Int_t,int>::iterator,multimap<Int_t,int>::iterator> ret;
+  //AZ-130722 multimap<Int_t,int>::iterator mit, mit1;
+  pair<unordered_multimap<Int_t,int>::iterator,unordered_multimap<Int_t,int>::iterator> ret; //AZ-130722
+  unordered_multimap<Int_t,int>::iterator mit, mit1; //AZ-130722
   
   for (Int_t ista = 0; ista < fNsta-2; ++ista) {
     discarded = 0;
@@ -605,21 +707,35 @@ void BmnStsVectorFinder::BuildTriplets()
     if (nTra == 0 || fCandVec2[istanext].size() == 0) continue;
 
     for (mit = fMap2[ista].begin(); mit != fMap2[ista].end(); ++mit) {
-      candvec &aaa = fCandVec2[ista][mit->second];
+      candvec &aaa = fCandVec2[ista][mit->second]; // first doublet
+      Double_t tany = fmapHits[aaa.stahit.begin()->second].ty; //AZ-2908822
+      tany *= (fTanXmax[ista] / fTanXmax[istanext+1]); //AZ-290822
       
       ret = fMap2[istanext].equal_range(aaa.stahit.rbegin()->second);
+      multimap<Double_t,candvec> mapDoublets; //AZ-110722 second doublets, attached to one first doublet  
+      int nbr = 0, newtr = 0, newtr3 = 0;
+      Double_t c2max = 999.0;
 
       for (mit1 = ret.first; mit1 != ret.second; ++mit1) {
 	candvec aaa1;
-	Int_t newtr = (mit1 == ret.first) ? 1 : 0;
+	//AZ-150722 Int_t newtr = (mit1 == ret.first) ? 1 : 0;
 
 	Int_t nhits = 3;
 	aaa1 = aaa;
-	candvec &aaa2 = fCandVec2[istanext][mit1->second];
+	candvec &aaa2 = fCandVec2[istanext][mit1->second]; // second doublet
 	if (fExact) {
 	  // Exact track ID match
 	  if (aaa.idmaxP != aaa2.idmaxP) continue;
 	}
+
+	//AZ-310722 - Check doublet matching criteria
+	//if (TMath::Abs(aaa.varx - aaa2.varx) > 0.002) continue; //AZ-050822
+	//AZ-070822 if (TMath::Abs(aaa.ty - aaa2.ty) > 0.01) continue; //AZ-040822
+	//if (TMath::Abs(aaa.ty - aaa2.ty) > fdTanY3[fPass]) continue; //AZ-250822
+	if (TMath::Abs(tany - aaa2.ty) > fdTanY3[fPass]) continue; //AZ-290822
+	if (TMath::Abs(aaa.momxz-aaa2.momxz) / (TMath::Abs(aaa.momxz)+TMath::Abs(aaa2.momxz)) 
+	    * TMath::Sqrt(aaa.lengxz+aaa2.lengxz) / 10 > 0.2) continue; //AZ-250822
+	
 	aaa1.stahit[aaa2.stahit.rbegin()->first] = aaa2.stahit.rbegin()->second; // third hit of the triplet
 	map<Int_t,Int_t> &hitMap = aaa1.stahit;
 	
@@ -647,8 +763,11 @@ void BmnStsVectorFinder::BuildTriplets()
 	
 	//fitter.DoFit(&track);
 	//float chi2 = track.GetChi2();
-	Double_t ty = 0.0;
-	float chi2 = LinearFit (&track, newtr, ty) / hit->GetDy() / hit->GetDy();
+	//AZ-310722 Double_t ty = 0.0;
+	Double_t ty = aaa.ty; //AZ-310722
+	//AZ-280722 float chi2 = LinearFit (&track, newtr, ty) / hit->GetDy() / hit->GetDy();
+	float chi2 = LinearFit (aaa, aaa2, &track, newtr, ty) / hit->GetDy() / hit->GetDy(); //AZ-280722
+	++newtr; //AZ-150722
 	//float chi2 = LinearFit (&track, newtr, ty) / 0.09 / 0.09;
 	//cout << "3hit track Chi2 " << track.GetChi2() << " " << nhits << endl;
 	// if Chi2 > 10.0 exclude track cand
@@ -660,27 +779,58 @@ void BmnStsVectorFinder::BuildTriplets()
 	  discarded++;
 	  continue;
 	}
-	// Triplet curvature (with 0.3 GeV cut)
-	aaa1.momxz = Curv3(aaa1);
-	//if (TMath::Abs(aaa1.momxz) < 0.3) {
-	if (TMath::Abs(aaa1.momxz) < 0.2) {
+	// Triplet curvature
+	aaa1.momxz = Curv3(aaa, aaa2, aaa1, newtr3);
+	newtr3 = 1;
+	//AZ-150722 if (TMath::Abs(aaa1.momxz) < 0.2) {
+	//Double_t ptcut = (fPass < 2) ? 0.3 : 0.2; //AZ-150722
+	//if (TMath::Abs(aaa1.momxz) < ptcut) { //AZ-150722
+	if (TMath::Abs(aaa1.momxz) > fPTcut[fPass]) { //AZ-170722 - curvature
+	//if (TMath::Abs(aaa1.momxz) > fPTcut[fPass] || TMath::Abs(aaa1.momxz) > fCurvSta[ista]) { //AZ-310722 - curvature
 	  discarded++;
 	  continue;
 	}
 	
 	aaa1.ty = ty;
+	/*AZ-110722
 	fCandVec3[ista].push_back(aaa1);
 	fMap3[ista].insert(pair<Int_t,int>(mit->first,fCandVec3[ista].size()-1));
 	string code = "-";
 	for (map<Int_t,Int_t>::iterator mitr = hitMap.begin(); mitr != hitMap.end(); ++mitr)
 	  code += (to_string(mitr->second) + "-");
 	fMapCode3[ista][code] = fCandVec3[ista].size() - 1;
-	//fTripleCodes[ista].insert(code);
-	
+	*/
+	if (chi2 > c2max && nbr >= fNbranches) continue;
+	aaa1.chi2 = chi2; //AZ-140722
+	mapDoublets.insert(pair<Double_t,candvec>(chi2,aaa1)); //AZ-110722
+	//mapDoublets.insert(pair<Double_t,candvec>(TMath::Abs(aaa1.momxz),aaa1)); //AZ-280722
+	nbr = mapDoublets.size();
+	//AZ-310722 if (nbr > fNbranches) mapDoublets.erase(mapDoublets.rbegin()->first);
+	if (nbr > fNbranches) {
+	   multimap<Double_t,candvec>::iterator mit0 = mapDoublets.end();
+	   --mit0;
+	   mapDoublets.erase(mit0);
+	}
+	c2max = mapDoublets.rbegin()->first;
       } // for (mit1 = ret.first; 
+
+      // Take only first fNbranches with lowest chi2
+      int nok = 0; 
+      for (multimap<Double_t,candvec>::iterator it = mapDoublets.begin(); it != mapDoublets.end(); ++it) {
+	 if (nok >= fNbranches) break;
+	 ++nok;
+	 fCandVec3[ista].push_back(it->second);
+	 fMap3[ista].insert(pair<Int_t,int>(mit->first,fCandVec3[ista].size()-1));
+	 map<Int_t,Int_t> &hitMap = it->second.stahit;
+	 string code = "-";
+	 for (map<Int_t,Int_t>::iterator mitr = hitMap.begin(); mitr != hitMap.end(); ++mitr)
+	    code += (to_string(mitr->second) + "-");
+	 fMapCode3[ista][code] = fCandVec3[ista].size() - 1;
+      }
     } // for (mit = fCandMap2[ista].begin();
+
     Int_t ncand = fCandVec3[ista].size();
-    //cout << " Triplet stat: " << ista << " " << ncand << " " << discarded << endl;
+    if (fVerbose > 0) cout << " Triplet stat: " << ista << " " << ncand << " " << discarded << endl;
   } // for (Int_t ista = fNsta-1; 
 }
 
@@ -700,14 +850,16 @@ void BmnStsVectorFinder::BuildTracks()
   for (Int_t ista = 0; ista < istaEnd; ++ista) {
     //std::multimap<Int_t,int> *candMap = &fMap2[ista];
     //vector<candvec> *candVec = &fCandVec2[ista];
-    std::multimap<Int_t,int> *candMap = &fMap3[ista];
+    //AZ-130722 std::multimap<Int_t,int> *candMap = &fMap3[ista];
+     std::unordered_multimap<Int_t,int> *candMap = &fMap3[ista]; //AZ-130722
     vector<candvec> *candVec = &fCandVec3[ista];
     Int_t nTra = candMap->size();
     //cout << " BuildTracks: " << ista << " " << nTra << endl;
     if (nTra == 0) continue;
     //Int_t istaup = ista - 2;
     
-    for (multimap<Int_t,int>::iterator mit = candMap->begin(); mit != candMap->end(); ++mit) {
+    //AZ-130722 for (multimap<Int_t,int>::iterator mit = candMap->begin(); mit != candMap->end(); ++mit) {
+    for (unordered_multimap<Int_t,int>::iterator mit = candMap->begin(); mit != candMap->end(); ++mit) {
       candvec &cand = (*candVec)[mit->second];
       ExtendTrack (cand);
     }
@@ -735,9 +887,11 @@ void BmnStsVectorFinder::ExtendTrack(candvec cand)
   //vector<candvec> &candVec = (ista == fNsta-2) ? fCandVec2[ista] : fCandVec3[ista]; // doublets or triplets
   //std::multimap<Int_t,int> *pCandMap = (ista == fNsta-2) ? &fMap2[ista] : &fMap2[ista]; // doublets or triplets
   //vector<candvec> *pCandVec = (ista == fNsta-2) ? &fCandVec2[ista] : &fCandVec2[ista]; // doublets or triplets
-  std::multimap<Int_t,int> *pCandMap = (ista == fNsta-2) ? &fMap2[ista] : &fMap2[ista]; // doublets or triplets
+  //AZ-130722 std::multimap<Int_t,int> *pCandMap = (ista == fNsta-2) ? &fMap2[ista] : &fMap2[ista]; // doublets or triplets
+  std::unordered_multimap<Int_t,int> *pCandMap = (ista == fNsta-2) ? &fMap2[ista] : &fMap2[ista]; //AZ-130722 doublets or triplets
   vector<candvec> *pCandVec = (ista == fNsta-2) ? &fCandVec2[ista] : &fCandVec2[ista]; // doublets or triplets
-  multimap<Int_t,int> &candMap = *pCandMap;
+  //AZ-130722 multimap<Int_t,int> &candMap = *pCandMap;
+  unordered_multimap<Int_t,int> &candMap = *pCandMap; //AZ-130722
   vector<candvec> &candVec = *pCandVec;
   
   if (ista < fNsta-1) {
@@ -772,8 +926,10 @@ void BmnStsVectorFinder::ExtendTrack(candvec cand)
     return;
   }
 
-  multimap<Int_t,int>::iterator mit;
-  pair<multimap<Int_t,int>::iterator,multimap<Int_t,int>::iterator> ret;
+  //AZ-130722 multimap<Int_t,int>::iterator mit;
+  //AZ-130722 pair<multimap<Int_t,int>::iterator,multimap<Int_t,int>::iterator> ret;
+  unordered_multimap<Int_t,int>::iterator mit; //AZ-130722 
+  pair<unordered_multimap<Int_t,int>::iterator,unordered_multimap<Int_t,int>::iterator> ret; //AZ-130722
   ret = candMap.equal_range(cand.stahit.rbegin()->second);
   string code = "-";
   int istaMid = 0;
@@ -827,7 +983,8 @@ void BmnStsVectorFinder::ExtendTrack(candvec cand)
       if (cand.stahit.size() > 2) {
 	Double_t dp = TMath::Abs (cand.momxz - bbb->momxz);
 	//if (dp * 2 / (TMath::Abs (cand.momxz) + TMath::Abs(bbb->momxz)) > 0.3) {
-	if (dp * 2 / (TMath::Abs (cand.momxz) + TMath::Abs(bbb->momxz)) > 0.2) {
+	//AZ-060822 if (dp * 2 / (TMath::Abs (cand.momxz) + TMath::Abs(bbb->momxz)) > 0.2) {
+	if (dp / (TMath::Abs (cand.momxz) + TMath::Abs(bbb->momxz)) > 0.3) { //AZ-060822
 	  // Different curvatures
 	  ok = 0;
 	}
@@ -838,7 +995,8 @@ void BmnStsVectorFinder::ExtendTrack(candvec cand)
 	// Extension by a triplet
 	Double_t dp = TMath::Abs (cand.momxz - aaa.momxz);
 	//if (dp * 2 / (TMath::Abs (cand.momxz) + TMath::Abs(aaa.momxz)) > 0.3) {
-	if (dp * 2 / (TMath::Abs (cand.momxz) + TMath::Abs(aaa.momxz)) > 0.2) {
+	//AZ-070822 if (dp * 2 / (TMath::Abs (cand.momxz) + TMath::Abs(aaa.momxz)) > 0.2) {
+	if (dp / (TMath::Abs (cand.momxz) + TMath::Abs(aaa.momxz)) > 0.3) { //AZ-070822
 	  // different curvatures
 	  ok = 0;
 	}
@@ -855,7 +1013,7 @@ void BmnStsVectorFinder::ExtendTrack(candvec cand)
 	fCandCodes[cand.stahit.size()].insert(codeVec);
 	if (cand.stahit.size() >= 4) {
 	  //cout << " 2 " << endl;
-	  if (cand.stahit.rbegin()->first == ista) continue; //AZ-171122
+	  if (cand.stahit.rbegin()->first == ista) continue; //AZ-171121
 	  Double_t chi2 = FitTrack(cand);
 	  //cout << " --- Chi2: " << chi2 << endl;
 	  if (chi2 > c2ndfMax) continue;
@@ -865,7 +1023,7 @@ void BmnStsVectorFinder::ExtendTrack(candvec cand)
       } 
     }
     //*/
-    //!!!
+    //!!! Extension found
     candvec candext = cand;
     if (cand.stahit.size() < 3) candext.momxz = bbb->momxz; // update momentum
     //candext.ty = bbb.ty;
@@ -873,12 +1031,20 @@ void BmnStsVectorFinder::ExtendTrack(candvec cand)
     for (mitr = aaa.stahit.begin(); mitr != aaa.stahit.end(); ++mitr)
       candext.stahit[mitr->first] = mitr->second;
     //cout << " ids: " << aaa.idmaxP << " " << cand.idmaxP << " " << candext.stahit.size() << endl;
-    if (aaa.idmaxP != cand.idmaxP) cand.idmaxP = -1;  
+    //AZ-120722 if (aaa.idmaxP != cand.idmaxP) cand.idmaxP = -1;  
+    if (aaa.idmaxP != cand.idmaxP) candext.idmaxP = -1; //AZ-120722  
     // Fit track to fight with combinatorics
     if (candext.stahit.size() >= 4) {
       //cout << " 3 " << endl;
       Double_t chi2ndf = FitTrack(candext);
       if (chi2ndf > c2ndfMax) continue;
+      /* This slows down
+      if (chi2ndf > c2ndfMax) {
+	 string codext = MakeCode(candext);
+	 fCandCodes[candext.stahit.size()].insert(codext);
+	 continue;
+      }
+      */
     }
     ExtendTrack (candext);
   } // for (mit = ret.first; 
@@ -1033,7 +1199,8 @@ void BmnStsVectorFinder::MakeStsTrack(candvec &cand, string &hitcode, CbmStsTrac
     CbmStsStation *stat = CbmStsDigiScheme::Instance()->GetStationByNr(hit->GetStationNr());
     Double_t dx = stat->GetSector(0)->GetDx();
     //if (dx < 0.02) dx *= 2; // scale up for Si
-    if (dx > 0.01) dx *= 1.2; // for GEMs
+    //AZ-120722 if (dx > 0.01) dx *= 1.2; // for GEMs
+    if (dx > 0.02) dx *= 1.2; //AZ-120722 for GEMs
     hit->SetDx(dx/TMath::Sqrt(12.0));
     hitcode += (to_string(mit2->second) + "-");
   }
@@ -1165,7 +1332,8 @@ void BmnStsVectorFinder::FitTracks()
 	CbmStsStation *stat = CbmStsDigiScheme::Instance()->GetStationByNr(hit->GetStationNr());
 	Double_t dx = stat->GetSector(0)->GetDx();
 	//if (dx < 0.02) dx *= 2; // scale up for Si
-	if (dx > 0.01) dx *= 1.2; // scale up for GEMs
+	//AZ-120722 if (dx > 0.01) dx *= 1.2; // scale up for GEMs
+	if (dx > 0.02) dx *= 1.2; //AZ-120722 scale up for GEMs
 	hit->SetDx(dx/TMath::Sqrt(12.0));
 	/*
 	if (fMatBudgetFileName != "" && hit->GetDz() < 1.e-7) {
@@ -1190,11 +1358,11 @@ void BmnStsVectorFinder::FitTracks()
       kftr.Fit(kTRUE); // downstream
       kftr.Fit(kFALSE); // upstream
       */
-     if (fVerbose > 0) {
-      cout << " aaaaaaa " << endl;
-      //track.GetParamFirst()->Print();
-      cout << track.GetChi2() << " " << nhits << " " << endl;
-     }
+      if (fVerbose > 0) {
+	 cout << " aaaaaaa " << endl;
+	 //track.GetParamFirst()->Print();
+	 cout << track.GetChi2() << " " << nhits << " " << endl;
+      }
       //AZ-111221 if (track.GetChi2() / track.GetNDF() > gkChi2Cut) {
       if (track.GetChi2() / track.GetNDF() > gkChi2Cut && track.GetNStsHits() > 3) {
 	/*
@@ -1317,25 +1485,27 @@ void BmnStsVectorFinder::FitTracks()
 	}
 	else qual += (100.0 - TMath::Min(TMath::Abs(track.GetChi2()),100.0)) / 101.0;
 	fTracks.insert(pair<Double_t,CbmStsTrack>(-qual,track));
-	pair<multimap<Int_t,Int_t>::iterator,multimap<Int_t,Int_t>::iterator> ret;
+	//AZ-130722 pair<multimap<Int_t,Int_t>::iterator,multimap<Int_t,Int_t>::iterator> ret;
+	pair<unordered_multimap<Int_t,Int_t>::iterator,unordered_multimap<Int_t,Int_t>::iterator> ret; //AZ-130722
 	nhits = hits.GetSize();
-  if (fVerbose > 0) {
-	cout << " Good track: " << endl;
-	//track.GetParamFirst()->Print();
-	cout << track.GetChi2() << " " << nhits << " " << track.GetParamFirst()->GetZ() << endl;
+	if (fVerbose > 0) {
+	   cout << " Good track: " << endl;
+	   //track.GetParamFirst()->Print();
+	   cout << track.GetChi2() << " " << nhits << " " << track.GetParamFirst()->GetZ() << endl;
   
-	for (Int_t j = nhits-1; j >= 0; --j) {
-	  ret = fHit2id.equal_range(hits[j]);
-	  cout << " (";
-	  for (multimap<Int_t,Int_t>::iterator mit = ret.first; mit != ret.second; ++mit) {
-	    if (mit == ret.first) cout << mit->first << "*";
-	    else cout << ":";
-	    cout << mit->second;
-	  }
-	  cout << ")";
+	   for (Int_t j = nhits-1; j >= 0; --j) {
+	      ret = fHit2id.equal_range(hits[j]);
+	      cout << " (";
+	      //AZ-130722 for (multimap<Int_t,Int_t>::iterator mit = ret.first; mit != ret.second; ++mit) {
+	      for (unordered_multimap<Int_t,Int_t>::iterator mit = ret.first; mit != ret.second; ++mit) {
+		 if (mit == ret.first) cout << mit->first << "*";
+		 else cout << ":";
+		 cout << mit->second;
+	      }
+	      cout << ")";
+	   }
+	   cout << "\n";
 	}
-	cout << "\n";
-  }
       }
 
     } // for (Int_t itra = 0; 
@@ -1567,7 +1737,8 @@ void BmnStsVectorFinder::ExcludeFakes()
 	  Int_t indx = tr->GetStsHitIndex(jh);
 	  CbmStsHit *hit = (CbmStsHit*) fHitArray->UncheckedAt(indx);
 	  if (mClusTr[hit->GetDigi(0)].count(itr) == 0 || mClusTr[hit->GetDigi(1)].count(itr) == 0)
-	    { cout << " !!! No track found: " << itr << endl; exit(0); }
+	     //AZ-300822 { cout << " !!! No track found: " << itr << endl; exit(0); }
+	     { cout << " !!! No track found: " << itr << endl; /*exit(0);*/ } //AZ-300822
 	  mClusTr[hit->GetDigi(0)].erase(itr);
 	  mClusTr[hit->GetDigi(1)].erase(itr);
 	}
@@ -1614,24 +1785,29 @@ Double_t BmnStsVectorFinder::Proxim(Double_t phi0, Double_t phi)
 }
 
 // -------------------------------------------------------------------------
-
-Double_t BmnStsVectorFinder::LinearFit(CbmStsTrack *tr, Int_t newtr, Double_t& ty)
+//AZ-280722 Double_t BmnStsVectorFinder::LinearFit(CbmStsTrack *tr, Int_t newtr, Double_t& ty)
+Double_t BmnStsVectorFinder::LinearFit(candvec &cand, candvec &cand2, CbmStsTrack *tr, Int_t newtr, Double_t& ty) //AZ-280722
 {
   /// Linear LS fit of 3 points (in R-Y plane): y = a + b * l, l is a track projection length on X-Z plane
 
   //static Double_t x[3], y[3], z[3], xs[3], ys[3], xys[3], x2s[3];
   static Double_t x[3], y[3], z[3], l[3] = {0}, lens[3] = {0}, ys[3], lys[3], l2s[3];
 
-  Int_t i0 = (newtr == 1) ? 0 : 2;
+  //AZ-150722 Int_t i0 = (newtr == 1) ? 0 : 2;
+  Int_t i0 = (newtr == 0) ? 0 : 2;
 
   for (Int_t i = i0; i < 3; ++i) {
     CbmStsHit *hit = (CbmStsHit*) fHitArray->UncheckedAt(tr->GetStsHitIndex(i));
-    x[i] = hit->GetX();
-    z[i] = hit->GetZ();
+    //AZ-280722 x[i] = hit->GetX();
+    //AZ-280722 z[i] = hit->GetZ();
     if (i) {
+       /*AZ-280722
       Double_t dx = x[i] - x[i-1];
       Double_t dz = z[i] - z[i-1];
       l[i] = lens[i] = TMath::Sqrt (dx * dx + dz * dz) + l[i-1];
+      */
+       if (i == 1) l[i] = lens[i] = cand.lengxz; //AZ-280722
+       else l[i] = lens[i] = cand2.lengxz + l[i-1]; //AZ-280722
     }
     y[i] = ys[i] = hit->GetY();
     //cout << " ily " << i << " " << l[i] << " " << y[i] << endl;
@@ -1667,35 +1843,58 @@ Double_t BmnStsVectorFinder::LinearFit(CbmStsTrack *tr, Int_t newtr, Double_t& t
 
 // -------------------------------------------------------------------------
 
-Double_t BmnStsVectorFinder::Curv3(candvec &cand)
+Double_t BmnStsVectorFinder::Curv3(candvec &cand1, candvec &cand2, candvec &cand3, int newtr)
 {
   // Compute triplet curvature in ZX plane
 
-  TVector3 points3[3], midPoint;
+  static TVector3 points3[3], midPoint;
   int indx = 1;
+  static Double_t by = 0.0;
+  static int first = 99;
 
-  map<int,int>::iterator mit = cand.stahit.begin();
-  ++mit;
+  //if (first != fPass) {
+  // first = fPass;
+  if (first) {
+     first = 0;
+     points3[0].SetXYZ (fXyzv[0], fXyzv[1], fXyzv[2]);
+  }
   
-  for ( ; mit != cand.stahit.end(); ++mit) {
-    points3[indx] = fmapHits[mit->second].xyz;
-    if (indx == 1) midPoint = points3[indx];
-    points3[indx] -= points3[0];
-    points3[indx++].SetY(0.0);
+  map<int,int>::iterator mit = cand3.stahit.begin();
+  if (0) { //fPass > 1) { //0 - assuming tracks coming from (0,0,0)
+  //if (newtr == 0 && cand3.stahit.size() > 2) {
+     points3[0] = fmapHits[mit->second].xyz; //AZ-280722
+     points3[0].SetY(0.0); //AZ-280722
+  }
+  //AZ-310722 ++mit;
+  if (cand3.stahit.size() > 2) ++mit; //AZ-310722
+  
+  for ( ; mit != cand3.stahit.end(); ++mit) {
+     //if (newtr > 0 && indx < 2) { ++indx; continue; }
+     points3[indx] = fmapHits[mit->second].xyz;
+     if (indx == 1) midPoint = points3[indx];
+     points3[indx] -= points3[0];
+     points3[indx++].SetY(0.0);
   }
 
-  TVector3 vec21 = points3[1] - points3[2];
-  Double_t cosAlpha = points3[2] * vec21 / points3[2].Mag() / vec21.Mag();
-  Double_t rad = points3[1].Mag() / 2. / TMath::Sin(TMath::ACos(cosAlpha));
+  TVector3 vec21 = points3[2] - points3[1];
+  //AZ-280722 Double_t cosAlpha = points3[2] * vec21 / points3[2].Mag() / vec21.Mag();
+  //Double_t cosAlpha = points3[1] * vec21 / points3[1].Mag() / vec21.Mag(); //AZ-280722
+  Double_t cosAlpha = points3[1] * vec21 / points3[1].Mag() / cand2.lengxz; //AZ-280722
+  //AZ-280722 Double_t rad = points3[1].Mag() / 2. / TMath::Sin(TMath::ACos(cosAlpha));
+  Double_t rad = points3[2].Mag() / 2. / TMath::Sin(TMath::ACos(cosAlpha)); //AZ-280722
   //Double_t bz = FairRunAna::Instance()->GetField()->GetBz(0.,0.,0.);
   //Double_t factor = 0.003 * bz / 10.; // 0.3 * 0.01 * 5kG / 10                  
-  Double_t sign = TMath::Sign (1.0, points3[1].Cross(points3[2]).Y());
-  FairField *magField = FairRunAna::Instance()->GetField();
-  Double_t pxz = 0.0003 * magField->GetBy(midPoint[0],midPoint[1],midPoint[2]) * rad * sign;
+  //AZ-310722 Double_t sign = TMath::Sign (1.0, points3[1].Cross(points3[2]).Y());
+  Double_t sign = TMath::Sign (3e-4, points3[1].Cross(points3[2]).Y()); //AZ-310722
+  if (newtr == 0) {
+     FairField *magField = FairRunAna::Instance()->GetField();
+     by = magField->GetBy(midPoint[0],midPoint[1],midPoint[2]);
+  }
+  Double_t pxz = by * rad * sign;
   //cout << " pt " << pxz << endl; 
-  return pxz;
+  //AZ-170722 return pxz;
+  return 1/pxz; //AZ-170722
 }
-
 // -------------------------------------------------------------------------
 
 set<int> BmnStsVectorFinder::KalmanWindow(candvec &cand, int hitIndx)
@@ -1728,6 +1927,18 @@ set<int> BmnStsVectorFinder::KalmanWindow(candvec &cand, int hitIndx)
     if (fmapHits[mit->second].used == 0) setY.insert(mit->second);
   set_intersection(setX.begin(), setX.end(), setY.begin(), setY.end(), std::inserter(intersect, intersect.begin()));
   return intersect;
+}
+
+// -------------------------------------------------------------------------
+
+std::string BmnStsVectorFinder::MakeCode(candvec &cand)
+{
+   // Make track code
+
+   string code("-");
+   for (map<int,int>::iterator it = cand.stahit.begin(); it != cand.stahit.end(); ++it)
+      code += (to_string(it->second) + "-");
+   return code;
 }
 
 // -------------------------------------------------------------------------

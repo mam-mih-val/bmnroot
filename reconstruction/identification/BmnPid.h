@@ -1,23 +1,24 @@
 #ifndef BMNPID_H
 #define BMNPID_H
 
+#include "BmnGlobalTrack.h"
+
 #include "FairTask.h"
+#include "FairRunAna.h"
+
 #include "TClonesArray.h"
 #include "TDatabasePDG.h"
 #include "TParticlePDG.h"
 #include "TString.h"
-#include "BmnGlobalTrack.h"
 #include "TMath.h"
 #include "BmnEnums.h"
-#include "FairRunAna.h"
+
 #include "vector"
-
-
 using namespace std;
 
-class BmnPid : public FairTask {
-public:
-
+class BmnPid : public FairTask
+{
+  public:
     // Constructors/Destructors ---------
     BmnPid(Int_t power = 1);
 
@@ -29,9 +30,7 @@ public:
 
     void SetVector();   
 
-private:
-    // Private Methods -------------
-
+  private:
     Int_t EnumToPdg(PidParticles part);
     
     void NormalizeVector(vector<Double_t>& vec);
@@ -51,12 +50,9 @@ private:
                             
     Int_t fEventNo; // event counter
     
-    TClonesArray* fGlobalTracksArray;   
+    TClonesArray* fGlobalTracksArray;   //!
 
-    ClassDef(BmnPid, 1);
+  ClassDef(BmnPid, 1);
 };
 
-
 #endif /* BMNPID_H */
-
-

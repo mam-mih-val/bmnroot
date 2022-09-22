@@ -68,7 +68,7 @@ void Spill(int period = 7, TString beam = "C", TString target = "",
         searchCondition = new UniSearchCondition(columnBeamParticle, conditionEqual, beam);
         arrayConditions.Add((TObject*) searchCondition);
     }
-    pRunArray = UniDbRun::Search(arrayConditions);
+    pRunArray = UniRun::Search(arrayConditions);
     run_count = pRunArray->GetEntriesFast();
     if (run_count <= 0) {
         cout << endl << "Macro finished with errors: no runs exists for the given target: " << target << endl;
@@ -78,8 +78,8 @@ void Spill(int period = 7, TString beam = "C", TString target = "",
 
     // Create histograms
     printf("len %d\n", pRunArray->GetEntries());
-    Int_t first_run_id =(reinterpret_cast<UniDbRun*> (pRunArray->First()))->GetRunNumber(); //4635;
-    Int_t last_run_id = (reinterpret_cast<UniDbRun*> (pRunArray->Last()))->GetRunNumber(); //4680;
+    Int_t first_run_id =(reinterpret_cast<UniRun*> (pRunArray->First()))->GetRunNumber(); //4635;
+    Int_t last_run_id = (reinterpret_cast<UniRun*> (pRunArray->Last()))->GetRunNumber(); //4680;
     printf("range %d - %d\n", first_run_id, last_run_id);
     Int_t nbins = (last_run_id + 1 - first_run_id);
     TCanvas * can = new TCanvas("runs_btnb", "Run vs BT\\& not Busy", HW, HH);
@@ -138,12 +138,12 @@ void Spill(int period = 7, TString beam = "C", TString target = "",
     // cycle for all runs to sum the spill data
     for (int i = 0; i < run_count; i++) {
         if (run_numbers != NULL) run = run_numbers[i].run_number;
-        if (pRunArray != NULL) run = ((UniDbRun*) pRunArray->At(i))->GetRunNumber();
+        if (pRunArray != NULL) run = ((UniRun*) pRunArray->At(i))->GetRunNumber();
 
         // get run time
-        UniDbRun* pRun = UniDbRun::GetRun(period, run);
+        UniRun* pRun = UniRun::GetRun(period, run);
         if (pRun == NULL) {
-            cout << endl << "Macro finished with errors: no experimental run was found " << period << " : " << run << " / " << ((UniDbRun*) pRunArray->At(i))->GetRunNumber() << endl;
+            cout << endl << "Macro finished with errors: no experimental run was found " << period << " : " << run << " / " << ((UniRun*) pRunArray->At(i))->GetRunNumber() << endl;
             if (run_numbers != NULL)
                 delete [] run_numbers;
             if (pRunArray != NULL)
@@ -172,7 +172,7 @@ void Spill(int period = 7, TString beam = "C", TString target = "",
         if (!((run >= first_run_id) && (run <= last_run_id)))
             continue;
         // check for presence in ELOG
-        TObjArray* recs = ElogDbRecord::GetRecords(period, run);
+        TObjArray* recs = ElogRecord::GetRecords(period, run);
         if (recs == NULL) {
             fprintf(stderr, "ELOG Error!\n");
             continue;

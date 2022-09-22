@@ -74,40 +74,10 @@ BmnCSCHitMaker::~BmnCSCHitMaker() {
     }
 }
 
-InitStatus BmnCSCHitMaker::Init() {
-
-    if (fVerbose > 1) cout << "=================== BmnCSCHitMaker::Init() started ====================" << endl;
-
-    //if the configuration is not set -> return a fatal error
-    if (!fCurrentConfig) Fatal("BmnCSCHitMaker::Init()", " !!! Current CSC config is not set !!! ");
-
-    FairRootManager* ioman = FairRootManager::Instance();
-
-    fBmnCSCDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
-    if (!fBmnCSCDigitsArray) {
-        cout << "BmnCSCHitMaker::Init(): branch " << fInputDigitsBranchName << " not found! Task will be deactivated" << endl;
-        SetActive(kFALSE);
-        return kERROR;
-    }
-
-    fBmnCSCDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
-
-    if (fVerbose > 1) {
-        if (fBmnCSCDigitMatchesArray) cout << "  Strip matching information exists!\n";
-        else cout << "  Strip matching information doesn`t exist!\n";
-    }
-
-    fBmnCSCHitsArray = new TClonesArray(fOutputHitsBranchName);
-    ioman->Register(fOutputHitsBranchName, "CSC", fBmnCSCHitsArray, kTRUE);
-    fBmnCSCUpperClustersArray = new TClonesArray("StripCluster");
-    ioman->Register("BmnCSCUpperCluster", "CSC", fBmnCSCUpperClustersArray, kTRUE);
-    fBmnCSCLowerClustersArray = new TClonesArray("StripCluster");
-    ioman->Register("BmnCSCLowerCluster", "CSC", fBmnCSCLowerClustersArray, kTRUE);
-
+void BmnCSCHitMaker::LoadDetectorConfiguration() {
     TString gPathCSCConfig = gSystem->Getenv("VMCWORKDIR");
     gPathCSCConfig += "/parameters/csc/XMLConfigs/";
 
-    //Create CSC detector ------------------------------------------------------
     switch (fCurrentConfig) {
         case BmnCSCConfiguration::RunSpring2018:
             StationSet = new BmnCSCStationSet(gPathCSCConfig + "CSCRunSpring2018.xml");
@@ -147,6 +117,41 @@ InitStatus BmnCSCHitMaker::Init() {
         default:
             StationSet = nullptr;
     }
+}
+
+InitStatus BmnCSCHitMaker::Init() {
+
+    if (fVerbose > 1) cout << "=================== BmnCSCHitMaker::Init() started ====================" << endl;
+
+    //if the configuration is not set -> return a fatal error
+    if (!fCurrentConfig) Fatal("BmnCSCHitMaker::Init()", " !!! Current CSC config is not set !!! ");
+
+    FairRootManager* ioman = FairRootManager::Instance();
+
+    fBmnCSCDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
+    if (!fBmnCSCDigitsArray) {
+        cout << "BmnCSCHitMaker::Init(): branch " << fInputDigitsBranchName << " not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
+
+    fBmnCSCDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
+
+    if (fVerbose > 1) {
+        if (fBmnCSCDigitMatchesArray) cout << "  Strip matching information exists!\n";
+        else cout << "  Strip matching information doesn`t exist!\n";
+    }
+
+    fBmnCSCHitsArray = new TClonesArray(fOutputHitsBranchName);
+    ioman->Register(fOutputHitsBranchName, "CSC", fBmnCSCHitsArray, kTRUE);
+    fBmnCSCUpperClustersArray = new TClonesArray("StripCluster");
+    ioman->Register("BmnCSCUpperCluster", "CSC", fBmnCSCUpperClustersArray, kTRUE);
+    fBmnCSCLowerClustersArray = new TClonesArray("StripCluster");
+    ioman->Register("BmnCSCLowerCluster", "CSC", fBmnCSCLowerClustersArray, kTRUE);
+
+    //Create CSC detector ------------------------------------------------------
+
+    LoadDetectorConfiguration();
 
     fField = FairRunAna::Instance()->GetField();
     if (!fField)
@@ -159,13 +164,50 @@ InitStatus BmnCSCHitMaker::Init() {
     return kSUCCESS;
 }
 
+InitStatus BmnCSCHitMaker::OnlineInit()
+{
+    if (!fCurrentConfig) LOG(fatal) << "BmnCSCHitMaker():OnlineInit() Current CSC config is not set !!! ";
+
+    fBmnCSCDigitsArray = new TClonesArray("BmnCSCDigit");
+    fBmnCSCDigitMatchesArray = nullptr;
+
+    fBmnCSCHitsArray = new TClonesArray(fOutputHitsBranchName);
+    fBmnCSCUpperClustersArray = new TClonesArray("StripCluster");
+    fBmnCSCLowerClustersArray = new TClonesArray("StripCluster");
+
+    LoadDetectorConfiguration();
+
+    if (!fField) LOG(fatal) << "BmnCSCHitMaker::OnlineInit() No Magnetic Field found!";
+    return kSUCCESS;
+}
+
+InitStatus BmnCSCHitMaker::OnlineRead(const std::unique_ptr<TTree> &dataTree, const std::unique_ptr<TTree> &resultTree)
+{
+    if (!IsActive()) return kERROR;
+
+    SetOnlineActive();
+
+    fBmnCSCDigitsArray->Clear();
+    if (dataTree->SetBranchAddress(fInputDigitsBranchName, &fBmnCSCDigitsArray)) {
+        LOG(error) << "BmnOnlineEDCscHitMaker::SetPayload(): branch " << fInputDigitsBranchName
+                   << " not found! Task will be deactivated";
+        SetOnlineActive(kFALSE);
+        return kERROR;
+    }
+
+    fBmnCSCHitsArray->Clear();
+    fBmnCSCUpperClustersArray->Clear();
+    fBmnCSCLowerClustersArray->Clear();
+
+    return kSUCCESS;
+}
+
 void BmnCSCHitMaker::Exec(Option_t* opt) {
 
     TStopwatch sw;
     sw.Start();
 
-    if (!IsActive())
-        return;
+    if (!IsActive() || !IsOnlineActive()) return;
 
     fBmnCSCHitsArray->Delete();
     fBmnCSCUpperClustersArray->Delete();
@@ -175,8 +217,6 @@ void BmnCSCHitMaker::Exec(Option_t* opt) {
     BmnCSCLayer::SetUpperUniqueID(0);
 
     if (fVerbose > 1) cout << "=================== BmnCSCHitMaker::Exec() started ====================" << endl;
-
-    fField = FairRunAna::Instance()->GetField();
 
     if (fVerbose > 1) cout << " BmnCSCHitMaker::Exec(), Number of BmnCSCDigits = " << fBmnCSCDigitsArray->GetEntriesFast() << "\n";
 
@@ -372,6 +412,16 @@ void BmnCSCHitMaker::ProcessDigits() {
     if (fVerbose > 1) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();
+}
+
+void BmnCSCHitMaker::OnlineWrite(const std::unique_ptr<TTree>& dataTree)
+{
+    if (!IsActive() || !IsOnlineActive()) return;
+
+    dataTree->Branch(fOutputHitsBranchName, &fBmnCSCHitsArray);
+    dataTree->Branch("BmnCSCUpperCluster", &fBmnCSCUpperClustersArray);
+    dataTree->Branch("BmnCSCLowerCluster", &fBmnCSCLowerClustersArray);
+    dataTree->Fill();
 }
 
 void BmnCSCHitMaker::Finish() {

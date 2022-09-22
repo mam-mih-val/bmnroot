@@ -72,11 +72,13 @@ class CbmMCTrack : public TObject
 
     /** Accessors to the number of MCPoints in the detectors **/
     Long64_t GetNPoints(DetectorId detId)  const;
-
+    /**AZ-310822 Get polarization **/
+    Double_t GetPolar(Int_t indx) { return fPolar[indx]; }
 
     /**  Modifiers  **/
     void SetMotherId(Int_t id) { fMotherId = id; }
     void SetNPoints(Int_t iDet, Long64_t np);
+    void SetPolar(Int_t indx, Double_t polar) { fPolar[indx] = polar; } //AZ-310822
 
   private:
 
@@ -113,13 +115,16 @@ class CbmMCTrack : public TObject
      **  SCWALL:      Bit 52      (1 bit,  max. value   1)
      **  HODO:        Bit 53      (1 bit,  max. value   1)
      **  SiMD:        Bit 54      (1 bit,  max. value   1)
-     **  SiBT:        Bit 55-56   (2 bit,  max. value   3)
+     **  SiBT:        Bit 55 - 56 (2 bit,  max. value   3)
+     **  FHCAL:       Bit 57      (1 bit,  max. value   1)
+     **  NDET:        Bit 58      (1 bit,  max. value   1)
      **  The respective point numbers can be accessed and modified with the inline functions.
      **/
     Long64_t fNPoints;
+    Double32_t fPolar[3]; //AZ-310822 - polarization
 
-
-    ClassDef(CbmMCTrack,2);
+    //AZ-310822 ClassDef(CbmMCTrack,2);
+    ClassDef(CbmMCTrack,3); //AZ-310822
 };
 
 // ==========   Inline functions   ========================================

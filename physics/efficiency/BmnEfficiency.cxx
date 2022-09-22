@@ -52,7 +52,7 @@ fNHits(6), fNHitsSilicon(2), fNHitsGem(4) {
     fMagField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
 
     if (runId && runId < 10000) {
-        UniDbRun* runInfo = UniDbRun::GetRun(7, runId);
+        UniRun* runInfo = UniRun::GetRun(7, runId);
 
         if (!runInfo)
             return;
@@ -226,7 +226,7 @@ BmnEfficiency::BmnEfficiency(FairRunAna* fAna, TString dstFile, Int_t nEvents) {
     fMagField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
 
     if (runId && runId < 10000) {
-        UniDbRun* runInfo = UniDbRun::GetRun(7, runId);
+        UniRun* runInfo = UniRun::GetRun(7, runId);
 
         if (!runInfo)
             return;

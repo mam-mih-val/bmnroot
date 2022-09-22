@@ -14,9 +14,9 @@
 #include <BmnGlobalTrack.h>
 #include <BmnFieldMap.h>
 #include <BmnNewFieldMap.h>
-#include <UniDbRun.h>
-#include <ElogDbRecord.h>
-#include <ElogDbTrigger.h>
+#include <UniRun.h>
+#include <ElogRecord.h>
+#include <ElogTrigger.h>
 #include <DstEventHeader.h>
 #include <BmnKalmanFilter.h>
 #include <CbmVertex.h> 

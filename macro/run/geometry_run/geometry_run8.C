@@ -36,7 +36,7 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(fd);
 
     FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
-    silicon->SetGeometryFileName("Silicon_Run8_3stations_detailed.root");
+    silicon->SetGeometryFileName("Silicon_Run8_4stations_detailed.root");
     fRun->AddModule(silicon);
 
     FairDetector* gems = new CbmSts("GEM", kTRUE);
@@ -59,9 +59,9 @@ void geometry(FairRunSim *fRun)
     tof2->SetGeometryFileName("tof700_run8_with_support.root");
     fRun->AddModule(tof2);
 
-    FairDetector* ecal = new BmnEcal("ECAL", kTRUE);
-    ecal->SetGeometryFileName("ECAL_v3_run8_pos5.root");
-    fRun->AddModule(ecal);
+    // FairDetector* ecal = new BmnEcal("ECAL", kTRUE);
+    // ecal->SetGeometryFileName("ECAL_v3_run8_pos5.root");
+    // fRun->AddModule(ecal);
 
     FairDetector* scwall = new BmnScWall("SCWALL", kTRUE);
     scwall->SetGeometryFileName("ScWall_run8_with_hole_in_box_with_hole_XeCsI_3.9GeV_field_Extrap_scale_1800_900_Zpos_875.0cm_Xshift_78.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");

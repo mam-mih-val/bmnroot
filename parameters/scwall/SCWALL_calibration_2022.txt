@@ -21,7 +21,7 @@ harmonic = 0.35
 harmonic = 0.60
 
 [CALIBRATION]
-# cosmic calibration of channel. To be multiplied by signal
+# calibration of channel. To be multiplied by signal
 #            CellId     Calibration  CalibError
 #=========================================================================
 calib	=	1	0.000982743	0

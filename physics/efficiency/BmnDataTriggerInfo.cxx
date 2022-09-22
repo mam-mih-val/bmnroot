@@ -25,15 +25,15 @@ fPeriod(7) {
 }
 
 TString BmnDataTriggerInfo::GetTrigger(Int_t run) {
-    TObjArray* runRecord = ElogDbRecord::GetRecords(fPeriod, run);
+    TObjArray* runRecord = ElogRecord::GetRecords(fPeriod, run);
 
     TString trigger = "";
 
     TIter it(runRecord);
-    ElogDbRecord* curRecord;
-    while ((curRecord = (ElogDbRecord*) it())) {
+    ElogRecord* curRecord;
+    while ((curRecord = (ElogRecord*) it())) {
         if (curRecord->GetTriggerId())
-            trigger = ElogDbTrigger::GetTrigger(*(curRecord->GetTriggerId()))->GetTriggerInfo();
+            trigger = ElogTrigger::GetTrigger(*(curRecord->GetTriggerId()))->GetTriggerInfo();
     }
 
     auto trigIter = fTriggerMap.find(trigger);

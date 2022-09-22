@@ -1,0 +1,94 @@
+[VERSION]
+id = 1.0
+
+[COMMENT]
+str = void
+
+[CHECKER]
+isWriteWfm = 0     # write waveforms for debug
+
+[PARAMETERS]
+gateBegin = 15
+gateEnd = 80
+threshold = 0.0    # absolute value. To be compared to calibrated value of ScWallDigi.fSignal 
+signalType = 0     # (0 - max, 1 - integral)
+doInvert = 1       # invert signal
+
+[FITPARAMETERS]
+# fit parameters for Prony fit
+isfit = 1          # apply fit
+harmonic = 0.56
+harmonic = 0.76
+
+[CALIBRATION]
+# Material ( S -- scintillator, Q -- quarz, N -- not connected )
+# Strip Side ( 0 -- down, 1 -- up )	
+# Gain ( 0 -- low, 1 -- high )	
+# calibration of channel. To be multiplied by signal
+#           Mater   StripId  StrSide  Gain  Calib  CalibError
+#=========================================================================
+calib    =    Q    1    0    0    0.07078    0.0
+calib    =    Q    1    0    1    0.01770    0.0
+calib    =    Q    1    1    0    0.10394    0.0
+calib    =    Q    1    1    1    0.02672    0.0
+calib    =    Q    2    0    0    0.06074    0.0
+calib    =    Q    2    0    1    0.01484    0.0
+calib    =    Q    2    1    0    0.12382    0.0
+calib    =    Q    2    1    1    0.03096    0.0
+calib    =    Q    3    0    0    0.06886    0.0
+calib    =    Q    3    0    1    0.01698    0.0
+calib    =    Q    3    1    0    0.11820    0.0
+calib    =    Q    3    1    1    0.03000    0.0
+calib    =    Q    4    0    0    0.05482    0.0
+calib    =    Q    4    0    1    0.01358    0.0
+calib    =    Q    4    1    0    0.20410    0.0
+calib    =    Q    4    1    1    0.05170    0.0
+calib    =    Q    5    0    0    0.04852    0.0
+calib    =    Q    5    0    1    0.01214    0.0
+calib    =    Q    5    1    0    0.21984    0.0
+calib    =    Q    5    1    1    0.05526    0.0
+calib    =    Q    6    0    0    0.06906    0.0
+calib    =    Q    6    0    1    0.01754    0.0
+calib    =    Q    6    1    0    0.16480    0.0
+calib    =    Q    6    1    1    0.04164    0.0
+calib    =    Q    7    0    0    0.13936    0.0
+calib    =    Q    7    0    1    0.03480    0.0
+calib    =    Q    7    1    0    0.16646    0.0
+calib    =    Q    7    1    1    0.04118    0.0
+calib    =    Q    8    0    0    0.08710    0.0
+calib    =    Q    8    0    1    0.02192    0.0
+calib    =    Q    8    1    0    0.19394    0.0
+calib    =    Q    8    1    1    0.04898    0.0
+calib    =    Q    9    0    0    0.08998    0.0
+calib    =    Q    9    0    1    0.02234    0.0
+calib    =    Q    9    1    0    0.14938    0.0
+calib    =    Q    9    1    1    0.04922    0.0
+calib    =    Q    10    0    0    0.08608    0.0
+calib    =    Q    10    0    1    0.02138    0.0
+calib    =    Q    10    1    0    0.14938    0.0
+calib    =    Q    10    1    1    0.03646    0.0
+calib    =    Q    11    0    0    0.06898    0.0
+calib    =    Q    11    0    1    0.01784    0.0
+calib    =    Q    11    1    0    0.12942    0.0
+calib    =    Q    11    1    1    0.03126    0.0
+calib    =    Q    12    0    0    0.11100    0.0
+calib    =    Q    12    0    1    0.02754    0.0
+calib    =    Q    12    1    0    0.20410    0.0
+calib    =    Q    12    1    1    0.05284    0.0
+calib    =    Q    13    0    0    0.06782    0.0
+calib    =    Q    13    0    1    0.01676    0.0
+calib    =    Q    13    1    0    0.08070    0.0
+calib    =    Q    13    1    1    0.02004    0.0
+calib    =    Q    14    0    0    0.07560    0.0
+calib    =    Q    14    0    1    0.01914    0.0
+calib    =    Q    14    1    0    0.08620    0.0
+calib    =    Q    14    1    1    0.02182    0.0
+calib    =    Q    15    0    0    0.08630    0.0
+calib    =    Q    15    0    1    0.02136    0.0
+calib    =    Q    15    1    0    0.09804    0.0
+calib    =    Q    15    1    1    0.02422    0.0
+calib    =    Q    16    0    0    0.04758    0.0
+calib    =    Q    16    0    1    0.01212    0.0
+calib    =    Q    16    1    0    0.08560    0.0
+calib    =    Q    16    1    1    0.02122    0.0
+

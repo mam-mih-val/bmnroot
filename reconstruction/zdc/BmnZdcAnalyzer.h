@@ -13,8 +13,9 @@
 
 #include "BmnZDCEventData.h"
 
-class BmnZdcAnalyzer : public FairTask {
-public:
+class BmnZdcAnalyzer : public FairTask
+{
+  public:
     BmnZdcAnalyzer();
     virtual ~BmnZdcAnalyzer();
 
@@ -37,16 +38,15 @@ public:
     ///
     void SetModuleThreshold(Float_t * array) { fModuleThreshold = array; }
 
-private:
+  private:
 
     TClonesArray * fArrayOfZdcDigits; // input
     BmnZDCEventData * fBmnZDCEventData; // output
     
-    Float_t * fModuleScale = 0;
-    Float_t * fModuleThreshold = 0;
+    Float_t* fModuleScale;         //!
+    Float_t* fModuleThreshold;     //!
 
     ClassDef(BmnZdcAnalyzer,1);
 };
 
 #endif /* BMNZDCANALYZER_H */
-

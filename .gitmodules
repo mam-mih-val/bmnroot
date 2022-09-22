@@ -1,6 +1,20 @@
 [submodule "services/nica_scheduler"]
 	path = services/nica_scheduler
 	url = https://git.jinr.ru/nica_modules/mpd_scheduler.git
+	branch = dev
 [submodule "database/geo_db"]
 	path = database/geo_db
 	url = https://git.jinr.ru/nica_db/geo_db.git
+	branch = master
+[submodule "database/uni_db"]
+	path = database/uni_db
+	url = https://git.jinr.ru/nica_db/unidb.git
+	branch = master
+[submodule "database/elog_db"]
+	path = database/elog_db
+	url = https://git.jinr.ru/nica_db/elog.git
+	branch = master
+[submodule "database/event_db"]
+	path = database/event_db
+	url = https://git.jinr.ru/nica_db/eventdb.git
+	branch = master

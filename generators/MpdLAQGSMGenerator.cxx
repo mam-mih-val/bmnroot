@@ -12,6 +12,7 @@
 
 #include "MpdLAQGSMGenerator.h"
 #include "MpdHypYPtGenerator.h" //AZ
+#include "CbmStack.h" //AZ-310822
 
 #include "FairPrimaryGenerator.h"
 #include "FairIon.h"
@@ -22,6 +23,7 @@
 #include "TParticlePDG.h"
 #include "TParticle.h"
 #include "TSystem.h"
+#include <TVirtualMC.h> //AZ-310822 
 
 #include "FairMCEventHeader.h"
 
@@ -493,6 +495,18 @@ Bool_t MpdLAQGSMGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
                 primGen->AddTrack(PDG, px, py, pz, 0., 0., 0.);
             else
                 primGen->AddTrack(PDG, px, py, pz1, fX, fY, fZ);
+	    //AZ-310822
+	    if (fQGSM_format_ID == 3 && TMath::Abs(PDG) == 3122) {
+	       // Store lambda polarization 
+	       Int_t nTr = gMC->GetStack()->GetNtrack();
+	       TParticle *part = ((CbmStack*)gMC->GetStack())->GetParticle(nTr-1);
+	       Double_t polx = pza1; // pza1 - polarization after rescattering 
+	       if (polx > 0) polx = 0;
+	       //polx = -0.5; // pza1 - polarization after rescattering 
+	       Double_t poly = TMath::Sqrt (1.0 - polx * polx);
+	       Double_t polz = pz1; // pz1 - initial polarization
+	       part->SetPolarisation(polx, poly, polz);
+	    }
         }
     }
 

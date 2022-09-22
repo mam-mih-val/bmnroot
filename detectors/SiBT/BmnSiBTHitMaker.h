@@ -1,19 +1,7 @@
 #ifndef BMNSiBTHITMAKER_H
 #define BMNSiBTHITMAKER_H 1
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
-#include "Rtypes.h"
-#include "TClonesArray.h"
-#include "TRegexp.h"
-#include "TString.h"
-
-#include "FairTask.h"
-#include "FairMCPoint.h"
-
-#include "FairField.h"
+#include "BmnTask.h"
 #include "BmnSiBTDigit.h"
 #include "BmnSiBTHit.h"
 #include "BmnSiBTStationSet.h"
@@ -21,9 +9,20 @@
 #include "BmnSiBTTransform.h"
 #include <BmnEventQuality.h>
 
+#include "FairField.h"
+#include "FairMCPoint.h"
+
+#include "TClonesArray.h"
+#include "TRegexp.h"
+#include "TString.h"
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
 using namespace std;
 
-class BmnSiBTHitMaker : public FairTask {
+class BmnSiBTHitMaker : public BmnTask {
 public:
 
     BmnSiBTHitMaker();
@@ -47,6 +46,11 @@ public:
         fCurrentConfig = config;
     }
 
+    virtual InitStatus OnlineInit();
+    virtual InitStatus OnlineRead(const std::unique_ptr<TTree> &dataTree, const std::unique_ptr<TTree> &resultTree);
+    virtual void OnlineWrite(const std::unique_ptr<TTree> &dataTree);
+    virtual void SetField(const std::unique_ptr<FairField> &magneticField) { fField = magneticField.get(); }
+
 private:
 
     TString fInputPointsBranchName;
@@ -57,32 +61,33 @@ private:
     TString fOutputHitMatchesBranchName;
 
     /** Input array of SiBT Points **/
-    TClonesArray* fBmnSiBTPointsArray;
-    TClonesArray* fBmnSiBTDigitsArray;
-    TClonesArray* fBmnSiBTDigitMatchesArray;
+    TClonesArray* fBmnSiBTPointsArray;          //!
+    TClonesArray* fBmnSiBTDigitsArray;          //!
+    TClonesArray* fBmnSiBTDigitMatchesArray;    //!
 
     /** Output array of SiBT Hits **/
-    TClonesArray* fBmnSiBTHitsArray;
+    TClonesArray* fBmnSiBTHitsArray;            //!
 
     /** Output array of SiBT Hit Matches **/
-    TClonesArray* fBmnSiBTHitMatchesArray;
+    TClonesArray* fBmnSiBTHitMatchesArray;      //!
 
     Bool_t fHitMatching;
     Bool_t fIsExp; // Specify type of input data (MC or real data)
 
     BmnSiBTConfiguration::SiBT_CONFIG fCurrentConfig;
 
-    BmnSiBTStationSet *StationSet; //Entire SiBT detector
+    BmnSiBTStationSet *StationSet;  //!Entire SiBT detector
 
-    BmnSiBTTransform *TransfSet; //Transformations for each module of the detector
+    BmnSiBTTransform *TransfSet;    //! Transformations for each module of the detector
 
-    FairField* fField;
+    FairField* fField;              //!
 
     TString fBmnEvQualityBranchName;
-    TClonesArray* fBmnEvQuality;
+    TClonesArray* fBmnEvQuality;    //!
 
-    ClassDef(BmnSiBTHitMaker, 1);
+    void LoadDetectorConfiguration();
+
+  ClassDef(BmnSiBTHitMaker, 1);
 };
-
 
 #endif

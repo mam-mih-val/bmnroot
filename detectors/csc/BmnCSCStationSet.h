@@ -10,22 +10,20 @@
 #include "TList.h"
 #include <TVector3.h>
 
-class BmnCSCStationSet {
-
-protected:
-
+class BmnCSCStationSet
+{
+  protected:
     /* station set parameters*/
-    Int_t NStations; //number of stations in the detector
+    Int_t NStations; // number of stations in the detector
 
-    Double_t *XStationPositions; //x-position of each station [array]
-    Double_t *YStationPositions; //y-position of each station [array]
-    Double_t *ZStationPositions; //z-position of each station [array]
+    Double_t *XStationPositions; //[NStations] x-position of each station [array]
+    Double_t *YStationPositions; //[NStations] y-position of each station [array]
+    Double_t *ZStationPositions; //[NStations] z-position of each station [array]
 
-    BmnCSCStation **Stations; //Stations [array]
+    BmnCSCStation **Stations;    //[NStations] Stations [array]
     map <Int_t, TVector3>* fStatShifts;
 
 public:
-
     /* Constructor */
     BmnCSCStationSet();
 

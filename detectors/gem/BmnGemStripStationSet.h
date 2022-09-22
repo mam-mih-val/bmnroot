@@ -11,31 +11,26 @@
 #include "TList.h"
 #include <TVector3.h>
 
-class BmnGemStripStationSet {
-
-protected:
-
+class BmnGemStripStationSet : public TObject
+{
+  protected:
     /* station set parameters*/
     Int_t NStations; //number of stations in the GEM detector
 
-    Double_t *XStationPositions; //x-position of each station [array]
-    Double_t *YStationPositions; //y-position of each station [array]
-    Double_t *ZStationPositions; //z-position of each station [array]
+    Double_t *XStationPositions;    //[NStations] x-position of each station [array]
+    Double_t *YStationPositions;    //[NStations] y-position of each station [array]
+    Double_t *ZStationPositions;    //[NStations] z-position of each station [array]
 
-    Double_t *BeamHoleRadiuses; //beam hole radius of each station [array]
+    Double_t *BeamHoleRadiuses;     //[NStations] beam hole radius of each station [array]
 
-    BmnGemStripStation **GemStations; //GEM stations [array]
-    map <Int_t, TVector3>* fStatShifts;
+    BmnGemStripStation **GemStations; //[NStations] GEM stations [array]
+    map<Int_t, TVector3>* fStatShifts; //->
 
-public:
-
+  public:
     /* Constructor */
     BmnGemStripStationSet();
-
     BmnGemStripStationSet(TString xml_config_file, map <Int_t, TVector3>* shifts = nullptr);
-    
     BmnGemStripStationSet(Int_t period, BmnSetup stp = kBMNSETUP, map <Int_t, TVector3>* shifts = nullptr);
-
     /* Destructor */
     virtual ~BmnGemStripStationSet();
 
@@ -71,13 +66,12 @@ public:
 
     //--------------------------------------------------------------------------
 
-private:
-
+  private:
     Bool_t CreateConfigurationFromXMLFile(TString xml_config_file);
     Int_t CountNumberOfStations(TXMLNode *node);
     Bool_t ParseStation(TXMLNode *node, Int_t iStation);
 
-    ClassDef(BmnGemStripStationSet, 1);
+  ClassDef(BmnGemStripStationSet, 1);
 };
 
 #endif

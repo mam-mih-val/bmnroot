@@ -81,17 +81,17 @@ CbmStsPoint::CbmStsPoint(const CbmStsPoint& point, Int_t eventId,
 
 // -----   Public method Print   -------------------------------------------
 void CbmStsPoint::Info() const {
-  LOG(DEBUG2) << "StsPoint: track ID " << fTrackID << ", detector ID "
+  LOG(debug2) << "StsPoint: track ID " << fTrackID << ", detector ID "
              << fDetectorID;
-  LOG(DEBUG2) << "          IN  Position (" << fX << ", " << fY
+  LOG(debug2) << "          IN  Position (" << fX << ", " << fY
              << ", " << fZ << ") cm";
-  LOG(DEBUG2) << "          OUT Position (" << fX_out << ", " << fY_out
+  LOG(debug2) << "          OUT Position (" << fX_out << ", " << fY_out
              << ", " << fZ_out << ") cm";
-  LOG(DEBUG2) << "    Momentum (" << fPx << ", " << fPy << ", " << fPz
+  LOG(debug2) << "    Momentum (" << fPx << ", " << fPy << ", " << fPz
              << ") GeV";
-  LOG(DEBUG2) << "    Time " << fTime << " ns,  Length " << fLength
+  LOG(debug2) << "    Time " << fTime << " ns,  Length " << fLength
              << " cm,  Energy loss " << fELoss*1.0e06 << " keV";
-  LOG(DEBUG2) << "    StationNum " << fStation << ", ModuleNum " << fModule;
+  LOG(debug2) << "    StationNum " << fStation << ", ModuleNum " << fModule;
 }
 // -------------------------------------------------------------------------
 

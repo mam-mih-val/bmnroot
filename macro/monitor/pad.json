@@ -1,0 +1,37 @@
+{
+    "Name": "Custom canvas",
+    "Title": "Custom Canvas",
+    "DivX": "2",
+    "DivY": "1",
+    "Pads": [
+        {
+            "Class": "TH2F",
+            "Name": "Vertex2D",
+            "Title": "Vertex XY",
+            "Variable": "BmnVertex.fY:BmnVertex.fX",
+            "Selection": "(BmnVertex.fZ>-10 && BmnVertex.fZ<10)",
+            "Options": "colz",
+            "Dimensions": [
+                200,
+                -5,
+                5,
+                200,
+                -5,
+                5
+            ]
+        },
+        {
+            "Class": "TH1F",
+            "Name": "VZ",
+            "Title": "Vertex Z",
+            "Variable": "BmnVertex.fZ",
+            "Selection": "(BmnVertex.fZ>-10 && BmnVertex.fZ<10)",
+            "Dimensions": [
+                200,
+                -10,
+                10
+            ]
+        }
+    ]
+}
+

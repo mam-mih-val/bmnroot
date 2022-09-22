@@ -52,10 +52,10 @@ class CbmL1 : public FairTask
     CbmL1 operator=(const CbmL1&);
   public:
 
-   L1Algo *algo; // for access to L1 Algorithm from L1::Instance
-   CbmL1ParticlesFinder *PF;
+   L1Algo *algo;                //! for access to L1 Algorithm from L1::Instance
+   CbmL1ParticlesFinder *PF;    //!
 
-   vector<CbmL1Track> vRTracks; // reconstructed tracks
+   vector<CbmL1Track> vRTracks; //! reconstructed tracks
    
   static CbmL1 *Instance(){ return fInstance; }
 
@@ -142,35 +142,35 @@ class CbmL1 : public FairTask
 //   Double_t fDetectorEfficiency;  // really doesn't used
 
    //AZ CbmStsDigiScheme StsDigi;
-   CbmStsDigiScheme *StsDigi;
-   CbmL1Vtx PrimVtx;
+   CbmStsDigiScheme *StsDigi;   //!
+   CbmL1Vtx PrimVtx;            //!
 //    L1FieldSlice *targetFieldSlice  _fvecalignment;
 
     /// Input data
-   TClonesArray *listMCTracks ;
-   TClonesArray *listStsPts; // Sts MC points
-   TClonesArray *listStsDigi;
-   TClonesArray *listStsClusters;
-   TClonesArray *listStsHits;
+   TClonesArray *listMCTracks;      //!
+   TClonesArray *listStsPts;        //! Sts MC points
+   TClonesArray *listStsDigi;       //!
+   TClonesArray *listStsClusters;   //!
+   TClonesArray *listStsHits;       //!
 
-   TClonesArray *listMvdPts; // Mvd MC points
-   TClonesArray *listMvdHits;
-   TClonesArray *listMvdHitMatches;
+   TClonesArray *listMvdPts;        //! Mvd MC points
+   TClonesArray *listMvdHits;       //!
+   TClonesArray *listMvdHitMatches; //!
 
     /// Used data = Repacked input data
-   vector<CbmL1StsHit>  vStsHits;  // hits with hit-mcpoint match information
-   vector<CbmL1MCPoint> vMCPoints;
-   vector<CbmL1MCTrack> vMCTracks;
-   vector<int>          vHitMCRef; // indices of MCPoints in vMCPoints, indexed by index of hit in algo->vStsHits array. According to StsMatch. Used for IdealResponce
+   vector<CbmL1StsHit>  vStsHits;   //! hits with hit-mcpoint match information
+   vector<CbmL1MCPoint> vMCPoints;  //!
+   vector<CbmL1MCTrack> vMCTracks;  //!
+   vector<int>          vHitMCRef;  // indices of MCPoints in vMCPoints, indexed by index of hit in algo->vStsHits array. According to StsMatch. Used for IdealResponce
 
-  vector<CbmKFParticle>  vRParticles;      // reco particles
-  vector<KFMCParticle> vMCParticles;  // MC particles
-  vector<KFMatchParticles> MCtoRParticleId; // array for match
-  vector<KFMatchParticles> RtoMCParticleId; 
+  vector<CbmKFParticle> vRParticles;    //! reco particles
+  vector<KFMCParticle> vMCParticles;    //! MC particles
+  vector<KFMatchParticles> MCtoRParticleId; //! array for match
+  vector<KFMatchParticles> RtoMCParticleId; //!
   
-  TDirectory *histodir;
+  TDirectory *histodir;                 //!
    
-  static CbmL1 *fInstance;
+  static CbmL1 *fInstance;              //!
 
  private:
   void CheckMCParticleIsReconstructable(KFMCParticle &part); // recursive func, used in FindReconstructableMCParticles

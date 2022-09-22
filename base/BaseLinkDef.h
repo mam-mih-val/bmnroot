@@ -1,5 +1,5 @@
 // $Id: BmnBaseLinkDef.h,v
-#ifdef __CINT__
+#ifdef __CLING__
 
 #pragma link off all globals;
 #pragma link off all classes;
@@ -41,6 +41,9 @@
 
 #pragma link C++ class BmnFileSource+;
 #pragma link C++ class BmnDecoSource+;
+#pragma link C++ class BmnProfRawTools++;
+#pragma link C++ class BmnProfilometerSource++;
+#pragma link C++ class BmnOnlineShmSource+;
 
 #pragma link C++ class BmnEventHeader+;
 #pragma link C++ class BmnSpillHeader+;
@@ -82,6 +85,7 @@
 #pragma link C++ class BmnEventQuality+;
 #pragma link C++ class BmnFitNode+;
 
+#pragma link C++ class BmnTask+;
 #pragma link C++ class BmnDetectorList+;
 #pragma link C++ enum BmnSetup;
 

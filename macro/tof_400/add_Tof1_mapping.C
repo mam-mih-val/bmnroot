@@ -116,7 +116,7 @@ void add_Tof1_mapping(string placement_map_filename = "/home/mikhailr/bmnroot/in
     if (anwser == 'y' || anwser == 'Y')
     {
         unsigned char* pt = reinterpret_cast<unsigned char*> (map1);
-        UniDbDetectorParameter* t = UniDbDetectorParameter::CreateDetectorParameter("TOF1", "placementmap", sP, sR, eP, eR, pt, map1Size * sizeof (unsigned int), UIntArrayType);
+        UniDetectorParameter* t = UniDetectorParameter::CreateDetectorParameter("TOF1", "placementmap", sP, sR, eP, eR, pt, map1Size * sizeof (unsigned int), UIntArrayType);
         if (t == NULL)
         {
             cout << "Cannot upload the placement map" << endl;
@@ -157,8 +157,8 @@ void add_Tof1_mapping(string placement_map_filename = "/home/mikhailr/bmnroot/in
                 break;
             }
 
-            UniDbDetectorParameter* t;
-            t = UniDbDetectorParameter::CreateDetectorParameter("TOF1", "plane", sP, sR, eP, eR, fserial, fchan, fplane);
+            UniDetectorParameter* t;
+            t = UniDetectorParameter::CreateDetectorParameter("TOF1", "plane", sP, sR, eP, eR, fserial, fchan, fplane);
             if (t == 0x00)
             {
                 cout << "Cannot upload the placement map" << endl;
@@ -168,7 +168,7 @@ void add_Tof1_mapping(string placement_map_filename = "/home/mikhailr/bmnroot/in
             {
                 delete t;
             }
-            t = UniDbDetectorParameter::CreateDetectorParameter("TOF1", "strip", sP, sR, eP, eR, fserial, fchan, fstrip);
+            t = UniDetectorParameter::CreateDetectorParameter("TOF1", "strip", sP, sR, eP, eR, fserial, fchan, fstrip);
             if (t == 0x00)
             {
                 cout << "Cannot upload the placement map" << endl;
@@ -178,7 +178,7 @@ void add_Tof1_mapping(string placement_map_filename = "/home/mikhailr/bmnroot/in
             {
                 delete t;
             }
-            t = UniDbDetectorParameter::CreateDetectorParameter("TOF1", "side", sP, sR, eP, eR, fserial, fchan, side);
+            t = UniDetectorParameter::CreateDetectorParameter("TOF1", "side", sP, sR, eP, eR, fserial, fchan, side);
             if (t == 0x00)
             {
                 cout << "Cannot upload the placement map" << endl;

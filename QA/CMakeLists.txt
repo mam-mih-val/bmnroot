@@ -2,7 +2,6 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/database/elog_db
  ${CMAKE_SOURCE_DIR}/field
@@ -61,6 +60,11 @@ set(SRCS
  report/BmnReportElement.h
 
 
+ BmnHist.cxx
+ PadInfo.cxx
+ BmnPadBranch.cxx
+ BmnPadGenerator.cxx
+ BmnQaBase.cxx
  BmnPidQa.cxx
  BmnPidQaReport.cxx
  BmnTrackingQa.cxx
@@ -72,6 +76,7 @@ set(SRCS
  BmnTrackingQaExpReport.cxx
  BmnLambdaQaReport.cxx
  BmnClusteringQaReport.cxx
+ BmnCustomQa.cxx
  BmnMCTrack.cxx
  BmnMCTrackCreator.cxx
  BmnAcceptanceFunction.h

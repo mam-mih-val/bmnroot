@@ -18,11 +18,14 @@ fR(NULL),
 fOut(NULL),
 fMonitorMode(kFALSE),
 fServer(nullptr),
-fInitCanvasesDone(kFALSE),
-fCanvases() {
+fInitCanvasesDone(kFALSE) {
 }
 
 BmnReport::~BmnReport() {
+    for (auto h: fCanvases){
+        if (h)
+            delete h;
+    }
 }
 
 void BmnReport::CreateReportElement() {

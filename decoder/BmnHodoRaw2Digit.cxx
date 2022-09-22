@@ -91,7 +91,7 @@ void BmnHodoRaw2Digit::ParseConfig(TString mappingFile)
     unsigned int unique_address = (mater == -1) ? 0 : BmnHodoAddress::GetAddress(mater, strip_id, strip_side, gain);
     fChannelVect.at(flat_channel) = unique_address;
   }
-  //std::LOG(DEBUG) << "COMMENT.str: " << comment << std::endl;
+  //std::LOG(debug) << "COMMENT.str: " << comment << std::endl;
 }
 
 void BmnHodoRaw2Digit::ParseCalibration(TString calibrationFile)
@@ -197,7 +197,7 @@ int BmnHodoRaw2Digit::GetFlatChannelFromAdcChannel(unsigned int board_serial, un
 void BmnHodoRaw2Digit::fillEvent(TClonesArray *tdc, TClonesArray *adc, TClonesArray *Hododigit)
 {
 
-  LOG(DEBUG) << "BmnHodoRaw2Digit::fillEvent" << endl;
+  LOG(debug) << "BmnHodoRaw2Digit::fillEvent" << endl;
 
   for (int iAdc = 0; iAdc < adc->GetEntriesFast(); iAdc++)
   {
@@ -208,9 +208,9 @@ void BmnHodoRaw2Digit::fillEvent(TClonesArray *tdc, TClonesArray *adc, TClonesAr
     // check if serial is from Hodo
     // cout<<adcDig->GetSerial() << " " << adcDig->GetChannel() << endl;
     if (std::find(fSerials.begin(), fSerials.end(), adcDig->GetSerial()) == fSerials.end()) {
-      LOG(DEBUG) << "BmnHodoRaw2Digit::fillEvent" << std::hex << adcDig->GetSerial() << " Not found in ";
+      LOG(debug) << "BmnHodoRaw2Digit::fillEvent" << std::hex << adcDig->GetSerial() << " Not found in ";
       for (auto it : fSerials)
-        LOG(DEBUG) << "BmnHodoRaw2Digit::fSerials " << std::hex << it << endl;
+        LOG(debug) << "BmnHodoRaw2Digit::fSerials " << std::hex << it << endl;
       continue;
     }
 
@@ -225,7 +225,7 @@ void BmnHodoRaw2Digit::fillEvent(TClonesArray *tdc, TClonesArray *adc, TClonesAr
     ProcessWfm(wfm, &ThisDigi);
 
     //Apply calibration
-    LOG(DEBUG) << "BmnHodoRaw2Digit::ProcessWfm  Calibration" << endl;
+    LOG(debug) << "BmnHodoRaw2Digit::ProcessWfm  Calibration" << endl;
     uint8_t flat_index = BmnHodoAddress::GetFlatIndex(ThisDigi.GetAddress());
     assert(flat_index < fCalibVect.size());
     if (fdigiPars.signalType == 0)

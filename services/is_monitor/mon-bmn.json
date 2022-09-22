@@ -1,0 +1,83 @@
+{
+  "PING": {
+    "unidb_server": {
+      "HOST": "nc13.jinr.ru"
+    },
+    "unidb_interface": {
+      "HOST": "nc9.jinr.ru"
+    },
+    "elog_server": {
+      "HOST": "nc13.jinr.ru"
+    },
+    "elog_interface": {
+      "HOST": "nc9.jinr.ru"
+    },
+    "geodb_server": {
+      "HOST": "cbmdb.jinr.ru"
+    },
+    "geodb_interface": {
+      "HOST": "cbmdb.jinr.ru"
+    }
+  },
+
+  "DATABASE": {
+    "uni_db": {
+      "SERVER": "nc13.jinr.ru",
+      "DBMS": "PGSQL",
+      "PORT": 5432,
+      "DBNAME": "bmn_db",
+      "USER": "db_reader",
+      "PASS": "reader_pass"
+    },
+    "elog_db": {
+      "SERVER": "nc13.jinr.ru",
+      "DBMS": "PGSQL",
+      "PORT": 5432,
+      "DBNAME": "bmn_elog",
+      "USER": "shift",
+      "PASS": "shift"
+    },
+    "geo_db": {
+      "SERVER": "cbmdb.jinr.ru",
+      "DBMS": "PGSQL",
+      "PORT": 5432,
+      "DBNAME": "geometry_bmn",
+      "USER": "viewer",
+      "PASS": "viewer"
+    }
+  },
+
+  "WEB": {
+    "unidb_web": {
+      "HTTP": "https://bmn-unidb.jinr.ru"
+    },
+    "elog_web": {
+      "HTTP": "https://bmn-elog.jinr.ru"
+    },
+    "geodb_web": {
+      "HTTP": "http://bmn-geodb.jinr.ru"
+    }
+  },
+
+  "OUTPUT": {
+    "DBMS": "INFLUXDB",
+    "SERVER": "nc13.jinr.ru",
+    "PORT": 8086,
+    "DBNAME": "mon_unidb",
+    "USER": "*",
+    "PASS": "*"
+  },
+
+  "INTERVAL_SEC": 450,
+
+  "MAIL": {
+    "SERVER": "mail.jinr.ru",
+    "PORT": 587,
+    "USER": "*",
+    "PASS": "*"
+  },
+
+  "LOG": "email@jinr.ru",
+  "NOTIFY": "email@jinr.ru",
+  "NAME": "BM@N IS Monitoring"
+}

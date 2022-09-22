@@ -1338,7 +1338,7 @@ void BmnTof2Raw2DigitNew::readSlewing(Bool_t update)
     else if (fSlewRun > 0)
     {
 	printf("Error open slewing file %s, work without slewing corrections!\n", filnr);
-//	LOG(ERROR)<<"Error open slewing file " << filnr << " - exit!";
+//	LOG(error)<<"Error open slewing file " << filnr << " - exit!";
 	return;
     }
     else

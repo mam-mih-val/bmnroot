@@ -62,7 +62,7 @@ void BmnSRCTriggersCheck::Exec(Option_t* opt) {
 	if (!evHeader)
 		return;
 
-	UniDbRun* runInfo = UniDbRun::GetRun(6, evHeader->GetRunId());
+	UniRun* runInfo = UniRun::GetRun(6, evHeader->GetRunId());
 
 	BmnTriggerType trigType = evHeader->GetTrig();
 	if (trigType == kBMNMINBIAS) {

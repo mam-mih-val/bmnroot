@@ -20,7 +20,7 @@
 #include "BmnFieldMap.h"
 #include "BmnTrackDrawH.h"
 #include "BmnGlobalTrackDraw.h"
-#include "UniDbRun.h"
+#include "UniRun.h"
 #include "BmnFileSource.h"
 #include "BmnNewFieldMap.h"
 #include "MpdEventManager.h"
@@ -102,7 +102,7 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/bmnsim.root"
 
             // get geometry for run
             TString root_file_path = "current_geo_file.root";
-            Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*)root_file_path.Data());
+            Int_t res_code = UniRun::ReadGeometryFile(run_period, run_number, (char*)root_file_path.Data());
             if (res_code != 0)
             {
                 cout << "\nGeometry couldn't' be read from the database" << endl;
@@ -129,7 +129,7 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/bmnsim.root"
             }
 
             // set magnet field with factor corresponding the given run (for GEANE)
-            UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
+            UniRun* pCurrentRun = UniRun::GetRun(run_period, run_number);
             if (pCurrentRun == 0)
                 return;
 

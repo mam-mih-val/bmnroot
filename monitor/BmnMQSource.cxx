@@ -11,7 +11,6 @@ fServer(nullptr) {
     fPeriodId = 7;
     fFirstEvent = kTRUE;
     fToFile = toFile;
-    fT0BranchName = (fPeriodId < 7) ? "T0" : "BC2";
 }
 
 BmnMQSource::~BmnMQSource() {
@@ -22,39 +21,58 @@ Bool_t BmnMQSource::Init() {
     if (!InitZMQ())
         return kFALSE;
     zmq_msg_init(&_msg);
-    Int_t frame_size = zmq_msg_recv(&_msg, _decoSocket, 0); // ZMQ_DONTWAIT
-    if (frame_size == -1) {
-        fprintf(stderr, "Receive error № %d #%s\n", errno, zmq_strerror(errno));
-        if (errno != EAGAIN)
-            return kFALSE;
-    } else {
-        //        printf("Received frame_size = %d\n", frame_size);
-        BmnParts * parts = nullptr;
-        _tBuf->Reset();
-        _tBuf->SetBuffer(zmq_msg_data(&_msg), zmq_msg_size(&_msg));
-        parts = static_cast<BmnParts *> (_tBuf->ReadObject(BmnParts::Class()));
-        //        cout << "TCA len : " << parts->GetArrays().size() << endl;
-        //        cout << "Obj len : " << parts->GetObjects().size() << endl;
-
-        FairRootManager* ioman = FairRootManager::Instance();
-        for (TClonesArray * ar : parts->GetArrays()) {
-            TClonesArray * newAr = new TClonesArray(ar->GetClass());
-            newAr->SetName(ar->GetName());
-            //            printf("Register %30s  %30s\n", ar->GetName(), newAr->GetName());
-            ioman->RegisterInputObject(newAr->GetName(), newAr);
-            //            ioman->Register(newAr->GetName(), ".", newAr, fToFile);
-            fArrVec.push_back(newAr);
+    Int_t frame_size = 0;
+    do {
+        if (fServer)
+            fServer->ProcessRequests();
+        frame_size = zmq_msg_recv(&_msg, _decoSocket, ZMQ_DONTWAIT);
+        if (frame_size == -1) {
+            //                printf("Receive error # %d #%s\n", errno, zmq_strerror(errno));
+            switch (errno) {
+                case EAGAIN:
+                    usleep(TimeDelta);
+                    break;
+                case EINTR:
+                    printf("EINTR\n");
+                    printf("Exit!\n");
+                    return 1;
+                    break;
+                case EFAULT:
+                    fprintf(stderr, "Receive error № %d #%s\n", errno, zmq_strerror(errno));
+                    return 1;
+                    break;
+                default:
+                    break;
+            }
+            gSystem->ProcessEvents();
         }
-        for (TNamed * tn : parts->GetObjects()) {
-            //            printf("Register %20s\n", tn->GetName());
-            //            printf("ClassName %20s  Class_Name %20s  GetName %20s\n", tn->ClassName(), tn->Class_Name(), tn->GetName());
-            TClass * cl = tn->Class();
-            TNamed* ob = static_cast<TNamed*> (tn->Clone()); // cl->New());
-            ioman->RegisterInputObject(tn->GetName(), ob);
-            fNamVec.push_back(ob);
-        }
+    } while (frame_size <= 0);
+    //        printf("Received frame_size = %d\n", frame_size);
+    BmnParts * parts = nullptr;
+    _tBuf->Reset();
+    _tBuf->SetBuffer(zmq_msg_data(&_msg), zmq_msg_size(&_msg));
+    parts = static_cast<BmnParts *> (_tBuf->ReadObject(BmnParts::Class()));
+    //        cout << "TCA len : " << parts->GetArrays().size() << endl;
+    //        cout << "Obj len : " << parts->GetObjects().size() << endl;
 
+    FairRootManager* ioman = FairRootManager::Instance();
+    for (TClonesArray * ar : parts->GetArrays()) {
+        TClonesArray * newAr = new TClonesArray(ar->GetClass());
+        newAr->SetName(ar->GetName());
+        //            printf("Register %30s  %30s\n", ar->GetName(), newAr->GetName());
+        ioman->RegisterInputObject(newAr->GetName(), newAr);
+        //            ioman->Register(newAr->GetName(), ".", newAr, fToFile);
+        fArrVec.push_back(newAr);
     }
+    for (TNamed * tn : parts->GetObjects()) {
+        //            printf("Register %20s\n", tn->GetName());
+        //            printf("ClassName %20s  Class_Name %20s  GetName %20s\n", tn->ClassName(), tn->Class_Name(), tn->GetName());
+        TClass * cl = tn->Class();
+        TNamed* ob = static_cast<TNamed*> (tn->Clone()); // cl->New());
+        ioman->RegisterInputObject(tn->GetName(), ob);
+        fNamVec.push_back(ob);
+    }
+
     _tBuf->DetachBuffer();
     zmq_msg_close(&_msg);
     return kTRUE;
@@ -80,24 +98,32 @@ void BmnMQSource::Close() {
 }
 
 Int_t BmnMQSource::ReadEvent(UInt_t i) {
-    const Int_t TimeDelta = 20000; // sleep micro seconds
-    printf("ReadEvent(%4u)\n", i);
+//    printf("ReadEvent(%4u)\n", i);
     zmq_msg_init(&_msg);
     Int_t frame_size = 0;
     do {
-        if (fServer)
-            fServer->ProcessRequests();
-        frame_size = zmq_msg_recv(&_msg, _decoSocket, ZMQ_DONTWAIT); // ZMQ_DONTWAIT
-//            printf("Received frame_size = %d  inside\n", frame_size);
+        //        if (fServer)
+        //            fServer->ProcessRequests();
+        frame_size = zmq_msg_recv(&_msg, _decoSocket, ZMQ_DONTWAIT);
         if (frame_size == -1) {
-            if ((errno == EAGAIN)/* || (errno == EINTR)*/){
-                usleep(TimeDelta);
-                continue;
+            //                printf("Receive error # %d #%s\n", errno, zmq_strerror(errno));
+            switch (errno) {
+                case EAGAIN:
+                    usleep(TimeDelta);
+                    break;
+                case EINTR:
+                    printf("EINTR\n");
+                    printf("Exit!\n");
+                    return 1;
+                    break;
+                case EFAULT:
+                    fprintf(stderr, "Receive error № %d #%s\n", errno, zmq_strerror(errno));
+                    return 1;
+                    break;
+                default:
+                    break;
             }
-            else {
-                return 1;
-                fprintf(stderr, "Receive error № %d #%s\n", errno, zmq_strerror(errno));
-            }
+            gSystem->ProcessEvents();
         }
     } while (frame_size <= 0);
     BmnParts * parts = nullptr;
@@ -122,6 +148,11 @@ Int_t BmnMQSource::ReadEvent(UInt_t i) {
                     static_cast<DstEventHeader*> (parts->GetObjects()[iAr]));
             //                cout << "Object " << fNamVec[iAr]->GetName() << endl;
             cout << "EventID: " << static_cast<DstEventHeader*> (fNamVec[iAr])->GetEventId() << endl;
+        }
+        if (!strcmp(fNamVec[iAr]->ClassName(), "CbmVertex")) {
+            static_cast<CbmVertex*> (fNamVec[iAr])->CopyFrom(
+                    static_cast<CbmVertex*> (parts->GetObjects()[iAr]));
+//                            cout << "VZ " << static_cast<CbmVertex*> (fNamVec[iAr])->GetZ() << endl;
         }
     }
     _tBuf->DetachBuffer();

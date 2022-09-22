@@ -20,7 +20,6 @@ SrcVertexFinder::SrcVertexFinder(Int_t period, Bool_t isExp) {
     fArmTracksArray = nullptr;
     fTime = 0.0;
     fisExp = isExp;
-    fKalman = new BmnKalmanFilter();
 }
 
 SrcVertexFinder::~SrcVertexFinder() { delete fKalman; }
@@ -28,6 +27,8 @@ SrcVertexFinder::~SrcVertexFinder() { delete fKalman; }
 InitStatus SrcVertexFinder::Init() {
     if (fVerbose > 1)
         cout << "=========================== Vertex finder init started ====================" << endl;
+
+    fKalman = new BmnKalmanFilter();
 
     // Get ROOT Manager
     FairRootManager *ioman = FairRootManager::Instance();

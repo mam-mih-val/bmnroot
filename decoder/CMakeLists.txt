@@ -2,10 +2,10 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/database/elog_db
  ${CMAKE_SOURCE_DIR}/database/tango
+ ${CMAKE_SOURCE_DIR}/database/tools
  ${CMAKE_SOURCE_DIR}/base
  ${CMAKE_SOURCE_DIR}/base/data
  ${CMAKE_SOURCE_DIR}/base/raw
@@ -14,6 +14,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/detectors/mwpc
  ${CMAKE_SOURCE_DIR}/detectors/csc
  ${CMAKE_SOURCE_DIR}/detectors/silicon
+ ${CMAKE_SOURCE_DIR}/detectors/SiBT
  ${CMAKE_SOURCE_DIR}/detectors/gem
  ${CMAKE_SOURCE_DIR}/detectors/dch
  ${CMAKE_SOURCE_DIR}/detectors/tof1
@@ -24,6 +25,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/detectors/scwall
  ${CMAKE_SOURCE_DIR}/detectors/hodo
  ${CMAKE_SOURCE_DIR}/detectors/fhcal
+ ${CMAKE_SOURCE_DIR}/detectors/ndet
  ${CMAKE_SOURCE_DIR}/detectors/land
  ${CMAKE_SOURCE_DIR}/decoder
  ${CMAKE_SOURCE_DIR}/reconstruction/cat
@@ -55,6 +57,7 @@ set(SRCS
  BmnScWallRaw2Digit.cxx
  BmnFHCalRaw2Digit.cxx
  BmnHodoRaw2Digit.cxx
+ BmnNdetRaw2Digit.cxx
  BmnECALRaw2Digit.cxx
  BmnLANDRaw2Digit.cxx
  BmnTofCalRaw2Digit.cxx
@@ -66,6 +69,8 @@ set(SRCS
  BmnSlewingTOF700.cxx
  BmnTrigRaw2Digit.cxx
  BmnCscRaw2Digit.cxx
+ BmnProfRaw2Digit.cxx
+ BmnProfAsic2Raw.cxx
  BmnMscRaw2Digit.cxx
  WfmProcessor.cxx
  PronyFitter.cxx
@@ -89,6 +94,7 @@ endif()
 Set(HEADERS)
 Set(LINKDEF DecoderLinkDef.h)
 Set(LIBRARY_NAME BmnDecoder)
-Set(DEPENDENCIES LAND FHCal Hodo ScWall Zdc Ecal TofCal TOF TOF1 CSC Gem Silicon Dch Mwpc BmnBase UniDb ElogDb TangoData Base Minuit Core boost_program_options)
+Set(DEPENDENCIES LAND FHCal Hodo ScWall Ndet Zdc Ecal TofCal TOF TOF1 CSC Gem Silicon
+SiBT Dch Mwpc BmnBase DbTools UniDb ElogDb TangoData Base Minuit Core boost_program_options)
 
 GENERATE_LIBRARY()

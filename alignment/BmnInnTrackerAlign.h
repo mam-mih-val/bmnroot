@@ -54,19 +54,20 @@ public:
 
 private: 
     TString fFilename;
+    Int_t nStations;
         
     TString fBranchGemCorrs;
     TString fBranchSilCorrs;
        
-    BmnGemStripStationSet* fDetectorGEM; // GEM-geometry
-    BmnSiliconStationSet* fDetectorSI; // SI-geometry
+    BmnGemStripStationSet* fDetectorGEM;    //-> GEM-geometry
+    BmnSiliconStationSet* fDetectorSI;      //-> SI-geometry
     
     Double_t*** GetGemCorrs(TFile*);
-    Double_t*** fCorrsGem;
+    Double_t*** fCorrsGem;                  //[nStations]
     Double_t*** GetSiliconCorrs(TFile*);
-    Double_t*** fCorrsSil;
+    Double_t*** fCorrsSil;                  //[nStations]
     
-    Double_t** fLorCorrs;
+    Double_t** fLorCorrs;                   //[nStations]
     
     ClassDef(BmnInnTrackerAlign, 1)
 };

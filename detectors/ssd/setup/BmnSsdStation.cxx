@@ -119,7 +119,7 @@ void BmnSsdStation::CheckSensorProperties() {
     		  // Get sensor thickness
     		  TGeoBBox* sBox = dynamic_cast<TGeoBBox*>(sensorNode->GetShape());
     		  if ( ! sBox )
-    		  	LOG(FATAL) << GetName() << ": sensor shape is not a box!";
+    		  	LOG(fatal) << GetName() << ": sensor shape is not a box!";
     		  	Double_t sD = 2. * sBox->GetDZ();
     		    if ( ! nSensors ) fSensorD = sD; // first sensor
     		    else {
@@ -200,7 +200,7 @@ void BmnSsdStation::Init() {
 	if ( fNode ) {
 		TGeoBBox* box = dynamic_cast<TGeoBBox*>(fNode->GetShape());
 		if ( ! box )
-			LOG(FATAL) << GetName() << ": shape is not box! ";
+			LOG(fatal) << GetName() << ": shape is not box! ";
 		Double_t local[3] = { 0., 0., 0.};
 		Double_t global[3];
 	  fNode->GetMatrix()->LocalToMaster(local, global);

@@ -17,12 +17,12 @@ protected:
     /* station set parameters*/
     Int_t NStations; //number of stations in the detector
 
-    Double_t *XStationPositions; //x-position of each station [array]
-    Double_t *YStationPositions; //y-position of each station [array]
-    Double_t *ZStationPositions; //z-position of each station [array]
+    Double_t *XStationPositions; //! x-position of each station [array]
+    Double_t *YStationPositions; //! y-position of each station [array]
+    Double_t *ZStationPositions; //! z-position of each station [array]
 
-    BmnSiBTStation **Stations; //Stations [array]
-    map <Int_t, TVector3>* fStatShifts;
+    BmnSiBTStation **Stations;   //! Stations [array]
+    map <Int_t, TVector3>* fStatShifts; //!
 
 public:
 

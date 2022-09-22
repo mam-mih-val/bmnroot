@@ -1,0 +1,32 @@
+[VERSION]								
+id = 1.0						
+								
+[COMMENT]								
+str = void						
+								
+[TQDCSERIALS]								
+# will be sorted					
+serial = 0x0aaaaaaa
+serial = 0x0bbbbbbb
+
+
+[CONFIGURATION]		
+#          TQDC_serial  TQDC_ch  CellId LayerId    X[mm]    Y[mm]    Z[mm]
+#====================================================================						
+
+config  =    0x0aaaaaaa        0    1    1    40    40    -367
+config  =    0x0aaaaaaa        1    1    2    40    40    -324
+config  =    0x0aaaaaaa        2    1    3    40    40    -281
+config  =    0x0aaaaaaa        3    1    4    40    40    -238
+config  =    0x0aaaaaaa        4    1    5    40    40    -195
+config  =    0x0aaaaaaa        5    1    6    40    40    -130
+config  =    0x0aaaaaaa        6    1    7    40    40    -65
+config  =    0x0aaaaaaa        7    1    8    40    40    0
+config  =    0x0aaaaaaa        8    1    9    40    40    65
+config  =    0x0aaaaaaa        9    1    10    40    40    130
+config  =    0x0aaaaaaa        10    1    11    40    40    195
+config  =    0x0aaaaaaa        11    1    12    40    40    260
+config  =    0x0aaaaaaa        12    1    13    40    40    325
+config  =    0x0aaaaaaa        13    1    14    40    40    390
+config  =    0x0aaaaaaa        14    1    15    40    40    -400
+

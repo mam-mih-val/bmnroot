@@ -121,7 +121,7 @@ class CbmStsAddress : public CbmAddress
      static UInt_t SetElementId(UInt_t address, Int_t level, Int_t newId) {
        if ( level < 0 || level >= kStsNofLevels ) return address;
        if ( newId >= ( 1 << fgkBits[level]) ) {
-         LOG(ERROR) << "Id " << newId << " for STS level " << level
+         LOG(error) << "Id " << newId << " for STS level " << level
                     << " exceeds maximum (" << (1 << fgkBits[level]) - 1
                     << ")";
          return 0;

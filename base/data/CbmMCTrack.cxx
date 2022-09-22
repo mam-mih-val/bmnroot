@@ -29,6 +29,7 @@ CbmMCTrack::CbmMCTrack()
     fStartT(0.),
     fNPoints(0)
 {
+   fPolar[0] = fPolar[1] = fPolar[2] = 0.0; //AZ-310822
 }
 
 // -----   Standard constructor   ------------------------------------------
@@ -49,6 +50,7 @@ CbmMCTrack::CbmMCTrack(Int_t pdgCode, Int_t motherId, Double_t px,
 {
   if (nPoints >= 0) fNPoints = nPoints;
   //  else              fNPoints = 0;
+   fPolar[0] = fPolar[1] = fPolar[2] = 0.0; //AZ-310822
 }
 
 // -----   Copy constructor   ----------------------------------------------
@@ -66,6 +68,7 @@ CbmMCTrack::CbmMCTrack(const CbmMCTrack& track)
     fNPoints(track.fNPoints)
 {
   //  *this = track;
+   for (Int_t i = 0; i < 3; ++i) fPolar[i] = track.fPolar[i]; //AZ-310822
 }
 
 // -----   Constructor from TParticle   ------------------------------------
@@ -82,6 +85,10 @@ CbmMCTrack::CbmMCTrack(TParticle* part)
     fStartT(part->T()*1e09),
     fNPoints(0)
 {
+   //AZ-310822
+   TVector3 polar3;
+   part->GetPolarisation(polar3);
+   for (Int_t i = 0; i < 3; ++i) fPolar[i] = polar3[i];
 }
 
 // -----   Destructor   ----------------------------------------------------
@@ -93,16 +100,18 @@ CbmMCTrack::~CbmMCTrack()
 // -----   Public method Print   -------------------------------------------
 void CbmMCTrack::Print(Int_t trackId) const
 {
-    LOG(DEBUG) << "Track " << trackId << ", mother : " << fMotherId << ", Type " << fPdgCode
+    LOG(debug) << "Track " << trackId << ", mother : " << fMotherId << ", Type " << fPdgCode
                << ", momentum (" << fPx << ", " << fPy << ", " << fPz << ") GeV";
 
-    LOG(DEBUG) << "       Ref " << GetNPoints(kREF)
+    LOG(debug) << "       Ref " << GetNPoints(kREF)
                << ", BD "    << GetNPoints(kBD)
                << ", GEM "   << GetNPoints(kGEM)
                << ", TOF1 "  << GetNPoints(kTOF1)
                << ", DCH "   << GetNPoints(kDCH)
                << ", TOF2 "  << GetNPoints(kTOF)
                << ", ZDC "   << GetNPoints(kZDC)
+               << ", FHCAL " << GetNPoints(kFHCAL)
+               << ", NDET "  << GetNPoints(kNDET)
                << ", SSD "   << GetNPoints(kSSD)
                << ", MWPC "  << GetNPoints(kMWPC)
                << ", ECAL "  << GetNPoints(kECAL)
@@ -143,6 +152,7 @@ Double_t CbmMCTrack::GetRapidity() const
 
 
 // -----   Public method GetNPoints   --------------------------------------
+// TODO: check bitfields & where it is used / filled. Seems not used
 Long64_t CbmMCTrack::GetNPoints(DetectorId detId) const
 {
     if      ( detId == kREF )  return (  fNPoints &  (Long64_t)  1);
@@ -151,7 +161,7 @@ Long64_t CbmMCTrack::GetNPoints(DetectorId detId) const
     else if ( detId == kTOF1 ) return ( (fNPoints & ((Long64_t)  3 <<  5) ) >>  5);
     else if ( detId == kDCH )  return ( (fNPoints & ((Long64_t) 31 <<  7) ) >>  7);
     else if ( detId == kTOF )  return ( (fNPoints & ((Long64_t)  3 << 12) ) >> 12);
-    else if (detId == kZDC || detId == kFHCAL)  return ((fNPoints & ((Long64_t)127 << 14)) >> 14);
+    else if ( detId == kZDC )  return ( (fNPoints & ((Long64_t)127 << 14) ) >> 14);
     else if ( detId == kSSD )  return ( (fNPoints & ((Long64_t)  7 << 21) ) >> 21);
     else if ( detId == kMWPC ) return ( (fNPoints & ((Long64_t) 31 << 24) ) >> 24);
     else if ( detId == kECAL ) return ( (fNPoints & ((Long64_t)127 << 29) ) >> 29);
@@ -165,9 +175,11 @@ Long64_t CbmMCTrack::GetNPoints(DetectorId detId) const
     else if ( detId == kHODO ) return ( (fNPoints & ((Long64_t)  1 << 53) ) >> 53);
     else if ( detId == kSiMD ) return ( (fNPoints & ((Long64_t)  1 << 54) ) >> 54);
     else if ( detId == kSiBT ) return ( (fNPoints & ((Long64_t)  3 << 55) ) >> 55);
+    else if ( detId == kFHCAL ) return ( (fNPoints & ((Long64_t) 1 << 57) ) >> 57);
+    else if ( detId == kNDET ) return ( (fNPoints & ((Long64_t)  1 << 58) ) >> 58);
     else if ( detId == kTOFCAL ) return ( -1 );
     else {
-        LOG(ERROR) << "GetNPoints: Unknown detector ID " << detId;
+        LOG(error) << "GetNPoints: Unknown detector ID " << detId;
         return 0;
     }
 }
@@ -211,7 +223,7 @@ void CbmMCTrack::SetNPoints(Int_t iDet, Long64_t nPoints)
         fNPoints = ( fNPoints & ( ~ ((Long64_t)  3 << 12 ) ) )  |  ( nPoints << 12 );
     }
 
-    else if (iDet == kZDC || iDet == kFHCAL) {
+    else if (iDet == kZDC ) {
         if      ( nPoints <  0 ) nPoints =  0;
         else if ( nPoints > 127) nPoints =127;
         fNPoints = ( fNPoints & ( ~ ((Long64_t)127 << 14 ) ) )  |  ( nPoints << 14 );
@@ -295,11 +307,23 @@ void CbmMCTrack::SetNPoints(Int_t iDet, Long64_t nPoints)
         fNPoints = ( fNPoints & ( ~ ((Long64_t)  3 << 55 ) ) )  |  ( nPoints << 55 );
     }
 
+    else if (iDet == kFHCAL) {
+        if      ( nPoints <  0 ) nPoints =  0;
+        else if ( nPoints >  1 ) nPoints =  1;
+        fNPoints = ( fNPoints & ( ~ ((Long64_t)  1 << 57 ) ) )  |  ( nPoints << 57 );
+    }
+
+    else if (iDet == kNDET) {
+        if      ( nPoints <  0 ) nPoints =  0;
+        else if ( nPoints >  1 ) nPoints =  1;
+        fNPoints = ( fNPoints & ( ~ ((Long64_t)  1 << 58 ) ) )  |  ( nPoints << 58 );
+    }
+
     else if (iDet == kTOFCAL) {
         ;
     }
 
-    else LOG(ERROR) << "Unknown detector ID " << iDet;
+    else LOG(error) << "Unknown detector ID " << iDet;
 }
 
 ClassImp(CbmMCTrack)

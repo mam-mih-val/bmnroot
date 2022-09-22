@@ -26,7 +26,7 @@ InitStatus BmnEcalDigitizer::Init() {
     fArrayOfEcalPoints = (TClonesArray*) ioman->GetObject("EcalPoint");
     if (fArrayOfEcalPoints == nullptr)
     {
-        LOG(ERROR)<<"BmnEcalDigitizer::Init() branch 'EcalPoint' not found! Task will be deactivated";
+        LOG(error)<<"BmnEcalDigitizer::Init() branch 'EcalPoint' not found! Task will be deactivated";
         SetActive(kFALSE);
         return kERROR;
     }
@@ -145,7 +145,7 @@ int BmnEcalDigitizer::LoadGeometry()
         TGeoVolume * top = TGeoVolume::Import(fEcalGeometryFileName,"TOP");
 
         if (!top) {
-            LOG(ERROR)<<"<BmnEcalDigitizer::LoadGeometry>: Volume TOP not found in "<<(fEcalGeometryFileName == nullptr? "(null)" : fEcalGeometryFileName);
+            LOG(error)<<"<BmnEcalDigitizer::LoadGeometry>: Volume TOP not found in "<<(fEcalGeometryFileName == nullptr? "(null)" : fEcalGeometryFileName);
             //Fatal(__func__, "Volume TOP not found in %s\n", fEcalGeometryFileName);
             return -1;
         }
@@ -153,7 +153,7 @@ int BmnEcalDigitizer::LoadGeometry()
         TGeoNode * ecal = top->GetNode(0);
     
         if (!ecal /*|| ecal->GetNdaughters() < 2*/) {
-            LOG(ERROR)<<"<BmnEcalDigitizer::LoadGeometry>: Unexpected geometry structure "<<(fEcalGeometryFileName == nullptr? "(null)" : fEcalGeometryFileName);
+            LOG(error)<<"<BmnEcalDigitizer::LoadGeometry>: Unexpected geometry structure "<<(fEcalGeometryFileName == nullptr? "(null)" : fEcalGeometryFileName);
             //Fatal(__func__, "Unexpected geometry structure %s\n",fEcalGeometryFileName);
             return -1;
         }        
@@ -179,13 +179,13 @@ int BmnEcalDigitizer::LoadGeometry()
     if (ecal1) {
         Int_t n = ecal1->GetNdaughters();
         if (n > 504) {
-            LOG(ERROR)<<"<BmnEcalDigitizer::LoadGeometry>: Expected ecal node 1 with 504 daughters or less in "<<(fEcalGeometryFileName == nullptr? "(null)" : fEcalGeometryFileName);
+            LOG(error)<<"<BmnEcalDigitizer::LoadGeometry>: Expected ecal node 1 with 504 daughters or less in "<<(fEcalGeometryFileName == nullptr? "(null)" : fEcalGeometryFileName);
             return -1;
         }
         for (Int_t i = 0; i < n; i++) {
             Int_t ch = ecal1->GetDaughter(i)->GetNumber();
             if (ch < 1 || ch > 504) {
-                LOG(ERROR)<<"<BmnEcalDigitizer::LoadGeometry>: Unexpected chan "<<ch<<" at ecal node 1 in "<<(fEcalGeometryFileName == nullptr? "(null)" : fEcalGeometryFileName);
+                LOG(error)<<"<BmnEcalDigitizer::LoadGeometry>: Unexpected chan "<<ch<<" at ecal node 1 in "<<(fEcalGeometryFileName == nullptr? "(null)" : fEcalGeometryFileName);
                 return -1;
             }
             ecal1->GetDaughter(i)->LocalToMaster(coords, ecalCoords);
@@ -200,13 +200,13 @@ int BmnEcalDigitizer::LoadGeometry()
     if (ecal2) {
         Int_t n = ecal2->GetNdaughters();
         if (n > 504) {
-            LOG(ERROR)<<"<BmnEcalDigitizer::LoadGeometry>: Expected ecal node 2 with 504 daughters or less in "<<(fEcalGeometryFileName == nullptr? "(null)" : fEcalGeometryFileName);
+            LOG(error)<<"<BmnEcalDigitizer::LoadGeometry>: Expected ecal node 2 with 504 daughters or less in "<<(fEcalGeometryFileName == nullptr? "(null)" : fEcalGeometryFileName);
             return -1;
         }
         for (Int_t i = 0; i < n; i++) {
             Int_t ch = ecal2->GetDaughter(i)->GetNumber();
             if (ch < 505 || ch > 1008) {
-                LOG(ERROR)<<"<BmnEcalDigitizer::LoadGeometry>: Unexpected chan="<<ch<<" at ecal node 2 in "<<(fEcalGeometryFileName == nullptr? "(null)" : fEcalGeometryFileName);
+                LOG(error)<<"<BmnEcalDigitizer::LoadGeometry>: Unexpected chan="<<ch<<" at ecal node 2 in "<<(fEcalGeometryFileName == nullptr? "(null)" : fEcalGeometryFileName);
                 return -1;
             }
             ecal2->GetDaughter(i)->LocalToMaster(coords, ecalCoords);

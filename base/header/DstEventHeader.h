@@ -8,10 +8,11 @@
 
 #include "TTimeStamp.h"
 
-class DstEventHeader : public FairEventHeader {
+class DstEventHeader : public FairEventHeader
+{
    private:
     /** Event Header branch name **/
-    TString fHeaderName;  //!
+    TString fHeaderName;
 
     /** Event Identifier **/
     UInt_t fEventId;
@@ -26,8 +27,8 @@ class DstEventHeader : public FairEventHeader {
     Double_t fZ2out;
     Double_t fADCin;
     Double_t fADCout;
-    Double_t fZ1, fZ2, fZ3, fZ4;          //for charge calculation from single scintilator, currently not used
-    Double_t fADC1, fADC2, fADC3, fADC4;  //for 2D charge cuts
+    Double_t fZ1, fZ2, fZ3, fZ4;          // for charge calculation from single scintilator, currently not used
+    Double_t fADC1, fADC2, fADC3, fADC4;  // for 2D charge cuts
     Short_t fZin;
 
    public:
@@ -110,7 +111,7 @@ class DstEventHeader : public FairEventHeader {
     void SetZin(Short_t Zin) { fZin = Zin; }
 
     void CopyFrom(DstEventHeader * hdr);
-    ClassDef(DstEventHeader, 2)
+    ClassDef(DstEventHeader, 2);
 };
 
 #endif /* DstEventHeader_H */

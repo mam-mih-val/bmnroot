@@ -7,8 +7,8 @@
 #include <TH1.h>
 
 #include <BmnDataTriggerInfo.h>
-#include <UniDbDetectorParameter.h>
-#include <UniDbRun.h>
+#include <UniDetectorParameter.h>
+#include <UniRun.h>
 #include <BmnInnerTrackerGeometryDraw.h>
 
 #include <FairRunAna.h>

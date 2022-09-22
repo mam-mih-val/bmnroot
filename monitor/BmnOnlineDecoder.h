@@ -86,6 +86,7 @@ public:
         fDAQAddr = addr;
     }
     static void StripView(Int_t periodID, Int_t runID, BmnSetup fSetup = kBMNSETUP);
+    static void StripView(TString OrigFileName, TString TestFileName,Int_t periodID = 7, Int_t runID = 0, BmnSetup fSetup = kBMNSETUP);
 private:
     BmnStatus InitDecoder(TString);
     BmnStatus InitDecoder(Int_t runID);

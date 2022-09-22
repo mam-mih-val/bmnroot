@@ -71,39 +71,39 @@ class SrcInnerTrackingRun7 : public FairTask {
     void SetHitsUsing(BmnTrack* tr, Bool_t use);
     BmnStatus DrawHits();
 
-    BmnGemStripStationSet* fGemDetector;
+    BmnGemStripStationSet* fGemDetector;     //!
     TString fGemHitsBranchName;
     TString fGlobTracksBranchName;
     TString fGemTracksBranchName;
 
-    TClonesArray* fGlobTracksArray;
-    TClonesArray* fGemTracksArray;
-    TClonesArray* fGemHitsArray;
-    TClonesArray* fHitsArray;
+    TClonesArray* fGlobTracksArray;          //!
+    TClonesArray* fGemTracksArray;           //!
+    TClonesArray* fGemHitsArray;             //!
+    TClonesArray* fHitsArray;                //!
 
-    TClonesArray* fMCTracksArray;
-    TClonesArray* fGemPointsArray;
+    TClonesArray* fMCTracksArray;            //!
+    TClonesArray* fGemPointsArray;           //!
 
-    BmnKalmanFilter* fKalman;
+    BmnKalmanFilter* fKalman;                //!
 
     Bool_t fIsTarget;  // run with target or not
 
     UInt_t fEventNo;
     Short_t fNStations;
 
-    FairField* fField;
+    FairField* fField;                       //!
 
     Double_t fChiSquareCut;
-    Double_t* fHitXCutMin;
-    Double_t* fHitXCutMax;
-    Double_t* fHitYCutMin;
-    Double_t* fHitYCutMax;
+    Double_t* fHitXCutMin;                   //!
+    Double_t* fHitXCutMax;                   //!
+    Double_t* fHitYCutMin;                   //!
+    Double_t* fHitYCutMax;                   //!
 
     Int_t fNHitsCut;
     Double_t fDistCut;
 
     TString fSteerFile;
-    BmnSteering* fSteering;
+    BmnSteering* fSteering;                  //!
 
     ClassDef(SrcInnerTrackingRun7, 1);
 };

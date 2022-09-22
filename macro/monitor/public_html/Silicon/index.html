@@ -29,16 +29,17 @@ and open the template in the editor.
         </style>
         <link rel="stylesheet" type="text/css" href="../css/tabs.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="../css/menu.css" media="screen" />
-        <!--<script type="text/javascript" src="../root.app/jsrootsys/scripts/JSRootCore.js?2d"></script>-->
+        <script type="text/javascript" src="../root.app/jsrootsys/scripts/JSRoot.core.js"></script>
 <!--<script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRoot.core.js"></script>-->
-        <script type="text/javascript" src="../scripts/jsr/scripts/JSRoot.core.js"></script>
+        <!--<script type="text/javascript" src="../scripts/jsr/scripts/JSRoot.core.js"></script>-->
         <script type="text/javascript" src="../scripts/BMTools.js"></script>
         <script>
             var loco = window.location;
-            var path0 = /*loco.protocol + "//" + loco.hostname + */"../root.app/";
+//            var path0 = /*loco.protocol + "//" + loco.hostname + */"../root.app/";
+            var path0 = "localhost:8080/";
             var path = path0 + "Silicon/";
-            var runPath = "../root.app/CurRun/root.json";
-            var refPath = "../root.app/refTable/root.json";
+            var runPath = "localhost:8080/CurRun/root.json";
+            var refPath = "localhost:8080/refTable/root.json";
             function ResetHist() {
                 var filename = path + "Reset/cmd.json";
                 var xhr = new XMLHttpRequest();
@@ -57,7 +58,7 @@ and open the template in the editor.
                 setTimeout(drawInfo, 5000);
                 JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
                     var info = JSON.parse(obj);
-                    if (info.arr.length > 0){
+                    if (info.arr.length > 0) {
                         var runInfo = info.arr[0];
                         var runID = runInfo.i_run_number;
                         var storedRunId = sessionStorage.getItem('runID');
@@ -96,6 +97,15 @@ and open the template in the editor.
                 var xhr = new XMLHttpRequest();
                 xhr.open("POST", cmd, true);
                 xhr.withCredentials = true;
+                xhr.onreadystatechange = function () {
+//                    if (xhr.readyState === 4) {
+                        var response = JSON.parse(xmlhttp.responseText);
+                            alert(
+                                    "ready state: " +xhr.readyState+
+                                    "status : " + xhr.status +
+                                    "response: " + response);
+//                    }
+                }
                 xhr.send();
                 JSROOT.cleanup("SiliconTableC");
             }
@@ -103,7 +113,7 @@ and open the template in the editor.
     </head>
     <body onload="createTable()">
         <ul >
-            <li><a href="../index.html"> <h3>Welcome to the BM@N Experiment</h3></a></li>
+            <li><a href="../index.html"> <h3>BM@N Experiment</h3></a></li>
             <li><a href="../trigger_detectors/index.html"><h3>Triggers</h3></a></li>
             <li><a href="../Silicon/index.html"><h3>Silicon</h3></a></li>
             <li><a href="../gem_detectors/index.html"><h3>GEM</h3></a></li>
@@ -116,9 +126,6 @@ and open the template in the editor.
             <li><a href="../ECAL/index.html"><h3>ECAL</h3></a></li>
             <li><a href="../ScWall/index.html"><h3>ScWall</h3></a></li>
             <!--<li><a href="../FhCal/index.html"><h3>FhCal</h3></a></li>-->
-            <li><a href="../SRC/index.html"><h3>SRC Triggers</h3></a></li>
-            <li><a href="../LAND/index.html"><h3>LAND</h3></a></li>
-            <li><a href="../TofCal/index.html"><h3>TofCal</h3></a></li>
         </ul>
         <div id="total_counter" align="center">
             <h1>BM@N Silicons</h1>  
@@ -131,9 +138,9 @@ and open the template in the editor.
         <table>
             <tr>
             <tb>
-<!--                <button onclick="ResetHist()">
-                    <h1 style="color:red;">Reset</h1>
-                </button>-->
+                <!--                <button onclick="ResetHist()">
+                                    <h1 style="color:red;">Reset</h1>
+                                </button>-->
             </tb>
         </tr>
         <tr>
@@ -146,9 +153,9 @@ and open the template in the editor.
                 Select Reference Run
             </button>
         </tb>
-            <tb>
-                <select class="styleRefTable" id="refTable" onchange="makeSelection()">
-            </tb>
+        <tb>
+            <select class="styleRefTable" id="refTable" onchange="makeSelection()">
+        </tb>
 
     </tr>
 </table>

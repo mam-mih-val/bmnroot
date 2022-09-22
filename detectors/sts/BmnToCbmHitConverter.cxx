@@ -19,7 +19,7 @@ BmnToCbmHitConverter::BmnToCbmHitConverter()
     fBmnSilHitsBranchName("BmnSiliconHit"),
     fCbmHitsBranchName("StsHit"),
     fGemConfigFile("GemRun8.xml"),
-    fSilConfigFile("SiliconRun8_3stations.xml") {}
+    fSilConfigFile("SiliconRun8_4stations.xml") {}
 // -------------------------------------------------------------------------
 
 
@@ -39,7 +39,7 @@ BmnToCbmHitConverter::BmnToCbmHitConverter(Int_t iVerbose)
     fBmnSilHitsBranchName("BmnSiliconHit"),
     fCbmHitsBranchName("StsHit"),
     fGemConfigFile("GemRun8.xml"),
-    fSilConfigFile("SiliconRun8_3stations.xml") {}
+    fSilConfigFile("SiliconRun8_4stations.xml") {}
 // -------------------------------------------------------------------------
 
 // -----   Destructor   ----------------------------------------------------
@@ -61,6 +61,8 @@ void BmnToCbmHitConverter::Exec(Option_t* opt) {
     for (Int_t iHit = 0; iHit < fBmnGemHitsArray->GetEntriesFast(); ++iHit) {
         BmnGemStripHit* bmnHit = (BmnGemStripHit*)fBmnGemHitsArray->At(iHit);
 
+        //if (bmnHit->GetRefIndex() == -1) continue;
+
         //Section for hit filtration by signal asymmetry
         // StripCluster* uc = (StripCluster*)fBmnGemUpperClusters->At(bmnHit->GetUpperClusterIndex());
         // StripCluster* lc = (StripCluster*)fBmnGemLowerClusters->At(bmnHit->GetLowerClusterIndex());
@@ -76,8 +78,8 @@ void BmnToCbmHitConverter::Exec(Option_t* opt) {
         if (fUseFixedErrors) {
             //dpos[0] = 0.08/TMath::Sqrt(12); //AZ
             //dpos[1] = 0.1234; //AZ
-            dpos[0] = 0.015; //AZ - as in cbmroot
-            dpos[1] = 0.058; //AZ - as in cbmroot
+            dpos[0] = fDXgem; //0.015; //AZ - as in cbmroot
+            dpos[1] = fDYgem; //0.058; //AZ - as in cbmroot
         } else {
             bmnHit->PositionError(dpos);
         }
@@ -118,6 +120,7 @@ void BmnToCbmHitConverter::Exec(Option_t* opt) {
 
     for (Int_t iHit = 0; iHit < fBmnSilHitsArray->GetEntriesFast(); ++iHit) {
         BmnSiliconHit* bmnHit = (BmnSiliconHit*)fBmnSilHitsArray->At(iHit);
+        //if (bmnHit->GetRefIndex() == -1) continue;
         //Section for hit filtration by signal asymmetry
         // StripCluster* uc = (StripCluster*)fBmnSilUpperClusters->At(bmnHit->GetUpperClusterIndex());
         // StripCluster* lc = (StripCluster*)fBmnSilLowerClusters->At(bmnHit->GetLowerClusterIndex());
@@ -132,9 +135,9 @@ void BmnToCbmHitConverter::Exec(Option_t* opt) {
         pos[2] -= 0.0150; //AZ - shift to the entrance
         TVector3 dpos;
         if (fUseFixedErrors) {
-            dpos[0] = 0.01 / TMath::Sqrt(12); //AZ
+            dpos[0] = fDXsil; //0.01 / TMath::Sqrt(12); //AZ
             //dpos[1] = 0.1234; //AZ
-            dpos[1] = 0.021; //AZ - as in cbmroot
+            dpos[1] = fDYsil; //0.021; //AZ - as in cbmroot
         } else {
             bmnHit->PositionError(dpos);
         }
@@ -196,9 +199,17 @@ InitStatus BmnToCbmHitConverter::Init() {
 }
 // -------------------------------------------------------------------------
 
+void BmnToCbmHitConverter::SetFixedErrors(Float_t dXgem, Float_t dYgem, Float_t dXsil, Float_t dYsil) {
+    fUseFixedErrors = kTRUE;
+    fDXgem = dXgem;
+    fDYgem = dYgem;
+    fDXsil = dXsil;
+    fDYsil = dYsil;
+}
 
 void BmnToCbmHitConverter::Finish() {
     printf("Work time of BmnToCbmHitConverter: %4.2f sec.\n", workTime);
 }
+
 
 ClassImp(BmnToCbmHitConverter)

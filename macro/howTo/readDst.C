@@ -46,7 +46,7 @@ int readDst(TString fileName = "") {
     out->SetBranchAddress("BmnGlobalTrack", &globTracks);
     if (globTracks == nullptr)
     {
-        LOG(ERROR)<<"'BmnGlobalTrack' branch was not found, please, check the structure of the DST file";
+        LOG(error)<<"'BmnGlobalTrack' branch was not found, please, check the structure of the DST file";
         return -2;
     }
 
@@ -54,7 +54,7 @@ int readDst(TString fileName = "") {
     out->SetBranchAddress("BmnGemTrack", &gemTrack);
     if (gemTrack == nullptr)
     {
-        LOG(ERROR)<<"'BmnGemTrack' branch was not found, please, check the structure of the DST file";
+        LOG(error)<<"'BmnGemTrack' branch was not found, please, check the structure of the DST file";
         return -3;
     }
 
@@ -62,7 +62,7 @@ int readDst(TString fileName = "") {
     out->SetBranchAddress("BmnGemStripHit", &gemHits);
     if (gemHits == nullptr)
     {
-        LOG(ERROR)<<"'BmnGemStripHit' branch was not found, please, check the structure of the DST file";
+        LOG(error)<<"'BmnGemStripHit' branch was not found, please, check the structure of the DST file";
         return -4;
     }
 
@@ -70,7 +70,7 @@ int readDst(TString fileName = "") {
     out->SetBranchAddress("BmnSiliconTrack", &silTrack);
     if (silTrack == nullptr)
     {
-        LOG(ERROR)<<"'BmnSiliconTrack' branch was not found, please, check the structure of the DST file";
+        LOG(error)<<"'BmnSiliconTrack' branch was not found, please, check the structure of the DST file";
         return -5;
     }
 
@@ -78,7 +78,7 @@ int readDst(TString fileName = "") {
     out->SetBranchAddress("BmnSiliconHit", &silHits);
     if (silHits == nullptr)
     {
-        LOG(ERROR)<<"'BmnSiliconHit' branch was not found, please, check the structure of the DST file";
+        LOG(error)<<"'BmnSiliconHit' branch was not found, please, check the structure of the DST file";
         return -6;
     }
 
@@ -86,7 +86,7 @@ int readDst(TString fileName = "") {
     out->SetBranchAddress("BmnTof400Hit", &tof400Hits);
     if (tof400Hits == nullptr)
     {
-        LOG(ERROR)<<"'BmnTof400Hit' branch was not found, please, check the structure of the DST file";
+        LOG(error)<<"'BmnTof400Hit' branch was not found, please, check the structure of the DST file";
         return -7;
     }
 
@@ -94,7 +94,7 @@ int readDst(TString fileName = "") {
     out->SetBranchAddress("BmnTof700Hit", &tof700Hits);
     if (tof700Hits == nullptr)
     {
-        LOG(ERROR)<<"'BmnTof700Hit' branch was not found, please, check the structure of the DST file";
+        LOG(error)<<"'BmnTof700Hit' branch was not found, please, check the structure of the DST file";
         return -8;
     }
 
@@ -102,7 +102,7 @@ int readDst(TString fileName = "") {
     out->SetBranchAddress("BmnCSCHit", &cscHits);
     if (cscHits == nullptr)
     {
-        LOG(ERROR)<<"'BmnCSCHit' branch was not found, please, check the structure of the DST file";
+        LOG(error)<<"'BmnCSCHit' branch was not found, please, check the structure of the DST file";
         return -9;
     }
 
@@ -110,7 +110,7 @@ int readDst(TString fileName = "") {
     out->SetBranchAddress("BmnDchTrack", &dchTracks);
     if (dchTracks == nullptr)
     {
-        LOG(ERROR)<<"'BmnDchTrack' branch was not found, please, check the structure of the DST file";
+        LOG(error)<<"'BmnDchTrack' branch was not found, please, check the structure of the DST file";
         return -10;
     }
 
@@ -118,7 +118,7 @@ int readDst(TString fileName = "") {
     out->SetBranchAddress("BmnVertex", &vertices);
     if (vertices == nullptr)
     {
-        LOG(ERROR)<<"'BmnVertex' branch was not found, please, check the structure of the DST file";
+        LOG(error)<<"'BmnVertex' branch was not found, please, check the structure of the DST file";
         return -11;
     }
 

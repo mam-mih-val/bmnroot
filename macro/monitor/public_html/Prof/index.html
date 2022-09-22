@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>Profilometer</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style type="text/css">
+            inframe_hist{
+                draggable: true;
+                allowfullscreen: allowfullscreen;
+                align-content: center;
+                width: 100vw; 
+                height: 56.25vw;
+                /*width: max-content;*/
+
+            }
+            hist_table{
+                align-self: stretch;
+                align-content: center;
+                width: 100%;
+                height: 100%;
+
+            }
+        </style>
+        <link rel="stylesheet" type="text/css" href="../css/tabs.css" media="screen" />
+        <link rel="stylesheet" type="text/css" href="../css/menu.css" media="screen" />
+        <script type="text/javascript" src="../root.app/jsrootsys/scripts/JSRoot.core.js"></script>
+<!--<script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRoot.core.js"></script>-->
+        <!--<script type="text/javascript" src="../scripts/jsr/scripts/JSRoot.core.js"></script>-->
+        <script type="text/javascript" src="../scripts/BMTools.js"></script>
+        <script>
+            var loco = window.location;
+            var path0 = /*loco.protocol + "//" + loco.hostname + */"../root.app/";
+            var path = path0 + "Silicon/";
+            var runPath = "../root.app/CurRun/root.json";
+            var refPath = "../root.app/refTable/root.json";
+            function ResetHist() {
+                var filename = path + "Reset/cmd.json";
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", filename, true);
+                xhr.withCredentials = true;
+                xhr.send();
+            }
+//            window.onload = setInterval("reloadIFrame();", 2000);
+            body.onload = createTable();
+            function createTable() {
+                sessionStorage.clear();
+                setRunInfo(runPath);
+                drawInfo();
+            }
+            function drawInfo() {
+                setTimeout(drawInfo, 5000);
+                JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
+                    var info = JSON.parse(obj);
+                    if (info.arr.length > 0){
+                        var runInfo = info.arr[0];
+                        var runID = runInfo.i_run_number;
+                        var storedRunId = sessionStorage.getItem('runID');
+                        if ((storedRunId === null) || (storedRunId == runID))
+                            return;
+                        sessionStorage.setItem('runID', runID);
+                        cleanCanvases();
+                    }
+                }).send(null);
+                redrawCanvases();
+                FillRefTable(path0 + "refTable" + "/root.json", "refTable");
+                //var refPath = path0 + "refList" + "/root.json";
+                //FillRefSelector(refPath, "refSelector");
+            }
+            function redrawCanvases() {
+                var filename = path0 + "infoCanvas" + "/root.json";
+
+                JSROOT.NewHttpRequest(filename, 'object', function (obj) {
+                    JSROOT.redraw("infoC", obj, "");
+                }).send(null);
+                filename = path + "SiliconCanvas" + "/root.json.gz?compact=3";
+                JSROOT.NewHttpRequest(filename, 'object', function (obj) {
+                    JSROOT.redraw("SiliconTableC", obj, "");
+                }).send(null);
+            }
+            function cleanCanvases() {
+                JSROOT.cleanup("infoC");
+                JSROOT.cleanup("SiliconTableC");
+                var sel = document.getElementById("refTable");
+                sel.innerHTML = "";
+            }
+            function SetRefRun() {
+                var runName = document.getElementById("refInput").value;
+                var cmd = path + "SetRefRun/cmd.json";
+                cmd = cmd + "?" + "arg1=" + runName;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", cmd, true);
+                xhr.withCredentials = true;
+                xhr.send();
+                JSROOT.cleanup("SiliconTableC");
+            }
+        </script>
+    </head>
+    <body onload="createTable()">
+        <ul >
+            <li><a href="../index.html"> <h3>BM@N Experiment</h3></a></li>
+            <li><a href="../trigger_detectors/index.html"><h3>Triggers</h3></a></li>
+            <li><a href="../Silicon/index.html"><h3>Silicon</h3></a></li>
+            <li><a href="../gem_detectors/index.html"><h3>GEM</h3></a></li>
+            <li><a href="../csc/index.html"><h3>CSC</h3></a></li>
+            <li><a href="../ToF400_detector/index.html"><h3>ToF400</h3></a></li>
+            <li><a href="../ToF700_detector/index.html"><h3>ToF700</h3></a></li>
+            <li><a href="../DCH_detectors/index.html"><h3>DCH</h3></a></li>
+            <li><a href="../MWPC_detectors/index.html"><h3>MWPC</h3></a></li>
+            <li><a href="../ZDC/index.html"><h3>ZDC</h3></a></li>
+            <li><a href="../ECAL/index.html"><h3>ECAL</h3></a></li>
+            <li><a href="../ScWall/index.html"><h3>ScWall</h3></a></li>
+            <!--<li><a href="../FhCal/index.html"><h3>FhCal</h3></a></li>-->
+            <li><a href="../SRC/index.html"><h3>SRC Triggers</h3></a></li>
+            <li><a href="../LAND/index.html"><h3>LAND</h3></a></li>
+            <li><a href="../TofCal/index.html"><h3>TofCal</h3></a></li>
+        </ul>
+        <div id="total_counter" align="center">
+            <h1>BM@N Silicons</h1>  
+            <!--<iframe id="infoCan" ></iframe>--> 
+        </div>
+        <div align="center">
+            <div id="infoC" style="width: 90vw;height: 15vw;"> </div>
+        </div>
+
+        <table>
+            <tr>
+            <tb>
+<!--                <button onclick="ResetHist()">
+                    <h1 style="color:red;">Reset</h1>
+                </button>-->
+            </tb>
+        </tr>
+        <tr>
+        <tb>
+            <input type="text" name="refInput" id="refInput" list="refSelector">
+            <datalist id="refSelector" autocomplete="on"></datalist>
+        </tb>
+        <tb>
+            <button onclick="SetRefRun()"> 
+                Select Reference Run
+            </button>
+        </tb>
+            <tb>
+                <select class="styleRefTable" id="refTable" onchange="makeSelection()">
+            </tb>
+
+    </tr>
+</table>
+
+<div align="center">
+    <div id="SiliconTableC" style="width: 95vw;height: 160vw;"> </div>
+</div>
+<!--<div align="center">
+    <iframe style="width: 98vw;height: 240vw;" src="../root.app/Silicon/SiliconCanvas/draw.htm?monitoring=10000"> </iframe>>
+</div>-->
+<div id="Silicon_div" >
+</div>
+
+</table>
+</body>
+</html>

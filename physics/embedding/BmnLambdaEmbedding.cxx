@@ -1,6 +1,6 @@
 #include "BmnLambdaEmbedding.h"
 #include "CbmStsPoint.h"
-#include "UniDbRun.h"
+#include "UniRun.h"
 
 BmnLambdaEmbedding::BmnLambdaEmbedding() :
 fSim(nullptr),
@@ -191,8 +191,8 @@ void BmnLambdaEmbedding::Embedding() {
 
         fReco->GetEntry();
 
-        Int_t idx = (UniDbRun::GetRun(7, fHeader->GetRunId())->GetBeamParticle() == "Ar") ? 1 :
-                (UniDbRun::GetRun(7, fHeader->GetRunId())->GetBeamParticle() == "Kr") ? 0 : -1;
+        Int_t idx = (UniRun::GetRun(7, fHeader->GetRunId())->GetBeamParticle() == "Ar") ? 1 :
+                (UniRun::GetRun(7, fHeader->GetRunId())->GetBeamParticle() == "Kr") ? 0 : -1;
 
         TString command = TString::Format("xrdcp %s/%s/%s/%s/%s/bmn_run%d_digi.root %s",
                 eos_host.Data(), digiDir.Data(), run.Data(), release.Data(), dirList[idx].Data(), fHeader->GetRunId(), gSystem->GetFromPipe("pwd").Data());
@@ -251,7 +251,7 @@ void BmnLambdaEmbedding::Embedding() {
     if (doSimulateLambdaThroughSetup) {
         if (fRunId != -1) {
             Double_t map_current = 55.87;
-            UniDbRun* runInfo = UniDbRun::GetRun(7, fRunId);
+            UniRun* runInfo = UniRun::GetRun(7, fRunId);
             if (runInfo)
                 fFieldScale = *runInfo->GetFieldVoltage() / map_current;
         }

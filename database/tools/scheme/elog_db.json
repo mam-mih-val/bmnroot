@@ -1,0 +1,8 @@
+{
+    "settings": {
+        "connectionName"    : "ElogConnection",
+        "classPrefix"       : "Elog",
+        "classDirectory"    : "$VMCWORKDIR/database/elog_db/",
+        "onlyUpdateClasses" : true
+    }
+}

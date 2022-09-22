@@ -29,11 +29,11 @@ public:
 class DeadZoneOfStripLayer {
 private:
     Int_t NPoints;
-    Double_t *XPoints;
-    Double_t *YPoints;
+    Double_t *XPoints;  //[NPoints]
+    Double_t *YPoints;  //[NPoints]
 
 public:
-    DeadZoneOfStripLayer() : NPoints(0), XPoints(0), YPoints(0) { }
+    DeadZoneOfStripLayer() : NPoints(0), XPoints(nullptr), YPoints(nullptr) { }
 
     DeadZoneOfStripLayer(Int_t n_points, Double_t *xpoints, Double_t *ypoints)
         : NPoints(0), XPoints(0), YPoints(0) {
@@ -59,8 +59,8 @@ public:
     }
 
     DeadZoneOfStripLayer& operator=(const DeadZoneOfStripLayer& obj) {
-        if(XPoints) delete [] XPoints;
-        if(YPoints) delete [] YPoints;
+        if(XPoints != nullptr) delete [] XPoints;
+        if(YPoints != nullptr) delete [] YPoints;
         NPoints = obj.NPoints;
         XPoints = new Double_t[NPoints];
         YPoints = new Double_t[NPoints];
@@ -72,20 +72,20 @@ public:
     }
 
     ~DeadZoneOfStripLayer() {
-        if(XPoints) delete [] XPoints;
-        if(YPoints) delete [] YPoints;
+        if(XPoints != nullptr) delete [] XPoints;
+        if(YPoints != nullptr) delete [] YPoints;
     }
 
     //Set a new dead zone, the previous zone will be deleted
     Bool_t SetDeadZone(Int_t n_points, Double_t *xpoints, Double_t *ypoints) {
         NPoints = 0;
-        if(XPoints) {
+        if(XPoints != nullptr) {
             delete [] XPoints;
-            XPoints = 0;
+            XPoints = nullptr;
         }
-        if(YPoints) {
+        if(YPoints != nullptr) {
             delete [] YPoints;
-            YPoints = 0;
+            YPoints = nullptr;
         }
         if(n_points > 2) {
             NPoints = n_points;

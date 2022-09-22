@@ -22,7 +22,7 @@ void eventdisplay(const char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root",
     Int_t run_period = 7, run_number = -1;
     Bool_t isField = (strRecoFile.Contains("noField")) ? kFALSE : kTRUE;
     Bool_t isTarget = kTRUE;
-    Bool_t isExp = !BmnFunctionSet::isSimulationFile(strRecoFile);
+    Bool_t isExp = (BmnFunctionSet::isSimulationFile(strRecoFile) == 0);
     Double_t fieldScale = 0.;
 
     FairSource* fFileSource = NULL;
@@ -58,7 +58,7 @@ void eventdisplay(const char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root",
         // get geometry for run
         gRandom->SetSeed(0);
         TString geoFileName = Form("current_geo_file_%d.root", UInt_t(gRandom->Integer(UINT32_MAX)));
-        Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
+        Int_t res_code = UniRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
         if (res_code != 0)
         {
             cout << "ERROR: could not read geometry file from the database" << endl;
@@ -84,7 +84,7 @@ void eventdisplay(const char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root",
         }
 
         // set magnet field with factor corresponding to the given run
-        UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
+        UniRun* pCurrentRun = UniRun::GetRun(run_period, run_number);
         if (pCurrentRun == 0)
             exit(-6);
         Double_t* field_voltage = pCurrentRun->GetFieldVoltage();

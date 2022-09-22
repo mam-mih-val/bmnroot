@@ -1,10 +1,16 @@
-#ifdef __CINT__
+#ifdef __CLING__
 
 #pragma link off all globals;
 #pragma link off all classes;
 #pragma link off all functions;
 
+#pragma link C++ class BmnHist++;
+#pragma link C++ class PadInfo++;
+#pragma link C++ class BmnPadBranch++;
+#pragma link C++ class BmnPadGenerator++;
 #pragma link C++ class BmnRunInfo++;
+#pragma link C++ class BmnQaBase+;
+#pragma link C++ class BmnCustomQa+;
 #pragma link C++ class BmnTrackingQa+;
 #pragma link C++ class BmnTrackingQaExp+;
 #pragma link C++ class BmnClusteringQa+;

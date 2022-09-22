@@ -16,7 +16,6 @@ BmnVertexFinder::BmnVertexFinder(Int_t period) {
     fRobustRefit = kTRUE;
     fGlobalTracksBranchName = "BmnGlobalTrack";
     fVertexBranchName = "BmnVertex";
-    fKalman = new BmnKalmanFilter();
 }
 
 BmnVertexFinder::~BmnVertexFinder() {
@@ -25,6 +24,8 @@ BmnVertexFinder::~BmnVertexFinder() {
 
 InitStatus BmnVertexFinder::Init() {
     if (fVerbose > 1) cout << "=========================== Vertex finder init started ====================" << endl;
+
+    fKalman = new BmnKalmanFilter();
 
     //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();

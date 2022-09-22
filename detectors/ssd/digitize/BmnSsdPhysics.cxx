@@ -43,7 +43,7 @@ BmnSsdPhysics::BmnSsdPhysics()
 
 {
 	// --- Read the energy loss data tables
-	LOG(INFO) << "Instantiating SSD Physics... ";
+	LOG(info) << "Instantiating SSD Physics... ";
 	ReadDataTablesStoppingPower();
 	ReadDataTablesLandauWidth();
 
@@ -70,13 +70,13 @@ Double_t BmnSsdPhysics::DiffusionWidth(Double_t z, Double_t d,
 
 	// --- Check parameters
 	if ( z < 0. || z > d ) {
-		LOG(ERROR) << "SsdPhysics: z coordinate " << z
+		LOG(error) << "SsdPhysics: z coordinate " << z
 				       << " not inside sensor (d = " << d << ")"
 				      ;
 		return -1.;
 	}
 	if ( temperature < 0. ) {
-		LOG(ERROR) << "SsdPhysics: illegal temperature value "
+		LOG(error) << "SsdPhysics: illegal temperature value "
 				       << temperature;
 		return -1.;
 	}
@@ -97,7 +97,7 @@ Double_t BmnSsdPhysics::DiffusionWidth(Double_t z, Double_t d,
 				* log( 1. - 2. * vFd * z / d / ( vBias + vFd ) );
 	}
 	else {
-		LOG(ERROR) << "SsdPhysics: Illegal charge type " << chargeType
+		LOG(error) << "SsdPhysics: Illegal charge type " << chargeType
 				      ;
 		return -1.;
 	}
@@ -274,12 +274,12 @@ void BmnSsdPhysics::ReadDataTablesLandauWidth() {
 			fLandauWidth[q] = err;
 		}
 		inFile.close();
-		LOG(INFO) << "SsdPhysics: " << setw(5) << right
+		LOG(info) << "SsdPhysics: " << setw(5) << right
 				      << fLandauWidth.size() << " values read from "
 				      << errFileName;
 	}
 	else
-		LOG(FATAL) << "SsdPhysics: Could not read from " << errFileName
+		LOG(fatal) << "SsdPhysics: Could not read from " << errFileName
 		          ;
 
 }
@@ -316,12 +316,12 @@ void BmnSsdPhysics::ReadDataTablesStoppingPower() {
 			fStoppingElectron[e] = dedx;
 		}
 		inFile.close();
-		LOG(INFO) << "SsdPhysics: " << setw(5) << right
+		LOG(info) << "SsdPhysics: " << setw(5) << right
 				      << fStoppingElectron.size() << " values read from "
 				      << eFileName;
 	}
 	else
-		LOG(FATAL) << "SsdPhysics: Could not read from " << eFileName
+		LOG(fatal) << "SsdPhysics: Could not read from " << eFileName
 		          ;
 
 	// --- Read proton stopping power
@@ -336,12 +336,12 @@ void BmnSsdPhysics::ReadDataTablesStoppingPower() {
 			fStoppingProton[e] = dedx;
 		}
 		inFile.close();
-		LOG(INFO) << "SsdPhysics: " << setw(5) << right
+		LOG(info) << "SsdPhysics: " << setw(5) << right
 				      << fStoppingProton.size() << " values read from "
 				      << pFileName;
 	}
 	else
-		LOG(FATAL) << "SsdPhysics: Could not read from " << pFileName
+		LOG(fatal) << "SsdPhysics: Could not read from " << pFileName
 		          ;
 
 }
@@ -376,9 +376,9 @@ void BmnSsdPhysics::SetUrbanParameters(Double_t z) {
 	fUrbanR = 0.4;
 
 	// --- Screen output
-	LOG(INFO) << "SsdPhysics: Urban parameters for z = " << z << " :"
+	LOG(info) << "SsdPhysics: Urban parameters for z = " << z << " :"
 			     ;
-	LOG(INFO) << "I = " << fUrbanI*1.e9 << " eV, Emax = " << fUrbanEmax*1.e9
+	LOG(info) << "I = " << fUrbanI*1.e9 << " eV, Emax = " << fUrbanEmax*1.e9
 			      << " eV, E1 = " << fUrbanE1*1.e9 << " eV, E2 = "
 			      << fUrbanE2*1.e9 << " eV, f1 = " << fUrbanF1 << ", f2 = "
 			      << fUrbanF2 << ", r = " << fUrbanR;

@@ -58,7 +58,7 @@ BmnVertex::BmnVertex(const char* name, const char* title,
     fCovMatrix()
 {
   if ( (covMat.GetNrows() != 3) && (covMat.GetNcols() != 3) ) {
-    LOG(ERROR) << "Wrong dimension of passed covariance matrix. Clear the covariance matrix.";
+    LOG(error) << "Wrong dimension of passed covariance matrix. Clear the covariance matrix.";
     for(Int_t i=0; i<6; i++) fCovMatrix[i] = 0;
   } else {
     Int_t index = 0;
@@ -82,7 +82,7 @@ void BmnVertex::Print(Option_t*) const {
   Double_t chi2ndf;
   if (fNDF) chi2ndf = fChi2 / Double_t(fNDF);
   else chi2ndf = 0.;
-  LOG(INFO) << "Vertex coord. (" << fX << "," << fY << "," << fZ << ") cm, "
+  LOG(info) << "Vertex coord. (" << fX << "," << fY << "," << fZ << ") cm, "
             << "chi2/ndf = " << chi2ndf << ", " << fNTracks
             << " tracks used";
 }
@@ -129,7 +129,7 @@ void BmnVertex::SetVertex(Double_t x, Double_t y, Double_t z, Double_t chi2,
   fNDF     = ndf;
   fNTracks = nTracks;
   if ( (covMat.GetNrows() != 3) && (covMat.GetNcols() != 3) ) {
-    LOG(ERROR) << "Wrong dimension of passed covariance matrix. Clear the covariance matrix.";
+    LOG(error) << "Wrong dimension of passed covariance matrix. Clear the covariance matrix.";
     for(Int_t i=0; i<6; i++) fCovMatrix[i] = 0;
   } else {
     Int_t index = 0;

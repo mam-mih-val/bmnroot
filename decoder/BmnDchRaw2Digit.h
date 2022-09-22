@@ -12,7 +12,7 @@
 #include <cstdlib>
 #include <bitset>
 #include <map>
-#include <UniDbDetectorParameter.h>
+#include <UniDetectorParameter.h>
 
 #define DCH_TDC_TYPE (0x10) //TDC64V
 

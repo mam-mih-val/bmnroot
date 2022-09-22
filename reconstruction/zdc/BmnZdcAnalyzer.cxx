@@ -12,8 +12,15 @@
 using namespace std;
 static Float_t workTime = 0.0;
 
-BmnZdcAnalyzer::BmnZdcAnalyzer() {
-}
+BmnZdcAnalyzer::BmnZdcAnalyzer() :
+  FairTask("BmnZdcAnalyzer"),
+
+  fArrayOfZdcDigits(nullptr),
+  fBmnZDCEventData(nullptr),
+
+  fModuleScale(nullptr),
+  fModuleThreshold(nullptr)
+{}
 
 BmnZdcAnalyzer::~BmnZdcAnalyzer() {
 }
@@ -28,7 +35,7 @@ InitStatus BmnZdcAnalyzer::Init()
         fArrayOfZdcDigits = (TClonesArray*) ioman->GetObject("ZDC");
         if (fArrayOfZdcDigits == nullptr)
         {
-            LOG(ERROR)<<"BmnZdcAnalyzer::Init() branch 'ZdcDigit' or old 'ZDC' not found! Task will be deactivated";
+            LOG(error)<<"BmnZdcAnalyzer::Init() branch 'ZdcDigit' or old 'ZDC' not found! Task will be deactivated";
             SetActive(kFALSE);
             return kERROR;
         }

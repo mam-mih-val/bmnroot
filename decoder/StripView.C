@@ -23,7 +23,7 @@ R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include <Fit/FitResult.h>
 #include <FairTrackParam.h>
 #include <Rtypes.h>
-#include <root/TVirtualPad.h>
+#include <TVirtualPad.h>
 #include <BmnEventHeader.h>
 #include "BmnHist.h"
 #include "BmnSiliconDigit.h"

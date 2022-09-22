@@ -56,7 +56,7 @@ InitStatus BmnCaloTowerDraw::Init()
     //----------------------------------------
     if (fCaloName == "unknown")
     {
-        LOG(ERROR) << "BmnCaloTowerDraw::Init() calorimeter type not defined! Task will be deactivated!";
+        LOG(error) << "BmnCaloTowerDraw::Init() calorimeter type not defined! Task will be deactivated!";
         SetActive(kFALSE);
         return kERROR;
     }
@@ -64,7 +64,7 @@ InitStatus BmnCaloTowerDraw::Init()
     ifstream file(caloDataFile);
     if (!file.is_open())
     {
-        LOG(ERROR) << "BmnCaloTowerDraw::Init() | Type: " << fCaloName << " | file " << caloDataFile << " not found! Task will be deactivated!";
+        LOG(error) << "BmnCaloTowerDraw::Init() | Type: " << fCaloName << " | file " << caloDataFile << " not found! Task will be deactivated!";
         SetActive(kFALSE);
         file.close();
         return kERROR;
@@ -80,7 +80,7 @@ InitStatus BmnCaloTowerDraw::Init()
     }
     catch(const json::type_error& e)
     {
-        LOG(ERROR) << "BmnCaloTowerDraw::Init() | Type: " << fCaloName << " | file " << caloDataFile << " doesn't contain the required data or the calorimeter type is incorrectly set! Task will be deactivated!";
+        LOG(error) << "BmnCaloTowerDraw::Init() | Type: " << fCaloName << " | file " << caloDataFile << " doesn't contain the required data or the calorimeter type is incorrectly set! Task will be deactivated!";
         SetActive(kFALSE);
         return kERROR;
     }
@@ -96,7 +96,7 @@ InitStatus BmnCaloTowerDraw::Init()
     fDigitList = (TClonesArray *) fManager->GetObject(GetName());
     if (fDigitList == 0)
     {
-        LOG(ERROR) << "BmnCaloTowerDraw::Init() | Type: " << fCaloName << " | branch " << GetName() << " not found! Task will be deactivated!";
+        LOG(error) << "BmnCaloTowerDraw::Init() | Type: " << fCaloName << " | branch " << GetName() << " not found! Task will be deactivated!";
         SetActive(kFALSE);
         return kERROR;
     }
@@ -104,7 +104,7 @@ InitStatus BmnCaloTowerDraw::Init()
 
     if (gGeoManager->cd(fGeoPath.c_str()) == false)
     {
-        LOG(ERROR) << "BmnCaloTowerDraw::Init() | Type: " << fCaloName << " | Path to geometry '" << fGeoPath << "' not found" << endl;
+        LOG(error) << "BmnCaloTowerDraw::Init() | Type: " << fCaloName << " | Path to geometry '" << fGeoPath << "' not found" << endl;
         SetActive(kFALSE);
         return kERROR;
     }

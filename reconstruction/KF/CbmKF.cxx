@@ -370,7 +370,8 @@ BmnTOFGeoPar *TofPar = reinterpret_cast<BmnTOFGeoPar*>(RunDB->findContainer("Bmn
  //node->setRootVolume(trg); //why can't use "classical root geometry ?"
 //node = dynamic_cast<FairGeoNode*> (trg);
 
-    CbmKFTube tube1( 100500, 0,0,0/*-21.9*/, 2.*0.25, 0, 0.5, 0.5 ); //hard-coded target with Pb rad. lenght, -23.4 z pos.
+      //AZ-170722 CbmKFTube tube1( 100500, 0,0,0/*-21.9*/, 2.*0.25, 0, 0.5, 0.5 ); //hard-coded target with Pb rad. lenght, -23.4 z pos.
+    CbmKFTube tube1( 100500, 0,0,0/*-21.9*/, 2.*0.25, 0, 0.5, 30420. ); //AZ-170722 - hard-coded target with Air rad. length, 0.0 z pos.
     vTargets.push_back( tube1 );
     if( fVerbose ) cout<<" Target material "<<tube1.Info()<<endl;
 

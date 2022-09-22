@@ -2,7 +2,7 @@
 //nEvents: if 0 then decode all events
 //doConvert: convert RAW --> ROOT before decoding or use file converted before
 
-void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, UInt_t period = 7, Bool_t doConvert = kTRUE, Bool_t doHoldRawRoot = kFALSE) {
+void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, UInt_t period = 7, Bool_t doConvert = kTRUE, Bool_t doHoldRawRoot = kFALSE){
     gSystem->ExpandPathName(file);
     gSystem->ExpandPathName(outfile);
 
@@ -33,6 +33,8 @@ void BmnDataToRoot(TString file, TString outfile = "", Long_t nEvents = 0, UInt_
     setup.insert(std::make_pair(kSCWALL,    0)); // SCWALL
     setup.insert(std::make_pair(kFHCAL,     0)); // FHCAL
     setup.insert(std::make_pair(kHODO,      0)); // HODO
+    setup.insert(std::make_pair(kSiMD,      0)); // SiMD
+    setup.insert(std::make_pair(kSiBT,      0)); // SiBD
     decoder->SetDetectorSetup(setup);
 //    decoder->SetAdcDecoMode(period < 6 ? kBMNADCSM : kBMNADCMK);
     decoder->SetAdcDecoMode(kBMNADCSM);

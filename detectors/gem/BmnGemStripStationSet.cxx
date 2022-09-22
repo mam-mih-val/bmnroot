@@ -2,16 +2,18 @@
 
 BmnGemStripStationSet::BmnGemStripStationSet()
 : NStations(0),
-  XStationPositions(NULL), YStationPositions(NULL), ZStationPositions(NULL),
-  BeamHoleRadiuses(NULL),
-  GemStations(NULL) { }
+  XStationPositions(nullptr), YStationPositions(nullptr), ZStationPositions(nullptr),
+  BeamHoleRadiuses(nullptr),
+  GemStations(nullptr), fStatShifts(nullptr)
+{
+}
 
 BmnGemStripStationSet::BmnGemStripStationSet(TString xml_config_file, map <Int_t, TVector3>* shifts)
 : NStations(0),
-  XStationPositions(NULL), YStationPositions(NULL), ZStationPositions(NULL),
-  BeamHoleRadiuses(NULL),
-  GemStations(NULL), fStatShifts(shifts) {
-
+  XStationPositions(nullptr), YStationPositions(nullptr), ZStationPositions(nullptr),
+  BeamHoleRadiuses(nullptr),
+  GemStations(nullptr), fStatShifts(shifts)
+{
     Bool_t create_status = CreateConfigurationFromXMLFile(xml_config_file);
     if(!create_status) {
         std::cerr << "Error: There are problems with creation of the configuration from XML (in BmnGemStripStationSet)\n";
@@ -20,9 +22,10 @@ BmnGemStripStationSet::BmnGemStripStationSet(TString xml_config_file, map <Int_t
 }
 
 BmnGemStripStationSet::BmnGemStripStationSet(Int_t period, BmnSetup stp, map <Int_t, TVector3>* shifts): NStations(0),
-  XStationPositions(NULL), YStationPositions(NULL), ZStationPositions(NULL),
-  BeamHoleRadiuses(NULL),
-  GemStations(NULL), fStatShifts(shifts) {
+  XStationPositions(nullptr), YStationPositions(nullptr), ZStationPositions(nullptr),
+  BeamHoleRadiuses(nullptr),
+  GemStations(nullptr), fStatShifts(shifts)
+{
     TString gPathConfig = getenv("VMCWORKDIR");
     TString xml_config_file;
     switch (period) {
@@ -58,36 +61,36 @@ BmnGemStripStationSet::BmnGemStripStationSet(Int_t period, BmnSetup stp, map <In
     }
 }
 
- BmnGemStripStationSet::~BmnGemStripStationSet() {
-
+ BmnGemStripStationSet::~BmnGemStripStationSet()
+ {
     if (XStationPositions) {
         delete [] XStationPositions;
-        XStationPositions = NULL;
+        XStationPositions = nullptr;
     }
     if (YStationPositions) {
         delete [] YStationPositions;
-        YStationPositions = NULL;
+        YStationPositions = nullptr;
     }
     if (ZStationPositions) {
         delete [] ZStationPositions;
-        ZStationPositions = NULL;
+        ZStationPositions = nullptr;
     }
     if (BeamHoleRadiuses) {
         delete [] BeamHoleRadiuses;
-        BeamHoleRadiuses = NULL;
+        BeamHoleRadiuses = nullptr;
     }
 
     for (Int_t i = 0; i < NStations; i++) {
         if (GemStations[i]) {
             delete GemStations[i];
-            GemStations[i] = NULL;
+            GemStations[i] = nullptr;
         }
     }
     NStations = 0;
 
     if (GemStations) {
         delete [] GemStations;
-        GemStations = NULL;
+        GemStations = nullptr;
     }
 
  }

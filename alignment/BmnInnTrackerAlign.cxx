@@ -11,7 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "BmnInnTrackerAlign.h"
-#include "UniDbDetectorParameter.h"
+#include "UniDetectorParameter.h"
 #include "TRandom.h"
 
 BmnInnTrackerAlign::BmnInnTrackerAlign(Int_t period, Int_t run, TString fileName) {
@@ -23,7 +23,7 @@ BmnInnTrackerAlign::BmnInnTrackerAlign(Int_t period, Int_t run, TString fileName
     if (fileName.Contains("default")) {
         gRandom->SetSeed(0);
         fFilename = Form("alignment_innTracker_%d.root", UInt_t(gRandom->Integer(UINT32_MAX)));
-        UniDbDetectorParameter::ReadFile("BM@N", "alignment", period, run, (Char_t*) fFilename.Data());
+        UniDetectorParameter::ReadFile("BM@N", "alignment", period, run, (Char_t*) fFilename.Data());
     } else
         fFilename = fileName;
 
@@ -55,8 +55,9 @@ BmnInnTrackerAlign::BmnInnTrackerAlign(Int_t period, Int_t run, TString fileName
 
     // Get Lorentz corrections ...
     const Int_t nStat = fDetectorGEM->GetNStations();
+    nStations = fDetectorGEM->GetNStations();
     fLorCorrs = new Double_t*[nStat];
-    UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", period, run);
+    UniDetectorParameter* coeffLorCorrs = UniDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", period, run);
     vector<UniValue*> shifts;
     if (coeffLorCorrs)
         coeffLorCorrs->GetValue(shifts); //
@@ -121,8 +122,6 @@ BmnInnTrackerAlign::~BmnInnTrackerAlign() {
 
     delete fDetectorGEM;
     delete fDetectorSI;
-    delete fBranchGemCorrs;
-    delete fBranchSilCorrs;
 }
 
 Double_t*** BmnInnTrackerAlign::GetGemCorrs(TFile* file) {

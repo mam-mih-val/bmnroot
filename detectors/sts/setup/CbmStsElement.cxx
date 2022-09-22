@@ -43,7 +43,7 @@ CbmStsElement::CbmStsElement(const char* name, const char* title,
 void CbmStsElement::AddDaughter(CbmStsElement* element) {
   if ( ! element ) return;
   if ( element->GetLevel() != fLevel + 1) {
-    LOG(ERROR) << fName << ": Trying to add an element of level "
+    LOG(error) << fName << ": Trying to add an element of level "
                << element->GetLevel() << " as daughter of level "
                << fLevel << "! Command will be ignored.";
     return;
@@ -73,7 +73,7 @@ void CbmStsElement::InitDaughters() {
 
   // --- Catch absence of TGeoManager
   if ( ! gGeoManager ) {
-    LOG(ERROR) << fName << ": cannot initialise without TGeoManager!";
+    LOG(error) << fName << ": cannot initialise without TGeoManager!";
     return;
   }
 
@@ -82,7 +82,7 @@ void CbmStsElement::InitDaughters() {
 
   // --- Catch physical node not being set
   if ( ! fNode ) {
-    LOG(ERROR) << fName << ": physical node is not set!";
+    LOG(error) << fName << ": physical node is not set!";
     return;
   }
 
@@ -120,7 +120,7 @@ void CbmStsElement::InitDaughters() {
 
 // -----   Print   ---------------------------------------------------------
 void CbmStsElement::Print(Option_t* opt) const {
-  LOG(INFO) << fName << ": " << fTitle << ", address " << fAddress
+  LOG(info) << fName << ": " << fTitle << ", address " << fAddress
             << ", index " << GetIndex() << ", level " << fLevel;
 }
 // -------------------------------------------------------------------------
@@ -136,7 +136,7 @@ void CbmStsElement::SetLevel(Int_t level) {
     case kStsHalfLadder: fLevel = kStsHalfLadder; break;
     case kStsModule:     fLevel = kStsModule;     break;
     case kStsSensor:     fLevel = kStsSensor;     break;
-    default: LOG(ERROR) << fName << ": trying to set the level to "
+    default: LOG(error) << fName << ": trying to set the level to "
                         << level << " while max. level is "
                         << kStsNofLevels - 1; break;
   }

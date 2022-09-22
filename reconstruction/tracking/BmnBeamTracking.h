@@ -44,20 +44,20 @@ private:
     Double_t CalcQp(BmnTrack* track);
     BmnStatus CalcCovMatrix(BmnTrack* tr);
 
-    BmnSiBTStationSet* fSiBTDetector;
+    BmnSiBTStationSet* fSiBTDetector;       //!
     TString fSiBTHitsBranchName;
     TString fBeamTracksBranchName;
 
     //output array of Beam tracks
-    TClonesArray* fBeamTracksArray;
+    TClonesArray* fBeamTracksArray;         //!
     //input array of hits
-    TClonesArray* fSiBTHitsArray;
+    TClonesArray* fSiBTHitsArray;           //!
 
-    BmnKalmanFilter* fKalman;
+    BmnKalmanFilter* fKalman;               //!
     UInt_t fEventNo;
-    FairField* fField;
+    FairField* fField;                      //!
 
-    ClassDef(BmnBeamTracking, 1);
+  ClassDef(BmnBeamTracking, 1);
 };
 
 #endif /* BMNBEAMTRACKING_H */

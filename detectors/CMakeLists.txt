@@ -19,4 +19,8 @@ add_subdirectory (zdc)
 add_subdirectory (scwall)
 add_subdirectory (hodo)
 add_subdirectory (fhcal)
+add_subdirectory (ndet)
 add_subdirectory (land)
+
+
+

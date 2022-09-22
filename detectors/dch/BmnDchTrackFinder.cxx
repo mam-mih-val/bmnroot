@@ -27,274 +27,73 @@
 #include "FairMCPoint.h"
 #include "FitWLSQ.h"
 static Double_t workTime = 0.0;
-//added
-TString fhTestFlnm;
-TList fhList;
-TH1D* Ntrack1;
-TH1D* Ntrack2;
 
-TH2F* hXvsAx;
-TH1F* hXa_wireOccupancy;
-TH1F* hXb_wireOccupancy;
-TH1F* hYa_wireOccupancy;
-TH1F* hYb_wireOccupancy;
-TH1F* hUa_wireOccupancy;
-TH1F* hUb_wireOccupancy;
-TH1F* hVa_wireOccupancy;
-TH1F* hVb_wireOccupancy;
-TH1F* hXa2_wireOccupancy;
-TH1F* hXb2_wireOccupancy;
-TH1F* hYa2_wireOccupancy;
-TH1F* hYb2_wireOccupancy;
-TH1F* hUa2_wireOccupancy;
-TH1F* hUb2_wireOccupancy;
-TH1F* hVa2_wireOccupancy;
-TH1F* hVb2_wireOccupancy;
-TH1F* haX2_aX1;
-TH1F* haY2_aY1;
-TH1F* hX1_X2_glob_all;
-TH1F* hY1_Y2_glob_all;
-TH1F* haX2_aX1m;
-TH1F* haY2_aY1m;
-TH1F* hX1_X2_glob_m;
-TH1F* hY1_Y2_glob_m;
-TH1F* hx1Da_Db;
-TH1F* hx2Da_Db;
-TH1F* hy1Da_Db;
-TH1F* hy2Da_Db;
-TH1F* hu1Da_Db;
-TH1F* hu2Da_Db;
-TH1F* hv1Da_Db;
-TH1F* hv2Da_Db;
-TH1F* hx1Da_Db_best;
-TH1F* hx2Da_Db_best;
-TH1F* hy1Da_Db_best;
-TH1F* hy2Da_Db_best;
-TH1F* hu1Da_Db_best;
-TH1F* hu2Da_Db_best;
-TH1F* hv1Da_Db_best;
-TH1F* hv2Da_Db_best;
-TH1F* haX1;
-TH1F* haY1;
-TH1F* haX2;
-TH1F* haY2;
-TH1F* hx1;
-TH1F* hy1;
-TH1F* hx2;
-TH1F* hy2;
-TH1F* hX;
-TH1F* hY;
-TH1F* haX;
-TH1F* haY;
-TH2F* hlocXY1;
-TH2F* hlocXY2;
-TH1F* hSlot_1xa_time;
-TH1F* hSlot_1xb_time;
-TH1F *hXDC1_atZ0;
-TH1F *hYDC1_atZ0;
-TH1F *hXDC2_atZ0;
-TH1F *hYDC2_atZ0;
-TH1F *hSlot_1xa_time8p;
-TH1F *hSlot_1xb_time8p;
-TH1F *hSlot_1ya_time8p;
-TH1F *hSlot_1yb_time8p;
-TH1F *hSlot_1ua_time8p;
-TH1F *hSlot_1ub_time8p;
-TH1F *hSlot_1va_time8p;
-TH1F *hSlot_1vb_time8p;
-TH1F *hSlot_2xa_time8p;
-TH1F *hSlot_2xb_time8p;
-TH1F *hSlot_2ya_time8p;
-TH1F *hSlot_2yb_time8p;
-TH1F *hSlot_2ua_time8p;
-TH1F *hSlot_2ub_time8p;
-TH1F *hSlot_2va_time8p;
-TH1F *hSlot_2vb_time8p;
+BmnDchTrackFinder::BmnDchTrackFinder(Int_t period, Int_t number, Bool_t isExp)
+  : fPeriod(period), fRunId(number), expData(isExp), fhTestFlnm("test.BmnDCHTracking.root")
+{
+    fEventNo = 0;
+    N = (fPeriod == 7 && fRunId > 3589) ? 100 : 15;  //needs to be adjusted according to hit multiplicity
+    tracksDch = "BmnDchTrack";
+    if(expData){
+      InputDigitsBranchName = "DCH";
+      fTransferFunctionName = "transfer_func.txt";
 
+      prev_wire = -1;
+      prev_time = -1;
+    }else{
+      InputDigitsBranchName = "BmnDchHit";
+    }
 
-TH1F *hResidx1a;
-TH1F *hResidy1a;
-TH1F *hResidu1a;
-TH1F *hResidv1a;
-TH1F *hResidx2a;
-TH1F *hResidy2a;
-TH1F *hResidu2a;
-TH1F *hResidv2a;
-TH1F *hResidx1b;
-TH1F *hResidy1b;
-TH1F *hResidu1b;
-TH1F *hResidv1b;
-TH1F *hResidx2b;
-TH1F *hResidy2b;
-TH1F *hResidu2b;
-TH1F *hResidv2b;
+    layers_with = 0;
+    layers_with2 = 0;
 
-TH1F *hResidx1a_0p1;
-TH1F *hResidy1a_0p1;
-TH1F *hResidu1a_0p1;
-TH1F *hResidv1a_0p1;
-TH1F *hResidx2a_0p1;
-TH1F *hResidy2a_0p1;
-TH1F *hResidu2a_0p1;
-TH1F *hResidv2a_0p1;
+    prev_wire = -1;
+    prev_time = -1;
 
-TH1F *hResidx1a_0p1_0p4;
-TH1F *hResidy1a_0p1_0p4;
-TH1F *hResidu1a_0p1_0p4;
-TH1F *hResidv1a_0p1_0p4;
-TH1F *hResidx2a_0p1_0p4;
-TH1F *hResidy2a_0p1_0p4;
-TH1F *hResidu2a_0p1_0p4;
-TH1F *hResidv2a_0p1_0p4;
+    nChambers = 2;
+    nWires = 4;
+    nLayers = 2;
+    nSegmentsMax = 100;
 
-TH1F *hResidx1a_0p4_0p5;
-TH1F *hResidy1a_0p4_0p5;
-TH1F *hResidu1a_0p4_0p5;
-TH1F *hResidv1a_0p4_0p5;
-TH1F *hResidx2a_0p4_0p5;
-TH1F *hResidy2a_0p4_0p5;
-TH1F *hResidu2a_0p4_0p5;
-TH1F *hResidv2a_0p4_0p5;
+    Z_dch1 = 510.2;
+    Z_dch2 = 709.5;
+    Z_dch_mid = (Z_dch1 + Z_dch2) / 2.;
+    dZ_dch_mid = Z_dch2 - Z_dch_mid;  // > 0
+    dZ_dch = Z_dch2 - Z_dch1;
 
-TH1F *hResidx1b_0p1;
-TH1F *hResidy1b_0p1;
-TH1F *hResidu1b_0p1;
-TH1F *hResidv1b_0p1;
-TH1F *hResidx2b_0p1;
-TH1F *hResidy2b_0p1;
-TH1F *hResidu2b_0p1;
-TH1F *hResidv2b_0p1;
+    // Some alignment corrections
+    if(fPeriod == 7){
 
-TH1F *hResidx1b_0p1_0p4;
-TH1F *hResidy1b_0p1_0p4;
-TH1F *hResidu1b_0p1_0p4;
-TH1F *hResidv1b_0p1_0p4;
-TH1F *hResidx2b_0p1_0p4;
-TH1F *hResidy2b_0p1_0p4;
-TH1F *hResidu2b_0p1_0p4;
-TH1F *hResidv2b_0p1_0p4;
+      x1_sh = 0;//10.3;//0;       //11.2;//-8.56;//run6 10.9;// 5.34;//5.14;//10.31; //
+      y1_sh = 0;//-3;//0;       //1.76;//5.76;//run6 -1.19;//0;//-1.03;
+      x2_sh = -5.99;;//-5.4;//4.7;//8.60; //9.-3.5;//0.0;//run6 5.56;//0;//7.95;// //
+      y2_sh = -.24;//-.47;//-3.3;//-12.40;  //1.8;//-7.1;//run6 -2.47;//-1.38;//-3.7;
 
-TH1F *hResidx1b_0p4_0p5;
-TH1F *hResidy1b_0p4_0p5;
-TH1F *hResidu1b_0p4_0p5;
-TH1F *hResidv1b_0p4_0p5;
-TH1F *hResidx2b_0p4_0p5;
-TH1F *hResidy2b_0p4_0p5;
-TH1F *hResidu2b_0p4_0p5;
-TH1F *hResidv2b_0p4_0p5;
+      x1_slope_sh = 0;//-.070;//0;
+      y1_slope_sh = 0;//.060;//0;
+      x2_slope_sh = -.005;//-.034;//-.071;//0.;
+      y2_slope_sh = .005;//.014;//.061;//0.007;
+    }
 
+    if(!expData){//no alignment shifts for MC data
 
-TH1F *hPullsx1a_0p1;
-TH1F *hPullsy1a_0p1;
-TH1F *hPullsu1a_0p1;
-TH1F *hPullsv1a_0p1;
-TH1F *hPullsx2a_0p1;
-TH1F *hPullsy2a_0p1;
-TH1F *hPullsu2a_0p1;
-TH1F *hPullsv2a_0p1;
+      x1_sh = 0.;
+      y1_sh = 0.;
+      x2_sh = 0.;
+      y2_sh = 0.;
 
-TH1F *hPullsx1a_0p1_0p4;
-TH1F *hPullsy1a_0p1_0p4;
-TH1F *hPullsu1a_0p1_0p4;
-TH1F *hPullsv1a_0p1_0p4;
-TH1F *hPullsx2a_0p1_0p4;
-TH1F *hPullsy2a_0p1_0p4;
-TH1F *hPullsu2a_0p1_0p4;
-TH1F *hPullsv2a_0p1_0p4;
+      x1_slope_sh = 0.;
+      y1_slope_sh = 0.;
+      x2_slope_sh = 0.;
+      y2_slope_sh = 0.;
+    }
+    scale = 0.5;
+    // cout<<" x2 sh "<<x2_sh<<endl;
+}
 
-TH1F *hPullsx1a_0p4_0p5;
-TH1F *hPullsy1a_0p4_0p5;
-TH1F *hPullsu1a_0p4_0p5;
-TH1F *hPullsv1a_0p4_0p5;
-TH1F *hPullsx2a_0p4_0p5;
-TH1F *hPullsy2a_0p4_0p5;
-TH1F *hPullsu2a_0p4_0p5;
-TH1F *hPullsv2a_0p4_0p5;
-
-TH1F *hPullsx1b_0p1;
-TH1F *hPullsy1b_0p1;
-TH1F *hPullsu1b_0p1;
-TH1F *hPullsv1b_0p1;
-TH1F *hPullsx2b_0p1;
-TH1F *hPullsy2b_0p1;
-TH1F *hPullsu2b_0p1;
-TH1F *hPullsv2b_0p1;
-
-TH1F *hPullsx1b_0p1_0p4;
-TH1F *hPullsy1b_0p1_0p4;
-TH1F *hPullsu1b_0p1_0p4;
-TH1F *hPullsv1b_0p1_0p4;
-TH1F *hPullsx2b_0p1_0p4;
-TH1F *hPullsy2b_0p1_0p4;
-TH1F *hPullsu2b_0p1_0p4;
-TH1F *hPullsv2b_0p1_0p4;
-
-TH1F *hPullsx1b_0p4_0p5;
-TH1F *hPullsy1b_0p4_0p5;
-TH1F *hPullsu1b_0p4_0p5;
-TH1F *hPullsv1b_0p4_0p5;
-TH1F *hPullsx2b_0p4_0p5;
-TH1F *hPullsy2b_0p4_0p5;
-TH1F *hPullsu2b_0p4_0p5;
-TH1F *hPullsv2b_0p4_0p5;
-
-TH1F *hAx1_loc;
-TH1F *hAy1_loc;
-TH1F *hAu1_loc;
-TH1F *hAv1_loc;
-TH1F *hAx2_loc;
-TH1F *hAy2_loc;
-TH1F *hAu2_loc;
-TH1F *hAv2_loc;
-
-TH1F *hAx12_loc;
-TH1F *hAy12_loc;
-TH1F *hAu12_loc;
-TH1F *hAv12_loc;
-TH1F *hAx122loc;
-TH1F *hAy122loc;
-TH1F *hAu122loc;
-TH1F *hAv122loc;
-
-TH1F *hXm_Xe_loc;
-TH1F *hYm_Ye_loc;
-TH1F *hUm_Ue_loc;
-TH1F *hVm_Ve_loc;
-TProfile *hDc1XaResVsDa;
-TProfile *hDc1XbResVsDb;
-TProfile *hDc1XaResVsDa_m;
-TProfile *hDc1XbResVsDb_m;
-TProfile *hDc1XaResVsDa_p;
-TProfile *hDc1XbResVsDb_p;
-
-TH1F *hUvsXV1;
-TH1F *hYvsXV1;
-TH1F *hUvsXV2;
-TH1F *hYvsXV2;
-TH1D *NGtracks;
-TH1F *hChi2ndf_dc1;
-TH1F *hChi2ndf_dc2;
-TH1F *hSegSize_dc1;
-TH1F *hSegSize_dc2;
-TH1F *hChi2Matched;
-TH1F *hP;
-TH1F *hNomin1;
-TH1F *hDenom1;
-TH1F *hNomin2;
-TH1F *hDenom2;
-
-TH1F *hEff1;
-TH1F *hEff2;
-TH1F *hNLayWithFiredWiresDc1;
-TH1F *hNLayWithFiredWiresDc2;
-TH1F *hNoFiredWiresOnLayerDc1;
-TH1F *hNoFiredWiresOnLayerDc2;
-//end
-
-BmnDchTrackFinder::BmnDchTrackFinder(Int_t period, Int_t number, Bool_t isExp) : 
-fPeriod(period), fRunId(number), expData(isExp) {
+void BmnDchTrackFinder::initHists()
+{
   //added temporary hists
-  fhTestFlnm = "test.BmnDCHTracking.root";
   hNLayWithFiredWiresDc1 = new TH1F("hNLayWithFiredWiresDc1","layers with fired wires in dc1",9,0,9);
   hNLayWithFiredWiresDc2 = new TH1F("hNLayWithFiredWiresDc2","layers with fired wires in dc2",9,0,9);
   hNoFiredWiresOnLayerDc1 = new TH1F("hNoFiredWiresOnLayerDc1","no fired wires on a layer in dc1",8,0,8);
@@ -736,7 +535,64 @@ fPeriod(period), fRunId(number), expData(isExp) {
   fhList.Add(hPullsu2a_0p4_0p5);
   fhList.Add(hPullsv2a_0p4_0p5);  
 
-  fhList.Add(hPullsx1b_0p1);
+  fhList.Add(hPullsx1b_0p1);  fEventNo = 0;
+  N = (fPeriod == 7 && fRunId > 3589) ? 100 : 15;  //needs to be adjusted according to hit multiplicity
+  tracksDch = "BmnDchTrack";
+  if(expData){
+    InputDigitsBranchName = "DCH";
+    fTransferFunctionName = "transfer_func.txt";
+
+    prev_wire = -1;
+    prev_time = -1;
+  }else{
+    InputDigitsBranchName = "BmnDchHit";
+  }
+
+  layers_with = 0;
+  layers_with2 = 0;
+
+  prev_wire = -1;
+  prev_time = -1;
+
+  nChambers = 2;
+  nWires = 4;
+  nLayers = 2;
+  nSegmentsMax = 100;
+
+  Z_dch1 = 510.2;
+  Z_dch2 = 709.5;
+  Z_dch_mid = (Z_dch1 + Z_dch2) / 2.;
+  dZ_dch_mid = Z_dch2 - Z_dch_mid;  // > 0
+  dZ_dch = Z_dch2 - Z_dch1;
+
+  // Some alignment corrections
+  if(fPeriod == 7){
+
+    x1_sh = 0;//10.3;//0;       //11.2;//-8.56;//run6 10.9;// 5.34;//5.14;//10.31; //
+    y1_sh = 0;//-3;//0;       //1.76;//5.76;//run6 -1.19;//0;//-1.03;
+    x2_sh = -5.99;;//-5.4;//4.7;//8.60; //9.-3.5;//0.0;//run6 5.56;//0;//7.95;// //
+    y2_sh = -.24;//-.47;//-3.3;//-12.40;  //1.8;//-7.1;//run6 -2.47;//-1.38;//-3.7;
+
+    x1_slope_sh = 0;//-.070;//0;
+    y1_slope_sh = 0;//.060;//0;
+    x2_slope_sh = -.005;//-.034;//-.071;//0.;
+    y2_slope_sh = .005;//.014;//.061;//0.007;
+  }
+
+  if(!expData){//no alignment shifts for MC data
+
+    x1_sh = 0.;
+    y1_sh = 0.;
+    x2_sh = 0.;
+    y2_sh = 0.;
+
+    x1_slope_sh = 0.;
+    y1_slope_sh = 0.;
+    x2_slope_sh = 0.;
+    y2_slope_sh = 0.;
+  }
+  scale = 0.5;
+  // cout<<" x2 sh "<<x2_sh<<endl;
   fhList.Add(hPullsy1b_0p1);
   fhList.Add(hPullsu1b_0p1);
   fhList.Add(hPullsv1b_0p1);
@@ -837,70 +693,13 @@ fPeriod(period), fRunId(number), expData(isExp) {
   fhList.Add(hlocXY2);
   fhList.Add(hXvsAx);
   //end
-
-  fEventNo = 0;
-  N = (fPeriod == 7 && fRunId > 3589) ? 100 : 15;  //needs to be adjusted according to hit multiplicity
-  tracksDch = "BmnDchTrack";
-  if(expData){  
-    InputDigitsBranchName = "DCH";
-    fTransferFunctionName = "transfer_func.txt";
-    
-    prev_wire = -1;
-    prev_time = -1;
-  }else{
-    InputDigitsBranchName = "BmnDchHit";
-  }
-
-  layers_with = 0;
-  layers_with2 = 0;
-
-  prev_wire = -1;
-  prev_time = -1;
-
-  nChambers = 2;
-  nWires = 4;
-  nLayers = 2;
-  nSegmentsMax = 100;
-
-  Z_dch1 = 510.2;
-  Z_dch2 = 709.5;
-  Z_dch_mid = (Z_dch1 + Z_dch2) / 2.;
-  dZ_dch_mid = Z_dch2 - Z_dch_mid;  // > 0
-  dZ_dch = Z_dch2 - Z_dch1;
-
-  // Some alignment corrections
-  if(fPeriod == 7){
-   
-    x1_sh = 0;//10.3;//0;       //11.2;//-8.56;//run6 10.9;// 5.34;//5.14;//10.31; //
-    y1_sh = 0;//-3;//0;       //1.76;//5.76;//run6 -1.19;//0;//-1.03;
-    x2_sh = -5.99;;//-5.4;//4.7;//8.60; //9.-3.5;//0.0;//run6 5.56;//0;//7.95;// //
-    y2_sh = -.24;//-.47;//-3.3;//-12.40;  //1.8;//-7.1;//run6 -2.47;//-1.38;//-3.7;
-    
-    x1_slope_sh = 0;//-.070;//0;
-    y1_slope_sh = 0;//.060;//0;
-    x2_slope_sh = -.005;//-.034;//-.071;//0.;
-    y2_slope_sh = .005;//.014;//.061;//0.007;
-  }
-  
-  if(!expData){//no alignment shifts for MC data
-
-    x1_sh = 0.;      
-    y1_sh = 0.;     
-    x2_sh = 0.; 
-    y2_sh = 0.; 
-
-    x1_slope_sh = 0.;     
-    y1_slope_sh = 0.;    
-    x2_slope_sh = 0.;  
-    y2_slope_sh = 0.; 
-  }
-  scale = 0.5;
-  // cout<<" x2 sh "<<x2_sh<<endl;
 }
 
-BmnDchTrackFinder::~BmnDchTrackFinder() {
+BmnDchTrackFinder::~BmnDchTrackFinder()
+{
+  if (isInitialized)
+  {
   // Delete 1d-arrays
-
   delete[] nSegments;
   delete[] has7DC;
   delete[] x_mid;
@@ -998,6 +797,8 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
       delete[] singles[iChamber][iWire];
     delete[] singles[iChamber];
   }
+  }
+
   delete[] x_global;
   delete[] y_global;
   delete[] Chi2;
@@ -2639,8 +2440,9 @@ InitStatus BmnDchTrackFinder::Init() {
     }
   }
 
-  // Create and register track arrays
+  initHists();
 
+  // Create and register track arrays
   fDchTracks = new TClonesArray(tracksDch.Data());
   ioman->Register(tracksDch.Data(), "DCH", fDchTracks, kTRUE);
 
@@ -2818,6 +2620,8 @@ InitStatus BmnDchTrackFinder::Init() {
       singles[iChamber][iWire] = new Int_t[nLayers];
   }
   nSegments = new Int_t[nSegmentsMax];
+
+  isInitialized = true;
 
   return kSUCCESS;
 }

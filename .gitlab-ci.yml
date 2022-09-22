@@ -69,7 +69,7 @@ build:centos:
 build:ubuntu:
   image: git.jinr.ru:5005/nica/docker-images/ubuntu/base:latest
   variables:
-    OS_TYPE: "ubuntu"
+    OS_TYPE: "ubuntu2004"
   tags: 
     - docker
     - cvmfs
@@ -106,7 +106,7 @@ run_sim_bmn:ubuntu:
   image: git.jinr.ru:5005/nica/docker-images/ubuntu/base:latest
   variables:
     MACRO_NAME: "macro/run/run_sim_bmn.C"
-    OS_TYPE: "ubuntu"
+    OS_TYPE: "ubuntu2004"
   tags:
     - docker
     - cvmfs
@@ -131,7 +131,7 @@ run_sim_src:centos:
 run_sim_src:ubuntu:
   image: git.jinr.ru:5005/nica/docker-images/ubuntu/base:latest
   variables:
-    OS_TYPE: "ubuntu"
+    OS_TYPE: "ubuntu2004"
     MACRO_NAME: "macro/run/run_sim_src.C"
   tags:
     - docker
@@ -173,7 +173,7 @@ run_reco_bmn:centos:
 run_reco_bmn:ubuntu:
   image: git.jinr.ru:5005/nica/docker-images/ubuntu/base:latest
   variables:
-    OS_TYPE: "ubuntu"
+    OS_TYPE: "ubuntu2004"
     MACRO_NAME: "macro/run/run_reco_bmn.C"
   tags:
     - docker
@@ -205,7 +205,7 @@ run_reco_src:centos:
 run_reco_src:ubuntu:
   image: git.jinr.ru:5005/nica/docker-images/ubuntu/base:latest
   variables:
-    OS_TYPE: "ubuntu"
+    OS_TYPE: "ubuntu2004"
     MACRO_NAME: "macro/run/run_reco_src.C"
   tags:
     - docker
@@ -245,7 +245,7 @@ run_digi_bmn:centos:
 run_digi_bmn:ubuntu:
   image: git.jinr.ru:5005/nica/docker-images/ubuntu/base:latest
   variables:
-    OS_TYPE: "ubuntu"
+    OS_TYPE: "ubuntu2004"
     MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("$$VMCWORKDIR/macro/run/testDigi.root", "$$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)'
   tags:
     - docker
@@ -275,7 +275,7 @@ run_digi_src:centos:
 run_digi_src:ubuntu:
   image: git.jinr.ru:5005/nica/docker-images/ubuntu/base:latest
   variables:
-    OS_TYPE: "ubuntu"
+    OS_TYPE: "ubuntu2004"
     MACRO_NAME: '$$CI_PROJECT_DIR/macro/run/run_reco_src.C("$$VMCWORKDIR/macro/run/testSRCDigi.root", "$$VMCWORKDIR/macro/run/srcdst_exp.root", 0, 100)'
   tags:
     - docker
@@ -342,7 +342,7 @@ run_digi_src:ubuntu:
   
   
 deploy:centos7:
-  image: git.jinr.ru:5005/nica/docker-images/centos7/fair:apr21p2_v18.6.7
+  image: git.jinr.ru:5005/nica/docker-images/centos7/fair:latest
   environment:
     name: centos7
   tags:

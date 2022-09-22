@@ -83,13 +83,13 @@ void BmnSsdModule::AddSignal(UShort_t channel, Double_t time,
   assert( channel < fNofChannels );
 
   // --- Debug
-  LOG(DEBUG3) << GetName() << ": Receiving signal " << charge
+  LOG(debug3) << GetName() << ": Receiving signal " << charge
       << " in channel " << channel << " at time "
       << time << " s";
 
   // --- Discard charge if the channel is dead
   if ( fDeadChannels.count(channel) ) {
-    LOG(DEBUG) << GetName() << ": discarding signal in dead channel "
+    LOG(debug) << GetName() << ": discarding signal in dead channel "
         << channel;
     return;
   }
@@ -100,7 +100,7 @@ void BmnSsdModule::AddSignal(UShort_t channel, Double_t time,
     BmnSsdSignal* signal = new BmnSsdSignal(time, charge,
                                             index, entry, file);
     fAnalogBuffer[channel].insert(signal);
-    LOG(DEBUG4) << GetName() << ": Activating channel " << channel;
+    LOG(debug4) << GetName() << ": Activating channel " << channel;
     return;
   }  //? Channel not yet active
 
@@ -118,14 +118,14 @@ void BmnSsdModule::AddSignal(UShort_t channel, Double_t time,
       // Current implementation of merging signals:
       // Add charges, keep first signal time
       // TODO: Check with SSD electronics people on more realistic behaviour.
-      LOG(DEBUG4) << GetName() << ": channel " << channel
+      LOG(debug4) << GetName() << ": channel " << channel
           << ", new signal at t = " << time
           << " ns is merged with present signal at t = "
           << (*it)->GetTime() << " ns";
       (*it)->SetTime( TMath::Min( (*it)->GetTime(), time) );
       (*it)->AddLink(charge, index, entry, file);
       isMerged = kTRUE;  // mark new signal as merged
-      LOG(DEBUG4) << "    New signal: time " << (*it)->GetTime()
+      LOG(debug4) << "    New signal: time " << (*it)->GetTime()
 					            << ", charge " << (*it)->GetCharge()
 					            << ", number of links " << (*it)->GetMatch().GetNofLinks();
       break;  // Merging should be necessary only for one buffer signal
@@ -142,7 +142,7 @@ void BmnSsdModule::AddSignal(UShort_t channel, Double_t time,
   BmnSsdSignal* signal = new BmnSsdSignal(time, charge,
                                           index, entry, file);
   fAnalogBuffer[channel].insert(signal);
-  LOG(DEBUG4) << GetName() << ": Adding signal at t = " << time
+  LOG(debug4) << GetName() << ": Adding signal at t = " << time
       << " ns, charge " << charge << " in channel " << channel;
 
 }
@@ -221,11 +221,11 @@ void BmnSsdModule::Digitize(UShort_t channel, BmnSsdSignal* signal) {
   Long64_t dTime = Long64_t(round(signal->GetTime() + deltaT));
 
   // --- Send the message to the digitiser task
-  LOG(DEBUG4) << GetName() << ": charge " << signal->GetCharge()
+  LOG(debug4) << GetName() << ": charge " << signal->GetCharge()
 			            << ", dyn. range " << fDynRange << ", threshold "
 			            << fThreshold << ", # ADC channels "
 			            << fNofAdcChannels;
-  LOG(DEBUG3) << GetName() << ": Sending message. Channel " << channel
+  LOG(debug3) << GetName() << ": Sending message. Channel " << channel
       << ", time " << dTime << ", adc " << adc;
   BmnSsdDigitize* digitiser = BmnSsdSetup::Instance()->GetDigitizer();
   if ( digitiser ) digitiser->CreateDigi(fAddress, channel, dTime, adc,
@@ -234,7 +234,7 @@ void BmnSsdModule::Digitize(UShort_t channel, BmnSsdSignal* signal) {
   // --- If no digitiser task is present (debug mode): create a digi and
   // --- add it to the digi buffer.
   else {
-    LOG(FATAL) << GetName() << ": no digitiser task present!";
+    LOG(fatal) << GetName() << ": no digitiser task present!";
   }
   return;
 }
@@ -252,7 +252,7 @@ Int_t BmnSsdModule::FindHits(TClonesArray* hitArray, BmnEvent* event) {
     nHits += sensor->FindHits(fClusters, hitArray, event, fDeadTime);
   }
 
-  LOG(DEBUG2) << GetName() << ": Clusters " << fClusters.size()
+  LOG(debug2) << GetName() << ": Clusters " << fClusters.size()
 			            << ", sensors " << GetNofDaughters() << ", hits "
 			            << nHits;
   return nHits;
@@ -305,7 +305,7 @@ Int_t BmnSsdModule::GetAddressFromName(TString name) {
     if ( name[13] != 'M' ) isValid = kFALSE;
   }
   if ( ! isValid ) {
-    LOG(FATAL) << "GetAddressFromName: Not a valid module name "
+    LOG(fatal) << "GetAddressFromName: Not a valid module name "
         << name;
     return 0;
   }
@@ -454,7 +454,7 @@ void BmnSsdModule::SetParameters(Double_t dynRange, Double_t threshold,
     fNofChannels = 2 * TMath::Max(nStripsF, nStripsB);
   }
   else {
-    LOG(FATAL) << GetName() << ": No sensor connected!";
+    LOG(fatal) << GetName() << ": No sensor connected!";
     return;
   }
 

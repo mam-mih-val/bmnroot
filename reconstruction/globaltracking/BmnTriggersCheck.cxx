@@ -100,7 +100,7 @@ void BmnTriggersCheck::Exec(Option_t* opt) {
 //     if (!evHeader)
 //         return;
               
-//     UniDbRun* runInfo = UniDbRun::GetRun(fRunPeriod, fRunNumber);
+//     UniRun* runInfo = UniRun::GetRun(fRunPeriod, fRunNumber);
 
 //     BmnTriggerType trigType = evHeader->GetTrig(); 
 //     if (trigType == kBMNMINBIAS) {

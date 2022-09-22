@@ -21,12 +21,12 @@
 using namespace std;
 using namespace TMath;
 
-class BmnMwpcGeometrySRC : public TNamed {
-public:
-
+class BmnMwpcGeometrySRC : public TNamed
+{
+  public:
+    BmnMwpcGeometrySRC() {}
     /** Default constructor **/
-  BmnMwpcGeometrySRC(Int_t periodNum, Int_t runNum);//(Int_t periodNum)
-
+    BmnMwpcGeometrySRC(Int_t periodNum, Int_t runNum);//(Int_t periodNum)
     /** Destructor **/
     virtual ~BmnMwpcGeometrySRC();
     
@@ -91,8 +91,7 @@ public:
         return fZleft[chamber];
     }
 
-private:
-
+  private:
     Int_t fNChambers;
     Int_t fNPlanes;
     Int_t kCh_min;
@@ -107,14 +106,14 @@ private:
     Double_t fSpaceLeft; //in cm
     Double_t fSpaceRight; //in cm
  
-    Double_t *fAngleX;
-    Double_t *fAngleY;
+    Double_t *fAngleX;      //!
+    Double_t *fAngleY;      //!
    
-    Double_t **fZPlanePos;//[4][6];
-    Double_t *fZright;
-    Double_t *fZleft;
-    Double_t *fX;
-    Double_t *fY;
+    Double_t **fZPlanePos;  //! [4][6];
+    Double_t *fZright;      //!
+    Double_t *fZleft;       //!
+    Double_t *fX;           //!
+    Double_t *fY;           //!
     
 
     Double_t fChamberWidth;
@@ -127,7 +126,7 @@ private:
     TVector3 fOYprime[4];
     TVector3 fOZprime[4];
     
-    ClassDef(BmnMwpcGeometrySRC, 1);
+  ClassDef(BmnMwpcGeometrySRC, 1);
 };
 
 #endif

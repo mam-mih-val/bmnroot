@@ -40,7 +40,7 @@ void SRC_EventCounter(Int_t run_period = 7) {
     set <TString> beams;
 
     for (Int_t iRun = kStart; iRun < kFinish; iRun++) {
-        UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, iRun);
+        UniRun* pCurrentRun = UniRun::GetRun(run_period, iRun);
 
         if (pCurrentRun == NULL) {
             delete pCurrentRun;
@@ -84,7 +84,7 @@ void SRC_EventCounter(Int_t run_period = 7) {
     for (auto itBeam : beams) {
         for (auto itEne : energies) {
             for (Int_t iRun = kStart; iRun < kFinish; iRun++) {
-                UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, iRun);
+                UniRun* pCurrentRun = UniRun::GetRun(run_period, iRun);
 
                 if (pCurrentRun == NULL) {
                     delete pCurrentRun;

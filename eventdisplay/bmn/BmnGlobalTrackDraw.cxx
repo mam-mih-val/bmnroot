@@ -72,7 +72,7 @@ InitStatus BmnGlobalTrackDraw::Init()
     fTrackList = (TClonesArray *) fManager->GetObject(GetName());
     if (fTrackList == 0)
     {
-        LOG(ERROR) << "BmnGlobalTrackDraw::Init() branch GlobalTrack not found! Task will be deactivated";
+        LOG(error) << "BmnGlobalTrackDraw::Init() branch GlobalTrack not found! Task will be deactivated";
         SetActive(kFALSE);
         return kERROR;
     }

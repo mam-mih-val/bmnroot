@@ -13,12 +13,15 @@
 #include <time.h>
 #include <chrono>
 
+#include <TTree.h>
 #include "FairTask.h"
+
 #include "BmnGemStripStationSet.h"
 #include "BmnSiliconStationSet.h"
 #include "BmnCSCStationSet.h"
 #include "BmnMCTrackCreator.h"
 #include "CbmVertex.h"
+#include "BmnQaBase.h"
 #include "BmnTrackingQaExpReport.h"
 
 class BmnHistManager;
@@ -30,7 +33,7 @@ using std::string;
 using std::vector;
 using std::multimap;
 
-class BmnTrackingQaExp : public FairTask {
+class BmnTrackingQaExp : public BmnQaBase {
 public:
 
     /**
@@ -115,14 +118,6 @@ public:
     Bool_t GetOnlyPrimes() const {
         return fPrimes;
     }
-
-    void SetMonitorMode(const Bool_t mm) {
-        fMonitorMode = mm;
-    }
-
-    Bool_t GetMonitorMode() const {
-        return fMonitorMode;
-    }
     
     void SetInnerTrackerSetup(map<DetectorId, Bool_t> setup) {
         fInnerTrackerSetup = setup;
@@ -135,8 +130,6 @@ public:
     void SetInnerTracksBranchName(TString name) {
         fInnerTrackBranchName = name;
     }
-   void SetObjServer(THttpServer * s) { fServer = s; }
-   THttpServer * GetObjServer() const { return fServer; }
 
 
 private:
@@ -145,26 +138,6 @@ private:
      */
     void ReadDataBranches();
 
-    void CreateH1(
-            const string& name,
-            const string& xTitle,
-            const string& yTitle,
-            Int_t nofBins,
-            Double_t minBin,
-            Double_t maxBin);
-
-    void CreateH2(
-            const string& name,
-            const string& xTitle,
-            const string& yTitle,
-            const string& zTitle,
-            Int_t nofBinsX,
-            Double_t minBinX,
-            Double_t maxBinX,
-            Int_t nofBinsY,
-            Double_t minBinY,
-            Double_t maxBinY);
-
     void CreateTrackHitsHistogram(const string& detName);
 
     void ReadEventHeader();
@@ -172,20 +145,8 @@ private:
 
     void CreateHistograms();
     void ProcessGlobal();
-
-    Int_t CalcNumberOfMcPointInTrack(BmnMCTrack mcTrack);
-    Int_t CalcNumberOfMcPointInTrack(Int_t trId);
-
-    THttpServer * fServer;
-    TString fOutName;
-
-    BmnHistManager* fHM; // Histogram manager
-    string fOutputDir; // Output directory for results
+    
     BmnMCTrackCreator* fMCTrackCreator; // MC track creator tool
-    
-    BmnSimulationReport* fReport;
-    
-    Bool_t fMonitorMode;
 
     // Acceptance defined by MC points
     Int_t fMinNofPoints; // Minimal number of MCPoints in STS
@@ -263,7 +224,7 @@ private:
     
     Int_t fEventNo;  // event counter
     
-   const Int_t fNItersToUpdate = 10;
+   const Int_t fNItersToUpdate = 100;
    const chrono::seconds fTimeToUpdate = chrono::seconds(5); //<-redraw each timeout seconds
    Int_t fNItersSinceUpdate;
    chrono::time_point<chrono::system_clock> fTicksLastUpdate;

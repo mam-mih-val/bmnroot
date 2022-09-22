@@ -1,40 +1,36 @@
 #ifndef BMNGEMSTRIPHITMAKER_H
 #define BMNGEMSTRIPHITMAKER_H 1
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
-#include "Rtypes.h"
-#include "TClonesArray.h"
-#include "TRegexp.h"
-#include "TString.h"
-
-#include "FairTask.h"
-#include "FairMCPoint.h"
-
-#include "FairField.h"
-#include "FairHit.h"
+#include "BmnTask.h"
 #include "BmnGemStripDigit.h"
 #include "BmnGemStripHit.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripConfiguration.h"
 #include "BmnGemStripTransform.h"
 
+#include "FairMCPoint.h"
+#include "FairField.h"
+#include "FairHit.h"
+
+#include "TClonesArray.h"
+#include "TRegexp.h"
+#include "TString.h"
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
 using namespace std;
 
-class BmnGemStripHitMaker : public FairTask {
-public:
-
+class BmnGemStripHitMaker : public BmnTask
+{
+  public:
     BmnGemStripHitMaker();
     BmnGemStripHitMaker(Int_t per, Int_t run, Bool_t isExp, Bool_t isSrc = kFALSE);
-
     virtual ~BmnGemStripHitMaker();
 
     virtual InitStatus Init();
-
     virtual void Exec(Option_t* opt);
-
     virtual void Finish();
 
     void ProcessDigits();
@@ -60,7 +56,13 @@ public:
         fSignalUp = max;
     }
 
-private:
+    virtual InitStatus OnlineInit();
+    virtual InitStatus OnlineRead(const std::unique_ptr<TTree> &dataTree, const std::unique_ptr<TTree> &resultTree);
+    virtual void OnlineWrite(const std::unique_ptr<TTree> &dataTree);
+    virtual void SetField(const std::unique_ptr<FairField> &magneticField) { fField = magneticField.get(); }
+
+  private:
+    void createGemDetector();
 
     TString fInputPointsBranchName;
     TString fInputDigitsBranchName;
@@ -69,16 +71,19 @@ private:
     TString fOutputHitsBranchName;
 
     /** Input array of Gem Points **/
-    TClonesArray* fBmnGemStripPointsArray;
-    TClonesArray* fBmnGemStripDigitsArray;
-    TClonesArray* fBmnGemStripDigitMatchesArray;
+    TClonesArray* fBmnGemStripPointsArray;          //!
+    TClonesArray* fBmnGemStripDigitsArray;          //!
+    TClonesArray* fBmnGemStripDigitMatchesArray;    //!
 
     /** Output array of Gem Hits **/
-    TClonesArray* fBmnGemStripHitsArray;
+    TClonesArray* fBmnGemStripHitsArray;            //!
     /** Output array of Gem Upper Clusters **/
-    TClonesArray* fBmnGemUpperClustersArray;
+    TClonesArray* fBmnGemUpperClustersArray;        //!
     /** Output array of Gem Lower Clusters **/
-    TClonesArray* fBmnGemLowerClustersArray;
+    TClonesArray* fBmnGemLowerClustersArray;        //!
+
+    Int_t fRunPeriod;
+    Int_t fRunNumber;
 
     Bool_t fHitMatching;
     Bool_t fIsExp; // Specify type of input data (MC or real data)
@@ -86,24 +91,23 @@ private:
 
     BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;
 
-    BmnGemStripStationSet* StationSet; //Entire GEM detector
+    BmnGemStripStationSet* StationSet;  //! Entire GEM detector
 
-    BmnGemStripTransform* TransfSet; //Transformations for each module of the detector
+    BmnGemStripTransform* TransfSet;    //! Transformations for each module of the detector
 
-    FairField* fField;
+    FairField* fField;                  //!
     Double_t fFieldScale;
 
     TString fBmnEvQualityBranchName;
-    TClonesArray* fBmnEvQuality;
+    TClonesArray* fBmnEvQuality;        //!
     
-    Double_t*** fAlignCor;
-    Double_t** fLorCor;
+    Double_t*** fAlignCor;              //!
+    Double_t** fLorCor;                 //!
 
     Double_t fSignalLow;
     Double_t fSignalUp;
 
     ClassDef(BmnGemStripHitMaker, 1);
 };
-
 
 #endif

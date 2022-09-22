@@ -17,21 +17,6 @@
 #ifndef BMNUPSTREAMTRACKING_H
 #define BMNUPSTREAMTRACKING_H 1
 
-#include <fstream>
-#include <stdlib.h>
-#include <TMath.h>
-#include <vector>
-#include "TList.h"
-#include "TH1D.h"
-#include "TH2D.h"
-#include <TNamed.h>
-#include <TString.h>
-#include <TClonesArray.h>
-#include <TVector2.h>
-#include <Rtypes.h>
-#include "FairTask.h"
-#include "FairTrackParam.h"
-#include "FairMCPoint.h"
 #include "BmnTrack.h"
 #include "BmnSiliconHit.h"
 #include "BmnSiliconTrackFinder.h"
@@ -39,8 +24,23 @@
 #include "BmnMwpcHit.h"
 #include "BmnMwpcSegment.h"
 
-class TH1D;
-class TH2D;
+#include "FairTask.h"
+#include "FairTrackParam.h"
+#include "FairMCPoint.h"
+
+#include <TMath.h>
+#include "TList.h"
+#include "TH1D.h"
+#include "TH2D.h"
+#include <TString.h>
+#include <TClonesArray.h>
+#include <TVector2.h>
+
+#include <fstream>
+#include <vector>
+using namespace std;
+using namespace TMath;
+
 
 struct Smatch {
   Int_t     Ind1   = -1;//Si
@@ -79,17 +79,15 @@ struct UpTracks {
   Int_t     Pdg       = -1;
 };
 
-using namespace std;
-using namespace TMath;
 
-class BmnUpstreamTracking : public FairTask {
-  
-public:
 
-  BmnUpstreamTracking() {};
+class BmnUpstreamTracking : public FairTask
+{
+  public:
+  BmnUpstreamTracking();
   BmnUpstreamTracking(Bool_t, Int_t);
-  
   virtual ~BmnUpstreamTracking();
+
   virtual InitStatus Init();
   virtual void Exec(Option_t* opt);
   virtual void Finish();
@@ -127,54 +125,53 @@ public:
     Int_t    track2_pdg  = -999;
   };
 
-private:
-
+  private:
   Bool_t fDebug   = 0;
   UInt_t fEventNo = 0; // event counter
   Int_t  fRunNumber;
   Bool_t expData;
   TList  fList;
-  TClonesArray* fSiTracks;
-  TClonesArray* fSilHits;
-  TClonesArray* fMWPCTracks;
-  TClonesArray* fMWPCSegments;
+  TClonesArray* fSiTracks;                  //!
+  TClonesArray* fSilHits;                   //!
+  TClonesArray* fMWPCTracks;                //!
+  TClonesArray* fMWPCSegments;              //!
   TString fInputBranchName1;
   TString fInputBranchName2;
   TString fInputBranchName3;
   TString fInputBranchHits;
   //--mc--
-  TClonesArray* fSiTracksSim;
+  TClonesArray* fSiTracksSim;               //!
   TString fInputBranchNameSimTrue;
-  TClonesArray* fBmnHitsArray;
+  TClonesArray* fBmnHitsArray;              //!
   TString fInputBranchName;
   
   /** Output array of Silicon Hits **/
-  TClonesArray* fBmnUpstreamTracksArray;
+  TClonesArray* fBmnUpstreamTracksArray;    //!
   TString fOutputTracksBranchName;
   TString fOutputFileName;
   //--------
-  Double_t*** par_ab_Ch;
-  Double_t*** par_ab_tr;
-  Double_t*** SiXYhits;
-  Double_t*** Points;
-  Double_t**  par_ab_SiTr;
-  Double_t**  par_Seg_z;
-  Double_t**  par_ab_trz;
-  Double_t**  Xforglfit;
-  Double_t**  Amatr;
-  Double_t*   par_SiTr_z;
-  Double_t*   X_shift_seg;
-  Double_t*   X_shiftUp;
-  Double_t*   Y_shiftUp;
-  Double_t*   Z_pair;
-  Double_t*   Z_Chamber;
-  Double_t*   AmatrInverted ;
-  Double_t*   rhs;
-  Double_t*   AmatrArray;
-  Double_t*   line;
-  Int_t*      Nseg_Ch;
-  Int_t*      NPCTracks;
-  Int_t*      NSiXYhits;
+  Double_t*** par_ab_Ch;                    //!
+  Double_t*** par_ab_tr;                    //!
+  Double_t*** SiXYhits;                     //!
+  Double_t*** Points;                       //!
+  Double_t**  par_ab_SiTr;                  //!
+  Double_t**  par_Seg_z;                    //!
+  Double_t**  par_ab_trz;                   //!
+  Double_t**  Xforglfit;                    //!
+  Double_t**  Amatr;                        //!
+  Double_t*   par_SiTr_z;                   //!
+  Double_t*   X_shift_seg;                  //!
+  Double_t*   X_shiftUp;                    //!
+  Double_t*   Y_shiftUp;                    //!
+  Double_t*   Z_pair;                       //!
+  Double_t*   Z_Chamber;                    //!
+  Double_t*   AmatrInverted ;               //!
+  Double_t*   rhs;                          //!
+  Double_t*   AmatrArray;                   //!
+  Double_t*   line;                         //!
+  Int_t*      Nseg_Ch;                      //!
+  Int_t*      NPCTracks;                    //!
+  Int_t*      NSiXYhits;                    //!
   Int_t       NSiTracks;
   Int_t       NumPoints;
   Double_t    Shift_toCenterOfMagnetX;//  = 0.039;
@@ -247,8 +244,8 @@ private:
     *hdAx_uptr_mc, *hdX_uptr_mc, *hdAy_uptr_mc, *hdY_uptr_mc,
     *hDen_mcuptr, *hNum_mcuptr, *hEff_mcuptr,
     *hAx_upmc, *hAy_upmc, *hX_upmc, *hY_upmc,
-    *hNtr_reco, *hNtr_mc, *hNrecoTrif2mc, *hAngle_reco, *hAngle_recoifNmc2, *hAngle_recoifNmc2Cases;
-  TH2D  *hNtr_mc_vs_reco, *hy_vs_x_Up, *hY_vs_Xmctrue, *hvertexXYUp, *hTyTx_Up;
+    *hNtr_reco, *hNtr_mc, *hNrecoTrif2mc, *hAngle_reco, *hAngle_recoifNmc2, *hAngle_recoifNmc2Cases;    //!
+  TH2D  *hNtr_mc_vs_reco, *hy_vs_x_Up, *hY_vs_Xmctrue, *hvertexXYUp, *hTyTx_Up;                         //!
   vector<TH1D*> hResXst, hResYst;
 
   ClassDef(BmnUpstreamTracking, 1)

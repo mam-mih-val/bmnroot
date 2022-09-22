@@ -4,8 +4,8 @@
 #include "FairTask.h"
 #include "FairRootManager.h"
 #include "BmnEventHeader.h"
-#include <UniDbDetectorParameter.h>
-#include <UniDbRun.h>
+#include <UniDetectorParameter.h>
+#include <UniRun.h>
 #include <TClonesArray.h>
 #include <TString.h>
 #include <TMath.h>

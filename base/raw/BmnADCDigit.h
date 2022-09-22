@@ -23,14 +23,15 @@ public:
     BmnADCDigit();
 
     /** Constructor to use **/
-    BmnADCDigit(UInt_t iSerial, UShort_t iChannel, UInt_t n, UShort_t *iValue);
+    BmnADCDigit(UInt_t iSerial, UShort_t iChannel, UInt_t n, vector<UShort_t> iValue);
+    BmnADCDigit(UInt_t iSerial, UShort_t iChannel, UInt_t n, UShort_t *iValue = nullptr);
     BmnADCDigit(UInt_t iSerial, UShort_t iChannel, UInt_t n, Short_t *iValue, Bool_t flag = kFALSE);
 
     UInt_t GetSerial() const {
         return fSerial;
     }
 
-    UInt_t GetChannel() const {
+    UShort_t GetChannel() const {
         return fChannel;
     }
 

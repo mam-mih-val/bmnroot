@@ -30,6 +30,7 @@ enum DetectorId {kREF,  // Reference plane
          kSCWALL,       // SCintillator WALL
          kHODO,         // HODOscope
          kFHCAL,        // Forward Hadron Calorimeter
+         kNDET,         // Neutron detector
          kNOFDETS       // Number of elements (e.g. for loops)
 };
 
@@ -47,6 +48,8 @@ enum DataType {kMCTrack,
                kStsPoint, kStsDigi, kStsCluster, kStsHit, kStsTrack,  // STS
                kLandPoint, kLandDigi, kLandHit,                       // LAND
                kTofCalPoint, kTofCalDigi, kTofCalHit,                 // ToF-Cal
+               kFHCalPoint, kFHCalDigi,                               // FHCAL
+               kNdetPoint, kNdetDigi,                                 // NDET
                kGlobalTrack                                           // Global
 };
 

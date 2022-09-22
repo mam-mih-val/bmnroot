@@ -9,38 +9,48 @@ static Double_t workTime_real = 0.0;
 BmnAdcProcessor::BmnAdcProcessor() {
 }
 
-BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh, Int_t nSmpl, vector<UInt_t> vSer) {
-
+BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh, Int_t nSmpl) {
     fPeriod = period;
     fRun = run;
     fDetName = det;
-    fNSerials = vSer.size();
     fNChannels = nCh;
     fNSamples = nSmpl;
     PrecalcEventModsImp = (GetRun() > GetBoundaryRun(fNSamples) || GetPeriod() >= 7) ?
-//#if CMAKE_BUILD_TYPE == Debug
-//        &BmnAdcProcessor::PrecalcEventMods : &BmnAdcProcessor::PrecalcEventModsOld;
-//        printf("\n\nDebug!!!\n\n");
-//#else
-//        &BmnAdcProcessor::PrecalcEventMods_simd : &BmnAdcProcessor::PrecalcEventModsOld;
-//        printf("\n\nRelease!!!\n\n");
-//#endif
+            //#if CMAKE_BUILD_TYPE == Debug
+            //        &BmnAdcProcessor::PrecalcEventMods : &BmnAdcProcessor::PrecalcEventModsOld;
+            //        printf("\n\nDebug!!!\n\n");
+            //#else
+            //        &BmnAdcProcessor::PrecalcEventMods_simd : &BmnAdcProcessor::PrecalcEventModsOld;
+            //        printf("\n\nRelease!!!\n\n");
+            //#endif
 
 #ifdef BUILD_DEBUG
             &BmnAdcProcessor::PrecalcEventMods : &BmnAdcProcessor::PrecalcEventModsOld;
-            printf("\n\nDebug!!!\n\n");
+    if (fVerbose)
+        printf("\n\nDebug!!!\n");
 #else
             &BmnAdcProcessor::PrecalcEventMods_simd : &BmnAdcProcessor::PrecalcEventModsOld;
-            printf("\n\nRelease!!!\n\n");
-#endif   
+    if (fVerbose)
+        printf("\n\nRelease!!!\n");
+#endif
+}
+
+BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh, Int_t nSmpl, vector<UInt_t> vSer) :
+BmnAdcProcessor(period, run, det, nCh, nSmpl) {
+    SetSerials(vSer);
+}
+
+void BmnAdcProcessor::SetSerials(vector<UInt_t> &vSer) {
     fAdcSerials = vSer;
+    fNSerials = fAdcSerials.size();
     for (int iSer = 0; iSer < fAdcSerials.size(); ++iSer) {
         fSerMap.insert(pair<UInt_t, Int_t>(fAdcSerials[iSer], iSer));
-        //        printf("iser %d ser 0x%08X  val %d  \n", iSer, fAdcSerials[iSer], fSerMap[fAdcSerials[iSer]]);
+        //                printf("iser %d ser 0x%08X  val %d  \n", iSer, fAdcSerials[iSer], fSerMap[fAdcSerials[iSer]]);
     }
-    Int_t high = 120;
-    Int_t highcms = 500;
+    InitArrays();
+}
 
+void BmnAdcProcessor::InitArrays() {
     fPedVal = new Float_t**[fNSerials];
     //fPedVal = new Double_t**[fNSerials];
     fPedValTemp = new Double_t**[fNSerials];
@@ -1238,8 +1248,8 @@ Double_t BmnAdcProcessor::CalcCMS(Double_t* samples, Int_t size) {
     return CMS;
 }
 
-BmnStatus BmnAdcProcessor::SaveFilterInfo(){
-    
+BmnStatus BmnAdcProcessor::SaveFilterInfo() {
+
     return kBMNSUCCESS;
 }
 

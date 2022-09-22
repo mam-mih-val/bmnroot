@@ -77,17 +77,17 @@ class BmnFillDstTask : public FairTask {
     TString fOutputEventHeaderName;
 
     /** Input MCEventHeader from Simulation File **/
-    FairMCEventHeader* fMCEventHead;
+    FairMCEventHeader* fMCEventHead;    //!
     /** Input BmnEventHeader from Digit File **/
-    BmnEventHeader* fEventHead;
+    BmnEventHeader* fEventHead;         //!
     /** whether input file contains simulation data **/
-    Bool_t isSimulationInput;
+    Bool_t isSimulationInput;           //!
     /** Output DstEventHeader prepared in FairRunAna **/
-    DstEventHeader* fDstHead;
+    DstEventHeader* fDstHead;           //!
     /** Output BmnRunHeader **/
-    DstRunHeader* fRunHead;
+    DstRunHeader* fRunHead;             //!
     /*For ADC, charge calculation*/
-    TClonesArray *fT0, *fBC1, *fBC2, *fBC3, *fBC4;
+    TClonesArray *fT0, *fBC1, *fBC2, *fBC3, *fBC4;  //!
     /** event count to be processed for progress bar **/
     Long64_t fNEvents;
     /** current event being processed for progress bar **/

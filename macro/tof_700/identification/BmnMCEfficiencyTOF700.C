@@ -697,12 +697,12 @@ void BmnMCEfficiencyTOF700(const char *TracksGemDch = TRACKFILE, const char *Dat
 			printf(" point %d\n",indpoint);
 			tofpoin->Print("");
 			printf(" track %d\n",toftrid);
-			LOG(INFO) << "Track " << toftrid << ", mother : " << mctrack->GetMotherId()
+			LOG(info) << "Track " << toftrid << ", mother : " << mctrack->GetMotherId()
         		<< ", Type " << mctrack->GetPdgCode() << ", momentum (" << mctrack->GetPx() << ", "
         		<< mctrack->GetPy() << ", " << mctrack->GetPz() << ") GeV";
-			LOG(INFO) << ", vertex (" << mctrack->GetStartX() << ", "
+			LOG(info) << ", vertex (" << mctrack->GetStartX() << ", "
         		<< mctrack->GetStartY() << ", " << mctrack->GetStartZ() << ") cm";
-			LOG(INFO) << "       Ref " << mctrack->GetNPoints(kREF)
+			LOG(info) << "       Ref " << mctrack->GetNPoints(kREF)
         		<< ", MVD "  << mctrack->GetNPoints(kMVD)
         		<< ", GEM "  << mctrack->GetNPoints(kGEM)
         		<< ", TOF1 " << mctrack->GetNPoints(kTOF1)
@@ -721,12 +721,12 @@ void BmnMCEfficiencyTOF700(const char *TracksGemDch = TRACKFILE, const char *Dat
 			printf(" reject point %d\n",indpoint);
 			tofpoin->Print("");
 			printf(" reject track %d\n",toftrid);
-			LOG(INFO) << "Track " << toftrid << ", mother : " << mctrack->GetMotherId()
+			LOG(info) << "Track " << toftrid << ", mother : " << mctrack->GetMotherId()
         		<< ", Type " << mctrack->GetPdgCode() << ", momentum (" << mctrack->GetPx() << ", "
         		<< mctrack->GetPy() << ", " << mctrack->GetPz() << ") GeV";
-			LOG(INFO) << ", vertex (" << mctrack->GetStartX() << ", "
+			LOG(info) << ", vertex (" << mctrack->GetStartX() << ", "
         		<< mctrack->GetStartY() << ", " << mctrack->GetStartZ() << ") cm";
-			LOG(INFO) << "       Ref " << mctrack->GetNPoints(kREF)
+			LOG(info) << "       Ref " << mctrack->GetNPoints(kREF)
         		<< ", MVD "  << mctrack->GetNPoints(kMVD)
         		<< ", GEM "  << mctrack->GetNPoints(kGEM)
         		<< ", TOF1 " << mctrack->GetNPoints(kTOF1)
@@ -878,12 +878,12 @@ void BmnMCEfficiencyTOF700(const char *TracksGemDch = TRACKFILE, const char *Dat
 	    if (SORT) printf("iTrmc0 %d iTrmc %d gamma %f A %d SumA %d\n", iTrmc0, iTrmc, gfra[iTrmc], (int)mfra[iTrmc], SumA0 );
 	    if (MCDEBUG)
 	    {
-		LOG(INFO) << "Track " << iTrmc << ", mother : " << mctrack->GetMotherId()
+		LOG(info) << "Track " << iTrmc << ", mother : " << mctrack->GetMotherId()
         	<< ", Type " << mctrack->GetPdgCode() << ", momentum (" << mctrack->GetPx() << ", "
     		<< mctrack->GetPy() << ", " << mctrack->GetPz() << ") GeV";
-		LOG(INFO) << ", vertex (" << mctrack->GetStartX() << ", "
+		LOG(info) << ", vertex (" << mctrack->GetStartX() << ", "
         	<< mctrack->GetStartY() << ", " << mctrack->GetStartZ() << ") cm";
-		LOG(INFO) << "       Ref " << mctrack->GetNPoints(kREF)
+		LOG(info) << "       Ref " << mctrack->GetNPoints(kREF)
         	<< ", MVD "  << mctrack->GetNPoints(kMVD)
         	<< ", GEM "  << mctrack->GetNPoints(kGEM)
         	<< ", TOF1 " << mctrack->GetNPoints(kTOF1)

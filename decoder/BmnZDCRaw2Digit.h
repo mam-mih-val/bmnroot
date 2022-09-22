@@ -13,7 +13,7 @@
 #include "Riostream.h"
 #include "BmnZDCDigit.h"
 #include <cstdlib>
-#include <UniDbRun.h>
+#include <UniRun.h>
 
 #define MAX_EVENTS 10000
 #define MAX_CHANNELS 112

@@ -22,6 +22,7 @@
 #include "FairCave.h"
 #include "FairPipe.h"
 #include "FairMagnet.h"
+#include "FairTarget.h"
 #include "FairPrimaryGenerator.h"
 #include "FairParticleGenerator.h"
 #include "FairBoxGenerator.h"
@@ -29,37 +30,49 @@
 #include "FairRootFileSink.h"
 
 // BmnRoot includes
-#include "UniDbRun.h"
-#include "BmnFieldMap.h"
-#include "BmnFieldConst.h"
-#include "BmnNewFieldMap.h"
-#include "BmnTOF.h"
-#include "BmnFD.h"
-#include "CbmSts.h"
-#include "BmnTOF1.h"
-#include "BmnDch.h"
-#include "BmnMwpc.h"
 #include "BmnBd.h"
-#include "BmnEcal.h"
-#include "BmnSilicon.h"
-#include "MpdUrqmdGenerator.h"
-#include "BmnSiliconDigitizer.h"
-#include "BmnGemStripDigitizer.h"
-#include "BmnGemStripMedium.h"
-#include "BmnFieldPar.h"
-#include "BmnZdc.h"
+#include "BmnBdDigitizer.h"
 #include "BmnCSC.h"
-#include "BmnFunctionSet.h"
-#include "MpdGetNumEvents.h"
-#include "MpdPHSDGenerator.h"
-#include "MpdLAQGSMGenerator.h"
-#include "MpdDCMSMMGenerator.h"
 #include "BmnCSCConfiguration.h"
 #include "BmnCSCDigitizer.h"
-#include "BmnZdcDigitizer.h"
+#include "BmnDch.h"
+#include "BmnEcal.h"
 #include "BmnEcalDigitizer.h"
+#include "BmnFD.h"
+#include "BmnFHCal.h"
+#include "BmnFHCalDigitizer.h"
+#include "BmnFieldConst.h"
+#include "BmnFieldMap.h"
+#include "BmnFieldPar.h"
+#include "BmnFunctionSet.h"
+#include "BmnHodo.h"
+#include "BmnHodoDigitizer.h"
+#include "BmnGemStripDigitizer.h"
+#include "BmnGemStripMedium.h"
 #include "BmnInnTrackerAlign.h"
+#include "BmnMwpc.h"
+#include "BmnNewFieldMap.h"
+#include "BmnScWall.h"
+#include "BmnScWallDigitizer.h"
+#include "BmnSiBT.h"
+#include "BmnSiBTConfiguration.h"
+#include "BmnSiBTDigitizer.h"
+#include "BmnSiMD.h"
+#include "BmnSiMDDigitizer.h"
+#include "BmnSilicon.h"
+#include "BmnSiliconDigitizer.h"
+#include "BmnTOF.h"
+#include "BmnTOF1.h"
+#include "BmnZdc.h"
+#include "BmnZdcDigitizer.h"
 #include "CbmStack.h"
+#include "CbmSts.h"
+#include "MpdDCMSMMGenerator.h"
+#include "MpdGetNumEvents.h"
+#include "MpdLAQGSMGenerator.h"
+#include "MpdPHSDGenerator.h"
+#include "MpdUrqmdGenerator.h"
+#include "UniRun.h"
 
 // GEANT3 and 4 includes
 #include "TGeant4.h"
@@ -120,52 +133,68 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     magnet->SetGeometryFileName("magnet_modified.root");
     fRun->AddModule(magnet);
 
+    FairModule* target = new FairTarget("Target");
+    target->SetGeometryFileName("target_CsI.geo");
+    fRun->AddModule(target);
+    
     // -----   Create detectors        -------------------------
 
-    FairDetector* fd = new BmnFD("FD", kTRUE);
-    fd->SetGeometryFileName("FD_v10.root");
-    fRun->AddModule(fd);
+    FairDetector* sibt = new BmnSiBT("SiBT", kTRUE);
+    sibt->SetGeometryFileName("SiBT_Run8.root");
+    fRun->AddModule(sibt);
 
-    FairDetector* mwpc = new BmnMwpc("MWPC", kTRUE);
-    mwpc->SetGeometryFileName("MWPC_RunSpring2018.root");
-    fRun->AddModule(mwpc);
+    FairDetector* simd = new BmnSiMD("SiMD", kTRUE);
+    simd->SetGeometryFileName("SiMD_run8_v1.root");
+    fRun->AddModule(simd);
 
     FairDetector* bd = new BmnBd("BD", kTRUE);
-    bd->SetGeometryFileName("geom_BD_det_v2.root");
+    bd->SetGeometryFileName("BD_run8_v1.root");
     fRun->AddModule(bd);
 
+    FairDetector* fd = new BmnFD("FD", kTRUE);
+    fd->SetGeometryFileName("FD_run8.root");
+    fRun->AddModule(fd);
+
     FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
-    silicon->SetGeometryFileName("Silicon_RunSpring2018.root");
+    silicon->SetGeometryFileName("Silicon_Run8_3stations_detailed.root");
     fRun->AddModule(silicon);
 
-    FairDetector* gems = new CbmSts("STS", kTRUE);
-    gems->SetGeometryFileName("GEMS_RunSpring2018.root");
+    FairDetector* gems = new CbmSts("GEM", kTRUE);
+    gems->SetGeometryFileName("GEMS_Run8_detailed.root");
     fRun->AddModule(gems);
 
     FairDetector* csc = new BmnCSC("CSC", kTRUE);
-    csc->SetGeometryFileName("CSC_RunSpring2018.root");
+    csc->SetGeometryFileName("CSC_Run8_detailed.root");
     fRun->AddModule(csc);
 
     FairDetector* tof1 = new BmnTOF1("TOF1", kTRUE);
-    tof1->SetGeometryFileName("TOF400_RUN7_BMN_byKolesnicov_Aligned.root");
+    tof1->SetGeometryFileName("TOF400_RUN7.root");
     fRun->AddModule(tof1);
 
     FairDetector* dch = new BmnDch("DCH", kTRUE);
-    dch->SetGeometryFileName("DCH_RunSpring2018.root");
+    dch->SetGeometryFileName("DCH_Run8.root");
     fRun->AddModule(dch);
 
     FairDetector* tof2 = new BmnTOF("TOF", kTRUE);
-    tof2->SetGeometryFileName("tof700_run7_with_support.root");
+    tof2->SetGeometryFileName("tof700_run8_with_support.root");
     fRun->AddModule(tof2);
 
     FairDetector* ecal = new BmnEcal("ECAL", kTRUE);
-    ecal->SetGeometryFileName("ECAL_v3_run7_pos4.root");
+    ecal->SetGeometryFileName("ECAL_v3_run8_pos5.root");
     fRun->AddModule(ecal);
 
-    BmnZdc* zdc = new BmnZdc("ZDC", kTRUE);
+    FairDetector* scwall = new BmnScWall("SCWALL", kTRUE);
+    scwall->SetGeometryFileName("ScWall_run8_with_hole_in_box_with_hole_XeCsI_3.9GeV_field_Extrap_scale_1800_900_Zpos_875.0cm_Xshift_78.0cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
+    fRun->AddModule(scwall);
+
+    FairDetector* hodo = new BmnHodo("HODO", kTRUE);
+    hodo->SetGeometryFileName("Hodo_with_box_XeCsI_3.9GeV_field_Extrap_scale_1800_900_Zpos_892.0cm_Xshift_55.50cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
+    fRun->AddModule(hodo);
+
+    FairDetector* fhcal = new BmnFHCal("FHCAL", kTRUE);
     //zdc->SetBirk();
-    zdc->SetGeometryFileName("ZDC_RunSpring2018.root");
-    fRun->AddModule(zdc);
+    fhcal->SetGeometryFileName("FHCal_54mods_hole_XeCsI_3.9GeV_field_Extrap_scale_1800_900_Zpos_900.0cm_Xshift_55.5cm_Yshift_0.0cm_rotationY_0.0deg_v1.root");
+    fRun->AddModule(fhcal);
     // Use the experiment specific MC Event header instead of the default one
     // This one stores additional information about the reaction plane
     //MpdMCEventHeader* mcHeader = new MpdMCEventHeader();
@@ -177,15 +206,17 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
 
     // Smearing of beam interaction point, if needed, and primary vertex position
     // DO NOT do it in corresponding gen. sections to avoid incorrect summation!!!
-    primGen->SetBeam(0.5, -4.6, 0.0, 0.0);  // (beamX0, beamY0, beamSigmaX, beamSigmaY)
-    primGen->SetTarget(-2.3, 0.0);          // (targetZ, targetDz)
-    primGen->SmearVertexZ(kFALSE);
-    primGen->SmearVertexXY(kFALSE);
+    //parameters for period 8
+    primGen->SetBeam(0.0, 0.0, 0.3, 0.3);  // (beamX0, beamY0, beamSigmaX, beamSigmaY)
+    primGen->SetBeamAngle(0.0, 0.0, 0.0, 0.0);  // (beamAngleX0, beamAngleY0, beamAngleSigmaX, beamAngleSigmaY)
+    primGen->SetTarget(0.0, 0.175);    // (targetZ, targetDz)
+    primGen->SmearVertexZ(kTRUE);
+    primGen->SmearGausVertexXY(kTRUE);
+    gRandom->SetSeed(0);
 
-    switch (generatorName)
-    {
-    // ------- UrQMD Generator
-    case URQMD:{
+    switch (generatorName) {
+        // ------- UrQMD Generator
+    case URQMD: {
         if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
 
         MpdUrqmdGenerator* urqmdGen = new MpdUrqmdGenerator(inFile);
@@ -199,35 +230,35 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
         break;
     }
 
-    // ------- Particle Generator
-    case PART:{
+              // ------- Particle Generator
+    case PART: {
         // FairParticleGenerator generates a single particle type (PDG, mult, [GeV] px, py, pz, [cm] vx, vy, vz)
         FairParticleGenerator* partGen = new FairParticleGenerator(211, 10, 1, 0, 3, 1, 0, 0);
         primGen->AddGenerator(partGen);
         break;
     }
 
-    // ------- Ion Generator
-    case ION:{
+             // ------- Ion Generator
+    case ION: {
         // Start beam from a far point to check mom. reconstruction procedure (Z, A, q, mult, [GeV] px, py, pz, [cm] vx, vy, vz)
-        FairIonGenerator* fIongen = new FairIonGenerator(6, 12, 6, 1, 0., 0., 4.4, 0., 0., -647.);
+        FairIonGenerator* fIongen = new FairIonGenerator(54, 131, 54, 1, 0., 0., 4.8, 0., 0., 0.); //Xe
         primGen->AddGenerator(fIongen);
         break;
     }
 
-    // ------- Box Generator
-    case BOX:{
+            // ------- Box Generator
+    case BOX: {
         gRandom->SetSeed(0);
-        FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 10); // 13 = muon; 1 = multipl.
-        boxGen->SetPRange(1., 1.);      // GeV/c, setPRange vs setPtRange
+        FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); //(PDG code, multiplicity)
+        boxGen->SetPRange(0.2, 5.0);      // GeV/c, setPRange vs setPtRange
         boxGen->SetPhiRange(0, 360);    // Azimuth angle range [degree]
-        boxGen->SetThetaRange(10, 15);  // Polar angle in lab system range [degree]
+        boxGen->SetThetaRange(0, 40.0);  // Polar angle in lab system range [degree]
         primGen->AddGenerator(boxGen);
         break;
     }
 
-    // ------- HSD/PHSD Generator
-    case HSD:{
+            // ------- HSD/PHSD Generator
+    case HSD: {
         if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
 
         MpdPHSDGenerator* hsdGen = new MpdPHSDGenerator(inFile.Data());
@@ -241,9 +272,9 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
         break;
     }
 
-    // ------- LAQGSM/DCM-QGSM Generator
+            // ------- LAQGSM/DCM-QGSM Generator
     case QGSM:
-    case DCMQGSM:{
+    case DCMQGSM: {
 
         if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
 
@@ -256,7 +287,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
             nEvents = MpdGetNumEvents::GetNumQGSMEvents(inFile.Data()) - nStartEvent;
         break;
     }
-    case DCMSMM:{
+    case DCMSMM: {
 
         if (!BmnFunctionSet::CheckFileExist(inFile, 1)) exit(-1);
 
@@ -270,7 +301,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
         break;
     }
 
-    default: { cout<<"ERROR: Generator name was not pre-defined: "<<generatorName<<endl; exit(-3); }
+    default: { cout << "ERROR: Generator name was not pre-defined: " << generatorName << endl; exit(-3); }
     }// end of switch (generatorName)
 
     // if directory for the output file does not exist, then create
@@ -280,7 +311,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
 
     // -----   Create magnetic field   ----------------------------------------
     BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v5_ascii_Extrap.root");
-    Double_t fieldScale = 1200. / 900.;
+    Double_t fieldScale = 1800. / 900.;
     magField->SetScale(fieldScale);
     fRun->SetField(magField);
 
@@ -289,42 +320,80 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
 
 
     // -----   Digitizers: converting MC points to detector digits   -----------
+
+    // SiBT-Digitizer
+    BmnSiBTConfiguration::SiBT_CONFIG sibt_config = BmnSiBTConfiguration::Run8;
+    BmnSiBTDigitizer* sibtDigit = new BmnSiBTDigitizer();
+    sibtDigit->SetCurrentConfig(sibt_config);
+    fRun->AddTask(sibtDigit);
+
+    // BD-Digitizer
+    BmnBdDigitizer* bdDigit = new BmnBdDigitizer();
+    fRun->AddTask(bdDigit);
+
+    // SiMD-Digitizer
+    BmnSiMDDigitizer* simdDigit = new BmnSiMDDigitizer();
+    fRun->AddTask(simdDigit);
+
     // SI-Digitizer
-    BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2018;
+    BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::Run8_3stations;
     BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
     siliconDigit->SetCurrentConfig(si_config);
-    siliconDigit->SetOnlyPrimary(kFALSE);
     siliconDigit->SetUseRealEffects(useRealEffects);
     fRun->AddTask(siliconDigit);
 
     // GEM-Digitizer
-    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2018;
+    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::Run8;
     if (useRealEffects)
-        BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_6T);
+        BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_8T);
     BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
     gemDigit->SetCurrentConfig(gem_config);
-    gemDigit->SetOnlyPrimary(kFALSE);
-    gemDigit->SetStripMatching(kTRUE);
     gemDigit->SetUseRealEffects(useRealEffects);
     fRun->AddTask(gemDigit);
 
     // CSC-Digitizer
-    BmnCSCConfiguration::CSC_CONFIG csc_config = BmnCSCConfiguration::RunSpring2018;
+    BmnCSCConfiguration::CSC_CONFIG csc_config = BmnCSCConfiguration::Run8;
     BmnCSCDigitizer* cscDigit = new BmnCSCDigitizer();
     cscDigit->SetCurrentConfig(csc_config);
-    cscDigit->SetOnlyPrimary(kFALSE);
-    cscDigit->SetStripMatching(kTRUE);
     fRun->AddTask(cscDigit);
-    
-    // ZDC-Digitizer
-    BmnZdcDigitizer * zdcDigit = new BmnZdcDigitizer();
-    zdcDigit->SetScale(39e3);
-    zdcDigit->SetThreshold(500.);
-    fRun->AddTask(zdcDigit);
-    
-    // ECAL-Digitizer
-    BmnEcalDigitizer * ecalDigit = new BmnEcalDigitizer();
-    fRun->AddTask(ecalDigit);
+
+    // // ZDC-Digitizer (for period < 8)
+    // BmnZdcDigitizer* zdcDigit = new BmnZdcDigitizer();
+    // zdcDigit->SetScale(39e3);
+    // zdcDigit->SetThreshold(500.);
+    // fRun->AddTask(zdcDigit);
+
+    //FHCal-Digitizer (for period >= 8)
+    BmnFHCalDigitizer* fhcalDigit = new BmnFHCalDigitizer();
+    fhcalDigit->SetGeV2MIP(0.005); // 5 MeV from 1 MIP in FHCal section
+    fhcalDigit->SetMIP2Pix(15); // 15 pix for 1 MIP in SiPM
+    fhcalDigit->SetScale(28.2e3); // scale to convert visible to full energy
+    fhcalDigit->SetMIPNoise(0.2); // electronic noise in MIP scale
+    fhcalDigit->SetThreshold(0.5*0.005*28.2e3); //0.5 MIP noise cut
+    fRun->AddTask(fhcalDigit);
+
+    //ScWall-Digitizer
+    BmnScWallDigitizer * fScWallDigit = new BmnScWallDigitizer();
+    fScWallDigit->SetScale(1.);
+    fScWallDigit->SetThreshold(0.);
+    fScWallDigit->SetGeV2MIP(0.0021); // 2.1 MeV from 1 MIP in 1cm plastic
+    fScWallDigit->SetMIP2Pix(15); // 15 pix for 1 MIP in SiPM
+    fScWallDigit->SetMIPNoise(0.1); // electronic noise in MIP scale
+    fRun->AddTask(fScWallDigit);
+
+    //Hodo-Digitizer
+    BmnHodoDigitizer * fHodoDigit = new BmnHodoDigitizer();
+    fHodoDigit->SetScale(1.);
+    fHodoDigit->SetThreshold(0.);
+    fHodoDigit->SetGeV2MIP(0.00083); // 0.83 MeV from 1 MIP in 4mm plastic
+    fHodoDigit->SetMIP2Pix(15); // 15 pix for 1 MIP in SiPM
+    fHodoDigit->SetMIPNoise(0.1); // electronic noise in MIP scale
+    fRun->AddTask(fHodoDigit);
+
+
+    // // ECAL-Digitizer (for period < 8)
+    // BmnEcalDigitizer* ecalDigit = new BmnEcalDigitizer();
+    // fRun->AddTask(ecalDigit);
 
     fRun->Init();
     magField->Print("");
@@ -340,12 +409,7 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     trajFilter->SetStoreSecondaries(kTRUE); //kFALSE
 
     // Fill the Parameter containers for this run
-    FairRuntimeDb *rtdb = fRun->GetRuntimeDb();
-
-    BmnFieldPar* fieldPar = (BmnFieldPar*) rtdb->getContainer("BmnFieldPar");
-    fieldPar->SetParameters(magField);
-    fieldPar->setChanged();
-    fieldPar->setInputVersion(fRun->GetRunId(), 1);
+    FairRuntimeDb* rtdb = fRun->GetRuntimeDb();
     Bool_t kParameterMerged = kTRUE;
     FairParRootFileIo* output = new FairParRootFileIo(kParameterMerged);
     //AZ output->open(parFile.Data());
@@ -358,15 +422,15 @@ void run_sim_bmn(TString inFile = "/opt/data/ArCu_3.2AGeV_mb_156.r12", TString o
     // Transport nEvents
     fRun->Run(nEvents);
 
-    gGeoManager->CheckOverlaps(0.0001);
-    gGeoManager->PrintOverlaps();
+    //gGeoManager->CheckOverlaps(0.0001);
+    //gGeoManager->PrintOverlaps();
 
     //fRun->CreateGeometryFile("full_geometry.root");  // save the full setup geometry to the additional file
 
-if ((generatorName == QGSM) || (generatorName == DCMQGSM)){
-    TString Pdg_table_name = TString::Format("%s%s%c%s", gSystem->BaseName(inFile.Data()), ".g", (fRun->GetName())[6], ".pdg_table.dat");
-    (TDatabasePDG::Instance())->WritePDGTable(Pdg_table_name.Data());
-}
+    if ((generatorName == QGSM) || (generatorName == DCMQGSM)) {
+        TString Pdg_table_name = TString::Format("%s%s%c%s", gSystem->BaseName(inFile.Data()), ".g", (fRun->GetName())[6], ".pdg_table.dat");
+        (TDatabasePDG::Instance())->WritePDGTable(Pdg_table_name.Data());
+    }
 
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();

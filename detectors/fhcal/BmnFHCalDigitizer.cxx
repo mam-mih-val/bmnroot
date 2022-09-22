@@ -24,7 +24,12 @@ InitStatus BmnFHCalDigitizer::Init() {
     fMIPNoise = 0.2;
 
     FairRootManager* ioman = FairRootManager::Instance();
-    fArrayOfFHCalPoints = (TClonesArray*) ioman->GetObject("FHCalPoint");
+    fArrayOfFHCalPoints = (TClonesArray*)ioman->GetObject("FHCalPoint");
+    if (!fArrayOfFHCalPoints) {
+        cout << "BmnFHCalDigitizer::Init(): branch FHCalPoint not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
     fArrayOfFHCalDigits = new TClonesArray("BmnFHCalDigit");
     ioman->Register("FHCalDigit", "FHCal", fArrayOfFHCalDigits, kTRUE);
 
@@ -33,7 +38,10 @@ InitStatus BmnFHCalDigitizer::Init() {
 }
 
 void BmnFHCalDigitizer::Exec(Option_t* opt) {
-
+    
+    if (!IsActive())
+        return;
+    
     // Initialize
     fArrayOfFHCalDigits->Delete();
 

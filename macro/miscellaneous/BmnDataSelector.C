@@ -99,7 +99,7 @@ void BmnDataSelector(Int_t run_period = 6, // 6 or 7
     vector <Double_t> apprCurrent;
 
     for (Int_t iRun = kStart; iRun < kFinish; iRun++) {
-        UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, iRun);
+        UniRun* pCurrentRun = UniRun::GetRun(run_period, iRun);
         if (pCurrentRun == NULL) {
             delete pCurrentRun;
             continue;

@@ -1,7 +1,6 @@
 #ifndef BMNSILICONSTATION_H
 #define BMNSILICONSTATION_H
 
-#include "Rtypes.h"
 #include "BmnSiliconModule.h"
 #include "BmnStripData.h"
 
@@ -12,10 +11,9 @@
 
 #include <iostream>
 
-class BmnSiliconStation {
-
-protected:
-
+class BmnSiliconStation
+{
+  protected:
     /* station parameters */
     Int_t StationNumber;
     Int_t NModules;
@@ -35,29 +33,26 @@ protected:
     Double_t YPosition;
     Double_t ZPosition;
 
-    Double_t RotationAngleDeg; //rotation angle (deg) for the station (counter-clockwise)
-    Double_t RotationCenterX; //x-rotation center for the station
-    Double_t RotationCenterY; //y-rotation center for the station
+    Double_t RotationAngleDeg;  // rotation angle (deg) for the station (counter-clockwise)
+    Double_t RotationCenterX;   // x-rotation center for the station
+    Double_t RotationCenterY;   // y-rotation center for the station
 
     /*Shifts of modules in each station*/
-    Double_t *XShiftOfModules;
-    Double_t *YShiftOfModules;
-    Double_t *ZShiftOfModules;
+    Double_t *XShiftOfModules;  //[NModules]
+    Double_t *YShiftOfModules;  //[NModules]
+    Double_t *ZShiftOfModules;  //[NModules]
 
-    BmnSiliconModule **Modules; //modules in the station [array]
+    BmnSiliconModule **Modules; //[NModules] modules in the station [array]
 
-    public:
-
+  public:
     /* Constructor */
     BmnSiliconStation();
-
     BmnSiliconStation(TXMLNode *stationNode, Int_t iStation,
                        Double_t xpos_station, Double_t ypos_station, Double_t zpos_station);
-
     /* Destructor */
     virtual ~BmnSiliconStation();
 
-    //Getters
+    // Getters
     Int_t GetStationNumber() { return StationNumber; }
     Int_t GetNModules() { return NModules; }
     Double_t GetXMinStation() { return XMinStation; }
@@ -95,11 +90,10 @@ protected:
 
     //--------------------------------------------------------------------------
 
-protected:
+  protected:
     void DefineStationBorders();
 
-private:
-
+  private:
     Bool_t CreateConfigurationFromXMLNode(TXMLNode *node);
     Int_t CountNumberOfModules(TXMLNode *node);
     Bool_t ParseModule(TXMLNode *node, Int_t iModule);
@@ -107,8 +101,7 @@ private:
     DeadZoneOfStripLayer ParseDeadZone(TXMLNode *node, Int_t iModule);
     Int_t CountDeadZonePoints(TXMLNode *node);
 
-    ClassDef(BmnSiliconStation, 1);
+  ClassDef(BmnSiliconStation, 1);
 };
 
 #endif /* BMNSILICONSTATION_H */
-

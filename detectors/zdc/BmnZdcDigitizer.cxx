@@ -26,7 +26,7 @@ InitStatus BmnZdcDigitizer::Init() {
     fArrayOfZdcPoints = (TClonesArray*) ioman->GetObject("ZdcPoint");
     if (fArrayOfZdcPoints == nullptr)
     {
-        LOG(ERROR)<<"BmnZdcDigitizer::Init() branch 'ZdcPoint' not found! Task will be deactivated";
+        LOG(error)<<"BmnZdcDigitizer::Init() branch 'ZdcPoint' not found! Task will be deactivated";
         SetActive(kFALSE);
         return kERROR;
     }

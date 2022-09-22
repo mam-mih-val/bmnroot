@@ -113,7 +113,7 @@ void BmnFHCalRaw2Digit::ParseConfig(TString mappingFile)
     unsigned int unique_address = (module_type == 0) ? 0 : BmnFHCalAddress::GetAddress(module_type, module_id, section_id, xIdx, yIdx, zIdx);
     fChannelVect.at(flat_channel) = unique_address;
   }
-  //std::LOG(DEBUG) << "COMMENT.str: " << comment << std::endl;
+  //std::LOG(debug) << "COMMENT.str: " << comment << std::endl;
 }
 
 void BmnFHCalRaw2Digit::ParseCalibration(TString calibrationFile)
@@ -225,7 +225,7 @@ int BmnFHCalRaw2Digit::GetFlatIndex(int mod_id, int sec_id)
 
 void BmnFHCalRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *FHCaldigit)
 {
-  LOG(DEBUG) << "BmnFHCalRaw2Digit::fillEvent" << endl;
+  LOG(debug) << "BmnFHCalRaw2Digit::fillEvent" << endl;
 
   for (int i = 0; i < data->GetEntriesFast(); i++)
   {
@@ -233,9 +233,9 @@ void BmnFHCalRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *FHCaldigit)
     // check if serial is from FHCal
     // cout<<digit->GetSerial() << " " << digit->GetChannel() << endl;
     if (std::find(fSerials.begin(), fSerials.end(), digit->GetSerial()) == fSerials.end()) {
-      LOG(DEBUG) << "BmnFHCalRaw2Digit::fillEvent" << std::hex << digit->GetSerial() << " Not found in ";
+      LOG(debug) << "BmnFHCalRaw2Digit::fillEvent" << std::hex << digit->GetSerial() << " Not found in ";
       for (auto it : fSerials)
-        LOG(DEBUG) << "BmnFHCalRaw2Digit::fSerials " << std::hex << it << endl;
+        LOG(debug) << "BmnFHCalRaw2Digit::fSerials " << std::hex << it << endl;
       continue;
     }
     
@@ -250,7 +250,7 @@ void BmnFHCalRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *FHCaldigit)
     ProcessWfm(wfm, &ThisDigi);
 
     //Apply calibration
-    LOG(DEBUG) << "BmnFHCalRaw2Digit::ProcessWfm  Calibration" << endl;
+    LOG(debug) << "BmnFHCalRaw2Digit::ProcessWfm  Calibration" << endl;
     int mod_id = ThisDigi.GetModuleId();
     int sec_id = ThisDigi.GetSectionId();
     int flat_index = GetFlatIndex(mod_id, sec_id);

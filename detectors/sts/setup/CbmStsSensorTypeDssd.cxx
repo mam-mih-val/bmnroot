@@ -42,7 +42,7 @@ Int_t CbmStsSensorTypeDssd::GetModuleChannel(Int_t strip, Int_t side,
 
   // --- Check side
   if ( side < 0 || side > 1 ) {
-    LOG(ERROR) << "Illegal side qualifier " << side;
+    LOG(error) << "Illegal side qualifier " << side;
     return -1;
   }
 
@@ -99,7 +99,7 @@ void CbmStsSensorTypeDssd::GetStrip(Int_t channel, Int_t sensorId,
 // -----   Print parameters   ----------------------------------------------
 void CbmStsSensorTypeDssd::Print(Option_t* opt) const {
 
-  LOG(INFO) << "Properties of sensor type " << GetName() << ": ";
+  LOG(info) << "Properties of sensor type " << GetName() << ": ";
             << "\t  Dimensions: (" << fixed << setprecision(4)
             << fDx << ", " << fDy << ", " << fDz << ") cm";
             << "\t  Front side: pitch = "
@@ -122,7 +122,7 @@ void CbmStsSensorTypeDssd::ProcessPoint(CbmStsSensorPoint* point,
 
   // --- Catch if parameters are not set
   if ( ! fIsSet ) {
-    LOG(FATAL) << fName << ": parameters are not set!";
+    LOG(fatal) << fName << ": parameters are not set!";
     return;
   }
 
@@ -140,7 +140,7 @@ void CbmStsSensorTypeDssd::ProduceCharge(CbmStsSensorPoint* point,
                                          const CbmStsSenzor* sensor) const {
 
   // --- Protect against being called without parameters being set
-  if ( ! fIsSet ) LOG(FATAL) << "Parameters of sensor " << fName
+  if ( ! fIsSet ) LOG(fatal) << "Parameters of sensor " << fName
                              << " are not set!";
 
   // This implementation assumes a straight trajectory in the sensor
@@ -148,7 +148,7 @@ void CbmStsSensorTypeDssd::ProduceCharge(CbmStsSensorPoint* point,
 
   // Check for side qualifier
   if ( side < 0 || side > 1 )  {
-    LOG(ERROR) << "Illegal side qualifier!";
+    LOG(error) << "Illegal side qualifier!";
     return;
   }
 
@@ -219,7 +219,7 @@ void CbmStsSensorTypeDssd::RegisterCharge(const CbmStsSenzor* sensor,
   sensor->GetModule()->AddSignal(channel, time, charge);
 
   // --- Debug output
-  LOG(DEBUG3) << fName << ": Registering charge: side " << side
+  LOG(debug3) << fName << ": Registering charge: side " << side
               << ", strip " << strip << ", time " << time
               << ", charge " << charge;
 
@@ -238,7 +238,7 @@ Bool_t CbmStsSensorTypeDssd::SelfTest() {
         Int_t testStrip, testSide;
         GetStrip(channel, sensorId, testStrip, testSide);
         if ( testStrip != strip || testSide != side ) {
-          LOG(ERROR) << fName << "Self test failed! Sensor " << sensorId
+          LOG(error) << fName << "Self test failed! Sensor " << sensorId
                      << " side " << side << " strip " << strip
                      << " gives channel " << channel << " gives strip "
                      << testStrip << " side " << testSide;
@@ -248,7 +248,7 @@ Bool_t CbmStsSensorTypeDssd::SelfTest() {
     } // side loop
   } // sensor loop
 
-  LOG(INFO) << fName << ": self test passed";
+  LOG(info) << fName << ": self test passed";
   return kTRUE;
 }
 // -------------------------------------------------------------------------
@@ -263,11 +263,11 @@ void CbmStsSensorTypeDssd::SetParameters(Double_t dx, Double_t dy,
 
   // --- Check stereo angles
   if ( TMath::Abs(stereoF) > 85. )
-    LOG(FATAL) << "Stereo angle for front side " << stereoF
+    LOG(fatal) << "Stereo angle for front side " << stereoF
                << "outside allowed limits! "
                << "Must be between -85 and 85 degrees.";
   if ( TMath::Abs(stereoB) > 85. )
-    LOG(FATAL) << "Stereo angle for back side " << stereoB
+    LOG(fatal) << "Stereo angle for back side " << stereoB
                << "outside allowed limits! "
                << "Must be between -85 and 85 degrees.";
 

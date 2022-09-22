@@ -22,7 +22,7 @@
 #include "BmnParts.h"
 #include "DstEventHeader.h"
 #include "BmnEventHeader.h"
-//#include "BmnTof1Digit.h"
+#include "CbmVertex.h"
 //#include "BmnTof2Digit.h"
 //#include "BmnGemStripDigit.h"
 //#include "BmnSiliconDigit.h"
@@ -60,9 +60,9 @@ private:
     
     THttpServer * fServer;
     
+    const Int_t TimeDelta = 20000; // sleep micro seconds
     Bool_t fFirstEvent;
     Bool_t fToFile;
-    std::string fT0BranchName;
     
     Int_t fRunId;
     Int_t fPeriodId;

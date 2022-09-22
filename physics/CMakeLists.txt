@@ -2,10 +2,10 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
- ${CMAKE_SOURCE_DIR}/database/unicom
  ${CMAKE_SOURCE_DIR}/database/uni_db
  ${CMAKE_SOURCE_DIR}/database/elog_db
  ${CMAKE_SOURCE_DIR}/database/tango
+ ${CMAKE_SOURCE_DIR}/database/tools
  ${CMAKE_SOURCE_DIR}/field
  ${CMAKE_SOURCE_DIR}/base
  ${CMAKE_SOURCE_DIR}/base/data
@@ -26,12 +26,13 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/detectors/scwall
  ${CMAKE_SOURCE_DIR}/detectors/hodo
  ${CMAKE_SOURCE_DIR}/detectors/fhcal
+ ${CMAKE_SOURCE_DIR}/detectors/ndet
  ${CMAKE_SOURCE_DIR}/detectors/land
 ## New directory structure for common library to be built ...
  ${CMAKE_SOURCE_DIR}/decoder
+ ${CMAKE_SOURCE_DIR}/reconstruction/bmnrecotools
  ${CMAKE_SOURCE_DIR}/reconstruction/globaltracking
  ${CMAKE_SOURCE_DIR}/physics
- ${CMAKE_SOURCE_DIR}/physics/bmnrecotools
  ${CMAKE_SOURCE_DIR}/physics/decay
  ${CMAKE_SOURCE_DIR}/physics/efficiency
  ${CMAKE_SOURCE_DIR}/physics/embedding
@@ -83,6 +84,6 @@ set(SRCS
 Set(HEADERS)
 Set(LINKDEF PhysicsLinkDef.h)
 Set(LIBRARY_NAME BmnPhysics)
-Set(DEPENDENCIES BmnGlobalTracking BmnDecoder LAND FHCal Hodo ScWall Zdc Ecal TofCal TOF TOF1 Gem Silicon CSC Dch Mwpc BmnBase BmnField UniDb ElogDb)
+Set(DEPENDENCIES BmnRecoTools BmnGlobalTracking BmnDecoder LAND FHCal Hodo ScWall Ndet Zdc Ecal TofCal TOF TOF1 Gem Silicon CSC Dch Mwpc BmnBase BmnField DbTools UniDb ElogDb)
 
 GENERATE_LIBRARY()

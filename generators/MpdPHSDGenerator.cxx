@@ -13,6 +13,9 @@
 #include "FairMCEventHeader.h"
 #include "MpdMCEventHeader.h"
 #include "MpdPHSDGenerator.h"
+#include "constants.h" //AZ
+
+#include <TDatabasePDG.h> //AZ
 
 // ---------------------------------------------------------------------
 MpdPHSDGenerator::MpdPHSDGenerator()
@@ -63,18 +66,30 @@ Bool_t MpdPHSDGenerator::ReadEvent(FairPrimaryGenerator *primGen)
       extraEventHeader->SetPhi(fPsiRP);
     }
   }
+  //AZ
+  Double_t kProtonMass = TDatabasePDG::Instance()->GetParticle(2212)->Mass();
+  Double_t ekin = 4.0;
+  Double_t eBeam   = ekin + kProtonMass;
+  Double_t pBeam   = TMath::Sqrt(eBeam*eBeam - kProtonMass*kProtonMass);
+  Double_t betaCM  = pBeam / (eBeam + kProtonMass);
+  Double_t gammaCM = TMath::Sqrt( 1. / ( 1. - betaCM*betaCM) );
+  //AZ
 
   /* read tracks */
   for(Int_t i=1; i<=fntr; i++)
   {
-    Int_t ipdg; Float_t px,py,pz;
+    //AZ Int_t ipdg; Float_t px,py,pz;
+    Int_t ipdg; Float_t px,py,pz,ee; //AZ
     /* read track */
     gzgets(fgzFile,fbuffer,256); 
     if (gzeof(fgzFile)) {printf("-E- MpdPHSDGenerator: unexpected end of file\n"); exit(1);}
     /* scan values */
-    int res=sscanf(fbuffer,"%d %*d %e %e %e",&ipdg,&px,&py,&pz);
-    if (res!=4)  {printf("-E- MpdPHSDGenerator: selftest error in track, scan %d of 4\n",res); exit(1);}
+    //AZ int res=sscanf(fbuffer,"%d %*d %e %e %e",&ipdg,&px,&py,&pz);
+    //AZ if (res!=4)  {printf("-E- MpdPHSDGenerator: selftest error in track, scan %d of 4\n",res); exit(1);}
+    int res=sscanf(fbuffer,"%d %*d %e %e %e %e",&ipdg,&px,&py,&pz,&ee); //AZ
+    if (res!=5)  {printf("-E- MpdPHSDGenerator: selftest error in track, scan %d of 5\n",res); exit(1);} //AZ
     if (ipdg==0) {printf("-W- MpdPHSDGenerator: particle with pdg=0\n"); continue;}
+    if (!TDatabasePDG::Instance()->GetParticle(ipdg)) { std::cout << "\033[31m -W- ---------- MpdPHSDGenerator: particle with pdg " << ipdg << " not found \033[0m" << std::endl; continue; } //AZ
     
     // replacement of heavy particles for Geant4
     // this decays will be improved in the next versions of PHSD
@@ -89,6 +104,13 @@ Bool_t MpdPHSDGenerator::ReadEvent(FairPrimaryGenerator *primGen)
     if (ipdg==+4224) ipdg=+4122; // Sigma*_c++ -> Lambda_c+
     if (ipdg==-4224) ipdg=-4122; // Sigma*_c-- -> Lambda_c-
     
+    //AZ - Lorentz transformation to lab
+    if (gCoordinateSystem == sysLaboratory) {
+      //Double_t mass = TDatabasePDG::Instance()->GetParticle(ipdg)->Mass();
+      //Double_t e = sqrt(mass * mass + px * px + py * py + pz * pz);
+      pz = gammaCM * (pz + betaCM * ee);
+    }
+    //AZ
     /* rotate RP angle */
     if (fPsiRP!=0.)
     {

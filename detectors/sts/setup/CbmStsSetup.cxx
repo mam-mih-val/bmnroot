@@ -43,16 +43,16 @@ Bool_t CbmStsSetup::Init(TGeoManager* geo) {
 
   // --- Catch non-existence of GeoManager
   if ( ! geo ) {
-    LOG(FATAL) << "fName: no TGeoManager!";
+    LOG(fatal) << "fName: no TGeoManager!";
     return kFALSE;
   }
 
   // --- Get cave (top node)
-  LOG(INFO) << fName << ": " << " Reading geometry from TGeoManager "
+  LOG(info) << fName << ": " << " Reading geometry from TGeoManager "
             << geo->GetName();
   geo->CdTop();
   TGeoNode* cave = geo->GetCurrentNode();
-  LOG(INFO) << "Top node: " << cave->GetName();
+  LOG(info) << "Top node: " << cave->GetName();
 
   // --- Get top STS node
   TGeoNode* sts = NULL;
@@ -61,21 +61,21 @@ Bool_t CbmStsSetup::Init(TGeoManager* geo) {
      if ( name.Contains("STS", TString::kIgnoreCase) ) {
       sts = cave->GetDaughter(iNode);
       geo->CdDown(iNode);
-      LOG(INFO) << fName << ": found STS node " << sts->GetName();
+      LOG(info) << fName << ": found STS node " << sts->GetName();
       break;
     }
   }
   if ( ! sts ) {
-    LOG(ERROR) << fName << ": No top STS node found in geometry!";
+    LOG(error) << fName << ": No top STS node found in geometry!";
     return kFALSE;
   }
 
   // --- Create physical node for sts
   TString path = cave->GetName();
   path = path + "/" + sts->GetName();
-  LOG(INFO) << "Path to STS is " << path;
+  LOG(info) << "Path to STS is " << path;
   fNode = new TGeoPhysicalNode(path);
-  LOG(INFO) << "PN name " << fNode->GetName();
+  LOG(info) << "PN name " << fNode->GetName();
 
   // --- Initialise daughter elements
   InitDaughters();

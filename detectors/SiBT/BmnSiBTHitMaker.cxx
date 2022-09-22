@@ -67,6 +67,24 @@ BmnSiBTHitMaker::~BmnSiBTHitMaker() {
     }
 }
 
+void BmnSiBTHitMaker::LoadDetectorConfiguration()
+{
+    TString gPathSiBTConfig = gSystem->Getenv("VMCWORKDIR");
+    gPathSiBTConfig += "/parameters/SiBT/XMLConfigs/";
+
+    switch (fCurrentConfig)
+    {
+        case BmnSiBTConfiguration::Run8:
+            StationSet = new BmnSiBTStationSet(gPathSiBTConfig + "SiBTRun8.xml");
+            TransfSet = new BmnSiBTTransform();
+            TransfSet->LoadFromXMLFile(gPathSiBTConfig + "SiBTRun8.xml");
+            if (fVerbose) cout << "   Current SiBT Configuration : Run8" << "\n";
+            break;
+        default:
+            StationSet = nullptr;
+    }
+}
+
 InitStatus BmnSiBTHitMaker::Init() {
 
     if (fVerbose > 1) cout << "=================== BmnSiBTHitMaker::Init() started ====================" << endl;
@@ -100,22 +118,8 @@ InitStatus BmnSiBTHitMaker::Init() {
         fBmnSiBTHitMatchesArray = 0;
     }
 
-    TString gPathSiBTConfig = gSystem->Getenv("VMCWORKDIR");
-    gPathSiBTConfig += "/parameters/SiBT/XMLConfigs/";
-
     //Create SiBT detector ------------------------------------------------------
-    switch (fCurrentConfig) {
-
-        case BmnSiBTConfiguration::Run8:
-            StationSet = new BmnSiBTStationSet(gPathSiBTConfig + "SiBTRun8.xml");
-            TransfSet = new BmnSiBTTransform();
-            TransfSet->LoadFromXMLFile(gPathSiBTConfig + "SiBTRun8.xml");
-            if (fVerbose) cout << "   Current SiBT Configuration : Run8" << "\n";
-            break;
-
-        default:
-            StationSet = nullptr;
-    }
+    LoadDetectorConfiguration();
 
     fField = FairRunAna::Instance()->GetField();
     if (!fField)
@@ -130,13 +134,51 @@ InitStatus BmnSiBTHitMaker::Init() {
     return kSUCCESS;
 }
 
+InitStatus BmnSiBTHitMaker::OnlineInit() {
+    // if the configuration is not set -> return a fatal error
+    if (!fCurrentConfig) LOG(fatal) << "BmnSiBTHitMaker():OnlineInit() Current CSC config is not set !!! ";
+
+    fBmnSiBTDigitsArray = new TClonesArray("BmnSiBTDigit");
+    fBmnSiBTDigitMatchesArray = nullptr;
+    fBmnEvQuality = new TClonesArray("BmnEventQuality");
+
+    fBmnSiBTHitsArray = new TClonesArray(fOutputHitsBranchName);
+
+    LoadDetectorConfiguration();
+
+    if (!fField) LOG(fatal) << "BmnCSCHitMaker::OnlineInit() No Magnetic Field found!";
+
+    return kSUCCESS;
+}
+
+InitStatus BmnSiBTHitMaker::OnlineRead(const std::unique_ptr<TTree> &dataTree, const std::unique_ptr<TTree> &resultTree)
+{
+    if (!IsActive()) return kERROR;
+
+    SetOnlineActive();
+
+    fBmnSiBTDigitsArray->Delete();
+    if (dataTree->SetBranchAddress(fInputDigitsBranchName, &fBmnSiBTDigitsArray)) {
+        LOG(error) << "BmnOnlineEDSiBTHitMaker::SetPayload(): branch " << fInputDigitsBranchName
+                   << " not found! Task will be deactivated";
+        SetOnlineActive(kFALSE);
+        return kERROR;
+    }
+
+    fBmnEvQuality->Delete();
+    dataTree->SetBranchAddress(fBmnEvQualityBranchName, &fBmnEvQuality);
+
+    fBmnSiBTHitsArray->Delete();
+
+    return kSUCCESS;
+}
+
 void BmnSiBTHitMaker::Exec(Option_t* opt) {
 
     TStopwatch sw;
     sw.Start();
 
-    if (!IsActive())
-        return;
+    if (!IsActive() || !IsOnlineActive()) return;
 
     // Event separation by triggers ...
     if (fIsExp && fBmnEvQuality) {
@@ -292,6 +334,14 @@ void BmnSiBTHitMaker::ProcessDigits() {
     if (fVerbose > 1) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();
+}
+
+void BmnSiBTHitMaker::OnlineWrite(const std::unique_ptr<TTree> &dataTree)
+{
+    if (!IsActive() || !IsOnlineActive()) return;
+
+    dataTree->Branch(fOutputHitsBranchName, &fBmnSiBTHitsArray);
+    dataTree->Fill();
 }
 
 void BmnSiBTHitMaker::Finish() {

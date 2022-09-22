@@ -96,10 +96,10 @@ Int_t BmnSsdSensorDssd::FindHits(std::vector<BmnSsdCluster*>& clusters,
       nClustersB++;
     }
     else
-      LOG(FATAL) << GetName() << ": Illegal side qualifier "
+      LOG(fatal) << GetName() << ": Illegal side qualifier "
       << side;
   }  // Loop over clusters in module
-  LOG(DEBUG3) << GetName() << ": " << nClusters << " clusters (front "
+  LOG(debug3) << GetName() << ": " << nClusters << " clusters (front "
       << frontClusters.size() << ", back " << backClusters.size()
       << ") ";
 
@@ -115,7 +115,7 @@ Int_t BmnSsdSensorDssd::FindHits(std::vector<BmnSsdCluster*>& clusters,
 
       // --- Calculate intersection points
       Int_t nOfHits = IntersectClusters(clusterF, clusterB);
-      LOG(DEBUG4) << GetName() << ": Cluster front " << iClusterF
+      LOG(debug4) << GetName() << ": Cluster front " << iClusterF
           << ", cluster back " << iClusterB
           << ", intersections " << nOfHits;
       nHits += nOfHits;
@@ -124,7 +124,7 @@ Int_t BmnSsdSensorDssd::FindHits(std::vector<BmnSsdCluster*>& clusters,
 
   }  // front side clusters
 
-  LOG(DEBUG3) << GetName() << ": Clusters " << nClusters << " ( "
+  LOG(debug3) << GetName() << ": Clusters " << nClusters << " ( "
       << nClustersF << " / " << nClustersB << " ), hits: "
       << nHits;
 
@@ -169,7 +169,7 @@ void BmnSsdSensorDssd::GetClusterPosition(Double_t centre,
     xCluster -= GetConditions()->GetMeanLorentzShift(side);
   }
 
-  LOG(DEBUG4) << GetName() << ": Cluster centre " << centre
+  LOG(debug4) << GetName() << ": Cluster centre " << centre
       << ", sensor index " << GetIndex() << ", side "
       << side << ", cluster position " << xCluster
      ;
@@ -201,7 +201,7 @@ Double_t BmnSsdSensorDssd::LorentzShift(Double_t z, Int_t chargeType,
   if      ( chargeType == 0 ) driftZ = fDz / 2. - z;  // electrons
   else if ( chargeType == 1 ) driftZ = fDz / 2. + z;  // holes
   else {
-    LOG(ERROR) << GetName() << ": illegal charge type " << chargeType
+    LOG(error) << GetName() << ": illegal charge type " << chargeType
        ;
     return 0.;
   }
@@ -224,7 +224,7 @@ Double_t BmnSsdSensorDssd::LorentzShift(Double_t z, Int_t chargeType,
   // --- but the have also the opposite charge sign, so the Lorentz force
   // --- on them is also in the positive x direction.
   Double_t shift = muHall * bY * driftZ * 1.e-4;
-  LOG(DEBUG4) << GetName() << ": Drift " << driftZ
+  LOG(debug4) << GetName() << ": Drift " << driftZ
       << " cm, mobility " << muHall
       << " cm**2/(Vs), field " << bY
       << " T, shift " << shift << " cm";
@@ -239,15 +239,15 @@ Double_t BmnSsdSensorDssd::LorentzShift(Double_t z, Int_t chargeType,
 
 // -----   Print charge status   -------------------------------------------
 void BmnSsdSensorDssd::PrintChargeStatus() const {
-  LOG(INFO) << GetName() << ": Charge status: \n";
+  LOG(info) << GetName() << ": Charge status: \n";
   for (Int_t side = 0; side < 2; side++) {
     for (Int_t strip = 0; strip < GetNofStrips(side); strip++) {
       if ( fStripCharge[side][strip] > 0. )
-        LOG(INFO) << "          " << (side ? "Back  " : "Front ") << "strip "
+        LOG(info) << "          " << (side ? "Back  " : "Front ") << "strip "
         << strip << "  charge " << fStripCharge[side][strip] << "\n";
     } //# strips
   } //# front and back side
-  LOG(INFO) << "          Total: front side "
+  LOG(info) << "          Total: front side "
       << (fStripCharge[0]).GetSum() << ", back side "
       << (fStripCharge[1]).GetSum();
 }
@@ -260,14 +260,14 @@ Int_t BmnSsdSensorDssd::CalculateResponse(BmnSsdSensorPoint* point) {
 
   // --- Catch if parameters are not set
   if ( ! fIsSet ) {
-    LOG(FATAL) << fName << ": sensor is not initialised!"
+    LOG(fatal) << fName << ": sensor is not initialised!"
        ;
     return -1;
   }
 
   // --- Debug
-  LOG(DEBUG3) << ToString();
-  LOG(DEBUG3) << GetName() << ": Processing point " << point->ToString()
+  LOG(debug3) << ToString();
+  LOG(debug3) << GetName() << ": Processing point " << point->ToString()
                        ;
 
   // --- Number of created charge signals (coded front/back side)
@@ -283,12 +283,12 @@ Int_t BmnSsdSensorDssd::CalculateResponse(BmnSsdSensorPoint* point) {
   // --- Cross talk
   if ( BmnSsdSetup::Instance()->GetDigiParameters()->GetUseCrossTalk() ) {
     if ( FairLogger::GetLogger()->IsLogNeeded(DEBUG4) ) {
-      LOG(DEBUG4) << GetName() << ": Status before cross talk"
+      LOG(debug4) << GetName() << ": Status before cross talk"
          ;
       PrintChargeStatus();
     }
     Double_t ctcoeff =  GetConditions()->GetCrossTalk();
-    LOG(DEBUG4) << GetName() << ": Cross-talk coefficient is "
+    LOG(debug4) << GetName() << ": Cross-talk coefficient is "
         << ctcoeff;
     CrossTalk(ctcoeff);
   }
@@ -366,7 +366,7 @@ void BmnSsdSensorDssd::ProduceCharge(BmnSsdSensorPoint* point) {
 
   // Average charge per step, used for uniform distribution
   Double_t chargePerStep = chargeTotal / nSteps;
-  LOG(DEBUG3) << GetName() << ": Trajectory length " << trajLength
+  LOG(debug3) << GetName() << ": Trajectory length " << trajLength
       << " cm, steps " << nSteps << ", step size " << stepSize * 1.e4
       << " mu, charge per step " << chargePerStep;
 
@@ -424,7 +424,7 @@ void BmnSsdSensorDssd::RegisterCharge(Int_t side, Int_t strip,
 
   // --- Check existence of module
   if ( ! GetModule() ) {
-    LOG(ERROR) << GetName() << ": No module connected to sensor "
+    LOG(error) << GetName() << ": No module connected to sensor "
         << GetName() << ", side " << side << ", strip "
         << strip << ", time " << time << ", charge " << charge
        ;
@@ -435,7 +435,7 @@ void BmnSsdSensorDssd::RegisterCharge(Int_t side, Int_t strip,
   Int_t channel = GetModuleChannel(strip, side, GetSensorId() );
 
   // --- Debug output
-  LOG(DEBUG4) << fName << ": Registering charge: side " << side
+  LOG(debug4) << fName << ": Registering charge: side " << side
       << ", strip " << strip << ", time " << time
       << ", charge " << charge
       << " to channel " << channel
@@ -469,7 +469,7 @@ Bool_t BmnSsdSensorDssd::SelfTest() {
         Int_t channel = GetModuleChannel(strip, side, sensorId);
         pair<Int_t, Int_t> test = GetStrip(channel, sensorId);
         if ( test.first != strip || test.second != side ) {
-          LOG(ERROR) << fName << "Self test failed! Sensor " << sensorId
+          LOG(error) << fName << "Self test failed! Sensor " << sensorId
               << " side " << side << " strip " << strip
               << " gives channel " << channel << " gives strip "
               << test.first << " side " << test.second

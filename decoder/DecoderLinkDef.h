@@ -1,5 +1,5 @@
-// $Id: DecoderLinkDef.h,v
-#ifdef __CINT__
+ // $Id: DecoderLinkDef.h,v
+#ifdef __CLING__
 
 #pragma link off all globals;
 #pragma link off all classes;
@@ -11,6 +11,7 @@
 #pragma link C++ class BmnScWallRaw2Digit+;
 #pragma link C++ class BmnFHCalRaw2Digit+;
 #pragma link C++ class BmnHodoRaw2Digit+;
+#pragma link C++ class BmnNdetRaw2Digit+;
 #pragma link C++ class BmnECALRaw2Digit+;
 #pragma link C++ class BmnTof2Raw2DigitNew+;
 #pragma link C++ class BmnTof1Raw2Digit+;
@@ -21,6 +22,8 @@
 #pragma link C++ class BmnTofCalRaw2Digit+;
 #pragma link C++ class BmnSiliconRaw2Digit+;
 #pragma link C++ class BmnCscRaw2Digit+;
+#pragma link C++ class BmnProfRaw2Digit+;
+#pragma link C++ class BmnProfAsic2Raw+;
 #pragma link C++ class BmnRawDataDecoder+;
 #pragma link C++ class BmnSlewingTOF700+;
 #pragma link C++ class BmnMscRaw2Digit+;

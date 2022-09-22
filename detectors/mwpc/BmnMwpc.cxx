@@ -379,7 +379,7 @@ void BmnMwpc::ConstructGDMLGeometry()
       m->SetId(curId+maxInd);
       j--;
    } while (curId > 1);
-   //   LOG(DEBUG) << "====================================================================";
+   //   LOG(debug) << "====================================================================";
    //   for (Int_t i=0; i<gGeoManager->GetListOfMedia()->GetEntries(); i++)
    //      gGeoManager->GetListOfMedia()->At(i)->Dump();
 
@@ -390,7 +390,7 @@ void BmnMwpc::ConstructGDMLGeometry()
 
    for (Int_t k = maxInd+1; k < newMaxInd+1; k++) {
       TGeoMedium* medToDel = (TGeoMedium*)(gGeoManager->GetListOfMedia()->At(maxInd+1));
-      LOG(DEBUG) << "    removing media " << medToDel->GetName() << " with id " << medToDel->GetId() << " (k=" << k << ")";
+      LOG(debug) << "    removing media " << medToDel->GetName() << " with id " << medToDel->GetId() << " (k=" << k << ")";
       gGeoManager->GetListOfMedia()->Remove(medToDel);
    }
    gGeoManager->SetAllIndex();
@@ -400,14 +400,14 @@ void BmnMwpc::ConstructGDMLGeometry()
 
 void BmnMwpc::ExpandNodeForGdml(TGeoNode* node)
 {
-   LOG(DEBUG) << "----------------------------------------- ExpandNodeForGdml for node " << node->GetName();
+   LOG(debug) << "----------------------------------------- ExpandNodeForGdml for node " << node->GetName();
 
    TGeoVolume* curVol = node->GetVolume();
 
-   LOG(DEBUG) << "    volume: " << curVol->GetName();
+   LOG(debug) << "    volume: " << curVol->GetName();
 
    if (curVol->IsAssembly()) {
-      LOG(DEBUG) << "    skipping volume-assembly";
+      LOG(debug) << "    skipping volume-assembly";
    }
    else
    {
@@ -418,15 +418,15 @@ void BmnMwpc::ExpandNodeForGdml(TGeoNode* node)
       TGeoMaterial* curMatInGeoManager = gGeoManager->GetMaterial(curMat->GetName());
 
       // Current medium and material assigned to the volume from GDML
-      LOG(DEBUG2) << "    curMed\t\t\t\t" << curMed << "\t" << curMed->GetName() << "\t" << curMed->GetId();
-      LOG(DEBUG2) << "    curMat\t\t\t\t" << curMat << "\t" << curMat->GetName() << "\t" << curMat->GetIndex();
+      LOG(debug2) << "    curMed\t\t\t\t" << curMed << "\t" << curMed->GetName() << "\t" << curMed->GetId();
+      LOG(debug2) << "    curMat\t\t\t\t" << curMat << "\t" << curMat->GetName() << "\t" << curMat->GetIndex();
 
       // Medium and material found in the gGeoManager - either the pre-loaded one or one from GDML
-      LOG(DEBUG2) << "    curMedInGeoManager\t\t" << curMedInGeoManager
+      LOG(debug2) << "    curMedInGeoManager\t\t" << curMedInGeoManager
                << "\t" << curMedInGeoManager->GetName() << "\t" << curMedInGeoManager->GetId();
-      LOG(DEBUG2) << "    curMatOfMedInGeoManager\t\t" << curMatOfMedInGeoManager
+      LOG(debug2) << "    curMatOfMedInGeoManager\t\t" << curMatOfMedInGeoManager
                << "\t" << curMatOfMedInGeoManager->GetName() << "\t" << curMatOfMedInGeoManager->GetIndex();
-      LOG(DEBUG2) << "    curMatInGeoManager\t\t" << curMatInGeoManager
+      LOG(debug2) << "    curMatInGeoManager\t\t" << curMatInGeoManager
                << "\t" << curMatInGeoManager->GetName() << "\t" << curMatInGeoManager->GetIndex();
 
       TString matName = curMat->GetName();
@@ -434,28 +434,28 @@ void BmnMwpc::ExpandNodeForGdml(TGeoNode* node)
 
       if (curMed->GetId() != curMedInGeoManager->GetId()) {
          if (fFixedMedia.find(medName) == fFixedMedia.end()) {
-            LOG(DEBUG) << "    Medium needs to be fixed";
+            LOG(debug) << "    Medium needs to be fixed";
             fFixedMedia[medName] = curMedInGeoManager;
             Int_t ind = curMat->GetIndex();
             gGeoManager->RemoveMaterial(ind);
-            LOG(DEBUG) << "    removing material " << curMat->GetName()
+            LOG(debug) << "    removing material " << curMat->GetName()
                << " with index " << ind;
             for (Int_t i=ind; i<gGeoManager->GetListOfMaterials()->GetEntries(); i++) {
                TGeoMaterial* m = (TGeoMaterial*)gGeoManager->GetListOfMaterials()->At(i);
                m->SetIndex(m->GetIndex()-1);
             }
 
-            LOG(DEBUG) << "    Medium fixed";
+            LOG(debug) << "    Medium fixed";
          }
          else
          {
-            LOG(DEBUG) << "    Already fixed medium found in the list    ";
+            LOG(debug) << "    Already fixed medium found in the list    ";
          }
       }
       else
       {
          if (fFixedMedia.find(medName) == fFixedMedia.end()) {
-            LOG(DEBUG) << "    There is no correct medium in the memory yet";
+            LOG(debug) << "    There is no correct medium in the memory yet";
 
             FairGeoLoader* geoLoad = FairGeoLoader::Instance();
             FairGeoInterface* geoFace = geoLoad->getGeoInterface();
@@ -465,18 +465,18 @@ void BmnMwpc::ExpandNodeForGdml(TGeoNode* node)
             FairGeoMedium* curMedInGeo = geoMediaBase->getMedium(medName);
             if (curMedInGeo == 0)
             {
-               LOG(FATAL) << "    Media not found in Geo file: " << medName;
+               LOG(fatal) << "    Media not found in Geo file: " << medName;
                //! This should not happen.
                //! This means that somebody uses material in GDML that is not in the media.geo file.
                //! Most probably this is the sign to the user to check materials' names in the CATIA model.
             }
             else
             {
-               LOG(DEBUG) << "    Found media in Geo file" << medName;
+               LOG(debug) << "    Found media in Geo file" << medName;
                Int_t nmed = geobuild->createMedium(curMedInGeo);
                fFixedMedia[medName] = (TGeoMedium*)gGeoManager->GetListOfMedia()->Last();
                gGeoManager->RemoveMaterial(curMatOfMedInGeoManager->GetIndex());
-               LOG(DEBUG) << "    removing material " << curMatOfMedInGeoManager->GetName()
+               LOG(debug) << "    removing material " << curMatOfMedInGeoManager->GetName()
                   << " with index " << curMatOfMedInGeoManager->GetIndex();
                for (Int_t i=curMatOfMedInGeoManager->GetIndex(); i<gGeoManager->GetListOfMaterials()->GetEntries(); i++) {
                   TGeoMaterial* m = (TGeoMaterial*)gGeoManager->GetListOfMaterials()->At(i);
@@ -485,16 +485,16 @@ void BmnMwpc::ExpandNodeForGdml(TGeoNode* node)
             }
 
             if (curMedInGeo->getSensitivityFlag()) {
-               LOG(DEBUG) << "    Adding sensitive  " << curVol->GetName();
+               LOG(debug) << "    Adding sensitive  " << curVol->GetName();
                AddSensitiveVolume(curVol);
             }
          }
          else
          {
-            LOG(DEBUG) << "    Already fixed medium found in the list";
-            LOG(DEBUG) << "!!! Sensitivity: " << fFixedMedia[medName]->GetParam(0);
+            LOG(debug) << "    Already fixed medium found in the list";
+            LOG(debug) << "!!! Sensitivity: " << fFixedMedia[medName]->GetParam(0);
             if (fFixedMedia[medName]->GetParam(0) == 1) {
-               LOG(DEBUG) << "    Adding sensitive  " << curVol->GetName();
+               LOG(debug) << "    Adding sensitive  " << curVol->GetName();
                AddSensitiveVolume(curVol);
             }
          }

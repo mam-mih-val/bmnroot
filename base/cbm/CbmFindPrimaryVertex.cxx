@@ -3,7 +3,6 @@
 // -----                  Created 28/11/05  by V. Friese               -----
 // -------------------------------------------------------------------------
 #include "CbmFindPrimaryVertex.h"
-
 #include "CbmPrimaryVertexFinder.h"
 #include "CbmVertex.h"
 
@@ -21,7 +20,7 @@ using std::endl;
 
 // -----   Default constructor   -------------------------------------------
 CbmFindPrimaryVertex::CbmFindPrimaryVertex() 
-  : FairTask(),
+  : FairTask("CbmFindPrimaryVertex"),
     fFinder(NULL),
     fTracks(NULL),
     fPrimVert(NULL),
@@ -31,10 +30,9 @@ CbmFindPrimaryVertex::CbmFindPrimaryVertex()
 // -------------------------------------------------------------------------
 
 
-
 // -----   Standard constructor   ------------------------------------------
 CbmFindPrimaryVertex::CbmFindPrimaryVertex(CbmPrimaryVertexFinder* pvFinder)
-  : FairTask(),
+  : FairTask("CbmFindPrimaryVertex"),
     fFinder(pvFinder),
     fTracks(NULL),
     fPrimVert(NULL),
@@ -44,12 +42,11 @@ CbmFindPrimaryVertex::CbmFindPrimaryVertex(CbmPrimaryVertexFinder* pvFinder)
 // -------------------------------------------------------------------------
 
 
-
 // -----  Constructor with name and title  ---------------------------------
 CbmFindPrimaryVertex::CbmFindPrimaryVertex(const char* name, 
 					   const char* title, 
 					   CbmPrimaryVertexFinder* finder) 
-  : FairTask(),
+  : FairTask(name),
     fFinder(finder),
     fTracks(NULL),
     fPrimVert(NULL),
@@ -59,11 +56,9 @@ CbmFindPrimaryVertex::CbmFindPrimaryVertex(const char* name,
 // -------------------------------------------------------------------------
 
 
-
 // -----   Destructor   ----------------------------------------------------
 CbmFindPrimaryVertex::~CbmFindPrimaryVertex() { }
 // -------------------------------------------------------------------------
-
 
 
 // -----   Public method Init   --------------------------------------------

@@ -61,8 +61,8 @@ class CbmStsTrackFinderIdeal : public CbmStsTrackFinder
  private:
 
   /** Arrays of MC information **/
-  TClonesArray* fMCTrackArray;
-  TClonesArray* fMCPointArray;
+  TClonesArray* fMCTrackArray;      //!
+  TClonesArray* fMCPointArray;      //!
 
   CbmStsTrackFinderIdeal(const CbmStsTrackFinderIdeal&);
   CbmStsTrackFinderIdeal operator=(const CbmStsTrackFinderIdeal&);

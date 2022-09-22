@@ -13,14 +13,18 @@
 using std::cout;
 
 TString fhTestFlnm2;
-//TList fhList2;
-TH1F* hMCtr_ion_dc1 ;
-TH1F* hMCtr_ion_dc2 ;
-TH1F* hMCtr_ionID_dc1;
-TH1F* hMCtr_ionID_dc2;
 
-const UInt_t fNActivePlanes = 8; //number of active wire planes in DHC
-BmnDchHitProducer::BmnDchHitProducer() {
+BmnDchHitProducer::BmnDchHitProducer() :
+  FairTask("BmnDchHitProducer"),
+  fBmnPointsArray(nullptr),
+  fMCTracksArray(nullptr),
+  fBmnHitsArray(nullptr),
+  fPlaneTypes(nullptr),
+  hMCtr_ion_dc1(nullptr),
+  hMCtr_ion_dc2(nullptr),
+  hMCtr_ionID_dc1(nullptr),
+  hMCtr_ionID_dc2(nullptr)
+{
   fInputBranchName = "DCHPoint";
   fOutputHitsBranchName = "BmnDchHit";
   fhTestFlnm2 = "test.BmnDCH_MC.root";
@@ -53,8 +57,15 @@ InitStatus BmnDchHitProducer::Init() {
   //Get ROOT Manager
   FairRootManager* ioman = FairRootManager::Instance();
 
-  fBmnPointsArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
-  fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
+  fBmnPointsArray = (TClonesArray*)ioman->GetObject(fInputBranchName);
+  
+  if (!fBmnPointsArray) {
+        cout << "BmnDchHitProducer::Init(): branch " << fInputBranchName << " not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+  }
+  
+  fMCTracksArray = (TClonesArray*)ioman->GetObject("MCTrack");
 
   fBmnHitsArray = new TClonesArray(fOutputHitsBranchName, 100);
   ioman->Register(fOutputHitsBranchName, "DCH", fBmnHitsArray, kTRUE);
@@ -63,6 +74,9 @@ InitStatus BmnDchHitProducer::Init() {
 }
 
 void BmnDchHitProducer::Exec(Option_t* opt) {
+  
+  if (!IsActive())
+    return;
 
   fBmnHitsArray->Delete();
 

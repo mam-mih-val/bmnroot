@@ -4,12 +4,13 @@
 // bmndstFileName - output file with reconstructed data
 // nStartEvent - number of first event to process (starts with zero), default: 0
 // nEvents - number of events to process, 0 - all events of given file will be processed, default: 1 000 events
+// proofThreads - parameter for enabling PROOF: -1 - default mode (without PROOF), 0 - PROOF uses all cores, >0 - number of PROOF threads
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #define L1Tracking // Choose Tracking: L1Tracking, VF or CellAuto
 
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
-    Int_t nStartEvent = 0, Int_t nEvents = 10) {
+    Int_t nStartEvent = 0, Int_t nEvents = 10, Int_t proofThreads = -1) {
     gDebug = 0; // Debug option
     // Verbosity level (0 = quiet (progress bar), 1 = event-level, 2 = track-level, 3 = full debug)
     Int_t iVerbose = 0;
@@ -22,11 +23,11 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
     if (!BmnFunctionSet::CheckFileExist(inputFileName, 1)) exit(-1);
 
     // -----   Reconstruction run   --------------------------------------------
-    FairRunAna* fRunAna = new FairRunAna();
+    FairRunAna* fRunAna = (proofThreads < 0) ? new FairRunAna() : BmnFunctionSet::EnableProof(proofThreads);
     fRunAna->SetEventHeader(new DstEventHeader());
 
     Bool_t isTarget = kTRUE; //kTRUE; // flag for tracking (run with target or not)
-    Bool_t isExp = !BmnFunctionSet::isSimulationFile(inputFileName); // flag for hit finder (to create digits or take them from data-file)
+    Bool_t isExp = (BmnFunctionSet::isSimulationFile(inputFileName) == 0); // flag for hit finder (to create digits or take them from data-file)
 
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
@@ -45,7 +46,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         // get geometry for run
         gRandom->SetSeed(0);
         TString geoFileName = Form("current_geo_file_%d.root", UInt_t(gRandom->Integer(UINT32_MAX)));
-        Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*)geoFileName.Data());
+        Int_t res_code = UniRun::ReadGeometryFile(run_period, run_number, (char*)geoFileName.Data());
         if (res_code != 0) {
             cout << "ERROR: could not read geometry file from the database" << endl;
             exit(-3);
@@ -69,7 +70,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         }
 
         // set magnet field with factor corresponding to the given run
-        UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
+        UniRun* pCurrentRun = UniRun::GetRun(run_period, run_number);
         if (pCurrentRun == 0)
             exit(-6);
         Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
@@ -229,8 +230,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/bmnsim.root",
         l1->SetMaterialBudgetFileName(stsMatBudgetFile);
         fRunAna->AddTask(l1);
 
-        CbmStsTrackFinder* stsTrackFinder = new CbmL1StsTrackFinder();
-        FairTask* stsFindTracks = new CbmStsFindTracks(iVerbose, stsTrackFinder);
+        FairTask* stsFindTracks = new CbmStsFindTracks(iVerbose, "CbmL1StsTrackFinder");
         fRunAna->AddTask(stsFindTracks);
 
 #ifdef VF  

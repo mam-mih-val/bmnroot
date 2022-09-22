@@ -16,12 +16,11 @@
 using namespace ROOT::Math;
 using namespace std;
 
-class BmnGemStripTransform {
-
-public:
+class BmnGemStripTransform
+{
+  public:
     //Constructor
     BmnGemStripTransform();
-
     //Destructor
     virtual ~BmnGemStripTransform();
 
@@ -35,12 +34,10 @@ public:
 
     Plane3D::Point ApplyInverseTransforms(Plane3D::Point point, Int_t station, Int_t module);
 
-private:
-    
-    vector<vector<vector<Transform3D>>> transform_stack;
+  private:
+    vector<vector<vector<Transform3D>>> transform_stack;    //!
 
-    ClassDef(BmnGemStripTransform, 1);
+  ClassDef(BmnGemStripTransform, 1);
 };
 
 #endif	/* BMNGEMSTRIPTRANSFORM_H */
-

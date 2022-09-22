@@ -43,7 +43,7 @@ void BmnMatchRecoToMC::Finish() {
 
 void BmnMatchRecoToMC::ReadAndCreateDataBranches() {
     FairRootManager* ioman = FairRootManager::Instance();
-    if (!ioman) LOG(FATAL) << "BmnMatchRecoToMC::ReadAndCreateDataBranches() nullptr FairRootManager.";
+    if (!ioman) LOG(fatal) << "BmnMatchRecoToMC::ReadAndCreateDataBranches() nullptr FairRootManager.";
 
     fGlobalTracks = (TClonesArray*)ioman->GetObject("BmnGlobalTrack");
 

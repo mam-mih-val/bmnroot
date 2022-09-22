@@ -11,7 +11,7 @@
 #include "BmnGemStripStationSet_RunSpring2017.h"
 #include "BmnEventHeader.h"
 #include "FairRunAna.h"
-#include "UniDbDetectorParameter.h"
+#include "UniDetectorParameter.h"
 
 #include <TStopwatch.h>
 
@@ -39,6 +39,10 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
 
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
+
+    fRunPeriod = run_period;
+    fRunNumber = run_number;
+
     fIsExp = isExp;
     fIsSrc = isSrc;
 
@@ -56,7 +60,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
     StationSet = nullptr;
     TransfSet = nullptr;
 
-    switch (run_period) {
+    switch (fRunPeriod) {
     case 5: //BM@N RUN-5
         fCurrentConfig = BmnGemStripConfiguration::RunWinter2016;
         break;
@@ -78,7 +82,10 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
         }
         break;
     }
+}
 
+void BmnGemStripHitMaker::createGemDetector()
+{
     TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
     gPathGemConfig += "/parameters/gem/XMLConfigs/";
 
@@ -140,9 +147,9 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
         }
     }
 
-    if (run_period == 7) {
+    if (fRunPeriod == 7) {
         if (fIsExp) {
-            UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", run_period, run_number);
+            UniDetectorParameter* coeffLorCorrs = UniDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", fRunPeriod, fRunNumber);
             vector<UniValue*> shifts;
             if (coeffLorCorrs)
                 coeffLorCorrs->GetValue(shifts);
@@ -154,7 +161,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
                 }
             }
         }
-    } else if (run_period == 8) {
+    } else if (fRunPeriod == 8) {
         for (Int_t iStat = 0; iStat < nStat; iStat++) {
             //Pol2 approximation of the next configuration: BmnGemStripMediumConfiguration::ARC4H10_80_20_E_1720_2240_3230_3730_B_0_8T
             fLorCor[iStat][0] = -0.01710;
@@ -163,9 +170,8 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Int_t run_number, Boo
         }
     }
 
-
     if (fIsExp) {
-        UniDbDetectorParameter* coeffAlignCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "alignment_shift", run_period, run_number);
+        UniDetectorParameter* coeffAlignCorrs = UniDetectorParameter::GetDetectorParameter("GEM", "alignment_shift", fRunPeriod, fRunNumber);
         vector<UniValue*> algnShifts;
         if (coeffAlignCorrs)
             coeffAlignCorrs->GetValue(algnShifts);
@@ -213,6 +219,8 @@ InitStatus BmnGemStripHitMaker::Init() {
 
     if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Init() started ===============" << endl;
 
+    createGemDetector();
+
     //if GEM configuration is not set -> return a fatal error
     if (!fCurrentConfig) Fatal("BmnGemStripHitMaker::Init()", " !!! Current GEM config is not set !!! ");
 
@@ -250,13 +258,51 @@ InitStatus BmnGemStripHitMaker::Init() {
     return kSUCCESS;
 }
 
+InitStatus BmnGemStripHitMaker::OnlineInit()
+{
+    // if GEM configuration is not set -> return a fatal error
+    if (!fCurrentConfig) LOG(fatal) << "BmnGemStripHitMaker():OnlineInit() !!! Current GEM config is not set !!! ";
+
+    createGemDetector();
+
+    fBmnGemStripDigitsArray = new TClonesArray("BmnGemStripDigit");
+    fBmnGemStripDigitMatchesArray = nullptr;
+
+    fBmnGemStripHitsArray = new TClonesArray(fOutputHitsBranchName);
+    fBmnGemUpperClustersArray = new TClonesArray("StripCluster");
+    fBmnGemLowerClustersArray = new TClonesArray("StripCluster");
+
+    if (!fField) LOG(fatal) << "BmnCSCHitMaker::OnlineInit() No Magnetic Field found!";
+    return kSUCCESS;
+}
+
+InitStatus BmnGemStripHitMaker::OnlineRead(const std::unique_ptr<TTree> &dataTree, const std::unique_ptr<TTree> &resultTree)
+{
+    if (!IsActive()) return kERROR;
+
+    SetOnlineActive();
+
+    fBmnGemStripDigitsArray->Delete();
+    if (dataTree->SetBranchAddress(fInputDigitsBranchName, &fBmnGemStripDigitsArray)) {
+        LOG(error) << "BmnGemStripHitMaker::OnlineReadData(): branch " << fInputDigitsBranchName
+                   << " not found! Task will be deactivated";
+        SetOnlineActive(kFALSE);
+        return kERROR;
+    }
+
+    fBmnGemStripHitsArray->Delete();
+    fBmnGemUpperClustersArray->Delete();
+    fBmnGemLowerClustersArray->Delete();
+
+    return kSUCCESS;
+}
+
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
 
     TStopwatch sw;
     sw.Start();
 
-    if (!IsActive())
-        return;
+    if (!IsActive() || !IsOnlineActive()) return;
 
     fBmnGemStripHitsArray->Delete();
     fBmnGemUpperClustersArray->Delete();
@@ -266,8 +312,6 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
     BmnGemStripLayer::SetUpperUniqueID(0);
 
     if (fVerbose > 1) cout << "=================== BmnGemStripHitMaker::Exec() started ===============" << endl;
-
-    fField = FairRunAna::Instance()->GetField();
 
     if (fVerbose > 1) cout << " BmnGemStripHitMaker::Exec(), Number of BmnGemStripDigits = " << fBmnGemStripDigitsArray->GetEntriesFast() << "\n";
 
@@ -399,7 +443,18 @@ void BmnGemStripHitMaker::ProcessDigits() {
 			            Double_t By = Abs(fField->GetBy(0.0, 0.0, 135.0)); //AZ-290322
                         Double_t yCor = fLorCor[iStation][0] + fLorCor[iStation][1] * Bx + fLorCor[iStation][2] * Bx * Bx;
                         Double_t xCor = fLorCor[iStation][0] + fLorCor[iStation][1] * By + fLorCor[iStation][2] * By * By;
-            			Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
+			if (int(TMath::Abs(By)+0.5) == 4) {
+			   //AZ-180822 - 0.4T 
+                           xCor += 0.0160;
+                           yCor += 0.0140;
+                        }
+                        else if (int(TMath::Abs(By)+0.5) == 6) {
+			   //AZ-180822 - 0.6T
+                           xCor += 0.0180;
+                           yCor += 0.0140;
+                        }
+
+			Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
                         x += xCor * sign;
                         y += yCor * sign;
                     }
@@ -485,6 +540,16 @@ void BmnGemStripHitMaker::ProcessDigits() {
     if (fVerbose > 1) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();
+}
+
+void BmnGemStripHitMaker::OnlineWrite(const std::unique_ptr<TTree>& dataTree)
+{
+    if (!IsActive() || !IsOnlineActive()) return;
+
+    dataTree->Branch(fOutputHitsBranchName, &fBmnGemStripHitsArray);
+    dataTree->Branch("BmnGemUpperCluster", &fBmnGemUpperClustersArray);
+    dataTree->Branch("BmnGemLowerCluster", &fBmnGemLowerClustersArray);
+    dataTree->Fill();
 }
 
 void BmnGemStripHitMaker::Finish() {

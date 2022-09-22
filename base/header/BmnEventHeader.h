@@ -134,7 +134,8 @@ public:
     void SetTrigInfo(BmnTrigInfo* trig_info)
     {
         if (fTrigInfo) delete fTrigInfo;
-        fTrigInfo = new BmnTrigInfo(trig_info);
+        if (trig_info)
+            fTrigInfo = new BmnTrigInfo(trig_info);
     }
     
     /** Set the trigger state */

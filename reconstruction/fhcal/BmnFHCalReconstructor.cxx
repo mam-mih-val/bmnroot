@@ -22,7 +22,13 @@ InitStatus BmnFHCalReconstructor::Init() {
   fworkTime = 0.;
   fpFairRootMgr = FairRootManager::Instance();
   (fIsExp)? fArrayOfFHCalDigits = (TClonesArray*) fpFairRootMgr->GetObject("FHCalDigi") :
-            fArrayOfFHCalDigits = (TClonesArray*) fpFairRootMgr->GetObject("FHCalDigit");
+    fArrayOfFHCalDigits = (TClonesArray*)fpFairRootMgr->GetObject("FHCalDigit");
+
+  if (!fArrayOfFHCalDigits) {
+        cout << "BmnFHCalReconstructor::Init(): branch with Digits not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+  }
 
   fBmnFHCalEvent = new BmnFHCalEvent();
   fBmnFHCalEvent->reset();
@@ -31,6 +37,35 @@ InitStatus BmnFHCalReconstructor::Init() {
                           reinterpret_cast<TNamed *>(fBmnFHCalEvent), kTRUE);
 
   Info(__func__,"FHCal Reconstructor ready");
+  return kSUCCESS;
+}
+
+InitStatus BmnFHCalReconstructor::OnlineInit() {
+  fworkTime = 0.;
+
+  fArrayOfFHCalDigits = new TClonesArray("BmnFHCalDigi");
+
+  fBmnFHCalEvent = new BmnFHCalEvent();
+  fBmnFHCalEvent->reset();
+  ParseConfig();
+
+  return kSUCCESS;
+}
+
+InitStatus BmnFHCalReconstructor::OnlineRead(const std::unique_ptr<TTree> &dataTree, const std::unique_ptr<TTree> &resultTree) {
+  if (!IsActive()) return kERROR;
+
+  SetOnlineActive();
+
+  fArrayOfFHCalDigits->Delete();
+  if (dataTree->SetBranchAddress("FHCalDigi", &fArrayOfFHCalDigits)) {
+    LOG(error) << "BmnFHCalReconstructor::OnlineReadData(): branch FHCalDigi not found! Task will be deactivated";
+    SetOnlineActive(kFALSE);
+    return kERROR;
+  }
+
+  fBmnFHCalEvent->ResetEnergies();
+
   return kSUCCESS;
 }
 
@@ -55,6 +90,10 @@ void BmnFHCalReconstructor::ParseConfig() {
 }
 
 void BmnFHCalReconstructor::Exec(Option_t* opt) {
+  
+  if (!IsActive())
+    return;
+    
   TStopwatch sw;
   sw.Start();
   fBmnFHCalEvent->ResetEnergies();
@@ -95,9 +134,15 @@ void BmnFHCalReconstructor::Exec(Option_t* opt) {
   fworkTime += sw.RealTime();
 }
 
+void BmnFHCalReconstructor::OnlineWrite(const std::unique_ptr<TTree>& dataTree) {
+  if (!IsActive() || !IsOnlineActive()) return;
+
+  dataTree->Branch("FHCalEvent", &fBmnFHCalEvent);
+  dataTree->Fill();
+}
+
 void BmnFHCalReconstructor::Finish() {
   printf("Work time of BmnFHCalReconstructor: %4.2f sec.\n", fworkTime);
 }
 
 ClassImp(BmnFHCalReconstructor)
-

@@ -383,16 +383,16 @@ void 			BmnBC::ConstructGeometry()
 	if(fileName.EndsWith(".root")) 
 	{
 		//gLogger->Info(MESSAGE_ORIGIN, "Constructing BC geometry from ROOT file %s", fileName.Data());
-    LOG(INFO) << "Constructing BC geometry from ROOT file " << fileName.Data();
+    LOG(info) << "Constructing BC geometry from ROOT file " << fileName.Data();
 		ConstructRootGeometry();
 	}
 	else if ( fileName.EndsWith(".geo") ) 
 	{
 		//gLogger->Info(MESSAGE_ORIGIN, "Constructing BC geometry from ASCII file %s", fileName.Data());
-    LOG(INFO)  << "Constructing BC geometry from ROOT file " << fileName.Data();
+    LOG(info)  << "Constructing BC geometry from ROOT file " << fileName.Data();
 		ConstructAsciiGeometry();
 	}
-	else LOG(INFO)  << "Constructing BC geometry from ROOT file " << fileName.Data();;
+	else LOG(info)  << "Constructing BC geometry from ROOT file " << fileName.Data();;
       
 }
 //--------------------------------------------------------------------------------------------------------------------------------------

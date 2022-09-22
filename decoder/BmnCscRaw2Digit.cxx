@@ -369,9 +369,10 @@ void BmnCscRaw2Digit::ProcessAdc(TClonesArray *adc, TClonesArray *csc, Bool_t do
                 if (strip < 0)
                     continue;
                 Double_t sig = fAdc[iCr][iCh][iSmpl] - fPedVal[iCr][iCh][iSmpl] + cs;
+                sig = -sig;
                 Double_t Asig = TMath::Abs(sig);
                 Double_t thr = Max(FinalThr, 3.5 * GetPedestalsRMS()[iCr][iCh][iSmpl]);
-                if (Asig > thr) {
+                if (sig > thr) {
                     if (doFill) {
                         fSigProf[station][module][layer]->Fill(strip);
                     } else {

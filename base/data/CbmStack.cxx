@@ -241,7 +241,7 @@ void CbmStack::FillTrackArray()
 // -----   Public method UpdateTrackIndex   --------------------------------
 void CbmStack::UpdateTrackIndex(TRefArray* detList)
 {
-    LOG(INFO) << "Updating track indices...";
+    LOG(info) << "Updating track indices...";
     Int_t nColl = 0;
 
     // First update mother ID in MCTracks
@@ -293,7 +293,7 @@ void CbmStack::UpdateTrackIndex(TRefArray* detList)
 
         }   // Collections of this detector
     }       // List of active detectors
-    LOG(INFO) << "...stack and " << nColl << " collections updated.";
+    LOG(info) << "...stack and " << nColl << " collections updated.";
 }
 
 // -----   Public method Reset   -------------------------------------------
@@ -326,7 +326,7 @@ void CbmStack::Print(Option_t*) const
     LOG(info) << "CbmStack: Number of primaries        = " << fNPrimaries;
     LOG(info) << "              Total number of particles  = " << fNParticles;
     LOG(info) << "              Number of tracks in output = " << fNTracks;
-    if (gLogger->IsLogNeeded(fair::Severity::DEBUG1)) {
+    if (gLogger->IsLogNeeded(fair::Severity::debug1)) {
         for (Int_t iTrack = 0; iTrack < fNTracks; iTrack++) {
             (static_cast<CbmMCTrack*>(fTracks->At(iTrack))->Print(iTrack));
         }

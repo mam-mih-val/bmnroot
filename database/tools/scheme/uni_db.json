@@ -1,0 +1,8 @@
+{
+    "settings": {
+        "connectionName"    : "UniConnection",
+        "classPrefix"       : "Uni",
+        "classDirectory"    : "$VMCWORKDIR/database/uni_db/",
+        "onlyUpdateClasses" : true
+    }
+}

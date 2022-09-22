@@ -47,7 +47,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
 
         // get geometry for run
         TString geoFileName = "current_geo_file.root";
-        Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
+        Int_t res_code = UniRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
         if (res_code != 0) {
             cout << "ERROR: could not read geometry file from the database" << endl;
             exit(-2);
@@ -71,7 +71,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         }
 
         // set magnet field with factor corresponding to the given run
-        UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
+        UniRun* pCurrentRun = UniRun::GetRun(run_period, run_number);
         if (pCurrentRun == 0)
             exit(-5);
         Double_t* field_voltage = pCurrentRun->GetFieldVoltage();

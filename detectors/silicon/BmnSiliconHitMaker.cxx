@@ -4,7 +4,7 @@
 
 #include "TClonesArray.h"
 #include "TSystem.h"
-#include "UniDbDetectorParameter.h"
+#include "UniDetectorParameter.h"
 
 #include <TStopwatch.h>
 
@@ -25,10 +25,14 @@ BmnSiliconHitMaker::BmnSiliconHitMaker()
 }
 
 BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_t isExp, Bool_t isSrc)
-    : fHitMatching(kTRUE) {
-
+    : fHitMatching(kTRUE)
+{
     fIsExp = isExp;
     fIsSrc = isSrc;
+
+    fRunPeriod = run_period;
+    fRunNumber = run_number;
+
     fInputPointsBranchName = "SiliconPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnSiliconDigit" : "SILICON";
     fInputDigitMatchesBranchName = "BmnSiliconDigitMatch";
@@ -42,7 +46,7 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
     fSignalLow = 0.;
     fSignalUp = DBL_MAX;
 
-    switch (run_period) {
+    switch (fRunPeriod) {
     case 6: //BM@N RUN-6
         fCurrentConfig = BmnSiliconConfiguration::RunSpring2017;
         break;
@@ -54,14 +58,17 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
         }
         break;
     case 8: //BM@N RUN-8
-        fCurrentConfig = BmnSiliconConfiguration::Run8_3stations;
+        fCurrentConfig = BmnSiliconConfiguration::Run8_4stations;
         break;
     case 777: //test purpose
         //fCurrentConfig = BmnSiliconConfiguration::Run8_mods_10_14rot_18;
         fCurrentConfig = BmnSiliconConfiguration::Run8_3stations;
         break;
     }
+}
 
+void BmnSiliconHitMaker::createSiliconDetector()
+{
     TString gPathSiliconConfig = gSystem->Getenv("VMCWORKDIR");
     gPathSiliconConfig += "/parameters/silicon/XMLConfigs/";
 
@@ -124,7 +131,7 @@ BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Int_t run_number, Bool_
 
     if (fIsExp) {
         const Int_t nStat = StationSet->GetNStations();
-        UniDbDetectorParameter* coeffAlignCorrs = UniDbDetectorParameter::GetDetectorParameter("Silicon", "alignment_shift", run_period, run_number);
+        UniDetectorParameter* coeffAlignCorrs = UniDetectorParameter::GetDetectorParameter("Silicon", "alignment_shift", fRunPeriod, fRunNumber);
         vector<UniValue*> algnShifts;
         if (coeffAlignCorrs)
             coeffAlignCorrs->GetValue(algnShifts);
@@ -178,6 +185,8 @@ InitStatus BmnSiliconHitMaker::Init() {
 
     if (fVerbose > 1) cout << "=================== BmnSiliconHitMaker::Init() started ================" << endl;
 
+    createSiliconDetector();
+
     FairRootManager* ioman = FairRootManager::Instance();
 
     fBmnSiliconDigitsArray = (TClonesArray*)ioman->GetObject(fInputDigitsBranchName);
@@ -205,13 +214,47 @@ InitStatus BmnSiliconHitMaker::Init() {
     return kSUCCESS;
 }
 
+InitStatus BmnSiliconHitMaker::OnlineInit()
+{
+    createSiliconDetector();
+
+    fBmnSiliconDigitsArray = new TClonesArray("BmnSiliconDigit");
+    fBmnSiliconDigitMatchesArray = nullptr;
+
+    fBmnSiliconHitsArray = new TClonesArray(fOutputHitsBranchName);
+    fBmnSiliconUpperClustersArray = new TClonesArray("StripCluster");
+    fBmnSiliconLowerClustersArray = new TClonesArray("StripCluster");
+
+    return kSUCCESS;
+}
+
+InitStatus BmnSiliconHitMaker::OnlineRead(const std::unique_ptr<TTree> &dataTree, const std::unique_ptr<TTree> &resultTree)
+{
+    if (!IsActive()) return kERROR;
+
+    SetOnlineActive();
+
+    fBmnSiliconDigitsArray->Delete();
+    if (dataTree->SetBranchAddress(fInputDigitsBranchName, &fBmnSiliconDigitsArray)) {
+        LOG(error) << "BmnSiliconHitMaker::Init(): branch " << fInputDigitsBranchName
+                   << " not found! Task will be deactivated";
+        SetOnlineActive(kFALSE);
+        return kERROR;
+    }
+
+    fBmnSiliconHitsArray->Delete();
+    fBmnSiliconUpperClustersArray->Delete();
+    fBmnSiliconLowerClustersArray->Delete();
+
+    return kSUCCESS;
+}
+
 void BmnSiliconHitMaker::Exec(Option_t* opt) {
 
     TStopwatch sw;
     sw.Start();
 
-    if (!IsActive())
-        return;
+    if (!IsActive() || !IsOnlineActive()) return;
 
     fBmnSiliconHitsArray->Delete();
     fBmnSiliconUpperClustersArray->Delete();
@@ -478,6 +521,16 @@ void BmnSiliconHitMaker::ProcessDigits() {
     if (fVerbose > 1) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();
+}
+
+void BmnSiliconHitMaker::OnlineWrite(const std::unique_ptr<TTree> &dataTree)
+{
+    if (!IsActive() || !IsOnlineActive()) return;
+
+    dataTree->Branch(fOutputHitsBranchName, &fBmnSiliconHitsArray);
+    dataTree->Branch("BmnSiliconUpperCluster", &fBmnSiliconUpperClustersArray);
+    dataTree->Branch("BmnSiliconLowerCluster", &fBmnSiliconLowerClustersArray);
+    dataTree->Fill();
 }
 
 void BmnSiliconHitMaker::Finish() {

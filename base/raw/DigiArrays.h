@@ -17,6 +17,7 @@ public:
     scwall(nullptr),
     fhcal(nullptr),
     hodo(nullptr),
+    ndet(nullptr),
     ecal(nullptr),
     land(nullptr),
     tofcal(nullptr),
@@ -80,6 +81,10 @@ public:
             hodo->Delete();
             delete hodo;
         }
+        if (ndet) {
+            ndet->Delete();
+            delete ndet;
+        }
         if (ecal) {
             ecal->Delete();
             delete ecal;
@@ -118,6 +123,7 @@ public:
     TClonesArray *scwall;
     TClonesArray *fhcal;
     TClonesArray *hodo;
+    TClonesArray *ndet;
     TClonesArray *ecal;
     TClonesArray *land;
     TClonesArray *tofcal;

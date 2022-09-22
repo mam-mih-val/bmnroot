@@ -14,8 +14,8 @@
 
 #include <BmnParticlePair.h>
 #include <BmnParticlePairCut.h>
-#include <UniDbDetectorParameter.h>
-#include <UniDbRun.h>
+#include <UniDetectorParameter.h>
+#include <UniRun.h>
 
 #include <iostream>
 #include <vector>

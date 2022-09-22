@@ -45,7 +45,7 @@ InitStatus FairMCModuleDraw::Init()
   fPointList = (TClonesArray*) fManager->GetObject(GetName());
   if(fPointList == 0)
   {
-    LOG(ERROR)<<"FairMCModuleDraw::Init() branch "<< GetName()<<" not found! Task will be deactivated";
+    LOG(error)<<"FairMCModuleDraw::Init() branch "<< GetName()<<" not found! Task will be deactivated";
     SetActive(kFALSE);
     return kERROR;
   }

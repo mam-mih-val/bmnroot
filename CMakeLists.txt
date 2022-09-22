@@ -4,18 +4,18 @@
 # ${BMNROOT_BINARY_DIR} or ${CMAKE_BINARY_DIR}.
 
 # Check if cmake has the required version
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.2 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0.0 FATAL_ERROR)
 ### CMP0025   Compiler id for Apple Clang is now AppleClang.
 ### CMP0042   MACOSX_RPATH is enabled by default.
 foreach(p
-  CMP0025 # CMake 3.0
-  CMP0028 # double colon for imported and alias targets
-  CMP0042 # CMake 3.0
-  CMP0054 # Only interpret ``if()`` arguments as variables or keywords when unquoted.
-  )
-  if(POLICY ${p})
-  cmake_policy(SET ${p} NEW)
-  endif()
+        CMP0025 # CMake 3.0
+        CMP0028 # double colon for imported and alias targets
+        CMP0042 # CMake 3.0
+        CMP0054 # Only interpret ``if()`` arguments as variables or keywords when unquoted.
+        )
+    if(POLICY ${p})
+        cmake_policy(SET ${p} NEW)
+    endif()
 endforeach()
 
 # Set name of our project to "BMNROOT"
@@ -24,8 +24,7 @@ project(BMNROOT)
 # Set the build type: None, Debug, Release, RelWithDebInfo, MinSizeRel, OMP
 # OMP - the quickest multithreading BmnRoot version for a multicore machine
 If(NOT CMAKE_BUILD_TYPE)
-  Message("Set BuildType DEBUG")
-  set(CMAKE_BUILD_TYPE Debug)
+    SET(CMAKE_BUILD_TYPE Debug)
 EndIf(NOT CMAKE_BUILD_TYPE)
 
 Option(USE_PATH_INFO "Information from PATH and LD_LIBRARY_PATH are used." ON)
@@ -36,30 +35,30 @@ Option(IGNORE_DIFFERENT_SYSTEM "Allow running compiled BmnRoot on different OS" 
 #Check if necessary environment variables are set
 #If not stop execution
 IF (NOT ALIBUILD)
- IF(NOT DEFINED ENV{FAIRROOTPATH})
-  MESSAGE(FATAL_ERROR "You did not define the environment variable FAIRROOTPATH which is needed to find FairRoot. Please set this variable and execute cmake again.")
- ENDIF(NOT DEFINED ENV{FAIRROOTPATH})
- IF(NOT DEFINED ENV{SIMPATH})
-  MESSAGE(FATAL_ERROR "You did not define the environment variable SIMPATH which is nedded to find the external packages. Please set this variable and execute cmake again.")
- ENDIF(NOT DEFINED ENV{SIMPATH})
- SET(SIMPATH $ENV{SIMPATH})
- SET(FAIRROOTPATH $ENV{FAIRROOTPATH})
- SET(ZEROMQ_ROOT $ENV{SIMPATH})
+    IF(NOT DEFINED ENV{FAIRROOTPATH})
+        MESSAGE(FATAL_ERROR "You did not define the environment variable FAIRROOTPATH which is needed to find FairRoot. Please set this variable and execute cmake again.")
+    ENDIF(NOT DEFINED ENV{FAIRROOTPATH})
+    IF(NOT DEFINED ENV{SIMPATH})
+        MESSAGE(FATAL_ERROR "You did not define the environment variable SIMPATH which is nedded to find the external packages. Please set this variable and execute cmake again.")
+    ENDIF(NOT DEFINED ENV{SIMPATH})
+    SET(SIMPATH $ENV{SIMPATH})
+    SET(FAIRROOTPATH $ENV{FAIRROOTPATH})
+    SET(ZEROMQ_ROOT $ENV{SIMPATH})
 ELSE (NOT ALIBUILD)
- SET(FAIRROOTPATH $ENV{FAIRROOT_ROOT})
- SET(ZEROMQ_ROOT $ENV{SIMPATH})
- SET(GEANT3_PATH $ENV{GEANT3_ROOT})
- SET(BOOST_ROOT $ENV{BOOST_ROOT})
- SET(GSL_DIR $ENV{GSL_ROOT})
+    SET(FAIRROOTPATH $ENV{FAIRROOT_ROOT})
+    SET(ZEROMQ_ROOT $ENV{SIMPATH})
+    SET(GEANT3_PATH $ENV{GEANT3_ROOT})
+    SET(BOOST_ROOT $ENV{BOOST_ROOT})
+    SET(GSL_DIR $ENV{GSL_ROOT})
 ENDIF (NOT ALIBUILD)
 
 if(APPLE)
-  if(NOT DEFINED CMAKE_C_COMPILER)
-    set(CMAKE_C_COMPILER clang)
-  endif()
-  if(NOT DEFINED CMAKE_CXX_COMPILER)
-    set(CMAKE_CXX_COMPILER clang++)
-  endif()
+    if(NOT DEFINED CMAKE_C_COMPILER)
+        set(CMAKE_C_COMPILER clang)
+    endif()
+    if(NOT DEFINED CMAKE_CXX_COMPILER)
+        set(CMAKE_CXX_COMPILER clang++)
+    endif()
 endif()
 
 # where to look first for cmake modules, before ${CMAKE_ROOT}/Modules/ is checked
@@ -84,42 +83,35 @@ set(PROJECT_INSTALL_DATADIR ${CMAKE_INSTALL_DATADIR}/bmnroot) # TODO: change 'bm
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/${PROJECT_INSTALL_LIBDIR}" isSystemDir)
 if("${isSystemDir}" STREQUAL "-1")
-  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(CMAKE_INSTALL_RPATH "$ORIGIN/../${PROJECT_INSTALL_LIBDIR}")
-  elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(CMAKE_INSTALL_RPATH "@loader_path/../${PROJECT_INSTALL_LIBDIR}")
-  else()
-    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${PROJECT_INSTALL_LIBDIR}")
-  endif()
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set(CMAKE_INSTALL_RPATH "$ORIGIN/../${PROJECT_INSTALL_LIBDIR}")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        set(CMAKE_INSTALL_RPATH "@loader_path/../${PROJECT_INSTALL_LIBDIR}")
+    else()
+        set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${PROJECT_INSTALL_LIBDIR}")
+    endif()
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-Wl,--enable-new-dtags")
-  set(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} "-Wl,--enable-new-dtags")
+    set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-Wl,--enable-new-dtags")
+    set(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} "-Wl,--enable-new-dtags")
 endif()
 
 if(CMAKE_GENERATOR STREQUAL "Ninja" AND
-  ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9) OR
-   (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.5)))
-  # Force colored warnings in Ninja's output, if the compiler has -fdiagnostics-color support.
-  # Rationale in https://github.com/ninja-build/ninja/issues/814
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always")
+((CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9) OR
+(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.5)))
+    # Force colored warnings in Ninja's output, if the compiler has -fdiagnostics-color support.
+    # Rationale in https://github.com/ninja-build/ninja/issues/814
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always")
 endif()
 
 # Set a default if not specified by the user
 if(NOT DEFINED BUILD_SHARED_LIBS)
-  set(BUILD_SHARED_LIBS ON)
+    set(BUILD_SHARED_LIBS ON)
 endif()
 
-# Check if the compiler support specific C++11 features
-# Up to now this is only a check since the code does not use
-# any of the features of the new standard
 Set(CheckSrcDir "${FAIRROOTPATH}/share/fairbase/cmake/checks")
-include(CheckCXX11Features)
 include(CheckSymbolExists)
-If(NOT _HAS_CXX11_FLAG)
-  Message(FATAL_ERROR "The used C++ compiler (${CMAKE_CXX_COMPILER}) does not support C++11. BmnRoot can only be compiled with compilers supporting C++11. Please install such a compiler.")
-EndIf()
 
 find_package(FairRoot REQUIRED)
 
@@ -129,15 +121,8 @@ include(FairMacros)
 include(WriteConfigFile)
 include(Dart)
 include(CTest)
-include(CheckCompiler)
 include(CbmMacros)
 
-# Set the build type: None, Debug, Release, RelWithDebInfo, MinSizeRel, OMP
-# OMP - the quickest multithreading BmnRoot version for a multicore machine
-If(NOT CMAKE_BUILD_TYPE)
-  Message("Set BuildType DEBUG")
-  set(CMAKE_BUILD_TYPE Debug)
-EndIf(NOT CMAKE_BUILD_TYPE)
 
 include(CheckCompiler)
 #Check the compiler and set the compile and link flags
@@ -155,14 +140,14 @@ set(INCLUDE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/include")
 Set(VMCWORKDIR ${CMAKE_SOURCE_DIR})
 
 If(USE_PATH_INFO)
-  Set(PATH "$PATH")
-  If (APPLE)
-    Set(LD_LIBRARY_PATH $ENV{DYLD_LIBRARY_PATH})
-  Else (APPLE)
-    Set(LD_LIBRARY_PATH $ENV{LD_LIBRARY_PATH})
-  EndIf (APPLE)
+    Set(PATH "$PATH")
+    If (APPLE)
+        Set(LD_LIBRARY_PATH $ENV{DYLD_LIBRARY_PATH})
+    Else (APPLE)
+        Set(LD_LIBRARY_PATH $ENV{LD_LIBRARY_PATH})
+    EndIf (APPLE)
 Else(USE_PATH_INFO)
-  STRING(REGEX MATCHALL "[^:]+" PATH $ENV{PATH})
+    STRING(REGEX MATCHALL "[^:]+" PATH $ENV{PATH})
 EndIf(USE_PATH_INFO)
 
 # Check if the user wants to build the project in the source
@@ -172,15 +157,15 @@ CHECK_INSTALL_DIRECTORY()
 
 # Check if we are on an UNIX system. If not stop with an error message
 IF(NOT UNIX)
-  MESSAGE(FATAL_ERROR "You're not on an UNIX system. The project was up to now only tested on UNIX systems, so we break here. If you want to go on please edit the CMakeLists.txt in the source directory.")
+    MESSAGE(FATAL_ERROR "You're not on an UNIX system. The project was up to now only tested on UNIX systems, so we break here. If you want to go on please edit the CMakeLists.txt in the source directory.")
 ENDIF(NOT UNIX)
 
 # Check if the external packages are installed into a separate install directory
 CHECK_EXTERNAL_PACKAGE_INSTALL_DIR()
 
 if(SIMPATH)
-  set(CMAKE_PREFIX_PATH ${SIMPATH} ${CMAKE_PREFIX_PATH})
-  set(LD_LIBRARY_PATH ${LD_LIBRARY_PATH} ${SIMPATH}/lib)
+    set(CMAKE_PREFIX_PATH ${SIMPATH} ${CMAKE_PREFIX_PATH})
+    set(LD_LIBRARY_PATH ${LD_LIBRARY_PATH} ${SIMPATH}/lib)
 endif()
 
 # searches for needed packages
@@ -189,9 +174,9 @@ endif()
 find_package(ROOT 6.10.08 REQUIRED)
 find_package(VMC)
 if(ROOT_vmc_FOUND)
-  set(VMCLIB ROOT::VMC)
+    set(VMCLIB ROOT::VMC)
 else()
-  set(VMCLIB VMCLibrary)
+    set(VMCLIB VMCLibrary)
 endif()
 find_package(FairLogger REQUIRED)
 find_package(Pythia8)
@@ -244,35 +229,35 @@ find_package(CURL REQUIRED)
 #find_Package2(PUBLIC VGM)
 #find_package2(PUBLIC IWYU)
 if(NOT DEFINED GTEST_ROOT)
-  set(GTEST_ROOT ${SIMPATH})
+    set(GTEST_ROOT ${SIMPATH})
 endif()
-#find_package2(PUBLIC FairMQ VERSION 1.4.0)
+find_package2(PUBLIC FairMQ VERSION 1.4.0)
 #find_package2(PUBLIC DDS)
 #find_package2(PUBLIC yaml-cpp)
 
 IF (NOT ALIBUILD)
- If(${ROOT_LIBRARY_DIR} MATCHES /lib/root)
-   set(BOOST_ROOT ${SIMPATH})
-   set(GSL_DIR ${SIMPATH})
- Else(${ROOT_LIBRARY_DIR} MATCHES /lib/root)
-   set(BOOST_ROOT ${SIMPATH}/basics/boost)
-   set(GSL_DIR ${SIMPATH}/basics/gsl)
- EndIf(${ROOT_LIBRARY_DIR} MATCHES /lib/root)
- 
- if(NOT DEFINED Boost_NO_SYSTEM_PATHS)
-  set(Boost_NO_SYSTEM_PATHS TRUE)
- endif()
- set(Boost_NO_BOOST_CMAKE TRUE)
+    If(${ROOT_LIBRARY_DIR} MATCHES /lib/root)
+        set(BOOST_ROOT ${SIMPATH})
+        set(GSL_DIR ${SIMPATH})
+    Else(${ROOT_LIBRARY_DIR} MATCHES /lib/root)
+        set(BOOST_ROOT ${SIMPATH}/basics/boost)
+        set(GSL_DIR ${SIMPATH}/basics/gsl)
+    EndIf(${ROOT_LIBRARY_DIR} MATCHES /lib/root)
+
+    if(NOT DEFINED Boost_NO_SYSTEM_PATHS)
+        set(Boost_NO_SYSTEM_PATHS TRUE)
+    endif()
+    set(Boost_NO_BOOST_CMAKE TRUE)
 ENDIF (NOT ALIBUILD)
 
 Message("-- Looking for Boost ...")
 if(Boost_NO_BOOST_CMAKE)
- # If an older version of boost is found both of the variables below are
- # cached and in a second cmake run, a good boost version is found even
- # if the version is to old.
- # To overcome this problem both variables are cleared before checking for boost.
- Unset(Boost_INCLUDE_DIR CACHE)
- Unset(Boost_LIBRARY_DIRS CACHE)
+    # If an older version of boost is found both of the variables below are
+    # cached and in a second cmake run, a good boost version is found even
+    # if the version is to old.
+    # To overcome this problem both variables are cleared before checking for boost.
+    Unset(Boost_INCLUDE_DIR CACHE)
+    Unset(Boost_LIBRARY_DIRS CACHE)
 endif()
 
 list(APPEND boost_dependencies filesystem serialization boost_program_options)
@@ -285,10 +270,12 @@ find_package(Boost 1.41)
 #  ADD_REQUIREMENTS_OF FairMQ
 #)
 If (Boost_FOUND)
-  Set(Boost_Avail 1)
+    Set(Boost_Avail 1)
 Else (Boost_FOUND)
-  Set(Boost_Avail 0)
+    Set(Boost_Avail 0)
 EndIf (Boost_FOUND)
+# Needed for Boost from 1.73.0 to prevent warnings
+add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS)
 
 # set a variable which should be used in all CMakeLists.txt
 # Defines all basic include directories from fairbase
@@ -302,22 +289,22 @@ SET(BMNROOT_MINOR_VERSION 0)
 SET(BMNROOT_PATCH_VERSION 0)
 SET(BMNROOT_VERSION "${BMNROOT_MAJOR_VERSION}.${BMNROOT_MINOR_VERSION}.${BMNROOT_PATCH_VERSION}")
 SET(FAIRROOT_LIBRARY_PROPERTIES ${FAIRROOT_LIBRARY_PROPERTIES}
-    VERSION "${BMNROOT_VERSION}"
-    SOVERSION "${BMNROOT_MAJOR_VERSION}"
-    SUFFIX ".so"
-)
+        VERSION "${BMNROOT_VERSION}"
+        SOVERSION "${BMNROOT_MAJOR_VERSION}"
+        SUFFIX ".so"
+        )
 set(FAIRROOT_FOUND FALSE)
 Generate_Version_Info()
 set(FAIRROOT_FOUND TRUE)
 
 if(SIMPATH)
-  set(ROOT_INCLUDE_DIR ${ROOT_INCLUDE_DIR} ${VMC_INCLUDE_DIRS})
-  set(BASE_INCLUDE_DIRECTORIES ${BASE_INCLUDE_DIRECTORIES} ${FairLogger_INCDIR})
+    set(ROOT_INCLUDE_DIR ${ROOT_INCLUDE_DIR} ${VMC_INCLUDE_DIRS})
+    set(BASE_INCLUDE_DIRECTORIES ${BASE_INCLUDE_DIRECTORIES} ${FairLogger_INCDIR})
 endif()
 
 # Recurse into the given subdirectories. This does not actually cause another cmake executable to run
 # The same process will walk through the project's entire directory structure
-add_subdirectory (database)
+#add_subdirectory (database)
 add_subdirectory (field)
 add_subdirectory (passive)
 add_subdirectory (generators)
@@ -353,12 +340,12 @@ endif()
 
 Option(BUILD_DOXYGEN "Build Doxygen" OFF)
 if(BUILD_DOXYGEN)
-  MESSAGE(STATUS "*** Building the Doxygen documentation ***")
-  add_subdirectory(doxygen)
+    MESSAGE(STATUS "*** Building the Doxygen documentation ***")
+    add_subdirectory(doxygen)
 endif(BUILD_DOXYGEN)
 
 if(IWYU_FOUND)
-  add_custom_target(checkHEADERS DEPENDS $ENV{ALL_HEADER_RULES})
+    add_custom_target(checkHEADERS DEPENDS $ENV{ALL_HEADER_RULES})
 endif(IWYU_FOUND)
 
 #find_package2(PRIVATE ClangFormat)
@@ -373,3 +360,33 @@ WRITE_CONFIG_FILE(config.sh)
 SET(VMCWORKDIR ${CMAKE_INSTALL_PREFIX})
 SET(ROOT_INCLUDE_PATH ${CMAKE_INSTALL_PREFIX}/include ${ROOT_INCLUDE_PATH})
 WRITE_CONFIG_FILE(install_config.sh)
+
+# Summary ######################################################################
+if(CMAKE_CXX_FLAGS)
+    message(STATUS "  ")
+    message(STATUS "  ${Cyan}GLOBAL CXX FLAGS${CR}  ${BGreen}${CMAKE_CXX_FLAGS}${CR}")
+endif()
+if(CMAKE_CXX_STANDARD)
+    message(STATUS "  ")
+    message(STATUS "  ${Cyan}GLOBAL CXX STANDARD${CR}  ${BGreen}c++${CMAKE_CXX_STANDARD}${CR}")
+endif()
+if(CMAKE_CONFIGURATION_TYPES)
+    message(STATUS "  ")
+    message(STATUS "  ${Cyan}BUILD TYPE         CXX FLAGS${CR}")
+    string(TOUPPER "${CMAKE_BUILD_TYPE}" selected_type)
+    foreach(type IN LISTS CMAKE_CONFIGURATION_TYPES)
+        string(TOUPPER "${type}" type_upper)
+        if(type_upper STREQUAL selected_type)
+            pad("${type}" 18 " " type_padded)
+            message(STATUS "${BGreen}* ${type_padded}${CMAKE_CXX_FLAGS_${type_upper}}${CR}")
+        else()
+            pad("${type}" 18 " " type_padded)
+            message(STATUS "  ${BWhite}${type_padded}${CR}${CMAKE_CXX_FLAGS_${type_upper}}")
+        endif()
+        unset(type_padded)
+        unset(type_upper)
+    endforeach()
+    message(STATUS "  ")
+    message(STATUS "  (Change the build type with ${BMagenta}-DCMAKE_BUILD_TYPE=...${CR})")
+endif()
+message(STATUS "  ")

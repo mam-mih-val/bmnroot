@@ -304,7 +304,7 @@ endif()
 
 # Recurse into the given subdirectories. This does not actually cause another cmake executable to run
 # The same process will walk through the project's entire directory structure
-#add_subdirectory (database)
+add_subdirectory (database)
 add_subdirectory (field)
 add_subdirectory (passive)
 add_subdirectory (generators)
